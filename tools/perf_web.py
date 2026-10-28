@@ -67,6 +67,7 @@ def export(ref):
         if f.lower().endswith(".png") and os.path.isfile(os.path.join(art_src, f)) and not release_slim.is_review_art(f) and not release_slim.is_fallback_2x(f, sib):
             shutil.copy2(os.path.join(art_src, f), art_dst)
     gpath = os.path.join(work, "game")
+    release_slim.prune_game_art(gpath, drop_fallback=True)   # 已搬进 game/art 的回退条同样不带（docs/189）
     exe = gr.find_godot()
     subprocess.run([exe, "--headless", "--path", gpath, "--import"], capture_output=True)
     tmp = os.path.join(BASE, "_out_" + c)

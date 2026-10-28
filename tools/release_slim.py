@@ -135,8 +135,30 @@ def runtime_text(game=GAME):
 # ---------- 1. 审阅图 ----------
 
 def art_files(incoming=INCOMING):
-    """随包候选：art/incoming 根目录的 PNG（子目录 portraits/ 另由 export_build 处理，不受审阅图规则影响）"""
-    return sorted(f for f in os.listdir(incoming) if f.lower().endswith(".png"))
+    """随包候选：运行时贴图 [(文件名, 路径)]（game/art 索引，docs/189 §6.1）；带前缀的 portraits/ / optical_fx/ 不在内"""
+    import asset_paths
+    return sorted((n + ".png", p) for n, p in asset_paths.runtime_files().items() if "/" not in n)
+
+
+def prune_game_art(gpath, drop_fallback):
+    """导出副本 gpath（= 打包用的 game/）：drop_fallback 时删掉 game/art 里的干员 @2x 回退条（is_fallback_2x，对外包 / 网页包），
+    再按剩下的文件重写副本里的 art/index.json。返回 (剩余 PNG 列表 [(名字, 路径)], 删掉的字节数)"""
+    import asset_index
+    art = os.path.join(gpath, "art")
+    freed = 0
+    if drop_fallback:
+        idx, _ = asset_index.build(art)
+        for name, rp in idx.items():
+            p = os.path.join(art, rp[len("res://art/"):].replace("/", os.sep))
+            if os.path.exists(p) and is_fallback_2x(os.path.basename(p), set(os.listdir(os.path.dirname(p)))):
+                freed += os.path.getsize(p)
+                os.remove(p)
+                if os.path.exists(p + ".import"):
+                    os.remove(p + ".import")
+    idx, _ = asset_index.build(art)
+    with open(os.path.join(art, "index.json"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(asset_index.dump(idx))
+    return sorted((n, os.path.join(art, rp[len("res://art/"):].replace("/", os.sep))) for n, rp in idx.items()), freed
 
 
 def art_report(game=GAME, incoming=INCOMING):
@@ -150,9 +172,9 @@ def art_report(game=GAME, incoming=INCOMING):
         if "%s" in s and len(s) < 80 and len(s.replace("%s", "")) >= 3 and re.fullmatch(r"[A-Za-z0-9_%@/]+", s):
             fmts.append(re.compile("".join("[A-Za-z0-9_]+" if t == "%s" else re.escape(t) for t in re.split(r"(%s)", s))))
     out = {"referenced": [], "review": [], "unreferenced": [], "violations": []}
-    for f in art_files(incoming):
+    for f, fp in art_files(incoming):
         base = f[:-4].replace("@2x", "")
-        size = os.path.getsize(os.path.join(incoming, f))
+        size = os.path.getsize(fp)
         ref = base in blob
         if not ref:   # 拼出来的名字（"growth_" + id、tex + "_move" 之类）：在某个 _ 处切开，前后两段各自是完整的字符串字面量，下划线归其中一段
             parts = base.split("_")

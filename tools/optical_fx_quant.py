@@ -3,13 +3,11 @@
 每个色相组的明度压成 3 阶（1D k-means，整条帧条共用一组色阶，逐帧不跳）；按原 RGB 比例缩放，色相与饱和度不变，形状（不透明覆盖）不变。
 敌方特效（统一走危险色语言，另做）与寻访界面（hh_）不处理。
 
-    python -X utf8 tools/optical_fx_quant.py            # 生成 art/incoming/optical_fx/*.png + index.json
+    python -X utf8 tools/optical_fx_quant.py            # 生成 optical_fx/*.png（game/art/fx/_optical/）并更新 game/art/index.json
     python -X utf8 tools/optical_fx_quant.py --check    # 只统计不写
 
-运行时：render/optical.gd 按 index.json 把 g.tex 里同名贴图换成 optical_fx/<名>（关掉时换回）；@2x 与原图同名同密度。
+运行时：render/optical.gd 把 g.tex 里的 fx_ / proj_ 贴图换成 optical_fx/<名>（有压阶版且尺寸一致才换）（关掉时换回）；@2x 与原图同名同密度。
 """
-import glob
-import json
 import os
 import sys
 
@@ -17,8 +15,8 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INC = os.path.join(ROOT, "art", "incoming")
-OUT = os.path.join(INC, "optical_fx")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths  # noqa: E402
 A_LOW, A_HIGH, A_MID = 0.12, 0.6, 140      # alpha 阈值（0–1）与中间阶的值（0–255）
 LEVELS = 3
 # 掏空成描边的帧（10-23 特效处理 ④：我方原作红保留，但不出现与敌方预警同形的「地面整块红色填充」）：帧条名 → 帧号
@@ -106,30 +104,33 @@ def frames_of(base: str) -> int:
 def main():
     check = "--check" in sys.argv
     files = []
-    for p in sorted(glob.glob(os.path.join(INC, "fx_*.png")) + glob.glob(os.path.join(INC, "proj_*.png"))):
-        fn = os.path.basename(p)
-        base = fn[:-4].replace("@2x", "")
+    rt = asset_paths.runtime_files()
+    for name, p in sorted(rt.items()):
+        if not name.startswith(("fx_", "proj_")):
+            continue
+        fn = name + ".png"
+        base = name.replace("@2x", "")
         if not wanted(base):
             continue
-        if "@2x" not in fn and os.path.exists(os.path.join(INC, base + "@2x.png")):
+        if "@2x" not in fn and (base + "@2x") in rt:
             continue   # 有 @2x 时 A.tex() 永远读不到 1x，不出被遮蔽的压阶版（docs/131 §1.3）
         files.append((base, fn, p))
     names = sorted({b for b, _, _ in files})
     if check:
         print(len(names), "条，", len(files), "个文件")
         return
-    os.makedirs(OUT, exist_ok=True)
     tot_in = tot_out = 0
     for base, fn, p in files:
         q = quant(Image.open(p))
         if base in HOLLOW:
             q = hollow(q, frames_of(base), HOLLOW[base], EDGE_PX * (2 if "@2x" in fn else 1))
-        dst = os.path.join(OUT, fn)
+        dst = asset_paths.out_png("optical_fx/" + fn[:-4])
         q.save(dst, optimize=True)
         tot_in += os.path.getsize(p)
         tot_out += os.path.getsize(dst)
-    with open(os.path.join(OUT, "index.json"), "w", encoding="utf-8") as f:
-        json.dump({"doc": "tools/optical_fx_quant.py 生成，勿手改", "names": names}, f, ensure_ascii=False, indent=0)
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
     print("%d 条 / %d 文件；原 %.2f MB → 压阶 %.2f MB" % (len(names), len(files), tot_in / 1e6, tot_out / 1e6))
 
 

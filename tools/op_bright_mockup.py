@@ -10,7 +10,7 @@
   python tools/op_bright_mockup.py sheet <干员> [帧]          # 每色一张掩膜（洋红 = 该色），写 build/<干员>_bright/sheet_<干员>.png
   python tools/op_bright_mockup.py metrics [干员 …]           # 明暗结构 + 各部位主色（缺省 = 第三批五人 + 已验收参照）
   python tools/op_bright_mockup.py recolor <干员> <变体> <目录>  # 写出 8 张帧条（1x + @2x）
-  python tools/op_bright_mockup.py capture <干员> [变体 … | ref] # 同 seed 实机：当主控 / 当队友 / 选人页 / 图鉴；变体临时写进本工作树 art/incoming，跑完立即 git 还原
+  python tools/op_bright_mockup.py capture <干员> [变体 … | ref] # 同 seed 实机：当主控 / 当队友 / 选人页 / 图鉴；变体临时写进本工作树的运行时贴图，跑完立即 git 还原
   python tools/op_bright_mockup.py compose <干员>             # 拼 build/<干员>_bright/compare.png
   python tools/op_bright_mockup.py lineup <输出.png> <干员 …>   # 几名干员现状同框（先各自 capture <干员> cur）
 Godot 只经 tools/godot_runner.py 启动（全机并发上限、副屏 / 屏幕外窗口、静音）；不按进程名结束任何进程。
@@ -22,7 +22,13 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
-INC = os.path.join(ROOT, "art", "incoming")
+import asset_paths
+
+
+def _rt(f):
+    """运行时贴图文件名（带 .png）→ 游戏读的路径（game/art 索引优先，回退 art/incoming）"""
+    return asset_paths.runtime_png(f[:-4])
+
 ACTIONS = ["idle", "run", "attack", "skill"]
 OUTLINE = (8, 14, 24)
 NEW = ["texas", "hoshiguma", "exusiai", "angelina", "skalter"]
@@ -137,17 +143,19 @@ def recolor_img(img, mp):
     return img
 
 
-def write_variant(op, name, dst_dir):
+def write_variant(op, name, dst_dir=None):
+    """dst_dir=None：就地覆盖运行时贴图（capture 用，跑完 git 还原）"""
     mp = VARIANTS[op][name]["map"]
-    os.makedirs(dst_dir, exist_ok=True)
+    if dst_dir:
+        os.makedirs(dst_dir, exist_ok=True)
     for f in strip_files(op):
-        recolor_img(Image.open(os.path.join(INC, f)).convert("RGBA"), mp).save(os.path.join(dst_dir, f))
+        recolor_img(Image.open(_rt(f)).convert("RGBA"), mp).save(os.path.join(dst_dir, f) if dst_dir else _rt(f))
 
 
 # ---------------------------------------------------------------- 量色
 
 def pixels(op, var=None, action="idle"):
-    img = Image.open(os.path.join(INC, "op_%s_%s@2x.png" % (op, action))).convert("RGBA")
+    img = Image.open(_rt("op_%s_%s@2x.png" % (op, action))).convert("RGBA")
     if var:
         recolor_img(img, VARIANTS[op][var]["map"])
     return [q[:3] for q in img.getdata() if q[3] > 0]
@@ -186,7 +194,7 @@ def metrics(ops):
     for op in ops:
         names = [None] + [v for v in VARIANTS.get(op, {}) if v != "cur"]
         for v in names:
-            if not os.path.exists(os.path.join(INC, "op_%s_idle@2x.png" % op)):
+            if not os.path.exists(_rt("op_%s_idle@2x.png" % op)):
                 continue
             s = stats(pixels(op, v))
             tag = op + (":" + v if v else "")
@@ -195,7 +203,7 @@ def metrics(ops):
                 tag, s["hsl"], 100 * s["black"], 100 * s["mid1"], 100 * s["mid2"], 100 * s["bright"], 100 * s["line"],
                 100 * s["lit_white"], 100 * s["lit_clip"]))
     for op in ops:
-        if not os.path.exists(os.path.join(INC, "op_%s_idle@2x.png" % op)):
+        if not os.path.exists(_rt("op_%s_idle@2x.png" % op)):
             continue
         s = stats(pixels(op))
         cnt = dict(s["top"])
@@ -215,7 +223,7 @@ def metrics(ops):
 
 
 def sheet(op, frame=0):
-    img = Image.open(os.path.join(INC, "op_%s_idle@2x.png" % op)).convert("RGBA").crop((frame * 96, 0, frame * 96 + 96, 96))
+    img = Image.open(_rt("op_%s_idle@2x.png" % op)).convert("RGBA").crop((frame * 96, 0, frame * 96 + 96, 96))
     cols = [k for k, _ in Counter(p[:3] for p in img.getdata() if p[3] > 0).most_common()]
     W = 288
     per = 7
@@ -245,7 +253,7 @@ def sheet(op, frame=0):
 # ---------------------------------------------------------------- 实机截图
 
 def _git_restore(op):
-    subprocess.run(["git", "checkout", "--", *[os.path.join("art", "incoming", f) for f in strip_files(op)]], cwd=ROOT, check=True)
+    subprocess.run(["git", "checkout", "--", *[os.path.relpath(_rt(f), ROOT) for f in strip_files(op)]], cwd=ROOT, check=True)
 
 
 def _jobs(op, mates, tag, shotdir, teammate=True):
@@ -290,7 +298,7 @@ def capture(op, names):
             jobs.update(_jobs("wisadel", op + ",skadi", "wisadel", shot, teammate=False))
         else:
             if name != "cur":
-                write_variant(op, name, INC)   # 只写本工作树的 art/incoming，跑完立即 git 还原
+                write_variant(op, name)   # 只就地写本工作树的运行时贴图，跑完立即 git 还原
             jobs.update(_jobs(op, "skadi,wisadel", name, shot))
         try:
             with ThreadPoolExecutor(5) as ex:

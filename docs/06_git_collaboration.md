@@ -5,7 +5,7 @@
 | 角色 | 目录 | 分支 | 主要范围 |
 |---|---|---|---|
 | Claude | 各会话在 `E:\ArknightsSurvivors\.claude\worktrees\<名字>` 的工作树里改；主工作区（main）只由协调人合入与发版（2026-10-14 按实际更新，见 docs/41 §3） | 各自的工作分支 → main | game/、接入、测试、构建；以及人物 / 怪物以外的全部美术（特效、弹道、预警、图标、地形、道具、UI） |
-| Codex | E:\ArknightsSurvivors\.worktrees\codex-art | codex/art | art/incoming/ 中的人物与怪物形象（玩家、援护、NPC、敌人、Boss 的待机 / 移动 / 攻击 / 假死帧条与头像）及其交接说明 |
+| Codex | E:\ArknightsSurvivors\.worktrees\codex-art | codex/art | art/incoming/<批次>/ 交付的人物与怪物形象（游戏读 game/art，由 Claude 接入，docs/189）（玩家、援护、NPC、敌人、Boss 的待机 / 移动 / 攻击 / 假死帧条与头像）及其交接说明 |
 
 ## 美术分工（2026-09-24 更新）
 

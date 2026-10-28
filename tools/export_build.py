@@ -36,15 +36,13 @@ OUT = os.path.join(ROOT, "build", "release")
 NAME = "方舟幸存者"
 PRESET = "Windows Desktop"
 INTERNAL_USER_DIR = "ArknightsSurvivors_Internal"   # 对内包存档目录前缀；实际目录带提交号：%APPDATA%\ArknightsSurvivors_Internal_<短 sha>（每个新包从干净存档开始）
-# art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、审阅用拼图不带（规则在 release_slim.REVIEW_ART_GLOBS，网页包共用）
-ART_SUBDIRS = ["portraits", "optical_fx"]   # art/incoming 下随包带走的子目录（Boss 名片头像，art.gd 按 "portraits/boss_<id>" 取；光学观感压阶特效帧条 optical_fx/，tools/optical_fx_quant.py）
 
 README = """方舟幸存者（明日方舟同人，非商业）
 版本：{channel}{ver}（{date}）
 
 【怎么玩】
 双击「开始游戏.bat」，或进入 game 文件夹双击 ArknightsSurvivors.exe。
-不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。
+请保留 game 文件夹中的 exe 与 pck 文件（美术、音频与脚本都在 pck 里）。
 
 【操作】
 WASD / 方向键 移动；空格 冲刺（冲刺中无敌）；E / J 队长手动技能（目前只有乌尔比安三技能）；Q 切换队长；F 指挥圆盘；Tab 属性；Esc 暂停；M 开关音乐。设置里可把普通攻击改为手动：左键 / J 攻击，朝光标方向。支持手柄。
@@ -211,34 +209,13 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     game_dir = os.path.join(pkg, "game")
     os.makedirs(game_dir)
     gpath = os.path.join(src, "game")
+    # 运行时贴图都在 game/art（docs/189），随 pck 走：对外包去掉干员 @2x 回退条（docs/128，游戏读 @1x），副本 art/index.json 按剩下的重写
+    game_art, freed = release_slim.prune_game_art(gpath, drop_fallback=not a.ea)
+    if freed:
+        print("[瘦身] 干员 @2x 回退条不进对外包：%.2f MB（PNG 原图）" % (freed / 1e6), flush=True)
     if a.encrypted:
         preset_path = Path(gpath) / "export_presets.cfg"
         preset_path.write_text(encrypted_release.encrypted_preset(preset_path.read_text(encoding="utf-8"), encrypted_template), encoding="utf-8")
-        packed_art = Path(gpath) / "art" / "incoming"
-        packed_art.mkdir(parents=True, exist_ok=True)
-        skipped = fallback = 0
-        sib = set(os.listdir(os.path.join(src, "art", "incoming")))
-        for pat in ["*.png"] + [d + "/*.png" for d in ART_SUBDIRS]:
-            for png in sorted((Path(src) / "art" / "incoming").glob(pat)):
-                if release_slim.is_review_art(png.name):
-                    skipped += png.stat().st_size
-                elif not a.ea and release_slim.is_fallback_2x(png.name, sib):
-                    fallback += png.stat().st_size   # 对外包：干员 @2x 回退条不带（docs/128，游戏读 @1x）
-                else:
-                    (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art).mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(png, (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art) / png.name)
-        print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）" % (skipped / 1e6), flush=True)
-        if fallback:
-            print("[瘦身] 干员 @2x 回退条不进对外包：%.2f MB（PNG 原图）" % (fallback / 1e6), flush=True)
-        # Preserve editor/external-art workflow; public binaries only read their packed resources.
-        art_loader = Path(gpath) / "scripts" / "art.gd"
-        loader = art_loader.read_text(encoding="utf-8")
-        guard = 'static func _incoming_path(name: String) -> String:\n'
-        if guard not in loader:
-            raise ValueError("Art loader contract changed; encrypted release cannot safely patch the staging copy")
-        if 'OS.has_feature("packed_release")' not in loader:
-            loader = loader.replace(guard, guard + '\tif OS.has_feature("packed_release"):\n\t\treturn ""\n', 1)
-            art_loader.write_text(loader, encoding="utf-8")
     if not import_verified(gpath):   # 缺的缓存文件导出时会以 "Cannot open file res://.godot/imported/..." 失败，导出前再清缓存从头导一遍
         print("导入缓存仍不完整，清掉 .godot 从头导一遍", flush=True)
         import_verified(gpath, fresh=True)
@@ -257,31 +234,16 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         sys.exit("导出失败：缺少 Godot 4.7.2 导出模板？见 docs/33")
     print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(game_dir, "ArknightsSurvivors.pck")) / 1e6), flush=True)
 
-    # 3. 美术 + 启动器 + 说明
-    art_src = os.path.join(src, "art", "incoming")
-    art_dst = os.path.join(pkg, "art", "incoming")
-    if not a.encrypted:
-        os.makedirs(art_dst)
-    n = 0
-    sib = set(os.listdir(art_src)) if os.path.isdir(art_src) else set()
-    for sub in [""] + ART_SUBDIRS:
-        sdir = os.path.join(art_src, sub) if sub else art_src
-        if not os.path.isdir(sdir):
-            continue
-        for f in sorted(os.listdir(sdir)):
-            if f.lower().endswith(".png") and not release_slim.is_review_art(f) and not (not a.ea and not sub and release_slim.is_fallback_2x(f, sib)):
-                if not a.encrypted:
-                    os.makedirs(os.path.join(art_dst, sub) if sub else art_dst, exist_ok=True)
-                    shutil.copy2(os.path.join(sdir, f), os.path.join(art_dst, sub) if sub else art_dst)
-                n += 1
-    print(("Packed/encrypted PNG: %d" if a.encrypted else "美术 PNG：%d 张") % n)
+    # 3. 启动器 + 说明（美术全在 pck 里，不再带散装 art/ 文件夹）
+    n = len(game_art)
+    print(("Packed/encrypted PNG: %d" if a.encrypted else "美术 PNG（pck 内）：%d 张") % n)
     with open(os.path.join(pkg, "开始游戏.bat"), "w", encoding="gbk") as fh:
         fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')
     with open(os.path.join(pkg, "说明.txt"), "w", encoding="utf-8-sig") as fh:
         readme = README
         readme += {"public": "\n用途：对外公开试玩，加密资源版。\n", "internal": "\n用途：内部 EA 验证，请勿作为公开正式包分发。存档与对外版分开，且每个新包从干净存档开始（%APPDATA%\\" + INTERNAL_USER_DIR + "_" + commit + "），不会读旧包的进度，也不会带到对外版。\n", "diagnostic": "\n用途：仅本地诊断，未加密；不可作为公开发布包。\n"}[audience]
         if a.encrypted:
-            readme = readme.replace("不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。", "美术、音频与脚本已打包加密。请保留 game 文件夹中的 exe 与 pck 文件。")
+            readme = readme.replace("请保留 game 文件夹中的 exe 与 pck 文件（美术、音频与脚本都在 pck 里）。", "美术、音频与脚本已打包加密。请保留 game 文件夹中的 exe 与 pck 文件。")
         fh.write(readme.format(ver=commit, date=date, channel="EA " if a.ea else "", ea_note="对内测试版启动即全部解锁：难度三档、图鉴、结局线全开，只在本次运行生效、不写入存档。\n名册开局 10 人（先锋 / 重装 / 术师 / 辅助 / 狙击 / 医疗 / 近卫 / 特种全覆盖）并发 20 张寻访凭证；这份进度存在本包自己的存档里，换新包从头开始。\nEA 版主页「Boss 演练」可选对手、队长、成长及形态；观察模式不会倒下，演练不记录通关进度。\n对内测试版会在本机记录每局的对局摘要（胜负、用时、等级、死因等，不含任何个人信息，不上传）：\n设置 → 游戏 → 对局记录「打开记录文件夹」，把 runs.jsonl 发给我就能帮忙校准难度。" if a.ea else "").replace("\n", "\r\n"))
 
     if a.encrypted:

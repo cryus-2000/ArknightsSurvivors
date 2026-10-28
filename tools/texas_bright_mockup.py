@@ -4,7 +4,7 @@
 用法（在工作树根目录）：
   python tools/texas_bright_mockup.py palette               # 量发色：德克萨斯与其他深发干员的头发主色、明度
   python tools/texas_bright_mockup.py recolor <变体> <输出目录>   # 只换头发三色，写出 8 张帧条（1x + @2x）
-  python tools/texas_bright_mockup.py capture [变体 …]       # 实机截图：临时把变体写进本工作树 art/incoming，跑完立即从 git 还原
+  python tools/texas_bright_mockup.py capture [变体 …]       # 实机截图：临时把变体写进本工作树的运行时贴图，跑完立即从 git 还原
   python tools/texas_bright_mockup.py compose               # 拼 build/texas_bright/compare.png
 变体：cur（现状）/ v1 / v2 / v3 / v3c（v3 + 外套 / 短裤 / 长袜压暗，推荐）/ v2s（v2 + 衬衫压成浅灰）/
   capture 另有 ref（斯卡蒂、维什戴尔各当主控的参照）/ fx70（现状 + 德克萨斯冲刺 / 剑光特效 70% 不透明）/ v2fx（v2 + fx70）
@@ -18,7 +18,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
-INC = os.path.join(ROOT, "art", "incoming")
+import asset_paths
+
+
+def _rt(f):
+    """运行时贴图文件名（带 .png）→ 游戏读的路径（game/art 索引优先，回退 art/incoming）"""
+    return asset_paths.runtime_png(f[:-4])
 OUT = os.path.join(ROOT, "build", "texas_bright")
 ACTIONS = ["idle", "run", "attack", "skill"]
 FX = ["fx_texas_blade", "fx_texas_dash"]
@@ -116,17 +121,20 @@ def strip_files():
     return ["op_texas_%s%s.png" % (a, s) for a in ACTIONS for s in ("", "@2x")]
 
 
-def write_variant(name, dst_dir):
+def write_variant(name, dst_dir=None):
+    """dst_dir=None：就地覆盖运行时贴图（capture 用，跑完 git 还原）"""
     var = VARIANTS[name]
-    os.makedirs(dst_dir, exist_ok=True)
+    dst = (lambda f: os.path.join(dst_dir, f)) if dst_dir else _rt
+    if dst_dir:
+        os.makedirs(dst_dir, exist_ok=True)
     for f in strip_files():
-        recolor_strip(os.path.join(INC, f), os.path.join(dst_dir, f), var)
+        recolor_strip(_rt(f), dst(f), var)
     if var and "fx" in var:
         for n in FX:
             for s in ("", "@2x"):
                 f = n + s + ".png"
-                if os.path.exists(os.path.join(INC, f)):
-                    fx_alpha(os.path.join(INC, f), os.path.join(dst_dir, f), var["fx"])
+                if os.path.exists(_rt(f)):
+                    fx_alpha(_rt(f), dst(f), var["fx"])
 
 
 # ---------------------------------------------------------------- 量色
@@ -140,7 +148,7 @@ def palette():
     """头发区（德克萨斯用识别出的头发像素；其他人列出深色主色）"""
     rows = []
     from collections import Counter
-    img = Image.open(os.path.join(INC, "op_texas_idle@2x.png")).convert("RGBA")
+    img = Image.open(_rt("op_texas_idle@2x.png")).convert("RGBA")
     m = hair_mask(img, 2)
     c = Counter(img.getpixel(p)[:3] for p in m)
     tot = sum(c.values())
@@ -160,10 +168,10 @@ def palette():
             ["skadi", "wisadel", "ulpianus", "logos", "lumen", "exusiai", "skalter", "hoshiguma", "angelina"]:
         if name.startswith("texas:"):
             v = name[6:]
-            recolor_strip(os.path.join(INC, "op_texas_idle@2x.png"), os.path.join(tmp, "x.png"), VARIANTS[v])
+            recolor_strip(_rt("op_texas_idle@2x.png"), os.path.join(tmp, "x.png"), VARIANTS[v])
             p = os.path.join(tmp, "x.png")
         else:
-            p = os.path.join(INC, "op_%s_idle@2x.png" % name)
+            p = _rt("op_%s_idle@2x.png" % name)
         if not os.path.exists(p):
             continue
         px = [q[:3] for q in Image.open(p).convert("RGBA").getdata() if q[3] > 0 and q[:3] != (8, 14, 24)]
@@ -179,7 +187,7 @@ def palette():
 # ---------------------------------------------------------------- 实机截图
 
 def _git_restore(files):
-    subprocess.run(["git", "checkout", "--", *[os.path.join("art", "incoming", f) for f in files]], cwd=ROOT, check=True)
+    subprocess.run(["git", "checkout", "--", *[os.path.relpath(_rt(f), ROOT) for f in files]], cwd=ROOT, check=True)
 
 
 def _jobs(op_main, squad, tag, shotdir):
@@ -220,7 +228,7 @@ def capture(names):
             jobs.update(_jobs("wisadel", "texas,skadi", "wisadel", shot))
         else:
             if name != "cur":
-                write_variant(name, INC)   # 只写本工作树的 art/incoming，跑完立即 git 还原
+                write_variant(name)   # 只就地写本工作树的运行时贴图，跑完立即 git 还原
             jobs.update(_jobs("texas", "skadi,wisadel", name, shot))
         try:
             with ThreadPoolExecutor(4) as ex:

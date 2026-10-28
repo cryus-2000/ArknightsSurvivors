@@ -14,7 +14,7 @@
 
 口径改动只改 docs/103，给 Codex 一行「口径更新：§x 改为 …」。交付只要 @2x（128 画布、原点按 docs/103），不交 1x（加载器已支持缺 1x）。横向 90% 只用于逻各斯，其他人按 100% 宽度画。
 
-交付路径（用户 10-28 定）：每批放进 `art/incoming/<批次>/`（批次名 = 内容简称 + 月日，handoff / manifest / 审阅图同目录），收货区根目录不放图；文件命名与目录按 docs/189 §3。接入由本项目复制进 `game/art/`，接入合入后整批归档到 `art/archive/`。
+交付路径（用户 10-28 定）：每批放进 `art/incoming/<批次>/`（批次名 = 内容简称 + 月日，handoff / manifest / 审阅图同目录），收货区根目录不放图；文件命名与目录按 docs/189 §3。接入由本项目复制进 `game/art/`，接入合入后整批归档到 `art/archive/`。codex/art 等旧分支上没合的旧交付（写在 `art/incoming/<名字>.png`）按 `tools/asset_path_map.json` 落到新路径收（`python tools/asset_paths.py <旧路径>` 给出新路径）；新交付直接按新路径与上面的批次目录。
 
 ## 2. Codex 侧：静态 f0
 

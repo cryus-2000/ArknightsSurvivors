@@ -89,27 +89,13 @@ def main():
     shutil.rmtree(WORK, ignore_errors=True)
     src = os.path.join(WORK, "src")
     os.makedirs(src)
-    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/incoming", "art/source/voice", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
+    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/source/voice", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     if a.worktree_presets:
         shutil.copy2(os.path.join(ROOT, "game", "export_presets.cfg"), os.path.join(src, "game", "export_presets.cfg"))
-    # 网页没有本地文件系统：美术要打进包里。审阅用拼图不复制（release_slim.REVIEW_ART_GLOBS，与 Windows 包同一组规则；
-    # Web 预设的 exclude_filter 也写着同样的规则，编辑器里直接导出时同样排除）
-    art_dst = os.path.join(src, "game", "art", "incoming")
-    os.makedirs(art_dst, exist_ok=True)
-    art_src = os.path.join(src, "art", "incoming")
-    skipped = fallback = 0
-    sib = set(os.listdir(art_src))
-    for f in os.listdir(art_src):
-        if f.lower().endswith(".png") and os.path.isfile(os.path.join(art_src, f)):
-            if release_slim.is_review_art(f):
-                skipped += os.path.getsize(os.path.join(art_src, f))
-                continue
-            if release_slim.is_fallback_2x(f, sib):
-                fallback += os.path.getsize(os.path.join(art_src, f))   # 网页包（Toy 50 MB）：干员 @2x 回退条不带，游戏读 @1x（docs/128）
-                continue
-            shutil.copy2(os.path.join(art_src, f), art_dst)
-    print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）；干员 @2x 回退条不进网页包：%.2f MB" % (skipped / 1e6, fallback / 1e6))
+    # 运行时贴图都在 game/art（docs/189），随 pck 走；网页包（Toy 50 MB）不带干员 @2x 回退条，游戏读 @1x（docs/128）
+    _, freed = release_slim.prune_game_art(os.path.join(src, "game"), drop_fallback=True)
+    print("[瘦身] 干员 @2x 回退条不进网页包：%.2f MB" % (freed / 1e6))
     print("源码：%s @ %s" % (a.ref, commit))
     # 构建信息（同 export_build.py）：局内记录的版本号、发布对象；演练入口与全部解锁按 audience 判断
     bj = os.path.join(src, "game", "data", "build.json")
@@ -249,31 +235,10 @@ def webp_max(gpath):
     if "[rendering]\n" not in txt:
         sys.exit("project.godot 里没有 [rendering] 段")
     txt = txt.replace("[rendering]\n", "[rendering]\n\n" + WEBP_MAX, 1)
-    # 没有 .import 的贴图（只有拷进来的 art/incoming）导入时不做透明边渗色：fix_alpha_border 只改全透明像素的 RGB，
-    # 这些贴图全走最近邻、读颜色处都先判 alpha（docs/187 §6 审计），画面不变；渗色让无损 WebP 大约 1.6 倍。其余目录的 .import 显式写着 true，不受影响
-    if "[importer_defaults]" in txt:
-        sys.exit("project.godot 已有 [importer_defaults]，webp_max 要改成合并写法")
-    txt = txt.rstrip("\n") + '\n\n[importer_defaults]\n\ntexture={\n"process/fix_alpha_border": false\n}\n'
-    # Godot 的渗色改的是 alpha < 20 的像素，不只全透明：带 alpha 1–19 淡像素的贴图（约 30 张特效）关了会差最多约 12/255，
-    # 这些单独写 .import 保留渗色（导入时缺的参数按缺省补）
-    import numpy as np
-    from PIL import Image
-    inc = os.path.join(gpath, "art", "incoming")
-    keep = []
-    for f in sorted(os.listdir(inc)):
-        if not f.lower().endswith(".png"):
-            continue
-        im = Image.open(os.path.join(inc, f))
-        if im.mode not in ("RGBA", "LA", "P", "PA") and "transparency" not in im.info:
-            continue
-        al = np.asarray(im.convert("RGBA"))[..., 3]
-        if ((al > 0) & (al < 20)).any():
-            keep.append(f)
-            with open(os.path.join(inc, f + ".import"), "w", encoding="utf-8", newline="\n") as fh:
-                fh.write('[remap]\n\nimporter="texture"\ntype="CompressedTexture2D"\n\n[params]\n\nprocess/fix_alpha_border=true\n')
+    # 透明边渗色不在这里改：运行时贴图（game/art）的 .import 已逐张写好（没有 alpha 1–19 淡像素的关、带的开，docs/187 §6、docs/189）
     with open(p, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(txt)
-    print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100；art/incoming 关透明边渗色（带淡像素的 %d 张保留）" % len(keep), flush=True)
+    print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100", flush=True)
 
 
 TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守

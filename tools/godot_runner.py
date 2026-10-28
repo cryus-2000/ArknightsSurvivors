@@ -433,6 +433,10 @@ def tree_key(game_dir):
     for art in [os.path.join(os.path.dirname(game_dir), "art", "incoming"), os.path.join(game_dir, "art", "px")]:
         if os.path.isdir(art):
             h.update("|".join(sorted(os.listdir(art))).encode())
+    idx = os.path.join(game_dir, "art", "index.json")   # 已搬进 game/art 的运行时贴图名单（docs/189）
+    if os.path.isfile(idx):
+        with open(idx, "rb") as fh:
+            h.update(fh.read().replace(b"\r\n", b"\n"))
     return h.hexdigest()[:16]
 
 

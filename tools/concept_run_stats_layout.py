@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, TOOLS)
 import concept_run_stats as R  # noqa: E402
+import asset_paths  # noqa: E402  运行时贴图按索引找（docs/189）
 from concept_run_stats import block, text, ptxt, pbar, sprite, hints, rgb, num, mmss, SEL_INK, SEL_SUB, RED, CY, CY_DIM, TXT, TXT2, EDGE  # noqa: E402
 
 OUT = os.path.join(R.OUT, "layout")
@@ -36,7 +37,7 @@ def stats(win):
 
 def relic_ids(n):
     ids = [str(i) for i in (4, 13, 42, 96, 7, 21, 33, 58, 61, 70, 75, 80, 88, 99, 102, 110, 111, 115, 120, 121, 125, 130, 1, 8, 10, 11, 12, 14, 16, 18)]
-    return [i for i in ids if os.path.exists(os.path.join(ART, "relic_%s.png" % i))][:n]
+    return [i for i in ids if os.path.exists(asset_paths.runtime_png("relic_%s" % i))][:n]
 
 
 def base(W, H):
@@ -46,7 +47,7 @@ def base(W, H):
 
 
 def enemy(img, cx, by, k=2):
-    sh = Image.open(os.path.join(ART, "e_bone.png")).convert("RGBA")
+    sh = Image.open(asset_paths.runtime_png("e_bone")).convert("RGBA")
     fr = sh.crop((0, 0, sh.height, sh.height)).resize((sh.height * k, sh.height * k), Image.NEAREST)
     img.alpha_composite(fr, (int(cx - fr.width / 2), int(by - fr.height)))
 
@@ -89,7 +90,7 @@ def relic_grid(img, box, ids, cell=44, sel=None, title=True):
         cx, cy = x0 + (i % per) * cell, y0 + (i // per) * cell
         on = sel == i
         block(img, (cx, cy, cx + cell - 6, cy + cell - 6), 2, 1, sel=on)
-        ic = Image.open(os.path.join(ART, "relic_%s.png" % rid)).convert("RGBA")
+        ic = Image.open(asset_paths.runtime_png("relic_%s" % rid)).convert("RGBA")
         img.alpha_composite(ic, (int(cx + (cell - 6) / 2 - 16), int(cy + (cell - 6) / 2 - 16)))
         if i % 7 == 2:
             d = ImageDraw.Draw(img)

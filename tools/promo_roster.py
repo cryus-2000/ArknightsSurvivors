@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """宣传图「干员阵容」（界面与美术 2026-10-01）：全部可选主控的待机帧并排（整数倍最近邻放大），名字 + 职业，深色底、灯火暖光。
-只用本项目像素资产（art/incoming 的 op_*_idle@2x / player_idle@2x、logo、game/fonts/ui.ttf）。
+只用本项目像素资产（运行时贴图 op_*_idle@2x / player_idle@2x、logo、game/fonts/ui.ttf）。
 用法：python tools/promo_roster.py [输出目录，缺省 build/promo] [--size 1920x1080]
 """
 import os, sys, json, glob
@@ -33,7 +33,7 @@ def roster():
         cid = os.path.basename(f)[:-5]
         d = json.load(open(f, encoding="utf-8"))
         tex = "player_idle@2x" if cid == "mizuki" else "op_%s_idle@2x" % cid
-        if not os.path.exists(os.path.join(K.ART, tex + ".png")):
+        if not os.path.exists(K.asset_paths.runtime_png(tex)):
             continue
         out.append((cid, d.get("name", cid), d.get("class", d.get("cls", "")), tex))
     return out

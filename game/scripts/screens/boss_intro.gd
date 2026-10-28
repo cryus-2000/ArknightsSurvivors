@@ -142,7 +142,7 @@ func _portrait_source(main: Dictionary, cd_portrait: String) -> String:
 	return _portrait_name(cd_portrait, str(main.tex))
 
 
-## 候选 A 的裁切框（PORTRAIT_CROP）是照着 art/incoming/<name>.png 这张 1x 原图量的；<name>@2x.png 不保证是干净的
+## 候选 A 的裁切框（PORTRAIT_CROP）是照着 <name>.png 这张 1x 基础图量的；<name>@2x.png 不保证是干净的
 ## 整数倍（10-21 发现 e_knight@2x 实际 586×293，不是 192×80 的 2 倍），A.tex() 按文件名优先取 @2x、再按固定密度 2
 ## 换算，会在错的区域取样。这里绕开 @2x，强制直接读 1x 原图，裁切框坐标就不用再乘密度，缓存键另起一个避免和
 ## 世界层已经按 @2x 缓存的 g.tex[name] 冲突
@@ -150,14 +150,8 @@ func _portrait_tex_1x_key(name: String) -> String:
 	var key: String = name + "@1x_portrait"
 	if g.tex.has(key):
 		return key
-	var p: String = A.incoming_dir().path_join(name + ".png")
-	var img: Image = Image.load_from_file(p) if FileAccess.file_exists(p) else null
-	if img != null and not img.is_empty():
-		g.tex[key] = ImageTexture.create_from_image(img)
-	else:
-		# 网页版 / 包内读不到原始 PNG：改读导入后的 1x 基础图（art.gd _packed_path，同样是 1x，裁切框坐标不变）
-		var q: String = A._packed_path(name)
-		g.tex[key] = load(q) if q != "" else null
+	var q: String = A._packed_path(name)   # 导入后的 1x 基础图（game/art 索引，docs/189）
+	g.tex[key] = load(q) if q != "" else null
 	return key
 
 

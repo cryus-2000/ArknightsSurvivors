@@ -1,9 +1,11 @@
 """给干员 json 的 sprites 加 move_attack 槽（帧数 / 脚底同普攻），斯卡蒂普攻换新帧条（docs/128；make_op_1x.py 之后跑）。
 只在文本里插一行 / 改一段，不重排整个文件。可重复跑（已有 move_attack 槽就跳过）。"""
-import json, os, re
+import json, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CH = os.path.join(ROOT, "game", "data", "characters")
 INC = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 for f in sorted(os.listdir(CH)):
     if not f.endswith(".json"):
         continue
@@ -43,7 +45,7 @@ for f in sorted(os.listdir(CH)):
         txt = txt[:start] + ind + '"attack": ' + json.dumps(new, ensure_ascii=False) + txt[i + 1:]
         att = new
         changed = True
-    if att and "move_attack" not in sp and os.path.exists(os.path.join(INC, mtex + "@1x.png")):
+    if att and "move_attack" not in sp and os.path.exists(asset_paths.runtime_png(mtex + "@1x")):
         slot = {"tex": mtex, "frames": int(att.get("frames", 8)), "foot": att.get("foot", sp.get("foot")),
                 "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"}
         m = re.search(r'\n(\s*)"sprites": \{\n(\s*)', txt)

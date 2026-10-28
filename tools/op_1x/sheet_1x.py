@@ -3,7 +3,8 @@
 import json, os, sys
 from PIL import Image, ImageDraw
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-INC = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 ops = sys.argv[1].split(",")
 out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "..", "op_1x_sheet.png")
 rows = []
@@ -14,12 +15,12 @@ for op in ops:
         v = {"tex": v} if isinstance(v, str) else v
         if isinstance(v, dict) and isinstance(v.get("tex"), str):
             slots[v["tex"]] = (k, v)
-    for t in sorted(f[:-7] for f in os.listdir(INC) if f.endswith("@1x.png") and (f.startswith("op_" + op) or f.startswith(op))):
+    for t in sorted(f[:-3] for f in asset_paths.runtime_files() if f.endswith("@1x") and (f.startswith("op_" + op) or f.startswith(op))):
         k, v = slots.get(t, (t, {}))
-        one = Image.open(os.path.join(INC, t + "@1x.png")).convert("RGBA")
+        one = Image.open(asset_paths.runtime_png(t + "@1x")).convert("RGBA")
         n = int(v.get("frames", 0)) or max(1, one.width // one.height)
         fw = one.width // n
-        two_p = os.path.join(INC, t + "@2x.png")
+        two_p = asset_paths.runtime_png(t + "@2x")
         two = Image.open(two_p).convert("RGBA") if os.path.exists(two_p) else None
         foot = v.get("foot")
         idx = list(range(0, n, max(1, n // 6)))[:6]

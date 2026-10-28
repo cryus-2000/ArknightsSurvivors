@@ -2,15 +2,16 @@
 """已入库特效帧条的重调色变体（docs/25 §3 的延伸，第二批干员用）。
 
 用法：python tools/fx_recolor.py
-输入 / 输出都在 art/incoming/：按 VARIANTS 表把源帧条按亮度映射到目标色板，写出新帧条；帧数 / fps 与源相同，
+输入 / 输出都是运行时贴图（asset_paths：读 runtime_png、写 out_png）：按 VARIANTS 表把源帧条按亮度映射到目标色板，写出新帧条；帧数 / fps 与源相同，
 所以 game.gd V6_FRAMES 里照抄源的登记即可（脚本最后打印登记行）。
 源帧条本身已是重调色过的第三方素材（tools/fx_import.py），亮度信息仍在，可以再映射一次。
 """
-import os
+import os, sys
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ART = os.path.join(ROOT, 'art', 'incoming')
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+import asset_paths
 
 # 第二批干员色板（暗 → 中 → 亮 → 高光）
 RAMPS = {
@@ -66,14 +67,17 @@ def recolor(im, ramp):
 def main():
     made = []
     for src, dst, ramp in VARIANTS:
-        sp = os.path.join(ART, src + '.png')
+        sp = asset_paths.runtime_png(src)
         if not os.path.exists(sp):
             print('缺源帧条：', src)
             continue
         im = Image.open(sp)
-        recolor(im, ramp).save(os.path.join(ART, dst + '.png'))
+        recolor(im, ramp).save(asset_paths.out_png(dst))
         made.append((src, dst))
         print('%-24s → %-26s (%s)  %dx%d' % (src, dst, ramp, im.width, im.height))
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, 'w', encoding='utf-8', newline='\n').write(asset_index.dump(idx))
     print('\nV6_FRAMES 登记（帧数 / fps 与源相同）：')
     for src, dst in made:
         print('  "%s": 同 "%s"' % (dst, src))

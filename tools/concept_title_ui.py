@@ -27,6 +27,7 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 sys.path.insert(0, TOOLS)
 import godot_runner as gr  # noqa: E402
+import asset_paths  # noqa: E402
 
 W, H = 1280, 720
 PW, PH = 740, 360
@@ -34,7 +35,7 @@ OUT = os.path.join(gr.common_root(ROOT), "build", "title_redesign")
 SHOTS = os.path.join(OUT, "shots")
 FONT_UI = os.path.join(ROOT, "game", "fonts", "ui.ttf")
 FONT_FB = os.path.join(ROOT, "game", "fonts", "ui_fallback.otf")
-ART = os.path.join(ROOT, "art", "incoming")
+ART = os.path.join(ROOT, "art", "incoming")   # 旧名，v3 还在 import；运行时贴图改走 asset_paths.runtime_png
 
 # ---------------------------------------------------------------- 截图
 # 名字: (分辨率, Godot 参数, 产物文件)
@@ -178,8 +179,8 @@ def emblem(img, c, r, col):
 
 
 def logo(scale=1.0, sweep=1.0):
-    """像素 Logo（art/incoming/logo.png，最近邻缩放）；sweep < 1 = 扫光进行中，只露出左边一截 + 青色扫光边"""
-    im = Image.open(os.path.join(ART, "logo.png")).convert("RGBA")
+    """像素 Logo（运行时贴图 logo.png，最近邻缩放）；sweep < 1 = 扫光进行中，只露出左边一截 + 青色扫光边"""
+    im = Image.open(asset_paths.runtime_png("logo")).convert("RGBA")
     if scale != 1.0:
         im = im.resize((int(im.width * scale), int(im.height * scale)), Image.NEAREST)
     if sweep < 1.0:

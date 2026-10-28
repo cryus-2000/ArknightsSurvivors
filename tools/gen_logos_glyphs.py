@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """逻各斯「言」符文（art/requests/v17_codex_logos_glyphs.md，程序生成版，固定种子、可重复）。
 
-生成 art/incoming/ 下三组图（@1x 与严格 2 倍最近邻的 @2x）：
+生成三组运行时图（asset_paths.out_png，game/art/fx/）（@1x 与严格 2 倍最近邻的 @2x）：
   fx_logos_glyphs   32×32 ×16 格横排：16 个互不重复的字，每字 2–5 条细笔画（楔形 / 篆刻感），
                     笔画起笔 2 px 宽（外侧亮紫白 #EEF0FF、内侧墨蓝 #3A48B8）、收笔收成 1 px，
                     楔形起笔；一两笔末端暗红 #7A2030。无填色、二值 alpha。字高约 22 px（69%），居中。
@@ -20,6 +20,8 @@ import os, sys, random
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 OUT = os.path.join(ROOT, "art", "incoming")
 OLD = os.path.join(OUT, "_old_logos_glyphs")
 PREV = os.path.join(ROOT, "build", "logos_glyphs")
@@ -212,8 +214,8 @@ def _x2(im):
 
 
 def _save(im, name):
-    im.save(os.path.join(OUT, name + ".png"))
-    _x2(im).save(os.path.join(OUT, name + "@2x.png"))
+    im.save(asset_paths.out_png(name))
+    _x2(im).save(asset_paths.out_png(name + "@2x"))
 
 
 # ---------------------------------------------------------------------------
@@ -337,12 +339,15 @@ def main():
     os.makedirs(OLD, exist_ok=True)
     for n in ("fx_logos_glyphs", "fx_logos_glyph", "fx_logos_script"):
         for suf in ("", "@2x"):
-            src = os.path.join(OUT, n + suf + ".png")
+            src = asset_paths.runtime_png(n + suf)
             dst = os.path.join(OLD, n + suf + ".png")
             if os.path.exists(src) and not os.path.exists(dst):
                 Image.open(src).save(dst)
     g, h, s = make_glyphs(), make_hit(), make_script()
     _save(g, "fx_logos_glyphs"); _save(h, "fx_logos_glyph"); _save(s, "fx_logos_script")
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
     print("wrote", g.size, h.size, s.size)
     if "--preview" in sys.argv:
         print("preview:", preview(g, h, s))

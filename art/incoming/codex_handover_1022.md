@@ -2,6 +2,8 @@
 
 > 用户 10-22 定：协调人（Claude）写清架构与规范后，**剩余工作全权交 Codex**（代码 + 美术）。本文是入口：先读这一页，再按链接读原文。Codex 在 `codex/<topic>` 分支改代码（docs/106 §6），做完报提交号；协调人（或用户）合 main、出包、发布。
 
+> **10-28 素材目录迁移（docs/189）**：游戏不再读 `art/incoming/` 根目录，运行时贴图已搬进 `game/art/<类别>/`（干员 `operators/<id>/`、敌人 `enemies/<id>/`、特效 `fx/`、图标 `ui/…`、地图件 `world/…`），按 `game/art/index.json` 找图。codex/art 上还没合的旧交付按 `tools/asset_path_map.json` 收（`python tools/asset_paths.py <旧路径>` 给新路径）；**新交付一律放 `art/incoming/<内容简称>_<月日>/`**，命名按 docs/189 §3，根目录不放图。
+
 ## 0. 必读顺序（1 小时）
 
 1. `AGENTS.md`（协作铁律：静音、不弹窗、只提交自己的文件、同 seed、快检）→ `docs/41_agent_team.md` §5。

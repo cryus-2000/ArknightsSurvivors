@@ -5,8 +5,6 @@ import argparse, fnmatch, json, os, re, shutil, struct, tempfile, zipfile
 from pathlib import Path
 import encrypted_release as enc
 import godot_runner
-from release_slim import is_review_art
-from export_build import ART_SUBDIRS   # 随包子目录只认 export_build 这一份（10-23 光学观感加 optical_fx/ 后这里漏数，对内包验证失败）
 
 ROOT=Path(__file__).resolve().parents[1]
 PROBE=r'''extends SceneTree
@@ -22,7 +20,8 @@ func _initialize():
 func _verify():
     Art.normal_maps = false
     for item in images:
-        var resource = load("res://art/incoming/" + item[0] + ".png")
+        var packed_path = Art._packed_path(item[0])   # game/art 索引（docs/189 §6.1）
+        var resource = load(packed_path) if packed_path != "" else null
         if not resource is Texture2D or resource.get_width() != item[1] or resource.get_height() != item[2]:
             failures.append("packed_png:" + item[0])
         if resource is Texture2D:
@@ -37,8 +36,6 @@ func _verify():
         var want_d := 1.0 if Art.op_1x_on() and Art._packed_path(base + "@1x") != "" else (2.0 if str(item[0]).ends_with("@2x") else -1.0)
         if want_d > 0.0 and Art.hires(base) != want_d:
             failures.append("hires_density:" + base)
-        if Art._incoming_path(base) != "":
-            failures.append("external_override:" + base)
     for alias_name in Art.ALIAS:
         if Art.tex(alias_name) == null:
             failures.append("alias:" + alias_name)
@@ -228,16 +225,13 @@ def main():
     enc.check_distribution(package)
     manifest=json.loads((package/'release_manifest.json').read_text(encoding='utf-8'))
     images=[]
-    art_root=project/'art/incoming'
-    # 根目录 + export_build.ART_SUBDIRS 子目录（Boss 名片头像 portraits/、光学观感压阶特效 optical_fx/），与出包计数口径一致；子目录文件以 "子目录/名" 登记
-    subdirs=['']+[d for d in ART_SUBDIRS if (art_root/d).is_dir()]
-    for sub in subdirs:
-        for path in sorted((art_root/sub if sub else art_root).glob('*.png')):
-            if is_review_art(path.name): continue
-            raw=path.read_bytes()[:24]
-            if raw[:8]!=b'\x89PNG\r\n\x1a\n': raise ValueError('Invalid staged PNG: '+path.name)
-            width,height=struct.unpack('>II',raw[16:24])
-            images.append([(sub+'/'+path.stem) if sub else path.stem,width,height])
+    # 运行时贴图都在 game/art（docs/189）：按副本 art/index.json 登记（导出前已去掉对外包不带的回退条），名字同 art.gd 查索引用的名字
+    index_path=project/'art/index.json'
+    for name,res in sorted(json.loads(index_path.read_text(encoding='utf-8')).items() if index_path.exists() else []):
+        raw=(project/res[len('res://'):]).read_bytes()[:24]
+        if raw[:8]!=b'\x89PNG\r\n\x1a\n': raise ValueError('Invalid staged PNG: '+name)
+        width,height=struct.unpack('>II',raw[16:24])
+        images.append([name,width,height])
     if not images or len(images)!=manifest['packed_png_count']: raise ValueError('Staged art inventory does not match release manifest')
     preset=(project/'export_presets.cfg').read_text(encoding='utf-8').split('[preset.1]')[0]
     match=re.search(r'^exclude_filter="(.*)"$',preset,re.M)

@@ -1,4 +1,4 @@
-"""干员 1 倍帧条（10-23 用户定「1 倍，整套替换」，docs/128）：给每条干员帧条出 art/incoming/<tex>@1x.png，
+"""干员 1 倍帧条（10-23 用户定「1 倍，整套替换」，docs/128）：给每条干员帧条出运行时 <tex>@1x.png（asset_paths.out_png），
 引擎在 render/op_1x 开着时优先用它（art.gd op_1x_on），1 美术像素 = 1 贴图像素，与怪物同密度。
 
 两种来源：
@@ -9,7 +9,7 @@
   ② 其余帧条（技能 / 入场 / 死亡 / 召唤物 …）：@2x 逐帧 2×2 合并（按 alpha 加权取色、覆盖过半才留）+ 本条调色板。
 
 用法：python -X utf8 tools/op_1x/make_op_1x.py [--only mizuki,skadi] [--jobs 6] [--dry]
-输出：art/incoming/<tex>@1x.png；中间帧与对照在 build/op_1x/（主仓库 build，不进 git）。
+输出：运行时 <tex>@1x.png（game/art/operators/<op>/）；中间帧与对照在 build/op_1x/（主仓库 build，不进 git）。
 需要：主仓库 build/prts_ref（Spine 原始资源 + node 依赖，tools/prts_spine.py 下载）、build/lg_src（拉普兰德 / 歌蕾蒂娅调色板）。
 """
 import argparse, json, os, subprocess, sys
@@ -21,13 +21,27 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as _GR
 COMMON = _GR.common_root()
-INC = os.path.join(ROOT, "art", "incoming")
+import asset_paths
+INC = asset_paths.INCOMING   # 过渡期回退目录（测试会替换它）；读图走 _rt，写图走 asset_paths.out_png
 CHARS = os.path.join(ROOT, "game", "data", "characters")
 RT = os.path.join(ROOT, "tools", "spine_run_trial")
 CFG = os.path.join(RT, "cfg")
 REF = os.path.join(COMMON, "build", "prts_ref")
 OUT = os.path.join(COMMON, "build", "op_1x")
 NODE_PATH = os.path.join(REF, "_node", "node_modules")
+
+
+def _rt(name):
+    """运行时贴图名 → 游戏读的 PNG（game/art 索引优先，回退 INC）"""
+    return asset_paths.runtime_png(name, incoming=INC)
+
+
+def write_index():
+    """写过新 @1x / @2x 后重写 game/art/index.json（新名字不进索引游戏读不到）"""
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
+
 
 # 普攻用的原生动画（没有列出的干员：Attack；None = 不用 Spine，走 ②）
 ATTACK_ANIM = {"logos": "Attack_1", "wisadel": "Attack_A", "texas": "Attack_Loop", "skalter": None}
@@ -48,7 +62,7 @@ def walk_tex(v, acc):
     elif isinstance(v, list):
         for x in v:
             walk_tex(x, acc)
-    elif isinstance(v, str) and os.path.exists(os.path.join(INC, v + "@2x.png")):
+    elif isinstance(v, str) and os.path.exists(_rt(v + "@2x")):
         acc.add(v)
 
 
@@ -191,7 +205,7 @@ def build_op(op, dry=False):
     texs = set()
     walk_tex(sprites, texs)
     # 特效帧条（fx_*，如维什戴尔魂火）不是小人，保持 @2x（10-23 协调人核包时发现误转）
-    texs = sorted(t for t in texs if os.path.exists(os.path.join(INC, t + "@2x.png")) and not t.startswith("fx_"))
+    texs = sorted(t for t in texs if os.path.exists(_rt(t + "@2x")) and not t.startswith("fx_"))
     done, done2x, log = {}, {}, []
     base_cfg_p = os.path.join(CFG, op + ".json")
     anims = info(op) if os.path.exists(os.path.join(REF, op, op + "_info.json")) else {}
@@ -207,8 +221,8 @@ def build_op(op, dry=False):
         # 缩放：原待机首帧身高（1x）÷ Spine 1 倍待机身高
         idle = spec(sprites, "idle")
         k = 1.0
-        if idle and os.path.exists(os.path.join(INC, idle["tex"] + "@2x.png")):
-            im = Image.open(os.path.join(INC, idle["tex"] + "@2x.png")).convert("RGBA")
+        if idle and os.path.exists(_rt(idle["tex"] + "@2x")):
+            im = Image.open(_rt(idle["tex"] + "@2x")).convert("RGBA")
             nfr = int(idle.get("frames", max(1, im.width // im.height)))
             h_old = bbox_h(im.crop((0, 0, im.width // nfr, im.height))) / 2
             mcfg = dict(base, scaleMul=sm0 * 0.5)
@@ -223,7 +237,7 @@ def build_op(op, dry=False):
             sp = spec(sprites, kind)
             if sp is None:
                 return None
-            im2 = Image.open(os.path.join(INC, sp["tex"] + "@2x.png"))
+            im2 = Image.open(_rt(sp["tex"] + "@2x"))
             n = frames or int(sp.get("frames", max(1, im2.width // im2.height)))
             fw, fh = (im2.width // int(sp.get("frames", max(1, im2.width // im2.height))) + 1) // 2, (im2.height + 1) // 2
             im2.close()
@@ -290,7 +304,7 @@ def build_op(op, dry=False):
         for tex in texs:
             if tex in results:
                 continue
-            im2 = Image.open(os.path.join(INC, tex + "@2x.png")).convert("RGBA")
+            im2 = Image.open(_rt(tex + "@2x")).convert("RGBA")
             fr = None
             for kind, v in sprites.items():
                 s = spec(sprites, kind) if isinstance(v, (str, dict)) else None
@@ -303,9 +317,9 @@ def build_op(op, dry=False):
             if op == "skalter" and tex in {"op_skalter_run", "op_skalter_attack"}:
                 results[tex] = skalter_fallback_eyes(results[tex], "run" if tex.endswith("_run") else "attack")
         for tex, img in results.items():
-            img.save(os.path.join(INC, tex + "@1x.png"))
+            img.save(asset_paths.out_png(tex + "@1x"))
         for tex, fn in done2x.items():
-            fn().save(os.path.join(INC, tex + "@2x.png"))
+            fn().save(asset_paths.out_png(tex + "@2x"))
             log.append(f"spine @2x -> {tex}")
     return op, log, sorted(results)
 
@@ -322,6 +336,8 @@ def main():
     with ThreadPoolExecutor(a.jobs) as ex:
         for op, log, texs in ex.map(lambda o: build_op(o, a.dry), ops):
             print(op, len(texs), "条 |", "; ".join(log))
+    if not a.dry:
+        write_index()
 
 
 if __name__ == "__main__":

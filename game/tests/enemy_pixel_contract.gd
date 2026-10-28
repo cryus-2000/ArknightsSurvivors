@@ -10,7 +10,8 @@ func _ready() -> void:
 		failed += 1
 	for name in A.enemy_pixels:
 		var spec: Dictionary = A.enemy_pixels[name]
-		var image := Image.load_from_file(A.incoming_dir().path_join(name + "@2x.png"))
+		var src: String = A._packed_path(name + "@2x")   # game/art 索引里的导入贴图（docs/189 §6.1）
+		var image: Image = (load(src) as Texture2D).get_image() if src != "" else null
 		var size: Array = spec.frame_size
 		if image == null or image.get_width() != int(size[0]) * int(spec.frames) or image.get_height() != int(size[1]):
 			push_error("Enemy frame dimensions: " + name)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""宣传主视觉合成（界面与美术，2026-09-30 协调人派）：只用本项目自己的像素资产（art/incoming 帧条 + logo + game/fonts）。
+"""宣传主视觉合成（界面与美术，2026-09-30 协调人派）：只用本项目自己的像素资产（运行时帧条 + logo + game/fonts）。
 版式参照「深色底、高对比、像素角色放大居中、技能光效点睛、字少而大」的气质，不用任何外部素材。
 
 用法：python tools/promo_keyart.py [输出目录，缺省 build/promo] [--size 1920x1080] [--name keyart] [--boss paranoia|knight|saints] [--squad a,b,c,d,e]（干员 id，mizuki = 水月）
@@ -9,7 +9,9 @@ import os, sys, random
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageChops
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-ART = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths   # 运行时贴图按名取：asset_paths.runtime_png(name)
+ART = os.path.join(ROOT, "art", "incoming")   # 只剩非运行时的评审子目录（_trial_icons 等）用
 FONT_UI = os.path.join(ROOT, "game", "fonts", "ui.ttf")
 
 SLOGAN_CN = "点亮灯火，穿过深海"
@@ -24,7 +26,7 @@ BOSSES = {"saints": None, "paranoia": ("e_paranoia_phase2@2x", 2), "knight": ("e
 
 
 def load(name):
-    im = Image.open(os.path.join(ART, name + ".png")).convert("RGBA")
+    im = Image.open(asset_paths.runtime_png(name)).convert("RGBA")
     # 帧条四周有 alpha 1–30 的近透明噪点：放大 + 染色 / 发光后会显出一个方框，先清掉
     r, g, b, a = im.split()
     a = a.point(lambda v: 0 if v < 40 else v)

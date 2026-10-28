@@ -65,6 +65,7 @@ class WebAudioTests(unittest.TestCase):
             filters = [line for line in text.splitlines() if line.startswith('include_filter=')]
             self.assertTrue(filters)
             self.assertTrue(all('audio/music/*.json' in line for line in filters))
+            self.assertTrue(all('art/index.json' in line for line in filters))   # 运行时贴图索引（docs/189 §6.1）
 
 
 if __name__ == '__main__':

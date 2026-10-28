@@ -54,7 +54,8 @@ FPS = 10
 
 def strip_path(op, hi=True):
     base = "player_run" if op == "mizuki" else "op_%s_run" % op
-    return os.path.join(ART, base + ("@2x" if hi else "") + ".png")
+    import asset_paths   # 运行时贴图索引（game/art，过渡期回退 art/incoming，docs/189）
+    return asset_paths.runtime_png(base + ("@2x" if hi else "")) if ART == asset_paths.INCOMING else os.path.join(ART, base + ("@2x" if hi else "") + ".png")
 
 
 def load(op, hi=True):
@@ -148,7 +149,7 @@ def metrics(op):
     out["lean_rng"] = float(max(lean) - min(lean))
     out["feet_seq"] = "".join(str(v) for v in legsep)
     out["feet_alt"] = int(sum(1 for i in range(n) if legsep[i] != legsep[(i + 1) % n]))   # 着地块数在相邻帧之间变化的次数（有交替 ≥ 2）
-    idle = Image.open(strip_path(op).replace("_run@2x", "_idle@2x")).convert("RGBA") if op != "mizuki" else Image.open(os.path.join(ART, "player_idle@2x.png")).convert("RGBA")
+    idle = Image.open(strip_path(op).replace("_run@2x", "_idle@2x")).convert("RGBA") if op != "mizuki" else Image.open(strip_path("mizuki").replace("player_run@2x", "player_idle@2x")).convert("RGBA")
     im0 = np.array(idle.crop((0, 0, idle.height, idle.height)))[..., 3] > 0
     iy = np.nonzero(im0)[0]
     out["idle_h"] = float((iy.max() - iy.min() + 1) / k)
