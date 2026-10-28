@@ -6,7 +6,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Beam = preload("res://scripts/render/boss_beam.gd")
 const Combos = preload("res://scripts/enemies/bosses/ishar_combos.gd")
 const CORE := Color(0.62, 1.0, 0.86)   # 光束本体 = 她的专属青绿；预警底仍是暗红
-const ACTS := ["ishar_strike", "ishar_line", "ishar_echo", "bite", "sweep"]
+const ACTS := ["ishar_strike", "ishar_line", "ishar_echo", "ishar_sweep", "ishar_dash", "bite", "sweep"]
 const FILL := Color(0.42, 0.05, 0.12)
 const EDGE := Color(0.86, 0.26, 0.42)
 
@@ -44,12 +44,17 @@ static func _fades(g) -> void:
 	for f in g.fx:
 		if f.kind != "ishar_beam_fade" or f.life <= 0.0:
 			continue
-		var p: float = 1.0 - float(f.life) / float(f.max)
+		var hold: float = float(f.get("hold", 0.0))
+		var el: float = float(f.max) - float(f.life)
 		var a: Vector2 = f.a
 		var b: Vector2 = f.b
 		var d: Vector2 = (b - a).normalized()
 		var L: float = a.distance_to(b)
-		if p < 0.17:
+		if el < hold:
+			_beam_body(g, a, d, L, float(f.wid), 1.0, clampf(1.0 - el / 0.08, 0.0, 1.0))
+			continue
+		var p: float = clampf((el - hold) / maxf(0.01, float(f.max) - hold), 0.0, 1.0)
+		if hold <= 0.0 and p < 0.17:
 			var n0: Vector2 = d.orthogonal() * float(f.wid) * 0.9
 			g.draw_colored_polygon(PackedVector2Array([a + n0, b + n0, b - n0, a - n0]), Color(1.0, 1.0, 1.0, 0.55 * (1.0 - p / 0.17)))
 		var half: float = float(f.wid) * 0.45 * (1.0 - p)
@@ -80,7 +85,7 @@ static func _zones(g) -> void:
 			for i in 33:
 				var an: float = TAU * i / 32.0
 				pts.append(z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r))
-			g.draw_colored_polygon(pts, Color(FILL.r, FILL.g, FILL.b, 0.2 * fade))
+			g.draw_colored_polygon(pts, Color(FILL.r, FILL.g, FILL.b, 0.3 * fade))   # 10-28：地带内受治疗降低，底色比预警更实
 			for q in 2:
 				var ph: float = fmod((g.t - float(z.born)) / 0.6 + q * 0.5, 1.0)
 				var rr: float = float(z.r) * ph
@@ -95,9 +100,124 @@ static func _zones(g) -> void:
 					_sq(g, z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r), Color(EDGE.r, EDGE.g, EDGE.b, 0.5 * fade))
 
 
+## 稳定光束本体（追扫持续段、小光束结算后的 0.3 秒）：外层专属青绿 → 亮芯 → 2 像素白芯，宽度与透明度每帧相同（不抖、不重伸）；flash = 开火瞬间的白色叠层（单调变暗）
+static func _beam_body(g, a: Vector2, d: Vector2, L: float, wid: float, open: float, flash: float) -> void:
+	var b: Vector2 = a + d * L
+	var o: Vector2 = d.orthogonal()
+	var n1: Vector2 = o * wid * 0.5 * open
+	var n2: Vector2 = o * wid * 0.22 * open
+	var n3: Vector2 = o * maxf(1.0, wid * 0.06) * open
+	g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(CORE.r, CORE.g, CORE.b, 0.5))
+	var hi: Color = CORE.lerp(Color.WHITE, 0.55)
+	g.draw_colored_polygon(PackedVector2Array([a + n2, b + n2, b - n2, a - n2]), Color(hi.r, hi.g, hi.b, 0.9))
+	g.draw_colored_polygon(PackedVector2Array([a + n3, b + n3, b - n3, a - n3]), Color(1, 1, 1, 0.95))
+	if flash > 0.0:
+		g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(1, 1, 1, 0.45 * flash))
+	g.draw_circle(a, wid * 0.32 * open, Color(1, 1, 1, 0.8))
+
+
+static func _sweeps(g) -> void:
+	for e in g.bosses:
+		for key in Combos.SWEEPS:
+			_sweep_draw(g, e.get(key, {}))
+
+
+static func _sweep_draw(g, s: Dictionary) -> void:
+		if s.is_empty():
+			return
+		var el: float = g.t - float(s.t0)
+		var d := Vector2.from_angle(float(s.ang))
+		_beam_body(g, s.pos, d, float(s.len), float(s.wid), clampf(el / 0.1, 0.25, 1.0), clampf(1.0 - el / 0.12, 0.0, 1.0))
+		var pool = Beam.grains(g) if Cfg.quality != "low" else null
+		if pool != null and Beam.take(g, 1) > 0:
+			var t: float = fmod(el * 1.7, 1.0)
+			pool.push("bfx_flash", s.pos + d * float(s.len) * t, d.orthogonal() * (1.0 if int(el * 30.0) % 2 == 0 else -1.0), CORE)
+
+
+## 每幕场地（docs/170 §15）：二幕每 2.4 秒从她脚下扩出一道很淡的海嗣潮纹（压迫）；三幕整个场地罩一层腐红底色，亮度 4 秒一呼吸（缓慢、不闪）。一幕不加
+static func _arena(g) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for e in g.bosses:
+		if e.dead or e.phase != 2 or Bal.v("render/ishar_act_style", 1.0) <= 0.0:
+			continue
+		var act: int = clampi(int(e.get("gates_passed", 0)), 0, 2)
+		var c: Color = Combos.act_col(e)
+		var R: float = g.zone_r if g.zone_frozen else 650.0
+		if act == 2:
+			var pts := PackedVector2Array()
+			for i in 49:
+				var an: float = TAU * i / 48.0
+				pts.append(g.zone_c + Vector2(cos(an), sin(an) * gy) * R)
+			g.draw_colored_polygon(pts, Color(0.55, 0.06, 0.16, 0.2 + 0.04 * sin(g.t * TAU / 4.0)))
+		if act >= 1:
+			var ph: float = fmod(g.t / 2.4, 1.0)
+			var rr: float = lerpf(60.0, R, ph)
+			var m: int = clampi(int(rr * TAU / 16.0), 12, 160)
+			for i in m:
+				if i % 3 == 0:
+					continue
+				var an: float = TAU * i / m
+				_sq(g, e.pos + Vector2(cos(an), sin(an) * gy) * rr, Color(c.r, c.g, c.b, 0.22 * (1.0 - ph)))
+
+
+## 连线护盾（ishar._web_shield）：与连线同色的护罩（层数越多越实）+ 头顶层数刻度（亮 = 在、暗 = 碎了等回复）
+static func _shield(g) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for e in g.bosses:
+		var layers: Array = e.get("web_layers", [])
+		if e.dead or layers.is_empty():
+			continue
+		var up: int = int(e.get("web_sh_up", 0))
+		var c: Color = Combos.COL
+		var r: float = e.r + 18.0
+		if up > 0:
+			var pts := PackedVector2Array()
+			for i in 33:
+				var an: float = TAU * i / 32.0
+				pts.append(e.pos + Vector2(0, -e.r * 0.5) + Vector2(cos(an), sin(an) * 0.85) * r)
+			g.draw_colored_polygon(pts, Color(c.r, c.g, c.b, 0.06 + 0.03 * up))
+			var n: int = clampi(int(r * TAU / 8.0), 16, 60)
+			for i in n:
+				if (i + int(g.t * 6.0)) % 4 == 0:
+					continue
+				var an: float = TAU * i / n
+				_sq(g, e.pos + Vector2(0, -e.r * 0.5) + Vector2(cos(an), sin(an) * 0.85) * r, Color(c.r, c.g, c.b, 0.3 + 0.08 * up))
+		var w0: float = layers.size() * 8.0
+		for k in layers.size():
+			var on: bool = float(layers[k].hp) > 0.0
+			var q: Vector2 = e.pos + Vector2(-w0 * 0.5 + k * 8.0 + 4.0, -e.r * 2.0 - 30.0)
+			g.draw_rect(Rect2((q * 0.5).floor() * 2.0 - Vector2(2, 2), Vector2(6, 6)), Color(c.r, c.g, c.b, 0.95) if on else Color(1, 1, 1, 0.18))
+
+
+## 三幕歌声围拢：一圈 2 像素格点列（三幕主色）+ 圈外暗红薄雾；格点沿圈慢慢流动，向内收时清楚可见
+static func _fence(g) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for e in g.bosses:
+		var f: Dictionary = e.get("ishar_fence", {})
+		if e.dead or f.is_empty():
+			continue
+		var R: float = g.bai.boss("ishar").cards()._fence_r(e)
+		var c: Color = Combos.act_col(e)
+		var n: int = clampi(int(R * TAU / 7.0), 40, 360)
+		for i in n:
+			var an: float = TAU * (float(i) + fmod(g.t * 2.0, 1.0)) / n
+			_sq(g, f.c + Vector2(cos(an), sin(an) * gy) * R, Color(c.r, c.g, c.b, 0.85 if i % 3 != 0 else 0.4))
+		for q in 2:
+			var rr: float = R + 14.0 + 12.0 * q
+			var m: int = clampi(int(rr * TAU / 18.0), 30, 240)
+			for i in m:
+				if (i + q) % 2 == 0:
+					var an: float = TAU * i / m
+					_sq(g, f.c + Vector2(cos(an), sin(an) * gy) * rr, Color(FILL.r, FILL.g, FILL.b, 0.5 - 0.2 * q))
+
+
 static func draw(g) -> void:
+	_arena(g)
+	_fence(g)
 	_zones(g)
 	_fades(g)
+	_sweeps(g)
+	_shield(g)
 	var gy: float = g.combat.GROUND_Y
 	for w in g.warns:
 		if w.done or not owns(w):

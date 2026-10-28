@@ -77,6 +77,10 @@ func _process(_dt: float) -> void:
 	game.set_process(false)
 	game.enemies.clear()
 	game.ppos = Vector2.ZERO
+	# 本测试用伊莎玛拉人形当「中立单位」夹具：关掉 10-28 的人形可受伤（boss/ishar_p1_hit），那条路径在 ishar_combo_test 里测
+	var Bal = preload("res://scripts/core/balance.gd")
+	Bal.v("boss/ishar_p1_hit", 1.0)
+	Bal._data["boss"]["ishar_p1_hit"] = 0
 	var ally: Dictionary = game.spawner.spawn_enemy("ishar", Vector2(12, 0))
 	check(ally.get("friendly", false) and ally.invuln, "Ishar phase one spawns friendly and protected")
 	# A stale grid must also exclude a unit whose allegiance changed this frame.
