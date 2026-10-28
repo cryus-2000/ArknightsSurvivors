@@ -464,7 +464,6 @@ static func _hw3_fan(o, dt: float) -> void:
 			o.fx({"kind": "glow", "pos": bp, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.6})
 		if n > 0:
 			o.float_text(o.pos + Vector2(0, -70), "消除弹幕 ×%d" % n, HW_INK, 15)
-		o.fx({"kind": "glow", "pos": o.pos + Vector2.from_angle(float(h.fan_ang)) * r * 0.5, "r": 40.0, "life": 0.4, "col": HW_INK, "alpha": 0.4})
 
 
 ## 锁定 / 咒域的技能剩余（hw_active_left 转来）
@@ -553,6 +552,8 @@ static func hw_draw_fan(o) -> void:
 ## open / close 缺图时只用 ground。起手 / 收尾期间 ground 淡入 / 淡出，不与 open / close 叠成双层
 const FAN_REF_R := 340.0
 const FAN_OPEN_T := 0.5
+const FAN_CLOSE_T := 0.375   # fan_close 6 帧 / 16 fps
+const SLOW_MARK_MAX := 40   # 被减速弹幕标记同屏上限（docs/190）
 
 static func _hw_fan_sheets(o, b: Dictionary, fn: Dictionary, fa: float, r: float, fade: float) -> bool:
 	var g = o.g
@@ -566,13 +567,86 @@ static func _hw_fan_sheets(o, b: Dictionary, fn: Dictionary, fa: float, r: float
 	if elapsed < FAN_OPEN_T and g.tex.get("fx_logos_s3_fan_open") != null:
 		tn = "fx_logos_s3_fan_open"
 		frame = mini(int(elapsed / FAN_OPEN_T * g.V6_FRAMES[tn][0]), g.V6_FRAMES[tn][0] - 1)
-	elif left < FAN_OPEN_T and g.tex.get("fx_logos_s3_fan_close") != null:
+	elif left < FAN_CLOSE_T and g.tex.get("fx_logos_s3_fan_close") != null:
 		tn = "fx_logos_s3_fan_close"
-		frame = mini(int((1.0 - left / FAN_OPEN_T) * g.V6_FRAMES[tn][0]), g.V6_FRAMES[tn][0] - 1)
+		frame = mini(int((1.0 - left / FAN_CLOSE_T) * g.V6_FRAMES[tn][0]), g.V6_FRAMES[tn][0] - 1)
 	else:
-		a = fade
+		# ground 用本技能局部时钟、open 结束后从 f0 起（open f7 = ground f0 = close f0，无缝）
+		frame = int((elapsed - FAN_OPEN_T) * float(g.V6_FRAMES[tn][1])) % int(g.V6_FRAMES[tn][0])
 	_hw_draw_sheet(o, tn, frame, fa, r / FAN_REF_R, Color(1, 1, 1, a))
+	_hw_draw_ribbons(o, fa, r / FAN_REF_R, fade, minf(elapsed / FAN_OPEN_T, 1.0))
+	_hw_draw_slow_marks(o, b, fa)
 	return true
+
+
+## 扇形边缘 / 内部的竖条符文（fx_logos_s3_ribbon 24×56 @2x，原点 (12,56)）：39 条边缘（弧上 -44°..44° 步 4°；两侧边 ±50° 半径 64..288 步 32）+ 5 条内部淡影。
+## 位置随咒域朝向转，条自身保持竖直；亮暗交替、高度错落、上下浮 4 px、帧相位错开（HANDOFF 10-29）
+const RIB_SIZES := [Vector2(20, 40), Vector2(24, 56), Vector2(20, 40), Vector2(28, 64), Vector2(24, 48)]
+const RIB_INNER := [Vector2(120, 20), Vector2(180, -45), Vector2(235, 55), Vector2(270, -80), Vector2(210, 120)]
+
+static func _hw_draw_ribbons(o, fa: float, k: float, fade: float, grow: float) -> void:
+	var g = o.g
+	var tx: Texture2D = g.tex.get("fx_logos_s3_ribbon")
+	if tx == null or not g.V6_FRAMES.has("fx_logos_s3_ribbon"):
+		return
+	o._cv_flush()
+	var frames: int = g.V6_FRAMES["fx_logos_s3_ribbon"][0]
+	var fps: float = g.V6_FRAMES["fx_logos_s3_ribbon"][1]
+	var fw: float = tx.get_width() / frames
+	var fh: float = tx.get_height()
+	var hi: float = ArtS.hires_of(tx)
+	var u: float = g.PX / hi * k   # @2x 像素 → 世界像素
+	var al: float = fade * grow
+	var n := 0
+	var spots: Array = []   # [本地位置 @2x, 亮?, 序号]
+	for d in range(-44, 45, 4):
+		spots.append([Vector2.from_angle(deg_to_rad(d)) * FAN_REF_R, n % 2 == 0, n])
+		n += 1
+	for sgn in [-1.0, 1.0]:
+		for rr in range(64, 289, 32):
+			spots.append([Vector2.from_angle(deg_to_rad(50.0 * sgn)) * float(rr), n % 2 == 0, n])
+			n += 1
+	var base: Vector2 = o.pos + g.draw_off
+	var rot := Transform2D(fa, Vector2.ZERO)
+	for sp in spots:
+		var i: int = sp[2]
+		var sz: Vector2 = RIB_SIZES[i % RIB_SIZES.size()]
+		var bob: float = sin(g.t * 1.6 + float(i) * 1.3) * 4.0
+		var a: float = (0.71 + 0.18 * (0.5 + 0.5 * sin(g.t * 2.0 + i))) if sp[1] else (0.27 + 0.18 * (0.5 + 0.5 * sin(g.t * 1.7 + i * 0.7)))
+		_hw_ribbon_at(o, tx, base + rot * (sp[0] * u), sz, u, bob, int(g.t * fps + i) % frames, fw, fh, a * al)
+	for j in RIB_INNER.size():
+		var sz2: Vector2 = RIB_SIZES[j % RIB_SIZES.size()]
+		var a2: float = 0.085 + 0.07 * (0.5 + 0.5 * sin(g.t * 1.3 + j * 1.9))
+		_hw_ribbon_at(o, tx, base + rot * (RIB_INNER[j] * u), sz2, u, sin(g.t * 1.2 + j) * 4.0, int(g.t * fps + j * 3) % frames, fw, fh, a2 * al)
+
+static func _hw_ribbon_at(o, tx: Texture2D, p: Vector2, sz: Vector2, u: float, bob: float, fr: int, fw: float, fh: float, a: float) -> void:
+	var w: float = sz.x * u
+	var h: float = sz.y * u
+	o.cv.draw_texture_rect_region(tx, Rect2(p + Vector2(-w * 0.5, -h + bob * u), Vector2(w, h)), Rect2(fw * fr, 0, fw, fh), Color(1, 1, 1, a))
+
+
+## 被「延异视阈」减速的敌弹打标记（fx_logos_s3_slow 48×48 @2x，中心镂空，只标实际被减速、仍在扇形内的弹，最多 40 个）
+static func _hw_draw_slow_marks(o, b: Dictionary, fa: float) -> void:
+	var g = o.g
+	var tx: Texture2D = g.tex.get("fx_logos_s3_slow")
+	if tx == null or not g.V6_FRAMES.has("fx_logos_s3_slow"):
+		return
+	var frames: int = g.V6_FRAMES["fx_logos_s3_slow"][0]
+	var fw: float = tx.get_width() / frames
+	var fh: float = tx.get_height()
+	var hi: float = ArtS.hires_of(tx)
+	var s: float = g.PX / hi
+	var fr: int = int(g.t * float(g.V6_FRAMES["fx_logos_s3_slow"][1])) % frames
+	o._cv_flush()
+	var n := 0
+	for bl in g.ebullets:
+		if bl.life <= 0.0 or not bl.get("acuity", false) or not hw_in_fan(o, bl.pos):
+			continue
+		var c: Vector2 = bl.pos + g.draw_off
+		o.cv.draw_texture_rect_region(tx, Rect2(c - Vector2(fw, fh) * 0.5 * s, Vector2(fw, fh) * s), Rect2(fw * fr, 0, fw, fh))
+		n += 1
+		if n >= SLOW_MARK_MAX:
+			break
 
 
 ## 整帧画帧条里的一帧：原点（1x (4, 高/2)）放在咒域中心，转到 ang，缩放 k × PX / 2（@2x 与 1x 显示同大）；frame < 0 = 按 fps 循环

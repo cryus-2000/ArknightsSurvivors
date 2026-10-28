@@ -1057,7 +1057,7 @@ const V6_FRAMES := {
 	"fx_logos_s3_orbit": [6, 10.0], "fx_logos_s3_back": [6, 10.0], "fx_logos_s3_front": [6, 10.0],
 	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
 	"fx_logos_s1_chain": [4, 12.0],
-	"fx_logos_s3_fan_ground": [4, 6.0], "fx_logos_s3_fan_open": [8, 16.0], "fx_logos_s3_fan_close": [6, 16.0],   # 延异视阈扇形咒域（docs/190，缺图回退程序画法）
+	"fx_logos_s3_fan_ground": [4, 6.0], "fx_logos_s3_fan_open": [8, 16.0], "fx_logos_s3_fan_close": [6, 16.0], "fx_logos_s3_ribbon": [8, 8.0], "fx_logos_s3_slow": [4, 12.0],   # 延异视阈扇形咒域（docs/190，缺图回退程序画法）
 	"proj_logos_ink_a": [4, 16.0], "proj_logos_ink_b": [4, 16.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0], "fx_eyja_ignite_hit": [9, 21.0],
