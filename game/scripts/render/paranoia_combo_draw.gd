@@ -133,9 +133,9 @@ static func draw_top(g, e: Dictionary) -> void:
 		var kt: float = 1.0 - (tire_at - g.t) / 0.6
 		var rt: float = lerpf(e.r * 2.4, e.r * 1.1, kt * kt)
 		g.draw_arc(fp, rt, 0.0, TAU, 40, Color(core_col(e).r, core_col(e).g, core_col(e).b, 0.55 * (1.0 - kt) + 0.15), 2.0)
-	var rest_left: float = float(e.get("pc_rest_until", 0.0)) - g.t
-	if rest_left > 0.0 and float(e.get("break_t", 0.0)) > 0.0:
-		var frac: float = clampf(rest_left / maxf(0.1, float(e.get("pc_rest_len", 3.0))), 0.0, 1.0)
+	var bt: float = float(e.get("break_t", 0.0))
+	if bt > 0.0:
+		var frac: float = clampf(bt / maxf(0.1, float(e.get("pc_brk_len", 3.0))), 0.0, 1.0)
 		var br: float = e.r * 1.25 + 3.0 * sin(g.t * 3.0)
 		g.draw_arc(fp, br, 0.0, TAU, 40, Color(1.0, 0.85, 0.45, 0.18), 3.0)
 		g.draw_arc(fp, br, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(1.0, 0.85, 0.45, 0.6), 2.0)

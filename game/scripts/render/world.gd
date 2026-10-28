@@ -4184,6 +4184,8 @@ func _boss_state(e: Dictionary) -> void:
 			# 骑士（用户 10-25）：只在撞冰柱眩晕时写「眩晕」读秒，别的破绽不写字
 			if str(e.get("brk_label", "")) == "眩晕":
 				UI.text(g, g.font, top + Vector2(-120, -12), "眩晕 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		elif brk > 0.0 and e.type == "paranoia":
+			pass   # 偏执泡影（用户 10-28）：破绽不写字，脚下金环 + 倒计时弧（paranoia_combo_draw）
 		elif brk > 0.0:
 			# 其他 Boss 的破绽（伊莎玛拉潮涌迫近落地、塑路者核心碎裂等）：同一套星 + 剩余秒数
 			UI.text(g, g.font, top + Vector2(-120, -12), "破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)

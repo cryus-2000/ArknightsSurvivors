@@ -177,13 +177,20 @@ func _paranoia_p2(e: Dictionary) -> void:
 
 ## ---- 主轴「打落」（docs/142b §3.5）
 ## 一 / 二幕（悬浮）：冲刺穿过真身 → 坠地 4 秒（借破绽：不出招、受伤 × break_mult，taken_mult 再补到合计 1.8）；三幕起（落地）：冲刺穿身 = 光环散掉 5 秒
+## 破绽（用户 10-28「不加破绽的字」）：不走 combat.start_break（那里会在头顶弹「破绽」），直接设 break_t；
+## 画面由 paranoia_combo_draw 脚下金环 + 倒计时弧表示，头顶读秒 / 伤害数字前缀在 world / vfx 里对泡影跳过
+func brk(e: Dictionary, t: float) -> void:
+	e.break_t = maxf(float(e.get("break_t", 0.0)), t)
+	e.pc_brk_len = float(e.break_t)
+
+
 func _drop_step(e: Dictionary) -> void:
 	if e.phase == 1:
 		# 收招破绽（break_t）期间也能打落：只有正在坠地才不能再打（10-28 docs/170 §3h）
 		if float(e.get("drop_until", 0.0)) > g.t or g.t < float(e.get("drop_ok_at", 0.0)) or not _dash_through(e):
 			return
 		var t: float = Bal.v("boss/paranoia_drop_t", 4.0)
-		g.combat.start_break(e, t)
+		brk(e, t)
 		e.drop_until = g.t + t
 		e.drop_ok_at = g.t + t + Bal.v("boss/paranoia_drop_cd", 2.0)
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
@@ -379,7 +386,7 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	e.vis_t0 = g.t
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 3.0, "life": 0.6, "max": 0.6, "col": Color(0.85, 0.45, 1.0), "enemy": true})
 	if broken:
-		g.combat.start_break(e, Bal.v("boss/paranoia_hatch_break", 5.0))
+		brk(e, Bal.v("boss/paranoia_hatch_break", 5.0))
 		g.vfx.add_text(e.pos + Vector2(0, -70), "破茧！", Color(1.0, 0.85, 0.4), 22)
 	else:
 		e.gaze_bonus = int(e.get("gaze_bonus", 0)) + 1

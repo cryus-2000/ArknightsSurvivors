@@ -136,7 +136,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 			e.pc_tire_at = 0.0
 			var rec: float = REST_P1 if e.phase == 1 else REST_P2
 			# 收招 = 真破绽（10-28 测试台：破绽期输出只有 10%，目标 ≥35%）：break_t 期间受伤合计 paranoia_rest_taken，头顶写「破绽」读秒
-			g.combat.start_break(e, rec)
+			bs.brk(e, rec)
 			e.pc_rested = true
 			e.pc_idx = int(e.get("pc_idx", 0)) + 1
 			e.wind = maxf(float(e.get("wind", 0.0)), rec)

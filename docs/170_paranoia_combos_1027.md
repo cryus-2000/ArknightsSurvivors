@@ -225,6 +225,10 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 
 起手从 0.55 秒延长到 1.0 秒（EMITTERS `wind`）。提示画在顶层（不被本体和队长挡住）：和真水环同形的地面椭圆环（同粗细、同青蓝 + 白芯），从脚下涨到 230 并闪烁；第一道缺口（朝队长）留空、两侧立白标、外侧一个向外的 V；后两道缺口位置画淡标；外侧两道向内收拢的细水纹。
 
+## 3u. 破绽不写字（10-28 用户定）
+
+偏执泡影的破绽（收招、冲刺打落、破茧成功）不再走 `combat.start_break`（头顶弹「破绽」），改用 `paranoia.brk()` 直接设 `break_t`；头顶「破绽 x.x」读秒与伤害数字的「破绽 」前缀对泡影跳过（数字仍金色大一号）。破绽由力竭动画 + 脚下金环 + 倒计时弧表示。Boss 血条处的「破绽 x 秒 · 受伤 +x%」不动。其他 Boss 不变。
+
 ## 4. 公共文件改动（合并时注意）
 
 - `render/boss_beam.gd`：`_paranoia_top` / `_paranoia_ground` 第一行各调 `ParanoiaComboDraw.draw_top` / `draw_ground`，加一条 preload。只碰泡影分支。
@@ -235,6 +239,7 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 - `enemies/telegraph.gd` `_kp()`：读可选 `kp_life` / `kp_on`（缺省 KP_LIFE / 0.06，其余 Boss 不变）；`render/boss_beam.gd` `draw()`：开合时长读 fx 的 `on_t`（缺省 ON_T）。
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
 - `tools/check.py`：加 `paranoia_combos` 一项。
+- `render/world.gd` Boss 头顶读秒：泡影破绽跳过「破绽 x.x」（2 行）；`render/vfx.gd` 破绽伤害数字：泡影不加「破绽 」前缀（1 行）。
 - `game/data/balance.json` boss 段：hp_x_paranoia 改值，新增 paranoia_hover_taken / paranoia_aura_taken / paranoia_drop_t 三行与说明（§3g）。
 - 未改 `final_attacks.gd`、`boss_attack_draw.gd`、`final_attack_grains.gd`、`boss_ai.gd`、粒子模板。
 
