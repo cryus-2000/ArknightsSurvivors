@@ -18,9 +18,9 @@
 
 ## 格式与新语音交付
 
-游戏读 `audio/voice/<干员>_<事件>.ogg`（OGG Vorbis 单声道 24 kHz，`game/scripts/sfx.gd`）。WAV 母带放在 `masters/`，目录里有 `.gdignore`，Godot 不导入也不导出它们。10-21 起现行压缩规格为 24 kHz、`soundfile compression_level=0.7`，见 docs/121。第六批直接由新截取的 44.1 kHz PCM16 母带调用现有编码器生成，未重编码旧 91 条。
+游戏读 `audio/voice/<干员>_<事件>.ogg`（OGG Vorbis 单声道 24 kHz，`game/scripts/sfx.gd`）。WAV 母带放在仓库 `art/source/voice/`（10-28 从 `masters/` 移出 game/，docs/189），不导入也不进包。10-21 起现行压缩规格为 24 kHz、`soundfile compression_level=0.7`，见 docs/121。第六批直接由新截取的 44.1 kHz PCM16 母带调用现有编码器生成，未重编码旧 91 条。
 
-交付新语音：把 `<干员>_<事件>.wav` 放进本目录，并在清单里登记（`file` 写 `.wav`，附 `sha256`），然后运行 `cd game/tools && python voice_ogg.py`。脚本会把 WAV 挪进 `masters/`、生成 OGG，并更新清单；新语音默认用 0.7 档。核心契约测试（`tests/test_core.gd`）检查每条都有可加载的 OGG、本目录没有遗留的 WAV；`voice_command_test` 检查 121 条、20 人与指挥调度。
+交付新语音：把 `<干员>_<事件>.wav` 放进本目录，并在清单里登记（`file` 写 `.wav`，附 `sha256`），然后运行 `cd game/tools && python voice_ogg.py`。脚本会把 WAV 挪进 `art/source/voice/`、生成 OGG，并更新清单；新语音默认用 0.7 档。核心契约测试（`tests/test_core.gd`）检查每条都有可加载的 OGG、本目录没有遗留的 WAV；`voice_command_test` 检查 121 条、20 人与指挥调度。
 
 ## 接入
 

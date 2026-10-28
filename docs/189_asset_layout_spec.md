@@ -130,8 +130,8 @@ game/
 | N5 | WARN | 召唤物没带主人前缀 | 22（`op_mon3tr_*`） |
 | N6 | WARN | 版本号 / 临时后缀 | 3（`op_skadi_attack_v2` ×2、`archive_v2.ogg`） |
 | N7 | INFO | 历史遗留名（登记表 LEGACY） | 47（水月 31、初版占位 16） |
-| D1 | WARN / INFO | `game/` 下放错目录 | 1（`game/art/player.png`）+ 1 INFO（`optical_lut.png`） |
-| D2 | WARN | 源文件在运行时目录 | 123（语音母带） |
+| D1 | WARN / INFO | `game/` 下放错目录 | 1 → 批 1 后 0；另 1 INFO（`optical_lut.png`） |
+| D2 | WARN | 源文件在运行时目录 | 123 → 批 1 后 0（母带移到 art/source/voice） |
 | D3 | INFO | 收货区里的非运行时文件 | 40 |
 | H1 | INFO | 同内容不同名 | 42 组（多为 optical_fx 压阶后与原图相同、发光层空帧） |
 

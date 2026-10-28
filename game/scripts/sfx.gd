@@ -620,7 +620,7 @@ var voice_queue: Array = []            # [cid, key]
 
 
 func _voice_stream(cid: String, key: String) -> AudioStream:
-	var path := "res://audio/voice/%s_%s.ogg" % [cid, key]   # WAV 母带在 audio/voice/masters（不导入），见 tools/voice_ogg.py
+	var path := "res://audio/voice/%s_%s.ogg" % [cid, key]   # WAV 母带在仓库 art/source/voice（不进包），见 tools/voice_ogg.py
 	if not voice_streams.has(path):
 		var st: AudioStreamOggVorbis = _load_ogg(path)
 		if st != null:

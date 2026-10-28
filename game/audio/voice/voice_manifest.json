@@ -38,7 +38,7 @@
       "duration_seconds": 1.975,
       "sha256": "8412f5e145dcfebd83c314a9d02b8e4804294690780d42737f0d82c992b40c17",
       "ogg_quality": 0.7,
-      "master": "masters/mizuki_entry.wav"
+      "master": "art/source/voice/mizuki_entry.wav"
     },
     {
       "operator": "mizuki",
@@ -51,7 +51,7 @@
       "duration_seconds": 0.955,
       "sha256": "8c7c1f95368d7c4594fd6f9a2e80e41ece14b46fb4a672cca40291f17d546212",
       "ogg_quality": 0.7,
-      "master": "masters/mizuki_skill_1.wav"
+      "master": "art/source/voice/mizuki_skill_1.wav"
     },
     {
       "operator": "mizuki",
@@ -64,7 +64,7 @@
       "duration_seconds": 0.715,
       "sha256": "53696e502d66e66a5bec277d4cf6474943183414567fdeb53b617d088ca6489d",
       "ogg_quality": 0.7,
-      "master": "masters/mizuki_skill_2.wav"
+      "master": "art/source/voice/mizuki_skill_2.wav"
     },
     {
       "operator": "mizuki",
@@ -77,7 +77,7 @@
       "duration_seconds": 3.105,
       "sha256": "a926c62a530b34548a1289f2c2733e29731a5951a2db0f73e3424f6148312c42",
       "ogg_quality": 0.7,
-      "master": "masters/mizuki_skill_3.wav"
+      "master": "art/source/voice/mizuki_skill_3.wav"
     },
     {
       "operator": "mizuki",
@@ -90,7 +90,7 @@
       "duration_seconds": 3.285,
       "sha256": "3773f9ee93aef33ce9622e95a9244f3d16f3378ad01890ac9ebd55eace0c8e9f",
       "ogg_quality": 0.7,
-      "master": "masters/mizuki_battle.wav"
+      "master": "art/source/voice/mizuki_battle.wav"
     },
     {
       "operator": "skadi",
@@ -103,7 +103,7 @@
       "duration_seconds": 1.05,
       "sha256": "12fa2c6a2b317091ad80d4e3fadefde7aa6b3446b13d5348c61c4b65e610bc7d",
       "ogg_quality": 0.7,
-      "master": "masters/skadi_entry.wav"
+      "master": "art/source/voice/skadi_entry.wav"
     },
     {
       "operator": "skadi",
@@ -116,7 +116,7 @@
       "duration_seconds": 3.93,
       "sha256": "217baa32ba60123d93b6e385b08fa82925f30c96176cafedd2752e805e64409e",
       "ogg_quality": 0.7,
-      "master": "masters/skadi_skill_1.wav"
+      "master": "art/source/voice/skadi_skill_1.wav"
     },
     {
       "operator": "skadi",
@@ -129,7 +129,7 @@
       "duration_seconds": 3.425,
       "sha256": "9fea64b8a9a46229407e32599840bf494bef0ebc3fa66c50c32a11cfcd97f0d9",
       "ogg_quality": 0.7,
-      "master": "masters/skadi_skill_2.wav"
+      "master": "art/source/voice/skadi_skill_2.wav"
     },
     {
       "operator": "skadi",
@@ -142,7 +142,7 @@
       "duration_seconds": 3.445,
       "sha256": "44e402d180ad7234a5e33c37d21353d71ec36362854072fdba9e4fe6e8c830b8",
       "ogg_quality": 0.7,
-      "master": "masters/skadi_skill_3.wav"
+      "master": "art/source/voice/skadi_skill_3.wav"
     },
     {
       "operator": "skadi",
@@ -155,7 +155,7 @@
       "duration_seconds": 2.945,
       "sha256": "a08a16b7ad1fb31cf2f69f793397ccad2f2bf30caf1fae2d2b82754ad40e5e08",
       "ogg_quality": 0.7,
-      "master": "masters/skadi_battle.wav"
+      "master": "art/source/voice/skadi_battle.wav"
     },
     {
       "operator": "siege",
@@ -168,7 +168,7 @@
       "duration_seconds": 0.55,
       "sha256": "611fedcc00b49078343e1feffa1a3c3f7f17acbb910cfc12e6d98c349a37f012",
       "ogg_quality": 0.7,
-      "master": "masters/siege_entry.wav"
+      "master": "art/source/voice/siege_entry.wav"
     },
     {
       "operator": "siege",
@@ -181,7 +181,7 @@
       "duration_seconds": 2.285,
       "sha256": "d1bfc73c981e73af1b80c0b2b07e2c6f2a55b7b651dd0c202a5271a6e9446722",
       "ogg_quality": 0.7,
-      "master": "masters/siege_skill_1.wav"
+      "master": "art/source/voice/siege_skill_1.wav"
     },
     {
       "operator": "siege",
@@ -194,7 +194,7 @@
       "duration_seconds": 0.49,
       "sha256": "e3d60f996d3dfe645598bba71105251f6dd021d5e3c5626d774b7414bfaa3b44",
       "ogg_quality": 0.7,
-      "master": "masters/siege_skill_2.wav"
+      "master": "art/source/voice/siege_skill_2.wav"
     },
     {
       "operator": "siege",
@@ -207,7 +207,7 @@
       "duration_seconds": 2.755,
       "sha256": "d30598639a97d05ed34af90ea3a5f75c050dd45042e9bc5c61db608775f6e46a",
       "ogg_quality": 0.7,
-      "master": "masters/siege_skill_3.wav"
+      "master": "art/source/voice/siege_skill_3.wav"
     },
     {
       "operator": "siege",
@@ -220,7 +220,7 @@
       "duration_seconds": 1.35,
       "sha256": "893715c88634391fe1230741bb4e65449c14fefe51d7cd74b1e2b9903e520bfe",
       "ogg_quality": 0.7,
-      "master": "masters/siege_battle.wav"
+      "master": "art/source/voice/siege_battle.wav"
     },
     {
       "operator": "saria",
@@ -233,7 +233,7 @@
       "duration_seconds": 0.495,
       "sha256": "c3614b527c6c0006f37ab67288d2c4212332a232fb6be8b4528d4202ae90e688",
       "ogg_quality": 0.7,
-      "master": "masters/saria_entry.wav"
+      "master": "art/source/voice/saria_entry.wav"
     },
     {
       "operator": "saria",
@@ -246,7 +246,7 @@
       "duration_seconds": 2.488,
       "sha256": "99dcc7a53915d3463b2529335545a3f09b78513ac37669c261e0ee7ec4460c97",
       "ogg_quality": 0.7,
-      "master": "masters/saria_skill_1.wav"
+      "master": "art/source/voice/saria_skill_1.wav"
     },
     {
       "operator": "saria",
@@ -259,7 +259,7 @@
       "duration_seconds": 1.224,
       "sha256": "9d62043e958cb9b3ad8b13ac896b532146cb59c13b71a22911d6554369142d37",
       "ogg_quality": 0.7,
-      "master": "masters/saria_skill_2.wav"
+      "master": "art/source/voice/saria_skill_2.wav"
     },
     {
       "operator": "saria",
@@ -272,7 +272,7 @@
       "duration_seconds": 0.633,
       "sha256": "6eb0e84d32f2317a6493f398dc16171e6a107704b95dcc3ad5a6a00ca8526b89",
       "ogg_quality": 0.7,
-      "master": "masters/saria_skill_3.wav"
+      "master": "art/source/voice/saria_skill_3.wav"
     },
     {
       "operator": "saria",
@@ -285,7 +285,7 @@
       "duration_seconds": 0.679,
       "sha256": "000df2dd47ffc344809ca18db0b53edf456eeb03b1f04773967d5e089e036211",
       "ogg_quality": 0.7,
-      "master": "masters/saria_battle.wav"
+      "master": "art/source/voice/saria_battle.wav"
     },
     {
       "operator": "suzuran",
@@ -298,7 +298,7 @@
       "duration_seconds": 2.27,
       "sha256": "e13730ce95e3416555bc6883bdd96c26db29c5dc0ecf120e09bedcd2301289dc",
       "ogg_quality": 0.7,
-      "master": "masters/suzuran_entry.wav"
+      "master": "art/source/voice/suzuran_entry.wav"
     },
     {
       "operator": "suzuran",
@@ -311,7 +311,7 @@
       "duration_seconds": 1.074,
       "sha256": "7470eb1462ba26479f345203bb184ea1f14353e1c62c4973ec3ec11ffeebdffb",
       "ogg_quality": 0.7,
-      "master": "masters/suzuran_skill_1.wav"
+      "master": "art/source/voice/suzuran_skill_1.wav"
     },
     {
       "operator": "suzuran",
@@ -324,7 +324,7 @@
       "duration_seconds": 1.775,
       "sha256": "4312fa23543ab8aee98e9ed0dbcf39732f7ec93144e5984de5a03500038899ed",
       "ogg_quality": 0.7,
-      "master": "masters/suzuran_skill_2.wav"
+      "master": "art/source/voice/suzuran_skill_2.wav"
     },
     {
       "operator": "suzuran",
@@ -337,7 +337,7 @@
       "duration_seconds": 0.71,
       "sha256": "7d164a6960c96b3577d1717c17bf1a3aa071570a197e55f1beb51e4c897abd91",
       "ogg_quality": 0.7,
-      "master": "masters/suzuran_skill_3.wav"
+      "master": "art/source/voice/suzuran_skill_3.wav"
     },
     {
       "operator": "suzuran",
@@ -350,7 +350,7 @@
       "duration_seconds": 0.84,
       "sha256": "e3bc5315f5f2b44659a0905fc820b2fc92fa73033fae2d37fa754e645b4578b0",
       "ogg_quality": 0.7,
-      "master": "masters/suzuran_battle.wav"
+      "master": "art/source/voice/suzuran_battle.wav"
     },
     {
       "operator": "eyjafjalla",
@@ -363,7 +363,7 @@
       "duration_seconds": 1.19,
       "sha256": "0e4680d495f27e2bec7a20344959e001b86d7a2152ae10051741728ffa2fddd6",
       "ogg_quality": 0.7,
-      "master": "masters/eyjafjalla_entry.wav"
+      "master": "art/source/voice/eyjafjalla_entry.wav"
     },
     {
       "operator": "eyjafjalla",
@@ -376,7 +376,7 @@
       "duration_seconds": 1.238,
       "sha256": "483a6a76897b58064d70d56a1e8ac867e24ef2fdd58e89c71ff4a8e950ef94ea",
       "ogg_quality": 0.7,
-      "master": "masters/eyjafjalla_skill_1.wav"
+      "master": "art/source/voice/eyjafjalla_skill_1.wav"
     },
     {
       "operator": "eyjafjalla",
@@ -389,7 +389,7 @@
       "duration_seconds": 1.614,
       "sha256": "223982af02c5b0626836d7e9b0e2bd51ed270d5eeadac9f0b59454690c62f96d",
       "ogg_quality": 0.7,
-      "master": "masters/eyjafjalla_skill_2.wav"
+      "master": "art/source/voice/eyjafjalla_skill_2.wav"
     },
     {
       "operator": "eyjafjalla",
@@ -402,7 +402,7 @@
       "duration_seconds": 1.399,
       "sha256": "c56ed973454df00f4115c82ef3f758d4bb43047e12b7dbfa7f1850382175192f",
       "ogg_quality": 0.7,
-      "master": "masters/eyjafjalla_skill_3.wav"
+      "master": "art/source/voice/eyjafjalla_skill_3.wav"
     },
     {
       "operator": "eyjafjalla",
@@ -415,7 +415,7 @@
       "duration_seconds": 1.234,
       "sha256": "2d81c643c81c6dbe721715130655c9300f2227d563bfeda4f07f67342f2ef2d5",
       "ogg_quality": 0.7,
-      "master": "masters/eyjafjalla_battle.wav"
+      "master": "art/source/voice/eyjafjalla_battle.wav"
     },
     {
       "operator": "kaltsit",
@@ -428,7 +428,7 @@
       "duration_seconds": 1.077,
       "sha256": "9fa354dcadbe77ad15f38bbd07b0ef658eea43672956a387f6bf89efa2378879",
       "ogg_quality": 0.7,
-      "master": "masters/kaltsit_entry.wav"
+      "master": "art/source/voice/kaltsit_entry.wav"
     },
     {
       "operator": "kaltsit",
@@ -441,7 +441,7 @@
       "duration_seconds": 0.55,
       "sha256": "20b7b13aa055d52445d77e4bd7d3faaaf3422f11c87251703e424613d7f426a1",
       "ogg_quality": 0.7,
-      "master": "masters/kaltsit_skill_1.wav"
+      "master": "art/source/voice/kaltsit_skill_1.wav"
     },
     {
       "operator": "kaltsit",
@@ -454,7 +454,7 @@
       "duration_seconds": 0.935,
       "sha256": "4dd83cf44a1e1b8405e4ab62379f9047c3fe01999023343ca4315c2cee1fd8d6",
       "ogg_quality": 0.7,
-      "master": "masters/kaltsit_skill_2.wav"
+      "master": "art/source/voice/kaltsit_skill_2.wav"
     },
     {
       "operator": "kaltsit",
@@ -467,7 +467,7 @@
       "duration_seconds": 0.595,
       "sha256": "0055ae484ff284fd9b1792af318f53a87ebf528b33da609ba0ac8b92d963e9a5",
       "ogg_quality": 0.7,
-      "master": "masters/kaltsit_skill_3.wav"
+      "master": "art/source/voice/kaltsit_skill_3.wav"
     },
     {
       "operator": "kaltsit",
@@ -480,7 +480,7 @@
       "duration_seconds": 0.37,
       "sha256": "780239c79d482cd733e97b874b92fcd59a0b361b6dfc0e3da52d8684483bd9d2",
       "ogg_quality": 0.7,
-      "master": "masters/kaltsit_battle.wav"
+      "master": "art/source/voice/kaltsit_battle.wav"
     },
     {
       "operator": "wisadel",
@@ -493,7 +493,7 @@
       "duration_seconds": 3.859,
       "sha256": "36a4d06aeb00015baddaf009738f95d3686eeb5c6cf741090fd01d578413d353",
       "ogg_quality": 0.7,
-      "master": "masters/wisadel_entry.wav"
+      "master": "art/source/voice/wisadel_entry.wav"
     },
     {
       "operator": "wisadel",
@@ -506,7 +506,7 @@
       "duration_seconds": 4.354,
       "sha256": "ea55e428d599233737824df385169669b2d7f457c6936fb7e0b599dc9bfa3208",
       "ogg_quality": 0.7,
-      "master": "masters/wisadel_skill_1.wav"
+      "master": "art/source/voice/wisadel_skill_1.wav"
     },
     {
       "operator": "wisadel",
@@ -519,7 +519,7 @@
       "duration_seconds": 2.369,
       "sha256": "d0d0ad794d2d621c117edf7abdfd6de6b4ea2c9def9bb90a7d99ce85670a9640",
       "ogg_quality": 0.7,
-      "master": "masters/wisadel_skill_2.wav"
+      "master": "art/source/voice/wisadel_skill_2.wav"
     },
     {
       "operator": "wisadel",
@@ -532,7 +532,7 @@
       "duration_seconds": 6.352,
       "sha256": "a25aacbec38da317c99db0e99eb129656190ce347dd78115dcbe658308d2e459",
       "ogg_quality": 0.7,
-      "master": "masters/wisadel_skill_3.wav"
+      "master": "art/source/voice/wisadel_skill_3.wav"
     },
     {
       "operator": "wisadel",
@@ -545,7 +545,7 @@
       "duration_seconds": 5.406,
       "sha256": "0a6dd2873717299bfdad2baab15e617f4ad3499781e80b4eb7a2e5f4ea1b1dca",
       "ogg_quality": 0.7,
-      "master": "masters/wisadel_battle.wav"
+      "master": "art/source/voice/wisadel_battle.wav"
     },
     {
       "operator": "irene",
@@ -558,7 +558,7 @@
       "duration_seconds": 1.605,
       "sha256": "e00f07e87fdeea4c7b3bde4f3bd6cbbb8b093370d27bcf06bce7847364f75b13",
       "ogg_quality": 0.7,
-      "master": "masters/irene_entry.wav"
+      "master": "art/source/voice/irene_entry.wav"
     },
     {
       "operator": "irene",
@@ -571,7 +571,7 @@
       "duration_seconds": 1.995,
       "sha256": "d7ab71d275c15bd6f20604ae48ea08c1386c919e8c4eb4122b90e46cc2fa507a",
       "ogg_quality": 0.7,
-      "master": "masters/irene_skill_1.wav"
+      "master": "art/source/voice/irene_skill_1.wav"
     },
     {
       "operator": "irene",
@@ -584,7 +584,7 @@
       "duration_seconds": 1.95,
       "sha256": "ccf6b8f89dc9d39d2b1ec89bbed6e2054e6940cacedd715440a2680fbbb1094d",
       "ogg_quality": 0.7,
-      "master": "masters/irene_skill_2.wav"
+      "master": "art/source/voice/irene_skill_2.wav"
     },
     {
       "operator": "irene",
@@ -597,7 +597,7 @@
       "duration_seconds": 2.26,
       "sha256": "ea89b52ee71f64a34e43952eb661cd209dcb82b72190c2ce72ef3bd51801a118",
       "ogg_quality": 0.7,
-      "master": "masters/irene_skill_3.wav"
+      "master": "art/source/voice/irene_skill_3.wav"
     },
     {
       "operator": "irene",
@@ -610,7 +610,7 @@
       "duration_seconds": 2.175,
       "sha256": "9ef83a315583b5073aed6121a6f07c5451145777641b67b1da4b9fe00f77b44c",
       "ogg_quality": 0.7,
-      "master": "masters/irene_battle.wav"
+      "master": "art/source/voice/irene_battle.wav"
     },
     {
       "operator": "logos",
@@ -623,7 +623,7 @@
       "duration_seconds": 1.073,
       "sha256": "f54fdd1e57364a3838403875972e3121a238a7aae3e284e51a69959a77666a14",
       "ogg_quality": 0.7,
-      "master": "masters/logos_entry.wav"
+      "master": "art/source/voice/logos_entry.wav"
     },
     {
       "operator": "logos",
@@ -636,7 +636,7 @@
       "duration_seconds": 1.828,
       "sha256": "3b18f29c88279ff1fc9c48c04c717911930dd0edc4465e8e1dda992ff569093f",
       "ogg_quality": 0.7,
-      "master": "masters/logos_skill_1.wav"
+      "master": "art/source/voice/logos_skill_1.wav"
     },
     {
       "operator": "logos",
@@ -649,7 +649,7 @@
       "duration_seconds": 2.054,
       "sha256": "14896e2bdb1139cd909ba99e8f838c5420d699cab334e3332f1492f2cce697f6",
       "ogg_quality": 0.7,
-      "master": "masters/logos_skill_2.wav"
+      "master": "art/source/voice/logos_skill_2.wav"
     },
     {
       "operator": "logos",
@@ -662,7 +662,7 @@
       "duration_seconds": 1.867,
       "sha256": "d23c5399a2b96730117e68e9a92897c0cab9595a4ac5a4be4e505a633428c986",
       "ogg_quality": 0.7,
-      "master": "masters/logos_skill_3.wav"
+      "master": "art/source/voice/logos_skill_3.wav"
     },
     {
       "operator": "logos",
@@ -675,7 +675,7 @@
       "duration_seconds": 2.164,
       "sha256": "249f49cd7d76facc6dbc13189bfe8ae9f6966cbea2fc21caf65f31d6c3202b94",
       "ogg_quality": 0.7,
-      "master": "masters/logos_battle.wav"
+      "master": "art/source/voice/logos_battle.wav"
     },
     {
       "operator": "lumen",
@@ -688,7 +688,7 @@
       "duration_seconds": 0.945,
       "sha256": "dfeeed0802792c810a5c82581e5590803d6e64f719c01cbbcdcca0803e135808",
       "ogg_quality": 0.7,
-      "master": "masters/lumen_entry.wav"
+      "master": "art/source/voice/lumen_entry.wav"
     },
     {
       "operator": "lumen",
@@ -701,7 +701,7 @@
       "duration_seconds": 2.465,
       "sha256": "c4b628e8a7e5704459f10f45688c2da5c98c5680806d5370e47d08ecaa10d51b",
       "ogg_quality": 0.7,
-      "master": "masters/lumen_skill_1.wav"
+      "master": "art/source/voice/lumen_skill_1.wav"
     },
     {
       "operator": "lumen",
@@ -714,7 +714,7 @@
       "duration_seconds": 5.09,
       "sha256": "2b68498c2004e96b1f99072aaa2807f07af9ece1932627f57d3c3b082375d492",
       "ogg_quality": 0.7,
-      "master": "masters/lumen_skill_2.wav"
+      "master": "art/source/voice/lumen_skill_2.wav"
     },
     {
       "operator": "lumen",
@@ -727,7 +727,7 @@
       "duration_seconds": 2.805,
       "sha256": "f5382eb5b34b296dc24c46519b6d91ed7e9a7fc85a8846dd5bbee6c898ca81e5",
       "ogg_quality": 0.7,
-      "master": "masters/lumen_skill_3.wav"
+      "master": "art/source/voice/lumen_skill_3.wav"
     },
     {
       "operator": "lumen",
@@ -740,7 +740,7 @@
       "duration_seconds": 4.745,
       "sha256": "5d2b81ba2cff00e8414cb891e5e7733800a5bbcbbdd62449fc7b824df3c971e2",
       "ogg_quality": 0.7,
-      "master": "masters/lumen_battle.wav"
+      "master": "art/source/voice/lumen_battle.wav"
     },
     {
       "operator": "specter_unchained",
@@ -753,7 +753,7 @@
       "duration_seconds": 2.648,
       "sha256": "5302b9ced3862f735bb231b137fc44ef0680570f4ccd5ca8f93ae0bb7d647306",
       "ogg_quality": 0.7,
-      "master": "masters/specter_unchained_entry.wav"
+      "master": "art/source/voice/specter_unchained_entry.wav"
     },
     {
       "operator": "specter_unchained",
@@ -766,7 +766,7 @@
       "duration_seconds": 1.43,
       "sha256": "c6133075f4db08e26236aa1ac3dd14d080a2ffe1f998ad3f3fcf725d4b3bd118",
       "ogg_quality": 0.7,
-      "master": "masters/specter_unchained_skill_1.wav"
+      "master": "art/source/voice/specter_unchained_skill_1.wav"
     },
     {
       "operator": "specter_unchained",
@@ -779,7 +779,7 @@
       "duration_seconds": 1.17,
       "sha256": "42e4d2aa30fbd8a7c9936136aaf8b2f4feb3a0c7221379b2ceae606431842a65",
       "ogg_quality": 0.7,
-      "master": "masters/specter_unchained_skill_2.wav"
+      "master": "art/source/voice/specter_unchained_skill_2.wav"
     },
     {
       "operator": "specter_unchained",
@@ -792,7 +792,7 @@
       "duration_seconds": 2.462,
       "sha256": "3070e0ea0a147dd28a80803dcc417daaabce64ea80ea5c224ae50edd91929d54",
       "ogg_quality": 0.7,
-      "master": "masters/specter_unchained_skill_3.wav"
+      "master": "art/source/voice/specter_unchained_skill_3.wav"
     },
     {
       "operator": "specter_unchained",
@@ -805,7 +805,7 @@
       "duration_seconds": 5.05,
       "sha256": "8003727232191a79b04a68341b9c1a3325c8255da328f6422a97c2085c84dad5",
       "ogg_quality": 0.7,
-      "master": "masters/specter_unchained_battle.wav"
+      "master": "art/source/voice/specter_unchained_battle.wav"
     },
     {
       "operator": "ulpianus",
@@ -818,7 +818,7 @@
       "duration_seconds": 1.947,
       "sha256": "a9def43f7232d25f9d0c288c00102dd5944cdfeeabe7911d2a0e196ef8c5bd14",
       "ogg_quality": 0.7,
-      "master": "masters/ulpianus_entry.wav"
+      "master": "art/source/voice/ulpianus_entry.wav"
     },
     {
       "operator": "ulpianus",
@@ -831,7 +831,7 @@
       "duration_seconds": 1.463,
       "sha256": "4f7fc45794f1b4eb6a482662d7f34ec0ef855dbcdb90ae92a92f7e7ca57e0cf8",
       "ogg_quality": 0.7,
-      "master": "masters/ulpianus_skill_1.wav"
+      "master": "art/source/voice/ulpianus_skill_1.wav"
     },
     {
       "operator": "ulpianus",
@@ -844,7 +844,7 @@
       "duration_seconds": 1.552,
       "sha256": "b7cc506db076adac34a7c5c7747123f3f7896ff9ba23b0ee940be2e52bee4126",
       "ogg_quality": 0.7,
-      "master": "masters/ulpianus_skill_2.wav"
+      "master": "art/source/voice/ulpianus_skill_2.wav"
     },
     {
       "operator": "ulpianus",
@@ -857,7 +857,7 @@
       "duration_seconds": 1.844,
       "sha256": "a8aec711e3ed3133881746c0fa3d4314e0f93df663889ce7ce6cd44e727245b7",
       "ogg_quality": 0.7,
-      "master": "masters/ulpianus_skill_3.wav"
+      "master": "art/source/voice/ulpianus_skill_3.wav"
     },
     {
       "operator": "ulpianus",
@@ -870,7 +870,7 @@
       "duration_seconds": 3.242,
       "sha256": "d43ffd509850dff2e5ba5ecb9cc0b7789bfc2bf008316ed3ad0925998153a39f",
       "ogg_quality": 0.7,
-      "master": "masters/ulpianus_battle.wav"
+      "master": "art/source/voice/ulpianus_battle.wav"
     },
     {
       "operator": "wisadel",
@@ -883,7 +883,7 @@
       "duration_seconds": 2.966,
       "sha256": "813e1cac690b77dce7c334dcbfe5e12c090551cd3c93496263dff9f13d58a074",
       "ogg_quality": 0.7,
-      "master": "masters/wisadel_w_laugh.wav"
+      "master": "art/source/voice/wisadel_w_laugh.wav"
     },
     {
       "operator": "texas",
@@ -896,7 +896,7 @@
       "duration_seconds": 0.9249886621315193,
       "sha256": "d3658af3e6c309df331cba47007dd0c2ba4a6753c477097d157ff1ad761f0559",
       "ogg_quality": 0.7,
-      "master": "masters/texas_entry.wav",
+      "master": "art/source/voice/texas_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -911,7 +911,7 @@
       "duration_seconds": 0.8749886621315193,
       "sha256": "1b8827f6e6d309978bc58c93992930e09758ac2353ae74bb80c6e746f0b4d5c8",
       "ogg_quality": 0.7,
-      "master": "masters/texas_skill_1.wav",
+      "master": "art/source/voice/texas_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -926,7 +926,7 @@
       "duration_seconds": 1.6749886621315193,
       "sha256": "e6bb4b0a4c7541169e7bf5340c0a9cae6459367ed997fb1a60fdde691d9480a8",
       "ogg_quality": 0.7,
-      "master": "masters/texas_skill_2.wav",
+      "master": "art/source/voice/texas_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -941,7 +941,7 @@
       "duration_seconds": 1.2949886621315192,
       "sha256": "84ae161a699fd1a2678ea337e31331051feee121c7d94f03e9076b1c9604ac38",
       "ogg_quality": 0.7,
-      "master": "masters/texas_skill_3.wav",
+      "master": "art/source/voice/texas_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -956,7 +956,7 @@
       "duration_seconds": 0.8449886621315192,
       "sha256": "5c2d98ef71f94d9218f4f9db790124e7dc3f1b0707ace7971c300d063f03b187",
       "ogg_quality": 0.7,
-      "master": "masters/texas_battle.wav",
+      "master": "art/source/voice/texas_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -971,7 +971,7 @@
       "duration_seconds": 1.0676643990929706,
       "sha256": "b98dbeb86a471462659cafe71c5b2ee6dabffb25045a682fdfa505cd91fc4071",
       "ogg_quality": 0.7,
-      "master": "masters/hoshiguma_entry.wav",
+      "master": "art/source/voice/hoshiguma_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -986,7 +986,7 @@
       "duration_seconds": 1.3952607709750566,
       "sha256": "b815882529e8e8a135089d8cc915993670c4196831ecbc9aaa183abb75d9335c",
       "ogg_quality": 0.7,
-      "master": "masters/hoshiguma_skill_1.wav",
+      "master": "art/source/voice/hoshiguma_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1001,7 +1001,7 @@
       "duration_seconds": 3.6480045351473924,
       "sha256": "765b11ff07e5a9309f2baf50460fe191b0281592e553a5612f08a3b98d242a55",
       "ogg_quality": 0.7,
-      "master": "masters/hoshiguma_skill_2.wav",
+      "master": "art/source/voice/hoshiguma_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1016,7 +1016,7 @@
       "duration_seconds": 1.1098185941043084,
       "sha256": "0545c4acb230d872859ca47d4b1904aaaa3db808184f08fbfc6c4f2760e1d2b3",
       "ogg_quality": 0.7,
-      "master": "masters/hoshiguma_skill_3.wav",
+      "master": "art/source/voice/hoshiguma_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1031,7 +1031,7 @@
       "duration_seconds": 5.639886621315193,
       "sha256": "6663a082ff5a35b588e1f620b9e7b1404856804d72cf8dcd8d9e2d29493ada05",
       "ogg_quality": 0.7,
-      "master": "masters/hoshiguma_battle.wav",
+      "master": "art/source/voice/hoshiguma_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1046,7 +1046,7 @@
       "duration_seconds": 2.27,
       "sha256": "c0da9ba41ef39062e9d78113ee61838534134182182119db8d30a34a763bbec5",
       "ogg_quality": 0.7,
-      "master": "masters/angelina_entry.wav",
+      "master": "art/source/voice/angelina_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1061,7 +1061,7 @@
       "duration_seconds": 1.8349886621315192,
       "sha256": "8fe1940b090079a60370c1ea3fe314c9c814d7a13b50faa5a872ec5d5aa703be",
       "ogg_quality": 0.7,
-      "master": "masters/angelina_skill_1.wav",
+      "master": "art/source/voice/angelina_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1076,7 +1076,7 @@
       "duration_seconds": 1.7349886621315194,
       "sha256": "3e154477080c3bb2d0c8a1ca59b4105b1ae3532dd1f92b31d60636af694c4959",
       "ogg_quality": 0.7,
-      "master": "masters/angelina_skill_2.wav",
+      "master": "art/source/voice/angelina_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1091,7 +1091,7 @@
       "duration_seconds": 1.9649886621315193,
       "sha256": "1d2f64df1e886816a61f9c369b56c9934b97cfaf5239ef20d2e499b09a8b78da",
       "ogg_quality": 0.7,
-      "master": "masters/angelina_skill_3.wav",
+      "master": "art/source/voice/angelina_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1106,7 +1106,7 @@
       "duration_seconds": 3.16,
       "sha256": "d7cca69f4e33ae5a5f56a9e1a6c7eaac2f97cd67d4ca5d46b89b45acbbd987ef",
       "ogg_quality": 0.7,
-      "master": "masters/angelina_battle.wav",
+      "master": "art/source/voice/angelina_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1121,7 +1121,7 @@
       "duration_seconds": 5.5,
       "sha256": "07d32651a8d435dea447dbad751d2729f977a258b8f61b5d1059991bcac26dc6",
       "ogg_quality": 0.7,
-      "master": "masters/skalter_entry.wav",
+      "master": "art/source/voice/skalter_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1136,7 +1136,7 @@
       "duration_seconds": 4.24498866213152,
       "sha256": "324380721afe7811f43ee036f98a8b6daa5cdc70cb406065bcb238e04bc71cdf",
       "ogg_quality": 0.7,
-      "master": "masters/skalter_skill_1.wav",
+      "master": "art/source/voice/skalter_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1151,7 +1151,7 @@
       "duration_seconds": 3.93,
       "sha256": "118ac09bd33e260d11838fa864c3fda55599320efa4c4d2cac9af2578bb7c79b",
       "ogg_quality": 0.7,
-      "master": "masters/skalter_skill_2.wav",
+      "master": "art/source/voice/skalter_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1166,7 +1166,7 @@
       "duration_seconds": 7.17,
       "sha256": "37022862d7ae893800176aaafa86e5f9cbd8febb23adaa97a3ae2f1e7aa0164e",
       "ogg_quality": 0.7,
-      "master": "masters/skalter_skill_3.wav",
+      "master": "art/source/voice/skalter_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1181,7 +1181,7 @@
       "duration_seconds": 5.92,
       "sha256": "199314efcbd6bbee63b272e3c2451aabd7be40ca6f91af39647cf604f6c735cd",
       "ogg_quality": 0.7,
-      "master": "masters/skalter_battle.wav",
+      "master": "art/source/voice/skalter_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1196,7 +1196,7 @@
       "duration_seconds": 0.8149886621315193,
       "sha256": "b962869a1686843fe2e81c0dca1b9cf70b10f816bd24f84e7d9ca8f85dcc1251",
       "ogg_quality": 0.7,
-      "master": "masters/exusiai_entry.wav",
+      "master": "art/source/voice/exusiai_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1211,7 +1211,7 @@
       "duration_seconds": 0.9549886621315192,
       "sha256": "3a8830ad429d3655265a0c0878fbe162c3ec7392615f55801c6d037543ee0b56",
       "ogg_quality": 0.7,
-      "master": "masters/exusiai_skill_1.wav",
+      "master": "art/source/voice/exusiai_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1226,7 +1226,7 @@
       "duration_seconds": 1.0449886621315192,
       "sha256": "b0f5c4a41465d8672d21a319fc916e07e802faeb9cb526dc46b8774387bca0fc",
       "ogg_quality": 0.7,
-      "master": "masters/exusiai_skill_2.wav",
+      "master": "art/source/voice/exusiai_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1241,7 +1241,7 @@
       "duration_seconds": 0.71,
       "sha256": "9e8b19aae3d4bf52c48f4aea9533f631ed5bd99aa1b9c64d75e0921f170df4a2",
       "ogg_quality": 0.7,
-      "master": "masters/exusiai_skill_3.wav",
+      "master": "art/source/voice/exusiai_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1256,7 +1256,7 @@
       "duration_seconds": 1.09,
       "sha256": "ba4273b7418daab4c17f3ec3a86537e92dfcfb95d5b12ddd2d233003bbbcb57d",
       "ogg_quality": 0.7,
-      "master": "masters/exusiai_battle.wav",
+      "master": "art/source/voice/exusiai_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
     },
@@ -1273,7 +1273,7 @@
       "duration_seconds": 1.074989,
       "sha256": "f847c9a51ce395c40ac45f923bfe89818998574c329931c831398ca6e09eabd4",
       "ogg_quality": 0.7,
-      "master": "masters/mizuki_command.wav",
+      "master": "art/source/voice/mizuki_command.wav",
       "ogg_sha256": "5951fe9e1f05c985c38587196e0e6b3dbbcb32b56d68120f1ea439e54e569156",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_437_mizuki.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1298,7 +1298,7 @@
       "duration_seconds": 0.714989,
       "sha256": "1a38d292944c422ee434d16c92fa336bf7c2346c1c6c7dcf641a9f4738584410",
       "ogg_quality": 0.7,
-      "master": "masters/skadi_command.wav",
+      "master": "art/source/voice/skadi_command.wav",
       "ogg_sha256": "529aa2febe03a625393e4886fe21b4a18257f311bab5a788e308d574116459a3",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_263_skadi.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1323,7 +1323,7 @@
       "duration_seconds": 0.934989,
       "sha256": "02ddb561eef2207c71254f80f9dba03720c38d0174e5927e5a3d732aece05da0",
       "ogg_quality": 0.7,
-      "master": "masters/siege_command.wav",
+      "master": "art/source/voice/siege_command.wav",
       "ogg_sha256": "7cfeb01e8a95fbca051a5756eb47542c24298c2cab13fbba3c870095bd486eae",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_112_siege.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1348,7 +1348,7 @@
       "duration_seconds": 0.534943,
       "sha256": "d63001c47eb7b1f6269f853bac58e447cb681d090ac097db148612326886de13",
       "ogg_quality": 0.7,
-      "master": "masters/saria_command.wav",
+      "master": "art/source/voice/saria_command.wav",
       "ogg_sha256": "8da448d775bd4c85abbdd4a677ae6fbb89beac2c4c98701ae9115d4d54004cbc",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_202_demkni.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1373,7 +1373,7 @@
       "duration_seconds": 1.144989,
       "sha256": "cf5e82dc5d5c04a5633a03fa21817539109afd5c9fad7052e6f1527b55bbf9ea",
       "ogg_quality": 0.7,
-      "master": "masters/suzuran_command.wav",
+      "master": "art/source/voice/suzuran_command.wav",
       "ogg_sha256": "8c723eaa7f98de4b24e7151eaa9af68442b87ee4b152392dc83054740bbc613c",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_358_lisa.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1398,7 +1398,7 @@
       "duration_seconds": 1.37,
       "sha256": "0809e39bfed402a9d236219a38352a9573829cb098bee192f091f2ce5c2cc4b4",
       "ogg_quality": 0.7,
-      "master": "masters/eyjafjalla_command.wav",
+      "master": "art/source/voice/eyjafjalla_command.wav",
       "ogg_sha256": "2ba0b65868cac23cea5919c9efda4eab7dd226bcd38338cce969bfd168c5ee9c",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_180_amgoat.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1423,7 +1423,7 @@
       "duration_seconds": 0.449728,
       "sha256": "eec5442735a1ef38f84b62371f3a1e7b71426691f417f7d76639802905bf3800",
       "ogg_quality": 0.7,
-      "master": "masters/kaltsit_command.wav",
+      "master": "art/source/voice/kaltsit_command.wav",
       "ogg_sha256": "c2bdf353b62c0983ab361ba523348a01e73e70220b6f7d69a0595114d4b2b0a6",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_003_kalts.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1448,7 +1448,7 @@
       "duration_seconds": 3.483333,
       "sha256": "7d541e4cdc223c09eddf71ee2318c7d9b97829892587409de6f988df7cef92ce",
       "ogg_quality": 0.7,
-      "master": "masters/wisadel_command.wav",
+      "master": "art/source/voice/wisadel_command.wav",
       "ogg_sha256": "ddc21d44d32f27ab0fd7b067138198420d4f3702faafac0da280ae352b7c36a9",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1035_wisdel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1473,7 +1473,7 @@
       "duration_seconds": 0.67,
       "sha256": "45ad3f7f4e34f3069fef116f44e363282979ac09ecdb1fa6207f18f00bbc6f61",
       "ogg_quality": 0.7,
-      "master": "masters/irene_command.wav",
+      "master": "art/source/voice/irene_command.wav",
       "ogg_sha256": "dc3c31a15c304916efb6198c32220a1f4e2a3cab38276e540f3d329b4e75e05e",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_4009_irene.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1498,7 +1498,7 @@
       "duration_seconds": 0.739116,
       "sha256": "3ed277a52743df8800e0e40fe90d70908baafeca53dce86bb4311d1881737cdd",
       "ogg_quality": 0.7,
-      "master": "masters/logos_command.wav",
+      "master": "art/source/voice/logos_command.wav",
       "ogg_sha256": "c03cedb5954b4af2862a08cbf609fa5df10a897c6c99527a96fb8fb2902b65cd",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_4133_logos.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1523,7 +1523,7 @@
       "duration_seconds": 1.024989,
       "sha256": "4febf5a2895fcc55e767bb5e286e4c8bd1f87fefffc708a62b30456e761e2027",
       "ogg_quality": 0.7,
-      "master": "masters/lumen_command.wav",
+      "master": "art/source/voice/lumen_command.wav",
       "ogg_sha256": "e2a7c82207c99f78d7cb026897dac7ca3d05f62e80abbb6685266bb065292c97",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_4042_lumen.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1548,7 +1548,7 @@
       "duration_seconds": 1.624989,
       "sha256": "31f67e895d94cc31b0c2a42a30a958ff49bc5511fed048c1065c6ef6e63a33f2",
       "ogg_quality": 0.7,
-      "master": "masters/specter_unchained_command.wav",
+      "master": "art/source/voice/specter_unchained_command.wav",
       "ogg_sha256": "67ab350fbdfedaadf650593027d1d252e24df7ccc8b8e14f5e348cf65473b126",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1023_ghost2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1573,7 +1573,7 @@
       "duration_seconds": 0.55737,
       "sha256": "ec3d4dbb6573e072e7a1241b6d3f5398835e4e1ec010aa35378c91c280871921",
       "ogg_quality": 0.7,
-      "master": "masters/ulpianus_command.wav",
+      "master": "art/source/voice/ulpianus_command.wav",
       "ogg_sha256": "d9f6289afdb3f57d74ffe915d0133d2e56773605df2cf4eaa183bd5897642f3c",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_4145_ulpia.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1598,7 +1598,7 @@
       "duration_seconds": 0.944989,
       "sha256": "aad2a83677c7c11bba9767a61395a00d08eebd84afc3d928bad0d5b81ae8beea",
       "ogg_quality": 0.7,
-      "master": "masters/texas_command.wav",
+      "master": "art/source/voice/texas_command.wav",
       "ogg_sha256": "04e5226d4096f42541130991b4d4184674c0af95d3c3c69eb708728022d5f759",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1623,7 +1623,7 @@
       "duration_seconds": 0.340499,
       "sha256": "c492fabae4db545227e8c4b400d9d64cbdbfd04f8821bec02967a208893f4e3d",
       "ogg_quality": 0.7,
-      "master": "masters/hoshiguma_command.wav",
+      "master": "art/source/voice/hoshiguma_command.wav",
       "ogg_sha256": "6b57a2feb0650b75f567c845e267be0fd0f09430be45cc1a44e700f9ee001787",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1648,7 +1648,7 @@
       "duration_seconds": 0.44,
       "sha256": "2a675bf942fc81dec964bab23fc75c8c19b00a488f8502f2c8ca7ede1c7cdaf0",
       "ogg_quality": 0.7,
-      "master": "masters/angelina_command.wav",
+      "master": "art/source/voice/angelina_command.wav",
       "ogg_sha256": "8dc21dd112211545fca886e526e8c431769a33a72ff3ed9834fe7e3efc8b83f6",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1673,7 +1673,7 @@
       "duration_seconds": 3.94,
       "sha256": "7bef238c83ae2910f86096171ae5e1bbe0dd101ed9f47d416e3124199fde9502",
       "ogg_quality": 0.7,
-      "master": "masters/skalter_command.wav",
+      "master": "art/source/voice/skalter_command.wav",
       "ogg_sha256": "b65c9b50d9dbdaa5a91712cf39cfd368ab86a97a7291f427bd4de367bb09ef59",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1698,7 +1698,7 @@
       "duration_seconds": 0.61,
       "sha256": "0ba309fce2ae7085189e4a7e28caede829bf510912591c5528f4a117fb69281e",
       "ogg_quality": 0.7,
-      "master": "masters/exusiai_command.wav",
+      "master": "art/source/voice/exusiai_command.wav",
       "ogg_sha256": "8c404a56a000e5144d4369bafbd0577871f7a8c64481212a02603602641a5c25",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1723,7 +1723,7 @@
       "duration_seconds": 1.69,
       "sha256": "84a9e2dafbf60df0a10f9546c2591881655c62126361eff6a2ac9ec86c6be769",
       "ogg_quality": 0.7,
-      "master": "masters/lappland_command.wav",
+      "master": "art/source/voice/lappland_command.wav",
       "ogg_sha256": "28a024979d42896af9fab3600198c5142be19b3e906cc95ed2aedda07327c9ce",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_140_whitew.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1748,7 +1748,7 @@
       "duration_seconds": 1.094989,
       "sha256": "c0df1d683e7f79400da0758bb3f5547fb2da6bbf12127b2b0e4fa99e10479080",
       "ogg_quality": 0.7,
-      "master": "masters/lappland_entry.wav",
+      "master": "art/source/voice/lappland_entry.wav",
       "ogg_sha256": "2801e217aa2ea00d1da9f880306939a0ddf9c2d231945b2aca62b6e1a5860738",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_140_whitew.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1773,7 +1773,7 @@
       "duration_seconds": 3.504989,
       "sha256": "bbe69b99b6b6c4b99351584c1de09969758856738d0e83fe1caeb7ce337b00cc",
       "ogg_quality": 0.7,
-      "master": "masters/lappland_skill_1.wav",
+      "master": "art/source/voice/lappland_skill_1.wav",
       "ogg_sha256": "f17616adce043cd1c2799d143e23e6258572380b4fcd40396a1900827efc8834",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_140_whitew.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1798,7 +1798,7 @@
       "duration_seconds": 1.304989,
       "sha256": "8b0acc814ac61826c3bc4024f1e2a70e989cf7ddb612291b5df0ecd36d260c41",
       "ogg_quality": 0.7,
-      "master": "masters/lappland_skill_2.wav",
+      "master": "art/source/voice/lappland_skill_2.wav",
       "ogg_sha256": "1a49917b28c4d1884f8e58cca4df2f30bca501b49fad119cd2619b88c6174f47",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_140_whitew.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1823,7 +1823,7 @@
       "duration_seconds": 1.434989,
       "sha256": "f3f06e2484f14fe12b545b40eeac25e3bd075a94f6c3a178c6a2d03fedf17d36",
       "ogg_quality": 0.7,
-      "master": "masters/lappland_skill_3.wav",
+      "master": "art/source/voice/lappland_skill_3.wav",
       "ogg_sha256": "29266928f217b8201a1761db2543b3fc7a60a6fbb788db3bc50a0078aa063c78",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_140_whitew.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1848,7 +1848,7 @@
       "duration_seconds": 1.284989,
       "sha256": "d2fe944d7509d96246e78d5c082f8e995360c5781191c2e31c84c179d01b7d0f",
       "ogg_quality": 0.7,
-      "master": "masters/lappland_battle.wav",
+      "master": "art/source/voice/lappland_battle.wav",
       "ogg_sha256": "56df65776c7898aa28bf135a8468cabcd79050570368269c03289a0b9da5e474",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_140_whitew.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1873,7 +1873,7 @@
       "duration_seconds": 0.99,
       "sha256": "180e4b69707bc61cecbf772d1bcb2503c42cf3f0af96aaa26fed2f23cebb4904",
       "ogg_quality": 0.7,
-      "master": "masters/gladiia_command.wav",
+      "master": "art/source/voice/gladiia_command.wav",
       "ogg_sha256": "d5c63cb21d421b3c068fee2f413d256f029b102c507fef4c17b6bb648ca44ff0",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_474_glady.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1898,7 +1898,7 @@
       "duration_seconds": 0.844989,
       "sha256": "0ec42058a1d5de3314180a672219e95eddf6ace027b03987a2a358a99323b16b",
       "ogg_quality": 0.7,
-      "master": "masters/gladiia_entry.wav",
+      "master": "art/source/voice/gladiia_entry.wav",
       "ogg_sha256": "59cc5d07a40c0fc7844961de4a4553dea308dd392f69ae66a1ed4999c4967289",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_474_glady.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1923,7 +1923,7 @@
       "duration_seconds": 3.49,
       "sha256": "62d1ffb5141a597aa9a2799bd2089c9b80be5458d63ec82b8794785384ec960e",
       "ogg_quality": 0.7,
-      "master": "masters/gladiia_skill_1.wav",
+      "master": "art/source/voice/gladiia_skill_1.wav",
       "ogg_sha256": "45077267775de5da19886a8704b87ddfed3e4bb5ee8d443fefae8138f02f1146",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_474_glady.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1948,7 +1948,7 @@
       "duration_seconds": 5.0,
       "sha256": "872e5d58802ceeb390dcee0e5e64dedec034dda1ba6771d4a00e66e02bc440b5",
       "ogg_quality": 0.7,
-      "master": "masters/gladiia_skill_2.wav",
+      "master": "art/source/voice/gladiia_skill_2.wav",
       "ogg_sha256": "0d24e0f41ae07f0caec46842eb931c06ff3afbd38d44e82614da52a04a8f3f1a",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_474_glady.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1973,7 +1973,7 @@
       "duration_seconds": 4.36,
       "sha256": "fb2745ce4207c8ad125de1750d653f39b7a092d90418568ce9ae76eecd058e9d",
       "ogg_quality": 0.7,
-      "master": "masters/gladiia_skill_3.wav",
+      "master": "art/source/voice/gladiia_skill_3.wav",
       "ogg_sha256": "c71dae2305ea5825424e867c623b11bdf3f6150c37401ba2dbf2307c80e3e39d",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_474_glady.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -1998,7 +1998,7 @@
       "duration_seconds": 2.27,
       "sha256": "af470a8eccde74f4d90519a499c8c9435d2b241994991deb5e276e4908864cf8",
       "ogg_quality": 0.7,
-      "master": "masters/gladiia_battle.wav",
+      "master": "art/source/voice/gladiia_battle.wav",
       "ogg_sha256": "991453991dfe8f341bec5edb79a2aa5028f72c6d61f8779858c192fd9c77fe5d",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_474_glady.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -2023,7 +2023,7 @@
       "duration_seconds": 2.36,
       "sha256": "2144a819d30adf6cfe70be22f69f9f8f5c8db34434e142a00784de775123222d",
       "ogg_quality": 0.7,
-      "master": "masters/exusiai_syn_team.wav",
+      "master": "art/source/voice/exusiai_syn_team.wav",
       "ogg_sha256": "79cfb01e21d927661244d3905b20bce970a55cf245f429802efe947a45f8f386",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",
@@ -2048,7 +2048,7 @@
       "duration_seconds": 1.9,
       "sha256": "472416011c3361eb3441918299ee505c594b396fbe36f8515622bd1fe0642769",
       "ogg_quality": 0.7,
-      "master": "masters/lappland_syn_rival.wav",
+      "master": "art/source/voice/lappland_syn_rival.wav",
       "ogg_sha256": "a141e53f917d3352ff6da7206d833ac703c6b1158f80d1fe4ac356835e93b45b",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_140_whitew.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e",

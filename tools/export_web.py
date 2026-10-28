@@ -76,7 +76,7 @@ def main():
     shutil.rmtree(WORK, ignore_errors=True)
     src = os.path.join(WORK, "src")
     os.makedirs(src)
-    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/incoming", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
+    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/incoming", "art/source/voice", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     if a.worktree_presets:
         shutil.copy2(os.path.join(ROOT, "game", "export_presets.cfg"), os.path.join(src, "game", "export_presets.cfg"))

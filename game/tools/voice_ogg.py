@@ -1,13 +1,13 @@
 """干员语音：WAV 母带 → 游戏里用的 OGG Vorbis（单声道 44.1 kHz）。
 
-母带在 audio/voice/masters/（目录里有 .gdignore，Godot 不导入也不导出）；游戏读 audio/voice/<干员>_<事件>.ogg（sfx.gd）。
+母带在仓库 art/source/voice/（docs/189：源文件不放 game/，不进包）；游戏读 audio/voice/<干员>_<事件>.ogg（sfx.gd）。
 每条的编码档位记在 voice_manifest.json 的 ogg_quality（soundfile 的 compression_level，0 最好、1 最小）。
 2026-09-26 从 QOA（WAV 导入时的默认压缩）改成 OGG 时逐条选的档位：在 0.7 / 0.6 / 0.5 / 0.4 / 0.3 里取最小的一档，
 要求它和原始 WAV 的差异（简化 PEAQ 式噪声掩蔽比，长帧 2048 和短帧 512 两种分析）不比当时游戏里的 QOA 版本大
 （容差 0.5 dB / 3 个百分点）。清单里没有档位的新语音用 DEFAULT_Q：当时所有条目在这一档都不比 QOA 差。
 
 新交付的语音照 README 放进 audio/voice/（<干员>_<事件>.wav，并在清单里登记）后运行本脚本：
-WAV 会被挪进 masters/，清单里的 file 改成 .ogg，并补上 master / ogg_quality。
+WAV 会被挪进 art/source/voice/，清单里的 file 改成 .ogg，并补上 master（相对仓库根）/ ogg_quality。
 
 用法：cd game/tools && python voice_ogg.py      # 只转换还没有 OGG 的条目（新交付）
       python voice_ogg.py 名字 ...               # 重新转换指定条目（比如改了清单里的 ogg_quality）
@@ -26,7 +26,7 @@ import soundfile as sf
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE = os.path.normpath(os.path.join(HERE, "..", "audio", "voice"))
-MASTERS = os.path.join(VOICE, "masters")
+MASTERS = os.path.normpath(os.path.join(HERE, "..", "..", "art", "source", "voice"))
 MANIFEST = os.path.join(VOICE, "voice_manifest.json")
 DEFAULT_Q = 0.7   # 10-21 网页包压音频：人声 24 kHz + 档位 0.7 ≈ 57 kbps（docs/121），全部条目统一这一档
 OUT_SR = 24000    # 游戏用 OGG 的采样率（母带仍是 44.1 kHz；人声 12 kHz 以内足够）
@@ -78,7 +78,7 @@ def main(args):
         dur = encode(master, dst, q)
         done += 1
         clip["file"] = stem + ".ogg"
-        clip["master"] = "masters/" + stem + ".wav"
+        clip["master"] = "art/source/voice/" + stem + ".wav"
         clip["ogg_quality"] = q
         total_in += os.path.getsize(master)
         total_out += os.path.getsize(dst)

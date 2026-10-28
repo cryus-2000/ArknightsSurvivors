@@ -2,7 +2,7 @@
 
 - BGM（audio/music/*.ogg）：没有母带（gen_music*.py 直接写 OGG），解码后按 BGM_LEVEL 重新编码；只在变小时替换，
   帧数必须与原文件相同（乐句式曲目按帧接缝）。生成脚本的编码档位同步改成 BGM_LEVEL，以后重跑也是这一档。
-- 语音（audio/voice/*.ogg）：从 masters/ 的 WAV 母带重编码（不叠加有损），走 voice_ogg.encode：24 kHz 单声道、清单 ogg_quality 统一 0.7（约 57 kbps）。
+- 语音（audio/voice/*.ogg）：从 art/source/voice/ 的 WAV 母带重编码（不叠加有损），走 voice_ogg.encode：24 kHz 单声道、清单 ogg_quality 统一 0.7（约 57 kbps）。
 - 对比样本：BGM / 语音各取几条，压前压后各一段写到 <主仓库>/build/audio_shrink/。
 
 用法：python game/tools/shrink_audio.py --bgm --voice            先写 <主仓库>/build/audio_shrink/stage/ 并打印省多少
@@ -77,7 +77,7 @@ if "--voice" in sys.argv:
         out = os.path.join(GAME if APPLY else STAGE, "audio", "voice", clip["file"])
         os.makedirs(os.path.dirname(out), exist_ok=True)
         tmp = out + ".tmp.ogg"
-        voice_ogg.encode(os.path.join(VOICE, clip["master"]), tmp, float(clip["ogg_quality"]))
+        voice_ogg.encode(os.path.join(GAME, "..", clip["master"]), tmp, float(clip["ogg_quality"]))   # master 相对仓库根（art/source/voice/…）
         tot["语音"][0] += old
         tot["语音"][1] += os.path.getsize(tmp)
         os.replace(tmp, out)
