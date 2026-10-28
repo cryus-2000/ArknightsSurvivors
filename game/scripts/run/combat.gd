@@ -1412,6 +1412,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		ing = int(round(ing * float(D.ENEMIES[e.type].scream_ingot_mult)))   # 箱形恐鱼尖叫结束前击倒（含还没尖叫）：源石锭 ×1.5（docs/145 §4 A，原作宝箱恐鱼）
 	if e.boss:
 		ing = 20
+		if not is_same(e, g.final_boss):
+			g.mid_boss_down = true   # 核心延后解锁（docs/191 §6）
 		if not is_same(e, g.final_boss) and not g.spawner.boss_alive():
 			Sfx.play_overlay("boss_down")   # 最终 Boss 走结算乐句；双 Boss 需全部倒下
 		g.pickups.drop(e.pos + Vector2(-20, 0), "chest", 1.0, "boss")

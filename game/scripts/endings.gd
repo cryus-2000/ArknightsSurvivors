@@ -608,7 +608,23 @@ func _event_ok(ev: Dictionary) -> bool:
 		return false
 	if ev.has("requires_flag") and not g.get(ev.requires_flag):
 		return false
+	if g.rfx.core_locked() and _gives_core(ev):
+		return false   # 选项写明给核心藏品的事件，核心解锁前不进卡组（docs/191 §6）
 	return true
+
+
+static func _gives_core(o) -> bool:
+	if o is Dictionary:
+		if str(o.get("rarity", "")) in ["核心", "升华"]:
+			return true
+		for v in o.values():
+			if _gives_core(v):
+				return true
+	elif o is Array:
+		for v in o:
+			if _gives_core(v):
+				return true
+	return false
 
 
 ## 弹事件选项（C 版式）
@@ -860,6 +876,9 @@ func _gain_lane_relic(rarity: String, lanes: Array) -> void:
 	if cands.is_empty():
 		cands = base
 	if cands.is_empty():
+		if rarity == "核心":
+			_gain_lane_relic("稀有", lanes)   # 核心还没解锁（docs/191 §6）：退一档给稀有
+			return
 		g.rfx.gain_ingots(12, "暂无可得藏品 · ")
 		return
 	var tot := 0.0
