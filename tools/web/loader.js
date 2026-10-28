@@ -127,7 +127,8 @@
 
   // 把一片写进 out 的 [off, off + raw) 区间。gz 片：第一块带 1f 8b 时经 DecompressionStream 解开；否则（服务器已解压）原样写入。
   // 返回写入的字节数；写越界 / 不足都按出错处理（part 会重试）。
-  async function once(url, bytes, out, off, raw) {
+  // enc === 'lzma'（index.wasm，docs/187 §5）：不是 gzip 头时收齐压缩字节，用 syLzmaDecode（lzma_dec.js）直接解进 out 的这一段。
+  async function once(url, bytes, out, off, raw, enc) {
     var r = await of(url, { cache: 'no-cache' });
     if (!r.ok) throw new Error(url + ' ' + r.status);
     var rd = r.body.getReader(), counted = 0, wrote = 0, gz = null, chunks = null, ds = null, w = null, pump = null, pumpErr = null;
@@ -143,6 +144,7 @@
         var add = Math.min(v.length, bytes - counted);
         if (add > 0) { counted += add; got += add; upd(); }
         if (gz === null) gz = (v.length > 1 && v[0] === 0x1f && v[1] === 0x8b);
+        if (!gz && enc === 'lzma') { if (!chunks) chunks = []; chunks.push(v); continue; }
         if (!gz) { sink(v); continue; }
         if (hasDS) {
           if (!ds) {
@@ -159,6 +161,7 @@
         }
       }
       if (ds) { await w.close(); await pump; if (pumpErr) throw pumpErr; }
+      else if (chunks && !gz) { var lz = cat(chunks); chunks = null; wrote = syLzmaDecode(lz, out.subarray(off, off + raw)); }
       else if (chunks) { sink(inflate(cat(chunks))); chunks = null; }
     } catch (e) {
       got -= counted; upd();
@@ -177,9 +180,9 @@
     return o;
   }
 
-  async function part(url, bytes, out, off, raw) {
+  async function part(url, bytes, out, off, raw, enc) {
     for (var i = 0; ; i++) {
-      try { return await once(url, bytes, out, off, raw); }
+      try { return await once(url, bytes, out, off, raw, enc); }
       catch (e) { if (i >= 2) throw e; await new Promise(function (r) { setTimeout(r, 800 * (i + 1)); }); }
     }
   }
@@ -196,7 +199,7 @@
     var out = new Uint8Array(e.size), off = 0, jobs = [];
     e.parts.forEach(function (p) {
       var raw = p.length > 2 ? p[2] : e.size - off;   // 旧清单没有原始长度：只可能是单片
-      jobs.push(part(base + p[0], p[1], out, off, raw));
+      jobs.push(part(base + p[0], p[1], out, off, raw, e.enc));
       off += raw;
     });
     if (off !== e.size) return Promise.reject(new Error(name + ' 清单分片长度之和不符：' + off + ' ≠ ' + e.size));
