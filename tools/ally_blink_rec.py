@@ -111,6 +111,7 @@ def main():
     ap.add_argument("--secs", type=float, default=15.0)
     ap.add_argument("--cmdat", default="")
     ap.add_argument("--extra", default="")
+    ap.add_argument("--name", default="", help="成片文件名（不含 .mp4）")
     a = ap.parse_args()
     import imageio_ffmpeg
     ff = imageio_ffmpeg.get_ffmpeg_exe()
@@ -123,7 +124,7 @@ def main():
     else:
         cm = a.cmdat or "%g,%g,%g" % (a.start + 2, a.start + 10, a.start + 14)
         segs = [("voice", ex + ["--cmdat=" + cm, "--voicelog"], "")]
-        final = os.path.join(a.out, "突击合唱_两次突击.mp4")
+        final = os.path.join(a.out, (a.name or "突击合唱_两次突击") + ".mp4")
     parts = []
     for tag, extra, label in segs:
         mp4, blinks, n = record(tag, a, extra, a.out, ff, label)

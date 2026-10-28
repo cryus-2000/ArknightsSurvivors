@@ -1,0 +1,504 @@
+{
+ "_doc": "干员语音池（tools/voice_more_1029.py 生成，docs/190）：sfx.gd 按池洗牌轮换、同句 60 秒内不重复",
+ "pools": {
+  "mizuki": {
+   "entry": [
+    "mizuki_entry",
+    "mizuki_entry_2",
+    "mizuki_entry_3",
+    "mizuki_entry_4"
+   ],
+   "command": [
+    "mizuki_command",
+    "mizuki_entry_4",
+    "mizuki_command_2",
+    "mizuki_entry_2"
+   ],
+   "skill": [
+    "mizuki_skill_1",
+    "mizuki_skill_2",
+    "mizuki_skill_3",
+    "mizuki_battle"
+   ],
+   "battle": [
+    "mizuki_battle",
+    "mizuki_battle_2",
+    "mizuki_battle_3"
+   ]
+  },
+  "skadi": {
+   "entry": [
+    "skadi_entry",
+    "skadi_entry_2",
+    "skadi_entry_3",
+    "skadi_entry_4"
+   ],
+   "command": [
+    "skadi_command",
+    "skadi_command_2",
+    "skadi_command_3",
+    "skadi_entry_2"
+   ],
+   "skill": [
+    "skadi_skill_1",
+    "skadi_skill_2",
+    "skadi_skill_3",
+    "skadi_battle"
+   ],
+   "battle": [
+    "skadi_battle",
+    "skadi_battle_2",
+    "skadi_entry_4"
+   ]
+  },
+  "siege": {
+   "entry": [
+    "siege_entry",
+    "siege_command",
+    "siege_entry_2",
+    "siege_entry_3"
+   ],
+   "command": [
+    "siege_command",
+    "siege_command_2",
+    "siege_command_3",
+    "siege_command_4"
+   ],
+   "skill": [
+    "siege_skill_1",
+    "siege_skill_2",
+    "siege_skill_3",
+    "siege_battle"
+   ],
+   "battle": [
+    "siege_battle",
+    "siege_battle_2",
+    "siege_entry_3"
+   ]
+  },
+  "saria": {
+   "entry": [
+    "saria_entry",
+    "saria_entry_2",
+    "saria_entry_3",
+    "saria_entry_4"
+   ],
+   "command": [
+    "saria_command",
+    "saria_command_2",
+    "saria_command_3",
+    "saria_entry_2"
+   ],
+   "skill": [
+    "saria_skill_1",
+    "saria_skill_2",
+    "saria_skill_3",
+    "saria_battle"
+   ],
+   "battle": [
+    "saria_battle",
+    "saria_battle_2",
+    "saria_entry_4"
+   ]
+  },
+  "suzuran": {
+   "entry": [
+    "suzuran_entry",
+    "suzuran_entry_2",
+    "suzuran_entry_3",
+    "suzuran_entry_4"
+   ],
+   "command": [
+    "suzuran_command",
+    "suzuran_command_2",
+    "suzuran_entry_2",
+    "suzuran_entry_4"
+   ],
+   "skill": [
+    "suzuran_skill_1",
+    "suzuran_skill_2",
+    "suzuran_skill_3",
+    "suzuran_battle"
+   ],
+   "battle": [
+    "suzuran_battle",
+    "suzuran_battle_2",
+    "suzuran_entry_4"
+   ]
+  },
+  "eyjafjalla": {
+   "entry": [
+    "eyjafjalla_entry",
+    "eyjafjalla_entry_2",
+    "eyjafjalla_command",
+    "eyjafjalla_entry_3"
+   ],
+   "command": [
+    "eyjafjalla_command",
+    "eyjafjalla_command_2",
+    "eyjafjalla_command_3",
+    "eyjafjalla_command_4"
+   ],
+   "skill": [
+    "eyjafjalla_skill_1",
+    "eyjafjalla_skill_2",
+    "eyjafjalla_skill_3",
+    "eyjafjalla_battle"
+   ],
+   "battle": [
+    "eyjafjalla_battle",
+    "eyjafjalla_battle_2",
+    "eyjafjalla_entry_3"
+   ]
+  },
+  "kaltsit": {
+   "entry": [
+    "kaltsit_entry",
+    "kaltsit_entry_2",
+    "kaltsit_entry_3",
+    "kaltsit_command"
+   ],
+   "command": [
+    "kaltsit_command",
+    "kaltsit_command_2",
+    "kaltsit_command_3",
+    "kaltsit_command_4"
+   ],
+   "skill": [
+    "kaltsit_skill_1",
+    "kaltsit_skill_2",
+    "kaltsit_skill_3",
+    "kaltsit_battle"
+   ],
+   "battle": [
+    "kaltsit_battle",
+    "kaltsit_battle_2",
+    "kaltsit_command"
+   ]
+  },
+  "wisadel": {
+   "entry": [
+    "wisadel_entry",
+    "wisadel_command",
+    "wisadel_entry_2",
+    "wisadel_entry_3"
+   ],
+   "command": [
+    "wisadel_command",
+    "wisadel_command_2",
+    "wisadel_command_3",
+    "wisadel_command_4"
+   ],
+   "skill": [
+    "wisadel_skill_1",
+    "wisadel_skill_2",
+    "wisadel_skill_3",
+    "wisadel_battle"
+   ],
+   "battle": [
+    "wisadel_battle",
+    "wisadel_battle_2",
+    "wisadel_entry_3"
+   ]
+  },
+  "irene": {
+   "entry": [
+    "irene_entry",
+    "irene_command",
+    "irene_entry_2",
+    "irene_entry_3"
+   ],
+   "command": [
+    "irene_command",
+    "irene_command_2",
+    "irene_command_3",
+    "irene_entry_3"
+   ],
+   "skill": [
+    "irene_skill_1",
+    "irene_skill_2",
+    "irene_skill_3",
+    "irene_battle"
+   ],
+   "battle": [
+    "irene_battle",
+    "irene_battle_2",
+    "irene_entry_3"
+   ]
+  },
+  "logos": {
+   "entry": [
+    "logos_entry",
+    "logos_entry_2",
+    "logos_entry_3",
+    "logos_entry_4"
+   ],
+   "command": [
+    "logos_command",
+    "logos_command_2",
+    "logos_command_3",
+    "logos_entry_2"
+   ],
+   "skill": [
+    "logos_skill_1",
+    "logos_skill_2",
+    "logos_skill_3",
+    "logos_battle"
+   ],
+   "battle": [
+    "logos_battle",
+    "logos_battle_2",
+    "logos_entry_4"
+   ]
+  },
+  "lumen": {
+   "entry": [
+    "lumen_entry",
+    "lumen_entry_2",
+    "lumen_entry_3",
+    "lumen_entry_4"
+   ],
+   "command": [
+    "lumen_command",
+    "lumen_command_2",
+    "lumen_entry_2",
+    "lumen_entry_4"
+   ],
+   "skill": [
+    "lumen_skill_1",
+    "lumen_skill_2",
+    "lumen_skill_3",
+    "lumen_battle"
+   ],
+   "battle": [
+    "lumen_battle",
+    "lumen_battle_2",
+    "lumen_entry_4"
+   ]
+  },
+  "specter_unchained": {
+   "entry": [
+    "specter_unchained_entry",
+    "specter_unchained_entry_2",
+    "specter_unchained_command",
+    "specter_unchained_entry_3"
+   ],
+   "command": [
+    "specter_unchained_command",
+    "specter_unchained_command_2",
+    "specter_unchained_command_3",
+    "specter_unchained_command_4"
+   ],
+   "skill": [
+    "specter_unchained_skill_1",
+    "specter_unchained_skill_2",
+    "specter_unchained_skill_3",
+    "specter_unchained_battle"
+   ],
+   "battle": [
+    "specter_unchained_battle",
+    "specter_unchained_battle_2",
+    "specter_unchained_entry_3"
+   ]
+  },
+  "ulpianus": {
+   "entry": [
+    "ulpianus_entry",
+    "ulpianus_entry_2",
+    "ulpianus_entry_3",
+    "ulpianus_entry_4"
+   ],
+   "command": [
+    "ulpianus_command",
+    "ulpianus_command_2",
+    "ulpianus_command_3",
+    "ulpianus_entry_2"
+   ],
+   "skill": [
+    "ulpianus_skill_1",
+    "ulpianus_skill_2",
+    "ulpianus_skill_3",
+    "ulpianus_battle"
+   ],
+   "battle": [
+    "ulpianus_battle",
+    "ulpianus_battle_2",
+    "ulpianus_entry_4"
+   ]
+  },
+  "texas": {
+   "entry": [
+    "texas_entry",
+    "texas_entry_2",
+    "texas_entry_3",
+    "texas_entry_4"
+   ],
+   "command": [
+    "texas_command",
+    "texas_command_2",
+    "texas_command_3",
+    "texas_entry_2"
+   ],
+   "skill": [
+    "texas_skill_1",
+    "texas_skill_2",
+    "texas_skill_3",
+    "texas_battle"
+   ],
+   "battle": [
+    "texas_battle",
+    "texas_battle_2",
+    "texas_entry_4"
+   ]
+  },
+  "hoshiguma": {
+   "entry": [
+    "hoshiguma_entry",
+    "hoshiguma_entry_2",
+    "hoshiguma_entry_3",
+    "hoshiguma_entry_4"
+   ],
+   "command": [
+    "hoshiguma_command",
+    "hoshiguma_command_2",
+    "hoshiguma_command_3",
+    "hoshiguma_entry_2"
+   ],
+   "skill": [
+    "hoshiguma_skill_1",
+    "hoshiguma_skill_2",
+    "hoshiguma_skill_3",
+    "hoshiguma_battle"
+   ],
+   "battle": [
+    "hoshiguma_battle",
+    "hoshiguma_battle_2",
+    "hoshiguma_entry_4"
+   ]
+  },
+  "angelina": {
+   "entry": [
+    "angelina_entry",
+    "angelina_entry_2",
+    "angelina_entry_3",
+    "angelina_entry_4"
+   ],
+   "command": [
+    "angelina_command",
+    "angelina_command_2",
+    "angelina_command_3",
+    "angelina_entry_2"
+   ],
+   "skill": [
+    "angelina_skill_1",
+    "angelina_skill_2",
+    "angelina_skill_3",
+    "angelina_battle"
+   ],
+   "battle": [
+    "angelina_battle",
+    "angelina_battle_2",
+    "angelina_entry_4"
+   ]
+  },
+  "skalter": {
+   "entry": [
+    "skalter_entry",
+    "skalter_command",
+    "skalter_entry_2"
+   ],
+   "command": [
+    "skalter_command",
+    "skalter_entry_2",
+    "skalter_command_2",
+    "skalter_entry"
+   ],
+   "skill": [
+    "skalter_skill_1",
+    "skalter_skill_2",
+    "skalter_skill_3",
+    "skalter_battle"
+   ],
+   "battle": [
+    "skalter_battle",
+    "skalter_battle_2",
+    "skalter_command_2"
+   ]
+  },
+  "exusiai": {
+   "entry": [
+    "exusiai_entry",
+    "exusiai_entry_2",
+    "exusiai_entry_3",
+    "exusiai_command"
+   ],
+   "command": [
+    "exusiai_command",
+    "exusiai_command_2",
+    "exusiai_command_3",
+    "exusiai_entry_2"
+   ],
+   "skill": [
+    "exusiai_skill_1",
+    "exusiai_skill_2",
+    "exusiai_skill_3",
+    "exusiai_battle"
+   ],
+   "battle": [
+    "exusiai_battle",
+    "exusiai_battle_2",
+    "exusiai_entry_3"
+   ]
+  },
+  "lappland": {
+   "entry": [
+    "lappland_entry",
+    "lappland_entry_2",
+    "lappland_entry_3",
+    "lappland_command"
+   ],
+   "command": [
+    "lappland_command",
+    "lappland_command_2",
+    "lappland_entry_2",
+    "lappland_entry"
+   ],
+   "skill": [
+    "lappland_skill_1",
+    "lappland_skill_2",
+    "lappland_skill_3",
+    "lappland_battle"
+   ],
+   "battle": [
+    "lappland_battle",
+    "lappland_battle_2",
+    "lappland_entry_2"
+   ]
+  },
+  "gladiia": {
+   "entry": [
+    "gladiia_entry",
+    "gladiia_entry_2",
+    "gladiia_entry_3",
+    "gladiia_entry_4"
+   ],
+   "command": [
+    "gladiia_command",
+    "gladiia_command_2",
+    "gladiia_entry_2",
+    "gladiia_entry_4"
+   ],
+   "skill": [
+    "gladiia_skill_1",
+    "gladiia_skill_2",
+    "gladiia_skill_3",
+    "gladiia_battle"
+   ],
+   "battle": [
+    "gladiia_battle",
+    "gladiia_battle_2",
+    "gladiia_entry_4"
+   ]
+  }
+ }
+}
