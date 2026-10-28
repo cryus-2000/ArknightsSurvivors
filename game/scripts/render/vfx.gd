@@ -593,7 +593,7 @@ func _flush_boss_sum(dt: float) -> void:
 			continue
 		var e: Dictionary = s.e
 		if s.dmg >= 1.0 and s.get("brk", false):
-			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 16), "破绽 " + str(int(round(s.dmg))), UI.GOLD, 22)   # 破绽期间：金色大一号（打击感审查）
+			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 16), ("" if g.combat.final_break_quiet(e) else "破绽 ") + str(int(round(s.dmg))), UI.GOLD, 22)   # 最终 Boss 不写「破绽」前缀（用户 10-28）   # 破绽期间：金色大一号（打击感审查）
 		elif s.dmg >= 1.0 and (s.weak or g.texts.size() <= _white_cap()):
 			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 14), ("弱点 " if s.weak else "") + str(int(round(s.dmg))), Color(1.0, 0.85, 0.35) if s.weak else Color(1, 0.92, 0.95), 18)
 	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)

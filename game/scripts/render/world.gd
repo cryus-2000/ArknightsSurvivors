@@ -4202,7 +4202,10 @@ func _boss_state(e: Dictionary) -> void:
 	var brk: float = e.get("break_t", 0.0)
 	if e.stun > 0.05 or brk > 0.0:
 		var recovering: bool = e.type=="knight_boss" and e.stun<=0.05 and str(e.get("brk_label",""))=="破绽"
-		if recovering:
+		var quiet: bool = brk > 0.0 and g.combat.final_break_quiet(e)   # 最终 Boss 破绽不写字（用户 10-28，render/break_ring 画金环）
+		if recovering and quiet:
+			pass
+		elif recovering:
 			UI.text(g, g.font, top + Vector2(-120,-12), "收招 · 破绽 %.1f" % brk, 13, Color(.65,.85,.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		else:
 			for q in 3:
@@ -4215,6 +4218,8 @@ func _boss_state(e: Dictionary) -> void:
 			# 骑士（用户 10-25）：只在撞冰柱眩晕时写「眩晕」读秒，别的破绽不写字
 			if str(e.get("brk_label", "")) == "眩晕":
 				UI.text(g, g.font, top + Vector2(-120, -12), "眩晕 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		elif quiet:
+			pass
 		elif brk > 0.0:
 			# 其他 Boss 的破绽（伊莎玛拉潮涌迫近落地、塑路者核心碎裂等）：同一套星 + 剩余秒数
 			UI.text(g, g.font, top + Vector2(-120, -12), "破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)

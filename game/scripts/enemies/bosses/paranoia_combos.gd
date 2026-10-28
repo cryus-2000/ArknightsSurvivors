@@ -19,20 +19,21 @@ const COMBOS := {
 	# 三 · 侵染：找缝（缝隙墙、错位缺口环、泡影环、追猎泡）
 	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "泡影环", "追猎泡"]},
 	"错位回廊": {"seq": ["无声波环", "侵蚀帘幕", "泡影环"]},
-	# 二阶段 · 失声（海嗣青蓝，「她被拖向海嗣」）：区域与时机（呼号扇区、沉浮双层 + 侵蚀泡沼、潮涌环）
-	"无声呼号": {"seq": ["呼号", "潮涌环", "沉浮双层"]},
-	"沉浮之潮": {"seq": ["沉浮双层", "呼号", "潮涌环+沉浮双层"]},
-	# 破茧后：停顿与收束（群愿回响、泡影收束、溟泡迸裂）
-	"群愿回响": {"seq": ["群愿回响", "泡影收束", "溟泡迸裂"]},
-	"破茧群潮": {"seq": ["溟泡迸裂", "群愿回响+泡影收束", "群愿回响"]},
+	# 二阶段 · 失声（海嗣青蓝，「她被拖向海嗣」）：用户 10-28 定二阶段只一段、原失声 / 破茧后两段的 6 招合成一个池子，
+	# 四组轮流（呼号扇区、潮涌环、沉浮双层 + 侵蚀泡沼、群愿回响、泡影收束、溟泡迸裂）；结茧保留，破茧后只收紧不换招（DENS 第 5 行等）
+	"无声呼号": {"seq": ["呼号", "潮涌环", "群愿回响"]},
+	"沉浮之潮": {"seq": ["沉浮双层", "泡影收束", "潮涌环+沉浮双层"]},
+	"群愿回响": {"seq": ["群愿回响", "溟泡迸裂", "呼号"]},
+	"破茧群潮": {"seq": ["溟泡迸裂", "沉浮双层", "群愿回响+泡影收束"]},
 }
-## 每幕两组，轮流：0 凝望 / 1 狂望 / 2 侵染（悬浮，卡点 enemies.json gates [0.84, 0.67, 0.5]）/ 3 失声（落地二阶段）/ 4 破茧后
-const ACT_COMBOS := [["千目凝望", "凝视环流"], ["镜中众影", "偏执双旋"], ["侵蚀帘幕", "错位回廊"], ["无声呼号", "沉浮之潮"], ["群愿回响", "破茧群潮"]]
+## 每幕轮流：0 凝望 / 1 狂望 / 2 侵染（悬浮，卡点 enemies.json gates [0.84, 0.67, 0.5]）/ 3 失声（落地二阶段）/ 4 破茧后（同一池子，收紧）
+const P2_COMBOS := ["无声呼号", "沉浮之潮", "群愿回响", "破茧群潮"]
+const ACT_COMBOS := [["千目凝望", "凝视环流"], ["镜中众影", "偏执双旋"], ["侵蚀帘幕", "错位回廊"], P2_COMBOS, P2_COMBOS]
 ## 弹幕段：发数 n、间隔 iv（秒）；起手前 WINDUP 秒聚光
 const EMITTERS := {
 	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
 	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3},
-	"沉浮双层": {"n": 3, "iv": 0.95}, "潮涌环": {"n": 3, "iv": 0.9}}
+	"沉浮双层": {"n": 3, "iv": 0.95}, "潮涌环": {"n": 3, "iv": 0.9, "wind": 1.0}}   # wind：起手提示秒数（缺省 WINDUP；潮涌环用户 10-28 要更明显）
 const WINDUP := 0.55
 ## 幻象冲撞（非弹幕，泡影独有）：两只幻象在队长两侧现形，沿穿过队长的两条交叉通道冲过去；1.1 秒预告、第二只晚 0.6 秒
 const RUSH_TELL := 1.1
@@ -42,7 +43,9 @@ const RUSH_LEN := 780.0
 const RUSH_R := 34.0
 ## 收招窗口：悬浮幕 / 落地后秒数；开始前要求本 Boss 同屏弹 < LOW_BULLETS；期间以 REST_SPD 靠近队长，停在 REST_NEAR（地面距离）内
 const REST_P1 := 2.5
-const REST_P2 := 3.0
+const REST_P2 := 3.5   # r9（e583d6806）破绽期输出 33% < 35：3.0→3.5（docs/170 §3s）
+## 力竭（用户 10-28「突然给出破绽有点奇怪」）：破绽前先 TIRE 秒泄气——不出招、泡沫从身上往下掉、身周光环收瘪，再进破绽
+const TIRE := 0.6
 const LOW_BULLETS := 20
 const REST_SPD := 90.0
 const REST_NEAR := 110.0
@@ -118,14 +121,28 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 			# 收招期间不出招，慢慢靠近队长（停在 REST_NEAR 内，近战够得着）；悬浮幕正好冲刺打落
 			if live_bullets(e) >= LOW_BULLETS:
 				return true
+			if float(e.get("pc_tire_at", 0.0)) <= 0.0:
+				e.pc_tire_at = g.t + TIRE
+				e.wind = maxf(float(e.get("wind", 0.0)), TIRE)
+				e["move_name"] = "力竭"
+				e["move_t"] = g.t
+				var gt = BossBeam.grains(g)
+				if gt != null:
+					for q in BossBeam.take(g, 18):
+						gt.push("mote_shed", e.pos + Vector2((q - 8.5) * 4.0, -30.0 - (q % 3) * 10.0), Vector2((q - 8.5) * 0.08, 1.0), core(e))
+				return true
+			if g.t < float(e.pc_tire_at):
+				return true
+			e.pc_tire_at = 0.0
 			var rec: float = REST_P1 if e.phase == 1 else REST_P2
 			# 收招 = 真破绽（10-28 测试台：破绽期输出只有 10%，目标 ≥35%）：break_t 期间受伤合计 paranoia_rest_taken，头顶写「破绽」读秒
-			g.combat.start_break(e, rec)
+			bs.brk(e, rec)
 			e.pc_rested = true
 			e.pc_idx = int(e.get("pc_idx", 0)) + 1
 			e.wind = maxf(float(e.get("wind", 0.0)), rec)
 			e.pc_next = g.t + rec
 			e.pc_rest_until = g.t + rec
+			e.pc_rest_len = rec
 			e["move_name"] = "收招"
 			e["move_t"] = g.t
 			return true
@@ -140,7 +157,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 		e.pc_start_t = g.t
 	var seg: String = str(queue.pop_front())
 	_cast(e, seg, dir, dist)
-	e.pc_next = g.t + (0.25 if e.phase == 1 else 0.15)
+	# 段间收势：悬浮 0.25、落地 0.15、破茧后 0.1（收紧）
+	e.pc_next = g.t + (0.25 if e.phase == 1 else (0.1 if a == 4 else 0.15))
 	return true
 
 
@@ -157,7 +175,8 @@ func start_act(e: Dictionary, a: int) -> void:
 			for k in BossBeam.take(g, 60):
 				gr0.push("mote_burst", e.pos + Vector2(0, -20), Vector2.from_angle(TAU * k / 60.0), CORE)
 	e.pc_act = a
-	e.pc_idx = 0
+	# 破茧后与失声同一池子：接着轮下一组，不从头再来
+	e.pc_idx = int(e.get("pc_idx", 0)) if a == 4 and was == 3 else 0
 	e.pc_rested = true
 	e.pc_next = g.t + 1.0
 	e.pc_gather_t = g.t
@@ -173,6 +192,7 @@ func start_act(e: Dictionary, a: int) -> void:
 func interrupt(e: Dictionary) -> void:
 	var had: bool = not (e.get("pc_queue", []) as Array).is_empty() or not (e.get("pc_emit", []) as Array).is_empty() 		or not (e.get("pc_rush", []) as Array).is_empty()
 	e.pc_rush = []   # 没冲完的幻象一并散掉
+	e.pc_tire_at = 0.0
 	if not (e.get("pc_emit", []) as Array).is_empty():
 		e.pc_eyes = []   # 没开完枪的眼一起闭上
 	e.pc_emit = []
@@ -249,8 +269,9 @@ func _emit(e: Dictionary, seg: String, dir: Vector2) -> void:
 		spec.n = int(_dn(e, 6))
 	elif seg in ["侵蚀帘幕", "无声波环"] and act(e) >= 2:
 		spec.n = 3   # 三幕起多一道：缝 / 缺口来回错位，要读
-	var t0: float = g.t + WINDUP
-	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(),
+	var wind: float = float(spec.get("wind", WINDUP))
+	var t0: float = g.t + wind
+	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(), "wind": wind,
 		"flip": 1.0 if int(e.get("pc_flip", 0)) % 2 == 0 else -1.0}
 	e.pc_flip = int(e.get("pc_flip", 0)) + 1
 	if seg == "千目注视":
@@ -386,8 +407,8 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 			var ga: float = _aim(o)
 			for i in 10:
 				var bl: Dictionary = _shot(e, o, float(em.a0) + TAU * i / 10.0 + 0.3 * k, 70.0, "l")
-				if not bl.is_empty() and i % 3 == 0:
-					bl.p_mire = true   # 侵蚀泡沼：每 3 颗慢大泡里 1 颗破开时留一小块 Boss 溟痕
+				if not bl.is_empty() and i % (2 if act(e) == 4 else 3) == 0:
+					bl.p_mire = true   # 侵蚀泡沼：每 3 颗慢大泡里 1 颗（破茧后每 2 颗 1 颗）破开时留一小块 Boss 溟痕
 			for i in 18:
 				var a4: float = TAU * i / 18.0 + 0.17 * k
 				if absf(angle_difference(a4, ga)) < 0.35:
