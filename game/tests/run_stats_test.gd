@@ -165,7 +165,7 @@ func test_real() -> void:
 	for st in m.stats:
 		sv[st.label] = st
 	ok(int(sv["击杀"].v) == int(game.kills) and int(sv["藏品"].v) == game.relics.size(), "真实局：统计表击杀 / 藏品数")
-	ok(float(sv["获得经验"].v) > 0.0 and float(sv["探索时间"].v) >= 45.0, "真实局：统计表经验与时间")
+	ok(float(sv["获得经验"].v) > 0.0 and float(sv["探索用时"].v) >= 45.0, "真实局：统计表经验与时间")
 	var dl := 0.0
 	for k2 in game.dmg_log:
 		dl += float(game.dmg_log[k2])

@@ -121,6 +121,7 @@ var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，stat
 var settlement = preload("res://scripts/screens/settlement_screen.gd").new(self)
 var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
 var run_stats = RunStatsScreen.new(self)   # 界面 · 作战记录（结算上的「作战记录」按钮 / Tab 打开，docs/77）
+var run_log = preload("res://scripts/screens/run_log_screen.gd").new(self)   # 界面 · 对局记录（结算「对局记录」，对内包；点一局进它的作战记录）
 var headhunt = HeadhuntScreen.new(self)   # 界面 · 寻访（结算上有待用的券时盖在上面，docs/109 §12）
 var roster_new := {}                       # 本局结算发的券（Roster.on_run_end）
 var meta_cells := 0                        # 本局带入的认知塑造（已点生机细胞数，core/meta.gd）
@@ -1548,7 +1549,7 @@ func _input(event: InputEvent) -> void:
 	if settings.visible:
 		return
 	# Result owns terminal input before stale combat touch regions can consume it.
-	if settlement.active() and not run_stats.open and not headhunt.open and (state == S.WIN or state_age >= HudView.DEATH_T + 0.35):
+	if settlement.active() and not run_stats.open and not run_log.open and not headhunt.open and (state == S.WIN or state_age >= HudView.DEATH_T + 0.35):
 		settlement.input(event)
 		if is_inside_tree():
 			get_viewport().set_input_as_handled()
@@ -1663,6 +1664,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif event is InputEventKey and event.pressed and not event.echo:
 			if run_stats.key(Pad.kc(event)) and is_inside_tree():
+				get_viewport().set_input_as_handled()
+		return
+	# 对局记录（结算「对局记录」）打开时独占输入；从它进的作战记录走上面那段，关掉后回到这里
+	if (state == S.DEAD or state == S.WIN) and run_log.open:
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				run_log.click(event.position / Cfg.ui_k)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				run_log.wheel(-1)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				run_log.wheel(1)
+			get_viewport().set_input_as_handled()
+		elif event is InputEventKey and event.pressed and not event.echo:
+			if run_log.key(Pad.kc(event)) and is_inside_tree():
 				get_viewport().set_input_as_handled()
 		return
 	if settlement.active():

@@ -9,6 +9,11 @@ extends RefCounted
 ## 动效（docs/62 §3.24）：主动作「藏品依次弹出」（每格 T2 out_back(1.4)，0.6 → 1 倍，间隔 ≤ 35 ms，整组 ≤ 0.6 秒）；
 ##   编队输出条逐条依次增长（0.6–0.9 秒一条、数字跟着滚、队长最后出，BAR_* 常量）、统计数值计数（次要）。减少动态：直接终态，只留 T1 淡入。
 ## 数据只读 run/run_stats.gd 的 model（不碰 g.rng、不改对局状态）。
+## 10-29 用户：视觉改成结算 A「作战报告」的语言——暗底 + 斜向浅光 + 左上徽记、配色跟本局队长（SB.lead_theme）、
+##   描边英文小标题、数据做成数据格、编队输出条同结算（细槽 + 干员色、队长行底色）；版式与键位不变。
+##   数字一律直接显示终值（只淡入 / 滑入、输出条照常增长）：原来数值从 0 滚动、队长那条最后才出，
+##   开页约 1 秒内截图会看到「队长 0%」「藏品 0」「探索用时 01:57 ≠ 02:42」这类中间值。
+## 从对局记录（run_log_screen）进来时返回键写「返回对局记录」，关掉回到列表。
 
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
@@ -17,6 +22,8 @@ const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const RunStats = preload("res://scripts/run/run_stats.gd")
 const Game = preload("res://scripts/game.gd")
+const HH = preload("res://scripts/screens/hh_style.gd")
+const SB = preload("res://scripts/screens/settle/settle_base.gd")
 
 const SEG0 := 0.08      # 第一格 / 第一段开始
 const SEG_S := 0.07     # 占比条段间错开
@@ -35,6 +42,8 @@ const STAT0 := 0.45     # 右侧数据行的数字开始滚动
 
 var g: Game
 var open := false
+var back_label := "返回结算"   # 从对局记录进来时是「返回对局记录」
+var _acc := HH.CYB            # 本页主题色（队长设定色，失败降饱和）
 var model: Dictionary = {}
 var page := 0           # 0 总览 / 1 详情
 var sel := 0            # 选中的干员行
@@ -73,6 +82,7 @@ func _init(game: Game) -> void:
 ## 打开：拍一份当前对局的记录
 func open_for_run() -> void:
 	show_model(RunStats.model(RunStats.snapshot(g)))
+	back_label = "返回结算"
 
 
 ## 打开指定模型（快检用假记录）
@@ -356,47 +366,42 @@ func _grid(r: Rect2) -> Dictionary:
 	return TUI.grid(_c, r, _ps)
 
 
-func _tile(r: Rect2, n: int, on: bool, a := 1.0) -> Rect2:
-	var gg := _grid(r)
+## 格子：暗卡底；选中 = 主题色淡底 + 细描边 + 左缘色条（同结算编队的队长行）
+func _tile(r: Rect2, _n: int, on: bool, a := 1.0) -> Rect2:
+	var ci := _ci()
+	ci.draw_rect(r, _fa(HH.DARK2.lerp(_acc, 0.14) if on else HH.DARK2, a))
 	if on:
-		TUI.halo(_ci(), gg, n, a)
-	TUI.tile(_ci(), gg, n, on, a)
-	return gg.rect
+		ci.draw_rect(r, _fa(_acc, 0.85 * a), false, 1.0)
+		ci.draw_rect(Rect2(r.position, Vector2(4, r.size.y)), _fa(_acc, a))
+	return r
 
 
-func _panel(r: Rect2, n: int, a := 0.92, fade := 1.0) -> Rect2:
-	var gg := _grid(r)
-	TUI.panel(_ci(), gg, n, a, fade)
-	return gg.rect
+## 面板：暗卡底 + 上缘一道主题色细线
+func _panel(r: Rect2, _n: int, a := 0.92, fade := 1.0) -> Rect2:
+	var ci := _ci()
+	ci.draw_rect(r, _fa(HH.DARK2, minf(1.0, a + 0.05) * fade))
+	ci.draw_rect(Rect2(r.position, Vector2(r.size.x, 2)), _fa(_acc, 0.7 * fade))
+	return r
 
 
 static func _fa(c: Color, a: float) -> Color:
 	return Color(c.r, c.g, c.b, c.a * a)
 
 
-## 像素条：槽 + 段（段间 1 格暗缝）；segs = [[占比, 颜色]]；frac = 整条展开到多少
+## 输出条（同结算编队输出）：暗槽 + 实色段；segs = [[占比, 颜色]]；frac = 整条展开到多少
 func _bar(r: Rect2, segs: Array, frac := 1.0, track := true, a := 1.0) -> void:
-	var cl: float = _ps / _c.k
-	var x0: float = TUI.snap(_c, r.position).x
-	var y0: float = TUI.snap(_c, r.position).y
-	var w: float = roundf(r.size.x / cl) * cl
-	var h: float = maxf(cl * 2.0, roundf(r.size.y / cl) * cl)
 	var ci := _ci()
+	var y0 := roundf(r.position.y)
+	var h := maxf(2.0, roundf(r.size.y))
 	if track:
-		ci.draw_rect(Rect2(x0, y0, w, h), Color(0.024, 0.055, 0.118, 0.95 * a))
-		ci.draw_rect(Rect2(x0, y0 + h - cl, w, cl), Color(0.08, 0.17, 0.27, a))
-	var cx := x0
-	var lim := x0 + w * clampf(frac, 0.0, 1.0)
-	for i in segs.size():
-		var sw: float = roundf(w * float(segs[i][0]) / cl) * cl
-		if i == segs.size() - 1 and frac >= 1.0 and float(segs[i][0]) > 0.0:
-			sw = x0 + w - cx
-		var x1 := minf(cx + sw, lim)
-		if x1 - cx > cl * 1.5:
-			var col: Color = segs[i][1]
-			ci.draw_rect(Rect2(cx, y0, x1 - cx - cl, h), _fa(col, a))
-			ci.draw_rect(Rect2(cx, y0, x1 - cx - cl, cl), _fa(col.lightened(0.35), a))
-		cx += sw
+		ci.draw_rect(Rect2(r.position.x, y0, r.size.x, h), _fa(HH.DARK3, a))
+	var cx := r.position.x
+	var lim := r.position.x + r.size.x * clampf(frac, 0.0, 1.0)
+	for sg in segs:
+		var x1 := minf(cx + r.size.x * float(sg[0]), lim)
+		if x1 > cx:
+			ci.draw_rect(Rect2(cx, y0, x1 - cx, h), _fa(sg[1], a))
+		cx += r.size.x * float(sg[0])
 
 
 ## 帧条里所有帧不透明像素的并集包围盒（帧内坐标）；拿不到图像数据（无头渲染器）时用整帧
@@ -523,16 +528,17 @@ func _hints(pos: Vector2, pairs: Array) -> void:
 		return
 	var x := pos.x
 	for pr in pairs:
-		x += _p(Vector2(x, pos.y), str(pr[0]), 1.0, TUI.CY_DIM) + 6.0
-		x += _t(Vector2(x, pos.y), str(pr[1]), 12, TUI.TXT2) + 18.0
+		x += _p(Vector2(x, pos.y), str(pr[0]), 1.0, HH.MUTE) + 6.0
+		x += _t(Vector2(x, pos.y), str(pr[1]), 12, HH.MUTE) + 18.0
 
 
-## 按钮磁贴（返回）：焦点 / 悬停 = S4 反白
+## 返回按钮：作战报告的幽灵按钮；焦点 / 悬停 = 主题色描边
 func _button(r: Rect2, label: String, keyname: String, act: String, hov: bool) -> void:
-	var rr := _tile(r, 2, hov)
-	_t(Vector2(rr.position.x + 14, rr.get_center().y), label, 16 if not _ph else 15, TUI.SEL_INK if hov else TUI.TXT)
-	if keyname != "" and not (Pad.touch and not Pad.using):
-		_p(Vector2(rr.end.x - 12, rr.get_center().y), keyname, 1.0, TUI.SEL_IDX if hov else TUI.CY, 2)
+	var ci := _ci()
+	var kn := "" if (Pad.touch and not Pad.using) else keyname
+	HH.ghost_btn(ci, g.font, r, label, kn)
+	if hov:
+		ci.draw_rect(r, _acc, false, 2.0)
 	cells.append([r.grow(6.0 if _ph else 0.0), act, null])
 
 
@@ -568,10 +574,18 @@ func draw(vs: Vector2) -> void:
 	_ps = TUI.cell(_c, 1.4 if _ph else 2.0)
 	cells.clear()
 	portraits.clear()
-	var a0: float = UM.prog(t_open, UM.T1) if not skipped else 1.0
-	_ci().draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.03, 0.07, 0.88 * a0))
-	var m := 14.0 if not _ph else 8.0
-	_panel(Rect2(m, m, vs.x - m * 2.0, vs.y - m * 2.0), 3, 0.55, a0)
+	var won: bool = str(model.get("result", "")) == "win"
+	var lr: Dictionary = {}
+	for rw in rows():
+		if rw.leader:
+			lr = rw
+	_acc = SB.lead_theme(lr.col if not lr.is_empty() else HH.CYB, won)
+	var ci := _ci()
+	ci.draw_rect(Rect2(Vector2.ZERO, vs), HH.DARK)
+	# 斜向浅光 + 几道很淡的速度线（同结算 A）
+	HH.fill(ci, PackedVector2Array([Vector2(vs.x * 0.48, 0), Vector2(vs.x, 0), Vector2(vs.x, vs.y), Vector2(vs.x * 0.36, vs.y)]), Color(1, 1, 1, 0.03))
+	for i in 6:
+		ci.draw_rect(Rect2(vs.x * 0.42 + float((i * 211) % 600), 18.0 + i * 19.0, 160.0 + float((i * 137) % 220), 2), Color(_acc, 0.08))
 	# 鼠标移动过才让悬停接管焦点（键盘 / 手柄操作后不被静止的鼠标抢回去）
 	var mp := _mouse()
 	if mp.distance_to(_last_mouse) > 2.0:
@@ -584,25 +598,42 @@ func draw(vs: Vector2) -> void:
 		_draw_detail(vs)
 
 
-## 标题行：RUN RECORD 小字 + 中文标题 + 结果（胜利：结局名 · 探索完成，青；失败：探索终止，洋红）。返回下一块的 y
+## 详情页标题行：徽记 + 小英文 + 中文标题 + 结果（胜利：结局名 · 探索完成；失败：探索终止，洋红）。返回下一块的 y
 func _header(vs: Vector2, title: String, en: String) -> float:
 	var x := 40.0 if not _ph else 24.0
-	var y_en := 36.0 if not _ph else 24.0
-	var y_t := 62.0 if not _ph else 44.0
-	_p(Vector2(x + 2, y_en), en, 1.0, TUI.CY_DIM, 0, 2)
-	var tw := _t(Vector2(x, y_t), title, 28 if not _ph else 22, TUI.TXT)
+	var y_en := 30.0 if not _ph else 22.0
+	var y_t := 62.0 if not _ph else 46.0
+	_emblem(Vector2(x + 12.0, y_en), _acc)
+	_p(Vector2(x + 34, y_en), en, 1.0, HH.MUTE, 0, 2)
+	var tw := _t(Vector2(x, y_t), title, 28 if not _ph else 22, HH.LIGHT)
 	var won: bool = str(model.get("result", "")) == "win"
 	var trial: bool = bool(model.get("trial", false))
-	var rn: String = ("Boss 演练" if trial else str(model.get("ending_name", ""))) if won else "探索终止"
+	var rn: String = ("Boss 演练" if trial else str(model.get("ending_name", ""))) if won else ("中途退出" if bool(model.get("quit", false)) else "探索终止")
 	var rs := ("完成" if trial else "探索完成") if won else ""
-	var rc: Color = TUI.CY if won else UI.RED
+	var rc: Color = _acc if won else SB.MAG
 	var x2 := x + tw + 22.0
-	var cl: float = _ps / _c.k
-	_ci().draw_rect(Rect2(TUI.snap(_c, Vector2(x2, y_t - 10)), Vector2(cl * 2.0, 20)), rc)
-	var w1 := _t(Vector2(x2 + 12, y_t), rn, 16 if not _ph else 14, TUI.TXT)
+	_ci().draw_rect(Rect2(x2, y_t - 10, 4, 20), rc)
+	var w1 := _t(Vector2(x2 + 12, y_t), rn, 16 if not _ph else 14, HH.LIGHT)
 	if rs != "":
 		_t(Vector2(x2 + 22 + w1, y_t), rs, 14 if not _ph else 13, rc)
 	return y_t + (36.0 if not _ph else 26.0)
+
+
+## 徽记：三层菱形（浅 / 暗 / 主题色），同结算 A
+func _emblem(c: Vector2, acc: Color, r0 := 13.0) -> void:
+	for q in [[r0, HH.LIGHT], [r0 * 0.66, HH.DARK], [r0 * 0.33, acc]]:
+		var r: float = q[0]
+		HH.fill(_ci(), PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), q[1])
+
+
+## 描边英文小标题（主题色描边、暗芯，同结算 A 的巨型结果字缩小版）+ 后面的中文；返回整段宽
+func _sect(pos: Vector2, en: String, cn: String, k := 2.0) -> float:
+	var kk := k * (0.7 if _ph else 1.0)
+	var d := maxf(1.0, kk / 2.0)
+	for o in [Vector2(-d, 0), Vector2(d, 0), Vector2(0, -d), Vector2(0, d)]:
+		TUI.ptext(_ci(), _c, pos + o, en, kk, _acc, 2, 0)
+	var w := TUI.ptext(_ci(), _c, pos, en, kk, HH.DARK, 2, 0)
+	return w + 10.0 + _t(Vector2(pos.x + w + 10.0, pos.y), cn, 14 if not _ph else 13, HH.MUTE)
 
 
 # ------------------------------------------------------------------ 总览（v3：雨中冒险 2 结算的三栏结构）
@@ -658,7 +689,7 @@ func _draw_overview(vs: Vector2) -> void:
 		for i in 3:
 			var trr := Rect2(M + i * 100.0, ty, 92.0, 36.0)
 			var rr := _tile(trr, 2, tab == i)
-			_t(rr.get_center(), names[i], 15, TUI.SEL_INK if tab == i else TUI.TXT2, 1)
+			_t(rr.get_center(), names[i], 15, HH.LIGHT if tab == i else HH.MUTE, 1)
 			cells.append([trr.grow_individual(0, 6, 0, 6), "tab", i])
 		var body := Rect2(M, ty + 46.0, vs.x - M * 2.0, bot - ty - 46.0)
 		match tab:
@@ -681,33 +712,45 @@ func _draw_overview(vs: Vector2) -> void:
 		var gb2 := _relic_grid(Rect2(rx, top, rr2.size.x, (bot - top) * 0.45), t, true)
 		_stats(Rect2(rx, gb2 + 14.0, rr2.size.x, bot - gb2 - 14.0), t, 0)
 		_relic_popup(rr2.end.x, gb2)
-	var br := Rect2(vs.x - M - (160.0 if not _ph else 150.0), vs.y - (52.0 if not _ph else 56.0), 160.0 if not _ph else 150.0, 34.0 if not _ph else 44.0)
-	_button(br, "返回结算", "ESC" if not Pad.using else "B", "back", _hovered(br))
+	var br := Rect2(vs.x - M - (190.0 if not _ph else 170.0), vs.y - (52.0 if not _ph else 56.0), 190.0 if not _ph else 170.0, 34.0 if not _ph else 44.0)
+	_button(br, back_label, "ESC" if not Pad.using else "B", "back", _hovered(br))
 	if not _ph:
 		_hints(Vector2(M, br.get_center().y), [["↑ ↓", "选干员"], ["← →", "编队 / 藏品"], ["ENTER" if not Pad.using else "A", "干员详情"]])
 
 
-## 结果横幅：探索完成（青）/ 探索终止（洋红）大字 + 结局名或「击倒者：…」
+## 结果横幅（同结算 A）：徽记 + 两行小英文，描边英文结果字 + 中文结果色块，下面一行结局名 / 击倒者
 func _banner(r: Rect2) -> void:
-	var rr := _panel(r, 3, 0.94)
 	var won: bool = str(model.get("result", "")) == "win"
 	var trial: bool = bool(model.get("trial", false))
-	var col: Color = TUI.CY if won else UI.RED
-	var cl: float = _ps / _c.k
-	_ci().draw_rect(Rect2(rr.position.x + cl * 2.0, rr.position.y + 10.0, cl * 2.0, rr.size.y - 20.0), col)
-	var x0 := rr.position.x + (22.0 if not _ph else 16.0)
-	_p(Vector2(x0 + 2, rr.position.y + (20.0 if not _ph else 16.0)), "RUN REPORT", 1.0, TUI.CY_DIM, 0, 2)
-	var big := ("演练完成" if won else "演练结束") if trial else ("探索完成" if won else "探索终止")
-	_t(Vector2(x0, rr.position.y + rr.size.y * 0.5), big, 34 if not _ph else 24, col)
+	var quit: bool = bool(model.get("quit", false))
+	var ci := _ci()
+	var x0 := r.position.x
+	var y := r.position.y
+	_emblem(Vector2(x0 + 12.0, y + 12.0), _acc)
+	_p(Vector2(x0 + 34, y + 6), "RHODES ISLAND", 1.0, HH.MUTE, 0, 2)
+	_p(Vector2(x0 + 34, y + 18), "RUN RECORD", 1.0, HH.MUTE, 0, 2)
+	var word := "COMPLETE" if won else ("ABORTED" if quit else "FAILED")
+	var kw := 5.0 if not _ph else 3.4
+	var wy := y + (r.size.y * 0.5) + 2.0
+	var d := maxf(1.0, kw / 3.0)
+	for o in [Vector2(-d, 0), Vector2(d, 0), Vector2(0, -d), Vector2(0, d), Vector2(-d, -d), Vector2(d, d), Vector2(-d, d), Vector2(d, -d)]:
+		TUI.ptext(ci, _c, Vector2(x0, wy) + o, word, kw, _acc if won else _acc.darkened(0.1), 1, 0)
+	var ww := TUI.ptext(ci, _c, Vector2(x0, wy), word, kw, HH.DARK, 1, 0)
+	var big := ("演练完成" if won else "演练结束") if trial else ("探索完成" if won else ("中途退出" if quit else "探索终止"))
+	var bx := x0 + ww + 18.0
+	var bw := minf(r.end.x - bx, 150.0 if not _ph else 112.0)
+	var bh := 38.0 if not _ph else 30.0
+	HH.para(ci, Rect2(bx, wy - bh * 0.5, bw, bh), (_acc if won else SB.MAG).lerp(HH.LIGHT, 0.6))
+	_t(Vector2(bx + bw * 0.5 + 2.0, wy), big, 22 if not _ph else 17, HH.INK, 1, bw - 16.0)
 	var sub := ""
 	if won and not trial:
 		sub = str(model.get("ending_name", ""))
-	elif not won:
+	elif not won and not quit:
 		var kd: Dictionary = model.get("killer", {})
 		if not kd.is_empty():
 			sub = "击倒者：" + str(kd.get("name", "")) + ((" · " + str(kd.cause)) if str(kd.get("cause", "")) != "" else "")
-	if sub != "":
-		_t(Vector2(x0, rr.end.y - (22.0 if not _ph else 16.0)), sub, 16 if not _ph else 13, TUI.TXT, 0, rr.size.x - 40.0)
+	sub += ("  ·  " if sub != "" else "") + "探索用时 " + fmt_t(float(model.get("t", 0.0))) + "  ·  " + str(model.get("tier_name", ""))
+	_t(Vector2(x0, r.end.y - (10.0 if not _ph else 8.0)), sub, 14 if not _ph else 12, HH.LIGHT2, 0, r.size.x)
 
 
 ## 主控 / 击倒者卡：左边主控像（占整卡高）；右上 名字、探索时间、Lv. · 精英 · 难度；
@@ -724,10 +767,11 @@ func _leader_card(r: Rect2) -> void:
 	var tx := pb.end.x + 12.0
 	var x1 := rr.end.x - 14.0
 	var y := rr.position.y + (20.0 if not _ph else 16.0)
-	_t(Vector2(tx, y), str(ld.get("name", "")), 16 if not _ph else 14, TUI.TXT, 0, x1 - tx - 96.0)
-	_p(Vector2(x1, y), fmt_t(float(model.get("t", 0.0))), 2.0, TUI.TXT, 2)
+	_t(Vector2(tx, y), str(ld.get("name", "")), 16 if not _ph else 14, HH.LIGHT, 0, x1 - tx - 130.0)
+	var tw0 := _p(Vector2(x1, y), fmt_t(float(model.get("t", 0.0))), 2.0, HH.LIGHT, 2)
+	_t(Vector2(x1 - tw0 - 8.0, y), "用时", 11, HH.MUTE, 2)
 	y += 20.0 if not _ph else 18.0
-	_t(Vector2(tx, y), "Lv.%d · %s · %s" % [int(model.get("level", 1)), ["精零", "精英一", "精英二"][clampi(int(model.get("elite", 0)), 0, 2)], str(model.get("tier_name", ""))], 12, TUI.TXT2, 0, x1 - tx - 70.0)
+	_t(Vector2(tx, y), "Lv.%d · %s · %s" % [int(model.get("level", 1)), ["精零", "精英一", "精英二"][clampi(int(model.get("elite", 0)), 0, 2)], str(model.get("tier_name", ""))], 12, HH.MUTE, 0, x1 - tx - 70.0)
 	y += 14.0 if not _ph else 12.0
 	_ci().draw_rect(Rect2(tx, roundf(y), x1 - tx, 1), Color(1, 1, 1, 0.08))
 	var won: bool = str(model.get("result", "")) == "win"
@@ -735,7 +779,7 @@ func _leader_card(r: Rect2) -> void:
 	var row_y := y + 4.0
 	var row_h := rr.end.y - 6.0 - row_y
 	if kd.is_empty():
-		_t(Vector2(tx, row_y + row_h * 0.5), "演练完成" if won else "", 13, TUI.TXT2)
+		_t(Vector2(tx, row_y + row_h * 0.5), "演练完成" if won else "", 13, HH.MUTE)
 		return
 	var side := minf(56.0, row_h)
 	var ab := Rect2(tx, row_y + (row_h - side) * 0.5, side, side)
@@ -748,9 +792,9 @@ func _leader_card(r: Rect2) -> void:
 	var lx := ab.end.x + 10.0
 	var cy := ab.get_center().y
 	var two: bool = side >= 40.0
-	_t(Vector2(lx, cy - (10.0 if two else 0.0)), "击破最终 Boss" if won else "击倒者", 12, TUI.CY_DIM if won else UI.RED)
+	_t(Vector2(lx, cy - (10.0 if two else 0.0)), "击破最终 Boss" if won else "击倒者", 12, HH.MUTE if won else SB.MAG)
 	var nm_x := lx if two else lx + 52.0
-	_t(Vector2(nm_x, cy + (10.0 if two else 0.0)), str(kd.get("name", "")), 15 if two else 13, TUI.TXT, 0, x1 - nm_x - 60.0)
+	_t(Vector2(nm_x, cy + (10.0 if two else 0.0)), str(kd.get("name", "")), 15 if two else 13, HH.LIGHT, 0, x1 - nm_x - 60.0)
 	if not won and str(kd.get("cause", "")) != "":
 		_t(Vector2(x1, cy + (10.0 if two else 0.0)), str(kd.cause), 12, Color(0.85, 0.6, 1.0), 2)
 
@@ -760,8 +804,8 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 	var rws: Array = rows()
 	var y := r.position.y
 	if title:
-		var tw := _t(Vector2(r.position.x, y + 10.0), "编队", 16, TUI.TXT)
-		_t(Vector2(r.position.x + tw + 14.0, y + 10.0), "全队伤害 %s · 每秒 %s" % [fmt_n(float(model.get("total", 0.0))), fmt_n(float(model.get("dps", 0.0)))], 13, TUI.TXT2, 0, r.size.x - tw - 20.0)
+		var tw := _sect(Vector2(r.position.x, y + 10.0), "SQUAD", "编队")
+		_t(Vector2(r.end.x, y + 10.0), "全队伤害 %s · 每秒 %s" % [fmt_n(float(model.get("total", 0.0))), fmt_n(float(model.get("dps", 0.0)))], 13, HH.MUTE, 2, r.size.x - tw - 20.0)
 		y += 26.0
 	var n := rws.size()
 	if n == 0:
@@ -781,11 +825,12 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 		cells.append([cr, "card", i])
 		var on := zone == 1 and sel == i
 		var rr := _tile(cr, 1 if rh < 48.0 else 2, on)
-		var ink: Color = TUI.SEL_INK if on else TUI.TXT
-		var sub: Color = TUI.SEL_SUB if on else TUI.TXT2
-		var cl: float = _ps / _c.k
-		_ci().draw_rect(Rect2(rr.position.x + cl * 2.0, rr.position.y + cl * 3.0, cl * 2.0, rr.size.y - cl * 6.0), row.col)
-		var pb := Rect2(rr.position.x + 10.0, rr.position.y + 4.0, minf(180.0 if _ph else 130.0, rr.size.y * 1.6), rr.size.y - 8.0)   # 宽一点：横向宽的帧条（凯尔希带 Mon3tr）也能和别人同倍数
+		if bool(row.leader) and not on:
+			_ci().draw_rect(rr, Color(_acc, 0.10))
+		var ink: Color = HH.LIGHT
+		var sub: Color = HH.MUTE
+		_ci().draw_rect(Rect2(rr.position.x + 8.0, rr.get_center().y - 6.0, 4, 12), row.col)
+		var pb := Rect2(rr.position.x + 16.0, rr.position.y + 4.0, minf(180.0 if _ph else 130.0, rr.size.y * 1.6), rr.size.y - 8.0)   # 宽一点：横向宽的帧条（凯尔希带 Mon3tr）也能和别人同倍数
 		_portrait(str(row.key), pb, kmax_l, true)   # 每人按自己的包围盒放到同一高度（10-12 制作人：共用倍数会被最宽的帧条拖小）
 		var nx := pb.end.x + 8.0
 		var cy := rr.get_center().y
@@ -797,11 +842,11 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 		var bw := rr.end.x - 72.0 - bx
 		var fill := _bar_k(t, i)
 		if bw > 20.0:
-			var bh := 8.0
+			var bh := 6.0
 			if bool(row.leader) and fill >= 1.0 and not UM.rm():
-				bh = 8.0 + 3.0 * UM.out_back((t - float(_bar_t0[i]) - float(_bar_dur[i])) / UM.T2, 1.4)   # 队长落位后条加粗一格
+				bh = 6.0 + 2.0 * UM.out_back((t - float(_bar_t0[i]) - float(_bar_dur[i])) / UM.T2, 1.4)   # 队长落位后条加粗一点
 			_bar(Rect2(bx, cy - bh * 0.5, bw, bh), [[1.0, row.col]], fill * float(row.share) / maxf(0.001, vmax))
-		_p(Vector2(rr.end.x - 12.0, cy), "%d%%" % int(round(float(row.pct) * fill)), 2.0, ink, 2)
+		_p(Vector2(rr.end.x - 12.0, cy), "%d%%" % int(row.pct), 2.0, ink, 2)   # 终值（不跟着条滚：截图不会截到 0%）
 
 
 ## 藏品格（右上，按件数定高；放不下时缩格）：等级点、遭诅 / 升华角标；返回格子底边 y
@@ -810,11 +855,11 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 	var x0 := r.position.x
 	var y := r.position.y
 	if title:
-		var tw := _t(Vector2(x0, y + 10.0), "藏品", 16, TUI.TXT)
-		_p(Vector2(x0 + tw + 10.0, y + 10.0), "%d" % rl.size(), 2.0, TUI.CY)
+		var tw := _sect(Vector2(x0, y + 10.0), "RELICS", "藏品")
+		_p(Vector2(x0 + tw + 10.0, y + 10.0), "%d" % rl.size(), 2.0, HH.LIGHT)
 		y += 26.0
 	if rl.is_empty():
-		_t(Vector2(x0, y + 12.0), "这次探索没有获得藏品", 13, TUI.TXT2)
+		_t(Vector2(x0, y + 12.0), "这次探索没有获得藏品", 13, HH.MUTE)
 		_per_row = 1
 		return y + 24.0
 	var cell := 46.0
@@ -834,7 +879,7 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 			_rel_row0 = clampi(_rel_row0, rel / per - vis_rows + 1, rel / per)
 		_rel_row0 = clampi(_rel_row0, 0, total_rows - vis_rows)
 		if title:
-			_t(Vector2(r.end.x, y - 16.0), "第 %d–%d 行 / 共 %d 行" % [_rel_row0 + 1, _rel_row0 + vis_rows, total_rows], 12, TUI.TXT2, 2)
+			_t(Vector2(r.end.x, y - 16.0), "第 %d–%d 行 / 共 %d 行" % [_rel_row0 + 1, _rel_row0 + vis_rows, total_rows], 12, HH.MUTE, 2)
 	else:
 		_rel_row0 = 0
 	_rel_seen = rel
@@ -860,8 +905,11 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 			continue
 		var a := clampf((t - d) / UM.T1, 0.0, 1.0) if not UM.rm() else 1.0
 		var col: Color = UI.CAT_COL.get(str(it.cat), UI.GOLD)
-		var rr := _tile(cr, 1, on, a)
-		_ci().draw_rect(Rect2(rr.position + Vector2(cl * 2.0, cl * 2.0), Vector2(cl * 4.0, cl)), _fa(col, a))
+		var rr := cr
+		_ci().draw_rect(rr, _fa(HH.DARK2, a))
+		_ci().draw_rect(rr.grow(-2), _fa(Color(1, 1, 1, 0.5), a), false, 1.0)
+		if on:
+			_ci().draw_rect(rr.grow(1), _fa(_acc, a), false, 2.0)
 		var sc := 1.0 if UM.rm() else 0.6 + 0.4 * UM.out_back(e, 1.4)
 		var isz := (32.0 if cell >= 40.0 else 16.0) * sc
 		var ic := _relic_tex(str(it.id))
@@ -874,10 +922,9 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 			for q in mini(int(it.lv), 5):
 				_ci().draw_rect(Rect2(rr.position.x + cl * 2.0 + q * cl * 3.0, rr.end.y - cl * 3.0, cl * 2.0, cl * 1.5), _fa(col.lightened(0.3), a))
 		var rar := str(it.rarity)
-		if rar == "遭诅古物" or rar == "升华":
-			var mc: Color = UI.RED if rar == "遭诅古物" else UI.VIOLET
-			var p0 := Vector2(rr.end.x - cl * 1.0, rr.position.y + cl * 1.0)
-			_ci().draw_colored_polygon(PackedVector2Array([p0, p0 + Vector2(-cl * 6.0, 0), p0 + Vector2(0, cl * 6.0)]), _fa(mc, a))
+		var mc: Color = SB.MAG if rar == "遭诅古物" else (Color8(170, 120, 255) if rar == "升华" else _acc)   # 左下角稀有度三角（同结算 A）
+		var tz := 11.0 if cell >= 40.0 else 8.0
+		_ci().draw_colored_polygon(PackedVector2Array([Vector2(rr.position.x, rr.end.y - tz), Vector2(rr.position.x + tz, rr.end.y), Vector2(rr.position.x, rr.end.y)]), _fa(mc, a))
 	return y + vis_rows * cell - 6.0
 
 
@@ -895,49 +942,60 @@ func _relic_popup(x_max: float, _grid_bottom: float) -> void:
 	var y := _pop_anchor.end.y + 8.0
 	var pr := _panel(Rect2(x, y, w, h), 2, 0.98)
 	var ax := clampf(_pop_anchor.get_center().x, pr.position.x + 12.0, pr.end.x - 12.0)
-	_ci().draw_colored_polygon(PackedVector2Array([Vector2(ax - 6, pr.position.y), Vector2(ax, pr.position.y - 6), Vector2(ax + 6, pr.position.y)]), TUI.EDGE)
-	var nw := _t(Vector2(pr.position.x + 14, pr.position.y + 18), str(it.name), 15, TUI.TXT, 0, w * 0.55)
+	_ci().draw_colored_polygon(PackedVector2Array([Vector2(ax - 6, pr.position.y), Vector2(ax, pr.position.y - 6), Vector2(ax + 6, pr.position.y)]), _acc)
+	var nw := _t(Vector2(pr.position.x + 14, pr.position.y + 18), str(it.name), 15, HH.LIGHT, 0, w * 0.55)
 	var tag := str(it.rarity)
 	if int(it.max) > 1:
 		tag = "Lv.%d / %d · %s" % [int(it.lv), int(it.max), tag]
-	var rc: Color = UI.RED if str(it.rarity) == "遭诅古物" else (UI.VIOLET if str(it.rarity) == "升华" else TUI.CY_DIM)
+	var rc: Color = SB.MAG if str(it.rarity) == "遭诅古物" else (UI.VIOLET if str(it.rarity) == "升华" else HH.MUTE)
 	_t(Vector2(pr.position.x + 24 + nw, pr.position.y + 18), tag + " · " + str(it.cat), 11, rc, 0, w - nw - 40.0)
 	for li in nl:
 		var ln := lines[li]
 		if li == 2 and lines.size() > 3:
 			ln = ln.substr(0, maxi(0, ln.length() - 1)) + "…"
-		_t(Vector2(pr.position.x + 14, pr.position.y + 40 + li * plh), ln, 12, TUI.TXT2)
+		_t(Vector2(pr.position.x + 14, pr.position.y + 40 + li * plh), ln, 12, HH.MUTE)
 
 
-## 数据：标签左、数值右、细分隔线。行高撑满给定高度（20–30）；单列放不下改两列，还放不下才滚动。cols 0 = 自动
+## 数据：数据格（同结算 A：左缘色条 + 小标签 + 大数值 + 小注），按宽排 3–4 列、行高撑满（44–64）；还放不下才滚动。
+## 数值直接是终值、只做淡入 + 右滑（10-29：滚动计数在截图里像错数）。cols_in 0 = 自动
 func _stats(r: Rect2, t: float, cols_in: int) -> void:
 	var st: Array = model.get("stats", [])
 	var x0 := r.position.x
 	var y := r.position.y + 10.0
-	_t(Vector2(x0, y), "数据", 16, TUI.TXT)
-	_p(Vector2(x0 + 44, y), "STATS", 1.0, TUI.CY_DIM, 0, 2)
-	var y0 := y + 16.0
+	var tw := _sect(Vector2(x0, y), "STATS", "数据")
+	if bool(model.get("log", false)):
+		_t(Vector2(x0 + tw + 12.0, y), "（对局记录还原：只存了每名干员的合计）", 11, HH.MUTE)
+	var y0 := y + 18.0
 	var avail := r.end.y - y0
-	var cols := cols_in
-	if cols == 0:
-		cols = 1 if avail / maxf(1.0, st.size()) >= 20.0 else 2
-	var per_col := ceili(st.size() / float(cols))
-	var rh := clampf(avail / maxf(1.0, per_col), 20.0, 30.0)
-	var gap := 28.0
+	var cols := cols_in if cols_in > 0 else (4 if r.size.x >= 600.0 else 3)
+	if cols_in == 2:
+		cols = 3 if r.size.x >= 560.0 else 2
+	var gap := 10.0
 	var cw: float = (r.size.x - gap * (cols - 1)) / cols
+	var nrow := ceili(st.size() / float(cols))
+	var rh := clampf(avail / maxf(1.0, nrow), 44.0, 64.0)
 	var rows_fit := maxi(1, int(avail / rh))
-	var vis := mini(st.size(), rows_fit * cols)
-	stat_scroll = clampi(stat_scroll, 0, maxi(0, st.size() - vis))
-	for k in mini(vis, st.size() - stat_scroll):
-		var i := stat_scroll + k
+	var vis_rows := mini(nrow, rows_fit)
+	var max_scroll := maxi(0, nrow - vis_rows)
+	stat_scroll = clampi(stat_scroll, 0, max_scroll)
+	var big := 22 if rh >= 54.0 else 18
+	if _ph:
+		big = 17
+	for k in vis_rows * cols:
+		var i := (stat_scroll * cols) + k
+		if i >= st.size():
+			break
 		var s: Dictionary = st[i]
-		var c := k / rows_fit
-		var cx := x0 + c * (cw + gap)
-		var ry := y0 + (k % rows_fit) * rh + rh * 0.5
-		_ci().draw_rect(Rect2(cx, roundf(ry + rh * 0.5 - 1.0), cw, 1), Color(1, 1, 1, 0.07))
-		_t(Vector2(cx, ry), str(s.label), 13, TUI.TXT2)
-		var ck := 1.0 if UM.rm() else UM.linear((t - STAT0 - mini(i, 12) * 0.03) / UM.T4)
-		var v: float = float(s.v) * ck
+		var cx := x0 + (k % cols) * (cw + gap)
+		var cy := y0 + (k / cols) * rh
+		var e := 1.0 if UM.rm() else UM.out_cubic((t - STAT0 - mini(i, 12) * 0.025) / UM.T2)
+		if e <= 0.0:
+			continue
+		var dx := 18.0 * (1.0 - e)
+		var a := e
+		_ci().draw_rect(Rect2(cx + dx, cy + 4.0, 3, rh - 10.0), _fa(_acc if i < 4 else HH.DARK3, a))
+		_t(Vector2(cx + 12 + dx, cy + 12.0), str(s.label), 12, _fa(HH.MUTE, a), 0, cw - 16.0)
+		var v: float = float(s.v)
 		var txt: String
 		match str(s.fmt):
 			"t":
@@ -945,15 +1003,18 @@ func _stats(r: Rect2, t: float, cols_in: int) -> void:
 			"pct":
 				txt = "%d%%" % int(round(v))
 			"txt":
-				txt = str(s.get("txt", "")) if ck >= 1.0 else fmt_n(v)
+				txt = str(s.get("txt", ""))
 			_:
 				txt = fmt_n(v)
-		var vw := _t(Vector2(cx + cw, ry), txt, 14, TUI.TXT, 2)
+		var vw := _t(Vector2(cx + 12 + dx, cy + 12.0 + (rh - 18.0) * 0.5 + 2.0), txt, big if str(s.fmt) != "txt" else 14, _fa(HH.LIGHT, a), 0, cw - 16.0)
 		if s.has("sub") and str(s.sub) != "":
-			var lw0: float = g.font.get_string_size(str(s.label), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x
-			_t(Vector2(cx + cw - vw - 10, ry), str(s.sub), 11, TUI.CY_DIM, 2, cw - vw - lw0 - 24.0)
-	if st.size() > vis:
-		_p(Vector2(x0 + r.size.x, y), "%d-%d / %d" % [stat_scroll + 1, mini(stat_scroll + vis, st.size()), st.size()], 1.0, TUI.CY_DIM, 2)
+			var sub := str(s.sub)
+			var sw := cw - vw - 30.0
+			while sub.length() > 1 and g.font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(11)).x > sw:
+				sub = sub.substr(0, sub.length() - 2) + "…"   # 放不下就截断，不压到右边一格
+			_t(Vector2(cx + 18 + dx + vw, cy + 12.0 + (rh - 18.0) * 0.5 + 4.0), sub, 11, _fa(HH.MUTE, a))
+	if max_scroll > 0:
+		_p(Vector2(x0 + r.size.x, y), "%d-%d / %d" % [stat_scroll * cols + 1, mini((stat_scroll + vis_rows) * cols, st.size()), st.size()], 1.0, HH.MUTE, 2)
 
 
 # ------------------------------------------------------------------ 详情
@@ -966,16 +1027,16 @@ func _draw_detail(vs: Vector2) -> void:
 	var row: Dictionary = rws[sel]
 	var t := _mt(t_page)
 	var M := 40.0 if not _ph else 24.0
-	var top := _header(vs, "作战记录 · " + str(row.name), "RUN RECORD // " + str(row.en)) + (6.0 if not _ph else 0.0)
+	var top := _header(vs, "作战记录 · " + str(row.name), "RHODES ISLAND  //  RUN RECORD  //  " + str(row.en)) + (6.0 if not _ph else 0.0)
 	# 换干员：‹ 01 / 05 ›（可点）
 	var nx := vs.x - M
 	var ny := (36.0 if not _ph else 24.0)
 	var lab := "%02d / %02d" % [sel + 1, rws.size()]
-	var lw := _p(Vector2(nx - 22, ny), lab, 1.0, TUI.TXT2, 2)
+	var lw := _p(Vector2(nx - 22, ny), lab, 1.0, HH.MUTE, 2)
 	var pr := Rect2(nx - 22 - lw - 30, ny - 14, 26, 28)
 	var nr := Rect2(nx - 18, ny - 14, 22, 28)
-	_p(Vector2(pr.get_center().x, ny), "<", 1.0, TUI.CY if sel > 0 else TUI.CY_DIM, 1)
-	_p(Vector2(nr.get_center().x, ny), ">", 1.0, TUI.CY if sel < rws.size() - 1 else TUI.CY_DIM, 1)
+	_p(Vector2(pr.get_center().x, ny), "<", 1.0, _acc if sel > 0 else HH.MUTE, 1)
+	_p(Vector2(nr.get_center().x, ny), ">", 1.0, _acc if sel < rws.size() - 1 else HH.MUTE, 1)
 	cells.append([pr.grow(8.0), "prev", null])
 	cells.append([nr.grow(8.0), "next", null])
 	var bot := vs.y - (72.0 if not _ph else 66.0)
@@ -1015,9 +1076,9 @@ func _identity(lr: Rect2, row: Dictionary) -> void:
 		y += 186.0 if big else 120.0
 	else:
 		y += 40.0
-	_t(Vector2(x0, y), str(row.name), 24 if not _ph else 19, TUI.SEL_INK, 0, lr.size.x - 30.0)
+	_t(Vector2(x0, y), str(row.name), 24 if not _ph else 19, HH.LIGHT, 0, lr.size.x - 30.0)
 	y += 24.0 if not _ph else 20.0
-	_t(Vector2(x0, y), _join_text(row, true), 13 if not _ph else 11, TUI.SEL_SUB, 0, lr.size.x - 30.0)
+	_t(Vector2(x0, y), _join_text(row, true), 13 if not _ph else 11, HH.MUTE, 0, lr.size.x - 30.0)
 	y += 36.0 if not _ph else 26.0
 	var lines: Array = [["造成伤害", fmt_n(float(row.dmg))], ["全队占比", "%d%%" % int(row.pct)], ["每秒", fmt_n(float(row.dps))],
 		["击杀", fmt_n(float(row.kills))]]
@@ -1032,8 +1093,8 @@ func _identity(lr: Rect2, row: Dictionary) -> void:
 	for ln in lines:
 		if y > lr.end.y - 12.0:
 			break
-		_t(Vector2(x0, y), ln[0], 14 if not _ph else 12, TUI.SEL_SUB)
-		_p(Vector2(x1, y), ln[1], 2.0, TUI.SEL_INK, 2)
+		_t(Vector2(x0, y), ln[0], 14 if not _ph else 12, HH.MUTE)
+		_p(Vector2(x1, y), ln[1], 2.0, HH.LIGHT, 2)
 		y += lh
 
 
@@ -1042,10 +1103,13 @@ func _sources(r: Rect2, row: Dictionary, t: float) -> void:
 	var x0 := r.position.x
 	var x1 := r.end.x
 	var y := r.position.y + 14.0
-	_t(Vector2(x0, y), "伤害来源", 16 if not _ph else 14, TUI.TXT)
+	_sect(Vector2(x0, y), "SOURCES", "伤害来源")
 	var srcs: Array = top_sources(row.sources, TOP_SRC)
+	if bool(model.get("log", false)):
+		_t(Vector2(x0, y + 30), "对局记录只存了每名干员的合计与主要来源，没有分来源明细。", 13, HH.MUTE, 0, x1 - x0)
+		y += 24.0
 	if srcs.is_empty():
-		_t(Vector2(x0, y + 40), "没有造成伤害", 14, TUI.TXT2)
+		_t(Vector2(x0, y + 40), "没有造成伤害", 14, HH.MUTE)
 		return
 	var rh: float = minf(64.0 if not _ph else 48.0, (r.end.y - y - 24.0) / maxi(1, srcs.size()))
 	y += rh * 0.75 + 6.0
@@ -1053,11 +1117,11 @@ func _sources(r: Rect2, row: Dictionary, t: float) -> void:
 	for k in srcs.size():
 		var s: Dictionary = srcs[k]
 		var other: bool = str(s.kind) == "其他" and str(s.name) == "其他"
-		_t(Vector2(x0, y), str(s.name), 15 if not _ph else 13, TUI.TXT2 if other else TUI.TXT, 0, x1 - x0 - 150.0)
-		_p(Vector2(x1, y), "%d%%" % int(s.pct), 2.0, TUI.CY, 2)
-		_p(Vector2(x1 - (64.0 if not _ph else 44.0), y), fmt_n(float(s.v)), 1.0, TUI.TXT2, 2)
+		_t(Vector2(x0, y), str(s.name), 15 if not _ph else 13, HH.MUTE if other else HH.LIGHT, 0, x1 - x0 - 150.0)
+		_p(Vector2(x1, y), "%d%%" % int(s.pct), 2.0, _acc, 2)
+		_p(Vector2(x1 - (64.0 if not _ph else 44.0), y), fmt_n(float(s.v)), 1.0, HH.MUTE, 2)
 		var e := 1.0 if UM.rm() else UM.out_cubic((t - k * 0.1) / 0.55)   # 来源条依次长出，单条 0.55 秒
-		_bar(Rect2(x0, y + (14.0 if not _ph else 11.0), x1 - x0, 6.0 if not _ph else 4.0), [[1.0, TUI.CY_DIM if other else row.col]], e * float(s.v) / vmax)
+		_bar(Rect2(x0, y + (14.0 if not _ph else 11.0), x1 - x0, 6.0 if not _ph else 4.0), [[1.0, HH.MUTE if other else row.col]], e * float(s.v) / vmax)
 		y += rh
 
 
@@ -1076,21 +1140,21 @@ func _survival(r: Rect2, t: float) -> void:
 	var y := rr.position.y + 26.0
 	var fs := 14 if not _ph else 12
 	var lh := 26.0 if not _ph else 20.0
-	_t(Vector2(x0, y), "生存", 16 if not _ph else 14, TUI.TXT)
+	_sect(Vector2(x0, y), "SURVIVAL", "生存", 1.5)
 	y += lh + 8.0
-	_t(Vector2(x0, y), "受到的伤害", fs, TUI.TXT2)
-	_p(Vector2(x1, y), fmt_n(float(ld.get("taken", 0.0))), 2.0, TUI.TXT, 2)
+	_t(Vector2(x0, y), "受到的伤害", fs, HH.MUTE)
+	_p(Vector2(x1, y), fmt_n(float(ld.get("taken", 0.0))), 2.0, HH.LIGHT, 2)
 	y += lh + 6.0
-	_t(Vector2(x0, y), "生命回复", fs, TUI.TXT2)
-	_p(Vector2(x1, y), fmt_n(float(ld.get("heal", 0.0))), 2.0, TUI.TXT, 2)
+	_t(Vector2(x0, y), "生命回复", fs, HH.MUTE)
+	_p(Vector2(x1, y), fmt_n(float(ld.get("heal", 0.0))), 2.0, HH.LIGHT, 2)
 	y += lh
 	var hl: Array = ld.get("heal_src", [])
 	var hmax: float = float(hl[0].v) if not hl.is_empty() else 1.0
 	var e := 1.0 if UM.rm() else UM.out_cubic(t / UM.T3)
 	for s in hl.slice(0, 3):
-		_t(Vector2(x0 + 10, y), str(s.name), 12 if not _ph else 11, TUI.TXT2, 0, 90.0)
+		_t(Vector2(x0 + 10, y), str(s.name), 12 if not _ph else 11, HH.MUTE, 0, 90.0)
 		_bar(Rect2(x0 + 100, y - 3, x1 - x0 - 160, 6), [[1.0, UI.GREEN]], e * float(s.v) / hmax)
-		_p(Vector2(x1, y), fmt_n(float(s.v)), 1.0, TUI.TXT2, 2)
+		_p(Vector2(x1, y), fmt_n(float(s.v)), 1.0, HH.MUTE, 2)
 		y += lh - 4.0
 	y += 10.0
 	var ls: Array = model.get("lamp_s", [0, 0, 0, 0])
@@ -1098,10 +1162,10 @@ func _survival(r: Rect2, t: float) -> void:
 	for v in ls:
 		lt += float(v)
 	if lt > 0.0:
-		_t(Vector2(x0, y), "通明时长", fs, TUI.TXT2)
-		_p(Vector2(x1, y), "%d%%" % int(round(float(ls[0]) / lt * 100.0)), 2.0, TUI.TXT, 2)
+		_t(Vector2(x0, y), "通明时长", fs, HH.MUTE)
+		_p(Vector2(x1, y), "%d%%" % int(round(float(ls[0]) / lt * 100.0)), 2.0, HH.LIGHT, 2)
 		y += lh + 6.0
 	var fu: Dictionary = model.get("fuse", {})
 	if bool(fu.get("on", false)) and y < rr.end.y - 16.0:
-		_t(Vector2(x0, y), "源石锭熔铸", fs, TUI.TXT2)
-		_t(Vector2(x1, y), "全队伤害 +%s%%" % str(snappedf(float(fu.pct) * 100.0, 0.1)).trim_suffix(".0"), fs, TUI.TXT, 2)
+		_t(Vector2(x0, y), "源石锭熔铸", fs, HH.MUTE)
+		_t(Vector2(x1, y), "全队伤害 +%s%%" % str(snappedf(float(fu.pct) * 100.0, 0.1)).trim_suffix(".0"), fs, HH.LIGHT, 2)
