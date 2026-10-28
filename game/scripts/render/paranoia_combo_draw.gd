@@ -126,19 +126,13 @@ static func draw_top(g, e: Dictionary) -> void:
 			var hot: bool = g.t - float(ey.get("fired", -9.0)) < 0.15
 			var to_p: Vector2 = (g.ppos - ey.pos).normalized() * 3.0
 			g.draw_circle(c + to_p, 3.5, Color(1.0, 0.95, 1.0, 0.95) if hot else Color(0.75, 0.55, 1.0, 0.9))
-	# 力竭（破绽前 TIRE 秒）：身周一圈泡膜收瘪；破绽中：脚下慢呼吸的环 + 剩余时间的弧（满 → 空），破绽不再「突然出现」
+	# 力竭（破绽前 TIRE 秒）：身周一圈泡膜收瘪；破绽中的金环 + 倒计时弧是四只最终 Boss 共用的（render/break_ring）
 	var tire_at: float = float(e.get("pc_tire_at", 0.0))
 	var fp: Vector2 = e.pos + Vector2(0, -10)
 	if tire_at > g.t:
 		var kt: float = 1.0 - (tire_at - g.t) / 0.6
 		var rt: float = lerpf(e.r * 2.4, e.r * 1.1, kt * kt)
 		g.draw_arc(fp, rt, 0.0, TAU, 40, Color(core_col(e).r, core_col(e).g, core_col(e).b, 0.55 * (1.0 - kt) + 0.15), 2.0)
-	var bt: float = float(e.get("break_t", 0.0))
-	if bt > 0.0:
-		var frac: float = clampf(bt / maxf(0.1, float(e.get("pc_brk_len", 3.0))), 0.0, 1.0)
-		var br: float = e.r * 1.25 + 3.0 * sin(g.t * 3.0)
-		g.draw_arc(fp, br, 0.0, TAU, 40, Color(1.0, 0.85, 0.45, 0.18), 3.0)
-		g.draw_arc(fp, br, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(1.0, 0.85, 0.45, 0.6), 2.0)
 	_tide_tells(g, e)
 	# 换幕起手 0.9 秒：收拢的双环（外 → 内）
 	var dt: float = g.t - float(e.get("pc_gather_t", -99.0))

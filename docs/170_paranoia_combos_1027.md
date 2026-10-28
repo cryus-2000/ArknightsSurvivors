@@ -225,9 +225,11 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 
 起手从 0.55 秒延长到 1.0 秒（EMITTERS `wind`）。提示画在顶层（不被本体和队长挡住）：和真水环同形的地面椭圆环（同粗细、同青蓝 + 白芯），从脚下涨到 230 并闪烁；第一道缺口（朝队长）留空、两侧立白标、外侧一个向外的 V；后两道缺口位置画淡标；外侧两道向内收拢的细水纹。
 
-## 3u. 破绽不写字（10-28 用户定）
+## 3u. 最终 Boss 破绽不写字（10-28 用户定，协调人扩到四只）
 
-偏执泡影的破绽（收招、冲刺打落、破茧成功）不再走 `combat.start_break`（头顶弹「破绽」），改用 `paranoia.brk()` 直接设 `break_t`；头顶「破绽 x.x」读秒与伤害数字的「破绽 」前缀对泡影跳过（数字仍金色大一号）。破绽由力竭动画 + 脚下金环 + 倒计时弧表示。Boss 血条处的「破绽 x 秒 · 受伤 +x%」不动。其他 Boss 不变。
+四只最终 Boss（偏执泡影 / 骑士 / 伊祖米克 / 伊莎玛拉，`spawner.is_final_boss_type`）进破绽不再出字：公共 `combat.start_break` 不弹「破绽」，Boss 头顶「破绽 x.x」/ 骑士「收招 · 破绽 x.x」读秒不画，破绽期伤害数字不加「破绽 」前缀（仍金色大一号）；判断统一走 `combat.final_break_quiet(e)`，旋钮 `boss/break_text_final`（0 = 不写，缺省；1 = 恢复）。中期 Boss 照旧显示。骑士撞冰柱的「眩晕 x.x」不是破绽字，保留。Boss 血条处的「破绽 x 秒 · 受伤 +x%」不动。
+
+画面提示统一一套：`render/break_ring.gd`（boss_beam.draw_top 调用）在四只脚下画金色地面环 + 剩余时间弧（满 → 空，`start_break` 记 `brk_len`）。另外三只原先进破绽只有头顶小金星 + 读秒字，没有不靠文字的提示，现在都有金环。偏执泡影另有破绽前 0.6 秒力竭（§3r）。录像 build/boss_paranoia/final_break_v1/最终Boss_破绽无字.mp4（四只各进一次 3 秒破绽）。
 
 ## 4. 公共文件改动（合并时注意）
 
@@ -239,7 +241,7 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 - `enemies/telegraph.gd` `_kp()`：读可选 `kp_life` / `kp_on`（缺省 KP_LIFE / 0.06，其余 Boss 不变）；`render/boss_beam.gd` `draw()`：开合时长读 fx 的 `on_t`（缺省 ON_T）。
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
 - `tools/check.py`：加 `paranoia_combos` 一项。
-- `render/world.gd` Boss 头顶读秒：泡影破绽跳过「破绽 x.x」（2 行）；`render/vfx.gd` 破绽伤害数字：泡影不加「破绽 」前缀（1 行）。
+- `run/combat.gd` `start_break`：记 `brk_len`；最终 Boss 不弹「破绽」，新增 `final_break_quiet(e)`（旋钮 boss/break_text_final）。`render/world.gd` 头顶读秒、`render/vfx.gd` 破绽伤害数字前缀读它；`render/boss_beam.gd` draw_top 调新文件 `render/break_ring.gd`（四只最终 Boss 共用金环）。`tests/boss_variety_test.gd`：偏执泡影按出招名数招（弹幕段不出预警）。新文件 `tests/final_break_preview.gd`（四只破绽录像）。
 - `game/data/balance.json` boss 段：hp_x_paranoia 改值，新增 paranoia_hover_taken / paranoia_aura_taken / paranoia_drop_t 三行与说明（§3g）。
 - 未改 `final_attacks.gd`、`boss_attack_draw.gd`、`final_attack_grains.gd`、`boss_ai.gd`、粒子模板。
 

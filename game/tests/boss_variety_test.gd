@@ -34,6 +34,9 @@ func _ready() -> void:
 			e.cdt = maxf(0.0, e.cdt - 0.1)
 			g.invuln = 100.0
 			g.bai._boss_ai(e, 0.1, Vector2.RIGHT, 220.0)
+			# 偏执泡影连携攻势（docs/170）：弹幕段不出预警，按出招名数（收招 / 力竭 / 漂近不算招）
+			if kind == "paranoia" and not str(e.get("move_name", "")) in ["", "收招", "力竭", "泡影漂近"]:
+				seen[str(e.move_name)] = true
 			for w in g.warns:
 				if w.has("pattern_id") or (w.name != "" and w.t == 0.0):
 					# docs/95（10-14）：4 招 = 数据招式 + 手写招式，按招式名 / pattern_id 数「不同的招」

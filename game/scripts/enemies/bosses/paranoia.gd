@@ -177,11 +177,9 @@ func _paranoia_p2(e: Dictionary) -> void:
 
 ## ---- 主轴「打落」（docs/142b §3.5）
 ## 一 / 二幕（悬浮）：冲刺穿过真身 → 坠地 4 秒（借破绽：不出招、受伤 × break_mult，taken_mult 再补到合计 1.8）；三幕起（落地）：冲刺穿身 = 光环散掉 5 秒
-## 破绽（用户 10-28「不加破绽的字」）：不走 combat.start_break（那里会在头顶弹「破绽」），直接设 break_t；
-## 画面由 paranoia_combo_draw 脚下金环 + 倒计时弧表示，头顶读秒 / 伤害数字前缀在 world / vfx 里对泡影跳过
+## 破绽：走公共 start_break（最终 Boss 不写字由 boss/break_text_final 管，金环见 render/break_ring）
 func brk(e: Dictionary, t: float) -> void:
-	e.break_t = maxf(float(e.get("break_t", 0.0)), t)
-	e.pc_brk_len = float(e.break_t)
+	g.combat.start_break(e, t)
 
 
 func _drop_step(e: Dictionary) -> void:

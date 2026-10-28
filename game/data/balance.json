@@ -441,6 +441,8 @@
   "paranoia_rush_mult": 1.3,
   "_paranoia_len": "10-28 云端 r5（b9ddd1aae，danger-pass 保护）：无认知超时 52%、阵亡 2%，输在二阶段太长（50% + 复活 80%）；破茧复活 paranoia_revive 0.8→0.5、hp_x 1.6→1.45，总血池 1.8→1.5 倍最大生命",
   "paranoia_revive": 0.5,
+  "break_text_final": 0,
+  "_break_text_final": "用户 10-28：四只最终 Boss（偏执泡影 / 骑士 / 伊祖米克 / 伊莎玛拉）破绽不写字（弹字、头顶读秒、伤害数字前缀），改由 render/break_ring 脚下金环 + 倒计时弧表示；1 = 恢复。中期 Boss 不受影响",
   "hp_x_knight_boss": 3.0,
   "_knight_axis": "骑士「斗牛」样板（docs/142b §3.1 / §9）：knight_stakes 每批冰柱数量，全毁后才补下一批；knight_stake_break 撞柱眩晕秒数；knight_armor 平时受伤倍率；knight_break_taken 撞柱 / 喘气破绽期合计受伤倍率",
   "knight_stakes": 5,

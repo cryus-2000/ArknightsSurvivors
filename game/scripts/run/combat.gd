@@ -999,7 +999,16 @@ func add_tough(e: Dictionary, pts: float) -> void:
 
 func start_break(e: Dictionary, t: float) -> void:
 	e.break_t = maxf(e.break_t, t)
+	e.brk_len = e.break_t   # 破绽总长（render/break_ring 倒计时弧用）
+	if final_break_quiet(e):
+		return
 	g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "破绽", UI.GOLD, 20)
+
+
+## 最终 Boss 破绽不写字（用户 10-28；中期 Boss 照旧，玩家在那里学会破绽）：boss/break_text_final 0 = 不写（缺省），1 = 恢复。
+## 头顶读秒（world）、伤害数字前缀（vfx）、本函数的「破绽」弹字都读它；画面由 render/break_ring 的金环 + 倒计时弧表示
+func final_break_quiet(e: Dictionary) -> bool:
+	return Bal.v("boss/break_text_final", 0.0) <= 0.0 and g.spawner.is_final_boss_type(str(e.get("type", "")))
 
 
 ## ---- 伤害预算（docs/38 §1.4，B1 ④；保险丝，默认关 boss/budget_on 0）：隐形令牌桶，额度用完后超出部分只算 boss/budget_over（35%）；
