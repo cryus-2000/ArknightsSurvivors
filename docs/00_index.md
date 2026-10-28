@@ -129,6 +129,7 @@
 | [163c_relic_inventory_codex](163c_relic_inventory_codex.md) | 全量藏品分类底表（Codex 163A，265 件 + 同名 JSON） | 参考 | 12 个机制主类、当前效果 / 等级 / 渠道 / 前置 / 反馈方式 | 163B、163D |
 | [163_visible_build_growth_codex](163_visible_build_growth_codex.md) | Codex 版可见成长草稿（历史） | 已被 163B 取代 | 弹体 / 范围 / 剑气 / 召唤的技术讨论 | 163D |
 | [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
+| [191_relic_pacing](191_relic_pacing.md) | 藏品节奏：来源拆分、降频与核心延后 | 已实现，待整局校准 | 10-28/29：遥测加来源；精英掉箱 0.15 + 2:00 前不掉、途中一后移 35 秒、商店藏品连买涨价；大时刻宝箱多选项 + 稀有加权；升华 / 核心 73 件第一只中期 Boss 倒下前不出。胜局 17 → 12 件，胜率掉，等统一校准 | balance.json relic/*、shop/relic_step、progression、relic_fx、endings |
 | [187_web_shrink_1028](187_web_shrink_1028.md) | 网页包再压缩评估 | 已实现 | 10-28：按类别拆分；无损四项（字体 WOFF2、WebP 最高档、wasm LZMA 分片 + 自写解码器、art/incoming 关透明渗色）41.62 → 36.10 MiB；音频 C 档 / 音效降采样等用户 | 121、164、22 |
 | [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范 + 迁移方案 | 草案，待用户批 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_lint.py（只报告） | tools/asset_lint.py、art.gd |
 | [188_asset_audit_1028](188_asset_audit_1028.md) | 素材命名与目录核对 | 待用户看 | 10-28：art/incoming 归档留底、旧合成配乐已删；game/ 没人读的 2 个、语音母带 22 MB 在运行时目录、同内容不同名 16 组、命名不合约定 4 处，只列不改 | art/archive/incoming_1028、game/audio/voice/masters |
