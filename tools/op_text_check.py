@@ -221,6 +221,22 @@ def _block_numbers(n, base, out):
             pass
 
 
+_BAL = None
+
+
+def text_base(d):
+    """base + 派生键 k_atk / k_pow（同 operator_defs.gd text_base）"""
+    global _BAL
+    if _BAL is None:
+        _BAL = json.load(open(os.path.join(ROOT, "game", "data", "balance.json"), encoding="utf-8"))
+    tier = (_BAL.get("operators", {}) or {}).get(d.get("id", ""), {}) or {}
+    b = dict(d.get("base", {}) or {})
+    b["k_atk"] = float(_BAL.get("squad", {}).get("op_atk_base", 1.0)) * (1.0 + float(tier.get("atk", 0.0)))
+    b["k_pow"] = 1.0 + float(tier.get("skill_power", 0.0))
+    b["k_kill"] = 1.0 / max(0.01, float(_BAL.get("enemy", {}).get("density", 1.0)))
+    return b
+
+
 def candidates(d):
     """{数值: 来源说明}：base 的数字、blocks 里的字面数与 $ 表达式结果、技能 dur / sp，各按原值、×100、(值−1)×100、(1−值)×100、1/值"""
     base = d.get("base", {}) or {}
@@ -276,7 +292,7 @@ def _allowed(cid, raw_text, num):
 def check_op(path):
     d = json.load(open(path, encoding="utf-8"))
     cid = d.get("id", os.path.splitext(os.path.basename(path))[0])
-    base = d.get("base", {}) or {}
+    base = text_base(d)
     errs, manual = [], []
     cand = candidates(d)
     for where, kind, text in iter_texts(d):
@@ -314,7 +330,7 @@ def check():
 
 def dump(cid):
     d = json.load(open(os.path.join(CHAR_DIR, cid + ".json"), encoding="utf-8"))
-    base = d.get("base", {}) or {}
+    base = text_base(d)
     for where, kind, text in iter_texts(d):
         print("[%s] %s\n    %s" % (kind, where, fill_line(text, base)))
 

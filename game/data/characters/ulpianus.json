@@ -431,14 +431,14 @@
    "name": "必须促成的接触",
    "en": "CONTACT MUST BE MADE",
    "sp": 6,
-   "desc": "向最近的精英（没有则敌群最密处）掷出带锁链的锚，钩住至多 {$s1_pull_n} 名敌人拽到面前打断其动作、眩晕 {$hook_stun} 秒后再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒；沉默期间不能使用特殊招式与远程攻击、不会自爆），随即重砸身前 {$s1_r} 内 ×{$s1_mult} 伤害（钩中的精英额外 +{$s1_elite_mult*100-100}%）；钩不到人或钩住 Boss 时，锚直接砸在落点",
+   "desc": "向最近的精英（没有则敌群最密处）掷出带锁链的锚，钩住至多 {$s1_pull_n} 名敌人拽到面前打断其动作、眩晕 {$hook_stun} 秒后再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒；沉默期间不能使用特殊招式与远程攻击、不会自爆），随即重砸身前 {$s1_r} 内 ×{$s1_mult*$k_pow:2} 伤害（钩中的精英额外 +{$s1_elite_mult*100-100}%）；钩不到人或钩住 Boss 时，锚直接砸在落点",
    "icon": "skill_ulpianus_s1"
   },
   {
    "name": "必须维系的界限",
    "en": "BOUNDARIES MUST BE KEPT",
    "sp": 15,
-   "desc": "充能一次后永久生效：攻击 +{$s2_atk*100}%、锚击范围 +{$s2_reach*100-100}%，天赋层数上限 {$stack_cap} → {$stack_cap+$stack_cap_s2}",
+   "desc": "充能一次后永久生效：攻击 +{$s2_atk*100}%、锚击半径 {$reach} → {$reach_skill*$s2_reach:0}，天赋层数上限 {$stack_cap} → {$stack_cap+$stack_cap_s2}",
    "permanent": true,
    "icon": "skill_ulpianus_s2"
   },
@@ -449,7 +449,7 @@
    "dur": 8.0,
    "mode": "manual",
    "aim": "point",
-   "desc": "掷锚并沿锁链冲向落点：沿途宽 {$s3_path_w} 内的敌人各受一次 ×{$s3_path_mult} 伤害；落地半径 {$s3_r} 内 ×{$s3_mult} 伤害、击退并眩晕 {$s3_stun} 秒（精英减半、Boss {$s3_stun*$s3_stun_boss:1} 秒）；之后 {$s3_haste} 秒锚击间隔 -{(1-$haste_mult)*100}%。作为队友时自动瞄准敌群最密处；作为队长时手动指定落点，最远距离 {$aim_range}，可指定无敌人的位置。瞄准操作见指南",
+   "desc": "掷锚并沿锁链冲向落点：沿途宽 {$s3_path_w} 内的敌人各受一次 ×{$s3_path_mult*$k_pow:2} 伤害；落地半径 {$s3_r} 内 ×{$s3_mult*$k_pow:2} 伤害、击退并眩晕 {$s3_stun} 秒（精英减半、Boss {$s3_stun*$s3_stun_boss:1} 秒）；之后 {$s3_haste} 秒锚击间隔 -{(1-$haste_mult)*100}%。作为队友时自动瞄准敌群最密处；作为队长时手动指定落点，最远距离 {$aim_range}，可指定无敌人的位置。瞄准操作见指南",
    "icon": "skill_ulpianus_s3"
   }
  ],
@@ -592,10 +592,10 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「必须维系的界限」；解锁天赋「血脉的哺养」：击杀精英叠攻击，其他深海猎人得一半；普攻「收链」：锚击把落点外圈 {$reach*$pull_r:0} 内的敌人拉向落点 {$pull_dist}（精英减半，Boss 除外）",
+   "desc": "解锁二技能「必须维系的界限」；解锁天赋「血脉的哺养」：击杀精英叠攻击，其他深海猎人得一半；普攻「收链」：锚击把落点外圈 {$reach*$pull_r:0}（「必须维系的界限」生效后 {$reach_skill*$s2_reach*$pull_r:0}）内的敌人拉向落点 {$pull_dist}（精英减半，Boss 除外）",
    "attack": {
     "name": "收链",
-    "desc": "锚击落点外圈（锚击范围之外、{$reach*$pull_r:0} 以内）的敌人被拉向落点 {$pull_dist}（精英减半，Boss 除外）"
+    "desc": "锚击落点外圈（锚击范围之外、{$reach*$pull_r:0} 以内，「必须维系的界限」生效后 {$reach_skill*$s2_reach*$pull_r:0} 以内）的敌人被拉向落点 {$pull_dist}（精英减半，Boss 除外）"
    }
   },
   {
@@ -615,7 +615,7 @@
      "id": "rift",
      "name": "通路洞开",
      "icon": "skill_ulpianus_s3",
-     "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路"
+     "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*$k_pow*100:1}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路"
     }
    },
    "branch_desc": "「不容挣脱」强化钩取，锚命中 Boss 时将附近敌人拖向落点；「通路洞开」沿锁链攻击并浮空敌人",
@@ -626,13 +626,13 @@
    "id": "rift",
    "name": "通路洞开",
    "icon": "skill_ulpianus_s3",
-   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路",
+   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*$k_pow*100:1}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路",
    "routes": {
     "drag": {
      "id": "drag2",
      "name": "不容挣脱·绞杀",
      "icon": "skill_ulpianus_s1",
-     "desc": "「必须促成的接触」钩回的敌人砸到面前后约 {$drag2_delay} 秒，他身前再抡一锤：半径 {$reach*$drag2_r_k:0} 内锚击 {$drag2_mult*100}% 伤害并击退"
+     "desc": "「必须促成的接触」钩回的敌人砸到面前后约 {$drag2_delay} 秒，他身前再抡一锤：半径 {$reach_skill*$drag2_r_k:0} 内锚击 {$drag2_mult*100}% 伤害并击退"
     },
     "rift": {
      "id": "rift2",
@@ -1654,7 +1654,7 @@
  "response": {
   "name": "锚链",
   "trigger": "队长冲刺",
-  "desc": "队长每次冲刺结束，他把锚掷向队长的落点，砸中周围的敌人，再把锁链沿线的敌人拖回自己身前，打断并眩晕 {$hook_stun} 秒、再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒）；之后的下一次锚击伤害 +30%"
+  "desc": "队长每次冲刺结束，他把锚掷向队长的落点，砸中周围的敌人，再把锁链沿线的敌人拖回自己身前，打断并眩晕 {$hook_stun} 秒、再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒）；锚链掷出后 1.5 秒内的锚击伤害 +30%"
  },
  "hit_feel": "heavy"
 }

@@ -650,7 +650,7 @@
      "id": "metonymy2",
      "name": "转喻·共振",
      "icon": "skill_logos_s1",
-     "desc": "「提喻」锁定期间，每 {$meto2_every} 秒以自身为中心半径 {$range*$meto2_r_k:0} 震荡一次（{$meto2_mult*100}% 法术伤害）"
+     "desc": "「提喻」锁定期间，每 {$meto2_every} 秒以自身为中心半径 {$range*$meto2_r_k:0} 震荡一次（{$meto2_mult*$k_pow*100:1}% 法术伤害）"
     },
     "epitaph": {
      "id": "epitaph2",

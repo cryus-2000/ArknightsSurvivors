@@ -152,7 +152,7 @@ const DMOD_DEFAULT := {
 const DMOD_TEXT := [
 	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人造成的伤害 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 造成的伤害再 +%d%%", "up"], ["final_boss_hp", "最终 Boss 生命再 +%d%%", "up"],
 	["max_hp", "队长初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
-	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
+	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 与精英招式预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
 	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"], ["nerve_rate", "神经损伤累积 +%d%%", "up"],
 	["ctrl_start", "小怪控制提前到 %d:%02d", "time"], ["frost_max", "寒霜 %d 层即冻结", "count"],
 	["affix_start", "词条提前到 %d:%02d", "time"], ["affix_max", "词条概率上限 %d%%", "pct"],

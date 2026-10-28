@@ -100,8 +100,8 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	if float(b.get("vs_elite", 1.0)) > 1.0:
 		extra.append(_row("elite", "对精英", "VS ELITE", "伤害 ×%s" % _num(float(b.vs_elite)), float(b.vs_elite)))
 	if b.has("heal_pct") and b.has("heal_cd"):
-		var hp_pct: float = float(b.heal_pct) * 100.0
-		extra.append(_row("heal", "治疗队长", "HEAL", "%s%% / %s 秒" % ["%.1f" % hp_pct if absf(hp_pct - roundf(hp_pct)) > 0.05 else "%d" % int(round(hp_pct)), _num(float(b.heal_cd))], float(b.heal_pct), "最大生命"))
+		var hp_pct: float = float(b.heal_pct) * 100.0 * Bal.v("squad/op_atk_base", 1.0) * (1.0 + float(mod.get("atk", 0.0)))   # 治疗乘开局 op_atk（同说明 $k_atk）
+		extra.append(_row("heal", "治疗队长", "HEAL", "%s%% / %s 秒" % [String.num(hp_pct, 2), _num(float(b.heal_cd))], float(b.heal_pct), "最大生命"))
 	var dps := single / maxf(0.05, interval)
 	var armor: float = float(lead.get("armor", 0.0))
 	var arts: float = float(lead.get("arts_res", 0.0))
@@ -124,7 +124,12 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	for tg in definition.get("gallery", {}).get("tags", []):
 		if not tags.has(str(tg)):
 			tags.append(str(tg))
-	return {"rows": rows, "extra": extra, "tags": tags, "note": NOTE}
+	# 队长默认受到的伤害倍率（squad/dodge_comp_taken，闪避移进局外成长后的补偿，所有队长相同）写进口径说明（10-28 用户：局内有效果但界面没写）
+	var note: String = NOTE
+	var tk: float = Bal.v("squad/dodge_comp_taken", 1.0)
+	if absf(tk - 1.0) > 0.001:
+		note += "；队长受到的伤害 %s%d%%" % ["-" if tk < 1.0 else "+", int(round(absf(1.0 - tk) * 100.0))]
+	return {"rows": rows, "extra": extra, "tags": tags, "note": note}
 
 
 ## 按 key 取一行（没有返回空字典）

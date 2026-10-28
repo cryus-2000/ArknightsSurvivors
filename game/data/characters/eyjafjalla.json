@@ -356,14 +356,14 @@
    "name": "点燃",
    "en": "IGNITION",
    "sp": 12,
-   "desc": "向最近的敌人投出一发 ×{$s2_mult} 的熔岩弹（爆炸范围 ×{$s2_aoe}）：点燃命中的敌人（同「二重咏唱」），并让它们 {$s2_weak} 秒内受到的伤害 +10%",
+   "desc": "向最近的敌人投出一发 ×{$s2_mult*$k_pow:2} 的熔岩弹（爆炸范围 ×{$s2_aoe}）：点燃命中的敌人（同「二重咏唱」），并让它们 {$s2_weak} 秒内受到的伤害 +10%",
    "icon": "skill_eyjafjalla_s2"
   },
   {
    "name": "火山",
    "en": "VOLCANO",
    "sp": 22,
-   "desc": "浮空向敌群投射 {$s3_count} 轮火焰弹（伤害 ×{$s3_mult}），每处留下 {$lava_dur} 秒熔岩（每 {$lava_every} 秒 {$lava_mult*100}% 法术伤害）",
+   "desc": "浮空向敌群投射 {$s3_count} 轮火焰弹（伤害 ×{$s3_mult*$k_pow:2}），每处留下 {$lava_dur} 秒熔岩（每 {$lava_every} 秒 {$lava_mult*$k_pow*100:1}% 法术伤害）",
    "icon": "skill_eyjafjalla_s3"
   }
  ],
@@ -495,13 +495,13 @@
    "id": "ignite_blobs",
    "name": "星火燎原",
    "icon": "skill_eyjafjalla_s2",
-   "desc": "「点燃」的熔岩弹爆炸后向四周抛出 {$blob_n} 团熔岩，落地各自爆炸（普攻熔岩弹的 {$blob_mult*100}% 伤害）",
+   "desc": "「点燃」的熔岩弹爆炸后向四周抛出 {$blob_n} 团熔岩，落地各自爆炸（普攻熔岩弹的 {$blob_mult*$k_pow*100:1}% 伤害）",
    "branch": {
     "ignite": {
      "id": "ignite_blobs",
      "name": "星火燎原",
      "icon": "skill_eyjafjalla_s2",
-     "desc": "「点燃」的熔岩弹爆炸后向四周抛出 {$blob_n} 团熔岩，落地各自爆炸（普攻熔岩弹的 {$blob_mult*100}% 伤害）"
+     "desc": "「点燃」的熔岩弹爆炸后向四周抛出 {$blob_n} 团熔岩，落地各自爆炸（普攻熔岩弹的 {$blob_mult*$k_pow*100:1}% 伤害）"
     },
     "meteor": {
      "id": "meteor",
@@ -524,7 +524,7 @@
      "id": "ignite2",
      "name": "星火燎原·蔓延",
      "icon": "skill_eyjafjalla_s2",
-     "desc": "「点燃」的熔岩弹爆炸时，再向爆炸范围外最近的 {$blob2_n} 名敌人各抛一团熔岩（{$blob2_mult*100}% 伤害）"
+     "desc": "「点燃」的熔岩弹爆炸时，再向爆炸范围外最近的 {$blob2_n} 名敌人各抛一团熔岩（{$blob2_mult*$k_pow*100:1}% 伤害）"
     },
     "meteor": {
      "id": "meteor2",
@@ -538,7 +538,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「火山」：浮空向敌群投射 {$s3_count} 轮火焰弹（伤害 ×{$s3_mult}），每处留下 {$lava_dur} 秒熔岩；普通攻击强化「三重咏唱」（取代「复咏」）：熔岩弹改为低弧抛射，每次 3 发在目标周围呈三角落下（后 2 发伤害 ×{$tri_mult}），落地后中心留下熔池 {$pool_dur} 秒，每 {$pool_every} 秒造成第一发 {$pool_mult*100}% 的法术伤害",
+   "desc": "解锁三技能「火山」：浮空向敌群投射 {$s3_count} 轮火焰弹（伤害 ×{$s3_mult*$k_pow:2}），每处留下 {$lava_dur} 秒熔岩；普通攻击强化「三重咏唱」（取代「复咏」）：熔岩弹改为低弧抛射，每次 3 发在目标周围呈三角落下（后 2 发伤害 ×{$tri_mult}），落地后中心留下熔池 {$pool_dur} 秒，每 {$pool_every} 秒造成第一发 {$pool_mult*100}% 的法术伤害",
    "attack": {
     "name": "三重咏唱",
     "desc": "熔岩弹改为低弧抛射：每次 3 发在目标周围呈三角落下（后 2 发伤害 ×{$tri_mult}），各自爆炸；3 发都落地后，三角中心留下熔池 {$pool_dur} 秒，每 {$pool_every} 秒对池内敌人造成第一发 {$pool_mult*100}% 的法术伤害"
