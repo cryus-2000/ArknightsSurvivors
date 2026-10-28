@@ -13,6 +13,7 @@ func ok(value: bool, label: String) -> void:
 		fails += 1
 		printerr("FAIL ",label)
 func _ready() -> void:
+	ProjectSettings.set_setting("ui/settle_style", 0)   # 这里测旧样回退的编队滚动 / 评级（缺省作战报告另由录像核对）
 	game = load("res://game.tscn").instantiate()
 	add_child(game)
 	await get_tree().process_frame

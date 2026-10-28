@@ -63,13 +63,13 @@ var _o := Vector2.ZERO   # 当前页面原点（含盖章轻抖）
 var _fa := 1.0           # 当前绘制组透明度（_text 乘上）
 var _dx := 0.0           # 当前绘制组水平偏移（失败打捞的晃动）
 var _blur := 0.0         # 失败打捞的失焦虚影（0 = 对焦）
-## 改版原型开关（10-28 用户「结算页设计的不太好看，重新设计一下」，三个方向待挑）：项目设置 ui/settle_style 或测试参数 --settle_style=N；
-## 0 = 现样（缺省），1 作战报告 / 2 潮汐航迹 / 3 编队合影（screens/settle/）
-const STYLES := ["", "res://scripts/screens/settle/settle_report.gd", "res://scripts/screens/settle/settle_tide.gd", "res://scripts/screens/settle/settle_roster.gd"]
+## 结算样式（10-28 用户定方向 A「作战报告」，配色跟随本局队长）：项目设置 ui/settle_style 或测试参数 --settle_style=N；
+## 1 = 作战报告（缺省，screens/settle/settle_report.gd），0 = 旧样回退
+const STYLES := ["", "res://scripts/screens/settle/settle_report.gd"]
 var sty = null
 
 static func style_id() -> int:
-	var v := int(ProjectSettings.get_setting("ui/settle_style", 0))
+	var v := int(ProjectSettings.get_setting("ui/settle_style", 1))
 	for a in Cfg.dev_args():
 		if a.begins_with("--settle_style="):
 			v = int(a.substr(15))

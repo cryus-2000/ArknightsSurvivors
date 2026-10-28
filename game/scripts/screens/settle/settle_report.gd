@@ -2,7 +2,8 @@ extends "res://scripts/screens/settle/settle_base.gd"
 ## 方向 A「作战报告」：海报式（docs/125 §4.4 S1 / S2 / S5）。巨型描边英文结果横贯上缘，左侧暗斜板放队长立绘，
 ## 右侧是数据格 + 编队输出条，下缘一条「本局获得」。层级：结果 + 评级 ≫ 队长 ≫ 数据。
 ## 动效：斜板扫入 → 巨型英文从右侧带速度线滑入 → 中文结果块展开 → 队长剪影显色 → 数据格右滑入 + 计数 → 输出条拉长 → 评级描边落定 → 奖励逐个落下。
-## 失败：英文从左慢慢拖入、洋红；队长保持去色并盖「击倒」；数据格下沉落位，不弹。
+## 失败：英文从左慢慢拖入、主题色降饱和；队长保持去色并盖洋红「击倒」；数据格下沉落位，不弹。
+## 配色跟随本局队长（10-28 用户定）：主色 / 描边 / 斜板 / 输出条高亮取队长干员 col（data/characters/*.json，选人 / 图鉴同一张）。
 
 
 func end_win() -> float:
@@ -17,9 +18,21 @@ func buttons() -> Array:
 	return footer(664.0, 42.0)
 
 
+## 队长主题色：OKHSL 明度夹 0.62–0.84、饱和封顶 0.85（过暗 / 过亮的设定色在暗底上仍能作字色）；失败同色降饱和、略压暗
+func theme() -> Color:
+	var r := leader_row()
+	var c: Color = r.get("col", HH.CYB) if not r.is_empty() else HH.CYB
+	var sa := minf(c.ok_hsl_s, 0.85)
+	var l := clampf(c.ok_hsl_l, 0.62, 0.84)
+	if not won:
+		sa *= 0.3
+		l = minf(l, 0.66)
+	return Color.from_ok_hsl(c.ok_hsl_h, sa, l)
+
+
 func draw(canvas: CanvasItem) -> void:
 	begin(canvas)
-	var acc: Color = HH.CYB if won else MAG
+	var acc := theme()
 	ci.draw_rect(Rect2(-400, -400, 2080, 1520), HH.DARK)
 	# 速度线（斜向细条，入场时快速掠过，之后很淡）
 	var sp := ek(0.1, 0.6)
@@ -33,7 +46,7 @@ func draw(canvas: CanvasItem) -> void:
 	# ① 左侧暗斜板扫入
 	var wp := ek(0.0, 0.4)
 	if wp > 0.0:
-		poly(PackedVector2Array([Vector2(0, 236), Vector2(470 * wp, 236), Vector2(410 * wp, 640), Vector2(0, 640)]), HH.DARK2)
+		poly(PackedVector2Array([Vector2(0, 236), Vector2(470 * wp, 236), Vector2(410 * wp, 640), Vector2(0, 640)]), HH.DARK2.lerp(acc, 0.1))
 		poly(PackedVector2Array([Vector2(470 * wp, 236), Vector2(470 * wp + 8, 236), Vector2(410 * wp + 8, 640), Vector2(410 * wp, 640)]), acc)
 	# ② 巨型英文结果
 	var word := "COMPLETE" if won else "FAILED"
@@ -45,7 +58,7 @@ func draw(canvas: CanvasItem) -> void:
 	# ③ 中文结果块（实色块里黑字）
 	var bp := ek(0.45, 0.25)
 	if bp > 0.0:
-		para(Rect2(40, 150, 300 * bp, 62), HH.LIGHT)
+		para(Rect2(40, 150, 300 * bp, 62), acc.lerp(HH.LIGHT, 0.6))
 		fa = k(0.55, 0.2)
 		txt(64, 156, "探索完成" if won else "探索终止", 40, HH.INK)
 		txt(358, 158, sub_line(), 16, HH.LIGHT, 0, 360)
@@ -94,7 +107,10 @@ func _leader(acc: Color) -> void:
 	px(Vector2(40, 254), "LEADER", 2.0, HH.MUTE, 0, 2)
 	# 背后一枚淡色大英文名（压在立绘后面）
 	fa *= 0.5
-	px(Vector2(40, 300), str(r.en), 6.0, Color(r.col, 0.22))
+	var en := str(r.en)
+	if px_w(en, 6.0) > 400.0:   # 长英文名（SKADI THE CORRUPTING HEART）只留首词，不压到数据格上
+		en = en.get_slice(" ", 0)
+	px(Vector2(40, 300), en, 6.0, Color(r.col, 0.22))
 	fa = ek(0.5, 0.2)
 	var col: Color
 	if won:
@@ -107,6 +123,7 @@ func _leader(acc: Color) -> void:
 	if np > 0.0:
 		fa = np
 		para(Rect2(28, 592, 290 * np, 40), HH.LIGHT)
+		rect(Rect2(28, 632, 290 * np, 3), acc)
 		txt(50, 598, str(r.name), 22, HH.INK)
 		txt(50 + tw(str(r.name), 22) + 12, 604, "队长  Lv.%d" % int(m().get("level", 1)), 13, HH.INK2)
 	if not won:
@@ -164,6 +181,8 @@ func _squad(acc: Color) -> void:
 		var y := 438.0 + i * h
 		var p := ek(1.5 + 0.08 * i, 0.5)
 		fa = minf(1.0, p * 2.0)
+		if r.leader:
+			rect(Rect2(496, y + 1, 748 * p, h - 2), Color(acc, 0.13))
 		rect(Rect2(500, y + h * 0.5 - 5, 4, 10), r.col)
 		txt(512, y + h * 0.5 - 10, str(r.name), mini(15, int(h * 0.6)), HH.LIGHT if r.leader else HH.LIGHT2, 0, 100)
 		rect(Rect2(620, y + h * 0.5 - 3, 560, 6), HH.DARK3)
