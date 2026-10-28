@@ -941,6 +941,7 @@ def check_blocks_eq(godot):
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
+    "invuln_skill_hold": ("无敌暂缓技能（Boss 无敌时普攻照打、自动技能就绪不放，解除后 1 秒内放出；开关 combat/hold_skill_on_invuln）", "invuln_skill_hold_test", r"INVULN SKILL HOLD checks=\d+ failures=0", ["--balance", "--seed=1"]),
     "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
     "synergy_a": ("干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=texas", "--squad=exusiai,lappland"]),
     "synergy_b": ("干员连携技（集群狩猎：猎人 ≥ 3 人一起扑向同一目标）", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=ulpianus,gladiia"]),

@@ -218,6 +218,11 @@ func skill_gate_ok(_i: int) -> bool:
 	return true
 
 
+## 技能范围里只有打不动的（无敌 Boss 等）：自动技能暂缓、队长手动技能图标加锁标（10-28）。基类恒假，数据干员按技能门槛半径算
+func invuln_only(_i: int) -> bool:
+	return false
+
+
 ## 技能充能（每帧，不论是否在出手）：生效中的持续型技能与永久型不充
 func tick_sp(dt: float) -> void:
 	for i in 3:

@@ -1353,17 +1353,36 @@ func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
 
 
 ## 自动技能放出门槛（10-25 用户「范围内没有敌人就不开技能」）：pos 周围 ObCore.skill_gate_base（技能 need_enemy → 伤害积木作用半径 → 普攻射程）× op_range 内要有敌人，
-## 没有就先不放（技力保留满格，有敌人那一帧再放）。手动技能不走这里（charge_skills 先判 is_manual）
+## 没有就先不放（技力保留满格，有敌人那一帧再放）。手动技能不走这里（charge_skills 先判 is_manual）。
+## 无敌暂缓（10-28 用户：「面对无敌的敌人可以继续普通攻击，但是可以不放技能，等不无敌了再放」）：combat/hold_skill_on_invuln（缺省 1）开时，
+## 范围里得有打得动的（op_api.hittable）——只剩无敌 Boss / 阶段护盾 / 无敌部件时技力保持满格，解除无敌或有能打的小怪进来那一帧就放
 func skill_gate_ok(i: int) -> bool:
+	var d: float = _gate_dist(i)
+	if d <= 0.0:
+		return true
+	if CmdBal.v("combat/hold_skill_on_invuln", 1.0) > 0.0:
+		return has_hittable(d, pos)
+	return not nearest_enemies(1, d, pos).is_empty()
+
+
+## 技能 i 的范围里有敌人、但全是打不动的（hud_squad / touch 的手动技能锁标；只提示，不拦玩家强制放）
+func invuln_only(i: int) -> bool:
+	if pos == Vector2.INF or CmdBal.v("combat/hold_skill_on_invuln", 1.0) <= 0.0:
+		return false
+	var d: float = _gate_dist(i)
+	return d > 0.0 and not nearest_enemies(1, d, pos).is_empty() and not has_hittable(d, pos)
+
+
+## 自动技能门槛半径（已乘 op_range；≤ 0 = 不设门槛）
+func _gate_dist(i: int) -> float:
 	var sk: Array = B.get("skills", _EA)
 	if i >= sk.size():
-		return true
+		return 0.0
 	var atk: Dictionary = B.get("attack", _ED)
 	var fb: float = ObCore.GATE_DEFAULT
 	if str(atk.get("r", "")) == "zone":   # 普攻是区域圈（斯卡蒂等）：推不出别的时用区域半径
 		fb = zone_r() / maxf(0.01, stat(&"op_range"))
-	var d: float = ObCore.skill_gate_base(sk[i], atk, {}, fb) * stat(&"op_range")
-	return d <= 0.0 or not nearest_enemies(1, d, pos).is_empty()
+	return ObCore.skill_gate_base(sk[i], atk, {}, fb) * stat(&"op_range")
 
 
 ## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack
