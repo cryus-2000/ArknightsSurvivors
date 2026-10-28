@@ -446,7 +446,10 @@ func update(dt: float) -> void:
 		# 封印（docs/61 §15 st.seal，干员积木）：非 Boss 敌人不起新的特殊招式（pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……），
 		# 已经起手的蓄力 / 冲刺 / 自爆照常走完（enemy_ai.busy）；Boss 的封印在 boss_ai 的 ready 里。没有封印时 seal_t 不存在，这里恒为 false
 		var sealed: bool = float(e.get("seal_t", 0.0)) > g.t
-		var ov: Vector2 = g.eai.pattern(e, dir, dist, dt, spd) if not held and not (sealed and not e.boss and not g.eai.busy(e)) else Vector2.INF
+		# 沉默（silence_t，乌尔比安锚链拖回）：非 Boss 不走特殊招式（起手中的已在拖回时打断，所以不留 busy 例外）、不远程开火；照常移动与接触
+		var silenced: bool = float(e.get("silence_t", 0.0)) > g.t and not e.boss
+		sealed = sealed or silenced
+		var ov: Vector2 = g.eai.pattern(e, dir, dist, dt, spd) if not held and not silenced and not (sealed and not e.boss and not g.eai.busy(e)) else Vector2.INF
 		if ov != Vector2.INF:
 			v += ov
 		elif not held:
@@ -828,6 +831,26 @@ func set_air(e: Dictionary, h: float, hold_kb := false) -> void:
 	e.air = h
 	if hold_kb:
 		e.kb = Vector2.ZERO
+
+
+## 打断（乌尔比安锚链拖回，用户 10-28）：非 Boss 起手中的预警作废（不再结算）、蓄力 / 冲刺 / 环弹 / 自爆引信清零
+func interrupt(e: Dictionary) -> void:
+	if e.boss:
+		return
+	for w in g.warns:
+		if is_same(w.owner, e) and not w.get("done", false):
+			w.done = true
+			w.t = w.dur + 1.0
+	for k in ["wind", "dash_w", "dash_t", "nova_w", "blast_w"]:
+		if e.has(k):
+			e[k] = 0.0
+
+
+## 沉默到 until（g.t）：不起特殊招式、不远程开火，可移动与接触攻击；Boss 不吃。只延长不缩短
+func silence(e: Dictionary, until: float) -> void:
+	if e.boss:
+		return
+	e["silence_t"] = maxf(float(e.get("silence_t", 0.0)), until)
 
 
 ## 强制位移：本帧把敌人放到 p 并清击退（锚 / 钩拖拽）

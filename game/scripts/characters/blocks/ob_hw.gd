@@ -242,6 +242,7 @@ static func hw_draw_over(o) -> void:
 		_F().hw_draw_hooks(o)
 	if o.hw.has("anchor"):
 		_F().hw_draw_tether(o)
+		_F().hw_draw_mute(o)
 	if o.hw.has("bolts"):
 		_F().hw_draw_logos_over(o)
 	h3_draw_over(o)   # 手写迁移段第 3 批
@@ -450,9 +451,8 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 				errs.append(p + ".push_out 应是 true / false")
 			_num(b, "arrive_stun", p, ctx, false, 0.0, 3.0)          # 拖回到位的敌人眩晕秒数（精英减半，同 st.stun）
 			_num(b, "arrive_stun_elite1", p, ctx, false, 0.0, 3.0)   # 精一起改用这个值（精英化节点的「锚定」）
-			_num(b, "arrive_stun_elite", p, ctx, false, 0.0, 3.0)    # 精英（非 Boss）改用这个秒数、不减半
-			if b.has("defuse") and not b.defuse is bool:
-				errs.append(p + ".defuse 应是 true / false（拖回的自爆怪引信清零）")
+			if b.has("pull_cc") and not b.pull_cc is bool:
+				errs.append(p + ".pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默，乌尔比安）")
 			if b.has("drag_only") and not str(b.drag_only) in ["all", "ranged"]:
 				errs.append(p + ".drag_only 只能是 all / ranged（只拖回远程怪）")
 			_src(b, p, ctx, true)

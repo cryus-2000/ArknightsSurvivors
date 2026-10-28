@@ -20,7 +20,7 @@ const HW_BLOOD := Color(1.0, 0.25, 0.3)
 static func _hw4(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("anchor"):
-		h.merge({"anchor": {}, "hooked": [], "launched": [], "stacks": {}, "armed": {}, "timers": {}, "sil": {}, "blk": {}})
+		h.merge({"anchor": {}, "hooked": [], "launched": [], "stacks": {}, "armed": {}, "timers": {}, "sil": {}, "blk": {}, "mute": {}})
 	return h
 
 
@@ -417,12 +417,9 @@ static func _hw_reel_arrive(o) -> void:
 		var e: Dictionary = hk.e
 		if e.dead:
 			continue
-		var st: float = float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25
-		if e.elite and b.has("arrive_stun_elite"):   # 拖到身前的精英多晕一会（用户 10-28：拉精英到面前容易死）
-			st = maxf(st, float(b.arrive_stun_elite))
-		o.add_cc(e, st)
-		if b.get("defuse", false):
-			_hw_defuse(e)
+		o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25)
+		if b.get("pull_cc", false):
+			_hw_pull_cc(o, e)
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
 	o.impact_pause(0.05)
 	o.fx({"kind": "ulp_wave", "pos": c, "r": 34.0, "life": 0.2, "pull": true, "floor": true})
@@ -515,11 +512,42 @@ static func _hw_zip_land(o) -> void:
 		_hw_open_rift(o, rf, an.start, c)
 
 
-## 拆引信（用户 10-28「把自爆怪拉到面前很容易死」）：被锚链拖回的自爆怪（壳海狂奔者）鼓胀中断、引信清零；
-## 眩晕期间不会重新鼓胀（enemies.gd held 时不走 pattern），醒来后要重新进起爆距离、从头再鼓 blast_fuse 秒
-static func _hw_defuse(e: Dictionary) -> void:
-	if float(e.get("blast_w", 0.0)) > 0.0:
-		e.blast_w = 0.0
+## 拖回不送死（用户 10-28「把自爆怪或者精英怪拉到面前的时候很容易死」，定「先眩晕、后沉默」）：锚链拖回的非 Boss 敌人
+## 先打断（起手中的预警作废、自爆引信清零），再眩晕 hook_stun 秒、眩晕结束后沉默 hook_silence 秒（精英各用 *_elite）；
+## 沉默 = 不起特殊招式、不远程开火，仍可移动和接触（run/enemies.gd silence）。积木键 pull_cc: true 开启，数值读本干员 base
+static func _hw_pull_cc(o, e: Dictionary) -> void:
+	if e.dead or e.boss:
+		return
+	var g = o.g
+	g.enemies_sys.interrupt(e)
+	var st: float = o.base("hook_stun_elite" if e.elite else "hook_stun", 1.0)
+	o.add_cc(e, st)
+	var sl: float = o.base("hook_silence_elite" if e.elite else "hook_silence", 1.0)
+	g.enemies_sys.silence(e, g.t + maxf(float(e.stun), 0.0) + sl)
+	_hw4(o).mute[int(e.id)] = e
+
+
+## 沉默标记：眩晕结束后、沉默期间头顶画禁言符（只画本干员施加的）
+static func hw_draw_mute(o) -> void:
+	var g = o.g
+	var mu: Dictionary = _hw4(o).mute
+	for id in mu.keys():
+		var e: Dictionary = mu[id]
+		var left: float = float(e.get("silence_t", 0.0)) - g.t
+		if e.dead or left <= 0.0:
+			mu.erase(id)
+			continue
+		if float(e.stun) > 0.0:
+			continue
+		# 图标：灰蓝圆环 + 一道横杠（禁言符），头顶上方 14px；干员画布不能写字，状态名写在技能说明与图鉴
+		var al: float = clampf(left / 0.25, 0.0, 1.0)
+		var cp: Vector2 = e.pos + Vector2(0, -float(e.r) * 2.0 - 14.0)
+		var sc := Color(0.78, 0.82, 0.92, 0.95 * al)
+		var dk := Color(0.04, 0.05, 0.08, 0.6 * al)
+		o.cv.draw_arc(cp, 6.0, 0.0, TAU, 16, dk, 4.0)
+		o.cv.draw_line(cp + Vector2(-4, 0), cp + Vector2(4, 0), dk, 4.0)
+		o.cv.draw_arc(cp, 6.0, 0.0, TAU, 16, sc, 2.0)
+		o.cv.draw_line(cp + Vector2(-4, 0), cp + Vector2(4, 0), sc, 2.0)
 
 
 static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
@@ -537,8 +565,8 @@ static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
 		var v: float = minf(sqrt(1800.0 * dist), 620.0) * (0.5 if e.elite else 1.0)
 		o.apply_kb(e, (c - e.pos).normalized() * v)
 		o.add_cc(e, 0.3)
-		if dg.get("defuse", false):
-			_hw_defuse(e)
+		if dg.get("pull_cc", false):
+			_hw_pull_cc(o, e)
 
 
 static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
@@ -973,9 +1001,8 @@ static func _hw4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "r", p, ctx, true, 1.0, 800.0)
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_num(b, "stun", p, ctx, false, 0.0, 10.0)
-			_num(b, "arrive_stun_elite", p, ctx, false, 0.0, 10.0)
-			if b.has("defuse") and not b.defuse is bool:
-				errs.append(p + ".defuse 应是 true / false")
+			if b.has("pull_cc") and not b.pull_cc is bool:
+				errs.append(p + ".pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默）")
 			_num(b, "hold_frame", p, ctx, false, 0.0, 30.0)
 			_num(b, "path_w", p, ctx, false, 1.0, 300.0)
 			_num(b, "path_mult", p, ctx, false, 0.0, 20.0)
@@ -1151,12 +1178,9 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		o.log_hit(src, b.get("tags", []))
 		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
 		if st_arr > 0.0 and not e.dead:
-			if e.elite and not e.boss and b.has("arrive_stun_elite"):
-				o.add_cc(e, float(b.arrive_stun_elite))   # 精英不减半，直接用这个秒数（乌尔比安，用户 10-28）
-			else:
-				apply_status(o, e, {"st": "stun", "dur": st_arr}, e.pos)
-		if b.get("defuse", false) and not e.dead:
-			_hw_defuse(e)
+			apply_status(o, e, {"st": "stun", "dur": st_arr}, e.pos)
+		if b.get("pull_cc", false) and not e.dead:
+			_hw_pull_cc(o, e)
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)

@@ -93,9 +93,11 @@
   "throw_taut": 0.2,
   "throw_drag": 0.18,
   "throw_front": 60,
-  "_pull_safe": "拖回不送死（用户 10-28「把自爆怪或者精英怪拉到面前的时候很容易死」）：掷锚 / 抛锚 / 精二掷锚拖回的敌人落地眩晕 pull_stun 秒，精英 pull_stun_elite 秒（不减半，Boss 照旧）；拖回的自爆怪鼓胀中断、引信清零（defuse）",
-  "pull_stun": 0.6,
-  "pull_stun_elite": 1.0,
+  "_hook_cc": "拖回不送死（用户 10-28「把自爆怪或者精英怪拉到面前的时候很容易死」，定「先眩晕、后沉默」）：掷锚 / 抛锚应答 / 精二掷锚拖回的非 Boss 敌人先被打断（起手预警作废、自爆引信清零），眩晕 hook_stun 秒，眩晕结束后沉默 hook_silence 秒（精英用 *_elite）；沉默 = 不起特殊招式、不远程开火，可移动与接触",
+  "hook_stun": 1.0,
+  "hook_stun_elite": 1.0,
+  "hook_silence": 1.0,
+  "hook_silence_elite": 1.5,
   "_combo": "钩与锚（docs/123 §2.7）：歌蕾蒂娅钩索拖回到位时，他在 combo_range 内就朝落点补一次锚击（× combo_mult，combo_cd 秒一次，不占普攻冷却）",
   "combo_mult": 1.0,
   "combo_cd": 2.0,
@@ -429,7 +431,7 @@
    "name": "必须促成的接触",
    "en": "CONTACT MUST BE MADE",
    "sp": 6,
-   "desc": "向最近的精英（没有则敌群最密处）掷出带锁链的锚，钩住至多 {$s1_pull_n} 名敌人拽到面前并眩晕 {$s1_stun} 秒（精英 {$pull_stun_elite} 秒），正在鼓胀的敌人中断自爆，随即重砸身前 {$s1_r} 内 ×{$s1_mult} 伤害（钩中的精英额外 +{$s1_elite_mult*100-100}%）；钩不到人或钩住 Boss 时，锚直接砸在落点",
+   "desc": "向最近的精英（没有则敌群最密处）掷出带锁链的锚，钩住至多 {$s1_pull_n} 名敌人拽到面前打断其动作、眩晕 {$hook_stun} 秒后再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒；沉默期间不能使用特殊招式与远程攻击、不会自爆），随即重砸身前 {$s1_r} 内 ×{$s1_mult} 伤害（钩中的精英额外 +{$s1_elite_mult*100-100}%）；钩不到人或钩住 Boss 时，锚直接砸在落点",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -647,7 +649,7 @@
    "desc": "解锁三技能「必须开辟的通路」（当队长时手动释放）：掷锚冲锋，沿途与落点都造成伤害、落点眩晕一片，之后 {$s3_haste} 秒锚击加速；撼地范围扩大到 {$quake_r_e2}、伤害提高到 {$quake_mult_e2*100}%；普通攻击强化「掷锚」：每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
    "attack": {
     "name": "掷锚",
-    "desc": "每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的）：落地半径 {$throw_r} 造成锚击 ×{$throw_mult} 伤害，锁链绷直后把乌尔比安与锚之间宽 {$throw_w} 的一线敌人拖回面前并眩晕 {$pull_stun} 秒（精英 {$pull_stun_elite} 秒、中断自爆），再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）。锚在外面时不出锚击"
+    "desc": "每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的）：落地半径 {$throw_r} 造成锚击 ×{$throw_mult} 伤害，锁链绷直后把乌尔比安与锚之间宽 {$throw_w} 的一线敌人拖回面前，打断并眩晕 {$hook_stun} 秒、再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒），再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）。锚在外面时不出锚击"
    }
   }
  ],
@@ -773,8 +775,7 @@
      {
       "verb": "tether",
       "mode": "reel",
-      "arrive_stun_elite": "$pull_stun_elite",
-      "defuse": true,
+      "pull_cc": true,
       "pick": "elite",
       "pick_r_elite": "$pick_r_elite",
       "pick_r": "$pick_r",
@@ -799,7 +800,7 @@
       "hook_text": "钩住！",
       "hold_frame": 5,
       "drag": {
-       "defuse": true,
+       "pull_cc": true,
        "cond": "node:drag",
        "n": "$drag_n",
        "r": "$drag_r",
@@ -1286,9 +1287,7 @@
     "do": [
      {
       "shape": "hookshot",
-      "arrive_stun": "$pull_stun",
-      "arrive_stun_elite": "$pull_stun_elite",
-      "defuse": true,
+      "pull_cc": true,
       "range": "$throw_range",
       "min_d": "$throw_min",
       "r": "$throw_r",
@@ -1453,9 +1452,7 @@
     "do": [
      {
       "shape": "hookshot",
-      "arrive_stun": "$pull_stun",
-      "arrive_stun_elite": "$pull_stun_elite",
-      "defuse": true,
+      "pull_cc": true,
       "range": "$throw_range",
       "r": "$throw_r",
       "basis": "atk",
@@ -1657,7 +1654,7 @@
  "response": {
   "name": "锚链",
   "trigger": "队长冲刺",
-  "desc": "队长每次冲刺结束，他把锚掷向队长的落点，砸中周围的敌人，再把锁链沿线的敌人拖回自己身前并眩晕 {$pull_stun} 秒（精英 {$pull_stun_elite} 秒、中断自爆）；之后的下一次锚击伤害 +30%"
+  "desc": "队长每次冲刺结束，他把锚掷向队长的落点，砸中周围的敌人，再把锁链沿线的敌人拖回自己身前，打断并眩晕 {$hook_stun} 秒、再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒）；之后的下一次锚击伤害 +30%"
  },
  "hit_feel": "heavy"
 }
