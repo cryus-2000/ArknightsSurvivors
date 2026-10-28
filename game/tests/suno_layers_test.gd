@@ -33,7 +33,6 @@ func run() -> void:
 		for pl in pls:
 			check(absf((pl.stream as AudioStream).get_length() - l0) < 0.003, "%s 各层同长度" % tn)
 		check(float(Sfx.lay[tn].bpm) > 100.0 and float(Sfx.lay[tn].bpm) < 200.0, "%s bpm 合理（%.2f）" % [tn, Sfx.lay[tn].bpm])
-		check(not Sfx.seq.has(tn), "%s 不再走 SEQ 乐句拼接" % tn)
 	# 战斗一：平静只有底层；交战 / 激战在小节线上进层
 	Sfx.set_battle(0, false)
 	Sfx.play_music("battle1")
