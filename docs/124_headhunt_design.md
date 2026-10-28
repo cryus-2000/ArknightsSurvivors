@@ -307,7 +307,7 @@
 ## 14. 拉包光效回归接入（10-22，Codex main 9444db06）
 
 - **单档（10-22 用户）**：只用金档原图，青白换色（`*_cyan@2x`）已删。
-- 素材：`art/incoming/headhunt_reference_fx_1022/reference_return/`（宽金白主光柱 `flowing_beams@2x` + 上冲碎光 `rising_fragments@2x`，各 24 帧 384 × 400、12 fps，原点 (192,350)；开包遮罩 `opening_reveal@2x` 8 档）。`tools/probes/package_headhunt_bagfx.py` 放进 `art/incoming` 根目录：`fx_hh_beams@2x` / `fx_hh_frags@2x` 原样、`fx_hh_reveal@2x`（灰度转 alpha）。
+- 素材：`art/archive/incoming_1028/headhunt_reference_fx_1022/reference_return/`（宽金白主光柱 `flowing_beams@2x` + 上冲碎光 `rising_fragments@2x`，各 24 帧 384 × 400、12 fps，原点 (192,350)；开包遮罩 `opening_reveal@2x` 8 档）。`tools/probes/package_headhunt_bagfx.py` 放进 `art/incoming` 根目录：`fx_hh_beams@2x` / `fx_hh_frags@2x` 原样、`fx_hh_reveal@2x`（灰度转 alpha）。
 - 替换：原来的开口金光 `fx_hh_mouth_glow` 与碎光 `fx_hh_shards` 不再用；拉链 8 档仍是原包体帧条。
 - 层序（按 HANDOFF）：主光 + 碎光合成（拉链没全开时只留遮罩第 s 档露出的部分）→ 包底层 → 同一光层的裁片 (64,78,256,320) 乘原 delivery 全开口遮罩 → 包前景（提手、前包沿）。固定放置 = 包左上 + (128,66) − 原点，纹理不跟拉头平移。
 - 时间轴：0–0.4 落下（闭合无光）；0.4 起每 0.17 秒开一档（同 manifest.opening，约 1.6 秒全开）；全开后光柱循环约 0.5 秒再光炸（2.05–2.5），拉包段总长 1.9 → 2.5 秒。
@@ -319,7 +319,7 @@
 - **进入卡顿**：`Roster.all_ids / class_of` 每次都列目录并解析全部干员 JSON，寻访每帧要调几十次 → 加静态缓存。另加分帧预载：入口只画已预载好的剪影，其余未解锁干员在转场期间每帧载一阶段（立绘 / 包围盒 / 剪影），到选人 / 揭示时已就绪。
 - **立绘**：寻访用 `A.tex_hi`（界面 @2x 精细版，同选人页），不用局内 1 倍帧条；`_figure` 改为「按包围盒等比缩进给定区域」，入口 / 选人卡 / 右栏 / 揭示 / 本次寻访都不会画出框。入口「未解锁」下面的小剪影删除。
 - **指定干员列表**：固定卡宽，放不下（桌面 > 3 张）时横向滚动：滚轮、方向键、两侧箭头、拖动（拖动时按下不立即点选，松手位移 < 12 才算点选）。
-- **职业图标**（Codex `codex/headhunt-professions` faa363241）：八枚原作线稿图标取自 MooncellWiki/prts-design 预览资源（固定版本与 SHA256 见 `art/incoming/headhunt_professions_1025/sources.json`），版权归鹰角，仓库 MIT 只覆盖代码；已写入致谢页「职业图标」。仅用于寻访界面。
+- **职业图标**（Codex `codex/headhunt-professions` faa363241）：八枚原作线稿图标取自 MooncellWiki/prts-design 预览资源（固定版本与 SHA256 见 `art/archive/incoming_1028/headhunt_professions_1025/sources.json`），版权归鹰角，仓库 MIT 只覆盖代码；已写入致谢页「职业图标」。仅用于寻访界面。
 - **Boss 名片头像**：10 个 Boss 的 `portrait_crop` 是按旧 1x 画布量的，怪物重画后帧内位置整体变了，裁出来多是空白 / 一角；按现图重量。读不到原始 PNG（网页包）时退回导入后的 1x 基础图。
 - **图鉴演示镜头**：`balance.json gallery/demo_zoom` 0.8 → 0.68（再 ×0.85）。
 

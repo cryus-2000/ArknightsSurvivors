@@ -17,6 +17,6 @@
 
 伊莎玛拉变身形态按用户提供的实机截图：卷曲的白灰色分节甲壳、金色钩状棘鳍、向右下方的尖甲壳头、青色锯齿裂纹。**变身后不是人形**。本轮将第二帧改为面部仍可见、白壳已包覆的中间态。待机、移动、攻击与变身末帧体量统一：1 倍图待机外框 103×88，移动各帧 103×88，攻击普通帧 103×88、前冲帧 107×88，变身末帧 103×88。攻击前冲帧仅有本体动作与原有青色裂纹，不含独立青色冲击特效。
 
-预览：`art/incoming/boss_p1_knight_preview.png`、`art/incoming/boss_p1_ishar_preview.png`，深蓝背景按 @2x 尺寸展示；`art/incoming/boss_p1_manifest.json` 记录尺寸、帧数与每张 PNG 的 SHA-256；`art/incoming/boss_p1_qa.json` 记录逐帧外框、非透明像素计数、紫色残留与描边宽度。
+预览：`art/incoming/boss_p1_knight_preview.png`、`art/incoming/boss_p1_ishar_preview.png`，深蓝背景按 @2x 尺寸展示；`art/archive/incoming_1028/boss_p1_manifest.json` 记录尺寸、帧数与每张 PNG 的 SHA-256；`art/incoming/boss_p1_qa.json` 记录逐帧外框、非透明像素计数、紫色残留与描边宽度。
 
 导出后核验 12 条帧条：确切尺寸、帧数、SHA-256、二值 alpha、紫色残留像素 **0**、1px／2px 边界描边、逐帧外框与透明画布边缘。对照验收反馈，伊莎玛拉出手不再缩小，骑士 `_plant` 后两帧仅留枪尖触地的小冰屑，不含冰墙。目视检查了两张深海背景预览。此交付没有进行游戏内接入或 Godot 播放测试。

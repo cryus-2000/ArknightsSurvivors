@@ -4,7 +4,7 @@
 只改 export_web.py 的打包副本（git archive 出来的 src/game/audio），仓库里的原文件和桌面包一律不动。
 - 配乐（audio/music/*.ogg）：保留立体声、完整曲长与所有层，按档位降采样后重新编码 Ogg Vorbis；只在变小时替换。
   同曲各层使用相同采样率与长度，循环位置仍以秒为单位；重采样长度误差不超过一个输出采样点。
-- 语音（audio/voice/*.ogg）：从 masters/ 的 WAV 母带重新编码（不在已有损的 OGG 上再压），采样率与档位按档位表。
+- 语音（audio/voice/*.ogg）：从 art/source/voice/ 的 WAV 母带重新编码（不在已有损的 OGG 上再压），采样率与档位按档位表。
 - 音效（audio/sfx/*.wav）：不动（导入时已是 QOA，只占约 2.4 MiB，换格式要改播放代码）。
 档位（compression_level：0 最好、1 最小；libsndfile 把它映射成 Vorbis 质量 1 - level）：
   A：配乐最多 32 kHz / 0.85；语音 24 kHz / 0.85
@@ -97,7 +97,7 @@ def shrink(gamedir, tier):
         else:
             stat["music"][1] += old
     vdir = os.path.join(gamedir, "audio", "voice")
-    mast = os.path.join(vdir, "masters")
+    mast = os.path.join(gamedir, "..", "art", "source", "voice")   # 母带在仓库 art/source/voice（docs/189）；导出副本里与 game/ 同级
     sr_out, lv = t["voice"]
     if os.path.isdir(mast):
         from scipy.signal import resample_poly
@@ -124,9 +124,9 @@ def shrink(gamedir, tier):
 
 
 def drop_unused_music(gamedir):
-    """Suno 整首分层配乐接进来之后（docs/164），旧的程序合成乐句（battle*_A–E_*、危险层、boss_A–D_full、final_A–D_p1/p2）、final_suno、archive_v2
-    在 suno_layers 开着时不会被载入（sfx.gd 按 suno_layers.json 判断），网页包里不带。suno_layers.json 或任一层文件缺失时什么都不删。返回删掉的字节数。
-    代价：网页包里没法再用 balance.json music/suno_layers = 0 退回旧曲（桌面包 / 仓库里旧文件都还在）"""
+    """Suno 整首分层配乐接进来之后（docs/164），final_suno（最终 Boss 整首）、archive_v2（旧图鉴曲）只在对应 Suno 文件缺失时才用，网页包里不带。
+    suno_layers.json 或任一层文件缺失时什么都不删。返回删掉的字节数。旧的程序合成乐句（battle*_A–E_*、危险层、boss_A–D_full、final_A–D_p1/p2）
+    10-28 已从仓库删掉（sfx.gd 不再有乐句拼接回退），规则里留着它们的名字只为兼容旧提交的导出"""
     import re
     mdir = os.path.join(gamedir, "audio", "music")
     mp = os.path.join(mdir, "suno_layers.json")

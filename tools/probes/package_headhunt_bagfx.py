@@ -1,4 +1,4 @@
-"""寻访拉包屏光效回归接入（Codex 交付 main 9444db06：art/incoming/headhunt_reference_fx_1022/reference_return/，HANDOFF.md + manifest.json）。
+"""寻访拉包屏光效回归接入（Codex 交付 main 9444db06：art/archive/incoming_1028/headhunt_reference_fx_1022/reference_return/，HANDOFF.md + manifest.json）。
 
 只把运行时要用的放进 art/incoming 根目录（游戏按名字找图），审查图 / 源图 / 预览不进运行时：
   fx_hh_beams@2x        flowing_beams@2x 原样（24 帧 384×400，12 fps，原点 (192,350)）
@@ -12,7 +12,7 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SRC = os.path.join(ROOT, "art", "incoming", "headhunt_reference_fx_1022", "reference_return")
+SRC = os.path.join(ROOT, "art", "archive", "incoming_1028", "headhunt_reference_fx_1022", "reference_return")
 OUT = os.path.join(ROOT, "art", "incoming")
 for src, dst in (("flowing_beams@2x.png", "fx_hh_beams"), ("rising_fragments@2x.png", "fx_hh_frags")):
     im = Image.open(os.path.join(SRC, src)).convert("RGBA")

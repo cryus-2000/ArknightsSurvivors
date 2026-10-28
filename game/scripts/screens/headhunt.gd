@@ -15,7 +15,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 const Meta = preload("res://scripts/core/meta.gd")
 
-## 用户 10-25：寻访专用原作职业标志，来源见 art/incoming/headhunt_professions_1025/sources.json。
+## 用户 10-25：寻访专用原作职业标志，来源见 art/archive/incoming_1028/headhunt_professions_1025/sources.json。
 const CLASS_ICONS := {
 	"先锋": preload("res://art/ui/professions/pioneer.png"),
 	"近卫": preload("res://art/ui/professions/warrior.png"),

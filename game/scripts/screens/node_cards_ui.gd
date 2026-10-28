@@ -25,7 +25,7 @@ const TINT := {
 	"fog": [Color(0.11, 0.12, 0.15), Color(0.04, 0.045, 0.06)],
 }
 const ROMAN := {"standard": "Ⅰ", "knight": "Ⅱ", "deep": "Ⅲ", "resolve": "Ⅳ"}
-## C 版信物提示（Codex 交付 art/incoming/node_route_c_delivery_1026，用户 10-26 定稿）：结局入口卡底放该路线的现有信物图标（32×32，原色）+ 信物名，
+## C 版信物提示（Codex 交付 art/archive/incoming_1028/node_route_c_delivery_1026，用户 10-26 定稿）：结局入口卡底放该路线的现有信物图标（32×32，原色）+ 信物名，
 ## 中心距 80；只画已达成过的结局（未知路线不泄露）；图标只是路线提示，不是奖励承诺也不是持有状态
 const ROUTE_RELIC := {"knight": "222", "deep": "220", "resolve": "242"}
 const TOKEN_NAME := {"knight": "海潮的气息", "deep": "主教的研究", "resolve": "深蓝回忆"}

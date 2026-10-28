@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""把 Codex 10-23 怪物重画（art/incoming/enemy_redraw_1023/animations/）装进运行时：
+"""把 Codex 10-23 怪物重画（art/archive/incoming_1028/enemy_redraw_1023/animations/）装进运行时：
 - 本体 / 发光层的 @2x 帧条复制成 art/incoming/<runtime_key>@2x / _emit@2x（1x 只给 BOSS_1X 里的 Boss 装，boss_intro 要读）
 - 写 game/data/enemy_pixels.json 里每个 runtime_key 的 spec（anchor = origin_2x / frame_size_2x，scale 1.0，frames，frame_size = @2x 单帧）
 - 写 game/data/enemy_redraw.json：runtime_key -> {frames, event_frames, release_frame, sample_times, loop, duration}，运行时选帧用
@@ -10,7 +10,7 @@ import json, re, shutil, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "art" / "incoming" / "enemy_redraw_1023" / "animations"
+SRC = ROOT / "art" / "archive" / "incoming_1028" / "enemy_redraw_1023" / "animations"
 DST = ROOT / "art" / "incoming"
 PIX = ROOT / "game" / "data" / "enemy_pixels.json"
 OUT = ROOT / "game" / "data" / "enemy_redraw.json"

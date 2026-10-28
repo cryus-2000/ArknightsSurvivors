@@ -130,6 +130,8 @@
 | [163_visible_build_growth_codex](163_visible_build_growth_codex.md) | Codex 版可见成长草稿（历史） | 已被 163B 取代 | 弹体 / 范围 / 剑气 / 召唤的技术讨论 | 163D |
 | [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
 | [187_web_shrink_1028](187_web_shrink_1028.md) | 网页包再压缩评估 | 已实现 | 10-28：按类别拆分；无损四项（字体 WOFF2、WebP 最高档、wasm LZMA 分片 + 自写解码器、art/incoming 关透明渗色）41.62 → 36.10 MiB；音频 C 档 / 音效降采样等用户 | 121、164、22 |
+| [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范 + 迁移方案 | 草案，待用户批 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_lint.py（只报告） | tools/asset_lint.py、art.gd |
+| [188_asset_audit_1028](188_asset_audit_1028.md) | 素材命名与目录核对 | 待用户看 | 10-28：art/incoming 归档留底、旧合成配乐已删；game/ 没人读的 2 个、语音母带 22 MB 在运行时目录、同内容不同名 16 组、命名不合约定 4 处，只列不改 | art/archive/incoming_1028、game/audio/voice/masters |
 | [186_integ_1028b](186_integ_1028b.md) | 整合分支 integ-1028b 冲突处理记录 | 记录 | 10-28 对内体验包：每处合并冲突一行 + docs 撞号重编表 | — |
 | [183_knight_stage_plan](183_knight_stage_plan.md) | 最后的骑士 · 分阶段方案 v2 | 已接入 | 10-28：每幕招式组、三幕寒潮、二幕冰棱带、重生冲锋形态（原 171，撞号改 183） | knight_boss.gd、final_attacks.gd |
 | [182_enemy_windup](182_enemy_windup.md) | 普通怪蓄力加速 | 已实现 | 10-28：非精英非 Boss 的蓄力 / 预警 / 引信 × windup_mult（原 179，撞号改 182） | enemy_ai.gd |
@@ -253,7 +255,7 @@
 | [reference/](reference/README.md) | 用户提供的参考资料：262 件藏品原作表、全局设计框架 v1.0、藏品图标参考 |
 
 | [三人全动画接入](plans/2026-10-18-three-attack-timing.md) | 29 条动画、原生像素与分段时序 | 实施记录 | 三人完整动作、攻速适配及测试包；试验分支，未合入 main | docs/87、character.gd、attack_timing_test |
-| [水月标准化](plans/2026-10-18-mizuki-runtime-standardization.md) | 公共攻击时序、技能生命周期与原生像素接入 | 实施记录 | 水月四步修复、旧分支清理；试验分支，未合入 main | docs/61 §26、art/incoming/mizuki_runtime_handoff.md |
+| [水月标准化](plans/2026-10-18-mizuki-runtime-standardization.md) | 公共攻击时序、技能生命周期与原生像素接入 | 实施记录 | 水月四步修复、旧分支清理；试验分支，未合入 main | docs/61 §26、art/archive/incoming_1028/mizuki_runtime_handoff.md |
 
 | [水月 S3 整范围触手](plans/2026-10-18-mizuki-s3-fx.md) | 原作群攻与控制方向、新触手范围表现 | 试验实现 | 保留本作数值、不扣血，移除镜像 | seg_mizuki、mizuki_s3_fx、mizuki_runtime_test |
 

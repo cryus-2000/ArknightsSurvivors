@@ -1,0 +1,1778 @@
+{
+  "brief_commit": "9d0bc4ec",
+  "authorization": "继续做剩下的吧; 颜色规则也同步改了记得看一下",
+  "method": "built-in imagegen source redraw -> registered logical grid; exact chest reuse; first four color-layer revision",
+  "emission_contract": "independent RGB overlay, new lights never baked into body",
+  "jobs": [
+    {
+      "id": "bone",
+      "name": "骨海漂流体",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 20,
+      "color_cap": 16,
+      "group": "群怪",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/bone/full.png",
+      "reference_sha256": "b72aacc2a29508b9b86951d9e5e935a0bc9e760121aa1ed5da71afffa703399b",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "runner",
+      "name": "壳海狂奔者",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 19,
+      "color_cap": 16,
+      "group": "群怪",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/runner/full.png",
+      "reference_sha256": "0f6bb8ee15d43b23de6fe5366e4f781cb67afdd6e58c47560d02b4996427841c",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.7,
+          0.66
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "8715f93571127c025aca242d02ffc1f627cac5454774f56e0c2792adf3964ae3",
+      "prompt_sha256": "d70fdb3ac55b92012769be7bf0d0a3e755965118a7320687f86bce3dfa78ed71",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "brood",
+      "name": "注亡拟嗣",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 18,
+      "color_cap": 16,
+      "group": "群怪",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/brood/full.png",
+      "reference_sha256": "9782a0e3a3631ab0d8155c582e0b706d7e6fad155ccbd04d843fce04555119c7",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "slider",
+      "name": "底海滑动者",
+      "canvas_1x": [
+        44,
+        40
+      ],
+      "visible_height_1x": 23,
+      "color_cap": 20,
+      "group": "普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/slider/full.png",
+      "reference_sha256": "36e8145f81f65dda674bd46bbb1c40eabecccddd6cfca4db617d59de3eb51993",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.49,
+          0.43
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "c94c618a65e939117191d3589d7d6986435ff030956d3ecf9fd531ebcdbce619",
+      "prompt_sha256": "8e7d8a4ba0ff89acbb6c14556ec7b06e9d1cbeae955893ef40b53e3b8e3fe360",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "stone",
+      "name": "固海凿石者",
+      "canvas_1x": [
+        40,
+        40
+      ],
+      "visible_height_1x": 25,
+      "color_cap": 20,
+      "group": "普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/stone/full.png",
+      "reference_sha256": "d110617f08498acd5347adb47eb81d3c984001696a00b115aa7d46852ae4578f",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "spitter",
+      "name": "脊海喷吐者",
+      "canvas_1x": [
+        40,
+        40
+      ],
+      "visible_height_1x": 25,
+      "color_cap": 20,
+      "group": "普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/spitter/full.png",
+      "reference_sha256": "58b4f0f0ef7826959a1b6d4a4ba9da32789baac6badc2b4c0965a1dd022fe3d6",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.55,
+          0.25
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "ccc092814c9e1b1862a07bef8d2d6ed7752b87bd266d43e950faefa948900eae",
+      "prompt_sha256": "65410a4e0d3f581e0c4aa2cb088a5a9718cf9d00eb3d55ab7bed0cc32f97c619",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "floater",
+      "name": "浮海飘航者",
+      "canvas_1x": [
+        56,
+        40
+      ],
+      "visible_height_1x": 24,
+      "color_cap": 20,
+      "group": "普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/floater/full.png",
+      "reference_sha256": "ca7f30f761d74dbd15ee58e97a1d477fad5f809c0a78e4b79ce7eb72885559c2",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.62,
+          0.42
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "12933707359ef984dd8782274caabc04b219135a6a95d7f2bb35a7f5f1465f86",
+      "prompt_sha256": "2f9bf322a9ef67fa0a4a8ad0cacf639a4d99da55d92c325f386fff051943c718",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "offspring",
+      "name": "伊祖米克的子代",
+      "canvas_1x": [
+        40,
+        40
+      ],
+      "visible_height_1x": 23,
+      "color_cap": 20,
+      "group": "普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/offspring/full.png",
+      "reference_sha256": "a87ec45c25d0e9e25126b3b42e5513568d2fe51d372f3e3ef8ac3663bcf47a88",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.5,
+          0.28
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "751ec9d07d45c66cb8900d13ddae0dbcaaacae31e80063f1a32803f778c9f251",
+      "prompt_sha256": "5be7245b1bc1f429d9f093ec19ea0f437c3abb5761534efc17c55e2deb165273",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "reaper",
+      "name": "钵海收割者",
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "visible_height_1x": 30,
+      "color_cap": 24,
+      "group": "大型普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/reaper/full.png",
+      "reference_sha256": "61b959c41d38b0a6d6fc0eeff2ed0ee98aa146b4d1826f5b15a13b4f84173cad",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.66,
+          0.4
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "068924e4bbbfbf2fc4c35005ac84d6ad0de0751054acac755f7a72550ffbd8d7",
+      "prompt_sha256": "d5c8102519ab0bb95de81ad6384fd3fdbe1336463272eba1414a0a60a8f9674b",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "founder",
+      "name": "深溟奠基者",
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "visible_height_1x": 32,
+      "color_cap": 24,
+      "group": "大型普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/founder/full.png",
+      "reference_sha256": "0ae2285c2ee555356ffd5b7379ac18a5fe096cbfbe888e7d5e6ce80999333eef",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.51,
+          0.23
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#172340",
+        "#293C66",
+        "#445D8B",
+        "#657DA5",
+        "#4F3D33",
+        "#806449",
+        "#AB8A62",
+        "#CBB18A",
+        "#5C5E6E",
+        "#898A99",
+        "#B5AD9D"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "b99327c1f9e955d93aff566e55d904a2b19011b16d1eefeff017a6dfc3d27bb0",
+      "prompt_sha256": "4b321087a81570d0a2f07104bbcea7211e1292b9c549f1e5d733da3b8db89265",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "tracer",
+      "name": "深溟引痕者",
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "visible_height_1x": 32,
+      "color_cap": 24,
+      "group": "大型普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/tracer/full.png",
+      "reference_sha256": "c2c7910dadaad276dd630c66407e3a30e5f656069c6eee4e2c3ed8aa6d77682d",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.42,
+          0.54
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "45dc090b7d065ffc8f811f8c74daaa28c13f4affe54db3232ca11461fa442987",
+      "prompt_sha256": "f266ec7b2e6f3fe29b64c789b12fa18d60b2b0151fa64f431029665a0637e420",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "nest",
+      "name": "深溟巢涌者",
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "visible_height_1x": 31,
+      "color_cap": 24,
+      "group": "大型普通",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/nest/full.png",
+      "reference_sha256": "76ca12b25330ac55e2b7a6ec0fb6e13ee631258764880db717c6608e7449c911",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.5,
+          0.59
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "64d547aff45fcdf37f51ee55510a9a17b0e426f9b3015ef16bd54481ceb0329e",
+      "prompt_sha256": "5a9555a0428714260f7d81d6161b831314fc63df8948c5ac8e6d37c092061679",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "fractal",
+      "name": "塑路者分形",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 18,
+      "color_cap": 16,
+      "group": "召唤物",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/fractal/full.png",
+      "reference_sha256": "68cd5ebc00b4bee5dd81fddee716fa7f9ecf5022d89528bccfe6da86c5988228",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.72,
+          0.49
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#24334E",
+        "#3B5373",
+        "#5C789A"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "1af7bf7cdb9557f732d65e4f21c56756268326925c4268605309a60dc82cd4e0",
+      "prompt_sha256": "4f95ff751bd9d6af615382d76a47546ce8b0e8e406cd2603f8dd9af89afa705e",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "tear",
+      "name": "伊莎玛拉之泪",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 16,
+      "color_cap": 16,
+      "group": "召唤物",
+      "reference": "art/archive/incoming_1028/enemy_redraw_1023/remaining/references/tear.png",
+      "reference_sha256": "11f54d3d0b3407649bef6480ecacd204de06aa675f99da09d6cd581b60792b78",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.49,
+          0.52
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "d543ce3f1608590b8965ecbc537283076c26137cd52c74911e72d4864486c393",
+      "prompt_sha256": "d237d810d605ae42e867e3dad4722251848a1b7a0bad96a1125a2fa4261d580f",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "pocket",
+      "name": "囊海爬行者",
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "visible_height_1x": 36,
+      "color_cap": 24,
+      "group": "精英",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/pocket/full.png",
+      "reference_sha256": "c28cc0a6b2284e92243dd808e87e42908959dd3c681ee4fc1b1568579ff822fd",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.51,
+          0.54
+        ],
+        [
+          0.57,
+          0.66
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941"
+      ],
+      "emission_palette": [
+        "#377087",
+        "#65B2C7",
+        "#A3E1EA"
+      ],
+      "status": "candidate",
+      "generated_sha256": "5f8a19cf9025827efb5314006708d6296d2ff89dcff6d6c585fdd7638ab9a7cf",
+      "prompt_sha256": "c480c4b8d3f0b58002f0a7f117e81e1dc094d98ca1cfb28587d6f5b37791d7a6",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "skimmer",
+      "name": "掠海漂移体",
+      "canvas_1x": [
+        56,
+        48
+      ],
+      "visible_height_1x": 30,
+      "color_cap": 24,
+      "group": "精英",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/skimmer/full.png",
+      "reference_sha256": "aa20ed8cb1cabdb9ad7610709e47fc279b5a1c95462515467224b2d175186d0c",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.66,
+          0.46
+        ],
+        [
+          0.65,
+          0.74
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#283552",
+        "#445478",
+        "#6B79A1",
+        "#6B4649",
+        "#A56562",
+        "#C58B7E",
+        "#D6B6A1",
+        "#393044",
+        "#756478",
+        "#98939B",
+        "#514C53"
+      ],
+      "emission_palette": [
+        "#377087",
+        "#65B2C7",
+        "#A3E1EA"
+      ],
+      "status": "candidate",
+      "generated_sha256": "e3586155ab8e376797499bbf701a852ba46e5767b51a43ea758c755c917f75f8",
+      "prompt_sha256": "a66996762ec00a99b3841bbebdd4049a780b51421c1d6482e12fcc4255f00083",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated",
+      "size_override": "User 10-23: smaller; screen height72 ->60, canvas and origin unchanged."
+    },
+    {
+      "id": "mother",
+      "name": "投嗣育母",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 46,
+      "color_cap": 24,
+      "group": "精英",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/mother/full.png",
+      "reference_sha256": "c1b8da1b20896a1e9e3f22d61f4a249ae2b78803d4961e0bec90e939382087dd",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.61,
+          0.22
+        ],
+        [
+          0.57,
+          0.38
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941"
+      ],
+      "emission_palette": [
+        "#377087",
+        "#65B2C7",
+        "#A3E1EA"
+      ],
+      "status": "candidate",
+      "generated_sha256": "668a58f55f8392f75d6c91d39a05cc7a5e96e5b593126ea084d0120850414a4d",
+      "prompt_sha256": "8ad363deacbb512f88cded638e0806b82fc62529bca89722a54e8d28b3d6039a",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "mimic_disguised",
+      "name": "箱形恐鱼",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 11,
+      "color_cap": 16,
+      "group": "伪装",
+      "reference": "art/archive/incoming_1028/enemy_redraw_1023/remaining/references/mimic_disguised.png",
+      "reference_sha256": "91ad77c6a21c09c70ce72c70ed6cb1c6ea2ae7c611d21817e30d25998d7adf1d",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "mimic",
+      "name": "箱形恐鱼",
+      "canvas_1x": [
+        36,
+        32
+      ],
+      "visible_height_1x": 24,
+      "color_cap": 16,
+      "group": "精英·现形",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/mimic/full.png",
+      "reference_sha256": "aa4cd1dd071d006b8e0e90f7ead8c92e7e215e94a2e99154dfba6c14b0507b6a",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.43,
+          0.51
+        ],
+        [
+          0.56,
+          0.51
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B"
+      ],
+      "emission_palette": [
+        "#377087",
+        "#65B2C7",
+        "#A3E1EA"
+      ],
+      "status": "candidate",
+      "generated_sha256": "9a7b8d821766890ccdd4d3f7b9f23a738c759e53fb5b47f3e17878d038c7309f",
+      "prompt_sha256": "17696f855d063a7e8afe1e529e413e1e5663d5371c25a93f4bd6f6e001d3d86f",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "knight",
+      "name": "最后的骑士",
+      "canvas_1x": [
+        96,
+        96
+      ],
+      "visible_height_1x": 64,
+      "color_cap": 28,
+      "group": "精英·骑士",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/knight/full.png",
+      "reference_sha256": "45123691b37a6b0db74bfbe9d57bbc8b291a1cb060b634f8fe04cda16e357e06",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.46,
+          0.23
+        ],
+        [
+          0.44,
+          0.48
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941",
+        "#775C52",
+        "#9C7876",
+        "#C1A29B",
+        "#222D40"
+      ],
+      "emission_palette": [
+        "#52627D",
+        "#899CA9",
+        "#C0CCD1"
+      ],
+      "status": "candidate",
+      "generated_sha256": "3771aa176f15b48b7bac7d59edb5322fbfa465fb5a47a042a0f8587518ee2d53",
+      "prompt_sha256": "a743a2c46150c71080f712edef663c9176f76586e392a0c0867910c003bc6149",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "iberia",
+      "name": "圣徒伊比利亚",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 40,
+      "color_cap": 28,
+      "group": "人形 Boss",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/iberia/full.png",
+      "reference_sha256": "9611a0fbe3a0b35b319ef6276258a5e73de06aa2454d112a01b6ff225faba56a",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.27,
+          0.16
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941",
+        "#775C52",
+        "#9C7876",
+        "#C1A29B",
+        "#222D40"
+      ],
+      "emission_palette": [
+        "#52627D",
+        "#899CA9",
+        "#C0CCD1"
+      ],
+      "status": "candidate",
+      "generated_sha256": "42f885d8946ee422988776089a9051a8f2330d241e8bedb5a03d2311e9ec4fc1",
+      "prompt_sha256": "1066602cdd222df84a2408051a65419de7fa992ccd73906979d2eb30586029f1",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "carmen",
+      "name": "圣徒卡门",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 40,
+      "color_cap": 28,
+      "group": "人形 Boss",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/carmen/full.png",
+      "reference_sha256": "f7ef88cb05811b89a6429d7e733345c55c07b3ee2f62b0b7fd29bc76fde9020c",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941",
+        "#775C52",
+        "#9C7876",
+        "#C1A29B",
+        "#222D40"
+      ],
+      "emission_palette": [
+        "#52627D",
+        "#899CA9",
+        "#C0CCD1"
+      ],
+      "status": "candidate",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "bishop",
+      "name": "接潮主教",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 40,
+      "color_cap": 28,
+      "group": "人形 Boss",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/bishop/full.png",
+      "reference_sha256": "03e870dfe801ccd8d619f930b1371c83ccdd3b685161dee7db59e8742ce1fc76",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.43,
+          0.22
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#152C2C",
+        "#254540",
+        "#3F6156",
+        "#688174",
+        "#4B4840",
+        "#777364",
+        "#A29A7E",
+        "#C4B391",
+        "#51414B",
+        "#76666C",
+        "#ABA59A"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "d03c0a1ea7fe007655d005e8cb9a9f36fcb9812e102c6a0bd30f2500425dec6b",
+      "prompt_sha256": "2c43cedd854ac542ae90f48111d5744e0d1f07d5278e4c4f6346c7cfcfd5426a",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "archon",
+      "name": "接潮蔑死体",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 48,
+      "color_cap": 28,
+      "group": "接潮二体",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/archon/full.png",
+      "reference_sha256": "1f3c2afbf624336ac81deb95b686af892c75396f04d79cae3d901390c2a62ec2",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.75,
+          0.42
+        ],
+        [
+          0.25,
+          0.39
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#423139",
+        "#665041",
+        "#89794A",
+        "#B5A45C",
+        "#CFC07B",
+        "#45334F",
+        "#705478",
+        "#9A729A",
+        "#653B48",
+        "#94636A",
+        "#B39393"
+      ],
+      "emission_palette": [
+        "#77644F",
+        "#A78C6C",
+        "#D0B48D"
+      ],
+      "status": "candidate",
+      "generated_sha256": "bffc8c69f1131e27fc1f6f387a3825d2707a92dce46fd4e04ceaf76ad2f47ce6",
+      "prompt_sha256": "408cb049e8964b22216b6fc833e63a315165bc13b9db4a35084df4cf77caf63f",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "immortal",
+      "name": "接潮斥亡体",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 48,
+      "color_cap": 28,
+      "group": "接潮二体",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/immortal/full.png",
+      "reference_sha256": "212c3b4a8a08064f31666abd7aef7835f6ab7bcc5394221161eaa73dd267b758",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.75,
+          0.42
+        ],
+        [
+          0.25,
+          0.39
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#293C5A",
+        "#45628C",
+        "#6A89AD",
+        "#463346",
+        "#71556F",
+        "#98758F",
+        "#683A49",
+        "#94636C",
+        "#B39AA3",
+        "#354957",
+        "#536674"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "107fa8cb029151b45cb4f1d63802c6bb8b571def33dce50fd9ba58a9a921d1ab",
+      "prompt_sha256": "4f483c16f33250d16651e7b0176a5f47c39801a8a029b14d515407804e194239",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "ishar",
+      "name": "伊莎玛拉，腐化之心",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 48,
+      "color_cap": 28,
+      "group": "Boss·初态",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/ishar/full.png",
+      "reference_sha256": "4c3f9d1e1e924de564e70beedd91fcb53d81ef8c3725044a051d698760a4b6c6",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.79,
+          0.24
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#17343B",
+        "#285864",
+        "#457D85",
+        "#71A3A3",
+        "#4D3839",
+        "#76584C",
+        "#A47E63",
+        "#C6AB8B",
+        "#E1CDB1",
+        "#59303B",
+        "#874B59",
+        "#A46E7A",
+        "#B3BBC0",
+        "#767F89",
+        "#D7D9D5"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "3106e1cd4ef930ba2e1b2c9b46dff4fd0c3d4f0df14a55c5347904f46e9b0f38",
+      "prompt_sha256": "b9b47d302c80e3d4ba29a3c667377f97c966a9677f14a3e2f9a8e59157fec2c0",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "knight_boss",
+      "name": "最后的骑士",
+      "canvas_1x": [
+        116,
+        96
+      ],
+      "visible_height_1x": 72,
+      "color_cap": 32,
+      "group": "Boss·骑士",
+      "reference": "art/archive/incoming_1028/enemy_redraw_1023/remaining/references/knight_boss.png",
+      "reference_sha256": "64e07f2cedc4f1e138679a0a548befd3647723fc43f1fec707b45fa34774f04a",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.45,
+          0.24
+        ],
+        [
+          0.83,
+          0.29
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941",
+        "#775C52",
+        "#9C7876",
+        "#C1A29B",
+        "#222D40",
+        "#52627D",
+        "#ADB8BD",
+        "#E1DACD",
+        "#5E6469"
+      ],
+      "emission_palette": [
+        "#52627D",
+        "#899CA9",
+        "#C0CCD1"
+      ],
+      "status": "candidate",
+      "generated_sha256": "22f5ef6b4e59a950fad69829493644931acbb961c8fe144f7e533c73e206d215",
+      "prompt_sha256": "c70d6eabed5b12519d2493b51fe698d57e328748b87a054108829aafe3177a98",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "path",
+      "name": "塑路者",
+      "canvas_1x": [
+        96,
+        96
+      ],
+      "visible_height_1x": 64,
+      "color_cap": 32,
+      "group": "重型 Boss",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/path/full.png",
+      "reference_sha256": "9c4feeae4227d2d56a340d2b18240f452cd7669a08b90871fe398c374fd2248a",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.75,
+          0.43
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#1A2944",
+        "#2F4668",
+        "#46628B",
+        "#6582AD",
+        "#6C6272",
+        "#A49CA3",
+        "#C8C1B5",
+        "#33515A",
+        "#4F7B85",
+        "#91B5BC",
+        "#51434F"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "d8f75d491a76bc1c1b152e5d6d29adbef55e221f4ce1230e6ede11d284401c00",
+      "prompt_sha256": "f75727725a97dedbeeb7edabbc77665d647f6dcd58e592eab1ce5afdc9a5b7b5",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "izumik",
+      "name": "伊祖米克，生态泉源",
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "visible_height_1x": 84,
+      "color_cap": 32,
+      "group": "重型 Boss",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/izumik/full.png",
+      "reference_sha256": "7dad7eaee2c5c24863f4dfee24490484e047d76ce3bba9ff3a10ee3e17dcd16e",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.5,
+          0.3
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941",
+        "#775C52",
+        "#9C7876",
+        "#C1A29B",
+        "#222D40",
+        "#52627D",
+        "#ADB8BD",
+        "#E1DACD",
+        "#5E6469"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "59527dfeb5b4f838939b4d3cf4a90a2840dc0aa522e3ac41ab121e2c8b0c4fd8",
+      "prompt_sha256": "f4076a3134f5aa650aee60906bbeabdb663ba5bfdfc36f4099e73bfcbefa254c",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "paranoia",
+      "name": "\"偏执泡影\"",
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "visible_height_1x": 80,
+      "color_cap": 32,
+      "group": "重型 Boss",
+      "reference": "art/incoming/ci_enemy_native_pilot_1018/rendered/paranoia/full.png",
+      "reference_sha256": "fc0e90ec34634851b85cc031f6d29a39ef41e8b610f8f726d97dc35f5d8044c2",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.56,
+          0.36
+        ],
+        [
+          0.66,
+          0.45
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#21354C",
+        "#3D5672",
+        "#617F98",
+        "#4C435D",
+        "#796784",
+        "#A58A9D",
+        "#8C6259",
+        "#BA8C75",
+        "#D8B99B",
+        "#E4D1B0",
+        "#768A9B"
+      ],
+      "emission_palette": [
+        "#77644F",
+        "#A78C6C",
+        "#D0B48D"
+      ],
+      "status": "candidate",
+      "generated_sha256": "e80931055a2263ea722ff7ba3241541dd03fc3a59972f83854ce545e94fdcffc",
+      "prompt_sha256": "2226a1f194bb33e89179c726e0fabc529bc23ebccf6cdf6298a46d56c1676e4a",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "paranoia_phase2",
+      "name": "\"偏执泡影\"",
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "visible_height_1x": 72,
+      "color_cap": 32,
+      "group": "重型 Boss",
+      "reference": "art/archive/incoming_1028/enemy_redraw_1023/remaining/references/paranoia_phase2.png",
+      "reference_sha256": "57471570b5505bad415a482905510f49504fc424df1b0a53aba65a611c8016a5",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.56,
+          0.36
+        ],
+        [
+          0.66,
+          0.45
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#21354C",
+        "#3D5672",
+        "#617F98",
+        "#4C435D",
+        "#796784",
+        "#A58A9D",
+        "#8C6259",
+        "#BA8C75",
+        "#D8B99B",
+        "#E4D1B0",
+        "#768A9B"
+      ],
+      "emission_palette": [
+        "#77644F",
+        "#A78C6C",
+        "#D0B48D"
+      ],
+      "status": "candidate",
+      "generated_sha256": "d74fbc05a19008022f69b8f713ca0e260fa06a2879606d50578e433ef902d046",
+      "prompt_sha256": "6dafc6d1b27ccffb059135823b8d59d3c63807c5cea457623663297717448428",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    },
+    {
+      "id": "ishar_phase2",
+      "name": "伊莎玛拉，腐化之心",
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "visible_height_1x": 88,
+      "color_cap": 32,
+      "group": "重型 Boss",
+      "reference": "art/archive/incoming_1028/enemy_redraw_1023/remaining/references/ishar_phase2.png",
+      "reference_sha256": "b6d970cd28c721ceed4272e89f8b80c1150e35a465fd4dfb92d60ccc17691823",
+      "action": "idle_f0",
+      "frames": 1,
+      "fps": null,
+      "emission_points_normalized": [
+        [
+          0.88,
+          0.47
+        ],
+        [
+          0.95,
+          0.52
+        ]
+      ],
+      "palette": [
+        "#080E18",
+        "#263348",
+        "#4B4D5A",
+        "#3D2838",
+        "#1C2433",
+        "#3B4C65",
+        "#6C7B91",
+        "#9C9FA5",
+        "#C3C3BC",
+        "#DED6C5",
+        "#655D58",
+        "#9B8870",
+        "#BEA18B",
+        "#59485F",
+        "#8B7188",
+        "#B99DA8",
+        "#354853",
+        "#55737C",
+        "#405B58",
+        "#758980",
+        "#423941",
+        "#775C52",
+        "#9C7876",
+        "#C1A29B",
+        "#222D40",
+        "#52627D",
+        "#ADB8BD",
+        "#E1DACD",
+        "#5E6469"
+      ],
+      "emission_palette": [
+        "#28586D",
+        "#408EA8",
+        "#82CDDC"
+      ],
+      "status": "candidate",
+      "generated_sha256": "15786cb93fb09a643d2b6c0fa765af0f2853d8b93acd4cd76514325e1e718695",
+      "prompt_sha256": "fe6bb84fb50a80b438ab9eab1f0d89fab63b5f9b3a0a87e90aeeebda252cd7b6",
+      "visual_status": "pending user review",
+      "motion_status": "not started",
+      "engine_status": "not integrated"
+    }
+  ],
+  "prompt_history_note": "Early source drawings predate 9d0bc4ec but requested matte body-only images; emission colors are governed exclusively by this current job, not historical prompt prose.",
+  "first_batch_revision": "bone/stone: same body, cyan emit; brood: red organ muted in body and cyan emit; Carmen: same body and rear-hat mask, silver-grey emit.",
+  "source_limit": "Generated source images are enlarged artwork registered to logical grid; not direct native imagegen output, not per-attachment pixel Spine rigs.",
+  "material_revision": "Restore individual original hue families; shared pixel density and lighting do not imply shared material palette."
+}

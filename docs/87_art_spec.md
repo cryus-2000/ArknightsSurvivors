@@ -48,7 +48,7 @@
 3. **待机不得朝左**（docs/84 乌尔比安；本次基线又查出推进之王，附录 B-1）。
 4. 动作之间切换**不跳朝向**：idle → run → attack → skill → idle 全部朝右，skill 末帧回到 idle f0，attack 收势回到接近 idle 的姿势。
 5. 参考（朝右 3/4 侧身待机的标准样子）：斯卡蒂 `op_skadi_idle@2x.png`、浊心斯卡蒂 `op_skalter_idle@2x.png`、流明 `op_lumen_idle@2x.png`（均在 `art/incoming/`）。`python tools/art_lint.py --ops <id>` 会生成 `build/art_lint/compare_<id>.png`：上排是本人 idle f0 / run f0 / attack 出手帧 / skill 末帧 + 三名参考的待机，下排是本人待机 4 帧与跑步 6 帧，青线 = 脚底 92 行。
-6. 姿态细节照 `art/incoming/character_posture_constraints.md`：不伸脖子，前倾靠躯干整体倾斜。
+6. 姿态细节照 `art/archive/incoming_1028/character_posture_constraints.md`：不伸脖子，前倾靠躯干整体倾斜。
 
 ## 3. 动作质量
 
@@ -166,7 +166,7 @@
 | 设定色清单 | handoff 先列本人的瞳色、发色、肤色、主服色、标志色（帽徽 / 饰带 / 武器主色）各一个色值，注明 PRTS 立绘出处（精零 / 精二立绘哪一张） | 协调人对照立绘核一遍；清单缺项不收 |
 | 瞳色 | 与立绘同色相、同明暗档；量化 / 压色数时瞳色单独保留，不得并进头发或服装色；闭眼帧不画虹膜 | 眼部放大图（@2x 每帧）逐帧看 |
 | 色调 | 整体色相 / 饱和不得偏移：返修时与上一版逐像素比，非描边像素平均色相差 ≤ 5°、饱和差 ≤ 0.05、明度差 ≤ 0.03；新画时按设定色清单比 | art_lint `hue` 项（§7）；超出要在 handoff 说明是用户要求的改动 |
-| 衣服细节 | 立绘上的标志性细节必须在（帽徽瓣数、袖口 / 披风饰边、束发位置、裤型袜子覆盖、武器轮廓与倒刺等，见 `art/incoming/op_fix_character_constraints.md`）；缩到 48px 仍要能认出 | 与立绘并排的对照图 |
+| 衣服细节 | 立绘上的标志性细节必须在（帽徽瓣数、袖口 / 披风饰边、束发位置、裤型袜子覆盖、武器轮廓与倒刺等，见 `art/archive/incoming_1028/op_fix_character_constraints.md`）；缩到 48px 仍要能认出 | 与立绘并排的对照图 |
 | 明暗调整 | §4.2 的「加暗部 / 压亮部」只能动明度，不能把颜色往灰 / 冷推；黑衣角色靠近黑做暗部，不是整体降饱和 | 同「色调」项 |
 | 色数 | ≤ 24 是整组重出时的目标，**让位于设定色**：保不住瞳色 / 标志色就允许超到 28，handoff 写明多出的是哪几色 | lint 色数项只 WARN |
 
@@ -317,7 +317,7 @@ WARN 级（不挡快检，记录备查）：
 
 ### 博士混合画布接入（2026-10-18）
 
-博士 `sprites.<action>_foot` 可覆盖默认 `foot`（逻辑像素），用于新 128 画布跑步与旧 96 画布待机／倒下共存。跑步保持 10 fps，8 帧一循环 0.8 秒；不改变移动速度。检查工具使用相同锚点，并在比较不同画布的头部朝向前透明补宽，禁止缩放人物参与朝向比较。当前用户批准先接测试版的视觉遗留项、源文件校验值及临时豁免见 `art/incoming/doctor_run_handoff.md`。
+博士 `sprites.<action>_foot` 可覆盖默认 `foot`（逻辑像素），用于新 128 画布跑步与旧 96 画布待机／倒下共存。跑步保持 10 fps，8 帧一循环 0.8 秒；不改变移动速度。检查工具使用相同锚点，并在比较不同画布的头部朝向前透明补宽，禁止缩放人物参与朝向比较。当前用户批准先接测试版的视觉遗留项、源文件校验值及临时豁免见 `art/archive/incoming_1028/doctor_run_handoff.md`。
 
 ## 2026-10-18 三人全动画与分段时序
 维什戴尔、塞雷娅、铃兰试验分支支持 sprites.attack.attack_timing（duration、fire_time、active_ratio、windup_ratio）。详细运行规则、来源、测试与限制见 [三人全动画接入](plans/2026-10-18-three-attack-timing.md)。未配置的动作仍使用旧 fps/fire；不得仅改帧数推算事件秒数。

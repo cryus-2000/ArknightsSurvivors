@@ -1,5 +1,5 @@
 {
-	"_doc": "蚀刻章套组「深蓝之下」（Codex 交付 art/incoming/achievement_ui_1024/achievement_set.json，10-25；判定在 scripts/core/medals.gd）。id = 稳定数字 ID（图集格 / 布局 approved_layout_1025.json 用）；key = 存档键（[medals] 段与云存档 prog.med，改名要做迁移）。rule：ending = 达成 arg 结局；relics = 累计获得 max 种不同的有效藏品；elite = 一次探索里编队同时 max 名精英二；cog_first = 首次点亮认知塑造节点；cog_all = 认知塑造全部节点同时点亮（节点数按 data/meta_tree.json）；set = 其余全部章。获得后永久保留。",
+	"_doc": "蚀刻章套组「深蓝之下」（Codex 交付 art/archive/incoming_1028/achievement_ui_1024/achievement_set.json，10-25；判定在 scripts/core/medals.gd）。id = 稳定数字 ID（图集格 / 布局 approved_layout_1025.json 用）；key = 存档键（[medals] 段与云存档 prog.med，改名要做迁移）。rule：ending = 达成 arg 结局；relics = 累计获得 max 种不同的有效藏品；elite = 一次探索里编队同时 max 名精英二；cog_first = 首次点亮认知塑造节点；cog_all = 认知塑造全部节点同时点亮（节点数按 data/meta_tree.json）；set = 其余全部章。获得后永久保留。",
 	"set_name": "深蓝之下",
 	"set_en": "BENEATH THE BLUE",
 	"medals": [

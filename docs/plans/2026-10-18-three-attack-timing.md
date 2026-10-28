@@ -28,7 +28,7 @@ attack_timing_test 验证三人基础到 4 倍攻速的窗口、8 姿势、一�
 
 ## 全动画来源与接入
 
-co_three_runtime_actions_1018 的 22 条原生新像素片段全部接入。其余三条跑步沿用已确认版本：塞雷娅 bu/saria_latest_all，维什戴尔与铃兰 bv_four_operator_8frames_1017；没有使用 ca_four 中已记录网格变形丢失的旧候选。退场三条及维什戴尔受击使用 cb_18 原生 Die / Stun。29 条文件、来源、SHA256、尺寸、锚点与秒数见 art/incoming/three_attack_timing_manifest.json。
+co_three_runtime_actions_1018 的 22 条原生新像素片段全部接入。其余三条跑步沿用已确认版本：塞雷娅 bu/saria_latest_all，维什戴尔与铃兰 bv_four_operator_8frames_1017；没有使用 ca_four 中已记录网格变形丢失的旧候选。退场三条及维什戴尔受击使用 cb_18 原生 Die / Stun。29 条文件、来源、SHA256、尺寸、锚点与秒数见 art/archive/incoming_1028/three_attack_timing_manifest.json。
 
 维什戴尔 S3 起手、炮击、结束和原生退场等超界片段保持 192 画布、原密度及对应锚点，不裁武器、不逐帧缩放。常规动作保持 128。画布尺寸不是人物在世界中的显示尺寸。
 

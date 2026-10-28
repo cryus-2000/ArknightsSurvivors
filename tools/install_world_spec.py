@@ -1,6 +1,6 @@
-"""局内贴图规格补齐（Codex 10-24 交付 art/incoming/world_spec_1024/）装进运行时文件名。
+"""局内贴图规格补齐（Codex 10-24 交付 art/archive/incoming_1028/world_spec_1024/）装进运行时文件名。
 
-    python tools/install_world_spec.py [交付目录]      # 缺省 art/incoming/world_spec_1024
+    python tools/install_world_spec.py [交付目录]      # 缺省 art/archive/incoming_1028/world_spec_1024
 
 - C 组（地形 / 珊瑚 / 神经弹 / 柱 / 墙 / 沉船）：尺寸锚点不变，直接覆盖原名文件
 - 无人机 drone_laser.png（24×20 × 4）、经验结晶 gem_small / gem_big（8×10 / 11×14）+ 各自 _emit：覆盖 / 新增
@@ -14,7 +14,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INC = os.path.join(ROOT, "art", "incoming")
-SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(INC, "world_spec_1024")
+SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "art", "archive", "incoming_1028", "world_spec_1024")
 
 COPY = [
     ("coral/coral.png", "coral.png"),

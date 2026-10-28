@@ -3,7 +3,7 @@
 > **2026-10-13 起人物帧条（干员 / 博士 / 敌人）的统一规格见 [docs/87_art_spec.md](87_art_spec.md)，机检 `python tools/art_lint.py`；本文与 docs/87 冲突处以 docs/87 为准。**
 
 > **状态：先交参考，后开工。** 第三批五人的技能设计见 docs/59（2026-10-11 起草，用户已定 §9 四条）。
-> 第一步是参考审批（§2）：Codex 先交五人的全身立绘截图和武器局部截图，用户确认后才画帧条。这一步和第四批一样（art/incoming/squad_batch4_reference_feedback.md）。
+> 第一步是参考审批（§2）：Codex 先交五人的全身立绘截图和武器局部截图，用户确认后才画帧条。这一步和第四批一样（art/archive/incoming_1028/squad_batch4_reference_feedback.md）。
 >
 > 2026-10-11。依据 docs/59_batch3_operators.md（技能、普攻与出手时机）、docs/24_squad_art_brief.md §1 §6（通用规格与交付）、docs/27_batch2_art_brief.md（上一批的写法）、docs/32_squad_art_review.md 与 docs/32_art_review_0926_acceptance.md（第四批的验收教训）。
 > （10-11 更新：重点技能特效可另开特效单交 Codex，见 docs/06 美术分工；本单仍只含人物。）分工：Codex 只做**人物形象**。特效（fx_*）、弹道（proj_*）、歌域 / 重力场 / 热砂等光域、图标、UI 都由 Claude 在 main 上做，这里不要画。本批**没有**非人物件，不像上一批有灯塔和替身。
@@ -36,7 +36,7 @@
 | 流明的灯在某些帧消失；出手帧和预备帧看不出差别 | 标志物（光环、盾、枪、杖、企鹅物流徽记）**每帧都在**；出手帧要和前后帧在剪影上明显不同 | 预览图里用星号标出手帧 |
 | 凯尔希返修后瞳色从绿变黄 | 瞳色、发色在四组动作里保持一致，按参考 | 逐角色看预览 |
 | 铃兰 skill 末帧回 idle 跳变 | `_skill` 末帧尽量接近 idle f0 | 同上 |
-| 姿态 | 照 art/incoming/character_posture_constraints.md：不伸脖子，前倾靠躯干整体倾斜 | 同上 |
+| 姿态 | 照 art/archive/incoming_1028/character_posture_constraints.md：不伸脖子，前倾靠躯干整体倾斜 | 同上 |
 
 ## 2. 第一步：参考审批（先做这一步）
 

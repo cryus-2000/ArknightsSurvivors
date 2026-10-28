@@ -2,7 +2,7 @@ extends Control
 ## 标题页背景·深海水母（docs/67 §13，10-24 用户定：Codex 47-C 构图 + 方向二「青光航标」；v2 按游戏像素精度、水母会游）。
 ## 场景着色器（shaders/title_deep.gdshader）画进 428×240 的 SubViewport（1 美术像素 = 3 逻辑像素），最多每秒更新 30 次；
 ## 这里把它最近邻铺满屏幕（保持比例裁切），叠屏幕空间压暗（title_deep_view.gdshader）。
-## 减少动态效果：只画一次静帧。标题被别的界面整屏盖住时（paused）不再更新。素材由 art/incoming/title_jelly_1024/bake_v2.py 烘焙。
+## 减少动态效果：只画一次静帧。标题被别的界面整屏盖住时（paused）不再更新。素材由 art/archive/incoming_1028/title_jelly_1024/bake_v2.py 烘焙。
 
 const HZ := 30.0
 const GRID := Vector2i(428, 240)
