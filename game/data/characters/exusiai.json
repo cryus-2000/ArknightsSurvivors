@@ -67,7 +67,7 @@
   "max_hp": 110,
   "armor": 1.0,
   "arts_res": 0.0,
-  "regen": 1.3
+  "regen": 0.9
  },
  "extra_sprites": [
   "entry"
@@ -258,7 +258,7 @@
    "name": "冲锋模式",
    "en": "CHARGING MODE",
    "sp": 6,
-   "desc": "装填 {$s1_ammo} 发强力弹：之后的子弹每发伤害 ×{$s1_mult}、穿透 {$s1_pierce} 名敌人，打完为止（每次射击按子弹数消耗强力弹）",
+   "desc": "装填 {$s1_ammo} 发强力弹：之后的子弹每发伤害 ×{$s1_mult*$k_pow:2}、穿透 {$s1_pierce} 名敌人，打完为止（每次射击按子弹数消耗强力弹）",
    "icon": "skill_exusiai_s1"
   },
   {
@@ -274,7 +274,7 @@
    "en": "OVERLOADING MODE",
    "sp": 22,
    "dur": 10.0,
-   "desc": "{$s3_dur} 秒：每次射击改为 {$s3_burst} 连射（每发伤害 ×{$s3_mult}），射程 +{$s3_range*100}%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 {$s3_pause} 秒",
+   "desc": "{$s3_dur} 秒：每次射击改为 {$s3_burst} 连射（每发伤害 ×{$s3_mult*$k_pow:2}），射程 +{$s3_range*100}%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 {$s3_pause} 秒",
    "icon": "skill_exusiai_s3"
   }
  ],

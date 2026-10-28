@@ -433,7 +433,7 @@ func passive_preview(pid: String) -> String:
 		"dash_dist": return "冲刺距离 %d → %d" % [int(round(g.dash_dist())), int(round(Bal.v("dash/dist", 107.0) * st.value_with(&"dash_dist", "add", Bal.v("dash/dist_card", 0.12))))]
 		"dash_charge": return "可储存次数 %d → %d" % [g.dash_max(), g.dash_max() + 1]
 		"sp": return "技力回复 ×%.2f → ×%.2f" % [g.sp_mult, g.sp_mult * 1.15]
-		"squad_atk": return "全队攻击 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_atk", ["squad"]), g.stats.value_for(&"op_atk", ["squad"]) + 0.08]
+		"squad_atk": return "全队攻击 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_atk", ["squad"]), g.stats.value_for(&"op_atk", ["squad"]) + Bal.v("squad/op_atk_base", 1.0) * 0.08]   # 加算：+0.08 乘在基础 op_atk_base 上（10-28 原写 +0.08，实际 +0.072）
 		"squad_aspd": return "全队攻速 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_aspd", ["squad"]), g.stats.value_for(&"op_aspd", ["squad"]) + 0.06]
 		"squad_range": return "全队范围 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_range", ["squad"]), g.stats.value_for(&"op_range", ["squad"]) + 0.08]
 		"squad_crit": return "技能强度 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_skill_power", ["squad"]), g.stats.value_for(&"op_skill_power", ["squad"]) + 0.1]

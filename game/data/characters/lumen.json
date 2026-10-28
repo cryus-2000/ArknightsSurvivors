@@ -76,7 +76,7 @@
   "max_hp": 135,
   "armor": 1.5,
   "arts_res": 0.1,
-  "regen": 1.0
+  "regen": 0.8
  },
  "sprites": {
   "move_attack": {"tex": "op_lumen_move_attack", "frames": 8, "foot": [32, 60], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
@@ -352,7 +352,7 @@
  "attack": {
   "mode": "auto",
   "name": "荧光",
-  "desc": "每 {$heal_cd} 秒为队长回复 {$heal_pct*100}% 最大生命；队长带侵蚀 / 神经损伤时优先驱散（侵蚀清除、神经损伤 -{$nerve_cut}）；每 {$bolt_cd} 秒向射程 {$bolt_range} 内最近的敌人射出一束光弹（法术伤害，命中处小范围溅射 60%），命中者被「照亮」3 秒（视为在照亮范围内，受到的伤害 +25%）",
+  "desc": "每 {$heal_cd} 秒为队长回复 {$heal_pct*$k_atk*100:2}% 最大生命；队长带侵蚀 / 神经损伤时优先驱散（侵蚀清除、神经损伤 -{$nerve_cut}）；每 {$bolt_cd} 秒向射程 {$bolt_range} 内最近的敌人射出一束光弹（法术伤害，命中处小范围溅射 60%），命中者被「照亮」3 秒（视为在照亮范围内，受到的伤害 +25%）",
   "heal": true,
   "cleanse": [
    "侵蚀",
@@ -364,7 +364,7 @@
    "name": "沐雨",
    "en": "IN DRIZZLE, PRIVATION",
    "sp": 7,
-   "desc": "回复队长 {$s1_heal*100}% 最大生命，清除侵蚀、神经损伤，{$s1_immune} 秒免疫神经损伤，灯火 +{$s1_lamp}",
+   "desc": "回复队长 {$s1_heal*$k_atk*$k_pow*100:2}% 最大生命，清除侵蚀、神经损伤，{$s1_immune} 秒免疫神经损伤，灯火 +{$s1_lamp}",
    "heal": true,
    "cleanse": [
     "侵蚀",
@@ -376,7 +376,7 @@
    "name": "沛霖",
    "en": "IN DOWNPOUR, GRACE",
    "sp": 15,
-   "desc": "充能一次后永久生效：队长照亮范围 +{$light_mult*100-100}%，受击时灯火损失 -{(1-$lamp_decay)*100}%，「荧光」改为每次为队长回复 {$heal_pct*$guide_heal*100}% 最大生命",
+   "desc": "充能一次后永久生效：队长照亮范围 +{$light_mult*100-100}%，受击时灯火损失 -{(1-$lamp_decay)*100}%，「荧光」改为每次为队长回复 {$heal_pct*$guide_heal*$k_atk*100:2}% 最大生命",
    "permanent": true,
    "icon": "skill_lumen_s2"
   },
@@ -385,7 +385,7 @@
    "en": "THIS LANTERN UNDYING",
    "sp": 22,
    "dur": 10.0,
-   "desc": "灯塔随行 {$s3_dur} 秒：以队长为中心展开灯塔光圈（半径 {$s3_r}，随队长移动），区内队长每秒回复 {$s3_heal*100}% 最大生命、免疫侵蚀与神经损伤，溟痕与黑潮圈外惩罚失效，每秒灯火 +{$s3_lamp}；结束时在队长身边光爆：对范围内敌人造成 {$s3_burst_mult} 倍光弹伤害（法术）并眩晕 {$s3_burst_stun} 秒",
+   "desc": "灯塔随行 {$s3_dur} 秒：以队长为中心展开灯塔光圈（半径 {$s3_r}，随队长移动），区内队长每秒回复 {$s3_heal*$k_atk*100:2}% 最大生命、免疫侵蚀与神经损伤，溟痕与黑潮圈外惩罚失效，每秒灯火 +{$s3_lamp}；结束时在队长身边光爆：对范围内敌人造成 {$s3_burst_mult} 倍光弹伤害（法术）并眩晕 {$s3_burst_stun} 秒（精英减半，Boss 免疫）",
    "heal": true,
    "cleanse": [
     "侵蚀",
@@ -530,7 +530,7 @@
      "id": "rain2",
      "name": "光雨·澄明",
      "icon": "skill_lumen_s1",
-     "desc": "「沐雨」时清除队长的神经损伤，灯火 +{$rain2_lamp}，再回复 {$rain2_heal*100}% 最大生命"
+     "desc": "「沐雨」时清除队长的神经损伤，灯火 +{$rain2_lamp}，再回复 {$rain2_heal*$k_atk*100:2}% 最大生命"
     },
     "watch": {
      "id": "watch2",

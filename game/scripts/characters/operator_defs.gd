@@ -35,8 +35,21 @@ static func load_def(cid: String) -> Dictionary:
 	if not ob.is_empty() and d.get("base") is Dictionary:
 		for k in ob:
 			d.base[k] = ob[k]
-	fill_text(d, d.get("base", {}) if d.get("base") is Dictionary else {})
+	fill_text(d, text_base(cid, d.get("base", {}) if d.get("base") is Dictionary else {}))
 	return d
+
+
+## 文字占位可用的派生键（10-28 用户「说明和实际对不上」）：k_atk = 开局攻击倍率 op_atk（squad/op_atk_base ×(1 + 档位 atk)），
+## k_pow = 开局技能强度（1 + 档位 skill_power），k_kill = 普通怪击杀权重 1 / enemy/density。治疗写 {$heal_pct*$k_atk*100}%、带 power 的技能倍数写 {$s1_mult*$k_pow}，
+## 文字就等于局内开局实际值（tools/op_text_check.py 同规则）
+static func text_base(cid: String, base: Dictionary) -> Dictionary:
+	var B = preload("res://scripts/core/balance.gd")
+	var tier: Dictionary = B.op(cid)
+	var tb: Dictionary = base.duplicate()
+	tb["k_atk"] = B.v("squad/op_atk_base", 1.0) * (1.0 + float(tier.get("atk", 0.0)))
+	tb["k_pow"] = 1.0 + float(tier.get("skill_power", 0.0))
+	tb["k_kill"] = 1.0 / maxf(0.01, B.v("enemy/density", 1.0))   # 普通怪击杀权重（spawner._dens_apply e.dk）：水月击杀回复等按「每只」写时乘它
+	return tb
 
 
 ## 玩家可见文字里的数值占位（docs/61 §1.4）：desc / banner 里的「{表达式}」按 base 求值后填进去。

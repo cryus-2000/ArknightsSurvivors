@@ -78,7 +78,7 @@
   "max_hp": 105,
   "armor": 1.0,
   "arts_res": 0.2,
-  "regen": 1.1
+  "regen": 0.8
  },
  "sprites": {
   "move_attack": {
@@ -371,7 +371,7 @@
    "en": "ARCANE STAFF - ANTI-GRAVITY MODE",
    "sp": 24,
    "dur": 10.0,
-   "desc": "{$s3_dur} 秒：队长周围半径 {$s3_r} 内的敌人悬浮（不能移动和攻击；精英每 {$s3_elite_up+$s3_elite_down} 秒落地 {$s3_elite_down} 秒，Boss 只减速）并向场心汇聚；全队攻击速度 +{$s3_aspd*100}%，队长每秒回复 {$s3_heal*100}% 最大生命、移速 +{$s3_speed*100}%、拾取范围 ×{$s3_pickup}",
+   "desc": "{$s3_dur} 秒：队长周围半径 {$s3_r} 内的敌人悬浮（不能移动和攻击；精英每 {$s3_elite_up+$s3_elite_down} 秒落地 {$s3_elite_down} 秒，Boss 只减速）并向场心汇聚；全队攻击速度 +{$s3_aspd*$k_pow*100:1}%，队长每秒回复 {$s3_heal*$k_pow*100:2}% 最大生命、移速 +{$s3_speed*100}%、拾取范围 ×{$s3_pickup}",
    "icon": "skill_angelina_s3"
   }
  ],

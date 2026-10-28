@@ -317,6 +317,9 @@ static func _h4_fox_hit(o, a: Dictionary, e: Dictionary) -> void:
 	var br: Dictionary = _h4_sub(o, a.get("brand", null))
 	if not br.is_empty() and not e.dead:
 		_h4_brand_apply(o, br, e)
+	var sl = a.get("slow", null)   # 狐火命中轻减速（用户 10-29：开局自保）：{value, dur}，同一目标只刷新，Boss 不吃
+	if sl is Dictionary and not e.dead:
+		o.g.enemies_sys.lite_slow(e, float(sl.get("value", 0.2)), float(sl.get("dur", 0.8)))
 
 
 static func _h4_brand_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void:

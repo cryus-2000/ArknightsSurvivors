@@ -23,6 +23,8 @@
     "shots": 2,
     "aoe": 26,
     "aura": 85,
+    "fox_slow": 0.2,
+    "fox_slow_dur": 0.8,
     "s1_shots": 5,
     "s1_mult": 1.2,
     "s2_buff": 0.15,
@@ -55,10 +57,10 @@
   },
   "leader": {
     "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1480 / 防御 128 / 法抗 25%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
-    "max_hp": 105,
-    "armor": 1.0,
+    "max_hp": 115,
+    "armor": 1.5,
     "arts_res": 0.25,
-    "regen": 1.1
+    "regen": 0.8
   },
   "sprites": {
   "move_attack": {"tex": "op_suzuran_move_attack", "frames": 8, "foot": [32.0, 59.53074616425449], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
@@ -235,21 +237,21 @@
   "attack": {
     "mode": "auto",
     "name": "狐火",
-    "desc": "减速光域：光域内敌人移速 -35%；每 {$cd} 秒向 2 名敌人发射 {$shots} 团追踪狐火，命中时小范围溅射（法术）"
+    "desc": "减速光域：光域内敌人移速 -35%；每 {$cd} 秒向 2 名敌人发射 {$shots} 团追踪狐火，命中时小范围溅射（法术），被命中的敌人 {$fox_slow_dur} 秒内移速 -{$fox_slow*100}%（不叠加，Boss 除外）"
   },
   "skills": [
     {
       "name": "全力以赴",
       "en": "I'LL DO MY BEST",
       "sp": 7,
-      "desc": "下一次普攻改为射出 {$s1_shots} 发狐火（伤害 ×{$s1_mult}）",
+      "desc": "下一次普攻改为射出 {$s1_shots} 发狐火（伤害 ×{$s1_mult*$k_pow:2}）",
       "icon": "skill_suzuran_s1"
     },
     {
       "name": "儿时的舞乐",
       "en": "CHILDHOOD FROLIC",
       "sp": 15,
-      "desc": "充能一次后永久生效：光域范围 +60%，其他干员攻击 +{$s2_buff*100}%，队长每秒回复 0.5% 最大生命",
+      "desc": "充能一次后永久生效：光域范围 +60%，其他干员攻击 +{$s2_buff*$k_pow*100:1}%，队长每秒回复 0.5% 最大生命",
       "heal": true,
       "permanent": true,
       "icon": "skill_suzuran_s2"
@@ -258,7 +260,7 @@
       "name": "狐火渺然",
       "en": "FOXFIRE HAZE",
       "sp": 20,
-      "desc": "展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*100}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻",
+      "desc": "展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻",
       "heal": true,
       "dur": 10.0,
       "icon": "skill_suzuran_s3"
@@ -367,7 +369,7 @@
           "id": "fox_hearth2",
           "name": "围炉·添薪",
           "icon": "skill_suzuran_s2",
-          "desc": "「儿时的舞乐」生效后，每 {$hearth2_every} 秒以自身为中心半径 {$aura*$hearth2_r_mult:0} 爆发一次狐火（{$hearth2_mult*100}% 伤害，命中减速 {$hearth2_slow} 秒）"
+          "desc": "「儿时的舞乐」生效后，每 {$hearth2_every} 秒以自身为中心半径 {$aura*$hearth2_r_mult:0} 爆发一次狐火（{$hearth2_mult*$k_pow*100:1}% 伤害，命中减速 {$hearth2_slow} 秒）"
         }
       }
     },
@@ -375,7 +377,7 @@
       "type": "elite",
       "level": 2,
       "name": "精英二",
-      "desc": "解锁三技能「狐火渺然」：展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*100}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻；普通攻击强化「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）",
+      "desc": "解锁三技能「狐火渺然」：展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻；普通攻击强化「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）",
       "attack": {
         "name": "九尾祈愿",
         "desc": "身后浮现九尾虚影，每一次普攻都三团狐火合成一团大狐火贯穿；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）"
@@ -458,6 +460,7 @@
         "tex": "fx_suzuran_ninetails",
         "alpha": 0.45
       },
+      "slow": {"value": "$fox_slow", "dur": "$fox_slow_dur", "_doc": "狐火命中轻减速（用户 10-29 方案 B：辅助开局自保）：同一目标只刷新不叠层，Boss 不吃（enemies.lite_slow）"},
       "brand": {
         "cond": "elite >= 1",
         "value": "$brand_value",

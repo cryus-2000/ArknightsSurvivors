@@ -686,7 +686,7 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			apply_status(o, e, s, c)
 	if _F().fx_any_tex(o, b.get("fx", [])):
 		_F().fx_play(o, b.fx, c, r, hits)
-	else:
+	elif not b.get("quiet", false):   # quiet：搭在别的爆点上时不再画默认圈（艾雅法拉熔岩弹击退，10-29）
 		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": o.col(), "floor": true, "w": 3.0, "alpha": 0.7})
 	return hits
 

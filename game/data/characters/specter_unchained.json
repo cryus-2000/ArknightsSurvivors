@@ -71,7 +71,7 @@
   "max_hp": 125,
   "armor": 2.0,
   "arts_res": 0.0,
-  "regen": 1.5
+  "regen": 1.0
  },
  "sprites": {
   "move_attack": {
@@ -499,7 +499,7 @@
    "en": "THE THIRST TO SURVIVE",
    "sp": 15,
    "dur": 10.0,
-   "desc": "{$s2_dur} 秒内攻击速度 +{$s2_aspd*100}%、攻击 +{$s2_atk*100}%，期间队长生命不会低于 1；结束时本体倒下，替身跟随队长 {$doll_dur} 秒后归队",
+   "desc": "{$s2_dur} 秒内攻击速度 +{$s2_aspd*100}%、攻击 +{((1+$s2_atk)*$k_pow-1)*100:1}%，期间队长生命不会低于 1；结束时本体倒下，替身跟随队长 {$doll_dur} 秒后归队",
    "icon": "skill_specter_unchained_s2"
   },
   {
@@ -507,7 +507,7 @@
    "en": "THE PRESSURE TO SURVIVE",
    "sp": 22,
    "dur": 12.0,
-   "desc": "{$s3_dur} 秒内环斩间隔 ×{$s3_cd_mult}，但每斩 ×{$s3_mult}、范围 +{$s3_reach*100-100}%，对生命低于 50% 的敌人再 ×{$s3_low_mult}",
+   "desc": "{$s3_dur} 秒内环斩间隔 ×{$s3_cd_mult}，但每斩 ×{$s3_mult*$k_pow:2}、范围 +{$s3_reach*100-100}%，对生命低于 50% 的敌人再 ×{$s3_low_mult}",
    "icon": "skill_specter_unchained_s3"
   }
  ],
@@ -618,13 +618,13 @@
      "id": "beast2",
      "name": "困兽·反噬",
      "icon": "skill_specter_s1",
-     "desc": "「生存的技巧」期间每次环斩起手把周围 {$reach*$beast2_r_k:0} 内的敌人拉近 {$beast2_dist}（精英减半，Boss 免疫拉拽）"
+     "desc": "「生存的技巧」期间每次环斩起手把周围 {$reach_skill*$beast2_r_k:0} 内的敌人拉近 {$beast2_dist}（精英减半，Boss 免疫拉拽）"
     },
     "elegy": {
      "id": "elegy2",
      "name": "阿戈尔挽歌·安魂",
      "icon": "skill_specter_s2",
-     "desc": "「生存的渴望」期间每 {$elegy_every} 秒，替身周围 {$doll_r} 内的敌人受到 {$elegy2_mult*100}% 法术伤害并减速 {$elegy2_slow} 秒"
+     "desc": "「生存的渴望」期间每 {$elegy_every} 秒，替身周围 {$doll_r} 内的敌人受到 {$elegy2_mult*$k_pow*100:1}% 法术伤害并减速 {$elegy2_slow} 秒"
     }
    }
   },
@@ -632,7 +632,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「生存的重压」：环斩间隔 ×{$s3_cd_mult}、每斩 ×{$s3_mult}，对生命低于 50% 的敌人再 ×{$s3_low_mult}；普通攻击强化「替身闪现」：每第 3 次环斩，替身在附近敌群最密处现身，释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近 {$flash_n} 个，{$flash_mult*100}% 伤害）后碎成泡沫消失",
+   "desc": "解锁三技能「生存的重压」：环斩间隔 ×{$s3_cd_mult}、每斩 ×{$s3_mult*$k_pow:2}，对生命低于 50% 的敌人再 ×{$s3_low_mult}；普通攻击强化「替身闪现」：每第 3 次环斩，替身在附近敌群最密处现身，释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近 {$flash_n} 个，{$flash_mult*100}% 伤害）后碎成泡沫消失",
    "attack": {
     "name": "替身闪现",
     "desc": "每第 3 次环斩，替身在 {$flash_range} 内敌群最密处从水花里现身，以自身为中心释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近的 {$flash_n} 个敌人，优先首领与精英，为环斩的 {$flash_mult*100}% 伤害），随后碎成泡沫消失；同时最多 1 个，替身跟随队长期间不出现"

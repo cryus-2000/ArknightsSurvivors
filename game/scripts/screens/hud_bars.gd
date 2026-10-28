@@ -3,6 +3,7 @@ extends RefCounted
 ## 顶部中央（击杀 / 时间 / 楼层 / 威胁）、Boss 大血条、人物状态栏、声呐小地图。触屏分支原样保留。
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
@@ -148,7 +149,7 @@ func draw_lamp_strip(vs: Vector2) -> void:
 		st_en = "OUT"
 		st_col = UI.RED
 	elif g.lamp < 30.0:
-		st_txt = "灯火暗淡 · 敌人移速与伤害 +10% · 拾取 -30%"
+		st_txt = "灯火暗淡 · 敌人移速与伤害 +%d%% · 受到的伤害 +%d%% · 拾取 -30%%" % [int(round((Bal.v("lamp/dark_enemy", 1.1) - 1.0) * 100.0)), int(round((Bal.v("lamp/dark_taken", 1.05) - 1.0) * 100.0))]
 		st_en = "DARK"
 		st_col = Color(1, 0.5, 0.5)
 	elif g.lamp >= 70.0:

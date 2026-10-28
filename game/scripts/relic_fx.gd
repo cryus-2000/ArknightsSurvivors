@@ -45,6 +45,11 @@ var revived := false
 var king_n := 0            # 国王套装件数
 var lv := {}               # id -> 等级（纯属性型藏品可叠到 3 级，每级效果递减 100% / 70% / 50%）
 const LV_SCALE := [1.0, 0.7, 0.5]
+
+
+## 第 cur 次叠加的递减系数：超过表长（可叠加藏品叠到第 4 层起）沿用最后一档（10-29 修 Out of bounds get index '3'）
+static func lv_scale(cur: int) -> float:
+	return LV_SCALE[clampi(cur, 0, LV_SCALE.size() - 1)]
 var vg_ver := 0            # 可见成长（docs/163）：藏品等级变化计数，vis_growth.summary 的缓存键
 var vg_on := false         # 拿到过带 growth 效果的藏品（之后编队变化要重挂 vgrowth 属性来源）
 const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")
@@ -283,7 +288,7 @@ func display_desc(id: String, full := false) -> String:
 	var cur: int = lv.get(id, 0)
 	var d: String = r.desc if full else squad_desc(id)
 	if cur > 0:
-		return "%s\n（可叠加，本级 %d%%）" % [d,int(LV_SCALE[cur] * 100.0)]
+		return "%s\n（可叠加，本级 %d%%）" % [d,int(lv_scale(cur) * 100.0)]
 	# 源石锭熔铸之后（docs/74）：给源石锭 / 商店折扣的藏品写出折算后的伤害
 	if fuse_on:
 		var n := ingot_value_of(id)
@@ -395,7 +400,7 @@ func apply(id: String) -> void:
 	if cur >= max_lv(id):
 		return
 	lv[id] = cur + 1
-	var sc: float = LV_SCALE[cur]
+	var sc: float = lv_scale(cur)
 	if (r.effects as Array).any(func(x): return x is Dictionary and x.get("type", "") == "growth"):
 		vg_ver += 1
 		vg_on = true

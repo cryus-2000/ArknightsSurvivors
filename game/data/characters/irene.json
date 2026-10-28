@@ -68,7 +68,7 @@
   "max_hp": 125,
   "armor": 2.5,
   "arts_res": 0.0,
-  "regen": 1.5
+  "regen": 1.0
  },
  "sprites": {
   "move_attack": {
@@ -375,14 +375,14 @@
    "name": "起风",
    "en": "GUST",
    "sp": 5,
-   "desc": "下一次刺击命中的第一个敌人浮空 {$s1_lift} 秒，随即再补一刺（2 段各 ×{$s1_mult}）",
+   "desc": "下一次刺击命中的第一个敌人浮空 {$s1_lift} 秒（精英减半，Boss 除外），随即再补一刺（2 段各 ×{$s1_mult*$k_pow:2}）",
    "icon": "skill_irene_s1"
   },
   {
    "name": "裂潮",
    "en": "SHATTERTIDE",
    "sp": 11,
-   "desc": "向前方锥形斩击，最多 {$s2_n} 名敌人 ×{$s2_mult}，浮空 {$s2_lift} 秒（精英减半，Boss 除外）",
+   "desc": "向前方锥形斩击，最多 {$s2_n} 名敌人 ×{$s2_mult*$k_pow:2}，浮空 {$s2_lift} 秒（精英减半，Boss 除外）",
    "icon": "skill_irene_s2"
   },
   {
@@ -390,7 +390,7 @@
    "en": "JUDGMENT",
    "sp": 22,
    "dur": 3.0,
-   "desc": "冲击波掀起自身半径 {$s3_r} 内全部敌人（×{$s3_mult}）并浮空 {$s3_lift} 秒（精英减半），随后转身用手炮向四周连射 {$s3_strikes} 发，每发 ×{$s3_strike_mult} 打目标周围小范围，优先打浮空目标",
+   "desc": "冲击波掀起自身半径 {$s3_r} 内全部敌人（×{$s3_mult*$k_pow:2}）并浮空 {$s3_lift} 秒（精英减半，Boss 除外），随后转身用手炮向四周连射 {$s3_strikes} 发，每发 ×{$s3_strike_mult*$k_pow:2} 打目标周围小范围，优先打浮空目标",
    "icon": "skill_irene_s3"
   }
  ],
@@ -502,13 +502,13 @@
    "id": "gale",
    "name": "卷风",
    "icon": "skill_irene_s1",
-   "desc": "「起风」浮空的目标卷起身边 {$gale_r} 内的敌人一起浮空 {$gale_lift} 秒",
+   "desc": "「起风」浮空的目标卷起身边 {$gale_r} 内的敌人一起浮空 {$gale_lift} 秒（精英减半，Boss 除外）",
    "branch": {
     "gale": {
      "id": "gale",
      "name": "卷风",
      "icon": "skill_irene_s1",
-     "desc": "「起风」浮空的目标卷起身边 {$gale_r} 内的敌人一起浮空 {$gale_lift} 秒"
+     "desc": "「起风」浮空的目标卷起身边 {$gale_r} 内的敌人一起浮空 {$gale_lift} 秒（精英减半，Boss 除外）"
     },
     "tide": {
      "id": "tide2",
@@ -531,7 +531,7 @@
      "id": "gale2",
      "name": "卷风·追斩",
      "icon": "skill_irene_s1",
-     "desc": "「起风」{$gale2_delay} 秒后，自身周围 {$gale_r*$gale2_r_k:0} 内（多为被卷起的）敌人再受刺击 {$gale2_mult*100}% 伤害"
+     "desc": "「起风」{$gale2_delay} 秒后，自身周围 {$gale_r*$gale2_r_k:0} 内（多为被卷起的）敌人再受刺击 {$gale2_mult*$k_pow*100:1}% 伤害"
     },
     "tide": {
      "id": "tide3",
@@ -545,7 +545,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「判决」：冲击波掀起一片，随后转身手炮连射 {$s3_strikes} 发；普通攻击强化「裂潮余波」：每第 3 次刺击收尾改为前方锥形斩（×{$tide_mult}），被斩中的敌人浮空 {$tide_lift} 秒，随后手炮追击其中 {$tide_shots} 名（手炮一发的 {$pursue_mult*100}%）；刺中浮空的敌人时追加一发手炮（{$pursue_mult*100}%，每 {$pursue_cd} 秒至多一次）",
+   "desc": "解锁三技能「判决」：冲击波掀起一片，随后转身手炮连射 {$s3_strikes} 发；普通攻击强化「裂潮余波」：每第 3 次刺击收尾改为前方锥形斩（×{$tide_mult}），被斩中的敌人浮空 {$tide_lift} 秒（精英减半，Boss 除外），随后手炮追击其中 {$tide_shots} 名（手炮一发的 {$pursue_mult*100}%）；刺中浮空的敌人时追加一发手炮（{$pursue_mult*100}%，每 {$pursue_cd} 秒至多一次）",
    "attack": {
     "name": "裂潮余波",
     "desc": "每第 3 次刺击，收尾改为前方 90° 新月斩（半径 {$tide_r}，×{$tide_mult}），斩中的敌人浮空 {$tide_lift} 秒（精英减半，Boss 除外），随后手炮追击其中浮空的 {$tide_shots} 名（手炮一发的 {$pursue_mult*100}%）；刺中浮空的敌人时追加一发手炮（每 {$pursue_cd} 秒至多一次）"
@@ -1091,7 +1091,7 @@
  "response": {
   "name": "起风",
   "trigger": "指挥：归队",
-  "desc": "切到归队时，她在身边扬起一阵风，周围的敌人浮空 0.8 秒，掩护队伍收拢"
+  "desc": "切到归队时，她在身边扬起一阵风，周围的敌人浮空 0.8 秒（精英减半，Boss 除外），掩护队伍收拢"
  },
  "hit_feel": "melee",
  "stat_hits": 2

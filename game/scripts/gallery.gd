@@ -42,12 +42,12 @@ const ENEMY_DESC := {
 	"mother": "精英。向队长投掷注亡拟嗣：落点先出预警，落地造成伤害并附加侵蚀，拟嗣随即在落点孵化（场上最多 6 只）。",
 	"mimic": "精英。伪装成补给箱，受到攻击后现形。现形后尖叫 2.5 秒：周围 150 内累积神经损伤并吞噬灯火，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。免疫眩晕、寒冷和封印；击败后掉落源石锭。",
 	"path": "中期 Boss（3:30 / 7:00）。从脚下向场边铺生路，路线上每段末端有一个路标；队长跑过路标即截断这条路，路上的分形停下并成为优先攻击目标，全部截断后硬直 3 秒。一幕路标向两侧吐出会分裂的分形弹，或朝队长放出两次分叉的树枝弹；生命降到 50% 后，一圈弹从外向它收拢，缺口在生路上，冲撞沿线留下一排向两侧推开的弹。「冲撞」「震地」连续出招，收招后出现破绽。",
-	"iberia": "中期 Boss（7:00）。圣徒卡门的强化状态（同一人物，一次探索只会出现一位）：生命与攻击更高，手炮只装 1 发。「手炮」射线贯穿全屏，「轰击」曲射砸向队长所在位置，两者共用弹药；打空后近身追击，近距离用「散射」喷出 13 发弹丸。装填 2.2 秒，读条中累计受到伤害或被冲刺穿身会被打断、跪地露出破绽。50% 后装填完毕先放「清膛」缺口环，再接「手炮·三连」。",
+	"iberia": "中期 Boss（7:00）。圣徒卡门的强化状态（同一人物，一次探索只会出现一位）：生命与攻击更高，手炮只装 1 发。「手炮」射线贯穿全屏，「轰击」曲射砸向队长所在位置，两者共用弹药；打空后近身追击，近距离用「散射」连喷 2 波、每波 18 发弹丸。装填 3 秒（第二幕 2.6 秒），读条中累计受到伤害或被冲刺穿身会被打断、跪地露出破绽。50% 后装填完毕先放「清膛」缺口环，再接「手炮·三连」。",
 	"carmen": "中期 Boss（3:30 / 7:00）。持手炮的年迈圣徒（与伊比利亚是同一人物，一次探索只会出现一位）：3 发弹药。远距离「狙击」，近身「炮身横扫」；弹药满且距离适中时转身「环射」，三个缺口的弹环一次打空 3 发。装填 3 秒，读条可被打断。50% 后弹药打空先进入 8 秒炮身近战，用「炮身砸击」冲到队长身边砸地。",
 	"bishop": "中期 Boss（7:00）。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下。两具血量差过大时，血少的一具受到的伤害降低。两具各自放弹，弹幕关于两体之间的中线对称：一具扇射后另一具放镜像，或两具同时放出反向弯曲的弹环。任一具生命降到 50% 后，每 10 秒互换位置，连线上排出向两侧推开的弹墙，两具同时放反向螺旋。主教「潮汐柱」与同伴近战连续出招，收招后两具同时出现破绽。",
 	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死。「横扫」连挥两爪，「跃击」砸向队长所在位置，「蚀潮吐息」命中后 3 秒内侵蚀伤害 +25%；任一具生命降到 50% 后，跃击落地时放出「裂潮」刃环。",
 	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死。「连斩」连续突刺 3 段（50% 后 4 段），与主教「潮汐柱」连续出招；搭档假死时狂暴并「迸发」，自己复苏时也会迸发。",
-	"paranoia": "结局一「平凡即是喜乐」的最终 Boss。七种主动攻击：「凝视」依次瞄准的光束；「叠影」每段重新追踪队长；「泡影环」缺口弹环；「呼号」扇形喷涌；「追猎泡」短时追踪后直行；「幻影合围」两侧光束；「泡影收束」向内合拢的泡群，留有出口。认知负担光环降低全队攻速。生命降至 1/3 时坠落，首次归零后结茧，复苏时恢复至最大生命的 80%。",
+	"paranoia": "结局一「平凡即是喜乐」的最终 Boss。七种主动攻击：「凝视」依次瞄准的光束；「叠影」每段重新追踪队长；「泡影环」缺口弹环；「呼号」扇形喷涌；「追猎泡」短时追踪后直行；「幻影合围」两侧光束；「泡影收束」向内合拢的泡群，留有出口。认知负担光环降低全队攻速。生命降至一半时坠落，首次归零后结茧，复苏时恢复至最大生命的 50%。",
 	"izumik": "结局四「如星空般深蓝」的最终 Boss。学习阶段无敌，子代从场边缓慢靠近本体；吸收子代后发动分享。阐释阶段按幕成组连续出招，每组结束露出破绽：「潮汐坠落」「解读旋涡」「分享」「震撼」「护群触腕」「迁徙潮」「深渊涌流」，以及摆动的水流弹、子代共鸣、螺旋弹臂、停顿后转向的习得弹、卷回的回流弹。水流在子代来向留出通道；走在路上的子代会跟着放弹，吸收层数越多习得弹越多。迁徙潮横穿场地并留有通道，涌流形成向内收拢的环带。三幕点亮的灯柱光圈会吞掉她的弹。震撼可通过冲刺或点亮的灯柱光圈躲避。",
 	"ishar": "结局三「息潮的代价」的最终 Boss。人形阶段不受攻击，治疗海嗣并将其强化为精英，红色描边标记强化目标。三枚泪滴各维持一名精英；触碰泪滴可永久净化并解除对应强化。未净化的泪加快转化，转化后成为可破坏的歌眼。敌对形态有七种主动攻击：「泪落」「三线扫射」「大群之歌」「撕咬」「合唱齐射」「合唱压境」「深海触腕」。拆除合唱海嗣可削弱齐射与压境，击破歌眼可中断泪滴共鸣并解除对应精英强化。",
 	"knight_boss": "结局二「静谧时代」的最终 Boss。八种主动攻击：「冲锋」「冰线」「长枪连刺」「掷枪」「长枪回旋」「踏冰裂阵」「断潮劈击」「侧踏挑枪」。冰线后接寒冷追击，裂阵封锁三条通道，劈击向前推进，侧踏后重新瞄准挑枪。一阶段布置五根冰柱，全部撞碎后才生成下一批。首次生命归零后寒冰重生，残柱碎裂且不再生成，冲锋接续三段；累积受击可触发寒冷反击。",
@@ -350,7 +350,8 @@ func _build() -> void:
 				forms[0].dscale = float(e.get("draw_scale", 1.0))
 				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
-				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
+				var sp: Array = _enemy_spawn_stats(k, e, role)   # 10-28 用户：图鉴原来显示 json 原值，局内出场还要乘密度 / 精英 / Boss 倍率
+				var st := [["生命", str(int(round(sp[0])))], ["伤害", str(int(round(sp[1])))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):
 					st.append(["射程", str(int(e.range))])
 				if float(e.get("draw_scale", 1.0)) > 1.05:
@@ -497,6 +498,35 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 		"od": {"tex": tx, "frames": frames, "hires": A.hires_of(tx)}, "elite": elite if elite > 0 else 2}
 
 
+## 敌人图鉴的生命 / 伤害：常规档、刚出场（不含之后的时间成长、难度档与分级调整）时的实际值，公式同 run/spawner.gd spawn_enemy
+## （普通怪：密度换算 + 早期修正；精英：elite_hp_mult / elite_dmg_mult；Boss：hp_mid / hp_final × hp_x_<id>、dmg_x_<id>，圣徒另乘 saint.gd 的出场倍率）
+static func _enemy_spawn_stats(k: String, e: Dictionary, role: String) -> Array:
+	var hp: float = float(e.hp)
+	var dmg: float = float(e.dmg)
+	if role == "boss":
+		var fin := false
+		for ek in D.ENDINGS:
+			if str(D.ENDINGS[ek].get("boss", "")) == k:
+				fin = true
+		hp *= Bal.v("boss/hp_final" if fin else "boss/hp_mid", 1.0) * Bal.v("boss/hp_x_" + k, 1.0)
+		dmg *= Bal.v("boss/dmg_x_" + k, 1.0)
+		if k == "iberia":
+			hp *= Bal.v("boss/iberia_hp_k", 2.9)
+			dmg *= Bal.v("boss/saint_dmg_mult", 0.8)
+		elif k == "carmen":
+			hp *= Bal.v("boss/carmen_hp_k", 2.4)
+			dmg *= Bal.v("boss/carmen_dmg_mult", 1.5)
+		return [hp, dmg]
+	dmg *= Bal.v("enemy/dmg_early", 1.0) * Bal.v("enemy/dmg_gain_early", 1.0)
+	if role == "elite":
+		return [hp * Bal.v("enemy/elite_hp_mult", 7.0), dmg * Bal.v("enemy/elite_dmg_mult", 1.3)]
+	var den: float = Bal.v("enemy/density", 1.0)
+	if den > 0.0 and den != 1.0:
+		hp *= pow(1.0 / den, Bal.v("enemy/density_hp_exp", 1.0))
+		dmg *= pow(1.0 / den, Bal.v("enemy/density_dmg_exp", 1.0))
+	return [hp * Bal.v("enemy/trim_early_hp", 1.0), dmg * Bal.v("enemy/trim_early_dmg", 1.0)]
+
+
 ## 博士：受击体（data/doctor.json）；放在干员页最后，不属于任何职业（筛选时不出现）
 func _doctor_entry() -> Dictionary:
 	var dd: Dictionary = {}
@@ -509,11 +539,11 @@ func _doctor_entry() -> Dictionary:
 	var forms := _doctor_forms(dd)
 	var f0: Dictionary = forms[0]
 	return {"id": "doctor", "name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": forms,
-		"stats": [["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
+		"stats": [["回复", "随队长"], ["移速", str(int(round(float(ds.get("move_speed", 150)) * Bal.v("squad/leader_speed_mult", 1.0))))],
 			["闪避", "%d%%" % int(Bal.v("squad/leader_dodge", float(ds.get("dodge", 0.0))) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
 		"chips": ["随行", "指挥", "排异"], "cls": "", "col": UI.STEEL,
 		"od": {"tex": f0.tex, "frames": int(f0.frames), "hires": A.hires_of(f0.tex)},
-		"desc": _lore_text("doctor", "跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的回复、移速、拾取的初始值来自博士（初始没有闪避，靠认知塑造、升级与藏品获得），生命与减伤由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。")}
+		"desc": _lore_text("doctor", "跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的移速、拾取的初始值来自博士（初始没有闪避，靠认知塑造、升级与藏品获得），生命、减伤与回复由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。")}
 
 
 ## 介绍文字：lore.json 的档案文字在前，机制说明在后

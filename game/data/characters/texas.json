@@ -96,7 +96,7 @@
   "max_hp": 130,
   "armor": 3.0,
   "arts_res": 0.0,
-  "regen": 1.6
+  "regen": 1.1
  },
  "sprites": {
   "move_attack": {
@@ -343,14 +343,14 @@
  "attack": {
   "mode": "auto",
   "name": "拔刀",
-  "desc": "原地一刀「拔刀」：每 {$cd} 秒朝最近敌人挥出宽扇形斩（半径 {$slash_r}，物理，{$slash_mult*100}%），命中里离她最近的 {$block_n} 名敌人被「阻挡」，原地定住 {$block_dur} 秒（精英减半，Boss 免疫）；每第 {$storm_every} 次出手改为「骤雨」：{$storm_gap*3} 秒内原地 360° 连斩 4 下（半径 {$storm_r}，每下 {$storm_mult*100}%），没有敌人时照常拔刀；每次出手为全队技力 +{$hit_sp} 秒"
+  "desc": "原地一刀「拔刀」：每 {$cd} 秒朝最近敌人挥出宽扇形斩（半径 {$slash_r}，物理，{$slash_mult*100}%），命中里离她最近的 {$block_n} 名敌人被「阻挡」，原地定住 {$block_dur} 秒（精英减半，Boss 免疫）；每第 {$storm_every} 次出手改为「骤雨」：{$storm_gap*3} 秒内原地 360° 连斩 4 下（半径 {$storm_r}，每下 {$storm_mult*100}%），没有敌人时照常拔刀；每次出手为全队（不含自身）技力 +{$hit_sp} 秒"
  },
  "skills": [
   {
    "name": "剑雨",
    "en": "SWORD RAIN",
    "sp": 6,
-   "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队技力 +{$s1_sp*100}%（自动释放需要射程内有敌人，否则技力保留到有敌人再放）",
+   "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队（不含自身）技力 +{$s1_sp*100}%（自动释放需要射程内有敌人，否则技力保留到有敌人再放）",
    "icon": "skill_texas_s1"
   },
   {
@@ -378,7 +378,7 @@
  ],
  "talent": {
   "name": "战术快递",
-  "desc": "队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒；拔刀每次出手再为全队技力 +{$talent_atk_sp} 秒"
+  "desc": "队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；穿过敌人时全队（不含自身）技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒；拔刀每次出手再为全队（不含自身）技力 +{$talent_atk_sp} 秒"
  },
  "hit_sources": {
   "剑雨": {

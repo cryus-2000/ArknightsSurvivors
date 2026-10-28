@@ -77,7 +77,7 @@
   "max_hp": 120,
   "armor": 2.5,
   "arts_res": 0.1,
-  "regen": 1.0
+  "regen": 0.8
  },
  "sprites": {
   "move_attack": {
@@ -748,7 +748,7 @@
    "en": "WARPATH",
    "sp": 6,
    "dur": 3.0,
-   "desc": "{$s1_window} 秒内举盾坚守原地，吸引半径 {$s1_taunt_r} 内近战敌人的仇恨（作为队长时可照常移动）；结束时向周围反手重斩（半径 {$s1_r}，×{$s1_mult}，每吸引一名敌人再 +{$s1_per}，至多 +{$s1_per*$s1_cap}）并击退",
+   "desc": "{$s1_window} 秒内举盾坚守原地，吸引半径 {$s1_taunt_r} 内近战敌人的仇恨（作为队长时可照常移动）；结束时向周围反手重斩（半径 {$s1_r}，×{$s1_mult*$k_pow:2}，每吸引一名敌人再 +{$s1_per*$k_pow:2}，至多 +{$s1_per*$s1_cap*$k_pow:2}）并击退",
    "icon": "skill_hoshiguma_s1"
   },
   {
@@ -756,7 +756,7 @@
    "en": "THORNS",
    "sp": 14,
    "dur": 8.0,
-   "desc": "{$s2_dur} 秒：攻击 +{$s2_atk*100}%，队长受到的伤害 -{$s2_dr*100}%，「战术装甲」格挡概率 ×{$s2_block_x}；盾斧斩落点留下 {$sand_dur} 秒热砂（半径 {$sand_r}），踩进的敌人每秒受到 {$sand_mult*100}% 攻击力的伤害",
+   "desc": "{$s2_dur} 秒：攻击 +{$s2_atk*$k_pow*100:1}%，队长受到的伤害 -{$s2_dr*100}%，「战术装甲」格挡概率 ×{$s2_block_x}；盾斧斩落点留下 {$sand_dur} 秒热砂（半径 {$sand_r}），踩进的敌人每秒受到 {$sand_mult*$k_pow*100:1}% 攻击力的伤害",
    "icon": "skill_hoshiguma_s2"
   },
   {
@@ -764,7 +764,7 @@
    "en": "SAW OF STRENGTH",
    "sp": 22,
    "dur": 10.0,
-   "desc": "{$s3_dur} 秒：攻击 +{$s3_atk*100}%，盾斧斩改为直线斩（长 {$s3_len}、宽 {$s3_w}，命中沿线全部，击退 ×{$s3_kb}）；队长受到的伤害 -{$s3_dr*100}%，每次受击（含被格挡的）震退队长身边半径 {$s3_quake_r} 内的敌人",
+   "desc": "{$s3_dur} 秒：攻击 +{$s3_atk*$k_pow*100:1}%，盾斧斩改为直线斩（长 {$s3_len}、宽 {$s3_w}，命中沿线全部，击退 ×{$s3_kb}）；队长受到的伤害 -{$s3_dr*100}%，每次受击（含被格挡的）震退队长身边半径 {$s3_quake_r} 内的敌人",
    "icon": "skill_hoshiguma_s3"
   }
  ],
@@ -880,7 +880,7 @@
      "id": "ember",
      "name": "热砂·余烬",
      "icon": "growth_t_field",
-     "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害"
+     "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*$k_pow*100:1}% 攻击力的伤害"
     }
    },
    "branch_desc": "「盾墙」在格挡时眩晕队长周围的敌人；「热砂·余烬」使「荆棘」留下的热砂持续造成额外伤害",
@@ -891,7 +891,7 @@
    "id": "ember",
    "name": "热砂·余烬",
    "icon": "growth_t_field",
-   "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害",
+   "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*$k_pow*100:1}% 攻击力的伤害",
    "routes": {
     "wall": {
      "id": "wall2",
@@ -903,7 +903,7 @@
      "id": "ember2",
      "name": "热砂·熔流",
      "icon": "growth_t_field",
-     "desc": "「荆棘」期间盾斧斩命中处半径 {$sand_r} 内的敌人减速 {$ember2_slow} 秒；「荆棘」结束时自身周围半径 {$sand_r*1.5:0} 爆发一次热砂（{$ember2_burst*100}% 伤害）"
+     "desc": "「荆棘」期间盾斧斩命中处半径 {$sand_r} 内的敌人减速 {$ember2_slow} 秒；「荆棘」结束时自身周围半径 {$sand_r*1.5:0} 爆发一次热砂（{$ember2_burst*$k_pow*100:1}% 伤害）"
     }
    }
   },
