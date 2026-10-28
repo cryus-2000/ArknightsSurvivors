@@ -33,7 +33,7 @@ const ACT_COMBOS := [["千目凝望", "凝视环流"], ["镜中众影", "偏执�
 const EMITTERS := {
 	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
 	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3},
-	"沉浮双层": {"n": 3, "iv": 0.95}, "潮涌环": {"n": 3, "iv": 0.9}}
+	"沉浮双层": {"n": 3, "iv": 0.95}, "潮涌环": {"n": 3, "iv": 0.9, "wind": 1.0}}   # wind：起手提示秒数（缺省 WINDUP；潮涌环用户 10-28 要更明显）
 const WINDUP := 0.55
 ## 幻象冲撞（非弹幕，泡影独有）：两只幻象在队长两侧现形，沿穿过队长的两条交叉通道冲过去；1.1 秒预告、第二只晚 0.6 秒
 const RUSH_TELL := 1.1
@@ -269,8 +269,9 @@ func _emit(e: Dictionary, seg: String, dir: Vector2) -> void:
 		spec.n = int(_dn(e, 6))
 	elif seg in ["侵蚀帘幕", "无声波环"] and act(e) >= 2:
 		spec.n = 3   # 三幕起多一道：缝 / 缺口来回错位，要读
-	var t0: float = g.t + WINDUP
-	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(),
+	var wind: float = float(spec.get("wind", WINDUP))
+	var t0: float = g.t + wind
+	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(), "wind": wind,
 		"flip": 1.0 if int(e.get("pc_flip", 0)) % 2 == 0 else -1.0}
 	e.pc_flip = int(e.get("pc_flip", 0)) + 1
 	if seg == "千目注视":

@@ -139,6 +139,7 @@ static func draw_top(g, e: Dictionary) -> void:
 		var br: float = e.r * 1.25 + 3.0 * sin(g.t * 3.0)
 		g.draw_arc(fp, br, 0.0, TAU, 40, Color(1.0, 0.85, 0.45, 0.18), 3.0)
 		g.draw_arc(fp, br, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(1.0, 0.85, 0.45, 0.6), 2.0)
+	_tide_tells(g, e)
 	# 换幕起手 0.9 秒：收拢的双环（外 → 内）
 	var dt: float = g.t - float(e.get("pc_gather_t", -99.0))
 	if dt >= 0.0 and dt < 0.9:
@@ -156,18 +157,21 @@ static func core_col(e: Dictionary) -> Color:
 
 ## 起手提示（用户 10-28「有些招式该给提醒」）：弹幕段起手前 WINDUP 秒——环形招从脚下向外扩一圈虚线环，
 ## 瞄准招朝队长拉一道渐亮的点线；颜色同本阶段弹色（不是红色危险预警，不挡视线）
-const RING_TELLS := ["潮涌环", "无声波环", "偏执双旋", "沉浮双层", "侵蚀帘幕"]
+const RING_TELLS := ["无声波环", "偏执双旋", "沉浮双层", "侵蚀帘幕"]
 const AIM_TELLS := ["群愿回响", "环流狙击", "镜影齐射"]
 
 
 static func _emit_tells(g, e: Dictionary) -> void:
 	var c: Color = core_col(e)
 	for em in e.get("pc_emit", []):
+		var wind: float = float(em.get("wind", 0.55))
 		var left: float = float(em.t0) - g.t
-		if left <= 0.0 or left > 0.55:
+		if left <= 0.0 or left > wind:
 			continue
-		var k: float = 1.0 - left / 0.55
+		var k: float = 1.0 - left / wind
 		var n: String = str(em.name)
+		if n == "潮涌环":
+			continue   # 画在顶层（draw_top → _tide_tells），不被本体和队长挡住
 		if n in RING_TELLS:
 			var r: float = lerpf(e.r * 1.2, e.r * 3.2, k)
 			for q in 16:
@@ -179,6 +183,57 @@ static func _emit_tells(g, e: Dictionary) -> void:
 				var p: Vector2 = e.pos + Vector2(0, -16) + d * (30.0 + q * 26.0 * k)
 				g.world.tb_ring(p, 2.0, 1.0, Color(c.r, c.g, c.b, (0.2 + 0.6 * k) * (1.0 - q / 12.0)), 6)
 	g.world.tb_flush()
+
+
+## 潮涌环起手（用户 10-28「提醒明显一点」）：1 秒内脚下画出和真水环同形的地面椭圆环（同粗细、同青蓝），
+## 从脚下涨到 140 并一明一暗；第一道缺口（朝队长）留空并在两侧立亮标、外侧一个向外的 V；
+## 后两道缺口的位置（依次转开 1.1 弧度）只画淡标。缺口方向在出手那刻按队长位置定，这里按当前位置预示
+static func _tide_tells(g, e: Dictionary) -> void:
+	for em in e.get("pc_emit", []):
+		if str(em.name) != "潮涌环":
+			continue
+		var wind: float = float(em.get("wind", 0.55))
+		var left: float = float(em.t0) - g.t
+		if left > 0.0 and left <= wind:
+			_tide_tell(g, e, em, 1.0 - left / wind)
+
+
+static func _tide_tell(g, e: Dictionary, em: Dictionary, k: float) -> void:
+	var c := Color(0.35, 0.9, 1.0)
+	var o: Vector2 = e.pos
+	var aim: float = (g.ppos + Vector2(0, -14) - o).angle()
+	var gy: float = g.world.ground_y()
+	var r: float = lerpf(60.0, 230.0, 1.0 - pow(1.0 - k, 2.0))
+	var blink: float = 0.7 + 0.3 * sin(g.t * 18.0)
+	var a: float = (0.5 + 0.5 * k) * blink
+	var half: float = 0.42
+	g.draw_set_transform(o, 0.0, Vector2(1.0, gy))
+	# 环身：深色底 + 青蓝 + 白芯，缺口处留空
+	var s0: float = aim + half
+	var s1: float = aim + TAU - half
+	g.draw_arc(Vector2.ZERO, r - 10.0, s0, s1, 64, Color(c.r, c.g, c.b, 0.22 * a), 14.0)
+	g.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(0, 0, 0, 0.55 * a), 9.0)
+	g.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(c.r, c.g, c.b, a), 5.0)
+	g.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(1, 1, 1, 0.85 * a), 2.0)
+	# 向她收拢的两道细水纹（「潮在涨」）
+	for q in 2:
+		var rq: float = r * (1.0 + 0.35 * (1.0 - fmod(k * 2.0 + q * 0.5, 1.0)))
+		g.draw_arc(Vector2.ZERO, rq, s0, s1, 48, Color(c.r, c.g, c.b, 0.3 * a), 1.5)
+	# 第一道缺口：两侧亮标 + 外侧向外的 V（从这里穿）
+	for sd in [-1.0, 1.0]:
+		var ea: Vector2 = Vector2.from_angle(aim + half * sd)
+		g.draw_line(ea * (r - 14.0), ea * (r + 14.0), Color(1, 1, 1, 0.9 * a), 3.0)
+	var dv: Vector2 = Vector2.from_angle(aim)
+	var nv: Vector2 = dv.orthogonal()
+	var tip: Vector2 = dv * (r + 34.0)
+	g.draw_line(tip - dv * 12.0 + nv * 10.0, tip, Color(1, 1, 1, 0.85 * a), 2.5)
+	g.draw_line(tip - dv * 12.0 - nv * 10.0, tip, Color(1, 1, 1, 0.85 * a), 2.5)
+	# 后两道缺口：淡标
+	for q in [1, 2]:
+		var ga: float = aim + 1.1 * q * float(em.flip)
+		var gv: Vector2 = Vector2.from_angle(ga)
+		g.draw_line(gv * (r - 8.0), gv * (r + 10.0), Color(c.r, c.g, c.b, 0.55 * a / q), 3.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 static func _tide_stain(g, e: Dictionary) -> void:
