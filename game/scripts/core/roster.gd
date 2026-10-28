@@ -33,6 +33,8 @@ const RUN_MIN_T := 180.0
 const WIN_BONUS := 1
 const COST_RANDOM := 1
 const COST_PICK := 2
+## 十连寻访（10-28 用户：「寻访里面加入 10 连的选项」）：= 随机寻访 × TEN，不打折、没有额外保底（本作不会抽到重复干员）
+const COST_TEN := COST_RANDOM * TEN
 ## 名册已满时，剩下的凭证每张折成多少生机细胞（docs/109 §12.7）
 const CELLS_PER_TICKET := 5
 ## 用生机细胞兑换寻访凭证（用户 10-25）：1 张 = TICKET_PRICE 个细胞，不设购买上限；买价高于满员折价（5），防倒卖。
@@ -250,6 +252,29 @@ static func redeem_ten() -> Array:
 	if not out.is_empty():
 		Cfg.title_tour = 1   # 新手十连做完：回主界面后聚光框引导 图鉴 → 返回 → 集结出发（screens/title_tour.gd）
 		Cfg.save()
+	return out
+
+
+## 十连寻访还差多少张凭证（够了 = 0）
+static func ten_short() -> int:
+	return maxi(0, COST_TEN - tickets())
+
+
+## 十连寻访可用：新手十连已做、凭证够 COST_TEN、未解锁的干员至少 TEN 名
+static func can_ten() -> bool:
+	return active() and not needs_first() and ten_short() == 0 and locked_ids().size() >= TEN
+
+
+## 十连寻访（10-28）：等于连续 TEN 次随机寻访（每次按 choose_hunt：缺的职业优先、同职业按权重），每次 COST_RANDOM 张、不重复。
+## 返回每一抽的结果（同 redeem_random，kind = "random"）；条件不满足返回 []，什么也不扣
+static func redeem_ten_hunt() -> Array:
+	if not can_ten():
+		return []
+	var out: Array = []
+	for _i in TEN:
+		var r := _result("random", choose_hunt(), COST_RANDOM)
+		if str(r.id) != "":
+			out.append(r)
 	return out
 
 

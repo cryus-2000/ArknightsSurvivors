@@ -89,7 +89,10 @@ var _zip_s := 0               # 上一帧的拉链档（档位变化时响一下
 var _bag_last := 0.0
 var _hum: AudioStreamPlayer   # 开口里的光：循环音，音量 / 音高跟开包进度（可逆）
 var _flip_n := 0              # 十人总览：已经响过翻卡声的张数（第 TEN 张之后再响一下收尾和弦）
-var ten := false          # 本次是新手十连（10-26：名册为空时入口只有「十连寻访」；揭示每人 TEN_OP_T 秒，最后一屏十人总览）
+var ten := false          # 本次是十连（结果屏用十人总览）
+var ten_first := false    # 新手十连（10-26：名册为空时入口只有「十连寻访」；揭示每人 TEN_OP_T 秒，最后一屏十人总览，完成回主界面）
+                          # 常规十连（10-28）：拉包光炸后直接进十人总览（不逐个揭示），最高稀有度排最后、单独落入，完成回寻访入口
+const TEN_HOLD := 0.45    # 常规十连：最后一张（最高稀有度）比前一张多等这么久再落入
 var pick_scroll := 0      # 指定干员列表：第一张可见卡的下标
 var _pdrag := {}          # 指定干员列表的拖动翻页：{x, scroll, act}
 var choices: Array = []   # 选职业：职业；选干员：干员 id
@@ -190,6 +193,7 @@ func open_browse() -> bool:
 func _entry() -> void:
 	results.clear()
 	ten = false
+	ten_first = false
 	if Roster.locked_ids().is_empty():
 		_spill()
 	if not browse and ((not _can_random() and not _can_direct()) or Roster.locked_ids().is_empty()):
@@ -259,7 +263,10 @@ func _play() -> void:
 		_summary()
 		return
 	if UM.rm():
-		_op(0)
+		if ten and not ten_first:
+			_summary()
+		else:
+			_op(0)
 		return
 	mode = "bag"
 	t0 = _now()
@@ -366,6 +373,7 @@ func _act(a) -> void:
 						Sfx.play("ui_ok")
 						results = Roster.redeem_ten()
 						ten = true
+						ten_first = true
 						_play()
 					else:
 						Sfx.play("ui_move", -4.0, 0.6)
@@ -377,7 +385,16 @@ func _act(a) -> void:
 				return
 			if a is int:
 				sel = a
-				a = "one" if a == 0 else "directed"
+				a = ["one", "directed", "ten"][a]
+			if a == "ten":
+				if Roster.can_ten():
+					Sfx.play("ui_ok")
+					results = _ten_order(Roster.redeem_ten_hunt())
+					ten = not results.is_empty()
+					_play()
+				else:
+					Sfx.play("ui_move", -4.0, 0.6)   # 凭证不够 / 未解锁不足 10 名：灰显按钮只响一声
+				return
 			if a == "one" and _can_random() and not Roster.locked_ids().is_empty():
 				Sfx.play("ui_ok")
 				var r := _redeem_random()
@@ -446,10 +463,14 @@ func _act(a) -> void:
 			elif a == "ok":
 				_tap()
 		"summary":
+			if a == "ok" and ten and not _sum_done():
+				_sum_finish()   # 十人总览还在落卡：先全部到位，再按一次才离开
+				return
 			if a == "ok":
 				Sfx.play("ui_ok")
-				if ten:
+				if ten_first:
 					ten = false
+					ten_first = false
 					open = false   # 新手十连看完总览直接回主界面（此时可以集结出发了）
 					return
 				_entry()
@@ -498,6 +519,8 @@ func input(event: InputEvent) -> bool:
 			return true
 		if mode == "op":
 			_tap()
+		elif mode == "summary" and ten and not _sum_done():
+			_sum_finish()
 		return true
 	if mode == "bag" and not _odrag.is_empty():
 		if event is InputEventMouseMotion or (event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
@@ -528,13 +551,15 @@ func input(event: InputEvent) -> bool:
 		if k == KEY_B and mode == "entry":
 			_act("buy")
 		elif k in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
-			_act(("one" if sel == 0 else "directed") if mode == "entry" else "ok")
+			_act(sel if mode == "entry" else "ok")
 		elif k == KEY_ESCAPE:
 			_act("skip" if mode in ["bag", "op"] else "back")
 		elif k in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_A, KEY_D, KEY_W, KEY_S]:
 			var d: int = {KEY_LEFT: -1, KEY_A: -1, KEY_RIGHT: 1, KEY_D: 1, KEY_UP: -4, KEY_W: -4, KEY_DOWN: 4, KEY_S: 4}[k]
 			if mode == "entry":
-				sel = clampi(sel - signi(d), 0, 1)
+				# 入口按钮从左到右：定向（1）/ 寻访一次（0）/ 十连（2）；新手十连只有一个
+				var row: Array = [0] if Roster.needs_first() else [1, 0, 2]
+				sel = row[clampi(row.find(sel) + signi(d), 0, row.size() - 1)]
 			elif mode == "class":
 				var n := sel
 				for _i in 8:
@@ -838,8 +863,10 @@ func _draw_entry() -> void:
 			HS.para(ci, rt.grow(4.0 + 3.0 * pa), Color(0, 0, 0, 0), UI.fa(Color.WHITE, 0.4 + 0.5 * pa), 2.0)
 		_btn(rt, 0)
 		return
-	var r1 := Rect2(620, D.y - 84, 300, 62)
-	var r0 := Rect2(940, D.y - 88, 310, 68)
+	# 底部三枚按钮，从左到右：定向 / 寻访一次 / 十连（10-28 用户加十连：价格 = 单次 × 10，不够时灰掉并写还差多少）
+	var r1 := Rect2(440, D.y - 84, 240, 62)
+	var r0 := Rect2(696, D.y - 88, 264, 68)
+	var r2 := Rect2(976, D.y - 88, 274, 68)
 	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
 	if not _can_direct() or locked.is_empty():
 		HS.para(ci, r1, Color(0, 0, 0, 0.55))
@@ -850,8 +877,16 @@ func _draw_entry() -> void:
 		HS.para(ci, r0, Color(0, 0, 0, 0.55))
 	elif _hot(0, r0):
 		HS.para(ci, r0.grow(4), Color(0, 0, 0, 0), Color.WHITE, 2.0)
+	HS.main_btn(ci, f, r2, "十连寻访  （%d 张）" % Roster.COST_TEN, "")
+	if not Roster.can_ten():
+		HS.para(ci, r2, Color(0, 0, 0, 0.55))
+		var why := "还差 %d 张寻访凭证" % Roster.ten_short() if Roster.ten_short() > 0 else "未解锁干员不足 %d 名" % Roster.TEN
+		UI.text_at(ci, f, Vector2(r2.get_center().x, r2.position.y - 14), why, 14, UI.fa(Color.WHITE, 0.75), "mm")
+	elif _hot(2, r2):
+		HS.para(ci, r2.grow(4), Color(0, 0, 0, 0), Color.WHITE, 2.0)
 	_btn(r1, 1)
 	_btn(r0, 0)
+	_btn(r2, 2)
 
 
 ## 用生机细胞兑换寻访凭证（用户 10-25：1 张 = Roster.TICKET_PRICE 个细胞，不设上限）：凭证数下面一枚按钮，细胞不够就灰掉并写还差多少
@@ -1140,6 +1175,11 @@ func _draw_bag() -> void:
 	var dt := clampf(_now() - _bag_last, 0.0, 0.1)
 	_bag_last = _now()
 	if _burst_t >= 0.0 and _now() - _burst_t >= 0.45:
+		if ten and not ten_first:
+			_summary()   # 常规十连：光炸后一屏展开十张（不逐个揭示）
+			HS.backdrop(g.hud, D)
+			_draw_summary10()
+			return
 		_op(0)
 		_draw_op()
 		return
@@ -1373,6 +1413,36 @@ func _stars(ci: CanvasItem, c: Vector2, n: int, r: float, col: Color, line: Colo
 const SUM_K := 2.6            # 十连总览的统一立绘倍数（每个 @2x 像素占的设计单位，手机 ×0.9）
 
 
+## 常规十连的出场顺序：按稀有度从低到高（同稀有度保持抽到的顺序），最高稀有度最后落入
+func _ten_order(rs: Array) -> Array:
+	var out: Array = []
+	for rar in range(1, 7):
+		for r in rs:
+			if Roster.rarity(str(r.id)) == rar:
+				out.append(r)
+	return out
+
+
+## 常规十连的最后一张单独强调（多等 TEN_HOLD 再落入）；新手十连照旧等间隔
+func _emph(i: int, n: int) -> bool:
+	return ten and not ten_first and n > 1 and i == n - 1
+
+
+## 第 i 张卡开始落入的时刻（相对总览开始）
+func _drop_at(i: int, n: int) -> float:
+	return 0.09 * i + (TEN_HOLD if _emph(i, n) else 0.0)
+
+
+func _sum_done() -> bool:
+	return UM.rm() or UM.skip_all() or _now() - t0 >= _drop_at(results.size() - 1, results.size()) + 1.1
+
+
+## 点一下：总览直接到终态（剩下的翻卡声不再补放）
+func _sum_finish() -> void:
+	t0 = _now() - (_drop_at(results.size() - 1, results.size()) + 1.1)
+	_flip_n = results.size() + 1
+
+
 func _draw_summary10() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
@@ -1410,10 +1480,12 @@ func _draw_summary10() -> void:
 	var np_h := _p(98.0, 86.0)
 	var k2 := SUM_K * (0.9 if _phone else 1.0)
 	# 翻卡声：每张落定时一下，音高逐张升；全部落定 0.3 秒后收尾和弦（只响一次）
-	while _flip_n < n and t - 0.09 * _flip_n >= 0.12:
+	while _flip_n < n and t - _drop_at(_flip_n, n) >= 0.12:
 		Sfx.play("hh_card", -8.0, 0.92 + 0.035 * _flip_n, 0.0)
+		if _emph(_flip_n, n):
+			Sfx.play("hh_star6", -9.0, 1.0, 0.0)   # 常规十连最后一张：落定时叠一串上行钟音
 		_flip_n += 1
-	if _flip_n == n and t >= 0.09 * n + 0.45:
+	if _flip_n == n and t >= _drop_at(n - 1, n) + 0.54:
 		_flip_n += 1
 		Sfx.play("hh_done", -6.0, 1.0, 0.0)
 	for i in n:
@@ -1421,9 +1493,15 @@ func _draw_summary10() -> void:
 		var od := _card(r.id)
 		var rar := Roster.rarity(r.id)
 		var rc := _rar_col(rar)
-		var lt := t - 0.09 * i
+		var lt := t - _drop_at(i, n)
 		var e := UM.out_cubic(lt / 0.45)
+		var emph := _emph(i, n)
 		if e <= 0.0:
+			if emph and t > _drop_at(i - 1, n) + 0.2:
+				# 最后一张落下之前：空位四角框呼吸，提示还有一张
+				var er := Rect2(x0 + i * (cw + gap), y0, cw, ch)
+				var pa := 0.6 if UM.rm() else 0.45 + 0.4 * sin(t * 14.0)
+				_brackets(er.grow(-6.0), UI.fa(rc, pa), 16.0, 2.0)
 			continue
 		var a := clampf(e * 1.5, 0.0, 1.0)
 		var rr := Rect2(x0 + i * (cw + gap), y0 - (1.0 - e) * 46.0, cw, ch)
@@ -1459,7 +1537,14 @@ func _draw_summary10() -> void:
 		ci.draw_rect(rr, UI.fa(rc, 0.5 * a), false, 1.0)
 		# 落入白闪；6★ 落定后斜向闪光扫过一次
 		if lt < 0.3:
-			ci.draw_rect(rr, UI.fa(Color.WHITE, (1.0 - lt / 0.3) * 0.55))
+			ci.draw_rect(rr, UI.fa(Color.WHITE, (1.0 - lt / 0.3) * (0.85 if emph else 0.55)))
+		if emph:
+			# 常规十连最后一张（最高稀有度）：外圈稀有度色描边常亮、缓慢呼吸，落定时向外扩一圈
+			var ga := 0.75 if UM.rm() else 0.55 + 0.3 * sin(t * 3.2)
+			ci.draw_rect(rr.grow(3.0), UI.fa(rc, ga * a), false, 2.0)
+			if lt > 0.3 and lt < 0.9:
+				var q := (lt - 0.3) / 0.6
+				ci.draw_rect(rr.grow(3.0 + 18.0 * UM.out_cubic(q)), UI.fa(rc, (1.0 - q) * 0.8), false, 2.0)
 		if lt > 0.45 and lt < 1.05:
 			var gx := lerpf(rr.position.x - 40.0, rr.end.x + 40.0, (lt - 0.45) / 0.6)
 			var gl := PackedVector2Array([Vector2(gx, rr.position.y), Vector2(gx + 18.0, rr.position.y), Vector2(gx - 22.0, rr.end.y - np_h), Vector2(gx - 40.0, rr.end.y - np_h)])

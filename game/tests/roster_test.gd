@@ -254,5 +254,31 @@ func run() -> void:
 	check(Cfg.roster_unlocked.has("lumen") and Roster.STARTERS.all(func(c): return Cfg.roster_unlocked.has(c)) and not Roster.needs_first(), "旧云档补开局 5 人：%s" % [Cfg.roster_unlocked])
 	reset()
 
+	# 10. 常规十连（10-28 用户）：= 10 次随机寻访（10 张、不打折）、不重复、按 choose_hunt 先补缺的职业；新手十连没做 / 凭证不够 /
+	# 未解锁不足 10 名不能十连、不扣
+	reset()
+	Cfg.roster_tickets = {"hunt": 12}
+	var locked0 := Roster.locked_ids().size()
+	var miss0 := Roster.locked_classes().filter(func(c): return not Roster.owned_classes().has(c)).size()
+	check(Roster.COST_TEN == 10 and Roster.can_ten() and Roster.ten_short() == 0, "十连价格 10 张、12 张时可用")
+	var th := Roster.redeem_ten_hunt()
+	var thids := {}
+	for r in th:
+		thids[r.id] = true
+	check(th.size() == 10 and thids.size() == 10 and Roster.tickets() == 2 and Cfg.roster_draws == 10, "十连：10 名不同干员、扣 10 张（剩 %d）" % Roster.tickets())
+	check(Roster.locked_ids().size() == locked0 - 10 and th.all(func(r): return Roster.is_unlocked(r.id) and r.kind == "random"), "十连 10 人全部入名册")
+	var newcls := th.filter(func(r): return r.new_class).size()
+	check(newcls == miss0, "十连先补齐缺的职业（新职业 %d / 缺 %d）" % [newcls, miss0])
+	check(Roster.ten_short() == 8 and not Roster.can_ten() and Roster.redeem_ten_hunt().is_empty() and Roster.tickets() == 2, "凭证不够：还差 8 张、不扣")
+	Cfg.roster_tickets = {"hunt": 30}
+	while Roster.locked_ids().size() >= 10:
+		Roster.redeem_random()
+	check(not Roster.can_ten() and Roster.redeem_ten_hunt().is_empty(), "未解锁不足 10 名（剩 %d）不能十连" % Roster.locked_ids().size())
+	reset()
+	Cfg.roster_unlocked = []
+	Cfg.roster_tickets = {"hunt": 20}
+	check(not Roster.can_ten() and Roster.redeem_ten_hunt().is_empty() and Roster.tickets() == 20, "新手十连之前常规十连不可用")
+	reset()
+
 	print("ROSTER failures=%d" % failures)
 	get_tree().quit(1 if failures > 0 else 0)
