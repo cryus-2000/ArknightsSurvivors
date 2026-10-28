@@ -1,0 +1,6600 @@
+{
+ "tag": "base",
+ "game": "/home/user/bench_ctrl_midspawn-wisadel/game",
+ "records": [
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 10,
+   "wall": 31.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.518,
+   "brk_time_share": 0.388,
+   "dmg": 14602.0,
+   "fight_t": 50.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s10_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 65.0,
+   "taken_pct": 0.505,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 11,
+   "wall": 30.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.439,
+   "brk_time_share": 0.337,
+   "dmg": 14602.0,
+   "fight_t": 53.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.987,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s11_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "skalter"
+   ],
+   "taken": 100.9,
+   "taken_pct": 0.7,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 12,
+   "wall": 27.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.851,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.204,
+   "brk_time_share": 0.273,
+   "dmg": 2177.0,
+   "fight_t": 22.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s12_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 202.2,
+   "taken_pct": 1.571,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 13,
+   "wall": 30.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.317,
+   "brk_time_share": 0.274,
+   "dmg": 14602.0,
+   "fight_t": 51.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s13_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "mizuki"
+   ],
+   "taken": 3.4,
+   "taken_pct": 0.026,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 14,
+   "wall": 28.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.464,
+   "brk_time_share": 0.357,
+   "dmg": 14602.0,
+   "fight_t": 45.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s14_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "lappland"
+   ],
+   "taken": 21.4,
+   "taken_pct": 0.166,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 15,
+   "wall": 28.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.413,
+   "brk_time_share": 0.314,
+   "dmg": 14602.0,
+   "fight_t": 54.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s15_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "texas"
+   ],
+   "taken": 21.8,
+   "taken_pct": 0.17,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 16,
+   "wall": 33.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.23,
+   "brk_time_share": 0.154,
+   "dmg": 14602.0,
+   "fight_t": 85.9,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s16_slot1",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "angelina"
+   ],
+   "taken": 159.1,
+   "taken_pct": 1.236,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 27.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.424,
+   "brk_time_share": 0.333,
+   "dmg": 14602.0,
+   "fight_t": 44.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.972,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s1_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "texas"
+   ],
+   "taken": 88.3,
+   "taken_pct": 0.686,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 22.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.415,
+   "brk_time_share": 0.323,
+   "dmg": 14602.0,
+   "fight_t": 39.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.953,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s2_slot1",
+   "squad": [
+    "wisadel",
+    "skalter",
+    "saria"
+   ],
+   "taken": 55.1,
+   "taken_pct": 0.428,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 26.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.498,
+   "brk_time_share": 0.324,
+   "dmg": 14602.0,
+   "fight_t": 40.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.977,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s3_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "texas"
+   ],
+   "taken": 63.4,
+   "taken_pct": 0.493,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 27.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.512,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.363,
+   "brk_time_share": 0.232,
+   "dmg": 7129.0,
+   "fight_t": 42.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s4_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "mizuki"
+   ],
+   "taken": 225.6,
+   "taken_pct": 1.753,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 25.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.343,
+   "brk_time_share": 0.305,
+   "dmg": 14602.0,
+   "fight_t": 49.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s5_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 33.4,
+   "taken_pct": 0.259,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.174,
+   "brk_time_share": 0.193,
+   "dmg": 14602.0,
+   "fight_t": 41.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s6_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 22.0,
+   "taken_pct": 0.171,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 7,
+   "wall": 25.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.401,
+   "brk_time_share": 0.308,
+   "dmg": 14602.0,
+   "fight_t": 35.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s7_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "logos"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 8,
+   "wall": 27.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.153,
+   "brk_time_share": 0.133,
+   "dmg": 14602.0,
+   "fight_t": 46.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s8_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "ulpianus"
+   ],
+   "taken": 7.9,
+   "taken_pct": 0.062,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 9,
+   "wall": 27.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12412.0,
+   "brk_dmg_share": 0.479,
+   "brk_time_share": 0.326,
+   "dmg": 12412.0,
+   "fight_t": 59.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.979,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s9_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 19.1,
+   "taken_pct": 0.149,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 10,
+   "wall": 28.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.34,
+   "brk_time_share": 0.28,
+   "dmg": 14743.0,
+   "fight_t": 59.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s10_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 75.5,
+   "taken_pct": 0.586,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 11,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.35,
+   "brk_time_share": 0.251,
+   "dmg": 14743.0,
+   "fight_t": 52.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.545,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s11_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "skalter"
+   ],
+   "taken": 196.1,
+   "taken_pct": 1.361,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 12,
+   "wall": 22.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.955,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 668.0,
+   "fight_t": 11.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s12_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 147.8,
+   "taken_pct": 1.149,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 13,
+   "wall": 25.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.404,
+   "brk_time_share": 0.302,
+   "dmg": 14743.0,
+   "fight_t": 59.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s13_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "mizuki"
+   ],
+   "taken": 10.9,
+   "taken_pct": 0.084,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 14,
+   "wall": 24.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.211,
+   "brk_time_share": 0.271,
+   "dmg": 14743.0,
+   "fight_t": 48.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s14_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "lappland"
+   ],
+   "taken": 37.6,
+   "taken_pct": 0.292,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 15,
+   "wall": 25.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.454,
+   "brk_time_share": 0.322,
+   "dmg": 14743.0,
+   "fight_t": 50.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.901,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s15_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "texas"
+   ],
+   "taken": 82.3,
+   "taken_pct": 0.64,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 16,
+   "wall": 24.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.728,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.513,
+   "brk_time_share": 0.2,
+   "dmg": 4010.0,
+   "fight_t": 31.3,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s16_slot1",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "angelina"
+   ],
+   "taken": 188.7,
+   "taken_pct": 1.467,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.489,
+   "brk_time_share": 0.334,
+   "dmg": 14743.0,
+   "fight_t": 47.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.953,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s1_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "texas"
+   ],
+   "taken": 105.0,
+   "taken_pct": 0.815,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 24.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.434,
+   "brk_time_share": 0.396,
+   "dmg": 14743.0,
+   "fight_t": 54.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s2_slot1",
+   "squad": [
+    "wisadel",
+    "skalter",
+    "saria"
+   ],
+   "taken": 147.2,
+   "taken_pct": 1.144,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 24.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.329,
+   "brk_time_share": 0.289,
+   "dmg": 14743.0,
+   "fight_t": 39.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s3_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "texas"
+   ],
+   "taken": 66.9,
+   "taken_pct": 0.52,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.475,
+   "brk_time_share": 0.363,
+   "dmg": 14743.0,
+   "fight_t": 60.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.803,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s4_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "mizuki"
+   ],
+   "taken": 149.5,
+   "taken_pct": 1.161,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 26.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.188,
+   "brk_time_share": 0.251,
+   "dmg": 14743.0,
+   "fight_t": 62.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s5_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 20.5,
+   "taken_pct": 0.159,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 24.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.257,
+   "brk_time_share": 0.205,
+   "dmg": 14743.0,
+   "fight_t": 44.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s6_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 71.0,
+   "taken_pct": 0.552,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 7,
+   "wall": 23.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.387,
+   "brk_time_share": 0.231,
+   "dmg": 14743.0,
+   "fight_t": 29.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s7_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "logos"
+   ],
+   "taken": 11.8,
+   "taken_pct": 0.092,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 8,
+   "wall": 26.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.243,
+   "brk_time_share": 0.209,
+   "dmg": 14743.0,
+   "fight_t": 46.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s8_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "ulpianus"
+   ],
+   "taken": 18.3,
+   "taken_pct": 0.142,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 9,
+   "wall": 25.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12531.0,
+   "brk_dmg_share": 0.318,
+   "brk_time_share": 0.289,
+   "dmg": 12531.0,
+   "fight_t": 58.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s9_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 69.5,
+   "taken_pct": 0.54,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 10,
+   "wall": 29.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.392,
+   "brk_time_share": 0.322,
+   "dmg": 24355.0,
+   "fight_t": 55.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s10_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 68.5,
+   "taken_pct": 0.533,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 11,
+   "wall": 25.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.149,
+   "brk_time_share": 0.123,
+   "dmg": 24355.0,
+   "fight_t": 43.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.686,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s11_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "skalter"
+   ],
+   "taken": 241.5,
+   "taken_pct": 1.863,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 12,
+   "wall": 27.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.345,
+   "brk_time_share": 0.215,
+   "dmg": 24355.0,
+   "fight_t": 48.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 169.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s12_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 92.2,
+   "taken_pct": 0.546,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 13,
+   "wall": 28.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.446,
+   "brk_time_share": 0.3,
+   "dmg": 24355.0,
+   "fight_t": 71.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s13_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "mizuki"
+   ],
+   "taken": 26.2,
+   "taken_pct": 0.226,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 14,
+   "wall": 25.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.462,
+   "brk_time_share": 0.304,
+   "dmg": 24355.0,
+   "fight_t": 52.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s14_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "lappland"
+   ],
+   "taken": 19.1,
+   "taken_pct": 0.149,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 15,
+   "wall": 34.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.391,
+   "brk_time_share": 0.222,
+   "dmg": 24355.0,
+   "fight_t": 82.5,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s15_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "texas"
+   ],
+   "taken": 362.6,
+   "taken_pct": 2.817,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 16,
+   "wall": 28.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.374,
+   "brk_time_share": 0.206,
+   "dmg": 24355.0,
+   "fight_t": 59.0,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s16_slot2",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "angelina"
+   ],
+   "taken": 6.1,
+   "taken_pct": 0.047,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 25.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19971.0,
+   "brk_dmg_share": 0.419,
+   "brk_time_share": 0.252,
+   "dmg": 19971.0,
+   "fight_t": 40.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.993,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "texas"
+   ],
+   "taken": 54.0,
+   "taken_pct": 0.388,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 24.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19971.0,
+   "brk_dmg_share": 0.41,
+   "brk_time_share": 0.202,
+   "dmg": 19971.0,
+   "fight_t": 44.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s2_slot2",
+   "squad": [
+    "wisadel",
+    "skalter",
+    "saria"
+   ],
+   "taken": 44.1,
+   "taken_pct": 0.342,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 30.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.349,
+   "brk_time_share": 0.247,
+   "dmg": 24355.0,
+   "fight_t": 71.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 168.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s3_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "texas"
+   ],
+   "taken": 138.5,
+   "taken_pct": 0.826,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 28.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.379,
+   "brk_time_share": 0.271,
+   "dmg": 24355.0,
+   "fight_t": 66.7,
+   "fp_diff": [
+    "mods.arts_dmg: 缺 [] 多 [\"1|0.4|relic:68|\"]",
+    "relics.68: 多 1.0",
+    "stats.arts_mult: 1.2 -> 1.6"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 169.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s4_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "mizuki"
+   ],
+   "taken": 62.9,
+   "taken_pct": 0.47,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 28.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.314,
+   "brk_time_share": 0.219,
+   "dmg": 24355.0,
+   "fight_t": 53.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s5_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 18.2,
+   "taken_pct": 0.158,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 33.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.554,
+   "brk_time_share": 0.27,
+   "dmg": 24355.0,
+   "fight_t": 73.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.995,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 120.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s6_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 291.9,
+   "taken_pct": 2.424,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 7,
+   "wall": 22.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19971.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 19971.0,
+   "fight_t": 18.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.984,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 196.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s7_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "logos"
+   ],
+   "taken": 29.8,
+   "taken_pct": 0.232,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 8,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.333,
+   "brk_time_share": 0.213,
+   "dmg": 24355.0,
+   "fight_t": 40.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 100.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s8_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "ulpianus"
+   ],
+   "taken": 38.2,
+   "taken_pct": 0.344,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 9,
+   "wall": 36.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20702.0,
+   "brk_dmg_share": 0.44,
+   "brk_time_share": 0.313,
+   "dmg": 20702.0,
+   "fight_t": 103.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 122.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s9_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 233.6,
+   "taken_pct": 1.815,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 10,
+   "wall": 33.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.534,
+   "brk_time_share": 0.296,
+   "dmg": 33417.0,
+   "fight_t": 74.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s10_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 156.1,
+   "taken_pct": 1.213,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 11,
+   "wall": 28.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.55,
+   "brk_time_share": 0.342,
+   "dmg": 22278.0,
+   "fight_t": 35.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.616,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s11_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "skalter"
+   ],
+   "taken": 70.0,
+   "taken_pct": 0.54,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 12,
+   "wall": 26.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.502,
+   "brk_time_share": 0.338,
+   "dmg": 22278.0,
+   "fight_t": 42.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 169.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s12_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 175.7,
+   "taken_pct": 1.04,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 13,
+   "wall": 31.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.182,
+   "brk_time_share": 0.056,
+   "dmg": 26981.0,
+   "fight_t": 61.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s13_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "mizuki"
+   ],
+   "taken": 89.9,
+   "taken_pct": 0.776,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 14,
+   "wall": 28.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.595,
+   "brk_time_share": 0.329,
+   "dmg": 22278.0,
+   "fight_t": 50.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s14_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "lappland"
+   ],
+   "taken": 31.7,
+   "taken_pct": 0.246,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 15,
+   "wall": 34.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.667,
+   "brk_time_share": 0.319,
+   "dmg": 22278.0,
+   "fight_t": 70.4,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 0.765,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s15_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "texas"
+   ],
+   "taken": 475.5,
+   "taken_pct": 3.695,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 16,
+   "wall": 27.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.147,
+   "brk_time_share": 0.064,
+   "dmg": 26040.0,
+   "fight_t": 53.7,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s16_slot2",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "angelina"
+   ],
+   "taken": 34.0,
+   "taken_pct": 0.264,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18268.0,
+   "brk_dmg_share": 0.584,
+   "brk_time_share": 0.335,
+   "dmg": 18268.0,
+   "fight_t": 38.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "texas"
+   ],
+   "taken": 3.5,
+   "taken_pct": 0.025,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18268.0,
+   "brk_dmg_share": 0.64,
+   "brk_time_share": 0.319,
+   "dmg": 18268.0,
+   "fight_t": 39.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s2_slot2",
+   "squad": [
+    "wisadel",
+    "skalter",
+    "saria"
+   ],
+   "taken": 48.8,
+   "taken_pct": 0.379,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 31.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.498,
+   "brk_time_share": 0.303,
+   "dmg": 22278.0,
+   "fight_t": 62.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.5,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 181.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s3_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "texas"
+   ],
+   "taken": 241.2,
+   "taken_pct": 1.438,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 33.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.27,
+   "brk_time_share": 0.081,
+   "dmg": 28862.0,
+   "fight_t": 79.4,
+   "fp_diff": [
+    "mods.arts_dmg: 缺 [] 多 [\"1|0.4|relic:68|\"]",
+    "relics.68: 多 1.0",
+    "stats.arts_mult: 1.2 -> 1.6"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 149.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s4_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "mizuki"
+   ],
+   "taken": 116.6,
+   "taken_pct": 0.871,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 27.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.594,
+   "brk_time_share": 0.324,
+   "dmg": 22278.0,
+   "fight_t": 44.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s5_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 62.2,
+   "taken_pct": 0.537,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 37.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.164,
+   "brk_time_share": 0.076,
+   "dmg": 28862.0,
+   "fight_t": 90.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 120.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s6_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 293.7,
+   "taken_pct": 2.438,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 7,
+   "wall": 23.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18268.0,
+   "brk_dmg_share": 0.653,
+   "brk_time_share": 0.364,
+   "dmg": 18268.0,
+   "fight_t": 16.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.627,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 135.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s7_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "logos"
+   ],
+   "taken": 55.8,
+   "taken_pct": 0.434,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 8,
+   "wall": 30.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 26981.0,
+   "fight_t": 51.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 100.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s8_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "ulpianus"
+   ],
+   "taken": 36.9,
+   "taken_pct": 0.333,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 9,
+   "wall": 34.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18936.0,
+   "brk_dmg_share": 0.656,
+   "brk_time_share": 0.308,
+   "dmg": 23407.0,
+   "fight_t": 72.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s9_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 106.3,
+   "taken_pct": 0.826,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 10,
+   "wall": 33.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.436,
+   "brk_time_share": 0.272,
+   "dmg": 19184.0,
+   "fight_t": 60.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s10_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 111.1,
+   "taken_pct": 0.863,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 11,
+   "wall": 27.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.304,
+   "brk_time_share": 0.208,
+   "dmg": 19184.0,
+   "fight_t": 31.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.419,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s11_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "skalter"
+   ],
+   "taken": 157.1,
+   "taken_pct": 1.212,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 12,
+   "wall": 26.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.486,
+   "brk_time_share": 0.246,
+   "dmg": 19184.0,
+   "fight_t": 38.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.918,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 169.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s12_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 68.2,
+   "taken_pct": 0.404,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 13,
+   "wall": 29.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.086,
+   "brk_time_share": 0.05,
+   "dmg": 23342.0,
+   "fight_t": 60.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s13_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "mizuki"
+   ],
+   "taken": 61.4,
+   "taken_pct": 0.53,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 14,
+   "wall": 30.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.551,
+   "brk_time_share": 0.284,
+   "dmg": 19184.0,
+   "fight_t": 55.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s14_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "lappland"
+   ],
+   "taken": 17.5,
+   "taken_pct": 0.136,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 15,
+   "wall": 31.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.545,
+   "brk_time_share": 0.289,
+   "dmg": 19184.0,
+   "fight_t": 44.8,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s15_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "texas"
+   ],
+   "taken": 225.5,
+   "taken_pct": 1.752,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 16,
+   "wall": 28.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 24035.0,
+   "fight_t": 62.4,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.937,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s16_slot2",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "angelina"
+   ],
+   "taken": 106.8,
+   "taken_pct": 0.83,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 25.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 15731.0,
+   "brk_dmg_share": 0.382,
+   "brk_time_share": 0.226,
+   "dmg": 15731.0,
+   "fight_t": 28.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "texas"
+   ],
+   "taken": 5.2,
+   "taken_pct": 0.038,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 26.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 15731.0,
+   "brk_dmg_share": 0.362,
+   "brk_time_share": 0.179,
+   "dmg": 19283.0,
+   "fight_t": 44.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s2_slot2",
+   "squad": [
+    "wisadel",
+    "skalter",
+    "saria"
+   ],
+   "taken": 24.1,
+   "taken_pct": 0.187,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 31.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.443,
+   "brk_time_share": 0.254,
+   "dmg": 19184.0,
+   "fight_t": 63.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 168.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s3_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "texas"
+   ],
+   "taken": 185.8,
+   "taken_pct": 1.108,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 35.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 25421.0,
+   "fight_t": 77.0,
+   "fp_diff": [
+    "mods.arts_dmg: 缺 [] 多 [\"1|0.4|relic:68|\"]",
+    "relics.68: 多 1.0",
+    "stats.arts_mult: 1.2 -> 1.6"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 195.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s4_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "mizuki"
+   ],
+   "taken": 89.8,
+   "taken_pct": 0.671,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 26.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.467,
+   "brk_time_share": 0.232,
+   "dmg": 19184.0,
+   "fight_t": 40.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s5_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 14.4,
+   "taken_pct": 0.125,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 36.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 25421.0,
+   "fight_t": 71.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 120.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s6_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 334.7,
+   "taken_pct": 2.779,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 7,
+   "wall": 26.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 15731.0,
+   "brk_dmg_share": 0.099,
+   "brk_time_share": 0.117,
+   "dmg": 15731.0,
+   "fight_t": 25.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 135.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s7_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "logos"
+   ],
+   "taken": 7.9,
+   "taken_pct": 0.061,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 8,
+   "wall": 29.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 21956.0,
+   "fight_t": 44.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 100.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s8_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "ulpianus"
+   ],
+   "taken": 131.4,
+   "taken_pct": 1.184,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 9,
+   "wall": 36.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 16306.0,
+   "brk_dmg_share": 0.554,
+   "brk_time_share": 0.254,
+   "dmg": 19988.0,
+   "fight_t": 76.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s9_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 108.5,
+   "taken_pct": 0.843,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 10,
+   "wall": 30.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.412,
+   "brk_time_share": 0.335,
+   "dmg": 14602.0,
+   "fight_t": 62.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 169.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s10_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 25.0,
+   "taken_pct": 0.156,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 11,
+   "wall": 29.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.441,
+   "brk_time_share": 0.287,
+   "dmg": 14602.0,
+   "fight_t": 49.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.658,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 193.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s11_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "angelina"
+   ],
+   "taken": 172.1,
+   "taken_pct": 0.89,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 12,
+   "wall": 30.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.489,
+   "brk_time_share": 0.301,
+   "dmg": 14602.0,
+   "fight_t": 41.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s12_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "lappland"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 13,
+   "wall": 30.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.391,
+   "brk_time_share": 0.327,
+   "dmg": 14602.0,
+   "fight_t": 53.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s13_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "exusiai"
+   ],
+   "taken": 69.4,
+   "taken_pct": 0.539,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 14,
+   "wall": 26.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.381,
+   "brk_time_share": 0.285,
+   "dmg": 14602.0,
+   "fight_t": 38.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s14_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "specter_unchained"
+   ],
+   "taken": 26.1,
+   "taken_pct": 0.202,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 15,
+   "wall": 33.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.447,
+   "brk_time_share": 0.342,
+   "dmg": 14602.0,
+   "fight_t": 69.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s15_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 156.3,
+   "taken_pct": 1.619,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 16,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.228,
+   "brk_time_share": 0.154,
+   "dmg": 14602.0,
+   "fight_t": 38.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s16_slot1",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "gladiia"
+   ],
+   "taken": 38.6,
+   "taken_pct": 0.3,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 27.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.401,
+   "brk_time_share": 0.323,
+   "dmg": 14602.0,
+   "fight_t": 44.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s1_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "taken": 43.5,
+   "taken_pct": 0.338,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 27.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.332,
+   "brk_time_share": 0.303,
+   "dmg": 14602.0,
+   "fight_t": 49.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s2_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "saria"
+   ],
+   "taken": 29.8,
+   "taken_pct": 0.232,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 25.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.407,
+   "brk_time_share": 0.346,
+   "dmg": 14602.0,
+   "fight_t": 47.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s3_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 4.3,
+   "taken_pct": 0.031,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 35.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.417,
+   "brk_time_share": 0.356,
+   "dmg": 15041.0,
+   "fight_t": 78.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s4_slot1",
+   "squad": [
+    "wisadel",
+    "siege",
+    "saria"
+   ],
+   "taken": 322.5,
+   "taken_pct": 2.506,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 26.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.48,
+   "brk_time_share": 0.337,
+   "dmg": 14602.0,
+   "fight_t": 38.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s5_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "skalter"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 25.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.292,
+   "brk_time_share": 0.24,
+   "dmg": 14602.0,
+   "fight_t": 47.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 162.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s6_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 39.0,
+   "taken_pct": 0.241,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 7,
+   "wall": 30.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.418,
+   "brk_time_share": 0.326,
+   "dmg": 15041.0,
+   "fight_t": 72.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.69,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s7_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "siege"
+   ],
+   "taken": 216.1,
+   "taken_pct": 1.679,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 8,
+   "wall": 21.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.885,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.194,
+   "dmg": 1683.0,
+   "fight_t": 9.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m18_s8_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "ulpianus"
+   ],
+   "taken": 138.2,
+   "taken_pct": 1.074,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 9,
+   "wall": 26.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14602.0,
+   "brk_dmg_share": 0.414,
+   "brk_time_share": 0.311,
+   "dmg": 14602.0,
+   "fight_t": 53.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 134.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s9_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 10,
+   "wall": 26.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.498,
+   "brk_time_share": 0.295,
+   "dmg": 14743.0,
+   "fight_t": 59.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 169.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s10_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 104.6,
+   "taken_pct": 0.65,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 11,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.255,
+   "brk_time_share": 0.192,
+   "dmg": 14743.0,
+   "fight_t": 39.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.921,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 193.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s11_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "angelina"
+   ],
+   "taken": 90.0,
+   "taken_pct": 0.465,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 12,
+   "wall": 25.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.349,
+   "brk_time_share": 0.225,
+   "dmg": 14743.0,
+   "fight_t": 30.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s12_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "lappland"
+   ],
+   "taken": 12.5,
+   "taken_pct": 0.097,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 13,
+   "wall": 24.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.436,
+   "brk_time_share": 0.283,
+   "dmg": 14743.0,
+   "fight_t": 45.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s13_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "exusiai"
+   ],
+   "taken": 58.4,
+   "taken_pct": 0.454,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 14,
+   "wall": 23.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.259,
+   "brk_time_share": 0.223,
+   "dmg": 14743.0,
+   "fight_t": 31.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s14_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "specter_unchained"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 15,
+   "wall": 29.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.485,
+   "brk_time_share": 0.291,
+   "dmg": 14743.0,
+   "fight_t": 73.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s15_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 311.6,
+   "taken_pct": 3.228,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 16,
+   "wall": 27.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.302,
+   "brk_time_share": 0.26,
+   "dmg": 14743.0,
+   "fight_t": 57.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.936,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s16_slot1",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "gladiia"
+   ],
+   "taken": 166.8,
+   "taken_pct": 1.296,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.398,
+   "brk_time_share": 0.369,
+   "dmg": 14743.0,
+   "fight_t": 44.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.832,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s1_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "taken": 83.9,
+   "taken_pct": 0.652,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 25.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.541,
+   "brk_time_share": 0.334,
+   "dmg": 14743.0,
+   "fight_t": 50.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s2_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "saria"
+   ],
+   "taken": 25.1,
+   "taken_pct": 0.195,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 24.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.3,
+   "brk_time_share": 0.23,
+   "dmg": 14743.0,
+   "fight_t": 54.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s3_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 35.4,
+   "taken_pct": 0.25,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 31.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.436,
+   "brk_time_share": 0.363,
+   "dmg": 14743.0,
+   "fight_t": 87.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.915,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s4_slot1",
+   "squad": [
+    "wisadel",
+    "siege",
+    "saria"
+   ],
+   "taken": 329.1,
+   "taken_pct": 2.557,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 24.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.461,
+   "brk_time_share": 0.23,
+   "dmg": 14743.0,
+   "fight_t": 31.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s5_slot1",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "skalter"
+   ],
+   "taken": 25.1,
+   "taken_pct": 0.195,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 27.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.376,
+   "brk_time_share": 0.281,
+   "dmg": 14743.0,
+   "fight_t": 50.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 162.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s6_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 40.1,
+   "taken_pct": 0.248,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 7,
+   "wall": 39.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.231,
+   "brk_time_share": 0.372,
+   "dmg": 14743.0,
+   "fight_t": 169.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.626,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 148.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s7_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "siege"
+   ],
+   "taken": 328.7,
+   "taken_pct": 2.554,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 8,
+   "wall": 21.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.864,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 2011.0,
+   "fight_t": 13.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 12,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m18_s8_slot1",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "ulpianus"
+   ],
+   "taken": 165.5,
+   "taken_pct": 1.286,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 9,
+   "wall": 25.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14743.0,
+   "brk_dmg_share": 0.401,
+   "brk_time_share": 0.29,
+   "dmg": 14743.0,
+   "fight_t": 49.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 134.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s9_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 11.8,
+   "taken_pct": 0.092,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 10,
+   "wall": 29.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.486,
+   "brk_time_share": 0.298,
+   "dmg": 24355.0,
+   "fight_t": 66.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 145.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s10_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 33.4,
+   "taken_pct": 0.231,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 11,
+   "wall": 23.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.093,
+   "brk_time_share": 0.09,
+   "dmg": 24355.0,
+   "fight_t": 29.2,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.805,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 201.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s11_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "angelina"
+   ],
+   "taken": 52.7,
+   "taken_pct": 0.272,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 12,
+   "wall": 26.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.561,
+   "brk_time_share": 0.31,
+   "dmg": 24355.0,
+   "fight_t": 56.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s12_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "lappland"
+   ],
+   "taken": 56.1,
+   "taken_pct": 0.436,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 13,
+   "wall": 23.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20702.0,
+   "brk_dmg_share": 0.476,
+   "brk_time_share": 0.224,
+   "dmg": 20702.0,
+   "fight_t": 40.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s13_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "exusiai"
+   ],
+   "taken": 51.8,
+   "taken_pct": 0.402,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 14,
+   "wall": 20.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.165,
+   "brk_time_share": 0.099,
+   "dmg": 24355.0,
+   "fight_t": 26.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.462,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s14_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "specter_unchained"
+   ],
+   "taken": 96.6,
+   "taken_pct": 0.75,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 15,
+   "wall": 33.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.599,
+   "brk_time_share": 0.278,
+   "dmg": 24355.0,
+   "fight_t": 92.9,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 0.995,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s15_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 356.8,
+   "taken_pct": 3.697,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 16,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.559,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.316,
+   "brk_time_share": 0.216,
+   "dmg": 10741.0,
+   "fight_t": 25.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "wisadel_m18_s16_slot2",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "gladiia"
+   ],
+   "taken": 155.9,
+   "taken_pct": 1.616,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 28.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.34,
+   "brk_time_share": 0.228,
+   "dmg": 24355.0,
+   "fight_t": 50.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "taken": 70.7,
+   "taken_pct": 0.549,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 35.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.38,
+   "brk_time_share": 0.264,
+   "dmg": 24355.0,
+   "fight_t": 87.8,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s2_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "saria"
+   ],
+   "taken": 133.8,
+   "taken_pct": 1.039,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 37.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.392,
+   "brk_time_share": 0.268,
+   "dmg": 24355.0,
+   "fight_t": 76.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s3_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 236.0,
+   "taken_pct": 1.666,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 32.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.436,
+   "brk_time_share": 0.304,
+   "dmg": 24355.0,
+   "fight_t": 74.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 122.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s4_slot2",
+   "squad": [
+    "wisadel",
+    "siege",
+    "saria"
+   ],
+   "taken": 73.6,
+   "taken_pct": 0.602,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 23.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.178,
+   "brk_time_share": 0.082,
+   "dmg": 24355.0,
+   "fight_t": 21.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.603,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s5_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "skalter"
+   ],
+   "taken": 134.8,
+   "taken_pct": 1.047,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.28,
+   "brk_time_share": 0.211,
+   "dmg": 24355.0,
+   "fight_t": 54.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 162.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s6_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 87.4,
+   "taken_pct": 0.541,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 7,
+   "wall": 30.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.487,
+   "brk_time_share": 0.307,
+   "dmg": 24355.0,
+   "fight_t": 72.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 134.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s7_slot2",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "siege"
+   ],
+   "taken": 115.7,
+   "taken_pct": 0.864,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 8,
+   "wall": 24.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.267,
+   "brk_time_share": 0.226,
+   "dmg": 24355.0,
+   "fight_t": 35.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.951,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 120.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s8_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "ulpianus"
+   ],
+   "taken": 41.6,
+   "taken_pct": 0.345,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 9,
+   "wall": 27.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.636,
+   "boss_maxhp": 24355.0,
+   "brk_dmg_share": 0.436,
+   "brk_time_share": 0.258,
+   "dmg": 8876.0,
+   "fight_t": 38.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "wisadel_m18_s9_slot2",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 161.6,
+   "taken_pct": 1.395,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 10,
+   "wall": 30.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.538,
+   "brk_time_share": 0.281,
+   "dmg": 22278.0,
+   "fight_t": 56.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 145.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s10_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 36.6,
+   "taken_pct": 0.253,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 11,
+   "wall": 22.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.544,
+   "brk_time_share": 0.348,
+   "dmg": 22278.0,
+   "fight_t": 22.6,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.981,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 201.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s11_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "angelina"
+   ],
+   "taken": 2.2,
+   "taken_pct": 0.012,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 12,
+   "wall": 29.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.689,
+   "brk_time_share": 0.337,
+   "dmg": 22278.0,
+   "fight_t": 47.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.297,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s12_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "lappland"
+   ],
+   "taken": 123.2,
+   "taken_pct": 0.957,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 13,
+   "wall": 25.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18936.0,
+   "brk_dmg_share": 0.51,
+   "brk_time_share": 0.277,
+   "dmg": 18936.0,
+   "fight_t": 34.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s13_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "exusiai"
+   ],
+   "taken": 2.2,
+   "taken_pct": 0.017,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 14,
+   "wall": 23.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.461,
+   "brk_time_share": 0.351,
+   "dmg": 22278.0,
+   "fight_t": 26.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.959,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s14_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "specter_unchained"
+   ],
+   "taken": 29.1,
+   "taken_pct": 0.226,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 15,
+   "wall": 35.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.585,
+   "brk_time_share": 0.321,
+   "dmg": 22278.0,
+   "fight_t": 68.6,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s15_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 283.3,
+   "taken_pct": 2.935,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 16,
+   "wall": 30.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 26981.0,
+   "fight_t": 49.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s16_slot2",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "gladiia"
+   ],
+   "taken": 12.3,
+   "taken_pct": 0.128,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 27.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.561,
+   "brk_time_share": 0.317,
+   "dmg": 22278.0,
+   "fight_t": 34.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "taken": 55.2,
+   "taken_pct": 0.429,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 31.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.554,
+   "brk_time_share": 0.298,
+   "dmg": 22278.0,
+   "fight_t": 63.8,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 155.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s2_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "saria"
+   ],
+   "taken": 145.4,
+   "taken_pct": 1.13,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 33.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.266,
+   "brk_time_share": 0.146,
+   "dmg": 22278.0,
+   "fight_t": 62.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s3_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 180.0,
+   "taken_pct": 1.27,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 30.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.631,
+   "brk_time_share": 0.345,
+   "dmg": 22278.0,
+   "fight_t": 64.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 127.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s4_slot2",
+   "squad": [
+    "wisadel",
+    "siege",
+    "saria"
+   ],
+   "taken": 121.9,
+   "taken_pct": 0.997,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 26.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.607,
+   "brk_time_share": 0.339,
+   "dmg": 22278.0,
+   "fight_t": 19.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s5_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "skalter"
+   ],
+   "taken": 16.3,
+   "taken_pct": 0.126,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 29.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.262,
+   "brk_time_share": 0.108,
+   "dmg": 26981.0,
+   "fight_t": 60.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 162.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s6_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 85.1,
+   "taken_pct": 0.527,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 7,
+   "wall": 27.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.555,
+   "brk_time_share": 0.314,
+   "dmg": 22278.0,
+   "fight_t": 50.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 134.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s7_slot2",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "siege"
+   ],
+   "taken": 38.0,
+   "taken_pct": 0.284,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 8,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.29,
+   "brk_time_share": 0.1,
+   "dmg": 25100.0,
+   "fight_t": 34.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.359,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 120.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s8_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "ulpianus"
+   ],
+   "taken": 114.9,
+   "taken_pct": 0.953,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 9,
+   "wall": 32.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 22278.0,
+   "brk_dmg_share": 0.467,
+   "brk_time_share": 0.302,
+   "dmg": 22278.0,
+   "fight_t": 65.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.591,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 145.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s9_slot2",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 136.6,
+   "taken_pct": 1.18,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 10,
+   "wall": 31.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.556,
+   "brk_time_share": 0.272,
+   "dmg": 19184.0,
+   "fight_t": 57.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 145.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s10_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 120.2,
+   "taken_pct": 0.831,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 11,
+   "wall": 24.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.466,
+   "brk_time_share": 0.217,
+   "dmg": 19184.0,
+   "fight_t": 29.8,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.975,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 201.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s11_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "angelina"
+   ],
+   "taken": 27.6,
+   "taken_pct": 0.143,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 12,
+   "wall": 27.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.464,
+   "brk_time_share": 0.268,
+   "dmg": 19184.0,
+   "fight_t": 46.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s12_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "lappland"
+   ],
+   "taken": 41.7,
+   "taken_pct": 0.324,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 13,
+   "wall": 25.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 16306.0,
+   "brk_dmg_share": 0.531,
+   "brk_time_share": 0.282,
+   "dmg": 16306.0,
+   "fight_t": 33.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s13_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "exusiai"
+   ],
+   "taken": 22.5,
+   "taken_pct": 0.175,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 14,
+   "wall": 24.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.23,
+   "brk_time_share": 0.151,
+   "dmg": 23515.0,
+   "fight_t": 42.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s14_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "specter_unchained"
+   ],
+   "taken": 16.5,
+   "taken_pct": 0.128,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 15,
+   "wall": 24.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.691,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.603,
+   "brk_time_share": 0.21,
+   "dmg": 5931.0,
+   "fight_t": 28.9,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 19,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "wisadel_m18_s15_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "saria"
+   ],
+   "taken": 253.3,
+   "taken_pct": 2.624,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 16,
+   "wall": 28.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 22649.0,
+   "fight_t": 44.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 97.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s16_slot2",
+   "squad": [
+    "wisadel",
+    "mizuki",
+    "gladiia"
+   ],
+   "taken": 87.8,
+   "taken_pct": 0.91,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 26.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.459,
+   "brk_time_share": 0.147,
+   "dmg": 23515.0,
+   "fight_t": 44.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "taken": 101.3,
+   "taken_pct": 0.787,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 33.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.548,
+   "brk_time_share": 0.281,
+   "dmg": 19184.0,
+   "fight_t": 69.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s2_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "saria"
+   ],
+   "taken": 83.1,
+   "taken_pct": 0.646,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 35.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.51,
+   "brk_time_share": 0.227,
+   "dmg": 23515.0,
+   "fight_t": 72.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 207.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s3_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 168.4,
+   "taken_pct": 1.188,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 31.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.588,
+   "brk_time_share": 0.273,
+   "dmg": 19184.0,
+   "fight_t": 47.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.915,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 122.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s4_slot2",
+   "squad": [
+    "wisadel",
+    "siege",
+    "saria"
+   ],
+   "taken": 114.6,
+   "taken_pct": 0.937,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 25.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.232,
+   "brk_time_share": 0.249,
+   "dmg": 19184.0,
+   "fight_t": 22.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s5_slot2",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "skalter"
+   ],
+   "taken": 3.6,
+   "taken_pct": 0.028,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 30.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.142,
+   "brk_time_share": 0.062,
+   "dmg": 23342.0,
+   "fight_t": 53.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.993,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 162.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s6_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "mizuki"
+   ],
+   "taken": 39.7,
+   "taken_pct": 0.246,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 7,
+   "wall": 29.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.522,
+   "brk_time_share": 0.258,
+   "dmg": 19184.0,
+   "fight_t": 50.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 134.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s7_slot2",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "siege"
+   ],
+   "taken": 43.3,
+   "taken_pct": 0.324,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 8,
+   "wall": 26.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.26,
+   "brk_time_share": 0.11,
+   "dmg": 20570.0,
+   "fight_t": 27.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.44,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 120.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s8_slot2",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "ulpianus"
+   ],
+   "taken": 93.5,
+   "taken_pct": 0.776,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 9,
+   "wall": 38.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 19184.0,
+   "brk_dmg_share": 0.645,
+   "brk_time_share": 0.232,
+   "dmg": 23515.0,
+   "fight_t": 82.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.794,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s9_slot2",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 127.9,
+   "taken_pct": 1.104,
+   "win": true
+  }
+ ]
+}

@@ -1,0 +1,293 @@
+80 局（path, carmen, iberia, bishop+archon, bishop+immortal）
+path             wisadel    m0  s12    26s  dead 20s 承伤124% 破绽输出35%
+path             wisadel    m0  s10    31s  dead 39s 承伤175% 破绽输出39%
+path             wisadel    m0  s11    36s  dead 65s 承伤174% 破绽输出44%
+path             wisadel    m0  s13    43s  win 94s 承伤99% 破绽输出24%
+path             wisadel    m0  s14    34s  win 75s 承伤40% 破绽输出38%
+path             wisadel    m0  s16    29s  dead 34s 承伤164% 破绽输出41%
+path             wisadel    m0  s15    35s  win 71s 承伤186% 破绽输出37%
+path             wisadel    m0  s1     31s  win 53s 承伤58% 破绽输出41%
+path             wisadel    m0  s2     27s  win 50s 承伤14% 破绽输出36%
+path             wisadel    m0  s4     29s  dead 41s 承伤185% 破绽输出41%
+path             wisadel    m0  s3     31s  win 53s 承伤141% 破绽输出45%
+path             wisadel    m0  s5     38s  win 86s 承伤104% 破绽输出41%
+path             wisadel    m0  s6     32s  win 68s 承伤132% 破绽输出28%
+path             wisadel    m0  s7     29s  win 39s 承伤11% 破绽输出42%
+path             wisadel    m0  s8     32s  win 61s 承伤104% 破绽输出31%
+path             wisadel    m0  s9     34s  win 77s 承伤136% 破绽输出47%
+carmen           wisadel    m0  s12    22s  dead 13s 承伤138% 破绽输出0%
+carmen           wisadel    m0  s11    28s  win 57s 承伤184% 破绽输出38%
+carmen           wisadel    m0  s10    39s  dead 116s 承伤514% 破绽输出48%
+carmen           wisadel    m0  s15    32s  win 66s 承伤113% 破绽输出43%
+carmen           wisadel    m0  s16    28s  dead 29s 承伤170% 破绽输出10%
+carmen           wisadel    m0  s14    36s  dead 94s 承伤282% 破绽输出30%
+carmen           wisadel    m0  s13    57s  timeout 180s 承伤489% 破绽输出22%
+carmen           wisadel    m0  s1     29s  win 57s 承伤53% 破绽输出54%
+carmen           wisadel    m0  s2     28s  win 51s 承伤37% 破绽输出39%
+carmen           wisadel    m0  s3     29s  win 55s 承伤168% 破绽输出32%
+carmen           wisadel    m0  s4     23s  dead 34s 承伤163% 破绽输出17%
+carmen           wisadel    m0  s6     29s  win 61s 承伤145% 破绽输出14%
+carmen           wisadel    m0  s5     32s  win 71s 承伤148% 破绽输出24%
+carmen           wisadel    m0  s7     33s  dead 74s 承伤317% 破绽输出37%
+carmen           wisadel    m0  s8     33s  win 65s 承伤90% 破绽输出40%
+iberia           wisadel    m0  s10    27s  dead 29s 承伤155% 破绽输出9%
+iberia           wisadel    m0  s11    31s  win 33s 承伤80% 破绽输出29%
+carmen           wisadel    m0  s9     37s  dead 90s 承伤443% 破绽输出10%
+iberia           wisadel    m0  s12    69s  dead 152s 承伤634% 破绽输出36%
+iberia           wisadel    m0  s13    72s  retreat 180s 承伤906% 破绽输出40%
+iberia           wisadel    m0  s14    71s  retreat 180s 承伤698% 破绽输出64%
+iberia           wisadel    m0  s15    84s  retreat 180s 承伤913% 破绽输出52%
+iberia           wisadel    m0  s16    50s  win 110s 承伤206% 破绽输出32%
+iberia           wisadel    m0  s1     39s  win 70s 承伤256% 破绽输出38%
+iberia           wisadel    m0  s2     40s  win 66s 承伤87% 破绽输出44%
+iberia           wisadel    m0  s5     30s  win 50s 承伤40% 破绽输出53%
+iberia           wisadel    m0  s3     68s  win 161s 承伤542% 破绽输出41%
+iberia           wisadel    m0  s7     24s  win 24s 承伤106% 破绽输出18%
+iberia           wisadel    m0  s4     71s  retreat 180s 承伤894% 破绽输出36%
+iberia           wisadel    m0  s6     68s  win 147s 承伤516% 破绽输出48%
+iberia           wisadel    m0  s8     43s  win 82s 承伤155% 破绽输出21%
+bishop+archon    wisadel    m0  s10    38s  win 66s 承伤145% 破绽输出58%
+bishop+archon    wisadel    m0  s11    38s  win 56s 承伤197% 破绽输出62%
+iberia           wisadel    m0  s9     81s  retreat 180s 承伤768% 破绽输出57%
+bishop+archon    wisadel    m0  s12    52s  d16 局（path）
+path             wisadel    m0  s12    24s  dead 20s 承伤124% 破绽输出35%
+path             wisadel    m0  s10    28s  dead 39s 承伤175% 破绽输出39%
+path             wisadel    m0  s11    32s  dead 65s 承伤174% 破绽输出44%
+path             wisadel    m0  s13    40s  win 94s 承伤99% 破绽输出24%
+path             wisadel    m0  s16    26s  dead 34s 承伤164% 破绽输出41%
+path             wisadel    m0  s14    34s  win 75s 承伤40% 破绽输出38%
+path             wisadel    m0  s15    31s  win 71s 承伤186% 破绽输出37%
+path             wisadel    m0  s1     30s  win 53s 承伤58% 破绽输出41%
+path             wisadel    m0  s2     29s  win 50s 承伤14% 破绽输出36%
+path             wisadel    m0  s3     29s  win 53s 承伤141% 破绽输出45%
+path             wisadel    m0  s4     29s  dead 41s 承伤185% 破绽输出41%
+path             wisadel    m0  s5     37s  win 86s 承伤104% 破绽输出41%
+path             wisadel    m0  s7     27s  win 39s 承伤11% 破绽输出42%
+path             wisadel    m0  s8     31s  win 61s 承伤104% 破绽输出31%
+path             wisadel    m0  s6     32s  win 68s 承伤132% 破绽输出28%
+path             wisadel    m0  s9     33s  win 77s 承伤136% 破绽输出47%
+# Boss 单场测试台结果（new_wisadel_m0_path）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（carmen）
+carmen           wisadel    m0  s12    23s  dead 13s 承伤138% 破绽输出0%
+carmen           wisadel    m0  s11    33s  win 57s 承伤184% 破绽输出38%
+carmen           wisadel    m0  s10    44s  dead 116s 承伤514% 破绽输出48%
+carmen           wisadel    m0  s14    37s  dead 94s 承伤282% 破绽输出30%
+carmen           wisadel    m0  s15    31s  win 66s 承伤113% 破绽输出43%
+carmen           wisadel    m0  s13    64s  timeout 180s 承伤489% 破绽输出22%
+carmen           wisadel    m0  s16    25s  dead 29s 承伤170% 破绽输出10%
+carmen           wisadel    m0  s1     27s  win 57s 承伤53% 破绽输出54%
+carmen           wisadel    m0  s2     29s  win 51s 承伤37% 破绽输出39%
+carmen           wisadel    m0  s4     27s  dead 34s 承伤163% 破绽输出17%
+carmen           wisadel    m0  s3     33s  win 55s 承伤168% 破绽输出32%
+carmen           wisadel    m0  s5     31s  win 71s 承伤148% 破绽输出24%
+carmen           wisadel    m0  s6     30s  win 61s 承伤145% 破绽输出14%
+carmen           wisadel    m0  s7     34s  dead 74s 承伤317% 破绽输出37%
+carmen           wisadel    m0  s8     32s  win 65s 承伤90% 破绽输出40%
+carmen           wisadel    m0  s9     36s  dead 90s 承伤443% 破绽输出10%
+# Boss 单场测试台结果（new_wisadel_m0_carmen）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（iberia）
+iberia           wisadel    m0  s11    28s  win 33s 承伤80% 破绽输出29%
+iberia           wisadel    m0  s10    30s  dead 29s 承伤155% 破绽输出9%
+iberia           wisadel    m0  s12    66s  dead 152s 承伤634% 破绽输出36%
+iberia           wisadel    m0  s13    74s  retreat 180s 承伤906% 破绽输出40%
+iberia           wisadel    m0  s14    65s  retreat 180s 承伤698% 破绽输出64%
+iberia           wisadel    m0  s15    83s  retreat 180s 承伤913% 破绽输出52%
+iberia           wisadel    m0  s1     40s  win 70s 承伤256% 破绽输出38%
+iberia           wisadel    m0  s16    49s  win 110s 承伤206% 破绽输出32%
+iberia           wisadel    m0  s2     36s  win 66s 承伤87% 破绽输出44%
+iberia           wisadel    m0  s5     30s  win 50s 承伤40% 破绽输出53%
+iberia           wisadel    m0  s7     28s  win 24s 承伤106% 破绽输出18%
+iberia           wisadel    m0  s3     68s  win 161s 承伤542% 破绽输出41%
+iberia           wisadel    m0  s4     72s  retreat 180s 承伤894% 破绽输出36%
+iberia           wisadel    m0  s6     63s  win 147s 承伤516% 破绽输出48%
+iberia           wisadel    m0  s8     38s  win 82s 承伤155% 破绽输出21%
+iberia           wisadel    m0  s9     73s  retreat 180s 承伤768% 破绽输出57%
+# Boss 单场测试台结果（new_wisadel_m0_iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（bishop+archon）
+bishop+archon    wisadel    m0  s11    35s  win 56s 承伤197% 破绽输出62%
+bishop+archon    wisadel    m0  s10    41s  win 66s 承伤145% 破绽输出58%
+bishop+archon    wisadel    m0  s12    55s  dead 108s 承伤298% 破绽输出46%
+bishop+archon    wisadel    m0  s13    59s  win 132s 承伤308% 破绽输出16%
+bishop+archon    wisadel    m0  s15    48s  win 81s 承伤414% 破绽输出55%
+bishop+archon    wisadel    m0  s14    74s  retreat 180s 承伤612% 破绽输出55%
+bishop+archon    wisadel    m0  s1     52s  win 89s 承伤189% 破绽输出55%
+bishop+archon    wisadel    m0  s16    59s  win 109s 承伤276% 破绽输出18%
+bishop+archon    wisadel    m0  s2     31s  win 38s 承伤48% 破绽输出63%
+bishop+archon    wisadel    m0  s5     34s  win 43s 承伤34% 破绽输出70%
+bishop+archon    wisadel    m0  s3     45s  win 79s 承伤162% 破绽输出71%
+bishop+archon    wisadel    m0  s4     60s  win 121s 承伤372% 破绽输出36%
+bishop+archon    wisadel    m0  s7     28s  win 35s 承伤82% 破绽输出53%
+bishop+archon    wisadel    m0  s6     77s  win 162s 承伤769% 破绽输出11%
+bishop+archon    wisadel    m0  s8     45s  dead 84s 承伤336% 破绽输出0%
+bishop+archon    wisadel    m0  s9     77s  retreat 180s 承伤889% 破绽输出59%
+# Boss 单场测试台结果（new_wisadel_m0_bishop_archon）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（iberia）
+iberia           wisadel    m0  s10    27s  dead 29s 承伤155% 破绽输出9%
+iberia           wisadel    m0  s11    29s  win 33s 承伤80% 破绽输出29%
+iberia           wisadel    m0  s12    64s  dead 152s 承伤634% 破绽输出36%
+iberia           wisadel    m0  s13    71s  retreat 180s 承伤906% 破绽输出40%
+iberia           wisadel    m0  s14    72s  retreat 180s 承伤698% 破绽输出64%
+iberia           wisadel    m0  s15    79s  retreat 180s 承伤913% 破绽输出52%
+iberia           wisadel    m0  s1     42s  win 70s 承伤256% 破绽输出38%
+iberia           wisadel    m0  s16    51s  win 110s 承伤206% 破绽输出32%
+iberia           wisadel    m0  s2     36s  win 66s 承伤87% 破绽输出44%
+iberia           wisadel    m0  s5     33s  win 50s 承伤40% 破绽输出53%
+iberia           wisadel    m0  s7     29s  win 24s 承伤106% 破绽输出18%
+iberia           wisadel    m0  s3     70s  win 161s 承伤542% 破绽输出41%
+iberia           wisadel    m0  s4     76s  retreat 180s 承伤894% 破绽输出36%
+iberia           wisadel    m0  s6     64s  win 147s 承伤516% 破绽输出48%
+iberia           wisadel    m0  s8     40s  win 82s 承伤155% 破绽输出21%
+iberia           wisadel    m0  s9     80s  retreat 180s 承伤768% 破绽输出57%
+# Boss 单场测试台结果（new_wisadel_m0_iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（bishop+immortal）
+bishop+immortal  wisadel    m0  s10    35s  dead 40s 承伤243% 破绽输出57%
+bishop+immortal  wisadel    m0  s11    53s  win 101s 承伤305% 破绽输出32%
+bishop+immortal  wisadel    m0  s12    70s  win 133s 承伤337% 破绽输出48%
+bishop+immortal  wisadel    m0  s13    82s  retreat 180s 承伤1136% 破绽输出0%
+bishop+immortal  wisadel    m0  s14    55s  dead 111s 承伤435% 破绽输出53%
+bishop+immortal  wisadel    m0  s15    64s  win 129s 承伤415% 破绽输出55%
+bishop+immortal  wisadel    m0  s2     34s  win 33s 承伤20% 破绽输出21%
+bishop+immortal  wisadel    m0  s16    55s  win 109s 承伤357% 破绽输出0%
+bishop+immortal  wisadel    m0  s1     50s  win 89s 承伤155% 破绽输出37%
+bishop+immortal  wisadel    m0  s5     40s  win 74s 承伤104% 破绽输出55%
+bishop+immortal  wisadel    m0  s3     48s  dead 94s 承伤394% 破绽输出49%
+bishop+immortal  wisadel    m0  s6     57s  win 107s 承伤596% 破绽输出0%
+bishop+immortal  wisadel    m0  s7     27s  win 26s 承伤92% 破绽输出49%
+bishop+immortal  wisadel    m0  s8     33s  win 51s 承伤121% 破绽输出14%
+bishop+immortal  wisadel    m0  s4     77s  retreat 180s 承伤813% 破绽输出8%
+bishop+immortal  wisadel    m0  s9     29s  dead 35s 承伤331% 破绽输出53%
+# Boss 单场测试台结果（new_wisadel_m0_bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（path）
+path             wisadel    m18 s11    35s  win 58s 承伤94% 破绽输出32%
+path             wisadel    m18 s13    37s  win 64s 承伤118% 破绽输出45%
+path             wisadel    m18 s12    38s  win 77s 承伤107% 破绽输出38%
+path             wisadel    m18 s10    41s  dead 95s 承伤283% 破绽输出50%
+path             wisadel    m18 s16    23s  dead 20s 承伤126% 破绽输出42%
+path             wisadel    m18 s14    28s  win 49s 承伤22% 破绽输出45%
+path             wisadel    m18 s15    37s  win 86s 承伤76% 破绽输出40%
+path             wisadel    m18 s1     33s  win 66s 承伤70% 破绽输出56%
+path             wisadel    m18 s2     35s  win 78s 承伤130% 破绽输出39%
+path             wisadel    m18 s3     34s  win 80s 承伤161% 破绽输出39%
+path             wisadel    m18 s5     29s  win 48s 承伤34% 破绽输出44%
+path             wisadel    m18 s4     47s  win 100s 承伤420% 破绽输出41%
+path             wisadel    m18 s7     29s  dead 42s 承伤198% 破绽输出52%
+path             wisadel    m18 s8     26s  dead 27s 承伤126% 破绽输出51%
+path             wisadel    m18 s6     34s  win 71s 承伤163% 破绽输出29%
+path             wisadel    m18 s9     34s  win 76s 承伤146% 破绽输出47%
+# Boss 单场测试台结果（new_wisadel_m18_path）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（carmen）
+carmen           wisadel    m18 s11    38s  win 81s 承伤119% 破绽输出22%
+carmen           wisadel    m18 s13    38s  dead 90s 承伤270% 破绽输出45%
+carmen           wisadel    m18 s12    38s  win 87s 承伤148% 破绽输出14%
+carmen           wisadel    m18 s10    48s  dead 132s 承伤330% 破绽输出34%
+carmen           wisadel    m18 s14    28s  win 49s 承伤43% 破绽输出23%
+carmen           wisadel    m18 s16    30s  win 57s 承伤191% 破绽输出28%
+carmen           wisadel    m18 s15    41s  dead 100s 承伤565% 破绽输出47%
+carmen           wisadel    m18 s1     33s  win 63s 承伤82% 破绽输出27%
+carmen           wisadel    m18 s2     37s  win 89s 承伤234% 破绽输出44%
+carmen           wisadel    m18 s4     28s  dead 54s 承伤159% 破绽输出41%
+carmen           wisadel    m18 s5     33s  win 79s 承伤212% 破绽输出28%
+carmen           wisadel    m18 s3     58s  timeout 180s 承伤471% 破绽输出23%
+carmen           wisadel    m18 s7     25s  dead 46s 承伤178% 破绽输出33%
+carmen           wisadel    m18 s6     33s  win 88s 承伤243% 破绽输出23%
+carmen           wisadel    m18 s8     26s  win 45s 承伤176% 破绽输出30%
+carmen           wisadel    m18 s9     31s  win 78s 承伤65% 破绽输出21%
+# Boss 单场测试台结果（new_wisadel_m18_carmen）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（iberia）
+iberia           wisadel    m18 s11    30s  win 31s 承伤14% 破绽输出5%
+iberia           wisadel    m18 s12    35s  dead 46s 承伤148% 破绽输出7%
+iberia           wisadel    m18 s13    40s  dead 69s 承伤187% 破绽输出40%
+iberia           wisadel    m18 s14    25s  win 34s 承伤49% 破绽输出41%
+iberia           wisadel    m18 s10    76s  retreat 180s 承伤601% 破绽输出64%
+iberia           wisadel    m18 s15    45s  dead 82s 承伤613% 破绽输出17%
+iberia           wisadel    m18 s16    45s  win 88s 承伤293% 破绽输出53%
+iberia           wisadel    m18 s1     37s  dead 57s 承伤216% 破绽输出31%
+iberia           wisadel    m18 s5     29s  win 27s 承伤108% 破绽输出14%
+iberia           wisadel    m18 s2     75s  retreat 180s 承伤353% 破绽输出62%
+iberia           wisadel    m18 s3     74s  retreat 180s 承伤513% 破绽输出48%
+iberia           wisadel    m18 s4     77s  retreat 180s 承伤691% 破绽输出63%
+iberia           wisadel    m18 s6     45s  win 87s 承伤165% 破绽输出31%
+iberia           wisadel    m18 s8     31s  win 45s 承伤124% 破绽输出21%
+iberia           wisadel    m18 s7     39s  dead 78s 承伤178% 破绽输出45%
+iberia           wisadel    m18 s9     42s  dead 77s 承伤237% 破绽输出30%
+# Boss 单场测试台结果（new_wisadel_m18_iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（bishop+archon）
+bishop+archon    wisadel    m18 s11    28s  win 27s 承伤44% 破绽输出66%
+bishop+archon    wisadel    m18 s13    40s  win 60s 承伤58% 破绽输出64%
+bishop+archon    wisadel    m18 s12    47s  dead 68s 承伤229% 破绽输出57%
+bishop+archon    wisadel    m18 s14    28s  win 34s 承伤34% 破绽输出41%
+bishop+archon    wisadel    m18 s16    35s  dead 51s 承伤315% 破绽输出0%
+bishop+archon    wisadel    m18 s15    44s  win 73s 承伤467% 破绽输出53%
+bishop+archon    wisadel    m18 s1     29s  dead 22s 承伤166% 破绽输出66%
+bishop+archon    wisadel    m18 s10    86s  retreat 180s 承伤432% 破绽输出54%
+bishop+archon    wisadel    m18 s5     27s  win 22s 承伤7% 破绽输出47%
+bishop+archon    wisadel    m18 s3     44s  win 69s 承伤175% 破绽输出65%
+bishop+archon    wisadel    m18 s6     50s  win 98s 承伤118% 破绽输出30%
+bishop+archon    wisadel    m18 s2     82s  retreat 180s 承伤272% 破绽输出58%
+bishop+archon    wisadel    m18 s4     80s  retreat 180s 承伤510% 破绽输出53%
+bishop+archon    wisadel    m18 s9     29s  dead 31s 承伤132% 破绽输出65%
+bishop+archon    wisadel    m18 s8     35s  dead 57s 承伤182% 破绽输出4%
+bishop+archon    wisadel    m18 s7     75s  retreat 180s 承伤315% 破绽输出17%
+# Boss 单场测试台结果（new_wisadel_m18_bishop_archon）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（bishop+immortal）
+bishop+immortal  wisadel    m18 s12    26s  dead 22s 承伤121% 破绽输出57%
+bishop+immortal  wisadel    m18 s11    32s  win 32s 承伤25% 破绽输出51%
+bishop+immortal  wisadel    m18 s10    33s  dead 36s 承伤206% 破绽输出47%
+bishop+immortal  wisadel    m18 s13    38s  win 55s 承伤72% 破绽输出38%
+bishop+immortal  wisadel    m18 s14    27s  win 32s 承伤86% 破绽输出26%
+bishop+immortal  wisadel    m18 s1     27s  dead 30s 承伤183% 破绽输出41%
+bishop+immortal  wisadel    m18 s15    42s  win 66s 承伤373% 破绽输出60%
+bishop+immortal  wisadel    m18 s16    46s  dead 89s 承伤536% 破绽输出6%
+bishop+immortal  wisadel    m18 s5     31s  win 34s 承伤16% 破绽输出23%
+bishop+immortal  wisadel    m18 s2     78s  retreat 180s 承伤313% 破绽输出50%
+bishop+immortal  wisadel    m18 s3     76s  retreat 180s 承伤522% 破绽输出62%
+bishop+immortal  wisadel    m18 s6     40s  win 71s 承伤109% 破绽输出7%
+bishop+immortal  wisadel    m18 s4     80s  retreat 180s 承伤813% 破绽输出50%
+bishop+immortal  wisadel    m18 s8     23s  dead 23s 承伤120% 破绽输出0%
+bishop+immortal  wisadel    m18 s7     35s  dead 75s 承伤213% 破绽输出47%
+bishop+immortal  wisadel    m18 s9     20s  dead 15s 承伤116% 破绽输出68%
+# Boss 单场测试台结果（new_wisadel_m18_bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+

@@ -1,0 +1,34 @@
+wisadel    m0  s2      96s  snaps=2 real=path:win/47s,carmen:end/5s
+wisadel    m0  s4      97s  snaps=2 real=path:win/59s,bishop+archon:end/5s
+wisadel    m0  s3      99s  snaps=2 real=path:win/54s,iberia:end/5s
+wisadel    m0  s1     101s  snaps=2 real=carmen:win/48s,bishop+archon:end/5s
+wisadel    m0  s6      96s  snaps=2 real=carmen:win/59s,bishop+archon:end/5s
+wisadel    m0  s7      95s  snaps=2 real=path:win/23s,bishop+archon:end/5s
+wisadel    m0  s5      98s  snaps=2 real=carmen:win/56s,path:end/5s
+wisadel    m0  s8      99s  snaps=2 real=path:win/56s,carmen:end/5s
+wisadel    m0  s9      99s  snaps=2 real=path:win/71s,carmen:end/5s
+wisadel    m0  s12     92s  snaps=2 real=carmen:win/64s,bishop+immortal:end/5s
+wisadel    m0  s11     98s  snaps=2 real=path:win/51s,bishop+archon:end/5s
+wisadel    m0  s10    105s  snaps=2 real=carmen:win/45s,path:end/5s
+wisadel    m0  s15     93s  snaps=2 real=path:win/58s,carmen:end/5s
+wisadel    m0  s13     95s  snaps=2 real=path:win/62s,carmen:end/5s
+wisadel    m0  s14     96s  snaps=2 real=path:win/65s,bishop+immortal:end/5s
+wisadel    m0  s16     92s  snaps=2 real=path:win/78s,carmen:end/5s
+快照目录：/home/user/ArknightsSurvivors/build/boss_bench_cloud/midspawn-wisadel/snaps（16 局）
+wisadel    m18 s1      88s  snaps=2 real=carmen:win/43s,bishop+immortal:end/5s
+wisadel    m18 s2      91s  snaps=2 real=carmen:win/59s,bishop+archon:end/5s
+wisadel    m18 s4      94s  snaps=2 real=path:win/56s,bishop+archon:end/5s
+wisadel    m18 s3      97s  snaps=2 real=carmen:win/46s,bishop+archon:end/5s
+wisadel    m18 s5      85s  snaps=2 real=carmen:win/34s,bishop+archon:end/5s
+wisadel    m18 s6      91s  snaps=2 real=carmen:win/50s,path:end/5s
+wisadel    m18 s8      86s  snaps=2 real=carmen:win/41s,path:end/5s
+wisadel    m18 s7      90s  snaps=2 real=path:win/57s,iberia:end/5s
+wisadel    m18 s9      91s  snaps=2 real=path:win/59s,carmen:end/5s
+wisadel    m18 s11     87s  snaps=2 real=carmen:win/46s,bishop+archon:end/5s
+wisadel    m18 s10     91s  snaps=2 real=carmen:win/68s,path:end/5s
+wisadel    m18 s12     92s  snaps=2 real=path:win/53s,bishop+archon:end/5s
+wisadel    m18 s13     89s  snaps=2 real=path:win/64s,bishop+immortal:end/5s
+wisadel    m18 s14     90s  snaps=2 real=path:win/40s,iberia:end/5s
+wisadel    m18 s16     88s  snaps=2 real=carmen:win/41s,path:end/5s
+wisadel    m18 s15     92s  snaps=2 real=path:win/61s,bishop+immortal:end/5s
+快照目录：/home/user/ArknightsSurvivors/build/boss_bench_cloud/midspawn-wisadel/snaps（16 局）
