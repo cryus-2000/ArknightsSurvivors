@@ -533,6 +533,8 @@ static func hw_draw_fan(o) -> void:
 	var half: float = deg_to_rad(float(b.get("deg", 100.0))) * 0.5
 	var fa: float = float(h.fan_ang)
 	var fade: float = clampf(float(fn.t) / 0.5, 0.0, 1.0)
+	if _hw_fan_sheets(o, b, fn, fa, r, fade):
+		return   # 咒域素材到位（docs/190）：整片扇形由帧条画，程序填充 / 边线不再画
 	var pts := PackedVector2Array([o.pos])
 	for k in 25:
 		pts.append(o.pos + Vector2.from_angle(fa - half + half * 2.0 * k / 24.0) * r)
@@ -544,6 +546,51 @@ static func hw_draw_fan(o) -> void:
 	for q in 6:
 		var t: float = fmod(g.t * 0.35 + q / 6.0, 1.0)
 		cv.draw_circle(o.pos + Vector2.from_angle(fa - half + half * 2.0 * t) * r, 2.5, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.7 * fade))
+
+
+## 咒域整片扇形素材（docs/190）：fx_logos_s3_fan_ground（循环）/ _open（起手 0.5 秒）/ _close（收尾 0.5 秒），三条同画布（1x 180×264，原点 (4,132)，
+## 画的是参考半径 170 美术像素 = 340 世界像素、100° 的扇形，朝右），按 r / 340 等比缩放、绕原点转到咒域朝向。ground 没图就整体回退程序画法（返回 false）；
+## open / close 缺图时只用 ground。起手 / 收尾期间 ground 淡入 / 淡出，不与 open / close 叠成双层
+const FAN_REF_R := 340.0
+const FAN_OPEN_T := 0.5
+
+static func _hw_fan_sheets(o, b: Dictionary, fn: Dictionary, fa: float, r: float, fade: float) -> bool:
+	var g = o.g
+	if g.tex.get("fx_logos_s3_fan_ground") == null or not g.V6_FRAMES.has("fx_logos_s3_fan_ground"):
+		return false
+	var elapsed: float = float(b.get("dur", 12.0)) - float(fn.t)
+	var left: float = float(fn.t)
+	var tn := "fx_logos_s3_fan_ground"
+	var frame := -1
+	var a := 1.0
+	if elapsed < FAN_OPEN_T and g.tex.get("fx_logos_s3_fan_open") != null:
+		tn = "fx_logos_s3_fan_open"
+		frame = mini(int(elapsed / FAN_OPEN_T * g.V6_FRAMES[tn][0]), g.V6_FRAMES[tn][0] - 1)
+	elif left < FAN_OPEN_T and g.tex.get("fx_logos_s3_fan_close") != null:
+		tn = "fx_logos_s3_fan_close"
+		frame = mini(int((1.0 - left / FAN_OPEN_T) * g.V6_FRAMES[tn][0]), g.V6_FRAMES[tn][0] - 1)
+	else:
+		a = fade
+	_hw_draw_sheet(o, tn, frame, fa, r / FAN_REF_R, Color(1, 1, 1, a))
+	return true
+
+
+## 整帧画帧条里的一帧：原点（1x (4, 高/2)）放在咒域中心，转到 ang，缩放 k × PX / 2（@2x 与 1x 显示同大）；frame < 0 = 按 fps 循环
+static func _hw_draw_sheet(o, tn: String, frame: int, ang: float, k: float, col: Color) -> void:
+	var g = o.g
+	var tx: Texture2D = g.tex.get(tn)
+	if tx == null or not g.V6_FRAMES.has(tn):
+		return
+	o._cv_flush()
+	var frames: int = g.V6_FRAMES[tn][0]
+	var fr: int = int(g.t * float(g.V6_FRAMES[tn][1])) % frames if frame < 0 else frame
+	var fw: float = tx.get_width() / frames
+	var fh: float = tx.get_height()
+	var hi: float = ArtS.hires_of(tx)
+	var sc: float = g.PX / hi * k
+	o.cv.draw_set_transform(o.pos + g.draw_off, ang, Vector2(sc, sc))
+	o.cv.draw_texture_rect_region(tx, Rect2(Vector2(-4.0 * hi, -fh / 2.0), Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), col)
+	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 咒域期间绕身的符咒（draw_body 前后两层；fan.b.body = [back 帧条, front 帧条, 不分层回退]）
