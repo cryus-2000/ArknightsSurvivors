@@ -454,7 +454,7 @@
  },
  "spawn": {
   "_mid_boss": "中期 Boss（3:30 / 7:00）在场（用户 10-28「中期 Boss 在场的时候怪物还是要刷的，就最后 4 个 Boss 不刷」；spawner.gd mid_boss_up / _mid_hold_update）：普通刷怪 × mid_boss_rate、存活杂兵上限 = 同屏上限 × mid_boss_cap_mult；大群、精英、威胁上升小波挂起，Boss 全倒下后 mid_release_delay 秒起按 威胁波 → 大群 → 精英 依次放出、每项隔 mid_release_gap 秒（协调人 10-28：别同时砸下来）。最终 4 只 Boss 在场仍全停。三轮云端对照见 docs/177 §8",
-  "mid_boss_rate": 0.5,
+  "mid_boss_rate": 0.3,
   "mid_boss_cap_mult": 0.6,
   "mid_release_delay": 6,
   "mid_release_gap": 5
