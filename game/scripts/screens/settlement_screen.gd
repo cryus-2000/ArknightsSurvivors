@@ -38,7 +38,7 @@ var focus := -1        # 键盘 / 手柄焦点在底栏第几个按钮（-1 = �
 var press_id := ""     # 正在播按下态的按钮
 var press_t := 0.0
 var _pending := ""     # 按下后待执行的动作
-## 战绩分享卡（10-28 用户定样式 B「深海海报」；卡面 screens/share_card.gd，Toy 头像 / 二维码 / 保存 screens/share_toy.gd）
+## 战绩分享卡（10-28 用户：与结算「作战报告」同一视觉语言、配色跟随队长；卡面 screens/share_card.gd，Toy 头像 / 二维码 / 保存 screens/share_toy.gd）
 const ShareCard = preload("res://scripts/screens/share_card.gd")
 const ShareToy = preload("res://scripts/screens/share_toy.gd")
 var share
@@ -63,9 +63,23 @@ var _o := Vector2.ZERO   # 当前页面原点（含盖章轻抖）
 var _fa := 1.0           # 当前绘制组透明度（_text 乘上）
 var _dx := 0.0           # 当前绘制组水平偏移（失败打捞的晃动）
 var _blur := 0.0         # 失败打捞的失焦虚影（0 = 对焦）
+## 结算样式（10-28 用户定方向 A「作战报告」，配色跟随本局队长）：项目设置 ui/settle_style 或测试参数 --settle_style=N；
+## 1 = 作战报告（缺省，screens/settle/settle_report.gd），0 = 旧样回退
+const STYLES := ["", "res://scripts/screens/settle/settle_report.gd"]
+var sty = null
+
+static func style_id() -> int:
+	var v := int(ProjectSettings.get_setting("ui/settle_style", 1))
+	for a in Cfg.dev_args():
+		if a.begins_with("--settle_style="):
+			v = int(a.substr(15))
+	return clampi(v, 0, STYLES.size() - 1)
 
 func _init(host) -> void:
 	g = host
+	var sid := style_id()
+	if sid > 0:
+		sty = load(STYLES[sid]).new(self)
 
 func active() -> bool:
 	return not g.trial.active and g.demo_op == "" and g.state in [g.S.WIN, g.S.DEAD]
@@ -92,11 +106,11 @@ func tick(dt: float) -> void:
 	squad_canvas.position = origin + VIEW.position * scale
 	squad_canvas.size = VIEW.size * scale
 	squad_canvas.modulate.a = clampf((g.state_age-g.hud_view.DEATH_T)/0.35,0,1) if g.state==g.S.DEAD else 1.0
-	squad_canvas.visible = not share_open and not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
+	squad_canvas.visible = sty == null and not share_open and not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
 	if g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T:
 		var prev := elapsed
 		elapsed = _end() if UM.rm() or UM.skip_all() or g.ui_skip else minf(_end(), elapsed + dt)
-		if _won() and elapsed < _end():
+		if sty == null and _won() and elapsed < _end():
 			for t0 in [T_TITLE + 0.15, T_RATE + 0.15]:   # 盖章落定：低沉一声
 				if prev < t0 and elapsed >= t0:
 					Sfx.play("ui_ok", -7.0, 0.62, 0.0)
@@ -148,6 +162,8 @@ func _won() -> bool:
 	return str(model.get("result", "")) == "win"
 
 func _end() -> float:
+	if sty != null:
+		return sty.end_t()
 	return END_WIN if _won() else END_LOSS
 
 ## 出场是否完成（完成前输入只跳过）
@@ -196,7 +212,7 @@ func _plain(ci: CanvasItem) -> void:
 
 ## 盖章落定后 0.16 秒轻抖 2–3 px（只动结算页面绘制偏移）
 func _shake() -> Vector2:
-	if not _won() or UM.rm():
+	if sty != null or not _won() or UM.rm():
 		return Vector2.ZERO
 	for t0 in [T_TITLE + 0.15, T_RATE + 0.15]:
 		var q: float = (elapsed - t0) / 0.16
@@ -239,6 +255,8 @@ static func grade(m: Dictionary, preset: int) -> String:
 
 ## 底栏按钮：[id, x, 宽, 文字, 主按钮]（与画法、点击区同一张表）
 func _buttons() -> Array:
+	if sty != null:
+		return sty.buttons()
 	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
 	var out: Array = [["share", 1148, 100, "分享战绩" if (Pad.using or tch) else "分享  V", false, Rect2(1148, 202, 100, 34)],
 		["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
@@ -295,6 +313,8 @@ func _open_share() -> void:
 	share_data = share.data(self)
 	share_open = true
 	share_t = 0.0
+	Sfx.ensure(["ui_shutter"])   # 快门声不进开局预载，第一次分享时才读（tools/gen_shutter_sfx.py 合成）
+	Sfx.play("ui_shutter", -4.0, 1.0, 0.03)
 	if is_instance_valid(squad_canvas):
 		squad_canvas.hide()
 	g.hud.queue_redraw()
@@ -342,26 +362,71 @@ func _share_close() -> Rect2:
 	return Rect2(SHARE_POS.x + ShareCard.W * SHARE_K + 24, SHARE_POS.y + ShareCard.H * SHARE_K - 42, 150, 42)
 
 
+## 分享卡出场像拍照（10-28 用户「分享卡出来的动效能不能跟拍照一样」）：
+## 0–0.09 秒快门黑帘从上下合拢（同时「咔嚓」）→ 0.09–0.22 秒帘幕张开、白闪 → 照片从略大、略斜处落到位（0.55 秒，带一点回摆）
+## → 卡面从过曝的白里显影（0.2–0.95 秒）→ 侧边按钮淡入。卡外一圈相纸白边 + 投影（只在浮层里，导出图不带）。
+## 「减少动态效果」：只留背景与卡面的透明度渐变，不闪不转。
 func _draw_share(ci: CanvasItem) -> void:
-	var a: float = clampf(share_t / 0.18, 0.0, 1.0)
+	var t := share_t
+	var rm := UM.rm()
+	var a: float = clampf(t / 0.18, 0.0, 1.0)
 	ci.draw_rect(Rect2(-200, -200, 1680, 1120), Color(0.02, 0.03, 0.05, 0.78 * a))
-	var k: float = SHARE_K * (0.94 + 0.06 * (1.0 - pow(1.0 - a, 3.0)))
+	var base := Vector2(ShareCard.W, ShareCard.H) * SHARE_K
+	var k := SHARE_K
+	var rot := 0.0
+	var off := Vector2.ZERO
+	var dev := 0.0       # 显影：卡面上覆盖的白（1 = 全白过曝）
+	var ca := a          # 卡的透明度
+	if not rm:
+		var e := clampf((t - 0.09) / 0.55, 0.0, 1.0)
+		k = SHARE_K * lerpf(1.16, 1.0, UM.out_cubic(e))
+		rot = lerpf(0.075, 0.0, UM.out_back(e, 1.8))
+		off = Vector2(0, lerpf(-24.0, 0.0, UM.out_cubic(e)))
+		dev = 1.0 - UM.out_cubic(clampf((t - 0.2) / 0.75, 0.0, 1.0))
+		ca = 1.0 if t >= 0.09 else 0.0
 	var sz := Vector2(ShareCard.W, ShareCard.H) * k
-	var pos: Vector2 = SHARE_POS + (Vector2(ShareCard.W, ShareCard.H) * SHARE_K - sz) * 0.5
+	var pos: Vector2 = SHARE_POS + (base - sz) * 0.5 + off
+	if ca > 0.0:
+		# 相纸：投影 + 白边（跟卡一起转）
+		var c0 := pos + sz * 0.5
+		ci.draw_set_transform_matrix(Transform2D(0.0, Vector2.ONE * scale, 0.0, origin) * Transform2D(rot, c0))
+		ci.draw_rect(Rect2(-sz * 0.5 + Vector2(8, 12), sz).grow(7), Color(0, 0, 0, 0.45 * ca))
+		ci.draw_rect(Rect2(-sz * 0.5, sz).grow(7), Color(HH.LIGHT, ca))
+		share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale, rot)
+		if dev > 0.0 or ca < 1.0:
+			ci.draw_set_transform_matrix(share._xf)
+			ci.draw_rect(Rect2(0, 0, ShareCard.W, ShareCard.H), Color(1, 1, 1, 0.92 * dev) if ca >= 1.0 else Color(0.02, 0.03, 0.05, 1.0 - ca))
 	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
-	share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale)
-	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
-	ci.draw_rect(Rect2(pos, sz).grow(2), HH.CYB, false, 2.0)
+	_fa = 1.0 if rm else clampf((t - 0.55) / 0.25, 0.0, 1.0)
+	if _fa > 0.0:
+		_share_side(ci)
+	_fa = 1.0
+	if not rm and t < 0.5:
+		# 快门帘：上下两片黑帘合拢再张开（合缝处一条亮线）
+		var sh := UM.out_cubic(t / 0.09) if t < 0.09 else 1.0 - UM.out_cubic(clampf((t - 0.09) / 0.13, 0.0, 1.0))
+		if sh > 0.0:
+			var hh := 360.0 * sh + 1.0
+			ci.draw_rect(Rect2(-200, -200, 1680, 200 + hh), Color(0, 0, 0))
+			ci.draw_rect(Rect2(-200, 720 - hh, 1680, 200 + hh), Color(0, 0, 0))
+			ci.draw_rect(Rect2(-200, 360 - 1, 1680, 2), Color(1, 1, 1, 0.35 * sh))
+		# 闪光：张开时一记白闪，0.3 秒退掉（峰值 0.7，不做全白）
+		var fl := clampf((t - 0.09) / 0.3, 0.0, 1.0)
+		if t >= 0.09 and fl < 1.0:
+			ci.draw_rect(Rect2(-200, -200, 1680, 1120), Color(1, 1, 1, 0.7 * pow(1.0 - fl, 2.0)))
+	ci.draw_set_transform(Vector2.ZERO)
+
+
+## 分享浮层右侧：标题、保存、状态、关闭（_fa 控淡入）
+func _share_side(ci: CanvasItem) -> void:
 	var sv := _share_save()
 	_text(ci, sv.position.x, SHARE_POS.y + 6, "分享战绩", 20, HH.LIGHT)
-	ci.draw_rect(sv, HH.CYB.lightened(0.2) if share_toy.busy else HH.CYB)
+	ci.draw_rect(sv, Color(HH.CYB.lightened(0.2) if share_toy.busy else HH.CYB, _fa))
 	_text(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
 	if share_toy.status != "":
 		_text(ci, sv.position.x, sv.end.y + 12, share_toy.status, 13, HH.MUTE, 200)
 	var c := _share_close()
-	ci.draw_rect(c, HH.DARK2)
+	ci.draw_rect(c, Color(HH.DARK2, _fa))
 	_text(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)
-	ci.draw_set_transform(Vector2.ZERO)
 
 
 func _set_hover(id: String) -> void:
@@ -440,7 +505,7 @@ func input(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
 		var p := _point(event.position)
 		if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] and event.pressed:
-			if VIEW.has_point(p):
+			if sty == null and VIEW.has_point(p):
 				scroll(offset + (-80.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 80.0))
 			return true
 		if event.button_index == MOUSE_BUTTON_LEFT:
@@ -463,12 +528,12 @@ func _pointer(p: Vector2, pressed: bool) -> void:
 		if hit != "":
 			_press(hit)   # 底栏与右侧「分享」按钮：按下态 + 点击音，PRESS_T 后执行（鼠标与触屏同一路）
 			return
-		if VIEW.has_point(p):
+		if sty == null and VIEW.has_point(p):
 			dragging = true
 			moved = false
 			drag_x = p.x
 			drag_offset = offset
-		elif Rect2(28,638,884,14).has_point(p):
+		elif sty == null and Rect2(28,638,884,14).has_point(p):
 			scroll(offset + (-STRIDE if p.x < 470 else STRIDE))
 		elif p.y >= (656 if Cfg.phone_ui() else 666):
 			var id := _btn_at(p)
@@ -516,6 +581,12 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), HH.DARK)
 	_o = origin + _shake() * scale
 	_plain(ci)
+	if sty != null:
+		sty.draw(ci)
+		ci.draw_set_transform(Vector2.ZERO)
+		if share_open and share != null:
+			_draw_share(ci)
+		return
 	HH.backdrop(ci, Vector2(1280,720))
 	ci.draw_texture(topography, Vector2.ZERO)
 	ci.draw_rect(Rect2(0,0,1280,44), HH.INK)
