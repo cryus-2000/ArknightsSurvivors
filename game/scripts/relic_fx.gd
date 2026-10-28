@@ -214,7 +214,7 @@ func max_lv(id: String) -> int:
 
 
 ## 能否出现在三选一 / 商店：未拥有，或已拥有但还能升级；前置条件按拥有判断；职业门槛按当前编队判断
-## 核心延后（用户 10-29，docs/191 §6）：relic/core_gate 1 时，升华 / 核心在第一只中期 Boss 被击败前不进任何来源
+## 核心延后（用户 10-29，docs/191 §6）：relic/core_gate 1 时，升华 / 核心（实际稀有度，73 件）在第一只中期 Boss 被击败前不进任何来源
 ## （三选一、商店、事件、随机给）；兜底 relic/core_gate_late 秒后照常（第一只 Boss 没打死的局）
 func core_gated(r: Dictionary) -> bool:
 	return r.rarity in ["升华", "核心"] and core_locked()

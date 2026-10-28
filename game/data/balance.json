@@ -398,7 +398,7 @@
   "big_extra": 1,
   "core_gate": 1,
   "core_gate_late": 450,
-  "_core_gate": "核心延后（用户 10-29，docs/191 §6）：1 = 升华 / 核心（relics.json rarity，共 48 件）在第一只中期 Boss 被击败前不出现在任何来源；第一只 Boss 没打死时 core_gate_late 秒后照常；0 = 关",
+  "_core_gate": "核心延后（用户 10-29，docs/191 §6）：1 = 升华 / 核心（按 relic_effects.json 实际稀有度，共 73 件）在第一只中期 Boss 被击败前不出现在任何来源；第一只 Boss 没打死时 core_gate_late 秒后照常；0 = 关",
   "chest_extra": 0,
   "chest_rare": 1,
   "wish_rare": 2,
