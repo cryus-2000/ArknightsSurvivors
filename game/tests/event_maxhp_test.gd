@@ -36,6 +36,7 @@ func _prep() -> void:
 	game.pending_chests = 0
 	game.show_queue.clear()
 	game.endg.all_unlocked = true
+	game.endg.mid_done = 2   # t = 250 已过途中路口窗口（事件改版 docs/184），不让途中翻卡面板挡住计时
 	game.state = game.S.PLAY
 	game.t = 250.0
 
