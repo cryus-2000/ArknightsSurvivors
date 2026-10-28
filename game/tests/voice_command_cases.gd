@@ -9,6 +9,13 @@ class VoiceSpy extends Node:
 	func voice(cid: String, key: String, queued := false, urgent := false) -> void:
 		calls.append([cid, key, queued])
 		urgents.append(urgent)   # 指挥回应一律 urgent（10-23）
+	var delays: Array = []
+	func voice_chorus(cid: String, key: String, delay := 0.0, _duck := -3.0) -> void:
+		calls.append([cid, key, false])   # 指挥合唱（10-28，command/voice_mode 缺省 1）：同 urgent 指挥回应，另记错开秒数
+		urgents.append(true)
+		delays.append(delay)
+	func has_voice(_cid: String, _key: String) -> bool:
+		return true
 
 class VoiceGame extends RefCounted:
 	var sfx: Node
@@ -74,6 +81,8 @@ func run(check: Callable) -> void:
 	check.call(spy.calls[-1] == ["lumen", "command", false], "non-roaming operator may speak when leading")
 	check.call(game.rng.state == before, "voice selection consumes no gameplay RNG")
 
+	_chorus_rotation(check, game, spy)
+
 	spy.calls.clear()
 	var entrant := Character.new(game, {"id": "gladiia"})
 	check.call(entrant.has_method("entry_started"), "character exposes entry-start hook")
@@ -112,6 +121,36 @@ func run(check: Callable) -> void:
 	spy.free()
 	_asset_coverage(check)
 	_channel_rules(check)
+
+## 指挥合唱（10-28 用户「突击时两名队友的台词可以交替或一起喊」）：两名出击队友都开口，轮换谁先、其余晚 voice_stagger 秒；
+## voice_mode 0 = 旧口径只一人
+func _chorus_rotation(check: Callable, game, spy) -> void:
+	var sq := Squad.new(game)
+	var a := Character.new(game, {"id": "texas"})
+	var b := Character.new(game, {"id": "skadi"})
+	var ld := Character.new(game, {"id": "lumen"})
+	ld.is_leader = true
+	sq.ops = [ld, a, b]
+	spy.calls.clear()
+	spy.delays.clear()
+	game.t += 30.0
+	sq._stance_voice(Squad.ROAM)
+	check.call(spy.calls == [["texas", "command", false], ["skadi", "command", false]], "assault chorus: both sortieing teammates speak")
+	check.call(spy.delays.size() == 2 and is_zero_approx(spy.delays[0]) and is_equal_approx(spy.delays[1], 0.4), "chorus alternates: second line 0.4 s after the first")
+	game.t += 7.0
+	sq._stance_voice(Squad.RECALL)
+	check.call(spy.calls.slice(2) == [["skadi", "entry", false], ["texas", "entry", false]], "recall chorus rotates who speaks first")
+	game.t += 7.0
+	var Bal = preload("res://scripts/core/balance.gd")
+	Bal.v("command/voice_mode", 1.0)   # 先载入，再临时改旋钮
+	var cmd: Dictionary = Bal._data.get("command", {})
+	var old = cmd.get("voice_mode", 1.0)
+	cmd["voice_mode"] = 0.0
+	spy.calls.clear()
+	sq._stance_voice(Squad.ROAM)
+	check.call(spy.calls.size() == 1, "voice_mode 0 keeps the single-speaker rotation")
+	cmd["voice_mode"] = old
+
 
 func _asset_coverage(check: Callable) -> void:
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
@@ -159,6 +198,23 @@ func _channel_rules(check: Callable) -> void:
 		sfx.voice_now = 1015.01
 		sfx.voice("skadi", "command")
 		check.call(sfx.voice_cid == "skadi", "command may resume when operator gap expires")
+	# 合唱通道：错开的那句到点才开播；播出后记同人 / 全队间隔，单通道照旧（其它语音规则不变）
+	var c2 = sfx._voice_stream("texas", "command")
+	if clip != null and c2 != null:
+		sfx.voice_now = 2000.0
+		sfx.voice_chorus("skadi", "command", 0.0)
+		sfx.voice_chorus("texas", "command", 0.4)
+		check.call(float(sfx.voice_last.get("skadi:command", 0.0)) == 2000.0 and float(sfx.voice_last.get("texas:command", 0.0)) < 2000.0, "chorus: first line starts now, staggered line waits")
+		sfx.voice_now = 2000.41
+		sfx._chorus_tick()
+		check.call(is_equal_approx(float(sfx.voice_last.get("texas:command", 0.0)), 2000.41) and sfx.chorus_pending.is_empty(), "chorus: staggered line starts after 0.4 s")
+		check.call(sfx.voice_end >= 2000.41 + c2.get_length() + sfx.VOICE_GAP - 0.001, "chorus keeps the team gap after the last line")
+		sfx.voice_now = 2001.0
+		sfx.voice("kaltsit", "battle")
+		check.call(sfx.voice_cid != "kaltsit", "battle chatter still waits for the team gap after a chorus")
+		check.call(sfx.chorus.size() == 2, "one chorus player per operator")
+	for cp in sfx.chorus.values():
+		cp.free()
 	sfx.voice_player.free()
 	sfx.voice_fader.free()
 	sfx.free()
