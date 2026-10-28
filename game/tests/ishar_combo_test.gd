@@ -311,6 +311,8 @@ func graze_checks(cards) -> void:
 	Bal._data["boss"]["graze_on"] = 0
 	check(str(_probe(cards, e, core + 6.0).get("_die", "")) == "hit", "graze off: old hitbox (r + 12) still hits at core + 6")
 	Bal._data["boss"]["graze_on"] = 1
+	var sp_k: float = Bal.v("boss/graze_sp", 0.0)
+	Bal._data["boss"]["graze_sp"] = 0.01   # 缺省 0（10-29 协调人：第一版只做反馈），测试打开验证代码路径
 	check(str(_probe(cards, e, core - 1.0).get("_die", "")) == "hit", "graze on: boss bullet core hits the dot")
 	var sp0: float = _sp_sum()
 	var b: Dictionary = _probe(cards, e, core + 6.0)
@@ -324,6 +326,7 @@ func graze_checks(cards) -> void:
 	check(str(_probe(cards, e, core + 6.0).get("_die", "")) == "hit", "outside a final boss fight the old hitbox applies")
 	e.dead = false
 	Bal._data["boss"]["graze_on"] = on0
+	Bal._data["boss"]["graze_sp"] = sp_k
 
 
 func fresh(act: int) -> Dictionary:

@@ -108,7 +108,7 @@ func _final_live() -> Dictionary:
 	return {}
 
 
-## 擦弹：轻音 + 细火花；队长技力 + boss/graze_sp（1%），每秒最多 boss/graze_rate（5）次，
+## 擦弹：轻音 + 细火花；队长技力 + boss/graze_sp（缺省 0：10-29 协调人定第一版只做反馈，开了每次 +graze_sp），每秒最多 boss/graze_rate（5）次，
 ## 每只最终 Boss 累计最多 boss/graze_sp_cap（1.0 = 一次技能的充能）；不回灯火、不加伤害、HUD 不计数
 func _graze(b: Dictionary) -> void:
 	var fb: Dictionary = _final_live()
