@@ -58,8 +58,9 @@ func data(screen) -> Dictionary:
 		"name": "博士", "avatar": null, "qr": null}   # 头像 / 昵称 / 二维码：share_toy.gd 拿到后由结算屏填
 
 
-func draw(ci: CanvasItem, d: Dictionary, pos: Vector2, k: float) -> void:
-	_xf = Transform2D(0.0, Vector2(k, k), 0.0, pos)
+## pos = 卡左上角、k = 缩放；rot = 绕卡中心旋转（结算浮层的拍照出场用，导出图不转）
+func draw(ci: CanvasItem, d: Dictionary, pos: Vector2, k: float, rot := 0.0) -> void:
+	_xf = Transform2D(rot, Vector2(k, k), 0.0, pos + Vector2(W, H) * k * 0.5) * Transform2D(0.0, -Vector2(W, H) * 0.5)
 	ci.draw_set_transform_matrix(_xf)
 	var x: Transform2D = TUI.ctx(ci).xf * _xf
 	_pc = {"xf": x, "inv": x.affine_inverse(), "k": maxf(0.01, x.get_scale().x)}

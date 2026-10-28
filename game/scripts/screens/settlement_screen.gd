@@ -313,6 +313,8 @@ func _open_share() -> void:
 	share_data = share.data(self)
 	share_open = true
 	share_t = 0.0
+	Sfx.ensure(["ui_shutter"])   # 快门声不进开局预载，第一次分享时才读（tools/gen_shutter_sfx.py 合成）
+	Sfx.play("ui_shutter", -4.0, 1.0, 0.03)
 	if is_instance_valid(squad_canvas):
 		squad_canvas.hide()
 	g.hud.queue_redraw()
@@ -360,26 +362,71 @@ func _share_close() -> Rect2:
 	return Rect2(SHARE_POS.x + ShareCard.W * SHARE_K + 24, SHARE_POS.y + ShareCard.H * SHARE_K - 42, 150, 42)
 
 
+## 分享卡出场像拍照（10-28 用户「分享卡出来的动效能不能跟拍照一样」）：
+## 0–0.09 秒快门黑帘从上下合拢（同时「咔嚓」）→ 0.09–0.22 秒帘幕张开、白闪 → 照片从略大、略斜处落到位（0.55 秒，带一点回摆）
+## → 卡面从过曝的白里显影（0.2–0.95 秒）→ 侧边按钮淡入。卡外一圈相纸白边 + 投影（只在浮层里，导出图不带）。
+## 「减少动态效果」：只留背景与卡面的透明度渐变，不闪不转。
 func _draw_share(ci: CanvasItem) -> void:
-	var a: float = clampf(share_t / 0.18, 0.0, 1.0)
+	var t := share_t
+	var rm := UM.rm()
+	var a: float = clampf(t / 0.18, 0.0, 1.0)
 	ci.draw_rect(Rect2(-200, -200, 1680, 1120), Color(0.02, 0.03, 0.05, 0.78 * a))
-	var k: float = SHARE_K * (0.94 + 0.06 * (1.0 - pow(1.0 - a, 3.0)))
+	var base := Vector2(ShareCard.W, ShareCard.H) * SHARE_K
+	var k := SHARE_K
+	var rot := 0.0
+	var off := Vector2.ZERO
+	var dev := 0.0       # 显影：卡面上覆盖的白（1 = 全白过曝）
+	var ca := a          # 卡的透明度
+	if not rm:
+		var e := clampf((t - 0.09) / 0.55, 0.0, 1.0)
+		k = SHARE_K * lerpf(1.16, 1.0, UM.out_cubic(e))
+		rot = lerpf(0.075, 0.0, UM.out_back(e, 1.8))
+		off = Vector2(0, lerpf(-24.0, 0.0, UM.out_cubic(e)))
+		dev = 1.0 - UM.out_cubic(clampf((t - 0.2) / 0.75, 0.0, 1.0))
+		ca = 1.0 if t >= 0.09 else 0.0
 	var sz := Vector2(ShareCard.W, ShareCard.H) * k
-	var pos: Vector2 = SHARE_POS + (Vector2(ShareCard.W, ShareCard.H) * SHARE_K - sz) * 0.5
+	var pos: Vector2 = SHARE_POS + (base - sz) * 0.5 + off
+	if ca > 0.0:
+		# 相纸：投影 + 白边（跟卡一起转）
+		var c0 := pos + sz * 0.5
+		ci.draw_set_transform_matrix(Transform2D(0.0, Vector2.ONE * scale, 0.0, origin) * Transform2D(rot, c0))
+		ci.draw_rect(Rect2(-sz * 0.5 + Vector2(8, 12), sz).grow(7), Color(0, 0, 0, 0.45 * ca))
+		ci.draw_rect(Rect2(-sz * 0.5, sz).grow(7), Color(HH.LIGHT, ca))
+		share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale, rot)
+		if dev > 0.0 or ca < 1.0:
+			ci.draw_set_transform_matrix(share._xf)
+			ci.draw_rect(Rect2(0, 0, ShareCard.W, ShareCard.H), Color(1, 1, 1, 0.92 * dev) if ca >= 1.0 else Color(0.02, 0.03, 0.05, 1.0 - ca))
 	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
-	share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale)
-	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
-	ci.draw_rect(Rect2(pos, sz).grow(2), HH.CYB, false, 2.0)
+	_fa = 1.0 if rm else clampf((t - 0.55) / 0.25, 0.0, 1.0)
+	if _fa > 0.0:
+		_share_side(ci)
+	_fa = 1.0
+	if not rm and t < 0.5:
+		# 快门帘：上下两片黑帘合拢再张开（合缝处一条亮线）
+		var sh := UM.out_cubic(t / 0.09) if t < 0.09 else 1.0 - UM.out_cubic(clampf((t - 0.09) / 0.13, 0.0, 1.0))
+		if sh > 0.0:
+			var hh := 360.0 * sh + 1.0
+			ci.draw_rect(Rect2(-200, -200, 1680, 200 + hh), Color(0, 0, 0))
+			ci.draw_rect(Rect2(-200, 720 - hh, 1680, 200 + hh), Color(0, 0, 0))
+			ci.draw_rect(Rect2(-200, 360 - 1, 1680, 2), Color(1, 1, 1, 0.35 * sh))
+		# 闪光：张开时一记白闪，0.3 秒退掉（峰值 0.7，不做全白）
+		var fl := clampf((t - 0.09) / 0.3, 0.0, 1.0)
+		if t >= 0.09 and fl < 1.0:
+			ci.draw_rect(Rect2(-200, -200, 1680, 1120), Color(1, 1, 1, 0.7 * pow(1.0 - fl, 2.0)))
+	ci.draw_set_transform(Vector2.ZERO)
+
+
+## 分享浮层右侧：标题、保存、状态、关闭（_fa 控淡入）
+func _share_side(ci: CanvasItem) -> void:
 	var sv := _share_save()
 	_text(ci, sv.position.x, SHARE_POS.y + 6, "分享战绩", 20, HH.LIGHT)
-	ci.draw_rect(sv, HH.CYB.lightened(0.2) if share_toy.busy else HH.CYB)
+	ci.draw_rect(sv, Color(HH.CYB.lightened(0.2) if share_toy.busy else HH.CYB, _fa))
 	_text(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
 	if share_toy.status != "":
 		_text(ci, sv.position.x, sv.end.y + 12, share_toy.status, 13, HH.MUTE, 200)
 	var c := _share_close()
-	ci.draw_rect(c, HH.DARK2)
+	ci.draw_rect(c, Color(HH.DARK2, _fa))
 	_text(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)
-	ci.draw_set_transform(Vector2.ZERO)
 
 
 func _set_hover(id: String) -> void:
