@@ -1,0 +1,34 @@
+skadi      m0  s2      57s  snaps=2 real=carmen:end/215s,bishop+archon:end/5s
+skadi      m0  s1      61s  snaps=2 real=path:win/26s,bishop+archon:end/5s
+skadi      m0  s4      67s  snaps=2 real=path:win/73s,bishop+immortal:end/5s
+skadi      m0  s3      69s  snaps=2 real=path:win/38s,bishop+archon:end/5s
+skadi      m0  s5      54s  snaps=2 real=carmen:end/215s,bishop+immortal:end/5s
+skadi      m0  s6      57s  snaps=2 real=path:win/94s,carmen:end/5s
+skadi      m0  s7      52s  snaps=2 real=carmen:win/51s,bishop+archon:end/5s
+skadi      m0  s8      55s  snaps=2 real=path:win/81s,bishop+archon:end/5s
+skadi      m0  s9      49s  snaps=2 real=carmen:end/215s,bishop+archon:end/5s
+skadi      m0  s11     54s  snaps=2 real=carmen:end/215s,path:end/5s
+skadi      m0  s10     60s  snaps=2 real=path:win/161s,iberia:end/5s
+skadi      m0  s12     60s  snaps=2 real=path:win/109s,bishop+immortal:end/5s
+skadi      m0  s13     56s  snaps=2 real=carmen:win/49s,path:end/5s
+skadi      m0  s14     57s  snaps=2 real=path:win/156s,iberia:end/5s
+skadi      m0  s15     54s  snaps=2 real=carmen:end/215s,bishop+archon:end/5s
+skadi      m0  s16     60s  snaps=2 real=carmen:end/215s,bishop+immortal:end/5s
+快照目录：/home/user/ArknightsSurvivors/build/boss_bench_cloud/midspawn-r2-skadi/snaps（16 局）
+skadi      m18 s2      54s  snaps=2 real=carmen:end/215s,bishop+archon:end/5s
+skadi      m18 s1      63s  snaps=2 real=path:win/59s,carmen:end/5s
+skadi      m18 s4      65s  snaps=2 real=path:win/40s,carmen:end/5s
+skadi      m18 s3      67s  snaps=2 real=path:win/59s,iberia:end/5s
+skadi      m18 s5      57s  snaps=2 real=path:win/79s,bishop+archon:end/5s
+skadi      m18 s6      58s  snaps=2 real=carmen:win/57s,bishop+archon:end/5s
+skadi      m18 s7      56s  snaps=2 real=carmen:win/79s,bishop+archon:end/5s
+skadi      m18 s8      60s  snaps=2 real=path:win/34s,carmen:end/5s
+skadi      m18 s9      49s  snaps=2 real=carmen:end/215s,bishop+immortal:end/5s
+skadi      m18 s12     46s  snaps=2 real=carmen:end/215s,bishop+archon:end/5s
+skadi      m18 s11     54s  snaps=2 real=path:win/25s,bishop+immortal:end/5s
+skadi      m18 s10     57s  snaps=2 real=path:win/68s,carmen:end/5s
+skadi      m18 s13     56s  snaps=2 real=path:win/56s,bishop+archon:end/5s
+skadi      m18 s15     52s  snaps=2 real=carmen:win/84s,bishop+archon:end/5s
+skadi      m18 s14     58s  snaps=2 real=path:win/25s,carmen:end/5s
+skadi      m18 s16     55s  snaps=2 real=carmen:win/75s,bishop+archon:end/5s
+快照目录：/home/user/ArknightsSurvivors/build/boss_bench_cloud/midspawn-r2-skadi/snaps（16 局）
