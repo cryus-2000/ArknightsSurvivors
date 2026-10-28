@@ -455,7 +455,7 @@
   "ishar_zone_linger": 6.0,
   "ishar_zone_tick": 0.3,
   "ishar_shot_mult": 1.4,
-  "ishar_combo_dmg": 1.0,
+  "ishar_combo_dmg": 0.85,
   "ishar_combo_gap": 0.26,
   "ishar_fence_tick": 0.2,
   "ishar_corrode": 1.0,
