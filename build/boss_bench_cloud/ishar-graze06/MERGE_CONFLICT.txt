@@ -1,0 +1,24 @@
+UU game/data/balance.json
+diff --cc game/data/balance.json
+index 7dfd511b,20879765..00000000
+--- a/game/data/balance.json
++++ b/game/data/balance.json
+@@@ -525,12 -524,10 +525,17 @@@
+    "ishar_zone_tick": 0.3,
+    "ishar_shot_mult": 1.4,
+    "ishar_combo_dmg": 0.85,
+++<<<<<<< HEAD
+ +  "graze_on": 0,
+++=======
++   "graze_on": 1,
++   "bullet_hit_scale": 0.6,
+++>>>>>>> origin/claude/boss-graze-on
+    "graze_r": 14,
+ -  "graze_sp": 0.01,
+ +  "hit_dot_idle": 0.06,
+ +  "hit_dot_near": 110,
+ +  "hit_dot_boss": 0.6,
+ +  "graze_sp": 0,
+    "graze_rate": 5,
+    "graze_sp_cap": 1.0,
+    "ishar_combo_gap": 0.26,
