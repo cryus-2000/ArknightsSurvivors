@@ -43,7 +43,7 @@ const RUSH_LEN := 780.0
 const RUSH_R := 34.0
 ## 收招窗口：悬浮幕 / 落地后秒数；开始前要求本 Boss 同屏弹 < LOW_BULLETS；期间以 REST_SPD 靠近队长，停在 REST_NEAR（地面距离）内
 const REST_P1 := 2.5
-const REST_P2 := 3.0   # r10 试过 3.5（破绽期输出 35%），10-28 协调人定撤回，改用抗性（docs/170 §3v）
+const REST_P2 := 3.3   # r10 试过 3.5（破绽期输出 35%）；r11 用 3.0 + 抗性为 31%，r12 协调人定 3.3（docs/170 §3v）
 ## 力竭（用户 10-28「突然给出破绽有点奇怪」）：破绽前先 TIRE 秒泄气——不出招、泡沫从身上往下掉、身周光环收瘪，再进破绽
 const TIRE := 0.6
 const LOW_BULLETS := 20
