@@ -321,6 +321,11 @@ func relic_pool_ids(for_shop := false) -> Array:
 
 
 func open_relic_choice() -> void:
+	# 大时刻补偿（docs/191）：Boss / 精英小队宝箱多 relic/big_extra 个选项，精英宝箱按 relic/elite_rare 走稀有 / 核心加权（同得偿所愿）；
+	# 都只改排序与张数，不多取随机数。缺省 0 = 关
+	var csrc: String = str(g.chest_src[0]) if not g.chest_src.is_empty() else ""
+	if csrc == "elite" and Bal.v("relic/elite_rare", 0.0) > 0.0:
+		g.endg.wish_rare = true
 	var pool: Array = []
 	for rid in relic_pool_ids():
 		var r: Dictionary = g.RL[rid]
@@ -334,6 +339,8 @@ func open_relic_choice() -> void:
 		return
 	# 一次性加选项（docs/57 P27）与补给箱钥匙（P17）：各多一个选项，用掉一次
 	var extra: int = g.rfx.take_choice_extra()
+	if csrc == "boss" or csrc == "squad":
+		extra += Bal.vi("relic/big_extra", 0)
 	if g.rfx.rule("chest_keys") > 0:
 		g.rfx.use_rule("chest_keys")
 		extra += 1
