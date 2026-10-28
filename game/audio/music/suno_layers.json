@@ -84,5 +84,47 @@
    "suno_archive_full"
   ],
   "xf": 4.8
+ },
+ "final_ishar": {
+  "bpm": 146.0,
+  "offset": 0.151,
+  "len": 210.335,
+  "layers": [
+   "p1",
+   "p2"
+  ],
+  "files": [
+   "suno_final_ishar_p1",
+   "suno_final_ishar_p2"
+  ],
+  "xf": 3.288
+ },
+ "final_izumik": {
+  "bpm": 149.995,
+  "offset": 0.126,
+  "len": 204.826,
+  "layers": [
+   "p1",
+   "p2"
+  ],
+  "files": [
+   "suno_final_izumik_p1",
+   "suno_final_izumik_p2"
+  ],
+  "xf": 3.2
+ },
+ "final_knight": {
+  "bpm": 160.205,
+  "offset": 0.09,
+  "len": 233.506,
+  "layers": [
+   "p1",
+   "p2"
+  ],
+  "files": [
+   "suno_final_knight_p1",
+   "suno_final_knight_p2"
+  ],
+  "xf": 4.494
  }
 }
