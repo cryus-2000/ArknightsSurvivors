@@ -19,7 +19,8 @@ import os, sys, math, random
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-OUT = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 PREV = os.path.join(ROOT, "build", "batch3_art")
 CLEAR = (0, 0, 0, 0)
 
@@ -813,9 +814,13 @@ def main():
     for name, im in ims.items():
         check(im, name)
         if "--no-write" not in sys.argv and (only is None or any(name.startswith(o) for o in only)):
-            im.save(os.path.join(OUT, name + ".png"))
-            _x2(im).save(os.path.join(OUT, name + "@2x.png"))
+            im.save(asset_paths.out_png(name))
+            _x2(im).save(asset_paths.out_png(name + "@2x"))
         print("ok", name, im.size)
+    if "--no-write" not in sys.argv:
+        import asset_index
+        idx, _ = asset_index.build()
+        open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
     if "--preview" in sys.argv:
         i = sys.argv.index("--preview")
         d = sys.argv[i + 1] if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("--") else PREV

@@ -18,7 +18,8 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-INC = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths   # 改的是游戏读的运行时贴图（就地覆盖）
 OUT = os.path.join(ROOT, "build", "portraits_out")
 FW, FH = 80, 96   # @2x 单帧
 OUTLINE = (8, 14, 24, 255)
@@ -146,7 +147,7 @@ def cmd_cannon():
 	for variant in ["", "_dark"]:
 		for suffix in ["_attack", "_reload", "_melee"]:
 			base = "e_saint%s%s" % (variant, suffix)
-			p2, p1 = os.path.join(INC, base + "@2x.png"), os.path.join(INC, base + ".png")
+			p2, p1 = asset_paths.runtime_png(base + "@2x"), asset_paths.runtime_png(base)
 			im2, nf = _frames(p2)
 			im1, _ = _frames(p1)
 			for fi in range(nf):
@@ -161,7 +162,7 @@ def cmd_cannon():
 
 def cmd_nova():
 	for name in ["proj_nova", "proj_nova@2x"]:
-		p = os.path.join(INC, name + ".png")
+		p = asset_paths.runtime_png(name)
 		im = Image.open(p).convert("RGBA")
 		s = im.height
 		nf = im.width // s
@@ -193,7 +194,7 @@ def cmd_sheet(tag):
 	items = sorted(set(items), key=lambda t: (t[0], t[1], t[2]))
 	tiles = []
 	for v, suf, fi in items:
-		im, nf = _frames(os.path.join(INC, "e_saint%s%s@2x.png" % (v, suf)))
+		im, nf = _frames(asset_paths.runtime_png("e_saint%s%s@2x" % (v, suf)))
 		fr = im.crop((fi * FW, 0, (fi + 1) * FW, FH)).resize((FW * S, FH * S), Image.NEAREST)
 		bg = Image.new("RGBA", fr.size, (40, 44, 52, 255))
 		bg.alpha_composite(fr)
@@ -206,7 +207,7 @@ def cmd_sheet(tag):
 		x += t.width + 4
 	nt = []
 	for name in ["proj_nova@2x"]:
-		im = Image.open(os.path.join(INC, name + ".png")).convert("RGBA")
+		im = Image.open(asset_paths.runtime_png(name)).convert("RGBA")
 		s = im.height
 		for fi in range(im.width // s):
 			fr = im.crop((fi * s, 0, (fi + 1) * s, s)).resize((s * 8, s * 8), Image.NEAREST)

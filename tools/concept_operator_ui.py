@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """干员选择 / 干员图鉴 概念图（docs/58，2026-10-11）：参考《明日方舟》干员界面的版式，用本项目像素资产画 PNG。
-只用 art/incoming 的 op_*_idle(@2x) / player_idle(@2x)、skill_*、growth_*、_trial_icons/relic_* 与 game/fonts；不用原作任何图片。
+只用运行时贴图 op_*_idle(@2x) / player_idle(@2x)、skill_*、growth_*、_trial_icons/relic_* 与 game/fonts；不用原作任何图片。
 不是游戏代码，只是给用户看的概念图。
 
 用法：
@@ -100,7 +100,7 @@ def roster():
         cid = os.path.basename(f)[:-5]
         d = json.load(open(f, encoding="utf-8"))
         tex = "player_idle@2x" if cid == "mizuki" else "op_%s_idle@2x" % cid
-        if not os.path.exists(os.path.join(ART, tex + ".png")):
+        if not os.path.exists(K.asset_paths.runtime_png(tex)):
             continue
         d["_tex"] = tex
         d["_id"] = cid
@@ -115,7 +115,7 @@ def frame(tex, i=0):
 
 
 def icon(name):
-    p = os.path.join(ART, name + ".png")
+    p = K.asset_paths.runtime_png(name)
     if not os.path.exists(p):
         p = os.path.join(ART, "_trial_icons", name + ".png")
     return Image.open(p).convert("RGBA") if os.path.exists(p) else None

@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as _GR
+import asset_paths
 COMMON = _GR.common_root()
 OUT = os.path.join(COMMON, "build", "op_1x")
 INC = os.path.join(ROOT, "art", "incoming")
@@ -41,7 +42,7 @@ def main():
         # 局内 @2x 待机首帧：同一锚点换算到 @2x 帧（compose 的平移：foot − 渲染锚点）
         sp = json.load(open(os.path.join(ROOT, "game", "data", "characters", op + ".json"), encoding="utf-8"))["sprites"]["idle"]
         sp = {"tex": sp} if isinstance(sp, str) else sp
-        two = Image.open(os.path.join(INC, sp["tex"] + "@2x.png")).convert("RGBA")
+        two = Image.open(asset_paths.runtime_png(sp["tex"] + "@2x")).convert("RGBA")
         n = int(sp.get("frames", max(1, two.width // two.height)))
         f2 = two.crop((0, 0, two.width // n, two.height))
         size = one.width; anc = (size / 2, 120 + (size - 128) / 2); foot = sp.get("foot", [32, 60])   # 同 make_op_1x.compose 的渲染锚点（脚底中心）

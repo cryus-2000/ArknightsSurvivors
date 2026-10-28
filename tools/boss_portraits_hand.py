@@ -4,19 +4,20 @@
 与 tools/relic_icons_hand.py 同一套管线：每张头像是逐像素手摆的字符图 + 调色表，这里网格是 44×44 字符，一字符 = 1x 的 2×2 像素
 （和游戏里 1 美术像素 = 2 世界像素的画法一致），渲染成 88×88 的 1x 与 176×176 的 @2x（严格 2 倍最近邻）。
 规格：头肩像、透明底、二值 alpha、1 px（字符）外轮廓 #080E18、来光左侧（左亮右暗）、各 Boss 的强调色取 boss_intro.gd CARDS / vfx.BOSS_STYLE
-（只做点缀：眼光 / 纹样 / 边光，人物保持本来的颜色）；参考各自的帧条 art/incoming/e_<tex>*.png 与 docs/38 的描述。
+（只做点缀：眼光 / 纹样 / 边光，人物保持本来的颜色）；参考各自的帧条 e_<tex>*.png（game/art/enemies/） 与 docs/38 的描述。
 留边：上 / 左 / 右各 1 字符，肩部可以贴到底边（名片的 88 框把肩切掉一点正合适）。
 
 用法：python tools/boss_portraits_hand.py             渲染到 build/portraits_out/png/boss_<id>.png（+ @2x），并出总表 build/portraits_out/portraits_contact.png
       python tools/boss_portraits_hand.py --view 6    另出放大自检图 build/portraits_out/_view6x.png（--only carmen,ishar 只看这些）
-      python tools/boss_portraits_hand.py --live      接入到 art/incoming/portraits/boss_<id>.png 与 boss_<id>@2x.png
+      python tools/boss_portraits_hand.py --live      接入到运行时 portraits/boss_<id>.png（game/art/enemies/_portraits/）与 boss_<id>@2x.png
 自检：每行 44 字符、44 行、字符都在调色表里、上 / 左 / 右 1 字符留边、alpha 只有 0/255、@2x 逐像素 = 1x 最近邻放大。
 """
 import os, sys
 from PIL import Image, ImageDraw
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-INC = os.path.join(ROOT, "art", "incoming", "portraits")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 OUT = os.path.join(ROOT, "build", "portraits_out")
 N = 44
 
@@ -649,11 +650,13 @@ def main():
 		sheet.save(vp)
 		print("自检图", vp)
 	if "--live" in sys.argv:
-		os.makedirs(INC, exist_ok=True)
 		for bid, (one, two) in hand.items():
-			one.save(os.path.join(INC, "boss_%s.png" % bid))
-			two.save(os.path.join(INC, "boss_%s@2x.png" % bid))
-		print("接入 %d 张到 %s" % (len(hand), INC))
+			one.save(asset_paths.out_png("portraits/boss_%s" % bid))
+			two.save(asset_paths.out_png("portraits/boss_%s@2x" % bid))
+		import asset_index
+		idx, _ = asset_index.build()
+		open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
+		print("接入 %d 张到 game/art/enemies/_portraits" % len(hand))
 
 
 if __name__ == "__main__":

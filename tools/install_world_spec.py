@@ -13,7 +13,8 @@ import shutil
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INC = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "art", "archive", "incoming_1028", "world_spec_1024")
 
 COPY = [
@@ -42,6 +43,11 @@ EDGE_R = [(0, 0, 64, 16), (64, 0, 16, 64), (80, 0, 64, 16), (144, 0, 16, 64),
 MC = 16   # 栅格边长（美术像素），world/map.gd MIRE_CELL 同值
 
 
+def _out(f):
+    """运行时文件名（带 .png）→ 写入位置（已在索引就写回原处，否则 game/art/<类别>/）"""
+    return asset_paths.out_png(f[:-4])
+
+
 def build_mire(src: str) -> None:
     """预合成两张图集，运行时 1:1 取格画：
     mire_tile_ab(_emit).png  256×64：A f0、A f1、B f0、B f1（各 64×64）
@@ -57,7 +63,7 @@ def build_mire(src: str) -> None:
         ab = Image.new("RGBA", (256, 64), (0, 0, 0, 0))
         ab.paste(ims[0], (0, 0))
         ab.paste(ims[1], (128, 0))
-        ab.save(os.path.join(INC, name))
+        ab.save(_out(name))
         print("合成 " + name)
     at = Image.new("RGBA", (16 * MC, 48 * MC), (0, 0, 0, 0))
     ae = Image.new("RGBA", (16 * MC, 48 * MC), (0, 0, 0, 0))
@@ -87,8 +93,8 @@ def build_mire(src: str) -> None:
                                 e = ep[v][tx, ty]
                                 if e[3] >= 128:
                                     aep[ox + x, oy + y] = e
-    at.save(os.path.join(INC, "mire_edge_atlas.png"))
-    ae.save(os.path.join(INC, "mire_edge_atlas_emit.png"))
+    at.save(_out("mire_edge_atlas.png"))
+    ae.save(_out("mire_edge_atlas_emit.png"))
     print("合成 mire_edge_atlas(_emit).png")
 
 
@@ -101,14 +107,17 @@ def main() -> int:
         if not os.path.exists(s):
             print("缺 " + a)
             return 1
-        shutil.copyfile(s, os.path.join(INC, b))
+        shutil.copyfile(s, _out(b))
         print("装 %s → %s" % (a, b))
     for b in REMOVE:
-        p = os.path.join(INC, b)
+        p = asset_paths.runtime_png(b[:-4])
         if os.path.exists(p):
             os.remove(p)
             print("删 " + b)
     build_mire(SRC)
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
     return 0
 
 

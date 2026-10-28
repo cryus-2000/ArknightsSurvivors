@@ -33,7 +33,8 @@ import argparse, json, os, sys
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ART = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 NAMES = {}
 
 # 人工标注（@2x 坐标，待机 f0）：左眼 x、右眼 x、眼 y、下巴 y、下巴宽、下巴形、眼睛尺寸 w×h（@2x）、备注
@@ -90,7 +91,7 @@ def idle(cid):
     i = sp.get("idle")
     tex = i if isinstance(i, str) else i["tex"]
     foot = (i.get("foot") if isinstance(i, dict) else None) or sp.get("foot") or [24, 46]
-    im = Image.open(os.path.join(ART, tex + "@2x.png")).convert("RGBA")
+    im = Image.open(asset_paths.runtime_png(tex + "@2x")).convert("RGBA")
     return im.crop((0, 0, im.height, im.height)), foot
 
 

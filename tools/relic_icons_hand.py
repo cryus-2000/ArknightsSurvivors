@@ -11,13 +11,15 @@
       python tools/relic_icons_hand.py --view 8   另出 build/icons_hand/_hand8x.png（自检用放大图；--only 3,4,5 只看这些）
       python tools/relic_icons_hand.py --contact  另出三方联系表 build/icons_hand/contact.png（最早 10 张：手绘参考 / 模板试做 / 手摆）
       python tools/relic_icons_hand.py --all      全部手摆图标按流派分组的 1x / 3x 联系表 build/icons_all/contact.png
-      python tools/relic_icons_hand.py --live     接入到 art/incoming/relic_<id>.png（清单 relic_icons_hand_manifest.json 记本脚本接入的 id；清单外已有的手绘图标一律不覆盖）
+      python tools/relic_icons_hand.py --live     接入到运行时 relic_<id>.png（game/art/ui/relics/；清单 relic_icons_hand_manifest.json 记本脚本接入的 id；清单外已有的手绘图标一律不覆盖）
 自检：每行 32 字符、字符都在调色表里、四周 2 px 内无像素、alpha 只有 0/255。
 """
 import os, sys
 from PIL import Image, ImageDraw
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 INC = os.path.join(ROOT, "art", "incoming")
 OUT = os.path.join(ROOT, "build", "icons_hand", "png")   # 工作输出（build 不入库）；接入用 --live
 TRIAL = os.path.join(INC, "_trial_icons")
@@ -502,7 +504,7 @@ def contact(hand):
         y0 = 28 + rowh * r
         dr.text((6, y0 + 4), "%d" % rid, fill=(220, 225, 232, 255))
         refid = REF[rid]
-        srcs = [os.path.join(INC, "relic_%d.png" % refid) if refid else None,
+        srcs = [asset_paths.runtime_png("relic_%d" % refid) if refid else None,
                 os.path.join(TRIAL, "relic_%d.png" % rid), None]
         for c in range(3):
             x0 = 72 + colw * c + pad
@@ -593,23 +595,25 @@ def main():
         contact_all(hand).save(p)
         print("全表", p)
     if "--live" in sys.argv:
-        # 接入：art/incoming/relic_<id>.png。清单 MANIFEST 记着哪些 id 是本脚本接入的；清单外已有的文件（手绘图标）一律不碰。
+        # 接入：运行时 relic_<id>.png（asset_paths.out_png）。清单 MANIFEST 记着哪些 id 是本脚本接入的；清单外已有的文件（手绘图标）一律不碰。
         import json
         owned = set()
         if os.path.exists(MANIFEST):
             owned = set(json.load(open(MANIFEST, encoding="utf-8")).get("ids", []))
         n, skipped = 0, []
         for rid, im in hand.items():
-            dst = os.path.join(INC, "relic_%d.png" % rid)
-            if os.path.exists(dst) and rid not in owned:
+            if os.path.exists(asset_paths.runtime_png("relic_%d" % rid)) and rid not in owned:
                 skipped.append(rid)
                 continue
-            im.save(dst)
+            im.save(asset_paths.out_png("relic_%d" % rid))
             owned.add(rid)
             n += 1
         json.dump({"_doc": "tools/relic_icons_hand.py --live 接入的藏品图标 id；清单外的 relic_<id>.png 是手绘图标，脚本不覆盖",
                    "ids": sorted(owned)}, open(MANIFEST, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-        print("接入 %d 张到 %s" % (n, INC) + ("；已有手绘、跳过：%s" % skipped if skipped else ""))
+        import asset_index
+        idx, _ = asset_index.build()
+        open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
+        print("接入 %d 张到 game/art/ui/relics" % n + ("；已有手绘、跳过：%s" % skipped if skipped else ""))
 
 
 if __name__ == "__main__":

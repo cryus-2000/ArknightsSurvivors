@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""干员技能图标（32×32 像素）：art/incoming/skill_<干员 id>_s<1-3>.png；水月沿用旧文件名 skill_s1/s2/s3。
+"""干员技能图标（32×32 像素）：运行时 game/art/ui/skills/skill_<干员 id>_s<1-3>.png；水月沿用旧文件名 skill_s1/s2/s3。
 
 用法：
-  python tools/make_skill_icons.py                    # 生成全部，写进 art/incoming/
+  python tools/make_skill_icons.py                    # 生成全部，写进 game/art/ui/skills/
   python tools/make_skill_icons.py --only skadi,logos # 只生成这几名干员
   python tools/make_skill_icons.py --preview out.png  # 另存一张放大预览（6 倍 + HUD 实际大小）
 
@@ -19,7 +19,16 @@ from PIL import Image, ImageDraw
 
 W = 32
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(ROOT, "art", "incoming")
+OUT_DIR = os.path.join(ROOT, "art", "incoming")   # 只放清单类文件；图标本身写 asset_paths.out_png（game/art/ui/skills/）
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths  # noqa: E402
+
+
+def write_index():
+    """写过图标后重写 game/art/index.json（新名字不进索引游戏读不到）"""
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
 OUTLINE = (8, 14, 24, 255)   # #080E18
 
 
@@ -1085,10 +1094,11 @@ def main():
     imgs = render_all(only)
     if not a.no_write:
         for (op, n), im in imgs.items():
-            im.save(os.path.join(OUT_DIR, out_name(op, n) + ".png"))
+            im.save(asset_paths.out_png(out_name(op, n)))
+        write_index()
     if a.preview:
         preview(imgs, a.preview)
-    print("%d 个图标%s" % (len(imgs), "" if a.no_write else " → " + OUT_DIR))
+    print("%d 个图标%s" % (len(imgs), "" if a.no_write else " → game/art/ui/skills"))
 
 
 if __name__ == "__main__":

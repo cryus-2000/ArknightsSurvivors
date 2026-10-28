@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """第三批干员（docs/59）技能图标：浊心斯卡蒂 / 德克萨斯 / 星熊 / 能天使 / 安洁莉娜 各 S1–S3，共 15 个。
 
-写到 art/incoming/skill_<id>_s<n>.png（32×32，与 make_skill_icons.py 同尺寸同构图）。
+写到运行时 game/art/ui/skills/skill_<id>_s<n>.png（32×32，与 make_skill_icons.py 同尺寸同构图）。
 构图沿用 make_skill_icons.py 的「原作风格方形技能图标」：暗色渐变方形底 + 彩色楔形 / 五边形 / 圆 + 扁平白色主体，
 S3 加白框；方形底的几何与上色引擎直接 import make_skill_icons（Icon / tile / frame / wedge …），
 白色主体（音符、剑、盾、鬼面、枪、子弹、重力箭头……）全部是本文件里的手摆字符图（bitmap），不用原作图片。
@@ -556,16 +556,16 @@ def main():
         wrote = 0
         for (op, n), im in sorted(imgs.items()):
             name = out_name(op, n)
-            path = os.path.join(OUT_DIR, name + ".png")
-            if os.path.exists(path) and name not in owned and not a.force:
+            if os.path.exists(M.asset_paths.runtime_png(name)) and name not in owned and not a.force:
                 print("跳过（清单外已有文件）：", name)
                 continue
-            im.save(path)
+            im.save(M.asset_paths.out_png(name))
             owned.add(name)
             wrote += 1
         json.dump({"tool": "tools/skill_icons_batch3.py", "doc": "docs/59", "ids": sorted(owned)},
                   open(MANIFEST, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-        print("写入 %d 个图标 → %s" % (wrote, OUT_DIR))
+        M.write_index()
+        print("写入 %d 个图标 → game/art/ui/skills" % wrote)
     if a.preview:
         M.preview(imgs, a.preview)
         print("预览：", a.preview)

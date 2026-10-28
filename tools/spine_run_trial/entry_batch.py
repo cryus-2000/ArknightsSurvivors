@@ -5,13 +5,15 @@
 
 Spine 干员：  python tools/spine_run_trial/entry_batch.py spine <id> [<id> …]
 Codex 条：    python tools/spine_run_trial/entry_batch.py codex lappland gladiia   （拉普兰德 / 歌蕾蒂娅，Codex 交付的 Start 大画布条）
-产物：build/spine_run_trial/<id>/entry/<id>_entry_strip@2x.png、cfg/<id>_entry.json（durations），--apply 时复制到 art/incoming 并写干员 json。
+产物：build/spine_run_trial/<id>/entry/<id>_entry_strip@2x.png、cfg/<id>_entry.json（durations），--apply 时复制到运行时贴图（asset_paths.out_png）并写干员 json、重写贴图索引。
 """
 import json, os, subprocess, sys
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 TRIAL = os.path.join(ROOT, 'tools', 'spine_run_trial')
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+import asset_paths
 os.environ['NODE_PATH'] = 'E:/ArknightsSurvivors/build/prts_ref/_node/node_modules'
 N_PROBE = 24
 CODEX = 'art/incoming/lappland_gladiia_delivery_1021'
@@ -126,7 +128,7 @@ def apply(cid, strip, durs):
     import shutil
     im = Image.open(strip)
     assert im.size == (1024, 128), (cid, im.size)
-    shutil.copy(strip, os.path.join(ROOT, 'art', 'incoming', f'op_{cid}_entry@2x.png'))
+    shutil.copy(strip, asset_paths.out_png(f'op_{cid}_entry@2x'))
     p = os.path.join(ROOT, 'game', 'data', 'characters', f'{cid}.json')
     s = open(p, encoding='utf8', newline='').read()
     nl = '\r\n' if '\r\n' in s else '\n'
@@ -164,3 +166,7 @@ if __name__ == '__main__':
         print(cid, 'Start', dur, 'durations', durs, 'sum', round(sum(durs), 3))
         if '--apply' in sys.argv:
             apply(cid, strip, durs)
+    if '--apply' in sys.argv:
+        import asset_index
+        idx, _ = asset_index.build()
+        open(asset_index.INDEX, 'w', encoding='utf-8', newline='\n').write(asset_index.dump(idx))

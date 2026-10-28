@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """docs/54 §6 的五条事件特效帧条（程序生成版，固定种子、可重复；二值 alpha，同现有 fx_*；@2x 为严格 2 倍最近邻）。
 
-写到 art/incoming/：
+写成运行时贴图（asset_paths.out_png，game/art/fx/）：
   fx_beacon_ignite   64×64 × 8 帧 16 fps：灯标点燃——暖白核心先聚后炸，外扩棋盘点光晕 + 8 道放射，末两帧散成火星。加色层。
   fx_ember           8×8 × 4 帧：余烬（亮 → 暖 → 橙 → 暗红一粒）；游戏里按 mote 的颜色调制，一张通用。
   fx_mire_dissolve   64×64 × 6 帧 8 fps：溟痕退散——和 terrain_mire 同尺寸的深紫污斑，边缘先碎、中心最后，退散前沿一圈洋红。
@@ -18,7 +18,8 @@ import os, sys, math, random
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-OUT = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 PREV = os.path.join(ROOT, "build", "fxstrips")
 
 CLEAR = (0, 0, 0, 0)
@@ -432,10 +433,13 @@ def main():
     for name, fn in GEN.items():
         im = strip(name, fn)
         check(im, name)
-        im.save(os.path.join(OUT, name + ".png"))
-        _x2(im).save(os.path.join(OUT, name + "@2x.png"))
+        im.save(asset_paths.out_png(name))
+        _x2(im).save(asset_paths.out_png(name + "@2x"))
         ims[name] = im
         print("wrote", name, im.size)
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
     if "--preview" in sys.argv:
         i = sys.argv.index("--preview")
         d = sys.argv[i + 1] if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("--") else PREV

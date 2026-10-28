@@ -2,7 +2,7 @@
 """干员寻访（局外解锁）概念样张（docs/124，2026-10-22）。只是静态样张，不改游戏代码。
 
 风格：局外 T5s（docs/37 §8：藏青三阶 Bayer 抖动、像素阶梯切角、青细边、选中反白、5×7 像素字）；
-干员像用游戏里的 @2x 待机帧（art/incoming），未解锁画剪影；特效（扫描线、星屑、信号缝）用程序画法占位，正式素材见 docs/124 §6 特效单。
+干员像用游戏里的 @2x 待机帧（asset_paths.runtime_png），未解锁画剪影；特效（扫描线、星屑、信号缝）用程序画法占位，正式素材见 docs/124 §6 特效单。
 主动作「信号解码」：一道横向扫描线自上而下扫过剪影，扫过的行由剪影解码成彩色像素（docs/62 §2.8：全游戏不复用）。
 
 用法：python -X utf8 tools/concept_headhunt.py [--v1] [--anim]（--anim：第二版动画 mp4 + gif，30 fps）
@@ -22,7 +22,7 @@ import concept_title_ui as c1  # noqa: E402
 from concept_title_ui_v4 import stair, edge_of, dith, paint, solid, ptxt, N_TONES, EDGE  # noqa: E402
 
 ROOT = os.path.dirname(TOOLS)
-ART = os.path.join(ROOT, "art", "incoming")
+import asset_paths  # noqa: E402
 DATA = os.path.join(ROOT, "game", "data", "characters")
 OUT = os.path.join(c1.gr.common_root(ROOT), "build", "headhunt_design")
 W, H = 1280, 720
@@ -85,7 +85,7 @@ def load_ops():
 def frame0(op, k=1):
     """待机 f0（@2x 贴图像素），按 k 最近邻放大；返回 (图, 脚底点)"""
     sp = op["idle"]
-    im = Image.open(os.path.join(ART, sp["tex"] + "@2x.png")).convert("RGBA")
+    im = Image.open(asset_paths.runtime_png(sp["tex"] + "@2x")).convert("RGBA")
     n = int(sp["frames"])
     fw = im.width // n
     f = im.crop((0, 0, fw, im.height))
@@ -1320,7 +1320,7 @@ def load_affil():
 def idle_frames(op, k):
     """待机整条：每帧按同一并集区裁切（脚底点一致），k 倍最近邻；返回 ([图], 脚底点, [每帧秒])"""
     sp = op["idle"]
-    im = Image.open(os.path.join(ART, sp["tex"] + "@2x.png")).convert("RGBA")
+    im = Image.open(asset_paths.runtime_png(sp["tex"] + "@2x")).convert("RGBA")
     n = int(sp["frames"])
     fw = im.width // n
     frs = [im.crop((i * fw, 0, (i + 1) * fw, im.height)) for i in range(n)]

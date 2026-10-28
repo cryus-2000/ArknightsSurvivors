@@ -2,7 +2,7 @@
 """第三方开放许可特效 → 本作帧条（docs/25 §3）。
 
 用法：python tools/fx_import.py [名字…]
-输入：art/third_party/…（不入库）；输出：art/incoming/fx_<name>.png / proj_<name>.png（入库），并打印 V6_FRAMES 登记行。
+输入：art/third_party/…（不入库）；输出：运行时 fx_<name>.png / proj_<name>.png（asset_paths.out_png，game/art/fx/，入库），并打印 V6_FRAMES 登记行。
 
 处理：切帧（按透明列自动分割 / 网格 / 等分）→ 最近邻缩放到目标高度 → 亮度分档映射到干员色板（可选）→ 等宽帧条。
 """
@@ -11,7 +11,8 @@ from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TP = os.path.join(ROOT, 'art', 'third_party')
-OUT = os.path.join(ROOT, 'art', 'incoming')
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+import asset_paths
 NA = os.path.join(TP, 'icons', 'pixelboy_ninja_adventure', 'Ninja Adventure - Asset Pack', 'Ninja Adventure - Asset Pack', 'FX')
 CM = os.path.join(TP, 'fire_lava', 'codemanu_pixel_effects', 'Free Pixel Effects Pack')
 PM = os.path.join(TP, 'holy_light', 'pimen_holy_vfx_01_02')
@@ -210,7 +211,7 @@ def run(name):
         frames = split_grid(sheet, cell, count, step)
     frames = trim_alpha(frames)
     strip, cw, ch = build(frames, height, ramp, anchor)
-    out = os.path.join(OUT, name + '.png')
+    out = asset_paths.out_png(name)
     strip.save(out)
     print(f'"{name}": [{len(frames)}, {fps}.0],  # {cw}x{ch} x{len(frames)}  <- {os.path.relpath(src, TP)}')
     return name, len(frames), fps, cw, ch
@@ -220,3 +221,6 @@ if __name__ == '__main__':
     names = sys.argv[1:] or list(JOBS)
     for n in names:
         run(n)
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, 'w', encoding='utf-8', newline='\n').write(asset_index.dump(idx))

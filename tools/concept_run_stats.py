@@ -184,7 +184,7 @@ def pbar(img, x, y, w, h, P, segs, frac=1.0, track=True):
 
 
 def sprite(img, tex, cx, by, k, sel=False):
-    p = os.path.join(ART, tex + ".png")
+    p = c1.asset_paths.runtime_png(tex)
     if not os.path.exists(p):
         return
     sh = Image.open(p).convert("RGBA")

@@ -2,13 +2,14 @@
 做法同普通跑步 op_wisadel_run（tools/spine_run_trial cfg/wisadel.json 的步态）：底稿换成原作 Spine 的 Skill_2_Idle /
 Skill_2_Overload_Idle 首帧（S2 架炮姿态与展开的浮游武器），逐部件 1 倍像素化；缩放与 make_op_1x 同口径（原待机首帧身高对齐），
 帧格 / 脚底沿用 s2_idle（96 画布、foot 48.25, 75.86）。参数见下面 EXTRA。
-用法：python -X utf8 tools/op_1x/make_wisadel_s2_run.py [--out-dir 目录]（缺省直接写 art/incoming/<tex>@1x.png）
+用法：python -X utf8 tools/op_1x/make_wisadel_s2_run.py [--out-dir 目录]（缺省直接写运行时 <tex>@1x.png（asset_paths.out_png））
 """
 import argparse, json, os, sys
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import make_op_1x as M
+import asset_paths
 
 OP = "wisadel"
 SLOTS = {   # 新帧条 → (原生动画, 帧格 / 脚底参照槽)
@@ -41,7 +42,7 @@ def main():
     sm0 = base.get("scaleMul") or 1
     # 缩放：同 make_op_1x.build_op（原待机首帧身高 1x ÷ Spine 1 倍待机身高）
     idle = M.spec(sprites, "idle")
-    im = Image.open(os.path.join(M.INC, idle["tex"] + "@2x.png")).convert("RGBA")
+    im = Image.open(asset_paths.runtime_png(idle["tex"] + "@2x")).convert("RGBA")
     nfr = int(idle.get("frames", 8))
     h_old = M.bbox_h(im.crop((0, 0, im.width // nfr, im.height))) / 2
     mdir = os.path.join(M.OUT, OP, "_measure")
@@ -52,7 +53,7 @@ def main():
         if a.only and tex not in a.only.split(","):
             continue
         sp = M.spec(sprites, ref)
-        ref_im = Image.open(os.path.join(M.INC, sp["tex"] + "@1x.png"))
+        ref_im = Image.open(asset_paths.runtime_png(sp["tex"] + "@1x"))
         fw, fh = ref_im.width // int(sp["frames"]), ref_im.height
         c = dict(base, scaleMul=scale, base={"anim": anim, "t": 0})
         c.update(EXTRA)
@@ -65,10 +66,12 @@ def main():
         d = os.path.join(M.OUT, OP, tex)
         M.run_node(M.write_cfg(OP, tex, c), d)
         img = M.compose(d, N, fw, fh, sp["foot"], M.anchor_of(c))
-        dst = os.path.join(a.out_dir or M.INC, tex + ("@1x.png" if not a.out_dir else ".png"))
+        dst = os.path.join(a.out_dir, tex + ".png") if a.out_dir else asset_paths.out_png(tex + "@1x")
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         img.save(dst)
         print(tex, img.size, "scale %.4f" % scale, "->", dst)
+    if not a.out_dir:
+        M.write_index()
 
 
 if __name__ == "__main__":

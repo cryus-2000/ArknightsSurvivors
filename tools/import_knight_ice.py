@@ -2,17 +2,20 @@
 from pathlib import Path
 import hashlib
 import json
+import sys
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'tools'))
+import asset_paths
 LIB = next(p for p in [ROOT / 'art/third_party/ice_20261027', ROOT.parents[1] / 'art/third_party/ice_20261027'] if p.exists())
 P1 = 'pimen_01/Ice Effect 01/'
 P2 = 'pimen_02/Ice Effect 02/'
 SPECS = {
     'fx_knight_ice_wall': ('creativekind/ice_prison-Sheet.png', 64, list(range(36))),
-    'prop_knight_frost_stake': ('repo:art/incoming/prop_ice_pillar.png', 64, list(range(4))),
-    'prop_knight_frost_stake_rise': ('repo:art/incoming/prop_ice_pillar_rise.png', 64, list(range(3))),
-    'prop_knight_frost_stake_break': ('repo:art/incoming/prop_ice_pillar_break.png', 64, list(range(6))),
+    'prop_knight_frost_stake': ('rt:prop_ice_pillar', 64, list(range(4))),
+    'prop_knight_frost_stake_rise': ('rt:prop_ice_pillar_rise', 64, list(range(3))),
+    'prop_knight_frost_stake_break': ('rt:prop_ice_pillar_break', 64, list(range(6))),
     'fx_knight_crystal_rise': ('creativekind/ice crystal-Sheet.png', 64, list(range(7))),
     'fx_knight_crystal_hold': ('creativekind/ice crystal-Sheet.png', 64, [7, 8, 9]),
     'fx_knight_crystal_break': ('creativekind/ice crystal-Sheet.png', 64, list(range(10, 20))),
@@ -26,7 +29,7 @@ RAMP = [(12,27,40),(25,49,65),(40,72,92),(63,101,121),
 def main():
     records = {}
     for name, (source, fw, indices) in SPECS.items():
-        path = ROOT / source.removeprefix('repo:') if source.startswith('repo:') else LIB / source
+        path = Path(asset_paths.runtime_png(source.removeprefix('rt:'))) if source.startswith('rt:') else LIB / source
         im = Image.open(path).convert('RGBA')
         assert im.width % fw == 0 and max(indices) < im.width // fw
         strip = Image.new('RGBA', (fw * len(indices), im.height))
@@ -41,11 +44,14 @@ def main():
                 luminance = (r*.299 + g*.587 + b*.114)/255
                 color = RAMP[min(7,int(luminance*7.99))]
                 pixels[x,y] = (*color,a)
-        out = ROOT / 'art/incoming' / (name+'.png')
+        out = Path(asset_paths.out_png(name))
         strip.save(out)
         records[name] = {'source':source, 'source_sha256':hashlib.sha256(path.read_bytes()).hexdigest(), 'frames':len(indices), 'frame_size':[fw,im.height], 'indices':indices, 'palette':RAMP, 'output_sha256':hashlib.sha256(out.read_bytes()).hexdigest()}
         print(name, strip.size)
     (ROOT/'art/incoming/knight_ice_manifest.json').write_text(json.dumps(records,indent=2)+'\n',encoding='utf-8')
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, 'w', encoding='utf-8', newline='\n').write(asset_index.dump(idx))
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""商人灯笼发光帧（docs/54 §6 最后一条的程序生成版）：从 art/incoming/merchant.png 里找出暖色提灯的位置，
+"""商人灯笼发光帧（docs/54 §6 最后一条的程序生成版）：从运行时贴图 merchant.png 里找出暖色提灯的位置，
 生成一条叠在商人帧上的发光覆盖帧条 fx_merchant_lantern.png（48×48 × 4 帧，二值 alpha，@2x 严格 2 倍最近邻）。
 
 帧序 = 商人帧 × 2 + 亮度：0 / 1 = 商人第 0 帧的暗 / 亮，2 / 3 = 商人第 1 帧的暗 / 亮。
@@ -17,9 +17,10 @@ import os, sys, math, random
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-INC = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 PREV = os.path.join(ROOT, "build", "fxstrips")
-SRC = os.path.join(INC, "merchant.png")
+SRC = asset_paths.runtime_png("merchant")
 NAME = "fx_merchant_lantern"
 FW, FH, NF = 48, 48, 4
 
@@ -124,8 +125,11 @@ def preview(src, strip, out_dir):
 def main():
     src, strip = build()
     check(strip)
-    strip.save(os.path.join(INC, NAME + ".png"))
-    strip.resize((strip.width * 2, strip.height * 2), Image.NEAREST).save(os.path.join(INC, NAME + "@2x.png"))
+    strip.save(asset_paths.out_png(NAME))
+    strip.resize((strip.width * 2, strip.height * 2), Image.NEAREST).save(asset_paths.out_png(NAME + "@2x"))
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
     print("wrote", NAME, strip.size)
     if "--preview" in sys.argv:
         i = sys.argv.index("--preview")

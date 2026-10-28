@@ -1,5 +1,5 @@
 """Boss 激光帧条（docs/142b §8.5，10-25 用户定用 Kanpelle · Ultimate Laser Pack）：取素材包白色版，按 Boss 专属色换色，
-导出 art/incoming/fx_kp_<boss>_<段>.png。段 = src / mid / hit（持续 4 帧）与 src_on / mid_on / hit_on（开启 4 帧；关闭 = 开启倒放），
+导出运行时 fx_kp_<boss>_<段>.png（game/art/fx/）。段 = src / mid / hit（持续 4 帧）与 src_on / mid_on / hit_on（开启 4 帧；关闭 = 开启倒放），
 每帧 16 × 48（1x 美术像素，光束沿 +x，竖直居中），4 帧横排 = 64 × 48。运行时画法在 render/boss_beam.gd。
 
 素材包本体不入库（art/third_party，许可见 art/third_party/README.md），本脚本只读它；导出的是加工后的游戏资源。
@@ -11,7 +11,8 @@ import os, sys
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "art", "incoming")
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 CANDIDATES = [os.path.join(ROOT, "art", "third_party"), os.path.join(ROOT, "..", "..", "..", "art", "third_party")]   # 工作树里没有时用主仓库那份
 SUB = os.path.join("lasers", "kanpelle_ultimate_laser_pack", "Ultimate Laser Pack", "Laser_Beam_Spritesheet_WHITE.png")
 
@@ -63,9 +64,12 @@ def main():
             for f in range(4):
                 cell = sheet.crop((f * 48 + 16, row * 48, f * 48 + 32, row * 48 + 48))
                 strip.alpha_composite(recolor(cell, col), (f * 16, 0))
-            p = os.path.join(OUT, f"fx_kp_{boss}_{seg}.png")
+            p = asset_paths.out_png(f"fx_kp_{boss}_{seg}")
             strip.save(p, optimize=True)
             print(p)
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
 
 
 if __name__ == "__main__":

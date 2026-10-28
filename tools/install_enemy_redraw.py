@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """把 Codex 10-23 怪物重画（art/archive/incoming_1028/enemy_redraw_1023/animations/）装进运行时：
-- 本体 / 发光层的 @2x 帧条复制成 art/incoming/<runtime_key>@2x / _emit@2x（1x 只给 BOSS_1X 里的 Boss 装，boss_intro 要读）
+- 本体 / 发光层的 @2x 帧条复制成运行时贴图（asset_paths.out_png，game/art/enemies/…）<runtime_key>@2x / _emit@2x（1x 只给 BOSS_1X 里的 Boss 装，boss_intro 要读）
 - 写 game/data/enemy_pixels.json 里每个 runtime_key 的 spec（anchor = origin_2x / frame_size_2x，scale 1.0，frames，frame_size = @2x 单帧）
 - 写 game/data/enemy_redraw.json：runtime_key -> {frames, event_frames, release_frame, sample_times, loop, duration}，运行时选帧用
 - 改 game/scripts/art.gd 的 V6_FRAMES：已有敌人帧条换新帧数；每个 _death 帧条登记 [帧数, 帧数 / 时长]
@@ -11,7 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "art" / "archive" / "incoming_1028" / "enemy_redraw_1023" / "animations"
-DST = ROOT / "art" / "incoming"
+sys.path.insert(0, str(ROOT / "tools"))
+import asset_paths
 PIX = ROOT / "game" / "data" / "enemy_pixels.json"
 OUT = ROOT / "game" / "data" / "enemy_redraw.json"
 ART_GD = ROOT / "game" / "scripts" / "art.gd"
@@ -69,7 +70,7 @@ def main() -> int:
                 if not src.exists():
                     print("缺文件", src)
                     return 1
-                shutil.copyfile(src, DST / f"{key}{suffix}{tail}")
+                shutil.copyfile(src, asset_paths.out_png(f"{key}{suffix}{tail}"[:-4]))
         w, h = row["frame_size_2x"]
         ox, oy = row["origin_2x"]
         pix[key] = {"anchor": [ox / w, oy / h], "scale": 1.0, "preserve_palette": True, "frames": row["frames"], "frame_size": [w, h]}
@@ -78,6 +79,9 @@ def main() -> int:
     PIX.write_text(json.dumps(pix, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     OUT.write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     patch_art_gd(meta)
+    import asset_index
+    idx, _ = asset_index.build()
+    open(asset_index.INDEX, "w", encoding="utf-8", newline="\n").write(asset_index.dump(idx))
     print("装入 %d 组动作" % len(meta))
     return 0
 

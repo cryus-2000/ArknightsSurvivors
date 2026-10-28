@@ -6,7 +6,7 @@
 
     python tools/enemy_tone.py                    # 18 种怪的基线表（终端 + build/enemy_tone/report.md）
     python tools/enemy_tone.py --ids fractal,tracer
-    python tools/enemy_tone.py --art <目录>        # 量别的目录（Codex 工作树的 art/incoming）
+    python tools/enemy_tone.py --art <目录>        # 量别的平铺目录（Codex 工作树的 art/incoming）；缺省量运行时贴图（game/art 索引）
     python tools/enemy_tone.py --base <提交>       # 与这个提交里的同名帧条比：剪影（alpha）是否逐像素相同 + 各指标前后
     python tools/enemy_tone.py --json out.json
 
@@ -31,8 +31,9 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 sys.path.insert(0, TOOLS)
 from art_lint import _is_outline, _luma   # 与 art_lint tone 同口径
+import asset_paths
 
-ART = os.path.join(ROOT, "art", "incoming")
+ART = None   # None = 运行时贴图（asset_paths.runtime_files）
 FULL = ["fractal", "tracer", "founder", "nest", "stone", "runner"]
 TINT = ["reaper", "mimic", "slider", "floater"]
 PASS = ["offspring", "brood", "tear", "spitter", "bone", "pocket", "skimmer", "mother"]
@@ -49,8 +50,16 @@ def names():
         return {}
 
 
+def _path(art, f):
+    """帧条文件名 → 路径：art 为 None 时取游戏读的运行时贴图"""
+    return os.path.join(art, f) if art else asset_paths.runtime_png(f[:-4])
+
+
 def strips(art, eid):
-    """该怪的全部 @2x 帧条文件名（相对 art 目录）"""
+    """该怪的全部 @2x 帧条文件名（相对 art 目录；art 为 None 时按运行时贴图名）"""
+    if not art:
+        return sorted(n + ".png" for n in asset_paths.runtime_files()
+                      if n == "e_%s@2x" % eid or (n.startswith("e_%s_" % eid) and n.endswith("@2x")))
     fs = glob.glob(os.path.join(art, "e_%s@2x.png" % eid)) + glob.glob(os.path.join(art, "e_%s_*@2x.png" % eid))
     return sorted(os.path.basename(f) for f in fs)
 
@@ -60,10 +69,16 @@ def load(path):
 
 
 def load_git(rev, name):
-    rel = "art/incoming/" + name
-    try:
-        data = subprocess.run(["git", "show", "%s:%s" % (rev, rel)], cwd=ROOT, capture_output=True, check=True).stdout
-    except subprocess.CalledProcessError:
+    """先按现在的运行时位置找，找不到再按迁移前的 art/incoming/<名>"""
+    rels = [os.path.relpath(asset_paths.runtime_png(name[:-4]), ROOT).replace(os.sep, "/"), "art/incoming/" + name]
+    data = None
+    for rel in dict.fromkeys(rels):
+        try:
+            data = subprocess.run(["git", "show", "%s:%s" % (rev, rel)], cwd=ROOT, capture_output=True, check=True).stdout
+            break
+        except subprocess.CalledProcessError:
+            pass
+    if data is None:
         return None
     return np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"))
 
@@ -132,7 +147,7 @@ def silhouette(art, base, files):
     bad = []
     for f2 in files:
         for f in (f2, f2.replace("@2x", "")):
-            p = os.path.join(art, f)
+            p = _path(art, f)
             if not os.path.exists(p):
                 continue
             old = load_git(base, f)
@@ -162,7 +177,7 @@ def main():
         if not files:
             rows.append("| %s | %s | — 找不到帧条 |" % (eid, nm.get(eid, "")))
             continue
-        m = measure([load(os.path.join(a.art, f)) for f in files])
+        m = measure([load(_path(a.art, f)) for f in files])
         tier, fails = judge(eid, m)
         rec = {"name": nm.get(eid, eid), "tier": tier, "files": files, "now": m, "fails": fails}
         cell_base = ""
@@ -192,7 +207,7 @@ def main():
     od = os.path.join(ROOT, "build", "enemy_tone")
     os.makedirs(od, exist_ok=True)
     with open(os.path.join(od, "report.md"), "w", encoding="utf-8") as fh:
-        fh.write("# 怪物色板量测（tools/enemy_tone.py）\n\n目录：%s%s\n\n%s\n" % (a.art, ("；对比 " + a.base) if a.base else "", text))
+        fh.write("# 怪物色板量测（tools/enemy_tone.py）\n\n目录：%s%s\n\n%s\n" % (a.art or "运行时贴图（game/art 索引）", ("；对比 " + a.base) if a.base else "", text))
     if a.json:
         json.dump(out, open(a.json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("\n未达标 %d 种（full / tint 档）；报告 build/enemy_tone/report.md" % nfail)

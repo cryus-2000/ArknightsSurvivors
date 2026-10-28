@@ -9,13 +9,14 @@
 
 用法：python -X utf8 tools/op_1x/native_extra.py [--only hoshiguma,saria]
 需要：先跑过 make_op_1x.py（主仓库 build/op_1x/<op>/_cfg 下有 attack_move.json / idle_stand.json，带算好的 scaleMul）。
-输出 art/incoming/<tex>@1x.png；中间帧在 build/op_1x/<op>/<name>/。
+输出运行时 <tex>@1x.png（asset_paths.out_png）；中间帧在 build/op_1x/<op>/<name>/。
 """
 import argparse, json, os, shutil, sys
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import make_op_1x as M
+import asset_paths
 
 
 def render(op, base_cfg, name, anim, times, mode=None):
@@ -33,7 +34,7 @@ def render(op, base_cfg, name, anim, times, mode=None):
 def hoshiguma():
     d, anc = render("hoshiguma", "attack_move.json", "s1_guard_move", "Skill", [0.0] * 8, "move_attack")
     img = M.compose(d, 8, 64, 64, [32, 60], anc)
-    img.save(os.path.join(M.INC, "op_hoshiguma_s1_guard_move@1x.png"))
+    img.save(asset_paths.out_png("op_hoshiguma_s1_guard_move@1x"))
     return ["op_hoshiguma_s1_guard_move"]
 
 
@@ -90,7 +91,7 @@ def saria():
     out = {"op_saria_skill": (db, foot), "op_saria_skill_s3_loop": (dl, foot), "op_saria_skill_s3_end": (de, foot),
            "op_saria_skill_s3_run": (dr, [32, 60]), "op_saria_skill_s3_attack": (dp, foot), "op_saria_move_skill_s3_attack": (dm, foot)}
     for tex, (d, ft) in out.items():
-        M.compose(d, 8, 64, 64, ft, anc).save(os.path.join(M.INC, tex + "@1x.png"))
+        M.compose(d, 8, 64, 64, ft, anc).save(asset_paths.out_png(tex + "@1x"))
     return list(out)
 
 
@@ -100,6 +101,7 @@ def main():
     a = ap.parse_args()
     for op in a.only.split(","):
         print(op, globals()[op]())
+    M.write_index()
 
 
 if __name__ == "__main__":

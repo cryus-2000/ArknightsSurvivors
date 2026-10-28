@@ -4,7 +4,7 @@
 思路：按藏品名字里的关键词（没有命中再按流派）从一张「物件词汇表」里选一个母题（瓶 / 刀 / 盾 / 灯 / 书 / 币 / 宝石 /
 羽毛 / 锚 / 贝 / 烧瓶 / 钥匙 / 戒指 / 弩 / 号角 / 徽章 / 果实 / 花 / 丝带 / 镜筒），用矩形 / 椭圆 / 多边形拼出轮廓遮罩，
 再统一上色：按流派取一组 2 色主体（亮面 / 暗面，沿左上—右下的对角分界）+ 1 px 深色描边 + 1–3 粒冰蓝高光 + 母题自己的 1 个点缀色。
-现有手绘图标（art/incoming/relic_*.png）不画底板，底板 / 稀有度边框由程序按稀有度画（docs/11 §2）——缺省照此不画底板；
+现有手绘图标（运行时 relic_*.png，game/art/ui/relics/）不画底板，底板 / 稀有度边框由程序按稀有度画（docs/11 §2）——缺省照此不画底板；
 --plate 时加一块流派色的圆角底板（试看用）。
 
 用法：python tools/gen_relic_icons.py --trial [N]       给还没有图标的藏品生成 N（缺省 20）张到 art/incoming/_trial_icons/（按流派分散取）
@@ -17,6 +17,8 @@ import os, sys, json, math, re
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import asset_paths
 INC = os.path.join(ROOT, "art", "incoming")
 TRIAL = os.path.join(INC, "_trial_icons")
 DATA = os.path.join(ROOT, "game", "data", "relics.json")
@@ -366,9 +368,9 @@ def load_relics():
 def existing_ids():
     """已有的手绘图标：relic_<数字>.png 且是 32×32（incoming 里还有 relic_ 开头的联系表，不算）"""
     out = set()
-    for f in os.listdir(INC):
-        m = re.match(r"relic_(\d+)\.png$", f)
-        if m and Image.open(os.path.join(INC, f)).size == (32, 32):
+    for f, p in asset_paths.runtime_files().items():
+        m = re.match(r"relic_(\d+)$", f)
+        if m and Image.open(p).size == (32, 32):
             out.add(m.group(1))
     return out
 
@@ -405,7 +407,7 @@ def pick_trial(items, n):
 def contact(gen, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     hand = sorted(existing_ids(), key=lambda s: int(s) if s.isdigit() else 0)[:10]
-    hand_ims = [Image.open(os.path.join(INC, "relic_%s.png" % i)).convert("RGBA") for i in hand]
+    hand_ims = [Image.open(asset_paths.runtime_png("relic_%s" % i)).convert("RGBA") for i in hand]
     bg = (28, 30, 44, 255)
     rows = [hand_ims, gen[:10], gen[10:20]]
     cell1, cell3 = 36, 100

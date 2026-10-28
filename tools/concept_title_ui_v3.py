@@ -33,6 +33,7 @@ sys.path.insert(0, TOOLS)
 import concept_title_ui as c1  # noqa: E402
 import concept_title_ui_v2 as c2  # noqa: E402
 from concept_title_ui import W, H, PW, PH, YEL, INK, SUB, ART, over, code, logo, emblem, shot, contact_sheet  # noqa: E402
+import asset_paths  # noqa: E402  运行时贴图按索引找（docs/189）
 from concept_title_ui_v2 import NAVY, CY, CY_DIM, TXT, TXT2, TEAL, text, frost, cover_switch  # noqa: E402
 
 OUT3 = os.path.join(c1.OUT, "v3")
@@ -68,7 +69,7 @@ def stage(phone=False):
 
 
 def sprite(name, scale, k=1.0):
-    fr = Image.open(os.path.join(ART, name + "@2x.png")).convert("RGBA").crop((0, 0, 96, 96))
+    fr = Image.open(asset_paths.runtime_png(name + "@2x")).convert("RGBA").crop((0, 0, 96, 96))
     fr = fr.resize((96 * scale, 96 * scale), Image.NEAREST)
     if k != 1.0:
         dark = Image.new("RGBA", fr.size, (4, 10, 26, int(255 * (1 - k))))
