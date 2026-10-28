@@ -143,7 +143,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.kn_dashing = false
 		var la: Dictionary = e.get("last_act", {})
 		if str(la.get("act", "")) == "dash" and str(e.get("brk_label", "")) != "眩晕":
-			ice_shards(e, e.pos, float(la.get("ang", 0.0)), 3, 0.8, 150.0)
+			ice_shards(e, e.pos, aim(e.pos), 3, 0.8, 150.0)   # 冰屑一律朝队长（10-28 用户「boss 的子弹没有追着人打」）
 			if e.phase == 2:
 				_crack_charge(e, float(la.get("ang", 0.0)))
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
@@ -348,7 +348,7 @@ func _ice_step(e: Dictionary) -> void:
 		var a: Vector2 = la.pos
 		var b: Vector2 = a + Vector2.from_angle(float(la.ang)) * float(la.len)
 		st.append({"a": a, "b": b, "until": g.t + Bal.v("boss/knight_ice_life", 3.0)})
-		g.fx.append({"kind": "frost_track", "a": a, "b": b, "life": Bal.v("boss/knight_ice_life", 3.0), "max": Bal.v("boss/knight_ice_life", 3.0), "enemy": true})
+		g.fx.append({"kind": "ice_sheet", "pts": [a, b], "life": Bal.v("boss/knight_ice_life", 3.0), "max": Bal.v("boss/knight_ice_life", 3.0), "enemy": true, "ground": true})
 	e.ice_strips = st
 
 
@@ -709,10 +709,8 @@ func _prism_step(e: Dictionary) -> void:
 			e.brk_label = "破绽"
 	if g.t >= float(pr.burst):
 		e.erase("kn_prisms")
-		var side: Vector2 = Vector2.from_angle(float(pr.ang)).orthogonal()
 		for p in pr.pts:
-			for sgn in [-1.0, 1.0]:
-				_prism_bolt(e, p, side * sgn * 180.0)
+			_prism_bolt(e, p, Vector2.from_angle(aim(p)) * 180.0)   # 每根冰棱朝队长射 1 发（10-28 用户：子弹要追着人打）
 			g.fx.append({"kind": "knight_crash", "pos": p, "r": 26.0, "life": 0.5, "max": 0.5, "enemy": true})
 
 
@@ -730,7 +728,7 @@ func _strip_shards(e: Dictionary, s: Dictionary) -> void:
 	var side: Vector2 = (b - a).normalized().orthogonal()
 	for i in n:
 		var p: Vector2 = a.lerp(b, (i + 0.5) / n)
-		ice_shards(e, p, (side * (1.0 if i % 2 == 0 else -1.0)).angle(), 1, 0.0, 120.0)
+		ice_shards(e, p, aim(p), 1, 0.0, 120.0)
 
 
 ## 原作「生命值低于 50% 时寒冷持续时间延长」（2 → 4 秒）：重生冲锋形态起寒冷条涨速 × knight_cold_hot（1.5）、冻伤时长 × 2（docs/171 v2）
@@ -876,7 +874,12 @@ func _drive_step(e: Dictionary, dt: float) -> bool:
 		var st: Array = e.get("ice_strips", [])
 		st.append({"a": d.seg, "b": e.pos, "until": g.t + life})
 		e.ice_strips = st
-		g.fx.append({"kind": "frost_track", "a": d.seg, "b": e.pos, "life": life, "max": life, "enemy": true})
+		# 冰面画成一整条（ice_sheet 折线随冲锋延长），冲锋期间不淡，停下后按 knight_ice_life 整条淡出
+		if not d.has("sheet"):
+			d.sheet = {"kind": "ice_sheet", "pts": [d.seg], "life": life, "max": life, "enemy": true, "ground": true}
+			g.fx.append(d.sheet)
+		d.sheet.pts.append(e.pos)
+		d.sheet.life = life
 		d.seg = e.pos
 		d.seg_t = g.t
 	var edge: bool = g.zone_frozen and float(d.dist) > 120.0 and (e.pos - g.zone_c).length() >= _rim(e) - 8.0
@@ -904,7 +907,7 @@ func _drive_end(e: Dictionary, edge: bool) -> void:
 		Sfx.play("stake_hit", 2.0, 1.0, 0.0)
 		Sfx.play("boom", -4.0, 1.2, 0.0)
 		g.vfx.shake_screen(0.8)
-		ice_shards(e, e.pos, ang + PI, 5, 1.6, 150.0)
+		ice_shards(e, e.pos, aim(e.pos), 5, 1.0, 150.0)
 	else:
 		t = Bal.v("boss/knight_drive_brk", 1.0)
 		g.combat.start_break(e, t)
@@ -985,6 +988,11 @@ func on_kill(e: Dictionary) -> void:
 ## 冰屑弹（用户 10-27「可以增加一些弹幕，但是不用太多，因为是近战攻击为主」）：冰锋 / 冰波 / 冲锋自然收尾时碎出几片慢速冰屑，
 ## 同屏最多 SHARD_CAP（18）片；走公共 g.ebullets（判定、机器人躲避、干员消弹同一管线）。单发 e.dmg × 0.35 × knight_ice_dmg_k。
 ## 只在自然结束时出：被打断 / 撞柱 / 转幕不出。开关 boss/knight_shards（0 = 关）
+## 从 from 指向队长的角度：骑士所有冰屑扇 / 冰棱弹都按这个瞄准（螺旋雪片、回旋冰锥是图案弹，不瞄）
+func aim(from: Vector2) -> float:
+	return (g.ppos - from).angle() if g.ppos.distance_to(from) > 1.0 else 0.0
+
+
 func ice_shards(e: Dictionary, from: Vector2, ang: float, n: int, spread: float, spd: float, gap_ang := INF, gap_half := 0.0) -> void:
 	if Bal.v("boss/knight_shards", 1.0) <= 0.0 or e.get("dead", false):
 		return

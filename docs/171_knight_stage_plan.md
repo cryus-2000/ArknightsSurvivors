@@ -153,3 +153,8 @@
 - **旋钮**：`boss/knight_drive`、`knight_drive_v0` / `_v1` / `_acc` / `_turn` / `_max` / `_stun` / `_brk`、`knight_lap`、`knight_lap_t` / `_lance` / `_brk`、`knight_triple_cd`、`knight_big_walk`。
 - **单测**：knight_combo_test `check_reborn3`（撞边眩晕、留冰、巡猎冰枪 ≥ 6 + 破绽、Z 字折 90°）。
 - **录像**：`build/knight_circle/knight_reborn_v3.mp4`。本局重生约 63 秒，四个大招都出了：巡猎 → 长驱（撞边）→ 回旋 → 三连 → 长驱（撞边）→ 巡猎 → 回旋。
+
+### 10-28 用户反馈修正（冰面 / 瞄准 / 超时）
+- **冰面**：原来借「冰线」的画法（黑底 + 锯齿亮脊），看上去像焦痕和电弧。改为单独的 `ice_sheet`，画在地面层：浅冰白半透明底、两侧亮边、高光带、短冰裂、闪点，宽 52（与寒冷判定一致）。长驱冲锋的冰面画成一整条，最后 30% 寿命淡出。改动在 `render/world.gd` 的 `_draw_ice_sheet`。
+- **瞄准**：用户说「boss 的子弹没有追着人打」。冲锋停下、长驱撞边、劈击和连刺收尾、冰面碎裂的冰屑扇改为朝队长，二幕冰棱改为每根朝队长射 1 发（`knight_boss.aim`）。螺旋雪片和回旋冰锥是图案弹，不瞄准。
+- **超时**：r8（e40aa5956）超时 25%，超出目标；重生段比 r7 长约 4 秒。大招间慢走 `boss/knight_big_walk` 由 2.5 秒改为 1.5 秒（balance.json）。
