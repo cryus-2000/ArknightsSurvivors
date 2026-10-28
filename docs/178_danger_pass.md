@@ -10,7 +10,7 @@
 | Boss 来源 2 秒合计上限 | `boss/leader_2s_cap` | 0.50 → 0.68 |
 | 任意来源 2 秒合计上限 | `protect/any_2s_cap` | 0.55 → 0.70 |
 | 满血保护冷却 / 保底 | `boss/fullhp_guard_cd` / `boss/fullhp_guard_left` | 30 秒 → 60 秒 / 10% → 5% |
-| 怪物伤害（普通怪 + 精英，Boss 不吃，不给奖励） | `enemy/dmg_gain_early`（5 分钟前）/ `dmg_gain_late`（之后）/ `dmg_gain_from` | 1 → 1.05 / 1 → 1.10 / 300 秒 |
+| 怪物伤害（普通怪 + 精英，Boss 不吃，不给奖励） | `enemy/dmg_gain_early`（5 分钟前）/ `dmg_gain_late`（之后）/ `dmg_gain_from` | 1 → 1.05 / 1 → 1.10 / 300 秒；10-28 改 1.15 / 1.0（见下） |
 | 国王套低血门槛 | `relic/king_low`（原常量 `KING_LOW`） | 0.7 → 0.3，倍率不变 |
 | 「自愈」每张回复 | `sustain/regen_card` | 0.6 → 0.4（满 5 张 +3.0 → +2.0 / 秒；卡面数字读这个值，自动跟着变） |
 | 回复类卡选卡权重 | `levelup/heal_weight` / `heal_low_hp_mult` | 1.5 → 1.2 / 1.5 → 1.3（原为代码缺省，现显式写进 JSON） |
@@ -42,3 +42,5 @@
 | 高压 · 18 细胞 | `--tier=0 --tide=5 --meta=18` | 按现档 |
 
 若明显过难：先回调怪物伤害（`enemy/dmg_gain_early` / `dmg_gain_late` → 1.0），再回调 2 秒上限（`boss/leader_2s_cap` 0.68 → 0.6）；移速与自愈各自独立，也可单独回调。
+
+**10-28 普通怪增伤改前重后轻（用户定）**：`dmg_gain_early` 1.05 → 1.15、`dmg_gain_late` 1.10 → 1.0、`dmg_gain_from` 300 不变。依据云端 dmg-gain-split C 组（cloud-results/dmg-gain-split 324f84ff）：无认知胜率 32%，前 5 分钟死亡 8 → 13 局。
