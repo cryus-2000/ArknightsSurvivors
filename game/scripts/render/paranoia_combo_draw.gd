@@ -126,6 +126,19 @@ static func draw_top(g, e: Dictionary) -> void:
 			var hot: bool = g.t - float(ey.get("fired", -9.0)) < 0.15
 			var to_p: Vector2 = (g.ppos - ey.pos).normalized() * 3.0
 			g.draw_circle(c + to_p, 3.5, Color(1.0, 0.95, 1.0, 0.95) if hot else Color(0.75, 0.55, 1.0, 0.9))
+	# 力竭（破绽前 TIRE 秒）：身周一圈泡膜收瘪；破绽中：脚下慢呼吸的环 + 剩余时间的弧（满 → 空），破绽不再「突然出现」
+	var tire_at: float = float(e.get("pc_tire_at", 0.0))
+	var fp: Vector2 = e.pos + Vector2(0, -10)
+	if tire_at > g.t:
+		var kt: float = 1.0 - (tire_at - g.t) / 0.6
+		var rt: float = lerpf(e.r * 2.4, e.r * 1.1, kt * kt)
+		g.draw_arc(fp, rt, 0.0, TAU, 40, Color(core_col(e).r, core_col(e).g, core_col(e).b, 0.55 * (1.0 - kt) + 0.15), 2.0)
+	var rest_left: float = float(e.get("pc_rest_until", 0.0)) - g.t
+	if rest_left > 0.0 and float(e.get("break_t", 0.0)) > 0.0:
+		var frac: float = clampf(rest_left / maxf(0.1, float(e.get("pc_rest_len", 3.0))), 0.0, 1.0)
+		var br: float = e.r * 1.25 + 3.0 * sin(g.t * 3.0)
+		g.draw_arc(fp, br, 0.0, TAU, 40, Color(1.0, 0.85, 0.45, 0.18), 3.0)
+		g.draw_arc(fp, br, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(1.0, 0.85, 0.45, 0.6), 2.0)
 	# 换幕起手 0.9 秒：收拢的双环（外 → 内）
 	var dt: float = g.t - float(e.get("pc_gather_t", -99.0))
 	if dt >= 0.0 and dt < 0.9:
@@ -137,6 +150,63 @@ static func draw_top(g, e: Dictionary) -> void:
 
 
 ## 地面层：幻象冲撞的通道（暗红低填充 + 两侧泡沫边，冲出后淡去）
+static func core_col(e: Dictionary) -> Color:
+	return Color(0.35, 0.9, 1.0) if e.phase == 2 else Color(0.85, 0.55, 1.0)
+
+
+## 起手提示（用户 10-28「有些招式该给提醒」）：弹幕段起手前 WINDUP 秒——环形招从脚下向外扩一圈虚线环，
+## 瞄准招朝队长拉一道渐亮的点线；颜色同本阶段弹色（不是红色危险预警，不挡视线）
+const RING_TELLS := ["潮涌环", "无声波环", "偏执双旋", "沉浮双层", "侵蚀帘幕"]
+const AIM_TELLS := ["群愿回响", "环流狙击", "镜影齐射"]
+
+
+static func _emit_tells(g, e: Dictionary) -> void:
+	var c: Color = core_col(e)
+	for em in e.get("pc_emit", []):
+		var left: float = float(em.t0) - g.t
+		if left <= 0.0 or left > 0.55:
+			continue
+		var k: float = 1.0 - left / 0.55
+		var n: String = str(em.name)
+		if n in RING_TELLS:
+			var r: float = lerpf(e.r * 1.2, e.r * 3.2, k)
+			for q in 16:
+				var a0: float = TAU * q / 16.0 + g.t * 0.8
+				g.draw_arc(e.pos + Vector2(0, -10), r, a0, a0 + TAU / 32.0, 4, Color(c.r, c.g, c.b, 0.25 + 0.5 * k), 2.0)
+		elif n in AIM_TELLS:
+			var d: Vector2 = (g.ppos - e.pos).normalized()
+			for q in 10:
+				var p: Vector2 = e.pos + Vector2(0, -16) + d * (30.0 + q * 26.0 * k)
+				g.world.tb_ring(p, 2.0, 1.0, Color(c.r, c.g, c.b, (0.2 + 0.6 * k) * (1.0 - q / 12.0)), 6)
+	g.world.tb_flush()
+
+
+static func _tide_stain(g, e: Dictionary) -> void:
+	# 二阶段场地（用户 10-28 嫌放射裂纹怪）：她脚下渗出一片海水渍——不规则深青水面、两道缓慢外扩的水纹、几颗上浮的小泡
+	var pts := PackedVector2Array()
+	var inner := PackedVector2Array()
+	for i in 28:
+		var a: float = TAU * i / 28.0
+		var rr: float = 160.0 + 22.0 * sin(a * 3.0 + g.t * 0.5) + 12.0 * sin(a * 5.0 - g.t * 0.35)
+		pts.append(e.pos + Vector2(cos(a), sin(a) * 0.55) * rr)
+		inner.append(e.pos + Vector2(cos(a), sin(a) * 0.55) * rr * 0.55)
+	g.draw_colored_polygon(pts, Color(0.02, 0.16, 0.22, 0.32))
+	g.draw_colored_polygon(inner, Color(0.04, 0.26, 0.32, 0.22))
+	for q in 2:
+		var t: float = fmod(g.t * 0.35 + q * 0.5, 1.0)
+		var r: float = lerpf(50.0, 200.0, t)
+		var ring := PackedVector2Array()
+		for i in 33:
+			var a: float = TAU * i / 32.0
+			ring.append(e.pos + Vector2(cos(a), sin(a) * 0.55) * r)
+		g.draw_polyline(ring, Color(0.35, 0.9, 1.0, 0.3 * (1.0 - t)), 1.5)
+	for q in 7:
+		var ph: float = fmod(g.t * 0.45 + q * 0.37, 1.0)
+		var bp: Vector2 = e.pos + Vector2(cos(q * 2.4), sin(q * 2.4) * 0.55) * (55.0 + q * 14.0) + Vector2(0, -ph * 26.0)
+		g.world.tb_ring(bp, 1.5 + ph * 2.0, 1.0, Color(0.55, 0.95, 1.0, 0.6 * (1.0 - ph)), 6)
+	g.world.tb_flush()
+
+
 static func _rush_lanes(g, e: Dictionary) -> void:
 	for ln in e.get("pc_rush", []):
 		if g.t < float(ln.t0):
@@ -169,19 +239,9 @@ static func draw_ground(g, e: Dictionary) -> void:
 	if e.phase == 2 and float(e.get("cocoon_t", 0.0)) <= 0.0:
 		for q in 3:
 			g.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.0, 0.05, 0.08, 0.1))
-		# 场地：从她脚下放射的 9 道青蓝裂纹（海嗣色；形状由序号决定、不随机），缓慢明灭；二阶段独有
-		var pulse: float = 0.5 + 0.5 * sin(g.t * 1.6)
-		for q in 9:
-			var a: float = TAU * q / 9.0 + 0.3
-			var pts := PackedVector2Array([e.pos])
-			var p: Vector2 = e.pos
-			for k in 7:
-				var aa: float = a + 0.35 * sin(q * 2.7 + k * 1.9)
-				p += Vector2(cos(aa), sin(aa) * 0.55) * 70.0
-				pts.append(p)
-			g.draw_polyline(pts, Color(0.05, 0.35, 0.45, 0.3 + 0.2 * pulse), 4.0)
-			g.draw_polyline(pts, Color(0.4, 0.95, 1.0, 0.2 + 0.25 * pulse), 1.5)
+		_tide_stain(g, e)
 	_rush_lanes(g, e)
+	_emit_tells(g, e)
 	for w in g.warns:
 		if w.done or not is_same(w.owner, e):
 			continue

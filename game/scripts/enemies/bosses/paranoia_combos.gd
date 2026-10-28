@@ -44,6 +44,8 @@ const RUSH_R := 34.0
 ## 收招窗口：悬浮幕 / 落地后秒数；开始前要求本 Boss 同屏弹 < LOW_BULLETS；期间以 REST_SPD 靠近队长，停在 REST_NEAR（地面距离）内
 const REST_P1 := 2.5
 const REST_P2 := 3.0
+## 力竭（用户 10-28「突然给出破绽有点奇怪」）：破绽前先 TIRE 秒泄气——不出招、泡沫从身上往下掉、身周光环收瘪，再进破绽
+const TIRE := 0.6
 const LOW_BULLETS := 20
 const REST_SPD := 90.0
 const REST_NEAR := 110.0
@@ -119,6 +121,19 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 			# 收招期间不出招，慢慢靠近队长（停在 REST_NEAR 内，近战够得着）；悬浮幕正好冲刺打落
 			if live_bullets(e) >= LOW_BULLETS:
 				return true
+			if float(e.get("pc_tire_at", 0.0)) <= 0.0:
+				e.pc_tire_at = g.t + TIRE
+				e.wind = maxf(float(e.get("wind", 0.0)), TIRE)
+				e["move_name"] = "力竭"
+				e["move_t"] = g.t
+				var gt = BossBeam.grains(g)
+				if gt != null:
+					for q in BossBeam.take(g, 18):
+						gt.push("mote_shed", e.pos + Vector2((q - 8.5) * 4.0, -30.0 - (q % 3) * 10.0), Vector2((q - 8.5) * 0.08, 1.0), core(e))
+				return true
+			if g.t < float(e.pc_tire_at):
+				return true
+			e.pc_tire_at = 0.0
 			var rec: float = REST_P1 if e.phase == 1 else REST_P2
 			# 收招 = 真破绽（10-28 测试台：破绽期输出只有 10%，目标 ≥35%）：break_t 期间受伤合计 paranoia_rest_taken，头顶写「破绽」读秒
 			g.combat.start_break(e, rec)
@@ -127,6 +142,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 			e.wind = maxf(float(e.get("wind", 0.0)), rec)
 			e.pc_next = g.t + rec
 			e.pc_rest_until = g.t + rec
+			e.pc_rest_len = rec
 			e["move_name"] = "收招"
 			e["move_t"] = g.t
 			return true
@@ -176,6 +192,7 @@ func start_act(e: Dictionary, a: int) -> void:
 func interrupt(e: Dictionary) -> void:
 	var had: bool = not (e.get("pc_queue", []) as Array).is_empty() or not (e.get("pc_emit", []) as Array).is_empty() 		or not (e.get("pc_rush", []) as Array).is_empty()
 	e.pc_rush = []   # 没冲完的幻象一并散掉
+	e.pc_tire_at = 0.0
 	if not (e.get("pc_emit", []) as Array).is_empty():
 		e.pc_eyes = []   # 没开完枪的眼一起闭上
 	e.pc_emit = []
