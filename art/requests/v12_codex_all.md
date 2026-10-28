@@ -63,4 +63,4 @@
 - 两次落地和待机基线已单独检查；角色50张帧条268帧通过像素验证。
 - 光环2张为半透明例外，已接入地面层并保留程序绘制的判定边界。
 - 完整游戏快检20/20；新素材已接入main，未重新打包或发布网页。
-- 交付索引：`art/incoming/v12_delivery_handoff.md`。
+- 交付索引：`art/archive/incoming_1028/v12_delivery_handoff.md`。

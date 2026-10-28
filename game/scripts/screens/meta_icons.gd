@@ -1,5 +1,5 @@
 extends RefCounted
-## 认知塑造节点图标（11×11 像素，# = 主色）：art/incoming/meta_ui_1025/icons.py 生成，别手改。
+## 认知塑造节点图标（11×11 像素，# = 主色）：art/archive/incoming_1028/meta_ui_1025/icons.py 生成，别手改。
 ## 图形取原作「认知塑造」各系列的意象重画；键 = 节点 id 前缀（调度四节各一张）或 cell（生机细胞）
 
 const ICONS := {

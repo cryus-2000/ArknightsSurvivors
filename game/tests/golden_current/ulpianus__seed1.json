@@ -11,9 +11,9 @@
 "--sptest"
 ],
 "own": "10237423ec57c0d26092f44b55709787ce5361becc4df01e07d043be9e3f3919",
-"other": "780649f5ef8e20404e1096d1502f8a5cf0ae1e3b9f9bdcb4c01e174ca8bf03b8",
-"commit": "fe25b4ec",
-"time": "2026-10-27 19:16:44",
+"other": "8aab37dd2c9c57f22ab99e69803871dbfc7d221cd5bcb60992e49e0ae1ada7e3",
+"commit": "270b7df9",
+"time": "2026-10-28 08:02:36",
 "trace": [
 "TRACE t=0.00 lv=1 k=0 hp=126.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=0.00,0.00 h=0.000",
 "TRACE t=1.06 lv=1 k=0 hp=126.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=174.24,0.00 h=0.000",
@@ -55,26 +55,26 @@
 "TRACE t=37.03 lv=3 k=27 hp=126.00 n=13 rng=-6185929800949398877/-4243705919481868752/-6423300457811197377/5285165767588350000/6495007508610584553 pos=-804.62,304.04 h=-2258.343",
 "TRACE t=38.02 lv=3 k=27 hp=126.00 n=15 rng=-6185929800949398877/-6346808607035603034/-8042868392423376919/5285165767588350000/6495007508610584553 pos=-866.22,371.42 h=-2774.661",
 "TRACE t=39.01 lv=3 k=31 hp=126.00 n=12 rng=-6185929800949398877/2952020925755548463/-8042868392423376919/4914695620198234024/6495007508610584553 pos=-878.73,218.84 h=-1938.464",
-"TRACE t=40.06 lv=3 k=34 hp=114.56 n=10 rng=-4400702920492947731/-6962519049732075028/-8042868392423376919/6128467874781791562/6495007508610584553 pos=-769.87,217.12 h=-1518.213",
-"TRACE t=41.05 lv=3 k=34 hp=114.95 n=12 rng=-4400702920492947731/5206749384613077634/-3476837270478671453/6128467874781791562/6495007508610584553 pos=-763.44,339.72 h=-2162.124",
-"TRACE t=42.04 lv=3 k=34 hp=116.53 n=13 rng=-4400702920492947731/-4194384534548568773/-3476837270478671453/6128467874781791562/6495007508610584553 pos=-731.01,471.75 h=-2225.520",
-"TRACE t=43.03 lv=3 k=36 hp=105.48 n=12 rng=3953258007215157319/-1205549243050515736/-6563175564383670803/3844702277140800326/6495007508610584553 pos=-728.75,527.89 h=-2247.340",
-"TRACE t=44.02 lv=3 k=37 hp=105.95 n=13 rng=3953258007215157319/-4668894398198542178/-6563175564383670803/-8577001214130347972/6495007508610584553 pos=-712.16,388.38 h=-3055.652",
-"TRACE t=45.01 lv=3 k=37 hp=107.54 n=14 rng=3953258007215157319/-2372617402035528825/-6563175564383670803/-8577001214130347972/6495007508610584553 pos=-621.37,316.77 h=-3246.999"
+"TRACE t=40.06 lv=3 k=34 hp=113.44 n=10 rng=-4400702920492947731/-6962519049732075028/-8042868392423376919/6128467874781791562/6495007508610584553 pos=-769.87,217.12 h=-1518.213",
+"TRACE t=41.05 lv=3 k=34 hp=113.69 n=12 rng=-4400702920492947731/5206749384613077634/-3476837270478671453/6128467874781791562/6495007508610584553 pos=-763.44,339.72 h=-2162.124",
+"TRACE t=42.04 lv=3 k=34 hp=115.24 n=13 rng=-4400702920492947731/-4194384534548568773/-3476837270478671453/6128467874781791562/6495007508610584553 pos=-731.01,471.75 h=-2225.520",
+"TRACE t=43.03 lv=3 k=36 hp=103.04 n=12 rng=3953258007215157319/-1205549243050515736/-6563175564383670803/3844702277140800326/6495007508610584553 pos=-728.75,527.89 h=-2247.340",
+"TRACE t=44.02 lv=3 k=37 hp=103.35 n=13 rng=3953258007215157319/-4668894398198542178/-6563175564383670803/-8577001214130347972/6495007508610584553 pos=-712.16,388.38 h=-3055.652",
+"TRACE t=45.01 lv=3 k=37 hp=104.94 n=14 rng=3953258007215157319/-2372617402035528825/-6563175564383670803/-8577001214130347972/6495007508610584553 pos=-637.86,249.25 h=-3249.092"
 ],
 "balance": {
 "allies": 0,
 "armor_cf": {
 "m0": {
-"a2": 18.3625151172923,
-"a4": 14.3625151172923,
-"a8": 6.36251511729233,
-"all": 22.3625151172923,
+"a2": 20.4922784617964,
+"a4": 16.4922784617964,
+"a8": 8.49227846179635,
+"all": 24.4922784617964,
 "armor": 0.0,
 "n": 2,
-"phys": 22.3625151172923,
+"phys": 24.4922784617964,
 "phys_n": 2,
-"phys_pre": 22.3625151172923
+"phys_pre": 24.4922784617964
 }
 },
 "boss_hp": -1.0,
@@ -133,8 +133,8 @@
 ],
 "curve_tail": {
 "dsrc": {
-"contact_bone": 22,
-"corrode": 4
+"contact_bone": 24,
+"corrode": 5
 },
 "hsrc": {
 "自身回复": 8
@@ -142,7 +142,7 @@
 "mhp": 126,
 "t": 45,
 "t0": 30,
-"taken": 27
+"taken": 29
 },
 "dark_dmg": 0,
 "dark_s": 0,
@@ -150,26 +150,34 @@
 "elite_t": {},
 "end": {
 "boss": false,
-"hp": 107,
+"hp": 104,
 "last15": {
-"corrode_out": 4.8,
-"corrode_peak": 2.4,
+"corrode_out": 5.4,
+"corrode_peak": 2.6,
 "dark_s": 0.0,
 "ebullets_peak": 0,
 "enemies_peak": 17,
 "hits": [
 {
-"amt": 11.1,
+"amt": 12.2,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "contact_bone",
 "t": 39.5,
 "zone_out": false
 },
 {
-"amt": 0.1,
+"amt": 0.2,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
+"src": "corrode",
+"t": 39.5,
+"zone_out": false
+},
+{
+"amt": 0.2,
+"boss": false,
+"hp_after": 113,
 "src": "corrode",
 "t": 39.5,
 "zone_out": false
@@ -177,15 +185,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
-"src": "corrode",
-"t": 39.5,
-"zone_out": false
-},
-{
-"amt": 0.1,
-"boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 39.6,
 "zone_out": false
@@ -193,7 +193,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 39.7,
 "zone_out": false
@@ -201,7 +201,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 39.7,
 "zone_out": false
@@ -209,7 +209,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 39.8,
 "zone_out": false
@@ -217,7 +217,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 39.9,
 "zone_out": false
@@ -225,7 +225,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 39.9,
 "zone_out": false
@@ -233,7 +233,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.0,
 "zone_out": false
@@ -241,7 +241,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.1,
 "zone_out": false
@@ -249,7 +249,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.1,
 "zone_out": false
@@ -257,7 +257,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.2,
 "zone_out": false
@@ -265,7 +265,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.3,
 "zone_out": false
@@ -273,7 +273,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.3,
 "zone_out": false
@@ -281,7 +281,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.4,
 "zone_out": false
@@ -289,7 +289,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.5,
 "zone_out": false
@@ -297,7 +297,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.5,
 "zone_out": false
@@ -305,7 +305,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.6,
 "zone_out": false
@@ -313,7 +313,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.7,
 "zone_out": false
@@ -321,7 +321,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.7,
 "zone_out": false
@@ -329,7 +329,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.8,
 "zone_out": false
@@ -337,7 +337,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.9,
 "zone_out": false
@@ -345,7 +345,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 40.9,
 "zone_out": false
@@ -353,23 +353,47 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 114,
+"hp_after": 113,
 "src": "corrode",
 "t": 41.0,
 "zone_out": false
 },
 {
-"amt": 11.2,
+"amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 113,
+"src": "corrode",
+"t": 41.1,
+"zone_out": false
+},
+{
+"amt": 0.0,
+"boss": false,
+"hp_after": 113,
+"src": "corrode",
+"t": 41.1,
+"zone_out": false
+},
+{
+"amt": 12.3,
+"boss": false,
+"hp_after": 103,
 "src": "contact_bone",
 "t": 42.4,
 "zone_out": false
 },
 {
-"amt": 0.1,
+"amt": 0.2,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
+"src": "corrode",
+"t": 42.4,
+"zone_out": false
+},
+{
+"amt": 0.2,
+"boss": false,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.4,
 "zone_out": false
@@ -377,15 +401,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
-"src": "corrode",
-"t": 42.4,
-"zone_out": false
-},
-{
-"amt": 0.1,
-"boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.5,
 "zone_out": false
@@ -393,7 +409,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.6,
 "zone_out": false
@@ -401,7 +417,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.6,
 "zone_out": false
@@ -409,7 +425,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.7,
 "zone_out": false
@@ -417,7 +433,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.8,
 "zone_out": false
@@ -425,7 +441,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.8,
 "zone_out": false
@@ -433,7 +449,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 42.9,
 "zone_out": false
@@ -441,7 +457,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.0,
 "zone_out": false
@@ -449,7 +465,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.0,
 "zone_out": false
@@ -457,7 +473,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.1,
 "zone_out": false
@@ -465,7 +481,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.2,
 "zone_out": false
@@ -473,7 +489,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.2,
 "zone_out": false
@@ -481,7 +497,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.3,
 "zone_out": false
@@ -489,7 +505,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.4,
 "zone_out": false
@@ -497,7 +513,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.4,
 "zone_out": false
@@ -505,7 +521,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.5,
 "zone_out": false
@@ -513,7 +529,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.6,
 "zone_out": false
@@ -521,7 +537,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.6,
 "zone_out": false
@@ -529,7 +545,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.7,
 "zone_out": false
@@ -537,7 +553,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.8,
 "zone_out": false
@@ -545,7 +561,7 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.8,
 "zone_out": false
@@ -553,15 +569,23 @@
 {
 "amt": 0.1,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 43.9,
 "zone_out": false
 },
 {
+"amt": 0.1,
+"boss": false,
+"hp_after": 103,
+"src": "corrode",
+"t": 44.0,
+"zone_out": false
+},
+{
 "amt": 0.0,
 "boss": false,
-"hp_after": 105,
+"hp_after": 103,
 "src": "corrode",
 "t": 44.0,
 "zone_out": false
@@ -578,8 +602,8 @@
 "zone_state": 0
 },
 "floors": [],
-"hits": 49,
-"hits_pm": 65.3,
+"hits": 52,
+"hits_pm": 69.3,
 "king_low_s": 0,
 "lamp_end": 92,
 "lamp_gain": {},
@@ -593,7 +617,7 @@
 0
 ],
 "lamp_taken": [
-27,
+29,
 0,
 0,
 0
@@ -605,8 +629,8 @@
 "reaper_drain_deaths": 0,
 "recruit_t": [],
 "still_pct": 0,
-"taken": 27,
-"taken_pm": 36
+"taken": 29,
+"taken_pm": 39
 },
 "crates": 1,
 "ctrl": {
@@ -648,8 +672,8 @@
 },
 "dashes": 0,
 "dmg": {
-"contact_bone": 22.3625151172923,
-"corrode": 4.96944780384274
+"contact_bone": 24.4922784617964,
+"corrode": 5.44272854706586
 },
 "drone": 0,
 "elite_stage": 0,

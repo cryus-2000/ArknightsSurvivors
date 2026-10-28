@@ -30,7 +30,7 @@ bpm / 首拍偏移 / 时长写在 `game/audio/music/suno_layers.json`（脚本�
 - **整首分层**（`lay`）：每首各层各一个 `AudioStreamPlayer`（`loop = true`），**同一时刻 `play(from)`**；`stem_on / stem_vol`（复用乐句式曲目的字段）单独控每层音量；`_lay_tick` 每帧用墙钟算拍号（`(pos − 首拍偏移 + BAR_AHEAD) × bpm / 60`），**每 4 拍（小节线）才把游戏请求的分层同步到 `stem_on`**（进层提前 BAR_AHEAD 淡入，保证重拍满音量；退层同样等小节线，两秒慢收）。网页的 `get_playback_position` 滞后约 1 秒，所以一律按墙钟。
 - 战斗强度：lv 0 = base；lv 1 = + pulse；lv 2 = + drive（`set_battle`，`music_director` 不用改）。**危险层**：没有素材（Suno 分轨没有高频紧张层），危险时把 drive 拉出来顶替。
 - **战斗换段**（battle1 → 2 → 3）：当前曲放到下一条小节线，新曲在小节线上从头开（淡入 / 淡出速度 6 / 秒 ≈ 0.17 秒，近乎硬切）。Boss / 最终 Boss 进出沿用原来的 pending 逻辑（Boss 登场落在 boss_in 的鼓点上）。最终 Boss 二阶段 = `set_final_phase(true)`，p2 在小节线上叠入。
-- **回退开关**：`balance.json music/suno_layers`（缺省 1；0 = 回到旧的 SEQ 乐句拼接、`archive_v2`、`final_suno` 整首）。旧文件与旧代码都在。
+- ~~回退开关 `balance.json music/suno_layers`~~：10-28 删掉开关、旧 SEQ 乐句拼接代码与旧合成乐句文件（约 9.5 MB）。现在只剩文件缺失回退：某首 Suno 层缺失 → 那首没有配乐（最终 Boss 退回整首 `final_suno`），`suno_archive_full` 缺失 → `archive_v2`。
 - 手机网页：**已恢复全部曲目和分层**，移除 `_suno_init` 的只载首层分支及 `MOBILE_MUSIC_MAP`；通过共享 PCM、切曲释放与既有 24 kHz 上下文控制内存，见 §6。桌面继续流式播放。
 
 ## 4. 包体

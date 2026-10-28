@@ -20,7 +20,7 @@
 解压拼回（见该文件注释）。托管平台单文件上限 25 MB（EdgeOne / Cloudflare Pages），导出后逐个检查。
 不发布、不上传：部署命令见 docs/22。
 """
-import argparse, datetime, gzip, io, json, os, shutil, subprocess, sys, tarfile
+import argparse, datetime, gzip, io, json, lzma, os, shutil, subprocess, sys, tarfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import release_slim
@@ -43,20 +43,31 @@ def run(cmd, check=True):
     return p.stdout
 
 
-def split(out_dir, name, part_bytes, toy=False):
+LZMA_FILTERS = [{"id": lzma.FILTER_LZMA1, "preset": 9 | lzma.PRESET_EXTREME, "lc": 3, "lp": 0, "pb": 0, "dict_size": 32 << 20}]
+
+
+def split(out_dir, name, part_bytes, toy=False, enc="gzip"):
+    """enc="lzma"（index.wasm，docs/187 §5）：分片用 .lzma alone 格式，加载器用 tools/web/lzma_dec.js 解；比 gzip -9 小约 3 MiB"""
     path = os.path.join(out_dir, name)
     with open(path, "rb") as fh:
         raw = fh.read()
     parts = []
     stem, ext = os.path.splitext(name)
+    suf = ".lzma" if enc == "lzma" else ".gz"
     for i in range(0, len(raw), part_bytes):
-        pn = ("%s.%02d%s" % (stem, len(parts), ext)) if toy else ("%s.%02d.gz" % (name, len(parts)))
-        data = gzip.compress(raw[i:i + part_bytes], compresslevel=9, mtime=0)
+        pn = ("%s.%02d%s" % (stem, len(parts), ext)) if toy else ("%s.%02d%s" % (name, len(parts), suf))
+        chunk = raw[i:i + part_bytes]
+        data = lzma.compress(chunk, format=lzma.FORMAT_ALONE, filters=LZMA_FILTERS) if enc == "lzma" else gzip.compress(chunk, compresslevel=9, mtime=0)
+        if enc == "lzma":
+            assert lzma.decompress(data, format=lzma.FORMAT_ALONE) == chunk, "%s：LZMA 回读不符" % pn
         with open(os.path.join(out_dir, pn), "wb") as fh:
             fh.write(data)
-        parts.append([pn, len(data), min(part_bytes, len(raw) - i)])   # [文件名, gz 字节, 原始字节]：加载器按原始长度直接写进整块
+        parts.append([pn, len(data), len(chunk)])   # [文件名, 压缩字节, 原始字节]：加载器按原始长度直接写进整块
     os.remove(path)
-    return {"size": len(raw), "type": TYPES[name], "parts": parts}
+    m = {"size": len(raw), "type": TYPES[name], "parts": parts}
+    if enc == "lzma":
+        m["enc"] = "lzma"
+    return m
 
 
 def main():
@@ -65,7 +76,9 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "web"))
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
-    ap.add_argument("--audio-tier", default="B", choices=["off", "A", "B", "C"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 激进；off = 不压）")
+    ap.add_argument("--audio-tier", default="C", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 缺省（10-28 用户定，B 可回退） / D、E 试听档（docs/187 §7）；off = 不压）")
+    ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/187 §5）")
+    ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
     a = ap.parse_args()
@@ -76,7 +89,7 @@ def main():
     shutil.rmtree(WORK, ignore_errors=True)
     src = os.path.join(WORK, "src")
     os.makedirs(src)
-    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/incoming", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
+    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/incoming", "art/source/voice", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     if a.worktree_presets:
         shutil.copy2(os.path.join(ROOT, "game", "export_presets.cfg"), os.path.join(src, "game", "export_presets.cfg"))
@@ -119,7 +132,12 @@ def main():
 
     gpath = os.path.join(src, "game")
     # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的字体，仓库原字体不动
-    release_slim.print_font_rows(release_slim.subset_fonts(gpath))
+    font_rows = release_slim.subset_fonts(gpath)
+    release_slim.print_font_rows(font_rows)
+    # 无损瘦身（docs/187）：子集字体转 WOFF2 容器（文件名不变，FreeType 按内容识别）；贴图 WebP 无损压到最高档（像素不变，只多花导入时间）
+    if not a.no_lossless:
+        woff2_fonts(gpath, [r[0] for r in font_rows])
+        webp_max(gpath)
     # 网页包专用音频再压缩（tools/web_audio.py，docs/121 §4）：只改打包副本，桌面包与仓库不动；--audio-tier off 关闭
     import web_audio
     freed = web_audio.drop_unused_music(gpath)   # Suno 分层配乐接入后旧乐句文件不进网页包（tools/web_audio.py drop_unused_music）
@@ -137,7 +155,9 @@ def main():
 
     print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(tmp, "index.pck")) / 1e6), flush=True)
     part = int(a.part_mib * 1048576)
-    manifest = {n: split(tmp, n, part, a.toy) for n in ("index.pck", "index.wasm")}
+    manifest = {"index.pck": split(tmp, "index.pck", part, a.toy)}
+    # wasm：LZMA 分片（docs/187 §5，--wasm-gzip 退回 gzip）；20 MiB 一片，压缩后每片约 3 MiB
+    manifest["index.wasm"] = split(tmp, "index.wasm", part if a.wasm_gzip else 20 * 1048576, a.toy, "gzip" if a.wasm_gzip else "lzma")
     sys.path.insert(0, WEB)
     import engine_patch
     engine_patch.patch_index_js(os.path.join(tmp, "index.js"))   # 网页样本释放接口（tools/web/engine_patch.py，docs/50 §40）
@@ -154,6 +174,9 @@ def main():
         js += fh.read() + "\n"
     # 帧时浮层（tools/web/fps_meter.js，docs/50 §21.7）：只在网址带 ?fps=1 时显示，给真机量帧率
     with open(os.path.join(WEB, "fps_meter.js"), encoding="utf-8") as fh:
+        js += fh.read() + "\n"
+    # LZMA 解码器（tools/web/lzma_dec.js，本作自写）：加载器解 wasm 分片用，要在 loader.js 之前
+    with open(os.path.join(WEB, "lzma_dec.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
     with open(os.path.join(WEB, "loader.js"), encoding="utf-8") as fh:
         js += fh.read().replace("/*SHUIYUE_MANIFEST*/null", json.dumps(manifest, separators=(",", ":")))
@@ -194,6 +217,63 @@ def main():
         sys.exit("有文件超过 25 MB 上限")
     if a.toy:
         make_toy_zip(a.out, commit)
+
+
+def woff2_fonts(gpath, names):
+    """打包副本里的子集字体就地换成 WOFF2 内容（docs/187 §3）：字形 / 度量不变，导入后的 fontdata 约小 30%。
+    文件名不改（场景 / 主题按路径引用），Godot 的 FreeType 带 brotli，按文件头 wOF2 识别"""
+    from fontTools.ttLib import TTFont
+    before = after = 0
+    for fn in names:
+        p = os.path.join(gpath, "fonts", fn)
+        before += os.path.getsize(p)
+        f = TTFont(p)
+        f.flavor = "woff2"
+        buf = io.BytesIO()
+        f.save(buf)
+        with open(p, "wb") as fh:
+            fh.write(buf.getvalue())
+        after += len(buf.getvalue())
+    print("[瘦身] 子集字体转 WOFF2：%.2f MiB → %.2f MiB" % (before / 1048576, after / 1048576), flush=True)
+
+
+WEBP_MAX = ("textures/webp_compression/compression_method=6\n"
+            "textures/webp_compression/lossless_compression_factor=100.0\n")
+
+
+def webp_max(gpath):
+    """打包副本的 project.godot：WebP 无损贴图用最高压缩力度（缺省 2 / 25）。无损，解码像素不变，只是导入慢（docs/187 §3）"""
+    p = os.path.join(gpath, "project.godot")
+    with open(p, encoding="utf-8") as fh:
+        txt = fh.read()
+    if "[rendering]\n" not in txt:
+        sys.exit("project.godot 里没有 [rendering] 段")
+    txt = txt.replace("[rendering]\n", "[rendering]\n\n" + WEBP_MAX, 1)
+    # 没有 .import 的贴图（只有拷进来的 art/incoming）导入时不做透明边渗色：fix_alpha_border 只改全透明像素的 RGB，
+    # 这些贴图全走最近邻、读颜色处都先判 alpha（docs/187 §6 审计），画面不变；渗色让无损 WebP 大约 1.6 倍。其余目录的 .import 显式写着 true，不受影响
+    if "[importer_defaults]" in txt:
+        sys.exit("project.godot 已有 [importer_defaults]，webp_max 要改成合并写法")
+    txt = txt.rstrip("\n") + '\n\n[importer_defaults]\n\ntexture={\n"process/fix_alpha_border": false\n}\n'
+    # Godot 的渗色改的是 alpha < 20 的像素，不只全透明：带 alpha 1–19 淡像素的贴图（约 30 张特效）关了会差最多约 12/255，
+    # 这些单独写 .import 保留渗色（导入时缺的参数按缺省补）
+    import numpy as np
+    from PIL import Image
+    inc = os.path.join(gpath, "art", "incoming")
+    keep = []
+    for f in sorted(os.listdir(inc)):
+        if not f.lower().endswith(".png"):
+            continue
+        im = Image.open(os.path.join(inc, f))
+        if im.mode not in ("RGBA", "LA", "P", "PA") and "transparency" not in im.info:
+            continue
+        al = np.asarray(im.convert("RGBA"))[..., 3]
+        if ((al > 0) & (al < 20)).any():
+            keep.append(f)
+            with open(os.path.join(inc, f + ".import"), "w", encoding="utf-8", newline="\n") as fh:
+                fh.write('[remap]\n\nimporter="texture"\ntype="CompressedTexture2D"\n\n[params]\n\nprocess/fix_alpha_border=true\n')
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(txt)
+    print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100；art/incoming 关透明边渗色（带淡像素的 %d 张保留）" % len(keep), flush=True)
 
 
 TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守

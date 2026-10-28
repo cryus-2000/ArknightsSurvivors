@@ -57,10 +57,10 @@ func run() -> void:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(5).has("atk1") and Meta.shape_for(5).size() == 1, "推荐点法第一个应是攻击性Ⅰ")
+	check(Meta.shape_for(13).has("sh1") and Meta.shape_for(13).size() == 1, "推荐点法第一个应是危机感Ⅰ（13，10-28 用户定放回第一位）")
 	var s18 := Meta.shape_for(18)
-	check(s18.size() == 4 and Meta.spent(s18) == 18 and s18.has("atk1") and s18.has("hp1") and s18.has("reg1") and s18.has("def1"), "预算 18 = 攻击性Ⅰ + 生存本能Ⅰ + 生命感悟Ⅰ + 自我保护Ⅰ（docs/179 看得见的前 18）：%s" % [s18])
-	check(not s18.has("sh1") and Meta.shape_for(31).has("sh1"), "危机感Ⅰ（13）在第五位：18 细胞没有它，31 细胞有")
+	check(s18.size() == 2 and Meta.spent(s18) == 18 and s18.has("sh1") and s18.has("atk1"), "预算 18 = 危机感Ⅰ + 攻击性Ⅰ（--meta=18 口径）：%s" % [s18])
+	check(Meta.shape_for(22).has("hp1") and Meta.shape_for(36).has("def1"), "之后依次点生存本能Ⅰ / 生命感悟Ⅰ / 自我保护Ⅰ")
 	# 闪避线（10-27）：未雨绸缪Ⅰ→Ⅱ→Ⅲ 一条链、各 +5% 闪避；老存档（没有这三个节点）照常读、花费不变
 	for i in 3:
 		var nd: Dictionary = nodes.get("dodge%d" % (i + 1), {})

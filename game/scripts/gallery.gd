@@ -539,7 +539,7 @@ const DESK := Vector2(1280, 720)
 const PHONE := Vector2(740, 360)
 const ART_K := 4.0                 # 立绘倍数上限（@2x 像素）：与选人页 title.gd OP_ART_K 相同，手机 ×0.6
 const CLASS_ORDER: Array = D.CLASS_ORDER
-## 原作职业线稿图标（寻访同一套，来源见 art/incoming/headhunt_professions_1025/sources.json）
+## 原作职业线稿图标（寻访同一套，来源见 art/archive/incoming_1028/headhunt_professions_1025/sources.json）
 const CLASS_ICONS := {
 	"先锋": preload("res://art/ui/professions/pioneer.png"), "近卫": preload("res://art/ui/professions/warrior.png"),
 	"重装": preload("res://art/ui/professions/tank.png"), "狙击": preload("res://art/ui/professions/sniper.png"),

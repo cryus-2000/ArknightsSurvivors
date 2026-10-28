@@ -64,6 +64,10 @@ func _ready() -> void:
 			scenarios.append({"act": a, "idx": i, "name": Combos.ACT_COMBOS[a][i]})
 	if melee:
 		scenarios = scenarios.filter(func(x): return int(x.idx) == 0)   # 每幕一段，两组自然轮换
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--acts="):   # 只录指定幕，如 --acts=3,4
+			var keep: Array = Array(arg.substr(7).split(",")).map(func(x): return int(x))
+			scenarios = scenarios.filter(func(x): return keep.has(int(x.act)))
 	var seg_s: float = 40.0 if melee else SEG_SECONDS
 	var hs = g.bai.boss(kind)
 	for sc in scenarios:

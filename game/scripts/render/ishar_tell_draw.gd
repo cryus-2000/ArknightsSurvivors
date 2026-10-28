@@ -141,7 +141,7 @@ static func _arena(g) -> void:
 		if e.dead or e.phase != 2 or Bal.v("render/ishar_act_style", 1.0) <= 0.0:
 			continue
 		var act: int = clampi(int(e.get("gates_passed", 0)), 0, 2)
-		var c: Color = Combos.act_col(e)
+		var c: Color = Combos.act_mood(e)
 		var R: float = g.zone_r if g.zone_frozen else 650.0
 		if act == 2:
 			var pts := PackedVector2Array()

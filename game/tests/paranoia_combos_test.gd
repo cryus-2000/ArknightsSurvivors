@@ -83,15 +83,17 @@ func check_table() -> void:
 			check(seq.size() >= 2 and seq.size() <= 4, c + " combo has 2..4 segments")
 	var s = g.bai.boss("paranoia")
 	check(s.demo_moves({}).size() >= 16, "sixteen distinct active moves exposed")
-	# 用户 10-28：招式不跨幕复用（同一幕两组之间可以共用）
+	# 用户 10-28：招式不跨幕复用（同一幕各组之间可以共用；二阶段失声 / 破茧后是同一段，算一幕）
 	var owner := {}
 	for a in Combos.ACT_COMBOS.size():
+		var ak: int = mini(a, 3)
 		for c in Combos.ACT_COMBOS[a]:
 			for seg in Combos.COMBOS[c].seq:
 				for m in str(seg).split("+"):
-					if owner.has(m) and int(owner[m]) != a:
-						check(false, "move %s used in act %d and act %d" % [m, owner[m], a])
-					owner[m] = a
+					if owner.has(m) and int(owner[m]) != ak:
+						check(false, "move %s used in act %d and act %d" % [m, owner[m], ak])
+					owner[m] = ak
+	check(Combos.ACT_COMBOS[3] == Combos.ACT_COMBOS[4], "phase 2 is one segment: same combo pool before and after cocoon")
 	var p2: Array = []
 	for a in [3, 4]:
 		for c in Combos.ACT_COMBOS[a]:
@@ -100,6 +102,8 @@ func check_table() -> void:
 					if not p2.has(m):
 						p2.append(m)
 	check(p2.has("潮涌环") and p2.has("沉浮双层") and p2.has("群愿回响"), "phase 2 has its own new moves %s" % str(p2))
+	for m in ["呼号", "潮涌环", "沉浮双层", "群愿回响", "泡影收束", "溟泡迸裂"]:
+		check(p2.has(m), "phase 2 pool has %s" % m)
 
 
 ## 起手 → 依次出段 → 收招 → 换另一组；不会无限连下去
@@ -171,6 +175,13 @@ func check_act_change() -> void:
 	tick(e)
 	check(int(e.get("pc_act", -1)) == 1 and int(e.get("pc_idx", -1)) == 0, "gate restarts at act two first combo")
 	check(e.get("pc_queue", []).is_empty(), "gate clears queue")
+	# 二阶段一段（用户 10-28）：破茧后接着轮下一组，不从第一组重来
+	var e2 := fresh(3)
+	e2.pc_idx = 2
+	e2.pc_act = 3
+	e2.cocoon_done = true
+	tick(e2)
+	check(int(e2.get("pc_act", -1)) == 4 and int(e2.get("pc_idx", -1)) == 2, "after cocoon the phase 2 rotation continues (idx %d)" % int(e2.get("pc_idx", -1)))
 
 
 ## 被控：没放完的弹幕段作废

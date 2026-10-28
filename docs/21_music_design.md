@@ -9,7 +9,7 @@
   重新生成：`cd game/tools && python gen_music.py [title|shop|stingers|opening|boss_cues|result_loops] [--skip 曲目,…]`
   （numpy / scipy / soundfile，不需要 ffmpeg）。随机数序列取决于同一个进程里先跑了什么：要重做其中几首并保持随机细节和现有文件一致，
   按脚本文件头写的三轮命令跑，同轮里不想覆盖的曲目用 `--skip` 列出（照样算，只是不写文件）。
-- `game/tools/gen_music_battle.py`：**战斗三段、中期 Boss、最终 Boss**（v3：哥特暗黑摇滚 + 电子，乐句式无限循环）。
+- `game/tools/gen_music_battle.py`：**战斗三段、中期 Boss、最终 Boss**（v3：哥特暗黑摇滚 + 电子，乐句式无限循环）。10-28 起产物已从游戏删除（换 Suno，docs/164），脚本只留作记录。
   重新生成：`cd game/tools && python gen_music_battle.py [battle boss final]`（numpy / scipy / soundfile，不需要 ffmpeg）。
 
 ## 版本沿革
@@ -154,6 +154,9 @@ Boss 倒下后 12 秒压回平静层喘口气（除非局面够激战），同�
 - 注意：`--balance` 每帧跑 8 步模拟，配乐计时必须按局内时间走（`t` 的差），按帧 delta 走会让大群窗口虚长数倍。
 
 ## sfx.gd 约定（v3）
+
+> **10-28 起**：战斗三段 / 中期 Boss / 最终 Boss 已换 Suno 整首分层（docs/164）。本节 v3 乐句式的文件（battle*_A–E_*、battle*_danger、boss_A–D_full、final_A–D_p1/p2，约 9.5 MB）与 sfx.gd 里的 SEQ 乐句拼接代码已删；本节留作历史记录，生成器 gen_music_battle.py 还在。
+
 
 - 两种曲目：`MUSIC`（整首循环：标题 / 图鉴 / 出发前 / 开场 / 商人 / 结算循环）与 `SEQ`（乐句式：战斗三段 / Boss / 最终 Boss）。
 - 乐句式曲目有两组播放器（每组 = 各层 + 危险层）轮流用：当前句唱到「下一次混音开播时正好到句长」那一帧，

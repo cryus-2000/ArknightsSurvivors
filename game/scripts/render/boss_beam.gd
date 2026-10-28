@@ -7,6 +7,7 @@ extends RefCounted
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const ParanoiaComboDraw = preload("res://scripts/render/paranoia_combo_draw.gd")
+const BreakRing = preload("res://scripts/render/break_ring.gd")
 
 const SEG := 16.0     # 每段宽（美术像素）
 const HALF_H := 24.0  # 帧高 48 的一半（光束竖直居中）
@@ -542,6 +543,7 @@ static func _shields(g) -> void:
 ## 顶层：接潮护盾；主控脚下的寒冷条（骑士在场且寒冷 > 0 时）；满了之后「冻伤」期间整条变白
 static func draw_top(g) -> void:
 	_shields(g)
+	BreakRing.draw(g)   # 最终 Boss 破绽：脚下金环 + 倒计时弧
 	for e in g.bosses:
 		if not e.dead and e.type == "paranoia":
 			_paranoia_top(g, e)

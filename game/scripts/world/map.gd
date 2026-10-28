@@ -771,7 +771,7 @@ func mire_new(pos: Vector2, t: float, endless: bool) -> Dictionary:
 	return d
 
 
-## ---- 溟痕 v2（Codex art/incoming/world_spec_1024，用户 10-24 验收；tools/install_world_spec.py 装成两张图集）：
+## ---- 溟痕 v2（Codex art/archive/incoming_1028/world_spec_1024，用户 10-24 验收；tools/install_world_spec.py 装成两张图集）：
 ## 底图 mire_tile_ab（A / B 变体 × 2 帧，各 64×64 美术像素）按全局美术像素格 1:1 平铺，不再按 r × 2.3 拉伸；
 ## 判定圆按 MIRE_CELL（16 美术像素 = 32 世界单位）一格栅格化（格心在圆内 = 内区），圈外紧邻的格按邻接画 12 片围边
 ## （mire_edge_atlas：边片遮罩 × 同相位底图，任意格位与内区脉络连续）；每 64 格块按坐标哈希取 A / B。
