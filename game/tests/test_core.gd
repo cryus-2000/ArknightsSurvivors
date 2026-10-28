@@ -758,8 +758,11 @@ func test_op_text_fill() -> void:
 func test_operator_sheet() -> void:
 	var Ch = preload("res://scripts/characters/character.gd")
 	var IS = preload("res://scripts/screens/initial_stats.gd")
+	var Bal = preload("res://scripts/core/balance.gd")
 	ok(IS.fmt_armor(2.5) == "2.5" and IS.fmt_armor(0.5) == "0.5" and IS.fmt_armor(3.0) == "3.0" and IS.fmt_armor(4.5) == "4.5", "减伤显示保留一位小数")
 	var cnt := 0
+	var hpk: float = Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)   # 数值表 = 开局实际值（10-28：乘上局内基础旋钮）
+	var atkk: float = Bal.v("squad/op_atk_base", 1.0)
 	for cid in Ch.list_ids():
 		var d: Dictionary = Ch.load_def(cid)
 		if not d.get("recruitable", true):
@@ -774,7 +777,8 @@ func test_operator_sheet() -> void:
 		ok(not sh.tags.is_empty() and sh.note != "", "%s 有定位标签和口径说明" % cid)
 		var lead: Dictionary = d.get("leader", {})
 		ok(IS.row(sh, "armor").text == "%.1f" % float(lead.get("armor", 0.0)), "%s 减伤按一位小数显示（%s）" % [cid, IS.row(sh, "armor").text])
-		ok(IS.row(sh, "hp").text == "%d" % int(round(float(lead.get("max_hp", 0.0)))), "%s 生命取 leader.max_hp" % cid)
+		ok(IS.row(sh, "hp").text == "%d" % int(round(float(lead.get("max_hp", 0.0)) * hpk)), "%s 生命取 leader.max_hp × 队长生命基础倍率" % cid)
+		near(float(IS.row(sh, "regen").val), float(lead.get("regen", 1.0)) * Bal.v("sustain/base_regen_mult", 1.0), "%s 回复取 leader.regen × 基础回复倍率（= 局内开局值）" % cid)
 	ok(cnt >= 18, "数值表覆盖全部可招募干员（%d）" % cnt)
 	var sk: Dictionary = IS.sheet("skalter", Ch.load_def("skalter"))
 	ok(IS.row(sk, "atk").label == "声浪伤害" and "16" in IS.value_text(IS.row(sk, "atk")), "浊心斯卡蒂：声浪伤害 × 最多 16 名")
@@ -787,9 +791,9 @@ func test_operator_sheet() -> void:
 	ok(IS.row(IS.sheet("kaltsit", Ch.load_def("kaltsit")), "atk").label == "Mon3tr 攻击", "凯尔希：攻击标为 Mon3tr")
 	var ex: Dictionary = IS.sheet("exusiai", Ch.load_def("exusiai"))
 	ok(IS.row(ex, "cd").text == "0.35 秒" and IS.row(ex, "pierce").is_empty(), "能天使：间隔 0.35 秒，普攻不穿透（10-23 用户定，穿透由贯穿卡 / 穿甲弹给）")
-	near(float(IS.row(IS.sheet("irene", Ch.load_def("irene")), "dps").val), 24.0 * 1.03 * 2.0 / 0.8, "艾丽妮单体每秒伤害 = 攻击 × 2 段 ÷ 间隔")
+	near(float(IS.row(IS.sheet("irene", Ch.load_def("irene")), "dps").val), 24.0 * 1.03 * atkk * 2.0 / 0.8, "艾丽妮单体每秒伤害 = 攻击 × 攻击基础倍率 × 2 段 ÷ 间隔")
 	var syn: Dictionary = IS.sheet("test", {"base": {"atk": 77.0, "cd": 2.5, "reach": 180}, "leader": {"max_hp": 155, "armor": 0.5}})
-	ok(IS.row(syn, "hp").text == "155" and IS.row(syn, "atk").text == "77" and IS.row(syn, "cd").text == "2.50 秒" and IS.row(syn, "armor").text == "0.5", "数值表跟随传入的数据")
+	ok(IS.row(syn, "hp").text == "%d" % int(round(155.0 * hpk)) and IS.row(syn, "atk").text == IS._num(77.0 * atkk) and IS.row(syn, "cd").text == "2.50 秒" and IS.row(syn, "armor").text == "0.5", "数值表跟随传入的数据")
 
 
 ## 召唤 / 封印 / 护盾 / 治疗光环段（docs/61 §15，op_blocks.gd 末尾）：测试专用干员 sstest 通过校验、改坏一处就不通过；
