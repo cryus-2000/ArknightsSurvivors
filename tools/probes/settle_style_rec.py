@@ -28,7 +28,7 @@ def run(lead, dev, style):
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
     out, err, to = GR.run_godot([GR.find_godot(), "--path", GAME, "--resolution", res, "--fixed-fps", "30",
-                                 "res://tests/settle_style_rec.tscn", "--", "--shotdir=" + d, "--settle_style=" + style, "--rec_leader=" + lead] + extra, 300)
+                                 "res://tests/settle_style_rec.tscn", "--", "--shotdir=" + d, "--settle_style=" + style, "--rec_leader=" + lead] + extra + (["--rec_qr"] if "--qr" in sys.argv else []), 300)
     n = len(glob.glob(os.path.join(d, "rec_*.png")))
     if n == 0 or to:
         print(lead, name, "失败", (out + err)[-2000:])
@@ -49,7 +49,7 @@ def compose(style, lead, dirs, slow):
     import imageio_ffmpeg
     W, H = 1480, 720
     f = font(16)
-    path = os.path.join(OUT, "settle_%s_%s%s.mp4" % ("A" if style == "1" else style, lead, "_slow" if slow else ""))
+    path = os.path.join(OUT, "settle_%s_%s%s%s.mp4" % ("A" if style == "1" else style, lead, "_qr" if "--qr" in sys.argv else "", "_slow" if slow else ""))
     fps = 10 if slow else 30
     proc = subprocess.Popen([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
                              "-s", "%dx%d" % (W, H), "-r", str(fps), "-i", "-",

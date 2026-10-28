@@ -697,6 +697,7 @@ func save_local(result: String) -> void:
 		"diff": g.diff, "map": Cfg.map_id, "start_op": g.ch.id if g.ch != null else "", "result": result},
 		"run": record()}
 	line.run["op_stats"] = op_summary()   # 作战记录的按干员汇总（docs/77；只进本地记录，对外包整段不写，见上面的判断）
+	line.run["rs"] = rs_compact()        # 作战记录原始数据（10-29 用户：对局记录点开要和结算里的一样全；新增字段，旧行没有，SCHEMA 不变）
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	_rotate_if_big(path)
 	var f := FileAccess.open(path, FileAccess.READ_WRITE if FileAccess.file_exists(path) else FileAccess.WRITE)
@@ -716,6 +717,30 @@ func op_summary() -> Array:
 			"dps": snappedf(float(r.dps), 0.1), "kills": int(r.kills), "casts": int(r.casts), "heal": int(r.heal),
 			"top": str(r.sources[0].name) if not (r.sources as Array).is_empty() else ""})
 	return out
+
+
+## 作战记录原始数据（RunStats.snapshot）的存盘版：去掉藏品说明（读的时候按 id 查表）、数值取 1 位小数，一局几 KB
+func rs_compact() -> Dictionary:
+	var RS = load("res://scripts/run/run_stats.gd")
+	var raw: Dictionary = RS.snapshot(g)
+	var rl: Array = []
+	for it in raw.relic_list:
+		rl.append({"id": it.id, "lv": it.lv, "max": it.max})
+	raw.relic_list = rl
+	return _round_deep(raw)
+
+
+static func _round_deep(v):
+	if v is float:
+		return snappedf(v, 0.1)
+	if v is Dictionary:
+		var o := {}
+		for k in v:
+			o[k] = _round_deep(v[k])
+		return o
+	if v is Array:
+		return v.map(func(x): return _round_deep(x))
+	return v
 
 
 func _rotate_if_big(path: String) -> void:

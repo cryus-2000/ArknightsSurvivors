@@ -51,15 +51,17 @@ func update(_dt: float) -> void:
 			lamp_out_done = true
 			if g.state_age < Game.HudView.DEATH_T:
 				Sfx.play("lamp_out", Sfx.LAMP_OUT_DB, 1.0, 0.0)
+		# 结算配乐（10-28 用户换新主题曲）：倒下过渡里先把战斗曲收掉，结算入场（黑场）时主题曲从头淡入；胜利直接进结算
 		if not stinger_done:
-			stinger_done = true
-			Sfx.play_stinger("win" if g.state == g.S.WIN else "lose")
+			if g.state == g.S.WIN or g.state_age >= Game.HudView.DEATH_T:
+				stinger_done = true
+				Sfx.play_settle(g.state == g.S.WIN)
+			else:
+				Sfx.music_out(1.2)
 		return
 	if g.victory.active and g.victory.finale:
-		# 最终 Boss 击破演出（victory_flow / boss_intro）：结算乐句在慢动作一开始就落下，不等结算面板；进 WIN 后上面的分支看 stinger_done 不会再放
-		if not stinger_done:
-			stinger_done = true
-			Sfx.play_stinger("win")
+		# 最终 Boss 击破演出（victory_flow / boss_intro）：慢动作里收掉 Boss 曲，进 WIN 后结算入场再放主题曲
+		Sfx.music_out(1.5)
 		return
 	if g.state == g.S.SHOP:
 		Sfx.play_music("shop")

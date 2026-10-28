@@ -45,7 +45,7 @@
 | final_{A–D}_{p1,p2} | 最终 Boss《深蓝之树》D 小调 150 BPM：A 灯火动机 / B 标题主旋律 / C Boss 主题对峙 / D 主旋律高潮（+ 三度和声）；p2 是二阶段加强层 | 乐句 | `final_boss`；生命 < 50% 叠 p2 |
 | boss_in / boss_down | Boss 登场 / 击破叠加短乐句 | 否 | `play_overlay` |
 | shop | 用户提供的 `m_sys_rglk1shop_intro` + `m_sys_rglk1shop_loop` | 前奏一次、正文循环 | `S.SHOP` |
-| win / lose → win_loop / lose_loop | 结算短乐句，播完接循环 | 否 / 是 | `play_stinger` |
+| title（结算） | 10-28 用户「结算的 BGM 还是老的主题曲，换成新的主题曲」：胜 / 负都放新主题曲（Suno《Deep Ocean Drift》），结算入场黑场从头淡入；胜利原音量 2 秒，失败压 6 dB、4 秒慢淡入；回标题接着放。旧 win / lose / win_loop / lose_loop 已删 | 是 | `play_settle` |
 
 ### 商人配乐替换（2026-10-27）
 

@@ -25,6 +25,7 @@ var seg_n := 0
 var n_ops := 6
 var leader := ""
 var busy := false
+var fake_qr := false   # --rec_qr：分享卡塞一张示意二维码（随机方块 + 三个定位角，扫不出东西），看有二维码时的版面
 const SEGS := ["win", "dead"]
 const EXTRA := [["texas", "德克萨斯", "TEXAS", [0.95, 0.62, 0.3], 300.0, -1.0], ["lumen", "流明", "LUMEN", [0.6, 0.85, 1.0], 520.0, -1.0],
 	["exusiai", "能天使", "EXUSIAI", [1.0, 0.45, 0.45], 560.0, -1.0], ["hoshiguma", "星熊", "HOSHIGUMA", [0.5, 0.9, 0.6], 610.0, -1.0]]
@@ -36,6 +37,8 @@ func _ready() -> void:
 			shot_dir = a.substr(10)
 		elif a.begins_with("--rec_ops="):
 			n_ops = int(a.substr(10))
+		elif a == "--rec_qr":
+			fake_qr = true
 		elif a.begins_with("--rec_leader="):
 			leader = a.substr(13)
 	game = load("res://game.tscn").instantiate()
@@ -116,6 +119,8 @@ func _card(i: int) -> void:
 	var c := ShareToy.CardCanvas.new()
 	c.card = card
 	c.d = card.data(s)
+	if fake_qr:
+		c.d.qr = _qr_tex()
 	c.size = Vector2(ShareCard.W, ShareCard.H)
 	vp.add_child(c)
 	add_child(vp)
@@ -123,6 +128,27 @@ func _card(i: int) -> void:
 	await RenderingServer.frame_post_draw
 	vp.get_texture().get_image().save_png(shot_dir + "/share_%d.png" % i)
 	vp.queue_free()
+
+
+## 示意二维码：25 × 25 格，三个定位角 + 伪随机数据格，每格 4 像素
+func _qr_tex() -> ImageTexture:
+	var n := 25
+	var im := Image.create(n * 4, n * 4, false, Image.FORMAT_RGB8)
+	im.fill(Color.WHITE)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261028
+	for y in n:
+		for x in n:
+			var on := rng.randf() < 0.5
+			for f in [Vector2i(0, 0), Vector2i(n - 7, 0), Vector2i(0, n - 7)]:
+				var dx: int = x - f.x
+				var dy: int = y - f.y
+				if dx >= -1 and dx <= 7 and dy >= -1 and dy <= 7:
+					var r := maxi(absi(dx - 3), absi(dy - 3))
+					on = r != 2 and r <= 3
+			if on:
+				im.fill_rect(Rect2i(x * 4, y * 4, 4, 4), Color.BLACK)
+	return ImageTexture.create_from_image(im)
 
 
 func _process(d: float) -> void:

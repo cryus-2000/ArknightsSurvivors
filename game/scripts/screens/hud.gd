@@ -318,6 +318,9 @@ func _draw_body() -> void:
 				elif g.run_stats.open:
 					g.result_btns.clear()
 					g.run_stats.draw(vs)   # 作战记录（docs/77）
+				elif g.run_log.open:
+					g.result_btns.clear()
+					g.run_log.draw(vs)   # 对局记录
 				else:
 					g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["作战记录", "Tab", "stats"], ["回到标题", "T", "title"]])
 				# 结算面板淡入：盖一层和过渡末尾同色的暗幕，0.35 秒退去
@@ -330,11 +333,14 @@ func _draw_body() -> void:
 			elif g.run_stats.open:
 				g.result_btns.clear()
 				g.run_stats.draw(vs)   # 作战记录（docs/77）
+			elif g.run_log.open:
+				g.result_btns.clear()
+				g.run_log.draw(vs)   # 对局记录
 			else:
 				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["作战记录", "Tab", "stats"], ["回到标题", "T", "title"]], true)
 	g.tour.draw_tip(vs)   # 到点小提示（screens/tour.gd）：压在所有界面之上，不拦输入
 	# 寻访（docs/109 §12）：打不打开由 headhunt.tick 在主循环里定（docs/126 R4），这里只画
-	if g.headhunt.open and (g.state == Game.S.WIN or g.state == Game.S.DEAD) and not g.run_stats.open:
+	if g.headhunt.open and (g.state == Game.S.WIN or g.state == Game.S.DEAD) and not g.run_stats.open and not g.run_log.open:
 		g.result_btns.clear()
 		g.headhunt.draw(vs)
 
@@ -624,7 +630,7 @@ func draw_death_transition(vs: Vector2) -> void:
 	# 最后一击：全屏红白一闪（run/defeat_outro.gd 同时放冲击环 + 火花）
 	if g.state_age < 0.22:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.82, 0.78, 0.42 * (1.0 - g.state_age / 0.22)))
-	var k: float = clampf(g.state_age / DEATH_LAMP_T, 0.0, 1.0)
+	var k: float = clampf(g.state_age / g.defeat_outro.DIM_T, 0.0, 1.0)
 	var e: float = 1.0 - pow(1.0 - k, 2.0)
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.62 * e))
 	# 海水色暗角：四条边往里渐隐的青黑带，越来越厚
@@ -646,6 +652,10 @@ func draw_death_transition(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(0, cy - 4.0 + 8.0 * (1.0 - ta)), "探索终止", 40, Color(1, 1, 1, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
 		var en := "OPERATION  FAILED"
 		UI.en(g.hud, g.font, Vector2(vs.x / 2.0 - g.font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x / 2.0 - 20.0, cy + 40), en, 13, Color(UI.RED.r, UI.RED.g, UI.RED.b, ta), 4.0)
+	# 黑场：最后 0.5 秒压到结算底色（HH.DARK），结算从同一片暗处入场，不再闪亮一下
+	var bk: float = clampf((g.state_age - (DEATH_T - 0.5)) / 0.5, 0.0, 1.0)
+	if bk > 0.0:
+		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(Color8(19, 23, 30), bk * bk))
 	# 右下角小字：可跳过
 	if g.state_age > 0.3:
 		UI.text(g.hud, g.font, Vector2(vs.x - 240, vs.y - 24), "点击跳过" if Pad.touch_ui() else "点击或按任意键跳过", 12, Color(1, 1, 1, 0.45), HORIZONTAL_ALIGNMENT_RIGHT, 220)

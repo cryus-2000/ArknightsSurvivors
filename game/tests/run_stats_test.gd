@@ -155,6 +155,17 @@ func test_real() -> void:
 		shs += float(o.share)
 	ok(osum.size() >= 2 and absf(shs - 1.0) < 0.01 and osum[0].id == "mizuki" and str(osum[0].top) != "", "真实局：runs.jsonl 按干员汇总（%d 行，占比合计 %.3f）" % [osum.size(), shs])
 	ok(float(tm.best_hit.get("v", 0.0)) > 0.0, "真实局：有最高单次")
+	# 对局记录（10-29）：存盘版原始数据过一遍 JSON 再还原，作战记录与当场打开的一致；旧行（没有 rs）走只有合计的还原
+	var live: Dictionary = RunStats.model(RunStats.snapshot(game))
+	var line: Dictionary = JSON.parse_string(JSON.stringify({"meta": {"result": "dead", "start_op": "mizuki"}, "run": {"rs": tm.rs_compact(), "op_stats": osum}}))
+	var back: Dictionary = RunStats.model(RunStats.from_log(line, game.RL))
+	near(float(back.total), float(live.total), "对局记录：完整还原的全队伤害 = 当场", 0.001)
+	ok(back.rows.size() == live.rows.size() and int(back.rows[0].pct) == int(live.rows[0].pct) and (back.rows[0].sources as Array).size() == (live.rows[0].sources as Array).size(),
+		"对局记录：完整还原的行数 / 队长占比 / 来源条数 = 当场")
+	ok(not bool(back.get("log", false)) and float(back.best.v) > 0.0, "对局记录：完整还原有最高单次、不标「只存合计」")
+	line.run.erase("rs")
+	var old: Dictionary = RunStats.model(RunStats.from_log(line, game.RL))
+	ok(bool(old.log) and absf(float(old.total) - float(live.total)) <= float(osum.size()), "对局记录：旧格式（只有 op_stats）还原的全队伤害 ≈ 当场")
 	var ls := 0.0
 	for v in tm.lamp_s:
 		ls += float(v)
@@ -165,7 +176,7 @@ func test_real() -> void:
 	for st in m.stats:
 		sv[st.label] = st
 	ok(int(sv["击杀"].v) == int(game.kills) and int(sv["藏品"].v) == game.relics.size(), "真实局：统计表击杀 / 藏品数")
-	ok(float(sv["获得经验"].v) > 0.0 and float(sv["探索时间"].v) >= 45.0, "真实局：统计表经验与时间")
+	ok(float(sv["获得经验"].v) > 0.0 and float(sv["探索用时"].v) >= 45.0, "真实局：统计表经验与时间")
 	var dl := 0.0
 	for k2 in game.dmg_log:
 		dl += float(game.dmg_log[k2])

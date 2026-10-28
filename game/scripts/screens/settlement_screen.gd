@@ -106,7 +106,7 @@ func tick(dt: float) -> void:
 	squad_canvas.position = origin + VIEW.position * scale
 	squad_canvas.size = VIEW.size * scale
 	squad_canvas.modulate.a = clampf((g.state_age-g.hud_view.DEATH_T)/0.35,0,1) if g.state==g.S.DEAD else 1.0
-	squad_canvas.visible = sty == null and not share_open and not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
+	squad_canvas.visible = sty == null and not share_open and not g.run_stats.open and not g.run_log.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
 	if g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T:
 		var prev := elapsed
 		elapsed = _end() if UM.rm() or UM.skip_all() or g.ui_skip else minf(_end(), elapsed + dt)
@@ -260,7 +260,7 @@ func _buttons() -> Array:
 	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
 	var out: Array = [["share", 1148, 100, "分享战绩" if (Pad.using or tch) else "分享  V", false, Rect2(1148, 202, 100, 34)],
 		["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
-	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：点一下打开记录文件夹（10-22 用户）
+	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：游戏内面板列最近几局（10-29 用户，原来是打开记录文件夹）
 		out.append(["runs", 206, 150, "对局记录", false])
 	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
@@ -296,7 +296,7 @@ func _press(id: String) -> void:
 func _run(id: String) -> void:
 	match id:
 		"records": _records()
-		"runs": Cfg.show_runs_folder()
+		"runs": g.run_log.open_log()
 		"title", "meta", "hunt": _action(id)
 		"share": _open_share()
 
@@ -549,6 +549,7 @@ func _records() -> void:
 	if is_instance_valid(squad_canvas):
 		squad_canvas.hide()
 	g.run_stats.show_model(model)
+	g.run_stats.back_label = "返回结算"
 
 func _action(action: String) -> void:
 	if action == "hunt":

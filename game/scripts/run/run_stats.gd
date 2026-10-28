@@ -295,7 +295,7 @@ static func model(raw: Dictionary) -> Dictionary:
 	var fu: Dictionary = raw.get("fuse", {})
 	# 右栏统计表（雨中冒险 2 结算的「标签 — 数值」一列；docs/77 §2.3）。fmt：n 千分位 / t 时间 / pct 百分比 / txt 原样
 	var stats: Array = [
-		{"label": "探索时间", "v": t_end, "fmt": "t"},
+		{"label": "探索用时", "v": t_end, "fmt": "t"},
 		{"label": "击杀", "v": float(raw.get("kills", 0)), "fmt": "n"},
 		{"label": "精英击杀", "v": float(raw.get("elites", 0)), "fmt": "n"},
 		{"label": "Boss 击破", "v": float(killed), "fmt": "n"},
@@ -306,6 +306,8 @@ static func model(raw: Dictionary) -> Dictionary:
 		{"label": "获得经验", "v": float(raw.get("xp", 0.0)), "fmt": "n", "sub": "Lv.%d" % int(raw.get("level", 1))},
 		{"label": "获得源石锭", "v": float(raw.get("ingots_got", 0)), "fmt": "n", "sub": "花费 %d" % int(raw.get("ingots_spent", 0))},
 		{"label": "打开补给箱", "v": float(raw.get("chests", 0)), "fmt": "n"}]
+	if bool(raw.get("log", false)):   # 对局记录还原的：文件里没记最高单次 / 源石锭，不列 0
+		stats = stats.filter(func(x): return not (x.label in ["最高单次伤害", "获得源石锭"]))
 	if int(raw.get("nodes", 0)) > 0:
 		stats.append({"label": "翻开节点卡", "v": float(raw.nodes), "fmt": "n"})
 	if int(bc[0]) > 0 or int(bc[1]) > 0:
@@ -320,13 +322,120 @@ static func model(raw: Dictionary) -> Dictionary:
 		"result": str(raw.get("result", "dead")), "trial": bool(raw.get("trial", false)), "ending": str(raw.get("ending", "")),
 		"ending_name": str(raw.get("ending_name", "")), "t": t_end, "tier": int(raw.get("tier", 0)), "tier_name": str(raw.get("tier_name", "")),
 		"level": int(raw.get("level", 1)), "elite": int(raw.get("elite", 0)), "kills": int(raw.get("kills", 0)), "elites": int(raw.get("elites", 0)),
-		"relics": int(raw.get("relics", 0)), "total": total, "dps": total / t_end, "rows": rows,
+		"relics": int(raw.get("relics", 0)), "total": total, "log": bool(raw.get("log", false)), "quit": bool(raw.get("quit", false)), "dps": total / t_end, "rows": rows,
 		"best": {"v": float(best.get("v", 0.0)), "src": str(best.get("src", "")), "op": best_op},
 		"timeline": {"bin_s": bin_s, "series": series, "peak": peak}, "bosses": bosses,
 		"lamp_s": raw.get("lamp_s", [0.0, 0.0, 0.0, 0.0]), "beacons": raw.get("beacons", [0, 0]), "fuse": raw.get("fuse", {}),
 		"leader": {"taken": _sum(taken), "hits": int(raw.get("hits", 0)), "taken_src": taken_l, "heal": _sum(heal), "heal_src": heal_l,
 			"dodges": int(raw.get("dodges", 0)), "dashes": int(raw.get("dashes", 0)), "blocks": int(raw.get("blocks", 0)),
 			"low_hp_s": float(raw.get("low_hp_s", 0.0))}}
+
+
+## 对局记录（10-29 用户：结算「对局记录」改游戏内面板，点一局看它的作战记录）：runs.jsonl 的一行 → 原始记录（喂 model）。
+## 10-29 起的行带 run.rs（完整原始数据）直接用；更早的行只还原记录里有的：每名干员的合计（op_stats，没有分来源明细，详情页只列主要来源）、承伤 / 回复来源、
+## 藏品（relic_take 的拾取顺序）、击倒者（bot.death_src 按 telemetry.on_lose 的归属规则）、Boss 击破数（bosses 的 dead）。
+## 没记的（最高单次、源石锭、时间线）留空；rl = 藏品表（g.RL）
+static func from_log(line: Dictionary, rl: Dictionary) -> Dictionary:
+	var meta: Dictionary = line.get("meta", {})
+	var run: Dictionary = line.get("run", {})
+	if run.get("rs") is Dictionary:   # 10-29 起的记录存了完整原始数据（telemetry.rs_compact）：和结算里打开的一样全
+		var raw: Dictionary = (run.rs as Dictionary).duplicate(true)
+		for it in raw.get("relic_list", []):
+			var id := str(it.get("id", ""))
+			var rd: Dictionary = rl.get(id, rl.get(int(id), {})) if id.is_valid_int() else rl.get(id, {})
+			it["name"] = str(rd.get("name", id))
+			it["cat"] = str(rd.get("cat", ""))
+			it["rarity"] = str(rd.get("rarity", ""))
+			it["desc"] = str(rd.get("desc", ""))
+		raw["quit"] = str(meta.get("result", "")) == "quit"
+		if raw.quit:
+			raw.killer = {}
+		return raw
+	var bot: Dictionary = run.get("bot", {})
+	var won: bool = str(meta.get("result", "")) == "win"
+	var lead_id := str(meta.get("start_op", ""))
+	var ops: Array = []
+	var op_out := {}
+	var kills := {}
+	var casts := {}
+	var heal: Dictionary = (run.get("heal", {}) as Dictionary).duplicate()
+	var stats: Array = run.get("op_stats", [])
+	if stats.is_empty():   # 早期记录没有 op_stats：按编队名单列人，伤害记不到人头
+		for id in run.get("squad", []):
+			stats.append({"id": str(id), "join": 0, "left": -1, "dmg": 0})
+	var elites := {}
+	for o in run.get("ops", []):
+		elites[str(o.get("id", ""))] = int(o.get("elite", 0))
+	for s in stats:
+		var id := str(s.get("id", ""))
+		if id == OTHER:
+			op_out[OTHER] = {"藏品与支援": float(s.get("dmg", 0))}
+			continue
+		var def := _char_def(id)
+		var c: Array = def.get("col", [0.6, 0.9, 1.0])
+		ops.append({"id": id, "name": str(def.get("name", id)), "en": str(def.get("en", id.to_upper())), "col": c,
+			"leader": id == lead_id, "t": float(s.get("join", 0)), "left": float(s.get("left", -1)), "elite": int(elites.get(id, 0))})
+		var top := str(s.get("top", ""))
+		op_out[id] = {("合计（主要来源：%s）" % top if top != "" else "合计"): float(s.get("dmg", 0))}
+		kills[id] = int(s.get("kills", 0))
+		casts[id] = int(s.get("casts", 0))
+	var relic_list: Array = []
+	for rt in run.get("relic_take", []):
+		var id := str(rt[1]) if rt is Array and rt.size() > 1 else str(rt)
+		var rd: Dictionary = rl.get(id, rl.get(int(id), {})) if id.is_valid_int() else rl.get(id, {})
+		relic_list.append({"id": id, "name": str(rd.get("name", id)), "cat": str(rd.get("cat", "")), "rarity": str(rd.get("rarity", "")),
+			"lv": 1, "max": 1, "desc": str(rd.get("desc", ""))})
+	var bosses: Array = []
+	for b in run.get("bosses", []):
+		var p := str(b).split(":")
+		var ty := p[0]
+		bosses.append({"type": ty, "name": str(D.ENEMIES.get(ty, {}).get("name", ty)).replace("\"", ""), "t0": 0.0,
+			"t1": float(run.get("t", 0)) if p.size() > 1 and p[1] == "dead" else -1.0})
+	var ending := str(run.get("ending", ""))
+	var final_boss := {}
+	if won:
+		var bt: String = str(D.ENDINGS.get(ending, {}).get("boss", ""))
+		final_boss = {"type": bt, "name": str(D.ENEMIES.get(bt, {}).get("name", bt)).replace("\"", "")}
+	var fu: Dictionary = run.get("fuse", {})
+	var diff := int(meta.get("diff", 0))
+	return {"result": str(meta.get("result", "dead")), "trial": false, "ending": ending,
+		"ending_name": str(D.ENDINGS.get(ending, {}).get("name", "")) if won else "",
+		"t": float(run.get("t", 0)), "t0": 0.0, "tier": diff, "tier_name": D.tier_name(diff), "level": int(run.get("lv", 1)),
+		"elite": int(run.get("elite_stage", 0)), "kills": int(run.get("kills", 0)), "elites": int(run.get("elites", 0)),
+		"relics": int(run.get("relics", relic_list.size())), "ops": ops, "op_out": op_out, "op_kills": kills, "op_casts": casts,
+		"bins": [], "bin_s": 10.0, "origin": {}, "heal": heal, "taken": run.get("dmg", {}), "dark_dmg": float(bot.get("dark_dmg", 0.0)),
+		"hits": int(bot.get("hits", 0)), "best": {}, "bosses": bosses, "lamp_s": bot.get("lamp_s", [0, 0, 0, 0]),
+		"beacons": [0, 0], "dashes": int(run.get("dashes", 0)), "fuse": {"on": float(fu.get("t", -1)) >= 0.0, "pct": float(fu.get("pct", 0.0)), "pool": int(fu.get("pool", 0))},
+		"relic_list": relic_list, "killer": {} if str(meta.get("result", "")) != "dead" else killer_info(log_killer(str(bot.get("death_src", "")))), "final_boss": final_boss,
+		"xp": float(run.get("xp_total", 0.0)), "chests": int(run.get("crates", 0)), "nodes": 0, "ingots_got": -1, "ingots_spent": 0,
+		"log": true, "quit": str(meta.get("result", "")) == "quit"}
+
+
+## 记录里的最后掉血来源（telemetry 的 last_src）→ killer() 的归属键（规则同 telemetry.on_lose；持续伤害记不到施加者，归环境）
+static func log_killer(src: String) -> Dictionary:
+	if src == "":
+		return {}
+	var dot := {"corrode": "侵蚀", "wound": "侵蚀创口", "nerve": "神经损伤"}
+	if dot.has(src):
+		return {"key": "env:mire" if src == "nerve" else "env:" + src, "cause": dot[src]}
+	if src == "tear":
+		return {"key": "e:tear", "cause": ""}
+	for p in ["contact_", "atk_", "boss_", "blast_", "shock_"]:
+		if src.begins_with(p):
+			return {"key": "e:" + src.substr(p.length()), "cause": ""}
+	return {"key": "env:" + src, "cause": ""}
+
+
+static var _defs := {}
+
+
+## 干员定义（data/characters/<id>.json）：名字、英文名、设定色
+static func _char_def(id: String) -> Dictionary:
+	if not _defs.has(id):
+		var p := "res://data/characters/%s.json" % id
+		var d = JSON.parse_string(FileAccess.get_file_as_string(p)) if FileAccess.file_exists(p) else null
+		_defs[id] = d if d is Dictionary else {}
+	return _defs[id]
 
 
 ## 快检用：一份编的原始记录（四名干员、其中一人中途被替换、藏品与支援、三个 Boss）

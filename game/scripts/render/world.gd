@@ -2941,20 +2941,21 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		_lazy_tex("e_ishar_t_move")
 		_lazy_tex("e_ishar_t_attack")
 	var frames: int = A.enemy_frames(name, 2)
-	var frame := int(g.t * A.enemy_loop_fps(name, 2.0 if e.boss else 5.0) + e.id * 0.37) % frames
+	var vt: float = g.t + g.vis_t   # 失败慢放里 g.t 已停，帧按画面时钟走（defeat_outro）
+	var frame := int(vt * A.enemy_loop_fps(name, 2.0 if e.boss else 5.0) + e.id * 0.37) % frames
 	# 移动帧条（美术 V5 / V8 / V9）：移动中播放 4 帧循环；停下、晕眩、假死时用本体
 	if e.tex_move:
 		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
-			e.mv_until = g.t + 0.2
+			e.mv_until = vt + 0.2
 		e.dpos = e.pos
-		if g.t < e.mv_until and e.stun <= 0.0 and e.get("bstag", 0.0) <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
+		if vt < e.mv_until and e.stun <= 0.0 and e.get("bstag", 0.0) <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
 			name += "_move"
 			frames = A.enemy_frames(name, 4)
 			# 重画帧条（10-23）：循环速度 = 帧数 / 原作动画时长；旧的 move_fps 是给 4 帧旧图调的，没登记的帧条仍用它
 			var fps: float = A.enemy_loop_fps(name, float(D.ENEMIES.get(e.type, _NO_DEF).get("move_fps", 6.0)))
 			if e.enraged:
 				fps *= float(D.ENEMIES.get(e.type, _NO_DEF).get("rage_move_fps_mult", 1.0))   # 收割者狂奔时腿更快（enemies.json）
-			frame = int(g.t * fps + e.id * 0.37) % frames
+			frame = int(vt * fps + e.id * 0.37) % frames
 	# 冲刺帧条（V9 骑士）：蓄力用前 2 帧，冲出去用后 2 帧
 	if e.get("tex_charge", false) and (e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0):
 		name = e.tex + "_charge"
