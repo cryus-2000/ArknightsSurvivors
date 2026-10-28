@@ -24,7 +24,7 @@ INC = "art/incoming"
 RUNTIME_SUBDIRS = ("portraits", "optical_fx")   # art/incoming 下游戏按名字读的子目录（art.gd / export_build.ART_SUBDIRS）
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from asset_paths import LEGACY, PREFIXES, SUMMONS   # 前缀登记表与 asset_index / 接入工具共用（docs/189 §3.1）
+from asset_paths import LEGACY, PREFIXES, SUMMONS, index_key   # 前缀登记表与 asset_index / 接入工具共用（docs/189 §3.1）
 NAME_RX = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*(@[12]x)?$")
 VER_RX = re.compile(r"_(v\d+|old|new|bak|tmp|copy|test)(_|$)")
 VOICE_EVENTS = ("entry", "command", "battle", "skill_1", "skill_2", "skill_3", "w_laugh", "syn_team", "syn_rival")
@@ -154,14 +154,16 @@ def run():
     """跑全部规则，返回 (Report, 运行时贴图数, game/ 文件数)"""
     ops, ens = load_ids()
     inc = git_files(INC)
-    runtime = [f for f in inc if f.endswith(".png") and (f.count("/") == 2 or f.split("/")[2] in RUNTIME_SUBDIRS)]
     game = git_files("game")
+    # 运行时贴图：art/incoming 根目录与运行时子目录（过渡期）+ 已搬进 game/art 进索引的（docs/189 §6.1）
+    moved = [f for f in game if f.startswith("game/art/") and index_key(f[len("game/art/"):]) is not None]
+    runtime = [f for f in inc if f.endswith(".png") and (f.count("/") == 2 or f.split("/")[2] in RUNTIME_SUBDIRS)] + moved
     rep = Report()
     check_runtime_names(rep, runtime, ops, ens)
-    check_game_dirs(rep, game, ops)
+    check_game_dirs(rep, [f for f in game if f not in set(moved)], ops)
     check_intake(rep, inc)
-    check_dups(rep, runtime + [f for f in game if f.lower().endswith((".png", ".webp", ".ogg", ".wav")) and "/masters/" not in f
-                               and not f.startswith(("game/tests/", "game/tools/", "game/addons/"))])
+    check_dups(rep, sorted(set(runtime) | {f for f in game if f.lower().endswith((".png", ".webp", ".ogg", ".wav")) and "/masters/" not in f
+                                           and not f.startswith(("game/tests/", "game/tools/", "game/addons/"))}))
     return rep, len(runtime), len(game)
 
 

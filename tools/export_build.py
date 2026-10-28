@@ -211,6 +211,10 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     game_dir = os.path.join(pkg, "game")
     os.makedirs(game_dir)
     gpath = os.path.join(src, "game")
+    # 已搬进 game/art 的运行时贴图（docs/189）随 pck 走：对外包同样去掉干员 @2x 回退条，副本 art/index.json 按剩下的重写
+    game_art, freed = release_slim.prune_game_art(gpath, drop_fallback=not a.ea)
+    if freed:
+        print("[瘦身] game/art 干员 @2x 回退条不进对外包：%.2f MB（PNG 原图）" % (freed / 1e6), flush=True)
     if a.encrypted:
         preset_path = Path(gpath) / "export_presets.cfg"
         preset_path.write_text(encrypted_release.encrypted_preset(preset_path.read_text(encoding="utf-8"), encrypted_template), encoding="utf-8")
@@ -262,7 +266,7 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     art_dst = os.path.join(pkg, "art", "incoming")
     if not a.encrypted:
         os.makedirs(art_dst)
-    n = 0
+    n = len(game_art)   # game/art 里的已在 pck 里；下面再数 art/incoming 回退的（迁移批 5 后为 0）
     sib = set(os.listdir(art_src)) if os.path.isdir(art_src) else set()
     for sub in [""] + ART_SUBDIRS:
         sdir = os.path.join(art_src, sub) if sub else art_src

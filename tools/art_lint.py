@@ -217,8 +217,16 @@ def roster(data=DATA):
     return out
 
 
+def _png(art, name):
+    """帧条路径：缺省目录按运行时贴图索引找（game/art，过渡期回退 art/incoming，docs/189）；--art 给了别的目录就平铺找"""
+    if os.path.abspath(art) == os.path.abspath(ART):
+        import asset_paths
+        return asset_paths.runtime_png(name)
+    return os.path.join(art, name + ".png")
+
+
 def load_strip(art, tex, hi):
-    p = os.path.join(art, tex + ("@2x" if hi else "") + ".png")
+    p = _png(art, tex + ("@2x" if hi else ""))
     if not os.path.exists(p):
         return None
     a = np.array(Image.open(p).convert("RGBA"))
@@ -394,7 +402,7 @@ def run_metrics(art, tex_run, tex_idle):
     import run_cycle_review as rcr
     assert tex_idle == tex_run.removesuffix("_run") + "_idle", (tex_run, tex_idle)
     rcr.ART = art
-    rcr.strip_path = lambda op, hi=True: os.path.join(art, tex_run + ("@2x" if hi else "") + ".png")
+    rcr.strip_path = lambda op, hi=True: _png(art, tex_run + ("@2x" if hi else ""))
     m = rcr.metrics("__run__")
     fr = rcr.load("__run__", True)
     masks = [f[..., 3] > 0 for f in fr]
@@ -439,8 +447,10 @@ def _git(args, cwd):
 
 
 class PrevVersions:
-    """按文件名给出「上一版」帧条：base 给了就取 <base>:<路径>；否则取该文件上一个提交的版本
-    （工作区有未提交改动时取 HEAD 版本）。art 目录不在 git 里时，按本仓库的 art/incoming/ 路径解析（只在给了 base 时有用）"""
+    """按文件名给出「上一版」帧条：base 给了就取 <base>:<路径>；否则取该文件上一个内容不同的版本
+    （工作区有未提交改动时取 HEAD 版本）。art 目录不在 git 里时，按本仓库的 art/incoming/ 路径解析（只在给了 base 时有用）。
+    运行时贴图从 art/incoming 搬进 game/art/<类别>/（docs/189）后同一张图换了路径：按文件名（不含目录）对上，
+    两处历史连起来看；只挪位置、内容没变的提交不算一版（按 blob 号比）"""
 
     def __init__(self, art, base=None, changed=False):
         self.base = base
@@ -450,47 +460,61 @@ class PrevVersions:
         top = _git(["rev-parse", "--show-toplevel"], art) if os.path.isdir(art) else None
         if top:
             self.repo = top.decode().strip()
-            self.prefix = (_git(["rev-parse", "--show-prefix"], art) or b"").decode().strip()
+            prefix = (_git(["rev-parse", "--show-prefix"], art) or b"").decode().strip()
             self.in_git = True
         else:
-            self.repo, self.prefix, self.in_git = ROOT, "art/incoming/", False
-        self.prev = {}      # 文件名 -> 上一版的取法（<提交>:<路径>）
+            self.repo, prefix, self.in_git = ROOT, "art/incoming/", False
+        self.prefixes = [prefix, "game/art/"] if prefix == "art/incoming/" else [prefix or "."]
+        self.at_base = None  # base 里 文件名 -> 路径（用到时再列）
+        self.prev = {}      # 文件名 -> 上一版的取法（<提交>:<路径> 或 blob 号）
         self.label = {}     # 文件名 -> 说明（哪个提交）
         if changed:
             mb = _git(["merge-base", "HEAD", "main"], self.repo) if self.in_git else None
             self.only = set()
             if mb:
                 self.base = mb.decode().strip()
-                names = (_git(["diff", "--name-only", self.base, "--", self.prefix or "."], self.repo) or b"").decode("utf-8", "replace").split()
-                self.only = {n[len(self.prefix):] if n.startswith(self.prefix) else n for n in names}
+                names = (_git(["diff", "--name-only", self.base, "--"] + self.prefixes, self.repo) or b"").decode("utf-8", "replace").split()
+                self.only = {os.path.basename(n) for n in names}
             return
         if base:
             return
         if not self.in_git:
             return
-        dirty = set((_git(["diff", "--name-only", "HEAD", "--", self.prefix or "."], self.repo) or b"").decode("utf-8", "replace").split())
-        log = (_git(["log", "--format=>%H", "--name-only", "--", self.prefix or "."], self.repo) or b"").decode("utf-8", "replace")
+        dirty = set((_git(["diff", "--name-only", "HEAD", "--"] + self.prefixes, self.repo) or b"").decode("utf-8", "replace").split())
+        log = (_git(["log", "--format=>%H", "--raw", "--no-abbrev", "--"] + self.prefixes, self.repo) or b"").decode("utf-8", "replace")
         hist, cur = {}, None
         for line in log.splitlines():
             if line.startswith(">"):
                 cur = line[1:]
-            elif line.strip() and cur:
-                hist.setdefault(line.strip(), []).append(cur)
-        for path, commits in hist.items():
-            fn = path[len(self.prefix):] if path.startswith(self.prefix) else path
-            if path in dirty:
-                self.prev[fn] = "HEAD:" + path
+            elif line.startswith(":") and cur and "\t" in line:
+                meta, path = line.split("\t", 1)
+                blob = meta.split()[3]
+                if blob.strip("0"):   # 删除（含挪走的旧路径）不算一版
+                    hist.setdefault(os.path.basename(path.strip()), []).append((cur, path.strip(), blob))
+        for fn, seq in hist.items():
+            if seq[0][1] in dirty:
+                self.prev[fn] = "HEAD:" + seq[0][1]
                 self.label[fn] = "HEAD"
-            elif len(commits) >= 2:
-                self.prev[fn] = commits[1] + ":" + path
-                self.label[fn] = commits[1][:8]
+                continue
+            older = next((e for e in seq[1:] if e[2] != seq[0][2]), None)
+            if older:
+                self.prev[fn] = older[2]
+                self.label[fn] = older[0][:8]
+
+    def _base_path(self, fname):
+        if self.at_base is None:
+            names = (_git(["ls-tree", "-r", "--name-only", self.base, "--"] + self.prefixes, self.repo) or b"").decode("utf-8", "replace").split()
+            self.at_base = {}
+            for n in names:
+                self.at_base.setdefault(os.path.basename(n), n)
+        return self.at_base.get(fname, self.prefixes[0] + fname)
 
     def get(self, fname):
         """返回 (RGBA 数组, 说明) 或 (None, 原因)"""
         if self.only is not None and fname not in self.only:
             return None, "相对 main 未改动"
         if self.base:
-            spec, lab = "%s:%s%s" % (self.base, self.prefix, fname), self.base[:8]
+            spec, lab = "%s:%s" % (self.base, self._base_path(fname)), self.base[:8]
         else:
             if fname not in self.prev:
                 return None, "没有上一版"
@@ -572,7 +596,7 @@ def lint_op(op, acts, art=ART, prev=None):
     derived = set()   # 只交了 @2x 的动作（1x 由 derive_1x 推出，只供比对）
     for act, cfg in acts.items():
         lo, hi = load_strip(art, cfg["tex"], False), load_strip(art, cfg["tex"], True)
-        if hi is None and os.path.exists(os.path.join(art, cfg["tex"] + "@1x.png")):
+        if hi is None and os.path.exists(_png(art, cfg["tex"] + "@1x")):
             continue   # 只有 1 倍版的槽（10-23 移动攻击 move_attack，docs/128）：没有 @2x 可比，不查
         if hi is None:
             missing.append(cfg["tex"] + "@2x.png")

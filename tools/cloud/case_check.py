@@ -50,6 +50,9 @@ def main():
             problems.append("仓库里只差大小写：%s  vs  %s" % (seen[k], rel))
         seen[k] = rel
     art_dirs = [os.path.join(ROOT, "art", "incoming"), os.path.join(GAME, "art")]
+    ip = os.path.join(GAME, "art", "index.json")
+    index = __import__("json").load(open(ip, encoding="utf-8")) if os.path.exists(ip) else {}
+    index_lower = {k.lower(): k for k in index}
     res_re = re.compile(r'res://([^"\'\s)]+)')
     tex_re = re.compile(r'\b(?:A\.tex|tex\.get|g\.tex\.get|_spr|draw_spr|spr|fx_sprite|spawn_fx_sprite)\(\s*"([A-Za-z0-9_@\-]+)"')
     for p in walk_files(GAME):
@@ -75,6 +78,8 @@ def main():
                 full = os.path.join(d, name + ".png")
                 if os.path.exists(full) and not exact_exists(full):
                     problems.append("%s：美术名 \"%s\" 大小写和 %s 里的文件不一致" % (rel, name, os.path.relpath(d, ROOT)))
+            if name not in index and name.lower() in index_lower:   # 已搬进 game/art 的按索引名比（docs/189）
+                problems.append("%s：美术名 \"%s\" 大小写和索引里的 \"%s\" 不一致" % (rel, name, index_lower[name.lower()]))
     if problems:
         print("发现 %d 处 Linux 上会出问题的大小写：" % len(problems))
         for x in sorted(set(problems)):

@@ -22,7 +22,8 @@ func _initialize():
 func _verify():
     Art.normal_maps = false
     for item in images:
-        var resource = load("res://art/incoming/" + item[0] + ".png")
+        var packed_path = Art._packed_path(item[0])   # game/art 索引或 art/incoming 副本（docs/189 §6.1）
+        var resource = load(packed_path) if packed_path != "" else null
         if not resource is Texture2D or resource.get_width() != item[1] or resource.get_height() != item[2]:
             failures.append("packed_png:" + item[0])
         if resource is Texture2D:
@@ -238,6 +239,13 @@ def main():
             if raw[:8]!=b'\x89PNG\r\n\x1a\n': raise ValueError('Invalid staged PNG: '+path.name)
             width,height=struct.unpack('>II',raw[16:24])
             images.append([(sub+'/'+path.stem) if sub else path.stem,width,height])
+    # 已搬进 game/art 的（docs/189）：按副本 art/index.json 登记，名字同 art.gd 查索引用的名字
+    index_path=project/'art/index.json'
+    for name,res in sorted(json.loads(index_path.read_text(encoding='utf-8')).items() if index_path.exists() else []):
+        raw=(project/res[len('res://'):]).read_bytes()[:24]
+        if raw[:8]!=b'\x89PNG\r\n\x1a\n': raise ValueError('Invalid staged PNG: '+name)
+        width,height=struct.unpack('>II',raw[16:24])
+        images.append([name,width,height])
     if not images or len(images)!=manifest['packed_png_count']: raise ValueError('Staged art inventory does not match release manifest')
     preset=(project/'export_presets.cfg').read_text(encoding='utf-8').split('[preset.1]')[0]
     match=re.search(r'^exclude_filter="(.*)"$',preset,re.M)

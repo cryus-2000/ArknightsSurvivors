@@ -114,3 +114,48 @@ def runtime_files(game_art=GAME_ART, incoming=INCOMING):
             if f.endswith(".png") and os.path.isfile(os.path.join(d, f)):
                 out.setdefault((sub + "/" if sub else "") + f[:-4], os.path.join(d, f))
     return out
+
+
+def out_png(name, game_art=GAME_ART):
+    """生成 / 接入工具写运行时贴图用：名字已在索引里就写回原处，否则按 out_dir 放进 game/art/<类别>/（目录不存在就建）。
+    新名字写完要跑 python tools/asset_index.py 更新索引（check.py 的 asset_index 项会拦）"""
+    p = load_index(game_art).get(name)
+    if p:
+        return p
+    d = out_dir(name)
+    if d is None:
+        raise ValueError("%s：前缀没登记（asset_paths.PREFIXES，docs/189 §3.1）" % name)
+    os.makedirs(os.path.join(game_art, d), exist_ok=True)
+    return os.path.join(game_art, d, name.split("/")[-1] + ".png")
+
+
+# ---- 旧路径 → 新路径（docs/189 §6.5）：从 codex/art 或任何旧分支收货时用
+MAP_FILE = os.path.join(ROOT, "tools", "asset_path_map.json")   # 迁移时 git mv 的完整对照（仓库相对路径，/ 分隔）
+
+
+def map_path(old):
+    """旧路径（仓库相对，例 art/incoming/op_skadi_idle@2x.png）→ 新路径；映射表里没有的 art/incoming 运行时 PNG 按前缀给目录，
+    其余（交接文档、批次子目录等）原样返回"""
+    p = old.replace("\\", "/").lstrip("./")
+    amap = json.load(open(MAP_FILE, encoding="utf-8")) if os.path.exists(MAP_FILE) else {}
+    if p in amap:
+        return amap[p]
+    pre = "art/incoming/"
+    if p.startswith(pre) and p.endswith(".png"):
+        rest = p[len(pre):]
+        if rest.count("/") == 0 or (rest.count("/") == 1 and rest.split("/")[0] in INCOMING_SUBDIRS):
+            d = out_dir(rest[:-4])
+            if d:
+                return "game/art/%s/%s" % (d, os.path.basename(p))
+    return p
+
+
+if __name__ == "__main__":
+    import sys
+    # python tools/asset_paths.py <旧路径 ...>   （不给参数就从标准输入每行读一个）：每行输出「旧路径 → 新路径」，没变的标 =
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    olds = sys.argv[1:] or [l.strip() for l in sys.stdin if l.strip()]
+    for o in olds:
+        n = map_path(o)
+        print("%s → %s" % (o, n) if n != o.replace("\\", "/").lstrip("./") else "%s =" % o)

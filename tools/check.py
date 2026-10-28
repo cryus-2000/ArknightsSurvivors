@@ -109,7 +109,7 @@ def plan_auto():
             bump("none", p)
         elif p.startswith("art/incoming/") and ("preview" in name or name.endswith((".json", ".html", ".txt"))):
             bump("none", p)
-        elif p.startswith("art/incoming/op_") and name.endswith(".png"):
+        elif (p.startswith("art/incoming/op_") or p.startswith("game/art/operators/")) and name.endswith(".png"):
             hit = max((o for o in ids if name.startswith("op_" + o + "_") or name.startswith("op_" + o + "@")), key=len, default=None)
             if hit:
                 ops.add(hit)
@@ -324,6 +324,8 @@ def scope_hashes(game=GAME):
     for path in sorted(g):
         if not path.lower().endswith(ASSET_EXT):
             h.update(("%s %s\n" % (path[len(rel):], g[path])).encode("utf-8"))
+        elif path.lower().endswith(".png") and path.startswith(rel + "/art/"):   # 已搬进 game/art 的贴图同 art/incoming：按名字 + 尺寸（docs/189）
+            h.update(("%s %s\n" % (path[len(rel):], _png_size(path))).encode("utf-8"))
     for path in sorted(art):
         low = path.lower()
         if low.endswith(".png"):
@@ -806,6 +808,8 @@ def logic_entries(game=GAME):
         for path, b in _blobs(rel).items():
             if not path.lower().endswith(ASSET_EXT) and not path.startswith(rel + "/tests/"):
                 e[path] = b
+            elif path.lower().endswith(".png") and path.startswith(rel + "/art/"):   # 同 scope_hashes：game/art 贴图按尺寸
+                e[path] = _png_size(path)
         for path, b in _blobs("art/incoming").items():
             low = path.lower()
             if low.endswith(".png"):
@@ -830,7 +834,7 @@ def eq_hashes(gid):
     if tj in _ENTRIES["td"]:
         ent[tj] = _ENTRIES["td"][tj]
     for path, tok in sorted(ent.items()):
-        mine = path in own or path.startswith("art/incoming/op_%s_" % gid) or path.startswith(EQ_COMMON_PREFIX)
+        mine = path in own or path.startswith("art/incoming/op_%s_" % gid) or path.startswith("game/art/operators/%s/" % gid) or path.startswith(EQ_COMMON_PREFIX)
         hs[0 if mine else 1].update(("%s %s\n" % (path, tok)).encode("utf-8"))
     return hs[0].hexdigest(), hs[1].hexdigest()
 

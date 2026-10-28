@@ -15,13 +15,13 @@ from asset_paths import GAME_ART, index_key
 INDEX = os.path.join(GAME_ART, "index.json")
 
 
-def build():
-    """返回 (索引 dict, 重名列表)"""
+def build(game_art=GAME_ART):
+    """返回 (索引 dict, 重名列表)；game_art 可指向导出副本"""
     idx, dups = {}, []
-    for dp, dns, fs in os.walk(GAME_ART):
+    for dp, dns, fs in os.walk(game_art):
         dns.sort()
         for f in sorted(fs):
-            rel = os.path.relpath(os.path.join(dp, f), GAME_ART).replace(os.sep, "/")
+            rel = os.path.relpath(os.path.join(dp, f), game_art).replace(os.sep, "/")
             k = index_key(rel)
             if k is None:
                 continue

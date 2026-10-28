@@ -109,6 +109,8 @@ def main():
                 fallback += os.path.getsize(os.path.join(art_src, f))   # 网页包（Toy 50 MB）：干员 @2x 回退条不带，游戏读 @1x（docs/128）
                 continue
             shutil.copy2(os.path.join(art_src, f), art_dst)
+    _, freed = release_slim.prune_game_art(os.path.join(src, "game"), drop_fallback=True)   # 已搬进 game/art 的同样去掉（docs/189）
+    fallback += freed
     print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）；干员 @2x 回退条不进网页包：%.2f MB" % (skipped / 1e6, fallback / 1e6))
     print("源码：%s @ %s" % (a.ref, commit))
     # 构建信息（同 export_build.py）：局内记录的版本号、发布对象；演练入口与全部解锁按 audience 判断
