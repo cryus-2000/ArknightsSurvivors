@@ -1,0 +1,98 @@
+{
+  "status": "user approved for art delivery; not integrated",
+  "palette": [
+    "#080e18",
+    "#10152b",
+    "#1c2648",
+    "#303f6b",
+    "#4d5a9a",
+    "#767ab7",
+    "#a8afe0",
+    "#dae5fa",
+    "#f3f7ff"
+  ],
+  "source": "existing Logos glyph vocabulary + grid-authored layers; imagegen component concept only",
+  "assets": [
+    {
+      "file": "fx_logos_s3_fan_open@2x.png",
+      "frame_size": [
+        360,
+        528
+      ],
+      "frames": 8,
+      "fps": 16,
+      "origin": [
+        8,
+        264
+      ],
+      "bytes": 21600,
+      "sha256": "feda88174097f2bf282efd839fd8a4f09c9454272a8ae9719e100d9c2118bd18"
+    },
+    {
+      "file": "fx_logos_s3_fan_ground@2x.png",
+      "frame_size": [
+        360,
+        528
+      ],
+      "frames": 4,
+      "fps": 6,
+      "origin": [
+        8,
+        264
+      ],
+      "bytes": 12625,
+      "sha256": "dfbe286a535110ea59a482ef612dfc8a789755f51e3bbeedf8f2cf9e599f1b5c"
+    },
+    {
+      "file": "fx_logos_s3_fan_close@2x.png",
+      "frame_size": [
+        360,
+        528
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        8,
+        264
+      ],
+      "bytes": 15911,
+      "sha256": "61f974e771257bfd9ee9d4ed7b6f4a9c07d8054c3d65a40d8974ad2ea1886654"
+    },
+    {
+      "file": "fx_logos_s3_slow@2x.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 12,
+      "origin": [
+        24,
+        24
+      ],
+      "bytes": 939,
+      "sha256": "66a643cfc1f77036b4c5db12889cfaf025b58283eeeb86e74a4aa3a194633e83"
+    },
+    {
+      "file": "fx_logos_s3_ribbon@2x.png",
+      "frame_size": [
+        24,
+        56
+      ],
+      "frames": 8,
+      "fps": 8,
+      "origin": [
+        12,
+        56
+      ],
+      "bytes": 905,
+      "sha256": "35e52239eb4f930d4bccf03380b7947f9745eb9721357fc12ac954c6950681f5"
+    }
+  ],
+  "notes": [
+    "10-29 user revision: restore luminous edge, keep quiet dark interior, use old continuous script as small vertical floating strips along the edge.",
+    "Ground frame 0 == open frame 7 == close frame 0.",
+    "All symmetry is around geometric origin y=264 at @2x."
+  ],
+  "total_runtime_bytes": 51980
+}

@@ -1,0 +1,29 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>逻各斯 S3 · 像素素材审阅</title>
+<style>body{background:#0d1420;color:#dae5fa;font:16px/1.6 system-ui;margin:24px auto;max-width:1160px}p{color:#a8afe0}canvas,img{image-rendering:pixelated;max-width:100%}canvas{background:#101923;border:1px solid #303f6b}button,select{font:inherit;color:#dae5fa;background:#1c2648;border:1px solid #4d5a9a;padding:5px 12px;margin-right:8px}.row{display:flex;gap:20px;flex-wrap:wrap}.detail{width:320px;overflow:auto;height:360px}label{margin-right:12px}</style>
+<h1>延异视阈 · 辉光边缘与竖直悬浮文字条 · 10-29</h1><p>素材动画预览，未接入游戏。12 秒完整周期：展开 → 内部轻微压暗、边缘辉光与竖直悬浮文字条 → 退场。右侧检查弹幕中心是否仍然清楚。</p>
+<div><button id="pause">暂停</button><button id="restart">重播</button><label>速度 <select id="speed"><option value="1">原速</option><option value="0.333">⅓ 慢放</option></select></label><label><input type="checkbox" id="turn">旋转检查</label><span id="status"></span></div>
+<canvas id="stage" width="1100" height="600"></canvas>
+<p>地面基色 #0D1420；角色与绕身符咒仅用于比例及亮度对照。右侧示意弹幕不代表游戏命中或减速实现。可暂停逐帧查看；素材全部二值透明。</p>
+<h2>关键帧</h2><img src="preview/contact.png"><h2>持续帧 8 倍网格检查</h2><div class="detail"><img style="max-width:none" src="preview/ground_8x.png"></div>
+<script>
+const names=['fan_open','fan_ground','fan_close','slow','ribbon'];const tex={};let loaded=0;const paths={...Object.fromEntries(names.map(n=>[n,'fx_logos_s3_'+n+'@2x.png'])),actor:'source/logos_idle_reference.png',orbit:'source/orbit_reference.png'};
+for(const [n,p] of Object.entries(paths)){let im=new Image();im.onload=()=>{tex[n]=im;loaded++};im.src=p}
+const sizes=[[20,40],[24,56],[20,40],[28,64],[24,48]],scaled=[];
+function scaledRibbon(f,j,x,y){const [w,h]=sizes[j%5],key=(j%5)*8+f;let c=scaled[key];if(!c){c=document.createElement('canvas');c.width=w/2;c.height=h/2;const q=c.getContext('2d');q.imageSmoothingEnabled=false;q.drawImage(tex.ribbon,f*24,0,24,56,0,0,w/2,h/2);scaled[key]=c}ctx.drawImage(c,x-w/2,y-h,w,h)}
+let t=0,last=performance.now(),playing=true;const canvas=document.getElementById('stage'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+pause.onclick=()=>{playing=!playing;pause.textContent=playing?'暂停':'播放'};restart.onclick=()=>t=0;
+function sprite(im,n,f,x,y,w,h,ox=0,oy=0){ctx.drawImage(im,Math.floor(f%n)*im.width/n,0,im.width/n,im.height,x-ox,y-oy,w,h)}
+function run(now){let dt=Math.min(.1,(now-last)/1000);last=now;if(playing)t+=dt*Number(speed.value);ctx.fillStyle='#0d1420';ctx.fillRect(0,0,1100,600);
+if(loaded===7){let u=t%13,key='fan_ground',f=Math.floor(Math.max(0,u-.5)*6)%4,n=4;if(u<.5){key='fan_open';n=8;f=Math.min(7,Math.floor(u*16))}else if(u>=11.625){key='fan_close';n=6;f=Math.min(5,Math.floor((u-11.625)*16))}
+ctx.save();ctx.translate(235,300);if(turn.checked)ctx.rotate(Math.sin(t*.3)*.6);if(u<12)sprite(tex[key],n,f,0,0,360,528,8,264);ctx.restore();
+if(u<12){ctx.save();const anchors=Array.from({length:23},(_,i)=>-44+i*4).map(a=>[340*Math.cos(a*Math.PI/180),340*Math.sin(a*Math.PI/180)]);for(const a of [-50,50])for(const r of [64,96,128,160,192,224,256,288])anchors.push([r*Math.cos(a*Math.PI/180),r*Math.sin(a*Math.PI/180)]);
+anchors.push([120,20],[180,-45],[235,55],[270,-80],[210,120]);
+anchors.forEach(([dx,dy],j)=>{const ang=turn.checked?Math.sin(t*.3)*.6:0;const rx=235+dx*Math.cos(ang)-dy*Math.sin(ang),ry=300+dx*Math.sin(ang)+dy*Math.cos(ang);ctx.globalAlpha=((j%2===0?.80:.36)+.09*Math.sin(t*1.5+j*1.9))*Math.min(1,u/.5,(12-u)/.5);if(j>=39)ctx.globalAlpha=(.12+.035*Math.sin(t*.9+j*1.7))*Math.min(1,u/.5,(12-u)/.5);scaledRibbon((Math.floor(t*8)+j*3)%8,j,Math.round(rx),Math.round(ry)-[0,10,3,13][j%4]+Math.round(Math.sin(t*1.3+j*2)*4))});ctx.restore();}
+
+let af=Math.floor(t*6)%8;let aw=tex.actor.height;ctx.drawImage(tex.actor,af*aw,0,aw,aw,203,240,64,64);if(u<12)sprite(tex.orbit,6,Math.floor(t*10),235,271,96,112,48,56);
+ctx.fillStyle='#a8afe0';ctx.font='18px sans-serif';ctx.fillText('减速标记 · 原尺寸 / 4 倍',700,70);
+for(let j=0;j<3;j++){let x=740+(j%2)*110,y=160+j*120;ctx.fillStyle=['#df765f','#8dcfe0','#a9d48c'][j];ctx.fillRect(x-5,y-5,10,10);sprite(tex.slow,4,Math.floor(t*12),x,y,48,48,24,24);}
+ctx.save();ctx.translate(950,290);ctx.scale(4,4);ctx.fillStyle='#df765f';ctx.fillRect(-3,-3,6,6);sprite(tex.slow,4,Math.floor(t*12),0,0,48,48,24,24);ctx.restore();
+document.getElementById('status').textContent=`${u.toFixed(2)} s · ${u>=12?'结束':key+' f'+f}`;}
+requestAnimationFrame(run)}requestAnimationFrame(run);
+</script></html>
