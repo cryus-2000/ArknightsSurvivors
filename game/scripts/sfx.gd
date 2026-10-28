@@ -355,8 +355,9 @@ func _now() -> float:
 
 
 ## Suno 整首分层循环的曲目表（文件由 tools/suno_layers.py 生成，bpm / 首拍偏移 / 时长在 suno_layers.json）。
-## 层的含义：battle 三段 = [底层 平静, 打击乐 交战, 驱动 激战]；boss = [全曲]；final = [p1 一阶段, p2 二阶段叠加]
-const SUNO_TRACKS := ["battle1", "battle2", "battle3", "boss", "final"]
+## 层的含义：battle 三段 = [底层 平静, 打击乐 交战, 驱动 激战]；boss = [全曲]；final* = [p1 一阶段, p2 二阶段叠加]
+## final = 结局一最终 Boss；final_knight / final_ishar / final_izumik = 结局二 / 三 / 四最终 Boss 各自的曲子（10-28，docs/164 §7；缺文件时 music_director 退回 final）
+const SUNO_TRACKS := ["battle1", "battle2", "battle3", "boss", "final", "final_knight", "final_ishar", "final_izumik"]
 const SUNO_META := "res://audio/music/suno_layers.json"
 
 
@@ -453,10 +454,10 @@ func play_music(tname: String) -> void:
 	if lay.has(old) and old.begins_with("battle") and lay.has(tname) and tname.begins_with("battle"):
 		# 战斗换段：当前曲照常放到下一条小节线，新曲在小节线上从头开（淡入 / 淡出速度 6 / 秒 ≈ 0.17 秒，近乎硬切）
 		pending = {"track": tname, "at": _lay_next_bar_at(old), "fade_in": 6.0, "out": 6.0}
-	elif (tname == "boss" or tname == "final") and now - float(overlay_t.get("boss_in", -99.0)) < BOSS_HIT:
+	elif (tname == "boss" or tname.begins_with("final")) and now - float(overlay_t.get("boss_in", -99.0)) < BOSS_HIT:
 		pending = {"track": tname, "at": float(overlay_t["boss_in"]) + BOSS_HIT, "fade_in": 8.0, "out": 1.5}
 		_release(1.5)
-	elif (old == "boss" or old == "final") and tname.begins_with("battle"):
+	elif (old == "boss" or old.begins_with("final")) and tname.begins_with("battle"):
 		pending = {"track": tname, "at": now + 1.2, "fade_in": 0.5, "out": 0.8}
 		_release(0.8)
 	elif MENU_TRACKS.has(tname) and MENU_TRACKS.has(old):
@@ -528,7 +529,7 @@ func _stem_want(tname: String, i: int) -> float:
 	if tname.begins_with("battle"):
 		# 整首分层没有单独的危险层：危险时把驱动层（吉他 / 铜管）拉出来代替（原先危险层 = 高频紧张音）
 		return 1.0 if [true, battle_lv >= 1, battle_lv >= 2 or battle_danger][i] else 0.0
-	if tname == "final":
+	if tname.begins_with("final"):
 		return 1.0 if i == 0 or final_p2 else 0.0
 	return 1.0
 

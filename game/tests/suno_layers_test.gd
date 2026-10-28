@@ -1,8 +1,9 @@
 extends Node
-## Suno 整首分层配乐回归（docs/164，10-27）：五首（battle1-3 三层 / boss 一层 / final 两层）载入、同曲各层同长度（±3 毫秒）、
+## Suno 整首分层配乐回归（docs/164，10-27）：八首（battle1-3 三层 / boss 一层 / final 与结局二–四 final_* 两层）载入、同曲各层同长度（±3 毫秒）、
 ## 开播后各层同时在放、战斗强度（set_battle）在小节线上开关层、战斗换段等当前曲小节线再换、Boss / 最终 Boss 二阶段叠层、
 ## 回到战斗时清层状态。只看 Sfx 的调度状态（不依赖真的出声，自动测试本来就静音 Master）。
 ## 全部通过时打印 "SUNO LAYERS: 0 failures"。
+const MD = preload("res://scripts/run/music_director.gd")
 var failures := 0
 
 
@@ -21,7 +22,7 @@ func wait(sec: float) -> void:
 
 
 func run() -> void:
-	var want := {"battle1": 3, "battle2": 3, "battle3": 3, "boss": 1, "final": 2}
+	var want := {"battle1": 3, "battle2": 3, "battle3": 3, "boss": 1, "final": 2, "final_knight": 2, "final_ishar": 2, "final_izumik": 2}
 	for tn in want:
 		check(Sfx.lay.has(tn), "整首分层载入：" + tn)
 		if not Sfx.lay.has(tn):
@@ -80,6 +81,17 @@ func run() -> void:
 	Sfx.set_final_phase(true)
 	await wait(2.2)
 	check(Sfx.stem_on["final"] == [1.0, 1.0], "二阶段叠 p2 " + str(Sfx.stem_on["final"]))
+	# 结局二 / 三 / 四最终 Boss 各放自己的曲子（docs/164 §7），其余最终 Boss 用 final；切阶段同样叠 p2
+	check(MD.final_track("knight_boss") == "final_knight" and MD.final_track("ishar") == "final_ishar"
+		and MD.final_track("izumik") == "final_izumik" and MD.final_track("logos") == "final", "最终 Boss 选曲按类型")
+	Sfx.set_final_phase(false)
+	Sfx.play_music("final_knight")
+	await wait(1.5)
+	check(Sfx.cur_track == "final_knight", "骑士曲：" + Sfx.cur_track)
+	check(Sfx.stem_on["final_knight"] == [1.0, 0.0], "骑士一阶段只开 p1 " + str(Sfx.stem_on["final_knight"]))
+	Sfx.set_final_phase(true)
+	await wait(2.2)
+	check(Sfx.stem_on["final_knight"] == [1.0, 1.0], "骑士二阶段叠 p2 " + str(Sfx.stem_on["final_knight"]))
 	# 回战斗：二阶段状态不残留
 	Sfx.set_final_phase(false)
 	Sfx.play_music("battle3")

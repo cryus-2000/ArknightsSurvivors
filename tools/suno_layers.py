@@ -12,8 +12,12 @@
     最终 Boss 的 Lead -28 dB（有声 61%）/ Backing -31 dB 是歌的主唱，放进 p1（一阶段就有歌，p2 再叠鼓 / 吉他 / 铜管 / 打击乐）。
 层：battle1–3 = base（Keyboard + Strings + Synth + Bass + Other，平静）/ pulse（Drums + Percussion，交战）/ drive（Guitar + Brass + Lead / Backing 哼唱，激战）；
     中期 Boss = full（全部）；最终 Boss = p1（Keyboard + Strings + Synth + Bass + Other + 人声）/ p2（Drums + Percussion + Guitar + Brass）；图鉴 = 全部相加成整曲。
+结局二 / 三 / 四最终 Boss（10-28 用户给分轨，docs/164 §7）：分轨已解压在 art/incoming/music_suno/<曲名>/（mp3 / wav），层法同 final：
+  final_ishar《The Swarm Theme》：Lead -26 / Backing -25 dB（有声 81–84%）是主唱 → p1；Brass -49 dB / 2% = 底噪，丢。
+  final_izumik《Tree of Evolution》、final_knight《Último Caballo sumergido》：人声 -35 ～ -38 dB、有声 15–18% = 零星哼唱 → 叠在 p2；骑士 Woodwinds -52 dB / 2% 丢。
+  骑士的吉他 -25 dB、有声 95% 是全曲主旋律，放 p1：留在 p2 时 p2 比 p1 响 3 LU，对齐全开 -13.5 要把 p2 压 11.7 dB，二阶段混音走样（final 参照只压 4.8）。
 
-用法：python tools/suno_layers.py [曲名 …]   （缺省全部：battle1 battle2 battle3 boss final archive）
+用法：python tools/suno_layers.py [曲名 …]   （缺省全部：battle1 battle2 battle3 boss final final_ishar final_izumik final_knight archive）
 需要 numpy / scipy / soundfile，响度函数借 game/tools/gen_music_battle.py 的 lufs。
 """
 import glob, io, json, os, subprocess, sys, zipfile
@@ -37,16 +41,21 @@ PEAK_MAX = 1.6     # 全部层开的峰值上限（线性）：Music 总线挂�
 XF_SEC = 4.0        # 回环交叉淡化约 4 秒（取整数个小节）
 
 ZIPNAME = {"battle1": "战斗第一段", "battle2": "战斗第二段", "battle3": "战斗第三段", "boss": "中期boss", "final": "最终bossfinal", "archive": "图鉴archive"}
+SRCDIR = {"final_ishar": "swarm_theme", "final_izumik": "tree_of_evolution", "final_knight": "ultimo_caballo"}   # 已解压的分轨目录（不是 zip）
 # 分轨名（去掉编号）→ 层；None = 丢掉
 BATTLE = {"Keyboard": "base", "Strings": "base", "Synth": "base", "Bass": "base", "Other": "base", "Drums": "pulse", "Percussion": "pulse",
           "Guitar": "drive", "Brass": "drive", "Woodwinds": None, "Lead Vocals": None, "Backing Vocals": None}
+FINAL = {"Keyboard": "p1", "Strings": "p1", "Synth": "p1", "Bass": "p1", "Other": "p1", "Lead Vocals": "p1", "Backing Vocals": "p1",
+         "Drums": "p2", "Percussion": "p2", "Guitar": "p2", "Brass": "p2", "Woodwinds": None}
 SPEC = {
     "battle1": {"layers": ["base", "pulse", "drive"], "map": BATTLE, "lufs": -15.0, "bpm_guess": 140.0},
     "battle2": {"layers": ["base", "pulse", "drive"], "map": dict(BATTLE, **{"Lead Vocals": "drive", "Backing Vocals": "drive"}), "lufs": -15.0, "bpm_guess": 146.0},
     "battle3": {"layers": ["base", "pulse", "drive"], "map": BATTLE, "lufs": -15.0, "bpm_guess": 152.0},
     "boss": {"layers": ["full"], "map": {k: ("full" if k != "Woodwinds" and k not in ("Lead Vocals", "Backing Vocals") else None) for k in BATTLE}, "lufs": -15.0, "bpm_guess": 150.0},
-    "final": {"layers": ["p1", "p2"], "map": {"Keyboard": "p1", "Strings": "p1", "Synth": "p1", "Bass": "p1", "Other": "p1", "Lead Vocals": "p1", "Backing Vocals": "p1",
-                                             "Drums": "p2", "Percussion": "p2", "Guitar": "p2", "Brass": "p2", "Woodwinds": None}, "lufs": -15.0, "lufs_full": -13.5, "bpm_guess": 152.0},
+    "final": {"layers": ["p1", "p2"], "map": FINAL, "lufs": -15.0, "lufs_full": -13.5, "bpm_guess": 152.0},
+    "final_ishar": {"layers": ["p1", "p2"], "map": dict(FINAL, **{"Brass": None}), "lufs": -15.0, "lufs_full": -13.5, "bpm_guess": 146.0},
+    "final_izumik": {"layers": ["p1", "p2"], "map": dict(FINAL, **{"Lead Vocals": "p2", "Backing Vocals": "p2"}), "lufs": -15.0, "lufs_full": -13.5, "bpm_guess": 150.0},
+    "final_knight": {"layers": ["p1", "p2"], "map": dict(FINAL, **{"Lead Vocals": "p2", "Backing Vocals": "p2", "Guitar": "p1"}), "lufs": -15.0, "lufs_full": -13.5, "bpm_guess": 160.0},
     "archive": {"layers": ["full"], "map": {k: "full" for k in ("Drums", "Bass", "Keyboard", "Percussion", "Synth", "Other")}, "lufs": -17.8, "bpm_guess": 100.0},
 }
 
@@ -57,6 +66,9 @@ def stem_name(path):
 
 
 def extract(track):
+    if track in SRCDIR:
+        d = os.path.join(MAIN, "art", "incoming", "music_suno", SRCDIR[track])
+        return sorted(glob.glob(os.path.join(d, "*.wav")) + glob.glob(os.path.join(d, "*.mp3")))
     d = os.path.join(CACHE, track)
     if not glob.glob(os.path.join(d, "*.wav")):
         os.makedirs(d, exist_ok=True)
@@ -134,7 +146,7 @@ def build(track):
         out[l] = y
     gb.SR = SR
     full = sum(out.values())
-    if track == "final":
+    if "lufs_full" in spec:
         g = 10 ** ((spec["lufs"] - gb.lufs(out["p1"])) / 20)           # 一阶段（p1 单放）= -15
         out["p1"] = out["p1"] * g
         p2 = out["p2"] * g
@@ -169,7 +181,7 @@ def build(track):
         res["files"].append(name[:-4])
         print("  %-24s dur %.1f lufs %.2f peak %.3f seam %.4f size %.2f MiB" % (name, len(z) / SR, gb.lufs(z), float(np.abs(z).max()), float(np.abs(z[0] - z[-1]).max()), os.path.getsize(os.path.join(OUT, name)) / 1048576))
     zs = [sf.read(os.path.join(OUT, f + ".ogg"), always_2d=True)[0] for f in res["files"]]
-    print("  全部层开 lufs %.2f；%s  bpm %.3f 首拍 %.3f s 交叉淡化 %.2f s（%d 小节）" % (gb.lufs(sum(zs)), ("p1 单放 %.2f" % gb.lufs(zs[0])) if track == "final" else "", bpm, off, L / SR, round(L / SR / bar)))
+    print("  全部层开 lufs %.2f；%s  bpm %.3f 首拍 %.3f s 交叉淡化 %.2f s（%d 小节）" % (gb.lufs(sum(zs)), ("p1 单放 %.2f" % gb.lufs(zs[0])) if "lufs_full" in spec else "", bpm, off, L / SR, round(L / SR / bar)))
     return res
 
 

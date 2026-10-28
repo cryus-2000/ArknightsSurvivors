@@ -69,12 +69,13 @@ func update(_dt: float) -> void:
 		Sfx.play_music("opening")
 		return
 	if g.final_boss != null and not g.final_boss.dead:
-		Sfx.play_music("final")
+		Sfx.play_music(final_track(g.final_boss.type))
 		# 二段：半血以下。伊祖米克以 35% 生命、无敌的学习阶段登场，要进入解读阶段（phase 2）后才算（docs/38 B0 第 9 项）
 		var fb: Dictionary = g.final_boss
-		Sfx.set_final_phase(fb.hp < fb.maxhp * 0.5 and not (fb.type == "izumik" and fb.phase == 1))
+		var p2: bool = fb.hp < fb.maxhp * 0.5 and not (fb.type == "izumik" and fb.phase == 1)
+		Sfx.set_final_phase(p2)
 		music_boss = true
-		write_log("final")
+		write_log("%s %s" % [final_track(fb.type), "p2" if p2 else "p1"])
 		return
 	if g.spawner.boss_alive():
 		Sfx.play_music("boss")
@@ -143,6 +144,14 @@ func update(_dt: float) -> void:
 
 
 ## --musiclog：配乐状态变化时打印一行（只比较曲目 / 档位 / 危险，分数随附）；另外每 5 秒采样一行（MUSICS）
+## 最终 Boss 的曲目：结局二 / 三 / 四各有自己的分层曲（docs/164 §7），其余（结局一）和缺文件时用 final
+const FINAL_TRACK := {"knight_boss": "final_knight", "ishar": "final_ishar", "izumik": "final_izumik"}
+
+static func final_track(btype: String) -> String:
+	var t: String = FINAL_TRACK.get(btype, "final")
+	return t if Sfx.lay.has(t) else "final"
+
+
 func write_log(s: String) -> void:
 	if not music_log:
 		return
