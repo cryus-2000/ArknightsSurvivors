@@ -285,6 +285,7 @@ func _draw_body() -> void:
 	if not pq:
 		squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
 	_layer("front", null, func():
+		bars.draw_xp_top(vs)   # 经验通栏细条（屏幕最上沿）
 		allyhp.draw(vs)   # 队友血条原型（command/hpbar_style 1 / 3；0 = 编队卡缓存层里的原版）
 		banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
 		banners.draw_banner(vs)
