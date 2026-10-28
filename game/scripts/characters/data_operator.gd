@@ -1066,6 +1066,13 @@ func draw_auras() -> void:
 	var rm := 1.0   # 程序漩涡（§5.6 vortex.ring）可把区域硬边压淡
 	for u in _fxb:
 		rm = minf(rm, ObVortex.vortex_ring_mul(self, _fxb[u]))
+	if str(B.zone.get("look", "")) == "particles":   # 10-29 浊心斯卡蒂：领域改粒子勾边、内部稀疏，不画实心圆；画面半径缓动 + 波纹（seg_skalter）
+		SegSkalter.sk_draw_domain(self, c, SegSkalter.sk_vis_r(self, "self", c, zr, SegSkalter.SK_DOM), SegSkalter.SK_DOM, on, 0.0)
+		if not sm.is_empty():
+			SegSkalter.e5_draw_zones(self, cc, on)
+		_draw_hold_strips(cv, "floor")
+		_draw_vortex(cv, "floor")
+		return
 	cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * rm))
 	var zring: float = float(B.zone.get("ring", 1.0))   # blocks.zone.ring：区域边线透明度倍率（0 = 不画边线；10-14 浊心斯卡蒂去掉歌域外圈红线，纯画面）

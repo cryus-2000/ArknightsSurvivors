@@ -1040,12 +1040,12 @@ const MF_MOD_FACTORS := ["dmg", "aspd", "reach", "arc", "speed"]
 
 const MF_FX_KINDS := ["pfx", "gfx", "sprite", "sparks", "arc", "text", "banner", "pause", "sfx", "ghost", "mist", "side"]
 
-const MF_FX_COMMON := ["cond", "if_tex", "at", "off", "n", "every", "jit", "jit_r", "ring", "r_scale", "vel_r", "ang_vel", "along", "side_x", "r_mult",
+const MF_FX_COMMON := ["cond", "if_tex", "at", "max_pts", "off", "n", "every", "jit", "jit_r", "ring", "r_scale", "vel_r", "ang_vel", "along", "side_x", "r_mult",
 	"first_only", "face_x", "to", "to_off", "to_jit", "_doc"]
 
 const MF_SPRITE_KEYS := ["fit", "scale_r", "scale", "rot", "second_scale", "second_rot", "swing_rot", "tint", "bottom", "flip_side", "rot_ang"]
 
-const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link", "h4_cross", "ulp_wave", "ulp_fracture", "ulp_burst"]   # Custom kinds route through hw_draw_pfx.
+const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link", "h4_cross", "ulp_wave", "ulp_fracture", "ulp_burst", "sk_song"]   # Custom kinds route through hw_draw_pfx.
 
 const MF_GFX_KINDS := ["beam", "rays", "cross"]
 
@@ -1785,7 +1785,10 @@ static func _mf_points(o, f: Dictionary, ctx: Dictionary) -> Array:
 		"leader":
 			out.append(g.ppos)
 		"hits":
+			var cap: int = int(f.get("max_pts", 0))   # max_pts：最多在前几个命中点播（浊心歌声纹：一次领域命中十几个，只挑几个）
 			for e in ctx.get("hits", _EA):
+				if cap > 0 and out.size() >= cap:
+					break
 				out.append(e.pos + Vector2(0, -float(e.r) * 0.5))
 		"summon":
 			if not o.sm.is_empty():
@@ -1944,6 +1947,8 @@ static func mf_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	var P := func(v: Vector2) -> Vector2: return (v / 2.0).round() * 2.0
 	match str(f.kind):
+		"sk_song":
+			return _F().sk_song_draw(o, f, a)   # 浊心斯卡蒂歌声命中（seg_skalter）
 		"crescent":
 			var u: float = 1.0 - a
 			var rev: float = minf(1.0, u / 0.4)
