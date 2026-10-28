@@ -93,7 +93,7 @@
   "throw_taut": 0.2,
   "throw_drag": 0.18,
   "throw_front": 60,
-  "_hook_cc": "拖回不送死（用户 10-28「把自爆怪或者精英怪拉到面前的时候很容易死」，定「先眩晕、后沉默」）：掷锚 / 抛锚应答 / 精二掷锚拖回的非 Boss 敌人先被打断（起手预警作废、自爆引信清零），眩晕 hook_stun 秒，眩晕结束后沉默 hook_silence 秒（精英用 *_elite）；沉默 = 不起特殊招式、不远程开火，可移动与接触",
+  "_hook_cc": "拖回不送死（用户 10-28「把自爆怪或者精英怪拉到面前的时候很容易死」，定「先眩晕、后沉默」）：掷锚（一技能）/ 抛锚应答拖回的非 Boss 敌人（精二自动掷锚、「不容挣脱」拖拽不吃，10-29 云端单人 m18 88% 超线后收回）先被打断（起手预警作废、自爆引信清零），眩晕 hook_stun 秒，眩晕结束后沉默 hook_silence 秒（精英用 *_elite）；沉默 = 不起特殊招式、不远程开火，可移动与接触",
   "hook_stun": 1.0,
   "hook_stun_elite": 1.0,
   "hook_silence": 1.0,
@@ -649,7 +649,7 @@
    "desc": "解锁三技能「必须开辟的通路」（当队长时手动释放）：掷锚冲锋，沿途与落点都造成伤害、落点眩晕一片，之后 {$s3_haste} 秒锚击加速；撼地范围扩大到 {$quake_r_e2}、伤害提高到 {$quake_mult_e2*100}%；普通攻击强化「掷锚」：每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
    "attack": {
     "name": "掷锚",
-    "desc": "每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的）：落地半径 {$throw_r} 造成锚击 ×{$throw_mult} 伤害，锁链绷直后把乌尔比安与锚之间宽 {$throw_w} 的一线敌人拖回面前，打断并眩晕 {$hook_stun} 秒、再沉默 {$hook_silence} 秒（精英 {$hook_silence_elite} 秒），再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）。锚在外面时不出锚击"
+    "desc": "每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的）：落地半径 {$throw_r} 造成锚击 ×{$throw_mult} 伤害，锁链绷直后把乌尔比安与锚之间宽 {$throw_w} 的一线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）。锚在外面时不出锚击"
    }
   }
  ],
@@ -800,7 +800,6 @@
       "hook_text": "钩住！",
       "hold_frame": 5,
       "drag": {
-       "pull_cc": true,
        "cond": "node:drag",
        "n": "$drag_n",
        "r": "$drag_r",
@@ -1287,7 +1286,6 @@
     "do": [
      {
       "shape": "hookshot",
-      "pull_cc": true,
       "range": "$throw_range",
       "min_d": "$throw_min",
       "r": "$throw_r",
