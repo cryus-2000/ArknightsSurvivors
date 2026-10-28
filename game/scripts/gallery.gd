@@ -509,7 +509,7 @@ func _doctor_entry() -> Dictionary:
 	var forms := _doctor_forms(dd)
 	var f0: Dictionary = forms[0]
 	return {"id": "doctor", "name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": forms,
-		"stats": [["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
+		"stats": [["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(round(float(ds.get("move_speed", 150)) * Bal.v("squad/leader_speed_mult", 1.0))))],
 			["闪避", "%d%%" % int(Bal.v("squad/leader_dodge", float(ds.get("dodge", 0.0))) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
 		"chips": ["随行", "指挥", "排异"], "cls": "", "col": UI.STEEL,
 		"od": {"tex": f0.tex, "frames": int(f0.frames), "hires": A.hires_of(f0.tex)},
