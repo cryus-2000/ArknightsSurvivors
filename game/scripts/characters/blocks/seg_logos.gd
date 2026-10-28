@@ -442,6 +442,9 @@ static func _hw3_fan(o, dt: float) -> void:
 		fn.tick = float(fn.tick) + float(b.get("tick", 0.5))
 		var dmg: float = hw_atk(o) * float(b.get("mult", 0.6)) * o.skill_power()
 		var shown := 0
+		var shots := 0
+		if _s3_extra_on(g):   # 出手瞬间他身前一闪（施法符文）
+			o.spawn_fx_sprite("fx_logos_glyph", o.pos + Vector2.from_angle(float(h.fan_ang)) * 24.0 + Vector2(0, -22), g.PX * 0.9, 0.0, false)
 		for j in o.query_ids(o.pos, r + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or not hw_in_fan(o, e.pos):
@@ -454,6 +457,11 @@ static func _hw3_fan(o, dt: float) -> void:
 			if shown < 3:
 				shown += 1
 				o.spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
+			if shots < S3_SHOT_MAX and _s3_extra_on(g):   # 出手轨迹（10-29）：S3 没有普攻动作帧，让每次出手看得见 他 → 目标
+				shots += 1
+				var sl: Array = h.get("s3_shots", [])
+				sl.append({"to": e.pos + Vector2(0, -e.r * 0.5), "t0": g.t, "side": 1.0 if shots % 2 == 0 else -1.0})
+				h["s3_shots"] = sl
 	var f: float = float(b.get("bullet_slow", 0.2))
 	var in_fan := func(p: Vector2) -> bool: return hw_in_fan(o, p)
 	g.shots.slow_in(in_fan, f, "acuity")   # 敌弹池接口（docs/101 §7.3.10）
@@ -532,6 +540,7 @@ static func hw_draw_fan(o) -> void:
 	var half: float = deg_to_rad(float(b.get("deg", 100.0))) * 0.5
 	var fa: float = float(h.fan_ang)
 	var fade: float = clampf(float(fn.t) / 0.5, 0.0, 1.0)
+	_hw_draw_shots(o)
 	if _hw_fan_sheets(o, b, fn, fa, r, fade):
 		return   # 咒域素材到位（docs/190）：整片扇形由帧条画，程序填充 / 边线不再画
 	var pts := PackedVector2Array([o.pos])
@@ -553,6 +562,13 @@ static func hw_draw_fan(o) -> void:
 const FAN_REF_R := 340.0
 const FAN_OPEN_T := 0.5
 const FAN_CLOSE_T := 0.375   # fan_close 6 帧 / 16 fps
+## 旋钮 fx/logos_s3_extra（缺省 1；0 = 关掉出手轨迹 / 施法闪）。积木脚本不直接引用自动加载
+static func _s3_extra_on(g) -> bool:
+	var b = g.get_node_or_null("/root/Bal")
+	return b == null or float(b.v("fx/logos_s3_extra", 1.0)) > 0.0
+
+const S3_SHOT_MAX := 6     # 每 tick 最多画几道出手轨迹（同屏 ≤ 6 × 3 次绘制）
+const S3_SHOT_DUR := 0.3
 const SLOW_MARK_MAX := 40   # 被减速弹幕标记同屏上限（docs/190）
 
 static func _hw_fan_sheets(o, b: Dictionary, fn: Dictionary, fa: float, r: float, fade: float) -> bool:
@@ -623,6 +639,45 @@ static func _hw_ribbon_at(o, tx: Texture2D, p: Vector2, sz: Vector2, u: float, b
 	var w: float = sz.x * u
 	var h: float = sz.y * u
 	o.cv.draw_texture_rect_region(tx, Rect2(p + Vector2(-w * 0.5, -h + bob * u), Vector2(w, h)), Rect2(fw * fr, 0, fw, fh), Color(1, 1, 1, a))
+
+
+## 出手轨迹（10-29）：竖条符文（fx_logos_s3_ribbon）从他身前飞向目标，弧线 + 两道拖影，到达时一小团墨光（不新增贴图）
+static func _hw_draw_shots(o) -> void:
+	var h: Dictionary = o.hw
+	var sl: Array = h.get("s3_shots", [])
+	if sl.is_empty():
+		return
+	var g = o.g
+	var tx: Texture2D = g.tex.get("fx_logos_s3_ribbon")
+	var keep: Array = []
+	var from: Vector2 = o.pos + Vector2.from_angle(float(h.fan_ang)) * 20.0 + Vector2(0, -20)
+	if tx != null and g.V6_FRAMES.has("fx_logos_s3_ribbon"):
+		o._cv_flush()
+	var frames: int = g.V6_FRAMES["fx_logos_s3_ribbon"][0] if tx != null and g.V6_FRAMES.has("fx_logos_s3_ribbon") else 1
+	for sh in sl:
+		var k: float = (g.t - float(sh.t0)) / S3_SHOT_DUR
+		if k >= 1.0:
+			if not sh.get("hit", false):
+				o.fx({"kind": "glow", "pos": sh.to, "r": 12.0, "life": 0.2, "col": HW_INK, "alpha": 0.5})   # 命中点墨光（小，淡出）
+			continue
+		keep.append(sh)
+		if tx == null or frames <= 1 and not g.V6_FRAMES.has("fx_logos_s3_ribbon"):
+			continue
+		var fw: float = tx.get_width() / frames
+		var fh: float = tx.get_height()
+		var hi: float = ArtS.hires_of(tx)
+		for tr in 3:
+			var kk: float = clampf(k - 0.07 * tr, 0.0, 1.0)
+			var ez: float = 1.0 - pow(1.0 - kk, 2.0)
+			var pt: Vector2 = from.lerp(sh.to, ez)
+			var dirv: Vector2 = (sh.to - from).normalized()
+			pt += dirv.orthogonal() * sin(kk * PI) * 16.0 * float(sh.side) + g.draw_off
+			var a: float = (1.0 - 0.38 * tr) * minf(k * 6.0, 1.0) * (1.0 - k * 0.3)
+			var sc: float = g.PX / hi * 0.95
+			o.cv.draw_set_transform(pt, dirv.angle() + PI * 0.5, Vector2(sc, sc))
+			o.cv.draw_texture_rect_region(tx, Rect2(Vector2(-fw * 0.5, -fh * 0.5), Vector2(fw, fh)), Rect2(fw * (int(g.t * 12.0) % frames), 0, fw, fh), Color(1, 1, 1, a))
+		o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	h["s3_shots"] = keep
 
 
 ## 被「延异视阈」减速的敌弹打标记（fx_logos_s3_slow 48×48 @2x，中心镂空，只标实际被减速、仍在扇形内的弹，最多 40 个）

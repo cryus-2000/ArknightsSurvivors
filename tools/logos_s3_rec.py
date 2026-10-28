@@ -10,6 +10,7 @@ ap.add_argument("--at", type=float, default=60.0)
 ap.add_argument("--secs", type=float, default=45.0)
 ap.add_argument("--seed", type=int, default=3)
 ap.add_argument("--out", default="logos_s3_now")
+ap.add_argument("--extra", default="")
 a = ap.parse_args()
 out = os.path.join(ROOT, "build", "logos_s3_rec")
 fdir = os.path.join(out, "frames_" + a.out)
@@ -17,7 +18,7 @@ shutil.rmtree(fdir, ignore_errors=True)
 os.makedirs(fdir)
 args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
         "--balance", "--realtime", "--rtfrom=%g" % max(0.0, a.at - 3), "--nodeath", "--seed=%d" % a.seed, "--op=logos", "--bot=expert", "--maxprog",
-        "--onlyskill=2", "--recframes=%g,%d" % (a.at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (a.at + a.secs + 10)]
+        "--onlyskill=2"] + a.extra.split() + ["--recframes=%g,%d" % (a.at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (a.at + a.secs + 10)]
 o, e, to = GR.run_godot(args, 1800)
 n = len(glob.glob(os.path.join(fdir, "rec_*.png")))
 print("frames", n, "errors", GR.script_errors(o, e)[:5], "timeout" if to else "")
