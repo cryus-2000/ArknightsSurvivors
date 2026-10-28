@@ -525,7 +525,7 @@
   "ishar_shot_mult": 1.4,
   "ishar_combo_dmg": 0.85,
   "graze_on": 1,
-  "bullet_hit_scale": 0.6,
+  "bullet_hit_scale": 0.7,
   "graze_r": 14,
   "graze_sp": 0.01,
   "graze_rate": 5,
