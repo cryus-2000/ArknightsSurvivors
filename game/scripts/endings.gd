@@ -487,6 +487,7 @@ func _resolve() -> void:
 func _close() -> void:
 	g.panel.visible = false
 	g.state = g.S.PLAY
+	g.combat.panel_grace()   # 路口卡兑现（得偿所愿 / 诡意行商 / 紧急作战）后关面板：0.8 秒保护
 	g.check_pending()
 
 

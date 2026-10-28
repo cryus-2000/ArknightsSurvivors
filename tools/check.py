@@ -1019,6 +1019,7 @@ SCENE_REGRESSIONS = {
     "boss_support": ("Boss 保留杂兵、友方保色与枪声混音", "boss_support_test", r"BOSS SUPPORT failures=0", []),
     "boss_boundary": ("Boss 黑潮边界", "boss_boundary_test", r"BOSS BOUNDARY failures=0", []),
     "route_knight": ("结局线事件链（骑士 / 深蓝之心 / 升华）与骑士路线", "route_knight_regression", r"ROUTE KNIGHT REGRESSION: 0 failures", []),
+    "event_maxhp": ("事件最大生命 -10%（狂徒妄念）：面板暂停、非满血换算、骑士入队不改生命", "event_maxhp_test", r"EVENT MAXHP TEST: 0 failures", []),
     "enemy_prepare": ("敌人攻击前摇", "enemy_prepare_test", r"ENEMY PREPARE TEST: 0 failures", []),
     "feedback": ("攻击反馈", "feedback_test", r"FEEDBACK TESTS PASSED", []),
     "wisadel_cannon": ("维什戴尔炮击", "wisadel_cannon_test", r"WISADEL CANNON failures=0", ["--op=wisadel"]),

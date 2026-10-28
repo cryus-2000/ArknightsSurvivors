@@ -666,7 +666,9 @@
  "protect": {
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",
   "any_2s_cap": 0.7,
-  "any_excess_mult": 0.6
+  "any_excess_mult": 0.6,
+  "_panel_grace": "低频面板（事件卡 / 路口卡 / 安全的角落 / 紧急作战 / 诡意行商）关闭后队长无敌秒数（10-28 用户定 A；升级 / 宝箱选卡不加，队友不加；0 = 关）",
+  "panel_grace": 0.8
  },
  "crate": {
   "_doc": "补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血，基础回复同步下调：sustain/base_regen_mult 1 → 0.7、squad/regen_per_member 0.2 → 0.15）。补给箱（run/spawner.gd spawn_chest，hp 22，机器人 / 真人打碎）刷出间隔前松后紧：early_until 秒前 early_lo–early_hi，mid_until 秒前 mid_lo–mid_hi，之后 late_lo–late_hi；场上同时最多 3 个。打碎（run/combat.gd kill）：pack_p 掉应急补给（拾取回 pack_pct 最大生命，不吃 heal_mult），magnet_p 掉磁铁，shield_p 直接 +1 层临时护盾（最多到护盾上限 +1）；源石锭 / 灯油照旧。15% 伪装成箱形恐鱼的不掉。pack_p 0 = 关，回到旧行为",

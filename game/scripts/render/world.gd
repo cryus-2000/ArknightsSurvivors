@@ -1041,6 +1041,7 @@ func _draw_overlays_shield_drones() -> void:
 	tb_flush()
 	g.squad.draw_skill_over()
 	draw_shield()
+	draw_panel_grace()
 	# 无人机：影子 + 光晕一批 → 机体贴图（同贴图连续，自动合批）→ 核心亮点一批（性能 docs/50 §9 ②：原来每架 4 次绘制调用）
 	for dr in g.drones:
 		tb_circle(dr.pos + Vector2(0, 96), 9.0, Color(0, 0, 0, 0.35), 0.4, 14)
@@ -4971,6 +4972,20 @@ func _zone_crest(pts: PackedVector2Array, pulse: float) -> void:
 	g.draw_polyline(pts, Color(0.02, 0.0, 0.04, 0.75), 5.0)
 	g.draw_polyline(pts, Color(0.35, 0.95, 0.95, 0.55 + 0.25 * pulse), 2.0)
 
+
+## 面板关闭后的保护（combat.panel_grace）：脚下一圈淡金双环向内收拢、随剩余时间变淡。
+## 贴地椭圆、暖白金色，和护盾（罩住身体的淡金气泡，10-28 改版）靠贴地椭圆区分；无敌期间本体照常闪烁
+func draw_panel_grace() -> void:
+	var left: float = g.panel_grace_until - g.t
+	if left <= 0.0:
+		return
+	var k: float = clampf(left / maxf(0.01, Game.Bal.v("protect/panel_grace", 0.8)), 0.0, 1.0)
+	var c := g.ppos + Vector2(0, 14)
+	var r := 26.0 + 18.0 * k
+	g.draw_set_transform(c, 0.0, Vector2(1.0, 0.5))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(1.4, 1.25, 0.8, 0.75 * k), 2.0)
+	g.draw_arc(Vector2.ZERO, r + 7.0, 0.0, TAU, 40, Color(1.4, 1.25, 0.8, 0.3 * k), 1.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 ## 护盾（用户 10-28「护盾看不到，重新画」）：偏白淡金柔和气泡罩住队长身体中心（10-28 用户嫌条段环丑，三候选里定 B），层数 = 边缘光带厚度 + 边顶小菱形，
 ## 不填实心、不压脚下预警；未满时外侧细弧显示下一层充能进度。层数变化在画面这边比对得出（只画面，不改逻辑）：

@@ -252,6 +252,7 @@ func close() -> void:
 			c.queue_free()
 	g.panel.visible = false
 	g.state = g.S.PLAY
+	g.combat.panel_grace()   # 离开商人：0.8 秒保护
 	Sfx.play("ui_ok", -4.0)
 	if trader:
 		trader = false
