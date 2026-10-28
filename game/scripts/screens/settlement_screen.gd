@@ -63,9 +63,23 @@ var _o := Vector2.ZERO   # 当前页面原点（含盖章轻抖）
 var _fa := 1.0           # 当前绘制组透明度（_text 乘上）
 var _dx := 0.0           # 当前绘制组水平偏移（失败打捞的晃动）
 var _blur := 0.0         # 失败打捞的失焦虚影（0 = 对焦）
+## 改版原型开关（10-28 用户「结算页设计的不太好看，重新设计一下」，三个方向待挑）：项目设置 ui/settle_style 或测试参数 --settle_style=N；
+## 0 = 现样（缺省），1 作战报告 / 2 潮汐航迹 / 3 编队合影（screens/settle/）
+const STYLES := ["", "res://scripts/screens/settle/settle_report.gd", "res://scripts/screens/settle/settle_tide.gd", "res://scripts/screens/settle/settle_roster.gd"]
+var sty = null
+
+static func style_id() -> int:
+	var v := int(ProjectSettings.get_setting("ui/settle_style", 0))
+	for a in Cfg.dev_args():
+		if a.begins_with("--settle_style="):
+			v = int(a.substr(15))
+	return clampi(v, 0, STYLES.size() - 1)
 
 func _init(host) -> void:
 	g = host
+	var sid := style_id()
+	if sid > 0:
+		sty = load(STYLES[sid]).new(self)
 
 func active() -> bool:
 	return not g.trial.active and g.demo_op == "" and g.state in [g.S.WIN, g.S.DEAD]
@@ -92,11 +106,11 @@ func tick(dt: float) -> void:
 	squad_canvas.position = origin + VIEW.position * scale
 	squad_canvas.size = VIEW.size * scale
 	squad_canvas.modulate.a = clampf((g.state_age-g.hud_view.DEATH_T)/0.35,0,1) if g.state==g.S.DEAD else 1.0
-	squad_canvas.visible = not share_open and not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
+	squad_canvas.visible = sty == null and not share_open and not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
 	if g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T:
 		var prev := elapsed
 		elapsed = _end() if UM.rm() or UM.skip_all() or g.ui_skip else minf(_end(), elapsed + dt)
-		if _won() and elapsed < _end():
+		if sty == null and _won() and elapsed < _end():
 			for t0 in [T_TITLE + 0.15, T_RATE + 0.15]:   # 盖章落定：低沉一声
 				if prev < t0 and elapsed >= t0:
 					Sfx.play("ui_ok", -7.0, 0.62, 0.0)
@@ -148,6 +162,8 @@ func _won() -> bool:
 	return str(model.get("result", "")) == "win"
 
 func _end() -> float:
+	if sty != null:
+		return sty.end_t()
 	return END_WIN if _won() else END_LOSS
 
 ## 出场是否完成（完成前输入只跳过）
@@ -196,7 +212,7 @@ func _plain(ci: CanvasItem) -> void:
 
 ## 盖章落定后 0.16 秒轻抖 2–3 px（只动结算页面绘制偏移）
 func _shake() -> Vector2:
-	if not _won() or UM.rm():
+	if sty != null or not _won() or UM.rm():
 		return Vector2.ZERO
 	for t0 in [T_TITLE + 0.15, T_RATE + 0.15]:
 		var q: float = (elapsed - t0) / 0.16
@@ -239,6 +255,8 @@ static func grade(m: Dictionary, preset: int) -> String:
 
 ## 底栏按钮：[id, x, 宽, 文字, 主按钮]（与画法、点击区同一张表）
 func _buttons() -> Array:
+	if sty != null:
+		return sty.buttons()
 	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
 	var out: Array = [["share", 1148, 100, "分享战绩" if (Pad.using or tch) else "分享  V", false, Rect2(1148, 202, 100, 34)],
 		["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
@@ -440,7 +458,7 @@ func input(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
 		var p := _point(event.position)
 		if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] and event.pressed:
-			if VIEW.has_point(p):
+			if sty == null and VIEW.has_point(p):
 				scroll(offset + (-80.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 80.0))
 			return true
 		if event.button_index == MOUSE_BUTTON_LEFT:
@@ -463,12 +481,12 @@ func _pointer(p: Vector2, pressed: bool) -> void:
 		if hit != "":
 			_press(hit)   # 底栏与右侧「分享」按钮：按下态 + 点击音，PRESS_T 后执行（鼠标与触屏同一路）
 			return
-		if VIEW.has_point(p):
+		if sty == null and VIEW.has_point(p):
 			dragging = true
 			moved = false
 			drag_x = p.x
 			drag_offset = offset
-		elif Rect2(28,638,884,14).has_point(p):
+		elif sty == null and Rect2(28,638,884,14).has_point(p):
 			scroll(offset + (-STRIDE if p.x < 470 else STRIDE))
 		elif p.y >= (656 if Cfg.phone_ui() else 666):
 			var id := _btn_at(p)
@@ -516,6 +534,12 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), HH.DARK)
 	_o = origin + _shake() * scale
 	_plain(ci)
+	if sty != null:
+		sty.draw(ci)
+		ci.draw_set_transform(Vector2.ZERO)
+		if share_open and share != null:
+			_draw_share(ci)
+		return
 	HH.backdrop(ci, Vector2(1280,720))
 	ci.draw_texture(topography, Vector2.ZERO)
 	ci.draw_rect(Rect2(0,0,1280,44), HH.INK)
