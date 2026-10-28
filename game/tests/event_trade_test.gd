@@ -87,6 +87,7 @@ func _process(_dt: float) -> void:
 	print("ET step 4")
 	# 4 选项代价与灰掉
 	game.ingots = 30
+	game.mid_boss_down = true   # 核心延后（docs/191 §6）：这里测的是交易本身
 	E.open("sellout")
 	E.pick(game.choices[0])
 	_close()
@@ -155,10 +156,11 @@ func _process(_dt: float) -> void:
 	E.elites.clear()
 	game.bosses = []
 	game.pending_chests = 0
-	game.t = 70.0
+	var sh: float = preload("res://scripts/core/balance.gd").v("relic/mid1_shift", 0.0)   # 途中一后移（docs/191）
+	game.t = 70.0 + sh
 	E._tick_mid()
 	check(E.mid_done == 0, "no mid crossroad before 1:20")
-	game.t = 81.0
+	game.t = 81.0 + sh
 	E._tick_mid()
 	check(E.mid_done == 1 and game.choice_kind == "cross" and E.deck.size() == 2, "mid crossroad 1 at 1:20 when calm")
 	_close()

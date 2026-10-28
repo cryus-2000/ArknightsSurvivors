@@ -105,6 +105,7 @@ func maintain() -> void:
 		g.hp = g.max_hp
 	g.pending_levelups = 0
 	g.pending_chests = 0
+	g.chest_src.clear()
 	g.gems.clear()
 	g.show_queue.clear()
 

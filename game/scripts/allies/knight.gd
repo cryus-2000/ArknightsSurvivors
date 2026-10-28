@@ -83,7 +83,7 @@ func leave() -> void:
 	g.vfx.show_banner("骑士无法接受海嗣的气息 —— 他离开了")
 	g.vfx.sparks(pos, Vector2.UP, Color(0.6, 0.8, 1.0), 12, 200.0)
 	if not g.rfx.has_relic("rocinante"):
-		g.progression.gain_relic("223")
+		g.progression.gain_relic("223", "knight")
 
 
 ## 道中阵亡：退行为罗辛南特
@@ -109,7 +109,7 @@ func die() -> void:
 		D.ENEMIES.knight.no_spawn = false
 		g.spawner.spawn_enemy("knight", pos)
 	if not g.rfx.has_relic("rocinante"):
-		g.progression.gain_relic("223")
+		g.progression.gain_relic("223", "knight")
 
 
 ## 终局每帧（game.gd 调，结局为骑士时）：9:00 起走向黑潮中心。黑潮已启动 → 目标每帧跟着圈心（收缩期圈心会动）；

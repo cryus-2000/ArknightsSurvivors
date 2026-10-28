@@ -304,7 +304,7 @@ func relic_pool_ids(for_shop := false) -> Array:
 			w *= 1.3
 		# 得偿所愿（翻节点卡，docs/154）：这一次三选一稀有 / 核心加权
 		if not for_shop and g.endg.wish_rare and r.rarity in ["稀有", "核心"]:
-			w *= float(g.endg.deck_cfg.get("wish_rare", 1.5))
+			w *= maxf(float(g.endg.deck_cfg.get("wish_rare", 1.5)), Bal.v("relic/wish_rare", 0.0))   # relic/wish_rare：补偿用，0 = 按卡组配置
 		# 护盾保底（10-21 用户：护盾常刷不到）：队长还没有护盾层数时，给层数的藏品（7 件）权重 ×relic/shield_weight；
 		# 一拿到层数就恢复原权重。权重只改排序、不改随机数抽取次数
 		if r.get("shield_layer", false) and g.shield_max <= 0:
@@ -321,6 +321,11 @@ func relic_pool_ids(for_shop := false) -> Array:
 
 
 func open_relic_choice() -> void:
+	# 大时刻补偿（docs/191）：Boss / 精英小队宝箱多 relic/big_extra 个选项，所有宝箱再多 relic/chest_extra 个；
+	# relic/chest_rare 1 = 精英 / Boss / 精英小队宝箱按稀有 / 核心加权（同得偿所愿）。都只改排序与张数，不多取随机数。缺省 0 = 关
+	var csrc: String = str(g.chest_src[0]) if not g.chest_src.is_empty() else ""
+	if csrc in ["elite", "boss", "squad"] and Bal.v("relic/chest_rare", 0.0) > 0.0:
+		g.endg.wish_rare = true
 	var pool: Array = []
 	for rid in relic_pool_ids():
 		var r: Dictionary = g.RL[rid]
@@ -329,10 +334,15 @@ func open_relic_choice() -> void:
 		# 每个待开的宝箱各补 12 源石锭
 		var n: int = maxi(1, g.pending_chests)
 		g.pending_chests = 0
+		g.chest_src.clear()
 		g.rfx.gain_ingots(12 * n, "暂无可升级藏品 · ")
 		return
 	# 一次性加选项（docs/57 P27）与补给箱钥匙（P17）：各多一个选项，用掉一次
 	var extra: int = g.rfx.take_choice_extra()
+	if csrc == "boss" or csrc == "squad":
+		extra += Bal.vi("relic/big_extra", 0)
+	if csrc in ["elite", "boss", "squad"]:
+		extra += Bal.vi("relic/chest_extra", 0)
 	if g.rfx.rule("chest_keys") > 0:
 		g.rfx.use_rule("chest_keys")
 		extra += 1
@@ -347,7 +357,7 @@ func open_relic_choice() -> void:
 	g.meta_basic_pick = false
 	g.endg.wish_rare = false
 	if g.mode == g.Mode.BALANCE:
-		g.dbg_relic_offer.append([int(g.t), "choice", shown.map(func(c): return c.id)])
+		g.dbg_relic_offer.append([int(g.t), "choice", shown.map(func(c): return c.id), str(g.chest_src[0]) if not g.chest_src.is_empty() else "?"])
 	g.panel_ui.show_choices("获得藏品", shown, "relic")
 
 
@@ -671,7 +681,7 @@ func pick(i: int) -> void:
 				g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
 				g.vfx.promote_burst(nop.pos, false)   # docs/54 ⑥ 入队：青色柔光 + 光尘
 		"relic":
-			gain_relic(o.id)
+			gain_relic(o.id, "choice:" + (str(g.chest_src[0]) if not g.chest_src.is_empty() else "?"))
 		"weapon":
 			BossBench.rb("weapon", [o.id, o.wlv])
 			BossBench.re()
@@ -682,6 +692,8 @@ func pick(i: int) -> void:
 	# 事件选项不占升级 / 宝箱次数（翻节点卡直接弹出，没有计入 pending）
 	if g.choice_kind == "relic":
 		g.pending_chests -= 1
+		if not g.chest_src.is_empty():
+			g.chest_src.pop_front()
 	elif g.choice_kind != "event":
 		g.pending_levelups -= 1
 	g.panel.visible = false
@@ -735,11 +747,11 @@ func can_gain_relic(id: String) -> bool:
 
 
 ## 获得藏品的唯一入口：登记、生效、重算结局。拒绝时不产生任何效果。
-func gain_relic(id: String) -> bool:
+func gain_relic(id: String, src := "direct") -> bool:
 	if not can_gain_relic(id):
 		return false
 	BossBench.rb("relic", [id])   # Boss 单场测试台录制（docs/170）：只记最外层
-	g.dbg_relic_take.append([int(g.t), id, g.squad.ops.map(func(o): return o.cls)])   # 玩家局也记（docs/40）
+	g.dbg_relic_take.append([int(g.t), id, g.squad.ops.map(func(o): return o.cls), src])   # 玩家局也记（docs/40）
 	if not g.relics.has(id):
 		g.relics.append(id)
 	apply_relic(id)

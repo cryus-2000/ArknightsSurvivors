@@ -182,6 +182,9 @@ func _tick_mid() -> void:
 		return
 	var wins: Array = deck_cfg.get("mid", [[80, 110], [360, 390]])
 	var w: Array = wins[mini(mid_done, wins.size() - 1)]
+	if mid_done == 0 and Bal.v("relic/mid1_shift", 0.0) != 0.0:
+		var sh: float = Bal.v("relic/mid1_shift", 0.0)   # 途中一整体后移（docs/191：首件藏品推到约 2:00）
+		w = [float(w[0]) + sh, float(w[1]) + sh]
 	if mid_done == 1 and (c1_deal_t >= float(w[0]) or (c1_deal_t < 0.0 and g.t >= float(w[0]))):
 		mid_done = 2
 		return
@@ -467,6 +470,7 @@ func _resolve() -> void:
 				return
 			wish_rare = true
 			g.pending_chests += 1
+			g.chest_src.append("wish")
 		"shop":
 			if redesign:
 				g.shop_sys.open_trader()   # 原作语义：进一次商店（用户 10-28；docs/184 §3），买完关掉回战斗
@@ -587,9 +591,9 @@ func _tick_elites() -> void:
 		chal.squad_done = true   # 委托里的小队：奖励交给委托结算（_tick_chal）
 		g.vfx.show_banner("精英小队已全灭 —— 坚持到委托时间结束")
 		return
-	g.pickups.drop(elite_pos, "chest", 1.0)
+	g.pickups.drop(elite_pos, "chest", 1.0, "squad")
 	if rw == "double":
-		g.pickups.drop(elite_pos + Vector2(36, 0), "chest", 1.0)
+		g.pickups.drop(elite_pos + Vector2(36, 0), "chest", 1.0, "squad")
 	wish_rare = true   # 这个宝箱的藏品三选一按稀有 / 核心加权（同得偿所愿，progression 读后清掉）
 	if rw != "":
 		lane_bias = main_lane()   # 改版：三选一里 2 件主流派（docs/184 §2.2）
@@ -605,7 +609,23 @@ func _event_ok(ev: Dictionary) -> bool:
 		return false
 	if ev.has("requires_flag") and not g.get(ev.requires_flag):
 		return false
+	if g.rfx.core_locked() and _gives_core(ev):
+		return false   # 选项写明给核心藏品的事件，核心解锁前不进卡组（docs/191 §6）
 	return true
+
+
+static func _gives_core(o) -> bool:
+	if o is Dictionary:
+		if str(o.get("rarity", "")) in ["核心", "升华"]:
+			return true
+		for v in o.values():
+			if _gives_core(v):
+				return true
+	elif o is Array:
+		for v in o:
+			if _gives_core(v):
+				return true
+	return false
 
 
 ## 弹事件选项（C 版式）
@@ -796,9 +816,11 @@ func _apply_op(x: Dictionary) -> void:
 	if x.has("gain"):
 		g.rfx._on_gain(str(x.gain), x.get("args", {}))
 	if x.has("relic"):
-		g.progression.gain_relic(str(x.relic))
+		g.progression.gain_relic(str(x.relic), "event")
 	if x.has("relic_choice"):
 		g.pending_chests += int(x.relic_choice)
+		for k in int(x.relic_choice):
+			g.chest_src.append("event")
 	# ---- 事件改版（docs/184 §2.3–§2.4、§4.2）
 	if x.has("heal"):
 		g.combat.heal(g.max_hp * float(x.heal), "事件")
@@ -811,6 +833,8 @@ func _apply_op(x: Dictionary) -> void:
 			_gain_lane_relic(str(a.get("rarity", "")), a.get("lanes", []))
 	if x.has("lane_choice"):
 		g.pending_chests += int(x.lane_choice)
+		for k in int(x.lane_choice):
+			g.chest_src.append("event")
 		lane_bias = main_lane()
 		if x.get("rare", false):
 			wish_rare = true
@@ -853,6 +877,9 @@ func _gain_lane_relic(rarity: String, lanes: Array) -> void:
 	if cands.is_empty():
 		cands = base
 	if cands.is_empty():
+		if rarity == "核心":
+			_gain_lane_relic("稀有", lanes)   # 核心还没解锁（docs/191 §6）：退一档给稀有
+			return
 		g.rfx.gain_ingots(12, "暂无可得藏品 · ")
 		return
 	var tot := 0.0
@@ -868,7 +895,7 @@ func _gain_lane_relic(rarity: String, lanes: Array) -> void:
 		if u <= 0.0:
 			pick_id = str(cands[k].id)
 			break
-	g.progression.gain_relic(pick_id)
+	g.progression.gain_relic(pick_id, "event")
 	g.vfx.show_banner("获得藏品：%s" % g.rfx.db.get_relic(pick_id).name)
 
 
@@ -878,7 +905,7 @@ func _gain_curse() -> void:
 	if cands.is_empty():
 		return
 	var rid: String = str(cands[g.rng.randi() % cands.size()].id)
-	g.progression.gain_relic(rid)
+	g.progression.gain_relic(rid, "event")
 	g.vfx.show_banner("获得遭诅藏品：%s" % g.rfx.db.get_relic(rid).name)
 
 

@@ -76,15 +76,27 @@ func _process(_dt: float) -> void:
 	check(game.merchant.pos.distance_to(game.zone_c) <= 200.01, "merchant follows shrinking tide")
 	game.zone_state = 0
 	# Elite chance is nontrivial and repeatable; the combat drop function uses g.rng_drop (docs/101 B7).
+	# 概率跟 relic/elite_drop_chance 走；relic/elite_drop_from 秒前不掉（docs/191），这里先测门槛后
+	var t_save: float = game.t
+	var pc: float = Bal.v("relic/elite_drop_chance", 0.3)
+	game.t = 0.0
+	game.rng_drop.seed = 1717
+	var early: int = 0
+	for i in 200:
+		if game.combat.elite_drops_relic():
+			early += 1
+	check(Bal.v("relic/elite_drop_from", 0.0) <= 0.0 or early == 0, "no elite chest before relic/elite_drop_from")
+	game.t = maxf(t_save, Bal.v("relic/elite_drop_from", 0.0) + 1.0)
 	var outcomes: Array = []
 	game.rng_drop.seed = 1717
 	for i in 1000:
 		outcomes.append(game.combat.elite_drops_relic())
 	var count: int = outcomes.count(true)
-	check(count > 240 and count < 360, "elite relic drops near 30%, never guaranteed")
+	check(absf(count - 1000.0 * pc) < 60.0 and count < 1000, "elite relic drops near relic/elite_drop_chance, never guaranteed")
 	game.rng_drop.seed = 1717
 	for i in 1000:
 		check(game.combat.elite_drops_relic() == outcomes[i], "elite chance repeats by seed")
+	game.t = t_save
 	# Front curve unchanged; later costs grow smoothly instead of a hard time gate.
 	for level in 12:
 		var lv := level + 1

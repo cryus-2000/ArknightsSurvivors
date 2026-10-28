@@ -1429,16 +1429,18 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if e.elite:
 		ing = max(ing, g.rng_drop.randi_range(3, 5))
 		if elite_drops_relic():
-			g.pickups.drop(e.pos, "chest", 1.0)
+			g.pickups.drop(e.pos, "chest", 1.0, "elite")
 		if g.rng_drop.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
 			g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
 	if float(e.get("scream_t1", INF)) > g.t and D.ENEMIES.get(e.type, {}).has("scream_ingot_mult"):
 		ing = int(round(ing * float(D.ENEMIES[e.type].scream_ingot_mult)))   # 箱形恐鱼尖叫结束前击倒（含还没尖叫）：源石锭 ×1.5（docs/145 §4 A，原作宝箱恐鱼）
 	if e.boss:
 		ing = 20
+		if not is_same(e, g.final_boss):
+			g.mid_boss_down = true   # 核心延后解锁（docs/191 §6）
 		if not is_same(e, g.final_boss) and not g.spawner.boss_alive():
 			Sfx.play_overlay("boss_down")   # 最终 Boss 走结算乐句；双 Boss 需全部倒下
-		g.pickups.drop(e.pos + Vector2(-20, 0), "chest", 1.0)
+		g.pickups.drop(e.pos + Vector2(-20, 0), "chest", 1.0, "boss")
 		for j in 12:
 			g.pickups.drop(e.pos + Vector2.from_angle(TAU * j / 12.0) * 30.0, "xp", 20.0)
 		# Boss 倒下时清除它召唤的东西
@@ -1455,5 +1457,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 
 
 ## 精英不再必掉藏品；共用对局随机数，种子可复现。Boss 奖励仍按原结算。
+## relic/elite_drop_from 秒前的精英不掉宝箱（docs/191：首件藏品推到约 2:00）；先抽随机数再判时间，随机数消耗不变
 func elite_drops_relic() -> bool:
-	return g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.3)
+	var roll: bool = g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.3)
+	return roll and g.t >= Bal.v("relic/elite_drop_from", 0.0)

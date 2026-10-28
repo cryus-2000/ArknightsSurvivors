@@ -276,6 +276,7 @@ var horde_hit := 0.0         # 大群到达后的屏幕演出
 var boss = null                 # 当前显示血条的 Boss
 var bosses: Array = []
 var final_boss = null
+var mid_boss_down := false   # 本局已击败过中期 Boss（藏品核心延后，docs/191 §6）
 var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
@@ -357,6 +358,7 @@ var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
 var hud_lv_flash := 0.0   # 左上角等级闪光
 var xp_flash := 0.0       # 吃到经验时经验环亮一下
 var pending_chests := 0
+var chest_src: Array = []   # 与 pending_chests 并行的来源队列（遥测 relic_offer / relic_take 第 4 项，docs/191）：elite / boss / squad / wish / event / meta
 ## 木桩表（tests/op_dummy_test，docs/79）：只由测试场景置位。为真时不刷怪（含 Boss / 溟痕 / 威胁上升）、不走事件 / 围猎 / 灯标 / 商人 / 拾取，
 ## 场上只有测试自己摆的目标。缺省 false，正常游戏与其他测试行为完全不变
 var sandbox := false
@@ -2115,6 +2117,7 @@ func check_pending() -> void:
 		meta_start_relic = 0
 		meta_basic_pick = true
 		pending_chests += 1
+		chest_src.append("meta")
 	if pending_chests > 0:
 		progression.open_relic_choice()
 	elif pending_levelups > 0 and lvup_delay <= 0.0:

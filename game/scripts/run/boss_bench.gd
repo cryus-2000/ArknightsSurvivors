@@ -323,6 +323,7 @@ func _restore() -> void:
 	g.show_queue.clear()
 	g.pending_levelups = 0
 	g.pending_chests = 0
+	g.chest_src.clear()
 	g.choices = []
 	g.panel.visible = false
 	g.state = g.S.PLAY
@@ -399,6 +400,7 @@ func apply_build(s: Dictionary) -> void:
 	g.show_queue.clear()
 	g.pending_levelups = 0
 	g.pending_chests = 0
+	g.chest_src.clear()
 	g.choices = []
 	g.panel.visible = false
 	g.state = g.S.PLAY
