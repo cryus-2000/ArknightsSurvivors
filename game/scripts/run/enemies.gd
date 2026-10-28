@@ -336,7 +336,7 @@ func update(dt: float) -> void:
 		if e.get("depart_t", 0.0) > 0.0:
 			e.depart_t -= dt   # 大群分批出发的等待（spawner._horde_loose，docs/158）：所有敌人统一在这里倒计时
 		# 不可索敌的第一形态仍参与公共动画计时；移动/治疗交给遭遇模块，不走敌对 AI 和接触伤害。
-		if e.get("friendly", false):
+		if e.get("friendly", false) or e.get("ishar_p1", false):
 			g.ishar.step_ally(e, dt)
 			continue
 		if e.get("haste", 0.0) > 0.0:

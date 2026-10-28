@@ -936,8 +936,10 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	if type == "pocket":
 		e.burst_at = e.maxhp * (2.0 / 3.0)   # 节点 66% / 33%（enemies.gd 囊海爬行者）
 	if type == "ishar":
-		e.friendly = true
-		e.invuln = true
+		# 人形可受伤（boss/ishar_p1_hit，10-28）：不再标友方 / 无敌，治疗与充能仍走 IsharEncounter（enemies.gd 看 ishar_p1）
+		e.ishar_p1 = Bal.v("boss/ishar_p1_hit", 1.0) > 0.0
+		e.friendly = not e.ishar_p1
+		e.invuln = not e.ishar_p1
 	if type == "izumik":
 		e.hp = e.maxhp * 0.35
 		e.invuln = true
