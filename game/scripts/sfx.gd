@@ -93,8 +93,6 @@ const MUSIC := {
 	"deploy": ["deploy"],
 	"opening": ["opening"],
 	"shop": ["shop"],
-	"win_loop": ["win_loop"],
-	"lose_loop": ["lose_loop"],
 	"final": ["final_suno"],   # 10-27 最终 Boss 换 Suno《The Deep Sea Awakens》整首循环（暂无分轨，二阶段不叠层）
 }
 ## 不循环的曲目（播完即停，之后由游戏选下一首）
@@ -111,6 +109,15 @@ const STEM_OUT := 0.5
 const MENU_TRACKS := ["title", "archive", "deploy"]
 const MENU_FADE := 1.0       # 局外曲目互切的淡入 / 淡出速度（每秒）= 1 秒
 var menu_pos := {}           # 局外曲目 -> 淡出停下时播到的秒数
+## 结算配乐（10-28 用户「结算的 BGM 还是老的主题曲，换成新的主题曲」）：胜 / 负都放新主题曲 title（Suno《Deep Ocean Drift》，标题页同一首），
+## 从结算入场的黑场从头淡入；胜利原音量 2 秒淡入，失败同曲压低 SETTLE_LOSE_DB、4 秒慢淡入（这首没有分层，docs/164）。
+## 回标题时 title 已在放，play_music 不重开、接着放，失败压的音量 2 秒回到原样。旧的 win / lose 短乐句与 win_loop / lose_loop 循环已删
+const SETTLE_LOSE_DB := -6.0
+const SETTLE_FADE_WIN := 2.0
+const SETTLE_FADE_LOSE := 4.0
+var settle_on := false       # 结算在放主题曲：别被「局内没选曲就补战斗曲」的兜底切走
+var title_db := 0.0          # title 的额外增益（dB）：失败结算压低，回标题时收回 0
+var title_db_target := 0.0
 var track_t0 := {}           # 整首曲目 -> 「第 0 秒」对应的墙钟（算播放位置，不依赖音频驱动：网页样本播放位置滞后、无界面哑驱动偏慢）
 var groups := {}          # 整首曲目 -> Array[AudioStreamPlayer]
 var group_vol := {}       # 曲目 -> 当前整体音量（0~1）
@@ -437,6 +444,8 @@ func _lay_tick(tname: String) -> void:
 ## 手机与桌面使用相同曲目与分层；网页用共享样本、切曲释放及 24 kHz 上下文控制内存。
 
 func play_music(tname: String) -> void:
+	settle_on = false
+	title_db_target = 0.0
 	if not MENU_TRACKS.has(tname):
 		driven_t = 0.0
 	if not lay.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
@@ -514,6 +523,26 @@ func track_pos(tname: String) -> float:
 	var t := _now() - float(track_t0[tname])
 	var ln := pl.stream.get_length() if pl.stream != null else 0.0
 	return fposmod(t, ln) if ln > 0.0 else t
+
+
+## 结算配乐：新主题曲从头淡入（胜利原音量，失败压低慢淡入），见 SETTLE_*
+func play_settle(win: bool) -> void:
+	if not groups.has("title") or groups["title"].is_empty():
+		return
+	after_stinger = ""
+	stinger.stop()
+	pending = {}
+	menu_pos.erase("title")
+	title_db = 0.0 if win else SETTLE_LOSE_DB
+	title_db_target = title_db
+	_start("title", 1.0 / (SETTLE_FADE_WIN if win else SETTLE_FADE_LOSE), 1.2)
+	settle_on = true
+
+
+## 当前曲目淡出、不接新曲（倒下过渡 / 终局击破慢动作里先收掉战斗曲，结算入场再放主题曲）
+func music_out(out: float) -> void:
+	pending = {}
+	_release(out)
 
 
 ## 当前曲目提前放手（淡出），等 pending 里的下一首
@@ -747,7 +776,7 @@ func _process(delta: float) -> void:
 	# 兜底：若游戏场景没有主动选曲（未接入分层逻辑的版本），进入战斗时自动播放战斗曲
 	driven_t += delta
 	var sc := get_tree().current_scene
-	if driven_t > 1.0 and sc != null and sc.get_script() != null and str(sc.get_script().resource_path).ends_with("game.gd") and MENU_TRACKS.has(cur_track):
+	if driven_t > 1.0 and not settle_on and sc != null and sc.get_script() != null and str(sc.get_script().resource_path).ends_with("game.gd") and MENU_TRACKS.has(cur_track):
 		battle_lv = 1
 		play_music("battle1")
 	var now := _now()
@@ -756,6 +785,7 @@ func _process(delta: float) -> void:
 		var p := pending
 		pending = {}
 		_start(p.track, float(p.fade_in), float(p.out), now - float(p.at))
+	title_db = move_toward(title_db, title_db_target, delta * 3.0)   # 失败结算压低的主题曲回标题时 2 秒回到原音量
 	if lay.has(cur_track):
 		_lay_tick(cur_track)
 	for tname in lay:
@@ -786,7 +816,7 @@ func _process(delta: float) -> void:
 		group_vol[tname] = gv
 		if gv <= 0.0 and MENU_TRACKS.has(tname) and MENU_TRACKS.has(cur_track) and not groups[tname].is_empty() 				and (groups[tname][0] as AudioStreamPlayer).playing:
 			menu_pos[tname] = track_pos(tname)   # 局外曲目淡完：记住位置，回到这个界面时接着放
-		var gdb: float = linear_to_db(maxf(gv, 0.0001)) + vol_target
+		var gdb: float = linear_to_db(maxf(gv, 0.0001)) + vol_target + (title_db if tname == "title" else 0.0)
 		for pl in groups[tname]:
 			if absf(pl.volume_db - gdb) > 0.0001:   # 只在变了时设（性能 docs/50 §21：网页样本播放每设一次就是一次 JS 调用，稳态时每帧十几次）；属性按 32 位存，留一点容差
 				pl.volume_db = gdb
