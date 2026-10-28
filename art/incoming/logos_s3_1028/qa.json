@@ -1,0 +1,39 @@
+{
+  "checks": [
+    {
+      "file": "fx_logos_s3_fan_open@2x.png",
+      "pass": true,
+      "opaque_fraction": 0.0618,
+      "bytes": 21600
+    },
+    {
+      "file": "fx_logos_s3_fan_ground@2x.png",
+      "pass": true,
+      "opaque_fraction": 0.1761,
+      "bytes": 12625
+    },
+    {
+      "file": "fx_logos_s3_fan_close@2x.png",
+      "pass": true,
+      "opaque_fraction": 0.1067,
+      "bytes": 15911
+    },
+    {
+      "file": "fx_logos_s3_slow@2x.png",
+      "pass": true,
+      "opaque_fraction": 0.3398,
+      "bytes": 939
+    },
+    {
+      "file": "fx_logos_s3_ribbon@2x.png",
+      "pass": true,
+      "opaque_fraction": 0.0915,
+      "bytes": 905
+    }
+  ],
+  "seams_exact": true,
+  "runtime_bytes": 51980,
+  "pixel_grid": "2x2 exact",
+  "geometry": "100 degrees, radius <=340, mirrored at y264",
+  "runtime_verified": false
+}
