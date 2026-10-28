@@ -89,5 +89,5 @@ Godot 4.7.2、无窗口静音 Edge、手机视口与触屏仿真、24 kHz 上下
 - 接线：`music_director.final_track(type)`：knight_boss → final_knight、ishar → final_ishar、izumik → final_izumik，其余最终 Boss 和缺文件时用 final。
   切阶段沿用原规则：半血以下，伊祖米克学习阶段除外。`sfx.gd` 把 `final*` 一律按两层「p1 + 半血叠 p2」处理，Boss 登场落拍、回战斗的规则同 final。`--musiclog` 记录里带 p1 / p2。
 - 包体：仓库新增 6 个 ogg，共 14.3 MiB。网页 C 档后 a6f340ddb → 916a22501：网页目录 34.0 → 40.3 MiB（**+6.35 MiB**），Toy zip 35.37 → **42.03 MB**（上限 50 MB）。
-- 验证：`check.py --only suno_layers`（八首载入、层数、同长度，选曲按类型，骑士 p1 → p2 叠层）和 `menu_bgm` 通过；`bgm_memory_test` 加了三首曲目及其二阶段，见下。
+- 验证：`check.py --only suno_layers`（八首载入、层数、同长度，选曲按类型，骑士 p1 → p2 叠层）和 `menu_bgm` 通过；`bgm_memory_test` 加了三首曲目及其二阶段：按 docs/186 的做法（临时提交把主场景换成测试场景、Web 预设不排除 tests/，不合入）导出网页、无窗口 Edge 跑，**0 failures**，用时 153 秒。各曲切换后的样本内存（MiB）：final 196、final_knight 219、final_ishar 202、final_izumik 198，均低于战斗曲 258–275，所以峰值没变。
 - 录像：`tools/boss_bgm_rec.py` 生成，三只 Boss 各 30 秒原速，登场后 14 秒切 p2。画面用 `--bossacts`（骑士用 `knight_boss2` 直接进二阶段形态；`--actsp2` 到点把血放到 45%）。声音离线混音：配乐按 `--musiclog` 的时间点、用 sfx.gd 的规则混；音效按 `--sfxtrace` 混，不外放。
