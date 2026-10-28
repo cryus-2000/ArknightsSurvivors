@@ -16,7 +16,7 @@
 
 ## 2. Runtime voices and requests
 
-- [x] Copy only the 30 approved OGGs and 30 WAV masters from `art/incoming/voice_batch6_1022` into `game/audio/voice`; merge manifest by operator/event, preserving the original91 entries. Check121 entries and20 operators.
+- [x] Copy only the 30 approved OGGs and 30 WAV masters from `art/archive/incoming_1028/voice_batch6_1022` into `game/audio/voice`; merge manifest by operator/event, preserving the original91 entries. Check121 entries and20 operators.
 - [x] Change `squad.gd` assault requests to `command`, retain recall `entry`, filter speakers with existing `cmd_roam()` and downed status. Preserve6-second command throttle, leader-first rotation, and original channel cooldowns.
 - [x] Add `command` to Sfx event metadata without changing existing3-second team gap,15-second operator gap, interruption or queue rules.
 - [x] Add `Character.entry_started()` with once-per-instance request guard; move Squad's current immediate entry request to that hook. No deployed Start track exists yet, so preserve immediate fallback timing.

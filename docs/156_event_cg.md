@@ -56,7 +56,7 @@
 3. 交付：`art/incoming/event_cg/<事件 id>.png`；三列对照（原图裁切 / 脚本草稿 / 成品）人眼先验收（docs/104）。
 4. 先做 P1 七张；「继承」「相逢」原图与事件内容不符，P3 里放最后，或请用户决定改用别的图。
 
-## 4. 接入记录（10-26，Codex 母稿 art/incoming/event_cg_1026/generated_v2）
+## 4. 接入记录（10-26，Codex 母稿 art/archive/incoming_1028/event_cg_1026/generated_v2）
 
 - 用户不认可 140×125 直接降采样（太糊），Codex 交 1327×1185 母稿（用户已确认画面）。母稿留在仓库根 `art/incoming/`，不进包。
 - 运行时用图：`game/art/event_cg/hi/<事件 id>.webp`（1120×1000，插画框 560×500 的 2×，桌面）与 `web/<事件 id>.webp`（560×500，网页）；Godot 导入为有损（`compress/mode=1`、质量 0.85）。

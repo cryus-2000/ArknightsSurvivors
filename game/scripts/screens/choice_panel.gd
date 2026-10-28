@@ -24,7 +24,7 @@ var serif: Font                # 事件标题用的衬线粗体（fonts/serif.tt
 ## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
 var ev_art := {}
 var ink_tex: GradientTexture2D
-## 事件插画（docs/156，Codex 母稿 art/incoming/event_cg_1026 离线缩成运行时用图）：按事件 id 打开面板时才 load，
+## 事件插画（docs/156，Codex 母稿 art/archive/incoming_1028/event_cg_1026 离线缩成运行时用图）：按事件 id 打开面板时才 load，
 ## 换成别的面板 / 面板关掉就放掉引用（显存随之释放）。桌面读 art/event_cg/hi（1120×1000，2× 插画框），网页读 web（560×500）
 var ev_cg: Texture2D = null
 var ev_cg_key := ""

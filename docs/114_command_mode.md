@@ -178,7 +178,7 @@ HUD 文案候选（用户挑）：
 
 10-22 用户已确认以下 20 条完整原句，随后明确由 Codex 按任务单直接接入。成功进入突击时播 `*_command.ogg`；归队（含耐力耗尽自动归队）仍播 `*_entry.ogg`（部署 1，CN_023）。从队长起按编队顺序轮换一人，排除倒地干员及 `command.roam=false` 的随从；后者当队长时可开口。没有修改这些干员的走位规则。重复设置相同状态、耐力拒绝突击、归队完成自动回随行均不请求突击回应。
 
-沿用语音通道：占线放弃、全队间隔 3 秒、每人 15 秒；`command` 单句冷却 6 秒、优先级 1，另按 `command/voice_gap` 6 秒节流。指挥语音不排队，不增加打断例外。选人用确定性轮换，不消耗玩法 RNG。桌面按键、手柄、触屏和机器人共用 `set_stance()`。事件映射、固定来源、采样边界与时长见 `game/audio/voice/voice_manifest.json`；选句说明见 `art/incoming/voice_batch6_1022/COMMAND_SELECTION.md`。
+沿用语音通道：占线放弃、全队间隔 3 秒、每人 15 秒；`command` 单句冷却 6 秒、优先级 1，另按 `command/voice_gap` 6 秒节流。指挥语音不排队，不增加打断例外。选人用确定性轮换，不消耗玩法 RNG。桌面按键、手柄、触屏和机器人共用 `set_stance()`。事件映射、固定来源、采样边界与时长见 `game/audio/voice/voice_manifest.json`；选句说明见 `art/archive/incoming_1028/voice_batch6_1022/COMMAND_SELECTION.md`。
 
 | 干员 | 职业 | 会突击 | 突击语音 / 源索引 | 已确认原句 | 归队语音 |
 |---|---|---|---|---|---|

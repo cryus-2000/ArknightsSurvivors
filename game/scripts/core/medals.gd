@@ -1,5 +1,5 @@
 extends RefCounted
-## 蚀刻章（成就，10-25 Codex 交付「深蓝之下」九枚，art/incoming/achievement_ui_1024/CLAUDE_HANDOFF_1025.md）：章表在 data/medals.json。
+## 蚀刻章（成就，10-25 Codex 交付「深蓝之下」九枚，art/archive/incoming_1028/achievement_ui_1024/CLAUDE_HANDOFF_1025.md）：章表在 data/medals.json。
 ## 纯荣誉：不给任何奖励，只读记录、不碰局内模拟（不读 / 不写 g.rng，局内钩子只数编队里的精英二人数）。
 ## 存档：Cfg.medals = {key: 获得时刻 Unix 秒}（获得后永久保留：认知重置、记录变少都不收回）；Cfg.medal_best = {key: 历史最好进度}（协同晋升的同时精英二人数）。
 ## 判定来源：结局 = 真实的 endings_cleared；藏品 = 真实的 seen_relics 里的有效藏品 ID（去重）；认知 = Cfg.meta_shape；协同晋升 = 局内钩子 note_elite。

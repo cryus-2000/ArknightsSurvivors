@@ -1,7 +1,7 @@
 # V15 Codex 需求单：圣徒（卡门 / 伊比利亚）统一造型（2026-10-01，用户已批）
 
 **本项目设定：「圣徒卡门」与「圣徒伊比利亚」是同一人物的两个强度档。** 原作依据：PRTS「圣徒卡门」「圣徒伊比利亚」两页。两页描述一字不差，武器都是手炮；伊比利亚档血、攻更高、弹药更少；机制都是「带弹远程 → 打空近战 → 装弹时自缚，被打断就眩晕」。
-- 本单**取代** V13 中卡门 / 伊比利亚的全部帧条（`e_carmen_slash`、`e_iberia_attack`、`e_iberia_reload` 及其返修），见 `art/incoming/v13_acceptance.md` 相应条目。
+- 本单**取代** V13 中卡门 / 伊比利亚的全部帧条（`e_carmen_slash`、`e_iberia_attack`、`e_iberia_reload` 及其返修），见 `art/archive/incoming_1028/v13_acceptance.md` 相应条目。
 - 现有 `e_carmen*` / `e_iberia*` 本体与移动帧条也由本单的新造型替换。
 
 ## 规则（同 V13，每次必须遵守）

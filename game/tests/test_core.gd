@@ -392,7 +392,7 @@ func test_voice() -> void:
 			ok(not st.loop, "语音不循环：" + f)
 			ok(absf(st.get_length() - float(c.duration_seconds)) < 0.01, "语音时长与母带一致：%s（%.3f / %.3f）" % [f, st.get_length(), float(c.duration_seconds)])
 			ok(st.get_length() <= SfxS.VOICE_MAX_LEN, "语音不超过 VOICE_MAX_LEN（超长会被 sfx.gd 静默丢掉）：%s %.2f 秒" % [f, st.get_length()])
-	# 第五批语音（第三批干员，art/incoming/voice_batch5_1012，2026-10-12）：五人 × 五个事件齐全
+	# 第五批语音（第三批干员，art/archive/incoming_1028/voice_batch5_1012，2026-10-12）：五人 × 五个事件齐全
 	for cid in ["texas", "hoshiguma", "angelina", "skalter", "exusiai"]:
 		ok(man.operators.has(cid), "语音清单登记了干员：" + cid)
 		for ev in ["entry", "skill_1", "skill_2", "skill_3", "battle"]:

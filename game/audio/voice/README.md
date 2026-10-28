@@ -28,7 +28,7 @@
 
 当前没有独立部署 Start 动画，`Squad.add()` 即时调用 `Character.entry_started()`。同一实例重复通知不会重复请求；后续接入 Start 段时可把调用移到起手帧。图鉴演示不播。寻访揭示不调用语音。
 
-突击回应使用用户 10-22 已确认的 20 条完整原句（`art/incoming/voice_batch6_1022/COMMAND_SELECTION.md`）。`Squad._stance_voice()` 从队长起按编队轮换，排除倒地干员及 `command.roam=false` 的随从；后者当队长时可回应。重复设置相同状态、耐力不足而拒绝突击、自动回随行均不请求；归队仍用 `entry`。指挥请求另按 `command/voice_gap` 6 秒节流，不消耗玩法 RNG。
+突击回应使用用户 10-22 已确认的 20 条完整原句（`art/archive/incoming_1028/voice_batch6_1022/COMMAND_SELECTION.md`）。`Squad._stance_voice()` 从队长起按编队轮换，排除倒地干员及 `command.roam=false` 的随从；后者当队长时可回应。重复设置相同状态、耐力不足而拒绝突击、自动回随行均不请求；归队仍用 `entry`。指挥请求另按 `command/voice_gap` 6 秒节流，不消耗玩法 RNG。
 
 ### 现行播放规则（`game/scripts/sfx.gd` 干员语音段）
 

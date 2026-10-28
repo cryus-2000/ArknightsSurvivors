@@ -1,5 +1,5 @@
 extends Control
-## 局外 · 蚀刻章页「深蓝之下」（10-25 Codex 交付 art/incoming/achievement_ui_1024/，判定 core/medals.gd，章表 data/medals.json）。
+## 局外 · 蚀刻章页「深蓝之下」（10-25 Codex 交付 art/archive/incoming_1028/achievement_ui_1024/，判定 core/medals.gd，章表 data/medals.json）。
 ## 用户：「改成我们的像素风格并且保持一致，背景设置成动态效果，字体也是需要修改」；「蚀刻章按照 codex 提交的排列来，那是设计」（10-25 晚，撤掉 v2 陈列柜）。
 ## - 版式：严格照 Codex 设计稿 packed_layout_v16.svg——九枚章的坐标 / 尺寸 / 分组 / 顺序照 approved_layout_1025.json（= data/medals_layout.json），
 ##   左栏文字位置量自设计稿（见下方「版式」段）；整幅等比放进安全区，手机同一幅。

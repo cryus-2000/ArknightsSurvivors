@@ -38,7 +38,7 @@
 
 ### 3.2 浮空移动 `float_move`（6 帧循环）
 
-- 身体整体前倾约 10°（靠躯干整体倾斜，不伸脖子，见 `art/incoming/character_posture_constraints.md`）。
+- 身体整体前倾约 10°（靠躯干整体倾斜，不伸脖子，见 `art/archive/incoming_1028/character_posture_constraints.md`）。
 - 双腿并拢向后拖，不迈步、不蹬腿；头发、裙摆向后拉长飘动，表现「被托着滑行」。
 - 起伏 1px，频率比 `float` 快一点；离地高度同 §2。
 
