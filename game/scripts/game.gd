@@ -273,6 +273,7 @@ var horde_hit := 0.0         # 大群到达后的屏幕演出
 var boss = null                 # 当前显示血条的 Boss
 var bosses: Array = []
 var final_boss = null
+var graze_n := 0   # 擦弹次数（判定点，shot_pool._graze；测试 / 批跑读，HUD 不显示）
 var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）

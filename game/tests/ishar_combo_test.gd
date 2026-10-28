@@ -307,7 +307,7 @@ func graze_checks(cards) -> void:
 	var ld = g.squad.leader()
 	for i in 3:
 		ld.sp[i] = 0.0
-	var core: float = 8.0 * Bal.v("boss/bullet_hit_scale", 0.6)
+	var core: float = 8.0 * Bal.v("enemy/bullet_hit_scale", 0.6)
 	Bal._data["boss"]["graze_on"] = 0
 	check(str(_probe(cards, e, core + 6.0).get("_die", "")) == "hit", "graze off: old hitbox (r + 12) still hits at core + 6")
 	Bal._data["boss"]["graze_on"] = 1
@@ -317,13 +317,14 @@ func graze_checks(cards) -> void:
 	var sp0: float = _sp_sum()
 	var b: Dictionary = _probe(cards, e, core + 6.0)
 	check(str(b.get("_die", "")) != "hit" and b.has("_grz") and _sp_sum() > sp0, "graze on: passing just outside the core grazes and charges SP (%.2f -> %.2f)" % [sp0, _sp_sum()])
-	var n1: int = int(e.get("_grz_n", 0))
+	var n1: int = g.graze_n
 	g.t += 1.0
 	g.shots.update_ebullets(0.0)
-	check(int(e.get("_grz_n", 0)) == n1, "same bullet grazes only once")
-	check(str(_probe(cards, e, core + 6.0, false).get("_die", "")) == "hit", "non-boss bullets keep the old hitbox")
+	check(g.graze_n == n1, "same bullet grazes only once")
+	check(str(_probe(cards, e, core + 6.0, false).get("_die", "")) != "hit", "global rule: non-boss enemy bullets also hit only the core")
 	e.dead = true
-	check(str(_probe(cards, e, core + 6.0).get("_die", "")) == "hit", "outside a final boss fight the old hitbox applies")
+	var n2: int = g.graze_n
+	check(str(_probe(cards, e, core + 6.0).get("_die", "")) != "hit" and g.graze_n == n2 + 1, "global rule: applies outside boss fights too, and grazes count")
 	e.dead = false
 	Bal._data["boss"]["graze_on"] = on0
 	Bal._data["boss"]["graze_sp"] = sp_k
