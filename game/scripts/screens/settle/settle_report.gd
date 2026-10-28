@@ -4,6 +4,8 @@ extends "res://scripts/screens/settle/settle_base.gd"
 ## 动效：斜板扫入 → 巨型英文从右侧带速度线滑入 → 中文结果块展开 → 队长剪影显色 → 数据格右滑入 + 计数 → 输出条拉长 → 评级描边落定 → 奖励逐个落下。
 ## 失败：英文从左慢慢拖入、主题色降饱和；队长保持去色并盖洋红「击倒」；数据格下沉落位，不弹。
 ## 配色跟随本局队长（10-28 用户定）：主色 / 描边 / 斜板 / 输出条高亮取队长干员 col（data/characters/*.json，选人 / 图鉴同一张）。
+## 借危机合约结算的细节（10-28 用户「在原本基础上改动一点」，版式不变）：背景一道斜向浅光、左上徽记 + 两行小英文、
+## 获得藏品做成细白框方格 + 左下角三角（按稀有度上色）。
 
 
 func end_win() -> float:
@@ -27,6 +29,10 @@ func draw(canvas: CanvasItem) -> void:
 	begin(canvas)
 	var acc := theme()
 	ci.draw_rect(Rect2(-400, -400, 2080, 1520), HH.DARK)
+	# 斜向浅光（危机合约结算底图的那道虚化光面）
+	var lp := ek(0.0, 0.5)
+	fa = 1.0
+	poly(PackedVector2Array([Vector2(620 + 600 * (1.0 - lp), 0), Vector2(1280 + 600 * (1.0 - lp), 0), Vector2(1280 + 600 * (1.0 - lp), 652), Vector2(460 + 600 * (1.0 - lp), 652)]), Color(1, 1, 1, 0.03))
 	# 速度线（斜向细条，入场时快速掠过，之后很淡）
 	var sp := ek(0.1, 0.6)
 	for i in 9:
@@ -44,7 +50,9 @@ func draw(canvas: CanvasItem) -> void:
 	# ② 巨型英文结果
 	var word := "COMPLETE" if won else "FAILED"
 	fa = ek(0.1, 0.25)
-	px(Vector2(40, 26), "OPERATION REPORT  //  RHODES ISLAND", 2.0, HH.MUTE, 0, 2)
+	_emblem(Vector2(52, 22), acc)
+	px(Vector2(76, 15), "RHODES ISLAND", 1.5, HH.MUTE, 0, 2)
+	px(Vector2(76, 29), "OPERATION REPORT", 1.5, HH.MUTE, 0, 2)
 	var ex := lerpf(420.0, 0.0, sp) if won else lerpf(-260.0, 0.0, ek(0.1, 0.9))
 	px_line(Vector2(36 + ex, 94), word, 13.0, acc, HH.DARK)
 	fa = 1.0
@@ -72,6 +80,13 @@ func draw(canvas: CanvasItem) -> void:
 	rect(Rect2(-400, 652, 2080, 500), HH.INK)
 	s._draw_buttons(ci, fa)
 	fa = 1.0
+
+
+## 徽记：三层菱形（浅 / 暗 / 主题色）
+func _emblem(c: Vector2, acc: Color) -> void:
+	for q in [[15.0, HH.LIGHT], [10.0, HH.DARK], [5.0, acc]]:
+		var r: float = q[0]
+		poly(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), q[1])
 
 
 func _grade(acc: Color) -> void:
@@ -209,11 +224,14 @@ func _gains(acc: Color) -> void:
 		fa = minf(1.0, q * 2.5)
 		var dy := -30.0 * (1.0 - UM.out_back(q, 1.6)) if won else -10.0 * (1.0 - UM.out_cubic(q))
 		var r := Rect2(870 + i * 50, 584 + dy, 46, 46)
-		rect(r, HH.DARK3)
+		rect(r, HH.DARK2)
+		rect(r.grow(-2), Color(1, 1, 1, 0.5), false, 1.0)
 		var tx: Texture2D = relic_tex(str(rel[i].id))
 		if tx != null:
-			ci.draw_texture_rect(tx, r.grow(-4), false, Color(1, 1, 1, fa))
-		var rc: Color = MAG if str(rel[i].rarity) == "遭诅古物" else (Color8(170, 120, 255) if str(rel[i].rarity) == "升华" else Color(0, 0, 0, 0))
-		if rc.a > 0.0:
-			rect(Rect2(r.end.x - 8, r.position.y, 8, 8), rc)
+			ci.draw_texture_rect(tx, r.grow(-7), false, Color(1, 1, 1, fa))
+		else:   # 没有图标：写名字首字
+			txt(r.get_center().x, r.position.y + 10, str(rel[i].name).substr(0, 1), 20, HH.LIGHT, 1)
+		var rar := str(rel[i].rarity)
+		var rc: Color = MAG if rar == "遭诅古物" else (Color8(170, 120, 255) if rar == "升华" else acc)
+		poly(PackedVector2Array([Vector2(r.position.x, r.end.y - 13), Vector2(r.position.x + 13, r.end.y), Vector2(r.position.x, r.end.y)]), rc)
 	fa = 1.0
