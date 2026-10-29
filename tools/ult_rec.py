@@ -14,7 +14,8 @@ CLIPS = {
     "skalter": ("skalter", "skadi,gladiia", []),
     "kaltsit": ("kaltsit", "hoshiguma,lumen", []),
     "ulpianus": ("ulpianus", "gladiia,specter_unchained", []),
-    "cult": ("texas", "exusiai,lappland", ["--bal=ult/cell_gap=0", "--bal=ult/e_combo_gap=0"]),
+    "cult": ("texas", "exusiai,lappland", ["--bal=ult/test_cells=7"]),
+    "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"]),   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
 }
 ap = argparse.ArgumentParser()
 ap.add_argument("--clips", default=",".join(CLIPS)); ap.add_argument("--at", type=float, default=30.0); ap.add_argument("--secs", type=float, default=14.0)
@@ -29,8 +30,8 @@ def one(name):
     op, squad, ex = CLIPS[name]
     fdir = os.path.join(out, "fr_" + name); shutil.rmtree(fdir, ignore_errors=True); os.makedirs(fdir)
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
-            "--balance", "--realtime", "--rtfrom=%g" % max(0.0, a.at - 3), "--nodeath", "--seed=3", "--op=" + op, "--squad=" + squad, "--bot=expert",
-            "--maxprog", "--bal=ult/e_mult=6", "--bal=ult/bot_n=12"] + ex + a.extra.split() + [
+            "--balance", "--realtime", "--rtfrom=%g" % max(0.0, a.at - 3), "--nodeath", "--seed=3", "--op=" + op, "--squad=" + squad] + ([] if any(x.startswith("--bot=") for x in ex) else ["--bot=expert"]) + [
+            "--maxprog", "--bal=ult/bot_n=1"] + ([] if any(x.startswith("--bal=ult/test_fill_at") for x in ex) else ["--bal=ult/test_fill_at=%g" % (a.at + 1.5)]) + ex + a.extra.split() + [
             "--recframes=%g,%d" % (a.at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (a.at + a.secs + 8)]
     o, e, to = GR.run_godot([x for x in args if x], 1800)
     n = len(glob.glob(os.path.join(fdir, "rec_*.png")))

@@ -11,7 +11,7 @@ const Moves = preload("res://scripts/run/ult_moves.gd")
 const Combo = preload("res://scripts/run/combo.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 
-const CELLS := 7
+var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
 const FULL := 100.0
 const VIEW := Vector2(1524.0, 857.0)   # 桌面参考视野（docs/198 §3.1）：机器人「屏内」口径、连携终结技「全屏」口径
 
@@ -60,6 +60,7 @@ var ev := {
 	"last_src": {},         # 最近一次打到队长的敌人
 }
 var _prev_dash := 0.0
+var _filled := false
 
 # ---- 增益、画面
 var _buffs: Array = []      # {"src", "until"}：到点 g.stats.remove_source
@@ -68,11 +69,13 @@ var cutins: Array = []      # 立绘切入条带（HUD 画）：{"id", "name", "
 
 # ---- 统计（批跑汇总 / ult_bench）
 var stats := {"ult": 0, "cult": 0, "combo": 0, "combo_auto": 0, "combo_e": 0, "combo_up": 0, "lit": 0, "miss": 0,
-	"first_full": -1.0, "ult_times": [], "cult_times": [], "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0}
+	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0}
 
 
 func _init(game) -> void:
 	g = game
+	CELLS = maxi(1, Bal.vi("ult/cells", 7))
+	energy = clampf(Bal.v("ult/start_energy", 0.0), 0.0, FULL)   # 开局自带的能量（让首次约 2:30 而不加快之后的节奏）
 
 
 static func on() -> bool:
@@ -182,6 +185,11 @@ func tick(dt: float) -> void:
 		_clear()
 		return
 	_events()
+	if not _filled and g.t >= Bal.v("ult/test_fill_at", -1.0) and Bal.v("ult/test_fill_at", -1.0) >= 0.0:
+		_filled = true   # 测试 / 录像用（缺省 -1 = 关）：到点直接充满能量，协同给 ult/test_cells 格
+		energy = FULL
+		full_since = g.t
+		cells = mini(CELLS, Bal.vi("ult/test_cells", 0))
 	_tick_buffs()
 	_tick_shapes(dt)
 	Moves.tick_bg(self)   # 终结技的延后部分（凯尔希 Mon3tr 8 秒后重构）
@@ -358,8 +366,8 @@ func _auto_cast() -> void:
 	var fb_live: bool = g.final_boss != null and not g.final_boss.dead
 	if g.t >= Bal.v("ult/bot_hold_from", 570.0) and not fb_live and g.t < 600.0:
 		return   # 9:30 之后留给最终 Boss 进场
-	if cells >= 5 and cells < CELLS and full_since >= 0.0 and g.t - full_since < Bal.v("ult/bot_cult_wait", 30.0) and g.hp > 0.3 * g.max_hp:
-		return   # 协同 ≥ 5 格：最多等 30 秒凑连携终结技
+	if cells >= CELLS - 2 and cells < CELLS and full_since >= 0.0 and g.t - full_since < Bal.v("ult/bot_cult_wait", 30.0) and g.hp > 0.3 * g.max_hp:
+		return   # 协同差 ≤ 2 格：最多等 30 秒凑连携终结技
 	var n := 0
 	var elite_core := false
 	var hx: float = VIEW.x * 0.5
@@ -402,6 +410,7 @@ func _tick_combo(dt: float) -> void:
 		if not info.is_empty():
 			queue.append({"o": o, "info": info, "t0": g.t, "left": Bal.v("ult/lit_t", 2.5)})
 			stats.lit += 1
+			stats.lit_by[oid] = int(stats.lit_by.get(oid, 0)) + 1
 			Combo.on_lit(self, o, info)
 	if queue.is_empty():
 		return
@@ -718,5 +727,5 @@ func draw_world(w) -> void:
 ## 批跑汇总（autotest / bot 结果行带上）
 func report() -> Dictionary:
 	return {"ult": stats.ult, "cult": stats.cult, "combo": stats.combo, "combo_auto": stats.combo_auto, "combo_up": stats.combo_up,
-		"lit": stats.lit, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
+		"lit": stats.lit, "lit_by": stats.lit_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
 		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1)}

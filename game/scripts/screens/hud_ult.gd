@@ -3,8 +3,8 @@ extends RefCounted
 const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 按键提示查局内按键表
 ## 界面 · 终结技 / 连携技 HUD（docs/198 §2.3 / §2.4 / §2.5 / §7.1 / §7.2 / §7.3；原型 claude/ult-proto，10-29）。g.ult 为 null（balance ult/on = 0）时 hud.gd 不调本文件。
 ## 桌面（底部中央、冲刺提示上方）：左边连携亮起的队友头像（队首带从亮到暗的倒计时环、后面排队的静止亮着），中间终结技徽记（队长头像），
-## 右边终结技能量条（满条呼吸光、不弹字）+ 协同 7 格 + 按键提示；Q 升级态（能量满 + 协同满）= 金色描边 + 全队头像环。
-## 触屏：右下大圆「终结技」键（外圈能量、上方协同 7 段弧）与它左上的小圆「连携」键，位置 / 点按在 touch.gd（ult_btn / combo_btn），这里只画。
+## 右边终结技能量条（满条呼吸光、不弹字）+ 协同格（ult/cells）+ 按键提示；Q 升级态（能量满 + 协同满）= 金色描边 + 全队头像环。
+## 触屏：右下大圆「终结技」键（外圈能量、上方协同格弧）与它左上的小圆「连携」键，位置 / 点按在 touch.gd（ult_btn / combo_btn），这里只画。
 ## 立绘切入（draw_cutins）：屏边斜切条带宽 1/3 屏、底色干员色、只写干员名，立绘用图鉴同款待机帧 @2x（A.tex_hi）；队长在左半屏从右边切入；
 ## 连携终结技多条按 i 叠成阶梯；按界面时钟 UM.now() − t0 与 dur 滑入 → 停留 → 滑出；Boss 战透明度 × 0.7。每帧重画（签名 null）。
 ## 合批：色块 / 圆 / 环进 Tris，头像是贴图多边形（圆形裁切，每个一次绘制，最多十来个），字最后按字号成组（hud.text_flush）
@@ -56,12 +56,17 @@ func _q() -> Array:
 	return _demo_q
 
 
+## 协同格数（balance ult/cells）
+func _n() -> int:
+	return int(g.ult.CELLS)
+
+
 func _cells() -> int:
-	return mini(7, int(g.t / 8.0)) if _demo_on() else int(g.ult.cells)
+	return mini(_n(), int(g.t / 8.0)) if _demo_on() else int(g.ult.cells)
 
 
 func _up() -> bool:
-	return g.ult.full() and _cells() >= 7
+	return g.ult.full() and _cells() >= _n()
 
 
 func _demo_tick() -> void:
@@ -184,8 +189,8 @@ func _draw_desk(vs: Vector2) -> void:
 		# 满条呼吸光（不弹字）：条外一圈随呼吸亮暗的光晕
 		for k in 3:
 			fg.frame(bar.grow(1.5 + k * 2.0), Color(acc.r, acc.g, acc.b, (0.38 - k * 0.11) * (0.35 + 0.65 * pulse)), 2.0)
-	var cw: float = (bw - 6.0 * 4.0) / 7.0
-	for i in 7:
+	var cw: float = (bw - float(_n() - 1) * 4.0) / float(_n())
+	for i in _n():
 		var cr := Rect2(x0 + i * (cw + 4.0), vs.y - 82.0, cw, 5.0)
 		bg.rect(cr, UI.GOLD if i < _cells() else Color(0.16, 0.18, 0.2, 0.95))
 	var title: String = "连携终结技" if up else "终结技"
@@ -318,7 +323,7 @@ func _draw_touch(vs: Vector2) -> void:
 	_queue_avatars(rest)
 	if up:
 		_squad_ring(c, r + 17.0, 9.0)
-	# ---- 终结技键：外圈能量 / 满了呼吸光；协同 7 段弧（键上方）；升级态金色描边
+	# ---- 终结技键：外圈能量 / 满了呼吸光；协同格弧（键上方）；升级态金色描边
 	fg.arc(c, r + 4.0, 0.0, TAU, 4.0, Color(0.02, 0.03, 0.04, 0.6), 40)
 	fg.arc(c, r + 4.0, -PI / 2.0, -PI / 2.0 + TAU * ek, 4.0, Color(acc.r, acc.g, acc.b, 0.95) if full else Color(0.55, 0.85, 0.9, 0.8), 40)
 	if full:
@@ -327,8 +332,8 @@ func _draw_touch(vs: Vector2) -> void:
 		fg.arc(c, r, 0.0, TAU, 2.5, Color(1.0, 0.95, 0.75, 0.95), 40)
 	elif _cells() > 0 or full:
 		var a0: float = -PI / 2.0 - 1.15
-		var seg: float = 2.3 / 7.0
-		for i in 7:
+		var seg: float = 2.3 / float(_n())
+		for i in _n():
 			var sa: float = a0 + i * seg + 0.03
 			fg.arc(c, r + 11.0, sa, sa + seg - 0.06, 3.0, UI.GOLD if i < _cells() else Color(0.2, 0.22, 0.25, 0.8), 4)
 	# 按住拖动：键上画小摇杆（同手动技能键）
