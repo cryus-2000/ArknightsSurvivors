@@ -16,10 +16,10 @@ XTRA = os.environ.get("DIAG_EXTRA", "").split()
 jobs = []
 if mode in ("trial", "idle"):
     for b in BOSS:
-        for sq in ["wisadel_m0", "skadi_m0", "kaltsit_m0", "wisadel_m18", "skadi_m18", "kaltsit_m18"]:
+        for sq, seed in [(q, sd) for q in ["wisadel_m0", "skadi_m0", "kaltsit_m0", "wisadel_m18", "skadi_m18", "kaltsit_m18"] for sd in os.environ.get("DIAG_SEEDS", "1").split(",")]:
             extra = ["--balance", "--bot=" + ("expert" if mode == "trial" else "afk"), "--diagbot", "--realtime"]
-            jobs.append(((mode, b, sq), [gr.find_godot(), "--headless", "--path", GAME, "--fixed-fps", "30", "--"] + extra +
-                         ["--bossdiag", "--diagtrial=%s:%s" % (b, sq), "--diagmax=150", "--maxt=900", "--seed=1"] + XTRA))
+            jobs.append(((mode, b, sq + "_s" + seed), [gr.find_godot(), "--headless", "--path", GAME, "--fixed-fps", "30", "--"] + extra +
+                         ["--bossdiag", "--diagtrial=%s:%s" % (b, sq), "--diagmax=150", "--maxt=900", "--seed=" + seed] + XTRA))
 else:
     for b, en in BOSS.items():
         for op in ["wisadel", "skadi", "kaltsit"]:
