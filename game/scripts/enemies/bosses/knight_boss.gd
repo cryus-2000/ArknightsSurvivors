@@ -19,6 +19,11 @@ const MOVES := ["冲锋", "冰线", "长枪连刺", "掷枪", "长枪回旋"]
 ## Bounded authored chains. Each child warning still owns its full tell and lock window.
 func on_warning(e: Dictionary, w: Dictionary) -> void:
 	if e.dead or e.get("friendly",false) or e.get("invuln",false): return
+	# 近战招配冰屑（用户 10-30「骑士的加频率、加弹量还是要的」，docs/201 §8）：跳斩 / 横扫 / 劈 / 冲锋收尾结算时，从本体朝队长放一扇冰屑
+	if float(w.dmg) > 0.0 and Bal.v("boss/knight_melee_shards", 0.0) > 0.0 and (str(w.shape) == "cone" or str(w.act) in ["dash", "stab", "sweep", "bite"] or str(w.name) in MELEE_SHARD_MOVES):
+		if not e.has("kn_shard_q"):
+			e.kn_shard_q = []
+		e.kn_shard_q.append(g.t + float(w.dur))
 	if w.dmg <= 0.0 and not (w.act=="final_attack" and w.get("motion","")=="sidestep"): return
 	if not e.get("knight_combo_active",false):
 		var chain: Array = []
@@ -116,7 +121,33 @@ func _act(e: Dictionary) -> int:
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
+## 近战招配冰屑：这些名字的招不论形状都带（docs/201 §8）
+const MELEE_SHARD_MOVES := ["断潮劈击", "雪幕劈", "踏冰裂阵", "长枪回旋", "长枪连刺", "冻结重击", "侧踏挑枪"]
+
+
+## 冰屑加弹（docs/201 §8）：近战招结算时一扇 knight_melee_shards 发；走位间隙每 knight_walk_shard_t 秒朝队长连射 knight_walk_shard_n 发冰锥
+func _extra_shards(e: Dictionary, dt: float) -> void:
+	if e.dead or e.get("friendly", false):
+		return
+	var q: Array = e.get("kn_shard_q", [])
+	if not q.is_empty():
+		var keep: Array = []
+		for at in q:
+			if g.t >= float(at):
+				ice_shards(e, e.pos, aim(e.pos), int(Bal.v("boss/knight_melee_shards", 0.0)), 1.1, 180.0)
+			else:
+				keep.append(at)
+		e.kn_shard_q = keep
+	var wt: float = Bal.v("boss/knight_walk_shard_t", 0.0)
+	if wt <= 0.0 or float(e.get("wind", 0.0)) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or float(e.get("dash_t", 0.0)) > 0.0:
+		return
+	if g.t >= float(e.get("kn_walk_shard_at", 0.0)):
+		e.kn_walk_shard_at = g.t + wt
+		ice_shards(e, e.pos, aim(e.pos), int(Bal.v("boss/knight_walk_shard_n", 2.0)), 0.25, 200.0)
+
+
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
+	_extra_shards(e, dt)
 	if e.get("channel", 0.0) > 0.0:
 		e.channel -= dt
 		if e.channel <= 0.0:
@@ -1003,7 +1034,7 @@ func ice_shards(e: Dictionary, from: Vector2, ang: float, n: int, spread: float,
 		if b.get("knight_shard", false) and b.get("source_id", -1) == e.id:
 			own += 1
 	for i in n:
-		if own >= SHARD_CAP:
+		if own >= int(Bal.v("boss/knight_shard_cap", SHARD_CAP)):   # 同屏上限旋钮（docs/201 §8：原 18 片把加弹全截掉了）
 			return
 		var a: float = ang + (lerpf(-spread * 0.5, spread * 0.5, float(i) / maxf(1.0, n - 1)) if spread < TAU else TAU * float(i) / n)
 		if gap_ang != INF and absf(angle_difference(a, gap_ang)) < gap_half:
