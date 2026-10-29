@@ -135,7 +135,7 @@
 | [190_op_voice_more](190_op_voice_more.md) | 干员语音扩充 | 已实施 | 10-29：每人入队 4 / 突击 4 / 技能 4 / 闲聊 3 句原作语音（新增 110 条、+1.82 MiB），洗牌不重复 + 同句 60 秒；归队不再开口 | sfx.gd、voice_pools.json、tools/voice_more_1029.py |
 | [192_logos_s3_fx_order](192_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3 扇形咒域 | 待转 Codex | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） | seg_logos.gd、art.gd、logos_fx_handoff.md |
 | [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
-| [198_telemetry_plan](198_telemetry_plan.md) | 数据埋点：死因分析与补洞提案 | 提案，待协调人审 | 10-29：用 cal1029 云端 1237 个死亡局做死因分析（tools/death_report.py，暴毙 = 普通怪围死为主）；现有埋点清单、三支柱缺口、分期（P0 遥测补洞 1）；只提案不实现 | 36、40、43、77、82、193；run/telemetry.gd、tools/death_report.py、balance_run.py、runs_report.py |
+| [200_telemetry_plan](200_telemetry_plan.md) | 数据埋点：死因分析与补洞提案 | 提案，待协调人审 | 10-29：用 cal1029 云端 1237 个死亡局做死因分析（tools/death_report.py，暴毙 = 普通怪围死为主）；现有埋点清单、三支柱缺口、分期（P0 遥测补洞 1）；只提案不实现 | 36、40、43、77、82、193；run/telemetry.gd、tools/death_report.py、balance_run.py、runs_report.py |
 | [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范 + 迁移方案 | 草案，待用户批 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_lint.py（只报告） | tools/asset_lint.py、art.gd |
 | [188_asset_audit_1028](188_asset_audit_1028.md) | 素材命名与目录核对 | 待用户看 | 10-28：art/incoming 归档留底、旧合成配乐已删；game/ 没人读的 2 个、语音母带 22 MB 在运行时目录、同内容不同名 16 组、命名不合约定 4 处，只列不改 | art/archive/incoming_1028、game/audio/voice/masters |
 | [186_integ_1028b](186_integ_1028b.md) | 整合分支 integ-1028b 冲突处理记录 | 记录 | 10-28 对内体验包：每处合并冲突一行 + docs 撞号重编表 | — |
