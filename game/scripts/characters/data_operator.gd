@@ -1120,19 +1120,29 @@ func _draw_body_fx(front: bool) -> void:
 func _draw_vortex(sink, layer: String) -> void:
 	if pos == Vector2.INF or g.perf_alt:   # g.perf_alt：--perfab 同局轮换量漩涡开 / 关的净成本（/b 桶不画；正常游戏恒为 false）
 		return
+	var rz: float = _zone_vis_r()
 	for u in _fxb:
 		var e: Dictionary = _fxb[u]
 		if not ObFx.fx_has_vortex(e.b.fx):
 			continue
-		ObVortex.fx_vortex(sink, self, e, layer, 1.0, zone_c(), zr)
+		ObVortex.fx_vortex(sink, self, e, layer, 1.0, zone_c(), rz)
 
 
 ## 常驻跟随帧条（docs/61 §5.6 hold: true，10-12 加）：ground 层在 draw_ground_fx（地砖之上、溟痕 / 地面预警之下）、floor 层在 draw_auras、add 层在 draw_fx_add
 func _draw_hold_strips(ci, layer: String) -> void:
 	if pos == Vector2.INF:
 		return
+	var rz: float = _zone_vis_r()
 	for u in _fxb:
-		ObFx.fx_hold_strips(ci, self, _fxb[u], layer, zone_c(), zr)
+		ObFx.fx_hold_strips(ci, self, _fxb[u], layer, zone_c(), rz)
+
+
+## 区域的画面半径：浊心粒子领域（blocks.zone.look = particles）用 sk_vis_r 缓动后的值，漩涡贴图 / 程序漩涡与粒子边界同步扩缩（10-29 用户
+## 「漩涡的纹理没有和圆圈大小对上」）；其余干员就是判定半径 zr
+func _zone_vis_r() -> float:
+	if B.has("zone") and str(B.zone.get("look", "")) == "particles" and has_meta("sk_dom"):
+		return float(get_meta("sk_dom").get("self", [zr])[0])
+	return zr
 
 
 ## squad.draw_ground_fx → 这里（world.draw_world 画完地砖紧接着调；没有 ground 层条目时什么都不画）
