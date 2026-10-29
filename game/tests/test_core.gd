@@ -1175,8 +1175,8 @@ func test_blocks_hw3() -> void:
 		["lumen", "灯塔放进触发 do", func(d): d.blocks.progression.watch = {"trig": "every_n", "n": 1, "do": [{"verb": "tower", "r": 200}]}],
 		["lumen", "verb.lamp 一个参数都没写", func(d): d.blocks.skills[1].do[0] = {"verb": "lamp"}],
 		["mizuki", "伞击缺 tentacle", func(d): d.blocks.attack.erase("tentacle")],
-		["mizuki", "专属属性 op 写错", func(d): d.blocks.progression.tentacle_a["op"] = "set"],
-		["mizuki", "buff_self 写了没定义的属性", func(d): d.blocks.progression.tentacle_a["stat"] = "mizuki_nope"],
+		["mizuki", "专属属性 op 写错", func(d): d.blocks.progression.tentacle_a = {"verb": "buff_self", "stat": "mizuki_tentacle_targets", "op": "set", "value": 1}],
+		["mizuki", "buff_self 写了没定义的属性", func(d): d.blocks.progression.tentacle_a = {"verb": "buff_self", "stat": "mizuki_nope", "op": "flat", "value": 1}],
 		["mizuki", "回复放进技能 do", func(d): d.blocks.skills[1].do.append({"verb": "kill_heal", "pct": 0.01})],
 		# 精英化第 3 批（docs/61 §20）
 		["specter_unchained", "起手触发放进技能 do", func(d): d.blocks.skills[0]["do"] = [{"trig": "on_windup", "do": []}]],

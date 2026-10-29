@@ -305,12 +305,20 @@
     "jelly_r": 200,
     "jelly_mult": 0.4,
     "jelly_bind": 0.3,
-    "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 惊跳反射 / 病理性依恋，节点 5：awk2_* 惊跳反射·余悸（唤醒后触手再抽一圈），bind2_* 病理性依恋·缠缚（囚徒困境期间身边减速 + 伤害）。数值为待试验参数",
+    "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22；docs/202 改机制）：节点 4 二选一 惊跳反射 / 病理性依恋，节点 5：awk2_* 惊跳反射·余悸（唤醒后触手再抽一圈），smash_* 病理性依恋·重斩（被缠住的敌人吃下一击 ×smash_mult）。数值为待试验参数",
     "awk2_delay": 0.5,
     "awk2_r_k": 1.5,
     "awk2_mult": 0.6,
-    "bind2_slow": 1.0,
-    "bind2_mult": 0.2
+    "_g202": "docs/202 水月成长节点的待试验参数：rep_*（节点 1 强迫性重复：同目标 rep_window 秒内第二次被触手命中 → 束缚 rep_bind 秒）、hyst_*（节点 2 群体性癔症：伞击命中 ≥ hyst_hits 名时，生命低于 hyst_below 的被伞击敌人各挨一根触手，至多 hyst_max 根）、cling_*（节点 4B 病理性依恋：被拖到身边的敌人缠住 cling_dur 秒并随水月移动）、smash_*（节点 5B：缠住后 smash_window 秒内下一次伞击 ×smash_mult）",
+    "rep_window": 3.0,
+    "rep_bind": 0.5,
+    "rep_mult": 0.6,
+    "hyst_hits": 4,
+    "hyst_below": 0.75,
+    "hyst_max": 6,
+    "cling_dur": 0.8,
+    "smash_window": 1.6,
+    "smash_mult": 1.35
   },
   "leader": {
     "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1758 / 防御 356 / 法抗 30%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -460,14 +468,14 @@
       "id": "tentacle_a",
       "name": "强迫性重复",
       "icon": "growth_t_count",
-      "desc": "追击的触手 +1（挥伞打中的敌人不够时，追向附近的敌人）"
+      "desc": "触手追击同一名敌人，{$rep_window} 秒内第二次命中时，触手缠绕它：束缚 {$rep_bind} 秒（精英减半，Boss 除外），并再受一次 {$rep_mult*100}% 触手伤害"
     },
     {
       "type": "custom",
       "id": "tentacle_b",
       "name": "群体性癔症",
       "icon": "growth_t_count",
-      "desc": "追击的触手再 +1（同样会追向附近的敌人）"
+      "desc": "挥伞一次命中 {$hyst_hits} 名以上敌人时，触手追击改为全体追击：每名生命低于 {$hyst_below*100}% 的被伞击敌人各挨一根（至多 {$hyst_max} 根）"
     },
     {
       "type": "elite",
@@ -496,10 +504,10 @@
           "id": "bind_drag",
           "name": "病理性依恋",
           "icon": "skill_s2",
-          "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边"
+          "desc": "被触手拖到水月身边的敌人（精英一「拖拽」）被缠住 {$cling_dur} 秒（精英减半，Boss 除外）；缠住期间水月移动，它们跟着移动"
         }
       },
-      "branch_desc": "「惊跳反射」使「唤醒」的强化攻击追加触手攻击；「病理性依恋」使「囚徒困境」期间的触手将敌人拖向水月",
+      "branch_desc": "「惊跳反射」使「唤醒」的强化攻击追加触手攻击；「病理性依恋」使被触手拖到身边的敌人被缠住",
       "bot": "awaken"
     },
     {
@@ -507,7 +515,7 @@
       "id": "bind_drag",
       "name": "病理性依恋",
       "icon": "skill_s2",
-      "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边",
+      "desc": "被触手拖到水月身边的敌人（精英一「拖拽」）被缠住 {$cling_dur} 秒（精英减半，Boss 除外）；缠住期间水月移动，它们跟着移动",
       "routes": {
         "awaken": {
           "id": "awaken_burst2",
@@ -517,9 +525,9 @@
         },
         "bind": {
           "id": "bind_drag2",
-          "name": "病理性依恋·缠缚",
+          "name": "病理性依恋·重斩",
           "icon": "skill_mizuki_s2",
-          "desc": "「囚徒困境」期间每秒，身边 {$swing_skill} 内的敌人被触手缠住：减速 {$bind2_slow} 秒并受伞击 {$bind2_mult*100}% 伤害"
+          "desc": "被缠住的敌人，{$smash_window} 秒内受到的下一次伞击伤害 ×{$smash_mult}（只消耗一次），触手从其脚下钻出"
         }
       }
     },
@@ -665,10 +673,31 @@
         ],
         "stun_min": 0.25,
         "more_r": 1.6,
-        "drag": {
-          "cond": "node:bind_drag && skill_active:1",
-          "kb": 320,
-          "kb_elite": 160
+        "repeat": {
+          "cond": "node:tentacle_a",
+          "window": "$rep_window",
+          "bind": "$rep_bind",
+          "mult": "$rep_mult",
+          "_doc": "docs/202 节点 1 强迫性重复：同一敌人 window 秒内第二次被触手命中 → 缠绕束缚 bind 秒（精英减半，Boss 除外）"
+        },
+        "hyst": {
+          "cond": "node:tentacle_b",
+          "hits": "$hyst_hits",
+          "below": "$hyst_below",
+          "max": "$hyst_max",
+          "_doc": "docs/202 节点 2 群体性癔症：伞击命中 ≥ hits 名时追击改为全体追击：生命低于 below 的被伞击敌人各挨一根（至多 max 根）"
+        },
+        "cling": {
+          "cond": "node:bind_drag",
+          "dur": "$cling_dur",
+          "near": 70,
+          "smash_window": "$smash_window",
+          "_doc": "docs/202 节点 4B 病理性依恋：被精一拖拽拖到身边（或本来就在 near 内）的敌人缠住 dur 秒，水月移动时带着走（精英减半，Boss 除外）"
+        },
+        "smash": {
+          "cond": "node:bind_drag2",
+          "mult": "$smash_mult",
+          "_doc": "docs/202 节点 5B 病理性依恋·重斩：被缠住的敌人 smash_window 秒内下一次伞击 × mult，消耗一次"
         },
         "pull": {
           "cond": "elite >= 1",
@@ -820,18 +849,14 @@
     ],
     "progression": {
       "tentacle_a": {
-        "verb": "buff_self",
-        "stat": "mizuki_tentacle_targets",
-        "op": "flat",
-        "value": 1,
-        "_doc": "强迫性重复：追击目标 +1"
+        "trig": "passive",
+        "do": [],
+        "_doc": "强迫性重复（docs/202）：写在 attack.tentacle.repeat（cond node:tentacle_a）"
       },
       "tentacle_b": {
-        "verb": "buff_self",
-        "stat": "mizuki_tentacle_targets",
-        "op": "flat",
-        "value": 1,
-        "_doc": "群体性癔症：追击目标 +1"
+        "trig": "passive",
+        "do": [],
+        "_doc": "群体性癔症（docs/202）：写在 attack.tentacle.hyst（cond node:tentacle_b）"
       },
       "awaken_burst": {
         "trig": "passive",
@@ -841,7 +866,7 @@
       "bind_drag": {
         "trig": "passive",
         "do": [],
-        "_doc": "囚徒·缚：写在 attack.tentacle.drag（cond node:bind_drag）"
+        "_doc": "病理性依恋（docs/202）：写在 attack.tentacle.cling（cond node:bind_drag）"
       },
       "elite1": {
         "trig": "passive",
@@ -875,31 +900,9 @@
         ]
       },
       "bind_drag2": {
-        "trig": "tick",
-        "every": 1.0,
-        "cond": "skill_active:1",
-        "_doc": "病理性依恋·缠缚（路线 bind 节点 5）",
-        "do": [
-          {
-            "shape": "circle",
-            "center": "self",
-            "r": "$swing_skill",
-            "atk_key": "umbrella_dmg",
-            "mult": "$bind2_mult",
-            "power": true,
-            "src": "触手",
-            "tags": [
-              "skill",
-              "dot"
-            ],
-            "on_hit": [
-              {
-                "st": "slow",
-                "dur": "$bind2_slow"
-              }
-            ]
-          }
-        ]
+        "trig": "passive",
+        "do": [],
+        "_doc": "病理性依恋·重斩（路线 bind 节点 5，docs/202）：写在 attack.tentacle.smash（cond node:bind_drag2）"
       }
     },
     "response": [
