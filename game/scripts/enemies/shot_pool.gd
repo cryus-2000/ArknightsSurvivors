@@ -148,6 +148,7 @@ func _final_speed(b: Dictionary) -> void:
 	var sub := str(b.get("izu", b.get("motion", b.get("tier", ""))))
 	var base := "boss/spd_%s_%s" % [str(fb.type), kind]
 	var k: float = Bal.v(base + "_" + sub, Bal.v(base, 1.0)) if sub != "" else Bal.v(base, 1.0)
+	k *= Bal.v("boss/spd_all_k_" + str(fb.type), 1.0)   # 10-29 docs/201 §7：三档整体再上调
 	if b.get("home", false):
 		k = minf(k, Bal.v("boss/spd_home_cap", 1.3))
 	if is_equal_approx(k, 1.0):

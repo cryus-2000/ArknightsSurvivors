@@ -55,7 +55,7 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	base.hit_range = "近战" if shape == "cone" or str(d.get("skin", "")) == "spear" else "远程"
 	var w: Dictionary = g.tele.warn(e, shape, dur, base)
 	e.wind = maxf(e.wind, w.dur)
-	e.cdt = maxf(e.cdt, w.dur + 0.7)
+	e.cdt = maxf(e.cdt, w.dur + 0.7 * Bal.v("boss/tempo_k_" + str(e.type), 1.0))
 	g.bai.claim_token(e, g.t + w.dur + 0.7)
 	return w
 
