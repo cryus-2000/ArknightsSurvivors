@@ -24,6 +24,11 @@ CLIPS = {
     "s_cover": ("skadi", "hoshiguma", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：掩护·星熊
     "combo2": ("skadi", "gladiia,ulpianus", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),   # 深海猎人：组合升级自动接（两人同框条带）   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
 }
+# 20 人终结技各一段（u_<干员>）：队长 + 两名不同的队友，0:31.5 充满放出（录像口径同上）
+_ALL20 = "angelina exusiai eyjafjalla gladiia hoshiguma irene kaltsit lappland logos lumen mizuki saria siege skadi skalter specter_unchained suzuran texas ulpianus wisadel".split()
+for _op in _ALL20:
+    _mates = [m for m in ["saria", "exusiai", "lappland"] if m != _op][:2]
+    CLIPS["u_" + _op] = (_op, ",".join(_mates), [])
 ap = argparse.ArgumentParser()
 ap.add_argument("--clips", default=",".join(CLIPS)); ap.add_argument("--at", type=float, default=30.0); ap.add_argument("--secs", type=float, default=14.0)
 ap.add_argument("--tag", default="now"); ap.add_argument("--jobs", type=int, default=3); ap.add_argument("--extra", default="")
