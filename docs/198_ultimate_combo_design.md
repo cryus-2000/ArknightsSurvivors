@@ -555,7 +555,7 @@
 
 ## 8. Codex 特效单（第一批 5 人）
 
-惯例：Claude 写单，Codex 只交分层素材（`_back` / `_front` / `_orbit`，共用原点与帧号；不改 `game/`），交 1x + @2x + manifest + handoff；Claude 验收接入。程序画得好的部分（冲击环、震屏、刀痕直线、锁定框）由 Claude 自己画，不进单子。
+惯例：Claude 写单，Codex 只交分层素材（`_back` / `_front` / `_orbit`，共用原点与帧号；不改 `game/`），只交 @2x（表中帧尺寸为 1x 逻辑尺寸）+ manifest + handoff；正式单见 art/incoming/ult_batch1_1029/codex_order.md；Claude 验收接入。程序画得好的部分（冲击环、震屏、刀痕直线、锁定框）由 Claude 自己画，不进单子。
 
 | 文件 | 用途 | 帧 / fps | 帧尺寸（1x） | 原点 | 层 | 何时播 |
 |---|---|---|---|---|---|---|
