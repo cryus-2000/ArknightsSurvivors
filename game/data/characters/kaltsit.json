@@ -696,8 +696,8 @@
     "melt": {
      "id": "melt_triple2",
      "name": "不毁重构·余焰",
-     "icon": "skill_kaltsit_s3",
-     "desc": "「指令：熔毁」连续爆炸三次后，爆心留下 {$melt4_dur} 秒熔渣：每 {$melt4_every} 秒对半径 {$melt_r} 内的敌人造成 Mon3tr 攻击 {$melt4_mult*$k_pow*100:1}% 真实伤害"
+     "icon": "skill_kaltsit_s1",
+     "desc": "「指令：结构加固」施放时 Mon3tr 重构后的三连爆之后，爆心留下 {$melt4_dur} 秒熔渣：每 {$melt4_every} 秒对半径 {$rebuild_r*1.5:0} 内的敌人造成 Mon3tr 攻击 {$melt4_mult*$k_pow*100:1}% 真实伤害；精英二后「指令：熔毁」三连爆之后同样留下熔渣（半径 {$melt_r}）"
     }
    }
   },
@@ -2906,7 +2906,39 @@
      }
     ]
    },
-   "melt_triple2": {
+   "melt_triple2": [
+   {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "at": "summon:mon3tr",
+    "delay": "$melt_echo_gap*3",
+    "_doc": "不毁重构·余焰（路线 melt 节点 5）：结构加固的三连爆后爆心留熔渣（精一即生效）",
+    "do": [
+     {
+      "verb": "field",
+      "center": "target",
+      "r": "$rebuild_r*1.5",
+      "dur": "$melt4_dur",
+      "every": "$melt4_every",
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$rebuild_r*1.5",
+        "atk_key": "m_atk",
+        "mult": "$melt4_mult",
+        "power": true,
+        "src": "Mon3tr · 熔毁",
+        "tags": [
+         "skill",
+         "dot"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
     "trig": "on_skill_end",
     "skill": 2,
     "at": "summon:mon3tr",
@@ -2937,6 +2969,7 @@
      }
     ]
    }
+   ]
   },
   "response": [
    {
