@@ -2,7 +2,6 @@ extends RefCounted
 ## Solid magma projectiles: stable crust, short directional flame, compressed landing.
 
 const A = preload("res://scripts/art.gd")
-const BalM = preload("res://scripts/core/balance.gd")
 const CRUST := Color(0.18, 0.09, 0.07)
 const HOT := Color(1.0, 0.43, 0.08)
 
@@ -42,7 +41,7 @@ static func draw(o, p: Vector2, direction: Vector2, size: float, age: float, spi
 			o.cv.draw_line(_snap(xf * crack[i]), _snap(xf * crack[i + 1]), Color(1.0, 0.72, 0.28, dim), 2.0)
 
 static func impact(o, p: Vector2, radius: float, size: float) -> void:
-	if material_on(o) and BalM.v("fx/eyja_grains", 0.0) > 0.0:   # 落点岩屑（docs/138 §14）：带重力的熔岩碎块颗粒 + 短灯
+	if material_on(o):   # 落点岩屑（docs/138 §14）：带重力的熔岩碎块颗粒 + 短灯
 		var gr = o.g.optical.grains
 		for k in 10:
 			gr.push("lava", p + Vector2(0, -4), Vector2.from_angle(-PI * 0.5 + (float(k) / 9.0 - 0.5) * 2.4), HOT)
@@ -61,7 +60,7 @@ static func fireball_impact(o, p: Vector2, radius: float, size: float) -> void:
 ## 有 Codex 帧条 fx_eyja_ignite_hit（单子见 art/incoming/codex_order_eyja_handoff.md）时炸开用它，否则用旧 fx_eyja_ignite_boom 占位
 static func ignite_hit(o, p: Vector2, radius: float, size: float) -> void:
 	var r: float = clampf(radius * 0.5, 18.0, 40.0) * sqrt(size)
-	if material_on(o) and BalM.v("fx/eyja_s2_v2", 0.0) > 0.0:
+	if material_on(o):
 		r = clampf(radius * 0.55, 18.0, 56.0) * sqrt(size)   # S2 改版（docs/138 §14）：爆炸画面跟伤害范围走（原来封顶 40，伤害半径约 94）
 	var material := false
 	if material_on(o):

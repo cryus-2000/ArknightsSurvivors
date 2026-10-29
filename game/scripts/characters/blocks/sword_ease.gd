@@ -13,10 +13,8 @@ const KEYS := ["k", "glide", "stretch", "bright", "ghost", "pause"]
 const DEF := {"k": 3.0, "glide": 0.2, "stretch": 0.35, "bright": 0.45, "ghost": 2.0, "pause": 0.025}
 
 
-## 这一道刀波的曲线参数；空字典 = 匀速（总开关 sword_ease/on 为 0、积木写 "ease": 0、或浪墙没写 ease）
+## 这一道刀波的曲线参数；空字典 = 匀速（积木写 "ease": 0、或浪墙没写 ease）
 static func cfg(op_id: String, b: Dictionary, default_on: bool, style := "") -> Dictionary:
-	if Bal.v("sword_ease/on", 1.0) <= 0.0:
-		return {}
 	var be = b.get("ease", null)
 	if be == null and not default_on:
 		return {}

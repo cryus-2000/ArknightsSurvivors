@@ -50,9 +50,7 @@ func price_mult() -> float:
 	var visit: int = clampi(g.merchant_idx, 1, 3)
 	var wave: float = [1.0, Bal.v("shop/second_visit_mult", 1.5), Bal.v("shop/third_visit_mult", 2.0)][visit - 1]
 	var bought: int = trader_buys if trader else int(g.merchant.get("purchases", 0))
-	# 翻节点卡「诡意行商」（docs/154）：这位商人第一件打折（没买过时全部按折扣价，买一件后照常重算）
-	var disc: float = float(g.endg.deck_cfg.get("shop_disc", 0.7)) if g.merchant_idx == g.endg.shop_visit and bought == 0 else 1.0
-	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2)) * disc
+	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2))
 
 
 ## 商店抬头的涨价说明（跟旋钮走，不写死）
@@ -108,7 +106,7 @@ func roll(first := false) -> void:
 		var ml: String = g.endg.main_lane()
 		var on_lane: Array = pool.filter(func(id): return (g.RL[id].get("lanes", []) as Array).has(ml)).slice(0, 2)
 		pool = on_lane + pool.filter(func(id): return not on_lane.has(id))
-	var slots: int = 3 + (int(g.endg.deck_cfg.get("shop_extra", 1)) if g.merchant_idx == g.endg.shop_visit else 0)   # 诡意行商卡：货架 +1（docs/154）
+	var slots: int = 3
 	for i in min(slots, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
 		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "full": g.rfx.display_desc(pool[i], true), "price": g.rfx.db.price(pool[i], relic_mult()), "sold": false})

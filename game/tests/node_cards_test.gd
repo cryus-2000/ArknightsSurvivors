@@ -2,7 +2,7 @@ extends Node
 ## 翻节点卡（docs/154 §6，取代海嗣祭坛）：
 ## 1 同 seed 两次卡组相同；2 路口一必出狂徒妄念与开端、路口二持信物必出对应后续卡（1000 个 seed）；3 首通前（玩家局）不开启；
 ## 4 互斥：路口一走了开端，路口二不出骑士仍在；5 结局判定只看信物、按优先级，灯火 0 / 100 不变；6 升华三句任意灯火都可选；
-## 7 最晚时刻：中 Boss 不死时 6:30 / 8:40 照样弹，之后没有商人时诡意行商给源石锭；8 升级面板开着时到点，路口卡等它关掉再弹
+## 7 最晚时刻：中 Boss 不死时 6:30 / 8:40 照样弹，之后没有商人时诡意行商照样开店；8 升级面板开着时到点，路口卡等它关掉再弹
 var game: Node
 var frames := 0
 var fails := 0
@@ -113,7 +113,7 @@ func _process(_dt: float) -> void:
 		check(ok_n == 3, "ascend: all three answers selectable at lamp %d (got %d)" % [int(lamp), ok_n])
 	game.panel.visible = false
 	game.state = game.S.PLAY
-	# 7 最晚时刻：中 Boss 一直活着，6:30 / 8:40 照样弹；8:40 时已无后续商人 → 诡意行商给源石锭
+	# 7 最晚时刻：中 Boss 一直活着，6:30 / 8:40 照样弹；8:40 时已无后续商人 → 诡意行商照样进一次商店
 	_reset_relics()
 	E.cross_done = 0
 	E.cross_due = 0
@@ -139,16 +139,12 @@ func _process(_dt: float) -> void:
 	check(game.state == game.S.CHOICE and E.cross_done == 2, "crossroad 2 forced at 8:40")
 	E.deck = [{"type": "shop", "must": false, "ends": []}]
 	E.flipped = -1
-	var ing0: int = game.ingots
 	E.flip(0)
-	if E.redesign:
-		game.bosses = []   # 上面造的假中 Boss 没有 type，关店横幅会读它
-		# 事件改版（用户 10-28）：诡意行商 = 进一次商店，最后一位商人之后照样能开；关店回战斗
-		check(game.state == game.S.SHOP and game.shop_sys.trader, "trader card opens a shop visit even after the last merchant")
-		game.shop_sys.close()
-		check(game.state == game.S.PLAY and not game.shop_sys.trader, "closing the trader shop returns to battle")
-	else:
-		check(game.ingots > ing0 and game.state == game.S.PLAY, "trader card after the last merchant gives ingots (%d -> %d)" % [ing0, game.ingots])
+	game.bosses = []   # 上面造的假中 Boss 没有 type，关店横幅会读它
+	# 事件改版（用户 10-28）：诡意行商 = 进一次商店，最后一位商人之后照样能开；关店回战斗
+	check(game.state == game.S.SHOP and game.shop_sys.trader, "trader card opens a shop visit even after the last merchant")
+	game.shop_sys.close()
+	check(game.state == game.S.PLAY and not game.shop_sys.trader, "closing the trader shop returns to battle")
 	# 8 升级面板开着时到点：等它关掉再弹
 	E.cross_done = 0
 	E.cross_due = 0

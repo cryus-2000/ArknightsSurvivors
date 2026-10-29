@@ -1039,19 +1039,17 @@ func _ready() -> void:
 	add_child(knight_light)
 
 	lamp_light = PointLight2D.new()
-	lamp_light.texture = tex.light
-	if Bal.v("render/lamp_readable", 0.0) > 0.0:
-		# 可读灯圈（Codex 10-24 草稿，用户 10-24 定缺省开）：70% 半径内固定光强，圈缘降到余光 render/lamp_readable_tail，
-		# 余光再延到 world.LAMP_READ_EXT 倍半径才归零（用户 10-24：圈外别全黑）；贴图覆盖的是延长后的半径
-		var tail: float = Bal.v("render/lamp_readable_tail", 0.22)
-		var ext: float = WorldView.LAMP_READ_EXT
-		var lamp_image := Image.create(128, 128, false, Image.FORMAT_RGBA8)
-		for ly in 128:
-			for lx in 128:
-				var ld := Vector2(lx - 63.5, ly - 63.5).length() / 64.0 * ext   # 以灯半径为 1
-				var la: float = lerpf(0.65, tail, smoothstep(0.70, 1.0, ld)) if ld < 1.0 else tail * (1.0 - smoothstep(1.0, ext, ld))
-				lamp_image.set_pixel(lx, ly, Color(1, 1, 1, la))
-		lamp_light.texture = ImageTexture.create_from_image(lamp_image)
+	# 可读灯圈（Codex 10-24 草稿，用户 10-24 定；旧开关 render/lamp_readable 与径向渐变旧灯光 10-29 已删）：70% 半径内固定光强，
+	# 圈缘降到余光 render/lamp_readable_tail，余光再延到 world.LAMP_READ_EXT 倍半径才归零（用户 10-24：圈外别全黑）；贴图覆盖的是延长后的半径
+	var tail: float = Bal.v("render/lamp_readable_tail", 0.22)
+	var ext: float = WorldView.LAMP_READ_EXT
+	var lamp_image := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	for ly in 128:
+		for lx in 128:
+			var ld := Vector2(lx - 63.5, ly - 63.5).length() / 64.0 * ext   # 以灯半径为 1
+			var la: float = lerpf(0.65, tail, smoothstep(0.70, 1.0, ld)) if ld < 1.0 else tail * (1.0 - smoothstep(1.0, ext, ld))
+			lamp_image.set_pixel(lx, ly, Color(1, 1, 1, la))
+	lamp_light.texture = ImageTexture.create_from_image(lamp_image)
 	lamp_light.color = Color(1.0, 0.86, 0.62)
 	lamp_light.energy = 1.15
 	lamp_light.height = 90.0

@@ -128,10 +128,10 @@ func recruit_cards() -> Array:
 
 
 ## 更换队友卡（用户 10-13 批准）：编队满员后，招募卡照常按原概率出现，选中后进「更换队友」画面（open_swap），可以「不替换」。
-## 候选同 recruit_cards（未在队、允许招募），带 swap = true。levelup/swap_offer = 0 关（满员后不再出招募卡，同改前）
+## 候选同 recruit_cards（未在队、允许招募），带 swap = true。
 func swap_cards() -> Array:
 	var opts: Array = []
-	if not g.squad.is_full() or Bal.vi("levelup/swap_offer", 1) == 0 or (g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--norecruit")):
+	if not g.squad.is_full() or (g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--norecruit")):
 		return opts
 	if not g.squad.ops.any(func(o): return not o.is_leader):
 		return opts
@@ -205,7 +205,7 @@ func open_levelup() -> void:
 	if recruit.is_empty():
 		recruit = swap_cards()
 		chance = Bal.v("levelup/swap_chance_late", 0.12) if g.t >= Bal.v("levelup/swap_late_t", 420.0) else Bal.v("levelup/swap_chance", 0.25)
-		can_offer = Bal.vi("levelup/swap_keep_growth", 1) == 0 or picks.size() < want - 1
+		can_offer = picks.size() < want - 1
 	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and can_offer and g.rng.randf() < chance:
 		picks.append(recruit[g.rng.randi() % recruit.size()])
 	# ---- 生存 / 机动 / 协同被动：种类上限 生存 4、机动 levelup/mobility_kinds（3）、协同 4（docs/83）
@@ -458,8 +458,6 @@ func cancel_swap() -> void:
 
 ## 干员定义里的分支节点（节点 4）及其下标；没有返回 [{}, -1]
 static func branch_node_of(def: Dictionary) -> Array:
-	if not Character.branch_on():
-		return [{}, -1]
 	var pg: Array = def.get("progression", [])
 	for k in pg.size():
 		if pg[k] is Dictionary and pg[k].get("branch", null) is Dictionary and not (pg[k].branch as Dictionary).is_empty():

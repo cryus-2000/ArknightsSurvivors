@@ -10,7 +10,7 @@ extends Node2D
 
 const Bal = preload("res://scripts/core/balance.gd")
 # 形状颗粒化（10-24 用户「斯卡蒂的那个能不能根据形状改成粒子的」，docs/138 §13）：这些帧条不画贴图，每换一帧按这一帧的
-# 可见像素在 2 px 世界格上生成颗粒（刀光模板：热白 → 本色冷却散开），形状由颗粒拼出来。开关 fx/grain_body
+# 可见像素在 2 px 世界格上生成颗粒（刀光模板：热白 → 本色冷却散开），形状由颗粒拼出来（10-29 起常开，旧开关 fx/grain_body 已删；低画质 / 关光学观感时随 on() 关）
 const GRAIN_BODY := {"fx_slash_heavy_deep": true}
 
 const TEMPLATES := {
@@ -165,17 +165,16 @@ func on() -> bool:
 	return level > 0 and not kill and g != null and (g.optical_on or Cfg.quality == "low") and _k_grains
 
 
-## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
+## 材质颗粒（10-24 起常开，旧开关 fx/material_grains 10-29 已删；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
 func material_on() -> bool:
-	return on() and not off and not mat_off and _k_mat
+	return on() and not off and not mat_off
 
 
-## fx/grains、fx/material_grains 每帧读一次（on() 每帧被调十几次；docs/50 §26）
+## fx/grains 每帧读一次（on() 每帧被调十几次；docs/50 §26）
 var _k_frame := -1
 var low_k := 1.0
 var _low_acc := 0.0
 var _k_grains := true
-var _k_mat := false
 func _knobs() -> void:
 	var fr: int = Engine.get_process_frames()
 	if fr == _k_frame:
@@ -190,7 +189,6 @@ func _knobs() -> void:
 	low_k = clampf(Bal.v("render/low_grains", 0.4), 0.0, 1.0) if Cfg.quality == "low" else 1.0
 	_k_frame = fr
 	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
-	_k_mat = Bal.v("fx/material_grains", 0.0) > 0.0
 
 
 func budget() -> int:
@@ -536,7 +534,7 @@ func _lappland_step() -> void:
 ## 形状颗粒化（GRAIN_BODY）：world 画 "sprite" 前调。返回 true = 这一帧由颗粒负责、不画贴图；
 ## 预算不够整帧颗粒时返回 false，照原样画贴图（不会出现半个形状）
 func body_frame(f: Dictionary, fr: int, frames: int) -> bool:
-	if not on() or off or f.get("gb_skip", false) or Bal.v("fx/grain_body", 0.0) <= 0.0 or not GRAIN_BODY.has(str(f.name)):
+	if not on() or off or f.get("gb_skip", false) or not GRAIN_BODY.has(str(f.name)):
 		return false
 	if int(f.get("gb_fr", -1)) == fr:
 		return bool(f.get("gb_ok", false))

@@ -664,7 +664,7 @@ func blink_fx(o, dst: Vector2) -> void:
 ## 突击 / 归队语音（10-22 用户确认）：队长优先、按编队轮换；非突击型随从与倒地干员不回应。
 ## 突击播已确认的 *_command 短回应，归队仍播 *_entry；队长不受职业是否突击的限制。
 ## 走 Sfx 语音通道（占线放弃、每人 15 秒间隔、整体 3 秒间隔照旧），另按 command/voice_gap 节流，连按不刷屏。纯声音，不碰玩法状态
-## 10-28 起缺省走合唱（command/voice_mode 1）：出击队友各自开口、错开 voice_stagger 秒，见 sfx.voice_chorus、docs/114 §20.3
+## 10-28 起走合唱：出击队友各自开口、错开 voice_stagger 秒，见 sfx.voice_chorus、docs/114 §20.3
 var _vo_i := 0
 var _vo_t := -999.0
 
@@ -683,21 +683,17 @@ func _stance_voice(s: int, shout := false) -> void:
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	var key := "command"
-	# 合唱（10-28 用户「两名队友的台词可以交替或一起喊」）：command/voice_mode 0 = 旧口径（按编队轮换只一人开口）；
-	# 1 = 交替（缺省）：轮换谁先开口，其余依次晚 voice_stagger 秒（0.4），允许尾部重叠；2 = 同时开口。重叠时每条压 voice_duck_db
-	var mode: int = int(Bal.v("command/voice_mode", 1.0))
+	# 合唱（10-28 用户「两名队友的台词可以交替或一起喊」）：交替——轮换谁先开口，其余依次晚 voice_stagger 秒（0.4），
+	# 允许尾部重叠；重叠时每条压 voice_duck_db
 	var first: int = _vo_i % order.size()
-	var who: Array = [order[first]] if mode <= 0 else order.slice(first) + order.slice(0, first)
+	var who: Array = order.slice(first) + order.slice(0, first)
 	_vo_i += 1
 	_vo_t = g.t
 	var fallback := false
 	for i in who.size():
 		var o = who[i]
 		if sfx != null:
-			if mode <= 0:
-				sfx.voice(o.id, key, false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
-			else:
-				sfx.voice_chorus(o.id, key, 0.0 if mode >= 2 else i * Bal.v("command/voice_stagger", 0.4), Bal.v("command/voice_duck_db", -3.0))
+			sfx.voice_chorus(o.id, key, i * Bal.v("command/voice_stagger", 0.4), Bal.v("command/voice_duck_db", -3.0))
 		if shout and o.pos != Vector2.INF:
 			# 爆发窗口喊话（10-24）：头顶短字「出击」；这名干员没有对应语音素材就补一声通用音效（一次喊话只补一声）
 			if g.get("vfx") != null:

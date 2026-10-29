@@ -17,7 +17,7 @@ const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落�
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
-const LAMP_READ_EXT := 1.6   # 可读灯圈（render/lamp_readable）：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
+const LAMP_READ_EXT := 1.6   # 可读灯圈：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
 const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -109,10 +109,10 @@ var dc_checked := 0               # --dccheck 实际比对的次数（BALANCE pr
 var _rec = null                   # --dccheck 比对时：贴图绘制只记参数、不画
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
-## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
+## 会被降透明度的友方特效种类（敌方的 rift / bbeam、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
 const FOE_KINDS := ["boss_phase", "boss_down", "spear_fly", "frost_track", "frost_step", "reflow", "glint", "drain"]   # 没打 enemy 标记的敌方 / Boss 特效（量测分层用）
-const AMB_KINDS := ["mote", "horde_ring", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
+const AMB_KINDS := ["mote", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane"}
 ## 水月旧主角动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
 ## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。帧为正方形，画布 48 或 64（docs/103 §5），
@@ -194,20 +194,14 @@ func update_visuals(dt: float) -> void:
 		if _kick_t <= 0.0:
 			_kick_px = 0
 	g.cam.offset = cam_kick.round() + kick_off
-	# 灯火光源：半径随灯火变化，快熄灭时闪烁
+	# 灯火光源：可读灯圈（10-24 用户定；旧开关 render/lamp_readable 与闪烁 / 低灯变红的旧灯光 10-29 已删）——
+	# 圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
 	if g.state == Game.S.DEAD:
 		radius *= 1.0 - clampf(g.state_age / Game.HudView.DEATH_LAMP_T, 0.0, 1.0)   # 倒下过渡：灯火熄灭（hud.draw_death_transition）
-	var flicker := 1.0 + sin(g.t * 13.0) * 0.02 + sin(g.t * 7.3) * 0.03
-	if g.lamp < 30.0:
-		flicker += sin(g.t * 23.0) * 0.06
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
-	g.lamp_light.texture_scale = radius / 64.0 * flicker
-	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
-	if Bal.v("render/lamp_readable", 0.0) > 0.0:
-		# 可读灯圈（缺省开，balance render/lamp_readable）：圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
-		g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
-		g.lamp_light.color = Color(1.0, 0.98, 0.94)
+	g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
+	g.lamp_light.color = Color(1.0, 0.98, 0.94)
 	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
 	if g.knight_light != null:
 		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"
@@ -435,7 +429,7 @@ func draw_world() -> void:
 func _draw_mires() -> void:
 	var mvr: Rect2 = view_rect(40.0)
 	var bubbles: Array = []
-	var mote_budget: int = MIRE_MOTE_MAX if g.vfx.ambient_ok() and g.vfx.on("mire_motes") else 0   # docs/54 溟痕光尘（高画质、非触屏）
+	var mote_budget: int = MIRE_MOTE_MAX if g.vfx.ambient_ok() and g.vfx._kv("mire_motes", 3.0) > 0.0 else 0   # docs/54 溟痕光尘（高画质、非触屏）
 	var vr0: Rect2 = view_rect(4.0)
 	for m in g.mires:
 		# 屏幕外的溟痕不画（性能，docs/50 §11；贴图 ±1.15 r、判定圈 r + 0.75，外扩到 1.2 r 再加 4 像素，屏幕内画面不变）
@@ -1292,8 +1286,9 @@ func _draw_fx() -> void:
 		if f.kind == "kp_beam":
 			BossBeam.draw(g, f)   # Boss 激光（Kanpelle 帧条，docs/142b §8.5）；缺图不画（结算伤害不受影响）
 			continue
-		if (f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer") and LaserDraw.draw(g, f, a):
-			continue   # 激光改版原型（fx/laser_style，缺省 0 = 原画法，docs/138 §12）
+		if f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer":
+			LaserDraw.draw(g, f, a)   # 激光 A 像素光束（docs/138 §12；旧开关 fx/laser_style 与原画法已删）
+			continue
 		match f.kind:
 			"leave_jump":   # 队友离队 / 换人：原地一蹲后向上跳出屏幕（squad._leave_fx，10-22）
 				var jt: float = (f.max - f.life) / f.max
@@ -1628,10 +1623,6 @@ func _draw_fx() -> void:
 					g.draw_circle(bead, 3.5, Color(1.6, 2.4, 2.5, 0.8 * a))
 				g.draw_arc(f.a, 14.0, 0.0, TAU, 20, Color(c.r, c.g, c.b, a), 2.0)
 				g.draw_arc(f.b, 14.0, 0.0, TAU, 20, Color(c.r, c.g, c.b, a), 2.0)
-			"beam":
-				var c: Color = f.col
-				g.draw_line(f.a, f.b, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.35 * a), f.w * 3.0)
-				g.draw_line(f.a, f.b, Color(2.5, 2.5, 2.5, a), f.w * 0.6)
 			"rift":
 				# 地面裂隙（触手 / 巨触出现前的预警）
 				var k := 1.0 - a
@@ -1724,22 +1715,6 @@ func _draw_fx() -> void:
 				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
 				g.draw_arc(Vector2.ZERO, f.r * (0.3 + 0.7 * k), 0.0, TAU, 32, Color(c.r * 1.8, c.g * 1.6, c.b * 1.2, a * 0.8), 4.0)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			"tracer":
-				# 狙击 / 裁决弹道
-				var c: Color = f.col
-				g.draw_line(f.a, f.b, Color(c.r * 1.5, c.g * 1.5, c.b * 1.2, 0.35 * a), f.wid * 2.0 * a + 2.0)
-				g.draw_line(f.a, f.b, Color(2.6, 2.4, 2.0, a), 2.0)
-			"bbeam":
-				# 偏执凝视：粗光束
-				var c: Color = f.col
-				var k := 1.0 - a
-				var wd: float = f.wid * 2.0 * (0.4 + 0.6 * a) + 6.0 * sin(g.t * 40.0)
-				g.draw_line(f.a, f.b, Color(c.r * 1.2, c.g * 0.8, c.b * 1.6, 0.45 * a), wd * 1.6)
-				g.draw_line(f.a, f.b, Color(c.r * 2.0, c.g * 1.4, c.b * 2.4, 0.8 * a), wd)
-				g.draw_line(f.a, f.b, Color(2.6, 2.2, 2.8, a), wd * 0.3)
-				for q in 6:
-					var pp: Vector2 = f.a.lerp(f.b, (q + 0.5) / 6.0 + k * 0.1)
-					g.draw_circle(pp, 5.0 + 4.0 * sin(g.t * 30.0 + q), Color(2.0, 1.6, 2.6, 0.6 * a))
 			"bslash":
 				# 横扫：宽弧刀光
 				var c: Color = f.col
@@ -1810,17 +1785,6 @@ func _draw_fx() -> void:
 					var dv := Vector2.from_angle(q * TAU / 16.0 + k * 0.6)
 					var r0 := 30.0 + 200.0 * k
 					g.draw_line(f.pos + dv * r0, f.pos + dv * (r0 + 60.0 * a + 20.0), Color(c.r * 2.2, c.g * 2.2, c.b * 2.2, a), 3.0)
-			"horde_ring":
-				# 大群压迫波：从视野外向水月收缩
-				var k := 1.0 - a
-				var rr: float = lerpf(f.r, 170.0, k * k)
-				var c: Color = f.col
-				g.draw_arc(f.pos, rr, 0.0, TAU, 64, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.8 * a), 10.0)
-				g.draw_arc(f.pos, rr + 18.0, 0.0, TAU, 64, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.3 * a), 5.0)
-				for j in 24:
-					var ang := TAU * j / 24.0 + g.t * 0.5
-					var p0: Vector2 = f.pos + Vector2.from_angle(ang) * rr
-					g.draw_line(p0, p0 + Vector2.from_angle(ang) * 40.0 * a, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.5 * a), 2.0)
 			"slash":
 				var nf: int = f.get("frames", 4)
 				var fr := clampi(int((1.0 - a) * float(nf)), 0, nf - 1)
@@ -1833,12 +1797,10 @@ func _draw_fx() -> void:
 
 
 ## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
-## Boss 弹画原图弹体（optical._eb_step 把杂兵弹换成青蓝色相时，原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）：
-## 不是染色，只是「不被杂兵的青蓝换色波及」——Boss 弹的本体颜色交给 Boss 会话（专属贴图 / b.col，docs/142b）
+## Boss 弹画灰度弹体再乘专属色（_eb_gray 从原图做：optical._eb_step 把杂兵弹换成青蓝色相时，原图留在 g.tex[名 + "@boss"]；
+## docs/139 §7.3、docs/142b §8.4；旧开关 render/ebullet_boss_own 10-29 已删）
 func _eb_tex(b: Dictionary, nm: String) -> String:
-	if b.get("boss", false) and _eb_own():
-		return _eb_gray(nm)
-	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") else nm
+	return _eb_gray(nm) if b.get("boss", false) else nm
 
 
 ## 敌弹画在哪：脚下 16 像素上方；Boss 弹再加一点垂直于飞行方向的轻摆（±2，按所在位置错相——同一圈弹各摆各的，飞起来是一条条细波，不是整片平移）。只画面
@@ -1858,14 +1820,10 @@ func _eb_pulse(b: Dictionary) -> float:
 	return 1.0 + 0.14 * sin(g.t * 13.0 + (b.pos.x - b.pos.y) * 0.05)
 
 
-## Boss 弹体用专属色（docs/142b §8.4，协调人 10-25；不加危险色外圈，用户 10-25「描边不要加」）：render/ebullet_boss_own 1 = 开
-func _eb_own() -> bool:
-	return Bal.v("render/ebullet_boss_own", 1.0) > 0.0
-
-
-## Boss 弹体的调色：专属色 × 1.1（只略提亮：再高光学辉光一叠色相就偏，炮火橙会变黄）；不是 Boss 弹 / 关掉时用 base
+## Boss 弹体的调色：专属色 × 1.1（只略提亮：再高光学辉光一叠色相就偏，炮火橙会变黄；docs/142b §8.4，不加危险色外圈，
+## 用户 10-25「描边不要加」）；不是 Boss 弹时用 base
 func _eb_mod(b: Dictionary, base: Color) -> Color:
-	if not (b.get("boss", false) and _eb_own()):
+	if not b.get("boss", false):
 		return base
 	if b.has("bcol"):
 		return b.bcol   # 弹自带弹芯色（伊莎玛拉按幕换色，docs/170 §15）
@@ -1876,7 +1834,7 @@ func _eb_mod(b: Dictionary, base: Color) -> Color:
 
 ## Boss 弹的同色系外描边（enemies.json bcol_outline，目前只伊比利亚，用户 10-25「描边要同调、有层次」）：压在亮边外侧、2 世界像素（1 个低分辨率格）、不闪
 func _eb_boss_outline(b: Dictionary, bp: Vector2, br := -1.0) -> void:
-	if not (b.get("boss", false) and _eb_own()):
+	if not b.get("boss", false):
 		return
 	var oc = D.ENEMIES.get(str(b.get("src_type", "")), {}).get("bcol_outline")
 	if oc is Color:
@@ -1989,7 +1947,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 			tb_circle(bp, float(b.core_r) * vk, b.get("core_col", Color(1.8, 1.7, 1.5)))   # 弹体分级：大弹发光核心（圣徒符卡，docs/171）
 		if g.optical_on:
 			var ebc: Color = g.optical.eb_col(b)
-			var bk: float = 1.3 if b.get("boss", false) and _eb_own() else 2.0   # Boss 弹专属色亮描边只提到 ×1.3（×2 叠辉光后色相偏）
+			var bk: float = 1.3 if b.get("boss", false) else 2.0   # Boss 弹专属色亮描边只提到 ×1.3（×2 叠辉光后色相偏）
 			tb_ring(bp, br + 2.0, 1.5, Color(ebc.r * bk, ebc.g * bk, ebc.b * bk, 0.9))   # 亮描边改敌弹色（原亮洋红）；Boss 弹 = 专属色
 			var ow: float = eb_ow
 			if ow > 0.0:
@@ -1999,7 +1957,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 			_eb_boss_outline(b, bp, br)
 			if bfx_grains != null and b.get("boss", false) and g.vrng.randf() < 0.08 and BossBeam.take(g, 1) > 0:
 				bfx_grains.push("mote_shed", bp, -b.vel.normalized(), ebc)   # 沿途散颗粒（拖尾之外的「活」，走预算）
-		elif b.get("boss", false) and _eb_own():
+		elif b.get("boss", false):
 			var bc: Color = g.vfx.boss_color(str(b.get("src_type", "")))
 			tb_ring(bp, br + 2.0, 1.5, Color(bc.r * 1.3, bc.g * 1.3, bc.b * 1.3, 0.9))   # Boss 弹亮描边 = 专属色（不加危险色外圈，用户 10-25「描边不要加」）
 			_eb_boss_outline(b, bp, br)
@@ -2096,8 +2054,8 @@ func _draw_shock(sh: Dictionary) -> void:
 func _draw_tells_outlines() -> void:
 	if not _dbg_foe and not _dbg_tell:
 		draw_enemy_tells()
-	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；fx/first_sight 时改按首次入画起算；无贴图批，一次提交）
-	if g.vfx.on("elite_entrance"):
+	# docs/54 ④ 精英登场（按首次入画起算画 0.9 秒；无贴图批，一次提交）
+	if g.vfx.p2:
 		var elr: Rect2 = view_rect(120.0)
 		for e in (_vis_ent if _vis_on else g.enemies):
 			if e.elite and not e.boss and elr.has_point(e.pos) and g.vfx.elite_entrance_due(e):
@@ -3915,7 +3873,7 @@ func beacon_burst(b: Dictionary) -> void:
 	g.fx.append({"kind": "beacon_burst", "pos": pos, "r": float(b.get("clear_r", 260.0)), "life": 0.9, "max": 0.9})
 	g.vfx.sparks(pos + Vector2(0, -60), Vector2.ZERO, Color(1.8, 1.4, 0.7), 18, 300.0)
 	_flash(Color(1.0, 0.85, 0.55), 0.3)
-	g.vfx.beacon_ignite(b)   # docs/54：柔光 + 余烬 + 溟痕退散（fx/beacon_burst2）
+	g.vfx.beacon_ignite(b)   # docs/54：柔光 + 余烬 + 溟痕退散
 
 
 ## 最后的骑士冰柱（e.stakes = [{pos, until, born}]，判定 r 22）：冰柱帧条（没有就退回冰枪桩 / 程序长枪）+ 脚下冰霜圈；快到期（< 2 秒）时闪烁

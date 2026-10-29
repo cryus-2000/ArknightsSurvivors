@@ -431,8 +431,8 @@ func update(dt: float) -> void:
 		g.horde_gap = g.rng_spawn.randf() * TAU
 		g.horde_streams = []
 		g.horde_hunt = hunt_type
-		if not hunt_type and (due < Bal.v("enemy/close_ring_until", 0.0) or Bal.v("enemy/horde_streams", 0.0) > 0.0):
-			# 分股合围原型（docs/116 §7.2）：缺口对面 3 股，股心相隔 close_ring_spread 弧度；HUD 预警箭头只画这几个方向
+		if not hunt_type:
+			# 分股合围（docs/116 §7.2，10-22 起所有大群；围猎型除外）：缺口对面 3 股，股心相隔 close_ring_spread 弧度；HUD 预警箭头只画这几个方向
 			for i in 3:
 				g.horde_streams.append(g.horde_gap + PI + (i - 1) * deg_to_rad(Bal.v("enemy/close_ring_spread_deg", 110.0)) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
@@ -445,7 +445,7 @@ func update(dt: float) -> void:
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
 		g.vfx.shake_screen(1.4)
-		# 分股合围（docs/116 §7.2 原型，enemy/close_ring_until 秒之前的大群；缺省 0 = 关，用户 10-22 看 gif 后改：不整圈同步收）：
+		# 分股合围（docs/116 §7.2，用户 10-22 看 gif 后定：不整圈同步收；除围猎型外所有大群）：
 		# 仍从屏外刷入，分 3 股从缺口对面的不同方向先后压来（每股晚 close_ring_delay 秒出发、速度依次 +close_ring_spd），后出发的股向一侧偏 close_ring_rot 度（缺口跟着转）
 		var close_ring: bool = not g.horde_streams.is_empty()
 		g.horde_stream_rel = []
@@ -455,8 +455,6 @@ func update(dt: float) -> void:
 		var ring_r := 600.0
 		if hunt_type:
 			ring_r = clampf(_view_half_diag() * Bal.v("enemy/horde_hunt_spawn_mul", 1.15), 650.0, 1000.0)   # 围猎型：从屏外更远处合拢（离主控 1300 外的静止敌人会被清掉，夹在 1000 内）
-		if not close_ring and not hunt_type:
-			g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		# horde_grow_until 秒后只数不再随时间涨（docs/116 §9：8–9 分钟大群最大、压力堆在一处）
@@ -550,7 +548,7 @@ func _horde_leads(hl: Dictionary, early: bool, hunt_type: bool, escort: bool, ri
 	if true:
 		# 领头精英（docs/116 §7.3，用户 10-22）：每次大群 1 只（horde_elite_late_t 秒起 2 只）走在第一股前列；
 		# 占用精英计时的一个名额（next_elite 顺延一个间隔），精英总数、经验、掉箱不变
-		var ne := 0 if escort else int(Bal.v("enemy/horde_elite", 0.0))   # 护卫波不带领头（最终 Boss 战不出精英）
+		var ne := 0 if escort else 1   # 护卫波不带领头（最终 Boss 战不出精英）
 		if ne > 0 and g.t >= Bal.v("enemy/horde_elite_late_t", 420.0):
 			ne = int(Bal.v("enemy/horde_elite_late", float(ne)))
 		for k in ne:
@@ -561,7 +559,7 @@ func _horde_leads(hl: Dictionary, early: bool, hunt_type: bool, escort: bool, ri
 			var lid: String = str(leads[g.rng_spawn.randi() % leads.size()])
 			var le := spawn_enemy(pick_elite() if lid == "elite" else lid, lp)
 			le["rush"] = Bal.v("enemy/horde_rush_lead", 1.8)   # 领头跑在最前面冲进来
-			le["lead_charge"] = Bal.v("enemy/horde_lead_charge", 0.0) > 0.0   # 第一次逼近时一次带预警的冲撞（run/enemies.gd）
+			le["lead_charge"] = true   # 第一次逼近时一次带预警的冲撞（run/enemies.gd）
 			if lid == "elite":
 				# 一个精英名额平时出 1 只（威胁 ≥ 4 出 2 只、「坚决」规则再 +1）：领头精英按只数折成名额，攒满一个才顺延，精英总数不少
 				_lead_slot += 1.0 / float(1 + (1 if g.threat >= 4 else 0) + (1 if g.rfx.rule("resolve_elite") > 0 else 0))

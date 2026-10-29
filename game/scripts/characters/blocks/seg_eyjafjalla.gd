@@ -2,7 +2,6 @@
 extends "res://scripts/characters/blocks/seg_skadi.gd"
 
 const MagmaProjectile = preload("res://scripts/characters/magma_projectile.gd")
-const BalE = preload("res://scripts/core/balance.gd")
 
 const HW_LOB_MAX := 12
 
@@ -991,9 +990,9 @@ static func hw_draw_lobs(o) -> void:
 
 
 
-## S2 点燃改版（10-24 用户「二技能有点突兀」，docs/138 §14，开关 fx/eyja_s2_v2）：只对带 big_tex 的火焰弹（S2 点燃弹）
+## S2 点燃改版（10-24 用户「二技能有点突兀」，docs/138 §14；旧开关 fx/eyja_s2_v2 10-29 已删，低画质 / 关光学观感时随材质颗粒关）：只对带 big_tex 的火焰弹（S2 点燃弹）
 static func _s2v2(o, bl: Dictionary) -> bool:
-	return bl.hw_b.get("look", {}).has("big_tex") and MagmaProjectile.material_on(o) and BalE.v("fx/eyja_s2_v2", 0.0) > 0.0
+	return bl.hw_b.get("look", {}).has("big_tex") and MagmaProjectile.material_on(o)
 
 
 ## 出手那一刻在弹口迸一圈火星（起手提示）；快到寿命还没炸（落空）时原地散成一团火星 + 一盏短灯，不再凭空消失。纯画面
@@ -1012,9 +1011,9 @@ static func _s2v2_tick(o, bl: Dictionary, dt: float) -> void:
 
 
 
-## 艾雅其余特效颗粒化（10-24 用户「艾雅法拉的所有特效也需要粒子画一下」，docs/138 §14，开关 fx/eyja_grains）：颗粒池可用时返回它，否则 null（照原画法）
+## 艾雅其余特效颗粒化（10-24 用户「艾雅法拉的所有特效也需要粒子画一下」，docs/138 §14；旧开关 fx/eyja_grains 10-29 已删）：颗粒池可用时返回它，否则 null（照原画法）
 static func _eg(o):
-	return o.g.optical.grains if MagmaProjectile.material_on(o) and BalE.v("fx/eyja_grains", 0.0) > 0.0 else null
+	return o.g.optical.grains if MagmaProjectile.material_on(o) else null
 
 
 ## fx 列表里的白色软圆光（pfx kind glow，HDR 核心）换成一小圈火星 + 一盏短灯，其余条目照原样播

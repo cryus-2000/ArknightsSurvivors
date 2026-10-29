@@ -168,7 +168,7 @@ func _lappland_movie() -> void:
 
 
 ## --lasermovie（docs/138 §12 激光两个方向对照）：每 32 帧同时放三种光束（Boss 粗光束 / 治疗连线 / 狙击弹道），录 24 帧；
-## 配 --bal=fx/laser_style=0/1/2 各录一遍拼三列
+## （fx/laser_style 已删，10-29 起只录 A 像素光束）
 func _laser_movie() -> void:
 	var group: int = tick / 32
 	var frame: int = tick % 32
