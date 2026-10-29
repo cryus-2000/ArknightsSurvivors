@@ -15,7 +15,7 @@ CLIPS = {
     "kaltsit": ("kaltsit", "hoshiguma,lumen", []),
     "ulpianus": ("ulpianus", "gladiia,specter_unchained", []),
     "cult": ("texas", "exusiai,lappland", ["--bal=ult/test_cells=7"]),
-    "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"]),   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
+    "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
 }
 ap = argparse.ArgumentParser()
 ap.add_argument("--clips", default=",".join(CLIPS)); ap.add_argument("--at", type=float, default=30.0); ap.add_argument("--secs", type=float, default=14.0)
@@ -27,12 +27,13 @@ FF = imageio_ffmpeg.get_ffmpeg_exe()
 
 
 def one(name):
-    op, squad, ex = CLIPS[name]
+    op, squad, ex = CLIPS[name][:3]
+    at = CLIPS[name][3] if len(CLIPS[name]) > 3 else a.at   # 连携段要 1:30 以后（敌人够密）
     fdir = os.path.join(out, "fr_" + name); shutil.rmtree(fdir, ignore_errors=True); os.makedirs(fdir)
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
-            "--balance", "--realtime", "--rtfrom=%g" % max(0.0, a.at - 3), "--nodeath", "--seed=3", "--op=" + op, "--squad=" + squad] + ([] if any(x.startswith("--bot=") for x in ex) else ["--bot=expert"]) + [
-            "--maxprog", "--bal=ult/bot_n=1"] + ([] if any(x.startswith("--bal=ult/test_fill_at") for x in ex) else ["--bal=ult/test_fill_at=%g" % (a.at + 1.5)]) + ex + a.extra.split() + [
-            "--recframes=%g,%d" % (a.at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (a.at + a.secs + 8)]
+            "--balance", "--realtime", "--rtfrom=%g" % max(0.0, at - 3), "--nodeath", "--seed=3", "--op=" + op, "--squad=" + squad] + ([] if any(x.startswith("--bot=") for x in ex) else ["--bot=expert"]) + [
+            "--maxprog", "--bal=ult/bot_n=1"] + ([] if any(x.startswith("--bal=ult/test_fill_at") for x in ex) else ["--bal=ult/test_fill_at=%g" % (at + 1.5)]) + ex + a.extra.split() + [
+            "--recframes=%g,%d" % (at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (at + a.secs + 8)]
     o, e, to = GR.run_godot([x for x in args if x], 1800)
     n = len(glob.glob(os.path.join(fdir, "rec_*.png")))
     mp4 = os.path.join(out, name + ".mp4")
