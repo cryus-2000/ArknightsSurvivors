@@ -5,6 +5,11 @@ extends RefCounted
 static var _data: Dictionary = {}
 static var _loaded := false
 
+## 测试经持有的整段引用（sec() / _data）改 / 还原数值后调用。当前版本没有读取缓存（87e0d852f 已撤回 Bal.v 缓存），空操作；
+## 保留这个入口是为了测试代码写成「缓存回来也对」，不必再改一遍（docs/204 §5.1）
+static func clear_cache() -> void:
+	pass
+
 
 static func _load() -> void:
 	if _loaded:
