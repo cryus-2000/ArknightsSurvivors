@@ -33,8 +33,8 @@ func tick(dt: float, selected: int, reduce: bool) -> void:
 static func condition_lines(selected: int) -> Array:
 	var mods := D.dmod_for_preset(selected)
 	var lines := D.dmod_lines(mods)
-	# Existing summary omits beneficial hunt/beacon modifiers and late-game caps.
-	for row in [["hunt_dur", "围猎持续时间"], ["hunt_ring_hp", "围猎海嗣生命"], ["beacon_every", "灯标刷新间隔"]]:
+	# Existing summary omits beneficial beacon modifiers and late-game caps.
+	for row in [["beacon_every", "灯标刷新间隔"]]:
 		var value := float(mods[row[0]])
 		if not is_equal_approx(value, 1.0):
 			lines.append("%s %+d%%" % [row[1], roundi((value - 1.0) * 100.0)])

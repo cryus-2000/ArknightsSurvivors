@@ -127,11 +127,6 @@ func _input(event: InputEvent) -> void:
 
 func _press_button(b: int) -> void:
 	var m: Dictionary = MAP.get(context, {})
-	if context == "play" and preload("res://scripts/core/balance.gd").v("leader_swap/on", 0.0) > 0.0:   # 切换队长开着（balance leader_swap/on）：RB 切人，Ⓐ / Ⓨ 改注入 E（Q 让给切人）
-		m = m.duplicate()
-		m[JOY_BUTTON_RIGHT_SHOULDER] = KEY_Q
-		m[JOY_BUTTON_A] = KEY_E
-		m[JOY_BUTTON_Y] = KEY_E
 	if m.has(b):
 		tap(m[b])
 

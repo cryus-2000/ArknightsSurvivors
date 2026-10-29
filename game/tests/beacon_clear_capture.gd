@@ -41,7 +41,7 @@ func _ready() -> void:
 	g.mires.append({"pos": c + Vector2(-190, 90), "r": 60.0, "maxr": 60.0, "life": 9.0, "seed": 8.8, "boss": true})
 	var b := {"pos": c, "lit": false, "prog": 0.0, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
 		"r": 70.0, "clear_r": cr, "safe_end": 0.0, "age": 0.0, "out_t": 0.0, "min_d": INF, "hold_s": 0.0, "guide_r": 0.0, "guide_life": 45.0,
-		"relay_r": 0.0, "in_s": 0.0, "relay_s": 0.0, "relay_p": 0.0, "maxp": 0.0, "stag_n": 0}
+		"in_s": 0.0, "maxp": 0.0}
 	g.beacons.append(b)
 	var dt := 1.0 / 60.0
 	var log := []

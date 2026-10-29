@@ -466,8 +466,8 @@ var m_zone_out := -1.0
 var m_bins := PackedInt32Array()
 var m_dbg: bool = Cfg.dev_args().has("--mdbg")   # 每 10 秒打印一行 MDBG：缺口 / 围猎占比、附近掉落物、冲刺次数
 ## 调参旋钮（仅测试）：--mt_<名>=<值> 覆盖，例如 --mt_keep=110
-var m_tune := {"keep": 100.0, "keep_melee": 50.0, "gem": 0.35, "gem_cap": 5.0, "gem_r": 80.0, "pred": 0.1, "hunt_goal": 1.0, "boss_lo": 170.0, "boss_hi": 260.0, "boss_hp": 0.35}
-var m_stat := {"frames": 0, "gap": 0, "hunt": 0, "gems": 0, "dash": 0, "next": 10.0}
+var m_tune := {"keep": 100.0, "keep_melee": 50.0, "gem": 0.35, "gem_cap": 5.0, "gem_r": 80.0, "pred": 0.1, "boss_lo": 170.0, "boss_hi": 260.0, "boss_hp": 0.35}
+var m_stat := {"frames": 0, "gap": 0, "gems": 0, "dash": 0, "next": 10.0}
 
 
 ## 走位：24 方向 × 3 步长打分（近战怪按速度外推 0.25 秒、弹幕外推到 0.6 秒）；被围时往最大缺口走；
@@ -503,14 +503,9 @@ func _move_master(_dt: float) -> Vector2:
 	if bg != Vector2.INF:
 		goal = bg
 		beacon_hold = Vector2.INF   # 目标换成 Boss 站位，灯标不再加权
-	# 围猎合拢途中整圈还在屏幕外：最近的圈上海嗣到 420 内才转入围猎走位（迎上去打穿 / 找缺口），之前照常打
-	var in_hunt: bool = g.hunt.active() and g.hunt.inside and (g.hunt.settled or g.hunt.nearest_ring_dist(p) < 420.0)
-	var gap_dir := Vector2.ZERO if in_hunt else _master_gap(p, near)
+	var gap_dir := _master_gap(p, near)
 	if gap_dir != Vector2.ZERO:
 		goal = gap_dir if goal == Vector2.ZERO else (goal * 0.4 + gap_dir).normalized()
-		beacon_hold = Vector2.INF
-	if in_hunt and m_tune.hunt_goal > 0.0:
-		goal = _master_hunt_goal(p)
 		beacon_hold = Vector2.INF
 	# 经验 / 灯油 / 回复：候选点附近的掉落物加分（真人会顺路吸经验，不会只追最近的一颗）
 	var gems := PackedVector2Array()
@@ -556,12 +551,11 @@ func _move_master(_dt: float) -> Vector2:
 	if m_dbg:
 		m_stat.frames += 1
 		m_stat.gap += int(gap_dir != Vector2.ZERO)
-		m_stat.hunt += int(in_hunt)
 		m_stat.gems += gems.size()
 		if g.t >= m_stat.next:
 			m_stat.next += 10.0
-			print("MDBG t=%d lv=%d hp=%d gap=%.2f hunt=%.2f gems_near=%.0f dash=%d near=%d" % [g.t, g.level, g.hp, float(m_stat.gap) / m_stat.frames, float(m_stat.hunt) / m_stat.frames, float(m_stat.gems) / m_stat.frames, m_stat.dash, near.size()])
-			m_stat.frames = 0; m_stat.gap = 0; m_stat.hunt = 0; m_stat.gems = 0; m_stat.dash = 0
+			print("MDBG t=%d lv=%d hp=%d gap=%.2f gems_near=%.0f dash=%d near=%d" % [g.t, g.level, g.hp, float(m_stat.gap) / m_stat.frames, float(m_stat.gems) / m_stat.frames, m_stat.dash, near.size()])
+			m_stat.frames = 0; m_stat.gap = 0; m_stat.gems = 0; m_stat.dash = 0
 	if g.dash_ready() and g.dash_t <= 0.0:
 		var dd := _master_dash_dir(p, best_dir, spd, bullets, near, gap_dir)
 		if dd != Vector2.ZERO:
@@ -743,29 +737,6 @@ func _shop_master() -> int:
 	return best
 
 
-## 围猎：圈上有倒下的海嗣就从那个缺口走出去（突围回血 + 灯火）；还没有缺口就贴近最近的圈上海嗣让干员打穿
-func _master_hunt_goal(p: Vector2) -> Vector2:
-	var h = g.hunt
-	var best := INF
-	var tgt := Vector2.INF
-	for i in h.ring.size():
-		var e: Dictionary = h.ring[i]
-		var ap: Vector2 = h.anchors[i] if i < h.anchors.size() else e.pos
-		if e.dead and p.distance_to(ap) < best:
-			best = p.distance_to(ap)
-			tgt = ap + (ap - h.c).normalized() * 80.0
-	if tgt != Vector2.INF:
-		return (tgt - p).normalized()
-	best = INF
-	for e in h.ring:
-		if not e.dead and p.distance_to(e.pos) < best:
-			best = p.distance_to(e.pos)
-			tgt = e.pos
-	if tgt == Vector2.INF or best < keep + 20.0:
-		return Vector2.ZERO
-	return (tgt - p).normalized()
-
-
 ## Boss 战站位：生命 35% 以上就按主控射程贴上去（近战主控 60–120，远程 170–260），不像 expert 那样一律站 200–320 外；
 ## 返回 Vector2.INF = 不管（没有 Boss / 残血 / 无敌）
 func _master_boss_goal(p: Vector2) -> Vector2:
@@ -820,9 +791,9 @@ func _bdbg(p: Vector2, here: float) -> void:
 				left = b
 		if left != null and not left.lit:
 			var why := "danger" if bd.last_danger else ("switch" if bd.last_hold != bd.pos else "pushed")
-			# keep = 离圈这一刻灯标还剩的进度、band = 离圈时是否落在接力环里（docs/56 §8，旋钮关时恒 0）
-			print("BDBG leave why=%s in_s=%.1f prog=%.2f need=%.1f hp=%d lamp=%d t=%d keep=%.2f band=%d" % [why, g.t - bd.t0, bd.maxp, float(left.get("need", 2.5)), int(100.0 * g.hp / g.max_hp), int(g.lamp), g.t,
-				float(left.get("prog", 0.0)), 1 if p.distance_to(left.pos) < float(left.get("relay_r", 0.0)) else 0])
+			# keep = 离圈这一刻灯标还剩的进度
+			print("BDBG leave why=%s in_s=%.1f prog=%.2f need=%.1f hp=%d lamp=%d t=%d keep=%.2f" % [why, g.t - bd.t0, bd.maxp, float(left.get("need", 2.5)), int(100.0 * g.hp / g.max_hp), int(g.lamp), g.t,
+				float(left.get("prog", 0.0))])
 			print("BDBGC why=%s %s" % [why, JSON.stringify(bd.get("comp", {}))])
 	bd.last_danger = here <= -4.0
 	bd.last_hold = beacon_hold

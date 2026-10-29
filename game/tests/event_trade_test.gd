@@ -3,7 +3,7 @@ extends Node
 ## 1 同 seed 卡组相同（途中 / 路口一 / 路口二）；2 首通前（结局线关）路口里没有结局事件、途中路口 2 张；
 ## 3 每张桌面至少一张交易卡、最多一张无代价卡（300 seed × 3 种路口 × 结局线开 / 关）；4 选项代价与灰掉（生命 < 30%、需要队友、源石锭不足）；
 ## 5 主流派判定（藏品计数 ≥ 3 / 并列取最近 / 不足按队长职业）；6 委托：限时强敌到点解除并给奖励、击杀委托超时失败；
-## 7 队友暂离 120 秒后原位归队并精英化一级；8 途中路口 1:20 起清场即弹、路口一晚于 6:00 时取消途中二；9 cross/redesign 开着
+## 7 队友暂离 120 秒后原位归队并精英化一级；8 途中路口 1:20 起清场即弹、路口一晚于 6:00 时取消途中二；9 每件改版事件的每个选项都能走完
 var game: Node
 var frames := 0
 var fails := 0
@@ -35,7 +35,6 @@ func _process(_dt: float) -> void:
 		return
 	game.set_process(false)
 	var E = game.endg
-	check(E.redesign, "cross/redesign defaults to on")
 	E.enabled = true
 	E._checked = true
 	E.lines_on = true
@@ -168,7 +167,7 @@ func _process(_dt: float) -> void:
 	E._tick_mid()
 	check(E.mid_done == 2 and game.state == game.S.PLAY, "crossroad 1 not dealt by 6:00 -> mid 2 cancelled")
 	print("ET step 9")
-	# 9 每件改版事件的每个选项都走一遍（含二级屏，机器人选完），之后委托 / 暂离到点结算，不报错、面板关回战斗
+	# 9 每件改版事件（events_v2.json，带原作出处 src）的每个选项都走一遍（含二级屏，机器人选完），之后委托 / 暂离到点结算，不报错、面板关回战斗
 	var stat_rid := ""
 	for rid in game.RL:
 		if game.RL[rid].rarity == "基础" and (game.rfx.db.get_relic(rid).get("effects", []) as Array).all(func(ef): return ef.get("type", "stat") == "stat"):
@@ -177,7 +176,7 @@ func _process(_dt: float) -> void:
 	var stuck := 0
 	var ran := 0
 	for ev in E.events:
-		if not ev.get("v2", false) or ev.get("pool", "") != "common":
+		if not ev.has("src") or ev.get("pool", "") != "common":
 			continue
 		for k in E._opts(ev).size():
 			_close()

@@ -1317,10 +1317,10 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		if hl.t80 < 0 and hl.killed >= int(hl.n * 0.8):
 			hl.t80 = int(g.t) - hl.t
 	var col: Color = D.ENEMIES.get(e.type, {}).get("ecol", Color(0.6, 0.9, 0.9))   # ecol：enemies.json（受击 / 击杀碎屑色）
-	# 光学观感下的击杀（docs/130 C5，用户 10-24 定 render/kill_style 1）：所有怪统一「死亡动作（按帧等比加快到普通 ≤ fx/death_max、
+	# 光学观感下的击杀（docs/130 C5，用户 10-24 定；旧开关 render/kill_style 已删）：所有怪统一「死亡动作（按帧等比加快到普通 ≤ fx/death_max、
 	# 精英 ≤ fx/death_max_elite、Boss 不变）→ 最后一帧碎成像素碎屑」，不画溶解帧条、不叠老 CPU 火花 / 冲击环 / 尘土（击杀音与顿帧照旧）；
-	# 没有死亡帧条的怪当帧碎。光学关（低档）或 kill_style 0 走原来的帧条 / 溶解 + 火花。纯画面
-	var lean: bool = g.optical_on and g.optical.particles != null and Bal.v("render/kill_style", 1.0) > 0.0
+	# 没有死亡帧条的怪当帧碎。光学关（低档）走原来的帧条 / 溶解 + 火花。纯画面
+	var lean: bool = g.optical_on and g.optical.particles != null
 	g.vfx.kill_burst(e, col, g.crit_hit, lean)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
 	var body_on: bool = not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0
 	var shattered := false   # 碎屑已交给死亡帧条最后一帧（vfx.update 到点喷）

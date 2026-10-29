@@ -672,7 +672,9 @@ func draw_pfx(floor_layer: bool) -> void:
 				var sv: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * f.get("sz", 6.0)
 				cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
 			"line":
-				if not (f.get("laser", false) and LaserDraw.draw(g, f, a, cv)):   # 激光 A（docs/138 §12）：只接管标了 laser 的瞬时激光线
+				if f.get("laser", false):
+					LaserDraw.draw(g, f, a, cv)   # 激光 A（docs/138 §12）：只接管标了 laser 的瞬时激光线
+				else:
 					cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
 			"flame":
 				# 火舌：底宽上尖，随时间抖动
@@ -850,16 +852,11 @@ func node_requires_text(n: Dictionary) -> String:
 	return "、".join(parts)
 
 
-## 分支培养开关（docs/119 §4.1；balance levelup/branch，缺省 1）：关着时节点按 JSON 顶层字段 = 旧成长线，同 seed TRACE 逐行不变
-static func branch_on() -> bool:
-	return BranchBal.vi("levelup/branch", 1) == 1
-
-
 ## 节点按路线解析后的视图：节点 4 带 branch {路线 id: {id, name, desc, icon, …}}、节点 5 带 routes {路线 id: {…}}，
 ## 已选路线时用该路线的字段覆盖顶层字段（id 决定 blocks.progression 里生效的积木与 node:<id> 条件）；
-## 开关关 / 未选路线 → 原节点（顶层字段就是旧成长线：德克萨斯 回马剑 → 剑雨·再 等）
+## 未选路线 → 原节点（顶层字段：德克萨斯 回马剑 → 剑雨·再 等）
 func node_view(n: Dictionary, rid: String = route) -> Dictionary:
-	if n.is_empty() or not branch_on():
+	if n.is_empty():
 		return n
 	var out: Dictionary = n
 	if n.get("alt", null) is Dictionary:   # 开关开时无条件换成另一个节点（安洁莉娜 docs/119：双重引力提前到节点 1；顶层仍是旧线）
@@ -888,7 +885,7 @@ func prog_view() -> Array:
 
 ## 节点 n 是不是分支节点（开关开、带非空 branch）
 func is_branch_node(n: Dictionary) -> bool:
-	return branch_on() and n.get("branch", null) is Dictionary and not (n.branch as Dictionary).is_empty()
+	return n.get("branch", null) is Dictionary and not (n.branch as Dictionary).is_empty()
 
 
 ## 下一个节点要不要先选路线（分支节点且还没选）

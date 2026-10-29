@@ -457,7 +457,7 @@ func on_lose(amount: float, src: String) -> void:
 			if src.begins_with(p):
 				key = "e:" + src.substr(p.length())
 		if key == "":
-			key = "env:" + src   # zone 黑潮 / mire 溟痕 / dark 寂灭 / hunt_ring 围猎 / relic 藏品代价
+			key = "env:" + src   # zone 黑潮 / mire 溟痕 / dark 寂灭 / relic 藏品代价
 	blame.append([g.t, key, cause, amount])
 	while blame.size() > 1 and float(blame[0][0]) < g.t - BLAME_S - 2.0:
 		blame.pop_front()

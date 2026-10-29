@@ -227,7 +227,7 @@ const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growt
 ## 受击白闪（白剪影只看 alpha）、法线图（只看 alpha）、描边 #080E18（近黑，黑位下压后仍近黑）、精英暖橙标识（高饱和，只更饱和）不受影响。
 ## 名单 = D.ENEMIES 里非 Boss、非骑士（e_knight）的帧条本体（同 world.build_enemy_atlas 的入集规则），后缀同图集 + Game.ENEMY_SUFFIXES；
 ## 干员 / 召唤物 / Boss / 特效 / 弹道不在名单。旋钮（balance.json，--bal= 可覆盖）：
-##   render/enemy_pop        0 = 关，1 = 开（缺省 1）
+##   常开（总开关 render/enemy_pop 10-29 已删；要关就把下面三个旋钮设成 0 / 1 / 0）
 ##   render/enemy_pop_black  黑位（缺省 0.10）     render/enemy_pop_contrast  对比（缺省 1.35）     render/enemy_pop_sat  饱和度增量（缺省 0.3）
 ##   档位对照（build/enemy_pop/levels_*.png）：轻 0.06/1.2/0.2 差别太轻；中 0.10/1.35/0.30（缺省）明显去雾、最暗一阶 luma≈12 仍与描边分得开；
 ##   强 0.14/1.5/0.4 最暗一阶压到 luma≈2 和描边合成一团（塑路者分形 / 奠基者成黑块）
@@ -242,7 +242,7 @@ static var pop_n := 0
 static func _pop_setup() -> void:
 	_pop_ready = true
 	var Bal = load("res://scripts/core/balance.gd")
-	if Bal == null or Bal.v("render/enemy_pop", 1.0) <= 0.0:
+	if Bal == null:
 		return
 	var b: float = clampf(Bal.v("render/enemy_pop_black", 0.10), 0.0, 0.5)
 	var k: float = maxf(Bal.v("render/enemy_pop_contrast", 1.35), 0.0)

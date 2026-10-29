@@ -826,7 +826,7 @@
   }
  },
  "cross_deck": {
-  "_doc": "翻节点卡（docs/154）：首通结局一后，3:30 / 7:00 中 Boss 全部倒下 delay 秒后（最晚 t1[1] / t2[1]）翻 n 张卡；weights 填充卡基础权重；shop_* 诡意行商；rest_* 安全的角落；elite_* 紧急作战；wish_rare 得偿所愿稀有 / 核心权重",
+  "_doc": "翻节点卡（docs/154、184）：3:30 / 7:00 中 Boss 全部倒下 delay 秒后（最晚 t1[1] / t2[1]）翻 n 张卡（结局线入口卡要首通结局一）；weights 填充卡基础权重；rest_* 安全的角落；squad_* 紧急作战；wish_rare 得偿所愿稀有 / 核心权重；途中路口等键在 events_v2.json cross",
   "n": 3,
   "t1": [
    210,
@@ -845,9 +845,6 @@
    "incident": 15,
    "fog": 10
   },
-  "shop_extra": 1,
-  "shop_disc": 0.7,
-  "shop_ingots": 20,
   "rest_heal": 0.4,
   "rest_maxhp": 0.05,
   "rest_light": 15,
@@ -1188,35 +1185,11 @@
    ]
   },
   {
-   "id": "inherit",
-   "name": "继承",
-   "text": "岸边有只死去的海嗣，身形已经干瘪，却仍紧紧抓着什么不肯松开。",
-   "pool": "common",
-   "options": [
-    {
-     "label": "取出海嗣保护的东西",
-     "desc": "随机获得一件藏品",
-     "ops": [
-      {
-       "gain": "random_relic",
-       "args": {
-        "n": 1
-       }
-      }
-     ]
-    },
-    {
-     "label": "海嗣的记忆？真奇怪",
-     "desc": "就此离开",
-     "ops": []
-    }
-   ]
-  },
-  {
    "id": "glimmer",
    "name": "残存微光",
    "text": "一位失去提灯的审判官拄着剑，在岸边礁石上喘息，脚边满是恐鱼的尸体。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "送上提灯",
@@ -1241,10 +1214,10 @@
     },
     {
      "label": "上前攀谈",
-     "desc": "源石锭 +10",
+     "desc": "源石锭 +6",
      "ops": [
       {
-       "ingots": 10
+       "ingots": 6
       }
      ]
     }
@@ -1255,17 +1228,17 @@
    "name": "点滴星火",
    "text": "噬尘覆盖了整座城市。废墟间，有什么东西在噬尘下发着光。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "冒险去取",
-     "desc": "队长生命 -15%，随机获得一件藏品",
+     "desc": "队长生命 -15%，获得一件主流派藏品",
      "ops": [
       {
        "hp_pct": -0.15
       },
       {
-       "gain": "random_relic",
-       "args": {
+       "relic_lane": {
         "n": 1
        }
       }
@@ -1287,22 +1260,22 @@
    "name": "海边的歌者",
    "text": "孤独的恐鱼趴在礁石上，触须胡乱拨着人类的乐器，唱着最后一支歌。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "驻足倾听",
-     "desc": "源石锭 -3，随机获得一件藏品",
-     "cost": 3,
+     "desc": "源石锭 -12，获得一件主流派藏品",
      "ops": [
       {
-       "ingots": -3
+       "ingots": -12
       },
       {
-       "gain": "random_relic",
-       "args": {
+       "relic_lane": {
         "n": 1
        }
       }
-     ]
+     ],
+     "cost": 12
     },
     {
      "label": "转身离开",
@@ -1316,18 +1289,19 @@
    "name": "最后的观潮者",
    "text": "一位阿戈尔人迎着潮头站立，巨浪几次险些吞没他，他半步也没退。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "冒险帮他回收装备",
-     "desc": "队长生命 -5%，随机获得一件藏品",
+     "desc": "队长生命 -15%，获得一件主流派稀有藏品",
      "ops": [
       {
-       "hp_pct": -0.05
+       "hp_pct": -0.15
       },
       {
-       "gain": "random_relic",
-       "args": {
-        "n": 1
+       "relic_lane": {
+        "n": 1,
+        "rarity": "稀有"
        }
       }
      ]
@@ -1353,6 +1327,7 @@
    "name": "相逢",
    "text": "躲避风暴时，你闯进一个溶洞。里面是半个人和半只恐鱼拼成的东西，身上挂着教士服的残片。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "查看它的情况",
@@ -1390,33 +1365,28 @@
    "name": "大海的遗产",
    "text": "大静谧之前，海上流传着海盗的故事，传说他们的财富堪比一国。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "拿了再说",
-     "desc": "随机获得一件藏品和一件遭诅藏品",
+     "desc": "获得一件主流派藏品和一件遭诅藏品",
      "ops": [
       {
-       "gain": "random_relic",
-       "args": {
+       "relic_lane": {
         "n": 1
        }
       },
       {
-       "gain": "random_relic",
-       "args": {
-        "n": 1,
-        "rarity": "遭诅古物"
-       }
+       "curse": 1
       }
      ]
     },
     {
      "label": "安全第一",
-     "desc": "随机获得一件藏品",
+     "desc": "获得一件主流派藏品",
      "ops": [
       {
-       "gain": "random_relic",
-       "args": {
+       "relic_lane": {
         "n": 1
        }
       }
@@ -1429,6 +1399,7 @@
    "name": "为了生存",
    "text": "海民把你带进溶洞，撬开巨型贝壳收集分泌物。活很简单，报酬也不错。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "报酬很可观，加入他们",
@@ -1479,6 +1450,7 @@
    "name": "引火之木",
    "text": "你砍了几棵树皮光滑如皮肤的怪树当柴。入夜，篝火引来了不少迷路的旅人。",
    "pool": "common",
+   "trade": true,
    "options": [
     {
      "label": "放心地睡去",

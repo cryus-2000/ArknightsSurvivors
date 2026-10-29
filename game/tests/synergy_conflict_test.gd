@@ -121,17 +121,13 @@ func scene_busy() -> void:
 	e = fresh()
 	ul.spend_sp(0)
 	step(0.75)
-	g.squad.swap_cd = 0.0
-	# 切换队长缺省关（10-27 用户「Q 直接删掉吧」，balance leader_swap/on）：Q / RB / 点头像的入口不切人；下面直接调 swap_leader 只测连携
-	var ld0 = g.squad.leader()
-	ok(g.squad.swap_on() or (g.squad.next_leader() == null and not g.squad.cycle_leader() and g.squad.leader() == ld0), "切换队长缺省关：Q 不切人")
+	# 切换队长的玩家入口已删（10-29）：直接调 swap_leader 只测连携
 	var ok_swap: bool = g.squad.swap_leader(sk)
 	step(0.1)
 	ok(ok_swap and sk.is_leader and sk.syn_mv.is_empty() and g.squad.syn.acts.is_empty(), "切队长：作废、位移解除（切成功 %s）" % [ok_swap])
 	var lp: Vector2 = g.ppos
 	step(1.0)
 	ok(g.ppos.distance_to(lp) < 2.0, "切队长之后队长位置不再被合击拉动")
-	g.squad.swap_cd = 0.0
 	ok(g.squad.swap_leader(ul) and ul.is_leader, "（还原）乌尔比安重新当队长")
 	step(2.5)
 	# 6 目标在冲刺途中死亡：合击照常收尾，不报错、不冲出屏幕

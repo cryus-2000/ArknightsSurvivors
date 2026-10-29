@@ -1,7 +1,7 @@
 {
- "_doc": "事件改版（docs/184）：cross = 并进 waves.json cross_deck 的键；patch = 按 id 并进现有事件的字段；events = 新事件（v2 = 只在改版出现）。cross/redesign = 0 时整份不生效",
+ "_doc": "事件改版（docs/184）：cross = 并进 waves.json cross_deck 的键；events = 新事件（追加在 waves.json events 之后）。改版前的继承已删，原有事件的 trade 与新选项已写回 waves.json",
  "cross": {
-  "_redesign": "事件改版（docs/184，用户 10-27 定）：balance.json cross/redesign = 1 开（缺省），0 = 旧翻卡（云端对照）。开着时：首通前也翻卡（不出结局入口卡）；mid = 途中一 / 途中二的 [最早, 最晚] 秒（等精英 / 中 Boss / 委托清场再弹，最晚到点照弹），mid_n 张；每次摊牌至少一张交易卡（不期而遇里带 trade 的事件 / 得偿所愿 / 紧急作战）、最多一张无代价卡（安全的角落 / 诡意行商）；事件带 lanes 时含主流派 ×lane_event_w；events 里 v2 = 只在改版出现，v1 = 只在旧版出现，options_v2 = 改版换用的选项",
+  "_redesign": "事件改版（docs/184，用户 10-27 定）：旧翻卡与 cross/redesign 开关已删（10-29）。首通前也翻卡（不出结局入口卡）；mid = 途中一 / 途中二的 [最早, 最晚] 秒（等精英 / 中 Boss / 委托清场再弹，最晚到点照弹），mid_n 张；每次摊牌至少一张交易卡（不期而遇里带 trade 的事件 / 得偿所愿 / 紧急作战）、最多一张无代价卡（安全的角落 / 诡意行商）；事件带 lanes 时含主流派 ×lane_event_w",
   "mid": [
    [
     80,
@@ -17,178 +17,11 @@
   "away_t": 120,
   "chal_grace": 30
  },
- "patch": {
-  "inherit": {
-   "v1": true
-  },
-  "glimmer": {
-   "trade": true,
-   "options_v2": [
-    {
-     "label": "送上提灯",
-     "desc": "灯火 +40",
-     "ops": [
-      {
-       "light": 40
-      }
-     ]
-    },
-    {
-     "label": "悄悄接近",
-     "desc": "队长生命 -10%，灯火 +15",
-     "ops": [
-      {
-       "hp_pct": -0.1
-      },
-      {
-       "light": 15
-      }
-     ]
-    },
-    {
-     "label": "上前攀谈",
-     "desc": "源石锭 +6",
-     "ops": [
-      {
-       "ingots": 6
-      }
-     ]
-    }
-   ]
-  },
-  "spark": {
-   "trade": true,
-   "options_v2": [
-    {
-     "label": "冒险去取",
-     "desc": "队长生命 -15%，获得一件主流派藏品",
-     "ops": [
-      {
-       "hp_pct": -0.15
-      },
-      {
-       "relic_lane": {
-        "n": 1
-       }
-      }
-     ]
-    },
-    {
-     "label": "拾取安全区域的物资",
-     "desc": "源石锭 +5",
-     "ops": [
-      {
-       "ingots": 5
-      }
-     ]
-    }
-   ]
-  },
-  "singer": {
-   "trade": true,
-   "options_v2": [
-    {
-     "label": "驻足倾听",
-     "desc": "源石锭 -12，获得一件主流派藏品",
-     "ops": [
-      {
-       "ingots": -12
-      },
-      {
-       "relic_lane": {
-        "n": 1
-       }
-      }
-     ],
-     "cost": 12
-    },
-    {
-     "label": "转身离开",
-     "desc": "先捂住耳朵",
-     "ops": []
-    }
-   ]
-  },
-  "watcher": {
-   "trade": true,
-   "options_v2": [
-    {
-     "label": "冒险帮他回收装备",
-     "desc": "队长生命 -15%，获得一件主流派稀有藏品",
-     "ops": [
-      {
-       "hp_pct": -0.15
-      },
-      {
-       "relic_lane": {
-        "n": 1,
-        "rarity": "稀有"
-       }
-      }
-     ]
-    },
-    {
-     "label": "打听观潮的结果",
-     "desc": "队长最大生命 +3%",
-     "ops": [
-      {
-       "maxhp_pct": 0.03
-      }
-     ]
-    },
-    {
-     "label": "离开",
-     "desc": "这地方太危险了",
-     "ops": []
-    }
-   ]
-  },
-  "meeting": {
-   "trade": true
-  },
-  "legacy": {
-   "trade": true,
-   "options_v2": [
-    {
-     "label": "拿了再说",
-     "desc": "获得一件主流派藏品和一件遭诅藏品",
-     "ops": [
-      {
-       "relic_lane": {
-        "n": 1
-       }
-      },
-      {
-       "curse": 1
-      }
-     ]
-    },
-    {
-     "label": "安全第一",
-     "desc": "获得一件主流派藏品",
-     "ops": [
-      {
-       "relic_lane": {
-        "n": 1
-       }
-      }
-     ]
-    }
-   ]
-  },
-  "survive": {
-   "trade": true
-  },
-  "tinder": {
-   "trade": true
-  }
- },
  "events": [
   {
    "id": "task",
    "name": "郁金香的委托",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "A",
@@ -270,7 +103,6 @@
    "id": "expedition",
    "name": "紧急调遣",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "G"
@@ -320,7 +152,6 @@
    "id": "vanguard",
    "name": "先遣小队",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "G"
@@ -372,7 +203,6 @@
    "id": "sellout",
    "name": "变卖身家",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "H"
@@ -428,7 +258,6 @@
    "id": "boxes",
    "name": "是非黑白",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "src": "原作 rogue_2 scene_ro2_10（剑与铳 / 提灯 / 祈求双手 / 交错密钥四个盒子、不求回报）；盒子到流派的对应为本作拟",
    "text": "你从恐鱼群里救下一个穿长袍的伊比利亚人。他捧出几只盒子答谢，你分不清他是教徒还是深海教徒。",
@@ -506,7 +335,6 @@
    "id": "shelter",
    "name": "守望相助",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "req": {
     "tradeable": 1
@@ -541,7 +369,6 @@
    "id": "craft",
    "name": "传统技术",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "A",
@@ -622,7 +449,6 @@
    "id": "flame",
    "name": "敬奉火焰",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "C"
@@ -679,7 +505,6 @@
    "id": "wish_v2",
    "name": "消失的习俗",
    "pool": "card",
-   "v2": true,
    "cg": "wish",
    "src": "原作 rogue_2 scene_ro2_wish（得偿所愿节点事件名）；「再拿一件」为本作拟",
    "text": "桌上摆着几件没人认领的东西。旧习俗说，路过的人可以带走一件。",
@@ -713,7 +538,6 @@
    "id": "penance",
    "name": "苦路",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "repeat": true,
    "lanes": [
@@ -772,7 +596,6 @@
    "id": "dream",
    "name": "梦中之会",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "repeat": true,
    "max_picks": 3,
@@ -832,7 +655,6 @@
    "id": "feeding",
    "name": "设身处地",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "src": "原作 rogue_2 scene_ro2_8（准备食物：消耗 2 目标生命，再选喂哪一种）；钥匙项与「再喂喂看」删去",
    "text": "你混进了一处深海教徒的聚居地。恐鱼和人在这里相安无事，前提是食物管够，也没人露出敌意。",
@@ -862,7 +684,6 @@
    "id": "feeding_2",
    "name": "设身处地",
    "pool": "card",
-   "v2": true,
    "cg": "feeding",
    "src": "原作 rogue_2 scene_ro2_8 第二屏",
    "text": "食物备好了。水池边、浅滩上、洞穴深处，都有东西在等。",
@@ -903,7 +724,6 @@
    "id": "homecoming",
    "name": "重返家园",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "G"
@@ -961,7 +781,6 @@
    "id": "scholar",
    "name": "海嗣学者",
    "pool": "common",
-   "v2": true,
    "trade": true,
    "lanes": [
     "B"

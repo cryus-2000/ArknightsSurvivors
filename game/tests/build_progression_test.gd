@@ -70,11 +70,6 @@ func _process(_d: float) -> void:
 	game.pending_levelups = 0
 	game.pending_chests = 0
 	game.show_queue.clear()
-	if not Ch.branch_on():
-		print("BUILD PROGRESSION skipped: levelup/branch=0")
-		print("BUILD PROGRESSION failures=0")
-		get_tree().quit()
-		return
 	test_cards_and_cancel()
 	test_confirm_once()
 	test_node5_by_route()

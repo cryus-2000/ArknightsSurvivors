@@ -2,30 +2,20 @@ extends RefCounted
 ## 激光 / 光束改版原型（10-24 协调人转用户「现在的激光表现方式你觉得是不是可以更改一下？」，docs/138 §12）：
 ## 接管 world._draw_fx 里的 "beam"（治疗 / 无人机连线）、"bbeam"（Boss 粗光束）、"tracer"（狙击 / 穿刺弹道）三种画法，
 ## 以及干员画布上带 laser 标记的 "line"（艾琳枪线、维什戴尔炮线、流明折射；10-25 用户「激光就选 A」覆盖全部激光）。
-## 开关 fx/laser_style：0 = 原样（缺省，返回 false 交回原画法）；1 = A 像素光束；2 = B 颗粒光束。纯画面，随机只走 g.vrng。
+## 10-29 起固定为 A 像素光束（旧开关 fx/laser_style 已删：0 原画法、2 B 颗粒光束两条一并删掉）。纯画面，随机只走 g.vrng。
 ## 共同点：光束 0.06 秒内从起点伸到终点（不再满长度瞬间出现）；颜色压回 ≤ 1（不靠 HDR 糊辉光）；不画常驻大光晕、不按 sin 抖宽度（原 bbeam 40 Hz 抖动）。
-const Bal = preload("res://scripts/core/balance.gd")
 const BossBeam = preload("res://scripts/render/boss_beam.gd")
 const GROW := 0.06   # 伸出时长（秒）
 
-static func style() -> int:
-	return int(Bal.v("fx/laser_style", 0.0))
-
-
-## a = 剩余寿命比例（1 → 0）；ci = 画在哪个画布（缺省世界节点 g；干员激光线 "line" 传干员自己的画布）。返回 true = 已画（调用方跳过原画法）
-static func draw(g, f: Dictionary, a: float, ci = null) -> bool:
-	var st: int = style()
-	if st <= 0:
-		return false
+## a = 剩余寿命比例（1 → 0）；ci = 画在哪个画布（缺省世界节点 g；干员激光线 "line" 传干员自己的画布）
+static func draw(g, f: Dictionary, a: float, ci = null) -> void:
 	# 淡出按模拟 / 真实时间里走得快的那个（boss_beam.laser_el）：掉帧、顿帧时也在寿命内收完（用户 10-26「激光打完消失得很慢」）
 	a = minf(a, 1.0 - BossBeam.laser_el(f) / maxf(0.001, float(f.max)))
 	if a <= 0.0:
-		return true
+		return
 	if ci == null:
 		ci = g
 	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
-	if st == 2 and grains == null:
-		st = 1   # 颗粒池不开（低画质 / 关光学观感）时退回 A
 	var p0: Vector2 = f.a if f.has("a") else f.pos   # 干员激光线（"line"，laser 标记）用 pos / to
 	var p1: Vector2 = f.b if f.has("b") else f.get("to", f.pos)
 	var el: float = float(f.max) * (1.0 - a)
@@ -33,11 +23,7 @@ static func draw(g, f: Dictionary, a: float, ci = null) -> bool:
 	var pe: Vector2 = p0.lerp(p1, grow)
 	var c: Color = _unit(f.col)
 	var base: float = _base_w(f)
-	if st == 1:
-		_draw_a(ci, g, f, p0, pe, p1, c, base, a, el, grains)
-	else:
-		_draw_b(ci, g, f, p0, pe, p1, c, base, a, el, grains)
-	return true
+	_draw_a(ci, g, f, p0, pe, p1, c, base, a, el, grains)
 
 
 ## A 像素光束：宽度先张开再收（前 15% 寿命从 0.6 张到 1，之后收到 0.25）；三层硬边：外层本色 → 中层亮色 → 2 px 白芯；
@@ -62,26 +48,6 @@ static func _draw_a(ci, g, f: Dictionary, p0: Vector2, pe: Vector2, p1: Vector2,
 		for i in n:
 			var t: float = (float(i) + g.vrng.randf()) / maxf(1.0, float(n))
 			grains.push("slash", p0.lerp(p1, t), nrm * (1.0 if g.vrng.randf() < 0.5 else -1.0), c)
-
-
-## B 颗粒光束：只留 2 px 细芯（前七成寿命），光束本体在伸到头那一刻沿线每 2.5 px 生成一颗颗粒（最多 220），
-## 顺着光束方向飘、按刀光模板冷却熄灭——光束「碎成颗粒」消散
-static func _draw_b(ci, g, f: Dictionary, p0: Vector2, pe: Vector2, p1: Vector2, c: Color, base: float, a: float, el: float, grains) -> void:
-	var k: float = 1.0 - a
-	if k < 0.7:
-		var hi: Color = c.lerp(Color.WHITE, 0.6)
-		ci.draw_line(p0, pe, Color(hi.r, hi.g, hi.b, a), 2.0 if base < 8.0 else 4.0)
-	if el >= GROW and not f.get("lz_emit", false):
-		f["lz_emit"] = true
-		var d: Vector2 = p1 - p0
-		var dir: Vector2 = d.normalized()
-		var nrm: Vector2 = dir.orthogonal()
-		var n: int = mini(220, int(d.length() / 2.5))
-		var half: float = base * 0.5
-		for i in n:
-			var t: float = (float(i) + g.vrng.randf()) / maxf(1.0, float(n))
-			var off: Vector2 = nrm * g.vrng.randf_range(-half, half)
-			grains.push("slash", p0.lerp(p1, t) + off, dir, c)
 
 
 static func _base_w(f: Dictionary) -> float:

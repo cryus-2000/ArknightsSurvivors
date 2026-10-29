@@ -299,9 +299,7 @@ func _restore() -> void:
 				o.set(k, str_to_var(str(objs[on_][k])))
 	var ld = g.squad.get_op(str(snap.get("leader", "")))
 	if ld != null and not ld.is_leader:
-		g.squad.swap_cd = 0.0
 		g.squad.swap_leader(ld)
-		g.squad.swap_cd = 0.0
 	var slot := int(snap.get("slot", 1))
 	g.spawner.boss_idx = slot - 1
 	g.t = float(D.BOSS_TIMES[slot - 1]) - 0.02
@@ -391,9 +389,7 @@ func apply_build(s: Dictionary) -> void:
 				o.set(k, str_to_var(str(objs[on_][k])))
 	var ld = g.squad.get_op(str(s.get("leader", "")))
 	if ld != null and not ld.is_leader:
-		g.squad.swap_cd = 0.0
 		g.squad.swap_leader(ld)
-	g.squad.swap_cd = 0.0
 	_backfill_mods()
 	g.pickups.sync_level_pickup()
 	g.rfx._fuse_sync()

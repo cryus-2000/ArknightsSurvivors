@@ -50,7 +50,6 @@ const Progression = preload("res://scripts/run/progression.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
-const Hunt = preload("res://scripts/run/hunt.gd")
 const Beacon = preload("res://scripts/run/beacon.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
@@ -104,7 +103,6 @@ var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
-var hunt = Hunt.new(self)          # 约 1:30 的「围猎」强制交战（run/hunt.gd）
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
@@ -258,7 +256,7 @@ var grid := {}
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
 var preset := 0              # 本局难度档（D.DIFF_PRESETS 下标；批跑 --tide / --tier / --diff 时为 -1，不推进解锁）
-var tier := 0                # 本局潮位（0–15，D.DIFFICULTY_TIERS 下标；10-22 起由三档改为潮位阶梯，docs/109 §5）
+var tier := 0                # 本局潮位（0–10，D.DIFFICULTY_TIERS 下标；10-22 起由三档改为潮位阶梯，docs/109 §5）
 var dmod: Dictionary = D.dmod_for_level(0)   # 本局难度修正表（D.DMOD_DEFAULT 的键）；局内难度效果一律读它
 var diff_new := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
@@ -1041,19 +1039,17 @@ func _ready() -> void:
 	add_child(knight_light)
 
 	lamp_light = PointLight2D.new()
-	lamp_light.texture = tex.light
-	if Bal.v("render/lamp_readable", 0.0) > 0.0:
-		# 可读灯圈（Codex 10-24 草稿，用户 10-24 定缺省开）：70% 半径内固定光强，圈缘降到余光 render/lamp_readable_tail，
-		# 余光再延到 world.LAMP_READ_EXT 倍半径才归零（用户 10-24：圈外别全黑）；贴图覆盖的是延长后的半径
-		var tail: float = Bal.v("render/lamp_readable_tail", 0.22)
-		var ext: float = WorldView.LAMP_READ_EXT
-		var lamp_image := Image.create(128, 128, false, Image.FORMAT_RGBA8)
-		for ly in 128:
-			for lx in 128:
-				var ld := Vector2(lx - 63.5, ly - 63.5).length() / 64.0 * ext   # 以灯半径为 1
-				var la: float = lerpf(0.65, tail, smoothstep(0.70, 1.0, ld)) if ld < 1.0 else tail * (1.0 - smoothstep(1.0, ext, ld))
-				lamp_image.set_pixel(lx, ly, Color(1, 1, 1, la))
-		lamp_light.texture = ImageTexture.create_from_image(lamp_image)
+	# 可读灯圈（Codex 10-24 草稿，用户 10-24 定；旧开关 render/lamp_readable 与径向渐变旧灯光 10-29 已删）：70% 半径内固定光强，
+	# 圈缘降到余光 render/lamp_readable_tail，余光再延到 world.LAMP_READ_EXT 倍半径才归零（用户 10-24：圈外别全黑）；贴图覆盖的是延长后的半径
+	var tail: float = Bal.v("render/lamp_readable_tail", 0.22)
+	var ext: float = WorldView.LAMP_READ_EXT
+	var lamp_image := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	for ly in 128:
+		for lx in 128:
+			var ld := Vector2(lx - 63.5, ly - 63.5).length() / 64.0 * ext   # 以灯半径为 1
+			var la: float = lerpf(0.65, tail, smoothstep(0.70, 1.0, ld)) if ld < 1.0 else tail * (1.0 - smoothstep(1.0, ext, ld))
+			lamp_image.set_pixel(lx, ly, Color(1, 1, 1, la))
+	lamp_light.texture = ImageTexture.create_from_image(lamp_image)
 	lamp_light.color = Color(1.0, 0.86, 0.62)
 	lamp_light.energy = 1.15
 	lamp_light.height = 90.0
@@ -1246,7 +1242,7 @@ func view_center() -> Vector2:
 ## 都不看它，回程回到队长当前位置。HUD 在界面层不动；暂停 / 面板时镜头冻结（_glance_step 只在 PLAY / DEAD / WIN 走）。
 ## 目标本来就在屏幕中央区（render/camera_glance_near × 半视野以内，缺省 0.6）时跳过：对已经看得见的点再摆一下镜头只会像误抖，入潮 / 重生环本身就把视线带过去了。
 ## 图鉴演示、无头批跑不做；开关 balance.json render/camera_glance（0 关，对照用）。
-## 切换队长（squad.swap_leader，10-23）：镜头偏移，从「原来看的位置 − 新队长位置」缓动归零；只动镜头，模拟读 ppos
+## 指定队长（squad.swap_leader）：镜头偏移，从「原来看的位置 − 新队长位置」缓动归零；只动镜头，模拟读 ppos
 var swap_off := Vector2.ZERO
 var swap_t := 0.0
 var swap_ease := 0.25
@@ -1728,12 +1724,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）
-	# 切换队长（10-23；10-27 起缺省关，balance leader_swap/on）：开着时 Q / 手柄 RB / 触屏点编队卡切人，技能键只剩 E / J
-	if k == KEY_Q and state == S.PLAY and Squad.swap_on():
-		if squad.cycle_leader():
-			Sfx.play("ui_ok", -8.0)
-		get_viewport().set_input_as_handled()
-		return
 	if (k == KEY_Q or k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
@@ -1990,7 +1980,6 @@ func _update(dt: float) -> void:
 	if dash_end:
 		vfx.ground_dust(ppos, 20.0, 7)
 		vfx.impact_pause(0.022)
-	hunt.clamp_player()   # 围猎：从圈内往外走、那个方位的海嗣还活着就夹回圈内
 	swing_face -= dt
 
 	var rg: float = combat.regen_per_sec() * dt
@@ -2047,7 +2036,6 @@ func _update(dt: float) -> void:
 	if not trial.active and not sandbox:
 		endg.update(dt)
 		endg.tick_final_warning()
-		hunt.update(dt)
 		beacon_sys.update(dt)
 		knight.tick_final()   # 结局二：9:00 起走向黑潮中心、到达入潮消失（docs/18 §1）
 		if demo_op == "":

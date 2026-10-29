@@ -122,13 +122,13 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 const WEAK_SPARK := {"物理": Color(1.0, 0.75, 0.3), "法术": Color(0.7, 0.55, 1.0)}
 var _break_fx_at := {}
 
-## 特效第 2 步（10-23 用户定）：普攻命中统一「轻 / 中 / 重」三档模板（fx/hit_tiers，缺省 1；0 = 旧样子）。
+## 特效第 2 步（10-23 用户定）：普攻命中统一「轻 / 中 / 重」三档模板（10-29 起常开，旧开关 fx/hit_tiers 已删）。
 ## 分档：单发伤害相对该干员普攻基准（按干员滑动平均，暴击 / 弱点不进基准）< fx/hit_mid（1.2）倍轻、< fx/hit_heavy（2.5）倍中、
 ## 以上或暴击 / 弱点重；召唤物、追加打击（follow_up / aftershock）一律轻。只认带 basic 标签的普攻与召唤物，技能 / 持续伤害照旧。
 ## 每档：迸溅颗粒 fx/hit_n（3 / 6 / 12，干员本色）、白闪时长、命中闪光大小与亮度、顿帧（轻 0 / 中 fx/hit_pause_m / 重 fx/hit_pause_h，
 ## 走 impact_pause 的共享限频）、命中音（三档音量 / 音高，Sfx 自带限流）。纯画面：粒子用 g.vrng / GPU，不碰模拟随机数，TRACE 不变
 var _hit_base := {}   # 干员 id → 普攻单发伤害基准
-var tier_off := false   # --tierab 同局轮换：true = 这一段按旧样子（不分档）
+var tier_off := false   # --tierab 同局轮换（只供性能对照）：true = 这一段不分档、不画刀光
 var _tier_force := -2   # --hittier=N 截图对照：普攻一律按第 N 档；-1 = 不强制（-2 = 还没读参数）
 var _open_arcs := {}    # 干员 id → 这一帧刚画的刀光（同帧命中按三档更新它的粗细亮度）
 var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（核对用）
@@ -136,7 +136,7 @@ var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（�
 
 ## 近战刀光（character.arc_targets 调）：同一干员同一模拟时刻同一判定只画一道；粗细亮度先按轻档，命中后由 hit_react 升档
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
-	if tier_off or Bal.v("fx/melee_arc", 1.0) <= 0.0 or g.fx.size() > 420:
+	if tier_off or g.fx.size() > 420:
 		return
 	var key: String = str(o.id)
 	var prev = _open_arcs.get(key)
@@ -223,7 +223,7 @@ func is_lead_hit(h: Dictionary) -> bool:
 
 
 func hit_tier(h: Dictionary, dmg: float, crit: bool, weak: bool) -> int:
-	if tier_off or Bal.v("fx/hit_tiers", 1.0) <= 0.0:
+	if tier_off:
 		return 0
 	if _tier_force == -2:
 		_tier_force = -1
@@ -394,7 +394,7 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 ## - 大体型（e.r ≥ fx/kill_big_r）：再加一圈慢扩散的外环 + 脚下尘土 + 材质层音（甲壳 fx/kill_shell_sfx = kill_shell，其余 fx/kill_big_sfx = kill_big）
 ## - 击杀音 kill 的音高按体型降（fx/kill_pitch_r：r 越大越低），同屏一片小怪倒下时也听得出大小
 ## - 顿帧：大体型或暴击击杀 impact_pause(fx/kill_pause)，走共享预算（0.28 秒最多一次，受「命中顿帧」设置）
-## lean：光学观感新击杀（combat.kill，render/kill_style）——只留击杀音、材质层音与顿帧，火花 / 冲击环 / 尘土交给像素碎屑
+## lean：光学观感新击杀（combat.kill，光学观感开着时）——只留击杀音、材质层音与顿帧，火花 / 冲击环 / 尘土交给像素碎屑
 func kill_burst(e: Dictionary, col: Color, crit: bool, lean := false) -> void:
 	var r: float = float(e.get("r", 12.0))
 	var rb: float = r / float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大的按原体型判大小 / 火花数 / 音高 / 顿帧，爆点环按实际半径
@@ -619,7 +619,7 @@ func _tlog(kind: String, text: String) -> void:
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 	var pn: Array = _num_parts(text)
 	if pn.is_empty() and not text.is_valid_float():
-		if _text_calm() and not _word_ok(text):
+		if not _word_ok(text):
 			return
 		_tlog("float", text)
 	if not pn.is_empty():
@@ -738,13 +738,12 @@ func show_banner(text: String, prio := -1) -> void:
 		banner_log.pop_front()
 	if prio < 0:
 		prio = _guess_prio(text)
-	if _text_calm():
-		match _calm_route(text, prio):
-			"drop":
-				return
-			"notice":
-				_notice(text)
-				return
+	match _calm_route(text, prio):
+		"drop":
+			return
+		"notice":
+			_notice(text)
+			return
 	if prio <= 1 and _boss_fight():
 		_notice(text)
 		return
@@ -764,22 +763,15 @@ func show_banner(text: String, prio := -1) -> void:
 		banner_q.pop_back()
 
 
-## ── 文字提醒节流（docs/139 §9，用户 10-25「那些字提醒的时候也显得太频繁了」；render/text_calm，缺省 1，0 = 原行为）──
+## ── 文字提醒节流（docs/139 §9，用户 10-25「那些字提醒的时候也显得太频繁了」；10-29 起常开，旧开关 render/text_calm 已删）──
 ## 横幅只给要玩家做事的（黑潮、Boss、商人到达、精英、灯标）；状态变化 / 干员提示改左侧小字（notices）或不显示；
 ## 同类横幅有冷却（BANNER_CD，冷却中改小字），两条横幅之间至少 render/banner_gap 秒（黑潮 / Boss 横幅不受限；其余排队等）；
 ## 头顶文字飘字（非数字）：同一句 render/word_gap 秒内只出一次、同屏最多 render/word_max 条，敌人「狂暴」「尖叫」不再飘字（本体已有变色 / 光环）
 const BANNER_CD := {"elite": 45.0, "beacon": 90.0, "tide": 25.0, "same": 60.0}
 const WORD_DROP := ["狂暴", "尖叫", "架起结束"]
-var _calm := -1
 var _cat_t := {}
 var _last_banner_ms := -100000.0
 var _word_t := {}
-
-func _text_calm() -> bool:
-	if _calm < 0:
-		_calm = 1 if Bal.v("render/text_calm", 1.0) > 0.0 else 0
-	return _calm == 1
-
 
 ## 横幅分流：show（照常横幅）/ notice（左侧小字）/ drop（不显示）
 func _calm_route(text: String, prio: int) -> String:
@@ -821,9 +813,9 @@ func _word_ok(text: String) -> bool:
 	return true
 
 
-## 两条横幅之间的最小间隔（游戏秒；text_calm 关时恒真；黑潮 / Boss 横幅不受限）
+## 两条横幅之间的最小间隔（游戏秒；黑潮 / Boss 横幅不受限）
 func _gap_ok(prio: int) -> bool:
-	return not _text_calm() or prio >= 2 or g.t - _last_banner_ms >= Bal.v("render/banner_gap", 8.0)
+	return prio >= 2 or g.t - _last_banner_ms >= Bal.v("render/banner_gap", 8.0)
 
 
 func _banner_now(text: String, prio: int) -> void:
@@ -1102,8 +1094,8 @@ func boss_blade(b: Dictionary, pos: Vector2) -> void:
 
 # =====================================================================
 # 画面特效二轮（docs/54，界面与美术 2026-10-10）：环境与事件特效，不含打击反馈（docs/53）与 Boss 登场。
-# 全部纯画面：只往 g.fx 追加、只用 g.vrng；旋钮在 data/balance.json 的 fx 段，fx/vfx2 = 0 一键全关，
-# 各项各有开关；低画质 / 触屏不画常驻环境粒子（ambient_ok），一次性事件粒子按 Cfg.fx_density 减半。
+# 全部纯画面：只往 g.fx 追加、只用 g.vrng；旋钮在 data/balance.json 的 fx 段（10-29 起各项常开，旧开关 fx/vfx2 与各单项开关已删）；
+# 低画质 / 触屏不画常驻环境粒子（ambient_ok），一次性事件粒子按 Cfg.fx_density 减半。
 # 新增的 fx 种类：mote（光尘，tb 批）、glow（加色层的柔光，light 贴图）、mire_recoil（溟痕退散的收缩环）
 # =====================================================================
 var _fxc = null                # --fxcensus（docs/138 §7）：本局经 fx_sprite 播过的帧条名 → 次数，局终 / 每 30 秒打印 FXCENSUS（盘点可粒子化的一次性特效）
@@ -1114,10 +1106,9 @@ var p2 := true                 # 运行时总开关（--vfxab=N 同局轮换测�
 var _k2: Dictionary = {}       # fx 段快照（每帧读的旋钮不走 Bal.v 的字符串拆分）
 var _lamp_prev := -1.0         # 灯火观察（update_visuals 调 watch_lamp）
 var _lamp_ember_acc := 0.0
-var _merchant_on := false
 var _merchant_acc := 0.0
 var _elite_seen := {}
-var _sight := {}               # docs/54 §7「首次入画」：精英 id → 登场动画起点（g.t）；fx/first_sight = 0 时不用
+var _sight := {}               # docs/54 §7「首次入画」：精英 id → 登场动画起点（g.t）
 var _merchant_seen := false     # 商人本次出现是否已入画（入画那一帧放出现特效）
 ## docs/54 §6 的五条帧条（tools/gen_fx_strips.py）：有图就用图，没图走下面各处原来的程序画法；fx/strips = 0 强制走程序画法
 const STRIPS := ["fx_beacon_ignite", "fx_ember", "fx_mire_dissolve", "fx_levelup_pillar", "fx_elite_spawn"]
@@ -1135,11 +1126,6 @@ func _kv(name: String, d: float) -> float:
 	return float(v) if (v is float or v is int) else d
 
 
-## 本项是否开着（总开关 × 单项旋钮）
-func on(name: String) -> bool:
-	return p2 and _kv("vfx2", 1.0) > 0.0 and _kv(name, 1.0) > 0.0
-
-
 ## 帧条贴图在且允许用（fx/strips 旋钮，缺省 1）
 func strip(name: String) -> bool:
 	return g.tex.get(name) != null and _kv("strips", 1.0) > 0.0
@@ -1154,16 +1140,10 @@ func add_strip(name: String, pos: Vector2, scale: float, col: Color, anchor: Vec
 	g.fx.append({"kind": "aspr", "name": name, "pos": pos, "scale": scale, "col": col, "anchor": anchor, "life": dur, "max": dur})
 
 
-## 「首次入画」（docs/54 §7 第 2–3 条，fx/first_sight 缺省 1）：精英登场 / 商人出现的特效改在实体第一次进入视野时播，
+## 「首次入画」（docs/54 §7 第 2–3 条；10-29 起常开，旧开关 fx/first_sight 已删）：精英登场 / 商人出现的特效改在实体第一次进入视野时播，
 ## 而不是刷出（多在屏外）那一刻；刷出时就在视野内则和原来一样从刷出算起。纯画面状态，不碰 g.rng
-func first_sight() -> bool:
-	return _kv("first_sight", 1.0) > 0.0
-
-
 ## 精英本帧要不要走登场动画（world 每帧按视野内的精英调）：首次入画起 0.9 秒内为真
 func elite_entrance_due(e: Dictionary) -> bool:
-	if not first_sight():
-		return e.age < 0.9
 	var key: int = int(e.get("id", 0))
 	if not _sight.has(key):
 		if _sight.size() > 128:
@@ -1183,7 +1163,7 @@ func _prune_sight() -> void:
 
 ## 常驻环境粒子（溟痕光尘、低灯火余烬、商人灯笼）：低画质和触屏设备不画
 func ambient_ok() -> bool:
-	return p2 and _kv("vfx2", 1.0) > 0.0 and Cfg.quality != "low" and not Cfg.touch_device()
+	return p2 and Cfg.quality != "low" and not Cfg.touch_device()
 
 
 ## 光尘：n 粒从 pos 出发，基础方向 dir（ZERO = 全向）× spd，带重力 grav（负 = 上浮）与阻力 drag（1/秒）
@@ -1212,7 +1192,7 @@ func glow(pos: Vector2, r: float, col: Color, life: float, grow := 0.6) -> void:
 ## ① 灯标点燃（world.beacon_burst 调用；原有的爆闪 / 扩环 / 放射线 / 火花照旧）：
 ## 灯室柔光一片、余烬上升、被清掉的溟痕收缩退散（beacon._light 记在 b.cleared 里的 [pos, r]）
 func beacon_ignite(b: Dictionary) -> void:
-	if not on("beacon_burst2"):
+	if not p2:
 		return
 	var pos: Vector2 = b.get("pos", Vector2.ZERO)
 	var lamp: Vector2 = pos + Vector2(0, -62.0)
@@ -1238,7 +1218,7 @@ func beacon_ignite(b: Dictionary) -> void:
 
 ## ② 升级（pickups.levelup_fx 调用；原有的双环 + 18 火花 + 头顶字样照旧）：主控柔光 + 金色光柱 + 上升光尘 + 轻微全屏白闪
 func levelup_burst(pos: Vector2) -> void:
-	if not on("levelup_burst"):
+	if not p2:
 		return
 	glow(pos + Vector2(0, -24), 170.0, Color(1.0, 0.85, 0.45, 0.6), 0.55, 0.5)
 	if strip("fx_levelup_pillar"):
@@ -1256,7 +1236,7 @@ func watch_lamp(rd: float) -> void:
 	if g.state != g.S.PLAY or g.demo_op != "":
 		_lamp_prev = g.lamp
 		return
-	if _lamp_prev >= 0.0 and on("lamp_dim"):
+	if _lamp_prev >= 0.0 and p2:
 		var stage := 0
 		if _lamp_prev > 0.0 and g.lamp <= 0.0:
 			stage = 2
@@ -1268,7 +1248,7 @@ func watch_lamp(rd: float) -> void:
 			motes(lp, Vector2.DOWN, Color(1.8, 0.8, 0.3), Bal.vi("fx/lamp_embers", 10) * (2 if stage == 2 else 1), 70.0, 1.1, 90.0, 0.8, 2.0, 1.3, 6.0, true)
 			motes(lp, Vector2.UP, Color(0.35, 0.3, 0.32, 0.7), 6, 40.0, 1.4, -25.0, 0.6, 3.0, 0.5, 4.0)
 	_lamp_prev = g.lamp
-	if g.lamp < 30.0 and g.lamp > 0.0 and ambient_ok() and on("lamp_dim"):
+	if g.lamp < 30.0 and g.lamp > 0.0 and ambient_ok():
 		_lamp_ember_acc += rd * _kv("lamp_low_embers", 2.0)
 		if _lamp_ember_acc >= 1.0:
 			_lamp_ember_acc -= 1.0
@@ -1281,7 +1261,7 @@ func watch_lamp(rd: float) -> void:
 func elite_entrance(e: Dictionary) -> void:
 	var key: int = int(e.get("id", 0))
 	var age: float = float(e.get("age", 9.0))
-	if first_sight() and _sight.has(key):
+	if _sight.has(key):
 		age = g.t - float(_sight[key])   # 首次入画起算（elite_entrance_due 登记）
 	if age > 0.9 or e.get("dead", false):
 		return
@@ -1337,7 +1317,7 @@ func mire_motes(m: Dictionary, budget: int) -> int:
 
 ## ⑥ 干员晋升 / 入队（progression.pick 调用；原有的蓝环 / 绿环 + 横幅照旧）：金色放射光 + 光柱 + 柔光 + 光尘
 func promote_burst(pos: Vector2, elite: bool) -> void:
-	if not on("promote_burst"):
+	if not p2:
 		return
 	var c := Color(1.0, 0.85, 0.45) if elite else Color(0.6, 0.95, 1.0)
 	glow(pos + Vector2(0, -24), 150.0 if elite else 100.0, Color(c.r, c.g, c.b, 0.6), 0.6, 0.4)
@@ -1349,7 +1329,7 @@ func promote_burst(pos: Vector2, elite: bool) -> void:
 
 ## ⑦ 拾取（pickups 调用）：油 / 治疗 / 磁铁 / 源石锭 / 宝箱各一小段，颜色跟物品色
 func pickup_burst(kind: String, col: Color) -> void:
-	if not on("pickup_burst"):
+	if not p2:
 		return
 	var p: Vector2 = g.ppos + Vector2(0, -22)
 	match kind:
@@ -1371,21 +1351,17 @@ func watch_merchant(rd: float) -> void:
 	if not here:
 		_merchant_seen = false
 	var burst := false
-	if here and on("merchant_fx"):
-		if first_sight():
-			# 首次入画才放（docs/54 §7 第 3 条）：刷在屏外时等玩家找到它那一刻；刷在视野内则当帧就放
-			if not _merchant_seen and _wv().view_rect(40.0).has_point(g.merchant.pos):
-				_merchant_seen = true
-				burst = true
-		else:
-			burst = not _merchant_on
+	if here and p2:
+		# 首次入画才放（docs/54 §7 第 3 条）：刷在屏外时等玩家找到它那一刻；刷在视野内则当帧就放
+		if not _merchant_seen and _wv().view_rect(40.0).has_point(g.merchant.pos):
+			_merchant_seen = true
+			burst = true
 	if burst:
 		var mp: Vector2 = g.merchant.pos
 		glow(mp + Vector2(0, -30), 150.0, Color(1.0, 0.75, 0.45, 0.6), 0.9, 0.3)
 		g.fx.append({"kind": "ring", "pos": mp + Vector2(0, 10), "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.8, 0.5)})
 		motes(mp + Vector2(0, -20), Vector2.UP, Color(1.9, 1.5, 0.9), 14, 110.0, 1.3, -40.0, 1.0, 2.0, 1.2, 16.0)
-	_merchant_on = here
-	if here and ambient_ok() and on("merchant_fx") and g.merchant.pos.distance_to(g.ppos) < 900.0:
+	if here and ambient_ok() and g.merchant.pos.distance_to(g.ppos) < 900.0:
 		_merchant_acc += rd * _kv("merchant_motes", 1.5)
 		if _merchant_acc >= 1.0:
 			_merchant_acc -= 1.0

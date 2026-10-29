@@ -11,7 +11,7 @@ class VoiceSpy extends Node:
 		urgents.append(urgent)   # 指挥回应一律 urgent（10-23）
 	var delays: Array = []
 	func voice_chorus(cid: String, key: String, delay := 0.0, _duck := -3.0) -> void:
-		calls.append([cid, key, false])   # 指挥合唱（10-28，command/voice_mode 缺省 1）：同 urgent 指挥回应，另记错开秒数
+		calls.append([cid, key, false])   # 指挥合唱（10-28）：同 urgent 指挥回应，另记错开秒数
 		urgents.append(true)
 		delays.append(delay)
 	func has_voice(_cid: String, _key: String) -> bool:
@@ -126,8 +126,7 @@ func run(check: Callable) -> void:
 	_channel_rules(check)
 	_pool_rules(check)
 
-## 指挥合唱（10-28 用户「突击时两名队友的台词可以交替或一起喊」）：两名出击队友都开口，轮换谁先、其余晚 voice_stagger 秒；
-## voice_mode 0 = 旧口径只一人
+## 指挥合唱（10-28 用户「突击时两名队友的台词可以交替或一起喊」）：两名出击队友都开口，轮换谁先、其余晚 voice_stagger 秒
 func _chorus_rotation(check: Callable, game, spy) -> void:
 	var sq := Squad.new(game)
 	var a := Character.new(game, {"id": "texas"})
@@ -146,16 +145,6 @@ func _chorus_rotation(check: Callable, game, spy) -> void:
 	check.call(spy.calls.size() == 2, "recall chorus is silent (user 10-29)")
 	sq._stance_voice(Squad.ROAM)
 	check.call(spy.calls.slice(2) == [["skadi", "command", false], ["texas", "command", false]], "next assault chorus rotates who speaks first")
-	game.t += 7.0
-	var Bal = preload("res://scripts/core/balance.gd")
-	Bal.v("command/voice_mode", 1.0)   # 先载入，再临时改旋钮
-	var cmd: Dictionary = Bal._data.get("command", {})
-	var old = cmd.get("voice_mode", 1.0)
-	cmd["voice_mode"] = 0.0
-	spy.calls.clear()
-	sq._stance_voice(Squad.ROAM)
-	check.call(spy.calls.size() == 1, "voice_mode 0 keeps the single-speaker rotation")
-	cmd["voice_mode"] = old
 
 
 func _asset_coverage(check: Callable) -> void:

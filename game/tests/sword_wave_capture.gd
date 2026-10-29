@@ -1,6 +1,6 @@
 extends Node
 ## 剑气非线性速度改前 / 改后对照（用户 10-27，sword_ease.gd）：tools/sword_wave_rec.py 调。
-##   --sw_case=lap | qi   --sw_out=<目录>（不给 = 不截图，只计数）   --sw_frames=N   另带 --bal=sword_ease/on=0|1 切改前 / 改后
+##   --sw_case=lap | qi   --sw_out=<目录>（不给 = 不截图，只计数）   --sw_frames=N
 ## lap = 拉普兰德本人（敌人站在横扫触及外，走「领主」远掷剑气）；qi = 德克萨斯 + 锈蚀刀片 + 老近卫军之锋（可见成长近战剑气）。
 ## 同 seed、同一组敌人、同帧数，两次的第 k 帧可直接左右拼；结束时打印命中次数与总伤害（判定不变的对照）。
 

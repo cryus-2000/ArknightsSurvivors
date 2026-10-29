@@ -480,7 +480,7 @@ static func fill_numbers(ln: String) -> String:
 		"{pack_p}": pc100.call("crate/pack_p", 0.9), "{pack_pct}": pc100.call("crate/pack_pct", 0.3), "{pack_below}": pc100.call("crate/pick_below", 0.9),
 		"{crate_magnet}": pc100.call("crate/magnet_p", 0.1), "{crate_shield}": pc100.call("crate/shield_p", 0.1),
 		"{cmd_stamina}": Sq._num(Bal.v("command/stamina_secs", 25.0)), "{cmd_min}": pc100.call("command/min_start", 0.3),
-		"{cmd_revive}": Sq._num(Bal.v("command/revive_secs", 25.0)), "{swap_cd}": Sq._num(Bal.v("leader_swap/cd", 2.0)),
+		"{cmd_revive}": Sq._num(Bal.v("command/revive_secs", 25.0)),
 	}
 	for k in vals:
 		ln = ln.replace(k, vals[k])

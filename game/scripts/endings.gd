@@ -1,7 +1,7 @@
-## 结局与翻节点卡（docs/154，取代海嗣祭坛）：首通结局一后，3:30 / 7:00 中 Boss 全部倒下后各翻一次节点卡（路口一 / 二）。
+## 结局与翻节点卡（docs/154，取代海嗣祭坛；docs/184 事件改版）：3:30 / 7:00 中 Boss 全部倒下后各翻一次节点卡（路口一 / 二），另有 1:20 / 6:00 两次途中路口。
 ## 结局线入口（狂徒妄念、开端）路口一必出；持某线信物时路口二必出该线后续事件；其余位置按权重随机填充。
 ## 结局只看信物：满足条件的结局里取 priority 最高的（原作数据 endings.priority）；最终 Boss 登场即冻结。
-## 数据：data/waves.json 的 cross_deck / events / endings；进度：Cfg.endings_cleared（通关过结局一才开启翻卡）。
+## 数据：data/waves.json 的 cross_deck / events / endings + data/events_v2.json；进度：Cfg.endings_cleared（通关过结局一才出结局线入口卡）。
 extends RefCounted
 
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
@@ -34,7 +34,6 @@ var searched: Array = []        # 深蓝之心搜过的房间（"heart:i"）
 var last_type := ""             # 上一个路口翻开的卡种
 var picks: Array = []           # 作战记录：[路口, 卡种, 事件 id]
 var incidents := 0              # 不期而遇次数（作战记录）
-var shop_visit := -1            # 诡意行商：第几位商人（merchant_idx）货架 +1、首件打折
 var wish_rare := false          # 得偿所愿：下一次藏品三选一稀有 / 核心加权
 var elites: Array = []          # 紧急作战刷出的精英小队成员
 var squad_pending: Array = []   # 精英小队里同屏上限放不下、推迟刷出的成员：[类型, 出生点]
@@ -43,8 +42,7 @@ var squad_at := -1.0            # --squadat=秒（调试构建）：到点强制
 var elite_pos := Vector2.ZERO
 var _mh_n := 0                  # 事件改最大生命的次数（stats 来源名）
 var route := ""                 # --route=knight|heart|memory|none|rand（机器人走哪条线；空 = 按 seed 轮换）
-# ---- 事件改版（docs/184；balance cross/redesign，0 = 旧翻卡，云端对照用）
-var redesign := true            # 改版开着
+# ---- 事件改版（docs/184）
 var lines_on := false           # 结局线入口卡开不开（通关结局一后；测试 / 批跑缺省开）
 var mid_done := 0               # 途中路口已发几次（0 / 1 / 2）
 var c1_deal_t := -1.0           # 路口一发牌时刻（晚于途中二最早时刻时取消途中二）
@@ -54,7 +52,7 @@ var chal: Dictionary = {}       # 进行中的委托：{kind, name, end_t, win, 
 var away: Array = []            # 暂离的队友：[{id, prog, route, back_t, reward}]
 var sub_ctx: Dictionary = {}    # 事件选项里要再选一次的（选干员 / 交藏品）：{queue, promoted, offer}
 var trouble := false            # 敬奉火焰「火焰拯救不了这片大地」：下一个路口必出紧急作战，全灭掉两个宝箱
-var squad_reward := ""          # 精英小队全灭的奖励："" 宝箱 + 源石锭（旧）；lane 主流派三选一宝箱；double 两个宝箱；chal 交给委托结算
+var squad_reward := ""          # 精英小队全灭的奖励："" 宝箱 + 源石锭（--squadat 调试刷的小队）；lane 主流派三选一宝箱；double 两个宝箱；chal 交给委托结算
 var _ev_n := 0                  # 事件改属性的次数（stats 来源名）
 const SUMMON_OPS := ["mizuki", "skalter", "wisadel", "kaltsit", "specter_unchained"]   # docs/35「追击·召唤」吃得到的干员
 const MELEE_CLS := ["近卫", "重装", "先锋", "特种"]
@@ -72,9 +70,7 @@ func _init(game) -> void:
 	events = (w.get("events", []) as Array).duplicate(true)
 	endings = w.get("endings", {})
 	deck_cfg = (w.get("cross_deck", {}) as Dictionary).duplicate(true)
-	redesign = Bal.vi("cross/redesign", 1) == 1
-	if redesign:
-		_merge_v2()
+	_merge_v2()
 	for ev in events:
 		ev_by_id[str(ev.id)] = ev
 	all_unlocked = Cfg.dev_args().has("--allend")
@@ -86,7 +82,7 @@ func _init(game) -> void:
 			route = a.substr(8)
 
 
-## 事件改版数据（data/events_v2.json）：cross 并进 cross_deck、patch 按 id 并进现有事件、events 追加
+## 事件改版数据（data/events_v2.json）：cross 并进 cross_deck、events 追加在 waves.json 事件之后
 func _merge_v2() -> void:
 	var f := FileAccess.open("res://data/events_v2.json", FileAccess.READ)
 	if f == null:
@@ -96,18 +92,11 @@ func _merge_v2() -> void:
 		return
 	for k in v2.get("cross", {}):
 		deck_cfg[k] = v2.cross[k]
-	var by := {}
-	for ev in events:
-		by[str(ev.id)] = ev
-	for id in v2.get("patch", {}):
-		if by.has(id):
-			for k in v2.patch[id]:
-				by[id][k] = v2.patch[id][k]
 	events.append_array(v2.get("events", []))
 
 
 ## 结局线入口开不开：玩家局要通关过结局一；测试 / 批跑缺省开（--nocross 关）。
-## 旧翻卡（cross/redesign = 0）时它同时决定翻卡开不开；改版后翻卡一直开，它只管结局入口卡（docs/184 §5.1）
+## 翻卡本身一直开（--nocross 才关），它只管结局入口卡（docs/184 §5.1）
 func _cross_on() -> bool:
 	if Cfg.dev_args().has("--nocross"):
 		return false
@@ -121,7 +110,7 @@ func update(_dt: float) -> void:
 	if not _checked:
 		_checked = true
 		lines_on = _cross_on()
-		enabled = (not Cfg.dev_args().has("--nocross")) if redesign else lines_on
+		enabled = not Cfg.dev_args().has("--nocross")
 	if squad_at >= 0.0 and g.t >= squad_at:
 		squad_at = -1.0
 		_spawn_elites()
@@ -134,7 +123,7 @@ func update(_dt: float) -> void:
 		frozen = true   # 最终 Boss 登场：结局就此冻结（结算与解锁都按这时的结局）
 		_log("frozen")
 		return
-	if enabled and redesign:
+	if enabled:
 		_tick_mid()
 	if not enabled or cross_done >= 2:
 		return
@@ -201,8 +190,6 @@ func _tick_mid() -> void:
 
 ## 还有没有后面的路口（敬奉火焰「麻烦」要有下一个路口兑现）
 func _later_slot() -> bool:
-	if not redesign:
-		return cross_done < 2
 	return cross_done < 2 or (mid_done < 2 and cross_done < 1)
 
 
@@ -224,7 +211,7 @@ func build_deck(n: int) -> Array:
 			continue
 		cards.append({"type": "incident", "event": str(ev.id), "must": true, "ends": LINE_ENDS.get(str(ev.id), [])})
 	var want: int = maxi(int(deck_cfg.get("mid_n" if n == 0 else "n", 2 if n == 0 else 3)), cards.size())
-	if redesign and trouble:
+	if trouble:
 		trouble = false   # 敬奉火焰的「麻烦」：这个路口必出一张紧急作战，全灭掉两个宝箱
 		cards.append({"type": "elite", "must": false, "ends": [], "double": true, "trade": true})
 		want = maxi(want, cards.size())
@@ -236,39 +223,30 @@ func build_deck(n: int) -> Array:
 		if w > 0.0:
 			cand.append([-log(u + 0.0001) / w, t])
 	cand.sort_custom(func(a, b): return a[0] < b[0])
-	if not redesign:
+	# 同类最多 1 张、无代价卡（安全的角落 / 诡意行商）最多 1 张、最后一个空位还没有交易卡时只放交易卡；
+	# 一轮放不满就放宽约束再走一轮（候选按权重顺序，不多取随机数）
+	for relax in 2:
 		for c in cand:
 			if cards.size() >= want:
 				break
-			var card := {"type": str(c[1]), "must": false, "ends": []}
-			if c[1] == "incident":
-				card.event = _pick_common()
+			var t: String = str(c[1])
+			if (n == 0 and t == "fog") or cards.any(func(x): return x.type == t and not x.must and t != "incident"):
+				continue
+			var fills: Array = cards.filter(func(x): return not x.must)
+			var need_trade: bool = relax == 0 and cards.size() == want - 1 and not fills.any(func(x): return _is_trade(x))
+			if relax == 0 and t in ["rest", "shop"] and fills.any(func(x): return x.type in ["rest", "shop"]):
+				continue
+			if need_trade and t in ["rest", "shop", "fog"]:
+				continue
+			var card := {"type": t, "must": false, "ends": []}
+			if t == "incident":
+				card.event = _pick_common(need_trade)
+				if card.event == "":
+					continue
+			card.trade = _is_trade(card)
 			cards.append(card)
-	else:
-		# 改版：同类最多 1 张、无代价卡（安全的角落 / 诡意行商）最多 1 张、最后一个空位还没有交易卡时只放交易卡；
-		# 一轮放不满就放宽约束再走一轮（候选按权重顺序，不多取随机数）
-		for relax in 2:
-			for c in cand:
-				if cards.size() >= want:
-					break
-				var t: String = str(c[1])
-				if (n == 0 and t == "fog") or cards.any(func(x): return x.type == t and not x.must and t != "incident"):
-					continue
-				var fills: Array = cards.filter(func(x): return not x.must)
-				var need_trade: bool = relax == 0 and cards.size() == want - 1 and not fills.any(func(x): return _is_trade(x))
-				if relax == 0 and t in ["rest", "shop"] and fills.any(func(x): return x.type in ["rest", "shop"]):
-					continue
-				if need_trade and t in ["rest", "shop", "fog"]:
-					continue
-				var card := {"type": t, "must": false, "ends": []}
-				if t == "incident":
-					card.event = _pick_common(need_trade)
-					if card.event == "":
-						continue
-				card.trade = _is_trade(card)
-				cards.append(card)
 	for c in cards:
-		if redesign and not c.has("trade"):
+		if not c.has("trade"):
 			c.trade = not c.get("must", false) and _is_trade(c)
 	for i in range(cards.size() - 1, 0, -1):
 		var j: int = g.rng.randi() % (i + 1)
@@ -312,16 +290,7 @@ func _fill_mult(t: String, cards: Array) -> float:
 
 
 func _common_left() -> Array:
-	return events.filter(func(ev): return ev.get("pool", "") == "common" and not used_common.has(str(ev.id)) and _ver_ok(ev) and (not redesign or _req_ok(ev)))
-
-
-## 事件版本：v2 = 只在改版出现，v1 = 只在旧翻卡出现（继承退役）
-func _ver_ok(ev: Dictionary) -> bool:
-	if ev.get("v2", false) and not redesign:
-		return false
-	if ev.get("v1", false) and redesign:
-		return false
-	return true
+	return events.filter(func(ev): return ev.get("pool", "") == "common" and not used_common.has(str(ev.id)) and _req_ok(ev))
 
 
 ## 事件出现条件（events_v2.json req）：mate 队友数 / ingots 源石锭 / before 秒前 / after_cross 路口一之后 / tradeable 有可交出的藏品
@@ -342,31 +311,27 @@ func _req_ok(ev: Dictionary) -> bool:
 	return true
 
 
-## 抽普通不期而遇：旧版等权；改版按主流派加权（事件 lanes 含主流派 ×lane_event_w），need_trade 时只抽交易事件
+## 抽普通不期而遇：按主流派加权（事件 lanes 含主流派 ×lane_event_w），need_trade 时只抽交易事件
 func _pick_common(need_trade := false) -> String:
 	var left := _common_left()
 	if need_trade:
 		left = left.filter(func(ev): return ev.get("trade", false))
 	if left.is_empty():
 		return ""
-	var id := ""
-	if not redesign:
-		id = str(left[g.rng.randi() % left.size()].id)
-	else:
-		var ml := main_lane()
-		var tot := 0.0
-		var ws: Array = []
-		for ev in left:
-			var w: float = float(deck_cfg.get("lane_event_w", 2.0)) if (ev.get("lanes", []) as Array).has(ml) else 1.0
-			ws.append(w)
-			tot += w
-		var r: float = g.rng.randf() * tot
-		id = str(left[-1].id)
-		for k in left.size():
-			r -= ws[k]
-			if r <= 0.0:
-				id = str(left[k].id)
-				break
+	var ml := main_lane()
+	var tot := 0.0
+	var ws: Array = []
+	for ev in left:
+		var w: float = float(deck_cfg.get("lane_event_w", 2.0)) if (ev.get("lanes", []) as Array).has(ml) else 1.0
+		ws.append(w)
+		tot += w
+	var r: float = g.rng.randf() * tot
+	var id := str(left[-1].id)
+	for k in left.size():
+		r -= ws[k]
+		if r <= 0.0:
+			id = str(left[k].id)
+			break
 	used_common.append(id)
 	return id
 
@@ -426,7 +391,7 @@ func flip(i: int) -> void:
 				c.type = "wish"
 	last_type = str(c.type)
 	g.telemetry.nodes += 1   # 作战记录（docs/77）
-	picks.append([slot if redesign else cross_done, last_type, str(c.get("event", ""))])
+	picks.append([slot, last_type, str(c.get("event", ""))])
 	_log("flip %d %s %s" % [i, c.type, str(c.get("event", ""))])
 	Sfx.play("relic", -4.0, 1.2, 0.0)
 	if g.mode == g.Mode.BALANCE or DisplayServer.get_name() == "headless":
@@ -465,25 +430,13 @@ func _resolve() -> void:
 			_open_rest()
 			return
 		"wish":
-			if redesign and ev_by_id.has("wish_v2"):
-				open("wish_v2")   # 改版：带走一件 / 付生命再拿一件（docs/184 §3）
-				return
-			wish_rare = true
-			g.pending_chests += 1
-			g.chest_src.append("wish")
+			open("wish_v2")   # 带走一件 / 付生命再拿一件（docs/184 §3）
+			return
 		"shop":
-			if redesign:
-				g.shop_sys.open_trader()   # 原作语义：进一次商店（用户 10-28；docs/184 §3），买完关掉回战斗
-				return
-			var mt: Array = g.MERCHANT_TIMES
-			if g.merchant_idx < mt.size():
-				shop_visit = g.merchant_idx + 1
-				g.vfx.show_banner("诡意行商：下一位商人多带一件货，第一件 %d 折" % int(round(float(deck_cfg.get("shop_disc", 0.7)) * 10.0)))
-			else:
-				g.rfx.gain_ingots(int(deck_cfg.get("shop_ingots", 20)), "诡意行商 · ")
+			g.shop_sys.open_trader()   # 原作语义：进一次商店（用户 10-28；docs/184 §3），买完关掉回战斗
+			return
 		"elite":
-			if redesign:
-				squad_reward = "double" if c.get("double", false) else "lane"
+			squad_reward = "double" if c.get("double", false) else "lane"
 			_spawn_elites()
 	_close()
 
@@ -596,7 +549,7 @@ func _tick_elites() -> void:
 		g.pickups.drop(elite_pos + Vector2(36, 0), "chest", 1.0, "squad")
 	wish_rare = true   # 这个宝箱的藏品三选一按稀有 / 核心加权（同得偿所愿，progression 读后清掉）
 	if rw != "":
-		lane_bias = main_lane()   # 改版：三选一里 2 件主流派（docs/184 §2.2）
+		lane_bias = main_lane()   # 三选一里 2 件主流派（docs/184 §2.2）
 	g.rfx.gain_ingots(int(deck_cfg.get("squad_ingots", 20)), "紧急作战 · ")
 	g.vfx.show_banner("精英小队已全灭 —— 拾取宝箱")
 
@@ -644,9 +597,7 @@ func open(ev_id: String) -> void:
 		if searched.has(oid) or not _option_ok(op):
 			continue
 		var icon: String = "e_event"
-		var chips: Array = []
-		if redesign:
-			chips = _v2_chips(op)
+		var chips: Array = _v2_chips(op)
 		for o in op.get("ops", []):
 			if o.has("chance"):
 				chips.append(["%d%%" % int(round(float(o.chance) * 100.0)), Color(0.18, 0.72, 1.0)])
@@ -666,7 +617,7 @@ func open(ev_id: String) -> void:
 		if int(op.get("cost", 0)) > g.ingots:
 			opt.disabled = true
 			opt.desc = str(op.desc) + "（源石锭不足）"
-		elif redesign:
+		else:
 			var why := _blocked(op)
 			if why != "":
 				opt.disabled = true
@@ -677,9 +628,9 @@ func open(ev_id: String) -> void:
 	g.panel_ui.show_choices(ev.name, opts, "event", str(ev.get("text", "")))
 
 
-## 事件的选项：改版有 options_v2 时用它
+## 事件的选项
 func _opts(ev: Dictionary) -> Array:
-	return ev.get("options_v2", ev.options) if redesign else ev.options
+	return ev.get("options", [])
 
 
 ## 插画键：事件可指定 cg（敬奉火焰与引火之木共用一张），否则用事件 id
@@ -1244,10 +1195,9 @@ func bot_route() -> String:
 ## 机器人在路口 / 事件面板选哪一项（不取随机数）
 func bot_choice() -> int:
 	var want := bot_route()
-	if redesign:
-		var b := _bot_v2(want)
-		if b >= 0:
-			return b
+	var b := _bot_v2(want)
+	if b >= 0:
+		return b
 	if g.choice_kind == "cross":
 		var entry: String = {"knight": "madness", "heart": "opening", "memory": "opening"}.get(want, "")
 		var hp_k: float = g.hp / maxf(1.0, g.max_hp)

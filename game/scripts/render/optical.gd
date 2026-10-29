@@ -40,7 +40,7 @@ var col_env := Color(0.34, 0.42, 0.42)
 var col_enemy := Color(0.3, 0.75, 1.0)
 var col_danger := Color(1.0, 0.15, 0.4)
 ## 敌弹色（10-24 用户「怪物的子弹能改成蓝色吗」，docs/139 §6.7）：敌弹本体 / 弹芯 / 拖尾 / 描边 / 地面临时光从危险色里拆出来，
-## render/optical_col_ebullet_h / _s / _v；攻击预警仍用危险色。render/ebullet_recolor（1）把粉 / 紫弹体贴图换成这个色相
+## render/optical_col_ebullet_h / _s / _v；攻击预警仍用危险色。光学观感开着时把粉 / 紫弹体贴图换成这个色相（旧开关 render/ebullet_recolor 10-29 已删）
 var col_ebullet := Color(0.3, 0.85, 1.0)
 const EB_RECOLOR := ["ebullet", "proj_nova", "proj_floater_nerve"]
 var _eb_orig := {}
@@ -219,17 +219,14 @@ func _fxq_step(on: bool) -> void:
 
 
 ## 某颗敌弹的光晕 / 弹芯 / 拖尾 / 地面光颜色（docs/139 §7.3）：杂兵弹 = 敌弹色（青蓝）；
-## Boss 弹（docs/142b §8.4）：render/ebullet_boss_own 1 = 该 Boss 专属色（enemies.json bcol，vfx.boss_color；不加危险色外圈，用户 10-25「描边不要加」）；
-## own 0 时用弹自带 b.col，没有就用 col_boss；render/ebullet_boss_danger 1 = 旧口径（Boss 弹统一危险洋红），缺省 0
+## Boss 弹（docs/142b §8.4）：该 Boss 专属色（enemies.json bcol，vfx.boss_color；不加危险色外圈，用户 10-25「描边不要加」；
+## 旧开关 render/ebullet_boss_own 10-29 已删）；render/ebullet_boss_danger 1 = 旧口径（Boss 弹统一危险洋红），缺省 0
 func eb_col(b: Dictionary) -> Color:
 	if not b.get("boss", false):
 		return col_ebullet
 	if Bal.v("render/ebullet_boss_danger", 0.0) > 0.0:
 		return col_danger
-	if Bal.v("render/ebullet_boss_own", 1.0) > 0.0:
-		return b.own_col if b.has("own_col") else g.vfx.boss_color(str(b.get("src_type", "")))   # own_col：伊祖米克分幕弹色（docs/170 §16）
-	var bc = b.get("col")
-	return bc if bc is Color else col_boss
+	return b.own_col if b.has("own_col") else g.vfx.boss_color(str(b.get("src_type", "")))   # own_col：伊祖米克分幕弹色（docs/170 §16）
 
 
 ## 敌弹弹体换色相（g.tex 同名替换，同压阶帧条的做法；关掉或色相变了换回原图再重做）：粉 / 紫（240–345°）→ 敌弹色色相
@@ -549,7 +546,7 @@ func _process(_dt: float) -> void:
 	fx1 = (fx1_force == 1) if fx1_force >= 0 else Bal.v("render/optical_fx1", 1.0) > 0.0
 	_fxq_step(fx1 and wanted() and DisplayServer.get_name() != "headless" and Bal.v("render/optical_fxq", 1.0) > 0.0)
 	FD.col_cap = Bal.v("render/optical_fx_cap", 1.4) if g.optical_on and fx1 else 0.0
-	_eb_step(Bal.v("render/ebullet_recolor", 0.0) > 0.0 and wanted() and DisplayServer.get_name() != "headless")
+	_eb_step(wanted() and DisplayServer.get_name() != "headless")   # 光学关（低画质 / 无头）时换回原图
 	var on := wanted() and DisplayServer.get_name() != "headless"
 	g.optical_on = on
 	visible = on

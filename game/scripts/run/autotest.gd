@@ -71,12 +71,12 @@ const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw
 var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
 var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
 var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧轮换光学 GPU 粒子开 / 关（--perf 分 /p1 /p0 两桶）
-var matab := 0                # --matab=N：每 N 帧轮换材质颗粒（fx/material_grains）开 / 关（--perf 分 /m1 /m0；要同时 --bal=fx/material_grains=1）
+var matab := 0                # --matab=N：每 N 帧轮换材质颗粒开 / 关（--perf 分 /m1 /m0）
 var iceab := 0                # --iceab=N：每 N 帧轮换骑士冰颗粒开 / 关（--perf 分 /i1 /i0）
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
 var shdemo_full_t := INF      # --shielddemo：护盾充满的时刻
 var bulfxab := 0              # --bulfxab=N：每 N 帧轮换子弹出现 / 消失画面开 / 关（render/bullet_fx.gd；--perf 分 /b1 /b0）
-var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
+var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档 + 近战刀光开 / 关（只轮换 vfx.tier_off，fx/hit_tiers 开关已删）
 # --stackab=N:m1,m2,…（docs/50 §26）：每 N 帧换下一个掩码（optical.ab_mask：1 CPU 颗粒 / 2 GPU 粒子 / 4 特效照明 / 8 发光层 / 16 低分辨率层 / 32 整套光学），
 # --perf 分 /s<掩码> 桶；切换后 3 帧记进 /sx 不算（低分辨率层重挂、粒子重启）
 var stackab := 0
@@ -105,7 +105,7 @@ func _vfx_demo() -> void:
 			m.life = 60.0
 			g.mires.append(m)
 		_vd_beacon = {"pos": bp, "lit": false, "prog": 0.0, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
-			"r": 70.0, "clear_r": 260.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0, "relay_r": g.beacon_sys._sk("relay_r")}   # 接力环画面（docs/56 §8，旋钮关时 0）
+			"r": 70.0, "clear_r": 260.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0}
 		g.beacons.append(_vd_beacon)
 	elif _vd_step == 1 and g.t >= 20.0:
 		_vd_step = 2
@@ -539,13 +539,10 @@ func _opt_ab() -> void:
 var _cmd_at: Array = []
 var _cmd_read := false
 var _cmd_down_at := -1.0
-var _swap_at: Array = []   # --swapat=<秒>,…（录片 / 复现，10-23）：到点各按一次 Q（切换队长）
 func _cmd_step() -> void:
 	if not _cmd_read:
 		_cmd_read = true
 		for a in Cfg.dev_args():
-			if a.begins_with("--swapat="):
-				_swap_at = Array(a.substr(9).split(",")).map(func(x): return float(x))
 			if a.begins_with("--cmddown="):
 				_cmd_down_at = float(a.substr(10))
 			if a.begins_with("--cmdat="):
@@ -558,9 +555,6 @@ func _cmd_step() -> void:
 				o.cmd_down = Bal.v("command/revive_secs", 25.0)
 				o.cmd_down_age = 0.0
 				print("CMD t=%.2f down %s at %.0f,%.0f" % [g.t, o.id, o.pos.x, o.pos.y])
-	if not _swap_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_swap_at[0]):
-		_swap_at.pop_front()
-		g.squad.cycle_leader()
 	if not _cmd_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_cmd_at[0]):
 		_cmd_at.pop_front()
 		g.toggle_command()
@@ -1429,7 +1423,6 @@ func _bossacts_step(spec: String) -> void:
 		g.max_hp = 900.0
 		g.hp = 900.0
 		g.t = 150.0
-		g.hunt.state = 3   # 「围猎」（约 1:30）不在演示里触发：时间直接跳到 2:30 会让包围圈和 Boss 同场（正式局 Boss 最早 3:30，碰不到）
 		var b := g.spawner.spawn_enemy(parts[0].trim_suffix("2"), g.ppos + Vector2(260, -40))
 		b.age = 5.0
 		g.bosses.append(b)

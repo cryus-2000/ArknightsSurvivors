@@ -11,7 +11,7 @@ const OTHER := "_other"
 const ORIGIN_NAME := {"core": "普攻", "skill": "技能", "talent": "天赋", "route": "分支", "support": "支援", "relic": "藏品"}
 ## 承伤来源键（combat.lose_hp 的 src / g.dmg_src）里不是敌人类型的那些
 const TAKEN_NAME := {"bullet": "敌方弹幕", "nerve": "神经损伤", "corrode": "侵蚀", "zone": "黑潮", "mire": "溟痕",
-	"relic": "藏品代价", "hunt_ring": "围猎", "shock": "冲击环", "wound": "侵蚀创口", "dark": "寂灭（灯火归零）"}
+	"relic": "藏品代价", "shock": "冲击环", "wound": "侵蚀创口", "dark": "寂灭（灯火归零）"}
 const TAKEN_PREFIX := ["boss_", "atk_", "blast_", "contact_", "shock_"]
 const LAMP_NAMES := ["通明", "摇曳", "暗淡", "寂灭"]
 
@@ -136,9 +136,9 @@ static func taken_name(k: String) -> String:
 
 
 ## 环境击倒者的名字（docs/76 术语）
-const ENV_NAME := {"zone": "黑潮", "mire": "溟痕", "dark": "寂灭", "hunt_ring": "围猎", "relic": "藏品代价", "bullet": "敌方弹幕",
+const ENV_NAME := {"zone": "黑潮", "mire": "溟痕", "dark": "寂灭", "relic": "藏品代价", "bullet": "敌方弹幕",
 	"corrode": "侵蚀", "wound": "侵蚀创口", "nerve": "神经损伤"}
-const ENV_SUB := {"zone": "安全区外", "mire": "站在溟痕里", "dark": "灯火寂灭后的持续伤害", "hunt_ring": "围猎圈", "relic": "藏品的代价"}
+const ENV_SUB := {"zone": "安全区外", "mire": "站在溟痕里", "dark": "灯火寂灭后的持续伤害", "relic": "藏品的代价"}
 
 
 ## telemetry.killer() 的结果 → {type（敌人类型）, env（环境）, name, cause}
