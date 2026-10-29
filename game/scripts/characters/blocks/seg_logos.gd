@@ -589,7 +589,7 @@ static func _hw_fan_sheets(o, b: Dictionary, fn: Dictionary, fa: float, r: float
 	else:
 		# ground 用本技能局部时钟、open 结束后从 f0 起（open f7 = ground f0 = close f0，无缝）
 		frame = int((elapsed - FAN_OPEN_T) * float(g.V6_FRAMES[tn][1])) % int(g.V6_FRAMES[tn][0])
-	_hw_draw_sheet(o, tn, frame, fa, r / FAN_REF_R, Color(1, 1, 1, a))
+	_hw_draw_sheet(o, tn, frame, fa, r / FAN_REF_R, Color(1, 1, 1, a * 0.78))   # 减重：扇形底纹透明度 ×0.78
 	_hw_draw_ribbons(o, fa, r / FAN_REF_R, fade, minf(elapsed / FAN_OPEN_T, 1.0))
 	_hw_draw_slow_marks(o, b, fa)
 	return true
@@ -615,11 +615,11 @@ static func _hw_draw_ribbons(o, fa: float, k: float, fade: float, grow: float) -
 	var al: float = fade * grow
 	var n := 0
 	var spots: Array = []   # [本地位置 @2x, 亮?, 序号]
-	for d in range(-44, 45, 4):
+	for d in range(-44, 45, 8):   # 10-29 减重：弧上条数 23 → 12
 		spots.append([Vector2.from_angle(deg_to_rad(d)) * FAN_REF_R, n % 2 == 0, n])
 		n += 1
 	for sgn in [-1.0, 1.0]:
-		for rr in range(64, 289, 32):
+		for rr in range(64, 289, 64):   # 两侧边 8 → 4 条
 			spots.append([Vector2.from_angle(deg_to_rad(50.0 * sgn)) * float(rr), n % 2 == 0, n])
 			n += 1
 	var base: Vector2 = o.pos + g.draw_off
@@ -628,11 +628,11 @@ static func _hw_draw_ribbons(o, fa: float, k: float, fade: float, grow: float) -
 		var i: int = sp[2]
 		var sz: Vector2 = RIB_SIZES[i % RIB_SIZES.size()]
 		var bob: float = sin(g.t * 1.6 + float(i) * 1.3) * 4.0
-		var a: float = (0.71 + 0.18 * (0.5 + 0.5 * sin(g.t * 2.0 + i))) if sp[1] else (0.27 + 0.18 * (0.5 + 0.5 * sin(g.t * 1.7 + i * 0.7)))
+		var a: float = ((0.71 + 0.18 * (0.5 + 0.5 * sin(g.t * 2.0 + i))) if sp[1] else (0.27 + 0.18 * (0.5 + 0.5 * sin(g.t * 1.7 + i * 0.7)))) * 0.62   # 减重：整体透明度 ×0.62
 		_hw_ribbon_at(o, tx, base + rot * (sp[0] * u), sz, u, bob, int(g.t * fps + i) % frames, fw, fh, a * al)
 	for j in RIB_INNER.size():
 		var sz2: Vector2 = RIB_SIZES[j % RIB_SIZES.size()]
-		var a2: float = 0.085 + 0.07 * (0.5 + 0.5 * sin(g.t * 1.3 + j * 1.9))
+		var a2: float = (0.085 + 0.07 * (0.5 + 0.5 * sin(g.t * 1.3 + j * 1.9))) * 0.6
 		_hw_ribbon_at(o, tx, base + rot * (RIB_INNER[j] * u), sz2, u, sin(g.t * 1.2 + j) * 4.0, int(g.t * fps + j * 3) % frames, fw, fh, a2 * al)
 
 static func _hw_ribbon_at(o, tx: Texture2D, p: Vector2, sz: Vector2, u: float, bob: float, fr: int, fw: float, fh: float, a: float) -> void:
