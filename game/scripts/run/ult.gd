@@ -859,6 +859,11 @@ func tiles_arc(name: String, c: Vector2, r: float, opt: Dictionary = {}) -> Arra
 var _stex := {}
 
 
+## 素材到了没有（帧条 PNG 在 game/art/fx/ 里）：招式里「有帧条就画帧条、没有就画程序占位」用（docs/199 待合入清单）；只影响画面
+func fx_ready(name: String) -> bool:
+	return _strip_tex(name) != null
+
+
 func _strip_tex(name: String) -> Texture2D:
 	if not _stex.has(name):
 		var t: Texture2D = g.tex.get(name) if g.tex.has(name) else A.tex(name)

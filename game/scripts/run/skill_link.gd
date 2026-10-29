@@ -173,16 +173,16 @@ static func _step_cross(u, a: Dictionary) -> bool:
 ## 规则：① 接的干员本人出现在画面里做动作；② 0.5–1 秒结束、范围只比原技能大一点；③ 不碰她终结技 / S1–S3 的标志元素。
 ## 技能区域：队长放技能那一刻，身边 260 内最密的一团（半径 ult/link_area_r 150）；没有敌人就不亮
 const SAMPLE := {"texas": "pursue", "eyjafjalla": "lava", "gladiia": "gather", "hoshiguma": "cover",
-	# 其余 16 人（10-30 协调人「连携补齐 20 人」；接法与做法见 docs/199 §7.5，不碰各人终结技 / S1–S3 标志元素）
+	# 其余 16 人（10-30 协调人「连携补齐 20 人」，接法按协调人 10-30 接法表；做法见 docs/199 §7.5）
 	"lappland": "l_lappland", "specter_unchained": "l_specter", "irene": "l_irene", "mizuki": "l_mizuki", "skadi": "l_skadi", "siege": "l_siege",
 	"exusiai": "l_exusiai", "wisadel": "l_wisadel", "logos": "l_logos", "suzuran": "l_suzuran",
 	"angelina": "l_angelina",
 	"ulpianus": "l_ulpianus", "saria": "l_saria", "kaltsit": "l_kaltsit", "lumen": "l_lumen", "skalter": "l_skalter"}
 ## 每人所属四类（文档 / 遥测用）
-const KIND4 := {"texas": "追击", "lappland": "追击", "specter_unchained": "追击", "irene": "追击", "mizuki": "追击", "skadi": "追击", "siege": "追击",
-	"eyjafjalla": "附加", "exusiai": "附加", "wisadel": "附加", "logos": "附加", "suzuran": "附加",
-	"gladiia": "聚拢", "angelina": "聚拢",
-	"hoshiguma": "掩护", "ulpianus": "掩护", "saria": "掩护", "kaltsit": "掩护", "lumen": "掩护", "skalter": "掩护"}
+const KIND4 := {"texas": "追击", "lappland": "追击", "skadi": "追击", "specter_unchained": "追击", "siege": "冲阵",
+	"exusiai": "附加", "eyjafjalla": "附加", "suzuran": "附加", "irene": "附加", "wisadel": "附加", "logos": "附加",
+	"angelina": "聚拢", "gladiia": "聚拢", "ulpianus": "聚拢", "mizuki": "聚拢",
+	"saria": "掩护", "hoshiguma": "掩护", "kaltsit": "掩护", "lumen": "掩护", "skalter": "掩护"}
 const LAVA := Color(1.0, 0.42, 0.12)
 ## 连携熔岩块（用户 10-30「没有熔岩的力量感」）：暗红岩壳 + 裂缝透亮橙 + 橙白芯，沉甸甸地抛过去；
 ## 她自己技能的熔岩池是亮橙圆片，这里主体是暗色岩块（形态 / 明度跳开，不用白金）
@@ -496,6 +496,16 @@ static func _dash(p, to: Vector2, dur: float, anim := "attack") -> void:
 	p.play_vis_anim(anim)
 
 
+## 凯尔希的 Mon3tr（召唤物字典，有 pos）；不在场返回 null
+static func _m3(p):
+	var sm = p.get("sm")
+	if sm is Dictionary and sm.has("list"):
+		for x in sm.list:
+			if str(x.kind) == "mon3tr" and not x.get("gone", false):
+				return x
+	return null
+
+
 static func _tgp(a: Dictionary) -> Vector2:
 	var tg: Variant = a.get("tg")
 	return tg.pos if tg != null and not tg.dead else Vector2(a.pos)
@@ -524,87 +534,114 @@ static func _step16(u, a: Dictionary) -> bool:
 		return true
 	match str(a.link):
 		# ---------------------------------------------------------------- 追击
-		"l_lappland":   # 狼影：贴地突进穿过主目标到身后 110，路径上留两道平行的灰紫爪痕；眩晕 0.4
+		"l_lappland":   # 月牙剑气：她站到区域边缘，掷一道大月牙剑气横扫过区域（宽 60、长 = 区域直径 + 80），命中沉默 1 秒
 			if once.call("go"):
+				var d0: Vector2 = (c - p.pos).normalized() if c != p.pos else Vector2.RIGHT
+				var ep: Vector2 = c - d0 * (r + 30.0)
+				_dash(p, ep, 0.1)
+				a["d"] = d0
+				a["sp"] = ep
+			var T := 0.28
+			if t >= 0.1 and t < 0.1 + T:
+				if once.call("beat"):
+					_beat(u)
+					p.play_vis_anim("attack")
+				var k: float = (t - 0.1) / T
+				var dd: Vector2 = a.d
+				var q: Vector2 = Vector2(a.sp).lerp(c + dd * (r + 50.0), k)
+				var nv: Vector2 = dd.orthogonal()
+				for j in 5:   # 月牙：一串弧形排开的刃块（中间厚两端尖）
+					var off: float = (float(j) - 2.0) / 2.0
+					var bp: Vector2 = q + nv * off * 70.0 - dd * (off * off) * 26.0
+					u.shape({"kind": "blade", "a": bp - nv * 16.0, "b": bp + nv * 16.0, "w": 9.0 * (1.0 - absf(off) * 0.5), "col": Color(0.95, 0.93, 1.0), "glow": cl, "life": 0.05})
+				u.grain("blade", q, dd, cl, 2)
+				for e in u.in_circle(q, 70.0):
+					if not a.done.has("h%d" % int(e.id)):
+						a.done["h%d" % int(e.id)] = true
+						_hit16(p, e, "月牙剑气", 1.4)
+						u.g.enemies_sys.silence(e, u.g.t + 1.0)
+				return false
+			if once.call("trail"):
+				u.light(c, 150.0, cl, 0.3)
+			return t >= 0.1 + T + 0.45
+		"l_specter":   # 替身：她身后分出一个暗红替身，冲过区域斩一次（替身 = 一串干员色残影块 + 一刀）；本人不动
+			if once.call("go"):
+				p.play_vis_anim("skill")
+				var tp: Vector2 = _tgp(a)
+				var d0: Vector2 = (tp - p.pos).normalized() if tp != p.pos else Vector2.RIGHT
+				a["fp"] = p.pos
+				a["tp"] = tp + d0 * 120.0
+			var T := 0.2
+			if t < T:
+				var q: Vector2 = Vector2(a.fp).lerp(a.tp, t / T)
+				u.shape({"kind": "ellipse", "c": q + Vector2(0, -20), "rx": 10.0, "ry": 22.0, "col": cl, "fill": 0.55, "life": 0.18})   # 替身残影（人形竖块）
+				u.shape({"kind": "ellipse", "c": q + Vector2(0, -46), "rx": 7.0, "ry": 7.0, "col": cl, "fill": 0.55, "life": 0.18})
+				u.grain("fluid", q, Vector2.UP, Color(0.5, 0.05, 0.08), 1)
+				return false
+			if once.call("cut"):
+				_beat(u)
+				var fp: Vector2 = a.fp
+				var tp2: Vector2 = a.tp
+				u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 7.0, "col": Color(1.0, 0.86, 0.84), "glow": cl, "grow": 0.03, "life": 0.6})
+				u.grain("blade", fp.lerp(tp2, 0.5), (tp2 - fp).normalized().orthogonal(), cl, 8)
+				u.light(fp.lerp(tp2, 0.6), 150.0, cl, 0.3)
+				for e in u.in_band(fp, tp2, 40.0):
+					_hit16(p, e, "替身斩", 1.6)
+				_sfx_hit(u)
+			return t >= T + 0.6
+		"l_irene":   # 提灯一照：区域被暖金灯光照亮，区域内敌人 3 秒受到的伤害 +20%；随后她补一刺穿过主目标
+			if once.call("go"):
+				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
+				p.play_vis_anim("skill")
+				_beat(u)
+				u.light(c, r + 60.0, cl, 0.9)
+				u.shape({"kind": "circle", "c": c, "r": r, "col": cl, "fill": 0.16, "layer": "back", "life": 0.9})
+				u.shape({"kind": "dots", "c": c, "r": r, "n": 22, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
+				for e in u.in_circle(c, r):
+					e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), u.g.t + 3.0)
+					e["frag_v"] = maxf(float(e.get("frag_v", 0.0)), Bal.v("ult/link_irene_amp", 0.2))
+			if t >= 0.3 and once.call("dash"):
 				var tp: Vector2 = _tgp(a)
 				var d: Vector2 = (tp - p.pos).normalized() if tp != p.pos else Vector2.RIGHT
 				a["fp"] = p.pos
 				a["tp"] = tp + d * 110.0
-				_dash(p, a.tp, 0.14)
-			if t >= 0.14 and once.call("cut"):
-				_beat(u)
-				var fp: Vector2 = a.fp
-				var tp2: Vector2 = a.tp
-				var nv: Vector2 = (tp2 - fp).normalized().orthogonal()
-				for sgn in [-1.0, 1.0]:
-					u.shape({"kind": "blade", "a": fp + nv * 9.0 * sgn, "b": tp2 + nv * 9.0 * sgn, "w": 4.0, "col": Color(0.92, 0.9, 1.0), "glow": cl, "grow": 0.04, "life": 0.65})
-				for q in 5:
-					u.grain("blade", fp.lerp(tp2, (q + 0.5) / 5.0), nv * (1.0 if q % 2 == 0 else -1.0), cl, 3)
-				u.light(fp.lerp(tp2, 0.5), 150.0, cl, 0.3)
-				for e in u.in_band(fp, tp2, 34.0):
-					_hit16(p, e, "狼影", 1.5)
-					_cc(p, e, 0.4)
-				_sfx_hit(u)
-			return t >= 0.85
-		"l_specter":   # 双斩：闪到主目标身前，0.1 秒内两刀交叉成 X，斩痕停住再碎；周围 70 内各吃两下
-			if once.call("go"):
-				var tp: Vector2 = _tgp(a)
-				_dash(p, tp + (p.pos - tp).normalized() * 40.0, 0.1)
-				a["xc"] = tp
-			for j in 2:
-				if t >= 0.1 + 0.1 * j and once.call("x%d" % j):
-					var xc: Vector2 = a.xc
-					var dd: Vector2 = Vector2.from_angle(PI * 0.25 + PI * 0.5 * j)
-					u.shape({"kind": "blade", "a": xc - dd * 85.0, "b": xc + dd * 85.0, "w": 7.0, "col": Color(1.0, 0.88, 0.86), "glow": cl, "grow": 0.03, "life": 0.6 - 0.1 * j})
-					u.grain("blade", xc, dd.orthogonal(), cl, 6)
-					if j == 0:
-						_beat(u)
-					for e in u.in_circle(xc, 70.0):
-						_hit16(p, e, "双斩", 0.75)
-					_sfx_hit(u)
-			if t >= 0.2 and once.call("lt"):
-				u.light(a.xc, 140.0, cl, 0.3)
-			return t >= 0.8
-		"l_irene":   # 穿刺：一记长距离直刺穿过区域，留一道细长金线 + 沿线火花；路径 1.6 倍，敌人被往前带一点
-			if once.call("go"):
-				var tp: Vector2 = _tgp(a)
-				var d: Vector2 = (tp - p.pos).normalized() if tp != p.pos else Vector2.RIGHT
-				a["fp"] = p.pos
-				a["tp"] = tp + d * 140.0
-				a["d"] = d
 				_dash(p, a.tp, 0.12)
-			if t >= 0.12 and once.call("cut"):
-				_beat(u)
+			if t >= 0.42 and once.call("cut"):
 				var fp: Vector2 = a.fp
 				var tp2: Vector2 = a.tp
-				u.shape({"kind": "blade", "a": fp, "b": tp2 + Vector2(a.d) * 40.0, "w": 3.0, "col": Color(1.0, 0.96, 0.85), "glow": cl, "grow": 0.04, "life": 0.6})
-				for q in 6:
-					u.spark(fp.lerp(tp2, (q + 0.5) / 6.0), cl, 2, 10.0)
-				u.light(tp2, 130.0, cl, 0.3)
+				u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 3.0, "col": Color(1.0, 0.96, 0.85), "glow": cl, "grow": 0.04, "life": 0.55})
+				for q in 5:
+					u.spark(fp.lerp(tp2, (q + 0.5) / 5.0), cl, 2, 10.0)
 				for e in u.in_band(fp, tp2, 30.0):
-					_hit16(p, e, "穿刺", 1.6)
-					if not e.boss:
-						p.apply_kb(e, Vector2(a.d) * 160.0)
+					_hit16(p, e, "补刺", 1.2)
 				_sfx_hit(u)
-			return t >= 0.8
-		"l_mizuki":   # 伞落：跳到主目标头顶落下一击，溅开一圈水珠（像素点）；半径 70 内 1.5 倍 + 减速 40% 1 秒
+			return t >= 1.0
+		"l_mizuki":   # 小触手：区域里 6 名敌人脚下钻出小触手，缠住 1 秒（束缚 = 眩晕，精英减半）
 			if once.call("go"):
-				var tp: Vector2 = _tgp(a)
-				a["xc"] = tp
-				_dash(p, tp + Vector2(0, -6), 0.16, "skill")
-			if t >= 0.16 and once.call("hit"):
+				p.play_vis_anim("skill")
 				_beat(u)
-				var xc: Vector2 = a.xc
-				u.shape({"kind": "ellipse", "c": xc + Vector2(0, 4), "rx": 64.0, "ry": 26.0, "col": cl.darkened(0.5), "fill": 0.5, "layer": "back", "life": 0.7})
-				u.shape({"kind": "dots", "c": xc, "r": 80.0, "n": 18, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.5})
-				u.grain("water", xc, Vector2.UP, cl, 14)
-				u.light(xc, 150.0, cl, 0.35)
-				for e in u.in_circle(xc, 70.0):
-					_hit16(p, e, "伞落", 1.5)
-					u.g.enemies_sys.lite_slow(e, 0.4, 1.0)
-				_sfx_hit(u)
-			return t >= 0.8
-		"l_skadi":   # 拖刃冲锋：不瞬移，0.24 秒跑着冲过区域、大剑拖地，地上留一道暗红刮痕 + 火星；路径 1.6 倍、往两侧击退
+				var ts: Array = u.in_circle(c, r)
+				ts.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
+				a["ts"] = ts.slice(0, 6)
+				for e in a.ts:
+					_hit16(p, e, "小触手", 0.5)
+					_cc(p, e, 1.0)
+					u.grain("water", e.pos, Vector2.UP, cl, 3)
+			if t < 1.0:
+				var hk: float = minf(1.0, t / 0.12)
+				for j in a.ts.size():
+					var e = a.ts[j]
+					if e.dead:
+						continue
+					var bp: Vector2 = e.pos + Vector2(10.0 if j % 2 == 0 else -10.0, 6.0)
+					var sw: float = sin(t * 9.0 + j) * 5.0
+					u.shape({"kind": "band", "a": bp, "b": bp + Vector2(sw, -30.0 * hk), "w": 6.0, "col": cl, "fill": 0.9, "life": 0.04})
+					u.shape({"kind": "band", "a": bp + Vector2(sw, -30.0 * hk), "b": bp + Vector2(sw * 2.0 - 6.0, -42.0 * hk), "w": 3.0, "col": cl.lerp(Color.WHITE, 0.3), "fill": 0.9, "life": 0.04})
+				if once.call("lt"):
+					u.light(c, 150.0, cl, 0.6)
+				return false
+			return t >= 1.1
+		"l_skadi":   # 拖刃冲锋：跑着冲过区域、大剑拖地，身后留一道水痕 1.5 秒，踩在上面的敌人每 0.5 秒受伤
 			if once.call("go"):
 				var tp: Vector2 = _tgp(a)
 				var d: Vector2 = (tp - p.pos).normalized() if tp != p.pos else Vector2.RIGHT
@@ -614,23 +651,23 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 			if t < 0.24:
 				var q: Vector2 = Vector2(a.fp).lerp(a.tp, t / 0.24)
-				u.spark(q + Vector2(0, 8), cl, 1, 6.0)
-				u.grain("bfx_dust", q + Vector2(0, 8), Vector2.UP, Color(0.35, 0.3, 0.3), 1)
+				u.grain("water", q + Vector2(0, 8), Vector2.UP, Color(0.3, 0.55, 0.75), 2)
 				return false
+			var fp: Vector2 = a.fp
+			var tp2: Vector2 = a.tp
 			if once.call("cut"):
-				var fp: Vector2 = a.fp
-				var tp2: Vector2 = a.tp
-				var nv: Vector2 = (tp2 - fp).normalized().orthogonal()
-				u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 14.0, "col": Color(0.3, 0.06, 0.07), "fill": 0.7, "layer": "back", "life": 0.9})
-				u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 4.0, "col": cl, "fill": 0.9, "layer": "back", "life": 0.5})
+				u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 34.0, "col": Color(0.12, 0.25, 0.4), "fill": 0.6, "layer": "back", "life": 1.6})   # 水痕
+				u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 6.0, "col": cl, "fill": 0.9, "layer": "back", "life": 0.5})
 				u.light(fp.lerp(tp2, 0.5), 150.0, cl, 0.3)
 				for e in u.in_band(fp, tp2, 38.0):
-					_hit16(p, e, "拖刃", 1.6)
-					if not e.boss:
-						var side: float = signf((e.pos - fp).dot(nv))
-						p.apply_kb(e, nv * (side if side != 0.0 else 1.0) * 220.0)
+					_hit16(p, e, "拖刃", 1.2)
 				_sfx_hit(u)
-			return t >= 0.9
+			for j in 3:   # 水痕持续伤害
+				if t >= 0.24 + 0.5 * (j + 1) and once.call("w%d" % j):
+					for e in u.in_band(fp, tp2, 20.0):
+						_hit16(p, e, "水痕", 0.25)
+					u.grain("water", fp.lerp(tp2, 0.5), Vector2.UP, Color(0.3, 0.55, 0.75), 4)
+			return t >= 0.24 + 1.6
 		"l_siege":   # 冲阵：从队长身边冲进区域（不跃起），沿途撞开敌人，尾端一锤砸地（碎裂冲击 + 碎石）
 			if once.call("go"):
 				var lp: Vector2 = u.g.ppos
@@ -664,7 +701,7 @@ static func _step16(u, a: Dictionary) -> bool:
 				_sfx_hit(u)
 			return t >= 0.95
 		# ---------------------------------------------------------------- 附加
-		"l_exusiai":   # 穿透曳光：原地朝区域打 8 发细长曳光（±8° 散开），每发穿过区域再往后 250；不爆炸（爆裂弹只留给终结技）
+		"l_exusiai":   # 穿透扫射：原地朝区域打一轮 8 发红金交替的细长曳光（±8° 散开），每发穿过区域再往后 250；不用爆裂弹
 			if once.call("go"):
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("attack")
@@ -676,106 +713,85 @@ static func _step16(u, a: Dictionary) -> bool:
 				var d: Vector2 = Vector2(a.base).rotated(deg_to_rad((float(i % 4) - 1.5) * 5.3 * (1.0 if i % 2 == 0 else -1.0)))
 				var fp: Vector2 = p.pos + Vector2(0, -20)
 				var tp: Vector2 = fp + d * (fp.distance_to(c) + 250.0)
-				u.shape({"kind": "line", "a": fp, "b": tp, "w": 3.0, "col": cl.lerp(Color(1.0, 0.85, 0.5), 0.4 if i % 2 == 0 else 0.0), "life": 0.16})
-				u.grain("bfx_flash", fp + d * 30.0, d, cl, 2)
+				var tc: Color = Color(1.0, 0.3, 0.25) if i % 2 == 0 else Color(1.0, 0.82, 0.4)   # 红金交替
+				u.shape({"kind": "line", "a": fp, "b": tp, "w": 3.0, "col": tc, "life": 0.16})
+				u.grain("bfx_flash", fp + d * 30.0, d, tc, 2)
 				for e in u.in_band(fp, tp, 14.0):
-					_hit16(p, e, "穿透曳光", 0.35)
+					_hit16(p, e, "穿透扫射", 0.35)
 				a.k = i + 1
 			if t >= 0.1 and once.call("lt"):
 				u.light(p.pos, 120.0, cl, 0.3)
 			return t >= 0.7
-		"l_wisadel":   # 子母弹：一发炮弹高抛到区域上空裂成 5 颗子弹，环形落下各自小爆（碎裂冲击 + 碎屑）
-			var T := 0.3
+		"l_wisadel":   # 好礼（天赋）：这次技能 1 秒内在区域里打死的敌人原地留下暗红残影，0.35 秒后炸开（半径 60）；一个都没死就在主目标处补一发
 			if once.call("go"):
-				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
-				p.play_vis_anim("attack")
-				a["fp"] = p.pos + Vector2(0, -30)
-				var shell := {"kind": "rock", "c": a.fp, "r": 12.0, "col": Color(0.2, 0.08, 0.1), "glow": cl, "seed": 2.0, "life": T + 0.05}
-				u.shape(shell)
-				a["shell"] = shell
-			if t < T:
-				var k: float = t / T
-				var pos: Vector2 = Vector2(a.fp).lerp(c + Vector2(0, -60), k) + Vector2(0, -90.0 * sin(PI * k))
-				a.shell.c = pos
-				u.grain("bfx_dust", pos, Vector2.UP, Color(0.3, 0.28, 0.3), 1)
-				return false
-			if once.call("split"):
-				a.shell.max = 0.0
+				p.play_vis_anim("skill")
 				_beat(u)
-				u.grain("bfx_flash", c + Vector2(0, -60), Vector2.UP, cl, 10)
-			for j in 5:
-				var land: float = T + 0.12 + 0.05 * j
-				if t >= land and once.call("b%d" % j):
-					var bp: Vector2 = c + Vector2.from_angle(j * TAU / 5.0 + 0.4) * 62.0
-					u.shape({"kind": "ring", "c": bp, "r": 52.0, "r1": 10.0, "w": 6.0, "col": cl, "life": 0.3})
-					u.shape({"kind": "rock", "c": bp, "r": 20.0, "col": cl, "glow": Color(1.0, 0.8, 0.55), "seed": 9.0 + j, "hold": false, "life": 0.14})
-					u.shape({"kind": "ellipse", "c": bp + Vector2(0, 4), "rx": 26.0, "ry": 11.0, "col": Color(0.12, 0.06, 0.06), "fill": 0.7, "layer": "back", "life": 0.9})
-					u.debris(bp, cl, 1)
-					if j % 2 == 0:
-						u.light(bp, 110.0, cl, 0.25)
-					for e in u.in_circle(bp, 50.0):
-						_hit16(p, e, "子母弹", 0.6)
-			return t >= T + 0.8
-		"l_logos":   # 咒印：区域内至多 6 名敌人头顶浮出一枚方形咒文，0.35 秒后依次炸开（黑金碎块）；单体 1.3 倍 + 周围 40 内 0.5 倍
+				a["watch"] = u.in_circle(c, r + 40.0)
+				a["gh"] = []
+			if t < 1.0:
+				for e in a.watch:
+					if e.dead and not a.done.has("d%d" % int(e.id)):
+						a.done["d%d" % int(e.id)] = true
+						a.gh.append([e.pos, t])
+						u.shape({"kind": "ellipse", "c": e.pos + Vector2(0, -16), "rx": 12.0, "ry": 18.0, "col": cl, "fill": 0.55, "life": 0.35})
+			if t >= 0.8 and a.gh.is_empty() and once.call("fallback"):
+				a.gh.append([_tgp(a), t - 0.35])
+			for j in a.gh.size():
+				var gp: Vector2 = a.gh[j][0]
+				if t >= float(a.gh[j][1]) + 0.35 and once.call("b%d" % j):
+					u.shape({"kind": "ring", "c": gp, "r": 60.0, "r1": 12.0, "w": 6.0, "col": cl, "life": 0.3})
+					u.shape({"kind": "rock", "c": gp, "r": 22.0, "col": cl, "glow": Color(1.0, 0.8, 0.55), "seed": 9.0 + j, "hold": false, "life": 0.14})
+					u.shape({"kind": "ellipse", "c": gp + Vector2(0, 4), "rx": 26.0, "ry": 11.0, "col": Color(0.12, 0.06, 0.06), "fill": 0.7, "layer": "back", "life": 0.9})
+					u.debris(gp, cl, 1)
+					if j % 3 == 0:
+						u.light(gp, 110.0, cl, 0.25)
+					for e in u.in_circle(gp, 60.0):
+						_hit16(p, e, "好礼", 0.6)
+			return t >= 1.0 + 0.35 + 0.45
+		"l_logos":   # 消弹：区域上空浮出一圈黑金咒文，区域内敌方弹幕当场消掉（每颗留一个小碎块），区域内敌人减速 50% 1 秒
 			if once.call("go"):
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				_beat(u)
-				var ts: Array = u.in_circle(c, r)
-				ts.sort_custom(func(x, y): return (x.elite or x.boss) and not (y.elite or y.boss))
-				a["ts"] = ts.slice(0, 6)
-			var ts2: Array = a.ts
-			for j in ts2.size():
-				var e = ts2[j]
-				if e.dead:
-					continue
-				var mp: Vector2 = e.pos + Vector2(0, -34)
-				if t < 0.35 + 0.05 * j:
-					u.shape({"kind": "rock", "c": mp, "r": 9.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0, "rot": PI * 0.25, "life": 0.04})
-				elif once.call("g%d" % j):
-					u.shape({"kind": "rock", "c": e.pos, "r": 24.0, "col": cl, "glow": Color(0.15, 0.12, 0.05), "seed": 5.0 + j, "hold": false, "life": 0.16})
-					u.grain("bfx_burst", e.pos, Vector2.UP, cl, 5)
-					if j % 2 == 0:
-						u.light(e.pos, 100.0, cl, 0.2)
-					_hit16(p, e, "咒印", 1.3)
-					for e2 in u.in_circle(e.pos, 40.0):
-						if e2 != e:
-							_hit16(p, e2, "咒印", 0.5)
-			return t >= 0.35 + 0.05 * 6 + 0.45
-		"l_suzuran":   # 灵狐：一只狐灵（亮橙白像素团 + 拖尾）从她脚边窜出，依次扑过区域内 5 名敌人；每下 0.6 倍 + 减速 30% 1.5 秒
+				var R2: float = r + 40.0
+				var gone: PackedVector2Array = u.g.shots.cancel_in(func(q: Vector2) -> bool: return q.distance_to(c) <= R2)
+				for q in gone:
+					u.shape({"kind": "rock", "c": q, "r": 6.0, "col": cl, "glow": Color(0.15, 0.12, 0.05), "seed": q.x, "hold": false, "life": 0.3})
+				for e in u.in_circle(c, r):
+					u.g.enemies_sys.lite_slow(e, 0.5, 1.0)
+				u.light(c, r + 40.0, cl, 0.6)
+			if t < 0.8:
+				for j in 8:
+					var gp: Vector2 = c + Vector2.from_angle(TAU * j / 8.0 + t * 1.5) * (r + 20.0)
+					u.shape({"kind": "rock", "c": gp, "r": 8.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0 + j, "rot": PI * 0.25, "life": 0.04})
+				return false
+			return t >= 0.9
+		"l_suzuran":   # 狐火：4 团狐火绕她转一圈，再各追向区域内一名敌人；命中 0.6 倍 + 减速 30% 1.5 秒
 			if once.call("go"):
 				p.play_vis_anim("skill")
 				_beat(u)
 				var ts: Array = u.in_circle(c, r)
-				ts.sort_custom(func(x, y): return x.pos.distance_squared_to(p.pos) < y.pos.distance_squared_to(p.pos))
-				a["ts"] = ts.slice(0, 5)
-				a["fox"] = p.pos
-				var fox := {"kind": "rock", "c": p.pos, "r": 10.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0, "life": 1.0}
-				u.shape(fox)
-				a["foxs"] = fox
-			var ts3: Array = a.ts
-			var hop := 0.11
-			var i3: int = int(t / hop)
-			while int(a.k) < mini(i3, ts3.size()):   # 已扑完的那几下按序结算（不靠帧时刻卡窗口）
-				var eh = ts3[int(a.k)]
-				if not eh.dead:
-					a.fox = eh.pos
-					_hit16(p, eh, "灵狐", 0.6)
-					u.g.enemies_sys.lite_slow(eh, 0.3, 1.5)
-					u.light(eh.pos, 90.0, cl, 0.15)
-				a.k = int(a.k) + 1
-			if i3 < ts3.size():
-				var e = ts3[i3]
-				var from: Vector2 = a.fox
-				var to: Vector2 = e.pos if not e.dead else from
-				var q: Vector2 = from.lerp(to, fposmod(t, hop) / hop)
-				a.foxs.c = q + Vector2(0, -10)
-				u.grain("fire", q + Vector2(0, -10), Vector2.UP, cl, 1)
-				return false
-			a.foxs.max = 0.0
-			if once.call("end"):
-				u.grain("mote_up", a.fox, Vector2.UP, cl, 6)
-			return t >= hop * ts3.size() + 0.4
+				ts.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
+				a["ts"] = ts.slice(0, 4)
+			var T1 := 0.35
+			var T2 := 0.25
+			for j in 4:
+				var orb: Vector2 = p.pos + Vector2(0, -24) + Vector2.from_angle(TAU * (j / 4.0 + minf(t, T1) / T1)) * 40.0
+				var q: Vector2 = orb
+				if t >= T1:
+					var e = a.ts[j] if j < a.ts.size() else null
+					var to: Vector2 = (e.pos + Vector2(0, -12)) if e != null and not e.dead else c
+					q = orb.lerp(to, minf(1.0, (t - T1) / T2))
+					if t >= T1 + T2 and once.call("h%d" % j):
+						if e != null and not e.dead:
+							_hit16(p, e, "狐火", 0.6)
+							u.g.enemies_sys.lite_slow(e, 0.3, 1.5)
+						u.grain("fire", to, Vector2.UP, cl, 4)
+						u.light(to, 90.0, cl, 0.2)
+				if t < T1 + T2:
+					u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
+					u.grain("fire", q, Vector2.UP, cl, 1)
+			return t >= T1 + T2 + 0.45
 		# ---------------------------------------------------------------- 聚拢
 		"l_angelina":   # 引力环：三枚紫色碎片绕区域外圈转一圈、往里收，把区域外 180 内的敌人一路带进来；落定 0.5 倍 + 减速
 			if once.call("go"):
@@ -810,102 +826,141 @@ static func _step16(u, a: Dictionary) -> bool:
 				_sfx_hit(u)
 			return t >= T2 + 0.55
 		# ---------------------------------------------------------------- 掩护（以队长为圆心）
-		"l_ulpianus":   # 锚链回旋：瞬到队长身侧，锚拖着链子绕队长甩一整圈（半径 110），身边 130 内的敌人被甩开
-			var lp: Vector2 = u.g.ppos
+		"l_ulpianus":   # 掷锚：锚钉在区域主目标（精英优先）身上，把它钉住 1.5 秒；附近 180 内的小怪被拖向它
 			if once.call("go"):
-				_dash(p, lp + Vector2(-36.0, 0.0), 0.1, "skill")
-			var T3 := 0.36
-			if t >= 0.1 and t < 0.1 + T3:
-				if once.call("beat"):
-					_beat(u)
-				var k3: float = (t - 0.1) / T3
-				var ap: Vector2 = lp + Vector2.from_angle(TAU * k3 - PI * 0.5) * 110.0
-				u.shape({"kind": "line", "a": p.pos + Vector2(0, -18), "b": ap, "w": 3.0, "col": cl.darkened(0.2), "life": 0.04})
-				u.shape({"kind": "rock", "c": ap, "r": 16.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "rot": k3 * 8.0, "life": 0.04})
-				u.grain("water", ap, Vector2.from_angle(TAU * k3), cl, 1)
-				for e in u.in_circle(ap, 40.0):
-					if not e.boss and not a.done.has("u%d" % int(e.id)):
-						a.done["u%d" % int(e.id)] = true
-						p.apply_kb(e, (e.pos - lp).normalized() * 260.0)
-						_hit16(p, e, "锚链回旋", 0.8)
+				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
+				p.play_vis_anim("skill")
+				a["fp"] = p.pos + Vector2(0, -20)
+			var T := 0.2
+			var tp: Vector2 = _tgp(a)
+			if t < T:
+				var q: Vector2 = Vector2(a.fp).lerp(tp, t / T)
+				u.shape({"kind": "line", "a": a.fp, "b": q, "w": 3.0, "col": cl.darkened(0.2), "life": 0.04})
+				u.shape({"kind": "rock", "c": q, "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "life": 0.04})
 				return false
-			if t >= 0.1 + T3 and once.call("end"):
-				u.light(lp, 150.0, cl, 0.3)
-				u.shape({"kind": "ring", "c": lp, "r": 120.0, "r1": 100.0, "w": 5.0, "col": cl, "life": 0.4})
-			return t >= 0.1 + T3 + 0.45
-		"l_saria":   # 急救：现身在队长身旁，掷一支针剂扎到队长身上：回复 4% 最大生命、神经损伤 −20；队长头顶亮一个琥珀色十字
+			if once.call("pin"):
+				_beat(u)
+				u.g.vfx.stop(0.05, "link", true)
+				var tg: Variant = a.get("tg")
+				if tg != null and not tg.dead:
+					_hit16(p, tg, "掷锚", 1.0)
+					if not tg.boss:
+						p.add_cc(tg, 1.5)
+				a["pull"] = []
+				for e in u.in_circle(tp, 180.0):
+					if e != tg and not e.boss and not e.elite:
+						a.pull.append(e)
+				u.debris(tp, cl, 2)
+				u.light(tp, 150.0, cl, 0.4)
+				_sfx_hit(u)
+			if t < T + 0.5:
+				u.shape({"kind": "rock", "c": tp + Vector2(0, -6), "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "life": 0.04})
+				u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": tp, "w": 2.0, "col": cl.darkened(0.2), "life": 0.04})
+				for e in a.pull:
+					if not e.dead:
+						p.nudge(e, (tp - e.pos) * 0.12)
+				return false
+			if once.call("land"):
+				for e in a.pull:
+					if not e.dead and e.pos.distance_to(tp) < 90.0:
+						_hit16(p, e, "掷锚", 0.4)
+			return t >= T + 0.95
+		"l_saria":   # 钙质护盾：给队长一层钙质护盾（挡一次伤害，1.5 秒没用掉收回），区域地面钙化 1.5 秒（琥珀色碎晶斑，踩上的敌人减速 40%）
 			var lp2: Vector2 = u.g.ppos
 			if once.call("go"):
-				_dash(p, lp2 + Vector2(60.0, 0.0), 0.1, "skill")
-			if t >= 0.16 and once.call("heal"):
+				p.play_vis_anim("skill")
 				_beat(u)
-				u.shape({"kind": "line", "a": p.pos + Vector2(0, -24), "b": lp2 + Vector2(0, -20), "w": 2.0, "col": Color(1.0, 0.95, 0.85), "life": 0.12})
-				p.heal_leader(u.g.max_hp * Bal.v("ult/link_saria_heal", 0.04), "技能连携")
-				u.g.nerve = maxf(0.0, float(u.g.nerve) - 20.0)
-				u.grain("mote_up", lp2, Vector2.UP, cl, 10)
-				u.light(lp2, 130.0, cl, 0.5)
-			if t >= 0.16 and t < 0.86:
-				var cc: Vector2 = lp2 + Vector2(0, -62)
-				u.shape({"kind": "band", "a": cc + Vector2(-12, 0), "b": cc + Vector2(12, 0), "w": 6.0, "col": cl, "fill": 0.95, "life": 0.04})
-				u.shape({"kind": "band", "a": cc + Vector2(0, -12), "b": cc + Vector2(0, 12), "w": 6.0, "col": cl, "fill": 0.95, "life": 0.04})
-			return t >= 0.95
-		"l_kaltsit":   # 护卫扑击：朝队长身边最近的敌人那侧，一记绿色扇形扫击（半径 140），击退 300 + 1.0 倍
+				a["shield0"] = int(u.g.shield)
+				u.g.shield = int(u.g.shield) + 1
+				for j in 7:
+					var off: Vector2 = Vector2.from_angle(j * 2.39996) * r * (0.25 + 0.55 * fposmod(j * 0.618, 1.0))
+					u.shape({"kind": "ellipse", "c": c + off, "rx": 30.0, "ry": 13.0, "col": cl.darkened(0.35), "fill": 0.6, "layer": "back", "life": 1.6})
+					u.shape({"kind": "rock", "c": c + off + Vector2(0, -4), "r": 7.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": 3.0 + j, "life": 1.5, "layer": "back"})
+				u.light(c, r, cl, 0.6)
+			if t < 1.5:
+				var hk: float = 1.0 if t < 1.2 else (1.5 - t) / 0.3
+				for j in 6:   # 队长身周一圈钙质护盾块
+					var sp: Vector2 = lp2 + Vector2(0, -16) + Vector2.from_angle(TAU * j / 6.0 + t) * 30.0
+					u.shape({"kind": "rock", "c": sp, "r": 6.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": float(j), "fill": hk, "life": 0.04})
+				if int(t * 10.0) % 3 == 0:
+					for e in u.in_circle(c, r):
+						u.g.enemies_sys.lite_slow(e, 0.4, 0.4)
+				return false
+			if once.call("unshield"):
+				if int(u.g.shield) > int(a.shield0):
+					u.g.shield = int(u.g.shield) - 1
+			return true
+		"l_kaltsit":   # Mon3tr 掩护：Mon3tr 落到队长前方（面朝最近的敌人那侧）挡一下：挡一次伤害（1.2 秒）+ 把身前敌人推开；凯尔希给队长回复 3% 最大生命
 			var lp3: Vector2 = u.g.ppos
 			if once.call("go"):
-				var ne: Variant = _main(u, lp3, 260.0)
+				var ne: Variant = _main(u, lp3, 300.0)
 				var side: Vector2 = ((ne.pos - lp3).normalized() if ne != null else Vector2.RIGHT)
 				a["side"] = side
-				_dash(p, lp3 + side * 30.0, 0.1, "attack")
-			if t >= 0.12 and once.call("hit"):
+				a["mp"] = lp3 + side * 50.0
+				a["shield0"] = int(u.g.shield)
+				u.g.shield = int(u.g.shield) + 1
+				p.play_vis_anim("skill")
+				var m3 = _m3(p)
+				if m3 != null:
+					m3.pos = a.mp
+			if t >= 0.08 and once.call("block"):
 				_beat(u)
 				var sd: Vector2 = a.side
-				u.shape({"kind": "sector", "c": lp3, "r": 140.0, "a": sd.angle(), "half": 0.9, "col": cl, "fill": 0.45, "life": 0.3})
-				for m in 5:
-					var dm: Vector2 = sd.rotated((m - 2) * 0.36)
-					u.shape({"kind": "blade", "a": lp3 + dm * 50.0, "b": lp3 + dm * 140.0, "w": 4.0, "col": Color(0.85, 1.0, 0.9), "glow": cl, "grow": 0.04, "life": 0.5})
-				u.grain("blade", lp3 + sd * 90.0, sd, cl, 8)
-				u.light(lp3 + sd * 80.0, 140.0, cl, 0.3)
-				for e in u.in_circle(lp3, 140.0):
-					if (e.pos - lp3).normalized().dot(sd) > cos(0.9):
-						_hit16(p, e, "护卫扑击", 1.0)
-						if not e.boss:
-							p.apply_kb(e, (e.pos - lp3).normalized() * 300.0)
+				var mp: Vector2 = a.mp
+				u.debris(mp, cl, 2)
+				u.light(mp, 150.0, cl, 0.5)
+				p.heal_leader(u.g.max_hp * Bal.v("ult/link_kaltsit_heal", 0.03), "技能连携")
+				for e in u.in_circle(mp + sd * 40.0, 90.0):
+					_hit16(p, e, "Mon3tr", 0.8)
+					if not e.boss:
+						p.apply_kb(e, sd * 260.0)
 				_sfx_hit(u)
-			return t >= 0.8
-		"l_lumen":   # 提灯：把灯抛到队长脚下炸开一团光点：身边 150 内敌人减速 50% 1.2 秒、神经损伤 −25（不回血，回血是他的 S1）
+			if t < 1.2:
+				var sd2: Vector2 = a.side
+				var mp2: Vector2 = a.mp
+				var fa: float = 1.0 if t < 0.9 else (1.2 - t) / 0.3
+				if _m3(p) == null:   # 没有 Mon3tr 在场时画一个绿色占位身形
+					u.shape({"kind": "rock", "c": mp2 + Vector2(0, -22), "r": 18.0, "col": Color(0.1, 0.25, 0.15), "glow": cl, "seed": 2.0, "fill": fa, "life": 0.04})
+				var nv: Vector2 = sd2.orthogonal()
+				u.shape({"kind": "line", "a": mp2 + sd2 * 22.0 + nv * 34.0, "b": mp2 + sd2 * 22.0 - nv * 34.0, "w": 5.0, "col": Color(cl, fa), "life": 0.04})   # 挡格面
+				return false
+			if once.call("unshield"):
+				if int(u.g.shield) > int(a.shield0):
+					u.g.shield = int(u.g.shield) - 1
+			return true
+		"l_lumen":   # 灯火：队长灯火 +10、清神经损伤；区域里飘起灼烧光点 1.2 秒（每 0.3 秒对区域内敌人小伤害）
 			var lp4: Vector2 = u.g.ppos
 			if once.call("go"):
 				p.play_vis_anim("skill")
-				a["fp"] = p.pos + Vector2(0, -30)
-				var lamp := {"kind": "rock", "c": a.fp, "r": 9.0, "col": Color(0.25, 0.3, 0.35), "glow": cl, "core": Color(0.9, 0.95, 1.0), "seed": 1.0, "life": 0.3}
-				u.shape(lamp)
-				a["lamp"] = lamp
-			if t < 0.22:
-				var k4: float = t / 0.22
-				a.lamp.c = Vector2(a.fp).lerp(lp4, k4) + Vector2(0, -60.0 * sin(PI * k4))
-				return false
-			if once.call("pop"):
-				a.lamp.max = 0.0
 				_beat(u)
-				u.light(lp4, 220.0, cl, 0.8)
-				u.grain("mote_up", lp4, Vector2.UP, cl, 16)
-				u.shape({"kind": "dots", "c": lp4, "r": 150.0, "n": 26, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
-				u.g.nerve = maxf(0.0, float(u.g.nerve) - 25.0)
-				for e in u.in_circle(lp4, 150.0):
-					u.g.enemies_sys.lite_slow(e, 0.5, 1.2)
-			return t >= 1.0
-		"l_skalter":   # 歌护：她唱一句，一圈红色音点绕队长转 1.2 秒；期间队长受到的伤害 −30%
-			var lp5: Vector2 = u.g.ppos
+				u.g.lamp = minf(float(u.g.lamp_cap), float(u.g.lamp) + Bal.v("ult/link_lumen_lamp", 10.0))
+				u.g.nerve = 0.0
+				u.light(lp4, 160.0, cl, 0.6)
+				u.grain("mote_up", lp4, Vector2.UP, cl, 10)
+			if t < 1.2:
+				if int(t * 30.0) % 2 == 0:
+					u.grain("mote_up", c + Vector2.from_angle(t * 11.0) * r * fposmod(t * 3.7, 1.0), Vector2.UP, cl, 2)
+				u.shape({"kind": "dots", "c": c, "r": r, "n": 16, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.04})
+				for j in 4:
+					if t >= 0.3 * j and once.call("b%d" % j):
+						for e in u.in_circle(c, r):
+							_hit16(p, e, "灼烧光点", 0.2)
+						u.light(c, r, cl, 0.2)
+				return false
+			return t >= 1.3
+		"l_skalter":   # 歌声：她唱一句，歌声覆盖区域 3 秒（一圈红色音点绕区域转）；队长站在区域里时全队攻击 +20%
 			if once.call("go"):
 				p.play_vis_anim("skill")
 				_beat(u)
-				u.team_buff("link:skalter", 1.4, [[&"dmg_taken", "mult", Bal.v("ult/link_skalter_dr", 0.7)]])
-			if t < 1.2:
-				for j in 6:
-					var np: Vector2 = lp5 + Vector2.from_angle(TAU * (t * 0.8 + j / 6.0)) * 52.0 + Vector2(0, -10)
-					u.shape({"kind": "rock", "c": np, "r": 5.0, "col": cl, "glow": Color(1.0, 0.8, 0.8), "seed": float(j), "life": 0.04})
-				if int(t * 30.0) % 6 == 0:
-					u.light(lp5, 100.0, cl, 0.1)
+				u.team_buff("link:skalter", 3.0, [[&"dmg", "mult", Bal.v("ult/link_skalter_atk", 1.2)]], c, r)
+				u.light(c, r, cl, 0.5)
+			if t < 3.0:
+				var fa: float = 1.0 if t < 2.6 else (3.0 - t) / 0.4
+				for j in 8:
+					var np: Vector2 = c + Vector2.from_angle(TAU * (t * 0.25 + j / 8.0)) * r
+					u.shape({"kind": "rock", "c": np, "r": 6.0, "col": cl, "glow": Color(1.0, 0.8, 0.8), "seed": float(j), "fill": fa, "life": 0.04})
+				if int(t * 30.0) % 15 == 0:
+					u.grain("mote_up", c, Vector2.UP, cl, 3)
 				return false
-			return t >= 1.3
+			return true
 	return true
