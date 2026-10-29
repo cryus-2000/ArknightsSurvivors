@@ -1,0 +1,5 @@
+== fc2_knight.jsonl jobs 18 err 0
+knight_boss  fight  93.0  taken/min 228.2 (150% maxhp/min)  TTK  39.9s  maxhp 128  hits/min 8.8  wins 15/18
+== fc2_knight.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     93.00    47.80     3.83   301.50    10.90     0.80     0.32     0.00     0.00     0.04     0.02     0.11     0.11     0.32 {'win': 15, 'cap': 3}
