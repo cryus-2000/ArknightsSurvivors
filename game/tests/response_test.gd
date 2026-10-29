@@ -338,6 +338,63 @@ func test_kaltsit(g, o) -> void:
 	g.leader_skill_n += 1
 	tick(o)
 	ok(float(o.rsp.get("last", -1.0)) == t0, "凯尔希：3 秒冷却内不重复")
+	_kaltsit_front(g, o)
+
+
+## 凯尔希（10-29）：跃到队长与最近敌群之间、队长前方 36–80 处，落地面朝敌群，落地圈不罩住队长；260 内没有敌人时不扑击
+func _kaltsit_front(g, o) -> void:
+	var saved: Array = []
+	for e in g.enemies:
+		saved.append([e, e.pos])
+	var reset := func() -> void:
+		for sm in o.sm.list:
+			sm.erase("dash")
+		o.rsp["last"] = -1.0e9
+		for k in o.rsp.keys():
+			if str(k).begins_with("cd"):
+				o.rsp.erase(k)
+	# 敌群在队长正右方 220 处
+	var k := 0
+	for e in g.enemies:
+		e.pos = g.ppos + Vector2(220.0, (k % 5) * 12.0 - 24.0)
+		k += 1
+	g.enemies_sys.build_grid()
+	reset.call()
+	g.leader_skill_n += 1
+	tick(o)
+	var d: Dictionary = {}
+	for sm in o.sm.list:
+		if sm.get("dash", {}).get("k", "") == "leap":
+			d = sm.dash
+	ok(not d.is_empty(), "凯尔希：敌群在前方 → 起跃")
+	if not d.is_empty():
+		var rel: Vector2 = (d.to as Vector2) - g.ppos
+		ok(rel.length() >= 59.0 and rel.length() <= 81.0 and rel.x > 50.0, "凯尔希：落点在队长前方 60–80、朝敌群一侧（偏移 %s）" % str(rel.round()))
+		ok(absf(float(d.land.get("face_x", 0.0)) - (g.ppos.x + 220.0)) < 30.0, "凯尔希：落地面朝敌群（face_x %.0f）" % float(d.land.get("face_x", 0.0)))
+		var rr := 0.0
+		for t in d.land.then:
+			if t is Dictionary and t.has("r"):
+				rr = float(t.r)
+		ok(rr > 0.0 and rr <= rel.length() - 15.9, "凯尔希：落地圈半径 %.0f 不罩住队长（落点距队长 %.0f）" % [rr, rel.length()])
+	# 敌人都在 600 外：不扑击
+	k = 0
+	for e in g.enemies:
+		e.pos = g.ppos + Vector2(600.0, (k % 5) * 12.0)
+		k += 1
+	g.enemies_sys.build_grid()
+	reset.call()
+	g.leader_skill_n += 1
+	tick(o)
+	var leaping := false
+	for sm in o.sm.list:
+		if sm.get("dash", {}).get("k", "") == "leap":
+			leaping = true
+	ok(not leaping, "凯尔希：260 内没有敌人 → 不做扑击")
+	for p in saved:
+		p[0].pos = p[1]
+	for sm in o.sm.list:
+		sm.erase("dash")
+	g.enemies_sys.build_grid()
 
 
 ## 水月：切到突击 → 3 秒内伞击范围 ×1.5

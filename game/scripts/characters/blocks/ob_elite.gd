@@ -13,7 +13,7 @@ extends "res://scripts/characters/blocks/ob_summon.gd"
 #  shape.boomerang   瞬时：往返弹体。朝最近敌人（手动普攻按 A 方向）飞出 len（× op_range），到头停 hold 秒，再飞回本干员手里（原点跟着她走）；
 #                    去程、回程各扫一遍线段（宽 w），同一敌人每程一次：去程 × mult_out 并按 kb_out 击退，回程 × mult_back 不击退。伤害口径同 shape.line
 #                    （普攻替换时也吃局部倍率 atk）。lock: true = 弹体在外面时本干员不普攻。tex：弹体帧条（缺图画程序圆盾）；spark：沿途火花帧条。星熊「般若回旋」
-#  verb.summon_cmd   瞬时：指挥 kind 种召唤物做一个动作。action: leap = 以 t 秒弧线跃回 to（leader = 队长身边），落地执行 then（center: target = 落点）。凯尔希「回防」
+#  verb.summon_cmd   瞬时：指挥 kind 种召唤物做一个动作。action: leap = 以 t 秒弧线跃回 to（leader = 队长身边；front = 队长与最近敌群之间、队长前方，落地面朝敌群），落地执行 then（center: target = 落点）。凯尔希「回防」「护主」
 #  trig.on_mate_attack  画面挂点：编队里 scope（缺省 others）范围内的队友每次普攻出手，在她的出手点播 fx（at: mate）。只有画面，不进玩法。能天使「天使的祝福」
 #  trig.on_mate_hook    联动（docs/123 §2.7）：队友 op（缺省任何）的 shape.hookshot 把敌人拖回到位时，本干员在 range（× op_range）内就以落点为 target 执行 do；cd 秒一次；knob = balance.json 开关路径。乌尔比安 × 歌蕾蒂娅「钩与锚」
 # 新参数（挂在已有积木上）：
@@ -374,6 +374,9 @@ static func _el_land(o, s: Dictionary, kd: Dictionary, mods: Dictionary, d: Dict
 			else:
 				o.fx({"kind": "ring", "pos": s.pos, "r": r, "r0": r * 0.4, "life": 0.25, "col": EL_GREEN, "floor": true, "w": 2.0, "alpha": 0.7})
 		"leap":
+			if ld.has("face_x") and absf(float(ld.face_x) - s.pos.x) > 2.0:   # 落地面朝敌群（背对队长）
+				s.face = signf(float(ld.face_x) - s.pos.x)
+				s.flip_t = g.t
 			o._exec_list(ld.get("then", []), s.pos)
 			var b: Dictionary = ld.get("b", {})
 			if b.has("fx"):
@@ -409,6 +412,9 @@ static func el_summon_cmd(o, b: Dictionary, _at: Vector2) -> void:
 	var kd := sm_kind(o, kind)
 	if kd.is_empty() or str(kd.get("move", _ED).get("mode", "")) != "escort":
 		return
+	if str(b.get("to", "leader")) == "front":
+		_el_leap_front(o, kind, kd, b)
+		return
 	var c: Vector2 = g.ppos if str(b.get("to", "leader")) == "leader" else o.pos
 	if c == Vector2.INF:
 		return
@@ -418,6 +424,38 @@ static func el_summon_cmd(o, b: Dictionary, _at: Vector2) -> void:
 		var side: float = signf(s.pos.x - c.x) if absf(s.pos.x - c.x) > 4.0 else float(o.face)
 		var to: Vector2 = c + Vector2(side * float(b.get("land_dx", 30.0)), float(b.get("land_dy", 8.0)))
 		_el_dash_start(o, s, kd, "leap", to, float(b.get("t", 0.25)), float(b.get("h", 46.0)), {"kind": "leap", "then": b.get("then", []), "b": b})
+
+
+## to: front（10-29 用户：回跳到队长旁边像要攻击队长）：跃到队长与最近敌群之间、队长前方 d 像素处，落地面朝敌群（背对队长），落地圈以落点为中心且不罩住队长。
+## d = 队长到敌群中心距离 − 20，夹在 [front_min（缺省 60）, front_max（缺省 80）]；落地圈半径封顶 d − ring_clear（缺省 16，不低于 40）。
+## range（缺省 260）内没有敌人时不做扑击也不画落地圈，Mon3tr 由 escort 小步跟回队长身侧
+static func _el_leap_front(o, kind: String, kd: Dictionary, b: Dictionary) -> void:
+	var g = o.g
+	var c: Vector2 = g.ppos
+	if c == Vector2.INF:
+		return
+	var near: Array = g.enemies_sys.nearest(int(b.get("n", 5)), float(b.get("range", 260.0)), c)
+	if near.is_empty():
+		return
+	var ctr := Vector2.ZERO
+	for e in near:
+		ctr += e.pos
+	ctr /= float(near.size())
+	var dv: Vector2 = ctr - c
+	var dist: float = dv.length()
+	var dir: Vector2 = dv / dist if dist > 1.0 else Vector2(float(o.face), 0.0)
+	var d: float = clampf(dist - 20.0, float(b.get("front_min", 60.0)), float(b.get("front_max", 80.0)))
+	var to: Vector2 = c + dir * d
+	var then: Array = []
+	for t in b.get("then", []):
+		var t2: Dictionary = (t as Dictionary).duplicate() if t is Dictionary else {}
+		if t2.has("r") and (t2.r is float or t2.r is int):
+			t2["r"] = minf(float(t2.r), maxf(40.0, d - float(b.get("ring_clear", 16.0))))
+		then.append(t2)
+	for s in o.sm.list:
+		if str(s.kind) != kind or s.gone:
+			continue
+		_el_dash_start(o, s, kd, "leap", to, float(b.get("t", 0.25)), float(b.get("h", 46.0)), {"kind": "leap", "then": then, "b": b, "face_x": ctr.x})
 
 
 ## 扑击 / 跃回的残影：前0.04/0.08/0.12秒的真实身体帧、面向与颜色快照，不再加载旧固定剪影。
@@ -582,8 +620,14 @@ static func _el_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				errs.append("%s.kind「%s」没在 blocks.summons 里定义" % [p, k])
 			if not str(b.get("action", "")) in ["leap", "cast"]:
 				errs.append(p + ".action 只能是 leap（跃回 to 身边）/ cast（原地施放，精英化第 5 批段）")
-			if not str(b.get("to", "leader")) in ["leader", "self"]:
-				errs.append(p + ".to 只能是 leader / self")
+			if not str(b.get("to", "leader")) in ["leader", "self", "front"]:
+				errs.append(p + ".to 只能是 leader / self / front")
+			if str(b.get("to", "leader")) == "front":
+				_num(b, "range", p, ctx, false, 40.0, 800.0)
+				_num(b, "n", p, ctx, false, 1.0, 12.0)
+				_num(b, "front_min", p, ctx, false, 20.0, 200.0)
+				_num(b, "front_max", p, ctx, false, 20.0, 200.0)
+				_num(b, "ring_clear", p, ctx, false, 0.0, 100.0)
 			_num(b, "t", p, ctx, str(b.get("action", "")) == "leap", 0.05, 2.0)
 			_num(b, "h", p, ctx, false, 0.0, 200.0)
 			_num(b, "land_dx", p, ctx, false, 0.0, 200.0)
