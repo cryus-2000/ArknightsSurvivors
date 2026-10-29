@@ -1,0 +1,5 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_145136
+通过 数据 JSON 解析  game/data 全部可解析
+通过 构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关  BUILD AFFINITY failures=0
+
+快检通过：2 项，失败 0 项，耗时 13 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）

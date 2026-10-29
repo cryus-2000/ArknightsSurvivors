@@ -1,0 +1,10 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_145332
+通过 数据 JSON 解析  game/data 全部可解析
+失败 可见成长藏品：散射 / 连发 / 剑气 / 范围 / 召唤物副体与体型、叠层递减、Mon3tr 例外、手机上限（docs/163）  没有通过标记
+      FAIL: #98 高闪相机：编队无控场引爆干员（{  } / ）
+
+快检失败：2 项，失败 1 项，耗时 18 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）
+
+失败项：
+  · 可见成长藏品：散射 / 连发 / 剑气 / 范围 / 召唤物副体与体型、叠层递减、Mon3tr 例外、手机上限（docs/163） — 没有通过标记
+    日志：/home/user/ArknightsSurvivors/build/check/quick_1029_145332/vis_growth.log
