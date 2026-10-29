@@ -1,0 +1,5 @@
+== kf_trial.jsonl jobs 18 err 0
+knight_boss  fight  93.8  taken/min 235.7 (153% maxhp/min)  TTK  39.3s  maxhp 128  hits/min 10.0  wins 15/18
+== kf_trial.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     93.85    44.70     4.15   306.50    11.05     0.80     0.32     0.00     0.00     0.04     0.02     0.11     0.10     0.33 {'win': 15, 'cap': 3}
