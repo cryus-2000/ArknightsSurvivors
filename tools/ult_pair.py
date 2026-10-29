@@ -59,7 +59,7 @@ def main():
     a = ap.parse_args()
     if a.fetch:
         for b in (a.t0 + "," + a.t1).split(","):
-            git("fetch", "origin", b + ":refs/remotes/origin/" + b)
+            git("fetch", "origin", "+" + b + ":refs/remotes/origin/" + b)   # 结果分支会被强推（中间结果），要 + 号
     A, B = load(a.t0), load(a.t1)
     for band in ["m0", "m18"]:
         keys = sorted(k for k in A if k[0] == band and k in B)
