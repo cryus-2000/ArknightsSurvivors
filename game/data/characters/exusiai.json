@@ -44,9 +44,14 @@
   "mag_spread_deg": 25,
   "mag_mult": 1.2,
   "mag_pierce": 1,
-  "n1_range": 0.15,
-  "n2_mult": 1.15,
-  "twin_shots": 1,
+  "_growth": "docs/202 成长节点去数值化（10-29，待试验参数）：节点 1「对空优先」prefer_pin；节点 2「护航射击」escort_*；节点 4A「曳光弹」tracer_*；节点 5A「曳光弹·收网」reap_*",
+  "prefer_pin": 0.3,
+  "escort_r": 150,
+  "escort_n": 3,
+  "escort_kb": 20,
+  "tracer_every": 6,
+  "tracer_secs": 3.0,
+  "tracer_bonus": 0.1,
   "ricochet_chance": 0.5,
   "ricochet_r": 120,
   "ricochet_mult": 0.5,
@@ -55,9 +60,9 @@
   "e1_max": 10,
   "e1_decay": 1.5,
   "e2_aspd": 0.15,
-  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 延长弹道 / 跳弹，节点 5：range2_* 延长弹道·猎杀（射程 + 击杀多攒弹匣），frag_* 跳弹·碎裂（击杀处弹片）。数值为待试验参数",
-  "range2_add": 0.1,
-  "range2_mag": 1,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 曳光弹 / 跳弹，节点 5：reap_* 曳光弹·收网（被标记的敌人倒下时多攒弹匣，docs/202），frag_* 跳弹·碎裂（击杀处弹片）。数值为待试验参数",
+  "reap_mag": 2,
+  "reap_max": 3,
   "frag_r": 60,
   "frag_mult": 0.4,
   "_pierce": "10-23 用户定：所有远程普攻取消穿透（0 = 命中第一名敌人即消失）；穿透改由升级卡「贯穿」/ 藏品「穿甲弹」给"
@@ -359,16 +364,16 @@
   {
    "type": "custom",
    "id": "twin",
-   "name": "双枪",
+   "name": "对空优先",
    "icon": "growth_b_count",
-   "desc": "每次射击的子弹数 +{$twin_shots}"
+   "desc": "子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中这类目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）"
   },
   {
    "type": "custom",
    "id": "power",
-   "name": "高压弹",
+   "name": "护航射击",
    "icon": "growth_b_size",
-   "desc": "她的伤害 ×{$n2_mult}"
+   "desc": "队长身边半径 {$escort_r} 内有 {$escort_n} 名及以上敌人时，子弹改为优先射击离队长最近的敌人，并附带 {$escort_kb} 击退"
   },
   {
    "type": "elite",
@@ -383,15 +388,15 @@
   {
    "type": "custom",
    "id": "range",
-   "name": "延长弹道",
+   "name": "曳光弹",
    "icon": "growth_b_range",
-   "desc": "射程 +{$n1_range*100}%",
+   "desc": "每第 {$tracer_every} 发为曳光弹：命中的敌人被标记 {$tracer_secs} 秒，其他干员对标记目标造成的伤害 +{$tracer_bonus*100}%",
    "branch": {
     "range": {
      "id": "range",
-     "name": "延长弹道",
+     "name": "曳光弹",
      "icon": "growth_b_range",
-     "desc": "射程 +{$n1_range*100}%"
+     "desc": "每第 {$tracer_every} 发为曳光弹：命中的敌人被标记 {$tracer_secs} 秒，其他干员对标记目标造成的伤害 +{$tracer_bonus*100}%"
     },
     "ricochet": {
      "id": "ricochet",
@@ -400,7 +405,7 @@
      "desc": "子弹命中后有 {$ricochet_chance*100}% 概率跳向 {$ricochet_r} 内另一名敌人（伤害 {$ricochet_mult*100}%）"
     }
    },
-   "branch_desc": "「延长弹道」增加射程；「跳弹」使子弹命中后有概率弹向另一名敌人",
+   "branch_desc": "「曳光弹」标记目标，全队对其增伤；「跳弹」使子弹命中后有概率弹向另一名敌人",
    "bot": "range"
   },
   {
@@ -412,9 +417,9 @@
    "routes": {
     "range": {
      "id": "range2",
-     "name": "延长弹道·猎杀",
+     "name": "曳光弹·收网",
      "icon": "growth_b_range",
-     "desc": "射程再 +{$range2_add*100}%；她每击杀一名敌人，弹匣额外 +{$range2_mag}"
+     "desc": "被曳光弹标记的敌人倒下时（无论谁击杀），弹匣额外 +{$reap_mag}；标记同时最多 {$reap_max} 个"
     },
     "ricochet": {
      "id": "ricochet2",
@@ -436,6 +441,8 @@
   }
  ],
  "gallery": {
+  "demo_ctrl": 2.0,
+  "demo_surround": 2.5,
   "demo_mate": {
    "op": "texas",
    "elite": 2
@@ -564,22 +571,23 @@
   ],
   "progression": {
    "range": {
-    "verb": "buff_self",
-    "stat": "op_range",
-    "op": "add",
-    "value": "$n1_range"
+    "verb": "tracer",
+    "every": "$tracer_every",
+    "secs": "$tracer_secs",
+    "bonus": "$tracer_bonus",
+    "_doc": "曳光弹（docs/202 节点 4A，本作原创）：每 every 发一枚金色曳光弹，命中标记 secs 秒；队友打到被标记的敌人 +bonus（combat.damage 读 tr_t / tr_v）"
    },
    "power": {
-    "verb": "buff_self",
-    "stat": "dmg",
-    "op": "mult",
-    "value": "$n2_mult"
+    "verb": "escort",
+    "r": "$escort_r",
+    "n": "$escort_n",
+    "kb": "$escort_kb",
+    "_doc": "护航射击（docs/202 节点 2）：队长 r 内敌人 ≥ n 时子弹优先射击离队长最近的，击退 +kb"
    },
    "twin": {
-    "verb": "buff_self",
-    "stat": "op_shots",
-    "op": "add",
-    "value": "$twin_shots"
+    "verb": "aim_prefer",
+    "pin": "$prefer_pin",
+    "_doc": "对空优先（docs/202 节点 1，原作特性「优先攻击空中单位」）：受控目标排最前，命中即停 + 定身 pin 秒"
    },
    "ricochet": {
     "verb": "ricochet",
@@ -668,22 +676,26 @@
    ],
    "range2": [
     {
-     "verb": "buff_self",
-     "stat": "op_range",
-     "op": "add",
-     "value": "$range2_add"
+     "verb": "tracer",
+     "every": "$tracer_every",
+     "secs": "$tracer_secs",
+     "bonus": "$tracer_bonus",
+     "max": "$reap_max",
+     "_doc": "曳光弹·收网（docs/202 节点 5A）：同时最多 reap_max 个标记（排在 4A 之后，取最后一块的 max）"
     },
     {
      "trig": "on_kill",
+     "filter": "marked",
      "do": [
       {
        "verb": "counter",
        "name": "mag",
-       "add": "$range2_mag",
+       "text": "收网",
+       "add": "$reap_mag",
        "cap": "$mag_cap"
       }
      ],
-     "_doc": "延长弹道·猎杀（路线 range 节点 5）：击杀额外 +1 弹匣"
+     "_doc": "被她的曳光弹标记的敌人倒下（无论谁击杀）：弹匣额外 +reap_mag"
     }
    ],
    "ricochet2": {
