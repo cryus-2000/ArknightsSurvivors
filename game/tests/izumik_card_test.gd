@@ -200,7 +200,7 @@ func check_patterns() -> void:
 	c2.dead = true
 	for i in int(2.0 / DT): tick(e, 0.0)
 	var fans: int = g.ebullets.filter(func(b): return b.get("izu", "") == "fan").size()
-	check(fans == 3 * s._cn(3), "only living offspring resonate (%d bullets)" % fans)
+	check(fans == 3 * s._cn(3, s._dense("子代共鸣")), "only living offspring resonate (%d bullets)" % fans)
 	# 批次子代只走路：无接触伤害、不出横扫、不放自己的孢子环
 	e = fresh()
 	e.batch_next = g.t
