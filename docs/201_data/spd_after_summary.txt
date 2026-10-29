@@ -1,0 +1,105 @@
+== spd3_idle.jsonl
+LASER paranoia     beam/                      n 22  dur [1.6]  track [0.7]
+LASER paranoia     beam/凝视                    n 11  dur [1.3]  track [0.65]
+LASER ishar        ishar_echo/                n 45  dur [1.0]  track [0.0]
+LASER ishar        ishar_echo/共鸣              n 46  dur [1.0]  track [0.0]
+LASER ishar        ishar_echo/泪滴共鸣            n  6  dur [1.0]  track [0.0]
+LASER ishar        ishar_line/                n 12  dur [1.6, 1.9, 2.2]  track [1.0, 1.3, 1.6]
+LASER ishar        ishar_line/三线扫射            n  4  dur [1.3]  track [0.7]
+paranoia
+   orb/                         n 2238  v0  192  v1s  225  max  504  home 0
+   nova/                        n  438  v0  330  v1s  330  max  330  home 0
+ishar
+   ishar_shard/                 n  270  v0  239  v1s  239  max  239  home 0
+   ishar_tear/                  n  228  v0  200  v1s  200  max  285  home 30
+   ishar_note/                  n  176  v0  181  v1s  181  max  182  home 0
+knight_boss
+   boss_blade/                  n  827  v0  240  v1s  240  max  352  home 0
+izumik
+   orb/wave                     n 1120  v0  181  v1s  181  max  181  home 0
+   orb/gate                     n  816  v0  182  v1s  182  max  182  home 0
+   orb/fan                      n  303  v0  240  v1s  240  max  240  home 0
+   nova/                        n  261  v0  345  v1s  345  max  345  home 0
+   nerve/spiral                 n   96  v0  178  v1s  178  max  178  home 0
+   nova/back                    n   96  v0  182  v1s  182  max  182  home 0
+   orb/                         n   82  v0  336  v1s   -1  max  336  home 0
+   nerve/                       n   80  v0  228  v1s  228  max  228  home 0
+   nerve/learn                  n   32  v0  422  v1s    0  max  511  home 0
+   nova/spore                   n   10  v0   55  v1s   55  max   55  home 0
+== spd3_idle.jsonl jobs 24 err 0
+paranoia     fight  93.1  taken/min 1297.1 (972% maxhp/min)  TTK   6.2s  maxhp 128  hits/min 67.0  wins 5/6
+     contact_paranoia                   n 462  med 14.2%  max 26.4%  raw med  19.8 max  33.9
+     bullet:orb                         n 121  med 11.3%  max 27.4%  raw med  19.2 max  37.0
+     boss_paranoia:burst/               n  15  med  9.0%  max 13.8%  raw med  10.7 max  18.5
+     boss_paranoia:                     n  10  med 18.8%  max 28.7%  raw med  21.5 max  38.6
+     boss_paranoia:beam/凝视              n   9  med 22.4%  max 34.4%  raw med  27.1 max  46.3
+     shock_paranoia                     n   9  med 14.2%  max 22.3%  raw med  22.5 max  25.6
+     boss_paranoia:burst/叠影             n   5  med  9.5%  max 13.8%  raw med  15.0 max  18.5
+     boss_paranoia:final_attack/        n   4  med 18.4%  max 22.5%  raw med  25.9 max  30.3
+     boss_paranoia:sweep/呼号             n   4  med 17.3%  max 19.0%  raw med  25.7 max  27.1
+     bullet:nova                        n   3  med 12.0%  max 12.6%  raw med  13.7 max  20.0
+     boss_paranoia:final_attack/溟泡迸裂    n   1  med 12.3%  max 12.3%  raw med  22.9 max  22.9
+     boss_paranoia:final_attack/泡影收束    n   1  med 14.8%  max 14.8%  raw med  16.8 max  16.8
+ishar        fight  46.3  taken/min 605.1 (460% maxhp/min)  TTK  13.0s  maxhp 128  hits/min 29.3  wins 6/6
+     boss_ishar:ishar_strike/歌声涟漪       n  85  med 10.0%  max 20.9%  raw med  16.3 max  24.0
+     bullet:ishar_tear                  n  56  med 16.5%  max 29.5%  raw med  24.1 max  38.9
+     bullet:ishar_note                  n   6  med 12.4%  max 12.4%  raw med  23.1 max  23.1
+     boss_ishar:bite/撕咬                 n   5  med 39.5%  max 60.6%  raw med  55.0 max  69.4
+     boss_ishar:ishar_line/潮涌突进         n   5  med 12.9%  max 19.9%  raw med  24.1 max  37.0
+     boss_ishar:bite/                   n   4  med 47.4%  max 60.6%  raw med  55.0 max  69.4
+     boss_ishar:ishar_echo/共鸣           n   3  med 23.4%  max 26.0%  raw med  37.0 max  41.1
+     boss_ishar:ishar_line/             n   3  med 11.8%  max 13.8%  raw med  21.9 max  21.9
+     boss_ishar:ishar_line/大群之声         n   3  med  8.9%  max 15.2%  raw med  14.0 max  24.0
+     boss_ishar:ishar_line/三线扫射         n   2  med 13.8%  max 13.8%  raw med  21.9 max  21.9
+knight_boss  fight  85.9  taken/min 891.1 (566% maxhp/min)  TTK  10.6s  maxhp 128  hits/min 33.8  wins 6/6
+     bullet:boss_blade                  n  98  med 13.5%  max 25.1%  raw med  19.9 max  31.3
+     boss_knight_boss:final_attack/     n  92  med 14.7%  max 64.6%  raw med  26.4 max  76.5
+     contact_knight_boss                n  60  med 22.4%  max 41.2%  raw med  30.0 max  49.7
+     boss_knight_boss:shot/掷枪           n  18  med 22.4%  max 41.2%  raw med  31.6 max  49.7
+     boss_knight_boss:final_attack/长枪连刺 n  16  med 22.2%  max 39.5%  raw med  42.5 max  74.8
+     boss_knight_boss:final_attack/断潮劈击 n   6  med 20.5%  max 37.7%  raw med  27.6 max  45.7
+     boss_knight_boss:final_attack/踏冰裂阵 n   3  med 21.3%  max 27.3%  raw med  31.4 max  33.8
+     boss_knight_boss:final_attack/雪幕劈  n   3  med 18.6%  max 37.7%  raw med  29.1 max  45.7
+     boss_knight_boss:final_attack/长枪回旋 n   3  med 30.1%  max 37.8%  raw med  54.6 max  57.5
+     boss_knight_boss:final_attack/冻潮夹击 n   1  med 10.3%  max 10.3%  raw med  19.3 max  19.3
+     boss_knight_boss:final_attack/冻结重击 n   1  med 28.3%  max 28.3%  raw med  47.8 max  47.8
+     boss_knight_boss:final_attack/寒潮回卷 n   1  med  0.6%  max  0.6%  raw med   0.0 max   0.0
+izumik       fight 150.0  taken/min 596.0 (430% maxhp/min)  TTK  14.0s  maxhp 128  hits/min 18.6  wins 2/6
+     bullet:orb                         n 122  med 17.7%  max 29.2%  raw med  23.0 max  39.8
+     boss_izumik:final_attack/          n  76  med 24.9%  max 48.9%  raw med  36.8 max  68.7
+     boss_izumik:final_attack/护群触腕      n  16  med 26.5%  max 44.0%  raw med  40.6 max  61.8
+     boss_izumik:final_attack/海流牵引      n  12  med 24.2%  max 36.8%  raw med  36.5 max  53.2
+     bullet:nerve                       n   9  med 23.3%  max 28.5%  raw med  31.4 max  38.4
+     bullet:nova                        n   7  med 19.4%  max 25.9%  raw med  27.3 max  34.9
+     boss_izumik:final_attack/深渊涌流      n   1  med 34.6%  max 34.6%  raw med  46.7 max  46.7
+     boss_izumik:sweep/分享               n   1  med 41.6%  max 41.6%  raw med  56.0 max  56.0
+     boss_izumik:final_attack/迁徙潮       n   1  med 16.5%  max 16.5%  raw med  22.5 max  22.5
+== spd3_trial.jsonl jobs 24 err 0
+paranoia     fight 109.6  taken/min 177.4 (140% maxhp/min)  TTK  42.7s  maxhp 128  hits/min 9.0  wins 5/6
+     bullet:orb                         n  61  med 13.7%  max 27.4%  raw med  19.4 max  36.9
+     shock_paranoia                     n  24  med 12.5%  max 22.3%  raw med  14.6 max  25.6
+     boss_paranoia:final_attack/        n   8  med 14.8%  max 15.5%  raw med  16.8 max  24.5
+     bullet:nova                        n   7  med 11.9%  max 15.0%  raw med  16.7 max  21.1
+     boss_paranoia:beam/                n   5  med 18.3%  max 34.4%  raw med  25.7 max  46.3
+     boss_paranoia:final_attack/追猎泡     n   4  med 12.9%  max 12.9%  raw med  20.4 max  20.4
+     boss_paranoia:                     n   1  med 18.8%  max 18.8%  raw med  21.5 max  21.5
+ishar        fight  71.1  taken/min  53.7 (42% maxhp/min)  TTK 143.0s  maxhp 128  hits/min 3.8  wins 5/6
+     boss_ishar:ishar_strike/歌声涟漪       n  12  med 10.0%  max 14.0%  raw med  12.0 max  16.3
+     boss_ishar:ishar_strike/           n   7  med  8.6%  max 10.0%  raw med  12.0 max  18.5
+     bullet:ishar_tear                  n   3  med 16.2%  max 20.9%  raw med  25.7 max  38.9
+     shock_ishar                        n   3  med 23.4%  max 27.3%  raw med  26.7 max  43.2
+     bullet:ishar_shard                 n   2  med 14.0%  max 14.0%  raw med  16.3 max  16.3
+     boss_ishar:ishar_line/             n   1  med 13.6%  max 13.6%  raw med  21.6 max  21.6
+knight_boss  fight  86.8  taken/min  79.5 (59% maxhp/min)  TTK 101.6s  maxhp 128  hits/min 3.7  wins 5/6
+     bullet:boss_blade                  n   9  med 15.5%  max 22.0%  raw med  27.6 max  32.3
+     boss_knight_boss:final_attack/     n   8  med 14.7%  max 22.2%  raw med  25.0 max  42.8
+     boss_knight_boss:final_attack/断潮劈击 n   5  med 20.5%  max 23.5%  raw med  26.2 max  40.2
+     boss_knight_boss:final_attack/踏冰裂阵 n   5  med 14.7%  max 17.0%  raw med  20.4 max  33.0
+     boss_knight_boss:final_attack/冰枪封径 n   2  med 10.7%  max 10.7%  raw med  21.5 max  21.5
+     boss_knight_boss:final_attack/雪幕劈  n   2  med 23.2%  max 23.2%  raw med  44.7 max  44.7
+     contact_knight_boss                n   1  med 22.4%  max 22.4%  raw med  27.6 max  27.6
+izumik       fight  95.0  taken/min  31.1 (21% maxhp/min)  TTK 289.9s  maxhp 127  hits/min 1.8  wins 4/6
+     bullet:nerve                       n  13  med 14.1%  max 18.2%  raw med  20.8 max  32.0
+     bullet:nova                        n   9  med  7.6%  max 15.7%  raw med  13.3 max  29.1
+     bullet:orb                         n   2  med  9.7%  max  9.7%  raw med  15.3 max  15.3
+     boss_izumik:                       n   1  med 31.4%  max 31.4%  raw med  58.3 max  58.3
