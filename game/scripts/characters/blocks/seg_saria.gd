@@ -20,7 +20,7 @@ static func _h4sa(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("sa"):
 		h["sa"] = {"block_t": 0.0, "calc": 0.0, "calc_acc": 0.0, "shard_t": 0.0, "hot_t": 0.0, "hot_acc": 0.0, "hot_pct": 0.0,
-			"orb_cd": {}, "orb_broken": {}, "shatter_t": 0.0, "pillars": [], "shots": [], "seg": 0, "seg_t": 0.0, "calc_b": {},
+			"orb_cd": {}, "orb_broken": {}, "shatter_t": 0.0, "pillars": [], "slots": [], "shots": [], "seg": 0, "seg_t": 0.0, "calc_b": {},
 			"hot_name": "", "calc_name": "", "slowed": [], "crystals": []}
 	return h.sa
 
@@ -224,12 +224,15 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 				continue
 			o.add_cc(e2, -INF, float(cb.get("slow", 0.5)))
 			e2["aura_weak"] = maxf(float(e2.get("aura_weak", 0.0)), float(cb.get("weak", 0.2)))
-		sa.shard_t = float(sa.shard_t) - dt
-		if float(sa.shard_t) <= 0.0:
-			sa.shard_t = float(cb.get("shard_every", 0.35))
-			var an: float = g.rng_op.randf() * TAU   # 晶柱落点吃 g.rng（碎晶从晶柱处射出，影响玩法；同手写）
-			var rr: float = g.rng_op.randf_range(R * 0.3, R * 0.95)
-			_h4_calcite(o, g.ppos + Vector2(cos(an) * rr, sin(an) * rr * 0.55 + 4.0), g.vrng.randf_range(0.6, 0.85), g.vrng.randf_range(12, 24), 1.2)
+		if not sa.slots.is_empty():
+			_h4_slots_tick(o, sa, cb, dt)   # 10-29 用户：晶体碰到怪物会碎、过一会原位重新长出
+		else:
+			sa.shard_t = float(sa.shard_t) - dt
+			if float(sa.shard_t) <= 0.0:
+				sa.shard_t = float(cb.get("shard_every", 0.35))
+				var an: float = g.rng_op.randf() * TAU   # 晶柱落点吃 g.rng（碎晶从晶柱处射出，影响玩法；同手写）
+				var rr: float = g.rng_op.randf_range(R * 0.3, R * 0.95)
+				_h4_calcite(o, g.ppos + Vector2(cos(an) * rr, sin(an) * rr * 0.55 + 4.0), g.vrng.randf_range(0.6, 0.85), g.vrng.randf_range(12, 24), 1.2)
 		# 碎晶：每 every 秒亲手击碎一根晶柱，碎片飞向区域内的敌人
 		var cs: Dictionary = _h4_sub(o, cb.get("shatter", null))
 		if not cs.is_empty():
@@ -366,12 +369,18 @@ static func _h4_pillars_tick(o, sa: Dictionary, dt: float) -> void:
 
 ## 晶柱参与 2.5D 排序（data_operator.extra_bodies 转来）
 static func h4_extra_bodies(o) -> Array:
-	if not hw_on(o) or not o.hw.has("sa") or o.hw.sa.crystals.is_empty():
+	if not hw_on(o) or not o.hw.has("sa"):
 		return []
 	var out: Array = []
-	var posts: Array = o.hw.sa.crystals.posts
-	for k in posts.size():
-		out.append({"y": (posts[k] as Vector2).y, "h4": "pillar", "k": k})
+	var sa: Dictionary = o.hw.sa
+	if not sa.crystals.is_empty():
+		var posts: Array = sa.crystals.posts
+		for k in posts.size():
+			out.append({"y": (posts[k] as Vector2).y, "h4": "pillar", "k": k})
+	for k in sa.slots.size():   # 钙质化的固定晶柱槽（空着等重新长出的不画）
+		var sl: Dictionary = sa.slots[k]
+		if int(sl.st) < 3 and float(sl.t) >= 0.0:
+			out.append({"y": (sl.pos as Vector2).y, "h4": "calc", "k": k})
 	return out
 
 
@@ -379,6 +388,20 @@ static func h4_extra_bodies(o) -> Array:
 static func h4_draw_extra(o, it: Dictionary) -> void:
 	var g = o.g
 	var cv = o.cv
+	if str(it.h4) == "calc":
+		var sl: Dictionary = o.hw.sa.slots[int(it.k)]
+		var t: float = float(sl.t)
+		var fr: int
+		match int(sl.st):
+			0:
+				fr = mini(3, int(t / SLOT_GROW * 4.0))
+			1:
+				fr = 4
+			_:
+				fr = mini(7, 5 + int(t / SLOT_BREAK * 3.0))
+		var sc: float = g.PX * float(sl.sc) * (-1.0 if sl.flip else 1.0)
+		fx_frame(cv, g, "fx_saria_calcite", 8, fr, sl.pos, absf(sc), Color(1, 1, 1, 1), Vector2(16, 40))
+		return
 	var cr: Dictionary = o.hw.sa.crystals
 	if cr.is_empty():
 		return
@@ -603,20 +626,117 @@ static func h4_saria_heal(o, b: Dictionary) -> void:
 			o.spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
 
 
+## 钙质化的固定晶柱槽（10-29 用户「晶体碰到怪物会碎掉，然后过一会重新生成」）：每个槽 st 0 长出（0.4 秒）→ 1 立着（敌人碰到就碎）→ 2 碎裂（0.3 秒）→ 3 空着等 regrow 秒 → 原位重新长出。
+## 碎时给触碰者（及脚边的）非 Boss 敌人一次击退 kb（精英 × 0.5）+ 短眩晕 stun；不造成伤害。碎晶节点（shatter）击碎的晶柱同样进入「碎 → 重新长出」
+const SLOT_GROW := 0.4
+const SLOT_BREAK := 0.3
+
+static func _h4_slots_make(o, sa: Dictionary, b: Dictionary) -> void:
+	var g = o.g
+	var n: int = int(b.get("slots", 0))
+	var R: float = float(b.get("r", 180.0))
+	sa.slots = []
+	sa.pillars.clear()
+	for k in n:
+		var p: Vector2
+		if k < 4:
+			var an0: float = k * TAU / 4.0 + 0.4
+			p = g.ppos + Vector2(cos(an0) * 52.0, sin(an0) * 52.0 * 0.55 + 4.0)
+		else:
+			var an: float = g.rng_op.randf() * TAU
+			var rr: float = g.rng_op.randf_range(R * 0.4, R * 0.9)
+			p = g.ppos + Vector2(cos(an) * rr, sin(an) * rr * 0.55 + 4.0)
+		sa.slots.append({"pos": g.map.push_out(p, 12.0), "st": 0, "t": -0.08 * float(k), "life": 9.0, "sc": g.vrng.randf_range(0.9, 1.1), "flip": g.vrng.randf() < 0.5})
+
+
+static func _h4_slot_break(o, sl: Dictionary, cb: Dictionary) -> void:
+	var g = o.g
+	sl.st = 2
+	sl.t = 0.0
+	sl.life = 0.0
+	var p: Vector2 = sl.pos
+	var kb: float = float(cb.get("kb", 140.0))
+	var stun: float = float(cb.get("stun", 0.2))
+	for j in o.query_ids(p, 60.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.boss or e.get("chest", false):
+			continue
+		var off: Vector2 = e.pos - p
+		if off.length() > 40.0 + e.r:
+			continue
+		var m: float = 0.5 if e.elite else 1.0
+		o.apply_kb(e, (off.normalized() if off.length() > 1.0 else Vector2(1, 0)) * kb * m)
+		if stun > 0.0:
+			o.add_cc(e, stun * m)
+	o.fx({"kind": "glow", "pos": p + Vector2(0, -18), "r": 14.0, "life": 0.2, "col": Color(1.8, 1.4, 0.8), "alpha": 0.7})
+	for q in 5:
+		o.fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(70, 150), "life": 0.3, "col": H4_AMBER,
+			"sz": g.vrng.randf_range(2.5, 4.5), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 260.0})
+
+
+static func _h4_slots_tick(o, sa: Dictionary, cb: Dictionary, dt: float) -> void:
+	var g = o.g
+	var regrow: float = float(cb.get("regrow", 3.0))
+	var touch: float = float(cb.get("touch", 14.0))
+	var shat: bool = not _h4_sub(o, cb.get("shatter", null)).is_empty()
+	for sl in sa.slots:
+		sl.t = float(sl.t) + dt
+		match int(sl.st):
+			0:
+				if float(sl.t) >= SLOT_GROW:
+					sl.st = 1
+					if shat:
+						sa.pillars.append({"pos": sl.pos, "ref": sl})
+			1:
+				if float(sl.life) <= 0.001:   # 碎晶节点（_h4_shatter）击碎的
+					_h4_slot_break(o, sl, cb)
+					continue
+				for j in o.query_ids(sl.pos, 44.0):
+					var e: Dictionary = g.enemies[j]
+					if e.dead or e.get("chest", false) or e.pos.distance_to(sl.pos) > touch + e.r * 0.6:
+						continue
+					_h4_slot_break(o, sl, cb)
+					break
+			2:
+				if float(sl.t) >= SLOT_BREAK:
+					sl.st = 3
+					sl.t = 0.0
+			3:
+				if float(sl.t) >= regrow:
+					sl.st = 0
+					sl.t = 0.0
+					sl.life = 9.0
+
+
+## 技能结束 / 队长离队：立着的晶柱一起碎掉
+static func _h4_slots_end(o, sa: Dictionary) -> void:
+	var g = o.g
+	for sl in sa.slots:
+		if int(sl.st) <= 1:
+			if not o.spawn_fx_sprite("fx_saria_pillar_break", (sl.pos as Vector2) + Vector2(0, -30), g.PX):
+				o.spawn_fx_sprite("fx_rock_burst", sl.pos, g.PX * 0.7, 0.0, false, false, Color(1.3, 1.0, 0.6))
+	sa.slots = []
+	sa.pillars.clear()
+
+
 ## 钙质化：晶柱升起 + 区域
 static func h4_calc_start(o, b: Dictionary) -> void:
 	var g = o.g
 	var sa := _h4sa(o)
 	sa.calc_b = b
 	sa.calc = float(b.get("dur", 8.0))
-	o.SkillLifecycle.bind(o, "calc_field", o.effect_skill, sa, "calc", true, false, func(): sa.pillars.clear())
+	o.SkillLifecycle.bind(o, "calc_field", o.effect_skill, sa, "calc", true, false, func(): _h4_slots_end(o, sa))
 	sa.calc_acc = 0.0
 	sa.calc_name = str(b.get("name", ""))
 	if o.cur_skill >= 0:
 		o.s_dur[o.cur_skill] = float(b.get("dur", 8.0))
-	for k in 8:
-		var an: float = k * TAU / 8.0 + 0.3
-		_h4_calcite(o, g.ppos + Vector2(cos(an) * 34.0, sin(an) * 34.0 * 0.55 + 4.0), g.vrng.randf_range(0.9, 1.15), g.vrng.randf_range(22, 40), 1.5 + k * 0.03)
+	sa.slots = []
+	if int(b.get("slots", 0)) > 0:
+		_h4_slots_make(o, sa, b)
+	else:
+		for k in 8:
+			var an: float = k * TAU / 8.0 + 0.3
+			_h4_calcite(o, g.ppos + Vector2(cos(an) * 34.0, sin(an) * 34.0 * 0.55 + 4.0), g.vrng.randf_range(0.9, 1.15), g.vrng.randf_range(22, 40), 1.5 + k * 0.03)
 	var R: float = float(b.get("r", 180.0))
 	o.fx({"kind": "ring", "pos": g.ppos, "r": R, "r0": 30.0, "life": 0.5, "col": H4_AMBER, "floor": true, "w": 4.0})
 	o.fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": H4_AMBER, "floor": true, "n": 10})

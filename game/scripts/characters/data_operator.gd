@@ -1548,7 +1548,7 @@ func _taunt_tick() -> void:
 			y = y.duplicate()
 			y.mult = float(y.mult) + per * nk
 		lst.append(y)
-	if n > 0:
+	if n > 0 and not lst.is_empty():
 		float_text(pos + Vector2(0, -96), "反击 ×%d" % n, Color(1.0, 0.85, 0.4), 14)
 	_exec_list(lst)
 

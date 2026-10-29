@@ -325,6 +325,12 @@ func _apply_leader_regen(op) -> void:
 	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
 	# sustain/base_regen_mult（缺省 1）：只缩放队长自带的基础回复，入队台阶、「自愈」、藏品不受影响（协调人 10-13 云端测试用旋钮）
 	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)) * Bal.v("sustain/base_regen_mult", 1.0))
+	# 主控自带的冲刺（10-29 用户「德克萨斯自带两个冲刺，距离略短」）：leader.dash {charges 额外次数, dist_mult 距离倍率}；换主控时一起换，冲刺卡的加层 / 加距离照常叠在上面
+	var dh: Dictionary = op.def.get("leader", {}).get("dash", {})
+	if g.stats.has_stat(&"dash_charges"):
+		g.stats.set_base(&"dash_charges", 1.0 + float(dh.get("charges", 0)))
+	if g.stats.has_stat(&"dash_dist"):
+		g.stats.set_base(&"dash_dist", float(dh.get("dist_mult", 1.0)))
 	g.sync_stats()
 
 

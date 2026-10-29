@@ -1503,6 +1503,11 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"verb.calc_field":
 			_num(b, "dur", p, ctx, true, 0.1, 60.0)
 			_num(b, "r", p, ctx, true, 1.0, 1000.0)
+			_num(b, "slots", p, ctx, false, 0.0, 24.0)
+			_num(b, "regrow", p, ctx, false, 0.5, 30.0)
+			_num(b, "kb", p, ctx, false, 0.0, 600.0)
+			_num(b, "stun", p, ctx, false, 0.0, 3.0)
+			_num(b, "touch", p, ctx, false, 4.0, 60.0)
 			if b.has("shatter") and b.shatter is Dictionary:
 				_src(b.shatter, p + ".shatter", ctx, true)
 		"verb.amber_ring":

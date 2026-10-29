@@ -372,6 +372,8 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				ang = o.atk_angle(a0)
 			var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
 			hits = o.melee_hit(src, org, ang, half, r2, dmg, kb, stun, tags, max_n)
+			if not hits.is_empty() and b.has("pause"):   # 命中顿帧（秒，纯画面，走 vfx.impact_pause 总闸；星熊 10-29）
+				o.impact_pause(float(b.pause))
 			if b.get("ring", true):
 				o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
 			fx_c = o.pos
