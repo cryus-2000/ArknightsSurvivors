@@ -18,6 +18,7 @@ var endings: Dictionary = {}    # 结局表
 var deck_cfg: Dictionary = {}   # waves.json cross_deck
 var cur := "standard"           # 当前结局
 var opened_id := ""             # 正在弹选项的事件
+var shown_id := ""              # 面板上正显示的事件（插画键用它：opened_id 在 pick 开头就清空，面板若没关掉会读空；10-29 用户卡死空面板）
 var warned_final := false
 var all_unlocked := false       # --allend：无视通关进度
 var frozen := false             # 最终 Boss 已刷出：结局冻结
@@ -429,6 +430,7 @@ func _close() -> void:
 ## 安全的角落：「安全屋」三选一（原作安全屋的稍事休息 / 添加燃料 / 重整编制）
 func _open_rest() -> void:
 	opened_id = "rest"
+	shown_id = "rest"
 	var heal: float = float(deck_cfg.get("rest_heal", 0.4))
 	var mh: float = float(deck_cfg.get("rest_maxhp", 0.05))
 	var li: int = int(deck_cfg.get("rest_light", 15))
@@ -566,6 +568,7 @@ func open(ev_id: String) -> void:
 		_close()
 		return
 	opened_id = ev_id
+	shown_id = ev_id
 	_log("open " + ev_id)
 	var opts: Array = []
 	var ops_l: Array = _opts(ev)
@@ -585,7 +588,7 @@ func open(ev_id: String) -> void:
 				icon = "relic_" + str(o.relic)
 				chips.append(["得到藏品", Color(0.18, 0.72, 1.0)])
 			if o.has("ingots") and not o.has("chance"):
-				chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
+				chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63) if int(o.ingots) > 0 else Color(1.0, 0.45, 0.45)])
 			if o.has("maxhp_pct"):
 				chips.append(["最大生命 %+d%%" % int(round(float(o.maxhp_pct) * 100.0)), Color(0.55, 1.0, 0.6) if float(o.maxhp_pct) > 0.0 else Color(1.0, 0.45, 0.45)])
 			if o.has("hp_pct"):
@@ -613,15 +616,31 @@ func _opts(ev: Dictionary) -> Array:
 
 ## 插画键：事件可指定 cg（敬奉火焰与引火之木共用一张），否则用事件 id
 func cg_key() -> String:
-	var ev: Dictionary = ev_by_id.get(opened_id, {})
-	return str(ev.get("cg", opened_id)) if ev.has("cg") and str(ev.cg) != "" else opened_id
+	var id := opened_id if opened_id != "" else shown_id
+	var ev: Dictionary = ev_by_id.get(id, {})
+	return str(ev.get("cg", id)) if ev.has("cg") and str(ev.cg) != "" else id
 
 
-## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；need = 队友 / 可交藏品 / 后面还有路口
+## 兜底（10-29 用户卡死：狂徒妄念面板一个选项都没有）：事件面板显示着却没有可点的选项条时（choice_panel.check_event_panel 发现），
+## 重建成只有「离开」的一屏，点了回到战斗；不重给奖励，所以就算之前某次选择只结算了一半也不会多拿
+func recover_panel() -> void:
+	var id := shown_id
+	var ev: Dictionary = ev_by_id.get(id, {})
+	var nm := str(ev.get("name", "事件"))
+	push_warning("event panel had no options, rebuilt with leave only: %s" % id)
+	_log("recover " + id)
+	opened_id = id
+	g.panel_ui.show_choices(nm, [{"kind": "event", "id": "%s:-1" % id, "name": "离开", "desc": "回到战斗", "icon": "exit", "chips": [], "cat": "事件  " + nm, "col": Color(0.55, 0.75, 1.0)}], "event", str(ev.get("text", "")), true)
+
+
+## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；代价大于 20% 的（传统技术「两件都要」60%）门槛提到「代价 + 10%」，
+## 付完至少留 10% 最大生命，不会直接倒下；need = 队友 / 可交藏品 / 后面还有路口
 func _blocked(op: Dictionary) -> String:
 	for o in op.get("ops", []):
-		if float(o.get("hp_pct", 0.0)) < 0.0 and g.hp < g.max_hp * 0.3:
-			return "生命低于 30% 时不可选"
+		var cost: float = -float(o.get("hp_pct", 0.0))
+		var need_k: float = maxf(0.3, cost + 0.1)
+		if cost > 0.0 and g.hp < g.max_hp * need_k:
+			return "生命低于 %d%% 时不可选" % int(round(need_k * 100.0))
 	var nd: Dictionary = op.get("need", {})
 	if nd.has("mate") and _mates().size() < int(nd.mate):
 		return "需要至少 1 名队友"
@@ -664,6 +683,8 @@ func _v2_chips(op: Dictionary) -> Array:
 			out.append(["交换藏品", C_GAIN])
 		if o.has("heal"):
 			out.append(["回复 %d%%" % int(round(float(o.heal) * 100.0)), Color(0.55, 1.0, 0.6)])
+		if o.has("stat"):
+			out.append([str(o.stat.get("text", "")), C_COST if o.stat.get("cost", false) else C_GAIN])
 	return out
 
 
@@ -721,6 +742,10 @@ func pick(o: Dictionary) -> bool:
 			return true
 		return false
 	var nxt: String = str(op.get("next", ev.get("next", "")))
+	if nxt != "" and op.has("next_chance") and g.rng.randf() >= float(op.next_chance):
+		# 设身处地「再喂喂看？」（原作 50%）：没成就到此为止；成了进的那一屏不再带这一项，只能再喂一次
+		g.vfx.show_banner("它们没有再靠过来")
+		return false
 	if nxt != "" and ev_by_id.has(nxt):
 		open(nxt)
 		return true
@@ -782,6 +807,13 @@ func _apply_op(x: Dictionary) -> void:
 		_ev_n += 1
 		g.rfx._apply_stat("sp_gain", "mult", 1.0 + float(x.sp_gain), "event:sp%d" % _ev_n, "")
 		g.vfx.show_banner("全队技力回复 +%d%%" % int(round(float(x.sp_gain) * 100.0)))
+	if x.has("stat"):
+		# 通用属性改动（docs/184 §10，10-29 用户审定）：{key, mult, text, cost?, v?}；key 是 stat_defs 里的属性（elite_dmg / enemy_ranged_cd / nerve_taken …），
+		# text 是卡面与横幅写法，cost = true 时标红、算代价；v = 机器人估值（V）
+		var st: Dictionary = x.stat
+		_ev_n += 1
+		g.rfx._apply_stat(str(st.key), "mult", float(st.get("mult", 1.0)), "event:st%d" % _ev_n, "")
+		g.vfx.show_banner(str(st.get("text", "")))
 	if str(x.get("elite_up", "")) == "lead":
 		_elite_up(g.ch)
 	if x.has("threat"):
@@ -1296,6 +1328,8 @@ func _opt_cost(op: Dictionary) -> bool:
 	for x in op.get("ops", []):
 		if float(x.get("hp_pct", 0.0)) < 0.0 or float(x.get("maxhp_pct", 0.0)) < 0.0 or int(x.get("ingots", 0)) < 0:
 			return true
+		if x.has("stat") and x.stat.get("cost", false):
+			return true
 		for k in ["curse", "away", "leave", "threat", "ingots_all", "trouble", "squad_now"]:
 			if x.has(k):
 				return true
@@ -1332,6 +1366,8 @@ func _opt_value(op: Dictionary) -> float:
 			s += 1.0 if g.squad.is_full() else 3.0
 		if x.has("sp_gain"):
 			s += 1.5
+		if x.has("stat"):
+			s += float(x.stat.get("v", -1.0 if x.stat.get("cost", false) else 1.0))
 		if x.has("shield"):
 			s += 0.6 * float(x.shield)
 		if x.has("elite_up"):

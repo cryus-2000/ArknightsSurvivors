@@ -2,7 +2,7 @@ extends Node
 ## docs/156 事件插画接入自审：依次打开 6 件事件的面板各截一张（build/<--shots-out>/e_<id>.png），
 ## 并记录打开前 / 打开中 / 关面板后的显存（RENDER_TEXTURE_MEM_USED），确认插画按需加载、关面板即释放。
 
-const IDS := ["opening", "madness", "knight_stay", "heart", "ascend", "glimmer"]
+var IDS: Array = ["opening", "madness", "knight_stay", "heart", "ascend", "glimmer"]   # --ids=a,b,c 换一组
 var g
 var out := ""
 
@@ -21,6 +21,8 @@ func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shots-out="):
 			od = arg.get_slice("=", 1)
+		elif arg.begins_with("--ids="):
+			IDS = Array(arg.get_slice("=", 1).split(","))
 	out = ProjectSettings.globalize_path("res://../build/" + od)
 	DirAccess.make_dir_recursive_absolute(out)
 	g = load("res://game.tscn").instantiate()

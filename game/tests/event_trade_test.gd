@@ -179,6 +179,7 @@ func _process(_dt: float) -> void:
 			break
 	var stuck := 0
 	var ran := 0
+	var reopened: Array = []   # 11（用户 10-29「这个不期而遇可以选择两个奖励」）：选完一项后同一件事件不得再弹一次（不能拿两份奖励）
 	for ev in E.events:
 		if not ev.has("src") or ev.get("pool", "") != "common":
 			continue
@@ -211,6 +212,8 @@ func _process(_dt: float) -> void:
 				continue
 			game.progression.pick(idx)
 			ran += 1
+			if game.state == game.S.CHOICE and game.choice_kind == "event" and game.choices.any(func(c): return str(c.get("id", "")).begins_with(str(ev.id) + ":")):
+				reopened.append("%s:%d" % [ev.id, k])
 			var guard := 0
 			while game.state == game.S.CHOICE and game.choice_kind == "event" and guard < 12:
 				guard += 1
@@ -224,6 +227,8 @@ func _process(_dt: float) -> void:
 	_close()
 	print("ET options run: %d" % ran)
 	check(ran >= 40 and stuck == 0, "every v2 option resolves back to battle (%d stuck)" % stuck)
+	check(reopened.is_empty(), "no v2 event offers a second pick after choosing (%s)" % [reopened])
+	check(not E.events.any(func(e): return e.has("src") and e.get("repeat", false)), "no v2 event is repeatable")
 	print("ET step 10")
 	# 10 诡意行商 = 进一次商店：地图上的商人与货架不受影响，买一件后关店回战斗
 	_close()
@@ -246,5 +251,97 @@ func _process(_dt: float) -> void:
 	check(game.state == game.S.PLAY and game.shop_items == real_items and not game.merchant.is_empty(), "closing restores the map merchant and its shelf")
 	game.merchant = {}
 	game.shop_items = []
+	print("ET step 12")
+	# 12 设身处地「再喂喂看？」（用户 10-29 加回）：50% 进再喂一屏，那一屏不再带「再喂喂看？」，只能再喂一次；不成就关面板
+	var won := 0
+	var lost := 0
+	var again := 0
+	for sd in 40:
+		_close()
+		game.hp = game.max_hp
+		game.rng.seed = 9000 + sd
+		E.open("feeding_2")
+		var ri := -1
+		for i in game.choices.size():
+			if str(game.choices[i].id) == "feeding_2:3":
+				ri = i
+		if ri < 0:
+			again += 100
+			break
+		game.progression.pick(ri)
+		if game.state == game.S.CHOICE and game.choice_kind == "event":
+			won += 1
+			if game.choices.any(func(c): return not str(c.id).begins_with("feeding_3:") or str(c.id) == "feeding_3:3"):
+				again += 1
+			game.progression.pick(0)
+			if game.state == game.S.CHOICE and game.choice_kind == "event":
+				again += 1
+		else:
+			lost += 1
+	_close()
+	check(won > 0 and lost > 0 and again == 0, "feed-again: 50%% chance, only one extra feed (won %d lost %d bad %d)" % [won, lost, again])
+	print("ET step 13")
+	# 13（用户 10-29 卡死：狂徒妄念面板零选项、插画没出）：全部事件（含结局线）× 两种局况，打开后选项 ≥ 1；
+	# 每个选项选下去都能回到战斗（二级屏由机器人选完），不留空面板
+	var bad13: Array = []
+	for setup in 2:
+		for ev in E.events:
+			if str(ev.get("pool", "")) == "card" and not ev.has("src"):
+				continue
+			for k in E._opts(ev).size():
+				_close()
+				game.relics.clear()
+				game.rfx.lv.clear()
+				game.knight_alive = false
+				E.sub_ctx = {}
+				E.searched.clear()
+				game.t = 261.0
+				game.hp = game.max_hp * 0.9
+				game.ingots = 63
+				game.pending_chests = 0
+				game.pending_levelups = 0
+				if setup == 1:
+					for cid in ["lappland", "irene"]:
+						if not game.squad.has(cid) and not game.squad.is_full():
+							game.squad.add(cid)
+				for rq in [ev.get("requires_relic", "")]:
+					if str(rq) != "":
+						game.relics.append(str(rq))
+				E.open(str(ev.id))
+				if game.choices.is_empty() or game.state != game.S.CHOICE:
+					bad13.append("%s: no options" % ev.id)
+					break
+				var idx := -1
+				for i in game.choices.size():
+					if str(game.choices[i].id) == "%s:%d" % [ev.id, k] and not game.choices[i].get("disabled", false):
+						idx = i
+				if idx < 0:
+					continue
+				game.progression.pick(idx)
+				var guard := 0
+				while game.state == game.S.CHOICE and game.choice_kind == "event" and guard < 12:
+					guard += 1
+					if game.choices.is_empty():
+						bad13.append("%s:%d empty follow-up" % [ev.id, k])
+						break
+					game.progression.pick(maxi(0, E.bot_choice()))
+				if game.panel.visible and game.choice_kind == "event" and game.state != game.S.CHOICE:
+					bad13.append("%s:%d panel left open" % [ev.id, k])
+	_close()
+	print("ET step13 bad: %s" % [bad13])
+	check(bad13.is_empty(), "every event x option resolves with options shown (%s)" % [bad13])
+	print("ET step 14")
+	# 14 空面板兜底（10-29 用户卡死）：事件面板开着、选项列被别的界面藏掉 / 清空时，兜底重建成「离开」一屏，选了回到战斗；
+	# pick 开头清掉 opened_id 后插画键仍是这件事件
+	_close()
+	E.open("madness")
+	E.opened_id = ""
+	check(E.cg_key() == "madness", "cg key survives opened_id reset (%s)" % E.cg_key())
+	game.panel_ui.layout("shop")   # 模拟选项列被别的界面布局藏掉
+	check(not game.panel_ui.check_event_panel(true), "watchdog notices an event panel with no option bars")
+	check(game.state == game.S.CHOICE and game.choice_kind == "event" and game.choices.size() == 1 and str(game.choices[0].id) == "madness:-1" and game.panel_col.visible, "watchdog rebuilds a leave-only panel")
+	game.progression.pick(0)
+	check(game.state == game.S.PLAY and not game.panel.visible, "leave from the rebuilt panel returns to battle")
+	_close()
 	print("EVENT TRADE: %d failures" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
