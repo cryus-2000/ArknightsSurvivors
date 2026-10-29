@@ -641,11 +641,14 @@ func cg_key() -> String:
 	return str(ev.get("cg", opened_id)) if ev.has("cg") and str(ev.cg) != "" else opened_id
 
 
-## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；need = 队友 / 可交藏品 / 后面还有路口
+## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；代价大于 20% 的（传统技术「两件都要」60%）门槛提到「代价 + 10%」，
+## 付完至少留 10% 最大生命，不会直接倒下；need = 队友 / 可交藏品 / 后面还有路口
 func _blocked(op: Dictionary) -> String:
 	for o in op.get("ops", []):
-		if float(o.get("hp_pct", 0.0)) < 0.0 and g.hp < g.max_hp * 0.3:
-			return "生命低于 30% 时不可选"
+		var cost: float = -float(o.get("hp_pct", 0.0))
+		var need_k: float = maxf(0.3, cost + 0.1)
+		if cost > 0.0 and g.hp < g.max_hp * need_k:
+			return "生命低于 %d%% 时不可选" % int(round(need_k * 100.0))
 	var nd: Dictionary = op.get("need", {})
 	if nd.has("mate") and _mates().size() < int(nd.mate):
 		return "需要至少 1 名队友"
