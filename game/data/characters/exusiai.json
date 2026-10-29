@@ -14,6 +14,9 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
+  "grow_dmg_power": 1.2,
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_twin": 1.48,
   "_doc": "基础数值（docs/59 §4 / §8.4，本机冒烟后上调：atk 9 → 13、普攻穿透 2、击退 30 → 40（10-12 第一旋钮）、S1 穿透 3、S3 ×0.8、倾泻 ×1.0、双枪提前到第 1 节点，docs/61 §14.3）；纯数据干员，行为在 blocks 段（docs/61 §14）。子弹数 = shots × 属性 op_shots（基础 1，成长节点「双枪」与精英二各 +1，带 op_shots 的藏品同样生效）；muzzle = 枪口（docs/64 §5.2 返修后出手帧 @2x (+30, −35)，脚底为原点、朝右）；弹药颜色按模式分（docs/25 §6.1，纯画面）：速射红、S1 冰青、S2 琥珀橙、S3 过热白、倾泻金；精英化形态（docs/91 §2）：e1_* 精一「穿甲连射」（st.stack，原 +3% / 30% 按输出位预算改 +2% / 20%），e2_* 精二「天使的祝福」（取代子弹数 +1）",
   "atk": 15,
   "cd": 0.35,
@@ -366,14 +369,14 @@
    "id": "twin",
    "name": "对空优先",
    "icon": "growth_b_count",
-   "desc": "子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中这类目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）"
+   "desc": "子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中这类目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin}"
   },
   {
    "type": "custom",
    "id": "power",
    "name": "护航射击",
    "icon": "growth_b_size",
-   "desc": "队长身边半径 {$escort_r} 内有 {$escort_n} 名及以上敌人时，子弹改为优先射击离队长最近的敌人，并附带 {$escort_kb} 击退"
+   "desc": "队长身边半径 {$escort_r} 内有 {$escort_n} 名及以上敌人时，子弹改为优先射击离队长最近的敌人，并附带 {$escort_kb} 击退；伤害 ×{$grow_dmg_power}"
   },
   {
    "type": "elite",
@@ -577,18 +580,24 @@
     "bonus": "$tracer_bonus",
     "_doc": "曳光弹（docs/202 节点 4A，本作原创）：每 every 发一枚金色曳光弹，命中标记 secs 秒；队友打到被标记的敌人 +bonus（combat.damage 读 tr_t / tr_v）"
    },
-   "power": {
+   "power": [
+   {
     "verb": "escort",
     "r": "$escort_r",
     "n": "$escort_n",
     "kb": "$escort_kb",
     "_doc": "护航射击（docs/202 节点 2）：队长 r 内敌人 ≥ n 时子弹优先射击离队长最近的，击退 +kb"
    },
-   "twin": {
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_power"}
+   ],
+   "twin": [
+   {
     "verb": "aim_prefer",
     "pin": "$prefer_pin",
     "_doc": "对空优先（docs/202 节点 1，原作特性「优先攻击空中单位」）：受控目标排最前，命中即停 + 定身 pin 秒"
    },
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_twin"}
+   ],
    "ricochet": {
     "verb": "ricochet",
     "chance": "$ricochet_chance",

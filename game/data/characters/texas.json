@@ -16,6 +16,9 @@
  "script": "res://scripts/characters/data_operator.gd",
  "command": {"roam_dash": false},
  "base": {
+  "grow_dmg_sharp": 1.12,
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_wide": 1.05,
   "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。精英化形态（docs/91 §16）：pin_* 精一「钉剑」，rain_* 精二「余像·剑雨」（残像 30% → 15% 配合下调；每柄 35% 按木桩表 +33% 再按 docs/91 收到 25%）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
   "atk": 32,
   "cd": 1.05,
@@ -506,14 +509,14 @@
    "id": "wide",
    "name": "居合",
    "icon": "growth_b_range",
-   "desc": "拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）"
+   "desc": "拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）；伤害 ×{$grow_dmg_wide}"
   },
   {
    "type": "custom",
    "id": "sharp",
    "name": "破绽",
    "icon": "growth_b_size",
-   "desc": "拔刀命中正在前摇出招的敌人时，打断其出招并击退 {$flaw_kb}（精英、Boss 除外）"
+   "desc": "拔刀命中正在前摇出招的敌人时，打断其出招并击退 {$flaw_kb}（精英、Boss 除外）；伤害 ×{$grow_dmg_sharp}"
   },
   {
    "type": "elite",
@@ -983,7 +986,8 @@
    }
   ],
   "progression": {
-   "wide": {
+   "wide": [
+   {
     "trig": "on_hit_n",
     "n": 1,
     "_doc": "居合（docs/202 节点 1）：拔刀每命中一名敌人，队长冲刺冷却缩短 iai_cut 秒（每次拔刀至多 iai_max 秒），与天赋「战术快递」配合",
@@ -995,7 +999,10 @@
      }
     ]
    },
-   "sharp": {
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_wide"}
+   ],
+   "sharp": [
+   {
     "trig": "on_hit_n",
     "n": 1,
     "_doc": "破绽（docs/202 节点 2，本作原创）：拔刀命中的普通敌人正在前摇 → 打断 + 小击退（协调人定：不眩晕，她的连携是瞬身眩晕）",
@@ -1006,6 +1013,8 @@
      }
     ]
    },
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_sharp"}
+   ],
    "back": {
     "trig": "passive",
     "do": [],

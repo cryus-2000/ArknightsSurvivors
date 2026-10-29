@@ -12,6 +12,8 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_rage": 1.25,
   "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/122）：近卫 · 领主。普攻「双刃」近身横扫（cone），特性「领主」远处（近战触及外）改掷剑气（远程 far_mult 80%、间隔 far_every，狼魂期间 far_s2_mult 100%），近处照常横扫（10-24 用户定，attack.far）；天赋「精神摧毁」命中封印；S1「日晷」永久（攻击 + 队长受击格挡概率）；S2「狼魂」限时（攻击 + 法术剑气）；S3「噤声」（本作自创名，10-25 用户定方案 A，docs/122 §2.7）限时攻击 ×s3_atk，命中叠「观察」，同一敌人 s3_keep 秒内叠满 s3_mark_n 层 → 十字斩 s3_cut_mult + 封印 s3_seal + 定格 s3_stun + 易伤 s3_fragile 秒；精一「狼之舞」每第 dance_n 次改为旋身斩；精二「双生刃」横扫附带两道交叉剑气；节点 4 二选一「断喝」/「狼魂·狂」（docs/119 §4.1）",
   "atk": 35,
   "cd": 0.8,
@@ -469,7 +471,7 @@
      "id": "rage",
      "name": "日晷·反斩",
      "icon": "skill_skadi_s1",
-     "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）"
+     "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）；伤害 ×{$grow_dmg_rage}"
     }
    },
    "branch_desc": "「断喝」每 {$bark_n} 次横扫触发封印冲击；「日晷·反斩」格挡成功后下一道剑气变为大剑气",
@@ -480,7 +482,7 @@
    "id": "rage",
    "name": "日晷·反斩",
    "icon": "skill_skadi_s1",
-   "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）",
+   "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）；伤害 ×{$grow_dmg_rage}",
    "routes": {
     "bark": {
      "id": "bark2",
@@ -1295,7 +1297,8 @@
        ]
       }
      ]
-    }
+    },
+    {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_rage"}
    ],
    "rage2": {
     "trig": "on_negate",

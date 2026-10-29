@@ -14,6 +14,9 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
+  "grow_dmg_heavy": 1.12,
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_reach": 1.05,
   "_doc": "基础数值（docs/59 §3 / §8.3；数据干员，行为在 blocks 段，docs/61「星熊」节）。保护位：不治疗，靠格挡（战术装甲概率完全免伤、挡下的不掉灯火）+ 击退。精英化形态（docs/91 §4）：stance_* 精一「反击架势」（+25% 按预算改 +20%），saw_* 精二「般若回旋」（取代「鬼面」；docs/91 的回程 ×0.6 配合下调按木桩表放宽到 ×0.75：×0.6 时 E2 木桩比改前 −15%，×0.9 时木桩 −1%、怪群 +10–23%）",
   "atk": 32,
   "cd": 1.1,
@@ -876,14 +879,14 @@
    "id": "reach",
    "name": "阻挡",
    "icon": "growth_armor",
-   "desc": "盾斧斩命中的敌人中，离她最近的 {$block_n} 名被阻挡 {$block_dur} 秒：移速 -{$block_slow*100}%，近战杂兵改追她、无法绕过；已被阻挡者再受击不刷新（精英效果减半，Boss 除外）"
+   "desc": "盾斧斩命中的敌人中，离她最近的 {$block_n} 名被阻挡 {$block_dur} 秒：移速 -{$block_slow*100}%，近战杂兵改追她、无法绕过；已被阻挡者再受击不刷新（精英效果减半，Boss 除外）；伤害 ×{$grow_dmg_reach}"
   },
   {
    "type": "custom",
    "id": "heavy",
    "name": "般若之重",
    "icon": "growth_b_size",
-   "desc": "盾斧斩一次命中 {$heavy_n} 名及以上敌人时，盾面压地：半径 {$heavy_r} 内受到 {$heavy_mult*100}% 伤害；队长的下一次受击必定被格挡（{$heavy_force_dur} 秒内有效，{$heavy_force_cd} 秒内至多一次）"
+   "desc": "盾斧斩一次命中 {$heavy_n} 名及以上敌人时，盾面压地：半径 {$heavy_r} 内受到 {$heavy_mult*100}% 伤害；队长的下一次受击必定被格挡（{$heavy_force_dur} 秒内有效，{$heavy_force_cd} 秒内至多一次）；伤害 ×{$grow_dmg_heavy}"
   },
   {
    "type": "elite",
@@ -1181,7 +1184,8 @@
    }
   ],
   "progression": {
-   "reach": {
+   "reach": [
+   {
     "trig": "on_hit_n",
     "n": 1,
     "_doc": "阻挡（docs/202 节点 1，原作特性「能够阻挡三个敌人」）：盾斧斩命中里离她最近的 block_n 名减速 + 近战杂兵改追她 block_dur 秒；已阻挡的不刷新",
@@ -1194,7 +1198,10 @@
      }
     ]
    },
-   "heavy": {
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_reach"}
+   ],
+   "heavy": [
+   {
     "trig": "on_hit_n",
     "n": "$heavy_n",
     "_doc": "般若之重（docs/202 节点 2）：一次命中 ≥ heavy_n 名 → 盾面压地一圈 + 队长下一次受击必定格挡（cd 内至多一次）",
@@ -1218,6 +1225,8 @@
      }
     ]
    },
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_heavy"}
+   ],
    "wall": {
     "trig": "on_negate",
     "do": [

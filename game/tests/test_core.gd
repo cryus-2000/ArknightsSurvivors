@@ -654,7 +654,7 @@ func test_blocks_texas() -> void:
 	OB.tx_sustain(fake, [B.skills[1].do[0], B.skills[1].do[1]], want)
 	near(float(fake.tx.len), 1.4, "冲刺长度倍率 (1 + 0.4)")
 	near(float(fake.tx.get("w", 1.0)), 1.0, "冲刺宽度倍率不变（节点 1 已换成居合）")
-	ok(str(B.progression.wide.get("_tag", "")) == "trig.on_hit_n" and str(B.progression.wide.do[0].get("_tag", "")) == "verb.dash_cd_cut" and str(B.progression.sharp.do[0].get("_tag", "")) == "verb.break_windup", "docs/202：节点 1 居合 = 命中缩短冲刺冷却，节点 2 破绽 = 打断前摇")
+	ok(str(B.progression.wide[0].get("_tag", "")) == "trig.on_hit_n" and str(B.progression.wide[0].do[0].get("_tag", "")) == "verb.dash_cd_cut" and str(B.progression.sharp[0].do[0].get("_tag", "")) == "verb.break_windup", "docs/202：节点 1 居合 = 命中缩短冲刺冷却，节点 2 破绽 = 打断前摇")
 	ok(want.is_empty(), "主控属性修正不在 tx_sustain 里写（verb.buff_leader 归共用段，data_operator._sustain 统一写）：%s" % str(want))
 	fake.tx = {}
 	want = []
