@@ -26,6 +26,7 @@
   "hook_taut": 0.12,
   "hook_drag": 0.22,
   "hook_front": 110,
+  "hook_front_leader": 175,
   "hook_speed": 900,
   "hook_n": 2,
   "first_cd": 0.4,
@@ -481,14 +482,14 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人（至多 {$hook_n} 名，Boss 除外）拖到身前 {$hook_front} 处，到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人（至多 {$hook_n} 名，Boss 除外）拖到身前 {$hook_front} 处（她当队长时拖到 {$hook_front_leader} 处，精英与自爆怪只拖半程），到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
  },
  "skills": [
   {
    "name": "缺水的大洋裂断",
    "en": "WATERLESS PARTING OF THE GREAT OCEAN",
    "sp": 7,
-   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到身前 {$hook_front} 处，到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
+   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到身前 {$hook_front} 处（她当队长时 {$hook_front_leader} 处，精英与自爆怪只拖半程），到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -707,6 +708,8 @@
       "taut": "$hook_taut",
       "drag": "$hook_drag",
       "front": "$hook_front",
+      "front_leader": "$hook_front_leader",
+      "heavy_half": true,
       "speed": "$hook_speed",
       "max_n": "$s1_n",
       "lock": true,
@@ -960,6 +963,8 @@
       "taut": "$hook_taut",
       "drag": "$hook_drag",
       "front": "$hook_front",
+      "front_leader": "$hook_front_leader",
+      "heavy_half": true,
       "speed": "$hook_speed",
       "max_n": "$hook_n",
       "lock": true,
@@ -992,6 +997,8 @@
       "taut": "$hook_taut",
       "drag": "$hook_drag",
       "front": "$hook_front",
+      "front_leader": "$hook_front_leader",
+      "heavy_half": true,
       "speed": "$hook_speed",
       "max_n": "$hook_n",
       "lock": true,
@@ -1024,6 +1031,8 @@
       "taut": "$hook_taut",
       "drag": "$hook_drag",
       "front": "$hook_front",
+      "front_leader": "$hook_front_leader",
+      "heavy_half": true,
       "speed": "$hook_speed",
       "max_n": "$hook_n",
       "lock": true,
