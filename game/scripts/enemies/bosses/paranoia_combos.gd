@@ -93,10 +93,15 @@ func act(e: Dictionary) -> int:
 func _dn(e: Dictionary, i: int):
 	var v = DENS[clampi(act(e), 0, DENS.size() - 1)][i]
 	# 10-29 docs/201 §7（用户「弹幕频率、数量还是低」）：每波发数（眼数 / 狙击向数 / 双旋每环 / 波环每圈 / 群愿每朵）× boss/count_k_paranoia，眼开枪间隔 × boss/tempo_k_paranoia；缺口半角、帘幕缝宽不动
+	# 按招式分工（10-29 用户「分配到不同的招式上」，docs/201 §8）：密度招 偏执双旋（双旋每环 5）/ 群愿回响（每朵 11）再 × paranoia_dense_k；
+	# 快节奏招 千目注视（眼开枪间隔 2）再 × paranoia_fast_k、环流狙击（轮数 4）+1 轮；其余照旧当喘息段
 	if i in [0, 3, 5, 7, 11]:
-		return int(round(float(v) * Bal.v("boss/count_k_paranoia", 1.4)))
+		var ck: float = Bal.v("boss/count_k_paranoia", 1.0) * (Bal.v("boss/paranoia_dense_k", 1.0) if i in [5, 11] else 1.0)
+		return int(round(float(v) * ck))
 	if i == 2:
-		return float(v) * Bal.v("boss/tempo_k_paranoia", 0.75)
+		return float(v) * Bal.v("boss/tempo_k_paranoia", 1.0) * Bal.v("boss/paranoia_fast_k", 1.0)
+	if i == 4:
+		return int(v) + int(Bal.v("boss/paranoia_snipe_extra", 0.0))
 	return v
 
 
@@ -276,7 +281,7 @@ func _emit(e: Dictionary, seg: String, dir: Vector2) -> void:
 	elif seg in ["侵蚀帘幕", "无声波环"] and act(e) >= 2:
 		spec.n = 3   # 三幕起多一道：缝 / 缺口来回错位，要读
 	if seg != "千目注视":
-		spec.iv = float(spec.iv) * Bal.v("boss/tempo_k_paranoia", 0.75)
+		spec.iv = float(spec.iv) * Bal.v("boss/tempo_k_paranoia", 1.0) * (Bal.v("boss/paranoia_fast_k", 1.0) if seg == "环流狙击" else 1.0)
 	var wind: float = float(spec.get("wind", WINDUP))
 	var t0: float = g.t + wind
 	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(), "wind": wind,
