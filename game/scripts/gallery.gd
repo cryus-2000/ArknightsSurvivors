@@ -7,6 +7,7 @@ extends Control
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
+const DmgCurve = preload("res://scripts/run/dmg_curve.gd")
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：未解锁的干员在图鉴里显示锁定
@@ -516,14 +517,15 @@ static func _enemy_spawn_stats(k: String, e: Dictionary, role: String) -> Array:
 			hp *= Bal.v("boss/carmen_hp_k", 2.4)
 			dmg *= Bal.v("boss/carmen_dmg_mult", 1.5)
 		return [hp, dmg]
-	dmg *= Bal.v("enemy/dmg_early", 1.0) * Bal.v("enemy/dmg_gain_early", 1.0)
+	# 图鉴写的是开局的数：伤害曲线开时 = 浅滩刷怪池在 0 秒的时间倍率（docs/194），关时 = 旧的前期加成
+	dmg *= DmgCurve.mult(0.0, 0) if DmgCurve.enabled() else Bal.v("enemy/dmg_early", 1.0) * Bal.v("enemy/dmg_gain_early", 1.0)
 	if role == "elite":
 		return [hp * Bal.v("enemy/elite_hp_mult", 7.0), dmg * Bal.v("enemy/elite_dmg_mult", 1.3)]
 	var den: float = Bal.v("enemy/density", 1.0)
 	if den > 0.0 and den != 1.0:
 		hp *= pow(1.0 / den, Bal.v("enemy/density_hp_exp", 1.0))
 		dmg *= pow(1.0 / den, Bal.v("enemy/density_dmg_exp", 1.0))
-	return [hp * Bal.v("enemy/trim_early_hp", 1.0), dmg * Bal.v("enemy/trim_early_dmg", 1.0)]
+	return [hp * Bal.v("enemy/trim_early_hp", 1.0), dmg * (1.0 if DmgCurve.enabled() else Bal.v("enemy/trim_early_dmg", 1.0))]
 
 
 ## 博士：受击体（data/doctor.json）；放在干员页最后，不属于任何职业（筛选时不出现）

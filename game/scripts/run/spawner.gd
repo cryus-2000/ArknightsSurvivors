@@ -3,6 +3,7 @@ extends RefCounted
 ## 敌人的行为在 enemies/enemy_ai.gd，敌人的逐帧更新仍在 game.gd _update_enemies。2026-09-26 从 game.gd 拆出。
 
 const D = preload("res://scripts/data.gd")
+const DmgCurve = preload("res://scripts/run/dmg_curve.gd")
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 
@@ -862,18 +863,23 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	if bf >= 0.0 and role != "boss" and g.final_boss != null and not g.final_boss.dead:
 		hpm = g.combat.enemy_hp_time_mult() * bf
 	var dmm := float(g.dmod.enemy_dmg)
-	var dmg_t := 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
-	# 前期敌人伤害加成（用户 9/27 前 3 分钟方案 A，数值旋钮，缺省 1.0 = 不变）：开局 ×enemy/dmg_early，到 enemy/dmg_early_until 秒线性回到 ×1。
-	# 只作用于普通怪和精英（Boss 在下面另算 e.dmg，不吃 dmg_t）；敌弹、抛石、冲击环、自爆、预警招式都按 e.dmg 算，自动跟上
-	dmg_t *= lerpf(Bal.v("enemy/dmg_early", 1.0), 1.0, clampf(g.t / maxf(1.0, Bal.v("enemy/dmg_early_until", 240.0)), 0.0, 1.0))
-	# 后期敌人伤害（用户 10-01「后期怪物攻击力轻微上调」，数值方案 a）：dmg_late_start 秒起，按 dmg_late_div 秒涨 1.0 的斜率叠加，最多 +dmg_late_cap。
-	# dmg_late_cap 可按难度档覆盖（difficulty/<档>/dmg_late_cap，-1 = 跟 enemy 段）；代码缺省 0 = 现行为
-	var late_cap: float = g.combat.enemy_knob("dmg_late_cap", 0.0)
-	if late_cap > 0.0:
-		dmg_t += minf(maxf(g.t - Bal.v("enemy/dmg_late_start", 420.0), 0.0) / maxf(1.0, Bal.v("enemy/dmg_late_div", 900.0)), late_cap)
-	# 危险感回调（用户 10-28）：开局到 enemy/dmg_gain_from 秒 ×dmg_gain_early，之后 ×dmg_gain_late；Boss 不吃，1 = 关
-	if role != "boss":
-		dmg_t *= Bal.v("enemy/dmg_gain_early", 1.0) if g.t < Bal.v("enemy/dmg_gain_from", 300.0) else Bal.v("enemy/dmg_gain_late", 1.0)
+	var dmg_t: float
+	if DmgCurve.enabled():
+		# 一条按时间的伤害曲线（docs/194，用户 10-29）：池平均一下伤害严格沿 dmg_curve/knots 走；旧的多段加成（dmg_div / early / late_cap / gain / trim_early_dmg）不再叠
+		dmg_t = DmgCurve.mult(g.t, g.threat)
+	else:
+		dmg_t = 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
+		# 前期敌人伤害加成（用户 9/27 前 3 分钟方案 A，数值旋钮，缺省 1.0 = 不变）：开局 ×enemy/dmg_early，到 enemy/dmg_early_until 秒线性回到 ×1。
+		# 只作用于普通怪和精英（Boss 在下面另算 e.dmg，不吃 dmg_t）；敌弹、抛石、冲击环、自爆、预警招式都按 e.dmg 算，自动跟上
+		dmg_t *= lerpf(Bal.v("enemy/dmg_early", 1.0), 1.0, clampf(g.t / maxf(1.0, Bal.v("enemy/dmg_early_until", 240.0)), 0.0, 1.0))
+		# 后期敌人伤害（用户 10-01「后期怪物攻击力轻微上调」，数值方案 a）：dmg_late_start 秒起，按 dmg_late_div 秒涨 1.0 的斜率叠加，最多 +dmg_late_cap。
+		# dmg_late_cap 可按难度档覆盖（difficulty/<档>/dmg_late_cap，-1 = 跟 enemy 段）；代码缺省 0 = 现行为
+		var late_cap: float = g.combat.enemy_knob("dmg_late_cap", 0.0)
+		if late_cap > 0.0:
+			dmg_t += minf(maxf(g.t - Bal.v("enemy/dmg_late_start", 420.0), 0.0) / maxf(1.0, Bal.v("enemy/dmg_late_div", 900.0)), late_cap)
+		# 危险感回调（用户 10-28）：开局到 enemy/dmg_gain_from 秒 ×dmg_gain_early，之后 ×dmg_gain_late；Boss 不吃，1 = 关
+		if role != "boss":
+			dmg_t *= Bal.v("enemy/dmg_gain_early", 1.0) if g.t < Bal.v("enemy/dmg_gain_from", 300.0) else Bal.v("enemy/dmg_gain_late", 1.0)
 	next_id += 1
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
@@ -1016,7 +1022,8 @@ func _trim_apply(e: Dictionary) -> void:
 	var u: float = Bal.v("enemy/trim_early_until", 180.0)
 	var k := 1.0 - clampf((g.t - u) / maxf(1.0, Bal.v("enemy/trim_early_fade", 60.0)), 0.0, 1.0)
 	f *= lerpf(1.0, Bal.v("enemy/trim_early_hp", 1.0), k)
-	fd *= lerpf(1.0, Bal.v("enemy/trim_early_dmg", 1.0), k)
+	if not DmgCurve.enabled():
+		fd *= lerpf(1.0, Bal.v("enemy/trim_early_dmg", 1.0), k)   # 曲线开时伤害只走 dmg_curve（docs/194）
 	var t0: float = Bal.v("enemy/trim_late_t0", 420.0)
 	var t1: float = Bal.v("enemy/trim_late_t1", 480.0)
 	f *= lerpf(1.0, Bal.v("enemy/trim_late_hp", 1.0), clampf((g.t - t0) / maxf(1.0, t1 - t0), 0.0, 1.0))
