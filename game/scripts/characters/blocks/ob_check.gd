@@ -403,8 +403,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			if b.has("countdown") and not (b.countdown is bool):   # 手写迁移段：倒计时写法（生效当帧起算，到点重置为 every）
 				errs.append(p + ".countdown 只能是 true / false")
 		"trig.on_kill":
-			if not str(b.get("filter", "any")) in ["any", "elite", "boss"]:
-				errs.append(p + ".filter 只能是 any / elite / boss")
+			if not str(b.get("filter", "any")) in ["any", "elite", "boss", "marked"]:
+				errs.append(p + ".filter 只能是 any / elite / boss / marked")
 			_list(b.get("do", []), p + ".do", "instant", ctx)
 
 

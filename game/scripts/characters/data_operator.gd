@@ -615,6 +615,11 @@ const EXEC_SEG := {
 	"verb.field": 0,   # _ext_exec
 	"verb.negate_next": 0,   # _ext_exec
 	"verb.taunt_guard": 0,   # _ext_exec
+	"verb.block_mark": 0,   # _ext_exec（docs/202）
+	"verb.force_block": 0,   # _ext_exec
+	"verb.boil_sand": 0,   # _ext_exec
+	"verb.dash_cd_cut": 0,   # _ext_exec
+	"verb.break_windup": 0,   # _ext_exec
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
 	"verb.emit_path": 1,   # tx_exec
@@ -987,7 +992,7 @@ func on_kill(e: Dictionary) -> void:
 		if str(t.get("_tag", "")) != "trig.on_kill" or not ObCore.cond_true(self, t.get("cond", _ED)):
 			continue
 		var f: String = str(t.get("filter", "any"))
-		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss):
+		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss) or (f == "marked" and float(e.get("tr_t", 0.0)) > g.t and str(e.get("tr_op", "")) == id):   # marked：被本干员曳光弹标记的敌人（docs/202 能天使）
 			_exec_list(t.get("do", []), e.pos)
 	kill_w = 1.0
 
@@ -1295,6 +1300,8 @@ func _dmg_bonus() -> float:
 const FIELD_CAP := 16                   # 每名干员同时存在的地面区域上限（超出时最早的先消失）
 
 var last_hit_pos := Vector2.INF        # 上一次普攻命中的第一个敌人（verb.field center: last_hit）
+var gm: Dictionary = {}                # docs/202 成长节点的运行时状态（星熊阻挡 / 般若之重；seg_hoshiguma 末尾）；空 = 用不到
+var gm_hits: Array = []                # docs/202：上一次普攻的命中列表（trig.on_hit_n 的 do 读它）
 var neg_armed: Dictionary = {}         # 待命的 verb.negate_next：技能序号 → 积木
 var taunt: Dictionary = {}             # 进行中的 verb.taunt_guard：{i 技能序号, b 积木, anchor 站定点（队长时 INF）, ids 拉到过的敌人}
 var fields: Array = []                 # 地面区域：{pos, r, t, dur, every, n, done, do, fx}
@@ -1402,6 +1409,8 @@ func exec_any_shape(b: Dictionary, at: Vector2 = Vector2.INF, is_attack := false
 	var hits: Array = SegHoshiguma.exec_line(self, b) if str(b.get("shape", "")) == "line" else ObCore.exec_shape(self, b, at)
 	if is_attack:
 		last_hit_pos = hits[0].pos if not hits.is_empty() else Vector2.INF
+		if not hits.is_empty() and tags_all.has("trig.on_hit_n"):   # docs/202：命中 ≥ n 触发（星熊 / 德克萨斯成长节点）
+			SegHoshiguma.gm_hit_n(self, hits)
 		if B.get("_e5_among", false):   # 精英化第 5 批段：记下这一次普攻命中的敌人（shape.circle among: attack）
 			e5["ah"] = SegSkalter.e5_ids(hits)
 		if b.get("slash", false) and not hits.is_empty() and str(b.get("shape", "")) == "cone":
@@ -1431,6 +1440,8 @@ func _ext_sustain(act: Array, dt: float) -> void:
 	swap_atk = sw
 	if not taunt.is_empty():
 		_taunt_tick()
+	if not gm.is_empty():
+		SegHoshiguma.gm_tick(self)   # docs/202：阻挡标记到期 / 近战杂兵改追她
 	# 技能结束仍没挨打：negate_next 执行 on_miss（不白放）
 	if not neg_armed.is_empty():
 		var ks: Array = neg_armed.keys()
@@ -1481,6 +1492,9 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			fields.append({"pos": c, "r": fr, "t": 0.0, "dur": float(b.dur), "every": ev,
 				"n": maxi(1, roundi(float(b.dur) / ev)), "done": 0, "do": b.get("do", []), "fx": b.get("fx", []), "u": u})
 			var field: Dictionary = fields.back()
+			if b.get("sand", false):
+				field["sand"] = true   # docs/202：热砂（verb.boil_sand 能引爆）
+				gm["on"] = true
 			if b.has("visual_end"):
 				field["visual_end"] = b.visual_end
 			if b.has("cap"):   # 精英化段：这块积木同时最多 cap 处，最早的先消失
@@ -1499,6 +1513,14 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 				ObFx.fx_play(self, fl, c, fr)
 				if b.has("visual_end"):
 					field["visual_particles"] = pfx.slice(fx_start)
+		"verb.block_mark":   # docs/202 成长节点（执行在各干员段：seg_hoshiguma / seg_texas）
+			SegHoshiguma.gm_block_mark(self, b)
+		"verb.force_block":
+			SegHoshiguma.gm_force_block(self, b)
+		"verb.boil_sand":
+			SegHoshiguma.gm_boil_sand(self, b)
+		"verb.dash_cd_cut", "verb.break_windup":
+			SegTexas.gm_exec(self, b)
 		"verb.negate_next":
 			if cur_skill >= 0:
 				neg_armed[cur_skill] = b
@@ -1552,6 +1574,9 @@ func taunt_anchor() -> Vector2:
 func dmg_taken_mult(src: Dictionary, dmg: float) -> float:
 	var boss: bool = src.get("boss", false)
 	var negated := false
+	if not gm.is_empty() and SegHoshiguma.gm_force_take(self):   # docs/202 星熊「般若之重」：武装后队长的下一次受击必定格挡
+		negated = true
+		_negate_fx({"text": "般若之重"})
 	if not neg_armed.is_empty():
 		var ks: Array = neg_armed.keys()
 		ks.sort()
@@ -1623,6 +1648,8 @@ func draw_entities_floor() -> void:
 		cv.draw_arc(Vector2.ZERO, tr, 0.0, TAU, 48, Color(1.0, 0.82, 0.35, ka), 2.0)
 		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, ka + 0.25), 2.5)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not gm.is_empty():
+		SegHoshiguma.gm_draw(self)   # docs/202：阻挡盾印 / 般若之重金环
 	if not neg_armed.is_empty() and g.ppos != Vector2.INF:
 		var k: float = 0.55 + 0.25 * sin(g.t * 8.0)
 		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
