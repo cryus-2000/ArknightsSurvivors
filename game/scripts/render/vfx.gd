@@ -278,6 +278,7 @@ static func boss_flash_alpha(e: Dictionary, peak: float) -> float:
 
 
 func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg := 0.0) -> void:
+	preload("res://scripts/run/boss_diag.gd").on_hit(e)
 	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传这一下的描述符（docs/101 B7 ⑤）
 	var dot: bool = "dot" in h.get("tags", [])
 	var skill: bool = h.get("origin", "") == "skill" and not dot
