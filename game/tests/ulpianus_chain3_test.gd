@@ -63,6 +63,8 @@ func test_chain(o) -> void:
 	o.sp = [-10000.0, -10000.0, -10000.0]
 	var mob := spawn("bone", o.pos + Vector2(70, 0))
 	var eli := spawn("bone", o.pos + Vector2(60, 30), true)
+	var far := spawn("bone", o.pos + Vector2(250, -10))   # 猛砸半径外、余震半径内
+	var far_hit := false
 	var x0: Vector2 = o.pos
 	o.sp[2] = o.sp_need(2)
 	o.start_skill(Vector2.INF, 2)
@@ -80,6 +82,10 @@ func test_chain(o) -> void:
 				launched = true
 		if float(eli.get("stun", 0.0)) > 0.5:
 			eli_stun = true
+		if float(far.hp) < 99999.0:
+			far_hit = true
+		far.hp = 99999.0
+		far.pos = x0 + Vector2(250, -10)   # 被击退了也放回原处，下一轮余震照样够得着
 		mob.hp = 99999.0
 		eli.hp = 99999.0
 	ok(o.pos.distance_to(x0) < 1.0, "本体不位移（%.1f）" % o.pos.distance_to(x0))
@@ -87,6 +93,7 @@ func test_chain(o) -> void:
 	ok(seen.size() == 3, "横扫 / 回旋 / 猛砸三段都出现")
 	ok(launched, "猛砸掀飞普通敌人")
 	ok(eli_stun, "猛砸让精英硬直（> 0.5 秒）")
+	ok(far_hit, "猛砸后的余震打到猛砸半径外的敌人")
 	for i in 120:
 		step(o)
 	ok(int(o.hw.get("c3", 0)) == 0, "技能结束后回到普通锚击（c3 归零）")

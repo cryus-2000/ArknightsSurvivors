@@ -63,7 +63,12 @@ static func hw_front(o, b: Dictionary, r: float) -> Array:
 ## 普攻起手点（data_operator.update 的 circle 分支，center: front）
 static func hw_front_aim(o, a: Dictionary) -> Vector2:
 	var r: float = shape_radius(o, a)
-	return o.atk_point(o.nearest_enemies(1, r + float(a.get("start_pad", 40.0)), o.pos), r)
+	var reach: float = r + float(a.get("start_pad", 40.0))
+	var c3 = a.get("chain3", null)
+	if c3 is Dictionary and float(o.hw.get("timers", _ED).get("haste", 0.0)) > 0.0:   # 抡锚三连期间：下一段够得着的距离内有敌人就起手（回旋 / 余震比锚击大得多）
+		var st: Dictionary = c3.steps[int(o.hw.get("c3", 0)) % 3]
+		reach = maxf(reach, (float(st.get("r", 1.0)) * r if str(st.get("kind", "")) != "slam" else float(st.get("r", 150.0)) * o.stat(&"op_range") + r * 0.55) + 20.0)
+	return o.atk_point(o.nearest_enemies(1, reach, o.pos), r)
 
 
 # ---------------------------------------------------------------- verb.timer / verb.arm / verb.stack
@@ -190,12 +195,20 @@ static func hw_chain3_release(o, a: Dictionary) -> bool:
 				_hw_launch(o, e, float(st.get("air", 0.7)), float(st.get("h", 34.0)))   # 击飞
 		if kb > 0.0 and not e.boss:
 			o.apply_kb(e, (e.pos - (c if kind == "slam" else o.pos)).normalized() * kb * (0.4 if e.elite else 1.0))
+	var dv: float = float(o.face) if absf(float(o.face)) > 0.0 else 1.0
 	if kind == "sweep":
-		fx_play(o, a.get("fx", []), fr[0], base_r, hits, ang)
-		fx_play(o, [{"blade": {"strip": "fx_slash_heavy_steel", "k": 1.25}}], o.pos, r, hits, ang)
+		_c3_swing(o, r, ang - dv * PI * 0.5, PI, dv, 0.42, 12.0)
 	elif kind == "spin":
 		fx_play(o, [{"whirl": {"life": 0.36}}], o.pos, r, hits, ang)
+		_c3_swing(o, r, ang, TAU, dv, 0.5, 16.0)
 	else:
+		o.fx({"kind": "ulp_shock", "pos": c, "r": r, "r0": 0.0, "life": 0.5, "max": 0.5, "floor": true})
+		_c3_waves_start(o, c, r, dmg, st, src)
+		for i in 14:   # 碎石：从落点向外迸（画面随机）
+			var dd: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU)
+			o.fx_sparks(c + dd * 10.0, Color(0.55, 0.62, 0.7), 1, g.vrng.randf_range(260.0, 420.0), 0.5, 3.0, 600.0)
+		for i in 10:
+			o.ground_dust(c + Vector2.from_angle(TAU * i / 10.0) * r * 0.9, 14.0, 3)
 		_hw_slam_fx(o, c, r, 1.6)
 		UlpCharge.burst(o, c, r)   # 冲击波：大范围冲击环推到判定半径
 		o.fx({"kind": "ulp_fracture", "pos": c, "r": r, "life": 0.9, "floor": true, "crater": true})   # 砸坑
@@ -207,6 +220,106 @@ static func hw_chain3_release(o, a: Dictionary) -> bool:
 	o.hw.prev_c = c
 	o.hw.prev_r = r
 	return true
+
+
+## 三连的范围画面（用户 10-29「不明显、没有范围攻击的感觉」）：锚头沿判定半径扫过的一整道弧光（横扫半圈 / 回旋一圈），
+## 弧光外缘 = 判定边界；扫过处地面扬尘。纯画面（g.vrng）
+static func _c3_swing(o, r: float, a0: float, span: float, dirv: float, life: float, w: float) -> void:
+	o.fx({"kind": "ulp_swing", "pos": o.pos, "r": r, "a0": a0, "span": span, "dir": dirv, "life": life, "max": life, "w": w})
+	var n: int = 6 if span < PI * 1.5 else 10
+	for i in n:
+		var an: float = a0 + dirv * span * (float(i) + 0.5) / n
+		o.ground_dust(o.pos + Vector2.from_angle(an) * r * 0.92, 12.0, 2)
+
+
+static func _c3_draw_swing(o, f: Dictionary, a: float) -> void:
+	var cv = o.cv
+	var u: float = 1.0 - a   # 0 → 1
+	var head_u: float = clampf(u / 0.45, 0.0, 1.0)
+	head_u = 1.0 - (1.0 - head_u) * (1.0 - head_u)   # 先快后慢：重武器甩出去的惯性
+	var span: float = float(f.span)
+	var dirv: float = float(f.dir)
+	var a0: float = float(f.a0)
+	var c: Vector2 = f.pos
+	var R: float = float(f.r)
+	var fade: float = clampf(a / 0.55, 0.0, 1.0)
+	var segs: int = maxi(8, int(span / 0.12))
+	var hn: int = int(segs * head_u)
+	var prev := Vector2.INF
+	for i in hn + 1:
+		var an: float = a0 + dirv * span * float(i) / segs
+		var p: Vector2 = c + Vector2.from_angle(an) * R
+		if prev != Vector2.INF:
+			var k: float = float(i) / maxf(1.0, float(hn))   # 越靠近锚头越亮越粗
+			var ww: float = float(f.w) * (0.35 + 0.65 * k)
+			cv.draw_line(prev, p, Color(0.03, 0.05, 0.09, 0.55 * fade), ww + 4.0)
+			cv.draw_line(prev, p, Color(HW_STEEL.r * 1.3, HW_STEEL.g * 1.3, HW_STEEL.b * 1.4, (0.35 + 0.55 * k) * fade), ww)
+			cv.draw_line(prev, p, Color(1.5, 1.7, 1.9, 0.8 * k * fade), 2.0)
+		prev = p
+	if head_u < 1.0 and prev != Vector2.INF:
+		_hw_draw_chain(o, c + Vector2(0, -22), prev, 1.0)
+		_hw_draw_anchor(o, prev, Vector2.from_angle(a0 + dirv * span * head_u + dirv * PI * 0.5), 1.0)
+
+
+## 猛砸余震（用户 10-29「没有什么范围攻击的感觉」，放权重做）：砸地后 waves 道冲击波依次从砸地半径推到 r 处，
+## 波前扫到的敌人各吃一次（× mult，相对猛砸伤害），向外击退 kb（精英 ×0.4，Boss 不退）；画面 = 同一道推出去的粗环
+static func _c3_waves_start(o, c: Vector2, r0: float, dmg: float, st: Dictionary, src: String) -> void:
+	var lst: Array = o.hw.get("c3w", [])
+	var r_in: float = r0
+	for w in st.get("waves", []):
+		var rr: float = float(w.get("r", 240.0)) * o.stat(&"op_range")
+		var dl: float = float(w.get("delay", 0.15))
+		lst.append({"c": c, "r0": r_in, "r1": rr, "t": -dl, "dur": float(w.get("dur", 0.28)), "dmg": dmg * float(w.get("mult", 0.5)), "kb": float(w.get("kb", 160.0)), "src": src, "hit": {}})
+		o.fx({"kind": "ulp_shock", "pos": c, "r": rr, "r0": r_in, "delay": dl, "life": 0.5 + dl, "max": 0.5 + dl, "floor": true})
+		r_in = rr
+	o.hw["c3w"] = lst
+
+
+static func _c3_waves_tick(o, dt: float) -> void:
+	var g = o.g
+	var lst: Array = o.hw.c3w
+	for w in lst:
+		w.t = float(w.t) + dt
+		if float(w.t) < 0.0:
+			continue
+		var u: float = clampf(float(w.t) / float(w.dur), 0.0, 1.0)
+		var front: float = lerpf(float(w.r0), float(w.r1), 1.0 - (1.0 - u) * (1.0 - u))
+		for j in o.query_ids(w.c, front + 30.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or w.hit.has(e.id) or e.pos.distance_to(w.c) > front + float(e.r):
+				continue
+			w.hit[e.id] = true
+			o.log_hit(str(w.src))
+			o.deal_damage(e, float(w.dmg))
+			if not e.dead and not e.boss:
+				o.apply_kb(e, ((e.pos as Vector2) - (w.c as Vector2)).normalized() * float(w.kb) * (0.4 if e.elite else 1.0))
+	o.hw.c3w = lst.filter(func(w): return float(w.t) < float(w.dur))
+	if o.hw.c3w.is_empty():
+		o.hw.erase("c3w")
+
+
+## 猛砸冲击波：0.2 秒从落点推到判定半径的粗环，之后原地淡出；外缘 = 判定边界
+static func _c3_draw_shock(o, f: Dictionary, a: float) -> void:
+	var cv = o.cv
+	var dl: float = float(f.get("delay", 0.0))
+	var el: float = (float(f.max) - float(f.life)) - dl   # 出现后经过的秒数
+	if el < 0.0:
+		return
+	var lf: float = float(f.max) - dl
+	var gu: float = clampf(el / (lf * 0.4), 0.0, 1.0)
+	var r0: float = float(f.get("r0", 0.0))
+	var rr: float = lerpf(r0, float(f.r), 1.0 - (1.0 - gu) * (1.0 - gu))
+	var al: float = clampf((1.0 - el / lf) / 0.6, 0.0, 1.0)
+	var ww: float = 14.0 * (1.0 - gu) + 4.0
+	var n: int = clampi(int(TAU * rr / 10.0), 12, 64)
+	var prev := Vector2.INF
+	for i in n + 1:
+		var p: Vector2 = (f.pos as Vector2) + Vector2.from_angle(TAU * i / n) * rr
+		if prev != Vector2.INF:
+			cv.draw_line(prev, p, Color(0.03, 0.05, 0.09, 0.5 * al), ww + 4.0)
+			cv.draw_line(prev, p, Color(HW_WATER.r * 1.3, HW_WATER.g * 1.3, HW_WATER.b * 1.4, 0.85 * al), ww)
+			cv.draw_line(prev, p, Color(1.6, 1.8, 2.0, 0.7 * al * (1.0 - gu * 0.5)), 2.0)
+		prev = p
 
 
 # ---------------------------------------------------------------- verb.tether
@@ -697,6 +810,8 @@ static func _hw4_tick(o, dt: float) -> void:
 		_hw4_anchor(o, dt)
 	if h.has("burst"):
 		UlpCharge.burst_tick(o, dt)
+	if h.has("c3w"):
+		_c3_waves_tick(o, dt)
 	if not h.launched.is_empty():
 		_hw4_launched(o, dt)
 
@@ -916,6 +1031,12 @@ static func hw4_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	match str(f.kind):
 		"ulp_wave", "ulp_fracture", "ulp_burst":
 			return UlpImpact.draw(o, f, a)
+		"ulp_swing":
+			_c3_draw_swing(o, f, a)
+			return true
+		"ulp_shock":
+			_c3_draw_shock(o, f, a)
+			return true
 		"whirl":
 			if o.def.has("native_motion") and str(o.anim_state().get("kind", "")) == "whirl_native":
 				return true  # Native body, chain and four-blade anchor are composed together.
