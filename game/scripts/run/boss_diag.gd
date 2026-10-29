@@ -35,6 +35,7 @@ static func step(g, e: Dictionary, dt: float) -> void:
 	if st or br or se: a.blocked += dt
 	if not a.has("kinds"):
 		a.kinds = {}
+	a.bul_peak = maxi(int(a.get("bul_peak", 0)), g.ebullets.size())
 	for b in g.ebullets:
 		var v = b.get("vel", Vector2.ZERO)
 		var sp: float = (v as Vector2).length() if v is Vector2 else 0.0
@@ -121,9 +122,21 @@ static func squad(g, tag: String) -> void:
 static var _sq_done := false
 static var _done := false
 ## 每帧：最终 Boss 到场时打一次分队；胜 / 负 / 战斗满 --diagmax 秒（缺省 150）或总时长超 --maxt 时打报告并退出
+static var _ft_last := 0
+static var ft_hi: Array = []
+static var ft_all: Array = []
 static func poll(g) -> void:
 	if not on() or _done:
 		return
+	# 帧时（无头，只含模拟，不含绘制）：同屏敌弹 >= 130 时记一帧
+	var now_us := Time.get_ticks_usec()
+	if _ft_last > 0 and g.final_boss != null and not g.final_boss.dead:
+		var ft := float(now_us - _ft_last) / 1000.0
+		if ft_all.size() < 20000:
+			ft_all.append(ft)
+		if g.ebullets.size() >= 130 and ft_hi.size() < 20000:
+			ft_hi.append(ft)
+	_ft_last = now_us
 	if not _sq_done and g.final_boss != null:
 		_sq_done = true
 		squad(g, "arrival")
@@ -157,6 +170,16 @@ static func report(g, why: String) -> void:
 		o.acts = a.acts
 		o.phase_t = a.phase_t
 		o.kinds = a.get("kinds", {})
+		var hs: Array = ft_hi.duplicate()
+		hs.sort()
+		var al: Array = ft_all.duplicate()
+		al.sort()
+		o.ft_hi_n = hs.size()
+		o.ft_hi_p50 = snappedf(float(hs[hs.size() / 2]), 0.01) if hs.size() > 0 else -1.0
+		o.ft_hi_p95 = snappedf(float(hs[int(hs.size() * 0.95)]), 0.01) if hs.size() > 0 else -1.0
+		o.ft_all_p50 = snappedf(float(al[al.size() / 2]), 0.01) if al.size() > 0 else -1.0
+		o.ft_all_p95 = snappedf(float(al[int(al.size() * 0.95)]), 0.01) if al.size() > 0 else -1.0
+		o.bul_peak = int(a.get("bul_peak", 0))
 		o.lasers = a.get("lasers", {})
 		if phit.has(k):
 			var p: Dictionary = phit[k]
