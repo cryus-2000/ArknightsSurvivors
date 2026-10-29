@@ -1,0 +1,88 @@
+{
+  "assets": [
+    {
+      "id": "task",
+      "generator": "built-in image_gen",
+      "generated_file": "exec-4f4d9fdd-0983-4a53-b0bb-5233143a71f5.png",
+      "generated_sha256": "30418909cde38b3c3841a88fc894a145005af1c0b9b27c2d425a0d773af7bf5b",
+      "native_size": [
+        1327,
+        1185
+      ],
+      "export": "RGB PNG; LANCZOS fit only if native size differs",
+      "reference": "Avg_pic_rogue_2_47.png",
+      "reference_sha256": "d6a6214efe91513dfedc0174cf818748c2e848d0b9090be17787ea9e653cd196"
+    },
+    {
+      "id": "vanguard",
+      "generator": "built-in image_gen",
+      "generated_file": "exec-1327c6d2-bcfc-47d0-b6a8-77dc56b5d2fe.png",
+      "generated_sha256": "d41e68fb8cdd8cb0233285aa7ae7273756f5c30cb4874f2f7b75b85ad3209d04",
+      "native_size": [
+        1327,
+        1186
+      ],
+      "export": "RGB PNG; LANCZOS fit only if native size differs",
+      "reference": "Avg_pic_rogue_1_1.png",
+      "reference_sha256": "04725ff4318754a45f7e1363cf664392a2a482937d646a6116ddc7091030f6e8"
+    },
+    {
+      "id": "sellout",
+      "generator": "built-in image_gen",
+      "generated_file": "exec-2b0d1709-064f-4ad6-8827-92d3604c81d3.png",
+      "generated_sha256": "f1fe2e86b6654348dec3d0bc3dc0cb7cfe404a923d31a6dad9c6c5576fca3aae",
+      "native_size": [
+        1327,
+        1185
+      ],
+      "export": "RGB PNG; LANCZOS fit only if native size differs",
+      "reference": "Avg_pic_rogue_2_4.png",
+      "reference_sha256": "1aa29285fb682ff0075dbc336a2d680425af01a386659934799e462683fa6d47"
+    },
+    {
+      "id": "craft",
+      "generator": "built-in image_gen",
+      "generated_file": "exec-fb72c778-8ff3-4491-818f-eed9eb1aa99c.png",
+      "generated_sha256": "aea5d16840b30fa74050cfb34d34bc9c90d976f84f37b51160ee5749d2f8cc0d",
+      "native_size": [
+        1327,
+        1185
+      ],
+      "export": "RGB PNG; LANCZOS fit only if native size differs",
+      "reference": "Avg_pic_rogue_2_38.png",
+      "reference_sha256": "cde4abfed9085eb3d3dabf844ce5ba887520be167bda9afd37ddb4c508054f95"
+    },
+    {
+      "id": "homecoming",
+      "generator": "built-in image_gen",
+      "generated_file": "exec-52f5f381-fb10-4e93-91ab-c71f5d880b72.png",
+      "generated_sha256": "abd50d8d316bd174349cf2aed97f937d65064df58254af852930efa947a57966",
+      "native_size": [
+        1327,
+        1185
+      ],
+      "export": "RGB PNG; LANCZOS fit only if native size differs",
+      "reference": "Avg_pic_rogue_2_33.png",
+      "reference_sha256": "2b33950ef26633de0ab5516e3c2c99c9fde0e7fde6d01a7a4f6d332519753b14"
+    },
+    {
+      "id": "scholar",
+      "generator": "built-in image_gen",
+      "generated_file": "exec-15ce79b4-41ce-4b3c-927c-efb4b92ebdc2.png",
+      "generated_sha256": "2fe61c1eb438a76dd45958327a5f9ddb87e7047239577bedbb74ba2d69672b66",
+      "native_size": [
+        1327,
+        1186
+      ],
+      "export": "RGB PNG; LANCZOS fit only if native size differs",
+      "reference": "Avg_pic_rogue_2_36.png",
+      "reference_sha256": "9e2df90b0c26358897008d903f83efe3920df9e116f27b92273720b364729a01"
+    }
+  ],
+  "tulip_reference": "https://prts.wiki/w/文件:立绘_郁金香_1.png",
+  "style_references": [
+    "event_cg_1026/generated_v2/rest.png",
+    "event_cg_1026/generated_v2/tinder.png"
+  ],
+  "status": "visual_approved_2026-10-29_not_integrated"
+}

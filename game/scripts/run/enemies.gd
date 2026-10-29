@@ -288,7 +288,7 @@ static func _build_drain() -> Dictionary:
 
 
 func update(dt: float) -> void:
-	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
+	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.1) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
 	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
 	#   A 决策（逐只：计时、持续伤害、远距回收、进化、Boss 步、AI 意图 → 本帧速度 v）
 	#   B 运动（逐只：分离、积分、场地约束、景物推出；不抽随机数、不回调——将来的原生 EnemyCore.step）
@@ -607,14 +607,13 @@ func update_status(dt: float) -> void:
 	g.pstun -= dt
 	g.atk_slow -= dt
 	g.frost = maxf(0.0, g.frost - dt)
-	if g.corrode_pool > 0.0:
-		var tick: float = min(g.corrode_pool, (g.corrode_pool * 0.5 + 1.0) * dt)
-		g.combat.drain_corrode(tick)
+	g.afflict.tick_corrode(dt)
 	var mired := false
 	var mire_nat := false   # 站在自然溟痕里（不是 Boss 子弹留下的）：这一跳不算 Boss 来源
 	var sanct: bool = g.squad.in_sanctuary(g.ppos)   # 流明灯塔：区内溟痕失效
 	var lk: Vector2 = lamp_mire_k()
 	_lamp_hint()
+	var mire_full: bool = lk.y > 0.0 and g.map.mire_area_full()   # 自然溟痕总面积到上限：逼近只挪不长（enemy/mire_area_cap）
 	for m in g.mires:
 		# 溟痕常驻、只能净化（用户 10-24）；Boss 溟痕是招式残留，照旧按 life 到期。life <= 0 = 移除标记
 		if m.get("boss", false):
@@ -627,7 +626,7 @@ func update_status(dt: float) -> void:
 				m.life = 0.0
 			continue
 		if not m.get("boss", false) and (lk.x > 0.0 or lk.y > 0.0):
-			_lamp_mire(m, lk, dt)
+			_lamp_mire(m, lk, dt, mire_full)
 			if m.life <= 0.0:
 				continue
 		m.r = min(m.maxr, m.r + 5.0 * dt)
@@ -638,8 +637,8 @@ func update_status(dt: float) -> void:
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血；神经损伤在溟痕里累积（combat，Boss与怪物 419c84d）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	update_nest_aura(dt, sanct)
-	var ward: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.0) * lk.x if mire_nat else 1.0   # 灯火高：自然溟痕伤害 / 神经损伤减免（docs/147）
-	g.combat.update_nerve(dt, mired, sanct, ward)   # 神经损伤：站在溟痕里累积（combat.gd）
+	var ward: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.8) * lk.x if mire_nat else 1.0   # 灯火高：自然溟痕伤害 / 神经损伤减免（docs/147）
+	g.afflict.update_nerve(dt, mired, sanct, ward, mired and not mire_nat)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
 		mire_tick -= dt
@@ -665,8 +664,8 @@ func update_status(dt: float) -> void:
 func lamp_mire_k() -> Vector2:
 	var lo: float = Bal.v("lamp/mire_lo", 30.0)
 	var hi: float = Bal.v("lamp/mire_hi", 70.0)
-	var x: float = clampf((g.lamp - lo) / maxf(1.0, hi - lo), 0.0, 1.0) if Bal.v("lamp/mire_ward_r", 0.0) > 0.0 else 0.0
-	var y: float = clampf((lo - g.lamp) / maxf(1.0, lo), 0.0, 1.0) if Bal.v("lamp/mire_creep_r", 0.0) > 0.0 else 0.0
+	var x: float = clampf((g.lamp - lo) / maxf(1.0, hi - lo), 0.0, 1.0) if Bal.v("lamp/mire_ward_r", 200.0) > 0.0 else 0.0
+	var y: float = clampf((lo - g.lamp) / maxf(1.0, lo), 0.0, 1.0) if Bal.v("lamp/mire_creep_r", 380.0) > 0.0 else 0.0
 	return Vector2(x, y)
 
 
@@ -674,26 +673,27 @@ func lamp_mire_k() -> Vector2:
 ##   退散：边缘进入队长 lamp/mire_ward_r 内的溟痕每秒收缩 mire_recede × x（上限一并压低，不再长回），小于 10 就消失（不闪，慢慢褪）；
 ##   逼近：中心在 lamp/mire_creep_r 内的溟痕每秒朝队长挪 mire_creep_spd × y、上限长 mire_creep_grow × y（最多原上限 × mire_creep_cap）；
 ##   挪进最终 Boss 禁生成区或点燃灯标的禁刷区时不挪；中心离队长不到半径一半就不再挪（盖住队长后不跟着走）
-func _lamp_mire(m: Dictionary, lk: Vector2, dt: float) -> void:
+func _lamp_mire(m: Dictionary, lk: Vector2, dt: float, full := false) -> void:
 	var d: float = m.pos.distance_to(g.ppos)
-	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 0.0) + m.r and g.t - float(m.get("t0", -INF)) >= Bal.v("lamp/mire_ward_grace", 3.0):
+	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 200.0) + m.r and g.t - float(m.get("t0", -INF)) >= Bal.v("lamp/mire_ward_grace", 3.0):
 		m.maxr = maxf(0.0, minf(float(m.maxr), float(m.r)) - Bal.v("lamp/mire_recede", 10.0) * lk.x * dt)
 		m.r = m.maxr
 		if m.r < 10.0:
 			m.life = 0.0
 		return
-	if lk.y > 0.0 and d < Bal.v("lamp/mire_creep_r", 0.0) and d > float(m.r) * 0.5:
+	if lk.y > 0.0 and d < Bal.v("lamp/mire_creep_r", 380.0) and d > float(m.r) * 0.5:
 		if not m.has("maxr0"):
 			m["maxr0"] = float(m.maxr)
 		var np: Vector2 = m.pos.move_toward(g.ppos, Bal.v("lamp/mire_creep_spd", 14.0) * lk.y * dt)
 		if not g.combat.mire_blocked(np, float(m.maxr)) and not g.beacon_sys.blocks(np):
 			m.pos = np
-		m.maxr = minf(float(m.maxr) + Bal.v("lamp/mire_creep_grow", 6.0) * lk.y * dt, float(m.maxr0) * Bal.v("lamp/mire_creep_cap", 1.3))
+		if not full:   # 自然溟痕总面积到 enemy/mire_area_cap 时不再长（用户 10-29「溟痕不能无限扩张」）
+			m.maxr = minf(float(m.maxr) + Bal.v("lamp/mire_creep_grow", 6.0) * lk.y * dt, float(m.maxr0) * Bal.v("lamp/mire_creep_cap", 1.3))
 
 
 ## 灯火进出通明 / 暗淡档时在队长头上给一行小字（不用横幅；lamp/mire_hint_cd 秒内不重复；带 5 点回差）
 func _lamp_hint() -> void:
-	if Bal.v("lamp/mire_ward_r", 0.0) <= 0.0 and Bal.v("lamp/mire_creep_r", 0.0) <= 0.0:
+	if Bal.v("lamp/mire_ward_r", 200.0) <= 0.0 and Bal.v("lamp/mire_creep_r", 380.0) <= 0.0:
 		return
 	var lo: float = Bal.v("lamp/mire_lo", 30.0)
 	var hi: float = Bal.v("lamp/mire_hi", 70.0)

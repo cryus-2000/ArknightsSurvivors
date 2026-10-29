@@ -32,8 +32,8 @@ func reset() -> void:
 	g.final_boss = null
 	g.hitstop = 0.0
 	g.invuln = 0.0
-	g.corrode_pool = 0.0
-	g.nerve = 0.0
+	g.afflict.clear_corrode()
+	g.afflict.clear_nerve()
 	g.pstun = 0.0
 	g.atk_slow = 0.0
 	g.frost = 0.0

@@ -123,29 +123,6 @@ func candidate_interaction(cid: String) -> int:
 	return 0
 
 
-## 强制招募保底（docs/119 §4.3）：先按原规则洗牌，开关开且有合格人选时把一名「与已有藏品有实际互动」的候选放进前 want 张；
-## 其余顺序不动。开关关 = 只洗牌（随机数消耗与改前相同）
-func forced_recruit_order(recruit: Array, want: int) -> Array:
-	g.shuffle(recruit)
-	if Bal.vi("build/force_recruit_match", 1) == 0 or recruit.size() <= want or want <= 0:
-		return recruit
-	var best_i := -1
-	var best_v := 0
-	for i in recruit.size():
-		var v := candidate_interaction(str(recruit[i].id))
-		if v > best_v:
-			best_v = v
-			best_i = i
-			if v == 2:
-				break
-	if best_i < 0 or best_i < want:
-		return recruit   # 没有合格人选 / 已经在前 want 张里：照原规则
-	var c = recruit[best_i]
-	recruit.remove_at(best_i)
-	recruit.insert(g.rng.randi() % want, c)
-	return recruit
-
-
 ## ---------------------------------------------------------------- 卡面说明行（docs/76：短句、数字、不堆标签）
 
 ## 招募卡：入队后会受益的已持有流派藏品；没有互动返回 ""
@@ -260,23 +237,6 @@ func relic_lines(rid: String, compact := false) -> String:
 		if g.relics.has(other):
 			tail.append("与%s%s" % [g.RL[other].name, STACK[rid][other]])
 	return " · ".join(tail)
-
-
-## 商人预告用：pool（relic_pool_ids 的顺序）里第一件「基础 / 稀有、流派件、编队有本流派干员」的藏品 id，没有返回 ""。
-## 先找没持有的（新增一环），都没有再退到已持有件的升级（10-21 截图实测首商人货架上只剩凯旋号角 Lv.1 → 2 时也该预告）
-func merchant_link_pick(pool: Array) -> String:
-	var upgrade := ""
-	for rid in pool:
-		var r: Dictionary = g.RL[rid]
-		if r.rarity not in ["基础", "稀有"] or chain_of(str(rid)) == "":
-			continue
-		if not relic_live(str(rid)):
-			continue
-		if not g.relics.has(str(rid)):
-			return str(rid)
-		if upgrade == "":
-			upgrade = str(rid)
-	return upgrade
 
 
 static func _join(names: Array) -> String:

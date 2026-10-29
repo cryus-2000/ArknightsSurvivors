@@ -56,7 +56,7 @@ func price_mult() -> float:
 ## 商店抬头的涨价说明（跟旋钮走，不写死）
 func step_note() -> String:
 	var s := "每购一件余货 +%d%%" % int(round(Bal.v("shop/purchase_step", 0.2) * 100.0))
-	var rs: float = Bal.v("shop/relic_step", 0.0)
+	var rs: float = Bal.v("shop/relic_step", 0.3)
 	if rs > 0.0:
 		s += "，藏品再 +%d%%" % int(round(rs * 100.0))
 	return s
@@ -65,7 +65,7 @@ func step_note() -> String:
 ## 藏品价格倍率：在 price_mult 之上，本次每买一件藏品，余下藏品再 +shop/relic_step（docs/191：商人处连买藏品是高峰来源，用涨价做软限制，不设件数上限）
 func relic_mult() -> float:
 	var nb: int = trader_buys if trader else int(g.merchant.get("relic_purchases", 0))
-	return price_mult() * (1.0 + nb * Bal.v("shop/relic_step", 0.0))
+	return price_mult() * (1.0 + nb * Bal.v("shop/relic_step", 0.3))
 
 
 ## 每次商人可买藏品件数；balance shop/relic_buy_limit < 0 = 不限（用户 10-11：取消硬上限，只靠「每购一件余货 +20%」和藏品栏容量软限制）
@@ -100,18 +100,16 @@ func price(kind: String) -> int:
 ## 其余照原规则；没有就不动。付费刷新不带 first（不重复保证）
 func roll(first := false) -> void:
 	g.shop_items.clear()
-	var pool: Array = g.progression.relic_pool_ids(true)
+	var pool: Array = g.guide.relic_pool_ids(true)
 	if trader:
 		# 诡意行商卡（docs/184 §3）：前两格换成主流派里排最前的两件（只重排，不多取随机数）
-		var ml: String = g.endg.main_lane()
-		var on_lane: Array = pool.filter(func(id): return str(g.RL[id].get("lane", "")) == ml).slice(0, 2)
-		pool = on_lane + pool.filter(func(id): return not on_lane.has(id))
+		pool = g.guide.lane_front(pool, g.guide.main_lane())
 	var slots: int = 3
 	for i in min(slots, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
 		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "full": g.rfx.display_desc(pool[i], true), "price": g.rfx.db.price(pool[i], relic_mult()), "sold": false})
 	if first:
-		var link: String = g.progression.affinity.merchant_link_pick(pool)
+		var link: String = g.guide.merchant_link_pick(pool)
 		if link != "" and not g.shop_items.any(func(it): return it.id == link) and not g.shop_items.is_empty():
 			g.shop_items[g.shop_items.size() - 1] = {"kind": "relic", "id": link, "name": g.rfx.display_name(link), "desc": g.rfx.display_desc(link), "full": g.rfx.display_desc(link, true), "price": g.rfx.db.price(link, relic_mult()), "sold": false}
 	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）

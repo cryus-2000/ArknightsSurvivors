@@ -1188,7 +1188,7 @@ static func mf_exec(o, b: Dictionary, _at: Vector2) -> void:
 		"verb.cleanse":
 			for w in b.get("what", _EA):
 				if str(w) == "nerve":
-					o.g.nerve = 0.0
+					o.g.afflict.clear_nerve()
 
 
 ## 常驻（data_operator._sustain 转来）：verb.summon_mod 按本帧生效顺序整理成每种召唤物的倍率表

@@ -872,13 +872,21 @@ func test_final_mob_cap() -> void:
 		Bal._data["final"] = keep_fin
 	fb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "最终 Boss 倒下后恢复不限")
-	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：读 boss/mid_mob_cap
-	var mb := {"dead": false, "boss": true}
+	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：10-28 起余量 = 同屏上限 × spawn/mid_boss_cap_mult − 存活杂兵
+	var mb := {"dead": false, "boss": true, "type": "path"}
 	game.enemies.append(mb)
 	game.bosses = [mb]
 	game.final_boss = null
-	var mcap: int = sp.dens_cap(int(Bal.v("boss/mid_mob_cap", 160.0)))
-	ok(sp.boss_mob_room() == mcap - 5, "中期 Boss 在场：余量 = mid_mob_cap（按密度 %d）− 存活杂兵（%d）" % [mcap, sp.boss_mob_room()])
+	var mid_cap: int = int(sp.max_alive() * Bal.v("spawn/mid_boss_cap_mult", 1.0)) - sp.mob_count()
+	ok(sp.mid_boss_up() and sp.boss_mob_room() == mid_cap, "中期 Boss 在场：余量按同屏上限 × mid_boss_cap_mult（%d）" % sp.boss_mob_room())
+	# 10-29：刷怪点离 Boss 太近换到队长另一侧；mid_boss_rate 0 = 改前（任意 Boss 停刷）
+	mb["pos"] = game.ppos + Vector2(760, 0)
+	var cp: Vector2 = sp._mid_clear_pos(game.ppos + Vector2(780, 0))
+	ok(Bal.v("spawn/mid_boss_clear_r", 0.0) <= 0.0 or cp.distance_to(game.ppos + Vector2(-780, 0)) < 0.1, "中期 Boss 在场：刷怪点离 Boss 太近换到另一侧")
+	var keep_rate = Bal._data["spawn"]["mid_boss_rate"]
+	Bal._data["spawn"]["mid_boss_rate"] = 0.0
+	ok(sp.mobs_stopped() and not sp.mid_boss_up(), "mid_boss_rate 0：中期 Boss 在场停刷（改前）")
+	Bal._data["spawn"]["mid_boss_rate"] = keep_rate
 	mb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 倒下后恢复不限")
 	game.bosses = keep_b
@@ -890,7 +898,7 @@ func test_final_mob_cap() -> void:
 	else:
 		Bal._data["boss"]["final_duel"] = keep_duel
 
-## 所有 Boss 在场均停普通刷怪，保留已有杂兵和机制召唤；停刷帧不消耗刷怪随机流。
+## 最终 Boss 在场停普通刷怪，保留已有杂兵和机制召唤；停刷帧不消耗刷怪随机流。中期 Boss 在场照常刷（用户 10-28）。
 func test_final_stop_mobs() -> void:
 	var sp = game.spawner
 	var saved := {}
@@ -915,6 +923,23 @@ func test_final_stop_mobs() -> void:
 		game.final_boss = boss if sp.is_final_boss_type(kind) else null
 		sp.spawn_acc = 10.0
 		sp.next_elite = game.t - 1.0
+		if not sp.is_final_boss_type(kind):
+			# 中期 Boss：普通刷怪照常，精英名额挂起，Boss 倒下后 mid_release_delay 秒起放出（10-28 协调人定）
+			sp.set("_held_elite", 0)
+			sp.update(0.0)
+			var n_mid: int = game.enemies.size()
+			ok(not sp.mobs_stopped() and n_mid > 2, kind + " (mid boss) keeps ordinary spawning")
+			ok(int(sp.get("_held_elite")) == 1 and sp.next_elite > game.t, kind + " (mid boss) holds the due elite")
+			boss.dead = true
+			sp.spawn_acc = 0.0
+			sp.update(0.0)
+			ok(game.enemies.size() == n_mid, kind + " held elite waits for the release delay")
+			game.t += Bal.v("spawn/mid_release_delay", 6.0) + 2.0 * Bal.v("spawn/mid_release_gap", 5.0) + 0.1
+			sp.next_elite = game.t + 1.0e6
+			sp.update(0.0)
+			ok(game.enemies.size() > n_mid and int(sp.get("_held_elite")) == 0, kind + " held elite released after the boss falls")
+			game.t = 560.0
+			continue
 		var state: Array = game.rng_states()
 		sp.update(0.0)
 		ok(sp.mobs_stopped() and not sp.trickling() and game.enemies.size() == 2, kind + " stops ordinary/elite reinforcements")
@@ -1640,6 +1665,20 @@ func test_nerve() -> void:
 	ok(game.nerve == 0.0, "锁定期间不再累积")
 	c.enemy_hit(1.0, {"nerve": 50.0}, true, true)
 	ok(game.nerve == 0.0, "命中附带的神经损伤缺省不累积（只有溟痕）")
+	# Boss 溟痕份额满格：真伤按 Boss 来源走主控保护（2 秒合计已满 → 作废）；普通溟痕满格不受此限（10-29 afflict 前置修复）
+	game.nerve_lock = 0.0
+	game.root_t = 0.0
+	game.hp = game.max_hp
+	c.boss_log.append([game.t, 0.5 * game.max_hp])
+	game.afflict.add_nerve(c.nerve_max() - 1.0, true)
+	game.afflict.add_nerve(2.0, true)
+	ok(game.nerve == 0.0 and absf(game.hp - game.max_hp) < 0.01, "Boss 溟痕满格的真伤走 2 秒合计上限（以前绕过）")
+	game.nerve_lock = 0.0
+	game.hp = game.max_hp
+	game.afflict.add_nerve(c.nerve_max() + 1.0, false)
+	ok(game.hp < game.max_hp, "普通来源满格的真伤照扣")
+	c.boss_log.clear()
+	c.loss_log.clear()
 	game.nerve_lock = 0.0
 	game.root_t = 0.0
 	game.hp = game.max_hp

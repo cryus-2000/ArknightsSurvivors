@@ -19,7 +19,7 @@ func step_ally(e: Dictionary, dt: float) -> void:
 	if not e.has("ally_charge"):
 		e.ally_charge = 0.0
 		# ishar_p1_scale（协调人 9/30 定，缺省 0.6 = 30 → 18 秒，1 = 关）：人形阶段打不了她，缩短这段空等
-		e.ally_charge_need = snappedf(Bal.v("boss/ishar_ally_charge", 30.0) * Bal.v("boss/ishar_p1_scale", 0.6), 0.1)
+		e.ally_charge_need = snappedf(Bal.v("boss/ishar_ally_charge", 30.0) * Bal.v("boss/ishar_p1_scale", 1.0), 0.1)
 		e.ally_attack_cd = 0.8
 		e.ally_tear_cd = INF
 		for i in 3:

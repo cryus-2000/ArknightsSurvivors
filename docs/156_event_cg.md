@@ -65,3 +65,18 @@
 - 内存：打开事件面板时才 `load`，换面板 / 关面板即放掉引用。实测显存（1280×720 桌面）打开时 +5.4 MB、关面板后回到 +1.2 MB 以内（其余为界面常驻贴图波动）。
 - 画法：桌面插画铺满撕纸边插画框，代替墨色底与节点图标，底部压暗带与事件名照旧；手机压暗铺满整屏当底，左上一张小图。没有对应图的事件（以后新增的）退回原墨色底。
 - 自审：`tests/event_cg_shots.tscn`（6 件事件逐张截图 + 显存记录）。
+
+## 5. 10-29 补接（用户「插画现在没有合入」）
+
+- 查明：16 张运行时图（`game/art/event_cg/hi|web`）10-26 就是从这批母稿缩出来的（与母稿同尺寸重缩的平均像素差 1.4 / 255，只是有损压缩差），游戏里一直在用；看不到插画的是事件改版新加的 13 件事件（docs/184）——它们没有 `cg`，退回墨色底。
+- 母稿 18 张 + `approved_manifest.json` + `CG_HANDOFF.md` 从 codex/event-cg `8b9774407` 只取 `art/incoming/event_cg_1026/` 入库（34 MB，`art/incoming/*` 不进包；节点图标 node_delivery_v7 未验收，没取）。
+- 新增 `wish`（得偿所愿改版后有事件面板了）：同 10-26 流程（LANCZOS 缩到 1120×1000 webp q90 / 560×500 q88，method 6；用 ascend 复算与现有文件字节数相同），网页包 +41.8 KB、桌面 +130 KB。`inherit` 对应的事件已退役，不出运行时图。
+- 改版事件借图（`events_v2.json` 的 `cg`，按 docs/184 §10）：梦中之会 → singer、苦路 → survive、是非黑白 → legacy、守望相助 / 紧急调遣 → rest、设身处地两屏 → meeting、得偿所愿 → wish、敬奉火焰 → tinder。郁金香的委托、先遣小队、变卖身家、传统技术、重返家园、海嗣学者仍无图（要 Codex 新做，原作图号见 docs/184 §4.2）。
+- 截图：`tests/event_cg_shots.tscn` 加 `--ids=`；`build/cg1029/e_dream.png`（借图）、`e_wish_v2.png`（新图）。
+
+## 6. 10-30 改版 6 件新图（Codex codex/event-cg-1029 `28b084c11`，用户「插画合」）
+
+- 母稿 6 张（1327×1185）+ manifest / handoff / 流程说明只取 `art/incoming/event_cg_1029/` 入库（不合整个分支）。
+- 同 §5 流程缩成 hi / web：task、vanguard、sellout、craft、homecoming、scholar。包体：桌面 +1.07 MB、网页 +0.34 MB（源文件，导入后有损 0.85 相当）。
+- 这 6 件 `events_v2.json` 本来就没有 `cg` 字段，按事件 id 直接读新图。改版 13 件事件现在全部有图（9 件借图、6 件新图）。
+- 截图：`tests/event_cg_shots.tscn --ids=task,vanguard,sellout,craft,homecoming,scholar`，拼图 `build/cg_six/six_events.png`；1280×720 下 6 张主体、头像、兵器都清楚。

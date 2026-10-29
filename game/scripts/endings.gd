@@ -6,7 +6,7 @@ extends RefCounted
 
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const D = preload("res://scripts/data.gd")
-const RelicDb = preload("res://scripts/core/relic_db.gd")   # 藏品分类常量（docs/197）
+const BuildGuide = preload("res://scripts/run/build_guide.gd")   # 构筑引导：主流派等保底 / 加权规则
 const Bal = preload("res://scripts/core/balance.gd")
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")
 const UM = preload("res://scripts/ui_motion.gd")
@@ -18,6 +18,7 @@ var endings: Dictionary = {}    # 结局表
 var deck_cfg: Dictionary = {}   # waves.json cross_deck
 var cur := "standard"           # 当前结局
 var opened_id := ""             # 正在弹选项的事件
+var shown_id := ""              # 面板上正显示的事件（插画键用它：opened_id 在 pick 开头就清空，面板若没关掉会读空；10-29 用户卡死空面板）
 var warned_final := false
 var all_unlocked := false       # --allend：无视通关进度
 var frozen := false             # 最终 Boss 已刷出：结局冻结
@@ -55,7 +56,7 @@ var sub_ctx: Dictionary = {}    # 事件选项里要再选一次的（选干员 
 var trouble := false            # 敬奉火焰「火焰拯救不了这片大地」：下一个路口必出紧急作战，全灭掉两个宝箱
 var squad_reward := ""          # 精英小队全灭的奖励："" 宝箱 + 源石锭（--squadat 调试刷的小队）；lane 主流派三选一宝箱；double 两个宝箱；chal 交给委托结算
 var _ev_n := 0                  # 事件改属性的次数（stats 来源名）
-const MELEE_CLS := ["近卫", "重装", "先锋", "特种"]
+const MELEE_CLS := BuildGuide.MELEE_CLS
 
 ## 各事件通向的结局（卡背色边）
 const LINE_ENDS := {"madness": ["knight"], "knight_stay": ["knight"], "opening": ["deep", "resolve"], "heart": ["deep"], "ritual": ["resolve"]}
@@ -171,8 +172,8 @@ func _tick_mid() -> void:
 		return
 	var wins: Array = deck_cfg.get("mid", [[80, 110], [360, 390]])
 	var w: Array = wins[mini(mid_done, wins.size() - 1)]
-	if mid_done == 0 and Bal.v("relic/mid1_shift", 0.0) != 0.0:
-		var sh: float = Bal.v("relic/mid1_shift", 0.0)   # 途中一整体后移（docs/191：首件藏品推到约 2:00）
+	if mid_done == 0 and Bal.v("relic/mid1_shift", 35.0) != 0.0:
+		var sh: float = Bal.v("relic/mid1_shift", 35.0)   # 途中一整体后移（docs/191：首件藏品推到约 2:00）
 		w = [float(w[0]) + sh, float(w[1]) + sh]
 	if mid_done == 1 and (c1_deal_t >= float(w[0]) or (c1_deal_t < 0.0 and g.t >= float(w[0]))):
 		mid_done = 2
@@ -318,7 +319,7 @@ func _pick_common(need_trade := false) -> String:
 		left = left.filter(func(ev): return ev.get("trade", false))
 	if left.is_empty():
 		return ""
-	var ml := main_lane()
+	var ml: String = g.guide.main_lane()
 	var tot := 0.0
 	var ws: Array = []
 	for ev in left:
@@ -334,30 +335,6 @@ func _pick_common(need_trade := false) -> String:
 			break
 	used_common.append(id)
 	return id
-
-
-## ---------- 主流派（docs/184 §2.2）：持有藏品里 7 条流派或职业件计数最多且 ≥ 3 件的（并列取最近拿到的，docs/197 §4）；
-## 不足 3 件取队长的第一个流派（docs/181），队长没有流派时按职业近战 / 多弹 ----------
-func main_lane() -> String:
-	var cnt := {}
-	var last := {}
-	for i in g.relics.size():
-		var ln: String = str(g.RL.get(str(g.relics[i]), {}).get("lane", ""))
-		if RelicDb.WEIGHT_LANES.has(ln):
-			cnt[ln] = int(cnt.get(ln, 0)) + 1
-			last[ln] = i
-	var best := ""
-	for ln in cnt:
-		if best == "" or cnt[ln] > cnt[best] or (cnt[ln] == cnt[best] and last[ln] > last[best]):
-			best = ln
-	if best != "" and int(cnt[best]) >= 3:
-		return best
-	var lead = g.ch
-	if lead == null:
-		return "melee"
-	if not lead.lanes().is_empty():
-		return str(lead.lanes()[0])
-	return "melee" if MELEE_CLS.has(str(lead.cls)) else "multi"
 
 
 ## 队友（队长除外）
@@ -453,6 +430,7 @@ func _close() -> void:
 ## 安全的角落：「安全屋」三选一（原作安全屋的稍事休息 / 添加燃料 / 重整编制）
 func _open_rest() -> void:
 	opened_id = "rest"
+	shown_id = "rest"
 	var heal: float = float(deck_cfg.get("rest_heal", 0.4))
 	var mh: float = float(deck_cfg.get("rest_maxhp", 0.05))
 	var li: int = int(deck_cfg.get("rest_light", 15))
@@ -551,7 +529,7 @@ func _tick_elites() -> void:
 		g.pickups.drop(elite_pos + Vector2(36, 0), "chest", 1.0, "squad")
 	wish_rare = true   # 这个宝箱的藏品三选一按稀有 / 核心加权（同得偿所愿，progression 读后清掉）
 	if rw != "":
-		lane_bias = main_lane()   # 三选一里 2 件主流派（docs/184 §2.2）
+		lane_bias = g.guide.main_lane()   # 三选一里 2 件主流派（docs/184 §2.2）
 	g.rfx.gain_ingots(int(deck_cfg.get("squad_ingots", 20)), "紧急作战 · ")
 	g.vfx.show_banner("精英小队已全灭 —— 拾取宝箱")
 
@@ -564,7 +542,7 @@ func _event_ok(ev: Dictionary) -> bool:
 		return false
 	if ev.has("requires_flag") and not g.get(ev.requires_flag):
 		return false
-	if g.rfx.core_locked() and _gives_core(ev):
+	if g.guide.core_locked() and _gives_core(ev):
 		return false   # 选项写明给核心藏品的事件，核心解锁前不进卡组（docs/191 §6）
 	return true
 
@@ -590,6 +568,7 @@ func open(ev_id: String) -> void:
 		_close()
 		return
 	opened_id = ev_id
+	shown_id = ev_id
 	_log("open " + ev_id)
 	var opts: Array = []
 	var ops_l: Array = _opts(ev)
@@ -609,7 +588,7 @@ func open(ev_id: String) -> void:
 				icon = "relic_" + str(o.relic)
 				chips.append(["得到藏品", Color(0.18, 0.72, 1.0)])
 			if o.has("ingots") and not o.has("chance"):
-				chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
+				chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63) if int(o.ingots) > 0 else Color(1.0, 0.45, 0.45)])
 			if o.has("maxhp_pct"):
 				chips.append(["最大生命 %+d%%" % int(round(float(o.maxhp_pct) * 100.0)), Color(0.55, 1.0, 0.6) if float(o.maxhp_pct) > 0.0 else Color(1.0, 0.45, 0.45)])
 			if o.has("hp_pct"):
@@ -637,15 +616,31 @@ func _opts(ev: Dictionary) -> Array:
 
 ## 插画键：事件可指定 cg（敬奉火焰与引火之木共用一张），否则用事件 id
 func cg_key() -> String:
-	var ev: Dictionary = ev_by_id.get(opened_id, {})
-	return str(ev.get("cg", opened_id)) if ev.has("cg") and str(ev.cg) != "" else opened_id
+	var id := opened_id if opened_id != "" else shown_id
+	var ev: Dictionary = ev_by_id.get(id, {})
+	return str(ev.get("cg", id)) if ev.has("cg") and str(ev.cg) != "" else id
 
 
-## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；need = 队友 / 可交藏品 / 后面还有路口
+## 兜底（10-29 用户卡死：狂徒妄念面板一个选项都没有）：事件面板显示着却没有可点的选项条时（choice_panel.check_event_panel 发现），
+## 重建成只有「离开」的一屏，点了回到战斗；不重给奖励，所以就算之前某次选择只结算了一半也不会多拿
+func recover_panel() -> void:
+	var id := shown_id
+	var ev: Dictionary = ev_by_id.get(id, {})
+	var nm := str(ev.get("name", "事件"))
+	push_warning("event panel had no options, rebuilt with leave only: %s" % id)
+	_log("recover " + id)
+	opened_id = id
+	g.panel_ui.show_choices(nm, [{"kind": "event", "id": "%s:-1" % id, "name": "离开", "desc": "回到战斗", "icon": "exit", "chips": [], "cat": "事件  " + nm, "col": Color(0.55, 0.75, 1.0)}], "event", str(ev.get("text", "")), true)
+
+
+## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；代价大于 20% 的（传统技术「两件都要」60%）门槛提到「代价 + 10%」，
+## 付完至少留 10% 最大生命，不会直接倒下；need = 队友 / 可交藏品 / 后面还有路口
 func _blocked(op: Dictionary) -> String:
 	for o in op.get("ops", []):
-		if float(o.get("hp_pct", 0.0)) < 0.0 and g.hp < g.max_hp * 0.3:
-			return "生命低于 30% 时不可选"
+		var cost: float = -float(o.get("hp_pct", 0.0))
+		var need_k: float = maxf(0.3, cost + 0.1)
+		if cost > 0.0 and g.hp < g.max_hp * need_k:
+			return "生命低于 %d%% 时不可选" % int(round(need_k * 100.0))
 	var nd: Dictionary = op.get("need", {})
 	if nd.has("mate") and _mates().size() < int(nd.mate):
 		return "需要至少 1 名队友"
@@ -688,6 +683,8 @@ func _v2_chips(op: Dictionary) -> Array:
 			out.append(["交换藏品", C_GAIN])
 		if o.has("heal"):
 			out.append(["回复 %d%%" % int(round(float(o.heal) * 100.0)), Color(0.55, 1.0, 0.6)])
+		if o.has("stat"):
+			out.append([str(o.stat.get("text", "")), C_COST if o.stat.get("cost", false) else C_GAIN])
 	return out
 
 
@@ -745,6 +742,10 @@ func pick(o: Dictionary) -> bool:
 			return true
 		return false
 	var nxt: String = str(op.get("next", ev.get("next", "")))
+	if nxt != "" and op.has("next_chance") and g.rng.randf() >= float(op.next_chance):
+		# 设身处地「再喂喂看？」（原作 50%）：没成就到此为止；成了进的那一屏不再带这一项，只能再喂一次
+		g.vfx.show_banner("它们没有再靠过来")
+		return false
 	if nxt != "" and ev_by_id.has(nxt):
 		open(nxt)
 		return true
@@ -788,7 +789,7 @@ func _apply_op(x: Dictionary) -> void:
 		g.pending_chests += int(x.lane_choice)
 		for k in int(x.lane_choice):
 			g.chest_src.append("event")
-		lane_bias = main_lane()
+		lane_bias = g.guide.main_lane()
 		if x.get("rare", false):
 			wish_rare = true
 	if x.has("curse"):
@@ -806,6 +807,13 @@ func _apply_op(x: Dictionary) -> void:
 		_ev_n += 1
 		g.rfx._apply_stat("sp_gain", "mult", 1.0 + float(x.sp_gain), "event:sp%d" % _ev_n, "")
 		g.vfx.show_banner("全队技力回复 +%d%%" % int(round(float(x.sp_gain) * 100.0)))
+	if x.has("stat"):
+		# 通用属性改动（docs/184 §10，10-29 用户审定）：{key, mult, text, cost?, v?}；key 是 stat_defs 里的属性（elite_dmg / enemy_ranged_cd / nerve_taken …），
+		# text 是卡面与横幅写法，cost = true 时标红、算代价；v = 机器人估值（V）
+		var st: Dictionary = x.stat
+		_ev_n += 1
+		g.rfx._apply_stat(str(st.key), "mult", float(st.get("mult", 1.0)), "event:st%d" % _ev_n, "")
+		g.vfx.show_banner(str(st.get("text", "")))
 	if str(x.get("elite_up", "")) == "lead":
 		_elite_up(g.ch)
 	if x.has("threat"):
@@ -824,7 +832,7 @@ func _apply_op(x: Dictionary) -> void:
 ## 主流派藏品一件（docs/184 §2.2）：lanes 给定时从这些流派抽，否则主流派；rarity 限定稀有度；对口池空了退回同稀有度全池。
 ## 按稀有度加权（基础 60 / 稀有 39 / 核心 18，同得偿所愿 ×1.5），不出升华 / 遭诅 / 结局；随机只用 g.rng
 func _gain_lane_relic(rarity: String, lanes: Array) -> void:
-	var want: Array = lanes if not lanes.is_empty() else [main_lane()]
+	var want: Array = lanes if not lanes.is_empty() else [g.guide.main_lane()]
 	var base: Array = g.rfx.db.implemented().filter(func(r): return not g.relics.has(r.id) and r.rarity in ["基础", "稀有", "核心"] and (rarity == "" or r.rarity == rarity) and g.rfx.can_offer(r, false) and g.progression.can_gain_relic(r.id))
 	var cands: Array = base.filter(func(r): return want.has(r.lane))
 	if cands.is_empty():
@@ -934,7 +942,7 @@ func _next_sub() -> bool:
 				for c in cards:
 					if not classes.has(str(c.cls)):
 						classes.append(str(c.cls))
-				var ml := main_lane()
+				var ml: String = g.guide.main_lane()
 				var keep: Array = []
 				var cw: Array = classes.map(func(cl): return 2.0 if (ml == "melee" and MELEE_CLS.has(cl)) or (ml == "multi" and not MELEE_CLS.has(cl)) else 1.0)
 				for k in mini(nk, classes.size()):
@@ -1035,8 +1043,8 @@ func _lose_relic(rid: String) -> void:
 ## 换来的三件：主流派里稀有度 ≥ 交出那件；不够 3 件用全池同条件补
 func _trade_offer(min_rank: int) -> Array:
 	var ranks := ["基础", "稀有", "核心"]
-	var ml := main_lane()
-	var ok: Array = g.progression.relic_pool_ids().filter(func(rid): return ranks.find(str(g.RL[rid].rarity)) >= min_rank and not g.relics.has(rid))
+	var ml: String = g.guide.main_lane()
+	var ok: Array = g.guide.relic_pool_ids().filter(func(rid): return ranks.find(str(g.RL[rid].rarity)) >= min_rank and not g.relics.has(rid))
 	var lane: Array = ok.filter(func(rid): return str(g.RL[rid].get("lane", "")) == ml)
 	var out: Array = lane.slice(0, 3)
 	for rid in ok:
@@ -1320,6 +1328,8 @@ func _opt_cost(op: Dictionary) -> bool:
 	for x in op.get("ops", []):
 		if float(x.get("hp_pct", 0.0)) < 0.0 or float(x.get("maxhp_pct", 0.0)) < 0.0 or int(x.get("ingots", 0)) < 0:
 			return true
+		if x.has("stat") and x.stat.get("cost", false):
+			return true
 		for k in ["curse", "away", "leave", "threat", "ingots_all", "trouble", "squad_now"]:
 			if x.has(k):
 				return true
@@ -1356,6 +1366,8 @@ func _opt_value(op: Dictionary) -> float:
 			s += 1.0 if g.squad.is_full() else 3.0
 		if x.has("sp_gain"):
 			s += 1.5
+		if x.has("stat"):
+			s += float(x.stat.get("v", -1.0 if x.stat.get("cost", false) else 1.0))
 		if x.has("shield"):
 			s += 0.6 * float(x.shield)
 		if x.has("elite_up"):

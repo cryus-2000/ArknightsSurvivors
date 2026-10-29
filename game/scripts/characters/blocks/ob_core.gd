@@ -374,6 +374,8 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				ang = o.atk_angle(a0)
 			var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
 			hits = o.melee_hit(src, org, ang, half, r2, dmg, kb, stun, tags, max_n)
+			if not hits.is_empty() and b.has("pause"):   # 命中顿帧（秒，纯画面，走 vfx.impact_pause 总闸；星熊 10-29）
+				o.impact_pause(float(b.pause))
 			if b.get("ring", true):
 				o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
 			fx_c = o.pos
@@ -516,6 +518,21 @@ static func shape_radius(o, b: Dictionary) -> float:
 
 
 ## 光环的受益者（docs/61 §5.2 scope）
+## 光照 / 范围区域的「不填充」画法（10-29 特效审查）：贴边三道渐淡的内羽边 + 区域内缓缓漂的少量光点，替代整片半透明圆盘（不糊敌人 / 弹幕）。
+## 调用前先 draw_set_transform 成地面椭圆；col 为设定色，a 为总透明度；约 13 次绘制
+static func feather_ring(cv, r: float, col: Color, a: float, t: float) -> void:
+	if a <= 0.01:
+		return
+	cv.draw_arc(Vector2.ZERO, r - 5.0, 0.0, TAU, 40, Color(col.r, col.g, col.b, a * 0.22), 3.0)
+	cv.draw_arc(Vector2.ZERO, r - 12.0, 0.0, TAU, 36, Color(col.r, col.g, col.b, a * 0.12), 3.0)
+	cv.draw_arc(Vector2.ZERO, r - 20.0, 0.0, TAU, 32, Color(col.r, col.g, col.b, a * 0.06), 3.0)
+	for i in 10:
+		var ang: float = TAU * i / 10.0 + t * 0.18 * (1.0 if i % 2 == 0 else -1.0)
+		var rad: float = r * (0.3 + 0.62 * fmod(i * 0.381, 1.0))
+		var tw: float = 0.5 + 0.5 * sin(t * 1.6 + i * 2.3)
+		cv.draw_circle(Vector2.from_angle(ang) * rad, 1.6, Color(col.r * 1.2, col.g * 1.2, col.b * 1.2, a * 0.55 * tw))
+
+
 static func aura_members(o, scope: String) -> Array:
 	var out: Array = []
 	for m in o.g.squad.ops:

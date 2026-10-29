@@ -244,9 +244,9 @@ static func _pop_setup() -> void:
 	var Bal = load("res://scripts/core/balance.gd")
 	if Bal == null:
 		return
-	var b: float = clampf(Bal.v("render/enemy_pop_black", 0.10), 0.0, 0.5)
-	var k: float = maxf(Bal.v("render/enemy_pop_contrast", 1.35), 0.0)
-	var s: float = maxf(Bal.v("render/enemy_pop_sat", 0.3), -1.0)
+	var b: float = clampf(Bal.v("render/enemy_pop_black", 0.08), 0.0, 0.5)
+	var k: float = maxf(Bal.v("render/enemy_pop_contrast", 1.28), 0.0)
+	var s: float = maxf(Bal.v("render/enemy_pop_sat", 0.25), -1.0)
 	if b == 0.0 and k == 1.0 and s == 0.0:
 		return
 	var D = load("res://scripts/data.gd")

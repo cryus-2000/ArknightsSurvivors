@@ -44,9 +44,11 @@ const IntroScreen = preload("res://scripts/screens/intro.gd")
 const BossIntro = preload("res://scripts/screens/boss_intro.gd")
 const Vfx = preload("res://scripts/render/vfx.gd")
 const Combat = preload("res://scripts/run/combat.gd")
+const Afflict = preload("res://scripts/run/afflict.gd")
 const EnemiesSys = preload("res://scripts/run/enemies.gd")
 const MusicDirector = preload("res://scripts/run/music_director.gd")
 const Progression = preload("res://scripts/run/progression.gd")
+const BuildGuide = preload("res://scripts/run/build_guide.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
@@ -107,9 +109,11 @@ var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕�
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
+var guide: BuildGuide = BuildGuide.new(self)   # 构筑引导：保底与加权规则（run/build_guide.gd）
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
+var afflict = Afflict.new(self)   # 负面状态门面（神经损伤 / 侵蚀 / 创口，run/afflict.gd）
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
 var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
@@ -275,11 +279,11 @@ var boss = null                 # 当前显示血条的 Boss
 var bosses: Array = []
 var final_boss = null
 var mid_boss_down := false   # 本局已击败过中期 Boss（藏品核心延后，docs/191 §6）
-var graze_n := 0   # 擦弹次数（判定点，shot_pool._graze；测试 / 批跑读，HUD 不显示）
 var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
+var pick = preload("res://scripts/screens/command_pick.gd").new(self)   # 指点选目标阶段（示意原型，docs/196；缺省关）
 var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
 var frost := 0.0                   # 冰霜：移速 -40%
 # 小怪控制（用户 9/29，combat.gd「小怪控制」段；玩法系统的净化按这些字段清除）
@@ -888,19 +892,17 @@ func _ready() -> void:
 	for k in ["max_hp", "armor", "arts_res"]:
 		if lead.has(k) and stats.has_stat(k):
 			stats.set_base(k, float(lead[k]))
-	# 基础砍（docs/109 §14 v4，用户 10-22「砍干员基础数值，把差值留给树」）：队长最大生命、干员攻击倍率的基础值；1 = 不变
-	if stats.has_stat(&"max_hp"):
-		stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/leader_hp_mult", 1.0))
+	# 基础砍（docs/109 §14 v4，用户 10-22「砍干员基础数值，把差值留给树」）：干员攻击倍率的基础值；1 = 不变
+	# （队长最大生命的 ×0.9 已直接写进各干员 JSON 的 leader.max_hp 与 doctor.json，10-29 去掉 squad/leader_hp_mult）
 	if stats.has_stat(&"op_atk"):
-		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 1.0))
+		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 0.9))
 	# 队长基础移速（用户 10-28：150 → 165，+10%）：基础值乘 squad/leader_speed_mult；冲刺距离 / 冷却不动；1 = 不变
 	if stats.has_stat(&"move_speed"):
-		stats.set_base(&"move_speed", float(stats._base[&"move_speed"]) * Bal.v("squad/leader_speed_mult", 1.0))
-	# 闪避移进局外成长（用户 10-27，docs/109 §17）：队长基础闪避归零，少掉的有效生命用最大生命 × dodge_comp_hp、受到伤害 × dodge_comp_taken 部分补回（用户定只补受伤 ×0.9，有意削弱无成长）
+		stats.set_base(&"move_speed", float(stats._base[&"move_speed"]) * Bal.v("squad/leader_speed_mult", 1.1))
+	# 闪避移进局外成长（用户 10-27，docs/109 §17）：队长基础闪避归零，少掉的有效生命用受到伤害 × dodge_comp_taken 补回（生命补偿 dodge_comp_hp 恒为 1，10-29 删掉）；部分补回（用户定只补受伤 ×0.9，有意削弱无成长）
 	# 回退：squad/leader_dodge 0.25、两个补偿 1
 	stats.set_base(&"dodge", Bal.v("squad/leader_dodge", 0.0))
-	stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/dodge_comp_hp", 1.0))
-	stats.set_base(&"dmg_taken", Bal.v("squad/dodge_comp_taken", 1.0))
+	stats.set_base(&"dmg_taken", Bal.v("squad/dodge_comp_taken", 0.9))
 	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
 	for kind in ["idle", "run", "hurt", "death"]:
 		var dn = doctor.def.get("sprites", {}).get(kind, "")
@@ -1430,6 +1432,7 @@ func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
+	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
@@ -1454,8 +1457,8 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
-	if wheel.is_open:
-		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
+	if wheel.is_open or pick.active:
+		dt *= Bal.v("command/wheel_slow", 0.2)   # 圆盘打开 / 指点选点中：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_static_fps()
@@ -1557,6 +1560,9 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if _motion_skip(event):
+		get_viewport().set_input_as_handled()
+		return
+	if pick.input(event):
 		get_viewport().set_input_as_handled()
 		return
 	if wheel.input(event):   # 指挥圆盘打开时吞掉按键 / 点选（移动是轮询的，不受影响）
@@ -1985,11 +1991,8 @@ func _update(dt: float) -> void:
 
 	var rg: float = combat.regen_per_sec() * dt
 	if rg > 0.0 and hp > 0.0:
-		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量
-		heal_log["自身回复"] = float(heal_log.get("自身回复", 0.0)) + clampf(max_hp - hp, 0.0, rg)
-	if hp + rg > max_hp:
-		rfx.on_overheal(hp + rg - maxf(hp, max_hp))
-	hp = min(max_hp, hp + rg)
+		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量；走 heal()（补侵蚀创口减疗）
+		combat.heal(rg, "自身回复", "", combat.HEAL_PRESCALED)
 	if lamp <= 0.0:
 		combat.lose_hp(3.0 * dt, "dark")
 		hurt_flash = max(hurt_flash, 0.05)
@@ -2103,7 +2106,7 @@ func check_pending() -> void:
 	if progression.open_branch_queued():   # 赠送推进（典训 / 博士银印）碰到分支节点：先选路线（docs/119 §4.1）
 		return
 	if meta_start_relic > 0 and t > 1.0:
-		# 认知塑造「物由心生」：开局从基础藏品中选 1 件（progression.relic_pool_ids 看 meta_basic_pick）
+		# 认知塑造「物由心生」：开局从基础藏品中选 1 件（build_guide.relic_pool_ids 看 meta_basic_pick）
 		meta_start_relic = 0
 		meta_basic_pick = true
 		pending_chests += 1

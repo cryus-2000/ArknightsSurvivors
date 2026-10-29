@@ -339,17 +339,19 @@ static func _sk_h(i: int, s: float) -> float:
 	return fposmod(sin(float(i) * 12.9898 + s * 78.233) * 43758.5453, 1.0)
 
 
-## 画面半径：向判定半径缓动（指数趋近，约 0.5 秒到 95%）；判定半径跳变超过 4 时放一道波纹（新旧半径之间扩散）
+## 画面半径：向判定半径缓动（指数趋近，约 0.5 秒到 95%）；判定半径跳变超过 4 时记一道扩散粒子波（sk_draw_domain 画：从旧边缘向新边缘推一圈粒子）
+const SK_RIP_T := 0.6
 static func sk_vis_r(o, key: String, c: Vector2, zr: float, cc: Color) -> float:
 	var st: Dictionary = o.get_meta("sk_dom", {})
-	var e: Array = st.get(key, [zr, o.g.t, zr])
+	var e: Array = st.get(key, [zr, o.g.t, zr, -99.0, zr, zr])
 	var dt: float = clampf(o.g.t - float(e[1]), 0.0, 0.1)
 	var zv: float = float(e[0])
 	if absf(zr - float(e[2])) > 4.0:
-		o.fx({"kind": "ring", "pos": c + Vector2(0, 4), "r": maxf(zr, zv) * 1.04, "r0": minf(zr, zv), "life": 0.55, "col": Color(cc.r * 1.4, cc.g * 1.4, cc.b * 1.4),
-			"floor": true, "w": 2.0, "alpha": 0.55, "keep": true})
+		e[3] = o.g.t
+		e[4] = zv
+		e[5] = zr
 	zv = lerpf(zv, zr, 1.0 - exp(-dt * 6.0))
-	st[key] = [zv, o.g.t, zr]
+	st[key] = [zv, o.g.t, zr, e[3], e[4], e[5]]
 	o.set_meta("sk_dom", st)
 	return zv
 
@@ -389,22 +391,72 @@ static func sk_draw_domain(o, c: Vector2, zr: float, cc: Color, on: bool, seed: 
 		cv.draw_rect(Rect2(p.round() - Vector2.ONE, Vector2(2, 2)), Color(base.r, base.g, base.b, 0.5 * tw * dim))
 
 
-## 歌声命中（pfx kind = sk_song，at = hits）：命中点浮起两道淡淡的声波弧，单号粒子再带一枚小音符，上飘淡出
+	# 扩张 / 收缩的粒子波：一圈稀疏粒子从旧边缘推到新边缘（外扩时略冲过一点），边走边淡（替代原来的实线圆环）
+	if seed != 0.0:   # 召唤物小领域不放扩张波
+		return
+	var e: Array = o.get_meta("sk_dom", {}).get("self", [])
+	if e.size() >= 6:
+		var k := (t - float(e[3])) / SK_RIP_T
+		if k >= 0.0 and k < 1.0:
+			var q: float = 1.0 - pow(1.0 - k, 2.0)
+			var r0: float = float(e[4])
+			var r1: float = float(e[5])
+			var rr: float = lerpf(r0, r1 + (r1 - r0) * 0.12, q)
+			var nw: int = clampi(int(rr * 0.3), 20, 80)
+			for i in nw:
+				var h1 := _sk_h(i + 401, 0.0)
+				var an: float = TAU * (float(i) + h1) / float(nw)
+				var jr: float = rr + (h1 - 0.5) * 14.0 * (1.0 - k)
+				var p := c + Vector2(cos(an) * jr, 4.0 + sin(an) * jr * 0.55)
+				cv.draw_rect(Rect2(p.round() - Vector2(1.5, 1.5), Vector2(3, 3)), Color(hi.r, hi.g, hi.b, 0.75 * (1.0 - k) * dim))
+
+
+## 歌声命中（pfx kind = sk_song，at = hits，to = self）：从浊心传到命中点的一串起伏声波（两三段正弦短波，前后错落、沿方向推进），
+## 到达后命中点浮起一两枚带符尾的音符向上飘散；深红同色系，淡；每次攻击最多 max_pts 处（json），线走 cv 合批
 static func sk_song_draw(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
-	var u: float = 1.0 - a
-	var p: Vector2 = f.pos + Vector2(0, -16.0 * u)
+	var u: float = 1.0 - a   # 0 → 1
+	var dst: Vector2 = f.pos
+	var src: Vector2 = f.get("to", dst + Vector2(-40, 0))
 	var c: Color = f.get("col", o.col())
-	var r: float = float(f.get("r", 12.0))
-	var face: float = float(f.get("seed", 0.0))
-	var dir: float = -PI / 2.0 + (0.5 if face > PI else -0.5)
-	for k in 2:
-		var rk: float = r * (0.6 + 0.55 * k) * (0.8 + 0.5 * u)
-		cv.draw_arc(p, rk, dir - 0.75, dir + 0.75, 8, Color(c.r, c.g, c.b, (0.55 - 0.2 * k) * a), 1.5)
-	if face > PI:   # 音符：椭圆符头 + 符干（2 像素格）
-		var q := (p + Vector2(r * 0.9, -r * 0.2)).round()
-		cv.draw_rect(Rect2(q, Vector2(4, 3)), Color(c.r, c.g, c.b, 0.7 * a))
-		cv.draw_rect(Rect2(q + Vector2(3, -8), Vector2(1, 9)), Color(c.r, c.g, c.b, 0.7 * a))
+	var sd: float = float(f.get("seed", 0.0))
+	var d: Vector2 = dst - src
+	var L: float = d.length()
+	if L < 1.0:
+		return true
+	var dir: Vector2 = d / L
+	var nrm := Vector2(-dir.y, dir.x)
+	var amp: float = float(f.get("r", 10.0)) * 0.45
+	# 声波：0 → 0.6 寿命内从声源推到命中点；三段错落（各自滞后 0.08 / 0.16），每段 26 像素、两个起伏
+	var trav: float = clampf(u / 0.6, 0.0, 1.0)
+	for w in 3:
+		var tw: float = clampf(trav - 0.13 * w, 0.0, 1.0)
+		if tw <= 0.0 or tw >= 1.0 and u > 0.75:
+			continue
+		var head: float = lerpf(18.0, L, 1.0 - pow(1.0 - tw, 2.0))
+		var seg: float = 26.0 - 5.0 * w
+		var pts := PackedVector2Array()
+		for q in 9:
+			var x: float = head - seg * float(q) / 8.0
+			if x < 0.0:
+				break
+			var ph: float = float(q) / 8.0 * TAU * 2.0 + sd * 3.0 + u * 14.0
+			pts.append(src + dir * x + nrm * sin(ph) * amp * (1.0 - float(q) / 10.0))
+		if pts.size() >= 2:
+			var al: float = (0.55 - 0.13 * w) * minf(1.0, a * 1.6)
+			cv.draw_polyline(pts, Color(c.r, c.g, c.b, al), 1.5)
+	# 音符：声波到达后（寿命 0.45 起）从命中点浮起，一枚或两枚（seed 决定），带符尾，向上飘、左右摆
+	if u > 0.45:
+		var k: float = (u - 0.45) / 0.55
+		var n: int = 2 if sd > 3.5 else 1
+		for m in n:
+			var sx: float = (m - 0.5 * (n - 1)) * 9.0 + sin(k * 5.0 + sd + m) * 3.0
+			var q := (dst + Vector2(sx, -6.0 - 22.0 * k - 5.0 * m)).round()
+			var nc := Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.75 * (1.0 - k * k))
+			cv.draw_rect(Rect2(q, Vector2(4, 3)), nc)                     # 符头
+			cv.draw_rect(Rect2(q + Vector2(3, -8), Vector2(1, 9)), nc)    # 符干
+			cv.draw_rect(Rect2(q + Vector2(4, -8), Vector2(2, 1)), nc)    # 符尾
+			cv.draw_rect(Rect2(q + Vector2(5, -7), Vector2(1, 2)), nc)
 	return true
 
 

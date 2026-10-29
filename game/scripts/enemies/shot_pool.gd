@@ -41,7 +41,7 @@ func update_lobs(dt: float) -> void:
 					g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 				Sfx.play("boom", -14.0, 1.6, 0.1)
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l, false, false, ["远程", "法术"], "bullet")
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 0.75), l, false, false, ["远程", "法术"], "bullet")
 				if str(l.get("hit_fx", "")) != "":
 					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(l.get("hit_org", [12, 19])[0]), float(l.get("hit_org", [12, 19])[1])))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
@@ -95,19 +95,15 @@ func cancel_in(pred: Callable) -> PackedVector2Array:
 	return out
 
 
-## ---- 判定点与擦弹（10-29 用户：只做 1 判定点 + 2 擦弹，不要太过火；开关 boss/graze_on，缺省 0）
-## 全局统一规则（用户 10-29「只在 Boss 战用会割裂」）：所有敌方子弹（g.ebullets：小怪远程弹、精英弹、Boss 弹）只按弹芯打判定点，
-## 判定外一圈算擦弹；接触伤害、地面预警圈、爆炸 / 溅射范围、抛物（g.lobs）不变。
-var _grz_snd_next := 0.0   # 擦弹音全局限频（大群远程怪时不吵）
+## ---- 判定点（10-29 用户定乙：判定点全局单独打开、擦弹不做；开关 enemy/bullet_core_hit，缺省 1，0 = 旧宽判定「弹体半径 + 12」）
+## 所有敌方子弹（g.ebullets：小怪远程弹、精英弹、Boss 弹）只按弹芯打判定点；接触伤害、地面预警圈、爆炸 / 溅射范围、抛物（g.lobs）不变。
+func core_hit_live() -> bool:
+	return Bal.v("enemy/bullet_core_hit", 1.0) > 0.0
 
 
-func graze_live() -> bool:
-	return Bal.v("boss/graze_on", 0.0) > 0.0
-
-
-## 弹芯半径 = 弹体半径 × enemy/bullet_hit_scale（旧名 boss/bullet_hit_scale 兼容）
+## 弹芯半径 = 弹体半径 × enemy/bullet_hit_scale（0.6）
 func core_r(b: Dictionary) -> float:
-	return float(b.r) * Bal.v("enemy/bullet_hit_scale", Bal.v("boss/bullet_hit_scale", 0.6))
+	return float(b.r) * Bal.v("enemy/bullet_hit_scale", 0.6)
 
 
 func _final_live() -> Dictionary:
@@ -117,29 +113,48 @@ func _final_live() -> Dictionary:
 	return {}
 
 
-## 擦弹：细火花 + 轻音（全局每秒最多 boss/graze_rate 次）；技力 boss/graze_sp 缺省 0（10-29 协调人：第一版只做反馈），
-## 开了只在最终 Boss 战给，每只 Boss 累计 ≤ boss/graze_sp_cap（1.0 = 一次技能）；不回灯火、不加伤害、HUD 不计数
-func _graze(b: Dictionary) -> void:
-	var p: Vector2 = g.ppos + Vector2(0, -14)
-	g.vfx.sparks(p.lerp(b.pos, 0.5), (p - b.pos).orthogonal(), Color(1.0, 1.0, 1.0, 0.9), 2, 90.0)
-	g.graze_n += 1   # 测试 / 批跑读
-	if g.t < _grz_snd_next:
-		return
-	_grz_snd_next = g.t + 1.0 / maxf(0.1, Bal.v("boss/graze_rate", 5.0))
-	Sfx.play("crit_tick", -18.0, 1.7, 0.1)
+## 最终 Boss 弹速统一（用户 10-29，docs/201）：最终 Boss 在场时，Boss 弹第一次进这里按 弹种 / 子类 查倍率，
+## boss/spd_<类型>_<kind>_<子类>（子类 = izu / motion / tier 字段）优先、其次 boss/spd_<类型>_<kind>，缺省 1 = 不变；
+## 速度、加速度、各脚本逐帧改速用的基准速度一起乘，倍率记在 b.spd_k 给逐帧改速的脚本用；追踪弹最多 × boss/spd_home_cap
+func _final_speed(b: Dictionary) -> void:
+	b.spd_k = 1.0
 	var fb: Dictionary = _final_live()
-	var used: float = float(fb.get("_grz_sp", 0.0))
-	var add: float = minf(Bal.v("boss/graze_sp", 0.0), Bal.v("boss/graze_sp_cap", 1.0) - used)
-	if fb.is_empty() or add <= 0.0 or g.squad == null or g.squad.leader() == null:
+	if fb.is_empty():
 		return
-	fb["_grz_sp"] = used + add
-	g.squad.leader().gain_sp(add)
+	var kind := str(b.get("kind", ""))
+	var sub := str(b.get("izu", b.get("motion", b.get("tier", ""))))
+	var base := "boss/spd_%s_%s" % [str(fb.type), kind]
+	var k: float = Bal.v(base + "_" + sub, Bal.v(base, 1.0)) if sub != "" else Bal.v(base, 1.0)
+	k *= Bal.v("boss/spd_all_k_" + str(fb.type), 1.0)   # 10-29 docs/201 §7：三档整体再上调
+	if b.get("home", false):
+		k = minf(k, Bal.v("boss/spd_home_cap", 1.3))
+	if is_equal_approx(k, 1.0):
+		return
+	b.spd_k = k
+	b.vel = b.vel * k
+	for f in ["accel", "max_speed", "p_acc", "p_vmin", "p_vmax", "p_v2", "izu_v0"]:
+		if b.has(f):
+			b[f] = float(b[f]) * k
+	# 加速到顶的弹（泡影鼓出后加速）放大后不超过快弹档上沿 boss/spd_cap
+	if b.has("p_acc") and not b.has("p_vmax") and k > 1.0:
+		b.p_vmax = Bal.v("boss/spd_cap", 440.0)   # 没写上限的加速弹（原来靠寿命到期止于约 336）
+	for f in ["max_speed", "p_vmax"]:
+		if b.has(f) and k > 1.0:
+			b[f] = minf(float(b[f]), maxf(Bal.v("boss/spd_cap", 440.0), float(b[f]) / k))
+
+
+var _spd_cap2 := 0.0
 
 
 func update_ebullets(dt: float) -> void:
+	_spd_cap2 = pow(Bal.v("boss/spd_cap", 440.0), 2.0)
 	for b in g.ebullets:
 		if b.life <= 0.0:
 			continue
+		if not b.has("spd_k") and b.get("boss", false):
+			_final_speed(b)
+		elif float(b.get("spd_k", 1.0)) > 1.0 and b.vel.length_squared() > _spd_cap2:
+			b.vel = b.vel.normalized() * sqrt(_spd_cap2)   # 放大过的弹被各脚本逐帧加速时也不超过 boss/spd_cap（云端测得泡影最高 590）
 		if b.get("home", false):
 			var want: Vector2 = (g.ppos + Vector2(0, -14) - b.pos).normalized() * b.vel.length()
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
@@ -158,13 +173,7 @@ func update_ebullets(dt: float) -> void:
 			b.life = 0.0
 			b["_die"] = "rock"
 		var hd: float = b.pos.distance_to(g.ppos + Vector2(0, -14))
-		var hitp: bool = not rock and hd < b.r + 12.0
-		if graze_live():   # 判定点（10-29 用户「东方躲弹幕的味道」）：敌弹只按弹芯判定，判定外一圈算擦弹
-			var core: float = core_r(b)
-			hitp = not rock and hd < core
-			if not hitp and not rock and not b.has("_grz") and hd < core + Bal.v("boss/graze_r", 14.0):
-				b["_grz"] = true   # 同一颗只算一次
-				_graze(b)
+		var hitp: bool = not rock and hd < (core_r(b) if core_hit_live() else b.r + 12.0)   # 判定点：敌弹只按弹芯判定
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and (not b.get("boss", false) or g.mires.size() < 48) and _boss_mire_ok(b) and (b.get("boss", false) or not g.combat.mire_blocked(b.pos + Vector2(0, 10), float(b.get("mire_r", 52.0)))):
@@ -186,7 +195,7 @@ func update_ebullets(dt: float) -> void:
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
 			if g.invuln <= 0.0:
-				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
+				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 0.75), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
 
 
 ## 最终 Boss 场地里的 Boss 直线弹飞到场地边缘才消失（用户 10-28「弹幕消失的距离可以到 Boss 站场地的边缘」）：

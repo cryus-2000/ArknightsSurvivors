@@ -43,7 +43,7 @@ static var _dbg_read := false
 
 
 static func level() -> int:
-	return clampi(Bal.vi("render/look", 0), 0, PRESETS.size() - 1)
+	return clampi(Bal.vi("render/look", 5), 0, PRESETS.size() - 1)
 
 
 static func p(key: String) -> float:
@@ -103,7 +103,7 @@ static var _wl := 0.0
 static func _read() -> void:
 	_cap = p("actor_cap")
 	_knee = p("actor_knee")
-	_gain = Bal.v("render/ambient_gain", 1.0)
+	_gain = Bal.v("render/ambient_gain", 1.05)
 	_tint = clampf(p("actor_tint"), 0.0, 1.0)
 	_neu = clampf(p("actor_neutral"), 0.0, 1.0)
 	_wl = p("white_lift")

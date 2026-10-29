@@ -56,8 +56,8 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	var doc := _doctor_stats()
 	var mod: Dictionary = Bal.op(cid)
 	# 局内开局对基础值乘的旋钮（game.gd 开局 / squad._apply_leader_regen）这里同样乘上，面板数字 = 开局实际值（10-28 乌尔比安回复显示 2.0、实际 1.6）
-	var hp: float = float(lead.get("max_hp", doc.get("max_hp", StatDefs.PLAYER[&"max_hp"].base))) * Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)
-	var atk: float = _first(b, ATK_KEYS) * (1.0 + float(mod.get("atk", 0.0))) * Bal.v("squad/op_atk_base", 1.0)
+	var hp: float = float(lead.get("max_hp", doc.get("max_hp", StatDefs.PLAYER[&"max_hp"].base)))
+	var atk: float = _first(b, ATK_KEYS) * (1.0 + float(mod.get("atk", 0.0))) * Bal.v("squad/op_atk_base", 0.9)
 	var interval: float = _first(b, CD_KEYS) / maxf(0.2, 1.0 + float(mod.get("aspd", 0.0)))
 	var reach_lbl: Array = ["攻击范围", "RANGE"]
 	var reach := 0.0
@@ -66,7 +66,7 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 			reach = float(b[rk[0]]) * (1.0 + float(mod.get("range", 0.0)))
 			reach_lbl = [rk[1], rk[2]]
 			break
-	var speed: float = float(doc.get("move_speed", StatDefs.PLAYER[&"move_speed"].base)) * Bal.v("squad/leader_speed_mult", 1.0)
+	var speed: float = float(doc.get("move_speed", StatDefs.PLAYER[&"move_speed"].base)) * Bal.v("squad/leader_speed_mult", 1.1)
 	# 普攻的段数 / 附加伤害：单体每秒伤害 = 攻击 × 段数 × (1 + 附加) ÷ 间隔
 	var atk_lbl := "Mon3tr 攻击" if b.has("m_atk") else "攻击"
 	var hits: int = int(b.get("shots", definition.get("stat_hits", 1)))   # stat_hits：干员 json（艾丽妮一次刺击 2 段）
@@ -100,7 +100,7 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	if float(b.get("vs_elite", 1.0)) > 1.0:
 		extra.append(_row("elite", "对精英", "VS ELITE", "伤害 ×%s" % _num(float(b.vs_elite)), float(b.vs_elite)))
 	if b.has("heal_pct") and b.has("heal_cd"):
-		var hp_pct: float = float(b.heal_pct) * 100.0 * Bal.v("squad/op_atk_base", 1.0) * (1.0 + float(mod.get("atk", 0.0)))   # 治疗乘开局 op_atk（同说明 $k_atk）
+		var hp_pct: float = float(b.heal_pct) * 100.0 * Bal.v("squad/op_atk_base", 0.9) * (1.0 + float(mod.get("atk", 0.0)))   # 治疗乘开局 op_atk（同说明 $k_atk）
 		extra.append(_row("heal", "治疗队长", "HEAL", "%s%% / %s 秒" % [String.num(hp_pct, 2), _num(float(b.heal_cd))], float(b.heal_pct), "最大生命"))
 	var dps := single / maxf(0.05, interval)
 	var armor: float = float(lead.get("armor", 0.0))
@@ -126,7 +126,7 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 			tags.append(str(tg))
 	# 队长默认受到的伤害倍率（squad/dodge_comp_taken，闪避移进局外成长后的补偿，所有队长相同）写进口径说明（10-28 用户：局内有效果但界面没写）
 	var note: String = NOTE
-	var tk: float = Bal.v("squad/dodge_comp_taken", 1.0)
+	var tk: float = Bal.v("squad/dodge_comp_taken", 0.9)
 	if absf(tk - 1.0) > 0.001:
 		note += "；队长受到的伤害 %s%d%%" % ["-" if tk < 1.0 else "+", int(round(absf(1.0 - tk) * 100.0))]
 	return {"rows": rows, "extra": extra, "tags": tags, "note": note}

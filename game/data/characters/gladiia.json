@@ -26,6 +26,7 @@
   "hook_taut": 0.12,
   "hook_drag": 0.22,
   "hook_front": 110,
+  "hook_front_leader": 175,
   "hook_speed": 900,
   "hook_n": 2,
   "first_cd": 0.4,
@@ -91,7 +92,7 @@
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2309 / 防御 331 / 法抗 0（character_table）；有天赋自疗，regen 取 1.2（远程与小额自疗 1.1 口径略上浮，她的自疗精一才有）",
-  "max_hp": 125,
+  "max_hp": 112.5,
   "armor": 3.0,
   "arts_res": 0.0,
   "regen": 1.1
@@ -494,14 +495,14 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人（至多 {$hook_n} 名，Boss 除外）拖到身前 {$hook_front} 处，到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人（至多 {$hook_n} 名，Boss 除外）拖到身前 {$hook_front} 处（她当队长时拖到 {$hook_front_leader} 处，精英与自爆怪只拖半程），到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
  },
  "skills": [
   {
    "name": "缺水的大洋裂断",
    "en": "WATERLESS PARTING OF THE GREAT OCEAN",
    "sp": 7,
-   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到身前 {$hook_front} 处，到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
+   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到身前 {$hook_front} 处（她当队长时 {$hook_front_leader} 处，精英与自爆怪只拖半程），到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -707,7 +708,8 @@
    "控制",
    "深海猎人"
   ],
-  "desc": "特种干员，深海猎人成员，钩索命中后把敌人拖到身前；队内每多一名深海猎人，队长回复与减伤各加一档"
+  "desc": "特种干员，深海猎人成员，钩索命中后把敌人拖到身前；队内每多一名深海猎人，队长回复与减伤各加一档",
+  "intro": "阿戈尔技术执政官"
  },
  "blocks": {
   "_doc": "歌蕾蒂娅（docs/123）：纯数据干员。普攻名义上是 circle，trait 用 every_n n:1 replace 把每一下换成 shape.hookshot（乌尔比安精二掷锚的积木，docs/61 §18.1）；路线「怒海」用 cond 切换三份钩索参数。拖拽到位的眩晕 / 冲撞用 every_n delay 对齐 taut + drag 的时刻。技能备注——S1：大洋裂断：重钩，拖回至多 2 名；S2：掌握怒海：伤害 ×1.5、间隔 ×1.3、射程 +40%；每次掷钩拉近身边敌人写在 trait（every_n 1 cond skill_active:1）；S3：碎漩狂舞：在最近一次钩中处（last_hit）留 8 秒漩涡；结束时聚拢 + 眩晕写在 trait（on_skill_end skill 2）",
@@ -836,6 +838,8 @@
       "taut": "$hook_taut",
       "drag": "$hook_drag",
       "front": "$hook_front",
+      "front_leader": "$hook_front_leader",
+      "heavy_half": true,
       "speed": "$hook_speed",
       "max_n": "$s1_n",
       "lock": true,
@@ -1088,6 +1092,8 @@
       "taut": "$hook_taut",
       "drag": "$hook_drag",
       "front": "$hook_front",
+      "front_leader": "$hook_front_leader",
+      "heavy_half": true,
       "speed": "$hook_speed",
       "max_n": "$hook_n",
       "lock": true,

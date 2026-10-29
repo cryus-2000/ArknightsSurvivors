@@ -60,7 +60,7 @@ func load_theme(theme_id: String) -> void:
 	_patch_img = null
 	var amb: Array = theme.get("ambient", [0.16, 0.22, 0.32])
 	# render/ambient_mult：灯火圈外的环境光（CanvasModulate）整体倍率，角色受光同一份（Look 读 map.ambient）；1 = 主题原值（用户 10-21 定亮度 B：缺省 1.3，见 balance render/_bright_b_doc）
-	var am: float = Bal.v("render/ambient_mult", 1.0)
+	var am: float = Bal.v("render/ambient_mult", 1.9)
 	ambient = Color(amb[0] * am, amb[1] * am, amb[2] * am)
 	# 不用蓝色环境光（docs/139 §6.6，用户 10-24）：环境光换成同亮度的中性灰，暗部不再一片高饱和青蓝（旧旋钮 render/ambient_desat 10-29 已删，固定全去色）
 	var lu: float = ambient.r * 0.2126 + ambient.g * 0.7152 + ambient.b * 0.0722
@@ -94,7 +94,7 @@ func load_theme(theme_id: String) -> void:
 func _load(n: String) -> void:
 	if not tex.has(n):
 		# docs/139 §6.6 试验旋钮 render/env_sat / render/env_bright（缺省 1 / 1）：只给地图贴图（地砖 / 斑块 / 道具 / 大道具）降饱和，干员 / 怪物 / 特效颜色不变
-		tex[n] = A.desat_of(A.tex(n), Bal.v("render/env_sat", 1.0), Bal.v("render/env_bright", 1.0))
+		tex[n] = A.desat_of(A.tex(n), Bal.v("render/env_sat", 0.55), Bal.v("render/env_bright", 1.15))
 
 
 func _frames_of(n: String) -> int:
@@ -760,13 +760,32 @@ func mire_next_interval(t: float) -> float:
 func mire_new(pos: Vector2, t: float, endless: bool) -> Dictionary:
 	var m := mire_cfg()
 	var rr: Array = m.get("radius", [70, 110])
+	# 新溟痕的半径随时间放大，封顶 enemy/mire_grow_cap（用户 10-29「溟痕不能无限扩张」；0 = 不封顶，同改动前）
+	var gc: float = Bal.v("enemy/mire_grow_cap", 1.3)
 	var grow := 1.0 + t / 600.0
+	if gc > 0.0:
+		grow = minf(grow, gc)
 	var d := {"pos": pos, "r": 16.0, "maxr": g.rng.randf_range(float(rr[0]), float(rr[1])) * grow,
 		"life": (float(m.get("life_base", 45)) + t / 20.0) if not endless else 9999.0, "seed": g.rng.randf() * 100.0}
 	# 点燃的引航灯标周围禁刷期内不生成自然溟痕（run/beacon.gd）：随机数照常消耗，只把寿命置 0，下一帧被滤掉
 	if g.beacon_sys.blocks(pos):
 		d.life = 0.0
 	return d
+
+
+## 场上自然溟痕（不含怪物留痕 / Boss 溟痕 / 淡出中的）按上限半径算的总面积 Σ π·maxr² 是否已到 enemy/mire_area_cap
+## （用户 10-29「溟痕不能无限扩张」）：到了就不再刷新新的自然溟痕、逼近也不再长大。0 = 不设总面积上限，同改动前
+func mire_area_full() -> bool:
+	var cap: float = Bal.v("enemy/mire_area_cap", 610000.0)
+	if cap <= 0.0:
+		return false
+	var a := 0.0
+	for x in g.mires:
+		if x.has("src") or x.get("boss", false) or x.life <= 0.0 or x.has("fade"):
+			continue
+		var mr: float = float(x.get("maxr", x.r))
+		a += PI * mr * mr
+	return a >= cap
 
 
 ## ---- 溟痕 v2（Codex art/archive/incoming_1028/world_spec_1024，用户 10-24 验收；tools/install_world_spec.py 装成两张图集）：
@@ -902,9 +921,9 @@ func _mire_knobs() -> void:
 	if fr == _mk_frame:
 		return
 	_mk_frame = fr
-	_mk_tint = Color(Bal.v("render/mire_tint_r", 1.0), Bal.v("render/mire_tint_g", 1.0), Bal.v("render/mire_tint_b", 1.0), 1.0)
+	_mk_tint = Color(Bal.v("render/mire_tint_r", 0.5), Bal.v("render/mire_tint_g", 0.95), Bal.v("render/mire_tint_b", 0.8), 1.0)
 	_mk_anim = Bal.v("render/mire_anim", 1.0)
-	_mk_alpha = Bal.v("render/mire_alpha", 1.0)
+	_mk_alpha = Bal.v("render/mire_alpha", 0.8)
 	_mk_emit = Bal.v("render/optical_mire_emit", 0.35)
 
 

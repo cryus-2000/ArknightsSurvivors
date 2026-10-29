@@ -234,7 +234,7 @@ func cd_ready(e: Dictionary, key: String, dur: float) -> bool:
 	if not e.has("cds"):
 		e.cds = {}
 	if e.cds.get(key, 0.0) <= g.t:
-		e.cds[key] = g.t + dur * (SKILL_COOLDOWN_SCALE if e.boss else 1.0)
+		e.cds[key] = g.t + dur * (SKILL_COOLDOWN_SCALE * Bal.v("boss/tempo_k_" + str(e.type), 1.0) if e.boss else 1.0)   # tempo_k：单只 Boss 出招间隔（10-29 docs/201 §7）
 		return true
 	return false
 

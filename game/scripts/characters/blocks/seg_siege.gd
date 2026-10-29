@@ -329,6 +329,18 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	_h3_sfx(o, "big")
 
 
+## 再跃（队长版）：不位移，从落点朝下一群敌人砸出一道地裂（长度够到那群、至多 again.range），伤害同第二跳（× again.mult × 技能强度）
+static func _h4_leap_crack(o, b: Dictionary, tg: Dictionary) -> void:
+	var ag = b.get("again", {})
+	var dv: Vector2 = tg.pos - o.pos
+	var L: float = clampf(dv.length() + 40.0, 120.0, float(ag.get("range", 220.0)))
+	var pw: float = o.skill_power() if b.get("power", true) else 1.0
+	_h4_breach(o, {"len": L, "w": 40.0, "mult": float(ag.get("mult", 0.6)), "life": 0.6, "max": 6, "src": str(b.get("src", ""))}, o.pos, dv.angle(), float(b.get("mult", 2.2)) * pw)
+	o.face = signf(dv.x) if absf(dv.x) > 1.0 else o.face
+	o.impact_pause(0.05)
+	_h3_sfx(o, "big", -3.0, 1.1)
+
+
 ## 再跃的落点：落点半径 × near 之外、身边 again.range 以内敌人最密的一处（按 70 以内的邻居数打分）
 static func _h4_next_cluster(o, b: Dictionary):
 	var g = o.g
@@ -456,7 +468,9 @@ static func _h4sg_tick(o, sg: Dictionary, dt: float) -> bool:
 			if int(sg.leap_n) > 0:
 				sg.leap_n = int(sg.leap_n) - 1
 				var nc = _h4_next_cluster(o, b2)
-				if nc != null:
+				if nc != null and o.is_leader:
+					_h4_leap_crack(o, b2, nc)   # 她当队长时不再跃进下一群怪（全员手感排查 docs/196 §3.1，协调人 10-29 定）：原地朝那群砸出一道地裂
+				elif nc != null:
 					sg.leap_second = true
 					_h4_start_leap(o, nc, float(b2.get("again", _ED).get("dist", 150.0)))
 		return true

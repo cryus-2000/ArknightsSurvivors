@@ -1219,6 +1219,25 @@ static func _hw5_hook_impact(o, hk: Dictionary) -> void:
 	hk.head = c
 
 
+static var _HD = null
+
+
+## 拖回落点离本干员的距离：front；当队长且写了 front_leader 时用它（歌蕾蒂娅当队长不把怪拖到脸上，docs/196 §3.2）
+static func _hook_front_d(o, b: Dictionary) -> float:
+	if o.is_leader and b.has("front_leader"):
+		return float(b.front_leader)
+	return float(b.get("front", 60.0))
+
+
+## heavy_half 的对象：精英，或会自爆 / 爆裂的怪（壳海狂奔者 pattern blast、囊海爬行者 burst_at）
+static func _hook_heavy(e: Dictionary) -> bool:
+	if e.elite or e.has("burst_at"):
+		return true
+	if _HD == null:
+		_HD = load("res://scripts/data.gd")
+	return str(_HD.ENEMIES.get(e.get("type", ""), {}).get("pattern", "")) == "blast"
+
+
 static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 	var g = o.g
 	var b: Dictionary = hk.b
@@ -1230,19 +1249,20 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 	var L: float = a.distance_to(c)
 	var d: Vector2 = (c - a) / maxf(1.0, L)
 	var w: float = float(b.get("w", 40.0))
-	var front: Vector2 = a + d * float(b.get("front", 60.0))
+	var fd: float = _hook_front_d(o, b)
+	var front: Vector2 = a + d * fd
 	var got: Array = []
 	for j in o.query_ids((a + c) * 0.5, L * 0.5 + w + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or not _movable(e) or not line_contains(a, d, L, w, e.pos, float(e.r)):
 			continue
-		if e.pos.distance_to(a) <= float(b.get("front", 60.0)) and not bool(b.get("push_out", false)):
+		if e.pos.distance_to(a) <= fd and not bool(b.get("push_out", false)):
 			continue   # 已经在身前的不拖（push_out：比落点近的也推到落点去——歌蕾蒂娅「别拉到面前」，docs/123 §2.1 第 8 轮）
 		if str(b.get("drag_only", "all")) == "ranged" and str(e.get("ai", "")) != "ranged":
 			continue   # 歌蕾蒂娅（docs/123 §2.1，10-22）：只把远程怪拖回身前，近战怪本来就会贴上来，拉过来只会把队长埋进怪堆
 		got.append(e)
 	var te: Dictionary = hk.get("tgt", {})
-	if not te.is_empty() and int(te.get("id", -1)) >= 0 and not te.dead and _movable(te) and not got.has(te) and str(b.get("drag_only", "all")) != "ranged" and (te.pos.distance_to(a) > float(b.get("front", 60.0)) or bool(b.get("push_out", false))):
+	if not te.is_empty() and int(te.get("id", -1)) >= 0 and not te.dead and _movable(te) and not got.has(te) and str(b.get("drag_only", "all")) != "ranged" and (te.pos.distance_to(a) > fd or bool(b.get("push_out", false))):
 		got.append(te)   # 钩中的那一名：落地后 0.12–0.34 秒里队长位置 / 敌人位置变了、掉出一线的窄走廊也照样拖（10-24 歌蕾蒂娅「拉不动人」）
 	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
 	var mx: int = int(b.get("max_n", 12))
@@ -1250,6 +1270,8 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 		var e: Dictionary = got[i]
 		var side: float = (1.0 if i % 2 == 1 else -1.0) * ceilf(i / 2.0)
 		var spot: Vector2 = front + d * (float(e.r) * 0.5) + d.orthogonal() * side * 14.0 + d * absf(side) * 6.0
+		if bool(b.get("heavy_half", false)) and o.is_leader and _hook_heavy(e):
+			spot = e.pos.lerp(spot, 0.5)   # 歌蕾蒂娅当队长：精英与自爆怪只拖半程（全员手感排查 docs/196 §3.2，协调人 10-29 定）
 		hk.drag.append({"e": e, "from": e.pos, "spot": spot})
 	hk.phase = "drag"
 	hk.t = 0.0

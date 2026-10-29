@@ -32,7 +32,7 @@ func _init(hud) -> void:
 func style() -> int:
 	if not g.squad.cmd_on() or not g.squad.hp_on():
 		return -1
-	return int(Bal.v("command/hpbar_style", 0.0))
+	return int(Bal.v("command/hpbar_style", 4.0))
 
 
 func _mates() -> Array:
@@ -203,9 +203,9 @@ func guide_rect(vs: Vector2) -> Rect2:
 	var ms: Array = _mates()
 	if ms.is_empty():
 		return Rect2()
-	if int(Bal.v("command/hpbar_style", 0.0)) == 4:
+	if int(Bal.v("command/hpbar_style", 4.0)) == 4:
 		return Rect2(Vector2(UL_X - 8.0, UL_Y - 4.0), Vector2(UL_W + 52.0, ms.size() * UL_ROW + 6.0))
-	if int(Bal.v("command/hpbar_style", 0.0)) == 3:
+	if int(Bal.v("command/hpbar_style", 4.0)) == 3:
 		var y0: float = 150.0 if not g.touch.active else 118.0
 		return Rect2(Vector2(10.0, y0 - 6.0), Vector2(190.0, ms.size() * COL_ROW + 6.0))
 	var sq = h.squad

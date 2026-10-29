@@ -2,6 +2,8 @@ extends RefCounted
 ## 属性系统（框架第 30 节）
 ## 统一计算顺序：Base → Flat → Additive% → Multiplicative → Override → 上下限
 ##   value = ((base + Σflat) × (1 + Σadd) × Πmult)，有 override 时取最后加入的 override
+##   例外 FLAT_AFTER（目前只有 max_hp，用户 10-29「卡上写多少就加多少」，docs/199）：value = base × (1 + Σadd) × Πmult + Σflat，
+##   固定加成放在百分比与倍率（入队 +15% / 人、认知生存本能、事件 / 难度倍率）之后，不被放大
 ## 任何藏品、技能、成长都只能通过 add() 加修正，不能直接改最终值。
 ## 每条修正带 source，用 remove_source() 整体撤销（临时增益、藏品移除、排异反应消除）。
 ## 作用域 scope（docs/23 §5）："" / "doctor" / "squad" 为全局，value() 直接生效；"class:<职业>" / "op:<干员 id>" 只对
@@ -16,6 +18,7 @@ var _mods := {}      # stat -> Array[{op, value, source, scope}]
 var _cache := {}
 var _cache_scoped := {}   # stat -> {scopes_key -> value}
 const GLOBAL_SCOPES := ["", "doctor", "squad"]
+const FLAT_AFTER := [&"max_hp"]   # 固定加成放在倍率之后的属性（其余属性仍是 (base + flat) × …）
 var version := 0     # 任何修改都会 +1，外部可据此判断是否需要刷新
 
 
@@ -138,7 +141,7 @@ func _calc(stat: StringName, scopes: Array) -> float:
 			Op.ADD: addp += m.value
 			Op.MULT: mult *= m.value
 			Op.OVERRIDE: ov = m.value
-	var v: float = (base + flat) * (1.0 + addp) * mult
+	var v: float = (base * (1.0 + addp) * mult + flat) if stat in FLAT_AFTER else (base + flat) * (1.0 + addp) * mult
 	if ov != null:
 		v = ov
 	var lim: Vector2 = _limit.get(stat, Vector2(-INF, INF))

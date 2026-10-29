@@ -241,7 +241,7 @@ func update_visuals(dt: float) -> void:
 	mate_desat = 0.0
 	# 突出队长（docs/139 §11，用户 10-25「队友特效不要降」「队长明不明显没看太出来」）：render/lead_emph 1 = 中、2 = 强；
 	# 各参数可用同名键单独覆盖。图鉴演示不加
-	lead_lv = Bal.vi("render/lead_emph", 0) if g.demo_op == "" else 0
+	lead_lv = Bal.vi("render/lead_emph", 1) if g.demo_op == "" else 0
 	lead_boost = Bal.v("render/lead_boost", [1.0, 1.35, 1.6][clampi(lead_lv, 0, 2)])
 	lead_tint = Bal.v("render/lead_tint", [0.0, 0.0, 0.3][clampi(lead_lv, 0, 2)])
 	lead_num_k = Bal.v("render/lead_num_k", [1.0, 1.35, 1.6][clampi(lead_lv, 0, 2)])
@@ -264,7 +264,7 @@ func update_visuals(dt: float) -> void:
 	if nfl > fg:
 		flash_a *= maxf(Bal.v("fx/flash_group_floor", 0.35), fg / float(nfl))
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
-	elite_rim = clampf(Bal.v("render/elite_rim", 0.0), 0.0, 1.0)
+	elite_rim = clampf(Bal.v("render/elite_rim", 0.55), 0.0, 1.0)
 	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
 	elite_rim_col = Color(ELITE_RIM_RGB.r * rg, ELITE_RIM_RGB.g * rg, ELITE_RIM_RGB.b * rg, elite_rim)
 	g.fx_add.modulate.a = 0.0 if _dbg_friend else lerpf(1.0, Dc.p("add_floor"), dcrowd)
@@ -629,7 +629,7 @@ func _draw_pickups_fast() -> void:
 	var lit_b := Color(1.35, 1.2, 1.5)
 	var lit_m := Color(-1, 0, 0)   # 被磁铁 / 拾取范围吸起时的颜色（< 0 = 同落地）
 	var core := Color(-1, 0, 0)    # 发光层主高光颜色（< 0 = 同贴图调色）
-	var gs: int = int(Bal.v("render/gem_style", 0))
+	var gs: int = int(Bal.v("render/gem_style", 2.0))
 	if gs > 0:
 		# 经验结晶调色候选（用户 10-29「地上的经验现在是白色，不明显」，docs/128 §6.1）：贴图本身淡金白，这里只改调色，零额外开销。
 		# 层级：小 = 浅、大 = 更饱和更亮 + 光晕大一圈、吸起 = 提亮近白 + 同色拖尾、远处安静 = 压暗去饱和
@@ -850,6 +850,12 @@ const GEM_TINT := [
 	# 4 金色（用户 10-29「或者金色」）：色相约 0.12，介于灯火橙金（0.075）与柠檬黄之间；灯油掉落贴图也是橙金，靠更亮的白芯区分
 	[Color(1.05, 0.86, 0.33), Color(1.1, 0.78, 0.2), Color(1.4, 1.25, 0.8), Color(0.85, 0.72, 0.4),
 		Color(1.0, 0.75, 0.25), Color(1.0, 0.65, 0.15), Color(1.7, 1.55, 1.2)],
+	# 5 翠绿带白芯（用户 10-29「柠檬黄不是很好看」）：色相约 0.36，比候选 2 更饱和；与队友生命绿同色系但不同层（地面 vs HUD）
+	[Color(0.37, 1.03, 0.57), Color(0.21, 0.99, 0.43), Color(0.9, 1.35, 1.0), Color(0.45, 0.75, 0.5),
+		Color(0.3, 1.0, 0.45), Color(0.2, 1.0, 0.35), Color(1.5, 1.75, 1.5)],
+	# 6 亮紫带白芯：色相约 0.76；敌弹已改青蓝，紫让出来了；危险色是洋红偏红（0.95），紫偏蓝一侧
+	[Color(0.83, 0.6, 1.21), Color(0.74, 0.43, 1.21), Color(1.3, 1.1, 1.5), Color(0.7, 0.55, 0.85),
+		Color(0.8, 0.5, 1.0), Color(0.7, 0.35, 1.0), Color(1.75, 1.6, 1.8)],
 ]
 
 func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray, core := Color(-1, 0, 0)) -> void:
@@ -1032,14 +1038,14 @@ func _se_draw(ob, kd: int) -> void:
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
-## 判定点（10-29，boss/graze_on）：队长身上一个 2 格白芯 + 暗细描边的小点（敌弹按弹芯打这里），压在弹幕之上。
+## 判定点（10-29，enemy/bullet_core_hit）：队长身上一个 2 格白芯 + 暗细描边的小点（敌弹按弹芯打这里），压在弹幕之上。
 ## 全程都画：平时 boss/hit_dot_idle（0.06，几乎看不见）；boss/hit_dot_near（110）像素内有敌弹时渐亮到 0.85；
 ## 有活着的 Boss 时不低于 boss/hit_dot_boss（0.6）；站定再 ×0.6。纯画面
 var _dot_a := 0.0
 
 
 func _draw_hit_dot() -> void:
-	if g.shots == null or not g.shots.graze_live():
+	if g.shots == null or not g.shots.core_hit_live():
 		return
 	var p: Vector2 = g.ppos + Vector2(0, -14)
 	var near: float = Bal.v("boss/hit_dot_near", 110.0)
@@ -3071,7 +3077,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		anc = Vector2(0.5, 1.0)
 		bpos = e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
 	# 冲刺蓄力的身体表现（docs/139 §7.4，render/dash_tell_style ≥ 1）：往冲刺反方向缩 render/dash_pull 美术像素、按蓄力进度渐变到危险色（不闪）
-	if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and not e.boss and Bal.vi("render/dash_tell_style", 0) >= 1:
+	if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and not e.boss and Bal.vi("render/dash_tell_style", 2) >= 1:
 		var dwk: float = clampf(1.0 - e.dash_w / float(e.get("dash_w0", D.ENEMIES.get(e.type, {}).get("dash_wind", 0.5))), 0.0, 1.0)
 		bpos -= (e.dash_dir as Vector2) * Bal.v("render/dash_pull", 3.0) * Game.PX * dwk
 		var dfl: float = dwk * Bal.v("render/dash_flash", 0.6)   # 随蓄力进度平滑变色，不闪（10-24 Boss 频闪教训）
@@ -3309,16 +3315,16 @@ func draw_enemy_tells() -> void:
 		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and Bal.v("render/dash_tell", 1.0) > 0.0:   # render/dash_tell 0 = 不画（docs/139 §7 量测用）
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
-			match Bal.vi("render/dash_tell_style", 0):
+			match Bal.vi("render/dash_tell_style", 2):
 				1:
 					_dash_chevrons(e, wk, not e.get("tell_dim", false))
 				2:
 					if not e.get("tell_dim", false):   # 只给会冲到队长的画：冲刺距离前 45% 的短箭 + 箭头
 						var sb: Vector2 = e.pos + e.dash_dir * _dash_len(e) * Bal.v("render/dash_short", 0.45)
-						_tell_line(e.pos, sb, Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, false, true)
+						_tell_line(e.pos, sb, Bal.v("render/dash_tell_half", 6.0), wk, ENEMY_TELL, false, true)
 						_dash_head(sb, e.dash_dir, wk)
 				_:
-					_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
+					_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 6.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
 			_count_ring(e)
@@ -4280,13 +4286,13 @@ func _wtex(n: String) -> Texture2D:
 func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := false, dash := false) -> void:
 	var d: Vector2 = b - a
 	var n: Vector2 = d.normalized().orthogonal() * half
-	var ta: float = Bal.v("render/dash_tell_alpha", 1.0) if dash else 1.0
+	var ta: float = Bal.v("render/dash_tell_alpha", 0.55) if dash else 1.0
 	if dim:
 		# 打不到主控的冲刺线：只画淡边框（预警不藏，但不再整片盖住主控）
-		g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.35) * ta), 1.5)
+		g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.2) * ta), 1.5)
 		return
 	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, (0.22 + 0.12 * k) * tell_fill * ta))
-	var lt: Texture2D = _wtex("fx_warn_line") if not dash or Bal.v("render/dash_tell_flow", 1.0) > 0.0 else null
+	var lt: Texture2D = _wtex("fx_warn_line") if not dash or Bal.v("render/dash_tell_flow", 0.0) > 0.0 else null
 	if lt != null:
 		# 沿线平铺流动水纹（16px 一段，按线宽缩放），终点放漩涡
 		var fr: int = int(g.t * 12.0) % 4
@@ -4308,7 +4314,7 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55 * ta), 4.0 * tell_edge)
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85 * ta), 2.0 * tell_edge)
-	if not dash or Bal.v("render/dash_tell_white", 1.0) > 0.0:
+	if not dash or Bal.v("render/dash_tell_white", 0.0) > 0.0:
 		g.draw_line(a, b, Color(1, 1, 1, (0.5 + 0.4 * k) * ta), 1.0)
 
 
@@ -4401,7 +4407,7 @@ func classify_tells() -> void:
 		e.tell_dim = not hit
 		if hit:
 			hits.append([a.distance_squared_to(p), e])
-	var nmax: int = Bal.vi("fx/tell_full_max", 8)
+	var nmax: int = Bal.vi("fx/tell_full_max", 4)
 	if hits.size() > nmax:
 		hits.sort_custom(func(x, y): return x[0] < y[0])
 		for i in range(nmax, hits.size()):
@@ -4541,7 +4547,7 @@ func draw_warn_outlines(ground := false) -> void:
 		var da: float = 1.0
 		if w.get("dim", false):
 			# 打不到主控的杂兵预警（classify_tells）：轮廓整体降到 fx/tell_dim_alpha，不白闪；地面填充在 boss_ai._draw_warns 里跳过
-			da = Bal.v("fx/tell_dim_alpha", 0.35)
+			da = Bal.v("fx/tell_dim_alpha", 0.2)
 			core.a *= da
 			edge.a *= da
 			lock_flash = 0.0
@@ -4854,7 +4860,7 @@ func _zone_dark_fast(seg: int, far: float, outer: float) -> void:
 	var cs := PackedColorArray()
 	cs.resize(k)
 	# docs/139 §6 试验旋钮 render/zone_dark_r / _g / _b：黑潮圈外压暗色（缺省原值紫 0.16, 0.03, 0.22）
-	cs.fill(Color(Bal.v("render/zone_dark_r", 0.16), Bal.v("render/zone_dark_g", 0.03), Bal.v("render/zone_dark_b", 0.22), 0.55))
+	cs.fill(Color(Bal.v("render/zone_dark_r", 0.03), Bal.v("render/zone_dark_g", 0.08), Bal.v("render/zone_dark_b", 0.12), 0.55))
 	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), out, cs)
 
 

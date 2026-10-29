@@ -457,6 +457,8 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "arrive_stun_elite1", p, ctx, false, 0.0, 3.0)   # 精一起改用这个值（精英化节点的「锚定」）
 			if b.has("pull_cc") and not b.pull_cc is bool:
 				errs.append(p + ".pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默，乌尔比安）")
+			if b.has("heavy_half") and not b.heavy_half is bool:
+				errs.append(p + ".heavy_half 应是 true / false（当队长时精英与自爆怪只拖半程，歌蕾蒂娅）")
 			if b.has("drag_only") and not str(b.drag_only) in ["all", "ranged"]:
 				errs.append(p + ".drag_only 只能是 all / ranged（只拖回远程怪）")
 			_src(b, p, ctx, true)
@@ -1078,7 +1080,7 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 #                   响应动作（docs/118）：from: leader = 找队长 aim_r 内离队长最近的敌人（本人是队长时原地砸）、power: false = 不吃技能强度、
 #                   sp_secs = 改为砸中敌人时其他干员技力 + 秒数（取代 sp）；已在空中时不另跳
 #  verb.cmd_wave    号令波：以自身为心向外扩张到 r（dur 秒，先快后慢），扫到的敌人 × mult × 技能强度、非精英击退 kb；同时至多 max 道
-#  verb.sp_team 的 power / motes（第 4 批追加）：技力 × 技能强度；金色技力粒子飞向每名队友
+#  verb.sp_team 的 power / motes（第 4 批追加）：技力 × 技能强度；金色技力粒子飞向每名队友；exclude_self: false = 含自身（跳过自己正在放的技能）
 
 const H4_TAGS := ["shape.hammer", "verb.leap_slam", "verb.cmd_wave",
 	"shape.foxfire", "verb.foxlight", "verb.fox_cast",
@@ -1508,6 +1510,11 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"verb.calc_field":
 			_num(b, "dur", p, ctx, true, 0.1, 60.0)
 			_num(b, "r", p, ctx, true, 1.0, 1000.0)
+			_num(b, "slots", p, ctx, false, 0.0, 24.0)
+			_num(b, "regrow", p, ctx, false, 0.5, 30.0)
+			_num(b, "kb", p, ctx, false, 0.0, 600.0)
+			_num(b, "stun", p, ctx, false, 0.0, 3.0)
+			_num(b, "touch", p, ctx, false, 4.0, 60.0)
 			if b.has("shatter") and b.shatter is Dictionary:
 				_src(b.shatter, p + ".shatter", ctx, true)
 		"verb.amber_ring":

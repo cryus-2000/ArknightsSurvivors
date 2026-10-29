@@ -5,7 +5,7 @@ extends Node
 ## 演示什么按 demo 的触发源：DASH 冲刺 / SKILL 开技能 / CMD 指挥（站定第 5 帧切突击、第 35 帧切归队，之后自动集合）/ 其余 = 站定（每轮移动 30 帧后站定）。
 
 const DT := 1.0 / 60.0
-const DASH := ["texas", "exusiai", "skadi", "siege", "ulpianus"]
+const DASH := ["texas", "exusiai", "skadi", "ulpianus"]   # 推进之王 10-29 删响应
 const SKILL := ["suzuran", "logos", "skalter", "kaltsit"]
 const CMD := ["mizuki", "specter_unchained", "irene", "angelina"]
 

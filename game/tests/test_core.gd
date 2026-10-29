@@ -118,6 +118,14 @@ func test_stat_order() -> void:
 	s.remove_source("e")
 	s.add(&"dmg", "mult", 100.0, "f")
 	near(s.value(&"dmg"), 100.0, "上限")
+	# 最大生命的固定加成放在倍率之后（用户 10-29「卡上写多少就加多少」，docs/199）：base × (1 + add) × mult + flat
+	var h = SB.new()
+	h.define(&"max_hp", 100.0, 1.0, 100000.0)
+	h.add(&"max_hp", "flat", 20.0, "card")
+	h.add(&"max_hp", "add", 0.3, "meta")
+	h.add(&"max_hp", "mult", 1.45, "squad")
+	near(h.value(&"max_hp"), 100.0 * 1.3 * 1.45 + 20.0, "max_hp：固定加成在倍率之后")
+	near(h.value_with(&"max_hp", "flat", 20.0) - h.value(&"max_hp"), 20.0, "max_hp：卡面预览 +20 就是 +20")
 
 
 func test_bus() -> void:
@@ -700,19 +708,25 @@ func test_fx_hold() -> void:
 	var fo := {"g": {"tex": {"fx_have": ImageTexture.new()}}}
 	ok(OB.fx_on(fo, {"if_tex": "fx_have"}) and not OB.fx_on(fo, {"if_tex": "!fx_have"}), "if_tex：贴图在时只画正向条目")
 	ok(OB.fx_on(fo, {"if_tex": "!fx_none"}) and not OB.fx_on(fo, {"if_tex": "fx_none"}), "if_tex：缺图时只画回退条目")
-	# 扩散缓动 / 交叉淡入淡出 / 余波环（10-13 加，§5.6）：反例被拒、缓动曲线端点（10-29 浊心普攻改歌声纹后，样本换到 response 的同款波纹条目）
+	# 扩散缓动 / 交叉淡入淡出 / 余波环（10-13 加，§5.6）：反例被拒、缓动曲线端点。
+	# 10-29 浊心的波纹帧条全换成歌声波后 json 里没有样本了：测试自带一条（原普攻第 3 条），先确认它本身合法，再逐项改坏
+	var WAVE := {"strip": "fx_skalter_wave", "if_tex": "!fx_skalter_wave_big", "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "tint": [0.78, 0.95, 0.9, 0.5], "wake": {"n": 2, "w": 12, "a": 0.55, "lag": 0.09, "col": [0.55, 0.92, 1.0]}}
+	var dw: Dictionary = sk.duplicate(true)
+	dw.blocks.attack.fx.append(WAVE.duplicate(true))
+	ok(Ch.validate_operator("skalter", dw), "fx 扩散缓动样本本身合法")
 	var bad2 := {
-		"ease 不认识": func(d): d.blocks.response[0].do[0].fx[2]["ease"] = "bounce",
-		"grow 没配 ease": func(d): d.blocks.response[0].do[0].fx[2].erase("ease"),
-		"grow_to 不是 zone": func(d): d.blocks.response[0].do[0].fx[2]["grow_to"] = "screen",
-		"grow 超出范围": func(d): d.blocks.response[0].do[0].fx[2]["grow"] = 9.0,
-		"wake 参数不认识": func(d): d.blocks.response[0].do[0].fx[2].wake["glow"] = 1,
-		"wake.n 超出范围": func(d): d.blocks.response[0].do[0].fx[2].wake["n"] = 9,
-		"xfade 没配 cond": func(d): d.blocks.response[0].do[0].fx[2].erase("cond"),
+		"ease 不认识": func(d): d.blocks.attack.fx[-1]["ease"] = "bounce",
+		"grow 没配 ease": func(d): d.blocks.attack.fx[-1].erase("ease"),
+		"grow_to 不是 zone": func(d): d.blocks.attack.fx[-1]["grow_to"] = "screen",
+		"grow 超出范围": func(d): d.blocks.attack.fx[-1]["grow"] = 9.0,
+		"wake 参数不认识": func(d): d.blocks.attack.fx[-1].wake["glow"] = 1,
+		"wake.n 超出范围": func(d): d.blocks.attack.fx[-1].wake["n"] = 9,
+		"xfade 没配 cond": func(d): d.blocks.attack.fx[-1].erase("cond"),
 		"ease 配 hold": func(d): d.blocks.skills[2].do[0].fx[0]["ease"] = "out",
 	}
 	for why in bad2:
 		var d3: Dictionary = sk.duplicate(true)
+		d3.blocks.attack.fx.append(WAVE.duplicate(true))
 		bad2[why].call(d3)
 		ok(not Ch.validate_operator("skalter", d3), "fx 扩散缓动校验应拒绝：" + why)
 	near(OB.fx_ease("out", 0.0), 0.0, "缓动起点 0")
@@ -749,7 +763,7 @@ func test_operator_sheet() -> void:
 	var Bal = preload("res://scripts/core/balance.gd")
 	ok(IS.fmt_armor(2.5) == "2.5" and IS.fmt_armor(0.5) == "0.5" and IS.fmt_armor(3.0) == "3.0" and IS.fmt_armor(4.5) == "4.5", "减伤显示保留一位小数")
 	var cnt := 0
-	var hpk: float = Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)   # 数值表 = 开局实际值（10-28：乘上局内基础旋钮）
+	var hpk := 1.0   # 数值表 = 开局实际值：队长生命的 ×0.9 已写进 JSON（10-29）
 	var atkk: float = Bal.v("squad/op_atk_base", 1.0)
 	for cid in Ch.list_ids():
 		var d: Dictionary = Ch.load_def(cid)

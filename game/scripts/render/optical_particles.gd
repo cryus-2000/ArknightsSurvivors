@@ -117,8 +117,8 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 	sm.initial_velocity_max = 9.0
 	spores.preprocess = 9.0
 	# docs/139 §6.6 试验旋钮：render/ember_n 灯火余烬数（缺省 16）；render/warm_spores 暖色孢子数（缺省 0 = 不开，琥珀色、与环境孢子同一套漂浮）
-	embers = _ambient(glow_parent, maxi(1, int(Bal.v("render/ember_n", 16.0) * k_amount)), 1.6, Color.WHITE)
-	var wn: int = int(Bal.v("render/warm_spores", 0.0) * k_amount)
+	embers = _ambient(glow_parent, maxi(1, int(Bal.v("render/ember_n", 32.0) * k_amount)), 1.6, Color.WHITE)
+	var wn: int = int(Bal.v("render/warm_spores", 26.0) * k_amount)
 	if wn > 0:
 		warm_spores = _ambient(glow_parent, wn, 9.0, Color.WHITE)
 		var wm: ParticleProcessMaterial = warm_spores.process_material
