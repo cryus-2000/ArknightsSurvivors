@@ -1,0 +1,31 @@
+## izm_trial
+== izm_trial.jsonl jobs 6 err 0
+izumik       fight 106.0  taken/min  40.2 (35% maxhp/min)  TTK 170.5s  maxhp 127  hits/min 1.9  wins 4/6
+     bullet:nerve                       n  20  med 14.1%  max 24.0%  raw med  20.8 max  33.7
+     bullet:orb                         n  11  med 11.5%  max 21.6%  raw med  17.0 max  29.1
+     bullet:nova                        n   3  med  7.2%  max  7.2%  raw med  13.3 max  13.3
+     boss_izumik:                       n   1  med 31.4%  max 31.4%  raw med  58.3 max  58.3
+     boss_izumik:nova                   n   1  med 20.4%  max 20.4%  raw med  37.9 max  37.9
+     boss_izumik:orb                    n   1  med 27.2%  max 27.2%  raw med  50.5 max  50.5
+     boss_izumik:final_attack/迁徙潮       n   1  med 21.0%  max 21.0%  raw med  24.0 max  24.0
+     boss_izumik:nerve                  n   1  med 25.7%  max 25.7%  raw med  36.0 max  36.0
+== izm_trial.jsonl jobs 6 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+izumik         106.05    18.90     5.93   247.00     8.60     0.30     0.12     0.00     0.00     0.00     0.20     0.09     0.08     0.12 {'win': 4, 'cap': 2}
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=26 max_hp=115 relics=13 leader=wisadel e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=158 relics=7 leader=skadi e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=186 relics=14 leader=kaltsit e2 ops=[]
+## izm_trial_b
+== izm_trial_b.jsonl jobs 6 err 0
+izumik       fight 113.1  taken/min  51.2 (45% maxhp/min)  TTK 133.8s  maxhp 128  hits/min 2.0  wins 4/6
+     bullet:nerve                       n  25  med 11.5%  max 19.9%  raw med  20.8 max  32.0
+     bullet:orb                         n   9  med 14.1%  max 17.7%  raw med  18.6 max  26.2
+     bullet:nova                        n   9  med  9.0%  max 18.1%  raw med  13.3 max  20.6
+     boss_izumik:nerve                  n   2  med 30.0%  max 30.0%  raw med  34.2 max  34.2
+     boss_izumik:orb                    n   1  med 57.4%  max 57.4%  raw med  77.3 max  77.3
+== izm_trial_b.jsonl jobs 6 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+izumik         113.05    19.00     7.08   241.50     7.60     0.30     0.12     0.00     0.00     0.00     0.19     0.08     0.08     0.12 {'cap': 2, 'win': 4}
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=26 max_hp=115 relics=13 leader=wisadel e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=158 relics=7 leader=skadi e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=186 relics=14 leader=kaltsit e2 ops=[]
