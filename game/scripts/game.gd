@@ -282,6 +282,7 @@ var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
 var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
+var tdil = preload("res://scripts/run/time_dilation.gd").new(self)   # 局内时间缩放唯一所有者（圆盘 / 终结技慢动作；arch_review_1029 P0-1）
 var frost := 0.0                   # 冰霜：移速 -40%
 # 小怪控制（用户 9/29，combat.gd「小怪控制」段；玩法系统的净化按这些字段清除）
 var cold := 0                      # 寒霜层数：每层移速 / 攻速减益，满层冻结
@@ -876,6 +877,9 @@ func _ready() -> void:
 			stats.set_base(k, float(doctor.def.stats[k]))
 	squad = Squad.new(self)
 	ult = Ult.new(self) if Ult.on() else null
+	tdil.add("wheel", wheel.slow, "play")   # 圆盘打开：局内放慢（不全停），批跑里也生效
+	if ult != null:
+		tdil.add("ult", ult.time_scale, "fx")   # 终结技瞄准慢动作（docs/198 §2.4）：演出性，批跑不缩
 	# 开局干员：标题页选人写入 Cfg.character_id；--op=<id> 测试覆盖；不存在时退回水月
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
@@ -1457,10 +1461,7 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
-	if wheel.is_open:
-		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
-	if ult != null and (mode == Mode.PLAY or realtime or playclock_test):
-		dt *= ult.time_scale()   # 终结技瞄准慢动作（docs/198 §2.4）：只缩真实步长，批跑不缩（阶段长度按游戏时间，结果可复现）
+	dt *= tdil.factor(mode == Mode.PLAY or realtime or playclock_test)   # 时间缩放只读这一处（run/time_dilation.gd：圆盘 play 类、终结技 fx 类，取最小）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_static_fps()

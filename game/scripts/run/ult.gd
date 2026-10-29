@@ -641,7 +641,7 @@ func _cutin(ld, k: String) -> void:
 		cutins.pop_front()
 
 
-## 时间缩放（game._process 乘在真实步长上；只在玩家局 / --realtime / --playclock）
+## 时间缩放（run/time_dilation.gd 读，登记为 fx 类：只在玩家局 / --realtime / --playclock 生效）
 func time_scale() -> float:
 	if phase != "aim":
 		return 1.0
