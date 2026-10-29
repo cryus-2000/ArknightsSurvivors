@@ -193,7 +193,7 @@ func update_visuals(dt: float) -> void:
 		kick_off = _kick_dir * float(ceili(_kick_px * _kick_t / _kick_dur)) * Game.PX
 		if _kick_t <= 0.0:
 			_kick_px = 0
-	g.cam.offset = cam_kick.round() + kick_off
+	g.cam.offset = cam_kick.round() + kick_off + (g.ult.shake_off() if g.ult != null else Vector2.ZERO)   # 终结技轻震（用户 10-30 点名要，只给终结技；减少动态效果开时为 0）
 	# 灯火光源：可读灯圈（10-24 用户定；旧开关 render/lamp_readable 与闪烁 / 低灯变红的旧灯光 10-29 已删）——
 	# 圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()

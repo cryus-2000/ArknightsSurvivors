@@ -1066,6 +1066,32 @@ func link_slow() -> void:
 	_link_rt = UM.now()
 
 
+## 终结技轻震（用户 10-30：歌蕾蒂娅收拢、浊心斯卡蒂激光点名要震屏；全项目镜头震动早先因「看着头疼」移除，这里只给终结技、幅度小）：
+## shake(像素, 真实秒) 取较大者；按真实时间线性衰减，方向用正弦组合（不抽随机数）；减少动态效果开时不震
+var _shk_px := 0.0
+var _shk_t0 := -99.0
+var _shk_dur := 0.0
+
+
+func shake(px: float, dur: float) -> void:
+	var now := UM.now()
+	var left: float = _shk_px * maxf(0.0, 1.0 - (now - _shk_t0) / maxf(0.01, _shk_dur))
+	if px * Bal.v("ult/shake_k", 1.0) >= left:
+		_shk_px = px * Bal.v("ult/shake_k", 1.0)
+		_shk_t0 = now
+		_shk_dur = dur
+
+
+func shake_off() -> Vector2:
+	if Cfg.reduce_motion or _shk_px <= 0.0:
+		return Vector2.ZERO
+	var t: float = UM.now() - _shk_t0
+	if t < 0.0 or t > _shk_dur:
+		return Vector2.ZERO
+	var a: float = _shk_px * (1.0 - t / _shk_dur)
+	return Vector2(sin(t * 71.0) + 0.5 * sin(t * 133.0), cos(t * 89.0) + 0.5 * sin(t * 157.0)).round() * a * 0.66
+
+
 func impact(pos: Vector2) -> void:
 	if _imp_serial == serial:
 		return
