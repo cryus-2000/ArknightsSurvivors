@@ -114,11 +114,11 @@ func _ready() -> void:
 	check(is_same(o.roam_tgt,urgent), "mob priority still guards the leader even with a boss on field")
 	g.squad.priority = 0
 	var cmd: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
-	cmd["boss_rush"] = 0
+	preload("res://scripts/core/balance.gd").sec("command")["boss_rush"] = 0   # 每次重取 sec()：Bal 读取缓存只在取 sec / _data 时清（docs/199 ②）
 	o.roam_tgt = null
 	o.roam_target(Vector2(40,14))
 	check(is_same(o.roam_tgt,urgent), "boss_rush 0 keeps the old leader guard")
-	cmd["boss_rush"] = 1
+	preload("res://scripts/core/balance.gd").sec("command")["boss_rush"] = 1   # 每次重取 sec()：Bal 读取缓存只在取 sec / _data 时清（docs/199 ②）
 	o.roam_tgt = urgent
 	o.roam_tgt.dead = true
 	g.enemies = [enemy(Vector2(-140,0))]
@@ -183,11 +183,11 @@ func _ready() -> void:
 	check(ev._cmd_evade(Vector2(300, 0)) == Vector2(300, 0), "bullet flying away is ignored")
 	g.ebullets = []
 	var cmd2: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
-	cmd2["evade"] = 0
+	preload("res://scripts/core/balance.gd").sec("command")["evade"] = 0
 	g.warns = [{"shape": "circle", "pos": Vector2(300, 0), "r": 60.0, "done": false}]
 	g.t += 1.0
 	check(ev._cmd_evade(Vector2(300, 0)) == Vector2(300, 0), "evade 0: no dodge")
-	cmd2["evade"] = 1
+	preload("res://scripts/core/balance.gd").sec("command")["evade"] = 1
 	g.warns = []
 	# 走位意识：近战挑近战怪最少的一侧（目标朝队长那侧被围 → 换到另一侧），side 0 = 永远朝队长侧
 	var sd := Probe.new(g, {"id":"sd", "class":"近卫"})
@@ -199,11 +199,11 @@ func _ready() -> void:
 	g.squad.priority = 1
 	var sp: Vector2 = sd.roam_target(Vector2(40,14))
 	check(is_same(sd.roam_tgt, tgt) and (sp.x > 299.0 or absf(sp.y) > 20.0), "melee avoids the crowded leader-side and stands on a free side")
-	cmd2["side"] = 0
+	preload("res://scripts/core/balance.gd").sec("command")["side"] = 0
 	sd._cmd_side_ang = INF
 	sp = sd.roam_target(Vector2(40,14))
 	check(sp.x < 300.0 and absf(sp.y) < 1.0, "side 0: old rule, leader-side of the target")
-	cmd2["side"] = 1
+	preload("res://scripts/core/balance.gd").sec("command")["side"] = 1
 	g.squad.priority = 0
 	# 无敌不打（10-28 用户「打伊祖米克的时候刚开始都在打它，没有打水母」）：自动选敌跳过打不动的，喂食子代先打
 	var rp := RealProbe.new(g, {"id":"rp", "class":"近卫"})
