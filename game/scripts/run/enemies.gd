@@ -317,7 +317,10 @@ func update(dt: float) -> void:
 				g.vfx.add_text(e.pos + Vector2(0, -24), "架起结束", Color(0.75, 0.8, 0.9), 13)
 		e.flash -= dt
 		e.jhit -= dt
+		var stun0: float = e.stun
 		e.stun -= dt / g.control_mult
+		if stun0 > 0.0 and e.stun <= 0.0 and g.rfx.rule("ctrl_chain") > 0:
+			g.rfx.stun_ended(e)   # 高闪相机（docs/203）：眩晕自然结束时炸开
 		# 韧性钩子（docs/38 §1.5）：白名单 Boss 身上的眩晕一定来自玩家一方（Boss 自己的硬直写 break_t），换成韧性后清零，不会被锁死
 		if e.boss and e.stun > 0.0 and g.combat.tough_on(e):
 			g.combat.add_tough(e, e.stun * Bal.v("boss/tough_per_stun", 5.0))
@@ -801,6 +804,8 @@ func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
 	if e.boss and g.bai.super_armor(e):
 		return   # Boss 出招霸体（10-28 用户「骑士的攻击会被打断」）：起手到出手结束不吃外来击退
 	e.kb += v * kb_taken(e, g.t) if wl else v
+	if g.rfx.rule("kb_stun") > 0:
+		g.rfx.kb_stun(e, v)   # 安洁莉娜的创想（docs/203）：击退附带眩晕
 
 
 # ---- 干员 / 藏品改敌人控制状态的统一入口（docs/101 §7.3.10，10-15）：写法统一，语义照旧（同 seed 逐位不变）。

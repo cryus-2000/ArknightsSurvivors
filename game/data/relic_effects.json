@@ -1,5 +1,5 @@
 {
- "_doc": "已实装藏品的效果数据。键是藏品编号（见 docs/08）。effects 语法见 scripts/core/modifier_system.gd。desc 省略时用 relics.json 里的改编文字。可选：rarity / requires / conflicts / shop_allowed / price_class / source 覆盖默认值。 分类只有 relics.json 的 lane 一个（docs/197）；set 是套装标记（国王套装 king）。rarity 是实效强度档，缺省价格随最终 rarity。",
+ "_doc": "已实装藏品的效果数据。键是藏品编号（见 docs/08）。effects 语法见 scripts/core/modifier_system.gd。desc 省略时用 relics.json 里的改编文字。可选：rarity / requires / conflicts / shop_allowed / price_class / source 覆盖默认值。 分类只有 relics.json 的 lane 一个（docs/197）；set 是套装标记（国王套装 king）。rarity 是实效强度档，缺省价格随最终 rarity。 精简（docs/203）：pool = false 不进任何来源（已持有的照常生效）；filler = true 是填充件，出现权重 × relic/filler_weight；trim = play 是改打法件。",
  "relics": {
   "1": {
    "effects": [
@@ -28,7 +28,8 @@
    ],
    "desc": "全队攻击速度 +3%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "3": {
    "effects": [
@@ -41,7 +42,8 @@
    ],
    "desc": "全队伤害 +3%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "4": {
    "effects": [
@@ -54,7 +56,8 @@
    ],
    "desc": "全队攻击速度 +5%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "5": {
    "effects": [
@@ -67,7 +70,8 @@
    ],
    "desc": "全队伤害 +5%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "6": {
    "effects": [
@@ -93,7 +97,8 @@
    "desc": "全队伤害 +4%；队长最大生命 +4%、物理减伤 +1",
    "rarity": "基础",
    "max_lv": 1,
-   "new": true
+   "new": true,
+   "pool": false
   },
   "7": {
    "effects": [
@@ -112,7 +117,8 @@
    ],
    "desc": "队长护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾），护盾生成间隔 -10%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "8": {
    "effects": [
@@ -257,7 +263,8 @@
     }
    ],
    "desc": "队长的护盾生成间隔 -20%",
-   "rarity": "基础"
+   "rarity": "基础",
+   "filler": true
   },
   "16": {
    "effects": [
@@ -265,12 +272,20 @@
      "type": "stat",
      "stat": "shield_max",
      "op": "flat",
-     "value": 2
+     "value": 1
+    },
+    {
+     "type": "rule",
+     "rule": "shield_full_haste",
+     "args": {
+      "value": 0.15
+     }
     }
    ],
-   "desc": "队长护盾层数上限 +2（没有护盾时获得每 12 秒一层的护盾）",
+   "desc": "队长护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾）；护盾满层时全队攻击速度 +15%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "trim": "play"
   },
   "17": {
    "effects": [
@@ -310,7 +325,8 @@
    ],
    "desc": "队长最大生命 +15，立即回复 15 生命",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "19": {
    "effects": [
@@ -330,7 +346,8 @@
    ],
    "desc": "队长最大生命 +20，立即回复 20 生命",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "20": {
    "effects": [
@@ -343,7 +360,8 @@
    ],
    "desc": "队长最大生命 +30",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "21": {
    "effects": [
@@ -356,7 +374,8 @@
    ],
    "desc": "队长最大生命 +50",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "22": {
    "effects": [
@@ -659,7 +678,8 @@
     }
    ],
    "desc": "所有敌人造成的伤害 -7%",
-   "rarity": "基础"
+   "rarity": "基础",
+   "pool": false
   },
   "42": {
    "effects": [
@@ -684,7 +704,8 @@
    ],
    "desc": "全队伤害 +35%；队长受到的伤害 -25%、最大生命 +45%",
    "rarity": "升华",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "43": {
    "effects": [
@@ -696,7 +717,8 @@
     }
    ],
    "desc": "所有敌人造成的伤害 -12%",
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "pool": false
   },
   "44": {
    "effects": [
@@ -708,33 +730,38 @@
     }
    ],
    "desc": "所有敌人造成的伤害 -17%",
-   "rarity": "核心"
+   "rarity": "核心",
+   "filler": true
   },
   "45": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "weak_bonus",
-     "op": "flat",
-     "value": 0.25,
-     "scope": "lane:weak"
+     "type": "rule",
+     "rule": "weak_expose",
+     "args": {
+      "dur": 3.0,
+      "mult": 0.2
+     }
     }
    ],
-   "desc": "弱点收割干员的弱点伤害额外 +25%（弱点基础 +50%）",
-   "rarity": "稀有"
+   "desc": "弱点收割干员命中弱点时给敌人挂「破绽」3 秒：期间它受到的所有伤害 +20%",
+   "rarity": "稀有",
+   "trim": "play"
   },
   "46": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "enemy_low_hp_dmg_taken",
-     "op": "add",
-     "value": 0.18,
-     "scope": "lane:weak"
+     "type": "rule",
+     "rule": "weak_crit",
+     "args": {
+      "chance": 0.25,
+      "kb": 160
+     }
     }
    ],
-   "desc": "弱点收割干员对生命低于 50% 的敌人伤害 +18%",
-   "rarity": "基础"
+   "desc": "弱点收割干员命中弱点时有 25% 概率造成双倍伤害并把敌人震退（Boss 只加伤不震退）",
+   "rarity": "基础",
+   "trim": "play"
   },
   "47": {
    "effects": [
@@ -755,7 +782,8 @@
      "value": 0.82
     }
    ],
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "pool": false
   },
   "49": {
    "effects": [
@@ -766,18 +794,22 @@
      "value": 0.9
     }
    ],
-   "rarity": "基础"
+   "rarity": "基础",
+   "pool": false
   },
   "50": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "enemy_hp",
-     "op": "mult",
-     "value": 0.8
+     "type": "rule",
+     "rule": "weak_pass",
+     "args": {
+      "r": 160
+     }
     }
    ],
-   "rarity": "核心"
+   "rarity": "核心",
+   "desc": "弱点收割干员击败有弱点的敌人时，弱点转移到 160 范围内最近的另一名敌人（Boss 除外）",
+   "trim": "play"
   },
   "51": {
    "effects": [
@@ -796,7 +828,8 @@
    ],
    "desc": "队长物理减伤 +2，受到的伤害 -6%",
    "max_lv": 1,
-   "rarity": "基础"
+   "rarity": "基础",
+   "pool": false
   },
   "52": {
    "effects": [
@@ -815,7 +848,8 @@
    ],
    "desc": "队长物理减伤 +3，受到的伤害 -8%",
    "max_lv": 1,
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "pool": false
   },
   "53": {
    "effects": [
@@ -834,39 +868,41 @@
    ],
    "desc": "队长物理减伤 +5，受到的伤害 -10%",
    "max_lv": 1,
-   "rarity": "核心"
+   "rarity": "核心",
+   "filler": true
   },
   "54": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "melee_dmg",
-     "op": "add",
-     "value": 0.12,
-     "scope": "lane:melee"
-    },
-    {
-     "type": "stat",
-     "stat": "dmg_taken",
-     "op": "add",
-     "value": -0.03
+     "type": "rule",
+     "rule": "melee_sweep",
+     "args": {
+      "chance": 0.15,
+      "r": 110,
+      "mult": 0.5
+     }
     }
    ],
-   "desc": "近战扩域干员的近战伤害 +12%（近战攻击与技能）；队长受到的伤害 -3%",
-   "rarity": "基础"
+   "desc": "近战扩域干员的近战命中有 15% 概率横扫：周围 110 范围内的其他敌人受到这次伤害的 50%",
+   "rarity": "基础",
+   "trim": "play"
   },
   "55": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "melee_dmg",
-     "op": "add",
-     "value": 0.22,
-     "scope": "lane:melee"
+     "type": "rule",
+     "rule": "melee_thrust",
+     "args": {
+      "every": 4,
+      "len": 220,
+      "w": 26,
+      "mult": 1.0
+     }
     }
    ],
-   "desc": "近战扩域干员的近战伤害 +22%（近战攻击与技能）",
-   "rarity": "稀有"
+   "desc": "近战扩域干员每第 4 次近战命中变为突刺：沿朝向 220 距离内的敌人都受到这次伤害",
+   "rarity": "稀有",
+   "trim": "play"
   },
   "56": {
    "effects": [
@@ -900,15 +936,18 @@
   "57": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "ranged_dmg",
-     "op": "add",
-     "value": 0.1,
-     "scope": "lane:multi"
+     "type": "rule",
+     "rule": "multi_split",
+     "args": {
+      "n": 2,
+      "r": 140,
+      "mult": 0.4
+     }
     }
    ],
-   "desc": "多弹火力干员的远程伤害 +10%（远程攻击与技能）",
-   "rarity": "基础"
+   "desc": "多弹火力干员的远程命中会弹向附近 2 名敌人（140 范围内，各受这次伤害的 40%，不再弹）",
+   "rarity": "基础",
+   "trim": "play"
   },
   "58": {
    "effects": [
@@ -976,7 +1015,8 @@
     }
    ],
    "desc": "队长最大生命 +15%",
-   "rarity": "基础"
+   "rarity": "基础",
+   "filler": true
   },
   "61": {
    "effects": [
@@ -988,7 +1028,8 @@
     }
    ],
    "desc": "队长最大生命 +25%",
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "filler": true
   },
   "62": {
    "effects": [
@@ -1066,7 +1107,8 @@
    ],
    "desc": "物理伤害 +35%",
    "rarity": "核心",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "66": {
    "effects": [
@@ -1078,7 +1120,8 @@
     }
    ],
    "desc": "法术伤害 +20%",
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "pool": false
   },
   "67": {
    "effects": [
@@ -1090,7 +1133,8 @@
     }
    ],
    "desc": "法术伤害 +30%",
-   "rarity": "核心"
+   "rarity": "核心",
+   "filler": true
   },
   "68": {
    "effects": [
@@ -1102,7 +1146,8 @@
     }
    ],
    "desc": "法术伤害 +40%",
-   "rarity": "核心"
+   "rarity": "核心",
+   "filler": true
   },
   "69": {
    "effects": [
@@ -1114,7 +1159,8 @@
     }
    ],
    "desc": "队长受到的治疗量 +20%",
-   "rarity": "基础"
+   "rarity": "基础",
+   "pool": false
   },
   "70": {
    "effects": [
@@ -1127,7 +1173,8 @@
    ],
    "desc": "队长受到的治疗量 +30%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "71": {
    "effects": [
@@ -1151,7 +1198,8 @@
     }
    ],
    "desc": "队长受到的治疗量 +30%；受到的侵蚀与神经损伤 -30%",
-   "rarity": "核心"
+   "rarity": "核心",
+   "filler": true
   },
   "72": {
    "effects": [
@@ -1163,7 +1211,8 @@
     }
    ],
    "desc": "队长每秒回复 0.5% 最大生命",
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "filler": true
   },
   "73": {
    "effects": [
@@ -1175,7 +1224,8 @@
     }
    ],
    "desc": "队长物理闪避 +15%（接触、冲撞、子弹等物理攻击）",
-   "rarity": "基础"
+   "rarity": "基础",
+   "pool": false
   },
   "74": {
    "effects": [
@@ -1187,19 +1237,25 @@
     }
    ],
    "desc": "队长法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）",
-   "rarity": "基础"
+   "rarity": "基础",
+   "pool": false
   },
   "75": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "dodge",
-     "op": "flat",
-     "value": 0.1
+     "type": "rule",
+     "rule": "dash_dodge",
+     "args": {
+      "dodge": 0.4,
+      "dur": 1.5,
+      "mult": 1.0,
+      "w": 40
+     }
     }
    ],
-   "desc": "队长闪避率 +10%",
-   "rarity": "基础"
+   "desc": "冲刺后 1.5 秒内队长闪避率 +40%；冲刺路线上的敌人受到队长攻击 ×1 的伤害",
+   "rarity": "基础",
+   "trim": "play"
   },
   "76": {
    "effects": [
@@ -1259,21 +1315,23 @@
     }
    ],
    "desc": "全队伤害 +20%（真实伤害除外）",
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "filler": true
   },
   "80": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "followup_dmg",
-     "op": "add",
-     "value": 0.2,
-     "scope": "lane:summon"
+     "type": "rule",
+     "rule": "summon_echo",
+     "args": {
+      "chance": 0.2
+     }
     }
    ],
-   "desc": "召唤驻场干员的追击与召唤物伤害 +20%",
+   "desc": "召唤驻场干员的追击 / 召唤物命中时有 20% 概率再追击一次（同样伤害，不再连锁）",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "trim": "play"
   },
   "81": {
    "effects": [
@@ -1285,21 +1343,19 @@
      "scope": "lane:melee"
     },
     {
-     "type": "stat",
-     "stat": "dmg_taken",
-     "op": "add",
-     "value": -0.05
+     "type": "rule",
+     "rule": "melee_crowd",
+     "args": {
+      "r": 140,
+      "per": 0.03,
+      "cap": 0.3
+     }
     }
    ],
-   "desc": "近战扩域干员攻击范围 +25%；队长受到的伤害 -5%",
+   "desc": "近战扩域干员攻击范围 +25%；身边 140 范围内每有 1 名敌人，近战伤害 +3%（最多 +30%）",
    "rarity": "稀有",
-   "requires_class": [
-    "近卫",
-    "重装",
-    "先锋",
-    "特种"
-   ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "trim": "play"
   },
   "82": {
    "effects": [
@@ -1309,17 +1365,20 @@
      "op": "add",
      "value": 0.2,
      "scope": "lane:multi"
+    },
+    {
+     "type": "rule",
+     "rule": "multi_far",
+     "args": {
+      "max": 0.3,
+      "at": 300
+     }
     }
    ],
-   "desc": "多弹火力干员攻击范围 +20%",
+   "desc": "多弹火力干员攻击范围 +20%；远程命中离出手干员越远伤害越高（300 距离及以外 +30%）",
    "rarity": "稀有",
-   "requires_class": [
-    "狙击",
-    "术师",
-    "医疗",
-    "辅助"
-   ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "trim": "play"
   },
   "83": {
    "effects": [
@@ -1340,15 +1399,17 @@
   "84": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "followup_dmg",
-     "op": "add",
-     "value": 0.6,
-     "scope": "lane:summon"
+     "type": "rule",
+     "rule": "summon_burst",
+     "args": {
+      "r": 90,
+      "pct": 0.3
+     }
     }
    ],
-   "desc": "召唤驻场干员的追击与召唤物伤害 +60%（余震、殉爆，以及魂灵之影、触手桩、Mon3tr、替身等召唤物）",
-   "rarity": "核心"
+   "desc": "召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 不殉爆，殉爆不连锁）",
+   "rarity": "核心",
+   "trim": "play"
   },
   "85": {
    "effects": [
@@ -1419,19 +1480,26 @@
    ],
    "desc": "全队技力回复 +15%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "89": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "sp_gain",
-     "op": "add",
-     "value": 0.3
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "temp_stat",
+     "args": {
+      "stat": "op_aspd",
+      "op": "add",
+      "value": 0.2,
+      "dur": 5.0
+     }
     }
    ],
-   "desc": "全队技力回复 +30%",
-   "rarity": "核心"
+   "desc": "干员开启技能后 5 秒内，全队攻击速度 +20%（再次开启技能刷新时长）",
+   "rarity": "核心",
+   "trim": "play"
   },
   "90": {
    "effects": [
@@ -1444,7 +1512,8 @@
    ],
    "desc": "全队技力回复 +35%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "91": {
    "effects": [
@@ -1555,26 +1624,31 @@
   "97": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "control_dur",
-     "op": "add",
-     "value": 0.5
+     "type": "rule",
+     "rule": "ctrl_amp",
+     "args": {
+      "mult": 0.2
+     }
     }
    ],
-   "desc": "眩晕、束缚、减速的持续时间 +50%",
-   "rarity": "稀有"
+   "desc": "处于眩晕或减速中的敌人受到的伤害 +20%",
+   "rarity": "稀有",
+   "trim": "play"
   },
   "98": {
    "effects": [
     {
-     "type": "stat",
-     "stat": "control_dur",
-     "op": "add",
-     "value": 0.8
+     "type": "rule",
+     "rule": "ctrl_chain",
+     "args": {
+      "r": 90,
+      "stun": 0.5
+     }
     }
    ],
-   "desc": "眩晕、束缚、减速的持续时间 +80%",
-   "rarity": "核心"
+   "desc": "敌人的眩晕自然结束时炸开：90 范围内的其他敌人眩晕 0.5 秒（被波及的不再炸开，Boss 除外）",
+   "rarity": "核心",
+   "trim": "play"
   },
   "99": {
    "effects": [
@@ -1583,10 +1657,19 @@
      "stat": "control_dur",
      "op": "add",
      "value": 1.0
+    },
+    {
+     "type": "rule",
+     "rule": "ctrl_freeze",
+     "args": {
+      "r": 120,
+      "stun": 1.5
+     }
     }
    ],
-   "desc": "眩晕、束缚、减速的持续时间 +100%",
-   "rarity": "升华"
+   "desc": "眩晕、束缚、减速的持续时间 +100%；处于眩晕或减速中的敌人被击败时，120 范围内的敌人冻结 1.5 秒（Boss 除外）",
+   "rarity": "升华",
+   "trim": "play"
   },
   "100": {
    "requires": [
@@ -1642,18 +1725,27 @@
      "type": "stat",
      "stat": "enemy_speed",
      "op": "mult",
-     "value": 0.85
+     "value": 0.925
     },
     {
      "type": "stat",
      "stat": "enemy_kb",
      "op": "add",
-     "value": 0.4
+     "value": 0.2
+    },
+    {
+     "type": "rule",
+     "rule": "kb_stun",
+     "args": {
+      "stun": 0.4,
+      "min": 40
+     }
     }
    ],
-   "desc": "所有敌人移动速度 -15%，受到的击退 +40%（Boss 除外）",
+   "desc": "所有敌人移动速度 -7.5%，受到的击退 +20%；被击退的敌人眩晕 0.4 秒（Boss 除外）",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "trim": "play"
   },
   "104": {
    "effects": [
@@ -1858,7 +1950,8 @@
    "desc": "精英敌人对队长造成的伤害 -40%",
    "rarity": "稀有",
    "shop_allowed": true,
-   "new": true
+   "new": true,
+   "filler": true
   },
   "114": {
    "effects": [
@@ -1887,7 +1980,8 @@
     }
    ],
    "desc": "队长物理减伤 +3，法术抗性 +20%",
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "pool": false
   },
   "116": {
    "effects": [
@@ -1932,7 +2026,8 @@
     }
    ],
    "desc": "队长每 12 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%",
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "filler": true
   },
   "119": {
    "effects": [
@@ -1945,7 +2040,8 @@
    ],
    "desc": "远程杂兵的开火间隔 +35%（Boss 除外）",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "120": {
    "effects": [
@@ -2205,7 +2301,8 @@
    ],
    "desc": "队长受到的侵蚀 -40%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "132": {
    "effects": [
@@ -2218,7 +2315,8 @@
    ],
    "desc": "队长神经损伤累积 -40%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "133": {
    "effects": [
@@ -2242,7 +2340,8 @@
     "先锋"
    ],
    "shop_allowed": true,
-   "new": true
+   "new": true,
+   "filler": true
   },
   "134": {
    "effects": [
@@ -2260,7 +2359,8 @@
     "先锋"
    ],
    "shop_allowed": true,
-   "new": true
+   "new": true,
+   "filler": true
   },
   "135": {
    "effects": [
@@ -2303,7 +2403,8 @@
    "requires_class": [
     "先锋"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "filler": true
   },
   "137": {
    "effects": [
@@ -2327,7 +2428,8 @@
     "近卫"
    ],
    "shop_allowed": true,
-   "new": true
+   "new": true,
+   "filler": true
   },
   "138": {
    "effects": [
@@ -2344,7 +2446,8 @@
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "filler": true
   },
   "139": {
    "effects": [
@@ -2388,7 +2491,8 @@
     "近卫"
    ],
    "shop_allowed": true,
-   "new": true
+   "new": true,
+   "filler": true
   },
   "141": {
    "effects": [
@@ -2418,7 +2522,8 @@
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "filler": true
   },
   "142": {
    "effects": [
@@ -2442,7 +2547,8 @@
    ],
    "shop_allowed": true,
    "max_lv": 1,
-   "new": true
+   "new": true,
+   "pool": false
   },
   "143": {
    "effects": [
@@ -2459,7 +2565,8 @@
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "filler": true
   },
   "144": {
    "effects": [
@@ -2490,7 +2597,8 @@
     "重装"
    ],
    "shop_allowed": true,
-   "new": true
+   "new": true,
+   "filler": true
   },
   "145": {
    "effects": [
@@ -2566,7 +2674,8 @@
    "rarity": "基础",
    "requires_class": [
     "狙击"
-   ]
+   ],
+   "pool": false
   },
   "149": {
    "effects": [
@@ -2590,7 +2699,8 @@
    "requires_class": [
     "狙击"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "150": {
    "effects": [
@@ -2607,7 +2717,8 @@
    "requires_class": [
     "狙击"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "151": {
    "effects": [
@@ -2645,7 +2756,8 @@
    "rarity": "稀有",
    "requires_class": [
     "术师"
-   ]
+   ],
+   "filler": true
   },
   "153": {
    "effects": [
@@ -2690,7 +2802,8 @@
    "requires_class": [
     "术师"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "155": {
    "effects": [
@@ -2722,7 +2835,8 @@
    "requires_class": [
     "辅助"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "157": {
    "effects": [
@@ -2765,7 +2879,8 @@
    "requires_class": [
     "辅助"
    ],
-   "rarity": "稀有"
+   "rarity": "稀有",
+   "filler": true
   },
   "159": {
    "effects": [
@@ -2781,7 +2896,8 @@
    "rarity": "基础",
    "requires_class": [
     "医疗"
-   ]
+   ],
+   "pool": false
   },
   "160": {
    "effects": [
@@ -2798,7 +2914,8 @@
    "requires_class": [
     "医疗"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "161": {
    "effects": [
@@ -2815,7 +2932,8 @@
    "requires_class": [
     "医疗"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "162": {
    "effects": [
@@ -2836,7 +2954,8 @@
    "rarity": "稀有",
    "requires_class": [
     "医疗"
-   ]
+   ],
+   "filler": true
   },
   "163": {
    "effects": [
@@ -2859,7 +2978,8 @@
    "requires_class": [
     "特种"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "164": {
    "effects": [
@@ -2876,7 +2996,8 @@
    "requires_class": [
     "特种"
    ],
-   "new": true
+   "new": true,
+   "filler": true
   },
   "165": {
    "effects": [
@@ -2892,7 +3013,8 @@
    "rarity": "稀有",
    "requires_class": [
     "特种"
-   ]
+   ],
+   "filler": true
   },
   "166": {
    "effects": [
@@ -2926,7 +3048,8 @@
    ],
    "desc": "全队攻击对敌人的击退 +60%（Boss 除外）",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "168": {
    "effects": [
@@ -3337,17 +3460,10 @@
    "effects": [
     {
      "type": "on_gain",
-     "do": "heal",
-     "args": {
-      "amount": 0.4
-     }
-    },
-    {
-     "type": "on_gain",
      "do": "shield_fill"
     }
    ],
-   "desc": "获得时队长回复 40% 最大生命，并补满护盾",
+   "desc": "获得时补满护盾",
    "rarity": "基础",
    "late_weight": 0.3
   },
@@ -3477,16 +3593,11 @@
     }
    ],
    "desc": "队长护盾层数上限 +1",
-   "rarity": "基础"
+   "rarity": "基础",
+   "filler": true
   },
   "200": {
    "effects": [
-    {
-     "type": "stat",
-     "stat": "max_hp",
-     "op": "flat",
-     "value": -10
-    },
     {
      "type": "stat",
      "stat": "shield_max",
@@ -3498,13 +3609,22 @@
      "stat": "shield_interval",
      "op": "add",
      "value": -0.15
+    },
+    {
+     "type": "rule",
+     "rule": "shield_pulse",
+     "args": {
+      "r": 120,
+      "mult": 1.5
+     }
     }
    ],
    "requires": [
     "118"
    ],
-   "desc": "队长最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%",
-   "rarity": "稀有"
+   "desc": "队长护盾层数上限 +2，护盾生成间隔 -15%；每生成一层护盾，对 120 范围内的敌人造成队长攻击 ×1.5 的冲击",
+   "rarity": "稀有",
+   "trim": "play"
   },
   "201": {
    "effects": [
@@ -3899,7 +4019,8 @@
    ],
    "desc": "对 Boss 造成的伤害 +50%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "228": {
    "effects": [
@@ -3941,7 +4062,8 @@
    ],
    "desc": "所有敌人生命 -15%（Boss 最多 -20%），移动速度 -15%（Boss 除外）",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "231": {
    "effects": [
@@ -4047,7 +4169,8 @@
    "desc": "全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -10%",
    "rarity": "稀有",
    "max_lv": 1,
-   "new": true
+   "new": true,
+   "filler": true
   },
   "236": {
    "effects": [
@@ -4066,7 +4189,8 @@
    ],
    "desc": "队长最大生命 -25%；全队技力回复 +50%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "237": {
    "effects": [
@@ -4085,7 +4209,8 @@
    ],
    "desc": "全队攻击速度 +10%；所有敌人攻击速度 -10%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "238": {
    "effects": [
@@ -4284,7 +4409,8 @@
    ],
    "desc": "受击与黑潮导致的灯火流失 -40%",
    "rarity": "基础",
-   "new": true
+   "new": true,
+   "pool": false
   },
   "250": {
    "effects": [
@@ -4297,7 +4423,8 @@
    ],
    "desc": "受击与黑潮导致的灯火流失 -60%",
    "rarity": "稀有",
-   "new": true
+   "new": true,
+   "filler": true
   },
   "251": {
    "effects": [
@@ -4489,29 +4616,33 @@
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "pool": false
   },
   "260": {
    "effects": [
     {
      "type": "stat",
-     "stat": "dmg_taken",
-     "op": "add",
-     "value": -0.25
-    },
-    {
-     "type": "stat",
      "stat": "shield_max",
      "op": "flat",
      "value": 1
+    },
+    {
+     "type": "rule",
+     "rule": "shield_dr",
+     "args": {
+      "per": 0.08,
+      "cap": 0.4
+     }
     }
    ],
-   "desc": "队长受到的伤害 -25%，护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾）",
+   "desc": "队长护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾）；每有 1 层护盾，队长受到的伤害 -8%（最多 -40%）",
    "rarity": "升华",
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "trim": "play"
   },
   "261": {
    "effects": [
