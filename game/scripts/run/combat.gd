@@ -1087,6 +1087,7 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 
 
 var _dmg_depth := 0
+var quiet := false   # 静默击杀（arch_review_1029 P1-3 / docs/198 §7.4）：开着时普通怪倒下不播击杀爆点 / 击杀音 / 死亡帧条 / 碎屑（精英、Boss 照常）；终结技一次清屏用，缺省关
 
 func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.dead or e.get("friendly", false):
@@ -1333,8 +1334,10 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	# 精英 ≤ fx/death_max_elite、Boss 不变）→ 最后一帧碎成像素碎屑」，不画溶解帧条、不叠老 CPU 火花 / 冲击环 / 尘土（击杀音与顿帧照旧）；
 	# 没有死亡帧条的怪当帧碎。光学关（低档）走原来的帧条 / 溶解 + 火花。纯画面
 	var lean: bool = g.optical_on and g.optical.particles != null
-	g.vfx.kill_burst(e, col, g.crit_hit, lean)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
-	var body_on: bool = not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0
+	var q: bool = quiet and not e.elite and not e.boss   # 静默：下面的画面 / 音效整段跳过（纯表现，掉落与结算照常）
+	if not q:
+		g.vfx.kill_burst(e, col, g.crit_hit, lean)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
+	var body_on: bool = not q and (not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0)
 	var shattered := false   # 碎屑已交给死亡帧条最后一帧（vfx.update 到点喷）
 	if not body_on:
 		pass
@@ -1355,11 +1358,11 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			var dp: Vector2 = foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5)
 			if g.vfx.fx_sprite(death_name, dp, dsc, 0.0) and lean:
 				shattered = g.vfx.death_shatter(e, death_name, dp, dsc, Vector2(0.5, 0.5))
-	elif lean:
+	elif lean or q:
 		pass   # 光学 + 新击杀：没有死亡帧条的怪不画溶解，下面当帧碎
 	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
 		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
-	if not shattered and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
+	if not q and not shattered and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
 		g.optical.particles.kill_burst(e)   # 光学观感原型：击杀碎屑（纯画面，GPU 随机，不碰模拟随机数）
 	if e.elite:
 		g.elites_killed += 1

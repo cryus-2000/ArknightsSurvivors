@@ -42,6 +42,7 @@ var act: Dictionary = {}    # Moves.start / start_cult 返回的动作状态
 var serial := 0             # 第几次终结技（伤害预算按它分次记账：e.ult_s / e.ult_d）
 var q_held := false
 var last_hit_t := -1.0       # 终结技最后一次造成伤害的时刻（ult_bench 量时长）
+var kills_now := 0          # 本次终结技已击杀数：超过 ult/fx_kill_cap（60，§7.4）后普通怪静默倒下（combat.quiet）
 var tier := "ult"           # 当前伤害档：ult / cult（hit 读）
 
 # ---- 连携（§2.5 / §5）
@@ -236,6 +237,7 @@ func _begin(ld, k: String) -> void:
 	tier = k
 	caster = ld
 	serial += 1
+	kills_now = 0
 	energy = 0.0
 	full_since = -1.0
 	if k == "cult":
@@ -511,7 +513,11 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		amt /= 1.25
 	var src: String = _src(o, str(opt.get("src", "")))
 	var hp0: float = e.hp
+	g.combat.quiet = kills_now >= int(Bal.v("ult/fx_kill_cap", 60.0))
 	g.combat.damage(e, amt, g.combat.make_hit(src, ["终结技"]))
+	g.combat.quiet = false
+	if e.dead:
+		kills_now += 1
 	var got: float = maxf(0.0, hp0 - float(e.hp))
 	e.ult_d = float(e.ult_d) + got
 	if got > 0.0:
