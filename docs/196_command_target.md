@@ -229,3 +229,17 @@
 7. 集火 Boss 近乎免费（队友吃不到弹幕）这件事：先量再说（A），还是同期让预警区能打到被指点的队友（B）？
 8. 名称：点位 / 集火 + 总称「指点」，可以吗？
 9. 队友点灯标（M5）要不要和灯火体系瘦身一起立项？
+
+## 15. 提前上线：移动 / 肃清 / 集火 + 中期 Boss 锁定 + 机器人指点（10-30，分支 `claude/command-point`）
+
+协调人 10-30：指点原型提前做完并准备合入；同时配合 docs/177 §9 方案 A。用户 10-30 先说「指挥圆盘的移动我觉得可以修改为肃清一块区域」，随后改为「移动保留，然后增加肃清区域的选项，因为移动可以帮忙点亮灯塔」。
+
+- **开关**：`command/target_proto` 缺省改 1，圆盘下半圈换成 **移动 / 肃清 / 集火**（6 格各 60°，`command_wheel` 的 `ANG` / `HALF` 按项数取；5 项时照旧）。清杂 / Boss 优先的代码本轮不删（§4 清单留给 M1 正式版），只是圆盘里不再出现；`squad.priority` 停在缺省清杂。
+- **移动**（原「点位」，照原型）：全队去点、在 `order_pt_r` 240 内作战；圈空 `order_idle` 2.5 秒或队长走出 `order_break` → 归队。
+- **肃清**（新）：点一块区域，地面画范围格（半径 `clear_r` 220）；队友去清圈内敌人（圈内选离自己最近的）；圈空 `clear_idle` 1 秒、或下令后 `clear_secs` 9 秒、或队长走远 → **回到随行**；队长不动。下令冷却 `order_cd` 3 秒，选点照原型扣作战时限。
+- **集火**：照原型，目标死了指令结束、继续自动突击。
+- **中期 Boss 锁定**（docs/177 §9 方案 A，`boss/mid_focus`）：中期 Boss（`spawner.is_final_boss_type` 以外的 Boss）可受击、在射程 × `mid_focus_k` 1.5 内 → `op_api.mid_boss_lock` 把它排第一（两档优先级一样，技能非范围同样走 `nearest_enemies`）；护主只留给队长、只认 `mid_focus_guard` 30 像素内贴脸的杂兵。最终 Boss 不受影响。0 = 关。
+- **机器人指点**（`command/bot_point`，`squad.bot_point`，`bot.move` 每帧调，afk 档不用）：每 1 秒看一次，无指令、冷却过、作战时限够时：Boss（可受击、离队长 `order_r` × 1.6 内）在场 → 集火最近的 Boss；否则队长 240 内敌人 ≥ 6 → 对 `order_r` 内最密一块（40 只里 `clear_r` 内邻居最多）下肃清。不抽随机数。本地 240 秒一局：约每 25 秒一次肃清，Boss 出场即集火。
+- **测试**：`command_wheel` 29 项（+10：6 格 id、肃清半径、清空 / 超时回随行、移动照旧归队）；`command_ai` 70 项里 1 项「side 0: old rule」在整合分支 7306d6bf1 本身就失败（与本分支无关）；`voice_command` 174 项。
+- **云端配对**（中期 Boss 刷怪 0.5，高手机器人，starts 7 × seed 1–8，m0 / m18）：A_ctl = mid-boss-spawn-1029，B_lock = command-point-mb + `bot_point=0`（只开锁定），C_both = command-point-mb（锁定 + 机器人指点）；结果 `cloud-results/cpoint-{A_ctl,B_lock,C_both}`，读回后补表。
+- **录像**：`build/command_rec/point_midboss.mp4`（30 秒原速，中期 Boss 战：圆盘集火 Boss → 圆盘肃清最密一块）。
