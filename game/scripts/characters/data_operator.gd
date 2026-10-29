@@ -67,6 +67,7 @@ var kill_w := 1.0                      # trig.on_kill 执行期间这次击杀�
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
 var mhook_cd := {}                     # 联动段（docs/123 §2.7）：trig.on_mate_hook 每块的上次触发时刻（不放 el：el 非空会被精英化段当成「用得到」）
+var gn := {}                           # 成长节点（docs/202）的扩展状态：浊心斯卡蒂的潮声层数 / 共振列表 / 击杀节流；其余干员恒空
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
 
 
@@ -285,6 +286,7 @@ func update(dt: float) -> void:
 	SegExusiai.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
 	ObSummon.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
 	ObElite.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
+	SegSkalter.sk_gn_tick(self, dt)   # 成长节点（docs/202）：浊心斯卡蒂的潮声层数（其余干员第一行就返回）
 	if SegTexas.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
 	if hw_busy or (not hw.is_empty() and ObHw.hw_busy(self)):   # 手写迁移段：喷发序列 / 锚在外面时不起手（同手写的 return）
@@ -987,7 +989,7 @@ func on_kill(e: Dictionary) -> void:
 		if str(t.get("_tag", "")) != "trig.on_kill" or not ObCore.cond_true(self, t.get("cond", _ED)):
 			continue
 		var f: String = str(t.get("filter", "any"))
-		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss):
+		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss) or (f == "zone_ally" and SegSkalter.gn_zone_ally_kill(self, e)):
 			_exec_list(t.get("do", []), e.pos)
 	kill_w = 1.0
 
@@ -1068,6 +1070,7 @@ func draw_auras() -> void:
 		rm = minf(rm, ObVortex.vortex_ring_mul(self, _fxb[u]))
 	if str(B.zone.get("look", "")) == "particles":   # 10-29 浊心斯卡蒂：领域改粒子勾边、内部稀疏，不画实心圆；画面半径缓动 + 波纹（seg_skalter）
 		SegSkalter.sk_draw_domain(self, c, SegSkalter.sk_vis_r(self, "self", c, zr, SegSkalter.SK_DOM), SegSkalter.SK_DOM, on, 0.0)
+		SegSkalter.sk_gn_draw(self)   # 成长节点（docs/202）：潮声音符 / 共振层
 		if not sm.is_empty():
 			SegSkalter.e5_draw_zones(self, cc, on)
 		_draw_hold_strips(cv, "floor")

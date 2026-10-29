@@ -7,6 +7,8 @@ extends "res://scripts/characters/blocks/seg_siege.gd"
 #                   n = shots + shot_adds 里 cond 成立的 n 之和；次数型补丁（狐火连珠）attack_patch {shots, mult, power}；狐火从杖头 tip 发出；同时在场的弹体 ≤ proj_max（含大狐火、围炉狐火）；
 #                   merge {cond, every, all {cond}, mult, spd, life, r}：每第 every 次普攻（all 成立时每一次）三团合成一团大狐火直线贯穿（每名敌人一次）；
 #                   seal {cond, stun, stun_elite}：狐火连珠的狐火命中后定身（Boss 不受）+ 脚下金印；狐火迷雾（光域 haze）期间不普攻
+#  成长节点（docs/202，10-29）：attack.attach {cond, dur, r, every, mult, max, src} = 「狐火点点」：狐火（含大狐火）命中后不消散，附在目标身上 dur 秒（一团小火跟着敌人走），
+#                   每 every 秒灼烧附着体周围 r 内的敌人（攻击 × mult，每名敌人每跳一次，不管几团火罩着它），并向 r 内一名未被附着的敌人传一次火；同时至多 max 团
 #  verb.foxlight    光域（放 trait 的 passive）：以本干员为心，半径 (r + r_elite × 精英阶段) × op_range，暖光（warm 条件）× warm_mult、迷雾 × haze_mult；
 #                   区域内敌人减速（slow[平时 / 暖光 / 迷雾] 秒）、weak_cond 成立或迷雾时 aura_weak；暖光或迷雾期间每秒为队长回复 heal[平时 / 迷雾]；
 #                   迷雾结束时：暖光在 → 其他干员攻击 + warm_buff × 技能强度，否则撤掉；hearth {cond, n, mult, cd, src}：暖光生效后光域边缘的狐火灼伤碰到的敌人
@@ -16,7 +18,8 @@ static func _h4sz(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("sz"):
 		h["sz"] = {"haze_t": 0.0, "mote_t": 0.0, "heal_acc": 0.0, "pillar_t": 0.0, "n": 0, "merging": false,
-			"bigfox": [], "sealed": [], "seals": [], "hearth_hit": {}, "brand": [], "brands": [], "trails": []}
+			"bigfox": [], "sealed": [], "seals": [], "hearth_hit": {}, "brand": [], "brands": [], "trails": [],
+			"att_b": [], "att": [], "att_clock": 0.0}
 	return h.sz
 
 
@@ -157,11 +160,115 @@ static func _h4_fox_release(o, a: Dictionary) -> void:
 
 ## 精一「狐火灼印」：记住这团狐火，命中后（game 结算时 life 置 0）给打中的敌人挂灼印
 static func _h4_fox_track(o, a: Dictionary, b: Dictionary) -> void:
+	var sz := _h4sz(o)
+	if not _h4_sub(o, a.get("attach", null)).is_empty() and sz.att_b.size() < 32:
+		sz.att_b.append(b)   # 狐火点点（docs/202）：命中后附着
 	if _h4_sub(o, a.get("brand", null)).is_empty():
 		return
-	var sz := _h4sz(o)
 	if sz.brand.size() < 32:
 		sz.brand.append(b)
+
+
+## 狐火点点（docs/202）：附着。同一名敌人再被附着只刷新时长；上限 max 团（满了丢最早的）
+static func _h4_attach(o, at: Dictionary, e: Dictionary, can_pass := true) -> void:
+	if e.dead or e.get("chest", false):
+		return
+	var sz := _h4sz(o)
+	var dur: float = float(at.get("dur", 2.0))
+	for s2 in sz.att:
+		if is_same(s2.e, e):
+			s2.t = maxf(float(s2.t), dur)
+			return
+	if sz.att.size() >= int(at.get("max", 12)):
+		sz.att.pop_front()
+	sz.att.append({"e": e, "t": dur, "pass": can_pass})
+	o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -float(e.r)), "r": 12.0, "life": 0.2, "col": H4_FOX, "alpha": 0.7})
+
+
+static func _h4_attach_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void:
+	var at: Dictionary = _h4_sub(o, a.get("attach", null))
+	if at.is_empty():
+		sz.att_b.clear()
+		sz.att.clear()
+		return
+	var g = o.g
+	# 命中判定：同灼印——game 结算命中时把弹体 life 置 0，自然消散是负数
+	for i in range(sz.att_b.size() - 1, -1, -1):
+		var b: Dictionary = sz.att_b[i]
+		if b.life > 0.0:
+			continue
+		sz.att_b.remove_at(i)
+		if b.life < 0.0:
+			continue
+		var best = null
+		var bd := 40.0
+		for j in o.query_ids(b.pos, 40.0):
+			var e: Dictionary = g.enemies[j]
+			var dd: float = e.pos.distance_to(b.pos) - e.r
+			if not e.dead and dd < bd:
+				bd = dd
+				best = e
+		if best != null:
+			_h4_attach(o, at, best)
+	if sz.att.is_empty():
+		return
+	for s2 in sz.att:
+		s2.t = float(s2.t) - dt
+	sz.att = sz.att.filter(func(s2): return float(s2.t) > 0.0 and not s2.e.dead)
+	if sz.att.is_empty():
+		return
+	sz.att_clock = float(sz.att_clock) + dt
+	if float(sz.att_clock) < float(at.get("every", 0.5)):
+		return
+	sz.att_clock = 0.0
+	var r: float = float(at.get("r", 60.0)) * o.stat(&"op_range")
+	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * float(at.get("mult", 0.15)) * o._dmg_bonus()
+	var src: String = str(at.get("src", ""))
+	var burned := {}
+	var victims: Array = []
+	var passes: Array = []
+	for s2 in sz.att:
+		var c: Vector2 = s2.e.pos
+		for j in o.query_ids(c, r + 40.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or burned.has(e.id) or e.pos.distance_to(c) > r + e.r:
+				continue
+			burned[e.id] = true
+			victims.append(e)
+		if s2.pass:
+			passes.append(s2)
+	for e3 in victims:
+		o.log_hit(src)
+		o.deal_damage(e3, dmg * (o.vs_elite() if e3.elite or e3.boss else 1.0))
+		o.fx({"kind": "flame", "pos": e3.pos + Vector2(0, 4), "vel": Vector2(0, -30), "life": 0.3, "col": H4_FOX, "sz": 9.0})
+	o.fx({"kind": "ring", "pos": sz.att[0].e.pos, "r": r, "r0": r * 0.6, "life": 0.25, "col": H4_FOX, "floor": true, "w": 1.5, "alpha": 0.5})
+	# 传火：每团附着体至多传一次，传给 r 内最近的一名未被附着的敌人
+	for s2 in passes:
+		if not sz.att.has(s2) or s2.e.dead:
+			continue
+		var best2 = null
+		var bd2 := r
+		for j in o.query_ids(s2.e.pos, r + 40.0):
+			var q: Dictionary = g.enemies[j]
+			if q.dead or q.get("chest", false) or is_same(q, s2.e):
+				continue
+			var taken := false
+			for s3 in sz.att:
+				if is_same(s3.e, q):
+					taken = true
+					break
+			if taken:
+				continue
+			var dq: float = q.pos.distance_to(s2.e.pos) - q.r
+			if dq < bd2:
+				bd2 = dq
+				best2 = q
+		if best2 == null:
+			continue
+		s2.pass = false
+		_h4_attach(o, at, best2, false)
+		o.fx({"kind": "line", "pos": s2.e.pos + Vector2(0, -10), "to": best2.pos + Vector2(0, -10), "life": 0.25, "col": Color(2.0, 1.6, 0.8), "w": 3.0})
+		o.fx({"kind": "glow", "pos": best2.pos + Vector2(0, -10), "r": 14.0, "life": 0.25, "col": H4_FOX, "alpha": 0.8})
 
 
 ## 灼印：dur 秒内受到的伤害 + value（敌人 frag_t / frag_v，combat.gd 读；同名取最高、再命中刷新）；脚下金印画面
@@ -211,6 +318,7 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 	_h4_bigfox_tick(o, sz, a, dt)
 	_h4_seals_tick(o, sz, a, dt)
 	_h4_brand_tick(o, sz, a, dt)   # 精英化第 4 批（狐火灼印 / 狐火拖尾）的挂点；迁移时没有
+	_h4_attach_tick(o, sz, a, dt)
 	if fl.is_empty():
 		return
 	var hr: Dictionary = _h4_hearth(o, fl)
@@ -314,6 +422,9 @@ static func _h4_bigfox_path(o, sz: Dictionary, a: Dictionary, f: Dictionary) -> 
 
 
 static func _h4_fox_hit(o, a: Dictionary, e: Dictionary) -> void:
+	var at: Dictionary = _h4_sub(o, a.get("attach", null))
+	if not at.is_empty() and not e.dead:
+		_h4_attach(o, at, e)
 	var br: Dictionary = _h4_sub(o, a.get("brand", null))
 	if not br.is_empty() and not e.dead:
 		_h4_brand_apply(o, br, e)
@@ -571,6 +682,13 @@ static func _h4sz_draw_over(o) -> void:
 		var hh: float = lerpf(10.0, 22.0, (conv - 0.5) * 2.0)
 		cv.draw_circle(c + Vector2(0, -hh * 0.4), hh * 0.7, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.3 * conv))
 		_h4_flame(o, c, hh, conv)
+	for s2 in sz.att:
+		var ee: Dictionary = s2.e
+		var fp: Vector2 = ee.pos + Vector2(0, -float(ee.r) * 1.2 + sin(g.t * 9.0 + float(ee.id)) * 1.5)
+		var fa: float = clampf(float(s2.t) / 0.3, 0.0, 1.0)
+		cv.draw_circle(fp + Vector2(0, -4), 11.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.28 * fa))
+		_h4_flame(o, fp, 15.0, fa)
+		cv.draw_circle(fp + Vector2(0, -3), 2.5, Color(2.6, 2.4, 1.8, 0.9 * fa))
 	for f in sz.bigfox:
 		cv.draw_circle(f.pos, 24.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
 		cv.draw_circle(f.pos, 14.0, Color(2.0, 1.6, 0.8, 0.45))

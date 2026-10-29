@@ -20,7 +20,7 @@ const HW_BLOOD := Color(1.0, 0.25, 0.3)
 static func _hw4(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("anchor"):
-		h.merge({"anchor": {}, "hooked": [], "launched": [], "stacks": {}, "armed": {}, "timers": {}, "sil": {}, "blk": {}, "mute": {}})
+		h.merge({"anchor": {}, "hooked": [], "launched": [], "stacks": {}, "armed": {}, "timers": {}, "sil": {}, "blk": {}, "mute": {}, "leash": []})
 	return h
 
 
@@ -421,6 +421,9 @@ static func _hw_reel_arrive(o) -> void:
 		if b.get("pull_cc", false):
 			_hw_pull_cc(o, e)
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
+		var lh = b.get("leash", null)
+		if lh is Dictionary and hw_face_ok(o, lh.get("cond", true)):
+			_hw_leash_add(o, lh, e)
 	o.impact_pause(0.05)
 	o.fx({"kind": "ulp_wave", "pos": c, "r": 34.0, "life": 0.2, "pull": true, "floor": true})
 	for i in 5:
@@ -529,6 +532,7 @@ static func _hw_pull_cc(o, e: Dictionary) -> void:
 
 ## 沉默标记：眩晕结束后、沉默期间头顶画禁言符（只画本干员施加的）
 static func hw_draw_mute(o) -> void:
+	_hw_draw_leashes(o)
 	var g = o.g
 	var mu: Dictionary = _hw4(o).mute
 	for id in mu.keys():
@@ -578,6 +582,10 @@ static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
 	var d: Vector2 = (b - a).normalized()
 	var L: float = a.distance_to(b)
 	var src: String = str(rf.get("src", ""))
+	var after: Dictionary = {}   # 通路洞开·余震（docs/202）：这条通路掀飞的敌人落地时各炸一圈小冲击；同一条通路共用一个计数 / 上一处落点
+	var af = rf.get("after", null)
+	if af is Dictionary and hw_face_ok(o, af.get("cond", true)):
+		after = {"b": af, "n": 0, "last": Vector2.INF}
 	for j in o.query_ids((a + b) * 0.5, L * 0.5 + w * 0.5 + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead:
@@ -586,7 +594,7 @@ static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
 			continue
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
-		_hw_launch(o, e, float(rf.get("air", 0.8)), float(rf.get("h", 30.0)))
+		_hw_launch(o, e, float(rf.get("air", 0.8)), float(rf.get("h", 30.0)), after)
 	o.fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.vrng.randf() * 100.0})
 	for k in 5:
 		var p: Vector2 = a.lerp(b, (k + 0.5) / 5.0)
@@ -594,7 +602,7 @@ static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
 
 
 ## 掀飞：眩晕 + sin 弧线高度（game 按 e.air 抬高绘制）；精英时长减半，Boss 不受；重复施加从头再来、时长取长
-static func _hw_launch(o, e: Dictionary, dur: float, hh: float) -> void:
+static func _hw_launch(o, e: Dictionary, dur: float, hh: float, after := {}) -> void:
 	if e.dead or e.boss:
 		return
 	if e.elite:
@@ -604,8 +612,10 @@ static func _hw_launch(o, e: Dictionary, dur: float, hh: float) -> void:
 		if is_same(l.e, e):
 			l.t = 0.0
 			l.dur = maxf(l.dur, dur)
+			if not after.is_empty():
+				l.after = after
 			return
-	o.hw.launched.append({"e": e, "t": 0.0, "dur": dur, "h": hh})
+	o.hw.launched.append({"e": e, "t": 0.0, "dur": dur, "h": hh, "after": after})
 
 
 static func _hw4_launched(o, dt: float) -> void:
@@ -615,7 +625,87 @@ static func _hw4_launched(o, dt: float) -> void:
 		var e: Dictionary = l.e
 		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
 		o.set_air(e, 0.0 if e.dead or k >= 1.0 else sin(k * PI) * l.h, not e.dead)   # 掀飞期间不吃击退
+		if k >= 1.0 and not e.dead and not l.after.is_empty():
+			_hw_aftershock(o, l.after, e)
+			l.after = {}
 	h.launched = h.launched.filter(func(l): return l.t < l.dur and not l.e.dead)
+
+
+## 通路洞开·余震（docs/202）：被通路掀飞的敌人落地时炸出一圈小冲击（半径 r、锚击 × mult）；同一条通路至多 max 处，落点之间连一道细锁链光（落点连成一串）
+static func _hw_aftershock(o, ctx: Dictionary, e: Dictionary) -> void:
+	var b: Dictionary = ctx.b
+	if int(ctx.n) >= int(b.get("max", 12)):
+		return
+	ctx.n = int(ctx.n) + 1
+	var g = o.g
+	var p: Vector2 = e.pos
+	var r: float = float(b.get("r", 50.0)) * o.stat(&"op_range")
+	var dmg: float = o.base("atk", 0.0) * o._dmg_bonus() * float(b.get("mult", 0.3))
+	var src: String = str(b.get("src", ""))
+	for j in o.query_ids(p, r + 30.0):
+		var q: Dictionary = g.enemies[j]
+		if q.dead or q.pos.distance_to(p) > r + q.r:
+			continue
+		o.log_hit(src)
+		o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
+	o.fx({"kind": "ulp_wave", "pos": p, "r": r, "life": 0.3, "floor": true})
+	_hw_sparks(o, p + Vector2(0, -4), HW_EDGE, 4, 150.0, 0.3, 2.5, 240.0)
+	if ctx.last != Vector2.INF:
+		o.fx({"kind": "line", "pos": ctx.last + Vector2(0, -6), "to": p + Vector2(0, -6), "life": 0.3, "col": Color(0.7, 0.9, 1.5), "w": 2.0})
+	ctx.last = p
+
+
+## 不容挣脱（docs/202）：S1 钩回的敌人被锁链拴在乌尔比安身边 dur 秒，离他不能超过 r（精英时长减半，Boss 除外）；
+## 同一敌人 growth/cc_dr_window 秒内再被拴，时长按成长节点的递减口径 × cc_dr_mult（拴住是位置约束，不是眩晕，口径同 add_cc_growth）
+static func _hw_leash_add(o, lh: Dictionary, e: Dictionary) -> void:
+	if e.dead or e.boss:
+		return
+	var g = o.g
+	var h: Dictionary = o.hw
+	var dur: float = float(lh.get("dur", 3.0)) * (0.5 if e.elite else 1.0)
+	if g.t - float(e.get("gcc_leash_t", -99.0)) < MfBal.v("growth/cc_dr_window", 3.0):
+		dur *= MfBal.v("growth/cc_dr_mult", 0.5)
+	e["gcc_leash_t"] = g.t
+	for l in h.leash:
+		if is_same(l.e, e):
+			l.t = dur
+			l.dur = dur
+			return
+	if h.leash.size() >= int(lh.get("max", 8)):
+		h.leash.pop_front()
+	h.leash.append({"e": e, "t": dur, "dur": dur, "r": float(lh.get("r", 140.0))})
+
+
+static func _hw4_leash_tick(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	for l in h.leash:
+		l.t = float(l.t) - dt
+		var e: Dictionary = l.e
+		if e.dead or float(l.t) <= 0.0:
+			continue
+		var d: Vector2 = e.pos - o.pos
+		var R: float = float(l.r) * o.stat(&"op_range")
+		if d.length() > R:
+			e.pos = o.pos + d.normalized() * R
+			if e.kb.dot(d) > 0.0:
+				e.kb = Vector2.ZERO
+	h.leash = h.leash.filter(func(l): return float(l.t) > 0.0 and not l.e.dead)
+
+
+## 拴住的画面：锁链从乌尔比安的手连到敌人身上，绷直（到了 r）时亮一点；到期前 0.4 秒淡出
+static func _hw_draw_leashes(o) -> void:
+	var h: Dictionary = o.hw
+	if h.leash.is_empty() or o.pos == Vector2.INF:
+		return
+	var hand: Vector2 = _hw_hand(o)
+	for l in h.leash:
+		var e: Dictionary = l.e
+		if e.dead:
+			continue
+		var al: float = clampf(float(l.t) / 0.4, 0.0, 1.0)
+		var taut: bool = e.pos.distance_to(o.pos) >= float(l.r) * o.stat(&"op_range") - 3.0
+		_hw_draw_chain(o, hand, e.pos + Vector2(0, -float(e.r) * 0.5), al if taut else al * 0.7, not taut)
+		o.cv.draw_arc(e.pos + Vector2(0, 3), float(e.r) + 3.0, 0.0, TAU, 14, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.7 * al), 1.5)
 
 
 ## 每帧（hw_tick 开头转来）：计时 → 锚 → 掀飞（手写 update 的先后）
@@ -629,6 +719,8 @@ static func _hw4_tick(o, dt: float) -> void:
 		UlpCharge.burst_tick(o, dt)
 	if not h.launched.is_empty():
 		_hw4_launched(o, dt)
+	if not h.leash.is_empty():
+		_hw4_leash_tick(o, dt)
 
 
 ## 锚在外面：不起手（hw_busy 转来）

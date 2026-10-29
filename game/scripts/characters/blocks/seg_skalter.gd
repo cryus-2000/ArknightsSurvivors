@@ -406,3 +406,136 @@ static func sk_song_draw(o, f: Dictionary, a: float) -> bool:
 		cv.draw_rect(Rect2(q, Vector2(4, 3)), Color(c.r, c.g, c.b, 0.7 * a))
 		cv.draw_rect(Rect2(q + Vector2(3, -8), Vector2(1, 9)), Color(c.r, c.g, c.b, 0.7 * a))
 	return true
+
+
+# ---------------------------------------------------------------- 浊心斯卡蒂：成长节点（docs/202，10-29 去数值化）
+#  1 共鸣（zone_up）      trig.on_kill filter: zone_ally：歌域内的干员（含她自己）每击杀一名敌人，在击杀处放一道小声浪（data_operator.on_kill → gn_zone_ally_kill）；
+#                         本节点自己的声浪（src 共鸣）不再触发；两次触发至少隔 0.08 秒
+#  2 潮声渐强（dmg_up）   队长每连续 tide_every 秒未受击叠一层潮声（上限 tide_max），受击清零；歌域内干员每层攻击速度 + tide_aspd
+#                         （aura.aspd 的 per: gn:tide → count_others → gn_n）；叠层 / 清零在 sk_gn_tick（data_operator.update 转来），头顶音符在 sk_gn_draw
+#  4B 深海的回响（resonance） attack.resonate {cond, cap, r, mult, dur, src}：「同归殊途之吟」期间，歌域内的敌人每被声浪命中一次叠一层共振（上限 cap，dur 秒没再命中就清零），
+#                         满层的敌人在下一次声浪时爆开（半径 r、法术 × mult × 技能强度）并清层（ob_core.exec_shape → gn_resonate）
+const GN_TIDE := Color(0.45, 1.0, 0.9)
+const GN_RES := Color(1.0, 0.45, 0.6)
+
+
+static func gn_n(o, key: String) -> int:
+	return int(o.gn.get(key, 0))
+
+
+## on_kill filter = zone_ally：这一击杀是歌域内的某名干员（g.hit.op）打出的
+static func gn_zone_ally_kill(o, _e: Dictionary) -> bool:
+	var g = o.g
+	var h: Dictionary = g.hit
+	var opid: String = str(h.get("op", ""))
+	if opid == "" or str(h.get("src", "")) == "共鸣" or o.pos == Vector2.INF:
+		return false
+	var k = g.squad.get_op(opid)
+	if k == null or k.pos == Vector2.INF or not o.in_zone(k.pos):
+		return false
+	if g.t - float(o.gn.get("kill_t", -9.0)) < 0.08:
+		return false
+	o.gn["kill_t"] = g.t
+	return true
+
+
+## 每帧（data_operator.update 转来）：潮声层数
+static func sk_gn_tick(o, dt: float) -> void:
+	if o.id != "skalter":
+		return
+	var gn: Dictionary = o.gn
+	var g = o.g
+	if o.taken.has("dmg_up") and o.pos != Vector2.INF:
+		var hp: float = g.hp
+		if hp < float(gn.get("hp", hp)) - 0.001:
+			if int(gn.get("tide", 0)) > 0:
+				o.fx({"kind": "ring", "pos": g.ppos, "r": 30.0, "r0": 10.0, "life": 0.3, "col": Color(0.6, 0.6, 0.7), "floor": true, "w": 2.0, "alpha": 0.6})
+			gn["tide"] = 0
+			gn["tide_t"] = 0.0
+		gn["hp"] = hp
+		gn["tide_t"] = float(gn.get("tide_t", 0.0)) + dt
+		var every: float = o.base("tide_every", 2.0)
+		if float(gn.tide_t) >= every:
+			gn["tide_t"] = float(gn.tide_t) - every
+			if int(gn.get("tide", 0)) < int(o.base("tide_max", 4.0)):
+				gn["tide"] = int(gn.get("tide", 0)) + 1
+				o.fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.35, "col": GN_TIDE, "floor": true, "w": 2.0})
+	elif gn.has("tide"):
+		gn["tide"] = 0
+	var res: Array = gn.get("res", [])
+	if not res.is_empty():
+		gn["res"] = res.filter(func(e): return not e.dead and g.t < float(e.get("sk_res_t", 0.0)) and int(e.get("sk_res", 0)) > 0)
+
+
+## 深海的回响：声浪命中的敌人叠共振，满层的下一次声浪爆开
+static func gn_resonate(o, b: Dictionary, hits: Array) -> void:
+	var rs = b.get("resonate", null)
+	if not (rs is Dictionary) or not cond_true(o, rs.get("cond", _ED)) or not o.skill_on(0):
+		return
+	var g = o.g
+	var gn: Dictionary = o.gn
+	var cap: int = int(rs.get("cap", 3))
+	var dur: float = float(rs.get("dur", 6.0))
+	if not gn.has("res"):
+		gn["res"] = []
+	var bursts: Array = []
+	for e in hits:
+		if e.dead or e.get("chest", false):
+			continue
+		var n: int = int(e.get("sk_res", 0)) if g.t < float(e.get("sk_res_t", 0.0)) else 0
+		if n >= cap:
+			bursts.append(e.pos)
+			e["sk_res"] = 0
+			continue
+		e["sk_res"] = n + 1
+		e["sk_res_t"] = g.t + dur
+		if n == 0 and gn.res.size() < 48:
+			gn.res.append(e)
+	if bursts.is_empty():
+		return
+	var r: float = float(rs.get("r", 60.0)) * o.stat(&"op_range")
+	var dmg: float = o.base("atk", 0.0) * float(rs.get("mult", 0.4)) * float(o.loc.dmg) * o._dmg_bonus() * o.skill_power()
+	var src: String = str(rs.get("src", ""))
+	for p in bursts:
+		for j in o.query_ids(p, r + 30.0):
+			var q: Dictionary = g.enemies[j]
+			if q.dead or q.pos.distance_to(p) > r + q.r:
+				continue
+			o.log_hit(src, ["skill"])
+			o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
+		o.fx({"kind": "ring", "pos": p, "r": r, "r0": 10.0, "life": 0.3, "col": GN_RES, "floor": true, "w": 2.5})
+		o.fx({"kind": "glow", "pos": p + Vector2(0, -10), "r": 16.0, "life": 0.22, "col": Color(1.8, 0.8, 1.0), "alpha": 0.8})
+		for k in 6:
+			o.fx({"kind": "spark", "pos": p + Vector2(0, -8), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(80, 170), "life": 0.28, "col": GN_RES, "sz": 2.5})
+
+
+## 画面：潮声音符（队长头顶一排，层数 = 亮着的个数）、共振层（敌人脚下的粉红弧段，满层闪烁）
+static func sk_gn_draw(o) -> void:
+	var gn: Dictionary = o.gn
+	if gn.is_empty() or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var cv = o.cv
+	if o.taken.has("dmg_up"):
+		var mx: int = int(o.base("tide_max", 4.0))
+		var n: int = int(gn.get("tide", 0))
+		var p0: Vector2 = g.ppos + Vector2(-float(mx - 1) * 6.0, -84.0)
+		for k in mx:
+			var on: bool = k < n
+			var q: Vector2 = (p0 + Vector2(k * 12.0, sin(g.t * 3.0 + k) * (1.5 if on else 0.0))).round()
+			var c: Color = Color(GN_TIDE.r, GN_TIDE.g, GN_TIDE.b, 0.95) if on else Color(0.5, 0.55, 0.6, 0.35)
+			cv.draw_rect(Rect2(q, Vector2(5, 4)), c)
+			cv.draw_rect(Rect2(q + Vector2(4, -8), Vector2(1, 9)), c)
+	var cap: int = 3
+	for e in gn.get("res", []):
+		if e.dead:
+			continue
+		var n2: int = int(e.get("sk_res", 0))
+		if n2 <= 0:
+			continue
+		var full: bool = n2 >= cap
+		var al: float = (0.55 + 0.4 * sin(g.t * 14.0)) if full else 0.75
+		var cc := Color(GN_RES.r, GN_RES.g, GN_RES.b, al)
+		for k in n2:
+			var a0: float = -PI / 2.0 + k * TAU / float(cap) + g.t * 0.8
+			cv.draw_arc(e.pos + Vector2(0, 3), float(e.r) + 4.0, a0, a0 + TAU / float(cap) * 0.7, 6, cc, 2.0)

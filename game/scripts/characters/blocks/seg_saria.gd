@@ -13,6 +13,8 @@ extends "res://scripts/characters/blocks/seg_wisadel.gd"
 #  verb.calc_field  钙质化：dur 秒以队长为心 r 的琥珀区域（每帧清寒冷 / 束缚、每秒回复 heal、区域内敌人减速 slow 秒 + aura_weak），每 shard_every 秒在区域里长出一根晶柱；
 #                   shatter {cond, every, n, mult, src}：每 every 秒击碎一根晶柱，碎片飞向区域内敌人
 #  verb.suit        莱茵充能护服（放 passive）：每 seg_t 秒充满一格（共 segs 格），满格后下一次出拳变为全方位冲击（半径 r，拳击 × mult、kb、stun）
+#  成长节点（docs/202，10-29 去数值化）：calc_orbs.mark {cond, dur, r, mult, max, src} = 「晶簇」：环绕钙晶撞到敌人留下钙晶碎片 dur 秒，被留碎片的敌人再被拳击（含护服冲击）命中时碎片爆开（半径 r、拳击 × mult）；
+#                   saria_heal.syringe.flow {cond, dur, pct, cap, src} = 「针剂·回流」：被注射器命中的敌人 dur 秒内受到的伤害 × pct 转为队长回复，每次「急救」至多最大生命 × cap
 #  verb.amber_ring  瞬时（响应动作 docs/118 §4.2）：以队长为心升起一圈晶柱，参数同 verb.suit.pillars（n / r / sy / life / pr / wall / mult / cd / elite_push / arm / src），
 #                   与精二晶柱环共用一个位置（新的升起时旧的碎掉）
 
@@ -21,7 +23,8 @@ static func _h4sa(o) -> Dictionary:
 	if not h.has("sa"):
 		h["sa"] = {"block_t": 0.0, "calc": 0.0, "calc_acc": 0.0, "shard_t": 0.0, "hot_t": 0.0, "hot_acc": 0.0, "hot_pct": 0.0,
 			"orb_cd": {}, "orb_broken": {}, "shatter_t": 0.0, "pillars": [], "shots": [], "seg": 0, "seg_t": 0.0, "calc_b": {},
-			"hot_name": "", "calc_name": "", "slowed": [], "crystals": []}
+			"hot_name": "", "calc_name": "", "slowed": [], "crystals": [],
+			"marks": {}, "flow": [], "flow_pool": {}, "flow_cast": 0}
 	return h.sa
 
 
@@ -75,6 +78,7 @@ static func _h4_bash_release(o, a: Dictionary) -> void:
 		_h4_suit_blast(o, a, su)
 		return
 	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, float(a.get("y", -10.0))), ang, float(a.get("half", 1.1)), reach, _h4_bash_dmg(o), float(a.get("kb", 200.0)), float(a.get("stun", 0.2)), a.get("tags", []))
+	_h4_marks_pop(o, hits, _h4_bash_dmg(o))   # 晶簇（docs/202）：被拳击命中的带碎片敌人，碎片爆开
 	var d := Vector2.from_angle(ang)
 	var fk: float = reach / maxf(1.0, float(a.get("r", 115.0)))   # 盾击帧条跟判定半径走（范围藏品放大判定时一起放大，163B §3）
 	if not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
@@ -113,6 +117,7 @@ static func _h4_bash_after(o, a: Dictionary, hits: Array) -> void:
 static func _h4_suit_blast(o, a: Dictionary, su: Dictionary) -> void:
 	var r: float = float(su.get("r", 110.0)) * o.stat(&"op_range")   # 范围藏品同样放大满格冲击（判定与六道冲击 / 环一起）
 	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, -6), 0.0, PI, r, _h4_bash_dmg(o) * float(su.get("mult", 1.8)), float(su.get("kb", 320.0)), float(su.get("stun", 0.3)), su.get("tags", ["empowered"]))
+	_h4_marks_pop(o, hits, _h4_bash_dmg(o))
 	for k in 6:
 		o.fx({"kind": "h4_bash", "pos": o.pos + Vector2(0, -14), "ang": k * TAU / 6.0, "reach": r * 0.8, "life": 0.26, "big": true})
 	o.fx({"kind": "ring", "pos": o.pos, "r": r, "r0": 16.0, "life": 0.35, "col": H4_AMBER, "floor": true, "w": 4.0})
@@ -191,6 +196,8 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 	var orb_n: int = _h4_orb_n(o, ob)
 	_h4_orbs_tick(o, sa, ob, orb_n, dt)
 	_h4_shots_tick(o, sa, dt)
+	_h4_marks_tick(o, sa)
+	_h4_flow_tick(o, sa)
 	# 精二 莱茵充能护服：每 seg_t 秒充满一格，满格后等下一次出拳放出
 	var su: Dictionary = _h4_live(o, "verb.suit")
 	if not su.is_empty() and int(sa.seg) < int(su.get("segs", 4)):
@@ -429,6 +436,8 @@ static func _h4_orbs_tick(o, sa: Dictionary, ob: Dictionary, orb_n: int, dt: flo
 		if cdd[k] <= 0.0:
 			cdd.erase(k)
 	var dmg: float = _h4_bash_dmg(o) * float(ob.get("mult", 0.18))
+	var mk: Dictionary = _h4_sub(o, ob.get("mark", null))   # 晶簇（docs/202）
+	var mk_on: bool = not mk.is_empty()
 	var br: Dictionary = sa.orb_broken
 	for k in br.keys():
 		br[k] -= dt
@@ -447,14 +456,16 @@ static func _h4_orbs_tick(o, sa: Dictionary, ob: Dictionary, orb_n: int, dt: flo
 			o.deal_damage(e, dmg)
 			o.fx({"kind": "glow", "pos": p + Vector2(0, -16), "r": 7.0, "life": 0.14, "col": H4_AMBER, "alpha": 0.6})
 			o.fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * 90.0, "life": 0.22, "col": H4_AMBER, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 12.0})
+			if mk_on and not e.dead:
+				_h4_mark_set(o, mk, e)
 
 
 ## 投射物：直线飞行，碰到第一个敌人即命中；注射器附带减速
-static func _h4_shoot(o, sa: Dictionary, kind: String, from: Vector2, to: Vector2, spd: float, dmg: float, src: String, slow := 0.0) -> void:
+static func _h4_shoot(o, sa: Dictionary, kind: String, from: Vector2, to: Vector2, spd: float, dmg: float, src: String, slow := 0.0, flow := {}, cast := 0) -> void:
 	if sa.shots.size() >= 12:
 		return
 	var d: Vector2 = (to - from).normalized() if to.distance_to(from) > 1.0 else Vector2(o.face, 0)
-	sa.shots.append({"kind": kind, "pos": from, "vel": d * spd, "t": 0.7, "dmg": dmg, "ang": d.angle(), "src": src, "slow": slow})
+	sa.shots.append({"kind": kind, "pos": from, "vel": d * spd, "t": 0.7, "dmg": dmg, "ang": d.angle(), "src": src, "slow": slow, "flow": flow, "cast": cast})
 
 
 static func _h4_shots_tick(o, sa: Dictionary, dt: float) -> void:
@@ -477,6 +488,8 @@ static func _h4_shots_tick(o, sa: Dictionary, dt: float) -> void:
 			if s.kind == "syringe":
 				if not e.dead:
 					o.add_cc(e, -INF, float(s.slow))
+					if not s.flow.is_empty():
+						_h4_flow_tag(o, s.flow, e, int(s.cast))
 				o.fx({"kind": "glow", "pos": s.pos, "r": 7.0, "life": 0.18, "col": Color(0.7, 1.2, 0.9), "alpha": 0.6})
 			else:
 				o.fx({"kind": "glow", "pos": s.pos, "r": 8.0, "life": 0.16, "col": H4_AMBER, "alpha": 0.6})
@@ -485,6 +498,98 @@ static func _h4_shots_tick(o, sa: Dictionary, dt: float) -> void:
 			s.t = 0.0
 			break
 	sa.shots = sa.shots.filter(func(s): return s.t > 0.0)
+
+
+## 2 晶簇（docs/202）：环绕钙晶撞到敌人时留下钙晶碎片 dur 秒（至多 max 处，同一敌人只刷新）
+static func _h4_mark_set(o, mk: Dictionary, e: Dictionary) -> void:
+	var sa := _h4sa(o)
+	var m: Dictionary = sa.marks
+	if not m.has(e.id) and m.size() >= int(mk.get("max", 24)):
+		return
+	m[e.id] = {"e": e, "until": o.g.t + float(mk.get("dur", 2.0)), "b": mk}
+
+
+## 被拳击命中的带碎片敌人：碎片爆开（半径 r、拳击 × mult，不吃刀光弧），每个碎片只爆一次
+static func _h4_marks_pop(o, hits: Array, dmg: float) -> void:
+	var sa := _h4sa(o)
+	if sa.marks.is_empty():
+		return
+	for e in hits:
+		var m = sa.marks.get(e.id, null)
+		if m == null or not is_same(m.e, e):
+			continue
+		sa.marks.erase(e.id)
+		_h4_mark_burst(o, m.b, e.pos, dmg)
+
+
+static func _h4_mark_burst(o, mk: Dictionary, p: Vector2, dmg: float) -> void:
+	var g = o.g
+	var r: float = float(mk.get("r", 50.0)) * o.stat(&"op_range")
+	var d: float = dmg * float(mk.get("mult", 0.4))
+	for j in o.query_ids(p, r + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.pos.distance_to(p) > r + e.r:
+			continue
+		o.log_hit(str(mk.get("src", "")))
+		o.deal_damage(e, d * (o.vs_elite() if e.elite or e.boss else 1.0))
+	o.fx({"kind": "ring", "pos": p, "r": r, "r0": 8.0, "life": 0.28, "col": H4_AMBER, "floor": true, "w": 2.5})
+	o.fx({"kind": "glow", "pos": p + Vector2(0, -12), "r": 14.0, "life": 0.2, "col": Color(1.9, 1.5, 0.9), "alpha": 0.8})
+	for q in 7:
+		o.fx({"kind": "shard", "pos": p + Vector2(0, -12), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(90, 180), "life": 0.3, "col": H4_AMBER,
+			"sz": g.vrng.randf_range(2.5, 4.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 240.0})
+
+
+static func _h4_marks_tick(o, sa: Dictionary) -> void:
+	if sa.marks.is_empty():
+		return
+	var t: float = o.g.t
+	for id in sa.marks.keys():
+		var m: Dictionary = sa.marks[id]
+		if m.e.dead or t >= float(m.until):
+			sa.marks.erase(id)
+
+
+## 5A 针剂·回流（docs/202）：注射器命中的敌人 dur 秒内，受到的伤害（逐帧比对生命的减少量）× pct 转为队长回复；同一次急救的回复合计至多最大生命 × cap
+static func _h4_flow_tag(o, fl: Dictionary, e: Dictionary, cast: int) -> void:
+	var sa := _h4sa(o)
+	var until: float = o.g.t + float(fl.get("dur", 4.0))
+	for f in sa.flow:
+		if is_same(f.e, e):
+			f.until = maxf(float(f.until), until)
+			return
+	if sa.flow.size() >= 12:
+		sa.flow.pop_front()
+	sa.flow.append({"e": e, "until": until, "hp": float(e.hp), "cast": cast, "b": fl})
+
+
+static func _h4_flow_tick(o, sa: Dictionary) -> void:
+	if sa.flow.is_empty():
+		return
+	var g = o.g
+	for f in sa.flow:
+		var e: Dictionary = f.e
+		var hp: float = maxf(0.0, float(e.hp))
+		var lost: float = float(f.hp) - hp
+		f.hp = hp
+		if lost <= 0.0 or g.hp >= g.max_hp:
+			continue
+		var b: Dictionary = f.b
+		var pool: float = float(sa.flow_pool.get(f.cast, 0.0))
+		var room: float = g.max_hp * float(b.get("cap", 0.03)) - pool
+		var h: float = minf(lost * float(b.get("pct", 0.08)), room)
+		if h <= 0.0:
+			continue
+		sa.flow_pool[f.cast] = pool + h
+		o.heal_leader(h, str(b.get("src", "针剂回流")))
+		var from: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.6)
+		var to: Vector2 = g.ppos + Vector2(0, -30)
+		o.fx({"kind": "mote", "pos": from, "vel": (to - from) / 0.4, "life": 0.4, "col": Color(0.7, 1.4, 0.9), "sz": 2.5})
+	sa.flow = sa.flow.filter(func(f): return not f.e.dead and g.t < float(f.until))
+	if sa.flow_pool.size() > 6:
+		var ks: Array = sa.flow_pool.keys()
+		ks.sort()
+		for k in ks.slice(0, ks.size() - 4):
+			sa.flow_pool.erase(k)
 
 
 ## 钙质晶体（Codex：冷白主体 + 琥珀边，从地面长出 → 停留 → 碎裂）；缺图退回程序琥珀晶柱。返回该晶柱的特效条目
@@ -588,8 +693,10 @@ static func h4_saria_heal(o, b: Dictionary) -> void:
 	var sy: Dictionary = _h4_sub(o, b.get("syringe", null))
 	if not sy.is_empty():
 		var dmg: float = _h4_bash_dmg(o) * float(sy.get("mult", 0.8)) * o.skill_power()
+		var flow: Dictionary = _h4_sub(o, sy.get("flow", null))   # 针剂·回流（docs/202）
+		sa.flow_cast = int(sa.flow_cast) + 1
 		for e in o.los_targets(int(sy.get("n", 3)), float(sy.get("range", 260.0)), o.pos):
-			_h4_shoot(o, sa, "syringe", o.pos + Vector2(8.0 * o.face, -24), e.pos + Vector2(0, -16), float(sy.get("speed", 460.0)), dmg, str(sy.get("src", "")), float(sy.get("slow", 2.0)))
+			_h4_shoot(o, sa, "syringe", o.pos + Vector2(8.0 * o.face, -24), e.pos + Vector2(0, -16), float(sy.get("speed", 460.0)), dmg, str(sy.get("src", "")), float(sy.get("slow", 2.0)), flow, int(sa.flow_cast))
 	var hot = b.get("hot", null)
 	if hot is Dictionary:
 		sa.hot_t = float(hot.get("dur", 5.0))
@@ -691,6 +798,7 @@ static func _h4sa_draw_over(o) -> void:
 			var sv: Vector2 = Vector2.from_angle(s.ang + g.t * 16.0) * 5.0
 			cv.draw_line(s.pos - d * 14.0, s.pos, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.35), 2.0)
 			cv.draw_colored_polygon(PackedVector2Array([s.pos - sv, s.pos + sv.orthogonal() * 0.5, s.pos + sv]), Color(1.9, 1.5, 0.9))
+	_h4sa_draw_nodes(o, sa)
 	var su: Dictionary = _h4_live(o, "verb.suit")
 	if not su.is_empty():
 		var segs: int = int(su.get("segs", 4))
@@ -706,6 +814,29 @@ static func _h4sa_draw_over(o) -> void:
 				cv.draw_rect(Rect2(r.position, Vector2(11.0 * fr, 5.0)), Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.45))
 		if full:
 			cv.draw_arc(o.pos + Vector2(0, -30), 26.0 + 2.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(H4_AMBER.r * 1.5, H4_AMBER.g * 1.3, H4_AMBER.b, 0.35), 2.0)
+
+
+## 成长节点画面（docs/202）：带钙晶碎片的敌人头顶一枚琥珀菱形碎片 + 脚下小环；回流中的敌人脚下一圈绿环 + 十字
+static func _h4sa_draw_nodes(o, sa: Dictionary) -> void:
+	var g = o.g
+	var cv = o.cv
+	for id in sa.marks:
+		var m: Dictionary = sa.marks[id]
+		var e: Dictionary = m.e
+		var p: Vector2 = e.pos + Vector2(0, -float(e.r) * 1.9 - 4.0 + sin(g.t * 6.0 + float(id)) * 1.5)
+		var left: float = clampf((float(m.until) - g.t) / 0.4, 0.0, 1.0)
+		var dia := PackedVector2Array([p + Vector2(0, -7), p + Vector2(4, 0), p + Vector2(0, 6), p + Vector2(-4, 0)])
+		cv.draw_colored_polygon(dia, Color(1.4, 1.35, 1.2, 0.95 * left))
+		cv.draw_polyline(PackedVector2Array([dia[0], dia[1], dia[2], dia[3], dia[0]]), Color(H4_AMBER.r * 1.6, H4_AMBER.g * 1.3, H4_AMBER.b, left), 1.5)
+		cv.draw_arc(e.pos + Vector2(0, 3), float(e.r) + 3.0, 0.0, TAU, 14, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.6 * left), 1.5)
+	for f in sa.flow:
+		var e2: Dictionary = f.e
+		var c: Vector2 = e2.pos + Vector2(0, 3)
+		var gc := Color(0.55, 1.5, 0.85, 0.85)
+		cv.draw_arc(c, float(e2.r) + 5.0, 0.0, TAU, 16, gc, 1.8)
+		var tp: Vector2 = e2.pos + Vector2(0, -float(e2.r) * 1.9 - 4.0)
+		cv.draw_line(tp + Vector2(-4, 0), tp + Vector2(4, 0), gc, 2.0)
+		cv.draw_line(tp + Vector2(0, -4), tp + Vector2(0, 4), gc, 2.0)
 
 
 static func _h4sa_draw_pfx(o, f: Dictionary, a: float) -> bool:

@@ -293,6 +293,8 @@ static func _cmp(a: float, op: String, b: float) -> bool:
 static func count_others(o, who: String) -> int:
 	if who.begins_with("stack:"):   # 手写迁移段：本干员 verb.stack 的层数
 		return _F().hw_stack_n(o, who.substr(6))
+	if who.begins_with("gn:"):   # 成长节点（docs/202）：本干员 gn 状态里的层数（浊心斯卡蒂 gn:tide）
+		return _F().gn_n(o, who.substr(3))
 	var n := 0
 	for m in o.g.squad.ops:
 		if m != o and member_is(m, who):
@@ -382,6 +384,8 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			return _F().tx_dash_start(o, b, dmg)   # 德克萨斯段：命中逐帧结算，这里只起冲
 		"projectile":   # 能天使段：弹体自推进，命中在 exu_tick 里结算，这里返回空
 			_F().exu_fire(o, b)
+	if b.has("resonate") and not hits.is_empty():   # 成长节点（docs/202）：浊心斯卡蒂「深海的回响」叠共振
+		_F().gn_resonate(o, b, hits)
 	for s in b.get("on_hit", _EA):
 		var hs: Array = hits
 		if s.has("nearest_n"):   # st.* 的 nearest_n：序号按离本干员由近到远排（同距按 id），只给最近的 n 名（德克萨斯「阻挡」）
