@@ -44,6 +44,7 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
 	w.merge(d, true)
+	preload("res://scripts/run/boss_diag.gd").on_warn(w)
 	# 预警样式（docs/38 §8.11）：界面按 style 画，不再从 follow / gap_ang 猜。0 预告（无伤害，低亮度）；① 落点圈 ② 直线 ③ 扇形 ④ 缺口环 ⑤ 必须冲刺。
 	# follow 只表示「圈跟着施法者走」，钻地咬击、踏地、触须爆发都是 ① —— 走出圈即可
 	if not w.has("style"):
@@ -222,6 +223,7 @@ func warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	# 伤害来源名：Boss 的招式记 boss_<类型>，普通怪 / 精英借用预警系统的招式记 atk_<类型>（引痕者前刺、钻地咬击、踏地等；
 	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
 	var dsrc: String = ("boss_" if e.boss else "atk_") + e.type
+	preload("res://scripts/run/boss_diag.gd").tag = str(w.get("act", "")) + "/" + str(w.get("name", ""))
 	var it: Array = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "pattern_rain", "tide_link"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if w.get("arts", false):
 		it = ["近战", "法术"]   # 伊祖米克「分享」：近战法术溅射（PRTS）
