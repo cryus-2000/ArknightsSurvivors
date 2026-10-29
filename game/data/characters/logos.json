@@ -25,7 +25,7 @@
   "s2_exec": 1.5,
   "s3_dur": 12,
   "s3_fan_deg": 100,
-  "s3_fan_r": 1.1,
+  "s3_fan_r": 0.98,
   "s3_turn": 60,
   "s3_tick": 0.5,
   "s3_tick_mult": 0.6,
