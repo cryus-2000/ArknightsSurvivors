@@ -541,6 +541,8 @@
   "graze_sp_cap": 1.0,
   "ishar_combo_gap": 0.26,
   "ishar_fence_tick": 0.2,
+  "ishar_inward_on": 1,
+  "ishar_inward_spd": 80,
   "ishar_corrode": 1.0,
   "ishar_break_taken": 2.0,
   "ishar_nonbreak_taken": 0.9,
