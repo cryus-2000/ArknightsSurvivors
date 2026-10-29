@@ -1,0 +1,32 @@
+# ishar_combo
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/ishar_combo_test.tscn -- --regression --seed=1
+# 用时 10 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FAIL killed source cancels its rings (78 notes)
+FAIL first ring leaves the player's line between two bullets (0.92)
+FAIL empty web falls back to two body rings (26)
+FAIL act three ring hangs before firing (14)
+FAIL held ring releases together
+FAIL every third chorus ends in a dash-through wall
+FAIL later waves skip the broken node; first-wave pulses end at their nodes
+ISHAR COMBO failures=7
+ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1060)
+       [2] _ready (res://tests/ishar_combo_test.gd:18)
+WARNING: 40 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 18 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
