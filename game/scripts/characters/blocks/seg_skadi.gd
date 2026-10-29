@@ -15,12 +15,17 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 		if o.pos == Vector2.INF:
 			return
 		var ang: float = o.facing_angle()
+		var ll_tgt: Dictionary = {}   # docs/202 拉普兰德「追猎」：aim: low_hp 挑出的目标（给 ll_wave_post 记追踪）
 		if o.manual_attack() and o.get("in_release") == true and o.atk_aim != Vector2.ZERO:
 			ang = o.atk_aim.angle()   # 手动普攻（10-23 用户定）：普攻里放出的剑气 / 潮刃沿玩家指向，不吸附最近敌人；技能里的照旧找最近
 		elif str(b.get("aim", "")) == "nearest":
 			var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos)
 			if not ts.is_empty():
 				ang = (ts[0].pos - o.pos).angle()
+		elif str(b.get("aim", "")) == "low_hp":
+			ll_tgt = _F().ll_pick_low(o, float(b.get("aim_r", 260.0)))
+			if not ll_tgt.is_empty():
+				ang = (ll_tgt.pos - o.pos).angle()
 		var ov = b.get("off", [0, 0])
 		var from0: Vector2 = o.pos + Vector2(float(ov[0]), float(ov[1]))
 		if b.has("release_fx"):
@@ -37,6 +42,8 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 				h.waves.pop_front()
 			h.waves.append(_wave_ease({"b": b, "pos": from0, "dir": d2, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg,
 				"hit": shared if b.get("fan_once", false) else {}, "drop": 0.0}, o, b))
+			if b.has("ll"):   # docs/202 拉普兰德成长节点（追猎 / 日晷·反斩）：seg_lappland
+				_F().ll_wave_post(o, h.waves[h.waves.size() - 1], b, ll_tgt)
 		return
 	var dir := Vector2.from_angle(float(h.prev_ang))
 	var from: Vector2 = o.pos + dir * float(h.prev_r) * float(b.get("along", 0.45))
@@ -62,6 +69,8 @@ static func _hw_waves(o, dt: float) -> void:
 	var h: Dictionary = o.hw
 	for w in h.waves:
 		var b: Dictionary = w.b
+		if w.has("ll"):   # docs/202 拉普兰德：追踪转向 / 大剑气的紫色边（seg_lappland）
+			_F().ll_wave_tick(o, w, dt)
 		var step: float
 		var hc: Vector2 = w.pos   # 判定盒中心 / 半长：匀速照旧取这一帧的位置；非线性扫过上一帧 → 这一帧整段
 		var depth: float = float(b.get("depth", 18.0))
