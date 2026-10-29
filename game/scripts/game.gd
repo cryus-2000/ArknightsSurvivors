@@ -20,6 +20,8 @@ const Look = preload("res://scripts/render/look.gd")   # 观感预设 render/loo
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Squad = preload("res://scripts/characters/squad.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内按键表（动作 → 键盘 / 手柄 / 触屏，arch_review_1029 P0-2）
+const Ult = preload("res://scripts/run/ult.gd")   # 终结技 / 连携技 / 连携终结技（docs/198；ult/on = 0 时为 null）
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
@@ -285,6 +287,8 @@ var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knig
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
 var pick = preload("res://scripts/screens/command_pick.gd").new(self)   # 指点选目标阶段（示意原型，docs/196；缺省关）
 var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
+var cam_fx = preload("res://scripts/run/cam_fx.gd").new(self)   # 镜头演出组合口：基础缩放 × punch()（终结技推镜；arch_review_1029 P1-1）
+var tdil = preload("res://scripts/run/time_dilation.gd").new(self)   # 局内时间缩放唯一所有者（圆盘 / 终结技慢动作；arch_review_1029 P0-1）
 var frost := 0.0                   # 冰霜：移速 -40%
 # 小怪控制（用户 9/29，combat.gd「小怪控制」段；玩法系统的净化按这些字段清除）
 var cold := 0                      # 寒霜层数：每层移速 / 攻速减益，满层冻结
@@ -339,6 +343,8 @@ var pending_levelups := 0
 var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
 var _stats_ver := -1
 var squad: RefCounted          # 编队（scripts/characters/squad.gd）：主控与跟随的干员们
+var ult_bench = null           # --ultbench（run/ult_bench.gd，docs/198 §3.4）
+var ult = null                 # 终结技框架（run/ult.gd）：balance ult/on 关时为 null，旧的响应 / 连携 / 手动技能照旧
 var doctor: RefCounted         # 博士层专属逻辑（scripts/characters/doctor.gd）
 var ch: RefCounted             # 开局干员（squad.ops[0]）：成长 / 精英化 / HUD 在 P2 之前仍绑定在它身上
 var eai: RefCounted            # 小怪行为（scripts/enemies/enemy_ai.gd），按 data/enemies.json 的 pattern 字段分派
@@ -877,6 +883,12 @@ func _ready() -> void:
 		if stats.has_stat(k):
 			stats.set_base(k, float(doctor.def.stats[k]))
 	squad = Squad.new(self)
+	ult = Ult.new(self) if Ult.on() else null
+	tdil.add("wheel", wheel.slow, "play")   # 圆盘打开：局内放慢（不全停），批跑里也生效
+	tdil.add("pick", func() -> float: return Bal.v("command/wheel_slow", 0.2) if pick.active else 1.0, "play")   # 指点选点中：同圆盘放慢（integ-1029 合入）
+	if ult != null:
+		tdil.add("ult", ult.time_scale, "fx")   # 终结技瞄准慢动作（docs/198 §2.4）：演出性，批跑不缩
+		cam_fx.add("ult", ult.cam_punch)   # 终结技推镜（§7.1）
 	# 开局干员：标题页选人写入 Cfg.character_id；--op=<id> 测试覆盖；不存在时退回水月
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
@@ -1457,15 +1469,16 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
-	if wheel.is_open or pick.active:
-		dt *= Bal.v("command/wheel_slow", 0.2)   # 圆盘打开 / 指点选点中：局内放慢（不全停）
+	if ult != null:
+		ult.fx_tick()   # 终结技冲击帧：恢复速度那一刻的音效（真实时间）
+	dt *= tdil.factor(mode == Mode.PLAY or realtime or playclock_test)   # 时间缩放只读这一处（run/time_dilation.gd：圆盘 play 类、终结技 fx 类，取最小）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_static_fps()
 	if OS.has_feature("web") and state != S.PLAY and state != S.OPENING and state != S.INTRO and state_age > 0.3 and Sfx.warm_pending():
 		Sfx.warm_step(20000)   # 静止界面里解码下一批配乐（sfx._queue_next，docs/50 §40）：一帧至少一句，对局画面里不解码
 	if cam != null and not optical_lo and demo_op == "" and demo_enemy == "" and Cfg.cam_unified():
-		var bz: float = Cfg.battle_zoom()
+		var bz: float = Cfg.battle_zoom() * cam_fx.punch()
 		if absf(cam.zoom.x - bz) > 0.0001:
 			cam.zoom = Vector2(bz, bz)   # 低档也每帧对齐（中 / 高由光学 _lo_step 每帧算）：漏掉尺寸变化通知时不会停在旧镜头（10-27 用户「低中镜头还是不一样」）
 	_mem_guard(delta)
@@ -1719,6 +1732,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == S.INTRO:
 		return  # 指南的输入在 _input() 里处理（先于 GUI，不会被任何控件吞掉）
+	if ult != null and event is InputEventKey and not event.pressed and PlayKeys.action_of(Pad.kc(event), true) == "ult":
+		ult.release_q()   # 终结技：松开 Q 放出（按住最多再慢 1 秒）
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = Pad.kc(event)
@@ -1729,6 +1744,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (k == KEY_SPACE or k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
 		_try_dash()
 		get_viewport().set_input_as_handled()
+		return
+	# 终结技 Q / 连携技 E（docs/198 §2.4，ult/on）：取代下面的手动技能路由；J 只在手动普攻时是攻击
+	var act: String = PlayKeys.action_of(k, true) if ult != null else ""
+	if (act == "ult" or act == "combo" or act == "attack") and state == S.PLAY:
+		if act != "attack" and (ult.press_q() if act == "ult" else ult.press_e()):
+			get_viewport().set_input_as_handled()
 		return
 	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）
 	if (k == KEY_Q or k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
@@ -1940,6 +1961,8 @@ func _update(dt: float) -> void:
 		mv = Pad.move_vec()   # 手柄左摇杆（模拟量）/ 十字键
 	elif mode != Mode.PLAY:
 		mv = Vector2.from_angle(t * 0.4)
+	if ult_bench != null:
+		mv = Vector2.ZERO   # 终结技对齐测试（run/ult_bench.gd）：队长站在场景中心不动
 	move_in = mv
 	if mode == Mode.BALANCE and autotest_sys.want_dash:
 		autotest_sys.want_dash = false

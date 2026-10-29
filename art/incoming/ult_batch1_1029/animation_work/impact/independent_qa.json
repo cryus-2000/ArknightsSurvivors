@@ -1,0 +1,83 @@
+{
+  "checks": [
+    {
+      "name": "fx_ult_texas_slash_front",
+      "size": [
+        6144,
+        80
+      ],
+      "fps": 24,
+      "frame_count": 8,
+      "binary_alpha": true,
+      "clear_transparent_rgb": true,
+      "source_hashes": true,
+      "output_hash": true,
+      "rgba_mib": 1.875
+    },
+    {
+      "name": "fx_ult_texas_sword_front",
+      "size": [
+        384,
+        224
+      ],
+      "fps": 20,
+      "frame_count": 6,
+      "binary_alpha": true,
+      "clear_transparent_rgb": true,
+      "source_hashes": true,
+      "output_hash": true,
+      "rgba_mib": 0.328125,
+      "native_frames_0_through_4_visible_rgba_exact": true,
+      "sixth_frame_native_rectangle_visible_rgba_exact": true,
+      "native_alpha_exact": true,
+      "transparent_native_rgb_normalized_to_zero": true,
+      "old_f3_keyframe_equals_full_f4": true
+    },
+    {
+      "name": "fx_ult_exusiai_burst_front",
+      "size": [
+        768,
+        128
+      ],
+      "fps": 30,
+      "frame_count": 6,
+      "binary_alpha": true,
+      "clear_transparent_rgb": true,
+      "source_hashes": true,
+      "output_hash": true,
+      "rgba_mib": 0.375
+    },
+    {
+      "name": "fx_ult_exusiai_lock_orbit",
+      "size": [
+        768,
+        96
+      ],
+      "fps": 24,
+      "frame_count": 8,
+      "binary_alpha": true,
+      "clear_transparent_rgb": true,
+      "source_hashes": true,
+      "output_hash": true,
+      "rgba_mib": 0.28125
+    },
+    {
+      "name": "fx_ult_ulpianus_burst_front",
+      "size": [
+        1024,
+        192
+      ],
+      "fps": 20,
+      "frame_count": 8,
+      "binary_alpha": true,
+      "clear_transparent_rgb": true,
+      "source_hashes": true,
+      "output_hash": true,
+      "rgba_mib": 0.75
+    }
+  ],
+  "assets": 5,
+  "frames": 36,
+  "rgba_mib": 3.609375,
+  "runtime_verified": false
+}

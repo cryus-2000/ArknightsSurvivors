@@ -1,0 +1,831 @@
+{
+  "stage": "keyframe_snapshot_approved_for_commit",
+  "source_order": "v2 + user native skeleton correction",
+  "planned_rgba_mib": 17.5234375,
+  "assets": [
+    {
+      "name": "fx_ult_texas_slash_front",
+      "logical_size": [
+        384,
+        40
+      ],
+      "physical_size": [
+        768,
+        80
+      ],
+      "frame_count": 8,
+      "timing": "8 / 24",
+      "origin": "中心",
+      "segments": "起 0–2（细线显现）/ 爆 3–5 / 收 6–7",
+      "planned_rgba_mib": 1.875,
+      "status": "keyframe_candidate",
+      "source_candidate": "ult_slash_v2_draft.png",
+      "palette_reference": [
+        "fx_texas_blade@2x.png",
+        "fx_texas_sword_drop@2x.png"
+      ],
+      "representative_frame": 4,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_texas_slash_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "f284dd49ca1151fd1ec0fa8e69388f6123e4f59329972251becfa530024bb441"
+        },
+        {
+          "file": "keyframes/fx_ult_texas_slash_front_f04@2x.png",
+          "frame": 4,
+          "sha256": "94bb6947403a3e3a4528e46cae43801b12d5bd8117ee0d2a21340e124a99ba52"
+        }
+      ],
+      "review_note": "现有游戏色板对齐；像素网格候选。"
+    },
+    {
+      "name": "fx_ult_texas_scar_back",
+      "logical_size": [
+        128,
+        16
+      ],
+      "physical_size": [
+        256,
+        32
+      ],
+      "frame_count": 4,
+      "timing": "4 / 10",
+      "origin": "左端中心",
+      "segments": "整条淡出",
+      "planned_rgba_mib": 0.125,
+      "status": "keyframe_candidate",
+      "source_candidate": "ult_texas_scar_draft.png",
+      "palette_reference": [
+        "fx_texas_blade@2x.png",
+        "fx_texas_sword_drop@2x.png"
+      ],
+      "representative_frame": 2,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_texas_scar_back_f00@2x.png",
+          "frame": 0,
+          "sha256": "035503b889e0215fd357b78cafd7fb39ca1d0daa59ab1bf396eb6954284ef1e4"
+        },
+        {
+          "file": "keyframes/fx_ult_texas_scar_back_f02@2x.png",
+          "frame": 2,
+          "sha256": "974ca41104c83b61c452a6ad3c997b87614031128d577c195541a50574de34bf"
+        }
+      ],
+      "review_note": "拼接修订：端点色值与覆盖一致；直线重复或参考半径环形摆放见预览。",
+      "tile_axis": "x",
+      "seam_endpoint_equal": true,
+      "arc_reference_radius": null,
+      "arc_span_degrees": null,
+      "art_revision": 3,
+      "arc_overlap_2x_pixels": null
+    },
+    {
+      "name": "fx_ult_texas_sword_front",
+      "logical_size": [
+        32,
+        112
+      ],
+      "physical_size": [
+        64,
+        224
+      ],
+      "frame_count": 6,
+      "timing": "6 / 20",
+      "origin": "底部中心",
+      "segments": "落 0–2 / 插地碎屑 3–5",
+      "planned_rgba_mib": 0.328125,
+      "status": "keyframe_candidate",
+      "source_candidate": "E:\\ArknightsSurvivors\\art\\incoming\\fx_texas_sword_drop@2x.png",
+      "palette_reference": [
+        "fx_texas_blade@2x.png",
+        "fx_texas_sword_drop@2x.png"
+      ],
+      "representative_frame": 3,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_texas_sword_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "da1859aaa53e982d57cc9f83237511c07d80fa47319ca3137d6b607a67390e35"
+        },
+        {
+          "file": "keyframes/fx_ult_texas_sword_front_f03@2x.png",
+          "frame": 3,
+          "sha256": "88696b81049bea69638150f971ed37639e312ea2a4fd23c7a595c8d27dad49f0"
+        }
+      ],
+      "review_note": "原样复用当前余像剑雨优先调用的fx_texas_sword_drop；下落帧0与插地帧4，保留蓝灰剑身和金色内刃。",
+      "canonical_visual_verified": false,
+      "current_game_source_hash": "c11b6e37b545898d2f8b54d48b18949a7af3bf5647ec4e1d118e2f17e972f6de",
+      "art_revision": 3,
+      "current_game_sword_exact": true,
+      "source_frames": [
+        0,
+        4
+      ],
+      "source_ground_anchor": [
+        12,
+        76
+      ],
+      "delivery_ground_anchor": [
+        32,
+        224
+      ],
+      "source_to_delivery_offset": [
+        20,
+        148
+      ],
+      "runtime_selection_reference": "game/data/characters/texas.json:1110-1112"
+    },
+    {
+      "name": "fx_ult_exusiai_burst_front",
+      "logical_size": [
+        64,
+        64
+      ],
+      "physical_size": [
+        128,
+        128
+      ],
+      "frame_count": 6,
+      "timing": "6 / 30",
+      "origin": "中心",
+      "segments": "—",
+      "planned_rgba_mib": 0.375,
+      "status": "keyframe_candidate",
+      "source_candidate": "revision_burst.png",
+      "palette_reference": "revision2 orange/white; current game gun-impact contrast",
+      "representative_frame": 2,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_exusiai_burst_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "a144bd6f9cf3860602e05377b2d1b1949b79be1a4f09e374f8a736922bb1db11"
+        },
+        {
+          "file": "keyframes/fx_ult_exusiai_burst_front_f02@2x.png",
+          "frame": 2,
+          "sha256": "924b8a00f2ca7a9b099a462eb60db8f3a8ff8b78e605e7b03912c264e90a4dac"
+        }
+      ],
+      "review_note": "白热小芯、橙红碎火花；金色仅作少量高光。",
+      "art_revision": 3
+    },
+    {
+      "name": "fx_ult_exusiai_lock_orbit",
+      "logical_size": [
+        48,
+        48
+      ],
+      "physical_size": [
+        96,
+        96
+      ],
+      "frame_count": 8,
+      "timing": "8 / 24",
+      "origin": "中心",
+      "segments": "起 0–3（四角收拢）/ 循环 4–5（锁住保持）/ 收 6–7（碎裂）",
+      "planned_rgba_mib": 0.28125,
+      "status": "keyframe_candidate",
+      "source_candidate": "native corner geometry matching current impact scale",
+      "palette_reference": [
+        "fx_exusiai_muzzle_gold@2x.png",
+        "fx_exusiai_hit_gold@2x.png"
+      ],
+      "representative_frame": 4,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_exusiai_lock_orbit_f00@2x.png",
+          "frame": 0,
+          "sha256": "97c9474f6371314b2a089bcd4b9cda39840fc37eb8e308d6502ec6aa1ede1269"
+        },
+        {
+          "file": "keyframes/fx_ult_exusiai_lock_orbit_f04@2x.png",
+          "frame": 4,
+          "sha256": "db719b9b17d8fc65e37687dabaf86a33864331f6a0e55aa3377d97e7e071f06b"
+        }
+      ],
+      "review_note": "四角收拢，1逻辑像素细线，中心留空；完整碎裂帧待制作。",
+      "art_revision": 3
+    },
+    {
+      "name": "fx_ult_skalter_seaborn_front",
+      "logical_size": [
+        160,
+        160
+      ],
+      "physical_size": [
+        320,
+        320
+      ],
+      "frame_count": 10,
+      "timing": "10 / 12",
+      "origin": "底部中心（脚底）",
+      "segments": "起 0–5（升起）/ 循环 6–7（张口，光束期间循环）/ 收 8–9（沉下）",
+      "planned_rgba_mib": 3.90625,
+      "status": "keyframe_candidate",
+      "body_policy": "Original Spine Start + Skill attachments recomposed, no generated anatomy",
+      "native_sources": [
+        {
+          "action": "Start",
+          "source_frame": 0,
+          "source_time": 0.0,
+          "source_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\seaborn\\Start\\manifest.json",
+          "offset_only": [
+            32,
+            132
+          ],
+          "native_root_on_canvas": [
+            160,
+            316
+          ],
+          "native_body_pixels_unchanged": true,
+          "source_files": [
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.atlas",
+              "sha256": "40f9dfcaea0fcbb28e4e0ae1b1335830686ece3ea371515e45b8d2b35e28b124"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.png",
+              "sha256": "73058ddf92f266ab8687907b2e84d110c18deaf97562a66a39424350298991c9"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.skel",
+              "sha256": "593128ee8cc4c9340e3f9bcbe27735942b5d2c8cfca8bc96a2f6f61aee1ecde0"
+            }
+          ]
+        },
+        {
+          "action": "Skill",
+          "source_frame": 5,
+          "source_time": 0.3333333432674408,
+          "source_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\seaborn\\Skill\\manifest.json",
+          "offset_only": [
+            32,
+            132
+          ],
+          "native_root_on_canvas": [
+            160,
+            316
+          ],
+          "native_body_pixels_unchanged": true,
+          "source_files": [
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.atlas",
+              "sha256": "40f9dfcaea0fcbb28e4e0ae1b1335830686ece3ea371515e45b8d2b35e28b124"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.png",
+              "sha256": "73058ddf92f266ab8687907b2e84d110c18deaf97562a66a39424350298991c9"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.skel",
+              "sha256": "593128ee8cc4c9340e3f9bcbe27735942b5d2c8cfca8bc96a2f6f61aee1ecde0"
+            }
+          ]
+        }
+      ],
+      "representative_frame": 6,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_skalter_seaborn_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "f40ff8b8d556b2eb1f0f218eff058b7d511b2012505cf02af5e664ea398c870a"
+        },
+        {
+          "file": "keyframes/fx_ult_skalter_seaborn_front_f06@2x.png",
+          "frame": 6,
+          "sha256": "8e336dc5fd23895c27c44d7f394567705152f683703591009a68bb2bc1c0537b"
+        }
+      ],
+      "review_note": "原骨架附件重组；非生成本体。f0取原作Start；代表帧取Skill的OnAttack时刻0.3333秒，保持原骨架张口姿态。完整循环待制作。"
+    },
+    {
+      "name": "fx_ult_skalter_seaborn_back",
+      "logical_size": [
+        160,
+        48
+      ],
+      "physical_size": [
+        320,
+        96
+      ],
+      "frame_count": 6,
+      "timing": "6 / 12",
+      "origin": "中心",
+      "segments": "起 0–2 / 循环 3–4 / 收 5",
+      "planned_rgba_mib": 0.703125,
+      "status": "keyframe_candidate",
+      "source_candidate": "revision_water.png",
+      "palette_reference": [
+        "fx_skalter_wave@2x.png",
+        "fx_water_splash.png"
+      ],
+      "representative_frame": 3,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_skalter_seaborn_back_f00@2x.png",
+          "frame": 0,
+          "sha256": "2d4178986f10b07a36e01bcbd7c1a4b159aba97c76cea51012b0bee73d0fcee4"
+        },
+        {
+          "file": "keyframes/fx_ult_skalter_seaborn_back_f03@2x.png",
+          "frame": 3,
+          "sha256": "c7226790514213fb67b18cd238e3a470b3c1c819959ee230502d412eb8fe60f7"
+        }
+      ],
+      "review_note": "蓝黑水体与青色破碎边，中心留空；少量深红共鸣边。",
+      "art_revision": 3
+    },
+    {
+      "name": "fx_ult_skalter_beam_front",
+      "logical_size": [
+        96,
+        40
+      ],
+      "physical_size": [
+        192,
+        80
+      ],
+      "frame_count": 6,
+      "timing": "6 / 24 循环",
+      "origin": "左端中心",
+      "segments": "循环 0–5",
+      "planned_rgba_mib": 0.3515625,
+      "status": "keyframe_candidate",
+      "source_candidate": "revision3_beam.png",
+      "palette_reference": "dedicated source crimson/teal;12 flat shades",
+      "representative_frame": 3,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_skalter_beam_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "7956f3adb5a3d35f00154f49dc6d20a7a87818095dc56a3f731e02f42fd3b7dc"
+        },
+        {
+          "file": "keyframes/fx_ult_skalter_beam_front_f03@2x.png",
+          "frame": 3,
+          "sha256": "87f38b4a355dcd310387b0e1837ea71e6cc9771d1ba31b598e91429dbab788eb"
+        }
+      ],
+      "review_note": "拼接修订：端点色值与覆盖一致；直线重复或参考半径环形摆放见预览。",
+      "art_revision": 3,
+      "tile_axis": "x",
+      "seam_endpoint_equal": true,
+      "arc_reference_radius": null,
+      "arc_span_degrees": null,
+      "arc_overlap_2x_pixels": null,
+      "current_game_source_hash": "f082300fe88a1e5a4dd26355338847cfab3dbe30fb99eebdae2c35fd1b8272a2",
+      "source_frames": [
+        0,
+        3
+      ],
+      "beam_design_revision": 3,
+      "existing_game_alternative_source": "E:\\ArknightsSurvivors\\art\\incoming\\fx_kp_ishar_mid.png",
+      "existing_game_alternative_hash": "f082300fe88a1e5a4dd26355338847cfab3dbe30fb99eebdae2c35fd1b8272a2",
+      "review_draw_width": 80,
+      "review_previous_draw_width": 40,
+      "review_width_scale": 2.0
+    },
+    {
+      "name": "fx_ult_skalter_domain_back",
+      "logical_size": [
+        64,
+        32
+      ],
+      "physical_size": [
+        128,
+        64
+      ],
+      "frame_count": 6,
+      "timing": "6 / 10 循环",
+      "origin": "中心",
+      "segments": "循环 0–5",
+      "planned_rgba_mib": 0.1875,
+      "status": "keyframe_candidate",
+      "source_candidate": "ult_skalter_domain_draft.png",
+      "palette_reference": [
+        "fx_skalter_wave@2x.png",
+        "fx_water_splash.png"
+      ],
+      "representative_frame": 3,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_skalter_domain_back_f00@2x.png",
+          "frame": 0,
+          "sha256": "2f21a607c8799fed5ac0dd01acd8cffdb8b9d1b236da232b985112a976c89574"
+        },
+        {
+          "file": "keyframes/fx_ult_skalter_domain_back_f03@2x.png",
+          "frame": 3,
+          "sha256": "b9a29c2d4403a2967b58271ac15a4fab91ef93e6f74b09ccc906a6fe3beaf150"
+        }
+      ],
+      "review_note": "拼接修订：端点色值与覆盖一致；直线重复或参考半径环形摆放见预览。",
+      "tile_axis": "x",
+      "seam_endpoint_equal": true,
+      "arc_reference_radius": 123.63850576500076,
+      "arc_span_degrees": 30,
+      "art_revision": 3,
+      "arc_overlap_2x_pixels": 2
+    },
+    {
+      "name": "fx_ult_kaltsit_melt_front",
+      "logical_size": [
+        192,
+        192
+      ],
+      "physical_size": [
+        384,
+        384
+      ],
+      "frame_count": 8,
+      "timing": "8 / 24",
+      "origin": "中心",
+      "segments": "蓄 0–2 / 爆 3–5 / 散 6–7",
+      "planned_rgba_mib": 4.5,
+      "status": "keyframe_candidate",
+      "source_candidate": "revision_melt.png",
+      "palette_reference": [
+        "fx_mon3tr_melt_slash@2x.png",
+        "op_mon3tr_native_idle@2x.png"
+      ],
+      "representative_frame": 4,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_kaltsit_melt_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "886a4df9027f21ffdf41e1f1494bafe977b79fb212e801d59948c8de6c68d81f"
+        },
+        {
+          "file": "keyframes/fx_ult_kaltsit_melt_front_f04@2x.png",
+          "frame": 4,
+          "sha256": "778dfe8e317e5cfbed638139f8f9a20217891deea52452647015b55d9aa388d9"
+        }
+      ],
+      "review_note": "原骨架Skill_2蓄势/释放姿态对位，爆炸层独立于本体；已移除石球核心。",
+      "body_policy": "native Skill_2 guide; FX-only texture",
+      "native_pose_guides": [
+        {
+          "action": "Skill_2",
+          "source_frame": 5,
+          "source_time": 0.3958333283662796,
+          "core_bone": "C_Body_III",
+          "core_in_source_canvas": [
+            99.85543193372683,
+            126.55061909311786
+          ],
+          "body_offset": [
+            92,
+            65
+          ],
+          "body_pixels_unchanged": true,
+          "source_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\mon3tr\\Skill_2\\manifest.json"
+        },
+        {
+          "action": "Skill_2",
+          "source_frame": 9,
+          "source_time": 0.6666666865348816,
+          "core_bone": "C_Body_III",
+          "core_in_source_canvas": [
+            142.0530955043362,
+            147.06512956533692
+          ],
+          "body_offset": [
+            50,
+            45
+          ],
+          "body_pixels_unchanged": true,
+          "source_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\mon3tr\\Skill_2\\manifest.json"
+        }
+      ],
+      "art_revision": 3
+    },
+    {
+      "name": "fx_ult_kaltsit_crack_back",
+      "logical_size": [
+        96,
+        32
+      ],
+      "physical_size": [
+        192,
+        64
+      ],
+      "frame_count": 6,
+      "timing": "6 / 20",
+      "origin": "弧中心",
+      "segments": "裂开 0–3 / 余热 4–5",
+      "planned_rgba_mib": 0.28125,
+      "status": "keyframe_candidate",
+      "source_candidate": "ult_kaltsit_crack_draft.png",
+      "palette_reference": [
+        "fx_mon3tr_melt_slash@2x.png",
+        "op_mon3tr_native_idle@2x.png"
+      ],
+      "representative_frame": 3,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_kaltsit_crack_back_f00@2x.png",
+          "frame": 0,
+          "sha256": "9649bcc8347a744ce8d2ce79533d5f170d2eedcec12f9529b5c317863a3d627f"
+        },
+        {
+          "file": "keyframes/fx_ult_kaltsit_crack_back_f03@2x.png",
+          "frame": 3,
+          "sha256": "584ad1f77a15eb5a9510376a4146fff06f3c0b8ba666a57f2cc5c02a65b4b5ac"
+        }
+      ],
+      "review_note": "拼接修订：端点色值与覆盖一致；直线重复或参考半径环形摆放见预览。",
+      "tile_axis": "x",
+      "seam_endpoint_equal": true,
+      "arc_reference_radius": 185.45775864750112,
+      "arc_span_degrees": 30,
+      "art_revision": 3,
+      "arc_overlap_2x_pixels": 2
+    },
+    {
+      "name": "fx_ult_kaltsit_rebuild_orbit",
+      "logical_size": [
+        128,
+        128
+      ],
+      "physical_size": [
+        256,
+        256
+      ],
+      "frame_count": 12,
+      "timing": "12 / 16",
+      "origin": "底部中心",
+      "segments": "—",
+      "planned_rgba_mib": 3.0,
+      "status": "keyframe_candidate",
+      "body_policy": "FX-only overlay; native Start is separate runtime body, never image-generated",
+      "native_sources": [
+        {
+          "action": "Start",
+          "source_frame": 0,
+          "source_time": 0.0,
+          "source_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\mon3tr\\Start\\manifest.json",
+          "offset_only": [
+            0,
+            70
+          ],
+          "native_root_on_canvas": [
+            128,
+            254
+          ],
+          "native_body_pixels_unchanged": true,
+          "source_files": [
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\mon3tr\\0\\token_10002_kalts_mon3tr.atlas",
+              "sha256": "bb278fb7d60aa8088cc6b1114dd2b69a1973a4d647a668e4571a239643f2d042"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\mon3tr\\0\\token_10002_kalts_mon3tr.png",
+              "sha256": "634ea75e5874276a555b6f287fc874557a8ad6a7e96357cbe72bf9e6e96061ae"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\mon3tr\\0\\token_10002_kalts_mon3tr.skel",
+              "sha256": "ce41a41d785abcd1cd0dd16d56286da66b0a451adb794412dab1c30b75bb1929"
+            }
+          ]
+        },
+        {
+          "action": "Start",
+          "source_frame": 18,
+          "source_time": 1.499999964237213,
+          "source_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\mon3tr\\Start\\manifest.json",
+          "offset_only": [
+            0,
+            70
+          ],
+          "native_root_on_canvas": [
+            128,
+            254
+          ],
+          "native_body_pixels_unchanged": true,
+          "source_files": [
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\mon3tr\\0\\token_10002_kalts_mon3tr.atlas",
+              "sha256": "bb278fb7d60aa8088cc6b1114dd2b69a1973a4d647a668e4571a239643f2d042"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\mon3tr\\0\\token_10002_kalts_mon3tr.png",
+              "sha256": "634ea75e5874276a555b6f287fc874557a8ad6a7e96357cbe72bf9e6e96061ae"
+            },
+            {
+              "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\mon3tr\\0\\token_10002_kalts_mon3tr.skel",
+              "sha256": "ce41a41d785abcd1cd0dd16d56286da66b0a451adb794412dab1c30b75bb1929"
+            }
+          ]
+        }
+      ],
+      "representative_frame": 9,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_kaltsit_rebuild_orbit_f00@2x.png",
+          "frame": 0,
+          "sha256": "f5c95bb35098942f0c17d0d05d0e06444fb8a74dcbac9b379d1020db33b34d90"
+        },
+        {
+          "file": "keyframes/fx_ult_kaltsit_rebuild_orbit_f09@2x.png",
+          "frame": 9,
+          "sha256": "4b3951492a8872b6c90c96203c4f7eb053886816ce865aaccf7b77cb143cf52d"
+        }
+      ],
+      "review_note": "结构线按原附件中心连成路径，沿原生轮廓显现；完整收拢运动待动画阶段。",
+      "source_candidate": "native attachment graph + Start body guide",
+      "art_revision": 3
+    },
+    {
+      "name": "fx_ult_ulpianus_anchor_front",
+      "logical_size": [
+        96,
+        96
+      ],
+      "physical_size": [
+        192,
+        192
+      ],
+      "frame_count": 4,
+      "timing": "4 / —",
+      "origin": "锚中心",
+      "segments": "每帧一个角度：0° / 45° / 90° / 135°",
+      "planned_rgba_mib": 0.5625,
+      "status": "keyframe_candidate",
+      "source_candidate": "references/native_anchor/source.json",
+      "palette_reference": [
+        "fx_water_splash.png",
+        "op_mon3tr_native_idle@2x.png"
+      ],
+      "representative_frame": 2,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_ulpianus_anchor_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "f03126c47e60617d746cb1a7c91d24da4f4c893ee261382084d4e3a5111dcb40"
+        },
+        {
+          "file": "keyframes/fx_ult_ulpianus_anchor_front_f02@2x.png",
+          "frame": 2,
+          "sha256": "18b589003c9ce937d3f11a39fc6b6bd9cd9cf176840920de0f4ddc7ea8978c5e"
+        }
+      ],
+      "review_note": "同一原作Spine武器附件，去链条；代表帧严格平面旋转90度。",
+      "body_policy": "original Spine weapon attachments, shared pixel grid",
+      "rotation_degrees": [
+        0,
+        90
+      ],
+      "rotation_pivot": [
+        96,
+        96
+      ],
+      "art_revision": 3
+    },
+    {
+      "name": "fx_ult_ulpianus_chain_front",
+      "logical_size": [
+        32,
+        16
+      ],
+      "physical_size": [
+        64,
+        32
+      ],
+      "frame_count": 2,
+      "timing": "2 / 12 循环",
+      "origin": "左端中心",
+      "segments": "循环 0–1",
+      "planned_rgba_mib": 0.015625,
+      "status": "keyframe_candidate",
+      "source_candidate": "ult_ulpianus_chain_draft.png",
+      "palette_reference": [
+        "fx_water_splash.png",
+        "op_mon3tr_native_idle@2x.png"
+      ],
+      "representative_frame": 1,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_ulpianus_chain_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "c6b09f5d1534d186e1a3ecb7b4607c9d95762ffb369ce66243b38f4cc116c731"
+        },
+        {
+          "file": "keyframes/fx_ult_ulpianus_chain_front_f01@2x.png",
+          "frame": 1,
+          "sha256": "ce8fa39b38d7d893e00393923a9cb0304c1257756dddc9d5235e408578f75bff"
+        }
+      ],
+      "review_note": "拼接修订：端点色值与覆盖一致；直线重复或参考半径环形摆放见预览。",
+      "tile_axis": "x",
+      "seam_endpoint_equal": true,
+      "arc_reference_radius": null,
+      "arc_span_degrees": null,
+      "art_revision": 3,
+      "arc_overlap_2x_pixels": null
+    },
+    {
+      "name": "fx_ult_ulpianus_crack_back",
+      "logical_size": [
+        96,
+        32
+      ],
+      "physical_size": [
+        192,
+        64
+      ],
+      "frame_count": 6,
+      "timing": "6 / 20",
+      "origin": "弧中心",
+      "segments": "裂开 0–3 / 余痕 4–5",
+      "planned_rgba_mib": 0.28125,
+      "status": "keyframe_candidate",
+      "source_candidate": "ult_ulpianus_crack_draft.png",
+      "palette_reference": [
+        "fx_water_splash.png",
+        "op_mon3tr_native_idle@2x.png"
+      ],
+      "representative_frame": 3,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_ulpianus_crack_back_f00@2x.png",
+          "frame": 0,
+          "sha256": "aa84055a803901cbe42bb4b765da476367e3da7c3e516a8966c6d7b31063c095"
+        },
+        {
+          "file": "keyframes/fx_ult_ulpianus_crack_back_f03@2x.png",
+          "frame": 3,
+          "sha256": "6b346227e98c8b8215f5d1fde9acc7a60c63af8531be52d413179f915a39ab2b"
+        }
+      ],
+      "review_note": "拼接修订：端点色值与覆盖一致；直线重复或参考半径环形摆放见预览。",
+      "tile_axis": "x",
+      "seam_endpoint_equal": true,
+      "arc_reference_radius": 185.45775864750112,
+      "arc_span_degrees": 30,
+      "art_revision": 3,
+      "arc_overlap_2x_pixels": 2
+    },
+    {
+      "name": "fx_ult_ulpianus_burst_front",
+      "logical_size": [
+        64,
+        96
+      ],
+      "physical_size": [
+        128,
+        192
+      ],
+      "frame_count": 8,
+      "timing": "8 / 20",
+      "origin": "底部中心",
+      "segments": "喷 0–3 / 落 4–7",
+      "planned_rgba_mib": 0.75,
+      "status": "keyframe_candidate",
+      "source_candidate": "ult_ulpianus_burst_draft.png",
+      "palette_reference": [
+        "fx_water_splash.png",
+        "op_mon3tr_native_idle@2x.png"
+      ],
+      "representative_frame": 3,
+      "keyframes": [
+        {
+          "file": "keyframes/fx_ult_ulpianus_burst_front_f00@2x.png",
+          "frame": 0,
+          "sha256": "24c32f558d3c3ba2a2ea71429063eb69786af1b7a272996a3ca746af7c1dac71"
+        },
+        {
+          "file": "keyframes/fx_ult_ulpianus_burst_front_f03@2x.png",
+          "frame": 3,
+          "sha256": "dd28ca1ae6d4234ecbcafea20ce8881f76c168c6e5ce0141641a6065bd213ccf"
+        }
+      ],
+      "review_note": "现有游戏色板对齐；像素网格候选。"
+    }
+  ],
+  "runtime_verified": false,
+  "visual_approved": true,
+  "generated_body_drafts_withdrawn": true,
+  "actual_keyframe_rgba_mib": 4.328125,
+  "art_revision": 3,
+  "refinement_complete_for_keyframe_review": true,
+  "changed_assets": [
+    "fx_ult_exusiai_burst_front",
+    "fx_ult_exusiai_lock_orbit",
+    "fx_ult_kaltsit_crack_back",
+    "fx_ult_kaltsit_melt_front",
+    "fx_ult_kaltsit_rebuild_orbit",
+    "fx_ult_skalter_beam_front",
+    "fx_ult_skalter_domain_back",
+    "fx_ult_skalter_seaborn_back",
+    "fx_ult_texas_scar_back",
+    "fx_ult_texas_sword_front",
+    "fx_ult_ulpianus_anchor_front",
+    "fx_ult_ulpianus_chain_front",
+    "fx_ult_ulpianus_crack_back"
+  ],
+  "seam_validation": "matching endpoints on 6 keyframe pairs; placement review required",
+  "approval_scope": "2026-10-29 user approved committing current keyframe snapshot; not full-animation or runtime acceptance"
+}

@@ -785,6 +785,8 @@ func record(marks = null) -> Dictionary:
 		rec["m3"] = mr   # Mon3tr 血条（docs/plans/2026-10-29-mon3tr-hp-plan.md）：倒地次数、不在场秒数、受伤 / 回血 / 治疗拍；没有 Mon3tr 的局不写
 	if not g.squad.stance_log.is_empty():
 		rec["cmd"] = g.squad.cmd_stats()   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数；没切过模式的局不写（BALANCE 与 main 逐字相同）
+	if g.ult != null:
+		rec["ult"] = g.ult.report()   # 终结技 / 连携 / 连携终结技次数与能量来源（docs/198 原型；ult/on 关时没有这一项）
 	return rec
 
 

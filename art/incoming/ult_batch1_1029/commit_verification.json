@@ -1,0 +1,14 @@
+{
+  "stage": "approved keyframe snapshot",
+  "keyframes": 32,
+  "repeat_checks": 12,
+  "runtime_verified": false,
+  "planned_full_animation_mib": 17.5234375,
+  "anchor_rotation_exact": true,
+  "anchor_attachment_recomposition_exact": true,
+  "current_game_sword_exact": true,
+  "beam_review_width": 80,
+  "selected_files": 137,
+  "selected_preview_references_complete": true,
+  "status": "PASS"
+}

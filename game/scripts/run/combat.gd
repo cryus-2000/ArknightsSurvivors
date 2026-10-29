@@ -65,6 +65,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.dmg_src = dmg_src
 	if g.demo_op != "" and g.demo_enemy == "":
 		return
+	if g.ult != null and not src.is_empty():
+		g.ult.ev.last_src = src   # 连携（归溟幽灵鲨）：伤害来源
 	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + g.rfx.dodge_extra() + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
 		g.invuln = 0.3
 		Sfx.play("dodge", -4.0)
@@ -341,6 +343,8 @@ func lose_hp(amount: float, src: String, boss := false) -> float:
 	var pre_any := amount
 	amount = _any_clamp(amount)
 	g.hp -= amount
+	if g.ult != null:
+		g.ult.on_lose(amount)   # 终结技能量：受伤来源
 	if g.telemetry.rich:
 		g.telemetry.cap_note(pre_all, pre_boss, pre_any, amount, src, boss)   # 上限触发计数 + 逐笔明细（只读）
 	if g.bench.live:
@@ -471,6 +475,8 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
 	_armor_cf(pre, amount, not ignore_armor and g.in_type[1] == "物理")
 	amount = lose_hp(amount, g.dmg_src, boss)
+	if g.ult != null:
+		g.ult.on_hurt(amount, {})   # 连携 C 类判定：近战命中 / 一次大伤害
 	g.rfx.on_hurt(g.dmg_src == "nerve", amount)
 	g.invuln = 0.45
 	g.hurt_flash = 0.2
@@ -1048,6 +1054,7 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 
 
 var _dmg_depth := 0
+var quiet := false   # 静默击杀（arch_review_1029 P1-3 / docs/198 §7.4）：开着时普通怪倒下不播击杀爆点 / 击杀音 / 死亡帧条 / 碎屑（精英、Boss 照常）；终结技一次清屏用，缺省关
 
 func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.dead or e.get("friendly", false):
@@ -1137,17 +1144,19 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
 	if _pf:
 		_pt = g.prof_add("dm_mult", _pt)
+	# 终结技按目标最大生命定档（docs/198 §3.3）：不再吃 Boss 受伤倍率 / 伤害预算 / 单次上限，阶段卡点照旧
+	var ult_pct: bool = e.boss and g.ult != null and "终结技" in h.tags
 	# Boss 脚本自己的受伤倍率（骑士重甲、破绽期另算，docs/142b §3.1；缺省 1）
-	if bh != null:
+	if bh != null and not ult_pct:
 		dmg *= bh.taken_mult(e)
 	# 破绽受伤加成、伤害预算（§1.5 / §1.4）
-	if e.boss:
+	if e.boss and not ult_pct:
 		if e.get("break_t", 0.0) > 0.0:
 			dmg *= Bal.v("boss/break_mult", 1.4)
 			Sfx.play("break_hit", 0.0, 1.0, 0.05)   # 打在破绽上：更重更脆的一层（音频，打击感检查 10/1）
 		dmg = budget_clamp(e, dmg)
 	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
-	if e.boss:
+	if e.boss and not ult_pct:
 		var hcap: float = Bal.v("boss/hit_cap_pct", 0.04)
 		if hcap > 0.0:
 			dmg = minf(dmg, e.maxhp * hcap)
@@ -1175,6 +1184,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff
+	if g.ult != null:
+		g.ult.on_dmg(eff, h)   # 终结技能量：输出来源（docs/198 §2.1）
 	if e.boss and g.bench.live:
 		g.bench.boss_hit(e, eff)   # Boss 单场测试台：破绽期输出占比（docs/170）
 	if _pf:
@@ -1268,6 +1279,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if e.dead:
 		return
 	e.dead = true
+	if g.ult != null:
+		g.ult.on_kill(e)   # 终结技能量：击杀来源
 	# 补给箱被打碎
 	if e.chest:
 		g.telemetry.chests += 1   # 作战记录（docs/77）
@@ -1305,8 +1318,10 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	# 精英 ≤ fx/death_max_elite、Boss 不变）→ 最后一帧碎成像素碎屑」，不画溶解帧条、不叠老 CPU 火花 / 冲击环 / 尘土（击杀音与顿帧照旧）；
 	# 没有死亡帧条的怪当帧碎。光学关（低档）走原来的帧条 / 溶解 + 火花。纯画面
 	var lean: bool = g.optical_on and g.optical.particles != null
-	g.vfx.kill_burst(e, col, g.crit_hit, lean)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
-	var body_on: bool = not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0
+	var q: bool = quiet and not e.elite and not e.boss   # 静默：下面的画面 / 音效整段跳过（纯表现，掉落与结算照常）
+	if not q:
+		g.vfx.kill_burst(e, col, g.crit_hit, lean)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
+	var body_on: bool = not q and (not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0)
 	var shattered := false   # 碎屑已交给死亡帧条最后一帧（vfx.update 到点喷）
 	if not body_on:
 		pass
@@ -1327,11 +1342,11 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			var dp: Vector2 = foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5)
 			if g.vfx.fx_sprite(death_name, dp, dsc, 0.0) and lean:
 				shattered = g.vfx.death_shatter(e, death_name, dp, dsc, Vector2(0.5, 0.5))
-	elif lean:
+	elif lean or q:
 		pass   # 光学 + 新击杀：没有死亡帧条的怪不画溶解，下面当帧碎
 	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
 		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
-	if not shattered and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
+	if not q and not shattered and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
 		g.optical.particles.kill_burst(e)   # 光学观感原型：击杀碎屑（纯画面，GPU 随机，不碰模拟随机数）
 	if e.elite:
 		g.elites_killed += 1

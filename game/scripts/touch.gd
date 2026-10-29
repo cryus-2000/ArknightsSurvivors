@@ -1,4 +1,6 @@
 ## 触屏操作（移动端 / 网页版）：左半屏浮动虚拟摇杆（手指按下处即摇杆中心），右侧两个按钮（暂停 / 属性）。
+## 终结技开着（g.ult != null，docs/198 §2.4）：技能键的位置换成右下大圆「终结技」键（按下 = 顿帧 + 慢动作瞄准，按住拖动选落点 / 方向，松手放出），
+## 它左上一个小圆「连携」键（队友亮起时换成该队友头像，点按出手）；两键的样子由 screens/hud_ult.gd 画，这里只管位置与点按。
 ## 技能基本全自动；主控有手动技能时冲刺键上方多一个技能键（干员契约 v2.3 / v2.4：点一下 = 自动瞄准，按住拖动 = 朝拖动方向放）。面板 / 商店 / 结算里的按钮走 Godot 的"触摸模拟鼠标"，不在这里处理。
 ## 开启条件：Cfg.touch_device()（设备有触屏、网页 Android / iOS / iPad、或命令行 --touch）。
 extends RefCounted
@@ -37,6 +39,11 @@ var atk_id := -1
 var atk_origin := Vector2.ZERO
 var atk_drag := Vector2.ZERO
 var atk_rect := Rect2()
+## 终结技键 / 连携键（g.ult != null 时）：终结技键按下沿用 skill_id / skill_origin / skill_aim（同一个触点槽位），连携键点按即放
+const ULT_AIM_REACH := 90.0   # 终结技键拖出这么远（界面像素）= 落点离队长 ULT_AIM_MAX
+const ULT_AIM_MAX := 520.0    # 选落点最远（同 ult.gd _tick_ult 的夹取）
+var ult_rect := Rect2()
+var combo_rect := Rect2()
 ## 触点编号归一（10-12 手机端移动不了）：网页版 InputEventScreenTouch / Drag 的 index 就是浏览器的 Touch.identifier（Godot 按 i32 存）。
 ## Chrome 安卓从 0 起的小整数；iOS Safari 是全局累加的大数，超过 2^31 后变成负数——上面三个 *_id 用「≥ 0 = 正在按」判定，
 ## 负的触点按下后摇杆不画、move_vec 恒为零（主控走不动），技能键拖动 / 攻击键同样失灵。这里把原始 index 映射成 0 起的小槽位：
@@ -75,6 +82,25 @@ func handle(event: InputEvent) -> bool:
 				g.doctor.touch_atk = true
 				g.doctor.touch_atk_dir = Vector2.ZERO
 				return true
+			# 终结技 / 连携键（ult/on）：两键点击区挨着，同时落在两个区里时取中心近的
+			if g.ult != null and g.state == g.S.PLAY:
+				var ur: Rect2 = _hit(ult_rect) if ult_rect.has_area() else Rect2()
+				var cr: Rect2 = _hit(combo_rect) if combo_rect.has_area() else Rect2()
+				var in_u: bool = ur.has_point(p) and skill_id < 0
+				var in_c: bool = cr.has_point(p)
+				if in_u and in_c:
+					in_c = p.distance_to(combo_rect.get_center()) < p.distance_to(ult_rect.get_center())
+					in_u = not in_c
+				if in_c:
+					g.ult.press_e()
+					flash["combo"] = 0.2
+					return true
+				if in_u:
+					skill_id = fid
+					skill_origin = p
+					skill_aim = Vector2.ZERO
+					g.ult.press_q()   # 能量没满时什么也不发生；仍占住这个触点，拖动不会落到摇杆上
+					return true
 			# 技能键：按下只记触点，松手才释放（以后可以改成拖动瞄准）
 			if skill_rect.size.x > 0.0 and skill_id < 0 and _hit(skill_rect).has_point(p):
 				skill_id = fid
@@ -121,6 +147,13 @@ func handle(event: InputEvent) -> bool:
 			if fid == atk_id:
 				_atk_release()
 				return true
+			if fid == skill_id and g.ult != null:
+				_ult_aim()
+				skill_id = -1
+				skill_aim = Vector2.ZERO
+				flash["skill"] = 0.2
+				g.ult.release_q()
+				return true
 			if fid == skill_id:
 				skill_id = -1
 				flash["skill"] = 0.2
@@ -140,6 +173,7 @@ func handle(event: InputEvent) -> bool:
 			return true
 		if fid == skill_id:
 			skill_aim = p - skill_origin
+			_ult_aim()
 			return true
 		if fid == stick_id:
 			_stick_move(p)
@@ -236,6 +270,31 @@ func _atk_release() -> void:
 	flash["atk"] = 0.15
 
 
+## 终结技瞄准（g.ult 在瞄准慢动作里、终结技键按住且拖过死区）：选落点 = 队长位置 + 拖动方向 × 距离（拖 ULT_AIM_REACH = 最远 520）；
+## 指方向 = 拖动方向。没拖过死区不写，用 ult.gd 的默认落点 / 方向（敌人最密处 / 敌人最多的一边）
+func _ult_aim() -> void:
+	var u = g.ult
+	if u == null or skill_id < 0 or u.phase != "aim" or u.caster == null or skill_aim.length() < AIM_DEAD:
+		return
+	var d: Vector2 = skill_aim.normalized()
+	if u.aim_kind == "point":
+		u.aim = u.caster.pos + d * minf(ULT_AIM_MAX, skill_aim.length() / ULT_AIM_REACH * ULT_AIM_MAX)
+	elif u.aim_kind == "dir":
+		u.aim_dir = d
+
+
+## 终结技键（技能键的位置，大一号）与连携键（它左上）的中心与半径：{"c", "r"}。触屏按键布局里改「技能」键就是改这两个键
+func ult_btn(vs: Vector2) -> Dictionary:
+	var e: Dictionary = layout(vs).skill
+	return {"c": e.c, "r": BTN * 0.85 * float(e.s)}
+
+
+func combo_btn(vs: Vector2) -> Dictionary:
+	var u: Dictionary = ult_btn(vs)
+	var r: float = u.r
+	return {"c": u.c + Vector2(-r * 1.25 - 14.0, -r * 1.1 - 10.0), "r": BTN * 0.5 * r / (BTN * 0.85)}
+
+
 ## 技能键此刻的瞄准方向：拖动超过死区 = 拖动方向（不用归一化），否则 Vector2.ZERO = 自动瞄准
 func aim_dir() -> Vector2:
 	return skill_aim if skill_aim.length() >= AIM_DEAD else Vector2.ZERO
@@ -275,6 +334,9 @@ func update(dt: float) -> void:
 		vec = Vector2.ZERO
 	if skill_id >= 0 and g.state != g.S.PLAY:
 		skill_id = -1
+		if g.ult != null:
+			g.ult.release_q()
+	_ult_aim()   # 每帧写一次：ult.gd 瞄准阶段还会按左摇杆挪落点，拖动的落点以手指为准
 	if skill_id < 0:
 		skill_aim = Vector2.ZERO
 	if atk_id >= 0 and (g.state != g.S.PLAY or not g.doctor.manual_attack):
@@ -331,11 +393,20 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 			_draw_atk_button(hud, font, L.atk.c, L.atk.s)
 		else:
 			atk_rect = Rect2()
-		_draw_skill_button(hud, font, L.skill.c, L.skill.s)
+		if g.ult != null:
+			skill_rect = Rect2()   # 手动技能键让给终结技键（样子在 hud_ult.gd 画）
+			var ub: Dictionary = ult_btn(vs)
+			var cb: Dictionary = combo_btn(vs)
+			ult_rect = Rect2(ub.c - Vector2(ub.r, ub.r), Vector2(ub.r, ub.r) * 2.0)
+			combo_rect = Rect2(cb.c - Vector2(cb.r, cb.r), Vector2(cb.r, cb.r) * 2.0)
+		else:
+			_draw_skill_button(hud, font, L.skill.c, L.skill.s)
 		btn_rects.append([speed_rect(vs), "speed"])
 	else:
 		skill_rect = Rect2()
 		atk_rect = Rect2()
+		ult_rect = Rect2()
+		combo_rect = Rect2()
 	# 指挥键（docs/114）：圈里写当前模式，颜色随模式（随行青 / 突击金 / 归队绿），下方标签「指挥」
 	if g.hud_live() and g.squad.cmd_on():
 		var ce: Dictionary = L.cmd

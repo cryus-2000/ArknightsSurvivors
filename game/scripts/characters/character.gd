@@ -240,7 +240,7 @@ func tick_sp(dt: float) -> void:
 ## 充满不自动放，等玩家按 Q / J（手柄 Ⓐ / Ⓧ，手机技能键），入口是 doctor.try_manual_skill()；当队友时照旧自动释放。
 ## 主控换人时随 is_leader 自动切换。每名干员最多一个（校验按 JSON 的 mode 计数，与是否主控无关）
 func is_manual(i: int) -> bool:
-	return is_leader and skill_def(i).get("mode", "auto") == "manual"
+	return is_leader and skill_def(i).get("mode", "auto") == "manual" and g.ult == null   # ult/on：Q 改给终结技，手动技能按自动放（docs/198 §10.3）
 
 
 func manual_index() -> int:

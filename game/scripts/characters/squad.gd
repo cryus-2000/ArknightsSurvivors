@@ -366,7 +366,10 @@ var syn := {"cd": {}, "acts": [], "n": 0}
 
 
 func syn_skill(o, i: int) -> void:
-	Synergy.on_skill(self, o, i)
+	if g.ult != null:
+		g.ult.on_skill(o, i)   # 技能连携（combo/skill_link，关时直接返回）
+	if g.ult == null:   # ult/on：隐藏连携由连携技取代（docs/198 §10.3）
+		Synergy.on_skill(self, o, i)
 
 
 func update(dt: float) -> void:
@@ -374,7 +377,10 @@ func update(dt: float) -> void:
 	var t0 := Time.get_ticks_usec() if pf else 0
 	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
-	Synergy.tick(self, dt)
+	if g.ult != null:
+		g.ult.tick(dt)   # 终结技 / 连携技（docs/198）：在 follow 之前，连携位移当帧生效
+	else:
+		Synergy.tick(self, dt)
 	var bl: bool = _blink_on()
 	if bl:
 		_blink_pre()
@@ -1022,6 +1028,9 @@ func in_sanctuary(p: Vector2) -> bool:
 
 ## 主控本该倒下时，任一干员阻止（幽灵鲨 S2）
 func prevent_death() -> bool:
+	if g.ult != null and g.t < float(g.ult.ev.get("undying_until", -1.0)):
+		g.hp = 1.0   # 归溟幽灵鲨连携（docs/198 §5.2）：这段时间里队长生命不会低于 1
+		return true
 	for o in ops:
 		if o.has_method("prevent_death") and o.prevent_death():
 			return true

@@ -1,0 +1,96 @@
+{
+  "assets": [
+    {
+      "name": "fx_ult_skalter_seaborn_front",
+      "frame_count": 10,
+      "frame_size_2x": [
+        320,
+        320
+      ],
+      "binary_alpha": true,
+      "rgba_mib": 3.90625,
+      "within_5_mib": true,
+      "unique_frames": 9,
+      "approved_keyframes_preserved": true
+    },
+    {
+      "name": "fx_ult_skalter_seaborn_back",
+      "frame_count": 6,
+      "frame_size_2x": [
+        320,
+        96
+      ],
+      "binary_alpha": true,
+      "rgba_mib": 0.703125,
+      "within_5_mib": true,
+      "unique_frames": 6,
+      "approved_keyframes_preserved": true
+    },
+    {
+      "name": "fx_ult_kaltsit_melt_front",
+      "frame_count": 8,
+      "frame_size_2x": [
+        384,
+        384
+      ],
+      "binary_alpha": true,
+      "rgba_mib": 4.5,
+      "within_5_mib": true,
+      "unique_frames": 8,
+      "approved_keyframes_preserved": true
+    },
+    {
+      "name": "fx_ult_kaltsit_rebuild_orbit",
+      "frame_count": 12,
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "binary_alpha": true,
+      "rgba_mib": 3.0,
+      "within_5_mib": true,
+      "unique_frames": 12,
+      "approved_keyframes_preserved": true
+    },
+    {
+      "name": "fx_ult_ulpianus_anchor_front",
+      "frame_count": 4,
+      "frame_size_2x": [
+        192,
+        192
+      ],
+      "binary_alpha": true,
+      "rgba_mib": 0.5625,
+      "within_5_mib": true,
+      "unique_frames": 4,
+      "approved_keyframes_preserved": true
+    }
+  ],
+  "total_production_rgba_mib": 12.671875,
+  "native_source_hashes_checked": true,
+  "no_game_edits": true,
+  "runtime_verified": false,
+  "guides_are_preview_only": true,
+  "seaborn_common_world_origin_mapping": {
+    "front_origin_px_2x": [
+      160,
+      316
+    ],
+    "back_origin_px_2x": [
+      160,
+      48
+    ]
+  },
+  "seaborn_front_to_back_mapping": [
+    0,
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    4,
+    5,
+    5
+  ]
+}

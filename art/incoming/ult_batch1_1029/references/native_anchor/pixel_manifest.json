@@ -1,0 +1,177 @@
+{
+  "source_files": [
+    {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\ulpianus\\char_4145_ulpia.skel",
+      "sha256": "f498d919ff86b7ed44c769d8dffcae84644035a647a2d5cd244c383e18c7f01f"
+    },
+    {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\ulpianus\\char_4145_ulpia.atlas",
+      "sha256": "35a1edddb4f896e01908fd20af2dd7c9fb42859b7b268d7436627b5baa039671"
+    },
+    {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\ulpianus\\char_4145_ulpia.png",
+      "sha256": "aae6ea86a84cba61cc66b4a295a45fdda891c9cad7601cf73c0b5e66ff705ee4"
+    }
+  ],
+  "pose": {
+    "action": "Idle",
+    "time": 0
+  },
+  "shared_pre_rotation_degrees": -12,
+  "parts": [
+    {
+      "slot": "C_Weapon_B2",
+      "attachment": "C_Weapon_B",
+      "bone": "C_Weapon_RA_d2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        -206.22073394638585,
+        72.89426074631115
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_B2.png",
+      "sha256": "10138f7399b9f268bd56cec646ec4c3dee2970d8ab4149c42275c4659635950e"
+    },
+    {
+      "slot": "C_Weapon_B",
+      "attachment": "C_Weapon_B",
+      "bone": "C_Weapon_RA_a2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        -99.30941984206675,
+        95.26495613797437
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_B.png",
+      "sha256": "a96c05589ecfadcd3b02dfdfb037ff32e8926d3253c2405a837342734394a79f"
+    },
+    {
+      "slot": "C_Weapon_C",
+      "attachment": "C_Weapon_C",
+      "bone": "C_Weapon_C",
+      "parent": "F_Weapon",
+      "origin": [
+        -138.51714079961488,
+        291.846537031258
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_C.png",
+      "sha256": "8f5892ba7a30d05ddfab65b75942b96f8b470029bec79c79da507d46c4642ff2"
+    },
+    {
+      "slot": "C_Weapon_Stick",
+      "attachment": "C_Weapon_Stick",
+      "bone": "F_Weapon",
+      "parent": "C_Weapon_B3",
+      "origin": [
+        -87.44120618361956,
+        11.521570772953822
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_Stick.png",
+      "sha256": "ff973de92950bd7667472ebbbddab19ddaff30f174962c3f4bb450e88197e4c2"
+    },
+    {
+      "slot": "C_Weapon_R_Aa",
+      "attachment": "C_Weapon_R_Aa",
+      "bone": "C_Weapon_RA_b2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        1.3515479339596084,
+        111.90610848748864
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_R_Aa.png",
+      "sha256": "d3e8fb8618e0b4ad1421c2102ff6893c532bfbd195ca3e5f724cc50418ed51fe"
+    },
+    {
+      "slot": "C_Weapon_L_A",
+      "attachment": "C_Weapon_L_A",
+      "bone": "C_Weapon_RA_d2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        -206.22073394638585,
+        72.89426074631115
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_L_A.png",
+      "sha256": "936f62e5028e13ac5be51df303433c7ab0dc37dd85574b41c3b063e1beeb9863"
+    },
+    {
+      "slot": "C_Weapon_L_A2",
+      "attachment": "C_Weapon_L_A",
+      "bone": "C_Weapon_RA_b2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        1.3515479339596084,
+        111.90610848748864
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_L_A2.png",
+      "sha256": "f3fb8b2f59f864bb437b9d726cd0562206e7e3257aa63ab24c37c62eccd2646b"
+    },
+    {
+      "slot": "C_Weapon_L_Aa",
+      "attachment": "C_Weapon_L_Aa",
+      "bone": "C_Weapon_RA_d2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        -206.22073394638585,
+        72.89426074631115
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_L_Aa.png",
+      "sha256": "909f7d0a2b7c8790fd74b2199f4ff60d033b73d407c16bdc8340e17534259d73"
+    },
+    {
+      "slot": "C_Weapon_L_Ba",
+      "attachment": "C_Weapon_L_Ba",
+      "bone": "C_Weapon_RA_c2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        -103.77391210966303,
+        89.90856915240583
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_L_Ba.png",
+      "sha256": "71bc5a7e115b9bd5cf6287d15164e04c893e3e6944c5251145b0e0deb006292d"
+    },
+    {
+      "slot": "C_Weapon_R_Ba",
+      "attachment": "C_Weapon_R_Ba",
+      "bone": "C_Weapon_RA_b2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        1.3515479339596084,
+        111.90610848748864
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_R_Ba.png",
+      "sha256": "eb26ed5a4d499536cd0b74fa9c8317344c45cff25787575b73d8843a41aebb76"
+    },
+    {
+      "slot": "C_Weapon_L_B",
+      "attachment": "C_Weapon_L_B",
+      "bone": "C_Weapon_RA_c2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        -103.77391210966303,
+        89.90856915240583
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_L_B.png",
+      "sha256": "97191e2398947173ce4c16e3abaccfc8a761535e0b9ffe6cb542bb3efda8ac72"
+    },
+    {
+      "slot": "C_Weapon_M",
+      "attachment": "C_Weapon_M",
+      "bone": "C_Weapon_RA_c2a3",
+      "parent": "F_Weapon",
+      "origin": [
+        -103.77391210966303,
+        89.90856915240583
+      ],
+      "pixel_file": "references\\native_anchor\\pixel_parts\\C_Weapon_M.png",
+      "sha256": "8b91a2ef16e39732d5eebbcb7003a5ab9f604eb7bc3023b544999eeaa9a9d168"
+    }
+  ],
+  "parts_recompose_exactly": true,
+  "density": 2,
+  "canvas": [
+    192,
+    192
+  ],
+  "pivot": [
+    96,
+    96
+  ]
+}
