@@ -274,3 +274,4 @@
 | [博士统一画风接入](plans/2026-10-18-doctor-style-integration.md) | 待机、跑步、倒下统一及 64/128 原点 | 测试版接入 | 用户批准新画风；保留既有四干员测试基线 | doctor.json、world、title_bg、doctor_run_test |
 - [2026-10-18 怪物原作机制补齐](plans/2026-10-18-enemy-identity.md)：已实施记录；四类普通怪/精英的防御、光环和控制身份补齐与回归清单；引用：docs/95、enemy_identity_test。
 | [干员特效审查 10-29](195_op_fx_audit_1029.md) | 全员干员特效排查：整片填充圆盘去除、白灰色、待确认项 | 已落地一批 | 浊心 / 逻各斯另会话处理；拉普兰德失色圈待用户定 | data_operator、seg_lumen 等、tools/op_fx_audit_rec.py |
+| [测试体系方案 10-30](204_test_system_plan.md) | 快检耗时盘点、`--changed` 路径映射、说明对账、节点可达性、红项登记、分期 | 方案待审 | 未实装；附只读原型 text_reconcile_scan / graph_lint | check.py、known_red、check_map、tools/graph_lint.py |
