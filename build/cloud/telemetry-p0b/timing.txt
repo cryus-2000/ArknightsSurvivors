@@ -1,0 +1,6 @@
+run1 mode=off exit=0 duration=25.008720381
+run2 mode=on exit=0 duration=25.373124660
+run3 mode=off exit=0 duration=24.052589840
+run4 mode=on exit=0 duration=25.797571939
+run5 mode=off exit=0 duration=24.394873060
+run6 mode=on exit=0 duration=25.151658051

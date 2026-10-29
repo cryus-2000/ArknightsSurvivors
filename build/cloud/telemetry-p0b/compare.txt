@@ -1,0 +1,76 @@
+=== TRACE compare (base=bfa2bcd07 vs new=5acd9fd50) ===
+--- skadi: base_lines=151 new_lines=151 ---
+RESULT: IDENTICAL
+--- wisadel: base_lines=151 new_lines=151 ---
+RESULT: IDENTICAL
+--- mizuki: base_lines=241 new_lines=241 ---
+RESULT: IDENTICAL
+--- hoshiguma: base_lines=151 new_lines=151 ---
+RESULT: IDENTICAL
+
+=== BALANCE line sizes (bytes) ===
+OP           new_full_bytes     base_bytes        
+skadi        7851               6571               (new=7.67KB base=6.42KB)
+wisadel      7853               6631               (new=7.67KB base=6.48KB)
+mizuki       9875               8547               (new=9.64KB base=8.35KB)
+hoshiguma    17534              14458              (new=17.12KB base=14.12KB)
+
+5acd9fd50 skadi nofull vs full:
+nofull_bytes=6621 (6.46582031250000000000KB) full_bytes=7851 (7.66699218750000000000KB) delta=1230 bytes
+
+=== new telemetry fields in 5acd9fd50_skadi.balance (--telemetry=full) ===
+top-level: tel (6 bytes), ult (2 bytes), graze_n (1 byte)
+bot.end:   killer (31 bytes), tl (1263 bytes), hits2 (109 bytes), near (2 bytes)
+bot:       cap_stats (150 bytes)
+All 8 expected new fields (tel, ult, graze_n, killer, tl, hits2, near, cap_stats) present.
+
+=== frame-time overhead (seed=1 skadi 150s, 5acd9fd50, headless logic-only) ===
+off runs (s): [25.008720381, 24.05258984, 24.39487306]
+on  runs (s): [25.37312466, 25.797571939, 25.151658051]
+median off=24.395s median on=25.373s delta(on-off)=0.978s
+
+=== tools/check.py --auto --jobs 3 (on 5acd9fd50) ===
+exit_code=0
+last 40 lines:
+通过 维什戴尔同处爆炸动画只画一次（伤害照打）  WISADEL BOOM checks=12 failures=0
+通过 Mon3tr 熔毁效果  MON3TR FX failures=0
+通过 藏品第二批原语（docs/57）  RELIC IMPL failures=0
+通过 歌蕾蒂娅钩索把人拉到身前（10-24）  GLADIIA HOOK failures=0
+通过 星熊 S1 站定嘲讽 + 防御反击（10-24，docs/140）  HOSHIGUMA TAUNT failures=0
+通过 乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）  ULPIANUS CHARGE failures=0
+通过 乌尔比安 S3 左键点场地释放、点 HUD 不误触（10-26）  ULPIANUS CLICK failures=0
+通过 能天使积木（docs/61 §14）  EXUSIAI BLOCKS failures=0
+通过 多条技能帧条 + 循环状态（docs/87 §3.5，铃兰）  SUZURAN SKILL ANIM failures=0
+通过 统一技能动画契约（安洁莉娜）  ANGELINA SKILL ANIM failures=0
+通过 浊心 / 归溟新美术：出手帧对齐、S3 重锯 / 反向圈换条  SKALTER SPECTER ANIM failures=0
+通过 水月完整出手、持续状态、退出与成长  MIZUKI RUNTIME 510 checks, 0 failed
+通过 可见成长藏品：散射 / 连发 / 剑气 / 范围 / 召唤物副体与体型、叠层递减、Mon3tr 例外、手机上限（docs/163）  VIS GROWTH failures=0
+通过 拉普兰德剑气生命周期与技能动作接续  LAPPLAND PRESENTATION 59 checks, 0 failed
+通过 歌蕾蒂娅牵引、水柱锚点与场特效收尾  GLADIIA PRESENTATION 46 checks, 0 failed
+通过 全员技能起手、移动接续与强化重锤  OPERATOR TRANSITIONS 60 casts, 161 checks, 0 failed
+通过 20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管  ATTACK RHYTHM 2801 checks, 0 failed
+通过 移动攻击：帧条加载、移动中出手换 move_attack 且出手帧对齐、站定不换、收势不被跑步截掉（docs/128）  MOVE ATTACK 457 checks, 0 failed
+通过 水月原生像素起手、命中、收势和持续变体  MIZUKI SKILL ANIM failures=0
+通过 结算：历史编队滚动、评级与视觉 RNG  SETTLEMENT failures=0
+通过 作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版  RUN STATS failures=0
+通过 Summon visual clock and native source timeline  SUMMON VISUAL failures=0
+通过 敌人原作机制与类型抗性  ENEMY IDENTITY checks=37 failures=0
+通过 召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）  SUMMON SEAL BLOCKS failures=0
+通过 分支培养 + 培养保底（docs/119 §4.1 / §4.2）：一张培养卡进二选一、返回不重抽、只扣一次升级、节点 5 按路线、赠送推进排队 / 固定路线、换人继承选路线、其余干员兼容  BUILD PROGRESSION failures=0
+通过 干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检  OP DUMMY failures=0
+通过 潮位阶梯 0–15（docs/109 §5）：16 级、锚点 0 / 4 / 8 与旧三档逐键、严格累加  TIDE failures=0
+通过 认知塑造（docs/109 §4）：节点数据完整（总量 625、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带  META failures=0
+通过 认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一、绝处逢生复活、未雨绸缪闪避 + 闪避补偿  META MECH checks=41 failures=0
+通过 干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终 3 / 4 张、满员折细胞、云存档并集  ROSTER failures=0
+通过 首局聚光框引导 + 到点小提示（screens/tour.gd）：小提示每样只弹一次并记存档 / 排队、老存档不再弹、TIPS 与 Cfg.TIP_IDS 一致  TOUR failures=0
+通过 存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档  SAVE MIGRATE failures=0
+通过 蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返  MEDALS failures=0
+通过 B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）  CLOUD SAVE failures=0
+通过 观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）  LOOK TEST failures=0
+通过 构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关  BUILD AFFINITY failures=0
+通过 卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能  CARD DESC failures=0
+通过 第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽  MERCHANT BUILD OFFER failures=0
+
+快检通过：158 项，失败 0 项，耗时 997 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 187（不用缓存加 --nocache）
+
+blocks_eq (gold sample) failures: none found; no failures of any kind (158/158 passed).
