@@ -233,7 +233,7 @@ func _queue_slots(c0: Vector2, r0: float, r1: float, dir: float) -> Array:
 			continue
 		var r: float = r0 if i == 0 else r1
 		if i == 0 and q.info.has("link"):
-			r *= 1.35   # 技能连携：就绪提示再大一号
+			r *= 1.15   # 技能连携：就绪提示略大一号（10-29 返工：要轻）
 		if i == 0:
 			var pk: float = clampf((_lit_t() - float(q.left)) / 0.15, 0.0, 1.0)
 			r *= 0.55 + 0.45 * (1.0 - (1.0 - pk) * (1.0 - pk))   # 弹出：0.15 秒从 55% 放大到整

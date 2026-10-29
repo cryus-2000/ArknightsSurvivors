@@ -527,7 +527,8 @@ func _fire_head(auto: bool) -> void:
 		else:
 			stats.combo_e += 1
 		combo_acts.append(la)
-		_combo_fx(o, q.info)
+		var tc: Color = _col(o)
+		shape({"kind": "line", "a": o.pos, "b": q.info.pos, "w": 5.0, "col": tc, "life": 0.2})   # 技能连携：只留一道干员色残影（不出条带、不慢放）
 		return
 	var dir: Vector2 = g.move_in.normalized() if (not auto and g.move_in != Vector2.ZERO) else Vector2.ZERO
 	var a: Dictionary = Combo.fire(self, o, q.info, dir)
@@ -876,8 +877,8 @@ func draw_world_back(w) -> void:
 
 
 # ================================================================ 舞台（技能连携样片，用户 10-29；之后终结技也用）
-## stage(pos, op)：背景压暗到约 40%（ult/stage_dim 0.6 的黑）、镜头推到 ult/stage_cam（1.3）、出手队友放大 1.5 倍带残影，
-## 持续 ult/stage_t（1.0）真实秒：0.12 秒压下 → 停 → 最后 0.3 秒恢复。纯画面
+## stage(pos, op)：背景压暗到约 75%（ult/stage_dim 0.25 的黑）、镜头推到 ult/stage_cam（1.1）、出手队友放大 ult/stage_pop（1.25）带两层残影，
+## 持续 ult/stage_t（0.45）真实秒：0.06 秒压下 → 停 → 最后 0.15 秒恢复（用户 10-29 返工：一局 20–30 次，要轻要快，不抢镜）。纯画面
 var _stage_rt := -99.0
 var _stage_pos := Vector2.ZERO
 var _stage_op = null
@@ -897,13 +898,13 @@ func stage(pos: Vector2, op) -> void:
 ## 0..1：舞台强度（压暗 / 推镜 / 放大共用）
 func stage_k() -> float:
 	var t: float = UM.now() - _stage_rt
-	var T: float = Bal.v("ult/stage_t", 1.0)
+	var T: float = Bal.v("ult/stage_t", 0.45)
 	if t < 0.0 or t > T:
 		return 0.0
-	if t < 0.12:
-		return t / 0.12
-	if t > T - 0.3:
-		return (T - t) / 0.3
+	if t < 0.06:
+		return t / 0.06
+	if t > T - 0.15:
+		return (T - t) / 0.15
 	return 1.0
 
 
@@ -913,7 +914,7 @@ func _draw_stage(w) -> void:
 		return
 	var c: Vector2 = g.ppos
 	var R := Vector2(2400.0, 1600.0)
-	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/stage_dim", 0.6) * k))
+	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/stage_dim", 0.25) * k))
 	w.tb_flush()
 	if _stage_op == null or _stage_op.pos == Vector2.INF:
 		return
@@ -925,10 +926,10 @@ func _draw_stage(w) -> void:
 	var fw: float = t.get_width() / float(n)
 	var fh: float = float(t.get_height())
 	var hi: float = A.hires_of(t)
-	var s: float = g.PX / hi * lerpf(1.0, Bal.v("ult/stage_pop", 1.5), k)
+	var s: float = g.PX / hi * lerpf(1.0, Bal.v("ult/stage_pop", 1.25), k)
 	var flip: float = -1.0 if float(_stage_op.face) < 0.0 else 1.0
 	var col: Color = _col(_stage_op)
-	for j in 3:   # 残影：往出手来的方向拖三层干员色
+	for j in 2:   # 残影：往出手来的方向拖两层干员色
 		var off: Vector2 = (g.ppos - _stage_op.pos).normalized() * (26.0 * (j + 1)) * k
 		g.draw_set_transform(_stage_op.pos + off, 0.0, Vector2(s * flip, s))
 		g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(col.r, col.g, col.b, 0.35 * k / (j + 1)))
@@ -944,7 +945,7 @@ var _cast_t := -99.0
 func cam_punch() -> float:
 	var sk: float = stage_k()
 	if sk > 0.0:
-		return lerpf(1.0, Bal.v("ult/stage_cam", 1.3), sk)
+		return lerpf(1.0, Bal.v("ult/stage_cam", 1.1), sk)
 	var ip: float = _imp_punch()
 	if ip > 1.0:
 		return ip
