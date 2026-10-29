@@ -1758,6 +1758,7 @@ func _draw_shots() -> void:
 		var k: float = clampf(s.t / maxf(0.01, s.dur), 0.0, 1.0)
 		var p: Vector2 = s.p0.lerp(s.p1, k) + Vector2(0, -sin(k * PI) * 26.0)
 		var big: bool = not s.patch.is_empty()
+		SegAngelina.lens_draw(self, s, p)   # docs/202 重力透镜：弹道亮线（没选节点直接返回）
 		cv.draw_circle(p, 11.0 if big else 8.0, Color(GRAV.r, GRAV.g, GRAV.b, 0.25))
 		if _fx_tex("proj_angelina_orb") != null:
 			draw_spr_rot("proj_angelina_orb", int(g.t * 12.0) % 4, p, 0.0, g.PX * (1.35 if big else 1.0))
