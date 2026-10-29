@@ -1,0 +1,6 @@
+build/m3hp/m3off_121_1029_1255.json n= 24 win= 5 (20.8%) mean_t=441 errors= 0
+build/m3hp/m3off_97_1029_1252.json n= 24 win= 2 (8.3%) mean_t=404 errors= 0
+build/m3hp/m3on_121_1029_1249.json n= 24 win= 2 (8.3%) mean_t=372 errors= 0
+  m3 downs per run: median 0 zero 18 of 24 >=5 0  mean down_secs 4  mean hurt 1229  mean heal_ticks_m3 28.6
+build/m3hp/m3on_97_1029_1245.json n= 24 win= 5 (20.8%) mean_t=450 errors= 0
+  m3 downs per run: median 0 zero 23 of 24 >=5 0  mean down_secs 1  mean hurt 1439  mean heal_ticks_m3 32.8
