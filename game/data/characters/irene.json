@@ -26,8 +26,7 @@
   "s3_strike_mult": 1.55,
   "talent_bonus": 0.3,
   "retrial_mult": 0.6,
-  "strict_len": 1.25,
-  "strict_width": 1.4,
+  "strict_halt": 0.3,
   "gale_r": 70,
   "gale_lift": 0.8,
   "tide2_delay": 0.35,
@@ -485,7 +484,7 @@
    "id": "strict",
    "name": "严律",
    "icon": "growth_b_range",
-   "desc": "刺击长度 +{$strict_len*100-100}%、宽度 +{$strict_width*100-100}%"
+   "desc": "刺击第 1 段命中的第一个敌人停顿 {$strict_halt} 秒（精英减半，Boss 除外），第 2 段必中该敌人"
   },
   {
    "type": "elite",
@@ -573,18 +572,6 @@
    "len": "$len",
    "w": "$width",
    "y": -12,
-   "len_mults": [
-    {
-     "cond": "node:strict",
-     "mult": "$strict_len"
-    }
-   ],
-   "w_mults": [
-    {
-     "cond": "node:strict",
-     "mult": "$strict_width"
-    }
-   ],
    "every": "$cd",
    "first": "$first_cd",
    "idle": "$idle_cd",
@@ -982,7 +969,7 @@
    "strict": {
     "trig": "passive",
     "do": [],
-    "_doc": "严律：刺击长度 / 宽度写在 attack.len_mults / w_mults（cond node:strict）"
+    "_doc": "严律（docs/202）：逻辑在 seg_irene._h3_thrust_release / _h3_stage_tick（第 1 段命中的第一个敌人停顿 strict_halt 秒，控制走 add_cc_growth；第 2 段改直刺该敌人）"
    },
    "gale": {
     "trig": "passive",
