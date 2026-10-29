@@ -47,9 +47,8 @@ const MAP := {
 		JOY_BUTTON_Y: KEY_F, JOY_BUTTON_LEFT_SHOULDER: KEY_PAGEUP, JOY_BUTTON_RIGHT_SHOULDER: KEY_PAGEDOWN,
 	},
 }
-## 终结技开着时对局里的覆盖（ULT_HOLD 的键按住期间保持 KEY_Q 按下，两个都松开才发松开）
-const ULT_HOLD := [JOY_BUTTON_A, JOY_BUTTON_RIGHT_SHOULDER]
-const ULT_TAP := {JOY_BUTTON_Y: KEY_E}
+## 终结技开着时对局里的覆盖：按键表（core/play_keys.gd ULT）里 ult / combo 两个动作的手柄按钮；ult 按住期间保持 KEY_Q 按下，全部松开才发松开
+const PlayKeys = preload("res://scripts/core/play_keys.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 var _q_hold := {}              # 按住中的终结技键（按钮 → true）
 const DPAD := {JOY_BUTTON_DPAD_UP: Vector2i(0, -1), JOY_BUTTON_DPAD_DOWN: Vector2i(0, 1), JOY_BUTTON_DPAD_LEFT: Vector2i(-1, 0), JOY_BUTTON_DPAD_RIGHT: Vector2i(1, 0)}
@@ -110,12 +109,12 @@ func _input(event: InputEvent) -> void:
 				_nav(d)
 			return
 		if context == "play" and ult_on():
-			if ULT_HOLD.has(event.button_index):
+			if event.button_index in PlayKeys.ULT.ult.pad:
 				_ult_hold(event.button_index, event.pressed)
 				return
-			if ULT_TAP.has(event.button_index):
+			if event.button_index in PlayKeys.ULT.combo.pad:
 				if event.pressed:
-					tap(ULT_TAP[event.button_index])
+					tap(int(PlayKeys.ULT.combo.keys[0]))
 				return
 		elif not _q_hold.is_empty():
 			_q_hold.clear()

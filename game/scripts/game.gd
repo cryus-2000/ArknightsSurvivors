@@ -20,6 +20,7 @@ const Look = preload("res://scripts/render/look.gd")   # 观感预设 render/loo
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Squad = preload("res://scripts/characters/squad.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内按键表（动作 → 键盘 / 手柄 / 触屏，arch_review_1029 P0-2）
 const Ult = preload("res://scripts/run/ult.gd")   # 终结技 / 连携技 / 连携终结技（docs/198；ult/on = 0 时为 null）
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
@@ -1721,7 +1722,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == S.INTRO:
 		return  # 指南的输入在 _input() 里处理（先于 GUI，不会被任何控件吞掉）
-	if ult != null and event is InputEventKey and not event.pressed and Pad.kc(event) == KEY_Q:
+	if ult != null and event is InputEventKey and not event.pressed and PlayKeys.action_of(Pad.kc(event), true) == "ult":
 		ult.release_q()   # 终结技：松开 Q 放出（按住最多再慢 1 秒）
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
@@ -1735,8 +1736,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	# 终结技 Q / 连携技 E（docs/198 §2.4，ult/on）：取代下面的手动技能路由；J 只在手动普攻时是攻击
-	if ult != null and (k == KEY_Q or k == KEY_E or k == KEY_J) and state == S.PLAY:
-		if k != KEY_J and (ult.press_q() if k == KEY_Q else ult.press_e()):
+	var act: String = PlayKeys.action_of(k, true) if ult != null else ""
+	if (act == "ult" or act == "combo" or act == "attack") and state == S.PLAY:
+		if act != "attack" and (ult.press_q() if act == "ult" else ult.press_e()):
 			get_viewport().set_input_as_handled()
 		return
 	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）

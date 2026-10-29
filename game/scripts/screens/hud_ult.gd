@@ -1,4 +1,6 @@
 extends RefCounted
+
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 按键提示查局内按键表
 ## 界面 · 终结技 / 连携技 HUD（docs/198 §2.3 / §2.4 / §2.5 / §7.1 / §7.2 / §7.3；原型 claude/ult-proto，10-29）。g.ult 为 null（balance ult/on = 0）时 hud.gd 不调本文件。
 ## 桌面（底部中央、冲刺提示上方）：左边连携亮起的队友头像（队首带从亮到暗的倒计时环、后面排队的静止亮着），中间终结技徽记（队长头像），
 ## 右边终结技能量条（满条呼吸光、不弹字）+ 协同 7 格 + 按键提示；Q 升级态（能量满 + 协同满）= 金色描边 + 全队头像环。
@@ -187,7 +189,7 @@ func _draw_desk(vs: Vector2) -> void:
 		var cr := Rect2(x0 + i * (cw + 4.0), vs.y - 82.0, cw, 5.0)
 		bg.rect(cr, UI.GOLD if i < _cells() else Color(0.16, 0.18, 0.2, 0.95))
 	var title: String = "连携终结技" if up else "终结技"
-	var key: String = Pad.hint("Q", "RB / Ⓐ")
+	var key: String = Pad.hint(PlayKeys.hint("ult", true, false), PlayKeys.hint("ult", true, true))
 	var tcol: Color = (UI.GOLD if up else UI.TEXT) if full else UI.SUB
 	txt.append(func():
 		UI.text(g.hud, g.font, Vector2(x0, vs.y - 103.0), title, 12, tcol)
@@ -210,7 +212,7 @@ func _draw_desk(vs: Vector2) -> void:
 	else:
 		fg.arc(ec, er + 1.0, 0.0, TAU, 1.5, Color(1, 1, 1, 0.18), 32)
 		fg.arc(ec, er + 1.0, -PI / 2.0, -PI / 2.0 + TAU * ek, 2.5, Color(0.55, 0.85, 0.9, 0.85), 32)
-	_queue_rings(fg, txt, heads, Pad.hint("E", "Ⓨ"))
+	_queue_rings(fg, txt, heads, Pad.hint(PlayKeys.hint("combo", true, false), PlayKeys.hint("combo", true, true)))
 	fg.flush(g.hud)
 	h.text_flush(txt)
 
