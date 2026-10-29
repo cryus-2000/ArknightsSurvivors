@@ -1695,7 +1695,10 @@ func _order_goal(slot_pos: Vector2) -> Vector2:
 		if dd <= rr:
 			return pos
 		return t.pos + (pos - t.pos).normalized() * rr
-	var pr: float = CmdBal.v("command/order_pt_r", 240.0)
+	if sq.order_beacon != null:
+		roam_tgt = null
+		return sq.order_pos + g.squad._slot_offset(slot) * 0.5   # 守灯标：站进光圈（r 70）读条，不追怪
+	var pr: float = sq.order_radius()
 	var best = null
 	var bd := INF
 	for j in query_ids(sq.order_pos, pr):

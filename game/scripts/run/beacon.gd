@@ -99,11 +99,15 @@ func update(dt: float) -> void:
 			rate /= _k("low_lamp_mult", 1.5)
 		if g.squad.in_sanctuary(b.pos):
 			rate *= _k("lumen_mult", 2.0)
-		if pd < r and g.state == g.S.PLAY:
+		# 队友读条（10-30 用户「移动可以帮忙点亮灯塔」）：任一名队友（没倒地）在光圈里也读条，速率 × beacon/mate_mult；
+		# 队长同在圈里时按队长的速率（不叠加），遥测 via 记 mate
+		var lead_in: bool = pd < r
+		var mate_in: bool = not lead_in and _mate_in(b, r)
+		if (lead_in or mate_in) and g.state == g.S.PLAY:
 			charging = b
 			b.out_t = 0.0
 			b.in_s = float(b.get("in_s", 0.0)) + dt
-			_charge(b, rate, dt, "ring")
+			_charge(b, rate if lead_in else rate * _k("mate_mult", 0.75), dt, "ring" if lead_in else "mate")
 		else:
 			# 离开时不清零：先保持 beacon/decay_delay 秒，之后每秒回退需要量的 beacon/decay_pct（缺省 0 / 0.2 = 离开就按 0.5 秒/秒退，docs/49f ①）
 			b.out_t = float(b.get("out_t", 0.0)) + dt
@@ -114,7 +118,17 @@ func update(dt: float) -> void:
 	g.beacons = g.beacons.filter(func(b): return not b.dead)
 
 
-## 读条一帧：进度按 rate 涨，到 need 点燃；via 记最后一下是在光圈（ring）还是接力环（relay）里（遥测用）
+## 有没有队友（非队长、在场、没倒地）站在灯标光圈 r 内
+func _mate_in(b: Dictionary, r: float) -> bool:
+	if g.get("squad") == null:
+		return false
+	for o in g.squad.ops:
+		if not o.is_leader and o.pos != Vector2.INF and o.cmd_down <= 0.0 and o.pos.distance_to(b.pos) < r:
+			return true
+	return false
+
+
+## 读条一帧：进度按 rate 涨，到 need 点燃；via 记最后一下是在光圈（ring）、接力环（relay）还是只有队友在圈里（mate）（遥测用）
 func _charge(b: Dictionary, rate: float, dt: float, via: String) -> void:
 	b.prog = minf(b.need, b.prog + rate * dt)
 	b.maxp = maxf(float(b.get("maxp", 0.0)), b.prog)
@@ -192,8 +206,8 @@ func _light(b: Dictionary) -> void:
 	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(_k("lamp", 5.0)), UI.GOLD, 16)
 	Sfx.play("beacon_lit", 1.4, 1.0, 0.0)   # 点燃光爆
 	# 点燃遥测：in_s / min_d / hold_s 同 expire
-	_log("lit cleared=%d in_s=%.1f min_d=%.0f hold_s=%.1f" % [cleared, float(b.get("in_s", 0.0)),
-		minf(float(b.get("min_d", INF)), 9999.0), float(b.get("hold_s", 0.0))])
+	_log("lit cleared=%d in_s=%.1f min_d=%.0f hold_s=%.1f via=%s" % [cleared, float(b.get("in_s", 0.0)),
+		minf(float(b.get("min_d", INF)), 9999.0), float(b.get("hold_s", 0.0)), str(b.get("via", "ring"))])
 
 
 ## 点燃清除半径（clear_all_r 旋钮 > 0 时取较大者）
