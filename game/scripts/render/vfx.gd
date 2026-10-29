@@ -299,7 +299,14 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 		boss_hit_flash(e, g.t, dot)   # Boss 白闪限频（docs/137）；普通怪 / 精英照旧
 	else:
 		e.flash = maxf(float(e.get("flash", 0.0)), fl)
-	e.squash = maxf(float(e.get("squash", 0.0)), sq)
+	# Boss 受击不压扁（用户 10-29「boss 受到攻击不变瘪」，docs/201）：中期 / 最终 Boss 各形态只留限频白闪；fx/boss_squash > 0 时按比例压，且两次至少隔 0.6 秒
+	if e.get("boss", false):
+		var bk: float = Bal.v("fx/boss_squash", 0.0)
+		if bk > 0.0 and g.t - float(e.get("bsq_at", -99.0)) >= 0.6:
+			e.bsq_at = g.t
+			e.squash = maxf(float(e.get("squash", 0.0)), sq * bk)
+	else:
+		e.squash = maxf(float(e.get("squash", 0.0)), sq)
 	if not dot and is_lead_hit(h):
 		lead_mark(e)
 	if tier > 0:
