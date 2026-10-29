@@ -650,6 +650,13 @@ func _webshot_step() -> bool:
 
 func step() -> void:
 	g.at_frames += 1
+	if g.ult_bench == null and g.ult != null and g.mode == g.Mode.BALANCE and g.at_frames == 1:
+		for a in Cfg.dev_args():
+			if a == "--ultbench" or a.begins_with("--ultbench="):
+				g.ult_bench = preload("res://scripts/run/ult_bench.gd").new(g, a.substr(11) if a.length() > 10 else "")
+	if g.ult_bench != null:
+		g.ult_bench.step()   # 终结技对齐测试：整局只走测试台（不刷怪、不选卡、机器人不动）
+		return
 	if g.prof_on:   # --prof：同屏敌弹 / 我方子弹峰值（docs/50 §37 子弹系统量测）
 		g.prof["peak_ebul"] = maxi(int(g.prof.get("peak_ebul", 0)), g.ebullets.size())
 		g.prof["peak_bul"] = maxi(int(g.prof.get("peak_bul", 0)), g.bullets.size())

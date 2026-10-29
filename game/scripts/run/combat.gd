@@ -1174,17 +1174,19 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
 	if _pf:
 		_pt = g.prof_add("dm_mult", _pt)
+	# 终结技按目标最大生命定档（docs/198 §3.3）：不再吃 Boss 受伤倍率 / 伤害预算 / 单次上限，阶段卡点照旧
+	var ult_pct: bool = e.boss and g.ult != null and "终结技" in h.tags
 	# Boss 脚本自己的受伤倍率（骑士重甲、破绽期另算，docs/142b §3.1；缺省 1）
-	if bh != null:
+	if bh != null and not ult_pct:
 		dmg *= bh.taken_mult(e)
 	# 破绽受伤加成、伤害预算（§1.5 / §1.4）
-	if e.boss:
+	if e.boss and not ult_pct:
 		if e.get("break_t", 0.0) > 0.0:
 			dmg *= Bal.v("boss/break_mult", 1.4)
 			Sfx.play("break_hit", 0.0, 1.0, 0.05)   # 打在破绽上：更重更脆的一层（音频，打击感检查 10/1）
 		dmg = budget_clamp(e, dmg)
 	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
-	if e.boss:
+	if e.boss and not ult_pct:
 		var hcap: float = Bal.v("boss/hit_cap_pct", 0.0)
 		if hcap > 0.0:
 			dmg = minf(dmg, e.maxhp * hcap)

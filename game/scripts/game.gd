@@ -336,6 +336,7 @@ var pending_levelups := 0
 var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
 var _stats_ver := -1
 var squad: RefCounted          # 编队（scripts/characters/squad.gd）：主控与跟随的干员们
+var ult_bench = null           # --ultbench（run/ult_bench.gd，docs/198 §3.4）
 var ult = null                 # 终结技框架（run/ult.gd）：balance ult/on 关时为 null，旧的响应 / 连携 / 手动技能照旧
 var doctor: RefCounted         # 博士层专属逻辑（scripts/characters/doctor.gd）
 var ch: RefCounted             # 开局干员（squad.ops[0]）：成长 / 精英化 / HUD 在 P2 之前仍绑定在它身上
@@ -1944,6 +1945,8 @@ func _update(dt: float) -> void:
 		mv = Pad.move_vec()   # 手柄左摇杆（模拟量）/ 十字键
 	elif mode != Mode.PLAY:
 		mv = Vector2.from_angle(t * 0.4)
+	if ult_bench != null:
+		mv = Vector2.ZERO   # 终结技对齐测试（run/ult_bench.gd）：队长站在场景中心不动
 	move_in = mv
 	if mode == Mode.BALANCE and autotest_sys.want_dash:
 		autotest_sys.want_dash = false

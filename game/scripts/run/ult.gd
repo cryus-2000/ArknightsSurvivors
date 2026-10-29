@@ -41,6 +41,7 @@ var _aim_max := 0.0
 var act: Dictionary = {}    # Moves.start / start_cult 返回的动作状态
 var serial := 0             # 第几次终结技（伤害预算按它分次记账：e.ult_s / e.ult_d）
 var q_held := false
+var last_hit_t := -1.0       # 终结技最后一次造成伤害的时刻（ult_bench 量时长）
 var tier := "ult"           # 当前伤害档：ult / cult（hit 读）
 
 # ---- 连携（§2.5 / §5）
@@ -182,6 +183,7 @@ func tick(dt: float) -> void:
 	_events()
 	_tick_buffs()
 	_tick_shapes(dt)
+	Moves.tick_bg(self)   # 终结技的延后部分（凯尔希 Mon3tr 8 秒后重构）
 	if phase != "":
 		_tick_ult(dt)
 	_tick_combo(dt)
@@ -511,6 +513,8 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	g.combat.damage(e, amt, g.combat.make_hit(src, ["终结技"]))
 	var got: float = maxf(0.0, hp0 - float(e.hp))
 	e.ult_d = float(e.ult_d) + got
+	if got > 0.0:
+		last_hit_t = g.t
 	if not e.dead:
 		var st: float = float(opt.get("stun", 0.0))
 		if st > 0.0:
