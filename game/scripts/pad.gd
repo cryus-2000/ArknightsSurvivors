@@ -6,6 +6,8 @@ extends Node
 ## 映射按场景上下文（context）切换，由当前场景每帧设置：
 ##   "title"     标题 / 选人 / 难度 / 图鉴 / 设置：方向 = 方向键，Ⓐ = Enter，Ⓑ = Esc，START = Enter，LB / RB = 翻页，Ⓧ / Ⓨ = 切换动作
 ##   "play"      对局中：左摇杆 / 十字键移动（不注入方向键），Ⓐ / Ⓨ = 手动技能（Q），Ⓧ = J（手动普攻时攻击），Ⓑ / RB = 冲刺，RT = 冲刺（手动普攻时攻击），START = 暂停（Esc），SELECT = 属性面板（Tab）
+##               终结技开着（balance ult/on，docs/198 §2.4）时对局里改为：Ⓐ / RB = 终结技（Q，按住 = 按住 Q、松开发 Q 的松开事件），Ⓨ = 连携技（E），
+##               冲刺只剩 Ⓑ / RT；ult/on = 0 时映射完全照旧
 ##   "game_menu" 对局里的选卡 / 商店 / 暂停 / 结算 / 指南 / 属性面板：方向 = 方向键，Ⓐ = Enter，Ⓑ = Esc，START = Esc，
 ##               SELECT = Tab，Ⓨ = F（商店刷新），LB / RB = PageUp / PageDown（指南翻页）
 ##
@@ -45,6 +47,11 @@ const MAP := {
 		JOY_BUTTON_Y: KEY_F, JOY_BUTTON_LEFT_SHOULDER: KEY_PAGEUP, JOY_BUTTON_RIGHT_SHOULDER: KEY_PAGEDOWN,
 	},
 }
+## 终结技开着时对局里的覆盖（ULT_HOLD 的键按住期间保持 KEY_Q 按下，两个都松开才发松开）
+const ULT_HOLD := [JOY_BUTTON_A, JOY_BUTTON_RIGHT_SHOULDER]
+const ULT_TAP := {JOY_BUTTON_Y: KEY_E}
+const Bal = preload("res://scripts/core/balance.gd")
+var _q_hold := {}              # 按住中的终结技键（按钮 → true）
 const DPAD := {JOY_BUTTON_DPAD_UP: Vector2i(0, -1), JOY_BUTTON_DPAD_DOWN: Vector2i(0, 1), JOY_BUTTON_DPAD_LEFT: Vector2i(-1, 0), JOY_BUTTON_DPAD_RIGHT: Vector2i(1, 0)}
 ## 扳机键当作肩键
 const TRIGGER_AS := {JOY_AXIS_TRIGGER_LEFT: JOY_BUTTON_LEFT_SHOULDER, JOY_AXIS_TRIGGER_RIGHT: JOY_BUTTON_RIGHT_SHOULDER}
@@ -102,6 +109,17 @@ func _input(event: InputEvent) -> void:
 				_dir_t = REPEAT_DELAY
 				_nav(d)
 			return
+		if context == "play" and ult_on():
+			if ULT_HOLD.has(event.button_index):
+				_ult_hold(event.button_index, event.pressed)
+				return
+			if ULT_TAP.has(event.button_index):
+				if event.pressed:
+					tap(ULT_TAP[event.button_index])
+				return
+		elif not _q_hold.is_empty():
+			_q_hold.clear()
+			_key(KEY_Q, false)   # 按住终结技键时离开对局（选卡弹出等）：补一个松开
 		if event.pressed:
 			_press_button(event.button_index)
 	elif event is InputEventJoypadMotion:
@@ -133,15 +151,35 @@ func _press_button(b: int) -> void:
 
 ## 注入一次按键（按下 + 松开）
 func tap(k: int) -> void:
+	_key(k, true)
+	_key(k, false)
+
+
+## 注入单个按下 / 松开事件（终结技按住瞄准要分开发：game.gd 收到 Q 的松开才放出）
+func _key(k: int, down: bool) -> void:
 	var ev := InputEventKey.new()
 	ev.device = SYNTH_DEVICE
 	ev.keycode = k
 	ev.physical_keycode = k
-	ev.pressed = true
+	ev.pressed = down
 	Input.parse_input_event(ev)
-	var up := ev.duplicate()
-	up.pressed = false
-	Input.parse_input_event(up)
+
+
+## 终结技总开关（与 game.gd 建 g.ult 的条件 Ult.on() 相同；不预载 run/ult.gd，免得手柄单例把整套终结技脚本拉进来）
+static func ult_on() -> bool:
+	return Bal.vi("ult/on", 1) > 0
+
+
+## Ⓐ / RB：第一个按下时发 Q 按下，全部松开时发 Q 松开（两个一起按、先后松开也只放一次）
+func _ult_hold(b: int, down: bool) -> void:
+	var was: bool = not _q_hold.is_empty()
+	if down:
+		_q_hold[b] = true
+	else:
+		_q_hold.erase(b)
+	var now: bool = not _q_hold.is_empty()
+	if now != was:
+		_key(KEY_Q, now)
 
 
 func _process(dt: float) -> void:

@@ -16,6 +16,7 @@ const HudSquad = preload("res://scripts/screens/hud_squad.gd")
 const HudBanners = preload("res://scripts/screens/hud_banners.gd")
 const HudAllyHp = preload("res://scripts/screens/hud_allyhp.gd")   # 队友血条原型（docs/114 §19）
 const HudIcons = preload("res://scripts/screens/hud_icons.gd")
+const HudUlt = preload("res://scripts/screens/hud_ult.gd")   # 终结技 / 连携技 HUD 与立绘切入（docs/198；g.ult 为 null 时不调）
 const TextQ = preload("res://scripts/screens/hud_textq.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 var icons := HudIcons.new()   # HUD 图标图集（藏品 / 立绘 / 技能图标 / 源石锭，docs/50 §13）
@@ -24,6 +25,7 @@ var relics: HudRelics
 var squad: HudSquad
 var banners: HudBanners
 var allyhp: HudAllyHp
+var ult: HudUlt
 
 
 func _init(game: Game) -> void:
@@ -33,6 +35,7 @@ func _init(game: Game) -> void:
 	squad = HudSquad.new(self)
 	banners = HudBanners.new(self)
 	allyhp = HudAllyHp.new(self)
+	ult = HudUlt.new(self)
 
 
 ## HUD 合批段：段内 UI 助手的色块进 Tris 批、文字延后，batch_end 时先一次提交色块再画字（段内各块互不重叠才能这样用）
@@ -123,7 +126,7 @@ func batch_end(mid: Array = []) -> void:
 ## 连续量按像素量化（qpx），动画进行中把 g.t 放进签名；绘制时顺手写的状态（点击区域等）要挪到登记时算（例：relics.update_buttons）。
 ## --hudnocache：所有块每帧画（验收新界面时对照用：开 / 关画面应当一样）
 const LAYER_ORDER := ["under", "top_left", "minimap", "relics", "squad",
-	"pointers", "mid", "top", "boss", "squad_fr", "front", "status", "tail"]
+	"pointers", "mid", "top", "boss", "squad_fr", "ult", "front", "status", "tail", "ult_cut"]
 var _layers := {}
 static var _nocache: int = -1
 
@@ -282,6 +285,8 @@ func _draw_body() -> void:
 	_layer("boss", null, func(): bars.draw_boss_bars(vs))
 	if not pq:
 		squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
+	if g.ult != null:
+		_layer("ult", null, func(): ult.draw(vs))   # 终结技能量 / 协同 / 连携排队（触屏：终结技键与连携键）
 	_layer("front", null, func():
 		bars.draw_xp_top(vs)   # 经验通栏细条（屏幕最上沿）
 		allyhp.draw(vs)   # 队友血条原型（command/hpbar_style 1 / 3；0 = 编队卡缓存层里的原版）
@@ -302,6 +307,8 @@ func _draw_body() -> void:
 		squad.draw_manual_hint()
 		g.boss_intro.draw_hud(vs)
 		g.victory.draw_hud(vs))   # 胜利收尾：暖金光环 + 「探索完成」（run/victory_flow.gd，docs/62 §3.21c）   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
+	if g.ult != null:
+		_layer("ult_cut", null, func(): ult.draw_cutins(vs))   # 终结技立绘切入条带（压在各块之上、整屏状态界面之下）
 	g.wheel.draw(vs)   # 指挥圆盘（docs/114 §12）：打开时盖在 HUD 上，直接画在 hud 画布（缓存层之上）
 	match g.state:
 		Game.S.SHOW:
