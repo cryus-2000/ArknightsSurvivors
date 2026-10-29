@@ -75,11 +75,13 @@
   "pool_dur": 1.2,
   "pool_every": 0.4,
   "pool_mult": 0.12,
-  "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 星火燎原 / 熔岩天降，节点 5 沿路线强化——blob2_* 星火燎原·蔓延（点燃弹爆炸再向爆炸范围外的敌人抛熔岩团），meteor2_* 熔岩天降·陨落（每次多坠一块更大的熔岩）。数值为待试验参数",
+  "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 星火燎原 / 熔岩天降，节点 5 沿路线强化——blob2_* 星火燎原·蔓延（点燃弹爆炸再向爆炸范围外的敌人抛熔岩团），ign_* 熔岩天降·引燃（docs/202，熔岩块砸中点燃的敌人时引爆剩余灼烧并扩散）。数值为待试验参数",
   "blob2_n": 3,
   "blob2_mult": 1.0,
-  "meteor2_n": 1,
-  "meteor2_r_add": 15
+  "_growth": "成长节点去数值化（docs/202 §3.12，待试验参数）：熔岩天降·引燃——ign_r 点燃扩散半径、ign_n 每次引爆至多扩散给几名敌人、ign_k 引爆结算剩余灼烧伤害的倍率",
+  "ign_r": 70,
+  "ign_n": 3,
+  "ign_k": 1.5
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1743 / 防御 122 / 法抗 20%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -529,9 +531,9 @@
     },
     "meteor": {
      "id": "meteor2",
-     "name": "熔岩天降·陨落",
+     "name": "熔岩天降·引燃",
      "icon": "skill_eyjafjalla_s3",
-     "desc": "「熔岩天降」每次多坠 {$meteor2_n} 块更大的熔岩（落点半径 {$meteor_r+$meteor2_r_add}），「二重咏唱」与「火山」都算"
+     "desc": "「熔岩天降」的熔岩块优先砸向已点燃的敌人；砸中时立刻结算其剩余灼烧伤害的 {$ign_k*100}%，并把点燃扩散给半径 {$ign_r} 内至多 {$ign_n} 名敌人"
     }
    }
   },
@@ -899,39 +901,6 @@
          "src": "点燃"
         }
        ]
-      },
-      {
-       "verb": "lob",
-       "cond": "node:meteor2",
-       "pick": "shuffle",
-       "n": "$meteor2_n",
-       "cand": 10,
-       "reach": "$meteor_reach",
-       "basis": "hit",
-       "mult": "$meteor_mult",
-       "r": "$meteor_r+$meteor2_r_add",
-       "h": "$meteor_h",
-       "sz": "$meteor_sz",
-       "src": "熔岩天降",
-       "look": {
-        "tex": "proj_eyja_lava_lob",
-        "scale": 1.7,
-        "spin": 6,
-        "apex_k": 1.0,
-        "arc_pow": 0.55,
-        "burst": true,
-        "heavy": 1.8,
-        "spot": 0.5,
-        "land": "fx_eyja_lava_splash",
-        "land_scale": 1.2,
-        "weighted": true
-       },
-       "shell": true,
-       "from_off": [
-        0,
-        -20
-       ],
-       "flight_mult": 1.15
       }
      ]
     },
@@ -1331,40 +1300,6 @@
        "flight_mult": 1.15,
        "power": true,
        "origin": "self"
-      },
-      {
-       "verb": "lob",
-       "cond": "node:meteor2",
-       "pick": "shuffle",
-       "n": "$meteor2_n",
-       "cand": 10,
-       "reach": "$meteor_reach",
-       "mult": "$s3_mult*$meteor_mult",
-       "r": "$meteor_r+$meteor2_r_add",
-       "h": "$meteor_h",
-       "sz": "$meteor_sz",
-       "src": "熔岩天降",
-       "look": {
-        "tex": "proj_eyja_lava_lob",
-        "scale": 2.2,
-        "spin": 6,
-        "apex_k": 1.0,
-        "arc_pow": 0.55,
-        "burst": false,
-        "heavy": 1.8,
-        "spot": 0.5,
-        "land": "fx_eyja_lava_splash",
-        "land_scale": 1.2,
-        "weighted": true
-       },
-       "shell": true,
-       "from_off": [
-        8,
-        -54
-       ],
-       "flight_mult": 1.15,
-       "power": true,
-       "origin": "self"
       }
      ]
     },
@@ -1411,7 +1346,7 @@
    "meteor2": {
     "trig": "passive",
     "do": [],
-    "_doc": "熔岩天降·陨落（路线 meteor 节点 5）：写在 S1 attack_patch.on_explode 与 S3 喷发 launch（cond node:meteor2）"
+    "_doc": "熔岩天降·引燃（docs/202，路线 meteor 节点 5）：逻辑在 seg_eyjafjalla.hw_lob 选目标（优先已点燃者）与 hw_ignite_blast（熔岩块落地引爆），不写 json 积木"
    }
   },
   "response": [

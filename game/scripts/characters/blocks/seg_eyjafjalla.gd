@@ -179,6 +179,12 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 		"shuffle":
 			var mc: Array = o.nearest_enemies(int(b.get("cand", 10)), float(b.get("reach", 320.0)), at)
 			o.shuffle_rng(mc)
+			if "meteor2" in o.taken and str(b.get("src", "")) == "熔岩天降":   # docs/202 熔岩天降·引燃：已点燃的敌人排前面（稳定，保持洗牌后的次序）
+				var lit := {}
+				for bu in h.burns:
+					if bu.t > 0.0 and not bu.e.dead:
+						lit[bu.e.id] = true
+				mc = mc.filter(func(e): return lit.has(e.id)) + mc.filter(func(e): return not lit.has(e.id))
 			for k in mini(n, mc.size()):
 				tos.append(mc[k].pos)
 		"ring":
@@ -196,6 +202,59 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 		h.lobs.append({"b": b, "from": from, "to": p, "t": 0.0, "dur": dur, "dmg": dmg, "r": float(b.get("r", 30.0)), "src": str(b.get("src", "")), "h": hh,
 			"sz": float(b.get("sz", 1.0)), "trail": 0.0, "fireball": o.elite < 1,
 			"spin": signf(p.x - from.x) if absf(p.x - from.x) > 1.0 else 1.0})
+
+
+## 节点「熔岩天降·引燃」（meteor2，docs/202）：熔岩块落地时，落点半径 r 内已被点燃的敌人立刻结算剩余灼烧伤害（引爆，灼烧清零），
+## 并把点燃（同样的每秒伤害、重新计时）扩散给其周围 ign_r 内、尚未点燃的敌人，每次引爆至多 ign_n 名；一块熔岩至多引爆 6 名、全场灼烧上限 80 条
+static func hw_ignite_blast(o, at: Vector2, r: float) -> void:
+	var g = o.g
+	var h := _hw2(o)
+	var lit := {}
+	var boom: Array = []   # [敌人, 剩余灼烧伤害合计, 每秒伤害（取最大一条）, 灼烧参数]（同一敌人叠了几条灼烧就合并结算）
+	var seen := {}
+	for bu in h.burns:
+		if bu.t <= 0.0 or bu.e.dead:
+			continue
+		lit[bu.e.id] = true
+		if bu.e.pos.distance_to(at) > r + float(bu.e.r):
+			continue
+		if seen.has(bu.e.id):
+			var rec: Array = boom[seen[bu.e.id]]
+			rec[1] += bu.dps * bu.t
+			if bu.dps > rec[2]:
+				rec[2] = bu.dps
+				rec[3] = bu.s
+		elif boom.size() < 6:
+			seen[bu.e.id] = boom.size()
+			boom.append([bu.e, bu.dps * bu.t, bu.dps, bu.s])
+	for bu in h.burns:   # 引爆：这些敌人身上所有灼烧清掉（循环里直接清，不再跳最后一拍）
+		if seen.has(bu.e.id):
+			bu["x"] = true
+			bu.t = 0.0
+	var spread_r: float = o.base("ign_r", 70.0)
+	var spread_n: int = int(o.base("ign_n", 3.0))
+	for rec in boom:
+		var e: Dictionary = rec[0]
+		var left: float = rec[1] * o.base("ign_k", 1.0)
+		var dps: float = rec[2]
+		var s: Dictionary = rec[3]
+		o.log_hit("熔岩天降", s.get("tags", []))
+		o.deal_damage(e, left)
+		o.fx({"kind": "ring", "pos": e.pos, "r": spread_r, "r0": float(e.r), "life": 0.3, "col": HW_ORANGE, "floor": true, "keep": true, "w": 2.5})
+		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "r": 18.0, "life": 0.22, "col": Color(2.4, 1.3, 0.5), "alpha": 0.85})
+		for k in 6:
+			o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(70.0, 150.0), "life": 0.3, "col": HW_ORANGE if k % 2 == 0 else HW_LAVA, "sz": 2.5})
+		var n := 0
+		for j in o.query_ids(e.pos, spread_r + 24.0):
+			if n >= spread_n or h.burns.size() >= 80:
+				break
+			var q: Dictionary = g.enemies[j]
+			if q.dead or q.id == e.id or lit.has(q.id) or q.pos.distance_to(e.pos) > spread_r:
+				continue
+			lit[q.id] = true
+			h.burns.append({"e": q, "t": float(s.dur), "dps": dps, "ft": 0.0, "s": s})
+			o.fx({"kind": "line", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "to": q.pos + Vector2(0, -float(q.r) * 0.4), "life": 0.2, "col": HW_ORANGE, "w": 2.0})
+			n += 1
 
 
 ## 熔岩块喷起的原点（10-14 用户「火山喷发的感觉」，纯画面，g.vrng）：白热闪光 + 一束向上猛喷的火星 + 几缕黑烟
@@ -334,7 +393,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 			var s: Dictionary = bu.s
 			bu.t -= dt
 			bu.ft -= dt
-			if bu.e.dead:
+			if bu.e.dead or bu.has("x"):
 				bu.t = 0.0
 				continue
 			if bu.ft <= 0.0 and _eg(o) != null:   # 灼烧颗粒版（docs/138 §14）：敌人身上往上飘的火星，最后 0.6 秒变稀
@@ -383,6 +442,8 @@ static func _hw2_tick(o, dt: float) -> bool:
 					o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
 			if l.t >= l.dur:
 				o.area_hit(l.src, l.to, l.r, l.dmg)
+				if "meteor2" in o.taken and l.src == "熔岩天降":
+					hw_ignite_blast(o, l.to, float(l.r))
 				if lk is Dictionary and lk.get("weighted", false):
 					if l.get("fireball", false):
 						MagmaProjectile.fireball_impact(o, l.to, float(l.r), float(l.sz))
