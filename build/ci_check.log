@@ -1,51 +1,53 @@
-快检：本次最多 8 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1028_080240
+快检：本次最多 8 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_050731
 通过 数据 JSON 解析  game/data 全部可解析
 通过 美术帧条 art_lint  21 人：未豁免 FAIL 0、已豁免 69、WARN 77；豁免可删：拉普兰德 · 非正面、拉普兰德 · 待机呼吸、维什戴尔 · 朝向、维什戴尔 · 非正面（明细 python tools/art_lint.py）
 通过 发行包瘦身 release_slim  审阅图 0 张（0.00 MB）不进包，未误伤运行时引用；字体子集 ui.ttf 1.64 → 0.90 MB，serif.ttf 1.67 → 0.94 MB（明细 python tools/release_slim.py --report）
 通过 干员文字数值 op_text_check  20 名干员：占位 / 字面数字不一致 0 条，字面数字对得上 base / blocks（需人工看）33 条（明细 python tools/op_text_check.py --report）
 通过 积木单播表 ob_tag  9 个执行器、59 个 tag 无重叠，EXEC_SEG 一致（4 / 7 / 3 / 2 / 2 / 3 / 16 / 14 / 8）
 通过 Enemy art delivery  0 registered actions; 0 pending acceptance items (not integration approved)
-通过 素材命名与目录 asset_lint  只报告：ERROR 0、WARN 52、INFO 130（N4 27、N5 22、N6 3）（明细 python tools/asset_lint.py）
-通过 数据契约 data_lint  balance.json 无字面读点的键 283 个（提示）
-通过 敌人控制直写 cc_lint  210 个脚本：击退累加只在 apply_kb；干员代码不直写敌人 stun / slow / air
-通过 核心契约测试  3319 checks, 0 failed
-通过 冒烟 · angelina  t=90  · 28s
-通过 冒烟 · exusiai  t=90  · 29s
-通过 冒烟 · eyjafjalla  t=90  · 34s
-通过 冒烟 · gladiia  t=90  · 128s
-通过 冒烟 · hoshiguma  t=90  · 28s
-通过 冒烟 · irene  t=90  · 170s
-通过 冒烟 · kaltsit  t=90  · 240s
-通过 冒烟 · lappland  t=90  · 546s
-通过 冒烟 · logos  t=90  · 53s
-通过 冒烟 · lumen  t=90  · 53s
-通过 冒烟 · mizuki  t=90  · 54s
-通过 冒烟 · saria  t=90  · 59s
-通过 冒烟 · siege  t=90  · 72s
-通过 冒烟 · skadi  t=90  · 74s
-通过 冒烟 · skalter  t=90  · 76s
-通过 冒烟 · specter_unchained  t=90  · 80s
-通过 冒烟 · suzuran  t=90  · 93s
-通过 冒烟 · texas  t=90  · 93s
-通过 冒烟 · ulpianus  t=90  · 96s
-通过 冒烟 · wisadel  t=90  · 101s
-通过 自然流程 · 高手  t=150  · 110s
-通过 自然流程 · 普通  t=150  · 111s
+通过 素材命名与目录 asset_lint  ERROR 0、WARN 162、INFO 131（D1 110、N4 27、N5 22、N6 3）（明细 python tools/asset_lint.py）
+通过 贴图索引 asset_index  game/art/index.json 1850 个名字
+通过 数据契约 data_lint  balance.json 无字面读点的键 264 个（提示）
+通过 敌人控制直写 cc_lint  211 个脚本：击退累加只在 apply_kb；干员代码不直写敌人 stun / slow / air
+通过 核心契约测试  4183 checks, 0 failed
+通过 冒烟 · angelina  t=90  · 127s
+通过 冒烟 · exusiai  t=90  · 24s
+通过 冒烟 · eyjafjalla  t=90  · 24s
+通过 冒烟 · gladiia  t=90  · 94s
+通过 冒烟 · hoshiguma  t=90  · 23s
+通过 冒烟 · irene  t=90  · 101s
+通过 冒烟 · kaltsit  t=90  · 59s
+通过 冒烟 · lappland  t=90  · 29s
+通过 冒烟 · logos  t=90  · 42s
+通过 冒烟 · lumen  t=90  · 46s
+通过 冒烟 · mizuki  t=90  · 43s
+通过 冒烟 · saria  t=90  · 50s
+通过 冒烟 · siege  t=90  · 259s
+通过 冒烟 · skadi  t=90  · 62s
+通过 冒烟 · skalter  t=90  · 66s
+通过 冒烟 · specter_unchained  t=90  · 67s
+通过 冒烟 · suzuran  t=90  · 77s
+通过 冒烟 · texas  t=90  · 78s
+通过 冒烟 · ulpianus  t=90  · 83s
+通过 冒烟 · wisadel  t=90  · 85s
+通过 自然流程 · 高手  t=150  · 92s
+通过 自然流程 · 普通  t=150  · 232s
 通过 成长节点当场生效  20 名干员 × 6 节点
 通过 手动普攻全员验收  20 名干员 × 6 场景
-通过 主控保护  417 checks, 0 failed
+通过 主控保护  400 checks, 0 failed
 通过 同 seed 复现  4:00 游戏时间逐字段相同（含画面 / 全局随机流换种子）
 通过 原生核心对照  跳过（本机没编 ark_native）
 通过 积木等价（数据版 vs 金样）  与金样相同 14
-通过 指挥接敌、站定、护主  COMMAND_AI checks=67 failures=0
+通过 指挥接敌、站定、护主  COMMAND_AI checks=70 failures=0
+通过 无敌暂缓技能（Boss 无敌时普攻照打、自动技能就绪不放，解除后 1 秒内放出；开关 combat/hold_skill_on_invuln）  INVULN SKILL HOLD checks=29 failures=0
 通过 突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）  ASSAULT DASH checks=9 failures=0
 通过 干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移  SYNERGY checks=15 failures=0
 通过 干员连携技（集群狩猎：猎人 ≥ 3 人一起扑向同一目标）  SYNERGY checks=8 failures=0
 通过 干员连携技（乌尔比安 × 斯卡蒂「手段应当有效」）  SYNERGY checks=9 failures=0
 通过 干员连携技（战争设计：歌蕾蒂娅 S3 控场 → 乌尔比安收割；技能就绪才放、队长不位移）  SYNERGY checks=9 failures=0
-通过 干员连携技冲突检查（搭档忙 / 冲锋 / 倒地 / 归队 / 切队长 / 目标死亡 / 非 PLAY / 语音不叠）  SYNERGY CONFLICT checks=18 failures=0
+通过 干员连携技冲突检查（搭档忙 / 冲锋 / 倒地 / 归队 / 切队长 / 目标死亡 / 非 PLAY / 语音不叠）  SYNERGY CONFLICT checks=17 failures=0
 通过 干员连携技冲突检查（同帧只走一条：战争设计取代集群狩猎）  SYNERGY CONFLICT checks=4 failures=0
-通过 指挥语音轮换、节流、登场去重  VOICE COMMAND checks=79 failures=0
+通过 指挥语音轮换、节流、登场去重  VOICE COMMAND checks=174 failures=0
 通过 指挥圆盘索敌优先级（队友按优先级重排、队长不受影响）  COMMAND WHEEL checks=19 failures=0
 通过 熔岩弹连续起落点与浮空持续投弹  EYJA VOLCANIC WEIGHT failures=0
 通过 推进之王与乌尔比安原生美术  SIEGE ULPIANUS ART failures=0
@@ -115,6 +117,7 @@
 通过 Boss 保留杂兵、友方保色与枪声混音  BOSS SUPPORT failures=0
 通过 Boss 黑潮边界  BOSS BOUNDARY failures=0
 通过 结局线事件链（骑士 / 深蓝之心 / 升华）与骑士路线  ROUTE KNIGHT REGRESSION: 0 failures
+通过 事件最大生命 -10%（狂徒妄念）：面板暂停、非满血换算、骑士入队不改生命  EVENT MAXHP TEST: 0 failures
 通过 敌人攻击前摇  ENEMY PREPARE TEST: 0 failures
 通过 攻击反馈  FEEDBACK TESTS PASSED
 通过 维什戴尔炮击  WISADEL CANNON failures=0
@@ -135,7 +138,7 @@
 通过 拉普兰德剑气生命周期与技能动作接续  LAPPLAND PRESENTATION 59 checks, 0 failed
 通过 歌蕾蒂娅牵引、水柱锚点与场特效收尾  GLADIIA PRESENTATION 46 checks, 0 failed
 通过 全员技能起手、移动接续与强化重锤  OPERATOR TRANSITIONS 60 casts, 161 checks, 0 failed
-通过 20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管  ATTACK RHYTHM 2807 checks, 0 failed
+通过 20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管  ATTACK RHYTHM 2801 checks, 0 failed
 通过 移动攻击：帧条加载、移动中出手换 move_attack 且出手帧对齐、站定不换、收势不被跑步截掉（docs/128）  MOVE ATTACK 457 checks, 0 failed
 通过 水月原生像素起手、命中、收势和持续变体  MIZUKI SKILL ANIM failures=0
 通过 结算：历史编队滚动、评级与视觉 RNG  SETTLEMENT failures=0
@@ -154,9 +157,9 @@
 通过 蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返  MEDALS failures=0
 通过 B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）  CLOUD SAVE failures=0
 通过 观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）  LOOK TEST failures=0
-通过 构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关  BUILD AFFINITY failures=0
+通过 构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关  BUILD AFFINITY failures=0
 通过 卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能  CARD DESC failures=0
 通过 第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽  MERCHANT BUILD OFFER failures=0
 
-快检通过：158 项，失败 0 项，耗时 546 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 201（不用缓存加 --nocache）
+快检通过：161 项，失败 0 项，耗时 472 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存
 rc=0
