@@ -56,7 +56,7 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	var doc := _doctor_stats()
 	var mod: Dictionary = Bal.op(cid)
 	# 局内开局对基础值乘的旋钮（game.gd 开局 / squad._apply_leader_regen）这里同样乘上，面板数字 = 开局实际值（10-28 乌尔比安回复显示 2.0、实际 1.6）
-	var hp: float = float(lead.get("max_hp", doc.get("max_hp", StatDefs.PLAYER[&"max_hp"].base))) * Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)
+	var hp: float = float(lead.get("max_hp", doc.get("max_hp", StatDefs.PLAYER[&"max_hp"].base)))
 	var atk: float = _first(b, ATK_KEYS) * (1.0 + float(mod.get("atk", 0.0))) * Bal.v("squad/op_atk_base", 1.0)
 	var interval: float = _first(b, CD_KEYS) / maxf(0.2, 1.0 + float(mod.get("aspd", 0.0)))
 	var reach_lbl: Array = ["攻击范围", "RANGE"]

@@ -756,7 +756,7 @@ func test_operator_sheet() -> void:
 	var Bal = preload("res://scripts/core/balance.gd")
 	ok(IS.fmt_armor(2.5) == "2.5" and IS.fmt_armor(0.5) == "0.5" and IS.fmt_armor(3.0) == "3.0" and IS.fmt_armor(4.5) == "4.5", "减伤显示保留一位小数")
 	var cnt := 0
-	var hpk: float = Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)   # 数值表 = 开局实际值（10-28：乘上局内基础旋钮）
+	var hpk := 1.0   # 数值表 = 开局实际值：队长生命的 ×0.9 已写进 JSON（10-29）
 	var atkk: float = Bal.v("squad/op_atk_base", 1.0)
 	for cid in Ch.list_ids():
 		var d: Dictionary = Ch.load_def(cid)
