@@ -1038,14 +1038,14 @@ func _se_draw(ob, kd: int) -> void:
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
-## 判定点（10-29，boss/graze_on）：队长身上一个 2 格白芯 + 暗细描边的小点（敌弹按弹芯打这里），压在弹幕之上。
+## 判定点（10-29，enemy/bullet_core_hit）：队长身上一个 2 格白芯 + 暗细描边的小点（敌弹按弹芯打这里），压在弹幕之上。
 ## 全程都画：平时 boss/hit_dot_idle（0.06，几乎看不见）；boss/hit_dot_near（110）像素内有敌弹时渐亮到 0.85；
 ## 有活着的 Boss 时不低于 boss/hit_dot_boss（0.6）；站定再 ×0.6。纯画面
 var _dot_a := 0.0
 
 
 func _draw_hit_dot() -> void:
-	if g.shots == null or not g.shots.graze_live():
+	if g.shots == null or not g.shots.core_hit_live():
 		return
 	var p: Vector2 = g.ppos + Vector2(0, -14)
 	var near: float = Bal.v("boss/hit_dot_near", 110.0)
