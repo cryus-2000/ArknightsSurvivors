@@ -1,0 +1,42 @@
+{
+  "common": "Create ONE freshly redrawn game event illustration, not a collage or comparison. Output landscape aspect ratio 1327:1185, approximately 1.12:1. Reference 1 is scene composition and canonical colors; reference 2 is the accepted project's painting style only. Match reference 2's finely detailed pixel-art painting, crisp stepped edges and small deliberate pixel clusters, dimensional material shading, controlled atmospheric depth, rich dark values. No blurry low-resolution posterization, no photographic rendering, no smooth 3D render, no thick cartoon outlines. Recompose this scene for a nearly square event card. Keep essential focal subject in upper 60 percent with 4 percent safe margins. Bottom 40 percent remains natural darker low-contrast environment suitable for later text overlay; do not draw a text panel or gradient rectangle. No decorative border, no caption, no watermark. ",
+  "specs": [
+    [
+      "task",
+      "Avg_pic_rogue_2_47.png",
+      "rest.png",
+      "A translucent communication terminal floats slightly tilted above a dark desk with scattered papers. Terminal spans y=7%-64% and is centered. Upper portion contains a small portrait of Tulip, name 'Tulip', exact notification '新消息'; below are exactly THREE simple clipboard commission icons in one row, only rightmost glowing red, placed at y=50%. Interface cool white and dark gray, very limited cyan. Portrait faithful to third reference: silver gray hair, dark tall broad hat, black eye mask, pointed ear, black uniform and small teal trim. Do not make a generic silver-haired woman. All terminal icons and text should remain readable at 560px wide. No extraneous text."
+    ],
+    [
+      "vanguard",
+      "Avg_pic_rogue_1_1.png",
+      "tinder.png",
+      "Night encampment. A rectangular industrial metal brazier full of stacked burning logs, held inside a three-legged triangular metal frame, focal fire and bowl in upper central 60%. Warm orange flames, ember sparks, dark scorched metal with restrained small triangular Rhodes-style insignia, supplies and stones on dark brown ground. Main triangular support tips fully inside frame. No blue crystal trees, no blue magical light, no people necessary. Match source brazier construction, not a medieval circular fireplace. Style reference is for fine pixel rendering ONLY, not its blue palette or crystal scenery."
+    ],
+    [
+      "sellout",
+      "Avg_pic_rogue_2_4.png",
+      "rest.png",
+      "An intricate Aegir scientific instrument hangs from a very thin vertical wire above a dark sea. Several layered concentric mechanical rings with asymmetrical fine supports and an embedded cyan blue glowing geometric core. Instrument upper middle at x50% y35%, about40% image width. Dim distant coast silhouettes, water splash underneath, tiny beads catching blue highlights. Dark navy-black palette, controlled electric cyan details. Delicate engineering, not a magical runic portal, not a generic pocket watch."
+    ],
+    [
+      "craft",
+      "Avg_pic_rogue_2_38.png",
+      "rest.png",
+      "Oblique overhead view of a cavern workshop. Exactly two long luminous open weapon maintenance cases lie parallel across upper middle, each complete and distinct: LEFT contains an enormous long spear with narrow shaft and pointed metal spearhead; RIGHT contains an enormous hammer with a massive rectangular transverse head and long handle. The weapons are oversized compared with nearby ordinary hand tools. Both recognizable at thumbnail size. Cases cold gray metal, cyan-white narrow rim lights. Dark cables, pipes and tools on workshop floor surround cases, with hanging wires in upper right. Entire hammer head and spear tip fit in upper60%, dark lower floor not crucial blade tips. No coffins with people."
+    ],
+    [
+      "homecoming",
+      "Avg_pic_rogue_2_33.png",
+      "rest.png",
+      "A narrow Iberian white-plastered stone alley, one-point perspective towards distant sunlit white houses and small steps at upper middle. Aged gray-white walls, dark wooden windows and eaves, blue-violet hydrangea clusters at wall bases and under windows. Warm natural daylight catches far alley and upper walls, foreground cobbles in rich cool gray shadow. Faithful modest lived-in architecture, no people, no fantasy domes. This is daytime, NOT night, no neon blue wash. Retain flower details and crisp stonework, quieter lower foreground."
+    ],
+    [
+      "scholar",
+      "Avg_pic_rogue_2_36.png",
+      "rest.png",
+      "Dim wooden tavern interior at oblique eye-level angle, heavy timber posts and ceiling beams, long tables and high-backed wooden chairs, small candles and hanging lamps, gray violet atmospheric haze. Focus is a table at right foreground whose tabletop is raised into y42%-59%: a saturated dark red cloth drapes over a small bulky piece of equipment made from fish remains. Only a few bone-like ridges and dull armored scales show at the cloth's edge, mostly hidden; not a skull display, not gore. Warm candle beside cloth illuminates folds and concealed shape. Remaining tables recede into haze. Dark floor and table legs fill lower40%. Preserve original mundane tavern character, not a gothic cathedral."
+    ]
+  ],
+  "task_revision": "Edit image 1; image 2 is the original compositional guidance. Preserve the finely detailed pixel painting style and Tulip's portrait identity/colors, the correct three clipboard icons (rightmost red), and the exact readable 'Tulip' and '新消息'. CHANGE THE BACKGROUND COMPLETELY: remove the bright hospital/rest lounge, all cabinets, sofa, window, overhead lamps. View is angled DOWN onto a close dark charcoal desk with a few dim scattered paper sheets. No room or horizon visible. The glass terminal floats above this dark tabletop, like image 2. Move entire terminal up and make it moderately smaller, top at8% image height and bottom at63%; three icons entirely within y44%-56%. Portrait and name still clear, no extra UI text. This leaves lower40% as quiet dark desktop with indistinct paper edges. Cool white screen edges, nearly black-gray background, only red accent on rightmost clipboard. Preserve 1327x1185 near-square composition. No border, caption or text panel."
+}

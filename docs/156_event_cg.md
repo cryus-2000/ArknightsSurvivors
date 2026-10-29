@@ -73,3 +73,10 @@
 - 新增 `wish`（得偿所愿改版后有事件面板了）：同 10-26 流程（LANCZOS 缩到 1120×1000 webp q90 / 560×500 q88，method 6；用 ascend 复算与现有文件字节数相同），网页包 +41.8 KB、桌面 +130 KB。`inherit` 对应的事件已退役，不出运行时图。
 - 改版事件借图（`events_v2.json` 的 `cg`，按 docs/184 §10）：梦中之会 → singer、苦路 → survive、是非黑白 → legacy、守望相助 / 紧急调遣 → rest、设身处地两屏 → meeting、得偿所愿 → wish、敬奉火焰 → tinder。郁金香的委托、先遣小队、变卖身家、传统技术、重返家园、海嗣学者仍无图（要 Codex 新做，原作图号见 docs/184 §4.2）。
 - 截图：`tests/event_cg_shots.tscn` 加 `--ids=`；`build/cg1029/e_dream.png`（借图）、`e_wish_v2.png`（新图）。
+
+## 6. 10-30 改版 6 件新图（Codex codex/event-cg-1029 `28b084c11`，用户「插画合」）
+
+- 母稿 6 张（1327×1185）+ manifest / handoff / 流程说明只取 `art/incoming/event_cg_1029/` 入库（不合整个分支）。
+- 同 §5 流程缩成 hi / web：task、vanguard、sellout、craft、homecoming、scholar。包体：桌面 +1.07 MB、网页 +0.34 MB（源文件，导入后有损 0.85 相当）。
+- 这 6 件 `events_v2.json` 本来就没有 `cg` 字段，按事件 id 直接读新图。改版 13 件事件现在全部有图（9 件借图、6 件新图）。
+- 截图：`tests/event_cg_shots.tscn --ids=task,vanguard,sellout,craft,homecoming,scholar`，拼图 `build/cg_six/six_events.png`；1280×720 下 6 张主体、头像、兵器都清楚。
