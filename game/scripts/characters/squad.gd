@@ -245,7 +245,7 @@ func _replace(old_id: String, new_id: String, route: String):
 func _apply_size_hp() -> void:
 	if g.stats == null or not g.stats.has_stat(&"max_hp"):
 		return
-	var per: float = Bal.v("squad/hp_per_member", 0.0)
+	var per: float = Bal.v("squad/hp_per_member", 0.15)
 	var old_max: float = g.max_hp
 	g.stats.remove_source("squad")
 	var n: int = member_steps(ops.size())
@@ -269,7 +269,7 @@ static func member_steps(size: int) -> int:
 ## 第 1 / 第 2 名队友各加 squad/regen_t1 / regen_t2，< 0（缺省 -1）= 沿用 regen_per_member；第 3 名起（编队上限 +1 的藏品）一律 regen_per_member。
 ## 两档都没设时仍按原式 regen_per_member × 台阶数算（缺省结果逐位不变）
 static func regen_bonus(steps: int) -> float:
-	var rper: float = Bal.v("squad/regen_per_member", 0.0)
+	var rper: float = Bal.v("squad/regen_per_member", 0.15)
 	var t1: float = Bal.v("squad/regen_t1", -1.0)
 	var t2: float = Bal.v("squad/regen_t2", -1.0)
 	if t1 < 0.0 and t2 < 0.0:
@@ -299,7 +299,7 @@ func join_bonus_text() -> String:
 	if member_steps(ops.size() + 1) <= member_steps(ops.size()):
 		return ""
 	var parts: Array = []
-	var per: float = Bal.v("squad/hp_per_member", 0.0)
+	var per: float = Bal.v("squad/hp_per_member", 0.15)
 	var rper: float = regen_step(member_steps(ops.size() + 1))
 	if per > 0.0:
 		parts.append("队长最大生命 +%d%%" % int(round(per * 100.0)))
@@ -1054,7 +1054,7 @@ var _pcap := -1
 
 func _pfx_cap_plan() -> void:
 	if _pcap < 0:
-		_pcap = int(Bal.v("render/pfx_cap", 0.0))
+		_pcap = int(Bal.v("render/pfx_cap", 30.0))
 	if _pcap <= 0:
 		return
 	var ns: Array = []

@@ -244,7 +244,7 @@ func transform_ishar(e: Dictionary) -> void:
 	e.reso_next = g.t + 3.0
 	e.dmg *= 1.6
 	if cards_on():
-		e.dmg *= Bal.v("boss/ishar_combo_dmg", 0.8)   # 连段弹量多，单发伤害整体下调（10-27 协调人：先 ×0.8，云端测完再定）
+		e.dmg *= Bal.v("boss/ishar_combo_dmg", 0.85)   # 连段弹量多，单发伤害整体下调（10-27 协调人：先 ×0.8，云端测完再定）
 	e.spd = maxf(e.spd, 58.0)
 	e.r = 46.0
 	e.r0 = 46.0
@@ -334,7 +334,7 @@ func _web_mob(e: Dictionary, pos: Vector2, i: int) -> Dictionary:
 	o.extra_next = INF
 	o.web_of = e
 	o.part = true
-	o.shield_hp = float(o.get("shield_hp", 0.0)) + o.maxhp * Bal.v("boss/ishar_web_shield", 0.4)   # 连线护盾（10-28）：拆网要多打一层
+	o.shield_hp = float(o.get("shield_hp", 0.0)) + o.maxhp * Bal.v("boss/ishar_web_shield", 0.2)   # 连线护盾（10-28）：拆网要多打一层
 	g.enemies_sys.part_add(o)
 	return o
 
@@ -342,7 +342,7 @@ func _web_mob(e: Dictionary, pos: Vector2, i: int) -> Dictionary:
 ## 网的持续回复（10-28 协调人「伤害做成持续压迫…破网海嗣治疗与护盾」）：每只连线海嗣每秒回她 maxhp × boss/ishar_web_heal，
 ## 不超过本幕起点 e.act_top（过卡点 / 变身时记），不回到已过的卡点之上。每 1.5 秒飘一次合计数字 + 一条回复连线。拆网 = 停回血。
 func _web_heal(e: Dictionary, dt: float, live: int) -> void:
-	var rate: float = Bal.v("boss/ishar_web_heal", 0.0003)
+	var rate: float = Bal.v("boss/ishar_web_heal", 0.0)
 	if live <= 0 or rate <= 0.0 or e.dead:
 		return
 	var top: float = e.maxhp * float(e.get("act_top", 1.0))
@@ -456,10 +456,10 @@ func taken_mult(e: Dictionary) -> float:
 	if e.phase != 2:
 		return 1.0
 	if float(e.get("break_t", 0.0)) > 0.0 and Bal.v("boss/ishar_break_web", 1.0) > 0.0:
-		return Bal.v("boss/ishar_break_taken", 1.7)   # 破绽：网的减伤失效，另外受伤 ×1.7（10-28，拉高破绽期输出占比）
-	if Bal.v("boss/ishar_web_layer", 0.025) > 0.0:
-		return Bal.v("boss/ishar_nonbreak_taken", 1.0)   # 10-28 起连线海嗣给护盾层（_web_shield），不再减伤；非破绽期受伤另乘此值（拉高破绽期输出占比）
-	return maxf(Bal.v("boss/ishar_web_floor", 0.4), 1.0 - Bal.v("boss/ishar_web_each", 0.1) * float(e.get("web_n", 0)))
+		return Bal.v("boss/ishar_break_taken", 2.0)   # 破绽：网的减伤失效，另外受伤 ×1.7（10-28，拉高破绽期输出占比）
+	if Bal.v("boss/ishar_web_layer", 0.01) > 0.0:
+		return Bal.v("boss/ishar_nonbreak_taken", 0.9)   # 10-28 起连线海嗣给护盾层（_web_shield），不再减伤；非破绽期受伤另乘此值（拉高破绽期输出占比）
+	return maxf(Bal.v("boss/ishar_web_floor", 0.5), 1.0 - Bal.v("boss/ishar_web_each", 0.1) * float(e.get("web_n", 0)))
 
 
 ## 过卡点：二幕落泪，三幕回声
@@ -511,7 +511,7 @@ func on_damaged(e: Dictionary, _dmg: float, _eff: float) -> void:
 ##   海嗣被杀或断线 → 那一层当场碎掉、不再回来（直到空位重新接上新的海嗣）。所以打本体只能暂时破盾，清海嗣才是永久拆。
 ## 破绽照常出现；画法在 render/ishar_tell_draw._shield（与连线同色的护罩 + 层数刻度）。
 func _web_shield(e: Dictionary) -> void:
-	var per: float = e.maxhp * Bal.v("boss/ishar_web_layer", 0.025)
+	var per: float = e.maxhp * Bal.v("boss/ishar_web_layer", 0.01)
 	if per <= 0.0 or e.dead:
 		return
 	var layers: Array = e.get("web_layers", [])
@@ -525,7 +525,7 @@ func _web_shield(e: Dictionary) -> void:
 		L.hp = float(L.hp) - take
 		lost -= take
 		if L.hp <= 0.0 and take > 0.0:
-			L.regen_at = g.t + Bal.v("boss/ishar_layer_regen", 5.0)
+			L.regen_at = g.t + Bal.v("boss/ishar_layer_regen", 10.0)
 			_layer_break(e, L.o if L.o is Dictionary else e)
 	# 2. 层与连线对齐：断线 / 死掉的海嗣那层碎掉；新接上的海嗣加一层（满）
 	var keep: Array = []

@@ -777,7 +777,7 @@ func _big_hold(e: Dictionary) -> void:
 	if float(e.get("break_t", 0.0)) > 0.0 or e.get("knight_combo_active", false) or e.has("kn_drive") or e.has("kn_lap") \
 			or e.has("kn_lap_brk_at") or int(e.get("dash2", 0)) > 0 or e.has("breath_at") or e.has("kn_spin_brk_at") \
 			or float(e.get("channel", 0.0)) > 0.0:
-		e.kn_big_next = maxf(float(e.get("kn_big_next", 0.0)), g.t + Bal.v("boss/knight_big_walk", 2.5))
+		e.kn_big_next = maxf(float(e.get("kn_big_next", 0.0)), g.t + Bal.v("boss/knight_big_walk", 1.5))
 
 
 func _big_ok(e: Dictionary, mv: String) -> bool:

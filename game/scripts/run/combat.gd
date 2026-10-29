@@ -97,7 +97,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if g.rfx.rule("calm_guard") > 0 and g.rfx.calm_t >= Bal.v("meta/calm_t", 5.0):
 		dmg *= Bal.v("meta/calm_mult", 0.5)
 		g.vfx.add_text(g.ppos + Vector2(0, -100), "静守", Color(0.7, 0.9, 1.0), 15)
-	var lost := hurt(dmg * (Bal.v("lamp/dark_taken", 1.15) if g.lamp < 30.0 else 1.0), ignore_armor, boss)   # 灯火暗淡（< 30）受到的伤害倍率（docs/88 旋钮，缺省 1.15 不变）
+	var lost := hurt(dmg * (Bal.v("lamp/dark_taken", 1.05) if g.lamp < 30.0 else 1.0), ignore_armor, boss)   # 灯火暗淡（< 30）受到的伤害倍率（docs/88 旋钮，缺省 1.15 不变）
 	one_cap = 0.0
 	if lost <= 0.0:
 		return
@@ -120,24 +120,24 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if float(ad.get("apop_hit", 0.0)) > 0.0 and (ctrl_on() or ad.get("role", "") == "boss"):
 		add_apop(float(ad.apop_hit))
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
-	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
+	var lamp_loss: float = (Bal.v("lamp/hit_base", 2.0) + Bal.v("lamp/hit_scale", 18.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
 	var l0: float = g.lamp
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
 	g.telemetry.lamp_note("受击", g.lamp - l0)
 	if lamp_loss >= 6.0:
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
-		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
+		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 1.0) * g.corrode_taken_mult
 		_boss_pool()   # 池子被清空过（流明净化）时先把 Boss 部分截到池子以内，免得这次追加的普通侵蚀被当成 Boss 的
 		# 非 Boss 侵蚀池上限（用户 9/27 方案 3-B，数值旋钮 enemy/corrode_pool_cap，缺省 0 = 不封顶）：池里非 Boss 部分 ≤ 最大生命 × 上限，超出的新增作废；流出速度不变
-		var ncap: float = Bal.v("enemy/corrode_pool_cap", 0.0)
+		var ncap: float = Bal.v("enemy/corrode_pool_cap", 0.3)
 		if not boss and ncap > 0.0:
 			add = clampf(add, 0.0, maxf(0.0, ncap * g.max_hp - (g.corrode_pool - corrode_boss)))
 		if boss:
 			# 侵蚀算进上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血，并计入 2 秒合计（窗口满了就作废）；满血保护也管追加的侵蚀。
 			# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
 			var mh: float = g.max_hp
-			var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * mh - lost, Bal.v("boss/leader_2s_cap", 0.50) * mh - _window_sum(boss_log, 2.0))
+			var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * mh - lost, Bal.v("boss/leader_2s_cap", 0.68) * mh - _window_sum(boss_log, 2.0))
 			room = minf(room, Bal.v("boss/corrode_pool_cap", 0.40) * mh - corrode_boss)
 			add = _guard(clampf(add, 0.0, maxf(0.0, room)))
 			if add > 0.0:
@@ -379,13 +379,13 @@ var any_log: Array = []   # [时刻, 实际扣血]
 
 
 func _any_clamp(amount: float) -> float:
-	var cap: float = Bal.v("protect/any_2s_cap", 0.0)
+	var cap: float = Bal.v("protect/any_2s_cap", 0.7)
 	if cap <= 0.0 or amount <= 0.0:
 		return amount
 	var lim: float = cap * g.max_hp
 	var used := _window_sum(any_log, 2.0)
 	var over: float = maxf(0.0, used + amount - maxf(lim, used))
-	amount = amount - over + over * Bal.v("protect/any_excess_mult", 1.0)
+	amount = amount - over + over * Bal.v("protect/any_excess_mult", 0.6)
 	any_log.append([g.t, amount])
 	return amount
 
@@ -406,7 +406,7 @@ func _boss_clamp(amount: float, src: String) -> float:
 	var used := _window_sum(loss_log, 2.0)
 	if not drain:
 		used = maxf(used, _window_sum(boss_log, 2.0))
-	amount = _guard(minf(amount, maxf(0.0, Bal.v("boss/leader_2s_cap", 0.50) * mh - used)))
+	amount = _guard(minf(amount, maxf(0.0, Bal.v("boss/leader_2s_cap", 0.68) * mh - used)))
 	if amount > 0.0:
 		loss_log.append([g.t, amount])
 		if not drain:
@@ -421,14 +421,14 @@ func _boss_clamp(amount: float, src: String) -> float:
 ## 每 boss/fullhp_guard_cd（30）秒触发一次，飘「险些倒下」；触发后兜底到这一轮连击结束。fullhp_guard_combo = 0 即字面规则「受击前生命 ≥90%」。
 ## amount = 这次要扣的血（g.hp 还没扣）或要追加进池子的 Boss 侵蚀；返回截过的量
 func _guard(amount: float) -> float:
-	var room: float = g.hp - _boss_pool() - Bal.v("boss/fullhp_guard_left", 0.10) * g.max_hp
+	var room: float = g.hp - _boss_pool() - Bal.v("boss/fullhp_guard_left", 0.05) * g.max_hp
 	if amount <= 0.0 or amount <= room:
 		return amount
 	if g.t > guard_end:
 		var combo: float = Bal.v("boss/fullhp_guard_combo", 2.0)
 		if g.t < guard_ready or g.t - high_t > combo:
 			return amount
-		guard_ready = g.t + Bal.v("boss/fullhp_guard_cd", 30.0)
+		guard_ready = g.t + Bal.v("boss/fullhp_guard_cd", 60.0)
 		guard_end = high_t + combo
 		g.vfx.add_text(g.ppos + Vector2(0, -112), "险些倒下", UI.GOLD, 20)
 	# 池里待流出的 Boss 侵蚀就已经压过线：清掉多出的那部分
@@ -733,7 +733,7 @@ func shield_block() -> void:
 ## 认知塑造「危机感」末节（docs/109 §14 v5）：护盾被击碎时反震，周围 meta/shatter_r 内的敌人受到 队长攻击 × meta/shatter_mult 的物理伤害并被击退（Boss 不击退）
 func meta_shatter() -> void:
 	var r: float = Bal.v("meta/shatter_r", 140.0)
-	var dmg: float = Meta.leader_atk(g) * Bal.v("meta/shatter_mult", 2.0)
+	var dmg: float = Meta.leader_atk(g) * Bal.v("meta/shatter_mult", 3.0)
 	var hd: Dictionary = make_hit("认知塑造")
 	for j in g.enemies_sys.query(g.ppos, r + 24.0):
 		var e: Dictionary = g.enemies[j]
@@ -756,7 +756,7 @@ func is_followup(h: Dictionary) -> bool:
 ## 敌人生命的时间倍率（不含难度）：藏品的直接伤害按它缩放，保证各时段同样「有感」
 func enemy_hp_time_mult() -> float:
 	var hk: float = Bal.v("enemy/hp_knee", 480.0)
-	return 1.0 + minf(g.t, hk) / Bal.v("enemy/hp_div", 120.0) + maxf(g.t - hk, 0.0) / Bal.v("enemy/hp_late_div", 300.0)
+	return 1.0 + minf(g.t, hk) / Bal.v("enemy/hp_div", 110.0) + maxf(g.t - hk, 0.0) / Bal.v("enemy/hp_late_div", 120.0)
 
 
 ## 主控生命回复的时间倍率（docs/82，10-13）：1 + min(t, regen_knee) / regen_div。敌人攻击随时间涨（enemy/dmg_div），
@@ -852,7 +852,7 @@ func add_root(t: float, label: String) -> void:
 func add_wound(n: int) -> void:
 	if n <= 0:
 		return
-	g.wound = mini(g.wound + n, int(Bal.v("enemy/wound_max", 4.0)))
+	g.wound = mini(g.wound + n, int(Bal.v("enemy/wound_max", 3.0)))
 	g.wound_t = Bal.v("enemy/wound_dur", 6.0)
 
 
@@ -890,7 +890,7 @@ func update_ailments(dt: float) -> void:
 			g.cold_t = 0.0
 			sync_cold()
 	if g.wound > 0:
-		lose_hp(g.max_hp * Bal.v("enemy/wound_dot", 0.005) * g.wound * dt, "wound")
+		lose_hp(g.max_hp * Bal.v("enemy/wound_dot", 0.0025) * g.wound * dt, "wound")
 		g.wound_t -= dt
 		if g.wound_t <= 0.0:
 			g.wound = 0
@@ -1179,7 +1179,7 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		dmg = budget_clamp(e, dmg)
 	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
 	if e.boss:
-		var hcap: float = Bal.v("boss/hit_cap_pct", 0.0)
+		var hcap: float = Bal.v("boss/hit_cap_pct", 0.04)
 		if hcap > 0.0:
 			dmg = minf(dmg, e.maxhp * hcap)
 	if e.boss:
@@ -1261,7 +1261,7 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 func song_heal_mult() -> float:
 	for b in g.bosses:
 		if not b.dead and float(b.get("song_cut_until", 0.0)) > g.t:
-			return maxf(0.0, 1.0 - Bal.v("boss/ishar_song_heal_cut", 0.5))
+			return maxf(0.0, 1.0 - Bal.v("boss/ishar_song_heal_cut", 0.7))
 	return 1.0
 
 
@@ -1459,5 +1459,5 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 ## 精英不再必掉藏品；共用对局随机数，种子可复现。Boss 奖励仍按原结算。
 ## relic/elite_drop_from 秒前的精英不掉宝箱（docs/191：首件藏品推到约 2:00）；先抽随机数再判时间，随机数消耗不变
 func elite_drops_relic() -> bool:
-	var roll: bool = g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.3)
-	return roll and g.t >= Bal.v("relic/elite_drop_from", 0.0)
+	var roll: bool = g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.25)
+	return roll and g.t >= Bal.v("relic/elite_drop_from", 120.0)

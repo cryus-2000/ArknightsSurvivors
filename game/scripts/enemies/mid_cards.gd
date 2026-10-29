@@ -36,7 +36,7 @@ static func _add(g, e: Dictionary, pos: Vector2, ang: float, spd: float, tier: i
 	var r: float = [5.0, 7.0, 10.0][clampi(tier, 0, 2)]
 	var hold: float = float(o.get("hold", 0.0))
 	var v0: Vector2 = Vector2.from_angle(ang) * spd
-	var b := {"pos": pos, "vel": Vector2.ZERO if hold > 0.0 else v0, "v0": v0, "dmg": e.dmg * float(o.get("mult", 0.45)) * Bal.v("boss/mid_pattern_dmg", 0.8), "r": r,
+	var b := {"pos": pos, "vel": Vector2.ZERO if hold > 0.0 else v0, "v0": v0, "dmg": e.dmg * float(o.get("mult", 0.45)) * Bal.v("boss/mid_pattern_dmg", 0.7), "r": r,
 		"life": float(o.get("life", 5.0)) + hold, "slow": false, "frost": 0.0, "corrode": float(o.get("corrode", 0.0)), "nerve": 0.0, "true": false,
 		"kind": "mc", "mc": true, "tier": tier, "age": 0.0, "hold": hold, "home": false, "boss": true, "atk": "法术", "hit_cap": e.get("hit_cap", 0.0),
 		"source_id": e.id, "col": o.get("col", g.vfx.boss_color(e.type)), "src_type": e.type, "no_rock": o.get("no_rock", false)}

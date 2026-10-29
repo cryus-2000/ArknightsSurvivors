@@ -143,7 +143,7 @@ func _process(delta: float) -> void:
 	mat.set_shader_parameter("bloom", 0.3 * (1.0 - bloom_cut * crowd) if Cfg.bloom and not crisp else 0.0)
 	mat.set_shader_parameter("filter_on", 1.0 if Cfg.water_filter and not crisp else 0.0)
 	# 全局亮度 = 玩家设置 × render/ambient_gain（界面与美术 10-01：整体略提亮；乘在最后，低灯和正常灯的明暗比例不变）
-	var br: float = Cfg.brightness * Bal.v("render/ambient_gain", 1.0)
+	var br: float = Cfg.brightness * Bal.v("render/ambient_gain", 1.05)
 	mat.set_shader_parameter("brightness", br)
 	mat.set_shader_parameter("hurt", hurt)
 	mat.set_shader_parameter("desat", desat)

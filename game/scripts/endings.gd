@@ -171,8 +171,8 @@ func _tick_mid() -> void:
 		return
 	var wins: Array = deck_cfg.get("mid", [[80, 110], [360, 390]])
 	var w: Array = wins[mini(mid_done, wins.size() - 1)]
-	if mid_done == 0 and Bal.v("relic/mid1_shift", 0.0) != 0.0:
-		var sh: float = Bal.v("relic/mid1_shift", 0.0)   # 途中一整体后移（docs/191：首件藏品推到约 2:00）
+	if mid_done == 0 and Bal.v("relic/mid1_shift", 35.0) != 0.0:
+		var sh: float = Bal.v("relic/mid1_shift", 35.0)   # 途中一整体后移（docs/191：首件藏品推到约 2:00）
 		w = [float(w[0]) + sh, float(w[1]) + sh]
 	if mid_done == 1 and (c1_deal_t >= float(w[0]) or (c1_deal_t < 0.0 and g.t >= float(w[0]))):
 		mid_done = 2

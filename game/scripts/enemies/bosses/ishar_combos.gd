@@ -73,7 +73,7 @@ func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 		if _broken(e):
 			cancel(e)
 			return
-		var gap: float = [Bal.v("boss/ishar_combo_gap", 0.3), 0.24, 0.2][act_of(e)]   # 每幕节奏（docs/170 §15）：一幕留呼吸、二幕压迫、三幕最紧
+		var gap: float = [Bal.v("boss/ishar_combo_gap", 0.26), 0.24, 0.2][act_of(e)]   # 每幕节奏（docs/170 §15）：一幕留呼吸、二幕压迫、三幕最紧
 		if not ready or _pending(e):
 			e.card_next = maxf(float(e.card_next), g.t + gap)
 			return
@@ -162,7 +162,7 @@ func _pending(e: Dictionary) -> bool:
 func _finish(e: Dictionary) -> void:
 	e.card_live = false
 	# 破绽时长（10-28 测试台：破绽期输出只占 12%，目标 ≥35%）：一二幕 boss/ishar_break_t（3.0）、三幕 boss/ishar_break_t3（2.6）；破绽期网的减伤失效（ishar.taken_mult）
-	var rec: float = Bal.v("boss/ishar_break_t3", 2.6) if act_of(e) == 2 else Bal.v("boss/ishar_break_t", 3.0)
+	var rec: float = Bal.v("boss/ishar_break_t3", 4.8) if act_of(e) == 2 else Bal.v("boss/ishar_break_t", 6.0)
 	g.combat.start_break(e, rec)
 	e.brk_label = "破绽"
 	e.wind = maxf(e.wind, rec)
@@ -355,8 +355,8 @@ func _shot(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float
 func _shot_ref(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float, mult: float, kind: String, life := 6.5):
 	if own >= OWN_CAP:
 		return null
-	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
-		"slow": false, "frost": 0.0, "corrode": Bal.v("boss/ishar_corrode", 0.5), "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
+	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.4), "r": r, "life": life,
+		"slow": false, "frost": 0.0, "corrode": Bal.v("boss/ishar_corrode", 1.0), "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": "ishar"}
 	g.ebullets.append(b)
 	return b
@@ -579,7 +579,7 @@ func _song_zones(e: Dictionary) -> void:
 			"name": "歌声涟漪" if k == 0 else "", "col": COL, "dmg": e.dmg * 0.35, "cancel_dead": true, "lock": k == 0})
 		if not e.has("ishar_zones"):
 			e.ishar_zones = []
-		e.ishar_zones.append({"pos": p, "r": 105.0, "born": g.t + w.dur, "until": g.t + w.dur + Bal.v("boss/ishar_zone_linger", 4.0), "next": g.t + w.dur + 0.5, "w": w})
+		e.ishar_zones.append({"pos": p, "r": 105.0, "born": g.t + w.dur, "until": g.t + w.dur + Bal.v("boss/ishar_zone_linger", 6.0), "next": g.t + w.dur + 0.5, "w": w})
 	e.wind = maxf(e.wind, 1.8)
 	e.cdt = maxf(e.cdt, 1.8)
 
@@ -597,7 +597,7 @@ func _zone_step(e: Dictionary) -> void:
 			# 歌声侵蚀（10-28 协调人：「歌声治愈大群、侵蚀对手」）：站在地带内受治疗降低，离开即恢复（combat.song_heal_mult）
 			if float(e.get("song_cut_until", 0.0)) < g.t and g.t >= float(e.get("song_tip_next", 0.0)):
 				e.song_tip_next = g.t + 3.0
-				g.vfx.add_text(g.ppos + Vector2(0, -80), "歌声侵蚀 · 受治疗 −%d%%" % roundi(100.0 * Bal.v("boss/ishar_song_heal_cut", 0.5)), Color(0.86, 0.26, 0.42), 15)
+				g.vfx.add_text(g.ppos + Vector2(0, -80), "歌声侵蚀 · 受治疗 −%d%%" % roundi(100.0 * Bal.v("boss/ishar_song_heal_cut", 0.7)), Color(0.86, 0.26, 0.42), 15)
 			e.song_cut_until = g.t + 0.1
 		if g.t < float(z.born) or g.t < float(z.next):
 			continue
@@ -606,7 +606,7 @@ func _zone_step(e: Dictionary) -> void:
 			g.combat.slow_leader("ishar_song", 0.6, 0.75)
 			if g.invuln <= 0.0:
 				var hd: Dictionary = z.w.duplicate()
-				hd.dmg = e.dmg * Bal.v("boss/ishar_zone_tick", 0.16)
+				hd.dmg = e.dmg * Bal.v("boss/ishar_zone_tick", 0.3)
 				g.tele.warn_damage(hd)
 	e.ishar_zones = keep
 

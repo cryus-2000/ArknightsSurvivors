@@ -41,7 +41,7 @@ func update_lobs(dt: float) -> void:
 					g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 				Sfx.play("boom", -14.0, 1.6, 0.1)
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l, false, false, ["远程", "法术"], "bullet")
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 0.75), l, false, false, ["远程", "法术"], "bullet")
 				if str(l.get("hit_fx", "")) != "":
 					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(l.get("hit_org", [12, 19])[0]), float(l.get("hit_org", [12, 19])[1])))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
@@ -186,7 +186,7 @@ func update_ebullets(dt: float) -> void:
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
 			if g.invuln <= 0.0:
-				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
+				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 0.75), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
 
 
 ## 最终 Boss 场地里的 Boss 直线弹飞到场地边缘才消失（用户 10-28「弹幕消失的距离可以到 Boss 站场地的边缘」）：

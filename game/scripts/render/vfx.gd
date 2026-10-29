@@ -398,7 +398,7 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 func kill_burst(e: Dictionary, col: Color, crit: bool, lean := false) -> void:
 	var r: float = float(e.get("r", 12.0))
 	var rb: float = r / float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大的按原体型判大小 / 火花数 / 音高 / 顿帧，爆点环按实际半径
-	var big: bool = rb >= Bal.v("fx/kill_big_r", 20.0)
+	var big: bool = rb >= Bal.v("fx/kill_big_r", 16.0)
 	var n: int = Bal.vi("fx/kill_sparks", 7) + int(rb * Bal.v("fx/kill_sparks_per_r", 0.3))
 	# 后期降噪（render/declutter kill_k / kill_ring，缺省不变）：普通小怪的击杀火花随拥挤度减少、拥挤过半时不画小冲击环；
 	# 火花只用 g.vrng，不碰对局随机数；精英 / Boss / 大体型照旧
@@ -642,8 +642,8 @@ func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 			return
 	# 避让（可读性，1.1.1）：和刚冒出（text_nudge_t 秒内）的飘字框重叠就往上错一行，最多错 text_nudge_max 行
 	var p0: Vector2 = pos
-	var tries: int = Bal.vi("fx/text_nudge_max", 3)
-	var nt: float = Bal.v("fx/text_nudge_t", 0.3)
+	var tries: int = Bal.vi("fx/text_nudge_max", 5)
+	var nt: float = Bal.v("fx/text_nudge_t", 0.6)
 	var w: float = _text_w(text, size)
 	var moved := true
 	while moved and tries > 0:

@@ -11,7 +11,7 @@ var g: Game
 const MAX_ENEMIES := 450
 var next_id := 0
 var spawn_acc := 0.0
-var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
+var next_elite: float = Bal.v("enemy/first_elite", 60.0)   # 首只精英出现时间（balance.json）
 var _lead_slot := 0.0   # 大群领头精英已占的精英名额（不足一个时攒着）
 var horde_warned := -1.0
 var fixed_i := 0        # 中段固定节拍大群已出到第几波（docs/150）
@@ -335,9 +335,9 @@ func update(dt: float) -> void:
 					spawn_enemy(ft, edge_pos())
 			_norm = false
 	# 刷怪率：spawn_knee 之后按 spawn_late_div 放缓（docs/46 §1.4；缺省拐点在无穷远，行为不变）
-	var sp_div: float = Bal.v("enemy/spawn_div", 30.0)
-	var sp_knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
-	var rate := Bal.v("enemy/spawn_base", 1.6) + minf(g.t, sp_knee) / sp_div + maxf(g.t - sp_knee, 0.0) / Bal.v("enemy/spawn_late_div", sp_div)
+	var sp_div: float = Bal.v("enemy/spawn_div", 40.0)
+	var sp_knee: float = Bal.v("enemy/spawn_knee", 520.0)
+	var rate := Bal.v("enemy/spawn_base", 2.3) + minf(g.t, sp_knee) / sp_div + maxf(g.t - sp_knee, 0.0) / Bal.v("enemy/spawn_late_div", sp_div)
 	# Boss 在场 / 灯火不足时的刷怪倍率（balance.json enemy 段，docs/38 B0 第 11 项；现值 0.8 / 1.15）
 	# 中期 / 最终 Boss 在场分开两个倍率（缺省都读原来的 spawn_boss_mult）；用户 9/27：中期 Boss 在场时普通刷怪照常，由数值填 mid 1.0
 	if boss_alive():
@@ -352,7 +352,7 @@ func update(dt: float) -> void:
 	if dens != 1.0:
 		rate *= dens   # 怪物密度：普通刷怪率 × density（spawn_acc 本身就是累计余数）
 	if g.t < Bal.v("enemy/early_until", 0.0):
-		rate *= Bal.v("enemy/early_spawn_mult", 1.0)   # 前期压力段：大群加密的那部分从普通刷怪里扣（总经验约不变，docs/116 §7）
+		rate *= Bal.v("enemy/early_spawn_mult", 0.9)   # 前期压力段：大群加密的那部分从普通刷怪里扣（总经验约不变，docs/116 §7）
 	if not (g.final_boss != null and not g.final_boss.dead and trickling()):
 		rate *= float(D.THREAT[g.threat].get("rate_mult", 1.0))   # 分级调整（docs/158 §6）：中后段换高阶、压普通刷怪只数，waves.json threat.rate_mult；最终 Boss 少量补怪不乘
 	spawn_acc += rate * dt
@@ -382,7 +382,7 @@ func update(dt: float) -> void:
 	# 精英计时在 Boss 在场时照常走（用户 9/27 撤回 B0 第 8 项的冻结：按时间刷，快慢玩家精英数相同）；
 	# 数值留的旋钮 enemy/elite_during_boss：Boss 在场时精英计时的速度（1 = 照常、0 = 冻结、0.5 = 减半）
 	if boss_alive():
-		next_elite += dt * (1.0 - Bal.v("enemy/elite_during_boss", 1.0))
+		next_elite += dt * (1.0 - Bal.v("enemy/elite_during_boss", 0.5))
 	if stop and g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)   # 最终 Boss 战停刷：精英计时照走，不出精英
 	elif g.t >= next_elite:
@@ -408,16 +408,16 @@ func update(dt: float) -> void:
 	# 终局护卫波（docs/116 §9，10-22）：最终 Boss 少量补怪期间每 final/escort_every 秒一波分股小群（final/escort_n 只，不乘密度、不受补怪上限），
 	# 登场后 final/escort_first 秒第一波；0 = 关（旧行为：最终 Boss 战不来大群）
 	# Boss 生命低于 final/escort_stop_frac 后停（收尾不拖成超时）
-	var escort: bool = trickling() and Bal.v("final/escort_every", 0.0) > 0.0 and g.final_boss.hp > g.final_boss.maxhp * Bal.v("final/escort_stop_frac", 0.0)
-	if escort and g.next_horde < final_at + Bal.v("final/escort_first", 20.0):
-		g.next_horde = final_at + Bal.v("final/escort_first", 20.0)
+	var escort: bool = trickling() and Bal.v("final/escort_every", 50.0) > 0.0 and g.final_boss.hp > g.final_boss.maxhp * Bal.v("final/escort_stop_frac", 0.5)
+	if escort and g.next_horde < final_at + Bal.v("final/escort_first", 15.0):
+		g.next_horde = final_at + Bal.v("final/escort_first", 15.0)
 	# 中段固定节拍（docs/150，10-25 用户「把围猎和大群合并」，docs/146 方案 A）：enemy/horde_fixed_1..3 秒各一波，
 	# horde_fixed_hunt_N = 1 的那波是围猎型；窗口内不走常规节拍——常规的下一波若落在第一波前 40 秒到最后一波后 40 秒之间，推到最后一波之后一个间隔
 	var fixed_due := -1.0
 	if not escort and fixed_i < 3 and Bal.v("enemy/horde_fixed_%d" % (fixed_i + 1), -1.0) >= 0.0:
 		fixed_due = Bal.v("enemy/horde_fixed_%d" % (fixed_i + 1), -1.0)
-		var last_fixed: float = maxf(maxf(Bal.v("enemy/horde_fixed_1", -1.0), Bal.v("enemy/horde_fixed_2", -1.0)), Bal.v("enemy/horde_fixed_3", -1.0))
-		if g.next_horde > Bal.v("enemy/horde_fixed_1", -1.0) - 40.0 and g.next_horde < last_fixed + 40.0:
+		var last_fixed: float = maxf(maxf(Bal.v("enemy/horde_fixed_1", 225.0), Bal.v("enemy/horde_fixed_2", 300.0)), Bal.v("enemy/horde_fixed_3", 375.0))
+		if g.next_horde > Bal.v("enemy/horde_fixed_1", 225.0) - 40.0 and g.next_horde < last_fixed + 40.0:
 			g.next_horde = last_fixed + float(D.THREAT[g.threat].get("horde_every", 120.0))
 	var is_fixed: bool = fixed_due >= 0.0 and fixed_due <= g.next_horde
 	var due: float = fixed_due if is_fixed else g.next_horde
@@ -434,13 +434,13 @@ func update(dt: float) -> void:
 		if not hunt_type:
 			# 分股合围（docs/116 §7.2，10-22 起所有大群；围猎型除外）：缺口对面 3 股，股心相隔 close_ring_spread 弧度；HUD 预警箭头只画这几个方向
 			for i in 3:
-				g.horde_streams.append(g.horde_gap + PI + (i - 1) * deg_to_rad(Bal.v("enemy/close_ring_spread_deg", 110.0)) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
+				g.horde_streams.append(g.horde_gap + PI + (i - 1) * deg_to_rad(Bal.v("enemy/close_ring_spread_deg", 110.0)) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 35.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
 		if is_fixed:
 			fixed_i += 1   # 固定节拍那波：不动常规节拍
 		else:
-			g.next_horde = g.t + Bal.v("final/escort_every", 75.0) if escort else g.next_horde + D.THREAT[g.threat].get("horde_every", 120.0)
+			g.next_horde = g.t + Bal.v("final/escort_every", 50.0) if escort else g.next_horde + D.THREAT[g.threat].get("horde_every", 120.0)
 		g.horde_hunt = hunt_type
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
@@ -458,27 +458,27 @@ func update(dt: float) -> void:
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		# horde_grow_until 秒后只数不再随时间涨（docs/116 §9：8–9 分钟大群最大、压力堆在一处）
-		var n := int((Bal.v("enemy/horde_base", 24.0) + int(minf(g.t, Bal.v("enemy/horde_grow_until", 1.0e9)) / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
+		var n := int((Bal.v("enemy/horde_base", 20.0) + int(minf(g.t, Bal.v("enemy/horde_grow_until", 570.0)) / Bal.v("enemy/horde_div", 12.0))) * float(g.dmod.horde))
 		var early: bool = g.t < Bal.v("enemy/early_until", 0.0)   # 前期压力段（docs/116 §7）：大群加密、单体伤害不打折，普通刷怪同期打折抵消经验
 		if early:
-			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
+			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.8)))
 		var n_base := n   # 未乘只数倍率前的只数：经验按「实际刷出只数 / 这个数」折算，被同屏上限裁掉时不多折（docs/116 §7.3）
 		if hunt_type:
-			n = int(round(n * Bal.v("enemy/horde_hunt_count_mult", 1.0)))   # 围猎型多来一些（docs/150），经验同样按只数折算守恒
-		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.0)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
+			n = int(round(n * Bal.v("enemy/horde_hunt_count_mult", 1.5)))   # 围猎型多来一些（docs/150），经验同样按只数折算守恒
+		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.5)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
 		n = int(round(n * float(D.THREAT[g.threat].get("horde_mult", 1.0))))   # 分级调整（docs/158 §6）：中后段大群只数倍率，经验同样按只数折算守恒
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
 		if escort:
-			n = int(Bal.v("final/escort_n", 12.0))
+			n = int(Bal.v("final/escort_n", 16.0))
 			n_base = int(round(float(n) / density()))   # 护卫波经验不折算
 		# 本波实际能刷出的只数（下面循环到同屏上限 + 60 就停）与「不乘只数倍率时」会刷出的只数之比，用来折算单只经验
 		var room_now: int = maxi(1, max_alive() + 60 - g.enemies.size())
 		var n_real: int = mini(n, room_now)
 		var n_old: int = mini(mini(int(round(float(n_base) * density())), maxi(0, boss_mob_room())), room_now)
 		var xp_ratio: float = clampf(float(n_old) / maxf(1.0, float(n_real)), 0.0, 1.0)
-		var gap_half := deg_to_rad(Bal.v("enemy/horde_hunt_gap_deg", 22.0) if hunt_type else 35.0)
+		var gap_half := deg_to_rad(Bal.v("enemy/horde_hunt_gap_deg", 16.0) if hunt_type else 35.0)
 		var span: float = TAU - gap_half * 2.0
 		var mix := horde_mix()
 		var plan := horde_plan(mix, n)
@@ -501,7 +501,7 @@ func update(dt: float) -> void:
 				si = pidx % g.horde_streams.size()
 				row = float(pidx / g.horde_streams.size()) / maxf(1.0, ceilf(float(plan.size()) / g.horde_streams.size()) - 1.0)
 				pidx += 1
-				ang = float(g.horde_streams[si]) + (fposmod(float(s.u) * 3.0, 1.0) - 0.5) * deg_to_rad(Bal.v("enemy/close_ring_arc", 50.0)) * (0.45 + 0.55 * row)
+				ang = float(g.horde_streams[si]) + (fposmod(float(s.u) * 3.0, 1.0) - 0.5) * deg_to_rad(Bal.v("enemy/close_ring_arc", 115.0)) * (0.45 + 0.55 * row)
 			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(ring_r - 40.0, ring_r + 40.0) + float(s.dr) + pow(row, 1.6) * Bal.v("enemy/horde_tail", 260.0))
 			var mk := func(pp: Vector2) -> void:
 				_horde_member(s.id, pp, hl, si, close_ring, early, hunt_type, xp_ratio)
@@ -529,10 +529,10 @@ func _horde_member(id: String, p: Vector2, hl: Dictionary, si: int, close_ring: 
 					he["depart_t"] = float(he.get("depart_t", 0.0)) + si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再出发（depart_t 期间不行动，run/enemies.gd 倒计时；叠在 _horde_loose 的分批之上，docs/158）
 					he.spd *= 1.0 + si * Bal.v("enemy/close_ring_spd", 0.1)
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
-			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else Bal.v("enemy/horde_dmg", 0.7)   # 大群单体接触伤害倍率（原写死 0.7）
+			he.dmg *= Bal.v("enemy/early_horde_dmg", 1.0) if early else Bal.v("enemy/horde_dmg", 1.4)   # 大群单体接触伤害倍率（原写死 0.7）
 			if hunt_type:
 				he.dmg *= Bal.v("enemy/horde_hunt_dmg", 1.0)   # 围猎型额外接触伤害倍率（docs/150，不给奖励的收紧旋钮）
-			var ehp: float = Bal.v("enemy/horde_hp_mult", 1.0) * (Bal.v("enemy/early_horde_hp", 1.0) if early else 1.0)   # 大群单只生命倍率（不加经验）
+			var ehp: float = Bal.v("enemy/horde_hp_mult", 2.0) * (Bal.v("enemy/early_horde_hp", 1.0) if early else 1.0)   # 大群单只生命倍率（不加经验）
 			he.hp *= ehp
 			he.maxhp *= ehp
 			var xm: float = Bal.v("enemy/horde_xp_mult", -1.0)
@@ -608,7 +608,7 @@ func _horde_tail_rest() -> void:
 	if g.t >= next_chest:
 		# 刷出间隔前松后紧（docs/133）：crate/early_until 秒前 [early_lo, early_hi]，crate/mid_until 秒前 [mid_lo, mid_hi]，之后 [late_lo, late_hi]；
 		# crate/pack_p 0（关）时仍是原来的 35–50 秒
-		if Bal.v("crate/pack_p", 0.0) > 0.0:
+		if Bal.v("crate/pack_p", 0.9) > 0.0:
 			var tier: String = "early" if g.t < Bal.v("crate/early_until", 300.0) else ("mid" if g.t < Bal.v("crate/mid_until", 480.0) else "late")
 			next_chest = g.t + g.rng_spawn.randf_range(Bal.v("crate/%s_lo" % tier, 35.0), Bal.v("crate/%s_hi" % tier, 50.0))
 		else:
@@ -624,8 +624,8 @@ func _horde_tail_rest() -> void:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
 		# 灯火低（docs/147）：间隔 × (1 − mire_spawn_iv × y)、离队长的距离 × (1 − mire_spawn_near × y)，随机数抽取次数不变
 		var ly: float = g.enemies_sys.lamp_mire_k().y
-		g.next_mire = g.t + g.map.mire_next_interval(g.t) * (1.0 - Bal.v("lamp/mire_spawn_iv", 0.0) * ly)
-		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0) * (1.0 - Bal.v("lamp/mire_spawn_near", 0.0) * ly)
+		g.next_mire = g.t + g.map.mire_next_interval(g.t) * (1.0 - Bal.v("lamp/mire_spawn_iv", 0.4) * ly)
+		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0) * (1.0 - Bal.v("lamp/mire_spawn_near", 0.4) * ly)
 		if g.zone_state != 0 and g.rng_spawn.randf() < 0.6:
 			var ang := (g.ppos - g.zone_c).angle() + g.rng_spawn.randf_range(-0.8, 0.8)
 			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng_spawn.randf_range(20.0, 120.0))
@@ -738,14 +738,14 @@ func _merge_apply(e: Dictionary) -> void:
 	e.maxhp *= hm
 	e.shield_hp *= hm
 	e.xp *= mx
-	e.dmg *= pow(m, Bal.v("enemy/merge_dmg_exp", 0.5))
+	e.dmg *= pow(m, Bal.v("enemy/merge_dmg_exp", 1.0))
 	e["dk"] = float(e.get("dk", 1.0)) * mx
 	e["merged"] = all
 
 
 ## 排队保底（enemy/alive_cap_wait 秒，0 = 不保底）：排满这么久的普通刷怪不再等空位，直接出（可短暂超过上限）
 func alive_cap_wait() -> float:
-	return Bal.v("enemy/alive_cap_wait", 0.0)
+	return Bal.v("enemy/alive_cap_wait", 10.0)
 
 
 func normal_count() -> int:
@@ -844,7 +844,7 @@ func is_final_boss_type(type: String) -> bool:
 func _spd_gain(base_spd: float, role: String) -> float:
 	if role == "boss" or base_spd >= Bal.v("enemy/spd_gain_below", 90.0):
 		return 1.0
-	return Bal.v("enemy/spd_gain", 1.0)
+	return Bal.v("enemy/spd_gain", 1.05)
 
 
 func new_enemy(type: String, pos: Vector2) -> Dictionary:
@@ -862,10 +862,10 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	if bf >= 0.0 and role != "boss" and g.final_boss != null and not g.final_boss.dead:
 		hpm = g.combat.enemy_hp_time_mult() * bf
 	var dmm := float(g.dmod.enemy_dmg)
-	var dmg_t := 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
+	var dmg_t := 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 340.0)
 	# 前期敌人伤害加成（用户 9/27 前 3 分钟方案 A，数值旋钮，缺省 1.0 = 不变）：开局 ×enemy/dmg_early，到 enemy/dmg_early_until 秒线性回到 ×1。
 	# 只作用于普通怪和精英（Boss 在下面另算 e.dmg，不吃 dmg_t）；敌弹、抛石、冲击环、自爆、预警招式都按 e.dmg 算，自动跟上
-	dmg_t *= lerpf(Bal.v("enemy/dmg_early", 1.0), 1.0, clampf(g.t / maxf(1.0, Bal.v("enemy/dmg_early_until", 240.0)), 0.0, 1.0))
+	dmg_t *= lerpf(Bal.v("enemy/dmg_early", 1.3), 1.0, clampf(g.t / maxf(1.0, Bal.v("enemy/dmg_early_until", 240.0)), 0.0, 1.0))
 	# 后期敌人伤害（用户 10-01「后期怪物攻击力轻微上调」，数值方案 a）：dmg_late_start 秒起，按 dmg_late_div 秒涨 1.0 的斜率叠加，最多 +dmg_late_cap。
 	# dmg_late_cap 可按难度档覆盖（difficulty/<档>/dmg_late_cap，-1 = 跟 enemy 段）；代码缺省 0 = 现行为
 	var late_cap: float = g.combat.enemy_knob("dmg_late_cap", 0.0)
@@ -873,7 +873,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		dmg_t += minf(maxf(g.t - Bal.v("enemy/dmg_late_start", 420.0), 0.0) / maxf(1.0, Bal.v("enemy/dmg_late_div", 900.0)), late_cap)
 	# 危险感回调（用户 10-28）：开局到 enemy/dmg_gain_from 秒 ×dmg_gain_early，之后 ×dmg_gain_late；Boss 不吃，1 = 关
 	if role != "boss":
-		dmg_t *= Bal.v("enemy/dmg_gain_early", 1.0) if g.t < Bal.v("enemy/dmg_gain_from", 300.0) else Bal.v("enemy/dmg_gain_late", 1.0)
+		dmg_t *= Bal.v("enemy/dmg_gain_early", 1.15) if g.t < Bal.v("enemy/dmg_gain_from", 300.0) else Bal.v("enemy/dmg_gain_late", 1.0)
 	next_id += 1
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
@@ -964,11 +964,11 @@ var _dacc := {}         # 各渠道的累计余数（"horde" / "threat"）
 
 
 func density() -> float:
-	return Bal.v("enemy/density", 1.0)
+	return Bal.v("enemy/density", 0.4)
 
 
 func escale() -> float:
-	return Bal.v("enemy/scale", 1.0)
+	return Bal.v("enemy/scale", 1.5)
 
 
 ## 只数 × 密度，按渠道累计余数取整（density 1 时原样返回）
@@ -993,13 +993,13 @@ func dens_cap(c: int) -> int:
 func _dens_apply(e: Dictionary) -> void:
 	var inv := 1.0 / density()
 	# 单只生命 × (1/k)^density_hp_exp（缺省 1 = 总血量池不变；< 1 = 单只更薄、总血量池 × k^(1−exp)，用户 10-14「普通小怪 1–2 下打死」，docs/50 §16.9）
-	var hpm: float = pow(inv, Bal.v("enemy/density_hp_exp", 1.0))
+	var hpm: float = pow(inv, Bal.v("enemy/density_hp_exp", 0.75))
 	e.hp *= hpm
 	e.maxhp *= hpm
 	e.shield_hp *= hpm
 	e.xp *= inv
-	e.dmg *= pow(inv, Bal.v("enemy/density_dmg_exp", 1.0))
-	e.normal_scale = e.get("normal_scale", Vector3.ONE) * Vector3(hpm, pow(inv, Bal.v("enemy/density_dmg_exp", 1.0)), inv)
+	e.dmg *= pow(inv, Bal.v("enemy/density_dmg_exp", 0.5))
+	e.normal_scale = e.get("normal_scale", Vector3.ONE) * Vector3(hpm, pow(inv, Bal.v("enemy/density_dmg_exp", 0.5)), inv)
 	e["dk"] = inv
 
 
@@ -1015,11 +1015,11 @@ func _trim_apply(e: Dictionary) -> void:
 	var fd := 1.0
 	var u: float = Bal.v("enemy/trim_early_until", 180.0)
 	var k := 1.0 - clampf((g.t - u) / maxf(1.0, Bal.v("enemy/trim_early_fade", 60.0)), 0.0, 1.0)
-	f *= lerpf(1.0, Bal.v("enemy/trim_early_hp", 1.0), k)
-	fd *= lerpf(1.0, Bal.v("enemy/trim_early_dmg", 1.0), k)
+	f *= lerpf(1.0, Bal.v("enemy/trim_early_hp", 1.08), k)
+	fd *= lerpf(1.0, Bal.v("enemy/trim_early_dmg", 1.08), k)
 	var t0: float = Bal.v("enemy/trim_late_t0", 420.0)
 	var t1: float = Bal.v("enemy/trim_late_t1", 480.0)
-	f *= lerpf(1.0, Bal.v("enemy/trim_late_hp", 1.0), clampf((g.t - t0) / maxf(1.0, t1 - t0), 0.0, 1.0))
+	f *= lerpf(1.0, Bal.v("enemy/trim_late_hp", 0.92), clampf((g.t - t0) / maxf(1.0, t1 - t0), 0.0, 1.0))
 	if f != 1.0:
 		e.hp *= f
 		e.maxhp *= f
@@ -1043,19 +1043,19 @@ func _late_hp_apply(e: Dictionary, mult: float) -> void:
 ## 围猎型（hunt=true）：批数 / 批间隔用 horde_hunt_batches / horde_hunt_batch_gap，入场速度 × horde_hunt_rush（慢慢收拢，进到 horde_rush_r 内回正常速度）。
 ## 随机只用 g.rng_spawn（同 seed 可复现）
 func _horde_loose(he: Dictionary, hunt: bool) -> void:
-	var sp: float = Bal.v("enemy/horde_spd_spread", 0.0)
+	var sp: float = Bal.v("enemy/horde_spd_spread", 0.15)
 	if sp > 0.0:
 		he.spd *= 1.0 + g.rng_spawn.randf_range(-sp, sp)
 	var nb: int = int(Bal.v("enemy/horde_hunt_batches" if hunt else "enemy/horde_batches", 1.0))
 	if nb > 1:
 		var b: int = g.rng_spawn.randi() % nb
 		# 出发延迟写 depart_t（docs/158）：原来借用收割者的 wake_t，而 wake_t 只在收割者的招式里倒计时，其他怪永远走不完、一直站在原地
-		he["depart_t"] = maxf(float(he.get("depart_t", 0.0)), 0.0) + b * Bal.v("enemy/horde_hunt_batch_gap" if hunt else "enemy/horde_batch_gap", 0.8) + g.rng_spawn.randf() * Bal.v("enemy/horde_jitter", 0.0)
-	var wd: float = Bal.v("enemy/horde_wob_deg", 0.0)
+		he["depart_t"] = maxf(float(he.get("depart_t", 0.0)), 0.0) + b * Bal.v("enemy/horde_hunt_batch_gap" if hunt else "enemy/horde_batch_gap", 0.8) + g.rng_spawn.randf() * Bal.v("enemy/horde_jitter", 0.4)
+	var wd: float = Bal.v("enemy/horde_wob_deg", 22.0)
 	if wd > 0.0:
-		he["wob"] = [deg_to_rad(wd) * g.rng_spawn.randf_range(0.6, 1.0), Bal.v("enemy/horde_wob_f", 1.5) * g.rng_spawn.randf_range(0.7, 1.3), g.rng_spawn.randf() * TAU]
+		he["wob"] = [deg_to_rad(wd) * g.rng_spawn.randf_range(0.6, 1.0), Bal.v("enemy/horde_wob_f", 1.6) * g.rng_spawn.randf_range(0.7, 1.3), g.rng_spawn.randf() * TAU]
 	if hunt:
-		he["rush"] = Bal.v("enemy/horde_hunt_rush", 0.7)
+		he["rush"] = Bal.v("enemy/horde_hunt_rush", 0.9)
 
 
 ## 画面对角线一半（世界坐标）：围猎型大群的出生半径按它算
