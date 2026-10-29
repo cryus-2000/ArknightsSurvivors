@@ -8,6 +8,9 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+## 其余 15 人（用户 10-29「20 个干员的都做好」）：分两个文件写，接口同本文件（handles / aim_kind / aim_r / start / step）
+const MB = preload("res://scripts/run/ult_moves_b.gd")   # 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔 / 归溟幽灵鲨 / 水月
+const MC = preload("res://scripts/run/ult_moves_c.gd")   # 塞雷娅 / 铃兰 / 逻各斯 / 星熊 / 推进之王 / 艾丽妮 / 拉普兰德 / 流明
 
 const POINT_OPS := ["texas", "kaltsit", "ulpianus"]
 const AUTO_OPS := ["exusiai", "skalter"]
@@ -17,11 +20,19 @@ const COL_STEEL := Color(0.72, 0.8, 0.9)
 
 
 static func aim_kind(id: String) -> String:
+	if MB.handles(id):
+		return MB.aim_kind(id)
+	if MC.handles(id):
+		return MC.aim_kind(id)
 	return "point" if id in POINT_OPS else "none"
 
 
 ## 瞄准指示的半径（选落点：落点圆；不瞄：以自身为中心的圈）
 static func aim_r(id: String) -> float:
+	if MB.handles(id):
+		return MB.aim_r(id)
+	if MC.handles(id):
+		return MC.aim_r(id)
 	match id:
 		"exusiai", "skalter":
 			return 480.0
@@ -47,7 +58,14 @@ static func start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 		"ulpianus":
 			a = _ul_start(u, o, aim)
 		_:
-			a = _gen_start(u, o)
+			if MB.handles(str(o.id)):
+				a = MB.start(u, o, aim, dir)
+				a["k"] = "mb"
+			elif MC.handles(str(o.id)):
+				a = MC.start(u, o, aim, dir)
+				a["k"] = "mc"
+			else:
+				a = _gen_start(u, o)
 	a["o"] = o
 	a["t"] = 0.0
 	return a
@@ -72,6 +90,10 @@ static func step(u, a: Dictionary, dt: float) -> bool:
 			return _ka_step(u, a, o)
 		"ulpianus":
 			return _ul_step(u, a, o)
+		"mb":
+			return MB.step(u, a, dt)
+		"mc":
+			return MC.step(u, a, dt)
 	return _gen_step(u, a, o)
 
 
