@@ -292,6 +292,7 @@ func _tick_ult(dt: float) -> void:
 
 func _cast() -> void:
 	phase = "cast"
+	_cast_t = g.t
 	ev.ult_t = g.t
 	if kind == "cult":
 		ev.cult_t = g.t
@@ -639,6 +640,20 @@ func _cutin(ld, k: String) -> void:
 		cutins.append({"id": str(ld.id), "name": ld.display_name(), "col": _col(ld), "t0": now, "dur": 0.9, "i": 0, "cult": false})
 	while cutins.size() > 8:
 		cutins.pop_front()
+
+
+## 推镜（run/cam_fx.gd 读，§7.1）：瞄准 1.08 → 出招前 0.6 秒 1.12 → 0.4 秒拉回 1.0；按游戏时间算，纯画面
+var _cast_t := -99.0
+
+
+func cam_punch() -> float:
+	if phase == "aim":
+		return Bal.v("ult/cam_aim", 1.08)
+	var age: float = g.t - _cast_t
+	if age < 0.0 or age > 1.0:
+		return 1.0
+	var hi: float = Bal.v("ult/cam_cast", 1.12)
+	return hi if age < 0.6 else lerpf(hi, 1.0, (age - 0.6) / 0.4)
 
 
 ## 时间缩放（run/time_dilation.gd 读，登记为 fx 类：只在玩家局 / --realtime / --playclock 生效）

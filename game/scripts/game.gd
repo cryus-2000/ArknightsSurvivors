@@ -282,6 +282,7 @@ var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
 var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
+var cam_fx = preload("res://scripts/run/cam_fx.gd").new(self)   # 镜头演出组合口：基础缩放 × punch()（终结技推镜；arch_review_1029 P1-1）
 var tdil = preload("res://scripts/run/time_dilation.gd").new(self)   # 局内时间缩放唯一所有者（圆盘 / 终结技慢动作；arch_review_1029 P0-1）
 var frost := 0.0                   # 冰霜：移速 -40%
 # 小怪控制（用户 9/29，combat.gd「小怪控制」段；玩法系统的净化按这些字段清除）
@@ -880,6 +881,7 @@ func _ready() -> void:
 	tdil.add("wheel", wheel.slow, "play")   # 圆盘打开：局内放慢（不全停），批跑里也生效
 	if ult != null:
 		tdil.add("ult", ult.time_scale, "fx")   # 终结技瞄准慢动作（docs/198 §2.4）：演出性，批跑不缩
+		cam_fx.add("ult", ult.cam_punch)   # 终结技推镜（§7.1）
 	# 开局干员：标题页选人写入 Cfg.character_id；--op=<id> 测试覆盖；不存在时退回水月
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
@@ -1468,7 +1470,7 @@ func _process(delta: float) -> void:
 	if OS.has_feature("web") and state != S.PLAY and state != S.OPENING and state != S.INTRO and state_age > 0.3 and Sfx.warm_pending():
 		Sfx.warm_step(20000)   # 静止界面里解码下一批配乐（sfx._queue_next，docs/50 §40）：一帧至少一句，对局画面里不解码
 	if cam != null and not optical_lo and demo_op == "" and demo_enemy == "" and Cfg.cam_unified():
-		var bz: float = Cfg.battle_zoom()
+		var bz: float = Cfg.battle_zoom() * cam_fx.punch()
 		if absf(cam.zoom.x - bz) > 0.0001:
 			cam.zoom = Vector2(bz, bz)   # 低档也每帧对齐（中 / 高由光学 _lo_step 每帧算）：漏掉尺寸变化通知时不会停在旧镜头（10-27 用户「低中镜头还是不一样」）
 	_mem_guard(delta)
