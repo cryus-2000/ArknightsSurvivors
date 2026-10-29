@@ -547,6 +547,15 @@ func apply_order(mode: String, pt: Vector2, target) -> bool:
 	order_kind = mode
 	order_pos = pt
 	order_target = target if mode == "focus" else null
+	order_beacon = null
+	if mode == "point":
+		# 移动指到未点燃的灯标附近（beacon/order_snap 60 内）：落点吸附到灯标中心，队友站进光圈读条（beacon.gd 的队友读条）
+		var bl: Array = g.beacons if g.get("beacons") != null else []
+		for b in bl:
+			if not b.lit and not b.dead and b.pos.distance_to(pt) <= Bal.v("beacon/order_snap", 60.0):
+				order_pos = b.pos
+				order_beacon = b
+				break
 	_order_idle = 0.0
 	_order_age = 0.0
 	for o in ops:
@@ -558,10 +567,13 @@ func apply_order(mode: String, pt: Vector2, target) -> bool:
 	return true
 
 
+var order_beacon = null   # 移动指到的灯标（吸附后）：点燃 / 熄灭前队友守在光圈里，不按「圈里没怪」归队
+
 func clear_order() -> void:
 	order_kind = ""
 	order_pos = Vector2.INF
 	order_target = null
+	order_beacon = null
 	_order_idle = 0.0
 
 
@@ -578,6 +590,12 @@ func _tick_order(dt: float) -> void:
 		return
 	var clr: bool = order_kind == "clear"
 	_order_age += dt
+	if order_beacon != null:
+		if order_beacon.lit or order_beacon.dead:
+			set_stance(GUARD)   # 灯标点燃 / 熄灭：回随行
+		elif g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0):
+			set_stance(RECALL)
+		return
 	var back: int = GUARD if clr else RECALL
 	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) or (clr and _order_age >= Bal.v("command/clear_secs", 9.0)):
 		set_stance(back)
@@ -600,6 +618,7 @@ func order_radius() -> float:
 
 ## 机器人用指点（10-30 协调人：「机器人也要会用」，否则云端测的数不准；command/bot_point 0 = 关）：每 command/bot_point_every 秒看一次，
 ## 没有指令、冷却已过、作战时限够突击时：Boss（可受击、离队长 order_r × 1.6 内）在场 → 集火最近的 Boss；
+## 否则有未点燃的灯标（离队长 order_r × 1.6 内、队长不在 bot/beacon_seek_r 内）→ 移动到灯标让队友去点；
 ## 否则队长 command/bot_surround_r 内敌人 ≥ command/bot_surround_n（被包围）→ 对 order_r 内最密的一块下「肃清」（clear_r 圈）。不抽随机数
 var _order_cd := 0.0
 var _order_age := 0.0
@@ -628,6 +647,16 @@ func bot_point(dt: float) -> void:
 		if apply_order("focus", boss.pos, boss):
 			_order_cd = Bal.v("command/order_cd", 3.0)
 		return
+	# 灯标：未点燃、离队长 order_r × 1.6 内、队长不在 bot/beacon_seek_r（300）内（没在去点）→ 移动到灯标，队友站圈读条（10-30 协调人）
+	if g.get("beacons") != null:
+		for b in g.beacons:
+			if b.lit or b.dead:
+				continue
+			var dl: float = b.pos.distance_to(g.ppos)
+			if dl <= orr * 1.6 and dl > Bal.v("bot/beacon_seek_r", 300.0):
+				if apply_order("point", b.pos, null):
+					_order_cd = Bal.v("command/order_cd", 3.0)
+				return
 	var near: Array = g.enemies_sys.nearest(Bal.v("command/bot_surround_n", 6.0), Bal.v("command/bot_surround_r", 240.0), g.ppos)
 	if near.size() < int(Bal.v("command/bot_surround_n", 6.0)):
 		return

@@ -680,6 +680,9 @@
  "beacon": {
   "_doc": "引航灯标（run/beacon.gd，docs/49d §13.5 C）：没写的键用代码缺省（every 60–75、dist 250–400、r 70、need 2.5、decay 0.5、block_t 30、low_lamp_mult 1.5、lumen_mult 2、boss_life 2）；lamp 20（点亮时灯火 +20，原代码缺省 5；数值 9/30：比普通灯油 +15 多、比精英灯油 +25 少，Ⅷ 低灯秒数 −12%、熄灯秒数 −16%，胜率噪声内）",
   "clear_r": 340,
+  "mate_mult": 0.75,
+  "order_snap": 60,
+  "_doc_mate": "队友点灯（10-30 用户「移动可以帮忙点亮灯塔」）：任一名队友（没倒地）在光圈 r 内也读条，速率 × mate_mult，队长同在圈里时按队长速率不叠加，遥测 via = mate；圆盘「移动」落点离未点燃灯标 order_snap 内时吸附到灯标中心，队友守在光圈里直到点燃 / 熄灭后回随行；机器人在队长没去点（离灯标 > bot/beacon_seek_r）时派队友去点（command/bot_point）。",
   "_doc_sweep": "10-26 用户「灯塔范围内的溟痕全部消失」+「提供一些回血加速和攻速加速」：点燃时清除圈内溟痕全部驱散（压在圈边的削掉），sweep_t 秒自中心扫到圈边、每片 sweep_fade 秒碎散；生效期间（block_t）圈内不留非 Boss 溟痕。灯标庇护：队长在生效中的清除圈里每秒回复 zone_regen_pct × 最大生命、全队攻速 +zone_aspd（0 = 关）",
   "sweep_t": 0.3,
   "sweep_fade": 0.25,

@@ -31,6 +31,7 @@ class FakeGame extends RefCounted:
 	var ppos := Vector2.ZERO
 	var stats = preload("res://scripts/core/stat_block.gd").new()
 	var hit_src := {}
+	var beacons: Array = []
 	func get_node_or_null(_p: String):
 		return sfx
 	func is_inside_tree() -> bool:
@@ -117,3 +118,16 @@ func run(check: Callable) -> void:
 	check.call(squad.apply_order("point", Vector2(500.0, 0.0), null), "move order applies")
 	squad._tick_order(3.0)
 	check.call(squad.stance == Squad.RECALL, "move: empty circle still regroups (prototype rule)")
+	# 移动指到灯标附近（10-30 用户「移动可以帮忙点亮灯塔」）：落点吸附到灯标中心，守到点燃后回随行
+	var bc := {"pos": Vector2(600.0, 0.0), "lit": false, "dead": false}
+	game.beacons = [bc]
+	squad.set_stance(Squad.GUARD)
+	squad._order_cd = 0.0
+	check.call(squad.apply_order("point", Vector2(640.0, 20.0), null) and squad.order_pos == bc.pos and squad.order_beacon == bc, "move near a beacon snaps onto it")
+	squad._tick_order(5.0)
+	check.call(squad.stance == Squad.ROAM, "beacon move: empty circle does not regroup while unlit")
+	bc.lit = true
+	squad._tick_order(0.1)
+	check.call(squad.stance == Squad.GUARD and squad.order_beacon == null, "beacon move: lit beacon returns to follow")
+	squad.set_stance(Squad.GUARD)
+	check.call(squad.apply_order("point", Vector2(900.0, 0.0), null) and squad.order_beacon == null, "move far from a beacon does not snap")
