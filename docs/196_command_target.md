@@ -194,6 +194,14 @@
 
 原型（默认关，`command/target_proto`=0 时整段不执行，同 seed 不变）：`game/scripts/screens/command_pick.gd`（选点阶段 + 准星 + 指令标记 + 字幕）、`squad.gd`（`apply_order / clear_order / _tick_order`）、`character.gd`（`_order_goal`）、圆盘两格替换（`command_wheel.gd`）、`game.gd` 接线、`balance.json` 的 `command/target_proto / order_r / order_pt_r / order_idle / order_break / pick_cost / pick_cap`。录像复现：`--bal=command/target_proto=1 --democap --wheelplan=… --pickplan=…`（`--pickplan` 的 `mv / mvf / horde / snap / ok / cancel` 见 `command_pick.gd`）。
 
+### 12.1 PRTS 风配色与选点界面（10-29 用户：「点位的 UI 可以再优化一下，要有 PRTS 感，同时指挥圆盘的配色也是」）
+
+- **配色三档**（`command/wheel_style`，圆盘与选点共用 `command_wheel.gd` 里的一套 `C_*`）：0 终末地蓝（docs/144 原样，10-24 用户定的）/ **1 PRTS·警戒**（碳黑底 + 白线 + 警戒黄；选中块 = 黄底黑字，友方蓝白、攻击橙红）/ 2 PRTS·终端（碳黑底 + 白线 + 冷白青；选中块 = 白青底深字，像作战里的范围格，攻击橙）。缺省暂设 1，**等用户在 `command_style_compare.mp4` 里挑**。依据：docs/125 结论 1（原作「底色黑白灰，蓝、橙作辅助，配警戒风格亮色」）；PRTS 在本作里取「作战终端」的气质，不照搬终末地的蓝。
+- **圆盘**：只换色，结构 / 动效 / 判定不动；PRTS 档多两处装饰——说明板左端的黄黑警戒斜纹、板内右端的小字「PRTS // COMMAND TERMINAL」；各项内沿色条收成三色（友方蓝白 / 警戒黄 / 攻击橙红）。
+- **选点界面**：点位 = **范围格**（以点为心、半径 `order_pt_r` 内按 48 像素世界格对齐的方格，向外渐淡、最外一圈亮边，像作战里的攻击范围显示）；准星 = 取景角标 + 十字 + 中心点，旁边一块小标签「PT 坐标 / OK 或 OUT OF RANGE」；范围虚线圈加刻度（每 30°）和「RANGE 560」；到各突击队友的虚线带箭头；信息板 = 碳黑切角板 + 左端警戒斜纹 + 小字「PRTS // ORDER // POINT」。集火 = 目标取景角标 + 血条 + 「LOCK // BOSS / ELITE」，屏外目标的边缘标签改成方框 + 方向箭头（「BOSS」「ELITE」）。已下达的指令在地面 / 目标上保留同款范围格 / 角标。
+- 录像：`E:/ArknightsSurvivors/build/command_rec/command_style_compare.mp4`（42 秒，三档各 14 秒：开圆盘选「点位」→ 选点 → 下令 → 再开圆盘选「集火」）。
+- 仍是示意原型：圆盘配色档是正式代码（改了就生效，缺省 1），选点界面在 `target_proto` 开关后面。
+
 ## 13. 实施分期（估工作量，一个会话 ≈ 一次完整的「做 + 测 + 验」）
 
 | 期 | 内容 | 估 |

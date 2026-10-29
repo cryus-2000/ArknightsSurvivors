@@ -191,95 +191,172 @@ func input(event: InputEvent) -> bool:
 	return false
 
 
-# ---------------------------------------------------------------- 绘制
-
-const C_ACC := Color(0.122, 0.659, 0.941)
-const C_OK := Color(0.184, 0.827, 0.627)
-const C_BAD := Color(1.0, 0.239, 0.545)
+# ---------------------------------------------------------------- 绘制（PRTS 风：作战终端的范围格 / 取景角标 / 警戒斜纹，配色跟圆盘 command/wheel_style）
+const CELL := 48.0   # 范围格边长（世界像素，和地图格同量级，只为「格子感」）
 
 
 func draw(vs: Vector2) -> void:
 	if not proto_on():
 		return
+	g.wheel._apply_style()
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	var ct: Transform2D = g.hud_ct()
 	var sq = g.squad
-	# 已下达的指令：点位 = 地面一圈 + 每名突击队友一条虚线；集火 = 目标括号
+	var W = g.wheel
 	if sq.order_kind != "" and not active:
 		_draw_order(hud, ct)
 	if _done_t >= 0.0 and not active and _done_ok:
 		var a: float = 1.0 - _done_t / 0.6
 		var sp: Vector2 = ct * _done_pt
-		hud.draw_arc(sp, 26.0 + 90.0 * (1.0 - a), 0.0, TAU, 40, Color(C_OK.r, C_OK.g, C_OK.b, a * 0.8), 2.5)
+		_corners(hud, sp, 30.0 + 80.0 * (1.0 - a), Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, a * 0.9), 2.0)
 	_caption(hud, font, vs)
 	if not active:
 		return
 	var e: float = clampf(t / 0.1, 0.0, 1.0)
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.22 * e))
+	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.012, 0.016, 0.26 * e))
 	var lp: Vector2 = ct * g.ppos
 	var R: float = Bal.v("command/order_r", 560.0)
 	var Rs: float = ct.basis_xform(Vector2(R, 0)).length()
-	# 指点范围：队长周围一圈虚线（超出算「太远」）
-	for i in 48:
-		var a0: float = TAU * float(i) / 48.0
-		hud.draw_arc(lp, Rs, a0, a0 + TAU / 96.0, 4, Color(1, 1, 1, 0.3 * e), 1.5)
-	hud.draw_string(font, lp + Vector2(Rs * 0.7071 + 6.0, -Rs * 0.7071), "指点范围", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1, 0.45 * e))
-	# 屏外的精英 / Boss：边缘小标签
-	var show_chips: bool = mode == "focus"
+	_range_ring(hud, font, lp, Rs, e, int(R))
+	# 屏外的精英 / Boss：边缘小标签（方框 + 方向箭头，PRTS 的目标条）
 	for en in _cands():
-		var sp: Vector2 = ct * en.pos
-		var inside: bool = Rect2(Vector2(20, 20), vs - Vector2(40, 40)).has_point(sp)
-		var col: Color = C_BAD if en.boss else Color(1.0, 0.62, 0.3)
+		var sp2: Vector2 = ct * en.pos
+		var inside: bool = Rect2(Vector2(20, 20), vs - Vector2(40, 40)).has_point(sp2)
+		var col: Color = W.C_WARN if en.boss else W.C_ACC
 		var picked: bool = is_same(en, snapped)
 		if inside:
 			if mode == "focus":
-				_bracket(hud, sp + Vector2(0, -float(en.r) * 0.5), float(en.r) * 1.25 + 8.0, Color(col.r, col.g, col.b, 0.9 if picked else 0.5), picked)
-		elif show_chips:
-			var cp: Vector2 = _edge(sp, vs)
-			hud.draw_circle(cp, 18.0, Color(0.03, 0.05, 0.07, 0.9))
-			hud.draw_arc(cp, 18.0, 0.0, TAU, 24, Color(col.r, col.g, col.b, 1.0 if picked else 0.7), 3.0 if picked else 1.8)
-			UI.text(hud, font, cp + Vector2(-20, 5), "Boss" if en.boss else "精英", 11, col, HORIZONTAL_ALIGNMENT_CENTER, 40)
-	# 点位：地面一圈（半径 R_point）；无效（超出范围）变红
+				_lock(hud, font, ct, en, col, picked, e)
+		elif mode == "focus":
+			var cp: Vector2 = _edge(sp2, vs)
+			var rc := Rect2(cp - Vector2(24, 12), Vector2(48, 24))
+			hud.draw_rect(rc, Color(0.03, 0.03, 0.035, 0.92))
+			hud.draw_rect(rc, Color(col.r, col.g, col.b, 1.0 if picked else 0.7), false, 3.0 if picked else 1.5)
+			UI.ctext(hud, font, cp + Vector2(-24, 4), "BOSS" if en.boss else "ELITE", 10, col, HORIZONTAL_ALIGNMENT_CENTER, 48)
+			var dv: Vector2 = (sp2 - cp).normalized()
+			hud.draw_colored_polygon(PackedVector2Array([cp + dv * 24.0, cp + dv * 14.0 + dv.orthogonal() * 6.0, cp + dv * 14.0 - dv.orthogonal() * 6.0]), col)
+	# 点位：范围格（以点为心、半径 order_pt_r 内的格子，向外渐淡，最外一圈亮边）；无效（超出范围）整体变警示色
 	if mode == "point":
-		var pr: float = ct.basis_xform(Vector2(Bal.v("command/order_pt_r", 240.0), 0)).length()
-		var col2: Color = C_ACC if valid else C_BAD
+		var col2: Color = W.C_ACC if valid else W.C_WARN
+		var rr: float = Bal.v("command/order_pt_r", 240.0)
 		var cp2: Vector2 = ct * world_pt
-		hud.draw_circle(cp2, pr, Color(col2.r, col2.g, col2.b, 0.10 * e))
-		hud.draw_arc(cp2, pr, 0.0, TAU, 56, Color(col2.r, col2.g, col2.b, 0.9 * e), 2.0)
-		for en2 in g.squad.ops:
-			if en2.is_leader or not en2.cmd_roam() or en2.pos == Vector2.INF:
+		_tiles(hud, ct, world_pt, rr, col2, e)
+		for o in g.squad.ops:
+			if o.is_leader or not o.cmd_roam() or o.pos == Vector2.INF:
 				continue
-			_dash(hud, ct * en2.pos, cp2, Color(col2.r, col2.g, col2.b, 0.35 * e))
-	# 准星 + 手指
+			_dash(hud, ct * o.pos, cp2, Color(col2.r, col2.g, col2.b, 0.4 * e), true)
+		var gx: int = int(floor(world_pt.x / CELL))
+		var gy: int = int(floor(world_pt.y / CELL))
+		var ro: String = "OK" if valid else "OUT OF RANGE"
+		_tag(hud, font, cp2 + Vector2(ct.basis_xform(Vector2(rr, 0)).length() * 0.7 + 8.0, -ct.basis_xform(Vector2(rr, 0)).length() * 0.7 - 6.0), "PT %03d/%03d" % [absi(gx) % 1000, absi(gy) % 1000], ro, col2)
+	# 准星：取景角标 + 十字 + 中心点；手机再画手指圈 + 连线
 	var rp: Vector2 = reticle
-	var rc: Color = C_ACC if valid else C_BAD
-	hud.draw_arc(rp, 16.0, 0.0, TAU, 28, rc, 2.0)
-	hud.draw_line(rp + Vector2(-26, 0), rp + Vector2(-8, 0), rc, 2.0)
-	hud.draw_line(rp + Vector2(8, 0), rp + Vector2(26, 0), rc, 2.0)
-	hud.draw_line(rp + Vector2(0, -26), rp + Vector2(0, -8), rc, 2.0)
-	hud.draw_line(rp + Vector2(0, 8), rp + Vector2(0, 26), rc, 2.0)
+	var rc2: Color = W.C_ACC if valid else W.C_WARN
+	_corners(hud, rp, 20.0, rc2, 2.0)
+	hud.draw_line(rp + Vector2(-34, 0), rp + Vector2(-9, 0), rc2, 1.5)
+	hud.draw_line(rp + Vector2(9, 0), rp + Vector2(34, 0), rc2, 1.5)
+	hud.draw_line(rp + Vector2(0, -34), rp + Vector2(0, -9), rc2, 1.5)
+	hud.draw_line(rp + Vector2(0, 9), rp + Vector2(0, 34), rc2, 1.5)
+	hud.draw_rect(Rect2(rp - Vector2(2, 2), Vector2(4, 4)), rc2)
 	if kind == "touch":
-		hud.draw_circle(pointer, 30.0, Color(1, 1, 1, 0.14))
+		hud.draw_circle(pointer, 30.0, Color(1, 1, 1, 0.12))
 		hud.draw_arc(pointer, 30.0, 0.0, TAU, 28, Color(1, 1, 1, 0.55), 2.0)
-		hud.draw_line(pointer + Vector2(0, -30), rp + Vector2(0, 14), Color(1, 1, 1, 0.35), 1.5)
-	# 文案：类型 / 状态 / 提示 + 作战时限消耗
+		_dash(hud, pointer + Vector2(0, -30), rp + Vector2(0, 22), Color(1, 1, 1, 0.45), false)
+	# 底部信息板：左端警戒斜纹 + PRTS 标签 + 类型 / 状态 / 提示（切角板）
 	var title: String = "指点 · 点位" if mode == "point" else "指点 · 集火"
+	var code: String = "ORDER // POINT" if mode == "point" else "ORDER // FOCUS FIRE"
 	var stt: String
 	if mode == "focus":
 		stt = ("锁定 %s" % ("Boss" if snapped.boss else "精英")) if snapped != null else "把准星移到精英或 Boss 上"
 	else:
 		stt = "全队前往此处作战" if valid else "太远了"
-	var tx: float = vs.x / 2.0
-	UI.text(hud, font, Vector2(tx - 200, vs.y * 0.80), title, 18, Color(C_ACC.r, C_ACC.g, C_ACC.b, e), HORIZONTAL_ALIGNMENT_CENTER, 400)
-	UI.text(hud, font, Vector2(tx - 200, vs.y * 0.80 + 24), stt, 14, Color(1, 1, 1, e) if valid else Color(C_BAD.r, C_BAD.g, C_BAD.b, e), HORIZONTAL_ALIGNMENT_CENTER, 400)
+	var w: float = minf(vs.x - 40.0, 440.0)
+	var r := Rect2(Vector2((vs.x - w) / 2.0, vs.y * 0.76), Vector2(w, 76))
+	_plate(hud, r, e)
+	UI.ctext(hud, font, r.position + Vector2(34, 14), "PRTS // " + code, 9, Color(W.C_DIAL.r, W.C_DIAL.g, W.C_DIAL.b, 0.6 * e), HORIZONTAL_ALIGNMENT_LEFT, w - 40)
+	UI.text(hud, font, r.position + Vector2(34, 35), title, 17, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, e), HORIZONTAL_ALIGNMENT_LEFT, w - 40)
+	UI.text(hud, font, r.position + Vector2(34, 53), stt, 13, Color(1, 1, 1, e) if valid else Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, e), HORIZONTAL_ALIGNMENT_LEFT, w - 40)
 	var tip: String = ("松手确认 · 拖回圆盘处取消" if kind == "touch" else "左键确认 · 右键 / Esc 取消")
-	UI.text(hud, font, Vector2(tx - 220, vs.y * 0.80 + 46), tip + "  ·  选点中每秒扣 3% 作战时限", 12, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, e), HORIZONTAL_ALIGNMENT_CENTER, 440)
+	UI.text(hud, font, r.position + Vector2(34, 69), tip + "  ·  选点每秒 −3% 作战时限", 11, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, e), HORIZONTAL_ALIGNMENT_LEFT, w - 40)
 	if kind == "touch" and mode == "focus":
-		var b := Rect2(Vector2(tx - 110, vs.y * 0.80 + 62), Vector2(220, 34))
-		hud.draw_rect(b, Color(0.03, 0.05, 0.07, 0.85))
-		hud.draw_rect(b, Color(C_BAD.r, C_BAD.g, C_BAD.b, 0.8), false, 1.5)
-		UI.text(hud, font, b.position + Vector2(0, 22), "最近的 Boss / 精英", 14, C_BAD, HORIZONTAL_ALIGNMENT_CENTER, b.size.x)
+		var b := Rect2(Vector2(vs.x / 2.0 - 120, r.end.y + 8), Vector2(240, 34))
+		_plate(hud, b, e)
+		UI.text(hud, font, b.position + Vector2(30, 22), "最近的 Boss / 精英", 14, W.C_WARN, HORIZONTAL_ALIGNMENT_LEFT, 200)
+
+
+## 信息板：碳黑底 + 左端警戒斜纹 + 切角（右上）+ 细白底线
+func _plate(hud: CanvasItem, r: Rect2, e: float) -> void:
+	var W = g.wheel
+	var cut := 12.0
+	hud.draw_colored_polygon(PackedVector2Array([r.position, r.position + Vector2(r.size.x - cut, 0), r.position + Vector2(r.size.x, cut), r.end, r.position + Vector2(0, r.size.y)]), Color(W.C_PLATE.r, W.C_PLATE.g, W.C_PLATE.b, 0.94 * e))
+	W.hazard(hud, Rect2(r.position, Vector2(16, r.size.y)), e)
+	hud.draw_line(Vector2(r.position.x, r.end.y), r.end, Color(W.C_DIAL.r, W.C_DIAL.g, W.C_DIAL.b, 0.3 * e), 1.0)
+
+
+## 范围格：以 center 为心、半径 rr 内的世界格（CELL 对齐），内填淡色 + 细边，越靠外越淡，最外一圈格加亮边
+func _tiles(hud: CanvasItem, ct: Transform2D, center: Vector2, rr: float, col: Color, e: float) -> void:
+	var n: int = int(ceil(rr / CELL))
+	var base := Vector2(floor(center.x / CELL), floor(center.y / CELL))
+	for iy in range(-n, n + 1):
+		for ix in range(-n, n + 1):
+			var cc := (base + Vector2(ix, iy) + Vector2(0.5, 0.5)) * CELL
+			var d: float = cc.distance_to(center)
+			if d > rr:
+				continue
+			var k: float = 1.0 - d / rr
+			var edge: bool = d > rr - CELL * 0.9
+			var q0: Vector2 = ct * (cc - Vector2(CELL, CELL) * 0.46)
+			var q1: Vector2 = ct * (cc + Vector2(CELL, CELL) * 0.46)
+			var rc := Rect2(q0, q1 - q0)
+			hud.draw_rect(rc, Color(col.r, col.g, col.b, (0.05 + 0.13 * k) * e))
+			hud.draw_rect(rc, Color(col.r, col.g, col.b, (0.75 if edge else 0.22) * e), false, 1.2 if edge else 1.0)
+
+
+## 范围虚线圈：刻度（每 30°）+ 标注「RANGE 数值」
+func _range_ring(hud: CanvasItem, font: Font, c: Vector2, rs: float, e: float, r: int) -> void:
+	var W = g.wheel
+	var col := Color(W.C_DIAL.r, W.C_DIAL.g, W.C_DIAL.b, 0.4 * e)
+	for i in 72:
+		var a0: float = TAU * float(i) / 72.0
+		hud.draw_arc(c, rs, a0, a0 + TAU / 144.0, 3, col, 1.5)
+	for i in 12:
+		var v := Vector2.from_angle(TAU * float(i) / 12.0)
+		hud.draw_line(c + v * (rs - 7.0), c + v * (rs + 7.0), Color(W.C_DIAL.r, W.C_DIAL.g, W.C_DIAL.b, 0.6 * e), 1.5)
+	UI.ctext(hud, font, c + Vector2(rs * 0.7071 + 10.0, -rs * 0.7071 - 4.0), "RANGE %d" % r, 9, Color(W.C_DIAL.r, W.C_DIAL.g, W.C_DIAL.b, 0.7 * e), HORIZONTAL_ALIGNMENT_LEFT, 120)
+
+
+## 取景角标（四个 L）
+func _corners(ci: CanvasItem, c: Vector2, r: float, col: Color, w: float) -> void:
+	var l: float = r * 0.5
+	for sx in [-1.0, 1.0]:
+		for sy in [-1.0, 1.0]:
+			var corner := Vector2(sx * r, sy * r) + c
+			ci.draw_line(corner, corner + Vector2(-sx * l, 0), col, w)
+			ci.draw_line(corner, corner + Vector2(0, -sy * l), col, w)
+
+
+## 小标签：两行（标题 + 状态），碳黑底、左端 3 像素色条
+func _tag(hud: CanvasItem, font: Font, p: Vector2, a: String, b: String, col: Color) -> void:
+	var W = g.wheel
+	var rc := Rect2(p, Vector2(112, 30))
+	hud.draw_rect(rc, Color(W.C_PLATE.r, W.C_PLATE.g, W.C_PLATE.b, 0.9))
+	hud.draw_rect(Rect2(p, Vector2(3, 30)), col)
+	UI.ctext(hud, font, p + Vector2(9, 12), a, 10, Color(1, 1, 1, 0.95), HORIZONTAL_ALIGNMENT_LEFT, 100)
+	UI.ctext(hud, font, p + Vector2(9, 25), b, 9, col, HORIZONTAL_ALIGNMENT_LEFT, 100)
+
+
+## 集火目标：取景角标 + 血条 + 锁定状态（选中时加粗、带「LOCK」）
+func _lock(hud: CanvasItem, font: Font, ct: Transform2D, en: Dictionary, col: Color, picked: bool, e: float) -> void:
+	var sp: Vector2 = ct * en.pos + Vector2(0, -float(en.r) * 0.5)
+	var r: float = (float(en.r) * 1.25 + 8.0) * ct.get_scale().x
+	_corners(hud, sp, r, Color(col.r, col.g, col.b, 0.95 if picked else 0.55), 3.0 if picked else 1.6)
+	var hp: float = clampf(float(en.hp) / maxf(1.0, float(en.maxhp)), 0.0, 1.0)
+	var bw: float = r * 2.0
+	hud.draw_rect(Rect2(sp + Vector2(-r, r + 6.0), Vector2(bw, 4)), Color(0, 0, 0, 0.7 * e))
+	hud.draw_rect(Rect2(sp + Vector2(-r, r + 6.0), Vector2(bw * hp, 4)), Color(col.r, col.g, col.b, 0.95 * e))
+	if picked:
+		UI.ctext(hud, font, sp + Vector2(-r, -r - 8.0), "LOCK // " + ("BOSS" if en.boss else "ELITE"), 10, col, HORIZONTAL_ALIGNMENT_LEFT, 120)
 
 
 ## 录片说明字幕（--democap 才画，只在示意录像里用）：按当前状态自动换——圆盘开着 / 选点中 / 指令生效中
@@ -290,6 +367,7 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		_cap_on = 1 if Cfg.dev_args().has("--democap") else 0
 	if _cap_on == 0:
 		return
+	var W = g.wheel
 	var touch: bool = g.touch != null and g.touch.active
 	var dev: String = "手机 · 触屏" if touch else "电脑 · 鼠标"
 	var line := ""
@@ -308,45 +386,37 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		return
 	var w: float = minf(vs.x - 40.0, 900.0)
 	var r := Rect2(Vector2((vs.x - w) / 2.0, vs.y * 0.115), Vector2(w, 52))
-	hud.draw_rect(r, Color(0.02, 0.04, 0.06, 0.82))
-	hud.draw_rect(r, Color(C_ACC.r, C_ACC.g, C_ACC.b, 0.8), false, 1.5)
-	UI.text(hud, font, r.position + Vector2(0, 18), "示意原型 · " + dev, 12, Color(C_ACC.r, C_ACC.g, C_ACC.b), HORIZONTAL_ALIGNMENT_CENTER, w)
-	UI.text(hud, font, r.position + Vector2(0, 40), line, 15, Color(1, 1, 1), HORIZONTAL_ALIGNMENT_CENTER, w)
+	_plate(hud, r, 1.0)
+	var sn: String = ["终末地蓝", "PRTS·警戒", "PRTS·终端"][clampi(W.style, 0, 2)]
+	UI.ctext(hud, font, r.position + Vector2(34, 16), "PRTS // 示意原型 · " + dev + " · 配色 " + sn, 9, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b), HORIZONTAL_ALIGNMENT_LEFT, w - 40)
+	UI.text(hud, font, r.position + Vector2(34, 38), line, 14, Color(1, 1, 1), HORIZONTAL_ALIGNMENT_LEFT, w - 40)
 
 
 func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 	var sq = g.squad
+	var W = g.wheel
 	if sq.order_kind == "point":
-		var pr: float = ct.basis_xform(Vector2(Bal.v("command/order_pt_r", 240.0), 0)).length()
 		var cp: Vector2 = ct * sq.order_pos
-		hud.draw_circle(cp, pr, Color(C_ACC.r, C_ACC.g, C_ACC.b, 0.07))
-		hud.draw_arc(cp, pr, 0.0, TAU, 56, Color(C_ACC.r, C_ACC.g, C_ACC.b, 0.75), 2.0)
-		hud.draw_arc(cp, 10.0, 0.0, TAU, 20, Color(C_ACC.r, C_ACC.g, C_ACC.b, 0.9), 2.0)
+		_tiles(hud, ct, sq.order_pos, Bal.v("command/order_pt_r", 240.0), W.C_ACC, 0.8)
+		_corners(hud, cp, 14.0, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.95), 2.0)
 	elif sq.order_kind == "focus" and sq.order_target != null and not sq.order_target.dead:
 		var en = sq.order_target
-		var sp: Vector2 = ct * en.pos
-		_bracket(hud, sp + Vector2(0, -float(en.r) * 0.5), float(en.r) * 1.25 + 10.0, Color(C_BAD.r, C_BAD.g, C_BAD.b, 0.95), true)
+		_lock(hud, g.font, ct, en, W.C_WARN, true, 1.0)
 		for o in sq.ops:
 			if o.is_leader or not o.cmd_roam() or o.pos == Vector2.INF:
 				continue
-			_dash(hud, ct * o.pos, sp, Color(C_BAD.r, C_BAD.g, C_BAD.b, 0.3))
+			_dash(hud, ct * o.pos, ct * en.pos, Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, 0.4), true)
 
 
-func _bracket(ci: CanvasItem, c: Vector2, r: float, col: Color, strong: bool) -> void:
-	var w: float = 2.6 if strong else 1.6
-	var l: float = r * 0.45
-	for sx in [-1.0, 1.0]:
-		for sy in [-1.0, 1.0]:
-			var corner := Vector2(sx * r, sy * r) + c
-			ci.draw_line(corner, corner + Vector2(-sx * l, 0), col, w)
-			ci.draw_line(corner, corner + Vector2(0, -sy * l), col, w)
-
-
-func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color) -> void:
+func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, arrow: bool) -> void:
 	var d: Vector2 = b - a
 	var n: int = int(d.length() / 14.0)
 	for i in range(0, n, 2):
 		ci.draw_line(a + d * (float(i) / n), a + d * (float(i + 1) / n), col, 1.5)
+	if arrow and d.length() > 40.0:
+		var u: Vector2 = d.normalized()
+		var m: Vector2 = a + d * 0.5
+		ci.draw_colored_polygon(PackedVector2Array([m + u * 7.0, m - u * 4.0 + u.orthogonal() * 5.0, m - u * 4.0 - u.orthogonal() * 5.0]), col)
 
 
 # ---------------------------------------------------------------- 测试 / 录片计划

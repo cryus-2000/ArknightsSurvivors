@@ -287,15 +287,94 @@ func input(event: InputEvent) -> bool:
 ## 动效一律用真实秒：打开（底盘放大淡入、刻度环顺时针画开、扇区错开推出、取景框收拢）、常驻（细刻度 / 中心刻度慢转、斜纹带走动）、
 ## 悬停（填色内→外、虚框外扩、指针沿环滑过去、中心名字上浮）、确认（选中块虚框外扩淡出，整盘 0.16 秒收起）。
 ## 减少动态效果：只留 ≤ 120 ms 淡入淡出，其余直接到终态、不转不走。整套不做明暗闪烁。
-const C_ACC := Color(0.122, 0.659, 0.941)      # 终末地蓝 #1FA8F0（用户 10-24：黄换蓝）
-const C_ACC_HI := Color(0.49, 0.82, 0.98)      # 选中块外沿亮带
-const C_INK := Color(0.03, 0.07, 0.11)         # 蓝底上的深色字
-const C_PLATE := Color(0.055, 0.06, 0.068)     # 底盘 / 中心外圈
-const C_FILL := Color(0.118, 0.122, 0.13)      # 扇区外层
-const C_FILL_IN := Color(0.078, 0.082, 0.09)   # 扇区内层（靠圆心一圈）
-const C_LINE := Color(0.62, 0.63, 0.65)
-const C_TEXT := Color(0.94, 0.94, 0.93)
-const C_DIAL := Color(0.86, 0.87, 0.88)
+## 配色（用户 10-29：「要有 PRTS 感，指挥圆盘的配色也是」）：command/wheel_style —— 0 终末地蓝（docs/144 原样）/ 1 PRTS·警戒（黑白灰 + 警戒黄，友方蓝白）/ 2 PRTS·终端（黑白灰 + 冷白青，攻击橙红）。
+## 下面是各档的缺省值（0 档）；_apply_style() 按档覆盖。选指点 / 圆盘共用同一套（command_pick.gd 读 g.wheel.C_*）
+var C_ACC := Color(0.122, 0.659, 0.941)      # 终末地蓝 #1FA8F0（用户 10-24：黄换蓝）
+var C_ACC_HI := Color(0.49, 0.82, 0.98)      # 选中块外沿亮带
+var C_INK := Color(0.03, 0.07, 0.11)         # 选中块上的深色字
+var C_PLATE := Color(0.055, 0.06, 0.068)     # 底盘 / 中心外圈
+var C_FILL := Color(0.118, 0.122, 0.13)      # 扇区外层
+var C_FILL_IN := Color(0.078, 0.082, 0.09)   # 扇区内层（靠圆心一圈）
+var C_LINE := Color(0.62, 0.63, 0.65)
+var C_TEXT := Color(0.94, 0.94, 0.93)
+var C_DIAL := Color(0.86, 0.87, 0.88)
+var C_FRIEND := Color(0.431, 0.776, 1.0)     # 友方 / 队形（随行、归队）
+var C_WARN := Color(1.0, 0.239, 0.545)       # 攻击 / 警示（集火、无效）
+var style := -1                              # 当前已套用的档（-1 = 还没套）
+var prts := false                            # 档 ≥ 1：加警戒斜纹、PRTS 标签等装饰
+
+
+func _apply_style() -> void:
+	var s: int = int(Bal.v("command/wheel_style", 1.0))
+	if s == style:
+		return
+	style = s
+	prts = s >= 1
+	match s:
+		1:   # PRTS·警戒：碳黑 + 白 + 警戒黄（选中块 = 黄底黑字），友方蓝白，攻击橙红
+			C_ACC = Color(1.0, 0.788, 0.102)       # #FFC91A
+			C_ACC_HI = Color(1.0, 0.906, 0.5)
+			C_INK = Color(0.043, 0.043, 0.047)
+			C_PLATE = Color(0.047, 0.047, 0.051)
+			C_FILL = Color(0.125, 0.125, 0.129)
+			C_FILL_IN = Color(0.075, 0.075, 0.078)
+			C_LINE = Color(0.55, 0.55, 0.56)
+			C_TEXT = Color(0.95, 0.95, 0.94)
+			C_DIAL = Color(0.85, 0.85, 0.85)
+			C_FRIEND = Color(0.431, 0.776, 1.0)
+			C_WARN = Color(1.0, 0.42, 0.18)
+		2:   # PRTS·终端：碳黑 + 白 + 冷白青（选中块 = 白青底深字，像作战里的范围格），攻击橙
+			C_ACC = Color(0.78, 0.93, 1.0)         # #C7EDFF
+			C_ACC_HI = Color(1.0, 1.0, 1.0)
+			C_INK = Color(0.02, 0.07, 0.1)
+			C_PLATE = Color(0.047, 0.05, 0.055)
+			C_FILL = Color(0.125, 0.13, 0.137)
+			C_FILL_IN = Color(0.075, 0.08, 0.086)
+			C_LINE = Color(0.55, 0.57, 0.6)
+			C_TEXT = Color(0.95, 0.96, 0.96)
+			C_DIAL = Color(0.85, 0.87, 0.89)
+			C_FRIEND = Color(0.78, 0.93, 1.0)
+			C_WARN = Color(1.0, 0.6, 0.18)
+		_:
+			C_ACC = Color(0.122, 0.659, 0.941)
+			C_ACC_HI = Color(0.49, 0.82, 0.98)
+			C_INK = Color(0.03, 0.07, 0.11)
+			C_PLATE = Color(0.055, 0.06, 0.068)
+			C_FILL = Color(0.118, 0.122, 0.13)
+			C_FILL_IN = Color(0.078, 0.082, 0.09)
+			C_LINE = Color(0.62, 0.63, 0.65)
+			C_TEXT = Color(0.94, 0.94, 0.93)
+			C_DIAL = Color(0.86, 0.87, 0.88)
+			C_FRIEND = Color(0.431, 0.776, 1.0)
+			C_WARN = Color(1.0, 0.239, 0.545)
+
+
+## 项的识别色（内沿色条 / 说明）：0 档沿用 ITEMS 里各自的色；PRTS 档收成「友方蓝白 / 警戒黄 / 攻击橙红」三种
+func item_col(it: Dictionary) -> Color:
+	if not prts:
+		return it.col
+	match str(it.id):
+		"guard", "recall":
+			return C_FRIEND
+		"roam", "point":
+			return C_ACC if style == 1 else C_FRIEND
+		"focus", "boss", "mob":
+			return C_WARN
+	return it.col
+
+
+## 警戒斜纹块（黄 / 黑，PRTS 档的标志装饰）：斜条按宽度分段，顶点横坐标夹进 r 里
+func hazard(ci: CanvasItem, r: Rect2, a: float, col := Color(0, 0, 0, 0)) -> void:
+	var cy: Color = col if col.a > 0.0 else C_ACC
+	ci.draw_rect(r, Color(0.03, 0.03, 0.035, a))
+	var s: float = r.size.y * 0.5
+	var x := -r.size.y
+	while x < r.size.x:
+		var p := PackedVector2Array([Vector2(x, r.size.y), Vector2(x + s, r.size.y), Vector2(x + s + r.size.y, 0), Vector2(x + r.size.y, 0)])
+		for i in p.size():
+			p[i] = r.position + Vector2(clampf(p[i].x, 0.0, r.size.x), p[i].y)
+		ci.draw_colored_polygon(p, Color(cy.r, cy.g, cy.b, a))
+		x += s * 2.0
 const GAP := 2.2       # 扇区之间的缝（每边，度）
 const OUT_T := 0.16    # 收起时长（秒）
 
@@ -315,6 +394,7 @@ func draw(vs: Vector2) -> void:
 
 ## pc 不为 INF = 指南插图预览（docs/144：同一份画法缩小画在 pc 处；不画暗幕 / 侧标 / 说明板 / 指针 / 「当前」，选中动效由 pt / pst 驱动）
 func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, pt := 0.0, pst := 0.0) -> void:
+	_apply_style()
 	var prev: bool = pc != Vector2.INF
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
@@ -437,7 +517,7 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 		ol.append(poly[0])
 		hud.draw_polyline(ol, _ca(C_ACC if sel else C_LINE, (1.0 if sel else 0.45) * ea), 1.5 if sel else 1.0)
 		if not sel:   # 内沿属性色条（终末地技能按钮底部的属性色）
-			hud.draw_arc(cc, r_in + 3.0 * k, a0 + 0.02, a1 - 0.02, 12, _ca(it.col, 0.9 * ea), 3.0 * k)
+			hud.draw_arc(cc, r_in + 3.0 * k, a0 + 0.02, a1 - 0.02, 12, _ca(item_col(it), 0.9 * ea), 3.0 * k)
 		var tx: Color = C_INK if sel else C_TEXT
 		var tc: Vector2 = cc + dirv * (r_in + depth * 0.52)   # 不画图标（用户 10-24），名字 + 英文行居扇区中部
 		UI.text(hud, font, tc + Vector2(-70.0 * k, 1.0 * k), str(it.name), int(round(17.0 * k)), _ca(tx, ea), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
@@ -486,7 +566,11 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 	var py: float = c.y + r_out + 28.0 * k
 	var pw: float = 420.0 * k
 	hud.draw_rect(Rect2(Vector2(c.x - pw / 2.0, py), Vector2(pw, 48.0 * k)), _ca(C_PLATE, 0.92 * e))
-	hud.draw_rect(Rect2(Vector2(c.x - pw / 2.0, py), Vector2(3.0 * k, 48.0 * k)), _ca(C_ACC, e))
+	if prts:
+		hazard(hud, Rect2(Vector2(c.x - pw / 2.0, py), Vector2(16.0 * k, 48.0 * k)), e)   # PRTS：左端警戒斜纹
+		UI.ctext(hud, font, Vector2(c.x + pw / 2.0 - 214.0 * k, py + 11.0 * k), "PRTS // COMMAND TERMINAL", int(round(8.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 206.0 * k)
+	else:
+		hud.draw_rect(Rect2(Vector2(c.x - pw / 2.0, py), Vector2(3.0 * k, 48.0 * k)), _ca(C_ACC, e))
 	hud.draw_line(Vector2(c.x - pw / 2.0, py + 48.0 * k), Vector2(c.x + pw / 2.0, py + 48.0 * k), _ca(C_DIAL, 0.25 * e), 1.0)
 	if hov >= 0:
 		UI.text(hud, font, Vector2(c.x - 160.0 * k, c.y + r_out + 46.0 * k), str(ITEMS[hov].sub), int(round(14.0 * k)), _ca(C_TEXT, e * nf), HORIZONTAL_ALIGNMENT_CENTER, 320.0 * k)
