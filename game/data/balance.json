@@ -507,7 +507,7 @@
   "spd_izumik_orb_fan": 1.6,
   "spd_izumik_nerve_spiral": 1.55,
   "spd_izumik_nerve": 1.9,
-  "spd_izumik_nerve_learn": 1.0,
+  "spd_izumik_nerve_learn": 0.855,
   "spd_cap": 440.0,
   "spd_all_k_paranoia": 1.17,
   "spd_all_k_ishar": 1.17,
