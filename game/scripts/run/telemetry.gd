@@ -675,6 +675,17 @@ func on_exit() -> void:
 	save_local("quit")
 
 
+## 当前场景是不是 res://tests/ 下的测试场景（玩家局的当前场景是 boot / main / game，不会命中）
+static func scene_is_test(path: String) -> bool:
+	return path.begins_with("res://tests/")
+
+
+func _current_scene_path() -> String:
+	var tree := Engine.get_main_loop() as SceneTree   # 退出流程里 g 可能已离树，所以不走 g.get_tree()
+	var cs: Node = tree.current_scene if tree != null else null
+	return cs.scene_file_path if cs != null else ""
+
+
 func save_local(result: String) -> void:
 	# 测试运行不写玩家的记录；自测写本地记录用 --runslog=<路径>（写到指定文件，不碰玩家目录）
 	var path := RUNS_PATH
@@ -684,8 +695,8 @@ func save_local(result: String) -> void:
 			test_path = a.substr(10)
 	if test_path != "":
 		path = test_path
-	elif not Cfg.dev_args().is_empty():
-		return
+	elif not Cfg.dev_args().is_empty() or scene_is_test(_current_scene_path()):
+		return   # 不带 -- 参数直接起 tests/ 场景的回归（check.py 里额外参数为空的那些）同样不写：10-14 / 10-20 / 10-27 的「水月 lv1 0 击杀 quit」就是它们
 	elif not Cfg.runs_log_enabled():
 		return   # 对外发布包不记任何玩家数据（用户 2026-09-26 决定暂不收集，docs/43）；调试版与对内包（audience = internal）记
 	if saved or g.demo_op != "" or g.t < MIN_SAVE_T:
