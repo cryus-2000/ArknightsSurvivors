@@ -172,6 +172,9 @@ static func _step_cross(u, a: Dictionary) -> bool:
 ## 技能区域：队长放技能那一刻，身边 260 内最密的一团（半径 ult/link_area_r 150）；没有敌人就不亮
 const SAMPLE := {"texas": "pursue", "eyjafjalla": "lava", "gladiia": "gather", "hoshiguma": "cover"}
 const LAVA := Color(1.0, 0.42, 0.12)
+const MOLTEN := Color(1.0, 0.93, 0.6)    # 连携熔岩弹：白金芯 + 暗红描边（她自己技能的熔岩池是橙色圆片，连携换形态 / 颜色跳出来）
+const MOLTEN_RIM := Color(0.45, 0.04, 0.06)
+const PRE := 0.18    # 现身：接的人先亮起 0.18 秒再出手（用户 10-29「展示的可以稍微久一点」）
 const HOOK := Color(0.35, 0.85, 0.95)
 const AMBER := Color(1.0, 0.72, 0.3)
 
@@ -209,43 +212,17 @@ static func _fire_sample(u, p, info: Dictionary, a: Dictionary) -> void:
 	var c: Vector2 = info.pos
 	var r: float = float(info.r)
 	match str(info.link):
-		"pursue":   # 德克萨斯：瞬身穿过主目标（起点 → 主目标身后 120），0.12 秒到位
+		"pursue":
 			var tg: Variant = _main(u, c, r)
-			var tp: Vector2 = tg.pos if tg != null else c
-			var d: Vector2 = (tp - p.pos).normalized() if tp != p.pos else Vector2.RIGHT
-			a["from_p"] = p.pos
-			a["to_p"] = tp + d * 120.0
 			a["tg"] = tg
-			p.syn_mv = {"from": p.pos, "to": a.to_p, "t": 0.0, "dur": 0.12}
-			p.cmd_inv = maxf(p.cmd_inv, 0.5)
-			p._set_face(1.0 if d.x >= 0.0 else -1.0, true)
-			p.play_vis_anim("attack")
-		"lava":   # 艾雅法拉：抬杖掷熔岩弹，0.3 秒飞到区域中心
-			p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
-			p.play_vis_anim("skill")
-			a["from_p"] = p.pos + Vector2(float(p.face) * 10.0, -40.0)
-			u.shape({"kind": "circle", "c": a.from_p, "r": 22.0, "col": LAVA, "fill": 0.9, "life": 0.12})   # 杖头起手亮一下
-		"gather":   # 歌蕾蒂娅：掷钩，区域外 360 内最近的 6 只拖进区域
-			p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
-			p.play_vis_anim("attack")
+		"gather":
 			var outs: Array = []
 			for e in u.in_circle(c, r + 210.0):
 				if e.pos.distance_to(c) > r and not e.boss:
 					outs.append(e)
 			outs.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
 			a["pull"] = outs.slice(0, 6)
-		"cover":   # 星熊：瞬到队长身侧（朝最近敌人那一侧），举盾挡一次 + 嘲讽区域内近战 1 秒
-			var ld = u.g.squad.leader()
-			var lp: Vector2 = u.g.ppos
-			var ne: Variant = _main(u, lp, 300.0)
-			var side: Vector2 = ((ne.pos - lp).normalized() if ne != null else Vector2(float(ld.face) if ld != null else 1.0, 0.0))
-			a["side"] = side
-			p.syn_mv = {"from": p.pos, "to": lp + side * 46.0, "t": 0.0, "dur": 0.1}
-			p.cmd_inv = maxf(p.cmd_inv, 1.2)
-			p._set_face(1.0 if side.x >= 0.0 else -1.0, true)
-			p.play_vis_anim("skill")
-			a["shield0"] = int(u.g.shield)
-			u.g.shield = int(u.g.shield) + 1   # 挡一次伤害（走现有护盾层：被打掉一层即消耗）；1.5 秒没用掉就收回
+		"cover":
 			var taunt: Array = []
 			for e in u.in_circle(c, r):
 				if str(e.get("ai", "")) == "melee" and not e.boss:
@@ -253,50 +230,87 @@ static func _fire_sample(u, p, info: Dictionary, a: Dictionary) -> void:
 			a["taunt"] = taunt
 
 
+## 现身（0..PRE）：接的人脚下干员色光柱 + 收拢光环，告诉玩家「谁来了」
+static func _appear(u, p, t: float) -> void:
+	var cp: Color = u._col(p)
+	var k: float = clampf(t / PRE, 0.0, 1.0)
+	u.shape({"kind": "ring", "c": p.pos, "r": lerpf(70.0, 26.0, k), "w": 4.0, "col": cp.lerp(Color.WHITE, 0.3), "life": 0.04})
+	u.shape({"kind": "band", "a": p.pos + Vector2(0, 6), "b": p.pos + Vector2(0, -90), "w": 22.0 * (1.0 - 0.5 * k), "col": cp, "fill": 0.35, "life": 0.04})
+
+
+## 出手瞬间：轻微放慢（比终结技弱一档）
+static func _beat(u) -> void:
+	u.link_slow()
+
+
 static func _step_sample(u, a: Dictionary) -> bool:
 	var p = a.p
-	var t: float = a.age
+	var t0: float = a.age
+	if t0 < PRE:
+		_appear(u, p, t0)
+		return false
+	var t: float = t0 - PRE
 	var c: Vector2 = a.pos
 	var r: float = float(a.get("r", 150.0))
 	var cp: Color = u._col(p)
 	match str(a.link):
-		"pursue":
+		"pursue":   # 德克萨斯：瞬身穿过主目标到其身后 120（0.12 秒），留橙色直线短斩痕，残留 0.6 秒
+			if not a.done.has("go"):
+				a.done["go"] = true
+				var tg: Variant = a.tg
+				var tp: Vector2 = tg.pos if tg != null and not tg.dead else c
+				var d: Vector2 = (tp - p.pos).normalized() if tp != p.pos else Vector2.RIGHT
+				a["from_p"] = p.pos
+				a["to_p"] = tp + d * 120.0
+				p.syn_mv = {"from": p.pos, "to": a.to_p, "t": 0.0, "dur": 0.12}
+				p.cmd_inv = maxf(p.cmd_inv, 0.5)
+				p._set_face(1.0 if d.x >= 0.0 else -1.0, true)
+				p.play_vis_anim("attack")
 			if t >= 0.12 and not a.done.has("cut"):
 				a.done["cut"] = true
-				var tg: Variant = a.tg
-				var mid: Vector2 = tg.pos if tg != null and not tg.dead else (Vector2(a.from_p) + Vector2(a.to_p)) * 0.5
-				var d: Vector2 = (Vector2(a.to_p) - Vector2(a.from_p)).normalized()
-				u.shape({"kind": "blade", "a": mid - d * 110.0, "b": mid + d * 110.0, "w": 7.0, "col": Color.WHITE, "glow": cp, "grow": 0.03, "life": 0.3})   # 橙色直线短斩痕
-				u.shape({"kind": "line", "a": a.from_p, "b": a.to_p, "w": 4.0, "col": cp, "life": 0.18})   # 瞬身残影
+				_beat(u)
+				var tg2: Variant = a.tg
+				var mid: Vector2 = tg2.pos if tg2 != null and not tg2.dead else (Vector2(a.from_p) + Vector2(a.to_p)) * 0.5
+				var d2: Vector2 = (Vector2(a.to_p) - Vector2(a.from_p)).normalized()
+				u.shape({"kind": "blade", "a": mid - d2 * 110.0, "b": mid + d2 * 110.0, "w": 7.0, "col": Color.WHITE, "glow": cp, "grow": 0.03, "life": 0.7})
+				u.shape({"kind": "line", "a": a.from_p, "b": a.to_p, "w": 4.0, "col": cp, "life": 0.45})
 				for e in u.in_band(a.from_p, a.to_p, 34.0):
 					p.log_hit(_src(p, "追击"), ["连携"])
 					p.deal_damage(e, _dmg(p, Bal.v("ult/link_pursue_mult", 1.6)))
 					if not e.dead and not e.boss:
 						p.add_cc(e, 0.5 * (0.5 if e.elite else 1.0))
 				u.g.vfx.stop(0.04, "link", true)
-			return t >= 0.45
-		"lava":
-			var T := 0.3
+			return t >= 0.85
+		"lava":   # 艾雅法拉：抬杖 → 白金熔岩弹（暗红描边 + 拖尾）0.32 秒抛进区域 → 星芒炸开 + 点燃，余辉 0.6 秒
+			var T := 0.32
+			if not a.done.has("go"):
+				a.done["go"] = true
+				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
+				p.play_vis_anim("skill")
+				a["from_p"] = p.pos + Vector2(float(p.face) * 10.0, -44.0)
+				u.shape({"kind": "circle", "c": a.from_p, "r": 20.0, "col": MOLTEN, "fill": 0.95, "life": 0.2})
 			if t < T:
 				var k: float = t / T
-				var pos: Vector2 = Vector2(a.from_p).lerp(c, k) + Vector2(0, -90.0 * sin(PI * k))   # 抛物线
-				u.shape({"kind": "circle", "c": pos, "r": 16.0, "col": LAVA, "fill": 1.0, "life": 0.05})
-				u.shape({"kind": "circle", "c": pos, "r": 8.0, "col": Color(1.0, 0.9, 0.5), "fill": 1.0, "life": 0.05})
+				var pos: Vector2 = Vector2(a.from_p).lerp(c, k) + Vector2(0, -110.0 * sin(PI * k))
+				u.shape({"kind": "circle", "c": pos, "r": 17.0, "col": MOLTEN_RIM, "fill": 1.0, "life": 0.05})
+				u.shape({"kind": "circle", "c": pos, "r": 12.0, "col": MOLTEN, "fill": 1.0, "life": 0.05})
+				u.shape({"kind": "circle", "c": pos, "r": 6.0, "col": MOLTEN, "fill": 0.6, "life": 0.35})   # 拖尾：每帧留一个小点、慢慢淡
 				return false
 			if not a.done.has("hit"):
 				a.done["hit"] = true
+				_beat(u)
 				var hr: float = r * 0.75
-				u.shape({"kind": "circle", "c": c, "r": hr, "col": LAVA, "fill": 0.55, "life": 0.18})
-				u.shape({"kind": "ring", "c": c, "r": hr * 1.1, "r1": 20.0, "w": 5.0, "col": Color(1.0, 0.8, 0.4), "life": 0.25})
-				for k2 in 7:   # 溅出小块熔岩
-					var sd: Vector2 = Vector2.from_angle(k2 * TAU / 7.0 + 0.3)
-					u.shape({"kind": "circle", "c": c + sd * hr * 0.6, "r": 9.0, "col": LAVA, "fill": 0.95, "life": 0.5, "v": sd * 160.0})
+				u.shape({"kind": "circle", "c": c, "r": hr * 0.55, "col": MOLTEN, "fill": 0.9, "life": 0.22})
+				u.shape({"kind": "ring", "c": c, "r": hr, "r1": 24.0, "w": 6.0, "col": MOLTEN_RIM, "life": 0.6})
+				for k2 in 8:   # 星芒：八道白金短线往外射（不是她技能那种橙色圆片）
+					var sd: Vector2 = Vector2.from_angle(k2 * TAU / 8.0 + 0.2)
+					u.shape({"kind": "blade", "a": c + sd * 18.0, "b": c + sd * hr * 0.95, "w": 6.0, "col": MOLTEN, "glow": MOLTEN_RIM, "grow": 0.05, "life": 0.6})
+					u.shape({"kind": "circle", "c": c + sd * hr * 0.5, "r": 6.0, "col": MOLTEN, "fill": 0.95, "life": 0.7, "v": sd * 140.0 + Vector2(0, -60)})
 				var burn: Array = u.in_circle(c, hr)
 				a["burn"] = burn
 				for e in burn:
 					p.log_hit(_src(p, "熔岩"), ["连携"])
 					p.deal_damage(e, _dmg(p, Bal.v("ult/link_lava_mult", 1.0)))
-			# 点燃：命中后 0.6 秒里再跳两下（总时长 < 1 秒），敌人身上冒小火
 			for j in 2:
 				var tj: float = T + 0.3 * (j + 1)
 				var key := "b%d" % j
@@ -307,16 +321,23 @@ static func _step_sample(u, a: Dictionary) -> bool:
 							continue
 						p.log_hit(_src(p, "点燃"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_burn_mult", 0.25)))
-						u.shape({"kind": "circle", "c": e.pos + Vector2(0, -14), "r": 7.0, "col": LAVA, "fill": 0.9, "life": 0.25, "v": Vector2(0, -40)})
-			return t >= T + 0.65
-		"gather":
+						u.shape({"kind": "circle", "c": e.pos + Vector2(0, -14), "r": 6.0, "col": MOLTEN, "fill": 0.95, "life": 0.4, "v": Vector2(0, -50)})
+			return t >= T + 0.9
+		"gather":   # 歌蕾蒂娅：甩钩 0.14 秒 → 拖 0.36 秒 → 落地，钩索残留 0.5 秒慢慢收
 			var pull: Array = a.pull
-			if t < 0.12:   # 钩索甩出
+			if not a.done.has("go"):
+				a.done["go"] = true
+				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
+				p.play_vis_anim("attack")
+			if t < 0.14:
 				for e in pull:
 					if not e.dead:
-						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": Vector2(p.pos).lerp(e.pos, t / 0.12), "w": 3.0, "col": HOOK, "life": 0.04})
+						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": Vector2(p.pos).lerp(e.pos, t / 0.14), "w": 3.0, "col": HOOK, "life": 0.04})
 				return false
-			if t < 0.5:   # 拖进区域
+			if t < 0.5:
+				if not a.done.has("beat"):
+					a.done["beat"] = true
+					_beat(u)
 				for e in pull:
 					if e.dead:
 						continue
@@ -327,31 +348,47 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				return false
 			if not a.done.has("land"):
 				a.done["land"] = true
-				u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.2})
+				u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
 				for e in pull:
 					if not e.dead:
+						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 2.0, "col": HOOK, "life": 0.5})   # 钩索残留
 						p.log_hit(_src(p, "聚拢"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_gather_mult", 0.6)))
 						if not e.boss:
 							p.add_cc(e, 0.4 * (0.5 if e.elite else 1.0))
-			return t >= 0.6
-		"cover":
-			var side: Vector2 = a.side
+			return t >= 1.0
+		"cover":   # 星熊：瞬到队长身侧（0.1 秒）举盾 1.0 秒、盾面再淡出 0.5 秒；挡一次 + 嘲讽区域内近战 1 秒
 			var lp: Vector2 = u.g.ppos
-			if t < 1.0:   # 举盾（琥珀色弧面）+ 嘲讽
-				u.shape({"kind": "sector", "c": lp + side * 46.0, "r": 58.0, "a": side.angle(), "half": 0.9, "col": AMBER, "fill": 0.45, "life": 0.04})
-				u.shape({"kind": "line", "a": lp + side * 46.0 + side.orthogonal() * 40.0, "b": lp + side * 46.0 - side.orthogonal() * 40.0, "w": 5.0, "col": AMBER, "life": 0.04})
+			if not a.done.has("go"):
+				a.done["go"] = true
+				var ld = u.g.squad.leader()
+				var ne: Variant = _main(u, lp, 300.0)
+				var side: Vector2 = ((ne.pos - lp).normalized() if ne != null else Vector2(float(ld.face) if ld != null else 1.0, 0.0))
+				a["side"] = side
+				p.syn_mv = {"from": p.pos, "to": lp + side * 46.0, "t": 0.0, "dur": 0.1}
+				p.cmd_inv = maxf(p.cmd_inv, 1.2)
+				p._set_face(1.0 if side.x >= 0.0 else -1.0, true)
+				p.play_vis_anim("skill")
+				a["shield0"] = int(u.g.shield)
+				u.g.shield = int(u.g.shield) + 1
+			var side2: Vector2 = a.side
+			if t >= 0.1 and not a.done.has("beat"):
+				a.done["beat"] = true
+				_beat(u)
 				for e in a.taunt:
 					if not e.dead:
-						u.g.enemies_sys.set_aggro(e, p.pos)
-				if not a.done.has("t"):
-					a.done["t"] = true
+						u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -38), "w": 3.0, "col": AMBER, "life": 1.0})
+			if t < 1.5:
+				var fa: float = 1.0 if t < 1.0 else 1.0 - (t - 1.0) / 0.5
+				u.shape({"kind": "sector", "c": lp + side2 * 46.0, "r": 60.0, "a": side2.angle(), "half": 0.9, "col": AMBER, "fill": 0.5 * fa, "life": 0.04})
+				u.shape({"kind": "line", "a": lp + side2 * 46.0 + side2.orthogonal() * 42.0, "b": lp + side2 * 46.0 - side2.orthogonal() * 42.0, "w": 5.0, "col": Color(AMBER, fa), "life": 0.04})
+				if t < 1.0:
 					for e in a.taunt:
 						if not e.dead:
-							u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -36), "w": 3.0, "col": AMBER, "life": 0.6})   # 头顶小感叹线
+							u.g.enemies_sys.set_aggro(e, p.pos)
 			if t >= 1.5 and not a.done.has("unshield"):
 				a.done["unshield"] = true
 				if int(u.g.shield) > int(a.shield0):
-					u.g.shield = int(u.g.shield) - 1   # 没被打到：收回这一层
+					u.g.shield = int(u.g.shield) - 1
 			return t >= 1.5
 	return true

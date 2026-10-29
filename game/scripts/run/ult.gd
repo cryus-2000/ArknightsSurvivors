@@ -974,6 +974,8 @@ func time_scale() -> float:
 	s = minf(s, _imp_scale())
 	if UM.now() - _cmb_rt < Bal.v("ult/combo_slow_t", 0.3):
 		s = minf(s, Bal.v("ult/combo_slow", 0.5))
+	if UM.now() - _link_rt < Bal.v("ult/link_slow_t", 0.12):
+		s = minf(s, Bal.v("ult/link_slow", 0.6))   # 技能连携出手瞬间的轻微放慢（比终结技弱一档）
 	return s
 
 
@@ -1057,6 +1059,11 @@ var _imp_boom := true
 var _imp_pos := Vector2.ZERO
 var flash_rt := -99.0          # HUD 闪白起点（真实时间）
 var _cmb_rt := -99.0           # 连携短慢放起点（真实时间）
+var _link_rt := -99.0          # 技能连携出手瞬间放慢起点（真实时间）
+
+
+func link_slow() -> void:
+	_link_rt = UM.now()
 
 
 func impact(pos: Vector2) -> void:
