@@ -137,6 +137,7 @@
 | [199_bal_audit](199_bal_audit.md) | balance 旋钮对账 + Bal.v 缓存 | 记录 | 10-29：代码缺省值与 balance.json 不一致的 170 键（已改 208 读点，运行结果不变）；只在代码里的 366 键清单；`Bal.v` 路径缓存（桌面同局轮换 -0.3 ms / 帧）；`tools/bal_audit.py` | 27、balance.gd、data_lint |
 | [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
 | [196_command_target](196_command_target.md) | 指挥模式「指点」：指定地点 / 目标进攻（方案） | 方案稿，待用户拍板 | 10-29：突击中指点地面（点位）或精英 / Boss（集火），取代清杂 / Boss 优先，圆盘仍 5 格；慢动作选点沿用 ×0.2 + 扣作战时限防滥用；手机拖拽 / 电脑点选 / 手柄光标；机器人三档校准；含默认关的示意原型与 52 秒操作录像 | 114、36、56、设计总纲草稿 |
+| [200_telemetry_plan](200_telemetry_plan.md) | 数据埋点：死因分析与补洞提案 | 提案，待协调人审 | 10-29：用 cal1029 云端 1237 个死亡局做死因分析（tools/death_report.py，暴毙 = 普通怪围死为主）；现有埋点清单、三支柱缺口、分期（P0 遥测补洞 1）；只提案不实现 | 36、40、43、77、82、193；run/telemetry.gd、tools/death_report.py、balance_run.py、runs_report.py |
 | [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范 + 迁移方案 | 草案，待用户批 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_lint.py（只报告） | tools/asset_lint.py、art.gd |
 | [188_asset_audit_1028](188_asset_audit_1028.md) | 素材命名与目录核对 | 待用户看 | 10-28：art/incoming 归档留底、旧合成配乐已删；game/ 没人读的 2 个、语音母带 22 MB 在运行时目录、同内容不同名 16 组、命名不合约定 4 处，只列不改 | art/archive/incoming_1028、game/audio/voice/masters |
 | [186_integ_1028b](186_integ_1028b.md) | 整合分支 integ-1028b 冲突处理记录 | 记录 | 10-28 对内体验包：每处合并冲突一行 + docs 撞号重编表 | — |
