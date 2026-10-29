@@ -735,7 +735,41 @@
       "aura": "atk",
       "value": "$song_atk",
       "scope": "in_zone",
-      "fx": []
+      "fx": [
+       {
+        "vortex": {
+         "r": 0.9,
+         "n": 16,
+         "a": 0.26,
+         "acc_n": 2,
+         "acc_a": 0.5,
+         "motes": 12,
+         "mote_a": 0.45,
+         "glow": 0.0,
+         "fill": 0.03,
+         "spin": 0.4,
+         "drift": 0.08,
+         "len": 1.0,
+         "curl": 0.5,
+         "w": 1.8,
+         "halo": 3.0,
+         "halo_a": 0.18,
+         "ring": 0.55,
+         "col": [
+          0.95,
+          0.22,
+          0.38
+         ],
+         "acc": [
+          1.25,
+          0.45,
+          0.6
+         ]
+        },
+        "layer": "floor",
+        "cond": "!skill_active:2"
+       }
+      ]
      }
     ]
    },

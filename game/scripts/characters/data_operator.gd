@@ -1120,11 +1120,14 @@ func _draw_body_fx(front: bool) -> void:
 func _draw_vortex(sink, layer: String) -> void:
 	if pos == Vector2.INF or g.perf_alt:   # g.perf_alt：--perfab 同局轮换量漩涡开 / 关的净成本（/b 桶不画；正常游戏恒为 false）
 		return
+	var rz: float = zr
+	if B.has("zone") and str(B.zone.get("look", "")) == "particles" and has_meta("sk_dom"):
+		rz = float(get_meta("sk_dom").get("self", [zr])[0])   # 10-29 浊心：漩涡跟粒子领域的画面半径一起缓动（判定半径照旧立即生效）
 	for u in _fxb:
 		var e: Dictionary = _fxb[u]
 		if not ObFx.fx_has_vortex(e.b.fx):
 			continue
-		ObVortex.fx_vortex(sink, self, e, layer, 1.0, zone_c(), zr)
+		ObVortex.fx_vortex(sink, self, e, layer, 1.0, zone_c(), rz)
 
 
 ## 常驻跟随帧条（docs/61 §5.6 hold: true，10-12 加）：ground 层在 draw_ground_fx（地砖之上、溟痕 / 地面预警之下）、floor 层在 draw_auras、add 层在 draw_fx_add
