@@ -18,7 +18,7 @@
   ]
  },
  "stats": {
-  "max_hp": 120,
+  "max_hp": 108.0,
   "regen": 1.0,
   "move_speed": 150,
   "dodge": 0.0,

@@ -51,7 +51,7 @@ func run() -> void:
 	await wait_for(func(): return title.boss_trial.visible and not title.transition.busy)
 	check(title.boss_trial.visible, "Boss trial entry opens")
 	title.boss_trial.close()
-	var hp_mult: float = Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)   # 属性页 = 局内实际（e4637d50c）
+	var hp_mult := 1.0   # 属性页 = 局内实际：队长生命的 ×0.9 已写进 JSON（10-29）
 	for cid in Character.list_ids():
 		var d: Dictionary = Character.load_def(cid)
 		if not d.get("recruitable", true):
