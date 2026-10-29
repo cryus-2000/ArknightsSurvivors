@@ -504,8 +504,6 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	elif g.in_type[1] == "法术":
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
 	_armor_cf(pre, amount, not ignore_armor and g.in_type[1] == "物理")
-	if boss:
-		preload("res://scripts/run/boss_diag.gd").on_phit(g, amount, pre)
 	amount = lose_hp(amount, g.dmg_src, boss)
 	g.rfx.on_hurt(g.dmg_src == "nerve", amount)
 	g.invuln = 0.45
