@@ -35,7 +35,9 @@
     "enemy_pixels",
     "knight_pixel_split",
     "reaper_rush",
-    "tide"
+    "tide",
+    "dmg_curve",
+    "nerve_rules"
    ]
   },
   "command": {
@@ -88,7 +90,9 @@
     "menu_bgm",
     "suno_layers",
     "play_clock",
-    "feedback"
+    "feedback",
+    "time_scale_combo",
+    "ui_smoke"
    ]
   },
   "render": {
@@ -127,7 +131,8 @@
     "assault_dash",
     "three_operator_art",
     "doctor_run",
-    "klc_contract"
+    "klc_contract",
+    "hit_fallback"
    ]
   }
  },
@@ -187,6 +192,9 @@
   ],
   "kaltsit": [
    "mon3tr_fx"
+  ],
+  "saria": [
+   "saria_slots"
   ]
  },
  "op_alias": {
@@ -723,5 +731,8 @@
   "core",
   "smoke-sample"
  ],
- "full_only": []
+ "full_only": [
+  "runs_log_guard",
+  "trace_fields"
+ ]
 }
