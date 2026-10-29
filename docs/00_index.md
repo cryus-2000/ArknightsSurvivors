@@ -130,6 +130,7 @@
 | [163_visible_build_growth_codex](163_visible_build_growth_codex.md) | Codex 版可见成长草稿（历史） | 已被 163B 取代 | 弹体 / 范围 / 剑气 / 召唤的技术讨论 | 163D |
 | [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
 | [191_relic_pacing](191_relic_pacing.md) | 藏品节奏：来源拆分、降频与核心延后 | 已实现，待整局校准 | 10-28/29：遥测加来源；精英掉箱 0.15 + 2:00 前不掉、途中一后移 35 秒、商店藏品连买涨价；大时刻宝箱多选项 + 稀有加权；升华 / 核心 73 件第一只中期 Boss 倒下前不出。胜局 17 → 12 件，胜率掉，等统一校准 | balance.json relic/*、shop/relic_step、progression、relic_fx、endings |
+| [197_relic_taxonomy](197_relic_taxonomy.md) | 藏品分类统一成一套（映射表） | 待协调人审 | 10-29：lanes A–H / cat / effect_category / tags 四套合成一个 `lane`（docs/181 七流派 + 职业 / 通用 / 生存 / 经济）；265 件逐件映射、每个读取方改法、抽取份额变化 ≤3 点 | 181、35、relics.json、relic_effects.json |
 | [187_web_shrink_1028](187_web_shrink_1028.md) | 网页包再压缩评估 | 已实现 | 10-28：按类别拆分；无损四项（字体 WOFF2、WebP 最高档、wasm LZMA 分片 + 自写解码器、art/incoming 关透明渗色）41.62 → 36.10 MiB；音频 C 档 / 音效降采样等用户 | 121、164、22 |
 | [190_op_voice_more](190_op_voice_more.md) | 干员语音扩充 | 已实施 | 10-29：每人入队 4 / 突击 4 / 技能 4 / 闲聊 3 句原作语音（新增 110 条、+1.82 MiB），洗牌不重复 + 同句 60 秒；归队不再开口 | sfx.gd、voice_pools.json、tools/voice_more_1029.py |
 | [192_logos_s3_fx_order](192_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3 扇形咒域 | 待转 Codex | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） | seg_logos.gd、art.gd、logos_fx_handoff.md |
