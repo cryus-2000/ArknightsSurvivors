@@ -603,51 +603,6 @@ def ctrl_summary(records):
 ZONE_STATE_NAMES = {0: "未缩圈", 1: "预告", 2: "收缩", 3: "稳定"}
 
 
-def is_timeout(d, maxt=780.0):
-    """超时失败：没赢、局终生命还大于 0、已打到时限（bal_maxt，缺省 780 秒）——最终 Boss 没打完，不是死亡（docs/200）"""
-    e = (d.get("bot") or {}).get("end") or {}
-    return (not d.get("win")) and int(e.get("hp", 0)) > 0 and d.get("t", 0) >= maxt - 1
-
-
-def outcome_summary(records, maxt=780.0):
-    """胜负构成：胜 / 死亡 / 超时（满血 Boss 未打完）。超时照算失败，但死因统计不含它；按 机器人 × 难度 分行"""
-    by = {}
-    for r in records:
-        d = r.get("data")
-        if d and "end" in (d.get("bot") or {}):
-            by.setdefault((r.get("bot", "normal"), r.get("diff", 0)), []).append(d)
-    if not by:
-        return ""
-    out = ["| 机器人 | 难度 | 局数 | 胜 | 死亡 | 超时（满血 Boss 未打完） | 超时时 Boss 剩余血 均 |", "|---|---|---|---|---|---|---|"]
-    for (bot, df), ds in sorted(by.items()):
-        to = [d for d in ds if is_timeout(d, maxt)]
-        win = sum(1 for d in ds if d.get("win"))
-        bh = [d["boss_hp"] for d in to if d.get("boss_hp", -1) >= 0]
-        out.append("| %s | %d | %d | %d%% | %d%% | %d%% (%d) | %s |" % (bot, df, len(ds), 100 * win / len(ds), 100 * (len(ds) - win - len(to)) / len(ds),
-                   100 * len(to) / len(ds), len(to), ("%d%%" % (100 * statistics.mean(bh))) if bh else "-"))
-    return "\n".join(out)
-
-
-def capstats_summary(records):
-    """上限触发（--telemetry=full 才有 bot.cap_stats）：每局平均的受击笔数 / 被各级上限截掉的量占截前总量的比例；失败局单列"""
-    rows = {}
-    for r in records:
-        d = r.get("data")
-        cs = ((d or {}).get("bot") or {}).get("cap_stats")
-        if cs:
-            rows.setdefault((r.get("bot", "normal"), r.get("diff", 0), "失败" if not d.get("win") else "胜"), []).append(cs)
-    if not rows:
-        return ""
-    out = ["| 机器人 | 难度 | 结果 | 局数 | 受击笔数 均 | 全免(截到0)笔数 均 | 任意2秒上限 触发笔数 / 截掉量占比 | Boss保护 触发笔数 / 占比 | 单次上限 触发笔数 / 占比 | 截掉一半以上笔数 均 |", "|---|---|---|---|---|---|---|---|---|---|"]
-    for (bot, df, res), cs in sorted(rows.items()):
-        m = lambda k: statistics.mean(c.get(k, 0) for c in cs)
-        pre = m("pre") or 1.0
-        out.append("| %s | %d | %s | %d | %.0f | %.1f | %.1f / %.1f%% | %.1f / %.1f%% | %.1f / %.1f%% | %.1f |" % (
-            bot, df, res, len(cs), m("hits"), m("zero"), m("any_n"), 100 * m("any_cut") / pre, m("boss_n"), 100 * m("boss_cut") / pre,
-            m("one_n"), 100 * m("one_cut") / pre, m("big_n")))
-    return "\n".join(out)
-
-
 def difficulty_summary(records):
     """难度 / 缩圈 A/B 用的三张表（2026-09-27，记录里有 bot.end / bot.peak 才输出）：
     ① 前 3 分钟：承伤（曲线 t ≤ 180 的窗口合计）与 3:00 前死亡率；② 死因 × 缩圈阶段 × 圈外 × Boss 在场（只计失败的局）；
@@ -669,7 +624,7 @@ def difficulty_summary(records):
     for (bot, df), ds in sorted(by.items()):
         cnt = {}
         for d in ds:
-            if d.get("win") or is_timeout(d):
+            if d.get("win"):
                 continue
             e = d["bot"]["end"]
             zs = ZONE_STATE_NAMES.get(e["zone_state"], "?") if e["zone_state"] == 0 else "第 %d 轮 · %s" % (e["zone_phase"] + 1, ZONE_STATE_NAMES.get(e["zone_state"], "?"))
@@ -738,8 +693,6 @@ def main():
     else:
         squads = PRESETS[a.preset or "solo"]
     extra = a.extra.split() if a.extra else []
-    if not any(x.startswith("--telemetry=") for x in extra):
-        extra.append("--telemetry=full")   # docs/200：批跑缺省开遥测补洞（逐笔明细 / 上限触发 / 死前时间线）；--extra "--telemetry=off" 关
     if a.dt:
         extra.append("--dt=%g" % a.dt)
     placebos = [int(x) for x in a.placebos.split(",") if x.strip() != ""] or [0]
@@ -784,14 +737,8 @@ def main():
     if hs:
         md = "### 大群（按第几次）\n\n" + hs + "\n\n" + md
     ds = difficulty_summary(records)
-    cps = capstats_summary(records)
-    if cps:
-        md = "### 2 秒上限 / Boss 保护 / 单次上限触发（--telemetry=full）\n\n" + cps + "\n\n" + md
     if ds:
         md = "### 难度 / 缩圈 / 同屏峰值\n\n" + ds + "\n\n" + md
-    osum = outcome_summary(records)
-    if osum:
-        md = "### 胜负构成（超时 = 满血 Boss 未打完，照算失败，死因统计不含）\n\n" + osum + "\n\n" + md
     cs = ctrl_summary(records)
     if cs:
         md = "### 控制（按来源，每局平均）\n\n" + cs + "\n\n" + md

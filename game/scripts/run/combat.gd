@@ -90,9 +90,6 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		return
 	var boss: bool = src.get("boss", false)
 	g.telemetry.hit_type = g.telemetry.src_type(src)
-	if g.telemetry.rich:
-		g.telemetry.hit_elite = src.get("elite", false)   # docs/200：逐笔明细要带精英 / Boss 弹标记（只读）
-		g.telemetry.hit_boss = boss
 	if src.get("elite", false):
 		dmg *= g.elite_taken_mult   # 王庭盟约（docs/57 P7）：精英来源对主控的伤害
 	if boss:
@@ -330,19 +327,14 @@ var one_cap := 0.0   # enemy_hit 这一次的单次上限（最大生命比例�
 
 
 func lose_hp(amount: float, src: String, boss := false) -> float:
-	var pre_all := amount   # 遥测补洞（docs/200）：各级上限截之前的量，只在 telemetry.rich 下用
 	if one_cap > 0.0:
 		amount = minf(amount, one_cap * g.max_hp)
-	var pre_boss := amount
 	if g.hp >= Bal.v("boss/fullhp_guard_at", 0.9) * g.max_hp:
 		high_t = g.t   # 满血保护的「受击前生命」：只记账，不改非 Boss 来源的扣血
 	if boss:
 		amount = _boss_clamp(amount, src)
-	var pre_any := amount
 	amount = _any_clamp(amount)
 	g.hp -= amount
-	if g.telemetry.rich:
-		g.telemetry.cap_note(pre_all, pre_boss, pre_any, amount, src, boss)   # 上限触发计数 + 逐笔明细（只读）
 	if g.bench.live:
 		g.bench.on_lose(amount)   # Boss 单场测试台：队长承伤（docs/170）
 	g.telemetry.on_lose(amount, src)   # 作战记录：击倒者归属（持续伤害记给施加它的敌人，docs/77）

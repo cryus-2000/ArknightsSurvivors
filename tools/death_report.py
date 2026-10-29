@@ -5,7 +5,7 @@
 只读 JSON、不依赖 Godot。数据来源字段：data.bot.end.last15.hits（最近 15 秒逐 tick 掉血明细：
 t / src / amt / hp_after / boss / zone_out）、data.bot.end（t / boss / zone_out）、data.bot.lamp_end、
 data.maxhp。字段不够的地方（精英标记、敌弹来源类型、窗口内在场敌人数、上限触发计数）
-在 docs/200_telemetry_plan.md §1 说明，这里只用现有字段能算的部分，不编造。
+在 docs/194_telemetry_plan.md §1 说明，这里只用现有字段能算的部分，不编造。
 
 用法：
   python tools/death_report.py build/cloud/cal1029-T1 build/cloud/cal1029-R1 ...   # 目录（下面的 *.json）或单个 json
@@ -194,14 +194,6 @@ def analyse(args):
                     rec["dmg%d" % k] += dk / maxhp
                 rec["cat%d" % k] = dict(cat)
                 rec["src%d" % k] = dict(src)
-            # docs/200 新字段（--telemetry=full 才有，没有就留空）
-            rec["killer"] = ((end.get("killer") or {}).get("key") or "")
-            rec["killer_cause"] = ((end.get("killer") or {}).get("cause") or "")
-            tl = end.get("tl") or []
-            rec["tl_last"] = tl[-1] if tl else None
-            rec["near_n"] = len(end.get("near") or [])
-            rec["cap"] = b.get("cap_stats")
-            rec["hits2"] = end.get("hits2") or []
             rec["max2s"] = max_2s(hits, maxhp)
             rec["maxhit"] = max(h["amt"] for h in hits) / maxhp
             rec["hp5_pct"] = hp_at(hits, t_end - 5.0) / maxhp
@@ -349,29 +341,7 @@ def render(total, deaths, args):
         nb, args.cap, pct(sum(1 for d in ok if d["boss"] and d["max2s"] >= args.cap), nb)))
     L.append("")
 
-    full = [d for d in ok if d.get("cap") is not None]
-    if full:
-        L.append("## 7. 新字段（--telemetry=full，%d / %d 局有）" % (len(full), len(ok)))
-        L.append("")
-        kc = Counter(d["killer"] or "?" for d in full)
-        L.append("- killer（最近 3 秒归属，持续伤害归施加者）前 10：" + "；".join("%s %s" % (k, pct(v, len(full))) for k, v in kc.most_common(10)))
-        tls = [d["tl_last"] for d in full if d["tl_last"]]
-        if tls:
-            L.append("- 死前最后一格快照（0.5 秒粒度）：在场敌人 中位 %s，150 内 中位 %s，300 内 中位 %s，8 向被堵数 中位 %s；冲刺可用 %s；无敌中 %s。" % (
-                med([c[3] for c in tls], 0), med([c[4] for c in tls], 0), med([c[5] for c in tls], 0), med([c[7] for c in tls], 0),
-                pct(sum(1 for c in tls if c[9] > 0), len(tls)), pct(sum(1 for c in tls if c[8] > 0), len(tls))))
-        pre = sum(d["cap"].get("pre", 0) for d in full) or 1.0
-        L.append("- 上限触发（失败局合计，占截前总量）：任意 2 秒上限截掉 %.1f%%（%d 笔）；Boss 保护截掉 %.1f%%（%d 笔）；单次上限截掉 %.1f%%（%d 笔）；全免笔数 %d / 受击 %d 笔。" % (
-            100 * sum(d["cap"].get("any_cut", 0) for d in full) / pre, sum(d["cap"].get("any_n", 0) for d in full),
-            100 * sum(d["cap"].get("boss_cut", 0) for d in full) / pre, sum(d["cap"].get("boss_n", 0) for d in full),
-            100 * sum(d["cap"].get("one_cut", 0) for d in full) / pre, sum(d["cap"].get("one_n", 0) for d in full),
-            sum(d["cap"].get("zero", 0) for d in full), sum(d["cap"].get("hits", 0) for d in full)))
-        el = sum(1 for d in full for h in d["hits2"] if h[3])
-        L.append("- 逐笔明细里精英来源的笔数 %d / %d；bullet_boss（Boss 弹）%d 笔。" % (
-            el, sum(len(d["hits2"]) for d in full), sum(1 for d in full for h in d["hits2"] if h[1] == "bullet_boss")))
-        L.append("- 死亡局里死前出现过险境快照的 %s（含死亡前那一次）。" % pct(sum(1 for d in full if d["near_n"] > 0), len(full)))
-        L.append("")
-    L.append("## 8. 三行结论（自动生成，口径见上）")
+    L.append("## 7. 三行结论（自动生成，口径见上）")
     L.append("")
     L.extend(conclusions(ok, args))
     return "\n".join(L)

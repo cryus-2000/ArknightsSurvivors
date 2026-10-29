@@ -106,6 +106,13 @@ func core_r(b: Dictionary) -> float:
 	return float(b.r) * Bal.v("enemy/bullet_hit_scale", 0.6)
 
 
+func _final_live() -> Dictionary:
+	for e in g.bosses:
+		if not e.dead and g.spawner.is_final_boss_type(str(e.type)):
+			return e
+	return {}
+
+
 ## 最终 Boss 弹速统一（用户 10-29，docs/201）：最终 Boss 在场时，Boss 弹第一次进这里按 弹种 / 子类 查倍率，
 ## boss/spd_<类型>_<kind>_<子类>（子类 = izu / motion / tier 字段）优先、其次 boss/spd_<类型>_<kind>，缺省 1 = 不变；
 ## 速度、加速度、各脚本逐帧改速用的基准速度一起乘，倍率记在 b.spd_k 给逐帧改速的脚本用；追踪弹最多 × boss/spd_home_cap
