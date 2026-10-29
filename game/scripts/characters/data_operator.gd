@@ -1120,9 +1120,7 @@ func _draw_body_fx(front: bool) -> void:
 func _draw_vortex(sink, layer: String) -> void:
 	if pos == Vector2.INF or g.perf_alt:   # g.perf_alt：--perfab 同局轮换量漩涡开 / 关的净成本（/b 桶不画；正常游戏恒为 false）
 		return
-	var rz: float = zr
-	if B.has("zone") and str(B.zone.get("look", "")) == "particles" and has_meta("sk_dom"):
-		rz = float(get_meta("sk_dom").get("self", [zr])[0])   # 10-29 浊心：漩涡跟粒子领域的画面半径一起缓动（判定半径照旧立即生效）
+	var rz: float = _zone_vis_r()
 	for u in _fxb:
 		var e: Dictionary = _fxb[u]
 		if not ObFx.fx_has_vortex(e.b.fx):
@@ -1134,8 +1132,17 @@ func _draw_vortex(sink, layer: String) -> void:
 func _draw_hold_strips(ci, layer: String) -> void:
 	if pos == Vector2.INF:
 		return
+	var rz: float = _zone_vis_r()
 	for u in _fxb:
-		ObFx.fx_hold_strips(ci, self, _fxb[u], layer, zone_c(), zr)
+		ObFx.fx_hold_strips(ci, self, _fxb[u], layer, zone_c(), rz)
+
+
+## 区域的画面半径：浊心粒子领域（blocks.zone.look = particles）用 sk_vis_r 缓动后的值，漩涡贴图 / 程序漩涡与粒子边界同步扩缩（10-29 用户
+## 「漩涡的纹理没有和圆圈大小对上」）；其余干员就是判定半径 zr
+func _zone_vis_r() -> float:
+	if B.has("zone") and str(B.zone.get("look", "")) == "particles" and has_meta("sk_dom"):
+		return float(get_meta("sk_dom").get("self", [zr])[0])
+	return zr
 
 
 ## squad.draw_ground_fx → 这里（world.draw_world 画完地砖紧接着调；没有 ground 层条目时什么都不画）

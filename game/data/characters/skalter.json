@@ -909,15 +909,16 @@
     "do": [
      {
       "verb": "mode",
+      "_doc": "10-29：贴图漩涡可见外缘实测 146 / 1x 帧宽 320（@2x 292 / 640），fit 146 × scale 0.95 → 外缘 = 领域画面半径 × 0.95，max_scale 放宽到 8 不再封顶；半径取 sk_vis_r 缓动值",
       "zone_mult": "$s3_aura",
       "fx": [
        {
         "strip": "fx_skalter_vortex_floor",
         "hold": true,
         "layer": "ground",
-        "fit": 160,
-        "scale": 0.62,
-        "max_scale": 2.0625,
+        "fit": 146,
+        "scale": 0.95,
+        "max_scale": 8,
         "fade": 0.45,
         "tint": [
          1.9,
@@ -928,8 +929,8 @@
        },
        {
         "vortex": {
-         "r": 0.62,
-         "max_r": 330,
+         "r": 0.95,
+         "max_r": 2000,
          "n": 40,
          "a": 0.6,
          "acc_n": 6,
@@ -955,8 +956,8 @@
        },
        {
         "vortex": {
-         "r": 0.62,
-         "max_r": 330,
+         "r": 0.95,
+         "max_r": 2000,
          "n": 0,
          "acc_n": 0,
          "col": [1.3, 0.45, 0.6],
