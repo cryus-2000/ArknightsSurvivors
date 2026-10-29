@@ -1,0 +1,18 @@
+== izm2_trial.jsonl jobs 6 err 0
+izumik       fight 106.5  taken/min  50.3 (41% maxhp/min)  TTK 147.4s  maxhp 127  hits/min 1.9  wins 4/6
+     bullet:nerve                       n  12  med 11.8%  max 17.2%  raw med  18.7 max  32.0
+     bullet:orb                         n   8  med 14.1%  max 14.2%  raw med  16.2 max  26.2
+     bullet:nova                        n   6  med 11.0%  max 24.0%  raw med  20.5 max  32.3
+     boss_izumik:                       n   2  med 31.4%  max 31.4%  raw med  58.3 max  58.3
+     boss_izumik:nerve                  n   1  med 45.9%  max 45.9%  raw med  61.8 max  61.8
+     boss_izumik:final_attack/护群触腕      n   1  med 23.2%  max 23.2%  raw med  26.4 max  26.4
+     boss_izumik:final_attack/迁徙潮       n   1  med 21.0%  max 21.0%  raw med  24.0 max  24.0
+== izm2_trial.jsonl jobs 6 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+izumik         106.50    18.05     7.33   241.00     8.90     0.29     0.11     0.00     0.00     0.00     0.20     0.09     0.08     0.12 {'win': 4, 'cap': 2}
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=26 max_hp=115 relics=13 leader=wisadel e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=158 relics=7 leader=skadi e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=186 relics=14 leader=kaltsit e2 ops=[]
+izm2_trial.jsonl runs 6 peak_bul 141.0 ft>=130 n 111.0 p50 6.75 p95 10.48 | all p50 3.67 p95 7.24
+nproc 4
+Model name:                              Intel(R) Xeon(R) Processor @ 2.10GHz
