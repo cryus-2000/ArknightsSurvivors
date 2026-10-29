@@ -107,7 +107,7 @@ func _process(_dt: float) -> void:
 	# 5 主流派
 	game.relics.clear()
 	game.rfx.lv.clear()
-	var lead_lane: String = E.main_lane()
+	var lead_lane: String = game.guide.main_lane()
 	check(lead_lane == str(game.ch.lanes()[0]) if not game.ch.lanes().is_empty() else lead_lane in ["melee", "multi"], "no relics: lane from leader's lanes (%s)" % lead_lane)
 	var d_ids: Array = []
 	for rid in game.RL:
@@ -115,11 +115,11 @@ func _process(_dt: float) -> void:
 			d_ids.append(rid)
 	for rid in d_ids:
 		game.relics.append(rid)
-	check(d_ids.size() < 3 or E.main_lane() == "weak", "three weak relics -> main lane weak (got %s)" % E.main_lane())
+	check(d_ids.size() < 3 or game.guide.main_lane() == "weak", "three weak relics -> main lane weak (got %s)" % game.guide.main_lane())
 	game.relics.clear()
 	for rid in ["2", "3", "4"]:   # 通用件不计主流派（docs/197 §4）
 		game.relics.append(rid)
-	check(E.main_lane() == lead_lane, "general relics don't set main lane (got %s)" % E.main_lane())
+	check(game.guide.main_lane() == lead_lane, "general relics don't set main lane (got %s)" % game.guide.main_lane())
 	game.relics.clear()
 	print("ET step 6")
 	# 6 委托

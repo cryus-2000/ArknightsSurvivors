@@ -6,13 +6,11 @@ const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const Character = preload("res://scripts/characters/character.gd")
-const Squad = preload("res://scripts/characters/squad.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：招募卡只出已解锁的干员；测试局全部解锁
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const BuildAffinity = preload("res://scripts/run/build_affinity.gd")   # 构筑匹配（只读，docs/119 §4.3–4.5）：卡面说明行 / 招募保底 / 商人预告共用
-const RelicDb = preload("res://scripts/core/relic_db.gd")   # 藏品分类常量（docs/197）
 var g: Game
 var affinity: BuildAffinity
 var tab_hinted := false
@@ -24,85 +22,6 @@ var prog_log: Array = []      # 培养记录 [秒, 干员 id, 推进后 prog]（
 var focus_op := ""           # docs/119 §4.2 培养保底（简化版）：最近一次选中培养卡的干员 id；它还有合法成长卡时固定占第一个深度卡槽
 var branch_ctx: Dictionary = {}   # 培养路线二选一（docs/119 §4.1）：{opts, kind, title, sub, sel, card, source: level / swap / free}
 var branch_queue: Array = []      # 赠送推进（典训 / 博士银印）碰到分支节点、等玩家选路线的干员 id（按触发顺序排队）
-
-
-## 培养保底开关（balance levelup/focus_guard，缺省 1；关 = 旧发牌，随机数消耗不变）
-static func focus_on() -> bool:
-	return Bal.vi("levelup/focus_guard", 1) == 1
-
-## 精英化落后补偿开关（balance levelup/catchup，缺省 1；0 = 旧发牌：均匀洗牌 + 保底只看最近培养对象，随机数消耗同改前）
-static func catchup_on() -> bool:
-	return Bal.vi("levelup/catchup", 1) == 1
-
-
-## 落后补偿权重：比编队里培养进度最高者落后 gap 个精英阶段（每阶段 = 3 个节点，prog 0–6）→ ×catchup_mult^gap，封顶 catchup_cap
-func catchup_weight(op_prog: int, top: int) -> float:
-	var gap: float = maxf(0.0, float(top - op_prog)) / 3.0
-	return minf(pow(Bal.v("levelup/catchup_mult", 1.8), gap), Bal.v("levelup/catchup_cap", 3.0))
-
-
-## 深度卡按落后补偿加权排序（同 weighted_order 的取法，用 g.rng）：总卡数、每次给几张深度卡都不变，只改哪名干员排在前面
-func catchup_order(deep: Array) -> Array:
-	var top := 0
-	for c in deep:
-		var o = g.squad.get_op(str(c.get("op", "")))
-		if o != null:
-			top = maxi(top, o.prog)
-	var keyed: Array = []
-	for c in deep:
-		var o = g.squad.get_op(str(c.get("op", "")))
-		var w: float = catchup_weight(o.prog, top) if o != null else 1.0
-		keyed.append([-log(g.rng.randf() + 0.0001) / w, c])
-	keyed.sort_custom(func(a, b): return a[0] < b[0])
-	return keyed.map(func(x): return x[1])
-
-
-## 培养保底的对象（落后补偿开时）：最近培养对象比本次有成长卡的最落后队友领先 ≥ catchup_focus_gap 个节点 → 保底让给最落后的那位
-## （同样落后时取 deep 里排在前面的）；否则仍是最近培养对象。不多取随机数
-func catchup_focus(deep: Array, cur: String) -> String:
-	var fo = g.squad.get_op(cur)
-	if fo == null:
-		return cur
-	var low_id := ""
-	var low := 99
-	for c in deep:
-		var o = g.squad.get_op(str(c.get("op", "")))
-		if o != null and o.prog < low:
-			low = o.prog
-			low_id = o.id
-	if low_id != "" and fo.prog - low >= Bal.vi("levelup/catchup_focus_gap", 5):
-		return low_id
-	return cur
-
-
-## 回复类升级卡（1.1 用户要求：回血偏弱，出现率调高）：[kind, id]——博士被动「自愈」「坚韧」、医疗无人机、填充卡「急救补给」。
-## 吸血 / 击杀回复等在藏品池（relic_pool_ids），不在这里
-const HEAL_CARDS := [["growth", "regen"], ["growth", "hp"], ["weapon", "drone"], ["filler", "heal"]]
-
-
-static func is_heal_card(c: Dictionary) -> bool:
-	return HEAL_CARDS.has([str(c.get("kind", "")), str(c.get("id", ""))])
-
-
-## 选卡权重：回复类 ×levelup/heal_weight；主控生命低于 levelup/heal_low_hp（比例）时再 ×levelup/heal_low_hp_mult
-func card_weight(c: Dictionary) -> float:
-	if str(c.get("kind", "")) == "growth" and str(c.get("id", "")).begins_with("dash_"):
-		return Bal.v("levelup/dash_weight", 0.7)   # 冲刺三张（机动类，docs/83）
-	if not is_heal_card(c):
-		return 1.0
-	var w: float = Bal.v("levelup/heal_weight", 1.5)
-	if g.hp < g.max_hp * Bal.v("levelup/heal_low_hp", 0.5):
-		w *= Bal.v("levelup/heal_low_hp_mult", 1.5)
-	return w
-
-
-## 按 card_weight 加权的随机排序（权重越大越靠前；全为 1 时等同均匀洗牌），用对局随机数 g.rng
-func weighted_order(cards: Array) -> Array:
-	var keyed: Array = []
-	for c in cards:
-		keyed.append([-log(g.rng.randf() + 0.0001) / card_weight(c), c])
-	keyed.sort_custom(func(a, b): return a[0] < b[0])
-	return keyed.map(func(x): return x[1])
 
 
 func _init(game: Game) -> void:
@@ -155,15 +74,14 @@ func open_levelup() -> void:
 		g.rfx.use_rule("first_choice_extra")   # 认知塑造「多程信息处理」：开局第一次升级多一个选项
 		want += 1
 	var picks: Array = []
-	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
+	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底见 build_guide.must_recruit
 	var recruit: Array = recruit_cards()
-	var must_recruit: bool = not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 6) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 12) and g.squad.size() < Squad.REGULAR_MAX))
-	if must_recruit:
-		# 保底画面（docs/119 §4.3）：有合格人选时保证一名与已持有藏品有实际互动的候选（build_affinity.forced_recruit_order；开关关 = 只洗牌）
+	if g.guide.must_recruit(recruit):
+		# 保底画面（docs/119 §4.3）：有合格人选时保证一名与已持有藏品有实际互动的候选（build_guide.forced_recruit_order；开关关 = 只洗牌）
 		var n_show: int = want + g.rfx.rule("recruit_extra")   # 罗德岛战术电台：招募多一个选项
 		recruit_offers.append([int(g.t), "forced", g.squad.size()])
 		levelup_t.append(int(g.t))
-		g.panel_ui.show_choices("招募干员", affinity.forced_recruit_order(recruit, n_show).slice(0, n_show), "level")
+		g.panel_ui.show_choices("招募干员", g.guide.forced_recruit_order(recruit, n_show).slice(0, n_show), "level")
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
 	var deep: Array = []
@@ -174,26 +92,10 @@ func open_levelup() -> void:
 			if c.kind == "prog" and not c.get("avail", true):
 				continue
 			deep.append(c)
-	if catchup_on():
-		deep = catchup_order(deep)   # 精英化落后补偿（docs/184）：落后越多的干员，成长卡越靠前；只重排，不加卡
-	else:
-		g.shuffle(deep)
-	# 培养保底（docs/119 §4.2 简化版）：最近培养的干员有合法成长卡就挪到 deep[0]（只重排，不多取随机数、不加选项）；离队 / 养满自然失效
-	if focus_on() and focus_op != "" and not deep.is_empty():
-		if not g.squad.has(focus_op):
-			focus_op = ""
-		var target: String = catchup_focus(deep, focus_op) if catchup_on() else focus_op
-		for k in deep.size():
-			if str(deep[k].get("op", "")) == target:
-				if k > 0:
-					var fc: Dictionary = deep[k]
-					deep.remove_at(k)
-					deep.insert(0, fc)
-				break
+	deep = g.guide.order_deep(deep)   # 落后补偿加权 + 培养保底（build_guide）
 	if not deep.is_empty():
 		picks.append(deep[0])
-		# 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
-		if g.squad.size() >= 2 and g.rng.randf() < Bal.v("levelup/second_deep_chance", 0.5):
+		if g.guide.second_deep():   # 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
 			for rc in deep.slice(1):
 				if rc.get("op", "") != deep[0].get("op", ""):
 					picks.append(rc)
@@ -201,11 +103,11 @@ func open_levelup() -> void:
 	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
 	# 编队满员：出「更换队友」卡（swap_cards），概率降为 swap_chance、7:00 后再降为 swap_chance_late；
 	# 本次已有两张干员深度卡时不出，换人卡不挤掉成长卡（docs/162，用户 10-26）
-	var chance: float = Bal.v("levelup/recruit_chance", 0.45)
+	var chance: float = g.guide.recruit_chance(false)
 	var can_offer := true
 	if recruit.is_empty():
 		recruit = swap_cards()
-		chance = Bal.v("levelup/swap_chance_late", 0.12) if g.t >= Bal.v("levelup/swap_late_t", 420.0) else Bal.v("levelup/swap_chance", 0.25)
+		chance = g.guide.recruit_chance(true)
 		can_offer = picks.size() < want - 1
 	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and can_offer and g.rng.randf() < chance:
 		picks.append(recruit[g.rng.randi() % recruit.size()])
@@ -216,7 +118,7 @@ func open_levelup() -> void:
 	if wl < 5:
 		var W: Dictionary = D.WEAPONS.drone
 		passives.append({"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1})
-	passives = weighted_order(passives)
+	passives = g.guide.weighted_order(passives)
 	for c in passives:
 		if picks.size() >= want:
 			break
@@ -227,7 +129,7 @@ func open_levelup() -> void:
 		if not picks.has(deep[di]):
 			picks.append(deep[di])
 		di += 1
-	var fillers: Array = weighted_order(g.doctor.filler_cards())
+	var fillers: Array = g.guide.weighted_order(g.doctor.filler_cards())
 	var fi := 0
 	while picks.size() < want and fi < fillers.size():
 		picks.append(fillers[fi])
@@ -239,7 +141,7 @@ func open_levelup() -> void:
 	for c in picks.slice(0, want):
 		if c.kind == "prog":
 			g.dbg_offer[c.op] = g.dbg_offer.get(c.op, 0) + 1
-		if is_heal_card(c):
+		if g.guide.is_heal_card(c):
 			heal_offer += 1
 			if low:
 				heal_offer_low += 1
@@ -268,66 +170,18 @@ func deep_cards() -> Array:
 	return out
 
 
-## 可选藏品：已实装、未拥有、满足前置与职业门槛；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
-## 流派加权（docs/35 → docs/197 分类）：已拿过同一流派（7 条）或职业件 n 件 → ×1.3^n，封顶 ×2；通用 / 生存 / 经济不参与，
-## 否则拿了生存卡就只剩生存卡。护盾反击 / 治疗转伤 / 生存三组随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0）
-## 护盾保底：还没有护盾层数时，给层数的藏品 ×relic/shield_weight（缺省 4，docs/35 §护盾保底）
-func relic_pool_ids(for_shop := false) -> Array:
-	# docs/57：relic/new_pool = 0 时第二批实装的藏品不进池（同 seed 结果与之前一致，供云端 A/B）
-	var new_ok: bool = Bal.vi("relic/new_pool", 1) != 0
-	var cands: Array = g.rfx.db.implemented().filter(func(r): return (new_ok or not r.new_pool) and g.rfx.can_offer(r, for_shop) and can_gain_relic(r.id))
-	var lane_n := {}
-	for rid in g.relics:
-		var ln: String = str(g.RL.get(rid, {}).get("lane", ""))
-		if RelicDb.WEIGHT_LANES.has(ln):
-			lane_n[ln] = lane_n.get(ln, 0) + 1
-	var h_w: float = lerpf(Bal.v("relic/h_early", 0.7), Bal.v("relic/h_late", 1.0), clampf((g.t - 180.0) / 360.0, 0.0, 1.0))
-	var weighted: Array = []
-	for r in cands:
-		var w := 0.0
-		match r.rarity:
-			"基础": w = 60.0
-			"稀有": w = 26.0
-			"核心": w = 12.0
-			"升华": w = 3.0 if g.t > 420.0 else 0.0
-			"遭诅古物": w = 8.0 if for_shop else 0.0
-		if w <= 0.0 or (g.meta_basic_pick and r.rarity != "基础"):
-			continue
-		var best_n: int = lane_n.get(r.lane, 0)
-		if best_n > 0:
-			w *= minf(pow(Bal.v("relic/lane_weight", 1.3), best_n), Bal.v("relic/lane_weight_cap", 2.0))
-		if r.lane in ["shield", "heal", "survival"]:
-			w *= h_w
-		# 犹疑 (240)：稀有 / 核心 权重 +30%
-		if g.rfx.rule("rare_weight") > 0 and r.rarity in ["稀有", "核心"]:
-			w *= 1.3
-		# 得偿所愿（翻节点卡，docs/154）：这一次三选一稀有 / 核心加权
-		if not for_shop and g.endg.wish_rare and r.rarity in ["稀有", "核心"]:
-			w *= maxf(float(g.endg.deck_cfg.get("wish_rare", 1.5)), Bal.v("relic/wish_rare", 0.0))   # relic/wish_rare：补偿用，0 = 按卡组配置
-		# 护盾保底（10-21 用户：护盾常刷不到）：队长还没有护盾层数时，给层数的藏品（7 件）权重 ×relic/shield_weight；
-		# 一拿到层数就恢复原权重。权重只改排序、不改随机数抽取次数
-		if r.get("shield_layer", false) and g.shield_max <= 0:
-			w *= Bal.v("relic/shield_weight", 4.0)
-		# 已拥有的藏品升级：出现率减半
-		if g.relics.has(r.id):
-			w *= 0.5
-		# 后期降权（relic_effects.json 的 late_weight）：一次性源石锭 / 灯火 / 回血、商品打折，6:00 后几乎没价值，少占三选一的位置
-		if g.t > 360.0:
-			w *= float(r.get("late_weight", 1.0))
-		weighted.append([-log(g.rng.randf() + 0.0001) / w, r.id])
-	weighted.sort_custom(func(a, b): return a[0] < b[0])
-	return weighted.map(func(x): return x[1])
-
-
 func open_relic_choice() -> void:
 	# 大时刻补偿（docs/191）：Boss / 精英小队宝箱多 relic/big_extra 个选项，所有宝箱再多 relic/chest_extra 个；
 	# relic/chest_rare 1 = 精英 / Boss / 精英小队宝箱按稀有 / 核心加权（同得偿所愿）。都只改排序与张数，不多取随机数。缺省 0 = 关
 	var csrc: String = str(g.chest_src[0]) if not g.chest_src.is_empty() else ""
-	if csrc in ["elite", "boss", "squad"] and Bal.v("relic/chest_rare", 0.0) > 0.0:
-		g.endg.wish_rare = true
+	g.guide.chest_open(csrc)
+	var ids: Array = g.guide.relic_pool_ids()
+	# 事件改版的对口三选一（docs/184 §2.2）：前两张换成主流派里排最前的两件，其余照原顺序（只重排，不多取随机数）
+	if not ids.is_empty() and g.endg.lane_bias != "":
+		ids = g.guide.lane_front(ids, g.endg.lane_bias)
+		g.endg.lane_bias = ""
 	var pool: Array = []
-	for rid in relic_pool_ids():
-		var r: Dictionary = g.RL[rid]
+	for rid in ids:
 		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [g.rfx.db.lane_name(rid), g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
 	if pool.is_empty():
 		# 每个待开的宝箱各补 12 源石锭
@@ -338,20 +192,11 @@ func open_relic_choice() -> void:
 		return
 	# 一次性加选项（docs/57 P27）与补给箱钥匙（P17）：各多一个选项，用掉一次
 	var extra: int = g.rfx.take_choice_extra()
-	if csrc == "boss" or csrc == "squad":
-		extra += Bal.vi("relic/big_extra", 0)
-	if csrc in ["elite", "boss", "squad"]:
-		extra += Bal.vi("relic/chest_extra", 0)
+	extra += g.guide.chest_extra(csrc)
 	if g.rfx.rule("chest_keys") > 0:
 		g.rfx.use_rule("chest_keys")
 		extra += 1
 		g.vfx.add_text(g.ppos + Vector2(0, -96), "钥匙 · 多一个选项", UI.GOLD, 15)
-	# 事件改版的对口三选一（docs/184 §2.2）：前两张换成主流派里排最前的两件，其余照原顺序（只重排，不多取随机数）
-	var lb: String = g.endg.lane_bias
-	if lb != "":
-		var on_lane: Array = pool.filter(func(c): return str(g.RL[c.id].get("lane", "")) == lb).slice(0, 2)
-		pool = on_lane + pool.filter(func(c): return not on_lane.has(c))
-		g.endg.lane_bias = ""
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices") + extra)
 	g.meta_basic_pick = false
 	g.endg.wish_rare = false
@@ -634,7 +479,7 @@ func pick(i: int) -> void:
 			else:
 				o["choice"] = str(g.choices[i].route)
 				g.choice_kind = str(bctx.get("kind", "level"))
-	if g.choice_kind == "level" and is_heal_card(o):
+	if g.choice_kind == "level" and g.guide.is_heal_card(o):
 		heal_pick += 1
 	match o.kind:
 		"event":

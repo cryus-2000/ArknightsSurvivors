@@ -309,7 +309,7 @@ func test_others_compat() -> void:
 
 ## 培养保底（§4.2 简化版）：最近培养的干员有合法成长卡时，升级三选一固定含它的成长卡；离队 / 养满自然失效
 func test_focus_guard() -> void:
-	if not Prog.focus_on():
+	if not game.guide.focus_on():
 		return
 	var cu = Bal._data["levelup"].get("catchup", 1)
 	Bal._data["levelup"]["catchup"] = 0   # 这里测旧保底（只看最近培养对象）；落后补偿下的保底见 test_catchup
@@ -351,10 +351,10 @@ func test_catchup() -> void:
 	Bal._data["levelup"]["catchup"] = 1
 	var m: float = Bal.v("levelup/catchup_mult", 1.8)
 	var cap: float = Bal.v("levelup/catchup_cap", 3.0)
-	ok(is_equal_approx(P.catchup_weight(4, 4), 1.0), "进度最高者权重 1")
-	ok(is_equal_approx(P.catchup_weight(1, 4), m), "落后 1 个精英阶段（3 节点）×%.1f" % m)
-	ok(is_equal_approx(P.catchup_weight(0, 6), minf(m * m, cap)), "落后 2 阶段按封顶")
-	ok(P.catchup_weight(0, 6) <= cap, "不超过封顶 %.1f" % cap)
+	ok(is_equal_approx(game.guide.catchup_weight(4, 4), 1.0), "进度最高者权重 1")
+	ok(is_equal_approx(game.guide.catchup_weight(1, 4), m), "落后 1 个精英阶段（3 节点）×%.1f" % m)
+	ok(is_equal_approx(game.guide.catchup_weight(0, 6), minf(m * m, cap)), "落后 2 阶段按封顶")
+	ok(game.guide.catchup_weight(0, 6) <= cap, "不超过封顶 %.1f" % cap)
 	# 造一个断层：德克萨斯（队长）比星熊 / 艾雅法拉领先 ≥ 3 节点
 	var tx = game.squad.get_op("texas")
 	var hs = game.squad.get_op("hoshiguma")
@@ -365,14 +365,14 @@ func test_catchup() -> void:
 	game.level = 8
 	var deep: Array = P.deep_cards()
 	var n0 := deep.size()
-	var ord: Array = P.catchup_order(deep.duplicate())
+	var ord: Array = game.guide.catchup_order(deep.duplicate())
 	ok(ord.size() == n0, "加权排序不增减卡（%d → %d）" % [n0, ord.size()])
-	ok(P.catchup_focus(deep, "texas") == "eyjafjalla", "最近培养对象领先最落后者 ≥ catchup_focus_gap 节点：保底让给最落后的艾雅法拉")
-	ok(P.catchup_focus(deep, "hoshiguma") == "hoshiguma", "最近培养对象本身不领先：保底不变")
+	ok(game.guide.catchup_focus(deep, "texas") == "eyjafjalla", "最近培养对象领先最落后者 ≥ catchup_focus_gap 节点：保底让给最落后的艾雅法拉")
+	ok(game.guide.catchup_focus(deep, "hoshiguma") == "hoshiguma", "最近培养对象本身不领先：保底不变")
 	# 统计：多次升级里第一深度位的归属，落后者应多于领先者
 	var first := {}
 	for k in 60:
-		var o2: Array = P.catchup_order(deep.duplicate())
+		var o2: Array = game.guide.catchup_order(deep.duplicate())
 		var who := str(o2[0].get("op", ""))
 		first[who] = first.get(who, 0) + 1
 	ok(int(first.get("eyjafjalla", 0)) > int(first.get("texas", 0)), "第一深度位：落后者多于领先者 %s" % str(first))
