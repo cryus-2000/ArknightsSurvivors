@@ -50,11 +50,24 @@
   "s3_dr": 0.2,
   "s3_quake_r": 120,
   "s3_quake_kb": 300,
-  "n_reach": 0.15,
-  "n_heavy": 1.15,
+  "_growth": "docs/202 成长节点去数值化（10-29，以下均为待试验参数）：节点 1「阻挡」block_*；节点 2「般若之重」heavy_*；节点 4B「热砂·落刃」blade_*；节点 5B「热砂·沸腾」boil_*",
+  "block_n": 3,
+  "block_dur": 2.0,
+  "block_slow": 0.6,
+  "heavy_n": 3,
+  "heavy_r": 90,
+  "heavy_mult": 0.3,
+  "heavy_force_dur": 6.0,
+  "heavy_force_cd": 6.0,
+  "blade_n": 2,
+  "blade_r": 60,
+  "blade_dur": 3.0,
+  "blade_mult": 0.2,
+  "blade_s2_r": 1.3,
+  "boil_frac": 0.5,
+  "boil_r": 50,
+  "boil_mult": 0.15,
   "wall_stun": 0.4,
-  "ember_dur": 4.0,
-  "ember_mult": 0.2,
   "stance_dmg": 0.2,
   "stance_dur": 5.0,
   "saw_every": 3,
@@ -65,12 +78,11 @@
   "saw_t_back": 0.3,
   "saw_out": 0.9,
   "saw_back": 0.75,
-  "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 盾墙 / 热砂余烬，节点 5 沿路线强化——wall2_* 盾墙·反震（格挡后以队长为中心一圈伤害 + 击退 + 限时减伤），ember2_* 热砂·熔流（荆棘期间命中减速 + 结束时热砂爆发）。数值为待试验参数",
+  "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 盾墙 / 热砂·落刃，节点 5 沿路线强化——wall2_* 盾墙·反震（格挡后以队长为中心一圈伤害 + 击退 + 限时减伤），热砂·沸腾（boil_*，docs/202）。数值为待试验参数",
   "wall2_mult": 0.8,
   "wall2_guard": 0.15,
   "wall2_guard_dur": 3.0,
-  "ember2_slow": 1.0,
-  "ember2_burst": 1.5
+  "_ember2": "ember2 / ember_* 旧参数（熔流 / 余烬）随 docs/202 删除"
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3446 / 防御 625 / 法抗 10%，近战主控有效生命 ×1.06",
@@ -836,22 +848,42 @@
     "basic",
     "knockback"
    ]
+  },
+  "般若之重": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "basic"
+   ]
+  },
+  "热砂沸腾": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
   }
  },
  "progression": [
   {
    "type": "custom",
    "id": "reach",
-   "name": "阔斩",
-   "icon": "growth_b_range",
-   "desc": "盾斧斩与技能范围 +{$n_reach*100}%"
+   "name": "阻挡",
+   "icon": "growth_armor",
+   "desc": "盾斧斩命中的敌人中，离她最近的 {$block_n} 名被阻挡 {$block_dur} 秒：移速 -{$block_slow*100}%，近战杂兵改追她、无法绕过；已被阻挡者再受击不刷新（精英效果减半，Boss 除外）"
   },
   {
    "type": "custom",
    "id": "heavy",
-   "name": "重刃",
+   "name": "般若之重",
    "icon": "growth_b_size",
-   "desc": "星熊造成的伤害 ×{$n_heavy}"
+   "desc": "盾斧斩一次命中 {$heavy_n} 名及以上敌人时，盾面压地：半径 {$heavy_r} 内受到 {$heavy_mult*100}% 伤害；队长的下一次受击必定被格挡（{$heavy_force_dur} 秒内有效，{$heavy_force_cd} 秒内至多一次）"
   },
   {
    "type": "elite",
@@ -878,20 +910,20 @@
     },
     "ember": {
      "id": "ember",
-     "name": "热砂·余烬",
+     "name": "热砂·落刃",
      "icon": "growth_t_field",
-     "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*$k_pow*100:1}% 攻击力的伤害"
+     "desc": "盾斧斩一次命中 {$blade_n} 名及以上敌人时，落点留下 {$blade_dur} 秒热砂（半径 {$blade_r}，每秒 {$blade_mult*$k_pow*100:1}% 攻击力）；「荆棘」期间每一斩都留，半径 ×{$blade_s2_r}"
     }
    },
-   "branch_desc": "「盾墙」在格挡时眩晕队长周围的敌人；「热砂·余烬」使「荆棘」留下的热砂持续造成额外伤害",
+   "branch_desc": "「盾墙」在格挡时眩晕队长周围的敌人；「热砂·落刃」使盾斧斩命中多个敌人时在落点留下热砂",
    "bot": "wall"
   },
   {
    "type": "custom",
    "id": "ember",
-   "name": "热砂·余烬",
+   "name": "热砂·落刃",
    "icon": "growth_t_field",
-   "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*$k_pow*100:1}% 攻击力的伤害",
+   "desc": "盾斧斩一次命中 {$blade_n} 名及以上敌人时，落点留下 {$blade_dur} 秒热砂（半径 {$blade_r}，每秒 {$blade_mult*$k_pow*100:1}% 攻击力）；「荆棘」期间每一斩都留，半径 ×{$blade_s2_r}",
    "routes": {
     "wall": {
      "id": "wall2",
@@ -901,9 +933,9 @@
     },
     "ember": {
      "id": "ember2",
-     "name": "热砂·熔流",
+     "name": "热砂·沸腾",
      "icon": "growth_t_field",
-     "desc": "「荆棘」期间盾斧斩命中处半径 {$sand_r} 内的敌人减速 {$ember2_slow} 秒；「荆棘」结束时自身周围半径 {$sand_r*1.5:0} 爆发一次热砂（{$ember2_burst*$k_pow*100:1}% 伤害）"
+     "desc": "盾斧斩命中站在热砂里的敌人时，该处热砂立即结算剩余伤害的 {$boil_frac*100}% 并熄灭，溅出半径 {$boil_r} 的火星（{$boil_mult*$k_pow*100:1}% 伤害）"
     }
    }
   },
@@ -976,6 +1008,7 @@
      {
       "verb": "field",
       "center": "last_hit",
+      "sand": true,
       "r": "$sand_r",
       "dur": "$sand_dur",
       "every": "$sand_tick",
@@ -1149,16 +1182,41 @@
   ],
   "progression": {
    "reach": {
-    "verb": "buff_self",
-    "stat": "op_range",
-    "op": "add",
-    "value": "$n_reach"
+    "trig": "on_hit_n",
+    "n": 1,
+    "_doc": "阻挡（docs/202 节点 1，原作特性「能够阻挡三个敌人」）：盾斧斩命中里离她最近的 block_n 名减速 + 近战杂兵改追她 block_dur 秒；已阻挡的不刷新",
+    "do": [
+     {
+      "verb": "block_mark",
+      "n": "$block_n",
+      "dur": "$block_dur",
+      "slow": "$block_slow"
+     }
+    ]
    },
    "heavy": {
-    "verb": "buff_self",
-    "stat": "dmg",
-    "op": "mult",
-    "value": "$n_heavy"
+    "trig": "on_hit_n",
+    "n": "$heavy_n",
+    "_doc": "般若之重（docs/202 节点 2）：一次命中 ≥ heavy_n 名 → 盾面压地一圈 + 队长下一次受击必定格挡（cd 内至多一次）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$heavy_r",
+      "mult": "$heavy_mult",
+      "src": "般若之重",
+      "tags": [
+       "basic",
+       "area"
+      ]
+     },
+     {
+      "verb": "force_block",
+      "ring_r": "$heavy_r",
+      "dur": "$heavy_force_dur",
+      "cd": "$heavy_force_cd"
+     }
+    ]
    },
    "wall": {
     "trig": "on_negate",
@@ -1177,41 +1235,81 @@
      }
     ]
    },
-   "ember": {
-    "trig": "every_n",
-    "n": 1,
-    "cond": "skill_active:1",
-    "do": [
-     {
-      "verb": "field",
-      "center": "last_hit",
-      "r": "$sand_r",
-      "dur": "$ember_dur",
-      "every": "$sand_tick",
-      "fx": [
-       {
-        "strip": "fx_hoshiguma_sand",
-        "layer": "floor",
-        "fit": 30
-       }
-      ],
-      "do": [
-       {
-        "shape": "circle",
-        "center": "target",
-        "r": "$sand_r",
-        "mult": "$ember_mult*$sand_tick",
-        "src": "热砂",
-        "tags": [
-         "skill",
-         "dot"
-        ],
-        "power": true
-       }
-      ]
-     }
-    ]
-   },
+   "ember": [
+    {
+     "_doc": "热砂·落刃（docs/202 节点 4B）：盾斧斩一次命中 ≥ blade_n 名 → 落点留热砂；荆棘期间每一斩都留，半径 ×blade_s2_r",
+     "trig": "on_hit_n",
+     "n": "$blade_n",
+     "cond": "!skill_active:1",
+     "do": [
+      {
+       "verb": "field",
+       "center": "last_hit",
+       "sand": true,
+       "r": "$blade_r",
+       "dur": "$blade_dur",
+       "every": "$sand_tick",
+       "fx": [
+        {
+         "strip": "fx_hoshiguma_sand",
+         "layer": "floor",
+         "fit": 30
+        }
+       ],
+       "do": [
+        {
+         "shape": "circle",
+         "center": "target",
+         "r": "$blade_r",
+         "mult": "$blade_mult*$sand_tick",
+         "src": "热砂",
+         "tags": [
+          "skill",
+          "dot"
+         ],
+         "power": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_hit_n",
+     "n": 1,
+     "cond": "skill_active:1",
+     "do": [
+      {
+       "verb": "field",
+       "center": "last_hit",
+       "sand": true,
+       "r": "$blade_r*$blade_s2_r",
+       "dur": "$blade_dur",
+       "every": "$sand_tick",
+       "fx": [
+        {
+         "strip": "fx_hoshiguma_sand",
+         "layer": "floor",
+         "fit": 30
+        }
+       ],
+       "do": [
+        {
+         "shape": "circle",
+         "center": "target",
+         "r": "$blade_r*$blade_s2_r",
+         "mult": "$blade_mult*$sand_tick",
+         "src": "热砂",
+         "tags": [
+          "skill",
+          "dot"
+         ],
+         "power": true
+        }
+       ]
+      }
+     ]
+    }
+   ],
    "elite1": {
     "trig": "on_negate",
     "_doc": "反击架势（docs/91 §4）：格挡后 stance_dur 秒内只乘普攻的局部倍率 atk +stance_dmg（同 key 刷新不叠），盾沿红光",
@@ -1319,45 +1417,19 @@
      }
     ]
    },
-   "ember2": [
-    {
-     "trig": "every_n",
-     "n": 1,
-     "cond": "skill_active:1",
-     "_doc": "热砂·熔流（路线 ember 节点 5）：荆棘期间每次盾斧斩命中处的敌人减速",
-     "do": [
-      {
-       "verb": "affect",
-       "center": "last_hit",
-       "r": "$sand_r",
-       "on_hit": [
-        {
-         "st": "slow",
-         "dur": "$ember2_slow"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "trig": "on_skill_end",
-     "skill": 1,
-     "_doc": "荆棘结束时自身周围热砂爆发",
-     "do": [
-      {
-       "shape": "circle",
-       "center": "self",
-       "r": "$sand_r*1.5",
-       "mult": "$ember2_burst",
-       "power": true,
-       "src": "热砂",
-       "tags": [
-        "skill"
-       ]
-      }
-     ]
-    }
-   ]
+   "ember2": {
+    "trig": "on_hit_n",
+    "n": 1,
+    "_doc": "热砂·沸腾（docs/202 节点 5B）：盾斧斩命中站在热砂里的敌人 → 该处热砂立刻结算剩余伤害的 boil_frac 并熄灭，溅一圈火星",
+    "do": [
+     {
+      "verb": "boil_sand",
+      "frac": "$boil_frac",
+      "spark_r": "$boil_r",
+      "spark_mult": "$boil_mult"
+     }
+    ]
+   }
   },
   "response": [
    {
