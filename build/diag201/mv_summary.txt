@@ -1,0 +1,51 @@
+== mv_trial.jsonl jobs 18 err 0
+paranoia     fight 115.6  taken/min 209.8 (178% maxhp/min)  TTK  33.7s  maxhp 128  hits/min 10.1  wins 5/6
+     bullet:orb                         n  93  med 12.9%  max 30.5%  raw med  19.4 max  41.1
+     shock_paranoia                     n  24  med 12.5%  max 22.3%  raw med  15.4 max  25.6
+     bullet:nova                        n   9  med  8.2%  max 15.0%  raw med  13.0 max  22.2
+     boss_paranoia:final_attack/        n   8  med 14.8%  max 22.5%  raw med  16.8 max  30.3
+     boss_paranoia:                     n   2  med 18.8%  max 18.8%  raw med  21.5 max  21.5
+     boss_paranoia:beam/                n   1  med 23.7%  max 23.7%  raw med  37.5 max  37.5
+     boss_paranoia:final_attack/追猎泡     n   1  med  8.4%  max  8.4%  raw med  13.3 max  13.3
+ishar        fight  67.3  taken/min  83.5 (68% maxhp/min)  TTK  88.2s  maxhp 128  hits/min 4.9  wins 5/6
+     boss_ishar:ishar_strike/歌声涟漪       n  25  med  7.6%  max 18.0%  raw med  12.0 max  20.6
+     boss_ishar:ishar_strike/           n  20  med 10.0%  max 13.0%  raw med  18.5 max  20.6
+     bullet:ishar_tear                  n   4  med 16.5%  max 17.5%  raw med  23.1 max  23.1
+     shock_ishar                        n   3  med 27.3%  max 30.3%  raw med  43.2 max  48.0
+     bullet:ishar_shard                 n   2  med 15.6%  max 15.6%  raw med  18.1 max  18.1
+     boss_ishar:ishar_line/大群之声         n   1  med  8.9%  max  8.9%  raw med  14.0 max  14.0
+     bullet:ishar_note                  n   1  med  8.1%  max  8.1%  raw med  15.0 max  15.0
+knight_boss  fight  81.2  taken/min 138.2 (99% maxhp/min)  TTK  60.3s  maxhp 128  hits/min 6.6  wins 5/6
+     bullet:boss_blade                  n  32  med 13.5%  max 25.1%  raw med  18.9 max  31.3
+     boss_knight_boss:final_attack/     n   5  med 13.5%  max 13.9%  raw med  21.5 max  25.0
+     boss_knight_boss:final_attack/踏冰裂阵 n   5  med 15.3%  max 23.6%  raw med  21.3 max  33.0
+     boss_knight_boss:final_attack/长枪回旋 n   5  med 23.4%  max 33.1%  raw med  32.9 max  50.5
+     boss_knight_boss:final_attack/雪幕劈  n   3  med 18.6%  max 37.7%  raw med  29.1 max  45.7
+     boss_knight_boss:final_attack/断潮劈击 n   3  med 14.8%  max 20.5%  raw med  26.2 max  29.1
+     boss_knight_boss:final_attack/冻潮夹击 n   2  med 17.0%  max 17.0%  raw med  33.0 max  33.0
+     boss_knight_boss:final_attack/冰枪封径 n   1  med 10.7%  max 10.7%  raw med  21.5 max  21.5
+== mv_trial.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+paranoia       115.60    24.75     8.09   246.50     9.60     0.67     0.18     0.00     0.00     0.13     0.04     0.09     0.09     0.18 {'cap': 1, 'win': 5}
+ishar           67.30    34.80     3.04   218.50     9.45     0.75     0.30     0.00     0.00     0.04     0.00     0.12     0.11     0.30 {'cap': 1, 'win': 5}
+knight_boss     81.15    44.20     2.25   259.50    12.55     0.79     0.32     0.00     0.00     0.04     0.02     0.11     0.10     0.32 {'cap': 1, 'win': 5}
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=26 max_hp=115 relics=13 leader=wisadel e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=158 relics=7 leader=skadi e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=186 relics=14 leader=kaltsit e2 ops=[]
+== mv_idle.jsonl
+LASER paranoia     beam/                      n 24  dur [1.6]  track [0.7]
+LASER paranoia     beam/凝视                    n 12  dur [1.3]  track [0.65]
+LASER ishar        ishar_echo/                n 40  dur [1.0]  track [0.0]
+LASER ishar        ishar_echo/共鸣              n 37  dur [1.0]  track [0.0]
+LASER ishar        ishar_echo/泪滴共鸣            n  6  dur [1.0]  track [0.0]
+LASER ishar        ishar_line/                n 12  dur [1.6, 1.9, 2.2]  track [1.0, 1.3, 1.6]
+LASER ishar        ishar_line/三线扫射            n  4  dur [1.3]  track [0.7]
+paranoia
+   orb/                         n 3398  v0  242  v1s  211  max  590  home 0
+   nova/                        n  434  v0  330  v1s  386  max  386  home 0
+ishar
+   ishar_shard/                 n  388  v0    0  v1s  161  max  280  home 0
+   ishar_tear/                  n  209  v0  233  v1s  233  max  333  home 30
+   ishar_note/                  n  123  v0  164  v1s  164  max  212  home 0
+knight_boss
+   boss_blade/                  n 1097  v0  281  v1s  281  max  412  home 0
