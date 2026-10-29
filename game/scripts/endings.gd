@@ -453,11 +453,11 @@ func _close() -> void:
 ## 安全的角落：「安全屋」三选一（原作安全屋的稍事休息 / 添加燃料 / 重整编制）
 func _open_rest() -> void:
 	opened_id = "rest"
-	var heal: float = float(deck_cfg.get("rest_heal", 0.4))
+	var pk: float = Bal.v("crate/pack_pct", 0.25)   # 稍事休息改给应急补给（docs/203 §3：回血走补给这条路）
 	var mh: float = float(deck_cfg.get("rest_maxhp", 0.05))
 	var li: int = int(deck_cfg.get("rest_light", 15))
 	var opts: Array = [
-		{"kind": "event", "id": "rest:0", "name": "稍事休息", "desc": "回复 %d%% 最大生命，队长最大生命 +%d%%" % [int(heal * 100.0), int(mh * 100.0)], "icon": "e_event", "chips": [], "cat": "安全的角落", "col": NodeIcons.COLS.rest},
+		{"kind": "event", "id": "rest:0", "name": "稍事休息", "desc": "补满护盾，身边落下 2 个应急补给（各回复 %d%% 最大生命），队长最大生命 +%d%%" % [int(pk * 100.0), int(mh * 100.0)], "icon": "e_event", "chips": [], "cat": "安全的角落", "col": NodeIcons.COLS.rest},
 		{"kind": "event", "id": "rest:1", "name": "添加燃料", "desc": "灯火 +%d" % li, "icon": "e_event", "chips": [["灯火 +%d" % li, Color(0.95, 0.89, 0.76)]], "cat": "安全的角落", "col": NodeIcons.COLS.rest},
 		{"kind": "event", "id": "rest:2", "name": "重整编制", "desc": "立即招募一名干员（编队已满时改为一次成长三选一）", "icon": "e_event", "chips": [], "cat": "安全的角落", "col": NodeIcons.COLS.rest},
 	]
@@ -468,7 +468,9 @@ func _rest(k: int) -> void:
 	match k:
 		0:
 			_max_hp(float(deck_cfg.get("rest_maxhp", 0.05)))
-			g.combat.heal(g.max_hp * float(deck_cfg.get("rest_heal", 0.4)), "安全屋")
+			g.shield = maxi(g.shield, g.shield_max)
+			for k2 in 2:
+				g.pickups.drop(g.ppos + Vector2(-36.0 + 72.0 * k2, 28.0), "pack", Bal.v("crate/pack_pct", 0.25))
 		1:
 			_light(float(deck_cfg.get("rest_light", 15)))
 		2:

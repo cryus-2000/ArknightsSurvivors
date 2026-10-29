@@ -67,6 +67,8 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 			"late_fuse": int(e.get("late_fuse", 0)),   # docs/74：源石锭熔铸后获得时，折算成这么多枚源石锭熔铸（锈蚀的铁锤）
 			"new_pool": bool(e.get("new", false)),   # docs/57 第二批实装：balance.json relic/new_pool = 0 时不进池（A/B 用）
 			"implemented": e.has("effects"), "first_batch": r.get("first_batch", false),
+			"pool": bool(e.get("pool", true)),       # 藏品精简（docs/203）：false = 不进任何来源，已持有的照常生效
+			"filler": bool(e.get("filler", false)),  # 填充件：出现权重 × relic/filler_weight（relic_pool_ids）
 			"shield_layer": (e.get("effects", []) as Array).any(func(x): return x is Dictionary and x.get("type") == "stat" and x.get("stat") == "shield_max" and float(x.get("value", 0)) > 0.0),   # 给护盾层数（relic/shield_weight）
 		}
 	return items.size()

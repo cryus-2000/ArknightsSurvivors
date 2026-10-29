@@ -209,13 +209,9 @@ func open_levelup() -> void:
 		can_offer = picks.size() < want - 1
 	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and can_offer and g.rng.randf() < chance:
 		picks.append(recruit[g.rng.randi() % recruit.size()])
-	# ---- 生存 / 机动 / 协同被动：种类上限 生存 4、机动 levelup/mobility_kinds（3）、协同 4（docs/83）
-	var passives: Array = g.doctor.passive_cards("doctor") + g.doctor.passive_cards("mobility") + g.doctor.passive_cards("squad") + g.doctor.passive_cards("fire")
-	# 医疗无人机：和被动卡同池的常规选项，没满级就一直在池里（2026-09-25）；2026-09-26 起开局不带，第一张卡是 Lv.1「加入」
-	var wl: int = g.weapons.get("drone", 0)
-	if wl < 5:
-		var W: Dictionary = D.WEAPONS.drone
-		passives.append({"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1})
+	# ---- 机动 / 协同 / 火力 / 流派被动：种类上限 机动 levelup/mobility_kinds（3）、其余 4（docs/83）；生存卡已停用（docs/203，属性只在认知塑造）
+	var passives: Array = g.doctor.passive_cards("doctor") + g.doctor.passive_cards("mobility") + g.doctor.passive_cards("squad") + g.doctor.passive_cards("fire") + g.doctor.passive_cards("lane")
+	# 医疗无人机卡已删（docs/203 §3：回血收成 5 条，入队台阶 / 补给 / 治疗干员 / 回血藏品 / 认知）
 	passives = weighted_order(passives)
 	for c in passives:
 		if picks.size() >= want:
@@ -311,6 +307,9 @@ func relic_pool_ids(for_shop := false) -> Array:
 		# 已拥有的藏品升级：出现率减半
 		if g.relics.has(r.id):
 			w *= 0.5
+		# 填充件（docs/203 精简：只给属性、留作填充的藏品）：出现权重 × relic/filler_weight
+		if r.get("filler", false):
+			w *= Bal.v("relic/filler_weight", 0.5)
 		# 后期降权（relic_effects.json 的 late_weight）：一次性源石锭 / 灯火 / 回血、商品打折，6:00 后几乎没价值，少占三选一的位置
 		if g.t > 360.0:
 			w *= float(r.get("late_weight", 1.0))

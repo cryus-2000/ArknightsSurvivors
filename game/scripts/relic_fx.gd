@@ -26,6 +26,7 @@ const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（
 const D = preload("res://scripts/data.gd")
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const Meta = preload("res://scripts/core/meta.gd")   # 队长攻击基数（改打法件的冲击 / 冲刺伤害，docs/203）
 
 var g
 var db: RefCounted
@@ -230,6 +231,8 @@ func core_locked() -> bool:
 
 
 func can_offer(r: Dictionary, for_shop: bool) -> bool:
+	if not r.get("pool", true):
+		return false   # 精简停用件（docs/203）
 	if for_shop and not r.shop_allowed:
 		return false
 	if not for_shop and r.rarity == "遭诅古物":
@@ -750,6 +753,7 @@ func tick(dt: float) -> void:
 		wrath_q = []
 		for p in q:
 			_wrath_blast(p)
+	_tick_trim()   # 改打法件的连带伤害（docs/203）
 	# 碎靶之手：3 秒没有术师命中就清空
 	if shatter > 0 and g.t - shatter_t > 3.0:
 		shatter = 0
@@ -1192,6 +1196,8 @@ func hit_mult(h: Dictionary, e: Dictionary = {}) -> float:
 		if o != null and o.pos != Vector2.INF:
 			var a: Dictionary = _rule_args("far_dmg")
 			m *= 1.0 + float(a.get("max", 0.5)) * clampf(o.pos.distance_to(e.pos) / float(a.get("at", 300.0)), 0.0, 1.0)
+	if not e.is_empty():
+		m *= _trim_mult(h, e)   # 改打法件（docs/203）
 	return m
 
 
@@ -1216,6 +1222,9 @@ func umbrella_interval_mult() -> float:
 		m /= 1.0 + float(a.get("max", 0.6)) * k
 	if not zones.is_empty():
 		m /= 1.0 + _zone_bonus("aspd")
+	# 《旧高卢地名源流考》（docs/203）：护盾满层时全队攻速
+	if rule("shield_full_haste") > 0 and g.shield_max > 0 and g.shield >= g.shield_max:
+		m /= 1.0 + float(_rule_args("shield_full_haste").get("value", 0.15))
 	return m
 
 
@@ -1231,6 +1240,10 @@ func taken_mult() -> float:
 	for x in temps:
 		if x.stat == "dmg_taken":
 			m *= maxf(0.0, 1.0 + x.value)   # 铁卫-临时要塞（docs/57 P8）
+	# 铁卫-高塔（docs/203）：每层护盾减伤
+	if rule("shield_dr") > 0 and g.shield > 0:
+		var sd: Dictionary = _rule_args("shield_dr")
+		m *= 1.0 - minf(float(sd.get("cap", 0.4)), float(sd.get("per", 0.08)) * float(g.shield))
 	return m
 
 
@@ -1392,7 +1405,8 @@ func on_death() -> bool:
 	return false
 
 
-func on_kill(e: Dictionary) -> void:
+func on_kill(e: Dictionary, h: Dictionary = {}) -> void:
+	_trim_on_kill(e, h)   # 改打法件（docs/203）
 	var dk: float = float(e.get("dk", 1.0))   # 怪物密度缩放过的普通怪：击杀权重 1/density（docs/50 §16），其余 1
 	if has_relic("medal_hand"):
 		perm_dmg = minf(0.3, perm_dmg + 0.001 * dk)
@@ -1452,6 +1466,7 @@ func single_hit_mult(_hit_count: int) -> float:
 func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 	if h.get("origin", "") == "relic":
 		return
+	_trim_on_hit(e, h, amount)   # 改打法件（docs/203）
 	# 吸血（docs/74 L1）：食腐者手杖的伤害显式排除（它的 origin 已是 relic，这里再保一道，防回路）
 	if amount > 0.0 and rule("lifesteal") > 0 and str(h.get("src", "")) != "食腐":
 		_lifesteal(minf(amount, maxf(0.0, float(e.get("hp", amount)))))
@@ -1579,3 +1594,233 @@ func _budget_sp(rid: String, oid: String, pct: float, cap: float) -> void:
 		var o = g.squad.get_op(oid)
 		if o != null:
 			o.gain_sp(add)
+
+
+## ---------------------------------------------------------------- 改打法件（藏品精简 docs/203 §1.1）
+## 规则名见 relic_effects.json（trim = play）。命中 / 击杀里登记的连带伤害一律排进 trim_q 下一帧结算（同岁怒，避免在伤害结算里递归）；
+## 连带伤害用「真实」描述符（origin relic、带 trim 标签），不再触发本节的任何效果，也不算吸血
+
+var trim_q: Array = []        # [kind, ...]：splash / thrust / burst / pass / freeze / chain / kb
+var crowd_cache := {}         # 近战聚怪（81）：干员 id -> [时刻, 身边敌人数]
+var thrust_n := {}            # 突刺（55）：干员 id -> 近战命中计数
+var dash_dodge_until := -1.0  # 舞者手链（75）：冲刺后闪避加成到这个时刻
+
+
+func _trim_op(h: Dictionary):
+	if h.get("origin", "") == "relic" or (h.get("tags", []) as Array).has("trim") or not h.has("op") or g.squad == null:
+		return null
+	return g.squad.get_op(str(h.op))
+
+
+func _is_weak_hit(e: Dictionary, h: Dictionary) -> bool:
+	var kind: String = str(h.get("kind", ""))
+	if kind == "真实":
+		return false
+	var wk: String = str(e.get("weak", ""))
+	return wk == kind or (wk == "双") or rule("all_weak") > 0
+
+
+func _ctrl_on(e: Dictionary) -> bool:
+	return float(e.get("stun", 0.0)) > 0.0 or float(e.get("slow", 0.0)) > 0.0
+
+
+## 伤害倍率部分（hit_mult 里调用；h 是出手干员的命中）
+func _trim_mult(h: Dictionary, e: Dictionary) -> float:
+	var m := 1.0
+	if float(e.get("expose_t", 0.0)) > g.t:
+		m *= 1.0 + float(_rule_args("weak_expose").get("mult", 0.2))   # 残破合影：破绽
+	if rule("ctrl_amp") > 0 and _ctrl_on(e):
+		m *= 1.0 + float(_rule_args("ctrl_amp").get("mult", 0.2))   # 凯旋号角
+	var o = _trim_op(h)
+	if o == null:
+		return m
+	var rg: String = str(h.get("range", ""))
+	if rg == "近战" and rule("melee_crowd") > 0 and o.in_lane("melee"):
+		var a: Dictionary = _rule_args("melee_crowd")
+		m *= 1.0 + minf(float(a.get("cap", 0.3)), float(a.get("per", 0.03)) * float(_crowd(o, float(a.get("r", 140.0)))))
+	elif rg == "远程" and rule("multi_far") > 0 and o.in_lane("multi") and o.pos != Vector2.INF:
+		var a2: Dictionary = _rule_args("multi_far")
+		m *= 1.0 + float(a2.get("max", 0.3)) * clampf(o.pos.distance_to(e.pos) / float(a2.get("at", 300.0)), 0.0, 1.0)
+	if rule("weak_crit") > 0 and o.in_lane("weak") and _is_weak_hit(e, h):
+		var a3: Dictionary = _rule_args("weak_crit")
+		if g.rng.randf() < float(a3.get("chance", 0.25)):
+			m *= 2.0
+			if not e.boss and o.pos != Vector2.INF:
+				trim_q.append(["kb", e, (e.pos - o.pos).normalized() * float(a3.get("kb", 160.0))])
+	return m
+
+
+## 身边敌人数（每名干员 0.25 秒查一次）
+func _crowd(o, r: float) -> int:
+	var c: Array = crowd_cache.get(o.id, [-1.0, 0])
+	if g.t - float(c[0]) >= 0.25:
+		c = [g.t, g.enemies_sys.query(o.pos, r).size()]
+		crowd_cache[o.id] = c
+	return int(c[1])
+
+
+## 命中后（on_hit 里调用；amount = 这次实际伤害）
+func _trim_on_hit(e: Dictionary, h: Dictionary, amount: float) -> void:
+	var o = _trim_op(h)
+	if o == null or amount <= 0.0:
+		return
+	var rg: String = str(h.get("range", ""))
+	if rg == "近战" and o.in_lane("melee"):
+		if rule("melee_sweep") > 0:
+			var a: Dictionary = _rule_args("melee_sweep")
+			if g.rng.randf() < float(a.get("chance", 0.15)):
+				trim_q.append(["splash", e, e.pos, float(a.get("r", 110.0)), amount * float(a.get("mult", 0.5)), -1])
+		if rule("melee_thrust") > 0:
+			var a2: Dictionary = _rule_args("melee_thrust")
+			thrust_n[o.id] = int(thrust_n.get(o.id, 0)) + 1
+			if int(thrust_n[o.id]) >= int(a2.get("every", 4)) and o.pos != Vector2.INF:
+				thrust_n[o.id] = 0
+				trim_q.append(["thrust", o.pos, (e.pos - o.pos).normalized(), float(a2.get("len", 220.0)), float(a2.get("w", 26.0)), amount * float(a2.get("mult", 1.0))])
+	elif rg == "远程" and rule("multi_split") > 0 and o.in_lane("multi"):
+		var a3: Dictionary = _rule_args("multi_split")
+		trim_q.append(["splash", e, e.pos, float(a3.get("r", 140.0)), amount * float(a3.get("mult", 0.4)), int(a3.get("n", 2))])
+	if rule("weak_expose") > 0 and o.in_lane("weak") and _is_weak_hit(e, h):
+		e["expose_t"] = g.t + float(_rule_args("weak_expose").get("dur", 3.0))
+	if rule("summon_echo") > 0 and o.in_lane("summon") and g.combat.is_followup(h):
+		if g.rng.randf() < float(_rule_args("summon_echo").get("chance", 0.2)):
+			trim_q.append(["splash", null, e.pos, 1.0, amount, 0, e])   # 再追击一次：只打这名敌人
+
+
+## 击败后（on_kill 里调用；h = 击杀那一下的描述符，可能为空）
+func _trim_on_kill(e: Dictionary, h: Dictionary) -> void:
+	if e.boss:
+		return
+	if rule("ctrl_freeze") > 0 and _ctrl_on(e):
+		var a: Dictionary = _rule_args("ctrl_freeze")
+		trim_q.append(["freeze", e.pos, float(a.get("r", 120.0)), float(a.get("stun", 1.5))])
+	if h.is_empty():
+		return
+	var o = _trim_op(h)
+	if o == null:
+		return
+	if rule("summon_burst") > 0 and o.in_lane("summon") and g.combat.is_followup(h):
+		var a2: Dictionary = _rule_args("summon_burst")
+		trim_q.append(["splash", e, e.pos, float(a2.get("r", 90.0)), float(e.maxhp) * float(a2.get("pct", 0.3)), -1, null, "殉爆"])
+	if rule("weak_pass") > 0 and o.in_lane("weak") and str(e.get("weak", "")) != "":
+		trim_q.append(["pass", e.pos, str(e.weak), float(_rule_args("weak_pass").get("r", 160.0))])
+
+
+## 高闪相机（98）：眩晕自然结束（enemies.gd 每帧扣眩晕时调用）
+func stun_ended(e: Dictionary) -> void:
+	if e.boss or e.dead or float(e.get("chain_t", 0.0)) > g.t:
+		return
+	var a: Dictionary = _rule_args("ctrl_chain")
+	trim_q.append(["chain", e, float(a.get("r", 90.0)), float(a.get("stun", 0.5))])
+
+
+## 安洁莉娜的创想（103）：击退附带眩晕（enemies.apply_kb 调用）
+func kb_stun(e: Dictionary, v: Vector2) -> void:
+	if e.boss or e.dead:
+		return
+	var a: Dictionary = _rule_args("kb_stun")
+	if v.length() >= float(a.get("min", 40.0)):
+		g.enemies_sys.add_cc(e, float(a.get("stun", 0.4)))
+
+
+## 舞者手链（75）：冲刺开始（game._try_dash 调用）
+func on_dash(from: Vector2, dir: Vector2, dist: float) -> void:
+	if rule("dash_dodge") <= 0:
+		return
+	var a: Dictionary = _rule_args("dash_dodge")
+	dash_dodge_until = g.t + float(a.get("dur", 1.5))
+	trim_q.append(["thrust", from, dir, dist, float(a.get("w", 40.0)), Meta.leader_atk(g) * float(a.get("mult", 1.0))])
+
+
+## 闪避加成（combat.enemy_hit 的闪避率里加）
+func dodge_extra() -> float:
+	if g.t < dash_dodge_until:
+		return float(_rule_args("dash_dodge").get("dodge", 0.4))
+	return 0.0
+
+
+## 嵌体甲片（200）：生成一层护盾（game.gd 护盾回复时调用）
+func on_shield_gain() -> void:
+	if rule("shield_pulse") <= 0:
+		return
+	var a: Dictionary = _rule_args("shield_pulse")
+	var r: float = float(a.get("r", 120.0))
+	_area("真实", g.ppos, r, Meta.leader_atk(g) * float(a.get("mult", 1.5)))
+	g.fx.append({"kind": "ring", "pos": g.ppos, "r": r, "life": 0.35, "max": 0.35, "col": Color(0.55, 0.9, 1.0)})
+
+
+func _tick_trim() -> void:
+	if trim_q.is_empty():
+		return
+	var q: Array = trim_q
+	trim_q = []
+	var hd: Dictionary = g.combat.make_hit("真实", ["trim"])
+	for x in q:
+		match str(x[0]):
+			"splash":
+				var p: Vector2 = x[2]
+				var r: float = x[3]
+				var n: int = x[5]
+				var cands: Array = []
+				if n == 0:
+					cands = [x[6]]
+				else:
+					for j in g.enemies_sys.query(p, r + 24.0):
+						var e2: Dictionary = g.enemies[j]
+						if e2.dead or e2.chest or (x[1] != null and is_same(e2, x[1])) or e2.pos.distance_to(p) >= r + e2.r:
+							continue
+						cands.append(e2)
+					if n > 0 and cands.size() > n:
+						cands.sort_custom(func(a, b): return a.pos.distance_squared_to(p) < b.pos.distance_squared_to(p))
+						cands = cands.slice(0, n)
+				for e2 in cands:
+					if not e2.dead:
+						g.combat.damage(e2, float(x[4]), hd)
+						if n > 0:
+							g.fx.append({"kind": "tracer", "a": p, "b": e2.pos, "life": 0.15, "max": 0.15, "col": Color(1.0, 0.85, 0.5), "wid": 4.0})
+				if n < 0:
+					g.fx.append({"kind": "ring", "pos": p, "r": r, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.75, 0.45) if x.size() < 8 else Color(0.75, 1.0, 0.6)})
+			"thrust":
+				var a0: Vector2 = x[1]
+				var dir: Vector2 = x[2]
+				var ln: float = x[3]
+				var w: float = x[4]
+				var b0: Vector2 = a0 + dir * ln
+				for j in g.enemies_sys.query((a0 + b0) * 0.5, ln * 0.5 + w + 24.0):
+					var e3: Dictionary = g.enemies[j]
+					if e3.dead or e3.chest:
+						continue
+					if Geometry2D.get_closest_point_to_segment(e3.pos, a0, b0).distance_to(e3.pos) < w + e3.r:
+						g.combat.damage(e3, float(x[5]), hd)
+				g.fx.append({"kind": "tracer", "a": a0, "b": b0, "life": 0.18, "max": 0.18, "col": Color(1.0, 0.9, 0.6), "wid": w * 0.5})
+			"freeze", "chain":
+				var c: Vector2 = x[1] if str(x[0]) == "freeze" else (x[1] as Dictionary).pos
+				var rr: float = x[2]
+				for j in g.enemies_sys.query(c, rr + 24.0):
+					var e4: Dictionary = g.enemies[j]
+					if e4.dead or e4.chest or e4.boss or e4.pos.distance_to(c) >= rr + e4.r:
+						continue
+					if str(x[0]) == "chain":
+						if is_same(e4, x[1]):
+							continue
+						e4["chain_t"] = g.t + float(x[3]) + 0.2   # 被波及的不再炸开
+					g.enemies_sys.add_cc(e4, float(x[3]))
+				g.fx.append({"kind": "ring", "pos": c, "r": rr, "life": 0.3, "max": 0.3, "col": Color(0.6, 0.85, 1.0)})
+			"pass":
+				var pp: Vector2 = x[1]
+				var best = null
+				var bd: float = float(x[3])
+				for j in g.enemies_sys.query(pp, bd + 24.0):
+					var e5: Dictionary = g.enemies[j]
+					if e5.dead or e5.chest or e5.boss or str(e5.get("weak", "")) != "":
+						continue
+					var d: float = e5.pos.distance_to(pp)
+					if d < bd:
+						bd = d
+						best = e5
+				if best != null:
+					best.weak = str(x[2])
+					g.fx.append({"kind": "tracer", "a": pp, "b": best.pos, "life": 0.2, "max": 0.2, "col": Color(1.0, 0.5, 0.5), "wid": 4.0})
+			"kb":
+				var e6: Dictionary = x[1]
+				if not e6.dead:
+					g.enemies_sys.apply_kb(e6, x[2])

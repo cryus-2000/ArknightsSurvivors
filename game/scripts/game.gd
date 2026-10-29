@@ -1897,6 +1897,7 @@ func _try_dash() -> void:
 	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
 	dash_cd += dash_cd_full()
+	rfx.on_dash(ppos, dash_dir, dash_dist())   # 舞者手链（docs/203）：冲刺后闪避 + 路线伤害
 	dash_used = true
 	telemetry.dashes += 1   # 作战记录（docs/77）
 	combat.on_dash_break()   # 控制遥测：正在冻结就记一次冲刺挣脱
@@ -1998,6 +1999,7 @@ func _update(dt: float) -> void:
 		if shield_cd <= 0.0:
 			shield += 1
 			shield_cd = shield_every
+			rfx.on_shield_gain()   # 嵌体甲片（docs/203）：生成护盾时冲击
 			shield_pop = 0.4
 			Sfx.play("relic", -12.0, 1.6, 0.0)
 	shield_flash = maxf(0.0, shield_flash - dt)

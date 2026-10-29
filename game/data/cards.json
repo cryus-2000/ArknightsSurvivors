@@ -1,5 +1,5 @@
 {
- "_doc": "升级卡（docs/23 §6、docs/83；10-22 由 characters/doctor.gd 的常量 PASSIVES / filler_cards 原样迁出，docs/126 A1）。passives 的键序就是出卡与机器人遍历的顺序，改顺序会改同 seed 结果。字段：name / desc（卡面；数字随 balance.json 变的几张由 doctor.passive_desc 现算）/ max 可选次数（> 90 = 不显示次数）/ cat 类别（doctor 生存、mobility 机动、squad 协同）/ 效果 stat + op（flat / add / mult）+ value，或 value_bal [balance.json 路径, 缺省]（invert: true = 取 1 − 值）/ scope（squad = 全队干员作用域）。新卡只填这里：效果走属性系统，卡面预览缺省写「属性 现值 → 选中后」，要特别写法再到 doctor.passive_preview 加一支。图标 growth_<id>。fillers：其他类别都满时的补给卡，effect 只认 heal_pct / lamp / stat",
+ "_doc": "升级卡（docs/23 §6、docs/83；10-22 由 characters/doctor.gd 的常量 PASSIVES / filler_cards 原样迁出，docs/126 A1）。passives 的键序就是出卡与机器人遍历的顺序，改顺序会改同 seed 结果。字段：name / desc（卡面；数字随 balance.json 变的几张由 doctor.passive_desc 现算）/ max 可选次数（> 90 = 不显示次数）/ cat 类别（doctor 生存、mobility 机动、squad 协同）/ 效果 stat + op（flat / add / mult）+ value，或 value_bal [balance.json 路径, 缺省]（invert: true = 取 1 − 值）/ scope（squad = 全队干员作用域）。新卡只填这里：效果走属性系统，卡面预览缺省写「属性 现值 → 选中后」，要特别写法再到 doctor.passive_preview 加一支。图标 growth_<id>。fillers：其他类别都满时的补给卡，effect 只认 heal_pct / lamp / stat 精简（docs/203，10-30）：pool = false 的卡不再出现（生存 6 张、协同·迅 / 协同·广、填充「急救补给」）；cat = lane 是流派卡，requires: lane:<键> = 编队里有该流派干员才出。",
  "passives": {
   "hp": {
    "name": "坚韧",
@@ -8,7 +8,8 @@
    "cat": "doctor",
    "stat": "max_hp",
    "op": "flat",
-   "value": 20.0
+   "value": 20.0,
+   "pool": false
   },
   "regen": {
    "name": "自愈",
@@ -20,7 +21,8 @@
    "value_bal": [
     "sustain/regen_card",
     0.6
-   ]
+   ],
+   "pool": false
   },
   "armor": {
    "name": "硬化",
@@ -33,7 +35,8 @@
     "growth/armor_pct",
     0.08
    ],
-   "invert": true
+   "invert": true,
+   "pool": false
   },
   "dodge": {
    "name": "水影",
@@ -42,7 +45,8 @@
    "cat": "doctor",
    "stat": "dodge",
    "op": "flat",
-   "value": 0.05
+   "value": 0.05,
+   "pool": false
   },
   "pickup": {
    "name": "感知",
@@ -51,7 +55,8 @@
    "cat": "doctor",
    "stat": "pickup",
    "op": "mult",
-   "value": 1.3
+   "value": 1.3,
+   "pool": false
   },
   "wick": {
    "name": "护灯",
@@ -60,7 +65,8 @@
    "cat": "doctor",
    "stat": "light_decay",
    "op": "mult",
-   "value": 0.85
+   "value": 0.85,
+   "pool": false
   },
   "speed": {
    "name": "轻盈",
@@ -131,7 +137,8 @@
    "stat": "op_aspd",
    "op": "add",
    "value": 0.06,
-   "scope": "squad"
+   "scope": "squad",
+   "pool": false
   },
   "squad_range": {
    "name": "协同·广",
@@ -141,7 +148,8 @@
    "stat": "op_range",
    "op": "add",
    "value": 0.08,
-   "scope": "squad"
+   "scope": "squad",
+   "pool": false
   },
   "squad_crit": {
    "name": "协同·专",
@@ -164,6 +172,70 @@
    "value": 2.0,
    "scope": "squad",
    "_doc": "10-23 用户定：每张 +2、可叠 2 次（最多穿 4 个），穿过后的目标伤害不减；只在编队有远程普攻（子弹能穿透的）干员时进卡池；不影响技能弹幕；与穿甲弹同在时藏品全穿、卡层数失效"
+  },
+  "lane_melee": {
+   "name": "近战·扩域",
+   "desc": "近战扩域干员攻击范围 +12%",
+   "max": 4,
+   "cat": "lane",
+   "requires": "lane:melee",
+   "stat": "op_range",
+   "op": "add",
+   "value": 0.12,
+   "scope": "lane:melee"
+  },
+  "lane_multi": {
+   "name": "多弹·连射",
+   "desc": "多弹火力干员攻击速度 +10%",
+   "max": 4,
+   "cat": "lane",
+   "requires": "lane:multi",
+   "stat": "op_aspd",
+   "op": "add",
+   "value": 0.1,
+   "scope": "lane:multi"
+  },
+  "lane_summon": {
+   "name": "召唤·协击",
+   "desc": "召唤驻场干员的追击与召唤物伤害 +10%",
+   "max": 4,
+   "cat": "lane",
+   "requires": "lane:summon",
+   "stat": "followup_dmg",
+   "op": "add",
+   "value": 0.1,
+   "scope": "lane:summon"
+  },
+  "lane_control": {
+   "name": "控场·延时",
+   "desc": "眩晕、束缚、减速的持续时间 +15%",
+   "max": 4,
+   "cat": "lane",
+   "requires": "lane:control",
+   "stat": "control_dur",
+   "op": "add",
+   "value": 0.15
+  },
+  "lane_weak": {
+   "name": "弱点·洞察",
+   "desc": "弱点收割干员的弱点伤害额外 +10%",
+   "max": 4,
+   "cat": "lane",
+   "requires": "lane:weak",
+   "stat": "weak_bonus",
+   "op": "flat",
+   "value": 0.1,
+   "scope": "lane:weak"
+  },
+  "lane_shield": {
+   "name": "护盾·充能",
+   "desc": "队长护盾生成间隔 -8%",
+   "max": 3,
+   "cat": "lane",
+   "requires": "lane:shield",
+   "stat": "shield_interval",
+   "op": "add",
+   "value": -0.08
   }
  },
  "fillers": [
@@ -172,7 +244,8 @@
    "name": "急救补给",
    "desc": "队长立刻回复 30% 最大生命",
    "effect": "heal_pct",
-   "value": 0.3
+   "value": 0.3,
+   "pool": false
   },
   {
    "id": "oil",

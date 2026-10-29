@@ -65,7 +65,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.dmg_src = dmg_src
 	if g.demo_op != "" and g.demo_enemy == "":
 		return
-	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
+	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + g.rfx.dodge_extra() + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
 		g.invuln = 0.3
 		Sfx.play("dodge", -4.0)
 		g.vfx.add_text(g.ppos + Vector2(0, -80), "闪避", Color(0.6, 0.85, 1.0), 16)
@@ -1280,7 +1280,7 @@ func heal(v: float, src: String = "其他", sub: String = "") -> void:
 func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if not h.is_empty():
 		g.hit = h
-	g.rfx.on_kill(e)
+	g.rfx.on_kill(e, h)
 	if e.dead:
 		return
 	e.dead = true
