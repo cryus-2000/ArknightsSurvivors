@@ -688,6 +688,8 @@ func _v2_chips(op: Dictionary) -> Array:
 			out.append(["交换藏品", C_GAIN])
 		if o.has("heal"):
 			out.append(["回复 %d%%" % int(round(float(o.heal) * 100.0)), Color(0.55, 1.0, 0.6)])
+		if o.has("stat"):
+			out.append([str(o.stat.get("text", "")), C_COST if o.stat.get("cost", false) else C_GAIN])
 	return out
 
 
@@ -806,6 +808,13 @@ func _apply_op(x: Dictionary) -> void:
 		_ev_n += 1
 		g.rfx._apply_stat("sp_gain", "mult", 1.0 + float(x.sp_gain), "event:sp%d" % _ev_n, "")
 		g.vfx.show_banner("全队技力回复 +%d%%" % int(round(float(x.sp_gain) * 100.0)))
+	if x.has("stat"):
+		# 通用属性改动（docs/184 §10，10-29 用户审定）：{key, mult, text, cost?, v?}；key 是 stat_defs 里的属性（elite_dmg / enemy_ranged_cd / nerve_taken …），
+		# text 是卡面与横幅写法，cost = true 时标红、算代价；v = 机器人估值（V）
+		var st: Dictionary = x.stat
+		_ev_n += 1
+		g.rfx._apply_stat(str(st.key), "mult", float(st.get("mult", 1.0)), "event:st%d" % _ev_n, "")
+		g.vfx.show_banner(str(st.get("text", "")))
 	if str(x.get("elite_up", "")) == "lead":
 		_elite_up(g.ch)
 	if x.has("threat"):
@@ -1320,6 +1329,8 @@ func _opt_cost(op: Dictionary) -> bool:
 	for x in op.get("ops", []):
 		if float(x.get("hp_pct", 0.0)) < 0.0 or float(x.get("maxhp_pct", 0.0)) < 0.0 or int(x.get("ingots", 0)) < 0:
 			return true
+		if x.has("stat") and x.stat.get("cost", false):
+			return true
 		for k in ["curse", "away", "leave", "threat", "ingots_all", "trouble", "squad_now"]:
 			if x.has(k):
 				return true
@@ -1356,6 +1367,8 @@ func _opt_value(op: Dictionary) -> float:
 			s += 1.0 if g.squad.is_full() else 3.0
 		if x.has("sp_gain"):
 			s += 1.5
+		if x.has("stat"):
+			s += float(x.stat.get("v", -1.0 if x.stat.get("cost", false) else 1.0))
 		if x.has("shield"):
 			s += 0.6 * float(x.shield)
 		if x.has("elite_up"):
