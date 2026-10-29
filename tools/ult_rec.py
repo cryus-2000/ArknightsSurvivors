@@ -29,6 +29,10 @@ _ALL20 = "angelina exusiai eyjafjalla gladiia hoshiguma irene kaltsit lappland l
 for _op in _ALL20:
     _mates = [m for m in ["saria", "exusiai", "lappland"] if m != _op][:2]
     CLIPS["u_" + _op] = (_op, ",".join(_mates), [])
+# 20 人技能连携各一段（l_<干员>）：队长斯卡蒂（接的是斯卡蒂本人时队长换塞雷娅）+ 这一名队友，61.2 秒起队长每 3 秒放一次技能
+_LINK = ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"]
+for _op in _ALL20:
+    CLIPS["l_" + _op] = ("saria" if _op == "skadi" else "skadi", _op, _LINK, 60.6)
 ap = argparse.ArgumentParser()
 ap.add_argument("--clips", default=",".join(CLIPS)); ap.add_argument("--at", type=float, default=30.0); ap.add_argument("--secs", type=float, default=14.0)
 ap.add_argument("--tag", default="now"); ap.add_argument("--jobs", type=int, default=3); ap.add_argument("--extra", default="")

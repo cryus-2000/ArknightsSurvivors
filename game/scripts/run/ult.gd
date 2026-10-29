@@ -113,7 +113,7 @@ var cutins: Array = []      # 立绘切入条带（HUD 画）：{"id", "name", "
 
 # ---- 统计（批跑汇总 / ult_bench）
 var stats := {"ult": 0, "cult": 0, "combo": 0, "combo_auto": 0, "combo_e": 0, "combo_up": 0, "lit": 0, "miss": 0,
-	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0}
+	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "link_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0}
 
 
 func _init(game) -> void:
@@ -521,6 +521,7 @@ func _fire_head(auto: bool) -> void:
 	var o = q.o
 	if q.info.has("link"):   # 技能连携：接进那个技能，不走连携冷却
 		var la: Dictionary = Link.fire(self, o, q.info)
+		stats.link_by[str(o.id)] = int(stats.link_by.get(str(o.id), 0)) + 1   # 遥测：每人技能连携出手次数
 		stats.combo += 1
 		if auto:
 			stats.combo_auto += 1
@@ -1403,5 +1404,5 @@ func _combo_hit_fx(o, pos: Vector2) -> void:
 ## 批跑汇总（autotest / bot 结果行带上）
 func report() -> Dictionary:
 	return {"ult": stats.ult, "cult": stats.cult, "combo": stats.combo, "combo_auto": stats.combo_auto, "combo_up": stats.combo_up,
-		"lit": stats.lit, "lit_by": stats.lit_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
+		"lit": stats.lit, "lit_by": stats.lit_by, "link_by": stats.link_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
 		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1)}
