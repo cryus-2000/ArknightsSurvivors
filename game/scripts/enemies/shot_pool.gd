@@ -166,12 +166,18 @@ func _final_speed(b: Dictionary) -> void:
 			b[f] = minf(float(b[f]), maxf(Bal.v("boss/spd_cap", 380.0), float(b[f]) / k))
 
 
+var _spd_cap2 := 0.0
+
+
 func update_ebullets(dt: float) -> void:
+	_spd_cap2 = pow(Bal.v("boss/spd_cap", 440.0), 2.0)
 	for b in g.ebullets:
 		if b.life <= 0.0:
 			continue
 		if not b.has("spd_k") and b.get("boss", false):
 			_final_speed(b)
+		elif float(b.get("spd_k", 1.0)) > 1.0 and b.vel.length_squared() > _spd_cap2:
+			b.vel = b.vel.normalized() * sqrt(_spd_cap2)   # 放大过的弹被各脚本逐帧加速时也不超过 boss/spd_cap（云端测得泡影最高 590）
 		if b.get("home", false):
 			var want: Vector2 = (g.ppos + Vector2(0, -14) - b.pos).normalized() * b.vel.length()
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
