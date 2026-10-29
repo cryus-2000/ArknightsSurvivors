@@ -122,14 +122,32 @@ static func _exu_muzzle(o, p: Dictionary) -> Vector2:
 static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 	var pool: Array = o.aim_targets(maxi(n * 3, 8), rr, o.pos)
 	var mob_first: bool = o.prio_mode() == 1 and not o.manual_attack()
+	var ref: Vector2 = o.pos   # 距离的参照点：护航时是队长（docs/202）
+	var prefer := false        # 对空优先：受控目标排最前（docs/202）
+	var escorting := false
+	if o.tags_all.has("verb.escort") or o.tags_all.has("verb.aim_prefer"):   # docs/202：没有这两个节点的人一条分支都不多走
+		prefer = not _exu_active(o, "verb.aim_prefer").is_empty()
+		var escs: Array = _exu_active(o, "verb.escort")
+		if not escs.is_empty() and _exu_escort_on(o, escs[0]):
+			escorting = true
+			ref = o.g.ppos
+			mob_first = false
+			pool = []
+			for j in o.query_ids(o.pos, rr):
+				var ee: Dictionary = o.g.enemies[j]
+				if not ee.dead and not ee.chest and ee.pos.distance_to(o.pos) <= rr:
+					pool.append(ee)
+		o.ext["esc_on"] = escorting
 	var keyed: Array = []
 	for i in pool.size():
 		var e = pool[i]
 		if e.dead:
 			continue
-		var d: float = float(i) if mob_first else o.pos.distance_to(e.pos)
-		if (e.elite or e.boss) and not mob_first:
+		var d: float = float(i) if mob_first else ref.distance_to(e.pos)
+		if (e.elite or e.boss) and not mob_first and not escorting:
 			d /= maxf(1.0, prio)
+		if prefer and _exu_controlled(o.g, e) and o.hittable(e):
+			d -= 5.0e8
 		if not o.hittable(e):
 			d += 1.0e9   # 打不动的（无敌 Boss 等，op_api.hittable）垫底，只剩它们时照旧
 		keyed.append([d, int(e.id), e])
@@ -137,7 +155,7 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 	var out: Array = []
 	for k in mini(n, keyed.size()):
 		out.append(keyed[k][2])
-	if not mob_first and not pool.is_empty() and pool[0].boss and o.hittable(pool[0]) and (out.is_empty() or not is_same(out[0], pool[0])):
+	if not mob_first and not escorting and not (prefer and not out.is_empty() and _exu_controlled(o.g, out[0])) and not pool.is_empty() and pool[0].boss and o.hittable(pool[0]) and (out.is_empty() or not is_same(out[0], pool[0])):
 		out.erase(pool[0])
 		out.push_front(pool[0])   # 保留 op_api 的 Boss 优先（ai/boss_focus）
 		if out.size() > n:
@@ -239,6 +257,15 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 	var ap: Array = _exu_ammo_patch(o) if main else [-1, {}]
 	var mfx: String = str(p.get("muzzle_fx", "fx_exusiai_muzzle"))
 	var ammo_round := false   # 这一轮用的是冲锋模式的强力弹（只看第一发，同枪口焰）
+	var esc_kb := 0.0         # docs/202 护航射击：被围时子弹额外击退
+	var trb: Dictionary = {}  # docs/202 曳光弹：verb.tracer 积木（每 every 发一枚）
+	if main and (o.tags_all.has("verb.escort") or o.tags_all.has("verb.tracer")):
+		if bool(o.ext.get("esc_on", false)):
+			for esc in _exu_active(o, "verb.escort"):
+				esc_kb = float(esc.get("kb", 0.0))
+		var trs: Array = _exu_active(o, "verb.tracer")
+		if not trs.is_empty():
+			trb = trs.back()   # 收网（5A）排在曳光弹（4A）之后，取它的 max
 	for k in n:
 		var q := p
 		if ap[0] >= 0 and int(st.ammo[ap[0]]) > 0:
@@ -264,9 +291,15 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		var oh: Array = q.get("on_hit", [])
 		if last and q.has("last_on_hit"):
 			oh = oh + q.last_on_hit
+		var tr_b: Dictionary = {}
+		if not trb.is_empty():
+			st["tr_n"] = int(st.get("tr_n", 0)) + 1
+			if int(st.tr_n) % maxi(1, int(trb.every)) == 0:
+				tr_b = trb
+				btex = "proj_exusiai_bullet_t3"   # 曳光弹：金色弹体
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
-				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)), "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true})
+				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
 	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
 	if not fan:
 		# 枪声跟出弹同一帧：每一轮射击一声（连射的后几轮、掩护射击补射也各一声；原来整个普攻出手只在 _release_body 末尾响一声，技能连射靠发动时的预混音频）。
@@ -315,6 +348,11 @@ static func _exu_bullets(o, dt: float) -> void:
 	var ve: float = o.vs_elite()
 	var rics: Array = _exu_active(o, "verb.ricochet")
 	var ric: Dictionary = rics[0] if not rics.is_empty() else {}
+	var pref: Dictionary = {}   # docs/202 对空优先
+	if o.tags_all.has("verb.aim_prefer"):
+		var prs: Array = _exu_active(o, "verb.aim_prefer")
+		if not prs.is_empty():
+			pref = prs[0]
 	var spawn: Array = []
 	for bu in st.bul:
 		bu.p += bu.v * dt
@@ -332,6 +370,7 @@ static func _exu_bullets(o, dt: float) -> void:
 				continue
 			var pm: float = o.atk_pierce_mult(bu.hit.size()) if bu.get("main", false) else 1.0   # 穿甲弹：每穿过一名 −15%（10-23）
 			bu.hit[e.id] = true
+			var was_ctrl: bool = not pref.is_empty() and bu.get("main", false) and _exu_controlled(g, e)   # docs/202：打中时它已受控
 			var sk: Array = el_stack_hit(o, e, str(bu.src))   # 精英化段（st.stack）：[伤害倍率, 满层命中火花（"" = 照旧）]
 			o.log_hit(bu.src, bu.tags)
 			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm)
@@ -342,6 +381,14 @@ static func _exu_bullets(o, dt: float) -> void:
 				o.apply_kb(e, bu.v.normalized() * float(bu.kb) * (0.3 if e.elite else 1.0))   # 同 melee_hit：精英 ×0.3、Boss 不受
 			for s in bu.on_hit:
 				apply_status(o, e, s)
+			if was_ctrl:   # 对空优先：打中受控目标命中即停（不再穿透），目标追加定身 pin 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）
+				bu.pierce = 0
+				if not e.dead and not e.boss and g.t - float(e.get("exu_pin", -99.0)) >= 1.0:
+					e["exu_pin"] = g.t
+					o.add_cc_growth(e, float(pref.pin) * (0.5 if e.elite else 1.0))
+					o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 14.0, "r0": float(e.r), "life": 0.25, "col": Color(1.0, 0.85, 0.35), "w": 2.5, "alpha": 0.95})
+			if not e.dead and not bu.get("tr", {}).is_empty():   # 曳光弹命中：标记
+				_exu_mark(o, e, bu.tr)
 			o._sfx_op("hit")
 			o.spawn_fx_sprite(str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
 			if bu.ric and not ric.is_empty() and g.rng_op.randf() < float(ric.get("chance", 0.0)):
@@ -406,6 +453,10 @@ static func exu_exec(o, b: Dictionary, at: Vector2) -> void:
 				add = float(b.add_lit)
 			add *= float(o.kill_w)   # 击杀触发时按击杀权重（密度 0.4 下一只算 2.5 只）；非击杀触发时 kill_w = 1
 			st.cnt[cn] = minf(cap, float(st.cnt.get(cn, 0.0)) + add)
+			if b.has("text"):   # docs/202 曳光弹·收网：弹匣格金色闪动 + 飘字
+				var gold := Color(1.0, 0.85, 0.35)
+				o.float_text(o.pos + Vector2(0, -78), "%s +%d" % [str(b.text), int(round(add))], gold, 14)
+				o.fx({"kind": "ring", "pos": o.pos + Vector2(0, -30), "r": 26.0, "r0": 8.0, "life": 0.3, "col": gold, "w": 3.0, "alpha": 0.95})
 		"verb.attack_lock":
 			var st2 := exu_st(o)
 			st2.lock = maxf(float(st2.lock), float(b.get("dur", 0.0)))
@@ -438,6 +489,8 @@ static func exu_draw(o) -> void:
 			o.draw_spr_rot(tn, fr, bu.p, bu.v.angle(), g.PX * bfx.k(bu), Color.WHITE, an)
 		else:
 			o.cv.draw_line(bu.p - bu.v.normalized() * 12.0, bu.p, Color(1.0, 0.45, 0.45, 0.85), 3.0)
+	if o.tags_all.has("verb.tracer") or o.tags_all.has("verb.escort") or o.tags_all.has("verb.aim_prefer"):
+		exu_gm_draw(o)   # docs/202
 	for t in o._trigs():
 		if str(t.get("_tag", "")) == "trig.on_attack":
 			var cn := str(t.get("counter", ""))
@@ -654,3 +707,95 @@ static func el_stack_tex(o, src: String, e: Dictionary, dflt: String) -> String:
 	var tier: int = clampi(int(ceil(float(cur[0]) / float(b.max) * tl.size() - 0.001)), 1, tl.size())
 	var nm: String = str(tl[tier - 1])
 	return nm if o.g.tex.get(nm) != null else dflt
+
+
+# ================================================================ docs/202 成长节点（10-29）：能天使「对空优先」「护航射击」「曳光弹」「曳光弹·收网」
+## 积木都是常驻的（_exu_active 读）：verb.aim_prefer（受控目标优先）/ verb.escort（队长被围时护航）/ verb.tracer（曳光弹标记）。
+## 运行时状态放 o.ext：tr_n 普攻子弹计数、marks 曳光标记 [{e, t}]、esc_on 本轮护航是否生效（_exu_targets 写、_exu_volley 读）。
+## 确定性：不取随机数（目标排序按距离 / id）；画面只用 pfx 与 exu_draw 里的程序图形。
+
+const EXU_MARK_HARD := 6   # 曳光标记的硬上限（4A 无上限设计，防实体失控；5A 的上限由积木 max 给）
+
+static func _exu_gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: String) -> void:
+	match tag:
+		"verb.aim_prefer":
+			_num(b, "pin", p, ctx, true, 0.0, 2.0)
+		"verb.escort":
+			_num(b, "r", p, ctx, true, 30.0, 600.0)
+			_num(b, "n", p, ctx, true, 1.0, 30.0)
+			_num(b, "kb", p, ctx, false, 0.0, 300.0)
+		"verb.tracer":
+			_num(b, "every", p, ctx, true, 2.0, 60.0)
+			_num(b, "secs", p, ctx, true, 0.5, 30.0)
+			_num(b, "bonus", p, ctx, true, 0.0, 2.0)
+			_num(b, "max", p, ctx, false, 1.0, 12.0)
+
+
+## 受控：眩晕 / 浮空 / 失重中（她的子弹优先打这些）
+static func _exu_controlled(g, e: Dictionary) -> bool:
+	return float(e.stun) > 0.0 or float(e.get("air", 0.0)) > 0.0 or float(e.get("wl_t", 0.0)) > g.t
+
+
+## 护航：队长 r 内活着的敌人 ≥ n（被围）
+static func _exu_escort_on(o, esc: Dictionary) -> bool:
+	if o.g.ppos == Vector2.INF:
+		return false
+	var r: float = float(esc.r)
+	var n := 0
+	for j in o.query_ids(o.g.ppos, r + 40.0):
+		var e: Dictionary = o.g.enemies[j]
+		if not e.dead and not e.chest and e.pos.distance_to(o.g.ppos) <= r:
+			n += 1
+	return n >= int(esc.n)
+
+
+## 曳光标记：命中的敌人标 secs 秒（队友 combat.damage 读 tr_t / tr_v / tr_op）；同时存在的标记超过 max 时最早的先摘掉
+static func _exu_mark(o, e: Dictionary, tr: Dictionary) -> void:
+	var g = o.g
+	e["tr_t"] = g.t + float(tr.secs)
+	e["tr_v"] = float(tr.bonus)
+	e["tr_op"] = o.id
+	var marks: Array = o.ext.get("marks", [])
+	marks = marks.filter(func(m): return not is_same(m, e) and not m.dead and float(m.get("tr_t", 0.0)) > g.t)
+	marks.append(e)
+	var cap: int = mini(int(tr.get("max", EXU_MARK_HARD)), EXU_MARK_HARD)
+	while marks.size() > cap:
+		var old: Dictionary = marks.pop_front()
+		old["tr_t"] = 0.0
+	o.ext["marks"] = marks
+	o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 12.0, "r0": float(e.r), "life": 0.3, "col": Color(1.0, 0.85, 0.35), "w": 2.5, "alpha": 0.95})
+
+
+## 画面（exu_draw 末尾调）：曳光标记 = 金色细线连到目标 + 头顶菱形；护航生效 = 队长脚下一圈青色虚环；对空优先 = 受控目标头顶金色括号
+static func exu_gm_draw(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var marks: Array = o.ext.get("marks", [])
+	if not marks.is_empty():
+		var mz := _exu_muzzle(o, o.B.get("attack", {}))
+		for e in marks:
+			if e.dead or float(e.get("tr_t", 0.0)) <= g.t:
+				continue
+			var a: float = clampf((float(e.tr_t) - g.t) / 0.5, 0.0, 1.0)
+			var tp: Vector2 = e.pos + Vector2(0, EXU_AIM_Y)
+			cv.draw_line(mz, tp, Color(1.0, 0.85, 0.35, 0.38 * a), 1.0)
+			var top: Vector2 = e.pos + Vector2(0, -float(e.r) - 16.0)
+			cv.draw_colored_polygon(PackedVector2Array([top + Vector2(0, -6), top + Vector2(5, 0), top + Vector2(0, 6), top + Vector2(-5, 0)]), Color(1.0, 0.85, 0.35, 0.9 * a))
+	if bool(o.ext.get("esc_on", false)) and g.ppos != Vector2.INF:
+		var rr: float = 150.0
+		for esc in _exu_active(o, "verb.escort"):
+			rr = float(esc.r)
+		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(0.5, 0.85, 1.0, 0.4 + 0.15 * sin(g.t * 6.0)), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not _exu_active(o, "verb.aim_prefer").is_empty():
+		var n := 0
+		for j in o.query_ids(o.pos, _exu_range(o, o.B.get("attack", {}))):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or not _exu_controlled(g, e) or not o.hittable(e):
+				continue
+			var tp2: Vector2 = e.pos + Vector2(0, -float(e.r) - 12.0)
+			cv.draw_polyline(PackedVector2Array([tp2 + Vector2(-6, -3), tp2 + Vector2(0, 3), tp2 + Vector2(6, -3)]), Color(1.0, 0.85, 0.35, 0.9), 1.6)
+			n += 1
+			if n >= 8:
+				break

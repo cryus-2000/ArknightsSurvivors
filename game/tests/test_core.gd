@@ -648,12 +648,13 @@ func test_blocks_texas() -> void:
 	ok(B.has("response") and str(B.response[1].get("_tag", "")) == "trig.on_leader_dash" and str(B.response[1].do[0].aim) == "leader_dir" and str(B.response[1].do[0].src) == "战术快递", "响应：队长冲刺 → dash_line leader_dir（来源战术快递）")
 	ok(str(B.response[0].do[0].aim) == "leader_dir" and str(B.response[0].do[0].src) == "冲刺斩" and str(B.response[0].get("hint", "")) == "专属冲刺", "响应：她当队长精零自己冲刺 → 专属冲刺（leader_dir，来源冲刺斩）")
 	ok(str(B.attack.get("_tag", "")) == "shape.cone" and float(B.attack.r) == 112.0 and absf(float(B.attack.half) - 1.2) < 0.0001 and B.attack.combo.size() == 1 and B.attack.on_hit.size() == 2 and int(B.attack.on_hit[0].nearest_n) == 2, "普攻编译成 shape.cone（拔刀：原地宽扇形 112、半角 1.2）+ 1 段 combo（回马剑）+ 阻挡 on_hit（nearest_n 2）")
-	# 常驻累计：S2 冲刺长度 +40%、节点「阔剑」宽度 ×1.3；不写主控属性
+	# 常驻累计：S2 冲刺长度 +40%；不写主控属性（docs/202：节点「阔剑」已换成「居合」，宽度不再变）
 	var fake := {"tx": {}}
 	var want: Array = []
-	OB.tx_sustain(fake, [B.skills[1].do[0], B.skills[1].do[1], B.progression.wide[0]], want)
+	OB.tx_sustain(fake, [B.skills[1].do[0], B.skills[1].do[1]], want)
 	near(float(fake.tx.len), 1.4, "冲刺长度倍率 (1 + 0.4)")
-	near(float(fake.tx.w), 1.3, "冲刺宽度倍率 ×1.3")
+	near(float(fake.tx.get("w", 1.0)), 1.0, "冲刺宽度倍率不变（节点 1 已换成居合）")
+	ok(str(B.progression.wide.get("_tag", "")) == "trig.on_hit_n" and str(B.progression.wide.do[0].get("_tag", "")) == "verb.dash_cd_cut" and str(B.progression.sharp.do[0].get("_tag", "")) == "verb.break_windup", "docs/202：节点 1 居合 = 命中缩短冲刺冷却，节点 2 破绽 = 打断前摇")
 	ok(want.is_empty(), "主控属性修正不在 tx_sustain 里写（verb.buff_leader 归共用段，data_operator._sustain 统一写）：%s" % str(want))
 	fake.tx = {}
 	want = []

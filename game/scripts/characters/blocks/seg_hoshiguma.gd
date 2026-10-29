@@ -20,6 +20,16 @@ const EXT_BLOCKS := {
 	"verb.swap_attack": "sustain",    # 生效期间普攻换成 attack 里的形状（节奏仍按 blocks.attack.every）
 	"trig.on_hurt": "trig",           # 主控将受到一次攻击（闪避 / 护盾之后）：chance / boss_chance 概率执行 do；negate = 这一下完全格挡
 	"trig.on_negate": "trig",         # 本干员格挡了一次攻击（negate_next 或带 negate 的 on_hurt）
+	# ---- docs/202 成长节点（10-29）新积木：星熊 / 德克萨斯 / 能天使共用这一段登记（执行在各自的段文件，注释里标出）
+	"trig.on_hit_n": "trig",          # 普攻一次命中 ≥ n 个敌人（exec_any_shape 之后）；do 里的积木读 o.gm_hits（这一次命中列表）；星熊 / 德克萨斯
+	"verb.block_mark": "instant",     # 星熊「阻挡」：命中里离她最近的 n 名被阻挡 dur 秒（减速 + 不绕过她）
+	"verb.force_block": "instant",    # 星熊「般若之重」：队长的下一次受击必定被格挡（dur 秒内有效，cd 秒内至多武装一次）
+	"verb.boil_sand": "instant",      # 星熊「热砂·沸腾」：命中站在热砂里的敌人 → 该处热砂立刻结算剩余伤害的 frac 并熄灭，溅一圈火星
+	"verb.dash_cd_cut": "instant",    # 德克萨斯「居合」：每名命中缩短队长冲刺冷却 per 秒（每次出手至多 max 秒）
+	"verb.break_windup": "instant",   # 德克萨斯「破绽」：命中的普通敌人正在前摇出招 → 打断 + 小击退（无眩晕；精英 / Boss 除外）
+	"verb.aim_prefer": "sustain",     # 能天使「对空优先」：子弹优先瞄准受控目标，命中即停并追加定身 pin 秒
+	"verb.escort": "sustain",         # 能天使「护航射击」：队长 r 内敌人 ≥ n 时子弹改打离队长最近的，击退 +kb
+	"verb.tracer": "sustain",         # 能天使「曳光弹」：每 every 发一枚曳光弹，命中标记 secs 秒，队友对标记目标伤害 +bonus
 }
 
 
@@ -181,3 +191,172 @@ static func _ext_block(b: Dictionary, p: String, kind: String, tag: String, xk: 
 			_list(b.get("do", []), p + ".do", "instant", ctx)
 		"trig.on_negate":
 			_list(b.get("do", []), p + ".do", "instant", ctx)
+		"trig.on_hit_n":
+			_num(b, "n", p, ctx, true, 1.0, 20.0)
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+		"verb.block_mark":
+			_num(b, "n", p, ctx, true, 1.0, 8.0)
+			_num(b, "dur", p, ctx, true, 0.1, 10.0)
+			_num(b, "slow", p, ctx, true, 0.0, 0.9)
+		"verb.force_block":
+			_num(b, "dur", p, ctx, true, 0.5, 30.0)
+			_num(b, "cd", p, ctx, true, 0.5, 60.0)
+			_num(b, "ring_r", p, ctx, false, 10.0, 400.0)
+		"verb.boil_sand":
+			_num(b, "frac", p, ctx, true, 0.0, 1.0)
+			_num(b, "spark_r", p, ctx, true, 10.0, 300.0)
+			_num(b, "spark_mult", p, ctx, false, 0.0, 5.0)
+		"verb.dash_cd_cut", "verb.break_windup", "verb.aim_prefer", "verb.escort", "verb.tracer":
+			_gm_validate(b, p, ctx, tag)
+
+
+# ================================================================ docs/202 成长节点（10-29）：星熊「阻挡」「般若之重」「热砂·落刃」「热砂·沸腾」
+## 状态 o.gm（空 = 用不到）：blk 阻挡 {敌人 id: {e, t 到期 g.t}}、force_until 武装到期、force_cd 下次可武装。
+## 确定性：全部不取随机数；画面只用 o.fx（pfx）和 draw_entities_floor 里的程序图形，不碰 g.rng。
+const GM_BLOCK_MAX := 6        # 同时被阻挡的敌人上限（节点 n=3，留余量给 S1 之外的叠加）
+
+## 校验（德克萨斯 / 能天使积木的参数检查转到各自段文件，用 _F() 前向调用）
+static func _gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: String) -> void:
+	match tag:
+		"verb.dash_cd_cut", "verb.break_windup":
+			_F()._tx_gm_validate(b, p, ctx, tag)
+		_:
+			_F()._exu_gm_validate(b, p, ctx, tag)
+
+
+## exec_any_shape（普攻出手）之后：记下这一次的命中列表，执行命中 ≥ n 的 trig.on_hit_n
+static func gm_hit_n(o, hits: Array) -> void:
+	o.gm_hits = hits
+	for t in o._trigs():
+		if str(t.get("_tag", "")) != "trig.on_hit_n" or hits.size() < int(t.get("n", 1)) or not cond_true(o, t.get("cond", _ED)):
+			continue
+		o._exec_list(t.get("do", []), hits[0].pos)
+
+
+## 阻挡：命中里离她最近的至多 n 名（已被阻挡的占名额但不刷新）。减速 slow（精英 ×0.5，Boss 不吃）+ dur 秒内近战杂兵改追她（不绕过她，gm_tick 每帧重标）
+static func gm_block_mark(o, b: Dictionary) -> void:
+	var live: Array = []
+	for e in o.gm_hits:
+		if not e.dead:
+			live.append(e)
+	if live.is_empty():
+		return
+	live.sort_custom(func(x, y):
+		var dx: float = x.pos.distance_squared_to(o.pos)
+		var dy: float = y.pos.distance_squared_to(o.pos)
+		return dx < dy if dx != dy else int(x.id) < int(y.id))
+	var gm: Dictionary = o.gm
+	var blk: Dictionary = gm.get("blk", {})
+	var take: int = mini(int(b.n), live.size())
+	for i in take:
+		var e: Dictionary = live[i]
+		if blk.has(int(e.id)) and float(blk[int(e.id)].t) > o.g.t:
+			continue   # 已被阻挡：只占名额，不刷新
+		if e.boss or blk.size() >= GM_BLOCK_MAX:
+			continue
+		var k: float = 0.5 if e.elite else 1.0
+		var dur: float = float(b.dur) * k
+		o.g.enemies_sys.lite_slow(e, float(b.slow) * k, dur)
+		blk[int(e.id)] = {"e": e, "t": o.g.t + dur}
+		o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 16.0, "r0": float(e.r), "life": 0.3, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 2.5, "alpha": 0.9})
+	gm["blk"] = blk
+
+
+## 阻挡每帧（_ext_sustain 末尾调）：到期 / 死亡的清掉；还在的近战杂兵本帧改追她（set_aggro 每帧重标）
+static func gm_tick(o) -> void:
+	var blk: Dictionary = o.gm.get("blk", {})
+	if blk.is_empty():
+		return
+	var gone: Array = []
+	for id in blk:
+		var r: Dictionary = blk[id]
+		var e: Dictionary = r.e
+		if e.dead or float(r.t) <= o.g.t:
+			gone.append(id)
+		elif e.ai == "melee" and not e.chest:
+			o.set_aggro(e, o.pos)
+	for id in gone:
+		blk.erase(id)
+
+
+## 般若之重：武装「队长下一次受击必定格挡」。cd 内不再武装；dur 秒内没人打队长就作废
+static func gm_force_block(o, b: Dictionary) -> void:
+	var gm: Dictionary = o.gm
+	if float(gm.get("force_cd", 0.0)) > o.g.t:
+		return
+	gm["force_until"] = o.g.t + float(b.dur)
+	gm["force_cd"] = o.g.t + float(b.cd)
+	o.fx({"kind": "ring", "pos": o.g.ppos, "r": 44.0, "r0": 12.0, "life": 0.35, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 3.0, "alpha": 0.9})
+	o.fx({"kind": "ring", "pos": o.pos, "r": float(b.get("ring_r", 90.0)), "r0": 20.0, "life": 0.45, "col": Color(1.0, 0.8, 0.3), "floor": true, "w": 6.0, "alpha": 0.95})   # 盾面压地的冲击环
+	o.ground_dust(o.pos, float(b.get("ring_r", 90.0)) * 0.6, 10)
+	o.float_text(o.g.ppos + Vector2(0, -100), "般若之重", Color(1.0, 0.85, 0.4), 14)
+
+
+## 受击询问（dmg_taken_mult 开头）：武装中 → 用掉并返回 true（本次必定格挡）
+static func gm_force_take(o) -> bool:
+	var gm: Dictionary = o.gm
+	if float(gm.get("force_until", 0.0)) <= o.g.t:
+		return false
+	gm["force_until"] = 0.0
+	return true
+
+
+## 热砂·沸腾：命中的敌人若站在带 sand 标记的热砂里，该处热砂立刻结算剩余伤害的 frac 并熄灭，在热砂中心溅一圈火星（半径 spark_r）
+static func gm_boil_sand(o, b: Dictionary) -> void:
+	if o.fields.is_empty():
+		return
+	for f in o.fields:
+		if not f.get("sand", false) or f.done >= f.n:
+			continue
+		var hit := false
+		for e in o.gm_hits:
+			if not e.dead and e.pos.distance_to(f.pos) <= float(f.r) + float(e.r):
+				hit = true
+				break
+		if not hit:
+			continue
+		var rem: float = float(f.n - f.done)
+		var scaled: Array = []
+		for x in f.do:
+			var y: Dictionary = x.duplicate()
+			if y.has("mult"):
+				y.mult = float(y.mult) * rem * float(b.frac)
+			scaled.append(y)
+		f.done = f.n   # 熄灭（_ext_sustain 本帧收掉）
+		o._exec_list(scaled, f.pos)
+		if float(b.get("spark_mult", 0.0)) > 0.0:
+			o._exec_list([{"_tag": "shape.circle", "shape": "circle", "center": "target", "r": float(b.spark_r), "mult": float(b.spark_mult), "src": "热砂沸腾", "tags": ["skill"], "power": true}], f.pos)
+		o.fx({"kind": "ring", "pos": f.pos, "r": float(b.spark_r), "r0": 8.0, "life": 0.35, "col": Color(1.0, 0.45, 0.2), "floor": true, "w": 4.0, "alpha": 0.95})
+		for k in 8:
+			var a: float = TAU * float(k) / 8.0 + 0.2
+			o.sparks(f.pos, Vector2.from_angle(a), Color(1.0, 0.6, 0.25), 2, 120.0)
+
+
+## 画面（draw_entities_floor 末尾调）：被阻挡的敌人脚下一枚金色盾形小印；般若之重武装时队长脚下一圈金环；热砂外缘一圈橙色椭圆（带「沸腾」时更亮）
+static func gm_draw(o) -> void:
+	var cv = o.cv
+	for f in o.fields:
+		if not f.get("sand", false):
+			continue
+		var fa: float = clampf((float(f.n) * float(f.every) - float(f.t)) / 0.4, 0.0, 1.0)
+		var hot: float = 0.25 + (0.2 * (0.5 + 0.5 * sin(o.g.t * 7.0)) if o.tags_all.has("verb.boil_sand") else 0.0)
+		cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
+		cv.draw_arc(Vector2.ZERO, float(f.r), 0.0, TAU, 32, Color(1.0, 0.55, 0.2, hot * fa + 0.15 * fa), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var blk: Dictionary = o.gm.get("blk", {})
+	for id in blk:
+		var r: Dictionary = blk[id]
+		var e: Dictionary = r.e
+		if e.dead:
+			continue
+		var a: float = clampf((float(r.t) - o.g.t) / 0.4, 0.0, 1.0)
+		var c: Vector2 = e.pos + Vector2(0, 6)
+		var w: float = float(e.r) * 0.9 + 6.0
+		var pts := PackedVector2Array([c + Vector2(-w, -w * 0.5), c + Vector2(w, -w * 0.5), c + Vector2(w * 0.8, w * 0.4), c + Vector2(0, w), c + Vector2(-w * 0.8, w * 0.4)])
+		cv.draw_colored_polygon(pts, Color(1.0, 0.82, 0.35, 0.42 * a))
+		cv.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1.0, 0.9, 0.5, 1.0 * a), 2.0)
+	if float(o.gm.get("force_until", 0.0)) > o.g.t and o.g.ppos != Vector2.INF:
+		var k: float = 0.55 + 0.25 * sin(o.g.t * 8.0)
+		cv.draw_set_transform(o.g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, k), 3.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
