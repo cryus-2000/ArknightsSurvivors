@@ -223,7 +223,7 @@
 
 **改法**（`core/balance.gd`）：`Bal.v` 原来每次调用都 `path.split("/")` 再逐段查字典（combat / spawner 等热路径每帧几百次）。现在按路径缓存解析结果（路径 → 数值或「没有 / 不是数」）。数据在 `_load` 里一次写定（`--bal=` 覆盖和 `_preset` 都在里面），之后只读，所以缓存安全。`vi` 走 `v`；`sec` 保持原语义（返回 `_store` 里的那份引用）。
 
-**测试兼容**：约 20 个测试直接写 `Bal._data["段"]["键"] = x`。`_data` 现在是个属性：外部每读一次它（几乎都是为了改它）就丢一次缓存；`sec()` 每次调用也丢缓存（调用方可能改它拿到的整段，实测约每秒个位数次）；`reload()` 自带。所以**不用手动清缓存，测试照旧写**。内部一律用 `_store`。
+**测试兼容**：约 20 个测试直接写 `Bal._data["段"]["键"] = x`。`_data` 现在是个属性：外部每读一次它（几乎都是为了改它）就丢一次缓存；`sec()` 每次调用也丢缓存；`reload()` 自带，这类写法照旧可用。**例外（10-30 补）**：「先拿到整段引用、过一阵再改 / 还原」的写法（`var ops = Bal._data.get("operators")` … `ops["saria"] = x`、`var cmd = Bal.sec("command")` … `cmd["boss_rush"] = 0`）写入发生在取引用之后，缓存不知道，读过的键会留着旧值。持有引用的测试每次改 / 还原后要调 `Bal.clear_cache()`；已补：`command_wheel_cases.gd`（boss_rush）、`prot_test.gd`（ops.saria 净化、squad.regen_t1 / t2、beacon.shade_deg，并让 `ok()` 每条断言后清一次）；`command_ai_test.gd` 由指挥会话在 6cf116560 补。内部一律用 `_store`。另：prot_test 里 11 条失败原来有两个来源——docs/178 把 json 的 `fullhp_guard_left / cd` 调成 5% / 60 秒而用例按 10% / 30 秒写（现在测试开头钉回旧值）；以及「代码缺省为关」的 protect 段（缺省对齐 json 后不再是关，现在显式写关）。
 
 **量化**
 - 微基准（Godot 4.7 无头，6 个路径轮换 120 万次调用）：原写法 1.08 µs / 次，只缓存拆分数组 0.94，缓存数值 **0.47**（本改法）。

@@ -8,9 +8,16 @@ static var _loaded := false
 ## 读取缓存（docs/199 ②，10-29）：Bal.v 每次调用原来都 path.split("/") 再逐段查字典，combat / spawner 等热路径每帧几百次。
 ## 现在按路径缓存解析结果：_vc 路径 → 数值（float）或 false（没有 / 不是数）。数据在 _load 里一次写定（--bal= 覆盖和 _preset 都在 _load 里），之后只读。
 ## 测试里直接改 Bal._data["段"]["键"] = x 的写法照旧可用：_data 是个属性，外部每读一次 _data（几乎都是为了改它）就把缓存丢掉；
-## 经 sec() 拿到整段再改的同理（sec 每次调用也丢缓存）；reload() 自带。所以不需要谁手动清缓存
+## 经 sec() 拿到整段再改的同理（sec 每次调用也丢缓存）；reload() 自带。
+## **但「先拿到整段引用、过一阵再写 / 还原」的写法缓存不知道**：引用写入发生在 sec() / _data 之后、写入之前读过的键会留着旧值——
+## 持有 sec() / _data 引用的测试，每次改完 / 还原后都要调 Bal.clear_cache()（10-30 补，docs/199 §5）
 static var _vc: Dictionary = {}
 const _CACHE_MAX := 20000   # 路径里带敌人 / 干员 id 的动态键数量有限；万一暴涨整表丢掉重来
+
+## 丢掉全部读取缓存（测试经持有的整段引用改 / 还原数值后调用）
+static func clear_cache() -> void:
+	_vc.clear()
+
 
 static var _data: Dictionary:
 	get:

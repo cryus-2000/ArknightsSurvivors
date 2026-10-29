@@ -67,8 +67,10 @@ func run(check: Callable) -> void:
 	var cmd: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
 	var old_rush = cmd.get("boss_rush", 1)
 	cmd["boss_rush"] = 0
+	preload("res://scripts/core/balance.gd").clear_cache()   # 经持有的 sec 引用改值，缓存不知道（docs/199 §5）
 	check.call(mate.nearest_enemies(1, 600.0)[0].id == 7, "boss_rush 0: old guard rule (mob hugging the leader overrides boss focus)")
 	cmd["boss_rush"] = old_rush
+	preload("res://scripts/core/balance.gd").clear_cache()
 	setl.call([_e(1, 100.0), _e(2, 150.0, "elite"), _e(3, 300.0), _e(4, 360.0), _e(5, 420.0), _e(6, 500.0, "boss")])
 	squad.apply_command("mob")
 	check.call(squad.priority == 1, "mob command sets priority 1")
