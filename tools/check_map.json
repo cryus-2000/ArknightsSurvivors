@@ -191,7 +191,9 @@
    "wisadel_boom"
   ],
   "kaltsit": [
-   "mon3tr_fx"
+   "mon3tr_fx",
+   "m3_hp",
+   "m3_hp_off"
   ],
   "saria": [
    "saria_slots"

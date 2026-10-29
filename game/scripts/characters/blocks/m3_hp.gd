@@ -37,7 +37,7 @@ static func _tel(g, key: String, v: float) -> void:
 
 ## --m3log：倒地 / 复活 / 治疗落点打日志（找录像时刻用；不带参数不打印）
 static func _log(g, text: String) -> void:
-	if OS.is_debug_build() and Cfg.dev_args().has("--m3log"):
+	if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--m3log"):   # 不用 Cfg：核心契约测试以 --script 跑、没有 autoload
 		print("M3 t=%.2f %s" % [g.t, text])
 
 
