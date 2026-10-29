@@ -121,10 +121,10 @@ func draw_xp_top(vs: Vector2) -> void:
 	var k: float = 1.0 if full else clampf(g.xp / g.xp_need, 0.0, 1.0)
 	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, r.size.y + 1.0)), Color(0.02, 0.025, 0.04, 0.75))
 	var fw: float = r.size.x * k
-	var c := Color(1.0, 0.9, 0.36)   # #ffe65c
+	var c := Color(0.55, 1.0, 0.78)   # #8cffc7 淡青绿，同经验结晶（10-29 用户定候选 B，render/gem_style 2）
 	if fw > 0.0:
 		g.hud.draw_rect(Rect2(r.position, Vector2(fw, r.size.y)), c)
-		g.hud.draw_rect(Rect2(r.position, Vector2(fw, 1.0)), Color(1.0, 0.97, 0.8, 0.85))   # 顶部高光
+		g.hud.draw_rect(Rect2(r.position, Vector2(fw, 1.0)), Color(0.88, 1.0, 0.94, 0.85))   # 顶部高光
 	if g.xp_flash > 0.2 and g.t - _xp_t > 0.15:
 		_xp_t = g.t   # 新吃到经验（xp_flash 每次置 0.3、0.1 秒衰完）：起一道 0.5 秒的流光，连续拾取时不每帧重开
 	var ph: float = clampf((g.t - _xp_t) / 0.5, 0.0, 1.0)

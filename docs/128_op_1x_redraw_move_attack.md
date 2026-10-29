@@ -56,7 +56,7 @@
 
 ### 6.1 经验结晶调色候选（10-29 用户「地上的经验是白色，不明显」）
 
-只改绘制调色（`render/gem_style`，`render/world.gd` 的 `GEM_TINT`），不改贴图、不加绘制调用，网页端无额外开销。挑定前缺省 0（原样）。录像 `build/gem/xp_gem_colors.mp4`。
+只改绘制调色（`render/gem_style`，`render/world.gd` 的 `GEM_TINT`），不改贴图、不加绘制调用，网页端无额外开销。**10-29 用户定候选 2（淡青绿带亮芯），缺省改 2**；顶部经验细条同步改淡青绿 #8cffc7（docs/37）。录像 `build/gem/xp_gem_colors.mp4`。
 
 | 值 | 方向 | 理由 |
 |---|---|---|
