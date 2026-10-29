@@ -401,7 +401,7 @@ func _pick_expert(choices: Array, master := false) -> int:
 	var has_sustain := classes.has("医疗") or classes.has("重装")
 	var hurting: bool = g.hp < g.max_hp * 0.6 or g.telemetry.low_hp_s > 20.0
 	if master:
-		m_lane = _master_lane(classes)
+		m_lane = g.guide.main_lane()
 	var best := 0
 	var best_s := -999.0
 	for i in choices.size():
@@ -688,25 +688,6 @@ func _master_dash_dir(p: Vector2, best_dir: Vector2, spd: float, bullets: Array,
 	return dir.normalized()
 
 
-## 认定流派：已拿藏品按分类计数 × 2，再加编队适配（近战干员算近战扩域、远程算多弹火力，职业 / 生存各 +1；docs/197 分类键）
-func _master_lane(classes: Array) -> String:
-	var sc := {"melee": 0.0, "multi": 0.0, "summon": 0.0, "control": 0.0, "weak": 0.0, "shield": 0.0, "heal": 0.0, "class": 1.0, "survival": 1.0}
-	for cls in classes:
-		if MELEE.has(cls):
-			sc.melee += 1.5
-		else:
-			sc.multi += 1.5
-	for rid in g.relics:
-		var ln: String = str(g.RL.get(str(rid), {}).get("lane", ""))
-		if sc.has(ln):
-			sc[ln] += 2.0
-	var best := "class"
-	for k in sc:
-		if sc[k] > sc[best]:
-			best = k
-	return best
-
-
 ## 藏品加分：强度档（A +1.5 / C −0.5 / D −1）、认定流派 +2、受伤时生存类 +1.5
 func _master_relic_bonus(r: Dictionary, hurting: bool) -> float:
 	var s: float = {"A": 1.5, "B": 0.0, "C": -0.5, "D": -1.0}.get(r.get("tier", "B"), 0.0)
@@ -719,8 +700,7 @@ func _master_relic_bonus(r: Dictionary, hurting: bool) -> float:
 
 ## 商店：买得起的藏品里挑分最高的一件（与三选一同一套分）；没有值得买的返回 -1 交给原有买法
 func _shop_master() -> int:
-	var classes: Array = g.squad.ops.map(func(o): return o.def.get("class", "") if "def" in o else "")
-	m_lane = _master_lane(classes)
+	m_lane = g.guide.main_lane()   # 认定流派 = 游戏的主流派（build_guide，docs/184 §2.2 → docs/197 §4）
 	var hurting: bool = g.hp < g.max_hp * 0.6
 	var best := -1
 	var best_s := 3.5

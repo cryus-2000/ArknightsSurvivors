@@ -221,14 +221,6 @@ func max_lv(id: String) -> int:
 ## 能否出现在三选一 / 商店：未拥有，或已拥有但还能升级；前置条件按拥有判断；职业门槛按当前编队判断
 ## 核心延后（用户 10-29，docs/191 §6）：relic/core_gate 1 时，升华 / 核心（实际稀有度，73 件）在第一只中期 Boss 被击败前不进任何来源
 ## （三选一、商店、事件、随机给）；兜底 relic/core_gate_late 秒后照常（第一只 Boss 没打死的局）
-func core_gated(r: Dictionary) -> bool:
-	return r.rarity in ["升华", "核心"] and core_locked()
-
-
-func core_locked() -> bool:
-	return Bal.v("relic/core_gate", 1.0) > 0.0 and not g.mid_boss_down and g.t < Bal.v("relic/core_gate_late", 180.0)
-
-
 func can_offer(r: Dictionary, for_shop: bool) -> bool:
 	if for_shop and not r.shop_allowed:
 		return false
@@ -236,7 +228,7 @@ func can_offer(r: Dictionary, for_shop: bool) -> bool:
 		return false
 	if r.rarity == "结局" or r.get("source", "any") == "event":
 		return false
-	if core_gated(r):
+	if g.guide.core_gated(r):
 		return false
 	if g.relics.has(r.id) and lv.get(r.id, 0) >= max_lv(r.id):
 		return false

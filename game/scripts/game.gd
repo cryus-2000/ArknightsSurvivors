@@ -48,6 +48,7 @@ const Afflict = preload("res://scripts/run/afflict.gd")
 const EnemiesSys = preload("res://scripts/run/enemies.gd")
 const MusicDirector = preload("res://scripts/run/music_director.gd")
 const Progression = preload("res://scripts/run/progression.gd")
+const BuildGuide = preload("res://scripts/run/build_guide.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
@@ -108,6 +109,7 @@ var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕�
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
+var guide: BuildGuide = BuildGuide.new(self)   # 构筑引导：保底与加权规则（run/build_guide.gd）
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
@@ -2103,7 +2105,7 @@ func check_pending() -> void:
 	if progression.open_branch_queued():   # 赠送推进（典训 / 博士银印）碰到分支节点：先选路线（docs/119 §4.1）
 		return
 	if meta_start_relic > 0 and t > 1.0:
-		# 认知塑造「物由心生」：开局从基础藏品中选 1 件（progression.relic_pool_ids 看 meta_basic_pick）
+		# 认知塑造「物由心生」：开局从基础藏品中选 1 件（build_guide.relic_pool_ids 看 meta_basic_pick）
 		meta_start_relic = 0
 		meta_basic_pick = true
 		pending_chests += 1
