@@ -836,9 +836,9 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 	var o: Vector2 = s.get("o", Vector2(fw * 0.5, fh * 0.5))
 	var col: Color = s.get("col", Color.WHITE)
 	col.a *= dim
-	w.draw_set_transform(s.c, float(s.get("ang", 0.0)), Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0))))
-	w.draw_texture_rect_region(t, Rect2(-o, Vector2(fw, fh)), Rect2(f * fw, 0.0, fw, fh), col)
-	w.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.draw_set_transform(s.c, float(s.get("ang", 0.0)), Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0))))
+	g.draw_texture_rect_region(t, Rect2(-o, Vector2(fw, fh)), Rect2(f * fw, 0.0, fw, fh), col)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 地面层（world.gd 在干员地面特效那一步调）：layer = back 的帧条

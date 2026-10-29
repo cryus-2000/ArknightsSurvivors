@@ -1,6 +1,7 @@
 ## 终结技形态（docs/198 §4.1–4.5，第一批 5 人）+ 连携终结技通用版（§7.3）。框架在 run/ult.gd（u），本文件只写各人怎么出招。
 ## 约定：start 返回动作状态字典，step 每帧推进、返回 true = 结束；伤害一律走 u.hit（按目标生命定的预算，frac = 这段占预算的比例）；
-## 画面一律走 u.shape（程序占位：圆 / 环 / 扇形 / 长方形带 / 线 / 点），不用美术素材。
+## 画面：5 人专属终结技走 Codex 第一批帧条（u.strip / tiles_line / tiles_arc，规格 art/incoming/ult_batch1_1029/manifest.json），
+## 帧条接上的部分占位图形已删或减淡；瞄准指示、冲击环、其余 15 人通用版、连携终结技里队友那几下仍是 u.shape 程序占位。
 ## 每段命中各记一张已命中表（e.id），同一敌人同一段只打一次；外缘 15% 宽的衰减带传 edge（§3.3）。不抽随机数，散布按序号算。
 ## 其余 15 人暂无专属终结技：以自身为中心半径 460 的冲击环（0.3 秒扩满，100% 预算）。
 ## 连携终结技：start_cult 按 ult/cult_style 分派（0 = 通用版：队长终结技形态 + 队友冲到敌群打放大冲击，同时落地时屏内敌人一次补满预算）。
@@ -136,8 +137,44 @@ static func _ring(u, c: Vector2, r: float, r1: float, col: Color, life: float, w
 
 
 static func _abort(u, a: Dictionary) -> void:
+	_fx_end(u, a)
 	if str(a.get("k", "")) == "kaltsit":
 		_m3_back(u, a.o, false)
+
+
+# ================================================================ 帧条公用
+
+## 弧状拼接段的参考半径（1x 像素，manifest arc_reference_radius_logical）：素材按这个半径画弧
+const ARC_R0 := {"fx_ult_skalter_domain_back": 123.6385, "fx_ult_kaltsit_crack_back": 185.4578, "fx_ult_ulpianus_crack_back": 185.4578}
+
+
+## 弧状拼接段铺到半径 r：沿切向缩放 k = √(r / 参考半径)、径向反缩 1 / k —— 弧的曲率正好变成 r（小角度近似），
+## 厚度保持素材原样，段与段的两端切线对齐、不露缝（直接等比缩放会让小圈细得看不见、大圈粗过伤害区）
+static func _arc(u, name: String, c: Vector2, r: float, opt: Dictionary = {}) -> Array:
+	var r0: float = float(ARC_R0.get(name, r / u.g.PX)) * u.g.PX
+	var k: float = sqrt(maxf(1.0, r) / r0)
+	var op: Dictionary = opt.duplicate()
+	op["sc"] = k * float(opt.get("sc", 1.0))
+	op["sy"] = float(opt.get("sy", 1.0)) / k
+	return u.tiles_arc(name, c, r, op)
+
+
+## 拿掉一组帧条实例（每帧重铺的光束 / 锁链、提前收掉的锁定标记）：直接从 u.shapes 移除，当帧就不画
+static func _kill(u, arr: Array) -> void:
+	for s in arr:
+		u.shapes.erase(s)
+	arr.clear()
+
+
+## 动作里挂着的长寿命帧条（a.fx 列表；锁定标记、海嗣、巨锚、光束、锁链）：动作结束 / 中途被清掉时一起收
+static func _fx_end(u, a: Dictionary) -> void:
+	for key in ["fx", "beam", "chain"]:
+		if a.get(key) is Array:
+			_kill(u, a[key])
+	if a.get("locks") is Array:
+		for lk in a.locks:
+			u.shapes.erase(lk.s)
+		a.locks.clear()
 
 
 # ================================================================ 通用占位（无专属终结技）
@@ -203,8 +240,21 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 	var rounds: Array = [[0.75, 0.3]]
 	if rt == "rain2":
 		rounds = [[0.75, 0.15], [1.05, 0.15]]
+	# 剑雨帧条：一把 0.3 秒、一轮 0.8 秒铺完，同时在场约 剑数 × 0.375 × 轮数；超过 ult/tx_sword_fx（56）就隔把画（伤害照打每一把）
+	var stride: int = maxi(1, ceili(float(swords.size()) * 0.375 * float(rounds.size()) / Bal.v("ult/tx_sword_fx", 56.0)))
 	return {"k": "texas", "c": c, "R": R, "lines": lines, "drawn": 0, "cut": false, "cut_seg": {}, "swords": swords,
-		"rounds": rounds, "rain": [], "back": rt == "back", "back_done": false, "end": 0.0}
+		"rounds": rounds, "rain": [], "sv": [], "stride": stride, "back": rt == "back", "back_done": false, "end": 0.0}
+
+
+## 刀痕帧条（fx_ult_texas_slash_front，中心原点、沿 x 轴 384 × 40）：旋转到刀痕方向、横向拉到刀痕长
+static func _tx_slash(u, ln: Array, opt: Dictionary) -> void:
+	var a: Vector2 = ln[0]
+	var b: Vector2 = ln[1]
+	var op: Dictionary = opt.duplicate()
+	op["o"] = Vector2(384, 40)
+	op["ang"] = (b - a).angle()
+	op["sx"] = a.distance_to(b) / (384.0 * u.g.PX)
+	u.strip("fx_ult_texas_slash_front", (a + b) * 0.5, op)
 
 
 static func _tx_step(u, a: Dictionary, o) -> bool:
@@ -214,15 +264,14 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 	var lines: Array = a.lines
 	var n: int = lines.size()
 	while int(a.drawn) < n and t >= float(a.drawn) * 0.5 / float(n):
-		var ln: Array = lines[int(a.drawn)]
-		u.shape({"kind": "line", "a": ln[0], "b": ln[1], "w": 3.0, "col": hi, "life": 0.85 - t})
-		u.shape({"kind": "dots", "c": (ln[0] + ln[1]) * 0.5, "r": 60.0, "n": 6, "col": hi, "life": 0.3})
+		# 画网：刀痕细线显现（帧段 start 0–2，停在 f2 等斩开）
+		_tx_slash(u, lines[int(a.drawn)], {"seg": [0, 2], "life": maxf(0.05, 0.75 - t)})
 		a.drawn = int(a.drawn) + 1
 	if not a.cut and t >= 0.75:
 		a.cut = true
-		for ln in lines:
-			u.shape({"kind": "band", "a": ln[0], "b": ln[1], "w": 46.0, "col": hi, "fill": 0.55, "life": 0.3})
-			u.shape({"kind": "line", "a": ln[0], "b": ln[1], "w": 9.0, "col": Color.WHITE, "life": 0.22})
+		for ln in lines:   # 斩开：burst 3–5 → out 6–7；地面残痕沿刀痕拼接，0.8 秒走完 4 帧淡出（末帧随实例结束）
+			_tx_slash(u, ln, {"seg": [3, 7]})
+			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 0.8})
 		_ring(u, a.c, a.R, a.R * 0.3, hi, 0.4, 10.0)
 		_hit_circle(u, a, o, a.c, a.R, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "斩开"})
 		o.screen_shake(0.6)
@@ -233,6 +282,17 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 		var rd: Array = a.rounds[ri]
 		var t0: float = rd[0]
 		last = maxf(last, t0 + 0.8)
+		# 剑帧条比伤害早 3 帧（落 0–2）放下去，插地那一帧（f3）正好是这把剑打到的时刻；伤害时序不动
+		var lead: float = 3.0 / 20.0
+		if t >= t0 - lead:
+			if a.sv.size() <= ri:
+				a.sv.append(0)
+			var due_v: int = mini(sw.size(), int(ceil((t + lead - t0) / 0.8 * float(sw.size()))))
+			while int(a.sv[ri]) < due_v:
+				var j: int = int(a.sv[ri])
+				if j % int(a.stride) == 0:
+					u.strip("fx_ult_texas_sword_front", sw[j], {"o": Vector2(32, 224)})
+				a.sv[ri] = j + 1
 		if t < t0:
 			continue
 		if a.rain.size() <= ri:
@@ -247,10 +307,6 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 				st.seg[int(e.id)] = true
 				_hit(u, a, o, e, float(rd[1]), {"stun": Bal.v("ult/tx_rain_stun", 0.4), "src": "剑雨",
 					"edge": e.pos.distance_to(a.c) > float(a.R) * (1.0 - _edge_w())})
-			if int(st.i) % 2 == 0:
-				u.shape({"kind": "line", "a": p + Vector2(6, -70), "b": p, "w": 3.0, "col": hi, "life": 0.16})
-			if int(st.i) % 5 == 0:
-				_ring(u, p, 30.0, 6.0, col, 0.2, 2.0)
 			st.i = int(st.i) + 1
 	if a.back and not a.back_done and t >= last:
 		a.back_done = true   # 回马剑：收刀时在她身后再斩一圈（斩开打过的不再打）
@@ -297,11 +353,54 @@ static func _ex_start(u, o) -> Dictionary:
 			if eq.size() < cap - 12:   # 至少留 12 发给普通目标
 				eq.append(e)
 	var col: Color = u._col(o)
-	for e in elites:
-		_ring(u, e.pos, float(e.get("r", 14.0)) + 18.0, float(e.get("r", 14.0)) + 30.0, Color(1.0, 0.85, 0.35), 0.9, 3.0)
+	var dur: float = Bal.v("ult/ex_dur", 2.5)
+	# 锁定标记（fx_ult_exusiai_lock_orbit）：精英 / Boss 先、再按距离挑普通目标，至多 ult/ex_lock_fx（24）个
+	var locks: Array = []
+	var lk_cap: int = int(Bal.v("ult/ex_lock_fx", 24.0))
+	for e in elites + normals:
+		if locks.size() >= lk_cap:
+			break
+		var sc: float = clampf((float(e.get("r", 14.0)) + 10.0) / 24.0, 0.8, 3.0)
+		locks.append({"e": e, "out": -1.0, "s": u.strip("fx_ult_exusiai_lock_orbit", e.pos, {"o": Vector2(48, 48), "f": 0, "sc": sc, "life": dur + 0.5})})
 	_ring(u, c, R, R * 0.6, col.lerp(Color.WHITE, 0.4), 0.5, 4.0)
 	return {"k": "exusiai", "R": R, "mult": 0.9 if rt == "range" else 1.0, "rico": rt == "ricochet", "eq": eq, "ne": ne,
-		"normals": normals, "done": {}, "fired": 0, "ncap": cap, "dur": Bal.v("ult/ex_dur", 2.5), "rate": Bal.v("ult/ex_rate", 24.0), "ring_t": 0.5}
+		"normals": normals, "done": {}, "fired": 0, "ncap": cap, "dur": dur, "rate": Bal.v("ult/ex_rate", 24.0), "ring_t": 0.5,
+		"locks": locks, "lk_done": {}, "bt": []}
+
+
+## 锁定标记推进：start 0–3 锁上 → loop 4–5 保持（跟着目标走）→ 被打到（精英：最后一发打完）/ 目标倒下 / 扫射结束 → out 6–7 碎掉
+static func _ex_locks(u, a: Dictionary) -> void:
+	var t: float = a.t
+	for k in range(a.locks.size() - 1, -1, -1):
+		var lk: Dictionary = a.locks[k]
+		var e: Dictionary = lk.e
+		var s: Dictionary = lk.s
+		if not e.dead:
+			s.c = e.pos
+		if float(lk.out) < 0.0 and (e.dead or a.done.has(int(e.id)) or a.lk_done.has(int(e.id)) or t >= float(a.dur)):
+			lk.out = t
+		if float(lk.out) >= 0.0:
+			var j: int = int((t - float(lk.out)) * 24.0)
+			if j >= 2:
+				u.shapes.erase(s)
+				a.locks.remove_at(k)
+				continue
+			s.f = 6 + j
+		else:
+			var j2: int = int(t * 24.0)
+			s.f = j2 if j2 < 4 else 4 + (j2 - 4) % 2
+
+
+## 爆裂弹帧条（fx_ult_exusiai_burst_front，6 帧 0.2 秒）：同一时刻在场超过 ult/ex_burst_fx（48）个就跳过这一个（只少画、不少打）
+static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
+	var t: float = a.t
+	var bt: Array = a.bt
+	while not bt.is_empty() and t - float(bt[0]) >= 0.2:
+		bt.pop_front()
+	if bt.size() >= int(Bal.v("ult/ex_burst_fx", 48.0)):
+		return
+	bt.append(t)
+	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc})
 
 
 static func _ex_step(u, a: Dictionary, o) -> bool:
@@ -314,7 +413,12 @@ static func _ex_step(u, a: Dictionary, o) -> bool:
 	if t >= float(a.ring_t) and t < dur:
 		a.ring_t = float(a.ring_t) + 0.5
 		u.shape({"kind": "ring", "c": o.pos, "r": a.R, "w": 2.0, "col": u._col(o).lerp(Color.WHITE, 0.4), "life": 0.5})
+	_ex_locks(u, a)
 	if t >= dur:
+		for lk in a.locks:   # 还挂着的锁定标记就地碎掉（独立实例，动作照常结束）
+			u.shapes.erase(lk.s)
+			u.strip("fx_ult_exusiai_lock_orbit", lk.s.c, {"o": Vector2(48, 48), "sc": lk.s.sc, "seg": [6, 7]})
+		a.locks.clear()
 		var ext = o.get("ext")   # 天赋「快速弹匣」：弹匣直接装满（天赋没解锁 / 计数器没建立就跳过）
 		if ext is Dictionary and ext.has("cap") and ext.has("cnt") and ext.cap.has("mag"):
 			ext.cnt["mag"] = float(ext.cap["mag"])
@@ -353,6 +457,8 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 		if not e.dead:
 			tg = e
 			frac = 1.0 / float(a.ne)
+			if a.eq.is_empty() or int(a.eq[0].id) != int(e.id):
+				a.lk_done[int(e.id)] = true   # 这是打它的最后一发：锁定标记收
 			break
 	var und: Array = []
 	if tg == null:
@@ -380,6 +486,7 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 		a.done[int(e.id)] = true
 		_ex_hit(u, a, o, e, float(a.mult), {"src": "爆裂弹", "edge": e.pos.distance_to(o.pos) > er})
 		n_sp += 1
+	_ex_burst(u, a, imp, 1.0 if n_sp > 0 else 0.85)   # 主弹先占名额；爆裂半径 60 ≈ 帧条峰值帧 120 宽
 	# 目标多于剩余发数：一发打多个框（就近再分几名）
 	var left: int = maxi(1, int(a.ncap) - int(a.fired))
 	und = _ex_undone(a)
@@ -391,6 +498,7 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 			a.done[int(e.id)] = true
 			_ex_hit(u, a, o, e, float(a.mult), {"src": "爆裂弹", "edge": e.pos.distance_to(o.pos) > er})
 			u.shape({"kind": "line", "a": imp, "b": e.pos, "w": 2.0, "col": gold, "life": 0.08})
+			_ex_burst(u, a, e.pos, 0.6)
 	# 跳弹路线：每 5 发里 2 发（按序号，不抽随机数）弹向圈内另一个还没锁上的敌人
 	if a.rico and (int(a.fired) * 2) % 5 < 2:
 		var best = null
@@ -406,9 +514,9 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 			a.done[int(best.id)] = true
 			_ex_hit(u, a, o, best, float(a.mult), {"src": "跳弹"})
 			u.shape({"kind": "line", "a": imp, "b": best.pos, "w": 2.0, "col": gold, "life": 0.1})
+			_ex_burst(u, a, best.pos, 0.75)
 	var mz: Vector2 = o.pos + Vector2(0, -20)
 	u.shape({"kind": "line", "a": mz, "b": imp, "w": 2.0, "col": Color(1.0, 0.95, 0.7), "life": 0.06})
-	_ring(u, imp, 60.0, 10.0, gold, 0.18, 3.0 if n_sp == 0 else 5.0)
 	if int(a.fired) % 6 == 0:
 		o.face_to((imp - o.pos).angle())
 		o.play_vis_anim("attack")
@@ -422,11 +530,43 @@ static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 	var lfrac: float = 0.55 if rt == "echo" else (0.75 if rt == "resonance" else Bal.v("ult/sk_laser", 0.85))
 	var dd: float = 4.0 if rt == "echo" else (9.0 if rt == "resonance" else Bal.v("ult/sk_dom_t", 6.0))
 	var dfrac: float = (1.0 - lfrac) if rt == "resonance" else Bal.v("ult/sk_dom", 0.15)   # 领域合计
-	var soff := Vector2(-42.0 * float(u.g.facing), -26.0)
-	u.shape({"kind": "circle", "c": o.pos + soff, "r": 26.0, "col": COL_SK_RED, "fill": 0.9, "life": 0.25})
-	_ring(u, o.pos + soff, 60.0, 10.0, COL_SK_TEAL, 0.3, 3.0)
-	return {"k": "skalter", "soff": soff, "a0": dir.angle(), "laps": laps, "lap": 0, "swept": 0.0, "lfrac": lfrac, "lseg": {},
-		"T": Bal.v("ult/sk_sweep", 1.6), "L": 480.0, "dd": dd, "dfrac": dfrac, "dc": Vector2.INF, "dt0": 0.0, "tick": 0, "buf_t": 0.0, "fr2": 0}
+	# 海嗣（fx_ult_skalter_seaborn_front / _back，同一世界脚底）站在她身后；激光原点 = 海嗣张口处（f6 口在脚底 +8, −99）
+	var fs: float = 1.0 if float(u.g.facing) >= 0.0 else -1.0
+	var foot := Vector2(-56.0 * fs, -4.0)
+	var soff: Vector2 = foot + Vector2(8.0 * fs, -99.0)
+	var T: float = Bal.v("ult/sk_sweep", 1.6)
+	var life: float = float(laps) * T + 0.6
+	var sf: Dictionary = u.strip("fx_ult_skalter_seaborn_front", o.pos + foot, {"o": Vector2(160, 316), "f": 0, "sx": fs, "life": life})
+	var sb: Dictionary = u.strip("fx_ult_skalter_seaborn_back", o.pos + foot, {"o": Vector2(160, 48), "f": 0, "sx": fs, "layer": "back", "life": life})
+	return {"k": "skalter", "soff": soff, "foot": foot, "sf": sf, "sb": sb, "fx": [sf, sb], "beam": [], "close_t": -1.0,
+		"a0": dir.angle(), "laps": laps, "lap": 0, "swept": 0.0, "lfrac": lfrac, "lseg": {},
+		"T": T, "L": 480.0, "dd": dd, "dfrac": dfrac, "dc": Vector2.INF, "dt0": 0.0, "tick": 0, "buf_t": 0.0, "fr2": 0}
+
+
+## 海嗣帧号（自己按时间算，写进两个实例的 f）：front 起 0–5（24 fps 快升，0.25 秒；激光伤害从第 0 帧就开始，不能等）
+## → 张口 6–7 乒乓循环（12 fps，激光期间）→ 激光结束沉下 8–9（12 fps）后收；back 按 manifest front_to_back_frame_mapping 跟 front
+const SK_F2B := [0, 0, 1, 1, 2, 2, 3, 4, 5, 5]
+
+
+static func _sk_sea(u, a: Dictionary, o) -> void:
+	if a.fx.is_empty():
+		return
+	var t: float = a.t
+	var ff: int
+	if float(a.close_t) >= 0.0:
+		ff = 8 + int((t - float(a.close_t)) * 12.0)
+		if ff > 9:
+			_kill(u, a.fx)
+			return
+	elif t < 0.25:
+		ff = mini(5, int(t * 24.0))
+	else:
+		ff = 6 + int((t - 0.25) * 12.0) % 2
+	a.sf.f = ff
+	a.sb.f = SK_F2B[ff]
+	if float(a.close_t) < 0.0:   # 激光期间跟着她走（激光原点同样每帧按她的位置算）
+		a.sf.c = o.pos + Vector2(a.foot)
+		a.sb.c = a.sf.c
 
 
 static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
@@ -448,12 +588,14 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				a.lseg[int(e.id)] = true
 				_hit(u, a, o, e, float(a.lfrac), {"src": "激光", "edge": d.length() > er})
 		var tip: Vector2 = org + Vector2.from_angle(cur) * L
-		u.shape({"kind": "line", "a": org, "b": tip, "w": 18.0, "col": COL_SK_RED, "life": 0.05})
-		u.shape({"kind": "line", "a": org, "b": tip, "w": 5.0, "col": COL_SK_TEAL, "life": 0.05})
-		u.shape({"kind": "circle", "c": org, "r": 24.0, "col": COL_SK_RED, "fill": 0.9, "life": 0.05})
+		# 光束（fx_ult_skalter_beam_front 拼接段，左端中心原点）：每帧从海嗣口沿当前角度重铺到 480；
+		# 显示宽 80 = 纹理高 40（1x）× g.PX，sy 不另放大（manifest review_draw_width 80 与海嗣同一 @2x 口径）；海嗣升起那 0.25 秒淡入
+		_kill(u, a.beam)
+		a.beam = u.tiles_line("fx_ult_skalter_beam_front", org, tip, {"f": int(float(a.t) * 24.0) % 6, "life": 0.5,
+			"col": Color(1, 1, 1, clampf(float(a.t) / 0.25, 0.35, 1.0))})
 		a.fr2 = int(a.fr2) + 1
-		if int(a.fr2) % 3 == 0:
-			u.shape({"kind": "sector", "c": org, "r": L, "a": cur - sgn * 0.15, "half": 0.15, "col": COL_SK_RED, "fill": 0.22, "life": 0.25})
+		if int(a.fr2) % 3 == 0:   # 扫过的余迹（占位减淡）
+			u.shape({"kind": "sector", "c": org, "r": L, "a": cur - sgn * 0.15, "half": 0.15, "col": COL_SK_RED, "fill": 0.1, "life": 0.25})
 		if float(a.swept) >= TAU:
 			a.lap = int(a.lap) + 1
 			a.swept = 0.0
@@ -462,10 +604,15 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				a.dc = org
 				a.dt0 = float(a.t)
 				var dd: float = a.dd
-				u.shape({"kind": "circle", "c": org, "r": L, "col": COL_SK_RED, "fill": 0.12, "life": dd})
-				u.shape({"kind": "ring", "c": org, "r": L, "w": 3.0, "col": COL_SK_TEAL.lerp(COL_SK_RED, 0.5), "life": dd})
+				_kill(u, a.beam)
+				a.close_t = float(a.t)   # 海嗣沉下
+				u.shape({"kind": "circle", "c": org, "r": L, "col": COL_SK_RED, "fill": 0.06, "life": dd})
+				# 领域花纹（fx_ult_skalter_domain_back 弧状拼接段，地面层循环）：铺在领域边上往里 20，外缘不出伤害圈
+				_arc(u, "fx_ult_skalter_domain_back", org, L - 20.0, {"layer": "back", "loop": true, "life": dd})
 				o.screen_shake(0.4)
+		_sk_sea(u, a, o)
 		return false
+	_sk_sea(u, a, o)
 	# 领域：每秒一跳（合计 dfrac），队长在领域内：全队攻击 +20%、每秒回 1.5% 最大生命
 	var dc: Vector2 = a.dc
 	var el: float = float(a.t) - float(a.dt0)
@@ -531,9 +678,10 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		a.prev = p
 		return false
 	var t1: float = cd + 0.3
-	if t < t1:   # 到位：发红发白
-		var hot: Color = Color(1.0, 0.3, 0.2).lerp(Color.WHITE, (t - cd) / 0.3)
-		u.shape({"kind": "circle", "c": c, "r": 22.0 + 30.0 * (t - cd) / 0.3, "col": hot, "fill": 0.85, "life": 0.05})
+	if t < t1:   # 到位：熔毁蓄力（fx_ult_kaltsit_melt_front charge 0–2，铺满这 0.3 秒）
+		if not a.get("charged", false):
+			a["charged"] = true
+			u.strip("fx_ult_kaltsit_melt_front", c, {"o": Vector2(192, 192), "seg": [0, 2], "fps": 10.0, "life": t1 - t})
 		return false
 	var rs: Array = a.rs
 	while int(a.ring) < 3 and t >= t1 + 0.15 * float(a.ring):
@@ -545,8 +693,10 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		_hit_circle(u, a, o, c, float(rs[i]), float(a.fs[i]), a.segs[i], opt, float(rs[2]))
 		var col: Color = Color(1.0, 0.35, 0.2).lerp(Color.WHITE, 0.5 - 0.2 * i)
 		_ring(u, c, float(rs[i]), maxf(30.0, r0), col, 0.35, 10.0 - 2.0 * i)
-		u.shape({"kind": "circle", "c": c, "r": float(rs[i]), "col": Color(1.0, 0.3, 0.2), "fill": 0.3 - 0.07 * i, "life": 0.3})
-		u.shape({"kind": "dots", "c": c, "r": float(rs[i]), "n": 10 + 6 * i, "col": col, "life": 0.4})
+		if i == 0:   # 爆 3–5 对上第一圈、散 6–7（峰值帧 384 宽 ≈ 第一圈直径 360）
+			u.strip("fx_ult_kaltsit_melt_front", c, {"o": Vector2(192, 192), "seg": [3, 7], "fps": 20.0})
+		# 裂纹（fx_ult_kaltsit_crack_back 弧状拼接段，地面层）：裂开 0–3 → 余热 4–5，末帧留到 0.7 秒随实例结束
+		_arc(u, "fx_ult_kaltsit_crack_back", c, float(rs[i]), {"layer": "back", "fps": 14.0, "life": 0.7})
 		o.screen_shake(0.5 + 0.15 * i)
 		if i == 0 and a.shell:
 			u.team_buff("ult:kaltsit_shell", Bal.v("ult/ka_shell_t", 5.0), [[&"dmg_taken", "mult", Bal.v("ult/ka_shell", 0.7)]])
@@ -576,8 +726,8 @@ static func _m3_back(u, o, heal: bool) -> void:
 		return
 	o.ObSummon.sm_spawn(o, {"kind": "mon3tr", "at": "rest"}, Vector2.INF)
 	var m3 = _ka_m3(o)
-	if m3 != null:
-		_ring(u, m3.pos, 70.0, 10.0, Color(0.35, 0.95, 0.85), 0.4, 4.0)
+	if m3 != null:   # 重构（fx_ult_kaltsit_rebuild_orbit，底部中心 = 脚底，12 帧 0.75 秒）：只是结构线特效，本体就是这只真 Mon3tr；_m3_watch 让它跟着走
+		o.set_meta("ult_m3_fx", u.strip("fx_ult_kaltsit_rebuild_orbit", m3.pos, {"o": Vector2(128, 253)}))
 	if heal:
 		u.g.combat.heal(u.g.max_hp * Bal.v("ult/ka_heal", 0.08), "终结技", "kaltsit")
 
@@ -593,6 +743,13 @@ static func _m3_watch(u) -> void:
 	for m in u.g.squad.ops:
 		if m.has_meta("ult_m3_back") and u.g.t >= float(m.get_meta("ult_m3_back")):
 			_m3_back(u, m, m.has_meta("ult_m3_heal"))
+		if m.has_meta("ult_m3_fx"):
+			var s: Dictionary = m.get_meta("ult_m3_fx")
+			var m3 = _ka_m3(m)
+			if m3 == null or float(s.age) >= float(s.max):
+				m.remove_meta("ult_m3_fx")
+			else:
+				s.c = m3.pos
 
 
 # ================================================================ 乌尔比安（§4.5）：掷锚 → 沿锁链冲过去 → 落地 4 圈裂地
@@ -615,13 +772,13 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 	var td: float = a.td
 	if t < ta:   # 锚飞出去
 		var tip: Vector2 = p0.lerp(c, t / ta)
-		u.shape({"kind": "line", "a": p0, "b": tip, "w": 4.0, "col": COL_STEEL, "life": 0.05})
-		u.shape({"kind": "circle", "c": tip, "r": 18.0, "col": COL_STEEL, "fill": 0.9, "life": 0.05})
+		_ul_anchor(u, a, tip, (c - p0).angle())
+		_ul_chain(u, a, o.pos, tip, (c - p0).angle())
 		return false
 	if not a.thrown:
 		a.thrown = true
+		_ul_anchor(u, a, c, (c - p0).angle())   # 锚扎在落点，等他冲过来
 		_ring(u, c, 90.0, 20.0, COL_STEEL, 0.25, 5.0)
-		u.shape({"kind": "line", "a": p0, "b": c, "w": 4.0, "col": COL_STEEL, "life": td + 0.2})
 		if a.drag:   # 不容挣脱：锚落地瞬间把半径 560 内的敌人往落点拖 120
 			for e in u.in_circle(c, 560.0):
 				if not e.boss and e.pos.distance_to(c) > 30.0:
@@ -641,10 +798,12 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, Bal.v("ult/ul_path", 0.2), {"src": "锁链", "stun": 0.8 if a.rift else 0.0, "pre": true})   # pre：冲击帧留给第一圈裂地
 			if a.rift and not e.boss:
 				g.enemies_sys.add_cc(e, 0.8, -INF, "airborne")
-		u.shape({"kind": "band", "a": p0, "b": p, "w": hw, "col": COL_STEEL, "fill": 0.15, "life": 0.1})
+		u.shape({"kind": "band", "a": p0, "b": p, "w": hw, "col": COL_STEEL, "fill": 0.07, "life": 0.1})
+		_ul_chain(u, a, o.pos, c, (c - p0).angle())
 		if k >= 1.0 and not a.landed:
 			a.landed = true
 			a["land_t"] = t
+			_fx_end(u, a)   # 落地：收锚、收锁链
 			if g.get("map") != null and g.map.has_method("push_out"):
 				g.ppos = g.map.push_out(g.ppos, 12.0)
 				o.pos = g.ppos
@@ -674,11 +833,46 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, float(a.fs[i]), op)
 		var col: Color = COL_STEEL.lerp(Color(1.0, 0.55, 0.3), 0.25 * i)
 		_ring(u, lc, r, maxf(30.0, r0), col, 0.35, 8.0 + 2.0 * i)
-		u.shape({"kind": "circle", "c": lc, "r": r, "col": col, "fill": 0.12, "life": 0.25})
-		u.shape({"kind": "dots", "c": lc, "r": r, "n": 8 + 5 * i, "col": col, "life": 0.35})
+		# 裂地（fx_ult_ulpianus_crack_back 弧状拼接段，地面层）+ 沿圈撒喷发单元（fx_ult_ulpianus_burst_front，底部中心；喷 0–3 / 落 4–7）
+		_arc(u, "fx_ult_ulpianus_crack_back", lc, r, {"layer": "back", "fps": 14.0, "life": 0.7, "a0": 0.21 * i})
+		var nb: int = clampi(roundi(TAU * r / 140.0), 5, int(Bal.v("ult/ul_burst_fx", 14.0)))
+		var bsc: float = 0.6 + 0.07 * i   # 水柱是竖着的高度，外圈也压在 0.8 以内，免得顶上一圈高出伤害区太多
+		for j in nb:
+			var ang: float = 0.37 * i + TAU * (float(j) + 0.5 * float(i % 2)) / float(nb)
+			u.strip("fx_ult_ulpianus_burst_front", lc + Vector2.from_angle(ang) * r, {"o": Vector2(64, 192), "sc": bsc,
+				"delay": 0.02 * float((j * 3) % 4)})
 		o.screen_shake(0.35 + 0.15 * i)
 		a.ring = i + 1
 	return int(a.ring) >= 4 and t >= lt + 0.18 * 3.0 + 0.1
+
+
+## 巨锚（fx_ult_ulpianus_anchor_front）：4 个角度帧 f0–f3 = 锚头朝下（+90°）起每帧顺时针 45°；
+## 按飞行方向取最近的角度帧（超过 180° 的用对面那帧转半圈），剩下的差角用旋转补；不按 fps 播
+static func _ul_anchor(u, a: Dictionary, p: Vector2, dir_ang: float) -> void:
+	var rho: float = dir_ang - PI / 2.0
+	var k: int = posmod(roundi(rho / (PI / 4.0)), 8)
+	var f: int = k % 4
+	if not a.has("anc"):
+		a["anc"] = u.strip("fx_ult_ulpianus_anchor_front", p, {"o": Vector2(96, 96), "f": f, "life": float(a.ta) + float(a.td) + 0.3})
+		if not a.has("fx"):
+			a["fx"] = []
+		a.fx.append(a.anc)
+	var s: Dictionary = a.anc
+	s.c = p
+	s.f = f
+	s.ang = rho - f * PI / 4.0
+
+
+## 锁链（fx_ult_ulpianus_chain_front 拼接段，循环 0–1）：从他手边铺到锚尾（锚中心往回 60），每帧重铺
+static func _ul_chain(u, a: Dictionary, from: Vector2, tip: Vector2, dir_ang: float) -> void:
+	if not a.has("chain"):
+		a["chain"] = []
+	_kill(u, a.chain)
+	var b: Vector2 = tip - Vector2.from_angle(dir_ang) * 60.0
+	var p: Vector2 = from + Vector2(0, -20)
+	if (b - p).dot(Vector2.from_angle(dir_ang)) < 8.0:
+		return
+	a.chain = u.tiles_line("fx_ult_ulpianus_chain_front", p, b, {"f": int(float(a.t) * 12.0) % 2, "life": 0.3})
 
 
 # ================================================================ 连携终结技通用版（§7.3）
