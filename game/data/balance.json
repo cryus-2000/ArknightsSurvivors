@@ -1,11 +1,6 @@
 {
  "version": "p5.0",
  "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
- "leader_swap": {
-  "_doc": "切换队长（10-23，docs/128 / docs/135）：on 总开关（10-27 用户「Q 直接删掉吧」：缺省 0 = 关，Q / 手柄 RB / 触屏点头像都不切，技能键恢复 Q / E / J、手柄 Ⓐ / Ⓨ = Q、RB = 冲刺；1 = 恢复切换，技能键改回 E / J）；cd 切换冷却秒数；镜头缓动 0.25 秒写在 game.swap_ease。",
-  "on": 0,
-  "cd": 2.0
- },
  "command": {
   "roam_dash": 1,
   "roam_dash_cd": 7.0,
@@ -579,8 +574,6 @@
   "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准；final_boss_hp 只乘最终 Boss 生命（停刷补偿，缺省 1.0，docs/38 §8.14），云端可用 --bal=difficulty/<key>/final_boss_hp=X 试",
   "standard": {},
   "hard": {
-   "hunt_dur": 0.85,
-   "hunt_ring_hp": 0.85,
    "enemy_hp": 1.2,
    "boss_hp": 1.15,
    "enemy_dmg": 1.2,
@@ -598,8 +591,6 @@
    "frost_max": 2
   },
   "extreme": {
-   "hunt_dur": 0.7,
-   "hunt_ring_hp": 0.7,
    "enemy_hp": 1.7,
    "boss_hp": 1.35,
    "enemy_dmg": 1.25,
@@ -628,19 +619,11 @@
   "lamp": 20,
   "safe_bullet": 1,
   "safe_ranged": 1,
-  "safe_slow": 0,
   "_doc2": "docs/56「去不去」（10-11 原型，§7 112 局过判定后 10-11 定为缺省 guide_r 160 / shade_deg 50；两者都 0 = 改动前行为）：guide_r 引路半径（0 关）——未点燃且寿命 ≤ guide_life（45 秒）的灯标 guide_r 内非 Boss 子弹消散、主控在内时远程杂兵不起手，不依赖 safe_*；shade_deg 背光刷怪半张角（0 关）——未点燃灯标在主控 shade_dist（600）内时 edge_pos 不朝灯标方向刷杂兵（角度均匀重映射，不额外掷随机数）。难度表可用 beacon_guide_r / beacon_shade_deg 按档覆盖",
   "guide_r": 160,
   "guide_life": 45,
   "shade_deg": 50,
-  "shade_dist": 600,
-  "_doc3": "docs/56 §8 接力环（10-11 原型，缺省关）：relay_r 接力环外半径（0 = 关，须 > r 70 才生效）——未点燃灯标的光圈 r 到 relay_r 这一环里，主控在内时进度不退，并按 relay_rate（光圈内读条速度的倍率；0 = 只保持不涨）继续涨，可以在环里点燃；环内不是安全区（safe_* / guide_r 不变）、不影响 Boss、不掷随机数。难度表可用 beacon_relay_r / beacon_relay_rate 按档覆盖",
-  "relay_r": 0,
-  "relay_rate": 0.5,
-  "_doc4": "docs/56 §10 灯边硬直（10-11 原型，缺省关）：stagger_r（0 = 关）——主控在未点燃灯标 stagger_r 内（建议 140 = 2×r，含圈边）时，非 Boss 敌人新起的近战预警（咬击 / 扇形斩 / 前刺 / 踏地 / 触须爆发 / 破土 / 近战额外招）换成原地硬直 stagger_s 秒（不移动、不出招、该招冷却照扣；不是 e.stun）；每只敌人硬直后 stagger_cd 秒内不再被硬直（期间照常出招）；已在走的预警照常结算、远程招不管、Boss 不受影响、不掷随机数。难度表可用 beacon_stagger_r / beacon_stagger_s / beacon_stagger_cd 按档覆盖",
-  "stagger_r": 0,
-  "stagger_s": 0.6,
-  "stagger_cd": 5
+  "shade_dist": 600
  },
  "squad": {
   "_doc": "入队加成（docs/83，用户 10-13 定）：编队每多 1 名干员（开局干员不算，最多算 hp_member_cap 人），主控最大生命 ×(1 + hp_per_member × 人数)（docs/46 §6，每人 +15%），主控生命回复 + regen_per_member × 人数（生命 / 秒，加在 regen 上，吃 heal_mult）。招募卡与属性面板的数字都从这里读。regen_per_member 0 = 关",
@@ -993,9 +976,5 @@
   "burst_gap": 0.08,
   "cap_shots": 48,
   "cap_qi": 18
- },
- "hunt": {
-  "enabled": 0,
-  "_doc": "10-25 用户：围猎并进大群（docs/150），独立围猎事件关掉；run/hunt.gd 保留，置 1 可恢复"
  }
 }

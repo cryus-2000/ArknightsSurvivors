@@ -265,9 +265,7 @@ func _draw_body() -> void:
 		banners.draw_boss_pointers(vs, ct)
 		banners.draw_offscreen_edges(vs, ct)   # 镜头拉近（战斗画面缩放 > 100%）时屏外近处敌人的边缘红边
 		banners.draw_field_wave(vs)
-		banners.draw_beacon_pointers(vs, ct)
-		banners.draw_hunt_ring(vs, ct)
-		banners.draw_hunt_pointer(vs, ct))
+		banners.draw_beacon_pointers(vs, ct))
 	var pq := phone_quiet()
 	if not overlay_left() and not pq:
 		# 小地图每 3 帧重画一次（20 次 / 秒；红点 300 个时逐个画是 HUD 里最贵的一块）

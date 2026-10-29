@@ -263,7 +263,7 @@ func run() -> void:
 		for line in data.dmod_lines(mods):
 			check(lines.has(line), "difficulty preserves real modifier: " + str(line))
 		if tier > 0:
-			for label in ["围猎持续时间", "围猎海嗣生命", "灯标刷新间隔"]:
+			for label in ["灯标刷新间隔"]:   # 围猎两项 10-29 随独立围猎删除
 				check("\n".join(lines).contains(label), "difficulty includes benefit: " + label)
 	var survey = screen.new()
 	survey.tick(0.0, 0, false)

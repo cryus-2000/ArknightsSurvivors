@@ -162,7 +162,7 @@ func _enemy_mix() -> Dictionary:
 			m["精英"] += 1
 		elif e.get("chest", false):
 			m["补给箱"] += 1
-		elif e.get("friendly", false) or str(e.get("event", "")) != "" or e.get("enc", false) or e.has("owner") or e.has("feed_to_id"):
+		elif e.get("friendly", false) or str(e.get("event", "")) != "" or e.has("owner") or e.has("feed_to_id"):
 			m["事件 / 召唤"] += 1
 		else:
 			m["普通"] += 1

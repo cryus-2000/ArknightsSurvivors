@@ -1060,7 +1060,7 @@ func _horde_loose(he: Dictionary, hunt: bool) -> void:
 		he["rush"] = Bal.v("enemy/horde_hunt_rush", 0.7)
 
 
-## 画面对角线一半（世界坐标）：围猎型大群的出生半径按它算（同 run/hunt.gd 的 _spawn_radius）
+## 画面对角线一半（世界坐标）：围猎型大群的出生半径按它算
 func _view_half_diag() -> float:
 	var vs: Vector2 = g.get_viewport_rect().size
 	return g.get_viewport().get_canvas_transform().affine_inverse().basis_xform(vs).length() * 0.5

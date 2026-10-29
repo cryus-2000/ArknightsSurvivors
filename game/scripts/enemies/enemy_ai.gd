@@ -85,10 +85,6 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 		return false
 	if str(a.mode) in ["pierce", "volley"] and g.beacon_sys.ranged_held(e):
 		return false   # 圈内安全：读条期间远程额外招式（凿石贯射、齐射）不起手，冷却不推进（docs/49g）
-	if str(a.mode) in ["swipe", "pulse"] and _stag(e):
-		e.extra_next = g.t + float(a.cd)   # 灯边硬直（docs/56 §10）：近战额外招（尾刃反扫等）被硬直取代，冷却照扣
-		e.shot_ready = false
-		return true
 	var reach: float = float(a.range)
 	var warn_color := Color(0.64, 0.95, 1.0) if float(a.get("frost", 0.0)) > 0.0 else (Color(0.95, 0.55, 1.0) if float(a.get("nerve", 0.0)) > 0.0 else Color(0.75, 0.55, 1.0))
 	var data := {"secondary": true, "cancel_dead": true, "ang": dir.angle(), "name": "", "dmg": e.dmg * float(a.damage_mult),
@@ -117,12 +113,6 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 	e.extra_next = g.t + float(a.cd)
 	e.shot_ready = false
 	return true
-
-
-## 灯边硬直（docs/56 §10，beacon/stagger_r 缺省 0 = 关）：近战起手前问一句，true = 这次起手被硬直取代（不出预警）。
-## 只在主控站在未点燃灯标附近时可能为 true；旋钮关时 stagger 恒为空，一次字段读取就返回
-func _stag(e: Dictionary) -> bool:
-	return g.beacon_sys.stagger != null and g.beacon_sys.melee_stagger(e)
 
 
 ## 箱形恐鱼现形尖叫（docs/145 §4 A，用户 10-25：尖叫期间照常移动）：现形或第一次走到 scream_wake_r 内时开始，
@@ -172,8 +162,6 @@ func _bite(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> Vector2:
 				"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 		return Vector2.INF
 	if dist < reach and e.wind <= 0.0 and g.bai.cd_ready(e, "bite", float(d.get("bite_cd", 2.6))):
-		if _stag(e):
-			return Vector2.INF
 		Sfx.enemy("screech", dist)
 		g.tele.warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.2, "act": "bite", "dmg": e.dmg,
 			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})   # 出手帧条（docs/96 §3 箱形恐鱼 fx_mimic_bite，缺图只有刀光）
@@ -249,8 +237,6 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		# 临战自身流失（docs/95 §18，原作每秒 4%）已删：用户 10-29「它现在没有什么威胁，直接删掉这个特性」
 	var rr := float(d.get("reap_range", 88))
 	if dist < rr and e.wind <= 0.0 and g.bai.cd_ready(e, "reap", float(d.get("reap_cd", 2.2))):
-		if _stag(e):
-			return Vector2.INF   # 灯边硬直：醒来第一下的额外前摇（reaped）留给下一次真出手
 		Sfx.enemy("bite", dist)
 		# 扇形斩前摇 enemy/reaper_windup（0.8 秒），醒来后第一下再加 reaper_first_extra（0.2 秒）：数值 9/29「先让它可躲」；倍率读 reap_mult
 		var wu: float = Bal.v("enemy/reaper_windup", 0.8) + (Bal.v("enemy/reaper_first_extra", 0.2) if not e.get("reaped", false) else 0.0)
@@ -285,8 +271,6 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 				g.combat.fade_mire(e.trail_list.pop_front())
 	var tr := float(d.get("thrust_range", 170))
 	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai.cd_ready(e, "thrust", float(d.get("thrust_cd", 3.2))):
-		if _stag(e):
-			return Vector2.INF
 		Sfx.enemy("bite", dist)
 		g.tele.warn(e, "line", _wu(e, 0.55), {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
 			"atk_fx": str(d.get("atk_fx_enraged", d.get("atk_fx", "")) if e.enraged else d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
@@ -303,8 +287,6 @@ func _nest(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 				g.telemetry.aura_type = str(e.type)   # 作战记录：神经损伤记给放光环的敌人
 				g.nerve_aura_t = 0.6   # 神经光环按「站在溟痕里」累积神经损伤（combat.update_nerve）
 	if dist < float(d.get("lash_range", 120)) and e.wind <= 0.0 and g.bai.cd_ready(e, "lash", float(d.get("lash_cd", 5.0))):
-		if _stag(e):
-			return Vector2.INF
 		Sfx.enemy("screech", dist)
 		g.tele.warn(e, "circle", _wu(e, 0.7), {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3,
 			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
@@ -320,8 +302,6 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 			e.under = false
 			e.def = 1.0
 			e.up_t = float(d.get("up_time", 3.2))
-			if _stag(e):
-				return Vector2.ZERO   # 灯边硬直：照常破土露头，但这一口不咬
 			Sfx.enemy("bite", dist)
 			g.tele.warn(e, "circle", 0.6, {"follow": true, "r": 50.0, "act": "bite", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 1.3})
 			g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
@@ -337,8 +317,6 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 ## 近身时踏地震荡
 func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
 	if dist < float(d.get("stomp_range", 170)) and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and g.bai.cd_ready(e, "stomp", float(d.get("stomp_cd", 6.0))):
-		if _stag(e):
-			return Vector2.INF
 		Sfx.enemy("screech", dist)
 		g.tele.warn(e, "circle", _wu(e, 0.9), {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2, "ground": true})   # ground：轮廓画在地面层，不盖住单位（用户 10-24）
 	return Vector2.INF
@@ -367,7 +345,7 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 				if g.vfx.fx_sprite(dfx, e.pos, g.PX, e.dash_dir.angle(), false, false, Color.WHITE, true):
 					g.fx[g.fx.size() - 1]["enemy"] = true
 		return e.dash_dir * spd * float(d.get("dash_speed", 3.8))
-	if e.dash_cd <= 0.0 and dist < float(d.get("dash_range", 240)) and dist > 40.0 and g.beacon_sys.slow_mult(e) >= 1.0:   # safe_slow 对照组：读条光圈附近不起冲刺
+	if e.dash_cd <= 0.0 and dist < float(d.get("dash_range", 240)) and dist > 40.0:
 		e.dash_cd = g.rng_enemy.randf_range(3.0, 4.5)
 		e["dash_w"] = _wu(e, float(d.get("dash_wind", 0.5)))
 		e["dash_w0"] = e.dash_w   # 画面按这一次实际蓄力时长算进度（render/world.gd）

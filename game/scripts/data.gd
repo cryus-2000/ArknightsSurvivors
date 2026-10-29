@@ -45,7 +45,7 @@ const LEGACY_TIERS := [
 ## 潮位阶梯 0–15（docs/71 + docs/109 §5.3，用户 10-22「难度回到 15 级」）：逐级叠加，每级加一条规则或加重前面的规则；
 ## 通关潮位 N 解锁 N+1。存档 Cfg.difficulty / diff_unlocked 存的是潮位（0–15）。
 ## 锚点：0 = 旧标准、4 = 旧 Ⅳ（逐键相等），8 = 旧 Ⅷ + 寒流两键（小怪控制 5:00、寒霜 2 层，docs/71 §2.3）；
-## 1–3 / 5–7 / 9–15 在前一个锚点上依次写入 TIDE_SET 的键（只往更难推）。name 是界面档名，short 是级名，desc 是本级新增的规则。
+## 1–3 / 5–7 / 9–10 在前一个锚点上依次写入 TIDE_SET 的键（只往更难推）。name 是界面档名，short 是级名，desc 是本级新增的规则。
 const DIFFICULTY_TIERS := [
 	{"name": "潮位 0 · 海面", "short": "海面", "en": "SURFACE", "desc": "没有额外规则。", "key": "standard", "level": 0},
 	{"name": "潮位 1 · 巨影", "short": "巨影", "en": "LOOMING", "desc": "Boss 生命 +15%，Boss 招式预警缩短 15%。", "level": 1},
@@ -58,13 +58,8 @@ const DIFFICULTY_TIERS := [
 	{"name": "潮位 8 · 漫灌", "short": "漫灌", "en": "FLOOD", "desc": "大群加重到 +60%，Boss 在场时照常来袭。", "key": "extreme", "level": 8},
 	{"name": "潮位 9 · 夜潮", "short": "夜潮", "en": "NIGHT TIDE", "desc": "后期敌人伤害的成长上限提高到 +50%；敌人造成的伤害加重到 +35%。", "level": 9},
 	{"name": "潮位 10 · 残烛", "short": "残烛", "en": "GUTTERING", "desc": "受击时灯火损失加重到 +60%，灯油掉落加重到 -60%。", "level": 10},
-	{"name": "潮位 11 · 领潮者", "short": "领潮者", "en": "TIDE LORDS", "desc": "敌人生命加重到 +100%。", "level": 11},
-	{"name": "潮位 12 · 异变", "short": "异变", "en": "MUTATION", "desc": "带词条的海嗣提前到 5:00 出现，词条概率上限提高到 50%。", "level": 12},
-	{"name": "潮位 13 · 深压", "short": "深压", "en": "DEEP PRESSURE", "desc": "队长初始最大生命加重到 -20%；敌人造成的伤害加重到 +50%。", "level": 13},
-	{"name": "潮位 14 · 渊主", "short": "渊主", "en": "ABYSS LORD", "desc": "Boss 生命加重到 +60%；最终 Boss 生命再 +30%。", "level": 14},
-	{"name": "潮位 15 · 潮不止息", "short": "潮不止息", "en": "ENDLESS TIDE", "desc": "最终 Boss 在场时海嗣照常涌来；敌人生命加重到 +140%。", "level": 15},
 ]
-## 界面上的三档难度（用户 10-22：「难度改成三档，作为潮位系统的三个预设」）。潮位阶梯 0–15 的代码与数据保留但不在界面露出
+## 界面上的三档难度（用户 10-22：「难度改成三档，作为潮位系统的三个预设」）。潮位阶梯 0–10 的代码与数据保留但不在界面（10-29 删掉三档用不到的 11–15 级）露出
 ## （危机合约类玩法留作以后）。tide = 取哪一级潮位的修正表；factor = 结算系数（= Meta.tide_factor(tide)）。
 ## 存档 Cfg.difficulty / diff_unlocked 存的是这里的下标；通关第 i 档解锁第 i+1 档。档名用户 10-22 定 B 组（docs/109 §15）
 const DIFF_PRESETS := [
@@ -112,18 +107,13 @@ static func tier_name(tide: int) -> String:
 const TIDE_SET := {
 	1: {"boss_hp": 1.15, "boss_warn": 0.85},
 	2: {"lamp_hit": 1.3, "oil_drop": 0.7, "ingot": 0.9},
-	3: {"enemy_hp": 1.2, "enemy_dmg": 1.2, "hunt_dur": 0.85, "hunt_ring_hp": 0.85, "beacon_every": 0.8},
+	3: {"enemy_hp": 1.2, "enemy_dmg": 1.2, "beacon_every": 0.8},
 	5: {"max_hp": 0.9, "oil_drop": 0.6, "ingot": 0.75},
 	6: {"boss_hp": 1.35, "boss_warn": 0.8, "boss_dmg": 1.15},
-	7: {"enemy_hp": 1.7, "enemy_dmg": 1.25, "hunt_dur": 0.7, "hunt_ring_hp": 0.7, "boss_fight_enemy_hp": 1.0},
+	7: {"enemy_hp": 1.7, "enemy_dmg": 1.25, "boss_fight_enemy_hp": 1.0},
 	8: {"ctrl_start": 300.0, "frost_max": 2.0},
 	9: {"dmg_late_cap": 0.5, "enemy_dmg": 1.35},
 	10: {"lamp_hit": 1.6, "oil_drop": 0.4},
-	11: {"enemy_hp": 2.0},
-	12: {"affix_start": 300.0, "affix_max": 0.5},
-	13: {"max_hp": 0.8, "enemy_dmg": 1.5},
-	14: {"boss_hp": 1.6, "final_boss_hp": 1.3},
-	15: {"final_stop_mobs": 0.0, "enemy_hp": 2.4},
 }
 ## 难度修正表：倍率（1.0 = 不变）与开关（0 / 1）
 const DMOD_DEFAULT := {
@@ -132,7 +122,6 @@ const DMOD_DEFAULT := {
 	"elite_interval": 1.0, "boss_warn": 1.0, "horde": 1.0,               # 精英出现间隔、Boss 招式预警时间、大群规模
 	"horde_in_boss": 0, "max_hp": 1.0,              # Boss 在场时大群照常来袭、主控初始最大生命（溟痕 10-24 起各档都常驻，原 mire_permanent 删）
 	"mire_dmg": 1.0, "nerve_rate": 1.0,                                   # 溟痕伤害（run/enemies.gd）；溟痕里神经损伤累积速度（combat.update_nerve）
-	"hunt_dur": 1.0, "hunt_ring_hp": 1.0,                                 # 围猎持续时间、圈上海嗣生命（run/hunt.gd；高难度下放宽，避免成为硬门槛）
 	"beacon_every": 1.0,                                                  # 引航灯标刷新间隔倍率（run/beacon.gd；< 1 更频繁，数值按档填）
 	# 小怪控制 / 词条按档覆盖（数值 9/30：标准档不动、只收紧 Ⅳ / Ⅷ）：-1 = 用 balance.json enemy 段的全局值，读取走 combat.enemy_knob
 	"ctrl_start": -1.0, "frost_max": -1.0, "affix_start": -1.0, "affix_max": -1.0,
@@ -142,10 +131,8 @@ const DMOD_DEFAULT := {
 	"final_trickle_mult": -1.0, "final_trickle_cap": -1.0, "final_trickle_fresh_w": -1.0,   # 最终 Boss 战少量补怪的倍率 / 上限 / 新种类权重按档覆盖（-1 = 跟 final 段）
 	"final_boss_hp": 1.0,                                                 # 只乘最终 Boss 的生命（停刷的补偿旋钮，docs/38 §8.14；不动中期 Boss / 杂兵 / 经验）
 	# 灯标按档覆盖（-1 = 跟 balance.json beacon 段；beacon._sk）。这里没登记的键 dmod_for_tier 会丢掉，所以 _sk 读的键都要在这里
-	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0, "beacon_safe_slow": -1.0,   # 圈内安全（docs/49g）
+	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0,   # 圈内安全（docs/49g）
 	"beacon_guide_r": -1.0, "beacon_shade_deg": -1.0,                     # 引路 / 背光刷怪（docs/56）
-	"beacon_relay_r": -1.0, "beacon_relay_rate": -1.0,                    # 接力环（docs/56 §8）
-	"beacon_stagger_r": -1.0, "beacon_stagger_s": -1.0, "beacon_stagger_cd": -1.0,   # 灯边硬直（docs/56 §10）
 }
 ## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关；
 ## time / count / pct = 按档覆盖的 enemy 段绝对值（-1 = 用全局），只在本档值和 balance.json enemy/<键> 不同时显示：time 写成 分:秒，pct ×100
@@ -190,7 +177,7 @@ static func dmod_for_legacy(tier: int) -> Dictionary:
 	return m
 
 
-## 潮位 tide（0–15）的修正表：取所在块的锚点（0 / 4 / 8 = 旧三档），再依次写入锚点之后各级的 TIDE_SET
+## 潮位 tide（0–10）的修正表：取所在块的锚点（0 / 4 / 8 = 旧三档），再依次写入锚点之后各级的 TIDE_SET
 static func dmod_for_tier(tide: int) -> Dictionary:
 	tide = clampi(tide, 0, DIFFICULTY_TIERS.size() - 1)
 	var a := 0 if tide < 4 else (1 if tide < 8 else 2)

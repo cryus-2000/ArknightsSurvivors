@@ -381,7 +381,6 @@ func update(dt: float) -> void:
 	if stance == RECALL:
 		_tick_recall(dt)
 	_tick_lead(dt)
-	swap_cd = maxf(0.0, swap_cd - dt)
 	_tick_stamina(dt)
 	_tick_hp(dt)
 	_tick_rush_buff()
@@ -443,42 +442,14 @@ func _blink_check(dt: float, phase: String) -> void:
 	_bl_ext.clear()
 
 
-## ---------------------------------------------------------------- 切换队长（10-23 用户定，docs/128）
-## Q / 手柄 RB / 触屏点编队卡：谁都不瞬移，被切到的干员原地成为队长（玩家位置 = 他的位置），原队长原地变回队友；镜头 0.25 秒缓动过去
-## （game.swap_off）；冷却 2 秒、不给无敌；队长生命整局共用，不换血条；倒地的队友不能被切。不按切换键时本段不执行任何代码，同 seed 不变
-var swap_cd := 0.0
+## ---------------------------------------------------------------- 指定队长（10-23 docs/128 的切换队长；玩家入口 10-27 关、10-29 删，docs/197 清理）
+## 只剩内部接口：Boss 测试台 / 测试直接指定谁当队长。被指定的干员原地成为队长（玩家位置 = 他的位置），原队长原地变回队友；
+## 镜头 0.25 秒缓动过去（game.swap_off）；队长生命整局共用；倒地的队友不能被指定
 var swap_n := 0
 
 
-func swap_cd_max() -> float:
-	return Bal.v("leader_swap/cd", 2.0)
-
-
-## 切换队长的玩家入口开没开（balance leader_swap/on，10-27 起缺省关）：关时 Q 是技能键、RB 是冲刺、点头像不切
-static func swap_on() -> bool:
-	return Bal.v("leader_swap/on", 0.0) > 0.0
-
-
 func can_swap_to(o) -> bool:
-	return o != null and not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and swap_cd <= 0.0 and g.state == g.S.PLAY and g.demo_op == ""
-
-
-## 下一名能当队长的干员（按编队栏从左到右，绕回开头）；没有返回 null（HUD 在它的卡上标 Q）
-func next_leader():
-	if ops.size() < 2 or not swap_on():
-		return null
-	var cur: int = ops.find(leader())
-	for k in range(1, ops.size()):
-		var o = ops[(cur + k) % ops.size()]
-		if o.cmd_down <= 0.0 and not o.is_leader:
-			return o
-	return null
-
-
-## 轮流切到下一名（Q / RB）
-func cycle_leader() -> bool:
-	var o = next_leader()
-	return o != null and swap_leader(o)
+	return o != null and not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and g.state == g.S.PLAY and g.demo_op == ""
 
 
 func swap_leader(o) -> bool:
@@ -505,7 +476,6 @@ func swap_leader(o) -> bool:
 	if g.get("doctor") != null:
 		g.doctor.charge = {}
 		Sfx.loop_stop("ulp_charge_loop")
-	swap_cd = swap_cd_max()
 	swap_n += 1
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()

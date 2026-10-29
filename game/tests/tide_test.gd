@@ -18,12 +18,12 @@ func _ready() -> void:
 
 
 ## 「更难」方向：大于 1 难的键越大越难；小于 1 难的键越小越难
-const DOWN_HARD := ["max_hp", "oil_drop", "ingot", "boss_warn", "hunt_dur", "hunt_ring_hp", "beacon_every", "elite_interval"]
+const DOWN_HARD := ["max_hp", "oil_drop", "ingot", "boss_warn", "beacon_every", "elite_interval"]
 
 
 func run() -> void:
-	check(D.DIFFICULTY_TIERS.size() == 16, "潮位应为 16 级")
-	for i in 16:
+	check(D.DIFFICULTY_TIERS.size() == 11, "潮位应为 11 级（0–10）")
+	for i in 11:
 		check(int(D.DIFFICULTY_TIERS[i].level) == i, "第 %d 级 level" % i)
 	check(D.dmod_for_tier(0) == D.dmod_for_legacy(0), "潮位 0 = 旧标准")
 	# 三档预设（docs/109 §15）：常规 / 高压 = 纯潮位表；深潮 = 潮位 10 的表上小怪生命 / 伤害再乘 enemy_scale；其余键与潮位 10 相同；--tide=10 走同一张表
@@ -41,11 +41,11 @@ func run() -> void:
 	m8.ctrl_start = 300.0
 	m8.frost_max = 2.0
 	check(D.dmod_for_tier(8) == m8, "潮位 8 = 旧 Ⅷ + 寒流两键")
-	for i in range(1, 16):
+	for i in range(1, 11):
 		var a := D.dmod_for_tier(i - 1)
 		var b := D.dmod_for_tier(i)
 		for k in a:
-			if k in ["hunt_dur", "hunt_ring_hp", "beacon_every", "boss_fight_enemy_hp"]:
+			if k in ["beacon_every", "boss_fight_enemy_hp"]:
 				continue   # 补偿键（docs/71 §2.1：跟着规则走的放宽）
 			var va := float(a[k])
 			var vb := float(b[k])

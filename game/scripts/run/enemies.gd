@@ -324,11 +324,6 @@ func update(dt: float) -> void:
 			e.stun = 0.0
 		e.squash -= dt
 		e.slow -= dt / g.control_mult
-		# 灯边硬直（docs/56 §10，beacon.melee_stagger 写入）：和眩晕一样不移动、不出招，但不是 e.stun（不吃控制时长加成、不触发「对眩晕敌人」的加成）
-		var bst: float = e.get("bstag", 0.0)
-		if bst > 0.0:
-			bst -= dt
-			e.bstag = bst
 		if e.get("wind", 0.0) > 0.0:
 			e.wind -= dt
 		if e.get("pose", 0.0) > 0.0:
@@ -377,7 +372,7 @@ func update(dt: float) -> void:
 			if dist > 1500.0:
 				e.dead = true
 			continue
-		if dist > 1300.0 and not e.boss and not e.get("enc", false):   # 围猎的海嗣（enc）由 hunt.gd 管：屏幕外出生，不按「远处静止敌人清掉」处理
+		if dist > 1300.0 and not e.boss:
 			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:
@@ -401,7 +396,7 @@ func update(dt: float) -> void:
 		# ---- 移动
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
-		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0) * g.beacon_sys.slow_mult(e)
+		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
 		if float(e.get("lite_slow_t", 0.0)) > g.t:
 			spd *= 1.0 - float(e.lite_slow)   # 轻减速（lite_slow，铃兰狐火命中，10-29）：与普通减速乘算
 		if e.get("lead_charge", false) and dist < Bal.v("enemy/horde_lead_charge_r", 320.0) and e.get("wake_t", 0.0) <= 0.0 and e.get("depart_t", 0.0) <= 0.0 and e.stun <= 0.0 and not g.eai.busy(e):
@@ -444,7 +439,7 @@ func update(dt: float) -> void:
 				move_dir = move_dir.rotated(float(e.wob[0]) * wk * sin(g.t * float(e.wob[1]) + float(e.wob[2])))
 			else:
 				e.erase("wob")
-		var held: bool = e.stun > 0.0 or bst > 0.0
+		var held: bool = e.stun > 0.0
 		# 封印（docs/61 §15 st.seal，干员积木）：非 Boss 敌人不起新的特殊招式（pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……），
 		# 已经起手的蓄力 / 冲刺 / 自爆照常走完（enemy_ai.busy）；Boss 的封印在 boss_ai 的 ready 里。没有封印时 seal_t 不存在，这里恒为 false
 		var sealed: bool = float(e.get("seal_t", 0.0)) > g.t

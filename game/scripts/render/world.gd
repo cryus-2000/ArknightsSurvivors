@@ -540,7 +540,6 @@ func _draw_warns_auras() -> void:
 	if not _dbg_aura:
 		draw_nest_auras()
 	draw_beacons()
-	draw_hunt_ring()
 	if not _dbg_friend:
 		g.rfx.draw()   # 藏品特效（--clutterdbg=nofriend 量测时不画；只画不抽随机数）
 	if not g.merchant.is_empty():
@@ -554,33 +553,6 @@ func _draw_warns_auras() -> void:
 		else:
 			g.vfx.spr("merchant", 2, int(g.t * 2.0) % 2, g.merchant.pos, Game.PX)
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
-
-
-## 围猎包围圈（run/hunt.gd；用户 10-11：「一分半的围猎的包围圈不够明显，没有看到一个圈」）。
-## 10-11 二版：一版 696847e 把圈画在地面层，整条线跟着灯火光照走——灯火足时靠主控发白、远处只剩 ambient 的灰紫，
-## 和一百多只小怪的白描边抢不过。现在圈体（底边 + 紫色虚线 + 缺口青绿弧 + 扫描亮斑）挪到 HUD 层（screens/hud_banners.gd
-## draw_hunt_ring，不受 CanvasModulate / 灯光影响，颜色就是设计色）；地面层只留「里外一眼分开」的调子：圈外压暗 0.15
-## （径向渐变到圈边，一直铺到画面外）、圈内贴边一圈淡紫。低画质整段不画。全进 tb 批一次提交；只读 hunt.vis()，不改对局
-const HUNT_COL := Color(0.75, 0.5, 1.0)
-func draw_hunt_ring() -> void:
-	if g.hunt == null or Cfg.quality == "low":
-		return
-	var v: Dictionary = g.hunt.vis()
-	if v.is_empty() or v.alpha <= 0.0:
-		return
-	var c: Vector2 = v.c
-	var r: float = v.r
-	var alpha: float = v.alpha
-	var ta: float = 0.15 * alpha
-	var vr: Rect2 = view_rect(0.0)
-	var far: float = 0.0
-	for corner in [vr.position, vr.end, Vector2(vr.position.x, vr.end.y), Vector2(vr.end.x, vr.position.y)]:
-		far = maxf(far, c.distance_to(corner))
-	far = maxf(far + 40.0, r + 180.0)
-	tb_ring2(c, r, r + 90.0, Color(0.0, 0.0, 0.02, 0.0), Color(0.0, 0.0, 0.02, ta), 64)
-	tb_ring(c, (r + 90.0 + far) * 0.5, far - (r + 90.0), Color(0.0, 0.0, 0.02, ta), 64)
-	tb_ring2(c, r - 70.0, r, Color(HUNT_COL, 0.0), Color(HUNT_COL, (0.12 + 0.1 * v.tick) * alpha), 64)
-	tb_flush()
 
 
 ## 性能（协调人 9/30：后期没捡的结晶堆积，每颗 5–8 个图元）：屏幕外的掉落不画；结晶很多时，
@@ -2564,7 +2536,7 @@ func enemy_scale(e: Dictionary) -> float:
 ## 能缓存的敌人把「贴图名 / 帧数 / 帧率 / 颜色 / 缩放 / 锚点偏移 / 描边开关」存在 e.dc，签名变了才重算（_dc_compute）；
 ## 帧号（同一表达式按 g.t 算）、翻转、击退偏移、白闪、描边透明度（随 ecrowd 连续变）、词条、弱点每帧照算（_dc_emit）。
 ## 不进缓存、走 _draw_enemy_full 原路径（_dc_ok）：Boss、宝箱、部件、潜地、骑士（专用帧条）、DC_SKIP_TYPES，
-## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口 / 灯边硬直（bstag，docs/56 §10）里的敌人。
+## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口 /（，docs/56 §10）里的敌人。
 ## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、[6] 举肢准备（_dc_prep，10-26 docs/158 §7）、[7] 描边开关（_ol_sig）。
 ## 以后给敌人加会影响画面的新状态：要么加进 _dc_ok 的排除条件，要么加进签名；--dccheck（快检冒烟开着）会抓漏。
 ## enemies.json draw_full：带专用帧条挂点的几只 Boss（卡门 / 伊比利亚 / 伊祖米克 / 塑路者 / 伊莎玛拉 / 偏执泡影）
@@ -2619,7 +2591,7 @@ func _dc_ok(e: Dictionary) -> bool:
 		return false
 	if e.has("vis_act"):
 		return false   # 现形 / 复苏 / 落地变身一次性帧条在播（_vis_anim）：走原路径
-	if e.get("bstag", 0.0) > 0.0 or float(e.get("hatch_until", 0.0)) > g.t:
+	if float(e.get("hatch_until", 0.0)) > g.t:
 		return false
 	if e.tex_attack and (g.t < e.atk_until or float(e.get("shot_wind_until", 0.0)) > g.t):
 		return false   # 举肢准备（attack_preparing）进缓存（签名 [6]，_dc_prep）：高阶四种在 300 像素内几乎一直处在准备态，原来六七成走原路径（docs/158 §7）
@@ -3014,7 +2986,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
 			e.mv_until = vt + 0.2
 		e.dpos = e.pos
-		if vt < e.mv_until and e.stun <= 0.0 and e.get("bstag", 0.0) <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
+		if vt < e.mv_until and e.stun <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
 			name += "_move"
 			frames = A.enemy_frames(name, 4)
 			# 重画帧条（10-23）：循环速度 = 帧数 / 原作动画时长；旧的 move_fps 是给 4 帧旧图调的，没登记的帧条仍用它
@@ -3093,7 +3065,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if e.flash > 0.0:
 			g.vfx.spr(name + "_white", 2, 0, e.pos, Game.PX, false, Color(1, 1, 1, 0.9))
 		return
-	if e.stun > 0.0 or e.get("bstag", 0.0) > 0.0:   # 灯边硬直（docs/56 §10）复用眩晕的偏蓝
+	if e.stun > 0.0:
 		col = col * Color(0.65, 0.75, 1.0)
 	if rage_fx:
 		var rp: float = 0.5 + 0.5 * sin(g.t * 10.0 + e.id)
@@ -3389,15 +3361,6 @@ func draw_enemy_tells() -> void:
 						_dash_head(sb, e.dash_dir, wk)
 				_:
 					_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
-		# 灯边硬直（docs/56 §10）：头顶一颗暖色小光点 + 绕着转的两粒光屑，读作「被灯光震住」，随剩余时间淡出
-		var bst: float = e.get("bstag", 0.0)
-		if bst > 0.0:
-			var ba: float = clampf(bst / 0.3, 0.0, 1.0)
-			var bt: Vector2 = e.pos + Vector2(0, -e.r - 14.0)
-			g.draw_circle(bt, 3.0, Color(1.9, 1.5, 0.8, 0.85 * ba))
-			for k in 2:
-				var bo: Vector2 = Vector2.from_angle(g.t * 9.0 + PI * k) * Vector2(9.0, 3.5)
-				g.draw_circle(bt + bo, 1.6, Color(1.9, 1.5, 0.8, 0.7 * ba))
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
 			_count_ring(e)
@@ -3908,11 +3871,6 @@ func draw_beacons() -> void:
 				for q in 28:
 					var a2: float = -g.t * 0.2 + q * TAU / 28.0
 					tb_arc(pos, gr, a2, a2 + TAU / 56.0, 1.5, Color(BEACON_COL.r * 1.3, BEACON_COL.g * 1.3, BEACON_COL.b * 1.3, 0.16 + 0.04 * pulse), 3, ground_y())
-			# 接力环（docs/56 §8，beacon/relay_r > r 才有）：光圈外 r..relay_r 一圈很淡的暖色带（同引路圈的色），主控站在带里（进度不退 / 慢涨）时提亮
-			var rr: float = float(b.get("relay_r", 0.0))
-			if rr > r:
-				var on_band: bool = b.get("band", false)
-				g.draw_arc(Vector2.ZERO, (r + rr) * 0.5, 0.0, TAU, 48, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, (0.12 + 0.05 * pulse) if on_band else 0.06 + 0.02 * pulse), rr - r)
 		else:
 			var left: float = float(b.get("safe_end", 0.0)) - g.t
 			if left > 0.0:
