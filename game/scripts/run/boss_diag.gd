@@ -118,6 +118,7 @@ static func squad(g, tag: String) -> void:
 		str(g.relics.size()) if g.get("relics") != null else "?", str(g.ch.def.get("id", "?")) if g.ch != null else "?", int(g.ch.elite) if g.ch != null else -1, str(ops)])
 
 static var _sq_done := false
+static var _last_card := ""
 static var _done := false
 ## 每帧：最终 Boss 到场时打一次分队；胜 / 负 / 战斗满 --diagmax 秒（缺省 150）或总时长超 --maxt 时打报告并退出
 static var _ft_last := 0
@@ -135,6 +136,9 @@ static func poll(g) -> void:
 		if g.ebullets.size() >= 130 and ft_hi.size() < 20000:
 			ft_hi.append(ft)
 	_ft_last = now_us
+	if g.final_boss != null and str(g.final_boss.get("izu_card", "")) != _last_card:
+		_last_card = str(g.final_boss.get("izu_card", ""))
+		print("IZUCARD %.2f %d %s" % [g.t, int(g.final_boss.get("gates_passed", 0)), _last_card])
 	if not _sq_done and g.final_boss != null:
 		_sq_done = true
 		squad(g, "arrival")
