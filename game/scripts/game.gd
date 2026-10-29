@@ -1442,6 +1442,7 @@ func mobile_cap() -> bool:
 
 
 func _process(delta: float) -> void:
+	preload("res://scripts/run/boss_diag.gd").poll(self)
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）

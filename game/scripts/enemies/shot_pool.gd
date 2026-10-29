@@ -195,6 +195,7 @@ func update_ebullets(dt: float) -> void:
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
 			if g.invuln <= 0.0:
+				preload("res://scripts/run/boss_diag.gd").tag = str(b.get("kind", ""))
 				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 0.75), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
 
 
