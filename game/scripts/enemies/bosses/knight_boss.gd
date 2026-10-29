@@ -996,6 +996,8 @@ func aim(from: Vector2) -> float:
 func ice_shards(e: Dictionary, from: Vector2, ang: float, n: int, spread: float, spd: float, gap_ang := INF, gap_half := 0.0) -> void:
 	if Bal.v("boss/knight_shards", 1.0) <= 0.0 or e.get("dead", false):
 		return
+	if n > 1:
+		n = int(round(n * Bal.v("boss/count_k_knight_boss", 1.0)))   # 10-29 docs/201 §7：每波冰屑数（缺口半角不变）
 	var own := 0
 	for b in g.ebullets:
 		if b.get("knight_shard", false) and b.get("source_id", -1) == e.id:

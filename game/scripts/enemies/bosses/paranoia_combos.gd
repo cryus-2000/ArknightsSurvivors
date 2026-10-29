@@ -91,7 +91,13 @@ func act(e: Dictionary) -> int:
 
 
 func _dn(e: Dictionary, i: int):
-	return DENS[clampi(act(e), 0, DENS.size() - 1)][i]
+	var v = DENS[clampi(act(e), 0, DENS.size() - 1)][i]
+	# 10-29 docs/201 §7（用户「弹幕频率、数量还是低」）：每波发数（眼数 / 狙击向数 / 双旋每环 / 波环每圈 / 群愿每朵）× boss/count_k_paranoia，眼开枪间隔 × boss/tempo_k_paranoia；缺口半角、帘幕缝宽不动
+	if i in [0, 3, 5, 7, 11]:
+		return int(round(float(v) * Bal.v("boss/count_k_paranoia", 1.0)))
+	if i == 2:
+		return float(v) * Bal.v("boss/tempo_k_paranoia", 1.0)
+	return v
 
 
 ## 每帧（paranoia.step 在主轴机制之后调用）；返回 true = 出招由连段接管
@@ -269,6 +275,8 @@ func _emit(e: Dictionary, seg: String, dir: Vector2) -> void:
 		spec.n = int(_dn(e, 6))
 	elif seg in ["侵蚀帘幕", "无声波环"] and act(e) >= 2:
 		spec.n = 3   # 三幕起多一道：缝 / 缺口来回错位，要读
+	if seg != "千目注视":
+		spec.iv = float(spec.iv) * Bal.v("boss/tempo_k_paranoia", 1.0)
 	var wind: float = float(spec.get("wind", WINDUP))
 	var t0: float = g.t + wind
 	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(), "wind": wind,
