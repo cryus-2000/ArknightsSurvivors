@@ -11,6 +11,8 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_strict": 1.08,
   "_doc": "基础数值",
   "atk": 24,
   "cd": 0.8,
@@ -484,7 +486,7 @@
    "id": "strict",
    "name": "严律",
    "icon": "growth_b_range",
-   "desc": "刺击第 1 段命中的第一个敌人停顿 {$strict_halt} 秒（精英减半，Boss 除外），第 2 段必中该敌人"
+   "desc": "刺击第 1 段命中的第一个敌人停顿 {$strict_halt} 秒（精英减半，Boss 除外），第 2 段必中该敌人；伤害 ×{$grow_dmg_strict}"
   },
   {
    "type": "elite",
@@ -967,11 +969,14 @@
     "do": [],
     "_doc": "再审：第 3 段写在 attack.stages[1]（cond node:retrial）"
    },
-   "strict": {
+   "strict": [
+   {
     "trig": "passive",
     "do": [],
     "_doc": "严律（docs/202）：逻辑在 seg_irene._h3_thrust_release / _h3_stage_tick（第 1 段命中的第一个敌人停顿 strict_halt 秒，控制走 add_cc_growth；第 2 段改直刺该敌人）"
    },
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_strict"}
+   ],
    "gale": {
     "trig": "passive",
     "do": [],

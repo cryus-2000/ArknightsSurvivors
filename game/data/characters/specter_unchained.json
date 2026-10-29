@@ -14,6 +14,8 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_beast": 1.1,
   "_doc": "基础数值",
   "atk": 46,
   "cd": 1.2,
@@ -613,13 +615,13 @@
    "id": "beast",
    "name": "困兽",
    "icon": "skill_specter_unchained_s1",
-   "desc": "「生存的技巧」期间，队长每被命中一次，她立即追加一次环斩（{$beast_cd} 秒内至多一次）",
+   "desc": "「生存的技巧」期间，队长每被命中一次，她立即追加一次环斩（{$beast_cd} 秒内至多一次）；伤害 ×{$grow_dmg_beast}",
    "branch": {
     "beast": {
      "id": "beast",
      "name": "困兽",
      "icon": "skill_specter_unchained_s1",
-     "desc": "「生存的技巧」期间，队长每被命中一次，她立即追加一次环斩（{$beast_cd} 秒内至多一次）"
+     "desc": "「生存的技巧」期间，队长每被命中一次，她立即追加一次环斩（{$beast_cd} 秒内至多一次）；伤害 ×{$grow_dmg_beast}"
     },
     "elegy": {
      "id": "elegy",
@@ -1110,7 +1112,8 @@
     "do": [],
     "_doc": "血色潮痕：写在 attack.trail（cond node:blood_ring）"
    },
-   "beast": {
+   "beast": [
+   {
     "trig": "on_hurt",
     "cond": "skill_active:0",
     "cd": "$beast_cd",
@@ -1121,6 +1124,8 @@
      }
     ]
    },
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_beast"}
+   ],
    "elegy": {
     "trig": "passive",
     "do": [],
