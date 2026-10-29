@@ -62,7 +62,7 @@ func run() -> void:
 	var synthetic := {"base": {"atk": 77.0, "cd": 2.5, "reach": 180}, "leader": {"max_hp": 155}}
 	var dyn: Dictionary = InitialStats.sheet("test", synthetic)
 	check(InitialStats.row(dyn, "hp").text == "%d" % int(round(155.0 * hp_mult)) and InitialStats.row(dyn, "atk").text == InitialStats._num(77.0 * Bal.v("squad/op_atk_base", 1.0)) and InitialStats.row(dyn, "cd").text == "2.50 秒", "numbers respond to supplied data")
-	# 实际编队对象：同一项精英化在主控提示 Q，队友明确自动。
+	# 实际编队对象：10-29 起三技能一律自动（乌尔比安 S3 不再手动，手动招并进终结技 docs/198）——队长、队友都不提示 Q，都写自动。
 	var game = load("res://game.tscn").instantiate()
 	game.demo_op = "ulpianus"
 	add_child(game)
@@ -71,8 +71,8 @@ func run() -> void:
 	var op = game.ch
 	op.is_leader = true
 	var option := {"kind": "prog", "op": "ulpianus", "elite": 2, "desc": "解锁技能"}
-	check("按 Q" in game.panel_ui.option_description(option), "leader growth hints Q")
-	check("按 Q" in game.show_screen.skill_item(op, 2).desc, "leader elite show hints Q")
+	check(not "按 Q" in game.panel_ui.option_description(option), "leader growth no longer asks Q (S3 auto)")
+	check("自动" in game.show_screen.skill_item(op, 2).desc, "leader elite show says auto")
 	op.is_leader = false
 	check(not "按 Q" in game.panel_ui.option_description(option), "ally growth never asks Q")
 	check("自动" in game.show_screen.skill_item(op, 2).desc, "ally elite show says auto")

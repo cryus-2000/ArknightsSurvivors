@@ -37,6 +37,16 @@
   "s3_r": 140,
   "s3_stun": 3.0,
   "s3_haste": 8.0,
+  "s3_dur": 8.0,
+  "s3_need": 170,
+  "s3_m1": 0.9,
+  "s3_r1": 1.15,
+  "s3_m2": 1.1,
+  "s3_r2": 1.45,
+  "s3_m3": 1.8,
+  "s3_r3": 150,
+  "s3_air": 0.7,
+  "s3_elite_stun": 1.0,
   "aim_cone": 30,
   "aim_range": 400,
   "aim_empty": 300,
@@ -447,9 +457,7 @@
    "en": "PATHS MUST BE OPENED",
    "sp": 22,
    "dur": 8.0,
-   "mode": "manual",
-   "aim": "point",
-   "desc": "掷锚并沿锁链冲向落点：沿途宽 {$s3_path_w} 内的敌人各受一次 ×{$s3_path_mult*$k_pow:2} 伤害；落地半径 {$s3_r} 内 ×{$s3_mult*$k_pow:2} 伤害、击退并眩晕 {$s3_stun} 秒（精英减半、Boss {$s3_stun*$s3_stun_boss:1} 秒）；之后 {$s3_haste} 秒锚击间隔 -{(1-$haste_mult)*100}%。作为队友时自动瞄准敌群最密处；作为队长时手动指定落点，最远距离 {$aim_range}，可指定无敌人的位置。瞄准操作见指南",
+   "desc": "{$s3_dur} 秒内抡起船锚连打，锚击间隔 -{(1-$haste_mult)*100}%，三下一循环：① 身前横扫半圈 ×{$s3_m1*$k_pow:2}；② 借势转一整圈（半径 ×{$s3_r2}）×{$s3_m2*$k_pow:2}；③ 甩到最高处猛砸身前，半径 {$s3_r3} 内 ×{$s3_m3*$k_pow:2} 伤害，普通敌人被掀飞 {$s3_air} 秒，精英硬直 {$s3_elite_stun} 秒。身边有敌人时自动发动",
    "icon": "skill_ulpianus_s3"
   }
  ],
@@ -615,7 +623,7 @@
      "id": "rift",
      "name": "通路洞开",
      "icon": "skill_ulpianus_s3",
-     "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*$k_pow*100:1}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路"
+     "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*$k_pow*100:1}% 伤害"
     }
    },
    "branch_desc": "「不容挣脱」强化钩取，锚命中 Boss 时将附近敌人拖向落点；「通路洞开」沿锁链攻击并浮空敌人",
@@ -626,7 +634,7 @@
    "id": "rift",
    "name": "通路洞开",
    "icon": "skill_ulpianus_s3",
-   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*$k_pow*100:1}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路",
+   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*$k_pow*100:1}% 伤害",
    "routes": {
     "drag": {
      "id": "drag2",
@@ -646,7 +654,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「必须开辟的通路」（当队长时手动释放）：掷锚冲锋，沿途与落点都造成伤害、落点眩晕一片，之后 {$s3_haste} 秒锚击加速；撼地范围扩大到 {$quake_r_e2}、伤害提高到 {$quake_mult_e2*100}%；普通攻击强化「掷锚」：每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
+   "desc": "解锁三技能「必须开辟的通路」：{$s3_dur} 秒抡锚三连——横扫、回旋、猛砸，砸地掀飞一片；撼地范围扩大到 {$quake_r_e2}、伤害提高到 {$quake_mult_e2*100}%；普通攻击强化「掷锚」：每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
    "attack": {
     "name": "掷锚",
     "desc": "每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的）：落地半径 {$throw_r} 造成锚击 ×{$throw_mult} 伤害，锁链绷直后把乌尔比安与锚之间宽 {$throw_w} 的一线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）。锚在外面时不出锚击"
@@ -765,7 +773,16 @@
    ],
    "every": "$cd",
    "first": "$first_cd",
-   "idle": "$idle_cd"
+   "idle": "$idle_cd",
+   "chain3": {
+    "_doc": "三技能「必须开辟的通路」抡锚三连（用户 10-29）：timer haste 期间普攻按 steps 循环，seg_ulpianus.hw_chain3_release；r 对 sweep / spin 是锚击半径倍数，对 slam 是世界半径（× op_range）",
+    "src": "必须开辟的通路",
+    "steps": [
+     {"kind": "sweep", "mult": "$s3_m1", "r": "$s3_r1", "half": 90, "kb": 70},
+     {"kind": "spin", "mult": "$s3_m2", "r": "$s3_r2", "kb": 110},
+     {"kind": "slam", "mult": "$s3_m3", "r": "$s3_r3", "front": 0.55, "air": "$s3_air", "h": 34, "elite_stun": "$s3_elite_stun", "kb": 60, "pause": 0.09, "kick_px": 4, "kick_t": 0.2}
+    ]
+   }
   },
   "skills": [
    {
@@ -896,72 +913,37 @@
    },
    {
     "dur": 0,
-    "aim": "tether",
     "active_timer": "haste",
+    "need_enemy": "$s3_need",
+    "fx": [
+     {
+      "text": {
+       "s": "必须开辟的通路",
+       "col": [
+        0.55,
+        0.75,
+        0.95
+       ],
+       "size": 18
+      },
+      "at": "self",
+      "off": [
+       0,
+       -70
+      ]
+     }
+    ],
     "do": [
      {
-      "verb": "tether",
-      "mode": "zip",
-      "pick": "densest",
-      "pick_r": "$pick_r",
-      "manual": true,
-      "aim_cone": "$aim_cone",
-      "aim_range": "$aim_range",
-      "aim_empty": "$aim_empty",
-      "aim_free": "$aim_free",
-      "aim_snap": "$aim_snap",
-      "throw": "$s3_throw",
-      "refund": "$refund",
-      "r": "$s3_r",
-      "mult": "$s3_mult",
-      "path_w": "$s3_path_w",
-      "path_mult": "$s3_path_mult",
-      "src": "必须开辟的通路",
-      "stun": "$s3_stun",
-      "stun_boss": "$s3_stun_boss",
-      "stun_elite": 0.5,
-      "land_kb": "$s3_land_kb",
-      "kb_boss": true,
-      "big": true,
-      "hold_frame": 5,
-      "then": [
-       {
-        "verb": "timer",
-        "key": "haste",
-        "dur": "$s3_haste",
-        "status": "开辟",
-        "status_col": [
-         0.55,
-         0.75,
-         0.95
-        ]
-       }
-      ],
-      "land_fx": [
-       {
-        "text": {
-         "s": "必须开辟的通路",
-         "col": [
-          0.55,
-          0.75,
-          0.95
-         ],
-         "size": 18
-        },
-        "off": [
-         0,
-         -70
-        ]
-       }
-      ],
-      "rift": {
-       "cond": "node:rift",
-       "mult": "$rift_mult",
-       "w": "$rift_w",
-       "air": "$rift_air",
-       "h": "$rift_h",
-       "src": "通路洞开"
-      }
+      "verb": "timer",
+      "key": "haste",
+      "dur": "$s3_dur",
+      "status": "开辟",
+      "status_col": [
+       0.55,
+       0.75,
+       0.95
+      ]
      }
     ]
    }
@@ -1009,7 +991,7 @@
    {
     "trig": "passive",
     "cond": "timer:haste",
-    "_doc": "必须开辟的通路之后 8 秒锚击间隔 ×0.7",
+    "_doc": "必须开辟的通路（抡锚三连）期间锚击间隔 ×haste_mult",
     "do": [
      {
       "verb": "buff_self",

@@ -139,6 +139,76 @@ static func hw_armed_release(o, a: Dictionary) -> bool:
 	return false
 
 
+# ---------------------------------------------------------------- 三技能「必须开辟的通路」：抡锚三连
+
+## 用户 10-29「锚本质上是一种重型武器」：技能计时 haste 期间（timer，s3_dur 秒）普攻换成三段循环（blocks.attack.chain3.steps）——
+##   sweep 身前横扫半圈 → spin 借惯性转一整圈（更大）→ slam 甩到最高点猛砸身前：击飞非精英、精英大硬直、顿帧 + 队长镜头下推 + 砸坑冲击波；然后循环。
+## 不位移、不瞄准（朝向同普攻：最近的敌人）；当队友同样。这一下整个换掉普攻，不计普攻次数、不走 every_n（撼地 / 掷锚 / 回旋等普攻追加不叠在三连上）
+static func hw_chain3_release(o, a: Dictionary) -> bool:
+	var c3 = o.B.get("attack", _ED).get("chain3", null)
+	if not (c3 is Dictionary) or float(o.hw.get("timers", _ED).get("haste", 0.0)) <= 0.0:
+		o.hw["c3"] = 0
+		return false
+	var k: int = int(o.hw.get("c3", 0)) % 3
+	o.hw["c3"] = k + 1
+	var st: Dictionary = c3.steps[k]
+	var g = o.g
+	var base_r: float = shape_radius(o, a)
+	var fr: Array = hw_front(o, a, base_r)
+	var ang: float = fr[1]
+	var dir: Vector2 = Vector2.from_angle(ang)
+	var dmg: float = o.base("atk", 0.0) * float(st.get("mult", 1.0)) * o._dmg_bonus() * o.skill_power()
+	var src: String = str(c3.get("src", ""))
+	var kind: String = str(st.get("kind", "sweep"))
+	var c: Vector2 = o.pos
+	var r: float = base_r * float(st.get("r", 1.0))
+	var hits: Array = []
+	if kind == "sweep":
+		hits = o.arc_targets(o.pos, ang, deg_to_rad(float(st.get("half", 90.0))), r)
+	elif kind == "spin":
+		hits = o.arc_targets(o.pos, 0.0, PI, r)
+	else:
+		c = o.pos + dir * base_r * float(st.get("front", 0.55))
+		r = float(st.get("r", 150.0)) * o.stat(&"op_range")
+		hits = o.arc_targets(c, 0.0, PI, r)
+	var kb: float = float(st.get("kb", 0.0))
+	for e in hits:
+		if e.dead:
+			continue
+		o.log_hit(src)
+		o.deal_damage(e, dmg)
+		if kind == "slam":
+			UlpCharge.hit(o, e, 3)
+		if e.dead:
+			continue
+		if kind == "slam":
+			if e.boss:
+				pass
+			elif e.elite:
+				o.add_cc(e, float(st.get("elite_stun", 1.0)))   # 精英大硬直
+			else:
+				_hw_launch(o, e, float(st.get("air", 0.7)), float(st.get("h", 34.0)))   # 击飞
+		if kb > 0.0 and not e.boss:
+			o.apply_kb(e, (e.pos - (c if kind == "slam" else o.pos)).normalized() * kb * (0.4 if e.elite else 1.0))
+	if kind == "sweep":
+		fx_play(o, a.get("fx", []), fr[0], base_r, hits, ang)
+		fx_play(o, [{"blade": {"strip": "fx_slash_heavy_steel", "k": 1.25}}], o.pos, r, hits, ang)
+	elif kind == "spin":
+		fx_play(o, [{"whirl": {"life": 0.36}}], o.pos, r, hits, ang)
+	else:
+		_hw_slam_fx(o, c, r, 1.6)
+		UlpCharge.burst(o, c, r)   # 冲击波：大范围冲击环推到判定半径
+		o.fx({"kind": "ulp_fracture", "pos": c, "r": r, "life": 0.9, "floor": true, "crater": true})   # 砸坑
+		o.impact_pause(float(st.get("pause", 0.09)))
+		var cfg = g.get_node_or_null("/root/Cfg") if g.is_inside_tree() else null   # -s 测试脚本里没有自动加载
+		if o.is_leader and g.get("world") != null and (cfg == null or not cfg.reduce_motion):
+			g.world.kick(Vector2.UP, int(st.get("kick_px", 4)), float(st.get("kick_t", 0.2)))   # 重锤下砸：镜头整体往下推一下再回位（只进 cam.offset，「减少动态效果」开时不推）
+	o.hw.prev_ang = ang
+	o.hw.prev_c = c
+	o.hw.prev_r = r
+	return true
+
+
 # ---------------------------------------------------------------- verb.tether
 
 static func _hw_hand(o) -> Vector2:

@@ -1109,7 +1109,7 @@ func test_blocks_handwritten() -> void:
 		["logos", "安魂放进技能 do", func(d): d.blocks.skills[0].do.append({"st": "requiem", "dur": 5})],
 		["ulpianus", "掷锚 mode 写错", func(d): d.blocks.skills[0].do[0]["mode"] = "pull"],
 		["ulpianus", "叠层缺 key", func(d): d.blocks.talent[0].do[0].erase("key")],
-		["ulpianus", "计时缺 dur", func(d): d.blocks.skills[2].do[0].then[0].erase("dur")],
+		["ulpianus", "计时缺 dur", func(d): d.blocks.skills[2].do[0].erase("dur")],
 		["ulpianus", "光环 per 写错", func(d): d.blocks.talent[1].do[0]["per"] = "kills"],
 		["ulpianus", "掷锚放进触发 do", func(d): d.blocks.talent[0].do.append(d.blocks.skills[0].do[0].duplicate(true))],
 		["ulpianus", "center 写错", func(d): d.blocks.attack["center"] = "ahead"],

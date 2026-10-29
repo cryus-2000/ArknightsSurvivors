@@ -37,7 +37,7 @@ func ok(cond: bool, what: String) -> void:
 ## 卡片描述不串台（用户 10-22 截图：「协同·广」里混进乌尔比安 S3 的「按 E 释放」）：队长是有手动技能的乌尔比安时，
 ## 公共成长卡（生存 / 机动 / 协同 / 填充 / 支援）的描述必须等于原文，不含任何技能名 / 按键提示；干员卡的提示只提自己的技能
 func test_card_desc_isolation() -> void:
-	ok(game.ch.id == "ulpianus" and game.ch.skill_def(2).get("mode", "auto") == "manual", "队长是乌尔比安（S3 手动技能）")
+	ok(game.ch.id == "ulpianus", "队长是乌尔比安（原 S3 是手动技能，10-29 起三技能自动；终结技接入后改测终结技提示）")
 	game.ch.elite = 2   # 截图里是精二：S3 已解锁，提示才会出现（精零时 i > stage 直接跳过）
 	var hints := ["释放", "技能键", "按 Q", "技力满后", "解锁后"]
 	var skill_names: Array = []

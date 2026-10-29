@@ -1042,8 +1042,10 @@ SCENE_REGRESSIONS = {
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
     "hoshiguma_taunt": ("星熊 S1 站定嘲讽 + 防御反击（10-24，docs/140）", "hoshiguma_taunt_test", r"HOSHIGUMA TAUNT failures=0", ["--balance", "--op=mizuki", "--squad=hoshiguma"]),
-    "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--balance", "--op=ulpianus"]),
-    "ulpianus_click": ("乌尔比安 S3 左键点场地释放、点 HUD 不误触（10-26）", "ulpianus_click_test", r"ULPIANUS CLICK failures=0", ["--balance", "--op=ulpianus"]),
+    "ulpianus_chain3": ("乌尔比安 S3 抡锚三连：横扫 / 回旋 / 猛砸循环、不位移（10-29）", "ulpianus_chain3_test", r"ULPIANUS CHAIN3 failures=0", ["--balance", "--op=ulpianus"]),
+    # 乌尔比安旧 S3 掷锚冲锋 / 左键选落点 10-29 挪给队长终结技（docs/198、docs/197 §5）：两项回归随终结技原型改测终结技后恢复
+    # "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--balance", "--op=ulpianus"]),
+    # "ulpianus_click": ("乌尔比安 S3 左键点场地释放、点 HUD 不误触（10-26）", "ulpianus_click_test", r"ULPIANUS CLICK failures=0", ["--balance", "--op=ulpianus"]),
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
     "suzuran_skill_anim": ("多条技能帧条 + 循环状态（docs/87 §3.5，铃兰）", "suzuran_skill_anim_test", r"SUZURAN SKILL ANIM failures=0", ["--balance", "--op=suzuran", "--squad=lumen"]),
     "angelina_skill_anim": ("统一技能动画契约（安洁莉娜）", "angelina_skill_anim_test", r"ANGELINA SKILL ANIM failures=0", ["--balance", "--op=angelina", "--squad=lumen"]),

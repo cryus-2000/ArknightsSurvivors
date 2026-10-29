@@ -768,6 +768,9 @@ func _release_body() -> void:
 	if not hw.is_empty() and SegUlpianus.hw_armed_release(self, a):   # 手写迁移段：蓄势（attack.armed）的这一下整个换掉，不计普攻次数、不走 every_n
 		_sfx_op("atk")
 		return
+	if not hw.is_empty() and SegUlpianus.hw_chain3_release(self, a):   # 乌尔比安 S3 抡锚三连（attack.chain3）：技能期间这一下整个换掉，同蓄势
+		_sfx_op("atk")
+		return
 	var far_fp: Dictionary = _far_pick(a) if a.get("far", null) != null and atk_far != 0 else {}
 	if not far_fp.is_empty() and atk_far == -1 and not _far_wanted(a, far_fp):
 		far_fp = {}

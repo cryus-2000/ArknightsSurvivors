@@ -19,7 +19,7 @@ static func draw(o, f: Dictionary, a: float) -> bool:
 			# Extend paths, keeping their world-space widths and 2 px grid unchanged.
 			var reach: float = clampf(float(f.r) * 0.85 + 14.0, 64.0, 110.0)
 			f.cracks = GroundCrack.build(f.pos, reach, 0.3, {"n": 5, "w0": Vector2(1.0, 1.6),
-				"length": Vector2(0.75, 1.05), "steps": Vector2i(4, 5), "branch": 0.18, "crater": false, "gy": 0.42})
+				"length": Vector2(0.75, 1.05), "steps": Vector2i(4, 5), "branch": 0.18, "crater": bool(f.get("crater", false)), "gy": 0.42})
 		GroundCrack.draw(f.cracks, age, minf(a, 0.78), CRACK_EDGE, GroundCrack.CvSink.new(o))
 		# A thin upper lip stays readable on the dark floor after the splash clears.
 		# Build the edge from the same paths; no enlarged texture or wide glow.
