@@ -1,6 +1,8 @@
 """终结技原型配对报告（docs/198 / docs/199）：读 cloud-results/ult-T0（ult/on=0）与 ult-T1（ult/on=1）的 build/cloud_ult/raw/*.json，
 按（编队, seed, 档）配对，出每档：胜率与差、新胜旧负 / 旧胜新负、均存活秒、输局死亡时段分布、T1 每局终结技 / 连携 / 连携终结技次数与时刻。
-用法：python tools/ult_pair.py [--fetch] [--t0 cloud-results/ult-T0] [--t1 cloud-results/ult-T1]"""
+用法：python tools/ult_pair.py [--fetch] [--t0 cloud-results/ult-T0] [--t1 cloud-results/ult-T1] [--by-op]
+--t0 / --t1 可逗号分隔多个分支（20 人一轮按档拆了分支：--t0 cloud-results/ult20-T0-m0,cloud-results/ult20-T0-m18）；
+--by-op 再按队长（编队第一人）出每人胜 / 均存活 / 终结技次数对照"""
 import argparse
 import json
 import os
@@ -16,11 +18,17 @@ def git(*a):
     return subprocess.run(["git", "-C", ROOT] + list(a), capture_output=True, text=True, encoding="utf-8").stdout
 
 
-def load(branch):
-    ref = "origin/" + branch
+def load(branches):
     recs = {}
+    for branch in branches.split(","):
+        _load(branch.strip(), recs)
+    return recs
+
+
+def _load(branch, recs):
+    ref = "origin/" + branch
     for f in git("ls-tree", "-r", "--name-only", ref).splitlines():
-        if not (f.startswith("build/cloud_ult/raw/") and f.endswith(".json")):
+        if not (f.startswith("build/cloud_ult") and "/raw/" in f and f.endswith(".json")):
             continue
         tag = os.path.basename(f)
         band = "m18" if "_m18_" in tag else "m0"
@@ -28,7 +36,6 @@ def load(branch):
         for r in d.get("records", []):
             key = (band, ",".join(r.get("squad", [])), int(r.get("seed", 0)))
             recs[key] = r
-    return recs
 
 
 def win(r):
@@ -48,9 +55,11 @@ def main():
     ap.add_argument("--fetch", action="store_true")
     ap.add_argument("--t0", default="cloud-results/ult-T0")
     ap.add_argument("--t1", default="cloud-results/ult-T1")
+    ap.add_argument("--by-op", action="store_true")
     a = ap.parse_args()
     if a.fetch:
-        git("fetch", "origin", a.t0 + ":refs/remotes/origin/" + a.t0, a.t1 + ":refs/remotes/origin/" + a.t1)
+        for b in (a.t0 + "," + a.t1).split(","):
+            git("fetch", "origin", b + ":refs/remotes/origin/" + b)
     A, B = load(a.t0), load(a.t1)
     for band in ["m0", "m18"]:
         keys = sorted(k for k in A if k[0] == band and k in B)
@@ -93,6 +102,17 @@ def main():
         es = {s: avg("e_" + s) for s in ["out", "kill", "hurt", "combo"]}
         tot = sum(es.values()) or 1.0
         print("- 能量来源占比：输出 %.0f%% / 击杀 %.0f%% / 受伤 %.0f%% / 连携 %.0f%%" % tuple(100.0 * es[s] / tot for s in ["out", "kill", "hurt", "combo"]))
+        if a.by_op:
+            ops = sorted({k[1].split(",")[0] for k in keys})
+            print()
+            print("| 队长 | 对 | 胜 0→1 | 均存活秒 0→1 | 终结技 | 连携终结技 | 连携 |")
+            print("|---|---|---|---|---|---|---|")
+            for op in ops:
+                ks = [k for k in keys if k[1].split(",")[0] == op]
+                uo = [B[k]["data"].get("ult") or {} for k in ks]
+                print("| %s | %d | %d→%d | %.0f→%.0f | %.2f | %.2f | %.1f |" % (op, len(ks), sum(win(A[k]) for k in ks), sum(win(B[k]) for k in ks),
+                    statistics.mean(tsurv(A[k]) for k in ks), statistics.mean(tsurv(B[k]) for k in ks),
+                    statistics.mean(float(u.get("ult", 0)) for u in uo), statistics.mean(float(u.get("cult", 0)) for u in uo), statistics.mean(float(u.get("combo", 0)) for u in uo)))
         print()
 
 
