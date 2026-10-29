@@ -40,7 +40,7 @@ const ACT_KIND := ["orb", "nerve", "nova"]   # 圆珠 / 梭形孢子针（按速
 const ACT_TINT := [Color(1, 1, 1), Color(1.0, 0.86, 1.14), Color(0.82, 1.1, 1.0)]
 const DECLARE := 1.0      # 起手蓄势短停
 const SEG_GAP := 0.5      # 段间收势（用户 10-27：给玩家出手机会）
-const RECOVER := [2.6, 3.0, 4.6]   # 每幕收招破绽（用户 10-27：给干员输出的时间）
+const RECOVER := [2.6, 3.0, 3.6]   # 每幕收招破绽（用户 10-27：给干员输出的时间）
 const REST := 1.6         # 破绽后到下一组起手之间的空档
 const CARD_CAP := 30.0    # 保护性上限
 const OWN_CAP := 150      # 本体同时在场弹数
@@ -377,6 +377,7 @@ func on_gate(e: Dictionary) -> void:
 	# 转幕：清掉未出的段，短停后进下一幕的连携（在场弹幕与已出的预警照常结算）
 	_end_card(e)
 	e.izu_next = g.t + 1.5
+	e.izu_card_n = 0   # 每幕都从本幕第一组连携起（docs/201 §8：原来随上一幕计数奇偶，三幕低压在 0.34 / 0.41 之间摇摆）
 	var gp: int = int(e.get("gates_passed", 0))
 	if gp >= 2:
 		e.lamp_r = Bal.v("boss/izumik_lamp_r", 120.0)
@@ -744,11 +745,13 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
 			em.next = float(em.next) + 0.9
 		"信息回传":
+			# 用户 10-30 选 A：改成朝队长的扇（每个回传点一扇、两轮错开半格），带轻追踪；扇宽 ±0.75 弧度，弹数为原整圈的一半
 			for p in em.sources:
-				var cn: int = _cn(10, _dense("信息回传"))
+				var cn: int = maxi(3, _cn(10, _dense("信息回传")) / 2)
+				var aim: float = (g.ppos - p).angle()
 				for i in cn:
-					var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cn)
-					_shot(e, p, a, 120.0, 7.0, 4.0, 0.45, {})
+					var a: float = aim + lerpf(-0.75, 0.75, (float(i) + 0.5 * (n % 2)) / float(cn))
+					_shot(e, p, a, 120.0, 7.0, 4.0, 0.45, {"izu": "fan"})
 			em.next = float(em.next) + 0.55
 		"孢子潮":
 			for k in 5:
@@ -853,6 +856,11 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 					if b.life <= 0.15:
 						b.life = 0.0
 						bursts.append(b.pos)
+				"fan":
+					# 子代共鸣 / 信息回传：轻追踪 boss/izumik_home_rate（每秒 0.4 弧度，用户 10-30 选 A），出膛 1.6 秒后不再转——侧移仍躲得开
+					if t < 1.6:
+						var hr: float = Bal.v("boss/izumik_home_rate", 0.0) * dt
+						b.vel = b.vel.rotated(clampf(angle_difference(b.vel.angle(), (target - b.pos).angle()), -hr, hr))
 				"echo":
 					if t >= 0.9:
 						if not b.has("izu_aim"):
