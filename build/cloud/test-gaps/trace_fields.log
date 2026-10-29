@@ -1,0 +1,5 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_092228
+通过 数据 JSON 解析  game/data 全部可解析
+通过 TRACE 新增字段 sq / lamp / nd / rl（10-29，docs/126 R3）：只读、不动 rng、对队友位置 / 突击生命 / 技力 / 普攻计时 / 灯火 / 神经损伤 / 藏品数各自敏感、还原后回到原值  TRACE FIELDS failures=0
+
+快检通过：2 项，失败 0 项，耗时 14 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）

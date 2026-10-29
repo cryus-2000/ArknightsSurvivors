@@ -1,0 +1,90 @@
+cloud test-gaps verification summary
+commit under test: a514e4236 (branch claude/test-gaps)
+baseline commit:   bfa2bcd07
+
+== Step 2: 五个新增测试（逐个 --only 跑） ==
+
+[trace_fields] EXIT=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 TRACE 新增字段 sq / lamp / nd / rl（10-29，docs/126 R3）：只读、不动 rng、对队友位置 / 突击生命 / 技力 / 普攻计时 / 灯火 / 神经损伤 / 藏品数各自敏感、还原后回到原值  TRACE FIELDS failures=0
+快检通过：2 项，失败 0 项，耗时 14 秒
+
+[time_scale_combo] EXIT=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 时间缩放组合（圆盘 × 倍速 / 顿帧 / 击破慢动作）：有效缩放等于现行组合规则，退出各模态后回到 1  TIME SCALE COMBO failures=0
+快检通过：2 项，失败 0 项，耗时 13 秒
+
+[hit_fallback] EXIT=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 g.hit 空描述符沿用上次：特征测试（已知缺陷：空 h 会错记给上一个干员），显式 h 回归保护  HIT FALLBACK failures=0
+快检通过：2 项，失败 0 项，耗时 13 秒
+说明：此测试为特征测试，记录的是已知缺陷的当前行为（空 h 会错记给上一个干员），failures=0 即为正常，不代表缺陷已修复。
+
+[nerve_rules] EXIT=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 神经损伤积累规则特征测试（溟痕 / 光环 / 光域 / 锁定 / 满条真伤 / Boss 来源未截断 / 灯火档位），为 afflict 重构兜底  NERVE RULES failures=0
+快检通过：2 项，失败 0 项，耗时 12 秒
+
+[ui_smoke] EXIT=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点  UI SMOKE failures=0
+快检通过：2 项，失败 0 项，耗时 19 秒
+
+五个测试全部通过（EXIT=0，failures=0）。
+
+== Step 3: TRACE 新字段不改旧字段 + 确定性验证 ==
+
+两局：(seed=1, 队长=skadi, maxt=150)、(seed=3, 队长=wisadel, maxt=150)
+基线 SHA: bfa2bcd07  新 SHA: a514e4236（先 base 后 new 顺序跑）
+每局 TRACE 行数：151 行（两个 SHA、两局均一致）
+
+[旧字段不变性] 把 a514e4236 的 TRACE 每行从第一个 " sq=" 起删到行尾后，与 bfa2bcd07 同局 TRACE 逐行 diff：
+  skadi (seed=1):    diff exit=0，0 行差异 —— 完全相同
+  wisadel (seed=3):  diff exit=0，0 行差异 —— 完全相同
+结论：新增字段未改动任何旧字段的值/顺序。
+
+[确定性] 把 a514e4236 的同一局各跑两次，全行（含新字段 sq/lamp/nd/rl）逐行 diff：
+  skadi (seed=1) run1 vs run2:    diff exit=0，0 行差异 —— 完全相同
+  wisadel (seed=3) run1 vs run2:  diff exit=0，0 行差异 —— 完全相同
+结论：确定性成立（同局重跑逐字节一致）。
+
+[a514e4236 TRACE 原文样例（第一行，含新字段）]
+TRACE t=0.00 lv=1 k=0 hp=117.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=0.00,0.00 h=0.000 sq=3020966331 lamp=10000 nd=4197670970 rl=0
+
+[对照：bfa2bcd07 同一行（基线，无新字段）]
+TRACE t=0.00 lv=1 k=0 hp=117.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=0.00,0.00 h=0.000
+
+格式确认：新字段以 " sq=... lamp=... nd=... rl=..." 追加在旧字段末尾（旧字段完全不变）。
+
+== Step 4: python3 tools/check.py --auto --jobs 3（SHA a514e4236） ==
+
+第 1 次：EXIT=1，在 check_art_lint 处崩溃（环境问题，非代码回归）：
+  Traceback ... File "tools/check.py", line 153, in check_art_lint
+    import art_lint
+  File "tools/art_lint.py", line 48, in <module>
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+  File ".../PIL/Image.py", line 84, in <module>
+    from . import _imaging as core
+  ImportError: cannot import name '_imaging' from 'PIL' (/usr/lib/python3/dist-packages/PIL/__init__.py)
+诊断：本机并存三套 Python（3.11 跑 check.py、apt python3-pil 10.2.0 编译给 3.12、setup_linux.sh 的
+  pip --break-system-packages 把 pillow 12.3.0 装进了 3.13 的 dist-packages），3.11 解释器解析到
+  /usr/lib/python3/dist-packages/PIL 的纯 Python 部分，但其编译扩展 _imaging*.so 是 3.12 ABI，3.11
+  无法导入 → 在线程池内抛未捕获异常，整轮 --auto 中止，未产出任何检查项的通过/失败结果。这是云端镜像
+  Python/PIL 版本错配，与 a514e4236 的代码改动无关。
+
+修复并重试（第 2 次，用尽本轮允许的 1 次重试）：
+  `python3 -m pip install -q --break-system-packages --force-reinstall --no-deps pillow`
+  （把 3.11 对应的 PIL 装到 /usr/local/lib/python3.11/dist-packages/PIL，pillow 13.0.0，_imaging 可正常 import）
+  重跑 python3 tools/check.py --auto --jobs 3 → EXIT=0
+
+第 2 次最后 40 行（完整日志 181 行，节选末尾）：
+  ……（160 项逐条 通过 ... failures=0 / N checks, 0 failed）
+  通过 第一位商人预告（docs/119 §4.5）：…… MERCHANT BUILD OFFER failures=0
+  快检通过：163 项，失败 0 项，耗时 56 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 192 / 192
+
+blocks_eq（积木等价）单独标出：本轮 --auto 按改动分级为「full」但走的是“分支全量精简”路径——按分支规则
+不跑积木等价与自然流程全量，只跑 20/20 人冒烟 + 5 人轮换抽样（见日志第 16 行），积木等价测试要在合入
+main 后的真全量里跑。这是 --auto 按改动范围分级的既定规则，不是失败，本轮没有 blocks_eq 的通过/失败结果。
+
+其余 163 项检查（含 5 个新增特征测试 TRACE FIELDS / UI SMOKE / TIME SCALE COMBO / HIT FALLBACK /
+NERVE RULES 均在内）全部通过，失败 0 项。
