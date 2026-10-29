@@ -764,7 +764,7 @@ func record(marks = null) -> Dictionary:
 		"armor_cf": g.combat.armor_cf, "growth": g.growth.duplicate(), "dashes": dashes, "swaps": g.progression.swaps.duplicate(), "recruit_offers": g.progression.recruit_offers.duplicate(), "levelup_t": g.progression.levelup_t.duplicate(),   # docs/83：物理减伤遥测、被动卡等级、冲刺次数
 		"terrain": g.map.tb_log.duplicate(),   # 地形阻挡（只记录）：挡下的我方 / 敌方直线弹、撞停的冲刺
 		"sus": sus,   # docs/88：治疗分项 / 干员减伤 / 净化 / 照亮
-		"graze_n": g.graze_n, "final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
+		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
 	if rich:
 		rec["tel"] = "full"
 		rec["ult"] = ult
