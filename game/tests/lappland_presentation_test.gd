@@ -43,7 +43,7 @@ func _ready():
 	var o = Op.new(g, Ch.load_def("lappland").duplicate(true))
 	o.pos = g.ppos
 	check_config(o.def)
-	ok(configured_waves==8, "base, skills and progression sword variants covered")
+	ok(configured_waves==9, "base, skills and progression sword variants covered (%d)" % configured_waves)   # docs/202 成长节点去数值化后 9 处剑气
 	var b = {"from":"self", "basis":"atk", "mult":1.0, "dist":220.0, "speed":500.0,
 		"w":60.0, "cap":9, "fan":[-18,0,18], "fan_once":true, "proj":"proj_lappland_sword", "proj_hold":1,
 		"release_pose":{"slot":"throw", "skill":2, "cycle":0.6}}
