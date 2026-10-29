@@ -125,10 +125,10 @@ static func lift_growth(o, e: Dictionary, dur: float, h: float) -> void:
 	o.air_list.append({"e": e, "t": 0.0, "dur": vis, "h": h})
 
 
-## 节点「重力透镜」（wide）：重力弹飞行途中，弹道（脚底到落点的直线）两侧 lens_r 内、弹头已扫过的敌人被吸向弹道中线，
+## 节点「致密」带的重力透镜（dense；docs/202：原节点 wide 已并入致密，成长线只有 dense 能选到）：重力弹飞行途中，弹道（脚底到落点的直线）两侧 lens_r 内、弹头已扫过的敌人被吸向弹道中线，
 ## 每名敌人每发至多吸 lens_pull 像素（精英 ×0.5、重型 ×0.3、Boss / 固定物不动）
 static func lens_tick(o, dt: float) -> void:
-	if o.shots.is_empty() or not ("wide" in o.taken):
+	if o.shots.is_empty() or not ("dense" in o.taken):
 		return
 	var g = o.g
 	var r: float = o.base("lens_r", 60.0)
@@ -169,7 +169,7 @@ static func lens_tick(o, dt: float) -> void:
 
 ## 重力弹飞行画面（data_operator._draw_shots 逐发调用）：弹道亮线 + 两侧透镜边线（只有选了重力透镜才画）
 static func lens_draw(o, s: Dictionary, _p: Vector2) -> void:
-	if not ("wide" in o.taken):
+	if not ("dense" in o.taken):
 		return
 	var cv = o.cv
 	var g0: Vector2 = s.get("g0", s.p0)

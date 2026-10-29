@@ -450,29 +450,17 @@
  "progression": [
   {
    "type": "custom",
-   "id": "wide",
-   "name": "重力透镜",
-   "icon": "growth_b_range",
-   "desc": "重力弹飞行途中，弹道两侧 {$lens_r} 内的敌人被吸向弹道中线（每发至多 {$lens_pull}，精英减半，重型更小，Boss 除外）",
-   "alt": {
-    "id": "pull2",
-    "name": "双重引力",
-    "icon": "growth_b_echo",
-    "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）"
-   }
+   "id": "pull2",
+   "name": "双重引力",
+   "icon": "growth_b_echo",
+   "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）"
   },
   {
    "type": "custom",
    "id": "dense",
    "name": "致密",
    "icon": "growth_b_size",
-   "desc": "重力弹落点内有 {$dense_n} 名以上敌人时，被命中的敌人叠向中心，{$dense_delay} 秒后坍缩爆开（半径 {$dense_r}，{$dense_mult*100}% 法术伤害）",
-   "alt": {
-    "id": "wide",
-    "name": "重力透镜",
-    "icon": "growth_b_range",
-    "desc": "重力弹飞行途中，弹道两侧 {$lens_r} 内的敌人被吸向弹道中线（每发至多 {$lens_pull}，精英减半，重型更小，Boss 除外）"
-   }
+   "desc": "重力弹飞行途中，弹道两侧 {$lens_r} 内的敌人被吸向弹道中线（每发至多 {$lens_pull}，精英减半，重型更小，Boss 除外）；落点内有 {$dense_n} 名以上敌人时，被命中的敌人叠向中心，{$dense_delay} 秒后坍缩爆开（半径 {$dense_r}，{$dense_mult*100}% 法术伤害）"
   },
   {
    "type": "elite",
@@ -509,10 +497,10 @@
   },
   {
    "type": "custom",
-   "id": "lock",
-   "name": "潮汐锁",
+   "id": "lock2",
+   "name": "潮汐锁·沉落",
    "icon": "skill_angelina_s2",
-   "desc": "「秘杖·微粒模式」的环带上的敌人每 {$lock_tick} 秒受到重力弹 {$lock_mult*100}% 的法术伤害",
+   "desc": "「秘杖·微粒模式」环带内停留满 {$lock2_t} 秒的敌人被锁定，悬浮 {$lock2_air} 秒（精英减半，Boss 除外）；每名敌人 {$lock2_cd} 秒内至多一次",
    "routes": {
     "pull": {
      "id": "pull4",
@@ -866,11 +854,6 @@
    }
   ],
   "progression": {
-   "wide": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "重力透镜（docs/202）：逻辑在 seg_angelina.lens_tick（重力弹飞行途中吸向弹道中线），画面在 lens_draw"
-   },
    "dense": {
     "trig": "passive",
     "do": [],
@@ -894,24 +877,6 @@
       "dir": "pull",
       "dist": "$pull*$pull2_mult",
       "elite_mult": "$pull_elite"
-     }
-    ]
-   },
-   "lock": {
-    "verb": "field",
-    "center": "leader",
-    "r": "$s2_r",
-    "ring": "$s2_ring",
-    "ring_w": "$lock_w",
-    "every": "$lock_tick",
-    "look": "none",
-    "cond": "skill_active:1",
-    "tick": [
-     {
-      "st": "dot",
-      "mult": "$lock_mult",
-      "src": "潮汐锁",
-      "where": "ring"
      }
     ]
    },
