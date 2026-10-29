@@ -268,6 +268,8 @@ static func hw_draw_floor(o) -> void:
 		h4_draw_floor(o)   # 手写迁移段第 4 批
 	if o.hw.has("links"):
 		_F().hw_draw_melt(o)
+	if o.hw.has("glc"):
+		_F().gl_draw_floor(o)   # docs/202 歌蕾蒂娅：沉底的锁链
 	_F().hw_draw_waves(o)
 	_F().hw_draw_pools(o)
 	_F().hw_draw_rune_floor(o)
@@ -396,6 +398,8 @@ static func _hw5_tick(o, dt: float) -> void:
 		_F()._hw5_lobs(o, dt)
 	if not h.hooks.is_empty():
 		_F()._hw5_hooks(o, dt)
+	if h.has("glc"):   # docs/202 歌蕾蒂娅：沉底的锁链 / 暗涌（seg_gladiia）
+		_F().gl_tick(o, dt)
 
 
 # ---------------------------------------------------------------- 本段的校验

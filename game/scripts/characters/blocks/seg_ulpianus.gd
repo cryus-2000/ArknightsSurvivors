@@ -1068,7 +1068,8 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 	if absf(to.x - o.pos.x) > 2.0:
 		o._set_face(signf(to.x - o.pos.x), true)
 	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24)
-	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk"))), "tgt": tgt_e})
+	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk"))), "tgt": tgt_e,
+		"gl": o.B.get("attack", {}).has("hook_nodes")})   # gl：歌蕾蒂娅成长节点（docs/202，seg_gladiia）
 	if b.has("fx"):
 		fx_play(o, b.fx, hand, 20.0, [], (to - hand).angle())
 
@@ -1098,6 +1099,8 @@ static func _hw5_hooks(o, dt: float) -> void:
 					e.pos = (dg.from as Vector2).lerp(dg.spot, kr)
 					e.kb = Vector2.ZERO
 					o.add_cc(e, 0.15)
+					if hk.gl:
+						_F().gl_drag_tick(o, hk, dg, dt)   # docs/202 歌蕾蒂娅「倒钩」：拖拽路径迸火星
 					dg.dust = float(dg.get("dust", 0.0)) - dt
 					if float(dg.dust) <= 0.0 and b.has("dust_fx"):
 						dg.dust = 0.07
@@ -1184,6 +1187,8 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+	if hk.gl and not hits.is_empty():
+		_F().gl_arrive(o, hk)   # docs/202 歌蕾蒂娅成长节点：倒钩结算 / 回收斩 / 锁链沉底（seg_gladiia）
 	if not hits.is_empty() and o.has_method("notify_mate_hook"):   # 联动段（docs/123 §2.7「钩与锚」）：告诉队友「我把人拖到 front 了」
 		o.notify_mate_hook(hk.front, hits)
 

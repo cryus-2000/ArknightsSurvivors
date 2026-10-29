@@ -254,6 +254,7 @@ static func sm_tick(o, dt: float) -> void:
 		st.shield_t = float(st.shield_t) - dt
 		if st.shield_t <= 0.0:
 			st.shield = 0.0
+			sm_shield_pop(o)   # docs/202 歌蕾蒂娅「深海的庇护·反震」：到期也算
 		else:
 			st.shield = maxf(0.0, float(st.shield) * (1.0 - float(st.shield_decay) * dt))
 	if not st.seal.is_empty():
@@ -753,8 +754,21 @@ static func shield_add(o, b: Dictionary) -> void:
 	st.shield_max = maxf(cap, float(st.shield))
 	st.shield_t = maxf(float(st.shield_t), float(b.get("dur", 10.0)))
 	st.shield_decay = float(b.get("decay", 0.0))
+	if b.has("pop"):   # docs/202：护盾破裂 / 到期时执行的积木列表（pop_cd 秒内至多一次）
+		st["pop"] = b.pop
+		st["pop_cd"] = float(b.get("pop_cd", 0.0))
 	if b.has("fx"):
 		fx_play(o, b.fx, g.ppos, 30.0)
+
+
+## 护盾破裂 / 到期：有 pop 的话下一帧（延迟队列，免得在敌人遍历中途造成伤害）执行；pop_cd 内不重复
+static func sm_shield_pop(o) -> void:
+	var st: Dictionary = o.sm
+	var pop = st.get("pop", null)
+	if not (pop is Array) or pop.is_empty() or float(st.get("pop_t", -9.0)) > o.g.t:
+		return
+	st["pop_t"] = o.g.t + float(st.get("pop_cd", 0.0))
+	o.pending.append({"t": 0.0, "do": pop})
 
 
 ## 受击询问（data_operator.dmg_taken_mult 末尾）：m = 其余减伤的乘积，raw = 这一下的伤害；护盾吸收 raw × m 里能吸的部分，返回新的倍率
@@ -768,6 +782,8 @@ static func shield_mult(o, m: float, raw: float) -> float:
 	var ab: float = minf(float(o.sm.shield), d)
 	o.sm.shield = float(o.sm.shield) - ab
 	o.float_text(o.g.ppos + Vector2(18, -92), "护盾 -%d" % int(ab), SHIELD_COL, 13)
+	if float(o.sm.shield) <= 0.0:
+		sm_shield_pop(o)   # 护盾被打破
 	return (d - ab) / raw
 
 
