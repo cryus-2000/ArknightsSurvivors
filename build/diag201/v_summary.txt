@@ -1,0 +1,54 @@
+## v_kA
+== v_kA.jsonl jobs 18 err 0
+knight_boss  fight  85.8  taken/min 225.9 (158% maxhp/min)  TTK  38.1s  maxhp 128  hits/min 10.3  wins 15/18
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_dmg.py", line 24, in <module>
+    print("     %-34s n%4d  med %4.1f%%  max %4.1f%%  raw med %5.1f max %5.1f" % (s[:34], len(v), 100 * pc[len(pc) // 2], 100 * pc[-1], rw[len(rw) // 2] if rw else -1, rw[-1] if rw else -1))
+BrokenPipeError: [Errno 32] Broken pipe
+== v_kA.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     85.85    44.95     3.50   289.00    11.75     0.80     0.31     0.00     0.00     0.04     0.02     0.11     0.10     0.31 {'cap': 3, 'win': 15}
+## v_kB
+== v_kB.jsonl jobs 18 err 0
+knight_boss  fight  95.5  taken/min 223.5 (148% maxhp/min)  TTK  40.7s  maxhp 128  hits/min 9.6  wins 15/18
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_dmg.py", line 24, in <module>
+    print("     %-34s n%4d  med %4.1f%%  max %4.1f%%  raw med %5.1f max %5.1f" % (s[:34], len(v), 100 * pc[len(pc) // 2], 100 * pc[-1], rw[len(rw) // 2] if rw else -1, rw[-1] if rw else -1))
+BrokenPipeError: [Errno 32] Broken pipe
+== v_kB.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     95.55    45.10     4.18   307.00    11.20     0.80     0.32     0.00     0.00     0.04     0.02     0.11     0.10     0.32 {'cap': 3, 'win': 15}
+## v_kC
+== v_kC.jsonl jobs 18 err 0
+knight_boss  fight  81.5  taken/min 208.4 (142% maxhp/min)  TTK  42.3s  maxhp 128  hits/min 8.4  wins 15/18
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_dmg.py", line 24, in <module>
+    print("     %-34s n%4d  med %4.1f%%  max %4.1f%%  raw med %5.1f max %5.1f" % (s[:34], len(v), 100 * pc[len(pc) // 2], 100 * pc[-1], rw[len(rw) // 2] if rw else -1, rw[-1] if rw else -1))
+BrokenPipeError: [Errno 32] Broken pipe
+== v_kC.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     81.55    44.10     3.29   295.00    11.80     0.80     0.32     0.00     0.00     0.05     0.02     0.11     0.10     0.32 {'cap': 3, 'win': 15}
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_diag.py", line 19, in <module>
+    print("  ", s[:200])
+BrokenPipeError: [Errno 32] Broken pipe
+## v_i3
+== v_i3.jsonl jobs 18 err 0
+ishar        fight  52.7  taken/min  98.8 (69% maxhp/min)  TTK  86.8s  maxhp 116  hits/min 5.9  wins 15/18
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_dmg.py", line 24, in <module>
+    print("     %-34s n%4d  med %4.1f%%  max %4.1f%%  raw med %5.1f max %5.1f" % (s[:34], len(v), 100 * pc[len(pc) // 2], 100 * pc[-1], rw[len(rw) // 2] if rw else -1, rw[-1] if rw else -1))
+BrokenPipeError: [Errno 32] Broken pipe
+== v_i3.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+ishar           52.70    37.45     3.13   226.00     8.30     0.77     0.32     0.00     0.00     0.13     0.00     0.09     0.08     0.32 {'win': 15, 'cap': 3}
+## v_i2
+== v_i2.jsonl jobs 18 err 0
+ishar        fight  47.2  taken/min 107.9 (76% maxhp/min)  TTK  78.6s  maxhp 128  hits/min 6.1  wins 15/18
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_dmg.py", line 24, in <module>
+    print("     %-34s n%4d  med %4.1f%%  max %4.1f%%  raw med %5.1f max %5.1f" % (s[:34], len(v), 100 * pc[len(pc) // 2], 100 * pc[-1], rw[len(rw) // 2] if rw else -1, rw[-1] if rw else -1))
+BrokenPipeError: [Errno 32] Broken pipe
+== v_i2.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+ishar           47.15    38.05     3.04   242.00     9.30     0.75     0.31     0.00     0.00     0.08     0.00     0.10     0.09     0.31 {'cap': 3, 'win': 15}
