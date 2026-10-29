@@ -1,0 +1,18 @@
+== kn4_trial.jsonl jobs 6 err 0
+knight_boss  fight  85.9  taken/min 360.9 (242% maxhp/min)  TTK  24.7s  maxhp 128  hits/min 16.6  wins 5/6
+     bullet:boss_blade                  n 129  med 13.5%  max 25.1%  raw med  18.9 max  31.3
+     boss_knight_boss:final_attack/断潮劈击 n  12  med 20.5%  max 37.7%  raw med  27.6 max  45.7
+     boss_knight_boss:final_attack/     n   6  med 14.7%  max 19.5%  raw med  20.4 max  24.3
+     boss_knight_boss:final_attack/踏冰裂阵 n   4  med 14.7%  max 15.3%  raw med  20.4 max  21.3
+     boss_knight_boss:final_attack/雪幕劈  n   3  med 19.3%  max 23.5%  raw med  27.6 max  40.2
+     boss_knight_boss:final_attack/长枪回旋 n   3  med 23.4%  max 26.4%  raw med  32.9 max  50.5
+     boss_knight_boss:final_attack/冻潮夹击 n   2  med 17.0%  max 17.0%  raw med  33.0 max  33.0
+     contact_knight_boss                n   2  med 22.4%  max 22.4%  raw med  28.4 max  28.4
+     boss_knight_boss:final_attack/冰枪封径 n   2  med 14.7%  max 14.7%  raw med  21.5 max  21.5
+     boss_knight_boss:shot/掷枪           n   1  med 20.3%  max 20.3%  raw med  30.0 max  30.0
+== kn4_trial.jsonl jobs 6 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     85.90    44.85     6.12   316.50    12.10     0.79     0.34     0.00     0.00     0.05     0.02     0.11     0.11     0.34 {'cap': 1, 'win': 5}
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=26 max_hp=115 relics=13 leader=wisadel e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=158 relics=7 leader=skadi e2 ops=[]
+   BOSSDIAG_SQUAD arrival t=600.0 lvl=24 max_hp=186 relics=14 leader=kaltsit e2 ops=[]
