@@ -320,3 +320,26 @@ CI（`ci/<sha>`）汇总同样读该文件；`last_quick.txt` 末尾打印「已
 3. 事件插画 14 张：美术是否补，决定 R6 是否升级为错。
 4. `--changed` 取代 `--auto` 的口径：涉及 docs/36 §1 与 AGENTS.md 里 `--auto` 的写法；AGENTS.md 属入口文件，改动须用户直接确认。
 5. 文档编号 204 取自本分支视角；合入时若撞号由协调人顺延。
+
+## 8. 实装记录与白名单（第 1 期，10-30）
+
+| 项 | 做法 / 实测 |
+| --- | --- |
+| 红项登记 | `tools/known_red.py` + `tools/known_red.json`；check.py 汇总单列「已知红」，过期仍红转硬失败，owner / reason / due 缺一报错，期限 ≤ 14 天 |
+| 每项耗时 | `_run` 累计占用 Godot 的秒数（不含排队）；汇总每项后缀 `[N 秒]`，末尾「耗时前 10」，另写 `build/check/last_quick.json` |
+| prot 11 条 | 合入 `082bec20b`（cherry-pick，实际为 `79158f570`）。冲突：integ-1029 已撤回 Bal.v 缓存（`87e0d852f`），故 `Bal.clear_cache()` 只留空操作入口，docs/199 不恢复。`--only prot`：400 checks 0 failed（40 秒） |
+| command_ai side 0 | 本分支实测 `COMMAND_AI checks=70 failures=0`（6 秒）：那条红来自 Bal 读取缓存（`6cf116560` 的原因说明），缓存撤回后本线不红，**不动**；`6cf116560` 仍在 `claude/command-point`，若缓存日后恢复需带上 |
+| data_lint `spd_all_k_` | `BAL_CALL` 捕获「字面后跟 `+`」，按前缀处理：不进拼错比对，json 里同前缀的叶子不算未读 |
+| 孤儿测试 | `card_desc_fit_test.gd`（`--script` 式）接入 SCENE_REGRESSIONS，`check_scene` 支持 `.gd` 测试，实测 `cut=0 failures=0`（4 秒）。`bgm_memory_test` 是网页导出后在浏览器里跑的（文件头注释），不是 headless 测试，**不接入**，登记为「仅网页手测」 |
+| graph_lint | 进快检 S 组（`--only graph_lint`），实测约 1 秒（含启动）；R6 / R9 只提示 |
+| 云端分项日志 | `tools/cloud/ci_pack.sh`：跑 check.py 后把本次 `quick_*/` 每项日志收进 `build/ci_logs/`，与 `ci_check.log` 一起推回结果分支。之前 `ci/<sha>` 只推汇总，红项无分日志；**触发云端任务的提示词需改为调用该脚本**（该提示词不在仓库，协调人处） |
+
+**白名单与待办清单**（`known_red.json`，到期 2026-11-12，到期仍在则快检硬失败）
+
+| 命中 | 负责 | 说明 |
+| --- | --- | --- |
+| `angelina.json:455` 致密节点被 `alt` 恒覆盖，现行成长线选不到 | 成长会话 | 恢复可选还是删由设计定；连带 `blocks.progression.dense`（:863）、`base.n2_dmg`（:52）、docs/120 与 `_branch` 注释 |
+| `angelina.json:501` 节点 4 顶层 `lock` 永不生效 | 成长会话 | 死积木 `:890`，在用的是 `lockb`（:991） |
+| `mizuki.json:515 / 521` 路线图标 `skill_mizuki_s1 / s2` 缺 | 界面 / 美术会话 | 技能卡用通用 `skill_s1/s2`，路线卡图标为空 |
+| `specter_unchained.json:620 / 626` 路线图标 `skill_specter_s1 / s2` 缺 | 界面 / 美术会话 | 索引里是 `skill_specter_unchained_s1/s2` |
+| `relics.json:3186` 藏品 265 缺 `relic_265` 图标 | 界面 / 美术会话 | `relic_effects.json:4583` 已有效果定义 |

@@ -24,11 +24,18 @@ import sys
 import time
 
 T0 = time.time()
-ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
-VERBOSE = "--verbose" in sys.argv
-ROOT = os.path.abspath(ARGS[0]) if ARGS else os.getcwd()
+VERBOSE = False
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 DATA = os.path.join(GAME, "data")
+
+
+def configure(root):
+    """指定仓库根（含 game/）；被 check.py 导入时调用，命令行入口也走这里"""
+    global ROOT, GAME, DATA
+    ROOT = os.path.abspath(root)
+    GAME = os.path.join(ROOT, "game")
+    DATA = os.path.join(GAME, "data")
 
 HITS = {}      # rule -> [(file, path, msg)]
 
@@ -471,12 +478,29 @@ def check_misc():
                     hit("R5", f, path, "%s 文件不存在" % v)
 
 
-def main():
+def run(root=None):
+    """跑全部规则，返回 {规则: [(文件, 键路径, 说明)]}（每次调用重新计算）；R6 / R9 是提示，不算硬命中"""
+    if root:
+        configure(root)
+    HITS.clear()
+    _posmaps.clear()
     check_characters()
     check_meta()
     check_events()
     check_relics()
     check_misc()
+    return HITS
+
+
+def format_hit(f, path, msg):
+    return "%s:%s [%s] %s" % (rel(f), line_of(f, path) or "?", pstr(path), msg)
+
+
+def main():
+    global VERBOSE
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    VERBOSE = "--verbose" in sys.argv
+    run(args[0] if args else os.getcwd())
     names = {
         "R1": "成长线 / 路线 id 对不上",
         "R2": "节点不可达 / 死积木",
@@ -490,7 +514,7 @@ def main():
     for r in ["R1", "R2", "R3", "R4", "R5", "R6", "R9"]:
         hs = HITS.get(r, [])
         print("== %s %s：%d 条" % (r, names[r], len(hs)))
-        if r != "R9":
+        if r not in ("R6", "R9"):
             total += len(hs)
         shown = hs if (VERBOSE or len(hs) <= 60) else hs[:60]
         for f, path, msg in shown:

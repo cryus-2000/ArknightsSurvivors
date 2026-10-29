@@ -193,6 +193,26 @@ def check_data_lint():
     return {"name": "数据契约 data_lint", "ok": not errs, "detail": "balance.json 无字面读点的键 %d 个（提示）" % len(unread), "errors": errs[:8]}
 
 
+def check_graph_lint():
+    """不开 Godot（<1 秒）：成长线 / 路线 id / 死节点 / 前置 / 事件选项 / 引用键与资源存在（tools/graph_lint.py，docs/204 §4）；
+    已登记的命中经 known_red.json 带负责人 + 到期日放行，过期转硬失败；R6（事件插画缺失）只提示"""
+    import graph_lint, known_red
+    hits = graph_lint.run(ROOT)
+    errs = [graph_lint.format_hit(*h) for r in ("R1", "R2", "R3", "R4", "R5") for h in hits.get(r, [])]
+    items, lerr = known_red.load()
+    left, waived, expired = known_red.waive_errors("图引用 graph_lint", errs, items)
+    left = lerr + left
+    soft = sum(len(hits.get(r, [])) for r in ("R6", "R9"))
+    detail = "无硬命中" if not left else "%d 条硬命中" % len(left)
+    if waived:
+        detail += "；已知红放行 %d 条（known_red.json）" % len(waived)
+    if soft:
+        detail += "；提示 %d 条（事件插画等软缺失）" % soft
+    exp = {e: it for e, it in expired}
+    left = ["已知红过期 %d 天（负责人 %s）：%s" % (exp[e]["expired_days"], exp[e]["owner"], e) if e in exp else e for e in left]
+    return {"name": "图引用 graph_lint", "ok": not left, "detail": detail, "errors": left[:8], "waived": [(e, it) for e, it in waived]}
+
+
 def check_cc_lint():
     """不开 Godot（约 1 秒）：击退累加只在 apply_kb、干员代码不直写敌人 stun / slow / air（tools/op_cc_lint.py，docs/101 §7.3.10）"""
     import op_cc_lint
@@ -404,6 +424,9 @@ def _last_durations():
     return est
 
 
+_TL = threading.local()   # 每个 job 线程累计「真正占用 Godot 的秒数」（不含排队），汇总里逐项列出（docs/204 §1.1）
+
+
 def _run(args, timeout, tag, *, cache=True):
     """启动一次 Godot（经本次快检的闸门 GATE + godot_runner 的全机并发上限），把 stdout / stderr 写进 LOG_DIR/<tag>.log，返回 (out, err, 超时, 日志路径)"""
     if BAL_ARGS and "--" in args:
@@ -428,6 +451,7 @@ def _run(args, timeout, tag, *, cache=True):
             _cache_put(key, box["r"][0], box["r"][1], tag)   # 超时的不存（多半是负载，不是结果）
     t0 = box["t0"]
     out, err, to = box["r"]
+    _TL.secs = getattr(_TL, "secs", 0.0) + (time.time() - t0)
     path = None
     if LOG_DIR:
         safe = re.sub(r"[^\w.-]+", "_", tag).strip("_") or "run"
@@ -952,6 +976,7 @@ def check_blocks_eq(godot):
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
+    "card_desc_fit": ("藏品卡说明放得下（可见成长 7 件必须放得下；其余只报告截断）", "card_desc_fit_test.gd", r"CARD DESC FIT cut=\d+ failures=0", []),
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
     "invuln_skill_hold": ("无敌暂缓技能（Boss 无敌时普攻照打、自动技能就绪不放，解除后 1 秒内放出；开关 combat/hold_skill_on_invuln）", "invuln_skill_hold_test", r"INVULN SKILL HOLD checks=\d+ failures=0", ["--balance", "--seed=1"]),
     "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
@@ -1084,8 +1109,11 @@ SCENE_REGRESSIONS = {
 
 def check_scene(godot, key):
     name, scene, success, extra = SCENE_REGRESSIONS[key]
-    out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/" + scene + ".tscn",
-                             "--", "--regression", "--seed=1"] + extra, 180, key)
+    if scene.endswith(".gd"):   # SceneTree 脚本式测试：godot --script res://tests/<名>.gd
+        out, err, to, log = _run([godot, "--headless", "--path", GAME, "--script", "res://tests/" + scene] + extra, 180, key)
+    else:
+        out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/" + scene + ".tscn",
+                                 "--", "--regression", "--seed=1"] + extra, 180, key)
     errs = GR.script_errors(out, err)
     match = re.search(r"^" + success + r"(?:\s|;|$)", out, re.M)
     fails = re.findall(r"^(?:FAIL|MISSING).*", out + "\n" + err, re.M)
@@ -1181,13 +1209,22 @@ def ab(ref, seeds, keep):
 
 # ---------------------------------------------------------------- 主流程
 
+def _timed(f):
+    """跑一个检查项，记下它真正占用 Godot 的秒数（_run 累计）；没开 Godot 的静态项记墙钟"""
+    _TL.secs = 0.0
+    t = time.time()
+    r = f()
+    r["secs"] = _TL.secs if _TL.secs > 0 else time.time() - t
+    return r
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--bots", action="store_true", help="快检之后再跑机器人标准矩阵")
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1236,6 +1273,8 @@ def main():
         jobs.append(check_px_lint)   # 不开 Godot；只在 --only px_lint 时跑（不进 --auto / 全量：样本在 codex-art 工作树，别人机器上可能没有）
     if a.only in (None, "data_lint"):
         jobs.append(check_data_lint)   # 不开 Godot，约 1 秒；--auto 也跑（改数据表最容易静默出错的几类）
+    if a.only in (None, "graph_lint"):
+        jobs.append(check_graph_lint)   # 不开 Godot，<1 秒；--auto 也跑（改成长线 / 路线 / 事件 / 引用键 / 图标最容易静默断链）
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
     branch_full, ops = False, set()
@@ -1300,15 +1339,39 @@ def main():
     if not NOCACHE:
         SCOPES.update(scope_hashes())
     with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 各项一起开始，Godot 在 GATE 排队（最久的先开）；不开 Godot 的静态项不占名额
-        results = list(ex.map(lambda f: f(), jobs))
-    bad = [r for r in results if not r["ok"]]
+        results = list(ex.map(_timed, jobs))
+    import known_red
+    kr_items, kr_errs = known_red.load()
+    hard, known, expired, stale = known_red.classify(results, kr_items)
+    bad = hard + [r for r, _ in expired] + [{"name": "known_red.json", "detail": e, "ok": False} for e in kr_errs]
     lines = []
     for r in results:
-        lines.append("%s %s  %s" % ("通过" if r["ok"] else "失败", r["name"], r["detail"]))
+        lines.append("%s %s  %s%s" % ("通过" if r["ok"] else "失败", r["name"], r["detail"], "  [%.0f 秒]" % r["secs"] if r.get("secs", 0) >= 1 else ""))
         for e in r.get("errors", []):
             lines.append("      " + e[:220])
-    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项，耗时 %.0f 秒（开始时全机 %d 个 Godot，结束时 %d 个）%s" % (
-        "快检通过" if not bad else "快检失败", len(results), len(bad), time.time() - t0, load0, GR.count_godot(),
+    slow = sorted(results, key=lambda r: -r.get("secs", 0))[:10]
+    if slow and slow[0].get("secs", 0) >= 1:
+        lines.append("\n耗时前 10（秒，不含排队）：" + "；".join("%s %.0f" % (r["name"][:24], r["secs"]) for r in slow if r.get("secs", 0) >= 1))
+    if known:
+        lines.append("\n已知红（%d 项，known_red.json，未过期，不算失败）：" % len(known))
+        lines += ["  · %s — 负责人 %s，到期 %s：%s" % (r["name"], it["owner"], it["due"], it["reason"][:60]) for r, it in known]
+    waived = [(r["name"], e, it) for r in results for e, it in r.get("waived", [])]
+    if waived:
+        lines.append("\n已知红放行的单条错误（%d 条）：" % len(waived))
+        lines += ["  · %s — %s，到期 %s" % (e[:90], it["owner"], it["due"]) for _, e, it in waived]
+    for r, it in expired:
+        lines.append("\n已知红过期 %d 天仍红：%s（负责人 %s，到期 %s）" % (it["expired_days"], r["name"], it["owner"], it["due"]))
+    for it in stale:
+        lines.append("\n提示：已知红「%s」现在已绿，可从 known_red.json 删除" % it["scope"])
+    try:
+        os.makedirs(OUT_DIR, exist_ok=True)
+        json.dump({"time": datetime.datetime.now().isoformat(timespec="seconds"), "items": [
+            {"name": r["name"], "ok": r["ok"], "secs": round(r.get("secs", 0), 1), "detail": r["detail"]} for r in results]},
+            open(os.path.join(OUT_DIR, "last_quick.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    except OSError:
+        pass
+    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项（已知红 %d 项另计），耗时 %.0f 秒（开始时全机 %d 个 Godot，结束时 %d 个）%s" % (
+        "快检通过" if not bad else "快检失败", len(results), len(bad), len(known), time.time() - t0, load0, GR.count_godot(),
         "；Godot 结果缓存命中 %d / %d（不用缓存加 --nocache）" % (CACHE_STAT["hit"], CACHE_STAT["hit"] + CACHE_STAT["miss"]) if not NOCACHE else "；未用缓存")
     if bad:
         # 失败项单独再列一遍：名字、原因、完整日志路径（负载高时偶发失败，事后要能查到是哪项、为什么）

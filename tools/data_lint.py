@@ -93,7 +93,7 @@ def check_waves(errs):
                     errs.append("waves.json events.%s.options[%d]：藏品「%s」不在 relics.json" % (ev.get("id", "?"), oi, x["relic"]))
 
 
-BAL_CALL = re.compile(r'\b(?:Bal|BalS|MfBal)\.(?:v|vi)\(\s*"([A-Za-z0-9_]+(?:/[A-Za-z0-9_]+)+)"')
+BAL_CALL = re.compile(r'\b(?:Bal|BalS|MfBal)\.(?:v|vi)\(\s*"([A-Za-z0-9_]+(?:/[A-Za-z0-9_]+)+)"(\s*\+)?')
 PATH_LIT = re.compile(r'"([A-Za-z0-9_]+(?:/[A-Za-z0-9_]+)+)"')
 
 
@@ -111,14 +111,16 @@ def _leaves(d, p=""):
 def check_balance(errs, verbose):
     bal = _load(os.path.join(DATA, "balance.json"), [])
     leaves = set(_leaves(bal))
-    reads, lits = set(), set()
+    reads, lits, prefixes = set(), set(), set()
     for p in glob.glob(os.path.join(SCRIPTS, "**", "*.gd"), recursive=True):
         s = open(p, encoding="utf-8").read()
-        reads.update(BAL_CALL.findall(s))
+        for path, plus in BAL_CALL.findall(s):
+            # 字面后紧跟 + 的是动态拼键（如 "boss/spd_all_k_" + str(type)）：只是前缀，不是完整键
+            (prefixes if plus else reads).add(path)
         lits.update(PATH_LIT.findall(s))
     for p in glob.glob(os.path.join(ROOT, "tools", "*.py")):
         lits.update(PATH_LIT.findall(open(p, encoding="utf-8").read()))
-    unread = sorted(x for x in leaves if x not in lits and x not in reads)
+    unread = sorted(x for x in leaves if x not in lits and x not in reads and not any(x.startswith(q) for q in prefixes))
     for r in sorted(reads):
         if r in leaves or "/" not in r:
             continue
