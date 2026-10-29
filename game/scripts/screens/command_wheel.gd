@@ -19,7 +19,7 @@ const ITEMS_BASE := [
 ]
 ## 指点原型（docs/196，command/target_proto = 1）：下半圈两项换成「点位」「集火」，替掉清杂 / Boss 优先（按钮数不增）
 const ITEMS_PROTO := [
-	{"id": "point", "name": "点位", "en": "POINT", "sub": "点地面：全队前往，在那里作战", "col": Color(0.36, 0.78, 1.0)},
+	{"id": "point", "name": "肃清", "en": "CLEAR", "sub": "点一块区域：队友前往清掉圈内敌人，清空后回到随行", "col": Color(0.36, 0.78, 1.0)},
 	{"id": "focus", "name": "集火", "en": "FOCUS", "sub": "点精英或 Boss：全队集火该目标", "col": Color(1.0, 0.239, 0.545)},
 ]
 var ITEMS: Array = _items()
