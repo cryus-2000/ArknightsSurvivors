@@ -304,6 +304,7 @@ func _draw_body() -> void:
 		squad.draw_manual_hint()
 		g.boss_intro.draw_hud(vs)
 		g.victory.draw_hud(vs))   # 胜利收尾：暖金光环 + 「探索完成」（run/victory_flow.gd，docs/62 §3.21c）   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
+	g.pick.draw(vs)   # 指点（示意原型）：已下达指令的标记 + 选点阶段的准星
 	g.wheel.draw(vs)   # 指挥圆盘（docs/114 §12）：打开时盖在 HUD 上，直接画在 hud 画布（缓存层之上）
 	match g.state:
 		Game.S.SHOW:

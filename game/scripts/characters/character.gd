@@ -1573,6 +1573,11 @@ var cmd_hit_t := -9.0   # 上次突击中被碰到掉血的时刻（g.t）：编
 ## Boss 优先 + 圈里有可受击的 Boss / 部件（command/boss_rush 开，10-27 用户「我选择全队打 boss 必然是想让他们去输出一波的」）：
 ## 全队集火——直接锁最近的部件，没有部件锁最近的 Boss，不做紧急护主，射程外就追过去；没有 Boss / 部件时照旧
 func roam_target(slot_pos: Vector2) -> Vector2:
+	var ok = g.squad.get("order_kind")   # 测试里的小队桩可能没有这个字段
+	if ok != null and ok != "":
+		var og: Vector2 = _order_goal(slot_pos)   # 指点（示意原型，docs/196）：点位 / 集火；INF = 指令作废，走原来的自动选敌
+		if og != Vector2.INF:
+			return og
 	var radius: float = CmdBal.v("command/roam_r", 840.0)
 	var ld: Vector2 = g.squad.lead_dir
 	var rear: Vector2 = g.ppos - ld * CmdBal.v("command/rear_d", 160.0)
@@ -1676,6 +1681,42 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	elif distance > reach or _cmd_side_bad(e, reach):
 		p = e.pos + Vector2.from_angle(_cmd_side(e, reach)) * reach
 	return _cmd_spread(g.ppos + (p - g.ppos).limit_length(radius))
+
+
+## 指点的站位（示意原型）：点位 = 以 order_pos 为圆心、半径 order_pt_r 内选离自己最近的敌人，没有就站在点上（按编队位散开）；
+## 集火 = 直接打 order_target（贴近 / 进射程），不做紧急护主。正式实现应并进上面的评分（锁定档位 + 以点为圆心的候选圈），这里只求演示读得出来
+func _order_goal(slot_pos: Vector2) -> Vector2:
+	var sq = g.squad
+	var reach_k: float = CmdBal.v("command/stop_range_k", 0.85)
+	if sq.order_kind == "focus":
+		var t = sq.order_target
+		if t == null or t.dead:
+			return Vector2.INF
+		roam_tgt = t
+		var rr: float = minf(cmd_reach() + float(t.r), cmd_attack_range() * reach_k)
+		var dd: float = pos.distance_to(t.pos)
+		if dd <= rr:
+			return pos
+		return t.pos + (pos - t.pos).normalized() * rr
+	var pr: float = CmdBal.v("command/order_pt_r", 240.0)
+	var best = null
+	var bd := INF
+	for j in query_ids(sq.order_pos, pr):
+		var en: Dictionary = g.enemies[j]
+		if en.dead or not hittable(en) or en.pos.distance_to(sq.order_pos) > pr:
+			continue
+		var d: float = en.pos.distance_to(pos)
+		if d < bd:
+			bd = d
+			best = en
+	if best == null:
+		roam_tgt = null
+		return sq.order_pos + g.squad._slot_offset(slot) * 0.7
+	roam_tgt = best
+	var rr2: float = minf(cmd_reach() + float(best.r), cmd_attack_range() * reach_k)
+	if pos.distance_to(best.pos) <= rr2:
+		return pos
+	return best.pos + (pos - best.pos).normalized() * rr2
 
 
 ## 射程内也可能隔着景物；先找射线通畅的位置，行走路径交给局部绕行。

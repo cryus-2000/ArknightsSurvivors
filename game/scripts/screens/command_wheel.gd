@@ -10,13 +10,25 @@ const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
 ## 圆盘选项：id / 名 / 说明 / 颜色。顺序 = 从左上起顺时针，中心角见 ANG、半宽见 HALF（度，0 = 向右，顺时针为正）
-const ITEMS := [
+const ITEMS_BASE := [
 	{"id": "guard", "name": "随行", "en": "ESCORT", "sub": "跟在队长身边", "col": Color(0.212, 0.886, 0.863)},
 	{"id": "roam", "name": "突击", "en": "ASSAULT", "sub": "离队索敌，限时行动", "col": Color(0.957, 0.753, 0.306)},
 	{"id": "recall", "name": "归队", "en": "REGROUP", "sub": "立即回到队长身边", "col": Color(0.184, 0.827, 0.627)},
 	{"id": "mob", "name": "清杂优先", "en": "SWARM", "sub": "优先杂兵，向密集处开火", "col": Color(1.0, 0.62, 0.3)},
 	{"id": "boss", "name": "Boss 优先", "en": "BOSS", "sub": "全队集火 Boss，突击时紧追不放", "col": Color(1.0, 0.239, 0.545)},
 ]
+## 指点原型（docs/196，command/target_proto = 1）：下半圈两项换成「点位」「集火」，替掉清杂 / Boss 优先（按钮数不增）
+const ITEMS_PROTO := [
+	{"id": "point", "name": "点位", "en": "POINT", "sub": "点地面：全队前往，在那里作战", "col": Color(0.36, 0.78, 1.0)},
+	{"id": "focus", "name": "集火", "en": "FOCUS", "sub": "点精英或 Boss：全队集火该目标", "col": Color(1.0, 0.239, 0.545)},
+]
+var ITEMS: Array = _items()
+
+static func _items() -> Array:
+	if Bal.v("command/target_proto", 0.0) <= 0.0:
+		return ITEMS_BASE
+	return ITEMS_BASE.slice(0, 3) + ITEMS_PROTO
+
 const ANG := [-150.0, -90.0, -30.0, 45.0, 135.0]
 const HALF := [30.0, 30.0, 30.0, 45.0, 45.0]
 const TAP := 0.25          # 轻点 / 按住的分界（真实秒）
@@ -117,6 +129,8 @@ func is_current(i: int) -> bool:
 			return sq.priority == 1
 		"boss":
 			return sq.priority == 0
+		"point", "focus":
+			return sq.order_kind == str(ITEMS[i].id)
 	return false
 
 
@@ -256,6 +270,9 @@ func input(event: InputEvent) -> bool:
 		var i: int = _hit(p)
 		if i >= 0:
 			confirm(i)
+			if g.pick.active:   # 指点原型：手指还按着，接着拖到目标点、松手确认（docs/196 §6.3）
+				g.pick.finger_id = event.index
+				g.pick.pointer = p
 			return true
 		cancel()
 		return not g.touch.wants_stick(p)
