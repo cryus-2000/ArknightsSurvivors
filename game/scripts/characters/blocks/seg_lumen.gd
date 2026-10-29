@@ -248,7 +248,7 @@ static func _h3_light_burst(o, lm: Dictionary, b: Dictionary) -> void:
 	if bu.get("power", false):
 		dmg *= o.skill_power()
 	o.area_hit(str(bu.get("src", "")), tp, r, dmg, float(bu.get("kb", 160.0)), float(bu.get("stun", 0.6)))
-	o.spawn_fx_sprite("fx_sunburst", tp + Vector2(0, -40), g.PX * 2.4)
+	# 10-29：取消「日炎」大火球（fx_sunburst，用户定）；爆发只留地面环 / 光线 / 火花
 	for i in 3:
 		o.fx({"kind": "ring", "pos": tp, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": H3_WARM, "floor": true, "w": 4.0 - i})
 	g.fx.append({"kind": "rays", "pos": tp + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": H3_WARM, "op_spoke": true})
