@@ -95,45 +95,15 @@ func cancel_in(pred: Callable) -> PackedVector2Array:
 	return out
 
 
-## ---- 判定点与擦弹（10-29 用户：只做 1 判定点 + 2 擦弹，不要太过火；开关 boss/graze_on，缺省 0）
-## 全局统一规则（用户 10-29「只在 Boss 战用会割裂」）：所有敌方子弹（g.ebullets：小怪远程弹、精英弹、Boss 弹）只按弹芯打判定点，
-## 判定外一圈算擦弹；接触伤害、地面预警圈、爆炸 / 溅射范围、抛物（g.lobs）不变。
-var _grz_snd_next := 0.0   # 擦弹音全局限频（大群远程怪时不吵）
+## ---- 判定点（10-29 用户定乙：判定点全局单独打开、擦弹不做；开关 enemy/bullet_core_hit，缺省 1，0 = 旧宽判定「弹体半径 + 12」）
+## 所有敌方子弹（g.ebullets：小怪远程弹、精英弹、Boss 弹）只按弹芯打判定点；接触伤害、地面预警圈、爆炸 / 溅射范围、抛物（g.lobs）不变。
+func core_hit_live() -> bool:
+	return Bal.v("enemy/bullet_core_hit", 1.0) > 0.0
 
 
-func graze_live() -> bool:
-	return Bal.v("boss/graze_on", 0.0) > 0.0
-
-
-## 弹芯半径 = 弹体半径 × enemy/bullet_hit_scale（旧名 boss/bullet_hit_scale 兼容）
+## 弹芯半径 = 弹体半径 × enemy/bullet_hit_scale（0.6）
 func core_r(b: Dictionary) -> float:
-	return float(b.r) * Bal.v("enemy/bullet_hit_scale", Bal.v("boss/bullet_hit_scale", 0.6))
-
-
-func _final_live() -> Dictionary:
-	for e in g.bosses:
-		if not e.dead and g.spawner.is_final_boss_type(str(e.type)):
-			return e
-	return {}
-
-
-## 擦弹：细火花 + 轻音（全局每秒最多 boss/graze_rate 次）；技力 boss/graze_sp 缺省 0（10-29 协调人：第一版只做反馈），
-## 开了只在最终 Boss 战给，每只 Boss 累计 ≤ boss/graze_sp_cap（1.0 = 一次技能）；不回灯火、不加伤害、HUD 不计数
-func _graze(b: Dictionary) -> void:
-	var p: Vector2 = g.ppos + Vector2(0, -14)
-	g.vfx.sparks(p.lerp(b.pos, 0.5), (p - b.pos).orthogonal(), Color(1.0, 1.0, 1.0, 0.9), 2, 90.0)
-	g.graze_n += 1   # 测试 / 批跑读
-	if g.t < _grz_snd_next:
-		return
-	_grz_snd_next = g.t + 1.0 / maxf(0.1, Bal.v("boss/graze_rate", 5.0))
-	Sfx.play("crit_tick", -18.0, 1.7, 0.1)
-	var fb: Dictionary = _final_live()
-	var used: float = float(fb.get("_grz_sp", 0.0))
-	var add: float = minf(Bal.v("boss/graze_sp", 0.0), Bal.v("boss/graze_sp_cap", 1.0) - used)
-	if fb.is_empty() or add <= 0.0 or g.squad == null or g.squad.leader() == null:
-		return
-	fb["_grz_sp"] = used + add
-	g.squad.leader().gain_sp(add)
+	return float(b.r) * Bal.v("enemy/bullet_hit_scale", 0.6)
 
 
 func update_ebullets(dt: float) -> void:
@@ -158,13 +128,7 @@ func update_ebullets(dt: float) -> void:
 			b.life = 0.0
 			b["_die"] = "rock"
 		var hd: float = b.pos.distance_to(g.ppos + Vector2(0, -14))
-		var hitp: bool = not rock and hd < b.r + 12.0
-		if graze_live():   # 判定点（10-29 用户「东方躲弹幕的味道」）：敌弹只按弹芯判定，判定外一圈算擦弹
-			var core: float = core_r(b)
-			hitp = not rock and hd < core
-			if not hitp and not rock and not b.has("_grz") and hd < core + Bal.v("boss/graze_r", 14.0):
-				b["_grz"] = true   # 同一颗只算一次
-				_graze(b)
+		var hitp: bool = not rock and hd < (core_r(b) if core_hit_live() else b.r + 12.0)   # 判定点：敌弹只按弹芯判定
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and (not b.get("boss", false) or g.mires.size() < 48) and _boss_mire_ok(b) and (b.get("boss", false) or not g.combat.mire_blocked(b.pos + Vector2(0, 10), float(b.get("mire_r", 52.0)))):
