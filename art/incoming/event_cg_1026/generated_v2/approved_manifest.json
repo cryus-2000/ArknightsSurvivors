@@ -1,0 +1,218 @@
+[
+  {
+    "file": "opening.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "15a9c419b2c9c80bb4bcb77754a0af7fd823b130e8e48f8fd3a99da880070e74",
+    "reference": "Avg_pic_rogue_2_25.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "madness.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "0b2e8b3359051af91dcf1477d512992e2452d5fa8c488f58f7f9785473fc9e92",
+    "reference": "Avg_pic_rogue_2_23.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "knight_stay.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "5c9a81520086184d7cd284cd0c1e75248b18d7c4dc1b77c9a7e8639834ceaf4b",
+    "reference": "Avg_pic_rogue_2_24.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "heart.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "4d30e4b32cef917b8687f5d3dde3b34c47867f97dcbb871eca21dff67bfab37f",
+    "reference": "Avg_pic_rogue_2_26.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "hymn.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "1406c08ef20658d13ff34bcbd93168b718aeb9902b4a8a135fe8c2c1e6377764",
+    "reference": "Avg_pic_rogue_2_27.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "ritual.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "239311418f888076f77de2d6a0f7a2bcc4b571355e46442573ee89d0863581b1",
+    "reference": "Avg_pic_rogue_2_56.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "ascend.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "9e3d3f80b2c4d0cb244fda890fa07e5e9c95adc6505ce1a7631f518b0fc3babf",
+    "reference": "Avg_pic_rogue_2_57.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "rest.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "3463baf59c4b2cfb10149b784f39d01e17f64b12a38cde70953698962ccb862e",
+    "reference": "Avg_pic_rogue_2_46.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "wish.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "84f2bd4a9b441f74520fdb95033a1c0b704a5cc51808f1aea6dbd1d40fb25130",
+    "reference": "Avg_pic_rogue_2_20.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "glimmer.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1186
+    ],
+    "mode": "RGB",
+    "sha256": "3398d4b2bc1c4d5d574a2e0cb656fbc17f542e6d8e67e0caca9d8a80552ca881",
+    "reference": "Avg_pic_rogue_2_7.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "spark.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "4b9a510c07a19192b03cde25f31387a5cacdc995a24c569768b0a90abe5eb3a4",
+    "reference": "Avg_pic_rogue_2_6.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "singer.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1186
+    ],
+    "mode": "RGB",
+    "sha256": "5ac0dc3a8ae38087c514c5590f6a959760945cea33d0e99e2da0bfebff3f92bb",
+    "reference": "Avg_pic_rogue_2_3.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "watcher.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1186
+    ],
+    "mode": "RGB",
+    "sha256": "70b3844b5f46d42c6ca7f8c29f752cb0297ead7184de027858d375c0553c0f4b",
+    "reference": "Avg_pic_rogue_2_22.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "legacy.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "5e432296de1b30a47b32b6ab68a354489c95054c4963c6f96d0722494d3f72aa",
+    "reference": "Avg_pic_rogue_2_43.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "survive.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "33dfdc29fcf08b0c3cc7f9352347e9b3fd54c70ce7311a6b55ddb5469a8e4517",
+    "reference": "Avg_pic_rogue_2_11.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "tinder.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1186
+    ],
+    "mode": "RGB",
+    "sha256": "20558311404f61ee7ac18c39441f5132b4ce2f6e3bff0705744414dba10f3cbb",
+    "reference": "Avg_pic_rogue_2_34.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "inherit.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "dc57eb785024eb1c8973e38d5da94ab29dd398703a648c4b907e929db0abe9a0",
+    "reference": "Avg_pic_rogue_2_1.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  },
+  {
+    "file": "meeting.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1186
+    ],
+    "mode": "RGB",
+    "sha256": "1020e38c5c04ac476befcba217eb9155b7d26af1d3a2ca43e8c88ccf403b5498",
+    "reference": "Avg_pic_rogue_2_8.png",
+    "status": "visual_approved_2026-10-26_not_integrated"
+  }
+]

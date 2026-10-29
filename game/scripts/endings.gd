@@ -609,7 +609,7 @@ func open(ev_id: String) -> void:
 				icon = "relic_" + str(o.relic)
 				chips.append(["得到藏品", Color(0.18, 0.72, 1.0)])
 			if o.has("ingots") and not o.has("chance"):
-				chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
+				chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63) if int(o.ingots) > 0 else Color(1.0, 0.45, 0.45)])
 			if o.has("maxhp_pct"):
 				chips.append(["最大生命 %+d%%" % int(round(float(o.maxhp_pct) * 100.0)), Color(0.55, 1.0, 0.6) if float(o.maxhp_pct) > 0.0 else Color(1.0, 0.45, 0.45)])
 			if o.has("hp_pct"):
