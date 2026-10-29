@@ -272,7 +272,7 @@ func _emit_step(e: Dictionary) -> void:
 			"release":
 				for b in d.bs:
 					if b.life > 0.0:
-						b.vel = b.hold_v
+						b.vel = b.hold_v * float(b.get("spd_k", 1.0))   # 停住时记的是原速；弹速统一倍率（shot_pool._final_speed，docs/201）
 			"drop":
 				var p: Vector2 = src.pos if src is Dictionary else e.pos
 				var b = _shot_ref(e, own, p, float(d.ang), 72.0, 13.0, 0.42, "ishar_tear", 7.0)

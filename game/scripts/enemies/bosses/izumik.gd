@@ -482,15 +482,20 @@ func _start_card(e: Dictionary, name: String) -> void:
 	e.izu_card = card.name
 	e.izu_queue = card.segs.duplicate()
 	e.izu_card_until = g.t + CARD_CAP
-	e.izu_next = g.t + DECLARE
+	e.izu_next = g.t + DECLARE * _gap_k()
 	_rise(e)
+
+
+## 出招节奏（10-29 docs/201：机器人试炼每分钟只被打中约 1.3 下，太闲）：起手、段间停顿、破绽后空档统一 × boss/izumik_gap_k（缺省 1 = 原节奏）
+func _gap_k() -> float:
+	return Bal.v("boss/izumik_gap_k", 1.0)
 
 
 func _finish_card(e: Dictionary) -> void:
 	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)] * Bal.v("boss/izumik_recover_mult", 1.25)
 	_end_card(e)
 	g.combat.start_break(e, rec)
-	e.izu_next = g.t + rec + REST
+	e.izu_next = g.t + rec + REST * _gap_k()
 
 
 func _end_card(e: Dictionary) -> void:
@@ -510,7 +515,7 @@ func _rise(e: Dictionary) -> void:
 
 
 func _run_seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
-	e.izu_next = g.t + SEG_GAPS[_act(e)]
+	e.izu_next = g.t + SEG_GAPS[_act(e)] * _gap_k()
 	if seg == "@近身分享":
 		if g.combat.ground_d(g.ppos, e.pos) < 320.0:
 			_share(e, dir, false)
@@ -662,7 +667,7 @@ func _emit_step(e: Dictionary) -> void:
 		em.n = int(em.n) + 1
 	if g.t > float(em.until):
 		e.izu_emit = {}
-		e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)])
+		e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)] * _gap_k())
 
 
 func _emit_once(e: Dictionary, em: Dictionary) -> void:
@@ -787,7 +792,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 					else:
 						if not b.has("izu_aim"):
 							b.izu_aim = (target - b.pos).angle()
-						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(150.0, (t - 1.4) * 300.0)
+						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(150.0, (t - 1.4) * 300.0) * Bal.v("boss/izumik_aim_k", 1.0)   # 瞄准段弹速（docs/201 弹速统一）
 				"back":
 					if t > 1.1 and t < 2.6:
 						b.vel = b.vel.rotated(float(b.izu_curl) * dt)
@@ -800,7 +805,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 					if t >= 0.9:
 						if not b.has("izu_aim"):
 							b.izu_aim = (target - b.pos).angle() + (float(absi(int(b.pos.x)) % 5) - 2.0) * 0.06
-						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(170.0, (t - 0.9) * 340.0)
+						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(170.0, (t - 0.9) * 340.0) * Bal.v("boss/izumik_aim_k", 1.0)
 		for lp in lamps:
 			if g.combat.ground_d(b.pos, lp) < lr:
 				b.life = 0.0

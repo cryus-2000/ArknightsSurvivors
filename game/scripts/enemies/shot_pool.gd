@@ -136,10 +136,35 @@ func _graze(b: Dictionary) -> void:
 	g.squad.leader().gain_sp(add)
 
 
+## 最终 Boss 弹速统一（用户 10-29，docs/201）：最终 Boss 在场时，Boss 弹第一次进这里按 弹种 / 子类 查倍率，
+## boss/spd_<类型>_<kind>_<子类>（子类 = izu / motion / tier 字段）优先、其次 boss/spd_<类型>_<kind>，缺省 1 = 不变；
+## 速度、加速度、各脚本逐帧改速用的基准速度一起乘，倍率记在 b.spd_k 给逐帧改速的脚本用；追踪弹最多 × boss/spd_home_cap
+func _final_speed(b: Dictionary) -> void:
+	b.spd_k = 1.0
+	var fb: Dictionary = _final_live()
+	if fb.is_empty():
+		return
+	var kind := str(b.get("kind", ""))
+	var sub := str(b.get("izu", b.get("motion", b.get("tier", ""))))
+	var base := "boss/spd_%s_%s" % [str(fb.type), kind]
+	var k: float = Bal.v(base + "_" + sub, Bal.v(base, 1.0)) if sub != "" else Bal.v(base, 1.0)
+	if b.get("home", false):
+		k = minf(k, Bal.v("boss/spd_home_cap", 1.3))
+	if is_equal_approx(k, 1.0):
+		return
+	b.spd_k = k
+	b.vel = b.vel * k
+	for f in ["accel", "max_speed", "p_acc", "p_vmin", "p_vmax", "p_v2", "izu_v0"]:
+		if b.has(f):
+			b[f] = float(b[f]) * k
+
+
 func update_ebullets(dt: float) -> void:
 	for b in g.ebullets:
 		if b.life <= 0.0:
 			continue
+		if not b.has("spd_k") and b.get("boss", false):
+			_final_speed(b)
 		if b.get("home", false):
 			var want: Vector2 = (g.ppos + Vector2(0, -14) - b.pos).normalized() * b.vel.length()
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
