@@ -286,9 +286,12 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 	return all_done and (not a.surge or a.surged)
 
 
-# ================================================================ 歌蕾蒂娅（§4.7）：海渊漩涡把半径 560 的敌人拖向中心 → 潮水从中心爆开
-
-## 草案旋转 1.2 秒；瞬发型时长上限 1.2 秒（含瞄准），这里旋转缩到 ult/gl_spin（0.8）、每 0.16 秒 3.6%（合计 18%）
+# ================================================================ 歌蕾蒂娅（§4.7）：海渊漩涡把半径 560 的敌人拖向中心 → 收拢一砸 → 停住 → 潮水从中心爆开
+## 10-30 用户「顿挫感不够」返工：三拍节奏——
+##   ① 旋转收拢 ult/gl_spin（0.65 秒，越转越快，伤害全标 pre）；
+##   ② 收拢到中心那一刻 = 冲击帧（这次终结技第一下真正掉血：ult/gl_crush 30%）+ 轻震，之后 ult/gl_hold（0.2 秒）一瞬静止：漩涡停转、整团收成中心一个亮点，敌人钉在原地；
+##   ③ 爆开：剩下的 52% + 加大的击飞（小怪 ult/gl_kb 520、精英 260），水柱 / 水环向四周放射。
+## 瞬发型时长上限 1.2 秒（含瞄准慢放 0.125）：0.65 + 0.2 = 0.85 秒处最后一下伤害
 static func _gl_start(u, o, c: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var col: Color = u._col(o)
@@ -304,8 +307,8 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 		var dt0: float = maxf(36.0, d0 * 0.16 + 30.0) if not (e.elite or e.get("part", false)) else maxf(60.0, d0 - 160.0 * (1.25 if rt == "brute" else 1.0))
 		pulled.append({"e": e, "d0": d0, "d1": minf(d0, dt0), "a0": off.angle(), "sw": 0.0})
 	o.play_vis_anim("attack")
-	var a := {"c": c, "R": R, "DR": DR, "T": Bal.v("ult/gl_spin", 0.8), "pulled": pulled, "tick": 0, "rot": 0.0, "burst": false, "bseg": {},
-		"arms": [], "shelter": rt == "shield", "ring_t": 0.0, "fx": []}
+	var a := {"c": c, "R": R, "DR": DR, "T": Bal.v("ult/gl_spin", 0.65), "H": Bal.v("ult/gl_hold", 0.2), "pulled": pulled, "tick": 0, "rot": 0.0,
+		"crushed": false, "burst": false, "cseg": {}, "arms": [], "shelter": rt == "shield", "ring_t": 0.0, "fx": [], "no_ring": true}
 	_keep(u, a, {"kind": "circle", "c": c, "r": DR, "col": col.darkened(0.5), "fill": 0.16, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 3.0, "col": col.lerp(Color.WHITE, 0.3), "life": 3.0})
 	for j in 4:   # 四条旋臂，每条 10 节（外细内粗、越往里越亮）
@@ -324,10 +327,12 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 	var R: float = a.R
 	var DR: float = a.DR
 	var T: float = a.T
+	var H: float = a.H
 	var col: Color = u._col(o)
-	if not a.burst:
+	var er: float = R * (1.0 - _edge_w())
+	if not a.crushed:
 		var k: float = clampf(t / T, 0.0, 1.0)
-		var w: float = lerpf(2.5, 11.0, k * k)   # 越转越快
+		var w: float = lerpf(2.5, 13.0, k * k)   # 越转越快
 		a.rot = float(a.rot) + w * dt
 		# 拖拽：半径按 ease 收拢，同时绕中心转（越靠里转得越快）
 		var ke: float = 1.0 - (1.0 - k) * (1.0 - k)
@@ -338,47 +343,101 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			var dd: float = lerpf(float(p.d0), float(p.d1), ke)
 			p.sw = float(p.sw) + w * dt * clampf(1.2 - dd / DR, 0.25, 1.0) * (0.35 if e.elite else 1.0)
 			u.g.enemies_sys.nudge(e, c + Vector2.from_angle(float(p.a0) + float(p.sw)) * dd - e.pos)
+		var shrink: float = lerpf(1.0, 0.55, k * k)   # 旋臂跟着往里收
 		for j in a.arms.size():
 			var arm: Array = a.arms[j]
 			for i in arm.size():
-				var r0: float = DR * (1.0 - float(i) / 10.0)
-				var r1: float = DR * (1.0 - float(i + 1) / 10.0)
+				var r0: float = DR * shrink * (1.0 - float(i) / 10.0)
+				var r1: float = DR * shrink * (1.0 - float(i + 1) / 10.0)
 				var base: float = float(a.rot) + TAU * float(j) / 4.0
 				arm[i].a = c + Vector2.from_angle(base + 0.36 * float(i)) * maxf(20.0, r0)
 				arm[i].b = c + Vector2.from_angle(base + 0.36 * float(i + 1)) * maxf(20.0, r1)
 		for s in a.fx:
 			_hold(s)
+		var foam: Color = col.lerp(Color.WHITE, 0.45)
+		for j in a.arms.size():   # 旋臂上甩出的水沫（沿切向）+ 中心越转越亮
+			var arm2: Array = a.arms[j]
+			var sg: Dictionary = arm2[(int(t * 60.0) + j * 3) % arm2.size()]
+			u.grain("water", sg.b, (sg.b - sg.a).normalized(), foam, 2)
+		if int(t * 60.0) % 8 == 0:
+			u.light(c, lerpf(120.0, 300.0, k), col, 0.14)
 		if t >= float(a.ring_t):   # 向内收的水环
-			a.ring_t = t + 0.16
-			_ring(u, c, 50.0, DR, col.lerp(Color.WHITE, 0.45), 0.32, 4.0)
-			u.shape({"kind": "dots", "c": c, "r": DR * 0.9, "n": 18, "col": col.lerp(Color.WHITE, 0.6), "life": 0.3})
-		# 旋转期：每 0.16 秒 3.6%（铺垫，冲击帧留给爆开）
+			a.ring_t = t + 0.13
+			_ring(u, c, 40.0, DR, col.lerp(Color.WHITE, 0.45), 0.26, 4.0)
+			u.shape({"kind": "dots", "c": c, "r": DR * 0.9, "n": 18, "col": col.lerp(Color.WHITE, 0.6), "life": 0.26})
+		# 旋转期：分 ult/gl_ticks 跳，合计 ult/gl_spin_frac（18%），全是铺垫（pre），冲击帧留给收拢那一下
 		var nt: int = int(Bal.v("ult/gl_ticks", 5.0))
 		while int(a.tick) < nt and t >= T * float(int(a.tick) + 1) / float(nt + 1):
 			a.tick = int(a.tick) + 1
 			for e in u.in_circle(c, R):
-				_hit(u, a, o, e, Bal.v("ult/gl_spin_frac", 0.18) / float(nt), {"src": "漩涡", "pre": true, "edge": e.pos.distance_to(c) > R * (1.0 - _edge_w())})
+				_hit(u, a, o, e, Bal.v("ult/gl_spin_frac", 0.18) / float(nt), {"src": "漩涡", "pre": true, "edge": e.pos.distance_to(c) > er})
 		if t >= T:
-			a.burst = true   # 爆开：82%，小怪击飞 300
-			_fade(u, a, 0.2)
-			u.strip("fx_gladiia_tornado_close", c, {"sc": 2.6, "o": Vector2(64, 118)})
-			u.strip("fx_skadi_surge", c, {"sc": 5.2})
-			_ring(u, c, R, 40.0, Color.WHITE, 0.5, 16.0)
-			_ring(u, c, R * 0.7, 30.0, col.lerp(Color.WHITE, 0.5), 0.4, 8.0)
-			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.32, "life": 0.3})
-			_spray(u, c, 14, 60.0, 900.0, col.lerp(Color.WHITE, 0.7), 0.45)
-			for i in 10:
-				u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 10.0 + 0.3) * R * 0.62, {"sc": 1.6, "delay": 0.03 * float(i % 3)})
+			# ② 收拢一砸：冲击帧（第一下非 pre 的掉血）+ 轻震；漩涡停转，整团收成中心一个亮点
+			a.crushed = true
+			_fade(u, a, 0.08)
 			for e in u.in_circle(c, R):
-				var off: Vector2 = e.pos - c
-				var dv: Vector2 = off.normalized() if off.length() > 1.0 else Vector2.RIGHT
-				_hit(u, a, o, e, Bal.v("ult/gl_burst", 0.82), {"src": "潮涌", "edge": off.length() > R * (1.0 - _edge_w()), "kb": dv * _kb_v(300.0)})
-			if a.shelter:   # 深海的庇护：队长获得 10% 最大生命的护盾（护盾层 API 只有格数，这里先折成回复 10%）
-				u.g.combat.heal(u.g.max_hp * 0.1, "终结技", "gladiia")
-			o.screen_shake(0.8)
+				a.cseg[int(e.id)] = true
+				_hit(u, a, o, e, Bal.v("ult/gl_crush", 0.3), {"src": "收拢", "edge": e.pos.distance_to(c) > er, "stun": H + 0.1})
+			u.shake(Bal.v("ult/gl_shake", 7.0), 0.3)
+			_ring(u, c, 30.0, 220.0, col.lerp(Color.WHITE, 0.5), 0.12, 10.0)
+			u.light(c, 260.0, col, H + 0.1)
+			for i in 10:   # 收进来的最后一圈水沫
+				var dq := Vector2.from_angle(float(i) * TAU / 10.0)
+				u.grain("water", c + dq * 150.0, -dq, col.lerp(Color.WHITE, 0.5), 3)
+			a["pt"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": H + 0.3})
+			a["pg"] = _keep(u, a, {"kind": "circle", "c": c, "r": 70.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.55, "life": H + 0.3})
+			a["pr"] = _keep(u, a, {"kind": "ring", "c": c, "r": 120.0, "w": 4.0, "col": col.lerp(Color.WHITE, 0.6), "life": H + 0.3})
 			o.play_vis_anim("attack")
 		return false
-	return t >= T + 0.15
+	if not a.burst:
+		# 一瞬静止：亮点往里收、越收越亮；敌人钉在原地（收拢那下给了 stun）
+		var kh: float = clampf((t - T) / maxf(0.01, H), 0.0, 1.0)
+		a.pt.r = lerpf(30.0, 12.0, kh)
+		a.pg.r = lerpf(70.0, 26.0, kh)
+		a.pr.r = lerpf(120.0, 30.0, kh)
+		for s in [a.pt, a.pg, a.pr]:
+			s.age = 0.0
+		if t < T + H:
+			return false
+		# ③ 爆开：剩下的份额 + 加大的击飞，水柱 / 水环放射
+		a.burst = true
+		_fade(u, a, 0.05)
+		var bf: float = maxf(0.0, Bal.v("ult/gl_burst", 0.52))
+		var kb: float = Bal.v("ult/gl_kb", 520.0)
+		for e in u.in_circle(c, R):
+			var off: Vector2 = e.pos - c
+			var dv: Vector2 = off.normalized() if off.length() > 1.0 else Vector2.from_angle(float(int(e.id)) * GA)
+			var fr: float = bf + (0.0 if a.cseg.has(int(e.id)) else Bal.v("ult/gl_crush", 0.3))   # 收拢那下没罩到的（后进圈）这下补上
+			_hit(u, a, o, e, fr, {"src": "潮涌", "edge": off.length() > er, "kb": _kb_for(e, dv, kb, kb * 0.5)})
+		u.shake(5.0, 0.3)
+		u.strip("fx_gladiia_tornado_close", c, {"sc": 2.6, "o": Vector2(64, 118)})
+		u.strip("fx_skadi_surge", c, {"sc": 5.2})
+		u.shape({"kind": "circle", "c": c, "r": 90.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": 0.1})
+		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.3), "fill": 0.28, "life": 0.28})
+		_ring(u, c, R, 40.0, col.lerp(Color.WHITE, 0.5), 0.45, 18.0)
+		u.light(c, R, col, 0.45)
+		u.debris(c, col, 3)
+		_ring(u, c, R * 0.85, 30.0, col.lerp(Color.WHITE, 0.5), 0.45, 10.0, 0.05)
+		_ring(u, c, R * 0.6, 20.0, col.lerp(Color.WHITE, 0.3), 0.4, 6.0, 0.1)
+		# 水柱：12 道放射的水刃往外冲 + 两圈水花
+		var foam: Color = col.lerp(Color.WHITE, 0.7)
+		for i in 12:
+			var dv2 := Vector2.from_angle(float(i) * TAU / 12.0 + 0.13)
+			u.shape({"kind": "blade", "a": c + dv2 * 50.0, "b": c + dv2 * 230.0, "w": 14.0, "col": foam, "glow": col, "grow": 0.05, "life": 0.34, "v": dv2 * 820.0})
+			for m in 3:   # 水柱沿线的水沫（颗粒拼出放射的水柱）
+				u.grain("water", c + dv2 * R * (0.25 + 0.3 * float(m)), dv2, foam, 4)
+			if i % 3 == 0:
+				u.debris(c + dv2 * R * 0.6, col, 1)
+		_spray(u, c, 16, 60.0, 1000.0, foam, 0.45)
+		for i in 10:
+			u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 10.0 + 0.3) * R * 0.62, {"sc": 1.8, "delay": 0.03 * float(i % 3)})
+		for i in 8:
+			u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 8.0) * R * 0.32, {"sc": 1.4, "delay": 0.02 * float(i % 2)})
+		if a.shelter:   # 深海的庇护：队长获得 10% 最大生命的护盾（护盾层 API 只有格数，这里先折成回复 10%）
+			u.g.combat.heal(u.g.max_hp * 0.1, "终结技", "gladiia")
+		o.play_vis_anim("attack")
+		return false
+	return t >= T + H + 0.15
 
 
 # ================================================================ 安洁莉娜（§4.8）：重力奇点把圈内小怪吸起悬空 → 停半拍 → 全部砸向地面

@@ -34,8 +34,10 @@ static func aim_r(id: String) -> float:
 	if MC.handles(id):
 		return MC.aim_r(id)
 	match id:
-		"exusiai", "skalter":
-			return 480.0
+		"exusiai":
+			return Bal.v("ult/ex_r", 505.0)
+		"skalter":
+			return Bal.v("ult/sk_r", 505.0)
 		"ulpianus":
 			return 440.0
 	return 460.0
@@ -196,6 +198,8 @@ static func _fx_end(u, a: Dictionary) -> void:
 	if a.get("locks") is Array:
 		for lk in a.locks:
 			u.shapes.erase(lk.s)
+			for s in lk.get("fr", []):
+				u.shapes.erase(s)
 		a.locks.clear()
 
 
@@ -371,11 +375,18 @@ static func _tx_sp(u, o) -> void:
 				m.sp[i] = minf(m.sp_need(i), float(m.sp[i]) + add)
 
 
-# ================================================================ 能天使（§4.2）：自动锁定半径 480，2.5 秒 24 发 / 秒爆裂弹
+# ================================================================ 能天使（§4.2）：自动锁定半径 ult/ex_r，2.5 秒 24 发 / 秒爆裂弹
+## 10-30 用户「现在看不出来」返工：她本人双枪举起、左右两侧枪口火光常亮、每发在枪口闪；锁定目标套红金锁定框（菱形框 + 金环，跟着目标走）；
+## 爆裂弹爆点加大加亮，同一发的溅射 / 分发之间、相邻两发的爆点之间有连锁闪线；曳光加粗、红金两色交替；锁定的都打完后剩余发数打圈内空地（只有画面），
+## 持续期间满屏都是她的弹道与爆炸。锁定半径 480 → ult/ex_r（505）：参考场景 500 处那只精英原来锁不上（精英只到 27%）
+const EX_RED := Color(0.95, 0.16, 0.2)
+const EX_GOLD := Color(1.0, 0.8, 0.28)
+const EX_MZ := [Vector2(-30.0, -30.0), Vector2(30.0, -30.0)]   # 左右两把枪的枪口（脚底为原点）
+
 
 static func _ex_start(u, o) -> Dictionary:
 	var rt := _route(o)
-	var R: float = 480.0 * (1.1 if rt == "range" else 1.0)
+	var R: float = Bal.v("ult/ex_r", 505.0) * (1.1 if rt == "range" else 1.0)
 	var elites: Array = []
 	var normals: Array = []
 	for e in u.in_circle(o.pos, R):
@@ -393,23 +404,73 @@ static func _ex_start(u, o) -> Dictionary:
 		for k in ne:
 			if eq.size() < cap - 12:   # 至少留 12 发给普通目标
 				eq.append(e)
-	var col: Color = u._col(o)
 	var dur: float = Bal.v("ult/ex_dur", 2.5)
-	# 锁定标记（fx_ult_exusiai_lock_orbit）：精英 / Boss 先、再按距离挑普通目标，至多 ult/ex_lock_fx（24）个
+	# 锁定标记（fx_ult_exusiai_lock_orbit 放大 1.5 倍、调成红金 + 程序菱形框 + 金环）：精英 / Boss 先、再按距离挑普通目标，至多 ult/ex_lock_fx（24）个
 	var locks: Array = []
 	var lk_cap: int = int(Bal.v("ult/ex_lock_fx", 24.0))
 	for e in elites + normals:
 		if locks.size() >= lk_cap:
 			break
-		var sc: float = clampf((float(e.get("r", 14.0)) + 10.0) / 24.0, 0.8, 3.0)
-		locks.append({"e": e, "out": -1.0, "s": u.strip("fx_ult_exusiai_lock_orbit", e.pos, {"o": Vector2(48, 48), "f": 0, "sc": sc, "life": dur + 0.5})})
-	_ring(u, c, R, R * 0.6, col.lerp(Color.WHITE, 0.4), 0.5, 4.0)
+		var sc: float = clampf((float(e.get("r", 14.0)) + 10.0) / 24.0, 0.8, 3.0) * 1.5
+		var s: Dictionary = u.strip("fx_ult_exusiai_lock_orbit", e.pos, {"o": Vector2(48, 48), "f": 0, "sc": sc, "life": dur + 0.5, "col": Color(1.0, 0.72, 0.55)})
+		var fr: Array = []
+		for j in 4:
+			fr.append(_ex_keep(u, {"kind": "line", "a": e.pos, "b": e.pos, "w": 4.0 if not (e.elite or e.boss) else 6.0, "col": EX_RED, "life": dur + 0.5}))
+		fr.append(_ex_keep(u, {"kind": "ring", "c": e.pos, "r": 20.0, "w": 3.0, "col": EX_GOLD, "life": dur + 0.5, "solid": true}))
+		locks.append({"e": e, "out": -1.0, "s": s, "fr": fr, "h": float(e.get("r", 14.0)) + (26.0 if (e.elite or e.boss) else 16.0), "i": locks.size()})
+	# 出手：双枪举起（两侧往上斜举的白芯金光 + 枪口火光亮起）、脚下一道红金光柱、锁定圈从她身上扩出去
+	o.play_vis_anim("attack")
+	for k in 2:
+		var mz: Vector2 = c + EX_MZ[k]
+		var up: Vector2 = Vector2(-0.55 if k == 0 else 0.55, -1.0).normalized()
+		u.shape({"kind": "blade", "a": mz - up * 10.0, "b": mz + up * 120.0, "w": 10.0, "col": EX_GOLD.lerp(Color.WHITE, 0.3), "glow": EX_RED, "grow": 0.08, "life": 0.4})
+		u.shape({"kind": "circle", "c": mz, "r": 30.0, "col": EX_GOLD, "fill": 0.9, "life": 0.25})
+		u.grain("bul_spawn", mz, up, EX_GOLD, 10)
+		u.light(mz, 150.0, EX_GOLD, 0.4)
+	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -300), "w": 60.0, "col": EX_RED, "fill": 0.35, "life": 0.35})
+	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -300), "w": 24.0, "col": EX_GOLD, "fill": 0.7, "life": 0.25})
+	u.grain("mote_up", c, Vector2.UP, EX_GOLD, 14)
+	_ring(u, c, R, 40.0, EX_RED, 0.5, 8.0)
+	_ring(u, c, R, 60.0, EX_GOLD, 0.6, 4.0, 0.06)
+	u.shake(4.0, 0.2)
+	# 枪口火光（持续期间常亮，每发闪一下）
+	var mzf: Array = []
+	for k in 2:
+		mzf.append(_ex_keep(u, {"kind": "circle", "c": c + EX_MZ[k], "r": 16.0, "col": EX_GOLD, "fill": 0.75, "life": dur + 0.2}))
 	return {"k": "exusiai", "R": R, "mult": 0.9 if rt == "range" else 1.0, "rico": rt == "ricochet", "eq": eq, "ne": ne,
 		"normals": normals, "done": {}, "fired": 0, "ncap": cap, "dur": dur, "rate": Bal.v("ult/ex_rate", 24.0), "ring_t": 0.5,
-		"locks": locks, "lk_done": {}, "bt": []}
+		"locks": locks, "lk_done": {}, "bt": [], "mzf": mzf, "fx": mzf.duplicate(), "last_imp": Vector2.INF, "no_ring": true}
 
 
-## 锁定标记推进：start 0–3 锁上 → loop 4–5 保持（跟着目标走）→ 被打到（精英：最后一发打完）/ 目标倒下 / 扫射结束 → out 6–7 碎掉
+## 跟着动的程序图形（锁定框、枪口火光）：每帧改位置、age 拨回 0 保持不透明；收掉时改成短寿命自然淡出
+static func _ex_keep(u, s: Dictionary) -> Dictionary:
+	u.shape(s)
+	return s
+
+
+static func _ex_drop(s: Dictionary, fade: float) -> void:
+	s.age = 0.0
+	s.max = fade
+
+
+## 锁定框一帧：菱形四条边绕目标慢转、金环呼吸；精英 / Boss 框更大更粗
+static func _ex_frame(lk: Dictionary, t: float) -> void:
+	var p: Vector2 = lk.s.c
+	var h: float = float(lk.h) * (1.0 + 0.08 * sin(t * 14.0 + float(lk.i)))
+	var rot: float = t * 1.6 + float(lk.i) * 0.4
+	var fr: Array = lk.fr
+	for j in 4:
+		var s: Dictionary = fr[j]
+		s.a = p + Vector2.from_angle(rot + TAU * j / 4.0) * h
+		s.b = p + Vector2.from_angle(rot + TAU * (j + 1) / 4.0) * h
+		s.age = 0.0
+	var rg: Dictionary = fr[4]
+	rg.c = p
+	rg.r = h * 0.62
+	rg.age = 0.0
+
+
+## 锁定标记推进：start 0–3 锁上 → loop 4–5 保持（跟着目标走）→ 被打到（精英：最后一发打完）/ 目标倒下 / 扫射结束 → out 6–7 碎掉（框同时闪白散开）
 static func _ex_locks(u, a: Dictionary) -> void:
 	var t: float = a.t
 	for k in range(a.locks.size() - 1, -1, -1):
@@ -420,6 +481,7 @@ static func _ex_locks(u, a: Dictionary) -> void:
 			s.c = e.pos
 		if float(lk.out) < 0.0 and (e.dead or a.done.has(int(e.id)) or a.lk_done.has(int(e.id)) or t >= float(a.dur)):
 			lk.out = t
+			_ex_break(u, lk)
 		if float(lk.out) >= 0.0:
 			var j: int = int((t - float(lk.out)) * 24.0)
 			if j >= 2:
@@ -430,9 +492,24 @@ static func _ex_locks(u, a: Dictionary) -> void:
 		else:
 			var j2: int = int(t * 24.0)
 			s.f = j2 if j2 < 4 else 4 + (j2 - 4) % 2
+			_ex_frame(lk, t)
 
 
-## 爆裂弹帧条（fx_ult_exusiai_burst_front，6 帧 0.2 秒）：同一时刻在场超过 ult/ex_burst_fx（48）个就跳过这一个（只少画、不少打）
+## 框碎：四条边往外飞散淡出 + 金环闪白
+static func _ex_break(u, lk: Dictionary) -> void:
+	var p: Vector2 = lk.s.c
+	for j in 4:
+		var s: Dictionary = lk.fr[j]
+		_ex_drop(s, 0.16)
+		s["v"] = ((s.a + s.b) * 0.5 - p).normalized() * 260.0
+		s.col = EX_GOLD
+	_ex_drop(lk.fr[4], 0.12)
+	lk.fr[4].col = EX_GOLD.lerp(Color.WHITE, 0.3)
+	u.grain("sh_shard", p, Vector2.UP, EX_RED, 5)
+	lk.fr = []
+
+
+## 爆裂弹爆点（fx_ult_exusiai_burst_front 放大 + 金色闪光 + 红色冲击环）：同一时刻在场超过 ult/ex_burst_fx（48）个就跳过这一个（只少画、不少打）
 static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 	var t: float = a.t
 	var bt: Array = a.bt
@@ -441,7 +518,36 @@ static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 	if bt.size() >= int(Bal.v("ult/ex_burst_fx", 48.0)):
 		return
 	bt.append(t)
-	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc})
+	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc * 1.5})
+	u.shape({"kind": "circle", "c": p, "r": 46.0 * sc, "col": EX_GOLD, "fill": 0.7, "life": 0.1})
+	u.shape({"kind": "ring", "c": p, "r": 92.0 * sc, "r1": 20.0, "w": 6.0, "col": EX_RED, "life": 0.24})   # 缺省碎裂：一圈红色碎块往外崩
+	var i: int = bt.size()
+	u.grain("bul_pop", p, Vector2.from_angle(float(int(a.fired)) * 2.39996), EX_GOLD if i % 2 == 0 else EX_RED, 7)
+	if int(a.fired) % 3 == 0:   # 灯只有 16 盏：每 3 发一盏，火星 / 碎屑同样抽稀
+		u.light(p, 150.0 * sc, EX_RED.lerp(EX_GOLD, 0.5), 0.18)
+		u.spark(p, EX_GOLD, 3, 20.0)
+	if int(a.fired) % 5 == 0:
+		u.debris(p, EX_RED, 1)
+
+
+## 连锁闪线：红色外层 + 金白芯
+static func _ex_chain(u, p0: Vector2, p1: Vector2, life: float) -> void:
+	u.shape({"kind": "line", "a": p0, "b": p1, "w": 6.0, "col": EX_RED, "life": life})
+	u.shape({"kind": "line", "a": p0, "b": p1, "w": 2.0, "col": EX_GOLD.lerp(Color.WHITE, 0.5), "life": life * 0.8})
+
+
+## 曳光：从这一发的枪口打到落点（红 / 金交替，外层粗、芯白），枪口闪一下
+static func _ex_tracer(u, a: Dictionary, o, imp: Vector2) -> void:
+	var k: int = int(a.fired) % 2
+	var mz: Vector2 = o.pos + EX_MZ[k]
+	var d: Vector2 = (imp - mz).normalized() if imp.distance_to(mz) > 1.0 else Vector2.RIGHT
+	var cc: Color = EX_RED if k == 0 else EX_GOLD
+	u.shape({"kind": "line", "a": mz, "b": imp + d * 18.0, "w": 7.0, "col": cc, "life": 0.09})
+	u.shape({"kind": "line", "a": mz, "b": imp, "w": 3.0, "col": Color(1.0, 0.9, 0.6), "life": 0.07})
+	u.shape({"kind": "blade", "a": mz - d * 4.0, "b": mz + d * 54.0, "w": 9.0, "col": EX_GOLD.lerp(Color.WHITE, 0.3), "glow": EX_RED, "life": 0.06})
+	u.grain("bul_spawn", mz + d * 20.0, d, EX_GOLD, 3)
+	var mf: Dictionary = a.mzf[k]
+	mf.r = 30.0
 
 
 static func _ex_step(u, a: Dictionary, o) -> bool:
@@ -453,13 +559,24 @@ static func _ex_step(u, a: Dictionary, o) -> bool:
 		a.fired = int(a.fired) + 1
 	if t >= float(a.ring_t) and t < dur:
 		a.ring_t = float(a.ring_t) + 0.5
-		u.shape({"kind": "ring", "c": o.pos, "r": a.R, "w": 2.0, "col": u._col(o).lerp(Color.WHITE, 0.4), "life": 0.5})
+		u.shape({"kind": "ring", "c": o.pos, "r": a.R, "w": 3.0, "col": EX_RED.lerp(EX_GOLD, 0.5), "life": 0.5})
+	for k in a.mzf.size():   # 枪口火光跟着她，闪过之后缩回常亮大小
+		var mf: Dictionary = a.mzf[k]
+		mf.c = o.pos + EX_MZ[k]
+		mf.r = maxf(16.0 + 2.0 * sin(t * 40.0 + k), float(mf.r) - 6.0)
+		mf.age = 0.0
 	_ex_locks(u, a)
 	if t >= dur:
 		for lk in a.locks:   # 还挂着的锁定标记就地碎掉（独立实例，动作照常结束）
 			u.shapes.erase(lk.s)
-			u.strip("fx_ult_exusiai_lock_orbit", lk.s.c, {"o": Vector2(48, 48), "sc": lk.s.sc, "seg": [6, 7]})
+			if not lk.fr.is_empty():
+				_ex_break(u, lk)
+			u.strip("fx_ult_exusiai_lock_orbit", lk.s.c, {"o": Vector2(48, 48), "sc": lk.s.sc, "seg": [6, 7], "col": Color(1.0, 0.72, 0.55)})
 		a.locks.clear()
+		for mf in a.mzf:
+			_ex_drop(mf, 0.2)
+		a.mzf = []
+		a.fx = []
 		var ext = o.get("ext")   # 天赋「快速弹匣」：弹匣直接装满（天赋没解锁 / 计数器没建立就跳过）
 		if ext is Dictionary and ext.has("cap") and ext.has("cnt") and ext.cap.has("mag"):
 			ext.cnt["mag"] = float(ext.cap["mag"])
@@ -490,7 +607,6 @@ static func _ex_undone(a: Dictionary) -> Array:
 static func _ex_fire(u, a: Dictionary, o) -> void:
 	var R: float = a.R
 	var er: float = R * (1.0 - _edge_w())
-	var gold := Color(1.0, 0.82, 0.35)
 	var tg = null
 	var frac := 0.0
 	while not a.eq.is_empty():
@@ -509,7 +625,14 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 				if not (e.elite or e.boss or e.get("part", false)) and not a.done.has(int(e.id)):
 					a.normals.append(e)
 			und = _ex_undone(a)
-		if und.is_empty():
+		if und.is_empty():   # 圈里没东西可打：这一发打向圈内空地（按发数黄金角散布，只有画面），弹幕不断
+			var i: int = int(a.fired)
+			var p: Vector2 = o.pos + Vector2.from_angle(float(i) * 2.39996) * R * (0.35 + 0.6 * fposmod(float(i) * 0.618, 1.0))
+			_ex_tracer(u, a, o, p)
+			_ex_burst(u, a, p, 0.8)
+			if a.last_imp != Vector2.INF and p.distance_to(a.last_imp) < 260.0:
+				_ex_chain(u, a.last_imp, p, 0.1)
+			a.last_imp = p
 			return
 		tg = und[0]
 		frac = 1.0
@@ -519,15 +642,20 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 	_ex_hit(u, a, o, tg, frac * float(a.mult), src)
 	if not (tg.elite or tg.boss or tg.get("part", false)):
 		a.done[int(tg.id)] = true
-	# 爆裂：半径 60 内锁定圈里还没打过的普通目标各吃整份（溅射计入预算）
+	_ex_tracer(u, a, o, imp)
+	# 爆裂：半径 60 内锁定圈里还没打过的普通目标各吃整份（溅射计入预算），爆点之间连锁闪线
 	var n_sp := 0
 	for e in u.in_circle(imp, 60.0):
 		if e == tg or e.elite or e.boss or e.get("part", false) or a.done.has(int(e.id)) or e.pos.distance_to(o.pos) > R:
 			continue
 		a.done[int(e.id)] = true
 		_ex_hit(u, a, o, e, float(a.mult), {"src": "爆裂弹", "edge": e.pos.distance_to(o.pos) > er})
+		_ex_chain(u, imp, e.pos, 0.14)
 		n_sp += 1
 	_ex_burst(u, a, imp, 1.0 if n_sp > 0 else 0.85)   # 主弹先占名额；爆裂半径 60 ≈ 帧条峰值帧 120 宽
+	if a.last_imp != Vector2.INF and imp.distance_to(a.last_imp) < 260.0:
+		_ex_chain(u, a.last_imp, imp, 0.12)   # 和上一发的爆点连锁
+	a.last_imp = imp
 	# 目标多于剩余发数：一发打多个框（就近再分几名）
 	var left: int = maxi(1, int(a.ncap) - int(a.fired))
 	und = _ex_undone(a)
@@ -538,8 +666,8 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 			var e: Dictionary = und[j]
 			a.done[int(e.id)] = true
 			_ex_hit(u, a, o, e, float(a.mult), {"src": "爆裂弹", "edge": e.pos.distance_to(o.pos) > er})
-			u.shape({"kind": "line", "a": imp, "b": e.pos, "w": 2.0, "col": gold, "life": 0.08})
-			_ex_burst(u, a, e.pos, 0.6)
+			_ex_chain(u, imp, e.pos, 0.14)
+			_ex_burst(u, a, e.pos, 0.7)
 	# 跳弹路线：每 5 发里 2 发（按序号，不抽随机数）弹向圈内另一个还没锁上的敌人
 	if a.rico and (int(a.fired) * 2) % 5 < 2:
 		var best = null
@@ -554,50 +682,77 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 		if best != null:
 			a.done[int(best.id)] = true
 			_ex_hit(u, a, o, best, float(a.mult), {"src": "跳弹"})
-			u.shape({"kind": "line", "a": imp, "b": best.pos, "w": 2.0, "col": gold, "life": 0.1})
-			_ex_burst(u, a, best.pos, 0.75)
-	var mz: Vector2 = o.pos + Vector2(0, -20)
-	u.shape({"kind": "line", "a": mz, "b": imp, "w": 2.0, "col": Color(1.0, 0.95, 0.7), "life": 0.06})
-	if int(a.fired) % 6 == 0:
+			_ex_chain(u, imp, best.pos, 0.14)
+			_ex_burst(u, a, best.pos, 0.8)
+	if int(a.fired) % 4 == 0:
 		o.face_to((imp - o.pos).angle())
 		o.play_vis_anim("attack")
 
 
-# ================================================================ 浊心斯卡蒂（§4.3）：海嗣旋转激光扫一圈 → 半径 480 领域 6 秒
+# ================================================================ 浊心斯卡蒂（§4.3）：海嗣张口聚光 → 粗激光慢扫一圈、扫过处接连爆炸 → 收尾大爆 + 领域
+## 10-30 用户「激光扫得太快，没有力量感，像随便扫过去；扫过的地方应该爆炸」返工：
+## 蓄力 ult/sk_charge（0.35 秒，海嗣升起张口、口中聚光）→ 单向慢扫一圈 ult/sk_sweep（3.4 秒，整段约 4.3 秒，不来回、不多圈），光束显示宽 × ult/sk_beam_w（1.6），
+## 扫的全程小幅持续震屏；扫过的地面沿轨迹每 0.055 秒落 3 个爆点（延迟 0.1–0.2 秒，深红 + 青绿）→ 扫完收尾一次大爆（第二个强调点：短顿帧 + 大一点的震屏）。
+## 伤害（份额合计 1）：激光扫到 ult/sk_laser（0.6）+ 轨迹爆点每人一次 ult/sk_trail（0.15）+ 收尾大爆（剩下的 0.25；深海的回响 0.55 / 0.15 / 0.3，领域 9 秒；潮汐和声份额同缺省、每个爆点留 2 秒共鸣地带，见 _sk_zone）；判定以她本人为圆心、半径 ult/sk_r（505，
+## 原来以海嗣口为圆心、半径 480，参考场景 420 处的 Boss 和 500 处的精英都够不着），外缘 15% 半径为衰减带。
+## 领域不再每秒掉血（整段要压在约 4 秒内）：收尾大爆时全队攻击 +20%、队长每秒回复 1.5% 最大生命，持续领域时长（缺省 6 秒，画面同时长）
+const SK_TRAIL_DT := 0.055
+
 
 static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var laps := 2 if rt == "echo" else 1
-	var lfrac: float = 0.55 if rt == "echo" else (0.75 if rt == "resonance" else Bal.v("ult/sk_laser", 0.85))
+	var laps := 1   # 用户 10-30：所有路线都只单向扫过一次，不来回扫、不多圈
+	var lfrac: float = 0.55 if rt == "resonance" else Bal.v("ult/sk_laser", 0.6)
+	var tfrac: float = Bal.v("ult/sk_trail", 0.15)
+	var bfrac: float = maxf(0.0, 1.0 - float(laps) * lfrac - tfrac)
 	var dd: float = 4.0 if rt == "echo" else (9.0 if rt == "resonance" else Bal.v("ult/sk_dom_t", 6.0))
-	var dfrac: float = (1.0 - lfrac) if rt == "resonance" else Bal.v("ult/sk_dom", 0.15)   # 领域合计
 	# 海嗣（fx_ult_skalter_seaborn_front / _back，同一世界脚底）站在她身后；激光原点 = 海嗣张口处（f6 口在脚底 +8, −99）
 	var fs: float = 1.0 if float(u.g.facing) >= 0.0 else -1.0
 	var foot := Vector2(-56.0 * fs, -4.0)
 	var soff: Vector2 = foot + Vector2(8.0 * fs, -99.0)
-	var T: float = Bal.v("ult/sk_sweep", 1.6)
-	var life: float = float(laps) * T + 0.6
+	var T: float = Bal.v("ult/sk_sweep", 3.4)
+	var ch: float = Bal.v("ult/sk_charge", 0.35)
+	var life: float = ch + float(laps) * T + 0.8
 	var sf: Dictionary = u.strip("fx_ult_skalter_seaborn_front", o.pos + foot, {"o": Vector2(160, 316), "f": 0, "sx": fs, "life": life})
 	var sb: Dictionary = u.strip("fx_ult_skalter_seaborn_back", o.pos + foot, {"o": Vector2(160, 48), "f": 0, "sx": fs, "layer": "back", "life": life})
-	return {"k": "skalter", "soff": soff, "foot": foot, "sf": sf, "sb": sb, "fx": [sf, sb], "beam": [], "close_t": -1.0,
-		"a0": dir.angle(), "laps": laps, "lap": 0, "swept": 0.0, "lfrac": lfrac, "lseg": {},
-		"T": T, "L": 480.0, "dd": dd, "dfrac": dfrac, "dc": Vector2.INF, "dt0": 0.0, "tick": 0, "buf_t": 0.0, "fr2": 0}
+	var a := {"k": "skalter", "soff": soff, "foot": foot, "sf": sf, "sb": sb, "fx": [sf, sb], "beam": [], "close_t": -1.0,
+		"a0": dir.angle(), "laps": laps, "lap": 0, "swept": 0.0, "lfrac": lfrac, "tfrac": tfrac, "bfrac": bfrac, "lseg": {}, "tseg": {},
+		"T": T, "L": Bal.v("ult/sk_r", 505.0), "ch": ch, "dd": dd, "pend": [], "trail_t": 0.0, "nb": 0, "ci_t": 0.0, "blast_t": -1.0, "blasted": false, "fr2": 0,
+		"echo": rt == "echo", "col": u._col(o)}
+	# 口中聚光（蓄力期间长大，扫射期间保持）+ 光束的辉光底与白芯（每帧改位置）
+	var org: Vector2 = o.pos + soff
+	a["glow"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 6.0, "col": COL_SK_TEAL, "fill": 0.85, "life": life})
+	a["core"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 3.0, "col": Color.WHITE, "fill": 0.95, "life": life})
+	a["halo"] = _sk_keep(u, a, {"kind": "band", "a": org, "b": org, "w": 1.0, "col": COL_SK_RED, "fill": 0.0, "life": life})
+	a["wire"] = _sk_keep(u, a, {"kind": "line", "a": org, "b": org, "w": 1.0, "col": Color(1.0, 0.92, 0.95), "life": life})
+	a["tipc"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 1.0, "col": COL_SK_TEAL, "fill": 0.0, "life": life})
+	o.play_vis_anim("attack")
+	return a
 
 
-## 海嗣帧号（自己按时间算，写进两个实例的 f）：front 起 0–5（24 fps 快升，0.25 秒；激光伤害从第 0 帧就开始，不能等）
-## → 张口 6–7 乒乓循环（12 fps，激光期间）→ 激光结束沉下 8–9（12 fps）后收；back 按 manifest front_to_back_frame_mapping 跟 front
+static func _sk_keep(u, a: Dictionary, s: Dictionary) -> Dictionary:
+	u.shape(s)
+	a.fx.append(s)
+	return s
+
+
+## 海嗣帧号（自己按时间算，写进两个实例的 f）：front 起 0–5（24 fps 快升，0.25 秒）
+## → 张口 6–7 乒乓循环（12 fps，蓄力末段到激光结束）→ 激光结束沉下 8–9（12 fps）后收；back 按 manifest front_to_back_frame_mapping 跟 front
 const SK_F2B := [0, 0, 1, 1, 2, 2, 3, 4, 5, 5]
 
 
 static func _sk_sea(u, a: Dictionary, o) -> void:
-	if a.fx.is_empty():
+	if not a.fx.has(a.sf):
 		return
 	var t: float = a.t
 	var ff: int
 	if float(a.close_t) >= 0.0:
 		ff = 8 + int((t - float(a.close_t)) * 12.0)
 		if ff > 9:
-			_kill(u, a.fx)
+			u.shapes.erase(a.sf)
+			u.shapes.erase(a.sb)
+			a.fx.erase(a.sf)
+			a.fx.erase(a.sb)
 			return
 	elif t < 0.25:
 		ff = mini(5, int(t * 24.0))
@@ -610,65 +765,165 @@ static func _sk_sea(u, a: Dictionary, o) -> void:
 		a.sb.c = a.sf.c
 
 
+## 轨迹爆点：到点结算（半径 ult/sk_trail_r 85，每人只吃一次轨迹份额）+ 深红闪光、青绿冲击环、飞散碎点
+static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
+	var rb: float = Bal.v("ult/sk_trail_r", 85.0)
+	var er: float = float(a.L) * (1.0 - _edge_w())
+	for e in u.in_circle(p, rb):
+		if a.tseg.has(int(e.id)):
+			continue
+		a.tseg[int(e.id)] = true
+		_hit(u, a, o, e, float(a.tfrac), {"src": "爆裂", "edge": e.pos.distance_to(c) > er})
+	var i: int = int(a.nb)
+	a.nb = i + 1
+	if a.echo:
+		_sk_zone(u, a, p)
+	u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_SK_RED, "fill": 0.7, "life": 0.16})
+	u.shape({"kind": "circle", "c": p, "r": 22.0, "col": COL_SK_RED.lerp(COL_SK_TEAL, 0.5), "fill": 0.9, "life": 0.08})
+	u.shape({"kind": "ring", "c": p, "r": 100.0, "r1": 24.0, "w": 6.0, "col": COL_SK_TEAL, "life": 0.3})   # 缺省碎裂
+	u.shape({"kind": "ellipse", "c": p + Vector2(0, 6), "rx": 46.0, "ry": 22.0, "col": COL_SK_RED.darkened(0.55), "fill": 0.5, "life": 0.9, "layer": "back"})   # 灼地
+	u.grain("bfx_burst", p, Vector2.from_angle(float(i) * 2.39996), COL_SK_RED if i % 2 == 0 else COL_SK_TEAL, 6)
+	u.grain("mote_up", p, Vector2.UP, COL_SK_TEAL, 2)
+	if i % 4 == 0:   # 灯只有 16 盏：每 4 个爆点一盏，碎屑同样抽稀
+		u.light(p, 130.0, COL_SK_RED, 0.22)
+	if i % 6 == 0:
+		u.debris(p, COL_SK_RED, 1)
+
+
 static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
-	var g = u.g
 	var L: float = a.L
 	var T: float = a.T
+	var ch: float = a.ch
+	var t: float = a.t
 	var org: Vector2 = o.pos + Vector2(a.soff)
+	var c: Vector2 = o.pos
+	# 到点的轨迹爆点
+	for k in range(a.pend.size() - 1, -1, -1):
+		var pd: Array = a.pend[k]
+		if t >= float(pd[0]):
+			_sk_trail(u, a, o, pd[1], pd[2])
+			a.pend.remove_at(k)
+	_sk_sea(u, a, o)
+	if t < ch:   # 蓄力：海嗣张口，口中聚光（深红 / 青绿光往口里收）
+		var kc: float = t / ch
+		a.glow.c = org
+		a.glow.r = lerpf(6.0, 38.0, kc * kc)
+		a.core.c = org
+		a.core.r = lerpf(3.0, 18.0, kc)
+		a.glow.age = 0.0
+		a.core.age = 0.0
+		if t >= float(a.ci_t):
+			a.ci_t = t + 0.08
+			var j: int = int(t * 100.0)
+			_ring(u, org, 12.0, 150.0, COL_SK_RED if j % 2 == 0 else COL_SK_TEAL, 0.16, 4.0)
+			for m in 6:   # 光点往口里收
+				var dv := Vector2.from_angle(float(m) * TAU / 6.0 + float(j) * 0.7)
+				u.grain("mote_in", org + dv * 110.0, -dv, COL_SK_TEAL if m % 2 == 0 else COL_SK_RED, 2)
+			u.light(org, lerpf(60.0, 200.0, kc), COL_SK_TEAL, 0.1)
+		u.shake(2.0, 0.15)
+		return false
 	if int(a.lap) < int(a.laps):
 		var sgn: float = 1.0 if int(a.lap) % 2 == 0 else -1.0
-		a.swept = minf(TAU, float(a.swept) + TAU * dt / T)
+		var ks: float = clampf((t - ch) / 0.12, 0.3, 1.0)   # 起扫 0.12 秒内从慢到匀速（光柱落下去的重量）
+		a.swept = minf(TAU, float(a.swept) + TAU * dt / T * ks)
 		var cur: float = float(a.a0) + sgn * float(a.swept)
-		var er: float = L * (1.0 - Bal.v("ult/sk_edge", 0.3))   # 激光前端 30% 长度算外缘
-		for e in u.in_circle(org, L):
+		var er: float = L * (1.0 - _edge_w())
+		for e in u.in_circle(c, L):
 			if a.lseg.has(int(e.id)):
 				continue
-			var d: Vector2 = e.pos - org
+			var d: Vector2 = e.pos - c
 			var rel: float = fposmod((d.angle() - float(a.a0)) * sgn, TAU)
 			if rel <= float(a.swept) or d.length() < 24.0:
 				a.lseg[int(e.id)] = true
 				_hit(u, a, o, e, float(a.lfrac), {"src": "激光", "edge": d.length() > er})
-		var tip: Vector2 = org + Vector2.from_angle(cur) * L
-		# 光束（fx_ult_skalter_beam_front 拼接段，左端中心原点）：每帧从海嗣口沿当前角度重铺到 480；
-		# 显示宽 80 = 纹理高 40（1x）× g.PX，sy 不另放大（manifest review_draw_width 80 与海嗣同一 @2x 口径）；海嗣升起那 0.25 秒淡入
+		var tip: Vector2 = c + Vector2.from_angle(cur) * L
+		# 光束（fx_ult_skalter_beam_front 拼接段，左端中心原点）：每帧从海嗣口重铺到她周围半径 L 的圆上；显示宽 × ult/sk_beam_w（纹理高 40 × g.PX × 1.6 ≈ 128）
+		var bw: float = Bal.v("ult/sk_beam_w", 1.6)
 		_kill(u, a.beam)
-		a.beam = u.tiles_line("fx_ult_skalter_beam_front", org, tip, {"f": int(float(a.t) * 24.0) % 6, "life": 0.5,
-			"col": Color(1, 1, 1, clampf(float(a.t) / 0.25, 0.35, 1.0))})
+		a.beam = u.tiles_line("fx_ult_skalter_beam_front", org, tip, {"f": int(t * 24.0) % 6, "life": 0.5, "sy": bw})
+		var pul: float = 1.0 + 0.12 * sin(t * 37.0)
+		a.halo.a = org
+		a.halo.b = tip
+		a.halo.w = 40.0 * u.g.PX * bw * 0.9 * pul
+		a.halo.fill = 0.22
+		a.wire.a = org
+		a.wire.b = tip
+		a.wire.w = 7.0 * pul
+		a.glow.c = org
+		a.glow.r = 34.0 * pul
+		a.core.c = org
+		a.core.r = 16.0
+		a.tipc.c = tip
+		a.tipc.r = 46.0 * pul
+		a.tipc.fill = 0.55
+		for s in [a.halo, a.wire, a.glow, a.core, a.tipc]:
+			s.age = 0.0
+		u.shake(3.0, 0.2)   # 扫射全程小幅持续震
+		for m in 3:   # 光束沿线的颗粒与光：近 / 中 / 远各一处往两侧迸
+			var bp: Vector2 = org.lerp(tip, 0.3 + 0.33 * float(m))
+			u.grain("bfx_flash", bp, Vector2.from_angle(cur + PI * 0.5 * (1.0 if (int(a.fr2) + m) % 2 == 0 else -1.0)), COL_SK_TEAL if m == 1 else COL_SK_RED, 2)
+		if int(a.fr2) % 6 == 0:
+			u.light(tip, 160.0, COL_SK_RED, 0.12)
+			u.light(org.lerp(tip, 0.5), 200.0, COL_SK_TEAL, 0.12)
+		# 扫过的轨迹：每 SK_TRAIL_DT 秒在刚扫过的光束上排 3 个爆点（近 / 中 / 远，按序号错开），0.1–0.2 秒后接连炸开
+		while t >= float(a.trail_t):
+			var n: int = int(round(float(a.trail_t) / SK_TRAIL_DT))
+			a.trail_t = float(a.trail_t) + SK_TRAIL_DT
+			for j in 3:
+				var rr: float = L * minf(0.95, 0.24 + 0.32 * float(j) + 0.1 * fposmod(float(n) * 0.618 + float(j) * 0.37, 1.0))
+				var p: Vector2 = c + Vector2.from_angle(cur - sgn * 0.05) * rr
+				a.pend.append([t + 0.1 + 0.05 * float((n + j) % 3), p, c])
 		a.fr2 = int(a.fr2) + 1
-		if int(a.fr2) % 3 == 0:   # 扫过的余迹（占位减淡）
-			u.shape({"kind": "sector", "c": org, "r": L, "a": cur - sgn * 0.15, "half": 0.15, "col": COL_SK_RED, "fill": 0.1, "life": 0.25})
+		if int(a.fr2) % 3 == 0:   # 扫过的余迹
+			u.shape({"kind": "sector", "c": c, "r": L, "a": cur - sgn * 0.2, "half": 0.2, "col": COL_SK_RED, "fill": 0.14, "life": 0.35})
 		if float(a.swept) >= TAU:
 			a.lap = int(a.lap) + 1
 			a.swept = 0.0
 			a.lseg = {}
 			if int(a.lap) >= int(a.laps):
-				a.dc = org
-				a.dt0 = float(a.t)
-				var dd: float = a.dd
 				_kill(u, a.beam)
-				a.close_t = float(a.t)   # 海嗣沉下
-				u.shape({"kind": "circle", "c": org, "r": L, "col": COL_SK_RED, "fill": 0.06, "life": dd})
-				# 领域花纹（fx_ult_skalter_domain_back 弧状拼接段，地面层循环）：铺在领域边上往里 20，外缘不出伤害圈
-				_arc(u, "fx_ult_skalter_domain_back", org, L - 20.0, {"layer": "back", "loop": true, "life": dd})
-				o.screen_shake(0.4)
-		_sk_sea(u, a, o)
+				for s in [a.halo, a.wire, a.tipc]:
+					u.shapes.erase(s)
+					a.fx.erase(s)
+				a.close_t = t   # 海嗣沉下
+				a.blast_t = t + Bal.v("ult/sk_blast_delay", 0.12)
+				_ring(u, org, 10.0, 160.0, COL_SK_TEAL, 0.12, 8.0)   # 口中的光往回一收
 		return false
-	_sk_sea(u, a, o)
-	# 领域：每秒一跳（合计 dfrac），队长在领域内：全队攻击 +20%、每秒回 1.5% 最大生命
-	var dc: Vector2 = a.dc
-	var el: float = float(a.t) - float(a.dt0)
-	var n_ticks: int = int(round(float(a.dd)))
-	while int(a.tick) < n_ticks and el >= float(int(a.tick) + 1):
-		a.tick = int(a.tick) + 1
-		_hit_circle(u, a, o, dc, L, float(a.dfrac) / float(n_ticks), {}, {"src": "领域"})
-		_ring(u, dc, L, 60.0, COL_SK_TEAL, 0.5, 4.0)
-		u.shape({"kind": "dots", "c": dc, "r": L * 0.95, "n": 24, "col": COL_SK_RED.lerp(Color.WHITE, 0.3), "life": 0.6})
-	if g.ppos.distance_to(dc) <= L:
-		g.combat.heal(g.max_hp * Bal.v("ult/sk_heal", 0.015) * dt, "终结技", "skalter")
-		if float(a.t) >= float(a.buf_t):
-			a.buf_t = float(a.t) + 0.5
-			u.team_buff("ult:skalter_dom", 0.6, [[&"dmg", "mult", Bal.v("ult/sk_atk", 1.2)]])
-	return el >= float(a.dd)
+	# 收尾大爆（第二个强调点）：她周围半径 L 一次炸开，短顿帧 + 大一点的震屏；之后留下领域（画面 + 增益）
+	if not a.blasted and t >= float(a.blast_t):
+		a.blasted = true
+		for s in [a.glow, a.core]:
+			u.shapes.erase(s)
+			a.fx.erase(s)
+		var er2: float = L * (1.0 - _edge_w())
+		if float(a.bfrac) > 0.0:
+			for e in u.in_circle(c, L):
+				_hit(u, a, o, e, float(a.bfrac), {"src": "爆裂", "edge": e.pos.distance_to(c) > er2, "kb": (e.pos - c).normalized() * _kb_v(160.0)})
+		u.g.vfx.stop(Bal.v("ult/sk_blast_freeze", 0.08), "ult", true)
+		u.shake(9.0, 0.45)
+		u.shape({"kind": "circle", "c": c, "r": L, "col": COL_SK_RED, "fill": 0.42, "life": 0.3})
+		u.shape({"kind": "circle", "c": c, "r": L * 0.45, "col": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "fill": 0.6, "life": 0.14})
+		_ring(u, c, L, 40.0, COL_SK_RED.lerp(Color.WHITE, 0.3), 0.5, 18.0)
+		u.light(c, L, COL_SK_RED, 0.5)
+		u.debris(c, COL_SK_RED, 3)
+		for m in 8:
+			var dq := Vector2.from_angle(float(m) * TAU / 8.0 + 0.3)
+			u.debris(c + dq * L * 0.6, COL_SK_TEAL if m % 2 == 0 else COL_SK_RED, 2)
+			u.grain("bfx_burst", c + dq * L * 0.35, dq, COL_SK_RED, 8)
+		_ring(u, c, L * 0.92, 30.0, COL_SK_TEAL, 0.55, 10.0, 0.04)
+		_ring(u, c, L * 0.7, 20.0, COL_SK_RED.lerp(Color.WHITE, 0.3), 0.5, 6.0, 0.08)
+		for m in 16:
+			var dv := Vector2.from_angle(float(m) * TAU / 16.0 + 0.1)
+			u.shape({"kind": "blade", "a": c + dv * 60.0, "b": c + dv * 200.0, "w": 10.0, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.3), "glow": COL_SK_TEAL if m % 2 == 0 else COL_SK_RED,
+				"life": 0.32, "v": dv * 900.0})
+		u.shape({"kind": "dots", "c": c, "r": L * 0.9, "n": 40, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.3), "life": 0.6})
+		var dd: float = a.dd
+		u.shape({"kind": "circle", "c": c, "r": L, "col": COL_SK_RED, "fill": 0.07, "life": dd, "layer": "back"})
+		# 领域花纹（fx_ult_skalter_domain_back 弧状拼接段，地面层循环）：铺在领域边上往里 20，外缘不出伤害圈
+		_arc(u, "fx_ult_skalter_domain_back", c, L - 20.0, {"layer": "back", "loop": true, "life": dd})
+		u.team_buff("ult:skalter_dom", dd, [[&"dmg", "mult", Bal.v("ult/sk_atk", 1.2)], [&"regen_pct", "flat", Bal.v("ult/sk_heal", 0.015)]])
+		o.play_vis_anim("attack")
+	return a.blasted and a.pend.is_empty() and not a.fx.has(a.sf)
 
 
 # ================================================================ 凯尔希（§4.4）：Mon3tr 冲到落点 → 熔毁三圈 → 8 秒后重构
@@ -776,6 +1031,54 @@ static func _m3_back(u, o, heal: bool) -> void:
 ## 每帧（ult.tick）：凯尔希熔毁后到点重构 Mon3tr（ult_m3_heal = 正常结束，重构时给队长回血；动作被中途清掉的兜底不回血）
 static func tick_bg(u) -> void:
 	_m3_watch(u)
+	_sk_zones(u)
+
+
+## 潮汐和声（skalter 路线 echo，协调人 10-30 定，取代原「扫两圈、第二圈反向」）：每个轨迹爆点留下一块共鸣地带 ult/sk_echo_t（2 秒）——
+## 半径 ult/sk_echo_r（90）内的敌人减速（引擎统一减速档：移速 × 0.65，即 −35%）、受到的伤害 + ult/sk_echo_amp（15%，走 e.frag_t / frag_v 通用增伤，同名取最高）；
+## 离已有地带不到 70 的爆点不另起一块（同一处不叠）。地带挂在 u 的 meta「sk_zones」上由 tick_bg 推进，终结技动作本身照常结束；地面层画干员色像素椭圆
+static func _sk_zone(u, a: Dictionary, p: Vector2) -> void:
+	var zs: Array = u.get_meta("sk_zones", [])
+	for z in zs:
+		if Vector2(z[0]).distance_squared_to(p) < 70.0 * 70.0:
+			return
+	var dur: float = Bal.v("ult/sk_echo_t", 2.0)
+	var r: float = Bal.v("ult/sk_echo_r", 90.0)
+	zs.append([p, u.g.t + dur, r, Bal.v("ult/sk_echo_amp", 0.15), 0.0])
+	u.set_meta("sk_zones", zs)
+	var col: Color = a.col
+	u.shape({"kind": "ellipse", "c": p + Vector2(0, 4), "rx": r, "ry": r * 0.55, "col": col.darkened(0.25), "fill": 0.32, "life": dur, "layer": "back"})
+	u.shape({"kind": "ring", "c": p + Vector2(0, 4), "r": r * 0.8, "w": 4.0, "col": col, "life": dur, "layer": "back"})   # 缺省碎裂：地带边上一圈碎光
+
+
+static func _sk_zones(u) -> void:
+	if not u.has_meta("sk_zones"):
+		return
+	var g = u.g
+	var zs: Array = u.get_meta("sk_zones")
+	for k in range(zs.size() - 1, -1, -1):
+		var z: Array = zs[k]
+		if g.t >= float(z[1]):
+			zs.remove_at(k)
+			continue
+		if g.t < float(z[4]):
+			continue
+		z[4] = g.t + 0.1   # 每 0.1 秒刷一次（减速 / 增伤各给 0.25 秒，走出地带很快失效）
+		var p: Vector2 = z[0]
+		var r: float = z[2]
+		for j in g.enemies_sys.query(p, r):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or e.get("friendly", false) or e.pos.distance_squared_to(p) > r * r:
+				continue
+			g.enemies_sys.add_cc(e, -INF, 0.25)
+			var amp: float = float(z[3])
+			if float(e.get("frag_t", 0.0)) <= g.t or float(e.get("frag_v", 0.0)) <= amp:
+				e["frag_v"] = amp if float(e.get("frag_t", 0.0)) <= g.t else maxf(float(e.get("frag_v", 0.0)), amp)
+				e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), g.t + 0.25)
+		if int(g.t * 10.0) % 4 == 0:
+			u.grain("mote_up", p, Vector2.UP, COL_SK_TEAL, 1)
+	if zs.is_empty():
+		u.remove_meta("sk_zones")
 
 
 static func _m3_watch(u) -> void:

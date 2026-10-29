@@ -8,7 +8,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const IDS: Array = ["saria", "suzuran", "logos", "hoshiguma", "siege", "irene", "lappland", "lumen"]
-const DIR_OPS: Array = ["saria", "suzuran", "logos", "irene"]
+const DIR_OPS: Array = ["suzuran", "logos", "irene"]   # 塞雷娅 10-30 改成以自身为圆心的拳风环，不瞄
 const POINT_OPS: Array = ["siege"]
 
 const COL_AMBER := Color(1.0, 0.72, 0.3)
@@ -33,6 +33,8 @@ static func aim_kind(id: String) -> String:
 
 static func aim_r(id: String) -> float:
 	match id:
+		"saria":
+			return Bal.v("ult/sa_r", 505.0)
 		"siege":
 			return Bal.v("ult/sg_r", 480.0)
 		"irene":
@@ -248,34 +250,55 @@ static func _launch(u, a: Dictionary, e: Dictionary, dur: float, h: float) -> vo
 	a.air.append({"e": e, "t0": float(a.t), "dur": du, "h": h})
 
 
-# ================================================================ 塞雷娅（§4.13）：收拳蓄力 → 一拳，冲击波带直通屏边 → 沿途琥珀结晶 2 秒后碎掉
-
+# ================================================================ 塞雷娅（§4.13）：举拳蓄力 → 一拳砸地，拳风冲击环向四周打出去 + 脚下放射裂纹、沿裂纹接连爆开
+## 10-30 用户「应该是一圈打出去的拳风和裂地的感觉」返工：不再是直线带、不瞄（aim_kind none）。以她为圆心半径 ult/sa_r（505；核心 × c_core 0.92 ≈ 465，
+## 对齐 §3.2 自身圆心 460 一档，参考场景 500 处的精英也罩得住）：
+##   举拳 ult/sa_charge（0.2 秒，琥珀光往拳头收）→ 砸地：轻震 + 拳风冲击环 ult/sa_travel（0.25 秒）扩到 R，波前扫过的敌人吃 1 − 裂地份额、往外击飞 ult/sa_kb（360）；
+##   同时脚下裂开 ult/sa_cracks（10）道放射裂纹（琥珀色折线往外延伸），裂纹上每隔一节接连爆开（半径 80，每人一次 ult/sa_crack 20%）。
+## 路线：碎晶 → 裂纹 14 道、裂地 30%（冲击环降到 70%）；急救针剂 → 结束时队长回复 6% 最大生命。附带护盾一层照旧
 static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var hw: float = Bal.v("ult/sa_w", 860.0) * 0.5
-	var L: float = Bal.v("ult/sa_len", 900.0)
-	var step_c: float = 60.0 if rt == "shatter" else 120.0
-	var cf: float = 0.25 if rt == "shatter" else Bal.v("ult/sa_crys", 0.15)
-	var crys: Array = []
-	var x := 90.0
-	var i := 0
-	while x <= L:
-		var lat: float = 0.0 if rt != "shatter" else (40.0 if i % 2 == 0 else -40.0)
-		crys.append({"x": x, "p": _w(o.pos, d, x, lat), "up": false, "s": {}})
-		x += step_c
-		i += 1
-	var fist: Vector2 = o.pos + d * 34.0 + Vector2(0, -16)
+	var R: float = Bal.v("ult/sa_r", 505.0)
+	var cf: float = 0.3 if rt == "shatter" else Bal.v("ult/sa_crack", 0.2)
+	var nc: int = 14 if rt == "shatter" else int(Bal.v("ult/sa_cracks", 10.0))
+	var c: Vector2 = o.pos
+	var ch: float = Bal.v("ult/sa_charge", 0.2)
+	var tr: float = Bal.v("ult/sa_travel", 0.25)
+	var cspd: float = R / Bal.v("ult/sa_crack_t", 0.3)   # 裂纹往外长的速度
+	# 裂纹：每道是一条折线（节长 75，侧向按序号摆 ±18，不抽随机数）；第 1 / 3 / 5 节的端点是爆点
+	var cracks: Array = []
+	var booms: Array = []
+	var a0: float = d.angle() + 0.2
+	for i in nc:
+		var ang: float = a0 + TAU * float(i) / float(nc) + 0.12 * sin(float(i) * 2.7)
+		var dv := Vector2.from_angle(ang)
+		var nv: Vector2 = dv.orthogonal()
+		var pts: Array = [c + dv * 26.0]
+		var x := 26.0
+		var j := 0
+		while x < R - 20.0:
+			x = minf(R - 20.0, x + 75.0)
+			j += 1
+			pts.append(c + dv * x + nv * 18.0 * sin(float(i) * 7.3 + float(j) * 2.1))
+		cracks.append(pts)
+		for k in range(1, pts.size(), 2):
+			booms.append({"p": pts[k], "t": ch + 0.06 + c.distance_to(pts[k]) / cspd, "done": false})
+	var fist: Vector2 = c + Vector2(0, -58)
 	var col: Color = u._col(o)
-	# 收拳蓄力：琥珀光往拳头收束
-	_ring(u, fist, 22.0, 150.0, col.lerp(Color.WHITE, 0.3), 0.22, 5.0)
-	for k in 10:
-		var dv := Vector2.from_angle(k * TAU / 10.0 + 0.3)
-		u.shape({"kind": "line", "a": fist + dv * 130.0, "b": fist + dv * 90.0, "w": 3.0, "col": COL_AMBER, "life": 0.2, "v": -dv * 420.0})
-	u.shape({"kind": "dots", "c": fist, "r": 90.0, "n": 14, "col": COL_AMBER.lerp(Color.WHITE, 0.4), "life": 0.22})
-	o.face_to(d.angle())
-	return {"org": o.pos, "d": d, "hw": hw, "L": L, "ch": Bal.v("ult/sa_charge", 0.2), "spd": L / Bal.v("ult/sa_travel", 0.22),
-		"wf": 1.0 - cf, "cf": cf, "crys": crys, "wseg": {}, "punched": false, "broke": false, "heal": rt == "syringe",
-		"brk_t": Bal.v("ult/sa_crys_t", 2.0), "fist": fist}
+	# 举拳蓄力：琥珀光往高举的拳头收束
+	_ring(u, fist, 22.0, 170.0, col.lerp(Color.WHITE, 0.3), ch + 0.02, 5.0)
+	for k in 12:
+		var dv := Vector2.from_angle(k * TAU / 12.0 + 0.3)
+		u.shape({"kind": "line", "a": fist + dv * 150.0, "b": fist + dv * 105.0, "w": 3.0, "col": COL_AMBER, "life": ch, "v": -dv * 480.0})
+	u.shape({"kind": "dots", "c": fist, "r": 100.0, "n": 16, "col": COL_AMBER.lerp(Color.WHITE, 0.4), "life": ch})
+	u.shape({"kind": "circle", "c": fist, "r": 26.0, "col": COL_AMBER.lerp(Color.WHITE, 0.3), "fill": 0.8, "life": ch})
+	u.light(fist, 140.0, COL_AMBER, ch)
+	for k in 8:
+		var dq := Vector2.from_angle(k * TAU / 8.0)
+		u.grain("mote_in", fist + dq * 120.0, -dq, COL_AMBER, 2)
+	u.shake(2.0, 0.15)
+	return {"org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
+		"wseg": {}, "cseg": {}, "punched": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 
 static func _sa_step(u, a: Dictionary, o) -> bool:
@@ -283,75 +306,84 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 	var t: float = a.t
 	var ch: float = a.ch
 	var org: Vector2 = a.org
-	var d: Vector2 = a.d
-	var hw: float = a.hw
-	var L: float = a.L
+	var R: float = a.R
+	var tr: float = a.tr
 	var col: Color = u._col(o)
 	if t < ch:
 		return false
 	if not a.punched:
 		a.punched = true
 		o.play_vis_anim("attack")
-		o.screen_shake(0.8)
-		var spd: float = a.spd
-		var life: float = L / spd
-		var fist: Vector2 = a.fist
-		u.shape({"kind": "circle", "c": fist, "r": 80.0, "col": Color.WHITE, "fill": 0.9, "life": 0.12})
-		_ring(u, fist, 140.0, 30.0, Color.WHITE, 0.25, 8.0)
-		# 冲击波：整条带闪一下 + 横贯带宽的波前（白芯 + 琥珀辉光）往前推 + 沿带的速度线
-		u.shape({"kind": "band", "a": org - d * 60.0, "b": org + d * L, "w": hw * 2.0, "col": COL_AMBER, "fill": 0.16, "life": life + 0.25})
-		for j in 3:
-			var off: float = 40.0 - 26.0 * j
-			u.shape({"kind": "blade", "a": _w(org, d, off, -hw), "b": _w(org, d, off, hw), "w": 22.0 - 6.0 * j,
-				"col": Color.WHITE if j == 0 else COL_AMBER.lerp(Color.WHITE, 0.3), "glow": COL_AMBER, "life": life, "v": d * spd, "delay": 0.02 * j})
-		for j in 11:
-			var lat: float = lerpf(-hw * 0.95, hw * 0.95, j / 10.0)
-			var x0: float = 30.0 + 40.0 * float((j * 7) % 4)
-			u.shape({"kind": "line", "a": _w(org, d, x0, lat), "b": _w(org, d, x0 + 260.0, lat), "w": 3.0 if j % 2 == 0 else 2.0,
-				"col": COL_AMBER.lerp(Color.WHITE, 0.5), "life": life * 0.9, "v": d * spd * 1.05, "delay": 0.015 * float(j % 3)})
-		# 波前外两道弧（冲击波的拳压形状）
-		for j in 2:
-			var c0: Vector2 = org - d * (hw * 0.9)
-			var span: float = 0.55 - 0.1 * j
-			_arc_lines_v(u, c0, hw * 0.9 + 40.0 + 30.0 * j, d.angle() - span, d.angle() + span, 8, col.lerp(Color.WHITE, 0.4), 6.0 - 2.0 * j, life, d * spd)
+		u.shake(Bal.v("ult/sa_shake", 8.0), 0.35)
+		# 砸地：落点白闪 + 拳风冲击环（白芯 + 两道琥珀，生长段 = 冲击环走到 R 的时间）+ 往外飞的拳风速度线
+		u.shape({"kind": "circle", "c": org, "r": 110.0, "col": COL_AMBER.lerp(Color.WHITE, 0.45), "fill": 0.95, "life": 0.1})
+		u.shape({"kind": "circle", "c": org, "r": R, "col": COL_AMBER, "fill": 0.16, "life": tr + 0.15})
+		u.shape({"kind": "ellipse", "c": org + Vector2(0, 8), "rx": 150.0, "ry": 70.0, "col": COL_ROCK.darkened(0.45), "fill": 0.6, "life": 1.2, "layer": "back"})   # 砸出的浅坑
+		u.light(org, 380.0, COL_AMBER, 0.45)
+		u.debris(org, COL_AMBER, 3)
+		u.debris(org, COL_ROCK, 2)
+		u.spark(org, COL_AMBER, 10, 30.0)
+		_ring(u, org, R, 40.0, COL_AMBER.lerp(Color.WHITE, 0.5), tr * 2.0, 26.0)   # 缺省碎裂：拳风是一圈往外崩的碎块
+		_ring(u, org, R * 0.96, 30.0, COL_AMBER.lerp(Color.WHITE, 0.25), tr * 2.0, 14.0, 0.03)
+		_ring(u, org, R * 0.9, 20.0, COL_AMBER, tr * 2.0 + 0.1, 6.0, 0.07)
+		_ring(u, org, 160.0, 20.0, COL_AMBER.lerp(Color.WHITE, 0.5), 0.2, 10.0)
+		var spd: float = R / tr
+		for k in 20:
+			var dv := Vector2.from_angle(float(k) * TAU / 20.0 + 0.05)
+			var r0: float = 40.0 + 30.0 * float(k % 3)
+			u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 120.0), "w": 4.0 if k % 2 == 0 else 2.5,
+				"col": COL_AMBER.lerp(Color.WHITE, 0.5 if k % 2 == 0 else 0.2), "life": tr * 0.95, "v": dv * spd})
+		u.shape({"kind": "dots", "c": org, "r": R * 0.5, "n": 30, "col": COL_ROCK.lerp(COL_AMBER, 0.4), "life": 0.5})
+		# 裂纹：从脚下往外一节节长出去（每节按离她的距离延迟），琥珀粗线 + 前段白芯，0.9 秒后淡掉
+		var cspd: float = a.cspd
+		for pts in a.cracks:
+			for j in pts.size() - 1:
+				var p0: Vector2 = pts[j]
+				var p1: Vector2 = pts[j + 1]
+				var dl: float = org.distance_to(p0) / cspd
+				var wk: float = 1.0 - float(j) / float(pts.size())
+				u.shape({"kind": "line", "a": p0, "b": p1, "w": 3.0 + 6.0 * wk, "col": COL_AMBER.darkened(0.15), "life": 1.1 - dl, "delay": dl, "layer": "back"})   # 裂纹画在地面层（怪脚下）
+				if j < 2:
+					u.shape({"kind": "line", "a": p0, "b": p1, "w": 1.5 + 1.5 * wk, "col": COL_AMBER.lerp(Color.WHITE, 0.45), "life": 0.6 - dl, "delay": dl, "layer": "back"})
 		g.shield = mini(g.shield + 1, maxi(g.shield_max, 1) + 1)   # 附带：队长护盾（本作护盾按层；docs 写 15% 最大生命，没有按量的护盾，先给一层）
 		g.shield_pop = 1.0
-		_ring(u, o.pos, 60.0, 40.0, COL_AMBER, 0.6, 4.0)
-	var f: float = (t - ch) * float(a.spd)
+	# 拳风冲击环：波前扫过的敌人各吃一次，往外击飞、短硬直
+	var f: float = R * clampf((t - ch) / tr, 0.0, 1.0)
+	var hc: float = R * _core()
 	var kb: float = _kb_v(Bal.v("ult/sa_kb", 360.0))
-	var hc: float = hw * _band_core()
-	for e in _in_rect(u, org, d, -60.0, minf(f, L), hw):
-		var l: Vector2 = _loc(e.pos, org, d)
-		_once(u, a, o, a.wseg, e, float(a.wf), {"src": "冲击波", "edge": absf(l.y) > hc, "kb": d * kb, "stun": 0.3})
-	# 结晶：波前经过时长出来，ult/sa_crys_t 秒后碎掉
-	var t_brk: float = ch + float(a.brk_t)
-	for cr in a.crys:
-		if not cr.up and f >= float(cr.x):
-			cr.up = true
-			u.strip("fx_saria_calcite", cr.p, {"o": Vector2(32, 74), "seg": [0, 4], "fps": 14.0, "sc": 1.4, "life": maxf(0.1, t_brk - t), "layer": "back"})
-			u.shape({"kind": "dots", "c": cr.p, "r": 40.0, "n": 6, "col": COL_AMBER, "life": 0.3})
-	if not a.broke and t >= t_brk:
-		a.broke = true
-		var seg := {}
-		for cr in a.crys:
-			var p: Vector2 = cr.p
-			u.strip("fx_saria_pillar_break", p + Vector2(0, -20), {"sc": 1.6})
-			for k in 5:
-				var dv := Vector2.from_angle(k * TAU / 5.0 + float(cr.x) * 0.01)
-				u.shape({"kind": "blade", "a": p + dv * 6.0, "b": p + dv * 22.0, "w": 4.0, "col": Color(1.0, 0.95, 0.85), "glow": COL_AMBER, "life": 0.3, "v": dv * 220.0})
-			for e in u.in_circle(p, 80.0):
-				_once(u, a, o, seg, e, float(a.cf), {"src": "碎晶", "edge": absf(_loc(e.pos, org, d).y) > hc})
-		if a.heal:
+	for e in u.in_circle(org, f):
+		var off: Vector2 = e.pos - org
+		var dv: Vector2 = off.normalized() if off.length() > 1.0 else Vector2.RIGHT
+		_once(u, a, o, a.wseg, e, float(a.wf), {"src": "拳风", "edge": off.length() > hc, "kb": dv * kb, "stun": 0.3})
+	# 拳风扫地扬尘：波前所到的半径上撒一圈尘（颗粒拼出往外推的环）
+	if f < R and int(t * 60.0) % 2 == 0:
+		for k in 14:
+			var dq := Vector2.from_angle(float(k) * TAU / 14.0 + t * 3.0)
+			u.grain("bfx_dust", org + dq * f, dq, COL_ROCK.lerp(COL_AMBER, 0.5), 2)
+	# 沿裂纹接连爆开
+	for b in a.booms:
+		if b.done or t < float(b.t):
+			continue
+		b.done = true
+		var p: Vector2 = b.p
+		for e in u.in_circle(p, 80.0):
+			_once(u, a, o, a.cseg, e, float(a.cf), {"src": "裂地", "edge": e.pos.distance_to(org) > hc})
+		u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_AMBER.lerp(Color.WHITE, 0.2), "fill": 0.7, "life": 0.14})
+		_ring(u, p, 92.0, 16.0, COL_AMBER.lerp(Color.WHITE, 0.3), 0.26, 6.0)
+		u.strip("fx_saria_pillar_break", p + Vector2(0, -16), {"sc": 1.4})
+		var bi: int = a.booms.find(b)
+		u.grain("sh_shard", p, Vector2.UP, COL_AMBER, 5)
+		u.grain("bfx_dust", p, Vector2.UP, COL_ROCK, 3)
+		if bi % 3 == 0:   # 灯只有 16 盏、碎屑也抽稀
+			u.light(p, 130.0, COL_AMBER, 0.2)
+			u.debris(p, COL_AMBER, 1)
+			u.spark(p, COL_AMBER, 3, 18.0)
+	if t >= float(a.end_t):
+		if a.heal and not a.healed:
+			a.healed = true
 			g.combat.heal(g.max_hp * Bal.v("ult/sa_heal", 0.06), "终结技", "saria")
-	return t >= t_brk + 0.05
-
-
-## 带速度的弧（冲击波波前）
-static func _arc_lines_v(u, c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, w: float, life: float, v: Vector2) -> void:
-	for i in n:
-		var p0: Vector2 = c + Vector2.from_angle(lerpf(a0, a1, float(i) / n)) * r
-		var p1: Vector2 = c + Vector2.from_angle(lerpf(a0, a1, float(i + 1) / n)) * r
-		u.shape({"kind": "line", "a": p0, "b": p1, "w": w, "col": col, "life": life, "v": v})
+		return true
+	return false
 
 
 # ================================================================ 铃兰（§4.14）：忍冬在她身旁现身 → 化白光瞬身斩出 → 停半拍 → 斩痕爆裂
