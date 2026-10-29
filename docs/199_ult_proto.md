@@ -310,7 +310,7 @@ cloud-results/ult-T2 3c1e79e0f（`python tools/ult_pair.py --t0 cloud-results/ul
 ### 9.1 已就绪（不等素材）
 
 - 系统：终结技 Q（20 人）、技能连携 E（20 人，§7.5）、连携终结技（通用版）、HUD（能量条 / 协同格 / 亮起头像 + 倒计时 / 手机两键）、设置「自动连携 / 自动终结技」、冲击帧演出（时间缩放走 time_dilation、镜头走 cam_fx、终结技专用轻震 u.shake）。
-- 开关（balance.json / 代码缺省）：`ult/on` 1（0 = 旧路径，同 seed TRACE 与基线逐行相同）、`combo/skill_link`（技能连携，缺省值按 §5.8 配对结果定）、`ult/px_style` 1（占位像素画法，0 = 矢量对照）、测试开关 `ult/test_fill_at` / `test_cells` / `test_swarm_*` / `test_skill_*` 缺省全关。
+- 开关（balance.json / 代码缺省）：`ult/on` 1（0 = 旧路径，同 seed TRACE 与基线逐行相同）、`combo/skill_link` 1（技能连携；0 = 关）、`ult/px_style` 1（占位像素画法，0 = 矢量对照）、测试开关 `ult/test_fill_at` / `test_cells` / `test_swarm_*` / `test_skill_*` 缺省全关。
 - 遥测：`data.ult` = ult / cult / combo / combo_up / combo_auto / combo_e / lit / lit_by / link_by / miss / first_full / ult_times / cult_times / e_out / e_kill / e_hurt / e_combo；`tools/ult_pair.py --by-op` 出按队长对照。
 - 数值：对齐表 §5.7；配对 §5.8。
 
@@ -337,5 +337,5 @@ cloud-results/ult-T2 3c1e79e0f（`python tools/ult_pair.py --t0 cloud-results/ul
 - 已合入 claude/integ-1029 c287b209f（合并提交 d302cc331，没用 rebase：38 笔逐个 rebase 冲突要解多遍，合并只解一次、不改写已推历史）；冲突 4 个文件（game.gd 时间缩放 / combat.gd 受伤能量 + Boss 单次上限 / hud.gd 绘制层 / check.py 响应测试参数），两边都保留，指点选点放慢登记进 time_dilation。
 - 合并后 ult/on=0 与 c287b209f TRACE 91 行逐行相同；开终结技 + 技能连携冒烟正常。
 - 云端全量快检（cloud-results/ult30-check，d302cc331）：169 项过 168；唯一失败是**积木等价金样过期 14 份**（别处玩法代码变了，属「角色分支不重录金样、合入后统一重录」口径），无玩法 / 逻辑失败、无脚本崩溃。
-- 缺省开关建议：`ult/on` = 1（已是）；`combo/skill_link` 现在缺省 **0**，建议合入时改 **1**（§5.9 的定稿数值都是开着测的；关着就只剩 E 连携技，一局约 8 次）。这一行改动没在本分支做——快检是按缺省 0 跑的，改缺省后再跑一次快检。
+- 缺省开关：`ult/on` = 1；`combo/skill_link` **10-30 改为缺省 1**（协调人代定：§5.9 定稿数值就是开着测的；0 = 只剩 E 连携技，一局约 8 次），balance.json `combo.skill_link`，改后本机跑过 `check.py --auto`。
 - 素材到了按 §9.2 替换，不改数值。

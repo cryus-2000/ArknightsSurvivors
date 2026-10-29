@@ -1,4 +1,4 @@
-## 技能连携样片（用户 10-29，看完 final3 后定方向；只做样片，开关 balance combo/skill_link 缺省 0，现有连携系统不动）：
+## 技能连携样片（用户 10-29，看完 final3 后定方向；开关 balance combo/skill_link，10-30 起缺省 1（协调人代定：定稿数值开着测），0 = 只剩 E 连携技）：
 ## 任一干员放 S1–S3 的那一刻开 ult/link_window（1.5）秒连携窗口，可接的队友头像亮起（走 ult 的亮起排队，info.link）；
 ## 按 E（或自动）后队友**接进这个技能**，合成一个强化版：
 ##   texas S1「剑雨」+ exusiai  → 能天使朝剑雨落点倾泻扫射，剑雨变成爆炸剑雨（每把剑落地炸开）
@@ -24,7 +24,7 @@ const CRIMSON := Color(1.0, 0.25, 0.22)
 
 
 static func on() -> bool:
-	return Bal.vi("combo/skill_link", 0) > 0
+	return Bal.vi("combo/skill_link", 1) > 0
 
 
 ## squad.syn_skill → ult.on_skill：放技能的那一刻

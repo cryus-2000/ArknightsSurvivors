@@ -9,7 +9,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const Moves = preload("res://scripts/run/ult_moves.gd")
 const Combo = preload("res://scripts/run/combo.gd")
-const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携样片（combo/skill_link，缺省关）
+const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携（combo/skill_link，10-30 起缺省开）
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
 
