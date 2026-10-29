@@ -189,8 +189,63 @@ func tris(p: PackedVector2Array, c: PackedColorArray) -> void:
 	cols.append_array(c)
 
 
+## 模板缓存（docs/50 §24，10-30）：circle_n / ring_n 每个顶点一次 GDScript 循环（圆 10–14 段约 10–14 µs、环 16 段约 20 µs），
+## 敌弹 / 光环这类「同一尺寸每帧画几十上百个」的调用占了弹幕战的大头。按 (段数, 半径, 纵压 / 线宽) 缓存以原点为圆心的三角形列表，
+## 用时 Transform2D(0, c) * 模板（引擎原生，一次调用）整段平移后追加。模板里每个顶点的算式与原循环逐项相同（先算相对偏移、再加圆心，
+## 平移那一步 x × 1 + y × 0 + c 也无舍入），所以顶点逐位相同。
+## 动态尺寸（每帧都不同的半径）不进缓存：同一键第二次出现才建模板（第一次只记「见过」），缓存满 256 项整表清空
+static var _ccache := {}   # Vector3(段数, 半径, 纵压) -> PackedVector2Array（seg × 3）
+static var _rcache := {}   # Vector3(段数, 半径, 线宽) -> PackedVector2Array（seg × 6）
+static var _cseen := {}    # 同键第一次出现的记号（超过 512 项清空）
+const _TPL_CAP := 256
+
+
 ## 原 tb_circle：seg 段扇形实心圆，sy 纵向压缩；第 q 个三角形 = 圆心、第 q 点、第 q+1 点
 func circle_n(c: Vector2, r: float, col: Color, sy := 1.0, seg := 14) -> void:
+	var key := Vector3(seg, r, sy)
+	var tpl = _ccache.get(key)
+	if tpl != null:
+		pts.append_array(Transform2D(0.0, c) * tpl)
+		_fill(seg * 3, col)
+		return
+	if _cseen.has(key):
+		if _ccache.size() >= _TPL_CAP:
+			_ccache.clear()
+		_ccache[key] = _circle_tpl(r, sy, seg)
+		pts.append_array(Transform2D(0.0, c) * _ccache[key])
+		_fill(seg * 3, col)
+		return
+	if _cseen.size() > 512:
+		_cseen.clear()
+	_cseen[key] = true
+	_circle_direct(c, r, col, sy, seg)
+
+
+func _circle_tpl(r: float, sy: float, seg: int) -> PackedVector2Array:
+	var cs = _qcs.get(seg)
+	if cs == null:
+		var nc := PackedFloat64Array()
+		for q in seg:
+			var aq: float = q * TAU / seg
+			nc.append(cos(aq))
+			nc.append(sin(aq))
+		_qcs[seg] = nc
+		cs = nc
+	var out := PackedVector2Array()
+	out.resize(seg * 3)
+	var p0 := Vector2(cs[0] * r, cs[1] * r * sy)
+	var prev := p0
+	for q in seg:
+		var nxt: Vector2 = p0 if q == seg - 1 else Vector2(cs[2 * q + 2] * r, cs[2 * q + 3] * r * sy)
+		var k: int = q * 3
+		out[k] = Vector2.ZERO
+		out[k + 1] = prev
+		out[k + 2] = nxt
+		prev = nxt
+	return out
+
+
+func _circle_direct(c: Vector2, r: float, col: Color, sy: float, seg: int) -> void:
 	var cs = _qcs.get(seg)
 	if cs == null:
 		var nc := PackedFloat64Array()
@@ -216,6 +271,60 @@ func circle_n(c: Vector2, r: float, col: Color, sy := 1.0, seg := 14) -> void:
 
 ## 原 tb_ring：seg 段圆环（线宽 w 跨在半径 r 两侧）；第 q 段 = (内q 外q 外q+1)、(内q 外q+1 内q+1)
 func ring_n(c: Vector2, r: float, w: float, col: Color, seg := 16) -> void:
+	var key := Vector3(seg, r, w)
+	var tpl = _rcache.get(key)
+	if tpl != null:
+		pts.append_array(Transform2D(0.0, c) * tpl)
+		_fill(seg * 6, col)
+		return
+	if _cseen.has(key):
+		if _rcache.size() >= _TPL_CAP:
+			_rcache.clear()
+		_rcache[key] = _ring_tpl(r, w, seg)
+		pts.append_array(Transform2D(0.0, c) * _rcache[key])
+		_fill(seg * 6, col)
+		return
+	if _cseen.size() > 512:
+		_cseen.clear()
+	_cseen[key] = true
+	_ring_direct(c, r, w, col, seg)
+
+
+func _ring_tpl(r: float, w: float, seg: int) -> PackedVector2Array:
+	var dirs = _qdirs.get(seg)
+	if dirs == null:
+		var nd := PackedVector2Array()
+		for q in seg:
+			nd.append(Vector2.from_angle(q * TAU / seg))
+		_qdirs[seg] = nd
+		dirs = nd
+	var out := PackedVector2Array()
+	out.resize(seg * 6)
+	var d0: Vector2 = dirs[0]
+	var i0 := d0 * (r - w * 0.5)
+	var o0 := d0 * (r + w * 0.5)
+	var pi := i0
+	var po := o0
+	for q in seg:
+		var ni: Vector2 = i0
+		var no: Vector2 = o0
+		if q < seg - 1:
+			var d: Vector2 = dirs[q + 1]
+			ni = d * (r - w * 0.5)
+			no = d * (r + w * 0.5)
+		var k: int = q * 6
+		out[k] = pi
+		out[k + 1] = po
+		out[k + 2] = no
+		out[k + 3] = pi
+		out[k + 4] = no
+		out[k + 5] = ni
+		pi = ni
+		po = no
+	return out
+
+
+func _ring_direct(c: Vector2, r: float, w: float, col: Color, seg: int) -> void:
 	var dirs = _qdirs.get(seg)
 	if dirs == null:
 		var nd := PackedVector2Array()
