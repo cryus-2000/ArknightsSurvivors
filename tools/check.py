@@ -1066,6 +1066,7 @@ SCENE_REGRESSIONS = {
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
+    "dmg_curve": ("普通怪伤害曲线（docs/194）：单调、封顶、一阶连续、池平均一下 = 目标曲线、换池不跳", "dmg_curve_test", r"DMG CURVE failures=0", []),
     "tide": ("潮位阶梯 0–15（docs/109 §5）：16 级、锚点 0 / 4 / 8 与旧三档逐键、严格累加", "tide_test", r"TIDE failures=0", []),
     "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 625、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", ["--roster=start5"]),
     "meta_mech": ("认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一、绝处逢生复活、未雨绸缪闪避 + 闪避补偿", "meta_mech_test", r"META MECH checks=\d+ failures=0",
