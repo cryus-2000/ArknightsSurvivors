@@ -100,8 +100,8 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		if g.bot != null:
 			g.telemetry.note_clean("corrode", g.corrode_pool)
 			g.telemetry.note_clean("nerve", minf(g.nerve, float(hb.get("nerve_cut", 15.0))))
-		g.corrode_pool = 0.0
-		g.nerve = maxf(0.0, g.nerve - float(hb.get("nerve_cut", 15.0)))
+		g.afflict.clear_corrode()
+		g.afflict.cut_nerve(float(hb.get("nerve_cut", 15.0)))
 		o.float_text(g.ppos + Vector2(0, -96), "驱散", H3_PALE, 14)
 		did = true
 	elif g.hp < g.max_hp:
@@ -220,8 +220,8 @@ static func _h3_tower_tick(o, lm: Dictionary, dt: float) -> void:
 	if tt > 0.0 and g.ppos.distance_to(lm.tower_pos) < r:
 		if g.bot != null:
 			g.telemetry.note_clean("corrode", g.corrode_pool)
-		g.corrode_pool = 0.0
-		g.nerve = 0.0
+		g.afflict.clear_corrode()
+		g.afflict.clear_nerve()
 		lm.tower_tick = float(lm.tower_tick) + dt
 		if float(lm.tower_tick) >= float(b.get("every", 1.0)):
 			lm.tower_tick = float(lm.tower_tick) - float(b.get("every", 1.0))
@@ -248,7 +248,7 @@ static func _h3_light_burst(o, lm: Dictionary, b: Dictionary) -> void:
 	if bu.get("power", false):
 		dmg *= o.skill_power()
 	o.area_hit(str(bu.get("src", "")), tp, r, dmg, float(bu.get("kb", 160.0)), float(bu.get("stun", 0.6)))
-	o.spawn_fx_sprite("fx_sunburst", tp + Vector2(0, -40), g.PX * 2.4)
+	# 10-29：取消「日炎」大火球（fx_sunburst，用户定）；爆发只留地面环 / 光线 / 火花
 	for i in 3:
 		o.fx({"kind": "ring", "pos": tp, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": H3_WARM, "floor": true, "w": 4.0 - i})
 	g.fx.append({"kind": "rays", "pos": tp + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": H3_WARM, "op_spoke": true})
@@ -462,7 +462,7 @@ static func _h3lm_tick(o, lm: Dictionary, dt: float) -> void:
 	lm.hand_glow = maxf(0.0, float(lm.hand_glow) - dt)
 	lm.immune_t = maxf(0.0, float(lm.immune_t) - dt)
 	if float(lm.immune_t) > 0.0:
-		g.nerve = 0.0
+		g.afflict.clear_nerve()
 	_h3_bolts_tick(o, lm, dt)
 	_h3_tower_tick(o, lm, dt)
 	_h3_units_tick(o, lm, dt)
@@ -486,8 +486,8 @@ static func h3_purge(o, b: Dictionary) -> void:
 	if g.bot != null:
 		g.telemetry.note_clean("corrode", g.corrode_pool)
 		g.telemetry.note_clean("nerve", g.nerve)
-	g.corrode_pool = 0.0
-	g.nerve = 0.0
+	g.afflict.clear_corrode()
+	g.afflict.clear_nerve()
 	lm.immune_t = float(b.get("immune", 3.0))
 
 
@@ -500,7 +500,7 @@ static func _h3lm_draw_auras(o) -> void:
 	var cv = o.cv
 	var r: float = float(o.hw.lm.tower_b.get("r", 220.0))
 	cv.draw_set_transform((o.hw.lm.tower_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
+	feather_ring(cv, r, H3_WARM, 0.5, g.t)   # 10-29：不填充，改内羽边 + 光点
 	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(H3_WARM.r, H3_WARM.g, H3_WARM.b, 0.35 + 0.1 * sin(g.t * 4.0)), 2.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -571,7 +571,7 @@ static func _h3lm_draw_rain(o) -> void:
 	var r: float = float(b.get("r", 140.0))
 	var fade: float = clampf(float(lm.rain_t) / 0.4, 0.0, 1.0) * clampf((float(b.get("dur", 3.0)) - float(lm.rain_t)) / 0.3, 0.0, 1.0)
 	cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
+	feather_ring(cv, r, Color(1.0, 0.85, 0.5), 0.5 * fade, g.t)
 	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(1.3, 1.1, 0.7, 0.35 * fade), 1.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for q in 28:
@@ -606,7 +606,7 @@ static func h3_draw_add(o, ci) -> void:
 		var k: float = 0.5 + 0.5 * sin(g.t * 3.0)
 		ci.draw_circle(_h3_tower_lamp(o), 26.0 + 4.0 * k, Color(0.9, 0.7, 0.35, 0.35))
 		ci.draw_set_transform((lm.tower_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
+		pass
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for b in lm.bolts:
 		ci.draw_circle(b.pos, 14.0 if b.get("big", false) else 9.0, Color(0.9, 0.7, 0.3, 0.35))

@@ -22,10 +22,10 @@ var lane_names := {}  # 分类键 -> 名称（relics.json 顶层 lane_names）
 static func text_base() -> Dictionary:
 	var Bal = preload("res://scripts/core/balance.gd")
 	var knee: float = Bal.v("enemy/hp_knee", 480.0)
-	var div: float = maxf(1.0, Bal.v("enemy/hp_div", 120.0))
-	var late: float = maxf(1.0, Bal.v("enemy/hp_late_div", 300.0))
+	var div: float = maxf(1.0, Bal.v("enemy/hp_div", 110.0))
+	var late: float = maxf(1.0, Bal.v("enemy/hp_late_div", 120.0))
 	return {"pm": 60.0 / div, "m10": 1.0 + minf(600.0, knee) / div + maxf(600.0 - knee, 0.0) / late,
-		"mine_dmg": Bal.v("relic/mine_dmg", 42.0), "wrath_dmg": Bal.v("relic/wrath_dmg", 30.0),
+		"mine_dmg": Bal.v("relic/mine_dmg", 42.0), "wrath_dmg": Bal.v("relic/wrath_dmg", 45.0),
 		"dust_dmg": Bal.v("relic/dust_dmg", 10.0), "scavenge_mult": Bal.v("relic/scavenge_mult", 8.0)}
 
 

@@ -167,6 +167,18 @@ python tools/trace_base.py 1 mizuki 240 --ref <提交>                  # 基线
 - **`--here`**：在当前工作树跑同一局，TRACE 逐行比，报第一处不同的那一行；`BALANCE` 行只提示不判定（画面峰值 / prof 字段本来就可能不同，需要时自己比）。退出码 0 = 逐行相同。
 - main 前进后缓存自然换名（提交号变了），旧文件可随手删；`--refresh` 强制重跑当前这份。
 
+**TRACE 新格式（10-29 起，docs/126 R3，`claude/test-gaps`）**：`TRACE` 行末尾多四个字段，既有字段的顺序和格式一字不动：
+
+```
+TRACE t=… lv=… k=… hp=… n=… rng=… pos=… h=… sq=<队友哈希> lamp=<灯火×100取整> nd=<神经损伤哈希> rl=<藏品数>
+```
+
+- `sq`：按编队顺序（`squad.ops`）对每名干员的 `[id, 位置×100, 突击生命 cmd_hp×1000, 三条技力 sp×100, attack_t×1000, fire_t×1000, 普攻冷却 cd×1000（数据干员）, 普攻次数 atk_n]` 拼串取 `String.hash`；浮点先量化成整数，避免噪声造成假差异。队长本人也在里面。
+- `lamp`：`g.lamp × 100` 取整。`nd`：队长身上的神经损伤（`nerve / nerve_lock / nerve_taken_mult / nerve_aura_t`，量化后哈希）；敌人身上没有神经损伤累积，所以不聚合敌人。`rl`：藏品数（`g.relics.size()`）。
+- 只在 `--balance --trace` 下算（`autotest.trace_extra()`），只读、不碰 rng、不改状态；正式游戏路径零开销。
+- **旧基线缓存不可直接逐行比**：10-29 之前录的 `build/trace_cache/*.txt` 和 `game/tests/golden_current/` 金样行尾没有这四个字段，逐行比会在第 1 行报不同——这类文件作废，需重录（`tools/trace_base.py --refresh` / 合入后云端统一重录金样）。只想证明「玩法没变」时，把新输出的行尾 ` sq=…` 起剥掉再和旧基线比（10-29 验证：mizuki seed 1 前 90 秒 91 行，剥尾后与 bfa2bcd07 基线逐行相同；同一局跑两遍含新字段逐行相同）。本文只写文档，没删任何人的缓存文件。
+- 灵敏度自测 `game/tests/trace_fields_test.gd`（`check.py --only trace_fields`）：只改一个量（队友位置 / 突击生命 / 三条技力 / 普攻计时 / 灯火 / 神经损伤各项 / 藏品数），对应字段必须变，还原后回到原值，浮点噪声（0.001）不变，计算不动五条 rng 流。
+
 ## 4. 速度
 
 2026-09-26 的优化，同一台机器、同样负载下并排实测：
@@ -643,3 +655,17 @@ main 6aa19849 起干员帧改按帧条自身尺寸 / json 里的 `foot` 读（�
 
 **结论**：抽样范围内（每人每阶段 2–3 帧、9 人共约 160 张战斗截图 + 选人页 / 图鉴各 9 张）没有发现穿帮、残留帧、朝向错误或特效错位；选人页大立绘与图鉴页用的是另一套美术（不受这次 64 画布改动影响），两处截图也都正常。这不是逐帧全扫的结论，只能说明抽样帧里没有看到问题；`docs/108` §11 里列的 F1–F11 架构级问题仍然有效，不在本次人工验收范围内。
 
+
+## 14. 缺口补测（2026-10-29，测试与验收，`claude/test-gaps`；依据 docs/126 R3 / R6 与 arch_review_1029 风险 5）
+
+只加测试与 TRACE 工具，不改玩法代码（同 seed 玩法逐行不变，证明见 §3.2「TRACE 新格式」）。新增的场景回归都登记在 `tools/check.py` 的 `SCENE_REGRESSIONS`，可单跑 `python tools/check.py --only <名>`：
+
+| 名 | 场景 | 固定了什么 |
+|---|---|---|
+| `trace_fields` | `trace_fields_test` | TRACE 新字段 `sq / lamp / nd / rl` 的灵敏度、还原、浮点噪声免疫、只读（不动五条 rng） |
+| `ui_smoke` | `ui_smoke_test` | 界面冒烟：标题页（选人 / 难度 / 图鉴 / 寻访 / 认知塑造 / 蚀刻章 / 设置 / 操作说明 / 致谢 / Boss 演练）与局内（HUD / 暂停 / 暂停里的设置 / 属性面板 / 胜利结算 / 作战记录 / 对局记录 / 失败结算）各开关两遍：无脚本错误（check_scene 扫输出）、无缺图（`Art._cache` 新增的 null 键，`fx_` 可选特效有程序回退不计）、第二遍关闭后节点数不涨 |
+| `time_scale_combo` | `time_scale_combo_test` | 时间缩放组合。现行规则（读 `game._process` 得出）：`dt = min(真实帧, 0.05) × 圆盘系数`；之后三条互斥路径——击破慢动作（只乘 `victory.time_scale`，圆盘与倍速都不乘）/ 顿帧（模拟整帧暂停，`hitstop` 按真实帧递减）/ `PlayClock.steps`（真实帧先封顶 2/60 再 × 倍速）。**代码里没有「选点」减速这个缩放源**，故只测圆盘、倍速、顿帧、击破慢动作四者 |
+| `hit_fallback` | `hit_fallback_test` | `combat._damage` 在 h 为空时沿用 `g.hit`。**已知缺陷特征测试**：g.hit 残留上一下的干员描述符时，空 h 的伤害会错记给那名干员（作战记录 op_out、dmg_out）；显式 h 归属正确与 `_damage` 不改 `g.hit` 是回归保护。修复时翻转标 [已知缺陷] 的断言 |
+| `nerve_rules` | `nerve_rules_test` | 神经损伤积累规则特征测试：溟痕 / 神经光环 / 流明光域、难度与卡片倍率、满条清零 + 锁定 5 秒 + 12% 真伤、灯火退散档位（自然溟痕 × (1 − 0.8x)，Boss 溟痕不减）。**已知缺陷**（P1-4）：Boss 在场时满条真伤仍不经 `_boss_clamp`、不记 Boss 份额 |
+
+没做、留给后续：HUD 缓存自检 `--hudcheck`（风险 2）、原生等价测试无 dll 时显式提示（R7）、机器人策略拆出 autotest（C4）。

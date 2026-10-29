@@ -200,7 +200,7 @@ static func _paranoia_top(g, e: Dictionary) -> void:
 	ParanoiaComboDraw.draw_top(g, e)   # 连携攻势：幻影空心泡 / 起手聚光（docs/170）
 	var left: float = 0.0
 	if e.phase == 1 and float(e.get("drop_until", 0.0)) > g.t:
-		left = (float(e.drop_until) - g.t) / maxf(0.1, Bal.v("boss/paranoia_drop_t", 4.0))
+		left = (float(e.drop_until) - g.t) / maxf(0.1, Bal.v("boss/paranoia_drop_t", 5.0))
 	elif e.phase == 2 and float(e.get("aura_off_until", 0.0)) > g.t:
 		left = (float(e.aura_off_until) - g.t) / maxf(0.1, float(e.get("aura_off_max", 5.0)))
 	if left <= 0.0:

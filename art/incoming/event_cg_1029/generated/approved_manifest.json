@@ -1,0 +1,74 @@
+[
+  {
+    "file": "task.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "706c0bc4a7b89ec6331c1406886c88853ed786b490ee76be2c38944a60c38535",
+    "reference": "Avg_pic_rogue_2_47.png",
+    "status": "visual_approved_2026-10-29_not_integrated"
+  },
+  {
+    "file": "vanguard.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "01440c339ed5ae5954f7ae515b6e41747fc40d3928997bee366f0353e7751c0d",
+    "reference": "Avg_pic_rogue_1_1.png",
+    "status": "visual_approved_2026-10-29_not_integrated"
+  },
+  {
+    "file": "sellout.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "6befba0735dabe24ff0a33c814d7fe2412123cd91cc72651586a534ab342f9b4",
+    "reference": "Avg_pic_rogue_2_4.png",
+    "status": "visual_approved_2026-10-29_not_integrated"
+  },
+  {
+    "file": "craft.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "1404ca80514018839c8991fc752f7762d06cf27aa62b116a831dc97b174ed8b1",
+    "reference": "Avg_pic_rogue_2_38.png",
+    "status": "visual_approved_2026-10-29_not_integrated"
+  },
+  {
+    "file": "homecoming.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "20c85039076cc98394f2430c76ca50979f79f6547845729812db8b62ee473aef",
+    "reference": "Avg_pic_rogue_2_33.png",
+    "status": "visual_approved_2026-10-29_not_integrated"
+  },
+  {
+    "file": "scholar.png",
+    "kind": "source_constrained_event_cg",
+    "size": [
+      1327,
+      1185
+    ],
+    "mode": "RGB",
+    "sha256": "e977df79f7f28d085e99e06e38e521f1b5b4cd152b7613917555737b86b8638b",
+    "reference": "Avg_pic_rogue_2_36.png",
+    "status": "visual_approved_2026-10-29_not_integrated"
+  }
+]

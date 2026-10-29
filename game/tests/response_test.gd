@@ -1,6 +1,6 @@
 extends Node
 ## 干员响应动作（docs/118）：第一批 德克萨斯（队长冲刺）/ 星熊、艾雅法拉（队长站定）/ 铃兰（队长开技能）；
-## 第二批一组 能天使 / 斯卡蒂 / 推进之王（队长冲刺）/ 维什戴尔 / 流明（队长站定）/ 逻各斯 / 浊心斯卡蒂（队长开技能）；
+## 第二批一组 能天使 / 斯卡蒂（队长冲刺）/ 推进之王（10-29 删响应，只测没有）/ 维什戴尔 / 流明（队长站定）/ 逻各斯 / 浊心斯卡蒂（队长开技能）；
 ## 第二批二组 塞雷娅（队长站定，on_leader_still）/ 凯尔希（队长开技能）/ 水月 / 归溟幽灵鲨 / 艾丽妮 / 安洁莉娜（指挥切换）。
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=hoshiguma --squad=texas,eyjafjalla
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=suzuran --squad=texas
@@ -219,24 +219,17 @@ func test_skadi(g, o) -> void:
 	ok(hp_sum(g) < h0 - 1.0, "斯卡蒂：队长冲刺结束 → 落点横扫命中（%.0f → %.0f）" % [h0, hp_sum(g)])
 
 
-## 推进之王：队长冲刺结束 → 跃向队长身边最近的敌人；落地砸中 → 其他干员技力 +1 秒
+## 推进之王：响应已删（用户 10-29：冲刺一次砸一次很奇怪）→ 队长冲刺结束后不起跳、不补锤
 func test_siege(g, o) -> void:
+	ok(not o.B.has("response"), "推进之王：没有响应动作段")
 	if o.is_leader:
 		return
-	var mate = null
-	for m in g.squad.ops:
-		if m != o and m.skill_unlocked(0) and m.sp_need(0) > 0.0:
-			mate = m
+	var h0 := hp_sum(g)
 	dash(g, true, o)
 	dash(g, false, o)
 	var sg: Dictionary = o.hw.get("sg", {})
-	ok(float(sg.get("leap_t", -1.0)) >= 0.0, "推进之王：队长冲刺结束 → 起跳")
-	if mate != null:
-		mate.sp[0] = 0.0
-	for k in 40:
-		tick(o)
-	ok(float(sg.get("leap_t", 0.0)) < 0.0, "推进之王：落地")
-	ok(mate == null or float(mate.sp[0]) >= 0.9, "推进之王：补锤砸中 → 其他干员技力 +1 秒（%.2f）" % (float(mate.sp[0]) if mate != null else -1.0))
+	ok(float(sg.get("leap_t", -1.0)) < 0.0, "推进之王：队长冲刺结束 → 不起跳")
+	ok(hp_sum(g) >= h0 - 1.0, "推进之王：队长冲刺结束 → 不补锤（%.0f → %.0f）" % [h0, hp_sum(g)])
 
 
 ## 维什戴尔：队长站定 → 攻击速度 +18%
@@ -345,6 +338,63 @@ func test_kaltsit(g, o) -> void:
 	g.leader_skill_n += 1
 	tick(o)
 	ok(float(o.rsp.get("last", -1.0)) == t0, "凯尔希：3 秒冷却内不重复")
+	_kaltsit_front(g, o)
+
+
+## 凯尔希（10-29）：跃到队长与最近敌群之间、队长前方 36–80 处，落地面朝敌群，落地圈不罩住队长；260 内没有敌人时不扑击
+func _kaltsit_front(g, o) -> void:
+	var saved: Array = []
+	for e in g.enemies:
+		saved.append([e, e.pos])
+	var reset := func() -> void:
+		for sm in o.sm.list:
+			sm.erase("dash")
+		o.rsp["last"] = -1.0e9
+		for k in o.rsp.keys():
+			if str(k).begins_with("cd"):
+				o.rsp.erase(k)
+	# 敌群在队长正右方 220 处
+	var k := 0
+	for e in g.enemies:
+		e.pos = g.ppos + Vector2(220.0, (k % 5) * 12.0 - 24.0)
+		k += 1
+	g.enemies_sys.build_grid()
+	reset.call()
+	g.leader_skill_n += 1
+	tick(o)
+	var d: Dictionary = {}
+	for sm in o.sm.list:
+		if sm.get("dash", {}).get("k", "") == "leap":
+			d = sm.dash
+	ok(not d.is_empty(), "凯尔希：敌群在前方 → 起跃")
+	if not d.is_empty():
+		var rel: Vector2 = (d.to as Vector2) - g.ppos
+		ok(rel.length() >= 59.0 and rel.length() <= 81.0 and rel.x > 50.0, "凯尔希：落点在队长前方 60–80、朝敌群一侧（偏移 %s）" % str(rel.round()))
+		ok(absf(float(d.land.get("face_x", 0.0)) - (g.ppos.x + 220.0)) < 30.0, "凯尔希：落地面朝敌群（face_x %.0f）" % float(d.land.get("face_x", 0.0)))
+		var rr := 0.0
+		for t in d.land.then:
+			if t is Dictionary and t.has("r"):
+				rr = float(t.r)
+		ok(rr > 0.0 and rr <= rel.length() - 15.9, "凯尔希：落地圈半径 %.0f 不罩住队长（落点距队长 %.0f）" % [rr, rel.length()])
+	# 敌人都在 600 外：不扑击
+	k = 0
+	for e in g.enemies:
+		e.pos = g.ppos + Vector2(600.0, (k % 5) * 12.0)
+		k += 1
+	g.enemies_sys.build_grid()
+	reset.call()
+	g.leader_skill_n += 1
+	tick(o)
+	var leaping := false
+	for sm in o.sm.list:
+		if sm.get("dash", {}).get("k", "") == "leap":
+			leaping = true
+	ok(not leaping, "凯尔希：260 内没有敌人 → 不做扑击")
+	for p in saved:
+		p[0].pos = p[1]
+	for sm in o.sm.list:
+		sm.erase("dash")
+	g.enemies_sys.build_grid()
 
 
 ## 水月：切到突击 → 3 秒内伞击范围 ×1.5

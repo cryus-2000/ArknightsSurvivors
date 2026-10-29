@@ -120,8 +120,8 @@ def check_balance(errs, verbose):
         lits.update(PATH_LIT.findall(open(p, encoding="utf-8").read()))
     unread = sorted(x for x in leaves if x not in lits and x not in reads)
     for r in sorted(reads):
-        if r in leaves or "/" not in r:
-            continue
+        if r in leaves or "/" not in r or r.endswith("_"):
+            continue   # 以 _ 结尾的是拼接前缀（"boss/spd_all_k_" + 类型），不是整键
         parent, last = r.rsplit("/", 1)
         sib = [x for x in unread if x.rsplit("/", 1)[0] == parent]
         close = difflib.get_close_matches(last, [x.rsplit("/", 1)[1] for x in sib], n=1, cutoff=0.8)

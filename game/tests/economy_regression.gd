@@ -135,7 +135,7 @@ func _process(_dt: float) -> void:
 		game.progression.gain_relic(r.id)
 	check(game.relics.size() >= 14, "used crossroads release their slots (%d)" % game.relics.size())
 	check(game.relics.size() <= 15, "hard collection cap")
-	for rid in game.progression.relic_pool_ids(true):
+	for rid in game.guide.relic_pool_ids(true):
 		check(game.relics.has(rid), "full bag only offers upgrades")
 	var new_id := ""
 	for r in ordinary:
@@ -163,7 +163,7 @@ func _process(_dt: float) -> void:
 			break
 		game.progression.gain_relic(r.id)
 	check(game.relics.size() >= 40, "uncapped: 40 relics can be held (%d)" % game.relics.size())
-	var offers: Array = game.progression.relic_pool_ids()
+	var offers: Array = game.guide.relic_pool_ids()
 	check(offers.any(func(x): return not game.relics.has(x)), "uncapped: chest offers still include new relics at 40")
 	check(offers.size() >= 3, "uncapped: offer pool not degraded")
 	var new2 := ""

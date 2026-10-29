@@ -239,13 +239,13 @@ func _replace(old_id: String, new_id: String, route: String):
 
 ## 入队加成（docs/83，用户 10-13 定：每入队一名干员，编队生命与自动回复各上一个台阶；招募时写明）。
 ## 每多 1 名干员（开局干员不算，最多算 squad/hp_member_cap 人）：
-##   主控最大生命 ×(1 + squad/hp_per_member × 人数)（2026-09-27 用户定每人 +15%），对 max_hp 加来源 "squad" 的 mult，叠在成长卡生命之上一起放大；
+##   主控最大生命 ×(1 + squad/hp_per_member × 人数)（2026-09-27 用户定每人 +15%），对 max_hp 加来源 "squad" 的 mult（只乘基础值与百分比加成，固定加成「坚韧」等放在倍率之后不被放大，docs/199）；
 ##   主控生命回复 + squad/regen_per_member × 人数（生命 / 秒），对 regen 加来源 "squad" 的 flat，和干员 leader 段 regen、「自愈」同一个池，吃 heal_mult。
 ## 人数变化时当前生命按同比例缩放（入队不显示掉血，离队反向）
 func _apply_size_hp() -> void:
 	if g.stats == null or not g.stats.has_stat(&"max_hp"):
 		return
-	var per: float = Bal.v("squad/hp_per_member", 0.0)
+	var per: float = Bal.v("squad/hp_per_member", 0.15)
 	var old_max: float = g.max_hp
 	g.stats.remove_source("squad")
 	var n: int = member_steps(ops.size())
@@ -269,7 +269,7 @@ static func member_steps(size: int) -> int:
 ## 第 1 / 第 2 名队友各加 squad/regen_t1 / regen_t2，< 0（缺省 -1）= 沿用 regen_per_member；第 3 名起（编队上限 +1 的藏品）一律 regen_per_member。
 ## 两档都没设时仍按原式 regen_per_member × 台阶数算（缺省结果逐位不变）
 static func regen_bonus(steps: int) -> float:
-	var rper: float = Bal.v("squad/regen_per_member", 0.0)
+	var rper: float = Bal.v("squad/regen_per_member", 0.15)
 	var t1: float = Bal.v("squad/regen_t1", -1.0)
 	var t2: float = Bal.v("squad/regen_t2", -1.0)
 	if t1 < 0.0 and t2 < 0.0:
@@ -299,7 +299,7 @@ func join_bonus_text() -> String:
 	if member_steps(ops.size() + 1) <= member_steps(ops.size()):
 		return ""
 	var parts: Array = []
-	var per: float = Bal.v("squad/hp_per_member", 0.0)
+	var per: float = Bal.v("squad/hp_per_member", 0.15)
 	var rper: float = regen_step(member_steps(ops.size() + 1))
 	if per > 0.0:
 		parts.append("队长最大生命 +%d%%" % int(round(per * 100.0)))
@@ -325,6 +325,12 @@ func _apply_leader_regen(op) -> void:
 	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
 	# sustain/base_regen_mult（缺省 1）：只缩放队长自带的基础回复，入队台阶、「自愈」、藏品不受影响（协调人 10-13 云端测试用旋钮）
 	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)) * Bal.v("sustain/base_regen_mult", 1.0))
+	# 主控自带的冲刺（10-29 用户「德克萨斯自带两个冲刺，距离略短」）：leader.dash {charges 额外次数, dist_mult 距离倍率}；换主控时一起换，冲刺卡的加层 / 加距离照常叠在上面
+	var dh: Dictionary = op.def.get("leader", {}).get("dash", {})
+	if g.stats.has_stat(&"dash_charges"):
+		g.stats.set_base(&"dash_charges", 1.0 + float(dh.get("charges", 0)))
+	if g.stats.has_stat(&"dash_dist"):
+		g.stats.set_base(&"dash_dist", float(dh.get("dist_mult", 1.0)))
 	g.sync_stats()
 
 
@@ -388,6 +394,7 @@ func update(dt: float) -> void:
 		_tick_recall(dt)
 	_tick_lead(dt)
 	_tick_stamina(dt)
+	_tick_order(dt)
 	_tick_hp(dt)
 	_tick_rush_buff()
 	if pf:
@@ -522,6 +529,68 @@ func apply_command(id: String) -> void:
 			set_priority(1)
 		"boss":
 			set_priority(0)
+		"point", "focus":
+			g.pick.begin(id)   # 原型：进入选点阶段（command_pick.gd）
+
+
+## ---------------------------------------------------------------- 指点（示意原型，docs/196；command/target_proto = 0 时永远不会有指令）
+## order_kind：""（无，原来的自动突击）/ "point"（点位：全队去 order_pos、在半径 command/order_pt_r 内作战）/ "focus"（集火：全队打 order_target）
+var order_kind := ""
+var order_pos := Vector2.INF
+var order_target = null
+var _order_idle := 0.0
+
+
+func apply_order(mode: String, pt: Vector2, target) -> bool:
+	if not cmd_on():
+		return false
+	if stance != ROAM:
+		if not can_roam():
+			if g.get("vfx") != null:
+				g.vfx.add_text(g.ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)
+			return false
+		set_stance(ROAM)
+	order_kind = mode
+	order_pos = pt
+	order_target = target if mode == "focus" else null
+	_order_idle = 0.0
+	for o in ops:
+		o.roam_tgt = null
+	stance_log.append([g.t, 20 if mode == "point" else 21])
+	_stance_voice(ROAM, false)
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f order=%s" % [g.t, mode])
+	return true
+
+
+func clear_order() -> void:
+	order_kind = ""
+	order_pos = Vector2.INF
+	order_target = null
+	_order_idle = 0.0
+
+
+## 点位指令：圈里没有敌人超过 command/order_idle 秒就自动归队（不空耗作战时限）；集火目标死了 = 指令结束（继续自动突击）；队长走远（> order_break）归队
+func _tick_order(dt: float) -> void:
+	if order_kind == "":
+		return
+	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) and order_kind == "point":
+		set_stance(RECALL)
+		return
+	if order_kind == "focus":
+		if order_target == null or order_target.dead:
+			clear_order()
+		return
+	var R: float = Bal.v("command/order_pt_r", 240.0) + 80.0
+	var any := false
+	for e in g.enemies_sys.nearest(1, R, order_pos):
+		any = not e.dead
+	if any:
+		_order_idle = 0.0
+	else:
+		_order_idle += dt
+		if _order_idle >= Bal.v("command/order_idle", 2.5):
+			set_stance(RECALL)
 
 
 func set_priority(p: int) -> void:
@@ -794,6 +863,8 @@ func set_stance(s: int) -> void:
 	if s == stance:
 		return
 	stance = s
+	if s != ROAM:
+		clear_order()   # 指点（原型，docs/196）：不在突击就没有指令
 	if s == ROAM:
 		sorties_n += 1
 		_sortie_down = false
@@ -1063,7 +1134,7 @@ var _pcap := -1
 
 func _pfx_cap_plan() -> void:
 	if _pcap < 0:
-		_pcap = int(Bal.v("render/pfx_cap", 0.0))
+		_pcap = int(Bal.v("render/pfx_cap", 30.0))
 	if _pcap <= 0:
 		return
 	var ns: Array = []

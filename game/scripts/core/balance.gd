@@ -1,9 +1,25 @@
 ## 数值平衡旋钮（docs/27）：data/balance.json 的静态读取器。
-## 用法：Bal.v("enemy/hp_div", 120.0)、Bal.op("wisadel")、Bal.sec("bot")。找不到的键一律返回默认值，JSON 缺失也不影响运行。
+## 用法：Bal.v("enemy/hp_div", 110.0)、Bal.op("wisadel")、Bal.sec("bot")。找不到的键一律返回默认值，JSON 缺失也不影响运行。
 extends RefCounted
 
-static var _data: Dictionary = {}
+static var _store: Dictionary = {}   # 数据本体（本文件内部用它；外部一律经 _data）
 static var _loaded := false
+
+## 读取缓存（docs/199 ②，10-29）：Bal.v 每次调用原来都 path.split("/") 再逐段查字典，combat / spawner 等热路径每帧几百次。
+## 现在按路径缓存解析结果：_vc 路径 → 数值（float）或 false（没有 / 不是数）。数据在 _load 里一次写定（--bal= 覆盖和 _preset 都在 _load 里），之后只读。
+## 测试里直接改 Bal._data["段"]["键"] = x 的写法照旧可用：_data 是个属性，外部每读一次 _data（几乎都是为了改它）就把缓存丢掉；
+## 经 sec() 拿到整段再改的同理（sec 每次调用也丢缓存）；reload() 自带。所以不需要谁手动清缓存
+static var _vc: Dictionary = {}
+static var _cache_on := true   # 测试场景关（见 _load）
+const _CACHE_MAX := 20000   # 路径里带敌人 / 干员 id 的动态键数量有限；万一暴涨整表丢掉重来
+
+static var _data: Dictionary:
+	get:
+		_vc.clear()
+		return _store
+	set(val):
+		_store = val
+		_vc.clear()
 
 
 static func _load() -> void:
@@ -16,14 +32,14 @@ static func _load() -> void:
 		return
 	var d = JSON.parse_string(f.get_as_text())
 	if d is Dictionary:
-		_data = d
+		_store = d
 	# 测试探针（数值 close7 9c509e3 原样搬入 main，协调人 9/30）：--bal=段/键=值 覆盖旋钮，一个分支跑多组数值；
 	# 唯一改动：只在 debug 构建读命令行（发布版无效，check_release 要求；Bal 可能早于 Cfg 加载，所以就地判断）
 	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):
 		if a.begins_with("--bal=") and a.count("=") == 2:
 			var kv: PackedStringArray = a.substr(6).split("=")
 			var keys: PackedStringArray = kv[0].split("/")
-			var cur: Dictionary = _data
+			var cur: Dictionary = _store
 			for i in keys.size() - 1:
 				if not (cur.get(keys[i]) is Dictionary):
 					cur[keys[i]] = {}
@@ -32,6 +48,11 @@ static func _load() -> void:
 	_preset("nausea_safe", NAUSEA_SAFE)
 	_preset("palette_trial", PALETTE_TRIAL)
 	_preset("foe_calm", FOE_CALM)
+	# 测试场景（res://tests/ 下的场景或 -s 脚本）不用缓存：不少回归拿到 sec() / _data 的整段后隔几步再改里面的键，
+	# 缓存丢不掉（10-30 integ-1029 云端 command_ai / prot 因此读到旧值）。只在 debug 构建判断，发布版恒开
+	for a in (OS.get_cmdline_args() if OS.is_debug_build() else PackedStringArray()):
+		if a.begins_with("res://tests/"):
+			_cache_on = false
 
 
 ## docs/139 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
@@ -71,7 +92,7 @@ const FOE_CALM := {
 
 
 static func _preset(key: String, table: Dictionary) -> void:
-	var r = _data.get("render")
+	var r = _store.get("render")
 	if not (r is Dictionary) or float(r.get(key, 0.0)) <= 0.0:
 		return
 	var given := {}
@@ -82,36 +103,45 @@ static func _preset(key: String, table: Dictionary) -> void:
 		if given.has(path):
 			continue
 		var keys: PackedStringArray = str(path).split("/")
-		if not (_data.get(keys[0]) is Dictionary):
-			_data[keys[0]] = {}
-		_data[keys[0]][keys[1]] = table[path]
+		if not (_store.get(keys[0]) is Dictionary):
+			_store[keys[0]] = {}
+		_store[keys[0]][keys[1]] = table[path]
 
 
-## 按「段/键」路径取数值
-static func v(path: String, default: float) -> float:
-	_load()
-	var cur: Variant = _data
+static func _walk(path: String) -> Variant:
+	var cur: Variant = _store
 	for k in path.split("/"):
 		if cur is Dictionary and cur.has(k):
 			cur = cur[k]
 		else:
-			return default
-	return float(cur) if (cur is float or cur is int) else default
+			return null
+	return cur
+
+
+## 按「段/键」路径取数值
+static func v(path: String, default: float) -> float:
+	var c: Variant = _vc.get(path)
+	if c == null:
+		_load()
+		var cur: Variant = _walk(path)
+		c = float(cur) if (cur is float or cur is int) else false
+		if not _cache_on:
+			return c if c is float else default
+		if _vc.size() >= _CACHE_MAX:
+			_vc.clear()
+		_vc[path] = c
+	return c if c is float else default
 
 
 static func vi(path: String, default: int) -> int:
 	return int(v(path, float(default)))
 
 
-## 整段（字典）；没有返回空字典
+## 整段（字典）；没有返回空字典。拿到的是 _store 里的那份引用，调用方可能改它，所以每次调用丢一次数值缓存（sec 调用很少，约每秒个位数）
 static func sec(path: String) -> Dictionary:
 	_load()
-	var cur: Variant = _data
-	for k in path.split("/"):
-		if cur is Dictionary and cur.has(k):
-			cur = cur[k]
-		else:
-			return {}
+	_vc.clear()
+	var cur: Variant = _walk(path)
 	return cur if cur is Dictionary else {}
 
 
@@ -123,5 +153,6 @@ static func op(cid: String) -> Dictionary:
 ## 测试用：重新读取
 static func reload() -> void:
 	_loaded = false
-	_data = {}
+	_store = {}
+	_vc.clear()
 	_load()

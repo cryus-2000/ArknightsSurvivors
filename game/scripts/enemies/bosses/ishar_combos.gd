@@ -8,7 +8,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Beam = preload("res://scripts/render/boss_beam.gd")
 
 const COL := Color(0.3, 1.0, 0.65)
-const NEW_MOVES := ["合唱环颂", "泪雨", "抚愈之歌", "网鸣", "大群之声", "歌声涟漪", "潮涡", "侵蚀之泪", "大群之声·双束", "潮涌突进"]
+const NEW_MOVES := ["合唱环颂", "泪雨", "抚愈之歌", "网鸣", "大群之声", "歌声涟漪", "潮涡", "侵蚀之泪", "大群之声·双束", "潮涌突进", "合围之歌"]
 ## [幕][组]：name 只用于演练列表与测试（不出横幅），seq 为连段各段（撕咬按距离自动变横扫）
 ## 10-28 用户「不同阶段攻击方式差距不大」→ 每幕一个躲法主题，招式不跨幕复用（docs/170b §2）：
 ##   一幕「读线」：她站定唱歌不追人，只出预警线 / 地带（激光、追扫、涟漪、触腕），不出成片弹幕；
@@ -73,7 +73,7 @@ func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 		if _broken(e):
 			cancel(e)
 			return
-		var gap: float = [Bal.v("boss/ishar_combo_gap", 0.3), 0.24, 0.2][act_of(e)]   # 每幕节奏（docs/170 §15）：一幕留呼吸、二幕压迫、三幕最紧
+		var gap: float = [Bal.v("boss/ishar_combo_gap", 0.26), 0.24, 0.2][act_of(e)] * Bal.v("boss/tempo_k_ishar", 0.75)   # 每幕节奏（docs/170 §15）：一幕留呼吸、二幕压迫、三幕最紧
 		if not ready or _pending(e):
 			e.card_next = maxf(float(e.card_next), g.t + gap)
 			return
@@ -114,6 +114,8 @@ func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 func start(e: Dictionary, card: Dictionary) -> void:
 	e.card_live = true
 	e.card_q = card.seq.duplicate()
+	if card.name == "网鸣连段" and Bal.v("boss/ishar_inward_on", 1.0) > 0.0:
+		e.card_q.insert(1, "合围之歌")   # 10-29 用户「三幕攻击方式偏少」：围拢圈本身也开口唱
 	e.card_name = card.name
 	e.card_no = card_names().find(card.name) + 1
 	e.card_until = g.t + CARD_GUARD
@@ -162,7 +164,7 @@ func _pending(e: Dictionary) -> bool:
 func _finish(e: Dictionary) -> void:
 	e.card_live = false
 	# 破绽时长（10-28 测试台：破绽期输出只占 12%，目标 ≥35%）：一二幕 boss/ishar_break_t（3.0）、三幕 boss/ishar_break_t3（2.6）；破绽期网的减伤失效（ishar.taken_mult）
-	var rec: float = Bal.v("boss/ishar_break_t3", 2.6) if act_of(e) == 2 else Bal.v("boss/ishar_break_t", 3.0)
+	var rec: float = Bal.v("boss/ishar_break_t3", 4.8) if act_of(e) == 2 else Bal.v("boss/ishar_break_t", 6.0)
 	g.combat.start_break(e, rec)
 	e.brk_label = "破绽"
 	e.wind = maxf(e.wind, rec)
@@ -209,6 +211,7 @@ func play(e: Dictionary, mv: String, dir: Vector2, dist: float) -> float:
 		"侵蚀之泪": _seeking_tears(e)
 		"大群之声·双束": _twin_beam(e)
 		"潮涌突进": _surge(e)
+		"合围之歌": _inward_song(e)
 		"歌声涟漪": _song_zones(e)
 		_: return 0.0
 	e.move_name = mv
@@ -221,7 +224,13 @@ func play(e: Dictionary, mv: String, dir: Vector2, dist: float) -> float:
 ## 弹体分级：音弹 r6（中速）、大泪 r13（慢）、碎片 r5（快）；均为真实伤害
 
 func _emit(e: Dictionary, at: float, d: Dictionary) -> void:
-	d.at = at
+	# 10-29 docs/201 §7：发数 × boss/count_k_ishar（缺口格数同比放大，缺口角度不变），排程延迟 × boss/tempo_k_ishar
+	var ck: float = Bal.v("boss/count_k_ishar", 1.4)
+	if d.has("n") and ck != 1.0:
+		d.n = maxi(1, int(round(float(d.n) * ck)))
+		if d.has("gap"):
+			d.gap = int(round(float(d.gap) * ck))
+	d.at = g.t + maxf(0.0, at - g.t) * Bal.v("boss/tempo_k_ishar", 0.75)
 	if not e.has("ishar_emits"):
 		e.ishar_emits = []
 	e.ishar_emits.append(d)
@@ -269,10 +278,30 @@ func _emit_step(e: Dictionary) -> void:
 							held.append(b)
 				if not held.is_empty():
 					keep.append({"at": g.t + hold, "kind": "release", "bs": held})
+			"inring":
+				# 从围拢圈上排一圈音弹，停 hold 秒（看清缺口）后一起向场心收拢；缺口中心 gc
+				var c: Vector2 = d.c
+				var R: float = float(d.R)
+				var n: int = int(d.n)
+				var gap: int = int(d.gap)
+				var held: Array = []
+				for k in n:
+					if k < ((gap + 1) >> 1) or k >= n - (gap >> 1):
+						continue
+					var a: float = float(d.gc) + TAU * (k + (0.5 if gap % 2 == 0 else 0.0)) / float(n)
+					var b = _shot_ref(e, own, c + Vector2.from_angle(a) * R, a + PI, float(d.spd), 6.0, 0.26, "ishar_shard", float(d.hold) + (R - 70.0) / float(d.spd))
+					if b != null:
+						own += 1
+						b.hold_v = b.vel
+						b.vel = Vector2.ZERO
+						held.append(b)
+				if not held.is_empty():
+					keep.append({"at": g.t + float(d.hold), "kind": "release", "bs": held})
+					_grains(c + Vector2.from_angle(float(d.gc)) * R, 10, "bfx_flash", false)
 			"release":
 				for b in d.bs:
 					if b.life > 0.0:
-						b.vel = b.hold_v
+						b.vel = b.hold_v * float(b.get("spd_k", 1.0))   # 停住时记的是原速；弹速统一倍率（shot_pool._final_speed，docs/201）
 			"drop":
 				var p: Vector2 = src.pos if src is Dictionary else e.pos
 				var b = _shot_ref(e, own, p, float(d.ang), 72.0, 13.0, 0.42, "ishar_tear", 7.0)
@@ -355,8 +384,8 @@ func _shot(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float
 func _shot_ref(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float, mult: float, kind: String, life := 6.5):
 	if own >= OWN_CAP:
 		return null
-	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
-		"slow": false, "frost": 0.0, "corrode": Bal.v("boss/ishar_corrode", 0.5), "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
+	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.4), "r": r, "life": life,
+		"slow": false, "frost": 0.0, "corrode": Bal.v("boss/ishar_corrode", 1.0), "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": "ishar"}
 	g.ebullets.append(b)
 	return b
@@ -579,7 +608,7 @@ func _song_zones(e: Dictionary) -> void:
 			"name": "歌声涟漪" if k == 0 else "", "col": COL, "dmg": e.dmg * 0.35, "cancel_dead": true, "lock": k == 0})
 		if not e.has("ishar_zones"):
 			e.ishar_zones = []
-		e.ishar_zones.append({"pos": p, "r": 105.0, "born": g.t + w.dur, "until": g.t + w.dur + Bal.v("boss/ishar_zone_linger", 4.0), "next": g.t + w.dur + 0.5, "w": w})
+		e.ishar_zones.append({"pos": p, "r": 105.0, "born": g.t + w.dur, "until": g.t + w.dur + Bal.v("boss/ishar_zone_linger", 6.0), "next": g.t + w.dur + 0.5, "w": w})
 	e.wind = maxf(e.wind, 1.8)
 	e.cdt = maxf(e.cdt, 1.8)
 
@@ -597,7 +626,7 @@ func _zone_step(e: Dictionary) -> void:
 			# 歌声侵蚀（10-28 协调人：「歌声治愈大群、侵蚀对手」）：站在地带内受治疗降低，离开即恢复（combat.song_heal_mult）
 			if float(e.get("song_cut_until", 0.0)) < g.t and g.t >= float(e.get("song_tip_next", 0.0)):
 				e.song_tip_next = g.t + 3.0
-				g.vfx.add_text(g.ppos + Vector2(0, -80), "歌声侵蚀 · 受治疗 −%d%%" % roundi(100.0 * Bal.v("boss/ishar_song_heal_cut", 0.5)), Color(0.86, 0.26, 0.42), 15)
+				g.vfx.add_text(g.ppos + Vector2(0, -80), "歌声侵蚀 · 受治疗 −%d%%" % roundi(100.0 * Bal.v("boss/ishar_song_heal_cut", 0.7)), Color(0.86, 0.26, 0.42), 15)
 			e.song_cut_until = g.t + 0.1
 		if g.t < float(z.born) or g.t < float(z.next):
 			continue
@@ -606,7 +635,7 @@ func _zone_step(e: Dictionary) -> void:
 			g.combat.slow_leader("ishar_song", 0.6, 0.75)
 			if g.invuln <= 0.0:
 				var hd: Dictionary = z.w.duplicate()
-				hd.dmg = e.dmg * Bal.v("boss/ishar_zone_tick", 0.16)
+				hd.dmg = e.dmg * Bal.v("boss/ishar_zone_tick", 0.3)
 				g.tele.warn_damage(hd)
 	e.ishar_zones = keep
 
@@ -642,6 +671,30 @@ func _seeking_tears(e: Dictionary) -> void:
 	e.wind = maxf(e.wind, dur)
 	e.cdt = maxf(e.cdt, dur)
 	Sfx.play("tentacle", -8.0, 0.6)
+
+
+## 合围之歌（三幕，本作自拟；开关 boss/ishar_inward_on）：场边的歌声围拢圈本身开口——沿圈排出一圈碎片音弹（36 位去 5 位），
+## 先停 0.8 秒亮出缺口，再一起向场心收拢（80px/s，到她身边 70 像素消散）。共三圈、每圈相隔 1.4 秒，缺口每圈绕场心转 0.6 弧度（方向随出招次数交替），
+## 第一圈缺口对准出招时的队长。躲法：贴着圈去找缺口、跟着缺口绕，或冲刺穿过；圈越收越密，越晚躲越难。没有围拢圈（不在三幕）就不出
+func _inward_song(e: Dictionary) -> void:
+	var f: Dictionary = e.get("ishar_fence", {})
+	if f.is_empty():
+		return
+	var c: Vector2 = f.c
+	var R: float = _fence_r(e) - 8.0
+	var gc: float = (g.ppos - c).angle() if g.ppos.distance_to(c) > 1.0 else 0.0
+	e.inward_k = int(e.get("inward_k", 0)) + 1
+	var sgn: float = 1.0 if int(e.inward_k) % 2 == 1 else -1.0
+	var waves := 3
+	for w in waves:
+		_emit(e, g.t + 0.5 + 1.4 * w, {"kind": "inring", "src": null, "c": c, "R": R, "n": 36, "gap": 5,
+			"gc": gc + sgn * 0.6 * w, "spd": Bal.v("boss/ishar_inward_spd", 80.0), "hold": 0.8})
+	g.fx.append({"kind": "ring", "pos": c, "r": R, "life": 0.7, "max": 0.7, "col": COL, "enemy": true})
+	g.vfx.add_text(e.pos + Vector2(0, -70), "合围之歌 · 找缺口", COL, 15)
+	Sfx.play("tentacle", -8.0, 0.55)
+	var dur: float = 0.5 + 1.4 * (waves - 1) + 0.8 + 1.0
+	e.wind = maxf(e.wind, dur)
+	e.cdt = maxf(e.cdt, dur)
 
 
 ## 大群之声·双束（三幕终曲）：两束较细的追扫（宽 64）从队长两侧 ±1.0 弧度起，各自追向「队长方向 ±0.32」，向你合拢后在两侧掠过，中间留一条可走的缝

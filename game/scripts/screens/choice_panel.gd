@@ -424,7 +424,27 @@ func ink_grad() -> GradientTexture2D:
 	return ink_tex
 
 
+var ev_shown_t := 0.0   # 事件面板这一屏弹出的界面时刻（check_event_panel 防抖）
+
+
+## 事件面板兜底（10-29 用户卡死：标题和叙述在、选项一条都没有）：弹出 0.6 秒后选项列不可见或没有可见的选项条，
+## 交给 endings.recover_panel 重建成「离开」一屏。每帧画事件底时查（draw_event_bg）；now = true 时立即查（测试用）
+func check_event_panel(now := false) -> bool:
+	if g.state != Game.S.CHOICE or g.choice_kind != "event" or not g.panel.visible:
+		return true
+	var ok: bool = g.panel_col.visible and g.panel_col.get_children().any(func(c): return c is Control and c.visible and not c.is_queued_for_deletion())
+	if ok or (not now and UM.now() - ev_shown_t < 0.6):
+		return ok
+	ev_shown_t = UM.now()
+	if now:
+		g.endg.recover_panel()
+	else:
+		g.endg.recover_panel.call_deferred()
+	return false
+
+
 func draw_event_bg(vs: Vector2) -> void:
+	check_event_panel()
 	if lay().touch:
 		_draw_event_bg_phone(vs)
 		return
@@ -559,6 +579,8 @@ func offset_poly(p: PackedVector2Array, o: Vector2, _clip: PackedVector2Array) -
 func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := false) -> void:
 	g.choices = opts
 	g.choice_kind = kind
+	if kind == "event":
+		ev_shown_t = UM.now()
 	g.nav_sel = 0
 	if kind != "event":
 		release_event_cg()

@@ -73,7 +73,7 @@
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1633 / 防御 215 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
-  "max_hp": 120,
+  "max_hp": 108.0,
   "armor": 1.5,
   "arts_res": 0.0,
   "regen": 0.8
@@ -681,8 +681,8 @@
     "melt": {
      "id": "melt_triple2",
      "name": "不毁重构·余焰",
-     "icon": "skill_kaltsit_s3",
-     "desc": "「指令：熔毁」连续爆炸三次后，爆心留下 {$melt4_dur} 秒熔渣：每 {$melt4_every} 秒对半径 {$melt_r} 内的敌人造成 Mon3tr 攻击 {$melt4_mult*$k_pow*100:1}% 真实伤害"
+     "icon": "skill_kaltsit_s1",
+     "desc": "「指令：结构加固」施放时 Mon3tr 重构后的三连爆之后，爆心留下 {$melt4_dur} 秒熔渣：每 {$melt4_every} 秒对半径 {$rebuild_r*1.5:0} 内的敌人造成 Mon3tr 攻击 {$melt4_mult*$k_pow*100:1}% 真实伤害；精英二后「指令：熔毁」三连爆之后同样留下熔渣（半径 {$melt_r}）"
     }
    }
   },
@@ -704,7 +704,8 @@
    "召唤",
    "近战"
   ],
-  "desc": "医疗干员，罗德岛医疗项目负责人，持续为队长回复生命；随行的 Mon3tr 撕碎靠近的敌人"
+  "desc": "医疗干员，罗德岛医疗项目负责人，持续为队长回复生命；随行的 Mon3tr 撕碎靠近的敌人",
+  "intro": "罗德岛高层管理人员之一"
  },
  "blocks": {
   "summons": {
@@ -2905,7 +2906,39 @@
      }
     ]
    },
-   "melt_triple2": {
+   "melt_triple2": [
+   {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "at": "summon:mon3tr",
+    "delay": "$melt_echo_gap*3",
+    "_doc": "不毁重构·余焰（路线 melt 节点 5）：结构加固的三连爆后爆心留熔渣（精一即生效）",
+    "do": [
+     {
+      "verb": "field",
+      "center": "target",
+      "r": "$rebuild_r*1.5",
+      "dur": "$melt4_dur",
+      "every": "$melt4_every",
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$rebuild_r*1.5",
+        "atk_key": "m_atk",
+        "mult": "$melt4_mult",
+        "power": true,
+        "src": "Mon3tr · 熔毁",
+        "tags": [
+         "skill",
+         "dot"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
     "trig": "on_skill_end",
     "skill": 2,
     "at": "summon:mon3tr",
@@ -2936,19 +2969,22 @@
      }
     ]
    }
+   ]
   },
   "response": [
    {
     "trig": "on_leader_skill",
     "cd": 3.0,
     "hint": "护主",
-    "_doc": "响应动作（docs/118 §4.3）：队长开技能时，Mon3tr 跃回队长身边，落地一圈 × leap_mult × 0.8 并击退（同精二「回防」的跃回，各自计冷却）。Mon3tr 位移按 §1.4 设冷却 3 秒（不短于队长冲刺冷却）",
+    "_doc": "响应动作（docs/118 §4.3；10-29 改）：队长开技能时，Mon3tr 跃到队长与最近敌群之间、队长前方 60–80 处，落地面朝敌群，落地一圈（以落点为中心、半径不罩住队长）× leap_mult × 0.8 并击退；260 内没有敌人时不扑击不画圈，由随行小步跟回。Mon3tr 位移按 §1.4 设冷却 3 秒（不短于队长冲刺冷却）",
     "do": [
      {
       "verb": "summon_cmd",
       "kind": "mon3tr",
       "action": "leap",
-      "to": "leader",
+      "to": "front",
+      "range": 260,
+      "front_max": 80,
       "t": "$leap_t",
       "then": [
        {

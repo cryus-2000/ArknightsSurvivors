@@ -1,7 +1,7 @@
 extends Node
 ## 星熊 S1「战意」站定嘲讽 + 防御反击（10-24 用户定，docs/140）：
 ## godot --headless --path game res://tests/hoshiguma_taunt_test.tscn -- --regression --balance --seed=1 --op=mizuki --squad=hoshiguma
-## 队员时：技能期间钉在起手处（队长走开也不跟）、半径内近战杂兵改追她、Boss 不吃嘲讽；结束时反击倍率 = s1_mult + s1_per × 拉到的敌人数。
+## 队员时：起手即反手重斩（10-29 方案 A）、技能期间钉在起手处（队长走开也不跟）、半径内近战杂兵改追她、Boss 不吃嘲讽、受到的伤害 × (1 - s1_dr)；结束时不再斩。
 ## 队长时（换成队长）：照常移动，不站定。全部通过时打印 "HOSHIGUMA TAUNT failures=0"。
 
 var game: Node
@@ -62,7 +62,7 @@ func test_member(o) -> void:
 	o.sp = [-10000.0, -10000.0, -10000.0]
 	o.cd = 10000.0
 	var p0: Vector2 = o.pos
-	var r: float = float(o.B.skills[0].do[0].r) * o.stat(&"op_range")
+	var r: float = float(o.B.skills[0].do[2].r) * o.stat(&"op_range")
 	# 半径内两只近战杂兵，放在队长那一侧（不嘲讽时它们追队长）；一只 Boss 不吃嘲讽
 	var es: Array = []
 	for k in 4:
@@ -78,6 +78,9 @@ func test_member(o) -> void:
 	step(15)   # 出手帧（0.21 秒）生效、记下站定点
 	var pa: Vector2 = o.pos
 	ok(not o.taunt.is_empty() and o.taunt.anchor.distance_to(pa) < 1.0, "出手时记下站定点")
+	var hit0: float = float(game.dmg_out.get("举盾反击", 0.0)) - before
+	ok(hit0 > 0.0, "起手即反手重斩（%.0f）" % hit0)
+	ok(absf(o.ext_dr - (1.0 - float(o.base("s1_dr", 0.3)))) < 0.001, "站定期间受伤 × %.2f（实得 %.2f）" % [1.0 - float(o.base("s1_dr", 0.3)), o.ext_dr])
 	step(40, 220.0)   # 队长往右跑开
 	ok(o.pos.distance_to(pa) < 2.0, "队员站定：队长跑开时星熊留在原地（偏移 %.1f）" % o.pos.distance_to(pa))
 	ok(not o.taunt.is_empty() and o.taunt.ids.size() >= 4, "半径内的近战杂兵都被拉到（%d）" % (o.taunt.ids.size() if not o.taunt.is_empty() else -1))
@@ -91,15 +94,11 @@ func test_member(o) -> void:
 	step(200)
 	ok(o.taunt.is_empty(), "技能结束后嘲讽清掉")
 	var got: float = float(game.dmg_out.get("举盾反击", 0.0)) - before
-	ok(got > 0.0, "结束时打出举盾反击（%.0f）" % got)
+	ok(absf(got - hit0) < 0.5, "结束时不再斩（总伤害仍是起手那一下：%.0f / %.0f）" % [got, hit0])
 	ok(o.taunt_anchor() == Vector2.INF, "结束后不再钉在原地")
-	# 倍率：s1_mult + s1_per × n 用的是 on_end 的副本，原积木不改
-	var m0: float = float(o.B.skills[0].do[0].on_end[0].mult)
-	o.start_skill(Vector2.INF, 0)
-	step(260)
-	ok(is_equal_approx(float(o.B.skills[0].do[0].on_end[0].mult), m0), "原积木倍率不被改写")
+	ok(is_equal_approx(o.ext_dr, 1.0), "结束后减伤取消（%.2f）" % o.ext_dr)
 	ok(n_ids > 0, "拉到的数量记下了")
 	# 队长时不站定
-	o.taunt = {"i": 0, "b": o.B.skills[0].do[0], "anchor": Vector2.INF, "ids": {}}
+	o.taunt = {"i": 0, "b": o.B.skills[0].do[2], "anchor": Vector2.INF, "ids": {}}
 	ok(o.taunt_anchor() == Vector2.INF, "队长时（anchor INF）不站定")
 	o.taunt = {}

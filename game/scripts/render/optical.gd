@@ -85,7 +85,7 @@ func _update_cols(dt: float) -> void:
 	col_elite = Color.from_hsv(eh, Bal.v("render/optical_col_elite_s", 0.35), Bal.v("render/optical_col_elite_v", 1.0))
 	var dh: float = fposmod(lerpf(Bal.v("render/optical_col_danger_h", 0.95), Bal.v("render/optical_col_horde_h", 1.0), _tide_k), 1.0)
 	col_danger = Color.from_hsv(dh, Bal.v("render/optical_col_danger_s", 0.85), Bal.v("render/optical_col_danger_v", 1.0))
-	col_ebullet = Color.from_hsv(Bal.v("render/optical_col_ebullet_h", 0.95), Bal.v("render/optical_col_ebullet_s", 0.85), Bal.v("render/optical_col_ebullet_v", 1.0))
+	col_ebullet = Color.from_hsv(Bal.v("render/optical_col_ebullet_h", 0.54), Bal.v("render/optical_col_ebullet_s", 0.8), Bal.v("render/optical_col_ebullet_v", 1.0))
 
 
 ## ⑥ 动态照明：候选 = 一次性帧条特效（按剩余寿命衰减、半径随帧高）+ 我方弹 + 敌弹（危险色、弱）；按亮度取前 N 个
@@ -481,7 +481,7 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 ## 地面荧光斑（环境色）：按 64 世界像素一格哈希，约 render/optical_ground_glow（缺省 0.06）的格子有一颗 2 px 斑，各自慢慢明灭。
 ## 只看格坐标，镜头怎么走都固定在地上；只画镜头内（约 500 格）
 func _draw_ground_glow() -> void:
-	var dens: float = Bal.v("render/optical_ground_glow", 0.06)
+	var dens: float = Bal.v("render/optical_ground_glow", 0.1)
 	if dens <= 0.0 or g.cam == null:
 		return
 	var vs: Vector2 = g.get_viewport().get_visible_rect().size / g.cam.zoom
@@ -489,7 +489,7 @@ func _draw_ground_glow() -> void:
 	var x0: int = floori((c.x - vs.x * 0.5) / 64.0)
 	var y0: int = floori((c.y - vs.y * 0.5) / 64.0)
 	var t: float = Time.get_ticks_msec() / 1000.0
-	var warm: float = Bal.v("render/ground_glow_warm", 0.0)
+	var warm: float = Bal.v("render/ground_glow_warm", 0.4)
 	for cy in range(y0, y0 + ceili(vs.y / 64.0) + 1):
 		for cx in range(x0, x0 + ceili(vs.x / 64.0) + 1):
 			var hsh: int = (cx * 73856093) ^ (cy * 19349663)
@@ -607,7 +607,7 @@ func _process(_dt: float) -> void:
 	mat.set_shader_parameter("emissive_th", Bal.v("render/optical_emissive_th", 0.72))
 	mat.set_shader_parameter("lut_on", Bal.v("render/optical_lut", 1.0))
 	mat.set_shader_parameter("sat", Bal.v("render/optical_sat", 1.0))
-	mat.set_shader_parameter("brightness", Cfg.brightness * Bal.v("render/ambient_gain", 1.0))
+	mat.set_shader_parameter("brightness", Cfg.brightness * Bal.v("render/ambient_gain", 1.05))
 	mat.set_shader_parameter("sea_amt", Bal.v("render/optical_sea", 0.55))
 	mat.set_shader_parameter("caustics", Bal.v("render/optical_caustics", 0.02))
 	mat.set_shader_parameter("time", Time.get_ticks_msec() / 1000.0)

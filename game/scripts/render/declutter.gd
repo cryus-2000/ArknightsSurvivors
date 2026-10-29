@@ -78,7 +78,7 @@ static func hit_spokes() -> bool:
 
 static func level() -> int:
 	if _lv < 0:
-		_lv = clampi(Bal.vi("render/declutter", 0), 0, PRESETS.size() - 1)
+		_lv = clampi(Bal.vi("render/declutter", 3), 0, PRESETS.size() - 1)
 	return 0 if ab_alt else _lv
 
 

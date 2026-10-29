@@ -34,6 +34,7 @@ func _process(_d: float) -> void:
 		test_s1(o)
 		test_s3(o)
 		test_s2(o)
+		test_leader_charges()
 		test_dash(o)
 		test_leader_dash(o)
 		test_storm(o)
@@ -261,3 +262,10 @@ func test_dash(o) -> void:
 	var sw: Dictionary = o.anim_state()
 	ok(str(sw.get("kind", "")) == "back_native" and int(sw.get("frame", -1)) == 0, "回马剑等待开始：back_native 第 0 帧")
 	o.tx["queue"] = []
+
+
+## 队长冲刺自带 2 次充能、距离略短（10-29 用户）
+func test_leader_charges() -> void:
+	ok(game.dash_max() == 2, "德克萨斯当队长：冲刺自带 2 次充能（实得 %d）" % game.dash_max())
+	var full: float = float(game.Bal.v("dash/dist", 107.0))
+	ok(absf(game.dash_dist() - full * 0.88) < 0.5, "德克萨斯当队长：冲刺距离 ×0.88（%.1f / %.1f）" % [game.dash_dist(), full])

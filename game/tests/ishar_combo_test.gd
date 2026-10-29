@@ -12,6 +12,10 @@ func check(ok: bool, label: String) -> void:
 		print("FAIL ", label)
 
 func _ready() -> void:
+	# 图案 / 连段逻辑按原密度验：docs/201 §7 的加密旋钮（每波弹数 / 节奏 / 弹速倍率）在本测试里钉回 1
+	Bal.v("boss/count_k_ishar", 1.0)
+	for k in ["count_k_ishar", "tempo_k_ishar", "spd_all_k_ishar"]:
+		Bal._data["boss"][k] = 1.0
 	g = load("res://game.tscn").instantiate()
 	g.demo_op = "mizuki"
 	g.demo_enemy = "ishar"
@@ -273,8 +277,8 @@ func _ready() -> void:
 		var d1: float = angle_difference(pa, float(e.ishar_sweep.ang))
 		var d2: float = angle_difference(pa, float(e.ishar_sweep2.ang))
 		check(signf(d1) != signf(d2) and absf(d1) > 0.15 and absf(d2) > 0.15, "twin beams close in from both sides and leave a lane (%.2f, %.2f)" % [d1, d2])
-	# 7. 判定点 + 擦弹（boss/graze_on，10-29）
-	graze_checks(cards)
+	# 7. 判定点（enemy/bullet_core_hit，10-29）
+	core_checks(cards)
 	# 6. 同输入复现
 	var a: Array = trace()
 	var b: Array = trace()
@@ -285,14 +289,6 @@ func _ready() -> void:
 	await get_tree().process_frame
 	get_tree().quit(0 if failures == 0 else 1)
 
-func _sp_sum() -> float:
-	var ld = g.squad.leader()
-	var t := 0.0
-	for i in 3:
-		t += float(ld.sp[i])
-	return t
-
-
 func _probe(cards, e: Dictionary, d: float, boss := true) -> Dictionary:
 	g.ebullets.clear()
 	var b = cards._shot_ref(e, 0, g.ppos + Vector2(0, -14) + Vector2(d, 0), 0.0, 0.0, 8.0, 0.3, "ishar_tear", 5.0)
@@ -301,33 +297,20 @@ func _probe(cards, e: Dictionary, d: float, boss := true) -> Dictionary:
 	return b
 
 
-func graze_checks(cards) -> void:
-	var on0: float = Bal.v("boss/graze_on", 0.0)
+func core_checks(cards) -> void:
+	var on0: float = Bal.v("enemy/bullet_core_hit", 1.0)
 	var e: Dictionary = fresh(1)
-	var ld = g.squad.leader()
-	for i in 3:
-		ld.sp[i] = 0.0
 	var core: float = 8.0 * Bal.v("enemy/bullet_hit_scale", 0.6)
-	Bal._data["boss"]["graze_on"] = 0
-	check(str(_probe(cards, e, core + 6.0).get("_die", "")) == "hit", "graze off: old hitbox (r + 12) still hits at core + 6")
-	Bal._data["boss"]["graze_on"] = 1
-	var sp_k: float = Bal.v("boss/graze_sp", 0.0)
-	Bal._data["boss"]["graze_sp"] = 0.01   # 缺省 0（10-29 协调人：第一版只做反馈），测试打开验证代码路径
-	check(str(_probe(cards, e, core - 1.0).get("_die", "")) == "hit", "graze on: boss bullet core hits the dot")
-	var sp0: float = _sp_sum()
-	var b: Dictionary = _probe(cards, e, core + 6.0)
-	check(str(b.get("_die", "")) != "hit" and b.has("_grz") and _sp_sum() > sp0, "graze on: passing just outside the core grazes and charges SP (%.2f -> %.2f)" % [sp0, _sp_sum()])
-	var n1: int = g.graze_n
-	g.t += 1.0
-	g.shots.update_ebullets(0.0)
-	check(g.graze_n == n1, "same bullet grazes only once")
+	Bal._data["enemy"]["bullet_core_hit"] = 0
+	check(str(_probe(cards, e, core + 6.0).get("_die", "")) == "hit", "core hit off: old hitbox (r + 12) still hits at core + 6")
+	Bal._data["enemy"]["bullet_core_hit"] = 1
+	check(str(_probe(cards, e, core - 1.0).get("_die", "")) == "hit", "core hit on: bullet core hits the dot")
+	check(str(_probe(cards, e, core + 6.0).get("_die", "")) != "hit", "core hit on: just outside the core misses")
 	check(str(_probe(cards, e, core + 6.0, false).get("_die", "")) != "hit", "global rule: non-boss enemy bullets also hit only the core")
 	e.dead = true
-	var n2: int = g.graze_n
-	check(str(_probe(cards, e, core + 6.0).get("_die", "")) != "hit" and g.graze_n == n2 + 1, "global rule: applies outside boss fights too, and grazes count")
+	check(str(_probe(cards, e, core + 6.0).get("_die", "")) != "hit", "global rule: applies outside boss fights too")
 	e.dead = false
-	Bal._data["boss"]["graze_on"] = on0
-	Bal._data["boss"]["graze_sp"] = sp_k
+	Bal._data["enemy"]["bullet_core_hit"] = on0
 
 
 func fresh(act: int) -> Dictionary:

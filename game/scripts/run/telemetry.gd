@@ -97,6 +97,19 @@ var appliers: Dictionary = {}   # 状态 -> [[时刻, 敌人类型（"" = 环境
 var lamp_s: Array = [0.0, 0.0, 0.0, 0.0]   # 灯火四档累计秒数：通明（≥ 70）/ 摇曳（30–69）/ 暗淡（< 30）/ 寂灭（0）
 # ---- 本地保存
 var saved := false
+
+# ---- 遥测补洞 1（docs/200）：只在 --telemetry=full 下计算（云端批跑缺省开；本地 / 对内包 / 对外包不开，正式游戏路径只多一次布尔判断）。
+# 全部只读：不用随机数、不改状态，同 seed TRACE 不变。
+var rich := false
+var hit_elite := false          # combat.enemy_hit 设置：这一下的来源是不是精英 / 是不是 Boss 来源
+var hit_boss := false
+var hits2: Array = []           # 最近 15 秒逐笔掉血：[t, 来源, 归属键, 精英(0/1), 上限截前量, 实际扣血, 之后生命]（持续 / 环境来源 0.5 秒内合并）
+var tl: Array = []              # 死前时间线：每 0.5 秒一格 [t, 生命, 灯火, 在场敌人, 150 内, 300 内, 敌弹, 8 向被堵数(200 内), 无敌(0/1), 可用冲刺, 队伍人数]，保留 15 秒
+var tl_next := 0.0
+var near_miss: Array = []       # 险境快照：生命首次 < 20% 时存（每局最多 3 份，两份间隔 ≥ 20 秒）：{t, hp, tl, src}
+var near_cool := -99.0
+var ult: Array = []             # 占位（终结技 / 连携 / 连携终结技）：[t, 干员, kind(q/e/chain), 命中, 伤害, 击杀, 生命%]；ult-proto 合入后对齐字段名，现在不写
+var cap_stats := {"hits": 0, "zero": 0, "pre": 0.0, "post": 0.0, "one_n": 0, "one_cut": 0.0, "boss_n": 0, "boss_cut": 0.0, "any_n": 0, "any_cut": 0.0, "big_n": 0}
 ## 医疗差距遥测（docs/88，只在 --balance 下记，g.bot == null 时各调用点直接跳过）：按 0–3 / 3–6 / 6–9 / 9+ 分钟分段
 ##   sus.heal["来源·子项"] = [实际回进去, 给出的量（含溢出）]；sus.dr[干员 id] = 干员减伤（dmg_taken_mult，护甲前）挡掉的伤害；
 ##   sus.clean[corrode / nerve] = 净化清掉的侵蚀池 / 神经损伤量；sus.lit = 只因「照亮」（灯光外）多打的伤害
@@ -137,6 +150,7 @@ func _init(game: Game) -> void:
 		var d = JSON.parse_string(f.get_as_text())
 		if d is Dictionary:
 			build = d
+	rich = Cfg.dev_args().has("--telemetry=full")
 
 
 ## 每帧采样（只观察，不改状态、不用随机数，所以不影响同 seed 复现）
@@ -330,6 +344,87 @@ func tick(dt: float) -> void:
 		hpmin_win = 100
 		lampmin_win = g.lamp
 		win_src = {}
+	if rich:
+		_snap(t)
+
+
+## lose_hp 调用（rich 下）：一次扣血的各级上限截前 / 截后量。one = 来源自带单次上限（围猎事件敌人），boss = Boss 保护（单发 / 持续 / 2 秒 / 满血保护合计），any = 任意来源 2 秒上限
+func cap_note(pre_all: float, pre_boss: float, pre_any: float, post: float, src: String, boss: bool) -> void:
+	if pre_all <= 0.0:
+		return
+	var one := pre_all - pre_boss
+	var bc := pre_boss - pre_any
+	var ac := pre_any - post
+	cap_stats.hits += 1
+	cap_stats.pre += pre_all
+	cap_stats.post += post
+	if post <= 0.0:
+		cap_stats.zero += 1
+	if one > 0.01:
+		cap_stats.one_n += 1
+		cap_stats.one_cut += one
+	if bc > 0.01:
+		cap_stats.boss_n += 1
+		cap_stats.boss_cut += bc
+	if ac > 0.01:
+		cap_stats.any_n += 1
+		cap_stats.any_cut += ac
+	if pre_all - post >= pre_all * 0.5 and pre_all - post > 1.0:
+		cap_stats.big_n += 1   # 被截掉一半以上的大头
+	var direct := src == "bullet" or src == "tear"
+	for p in DIRECT_PREFIX:
+		if src.begins_with(p):
+			direct = true
+	var nm := src
+	if src == "bullet" and hit_boss:
+		nm = "bullet_boss"   # Boss 弹与普通敌弹分开命名（dmg_log 里仍叫 bullet，别的报告不受影响）
+	var key: String = str(_attr(src)[0])
+	var t := snappedf(g.t, 0.1)
+	if not direct and not hits2.is_empty():
+		var l: Array = hits2[hits2.size() - 1]
+		if l[1] == nm and t - float(l[0]) < 0.5:
+			l[4] = snappedf(float(l[4]) + pre_all, 0.1)
+			l[5] = snappedf(float(l[5]) + post, 0.1)
+			l[6] = int(g.hp)
+			return
+	hits2.append([t, nm, key, 1 if (direct and hit_elite) else 0, snappedf(pre_all, 0.1), snappedf(post, 0.1), int(g.hp)])
+	while not hits2.is_empty() and float(hits2[0][0]) < g.t - RING_S:
+		hits2.pop_front()
+
+
+## 0.5 秒一格的死前时间线 + 险境快照（rich 下，tick 末尾）
+func _snap(t: float) -> void:
+	if t < tl_next:
+		return
+	tl_next = t + 0.5
+	var pp: Vector2 = g.ppos
+	var n150 := 0
+	var n300 := 0
+	var mask := 0
+	for e in g.enemies:
+		if e.dead:
+			continue
+		var d2: float = e.pos.distance_squared_to(pp)
+		if d2 < 90000.0:
+			n300 += 1
+			if d2 < 22500.0:
+				n150 += 1
+			if d2 < 40000.0:
+				mask |= 1 << posmod(int(floor((e.pos - pp).angle() / (TAU / 8.0))), 8)
+	var blocked := 0
+	for i in 8:
+		if (mask & (1 << i)) != 0:
+			blocked += 1
+	tl.append([snappedf(t, 0.1), int(g.hp), int(g.lamp), g.enemies.size(), n150, n300, g.ebullets.size() + g.lobs.size(), blocked,
+		1 if g.invuln > 0.0 else 0, g.dash_left(), g.squad.size()])
+	while not tl.is_empty() and float(tl[0][0]) < t - RING_S:
+		tl.pop_front()
+	if g.hp > 0.0 and g.hp < g.max_hp * 0.2 and near_miss.size() < 3 and t - near_cool >= 20.0:
+		near_cool = t
+		var tot := {}
+		for h in hits2:
+			tot[h[1]] = snappedf(float(tot.get(h[1], 0.0)) + float(h[5]), 0.1)
+		near_miss.append({"t": snappedf(t, 0.1), "hp": int(g.hp), "mhp": int(g.max_hp), "tl": tl.duplicate(true), "src": tot})
 
 
 ## 普通怪死亡时记一笔（combat 击杀结算调用）：按分钟 × 类型累计只数与受击次数，精英 / Boss / 友方不记
@@ -438,10 +533,8 @@ const DOT_CAUSE := {"corrode": "侵蚀", "wound": "侵蚀创口", "nerve": "神�
 const DIRECT_PREFIX := ["contact_", "atk_", "boss_", "blast_", "shock_"]
 
 
-## lose_hp 每次扣血调用：换算成归属键
-func on_lose(amount: float, src: String) -> void:
-	if amount <= 0.0:
-		return
+## 来源 → [归属键, 持续伤害的死因]（on_lose 与 cap_note 共用；只读）
+func _attr(src: String) -> Array:
 	var key := ""
 	var cause := ""
 	if DOT_CAUSE.has(src):
@@ -458,6 +551,16 @@ func on_lose(amount: float, src: String) -> void:
 				key = "e:" + src.substr(p.length())
 		if key == "":
 			key = "env:" + src   # zone 黑潮 / mire 溟痕 / dark 寂灭 / relic 藏品代价
+	return [key, cause]
+
+
+## lose_hp 每次扣血调用：换算成归属键
+func on_lose(amount: float, src: String) -> void:
+	if amount <= 0.0:
+		return
+	var kc := _attr(src)
+	var key: String = kc[0]
+	var cause: String = kc[1]
 	blame.append([g.t, key, cause, amount])
 	while blame.size() > 1 and float(blame[0][0]) < g.t - BLAME_S - 2.0:
 		blame.pop_front()
@@ -567,8 +670,13 @@ func ring_snapshot() -> Dictionary:
 ## 结束时的局面（死因 × 缩圈阶段 × Boss 在场；A/B 缩圈规则用，2026-09-27）
 func end_ctx() -> Dictionary:
 	var out: float = g.ppos.distance_to(g.zone_c) - g.zone_r
-	return {"t": int(g.t), "src": last_src, "zone_state": g.zone_state, "zone_phase": g.combat.zone_phase if g.zone_state > 0 else -1,
-		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp), "last15": ring_snapshot()}
+	var ec := {"t": int(g.t), "src": last_src, "zone_state": g.zone_state, "zone_phase": g.combat.zone_phase if g.zone_state > 0 else -1,
+		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp), "last15": ring_snapshot(), "killer": killer()}   # killer：最近 3 秒归属键 + 持续伤害施加者（docs/200，原来只给结算界面）
+	if rich:
+		ec["tl"] = tl
+		ec["hits2"] = hits2
+		ec["near"] = near_miss
+	return ec
 
 
 static func _rounded(d: Dictionary) -> Dictionary:
@@ -657,6 +765,14 @@ func record(marks = null) -> Dictionary:
 		"terrain": g.map.tb_log.duplicate(),   # 地形阻挡（只记录）：挡下的我方 / 敌方直线弹、撞停的冲刺
 		"sus": sus,   # docs/88：治疗分项 / 干员减伤 / 净化 / 照亮
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
+	if rich:
+		rec["tel"] = "full"
+		rec["ult"] = ult
+		if not bot_block.is_empty():
+			var cs := cap_stats.duplicate()
+			for k in ["pre", "post", "one_cut", "boss_cut", "any_cut"]:
+				cs[k] = snappedf(cs[k], 0.1)
+			bot_block["cap_stats"] = cs
 	if not g.squad.stance_log.is_empty():
 		rec["cmd"] = g.squad.cmd_stats()   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数；没切过模式的局不写（BALANCE 与 main 逐字相同）
 	if g.ult != null:
@@ -677,6 +793,17 @@ func on_exit() -> void:
 	save_local("quit")
 
 
+## 当前场景是不是 res://tests/ 下的测试场景（玩家局的当前场景是 boot / main / game，不会命中）
+static func scene_is_test(path: String) -> bool:
+	return path.begins_with("res://tests/")
+
+
+func _current_scene_path() -> String:
+	var tree := Engine.get_main_loop() as SceneTree   # 退出流程里 g 可能已离树，所以不走 g.get_tree()
+	var cs: Node = tree.current_scene if tree != null else null
+	return cs.scene_file_path if cs != null else ""
+
+
 func save_local(result: String) -> void:
 	# 测试运行不写玩家的记录；自测写本地记录用 --runslog=<路径>（写到指定文件，不碰玩家目录）
 	var path := RUNS_PATH
@@ -686,8 +813,8 @@ func save_local(result: String) -> void:
 			test_path = a.substr(10)
 	if test_path != "":
 		path = test_path
-	elif not Cfg.dev_args().is_empty():
-		return
+	elif not Cfg.dev_args().is_empty() or scene_is_test(_current_scene_path()):
+		return   # 不带 -- 参数直接起 tests/ 场景的回归（check.py 里额外参数为空的那些）同样不写：10-14 / 10-20 / 10-27 的「水月 lv1 0 击杀 quit」就是它们
 	elif not Cfg.runs_log_enabled():
 		return   # 对外发布包不记任何玩家数据（用户 2026-09-26 决定暂不收集，docs/43）；调试版与对内包（audience = internal）记
 	if saved or g.demo_op != "" or g.t < MIN_SAVE_T:

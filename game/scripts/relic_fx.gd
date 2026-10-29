@@ -221,14 +221,6 @@ func max_lv(id: String) -> int:
 ## 能否出现在三选一 / 商店：未拥有，或已拥有但还能升级；前置条件按拥有判断；职业门槛按当前编队判断
 ## 核心延后（用户 10-29，docs/191 §6）：relic/core_gate 1 时，升华 / 核心（实际稀有度，73 件）在第一只中期 Boss 被击败前不进任何来源
 ## （三选一、商店、事件、随机给）；兜底 relic/core_gate_late 秒后照常（第一只 Boss 没打死的局）
-func core_gated(r: Dictionary) -> bool:
-	return r.rarity in ["升华", "核心"] and core_locked()
-
-
-func core_locked() -> bool:
-	return Bal.v("relic/core_gate", 0.0) > 0.0 and not g.mid_boss_down and g.t < Bal.v("relic/core_gate_late", 450.0)
-
-
 func can_offer(r: Dictionary, for_shop: bool) -> bool:
 	if for_shop and not r.shop_allowed:
 		return false
@@ -236,7 +228,7 @@ func can_offer(r: Dictionary, for_shop: bool) -> bool:
 		return false
 	if r.rarity == "结局" or r.get("source", "any") == "event":
 		return false
-	if core_gated(r):
+	if g.guide.core_gated(r):
 		return false
 	if g.relics.has(r.id) and lv.get(r.id, 0) >= max_lv(r.id):
 		return false
@@ -759,7 +751,7 @@ func tick(dt: float) -> void:
 		for c in coin_q:
 			if g.t >= c.t:
 				if c.op != null and g.squad.ops.has(c.op):
-					c.op.gain_sp(Bal.v("relic/coin_sp", 0.08))
+					c.op.gain_sp(Bal.v("relic/coin_sp", 0.12))
 			else:
 				keep.append(c)
 		coin_q = keep
@@ -919,7 +911,7 @@ func _area(src: String, p: Vector2, r: float, dmg: float) -> void:
 ## 岁怒：追击命中处引爆一次大范围法术伤害（按敌人生命的时间倍率缩放）
 func _wrath_blast(p: Vector2) -> void:
 	var r := 130.0
-	_area("岁怒", p, r, Bal.v("relic/wrath_dmg", 30.0) * g.combat.enemy_hp_time_mult())
+	_area("岁怒", p, r, Bal.v("relic/wrath_dmg", 45.0) * g.combat.enemy_hp_time_mult())
 	g.fx.append({"kind": "explode", "pos": p, "r": r, "life": 0.45, "max": 0.45, "col": Color(1.0, 0.45, 0.3)})
 	g.vfx.sparks(p, Vector2.ZERO, Color(1.0, 0.6, 0.35), 16, 280.0)
 	Sfx.play("boom", -8.0, 0.8, 0.05)
@@ -1422,7 +1414,7 @@ func on_kill(e: Dictionary) -> void:
 	for t in _triggers("EnemyKilled"):
 		var a: Dictionary = t[1].get("args", {})
 		if str(t[1].get("do", "")) == "sp" and a.has("class") and g.hit.get("class", "") == str(a.class):
-			_budget_sp(t[0], str(g.hit.get("op", "")), float(a.get("pct", 0.03)) * (float(e.get("dk", 1.0)) if Bal.v("enemy/density_kill_comp", 0.0) > 0.0 else 1.0), float(a.get("cap", 0.09)))   # 按击杀权重（docs/50 §16.8），每秒上限不变
+			_budget_sp(t[0], str(g.hit.get("op", "")), float(a.get("pct", 0.03)) * (float(e.get("dk", 1.0)) if Bal.v("enemy/density_kill_comp", 1.0) > 0.0 else 1.0), float(a.get("cap", 0.09)))   # 按击杀权重（docs/50 §16.8），每秒上限不变
 	# docs/57 P16：击败 Boss 时（赤金的远征 / 立体艺术装置 / 判官经文布 / 国王的水晶）
 	if e.get("boss", false):
 		for t in _triggers("BossKilled"):
@@ -1456,7 +1448,7 @@ func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 	if amount > 0.0 and rule("lifesteal") > 0 and str(h.get("src", "")) != "食腐":
 		_lifesteal(minf(amount, maxf(0.0, float(e.get("hp", amount)))))
 	if has_relic("inquisition_fire"):
-		_budget_sp("229", "", 0.002, Bal.v("relic/judge_cap", 0.03))
+		_budget_sp("229", "", 0.002, Bal.v("relic/judge_cap", 0.04))
 	var cls: String = h.get("class", "")
 	if cls == "近卫" and has_relic("broken_halberd"):
 		_budget_sp("139", h.get("op", ""), 0.0025, 0.02)

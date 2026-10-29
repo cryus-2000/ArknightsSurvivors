@@ -141,7 +141,7 @@ func test_forced_recruit() -> void:
 	var moved := 0
 	for seed in range(1, 41):
 		game.rng.seed = seed
-		var r: Array = af.forced_recruit_order(pool.duplicate(), 3)
+		var r: Array = game.guide.forced_recruit_order(pool.duplicate(), 3)
 		var top: Array = r.slice(0, 3).map(func(c): return str(c.id))
 		if top.has("irene"):
 			hits += 1
@@ -158,7 +158,7 @@ func test_forced_recruit() -> void:
 	var same := true
 	for seed in range(1, 21):
 		game.rng.seed = seed
-		var r: Array = af.forced_recruit_order(pool.duplicate(), 3)
+		var r: Array = game.guide.forced_recruit_order(pool.duplicate(), 3)
 		game.rng.seed = seed
 		var plain: Array = pool.duplicate()
 		game.shuffle(plain)
@@ -171,7 +171,7 @@ func test_forced_recruit() -> void:
 	for cid in ["exusiai", "eyjafjalla", "wisadel", "skadi"]:
 		nolink.append({"kind": "recruit", "id": cid, "name": cid})
 	game.rng.seed = 7
-	var r: Array = af.forced_recruit_order(nolink.duplicate(), 3)
+	var r: Array = game.guide.forced_recruit_order(nolink.duplicate(), 3)
 	game.rng.seed = 7
 	var plain: Array = nolink.duplicate()
 	game.shuffle(plain)

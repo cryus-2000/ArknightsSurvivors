@@ -399,7 +399,7 @@ func apply_passive(pid: String) -> bool:
 func passive_desc(pid: String) -> String:
 	match pid:
 		"regen":
-			var d: float = g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.6)) - g.combat.regen_per_sec()
+			var d: float = g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.4)) - g.combat.regen_per_sec()
 			return "队长生命回复 +%s / 秒" % _num(d)
 		"armor":
 			return "队长受到的物理伤害 -%d%%（乘算；对法术、真实伤害无效）" % int(round(Bal.v("growth/armor_pct", 0.08) * 100.0))
@@ -418,12 +418,12 @@ static func _num(v: float) -> String:
 
 
 ## 卡面预览「现值 → 选中后」：都按属性系统算最终值（StatBlock.value_with），和属性面板、实际生效一致（docs/83 §2）。
-## 坚韧的 +20 是基础值，会被入队加成 / 难度的最大生命倍率放大，预览写放大后的数
+## 坚韧的 +20 是固定加成：最大生命的固定加成放在倍率之后（stat_block.FLAT_AFTER，docs/199），卡上写多少就加多少
 func passive_preview(pid: String) -> String:
 	var st = g.stats
 	match pid:
 		"hp": return "最大生命 %d → %d" % [int(g.max_hp), int(maxf(20.0, st.value_with(&"max_hp", "flat", 20.0)))]
-		"regen": return "生命回复 %.1f → %.1f / 秒" % [g.combat.regen_per_sec(), g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.6))]
+		"regen": return "生命回复 %.1f → %.1f / 秒" % [g.combat.regen_per_sec(), g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.4))]
 		"armor": return "受到的物理伤害 ×%.2f → ×%.2f" % [g.phys_taken_mult, st.value_with(&"phys_taken", "mult", 1.0 - Bal.v("growth/armor_pct", 0.08))]
 		"dodge": return "闪避 %d%% → %d%%" % [int(round(g.dodge * 100)), int(round(st.value_with(&"dodge", "flat", 0.05) * 100))]
 		"speed": return "移动速度 %d → %d" % [int(g.speed), int(st.value_with(&"move_speed", "mult", 1.1))]
@@ -433,7 +433,7 @@ func passive_preview(pid: String) -> String:
 		"dash_dist": return "冲刺距离 %d → %d" % [int(round(g.dash_dist())), int(round(Bal.v("dash/dist", 107.0) * st.value_with(&"dash_dist", "add", Bal.v("dash/dist_card", 0.12))))]
 		"dash_charge": return "可储存次数 %d → %d" % [g.dash_max(), g.dash_max() + 1]
 		"sp": return "技力回复 ×%.2f → ×%.2f" % [g.sp_mult, g.sp_mult * 1.15]
-		"squad_atk": return "全队攻击 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_atk", ["squad"]), g.stats.value_for(&"op_atk", ["squad"]) + Bal.v("squad/op_atk_base", 1.0) * 0.08]   # 加算：+0.08 乘在基础 op_atk_base 上（10-28 原写 +0.08，实际 +0.072）
+		"squad_atk": return "全队攻击 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_atk", ["squad"]), g.stats.value_for(&"op_atk", ["squad"]) + Bal.v("squad/op_atk_base", 0.9) * 0.08]   # 加算：+0.08 乘在基础 op_atk_base 上（10-28 原写 +0.08，实际 +0.072）
 		"squad_aspd": return "全队攻速 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_aspd", ["squad"]), g.stats.value_for(&"op_aspd", ["squad"]) + 0.06]
 		"squad_range": return "全队范围 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_range", ["squad"]), g.stats.value_for(&"op_range", ["squad"]) + 0.08]
 		"squad_crit": return "技能强度 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_skill_power", ["squad"]), g.stats.value_for(&"op_skill_power", ["squad"]) + 0.1]

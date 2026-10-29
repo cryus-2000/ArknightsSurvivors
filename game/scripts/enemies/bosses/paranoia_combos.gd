@@ -91,7 +91,13 @@ func act(e: Dictionary) -> int:
 
 
 func _dn(e: Dictionary, i: int):
-	return DENS[clampi(act(e), 0, DENS.size() - 1)][i]
+	var v = DENS[clampi(act(e), 0, DENS.size() - 1)][i]
+	# 10-29 docs/201 §7（用户「弹幕频率、数量还是低」）：每波发数（眼数 / 狙击向数 / 双旋每环 / 波环每圈 / 群愿每朵）× boss/count_k_paranoia，眼开枪间隔 × boss/tempo_k_paranoia；缺口半角、帘幕缝宽不动
+	if i in [0, 3, 5, 7, 11]:
+		return int(round(float(v) * Bal.v("boss/count_k_paranoia", 1.4)))
+	if i == 2:
+		return float(v) * Bal.v("boss/tempo_k_paranoia", 0.75)
+	return v
 
 
 ## 每帧（paranoia.step 在主轴机制之后调用）；返回 true = 出招由连段接管
@@ -269,6 +275,8 @@ func _emit(e: Dictionary, seg: String, dir: Vector2) -> void:
 		spec.n = int(_dn(e, 6))
 	elif seg in ["侵蚀帘幕", "无声波环"] and act(e) >= 2:
 		spec.n = 3   # 三幕起多一道：缝 / 缺口来回错位，要读
+	if seg != "千目注视":
+		spec.iv = float(spec.iv) * Bal.v("boss/tempo_k_paranoia", 0.75)
 	var wind: float = float(spec.get("wind", WINDUP))
 	var t0: float = g.t + wind
 	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(), "wind": wind,
@@ -545,7 +553,7 @@ func _update_rush(e: Dictionary, dt: float) -> void:
 		if not ln.hit and Geometry2D.get_closest_point_to_segment(g.ppos, prev, ln.pos).distance_to(g.ppos) < RUSH_R + 12.0:
 			ln.hit = true
 			if g.invuln <= 0.0:
-				g.combat.enemy_hit(e.dmg * Bal.v("boss/paranoia_rush_mult", 1.0), {"boss": true, "src_type": e.type, "corrode": 0.3}, false, true, ["近战", "法术"], "boss_" + e.type)
+				g.combat.enemy_hit(e.dmg * Bal.v("boss/paranoia_rush_mult", 1.3), {"boss": true, "src_type": e.type, "corrode": 0.3}, false, true, ["近战", "法术"], "boss_" + e.type)
 		if gr != null and BossBeam.take(g, 4) == 4:
 			# 尾流：身后两侧各一串泡沫，向外散开
 			for sd in [-1.0, 1.0]:

@@ -12,6 +12,7 @@
 没有缓存时：在 <主仓库>/.claude/worktrees/trace-<提交>-<pid> 建临时工作树（拷主仓库的导入缓存），
 跑 `--headless --balance --seed=S --op=队长 --bot=expert --maxt=时长 --trace=1 [附加参数]`，存好后删掉工作树。
 TRACE 只在 --balance 模式下打印（autotest.gd），所以基线用 --balance 跑；--bot / --tier 等可在 --extra 里覆盖。
+TRACE 行尾 10-29 起多 sq= lamp= nd= rl=（autotest.trace_extra）；--here 遇到旧格式基线会剥掉新字段再比。
 退出码：0 = 给出了路径（--here 时还要求逐行相同）；1 = 跑失败或 --here 有差异。
 """
 import argparse, hashlib, os, shutil, subprocess, sys
@@ -115,6 +116,11 @@ def main():
     base = read_lines(path)
     tb = [l for l in base if l.startswith("TRACE ")]
     th = [l for l in lines if l.startswith("TRACE ")]
+    # 10-29 起 TRACE 行尾多 sq= lamp= nd= rl=（docs/36 §3.2）：基线是旧格式（没有 sq=）时，把当前行的新字段剥掉再比，
+    # 这样仍能证明「旧字段逐行相同 = 玩法没变」；基线也是新格式就整行比（含新字段）
+    if tb and " sq=" not in tb[0] and th and " sq=" in th[0]:
+        th = [l.split(" sq=")[0] for l in th]
+        print("基线是 10-29 之前的旧格式（行尾没有 sq= lamp= nd= rl=）：已剥掉当前行的新字段再比", flush=True)
     for i, (x, y) in enumerate(zip(tb, th)):
         if x != y:
             print("TRACE 第 %d 行起不同：\n  基线 %s\n  当前 %s" % (i + 1, x, y))
