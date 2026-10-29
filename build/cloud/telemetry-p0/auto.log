@@ -1,0 +1,16 @@
+快检：本次最多 3 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_100839
+按改动分级（--auto）：full（干员：angelina、exusiai、eyjafjalla、gladiia、hoshiguma、irene、kaltsit、lappland、logos、lumen、mizuki、saria、siege、skadi、skalter、specter_unchained、suzuran、texas、ulpianus、wisadel）
+    art/archive/incoming_1028/achievement_ui_1024/CLAUDE_HANDOFF_1025.md → none
+    art/archive/incoming_1028/achievement_ui_1024/achievement_set.json → full
+    art/archive/incoming_1028/achievement_ui_1024/add_ocean_motion.py → full
+    art/archive/incoming_1028/achievement_ui_1024/apply_pixel_medals.py → full
+    art/archive/incoming_1028/achievement_ui_1024/approved_layout_1025.json → full
+    art/archive/incoming_1028/achievement_ui_1024/bake_pixel.py → full
+    art/archive/incoming_1028/achievement_ui_1024/composition_v14.png → full
+    art/archive/incoming_1028/achievement_ui_1024/layout_editor.js → full
+    art/archive/incoming_1028/achievement_ui_1024/make_layout_editor.py → full
+    art/archive/incoming_1028/achievement_ui_1024/medals_silver_clean_1025.png → full
+    art/archive/incoming_1028/achievement_ui_1024/ocean_backdrop_v7.png → full
+    art/archive/incoming_1028/achievement_ui_1024/packed_layout_v16.json → full
+    …… 另 11892 个文件
+分支全量精简：不跑积木等价、自然流程；冒烟 20 / 20 人（改动涉及：angelina、exusiai、eyjafjalla、gladiia、hoshiguma、irene、kaltsit、lappland、logos、lumen、mizuki、saria、siege、skadi、skalter、specter_unchained、suzuran、texas、ulpianus、wisadel；轮换抽样：angelina、exusiai、eyjafjalla、gladiia、wisadel）。合入 main 后跑真全量

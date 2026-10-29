@@ -1,0 +1,105 @@
+cloud telemetry-p0 — 同 seed 对照验证结果
+===========================================
+
+结论（先说重点）：新提交 129254bf2 无法运行。telemetry.gd 在 _snap(t: float) 函数体内
+使用了未声明的标识符 dt（第 322 行 `boss_win_acc += dt`、第 346 行 `boss_acc += dt`；
+该函数只有参数 t，没有 dt），属于 GDScript 解析期错误（Parse Error），导致 game.gd /
+title.gd 等依赖脚本全部编译失败，headless 进程不会退出，只会每帧刷
+"Invalid call. Nonexistent function 'update' in base 'Nil'" 直到被外部杀死。
+该提交自己的提交信息也写明「P0 遥测代码...已写未验证」。
+因为这是解析期错误、与 seed/op/是否带 --telemetry=full 无关，必然在任何参数组合下
+100% 复现，所以第 2 步只对 129254bf2 跑了 1/4 局（skadi）确认复现，未重复跑其余 3 局；
+第 4、5 步（遥测体积/帧时开销，均要求在 129254bf2 上测）、第 3 步的逐行 diff 全部
+因此无法进行。详见下方逐项记录。
+
+1. 同 seed TRACE 对照（base=bfa2bcd07 / new=129254bf2）
+--------------------------------------------------------
+base (bfa2bcd07)：4/4 局全部正常跑完（--telemetry=full 不识别被忽略，符合预期）。
+  skadi     seed=1 maxt=150 : TRACE 151 行, BALANCE 1 行, exit=0
+  wisadel   seed=3 maxt=150 : TRACE 151 行, BALANCE 1 行, exit=0
+  mizuki    seed=2 maxt=240 : TRACE 241 行, BALANCE 1 行, exit=0
+  hoshiguma seed=5 maxt=240 : TRACE 151 行, BALANCE 1 行, exit=0
+            （hoshiguma 局在 t=150.02 时角色被腐蚀致死，游戏自然结束，
+             不是超时，BALANCE.end.hp=0 / death_src=corrode 印证；
+             不是裂化：bot 决策/数值正常）
+
+new (129254bf2)：
+  skadi seed=1 maxt=150 : 编译失败 → 进程挂起，30 分钟硬上限后被系统杀死
+    （build/cloud/telemetry-p0/129254bf2_skadi.log 共 1,386,223 行，
+     绝大多数是同一条 _process 报错刷屏；TRACE 行数=0，BALANCE 行数=0）
+    根因：game/scripts/run/telemetry.gd:322、346 引用未声明的 dt
+    （SCRIPT ERROR: Parse Error: Identifier "dt" not declared in the current scope）
+  wisadel / mizuki / hoshiguma：未跑。原因：根因是脚本解析期错误，与具体
+    seed/op/maxt 无关，必然复现同样的挂起，重复跑 3 次只会各耗 30 分钟却
+    不会产生任何新信息，故不再重跑（遵循「失败不重试超过一次」的精神，
+    这类必然复现的失败不值得为同一结论再付出 3×30 分钟）。
+
+diff 结果：无法进行。new 侧四局都没有产生 .trace 文件内容（0 行），
+  与 base 侧比较没有意义——不是"内容不同"，而是 new 侧完全没能运行。
+
+trace 行数汇总：
+  skadi     base=151 new=0（未运行完成）
+  wisadel   base=151 new=未跑
+  mizuki    base=241 new=未跑
+  hoshiguma base=151 new=未跑
+
+2. 体积记录（第 4 步，要求在 129254bf2、seed1 skadi 150s 上测 full vs 不带 full）
+--------------------------------------------------------------------------------
+无法进行：129254bf2 编译失败，不带 --telemetry=full 同样会在脚本加载阶段
+报同样的 Parse Error（这是解析期错误，与该 CLI 参数值无关，不是运行期才
+触发的分支），无法得到任何 BALANCE 行，也就无法比较字节数。
+
+base（bfa2bcd07，仅供参考，base 不认识 --telemetry=full 会忽略，这一侧
+"带 full" 和"不带 full" 实际是同一行为，没有对照意义，故不单独测）：
+四局 full BALANCE 字节数（base 侧，仅记录，非 129254bf2 要求的对照）：
+  skadi     : 6571 bytes (6.42 KB)
+  wisadel   : 6631 bytes (6.48 KB)
+  mizuki    : 8547 bytes (8.35 KB)
+  hoshiguma : 14458 bytes (14.12 KB)
+129254bf2_skadi_nofull.balance：未生成（同样因编译失败，脚本未运行到产出 BALANCE）。
+
+3. 帧时开销粗测（第 5 步，要求在 129254bf2、seed1 skadi 150s 上 off/on 交替 3 次测墙钟）
+------------------------------------------------------------------------------------
+无法进行：129254bf2 编译失败，无论带不带 --telemetry=full 都走不到游戏主循环，
+不存在"运行了但慢"的情况，没有墙钟时间可比较。两组（on/off）均为 N/A，
+中位数差 = N/A（不是 0，是"没有可测量的运行"）。
+
+4. python3 tools/check.py --auto --jobs 3（第 6 步）
+------------------------------------------------------
+在 129254bf2 上执行：source tools/cloud/env.sh && python3 tools/check.py --auto --jobs 3
+退出码：无（进程在 30 分钟硬上限后被系统杀死，未产生退出码；未重跑，理由见下）
+最后已捕获的日志内容（共 16 行，之后无更多输出；完整文件见
+build/cloud/telemetry-p0/auto.log）：
+  快检：本次最多 3 个 Godot 并行（全机上限 4，开始时全机已有 0 个）
+  按改动分级（--auto）：full（干员：angelina、exusiai、eyjafjalla、gladiia、
+    hoshiguma、irene、kaltsit、lappland、logos、lumen、mizuki、saria、siege、
+    skadi、skalter、specter_unchained、suzuran、texas、ulpianus、wisadel）
+    （相对 main 改动文件约 11,892 个，多数来自 art/archive/incoming_1028/ 等
+     归档内容，被分级为 full，触发全角色冒烟 + 轮换抽样成长节点/复现等整套用例）
+  分支全量精简：不跑积木等价、自然流程；冒烟 20/20 人；轮换抽样：angelina、
+    exusiai、eyjafjalla、gladiia、wisadel。合入 main 后跑真全量
+
+未重跑说明：--auto 在此 diff 下被分级为「full」，要跑全部 20 名干员的冒烟项
+（加成长节点/复现抽样），check.py 对每个 Godot 子进程有独立的 300 秒超时
+（tools/check.py run_case 默认 timeout=300），--jobs 3 并发。因为 129254bf2
+存在上述解析期编译错误，这些子进程全部不会真正跑起来，只会各自吃满 300 秒
+超时后判失败——即这一整套用例在此提交上必然"全部失败"，且需要的总墙钟时间
+（数十个 300 秒用例 ÷ 3 并发）远超过本轮 30 分钟的硬上限。重跑不会产生新信息，
+只会再等更久确认同一个已知结论，故未重跑。
+
+blocks_eq（积木等价/金样过期导致的预期失败）：不适用——--auto 的这次分级
+明确跳过了「积木等价」项（见上方日志"不跑积木等价"），所以这次跑批里不存在
+该项，无法单独标出。
+其余失败：由于进程被杀，没有拿到 check.py 自己汇总的失败列表（它在最后才
+打印"失败项、原因和日志路径"，这次没跑到那一步）。可以确定的是：只要
+telemetry.gd 的编译错误不修，--auto/--bots/任何会启动 Godot 的检查项，
+在这个提交上都会失败，不限于某几个具体用例名。
+
+5. 根因与建议
+--------------
+game/scripts/run/telemetry.gd 第 322、346 行在 `func _snap(t: float) -> void:`
+内使用了 `dt`，但该函数签名只有 `t`，没有 `dt` 参数，也没有局部变量 dt。
+需要改成函数内部自行从 t 推导时间增量（例如用上一次 _snap 的 t 做差），或者
+给 _snap 加上 dt 参数并在调用处传入。修好编译错误之后，才能重新跑本轮全部
+步骤（同 seed TRACE 对照、体积、帧时开销、--auto）。
+
