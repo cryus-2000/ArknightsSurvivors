@@ -191,9 +191,9 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "A",
-    "D",
-    "E"
+    "melee",
+    "weak",
+    "multi"
    ],
    "req": {
     "before": 480
@@ -273,7 +273,7 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "G"
+    "class"
    ],
    "req": {
     "mate": 1,
@@ -323,7 +323,7 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "G"
+    "class"
    ],
    "req": {
     "mate": 1,
@@ -375,7 +375,8 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "H"
+    "shield",
+    "heal"
    ],
    "req": {
     "ingots": 15
@@ -435,15 +436,15 @@
    "options": [
     {
      "label": "选择印有剑与铳的盒子",
-     "desc": "获得一件前锋·近战 / 收割·弱点 / 远程·火力藏品",
+     "desc": "获得一件近战扩域 / 弱点收割 / 多弹火力藏品",
      "ops": [
       {
        "relic_lane": {
         "n": 1,
         "lanes": [
-         "A",
-         "D",
-         "E"
+         "melee",
+         "weak",
+         "multi"
         ]
        }
       }
@@ -451,14 +452,15 @@
     },
     {
      "label": "选择印有提灯的盒子",
-     "desc": "获得一件深蓝·低灯火 / 守护·续航藏品",
+     "desc": "获得一件生存 / 护盾反击 / 治疗转伤藏品",
      "ops": [
       {
        "relic_lane": {
         "n": 1,
         "lanes": [
-         "F",
-         "H"
+         "survival",
+         "shield",
+         "heal"
         ]
        }
       }
@@ -544,22 +546,22 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "A",
-    "E"
+    "melee",
+    "multi"
    ],
    "src": "原作 rogue_2 scene_ro2_4（看向巨锤 / 看向长矛 / 不做选择）；锤 = 近战、矛 = 远程与「两件都要」为本作拟",
    "text": "溶洞里，一位老工匠在保养两把比他还高的武器。他说阿戈尔已经没有猎人了，让你挑一把。",
    "options": [
     {
      "label": "看向巨锤",
-     "desc": "获得一件前锋·近战核心藏品",
+     "desc": "获得一件近战扩域核心藏品",
      "ops": [
       {
        "relic_lane": {
         "n": 1,
         "rarity": "核心",
         "lanes": [
-         "A"
+         "melee"
         ]
        }
       }
@@ -567,14 +569,14 @@
     },
     {
      "label": "看向长矛",
-     "desc": "获得一件远程·火力核心藏品",
+     "desc": "获得一件多弹火力核心藏品",
      "ops": [
       {
        "relic_lane": {
         "n": 1,
         "rarity": "核心",
         "lanes": [
-         "E"
+         "multi"
         ]
        }
       }
@@ -592,7 +594,7 @@
         "n": 1,
         "rarity": "核心",
         "lanes": [
-         "A"
+         "melee"
         ]
        }
       },
@@ -601,7 +603,7 @@
         "n": 1,
         "rarity": "核心",
         "lanes": [
-         "E"
+         "multi"
         ]
        }
       }
@@ -625,7 +627,7 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "C"
+    "control"
    ],
    "cg": "tinder",
    "src": "原作 rogue_2 scene_ro2_san1（四个选项名与收藏品 / 麻烦 / 15 灯火 / 艰难的战斗）；精英化与最大生命代价、「麻烦」折成下一路口的紧急作战为本作拟",
@@ -717,7 +719,8 @@
    "trade": true,
    "repeat": true,
    "lanes": [
-    "H"
+    "shield",
+    "heal"
    ],
    "src": "原作 rogue_2 scene_ro2_7（四项劳作各消耗 2 目标生命）；钥匙项删去、可连选为本作拟",
    "text": "审判庭把苦修仪式和重体力活绑在了一起，完成的人能领到奖赏。来报名的人不少，走完的没几个。",
@@ -777,8 +780,9 @@
    "repeat": true,
    "max_picks": 3,
    "lanes": [
-    "C",
-    "H"
+    "control",
+    "shield",
+    "heal"
    ],
    "src": "原作 rogue_2 scene_ro2_exchange（消耗源石锭 / 希望 / 目标生命换上限、护盾值、掷骰，可重复）；技力回复一项替原作掷骰，为本作拟",
    "text": "迷雾把你送进一艘沉船的残骸。舱顶上站着一群同胞，它们在交谈，你听得出每个声音都不一样。",
@@ -906,7 +910,7 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "G"
+    "class"
    ],
    "req": {
     "room": 1
@@ -964,7 +968,7 @@
    "v2": true,
    "trade": true,
    "lanes": [
-    "B"
+    "summon"
    ],
    "src": "原作 rogue_2 scene_ro2_trade3（要不试试：获得一件随机收藏品，但可能不是什么好东西）；稀有度与 50% 为本作拟",
    "text": "一位老阿戈尔人在用恐鱼的尸体做装备。他说自己待过研究海嗣的科学院，现在只想让研究派上用场。",

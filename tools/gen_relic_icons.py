@@ -58,7 +58,8 @@ KEYWORDS = [
     (("丝巾", "蝴蝶结", "带", "巾"), "ribbon"), (("徽", "勋", "小队", "队", "章"), "badge"),
     (("石", "宝石", "水晶", "玻璃", "源石", "珠", "金"), "gem"),
 ]
-LANE_DEFAULT = {"A": "blade", "B": "anchor", "C": "scroll", "D": "blade", "E": "bow", "F": "lamp", "G": "badge", "H": "shield", "": "gem"}
+LANE_DEFAULT = {"melee": "blade", "summon": "anchor", "control": "scroll", "weak": "blade", "multi": "bow", "survival": "lamp", "class": "badge",
+                "shield": "shield", "heal": "shield", "general": "gem", "economy": "gem", "": "gem"}   # docs/197 分类键
 
 
 def pick_motif(name, lanes):
@@ -362,7 +363,7 @@ def render(motif, lane, plate=False):
 
 # ---------------------------------------------------------------- 选藏品 / 联系表
 def load_relics():
-    return json.load(open(DATA, encoding="utf-8"))["items"]
+    return [dict(it, lanes=[it.get("lane", "")]) for it in json.load(open(DATA, encoding="utf-8"))["items"]]   # docs/197：分类只有 lane 一个，下面沿用 lanes 列表写法
 
 
 def existing_ids():
@@ -383,7 +384,7 @@ def pick_trial(items, n):
         if str(it["id"]) in have:
             continue
         by_lane.setdefault(it["lanes"][0] if it["lanes"] else "", []).append(it)
-    order = ["A", "B", "C", "D", "E", "F", "G", "H", ""]
+    order = ["melee", "summon", "control", "weak", "multi", "survival", "class", "shield", "heal", "general", "economy", ""]
     out, used = [], set()
     while len(out) < n and any(by_lane.values()):
         for ln in order:

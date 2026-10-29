@@ -6,6 +6,7 @@ extends RefCounted
 
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const D = preload("res://scripts/data.gd")
+const RelicDb = preload("res://scripts/core/relic_db.gd")   # 藏品分类常量（docs/197）
 const Bal = preload("res://scripts/core/balance.gd")
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")
 const UM = preload("res://scripts/ui_motion.gd")
@@ -56,7 +57,6 @@ var sub_ctx: Dictionary = {}    # 事件选项里要再选一次的（选干员 
 var trouble := false            # 敬奉火焰「火焰拯救不了这片大地」：下一个路口必出紧急作战，全灭掉两个宝箱
 var squad_reward := ""          # 精英小队全灭的奖励："" 宝箱 + 源石锭（旧）；lane 主流派三选一宝箱；double 两个宝箱；chal 交给委托结算
 var _ev_n := 0                  # 事件改属性的次数（stats 来源名）
-const SUMMON_OPS := ["mizuki", "skalter", "wisadel", "kaltsit", "specter_unchained"]   # docs/35「追击·召唤」吃得到的干员
 const MELEE_CLS := ["近卫", "重装", "先锋", "特种"]
 
 ## 各事件通向的结局（卡背色边）
@@ -357,7 +357,7 @@ func _pick_common(need_trade := false) -> String:
 		var tot := 0.0
 		var ws: Array = []
 		for ev in left:
-			var w: float = float(deck_cfg.get("lane_event_w", 2.0)) if (ev.get("lanes", []) as Array).has(ml) else 1.0
+			var w: float = float(deck_cfg.get("lane_event_w", 2.0)) if (ev.get("lanes", []) as Array).has(ml) else 1.0   # 事件 lanes 用 docs/197 分类键
 			ws.append(w)
 			tot += w
 		var r: float = g.rng.randf() * tot
@@ -371,12 +371,14 @@ func _pick_common(need_trade := false) -> String:
 	return id
 
 
-## ---------- 主流派（docs/184 §2.2）：持有藏品 lanes 计数最多且 ≥ 3 件的流派（并列取最近拿到的）；不足 3 件按队长职业 ----------
+## ---------- 主流派（docs/184 §2.2）：持有藏品里 7 条流派或职业件计数最多且 ≥ 3 件的（并列取最近拿到的，docs/197 §4）；
+## 不足 3 件取队长的第一个流派（docs/181），队长没有流派时按职业近战 / 多弹 ----------
 func main_lane() -> String:
 	var cnt := {}
 	var last := {}
 	for i in g.relics.size():
-		for ln in g.RL.get(str(g.relics[i]), {}).get("lanes", []):
+		var ln: String = str(g.RL.get(str(g.relics[i]), {}).get("lane", ""))
+		if RelicDb.WEIGHT_LANES.has(ln):
 			cnt[ln] = int(cnt.get(ln, 0)) + 1
 			last[ln] = i
 	var best := ""
@@ -387,10 +389,10 @@ func main_lane() -> String:
 		return best
 	var lead = g.ch
 	if lead == null:
-		return "A"
-	if SUMMON_OPS.has(str(lead.id)):
-		return "B"
-	return "A" if MELEE_CLS.has(str(lead.cls)) else "E"
+		return "melee"
+	if not lead.lanes().is_empty():
+		return str(lead.lanes()[0])
+	return "melee" if MELEE_CLS.has(str(lead.cls)) else "multi"
 
 
 ## 队友（队长除外）
@@ -873,7 +875,7 @@ func _apply_op(x: Dictionary) -> void:
 func _gain_lane_relic(rarity: String, lanes: Array) -> void:
 	var want: Array = lanes if not lanes.is_empty() else [main_lane()]
 	var base: Array = g.rfx.db.implemented().filter(func(r): return not g.relics.has(r.id) and r.rarity in ["基础", "稀有", "核心"] and (rarity == "" or r.rarity == rarity) and g.rfx.can_offer(r, false) and g.progression.can_gain_relic(r.id))
-	var cands: Array = base.filter(func(r): return (r.lanes as Array).any(func(l): return want.has(l)))
+	var cands: Array = base.filter(func(r): return want.has(r.lane))
 	if cands.is_empty():
 		cands = base
 	if cands.is_empty():
@@ -983,7 +985,7 @@ func _next_sub() -> bool:
 						classes.append(str(c.cls))
 				var ml := main_lane()
 				var keep: Array = []
-				var cw: Array = classes.map(func(cl): return 2.0 if (ml == "A" and MELEE_CLS.has(cl)) or (ml == "E" and not MELEE_CLS.has(cl)) else 1.0)
+				var cw: Array = classes.map(func(cl): return 2.0 if (ml == "melee" and MELEE_CLS.has(cl)) or (ml == "multi" and not MELEE_CLS.has(cl)) else 1.0)
 				for k in mini(nk, classes.size()):
 					var tot := 0.0
 					for w in cw:
@@ -1007,12 +1009,12 @@ func _next_sub() -> bool:
 				title = "选择换来的藏品"
 				sub = "选一件带走。"
 				for rid in sub_ctx.offer:
-					opts.append({"kind": "event", "id": "sub:take:" + str(rid), "name": "【%s】%s" % [g.RL[rid].cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "icon": "relic_" + str(rid), "chips": [], "cat": cat, "col": Color(0.55, 0.75, 1.0)})
+					opts.append({"kind": "event", "id": "sub:take:" + str(rid), "name": "【%s】%s" % [g.rfx.db.lane_name(rid), g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "icon": "relic_" + str(rid), "chips": [], "cat": cat, "col": Color(0.55, 0.75, 1.0)})
 			else:
 				title = "选择交出的藏品"
 				sub = "只收纯属性藏品；换来的藏品稀有度不低于它。"
 				for rid in _tradeable():
-					opts.append({"kind": "event", "id": "sub:give:" + str(rid), "name": "【%s】%s" % [g.RL[rid].cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "icon": "relic_" + str(rid), "chips": [["交出", C_COST]], "cat": cat, "col": Color(0.55, 0.75, 1.0)})
+					opts.append({"kind": "event", "id": "sub:give:" + str(rid), "name": "【%s】%s" % [g.rfx.db.lane_name(rid), g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "icon": "relic_" + str(rid), "chips": [["交出", C_COST]], "cat": cat, "col": Color(0.55, 0.75, 1.0)})
 		if opts.is_empty():
 			q.pop_front()   # 没有可选对象（队友已不在等）：跳过这一步
 			sub_ctx.erase("offer")
@@ -1084,7 +1086,7 @@ func _trade_offer(min_rank: int) -> Array:
 	var ranks := ["基础", "稀有", "核心"]
 	var ml := main_lane()
 	var ok: Array = g.progression.relic_pool_ids().filter(func(rid): return ranks.find(str(g.RL[rid].rarity)) >= min_rank and not g.relics.has(rid))
-	var lane: Array = ok.filter(func(rid): return (g.RL[rid].get("lanes", []) as Array).has(ml))
+	var lane: Array = ok.filter(func(rid): return str(g.RL[rid].get("lane", "")) == ml)
 	var out: Array = lane.slice(0, 3)
 	for rid in ok:
 		if out.size() >= 3:

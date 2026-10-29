@@ -161,7 +161,7 @@ func draw_relic_tray(tr: Vector2) -> void:
 		slot = 1
 	for i in range(L.first, n):
 		var rd: Dictionary = g.RL[g.relics[i]]
-		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
+		var col: Color = UI.CAT_COL.get(rd.lane_name, UI.GOLD)
 		var c := o + Vector2(6 + (slot % per_row) * cell + cell / 2, 26 + (slot / per_row) * cell + cell / 2)
 		slot += 1
 		var cellr := Rect2(c - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
@@ -233,5 +233,5 @@ func draw_relic_tooltip(vs: Vector2) -> void:
 			return
 		var rd: Dictionary = g.RL[id]
 		var mx: int = g.rfx.max_lv(id)
-		h.draw_tooltip(vs, cr, rd.name + ((" Lv.%d/%d" % [g.rfx.lv.get(id, 1), mx]) if mx > 1 else ""), "%s · %s" % [rd.cat, rd.rarity], rd.desc, "relic_" + id, UI.CAT_COL.get(rd.cat, UI.GOLD))
+		h.draw_tooltip(vs, cr, rd.name + ((" Lv.%d/%d" % [g.rfx.lv.get(id, 1), mx]) if mx > 1 else ""), "%s · %s" % [rd.lane_name, rd.rarity], rd.desc, "relic_" + id, UI.CAT_COL.get(rd.lane_name, UI.GOLD))
 		return

@@ -942,7 +942,7 @@ func card_color(o: Dictionary) -> Color:
 		return o.col
 	match o.kind:
 		"relic":
-			return UI.CAT_COL.get(g.RL[o.id].cat, UI.GOLD)
+			return UI.CAT_COL.get(g.RL[o.id].lane_name, UI.GOLD)
 		"recruit":
 			return Color(0.55, 0.9, 0.55)
 		"prog":
@@ -1060,7 +1060,7 @@ func card_tag(o: Dictionary) -> Array:
 		var rd: Dictionary = g.RL[o.id]
 		var rar: String = rd.rarity
 		var chip: Array = {"稀有": ["RARE", Color(0.62, 0.72, 0.85)], "核心": ["CORE", UI.GOLD], "升华": ["ASCEND", Color(0.72, 0.64, 1.0)], "遭诅古物": ["CURSED", UI.RED]}.get(rar, ["", Color.WHITE])
-		return [UI.CAT_EN.get(rd.cat, "RELIC"), "%s · %s" % [rd.cat, rar], chip[0], chip[1]]
+		return [UI.CAT_EN.get(rd.lane_name, "RELIC"), "%s · %s" % [rd.lane_name, rar], chip[0], chip[1]]
 	var cat := "成长  GROWTH"
 	if o.has("cat"):
 		cat = o.cat

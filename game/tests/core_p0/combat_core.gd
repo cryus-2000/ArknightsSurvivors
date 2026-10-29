@@ -55,7 +55,7 @@ func gain_relic(id: String) -> bool:
 		return false
 	relics.append(id)
 	mods.apply("relic:" + id, r.effects)
-	profile.add_source("relic:" + id, r.tags)
+	profile.add_source("relic:" + id, [])   # 藏品不再带 tags（docs/197）；流派档案只看干员 / 其他来源
 	bus.emit(E.RELIC_GAINED, {"id": id})
 	return true
 

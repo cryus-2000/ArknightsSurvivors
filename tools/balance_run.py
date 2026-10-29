@@ -349,14 +349,14 @@ def bot_summary(records):
 
 
 def relic_meta():
-    """藏品编号 → {name, lanes, rarity, req}（lanes 空 = 通用；req = requires_class 职业门槛）"""
+    """藏品编号 → {name, lanes, rarity, req}（lanes = [relics.json 的 lane]，docs/197 分类键；req = requires_class 职业门槛）"""
     meta = json.load(open(os.path.join(GAME, "data", "relics.json"), encoding="utf-8"))
     fx = json.load(open(os.path.join(GAME, "data", "relic_effects.json"), encoding="utf-8")).get("relics", {})
     out = {}
     for r in meta["items"]:
         i = str(int(r["id"]))
         e = fx.get(i, {})
-        out[i] = {"name": r["name"], "lanes": r.get("lanes") or ["通用"], "rarity": e.get("rarity", r.get("rarity")),
+        out[i] = {"name": r["name"], "lanes": [r.get("lane", "general")], "rarity": e.get("rarity", r.get("rarity")),
                   "req": e.get("requires_class", r.get("requires_class", []))}
     return out
 
@@ -413,8 +413,8 @@ def relic_table(records):
     return "\n".join(lines)
 
 
-LANE_NAMES = {"none": "不偏好", "A": "前锋·近战", "B": "追击·召唤", "C": "控制·技能循环", "D": "收割·弱点", "E": "远程·火力",
-              "F": "深蓝·低灯火", "G": "编队·协同", "H": "守护·续航"}
+LANE_NAMES = {"none": "不偏好", "melee": "近战扩域", "multi": "多弹火力", "summon": "召唤驻场", "control": "控场引爆", "weak": "弱点收割",
+              "shield": "护盾反击", "heal": "治疗转伤", "class": "职业", "general": "通用", "survival": "生存", "economy": "经济"}   # docs/197
 
 
 def _boss_phase(b):

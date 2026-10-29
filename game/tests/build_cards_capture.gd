@@ -97,7 +97,7 @@ func _process(_d: float) -> void:
 			var pool: Array = []
 			for rid in ["95", "171", "234"]:
 				var r: Dictionary = g.RL[rid]
-				pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid)})
+				pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.lane_name, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid)})
 			g.panel_ui.show_choices("获得藏品", pool, "relic")
 			g.panel_ui.motion.skip()
 			wait = 30

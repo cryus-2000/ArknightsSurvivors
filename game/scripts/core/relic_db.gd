@@ -1,19 +1,18 @@
 extends RefCounted
 ## 藏品数据库（框架第 32 节 RelicData）
 ## 数据来源：
-##   res://data/relics.json         —— 262 件藏品的名称、等级、流派、Tag、商店可否（由 docs/08 生成）
+##   res://data/relics.json         —— 265 件藏品的名称、等级、分类 lane（docs/197）、商店可否（由 docs/08 生成）
 ##   res://data/relic_effects.json  —— 已实装藏品的效果数据（modifier_system 的 effects 数组）+ 价格档
 ## 只有在 relic_effects.json 里有效果的藏品才会进入随机池。
 
-const RARITY_WEIGHT := {"基础": 60.0, "稀有": 26.0, "核心": 12.0, "升华": 0.0, "遭诅古物": 0.0, "结局": 0.0}
 const PRICE := {"基础": 10, "稀有": 14, "核心": 20, "升华": 30, "遭诅古物": 6, "结局": 0}
-## Soft Steering 强度（框架第 13 节：只轻微提高相关 Tag 出现率）
-const STEER := 0.6
 const VBal = preload("res://scripts/core/balance.gd")
 
 var items := {}       # id(String) -> RelicData Dictionary
-var effect_category_names := {}  # 实装效果主分类；独立于构筑流派和抽取 Tag
-var lane_names := {}  # 流派代号 -> 名称（relics.json 顶层 lanes，docs/35）
+## 藏品分类（docs/197，只此一套）：7 条流派（docs/181，与干员 lanes 同一组键）+ 4 个非流派组
+const LANES7 := ["melee", "multi", "summon", "control", "weak", "shield", "heal"]
+const WEIGHT_LANES := ["melee", "multi", "summon", "control", "weak", "shield", "heal", "class"]   # 参与流派加权 / 主流派的分类（docs/197 §4）
+var lane_names := {}  # 分类键 -> 名称（relics.json 顶层 lane_names）
 
 
 ## 藏品说明里的数值占位（docs/61 §1.4 同一套写法，复用 character.gd 的 fill_line）：
@@ -38,15 +37,13 @@ static func fill_desc(s: String) -> String:
 
 func load_files(meta_path: String = "res://data/relics.json", fx_path: String = "res://data/relic_effects.json") -> int:
 	items.clear()
-	effect_category_names.clear()
 	var meta = _read_json(meta_path)
 	var fx = _read_json(fx_path)
 	if meta == null:
 		push_error("读取藏品表失败: " + meta_path)
 		return 0
 	var effects: Dictionary = fx.get("relics", {}) if fx is Dictionary else {}
-	lane_names = meta.get("lanes", {})
-	effect_category_names = fx.get("effect_categories", {}) if fx is Dictionary else {}
+	lane_names = meta.get("lane_names", {})
 	for r in meta.items:
 		var id := str(int(r.id))
 		var e: Dictionary = effects.get(id, {})
@@ -57,10 +54,9 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 			e.erase("max_lv")
 		var rarity: String = str(e.get("rarity", r.rarity))
 		items[id] = {
-			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": fill_desc(str(e.get("desc", r.adapt))), "rarity": rarity,
+			"id": id, "name": r.name, "desc": fill_desc(str(e.get("desc", r.adapt))), "rarity": rarity,
 			"desc_squad": e.get("desc_squad", {}),
-			"effect_category": e.get("effect_category", ""),
-			"tags": e.get("tags", r.tags), "lanes": e.get("lanes", r.lanes), "tier": r.tier,
+			"lane": str(r.get("lane", "general")), "lane_name": str(lane_names.get(str(r.get("lane", "general")), "通用")), "set": str(e.get("set", "")), "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),
 			"shop_allowed": e.get("shop_allowed", r.shop_allowed),
 			"requirements": e.get("requires", []), "conflicts": e.get("conflicts", []),
@@ -74,6 +70,11 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 			"shield_layer": (e.get("effects", []) as Array).any(func(x): return x is Dictionary and x.get("type") == "stat" and x.get("stat") == "shield_max" and float(x.get("value", 0)) > 0.0),   # 给护盾层数（relic/shield_weight）
 		}
 	return items.size()
+
+
+## 分类显示名（流派名或「通用 / 职业 / 生存 / 经济」）
+func lane_name(id: String) -> String:
+	return str(items.get(id, {}).get("lane_name", "通用"))
 
 
 func get_relic(id: String) -> Dictionary:
@@ -103,83 +104,6 @@ func pool(owned: Array, filter: Callable = Callable()) -> Array:
 				ok = false
 		if ok and (not filter.is_valid() or filter.call(r)):
 			out.append(r)
-	return out
-
-
-## 加权抽取 n 件（不重复）。weight_fn(r) 返回权重
-func pick(candidates: Array, n: int, weight_fn: Callable, rng: RandomNumberGenerator) -> Array:
-	var c := candidates.duplicate()
-	var out: Array = []
-	while out.size() < n and not c.is_empty():
-		var total := 0.0
-		var ws: Array = []
-		for r in c:
-			var w: float = maxf(0.0, weight_fn.call(r))
-			ws.append(w)
-			total += w
-		if total <= 0.0:
-			break
-		var x := rng.randf() * total
-		var idx := 0
-		while idx < ws.size() - 1 and x >= ws[idx]:
-			x -= ws[idx]
-			idx += 1
-		out.append(c[idx])
-		c.remove_at(idx)
-	return out
-
-
-## 商店（框架第 13 节）。stage: 0 第一商店 Discovery / 1 第二商店 Fixing / 2 第三商店 Finalisation
-func roll_shop(stage: int, owned: Array, profile, rng: RandomNumberGenerator, n: int = 3) -> Array:
-	var cand := pool(owned, func(r): return r.shop_allowed and r.source != "boss")
-	var stage_mul: Dictionary = [
-		{"基础": 1.4, "稀有": 1.0, "核心": 0.4},
-		{"基础": 0.9, "稀有": 1.2, "核心": 1.0},
-		{"基础": 0.5, "稀有": 1.1, "核心": 1.8},
-	][clampi(stage, 0, 2)]
-	var steer: float = [0.0, STEER, STEER * 0.8][clampi(stage, 0, 2)]
-	var wf := func(r):
-		var w: float = RARITY_WEIGHT.get(r.rarity, 0.0) * stage_mul.get(r.rarity, 1.0)
-		if profile != null:
-			w *= 1.0 + steer * profile.affinity(r.tags)
-		return w
-	return pick(cand, n, wf, rng)
-
-
-## 精英 / 宝箱藏品箱：普通随机 + 轻微倾向
-func roll_chest(owned: Array, profile, rng: RandomNumberGenerator, n: int = 3) -> Array:
-	var cand := pool(owned, func(r): return r.source != "boss" and r.rarity in ["基础", "稀有", "核心"])
-	var wf := func(r):
-		var w: float = RARITY_WEIGHT.get(r.rarity, 0.0)
-		if profile != null:
-			w *= 1.0 + STEER * 0.5 * profile.affinity(r.tags)
-		return w
-	return pick(cand, n, wf, rng)
-
-
-## Boss 奖励（框架第 17 节）
-## 第一个 Boss：当前 Build 相关 + 其他 Build + 通用（核心 / 稀有）
-## 第二个 Boss：升华藏品三选一（优先相关）
-func roll_boss(index: int, owned: Array, profile, rng: RandomNumberGenerator) -> Array:
-	if index >= 1:
-		var subl := pool(owned, func(r): return r.rarity == "升华")
-		var got := pick(subl, 3, func(r): return 1.0 + 2.0 * (profile.affinity(r.tags) if profile != null else 0.0), rng)
-		if got.size() < 3:
-			got += pick(pool(owned, func(r): return r.rarity == "核心" and not got.has(r)), 3 - got.size(), func(_r): return 1.0, rng)
-		return got
-	var cand := pool(owned, func(r): return r.rarity in ["核心", "稀有"])
-	var main: String = profile.main_lane(0.5) if profile != null else ""
-	var out: Array = []
-	var related := cand.filter(func(r): return main != "" and main in r.lanes)
-	if related.is_empty() and profile != null:
-		related = cand.filter(func(r): return profile.affinity(r.tags) > 0.2)
-	out += pick(related, 1, func(r): return 2.0 if r.rarity == "核心" else 1.0, rng)
-	var other := cand.filter(func(r): return not out.has(r) and not r.lanes.is_empty() and not (main in r.lanes))
-	out += pick(other, 1, func(r): return 2.0 if r.rarity == "核心" else 1.0, rng)
-	var general := cand.filter(func(r): return not out.has(r) and r.lanes.is_empty())
-	out += pick(general, 1, func(_r): return 1.0, rng)
-	if out.size() < 3:
-		out += pick(cand.filter(func(r): return not out.has(r)), 3 - out.size(), func(_r): return 1.0, rng)
 	return out
 
 

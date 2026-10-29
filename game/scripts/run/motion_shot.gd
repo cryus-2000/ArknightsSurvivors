@@ -163,7 +163,7 @@ func _relic_opts(n := 3) -> Array:
 	var out: Array = []
 	for rid in ids.slice(0, n):
 		var r: Dictionary = g.RL[rid]
-		out.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
+		out.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.lane_name, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
 	return out
 
 

@@ -162,8 +162,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	var cn_s := "补给"
 	if it.kind == "relic":
 		var rd: Dictionary = g.RL[it.id]
-		en_s = UI.CAT_EN.get(rd.cat, "RELIC")
-		cn_s = rd.cat
+		en_s = UI.CAT_EN.get(rd.lane_name, "RELIC")
+		cn_s = rd.lane_name
 	elif it.kind == "oil":
 		en_s = "LIGHT"
 		cn_s = "灯火"

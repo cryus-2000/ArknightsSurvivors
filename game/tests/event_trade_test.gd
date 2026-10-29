@@ -109,14 +109,18 @@ func _process(_dt: float) -> void:
 	game.relics.clear()
 	game.rfx.lv.clear()
 	var lead_lane: String = E.main_lane()
-	check(lead_lane in ["A", "B", "E"], "no relics: lane from leader class (%s)" % lead_lane)
+	check(lead_lane == str(game.ch.lanes()[0]) if not game.ch.lanes().is_empty() else lead_lane in ["melee", "multi"], "no relics: lane from leader's lanes (%s)" % lead_lane)
 	var d_ids: Array = []
 	for rid in game.RL:
-		if (game.RL[rid].get("lanes", []) as Array) == ["D"] and d_ids.size() < 3:
+		if str(game.RL[rid].get("lane", "")) == "weak" and d_ids.size() < 3:
 			d_ids.append(rid)
 	for rid in d_ids:
 		game.relics.append(rid)
-	check(d_ids.size() < 3 or E.main_lane() == "D", "three D relics -> main lane D (got %s)" % E.main_lane())
+	check(d_ids.size() < 3 or E.main_lane() == "weak", "three weak relics -> main lane weak (got %s)" % E.main_lane())
+	game.relics.clear()
+	for rid in ["2", "3", "4"]:   # 通用件不计主流派（docs/197 §4）
+		game.relics.append(rid)
+	check(E.main_lane() == lead_lane, "general relics don't set main lane (got %s)" % E.main_lane())
 	game.relics.clear()
 	print("ET step 6")
 	# 6 委托
@@ -235,7 +239,7 @@ func _process(_dt: float) -> void:
 	check(game.state == game.S.SHOP and game.shop_sys.trader and game.shop_items != real_items and game.shop_items.size() >= 3, "trader card opens its own shop")
 	var r0: int = game.relics.size()
 	for i in game.shop_items.size():
-		if game.shop_items[i].kind == "relic" and game.shop_sys.can_buy(game.shop_items[i]):
+		if game.shop_items[i].kind == "relic" and game.shop_sys.can_buy(game.shop_items[i]) and not game.relics.has(game.shop_items[i].id):   # 买新件（已持有的是升级，件数不变）
 			game.shop_sys.buy(i)
 			break
 	check(game.relics.size() == r0 + 1 and int(game.merchant.get("purchases", 0)) == 0, "buying at the trader does not touch the map merchant")

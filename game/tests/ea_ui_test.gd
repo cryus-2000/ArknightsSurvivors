@@ -112,7 +112,7 @@ func run() -> void:
 		# 各画面比例下三选一整排卡片都在面板里、说明不截断（docs/37 最小字号；全量逐屏截图见 tools/ui_matrix.py）
 		var opts: Array = []
 		for rid in game.RL.keys().slice(0, 3):
-			opts.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [game.RL[rid].cat, game.rfx.display_name(rid)], "desc": game.rfx.display_desc(rid)})
+			opts.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [game.RL[rid].lane_name, game.rfx.display_name(rid)], "desc": game.rfx.display_desc(rid)})
 		for sz in [Vector2i(1280, 720), Vector2i(1024, 768), Vector2i(2560, 1080), Vector2i(1680, 1050)]:
 			get_tree().root.size = sz
 			await RenderingServer.frame_post_draw

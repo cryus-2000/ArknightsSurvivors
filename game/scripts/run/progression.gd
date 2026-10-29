@@ -12,6 +12,7 @@ const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/1
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const BuildAffinity = preload("res://scripts/run/build_affinity.gd")   # 构筑匹配（只读，docs/119 §4.3–4.5）：卡面说明行 / 招募保底 / 商人预告共用
+const RelicDb = preload("res://scripts/core/relic_db.gd")   # 藏品分类常量（docs/197）
 var g: Game
 var affinity: BuildAffinity
 var tab_hinted := false
@@ -268,8 +269,8 @@ func deep_cards() -> Array:
 
 
 ## 可选藏品：已实装、未拥有、满足前置与职业门槛；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
-## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2；守护·续航不参与，否则拿了生存卡就只剩生存卡）；
-## 守护·续航（H）随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0；它件数最多，×1.0 已经是最常见的流派）
+## 流派加权（docs/35 → docs/197 分类）：已拿过同一流派（7 条）或职业件 n 件 → ×1.3^n，封顶 ×2；通用 / 生存 / 经济不参与，
+## 否则拿了生存卡就只剩生存卡。护盾反击 / 治疗转伤 / 生存三组随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0）
 ## 护盾保底：还没有护盾层数时，给层数的藏品 ×relic/shield_weight（缺省 4，docs/35 §护盾保底）
 func relic_pool_ids(for_shop := false) -> Array:
 	# docs/57：relic/new_pool = 0 时第二批实装的藏品不进池（同 seed 结果与之前一致，供云端 A/B）
@@ -277,9 +278,9 @@ func relic_pool_ids(for_shop := false) -> Array:
 	var cands: Array = g.rfx.db.implemented().filter(func(r): return (new_ok or not r.new_pool) and g.rfx.can_offer(r, for_shop) and can_gain_relic(r.id))
 	var lane_n := {}
 	for rid in g.relics:
-		for ln in g.RL.get(rid, {}).get("lanes", []):
-			if ln != "H":
-				lane_n[ln] = lane_n.get(ln, 0) + 1
+		var ln: String = str(g.RL.get(rid, {}).get("lane", ""))
+		if RelicDb.WEIGHT_LANES.has(ln):
+			lane_n[ln] = lane_n.get(ln, 0) + 1
 	var h_w: float = lerpf(Bal.v("relic/h_early", 0.7), Bal.v("relic/h_late", 1.0), clampf((g.t - 180.0) / 360.0, 0.0, 1.0))
 	var weighted: Array = []
 	for r in cands:
@@ -292,12 +293,10 @@ func relic_pool_ids(for_shop := false) -> Array:
 			"遭诅古物": w = 8.0 if for_shop else 0.0
 		if w <= 0.0 or (g.meta_basic_pick and r.rarity != "基础"):
 			continue
-		var best_n := 0
-		for ln in r.lanes:
-			best_n = maxi(best_n, lane_n.get(ln, 0))
+		var best_n: int = lane_n.get(r.lane, 0)
 		if best_n > 0:
 			w *= minf(pow(Bal.v("relic/lane_weight", 1.3), best_n), Bal.v("relic/lane_weight_cap", 2.0))
-		if r.lanes.has("H"):
+		if r.lane in ["shield", "heal", "survival"]:
 			w *= h_w
 		# 犹疑 (240)：稀有 / 核心 权重 +30%
 		if g.rfx.rule("rare_weight") > 0 and r.rarity in ["稀有", "核心"]:
@@ -329,7 +328,7 @@ func open_relic_choice() -> void:
 	var pool: Array = []
 	for rid in relic_pool_ids():
 		var r: Dictionary = g.RL[rid]
-		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
+		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [g.rfx.db.lane_name(rid), g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
 	if pool.is_empty():
 		# 每个待开的宝箱各补 12 源石锭
 		var n: int = maxi(1, g.pending_chests)
@@ -350,7 +349,7 @@ func open_relic_choice() -> void:
 	# 事件改版的对口三选一（docs/184 §2.2）：前两张换成主流派里排最前的两件，其余照原顺序（只重排，不多取随机数）
 	var lb: String = g.endg.lane_bias
 	if lb != "":
-		var on_lane: Array = pool.filter(func(c): return (g.RL[c.id].get("lanes", []) as Array).has(lb)).slice(0, 2)
+		var on_lane: Array = pool.filter(func(c): return str(g.RL[c.id].get("lane", "")) == lb).slice(0, 2)
 		pool = on_lane + pool.filter(func(c): return not on_lane.has(c))
 		g.endg.lane_bias = ""
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices") + extra)
