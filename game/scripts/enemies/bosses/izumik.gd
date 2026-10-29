@@ -718,7 +718,7 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 					continue
 				var me: bool = is_same(s, e)
 				var aim: float = (g.ppos - s.pos).angle()
-				var cnt: int = 4 if me else 3
+				var cnt: int = _cn(4 if me else 3)
 				for j in cnt:
 					_shot(e, s.pos, aim + (j - (cnt - 1) * 0.5) * 0.2, 150.0, 7.0, 4.5, 0.45, {"izu": "fan"})
 			em.next = float(em.next) + 0.5
@@ -730,7 +730,7 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 			em.next = float(em.next) + 0.2
 		"习得弹":
 			# 先散开、停住「学习」0.5 秒，再各自转向停住那一刻的你；吸收层数越多弹越多
-			var cnt: int = mini(8 + int(e.get("izu_stacks", 0)), 12)
+			var cnt: int = _cn(mini(8 + int(e.get("izu_stacks", 0)), 12))
 			var v0: float = 2.0 * (150.0 + 80.0 * n) / 0.9
 			for i in cnt:
 				var a: float = a0 + (float(i) + 0.5 * n) * TAU / cnt
@@ -738,15 +738,16 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 			em.next = float(em.next) + 0.6
 		"回流弹":
 			# 两圈反向卷回的水流，交叉成格子；三幕点亮的灯柱光圈会吞掉它们
-			var cnt: int = 16 if _act(e) >= 2 else 12   # 三幕每圈 16 颗
+			var cnt: int = 16 if _act(e) >= 2 else _cn(12)   # 三幕每圈 16 颗（三幕不加弹：两圈交叉成格子 + 段多，再密就没有可输出的空档）
 			for i in cnt:
 				var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cnt)
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
 			em.next = float(em.next) + 0.9
 		"信息回传":
 			for p in em.sources:
-				for i in 10:
-					var a: float = a0 + (float(i) + 0.5 * n) * TAU / 10.0
+				var cn: int = _cn(10)
+				for i in cn:
+					var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cn)
 					_shot(e, p, a, 120.0, 7.0, 4.0, 0.45, {})
 			em.next = float(em.next) + 0.55
 		"孢子潮":
@@ -756,24 +757,30 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 			em.next = float(em.next) + 1.0
 		"习得路径":
 			for p in em.trail:
-				for j in 3:
+				for j in _cn(3):
 					var a: float = TAU * _n01(int(p.x) + j * 7)
 					_shot(e, p, a, 0.0, 7.0, 4.0, 0.45, {"izu": "echo"})
 			em.next = float(em.next) + 1.0
 		"潮门环":
 			var act: int = _act(e)
-			var cnt: int = GATE_N[act]
+			var cnt: int = _cn(GATE_N[act])
 			var slits: int = 2 if act >= 2 else 1
 			var ga: float = a0 + float(em.spin) * n
 			for i in cnt:
 				var a: float = ga + TAU * (float(i) + 0.5) / cnt
 				var skip := false
 				for sl in slits:
-					if absf(angle_difference(ga + TAU * sl / slits, a)) < TAU * GATE_SLOTS[act] * 0.5 / cnt:
+					if absf(angle_difference(ga + TAU * sl / slits, a)) < TAU * GATE_SLOTS[act] * 0.5 / GATE_N[act]:   # 缺口角宽按原弹数算：加弹只让环更密、缺口不变窄
 						skip = true
 				if not skip:
 					_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 130.0, 7.0, 4.5, 0.45, {"izu": "gate"})
 			em.next = float(em.next) + GATE_GAP[act]
+
+
+## 每波弹数（协调人转用户 10-29「弹幕数量偏低」，docs/201 §7）：本作改编弹幕的每圈 / 每扇弹数 × boss/izumik_count_k；
+## 相位流条数、螺旋臂数、大孢子数与数据招式不乘（加了会把流间 / 臂间通道挤没）；潮门环缺口角宽按原弹数算
+func _cn(n: int) -> int:
+	return maxi(1, int(round(n * Bal.v("boss/izumik_count_k", 1.0))))
 
 
 ## 当前幕（0 / 1 / 2）
@@ -845,8 +852,9 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 				break
 	e.izu_live = n
 	for p in bursts:
-		for k in 8:
-			_shot(e, p, TAU * k / 8.0 + 0.2, 125.0, 6.0, 2.4, 0.35, {})
+		var bn: int = _cn(8)
+		for k in bn:
+			_shot(e, p, TAU * k / float(bn) + 0.2, 125.0, 6.0, 2.4, 0.35, {})
 		_puff(p, 6, COL)
 
 

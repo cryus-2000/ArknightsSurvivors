@@ -181,7 +181,7 @@ func check_patterns() -> void:
 	e.izu_stacks = 4
 	s.force_move(e, "习得弹", Vector2.RIGHT, 260.0)
 	tick(e, 0.0)
-	check(g.ebullets.size() == 12, "absorption stacks deform the learned ring (%d)" % g.ebullets.size())
+	check(g.ebullets.size() == s._cn(12), "absorption stacks deform the learned ring (%d)" % g.ebullets.size())   # 每波弹数 × izumik_count_k（docs/201 §7）
 	# 三幕灯柱吞弹
 	e = fresh()
 	e.gates_passed = 2
@@ -200,7 +200,7 @@ func check_patterns() -> void:
 	c2.dead = true
 	for i in int(2.0 / DT): tick(e, 0.0)
 	var fans: int = g.ebullets.filter(func(b): return b.get("izu", "") == "fan").size()
-	check(fans == 9, "only living offspring resonate (%d bullets)" % fans)
+	check(fans == 3 * s._cn(3), "only living offspring resonate (%d bullets)" % fans)
 	# 批次子代只走路：无接触伤害、不出横扫、不放自己的孢子环
 	e = fresh()
 	e.batch_next = g.t
