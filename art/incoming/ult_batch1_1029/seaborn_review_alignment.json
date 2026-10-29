@@ -1,0 +1,53 @@
+{
+  "stage_ground": [
+    192,
+    310
+  ],
+  "native_root_on_keyframe": [
+    160,
+    316
+  ],
+  "body_translation": [
+    32,
+    -6
+  ],
+  "water_review_scale": 0.6135338345864662,
+  "water_frame": 3,
+  "body_keyframe": 6,
+  "source_pose": {
+    "action": "Skill",
+    "source_frame": 5,
+    "source_time": 0.3333333432674408,
+    "source_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\seaborn\\Skill\\manifest.json",
+    "offset_only": [
+      32,
+      132
+    ],
+    "native_root_on_canvas": [
+      160,
+      316
+    ],
+    "native_body_pixels_unchanged": true,
+    "source_files": [
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.atlas",
+        "sha256": "40f9dfcaea0fcbb28e4e0ae1b1335830686ece3ea371515e45b8d2b35e28b124"
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.png",
+        "sha256": "73058ddf92f266ab8687907b2e84d110c18deaf97562a66a39424350298991c9"
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\reference\\summons_spine_20261020\\seaborn\\0\\token_10017_skadi2_dedant.skel",
+        "sha256": "593128ee8cc4c9340e3f9bcbe27735942b5d2c8cfca8bc96a2f6f61aee1ecde0"
+      }
+    ]
+  },
+  "review_crop": [
+    90,
+    182,
+    293,
+    355
+  ],
+  "runtime_verified": false
+}

@@ -1,0 +1,178 @@
+{
+  "fx_ult_texas_slash_front": {
+    "file": "animation_previews/fx_ult_texas_slash_front.mp4",
+    "video_fps": 30,
+    "source_fps": 24,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 389076,
+    "sha256": "e1bce6a84a08d7cae3b04c069285afccfe69b1996b308f86b252f4fb8257837a",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_texas_scar_back": {
+    "file": "animation_previews/fx_ult_texas_scar_back.mp4",
+    "video_fps": 30,
+    "source_fps": 10,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 344523,
+    "sha256": "39ef48fbd265a2aa9b2fdb56b6be49a637d7531466a76e028330f53d8593d1af",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_texas_sword_front": {
+    "file": "animation_previews/fx_ult_texas_sword_front.mp4",
+    "video_fps": 30,
+    "source_fps": 20,
+    "frames": 126,
+    "duration_seconds": 4.2,
+    "bytes": 230694,
+    "sha256": "cfcc252a9c4415efb66299154b92b374bf58e9bf0f080d0b556b3c740d54ebb0",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_exusiai_burst_front": {
+    "file": "animation_previews/fx_ult_exusiai_burst_front.mp4",
+    "video_fps": 30,
+    "source_fps": 30,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 291862,
+    "sha256": "5ce31b79251e89a9a74f6e004c550a7bb7b42b852925f7b83169c3c58298eb26",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_exusiai_lock_orbit": {
+    "file": "animation_previews/fx_ult_exusiai_lock_orbit.mp4",
+    "video_fps": 30,
+    "source_fps": 24,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 231606,
+    "sha256": "4b99f5b51c91a493131e26ea56178ae7b45b2e2cc653774ac467892fef314391",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_skalter_seaborn_front": {
+    "file": "animation_previews/fx_ult_skalter_seaborn_front.mp4",
+    "video_fps": 30,
+    "source_fps": 12,
+    "frames": 150,
+    "duration_seconds": 5.0,
+    "bytes": 310673,
+    "sha256": "358f0557676acefd1787e0be301966869d906cc9b33adf78374c7fa4d379967b",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_skalter_seaborn_back": {
+    "file": "animation_previews/fx_ult_skalter_seaborn_back.mp4",
+    "video_fps": 30,
+    "source_fps": 12,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 280937,
+    "sha256": "6ce8c76e12cd6e93a151e48eb186c67f7e26b7ccf6301da4f321bb45a0863353",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_skalter_beam_front": {
+    "file": "animation_previews/fx_ult_skalter_beam_front.mp4",
+    "video_fps": 30,
+    "source_fps": 24,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 634386,
+    "sha256": "281a2921f67393901b1b545b05ff143ffed5021cbc9a474c03189a7483263369",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_skalter_domain_back": {
+    "file": "animation_previews/fx_ult_skalter_domain_back.mp4",
+    "video_fps": 30,
+    "source_fps": 10,
+    "frames": 144,
+    "duration_seconds": 4.8,
+    "bytes": 322672,
+    "sha256": "d2a05f1c5d809cee4e856ce7d78ac33991e3d03b74c32d0fde83d6f6217af8f0",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_kaltsit_melt_front": {
+    "file": "animation_previews/fx_ult_kaltsit_melt_front.mp4",
+    "video_fps": 30,
+    "source_fps": 24,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 749002,
+    "sha256": "8504bb919bb123bdc471606f1c28302ea253f59b81a4de202f9f2de0e03b0b5c",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_kaltsit_crack_back": {
+    "file": "animation_previews/fx_ult_kaltsit_crack_back.mp4",
+    "video_fps": 30,
+    "source_fps": 20,
+    "frames": 126,
+    "duration_seconds": 4.2,
+    "bytes": 442571,
+    "sha256": "949cf2a953c358965188f462a0cf059fc4a7d973e616fc2349f316e2fdce28bc",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_kaltsit_rebuild_orbit": {
+    "file": "animation_previews/fx_ult_kaltsit_rebuild_orbit.mp4",
+    "video_fps": 30,
+    "source_fps": 16,
+    "frames": 136,
+    "duration_seconds": 4.533333333333333,
+    "bytes": 329909,
+    "sha256": "23a60c178bc1b59e7bef83483cf552547ac3270720f9468d81ddacf14ba07fd2",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_ulpianus_anchor_front": {
+    "file": "animation_previews/fx_ult_ulpianus_anchor_front.mp4",
+    "video_fps": 30,
+    "source_fps": 12,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 468784,
+    "sha256": "84c82efc2714cdeb6fd6c63e4350c4d05fa943c0485b276841c173a4a1efb242",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_ulpianus_chain_front": {
+    "file": "animation_previews/fx_ult_ulpianus_chain_front.mp4",
+    "video_fps": 30,
+    "source_fps": 12,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 228364,
+    "sha256": "58593fd811c517a0a68acb5af3190a3156a5ef7e4496d265f932e654073718b0",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_ulpianus_crack_back": {
+    "file": "animation_previews/fx_ult_ulpianus_crack_back.mp4",
+    "video_fps": 30,
+    "source_fps": 20,
+    "frames": 126,
+    "duration_seconds": 4.2,
+    "bytes": 428221,
+    "sha256": "e5502fc2f59deb8ef3e30e6f581848204f50cd6290ed93b577697d6038e2c460",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "fx_ult_ulpianus_burst_front": {
+    "file": "animation_previews/fx_ult_ulpianus_burst_front.mp4",
+    "video_fps": 30,
+    "source_fps": 20,
+    "frames": 120,
+    "duration_seconds": 4.0,
+    "bytes": 345992,
+    "sha256": "ca4a55e7f9359fd8361799bada8ca8ee179aba3592dba9753238d8802cd27a0a",
+    "background_source": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "background_sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "scenes": [
+    {
+      "origin": [
+        178.0,
+        319.0
+      ],
+      "direction": [
+        0.42,
+        -0.9075241043630742
+      ],
+      "body_offset": [
+        10,
+        102
+      ],
+      "beam_display_length": 304,
+      "beam_display_width": 80,
+      "preview_only_taper_length": 24
+    },
+    {
+      "origin": [
+        178.0,
+        319.0
+      ],
+      "direction": [
+        0.42,
+        -0.9075241043630742
+      ],
+      "body_offset": [
+        10,
+        102
+      ],
+      "beam_display_length": 304,
+      "beam_display_width": 80,
+      "preview_only_taper_length": 24
+    }
+  ],
+  "runtime_verified": false,
+  "note": "native mouth detected from original cyan texture; review attachment prototype only"
+}

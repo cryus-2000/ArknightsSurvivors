@@ -1,0 +1,354 @@
+[
+  {
+    "name": "fx_ult_texas_scar_back",
+    "file": "animation_work/segments/fx_ult_texas_scar_back@2x.png",
+    "fps": 10,
+    "origin_px_2x": [
+      0,
+      16
+    ],
+    "physical_size": [
+      256,
+      32
+    ],
+    "logical_size": [
+      128,
+      16
+    ],
+    "frame_count": 4,
+    "layer": "back",
+    "segments": {
+      "decay": [
+        0,
+        3
+      ]
+    },
+    "representative_frame": 2,
+    "rgba_mib": 0.125,
+    "tile_axis": "x",
+    "seam_endpoint_equal_every_frame": true,
+    "sourcehash": [
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_texas_scar_back_f00@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_texas_scar_back_f00@2x.png",
+        "sha256": "035503b889e0215fd357b78cafd7fb39ca1d0daa59ab1bf396eb6954284ef1e4",
+        "approved_keyframe": 0
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_texas_scar_back_f02@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_texas_scar_back_f02@2x.png",
+        "sha256": "974ca41104c83b61c452a6ad3c997b87614031128d577c195541a50574de34bf",
+        "approved_keyframe": 2
+      }
+    ],
+    "sha256": "a5c6de6584dd389b68a953a0795a0eb63cf842c5d86290318679debe0234cbec",
+    "arc_reference_radius_logical": null,
+    "arc_span_degrees": null,
+    "arc_overlap_px_2x": 0,
+    "motion_note": "切口按固定空间纹理逐步侵蚀；暖色碎屑沿外侧飞出、落回并熄灭，整条淡出。",
+    "runtime_verified": false,
+    "approved_shape_preserved": true,
+    "full_animation_candidate": true,
+    "brief_commit": "975cfaf31",
+    "end_behavior": "末帧残痕随实例结束；不可把尾帧当循环。",
+    "preview_mp4": "animation_work/segments/previews/fx_ult_texas_scar_back.mp4",
+    "preview_bytes": 132881
+  },
+  {
+    "name": "fx_ult_skalter_beam_front",
+    "file": "animation_work/segments/fx_ult_skalter_beam_front@2x.png",
+    "fps": 24,
+    "origin_px_2x": [
+      0,
+      40
+    ],
+    "physical_size": [
+      192,
+      80
+    ],
+    "logical_size": [
+      96,
+      40
+    ],
+    "frame_count": 6,
+    "layer": "front",
+    "segments": {
+      "loop": [
+        0,
+        5
+      ]
+    },
+    "representative_frame": 3,
+    "rgba_mib": 0.3515625,
+    "tile_axis": "x",
+    "seam_endpoint_equal_every_frame": true,
+    "sourcehash": [
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_skalter_beam_front_f00@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_skalter_beam_front_f00@2x.png",
+        "sha256": "7956f3adb5a3d35f00154f49dc6d20a7a87818095dc56a3f731e02f42fd3b7dc",
+        "approved_keyframe": 0
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_skalter_beam_front_f03@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_skalter_beam_front_f03@2x.png",
+        "sha256": "87f38b4a355dcd310387b0e1837ea71e6cc9771d1ba31b598e91429dbab788eb",
+        "approved_keyframe": 3
+      }
+    ],
+    "sha256": "c9d17054737e8466ba3d8a639f728dc7c8ea84900e722ac592e5c0e4e1860035",
+    "arc_reference_radius_logical": null,
+    "arc_span_degrees": null,
+    "arc_overlap_px_2x": 0,
+    "motion_note": "循环材质沿 +x 推进一个完整周期；青绿直芯、深红粗糙边和 80 显示线宽保持。",
+    "runtime_verified": false,
+    "approved_shape_preserved": true,
+    "full_animation_candidate": true,
+    "brief_commit": "975cfaf31",
+    "review_draw_width": 80,
+    "texture_size_unchanged": true,
+    "phase_period_frames": 6,
+    "preview_mp4": "animation_work/segments/previews/fx_ult_skalter_beam_front.mp4",
+    "preview_bytes": 359794
+  },
+  {
+    "name": "fx_ult_skalter_domain_back",
+    "file": "animation_work/segments/fx_ult_skalter_domain_back@2x.png",
+    "fps": 10,
+    "origin_px_2x": [
+      64,
+      32
+    ],
+    "physical_size": [
+      128,
+      64
+    ],
+    "logical_size": [
+      64,
+      32
+    ],
+    "frame_count": 6,
+    "layer": "back",
+    "segments": {
+      "loop": [
+        0,
+        5
+      ]
+    },
+    "representative_frame": 3,
+    "rgba_mib": 0.1875,
+    "tile_axis": "x",
+    "seam_endpoint_equal_every_frame": true,
+    "sourcehash": [
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_skalter_domain_back_f00@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_skalter_domain_back_f00@2x.png",
+        "sha256": "2f21a607c8799fed5ac0dd01acd8cffdb8b9d1b236da232b985112a976c89574",
+        "approved_keyframe": 0
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_skalter_domain_back_f03@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_skalter_domain_back_f03@2x.png",
+        "sha256": "b9a29c2d4403a2967b58271ac15a4fab91ef93e6f74b09ccc906a6fe3beaf150",
+        "approved_keyframe": 3
+      }
+    ],
+    "sha256": "3a5224cd122d3eabcc071311eb3547515f9ed2e51364a41296e5343136c7637b",
+    "arc_reference_radius_logical": 123.63850576500076,
+    "arc_span_degrees": 30,
+    "arc_overlap_px_2x": 2,
+    "motion_note": "先按已确认参考半径展平，仅沿切线搬运真实纹理像素，再还原弧；循环相位等步回接。",
+    "runtime_verified": false,
+    "approved_shape_preserved": true,
+    "full_animation_candidate": true,
+    "brief_commit": "975cfaf31",
+    "arc_reference_circle_center_local_logical": [
+      32.0,
+      139.63850576500076
+    ],
+    "phase_period_frames": 6,
+    "preview_mp4": "animation_work/segments/previews/fx_ult_skalter_domain_back.mp4",
+    "preview_bytes": 221503
+  },
+  {
+    "name": "fx_ult_kaltsit_crack_back",
+    "file": "animation_work/segments/fx_ult_kaltsit_crack_back@2x.png",
+    "fps": 20,
+    "origin_px_2x": [
+      96,
+      32
+    ],
+    "physical_size": [
+      192,
+      64
+    ],
+    "logical_size": [
+      96,
+      32
+    ],
+    "frame_count": 6,
+    "layer": "back",
+    "segments": {
+      "open": [
+        0,
+        3
+      ],
+      "afterglow": [
+        4,
+        5
+      ]
+    },
+    "representative_frame": 3,
+    "rgba_mib": 0.28125,
+    "tile_axis": "x",
+    "seam_endpoint_equal_every_frame": true,
+    "sourcehash": [
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_kaltsit_crack_back_f00@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_kaltsit_crack_back_f00@2x.png",
+        "sha256": "9649bcc8347a744ce8d2ce79533d5f170d2eedcec12f9529b5c317863a3d627f",
+        "approved_keyframe": 0
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_kaltsit_crack_back_f03@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_kaltsit_crack_back_f03@2x.png",
+        "sha256": "584ad1f77a15eb5a9510376a4146fff06f3c0b8ba666a57f2cc5c02a65b4b5ac",
+        "approved_keyframe": 3
+      }
+    ],
+    "sha256": "22bea83284721319cde560635eb34fb953609f6ce70c4d594c9224f3c1a6191e",
+    "arc_reference_radius_logical": 185.45775864750112,
+    "arc_span_degrees": 30,
+    "arc_overlap_px_2x": 2,
+    "motion_note": "闭合裂缝从弧段中央向两端张开；裂口两岸分离，源材质碎屑抛起再落地，末两帧冷却侵蚀。",
+    "runtime_verified": false,
+    "approved_shape_preserved": true,
+    "full_animation_candidate": true,
+    "brief_commit": "975cfaf31",
+    "arc_reference_circle_center_local_logical": [
+      48.0,
+      201.45775864750112
+    ],
+    "end_behavior": "末帧残痕随实例结束；不可把尾帧当循环。",
+    "preview_mp4": "animation_work/segments/previews/fx_ult_kaltsit_crack_back.mp4",
+    "preview_bytes": 214558
+  },
+  {
+    "name": "fx_ult_ulpianus_chain_front",
+    "file": "animation_work/segments/fx_ult_ulpianus_chain_front@2x.png",
+    "fps": 12,
+    "origin_px_2x": [
+      0,
+      16
+    ],
+    "physical_size": [
+      64,
+      32
+    ],
+    "logical_size": [
+      32,
+      16
+    ],
+    "frame_count": 2,
+    "layer": "front",
+    "segments": {
+      "loop": [
+        0,
+        1
+      ]
+    },
+    "representative_frame": 1,
+    "rgba_mib": 0.015625,
+    "tile_axis": "x",
+    "seam_endpoint_equal_every_frame": true,
+    "sourcehash": [
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_chain_front_f00@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_ulpianus_chain_front_f00@2x.png",
+        "sha256": "c6b09f5d1534d186e1a3ecb7b4607c9d95762ffb369ce66243b38f4cc116c731",
+        "approved_keyframe": 0
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_chain_front_f01@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_ulpianus_chain_front_f01@2x.png",
+        "sha256": "ce8fa39b38d7d893e00393923a9cb0304c1257756dddc9d5235e408578f75bff",
+        "approved_keyframe": 1
+      }
+    ],
+    "sha256": "127fd6b394a9bea3d73078d7ba27d6dcb20084b51413049587945e6133927953",
+    "arc_reference_radius_logical": null,
+    "arc_span_degrees": null,
+    "arc_overlap_px_2x": 0,
+    "motion_note": "保留已确认的两态链节晃动；轮廓和链节高光均变化，非静图透明度闪烁。",
+    "runtime_verified": false,
+    "approved_shape_preserved": true,
+    "full_animation_candidate": true,
+    "brief_commit": "975cfaf31",
+    "phase_period_frames": 2,
+    "preview_mp4": "animation_work/segments/previews/fx_ult_ulpianus_chain_front.mp4",
+    "preview_bytes": 113947
+  },
+  {
+    "name": "fx_ult_ulpianus_crack_back",
+    "file": "animation_work/segments/fx_ult_ulpianus_crack_back@2x.png",
+    "fps": 20,
+    "origin_px_2x": [
+      96,
+      32
+    ],
+    "physical_size": [
+      192,
+      64
+    ],
+    "logical_size": [
+      96,
+      32
+    ],
+    "frame_count": 6,
+    "layer": "back",
+    "segments": {
+      "open": [
+        0,
+        3
+      ],
+      "afterglow": [
+        4,
+        5
+      ]
+    },
+    "representative_frame": 3,
+    "rgba_mib": 0.28125,
+    "tile_axis": "x",
+    "seam_endpoint_equal_every_frame": true,
+    "sourcehash": [
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_crack_back_f00@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_ulpianus_crack_back_f00@2x.png",
+        "sha256": "aa84055a803901cbe42bb4b765da476367e3da7c3e516a8966c6d7b31063c095",
+        "approved_keyframe": 0
+      },
+      {
+        "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_crack_back_f03@2x.png",
+        "snapshot_file": "animation_work/segments/sources/fx_ult_ulpianus_crack_back_f03@2x.png",
+        "sha256": "6b346227e98c8b8215f5d1fde9acc7a60c63af8531be52d413179f915a39ab2b",
+        "approved_keyframe": 3
+      }
+    ],
+    "sha256": "1798272dd11c1f68322b80afcec74b4968476dbdbeafba3d3b3d30f97445554d",
+    "arc_reference_radius_logical": 185.45775864750112,
+    "arc_span_degrees": 30,
+    "arc_overlap_px_2x": 2,
+    "motion_note": "闭合裂缝从弧段中央向两端张开；裂口两岸分离，源材质碎屑抛起再落地，末两帧冷却侵蚀。",
+    "runtime_verified": false,
+    "approved_shape_preserved": true,
+    "full_animation_candidate": true,
+    "brief_commit": "975cfaf31",
+    "arc_reference_circle_center_local_logical": [
+      48.0,
+      201.45775864750112
+    ],
+    "end_behavior": "末帧残痕随实例结束；不可把尾帧当循环。",
+    "preview_mp4": "animation_work/segments/previews/fx_ult_ulpianus_crack_back.mp4",
+    "preview_bytes": 200183
+  }
+]

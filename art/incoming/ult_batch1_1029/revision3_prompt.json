@@ -1,0 +1,5 @@
+{
+  "beam": "Redesign this beam sprite to remove its decorative pattern completely. TWO horizontal keyframes stacked on transparent background, identical size. Strong continuous nearly straight pale turquoise narrow core, VERY DARK crimson mass surrounding it with clear thick depth, rough broken pixel edges, only 3-5 short straight diagonal crimson flow scratches, sparse tiny droplets moving right. NO sine curves anywhere, NO waves crossing the core, NO braiding, NO DNA helix, NO repeated rings, NO chains, NO noodles, NO lattice, NO sparks all over the middle. The core's deviations at most 1 logical pixel, it should read as a powerful simple beam with coherent pressure and dark fluid volume. Noita-like hard pixel clusters at96x40 logical per tile, maximum8 flat shades, no bloom, no blur, no gradient. Dark outer red silhouette continuous across full width; left and right edges can tile with same thickness. Top loop f0, lower loop f3 only minor grain changes. No labels no source flare no endpoint.",
+  "mode": "built-in imagegen",
+  "native_comparison": "existing game fx_kp_ishar_mid, retained as alternative only"
+}

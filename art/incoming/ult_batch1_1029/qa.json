@@ -1,0 +1,264 @@
+{
+  "keyframes": [
+    {
+      "file": "fx_ult_texas_slash_front_f00@2x.png",
+      "size": [
+        768,
+        80
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_texas_slash_front_f04@2x.png",
+      "size": [
+        768,
+        80
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_texas_scar_back_f00@2x.png",
+      "size": [
+        256,
+        32
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_texas_scar_back_f02@2x.png",
+      "size": [
+        256,
+        32
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_texas_sword_front_f00@2x.png",
+      "size": [
+        64,
+        224
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_texas_sword_front_f03@2x.png",
+      "size": [
+        64,
+        224
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_exusiai_burst_front_f00@2x.png",
+      "size": [
+        128,
+        128
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_exusiai_burst_front_f02@2x.png",
+      "size": [
+        128,
+        128
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_exusiai_lock_orbit_f00@2x.png",
+      "size": [
+        96,
+        96
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_exusiai_lock_orbit_f04@2x.png",
+      "size": [
+        96,
+        96
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_seaborn_front_f00@2x.png",
+      "size": [
+        320,
+        320
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_seaborn_front_f06@2x.png",
+      "size": [
+        320,
+        320
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_seaborn_back_f00@2x.png",
+      "size": [
+        320,
+        96
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_seaborn_back_f03@2x.png",
+      "size": [
+        320,
+        96
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_beam_front_f00@2x.png",
+      "size": [
+        192,
+        80
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_beam_front_f03@2x.png",
+      "size": [
+        192,
+        80
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_domain_back_f00@2x.png",
+      "size": [
+        128,
+        64
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_skalter_domain_back_f03@2x.png",
+      "size": [
+        128,
+        64
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_kaltsit_melt_front_f00@2x.png",
+      "size": [
+        384,
+        384
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_kaltsit_melt_front_f04@2x.png",
+      "size": [
+        384,
+        384
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_kaltsit_crack_back_f00@2x.png",
+      "size": [
+        192,
+        64
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_kaltsit_crack_back_f03@2x.png",
+      "size": [
+        192,
+        64
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_kaltsit_rebuild_orbit_f00@2x.png",
+      "size": [
+        256,
+        256
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_kaltsit_rebuild_orbit_f09@2x.png",
+      "size": [
+        256,
+        256
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_anchor_front_f00@2x.png",
+      "size": [
+        192,
+        192
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_anchor_front_f02@2x.png",
+      "size": [
+        192,
+        192
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_chain_front_f00@2x.png",
+      "size": [
+        64,
+        32
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_chain_front_f01@2x.png",
+      "size": [
+        64,
+        32
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_crack_back_f00@2x.png",
+      "size": [
+        192,
+        64
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_crack_back_f03@2x.png",
+      "size": [
+        192,
+        64
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_burst_front_f00@2x.png",
+      "size": [
+        128,
+        192
+      ],
+      "binary_alpha": true
+    },
+    {
+      "file": "fx_ult_ulpianus_burst_front_f03@2x.png",
+      "size": [
+        128,
+        192
+      ],
+      "binary_alpha": true
+    }
+  ],
+  "native_attachment_recomposition": true,
+  "source_hashes_verified": true,
+  "seam_validation": "pending",
+  "runtime_verified": false
+}

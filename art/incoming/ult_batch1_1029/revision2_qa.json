@@ -1,0 +1,86 @@
+{
+  "seams": [
+    {
+      "name": "fx_ult_texas_scar_back",
+      "frame": 0,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 2
+    },
+    {
+      "name": "fx_ult_texas_scar_back",
+      "frame": 2,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 2
+    },
+    {
+      "name": "fx_ult_skalter_beam_front",
+      "frame": 0,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 56
+    },
+    {
+      "name": "fx_ult_skalter_beam_front",
+      "frame": 3,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 60
+    },
+    {
+      "name": "fx_ult_skalter_domain_back",
+      "frame": 0,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 4
+    },
+    {
+      "name": "fx_ult_skalter_domain_back",
+      "frame": 3,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 4
+    },
+    {
+      "name": "fx_ult_kaltsit_crack_back",
+      "frame": 0,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 2
+    },
+    {
+      "name": "fx_ult_kaltsit_crack_back",
+      "frame": 3,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 2
+    },
+    {
+      "name": "fx_ult_ulpianus_chain_front",
+      "frame": 0,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 12
+    },
+    {
+      "name": "fx_ult_ulpianus_chain_front",
+      "frame": 1,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 12
+    },
+    {
+      "name": "fx_ult_ulpianus_crack_back",
+      "frame": 0,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 4
+    },
+    {
+      "name": "fx_ult_ulpianus_crack_back",
+      "frame": 3,
+      "matching_endpoint_pixels": true,
+      "edge_occupied_rows": 8
+    }
+  ],
+  "checks": [
+    {
+      "name": "anchor_rigid_rotation",
+      "passed": true
+    }
+  ],
+  "all_keyframes_dimensions_alpha_hashes": true,
+  "native_body_guides": "original per-attachment recomposition exact",
+  "canonical_texas_fx_verification": "original F_Weapon geometry and documented S2 red-orange hue; separate original FX sequence not available",
+  "runtime_verified": false
+}

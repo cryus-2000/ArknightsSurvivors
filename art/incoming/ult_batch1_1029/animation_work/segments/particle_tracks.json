@@ -1,0 +1,907 @@
+{
+  "fx_ult_texas_scar_back": [
+    {
+      "particle": 0,
+      "frame": 0,
+      "x": 14,
+      "y": 7,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 0,
+      "x": 31,
+      "y": 7,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 0,
+      "x": 48,
+      "y": 7,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 0,
+      "x": 65,
+      "y": 7,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 0,
+      "x": 82,
+      "y": 7,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 0,
+      "x": 99,
+      "y": 7,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 0,
+      "x": 116,
+      "y": 7,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 1,
+      "x": 15,
+      "y": 3,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 1,
+      "x": 29,
+      "y": 2,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 1,
+      "x": 51,
+      "y": 1,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 1,
+      "x": 64,
+      "y": 3,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 1,
+      "x": 84,
+      "y": 2,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 1,
+      "x": 96,
+      "y": 1,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 1,
+      "x": 117,
+      "y": 3,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 2,
+      "x": 17,
+      "y": 6,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 2,
+      "x": 26,
+      "y": 6,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 2,
+      "x": 55,
+      "y": 5,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 2,
+      "x": 62,
+      "y": 6,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 2,
+      "x": 87,
+      "y": 6,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 2,
+      "x": 92,
+      "y": 5,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 2,
+      "x": 119,
+      "y": 6,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 3,
+      "x": 19,
+      "y": 9,
+      "visible": false
+    },
+    {
+      "particle": 1,
+      "frame": 3,
+      "x": 23,
+      "y": 9,
+      "visible": false
+    },
+    {
+      "particle": 2,
+      "frame": 3,
+      "x": 59,
+      "y": 9,
+      "visible": false
+    },
+    {
+      "particle": 3,
+      "frame": 3,
+      "x": 60,
+      "y": 9,
+      "visible": false
+    },
+    {
+      "particle": 4,
+      "frame": 3,
+      "x": 90,
+      "y": 9,
+      "visible": false
+    },
+    {
+      "particle": 5,
+      "frame": 3,
+      "x": 88,
+      "y": 9,
+      "visible": false
+    },
+    {
+      "particle": 6,
+      "frame": 3,
+      "x": 121,
+      "y": 9,
+      "visible": false
+    }
+  ],
+  "fx_ult_skalter_beam_front": [],
+  "fx_ult_skalter_domain_back": [],
+  "fx_ult_kaltsit_crack_back": [
+    {
+      "particle": 0,
+      "frame": 1,
+      "x": 14,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 1,
+      "x": 30,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 1,
+      "x": 49,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 1,
+      "x": 65,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 1,
+      "x": 83,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 1,
+      "x": 9,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 1,
+      "x": 27,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 1,
+      "x": 43,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 1,
+      "x": 62,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 1,
+      "x": 78,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 2,
+      "x": 16,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 2,
+      "x": 28,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 2,
+      "x": 51,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 2,
+      "x": 63,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 2,
+      "x": 85,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 2,
+      "x": 7,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 2,
+      "x": 29,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 2,
+      "x": 41,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 2,
+      "x": 64,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 2,
+      "x": 76,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 3,
+      "x": 17,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 3,
+      "x": 27,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 3,
+      "x": 54,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 3,
+      "x": 62,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 3,
+      "x": 86,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 3,
+      "x": 4,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 3,
+      "x": 30,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 3,
+      "x": 40,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 3,
+      "x": 67,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 3,
+      "x": 75,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 4,
+      "x": 18,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 4,
+      "x": 25,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 4,
+      "x": 56,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 4,
+      "x": 61,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 4,
+      "x": 88,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 4,
+      "x": 2,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 4,
+      "x": 31,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 4,
+      "x": 38,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 4,
+      "x": 69,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 4,
+      "x": 74,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 5,
+      "x": 19,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 1,
+      "frame": 5,
+      "x": 23,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 2,
+      "frame": 5,
+      "x": 59,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 3,
+      "frame": 5,
+      "x": 60,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 4,
+      "frame": 5,
+      "x": 90,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 5,
+      "frame": 5,
+      "x": 94,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 6,
+      "frame": 5,
+      "x": 32,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 7,
+      "frame": 5,
+      "x": 36,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 8,
+      "frame": 5,
+      "x": 72,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 9,
+      "frame": 5,
+      "x": 73,
+      "y": 17,
+      "visible": false
+    }
+  ],
+  "fx_ult_ulpianus_chain_front": [],
+  "fx_ult_ulpianus_crack_back": [
+    {
+      "particle": 0,
+      "frame": 1,
+      "x": 14,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 1,
+      "x": 30,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 1,
+      "x": 49,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 1,
+      "x": 65,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 1,
+      "x": 83,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 1,
+      "x": 9,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 1,
+      "x": 27,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 1,
+      "x": 43,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 1,
+      "x": 62,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 1,
+      "x": 78,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 2,
+      "x": 16,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 2,
+      "x": 28,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 2,
+      "x": 51,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 2,
+      "x": 63,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 2,
+      "x": 85,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 2,
+      "x": 7,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 2,
+      "x": 29,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 2,
+      "x": 41,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 2,
+      "x": 64,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 2,
+      "x": 76,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 3,
+      "x": 17,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 3,
+      "x": 27,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 3,
+      "x": 54,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 3,
+      "x": 62,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 3,
+      "x": 86,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 3,
+      "x": 4,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 3,
+      "x": 30,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 3,
+      "x": 40,
+      "y": 11,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 3,
+      "x": 67,
+      "y": 10,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 3,
+      "x": 75,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 4,
+      "x": 18,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 1,
+      "frame": 4,
+      "x": 25,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 2,
+      "frame": 4,
+      "x": 56,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 3,
+      "frame": 4,
+      "x": 61,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 4,
+      "frame": 4,
+      "x": 88,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 5,
+      "frame": 4,
+      "x": 2,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 6,
+      "frame": 4,
+      "x": 31,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 7,
+      "frame": 4,
+      "x": 38,
+      "y": 13,
+      "visible": true
+    },
+    {
+      "particle": 8,
+      "frame": 4,
+      "x": 69,
+      "y": 12,
+      "visible": true
+    },
+    {
+      "particle": 9,
+      "frame": 4,
+      "x": 74,
+      "y": 14,
+      "visible": true
+    },
+    {
+      "particle": 0,
+      "frame": 5,
+      "x": 19,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 1,
+      "frame": 5,
+      "x": 23,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 2,
+      "frame": 5,
+      "x": 59,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 3,
+      "frame": 5,
+      "x": 60,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 4,
+      "frame": 5,
+      "x": 90,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 5,
+      "frame": 5,
+      "x": 94,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 6,
+      "frame": 5,
+      "x": 32,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 7,
+      "frame": 5,
+      "x": 36,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 8,
+      "frame": 5,
+      "x": 72,
+      "y": 17,
+      "visible": false
+    },
+    {
+      "particle": 9,
+      "frame": 5,
+      "x": 73,
+      "y": 17,
+      "visible": false
+    }
+  ]
+}
