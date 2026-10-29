@@ -343,3 +343,16 @@ CI（`ci/<sha>`）汇总同样读该文件；`last_quick.txt` 末尾打印「已
 | `mizuki.json:515 / 521` 路线图标 `skill_mizuki_s1 / s2` 缺 | 界面 / 美术会话 | 技能卡用通用 `skill_s1/s2`，路线卡图标为空 |
 | `specter_unchained.json:620 / 626` 路线图标 `skill_specter_s1 / s2` 缺 | 界面 / 美术会话 | 索引里是 `skill_specter_unchained_s1/s2` |
 | `relics.json:3186` 藏品 265 缺 `relic_265` 图标 | 界面 / 美术会话 | `relic_effects.json:4583` 已有效果定义 |
+
+## 9. 第 2 期实装记录（`--changed`，10-30）
+
+| 项 | 做法 / 实测 |
+| --- | --- |
+| 入口 | `check.py --changed [BASE]`；`--auto` 保留为别名；`--explain` 只打印计划并对照旧 `--auto` 计划；`--assume-files a,b` 假定这些文件被改了（量耗时 / 演示）。用法写进 docs/36 §1.5，AGENTS.md / CLAUDE.md 未动 |
+| 基线 | 缺省 = `origin/claude/integ-1029` / `origin/main` / `main` 里离 HEAD 最近的 merge-base（`default_base`）。旧口径只和 main 比，在集成分支上切出的工作树会得到 11913 个「改动文件」，永远是全量 |
+| 规则 | `tools/check_map.json`：先匹配先生效的 glob 规则 + `escalate`（全局公共文件 → 分支全量）+ `unknown`（core + 抽样冒烟，并点名未映射路径）+ 场景分组 + 干员场景（还按场景参数里的 `--op/--squad` 自动关联，如 mizuki 改动会带上含 mizuki 的 response_p2e / synergy 场景）。引擎 `tools/check_plan.py` |
+| 自检 | `check_map` 静态项：123 个场景回归键全部归组，规则里的组名、场景名都存在；新增回归项没归组即报错 |
+| 实测（`--changed --assume-files`，jobs 2，`--nocache`，机器有其他会话在跑 Godot） | 改藏品 `relic_effects.json`：25 项 **82 秒**；改 UI `hud.gd`：38 项 **136 秒**；改单干员 `mizuki.json`：26 项 **144 秒**；改 Boss `ishar.gd`：36 项 **153 秒**。四次均 0 失败 |
+| 与方案预计 | 方案估计 藏品 1–1.5 分钟 / UI 1.5–2 分钟 / 单干员 1.5–2.5 分钟 / Boss 3–4 分钟；实测落在区间内或更低（Boss 2.6 分钟、藏品 1.4 分钟）。这些时间含约 11 个静态项（art_lint 约 35–41 秒是最大一项） |
+| 合并重复进程 | **没做**：response ×9 / synergy ×4 等每个用例是独立的编队 / 干员配置，要合并得在一个 SceneTree 里反复拆建整局，风险大于收益（单进程启动固定开销只有数秒，慢的是各自的 90–400 秒局内流程）。改成「按改动只选相关用例」：`--changed` 靠干员关联只跑含该干员的 response / synergy 用例，这才是实际省时的部分 |
+| 未做（留给后续） | `ishar_human_ui` 单项 420 秒（L26）仍是最慢项，和 `boss_trial_ui` 是同一脚本带不同参数，值得单独看为什么慢 |

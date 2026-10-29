@@ -29,6 +29,15 @@
 
 分级只用于改的过程中；~~快进合入 main 前仍要跑一次不带 `--auto` 的全量~~（2026-10-14 起按 §1.1：工作会话只跑 `--auto` + 自己的回归项，全量由协调人在 ship.py 里跑一次）。
 
+**§1.5 `--changed` 按改动路径选项（2026-10-30，docs/204）**：`python tools/check.py --changed [BASE] --jobs 3`，规则在 `tools/check_map.json`（路径 glob → 检查组；场景回归按组、按干员归类），引擎 `tools/check_plan.py`。
+- **基线**：缺省 = `origin/claude/integ-1029`、`origin/main`、`main` 里「离 HEAD 最近」的 merge-base（工作树都从集成分支切出，只和 main 比会把集成分支上别人的提交算成自己的）；`--changed <提交或分支>` 可显式指定。
+- **`--auto` 保留为别名**，等价 `--changed`（缺省基线）；旧 none / text / ops 三档语义并入映射表（只改说明字段 → core；干员 → 该干员冒烟 / 成长节点 / 手动攻击 / 复现 + 含其名的场景）。
+- **升级与兜底**：全局公共文件（`character.gd`、`game.gd`、`combat.gd`、`balance.gd`、`balance.json` 等，见 check_map 的 `escalate`）→ 分支全量精简版（§1.4）；没有规则命中的路径 → `core` + 抽样冒烟，并在输出里点名「请补进 check_map.json」。静态项（含 graph_lint / text_reconcile / check_map 自检）恒跑。
+- **对照**：`--changed --explain` 只打印选项计划并列出旧 `--auto` 的计划（上线首周两份并行对照，发现漏选就补映射）；`--assume-files a,b` 可不看 git、假定这些文件被改了（演示 / 量耗时）。
+- **自检**：`check_map` 静态项保证每个场景回归键都归了组；新增回归项没归组 = 快检不跑，只有合入 CI 全量会跑。
+- **已知红**：`tools/known_red.json`（owner / reason / due 必填，≤ 14 天，过期转硬失败），汇总单列。每项耗时进汇总和 `build/check/last_quick.json`。云端用 `tools/cloud/ci_pack.sh` 把每项日志收进 `build/ci_logs/` 一并推回。
+- **说明对账 / 图校验**：`text_reconcile`（说明里的数字必须被条目自己的参数解释，基线外新增未解释 = 失败，基线 `tools/text_reconcile_baseline.json`）、`graph_lint`（成长线 / 路线 / 事件 / 引用键），都不开 Godot、各约 1 秒。
+
 **§1.1 谁跑全量、跑几次（2026-10-14 用户：「测试流程里有好多重复跑的」）**
 
 当天实况：每个工作会话在自己的工作树跑一遍全量（10–25 分钟，本机有二三十个 Godot 时更久），合入 main 后 `tools/ship.py` 又跑一遍全量，一天发 4 版就是 8 次全量；同种子对照每个会话各建一个临时基线工作树重跑基线；56 局的平衡批跑在本机跑。改成：

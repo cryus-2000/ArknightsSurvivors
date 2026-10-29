@@ -57,9 +57,23 @@ def _git(*args):
     return r.stdout if r.returncode == 0 else ""
 
 
-def changed_files():
-    """相对 main 的改动：merge-base 到 HEAD 的提交 + 工作区未提交的改动 + 未跟踪的新文件。返回 (文件列表, merge-base)"""
-    base = _git("merge-base", "HEAD", "main").strip()
+def default_base():
+    """--changed 缺省的比较基线：origin/claude/integ-1029、origin/main、main 里「离 HEAD 最近」的那个的 merge-base
+    （工作树都是从集成分支切出来的；只和 main 比会把集成分支上别人的几百个提交算成自己的改动，永远判成全量）"""
+    best = None
+    for ref in ("origin/claude/integ-1029", "origin/main", "main"):
+        mb = _git("merge-base", "HEAD", ref).strip()
+        if not mb:
+            continue
+        n = _git("rev-list", "--count", mb + "..HEAD").strip()
+        if n.isdigit() and (best is None or int(n) < best[0]):
+            best = (int(n), mb, ref)
+    return best
+
+
+def changed_files(base=None):
+    """相对 base（缺省 main）的改动：merge-base 到 HEAD 的提交 + 工作区未提交的改动 + 未跟踪的新文件。返回 (文件列表, merge-base)"""
+    base = (_git("merge-base", "HEAD", base).strip() if base else "") or _git("merge-base", "HEAD", "main").strip()
     files = set()
     if base and base != _git("rev-parse", "HEAD").strip():
         files |= set(_git("diff", "--name-only", base, "HEAD").splitlines())
@@ -133,6 +147,50 @@ def plan_auto():
         else:
             bump("full", p)
     return level, ops, why
+
+
+ASSUME_FILES = None   # --assume-files 给的文件列表（测量 / 演示用）
+
+
+def make_plan(base_arg):
+    """--changed：按 tools/check_map.json 选要跑的检查组。返回 (plan, 基线说明)"""
+    import check_plan
+    if base_arg:
+        base, label = base_arg, base_arg
+    else:
+        b = default_base()
+        base, label = (b[1], b[2]) if b else ("main", "main")
+    files, mb = changed_files(base)
+    if ASSUME_FILES is not None:
+        files = ASSUME_FILES   # 测量 / 演示用：不看 git，直接当作这些文件被改了
+    plan = check_plan.decide(files, op_ids(), SCENE_REGRESSIONS, lambda f: ASSUME_FILES is None and os.path.exists(os.path.join(ROOT, f)) and _json_text_only(f, mb))
+    plan["files"], plan["base"], plan["label"] = files, mb, label
+    return plan
+
+
+def print_plan(plan, compare_old=False):
+    print("按改动选项（--changed，基线 %s @ %s）：%d 个改动文件" % (plan["label"], (plan["base"] or "?")[:9], len(plan["files"])), flush=True)
+    for f, why, g in plan["rows"][:40]:
+        print("    %s → %s → %s" % (f, why, "+".join(g) or "只跑静态项"), flush=True)
+    if len(plan["rows"]) > 40:
+        print("    …… 另 %d 个文件" % (len(plan["rows"]) - 40), flush=True)
+    if plan["unmapped"]:
+        print("    注意：%d 个路径没有映射规则，按 unknown（core + 抽样冒烟）保守处理：%s —— 请补进 tools/check_map.json" % (
+            len(plan["unmapped"]), "、".join(plan["unmapped"][:6])), flush=True)
+    if plan["full"]:
+        print("    命中全局公共文件 → 升级为分支全量（精简版，docs/36 §1.4）", flush=True)
+    else:
+        print("    选中：组 %s；干员 %s；场景回归 %d 项" % ("+".join(sorted(plan["groups"])) or "无", "、".join(sorted(plan["ops"])) or "无", len(plan["scenes"])), flush=True)
+    if compare_old and ASSUME_FILES is None:
+        lv, ops, why = plan_auto()
+        print("    对照旧 --auto 计划：%s%s（%d 个文件；旧口径基线 main）" % (lv, "，干员 " + "、".join(sorted(ops)) if ops else "", len(why)), flush=True)
+
+
+def check_map():
+    """不开 Godot（<0.1 秒）：check_map.json 自检——每个场景回归键必须归组，组 / 规则不引用不存在的东西（docs/204 §2.3）"""
+    import check_plan
+    errs = check_plan.selftest(SCENE_REGRESSIONS)
+    return {"name": "检查映射 check_map", "ok": not errs, "detail": "%d 个场景回归全部归组" % len(SCENE_REGRESSIONS) if not errs else "%d 处映射问题" % len(errs), "errors": errs[:8]}
 
 
 def check_static():
@@ -1224,7 +1282,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1234,13 +1292,28 @@ def main():
     ap.add_argument("--rerecord-golden", action="store_true",
                     help="等价于 --only blocks_eq --eq-all --update-golden：重录积木等价金样（docs/36 §1.3；谁负责跑见该节）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
+    ap.add_argument("--changed", nargs="?", const="", default=None, metavar="BASE",
+                    help="按相对 BASE 的改动文件，用 tools/check_map.json 选要跑的检查组（缺省基线 = origin/claude/integ-1029 / main 里离 HEAD 最近的 merge-base）；"
+                         "全局公共文件升级为分支全量，未映射路径保守跑 core + 抽样冒烟（docs/204 §2）")
+    ap.add_argument("--assume-files", metavar="A,B", help="测量 / 演示用：不看 git，当作这些文件（逗号分隔）被改了，配合 --changed / --explain")
+    ap.add_argument("--explain", action="store_true", help="只打印 --changed 的选项计划并和旧 --auto 的计划对照，不跑任何检查")
     ap.add_argument("--auto", action="store_true",
-                    help="按相对 main 改了哪些文件只跑相关项目；分支上判成全量时跑精简版（不跑积木等价 / 自然流程，冒烟抽样），在 main 上跑真全量（docs/36 §1.4）")
+                    help="--changed 的别名（缺省基线）；分支上判成全量时跑精简版（不跑积木等价 / 自然流程，冒烟抽样），在 main 上跑真全量（docs/36 §1.4）")
     a = ap.parse_args()
     if a.rerecord_golden:   # 等价于 --only blocks_eq --eq-all --update-golden（docs/36 §1.3）
         a.only = "blocks_eq"
         a.eq_all = True
         a.update_golden = True
+    if a.auto and a.changed is None:
+        a.changed = ""
+    if a.assume_files:
+        global ASSUME_FILES
+        ASSUME_FILES = [x for x in a.assume_files.split(",") if x]
+        if a.changed is None:
+            a.changed = ""
+    if a.explain:
+        print_plan(make_plan(a.changed or ""), compare_old=True)
+        return 0
     global JOBS, LOG_DIR, BAL_ARGS
     JOBS = max(1, a.jobs)
     BAL_ARGS = ["--bal=" + b for b in a.bal]
@@ -1275,29 +1348,40 @@ def main():
         jobs.append(check_data_lint)   # 不开 Godot，约 1 秒；--auto 也跑（改数据表最容易静默出错的几类）
     if a.only in (None, "graph_lint"):
         jobs.append(check_graph_lint)   # 不开 Godot，<1 秒；--auto 也跑（改成长线 / 路线 / 事件 / 引用键 / 图标最容易静默断链）
+    if a.only in (None, "check_map"):
+        jobs.append(check_map)
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
     branch_full, ops = False, set()
-    if a.auto and not a.only:
-        level, ops, why = plan_auto()
-        print("按改动分级（--auto）：%s%s" % (level, "（干员：%s）" % "、".join(sorted(ops)) if ops else ""), flush=True)
-        for w in why[:12]:
-            print("    " + w, flush=True)
-        if len(why) > 12:
-            print("    …… 另 %d 个文件" % (len(why) - 12), flush=True)
-        if level != "full":
-            print("    注意：分级只用于改的过程中；快进合入 main 前仍要跑全量（不带 --auto）", flush=True)
-        if level in ("text", "ops"):
-            jobs.append(lambda: check_core(godot))
-        if level == "ops":
-            jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
-            jobs.append(lambda: check_nodes(godot, ops))
-            jobs.append(lambda: check_manual_all(godot, ops))
-            jobs.append(lambda: check_repro(godot))
-        if level == "full":
-            a.auto = False
+    selective, plan = False, None
+    if a.changed is not None and not a.only:
+        plan = make_plan(a.changed)
+        print_plan(plan, compare_old=True)
+        ops = plan["ops"]
+        if plan["full"]:
             if _git("branch", "--show-current").strip() != "main":
                 branch_full = True   # 分支上的全量：精简版（见下），main 上照旧真全量
+        else:
+            selective = True
+            print("    注意：分级只用于改的过程中；合入 main 的全量在协调人 / 云端 CI 跑", flush=True)
+            if "core" in plan["groups"]:
+                jobs.append(lambda: check_core(godot))
+            if ops:
+                jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
+                jobs.append(lambda: check_nodes(godot, ops))
+                jobs.append(lambda: check_manual_all(godot, ops))
+            if "smoke-sample" in plan["groups"]:
+                head = _git("rev-parse", "HEAD").strip() or "0"
+                allc = smoke_cases()
+                names = op_ids()
+                k0 = int(head[:8], 16) % max(1, len(names))
+                sample = set(names[(k0 + i) % len(names)] for i in range(min(SMOKE_SAMPLE, len(names))))
+                jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in allc if c[0].startswith("冒烟 · ") and c[0].split(" · ")[-1] in sample]
+            if ops or "repro" in plan["groups"]:
+                jobs.append(lambda: check_repro(godot))
+            if "prot" in plan["groups"]:
+                jobs.append(lambda: check_prot(godot))
+            jobs += [(lambda key=key: check_scene(godot, key)) for key in SCENE_REGRESSIONS if key in plan["scenes"]]
     if branch_full:
         # 分支全量精简（用户 10-24「全改」，docs/36 §1.4）：积木等价不跑（分支改玩法后金样必然过期、只能报过期，合入后 main 统一重录比对）；
         # 自然流程两局不跑；冒烟只跑改动涉及的干员 + 按 HEAD 轮换抽 SMOKE_SAMPLE 人。其余（核心契约、成长节点、复现、全部定向回归）照旧
@@ -1308,7 +1392,7 @@ def main():
         smoke_ops = sample | ops
         print("分支全量精简：不跑积木等价、自然流程；冒烟 %d / %d 人（改动涉及：%s；轮换抽样：%s）。合入 main 后跑真全量" % (
             len(smoke_ops), len(ids), "、".join(sorted(ops)) or "无", "、".join(sorted(sample))), flush=True)
-    if not a.auto:
+    if not selective:
         if a.only in (None, "core"):
             jobs.append(lambda: check_core(godot))
         if a.only in (None, "smoke"):
