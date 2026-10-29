@@ -157,6 +157,10 @@ func _final_speed(b: Dictionary) -> void:
 	for f in ["accel", "max_speed", "p_acc", "p_vmin", "p_vmax", "p_v2", "izu_v0"]:
 		if b.has(f):
 			b[f] = float(b[f]) * k
+	# 加速到顶的弹（泡影鼓出后加速）放大后不超过快弹档上沿 boss/spd_cap
+	for f in ["max_speed", "p_vmax"]:
+		if b.has(f) and k > 1.0:
+			b[f] = minf(float(b[f]), maxf(Bal.v("boss/spd_cap", 380.0), float(b[f]) / k))
 
 
 func update_ebullets(dt: float) -> void:
