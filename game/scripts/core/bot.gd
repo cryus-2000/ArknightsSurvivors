@@ -263,7 +263,7 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 			w *= 0.25 if g.lamp < 60.0 else 0.8
 		elif gm.kind == "pack":
 			# 应急补给：机器人残血（< crate/bot_below × 最大生命）才去捡，满血不绕路（docs/133 §6）
-			if g.hp > g.max_hp * g.Bal.v("crate/bot_below", 0.75):
+			if g.hp > g.max_hp * g.Bal.v("crate/bot_below", 0.85):
 				continue
 			w *= 0.4
 		elif gm.kind == "chest" or gm.kind == "heal":

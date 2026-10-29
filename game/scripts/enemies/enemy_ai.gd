@@ -69,7 +69,7 @@ func busy(e: Dictionary) -> bool:
 func _wu(e: Dictionary, dur: float) -> float:
 	if e.elite or e.boss:
 		return dur
-	return maxf(dur * Bal.v("enemy/windup_mult", 1.0), minf(dur, Bal.v("enemy/windup_min", 0.4)))
+	return maxf(dur * Bal.v("enemy/windup_mult", 0.7), minf(dur, Bal.v("enemy/windup_min", 0.4)))
 
 
 ## 额外招式由 enemies.json 配置；只在独立窗口释放，群怪共享预警上限。

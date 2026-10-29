@@ -471,11 +471,11 @@ static func fill_numbers(ln: String) -> String:
 	var pct := func(mult: float) -> String: return str(int(round((mult - 1.0) * 100.0)))
 	var pc100 := func(key: String, dflt: float) -> String: return str(int(round(Bal.v(key, dflt) * 100.0)))
 	var vals := {
-		"{hp_per_member}": str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0))), "{regen_per_member}": Sq.regen_steps_text(),
-		"{dark_taken}": pct.call(Bal.v("lamp/dark_taken", 1.15)), "{dark_enemy}": pct.call(Bal.v("lamp/dark_enemy", 1.2)),
+		"{hp_per_member}": str(int(round(Bal.v("squad/hp_per_member", 0.15) * 100.0))), "{regen_per_member}": Sq.regen_steps_text(),
+		"{dark_taken}": pct.call(Bal.v("lamp/dark_taken", 1.05)), "{dark_enemy}": pct.call(Bal.v("lamp/dark_enemy", 1.1)),
 		"{dark_spawn}": pct.call(Bal.v("enemy/spawn_dark_mult", 1.15)),
-		"{lamp_hit_10}": Sq._num(Bal.v("lamp/hit_scale", 30.0) * 0.1), "{lamp_hit}": Sq._num(Bal.v("lamp/hit_base", 4.0)),
-		"{beacon_need}": Sq._num(Bal.v("beacon/need", 2.5)), "{beacon_lamp}": Sq._num(Bal.v("beacon/lamp", 5.0)), "{beacon_block}": Sq._num(Bal.v("beacon/block_t", 30.0)),
+		"{lamp_hit_10}": Sq._num(Bal.v("lamp/hit_scale", 18.0) * 0.1), "{lamp_hit}": Sq._num(Bal.v("lamp/hit_base", 2.0)),
+		"{beacon_need}": Sq._num(Bal.v("beacon/need", 2.5)), "{beacon_lamp}": Sq._num(Bal.v("beacon/lamp", 20.0)), "{beacon_block}": Sq._num(Bal.v("beacon/block_t", 30.0)),
 		"{elite_chest}": pc100.call("relic/elite_drop_chance", 0.3),
 		"{pack_p}": pc100.call("crate/pack_p", 0.9), "{pack_pct}": pc100.call("crate/pack_pct", 0.3), "{pack_below}": pc100.call("crate/pick_below", 0.9),
 		"{crate_magnet}": pc100.call("crate/magnet_p", 0.1), "{crate_shield}": pc100.call("crate/shield_p", 0.1),

@@ -46,9 +46,9 @@ static func text_base(cid: String, base: Dictionary) -> Dictionary:
 	var B = preload("res://scripts/core/balance.gd")
 	var tier: Dictionary = B.op(cid)
 	var tb: Dictionary = base.duplicate()
-	tb["k_atk"] = B.v("squad/op_atk_base", 1.0) * (1.0 + float(tier.get("atk", 0.0)))
+	tb["k_atk"] = B.v("squad/op_atk_base", 0.9) * (1.0 + float(tier.get("atk", 0.0)))
 	tb["k_pow"] = 1.0 + float(tier.get("skill_power", 0.0))
-	tb["k_kill"] = 1.0 / maxf(0.01, B.v("enemy/density", 1.0))   # 普通怪击杀权重（spawner._dens_apply e.dk）：水月击杀回复等按「每只」写时乘它
+	tb["k_kill"] = 1.0 / maxf(0.01, B.v("enemy/density", 0.4))   # 普通怪击杀权重（spawner._dens_apply e.dk）：水月击杀回复等按「每只」写时乘它
 	return tb
 
 

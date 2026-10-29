@@ -545,7 +545,7 @@ func _update_rush(e: Dictionary, dt: float) -> void:
 		if not ln.hit and Geometry2D.get_closest_point_to_segment(g.ppos, prev, ln.pos).distance_to(g.ppos) < RUSH_R + 12.0:
 			ln.hit = true
 			if g.invuln <= 0.0:
-				g.combat.enemy_hit(e.dmg * Bal.v("boss/paranoia_rush_mult", 1.0), {"boss": true, "src_type": e.type, "corrode": 0.3}, false, true, ["近战", "法术"], "boss_" + e.type)
+				g.combat.enemy_hit(e.dmg * Bal.v("boss/paranoia_rush_mult", 1.3), {"boss": true, "src_type": e.type, "corrode": 0.3}, false, true, ["近战", "法术"], "boss_" + e.type)
 		if gr != null and BossBeam.take(g, 4) == 4:
 			# 尾流：身后两侧各一串泡沫，向外散开
 			for sd in [-1.0, 1.0]:

@@ -56,7 +56,7 @@ func price_mult() -> float:
 ## 商店抬头的涨价说明（跟旋钮走，不写死）
 func step_note() -> String:
 	var s := "每购一件余货 +%d%%" % int(round(Bal.v("shop/purchase_step", 0.2) * 100.0))
-	var rs: float = Bal.v("shop/relic_step", 0.0)
+	var rs: float = Bal.v("shop/relic_step", 0.3)
 	if rs > 0.0:
 		s += "，藏品再 +%d%%" % int(round(rs * 100.0))
 	return s
@@ -65,7 +65,7 @@ func step_note() -> String:
 ## 藏品价格倍率：在 price_mult 之上，本次每买一件藏品，余下藏品再 +shop/relic_step（docs/191：商人处连买藏品是高峰来源，用涨价做软限制，不设件数上限）
 func relic_mult() -> float:
 	var nb: int = trader_buys if trader else int(g.merchant.get("relic_purchases", 0))
-	return price_mult() * (1.0 + nb * Bal.v("shop/relic_step", 0.0))
+	return price_mult() * (1.0 + nb * Bal.v("shop/relic_step", 0.3))
 
 
 ## 每次商人可买藏品件数；balance shop/relic_buy_limit < 0 = 不限（用户 10-11：取消硬上限，只靠「每购一件余货 +20%」和藏品栏容量软限制）

@@ -60,7 +60,7 @@ func load_theme(theme_id: String) -> void:
 	_patch_img = null
 	var amb: Array = theme.get("ambient", [0.16, 0.22, 0.32])
 	# render/ambient_mult：灯火圈外的环境光（CanvasModulate）整体倍率，角色受光同一份（Look 读 map.ambient）；1 = 主题原值（用户 10-21 定亮度 B：缺省 1.3，见 balance render/_bright_b_doc）
-	var am: float = Bal.v("render/ambient_mult", 1.0)
+	var am: float = Bal.v("render/ambient_mult", 1.9)
 	ambient = Color(amb[0] * am, amb[1] * am, amb[2] * am)
 	# 不用蓝色环境光（docs/139 §6.6，用户 10-24）：环境光换成同亮度的中性灰，暗部不再一片高饱和青蓝（旧旋钮 render/ambient_desat 10-29 已删，固定全去色）
 	var lu: float = ambient.r * 0.2126 + ambient.g * 0.7152 + ambient.b * 0.0722
@@ -94,7 +94,7 @@ func load_theme(theme_id: String) -> void:
 func _load(n: String) -> void:
 	if not tex.has(n):
 		# docs/139 §6.6 试验旋钮 render/env_sat / render/env_bright（缺省 1 / 1）：只给地图贴图（地砖 / 斑块 / 道具 / 大道具）降饱和，干员 / 怪物 / 特效颜色不变
-		tex[n] = A.desat_of(A.tex(n), Bal.v("render/env_sat", 1.0), Bal.v("render/env_bright", 1.0))
+		tex[n] = A.desat_of(A.tex(n), Bal.v("render/env_sat", 0.55), Bal.v("render/env_bright", 1.15))
 
 
 func _frames_of(n: String) -> int:
@@ -902,9 +902,9 @@ func _mire_knobs() -> void:
 	if fr == _mk_frame:
 		return
 	_mk_frame = fr
-	_mk_tint = Color(Bal.v("render/mire_tint_r", 1.0), Bal.v("render/mire_tint_g", 1.0), Bal.v("render/mire_tint_b", 1.0), 1.0)
+	_mk_tint = Color(Bal.v("render/mire_tint_r", 0.5), Bal.v("render/mire_tint_g", 0.95), Bal.v("render/mire_tint_b", 0.8), 1.0)
 	_mk_anim = Bal.v("render/mire_anim", 1.0)
-	_mk_alpha = Bal.v("render/mire_alpha", 1.0)
+	_mk_alpha = Bal.v("render/mire_alpha", 0.8)
 	_mk_emit = Bal.v("render/optical_mire_emit", 0.35)
 
 

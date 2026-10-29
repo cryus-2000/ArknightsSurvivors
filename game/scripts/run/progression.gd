@@ -90,9 +90,9 @@ func card_weight(c: Dictionary) -> float:
 		return Bal.v("levelup/dash_weight", 0.7)   # 冲刺三张（机动类，docs/83）
 	if not is_heal_card(c):
 		return 1.0
-	var w: float = Bal.v("levelup/heal_weight", 1.5)
+	var w: float = Bal.v("levelup/heal_weight", 1.2)
 	if g.hp < g.max_hp * Bal.v("levelup/heal_low_hp", 0.5):
-		w *= Bal.v("levelup/heal_low_hp_mult", 1.5)
+		w *= Bal.v("levelup/heal_low_hp_mult", 1.3)
 	return w
 
 
@@ -157,7 +157,7 @@ func open_levelup() -> void:
 	var picks: Array = []
 	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
 	var recruit: Array = recruit_cards()
-	var must_recruit: bool = not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 6) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 12) and g.squad.size() < Squad.REGULAR_MAX))
+	var must_recruit: bool = not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 5) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 9) and g.squad.size() < Squad.REGULAR_MAX))
 	if must_recruit:
 		# 保底画面（docs/119 §4.3）：有合格人选时保证一名与已持有藏品有实际互动的候选（build_affinity.forced_recruit_order；开关关 = 只洗牌）
 		var n_show: int = want + g.rfx.rule("recruit_extra")   # 罗德岛战术电台：招募多一个选项
@@ -201,13 +201,13 @@ func open_levelup() -> void:
 	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
 	# 编队满员：出「更换队友」卡（swap_cards），概率降为 swap_chance、7:00 后再降为 swap_chance_late；
 	# 本次已有两张干员深度卡时不出，换人卡不挤掉成长卡（docs/162，用户 10-26）
-	var chance: float = Bal.v("levelup/recruit_chance", 0.45)
+	var chance: float = Bal.v("levelup/recruit_chance", 0.55)
 	var can_offer := true
 	if recruit.is_empty():
 		recruit = swap_cards()
 		chance = Bal.v("levelup/swap_chance_late", 0.12) if g.t >= Bal.v("levelup/swap_late_t", 420.0) else Bal.v("levelup/swap_chance", 0.25)
 		can_offer = picks.size() < want - 1
-	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and can_offer and g.rng.randf() < chance:
+	if g.level >= Bal.vi("levelup/recruit_from_level", 4) and not recruit.is_empty() and can_offer and g.rng.randf() < chance:
 		picks.append(recruit[g.rng.randi() % recruit.size()])
 	# ---- 生存 / 机动 / 协同被动：种类上限 生存 4、机动 levelup/mobility_kinds（3）、协同 4（docs/83）
 	var passives: Array = g.doctor.passive_cards("doctor") + g.doctor.passive_cards("mobility") + g.doctor.passive_cards("squad") + g.doctor.passive_cards("fire")
@@ -303,7 +303,7 @@ func relic_pool_ids(for_shop := false) -> Array:
 			w *= 1.3
 		# 得偿所愿（翻节点卡，docs/154）：这一次三选一稀有 / 核心加权
 		if not for_shop and g.endg.wish_rare and r.rarity in ["稀有", "核心"]:
-			w *= maxf(float(g.endg.deck_cfg.get("wish_rare", 1.5)), Bal.v("relic/wish_rare", 0.0))   # relic/wish_rare：补偿用，0 = 按卡组配置
+			w *= maxf(float(g.endg.deck_cfg.get("wish_rare", 1.5)), Bal.v("relic/wish_rare", 2.0))   # relic/wish_rare：补偿用，0 = 按卡组配置
 		# 护盾保底（10-21 用户：护盾常刷不到）：队长还没有护盾层数时，给层数的藏品（7 件）权重 ×relic/shield_weight；
 		# 一拿到层数就恢复原权重。权重只改排序、不改随机数抽取次数
 		if r.get("shield_layer", false) and g.shield_max <= 0:
@@ -323,7 +323,7 @@ func open_relic_choice() -> void:
 	# 大时刻补偿（docs/191）：Boss / 精英小队宝箱多 relic/big_extra 个选项，所有宝箱再多 relic/chest_extra 个；
 	# relic/chest_rare 1 = 精英 / Boss / 精英小队宝箱按稀有 / 核心加权（同得偿所愿）。都只改排序与张数，不多取随机数。缺省 0 = 关
 	var csrc: String = str(g.chest_src[0]) if not g.chest_src.is_empty() else ""
-	if csrc in ["elite", "boss", "squad"] and Bal.v("relic/chest_rare", 0.0) > 0.0:
+	if csrc in ["elite", "boss", "squad"] and Bal.v("relic/chest_rare", 1.0) > 0.0:
 		g.endg.wish_rare = true
 	var pool: Array = []
 	for rid in relic_pool_ids():
@@ -339,7 +339,7 @@ func open_relic_choice() -> void:
 	# 一次性加选项（docs/57 P27）与补给箱钥匙（P17）：各多一个选项，用掉一次
 	var extra: int = g.rfx.take_choice_extra()
 	if csrc == "boss" or csrc == "squad":
-		extra += Bal.vi("relic/big_extra", 0)
+		extra += Bal.vi("relic/big_extra", 1)
 	if csrc in ["elite", "boss", "squad"]:
 		extra += Bal.vi("relic/chest_extra", 0)
 	if g.rfx.rule("chest_keys") > 0:

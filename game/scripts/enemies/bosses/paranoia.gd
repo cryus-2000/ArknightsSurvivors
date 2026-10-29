@@ -187,7 +187,7 @@ func _drop_step(e: Dictionary) -> void:
 		# 收招破绽（break_t）期间也能打落：只有正在坠地才不能再打（10-28 docs/170 §3h）
 		if float(e.get("drop_until", 0.0)) > g.t or g.t < float(e.get("drop_ok_at", 0.0)) or not _dash_through(e):
 			return
-		var t: float = Bal.v("boss/paranoia_drop_t", 4.0)
+		var t: float = Bal.v("boss/paranoia_drop_t", 5.0)
 		brk(e, t)
 		e.drop_until = g.t + t
 		e.drop_ok_at = g.t + t + Bal.v("boss/paranoia_drop_cd", 2.0)
@@ -306,8 +306,8 @@ func taken_mult(e: Dictionary) -> float:
 	if float(e.get("break_t", 0.0)) > 0.0:
 		return Bal.v("boss/paranoia_rest_taken", 1.25) / bm
 	if e.phase == 1:
-		return Bal.v("boss/paranoia_hover_taken", 0.5)
-	return Bal.v("boss/paranoia_aura_off_taken", 1.25) if _aura_off(e) else Bal.v("boss/paranoia_aura_taken", 0.5)
+		return Bal.v("boss/paranoia_hover_taken", 0.65)
+	return Bal.v("boss/paranoia_aura_off_taken", 1.25) if _aura_off(e) else Bal.v("boss/paranoia_aura_taken", 0.65)
 
 
 ## 认知负担光环：主控站在 boss/paranoia_aura_r（220；二阶段 paranoia_aura_r2 300）内时，全队攻速 ×(1 − paranoia_aura_aspd)（一阶段 0.10、二阶段 paranoia_aura_aspd2 0.15；
@@ -378,7 +378,7 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	e.part = false
 	e.invuln = false
 	e.count_end = 0.0
-	e.hp = e.maxhp * Bal.v("boss/paranoia_revive", 0.8)
+	e.hp = e.maxhp * Bal.v("boss/paranoia_revive", 0.5)
 	_paranoia_p2(e)
 	# 防速杀（10-28 用户「30 秒就碾过去」）：破茧后再算一段最短时长（enemies.json act_min 最后一项），到 3% 处泡膜硬化挡住（combat.gate_clamp）
 	if not e.get("act_mins", []).is_empty():

@@ -751,7 +751,7 @@ func _shot(e: Dictionary, p: Vector2, a: float, spd: float, r: float, life: floa
 	e.izu_live = int(e.get("izu_live", 0)) + 1
 	# 单发伤害旋钮（协调人 10-27：弹幕变密，先 ×0.8，云端测完再定）
 	var act: int = _act(e)
-	var b := {"pos": p, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * mult * Bal.v("boss/izumik_bullet_mult", 0.8), "r": r, "life": life,
+	var b := {"pos": p, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * mult * Bal.v("boss/izumik_bullet_mult", 1.15), "r": r, "life": life,
 		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": ACT_KIND[act], "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "own_col": COL, "src_type": e.type, "izu_t": 0.0}
 	b.merge(extra, true)
@@ -862,7 +862,7 @@ func _share_fx_step(e: Dictionary) -> void:
 ## 潮痕（场地侵蚀）：海流牵引的涌起点、护群触腕最后一圈留下 Boss 溟痕（减速 + 每秒 2% 最大生命，走 Boss 持续伤害上限），
 ## 存在 boss/izumik_mire_life（8）秒；一次最多 boss/izumik_mire_max（6）块伊祖米克溟痕。被破绽 / 眩晕取消的招不留
 func _tide_mires(e: Dictionary, w: Dictionary) -> void:
-	var life: float = Bal.v("boss/izumik_mire_life", 8.0)
+	var life: float = Bal.v("boss/izumik_mire_life", 10.0)
 	if life <= 0.0:
 		return
 	var pts: Array = []
@@ -883,7 +883,7 @@ func _tide_mires(e: Dictionary, w: Dictionary) -> void:
 func taken_mult(e: Dictionary) -> float:
 	if e.phase != 2 or Bal.v("boss/izumik_cards", 1.0) <= 0.0:
 		return 1.0
-	return Bal.v("boss/izumik_break_taken", 1.1) if float(e.get("break_t", 0.0)) > 0.0 else Bal.v("boss/izumik_taken_out", 0.7)
+	return Bal.v("boss/izumik_break_taken", 1.4) if float(e.get("break_t", 0.0)) > 0.0 else Bal.v("boss/izumik_taken_out", 0.47)
 
 
 ## ---- 护群触腕（用户 10-28：换圆形、追着人打）：在队长脚下连落 boss/izumik_tentacle_n（4）个圆（半径 izumik_tentacle_r 110），

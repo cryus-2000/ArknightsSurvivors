@@ -161,7 +161,7 @@ func update(dt: float) -> void:
 		if stress:
 			continue
 		# 应急补给（docs/133 §6，用户 10-24：参照吸血鬼幸存者，满血不吃、留在地上等残血回头拿）：队长生命高于 crate/pick_below × 最大生命时不拾取、不被吸起
-		if g_item.kind == "pack" and g.hp > g.max_hp * Bal.v("crate/pick_below", 1.0):
+		if g_item.kind == "pack" and g.hp > g.max_hp * Bal.v("crate/pick_below", 0.9):
 			continue
 		var mag: bool = g_item.mag
 		var d: float = g_item.pos.distance_to(pp)
