@@ -845,7 +845,7 @@
   "optical_col_horde_h": 1.0,
   "optical_col_lamp_h": 0.075, "optical_col_lamp_s": 0.75, "optical_col_lamp_v": 1.0,
   "optical_col_loot_h": 0.13, "optical_col_loot_s": 0.25, "optical_col_loot_v": 1.0,
-  "_gem_style_doc": "经验结晶调色候选（用户 10-29「地上的经验是白色，不明显」，docs/128 §6.1，render/world.gd GEM_TINT）：0 = 原样（淡金白贴图 + 偏冷提亮）；1 = 柠檬黄（同顶部经验细条）；2 = 淡青绿带亮芯；3 = 宝蓝带白芯；4 = 金色。只改调色，不加绘制",
+  "_gem_style_doc": "经验结晶调色候选（用户 10-29「地上的经验是白色，不明显」，docs/128 §6.1，render/world.gd GEM_TINT）：0 = 原样（淡金白贴图 + 偏冷提亮）；1 = 柠檬黄（同顶部经验细条）；2 = 淡青绿带亮芯；3 = 宝蓝带白芯；4 = 金色；5 = 翠绿带白芯；6 = 亮紫带白芯。只改调色，不加绘制",
   "gem_style": 0,
   "optical_ground_glow": 0.1,
   "_optical_fx1_doc": "光学观感 · 特效处理第 1 步（10-23 用户定，render/optical.gd）：optical 光学观感总开关（10-23 正式打开，画质「低」时自动关）；optical_fx1 特效第 1 步开关（0 = 回到上一版）；optical_fxq 压阶帧条（tools/optical_fx_quant.py 生成 art/incoming/optical_fx/）；optical_fx_cap 特效绘制色通道上限（0 = 不限）；optical_glow_budget 全屏发光总量预算（屏幕平均发光度，超出按比例压辉光与亮部）；optical_dl_max 特效动态照明同时最多几盏（≤ 12，着色器数组，不用 Light2D）；optical_dl_gain 动态照明强度；防油腻：optical_steps 辉光 / 光池 / 特效照明分几阶硬边环（0 = 平滑）、optical_local_r 队长周围局部预算半径（世界像素）、optical_local_budget 局部发光度上限（着色器）、optical_local_light 局部特效光强度总和上限、optical_local_bursts 局部喷发次数上限（0.5 秒衰减，超出新粒子压暗）；fx1 开着时加法远景光束（乳白雾）不画",
