@@ -39,6 +39,7 @@ var lamp_loss: Dictionary = {}  # 灯火损失按来源累计：受击 / 圈外 
 var lamp_taken: Array = [0.0, 0.0, 0.0, 0.0]   # 各灯火档（通明 / 摇曳 / 暗淡 / 寂灭）里的承伤
 var _lamp_prev := -1.0
 var _lamp_noted := 0.0          # 本帧已按来源记过的净变化（+ 回补 / − 损失），tick 里用来算「其他」
+var m3: Dictionary = {}         # 凯尔希 Mon3tr 血条遥测（downs 倒地次数 / down_secs 不在场秒数 / hurt 受伤 / regen 回血 / heal_to_m3 治疗拍给它的量 / heal_ticks_m3 拍数）；没有 Mon3tr 的局不写
 var win_src: Dictionary = {}    # 当前采样窗口内按来源的承伤（docs/82：6–9 分钟承伤来源）
 var heal_last: Dictionary = {}  # 上一个采样点的 heal_log（窗口治疗 = 增量）
 var last_src := ""              # 最近一次掉血的来源（死因）
@@ -121,6 +122,10 @@ func sus_seg() -> Dictionary:
 	if not sus.has(k):
 		sus[k] = {"heal": {}, "dr": {}, "clean": {}, "lit": 0.0}
 	return sus[k]
+
+
+func note_m3(key: String, v: float) -> void:
+	m3[key] = float(m3.get(key, 0.0)) + v
 
 
 func note_heal_sub(src: String, sub: String, got: float, offered: float) -> void:
@@ -773,6 +778,11 @@ func record(marks = null) -> Dictionary:
 			for k in ["pre", "post", "one_cut", "boss_cut", "any_cut"]:
 				cs[k] = snappedf(cs[k], 0.1)
 			bot_block["cap_stats"] = cs
+	if not m3.is_empty():
+		var mr := {}
+		for key in m3:
+			mr[key] = snappedf(float(m3[key]), 0.1)
+		rec["m3"] = mr   # Mon3tr 血条（docs/plans/2026-10-29-mon3tr-hp-plan.md）：倒地次数、不在场秒数、受伤 / 回血 / 治疗拍；没有 Mon3tr 的局不写
 	if not g.squad.stance_log.is_empty():
 		rec["cmd"] = g.squad.cmd_stats()   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数；没切过模式的局不写（BALANCE 与 main 逐字相同）
 	return rec
