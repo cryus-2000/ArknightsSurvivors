@@ -62,6 +62,34 @@ var ev := {
 }
 var _prev_dash := 0.0
 var _filled := false
+var _swarm_t := -1.0
+
+
+## 录像用（用户 10-29「怪物要多一点、聚集一点」；缺省 ult/test_swarm_at = -1 关，正常局 / 批跑不走）：到点在队长前方
+## ult/test_swarm_d（300）处刷一团 ult/test_swarm_n（80）只普通怪（半径 ult/test_swarm_r 250，按序号排成葵花点阵、不抽随机数）
+## + ult/test_swarm_elites（3）只精英；ult/test_swarm_every > 0 时之后每隔这么多秒再刷一团
+func _test_swarm() -> void:
+	var at: float = Bal.v("ult/test_swarm_at", -1.0)
+	if at < 0.0 or g.t < at:
+		return
+	var every: float = Bal.v("ult/test_swarm_every", 0.0)
+	if _swarm_t >= 0.0 and (every <= 0.0 or g.t - _swarm_t < every):
+		return
+	_swarm_t = g.t
+	var ld = g.squad.leader()
+	var c0: Vector2 = g.ppos + _default_dir(ld) * Bal.v("ult/test_swarm_d", 300.0) if ld != null else g.ppos + Vector2(300, 0)
+	var n: int = int(Bal.v("ult/test_swarm_n", 80.0))
+	var r: float = Bal.v("ult/test_swarm_r", 250.0)
+	var types := ["fractal", "slider", "runner", "fractal", "bone"]
+	for i in n:
+		var p: Vector2 = c0 + Vector2.from_angle(i * 2.39996) * r * sqrt(float(i + 1) / n)
+		g.spawner.spawn_enemy(types[i % types.size()], p)
+	for i in int(Bal.v("ult/test_swarm_elites", 3.0)):
+		var e: Dictionary = g.spawner.spawn_enemy("skimmer", c0 + Vector2.from_angle(i * TAU / 3.0 + 0.5) * r * 0.5)
+		if not e.elite:
+			e.elite = true
+			e.hp *= Bal.v("enemy/elite_hp_mult", 7.0)
+			e.maxhp = e.hp
 
 # ---- 增益、画面
 var _buffs: Array = []      # {"src", "until"}：到点 g.stats.remove_source
@@ -187,6 +215,7 @@ func tick(dt: float) -> void:
 		_clear()
 		return
 	_events()
+	_test_swarm()
 	if not _filled and g.t >= Bal.v("ult/test_fill_at", -1.0) and Bal.v("ult/test_fill_at", -1.0) >= 0.0:
 		_filled = true   # 测试 / 录像用（缺省 -1 = 关）：到点直接充满能量，协同给 ult/test_cells 格
 		energy = FULL

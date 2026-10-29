@@ -33,7 +33,7 @@ def one(name):
     fdir = os.path.join(out, "fr_" + name); shutil.rmtree(fdir, ignore_errors=True); os.makedirs(fdir)
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
             "--balance", "--realtime", "--rtfrom=%g" % max(0.0, at - 3), "--nodeath", "--seed=3", "--op=" + op, "--squad=" + squad] + ([] if any(x.startswith("--bot=") for x in ex) else ["--bot=expert"]) + [
-            "--maxprog", "--bal=ult/bot_n=1"] + ([] if any(x.startswith("--bal=ult/test_fill_at") for x in ex) else ["--bal=ult/test_fill_at=%g" % (at + 1.5)]) + ex + a.extra.split() + [
+            "--maxprog", "--bal=ult/bot_n=1", "--bal=ult/test_swarm_at=%g" % (at + 0.3), "--bal=ult/test_swarm_every=6"]   # 录像口径（10-29）：怪多、聚一团 + ([] if any(x.startswith("--bal=ult/test_fill_at") for x in ex) else ["--bal=ult/test_fill_at=%g" % (at + 1.5)]) + ex + a.extra.split() + [
             "--recframes=%g,%d" % (at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (at + a.secs + 8)]
     o, e, to = GR.run_godot([x for x in args if x], 1800)
     n = len(glob.glob(os.path.join(fdir, "rec_*.png")))
