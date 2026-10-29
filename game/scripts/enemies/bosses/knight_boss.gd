@@ -576,7 +576,7 @@ func _leap_step(e: Dictionary, dt: float, dir: Vector2) -> bool:
 		g.vfx.shake_screen(0.6)
 		Sfx.play("stake_shatter", -6.0, 0.9, 0.0)
 		var to: Vector2 = g.ppos - e.pos
-		ice_shards(e, e.pos, to.angle(), 5, 0.9, 170.0)
+		ice_shards(e, e.pos, to.angle(), int(round(5 * Bal.v("boss/knight_dense_k", 1.0))), 0.9, 170.0)   # 密度招：跳斩落地冰屑（docs/201 §8）
 		var dd: float = to.length()
 		if e.phase == 1 and _act(e) >= 1 and dd >= 160.0 and dd <= 620.0:
 			_spear(e, to.normalized(), dd)
@@ -756,7 +756,7 @@ func _reborn_step(e: Dictionary) -> void:
 	_prism_step(e)
 	_roll_step(e)
 	if e.has("kn_cone_at") and g.t >= float(e.kn_cone_at):
-		ice_shards(e, e.pos, float(e.kn_cone_gap) + PI, 8, TAU, 220.0, float(e.kn_cone_gap), 0.7)
+		ice_shards(e, e.pos, float(e.kn_cone_gap) + PI, int(round(8 * Bal.v("boss/knight_dense_k", 1.0))), TAU, 220.0, float(e.kn_cone_gap), 0.7)   # 密度招：重生冰棱环（缺口半角不变）
 		e.erase("kn_cone_at")
 	if e.has("kn_spin_brk_at") and g.t >= float(e.kn_spin_brk_at):
 		e.erase("kn_spin_brk_at")

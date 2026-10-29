@@ -199,6 +199,7 @@ func play(e: Dictionary, mv: String, dir: Vector2, dist: float) -> float:
 		g.bai.finals.force_move(e, mv, dir, dist)
 		e.final_next = INF
 		return 0.0
+	_cur_mv = mv
 	match mv:
 		"合唱环颂": _chorus_rings(e)
 		"泪雨": _tear_rain(e)
@@ -220,7 +221,18 @@ func play(e: Dictionary, mv: String, dir: Vector2, dist: float) -> float:
 ## ---- 弹幕（ebullets：Boss 弹，专属色发光弹芯 + 暗描边由 world 统一画；enemies.json bcol_core / bcol_outline）
 ## 弹体分级：音弹 r6（中速）、大泪 r13（慢）、碎片 r5（快）；均为真实伤害
 
+## 按招式分工（10-29 docs/201 §8）：密度招 泪雨 / 合唱环颂 发数再 × ishar_dense_k；快节奏招 潮涡 / 侵蚀之泪 排程延迟再 × ishar_fast_k；其余当喘息段
+var _cur_mv := ""
+
+
 func _emit(e: Dictionary, at: float, d: Dictionary) -> void:
+	if _cur_mv in ["泪雨", "合唱环颂"] and d.has("n"):
+		var dk: float = Bal.v("boss/ishar_dense_k", 1.0)
+		d.n = maxi(1, int(round(float(d.n) * dk)))
+		if d.has("gap"):
+			d.gap = int(round(float(d.gap) * dk))
+	if _cur_mv in ["潮涡", "侵蚀之泪"]:
+		at = g.t + maxf(0.0, at - g.t) * Bal.v("boss/ishar_fast_k", 1.0)
 	# 10-29 docs/201 §7：发数 × boss/count_k_ishar（缺口格数同比放大，缺口角度不变），排程延迟 × boss/tempo_k_ishar
 	var ck: float = Bal.v("boss/count_k_ishar", 1.0)
 	if d.has("n") and ck != 1.0:
