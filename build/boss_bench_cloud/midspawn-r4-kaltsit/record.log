@@ -1,0 +1,34 @@
+kaltsit    m0  s1      50s  snaps=2 real=path:win/82s,bishop+immortal:end/5s
+kaltsit    m0  s3      51s  snaps=2 real=path:win/78s,bishop+archon:end/5s
+kaltsit    m0  s4      54s  snaps=2 real=carmen:win/68s,bishop+archon:end/5s
+kaltsit    m0  s2      56s  snaps=2 real=path:win/37s,carmen:end/5s
+kaltsit    m0  s5      42s  snaps=2 real=carmen:win/122s,path:end/5s
+kaltsit    m0  s7      43s  snaps=2 real=path:win/124s,bishop+immortal:end/5s
+kaltsit    m0  s6      46s  snaps=2 real=carmen:win/40s,path:end/5s
+kaltsit    m0  s8      49s  snaps=2 real=path:win/96s,carmen:end/5s
+kaltsit    m0  s9      43s  snaps=2 real=carmen:win/78s,bishop+immortal:end/5s
+kaltsit    m0  s11     41s  snaps=2 real=path:win/35s,bishop+immortal:end/5s
+kaltsit    m0  s10     43s  snaps=2 real=carmen:win/52s,bishop+archon:end/5s
+kaltsit    m0  s12     46s  snaps=2 real=path:win/36s,bishop+immortal:end/5s
+kaltsit    m0  s13     40s  snaps=2 real=path:win/38s,iberia:end/5s
+kaltsit    m0  s15     40s  snaps=2 real=carmen:win/63s,bishop+immortal:end/5s
+kaltsit    m0  s14     42s  snaps=2 real=carmen:win/126s,bishop+archon:end/5s
+kaltsit    m0  s16     44s  snaps=2 real=carmen:win/67s,bishop+immortal:end/5s
+快照目录：/home/user/ArknightsSurvivors/build/boss_bench_cloud/midspawn-r4-kaltsit/snaps（16 局）
+kaltsit    m18 s4      44s  snaps=2 real=path:win/81s,iberia:end/5s
+kaltsit    m18 s3      44s  snaps=2 real=carmen:win/36s,bishop+archon:end/5s
+kaltsit    m18 s1      45s  snaps=2 real=carmen:win/79s,path:end/5s
+kaltsit    m18 s2      47s  snaps=2 real=path:win/66s,bishop+immortal:end/5s
+kaltsit    m18 s6      42s  snaps=2 real=carmen:win/38s,bishop+immortal:end/5s
+kaltsit    m18 s5      42s  snaps=2 real=carmen:win/68s,bishop+immortal:end/5s
+kaltsit    m18 s7      43s  snaps=2 real=path:win/51s,iberia:end/5s
+kaltsit    m18 s8      42s  snaps=2 real=carmen:win/122s,bishop+immortal:end/5s
+kaltsit    m18 s9      39s  snaps=2 real=path:win/78s,bishop+immortal:end/5s
+kaltsit    m18 s11     37s  snaps=2 real=carmen:win/24s,bishop+immortal:end/5s
+kaltsit    m18 s10     39s  snaps=2 real=carmen:win/83s,bishop+immortal:end/5s
+kaltsit    m18 s12     43s  snaps=2 real=carmen:win/86s,path:end/5s
+kaltsit    m18 s15     38s  snaps=2 real=path:win/96s,bishop+immortal:end/5s
+kaltsit    m18 s14     39s  snaps=2 real=carmen:win/156s,path:end/5s
+kaltsit    m18 s13     40s  snaps=2 real=carmen:win/85s,path:end/5s
+kaltsit    m18 s16     44s  snaps=2 real=carmen:win/49s,bishop+archon:end/5s
+快照目录：/home/user/ArknightsSurvivors/build/boss_bench_cloud/midspawn-r4-kaltsit/snaps（16 局）
