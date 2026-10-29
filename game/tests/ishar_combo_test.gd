@@ -12,6 +12,10 @@ func check(ok: bool, label: String) -> void:
 		print("FAIL ", label)
 
 func _ready() -> void:
+	# 图案 / 连段逻辑按原密度验：docs/201 §7 的加密旋钮（每波弹数 / 节奏 / 弹速倍率）在本测试里钉回 1
+	Bal.v("boss/count_k_ishar", 1.0)
+	for k in ["count_k_ishar", "tempo_k_ishar", "spd_all_k_ishar"]:
+		Bal._data["boss"][k] = 1.0
 	g = load("res://game.tscn").instantiate()
 	g.demo_op = "mizuki"
 	g.demo_enemy = "ishar"

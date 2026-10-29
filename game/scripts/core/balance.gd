@@ -10,6 +10,7 @@ static var _loaded := false
 ## 测试里直接改 Bal._data["段"]["键"] = x 的写法照旧可用：_data 是个属性，外部每读一次 _data（几乎都是为了改它）就把缓存丢掉；
 ## 经 sec() 拿到整段再改的同理（sec 每次调用也丢缓存）；reload() 自带。所以不需要谁手动清缓存
 static var _vc: Dictionary = {}
+static var _cache_on := true   # 测试场景关（见 _load）
 const _CACHE_MAX := 20000   # 路径里带敌人 / 干员 id 的动态键数量有限；万一暴涨整表丢掉重来
 
 static var _data: Dictionary:
@@ -47,6 +48,11 @@ static func _load() -> void:
 	_preset("nausea_safe", NAUSEA_SAFE)
 	_preset("palette_trial", PALETTE_TRIAL)
 	_preset("foe_calm", FOE_CALM)
+	# 测试场景（res://tests/ 下的场景或 -s 脚本）不用缓存：不少回归拿到 sec() / _data 的整段后隔几步再改里面的键，
+	# 缓存丢不掉（10-30 integ-1029 云端 command_ai / prot 因此读到旧值）。只在 debug 构建判断，发布版恒开
+	for a in (OS.get_cmdline_args() if OS.is_debug_build() else PackedStringArray()):
+		if a.begins_with("res://tests/"):
+			_cache_on = false
 
 
 ## docs/139 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
@@ -119,6 +125,8 @@ static func v(path: String, default: float) -> float:
 		_load()
 		var cur: Variant = _walk(path)
 		c = float(cur) if (cur is float or cur is int) else false
+		if not _cache_on:
+			return c if c is float else default
 		if _vc.size() >= _CACHE_MAX:
 			_vc.clear()
 		_vc[path] = c
