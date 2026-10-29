@@ -892,14 +892,14 @@ func _ready() -> void:
 	# 基础砍（docs/109 §14 v4，用户 10-22「砍干员基础数值，把差值留给树」）：干员攻击倍率的基础值；1 = 不变
 	# （队长最大生命的 ×0.9 已直接写进各干员 JSON 的 leader.max_hp 与 doctor.json，10-29 去掉 squad/leader_hp_mult）
 	if stats.has_stat(&"op_atk"):
-		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 1.0))
+		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 0.9))
 	# 队长基础移速（用户 10-28：150 → 165，+10%）：基础值乘 squad/leader_speed_mult；冲刺距离 / 冷却不动；1 = 不变
 	if stats.has_stat(&"move_speed"):
-		stats.set_base(&"move_speed", float(stats._base[&"move_speed"]) * Bal.v("squad/leader_speed_mult", 1.0))
+		stats.set_base(&"move_speed", float(stats._base[&"move_speed"]) * Bal.v("squad/leader_speed_mult", 1.1))
 	# 闪避移进局外成长（用户 10-27，docs/109 §17）：队长基础闪避归零，少掉的有效生命用受到伤害 × dodge_comp_taken 补回（生命补偿 dodge_comp_hp 恒为 1，10-29 删掉）；部分补回（用户定只补受伤 ×0.9，有意削弱无成长）
 	# 回退：squad/leader_dodge 0.25、两个补偿 1
 	stats.set_base(&"dodge", Bal.v("squad/leader_dodge", 0.0))
-	stats.set_base(&"dmg_taken", Bal.v("squad/dodge_comp_taken", 1.0))
+	stats.set_base(&"dmg_taken", Bal.v("squad/dodge_comp_taken", 0.9))
 	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
 	for kind in ["idle", "run", "hurt", "death"]:
 		var dn = doctor.def.get("sprites", {}).get(kind, "")

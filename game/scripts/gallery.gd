@@ -518,14 +518,14 @@ static func _enemy_spawn_stats(k: String, e: Dictionary, role: String) -> Array:
 			dmg *= Bal.v("boss/carmen_dmg_mult", 1.5)
 		return [hp, dmg]
 	# 图鉴写的是开局的数：伤害曲线开时 = 浅滩刷怪池在 0 秒的时间倍率（docs/194），关时 = 旧的前期加成
-	dmg *= DmgCurve.mult(0.0, 0) if DmgCurve.enabled() else Bal.v("enemy/dmg_early", 1.0) * Bal.v("enemy/dmg_gain_early", 1.0)
+	dmg *= DmgCurve.mult(0.0, 0) if DmgCurve.enabled() else Bal.v("enemy/dmg_early", 1.3) * Bal.v("enemy/dmg_gain_early", 1.15)
 	if role == "elite":
 		return [hp * Bal.v("enemy/elite_hp_mult", 7.0), dmg * Bal.v("enemy/elite_dmg_mult", 1.3)]
-	var den: float = Bal.v("enemy/density", 1.0)
+	var den: float = Bal.v("enemy/density", 0.4)
 	if den > 0.0 and den != 1.0:
-		hp *= pow(1.0 / den, Bal.v("enemy/density_hp_exp", 1.0))
-		dmg *= pow(1.0 / den, Bal.v("enemy/density_dmg_exp", 1.0))
-	return [hp * Bal.v("enemy/trim_early_hp", 1.0), dmg * (1.0 if DmgCurve.enabled() else Bal.v("enemy/trim_early_dmg", 1.0))]
+		hp *= pow(1.0 / den, Bal.v("enemy/density_hp_exp", 0.75))
+		dmg *= pow(1.0 / den, Bal.v("enemy/density_dmg_exp", 0.5))
+	return [hp * Bal.v("enemy/trim_early_hp", 1.08), dmg * (1.0 if DmgCurve.enabled() else Bal.v("enemy/trim_early_dmg", 1.08))]
 
 
 ## 博士：受击体（data/doctor.json）；放在干员页最后，不属于任何职业（筛选时不出现）
@@ -540,7 +540,7 @@ func _doctor_entry() -> Dictionary:
 	var forms := _doctor_forms(dd)
 	var f0: Dictionary = forms[0]
 	return {"id": "doctor", "name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": forms,
-		"stats": [["回复", "随队长"], ["移速", str(int(round(float(ds.get("move_speed", 150)) * Bal.v("squad/leader_speed_mult", 1.0))))],
+		"stats": [["回复", "随队长"], ["移速", str(int(round(float(ds.get("move_speed", 150)) * Bal.v("squad/leader_speed_mult", 1.1))))],
 			["闪避", "%d%%" % int(Bal.v("squad/leader_dodge", float(ds.get("dodge", 0.0))) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
 		"chips": ["随行", "指挥", "排异"], "cls": "", "col": UI.STEEL,
 		"od": {"tex": f0.tex, "frames": int(f0.frames), "hires": A.hires_of(f0.tex)},

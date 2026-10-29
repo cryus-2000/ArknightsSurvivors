@@ -76,8 +76,8 @@ static func pool_avg(threat: int) -> float:
 
 ## 密度对单只伤害的系数 (1/density)^density_dmg_exp
 static func density_k() -> float:
-	var den: float = Bal.v("enemy/density", 1.0)
-	return pow(1.0 / den, Bal.v("enemy/density_dmg_exp", 1.0)) if den > 0.0 else 1.0
+	var den: float = Bal.v("enemy/density", 0.4)
+	return pow(1.0 / den, Bal.v("enemy/density_dmg_exp", 0.5)) if den > 0.0 else 1.0
 
 
 ## 时间倍率 m(t)：乘在基础伤害上（spawner.new_enemy 的 dmg_t）

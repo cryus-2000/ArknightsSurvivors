@@ -288,7 +288,7 @@ static func _build_drain() -> Dictionary:
 
 
 func update(dt: float) -> void:
-	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
+	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.1) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
 	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
 	#   A 决策（逐只：计时、持续伤害、远距回收、进化、Boss 步、AI 意图 → 本帧速度 v）
 	#   B 运动（逐只：分离、积分、场地约束、景物推出；不抽随机数、不回调——将来的原生 EnemyCore.step）
@@ -636,7 +636,7 @@ func update_status(dt: float) -> void:
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血；神经损伤在溟痕里累积（combat，Boss与怪物 419c84d）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	update_nest_aura(dt, sanct)
-	var ward: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.0) * lk.x if mire_nat else 1.0   # 灯火高：自然溟痕伤害 / 神经损伤减免（docs/147）
+	var ward: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.8) * lk.x if mire_nat else 1.0   # 灯火高：自然溟痕伤害 / 神经损伤减免（docs/147）
 	g.afflict.update_nerve(dt, mired, sanct, ward, mired and not mire_nat)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
@@ -663,8 +663,8 @@ func update_status(dt: float) -> void:
 func lamp_mire_k() -> Vector2:
 	var lo: float = Bal.v("lamp/mire_lo", 30.0)
 	var hi: float = Bal.v("lamp/mire_hi", 70.0)
-	var x: float = clampf((g.lamp - lo) / maxf(1.0, hi - lo), 0.0, 1.0) if Bal.v("lamp/mire_ward_r", 0.0) > 0.0 else 0.0
-	var y: float = clampf((lo - g.lamp) / maxf(1.0, lo), 0.0, 1.0) if Bal.v("lamp/mire_creep_r", 0.0) > 0.0 else 0.0
+	var x: float = clampf((g.lamp - lo) / maxf(1.0, hi - lo), 0.0, 1.0) if Bal.v("lamp/mire_ward_r", 200.0) > 0.0 else 0.0
+	var y: float = clampf((lo - g.lamp) / maxf(1.0, lo), 0.0, 1.0) if Bal.v("lamp/mire_creep_r", 380.0) > 0.0 else 0.0
 	return Vector2(x, y)
 
 
@@ -674,13 +674,13 @@ func lamp_mire_k() -> Vector2:
 ##   挪进最终 Boss 禁生成区或点燃灯标的禁刷区时不挪；中心离队长不到半径一半就不再挪（盖住队长后不跟着走）
 func _lamp_mire(m: Dictionary, lk: Vector2, dt: float) -> void:
 	var d: float = m.pos.distance_to(g.ppos)
-	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 0.0) + m.r and g.t - float(m.get("t0", -INF)) >= Bal.v("lamp/mire_ward_grace", 3.0):
+	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 200.0) + m.r and g.t - float(m.get("t0", -INF)) >= Bal.v("lamp/mire_ward_grace", 3.0):
 		m.maxr = maxf(0.0, minf(float(m.maxr), float(m.r)) - Bal.v("lamp/mire_recede", 10.0) * lk.x * dt)
 		m.r = m.maxr
 		if m.r < 10.0:
 			m.life = 0.0
 		return
-	if lk.y > 0.0 and d < Bal.v("lamp/mire_creep_r", 0.0) and d > float(m.r) * 0.5:
+	if lk.y > 0.0 and d < Bal.v("lamp/mire_creep_r", 380.0) and d > float(m.r) * 0.5:
 		if not m.has("maxr0"):
 			m["maxr0"] = float(m.maxr)
 		var np: Vector2 = m.pos.move_toward(g.ppos, Bal.v("lamp/mire_creep_spd", 14.0) * lk.y * dt)
@@ -691,7 +691,7 @@ func _lamp_mire(m: Dictionary, lk: Vector2, dt: float) -> void:
 
 ## 灯火进出通明 / 暗淡档时在队长头上给一行小字（不用横幅；lamp/mire_hint_cd 秒内不重复；带 5 点回差）
 func _lamp_hint() -> void:
-	if Bal.v("lamp/mire_ward_r", 0.0) <= 0.0 and Bal.v("lamp/mire_creep_r", 0.0) <= 0.0:
+	if Bal.v("lamp/mire_ward_r", 200.0) <= 0.0 and Bal.v("lamp/mire_creep_r", 380.0) <= 0.0:
 		return
 	var lo: float = Bal.v("lamp/mire_lo", 30.0)
 	var hi: float = Bal.v("lamp/mire_hi", 70.0)

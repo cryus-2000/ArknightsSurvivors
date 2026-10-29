@@ -97,7 +97,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if g.rfx.rule("calm_guard") > 0 and g.rfx.calm_t >= Bal.v("meta/calm_t", 5.0):
 		dmg *= Bal.v("meta/calm_mult", 0.5)
 		g.vfx.add_text(g.ppos + Vector2(0, -100), "静守", Color(0.7, 0.9, 1.0), 15)
-	var lost := hurt(dmg * (Bal.v("lamp/dark_taken", 1.15) if g.lamp < 30.0 else 1.0), ignore_armor, boss)   # 灯火暗淡（< 30）受到的伤害倍率（docs/88 旋钮，缺省 1.15 不变）
+	var lost := hurt(dmg * (Bal.v("lamp/dark_taken", 1.05) if g.lamp < 30.0 else 1.0), ignore_armor, boss)   # 灯火暗淡（< 30）受到的伤害倍率（docs/88 旋钮，缺省 1.15 不变）
 	one_cap = 0.0
 	if lost <= 0.0:
 		return
@@ -120,7 +120,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if float(ad.get("apop_hit", 0.0)) > 0.0 and (ctrl_on() or ad.get("role", "") == "boss"):
 		add_apop(float(ad.apop_hit))
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
-	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
+	var lamp_loss: float = (Bal.v("lamp/hit_base", 2.0) + Bal.v("lamp/hit_scale", 18.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
 	var l0: float = g.lamp
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
 	g.telemetry.lamp_note("受击", g.lamp - l0)
@@ -337,13 +337,13 @@ var any_log: Array = []   # [时刻, 实际扣血]
 
 
 func _any_clamp(amount: float) -> float:
-	var cap: float = Bal.v("protect/any_2s_cap", 0.0)
+	var cap: float = Bal.v("protect/any_2s_cap", 0.7)
 	if cap <= 0.0 or amount <= 0.0:
 		return amount
 	var lim: float = cap * g.max_hp
 	var used := _window_sum(any_log, 2.0)
 	var over: float = maxf(0.0, used + amount - maxf(lim, used))
-	amount = amount - over + over * Bal.v("protect/any_excess_mult", 1.0)
+	amount = amount - over + over * Bal.v("protect/any_excess_mult", 0.6)
 	any_log.append([g.t, amount])
 	return amount
 
@@ -364,7 +364,7 @@ func _boss_clamp(amount: float, src: String) -> float:
 	var used := _window_sum(loss_log, 2.0)
 	if not drain:
 		used = maxf(used, _window_sum(boss_log, 2.0))
-	amount = _guard(minf(amount, maxf(0.0, Bal.v("boss/leader_2s_cap", 0.50) * mh - used)))
+	amount = _guard(minf(amount, maxf(0.0, Bal.v("boss/leader_2s_cap", 0.68) * mh - used)))
 	if amount > 0.0:
 		loss_log.append([g.t, amount])
 		if not drain:
@@ -379,14 +379,14 @@ func _boss_clamp(amount: float, src: String) -> float:
 ## 每 boss/fullhp_guard_cd（30）秒触发一次，飘「险些倒下」；触发后兜底到这一轮连击结束。fullhp_guard_combo = 0 即字面规则「受击前生命 ≥90%」。
 ## amount = 这次要扣的血（g.hp 还没扣）或要追加进池子的 Boss 侵蚀；返回截过的量
 func _guard(amount: float) -> float:
-	var room: float = g.hp - _boss_pool() - Bal.v("boss/fullhp_guard_left", 0.10) * g.max_hp
+	var room: float = g.hp - _boss_pool() - Bal.v("boss/fullhp_guard_left", 0.05) * g.max_hp
 	if amount <= 0.0 or amount <= room:
 		return amount
 	if g.t > guard_end:
 		var combo: float = Bal.v("boss/fullhp_guard_combo", 2.0)
 		if g.t < guard_ready or g.t - high_t > combo:
 			return amount
-		guard_ready = g.t + Bal.v("boss/fullhp_guard_cd", 30.0)
+		guard_ready = g.t + Bal.v("boss/fullhp_guard_cd", 60.0)
 		guard_end = high_t + combo
 		g.vfx.add_text(g.ppos + Vector2(0, -112), "险些倒下", UI.GOLD, 20)
 	# 池里待流出的 Boss 侵蚀就已经压过线：清掉多出的那部分
@@ -691,7 +691,7 @@ func shield_block() -> void:
 ## 认知塑造「危机感」末节（docs/109 §14 v5）：护盾被击碎时反震，周围 meta/shatter_r 内的敌人受到 队长攻击 × meta/shatter_mult 的物理伤害并被击退（Boss 不击退）
 func meta_shatter() -> void:
 	var r: float = Bal.v("meta/shatter_r", 140.0)
-	var dmg: float = Meta.leader_atk(g) * Bal.v("meta/shatter_mult", 2.0)
+	var dmg: float = Meta.leader_atk(g) * Bal.v("meta/shatter_mult", 3.0)
 	var hd: Dictionary = make_hit("认知塑造")
 	for j in g.enemies_sys.query(g.ppos, r + 24.0):
 		var e: Dictionary = g.enemies[j]
@@ -714,7 +714,7 @@ func is_followup(h: Dictionary) -> bool:
 ## 敌人生命的时间倍率（不含难度）：藏品的直接伤害按它缩放，保证各时段同样「有感」
 func enemy_hp_time_mult() -> float:
 	var hk: float = Bal.v("enemy/hp_knee", 480.0)
-	return 1.0 + minf(g.t, hk) / Bal.v("enemy/hp_div", 120.0) + maxf(g.t - hk, 0.0) / Bal.v("enemy/hp_late_div", 300.0)
+	return 1.0 + minf(g.t, hk) / Bal.v("enemy/hp_div", 110.0) + maxf(g.t - hk, 0.0) / Bal.v("enemy/hp_late_div", 120.0)
 
 
 ## 主控生命回复的时间倍率（docs/82，10-13）：1 + min(t, regen_knee) / regen_div。敌人攻击随时间涨（enemy/dmg_div），
@@ -1125,7 +1125,7 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		dmg = budget_clamp(e, dmg)
 	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
 	if e.boss:
-		var hcap: float = Bal.v("boss/hit_cap_pct", 0.0)
+		var hcap: float = Bal.v("boss/hit_cap_pct", 0.04)
 		if hcap > 0.0:
 			dmg = minf(dmg, e.maxhp * hcap)
 	if e.boss:
@@ -1207,7 +1207,7 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 func song_heal_mult() -> float:
 	for b in g.bosses:
 		if not b.dead and float(b.get("song_cut_until", 0.0)) > g.t:
-			return maxf(0.0, 1.0 - Bal.v("boss/ishar_song_heal_cut", 0.5))
+			return maxf(0.0, 1.0 - Bal.v("boss/ishar_song_heal_cut", 0.7))
 	return 1.0
 
 
@@ -1256,14 +1256,14 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
 		# 补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血）：箱子里主要是应急补给（回 crate/pack_pct 最大生命，不吃 heal_mult），
 		# 少量磁铁 / 临时护盾；伪装箱形恐鱼（现形）和祭坛不走这里。crate/pack_p 0 = 关（旧行为：只有源石锭 / 灯油）
-		var cpk: float = Bal.v("crate/pack_p", 0.0)
+		var cpk: float = Bal.v("crate/pack_p", 0.9)
 		if cpk > 0.0:
 			if g.rng_drop.randf() < cpk:
-				g.pickups.drop(e.pos + Vector2(-10, -4), "pack", Bal.v("crate/pack_pct", 0.25))
+				g.pickups.drop(e.pos + Vector2(-10, -4), "pack", Bal.v("crate/pack_pct", 0.3))
 				g.pickups.item_log["pack_drop"] += 1
-			if g.rng_drop.randf() < Bal.v("crate/magnet_p", 0.0):
+			if g.rng_drop.randf() < Bal.v("crate/magnet_p", 0.1):
 				g.pickups.drop(e.pos + Vector2(14, -6), "magnet", 1.0)
-			if g.rng_drop.randf() < Bal.v("crate/shield_p", 0.0):
+			if g.rng_drop.randf() < Bal.v("crate/shield_p", 0.1):
 				g.shield = mini(g.shield + 1, maxi(g.shield_max, 1) + 1)
 				g.shield_pop = 0.4
 				g.vfx.add_text(e.pos + Vector2(0, -30), "护盾 +1", Color(1.0, 0.9, 0.7), 16)
@@ -1353,22 +1353,22 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		var mag: bool = g.rng_drop.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
 		g.pickups.drop(e.pos + Vector2(-16, 8), "magnet" if mag else "heal", 1.0)
 		g.pickups.item_log["magnet_elite" if mag else "heal_elite"] += 1
-	elif int(Bal.v("pickup/magnet_cap", 0.0)) > 0:
+	elif int(Bal.v("pickup/magnet_cap", 2.0)) > 0:
 		# 磁铁单独上限（协调人 9/30）：小怪掉磁铁只看场上磁铁数 < magnet_cap，不再被回复药剂占位；回复药剂仍按「道具合计 < item_cap」
-		if g.pickups.count_items("magnet") < int(Bal.v("pickup/magnet_cap", 0.0)):
+		if g.pickups.count_items("magnet") < int(Bal.v("pickup/magnet_cap", 2.0)):
 			g.pickups.item_log.mob_rolled += 1
-			if g.rng_drop.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025) * dk:
+			if g.rng_drop.randf() < Bal.v("pickup/magnet_kill_chance", 0.00375) * dk:
 				g.pickups.drop(e.pos, "magnet", 1.0)
 				g.pickups.item_log.magnet_mob += 1
 		else:
 			g.pickups.item_log.mob_capped += 1
 		# 低血补给（docs/82，10-13）：主控生命 < heal_low_hp 时，小怪掉回复药剂的概率 × heal_low_mult，
 		# 且场上道具已满时只要回复药剂 < heal_low_cap 仍可掉（磁铁 / 远处没捡的药剂不再挡住）。生命不低时与原规则逐帧相同（不多耗随机数）
-		var low_hp: bool = g.hp < g.max_hp * Bal.v("pickup/heal_low_hp", 0.0)
+		var low_hp: bool = g.hp < g.max_hp * Bal.v("pickup/heal_low_hp", 0.7)
 		var heal_room: bool = g.pickups.count_items() < int(Bal.v("pickup/item_cap", 3.0))
 		if low_hp and not heal_room:
-			heal_room = g.pickups.count_items("heal") < int(Bal.v("pickup/heal_low_cap", 0.0))
-		var hc: float = Bal.v("pickup/heal_kill_chance", 0.0035) * (Bal.v("pickup/heal_low_mult", 1.0) if low_hp else 1.0) * dk
+			heal_room = g.pickups.count_items("heal") < int(Bal.v("pickup/heal_low_cap", 2.0))
+		var hc: float = Bal.v("pickup/heal_kill_chance", 0.0035) * (Bal.v("pickup/heal_low_mult", 2.0) if low_hp else 1.0) * dk
 		if heal_room and g.rng_drop.randf() < hc:
 			g.pickups.drop(e.pos, "heal", 1.0)
 			g.pickups.item_log.heal_mob += 1
@@ -1379,7 +1379,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	else:
 		g.pickups.item_log.mob_rolled += 1
 		var r := g.rng_drop.randf()
-		var pm: float = Bal.v("pickup/magnet_kill_chance", 0.0025) * dk
+		var pm: float = Bal.v("pickup/magnet_kill_chance", 0.00375) * dk
 		if r < pm:
 			g.pickups.drop(e.pos, "magnet", 1.0)
 			g.pickups.item_log.magnet_mob += 1
@@ -1420,5 +1420,5 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 ## 精英不再必掉藏品；共用对局随机数，种子可复现。Boss 奖励仍按原结算。
 ## relic/elite_drop_from 秒前的精英不掉宝箱（docs/191：首件藏品推到约 2:00）；先抽随机数再判时间，随机数消耗不变
 func elite_drops_relic() -> bool:
-	var roll: bool = g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.3)
-	return roll and g.t >= Bal.v("relic/elite_drop_from", 0.0)
+	var roll: bool = g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.25)
+	return roll and g.t >= Bal.v("relic/elite_drop_from", 120.0)

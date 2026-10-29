@@ -89,17 +89,17 @@ func _shrink_boss(before: float) -> void:
 ## 命中追加：dmg × 来源侵蚀系数 × corrode_mult × 难度修正；boss = Boss 来源（进主控保护的上限 / 2 秒合计 / 满血保护）；lost = 这一发实际扣的血
 func add_corrode(dmg: float, k: float, boss: bool, lost: float) -> void:
 	var c = g.combat
-	var add: float = dmg * k * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
+	var add: float = dmg * k * Bal.v("enemy/corrode_mult", 1.0) * g.corrode_taken_mult
 	c._boss_pool()   # 池子被清空过（流明净化）时先把 Boss 部分截到池子以内，免得这次追加的普通侵蚀被当成 Boss 的
 	# 非 Boss 侵蚀池上限（用户 9/27 方案 3-B，数值旋钮 enemy/corrode_pool_cap，缺省 0 = 不封顶）：池里非 Boss 部分 ≤ 最大生命 × 上限，超出的新增作废；流出速度不变
-	var ncap: float = Bal.v("enemy/corrode_pool_cap", 0.0)
+	var ncap: float = Bal.v("enemy/corrode_pool_cap", 0.3)
 	if not boss and ncap > 0.0:
 		add = clampf(add, 0.0, maxf(0.0, ncap * g.max_hp - (g.corrode_pool - c.corrode_boss)))
 	if boss:
 		# 侵蚀算进上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血，并计入 2 秒合计（窗口满了就作废）；满血保护也管追加的侵蚀。
 		# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
 		var mh: float = g.max_hp
-		var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * mh - lost, Bal.v("boss/leader_2s_cap", 0.50) * mh - c._window_sum(c.boss_log, 2.0))
+		var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * mh - lost, Bal.v("boss/leader_2s_cap", 0.68) * mh - c._window_sum(c.boss_log, 2.0))
 		room = minf(room, Bal.v("boss/corrode_pool_cap", 0.40) * mh - c.corrode_boss)
 		add = c._guard(clampf(add, 0.0, maxf(0.0, room)))
 		if add > 0.0:
@@ -127,13 +127,13 @@ func clear_corrode() -> void:
 func add_wound(n: int) -> void:
 	if n <= 0:
 		return
-	g.wound = mini(g.wound + n, int(Bal.v("enemy/wound_max", 4.0)))
+	g.wound = mini(g.wound + n, int(Bal.v("enemy/wound_max", 3.0)))
 	g.wound_t = Bal.v("enemy/wound_dur", 6.0)
 
 
 func tick_wound(dt: float) -> void:
 	if g.wound > 0:
-		g.combat.lose_hp(g.max_hp * Bal.v("enemy/wound_dot", 0.005) * g.wound * dt, "wound")
+		g.combat.lose_hp(g.max_hp * Bal.v("enemy/wound_dot", 0.0025) * g.wound * dt, "wound")
 		g.wound_t -= dt
 		if g.wound_t <= 0.0:
 			g.wound = 0

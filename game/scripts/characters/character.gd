@@ -1818,7 +1818,7 @@ func begin_rush() -> void:
 	if run < CmdBal.v("command/rush_min", 60.0):
 		_rush_impact(pos)   # 已经贴着怪：原地顶一下
 		return
-	var goal: Vector2 = pos + dv.normalized() * minf(run, CmdBal.v("command/rush_dist", 260.0))
+	var goal: Vector2 = pos + dv.normalized() * minf(run, CmdBal.v("command/rush_dist", 320.0))
 	goal = g.ppos + (goal - g.ppos).limit_length(CmdBal.v("command/roam_r", 840.0))
 	if g.get("map") != null and g.map.segment_blocked(pos, goal):
 		return

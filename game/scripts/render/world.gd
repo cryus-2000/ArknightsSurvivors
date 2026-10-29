@@ -629,7 +629,7 @@ func _draw_pickups_fast() -> void:
 	var lit_b := Color(1.35, 1.2, 1.5)
 	var lit_m := Color(-1, 0, 0)   # 被磁铁 / 拾取范围吸起时的颜色（< 0 = 同落地）
 	var core := Color(-1, 0, 0)    # 发光层主高光颜色（< 0 = 同贴图调色）
-	var gs: int = int(Bal.v("render/gem_style", 0))
+	var gs: int = int(Bal.v("render/gem_style", 2.0))
 	if gs > 0:
 		# 经验结晶调色候选（用户 10-29「地上的经验现在是白色，不明显」，docs/128 §6.1）：贴图本身淡金白，这里只改调色，零额外开销。
 		# 层级：小 = 浅、大 = 更饱和更亮 + 光晕大一圈、吸起 = 提亮近白 + 同色拖尾、远处安静 = 压暗去饱和

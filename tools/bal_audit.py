@@ -2,8 +2,7 @@
 """balance 旋钮对账（docs/199）：扫描所有 Bal.v / Bal.vi 的「字面键 + 字面缺省值」读点，和 data/balance.json 对账。
 Bal.v 在键存在时一律取 json 值，所以把代码缺省值改成 json 值运行结果不变。
 用法：python tools/bal_audit.py            只读，打印统计（明细写 build/bal_audit.json）
-      python tools/bal_audit.py --apply    把缺省值改成 json 值（跳过 game.gd / character.gd / pad.gd / hud_squad.gd / combat.kill()：
-                                           别的会话正在改，对应读点留给他们合入后再跑）"""
+      python tools/bal_audit.py --apply    把缺省值改成 json 值（docs/199 §3 的暂缓文件 10-30 合入后已放开）"""
 import json, re, sys, os, collections
 sys.stdout.reconfigure(encoding="utf-8")
 repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,12 +65,10 @@ json.dump(out, open(os.path.join(repo, "build", "bal_audit.json"), "w", encoding
 if apply:
     # 把代码缺省值改成 json 值（保留原字面风格：整数键写整数，浮点写浮点）
     byfile = collections.defaultdict(list)
-    SKIP_FILES = ("scripts/game.gd", "scripts/characters/character.gd", "scripts/pad.gd", "screens/hud_squad.gd")
+    SKIP_FILES = ()   # docs/199 §3 的暂缓文件 10-30 integ-1029 合入后放开
     def skipped(f, ln):
         f2 = f.replace("\\", "/")
-        if any(f2.endswith(x) for x in SKIP_FILES):
-            return True
-        return f2.endswith("run/combat.gd") and 1280 <= ln < 1461
+        return any(f2.endswith(x) for x in SKIP_FILES)
     for key, f, ln, fnc, lit, jv in diff:
         if skipped(f, ln):
             continue
