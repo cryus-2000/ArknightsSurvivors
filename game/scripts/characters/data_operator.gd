@@ -1235,6 +1235,7 @@ func anim_state() -> Dictionary:
 		st = SegIrene.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
 	st = SegUlpianus.hw_anim_state(self, st) if not hw.is_empty() else st
 	st = NativeMotion.state(self, st)
+	st = _move_swap(st, true)   # 原生变体槽也有跑动版时（move_attack_s2）照样换：10-29 乌尔比安 S2 后挥锚不再原地滑行
 	if not hw.is_empty() and hw.has("sp"):
 		st = SegSpecter.h3_anim_state(self, st)   # 手写迁移段第 3 批：倒下帧条；S3 重锯 / 反向第二圈换条（在原生动作覆盖之后，10-20）
 	return _noshield(st)   # 原生覆盖层换了槽，盾在外面时照样换无盾画面

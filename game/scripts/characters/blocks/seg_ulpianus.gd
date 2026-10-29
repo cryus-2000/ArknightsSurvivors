@@ -199,7 +199,8 @@ static func hw_chain3_release(o, a: Dictionary) -> bool:
 	if kind == "sweep":
 		_c3_swing(o, r, ang - dv * PI * 0.5, PI, dv, 0.42, 12.0)
 	elif kind == "spin":
-		fx_play(o, [{"whirl": {"life": 0.36}}], o.pos, r, hits, ang)
+		if o.mv <= 40.0:   # = character.RUN_ENTER
+			fx_play(o, [{"whirl": {"life": 0.36}}], o.pos, r, hits, ang)   # 站着：原生回旋姿势；跑动中不切（回旋帧条没有跑步腿），身体照播跑动挥锚
 		_c3_swing(o, r, ang, TAU, dv, 0.5, 16.0)
 	else:
 		o.fx({"kind": "ulp_shock", "pos": c, "r": r, "r0": 0.0, "life": 0.5, "max": 0.5, "floor": true})
@@ -210,7 +211,6 @@ static func hw_chain3_release(o, a: Dictionary) -> bool:
 		for i in 10:
 			o.ground_dust(c + Vector2.from_angle(TAU * i / 10.0) * r * 0.9, 14.0, 3)
 		_hw_slam_fx(o, c, r, 1.6)
-		UlpCharge.burst(o, c, r)   # 冲击波：大范围冲击环推到判定半径
 		o.fx({"kind": "ulp_fracture", "pos": c, "r": r, "life": 0.9, "floor": true, "crater": true})   # 砸坑
 		o.impact_pause(float(st.get("pause", 0.09)))
 		var cfg = g.get_node_or_null("/root/Cfg") if g.is_inside_tree() else null   # -s 测试脚本里没有自动加载
@@ -257,8 +257,11 @@ static func _c3_draw_swing(o, f: Dictionary, a: float) -> void:
 			cv.draw_line(prev, p, Color(1.5, 1.7, 1.9, 0.8 * k * fade), 2.0)
 		prev = p
 	if head_u < 1.0 and prev != Vector2.INF:
-		_hw_draw_chain(o, c + Vector2(0, -22), prev, 1.0)
-		_hw_draw_anchor(o, prev, Vector2.from_angle(a0 + dirv * span * head_u + dirv * PI * 0.5), 1.0)
+		# 锚头：亮点 + 两道短残影（锚本体在人物手里 / 原生回旋帧里，这里不再画第二只锚）
+		cv.draw_circle(prev, float(f.w) * 0.45, Color(1.6, 1.8, 2.0, 0.85 * fade))
+		for t in 2:
+			var an2: float = a0 + dirv * span * (float(hn) / segs - 0.06 * (t + 1))
+			cv.draw_circle(c + Vector2.from_angle(an2) * R, float(f.w) * (0.32 - 0.1 * t), Color(HW_STEEL.r * 1.5, HW_STEEL.g * 1.5, HW_STEEL.b * 1.6, 0.5 * fade))
 
 
 ## 猛砸余震（用户 10-29「没有什么范围攻击的感觉」，放权重做）：砸地后 waves 道冲击波依次从砸地半径推到 r 处，

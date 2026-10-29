@@ -98,3 +98,14 @@ func test_chain(o) -> void:
 		step(o)
 	ok(int(o.hw.get("c3", 0)) == 0, "技能结束后回到普通锚击（c3 归零）")
 	ok(not o.is_manual(2), "三技能自动释放（不是手动）")
+	# S2 永久后普攻换 attack_s2：移动中挥锚换跑动版（move_attack_s2），不再原地滑行（10-29）
+	o.perm[1] = true
+	o.pfx = []   # 清掉三连留下的回旋信号（whirl 粒子会把姿势换成 whirl_native）
+	o.start_attack(o.pos + Vector2(60, 0))
+	o.mv = 120.0
+	var st: Dictionary = o.anim_state()
+	ok(str(st.get("kind", "")) == "attack_s2", "S2 后普攻槽是 attack_s2（%s）" % st.get("kind", ""))
+	ok(st.get("tex") != null and st.get("tex") == o.anim_tex("move_attack_s2"), "移动中 attack_s2 换成跑动版贴图")
+	o.mv = 0.0
+	st = o.anim_state()
+	ok(st.get("tex") != o.anim_tex("move_attack_s2"), "站着时仍是原 attack_s2")

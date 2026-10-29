@@ -2294,12 +2294,13 @@ func anim_state() -> Dictionary:
 
 ## 移动攻击（10-23 用户「边跑边攻击」，docs/128 §3）：出手动作期间在移动、且有 sprites.move_<动作> 帧条（帧数相同）时，
 ## 只换贴图：上半身同一动作、腿是跑步步态。帧序号 / 脚底 / kind 不变，所以出手点、炮口等玩法读数与原动作一致；纯画面
-func _move_swap(st: Dictionary) -> Dictionary:
+## native = true：原生动作覆盖层把普攻换成了变体槽（乌尔比安 S2 永久后 attack → attack_s2）之后再换一次，出手窗口内的任意槽都算
+func _move_swap(st: Dictionary, native := false) -> Dictionary:
 	if st.is_empty() or mv <= RUN_ENTER:
 		return st
 	var k := str(st.get("kind", ""))
 	# 普攻 / 技能动作（出手窗口内），或技能循环里的普攻变体（sq_atk，播到末帧；10-24 塞雷娅跑动拳击）
-	if k == "" or not ((attack_t > 0.0 and k == act_anim) or (sq_atk != "" and k == sq_atk)):
+	if k == "" or not ((attack_t > 0.0 and (k == act_anim or (native and act_kind == "attack"))) or (sq_atk != "" and k == sq_atk)):
 		return st
 	var mtx: Texture2D = anim_tex("move_" + k)
 	if mtx == null or anim_hframes(mtx, "move_" + k) != int(st.get("hf", 0)):

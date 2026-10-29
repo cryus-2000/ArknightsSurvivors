@@ -404,6 +404,16 @@
     90
    ]
   },
+  "move_attack_s2": {
+   "foot_exempt": "同 attack_s2：128 画布按原生共同裁窗，脚底行 90（docs/108 §5）",
+   "tex": "op_ulpianus_move_attack_s2",
+   "frames": 8,
+   "foot": [
+    64,
+    90
+   ],
+   "_doc": "10-29 S2 锚击跑动版（用户「三技能期间几乎是平移」）：原作 Spine Skill_2_Loop 上半身 + 跑步步态腿，帧序 / 画布 / 脚底同 attack_s2（tools/op_1x/ulpianus_move_s2.py）"
+  },
   "attack_s2": {
    "foot_exempt": "128 画布按原生共同裁窗，脚底行 90 而非对称加边的 92（docs/108 §5）",
    "tex": "op_ulpianus_attack_s2",
@@ -1512,6 +1522,7 @@
   "zip_native",
   "whirl_native",
   "attack_s2",
+  "move_attack_s2",
   "anchor_native"
  ],
  "combo": {
