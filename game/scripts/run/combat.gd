@@ -474,6 +474,8 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	elif g.in_type[1] == "法术":
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
 	_armor_cf(pre, amount, not ignore_armor and g.in_type[1] == "物理")
+	if boss:
+		preload("res://scripts/run/boss_diag.gd").on_phit(g, amount, pre)
 	amount = lose_hp(amount, g.dmg_src, boss)
 	if g.ult != null:
 		g.ult.on_hurt(amount, {})   # 连携 C 类判定：近战命中 / 一次大伤害
