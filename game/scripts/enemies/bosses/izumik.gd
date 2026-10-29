@@ -391,6 +391,7 @@ func on_gate(e: Dictionary) -> void:
 
 ## 本体倒下：茧一起散（还在走的子代由 combat 的喂食清理带走）
 func on_kill(e: Dictionary) -> void:
+	e.izu_emit_bg = {}
 	for o in e.get("batch", []) + e.get("izu_brood", []):
 		o.dead = true
 	_end_card(e)
@@ -441,15 +442,20 @@ func _card_step(e: Dictionary, dir: Vector2, dist: float) -> void:
 	if active and (float(e.stun) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or g.t > float(e.get("izu_card_until", INF))):
 		_end_card(e)
 		return
-	if not e.get("izu_emit", {}).is_empty() or int(e.get("izu_tent_n", 0)) > 0 or g.t < float(e.get("izu_next", 0.0)) or _blocked(e):
+	if g.t < float(e.get("izu_next", 0.0)) or _blocked(e):
 		return
-	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0):
+	var ov: bool = Bal.v("boss/izumik_overlap", 0.0) > 0.0
+	var queue_peek: String = str(e.izu_queue[0]) if active and not e.izu_queue.is_empty() else ""
+	if not _seg_free(e, ov, queue_peek):
 		return
 	if active:
 		var queue: Array = e.izu_queue
 		if queue.is_empty():
-			# 破绽会取消移动中的水墙：等它走完再收招；破绽窗口不叠弹幕——在场弹散到 8 颗以下再收招
-			if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)) or int(e.get("izu_live", 0)) >= 8 or g.ebullets.any(func(b): return b.life > 0.0 and str(b.get("izu", "")) == "spore"):   # 大孢子胀破完再收招
+			if not e.get("izu_emit", {}).is_empty() or not e.get("izu_emit_bg", {}).is_empty() or int(e.get("izu_tent_n", 0)) > 0 \
+					or g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0):
+				return
+			# 破绽会取消移动中的水墙：等它走完再收招；破绽窗口不叠弹幕——在场弹散到 boss/izumik_finish_live（原 8）颗以下再收招
+			if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)) or int(e.get("izu_live", 0)) >= int(Bal.v("boss/izumik_finish_live", 8.0)) or g.ebullets.any(func(b): return b.life > 0.0 and str(b.get("izu", "")) == "spore"):   # 大孢子胀破完再收招
 				return
 			_finish_card(e)
 			return
@@ -486,6 +492,26 @@ func _start_card(e: Dictionary, name: String) -> void:
 	_rise(e)
 
 
+## 下一段能不能出（10-29 docs/201 §7：试炼承伤只有 21%/分，空档主要在「等上一段放完、预警结算完」）：
+## boss/izumik_overlap = 0 → 旧规则（弹幕放完、触腕落完、有伤预警全部结算才接下一段）；
+## = 1 → 重叠出招：上一段弹幕放了 izumik_overlap_lead（0.5）秒后转到后台继续放，下一段同时开始（后台最多一段）；
+## 有伤预警 / 触腕不再挡下一段。不重叠的（防躲不开的墙）：潮门环（读缺口）前后都不叠；必须冲刺 / 全场（分享·全场、震撼）与移动水墙（迁徙潮）在场时照旧等
+const NO_OVERLAP := ["潮门环"]
+func _seg_free(e: Dictionary, ov: bool, nxt: String) -> bool:
+	var em: Dictionary = e.get("izu_emit", {})
+	if not ov:
+		return em.is_empty() and int(e.get("izu_tent_n", 0)) <= 0 and not g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0)
+	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0 and (w.get("must_dash", false) or w.get("share_all", false))):
+		return false
+	if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)):
+		return false
+	if em.is_empty():
+		return true
+	if not e.get("izu_emit_bg", {}).is_empty() or str(em.kind) in NO_OVERLAP or nxt.trim_prefix("@") in NO_OVERLAP:
+		return false
+	return g.t - float(em.t0) >= Bal.v("boss/izumik_overlap_lead", 0.5)
+
+
 ## 出招节奏（10-29 docs/201：机器人试炼每分钟只被打中约 1.3 下，太闲）：起手、段间停顿、破绽后空档统一 × boss/izumik_gap_k（缺省 1 = 原节奏）
 func _gap_k() -> float:
 	return Bal.v("boss/izumik_gap_k", 1.0)
@@ -502,6 +528,7 @@ func _end_card(e: Dictionary) -> void:
 	e.izu_card = ""
 	e.izu_queue = []
 	e.izu_emit = {}
+	e.izu_emit_bg = {}
 
 
 ## 起手蓄势：本体脚下一圈群青颗粒向外扩、根须亮环，不闪白不出字
@@ -639,6 +666,8 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 			em.until = g.t + GATE_GAP[act] * (GATE_RINGS[act] - 1)
 		_:
 			return false
+	if not e.get("izu_emit", {}).is_empty():
+		e.izu_emit_bg = e.izu_emit   # 重叠出招：上一段转后台继续放（_seg_free 已保证后台空着）
 	e.izu_emit = em
 	e.move_name = kind
 	e.move_t = g.t
@@ -654,20 +683,23 @@ func _lane_angle(e: Dictionary, dir: Vector2) -> float:
 
 
 func _emit_step(e: Dictionary) -> void:
-	var em: Dictionary = e.get("izu_emit", {})
-	if em.is_empty():
-		return
 	if _blocked(e):
 		e.izu_emit = {}
+		e.izu_emit_bg = {}
 		return
-	var guard := 0
-	while g.t >= float(em.next) and float(em.next) <= float(em.until) + 0.001 and guard < 8:
-		guard += 1
-		_emit_once(e, em)
-		em.n = int(em.n) + 1
-	if g.t > float(em.until):
-		e.izu_emit = {}
-		e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)] * _gap_k())
+	for key in ["izu_emit_bg", "izu_emit"]:
+		var em: Dictionary = e.get(key, {})
+		if em.is_empty():
+			continue
+		var guard := 0
+		while g.t >= float(em.next) and float(em.next) <= float(em.until) + 0.001 and guard < 8:
+			guard += 1
+			_emit_once(e, em)
+			em.n = int(em.n) + 1
+		if g.t > float(em.until):
+			e[key] = {}
+			if key == "izu_emit" and Bal.v("boss/izumik_overlap", 0.0) <= 0.0:
+				e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)] * _gap_k())
 
 
 func _emit_once(e: Dictionary, em: Dictionary) -> void:
