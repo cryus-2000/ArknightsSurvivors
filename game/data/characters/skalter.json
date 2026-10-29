@@ -715,6 +715,7 @@
       ]
      },
      "at": "hits",
+     "to": "self",
      "max_pts": 4,
      "_doc": "10-29 用户：领域内命中出淡淡的歌声纹（声波弧 + 音符），替代原来铺满领域的白色波纹帧条；最多挑 4 个命中点"
     }
@@ -890,50 +891,18 @@
     "dur": "$s3_dur",
     "fx": [
      {
-      "strip": "fx_skalter_wave",
-      "if_tex": "!fx_skalter_wave_big",
+      "strip": "fx_skalter_note",
       "at": "zone",
-      "max_scale": 4,
-      "layer": "add",
-      "scale": 1.1,
-      "ease": "out2",
-      "grow": 0.8,
-      "grow0": 0.1,
-      "grow_to": "zone",
+      "n": 6,
+      "spread": 0.6,
+      "rise": 26,
+      "life": 1.1,
+      "scale": 1.2,
       "tint": [
        1.0,
-       0.5,
-       0.58,
-       0.36
-      ],
-      "wake": {
-       "n": 3,
-       "w": 16,
-       "a": 0.4,
-       "lag": 0.1,
-       "col": [
-        1.0,
-        0.55,
-        0.62
-       ]
-      }
-     },
-     {
-      "strip": "fx_skalter_wave_big",
-      "if_tex": "fx_skalter_wave_big",
-      "at": "zone",
-      "max_scale": 3,
-      "layer": "add",
-      "scale": 1.1,
-      "ease": "out2",
-      "grow": 0.8,
-      "grow0": 0.1,
-      "grow_to": "zone",
-      "tint": [
-       1.0,
-       0.5,
-       0.58,
-       0.4
+       0.62,
+       0.68,
+       0.56
       ]
      }
     ],
@@ -1125,6 +1094,7 @@
          ]
         },
         "at": "hits",
+        "to": "self",
         "max_pts": 2,
         "_doc": "潮汐和声（回响伤害）：同款歌声纹（青绿，不带音符），不再铺整圈波纹"
        }
@@ -1175,124 +1145,27 @@
       "ring": false,
       "fx": [
        {
-        "strip": "fx_skalter_echo_ring",
-        "if_tex": "fx_skalter_echo_ring",
-        "layer": "floor",
-        "cond": "lamp >= $talent_dark",
-        "xfade": 0.4,
-        "ease": "linear",
-        "play": "fps",
-        "grow": 0.36,
-        "grow0": 0.95,
-        "grow_to": "zone",
-        "scale": 1.04,
-        "max_scale": 3.5,
-        "tint": [
-         1.0,
-         0.5,
-         0.58,
-         0.4
-        ],
-        "wake": {
-         "n": 1,
-         "w": 5,
-         "a": 0.16,
-         "lag": 0.0,
+        "pfx": {
+         "kind": "sk_song",
+         "life": 0.8,
+         "r": [
+          9,
+          13
+         ],
+         "seed": [
+          0,
+          6.283
+         ],
          "col": [
-          1.0,
-          0.55,
-          0.62
+          1.15,
+          0.5,
+          0.58
          ]
-        }
-       },
-       {
-        "strip": "fx_skalter_echo_ring",
-        "if_tex": "fx_skalter_echo_ring",
-        "layer": "floor",
-        "cond": "lamp < $talent_dark",
-        "xfade": 0.4,
-        "ease": "linear",
-        "play": "fps",
-        "grow": 0.36,
-        "grow0": 0.95,
-        "grow_to": "zone",
-        "scale": 1.04,
-        "max_scale": 3.5,
-        "tint": [
-         0.78,
-         0.42,
-         0.7,
-         0.32
-        ],
-        "wake": {
-         "n": 1,
-         "w": 5,
-         "a": 0.14,
-         "lag": 0.0,
-         "col": [
-          0.62,
-          0.46,
-          0.88
-         ]
-        }
-       },
-       {
-        "strip": "fx_skalter_wave",
-        "if_tex": "!fx_skalter_echo_ring",
-        "layer": "floor",
-        "cond": "lamp >= $talent_dark",
-        "xfade": 0.4,
-        "ease": "linear",
-        "grow": 0.36,
-        "grow0": 0.95,
-        "grow_to": "zone",
-        "scale": 1.04,
-        "tint": [
-         1.0,
-         0.5,
-         0.58,
-         0.0
-        ],
-        "wake": {
-         "n": 1,
-         "w": 6,
-         "a": 0.35,
-         "lag": 0.0,
-         "col": [
-          1.0,
-          0.55,
-          0.62
-         ]
-        }
-       },
-       {
-        "strip": "fx_skalter_wave_dim",
-        "if_tex": "!fx_skalter_echo_ring",
-        "layer": "floor",
-        "cond": "lamp < $talent_dark",
-        "xfade": 0.4,
-        "ease": "linear",
-        "grow": 0.36,
-        "grow0": 0.95,
-        "grow_to": "zone",
-        "scale": 1.04,
-        "tint": [
-         0.78,
-         0.42,
-         0.7,
-         0.0
-        ],
-        "wake": {
-         "n": 1,
-         "w": 6,
-         "a": 0.3,
-         "lag": 0.0,
-         "col": [
-          0.62,
-          0.46,
-          0.88
-         ]
-        }
+        },
+        "at": "hits",
+        "to": "self",
+        "max_pts": 3,
+        "_doc": "10-29 用户「歌声波只是一个圈」：回响环命中也改成从浊心传过去的歌声波 + 音符，去掉回响波纹帧条"
        }
       ]
      }
@@ -1332,98 +1205,27 @@
          "ring": false,
          "fx": [
           {
-           "strip": "fx_skalter_wave_big",
-           "if_tex": "fx_skalter_wave_big",
-           "layer": "floor",
-           "cond": "lamp >= $talent_dark",
-           "xfade": 0.4,
-           "ease": "out2",
-           "grow": 0.6,
-           "grow0": 0.1,
-           "grow_to": "summon:ishar",
-           "max_scale": 3,
-           "tint": [
-            1.0,
-            0.5,
-            0.58,
-            0.4
-           ]
-          },
-          {
-           "strip": "fx_skalter_wave_big_dim",
-           "if_tex": "fx_skalter_wave_big_dim",
-           "layer": "floor",
-           "cond": "lamp < $talent_dark",
-           "xfade": 0.4,
-           "ease": "out2",
-           "grow": 0.6,
-           "grow0": 0.1,
-           "grow_to": "summon:ishar",
-           "max_scale": 3,
-           "tint": [
-            0.78,
-            0.42,
-            0.7,
-            0.32
-           ]
-          },
-          {
-           "strip": "fx_skalter_wave",
-           "if_tex": "!fx_skalter_wave_big",
-           "max_scale": 4,
-           "layer": "floor",
-           "cond": "lamp >= $talent_dark",
-           "xfade": 0.4,
-           "ease": "out2",
-           "grow": 0.6,
-           "grow0": 0.1,
-           "grow_to": "summon:ishar",
-           "tint": [
-            1.0,
-            0.5,
-            0.58,
-            0.336
-           ],
-           "wake": {
-            "n": 2,
-            "w": 10,
-            "a": 0.45,
-            "lag": 0.09,
+           "pfx": {
+            "kind": "sk_song",
+            "life": 0.8,
+            "r": [
+             9,
+             13
+            ],
+            "seed": [
+             0,
+             6.283
+            ],
             "col": [
-             1.0,
-             0.55,
-             0.62
+             1.15,
+             0.5,
+             0.58
             ]
-           }
-          },
-          {
-           "strip": "fx_skalter_wave_dim",
-           "if_tex": "!fx_skalter_wave_big_dim",
-           "max_scale": 4,
-           "layer": "floor",
-           "cond": "lamp < $talent_dark",
-           "xfade": 0.4,
-           "ease": "out2",
-           "grow": 0.6,
-           "grow0": 0.1,
-           "grow_to": "summon:ishar",
-           "tint": [
-            0.78,
-            0.42,
-            0.7,
-            0.256
-           ],
-           "wake": {
-            "n": 2,
-            "w": 10,
-            "a": 0.4,
-            "lag": 0.09,
-            "col": [
-             0.62,
-             0.46,
-             0.88
-            ]
-           }
+           },
+           "at": "hits",
+           "to": "summon:ishar",
+           "max_pts": 3,
+           "_doc": "10-29：海嗣施放命中改成从海嗣传过去的歌声波 + 音符，去掉扩散波纹帧条"
           }
          ]
         }
@@ -1493,98 +1295,27 @@
       ],
       "fx": [
        {
-        "strip": "fx_skalter_wave_big",
-        "if_tex": "fx_skalter_wave_big",
-        "layer": "floor",
-        "cond": "lamp >= $talent_dark",
-        "xfade": 0.4,
-        "ease": "out2",
-        "grow": 0.7,
-        "grow0": 0.1,
-        "grow_to": "zone",
-        "max_scale": 3,
-        "tint": [
-         1.0,
-         0.5,
-         0.58,
-         0.48
-        ]
-       },
-       {
-        "strip": "fx_skalter_wave_big_dim",
-        "if_tex": "fx_skalter_wave_big_dim",
-        "layer": "floor",
-        "cond": "lamp < $talent_dark",
-        "xfade": 0.4,
-        "ease": "out2",
-        "grow": 0.7,
-        "grow0": 0.1,
-        "grow_to": "zone",
-        "max_scale": 3,
-        "tint": [
-         0.78,
-         0.42,
-         0.7,
-         0.384
-        ]
-       },
-       {
-        "strip": "fx_skalter_wave",
-        "if_tex": "!fx_skalter_wave_big",
-        "max_scale": 4,
-        "layer": "floor",
-        "cond": "lamp >= $talent_dark",
-        "xfade": 0.4,
-        "ease": "out2",
-        "grow": 0.7,
-        "grow0": 0.1,
-        "grow_to": "zone",
-        "tint": [
-         1.0,
-         0.5,
-         0.58,
-         0.4
-        ],
-        "wake": {
-         "n": 2,
-         "w": 12,
-         "a": 0.55,
-         "lag": 0.09,
+        "pfx": {
+         "kind": "sk_song",
+         "life": 0.8,
+         "r": [
+          9,
+          13
+         ],
+         "seed": [
+          0,
+          6.283
+         ],
          "col": [
-          1.0,
-          0.55,
-          0.62
+          1.15,
+          0.5,
+          0.58
          ]
-        }
-       },
-       {
-        "strip": "fx_skalter_wave_dim",
-        "if_tex": "!fx_skalter_wave_big_dim",
-        "max_scale": 4,
-        "layer": "floor",
-        "cond": "lamp < $talent_dark",
-        "xfade": 0.4,
-        "ease": "out2",
-        "grow": 0.7,
-        "grow0": 0.1,
-        "grow_to": "zone",
-        "tint": [
-         0.78,
-         0.42,
-         0.7,
-         0.304
-        ],
-        "wake": {
-         "n": 2,
-         "w": 12,
-         "a": 0.5,
-         "lag": 0.09,
-         "col": [
-          0.62,
-          0.46,
-          0.88
-         ]
-        }
+        },
+        "at": "hits",
+        "to": "self",
+        "max_pts": 4,
+        "_doc": "10-29：指挥响应的领域一击同普攻歌声波，去掉扩散波纹帧条"
        }
       ]
      }
