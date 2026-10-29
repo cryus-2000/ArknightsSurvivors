@@ -189,7 +189,8 @@ static func _shield(g) -> void:
 			g.draw_rect(Rect2((q * 0.5).floor() * 2.0 - Vector2(2, 2), Vector2(6, 6)), Color(c.r, c.g, c.b, 0.95) if on else Color(1, 1, 1, 0.18))
 
 
-## 三幕歌声围拢：一圈 2 像素格点列（三幕主色）+ 圈外暗红薄雾；格点沿圈慢慢流动，向内收时清楚可见
+## 三幕歌声围拢（10-29 用户「青绿点线不清楚」）：红色场地底色固定不动；围拢圈 = 3 像素实线（专属色）+ 两侧暗描边 + 内侧一圈流动亮点，
+## 圈外到场地边压一层暗幕（站在暗处 = 在掉血），圈越收暗幕越大，「被围住」一眼可见
 static func _fence(g) -> void:
 	var gy: float = g.combat.GROUND_Y
 	for e in g.bosses:
@@ -198,17 +199,25 @@ static func _fence(g) -> void:
 			continue
 		var R: float = g.bai.boss("ishar").cards()._fence_r(e)
 		var c: Color = Combos.act_col(e)
-		var n: int = clampi(int(R * TAU / 7.0), 40, 360)
+		var Ro: float = maxf(R + 40.0, (g.zone_r if g.zone_frozen else 650.0) + 60.0)
+		var n: int = 64
+		var ring := PackedVector2Array()
+		for i in n + 1:
+			var an: float = TAU * i / n
+			ring.append(f.c + Vector2(cos(an), sin(an) * gy) * R)
+		var veil := Color(0.02, 0.0, 0.03, Bal.v("render/ishar_fence_veil", 0.42))
 		for i in n:
-			var an: float = TAU * (float(i) + fmod(g.t * 2.0, 1.0)) / n
-			_sq(g, f.c + Vector2(cos(an), sin(an) * gy) * R, Color(c.r, c.g, c.b, 0.85 if i % 3 != 0 else 0.4))
-		for q in 2:
-			var rr: float = R + 14.0 + 12.0 * q
-			var m: int = clampi(int(rr * TAU / 18.0), 30, 240)
-			for i in m:
-				if (i + q) % 2 == 0:
-					var an: float = TAU * i / m
-					_sq(g, f.c + Vector2(cos(an), sin(an) * gy) * rr, Color(FILL.r, FILL.g, FILL.b, 0.5 - 0.2 * q))
+			var a0: float = TAU * i / n
+			var a1: float = TAU * (i + 1) / n
+			g.draw_colored_polygon(PackedVector2Array([ring[i], ring[i + 1],
+				f.c + Vector2(cos(a1), sin(a1) * gy) * Ro, f.c + Vector2(cos(a0), sin(a0) * gy) * Ro]), veil)
+		var pulse: float = 0.8 + 0.2 * sin(g.t * TAU / 1.2)
+		g.draw_polyline(ring, Color(0.02, 0.05, 0.06, 0.8), 7.0)
+		g.draw_polyline(ring, Color(c.r, c.g, c.b, pulse), 3.0)
+		var m: int = clampi(int(R * TAU / 22.0), 24, 160)
+		for i in m:
+			var an: float = TAU * (float(i) + fmod(g.t * 1.5, 1.0)) / m
+			_sq(g, f.c + Vector2(cos(an), sin(an) * gy) * (R - 8.0), Color(1.0, 1.0, 1.0, 0.55 * pulse))
 
 
 static func draw(g) -> void:
