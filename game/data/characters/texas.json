@@ -34,8 +34,10 @@
   "talent_sp": 0.8,
   "talent_many": 3,
   "talent_many_sp": 0.3,
-  "n1_w": 1.3,
-  "n2_mult": 1.15,
+  "_growth": "docs/202 成长节点去数值化（10-29，待试验参数）：节点 1「居合」iai_*（拔刀命中缩短队长冲刺冷却）；节点 2「破绽」flaw_*（拔刀路径上正在前摇的普通敌人被打断 + 小击退，协调人定：无眩晕）",
+  "iai_cut": 0.3,
+  "iai_max": 1.2,
+  "flaw_kb": 60,
   "back_delay": 0.3,
   "back_mult": 0.5,
   "rain2_delay": 0.3,
@@ -502,16 +504,16 @@
   {
    "type": "custom",
    "id": "wide",
-   "name": "阔剑",
+   "name": "居合",
    "icon": "growth_b_range",
-   "desc": "冲刺宽度 +{$n1_w*100-100}%，拔刀与骤雨范围 +{$slash_wide*100}%"
+   "desc": "拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）"
   },
   {
    "type": "custom",
    "id": "sharp",
-   "name": "利刃",
+   "name": "破绽",
    "icon": "growth_b_size",
-   "desc": "伤害 ×{$n2_mult}"
+   "desc": "拔刀命中正在前摇出招的敌人时，打断其出招并击退 {$flaw_kb}（精英、Boss 除外）"
   },
   {
    "type": "elite",
@@ -579,6 +581,8 @@
   }
  ],
  "gallery": {
+  "demo_dash_cd": 3.0,
+  "demo_windup": 1.5,
   "tags": [
    "近战",
    "位移",
@@ -979,23 +983,28 @@
    }
   ],
   "progression": {
-   "wide": [
-    {
-     "verb": "dash_mod",
-     "w_mult": "$n1_w"
-    },
-    {
-     "verb": "buff_self",
-     "stat": "op_range",
-     "op": "add",
-     "value": "$slash_wide"
-    }
-   ],
+   "wide": {
+    "trig": "on_hit_n",
+    "n": 1,
+    "_doc": "居合（docs/202 节点 1）：拔刀每命中一名敌人，队长冲刺冷却缩短 iai_cut 秒（每次拔刀至多 iai_max 秒），与天赋「战术快递」配合",
+    "do": [
+     {
+      "verb": "dash_cd_cut",
+      "per": "$iai_cut",
+      "max": "$iai_max"
+     }
+    ]
+   },
    "sharp": {
-    "verb": "buff_self",
-    "stat": "dmg",
-    "op": "mult",
-    "value": "$n2_mult"
+    "trig": "on_hit_n",
+    "n": 1,
+    "_doc": "破绽（docs/202 节点 2，本作原创）：拔刀命中的普通敌人正在前摇 → 打断 + 小击退（协调人定：不眩晕，她的连携是瞬身眩晕）",
+    "do": [
+     {
+      "verb": "break_windup",
+      "kb": "$flaw_kb"
+     }
+    ]
    },
    "back": {
     "trig": "passive",
