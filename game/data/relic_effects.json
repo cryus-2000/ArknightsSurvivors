@@ -1,5 +1,5 @@
 {
- "_doc": "已实装藏品的效果数据。键是藏品编号（见 docs/08）。effects 语法见 scripts/core/modifier_system.gd。desc 省略时用 relics.json 里的改编文字。可选：rarity / tags / requires / conflicts / shop_allowed / price_class / source 覆盖默认值。 effect_category 是按实装效果复核的主分类，名称见 effect_categories；不替代原 lanes/tags，也不参与抽取权重。rarity 是实效强度档，缺省价格随最终 rarity。",
+ "_doc": "已实装藏品的效果数据。键是藏品编号（见 docs/08）。effects 语法见 scripts/core/modifier_system.gd。desc 省略时用 relics.json 里的改编文字。可选：rarity / requires / conflicts / shop_allowed / price_class / source 覆盖默认值。 分类只有 relics.json 的 lane 一个（docs/197）；set 是套装标记（国王套装 king）。rarity 是实效强度档，缺省价格随最终 rarity。",
  "relics": {
   "1": {
    "effects": [
@@ -15,12 +15,7 @@
     }
    ],
    "desc": "编队上限 +1；队长每秒回复 0.5% 最大生命（每次探索最多 1 件编队上限类藏品）",
-   "rarity": "升华",
-   "tags": [
-    "squad",
-    "survival"
-   ],
-   "effect_category": "squad"
+   "rarity": "升华"
   },
   "2": {
    "effects": [
@@ -33,10 +28,6 @@
    ],
    "desc": "全队攻击速度 +3%",
    "rarity": "基础",
-   "tags": [
-    "attack_speed"
-   ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "3": {
@@ -50,11 +41,6 @@
    ],
    "desc": "全队伤害 +3%",
    "rarity": "基础",
-   "tags": [
-    "melee",
-    "basic_attack"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "4": {
@@ -68,10 +54,6 @@
    ],
    "desc": "全队攻击速度 +5%",
    "rarity": "基础",
-   "tags": [
-    "attack_speed"
-   ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "5": {
@@ -85,11 +67,6 @@
    ],
    "desc": "全队伤害 +5%",
    "rarity": "基础",
-   "tags": [
-    "melee",
-    "basic_attack"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "6": {
@@ -115,11 +92,7 @@
    ],
    "desc": "全队伤害 +4%；队长最大生命 +4%、物理减伤 +1",
    "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
    "max_lv": 1,
-   "effect_category": "damage",
    "new": true
   },
   "7": {
@@ -139,11 +112,6 @@
    ],
    "desc": "队长护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾），护盾生成间隔 -10%",
    "rarity": "稀有",
-   "tags": [
-    "survival",
-    "shield"
-   ],
-   "effect_category": "shield",
    "new": true
   },
   "8": {
@@ -158,11 +126,7 @@
    ],
    "desc": "源石锭 +12",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "9": {
@@ -182,16 +146,8 @@
    ],
    "desc": "源石锭 +6；下一次三选一多一个选项",
    "rarity": "基础",
-   "lanes": [
-    "G"
-   ],
-   "tags": [
-    "squad",
-    "economy"
-   ],
    "shop_allowed": true,
    "late_weight": 0.3,
-   "effect_category": "choice",
    "new": true
   },
   "10": {
@@ -214,11 +170,6 @@
    ],
    "desc": "源石锭 +12；此后每招募一名干员再 +12",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "economy"
-   ],
-   "effect_category": "economy",
    "new": true
   },
   "11": {
@@ -238,12 +189,7 @@
    ],
    "desc": "源石锭 +18；下一次三选一多一个选项",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "12": {
@@ -258,11 +204,7 @@
    ],
    "desc": "源石锭 +12",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "13": {
@@ -277,11 +219,7 @@
    ],
    "desc": "源石锭 +12",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "14": {
@@ -304,12 +242,6 @@
    ],
    "desc": "源石锭 +12；每击败一个 Boss 再 +15",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "economy",
-    "on_kill"
-   ],
-   "effect_category": "economy",
    "new": true
   },
   "15": {
@@ -325,12 +257,7 @@
     }
    ],
    "desc": "队长的护盾生成间隔 -20%",
-   "tags": [
-    "survival",
-    "shield"
-   ],
-   "rarity": "基础",
-   "effect_category": "shield"
+   "rarity": "基础"
   },
   "16": {
    "effects": [
@@ -343,11 +270,6 @@
    ],
    "desc": "队长护盾层数上限 +2（没有护盾时获得每 12 秒一层的护盾）",
    "rarity": "稀有",
-   "tags": [
-    "survival",
-    "shield"
-   ],
-   "effect_category": "shield",
    "new": true
   },
   "17": {
@@ -368,11 +290,6 @@
    ],
    "desc": "队长最大生命 +10；源石锭 +3",
    "rarity": "基础",
-   "tags": [
-    "economy",
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "18": {
@@ -393,10 +310,6 @@
    ],
    "desc": "队长最大生命 +15，立即回复 15 生命",
    "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "19": {
@@ -417,10 +330,6 @@
    ],
    "desc": "队长最大生命 +20，立即回复 20 生命",
    "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "20": {
@@ -434,10 +343,6 @@
    ],
    "desc": "队长最大生命 +30",
    "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "21": {
@@ -451,10 +356,6 @@
    ],
    "desc": "队长最大生命 +50",
    "rarity": "稀有",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "22": {
@@ -469,11 +370,7 @@
    ],
    "desc": "源石锭 +12",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "23": {
@@ -488,11 +385,7 @@
    ],
    "desc": "源石锭 +12",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "24": {
@@ -507,11 +400,7 @@
    ],
    "desc": "源石锭 +12",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "25": {
@@ -531,11 +420,7 @@
    ],
    "desc": "源石锭 +12；补给箱钥匙 +2（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "26": {
@@ -550,11 +435,7 @@
    ],
    "desc": "源石锭 +24",
    "rarity": "稀有",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "27": {
@@ -567,12 +448,8 @@
      }
     }
    ],
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "rarity": "基础",
-   "effect_category": "economy"
+   "rarity": "基础"
   },
   "28": {
    "effects": [
@@ -584,12 +461,8 @@
      }
     }
    ],
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "rarity": "基础",
-   "effect_category": "economy"
+   "rarity": "基础"
   },
   "29": {
    "effects": [
@@ -601,12 +474,8 @@
      }
     }
    ],
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "rarity": "稀有",
-   "effect_category": "economy"
+   "rarity": "稀有"
   },
   "30": {
    "effects": [
@@ -618,11 +487,7 @@
      }
     }
    ],
-   "tags": [
-    "light"
-   ],
-   "rarity": "基础",
-   "effect_category": "light"
+   "rarity": "基础"
   },
   "31": {
    "effects": [
@@ -634,11 +499,7 @@
      }
     }
    ],
-   "tags": [
-    "light"
-   ],
-   "rarity": "基础",
-   "effect_category": "light"
+   "rarity": "基础"
   },
   "32": {
    "effects": [
@@ -650,11 +511,7 @@
      }
     }
    ],
-   "tags": [
-    "light"
-   ],
-   "rarity": "稀有",
-   "effect_category": "light"
+   "rarity": "稀有"
   },
   "33": {
    "effects": [
@@ -668,14 +525,10 @@
    ],
    "desc": "立即让 1 名先锋干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "先锋"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "34": {
    "effects": [
@@ -689,14 +542,10 @@
    ],
    "desc": "立即让 1 名近卫干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "35": {
    "effects": [
@@ -710,14 +559,10 @@
    ],
    "desc": "立即让 1 名重装干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "36": {
    "effects": [
@@ -731,14 +576,10 @@
    ],
    "desc": "立即让 1 名狙击干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "狙击"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "37": {
    "effects": [
@@ -752,14 +593,10 @@
    ],
    "desc": "立即让 1 名术师干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "术师"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "38": {
    "effects": [
@@ -773,14 +610,10 @@
    ],
    "desc": "立即让 1 名辅助干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "辅助"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "39": {
    "effects": [
@@ -794,14 +627,10 @@
    ],
    "desc": "立即让 1 名医疗干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "医疗"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "40": {
    "effects": [
@@ -815,14 +644,10 @@
    ],
    "desc": "立即让 1 名特种干员推进 1 个成长节点",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "特种"
    ],
-   "shop_allowed": true,
-   "effect_category": "growth"
+   "shop_allowed": true
   },
   "41": {
    "effects": [
@@ -834,9 +659,7 @@
     }
    ],
    "desc": "所有敌人造成的伤害 -7%",
-   "tags": [],
-   "rarity": "基础",
-   "effect_category": "defense"
+   "rarity": "基础"
   },
   "42": {
    "effects": [
@@ -861,11 +684,6 @@
    ],
    "desc": "全队伤害 +35%；队长受到的伤害 -25%、最大生命 +45%",
    "rarity": "升华",
-   "tags": [
-    "melee",
-    "survival"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "43": {
@@ -877,10 +695,8 @@
      "value": 0.88
     }
    ],
-   "tags": [],
    "desc": "所有敌人造成的伤害 -12%",
-   "rarity": "稀有",
-   "effect_category": "defense"
+   "rarity": "稀有"
   },
   "44": {
    "effects": [
@@ -892,9 +708,7 @@
     }
    ],
    "desc": "所有敌人造成的伤害 -17%",
-   "tags": [],
-   "rarity": "核心",
-   "effect_category": "defense"
+   "rarity": "核心"
   },
   "45": {
    "effects": [
@@ -907,11 +721,7 @@
     }
    ],
    "desc": "弱点收割干员的弱点伤害额外 +25%（弱点基础 +50%）",
-   "tags": [
-    "execute"
-   ],
-   "rarity": "稀有",
-   "effect_category": "weakness"
+   "rarity": "稀有"
   },
   "46": {
    "effects": [
@@ -924,11 +734,7 @@
     }
    ],
    "desc": "弱点收割干员对生命低于 50% 的敌人伤害 +18%",
-   "tags": [
-    "execute"
-   ],
-   "rarity": "基础",
-   "effect_category": "weakness"
+   "rarity": "基础"
   },
   "47": {
    "effects": [
@@ -938,11 +744,7 @@
     }
    ],
    "desc": "所有敌人对物理与法术伤害都视为弱点",
-   "tags": [
-    "execute"
-   ],
-   "rarity": "升华",
-   "effect_category": "weakness"
+   "rarity": "升华"
   },
   "48": {
    "effects": [
@@ -953,9 +755,7 @@
      "value": 0.82
     }
    ],
-   "tags": [],
-   "rarity": "稀有",
-   "effect_category": "weakness"
+   "rarity": "稀有"
   },
   "49": {
    "effects": [
@@ -966,9 +766,7 @@
      "value": 0.9
     }
    ],
-   "tags": [],
-   "rarity": "基础",
-   "effect_category": "weakness"
+   "rarity": "基础"
   },
   "50": {
    "effects": [
@@ -979,9 +777,7 @@
      "value": 0.8
     }
    ],
-   "tags": [],
-   "rarity": "核心",
-   "effect_category": "weakness"
+   "rarity": "核心"
   },
   "51": {
    "effects": [
@@ -999,12 +795,8 @@
     }
    ],
    "desc": "队长物理减伤 +2，受到的伤害 -6%",
-   "tags": [
-    "survival"
-   ],
    "max_lv": 1,
-   "rarity": "基础",
-   "effect_category": "defense"
+   "rarity": "基础"
   },
   "52": {
    "effects": [
@@ -1022,12 +814,8 @@
     }
    ],
    "desc": "队长物理减伤 +3，受到的伤害 -8%",
-   "tags": [
-    "survival"
-   ],
    "max_lv": 1,
-   "rarity": "稀有",
-   "effect_category": "defense"
+   "rarity": "稀有"
   },
   "53": {
    "effects": [
@@ -1045,12 +833,8 @@
     }
    ],
    "desc": "队长物理减伤 +5，受到的伤害 -10%",
-   "tags": [
-    "survival"
-   ],
    "max_lv": 1,
-   "rarity": "核心",
-   "effect_category": "defense"
+   "rarity": "核心"
   },
   "54": {
    "effects": [
@@ -1069,13 +853,7 @@
     }
    ],
    "desc": "近战扩域干员的近战伤害 +12%（近战攻击与技能）；队长受到的伤害 -3%",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "rarity": "基础",
-   "effect_category": "damage"
+   "rarity": "基础"
   },
   "55": {
    "effects": [
@@ -1088,13 +866,7 @@
     }
    ],
    "desc": "近战扩域干员的近战伤害 +22%（近战攻击与技能）",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "rarity": "稀有",
-   "effect_category": "damage"
+   "rarity": "稀有"
   },
   "56": {
    "effects": [
@@ -1113,13 +885,7 @@
     }
    ],
    "desc": "近战扩域干员的近战伤害 +20%；近战扩域干员一次普攻判定（一道刀光、一次盾击或一段刺击）同时命中至少 3 名敌人时，这一下伤害再 ×1.25。普攻剑气逐个命中，只享受近战伤害加成。每多一层，增益递减",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
    "rarity": "核心",
-   "effect_category": "damage",
    "legacy": [
     {
      "type": "stat",
@@ -1142,11 +908,7 @@
     }
    ],
    "desc": "多弹火力干员的远程伤害 +10%（远程攻击与技能）",
-   "tags": [
-    "ranged"
-   ],
-   "rarity": "基础",
-   "effect_category": "damage"
+   "rarity": "基础"
   },
   "58": {
    "effects": [
@@ -1164,11 +926,7 @@
     }
    ],
    "desc": "散射：多弹火力干员每次普攻多射出 1 发小弹，射向另一名敌人（不够时扇形错开），伤害为普攻的 15%；多弹火力干员的远程伤害 +10%。每多一层，增益递减",
-   "tags": [
-    "ranged"
-   ],
    "rarity": "稀有",
-   "effect_category": "damage",
    "legacy": [
     {
      "type": "stat",
@@ -1196,11 +954,7 @@
     }
    ],
    "desc": "连发：多弹火力干员每次普攻后 0.08 秒对同一方向补射 1 发小弹，伤害为普攻的 25%；多弹火力干员的远程伤害 +10%。每多一层，增益递减",
-   "tags": [
-    "ranged"
-   ],
    "rarity": "核心",
-   "effect_category": "damage",
    "legacy": [
     {
      "type": "stat",
@@ -1222,11 +976,7 @@
     }
    ],
    "desc": "队长最大生命 +15%",
-   "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense"
+   "rarity": "基础"
   },
   "61": {
    "effects": [
@@ -1238,11 +988,7 @@
     }
    ],
    "desc": "队长最大生命 +25%",
-   "rarity": "稀有",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense"
+   "rarity": "稀有"
   },
   "62": {
    "effects": [
@@ -1255,10 +1001,6 @@
    ],
    "desc": "队长最大生命 +50%",
    "rarity": "核心",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "63": {
@@ -1272,12 +1014,6 @@
    ],
    "desc": "剑气：近战扩域干员每次普攻额外从刀光边缘射出 1 道剑气，打普攻够不到的敌人（飞到普攻范围的 1.6 倍），伤害为普攻的 35%，命中 1 名敌人后消失。每多一层，增益递减",
    "rarity": "基础",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "effect_category": "damage",
    "new": true,
    "legacy": [
     {
@@ -1307,12 +1043,6 @@
    ],
    "desc": "增幅：近战扩域干员攻击范围 +18%（刀光与判定一起放大，剑气飞得更远），伤害 +8%。已持有其他攻击范围藏品时，每多一层，增益递减",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "effect_category": "range",
    "new": true,
    "legacy": [
     {
@@ -1336,12 +1066,6 @@
    ],
    "desc": "物理伤害 +35%",
    "rarity": "核心",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "66": {
@@ -1354,13 +1078,7 @@
     }
    ],
    "desc": "法术伤害 +20%",
-   "tags": [
-    "follow_up",
-    "arts",
-    "summon"
-   ],
-   "rarity": "稀有",
-   "effect_category": "damage"
+   "rarity": "稀有"
   },
   "67": {
    "effects": [
@@ -1372,9 +1090,7 @@
     }
    ],
    "desc": "法术伤害 +30%",
-   "tags": [],
-   "rarity": "核心",
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "68": {
    "effects": [
@@ -1386,9 +1102,7 @@
     }
    ],
    "desc": "法术伤害 +40%",
-   "tags": [],
-   "rarity": "核心",
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "69": {
    "effects": [
@@ -1400,12 +1114,7 @@
     }
    ],
    "desc": "队长受到的治疗量 +20%",
-   "rarity": "基础",
-   "tags": [
-    "survival",
-    "heal"
-   ],
-   "effect_category": "healing"
+   "rarity": "基础"
   },
   "70": {
    "effects": [
@@ -1418,11 +1127,6 @@
    ],
    "desc": "队长受到的治疗量 +30%",
    "rarity": "稀有",
-   "tags": [
-    "survival",
-    "heal"
-   ],
-   "effect_category": "healing",
    "new": true
   },
   "71": {
@@ -1447,12 +1151,7 @@
     }
    ],
    "desc": "队长受到的治疗量 +30%；受到的侵蚀与神经损伤 -30%",
-   "rarity": "核心",
-   "tags": [
-    "survival",
-    "heal"
-   ],
-   "effect_category": "healing"
+   "rarity": "核心"
   },
   "72": {
    "effects": [
@@ -1463,12 +1162,8 @@
      "value": 0.005
     }
    ],
-   "tags": [
-    "survival"
-   ],
    "desc": "队长每秒回复 0.5% 最大生命",
-   "rarity": "稀有",
-   "effect_category": "healing"
+   "rarity": "稀有"
   },
   "73": {
    "effects": [
@@ -1480,11 +1175,7 @@
     }
    ],
    "desc": "队长物理闪避 +15%（接触、冲撞、子弹等物理攻击）",
-   "tags": [
-    "on_dodge"
-   ],
-   "rarity": "基础",
-   "effect_category": "dodge"
+   "rarity": "基础"
   },
   "74": {
    "effects": [
@@ -1496,11 +1187,7 @@
     }
    ],
    "desc": "队长法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）",
-   "tags": [
-    "on_dodge"
-   ],
-   "rarity": "基础",
-   "effect_category": "dodge"
+   "rarity": "基础"
   },
   "75": {
    "effects": [
@@ -1511,12 +1198,8 @@
      "value": 0.1
     }
    ],
-   "tags": [
-    "on_dodge"
-   ],
    "desc": "队长闪避率 +10%",
-   "rarity": "基础",
-   "effect_category": "dodge"
+   "rarity": "基础"
   },
   "76": {
    "effects": [
@@ -1530,12 +1213,8 @@
    ],
    "desc": "立即升 1 级",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
    "shop_allowed": true,
-   "effect_category": "growth",
    "new": true
   },
   "77": {
@@ -1550,12 +1229,8 @@
    ],
    "desc": "立即升 2 级",
    "rarity": "稀有",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
    "shop_allowed": true,
-   "effect_category": "growth",
    "new": true
   },
   "78": {
@@ -1570,12 +1245,8 @@
    ],
    "desc": "立即升 3 级",
    "rarity": "核心",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
    "shop_allowed": true,
-   "effect_category": "growth",
    "new": true
   },
   "79": {
@@ -1588,13 +1259,7 @@
     }
    ],
    "desc": "全队伤害 +20%（真实伤害除外）",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "rarity": "稀有",
-   "effect_category": "damage"
+   "rarity": "稀有"
   },
   "80": {
    "effects": [
@@ -1608,12 +1273,6 @@
    ],
    "desc": "召唤驻场干员的追击与召唤物伤害 +20%",
    "rarity": "稀有",
-   "tags": [
-    "follow_up",
-    "summon",
-    "arts"
-   ],
-   "effect_category": "followup",
    "new": true
   },
   "81": {
@@ -1634,17 +1293,13 @@
    ],
    "desc": "近战扩域干员攻击范围 +25%；队长受到的伤害 -5%",
    "rarity": "稀有",
-   "tags": [
-    "melee"
-   ],
    "requires_class": [
     "近卫",
     "重装",
     "先锋",
     "特种"
    ],
-   "shop_allowed": true,
-   "effect_category": "range"
+   "shop_allowed": true
   },
   "82": {
    "effects": [
@@ -1658,17 +1313,13 @@
    ],
    "desc": "多弹火力干员攻击范围 +20%",
    "rarity": "稀有",
-   "tags": [
-    "ranged"
-   ],
    "requires_class": [
     "狙击",
     "术师",
     "医疗",
     "辅助"
    ],
-   "shop_allowed": true,
-   "effect_category": "range"
+   "shop_allowed": true
   },
   "83": {
    "effects": [
@@ -1683,14 +1334,7 @@
    ],
    "desc": "每 30 秒随机一名干员的技能立即充满",
    "rarity": "核心",
-   "lanes": [
-    "C"
-   ],
-   "tags": [
-    "skill"
-   ],
    "shop_allowed": true,
-   "effect_category": "skill_cycle",
    "new": true
   },
   "84": {
@@ -1704,12 +1348,7 @@
     }
    ],
    "desc": "召唤驻场干员的追击与召唤物伤害 +60%（余震、殉爆，以及魂灵之影、触手桩、Mon3tr、替身等召唤物）",
-   "rarity": "核心",
-   "tags": [
-    "follow_up",
-    "summon"
-   ],
-   "effect_category": "followup"
+   "rarity": "核心"
   },
   "85": {
    "effects": [
@@ -1723,11 +1362,7 @@
     }
    ],
    "desc": "干员的技能结束时，该干员的技能各回复 12% 技力",
-   "rarity": "稀有",
-   "tags": [
-    "skill"
-   ],
-   "effect_category": "skill_cycle"
+   "rarity": "稀有"
   },
   "86": {
    "effects": [
@@ -1749,10 +1384,6 @@
    ],
    "desc": "获得时全队技力 +20%；之后招募的干员入队时也获得 20% 技力",
    "rarity": "基础",
-   "tags": [
-    "skill"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "87": {
@@ -1775,10 +1406,6 @@
    ],
    "desc": "获得时全队技力 +30%；之后招募的干员入队时也获得 30% 技力",
    "rarity": "稀有",
-   "tags": [
-    "skill"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "88": {
@@ -1792,11 +1419,6 @@
    ],
    "desc": "全队技力回复 +15%",
    "rarity": "基础",
-   "tags": [
-    "skill",
-    "survival"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "89": {
@@ -1808,13 +1430,8 @@
      "value": 0.3
     }
    ],
-   "tags": [
-    "skill",
-    "survival"
-   ],
    "desc": "全队技力回复 +30%",
-   "rarity": "核心",
-   "effect_category": "skill_cycle"
+   "rarity": "核心"
   },
   "90": {
    "effects": [
@@ -1827,11 +1444,6 @@
    ],
    "desc": "全队技力回复 +35%",
    "rarity": "稀有",
-   "tags": [
-    "skill",
-    "survival"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "91": {
@@ -1847,10 +1459,6 @@
    ],
    "desc": "每 3.5 秒全队回复 2% 技力",
    "rarity": "基础",
-   "tags": [
-    "skill"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "92": {
@@ -1872,11 +1480,6 @@
    ],
    "desc": "每 2.5 秒全队回复 2% 技力；全队技力回复 +10%",
    "rarity": "稀有",
-   "tags": [
-    "skill",
-    "survival"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "93": {
@@ -1892,10 +1495,6 @@
    ],
    "desc": "每 1.5 秒全队回复 2% 技力",
    "rarity": "核心",
-   "tags": [
-    "skill"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "94": {
@@ -1910,13 +1509,8 @@
      }
     }
    ],
-   "tags": [
-    "skill",
-    "survival"
-   ],
    "desc": "队长每次受到伤害，全队回复 3% 技力；受到神经损伤时再回复 3%",
-   "rarity": "稀有",
-   "effect_category": "skill_cycle"
+   "rarity": "稀有"
   },
   "95": {
    "effects": [
@@ -1935,13 +1529,8 @@
      }
     }
    ],
-   "tags": [
-    "arts",
-    "control"
-   ],
    "desc": "队长周围（半径 700）被眩晕、束缚或减速的敌人每秒受到法术伤害：伤害 9，每分钟 +{9*$pm:1}（10:00 约 {9*$m10:0}）；与「童趣玩偶」不叠加，取较高",
-   "rarity": "核心",
-   "effect_category": "control"
+   "rarity": "核心"
   },
   "96": {
    "effects": [
@@ -1961,9 +1550,7 @@
     }
    ],
    "desc": "队长周围（半径 700）被眩晕、束缚或减速的敌人每秒受到法术伤害：伤害 12.6，每分钟 +{12.6*$pm:1}（10:00 约 {12.6*$m10:0}）；与「悬丝傀儡」不叠加，取较高",
-   "tags": [],
-   "rarity": "升华",
-   "effect_category": "control"
+   "rarity": "升华"
   },
   "97": {
    "effects": [
@@ -1974,12 +1561,8 @@
      "value": 0.5
     }
    ],
-   "tags": [
-    "control"
-   ],
    "desc": "眩晕、束缚、减速的持续时间 +50%",
-   "rarity": "稀有",
-   "effect_category": "control"
+   "rarity": "稀有"
   },
   "98": {
    "effects": [
@@ -1990,10 +1573,8 @@
      "value": 0.8
     }
    ],
-   "tags": [],
    "desc": "眩晕、束缚、减速的持续时间 +80%",
-   "rarity": "核心",
-   "effect_category": "control"
+   "rarity": "核心"
   },
   "99": {
    "effects": [
@@ -2004,10 +1585,8 @@
      "value": 1.0
     }
    ],
-   "tags": [],
    "desc": "眩晕、束缚、减速的持续时间 +100%",
-   "rarity": "升华",
-   "effect_category": "control"
+   "rarity": "升华"
   },
   "100": {
    "requires": [
@@ -2026,13 +1605,7 @@
     }
    ],
    "desc": "队长法术抗性 +15%；护盾破裂时释放冲击，对周围（半径 140）敌人造成伤害并击退（Boss 不被击退）",
-   "tags": [
-    "control",
-    "survival",
-    "shield"
-   ],
-   "rarity": "核心",
-   "effect_category": "shield"
+   "rarity": "核心"
   },
   "101": {
    "effects": [
@@ -2047,11 +1620,7 @@
     }
    ],
    "desc": "编队每有一种不同职业，全队伤害 +6%",
-   "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "squad"
+   "rarity": "稀有"
   },
   "102": {
    "effects": [
@@ -2065,13 +1634,7 @@
     }
    ],
    "desc": "每 0.5 秒把溢出的治疗量转为对队长周围（半径 150）敌人的法术伤害：开局为溢出量的 {$scavenge_mult} 倍，每分钟 +{$scavenge_mult*$pm:1} 倍（10:00 约 {$scavenge_mult*$m10:0} 倍）",
-   "rarity": "稀有",
-   "tags": [
-    "survival",
-    "heal",
-    "arts"
-   ],
-   "effect_category": "healing"
+   "rarity": "稀有"
   },
   "103": {
    "effects": [
@@ -2090,10 +1653,6 @@
    ],
    "desc": "所有敌人移动速度 -15%，受到的击退 +40%（Boss 除外）",
    "rarity": "稀有",
-   "tags": [
-    "control"
-   ],
-   "effect_category": "control",
    "new": true
   },
   "104": {
@@ -2109,17 +1668,12 @@
    ],
    "desc": "远程干员的攻击伤害按与目标的距离提高：每 60 距离 +10%，300 及以上 +50%",
    "rarity": "稀有",
-   "tags": [
-    "ranged",
-    "on_hit"
-   ],
    "requires_class": [
     "狙击",
     "术师",
     "医疗",
     "辅助"
    ],
-   "effect_category": "damage",
    "new": true
   },
   "105": {
@@ -2133,12 +1687,8 @@
      }
     }
    ],
-   "tags": [
-    "skill"
-   ],
    "desc": "没有技能生效时，全队伤害在累计 60 秒内逐渐提升至 +60%；任一技能生效时暂停计时、加成不生效（不清零）",
-   "rarity": "核心",
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "106": {
    "effects": [
@@ -2161,16 +1711,11 @@
    ],
    "desc": "编队每有 1 名先锋或近卫干员，先锋与近卫干员伤害 +10%",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "melee"
-   ],
    "requires_class": [
     "先锋",
     "近卫"
    ],
-   "shop_allowed": true,
-   "effect_category": "squad"
+   "shop_allowed": true
   },
   "107": {
    "effects": [
@@ -2193,14 +1738,10 @@
    ],
    "desc": "编队每有 1 名重装或辅助干员，重装与辅助干员伤害 +10%",
    "rarity": "基础",
-   "tags": [
-    "squad"
-   ],
    "requires_class": [
     "重装",
     "辅助"
-   ],
-   "effect_category": "squad"
+   ]
   },
   "108": {
    "effects": [
@@ -2223,15 +1764,10 @@
    ],
    "desc": "编队每有 1 名医疗或狙击干员，医疗与狙击干员伤害 +10%",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "ranged"
-   ],
    "requires_class": [
     "医疗",
     "狙击"
-   ],
-   "effect_category": "squad"
+   ]
   },
   "109": {
    "effects": [
@@ -2254,15 +1790,10 @@
    ],
    "desc": "编队每有 1 名术师或特种干员，术师与特种干员攻击速度 +8%",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "attack_speed"
-   ],
    "requires_class": [
     "术师",
     "特种"
-   ],
-   "effect_category": "squad"
+   ]
   },
   "110": {
    "effects": [
@@ -2278,12 +1809,8 @@
      }
     }
    ],
-   "tags": [
-    "skill"
-   ],
    "desc": "技能开启后 3 秒内全队伤害 +60%（再次开启技能刷新时长）",
-   "rarity": "核心",
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "111": {
    "effects": [
@@ -2300,11 +1827,7 @@
     }
    ],
    "desc": "任一干员技能开启后 1 秒内，全队伤害 +100%",
-   "rarity": "核心",
-   "tags": [
-    "skill"
-   ],
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "112": {
    "effects": [
@@ -2321,12 +1844,7 @@
     }
    ],
    "desc": "单体攻击（不带范围效果的攻击）伤害 +50%",
-   "rarity": "核心",
-   "tags": [
-    "execute",
-    "on_hit"
-   ],
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "113": {
    "effects": [
@@ -2339,11 +1857,7 @@
    ],
    "desc": "精英敌人对队长造成的伤害 -40%",
    "rarity": "稀有",
-   "tags": [
-    "survival"
-   ],
    "shop_allowed": true,
-   "effect_category": "defense",
    "new": true
   },
   "114": {
@@ -2353,12 +1867,9 @@
      "rule": "king_gun"
     }
    ],
-   "tags": [
-    "king"
-   ],
    "desc": "全队攻击速度 +10%；队长生命低于 40% 时改为 +50%（国王套装）",
    "rarity": "核心",
-   "effect_category": "attack_speed"
+   "set": "king"
   },
   "115": {
    "effects": [
@@ -2376,11 +1887,7 @@
     }
    ],
    "desc": "队长物理减伤 +3，法术抗性 +20%",
-   "tags": [
-    "survival"
-   ],
-   "rarity": "稀有",
-   "effect_category": "defense"
+   "rarity": "稀有"
   },
   "116": {
    "effects": [
@@ -2390,12 +1897,7 @@
     }
    ],
    "desc": "地图上出现一片「遥乡」：队长站在里面每秒回复 3% 最大生命、技力回复 +30%；每 60 秒换一次位置",
-   "rarity": "核心",
-   "tags": [
-    "survival",
-    "skill"
-   ],
-   "effect_category": "healing"
+   "rarity": "核心"
   },
   "117": {
    "effects": [
@@ -2412,10 +1914,6 @@
    ],
    "desc": "地图上出现一面旗帜：队长站在旗帜附近时全队伤害 +50%、攻击速度 +50%；每 60 秒换一次位置",
    "rarity": "核心",
-   "tags": [
-    "attack_speed"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "118": {
@@ -2434,12 +1932,7 @@
     }
    ],
    "desc": "队长每 12 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%",
-   "tags": [
-    "survival",
-    "shield"
-   ],
-   "rarity": "稀有",
-   "effect_category": "shield"
+   "rarity": "稀有"
   },
   "119": {
    "effects": [
@@ -2452,10 +1945,6 @@
    ],
    "desc": "远程杂兵的开火间隔 +35%（Boss 除外）",
    "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "120": {
@@ -2478,15 +1967,8 @@
      }
     }
    ],
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical",
-    "on_dodge"
-   ],
    "desc": "队长闪避率 +8%；闪避后 6 秒内全队伤害 +60%（再次闪避刷新时长）",
-   "rarity": "核心",
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "121": {
    "effects": [
@@ -2508,15 +1990,8 @@
      }
     }
    ],
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical",
-    "on_dodge"
-   ],
    "desc": "队长闪避率 +8%；闪避后 6 秒内全队伤害 +130%（再次闪避刷新时长）",
-   "rarity": "升华",
-   "effect_category": "damage"
+   "rarity": "升华"
   },
   "122": {
    "effects": [
@@ -2534,10 +2009,6 @@
    ],
    "desc": "每次升级后 10 秒内全队攻击速度 +40%（再次升级刷新时长）",
    "rarity": "稀有",
-   "tags": [
-    "attack_speed"
-   ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "123": {
@@ -2556,10 +2027,6 @@
    ],
    "desc": "每次升级后 10 秒内全队攻击速度 +70%（再次升级刷新时长）",
    "rarity": "核心",
-   "tags": [
-    "attack_speed"
-   ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "124": {
@@ -2574,12 +2041,6 @@
    ],
    "desc": "队长每有 10% 生命，全队伤害 +3%（满血时 +30%）",
    "rarity": "核心",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "125": {
@@ -2595,11 +2056,6 @@
    ],
    "desc": "队长每损失 10% 最大生命，全队攻击速度 +12%（生命 50% 及以下时 +60%）",
    "rarity": "核心",
-   "tags": [
-    "attack_speed",
-    "low_hp"
-   ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "126": {
@@ -2609,12 +2065,9 @@
      "rule": "king_cake"
     }
    ],
-   "tags": [
-    "king"
-   ],
    "desc": "队长受到的伤害 -5%；队长生命低于 40% 时改为 -30%（国王套装）",
    "rarity": "核心",
-   "effect_category": "defense"
+   "set": "king"
   },
   "127": {
    "effects": [
@@ -2623,12 +2076,9 @@
      "rule": "king_branch"
     }
    ],
-   "tags": [
-    "king"
-   ],
    "desc": "全队技力回复 +10%；队长生命低于 40% 时改为 +50%（国王套装）",
    "rarity": "核心",
-   "effect_category": "skill_cycle"
+   "set": "king"
   },
   "128": {
    "effects": [
@@ -2637,12 +2087,9 @@
      "rule": "king_crown"
     }
    ],
-   "tags": [
-    "king"
-   ],
    "desc": "全队伤害 +10%；队长生命低于 40% 时改为 +50%，若已集齐 3 件国王套装（含本件）则为 +150%",
    "rarity": "升华",
-   "effect_category": "damage"
+   "set": "king"
   },
   "129": {
    "effects": [
@@ -2660,12 +2107,7 @@
    ],
    "desc": "增殖：维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%）；水月的触手桩在场上限 +1；凯尔希的 Mon3tr、归溟幽灵鲨的替身不增加数量；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减",
    "rarity": "稀有",
-   "tags": [
-    "follow_up",
-    "summon"
-   ],
    "shop_allowed": true,
-   "effect_category": "followup",
    "legacy": [
     {
      "type": "stat",
@@ -2723,12 +2165,6 @@
    ],
    "desc": "增幅：召唤物体型与攻击范围 +15%；召唤驻场干员的追击与召唤物伤害 +25%，追击每命中一个敌人，该干员回复 0.2% 技力（每秒最多 1%）",
    "rarity": "基础",
-   "tags": [
-    "follow_up",
-    "summon",
-    "skill"
-   ],
-   "effect_category": "followup",
    "new": true,
    "legacy": [
     {
@@ -2769,10 +2205,6 @@
    ],
    "desc": "队长受到的侵蚀 -40%",
    "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "132": {
@@ -2786,10 +2218,6 @@
    ],
    "desc": "队长神经损伤累积 -40%",
    "rarity": "基础",
-   "tags": [
-    "survival"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "133": {
@@ -2810,19 +2238,10 @@
    ],
    "desc": "先锋干员伤害 +15%；队长最大生命 +20%",
    "rarity": "基础",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "survival"
-   ],
    "requires_class": [
     "先锋"
    ],
    "shop_allowed": true,
-   "effect_category": "damage",
    "new": true
   },
   "134": {
@@ -2837,19 +2256,10 @@
    ],
    "desc": "先锋干员技力回复 +30%",
    "rarity": "稀有",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "skill"
-   ],
    "requires_class": [
     "先锋"
    ],
    "shop_allowed": true,
-   "effect_category": "skill_cycle",
    "new": true
   },
   "135": {
@@ -2866,19 +2276,10 @@
    ],
    "desc": "先锋干员施放技能后，该技能立即返还 35% 技力",
    "rarity": "核心",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "skill"
-   ],
    "requires_class": [
     "先锋"
    ],
    "shop_allowed": true,
-   "effect_category": "skill_cycle",
    "new": true
   },
   "136": {
@@ -2899,16 +2300,10 @@
    ],
    "desc": "先锋干员伤害 +50%；全队技力回复 +20%",
    "rarity": "升华",
-   "tags": [
-    "melee",
-    "class",
-    "skill"
-   ],
    "requires_class": [
     "先锋"
    ],
-   "shop_allowed": true,
-   "effect_category": "skill_cycle"
+   "shop_allowed": true
   },
   "137": {
    "effects": [
@@ -2928,19 +2323,10 @@
    ],
    "desc": "近卫干员伤害 +10%；队长最大生命 +20%",
    "rarity": "基础",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "survival"
-   ],
    "requires_class": [
     "近卫"
    ],
    "shop_allowed": true,
-   "effect_category": "damage",
    "new": true
   },
   "138": {
@@ -2955,15 +2341,10 @@
    ],
    "desc": "近卫干员伤害 +25%",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "class"
-   ],
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true,
-   "effect_category": "damage"
+   "shop_allowed": true
   },
   "139": {
    "effects": [
@@ -2980,16 +2361,10 @@
    ],
    "desc": "近卫干员每次命中回复 0.25% 技力（每名每秒最多 2%）",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "skill",
-    "on_hit"
-   ],
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true,
-   "effect_category": "skill_cycle"
+   "shop_allowed": true
   },
   "140": {
    "effects": [
@@ -3009,19 +2384,10 @@
    ],
    "desc": "近卫干员攻击范围 +20%；队长受到的伤害 -5%",
    "rarity": "稀有",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "survival"
-   ],
    "requires_class": [
     "近卫"
    ],
    "shop_allowed": true,
-   "effect_category": "range",
    "new": true
   },
   "141": {
@@ -3049,16 +2415,10 @@
    ],
    "desc": "近卫干员伤害 +35%、攻击速度 +25%；队长受到的伤害 +15%",
    "rarity": "核心",
-   "tags": [
-    "melee",
-    "class",
-    "attack_speed"
-   ],
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true,
-   "effect_category": "damage"
+   "shop_allowed": true
   },
   "142": {
    "effects": [
@@ -3077,20 +2437,11 @@
    ],
    "desc": "队长最大生命 +25%、物理减伤 +1",
    "rarity": "基础",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "survival"
-   ],
    "requires_class": [
     "重装"
    ],
    "shop_allowed": true,
    "max_lv": 1,
-   "effect_category": "defense",
    "new": true
   },
   "143": {
@@ -3105,15 +2456,10 @@
    ],
    "desc": "重装干员伤害 +40%",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "class"
-   ],
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true,
-   "effect_category": "damage"
+   "shop_allowed": true
   },
   "144": {
    "effects": [
@@ -3140,19 +2486,10 @@
    ],
    "desc": "重装干员伤害 +40%、攻击速度 +30%；队长受到的伤害 +10%",
    "rarity": "核心",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "attack_speed"
-   ],
    "requires_class": [
     "重装"
    ],
    "shop_allowed": true,
-   "effect_category": "damage",
    "new": true
   },
   "145": {
@@ -3170,15 +2507,10 @@
    ],
    "desc": "队长每次受击，重装干员回复 5% 技力（0.5 秒内最多 1 次）",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "skill"
-   ],
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true,
-   "effect_category": "skill_cycle"
+   "shop_allowed": true
   },
   "146": {
    "effects": [
@@ -3199,20 +2531,10 @@
    ],
    "desc": "重装干员开启技能后 5 秒内，全队伤害 +50%、队长受到的伤害 -30%（再次开启刷新时长）",
    "rarity": "核心",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "skill",
-    "survival"
-   ],
    "requires_class": [
     "重装"
    ],
    "shop_allowed": true,
-   "effect_category": "damage",
    "new": true
   },
   "147": {
@@ -3228,11 +2550,6 @@
    ],
    "desc": "招募狙击干员时，该干员立即推进 1 个成长节点",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "ranged"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "148": {
@@ -3247,14 +2564,9 @@
    ],
    "desc": "狙击干员伤害 +20%",
    "rarity": "基础",
-   "tags": [
-    "ranged",
-    "class"
-   ],
    "requires_class": [
     "狙击"
-   ],
-   "effect_category": "damage"
+   ]
   },
   "149": {
    "effects": [
@@ -3275,15 +2587,9 @@
    ],
    "desc": "狙击干员伤害 +40%，攻击速度 -20%",
    "rarity": "基础",
-   "tags": [
-    "ranged",
-    "class",
-    "attack_speed"
-   ],
    "requires_class": [
     "狙击"
    ],
-   "effect_category": "damage",
    "new": true
   },
   "150": {
@@ -3298,15 +2604,9 @@
    ],
    "desc": "狙击干员攻击速度 +40%",
    "rarity": "稀有",
-   "tags": [
-    "ranged",
-    "class",
-    "attack_speed"
-   ],
    "requires_class": [
     "狙击"
    ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "151": {
@@ -3322,11 +2622,6 @@
    ],
    "desc": "招募术师干员时，该干员立即推进 1 个成长节点",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "ranged"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "152": {
@@ -3348,15 +2643,9 @@
    ],
    "desc": "术师干员伤害 +20%、攻击速度 +10%",
    "rarity": "稀有",
-   "tags": [
-    "ranged",
-    "class",
-    "attack_speed"
-   ],
    "requires_class": [
     "术师"
-   ],
-   "effect_category": "damage"
+   ]
   },
   "153": {
    "effects": [
@@ -3374,15 +2663,9 @@
    ],
    "desc": "术师干员每 8 秒对身边（半径 110）敌人引发一次法术爆炸：伤害 40，每分钟 +{40*$pm:0}（10:00 约 {40*$m10:0}）",
    "rarity": "稀有",
-   "tags": [
-    "ranged",
-    "class",
-    "arts"
-   ],
    "requires_class": [
     "术师"
    ],
-   "effect_category": "damage",
    "new": true
   },
   "154": {
@@ -3404,15 +2687,9 @@
    ],
    "desc": "术师干员伤害 +50%，攻击范围 -20%",
    "rarity": "基础",
-   "tags": [
-    "ranged",
-    "class",
-    "arts"
-   ],
    "requires_class": [
     "术师"
    ],
-   "effect_category": "damage",
    "new": true
   },
   "155": {
@@ -3428,11 +2705,6 @@
    ],
    "desc": "招募辅助干员时，该干员立即推进 1 个成长节点",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "ranged"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "156": {
@@ -3447,15 +2719,9 @@
    ],
    "desc": "辅助干员攻击范围 +40%",
    "rarity": "基础",
-   "tags": [
-    "ranged",
-    "class",
-    "control"
-   ],
    "requires_class": [
     "辅助"
    ],
-   "effect_category": "range",
    "new": true
   },
   "157": {
@@ -3475,14 +2741,9 @@
    ],
    "desc": "编队有辅助干员时，全队伤害 +15%",
    "rarity": "稀有",
-   "tags": [
-    "ranged",
-    "squad"
-   ],
    "requires_class": [
     "辅助"
-   ],
-   "effect_category": "squad"
+   ]
   },
   "158": {
    "effects": [
@@ -3501,14 +2762,10 @@
    ],
    "desc": "法术伤害 +20%，所有敌人造成的伤害 -5%",
    "requires": [],
-   "tags": [
-    "ranged"
-   ],
    "requires_class": [
     "辅助"
    ],
-   "rarity": "稀有",
-   "effect_category": "damage"
+   "rarity": "稀有"
   },
   "159": {
    "effects": [
@@ -3522,14 +2779,9 @@
    ],
    "desc": "医疗干员的治疗量 +40%",
    "rarity": "基础",
-   "tags": [
-    "survival",
-    "heal"
-   ],
    "requires_class": [
     "医疗"
-   ],
-   "effect_category": "healing"
+   ]
   },
   "160": {
    "effects": [
@@ -3543,15 +2795,9 @@
    ],
    "desc": "医疗干员攻击速度 +30%（治疗频率随之提高）",
    "rarity": "基础",
-   "tags": [
-    "ranged",
-    "class",
-    "heal"
-   ],
    "requires_class": [
     "医疗"
    ],
-   "effect_category": "healing",
    "new": true
   },
   "161": {
@@ -3566,15 +2812,9 @@
    ],
    "desc": "医疗干员治疗量 +50%",
    "rarity": "基础",
-   "tags": [
-    "ranged",
-    "class",
-    "heal"
-   ],
    "requires_class": [
     "医疗"
    ],
-   "effect_category": "healing",
    "new": true
   },
   "162": {
@@ -3594,13 +2834,9 @@
    ],
    "desc": "队长神经损伤累积 -50%；受到的侵蚀 -30%",
    "rarity": "稀有",
-   "tags": [
-    "survival"
-   ],
    "requires_class": [
     "医疗"
-   ],
-   "effect_category": "defense"
+   ]
   },
   "163": {
    "effects": [
@@ -3620,15 +2856,9 @@
    ],
    "desc": "特种干员伤害 +15%；队长最大生命 +25%",
    "rarity": "基础",
-   "tags": [
-    "melee",
-    "class",
-    "survival"
-   ],
    "requires_class": [
     "特种"
    ],
-   "effect_category": "damage",
    "new": true
   },
   "164": {
@@ -3643,15 +2873,9 @@
    ],
    "desc": "特种干员攻击速度 +20%",
    "rarity": "基础",
-   "tags": [
-    "melee",
-    "class",
-    "attack_speed"
-   ],
    "requires_class": [
     "特种"
    ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "165": {
@@ -3666,14 +2890,9 @@
    ],
    "desc": "特种干员伤害 +40%",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "class"
-   ],
    "requires_class": [
     "特种"
-   ],
-   "effect_category": "damage"
+   ]
   },
   "166": {
    "effects": [
@@ -3694,12 +2913,6 @@
    ],
    "desc": "队长闪避率 +8%；闪避后 1 秒内无敌",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "on_dodge",
-    "survival"
-   ],
-   "effect_category": "dodge",
    "new": true
   },
   "167": {
@@ -3713,11 +2926,6 @@
    ],
    "desc": "全队攻击对敌人的击退 +60%（Boss 除外）",
    "rarity": "基础",
-   "tags": [
-    "melee",
-    "control"
-   ],
-   "effect_category": "control",
    "new": true
   },
   "168": {
@@ -3736,19 +2944,10 @@
    ],
    "desc": "重装干员每秒对身边（半径 100）敌人造成法术伤害：伤害 12，每分钟 +{12*$pm:1}（10:00 约 {12*$m10:0}）",
    "rarity": "核心",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "arts"
-   ],
    "requires_class": [
     "重装"
    ],
    "shop_allowed": true,
-   "effect_category": "damage",
    "new": true
   },
   "169": {
@@ -3768,15 +2967,9 @@
    ],
    "desc": "狙击干员的攻击会直接击杀生命低于 20% 的敌人（Boss 除外）",
    "rarity": "核心",
-   "tags": [
-    "on_kill",
-    "execute",
-    "ranged"
-   ],
    "requires_class": [
     "狙击"
-   ],
-   "effect_category": "weakness"
+   ]
   },
   "170": {
    "effects": [
@@ -3801,12 +2994,7 @@
     }
    ],
    "desc": "召唤驻场干员的追击命中时，额外造成目标当前生命 3% 的伤害（Boss 0.5%；同一敌人每 0.5 秒最多一次）",
-   "rarity": "核心",
-   "tags": [
-    "follow_up",
-    "on_hit"
-   ],
-   "effect_category": "followup"
+   "rarity": "核心"
   },
   "171": {
    "effects": [
@@ -3830,13 +3018,7 @@
     }
    ],
    "desc": "召唤驻场干员的追击每命中一个敌人，该干员回复 0.5% 技力（每秒最多 2.5%）",
-   "rarity": "核心",
-   "tags": [
-    "follow_up",
-    "skill",
-    "on_hit"
-   ],
-   "effect_category": "skill_cycle"
+   "rarity": "核心"
   },
   "172": {
    "effects": [
@@ -3853,12 +3035,7 @@
     }
    ],
    "desc": "编队每有 1 名干员，全队攻击速度 +5%（最多 +20%）",
-   "rarity": "稀有",
-   "tags": [
-    "attack_speed",
-    "squad"
-   ],
-   "effect_category": "attack_speed"
+   "rarity": "稀有"
   },
   "173": {
    "effects": [
@@ -3875,20 +3052,10 @@
    ],
    "desc": "先锋干员每次击杀回复 3% 技力（每秒最多 9%）",
    "rarity": "稀有",
-   "lanes": [
-    "A"
-   ],
-   "tags": [
-    "melee",
-    "class",
-    "skill",
-    "on_kill"
-   ],
    "requires_class": [
     "先锋"
    ],
    "shop_allowed": true,
-   "effect_category": "skill_cycle",
    "new": true
   },
   "174": {
@@ -3906,14 +3073,9 @@
    ],
    "desc": "医疗干员每秒对身边（半径 120）敌人造成法术伤害：伤害 {$dust_dmg}，每分钟 +{$dust_dmg*$pm:1}（10:00 约 {$dust_dmg*$m10:0}）",
    "rarity": "核心",
-   "tags": [
-    "ranged",
-    "arts"
-   ],
    "requires_class": [
     "医疗"
-   ],
-   "effect_category": "damage"
+   ]
   },
   "175": {
    "effects": [
@@ -3931,15 +3093,9 @@
    ],
    "desc": "术师干员每次命中，术师伤害 +5%（最多 +50%）；3 秒没有命中就清空",
    "rarity": "核心",
-   "tags": [
-    "ranged",
-    "on_hit",
-    "arts"
-   ],
    "requires_class": [
     "术师"
-   ],
-   "effect_category": "damage"
+   ]
   },
   "176": {
    "effects": [
@@ -3956,11 +3112,6 @@
    ],
    "desc": "每施放一次技能，全队技力回复 +12%（最多 4 层）",
    "rarity": "核心",
-   "tags": [
-    "skill",
-    "survival"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "177": {
@@ -3971,11 +3122,7 @@
     }
    ],
    "desc": "立即获得 1 次成长三选一",
-   "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "growth"
+   "rarity": "稀有"
   },
   "178": {
    "effects": [
@@ -3989,10 +3136,6 @@
    ],
    "desc": "立即获得 2 次成长三选一",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "179": {
@@ -4007,10 +3150,6 @@
    ],
    "desc": "立即获得 3 次成长三选一",
    "rarity": "核心",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "180": {
@@ -4028,11 +3167,6 @@
    ],
    "desc": "编队每有 1 名干员，队长受到的伤害 -3%（最多 -12%）",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "survival"
-   ],
-   "effect_category": "squad",
    "new": true
   },
   "181": {
@@ -4050,11 +3184,6 @@
    ],
    "desc": "编队每有 1 名干员，队长最大生命 +4%（最多 +16%）",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "survival"
-   ],
-   "effect_category": "squad",
    "new": true
   },
   "182": {
@@ -4078,11 +3207,6 @@
    ],
    "desc": "编队每有 1 名干员，全队伤害 +4%（最多 +16%）；队长物理减伤 +2",
    "rarity": "基础",
-   "tags": [
-    "squad",
-    "survival"
-   ],
-   "effect_category": "squad",
    "new": true
   },
   "183": {
@@ -4110,11 +3234,6 @@
    ],
    "desc": "编队每有 1 名干员，全队伤害 +4%、队长最大生命 +3%（最多 4 人）",
    "rarity": "稀有",
-   "tags": [
-    "squad",
-    "survival"
-   ],
-   "effect_category": "squad",
    "new": true
   },
   "184": {
@@ -4130,15 +3249,7 @@
    ],
    "desc": "招募干员时源石锭 +10",
    "rarity": "基础",
-   "lanes": [
-    "G"
-   ],
-   "tags": [
-    "squad",
-    "economy"
-   ],
    "shop_allowed": true,
-   "effect_category": "economy",
    "new": true
   },
   "185": {
@@ -4152,14 +3263,7 @@
    ],
    "desc": "招募的干员入队时立即推进 1 个成长节点",
    "rarity": "稀有",
-   "lanes": [
-    "G"
-   ],
-   "tags": [
-    "squad"
-   ],
    "shop_allowed": true,
-   "effect_category": "growth",
    "new": true
   },
   "186": {
@@ -4175,14 +3279,7 @@
    ],
    "desc": "招募干员时获得一次成长三选一",
    "rarity": "稀有",
-   "lanes": [
-    "G"
-   ],
-   "tags": [
-    "squad"
-   ],
    "shop_allowed": true,
-   "effect_category": "growth",
    "new": true
   },
   "187": {
@@ -4198,10 +3295,6 @@
    ],
    "desc": "下一次招募的干员立即推进 1 个成长节点",
    "rarity": "基础",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "188": {
@@ -4213,12 +3306,8 @@
      "value": 0.5
     }
    ],
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
    "rarity": "核心",
-   "effect_category": "economy",
    "late_fuse": 60,
    "desc": "商人处所有商品价格 -50%（最后一位商人离开后获得：改为熔铸 60 枚源石锭）"
   },
@@ -4232,10 +3321,6 @@
    ],
    "desc": "编队不满 3 人时，必定出现的招募画面多一个选项",
    "rarity": "基础",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "choice",
    "new": true
   },
   "190": {
@@ -4245,12 +3330,8 @@
      "rule": "four_choices"
     }
    ],
-   "tags": [
-    "economy"
-   ],
    "desc": "升级与藏品的三选一各多一个选项（与「观望」叠加）",
-   "rarity": "核心",
-   "effect_category": "choice"
+   "rarity": "核心"
   },
   "191": {
    "effects": [
@@ -4268,13 +3349,7 @@
    ],
    "desc": "获得时队长回复 40% 最大生命，并补满护盾",
    "rarity": "基础",
-   "tags": [
-    "survival",
-    "shield",
-    "heal"
-   ],
-   "late_weight": 0.3,
-   "effect_category": "healing"
+   "late_weight": 0.3
   },
   "192": {
    "effects": [
@@ -4296,12 +3371,6 @@
    ],
    "desc": "获得时队长回复 70% 最大生命；此后每击败一个 Boss 回复 10% 最大生命",
    "rarity": "稀有",
-   "tags": [
-    "on_kill",
-    "survival",
-    "heal"
-   ],
-   "effect_category": "healing",
    "new": true
   },
   "193": {
@@ -4325,13 +3394,7 @@
    ],
    "desc": "队长护盾层数上限 +1；补给箱钥匙 +1；下一次三选一多一个选项",
    "rarity": "稀有",
-   "tags": [
-    "survival",
-    "shield",
-    "economy"
-   ],
    "shop_allowed": true,
-   "effect_category": "shield",
    "new": true
   },
   "194": {
@@ -4344,11 +3407,7 @@
    ],
    "desc": "补给箱钥匙 +3（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "choice",
    "new": true
   },
   "195": {
@@ -4361,11 +3420,7 @@
    ],
    "desc": "接下来 2 次三选一各多一个选项",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "shop_allowed": true,
-   "effect_category": "choice",
    "new": true
   },
   "196": {
@@ -4381,11 +3436,7 @@
    ],
    "desc": "每击败一个 Boss，接下来 2 次三选一各多一个选项",
    "rarity": "稀有",
-   "tags": [
-    "on_kill"
-   ],
    "shop_allowed": true,
-   "effect_category": "choice",
    "new": true
   },
   "197": {
@@ -4398,11 +3449,7 @@
    ],
    "desc": "接下来 6 次三选一各多一个选项",
    "rarity": "稀有",
-   "tags": [
-    "economy"
-   ],
    "shop_allowed": true,
-   "effect_category": "choice",
    "new": true
   },
   "198": {
@@ -4414,11 +3461,7 @@
    ],
    "desc": "升级与藏品的三选一各多一个选项（与四叶草化石、「观望」叠加）",
    "rarity": "核心",
-   "tags": [
-    "economy"
-   ],
    "shop_allowed": true,
-   "effect_category": "choice",
    "new": true
   },
   "199": {
@@ -4434,12 +3477,7 @@
     }
    ],
    "desc": "队长护盾层数上限 +1",
-   "tags": [
-    "survival",
-    "shield"
-   ],
-   "rarity": "基础",
-   "effect_category": "shield"
+   "rarity": "基础"
   },
   "200": {
    "effects": [
@@ -4466,12 +3504,7 @@
     "118"
    ],
    "desc": "队长最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%",
-   "tags": [
-    "survival",
-    "shield"
-   ],
-   "rarity": "稀有",
-   "effect_category": "shield"
+   "rarity": "稀有"
   },
   "201": {
    "effects": [
@@ -4488,12 +3521,7 @@
    ],
    "desc": "解除一个排异反应，并抑制下一次排异反应（只在发生过排异或走深蓝线时出现）",
    "rarity": "稀有",
-   "tags": [
-    "survival",
-    "skill"
-   ],
    "shop_allowed": true,
-   "effect_category": "skill_cycle",
    "new": true
   },
   "202": {
@@ -4507,12 +3535,7 @@
     "118"
    ],
    "desc": "护盾抵挡伤害时，队长回复 3% 最大生命",
-   "tags": [
-    "survival",
-    "shield"
-   ],
-   "rarity": "核心",
-   "effect_category": "shield"
+   "rarity": "核心"
   },
   "203": {
    "effects": [
@@ -4529,12 +3552,7 @@
    ],
    "desc": "解除一个排异反应，并抑制下一次排异反应（只在发生过排异或走深蓝线时出现）",
    "rarity": "稀有",
-   "tags": [
-    "survival",
-    "skill"
-   ],
    "shop_allowed": true,
-   "effect_category": "skill_cycle",
    "new": true
   },
   "204": {
@@ -4551,15 +3569,8 @@
      "rule": "low_light_sp"
     }
    ],
-   "tags": [
-    "skill",
-    "low_light",
-    "light",
-    "survival"
-   ],
    "desc": "灯火 -30；灯火低于 50 时，全队技力回复 +50%、全队伤害 +50%",
-   "rarity": "核心",
-   "effect_category": "light"
+   "rarity": "核心"
   },
   "205": {
    "effects": [
@@ -4573,10 +3584,6 @@
    ],
    "desc": "灯火 +5",
    "rarity": "基础",
-   "tags": [
-    "light"
-   ],
-   "effect_category": "light",
    "new": true
   },
   "206": {
@@ -4592,11 +3599,7 @@
    ],
    "desc": "随机获得 1 件基础藏品",
    "rarity": "稀有",
-   "tags": [
-    "economy"
-   ],
    "shop_allowed": true,
-   "effect_category": "choice",
    "new": true
   },
   "207": {
@@ -4607,16 +3610,8 @@
      "value": 3
     }
    ],
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical",
-    "attack_speed",
-    "economy"
-   ],
    "desc": "每持有 5 源石锭，全队攻击速度 +3%（上限 +20%）",
-   "rarity": "稀有",
-   "effect_category": "attack_speed"
+   "rarity": "稀有"
   },
   "208": {
    "effects": [
@@ -4627,15 +3622,7 @@
     }
    ],
    "desc": "每持有 5 源石锭，全队攻击速度 +5%（上限 +30%）",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical",
-    "attack_speed",
-    "economy"
-   ],
-   "rarity": "核心",
-   "effect_category": "attack_speed"
+   "rarity": "核心"
   },
   "209": {
    "effects": [
@@ -4650,12 +3637,6 @@
    ],
    "desc": "每 60 秒在队长身边掉落一个回复药剂（拾取后回复 30% 最大生命）",
    "rarity": "稀有",
-   "tags": [
-    "summon",
-    "squad",
-    "heal"
-   ],
-   "effect_category": "healing",
    "new": true
   },
   "210": {
@@ -4669,13 +3650,8 @@
      }
     }
    ],
-   "tags": [
-    "summon",
-    "squad"
-   ],
    "desc": "每 15 秒朝队长身边最密的敌群抛出 3 枚地雷：每枚伤害 {$mine_dmg}，每分钟 +{$mine_dmg*$pm:0}（10:00 约 {$mine_dmg*$m10:0}）",
-   "rarity": "稀有",
-   "effect_category": "damage"
+   "rarity": "稀有"
   },
   "211": {
    "effects": [
@@ -4692,11 +3668,6 @@
    ],
    "desc": "每 45 秒派出一台小机器冲向最近的敌人自爆（半径 120）：伤害 60，每分钟 +{60*$pm:0}（10:00 约 {60*$m10:0}）",
    "rarity": "稀有",
-   "tags": [
-    "summon",
-    "squad"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "212": {
@@ -4714,12 +3685,6 @@
    ],
    "desc": "每 30 秒吊起身边最强的一名敌人（优先精英，Boss 除外），眩晕 3 秒",
    "rarity": "稀有",
-   "tags": [
-    "control",
-    "summon",
-    "squad"
-   ],
-   "effect_category": "control",
    "new": true
   },
   "213": {
@@ -4738,12 +3703,6 @@
    ],
    "desc": "每 30 秒在前方放下 2 根防暴桩（持续 20 秒）：靠近的敌人被减速并推开（Boss 除外）",
    "rarity": "稀有",
-   "tags": [
-    "summon",
-    "squad",
-    "control"
-   ],
-   "effect_category": "control",
    "new": true
   },
   "214": {
@@ -4760,12 +3719,6 @@
    ],
    "desc": "携带 3 个急救包：队长生命低于 40% 时自动使用一个，回复 30% 最大生命",
    "rarity": "基础",
-   "tags": [
-    "low_hp",
-    "squad",
-    "heal"
-   ],
-   "effect_category": "healing",
    "new": true
   },
   "215": {
@@ -4779,11 +3732,6 @@
    ],
    "desc": "全队技力回复 -15%",
    "rarity": "遭诅古物",
-   "tags": [
-    "skill",
-    "curse"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "216": {
@@ -4795,11 +3743,7 @@
      "value": 0.25
     }
    ],
-   "tags": [
-    "curse"
-   ],
-   "rarity": "遭诅古物",
-   "effect_category": "defense"
+   "rarity": "遭诅古物"
   },
   "217": {
    "effects": [
@@ -4810,11 +3754,7 @@
    ],
    "desc": "立即一次排异反应",
    "rarity": "遭诅古物",
-   "tags": [
-    "curse"
-   ],
    "shop_allowed": true,
-   "effect_category": "ending",
    "new": true
   },
   "218": {
@@ -4826,14 +3766,8 @@
      "value": 0.1
     }
    ],
-   "tags": [
-    "low_light",
-    "light",
-    "curse"
-   ],
    "desc": "队长受击时灯火损失 +10%",
-   "rarity": "遭诅古物",
-   "effect_category": "light"
+   "rarity": "遭诅古物"
   },
   "219": {
    "effects": [
@@ -4844,14 +3778,8 @@
      "value": 0.15
     }
    ],
-   "tags": [
-    "low_light",
-    "light",
-    "curse"
-   ],
    "desc": "队长受击时灯火损失 +15%",
-   "rarity": "遭诅古物",
-   "effect_category": "light"
+   "rarity": "遭诅古物"
   },
   "220": {
    "effects": [
@@ -4862,16 +3790,10 @@
      "value": 1.15
     }
    ],
-   "tags": [
-    "economy",
-    "curse",
-    "ending"
-   ],
    "desc": "商人售价 +15%。深蓝之心线的起点（docs/154）",
    "rarity": "遭诅古物",
    "shop_allowed": false,
-   "source": "event",
-   "effect_category": "light"
+   "source": "event"
   },
   "221": {
    "effects": [
@@ -4887,12 +3809,7 @@
    "desc": "一次排异反应；海嗣更快进化。走向结局三",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event",
-   "tags": [
-    "light",
-    "ending"
-   ],
-   "effect_category": "ending"
+   "source": "event"
   },
   "222": {
    "effects": [
@@ -4904,12 +3821,7 @@
    "desc": "猎潮的骑士加入编队，直到他倒下。走向结局二",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event",
-   "tags": [
-    "on_kill",
-    "ending"
-   ],
-   "effect_category": "squad"
+   "source": "event"
   },
   "223": {
    "effects": [
@@ -4923,11 +3835,7 @@
    "desc": "队长移动速度 +10%",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event",
-   "tags": [
-    "ending"
-   ],
-   "effect_category": "ending"
+   "source": "event"
   },
   "224": {
    "effects": [
@@ -4946,11 +3854,7 @@
    ],
    "desc": "源石锭 +10；补给箱钥匙 +1（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）",
    "rarity": "基础",
-   "tags": [
-    "economy"
-   ],
    "late_weight": 0.3,
-   "effect_category": "economy",
    "new": true
   },
   "225": {
@@ -4966,11 +3870,7 @@
    "source": "event",
    "requires": [
     "222"
-   ],
-   "tags": [
-    "ending"
-   ],
-   "effect_category": "ending"
+   ]
   },
   "226": {
    "effects": [
@@ -4985,11 +3885,7 @@
    ],
    "desc": "随机获得 2 件基础藏品",
    "rarity": "核心",
-   "tags": [
-    "economy"
-   ],
    "shop_allowed": true,
-   "effect_category": "choice",
    "new": true
   },
   "227": {
@@ -5003,11 +3899,6 @@
    ],
    "desc": "对 Boss 造成的伤害 +50%",
    "rarity": "稀有",
-   "tags": [
-    "melee",
-    "execute"
-   ],
-   "effect_category": "weakness",
    "new": true
   },
   "228": {
@@ -5017,12 +3908,8 @@
      "rule": "revive_once"
     }
    ],
-   "tags": [
-    "survival"
-   ],
    "desc": "每次探索限一次：队长生命归零时，以 50% 最大生命复活",
-   "rarity": "升华",
-   "effect_category": "defense"
+   "rarity": "升华"
   },
   "229": {
    "effects": [
@@ -5035,13 +3922,7 @@
      }
     }
    ],
-   "tags": [
-    "skill",
-    "on_hit",
-    "survival"
-   ],
-   "rarity": "核心",
-   "effect_category": "skill_cycle"
+   "rarity": "核心"
   },
   "230": {
    "effects": [
@@ -5060,11 +3941,6 @@
    ],
    "desc": "所有敌人生命 -15%（Boss 最多 -20%），移动速度 -15%（Boss 除外）",
    "rarity": "稀有",
-   "tags": [
-    "control",
-    "execute"
-   ],
-   "effect_category": "weakness",
    "new": true
   },
   "231": {
@@ -5079,13 +3955,8 @@
      }
     }
    ],
-   "tags": [
-    "control",
-    "on_damage"
-   ],
    "desc": "队长受到伤害时，全场非 Boss 敌人眩晕 3 秒（冷却 30 秒）",
-   "rarity": "核心",
-   "effect_category": "control"
+   "rarity": "核心"
   },
   "232": {
    "effects": [
@@ -5102,11 +3973,6 @@
    ],
    "desc": "队长受到伤害时，对全场敌人造成真实伤害：伤害 120，每分钟 +{120*$pm:0}（10:00 约 {120*$m10:0}）；对 Boss 最多 3% 最大生命；冷却 30 秒",
    "rarity": "升华",
-   "tags": [
-    "on_damage",
-    "control"
-   ],
-   "effect_category": "damage",
    "new": true
   },
   "233": {
@@ -5124,12 +3990,6 @@
    ],
    "desc": "队长一次受到超过 10% 最大生命的伤害时，周围敌人眩晕 3 秒（Boss 除外）",
    "rarity": "核心",
-   "tags": [
-    "control",
-    "on_damage",
-    "survival"
-   ],
-   "effect_category": "control",
    "new": true
   },
   "234": {
@@ -5155,12 +4015,7 @@
    ],
    "desc": "每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）",
    "rarity": "核心",
-   "tags": [
-    "follow_up",
-    "arts"
-   ],
-   "shop_allowed": true,
-   "effect_category": "followup"
+   "shop_allowed": true
   },
   "235": {
    "effects": [
@@ -5191,12 +4046,7 @@
    ],
    "desc": "全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -10%",
    "rarity": "稀有",
-   "tags": [
-    "control",
-    "survival"
-   ],
    "max_lv": 1,
-   "effect_category": "defense",
    "new": true
   },
   "236": {
@@ -5216,11 +4066,6 @@
    ],
    "desc": "队长最大生命 -25%；全队技力回复 +50%",
    "rarity": "稀有",
-   "tags": [
-    "skill",
-    "survival"
-   ],
-   "effect_category": "skill_cycle",
    "new": true
   },
   "237": {
@@ -5240,10 +4085,6 @@
    ],
    "desc": "全队攻击速度 +10%；所有敌人攻击速度 -10%",
    "rarity": "稀有",
-   "tags": [
-    "attack_speed"
-   ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "238": {
@@ -5280,11 +4121,7 @@
    "desc": "队长最大生命 +30%、物理减伤 +2；精英每次多来 1 只，海嗣生命与造成的伤害 +10%",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event",
-   "tags": [
-    "ending"
-   ],
-   "effect_category": "ending"
+   "source": "event"
   },
   "239": {
    "effects": [
@@ -5296,11 +4133,7 @@
    "desc": "升级与藏品的三选一各多一个选项（与四叶草化石叠加）",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event",
-   "tags": [
-    "ending"
-   ],
-   "effect_category": "choice"
+   "source": "event"
   },
   "240": {
    "effects": [
@@ -5318,11 +4151,7 @@
    "desc": "稀有 / 核心藏品出现率 +30%，队长拾取范围 -20%",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event",
-   "tags": [
-    "ending"
-   ],
-   "effect_category": "choice"
+   "source": "event"
   },
   "241": {
    "effects": [
@@ -5337,11 +4166,7 @@
    ],
    "desc": "每 2 分钟一次排异反应",
    "rarity": "遭诅古物",
-   "tags": [
-    "curse"
-   ],
    "shop_allowed": true,
-   "effect_category": "ending",
    "new": true
   },
   "242": {
@@ -5354,11 +4179,7 @@
    "desc": "一次排异反应。升华线的起点（docs/154）",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event",
-   "tags": [
-    "ending"
-   ],
-   "effect_category": "ending"
+   "source": "event"
   },
   "243": {
    "effects": [
@@ -5378,14 +4199,7 @@
     }
    ],
    "desc": "所有敌人攻击速度 +15%；队长每连续 15 秒未受伤，灯火 +6（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）",
-   "tags": [
-    "attack_speed",
-    "low_light",
-    "light",
-    "curse"
-   ],
-   "rarity": "遭诅古物",
-   "effect_category": "light"
+   "rarity": "遭诅古物"
   },
   "244": {
    "effects": [
@@ -5396,10 +4210,6 @@
    ],
    "desc": "立即招募一名随机干员，该干员立即推进 1 个成长节点；编队已满时改为一次成长三选一",
    "rarity": "稀有",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "245": {
@@ -5410,11 +4220,7 @@
     }
    ],
    "desc": "立即招募 1 名随机干员，并直接推进到精英一；编队已满时改为全队各推进 1 个成长节点",
-   "rarity": "升华",
-   "tags": [
-    "squad"
-   ],
-   "effect_category": "growth"
+   "rarity": "升华"
   },
   "246": {
    "effects": [
@@ -5435,13 +4241,7 @@
     }
    ],
    "desc": "灯火低于 50 时，召唤驻场干员的追击与召唤物伤害 +60%",
-   "rarity": "核心",
-   "tags": [
-    "follow_up",
-    "low_light",
-    "light"
-   ],
-   "effect_category": "followup"
+   "rarity": "核心"
   },
   "247": {
    "effects": [
@@ -5456,10 +4256,6 @@
    ],
    "desc": "队长每连续 15 秒未受伤，灯火 +3（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）",
    "rarity": "基础",
-   "tags": [
-    "light"
-   ],
-   "effect_category": "light",
    "new": true
   },
   "248": {
@@ -5475,10 +4271,6 @@
    ],
    "desc": "队长每连续 15 秒未受伤，灯火 +4（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）",
    "rarity": "稀有",
-   "tags": [
-    "light"
-   ],
-   "effect_category": "light",
    "new": true
   },
   "249": {
@@ -5492,11 +4284,6 @@
    ],
    "desc": "受击与黑潮导致的灯火流失 -40%",
    "rarity": "基础",
-   "tags": [
-    "on_damage",
-    "light"
-   ],
-   "effect_category": "light",
    "new": true
   },
   "250": {
@@ -5510,11 +4297,6 @@
    ],
    "desc": "受击与黑潮导致的灯火流失 -60%",
    "rarity": "稀有",
-   "tags": [
-    "on_damage",
-    "light"
-   ],
-   "effect_category": "light",
    "new": true
   },
   "251": {
@@ -5532,11 +4314,6 @@
    ],
    "desc": "每击败一个 Boss：队长失去 20% 当前生命，获得 15 源石锭和一次成长三选一",
    "rarity": "稀有",
-   "tags": [
-    "on_kill",
-    "economy"
-   ],
-   "effect_category": "growth",
    "new": true
   },
   "252": {
@@ -5553,12 +4330,8 @@
      }
     }
    ],
-   "tags": [
-    "on_kill"
-   ],
    "desc": "每次击杀，全队伤害永久 +0.1%（普通敌人按怪物密度折算，每只约 +0.25%；上限 +30%）",
-   "rarity": "核心",
-   "effect_category": "damage"
+   "rarity": "核心"
   },
   "253": {
    "effects": [
@@ -5575,12 +4348,6 @@
    ],
    "desc": "每持有一件遭诅古物，队长受到的伤害 -8%（最多 -32%）",
    "rarity": "核心",
-   "tags": [
-    "low_light",
-    "survival",
-    "curse"
-   ],
-   "effect_category": "defense",
    "new": true
   },
   "254": {
@@ -5598,12 +4365,6 @@
    ],
    "desc": "每持有一件遭诅古物，全队攻击速度 +15%（最多 +60%）",
    "rarity": "升华",
-   "tags": [
-    "attack_speed",
-    "low_light",
-    "curse"
-   ],
-   "effect_category": "attack_speed",
    "new": true
   },
   "255": {
@@ -5630,13 +4391,7 @@
     }
    ],
    "desc": "队长受到的伤害 -10%；灯火低于 50 时改为 -37%（真实伤害除外）",
-   "tags": [
-    "low_light",
-    "light",
-    "survival"
-   ],
-   "rarity": "核心",
-   "effect_category": "defense"
+   "rarity": "核心"
   },
   "256": {
    "effects": [
@@ -5655,15 +4410,9 @@
    ],
    "desc": "每持有一件藏品，术师干员伤害 +2%（最多 +40%）",
    "rarity": "稀有",
-   "tags": [
-    "ranged",
-    "class",
-    "squad"
-   ],
    "requires_class": [
     "术师"
    ],
-   "effect_category": "damage",
    "new": true
   },
   "257": {
@@ -5695,16 +4444,9 @@
    ],
    "desc": "每持有一件藏品，术师干员伤害 +3%、攻击速度 +2%（最多计 20 件）",
    "rarity": "核心",
-   "tags": [
-    "ranged",
-    "class",
-    "squad",
-    "attack_speed"
-   ],
    "requires_class": [
     "术师"
    ],
-   "effect_category": "damage",
    "new": true
   },
   "258": {
@@ -5723,15 +4465,9 @@
    ],
    "desc": "编队每有 1 名术师干员，法术伤害 +10%",
    "rarity": "稀有",
-   "tags": [
-    "ranged",
-    "arts",
-    "squad"
-   ],
    "requires_class": [
     "术师"
-   ],
-   "effect_category": "squad"
+   ]
   },
   "259": {
    "effects": [
@@ -5750,14 +4486,10 @@
    ],
    "desc": "队长受到的伤害 -10%，法术抗性 +10%",
    "rarity": "稀有",
-   "tags": [
-    "survival"
-   ],
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true,
-   "effect_category": "defense"
+   "shop_allowed": true
   },
   "260": {
    "effects": [
@@ -5776,15 +4508,10 @@
    ],
    "desc": "队长受到的伤害 -25%，护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾）",
    "rarity": "升华",
-   "tags": [
-    "survival",
-    "shield"
-   ],
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true,
-   "effect_category": "shield"
+   "shop_allowed": true
   },
   "261": {
    "effects": [
@@ -5794,12 +4521,7 @@
     }
    ],
    "desc": "随机一名干员伤害 +20%，此后每击败一个 Boss 再 +20%",
-   "rarity": "稀有",
-   "tags": [
-    "squad",
-    "on_kill"
-   ],
-   "effect_category": "growth"
+   "rarity": "稀有"
   },
   "262": {
    "effects": [
@@ -5829,11 +4551,7 @@
    ],
    "desc": "排异反应「进化」：已有的排异反应全部解除并免疫此后的排异；队长受到的伤害 -20%，全队攻击无视敌人 35% 的防御（只在发生过排异或走深蓝线时出现）",
    "rarity": "核心",
-   "tags": [
-    "survival"
-   ],
    "shop_allowed": true,
-   "effect_category": "defense",
    "new": true
   },
   "263": {
@@ -5846,15 +4564,7 @@
    ],
    "desc": "干员造成伤害的 0.05% 转为队长生命（藏品伤害不计；每秒最多 0.5% 最大生命；队长生命低于 50% 时上限翻倍）",
    "rarity": "稀有",
-   "lanes": [
-    "H"
-   ],
-   "tags": [
-    "survival",
-    "heal"
-   ],
    "shop_allowed": true,
-   "effect_category": "healing",
    "max_lv": 1
   },
   "264": {
@@ -5867,16 +4577,7 @@
    ],
    "desc": "击杀累计 60 点时，队长回复 2% 最大生命（普通敌人每只约 2.5 点，按怪物密度折算；精英算 10 点，Boss 算 60 点）",
    "rarity": "基础",
-   "lanes": [
-    "H"
-   ],
-   "tags": [
-    "survival",
-    "heal",
-    "on_kill"
-   ],
    "shop_allowed": true,
-   "effect_category": "healing",
    "max_lv": 1
   },
   "265": {
@@ -5889,36 +4590,8 @@
    ],
    "desc": "多弹火力干员的普攻弹道可穿透所有敌人。每穿过一名敌人，后续伤害减少初始伤害的 15%，最低为初始伤害的 40%。与「贯穿」同时持有时，采用本藏品的穿透效果；对技能弹幕无效",
    "rarity": "稀有",
-   "lanes": [
-    "E"
-   ],
-   "tags": [
-    "damage",
-    "range",
-    "projectile"
-   ],
    "shop_allowed": true,
-   "effect_category": "range",
    "max_lv": 1
   }
- },
- "effect_categories": {
-  "damage": "直接增伤",
-  "weakness": "弱点与收割",
-  "attack_speed": "攻击速度",
-  "skill_cycle": "技力循环",
-  "control": "控制与控场",
-  "followup": "追击与召唤",
-  "defense": "减伤与生命",
-  "dodge": "闪避",
-  "shield": "护盾体系",
-  "healing": "治疗与回复",
-  "range": "攻击范围",
-  "squad": "编队协同",
-  "growth": "成长与招募",
-  "economy": "源石锭与商店",
-  "light": "灯火管理",
-  "choice": "选项与掉落",
-  "ending": "结局与代价"
  }
 }

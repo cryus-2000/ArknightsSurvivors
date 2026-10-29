@@ -131,7 +131,7 @@ def check_balance(errs, verbose):
 
 
 def check_lanes(errs):
-    """干员流派（docs/181）：每名干员 1–2 个、取值在七个流派里；藏品效果的 lane:<键> 作用域 / if.lane 也要是这七个之一"""
+    """干员流派（docs/181）：每名干员 1–2 个、取值在七个流派里；藏品效果的 lane:<键> 作用域 / if.lane 也要是这七个之一；藏品分类（docs/197）"""
     lanes = {"multi", "melee", "summon", "control", "weak", "shield", "heal"}
     for f in sorted(glob.glob(os.path.join(DATA, "characters", "*.json"))):
         d = json.load(open(f, encoding="utf-8"))
@@ -145,6 +145,21 @@ def check_lanes(errs):
             l = sc[5:] if sc.startswith("lane:") else str(ef.get("if", {}).get("lane", ""))
             if l and l not in lanes:
                 errs.append("relic_effects.json #%s：流派「%s」不在七个流派里" % (rid, l))
+    # 藏品分类只此一套（docs/197）：relics.json 每件恰好一个 lane（7 流派 + 职业 / 通用 / 生存 / 经济），旧的 lanes / cat / tags / effect_category 不得回来
+    groups = lanes | {"class", "general", "survival", "economy"}
+    meta = json.load(open(os.path.join(DATA, "relics.json"), encoding="utf-8"))
+    if set(meta.get("lane_names", {})) != groups:
+        errs.append("relics.json：lane_names 要正好是 %s" % "/".join(sorted(groups)))
+    for r in meta.get("items", []):
+        if r.get("lane") not in groups:
+            errs.append("relics.json #%s：lane「%s」不合法" % (r.get("id"), r.get("lane")))
+        for k in ("lanes", "cat", "tags"):
+            if k in r:
+                errs.append("relics.json #%s：旧分类字段 %s 已废除（docs/197）" % (r.get("id"), k))
+    for rid, r in fx.items():
+        for k in ("lanes", "tags", "effect_category"):
+            if k in r:
+                errs.append("relic_effects.json #%s：旧分类字段 %s 已废除（docs/197）" % (rid, k))
 
 
 def main():

@@ -1076,7 +1076,7 @@ SCENE_REGRESSIONS = {
     "medals": ("蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返", "medals_test", r"MEDALS failures=0", []),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
-    "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
+    "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
     "card_desc": ("卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能", "card_desc_test", r"CARD DESC failures=0", ["--balance", "--op=ulpianus", "--squad=skadi,angelina"]),
     "merchant_build_offer": ("第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽", "merchant_build_offer_test", r"MERCHANT BUILD OFFER failures=0", ["--balance", "--op=skadi", "--squad=kaltsit"]),
 }

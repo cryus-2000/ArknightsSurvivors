@@ -259,7 +259,7 @@ func draw(vs: Vector2) -> void:
 		if rc.y + cs > b2.end.y - 2:
 			break
 		var rd: Dictionary = g.RL[g.relics[i]]
-		var rcol: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
+		var rcol: Color = UI.CAT_COL.get(rd.lane_name, UI.GOLD)
 		var cr := Rect2(rc, Vector2(cs, cs))
 		var hov: bool = cr.has_point(mouse2)
 		g.hud.draw_rect(cr, Color(0.03, 0.035, 0.045, 0.9) if not hov else Color(rcol.r * 0.25, rcol.g * 0.25, rcol.b * 0.25, 0.95))
@@ -306,7 +306,7 @@ func _draw_footer(vs: Vector2, r: Rect2) -> void:
 			g.hud_view.draw_tooltip(vs, cr2, srow[1], "天赋" if srow[0] == "赋" else ("普攻" if srow[0] == "攻" else "技能 %s" % srow[0]), srow[2], "", g.ch.col())
 		elif cellinfo[1] == "relic":
 			var rd2: Dictionary = g.RL[cellinfo[2]]
-			g.hud_view.draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [g.rfx.lv.get(cellinfo[2], 1), g.rfx.max_lv(cellinfo[2])]) if g.rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
+			g.hud_view.draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [g.rfx.lv.get(cellinfo[2], 1), g.rfx.max_lv(cellinfo[2])]) if g.rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.lane_name, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.lane_name, UI.GOLD))
 		else:
 			var gd: Dictionary = g.progression.growth_def(cellinfo[2])
 			g.hud_view.draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, g.growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, g.doctor.passive_desc(cellinfo[2]), "growth_" + cellinfo[2], UI.GLOW)
@@ -517,7 +517,7 @@ func _phone_relics(b2: Rect2) -> void:
 		if rc.y + cs > b2.end.y - 2:
 			break
 		var rd: Dictionary = g.RL[g.relics[i]]
-		var rcol: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
+		var rcol: Color = UI.CAT_COL.get(rd.lane_name, UI.GOLD)
 		var cr := Rect2(rc, Vector2(cs, cs))
 		var hov: bool = cr.has_point(mouse2)
 		g.hud.draw_rect(cr, Color(0.03, 0.035, 0.045, 0.9) if not hov else Color(rcol.r * 0.25, rcol.g * 0.25, rcol.b * 0.25, 0.95))

@@ -104,7 +104,7 @@ func roll(first := false) -> void:
 	if trader:
 		# 诡意行商卡（docs/184 §3）：前两格换成主流派里排最前的两件（只重排，不多取随机数）
 		var ml: String = g.endg.main_lane()
-		var on_lane: Array = pool.filter(func(id): return (g.RL[id].get("lanes", []) as Array).has(ml)).slice(0, 2)
+		var on_lane: Array = pool.filter(func(id): return str(g.RL[id].get("lane", "")) == ml).slice(0, 2)
 		pool = on_lane + pool.filter(func(id): return not on_lane.has(id))
 	var slots: int = 3
 	for i in min(slots, pool.size()):

@@ -414,7 +414,7 @@ func apply(id: String) -> void:
 		if fuse_on and int(r.get("late_fuse", 0)) > 0:
 			gain_ingots(int(round(int(r.late_fuse) * sc)), r.name + " · ")
 		return
-	if r.tags.has("king"):
+	if r.get("set", "") == "king":
 		king_n += 1
 	_trig_cache.clear()
 	_rule_cache.clear()

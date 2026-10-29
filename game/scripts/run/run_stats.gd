@@ -71,7 +71,7 @@ static func snapshot(g) -> Dictionary:
 		var desc := str(rd.get("desc", ""))
 		if rfx != null and rfx.has_method("display_desc"):
 			desc = str(rfx.display_desc(id))
-		relic_list.append({"id": str(id), "name": str(rd.get("name", id)), "cat": str(rd.get("cat", "")), "rarity": str(rd.get("rarity", "")),
+		relic_list.append({"id": str(id), "name": str(rd.get("name", id)), "cat": str(rd.get("lane_name", "")), "rarity": str(rd.get("rarity", "")),
 			"lv": int(rfx.lv.get(id, 1)) if rfx != null else 1, "max": int(rfx.max_lv(id)) if rfx != null else 1, "desc": desc})
 	# 击倒者（失败）：最后一次掉血的来源；最终 Boss（胜利）：结局对应的 Boss
 	var killer := {}
@@ -344,7 +344,7 @@ static func from_log(line: Dictionary, rl: Dictionary) -> Dictionary:
 			var id := str(it.get("id", ""))
 			var rd: Dictionary = rl.get(id, rl.get(int(id), {})) if id.is_valid_int() else rl.get(id, {})
 			it["name"] = str(rd.get("name", id))
-			it["cat"] = str(rd.get("cat", ""))
+			it["cat"] = str(rd.get("lane_name", ""))
 			it["rarity"] = str(rd.get("rarity", ""))
 			it["desc"] = str(rd.get("desc", ""))
 		raw["quit"] = str(meta.get("result", "")) == "quit"
@@ -383,7 +383,7 @@ static func from_log(line: Dictionary, rl: Dictionary) -> Dictionary:
 	for rt in run.get("relic_take", []):
 		var id := str(rt[1]) if rt is Array and rt.size() > 1 else str(rt)
 		var rd: Dictionary = rl.get(id, rl.get(int(id), {})) if id.is_valid_int() else rl.get(id, {})
-		relic_list.append({"id": id, "name": str(rd.get("name", id)), "cat": str(rd.get("cat", "")), "rarity": str(rd.get("rarity", "")),
+		relic_list.append({"id": id, "name": str(rd.get("name", id)), "cat": str(rd.get("lane_name", "")), "rarity": str(rd.get("rarity", "")),
 			"lv": 1, "max": 1, "desc": str(rd.get("desc", ""))})
 	var bosses: Array = []
 	for b in run.get("bosses", []):
@@ -474,9 +474,9 @@ static func fake_raw() -> Dictionary:
 			{"type": "paranoia", "name": "偏执泡影", "t0": 600.0, "t1": 742.0}],
 		"lamp_s": [402.0, 231.0, 96.0, 13.0], "beacons": [4, 5], "dodges": 38, "dashes": 214, "blocks": 12, "low_hp_s": 72.0,
 		"fuse": {"pool": 90, "pct": 0.06, "on": true},
-		"relic_list": [{"id": "1", "name": "精选兽肉罐头", "cat": "编队协同", "rarity": "稀有", "lv": 1, "max": 1, "desc": "示例效果说明。"},
-			{"id": "4", "name": "咖啡平原咖啡糖", "cat": "攻击与输出", "rarity": "基础", "lv": 3, "max": 3, "desc": "示例效果说明，两行以内。"},
-			{"id": "42", "name": "“静音小队”", "cat": "攻击与输出", "rarity": "升华", "lv": 1, "max": 1, "desc": "升华藏品示例。"},
+		"relic_list": [{"id": "1", "name": "精选兽肉罐头", "cat": "通用", "rarity": "稀有", "lv": 1, "max": 1, "desc": "示例效果说明。"},
+			{"id": "4", "name": "咖啡平原咖啡糖", "cat": "通用", "rarity": "基础", "lv": 3, "max": 3, "desc": "示例效果说明，两行以内。"},
+			{"id": "42", "name": "“静音小队”", "cat": "通用", "rarity": "升华", "lv": 1, "max": 1, "desc": "升华藏品示例。"},
 			{"id": "13", "name": "玻璃小鸟", "cat": "经济", "rarity": "基础", "lv": 2, "max": 3, "desc": "示例。"},
 			{"id": "999", "name": "遭诅示例", "cat": "生存", "rarity": "遭诅古物", "lv": 1, "max": 1, "desc": "遭诅藏品示例。"}],
 		"killer": {}, "final_boss": {"type": "paranoia", "name": "偏执泡影"},

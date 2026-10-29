@@ -39,7 +39,7 @@ const MELEE := ["近卫", "重装", "先锋", "特种"]
 
 # 整局指标（受击 / 低血 / 死因 / 曲线……）2026-09-26 挪到 run/telemetry.gd，所有对局共用
 
-# ---- 流派专精（--lane=A…H，docs/35 流派平衡）：藏品三选一与商店优先拿该流派，测「认准一条流派」的体验；
+# ---- 流派专精（--lane=<docs/197 分类键>，如 melee / summon / class，docs/35 流派平衡）：藏品三选一与商店优先拿该流派，测「认准一条流派」的体验；
 # 该流派拿了几件由 tools/balance_run.py 从记录的 relic_take 推算
 var lane := ""
 const RARITY_RANK := {"升华": 4, "核心": 3, "稀有": 2, "基础": 1}
@@ -377,7 +377,7 @@ func _lane_best(items: Array, ingots := -1) -> int:
 		if ingots >= 0 and not g.shop_sys.can_buy(c):
 			continue
 		var r: Dictionary = g.RL.get(c.get("id", ""), {})
-		if not r.get("lanes", []).has(lane):
+		if str(r.get("lane", "")) != lane:
 			continue
 		var rk: int = RARITY_RANK.get(r.get("rarity", ""), 0)
 		if rk > best_r:
@@ -444,7 +444,7 @@ func _pick_expert(choices: Array, master := false) -> int:
 			"relic":
 				var r: Dictionary = g.RL.get(c.get("id", ""), {})
 				s = {"升华": 6.0, "核心": 5.0, "稀有": 4.0, "基础": 3.0, "遭诅古物": 0.5}.get(r.get("rarity", "基础"), 3.0)
-				if g.t < 420.0 and r.get("tags", []).has("shield"):
+				if g.t < 420.0 and str(r.get("lane", "")) == "shield":
 					s += 1.0
 				if master:
 					s += _master_relic_bonus(r, hurting)
@@ -688,19 +688,19 @@ func _master_dash_dir(p: Vector2, best_dir: Vector2, spd: float, bullets: Array,
 	return dir.normalized()
 
 
-## 认定流派：已拿藏品按流派计数 × 2，再加编队适配（近战干员算 A、远程算 E，G / H 通用各 +1）
+## 认定流派：已拿藏品按分类计数 × 2，再加编队适配（近战干员算近战扩域、远程算多弹火力，职业 / 生存各 +1；docs/197 分类键）
 func _master_lane(classes: Array) -> String:
-	var sc := {"A": 0.0, "B": 0.0, "C": 0.0, "D": 0.0, "E": 0.0, "F": 0.0, "G": 1.0, "H": 1.0}
+	var sc := {"melee": 0.0, "multi": 0.0, "summon": 0.0, "control": 0.0, "weak": 0.0, "shield": 0.0, "heal": 0.0, "class": 1.0, "survival": 1.0}
 	for cls in classes:
 		if MELEE.has(cls):
-			sc.A += 1.5
+			sc.melee += 1.5
 		else:
-			sc.E += 1.5
+			sc.multi += 1.5
 	for rid in g.relics:
-		for ln in g.RL.get(str(rid), {}).get("lanes", []):
-			if sc.has(ln):
-				sc[ln] += 2.0
-	var best := "G"
+		var ln: String = str(g.RL.get(str(rid), {}).get("lane", ""))
+		if sc.has(ln):
+			sc[ln] += 2.0
+	var best := "class"
 	for k in sc:
 		if sc[k] > sc[best]:
 			best = k
@@ -710,9 +710,9 @@ func _master_lane(classes: Array) -> String:
 ## 藏品加分：强度档（A +1.5 / C −0.5 / D −1）、认定流派 +2、受伤时生存类 +1.5
 func _master_relic_bonus(r: Dictionary, hurting: bool) -> float:
 	var s: float = {"A": 1.5, "B": 0.0, "C": -0.5, "D": -1.0}.get(r.get("tier", "B"), 0.0)
-	if r.get("lanes", []).has(m_lane):
+	if str(r.get("lane", "")) == m_lane:
 		s += 2.0
-	if hurting and r.get("tags", []).has("survival"):
+	if hurting and str(r.get("lane", "")) in ["survival", "shield", "heal"]:
 		s += 1.5
 	return s
 

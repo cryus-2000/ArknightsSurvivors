@@ -25,18 +25,14 @@ const TAB_LAMP := Color(0.72, 0.53, 0.04)       # 小标签头：灯火
 const BRK: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
 
 const CAT_COL := {"灯火": Color(1.0, 0.77, 0.42), "战斗": Color(0.33, 0.92, 0.88), "生存": Color(0.55, 0.9, 0.55), "海嗣": Color(0.66, 0.52, 1.0),
-	# data/relics.json 的分类
-	"攻击与输出": Color(0.33, 0.92, 0.88), "触手与控制": Color(0.66, 0.52, 1.0), "技能与技力": Color(0.5, 0.75, 1.0), "护盾": Color(0.6, 0.85, 1.0),
-	"削弱敌人": Color(1.0, 0.55, 0.55), "经济": Color(1.0, 0.85, 0.4), "闪避": Color(0.7, 0.95, 1.0), "条件触发": Color(1.0, 0.7, 0.9),
-	"援护干员": Color(0.9, 0.8, 0.6), "支援装置": Color(0.8, 0.8, 0.85), "负面藏品": Color(0.8, 0.35, 0.5),
-	# docs/35 流派重做后的分类
-	"追击与控制": Color(0.66, 0.52, 1.0), "编队协同": Color(0.95, 0.78, 0.5),
-	# 结局事件给的藏品（深蓝之心、海潮的气息等 8 件）
-	"结局": Color(0.45, 0.72, 1.0)}
+	# 藏品分类（docs/197：data/relics.json 的 lane_names，7 条流派 + 职业 / 通用 / 经济；「生存」与上面共用）
+	"近战扩域": Color(1.0, 0.62, 0.4), "多弹火力": Color(0.33, 0.92, 0.88), "召唤驻场": Color(0.66, 0.52, 1.0), "控场引爆": Color(0.5, 0.75, 1.0),
+	"弱点收割": Color(1.0, 0.55, 0.55), "护盾反击": Color(0.6, 0.85, 1.0), "治疗转伤": Color(1.0, 0.7, 0.9),
+	"职业": Color(0.95, 0.78, 0.5), "通用": Color(0.8, 0.8, 0.85), "经济": Color(1.0, 0.85, 0.4)}
 ## 藏品分类的英文标签（卡片左上角节点标签条用）
-const CAT_EN := {"灯火": "LIGHT", "战斗": "COMBAT", "生存": "SURVIVAL", "海嗣": "SEABORN", "攻击与输出": "OFFENSE", "触手与控制": "CONTROL",
-	"技能与技力": "SKILL", "护盾": "SHIELD", "削弱敌人": "DEBUFF", "经济": "ECONOMY", "闪避": "EVASION", "条件触发": "TRIGGER",
-	"援护干员": "SUPPORT", "支援装置": "DEVICE", "负面藏品": "CURSED", "追击与控制": "CONTROL", "编队协同": "SQUAD", "结局": "ENDING"}
+const CAT_EN := {"灯火": "LIGHT", "战斗": "COMBAT", "生存": "SURVIVAL", "海嗣": "SEABORN",
+	"近战扩域": "MELEE", "多弹火力": "BARRAGE", "召唤驻场": "SUMMON", "控场引爆": "CONTROL", "弱点收割": "WEAKNESS", "护盾反击": "SHIELD",
+	"治疗转伤": "HEALING", "职业": "CLASS", "通用": "GENERAL", "经济": "ECONOMY"}
 
 # 兼容旧代码的色名（外观已换成 A）
 const EDGE := Color(1.0, 1.0, 1.0, 0.24)
