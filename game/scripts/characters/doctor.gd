@@ -418,7 +418,7 @@ static func _num(v: float) -> String:
 
 
 ## 卡面预览「现值 → 选中后」：都按属性系统算最终值（StatBlock.value_with），和属性面板、实际生效一致（docs/83 §2）。
-## 坚韧的 +20 是基础值，会被入队加成 / 难度的最大生命倍率放大，预览写放大后的数
+## 坚韧的 +20 是固定加成：最大生命的固定加成放在倍率之后（stat_block.FLAT_AFTER，docs/199），卡上写多少就加多少
 func passive_preview(pid: String) -> String:
 	var st = g.stats
 	match pid:

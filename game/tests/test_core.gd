@@ -118,6 +118,14 @@ func test_stat_order() -> void:
 	s.remove_source("e")
 	s.add(&"dmg", "mult", 100.0, "f")
 	near(s.value(&"dmg"), 100.0, "上限")
+	# 最大生命的固定加成放在倍率之后（用户 10-29「卡上写多少就加多少」，docs/199）：base × (1 + add) × mult + flat
+	var h = SB.new()
+	h.define(&"max_hp", 100.0, 1.0, 100000.0)
+	h.add(&"max_hp", "flat", 20.0, "card")
+	h.add(&"max_hp", "add", 0.3, "meta")
+	h.add(&"max_hp", "mult", 1.45, "squad")
+	near(h.value(&"max_hp"), 100.0 * 1.3 * 1.45 + 20.0, "max_hp：固定加成在倍率之后")
+	near(h.value_with(&"max_hp", "flat", 20.0) - h.value(&"max_hp"), 20.0, "max_hp：卡面预览 +20 就是 +20")
 
 
 func test_bus() -> void:

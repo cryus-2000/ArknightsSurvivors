@@ -239,7 +239,7 @@ func _replace(old_id: String, new_id: String, route: String):
 
 ## 入队加成（docs/83，用户 10-13 定：每入队一名干员，编队生命与自动回复各上一个台阶；招募时写明）。
 ## 每多 1 名干员（开局干员不算，最多算 squad/hp_member_cap 人）：
-##   主控最大生命 ×(1 + squad/hp_per_member × 人数)（2026-09-27 用户定每人 +15%），对 max_hp 加来源 "squad" 的 mult，叠在成长卡生命之上一起放大；
+##   主控最大生命 ×(1 + squad/hp_per_member × 人数)（2026-09-27 用户定每人 +15%），对 max_hp 加来源 "squad" 的 mult（只乘基础值与百分比加成，固定加成「坚韧」等放在倍率之后不被放大，docs/199）；
 ##   主控生命回复 + squad/regen_per_member × 人数（生命 / 秒），对 regen 加来源 "squad" 的 flat，和干员 leader 段 regen、「自愈」同一个池，吃 heal_mult。
 ## 人数变化时当前生命按同比例缩放（入队不显示掉血，离队反向）
 func _apply_size_hp() -> void:
