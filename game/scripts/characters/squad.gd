@@ -382,6 +382,7 @@ func update(dt: float) -> void:
 		_tick_recall(dt)
 	_tick_lead(dt)
 	_tick_stamina(dt)
+	_tick_order(dt)
 	_tick_hp(dt)
 	_tick_rush_buff()
 	if pf:
@@ -516,6 +517,122 @@ func apply_command(id: String) -> void:
 			set_priority(1)
 		"boss":
 			set_priority(0)
+		"point", "focus":
+			g.pick.begin(id)   # 原型：进入选点阶段（command_pick.gd）
+
+
+## ---------------------------------------------------------------- 指点（示意原型，docs/196；command/target_proto = 0 时永远不会有指令）
+## order_kind：""（无，原来的自动突击）/ "point"（点位：全队去 order_pos、在半径 command/order_pt_r 内作战）/ "focus"（集火：全队打 order_target）
+var order_kind := ""
+var order_pos := Vector2.INF
+var order_target = null
+var _order_idle := 0.0
+
+
+func apply_order(mode: String, pt: Vector2, target) -> bool:
+	if not cmd_on():
+		return false
+	if stance != ROAM:
+		if not can_roam():
+			if g.get("vfx") != null:
+				g.vfx.add_text(g.ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)
+			return false
+		set_stance(ROAM)
+	order_kind = mode
+	order_pos = pt
+	order_target = target if mode == "focus" else null
+	_order_idle = 0.0
+	_order_age = 0.0
+	for o in ops:
+		o.roam_tgt = null
+	stance_log.append([g.t, 20 if mode == "point" else 21])
+	_stance_voice(ROAM, false)
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f order=%s" % [g.t, mode])
+	return true
+
+
+func clear_order() -> void:
+	order_kind = ""
+	order_pos = Vector2.INF
+	order_target = null
+	_order_idle = 0.0
+
+
+## 肃清（10-30 用户「指挥圆盘的移动我觉得可以修改为肃清一块区域」，原「点位」）：圈里（command/order_pt_r）没有敌人超过 command/order_idle 秒、
+## 或下令后 command/order_secs 秒，队友回到随行（不空耗作战时限）；队长走远（> order_break）也回随行。集火目标死了 = 指令结束（继续自动突击）
+func _tick_order(dt: float) -> void:
+	_order_cd = maxf(0.0, _order_cd - dt)
+	if order_kind == "":
+		return
+	if order_kind == "focus":
+		if order_target == null or order_target.dead:
+			clear_order()
+		return
+	_order_age += dt
+	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) or _order_age >= Bal.v("command/order_secs", 9.0):
+		set_stance(GUARD)
+		return
+	var any := false
+	for e in g.enemies_sys.nearest(1, Bal.v("command/order_pt_r", 220.0), order_pos):
+		any = not e.dead
+	if any:
+		_order_idle = 0.0
+	else:
+		_order_idle += dt
+		if _order_idle >= Bal.v("command/order_idle", 1.0):
+			set_stance(GUARD)
+
+
+## 机器人用指点（10-30 协调人：「机器人也要会用」，否则云端测的数不准；command/bot_point 0 = 关）：每 command/bot_point_every 秒看一次，
+## 没有指令、冷却已过、作战时限够突击时：Boss（可受击、离队长 order_r × 1.6 内）在场 → 集火最近的 Boss；
+## 否则队长 command/bot_surround_r 内敌人 ≥ command/bot_surround_n（被包围）→ 对 order_r 内最密的一块下「肃清」。不抽随机数
+var _order_cd := 0.0
+var _order_age := 0.0
+var _bot_pt_t := 0.0
+
+func bot_point(dt: float) -> void:
+	if Bal.v("command/bot_point", 1.0) <= 0.0 or not cmd_on() or g.demo_op != "":
+		return
+	_bot_pt_t -= dt
+	if _bot_pt_t > 0.0:
+		return
+	_bot_pt_t = Bal.v("command/bot_point_every", 1.0)
+	if order_kind != "" or _order_cd > 0.0 or stance == RECALL or not (stance == ROAM or can_roam()):
+		return
+	var orr: float = Bal.v("command/order_r", 560.0)
+	var boss = null
+	var bd: float = orr * 1.6
+	for e in g.bosses:
+		if e.dead or not e.boss or e.get("friendly", false) or not g.ch.focusable_boss(e):
+			continue
+		var d: float = e.pos.distance_to(g.ppos)
+		if d < bd:
+			bd = d
+			boss = e
+	if boss != null:
+		if apply_order("focus", boss.pos, boss):
+			_order_cd = Bal.v("command/order_cd", 3.0)
+		return
+	var near: Array = g.enemies_sys.nearest(Bal.v("command/bot_surround_n", 6.0), Bal.v("command/bot_surround_r", 240.0), g.ppos)
+	if near.size() < int(Bal.v("command/bot_surround_n", 6.0)):
+		return
+	var pr: float = Bal.v("command/order_pt_r", 220.0)
+	var pool: Array = g.enemies_sys.nearest(40, orr, g.ppos)
+	var best := Vector2.INF
+	var bc := -1
+	for e in pool:
+		if e.dead or e.boss:
+			continue
+		var c := 0
+		for f in pool:
+			if not f.dead and f.pos.distance_squared_to(e.pos) <= pr * pr:
+				c += 1
+		if c > bc:
+			bc = c
+			best = e.pos
+	if best != Vector2.INF and apply_order("point", best, null):
+		_order_cd = Bal.v("command/order_cd", 3.0)
 
 
 func set_priority(p: int) -> void:
@@ -788,6 +905,8 @@ func set_stance(s: int) -> void:
 	if s == stance:
 		return
 	stance = s
+	if s != ROAM:
+		clear_order()   # 指点（原型，docs/196）：不在突击就没有指令
 	if s == ROAM:
 		sorties_n += 1
 		_sortie_down = false

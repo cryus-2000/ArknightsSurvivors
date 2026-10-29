@@ -280,6 +280,7 @@ var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
+var pick = preload("res://scripts/screens/command_pick.gd").new(self)   # 指点选目标阶段（示意原型，docs/196；缺省关）
 var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
 var frost := 0.0                   # 冰霜：移速 -40%
 # 小怪控制（用户 9/29，combat.gd「小怪控制」段；玩法系统的净化按这些字段清除）
@@ -1429,6 +1430,7 @@ func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
+	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
@@ -1453,8 +1455,8 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
-	if wheel.is_open:
-		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
+	if wheel.is_open or pick.active:
+		dt *= Bal.v("command/wheel_slow", 0.2)   # 圆盘打开 / 指点选点中：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_static_fps()
@@ -1556,6 +1558,9 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if _motion_skip(event):
+		get_viewport().set_input_as_handled()
+		return
+	if pick.input(event):
 		get_viewport().set_input_as_handled()
 		return
 	if wheel.input(event):   # 指挥圆盘打开时吞掉按键 / 点选（移动是轮询的，不受影响）
