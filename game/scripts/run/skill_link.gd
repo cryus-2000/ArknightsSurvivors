@@ -28,7 +28,10 @@ static func on() -> bool:
 
 
 ## squad.syn_skill → ult.on_skill：放技能的那一刻
+## 间隔（10-30 实测：队长技能一放就亮，2 分钟接了 36 次）：两次技能连携亮起至少隔 ult/link_gap（25）秒，一局约 20–30 次
 static func on_skill(u, o, i: int) -> void:
+	if u.g.t < float(u.get_meta("link_next", -INF)):
+		return
 	var t: Dictionary = LINKS.get(str(o.id), {})
 	if not t.has(i):
 		_sample_lit(u, o, i)   # 四类样片：表里没有专属组合时，按在队的接法干员亮
@@ -43,6 +46,7 @@ static func on_skill(u, o, i: int) -> void:
 		pos = dp if dp != Vector2.INF else o.pos + Vector2(float(o.face), 0.0) * 120.0
 	var info := {"link": str(t[i][1]), "from": o, "pos": pos, "skill": i}
 	u.queue.push_front({"o": p, "info": info, "t0": u.g.t, "left": Bal.v("ult/link_window", 1.5)})   # 插到队首：技能连携优先
+	u.set_meta("link_next", u.g.t + Bal.v("ult/link_gap", 25.0))
 	u.stats.lit += 1
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
@@ -205,6 +209,7 @@ static func _sample_lit(u, o, i: int) -> void:
 		if kind == "" or p == o or p.is_leader or p.pos == Vector2.INF or p.cmd_down > 0.0 or u._queued(p) or u._busy(p):
 			continue
 		u.queue.push_front({"o": p, "info": {"link": kind, "from": o, "pos": c, "r": area_r, "skill": i}, "t0": u.g.t, "left": Bal.v("ult/link_window", 1.5)})
+		u.set_meta("link_next", u.g.t + Bal.v("ult/link_gap", 25.0))
 		u.stats.lit += 1
 		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 		if sfx != null:
