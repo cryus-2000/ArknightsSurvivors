@@ -239,10 +239,7 @@ func _collect(g_item: Dictionary) -> void:
 		"pack":
 			# 补给箱的应急补给（docs/133）：回 val × 最大生命，走独立路径：不吃 heal_mult（有医疗 / 无医疗的编队拿到一样多），照吃侵蚀创口
 			item_log["pack_pick"] += 1
-			var pv: float = g.max_hp * g_item.val * maxf(0.0, 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * g.wound) * g.combat.song_heal_mult()   # 歌声地带同样减（docs/170 §12）
-			var got: float = minf(pv, maxf(0.0, g.max_hp - g.hp))
-			g.heal_log["补给"] = float(g.heal_log.get("补给", 0.0)) + got
-			g.hp = minf(g.max_hp, g.hp + pv)
+			var pv: float = g.combat.heal(g.max_hp * g_item.val, "补给", "", g.combat.HEAL_NO_MULT, false)   # 创口 + 歌声地带照减（docs/170 §12）
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
 			g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "+%d 生命" % int(pv), Color(0.5, 1.0, 0.65), 18)

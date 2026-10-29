@@ -1640,6 +1640,20 @@ func test_nerve() -> void:
 	ok(game.nerve == 0.0, "锁定期间不再累积")
 	c.enemy_hit(1.0, {"nerve": 50.0}, true, true)
 	ok(game.nerve == 0.0, "命中附带的神经损伤缺省不累积（只有溟痕）")
+	# Boss 溟痕份额满格：真伤按 Boss 来源走主控保护（2 秒合计已满 → 作废）；普通溟痕满格不受此限（10-29 afflict 前置修复）
+	game.nerve_lock = 0.0
+	game.root_t = 0.0
+	game.hp = game.max_hp
+	c.boss_log.append([game.t, 0.5 * game.max_hp])
+	game.afflict.add_nerve(c.nerve_max() - 1.0, true)
+	game.afflict.add_nerve(2.0, true)
+	ok(game.nerve == 0.0 and absf(game.hp - game.max_hp) < 0.01, "Boss 溟痕满格的真伤走 2 秒合计上限（以前绕过）")
+	game.nerve_lock = 0.0
+	game.hp = game.max_hp
+	game.afflict.add_nerve(c.nerve_max() + 1.0, false)
+	ok(game.hp < game.max_hp, "普通来源满格的真伤照扣")
+	c.boss_log.clear()
+	c.loss_log.clear()
 	game.nerve_lock = 0.0
 	game.root_t = 0.0
 	game.hp = game.max_hp

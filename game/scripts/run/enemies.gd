@@ -607,9 +607,7 @@ func update_status(dt: float) -> void:
 	g.pstun -= dt
 	g.atk_slow -= dt
 	g.frost = maxf(0.0, g.frost - dt)
-	if g.corrode_pool > 0.0:
-		var tick: float = min(g.corrode_pool, (g.corrode_pool * 0.5 + 1.0) * dt)
-		g.combat.drain_corrode(tick)
+	g.afflict.tick_corrode(dt)
 	var mired := false
 	var mire_nat := false   # 站在自然溟痕里（不是 Boss 子弹留下的）：这一跳不算 Boss 来源
 	var sanct: bool = g.squad.in_sanctuary(g.ppos)   # 流明灯塔：区内溟痕失效
@@ -639,7 +637,7 @@ func update_status(dt: float) -> void:
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	update_nest_aura(dt, sanct)
 	var ward: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.0) * lk.x if mire_nat else 1.0   # 灯火高：自然溟痕伤害 / 神经损伤减免（docs/147）
-	g.combat.update_nerve(dt, mired, sanct, ward)   # 神经损伤：站在溟痕里累积（combat.gd）
+	g.afflict.update_nerve(dt, mired, sanct, ward, mired and not mire_nat)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
 		mire_tick -= dt

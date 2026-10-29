@@ -109,7 +109,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		var sd: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
 		if not sd.is_empty():
 			add_cold(int(sd.get("cold_hit", 0)))
-			add_wound(int(sd.get("wound_hit", 0)))
+			g.afflict.add_wound(int(sd.get("wound_hit", 0)))
 			if int(sd.get("wound_hit", 0)) > 0:
 				g.telemetry.on_status("wound", g.telemetry.hit_type, float(sd.wound_hit))
 			if src.get("warn", false):
@@ -127,30 +127,11 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if lamp_loss >= 6.0:
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
-		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
-		_boss_pool()   # 池子被清空过（流明净化）时先把 Boss 部分截到池子以内，免得这次追加的普通侵蚀被当成 Boss 的
-		# 非 Boss 侵蚀池上限（用户 9/27 方案 3-B，数值旋钮 enemy/corrode_pool_cap，缺省 0 = 不封顶）：池里非 Boss 部分 ≤ 最大生命 × 上限，超出的新增作废；流出速度不变
-		var ncap: float = Bal.v("enemy/corrode_pool_cap", 0.0)
-		if not boss and ncap > 0.0:
-			add = clampf(add, 0.0, maxf(0.0, ncap * g.max_hp - (g.corrode_pool - corrode_boss)))
-		if boss:
-			# 侵蚀算进上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血，并计入 2 秒合计（窗口满了就作废）；满血保护也管追加的侵蚀。
-			# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
-			var mh: float = g.max_hp
-			var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * mh - lost, Bal.v("boss/leader_2s_cap", 0.50) * mh - _window_sum(boss_log, 2.0))
-			room = minf(room, Bal.v("boss/corrode_pool_cap", 0.40) * mh - corrode_boss)
-			add = _guard(clampf(add, 0.0, maxf(0.0, room)))
-			if add > 0.0:
-				boss_log.append([g.t, add])
-				corrode_boss += add
-		g.corrode_pool += add
-		if add > 0.0:
-			g.telemetry.on_status("corrode", g.telemetry.hit_type, add)
-			g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
+		g.afflict.add_corrode(dmg, src.corrode, boss, lost)
 	# 命中附带的神经损伤：用户 9/29 按原作改成只有溟痕累积，命中来源乘 enemy/nerve_hit_mult（缺省 0 = 不累积）
 	if src.get("nerve", 0.0) > 0.0:
 		g.telemetry.on_status("nerve", g.telemetry.hit_type, float(src.nerve))
-		add_nerve(src.nerve * g.nerve_taken_mult * Bal.v("enemy/nerve_hit_mult", 0.0))
+		g.afflict.add_nerve(src.nerve * g.nerve_taken_mult * Bal.v("enemy/nerve_hit_mult", 0.0), boss)
 
 
 func on_dodge() -> void:
@@ -164,39 +145,16 @@ func on_dodge() -> void:
 ## （按硬控规则：冲刺挣脱、之后免疫、Boss 在场换成减速），然后清零并 nerve_lock 秒不再累积——满格惩罚是一次性的，不是持续的。
 ## 字段 g.nerve（0–nerve_max）、g.nerve_lock；净化清 g.nerve
 func nerve_max() -> float:
-	return Bal.v("enemy/nerve_max", 100.0)
+	return g.afflict.nerve_max()
 
 
+## 转发到 afflict（10-29 起累积 / 结算 / 清除都在 run/afflict.gd）
 func add_nerve(v: float) -> void:
-	if v <= 0.0 or g.nerve_lock > 0.0:
-		return
-	g.nerve += v
-	if g.nerve >= nerve_max():
-		g.nerve = 0.0
-		g.nerve_lock = Bal.v("enemy/nerve_lock", 5.0)
-		if not stun_as_slow():
-			add_root(Bal.v("enemy/nerve_stun", 1.2), "眩晕")
-		g.dmg_src = "nerve"
-		g.in_type = ["近战", "真实"]
-		hurt(g.max_hp * Bal.v("enemy/nerve_burst", 0.12), true)
-		Sfx.play("nerve_burst", 2.0, 1.0, 0.0)   # 神经电击 + 耳鸣（和冻结的冰、束缚的锁链区分）
-		g.vfx.add_text(g.ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
-		Sfx.play("skill", -4.0, 1.6)
+	g.afflict.add_nerve(v)
 
 
-## 每帧（enemies.update_status）：in_src = 站在溟痕里（不含流明光域）；sanct = 在流明光域里
-## mire_mult：只站在溟痕里（没有神经光环）时的累积倍率（灯火高时自然溟痕减免，docs/147；缺省 1）
 func update_nerve(dt: float, in_src: bool, sanct: bool, mire_mult := 1.0) -> void:
-	g.nerve_lock = maxf(0.0, g.nerve_lock - dt)
-	var aura: bool = g.nerve_aura_t > 0.0 and not sanct
-	g.nerve_aura_t = maxf(0.0, g.nerve_aura_t - dt)
-	var aura_k: float = g.nerve_aura_k
-	g.nerve_aura_k = 1.0   # 箱形恐鱼尖叫每帧重设；其他光环不带倍率
-	if ((in_src and not sanct) or aura) and g.nerve_lock <= 0.0:
-		g.telemetry.on_status("nerve", "" if in_src else g.telemetry.aura_type, dt)   # 溟痕 = 环境；神经光环 = 放光环的敌人
-		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * (aura_k if aura else mire_mult) * dt)
-	else:
-		g.nerve = maxf(0.0, g.nerve - Bal.v("enemy/nerve_decay", 10.0) * (2.0 if sanct else 1.0) * dt)
+	g.afflict.update_nerve(dt, in_src, sanct, mire_mult)
 
 
 ## ---- 主控保护「永不硬控」「移速下限」「攻速」（docs/38 §1.11，B0-2 / B0-3）
@@ -849,13 +807,6 @@ func add_root(t: float, label: String) -> void:
 	g.vfx.add_text(g.ppos + Vector2(0, -96), label, Color(0.6, 0.9, 1.4) if label == "冻结" else Color(0.8, 0.5, 1.2), 18)
 
 
-func add_wound(n: int) -> void:
-	if n <= 0:
-		return
-	g.wound = mini(g.wound + n, int(Bal.v("enemy/wound_max", 4.0)))
-	g.wound_t = Bal.v("enemy/wound_dur", 6.0)
-
-
 ## 凋亡损伤（docs/49b §4.4，用户 9/29）：有效命中累积量表，满 100 时全队技能充能暂停 enemy/apop_pause 秒（上限 4 秒）后清零；
 ## 离开来源 1 秒后每秒回落 apop_decay；冲刺清 apop_dash；来源死了就不再累积；净化清 g.apop / g.apop_t。
 ## 只来自 enemies.json 写了 apop_hit 的敌人（伊祖米克的子代、伊祖米克），小怪按 ctrl_start 生效，Boss 来源不受 ctrl_start 限制
@@ -889,12 +840,7 @@ func update_ailments(dt: float) -> void:
 			g.cold = 0
 			g.cold_t = 0.0
 			sync_cold()
-	if g.wound > 0:
-		lose_hp(g.max_hp * Bal.v("enemy/wound_dot", 0.005) * g.wound * dt, "wound")
-		g.wound_t -= dt
-		if g.wound_t <= 0.0:
-			g.wound = 0
-			g.wound_t = 0.0
+	g.afflict.tick_wound(dt)
 
 
 ## ---- 地面形状统一判定（docs/38 §1.9「画即判」、docs/48 §1 第 1 项）：预警圈、冲击环、寒冰领域、抛石落点、溟痕都画成
@@ -1265,15 +1211,30 @@ func song_heal_mult() -> float:
 	return 1.0
 
 
-func heal(v: float, src: String = "其他", sub: String = "") -> void:
-	v *= g.heal_mult * maxf(0.0, 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * g.wound) * song_heal_mult()   # 侵蚀创口 / 歌声地带减受治疗
+## 治疗唯一入口。mode：HEAL_FULL = 吃 heal_mult、创口、歌声地带；HEAL_NO_MULT = 不吃 heal_mult（补给箱，docs/133）；
+## HEAL_PRESCALED = 调用方已乘过 heal_mult 和歌声地带（每秒自身回复 regen_per_sec），这里只补创口。返回实际加的量（含倍率，含溢出部分）
+## overheal = false：溢出不喂食腐者手杖（补给箱原来就不算）
+const HEAL_FULL := 0
+const HEAL_NO_MULT := 1
+const HEAL_PRESCALED := 2
+
+
+func heal(v: float, src: String = "其他", sub: String = "", mode := HEAL_FULL, overheal := true) -> float:
+	if mode == HEAL_FULL:
+		v *= g.heal_mult * g.afflict.wound_heal_mult() * song_heal_mult()   # 侵蚀创口 / 歌声地带减受治疗
+	elif mode == HEAL_NO_MULT:
+		v *= g.afflict.wound_heal_mult()
+		v *= song_heal_mult()
+	else:
+		v *= g.afflict.wound_heal_mult()
 	var got: float = minf(v, maxf(0.0, g.max_hp - g.hp))
 	g.heal_log[src] = float(g.heal_log.get(src, 0.0)) + got
-	if g.bot != null:
+	if g.bot != null and mode == HEAL_FULL:   # 自身回复 / 补给原来不进 sus.heal，保持（金样比 sus）
 		g.telemetry.note_heal_sub(src, sub, got, v)   # docs/88 遥测：只在 --balance 下记
-	if v > got:
+	if overheal and v > got:
 		g.rfx.on_overheal(v - got)
 	g.hp = min(g.max_hp, g.hp + v)
+	return v
 
 
 ## h：致命一击的描述符（damage 传来）；给了就设成当前 g.hit——击杀回调（藏品 on_kill、干员 on_kill）里读 g.hit 的旧代码看到的是这一下

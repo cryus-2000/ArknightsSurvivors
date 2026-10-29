@@ -100,8 +100,8 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		if g.bot != null:
 			g.telemetry.note_clean("corrode", g.corrode_pool)
 			g.telemetry.note_clean("nerve", minf(g.nerve, float(hb.get("nerve_cut", 15.0))))
-		g.corrode_pool = 0.0
-		g.nerve = maxf(0.0, g.nerve - float(hb.get("nerve_cut", 15.0)))
+		g.afflict.clear_corrode()
+		g.afflict.cut_nerve(float(hb.get("nerve_cut", 15.0)))
 		o.float_text(g.ppos + Vector2(0, -96), "驱散", H3_PALE, 14)
 		did = true
 	elif g.hp < g.max_hp:
@@ -220,8 +220,8 @@ static func _h3_tower_tick(o, lm: Dictionary, dt: float) -> void:
 	if tt > 0.0 and g.ppos.distance_to(lm.tower_pos) < r:
 		if g.bot != null:
 			g.telemetry.note_clean("corrode", g.corrode_pool)
-		g.corrode_pool = 0.0
-		g.nerve = 0.0
+		g.afflict.clear_corrode()
+		g.afflict.clear_nerve()
 		lm.tower_tick = float(lm.tower_tick) + dt
 		if float(lm.tower_tick) >= float(b.get("every", 1.0)):
 			lm.tower_tick = float(lm.tower_tick) - float(b.get("every", 1.0))
@@ -462,7 +462,7 @@ static func _h3lm_tick(o, lm: Dictionary, dt: float) -> void:
 	lm.hand_glow = maxf(0.0, float(lm.hand_glow) - dt)
 	lm.immune_t = maxf(0.0, float(lm.immune_t) - dt)
 	if float(lm.immune_t) > 0.0:
-		g.nerve = 0.0
+		g.afflict.clear_nerve()
 	_h3_bolts_tick(o, lm, dt)
 	_h3_tower_tick(o, lm, dt)
 	_h3_units_tick(o, lm, dt)
@@ -486,8 +486,8 @@ static func h3_purge(o, b: Dictionary) -> void:
 	if g.bot != null:
 		g.telemetry.note_clean("corrode", g.corrode_pool)
 		g.telemetry.note_clean("nerve", g.nerve)
-	g.corrode_pool = 0.0
-	g.nerve = 0.0
+	g.afflict.clear_corrode()
+	g.afflict.clear_nerve()
 	lm.immune_t = float(b.get("immune", 3.0))
 
 
