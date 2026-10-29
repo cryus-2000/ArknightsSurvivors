@@ -4,10 +4,6 @@
    "reason": "安洁莉娜「致密」节点被 alt 恒覆盖、现行成长线选不到（4825643b0 删开关后遗留）；恢复可选还是删由设计定，不在测试会话改 angelina.json"},
   {"scope": "图引用 graph_lint", "pattern": "angelina.json:501", "since": "2026-10-30", "due": "2026-11-12", "owner": "成长会话",
    "reason": "安洁莉娜节点 4 顶层 lock 永不生效（在用的是 lockb），死积木 lock 待清"},
-  {"scope": "图引用 graph_lint", "pattern": "mizuki.json:515|mizuki.json:521", "since": "2026-10-30", "due": "2026-11-12", "owner": "界面 / 美术会话",
-   "reason": "水月路线图标 skill_mizuki_s1 / s2 在 art 索引里没有（技能卡用通用 skill_s1/s2）；路线卡显示空图标"},
-  {"scope": "图引用 graph_lint", "pattern": "specter_unchained.json:620|specter_unchained.json:626", "since": "2026-10-30", "due": "2026-11-12", "owner": "界面 / 美术会话",
-   "reason": "不羁幽灵路线图标 skill_specter_s1 / s2 缺，索引里是 skill_specter_unchained_s1/s2"},
-  {"scope": "图引用 graph_lint", "pattern": "relics.json:3186", "since": "2026-10-30", "due": "2026-11-12", "owner": "界面 / 美术会话",
-   "reason": "藏品 265 缺图标 relic_265（relic_effects.json:4583 已有效果定义）"}
+  {"scope": "图引用 graph_lint", "pattern": "relics.json:3186", "since": "2026-10-30", "due": "2026-11-12", "owner": "Codex（美术单）",
+   "reason": "藏品 265 缺图标 relic_265（relic_effects.json:4583 已有效果定义）；10-30 已写进 Codex 单补画"}
  ]}

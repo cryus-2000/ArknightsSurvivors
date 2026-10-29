@@ -512,13 +512,13 @@
         "awaken": {
           "id": "awaken_burst2",
           "name": "惊跳反射·余悸",
-          "icon": "skill_mizuki_s1",
+          "icon": "skill_s1",
           "desc": "「唤醒」{$awk2_delay} 秒后，身边触手再抽打一圈（半径 {$s1_burst_r*$awk2_r_k:0}，伞击 {$awk2_mult*100}% 伤害，击退）"
         },
         "bind": {
           "id": "bind_drag2",
           "name": "病理性依恋·缠缚",
-          "icon": "skill_mizuki_s2",
+          "icon": "skill_s2",
           "desc": "「囚徒困境」期间每秒，身边 {$swing_skill} 内的敌人被触手缠住：减速 {$bind2_slow} 秒并受伞击 {$bind2_mult*100}% 伤害"
         }
       }
