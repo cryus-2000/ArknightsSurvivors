@@ -34,7 +34,7 @@ func add_nerve(v: float, boss := false) -> void:
 	if boss:
 		nerve_boss += v
 	if g.nerve >= nerve_max():
-		var as_boss: bool = false  # PREP-STAGE: nerve_boss >= BOSS_SHARE * g.nerve
+		var as_boss: bool = nerve_boss >= BOSS_SHARE * g.nerve
 		g.nerve = 0.0
 		nerve_boss = 0.0
 		g.nerve_lock = Bal.v("enemy/nerve_lock", 5.0)
