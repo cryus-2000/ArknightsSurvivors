@@ -130,6 +130,28 @@ func _init(game: Game) -> void:
 	mshot = MotionShot.new(game)
 
 
+## TRACE 行尾追加字段（10-29，docs/126 R3，docs/36 §3.2）：只读、不碰 rng、不改状态，只在 --balance --trace 下被调用。
+## sq = 队友聚合哈希：按编队顺序（squad.ops）对每人 [id, 位置×100 取整, 突击生命 cmd_hp×1000, 三条技力×100, attack_t×1000, fire_t×1000, 普攻冷却 cd×1000（数据干员）, 普攻次数 atk_n] 拼串后取 String.hash
+## lamp = 灯火 ×100 取整；nd = 神经损伤哈希（队长这一份：nerve / nerve_lock / nerve_taken_mult / nerve_aura_t；敌人身上没有神经损伤累积，所以不聚合敌人）
+## rl = 藏品数
+func trace_extra() -> String:
+	return " sq=%d lamp=%d nd=%d rl=%d" % [trace_squad_hash(), int(roundf(g.lamp * 100.0)), trace_nerve_hash(), g.relics.size()]
+
+
+func trace_squad_hash() -> int:
+	var parts: PackedStringArray = []
+	for o in g.squad.ops:
+		var cdv := int(roundf(float(o.get("cd")) * 1000.0)) if o.get("cd") != null else -1
+		var atkn := int(o.get("atk_n")) if o.get("atk_n") != null else -1
+		parts.append("%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d" % [o.id, int(roundf(o.pos.x * 100.0)), int(roundf(o.pos.y * 100.0)), int(roundf(o.cmd_hp * 1000.0)),
+			int(roundf(o.sp[0] * 100.0)), int(roundf(o.sp[1] * 100.0)), int(roundf(o.sp[2] * 100.0)), int(roundf(o.attack_t * 1000.0)), int(roundf(o.fire_t * 1000.0)), cdv, atkn])
+	return ";".join(parts).hash()
+
+
+func trace_nerve_hash() -> int:
+	return ("%d,%d,%d,%d" % [int(roundf(g.nerve * 1000.0)), int(roundf(g.nerve_lock * 1000.0)), int(roundf(g.nerve_taken_mult * 1000.0)), int(roundf(g.nerve_aura_t * 1000.0))]).hash()
+
+
 ## --statsshot=<秒>[,dead]（docs/77 实机截图）：机器人照常打到第 <秒> 秒后直接进胜利（结局一）/ 失败结算，
 ## 依次截 结算面板（多了「作战记录」按钮）→ 作战记录总览动效中（0.3 秒）→ 总览终态 → 主控详情 → 第二名干员详情，
 ## 存到 --shotdir：shot_stats_result / _motion / _overview / _detail0 / _detail1.png，截完退出。无头不截（只走流程）。
@@ -1085,8 +1107,8 @@ func step() -> void:
 			var hsum := 0.0
 			for e in g.enemies:
 				hsum += e.pos.x * 0.37 + e.pos.y * 0.11 + e.hp * 0.01
-			print("TRACE t=%.2f lv=%d k=%d hp=%.2f n=%d rng=%d/%d/%d/%d/%d pos=%.2f,%.2f h=%.3f" % [g.t, g.level, g.kills, g.hp, g.enemies.size(), g.rng.state,
-				g.rng_spawn.state, g.rng_enemy.state, g.rng_drop.state, g.rng_op.state, g.ppos.x, g.ppos.y, hsum])   # 五条玩法流：主 / 刷怪 / 敌人 / 掉落 / 积木（docs/101 B7）
+			print(("TRACE t=%.2f lv=%d k=%d hp=%.2f n=%d rng=%d/%d/%d/%d/%d pos=%.2f,%.2f h=%.3f" % [g.t, g.level, g.kills, g.hp, g.enemies.size(), g.rng.state,
+				g.rng_spawn.state, g.rng_enemy.state, g.rng_drop.state, g.rng_op.state, g.ppos.x, g.ppos.y, hsum]) + trace_extra())   # 五条玩法流：主 / 刷怪 / 敌人 / 掉落 / 积木（docs/101 B7）；行尾 sq= lamp= nd= rl= 10-29 起追加（docs/36 §3.2）
 		if g.bot != null and g.state == g.S.PLAY:
 			g.telemetry.tick(g.bal_dt)   # 整局指标（原 bot.tick，挪到 run/telemetry.gd）；步长同批跑 --dt
 		if false:
