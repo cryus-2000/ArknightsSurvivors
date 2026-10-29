@@ -1,0 +1,9 @@
+基线：在 7e960fdb（/home/user/ArknightsSurvivors/.claude/worktrees/trace-7e960fdb-1173）上跑 seed 1 kaltsit 240 秒……
+/home/user/ArknightsSurvivors/build/trace_cache/7e960fdb_1_kaltsit_240_062c28.txt
+TRACE 153 行逐行相同（BALANCE 行有差异，多半是画面峰值 / prof 字段，需要时自己比）
+基线：在 7e960fdb（/home/user/ArknightsSurvivors/.claude/worktrees/trace-7e960fdb-1213）上跑 seed 2 kaltsit 240 秒……
+/home/user/ArknightsSurvivors/build/trace_cache/7e960fdb_2_kaltsit_240_ffa859.txt
+TRACE 241 行逐行相同（BALANCE 行有差异，多半是画面峰值 / prof 字段，需要时自己比）
+基线：在 7e960fdb（/home/user/ArknightsSurvivors/.claude/worktrees/trace-7e960fdb-1304）上跑 seed 1 texas 240 秒……
+/home/user/ArknightsSurvivors/build/trace_cache/7e960fdb_1_texas_240_bea6ab.txt
+TRACE 241 行逐行相同（BALANCE 行有差异，多半是画面峰值 / prof 字段，需要时自己比）
