@@ -264,7 +264,7 @@ func draw(vs: Vector2) -> void:
 		hud.draw_arc(pointer, 30.0, 0.0, TAU, 28, Color(1, 1, 1, 0.55), 2.0)
 		_dash(hud, pointer + Vector2(0, -30), rp + Vector2(0, 22), Color(1, 1, 1, 0.45), false)
 	# 底部信息板：左端警戒斜纹 + PRTS 标签 + 类型 / 状态 / 提示（切角板）
-	var title: String = "指点 · 点位" if mode == "point" else "指点 · 集火"
+	var title: String = "指点 · 肃清" if mode == "point" else "指点 · 集火"
 	var code: String = "ORDER // POINT" if mode == "point" else "ORDER // FOCUS FIRE"
 	var stt: String
 	if mode == "focus":
@@ -372,14 +372,14 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 	var dev: String = "手机 · 触屏" if touch else "电脑 · 鼠标"
 	var line := ""
 	if g.wheel.is_open:
-		line = "① 点「指挥」键弹出圆盘，局内放慢 → 选「点位」（去那里）或「集火」（打这个）"
+		line = "① 点「指挥」键弹出圆盘，局内放慢 → 选「肃清」（清一块区域）或「集火」（打这个）"
 	elif active:
 		if touch:
 			line = "② 手指不抬起，拖到目标：准星在手指上方；松手确认，拖回圆盘处取消" if mode == "point" else "② 拖向精英 / Boss（屏外的看边缘标签），或点下方「最近的 Boss / 精英」；松手确认"
 		else:
-			line = "② 准星跟着鼠标：点地面（点位，超出虚线圈算太远）· 左键确认 · 右键 / Esc 取消" if mode == "point" else "② 把准星移到精英 / Boss 上（屏外的看边缘标签），左键确认 · 右键 / Esc 取消"
+			line = "② 准星跟着鼠标：点一块区域（肃清，超出虚线圈算太远）· 左键确认 · 右键 / Esc 取消" if mode == "point" else "② 把准星移到精英 / Boss 上（屏外的看边缘标签），左键确认 · 右键 / Esc 取消"
 	elif g.squad.order_kind == "point":
-		line = "③ 全队前往点位、在圈内作战；圈里没敌人 2.5 秒后自动归队；作战时限照扣"
+		line = "③ 队友前往肃清圈、清掉圈内敌人；清空或 9 秒后回到随行；作战时限照扣"
 	elif g.squad.order_kind == "focus":
 		line = "③ 全队集火标记的目标；目标死了指令结束，作战时限照扣"
 	if line == "":
