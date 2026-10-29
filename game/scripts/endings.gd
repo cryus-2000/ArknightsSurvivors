@@ -18,6 +18,7 @@ var endings: Dictionary = {}    # 结局表
 var deck_cfg: Dictionary = {}   # waves.json cross_deck
 var cur := "standard"           # 当前结局
 var opened_id := ""             # 正在弹选项的事件
+var shown_id := ""              # 面板上正显示的事件（插画键用它：opened_id 在 pick 开头就清空，面板若没关掉会读空；10-29 用户卡死空面板）
 var warned_final := false
 var all_unlocked := false       # --allend：无视通关进度
 var frozen := false             # 最终 Boss 已刷出：结局冻结
@@ -453,6 +454,7 @@ func _close() -> void:
 ## 安全的角落：「安全屋」三选一（原作安全屋的稍事休息 / 添加燃料 / 重整编制）
 func _open_rest() -> void:
 	opened_id = "rest"
+	shown_id = "rest"
 	var heal: float = float(deck_cfg.get("rest_heal", 0.4))
 	var mh: float = float(deck_cfg.get("rest_maxhp", 0.05))
 	var li: int = int(deck_cfg.get("rest_light", 15))
@@ -590,6 +592,7 @@ func open(ev_id: String) -> void:
 		_close()
 		return
 	opened_id = ev_id
+	shown_id = ev_id
 	_log("open " + ev_id)
 	var opts: Array = []
 	var ops_l: Array = _opts(ev)
@@ -637,8 +640,21 @@ func _opts(ev: Dictionary) -> Array:
 
 ## 插画键：事件可指定 cg（敬奉火焰与引火之木共用一张），否则用事件 id
 func cg_key() -> String:
-	var ev: Dictionary = ev_by_id.get(opened_id, {})
-	return str(ev.get("cg", opened_id)) if ev.has("cg") and str(ev.cg) != "" else opened_id
+	var id := opened_id if opened_id != "" else shown_id
+	var ev: Dictionary = ev_by_id.get(id, {})
+	return str(ev.get("cg", id)) if ev.has("cg") and str(ev.cg) != "" else id
+
+
+## 兜底（10-29 用户卡死：狂徒妄念面板一个选项都没有）：事件面板显示着却没有可点的选项条时（choice_panel.check_event_panel 发现），
+## 重建成只有「离开」的一屏，点了回到战斗；不重给奖励，所以就算之前某次选择只结算了一半也不会多拿
+func recover_panel() -> void:
+	var id := shown_id
+	var ev: Dictionary = ev_by_id.get(id, {})
+	var nm := str(ev.get("name", "事件"))
+	push_warning("event panel had no options, rebuilt with leave only: %s" % id)
+	_log("recover " + id)
+	opened_id = id
+	g.panel_ui.show_choices(nm, [{"kind": "event", "id": "%s:-1" % id, "name": "离开", "desc": "回到战斗", "icon": "exit", "chips": [], "cat": "事件  " + nm, "col": Color(0.55, 0.75, 1.0)}], "event", str(ev.get("text", "")), true)
 
 
 ## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；代价大于 20% 的（传统技术「两件都要」60%）门槛提到「代价 + 10%」，
