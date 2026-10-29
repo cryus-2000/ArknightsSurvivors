@@ -17,8 +17,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 
 
-def shoot(godot, op, stage, mode, out, start, every, n):
+def shoot(godot, op, stage, mode, out, start, every, n, nodes=-1, route=""):
     tag = "%s_e%d%s" % (op, stage, "" if mode < 0 else "_m%d" % mode)
+    if nodes >= 0:
+        tag = "growth_%s_n%d%s" % (op, nodes, ("_" + route.split(":")[-1]) if route else "")
     fdir = os.path.join(out, tag + "_frames")
     os.makedirs(fdir, exist_ok=True)
     for f in glob.glob(os.path.join(fdir, "*.png")):
@@ -26,6 +28,10 @@ def shoot(godot, op, stage, mode, out, start, every, n):
     args = [godot, "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
             "--shot_op=" + op, "--shot_stage=%d" % stage, "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=%d" % every, "--shot_n=%d" % n]
+    if nodes >= 0:
+        args.append("--shot_nodes=%d" % nodes)
+    if route:
+        args.append("--route=" + route)
     outp, err, to = GR.run_godot(args, 600)
     errs = GR.script_errors(outp, err)
     frames = sorted(glob.glob(os.path.join(fdir, "f_*.png")))
@@ -56,13 +62,15 @@ def main():
     ap.add_argument("--every", type=int, default=3)
     ap.add_argument("--n", type=int, default=80)
     ap.add_argument("--jobs", type=int, default=2)
+    ap.add_argument("--nodes", type=int, default=-1, help="成长节点验收（docs/202）：推进到第 N 个成长节点（1–2 精零、3 精一、4–5、6 精二），覆盖 --stages")
+    ap.add_argument("--route", default="", help="路线，如 hoshiguma:ember（节点 4 的分支 id）；节点 5 跟着分支走")
     a = ap.parse_args()
     a.out = os.path.abspath(a.out)   # Godot 带 --path 运行时工作目录是 game/，截图目录一律给绝对路径
     os.makedirs(a.out, exist_ok=True)
     godot = GR.find_godot()
     jobs = [(op, int(s)) for op in a.ops.split(",") for s in a.stages.split(",")]
     with ThreadPoolExecutor(max(1, min(a.jobs, 4))) as ex:
-        for tag, msg, errs in ex.map(lambda j: shoot(godot, j[0], j[1], a.mode, a.out, a.start, a.every, a.n), jobs):
+        for tag, msg, errs in ex.map(lambda j: shoot(godot, j[0], j[1], a.mode, a.out, a.start, a.every, a.n, a.nodes, a.route), jobs):
             print(tag, msg, ("脚本错误 %d：%s" % (len(errs), errs[0][:200])) if errs else "")
 
 

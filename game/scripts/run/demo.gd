@@ -246,7 +246,7 @@ func new_op() -> void:
 	g.ch = g.squad.add(id)   # 图鉴演示直接出现，不播登场条（10-22 用户；局内入场仍播 play_entry）
 	if g.demo_stage >= 0:
 		# 三联对照：按成长节点数推进（N1 N2 → 2 个；到 N5 → 5 个；全部 → 6 个）
-		var nodes: int = [2, 5, 6][clampi(g.demo_stage, 0, 2)]
+		var nodes: int = g.demo_nodes if g.demo_nodes >= 0 else [2, 5, 6][clampi(g.demo_stage, 0, 2)]
 		for k in nodes:
 			if g.ch.next_node().is_empty():
 				break
