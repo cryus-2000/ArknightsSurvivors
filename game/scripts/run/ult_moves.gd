@@ -778,10 +778,10 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 	a.nb = i + 1
 	if a.echo:
 		_sk_zone(u, a, p)
-	u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_SK_RED, "fill": 0.7, "life": 0.16})
-	u.shape({"kind": "circle", "c": p, "r": 22.0, "col": COL_SK_RED.lerp(COL_SK_TEAL, 0.5), "fill": 0.9, "life": 0.08})
+	# 爆点主体：不规则碎块炸团（不画实心圆，10-30 美术口径）+ 颗粒
+	u.shape({"kind": "rock", "c": p, "r": 34.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.5), "seed": float(i), "rot": float(i) * 0.7, "fill": 0.85, "hold": false, "life": 0.16})
 	u.shape({"kind": "ring", "c": p, "r": 100.0, "r1": 24.0, "w": 6.0, "col": COL_SK_TEAL, "life": 0.3})   # 缺省碎裂
-	u.shape({"kind": "ellipse", "c": p + Vector2(0, 6), "rx": 46.0, "ry": 22.0, "col": COL_SK_RED.darkened(0.55), "fill": 0.5, "life": 0.9, "layer": "back"})   # 灼地
+	u.shape({"kind": "ellipse", "c": p + Vector2(0, 6), "rx": 46.0, "ry": 22.0, "col": COL_SK_RED.darkened(0.7), "fill": 0.35, "life": 0.9, "layer": "back"})   # 灼地
 	u.grain("bfx_burst", p, Vector2.from_angle(float(i) * 2.39996), COL_SK_RED if i % 2 == 0 else COL_SK_TEAL, 6)
 	u.grain("mote_up", p, Vector2.UP, COL_SK_TEAL, 2)
 	if i % 4 == 0:   # 灯只有 16 盏：每 4 个爆点一盏，碎屑同样抽稀
@@ -901,8 +901,13 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				_hit(u, a, o, e, float(a.bfrac), {"src": "爆裂", "edge": e.pos.distance_to(c) > er2, "kb": (e.pos - c).normalized() * _kb_v(160.0)})
 		u.g.vfx.stop(Bal.v("ult/sk_blast_freeze", 0.08), "ult", true)
 		u.shake(9.0, 0.45)
-		u.shape({"kind": "circle", "c": c, "r": L, "col": COL_SK_RED, "fill": 0.42, "life": 0.3})
-		u.shape({"kind": "circle", "c": c, "r": L * 0.45, "col": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "fill": 0.6, "life": 0.14})
+		# 收尾大爆：不铺满屏实心红圆（10-30 美术口径），中心一团碎块炸开 + 一圈圈碎裂冲击 + 大量颗粒 / 碎屑
+		u.shape({"kind": "rock", "c": c, "r": 90.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "core": COL_SK_TEAL, "seed": 5.0, "fill": 0.9, "hold": false, "life": 0.22})
+		for m2 in 16:
+			var dm: Vector2 = Vector2.from_angle(TAU * float(m2) / 16.0 + 0.2)
+			u.grain("bfx_burst", c + dm * L * 0.3, dm, COL_SK_RED if m2 % 2 == 0 else COL_SK_TEAL, 6)
+			u.grain("lava", c + dm * L * 0.6, dm, COL_SK_RED, 3)
+		u.debris(c, COL_SK_RED, 3)
 		_ring(u, c, L, 40.0, COL_SK_RED.lerp(Color.WHITE, 0.3), 0.5, 18.0)
 		u.light(c, L, COL_SK_RED, 0.5)
 		u.debris(c, COL_SK_RED, 3)
@@ -918,7 +923,7 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				"life": 0.32, "v": dv * 900.0})
 		u.shape({"kind": "dots", "c": c, "r": L * 0.9, "n": 40, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.3), "life": 0.6})
 		var dd: float = a.dd
-		u.shape({"kind": "circle", "c": c, "r": L, "col": COL_SK_RED, "fill": 0.07, "life": dd, "layer": "back"})
+		u.shape({"kind": "ring", "c": c, "r": L, "w": 6.0, "col": COL_SK_RED, "life": dd, "layer": "back"})   # 领域边：碎裂像素环（原实心淡红圆）
 		# 领域花纹（fx_ult_skalter_domain_back 弧状拼接段，地面层循环）：铺在领域边上往里 20，外缘不出伤害圈
 		_arc(u, "fx_ult_skalter_domain_back", c, L - 20.0, {"layer": "back", "loop": true, "life": dd})
 		u.team_buff("ult:skalter_dom", dd, [[&"dmg", "mult", Bal.v("ult/sk_atk", 1.2)], [&"regen_pct", "flat", Bal.v("ult/sk_heal", 0.015)]])
