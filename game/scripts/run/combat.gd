@@ -1191,6 +1191,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		dmg -= ab
 	if _pf:
 		_pt = g.prof_add("dm_boss", _pt)
+	if e.has("decoy_of"):
+		dmg = 0.0   # 偏执泡影幻影：血量不掉、只计挨打次数（paranoia.gd _decoy_step）；它的 maxhp 是 1e9，按当前生命百分比的伤害（扣挠之手）原来一下记 3000 万输出、按此吸血
 	g.rfx.on_hit(e, h, dmg)
 	if _pf:
 		_pt = g.prof_add("dm_rfx_on_hit", _pt)
@@ -1230,7 +1232,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		Sfx.play("crit_tick", -6.8, 1.0, 0.05)   # 暴击：清脆的「叮」叠在命中声上
 	if _pf:
 		_pt = g.prof_add("dm_hit_react", _pt)
-	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit, h)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
+	if not e.has("decoy_of"):
+		g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit, h)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
 	if _pf:
 		_pt = g.prof_add("dm_number", _pt)
 	# Boss 受击后（最后的骑士寒冷滑窗、圣徒装填打断）：dmg = 扣完潮盾的伤害，eff = 实际掉的血
