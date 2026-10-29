@@ -41,7 +41,8 @@ func recruit_cards() -> Array:
 		var d: Dictionary = Character.load_def(cid)
 		if not d.get("recruitable", true) or not Roster.is_unlocked(cid):
 			continue
-		var desc: String = d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", ""))
+		# 招募卡写干员简介 gallery.intro（用户 10-29），没有时退回机制说明；图鉴仍用 gallery.desc
+		var desc: String = d.get("gallery", {}).get("intro", d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", "")))
 		# 入队加成不再逐张写（用户 10-13）：统一写在三选一标题下的说明行（choice_panel.show_choices）
 		opts.append({"kind": "recruit", "id": cid, "name": d.get("name", cid), "desc": desc, "cls": d.get("class", "")})
 	return opts
@@ -61,7 +62,7 @@ func swap_cards() -> Array:
 		var d: Dictionary = Character.load_def(cid)
 		if not d.get("recruitable", true) or not Roster.is_unlocked(cid):
 			continue
-		var desc: String = d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", ""))
+		var desc: String = d.get("gallery", {}).get("intro", d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", "")))
 		opts.append({"kind": "recruit", "swap": true, "id": cid, "name": d.get("name", cid), "desc": desc + "
 编队已满：选中后挑一名队友换下，可以不替换。",
 			"cls": d.get("class", ""), "cat": "更换 · %s  SWAP" % d.get("class", "")})
