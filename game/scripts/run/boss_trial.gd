@@ -17,6 +17,10 @@ func _init(game: Game) -> void:
 	g = game
 
 func consume() -> void:
+	for a in Cfg.dev_args():
+		if a.begins_with("--diagtrial="):
+			var p: PackedStringArray = a.substr(12).split(":")
+			Cfg.boss_trial_request = {"group": [p[0]], "operator": "mizuki", "growth": 2, "phase": 1, "safe": true, "squad": p[1] if p.size() > 1 else ""}
 	Meta.practice_budget = -1
 	if g.demo_op != "" or Cfg.boss_trial_request.is_empty():
 		return
@@ -53,7 +57,7 @@ func consume() -> void:
 func setup() -> void:
 	if not active:
 		return
-	g.mode = g.Mode.PLAY   # 演练按正式模式跑（不记自测 / 批跑）
+	if not Cfg.dev_args().has("--diagbot"): g.mode = g.Mode.PLAY   # 演练按正式模式跑（不记自测 / 批跑）
 	g.state = g.S.PLAY
 	# 按正式登场时间计算 Boss 血量，演练计时不触发普通波次或结局事件。
 	g.t = 600.0 if g.spawner.is_final_boss_type(config.group[0]) else 420.0
