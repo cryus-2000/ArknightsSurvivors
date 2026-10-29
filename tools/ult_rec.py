@@ -16,6 +16,8 @@ CLIPS = {
     "ulpianus": ("ulpianus", "gladiia,specter_unchained", []),
     "cult": ("texas", "exusiai,lappland", ["--bal=ult/test_cells=7"]),
     "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),
+    "link1": ("texas", "exusiai,lappland", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=0"], 60.0),   # 技能连携样片①：德克萨斯剑雨 + 能天使 → 爆炸剑雨
+    "link2": ("lappland", "texas,saria", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=1"], 60.0),   # 样片②：拉普兰德狼魂剑气 + 德克萨斯 → 十字斩
     "combo2": ("skadi", "gladiia,ulpianus", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),   # 深海猎人：组合升级自动接（两人同框条带）   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
 }
 ap = argparse.ArgumentParser()

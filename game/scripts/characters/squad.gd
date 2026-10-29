@@ -360,6 +360,8 @@ var syn := {"cd": {}, "acts": [], "n": 0}
 
 
 func syn_skill(o, i: int) -> void:
+	if g.ult != null:
+		g.ult.on_skill(o, i)   # 技能连携样片（combo/skill_link，缺省关时直接返回）
 	if g.ult == null:   # ult/on：隐藏连携由连携技取代（docs/198 §10.3）
 		Synergy.on_skill(self, o, i)
 

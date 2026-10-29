@@ -9,6 +9,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const Moves = preload("res://scripts/run/ult_moves.gd")
 const Combo = preload("res://scripts/run/combo.gd")
+const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携样片（combo/skill_link，缺省关）
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
 
@@ -63,6 +64,20 @@ var ev := {
 var _prev_dash := 0.0
 var _filled := false
 var _swarm_t := -1.0
+var _skill_t := -1.0
+
+
+## 录像用（缺省 ult/test_skill_at = -1 关）：到点起每 ult/test_skill_every（4）秒把队长第 ult/test_skill_idx 个技能充满，让技能（和技能连携样片）在录像窗口里放出来
+func _test_skill() -> void:
+	var at: float = Bal.v("ult/test_skill_at", -1.0)
+	if at < 0.0 or g.t < at or (_skill_t >= 0.0 and g.t - _skill_t < Bal.v("ult/test_skill_every", 4.0)):
+		return
+	var ld = g.squad.leader()
+	var i: int = Bal.vi("ult/test_skill_idx", 0)
+	if ld == null or i < 0 or i >= ld.sp.size() or not ld.skill_unlocked(i):
+		return
+	_skill_t = g.t
+	ld.sp[i] = ld.sp_need(i)
 
 
 ## 录像用（用户 10-29「怪物要多一点、聚集一点」；缺省 ult/test_swarm_at = -1 关，正常局 / 批跑不走）：到点在队长前方
@@ -216,6 +231,7 @@ func tick(dt: float) -> void:
 		return
 	_events()
 	_test_swarm()
+	_test_skill()
 	if not _filled and g.t >= Bal.v("ult/test_fill_at", -1.0) and Bal.v("ult/test_fill_at", -1.0) >= 0.0:
 		_filled = true   # 测试 / 录像用（缺省 -1 = 关）：到点直接充满能量，协同给 ult/test_cells 格
 		energy = FULL
@@ -454,7 +470,7 @@ func _tick_combo(dt: float) -> void:
 			p.syn_mv = {}
 			combo_acts.remove_at(k)
 			continue
-		if Combo.step(self, a, dt):
+		if (Link.step(self, a, dt) if a.has("link") else Combo.step(self, a, dt)):
 			if p != null and not p.syn_mv.is_empty():
 				p.syn_mv = {}
 			if p != null and p.pos != Vector2.INF and p.pos.distance_to(g.ppos) > 80.0:
@@ -503,6 +519,16 @@ func press_e() -> bool:
 func _fire_head(auto: bool) -> void:
 	var q: Dictionary = queue.pop_front()
 	var o = q.o
+	if q.info.has("link"):   # 技能连携：接进那个技能，不走连携冷却
+		var la: Dictionary = Link.fire(self, o, q.info)
+		stats.combo += 1
+		if auto:
+			stats.combo_auto += 1
+		else:
+			stats.combo_e += 1
+		combo_acts.append(la)
+		_combo_fx(o, q.info)
+		return
 	var dir: Vector2 = g.move_in.normalized() if (not auto and g.move_in != Vector2.ZERO) else Vector2.ZERO
 	var a: Dictionary = Combo.fire(self, o, q.info, dir)
 	cd[str(o.id)] = g.t + Combo.cd_of(str(o.id)) * Bal.v("ult/combo_cd_mult", 1.0)
@@ -849,11 +875,76 @@ func draw_world_back(w) -> void:
 			_draw_strip(w, s, dim)
 
 
+# ================================================================ 舞台（技能连携样片，用户 10-29；之后终结技也用）
+## stage(pos, op)：背景压暗到约 40%（ult/stage_dim 0.6 的黑）、镜头推到 ult/stage_cam（1.3）、出手队友放大 1.5 倍带残影，
+## 持续 ult/stage_t（1.0）真实秒：0.12 秒压下 → 停 → 最后 0.3 秒恢复。纯画面
+var _stage_rt := -99.0
+var _stage_pos := Vector2.ZERO
+var _stage_op = null
+
+
+func on_skill(o, i: int) -> void:
+	if Link.on():
+		Link.on_skill(self, o, i)
+
+
+func stage(pos: Vector2, op) -> void:
+	_stage_rt = UM.now()
+	_stage_pos = pos
+	_stage_op = op
+
+
+## 0..1：舞台强度（压暗 / 推镜 / 放大共用）
+func stage_k() -> float:
+	var t: float = UM.now() - _stage_rt
+	var T: float = Bal.v("ult/stage_t", 1.0)
+	if t < 0.0 or t > T:
+		return 0.0
+	if t < 0.12:
+		return t / 0.12
+	if t > T - 0.3:
+		return (T - t) / 0.3
+	return 1.0
+
+
+func _draw_stage(w) -> void:
+	var k: float = stage_k()
+	if k <= 0.0:
+		return
+	var c: Vector2 = g.ppos
+	var R := Vector2(2400.0, 1600.0)
+	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/stage_dim", 0.6) * k))
+	w.tb_flush()
+	if _stage_op == null or _stage_op.pos == Vector2.INF:
+		return
+	var pr: Dictionary = _stage_op.portrait()
+	var t: Texture2D = g.tex.get(str(pr.get("tex", "")))
+	if t == null:
+		return
+	var n: int = maxi(1, int(pr.get("frames", 1)))
+	var fw: float = t.get_width() / float(n)
+	var fh: float = float(t.get_height())
+	var hi: float = A.hires_of(t)
+	var s: float = g.PX / hi * lerpf(1.0, Bal.v("ult/stage_pop", 1.5), k)
+	var flip: float = -1.0 if float(_stage_op.face) < 0.0 else 1.0
+	var col: Color = _col(_stage_op)
+	for j in 3:   # 残影：往出手来的方向拖三层干员色
+		var off: Vector2 = (g.ppos - _stage_op.pos).normalized() * (26.0 * (j + 1)) * k
+		g.draw_set_transform(_stage_op.pos + off, 0.0, Vector2(s * flip, s))
+		g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(col.r, col.g, col.b, 0.35 * k / (j + 1)))
+	g.draw_set_transform(_stage_op.pos, 0.0, Vector2(s * flip, s))
+	g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 ## 推镜（run/cam_fx.gd 读，§7.1）：瞄准 1.08 → 出招前 0.6 秒 1.12 → 0.4 秒拉回 1.0；按游戏时间算，纯画面
 var _cast_t := -99.0
 
 
 func cam_punch() -> float:
+	var sk: float = stage_k()
+	if sk > 0.0:
+		return lerpf(1.0, Bal.v("ult/stage_cam", 1.3), sk)
 	var ip: float = _imp_punch()
 	if ip > 1.0:
 		return ip
@@ -884,6 +975,7 @@ func _dim() -> float:
 ## 世界层（world.gd 在干员技能层之后）：瞄准指示 + 占位图形 + 主体层帧条（地面层帧条在 draw_world_back）
 func draw_world(w) -> void:
 	var dim: float = _dim()
+	_draw_stage(w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
 	for s in shapes:
 		if s.age < 0.0:
 			continue

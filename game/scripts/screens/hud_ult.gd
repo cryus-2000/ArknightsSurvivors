@@ -232,6 +232,8 @@ func _queue_slots(c0: Vector2, r0: float, r1: float, dir: float) -> Array:
 		if q.o == null:
 			continue
 		var r: float = r0 if i == 0 else r1
+		if i == 0 and q.info.has("link"):
+			r *= 1.35   # 技能连携：就绪提示再大一号
 		if i == 0:
 			var pk: float = clampf((_lit_t() - float(q.left)) / 0.15, 0.0, 1.0)
 			r *= 0.55 + 0.45 * (1.0 - (1.0 - pk) * (1.0 - pk))   # 弹出：0.15 秒从 55% 放大到整
@@ -264,6 +266,9 @@ func _queue_rings(fg: Tris, txt: Array[Callable], slots: Array, key: String) -> 
 			fg.arc(s.c, s.r + 3.0, 0.0, TAU, 3.0, Color(0.02, 0.03, 0.04, 0.7), 32)
 			fg.arc(s.c, s.r + 3.0, -PI / 2.0, -PI / 2.0 + TAU * k, 3.0, Color(cc.r, cc.g, cc.b, 0.35 + 0.65 * k), 32)
 			var kc: Vector2 = s.c + Vector2(0, -s.r - 16.0)
+			if s.q.info.has("link"):
+				var lc: Vector2 = s.c + Vector2(0, s.r + 18.0)
+				txt.append(func(): UI.text(g.hud, g.font, lc + Vector2(-80.0, 6.0), "技能连携", 16, Color(1.0, 0.8, 0.45), HORIZONTAL_ALIGNMENT_CENTER, 160.0, 4))
 			if key != "":
 				var kw: float = g.font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(11)).x + 10.0
 				fg.rect(Rect2(kc - Vector2(kw / 2.0, 8.0), Vector2(kw, 16.0)), Color(0.03, 0.035, 0.045, 0.85))
