@@ -864,6 +864,9 @@ func in_sanctuary(p: Vector2) -> bool:
 
 ## 主控本该倒下时，任一干员阻止（幽灵鲨 S2）
 func prevent_death() -> bool:
+	if g.ult != null and g.t < float(g.ult.ev.get("undying_until", -1.0)):
+		g.hp = 1.0   # 归溟幽灵鲨连携（docs/198 §5.2）：这段时间里队长生命不会低于 1
+		return true
 	for o in ops:
 		if o.has_method("prevent_death") and o.prevent_death():
 			return true
