@@ -382,6 +382,7 @@ func update(dt: float) -> void:
 		_tick_recall(dt)
 	_tick_lead(dt)
 	_tick_stamina(dt)
+	_tick_order(dt)
 	_tick_hp(dt)
 	_tick_rush_buff()
 	if pf:
@@ -516,6 +517,68 @@ func apply_command(id: String) -> void:
 			set_priority(1)
 		"boss":
 			set_priority(0)
+		"point", "focus":
+			g.pick.begin(id)   # 原型：进入选点阶段（command_pick.gd）
+
+
+## ---------------------------------------------------------------- 指点（示意原型，docs/196；command/target_proto = 0 时永远不会有指令）
+## order_kind：""（无，原来的自动突击）/ "point"（点位：全队去 order_pos、在半径 command/order_pt_r 内作战）/ "focus"（集火：全队打 order_target）
+var order_kind := ""
+var order_pos := Vector2.INF
+var order_target = null
+var _order_idle := 0.0
+
+
+func apply_order(mode: String, pt: Vector2, target) -> bool:
+	if not cmd_on():
+		return false
+	if stance != ROAM:
+		if not can_roam():
+			if g.get("vfx") != null:
+				g.vfx.add_text(g.ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)
+			return false
+		set_stance(ROAM)
+	order_kind = mode
+	order_pos = pt
+	order_target = target if mode == "focus" else null
+	_order_idle = 0.0
+	for o in ops:
+		o.roam_tgt = null
+	stance_log.append([g.t, 20 if mode == "point" else 21])
+	_stance_voice(ROAM, false)
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f order=%s" % [g.t, mode])
+	return true
+
+
+func clear_order() -> void:
+	order_kind = ""
+	order_pos = Vector2.INF
+	order_target = null
+	_order_idle = 0.0
+
+
+## 点位指令：圈里没有敌人超过 command/order_idle 秒就自动归队（不空耗作战时限）；集火目标死了 = 指令结束（继续自动突击）；队长走远（> order_break）归队
+func _tick_order(dt: float) -> void:
+	if order_kind == "":
+		return
+	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) and order_kind == "point":
+		set_stance(RECALL)
+		return
+	if order_kind == "focus":
+		if order_target == null or order_target.dead:
+			clear_order()
+		return
+	var R: float = Bal.v("command/order_pt_r", 240.0) + 80.0
+	var any := false
+	for e in g.enemies_sys.nearest(1, R, order_pos):
+		any = not e.dead
+	if any:
+		_order_idle = 0.0
+	else:
+		_order_idle += dt
+		if _order_idle >= Bal.v("command/order_idle", 2.5):
+			set_stance(RECALL)
 
 
 func set_priority(p: int) -> void:
@@ -788,6 +851,8 @@ func set_stance(s: int) -> void:
 	if s == stance:
 		return
 	stance = s
+	if s != ROAM:
+		clear_order()   # 指点（原型，docs/196）：不在突击就没有指令
 	if s == ROAM:
 		sorties_n += 1
 		_sortie_down = false
