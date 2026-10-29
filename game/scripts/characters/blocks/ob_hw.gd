@@ -453,6 +453,8 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "arrive_stun_elite1", p, ctx, false, 0.0, 3.0)   # 精一起改用这个值（精英化节点的「锚定」）
 			if b.has("pull_cc") and not b.pull_cc is bool:
 				errs.append(p + ".pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默，乌尔比安）")
+			if b.has("heavy_half") and not b.heavy_half is bool:
+				errs.append(p + ".heavy_half 应是 true / false（当队长时精英与自爆怪只拖半程，歌蕾蒂娅）")
 			if b.has("drag_only") and not str(b.drag_only) in ["all", "ranged"]:
 				errs.append(p + ".drag_only 只能是 all / ranged（只拖回远程怪）")
 			_src(b, p, ctx, true)

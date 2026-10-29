@@ -1,6 +1,6 @@
 extends Node
 ## 歌蕾蒂娅钩索把人拉到身前（10-24）：godot --headless --path game res://tests/gladiia_hook_test.tscn -- --regression --balance --seed=1 --op=gladiia
-## 钩索瞄准的那名敌人（普通怪 / 精英）一定被拖到身前 hook_front 附近；更近的敌人不被推出去；Boss 不受影响。
+## 钩索瞄准的那名敌人（普通怪）一定被拖到身前 hook_front 附近（她当队长时 hook_front_leader，docs/196 §3.2）；精英与自爆怪当队长时只拖半程；更近的敌人不被推出去；Boss 不受影响。
 ## 全部通过时打印 "GLADIIA HOOK failures=0"。
 
 var game: Node
@@ -24,7 +24,8 @@ func _process(_d: float) -> void:
 	ok(o != null, "歌蕾蒂娅在编队里（--op=gladiia）")
 	if o != null:
 		test_pull(o, false)
-		test_pull(o, true)
+		test_half(o, "精英", "bone", true)
+		test_half(o, "自爆怪", "runner", false)
 		test_near_not_pushed(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("GLADIIA HOOK failures=%d" % fails)
@@ -38,8 +39,8 @@ func ok(cond: bool, what: String) -> void:
 		printerr("FAIL: ", what)
 
 
-func spawn(pos: Vector2, elite := false) -> Dictionary:
-	var e: Dictionary = game.spawner.spawn_enemy("runner", pos)
+func spawn(pos: Vector2, elite := false, kind := "bone") -> Dictionary:
+	var e: Dictionary = game.spawner.spawn_enemy(kind, pos)
 	e.hp = 99999.0
 	e.max_hp = 99999.0
 	if elite:
@@ -67,7 +68,8 @@ func step(o, dt := 1.0 / 60.0) -> void:
 
 
 func hook_dist() -> float:
-	return float(game.squad.get_op("gladiia").base("hook_front", 230.0))
+	var o = game.squad.get_op("gladiia")
+	return float(o.base("hook_front_leader", 175.0)) if o.is_leader else float(o.base("hook_front", 110.0))
 
 
 func test_pull(o, elite: bool) -> void:
@@ -81,8 +83,24 @@ func test_pull(o, elite: bool) -> void:
 		if not o.hw.hooks.is_empty() and str(o.hw.hooks[0].phase) == "drag":
 			e.hp = 99999.0
 	var d1: float = e.pos.distance_to(o.pos)
-	ok(d0 - d1 > 80.0, "%s：被钩后明显拉近（%.0f → %.0f）" % [tag, d0, d1])
+	ok(d0 - d1 > 40.0, "%s：被钩后明显拉近（%.0f → %.0f）" % [tag, d0, d1])
 	ok(d1 < hook_dist() + 40.0, "%s：到位在 hook_front %.0f 附近（实得 %.0f）" % [tag, hook_dist(), d1])
+
+
+## 当队长：精英 / 自爆怪只拖半程（落点在原位与 hook_front_leader 之间）
+func test_half(o, tag: String, kind: String, elite: bool) -> void:
+	reset(o)
+	var e := spawn(o.pos + Vector2(236, 0), elite, kind)
+	var d0: float = e.pos.distance_to(o.pos)
+	o.start_attack(e.pos)
+	for i in 150:
+		step(o)
+		if not o.hw.hooks.is_empty() and str(o.hw.hooks[0].phase) == "drag":
+			e.hp = 99999.0
+	var d1: float = e.pos.distance_to(o.pos)
+	var half: float = 0.5 * (d0 + hook_dist())
+	ok(o.is_leader, "%s：测试时歌蕾蒂娅是队长" % tag)
+	ok(d0 - d1 > 15.0 and absf(d1 - half) < 25.0, "%s：只拖半程（%.0f → %.0f，半程约 %.0f）" % [tag, d0, d1, half])
 
 
 func test_near_not_pushed(o) -> void:
