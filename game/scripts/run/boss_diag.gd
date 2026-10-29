@@ -35,6 +35,28 @@ static func step(g, e: Dictionary, dt: float) -> void:
 	if st or br or se: a.blocked += dt
 	if not a.has("kinds"):
 		a.kinds = {}
+	# 伊祖米克子代（claude/izumik-tune 测）：第一次看到记出生时刻；死于伤害（hp <= 0）记清掉用时，其余消失算被吸收；前 30 秒每秒记存活数
+	if str(e.type) == "izumik":
+		if not a.has("off"):
+			a.off = {}
+			a.off_curve = []
+		var live := {}
+		for o in g.enemies:
+			if str(o.get("type", "")) == "offspring" and not o.dead:
+				live[int(o.id)] = o
+				if not a.off.has(int(o.id)):
+					a.off[int(o.id)] = {"t0": a.t, "t1": -1.0, "how": "", "ref": o}
+		for id in a.off:
+			var r: Dictionary = a.off[id]
+			if float(r.t1) < 0.0 and not live.has(id):
+				r.t1 = a.t
+				var ref = r.ref
+				r.how = "kill" if (ref is Dictionary and float(ref.get("hp", 1.0)) <= 0.0) else "absorb"
+		if a.t <= 30.5 and int(a.t) >= a.off_curve.size():
+			a.off_curve.append(live.size())
+		a.izu_layers = int(e.get("izu_layers", 0))
+		a.absorb_n = int(e.get("absorb_n", 0))
+		a.izu_stacks = int(e.get("izu_stacks", 0))
 	for b in g.ebullets:
 		var v = b.get("vel", Vector2.ZERO)
 		var sp: float = (v as Vector2).length() if v is Vector2 else 0.0
@@ -155,6 +177,22 @@ static func report(g, why: String) -> void:
 		o.acts = a.acts
 		o.phase_t = a.phase_t
 		o.kinds = a.get("kinds", {})
+		if a.has("off"):
+			var kt: Array = []
+			var nk := 0
+			var na := 0
+			for id in a.off:
+				var r: Dictionary = a.off[id]
+				if r.how == "kill":
+					nk += 1
+					kt.append(float(r.t1) - float(r.t0))
+				elif r.how == "absorb":
+					na += 1
+			var mean_k := 0.0
+			for x in kt:
+				mean_k += x
+			o.off = {"spawned": a.off.size(), "killed": nk, "absorbed": na, "clear_t": snappedf(mean_k / maxf(1.0, kt.size()), 0.01), "curve": a.off_curve,
+				"izu_layers": int(a.get("izu_layers", 0)), "absorb_n": int(a.get("absorb_n", 0)), "izu_stacks": int(a.get("izu_stacks", 0))}
 		o.lasers = a.get("lasers", {})
 		if phit.has(k):
 			var p: Dictionary = phit[k]
