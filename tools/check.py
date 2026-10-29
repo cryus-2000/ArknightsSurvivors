@@ -980,7 +980,7 @@ SCENE_REGRESSIONS = {
     "response_skill": ("干员响应动作（开技能）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=suzuran", "--squad=texas"]),
     "response_p2a": ("干员响应动作第二批一组（冲刺 / 站定）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=wisadel", "--squad=exusiai,skadi"]),
     "response_p2b": ("干员响应动作第二批一组（站定 / 开技能）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=lumen", "--squad=logos,skalter"]),
-    "response_p2c": ("干员响应动作第二批一组（推进之王跟进锤击）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=siege"]),
+    "response_p2c": ("推进之王无冲刺响应（用户 10-29 删跟进锤击）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=siege"]),
     "response_p2d": ("干员响应动作第二批二组（塞雷娅 / 凯尔希）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=saria,kaltsit"]),
     "response_p2e": ("干员响应动作第二批二组（水月 / 归溟幽灵鲨）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=mizuki,specter_unchained"]),
     "response_p2f": ("干员响应动作第二批二组（艾丽妮 / 安洁莉娜）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=irene,angelina"]),
