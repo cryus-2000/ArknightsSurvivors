@@ -1,0 +1,3 @@
+基线：在 bfa2bcd0（/home/user/ArknightsSurvivors/.claude/worktrees/trace-bfa2bcd0-2212）上跑 seed 4 angelina 600 秒……
+/home/user/ArknightsSurvivors/build/trace_cache/bfa2bcd0_4_angelina_600_26aa8f.txt
+TRACE 601 行逐行相同（BALANCE 行有差异，多半是画面峰值 / prof 字段，需要时自己比）

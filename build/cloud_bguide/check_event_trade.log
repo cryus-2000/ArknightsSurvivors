@@ -1,0 +1,5 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_093555
+通过 数据 JSON 解析  game/data 全部可解析
+通过 事件改版：卡组可复现 / 首通前无结局卡 / 交易保底与无代价上限 / 代价灰掉 / 主流派 / 委托 / 暂离归队 / 途中路口（docs/173）  EVENT TRADE: 0 failures
+
+快检通过：2 项，失败 0 项，耗时 15 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）

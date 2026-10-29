@@ -1,0 +1,3 @@
+基线：在 bfa2bcd0（/home/user/ArknightsSurvivors/.claude/worktrees/trace-bfa2bcd0-1475）上跑 seed 1 skalter 600 秒……
+/home/user/ArknightsSurvivors/build/trace_cache/bfa2bcd0_1_skalter_600_f007b5.txt
+TRACE 381 行逐行相同（BALANCE 行有差异，多半是画面峰值 / prof 字段，需要时自己比）
