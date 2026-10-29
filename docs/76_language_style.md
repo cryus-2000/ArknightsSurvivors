@@ -218,3 +218,7 @@
 https://prts.wiki/w/博士 只有一条情报资料，能支持的只有「失去记忆，重要的事情都回忆不起来」。旧文里的「三大创始人之一」「拥有生物学、神经工程学博士学历」「极强的指挥能力」，这一页都找不到，已删除。新文字是：「罗德岛的博士。失去了过去的记忆，重要的事情都回忆不起来。这次行动中负责指挥小队。」最后一句说的是本作的前提，不是原作设定。
 
 2026-10-14 扩写（用户：博士介绍太简短）。档案只加可核实的事实：被罗德岛小队在切尔诺伯格的机密地点救出、随后在整合运动袭击切尔诺伯格时接手调集作战小队，出处为主线序章剧情 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/story/obt/main/level_main_00-01_beg.txt （「之前我们救出博士的位置，相当机密」「调集队伍吧」）。性别、出身地、种族在原作里没有公开，填「未公开」。本作里的作用（跟随、不受击、属性来源、灯火、升级卡、排异）只写在图鉴机制行，不写进档案（§1.1、X9）。
+
+### A.7 招募卡干员简介（2026-10-29）
+
+2026-10-29 用户定：升级三选一里的招募卡 / 换人卡正文改显示一句干员简介（`gallery.intro`，20 人），图鉴仍用机制说明 `gallery.desc`。简介按 PRTS 客观履历 / 基础档案转述，数据对照 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/handbook_info_table.json 与 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json 。
