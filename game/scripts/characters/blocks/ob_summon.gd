@@ -458,6 +458,38 @@ static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
 	return hits
 
 
+## 节点「清创」（wide_arc，凯尔希，docs/202；由 _mf_claw 在每次爪击命中后调用）：Mon3tr 的爪击在同一名敌人身上累积 clear_n 次（clear_win 秒内）后，该敌人身上爆开一圈
+## （半径 clear_r，Mon3tr 攻击 clear_mult 的真实伤害，来源「Mon3tr · 清创」）并清空累积。一次爪击最多触发 2 处爆开（爆开本身不计累积）
+static func sm_debride(o, hits: Array) -> void:
+	var g = o.g
+	var need: int = int(o.base("clear_n", 3.0))
+	var win: float = o.base("clear_win", 4.0)
+	var booms: Array = []
+	for e in hits:
+		if e.dead:
+			continue
+		var n: int = (int(e.get("m3_cl", 0)) if g.t - float(e.get("m3_clt", -99.0)) <= win else 0) + 1
+		e["m3_clt"] = g.t
+		if n >= need and booms.size() < 2:
+			e["m3_cl"] = 0
+			booms.append(e)
+		else:
+			e["m3_cl"] = mini(n, need - 1)
+			var c: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)   # 累积 1 / 2 次：身上留一道（两道）爪痕
+			for q in n:
+				var off: float = (q - (n - 1) * 0.5) * 5.0
+				o.fx({"kind": "line", "pos": c + Vector2(off - 5.0, -6.0), "to": c + Vector2(off + 5.0, 6.0), "life": 0.5, "col": Color(1.0, 0.45, 0.35), "w": 1.5})
+	var r: float = o.base("clear_r", 70.0)
+	for e in booms:
+		var dmg: float = sm_dmg(o, {"atk_key": "m_atk", "mult": o.base("clear_mult", 0.4), "power": true})
+		o.area_hit("Mon3tr · 清创", e.pos, r, dmg, 0.0, 0.0, ["summon"])
+		var c2: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.4)
+		o.fx({"kind": "ring", "pos": e.pos, "r": r, "r0": 10.0, "life": 0.3, "col": Color(1.6, 0.15, 0.12), "floor": true, "keep": true, "w": 3.0})
+		o.fx({"kind": "glow", "pos": c2, "r": r * 0.6, "life": 0.22, "col": Color(2.0, 0.3, 0.15), "alpha": 0.6})
+		for k in 8:
+			o.fx({"kind": "spark", "pos": c2, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(90.0, 190.0), "life": 0.32, "col": Color(1.7, 0.25, 0.15), "sz": 2.5})
+
+
 ## 2.5D 排序条目（data_operator.extra_bodies）
 static func sm_bodies(o) -> Array:
 	var out: Array = []
@@ -1568,6 +1600,8 @@ static func _mf_claw(o, s: Dictionary, kd: Dictionary, mult: float, second: bool
 		for stt in a.get("on_hit", _EA):
 			for e in hits:
 				apply_status(o, e, stt)
+		if not hits.is_empty() and not o.taken.is_empty() and "wide_arc" in o.taken and str(o.id) == "kaltsit":
+			sm_debride(o, hits)   # docs/202 清创：爪击累积
 		if i > 0 and hits.is_empty():
 			continue   # 身后一击没打到时不画（刀光会正好盖在本干员和主控身上，docs/45 #6）
 		if a.has("fx"):
