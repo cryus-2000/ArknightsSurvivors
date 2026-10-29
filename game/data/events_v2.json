@@ -541,7 +541,6 @@
    "name": "苦路",
    "pool": "common",
    "trade": true,
-   "repeat": true,
    "lanes": [
     "shield",
     "heal"
@@ -590,8 +589,7 @@
     {
      "label": "提前离开",
      "desc": "还是算了",
-     "ops": [],
-     "end": true
+     "ops": []
     }
    ]
   },
@@ -600,8 +598,6 @@
    "name": "梦中之会",
    "pool": "common",
    "trade": true,
-   "repeat": true,
-   "max_picks": 3,
    "lanes": [
     "control",
     "shield",
@@ -650,8 +646,7 @@
     {
      "label": "直接醒来",
      "desc": "梦境不是现实",
-     "ops": [],
-     "end": true
+     "ops": []
     }
    ]
   },

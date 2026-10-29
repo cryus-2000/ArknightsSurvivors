@@ -179,6 +179,7 @@ func _process(_dt: float) -> void:
 			break
 	var stuck := 0
 	var ran := 0
+	var reopened: Array = []   # 11（用户 10-29「这个不期而遇可以选择两个奖励」）：选完一项后同一件事件不得再弹一次（不能拿两份奖励）
 	for ev in E.events:
 		if not ev.has("src") or ev.get("pool", "") != "common":
 			continue
@@ -211,6 +212,8 @@ func _process(_dt: float) -> void:
 				continue
 			game.progression.pick(idx)
 			ran += 1
+			if game.state == game.S.CHOICE and game.choice_kind == "event" and game.choices.any(func(c): return str(c.get("id", "")).begins_with(str(ev.id) + ":")):
+				reopened.append("%s:%d" % [ev.id, k])
 			var guard := 0
 			while game.state == game.S.CHOICE and game.choice_kind == "event" and guard < 12:
 				guard += 1
@@ -224,6 +227,8 @@ func _process(_dt: float) -> void:
 	_close()
 	print("ET options run: %d" % ran)
 	check(ran >= 40 and stuck == 0, "every v2 option resolves back to battle (%d stuck)" % stuck)
+	check(reopened.is_empty(), "no v2 event offers a second pick after choosing (%s)" % [reopened])
+	check(not E.events.any(func(e): return e.has("src") and e.get("repeat", false)), "no v2 event is repeatable")
 	print("ET step 10")
 	# 10 诡意行商 = 进一次商店：地图上的商人与货架不受影响，买一件后关店回战斗
 	_close()
