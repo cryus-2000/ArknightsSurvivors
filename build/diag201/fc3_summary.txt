@@ -1,0 +1,12 @@
+## fc3_knight
+== fc3_knight.jsonl jobs 18 err 0
+knight_boss  fight  88.8  taken/min 207.7 (142% maxhp/min)  TTK  42.3s  maxhp 128  hits/min 8.9  wins 15/18
+== fc3_knight.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     88.80    46.65     3.58   301.50    11.75     0.80     0.32     0.00     0.00     0.04     0.02     0.12     0.11     0.33 {'cap': 3, 'win': 15}
+## fc3_knight18
+== fc3_knight18.jsonl jobs 18 err 0
+knight_boss  fight  88.3  taken/min 208.6 (144% maxhp/min)  TTK  41.6s  maxhp 128  hits/min 8.1  wins 15/18
+== fc3_knight18.jsonl jobs 18 errors 0 timeouts 0
+boss          fight_t dmg_warn bul_per_  bul_spd hits_per     wind      brk     stun     seal     hold      inv    shake    flash  blocked  results
+knight_boss     88.30    46.20     3.59   297.50    11.75     0.80     0.32     0.00     0.00     0.05     0.02     0.12     0.10     0.32 {'win': 15, 'cap': 3}
