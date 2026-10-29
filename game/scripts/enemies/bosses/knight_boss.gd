@@ -143,7 +143,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.kn_dashing = false
 		var la: Dictionary = e.get("last_act", {})
 		if str(la.get("act", "")) == "dash" and str(e.get("brk_label", "")) != "眩晕":
-			ice_shards(e, e.pos, aim(e.pos), 3, 0.8, 150.0)   # 冰屑一律朝队长（10-28 用户「boss 的子弹没有追着人打」）
+			ice_shards(e, e.pos, aim(e.pos), int(round(3 * Bal.v("boss/knight_dense_k", 1.0))), 0.8, 150.0)   # 冰屑一律朝队长（10-28 用户「boss 的子弹没有追着人打」）
 			if e.phase == 2:
 				_crack_charge(e, float(la.get("ang", 0.0)))
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
@@ -907,7 +907,7 @@ func _drive_end(e: Dictionary, edge: bool) -> void:
 		Sfx.play("stake_hit", 2.0, 1.0, 0.0)
 		Sfx.play("boom", -4.0, 1.2, 0.0)
 		g.vfx.shake_screen(0.8)
-		ice_shards(e, e.pos, aim(e.pos), 5, 1.0, 150.0)
+		ice_shards(e, e.pos, aim(e.pos), int(round(5 * Bal.v("boss/knight_dense_k", 1.0))), 1.0, 150.0)   # 密度招：长驱冲锋收尾冰屑（docs/201 §8）
 	else:
 		t = Bal.v("boss/knight_drive_brk", 1.0)
 		g.combat.start_break(e, t)
