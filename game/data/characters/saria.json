@@ -48,6 +48,11 @@
   "orb_shatter_n": 3,
   "calc_slow": 0.15,
   "calc_dur": 2.0,
+  "slot_n": 10,
+  "slot_regrow": 3.0,
+  "slot_kb": 140,
+  "slot_stun": 0.2,
+  "slot_touch": 14,
   "pillar_n": 6,
   "pillar_r": 110,
   "pillar_life": 2.0,
@@ -316,7 +321,7 @@
    "name": "钙质化",
    "en": "CALCIFICATION",
    "sp": 22,
-   "desc": "队长周围升起琥珀晶柱并展开 {$s3_dur} 秒钙质化区域（半径 {$s3_r}），区域内敌人减速、受到的伤害 +10%，队长每秒回复 {$s3_heal*100}% 最大生命，并持续清除寒冷、束缚",
+   "desc": "队长周围升起 {$slot_n} 根琥珀晶柱（敌人一碰即碎并被击退，{$slot_regrow} 秒后原位重新长出）并展开 {$s3_dur} 秒钙质化区域（半径 {$s3_r}），区域内敌人减速、受到的伤害 +10%，队长每秒回复 {$s3_heal*100}% 最大生命，并持续清除寒冷、束缚",
    "heal": true,
    "cleanse": [
     "寒冷",
@@ -466,7 +471,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「钙质化」：队长周围升起琥珀晶柱并展开 {$s3_dur} 秒钙质化区域（半径 {$s3_r}），区域内敌人减速、受到的伤害 +10%，队长每秒回复 {$s3_heal*100}% 最大生命；普通攻击强化「莱茵充能护服」：护服每 {$suit_seg_t} 秒充满一格（脚下 4 格琥珀），满格后下一次拳击变为以自身为中心的环形冲击（半径 {$suit_r}、拳击 ×{$suit_mult}、强力击退），并在周围升起 {$pillar_n} 根琥珀晶柱 {$pillar_life} 秒：敌人无法穿过，碰到晶柱的敌人受到拳击 {$pillar_mult*100}% 伤害（精英可挤过，Boss 除外）",
+   "desc": "解锁三技能「钙质化」：队长周围升起 {$slot_n} 根琥珀晶柱（敌人一碰即碎并被击退，{$slot_regrow} 秒后原位重新长出）并展开 {$s3_dur} 秒钙质化区域（半径 {$s3_r}），区域内敌人减速、受到的伤害 +10%，队长每秒回复 {$s3_heal*100}% 最大生命；普通攻击强化「莱茵充能护服」：护服每 {$suit_seg_t} 秒充满一格（脚下 4 格琥珀），满格后下一次拳击变为以自身为中心的环形冲击（半径 {$suit_r}、拳击 ×{$suit_mult}、强力击退），并在周围升起 {$pillar_n} 根琥珀晶柱 {$pillar_life} 秒：敌人无法穿过，碰到晶柱的敌人受到拳击 {$pillar_mult*100}% 伤害（精英可挤过，Boss 除外）",
    "attack": {
     "name": "莱茵充能护服",
     "desc": "护服每 {$suit_seg_t} 秒充满一格，4 格满后下一次拳击变为以自身为中心的环形冲击（半径 {$suit_r}、拳击 ×{$suit_mult}、强力击退），并在周围升起 {$pillar_n} 根琥珀晶柱 {$pillar_life} 秒：敌人无法穿过，碰到晶柱的敌人受到拳击 {$pillar_mult*100}% 伤害（精英可挤过，Boss 除外）"
@@ -626,6 +631,11 @@
     "do": [
      {
       "verb": "calc_field",
+      "slots": "$slot_n",
+      "regrow": "$slot_regrow",
+      "kb": "$slot_kb",
+      "stun": "$slot_stun",
+      "touch": "$slot_touch",
       "dur": "$s3_dur",
       "r": "$s3_r",
       "heal": "$s3_heal",
