@@ -209,7 +209,7 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 		var ang: float = base + PI * float(i) / float(n) + 0.12 * float((i * 5) % 3 - 1)
 		var d: Vector2 = Vector2.from_angle(ang)
 		var off: float = (float((i * 37) % 9) - 4.0) / 4.0 * R * 0.4
-		var ln: float = 700.0 + float((i * 53) % 5) * 50.0
+		var ln: float = 2.0 * R + 300.0 + float((i * 53) % 5) * 40.0   # 贯穿刀网并向外延伸（用户 10-29：笔直、细长、贯穿）
 		var mid: Vector2 = c + d.orthogonal() * off
 		lines.append([mid - d * ln * 0.5, mid + d * ln * 0.5])
 	# 剑雨落点：沿刀痕每 40 一把，只落在落点圆内；按序号交错，各刀痕同时往外铺
@@ -246,15 +246,31 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 		"rounds": rounds, "rain": [], "sv": [], "stride": stride, "back": rt == "back", "back_done": false, "end": 0.0}
 
 
-## 刀痕帧条（fx_ult_texas_slash_front，中心原点、沿 x 轴 384 × 40）：旋转到刀痕方向、横向拉到刀痕长
-static func _tx_slash(u, ln: Array, opt: Dictionary) -> void:
+## 斩线（用户 10-29：次元斩式「乱刃」——笔直、细长、贯穿，白芯 + 冷青蓝辉光、两端尖细，1–2 帧出现、停 ult/tx_blade_hold 秒后碎裂）。
+## Codex 的 fx_ult_texas_slash_front 偏宽偏弧，这里改程序画（地面残痕帧条照用）
+const TX_GLOW := Color(0.45, 0.85, 1.0)
+
+
+static func _tx_blade(u, ln: Array) -> void:
+	var hold: float = Bal.v("ult/tx_blade_hold", 0.2)
+	u.shape({"kind": "blade", "a": ln[0], "b": ln[1], "w": Bal.v("ult/tx_blade_w", 10.0), "col": Color.WHITE, "glow": TX_GLOW, "grow": 0.035, "life": hold + 0.035})
+
+
+## 碎裂：每条斩线断成 8 段，各段往两侧飞散、略转一点角度、0.25 秒淡出
+static func _tx_shatter(u, ln: Array, i0: int) -> void:
 	var a: Vector2 = ln[0]
 	var b: Vector2 = ln[1]
-	var op: Dictionary = opt.duplicate()
-	op["o"] = Vector2(384, 40)
-	op["ang"] = (b - a).angle()
-	op["sx"] = a.distance_to(b) / (384.0 * u.g.PX)
-	u.strip("fx_ult_texas_slash_front", (a + b) * 0.5, op)
+	var d: Vector2 = (b - a).normalized()
+	var nrm: Vector2 = d.orthogonal()
+	for k in 8:
+		var p0: Vector2 = a.lerp(b, (k + 0.12) / 8.0)
+		var p1: Vector2 = a.lerp(b, (k + 0.88) / 8.0)
+		var m: Vector2 = (p0 + p1) * 0.5
+		var tw: float = 0.18 * (1.0 if (k + i0) % 2 == 0 else -1.0)
+		var h: Vector2 = (p1 - p0).rotated(tw) * 0.5
+		var sgn: float = 1.0 if (k * 3 + i0) % 2 == 0 else -1.0
+		u.shape({"kind": "blade", "a": m - h, "b": m + h, "w": 5.0, "col": Color(0.85, 0.97, 1.0), "glow": TX_GLOW, "life": 0.25,
+			"v": nrm * sgn * (70.0 + 25.0 * float((k * 7 + i0) % 4)) + d * 30.0 * float((k % 3) - 1)})
 
 
 static func _tx_step(u, a: Dictionary, o) -> bool:
@@ -264,18 +280,23 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 	var lines: Array = a.lines
 	var n: int = lines.size()
 	while int(a.drawn) < n and t >= float(a.drawn) * 0.5 / float(n):
-		# 画网：刀痕细线显现（帧段 start 0–2，停在 f2 等斩开）
-		_tx_slash(u, lines[int(a.drawn)], {"seg": [0, 2], "life": maxf(0.05, 0.75 - t)})
+		# 画网：一道道冷色发丝线显现（斩开前的预兆）
+		var pl: Array = lines[int(a.drawn)]
+		u.shape({"kind": "line", "a": pl[0], "b": pl[1], "w": 1.5, "col": TX_GLOW, "life": maxf(0.05, 0.75 - t)})
 		a.drawn = int(a.drawn) + 1
 	if not a.cut and t >= 0.75:
 		a.cut = true
-		for ln in lines:   # 斩开：burst 3–5 → out 6–7；地面残痕沿刀痕拼接，0.8 秒走完 4 帧淡出（末帧随实例结束）
-			_tx_slash(u, ln, {"seg": [3, 7]})
+		for ln in lines:   # 斩开：5–7 条直线斩痕同时出现、停一下再碎；地面残痕沿刀痕拼接，0.8 秒走完 4 帧淡出
+			_tx_blade(u, ln)
 			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 0.8})
 		_ring(u, a.c, a.R, a.R * 0.3, hi, 0.4, 10.0)
 		_hit_circle(u, a, o, a.c, a.R, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "斩开"})
 		o.screen_shake(0.6)
 		o.play_vis_anim("attack")
+	if a.cut and not a.get("shattered", false) and t >= 0.75 + Bal.v("ult/tx_blade_hold", 0.2):
+		a["shattered"] = true
+		for li in lines.size():
+			_tx_shatter(u, lines[li], li)
 	var sw: Array = a.swords
 	var last := 0.0
 	for ri in a.rounds.size():

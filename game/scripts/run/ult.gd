@@ -722,6 +722,8 @@ static func _col(o) -> Color:
 ##   band   {a, b, w, col, fill}       长方形带（a→b，总宽 w）
 ##   line   {a, b, w, col}             线
 ##   dots   {c, r, n, col}             简单粒子（n 个点散在 r 内，位置按 i 定、不抽随机数）
+##   blade  {a, b, w, col, glow}       两端尖细的直线斩痕（菱形：中段宽 w，白芯 + glow 色辉光宽 w × 3）；grow 秒内从中间拉满
+##   v      Vector2（可选）            每秒位移（碎片飞散用；c / a / b 一起挪）
 ## 共有：life（秒，游戏时间）、delay（秒后才出现）；Boss 战整体透明度 × 0.5（§7.4）
 func shape(s: Dictionary) -> void:
 	s["max"] = float(s.get("life", 0.4))
@@ -737,6 +739,12 @@ func _tick_shapes(dt: float) -> void:
 		s.age += dt
 		if s.age >= s.max:
 			shapes.remove_at(k)
+			continue
+		if s.has("v") and s.age > 0.0:
+			var dv: Vector2 = s.v * dt
+			for key in ["c", "a", "b"]:
+				if s.has(key):
+					s[key] = s[key] + dv
 
 
 func _cutin(ld, k: String) -> void:
@@ -1004,6 +1012,17 @@ func draw_world(w) -> void:
 				w.tb_quad(s.a + d, s.b + d, s.b - d, s.a - d, Color(col, float(s.get("fill", 0.3)) * k * dim))
 			"line":
 				w.tb_line(s.a, s.b, Color(col, 0.9 * k * dim), float(s.get("w", 3.0)))
+			"blade":
+				var gr: float = float(s.get("grow", 0.0))
+				var gk: float = clampf(s.age / gr, 0.0, 1.0) if gr > 0.0 else 1.0
+				var m: Vector2 = (s.a + s.b) * 0.5
+				var ha: Vector2 = (s.a - m) * gk
+				var nrm: Vector2 = (s.b - s.a).normalized().orthogonal()
+				var fa: float = 1.0 if s.age < s.max - 0.08 else maxf(0.0, (s.max - s.age) / 0.08)   # 停住时满亮，最后 0.08 秒淡出
+				var bw: float = float(s.get("w", 8.0))
+				var gc: Color = s.get("glow", Color(0.45, 0.85, 1.0))
+				w.tb_quad(m + ha, m + nrm * bw * 1.5, m - ha, m - nrm * bw * 1.5, Color(gc, 0.35 * fa * dim))
+				w.tb_quad(m + ha, m + nrm * bw * 0.5, m - ha, m - nrm * bw * 0.5, Color(col, fa * dim))
 			"dots":
 				var n: int = int(s.get("n", 12))
 				for i in n:
