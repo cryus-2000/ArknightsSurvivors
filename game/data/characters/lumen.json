@@ -745,23 +745,6 @@
       "banner": "沛霖：照亮范围永久扩大"
      },
      {
-      "sprite": {
-       "name": "fx_sunburst",
-       "scale": 0.6,
-       "tint": [
-        1,
-        1,
-        1,
-        0.75
-       ]
-      },
-      "at": "leader",
-      "off": [
-       0,
-       -84
-      ]
-     },
-     {
       "pfx": {
        "kind": "ring",
        "r": 160.0,

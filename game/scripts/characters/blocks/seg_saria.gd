@@ -638,7 +638,7 @@ static func _h4sa_draw_auras(o) -> void:
 		var R: float = float(sa.calc_b.get("r", 180.0))
 		var fade: float = clampf(float(sa.calc) / 0.6, 0.0, 1.0)
 		cv.draw_set_transform(c, 0.0, Vector2(1.0, 0.55))
-		pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
+		feather_ring(cv, R, H4_AMBER, 0.55 * fade, g.t)   # 10-29：不填充，改内羽边 + 光点
 		cv.draw_arc(Vector2.ZERO, R, 0.0, TAU, 48, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.45 * fade), 2.5)
 		for k in 6:
 			var dv := Vector2.from_angle(k * TAU / 6.0 + g.t * 0.3)

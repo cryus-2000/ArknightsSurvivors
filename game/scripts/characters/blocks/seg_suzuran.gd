@@ -488,7 +488,7 @@ static func _h4sz_draw_auras(o) -> void:
 	var r: float = h4_fox_r(o, fl)
 	var on: bool = _h4_warm(o, fl) or float(sz.haze_t) > 0.0
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
+	feather_ring(cv, r, H4_FOX, 0.6 if on else 0.35, g.t)   # 10-29：不填充，改内羽边 + 光点
 	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, (0.45 if on else 0.25) + 0.06 * sin(g.t * 3.0)), 2.0)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var hr: Dictionary = _h4_hearth(o, fl)
@@ -599,7 +599,7 @@ static func _h4sz_draw_floor(o) -> void:
 		var al: float = clampf(s2.t / 0.15, 0.0, 1.0)
 		var rr: float = e.r + 10.0
 		cv.draw_set_transform(e.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
-		pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
+		pass
 		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 28, Color(2.0, 1.6, 0.8, 0.85 * al), 2.0)
 		cv.draw_arc(Vector2.ZERO, rr * 0.68, 0.0, TAU, 20, Color(2.0, 1.6, 0.8, 0.5 * al), 1.0)
 		for q in 4:
