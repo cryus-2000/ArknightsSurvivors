@@ -212,87 +212,6 @@ func tick(dt: float) -> void:
 		ring.pop_front()
 	while not ring_ctx.is_empty() and ring_ctx[0][0] < t - RING_S:
 		ring_ctx.pop_front()
-	if rich:
-		_snap(t)
-
-
-## lose_hp 调用（rich 下）：一次扣血的各级上限截前 / 截后量。one = 来源自带单次上限（围猎事件敌人），boss = Boss 保护（单发 / 持续 / 2 秒 / 满血保护合计），any = 任意来源 2 秒上限
-func cap_note(pre_all: float, pre_boss: float, pre_any: float, post: float, src: String, boss: bool) -> void:
-	if pre_all <= 0.0:
-		return
-	var one := pre_all - pre_boss
-	var bc := pre_boss - pre_any
-	var ac := pre_any - post
-	cap_stats.hits += 1
-	cap_stats.pre += pre_all
-	cap_stats.post += post
-	if post <= 0.0:
-		cap_stats.zero += 1
-	if one > 0.01:
-		cap_stats.one_n += 1
-		cap_stats.one_cut += one
-	if bc > 0.01:
-		cap_stats.boss_n += 1
-		cap_stats.boss_cut += bc
-	if ac > 0.01:
-		cap_stats.any_n += 1
-		cap_stats.any_cut += ac
-	if pre_all - post >= pre_all * 0.5 and pre_all - post > 1.0:
-		cap_stats.big_n += 1   # 被截掉一半以上的大头
-	var direct := src == "bullet" or src == "tear"
-	for p in DIRECT_PREFIX:
-		if src.begins_with(p):
-			direct = true
-	var nm := src
-	if src == "bullet" and hit_boss:
-		nm = "bullet_boss"   # Boss 弹与普通敌弹分开命名（dmg_log 里仍叫 bullet，别的报告不受影响）
-	var key: String = str(_attr(src)[0])
-	var t := snappedf(g.t, 0.1)
-	if not direct and not hits2.is_empty():
-		var l: Array = hits2[hits2.size() - 1]
-		if l[1] == nm and t - float(l[0]) < 0.5:
-			l[4] = snappedf(float(l[4]) + pre_all, 0.1)
-			l[5] = snappedf(float(l[5]) + post, 0.1)
-			l[6] = int(g.hp)
-			return
-	hits2.append([t, nm, key, 1 if (direct and hit_elite) else 0, snappedf(pre_all, 0.1), snappedf(post, 0.1), int(g.hp)])
-	while not hits2.is_empty() and float(hits2[0][0]) < g.t - RING_S:
-		hits2.pop_front()
-
-
-## 0.5 秒一格的死前时间线 + 险境快照（rich 下，tick 末尾）
-func _snap(t: float) -> void:
-	if t < tl_next:
-		return
-	tl_next = t + 0.5
-	var pp: Vector2 = g.ppos
-	var n150 := 0
-	var n300 := 0
-	var mask := 0
-	for e in g.enemies:
-		if e.dead:
-			continue
-		var d2: float = e.pos.distance_squared_to(pp)
-		if d2 < 90000.0:
-			n300 += 1
-			if d2 < 22500.0:
-				n150 += 1
-			if d2 < 40000.0:
-				mask |= 1 << posmod(int(floor((e.pos - pp).angle() / (TAU / 8.0))), 8)
-	var blocked := 0
-	for i in 8:
-		if (mask & (1 << i)) != 0:
-			blocked += 1
-	tl.append([snappedf(t, 0.1), int(g.hp), int(g.lamp), g.enemies.size(), n150, n300, g.ebullets.size() + g.lobs.size(), blocked,
-		1 if g.invuln > 0.0 else 0, g.dash_left(), g.squad.size()])
-	while not tl.is_empty() and float(tl[0][0]) < t - RING_S:
-		tl.pop_front()
-	if g.hp > 0.0 and g.hp < g.max_hp * 0.2 and near_miss.size() < 3 and t - near_cool >= 20.0:
-		near_cool = t
-		var tot := {}
-		for h in hits2:
-			tot[h[1]] = snappedf(float(tot.get(h[1], 0.0)) + float(h[5]), 0.1)
-		near_miss.append({"t": snappedf(t, 0.1), "hp": int(g.hp), "mhp": int(g.max_hp), "tl": tl.duplicate(true), "src": tot})
 	if g.floor_hits > floor_seen:
 		floor_seen = g.floor_hits
 		if floor_snaps.size() < 5:
@@ -425,6 +344,87 @@ func _snap(t: float) -> void:
 		hpmin_win = 100
 		lampmin_win = g.lamp
 		win_src = {}
+	if rich:
+		_snap(t)
+
+
+## lose_hp 调用（rich 下）：一次扣血的各级上限截前 / 截后量。one = 来源自带单次上限（围猎事件敌人），boss = Boss 保护（单发 / 持续 / 2 秒 / 满血保护合计），any = 任意来源 2 秒上限
+func cap_note(pre_all: float, pre_boss: float, pre_any: float, post: float, src: String, boss: bool) -> void:
+	if pre_all <= 0.0:
+		return
+	var one := pre_all - pre_boss
+	var bc := pre_boss - pre_any
+	var ac := pre_any - post
+	cap_stats.hits += 1
+	cap_stats.pre += pre_all
+	cap_stats.post += post
+	if post <= 0.0:
+		cap_stats.zero += 1
+	if one > 0.01:
+		cap_stats.one_n += 1
+		cap_stats.one_cut += one
+	if bc > 0.01:
+		cap_stats.boss_n += 1
+		cap_stats.boss_cut += bc
+	if ac > 0.01:
+		cap_stats.any_n += 1
+		cap_stats.any_cut += ac
+	if pre_all - post >= pre_all * 0.5 and pre_all - post > 1.0:
+		cap_stats.big_n += 1   # 被截掉一半以上的大头
+	var direct := src == "bullet" or src == "tear"
+	for p in DIRECT_PREFIX:
+		if src.begins_with(p):
+			direct = true
+	var nm := src
+	if src == "bullet" and hit_boss:
+		nm = "bullet_boss"   # Boss 弹与普通敌弹分开命名（dmg_log 里仍叫 bullet，别的报告不受影响）
+	var key: String = str(_attr(src)[0])
+	var t := snappedf(g.t, 0.1)
+	if not direct and not hits2.is_empty():
+		var l: Array = hits2[hits2.size() - 1]
+		if l[1] == nm and t - float(l[0]) < 0.5:
+			l[4] = snappedf(float(l[4]) + pre_all, 0.1)
+			l[5] = snappedf(float(l[5]) + post, 0.1)
+			l[6] = int(g.hp)
+			return
+	hits2.append([t, nm, key, 1 if (direct and hit_elite) else 0, snappedf(pre_all, 0.1), snappedf(post, 0.1), int(g.hp)])
+	while not hits2.is_empty() and float(hits2[0][0]) < g.t - RING_S:
+		hits2.pop_front()
+
+
+## 0.5 秒一格的死前时间线 + 险境快照（rich 下，tick 末尾）
+func _snap(t: float) -> void:
+	if t < tl_next:
+		return
+	tl_next = t + 0.5
+	var pp: Vector2 = g.ppos
+	var n150 := 0
+	var n300 := 0
+	var mask := 0
+	for e in g.enemies:
+		if e.dead:
+			continue
+		var d2: float = e.pos.distance_squared_to(pp)
+		if d2 < 90000.0:
+			n300 += 1
+			if d2 < 22500.0:
+				n150 += 1
+			if d2 < 40000.0:
+				mask |= 1 << posmod(int(floor((e.pos - pp).angle() / (TAU / 8.0))), 8)
+	var blocked := 0
+	for i in 8:
+		if (mask & (1 << i)) != 0:
+			blocked += 1
+	tl.append([snappedf(t, 0.1), int(g.hp), int(g.lamp), g.enemies.size(), n150, n300, g.ebullets.size() + g.lobs.size(), blocked,
+		1 if g.invuln > 0.0 else 0, g.dash_left(), g.squad.size()])
+	while not tl.is_empty() and float(tl[0][0]) < t - RING_S:
+		tl.pop_front()
+	if g.hp > 0.0 and g.hp < g.max_hp * 0.2 and near_miss.size() < 3 and t - near_cool >= 20.0:
+		near_cool = t
+		var tot := {}
+		for h in hits2:
+			tot[h[1]] = snappedf(float(tot.get(h[1], 0.0)) + float(h[5]), 0.1)
+		near_miss.append({"t": snappedf(t, 0.1), "hp": int(g.hp), "mhp": int(g.max_hp), "tl": tl.duplicate(true), "src": tot})
 
 
 ## 普通怪死亡时记一笔（combat 击杀结算调用）：按分钟 × 类型累计只数与受击次数，精英 / Boss / 友方不记
