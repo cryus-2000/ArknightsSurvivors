@@ -1,0 +1,5 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_152104
+通过 数据 JSON 解析  game/data 全部可解析
+通过 干员文字数值 op_text_check  20 名干员：占位 / 字面数字不一致 0 条，字面数字对得上 base / blocks（需人工看）34 条（明细 python tools/op_text_check.py --report）
+
+快检通过：2 项，失败 0 项，耗时 0 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存

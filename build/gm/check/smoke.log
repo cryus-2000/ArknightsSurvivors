@@ -1,0 +1,26 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1029_151552
+通过 数据 JSON 解析  game/data 全部可解析
+通过 冒烟 · angelina  t=90  · 39s
+通过 冒烟 · exusiai  t=90  · 40s
+通过 冒烟 · eyjafjalla  t=90  · 39s
+通过 冒烟 · gladiia  t=90  · 38s
+通过 冒烟 · hoshiguma  t=90  · 114s
+通过 冒烟 · irene  t=90  · 141s
+通过 冒烟 · kaltsit  t=90  · 181s
+通过 冒烟 · lappland  t=90  · 109s
+通过 冒烟 · logos  t=90  · 148s
+通过 冒烟 · lumen  t=90  · 146s
+通过 冒烟 · mizuki  t=90  · 148s
+通过 冒烟 · saria  t=90  · 112s
+通过 冒烟 · siege  t=90  · 76s
+通过 冒烟 · skadi  t=90  · 79s
+通过 冒烟 · skalter  t=90  · 78s
+通过 冒烟 · specter_unchained  t=90  · 78s
+通过 冒烟 · suzuran  t=90  · 179s
+通过 冒烟 · texas  t=90  · 183s
+通过 冒烟 · ulpianus  t=90  · 180s
+通过 冒烟 · wisadel  t=90  · 113s
+通过 自然流程 · 高手  t=150  · 209s
+通过 自然流程 · 普通  t=150  · 209s
+
+快检通过：23 项，失败 0 项，耗时 209 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存
