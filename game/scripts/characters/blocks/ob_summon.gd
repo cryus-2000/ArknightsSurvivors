@@ -2,7 +2,8 @@
 extends "res://scripts/characters/blocks/ob_vortex.gd"
 
 const SummonVisual = preload("res://scripts/characters/summon_visual.gd")
-const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见成长（docs/163）：召唤物体型 / 持续时间
+const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")
+const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条 / 倒下 / 复活 / 治疗分配（10-29）   # 可见成长（docs/163）：召唤物体型 / 持续时间
 
 
 # ================================================================ 召唤 / 封印 / 护盾 / 治疗光环（docs/61 §15，10-12 通用积木，下一批干员备用）
@@ -30,7 +31,7 @@ const SM_TARGETS := ["nearest", "densest", "elite", "low_hp"]
 
 const SM_AT := ["self", "leader", "target", "zone", "rest"]   # rest：escort 召唤物的闲时站位（§15.9）
 
-const SM_KIND_KEYS := ["name", "hp", "invuln", "life", "cap", "r", "col", "move", "attack", "on_spawn", "on_expire", "body", "enemy_target", "decoy_r", "hurt_mult", "_doc"]
+const SM_KIND_KEYS := ["name", "hp", "hp_k", "on_down", "invuln", "life", "cap", "r", "col", "move", "attack", "on_spawn", "on_expire", "body", "enemy_target", "decoy_r", "hurt_mult", "_doc"]
 
 const SM_MOVE_KEYS := ["mode", "speed", "anchor", "leash", "orbit_r", "orbit_speed", "target"]
 
@@ -135,9 +136,12 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 		var s := {"id": int(st.seq), "kind": kind, "pos": p, "face": 1.0 if esc else float(o.face), "t": 0.0, "life": life, "skill": sk,
 			"hp": hp, "max_hp": maxf(1.0, hp), "inv": bool(kd.get("invuln", false)), "tgt": null, "cd": float(kd.get("attack", _ED).get("first", 0.25)), "anim": 0.0, "rt": 0.0,
 			"hurt": {}, "flash": 0.0, "gone": false}
+		if esc and kd.has("hp_k") and not M3.on():
+			s.inv = true   # 总开关 kaltsit/m3_hp = 0：回旧行为（Mon3tr 无敌）
 		if esc:   # 召唤物扩展段（§15.9）的状态：动画、出手动作、绕行、追击队列、patch、残影、画面计时
 			s.merge({"mv": 0.0, "ak": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0, "via": Vector2.INF, "via_t": 0.0, "via_off": -99.0,
 				"pend": [], "pidx": -1, "pt": 0.0, "pout": 0.0, "pold": -1, "pcur": {}, "ghost": {}, "fxt": {}, "swing": 1.0, "cmd_t": 0.0})
+			M3.init(o, s, kd)   # 血条：写了 hp_k 且开关开才有血量（否则仍无敌）
 		elif kd.has("anim") or kd.has("zone"):   # 精英化第 5 批段：非随行召唤物的帧条状态（浮现 / 待机 / 移动 / 施放）、自带区域
 			_F().e5_spawn_state(o, s, kd)
 		st.list.append(s)
@@ -283,12 +287,14 @@ static func sm_tick(o, dt: float) -> void:
 		if int(s.skill) >= 0 and not o.skill_on(int(s.skill)):
 			ends.append([s, "skill"])
 			continue
-		if not s.inv and float(s.hp) <= 0.0:
+		if not s.inv and float(s.hp) <= 0.0 and not s.has("m3"):
 			ends.append([s, "dead"])
 			continue
 		var i: int = int(idx.get(s.kind, 0))
 		idx[s.kind] = i + 1
 		if str(kd.get("move", _ED).get("mode", "")) == "escort":
+			if s.has("m3") and M3.tick(o, s, kd, dt, mf_rest(o, kd.get("move", _ED))):
+				continue   # 倒地中：不移动不出手（读秒、复活都在 M3.tick）
 			mf_step(o, s, kd, dt)   # 召唤物扩展段（§15.9）：随行召唤物
 		elif s.has("e5"):
 			_F().e5_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)   # 精英化第 5 批段：带帧条 / 区域的召唤物（内部照样走 _sm_step）
@@ -852,9 +858,15 @@ static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
 		if not (inv is bool):
 			errs.append(p + ".invuln 只能是 true / false")
 		elif not inv:
-			_num(kd, "hp", p, ctx, true, 1.0, 100000.0)
-		elif kd.has("hp"):
-			errs.append(p + "：invuln（无敌）的召唤物不写 hp")
+			_num(kd, "hp", p, ctx, not kd.has("hp_k"), 1.0, 100000.0)
+		elif kd.has("hp") or kd.has("hp_k"):
+			errs.append(p + "：invuln（无敌）的召唤物不写 hp / hp_k")
+		if kd.has("hp_k"):
+			_num(kd, "hp_k", p, ctx, false, 0.1, 50.0)
+			if str(kd.get("move", _ED).get("mode", "")) != "escort":
+				errs.append(p + ".hp_k：只有随行（escort）召唤物能用（倒下 / 复活 / 治疗分配走随行分支）")
+		if kd.has("on_down"):
+			_list(kd.on_down, p + ".on_down", "instant", ctx)
 		var lv = kd.get("life", null)
 		if lv == null:
 			errs.append(p + " 缺 life（秒数 / \"skill\" = 召唤它的技能生效期间 / \"permanent\"）")
@@ -1108,7 +1120,7 @@ static func mf_cond(o, c: Dictionary) -> Array:
 			return [true, tk is Array and str(c.a) in tk]
 		"hurt_any":
 			var g = o.g
-			return [true, g.hp < g.max_hp or (g.knight.alive and g.knight.hp < g.knight.maxhp)]
+			return [true, g.hp < g.max_hp or (g.knight.alive and g.knight.hp < g.knight.maxhp) or M3.hurt_any(o)]
 	return [false, false]
 
 
@@ -1687,6 +1699,9 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 		return false
 	var g = o.g
 	var hov := _mf_hover(o, s, kd)
+	if s.has("m3") and M3.is_down(s):   # 倒地：灰色躺倒剪影 + 复活读秒弧（不画影子以外的装饰）
+		M3.draw_down(o, s, kd, fr, 0.0)
+		return true
 	if s.has("dash"):   # 精英化段：跃回的弧线高度 + 扑击 / 跃回的绿色残影
 		hov -= float(s.dash.get("h_now", 0.0))
 		_F().el_draw_afterimages(o, s, kd, fr, hov)
@@ -1712,6 +1727,8 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	for f in fl:
 		if f is Dictionary and f.has("side") and fx_on(o, f):
 			_mf_side(o, s, f.side, hov)
+	if s.has("m3"):
+		M3.draw_bar(o, s, kd, hov)
 	return true
 
 

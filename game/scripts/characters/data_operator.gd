@@ -15,6 +15,7 @@ const SkillLifecycle = preload("res://scripts/characters/blocks/skill_lifecycle.
 var lifecycle: Dictionary = {}
 var effect_skill := -1  # Only skill do execution may bind skill-owned effects.
 const NativeMotion = preload("res://scripts/characters/native_motion.gd")
+const M3Hp = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条与治疗分配（10-29）
 const Responses = preload("res://scripts/characters/blocks/responses.gd")
 var rsp: Dictionary = {}   # 响应动作（docs/118）：触发沿 / 冷却记录
 var native_motion: Dictionary = {}
@@ -585,6 +586,15 @@ func _collect_trig(t: Dictionary, act: Array) -> void:
 func _heal(b: Dictionary) -> void:
 	if b.has("knight") and g.knight.alive:   # 召唤物扩展段（§15.9）：同时治骑士同伴（按骑士最大生命）
 		g.knight.heal(g.knight.maxhp * float(b.knight))
+	if b.get("split", false):   # split: true = 这一拍在队长与 Mon3tr 间分配（m3_hp.gd heal_pick；开关关 / 没有 Mon3tr / 队长危险 → 仍给队长）
+		var m3 = M3Hp.heal_pick(self)
+		if m3 != null:
+			var over_m: float = M3Hp.heal_apply(self, m3, b)
+			if b.has("sfx"):
+				_sfx_op(str(b.sfx))
+			if over_m > 0.0 and b.has("on_over"):
+				_exec_list(b.on_over)   # 庇护算 Mon3tr 身上的溢出（用户 10-29）
+			return
 	if g.hp >= g.max_hp and not b.get("full", false):   # full: true = 满血也照常结算（溢出治疗类藏品 / on_over 照常触发，同手写凯尔希 S1）
 		return
 	var h: float

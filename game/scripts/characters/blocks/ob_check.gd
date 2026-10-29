@@ -329,6 +329,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			_num(b, "text", p, ctx, false, 8.0, 40.0)
 			if b.has("full") and not (b.full is bool):
 				errs.append(p + ".full 只能是 true / false")
+			if b.has("split") and not (b.split is bool):
+				errs.append(p + ".split 只能是 true / false（true = 这一拍在队长与 Mon3tr 间分配）")
 			if b.has("scale") and str(b.scale) != "op":
 				errs.append(p + ".scale 只能是 op（× op_atk × 同伴倍率 × heal_out）")
 			if b.has("on_over"):

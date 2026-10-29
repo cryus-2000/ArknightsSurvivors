@@ -69,7 +69,21 @@
   "shell2_heal": 0.04,
   "melt4_dur": 3.0,
   "melt4_every": 0.5,
-  "melt4_mult": 0.4
+  "melt4_mult": 0.4,
+  "_m3": "Mon3tr 血条（docs/plans/2026-10-29-mon3tr-hp-plan.md，用户 10-29 定）：m3_hp_k 生命上限 = 队长生命上限 × 它；m3_hurt_mult 近战怪碰到它每只每秒一次 敌伤 × 它；m3_aggro_r / m3_aggro_share 它周围这么远内这个比例的近战怪改追它；m3_regen_secs 脱战 3 秒后空到满秒数；m3_revive_secs 倒地后复活秒数（熔毁终结技用掉它后同样）；m3_revive_hp 复活时的生命比例；m3_revive_inv 复活后无敌秒；m3_danger_hp / m3_danger_burst 队长生命低于它 / 3 秒内掉血超过它（最大生命比例）时治疗只给队长；m3_heal_gap 它的生命比例要比队长低多少才分到治疗；m3_heal_share_max 最近 10 秒治疗拍给它的占比上限；m3_heal_k 治疗对它的效率倍率。balance.json kaltsit/<同名键> 可覆盖，kaltsit/m3_hp = 0 回旧行为（无敌、治疗只给队长）",
+  "m3_hp_k": 3.0,
+  "m3_hurt_mult": 0.4,
+  "m3_aggro_r": 150,
+  "m3_aggro_share": 0.35,
+  "m3_regen_secs": 20,
+  "m3_revive_secs": 18,
+  "m3_revive_hp": 0.5,
+  "m3_revive_inv": 1.0,
+  "m3_danger_hp": 0.45,
+  "m3_danger_burst": 0.2,
+  "m3_heal_gap": 0.0,
+  "m3_heal_share_max": 0.4,
+  "m3_heal_k": 2.0
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1633 / 防御 215 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -536,7 +550,7 @@
  "attack": {
   "mode": "auto",
   "name": "治疗",
-  "desc": "每 {$heal_cd} 秒为队长回复 {$heal_pct*$k_atk*100:2}% 最大生命；随行的 Mon3tr 自动撕咬队长身边的敌人（物理）",
+  "desc": "每 {$heal_cd} 秒治疗一次：队长危险时治疗队长，否则治疗生命比例更低的一方（队长回复 {$heal_pct*$k_atk*100:2}% 最大生命）；随行的 Mon3tr 自动撕咬队长身边的敌人（物理），身边 {$m3_aggro_r} 内约 {$m3_aggro_share*100}% 的近战敌人改为追击它，血空倒地，{$m3_revive_secs} 秒后在队长身边复活",
   "heal": true
  },
  "skills": [
@@ -690,7 +704,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "天赋「指挥」治疗量提升至 +{$e2_heal*100-100}%；解锁三技能「指令：熔毁」：Mon3tr {$s3_dur} 秒内爪击改为真实伤害且伤害 ×{$s3_mult*$k_pow:2}；结束时熔毁：周围 {$melt_r} 内造成 {$melt_mult*$k_pow:2} 倍真实伤害；普通攻击强化「八面展开」：Mon3tr 前后同时出爪（身后一爪 {$m_back_mult*100}%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）",
+   "desc": "天赋「指挥」治疗量提升至 +{$e2_heal*100-100}%；解锁三技能「指令：熔毁」：Mon3tr {$s3_dur} 秒内爪击改为真实伤害且伤害 ×{$s3_mult*$k_pow:2}；结束时熔毁：周围 {$melt_r} 内造成 {$melt_mult*$k_pow:2} 倍真实伤害；普通攻击强化「八面展开」：Mon3tr 前后同时出爪（身后一爪 {$m_back_mult*100}%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）；「不毁重构」：Mon3tr 倒下时就地爆炸，对周围半径 {$rebuild_r} 内的敌人造成 ×{$rebuild_mult} 倍真实伤害并眩晕 {$rebuild_stun} 秒",
    "attack": {
     "name": "回防",
     "desc": "队长受到攻击时，Mon3tr 跃回队长身边，落地对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）；「八面展开」前后同时出爪照旧（身后一爪 {$m_back_mult*100}%）"
@@ -704,14 +718,62 @@
    "召唤",
    "近战"
   ],
-  "desc": "医疗干员，罗德岛医疗项目负责人，持续为队长回复生命；随行的 Mon3tr 撕碎靠近的敌人"
+  "desc": "医疗干员，罗德岛医疗项目负责人，为队长与 Mon3tr 回复生命；随行的 Mon3tr 撕碎靠近的敌人并替队长引走一部分近战敌人，倒下后 {$m3_revive_secs} 秒复活"
  },
  "blocks": {
   "summons": {
    "mon3tr": {
-    "_doc": "Mon3tr（docs/61 §15.9 随行召唤物）：上场即在；闲时站凯尔希身前偏下，追主控 m_leash 内离主控最近的敌人；爪击朝面向挥出（真伤 / 猩红帧条见 patch）",
+    "_doc": "Mon3tr（docs/61 §15.9 随行召唤物）：上场即在；闲时站凯尔希身前偏下，追主控 m_leash 内离主控最近的敌人；爪击朝面向挥出（真伤 / 猩红帧条见 patch）。10-29 起有生命（hp_k：队长生命上限的倍数）：近战怪会碰它、一部分改追它，血空倒地 m3_revive_secs 秒后在队长身边复活；精英二倒下触发「不毁重构」小爆（on_down）。规则与旋钮见 m3_hp.gd、base 的 m3_*",
+    "on_down": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "cond": "elite >= 2",
+      "r": "$rebuild_r",
+      "atk_key": "m_atk",
+      "mult": "$rebuild_mult",
+      "power": true,
+      "kb": 160,
+      "stun": "$rebuild_stun",
+      "src": "Mon3tr · 熔毁",
+      "ring": false,
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 70,
+         "r0": 10,
+         "life": 0.3,
+         "col": [
+          1.6,
+          0.3,
+          0.2
+         ],
+         "floor": true
+        }
+       },
+       {
+        "pfx": {
+         "kind": "glow",
+         "r": 40,
+         "life": 0.25,
+         "col": [
+          2.0,
+          0.3,
+          0.15
+         ],
+         "alpha": 0.5
+        },
+        "off": [
+         0,
+         -24
+        ]
+       }
+      ]
+     }
+    ],
     "name": "Mon3tr",
-    "invuln": true,
+    "hp_k": "$m3_hp_k",
     "life": "permanent",
     "cap": 1,
     "r": 14,
@@ -1125,7 +1187,7 @@
    }
   },
   "attack": {
-   "_doc": "治疗：每 heal_cd 秒（÷ 攻速 × 战术协同）一拍，主控或骑士同伴没满血才起手；出手帧治骑士 knight_heal、主控 heal_pct（× op_atk × 同伴倍率 × heal_out × 天赋）；溢出时庇护",
+   "_doc": "治疗：每 heal_cd 秒（÷ 攻速 × 战术协同）一拍，主控、骑士同伴或 Mon3tr 没满血才起手；出手帧治骑士 knight_heal、主控 heal_pct（× op_atk × 同伴倍率 × heal_out × 天赋）；10-29 起这一拍在队长与 Mon3tr 间分配（split：队长危险给队长，否则谁生命比例低先治谁，Mon3tr 拿到的拍有占比上限，见 m3_hp.gd heal_pick）；溢出时庇护（Mon3tr 身上的溢出也算）",
    "shape": "support",
    "every": "$heal_cd",
    "first": 1.0,
@@ -1133,6 +1195,7 @@
    "do": [
     {
      "verb": "heal",
+     "split": true,
      "pct": "$heal_pct",
      "scale": "op",
      "knight": "$knight_heal",

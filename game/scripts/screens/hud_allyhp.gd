@@ -12,6 +12,7 @@ const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Game = preload("res://scripts/game.gd")
 const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL
+const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条行（10-29）：不依赖指挥模式，凯尔希在队就在队长血条下多一行
 var g: Game
 var h
 
@@ -20,6 +21,7 @@ const LAG_HOLD := 0.35      # 受击后残影停留秒数，之后按 LAG_SPD / 
 const LAG_SPD := 0.6
 const DOWN_COL := Color(0.55, 0.57, 0.6)
 var _lag := {}              # 干员 id → 残影血量（0–1）
+var _lag_m3 := {}           # Mon3tr 召唤物 id → 残影血量
 var _lt := -1.0
 
 
@@ -90,15 +92,15 @@ func bar(r: Rect2, o, a := 1.0) -> void:
 ## front 块入口：样式 1 画编队卡、3 画左侧生命列；2 的头顶条由 banners._draw_op_hp 调 overhead()
 func draw(vs: Vector2) -> void:
 	var s := style()
-	if s <= 0:
-		return
-	_tick_lag()
-	if s == 1 and not h.phone_quiet():
-		_draw_cards(vs)
-	elif s == 3:
-		_draw_column(vs)
-	elif s == 4:
-		_draw_under_leader()
+	if s > 0:
+		_tick_lag()
+		if s == 1 and not h.phone_quiet():
+			_draw_cards(vs)
+		elif s == 3:
+			_draw_column(vs)
+		elif s == 4:
+			_draw_under_leader()
+	_draw_m3_rows()
 
 
 # ---------------------------------------------------------------- A：编队卡
@@ -230,9 +232,9 @@ const UL_W := 150.0         # 与队长生命条同宽
 
 ## 样式 4 时左上灯火行 / 状态胶囊要下移的像素（没有队友或不是样式 4 = 0）
 func top_shift() -> float:
-	if style() != 4 or h.phone_quiet():
+	if h.phone_quiet():
 		return 0.0
-	var n: int = _mates().size()
+	var n: int = (_mates().size() if style() == 4 else 0) + M3.entries(g).size()
 	return n * UL_ROW + 4.0 if n > 0 else 0.0
 
 
@@ -256,6 +258,47 @@ func _draw_under_leader() -> void:
 		bar(r, o, a)
 		if down:
 			UI.text(g.hud, g.font, Vector2(r.end.x + 6.0, y + 9.0), "倒地 %d" % int(ceil(o.cmd_down)), 10, UI.GOLD if boosted(o) else UI.RED, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 2)
+
+
+## Mon3tr 血条行（同队友行样式：职业色小块 + 名字 + 分段条）：样式 4 时接在队友行下面，其余样式从队长血条下第一行起；倒地换复活进度、条右写「倒地 N」
+func _draw_m3_rows() -> void:
+	if h.phone_quiet():
+		return
+	var es: Array = M3.entries(g)
+	if es.is_empty():
+		return
+	var base: int = _mates().size() if style() == 4 else 0
+	for i in es.size():
+		var o = es[i][0]
+		var s: Dictionary = es[i][1]
+		var y: float = UL_Y + (base + i) * UL_ROW
+		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)
+		var down: bool = M3.is_down(s)
+		var f: float = clampf(float(s.hp) / maxf(1.0, float(s.max_hp)), 0.0, 1.0)
+		var recent: bool = g.t - float(s.m3.hit_t) < 3.0
+		var a: float = 1.0 if down or recent or f < 0.999 else 0.6
+		g.hud.draw_rect(Rect2(UL_X - 4.0, y - 1.0, 2.0, 11.0), Color(oc.r, oc.g, oc.b, a))
+		UI.text(g.hud, g.font, Vector2(UL_X + 1.0, y + 9.0), "Mon3tr", 10, Color(0.81, 0.84, 0.86, a) if not down else Color(0.6, 0.62, 0.65, a), HORIZONTAL_ALIGNMENT_LEFT, 48.0, 2)
+		var r := Rect2(Vector2(UL_X + 52.0, y + 3.0), Vector2(UL_W - 52.0, 5.0))
+		g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.03, 0.04, 0.88 * a))
+		if down:
+			var total: float = maxf(0.1, M3.k(o, "m3_revive_secs", 18.0))
+			g.hud.draw_rect(r, Color(1, 1, 1, 0.08 * a))
+			g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(1.0 - float(s.down) / total, 0.0, 1.0), r.size.y)), Color(DOWN_COL.r, DOWN_COL.g, DOWN_COL.b, a))
+			UI.text(g.hud, g.font, Vector2(r.end.x + 6.0, y + 9.0), "倒地 %d" % int(ceil(float(s.down))), 10, UI.RED, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 2)
+			continue
+		var sid: int = int(s.id)
+		var lg: float = float(_lag_m3.get(sid, f))
+		if lg < f or g.t - float(s.m3.hit_t) > LAG_HOLD:
+			lg = move_toward(lg, f, 0.6 * 0.016) if lg > f else f
+		_lag_m3[sid] = lg
+		var hc: Color = hp_col(f)
+		if f <= LOW:
+			g.hud.draw_rect(r.grow(2.5), Color(UI.RED.r, UI.RED.g, UI.RED.b, (0.3 + 0.5 * pulse()) * a), false, 1.5)
+		UI.gbar(g.hud, r, f, Color(hc.r, hc.g, hc.b, a), 4, lg)
+		var fl: float = clampf(1.0 - (g.t - float(s.m3.hit_t)) / 0.35, 0.0, 1.0)
+		if fl > 0.0:
+			g.hud.draw_rect(r, Color(1, 1, 1, 0.6 * fl))
 
 
 # ---------------------------------------------------------------- 屏外边缘头像（1–3 共用，banners.draw_command 调）

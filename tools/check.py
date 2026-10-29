@@ -999,6 +999,8 @@ SCENE_REGRESSIONS = {
     "wisadel_s2": ("维什戴尔两阶段群攻与四连发", "wisadel_s2_test", r"WISADEL S2 checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "texas_contract": ("新契约只填 json 试点（德克萨斯）", "texas_contract_test", r"TEXAS CONTRACT failures=0", ["--balance", "--seed=1", "--op=texas"]),
     "wisadel_soul": ("维什戴尔魂灵之影原生身体时间线", "wisadel_soul_test", r"WISADEL SOUL failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
+    "m3_hp": ("Mon3tr 血条 / 倒地 / 复活 / 治疗分配（凯尔希）", "m3_hp_test", r"M3 HP failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=kaltsit"]),
+    "m3_hp_off": ("Mon3tr 血条总开关关（回旧行为）", "m3_hp_test", r"M3 HP failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=kaltsit", "--bal=kaltsit/m3_hp=0"]),
     "klc_contract": ("凯尔希本体 / 流明 / 艾丽妮新条：出手时刻逐位同旧条、三段刺 / 光柱换条", "klc_contract_test", r"KLC CONTRACT failures=0", ["--balance", "--seed=1", "--op=irene"]),
     "response": ("干员响应动作（冲刺 / 站定）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=hoshiguma", "--squad=texas,eyjafjalla"]),
     "response_skill": ("干员响应动作（开技能）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=suzuran", "--squad=texas"]),

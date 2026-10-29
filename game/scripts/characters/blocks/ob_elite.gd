@@ -419,7 +419,7 @@ static func el_summon_cmd(o, b: Dictionary, _at: Vector2) -> void:
 	if c == Vector2.INF:
 		return
 	for s in o.sm.list:
-		if str(s.kind) != kind or s.gone:
+		if str(s.kind) != kind or s.gone or float(s.get("down", 0.0)) > 0.0:   # 倒地的不接指挥
 			continue
 		var side: float = signf(s.pos.x - c.x) if absf(s.pos.x - c.x) > 4.0 else float(o.face)
 		var to: Vector2 = c + Vector2(side * float(b.get("land_dx", 30.0)), float(b.get("land_dy", 8.0)))
@@ -453,7 +453,7 @@ static func _el_leap_front(o, kind: String, kd: Dictionary, b: Dictionary) -> vo
 			t2["r"] = minf(float(t2.r), maxf(40.0, d - float(b.get("ring_clear", 16.0))))
 		then.append(t2)
 	for s in o.sm.list:
-		if str(s.kind) != kind or s.gone:
+		if str(s.kind) != kind or s.gone or float(s.get("down", 0.0)) > 0.0:
 			continue
 		_el_dash_start(o, s, kd, "leap", to, float(b.get("t", 0.25)), float(b.get("h", 46.0)), {"kind": "leap", "then": then, "b": b, "face_x": ctr.x})
 
