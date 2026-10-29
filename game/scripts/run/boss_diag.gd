@@ -99,6 +99,13 @@ static func on_warn(w: Dictionary) -> void:
 		a.warns_dmg += 1
 	var nm := str(w.get("act", "")) + "/" + str(w.get("name", ""))
 	a.acts[nm] = int(a.acts.get(nm, 0)) + 1
+	if w.has("kp"):
+		if not a.has("lasers"):
+			a.lasers = {}
+		if not a.lasers.has(nm):
+			a.lasers[nm] = []
+		if a.lasers[nm].size() < 40:
+			a.lasers[nm].append([snappedf(float(w.dur), 0.01), snappedf(float(w.get("track", 0.0)), 0.01)])
 
 static func squad(g, tag: String) -> void:
 	if not on():
@@ -148,6 +155,7 @@ static func report(g, why: String) -> void:
 		o.acts = a.acts
 		o.phase_t = a.phase_t
 		o.kinds = a.get("kinds", {})
+		o.lasers = a.get("lasers", {})
 		if phit.has(k):
 			var p: Dictionary = phit[k]
 			o.taken_per_min = snappedf(p.sum * 60.0 / maxf(0.1, a.t), 0.1)
