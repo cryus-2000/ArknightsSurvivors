@@ -10,6 +10,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Moves = preload("res://scripts/run/ult_moves.gd")
 const Combo = preload("res://scripts/run/combo.gd")
 const UM = preload("res://scripts/ui_motion.gd")
+const A = preload("res://scripts/art.gd")
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
 const FULL := 100.0
@@ -315,13 +316,41 @@ func _cast() -> void:
 		act = Moves.start(self, caster, aim, aim_dir)
 
 
-## 选落点的默认光标：队长前方 260，那一带（≤ 520）敌人最密处（§2.4 / §10.2）
+## 选落点的默认光标 / 机器人落点（§2.4 / §10.2）：队长 520 内「这一招范围里能罩住最多敌人」的地方（精英算 3 只）；
+## 原来用 enemies_sys.densest_point（只看离队长最近的 12 只），聚怪时永远落在最近那一团（docs/199 §5.1 聚怪表，协调人 10-29）。没有敌人时取队长前方 260
 func _default_point(ld) -> Vector2:
-	var fwd: Vector2 = ld.pos + _default_dir(ld) * 260.0
-	var dp: Vector2 = g.enemies_sys.densest_point(200.0, ld.pos)
-	if dp != Vector2.INF and dp.distance_to(ld.pos) <= 520.0:
-		return dp
-	return fwd
+	var dp: Vector2 = _densest(ld.pos, 520.0, maxf(120.0, Moves.aim_r(str(ld.id)) * 0.6))
+	return dp if dp != Vector2.INF else ld.pos + _default_dir(ld) * 260.0
+
+
+## c0 周围 maxd 内，以哪只敌人为中心半径 r 罩住的敌人最多（候选最多取 48 只均匀抽样，按 g.enemies 顺序，不抽随机数）；返回那一团的质心
+func _densest(c0: Vector2, maxd: float, r: float) -> Vector2:
+	var cand: Array = []
+	for e in g.enemies:
+		if not e.dead and not e.get("friendly", false) and e.pos.distance_squared_to(c0) <= maxd * maxd:
+			cand.append(e)
+	if cand.is_empty():
+		return Vector2.INF
+	var step: int = maxi(1, cand.size() / 48)
+	var best := Vector2.INF
+	var bn := -1
+	for i in range(0, cand.size(), step):
+		var p: Vector2 = cand[i].pos
+		var n := 0
+		var sum := Vector2.ZERO
+		var m := 0
+		for j in g.enemies_sys.query(p, r):
+			var e2: Dictionary = g.enemies[j]
+			if not e2.dead and not e2.get("friendly", false) and e2.pos.distance_squared_to(p) < r * r:
+				n += 3 if (e2.elite or e2.boss) else 1
+				sum += e2.pos
+				m += 1
+		if n > bn:
+			bn = n
+			best = sum / maxf(1.0, m)
+	if best != Vector2.INF and best.distance_to(c0) > maxd:
+		best = c0 + (best - c0).normalized() * maxd
+	return best
 
 
 ## 指方向的默认：有移动输入朝移动方向，否则朝 8 方向里敌人最多的一边
@@ -642,7 +671,7 @@ func shape(s: Dictionary) -> void:
 	s["max"] = float(s.get("life", 0.4))
 	s["age"] = -float(s.get("delay", 0.0))
 	shapes.append(s)
-	if shapes.size() > 160:
+	if shapes.size() > 400:
 		shapes.pop_front()
 
 
@@ -669,6 +698,126 @@ func _cutin(ld, k: String) -> void:
 		cutins.append({"id": str(ld.id), "name": ld.display_name(), "col": _col(ld), "t0": now, "dur": 0.7, "i": 0, "cult": false})
 	while cutins.size() > 8:
 		cutins.pop_front()
+
+
+# ================================================================ 帧条（Codex 第一批终结技特效 art/fx/fx_ult_*，manifest：art/incoming/ult_batch1_1029/manifest.json）
+## 一个帧条实例也是一个 shape（kind = "strip"），和程序占位图形共用寿命 / 延迟；字段：
+##   name 帧条名（A.V6_FRAMES 登记帧数 / fps）、c 原点的世界坐标、o 原点在 @2x 单帧里的像素（manifest origin_px_2x）、
+##   ang 旋转、sc 缩放（缺省 1 = 美术 1x 像素 × g.PX）、sx / sy 额外拉伸（拼接段铺满用）、
+##   seg [起, 止] 帧段（缺省整条）、fps（缺省登记值）、loop（帧段循环，否则停在末帧）、f 固定帧（巨锚角度帧之类）、
+##   layer "back"（地面，画在干员之下）/ "front"（缺省，干员之上；orbit 也画这里）、col 调色（含透明度）。
+## 帧号按游戏时间推进（慢放里跟着慢），纯画面。
+func strip(name: String, c: Vector2, opt: Dictionary = {}) -> Dictionary:
+	var s := opt.duplicate()
+	s["kind"] = "strip"
+	s["name"] = name
+	s["c"] = c
+	if not s.has("life"):
+		var fr: Array = A.V6_FRAMES.get(name, [1, 10.0])
+		var seg: Array = s.get("seg", [0, int(fr[0]) - 1])
+		var fps: float = float(s.get("fps", fr[1]))
+		s["life"] = (float(int(seg[1]) - int(seg[0]) + 1) / fps) if fps > 0.0 else 1.0
+	shape(s)
+	return s
+
+
+## 线状拼接段（刀痕残痕 / 光束 / 锁链）：从 a 到 b 平铺，每段等比拉到正好铺满；原点在段左端中心（manifest「左端中心」）
+func tiles_line(name: String, a: Vector2, b: Vector2, opt: Dictionary = {}) -> Array:
+	var out: Array = []
+	var fr: Array = A.V6_FRAMES.get(name, [1, 10.0])
+	var t: Texture2D = _strip_tex(name)
+	if t == null:
+		return out
+	var hi: float = A.hires_of(t)
+	var fw: float = t.get_width() / float(fr[0]) / hi   # 1x 单帧宽
+	var sc: float = float(opt.get("sc", 1.0))
+	var tile: float = fw * g.PX * sc
+	var L: float = a.distance_to(b)
+	if L < 1.0:
+		return out
+	var n: int = maxi(1, roundi(L / tile))
+	var sx: float = L / (n * tile)
+	var ang: float = (b - a).angle()
+	for i in n:
+		var o2 := opt.duplicate()
+		o2["ang"] = ang
+		o2["sx"] = sx * float(opt.get("sx", 1.0))
+		if not o2.has("o"):
+			o2["o"] = Vector2(0.0, t.get_height() * 0.5)
+		out.append(strip(name, a.lerp(b, float(i) / n), o2))
+	return out
+
+
+## 弧状拼接段（领域花纹 / 熔毁裂纹 / 裂地）：沿圆心 c、半径 r 摆一圈，段数按周长取整、每段等比拉到正好闭合；原点在弧中心
+func tiles_arc(name: String, c: Vector2, r: float, opt: Dictionary = {}) -> Array:
+	var out: Array = []
+	var fr: Array = A.V6_FRAMES.get(name, [1, 10.0])
+	var t: Texture2D = _strip_tex(name)
+	if t == null or r < 4.0:
+		return out
+	var hi: float = A.hires_of(t)
+	var fw: float = t.get_width() / float(fr[0]) / hi
+	var sc: float = float(opt.get("sc", 1.0))
+	var tile: float = fw * g.PX * sc
+	var n: int = maxi(6, roundi(TAU * r / tile))
+	var sx: float = TAU * r / (n * tile)
+	var a0: float = float(opt.get("a0", 0.0))
+	for i in n:
+		var ai: float = a0 + TAU * i / n
+		var o2 := opt.duplicate()
+		o2["ang"] = ai + PI / 2.0
+		o2["sx"] = sx * float(opt.get("sx", 1.0))
+		if not o2.has("o"):
+			o2["o"] = Vector2(t.get_width() / float(fr[0]) * 0.5, t.get_height() * 0.5)
+		out.append(strip(name, c + Vector2.from_angle(ai) * r, o2))
+	return out
+
+
+var _stex := {}
+
+
+func _strip_tex(name: String) -> Texture2D:
+	if not _stex.has(name):
+		var t: Texture2D = g.tex.get(name) if g.tex.has(name) else A.tex(name)
+		_stex[name] = t
+	return _stex[name]
+
+
+func _strip_frame(s: Dictionary) -> int:
+	if s.has("f"):
+		return int(s.f)
+	var fr: Array = A.V6_FRAMES.get(str(s.name), [1, 10.0])
+	var seg: Array = s.get("seg", [0, int(fr[0]) - 1])
+	var fps: float = float(s.get("fps", fr[1]))
+	var n: int = int(seg[1]) - int(seg[0]) + 1
+	var k: int = int(maxf(0.0, float(s.age)) * fps) if fps > 0.0 else 0
+	return int(seg[0]) + (k % n if s.get("loop", false) else mini(k, n - 1))
+
+
+func _draw_strip(w, s: Dictionary, dim: float) -> void:
+	var t: Texture2D = _strip_tex(str(s.name))
+	if t == null:
+		return
+	var fr: Array = A.V6_FRAMES.get(str(s.name), [1, 10.0])
+	var fw: float = t.get_width() / float(fr[0])
+	var fh: float = float(t.get_height())
+	var hi: float = A.hires_of(t)
+	var k: float = g.PX * float(s.get("sc", 1.0)) / hi
+	var f: int = clampi(_strip_frame(s), 0, int(fr[0]) - 1)
+	var o: Vector2 = s.get("o", Vector2(fw * 0.5, fh * 0.5))
+	var col: Color = s.get("col", Color.WHITE)
+	col.a *= dim
+	w.draw_set_transform(s.c, float(s.get("ang", 0.0)), Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0))))
+	w.draw_texture_rect_region(t, Rect2(-o, Vector2(fw, fh)), Rect2(f * fw, 0.0, fw, fh), col)
+	w.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 地面层（world.gd 在干员地面特效那一步调）：layer = back 的帧条
+func draw_world_back(w) -> void:
+	var dim: float = _dim()
+	for s in shapes:
+		if s.age >= 0.0 and str(s.kind) == "strip" and str(s.get("layer", "front")) == "back":
+			_draw_strip(w, s, dim)
 
 
 ## 推镜（run/cam_fx.gd 读，§7.1）：瞄准 1.08 → 出招前 0.6 秒 1.12 → 0.4 秒拉回 1.0；按游戏时间算，纯画面
@@ -699,11 +848,20 @@ func time_scale() -> float:
 	return s
 
 
-## 世界层（world.gd 在干员技能层之后）：瞄准指示 + 占位图形
+func _dim() -> float:
+	return 0.5 if (g.final_boss != null and not g.final_boss.dead) or not g.bosses.is_empty() else 1.0
+
+
+## 世界层（world.gd 在干员技能层之后）：瞄准指示 + 占位图形 + 主体层帧条（地面层帧条在 draw_world_back）
 func draw_world(w) -> void:
-	var dim: float = 0.5 if (g.final_boss != null and not g.final_boss.dead) or not g.bosses.is_empty() else 1.0
+	var dim: float = _dim()
 	for s in shapes:
 		if s.age < 0.0:
+			continue
+		if str(s.kind) == "strip":
+			if str(s.get("layer", "front")) != "back":
+				w.tb_flush()
+				_draw_strip(w, s, dim)
 			continue
 		var k: float = 1.0 - s.age / maxf(0.001, s.max)
 		var col: Color = s.get("col", Color.WHITE)

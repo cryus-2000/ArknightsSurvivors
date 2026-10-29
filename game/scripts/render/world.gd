@@ -386,6 +386,8 @@ func draw_world() -> void:
 		if gv > 0.002:
 			var gm: Color = g.map.ground_mean()
 			g.draw_rect(view_rect(8.0), Color(gm.r, gm.g, gm.b, gv))
+	if g.ult != null:
+		g.ult.draw_world_back(self)   # 终结技地面层帧条（刀痕残痕 / 领域 / 裂纹 / 海嗣水纹）
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
 	_pk("ground")
 	_draw_mires()
