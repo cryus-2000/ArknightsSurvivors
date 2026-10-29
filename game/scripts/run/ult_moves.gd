@@ -258,7 +258,7 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 			u.g.enemies_sys.add_cc(e, Bal.v("ult/tx_hold", 0.6))   # 定住，暂不受伤
 	# 用户 10-29：松手斩开后不画任何圆 / 环，范围由斩线本身表达（瞄准时的落点提示由框架画，淡）
 	var rounds: Array = [[0.75, 0.3]]
-	if rt == "rain2":
+	if rt == "rain":
 		rounds = [[0.75, 0.15], [1.05, 0.15]]
 	# 剑雨帧条：一把 0.3 秒、一轮 0.8 秒铺完，同时在场约 剑数 × 0.375 × 轮数；超过 ult/tx_sword_fx（56）就隔把画（伤害照打每一把）
 	var stride: int = maxi(1, ceili(float(swords.size()) * 0.375 * float(rounds.size()) / Bal.v("ult/tx_sword_fx", 56.0)))
@@ -684,7 +684,7 @@ static func _ka_m3(o):
 
 static func _ka_start(u, o, aim: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var sc: float = 400.0 / 460.0 if rt == "melt_triple" else 1.0
+	var sc: float = 400.0 / 460.0 if rt == "melt" else 1.0
 	var m3 = _ka_m3(o)
 	var p0: Vector2 = m3.pos if m3 != null else o.pos
 	if m3 != null:
@@ -693,8 +693,8 @@ static func _ka_start(u, o, aim: Vector2) -> Dictionary:
 	var c: Vector2 = aim if aim != Vector2.INF else o.pos
 	var cd: float = clampf(p0.distance_to(c) / 2000.0, 0.12, 0.35)
 	return {"k": "kaltsit", "p0": p0, "c": c, "cd": cd, "rs": [180.0 * sc, 320.0 * sc, 460.0 * sc], "fs": [0.3, 0.35, 0.35],
-		"ring": 0, "segs": [{}, {}, {}], "push": {}, "prev": p0, "had": m3 != null, "shell": rt == "s1_shell",
-		"rebuild_t": 0.0 if rt == "melt_triple" else Bal.v("ult/ka_gone", 8.0), "melt_t": -1.0, "back": false}
+		"ring": 0, "segs": [{}, {}, {}], "push": {}, "prev": p0, "had": m3 != null, "shell": rt == "shell",
+		"rebuild_t": 0.0 if rt == "melt" else Bal.v("ult/ka_gone", 8.0), "melt_t": -1.0, "back": false}
 
 
 static func _ka_step(u, a: Dictionary, o) -> bool:

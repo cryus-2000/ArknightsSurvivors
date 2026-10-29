@@ -180,7 +180,7 @@ static func _sd_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var hw: float = Bal.v("ult/sd_w", 820.0) * 0.5
 	var waves: Array = [[Bal.v("ult/sd_t0", 0.15), 1.0]]
-	if rt == "leap":   # 跃浪：浪分两道（第二道 0.3 秒后、各 55%），宽 760
+	if rt == "wave":   # 跃浪：浪分两道（第二道 0.3 秒后、各 55%），宽 760
 		hw = 380.0
 		waves = [[0.15, 0.55], [0.45, 0.55]]
 	o.face_to(d.angle())
@@ -293,7 +293,7 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var col: Color = u._col(o)
 	var R: float = aim_r("gladiia")
-	var DR: float = 620.0 if rt == "rage" else Bal.v("ult/gl_drag_r", 560.0)
+	var DR: float = 620.0 if rt == "brute" else Bal.v("ult/gl_drag_r", 560.0)
 	var pulled: Array = []
 	for e in u.in_circle(c, DR):
 		if e.boss:
@@ -301,11 +301,11 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 		var off: Vector2 = e.pos - c
 		var d0: float = off.length()
 		# 小怪拖到中心附近（按原距离留一圈，不叠成一点）；精英只拖 160（怒海：拉力更强 +25%）
-		var dt0: float = maxf(36.0, d0 * 0.16 + 30.0) if not (e.elite or e.get("part", false)) else maxf(60.0, d0 - 160.0 * (1.25 if rt == "rage" else 1.0))
+		var dt0: float = maxf(36.0, d0 * 0.16 + 30.0) if not (e.elite or e.get("part", false)) else maxf(60.0, d0 - 160.0 * (1.25 if rt == "brute" else 1.0))
 		pulled.append({"e": e, "d0": d0, "d1": minf(d0, dt0), "a0": off.angle(), "sw": 0.0})
 	o.play_vis_anim("attack")
 	var a := {"c": c, "R": R, "DR": DR, "T": Bal.v("ult/gl_spin", 0.8), "pulled": pulled, "tick": 0, "rot": 0.0, "burst": false, "bseg": {},
-		"arms": [], "shelter": rt == "shelter", "ring_t": 0.0, "fx": []}
+		"arms": [], "shelter": rt == "shield", "ring_t": 0.0, "fx": []}
 	_keep(u, a, {"kind": "circle", "c": c, "r": DR, "col": col.darkened(0.5), "fill": 0.16, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 3.0, "col": col.lerp(Color.WHITE, 0.3), "life": 3.0})
 	for j in 4:   # 四条旋臂，每条 10 节（外细内粗、越往里越亮）
@@ -400,7 +400,7 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 		u.g.enemies_sys.add_cc(e, 1.5 if (e.elite or e.get("part", false)) else 1.2, -INF, "airborne")
 	o.play_vis_anim("attack")
 	var a := {"c": c, "R": R, "lift": lift, "bosses": bosses, "TL": Bal.v("ult/an_lift", 0.6), "TH": Bal.v("ult/an_hold", 0.3), "lifted": false, "slams": 0,
-		"nslam": 2 if rt == "triple" else 1, "tide": rt == "tide", "tide_t": 0.0, "ring_t": 0.0, "streak_t": 0.0, "fx": []}
+		"nslam": 2 if rt == "pull" else 1, "tide": rt == "lock", "tide_t": 0.0, "ring_t": 0.0, "streak_t": 0.0, "fx": []}
 	a["core"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": Color(0.1, 0.02, 0.16), "fill": 0.9, "life": 3.0})
 	a["halo"] = _keep(u, a, {"kind": "ring", "c": c, "r": 60.0, "w": 5.0, "col": col.lerp(Color.WHITE, 0.4), "life": 3.0})
 	_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": Color(0.25, 0.08, 0.35), "fill": 0.14, "life": 3.0})
@@ -539,11 +539,11 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 	var span: float = Bal.v("ult/ey_fall", 0.45)
 	for i in nb:   # 从里往外落满（按黄金角散布，序号小的先落）
 		blobs.append([_spiral(c, R * 0.97, i, nb, 0.4), t_fall + span * float(i) / float(nb)])
-	if rt == "spread":   # 星火燎原：再向外抛 8 团（落在 460–560 环带）
+	if rt == "ignite":   # 星火燎原：再向外抛 8 团（落在 460–560 环带）
 		for i in 8:
 			blobs.append([c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2) * lerpf(R * 0.9, R * 1.08, float(i % 2)), t_fall + span + 0.05 * float(i % 3)])
 	var pre: Array = []
-	if rt == "rain":   # 熔岩天降：喷发前先落一轮 6 发熔岩弹预热（各 3%）
+	if rt == "meteor":   # 熔岩天降：喷发前先落一轮 6 发熔岩弹预热（各 3%）
 		for i in 6:
 			pre.append([_spiral(c, R * 0.8, i, 6, 1.1), 0.05 + 0.05 * float(i)])
 	# 龟裂：8 道裂纹从落点往外爬（0.4 秒）
@@ -573,9 +573,9 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 			"v": Vector2(40, 360) / 0.18})
 		u.strip("fx_fire_explode", pp, {"sc": 1.4, "delay": tp + 0.05})
 	o.play_vis_anim("attack")
-	return {"c": c, "R": R, "t_col": t_col, "col_done": false, "blobs": blobs, "bi": 0, "fseg": {}, "fall_end": t_fall + span + (0.2 if rt == "spread" else 0.0),
+	return {"c": c, "R": R, "t_col": t_col, "col_done": false, "blobs": blobs, "bi": 0, "fseg": {}, "fall_end": t_fall + span + (0.2 if rt == "ignite" else 0.0),
 		"filled": false, "pre": pre, "pi": 0, "pseg": {}, "lava_r": Bal.v("ult/ey_lava_r", 300.0), "lava_t": Bal.v("ult/ey_lava_t", 2.2),
-		"lava_n": int(Bal.v("ult/ey_lava_n", 5.0)), "tick": 0, "t_lava": t_fall + span + 0.05, "fall_frac": 0.5 if rt == "spread" else Bal.v("ult/ey_fall_frac", 0.6),
+		"lava_n": int(Bal.v("ult/ey_lava_n", 5.0)), "tick": 0, "t_lava": t_fall + span + 0.05, "fall_frac": 0.5 if rt == "ignite" else Bal.v("ult/ey_fall_frac", 0.6),
 		"pool": false, "fx": []}
 
 
@@ -675,7 +675,7 @@ static func _wd_start(u, o, d: Vector2) -> Dictionary:
 	# 炮口：她身前一团火光
 	u.strip("fx_cannon_burst", o.pos + d * 40.0 + Vector2(0, -20), {"sc": 2.0})
 	return {"d": d, "n": n, "o0": o.pos, "hw": hw, "rr": rr, "shells": shells, "mseg": {}, "aseg": {}, "delay": Bal.v("ult/wd_after_t", 0.35),
-		"ember": rt == "ember", "main": 0.6 if rt == "echo" else Bal.v("ult/wd_main", 0.7), "no_ring": true}
+		"ember": rt == "ash", "main": 0.6 if rt == "mark" else Bal.v("ult/wd_main", 0.7), "no_ring": true}
 
 
 static func _wd_step(u, a: Dictionary, o) -> bool:
@@ -838,8 +838,8 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 	_ring(u, base, 110.0, 20.0, col.lerp(Color.WHITE, 0.3), 0.35, 8.0)
 	u.shape({"kind": "circle", "c": base, "r": 70.0, "col": Color(0.08, 0.04, 0.12), "fill": 0.8, "life": 1.2})
 	var a := {"d": d, "c": o.pos, "base": base, "R": R, "a0": d.angle() - half, "span": half * 2.0, "T0": Bal.v("ult/mz_rise", 0.15),
-		"T": Bal.v("ult/mz_sweep", 0.5), "seg": {}, "kills": 0, "grab": false, "n_grab": 9 if rt == "startle" else int(Bal.v("ult/mz_grab_n", 6.0)),
-		"attach": rt == "attach", "bound": [], "trail_t": 0.0, "fx": [], "chain": [], "no_ring": true, "heal": 0.0}
+		"T": Bal.v("ult/mz_sweep", 0.5), "seg": {}, "kills": 0, "grab": false, "n_grab": 9 if rt == "awaken" else int(Bal.v("ult/mz_grab_n", 6.0)),
+		"attach": rt == "bind", "bound": [], "trail_t": 0.0, "fx": [], "chain": [], "no_ring": true, "heal": 0.0}
 	for i in 28:   # 触手：28 节圆，由粗到细
 		var w: float = lerpf(60.0, 10.0, float(i) / 27.0)
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": w * 0.5, "col": col.darkened(0.35).lerp(Color(0.25, 0.1, 0.4), 0.3), "fill": 0.95, "life": 2.0}))
