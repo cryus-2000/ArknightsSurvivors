@@ -325,7 +325,7 @@ func eat_fx(pos: Vector2) -> void:
 
 ## 点燃时清空神经损伤：主控，以及站在光圈内、自己带神经损伤字段的队友（Boss与怪物 加回神经损伤后按它的字段接）
 func clear_nerve(at: Vector2, r: float) -> void:
-	g.nerve = 0.0
+	g.afflict.clear_nerve()
 	for o in g.squad.ops:
 		if o.get("nerve") != null and o.pos != Vector2.INF and o.pos.distance_to(at) < r:
 			o.set("nerve", 0.0)

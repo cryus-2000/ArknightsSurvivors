@@ -47,7 +47,7 @@ func update(dt: float) -> void:
 func drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
 	g.combat.heal(amount, "无人机")
 	if cure:
-		g.nerve = 0.0
+		g.afflict.clear_nerve()
 	dr.beam = 0.35
 	g.vfx.add_text(g.ppos + Vector2(0, -90), "+%d" % int(amount), Color(0.5, 1.0, 0.6), 14)
 	g.fx.append({"kind": "beam", "a": dr.pos + Vector2(0, 6), "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 2.5})

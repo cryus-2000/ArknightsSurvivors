@@ -44,6 +44,7 @@ const IntroScreen = preload("res://scripts/screens/intro.gd")
 const BossIntro = preload("res://scripts/screens/boss_intro.gd")
 const Vfx = preload("res://scripts/render/vfx.gd")
 const Combat = preload("res://scripts/run/combat.gd")
+const Afflict = preload("res://scripts/run/afflict.gd")
 const EnemiesSys = preload("res://scripts/run/enemies.gd")
 const MusicDirector = preload("res://scripts/run/music_director.gd")
 const Progression = preload("res://scripts/run/progression.gd")
@@ -110,6 +111,7 @@ var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
+var afflict = Afflict.new(self)   # 负面状态门面（神经损伤 / 侵蚀 / 创口，run/afflict.gd）
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
 var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
@@ -1984,11 +1986,8 @@ func _update(dt: float) -> void:
 
 	var rg: float = combat.regen_per_sec() * dt
 	if rg > 0.0 and hp > 0.0:
-		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量
-		heal_log["自身回复"] = float(heal_log.get("自身回复", 0.0)) + clampf(max_hp - hp, 0.0, rg)
-	if hp + rg > max_hp:
-		rfx.on_overheal(hp + rg - maxf(hp, max_hp))
-	hp = min(max_hp, hp + rg)
+		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量；走 heal()（补侵蚀创口减疗）
+		combat.heal(rg, "自身回复", "", combat.HEAL_PRESCALED)
 	if lamp <= 0.0:
 		combat.lose_hp(3.0 * dt, "dark")
 		hurt_flash = max(hurt_flash, 0.05)

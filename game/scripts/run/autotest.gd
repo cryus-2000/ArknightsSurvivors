@@ -982,7 +982,7 @@ func step() -> void:
 			if a.begins_with("--mimicscream=") and g.t >= float(a.substr(14)):
 				_mimicscream_done = true
 				g.lamp = 100.0
-				g.nerve = 0.0
+				g.afflict.clear_nerve()
 				var mm: Dictionary = g.spawner.spawn_enemy("mimic", g.ppos + Vector2(70, 0))
 				mm.age = 5.0
 				mm.dormant = false
