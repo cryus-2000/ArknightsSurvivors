@@ -92,6 +92,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	g.telemetry.hit_type = g.telemetry.src_type(src)
 	if src.get("elite", false):
 		dmg *= g.elite_taken_mult   # 王庭盟约（docs/57 P7）：精英来源对主控的伤害
+	if boss:
+		dmg *= final_boss_hit_x()
 	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
 	# 认知塑造「自我保护」末节：连续 meta/calm_t 秒未受伤后，下一次受到的伤害 × meta/calm_mult（受击后 rfx.on_hurt 归零计时）
 	if g.rfx.rule("calm_guard") > 0 and g.rfx.calm_t >= Bal.v("meta/calm_t", 5.0):
@@ -151,6 +153,17 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if src.get("nerve", 0.0) > 0.0:
 		g.telemetry.on_status("nerve", g.telemetry.hit_type, float(src.nerve))
 		add_nerve(src.nerve * g.nerve_taken_mult * Bal.v("enemy/nerve_hit_mult", 0.0))
+
+
+## 最终 Boss 加伤（用户 10-29，docs/201）：最终 Boss 在场时，Boss 来源的一下按来源分两档放大，血量不动。
+## 敌弹（dmg_src = bullet）× boss/final_bullet_x_<类型>，其余（预警招式、冲击环、接触）× boss/final_move_x_<类型>；缺省 1 = 不变。
+## 在护甲 / 法抗与主控保护（单发 40%、2 秒 50%、满血保护）之前乘，保护照旧兜底
+func final_boss_hit_x() -> float:
+	var fb = g.final_boss
+	if fb == null or fb.dead:
+		return 1.0
+	var k: String = ("boss/final_bullet_x_" if g.dmg_src == "bullet" else "boss/final_move_x_") + str(fb.type)
+	return Bal.v(k, 1.0)
 
 
 func on_dodge() -> void:
