@@ -777,7 +777,7 @@ func _big_hold(e: Dictionary) -> void:
 	if float(e.get("break_t", 0.0)) > 0.0 or e.get("knight_combo_active", false) or e.has("kn_drive") or e.has("kn_lap") \
 			or e.has("kn_lap_brk_at") or int(e.get("dash2", 0)) > 0 or e.has("breath_at") or e.has("kn_spin_brk_at") \
 			or float(e.get("channel", 0.0)) > 0.0:
-		e.kn_big_next = maxf(float(e.get("kn_big_next", 0.0)), g.t + Bal.v("boss/knight_big_walk", 1.5))
+		e.kn_big_next = maxf(float(e.get("kn_big_next", 0.0)), g.t + Bal.v("boss/knight_big_walk", 1.1))
 
 
 func _big_ok(e: Dictionary, mv: String) -> bool:
@@ -997,7 +997,7 @@ func ice_shards(e: Dictionary, from: Vector2, ang: float, n: int, spread: float,
 	if Bal.v("boss/knight_shards", 1.0) <= 0.0 or e.get("dead", false):
 		return
 	if n > 1:
-		n = int(round(n * Bal.v("boss/count_k_knight_boss", 1.0)))   # 10-29 docs/201 §7：每波冰屑数（缺口半角不变）
+		n = int(round(n * Bal.v("boss/count_k_knight_boss", 1.4)))   # 10-29 docs/201 §7：每波冰屑数（缺口半角不变）
 	var own := 0
 	for b in g.ebullets:
 		if b.get("knight_shard", false) and b.get("source_id", -1) == e.id:

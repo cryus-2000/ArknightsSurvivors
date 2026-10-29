@@ -73,7 +73,7 @@ func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 		if _broken(e):
 			cancel(e)
 			return
-		var gap: float = [Bal.v("boss/ishar_combo_gap", 0.26), 0.24, 0.2][act_of(e)] * Bal.v("boss/tempo_k_ishar", 1.0)   # 每幕节奏（docs/170 §15）：一幕留呼吸、二幕压迫、三幕最紧
+		var gap: float = [Bal.v("boss/ishar_combo_gap", 0.26), 0.24, 0.2][act_of(e)] * Bal.v("boss/tempo_k_ishar", 0.75)   # 每幕节奏（docs/170 §15）：一幕留呼吸、二幕压迫、三幕最紧
 		if not ready or _pending(e):
 			e.card_next = maxf(float(e.card_next), g.t + gap)
 			return
@@ -225,12 +225,12 @@ func play(e: Dictionary, mv: String, dir: Vector2, dist: float) -> float:
 
 func _emit(e: Dictionary, at: float, d: Dictionary) -> void:
 	# 10-29 docs/201 §7：发数 × boss/count_k_ishar（缺口格数同比放大，缺口角度不变），排程延迟 × boss/tempo_k_ishar
-	var ck: float = Bal.v("boss/count_k_ishar", 1.0)
+	var ck: float = Bal.v("boss/count_k_ishar", 1.4)
 	if d.has("n") and ck != 1.0:
 		d.n = maxi(1, int(round(float(d.n) * ck)))
 		if d.has("gap"):
 			d.gap = int(round(float(d.gap) * ck))
-	d.at = g.t + maxf(0.0, at - g.t) * Bal.v("boss/tempo_k_ishar", 1.0)
+	d.at = g.t + maxf(0.0, at - g.t) * Bal.v("boss/tempo_k_ishar", 0.75)
 	if not e.has("ishar_emits"):
 		e.ishar_emits = []
 	e.ishar_emits.append(d)

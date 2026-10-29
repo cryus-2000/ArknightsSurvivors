@@ -130,10 +130,10 @@ func _final_speed(b: Dictionary) -> void:
 			b[f] = float(b[f]) * k
 	# 加速到顶的弹（泡影鼓出后加速）放大后不超过快弹档上沿 boss/spd_cap
 	if b.has("p_acc") and not b.has("p_vmax") and k > 1.0:
-		b.p_vmax = Bal.v("boss/spd_cap", 380.0)   # 没写上限的加速弹（原来靠寿命到期止于约 336）
+		b.p_vmax = Bal.v("boss/spd_cap", 440.0)   # 没写上限的加速弹（原来靠寿命到期止于约 336）
 	for f in ["max_speed", "p_vmax"]:
 		if b.has(f) and k > 1.0:
-			b[f] = minf(float(b[f]), maxf(Bal.v("boss/spd_cap", 380.0), float(b[f]) / k))
+			b[f] = minf(float(b[f]), maxf(Bal.v("boss/spd_cap", 440.0), float(b[f]) / k))
 
 
 var _spd_cap2 := 0.0

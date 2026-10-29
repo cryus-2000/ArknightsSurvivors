@@ -444,7 +444,7 @@ func _card_step(e: Dictionary, dir: Vector2, dist: float) -> void:
 		return
 	if g.t < float(e.get("izu_next", 0.0)) or _blocked(e):
 		return
-	var ov: bool = Bal.v("boss/izumik_overlap", 0.0) > 0.0
+	var ov: bool = Bal.v("boss/izumik_overlap", 1.0) > 0.0
 	var queue_peek: String = str(e.izu_queue[0]) if active and not e.izu_queue.is_empty() else ""
 	if not _seg_free(e, ov, queue_peek):
 		return
@@ -455,7 +455,7 @@ func _card_step(e: Dictionary, dir: Vector2, dist: float) -> void:
 					or g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0):
 				return
 			# 破绽会取消移动中的水墙：等它走完再收招；破绽窗口不叠弹幕——在场弹散到 boss/izumik_finish_live（原 8）颗以下再收招
-			if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)) or int(e.get("izu_live", 0)) >= int(Bal.v("boss/izumik_finish_live", 8.0)) or g.ebullets.any(func(b): return b.life > 0.0 and str(b.get("izu", "")) == "spore"):   # 大孢子胀破完再收招
+			if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)) or int(e.get("izu_live", 0)) >= int(Bal.v("boss/izumik_finish_live", 20.0)) or g.ebullets.any(func(b): return b.life > 0.0 and str(b.get("izu", "")) == "spore"):   # 大孢子胀破完再收招
 				return
 			_finish_card(e)
 			return
@@ -514,11 +514,11 @@ func _seg_free(e: Dictionary, ov: bool, nxt: String) -> bool:
 
 ## 出招节奏（10-29 docs/201：机器人试炼每分钟只被打中约 1.3 下，太闲）：起手、段间停顿、破绽后空档统一 × boss/izumik_gap_k（缺省 1 = 原节奏）
 func _gap_k() -> float:
-	return Bal.v("boss/izumik_gap_k", 1.0)
+	return Bal.v("boss/izumik_gap_k", 0.4)
 
 
 func _finish_card(e: Dictionary) -> void:
-	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)] * Bal.v("boss/izumik_recover_mult", 1.25)
+	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)] * Bal.v("boss/izumik_recover_mult", 0.6)
 	_end_card(e)
 	g.combat.start_break(e, rec)
 	e.izu_next = g.t + rec + REST * _gap_k()
@@ -698,7 +698,7 @@ func _emit_step(e: Dictionary) -> void:
 			em.n = int(em.n) + 1
 		if g.t > float(em.until):
 			e[key] = {}
-			if key == "izu_emit" and Bal.v("boss/izumik_overlap", 0.0) <= 0.0:
+			if key == "izu_emit" and Bal.v("boss/izumik_overlap", 1.0) <= 0.0:
 				e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)] * _gap_k())
 
 
@@ -780,7 +780,7 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 ## 每波弹数（协调人转用户 10-29「弹幕数量偏低」，docs/201 §7）：本作改编弹幕的每圈 / 每扇弹数 × boss/izumik_count_k；
 ## 相位流条数、螺旋臂数、大孢子数与数据招式不乘（加了会把流间 / 臂间通道挤没）；潮门环缺口角宽按原弹数算
 func _cn(n: int) -> int:
-	return maxi(1, int(round(n * Bal.v("boss/izumik_count_k", 1.0))))
+	return maxi(1, int(round(n * Bal.v("boss/izumik_count_k", 1.4))))
 
 
 ## 当前幕（0 / 1 / 2）
@@ -831,7 +831,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 					else:
 						if not b.has("izu_aim"):
 							b.izu_aim = (target - b.pos).angle()
-						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(150.0, (t - 1.4) * 300.0) * Bal.v("boss/izumik_aim_k", 1.0)   # 瞄准段弹速（docs/201 弹速统一）
+						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(150.0, (t - 1.4) * 300.0) * Bal.v("boss/izumik_aim_k", 1.5)   # 瞄准段弹速（docs/201 弹速统一）
 				"back":
 					if t > 1.1 and t < 2.6:
 						b.vel = b.vel.rotated(float(b.izu_curl) * dt)
@@ -844,7 +844,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 					if t >= 0.9:
 						if not b.has("izu_aim"):
 							b.izu_aim = (target - b.pos).angle() + (float(absi(int(b.pos.x)) % 5) - 2.0) * 0.06
-						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(170.0, (t - 0.9) * 340.0) * Bal.v("boss/izumik_aim_k", 1.0)
+						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(170.0, (t - 0.9) * 340.0) * Bal.v("boss/izumik_aim_k", 1.5)
 		for lp in lamps:
 			if g.combat.ground_d(b.pos, lp) < lr:
 				b.life = 0.0

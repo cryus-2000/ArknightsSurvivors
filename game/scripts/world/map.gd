@@ -776,7 +776,7 @@ func mire_new(pos: Vector2, t: float, endless: bool) -> Dictionary:
 ## 场上自然溟痕（不含怪物留痕 / Boss 溟痕 / 淡出中的）按上限半径算的总面积 Σ π·maxr² 是否已到 enemy/mire_area_cap
 ## （用户 10-29「溟痕不能无限扩张」）：到了就不再刷新新的自然溟痕、逼近也不再长大。0 = 不设总面积上限，同改动前
 func mire_area_full() -> bool:
-	var cap: float = Bal.v("enemy/mire_area_cap", 0.0)
+	var cap: float = Bal.v("enemy/mire_area_cap", 610000.0)
 	if cap <= 0.0:
 		return false
 	var a := 0.0
