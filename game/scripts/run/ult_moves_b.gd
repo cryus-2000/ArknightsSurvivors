@@ -34,11 +34,11 @@ static func aim_r(id: String) -> float:
 		"gladiia":
 			return Bal.v("ult/gl_r", 470.0)
 		"angelina":
-			return Bal.v("ult/an_r", 470.0)
+			return Bal.v("ult/an_r", 520.0)   # 10-30 对齐表 470 → 520（屏内小怪 43.8% → 约 50%，朝上瞄时 350 处精英也罩得到）
 		"eyjafjalla":
-			return Bal.v("ult/ey_r", 520.0)
+			return Bal.v("ult/ey_r", 590.0)   # 10-30 对齐表 520 → 590（外缘带打不死普通小怪，屏内小怪 40.4% → 约 50%）
 		"specter_unchained":
-			return Bal.v("ult/su_r", 340.0)
+			return Bal.v("ult/su_r", 505.0)   # 10-30 对齐表 340 → 505（罩住 500 处精英与 420 处 Boss，吸力同时关掉；屏内小怪 44%：再大聚怪档就过 75% 上限）
 	return 460.0
 
 
@@ -175,13 +175,14 @@ static func _spiral(c: Vector2, r: float, i: int, n: int, a0 := 0.0) -> Vector2:
 
 # ================================================================ 斯卡蒂（§4.6）：下劈 → 劈开处立起大浪，0.8 秒推过屏幕
 
-## 带宽 820，从身后 60 起推到屏外（§3.2 草案）
+## 带宽 920，从身后 200 起推到屏外（§3.2 草案 820 / 60；10-30 对齐表：判定改成与画面一致的矩形后放宽，
+## 屏内小怪 / 朝上瞄时 500 处精英都罩得到，见 docs/199 §7）
 static func _sd_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var hw: float = Bal.v("ult/sd_w", 820.0) * 0.5
+	var hw: float = Bal.v("ult/sd_w", 920.0) * 0.5
 	var waves: Array = [[Bal.v("ult/sd_t0", 0.15), 1.0]]
-	if rt == "wave":   # 跃浪：浪分两道（第二道 0.3 秒后、各 55%），宽 760
-		hw = 380.0
+	if rt == "wave":   # 跃浪：浪分两道（第二道 0.3 秒后、各 55%），宽为缺省的 380 / 410（原 760 对 820）
+		hw *= 380.0 / 410.0
 		waves = [[0.15, 0.55], [0.45, 0.55]]
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
@@ -191,7 +192,7 @@ static func _sd_start(u, o, d: Vector2) -> Dictionary:
 	var ws: Array = []
 	for w in waves:
 		ws.append({"t0": float(w[0]), "frac": float(w[1]), "seg": {}, "fx": [], "spr": [], "done": false, "spray_t": 0.0})
-	return {"o0": o.pos, "d": d, "n": d.orthogonal(), "hw": hw, "back": Bal.v("ult/sd_back", 60.0), "L": Bal.v("ult/sd_len", 1500.0),
+	return {"o0": o.pos, "d": d, "n": d.orthogonal(), "hw": hw, "back": Bal.v("ult/sd_back", 200.0), "L": Bal.v("ult/sd_len", 1500.0),
 		"T": Bal.v("ult/sd_push", 0.8) * (0.8 if waves.size() > 1 else 1.0), "slash": false, "sseg": {}, "waves": ws,
 		"surge": rt == "surge", "surged": false, "no_ring": true}
 
@@ -256,12 +257,16 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 				var lat2: float = -hw + hw * 2.0 * fposmod(0.17 + 0.29 * float(i) + 0.37 * float(j), 1.0)
 				u.shape({"kind": "dots", "c": fp + n * lat2, "r": 40.0, "n": 7, "col": foam, "life": 0.3, "v": d * 520.0 + n * (float(i) - 1.5) * 60.0})
 		# 浪头：前沿扫过的敌人各吃一次（下劈打过的只吃 70%，其余吃满这一道）；小怪推 400、精英 240
+		# 判定按画面的矩形水体（身后 back 到浪头前沿 +20）：in_band 两端是半圆，原来身后多罩一个半径 hw 的半圆、浪头前方 hw 内也提前挨打
 		var full: float = float(w.frac)
 		for e in u.in_band(o0 - d * back, fp, hw):
 			if w.seg.has(int(e.id)):
 				continue
-			w.seg[int(e.id)] = true
 			var rel: Vector2 = e.pos - o0
+			var al: float = rel.dot(d)
+			if al < -back - 1.0 or al > F + 20.0:
+				continue
+			w.seg[int(e.id)] = true
 			var fr: float = full - (Bal.v("ult/sd_slash", 0.3) if a.sseg.has(int(e.id)) and a.waves.size() == 1 else 0.0)
 			_hit(u, a, o, e, fr, {"src": "浪头", "edge": absf(rel.dot(n)) > hw * (1.0 - _edge_w()), "kb": _kb_for(e, d, 400.0, 240.0)})
 		if k >= 1.0:
@@ -296,7 +301,7 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var col: Color = u._col(o)
 	var R: float = aim_r("gladiia")
-	var DR: float = 620.0 if rt == "brute" else Bal.v("ult/gl_drag_r", 560.0)
+	var DR: float = Bal.v("ult/gl_drag_r", 520.0) + (60.0 if rt == "brute" else 0.0)   # 10-30 对齐表 560 → 520（屏内小怪 55.6% → 约 50%）；怒海仍比缺省大 60（原 620 对 560）
 	var pulled: Array = []
 	for e in u.in_circle(c, DR):
 		if e.boss:
@@ -464,8 +469,9 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 	a["halo"] = _keep(u, a, {"kind": "ring", "c": c, "r": 60.0, "w": 5.0, "col": col.lerp(Color.WHITE, 0.4), "life": 3.0})
 	_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": Color(0.25, 0.08, 0.35), "fill": 0.14, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 2.5, "col": col, "life": 3.0})
-	a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2, "layer": "back", "loop": true, "life": 3.0}))
-	a.fx.append(u.strip("fx_angelina_well_front", c, {"sc": 1.6, "loop": true, "life": 3.0}))
+	var ks: float = R / 470.0   # 帧条按 470 时的比例跟着半径缩放
+	a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2 * ks, "layer": "back", "loop": true, "life": 3.0}))
+	a.fx.append(u.strip("fx_angelina_well_front", c, {"sc": 1.6 * ks, "loop": true, "life": 3.0}))
 	return a
 
 
@@ -545,7 +551,7 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 		for e in a.bosses:
 			_hit(u, a, o, e, fr, {"src": "砸地", "stun": 0.3})
 		var dust := Color(0.6, 0.5, 0.68)
-		u.strip("fx_angelina_well_close", c, {"sc": 3.6})
+		u.strip("fx_angelina_well_close", c, {"sc": 3.6 * R / 470.0})
 		_ring(u, c, R, 50.0, dust, 0.55, 20.0)
 		_ring(u, c, R * 0.6, 40.0, col.lerp(Color.WHITE, 0.6), 0.35, 8.0)
 		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.3, "life": 0.22})
@@ -584,7 +590,7 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 
 # ================================================================ 艾雅法拉（§4.9）：地面龟裂 → 火柱 → 熔岩块落满一圈 → 中间留熔岩地面
 
-## 熔岩落点半径：§3.2 草案 460；实测外缘带打不死普通小怪时屏内只倒 30%，这里放到 ult/ey_r（520）。
+## 熔岩落点半径：§3.2 草案 460；实测外缘带打不死普通小怪时屏内只倒 30%，这里放到 ult/ey_r（520，10-30 对齐表再放到 590）。
 ## 熔岩地面草案 4 秒；短持续型上限 3.5 秒，缩到 2.2 秒（5 跳各 3%，合计 15%）。
 ## 火柱 25% 只打中心 140；喷发同时一圈热浪把同样 25% 给 140 外的人（草案里外圈只有 60% + 地面，精英只掉 30%，这里补齐到每人合计约 1）
 static func _ey_start(u, o, c: Vector2) -> Dictionary:
@@ -593,7 +599,7 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 	var col: Color = u._col(o)
 	var t_col: float = Bal.v("ult/ey_crack", 0.4)
 	var blobs: Array = []   # [落点, 落地时刻]
-	var nb: int = int(Bal.v("ult/ey_blobs", 30.0))
+	var nb: int = int(Bal.v("ult/ey_blobs", 38.0))   # 半径 520 → 590 时 30 → 38，熔岩块密度不变
 	var t_fall: float = t_col + 0.15
 	var span: float = Bal.v("ult/ey_fall", 0.45)
 	for i in nb:   # 从里往外落满（按黄金角散布，序号小的先落）
@@ -676,14 +682,14 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 			if a.fseg.has(int(e.id)):
 				continue
 			a.fseg[int(e.id)] = true
-			_hit(u, a, o, e, ff, {"src": "熔岩", "edge": e.pos.distance_to(c) > er})
+			_hit(u, a, o, e, ff + _ey_out(a, e), {"src": "熔岩", "edge": e.pos.distance_to(c) > er})
 	if not a.filled and t >= float(a.fall_end):
 		a.filled = true
 		for e in u.in_circle(c, R):
 			if a.fseg.has(int(e.id)):
 				continue
 			a.fseg[int(e.id)] = true
-			_hit(u, a, o, e, ff, {"src": "熔岩", "edge": e.pos.distance_to(c) > er})
+			_hit(u, a, o, e, ff + _ey_out(a, e), {"src": "熔岩", "edge": e.pos.distance_to(c) > er})
 	# 熔岩地面：半径 300，2.5 秒，每 0.5 秒一跳（合计 15%）
 	var lr: float = a.lava_r
 	if not a.pool and t >= float(a.t_lava):
@@ -700,6 +706,11 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, Bal.v("ult/ey_lava_frac", 0.15) / float(n_t), {"src": "熔岩地面", "edge": false})
 		u.shape({"kind": "dots", "c": c, "r": lr * 0.9, "n": 20, "col": Color(1.0, 0.6, 0.2), "life": 0.4, "v": Vector2(0, -60)})
 	return bool(a.pool) and int(a.tick) >= n_t
+
+
+## 熔岩地面（半径 lava_r）外的人吃不到地面那 15%：落熔岩时直接补上，圈内每人合计都是 1（10-30 对齐表：原来外圈精英 / Boss 只掉 85%）
+static func _ey_out(a: Dictionary, e: Dictionary) -> float:
+	return Bal.v("ult/ey_lava_frac", 0.15) if e.pos.distance_to(a.c) > float(a.lava_r) else 0.0
 
 
 # ================================================================ 维什戴尔（§4.10）：架炮后仰，向指定方向一排排地毯式炮击（6 排 × 3 发），每处 0.35 秒后余震
@@ -773,8 +784,8 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 				u.strip("fx_missile_explode", p, {"sc": 2.4})
 				for ri in rings:
 					_ring(u, p, rr * (1.0 + 0.12 * float(ri)), 40.0, col.lerp(Color(0.3, 0.0, 0.0), 0.3), 0.3, 6.0, 0.08 * float(ri))
-				for e in u.in_circle(p, rr):
-					if a.aseg.has(int(e.id)):
+				for e in u.in_circle(p, rr + 40.0):   # 主爆的小击退（小怪 60 / 精英 30）会把圈边的人推出圈：主爆打过的放宽 40 再判
+					if a.aseg.has(int(e.id)) or (e.pos.distance_to(p) > rr and not a.mseg.has(int(e.id))):
 						continue
 					a.aseg[int(e.id)] = true
 					var el: bool = e.elite or e.get("part", false)
@@ -789,7 +800,8 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 # ================================================================ 归溟幽灵鲨（§4.11）：巨锯放大、围着她转 3 秒，跟着队长走；期间不倒、受到的伤害 −50%
 
 ## 每 0.25 秒一圈（12 次），每次 8%；队长生命低于 50% 时每次 × (1 + 已损失生命 × 0.5)（精英 / Boss 封顶由 u.hit 管）。
-## 对齐表里队长不动（§3.2 按 3 秒移动 400 算 46%），静止只罩住约 26%；这里加一股往锯刃卷的吸力（ult/su_pull 每秒 90，锯外 200 内），拿不准，见汇报
+## 对齐表里队长不动（§3.2 按 3 秒移动 400 算 46%），静止只罩住约 26%；原来加了一股往锯刃卷的吸力（ult/su_pull 每秒 90，锯外 200 内），
+## 10-30 对齐表改成锯放大到 505（500 处精英、420 处 Boss 都在锯里），吸力缺省关掉
 static func _su_start(u, o) -> Dictionary:
 	var rt := _route(o)
 	var g = u.g
@@ -803,7 +815,7 @@ static func _su_start(u, o) -> Dictionary:
 	a["rim"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 14.0, "col": steel, "life": dur + 1.0})
 	a["rim2"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 40.0, "w": 4.0, "col": Color(0.75, 0.12, 0.16), "life": dur + 1.0})
 	a["disk"] = _keep(u, a, {"kind": "circle", "c": o.pos, "r": 60.0, "col": col.darkened(0.4), "fill": 0.12, "life": dur + 1.0})
-	for i in int(Bal.v("ult/su_teeth", 20.0)):
+	for i in int(Bal.v("ult/su_teeth", 30.0)):   # 半径 340 → 505 时 20 → 30，齿距不变
 		a.teeth.append(_keep(u, a, {"kind": "blade", "a": o.pos, "b": o.pos, "w": 9.0, "col": Color.WHITE, "glow": steel, "life": dur + 1.0}))
 	if a.elegy:
 		a["slowr"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 3.0, "col": Color(0.4, 0.6, 0.9), "life": dur + 1.0})
@@ -814,7 +826,7 @@ static func _su_r(u, a: Dictionary) -> float:
 	var R: float = aim_r("specter_unchained")
 	if a.beast:   # 困兽：基础 310，随已损失生命放大（最多 +15%）
 		var lost: float = 1.0 - clampf(u.g.hp / maxf(1.0, u.g.max_hp), 0.0, 1.0)
-		R = 310.0 * (1.0 + minf(0.15, lost * 0.3))
+		R *= (310.0 / 340.0) * (1.0 + minf(0.15, lost * 0.3))   # 比缺省小同样比例（原 310 对 340）
 	return R
 
 
@@ -845,7 +857,7 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 	for s in a.fx:
 		_hold(s)
 	# 吸力：锯外 200 以内的敌人往锯刃卷（Boss 不吸），已进锯的不再拉
-	var pull: float = Bal.v("ult/su_pull", 90.0)
+	var pull: float = Bal.v("ult/su_pull", 0.0)   # 10-30 对齐表：锯放大到 505 后不再需要（原 90）
 	if pull > 0.0 and t < dur:
 		for e in u.in_circle(c, R + 200.0):
 			if e.boss:
@@ -863,7 +875,7 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 		a.tick = int(a.tick) + 1
 		var hpk: float = clampf(g.hp / maxf(1.0, g.max_hp), 0.0, 1.0)
 		var mul: float = (1.0 + (1.0 - hpk) * 0.5) if hpk < 0.5 else 1.0
-		var fr: float = Bal.v("ult/su_frac", 0.08) * mul
+		var fr: float = Bal.v("ult/su_frac", 1.0 / 12.0) * mul   # 12 次合计 1（原 0.08 × 12 = 0.96）
 		var nb := 0
 		for e in u.in_circle(c, full_r):
 			var de: float = e.pos.distance_to(c)
@@ -883,12 +895,12 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 
 # ================================================================ 水月（§4.12）：身后破土一条巨型触手，0.5 秒横扫指定方向的半圆 → 小触手抓漏网
 
-## 半圆半径：§3.2 草案 640（屏内实测只覆盖约 40%），放到 ult/mz_r（700）、扫 200°（两侧各多 10°，免得正侧面漏）
+## 半圆半径：§3.2 草案 640（屏内实测只覆盖约 40%），放到 ult/mz_r（700）、扫 200°（两侧各多 10°，免得正侧面漏）；10-30 对齐表扫角再放到 232°
 static func _mz_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var col: Color = u._col(o)
 	var R: float = Bal.v("ult/mz_r", 700.0)
-	var half: float = deg_to_rad(Bal.v("ult/mz_arc", 200.0)) * 0.5
+	var half: float = deg_to_rad(Bal.v("ult/mz_arc", 232.0)) * 0.5   # 10-30 对齐表 200 → 232°（朝上瞄时右下 350 处精英也扫得到，屏内小怪 43% → 约 50%）
 	var base: Vector2 = o.pos - d * 90.0
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
@@ -945,7 +957,7 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 			var ke: float = k * k * (3.0 - 2.0 * k)   # 起扫慢、中段最快、收尾慢
 			reach = R
 			ang = a0 + span * ke
-			# 扫过的敌人各吃一次 80%；被打倒的每只给队长回 0.2% 最大生命（至多 5%）
+			# 扫过的敌人各吃一次 100%（10-30 对齐表 80% → 100%：原来精英 / Boss 只掉 32% / 6.4%）；被打倒的每只给队长回 0.2% 最大生命（至多 5%）
 			for e in u.in_circle(c, R):
 				if a.seg.has(int(e.id)):
 					continue
@@ -955,7 +967,7 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 					continue
 				a.seg[int(e.id)] = true
 				var tg: Vector2 = Vector2.from_angle(off.angle() + PI / 2.0)
-				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 0.8), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0)})
+				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0)})
 				if e.dead and float(a.heal) < 0.05:
 					a.heal = float(a.heal) + 0.002
 					g.combat.heal(g.max_hp * 0.002, "终结技", "mizuki")

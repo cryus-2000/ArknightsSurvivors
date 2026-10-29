@@ -3,6 +3,8 @@
 ## 约定同 ult_moves：伤害一律走 u.hit（按目标生命定的预算，frac = 这段占预算的比例，各段合计 ≈ 1）；每段各记一张已命中表（e.id），同一敌人同一段只打一次；
 ## 带 cap 的动作（连携终结技通用版包进来时）每名敌人合计不超过 cap。冲击帧落在主打击那一下：之前的铺垫段标 pre。
 ## 外缘衰减带：圆形按面积口径取外圈 15%（核心半径 = R × ult/c_core 0.92 ≈ √0.85），带形 / 矩形按宽度取两侧各 15%（核心半宽 × ult/c_band_core 0.85）。
+## 10-30 对齐 §3.4：以自身为圆心的四人（塞雷娅 / 星熊 / 拉普兰德 / 流明）R = 502（罩住 500 处的精英），核心系数各自 ult/<前缀>_core 0.872（核心 ≈ 438）：
+## 均匀场景小怪 47.5%、聚怪 76.7%；核心再大均匀场景到 50.8% 但聚怪 80% 以上，核心 ≤ 436 聚怪 75% 但均匀只剩 44.2%（测试台网格的台阶，两头不能同时满足）。
 ## 画面全是程序占位（u.shape）+ 少量现有帧条（u.strip，art/fx 里已有的干员特效）；不用新素材、不画通用圆（动作字典都带 no_ring，冲击环各自画）。不抽随机数，散布按序号算。
 extends RefCounted
 
@@ -34,11 +36,11 @@ static func aim_kind(id: String) -> String:
 static func aim_r(id: String) -> float:
 	match id:
 		"saria":
-			return Bal.v("ult/sa_r", 505.0)
+			return Bal.v("ult/sa_r", 502.0)
 		"siege":
-			return Bal.v("ult/sg_r", 480.0)
+			return Bal.v("ult/sg_r", 540.0)
 		"irene":
-			return 760.0
+			return Bal.v("ult/ir_r", 860.0)
 	return 460.0
 
 
@@ -251,14 +253,14 @@ static func _launch(u, a: Dictionary, e: Dictionary, dur: float, h: float) -> vo
 
 
 # ================================================================ 塞雷娅（§4.13）：举拳蓄力 → 一拳砸地，拳风冲击环向四周打出去 + 脚下放射裂纹、沿裂纹接连爆开
-## 10-30 用户「应该是一圈打出去的拳风和裂地的感觉」返工：不再是直线带、不瞄（aim_kind none）。以她为圆心半径 ult/sa_r（505；核心 × c_core 0.92 ≈ 465，
-## 对齐 §3.2 自身圆心 460 一档，参考场景 500 处的精英也罩得住）：
+## 10-30 用户「应该是一圈打出去的拳风和裂地的感觉」返工：不再是直线带、不瞄（aim_kind none）。以她为圆心半径 ult/sa_r（502；核心 × ult/sa_core 0.872 ≈ 438，
+## 参考场景 500 处的精英也罩得住）：
 ##   举拳 ult/sa_charge（0.2 秒，琥珀光往拳头收）→ 砸地：轻震 + 拳风冲击环 ult/sa_travel（0.25 秒）扩到 R，波前扫过的敌人吃 1 − 裂地份额、往外击飞 ult/sa_kb（360）；
 ##   同时脚下裂开 ult/sa_cracks（10）道放射裂纹（琥珀色折线往外延伸），裂纹上每隔一节接连爆开（半径 80，每人一次 ult/sa_crack 20%）。
 ## 路线：碎晶 → 裂纹 14 道、裂地 30%（冲击环降到 70%）；急救针剂 → 结束时队长回复 6% 最大生命。附带护盾一层照旧
 static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var R: float = Bal.v("ult/sa_r", 505.0)
+	var R: float = Bal.v("ult/sa_r", 502.0)
 	var cf: float = 0.3 if rt == "shatter" else Bal.v("ult/sa_crack", 0.2)
 	var nc: int = 14 if rt == "shatter" else int(Bal.v("ult/sa_cracks", 10.0))
 	var c: Vector2 = o.pos
@@ -298,7 +300,7 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 		u.grain("mote_in", fist + dq * 120.0, -dq, COL_AMBER, 2)
 	u.shake(2.0, 0.15)
 	return {"org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
-		"wseg": {}, "cseg": {}, "punched": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
+		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 
 static func _sa_step(u, a: Dictionary, o) -> bool:
@@ -349,7 +351,7 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 		g.shield_pop = 1.0
 	# 拳风冲击环：波前扫过的敌人各吃一次，往外击飞、短硬直
 	var f: float = R * clampf((t - ch) / tr, 0.0, 1.0)
-	var hc: float = R * _core()
+	var hc: float = a.rc
 	var kb: float = _kb_v(Bal.v("ult/sa_kb", 360.0))
 	for e in u.in_circle(org, f):
 		var off: Vector2 = e.pos - org
@@ -390,8 +392,9 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 
 static func _su_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var hw: float = Bal.v("ult/su_w", 840.0) * 0.5
+	var hw: float = Bal.v("ult/su_w", 1000.0) * 0.5
 	var L: float = Bal.v("ult/su_len", 900.0)
+	var bk: float = Bal.v("ult/su_back", 160.0)   # 斩痕带从队长身后 bk 起（10-30 对齐 §3.4：原 60）
 	var side: Vector2 = o.pos + d.orthogonal() * -48.0 + d * -10.0
 	var tp: float = Bal.v("ult/su_appear", 0.3)
 	var col: Color = u._col(o)
@@ -410,7 +413,7 @@ static func _su_start(u, o, d: Vector2) -> Dictionary:
 	u.shape({"kind": "dots", "c": side + Vector2(0, -36), "r": 70.0, "n": 10, "col": gold, "life": tp})
 	o.face_to(d.angle())
 	var fe: float = 0.68 if rt == "hearth" else 0.8
-	return {"org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
+	return {"org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "bk": bk, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
 		"pf": 1.0 - fe - (0.12 if rt == "hearth" else 0.0), "ef": fe, "pseg": {}, "eseg": {}, "dashed": false, "boom": false,
 		"seal": rt == "seal", "hearth": rt == "hearth", "ht": 0, "hseg": [{}, {}, {}]}
 
@@ -423,6 +426,7 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 	var hw: float = a.hw
 	var L: float = a.L
 	var tp: float = a.tp
+	var bk: float = a.bk
 	var col: Color = u._col(o)
 	var gold: Color = col.lerp(Color.WHITE, 0.2)
 	var hc: float = hw * _band_core()
@@ -442,17 +446,17 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 		for k in 12:
 			var p: Vector2 = side.lerp(tip, (k + 0.5) / 12.0)
 			u.shape({"kind": "dots", "c": p, "r": 26.0, "n": 4, "col": COL_LIGHT, "life": 0.25, "delay": 0.01 * k})
-		for e in _in_rect(u, org, d, -60.0, L, hw):
+		for e in _in_rect(u, org, d, -bk, L, hw):
 			_once(u, a, o, a.pseg, e, float(a.pf), {"src": "瞬身", "stun": 0.3, "pre": true, "edge": absf(_loc(e.pos, org, d).y) > hc})
 	if not a.boom and t >= tb:
 		a.boom = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.7)
 		# 斩痕爆裂：沿斩痕一串白光爆点 + 横贯带宽的交叉斩
-		u.shape({"kind": "band", "a": org - d * 60.0, "b": org + d * L, "w": hw * 2.0, "col": COL_LIGHT, "fill": 0.2, "life": 0.3})
+		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_LIGHT, "fill": 0.2, "life": 0.3})
 		var n: int = 10
 		for k in n:
-			var x: float = lerpf(30.0, L - 30.0, (k + 0.5) / n)
+			var x: float = lerpf(30.0 - bk, L - 30.0, (k + 0.5) / n)
 			var p: Vector2 = _w(org, d, x, 0.0)
 			var dl: float = 0.012 * k
 			u.shape({"kind": "circle", "c": p, "r": 90.0, "col": COL_LIGHT, "fill": 0.55, "life": 0.22, "delay": dl})
@@ -460,9 +464,9 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 			var sg: float = 1.0 if k % 2 == 0 else -1.0
 			var cd: Vector2 = d.orthogonal().rotated(0.45 * sg)
 			u.shape({"kind": "blade", "a": p - cd * hw * 1.02, "b": p + cd * hw * 1.02, "w": 9.0, "col": COL_LIGHT, "glow": gold, "grow": 0.04, "life": 0.24, "delay": dl})
-		u.shape({"kind": "line", "a": org + d * L, "b": org, "w": 6.0, "col": gold, "life": 0.2, "delay": 0.15})   # 白光收回
+		u.shape({"kind": "line", "a": org + d * L, "b": org - d * bk, "w": 6.0, "col": gold, "life": 0.2, "delay": 0.15})   # 白光收回
 		var st: float = Bal.v("ult/su_seal", 1.0) if a.seal else 0.0
-		for e in _in_rect(u, org, d, -60.0, L, hw):
+		for e in _in_rect(u, org, d, -bk, L, hw):
 			var opt := {"src": "斩痕", "edge": absf(_loc(e.pos, org, d).y) > hc}
 			if st > 0.0:
 				opt["stun"] = st * (0.5 if e.elite else 1.0)
@@ -473,9 +477,9 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 			var i: int = int(a.ht)
 			a.ht = i + 1
 			for k in 8:
-				var p: Vector2 = _w(org, d, lerpf(60.0, L - 60.0, (k + 0.5) / 8.0), hw * 0.4 * (1.0 if (k + i) % 2 == 0 else -1.0))
+				var p: Vector2 = _w(org, d, lerpf(60.0 - bk, L - 60.0, (k + 0.5) / 8.0), hw * 0.4 * (1.0 if (k + i) % 2 == 0 else -1.0))
 				u.shape({"kind": "dots", "c": p, "r": 60.0, "n": 7, "col": COL_AMBER, "life": 0.8})
-			for e in _in_rect(u, org, d, -60.0, L, hw):
+			for e in _in_rect(u, org, d, -bk, L, hw):
 				_once(u, a, o, a.hseg[i], e, 0.04, {"src": "狐火", "edge": absf(_loc(e.pos, org, d).y) > hc})
 		return int(a.ht) >= 3
 	return t >= tb + 0.25
@@ -485,33 +489,34 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 
 static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var hw: float = Bal.v("ult/lo_w", 780.0) * 0.5
+	var hw: float = Bal.v("ult/lo_w", 920.0) * 0.5
 	var L: float = Bal.v("ult/lo_len", 900.0)
+	var bk: float = Bal.v("ult/lo_back", 160.0)   # 咒域从队长身后 bk 起（10-30 对齐 §3.4：原 60）
 	var org: Vector2 = o.pos
 	var tm: float = Bal.v("ult/lo_mark", 0.5)
 	var col: Color = u._col(o)
-	var p0: Vector2 = _w(org, d, -60.0, -hw)
+	var p0: Vector2 = _w(org, d, -bk, -hw)
 	var p1: Vector2 = _w(org, d, L, -hw)
 	var p2: Vector2 = _w(org, d, L, hw)
-	var p3: Vector2 = _w(org, d, -60.0, hw)
+	var p3: Vector2 = _w(org, d, -bk, hw)
 	# 咒域：矩形描边 + 底色 + 两条长边的咒文条（fx_logos_script 拼接）+ 横向分隔线
-	u.shape({"kind": "band", "a": org - d * 60.0, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
+	u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
 	for pr in [[p0, p1], [p1, p2], [p2, p3], [p3, p0]]:
 		u.shape({"kind": "line", "a": pr[0], "b": pr[1], "w": 3.0, "col": col.lerp(Color.WHITE, 0.3), "life": tm + 0.1})
 	u.tiles_line("fx_logos_script", p0 + d.orthogonal() * 14.0, p1 + d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
 	u.tiles_line("fx_logos_script", p3 - d.orthogonal() * 14.0, p2 - d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
 	for k in 4:
-		var x: float = lerpf(-60.0, L, (k + 1) / 5.0)
+		var x: float = lerpf(-bk, L, (k + 1) / 5.0)
 		u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 1.5, "col": Color(col, 0.6), "life": tm, "delay": 0.05 * k})
 	# 标记（头顶咒文，fx_logos_glyph 画入 0–3；同屏至多 ult/lo_mark_fx 个，伤害照打每一个）
 	var marks: Array = []
 	var cap: int = int(Bal.v("ult/lo_mark_fx", 40.0))
-	for e in _in_rect(u, org, d, -60.0, L, hw):
+	for e in _in_rect(u, org, d, -bk, L, hw):
 		if marks.size() >= cap:
 			break
 		marks.append({"e": e, "s": u.strip("fx_logos_glyph", e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0), {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
-	return {"org": org, "d": d, "hw": hw, "L": L, "tm": tm, "marks": marks, "seg": {}, "boom": false,
+	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
 
 
@@ -522,6 +527,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 	var d: Vector2 = a.d
 	var hw: float = a.hw
 	var L: float = a.L
+	var bk: float = a.bk
 	var col: Color = u._col(o)
 	var hc: float = hw * _band_core()
 	for mk in a.marks:
@@ -531,9 +537,9 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		a.boom = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		u.shape({"kind": "band", "a": org - d * 60.0, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.35, "life": 0.25})
+		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.35, "life": 0.25})
 		for k in 6:   # 一词念出：咒文从队长往矩形尽头横扫
-			var x: float = lerpf(0.0, L, (k + 0.5) / 6.0)
+			var x: float = lerpf(-bk, L, (k + 0.5) / 6.0)
 			u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 5.0, "col": Color.WHITE, "life": 0.18, "delay": 0.02 * k})
 		for mk in a.marks:
 			var p: Vector2 = mk.s.c
@@ -541,7 +547,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		var thr: float = u.ref_hp() * Bal.v("ult/lo_exec", 2.0)
 		var nexe := 0
 		var nmeto := 0
-		for e in _in_rect(u, org, d, -60.0, L, hw):
+		for e in _in_rect(u, org, d, -bk, L, hw):
 			var edge: bool = absf(_loc(e.pos, org, d).y) > hc
 			var frac: float = a.mf
 			var exe: bool = _minion(e) and float(e.hp) < thr   # 处决按生命阈值，外缘也算（§3.3：和小怪档同一档）
@@ -569,7 +575,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 			if float(bl.get("life", 0.0)) <= 0.0:
 				continue
 			var l: Vector2 = _loc(bl.pos, org, d)
-			if l.x >= -60.0 and l.x <= L and absf(l.y) <= hw:
+			if l.x >= -bk and l.x <= L and absf(l.y) <= hw:
 				bl.life = 0.0
 	for b in a.big:
 		if not b.get("done", false) and t >= float(b.t):
@@ -589,7 +595,7 @@ static func _lo_outside(u, a: Dictionary, p: Vector2):
 	var bd := 400.0 * 400.0
 	for e in u.in_circle(p, 400.0):
 		var l: Vector2 = _loc(e.pos, a.org, a.d)
-		if l.x >= -60.0 and l.x <= float(a.L) and absf(l.y) <= float(a.hw):
+		if l.x >= -float(a.bk) and l.x <= float(a.L) and absf(l.y) <= float(a.hw):
 			continue
 		var d2: float = e.pos.distance_squared_to(p)
 		if d2 < bd:
@@ -604,8 +610,8 @@ static func _ho_start(u, o) -> Dictionary:
 	var rt := _route(o)
 	var g = u.g
 	var c: Vector2 = o.pos
-	var R: float = Bal.v("ult/ho_r", 460.0)
-	var pr: float = Bal.v("ult/ho_pull_r", 480.0)
+	var R: float = Bal.v("ult/ho_r", 502.0)
+	var pr: float = Bal.v("ult/ho_pull_r", 438.0)
 	var hold: float = Bal.v("ult/ho_hold", 1.5)
 	var col: Color = u._col(o)
 	o.play_vis_anim("attack")
@@ -628,7 +634,7 @@ static func _ho_start(u, o) -> Dictionary:
 		if n < 36 and pull > 60.0:
 			n += 1
 			u.shape({"kind": "line", "a": e.pos, "b": e.pos + dv / dist * minf(pull, 120.0), "w": 2.0, "col": col.lerp(Color.WHITE, 0.3), "life": 0.2, "v": dv / dist * 500.0})
-	return {"c": c, "R": R, "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
+	return {"c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
 		"rf": 0.78 if rt == "ember" else Bal.v("ult/ho_boom", 0.9), "wall": rt == "wall", "ember": rt == "ember", "et": 0, "eseg": [{}, {}, {}],
 		"glow": u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold})}
 
@@ -640,7 +646,7 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 	var R: float = a.R
 	var hold: float = a.hold
 	var col: Color = u._col(o)
-	var rc: float = R * _core()
+	var rc: float = a.rc
 	if t < hold:
 		g.invuln = maxf(g.invuln, 0.2)   # 挡的期间队长无敌
 		for e in u.in_view(c):   # 全场嘲讽
@@ -704,14 +710,14 @@ static func _sg_start(u, o, aim: Vector2, d: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var c: Vector2 = aim if aim != Vector2.INF else o.pos + d * 260.0
 	var T: float = Bal.v("ult/sg_air", 0.6)
-	var R: float = Bal.v("ult/sg_r", 480.0) * (450.0 / 480.0 if rt == "leap" else 1.0)
+	var R: float = Bal.v("ult/sg_r", 540.0) * (450.0 / 480.0 if rt == "leap" else 1.0)
 	var col: Color = u._col(o)
 	# 起跳尘 + 落点预兆（影子在落点由大缩小、越来越深）
 	_ring(u, o.pos, 110.0, 30.0, COL_ROCK.lerp(Color.WHITE, 0.3), 0.3, 5.0)
 	u.shape({"kind": "dots", "c": o.pos, "r": 80.0, "n": 10, "col": COL_ROCK, "life": 0.35})
 	_ring(u, c, 50.0, R, Color(col, 0.7), T, 3.0)
 	o.play_vis_anim("attack")
-	return {"p0": o.pos, "c": c, "T": T, "R": R, "H": Bal.v("ult/sg_h", 170.0), "landed": false, "mseg": {}, "fseg": {}, "air": [],
+	return {"p0": o.pos, "c": c, "T": T, "R": R, "H": Bal.v("ult/sg_h", 170.0), "landed": false, "mseg": {}, "fseg": {}, "air": [], "still": [],
 		"fall": false, "sp": 0.4 if rt == "cmd" else Bal.v("ult/sg_sp", 0.25), "cmd": rt == "cmd", "leap": rt == "leap",
 		"l2": {}, "l2seg": {}, "prev": o.pos}
 
@@ -750,7 +756,9 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 		var edge: bool = e.pos.distance_to(c) > rc
 		e["_sg_edge"] = edge
 		_once(u, a, o, seg, e, frac, {"src": "砸地", "edge": edge})
-		if not e.dead:
+		if e.boss and big:
+			a.still.append(e)   # Boss 不浮空，落地那一份照样记（不然 Boss 只吃到 75%）
+		elif not e.dead:
 			_launch(u, a, e, Bal.v("ult/sg_lift", 0.8), 70.0)
 
 
@@ -795,6 +803,9 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 			if n < 30:
 				n += 1
 				u.shape({"kind": "dots", "c": ar.e.pos, "r": 20.0, "n": 5, "col": COL_ROCK, "life": 0.3})
+		for e in a.still:
+			if not e.dead:
+				_once(u, a, o, a.fseg, e, Bal.v("ult/sg_fall", 0.25), {"src": "落地", "edge": bool(e.get("_sg_edge", false))})
 		_air_end(u, a)
 	var l2: Dictionary = a.l2
 	if not l2.is_empty() and not l2.done and t >= float(l2.t0):
@@ -822,10 +833,11 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 static func _ir_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var half: float = deg_to_rad(90.0 if rt == "gale" else 85.0)
-	var R: float = 740.0 if rt == "gale" else Bal.v("ult/ir_r", 760.0)
+	var R: float = Bal.v("ult/ir_r", 860.0) * (sqrt(85.0 / 90.0) if rt == "gale" else 1.0)   # 狂飙：角度放宽、半径按等面积收
 	var n: int = 8 if rt == "tide" else 6
 	var ang: float = d.angle()
-	var org: Vector2 = o.pos
+	var home: Vector2 = o.pos
+	var org: Vector2 = home - d * Bal.v("ult/ir_back", 130.0)   # 扇形顶点在她身后 ir_back（10-30 对齐 §3.4：前沿仍约 730，身侧罩得更全）
 	var col: Color = u._col(o)
 	var tw: float = Bal.v("ult/ir_wind", 0.2)
 	# 起风：扇形底色 + 卷风的弧线（沿切向飞）
@@ -848,8 +860,8 @@ static func _ir_start(u, o, d: Vector2) -> Dictionary:
 		var rr: float = R * (0.42 if i % 2 == 0 else 0.68)   # 一近一远，之字形穿过风暴
 		cuts.append({"lo": lo, "hi": hi, "p": org + Vector2.from_angle(mid) * rr, "t": tw + 0.02 + float(i) * Bal.v("ult/ir_cut_gap", 0.075), "done": false})
 	var tb: float = float(cuts[-1].t) + 0.08
-	return {"org": org, "ang": ang, "half": half, "R": R, "tw": tw, "wseg": {}, "wind": false, "cuts": cuts, "cseg": {}, "cf": Bal.v("ult/ir_cut", 0.55),
-		"tb": tb, "back": false, "shot": false, "eye": org + Vector2.from_angle(ang) * Bal.v("ult/ir_eye", 420.0), "bseg": {}, "air": [], "prev": org}
+	return {"org": org, "ang": ang, "half": half, "R": R, "tw": tw, "wseg": {}, "wind": false, "cuts": cuts, "cseg": {}, "cf": Bal.v("ult/ir_cut", 0.6),
+		"tb": tb, "back": false, "shot": false, "eye": home + Vector2.from_angle(ang) * Bal.v("ult/ir_eye", 420.0), "bseg": {}, "air": [], "prev": home, "home": home}
 
 
 static func _ir_step(u, a: Dictionary, o) -> bool:
@@ -901,19 +913,21 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 	var tb: float = a.tb
 	if not a.back and t >= tb:
 		a.back = true   # 瞬身回原地，转身举手炮
-		u.shape({"kind": "line", "a": o.pos, "b": org, "w": 6.0, "col": col.lerp(Color.WHITE, 0.5), "life": 0.15})
-		_lead_move(u, o, org)
+		var home: Vector2 = a.home
+		u.shape({"kind": "line", "a": o.pos, "b": home, "w": 6.0, "col": col.lerp(Color.WHITE, 0.5), "life": 0.15})
+		_lead_move(u, o, home)
 		_lead_land(u, o)
 		o.face_to(ang)
 	var eye: Vector2 = a.eye
 	if not a.shot and t >= tb + 0.06:
 		a.shot = true
-		u.shape({"kind": "line", "a": org + Vector2(0, -18), "b": eye, "w": 4.0, "col": Color(1.0, 0.95, 0.75), "life": 0.08})
-		u.strip("fx_irene_gun_burst", org + Vector2.from_angle(ang) * 30.0 + Vector2(0, -18), {"ang": ang, "sc": 2.5})
+		var home: Vector2 = a.home
+		u.shape({"kind": "line", "a": home + Vector2(0, -18), "b": eye, "w": 4.0, "col": Color(1.0, 0.95, 0.75), "life": 0.08})
+		u.strip("fx_irene_gun_burst", home + Vector2.from_angle(ang) * 30.0 + Vector2(0, -18), {"ang": ang, "sc": 2.5})
 	if a.shot and not a.get("boom", false) and t >= tb + 0.12:
 		a["boom"] = true
 		o.screen_shake(0.8)
-		var br: float = Bal.v("ult/ir_boom_r", 260.0)
+		var br: float = Bal.v("ult/ir_boom_r", 280.0)
 		u.strip("fx_cannon_burst", eye + Vector2(0, 30), {"o": Vector2(16, 27), "sc": 5.0})
 		u.shape({"kind": "circle", "c": eye, "r": br, "col": Color(1.0, 0.8, 0.5), "fill": 0.35, "life": 0.25})
 		_ring(u, eye, br, 30.0, col.lerp(Color.WHITE, 0.5), 0.35, 12.0)
@@ -924,7 +938,7 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 			if de <= br:
 				_once(u, a, o, a.bseg, e, bf, {"src": "手炮", "edge": de > br * _core()})
 			else:
-				_once(u, a, o, a.bseg, e, bf * 0.5, {"src": "手炮", "edge": true})
+				_once(u, a, o, a.bseg, e, bf * Bal.v("ult/ir_boom_out", 0.6), {"src": "手炮", "edge": true})
 	var air_end: float = Bal.v("ult/ir_lift", 1.2) + float(a.tw) * 0.5
 	if a.get("boom", false) and t >= maxf(tb + 0.15, air_end):
 		_air_end(u, a)
@@ -939,10 +953,13 @@ static func _la_start(u, o) -> Dictionary:
 	var n: int = 5 if rt == "rage" else 4
 	var gap: float = 0.2 if rt == "rage" else Bal.v("ult/la_gap", 0.25)
 	var segs: Array = []
+	var wd: Array = []
 	for i in n:
 		segs.append({})
-	return {"c": o.pos, "R": Bal.v("ult/la_r", 460.0), "n": n, "gap": gap, "fly": Bal.v("ult/la_fly", 0.24), "f": 1.0 / n,
-		"segs": segs, "fired": 0, "bark": rt == "bark"}
+		wd.append(false)
+	var R: float = Bal.v("ult/la_r", 502.0)
+	return {"c": o.pos, "R": R, "rc": R * Bal.v("ult/la_core", 0.872), "n": n, "gap": gap, "fly": Bal.v("ult/la_fly", 0.24), "f": 1.0 / n,
+		"segs": segs, "wd": wd, "fired": 0, "bark": rt == "bark"}
 
 
 static func _la_wave(u, a: Dictionary, o, i: int) -> void:
@@ -981,15 +998,17 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 	var gap: float = a.gap
 	var fly: float = a.fly
 	var R: float = a.R
-	var rc: float = R * _core()
+	var rc: float = a.rc
 	while int(a.fired) < n and t >= gap * int(a.fired):
 		_la_wave(u, a, o, int(a.fired))
 		a.fired = int(a.fired) + 1
 	var c: Vector2 = a.c
 	for i in int(a.fired):
 		var el: float = t - gap * i
-		if el > fly + 0.05:
+		if a.wd[i]:
 			continue
+		if el >= fly:
+			a.wd[i] = true   # 剑气飞到 R 的那一帧必扫一次（帧长较粗时不会从外缘漏过去）
 		var fr: float = lerpf(40.0, R, clampf(el / fly, 0.0, 1.0))
 		var bark: bool = a.bark and i == n - 1
 		for e in u.in_circle(c, fr + 16.0):
@@ -1025,7 +1044,8 @@ static func _lu_start(u, o) -> Dictionary:
 	g.nerve = 0.0   # 清除神经损伤，6 秒内不再累积
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
 	var ticks: int = 0 if rt == "watch" else 4
-	return {"c": c, "R": Bal.v("ult/lu_r", 460.0), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
+	var R: float = Bal.v("ult/lu_r", 502.0)
+	return {"c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
 		"eseg": {}, "boomed": false, "dur": dur, "tick": 0, "ticks": ticks, "tseg": [{}, {}, {}, {}], "rain": rt == "rain", "rseg": [{}, {}],
 		"rn": 0, "rf": 0, "watch": rt == "watch", "wseg": {}, "wcnt": {}, "rot": 0.0}
 
@@ -1035,7 +1055,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	var c: Vector2 = a.c
 	var R: float = a.R
 	var col: Color = u._col(o)
-	var rc: float = R * _core()
+	var rc: float = a.rc
 	var t0: float = a.t0
 	if t < t0:
 		return false
@@ -1051,7 +1071,8 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			var dv := Vector2.from_angle(j * TAU / 20.0)
 			u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
 	var T: float = a.exp
-	if el <= T + 0.05:   # 光圈扩散：前沿经过时 80%
+	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
+		a["edone"] = el >= T
 		var fr: float = lerpf(40.0, R, clampf(el / T, 0.0, 1.0))
 		for e in u.in_circle(c, fr + 16.0):
 			_once(u, a, o, a.eseg, e, float(a.ef), {"src": "光圈", "edge": e.pos.distance_to(c) > rc})
