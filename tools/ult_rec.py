@@ -18,6 +18,10 @@ CLIPS = {
     "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),
     "link1": ("texas", "exusiai,lappland", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=0"], 60.0),   # 技能连携样片①：德克萨斯剑雨 + 能天使 → 爆炸剑雨
     "link2": ("lappland", "texas,saria", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=1"], 60.0),   # 样片②：拉普兰德狼魂剑气 + 德克萨斯 → 十字斩
+    "s_pursue": ("skadi", "texas", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：追击·德克萨斯
+    "s_lava": ("skadi", "eyjafjalla", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：附加·艾雅法拉
+    "s_gather": ("skadi", "gladiia", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：聚拢·歌蕾蒂娅
+    "s_cover": ("skadi", "hoshiguma", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：掩护·星熊
     "combo2": ("skadi", "gladiia,ulpianus", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),   # 深海猎人：组合升级自动接（两人同框条带）   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
 }
 ap = argparse.ArgumentParser()
