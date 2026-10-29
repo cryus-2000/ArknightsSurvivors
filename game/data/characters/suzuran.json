@@ -29,7 +29,11 @@
     "s1_mult": 1.2,
     "s2_buff": 0.15,
     "s3_buff": 0.2,
-    "n1_shots": 1,
+    "att_dur": 2.0,
+    "att_r": 60,
+    "att_every": 0.5,
+    "att_mult": 0.18,
+    "_growth202": "成长节点去数值化（docs/202，10-29）：att_* 狐火点点（狐火命中后附着，灼烧周围并传一次火）。数值为待试验参数",
     "merge_every": 3,
     "merge_mult": 2.5,
     "merge_spd": 340,
@@ -293,6 +297,16 @@
         "area"
       ]
     },
+    "狐火点点": {
+      "emitter": "operator",
+      "origin": "route",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "area",
+        "entity"
+      ]
+    },
     "狐火拖尾": {
       "emitter": "operator",
       "origin": "core",
@@ -310,7 +324,7 @@
       "id": "fox_plus",
       "name": "狐火点点",
       "icon": "growth_b_count",
-      "desc": "每次普攻狐火 +{$n1_shots}；身边常驻的小狐火数 = 每次普攻的狐火数"
+      "desc": "狐火命中后不消散，附在目标身上 {$att_dur} 秒，每 {$att_every} 秒灼烧周围 {$att_r} 内的敌人（狐火 {$att_mult*100}% 伤害），并向其中一名未被附着的敌人传一次火"
     },
     {
       "type": "custom",
@@ -407,15 +421,21 @@
       "shots": "$shots",
       "shot_adds": [
         {
-          "cond": "node:fox_plus",
-          "n": "$n1_shots"
-        },
-        {
           "cond": "elite >= 1",
           "n": 1,
           "_doc": "天赋「祈愿」：狐火 +1"
         }
       ],
+      "attach": {
+        "cond": "node:fox_plus",
+        "dur": "$att_dur",
+        "r": "$att_r",
+        "every": "$att_every",
+        "mult": "$att_mult",
+        "max": 12,
+        "src": "狐火点点",
+        "_doc": "狐火点点（docs/202）：狐火命中后附着 2 秒，每 0.5 秒灼烧周围 60 内的敌人，并向一名未被附着的敌人传一次火；同时至多 12 团"
+      },
       "speed": 330,
       "life": 1.6,
       "bullet_r": 7,
@@ -600,7 +620,7 @@
       "fox_plus": {
         "trig": "passive",
         "do": [],
-        "_doc": "狐火点点：写在 attack.shot_adds（cond node:fox_plus）"
+        "_doc": "狐火点点：写在 attack.attach（cond node:fox_plus）"
       },
       "fox_merge": {
         "trig": "passive",
