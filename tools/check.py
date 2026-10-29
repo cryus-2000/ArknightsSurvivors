@@ -271,6 +271,14 @@ def check_graph_lint():
     return {"name": "图引用 graph_lint", "ok": not left, "detail": detail, "errors": left[:8], "waived": [(e, it) for e, it in waived]}
 
 
+def check_text_reconcile():
+    """不开 Godot（<1 秒）：说明文字里的字面数字都能被该条目自己的参数解释（藏品卡面 / 升级卡 / 局外树 / 事件 / 勋章 / 敌人 / 指南 / 干员响应），
+    基线内的待核只警告，基线外新增未解释 = 失败（tools/text_reconcile.py，docs/204 §3）"""
+    import text_reconcile
+    errs, detail, res, per = text_reconcile.check()
+    return {"name": "说明对账 text_reconcile", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
 def check_cc_lint():
     """不开 Godot（约 1 秒）：击退累加只在 apply_kb、干员代码不直写敌人 stun / slow / air（tools/op_cc_lint.py，docs/101 §7.3.10）"""
     import op_cc_lint
@@ -1282,7 +1290,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1348,6 +1356,8 @@ def main():
         jobs.append(check_data_lint)   # 不开 Godot，约 1 秒；--auto 也跑（改数据表最容易静默出错的几类）
     if a.only in (None, "graph_lint"):
         jobs.append(check_graph_lint)   # 不开 Godot，<1 秒；--auto 也跑（改成长线 / 路线 / 事件 / 引用键 / 图标最容易静默断链）
+    if a.only in (None, "text_reconcile"):
+        jobs.append(check_text_reconcile)
     if a.only in (None, "check_map"):
         jobs.append(check_map)
     if a.only in (None, "cc_lint"):
