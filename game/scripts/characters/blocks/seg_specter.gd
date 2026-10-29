@@ -11,7 +11,8 @@ static func _h3sp(o) -> Dictionary:
 	if not h.has("sp"):
 		h["sp"] = {"fall_t": 0.0, "doll_t": 0.0, "doll_pos": Vector2.INF, "doll_tick": 0.0, "doll_at": 0.0, "elegy_t": 0.0, "sub": {},
 			"spin2_t": -1.0, "spin2_dmg": 0.0, "whirl_t": 0.0, "whirl_tick": 0.0, "whirl_n": 0, "whirl_dmg": 0.0, "whirl_ang": 0.0,
-			"rings": [], "last_s": [0.0, 0.0, 0.0]}
+			"rings": [], "last_s": [0.0, 0.0, 0.0],
+			"hum": 0, "hum_on": false, "hum_dmg": 0.0, "whirl_rk": 1.0, "blades": [], "blade_acc": 0, "blade_made": 0}
 	return h.sp
 
 
@@ -47,7 +48,11 @@ static func _h3_saw_release(o, a: Dictionary) -> void:
 		m *= v
 	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * m * (o.skill_power() if (str(a.get("power", "")) == "active" and _h3_any_skill(o)) else 1.0)
 	hw_record(o, dmg, 0.0, h3_saw_r(o, a), o.pos)   # basis attack = 这一圈主环斩的伤害（替身闪现按它取百分比）
-	_h3_spin(o, a, dmg, 0)
+	var hm: Dictionary = _h4_sub(o, a.get("saw_hum", null))   # docs/202 锯鸣：攒满后这一圈环斩变为旋锯
+	if not hm.is_empty() and int(sp.hum) >= int(hm.get("max", 12)) and float(sp.whirl_t) <= 0.0 and int(sp.whirl_n) <= 0:
+		_g202_start_whirl(o, a, sp, hm, dmg)
+	else:
+		_h3_spin(o, a, dmg, 0)
 	var s2 = a.get("spin2", null)
 	var dbl: bool = s2 is Dictionary and cond_true(o, s2.get("cond", _ED))
 	if dbl:
@@ -71,7 +76,7 @@ static func _h3_saw_release(o, a: Dictionary) -> void:
 static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 	var g = o.g
 	var sp: Dictionary = o.hw.sp
-	var r: float = h3_saw_r(o, a)
+	var r: float = h3_saw_r(o, a) * (float(sp.whirl_rk) if kind == 2 else 1.0)
 	var hits: Array = o.arc_targets(o.pos + Vector2(0, float(a.get("y", -10.0))), 0.0, PI, r)
 	var lh = a.get("low_hp", null)
 	var low_on: bool = lh is Dictionary and cond_true(o, lh.get("cond", _ED))
@@ -108,6 +113,7 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 		o.impact_pause(0.05)
 	if kind == 1:
 		_h3_sfx(o, "atk", -4.0, 1.15, 0.06)
+	_g202_spin_hits(o, a, sp, hits, kind)
 
 
 static func _h3_heavy(o, a: Dictionary) -> bool:
@@ -120,6 +126,8 @@ static func _h3_spins_tick(o, sp: Dictionary, dt: float) -> void:
 		sp.spin2_t = -1.0
 		sp.whirl_t = 0.0
 		sp.whirl_n = 0
+		sp.hum_on = false
+		sp.blades.clear()
 		return
 	var a: Dictionary = o.B.get("attack", {})
 	sp.whirl_ang = float(sp.whirl_ang) + dt * 14.0 * (1.0 if o.face >= 0.0 else -1.0)
@@ -137,6 +145,9 @@ static func _h3_spins_tick(o, sp: Dictionary, dt: float) -> void:
 			sp.whirl_tick = float(sp.whirl_tick) + float(a.get("whirl", _ED).get("tick", 0.15))
 			sp.whirl_n = int(sp.whirl_n) - 1
 			_h3_spin(o, a, float(sp.whirl_dmg), 2)
+	if sp.hum_on and float(sp.whirl_t) <= 0.0 and int(sp.whirl_n) <= 0:
+		_g202_whirl_end(o, a, sp)
+	_g202_blades_tick(o, sp, dt)
 
 
 static func _h3_rings_tick(o, sp: Dictionary, dt: float) -> void:
@@ -156,6 +167,174 @@ static func _h3_rings_tick(o, sp: Dictionary, dt: float) -> void:
 				o.deal_damage(e, rg.dmg)
 			_h3_vsparks(o, rg.pos + Vector2(0, 2), Color(1.1, 0.3, 0.4), 3, 60.0, 0.35, 2.0, 0.0, true)
 	sp.rings = sp.rings.filter(func(rg): return rg.t > 0.0)
+
+
+# ---------------------------------------------------------------- docs/202 成长节点：困兽 / 锯鸣 / 锯鸣·共振
+#  verb.saw_echo   瞬时（trig.on_hurt 的 do）：原地追加一次环斩（伤害同当前一圈主环斩）。归溟幽灵鲨节点 4A「困兽」：S1 期间队长每被命中一次（cd 0.5 秒）
+#  attack.saw_hum {cond node:elegy, max, dur, tick, mult, r_k}  节点 4B「锯鸣」：环斩每命中 1 名敌人攒 1 点（上限 max）；攒满时下一圈环斩变为持续 dur 秒的旋锯
+#                  （每 tick 秒一次，范围 × r_k，伤害 × mult），之后清零；旋锯期间不再攒
+#  attack.saw_res {cond node:elegy2, quake_r, quake_mult, push, blade_every, blade_len, blade_mult, blade_max}  节点 5B「锯鸣·共振」：
+#                  旋锯收尾震地一圈（半径 quake_r，主环斩 × quake_mult，推开 push，位移精英 ×0.5、重型 ×0.3、Boss 不动）；
+#                  旋锯期间每命中 blade_every 次，锯刃甩出一道水刃（飞出 blade_len，穿透，主环斩 × blade_mult；一次旋锯至多 blade_max 道，同屏 ≤ 8）
+# 控制只有震地的位移（走 displace_one 的精英 / 重型 / Boss 口径）；确定性：不取 g.rng；画面随机只用 g.vrng
+
+const G202_BLADE_MAX := 8
+
+
+static func _g202_sd(o, a: Dictionary) -> float:
+	var m := 1.0
+	for it in a.get("mults", _EA):
+		if not cond_true(o, it.get("cond", _ED)):
+			continue
+		var v: float = float(it.get("value", 1.0))
+		if it.get("hp_lost", false):
+			v += clampf(1.0 - o.g.hp / o.g.max_hp, 0.0, 1.0)
+		m *= v
+	return o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * m * (o.skill_power() if (str(a.get("power", "")) == "active" and _h3_any_skill(o)) else 1.0)
+
+
+## 困兽：追加一次环斩
+static func h3_saw_echo(o, _b: Dictionary) -> void:
+	if h3_away(o) or o.pos == Vector2.INF or not hw_on(o):
+		return
+	var a: Dictionary = o.B.get("attack", {})
+	var g = o.g
+	_h3_spin(o, a, _g202_sd(o, a), 0)
+	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": h3_saw_r(o, a), "r0": 20.0, "life": 0.3, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 3.0, "alpha": 0.9})
+
+
+## 锯鸣：这一圈变旋锯（第一段立刻打出）
+static func _g202_start_whirl(o, a: Dictionary, sp: Dictionary, hm: Dictionary, dmg: float) -> void:
+	var tk: float = float(hm.get("tick", 0.15))
+	sp.hum = 0
+	sp.hum_on = true
+	sp.hum_dmg = dmg
+	sp.blade_acc = 0
+	sp.blade_made = 0
+	sp.whirl_rk = float(hm.get("r_k", 1.3))
+	sp.whirl_t = float(hm.get("dur", 0.6))
+	sp.whirl_n = int(round(float(sp.whirl_t) / tk))
+	sp.whirl_tick = tk
+	sp.whirl_dmg = dmg * float(hm.get("mult", 0.45))
+	sp.whirl_n = int(sp.whirl_n) - 1
+	_h3_spin(o, a, float(sp.whirl_dmg), 2)
+	o.screen_shake(0.4)
+
+
+## 命中结算（_h3_spin 末尾）：主圈 / 反向圈 / 追加圈攒锯鸣；旋锯的每段命中数攒水刃
+static func _g202_spin_hits(o, a: Dictionary, sp: Dictionary, hits: Array, kind: int) -> void:
+	if hits.is_empty():
+		return
+	var hm: Dictionary = _h4_sub(o, a.get("saw_hum", null))
+	if hm.is_empty():
+		return
+	if kind != 2:
+		if not sp.hum_on:
+			sp.hum = mini(int(hm.get("max", 12)), int(sp.hum) + hits.size())
+		return
+	var rs: Dictionary = _h4_sub(o, a.get("saw_res", null))
+	if rs.is_empty():
+		return
+	sp.blade_acc = int(sp.blade_acc) + hits.size()
+	var every: int = maxi(1, int(rs.get("blade_every", 5)))
+	while int(sp.blade_acc) >= every and int(sp.blade_made) < int(rs.get("blade_max", 4)):
+		sp.blade_acc = int(sp.blade_acc) - every
+		sp.blade_made = int(sp.blade_made) + 1
+		_g202_throw_blade(o, a, sp, rs, hits)
+	if int(sp.blade_made) >= int(rs.get("blade_max", 4)):
+		sp.blade_acc = 0
+
+
+static func _g202_throw_blade(o, a: Dictionary, sp: Dictionary, rs: Dictionary, hits: Array) -> void:
+	if sp.blades.size() >= G202_BLADE_MAX:
+		return
+	var g = o.g
+	var dir := Vector2.from_angle(float(sp.blade_made) * 2.399 + o.pos.x * 0.01)   # 缺目标时的方向：黄金角错开，不取随机
+	var near: Array = o.nearest_enemies(int(sp.blade_made), h3_saw_r(o, a) * 1.6, o.pos)
+	if not near.is_empty():
+		dir = (near[near.size() - 1].pos - o.pos).normalized()   # 第 k 道打第 k 近的敌人，相邻的几道不重叠
+	sp.blades.append({"pos": o.pos + Vector2(0, -8) + dir * 24.0, "dir": dir, "left": float(rs.get("blade_len", 200.0)), "dmg": float(sp.hum_dmg) * float(rs.get("blade_mult", 0.3)), "hit": {}, "trail": []})
+	_h3_sfx(o, "atk", -3.0, 1.35, 0.05)
+
+
+static func _g202_blades_tick(o, sp: Dictionary, dt: float) -> void:
+	if sp.blades.is_empty():
+		return
+	var g = o.g
+	for bl in sp.blades:
+		var step: float = minf(float(bl.left), 720.0 * dt)
+		bl.pos = (bl.pos as Vector2) + (bl.dir as Vector2) * step
+		bl.left = float(bl.left) - step
+		bl.trail.append(bl.pos)
+		if bl.trail.size() > 6:
+			bl.trail.pop_front()
+		for j in o.query_ids(bl.pos, 60.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or bl.hit.has(int(e.id)) or e.pos.distance_to(bl.pos) > 24.0 + float(e.r):
+				continue
+			bl.hit[int(e.id)] = true
+			o.log_hit("水刃")
+			o.deal_damage(e, float(bl.dmg))
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 8.0, "life": 0.15, "col": H3_GHOST, "alpha": 0.6})
+	sp.blades = sp.blades.filter(func(bl): return float(bl.left) > 0.0)
+
+
+## 旋锯收尾：震地一圈
+static func _g202_whirl_end(o, a: Dictionary, sp: Dictionary) -> void:
+	sp.hum_on = false
+	sp.whirl_rk = 1.0
+	var rs: Dictionary = _h4_sub(o, a.get("saw_res", null))
+	if rs.is_empty():
+		return
+	var g = o.g
+	var r: float = float(rs.get("quake_r", 160.0)) * o.stat(&"op_range")
+	var d: float = float(sp.hum_dmg) * float(rs.get("quake_mult", 0.5))
+	for j in o.query_ids(o.pos, r + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.pos.distance_to(o.pos) > r + float(e.r):
+			continue
+		o.log_hit("锯鸣·震地")
+		o.deal_damage(e, d)
+		if not e.dead:
+			displace_one(o, e, o.pos, {"dir": "push", "dist": float(rs.get("push", 60.0)), "elite_mult": 0.5})
+	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r, "r0": r * 0.25, "life": 0.45, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 4.0, "alpha": 0.95})
+	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r * 0.7, "r0": r * 0.1, "life": 0.35, "col": H3_GHOST, "floor": true, "w": 2.5, "alpha": 0.8})
+	o.fx({"kind": "crack", "pos": o.pos + Vector2(0, 4), "r": r * 0.8, "life": 0.6, "col": H3_RED, "floor": true, "n": 8})
+	o.impact_pause(0.05)
+	o.screen_shake(0.6)
+	_h3_sfx(o, "quake", 0.0, 1.0, 0.1)
+
+
+## 画面：锯鸣能量（脚下一圈 max 个小点，攒满红色脉动）、水刃（弯月 + 拖尾）
+static func _g202_draw_hum(o, sp: Dictionary, a: Dictionary) -> void:
+	var hm: Dictionary = _h4_sub(o, a.get("saw_hum", null))
+	if hm.is_empty() or int(sp.hum) <= 0 or bool(sp.hum_on):
+		return
+	var g = o.g
+	var cv = o.cv
+	var mx: int = int(hm.get("max", 12))
+	var full: bool = int(sp.hum) >= mx
+	cv.draw_set_transform(o.pos + Vector2(0, 6), 0.0, Vector2(1.0, 0.5))
+	var rr: float = 30.0 + (3.0 * sin(g.t * 10.0) if full else 0.0)
+	for q in mx:
+		var an: float = TAU * q / float(mx) - PI * 0.5
+		var on: bool = q < int(sp.hum)
+		var c: Color = Color(1.7, 0.4, 0.5, 0.95) if full else (Color(1.2, 1.4, 1.7, 0.9) if on else Color(0.4, 0.5, 0.6, 0.25))
+		cv.draw_circle(Vector2.from_angle(an) * rr, 2.2 if on else 1.4, c)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func _g202_draw_blades(o, sp: Dictionary) -> void:
+	var cv = o.cv
+	for bl in sp.blades:
+		var d: Vector2 = bl.dir
+		var n: Vector2 = d.orthogonal()
+		var p: Vector2 = bl.pos
+		var tr: Array = bl.trail
+		for k in range(1, tr.size()):
+			cv.draw_line(tr[k - 1], tr[k], Color(0.6, 0.85, 1.2, 0.12 + 0.1 * k), 3.0)
+		cv.draw_colored_polygon(PackedVector2Array([p + d * 14.0, p + n * 9.0 - d * 4.0, p - d * 2.0, p - n * 9.0 - d * 4.0]), Color(0.8, 1.0, 1.4, 0.95))
+		cv.draw_colored_polygon(PackedVector2Array([p + d * 9.0, p + n * 4.5 - d * 2.0, p - d * 1.0, p - n * 4.5 - d * 2.0]), Color(1.9, 2.0, 2.2, 0.95))
 
 
 # ---------------------------------------------------------------- 替身（verb.substitute）/ 不倒（verb.undying）
@@ -447,6 +626,8 @@ static func _h3sp_draw_auras(o) -> void:
 		cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, h3_saw_r(o, a), 0.0, TAU, 36, Color(c.r, c.g, c.b, 0.25 + 0.1 * sin(g.t * 6.0)), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if o.pos != Vector2.INF and not away:
+		_g202_draw_hum(o, sp, a)
 	if float(sp.doll_t) > 0.0 and sp.doll_pos != Vector2.INF and not sp.sub.is_empty():
 		var au: Dictionary = sp.sub.get("doll_aura", {})
 		if not au.is_empty() and cond_true(o, au.get("cond", _ED)):
@@ -463,10 +644,11 @@ static func _h3sp_draw_over(o) -> void:
 	var cv = o.cv
 	var sp: Dictionary = o.hw.sp
 	var a: Dictionary = o.B.get("attack", {})
+	_g202_draw_blades(o, sp)
 	if float(sp.whirl_t) > 0.0:
-		var r: float = h3_saw_r(o, a) * 0.92
+		var r: float = h3_saw_r(o, a) * 0.92 * float(sp.whirl_rk)
 		var fade: float = clampf(float(sp.whirl_t) / 0.2, 0.0, 1.0)
-		var heavy: bool = _h3_heavy(o, a) or g.lamp < 30.0
+		var heavy: bool = _h3_heavy(o, a) or g.lamp < 30.0 or bool(sp.hum_on)
 		var c: Color = Color(1.5, 0.45, 0.5) if heavy else Color(1.2, 1.35, 1.6)
 		cv.draw_set_transform(o.pos + Vector2(0, -8), 0.0, Vector2(1.0, 0.55))
 		for q in 2:
@@ -526,6 +708,9 @@ static func _h3sp_status(o) -> Array:
 			out.append([str(m.status), H3_RED])
 	if float(sp.doll_t) > 0.0:
 		out.append(["%s %d" % [str(sp.sub.get("text", "替身")), int(ceil(float(sp.doll_t)))], H3_GHOST])
+	var hm: Dictionary = _h4_sub(o, a.get("saw_hum", null))
+	if not hm.is_empty() and int(sp.hum) > 0 and not sp.hum_on:
+		out.append(["锯鸣 %d/%d" % [int(sp.hum), int(hm.get("max", 12))], H3_RED, float(sp.hum) / float(hm.get("max", 12))])
 	return out
 
 

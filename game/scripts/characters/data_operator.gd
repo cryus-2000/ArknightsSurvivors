@@ -665,6 +665,7 @@ const EXEC_SEG := {
 	"verb.beam_window": 7,   # h3_exec
 	"verb.cast_push": 7,   # h3_exec
 	"verb.doll_flash": 7,   # h3_exec
+	"verb.saw_echo": 7,   # h3_exec
 	"verb.followup": 7,   # h3_exec
 	"verb.heal_lamp": 7,   # h3_exec
 	"verb.kill_heal": 7,   # h3_exec

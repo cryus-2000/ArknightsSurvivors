@@ -117,7 +117,8 @@ static func _h4_cannon_release(o, a: Dictionary) -> void:
 			var ash: Dictionary = a.get("ash", {})
 			var rings: bool = not _h4_sub(o, ash.get("rings", null)).is_empty()
 			var d1: float = atk * float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
-			_h4_fire(o, a, tgt.pos, d1, str(a.get("src", "")), float(ash.get("size", 1.65)), true, 0.0, false, rings)
+			var aim_to: Vector2 = _g202_chain_aim(o, a, tgt.pos)   # docs/202 余烬未冷·续燃：残影链
+			_h4_fire(o, a, aim_to, d1, str(a.get("src", "")), float(ash.get("size", 1.65)), true, 0.0, false, rings)
 			_h4_twin(o, a, tgt, d1, rings)
 		else:
 			_h4_fire(o, a, tgt.pos, atk, str(a.get("src", "")), 1.0, true, 0.0)
@@ -132,6 +133,71 @@ static func _h4_cannon_after(o, a: Dictionary, tgt: Dictionary) -> void:
 	if gf.is_empty() or int(tgt.get("id", -1)) < 0 or tgt.get("dead", false):
 		return
 	_h4_mark(o, a, tgt, true, float(gf.get("mult", 0.4)))
+
+
+## docs/202 余烬未冷·续燃（节点 5A，chain {cond node:ash_rings2, window, gap, snap_r}）：S1「定点清算」的强化炮击
+##  - 每发强化炮击出手后 window 秒内，被炸死的敌人留下的残影、带标记倒下的残影都不等 0.25 秒，立即引爆；
+##  - 紧接着上一发（gap 秒内）的下一发，落点吸到离原落点 snap_r 内最近的一个残影 / 残影标记上（一道弧线 + 落点环）。
+## 不改伤害倍率。返回这一发的落点
+static func _g202_chain_aim(o, a: Dictionary, to: Vector2) -> Vector2:
+	var ch: Dictionary = _h4_sub(o, a.get("chain", null))
+	if ch.is_empty():
+		return to
+	var g = o.g
+	var wd := _h4wd(o)
+	var out: Vector2 = to
+	if g.t - float(wd.get("chain_prev", -99.0)) < float(ch.get("gap", 2.5)):
+		var best := INF
+		var sr: float = float(ch.get("snap_r", 260.0)) * o.stat(&"op_range")
+		for k in wd.marks:
+			var me: Dictionary = wd.marks[k].e
+			if not me.dead:
+				var d: float = me.pos.distance_to(to)
+				if d <= sr and d < best:
+					best = d
+					out = me.pos
+		for sd in wd.shades:
+			var d2: float = (sd.pos as Vector2).distance_to(to)
+			if d2 <= sr and d2 < best:
+				best = d2
+				out = sd.pos
+		if out != to:
+			o.fx({"kind": "line", "pos": to, "to": out, "life": 0.18, "col": H4_EMBER, "w": 2.0, "laser": true})
+			o.fx({"kind": "ring", "pos": out, "r": 34.0, "r0": 8.0, "life": 0.3, "col": Color(1.7, 0.7, 0.3), "floor": true, "w": 2.5, "alpha": 0.9})
+	wd["chain_prev"] = g.t
+	wd["chain_until"] = g.t + float(ch.get("window", 1.2))
+	return out
+
+
+## 残影多久后殉爆：续燃的窗口内立即（t = 0），否则 0.25 秒
+static func _g202_shade_delay(o) -> float:
+	if o.g.t < float(_h4wd(o).get("chain_until", -1.0)):
+		return 0.0
+	return 0.25
+
+
+## docs/202 亡者回响·回馈（节点 5B，fb {cond node:exec_mark2, kills, sp, cd}）：一次残影引爆杀死 ≥ kills 名敌人时，全队（含自身）技能技力各 + sp 秒，
+## cd 秒内至多一次；金色光点从引爆处飞向每名队员
+static func _g202_feedback(o, a: Dictionary, c: Vector2, n_kill: int) -> void:
+	var fb: Dictionary = _h4_sub(o, a.get("fb", null))
+	if fb.is_empty() or n_kill < int(fb.get("kills", 2)):
+		return
+	var g = o.g
+	var wd := _h4wd(o)
+	if g.t - float(wd.get("fb_t", -99.0)) < float(fb.get("cd", 4.0)):
+		return
+	wd["fb_t"] = g.t
+	var sec: float = float(fb.get("sp", 0.6))
+	var col: Color = o.col()
+	for m in g.squad.ops:
+		for i in 3:
+			if m.skill_unlocked(i) and m.sp_need(i) > 0.0 and not m.perm[i]:
+				m.sp[i] = minf(m.sp_need(i), m.sp[i] + sec)
+		if m.pos == Vector2.INF:
+			continue
+		for q in 3:
+			o.fx({"kind": "h4_spmote", "pos": c + Vector2(0, -16), "start": c + Vector2(0, -16), "tgt": m, "life": 0.45 + 0.08 * q, "col": col, "bend": g.vrng.randf_range(-40, 40)})
+	o.fx({"kind": "ring", "pos": c, "r": 46.0, "r0": 10.0, "life": 0.35, "col": Color(2.0, 1.6, 0.6), "floor": true, "w": 3.0, "alpha": 0.9})
 
 
 ## 礼尚往来：第二发炮弹打次优目标（候选里第一个离首发落点超过爆炸半径的；没有就取下一个候选），伤害 × twin.mult
@@ -317,7 +383,7 @@ static func _h4wd_on_kill(o, e: Dictionary) -> void:
 	if wd.shades.size() >= int(a.get("shade", _ED).get("max", 12)):
 		return
 	var mk: Dictionary = a.get("mark", {})
-	wd.shades.append({"pos": e.pos, "t": 0.25, "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * (mm if mm >= 0.0 else float(mk.get("mult", 0.45))) * o._dmg_bonus(), "r": _h4_wd_aoe(o, a) * float(mk.get("r", 0.9)), "depth": 1})
+	wd.shades.append({"pos": e.pos, "t": _g202_shade_delay(o), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * (mm if mm >= 0.0 else float(mk.get("mult", 0.45))) * o._dmg_bonus(), "r": _h4_wd_aoe(o, a) * float(mk.get("r", 0.9)), "depth": 1})
 	o.fx({"kind": "h4_shade", "pos": e.pos, "life": 0.3, "col": H4_DARK})
 
 
@@ -523,6 +589,8 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 	var g = o.g
 	var killed: Array = []
 	var mark_hit: bool = not _h4_sub(o, mark_c).is_empty()
+	var low_mark: Dictionary = _h4_sub(o, a.get("lowmark", null)) if kind != "shade" else {}   # docs/202 亡者回响：炮击 / 余震波及的残血敌人直接挂残影标记
+	var n_kill := 0
 	for e in o.arc_targets(c, 0.0, PI, r):
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
@@ -530,6 +598,7 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			o.log_hit("真实")
 			o.deal_damage(e, e.hp + 1.0)
 		if e.dead:
+			n_kill += 1
 			if not e.get("wis_det", false):   # 带残影标记的敌人已在 on_kill 里殉爆，这里不再重复留残影
 				killed.append(e.pos)
 		else:
@@ -537,6 +606,10 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 				o.add_cc(e, stun * (0.5 if e.elite else 1.0))
 			if mark_hit:   # 亡者回响：凋零处刑炸到的敌人全部挂上残影标记
 				_h4_mark(o, a, e)
+			if not low_mark.is_empty() and e.hp < e.maxhp * float(low_mark.get("below", 0.3)) and not _h4wd(o).marks.has(e.id):
+				_h4_mark(o, a, e)
+	if kind == "shade" and n_kill > 0:
+		_g202_feedback(o, a, c, n_kill)
 	var sh: Dictionary = a.get("shade", {})
 	if not _h4_boom_dup(o, c, kind):   # 同一处短时间内只画一次爆炸动画 / 只响一次（10-26 用户）；上面的伤害判定每发都照打
 		_h4_boom_visual(o, a, c, r, kind, light, rings)
@@ -546,7 +619,7 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 		for k in mini(killed.size(), 3):
 			if wd.shades.size() >= int(sh.get("max", 12)):
 				break
-			wd.shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * float(sh.get("mult", 0.4)), "r": r * float(sh.get("r", 0.8)), "depth": depth + 1})
+			wd.shades.append({"pos": killed[k], "t": _g202_shade_delay(o), "dmg": dmg * float(sh.get("mult", 0.4)), "r": r * float(sh.get("r", 0.8)), "depth": depth + 1})
 			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
 
 
@@ -681,6 +754,14 @@ static func h4_burst_fx(o, c: Vector2, r: float, small := false) -> void:
 static func _h4wd_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	match str(f.kind):
+		"h4_spmote":   # docs/202 亡者回响·回馈：金色技力光点飞向队友（同推进之王的 h4_spmote，金色光点 + 细尾）
+			var kk := 1.0 - a
+			var to: Vector2 = f.tgt.pos + Vector2(0, -24)
+			var pp: Vector2 = f.start.lerp(to, kk) + Vector2(0, -sin(kk * PI) * 30.0) + f.start.direction_to(to).orthogonal() * sin(kk * PI) * f.bend
+			var tail: Vector2 = f.start.lerp(to, maxf(0.0, kk - 0.12)) + Vector2(0, -sin(maxf(0.0, kk - 0.12) * PI) * 30.0)
+			cv.draw_line(tail, pp, Color(1.6, 1.3, 0.6, 0.55), 2.0)
+			cv.draw_circle(pp, 3.5, Color(2.2, 1.8, 0.9))
+			return true
 		"h4_muzzle":
 			var d: Vector2 = f.dir
 			var n: Vector2 = d.orthogonal()

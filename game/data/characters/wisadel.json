@@ -42,10 +42,15 @@
   "s2_interval": 0.8,
   "s2_over_mult": 0.8,
   "s2_burst": 4,
-  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 余烬未冷 / 亡者回响，节点 5：ash2_* 余烬未冷·续燃（清算后限时增伤），mark2_* 亡者回响·回馈（击杀回技力）。数值为待试验参数",
-  "ash2_dur": 6.0,
-  "ash2_atk": 0.2,
-  "mark2_sp": 0.15
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22；docs/202 改机制）：节点 4 二选一 余烬未冷 / 亡者回响；节点 5：ash2_* 余烬未冷·续燃（强化炮击击杀处残影立即引爆，下一发吸向最近的残影 / 标记），fb_* 亡者回响·回馈（一次引爆杀死多名敌人时全队技力）；mark_low = 亡者回响的残血线。以上为待试验参数",
+  "mark_low": 0.3,
+  "_mark_low": "亡者回响（节点 4B）：炮击 / 余震波及的敌人生命比例低于它时直接挂残影标记（待试验参数）",
+  "ash2_snap_r": 260,
+  "_ash2_snap_r": "余烬未冷·续燃（节点 5A）：下一发炮击的落点吸向离原落点这个半径内最近的残影 / 标记（待试验参数）",
+  "fb_kills": 2,
+  "fb_sp": 0.6,
+  "fb_cd": 4.0,
+  "_fb": "亡者回响·回馈（节点 5B）：一次残影引爆杀死 fb_kills 名以上敌人时，全队技力各 + fb_sp 秒，fb_cd 秒内至多一次（待试验参数）"
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1888 / 防御 256 / 法抗 15%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -954,10 +959,10 @@
      "id": "exec_mark",
      "name": "亡者回响",
      "icon": "skill_wisadel_s2",
-     "desc": "「饱和复仇」爆炸波及的敌人全部挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）"
+     "desc": "炮击与余震波及的敌人中，生命低于 {$mark_low*100}% 的直接挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）"
     }
    },
-   "branch_desc": "「余烬未冷」使「定点清算」的余震增加至三圈并附加眩晕；「亡者回响」使「饱和复仇」命中的敌人获得残影标记",
+   "branch_desc": "「余烬未冷」使「定点清算」的余震增加至三圈并附加眩晕；「亡者回响」使炮击与余震波及的残血敌人获得残影标记",
    "bot": "ash"
   },
   {
@@ -965,19 +970,19 @@
    "id": "exec_mark",
    "name": "亡者回响",
    "icon": "skill_wisadel_s2",
-   "desc": "「饱和复仇」爆炸波及的敌人全部挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）",
+   "desc": "炮击与余震波及的敌人中，生命低于 {$mark_low*100}% 的直接挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）",
    "routes": {
     "ash": {
      "id": "ash_rings2",
      "name": "余烬未冷·续燃",
      "icon": "skill_wisadel_s1",
-     "desc": "「定点清算」后 {$ash2_dur} 秒内炮击伤害 +{$ash2_atk*100}%"
+     "desc": "「定点清算」强化的 3 发炮击：击杀处的残影立即引爆（不等 0.25 秒）；下一发炮击的落点吸向 {$ash2_snap_r} 内最近的残影或标记"
     },
     "mark": {
      "id": "exec_mark2",
      "name": "亡者回响·回馈",
      "icon": "skill_wisadel_s2",
-     "desc": "她每击杀一名敌人，全队技能（包括自身）的技力各 +{$mark2_sp} 秒"
+     "desc": "一次残影引爆杀死 {$fb_kills} 名以上敌人时，全队技能（包括自身）的技力各 +{$fb_sp} 秒，每 {$fb_cd} 秒至多一次"
     }
    }
   },
@@ -1078,6 +1083,25 @@
     "cond": "elite >= 1",
     "mult": "$gift_mult",
     "_doc": "精一「好礼」：炮击的主目标直接挂上残影标记 4 秒，标记期间倒下必定引爆残影（40%）"
+   },
+   "lowmark": {
+    "cond": "node:exec_mark",
+    "below": "$mark_low",
+    "_doc": "docs/202 亡者回响（节点 4B）：炮击 / 余震波及的敌人生命比例低于 below 时直接挂残影标记；不再依赖 S2"
+   },
+   "chain": {
+    "cond": "node:ash_rings2",
+    "window": 1.2,
+    "gap": 2.5,
+    "snap_r": "$ash2_snap_r",
+    "_doc": "docs/202 余烬未冷·续燃（节点 5A）：定点清算的强化炮击出手后 window 秒内残影立即引爆；gap 秒内的下一发落点吸向 snap_r 内最近的残影 / 标记"
+   },
+   "fb": {
+    "cond": "node:exec_mark2",
+    "kills": "$fb_kills",
+    "sp": "$fb_sp",
+    "cd": "$fb_cd",
+    "_doc": "docs/202 亡者回响·回馈（节点 5B）：残影引爆一次杀死 kills 名以上敌人时全队技力各 + sp 秒，cd 秒内至多一次"
    }
   },
   "skills": [
@@ -1143,10 +1167,7 @@
     "attack_effect": {
      "aim_r": 540,
      "size": "$s2_size",
-     "src": "饱和复仇",
-     "mark": {
-      "cond": "node:exec_mark"
-     }
+     "src": "饱和复仇"
     },
     "attack_phases": [
      {
@@ -1216,7 +1237,7 @@
    "exec_mark": {
     "trig": "passive",
     "do": [],
-    "_doc": "亡者回响：写在 S2 的 verb.cannon_exec.mark（cond node:exec_mark）"
+    "_doc": "亡者回响：写在 attack.lowmark（cond node:exec_mark）"
    },
    "elite2": {
     "trig": "passive",
@@ -1248,30 +1269,14 @@
     "_doc": "好礼：写在 attack.gift（cond elite >= 1）"
    },
    "ash_rings2": {
-    "trig": "on_skill_start",
-    "skill": 0,
-    "_doc": "余烬未冷·续燃（路线 ash 节点 5）：清算后限时增伤（同 key 刷新不叠）",
-    "do": [
-     {
-      "verb": "buff_timed",
-      "key": "ash",
-      "stat": "atk",
-      "value": "$ash2_atk",
-      "dur": "$ash2_dur",
-      "text": "续燃"
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "余烬未冷·续燃（路线 ash 节点 5，docs/202）：写在 attack.chain（cond node:ash_rings2）"
    },
    "exec_mark2": {
-    "trig": "on_kill",
-    "_doc": "亡者回响·回馈（路线 mark 节点 5）：击杀回技力",
-    "do": [
-     {
-      "verb": "sp_secs",
-      "seconds": "$mark2_sp",
-      "exclude_self": false
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "亡者回响·回馈（路线 mark 节点 5，docs/202）：写在 attack.fb（cond node:exec_mark2）"
    }
   },
   "response": [
