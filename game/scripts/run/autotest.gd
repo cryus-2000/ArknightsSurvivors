@@ -1013,7 +1013,7 @@ func step() -> void:
 			_clutter_log()
 	# 机器人的手动技能（契约 v2.3：只有主控有手动技能）：就绪且干员自己想放时替玩家按下。
 	# 时机由干员的 bot_wants_manual 决定：缺省保命型（主控生命 < bot/manual_hp），乌尔比安 S3 就绪即放
-	if g.state == g.S.PLAY:
+	if g.state == g.S.PLAY and g.ult == null:   # ult/on：没有手动技能（Q 是终结技，机器人由 ult.gd 自动放）
 		for o in g.squad.ops:
 			var mi: int = o.manual_index()
 			if o.manual_ready(mi) and o.bot_wants_manual(mi):

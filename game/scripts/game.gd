@@ -20,6 +20,7 @@ const Look = preload("res://scripts/render/look.gd")   # 观感预设 render/loo
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Squad = preload("res://scripts/characters/squad.gd")
+const Ult = preload("res://scripts/run/ult.gd")   # 终结技 / 连携技 / 连携终结技（docs/198；ult/on = 0 时为 null）
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
@@ -335,6 +336,7 @@ var pending_levelups := 0
 var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
 var _stats_ver := -1
 var squad: RefCounted          # 编队（scripts/characters/squad.gd）：主控与跟随的干员们
+var ult = null                 # 终结技框架（run/ult.gd）：balance ult/on 关时为 null，旧的响应 / 连携 / 手动技能照旧
 var doctor: RefCounted         # 博士层专属逻辑（scripts/characters/doctor.gd）
 var ch: RefCounted             # 开局干员（squad.ops[0]）：成长 / 精英化 / HUD 在 P2 之前仍绑定在它身上
 var eai: RefCounted            # 小怪行为（scripts/enemies/enemy_ai.gd），按 data/enemies.json 的 pattern 字段分派
@@ -872,6 +874,7 @@ func _ready() -> void:
 		if stats.has_stat(k):
 			stats.set_base(k, float(doctor.def.stats[k]))
 	squad = Squad.new(self)
+	ult = Ult.new(self) if Ult.on() else null
 	# 开局干员：标题页选人写入 Cfg.character_id；--op=<id> 测试覆盖；不存在时退回水月
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
@@ -1455,6 +1458,8 @@ func _process(delta: float) -> void:
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
 	if wheel.is_open:
 		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
+	if ult != null and (mode == Mode.PLAY or realtime or playclock_test):
+		dt *= ult.time_scale()   # 终结技瞄准慢动作（docs/198 §2.4）：只缩真实步长，批跑不缩（阶段长度按游戏时间，结果可复现）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_static_fps()
@@ -1712,6 +1717,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == S.INTRO:
 		return  # 指南的输入在 _input() 里处理（先于 GUI，不会被任何控件吞掉）
+	if ult != null and event is InputEventKey and not event.pressed and Pad.kc(event) == KEY_Q:
+		ult.release_q()   # 终结技：松开 Q 放出（按住最多再慢 1 秒）
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = Pad.kc(event)
@@ -1722,6 +1729,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (k == KEY_SPACE or k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
 		_try_dash()
 		get_viewport().set_input_as_handled()
+		return
+	# 终结技 Q / 连携技 E（docs/198 §2.4，ult/on）：取代下面的手动技能路由；J 只在手动普攻时是攻击
+	if ult != null and (k == KEY_Q or k == KEY_E or k == KEY_J) and state == S.PLAY:
+		if k != KEY_J and (ult.press_q() if k == KEY_Q else ult.press_e()):
+			get_viewport().set_input_as_handled()
 		return
 	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）
 	if (k == KEY_Q or k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:

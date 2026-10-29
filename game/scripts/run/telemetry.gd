@@ -659,6 +659,8 @@ func record(marks = null) -> Dictionary:
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
 	if not g.squad.stance_log.is_empty():
 		rec["cmd"] = g.squad.cmd_stats()   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数；没切过模式的局不写（BALANCE 与 main 逐字相同）
+	if g.ult != null:
+		rec["ult"] = g.ult.report()   # 终结技 / 连携 / 连携终结技次数与能量来源（docs/198 原型；ult/on 关时没有这一项）
 	return rec
 
 

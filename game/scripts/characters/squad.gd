@@ -360,7 +360,8 @@ var syn := {"cd": {}, "acts": [], "n": 0}
 
 
 func syn_skill(o, i: int) -> void:
-	Synergy.on_skill(self, o, i)
+	if g.ult == null:   # ult/on：隐藏连携由连携技取代（docs/198 §10.3）
+		Synergy.on_skill(self, o, i)
 
 
 func update(dt: float) -> void:
@@ -368,7 +369,10 @@ func update(dt: float) -> void:
 	var t0 := Time.get_ticks_usec() if pf else 0
 	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
-	Synergy.tick(self, dt)
+	if g.ult != null:
+		g.ult.tick(dt)   # 终结技 / 连携技（docs/198）：在 follow 之前，连携位移当帧生效
+	else:
+		Synergy.tick(self, dt)
 	var bl: bool = _blink_on()
 	if bl:
 		_blink_pre()

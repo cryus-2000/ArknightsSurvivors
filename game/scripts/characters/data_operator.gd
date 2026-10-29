@@ -896,7 +896,7 @@ func notify_mate_hook(at: Vector2, hits: Array) -> void:
 ## knob = balance.json 开关路径（缺省开）、range = 本干员到落点的距离上限（× op_range）、cd = 两次之间至少隔几秒（按触发块计）；
 ## 命中后以落点为 target 执行 do。确定性：只读队长 / 队友状态与 g.t，不取随机数
 func on_mate_hook(m, at: Vector2, hits: Array) -> void:
-	if not B.get("_el_mate_hook", false) or pos == Vector2.INF or hits.is_empty():
+	if not B.get("_el_mate_hook", false) or pos == Vector2.INF or hits.is_empty() or BranchBal.vi("ult/on", 1) > 0:   # ult/on：钩与锚并进深海猎人组合（docs/198 §10.3）
 		return
 	for t in _trigs():
 		if str(t.get("_tag", "")) != "trig.on_mate_hook" or not ObCore.cond_true(self, t.get("cond", _ED)):

@@ -65,6 +65,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.dmg_src = dmg_src
 	if g.demo_op != "" and g.demo_enemy == "":
 		return
+	if g.ult != null and not src.is_empty():
+		g.ult.ev.last_src = src   # 连携（归溟幽灵鲨）：伤害来源
 	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
 		g.invuln = 0.3
 		Sfx.play("dodge", -4.0)
@@ -364,6 +366,8 @@ func lose_hp(amount: float, src: String, boss := false) -> float:
 		amount = _boss_clamp(amount, src)
 	amount = _any_clamp(amount)
 	g.hp -= amount
+	if g.ult != null:
+		g.ult.on_lose(amount)   # 终结技能量：受伤来源
 	if g.bench.live:
 		g.bench.on_lose(amount)   # Boss 单场测试台：队长承伤（docs/170）
 	g.telemetry.on_lose(amount, src)   # 作战记录：击倒者归属（持续伤害记给施加它的敌人，docs/77）
@@ -492,6 +496,8 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
 	_armor_cf(pre, amount, not ignore_armor and g.in_type[1] == "物理")
 	amount = lose_hp(amount, g.dmg_src, boss)
+	if g.ult != null:
+		g.ult.on_hurt(amount, {})   # 连携 C 类判定：近战命中 / 一次大伤害
 	g.rfx.on_hurt(g.dmg_src == "nerve", amount)
 	g.invuln = 0.45
 	g.hurt_flash = 0.2
@@ -1206,6 +1212,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff
+	if g.ult != null:
+		g.ult.on_dmg(eff, h)   # 终结技能量：输出来源（docs/198 §2.1）
 	if e.boss and g.bench.live:
 		g.bench.boss_hit(e, eff)   # Boss 单场测试台：破绽期输出占比（docs/170）
 	if _pf:
@@ -1284,6 +1292,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if e.dead:
 		return
 	e.dead = true
+	if g.ult != null:
+		g.ult.on_kill(e)   # 终结技能量：击杀来源
 	# 补给箱被打碎
 	if e.chest:
 		g.telemetry.chests += 1   # 作战记录（docs/77）

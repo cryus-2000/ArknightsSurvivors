@@ -1072,6 +1072,8 @@ func _draw_overlays_shield_drones() -> void:
 	weak_marks.clear()
 	tb_flush()
 	g.squad.draw_skill_over()
+	if g.ult != null:
+		g.ult.draw_world(self)   # 终结技瞄准指示 + 程序占位图形（docs/198 原型）
 	draw_shield()
 	draw_panel_grace()
 	# 无人机：影子 + 光晕一批 → 机体贴图（同贴图连续，自动合批）→ 核心亮点一批（性能 docs/50 §9 ②：原来每架 4 次绘制调用）

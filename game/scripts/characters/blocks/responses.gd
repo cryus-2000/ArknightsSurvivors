@@ -20,7 +20,7 @@ const _EA := []
 
 
 static func on() -> bool:
-	return BalS.vi("response/on", 1) > 0
+	return BalS.vi("response/on", 1) > 0 and BalS.vi("ult/on", 1) == 0   # ult/on：由连携技取代（docs/198 §10.3）
 
 
 ## 本干员事件类响应上次触发距今秒数（条件 resp_idle >= 秒；响应关闭或从未触发时为极大）：
