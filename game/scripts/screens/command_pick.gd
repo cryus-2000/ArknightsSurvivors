@@ -10,7 +10,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 
 var g
 var active := false
-var mode := ""              # "point" / "focus"
+var mode := ""              # "point"（移动）/ "clear"（肃清）/ "focus"（集火）
 var kind := "mouse"         # "mouse" / "touch" / "pad"
 var t := 0.0                # 选点阶段已过的真实秒
 var pointer := Vector2.ZERO # 鼠标 / 手指的 UI 坐标
@@ -237,9 +237,9 @@ func draw(vs: Vector2) -> void:
 			var dv: Vector2 = (sp2 - cp).normalized()
 			hud.draw_colored_polygon(PackedVector2Array([cp + dv * 24.0, cp + dv * 14.0 + dv.orthogonal() * 6.0, cp + dv * 14.0 - dv.orthogonal() * 6.0]), col)
 	# 点位：范围格（以点为心、半径 order_pt_r 内的格子，向外渐淡，最外一圈亮边）；无效（超出范围）整体变警示色
-	if mode == "point":
+	if mode != "focus":
 		var col2: Color = W.C_ACC if valid else W.C_WARN
-		var rr: float = Bal.v("command/order_pt_r", 240.0)
+		var rr: float = Bal.v("command/clear_r", 220.0) if mode == "clear" else Bal.v("command/order_pt_r", 240.0)
 		var cp2: Vector2 = ct * world_pt
 		_tiles(hud, ct, world_pt, rr, col2, e)
 		for o in g.squad.ops:
@@ -264,8 +264,8 @@ func draw(vs: Vector2) -> void:
 		hud.draw_arc(pointer, 30.0, 0.0, TAU, 28, Color(1, 1, 1, 0.55), 2.0)
 		_dash(hud, pointer + Vector2(0, -30), rp + Vector2(0, 22), Color(1, 1, 1, 0.45), false)
 	# 底部信息板：左端警戒斜纹 + PRTS 标签 + 类型 / 状态 / 提示（切角板）
-	var title: String = "指点 · 肃清" if mode == "point" else "指点 · 集火"
-	var code: String = "ORDER // POINT" if mode == "point" else "ORDER // FOCUS FIRE"
+	var title: String = {"point": "指点 · 移动", "clear": "指点 · 肃清"}.get(mode, "指点 · 集火")
+	var code: String = {"point": "ORDER // POINT", "clear": "ORDER // CLEAR"}.get(mode, "ORDER // FOCUS FIRE")
 	var stt: String
 	if mode == "focus":
 		stt = ("锁定 %s" % ("Boss" if snapped.boss else "精英")) if snapped != null else "把准星移到精英或 Boss 上"
@@ -372,13 +372,15 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 	var dev: String = "手机 · 触屏" if touch else "电脑 · 鼠标"
 	var line := ""
 	if g.wheel.is_open:
-		line = "① 点「指挥」键弹出圆盘，局内放慢 → 选「肃清」（清一块区域）或「集火」（打这个）"
+		line = "① 点「指挥」键弹出圆盘，局内放慢 → 选「移动」（去那里）、「肃清」（清一块区域）或「集火」（打这个）"
 	elif active:
 		if touch:
-			line = "② 手指不抬起，拖到目标：准星在手指上方；松手确认，拖回圆盘处取消" if mode == "point" else "② 拖向精英 / Boss（屏外的看边缘标签），或点下方「最近的 Boss / 精英」；松手确认"
+			line = "② 手指不抬起，拖到目标：准星在手指上方；松手确认，拖回圆盘处取消" if mode != "focus" else "② 拖向精英 / Boss（屏外的看边缘标签），或点下方「最近的 Boss / 精英」；松手确认"
 		else:
-			line = "② 准星跟着鼠标：点一块区域（肃清，超出虚线圈算太远）· 左键确认 · 右键 / Esc 取消" if mode == "point" else "② 把准星移到精英 / Boss 上（屏外的看边缘标签），左键确认 · 右键 / Esc 取消"
+			line = "② 准星跟着鼠标：点地面（超出虚线圈算太远）· 左键确认 · 右键 / Esc 取消" if mode != "focus" else "② 把准星移到精英 / Boss 上（屏外的看边缘标签），左键确认 · 右键 / Esc 取消"
 	elif g.squad.order_kind == "point":
+		line = "③ 全队前往点位、在圈内作战；圈里没敌人 2.5 秒后自动归队；作战时限照扣"
+	elif g.squad.order_kind == "clear":
 		line = "③ 队友前往肃清圈、清掉圈内敌人；清空或 9 秒后回到随行；作战时限照扣"
 	elif g.squad.order_kind == "focus":
 		line = "③ 全队集火标记的目标；目标死了指令结束，作战时限照扣"
@@ -395,9 +397,9 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 	var sq = g.squad
 	var W = g.wheel
-	if sq.order_kind == "point":
+	if sq.order_kind == "point" or sq.order_kind == "clear":
 		var cp: Vector2 = ct * sq.order_pos
-		_tiles(hud, ct, sq.order_pos, Bal.v("command/order_pt_r", 240.0), W.C_ACC, 0.8)
+		_tiles(hud, ct, sq.order_pos, sq.order_radius(), W.C_ACC, 0.8)
 		_corners(hud, cp, 14.0, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.95), 2.0)
 	elif sq.order_kind == "focus" and sq.order_target != null and not sq.order_target.dead:
 		var en = sq.order_target

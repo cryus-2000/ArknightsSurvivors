@@ -1695,7 +1695,7 @@ func _order_goal(slot_pos: Vector2) -> Vector2:
 		if dd <= rr:
 			return pos
 		return t.pos + (pos - t.pos).normalized() * rr
-	var pr: float = CmdBal.v("command/order_pt_r", 240.0)
+	var pr: float = sq.order_radius()
 	var best = null
 	var bd := INF
 	for j in query_ids(sq.order_pos, pr):

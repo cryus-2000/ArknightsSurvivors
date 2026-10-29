@@ -17,9 +17,11 @@ const ITEMS_BASE := [
 	{"id": "mob", "name": "清杂优先", "en": "SWARM", "sub": "优先杂兵，向密集处开火", "col": Color(1.0, 0.62, 0.3)},
 	{"id": "boss", "name": "Boss 优先", "en": "BOSS", "sub": "全队集火 Boss，突击时紧追不放", "col": Color(1.0, 0.239, 0.545)},
 ]
-## 指点原型（docs/196，command/target_proto = 1）：下半圈两项换成「点位」「集火」，替掉清杂 / Boss 优先（按钮数不增）
+## 指点（docs/196，command/target_proto = 1）：下半圈换成「移动」「肃清」「集火」三项，替掉清杂 / Boss 优先；
+## 「肃清」10-30 用户加（「移动保留，然后增加肃清区域的选项，因为移动可以帮忙点亮灯塔」），圆盘 6 格各 60°
 const ITEMS_PROTO := [
-	{"id": "point", "name": "肃清", "en": "CLEAR", "sub": "点一块区域：队友前往清掉圈内敌人，清空后回到随行", "col": Color(0.36, 0.78, 1.0)},
+	{"id": "point", "name": "移动", "en": "MOVE", "sub": "点地面：全队前往，在那里作战", "col": Color(0.36, 0.78, 1.0)},
+	{"id": "clear", "name": "肃清", "en": "CLEAR", "sub": "点一块区域：队友清掉圈内敌人，清空后回到随行", "col": Color(0.36, 0.78, 1.0)},
 	{"id": "focus", "name": "集火", "en": "FOCUS", "sub": "点精英或 Boss：全队集火该目标", "col": Color(1.0, 0.239, 0.545)},
 ]
 var ITEMS: Array = _items()
@@ -29,8 +31,8 @@ static func _items() -> Array:
 		return ITEMS_BASE
 	return ITEMS_BASE.slice(0, 3) + ITEMS_PROTO
 
-const ANG := [-150.0, -90.0, -30.0, 45.0, 135.0]
-const HALF := [30.0, 30.0, 30.0, 45.0, 45.0]
+var ANG: Array = [-150.0, -90.0, -30.0, 45.0, 135.0] if ITEMS.size() == 5 else [-150.0, -90.0, -30.0, 30.0, 90.0, 150.0]
+var HALF: Array = [30.0, 30.0, 30.0, 45.0, 45.0] if ITEMS.size() == 5 else [30.0, 30.0, 30.0, 30.0, 30.0, 30.0]
 const TAP := 0.25          # 轻点 / 按住的分界（真实秒）
 const DEAD := 30.0         # 按住模式：鼠标 / 摇杆离起点多远才算选中（像素 / 摇杆 0.5 比例见 _pad_vec）
 const R_IN := 70.0
@@ -129,7 +131,7 @@ func is_current(i: int) -> bool:
 			return sq.priority == 1
 		"boss":
 			return sq.priority == 0
-		"point", "focus":
+		"point", "clear", "focus":
 			return sq.order_kind == str(ITEMS[i].id)
 	return false
 
@@ -356,7 +358,7 @@ func item_col(it: Dictionary) -> Color:
 	match str(it.id):
 		"guard", "recall":
 			return C_FRIEND
-		"roam", "point":
+		"roam", "point", "clear":
 			return C_ACC if style == 1 else C_FRIEND
 		"focus", "boss", "mob":
 			return C_WARN

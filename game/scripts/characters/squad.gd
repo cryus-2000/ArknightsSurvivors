@@ -523,7 +523,7 @@ func apply_command(id: String) -> void:
 			set_priority(1)
 		"boss":
 			set_priority(0)
-		"point", "focus":
+		"point", "clear", "focus":
 			g.pick.begin(id)   # 原型：进入选点阶段（command_pick.gd）
 
 
@@ -551,7 +551,7 @@ func apply_order(mode: String, pt: Vector2, target) -> bool:
 	_order_age = 0.0
 	for o in ops:
 		o.roam_tgt = null
-	stance_log.append([g.t, 20 if mode == "point" else 21])
+	stance_log.append([g.t, {"point": 20, "focus": 21, "clear": 22}.get(mode, 20)])
 	_stance_voice(ROAM, false)
 	if g.get("trace_every") != null and g.trace_every > 0.0:
 		print("CMD t=%.2f order=%s" % [g.t, mode])
@@ -565,8 +565,9 @@ func clear_order() -> void:
 	_order_idle = 0.0
 
 
-## 肃清（10-30 用户「指挥圆盘的移动我觉得可以修改为肃清一块区域」，原「点位」）：圈里（command/order_pt_r）没有敌人超过 command/order_idle 秒、
-## 或下令后 command/order_secs 秒，队友回到随行（不空耗作战时限）；队长走远（> order_break）也回随行。集火目标死了 = 指令结束（继续自动突击）
+## 移动（点位）：圈里（command/order_pt_r + 80）没有敌人超过 command/order_idle 秒、或队长走远（> order_break）→ 归队。
+## 肃清（10-30 用户加）：圈（command/clear_r）里没有敌人超过 command/clear_idle 秒、或下令后 command/clear_secs 秒、或队长走远 → 回到随行（不空耗作战时限）。
+## 集火目标死了 = 指令结束（继续自动突击）
 func _tick_order(dt: float) -> void:
 	_order_cd = maxf(0.0, _order_cd - dt)
 	if order_kind == "":
@@ -575,24 +576,31 @@ func _tick_order(dt: float) -> void:
 		if order_target == null or order_target.dead:
 			clear_order()
 		return
+	var clr: bool = order_kind == "clear"
 	_order_age += dt
-	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) or _order_age >= Bal.v("command/order_secs", 9.0):
-		set_stance(GUARD)
+	var back: int = GUARD if clr else RECALL
+	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) or (clr and _order_age >= Bal.v("command/clear_secs", 9.0)):
+		set_stance(back)
 		return
 	var any := false
-	for e in g.enemies_sys.nearest(1, Bal.v("command/order_pt_r", 220.0), order_pos):
+	for e in g.enemies_sys.nearest(1, order_radius() + (0.0 if clr else 80.0), order_pos):
 		any = not e.dead
 	if any:
 		_order_idle = 0.0
 	else:
 		_order_idle += dt
-		if _order_idle >= Bal.v("command/order_idle", 1.0):
-			set_stance(GUARD)
+		if _order_idle >= (Bal.v("command/clear_idle", 1.0) if clr else Bal.v("command/order_idle", 2.5)):
+			set_stance(back)
+
+
+## 当前地面指令的作战圈半径：移动 command/order_pt_r，肃清 command/clear_r
+func order_radius() -> float:
+	return Bal.v("command/clear_r", 220.0) if order_kind == "clear" else Bal.v("command/order_pt_r", 240.0)
 
 
 ## 机器人用指点（10-30 协调人：「机器人也要会用」，否则云端测的数不准；command/bot_point 0 = 关）：每 command/bot_point_every 秒看一次，
 ## 没有指令、冷却已过、作战时限够突击时：Boss（可受击、离队长 order_r × 1.6 内）在场 → 集火最近的 Boss；
-## 否则队长 command/bot_surround_r 内敌人 ≥ command/bot_surround_n（被包围）→ 对 order_r 内最密的一块下「肃清」。不抽随机数
+## 否则队长 command/bot_surround_r 内敌人 ≥ command/bot_surround_n（被包围）→ 对 order_r 内最密的一块下「肃清」（clear_r 圈）。不抽随机数
 var _order_cd := 0.0
 var _order_age := 0.0
 var _bot_pt_t := 0.0
@@ -623,7 +631,7 @@ func bot_point(dt: float) -> void:
 	var near: Array = g.enemies_sys.nearest(Bal.v("command/bot_surround_n", 6.0), Bal.v("command/bot_surround_r", 240.0), g.ppos)
 	if near.size() < int(Bal.v("command/bot_surround_n", 6.0)):
 		return
-	var pr: float = Bal.v("command/order_pt_r", 220.0)
+	var pr: float = Bal.v("command/clear_r", 220.0)
 	var pool: Array = g.enemies_sys.nearest(40, orr, g.ppos)
 	var best := Vector2.INF
 	var bc := -1
@@ -637,7 +645,7 @@ func bot_point(dt: float) -> void:
 		if c > bc:
 			bc = c
 			best = e.pos
-	if best != Vector2.INF and apply_order("point", best, null):
+	if best != Vector2.INF and apply_order("clear", best, null):
 		_order_cd = Bal.v("command/order_cd", 3.0)
 
 

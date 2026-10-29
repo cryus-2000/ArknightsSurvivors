@@ -94,3 +94,26 @@ func run(check: Callable) -> void:
 	coma["coma"] = true
 	check.call(mate.prio_order([[_e(1, 100.0), 10.0], [coma, 50.0]], 0)[0].id == 1, "prio_order boss: comatose boss is not focused")
 	check.call(not "near" in Squad.PRIO_SHORT and Squad.PRIO_NAMES.size() == 2, "nearest option removed (10-24)")
+	# 指点（docs/196）：圆盘下半圈 移动 / 肃清 / 集火，6 格各 60°（10-30 用户「移动保留，然后增加肃清区域的选项」）
+	var W = preload("res://scripts/screens/command_wheel.gd")
+	var ids: Array = W._items().map(func(it): return str(it.id))
+	check.call(ids == ["guard", "roam", "recall", "point", "clear", "focus"], "wheel has move / clear / focus with target_proto on")
+	# 肃清：圈里没敌人 clear_idle 秒 → 回随行；圈里有敌人则 clear_secs 秒到点回随行；移动照旧（圈空 → 归队）
+	setl.call([_e(1, 100.0)])
+	check.call(squad.apply_order("clear", Vector2(1000.0, 0.0), null) and squad.order_kind == "clear", "clear order applies")
+	check.call(is_equal_approx(squad.order_radius(), 220.0), "clear radius 220")
+	squad._tick_order(0.6)
+	check.call(squad.stance == Squad.ROAM, "clear: still out before clear_idle")
+	squad._tick_order(0.6)
+	check.call(squad.stance == Squad.GUARD and squad.order_kind == "", "clear: empty circle returns to follow")
+	setl.call([_e(1, 1000.0)])
+	squad._order_cd = 0.0
+	check.call(squad.apply_order("clear", Vector2(1000.0, 0.0), null), "clear order applies again")
+	squad._tick_order(5.0)
+	check.call(squad.stance == Squad.ROAM, "clear: enemy in circle keeps the order")
+	squad._tick_order(4.5)
+	check.call(squad.stance == Squad.GUARD, "clear: times out after clear_secs and returns to follow")
+	setl.call([])
+	check.call(squad.apply_order("point", Vector2(500.0, 0.0), null), "move order applies")
+	squad._tick_order(3.0)
+	check.call(squad.stance == Squad.RECALL, "move: empty circle still regroups (prototype rule)")
