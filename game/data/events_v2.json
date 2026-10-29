@@ -743,6 +743,57 @@
      "need": {
       "room": 1
      }
+    },
+    {
+     "label": "再喂喂看？",
+     "desc": "队长生命 -10%，50% 再喂一次（只能再喂一次）",
+     "ops": [
+      {
+       "hp_pct": -0.1
+      }
+     ],
+     "next": "feeding_3",
+     "next_chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "feeding_3",
+   "name": "设身处地",
+   "pool": "card",
+   "cg": "meeting",
+   "src": "原作 rogue_2 scene_ro2_8「再喂喂看？」成功后的再喂一次（不再带「再喂喂看？」）",
+   "text": "它们又围了过来。",
+   "options": [
+    {
+     "label": "喂食底海滑动者",
+     "desc": "灯火 +20",
+     "ops": [
+      {
+       "light": 20
+      }
+     ]
+    },
+    {
+     "label": "喂食水池边的溟痕",
+     "desc": "队长最大生命 +4%",
+     "ops": [
+      {
+       "maxhp_pct": 0.04
+      }
+     ]
+    },
+    {
+     "label": "喂食投嗣育母",
+     "desc": "招募一名干员（从随机两个职业里选）",
+     "ops": [
+      {
+       "recruit_pick": 2
+      }
+     ],
+     "need": {
+      "room": 1
+     }
     }
    ]
   },

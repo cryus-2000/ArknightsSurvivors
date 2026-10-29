@@ -750,6 +750,10 @@ func pick(o: Dictionary) -> bool:
 			return true
 		return false
 	var nxt: String = str(op.get("next", ev.get("next", "")))
+	if nxt != "" and op.has("next_chance") and g.rng.randf() >= float(op.next_chance):
+		# 设身处地「再喂喂看？」（原作 50%）：没成就到此为止；成了进的那一屏不再带这一项，只能再喂一次
+		g.vfx.show_banner("它们没有再靠过来")
+		return false
 	if nxt != "" and ev_by_id.has(nxt):
 		open(nxt)
 		return true

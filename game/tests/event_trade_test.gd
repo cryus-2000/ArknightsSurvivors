@@ -251,5 +251,34 @@ func _process(_dt: float) -> void:
 	check(game.state == game.S.PLAY and game.shop_items == real_items and not game.merchant.is_empty(), "closing restores the map merchant and its shelf")
 	game.merchant = {}
 	game.shop_items = []
+	print("ET step 12")
+	# 12 设身处地「再喂喂看？」（用户 10-29 加回）：50% 进再喂一屏，那一屏不再带「再喂喂看？」，只能再喂一次；不成就关面板
+	var won := 0
+	var lost := 0
+	var again := 0
+	for sd in 40:
+		_close()
+		game.hp = game.max_hp
+		game.rng.seed = 9000 + sd
+		E.open("feeding_2")
+		var ri := -1
+		for i in game.choices.size():
+			if str(game.choices[i].id) == "feeding_2:3":
+				ri = i
+		if ri < 0:
+			again += 100
+			break
+		game.progression.pick(ri)
+		if game.state == game.S.CHOICE and game.choice_kind == "event":
+			won += 1
+			if game.choices.any(func(c): return not str(c.id).begins_with("feeding_3:") or str(c.id) == "feeding_3:3"):
+				again += 1
+			game.progression.pick(0)
+			if game.state == game.S.CHOICE and game.choice_kind == "event":
+				again += 1
+		else:
+			lost += 1
+	_close()
+	check(won > 0 and lost > 0 and again == 0, "feed-again: 50%% chance, only one extra feed (won %d lost %d bad %d)" % [won, lost, again])
 	print("EVENT TRADE: %d failures" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
