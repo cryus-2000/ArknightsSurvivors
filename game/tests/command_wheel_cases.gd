@@ -16,6 +16,8 @@ class Sys extends RefCounted:
 class Spy extends Node:
 	func voice(_cid: String, _key: String, _queued := false, _urgent := false) -> void:
 		pass
+	func voice_chorus(_cid: String, _key: String, _delay := 0.0, _duck := -3.0) -> void:   # 指挥合唱（10-28，squad 缺省走这条）
+		pass
 
 class FakeGame extends RefCounted:
 	var enemies_sys := Sys.new()

@@ -3,6 +3,7 @@ extends Node
 const Title = preload("res://scripts/title.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 var failures := 0
 var title: Control
 
@@ -50,16 +51,17 @@ func run() -> void:
 	await wait_for(func(): return title.boss_trial.visible and not title.transition.busy)
 	check(title.boss_trial.visible, "Boss trial entry opens")
 	title.boss_trial.close()
+	var hp_mult: float = Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)   # 属性页 = 局内实际（e4637d50c）
 	for cid in Character.list_ids():
 		var d: Dictionary = Character.load_def(cid)
 		if not d.get("recruitable", true):
 			continue
 		var sh: Dictionary = InitialStats.sheet(cid, d)
 		check(sh.rows.size() == InitialStats.REQUIRED.size(), "full stat sheet for " + cid)
-		check(InitialStats.row(sh, "hp").text == "%.0f" % float(d.leader.max_hp), "leader HP from JSON " + cid)
+		check(InitialStats.row(sh, "hp").text == "%d" % int(round(float(d.leader.max_hp) * hp_mult)), "leader HP from JSON " + cid)
 	var synthetic := {"base": {"atk": 77.0, "cd": 2.5, "reach": 180}, "leader": {"max_hp": 155}}
 	var dyn: Dictionary = InitialStats.sheet("test", synthetic)
-	check(InitialStats.row(dyn, "hp").text == "155" and InitialStats.row(dyn, "atk").text == "77" and InitialStats.row(dyn, "cd").text == "2.50 秒", "numbers respond to supplied data")
+	check(InitialStats.row(dyn, "hp").text == "%d" % int(round(155.0 * hp_mult)) and InitialStats.row(dyn, "atk").text == InitialStats._num(77.0 * Bal.v("squad/op_atk_base", 1.0)) and InitialStats.row(dyn, "cd").text == "2.50 秒", "numbers respond to supplied data")
 	# 实际编队对象：同一项精英化在主控提示 Q，队友明确自动。
 	var game = load("res://game.tscn").instantiate()
 	game.demo_op = "ulpianus"

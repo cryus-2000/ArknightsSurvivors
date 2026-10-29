@@ -25,7 +25,7 @@ func _ready() -> void:
 		o.cd = approved[id].cycle
 		o.start_attack(o.pos + Vector2(120, 0))
 		var duration: float = approved[id].duration
-		var fire: float = 2.5 / 14.0 if id == "siege" else 3.5 / 12.0
+		var fire: float = 2.5 / 14.0 if id == "siege" else float(approved[id].fire)   # 乌尔比安 10-29 前摇 0.29 → 0.24（ulpianus.json attack_timing._doc）
 		check(absf(o.attack_dur - duration) < 0.000000001 and absf(o.fire_t - fire) < 0.000000001, id + " approved recovery and unchanged release")
 		check(rng == g.rng_states(), id + " animation consumes no gameplay RNG")
 		o.native_motion.t = fire
