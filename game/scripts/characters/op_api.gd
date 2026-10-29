@@ -302,14 +302,14 @@ func add_cc(e: Dictionary, stun := -INF, slow := -INF, kind := "") -> void:
 	g.enemies_sys.add_cc(e, stun, slow, kind)
 
 
-## 成长节点（docs/202）的控制统一走这里：同一敌人 growth/cc_dr_window 秒内第二次受控，时长 × growth/cc_dr_mult（缺省 3 秒 / 0.5），
-## 避免叠控把怪锁死。只对 stun 型（眩晕 / 定身 / 停顿 / 束缚 / 浮空）生效，减速不递减；旋钮 data/balance.json growth 段（--bal=growth/cc_dr_mult=1 即关）。
+## 成长节点（docs/202）的控制统一走这里：同一敌人 growth_nodes/cc_dr_window 秒内第二次受控，时长 × growth_nodes/cc_dr_mult（缺省 3 秒 / 0.5），
+## 避免叠控把怪锁死。只对 stun 型（眩晕 / 定身 / 停顿 / 束缚 / 浮空）生效，减速不递减；旋钮 data/balance.json growth_nodes 段（--bal=growth_nodes/cc_dr_mult=1 即关）。
 ## 老节点和老技能仍直接 add_cc（基线不变）；docs/202 的新节点一律用本函数。
 func add_cc_growth(e: Dictionary, stun := -INF, slow := -INF, kind := "") -> void:
 	if stun > 0.0:
-		var win: float = _BalG.v("growth/cc_dr_window", 3.0)
+		var win: float = _BalG.v("growth_nodes/cc_dr_window", 3.0)
 		if g.t - float(e.get("gcc_t", -99.0)) < win:
-			stun *= _BalG.v("growth/cc_dr_mult", 0.5)
+			stun *= _BalG.v("growth_nodes/cc_dr_mult", 0.5)
 		e["gcc_t"] = g.t
 	g.enemies_sys.add_cc(e, stun, slow, kind)
 
