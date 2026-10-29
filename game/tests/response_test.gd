@@ -1,6 +1,6 @@
 extends Node
 ## 干员响应动作（docs/118）：第一批 德克萨斯（队长冲刺）/ 星熊、艾雅法拉（队长站定）/ 铃兰（队长开技能）；
-## 第二批一组 能天使 / 斯卡蒂 / 推进之王（队长冲刺）/ 维什戴尔 / 流明（队长站定）/ 逻各斯 / 浊心斯卡蒂（队长开技能）；
+## 第二批一组 能天使 / 斯卡蒂（队长冲刺）/ 推进之王（10-29 删响应，只测没有）/ 维什戴尔 / 流明（队长站定）/ 逻各斯 / 浊心斯卡蒂（队长开技能）；
 ## 第二批二组 塞雷娅（队长站定，on_leader_still）/ 凯尔希（队长开技能）/ 水月 / 归溟幽灵鲨 / 艾丽妮 / 安洁莉娜（指挥切换）。
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=hoshiguma --squad=texas,eyjafjalla
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=suzuran --squad=texas
@@ -219,24 +219,17 @@ func test_skadi(g, o) -> void:
 	ok(hp_sum(g) < h0 - 1.0, "斯卡蒂：队长冲刺结束 → 落点横扫命中（%.0f → %.0f）" % [h0, hp_sum(g)])
 
 
-## 推进之王：队长冲刺结束 → 跃向队长身边最近的敌人；落地砸中 → 其他干员技力 +1 秒
+## 推进之王：响应已删（用户 10-29：冲刺一次砸一次很奇怪）→ 队长冲刺结束后不起跳、不补锤
 func test_siege(g, o) -> void:
+	ok(not o.B.has("response"), "推进之王：没有响应动作段")
 	if o.is_leader:
 		return
-	var mate = null
-	for m in g.squad.ops:
-		if m != o and m.skill_unlocked(0) and m.sp_need(0) > 0.0:
-			mate = m
+	var h0 := hp_sum(g)
 	dash(g, true, o)
 	dash(g, false, o)
 	var sg: Dictionary = o.hw.get("sg", {})
-	ok(float(sg.get("leap_t", -1.0)) >= 0.0, "推进之王：队长冲刺结束 → 起跳")
-	if mate != null:
-		mate.sp[0] = 0.0
-	for k in 40:
-		tick(o)
-	ok(float(sg.get("leap_t", 0.0)) < 0.0, "推进之王：落地")
-	ok(mate == null or float(mate.sp[0]) >= 0.9, "推进之王：补锤砸中 → 其他干员技力 +1 秒（%.2f）" % (float(mate.sp[0]) if mate != null else -1.0))
+	ok(float(sg.get("leap_t", -1.0)) < 0.0, "推进之王：队长冲刺结束 → 不起跳")
+	ok(hp_sum(g) >= h0 - 1.0, "推进之王：队长冲刺结束 → 不补锤（%.0f → %.0f）" % [h0, hp_sum(g)])
 
 
 ## 维什戴尔：队长站定 → 攻击速度 +18%

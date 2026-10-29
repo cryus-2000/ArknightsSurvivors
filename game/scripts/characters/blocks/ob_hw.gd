@@ -1073,7 +1073,7 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 #                   响应动作（docs/118）：from: leader = 找队长 aim_r 内离队长最近的敌人（本人是队长时原地砸）、power: false = 不吃技能强度、
 #                   sp_secs = 改为砸中敌人时其他干员技力 + 秒数（取代 sp）；已在空中时不另跳
 #  verb.cmd_wave    号令波：以自身为心向外扩张到 r（dur 秒，先快后慢），扫到的敌人 × mult × 技能强度、非精英击退 kb；同时至多 max 道
-#  verb.sp_team 的 power / motes（第 4 批追加）：技力 × 技能强度；金色技力粒子飞向每名队友
+#  verb.sp_team 的 power / motes（第 4 批追加）：技力 × 技能强度；金色技力粒子飞向每名队友；exclude_self: false = 含自身（跳过自己正在放的技能）
 
 const H4_TAGS := ["shape.hammer", "verb.leap_slam", "verb.cmd_wave",
 	"shape.foxfire", "verb.foxlight", "verb.fox_cast",

@@ -514,9 +514,9 @@ func spend_sp(i: int) -> void:
 
 
 ## 藏品 / 先锋等给的技力：已解锁技能各按需求百分比充能
-func gain_sp(pct: float) -> void:
+func gain_sp(pct: float, skip: int = -1) -> void:   # skip：跳过这一个技能（自己刚放的那个，不给它回充）
 	for i in 3:
-		if skill_unlocked(i) and sp_need(i) > 0.0 and not perm[i]:
+		if i != skip and skill_unlocked(i) and sp_need(i) > 0.0 and not perm[i]:
 			sp[i] = minf(sp_need(i), sp[i] + sp_need(i) * pct)
 
 

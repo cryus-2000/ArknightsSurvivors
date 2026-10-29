@@ -249,7 +249,11 @@
    "name": "冲锋号令·γ型",
    "en": "CHARGE γ",
    "sp": 6,
+<<<<<<< ours
    "desc": "全队（不含自身）技力 +{$s1_sp*100}%；下一次锤击伤害 ×{$s1_mult}",
+=======
+   "desc": "全队立即回复所需技力的 {$s1_sp*100}%；下一次锤击伤害 ×{$s1_mult}",
+>>>>>>> theirs
    "icon": "skill_siege_s1",
    "anim": "activation"
   },
@@ -574,6 +578,7 @@
       "verb": "sp_team",
       "pct": "$s1_sp",
       "power": true,
+      "exclude_self": false,
       "motes": 2
      },
      {
@@ -743,32 +748,7 @@
      }
     ]
    }
-  },
-  "response": [
-   {
-    "trig": "on_leader_dash",
-    "at": "end",
-    "hint": "跟进",
-    "_doc": "响应动作（docs/118 §4.1）：队长冲刺结束时，她跃向队长身边 160 内离队长最近的敌人（至多 180），落地补一锤：半径 70 内锤击 ×1.3（不吃技能强度）、击退 140；砸中时其他干员技力 +1 秒（普攻 hit_sp 的 2 倍）。位移由队长冲刺触发（§1.4）；她本人是队长时原地砸；S2 跃空锤在空中时不另跳",
-    "do": [
-     {
-      "verb": "leap_slam",
-      "from": "leader",
-      "aim_r": 160,
-      "dist": 180,
-      "t": 0.32,
-      "h": 30,
-      "r": 70,
-      "mult": 1.3,
-      "kb": 140,
-      "stun": 0.0,
-      "power": false,
-      "sp_secs": "$hit_sp*2",
-      "src": "锤击"
-     }
-    ]
-   }
-  ]
+  }
  },
  "native_motion": {
   "_doc": "原生动作覆盖层（docs/108 §3.5，native_motion.gd）：clips = 起手后整条播的秒数；states 按序取第一条；exits = 信号族结束后的收势",
@@ -799,11 +779,6 @@
     "tail": 0.2
    }
   ]
- },
- "response": {
-  "name": "跟进锤击",
-  "trigger": "队长冲刺",
-  "desc": "队长每次冲刺结束，她跃向队长身边最近的敌人补一锤（锤击 130% 伤害并击退），砸中时其他干员技力 +1 秒；她本人是队长时原地砸下"
  },
  "hit_feel": "heavy"
 }

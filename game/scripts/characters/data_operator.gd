@@ -687,7 +687,10 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				if b.has("add"):
 					g.lamp = clampf(g.lamp + float(b.add), 0.0, g.lamp_cap)
 			"verb.sp_team":
-				g.squad.gain_sp(float(b.pct) * (skill_power() if b.get("power", false) else 1.0), self if b.get("exclude_self", true) else null)   # power：第 4 批（× 技能强度）
+				var sp_pct: float = float(b.pct) * (skill_power() if b.get("power", false) else 1.0)   # power：第 4 批（× 技能强度）
+				g.squad.gain_sp(sp_pct, self)
+				if not b.get("exclude_self", true):
+					gain_sp(sp_pct, effect_skill)   # 含自身（推进之王 S1，用户 10-29）：自己刚放的技能不回充，其余技能照加
 				if b.has("motes"):
 					SegSiege.h4_sp_motes(self, int(b.motes))   # 第 4 批：金色技力粒子飞向每名队友（画面）
 			"verb.displace":
