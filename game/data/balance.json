@@ -215,7 +215,6 @@
   "bullet_dmg_mult": 0.75,
   "bullet_hit_scale": 0.6,
   "spawn_boss_mult": 0.8,
-  "spawn_boss_mult_mid": 0.85,
   "spawn_dark_mult": 1.15,
   "density": 0.4,
   "_density_set": "10-14 用户定缺省：density 0.4（7–10 分钟同屏普通怪中位约 60）、density_dmg_exp 0.5、scale 1.5（docs/50 §16）；对照原行为用 --bal=enemy/density=1 --bal=enemy/density_dmg_exp=1 --bal=enemy/scale=1",
@@ -459,6 +458,18 @@
    "dash_dist": 0.4,
    "dash_charge": 0.6
   }
+ },
+ "spawn": {
+  "_mid_boss": "中期 Boss（3:30 / 7:00）在场（用户 10-28「中期 Boss 在场的时候怪物还是要刷的，就最后 4 个 Boss 不刷」；spawner.gd mid_boss_up / _mid_hold_update）：普通刷怪 × mid_boss_rate、存活杂兵上限 = 同屏上限 × mid_boss_cap_mult；大群、精英、威胁上升小波挂起，Boss 全倒下后 mid_release_delay 秒起按 威胁波 → 大群 → 精英 依次放出、每项隔 mid_release_gap 秒（协调人 10-28：别同时砸下来）。最终 4 只 Boss 在场仍全停。三轮云端对照见 docs/177 §8",
+  "mid_boss_rate": 0.5,
+  "mid_boss_cap_mult": 0.6,
+  "mid_release_delay": 6,
+  "mid_release_gap": 5,
+  "_mid_soften": "中期 Boss 在场时普通怪按 50% 收敛（用户 10-29 定刷怪速率 50%，协调人：之前试做「太难」的几处一并减半）：本级新种类（高阶）权重 × mid_fresh_w、进化体概率 × mid_evo_mult、伤害 × mid_mob_dmg（只作用于这段时间刷出的普通怪）、刷怪点离 Boss 不到 mid_boss_clear_r 换到队长另一侧。四项都设 1 / 0 = 只减速率",
+  "mid_fresh_w": 0.5,
+  "mid_evo_mult": 0.5,
+  "mid_mob_dmg": 0.5,
+  "mid_boss_clear_r": 400
  },
  "boss": {
   "_danger_pass": "危险感回调（用户 10-28：防暴毙保护让队长几乎不掉到低血、国王套只好把低血门槛提到 70%、最终 Boss 伤害被 2 秒上限截掉）：单次 leader_hit_cap 0.40 不动（防一发秒杀）；2 秒合计 leader_2s_cap 0.50 → 0.68（任意来源的 protect/any_2s_cap 0.55 → 0.70）；满血保护冷却 fullhp_guard_cd 30 → 60 秒、保底 fullhp_guard_left 0.10 → 0.05。三项都是代码缺省的显式值，写在这里方便云端对照",

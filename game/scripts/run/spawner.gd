@@ -68,9 +68,10 @@ func event_pos(min_distance: float, max_distance: float, margin := 100.0) -> Vec
 func pick_type() -> String:
 	var pool: Array = D.THREAT[g.threat].pool
 	var pick: String = ""
-	var fw := final_knob("trickle_fresh_w", 1.0) if trickling() else 1.0
+	var fw := final_knob("trickle_fresh_w", 1.0) if trickling() else (Bal.v("spawn/mid_fresh_w", 1.0) if mid_boss_up() else 1.0)
 	if fw != 1.0 and g.threat > 0:
 		# 最终 Boss 战少量补怪（docs/38 §8.14 10-12）：本级威胁新出现的种类（上一级池里没有的）权重 × trickle_fresh_w，池里重复项照常算权重
+		# 中期 Boss 在场（10-29）：同样按 spawn/mid_fresh_w 压本级新种类（高阶）占比
 		var prev: Array = D.THREAT[g.threat - 1].pool
 		var ws: Array = []
 		var tot := 0.0
@@ -197,8 +198,8 @@ func max_alive() -> int:
 	return dens_cap(int(Bal.v("enemy/max_alive", float(MAX_ENEMIES))))
 
 
-## Boss 在场时还能刷几只普通怪：最终 Boss 读 boss/final_mob_cap（120），中期 Boss 读 boss/mid_mob_cap（160，协调人 9/30 定：
-## Ⅷ 7:00 双体战全场 230 只、主教 on_boss 0%）；没有 Boss 或上限为 0 时按同屏上限 max_alive()。final_mob_cap / mid_mob_cap
+## Boss 在场时还能刷几只普通怪：最终 Boss 读 boss/final_mob_cap（120）；中期 Boss 在场按同屏上限 × spawn/mid_boss_cap_mult（10-28 协调人定，缺省 1.0）；
+## 没有 Boss 或上限为 0 时按同屏上限 max_alive()。final_mob_cap
 ## 按怪物密度同比缩（dens_cap），trickle_cap 不缩——它是「登场后 N 秒内场上敌人数不低于登场前百分之多少」这类目标直接
 ## 反推出来的只读数字（docs/117 §6），写多少就是多少，不想再绕一层密度换算（10-21 协调人定，同 seed 不变）
 func boss_mob_room() -> int:
@@ -209,8 +210,8 @@ func boss_mob_room() -> int:
 		if trickling() and final_knob("trickle_cap") > 0.0:
 			cap = int(final_knob("trickle_cap"))   # 少量补怪的存活杂兵上限（final/trickle_cap，直接数值）
 			raw = true
-	elif boss_alive():
-		cap = int(Bal.v("boss/mid_mob_cap", 160.0))
+	elif mid_boss_up():
+		return int(max_alive() * Bal.v("spawn/mid_boss_cap_mult", 1.0)) - mob_count()
 	if cap <= 0:
 		return max_alive()
 	return (cap if raw else dens_cap(cap)) - mob_count()
@@ -223,9 +224,73 @@ func final_knob(key: String, def := 0.0) -> float:
 	return v if v >= 0.0 else Bal.v("final/" + key, def)
 
 
-## 任意 Boss 在场时停止普通刷怪、精英、大群与威胁增援；保留既有敌人和机制召唤。
+## 最终 Boss（10:00 四只，is_final_boss_type）在场时停止普通刷怪、精英、大群与威胁增援；保留既有敌人和机制召唤。
+## 中期 Boss 在场照常刷（用户 10-28「中期 Boss 在场的时候怪物还是要刷的，就最后 4 个 Boss 不刷」；10-29 定速率 50%）；
+## spawn/mid_boss_rate 0 = 改前（任意 Boss 在场都停刷，精英 / 大群 / 威胁波按旧规则，不挂起补放）
 func mobs_stopped() -> bool:
-	return boss_alive()
+	if Bal.v("spawn/mid_boss_rate", 1.0) <= 0.0:
+		return boss_alive()
+	for b in g.bosses:
+		if not b.dead and is_final_boss_type(str(b.get("type", ""))):
+			return true
+	return false
+
+
+## 中期 Boss（3:30 / 7:00）在场且最终 Boss 未到：普通刷怪照常（× spawn/mid_boss_rate、上限 × mid_boss_cap_mult），
+## 大群、精英、威胁上升小波挂起，Boss 全倒下后 spawn/mid_release_delay 秒起按 威胁波 → 大群 → 精英 依次放出，
+## 每项间隔 spawn/mid_release_gap 秒（10-28 协调人定：别同时砸下来）
+func mid_boss_up() -> bool:
+	return boss_alive() and not mobs_stopped()
+
+
+## 中期 Boss 在场时普通刷怪避开 Boss（10-29）：刷怪点离任一活着的 Boss 不到 spawn/mid_boss_clear_r 就换到队长另一侧（关于队长对称）
+func _mid_clear_pos(p: Vector2) -> Vector2:
+	var r: float = Bal.v("spawn/mid_boss_clear_r", 0.0)
+	if r <= 0.0:
+		return p
+	for b in g.bosses:
+		if not b.dead and b.pos.distance_to(p) < r:
+			return g.ppos * 2.0 - p
+	return p
+
+
+var _held_threat := -1      # 挂起的威胁上升小波（威胁等级下标，-1 = 没有）
+var _held_elite := 0        # 挂起的精英名额
+var _mid_was_up := false
+var _rel_plan: Array = []   # [{"kind": "threat" / "horde" / "elite", "at": 秒}]
+var _horde_gate := 0.0      # 大群不早于这个时刻（放出计划给挂起的那波排的时刻）
+
+
+func _mid_hold_update() -> void:
+	var up := mid_boss_up()
+	if up:
+		_rel_plan.clear()
+		_horde_gate = INF
+	elif _mid_was_up:
+		# 中期 Boss 刚全倒下（或撤场）：排放出计划
+		var at: float = g.t + Bal.v("spawn/mid_release_delay", 6.0)
+		var gap: float = Bal.v("spawn/mid_release_gap", 5.0)
+		if _held_threat >= 0:
+			_rel_plan.append({"kind": "threat", "at": at})
+			at += gap
+		_horde_gate = at   # 大群若已过点，排在这一格（预警照常提前 3 秒）
+		at += gap
+		for k in _held_elite:
+			_rel_plan.append({"kind": "elite", "at": at})
+			at += gap
+		_held_elite = 0
+	_mid_was_up = up
+	if mobs_stopped():
+		_rel_plan.clear()
+		_held_threat = -1
+		return
+	while not _rel_plan.is_empty() and g.t >= float(_rel_plan[0].at):
+		var it: Dictionary = _rel_plan.pop_front()
+		if it.kind == "threat":
+			_threat_wave(_held_threat)
+			_held_threat = -1
+		else:
+			_spawn_elites()
 
 
 ## 兼容旧调用口；10-27 起 Boss 战不再启用低频补怪。
@@ -323,29 +388,25 @@ func update(dt: float) -> void:
 		g.vfx.show_banner("威胁上升 · %s —— 新的海嗣浮现" % tr.name)
 		Sfx.play("roar", -1.0, 0.75, 0.0)
 		g.vfx.shake_screen(0.8)
-		var fresh: Array = tr.pool.filter(func(x): return not D.THREAT[g.threat - 1].pool.has(x))
-		if not fresh.is_empty() and not mobs_stopped():
-			_norm = true
-			for k in dens_count(6, "threat"):   # 只数 × 怪物密度（累计余数取整）
-				var ft: String = fresh[k % fresh.size()]
-				if g.mobile_cap():
-					var ep := edge_pos()
-					_wave_q.append({"at": g.t, "rel": ep - g.ppos, "fn": func(pp: Vector2): _wave_one(ft, pp)})   # 手机：计入同屏上限（docs/50 §39）
-				else:
-					spawn_enemy(ft, edge_pos())
-			_norm = false
+		if mid_boss_up():
+			_held_threat = g.threat   # 中期 Boss 在场：横幅照出，那一小波等 Boss 倒下再放（_mid_hold_update）
+		else:
+			_threat_wave(g.threat)
+	_mid_hold_update()
 	# 刷怪率：spawn_knee 之后按 spawn_late_div 放缓（docs/46 §1.4；缺省拐点在无穷远，行为不变）
 	var sp_div: float = Bal.v("enemy/spawn_div", 30.0)
 	var sp_knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
 	var rate := Bal.v("enemy/spawn_base", 1.6) + minf(g.t, sp_knee) / sp_div + maxf(g.t - sp_knee, 0.0) / Bal.v("enemy/spawn_late_div", sp_div)
 	# Boss 在场 / 灯火不足时的刷怪倍率（balance.json enemy 段，docs/38 B0 第 11 项；现值 0.8 / 1.15）
-	# 中期 / 最终 Boss 在场分开两个倍率（缺省都读原来的 spawn_boss_mult）；用户 9/27：中期 Boss 在场时普通刷怪照常，由数值填 mid 1.0
+	# 最终 Boss 在场停刷（mobs_stopped），这里的倍率只剩中期 Boss：spawn/mid_boss_rate（用户 10-28，缺省 1.0 = 与平时相同）
 	if boss_alive():
 		var fin: bool = g.final_boss != null and not g.final_boss.dead
 		if fin and trickling():
 			rate *= final_knob("trickle_mult")   # 少量补怪：相对正常刷怪率的倍率
+		elif fin:
+			rate *= Bal.v("enemy/spawn_boss_mult_final", Bal.v("enemy/spawn_boss_mult", 0.8))
 		else:
-			rate *= Bal.v("enemy/spawn_boss_mult_final" if fin else "enemy/spawn_boss_mult_mid", Bal.v("enemy/spawn_boss_mult", 0.8))
+			rate *= Bal.v("spawn/mid_boss_rate", 1.0)
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
 	var dens := density()
@@ -356,7 +417,7 @@ func update(dt: float) -> void:
 	if not (g.final_boss != null and not g.final_boss.dead and trickling()):
 		rate *= float(D.THREAT[g.threat].get("rate_mult", 1.0))   # 分级调整（docs/158 §6）：中后段换高阶、压普通刷怪只数，waves.json threat.rate_mult；最终 Boss 少量补怪不乘
 	spawn_acc += rate * dt
-	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
+	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap，0 = 关；中期 Boss 10-28 起按平时）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
 	var mob_room: int = boss_mob_room()
 	var stop := mobs_stopped()   # 最终 Boss 战停刷（final/stop_mobs）：累积照常扣掉，不刷
@@ -385,8 +446,39 @@ func update(dt: float) -> void:
 		next_elite += dt * (1.0 - Bal.v("enemy/elite_during_boss", 1.0))
 	if stop and g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)   # 最终 Boss 战停刷：精英计时照走，不出精英
+	elif g.t >= next_elite and mid_boss_up():
+		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
+		_held_elite += 1   # 中期 Boss 在场：这个精英名额挂起，Boss 倒下后放出
 	elif g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
+		_spawn_elites()
+	# 大群：中期 Boss 在场时挂起（连预警也不出），Boss 倒下后按放出计划的时刻（_horde_gate）出；最终 Boss 停刷；
+	# Boss 先倒下则按 kill() 的「至少推迟 12 秒」；难度修正 horde_in_boss 时不挂起、不顺延；9:30 之后不再刷（给最终 Boss 留空间）
+	_update_horde(stop)
+	_horde_tail_rest()
+
+
+## 一小波威胁上升新种类（原在 update 里；中期 Boss 在场时挂起，倒下后由 _mid_hold_update 放出）
+func _threat_wave(ti: int) -> void:
+	if ti <= 0 or ti >= D.THREAT.size() or mobs_stopped():
+		return
+	var fresh: Array = D.THREAT[ti].pool.filter(func(x): return not D.THREAT[ti - 1].pool.has(x))
+	if fresh.is_empty():
+		return
+	_norm = true
+	for k in dens_count(6, "threat"):   # 只数 × 怪物密度（累计余数取整）
+		var ft: String = fresh[k % fresh.size()]
+		if g.mobile_cap():
+			var ep := edge_pos()
+			_wave_q.append({"at": g.t, "rel": ep - g.ppos, "fn": func(pp: Vector2): _wave_one(ft, pp)})   # 手机：计入同屏上限（docs/50 §39）
+		else:
+			spawn_enemy(ft, edge_pos())
+	_norm = false
+
+
+## 一个精英名额（原在 update 里）：威胁 ≥ 4 出 2 只、「坚决」规则再 +1
+func _spawn_elites() -> void:
+	if true:
 		var et := pick_elite()
 		_norm = true   # 精英也吃怪物体型 enemy/scale（不吃密度）
 		spawn_enemy(et, edge_pos())
@@ -403,8 +495,9 @@ func update(dt: float) -> void:
 		else:
 			g.vfx.show_banner("精英「%s」出现！击败它有概率获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
-	# 大群：Boss 在场时顺延，最多顺延 boss/horde_defer_max 秒（数值起点 40），到时照常带 3 秒预警出场（用户 9/27）；
-	# Boss 先倒下则按 kill() 的「至少推迟 12 秒」；难度修正 horde_in_boss 时不顺延；9:30 之后不再刷（给最终 Boss 留空间）
+
+
+func _update_horde(stop: bool) -> void:
 	# 终局护卫波（docs/116 §9，10-22）：最终 Boss 少量补怪期间每 final/escort_every 秒一波分股小群（final/escort_n 只，不乘密度、不受补怪上限），
 	# 登场后 final/escort_first 秒第一波；0 = 关（旧行为：最终 Boss 战不来大群）
 	# Boss 生命低于 final/escort_stop_frac 后停（收尾不拖成超时）
@@ -422,8 +515,12 @@ func update(dt: float) -> void:
 	var is_fixed: bool = fixed_due >= 0.0 and fixed_due <= g.next_horde
 	var due: float = fixed_due if is_fixed else g.next_horde
 	var hunt_type: bool = is_fixed and Bal.v("enemy/horde_fixed_hunt_%d" % (fixed_i + 1), 0.0) > 0.0
-	if boss_alive() and int(g.dmod.horde_in_boss) <= 0 and not escort:
-		due += Bal.v("boss/horde_defer_max", 40.0)
+	if int(g.dmod.horde_in_boss) <= 0 and not escort:
+		if mid_boss_up():
+			return   # 中期 Boss 在场：大群挂起，连预警也不出
+		due = maxf(due, _horde_gate)   # 中期 Boss 刚倒下：过点的那波排到放出计划的时刻
+		if boss_alive():
+			due += Bal.v("boss/horde_defer_max", 40.0)
 	var horde_ok: bool = (g.t < 570.0 and not stop) or escort   # 最终 Boss 战停刷时连预警也不出（护卫波除外）
 	if g.t >= due - 3.0 and horde_warned != due and horde_ok:
 		horde_warned = due
@@ -512,7 +609,6 @@ func update(dt: float) -> void:
 				mk.call(p)
 		_norm = false
 		_horde_leads(hl, early, hunt_type, escort, ring_r)
-	_horde_tail_rest()
 
 
 ## 大群里的一只（原来在 update 的大群循环里；手机分批进场时由 _wave_q 延后调用）
@@ -662,13 +758,16 @@ func _horde_tail_rest() -> void:
 
 ## 普通刷怪的一只（原来刷怪循环里的那段，原样搬出来；推迟出场的也走这里，按出场那一刻的威胁等级抽种类）
 func _spawn_mob() -> void:
+	var mid := mid_boss_up()
 	_norm = true
-	var ne := spawn_enemy(pick_type(), edge_pos())
+	var ne := spawn_enemy(pick_type(), _mid_clear_pos(edge_pos()) if mid else edge_pos())
 	_norm = false
 	n_mob += 1
-	# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
-	if not ne.elite and ne.ai != "static" and g.rng_spawn.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
+	# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）；中期 Boss 在场时概率 × spawn/mid_evo_mult
+	if not ne.elite and ne.ai != "static" and g.rng_spawn.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0) * (Bal.v("spawn/mid_evo_mult", 1.0) if mid else 1.0):
 		g.enemies_sys.evolve(ne)
+	if mid:
+		ne.dmg *= Bal.v("spawn/mid_mob_dmg", 1.0)   # 中期 Boss 在场时刷出的普通怪伤害（招式与杂兵叠加，10-29）；Boss 倒下后这批怪保持原倍率
 	if g.ending == "resolve" and g.t >= 520.0:
 		ne.weak = ""
 	if owed > 0 and not ne.elite and str(D.ENEMIES.get(str(ne.type), {}).get("role", "")) == "":
@@ -951,7 +1050,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 ## 怪物密度（docs/50 §16，用户 10-14「提高怪物血量和数值，削减同屏数量」「60只左右是不是比较合理的上限」，性能试验）：
 ## balance.json enemy/density = k（缺省 1.0 = 原行为，同 seed 逐行相同）。k < 1 时：
 ##   只数：普通刷怪率、大群只数、威胁上升那一小波只数 × k（后两者用各自的累计余数取整，不耗 g.rng）；
-##         同屏 / Boss 在场的存活杂兵上限（max_alive、boss/final_mob_cap、mid_mob_cap、final/trickle_cap）与同种上限（pick_type 的 caps）同比 × k；
+##         同屏 / Boss 在场的存活杂兵上限（max_alive、boss/final_mob_cap、final/trickle_cap）与同种上限（pick_type 的 caps）同比 × k；
 ##   单只（只对这三条路径刷出的普通怪，role 为空；精英 / Boss / 事件 / 剧本 / Boss 召唤 / 友方不动）：生命、潮盾、经验 ÷ k，
 ##         接触 / 子弹 / 招式伤害（都从 e.dmg 算）÷ k^density_dmg_exp（缺省 1）；e.dk = 1/k 记在敌人上，
 ##         击杀时灯油量、磁铁 / 回复药剂掉率、部件削血、击杀回复 / 252 的击杀权重按 dk 放大（combat.kill、relic_fx.on_kill），总量期望不变。
