@@ -646,8 +646,11 @@ func _horde_tail_rest() -> void:
 				g.combat.fade_mire(far)
 				room = true
 		if room:
+			# 总面积到 enemy/mire_area_cap 就跳过这次（先照常 mire_new 消耗随机数，保证不开上限时随机序列不变）
 			var mire: Dictionary = g.map.mire_new(mp, g.t, true)
-			if not g.combat.mire_blocked(mire.pos, float(mire.maxr)):
+			if g.map.mire_area_full():
+				mire.life = 0.0
+			if mire.life > 0.0 and not g.combat.mire_blocked(mire.pos, float(mire.maxr)):
 				mire["t0"] = g.t
 				g.mires.append(mire)
 	# 商人

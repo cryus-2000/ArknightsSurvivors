@@ -613,6 +613,7 @@ func update_status(dt: float) -> void:
 	var sanct: bool = g.squad.in_sanctuary(g.ppos)   # 流明灯塔：区内溟痕失效
 	var lk: Vector2 = lamp_mire_k()
 	_lamp_hint()
+	var mire_full: bool = lk.y > 0.0 and g.map.mire_area_full()   # 自然溟痕总面积到上限：逼近只挪不长（enemy/mire_area_cap）
 	for m in g.mires:
 		# 溟痕常驻、只能净化（用户 10-24）；Boss 溟痕是招式残留，照旧按 life 到期。life <= 0 = 移除标记
 		if m.get("boss", false):
@@ -625,7 +626,7 @@ func update_status(dt: float) -> void:
 				m.life = 0.0
 			continue
 		if not m.get("boss", false) and (lk.x > 0.0 or lk.y > 0.0):
-			_lamp_mire(m, lk, dt)
+			_lamp_mire(m, lk, dt, mire_full)
 			if m.life <= 0.0:
 				continue
 		m.r = min(m.maxr, m.r + 5.0 * dt)
@@ -672,7 +673,7 @@ func lamp_mire_k() -> Vector2:
 ##   退散：边缘进入队长 lamp/mire_ward_r 内的溟痕每秒收缩 mire_recede × x（上限一并压低，不再长回），小于 10 就消失（不闪，慢慢褪）；
 ##   逼近：中心在 lamp/mire_creep_r 内的溟痕每秒朝队长挪 mire_creep_spd × y、上限长 mire_creep_grow × y（最多原上限 × mire_creep_cap）；
 ##   挪进最终 Boss 禁生成区或点燃灯标的禁刷区时不挪；中心离队长不到半径一半就不再挪（盖住队长后不跟着走）
-func _lamp_mire(m: Dictionary, lk: Vector2, dt: float) -> void:
+func _lamp_mire(m: Dictionary, lk: Vector2, dt: float, full := false) -> void:
 	var d: float = m.pos.distance_to(g.ppos)
 	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 200.0) + m.r and g.t - float(m.get("t0", -INF)) >= Bal.v("lamp/mire_ward_grace", 3.0):
 		m.maxr = maxf(0.0, minf(float(m.maxr), float(m.r)) - Bal.v("lamp/mire_recede", 10.0) * lk.x * dt)
@@ -686,7 +687,8 @@ func _lamp_mire(m: Dictionary, lk: Vector2, dt: float) -> void:
 		var np: Vector2 = m.pos.move_toward(g.ppos, Bal.v("lamp/mire_creep_spd", 14.0) * lk.y * dt)
 		if not g.combat.mire_blocked(np, float(m.maxr)) and not g.beacon_sys.blocks(np):
 			m.pos = np
-		m.maxr = minf(float(m.maxr) + Bal.v("lamp/mire_creep_grow", 6.0) * lk.y * dt, float(m.maxr0) * Bal.v("lamp/mire_creep_cap", 1.3))
+		if not full:   # 自然溟痕总面积到 enemy/mire_area_cap 时不再长（用户 10-29「溟痕不能无限扩张」）
+			m.maxr = minf(float(m.maxr) + Bal.v("lamp/mire_creep_grow", 6.0) * lk.y * dt, float(m.maxr0) * Bal.v("lamp/mire_creep_cap", 1.3))
 
 
 ## 灯火进出通明 / 暗淡档时在队长头上给一行小字（不用横幅；lamp/mire_hint_cd 秒内不重复；带 5 点回差）

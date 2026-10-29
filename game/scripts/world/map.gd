@@ -760,13 +760,32 @@ func mire_next_interval(t: float) -> float:
 func mire_new(pos: Vector2, t: float, endless: bool) -> Dictionary:
 	var m := mire_cfg()
 	var rr: Array = m.get("radius", [70, 110])
+	# 新溟痕的半径随时间放大，封顶 enemy/mire_grow_cap（用户 10-29「溟痕不能无限扩张」；0 = 不封顶，同改动前）
+	var gc: float = Bal.v("enemy/mire_grow_cap", 1.3)
 	var grow := 1.0 + t / 600.0
+	if gc > 0.0:
+		grow = minf(grow, gc)
 	var d := {"pos": pos, "r": 16.0, "maxr": g.rng.randf_range(float(rr[0]), float(rr[1])) * grow,
 		"life": (float(m.get("life_base", 45)) + t / 20.0) if not endless else 9999.0, "seed": g.rng.randf() * 100.0}
 	# 点燃的引航灯标周围禁刷期内不生成自然溟痕（run/beacon.gd）：随机数照常消耗，只把寿命置 0，下一帧被滤掉
 	if g.beacon_sys.blocks(pos):
 		d.life = 0.0
 	return d
+
+
+## 场上自然溟痕（不含怪物留痕 / Boss 溟痕 / 淡出中的）按上限半径算的总面积 Σ π·maxr² 是否已到 enemy/mire_area_cap
+## （用户 10-29「溟痕不能无限扩张」）：到了就不再刷新新的自然溟痕、逼近也不再长大。0 = 不设总面积上限，同改动前
+func mire_area_full() -> bool:
+	var cap: float = Bal.v("enemy/mire_area_cap", 0.0)
+	if cap <= 0.0:
+		return false
+	var a := 0.0
+	for x in g.mires:
+		if x.has("src") or x.get("boss", false) or x.life <= 0.0 or x.has("fade"):
+			continue
+		var mr: float = float(x.get("maxr", x.r))
+		a += PI * mr * mr
+	return a >= cap
 
 
 ## ---- 溟痕 v2（Codex art/archive/incoming_1028/world_spec_1024，用户 10-24 验收；tools/install_world_spec.py 装成两张图集）：
