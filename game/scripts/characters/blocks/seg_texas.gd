@@ -100,6 +100,8 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "hold", p, ctx, false, 0.0, 1.0)
 			_num(b, "pose", p, ctx, false, 0.0, 1.0)
 			_num(b, "sweep", p, ctx, false, 0.01, 1.0)
+			_num(b, "scar_ext", p, ctx, false, 0.0, 3.0)
+			_num(b, "scar_extra", p, ctx, false, 0.0, 6.0)
 			_src(b, p, ctx, true)
 		"verb.fx_rain":
 			_tx_rain_validate(b, p, ctx)
@@ -901,15 +903,27 @@ static func tx_rift_update(o, dt: float) -> void:
 			var sb := {"src": str(b.get("src", "")), "tags": b.get("tags", ["skill", "pierce"]),
 				"on_hit": [{"st": "stun", "dur": float(b.get("stun", 0.0))}] if float(b.get("stun", 0.0)) > 0.0 else []}
 			_tx_sweep(o, p0, p1, float(b.get("w", 40.0)), {}, rf.dmg, sb)
-			var life: float = float(b.get("scar", 1.3))
-			o.fx({"kind": "tx_scar", "a": p0, "c": p1, "life": life, "col": o.col(), "sweep": float(b.get("sweep", 0.07)), "bow": (0.07 if k % 2 == 0 else -0.07) * (1.4 if last else 1.0), "wmax": 4.0 if last else 3.0})
+			var life: float = float(b.get("scar", 0.22))
+			# 画面（10-29 用户「次元斩应是很多条笔直细长的斩线，乱刃一团」）：判定线 p0→p1 不变，刀痕向两端各延伸 ext（空间被整条切开）、一律直线；
+			# 再叠 extra 条只画不判的细斩线，角度由下标 + g.vrng 错开，围着这一刀的落点交错成团。判定、伤害、出手时刻全不动
+			var ud: Vector2 = (p1 - p0) / maxf(1.0, p0.distance_to(p1))
+			var ext: float = len * float(b.get("scar_ext", 0.6))
+			var sw: float = float(b.get("sweep", 0.03))
+			var wm: float = 3.0 if last else 2.0
+			_tx_rift_scar(o, p0 - ud * ext, p1 + ud * ext, life, sw, wm)
+			var nx: int = int(b.get("scar_extra", 2)) + (1 if last else 0)
+			for xi in nx:
+				var xa: float = ud.angle() + (1.0 if (k + xi) % 2 == 0 else -1.0) * g.vrng.randf_range(0.35, 1.35)
+				var xu: Vector2 = Vector2.from_angle(xa)
+				var xc: Vector2 = ctr + Vector2(g.vrng.randf_range(-18.0, 18.0), g.vrng.randf_range(-12.0, 12.0))
+				var xl: float = len * g.vrng.randf_range(0.7, 1.2) + ext
+				_tx_rift_scar(o, xc - xu * xl * 0.5, xc + xu * xl * 0.5, life * g.vrng.randf_range(0.8, 1.0), sw + 0.012 * float(xi + 1), 2.0)
 			var sc: Array = tx.get("scars", [])
-			sc.append({"a": p0, "c": p1, "until": g.t + life})
+			sc.append({"a": p0 - ud * ext, "c": p1 + ud * ext, "until": g.t + life})
 			tx["scars"] = sc
 			rf.flash = {"p": p1, "from": p0, "t": rf.t}
 			_tx_rift_trail(o, rf.from, p1)   # 瞬移残影：上一处 → 这一刀落点
 			rf.from = p1
-			_tx_rift_grains(o, p0, p1, 10.0)
 			o._sfx_op("hit")
 		if rf.t >= rf.end:
 			_tx_rift_trail(o, rf.from, o.pos)   # 斩完回原位，同样留残影
@@ -923,6 +937,12 @@ static func tx_rift_update(o, dt: float) -> void:
 			else:
 				keep.append(s)
 		tx["scars"] = keep
+
+
+## 一条刀痕（画面）：直线、两端尖，bow 恒 0
+static func _tx_rift_scar(o, a: Vector2, c: Vector2, life: float, sweep: float, wmax: float) -> void:
+	o.fx({"kind": "tx_scar", "a": a, "c": c, "life": life, "col": o.col(), "sweep": sweep, "bow": 0.0, "wmax": wmax})
+	_tx_rift_grains(o, a, c, 14.0)
 
 
 ## 沿线撒刀光颗粒（光学开 + 粒子开才有；缺则什么都不画）
@@ -939,7 +959,7 @@ static func _tx_rift_grains(o, a: Vector2, c: Vector2, step: float) -> void:
 		return
 	var d: Vector2 = seg / L
 	var nv: Vector2 = d.orthogonal()
-	var cols: Array = [Color(1.0, 1.0, 1.0), Color(1.0, 0.35, 0.28), Color(1.0, 0.6, 0.45)]
+	var cols: Array = [Color(1.0, 1.0, 1.0), Color(1.0, 0.6, 0.22), Color(1.0, 0.82, 0.5)]
 	var m: int = maxi(2, int(L / step))
 	for i in m:
 		var q: Vector2 = a.lerp(c, (float(i) + g.vrng.randf()) / float(m))
@@ -962,8 +982,8 @@ static func tx_rift_draw_body(o) -> bool:
 	return true
 
 
-## 刀痕（kind = tx_scar）：像素刀口——2 px 格，两头尖、中间宽（宽度按 sin 起伏，最宽 wmax 格），整条略带弧度（bow × 长度，向一侧鼓）；
-## 中心一条白芯（只在够宽的那段）、外面她本色压红的阶梯硬边、边缘按下标错开一格做毛边；0.07 秒内从起点划到终点，刀尖一格更亮；最后 35% 寿命逐格碎掉
+## 刀痕（kind = tx_scar）：像素刀口——2 px 格，两头尖、中间宽（宽度按 sin 起伏，最宽 wmax 格），一律直线（bow 缺省 0）；
+## 中心一条白芯（只在够宽的那段）、外面主题色橙的阶梯硬边、边缘按下标错开一格做毛边；sweep 秒内（缺省 0.03，1–2 帧）从起点划到终点，刀尖一格更亮；最后 35% 寿命逐格碎掉
 static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	var p0: Vector2 = f.a
@@ -978,12 +998,12 @@ static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
 	var reach: float = clampf(el / float(f.get("sweep", 0.07)), 0.0, 1.0)
 	var frac: float = float(f.life) / float(f.max)
 	var melt: float = clampf((0.35 - frac) / 0.35, 0.0, 1.0)
-	var edge: Color = f.col
-	edge = Color(maxf(edge.r, 0.9), edge.g * 0.45, edge.b * 0.4)
-	var dark := Color(edge.r * 0.55, edge.g * 0.4, edge.b * 0.4)
+	var edge: Color = f.col                         # 德克萨斯主题色橙（10-29 用户：白芯 + 橙色辉光，不用冷青蓝，不另画圆 / 环）
+	edge = Color(maxf(edge.r, 1.0), edge.g * 0.95, edge.b * 0.9)
+	var dark := Color(edge.r * 0.6, edge.g * 0.38, edge.b * 0.25)
 	var cell: float = RIFT_CELL
 	var bow: float = float(f.get("bow", 0.07)) * L
-	var wmax: float = float(f.get("wmax", 3.0)) * (1.0 if frac < 0.85 else 1.25)
+	var wmax: float = float(f.get("wmax", 2.0)) * (1.0 if frac < 0.85 else 1.25)
 	var steps: int = int(L / cell)
 	var lit: int = int(reach * float(steps))
 	var al: float = a * (0.45 + 0.55 * clampf(frac * 3.0, 0.0, 1.0))
