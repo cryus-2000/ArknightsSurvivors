@@ -1637,7 +1637,7 @@ func _trim_mult(h: Dictionary, e: Dictionary) -> float:
 		var a3: Dictionary = _rule_args("weak_crit")
 		if g.rng.randf() < float(a3.get("chance", 0.25)):
 			m *= 2.0
-			if not e.boss and o.pos != Vector2.INF:
+			if not e.get("boss", false) and o.pos != Vector2.INF:
 				trim_q.append(["kb", e, (e.pos - o.pos).normalized() * float(a3.get("kb", 160.0))])
 	return m
 
@@ -1680,7 +1680,7 @@ func _trim_on_hit(e: Dictionary, h: Dictionary, amount: float) -> void:
 
 ## 击败后（on_kill 里调用；h = 击杀那一下的描述符，可能为空）
 func _trim_on_kill(e: Dictionary, h: Dictionary) -> void:
-	if e.boss:
+	if e.get("boss", false):
 		return
 	if rule("ctrl_freeze") > 0 and _ctrl_on(e):
 		var a: Dictionary = _rule_args("ctrl_freeze")
@@ -1692,14 +1692,14 @@ func _trim_on_kill(e: Dictionary, h: Dictionary) -> void:
 		return
 	if rule("summon_burst") > 0 and o.in_lane("summon") and g.combat.is_followup(h):
 		var a2: Dictionary = _rule_args("summon_burst")
-		trim_q.append(["splash", e, e.pos, float(a2.get("r", 90.0)), float(e.maxhp) * float(a2.get("pct", 0.3)), -1, null, "殉爆"])
+		trim_q.append(["splash", e, e.pos, float(a2.get("r", 90.0)), float(e.get("maxhp", 0.0)) * float(a2.get("pct", 0.3)), -1, null, "殉爆"])
 	if rule("weak_pass") > 0 and o.in_lane("weak") and str(e.get("weak", "")) != "":
 		trim_q.append(["pass", e.pos, str(e.weak), float(_rule_args("weak_pass").get("r", 160.0))])
 
 
 ## 高闪相机（98）：眩晕自然结束（enemies.gd 每帧扣眩晕时调用）
 func stun_ended(e: Dictionary) -> void:
-	if e.boss or e.dead or float(e.get("chain_t", 0.0)) > g.t:
+	if e.get("boss", false) or e.get("dead", false) or float(e.get("chain_t", 0.0)) > g.t:
 		return
 	var a: Dictionary = _rule_args("ctrl_chain")
 	trim_q.append(["chain", e, float(a.get("r", 90.0)), float(a.get("stun", 0.5))])
@@ -1707,7 +1707,7 @@ func stun_ended(e: Dictionary) -> void:
 
 ## 安洁莉娜的创想（103）：击退附带眩晕（enemies.apply_kb 调用）
 func kb_stun(e: Dictionary, v: Vector2) -> void:
-	if e.boss or e.dead:
+	if e.get("boss", false) or e.get("dead", false):
 		return
 	var a: Dictionary = _rule_args("kb_stun")
 	if v.length() >= float(a.get("min", 40.0)):
