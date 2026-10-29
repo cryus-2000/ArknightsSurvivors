@@ -1083,7 +1083,7 @@ func step() -> void:
 		for o in g.squad.ops:
 			if only < 0:
 				o.fill_sp()
-			elif o != g.ch and o.skill_unlocked(only):
+			elif (o != g.ch or Cfg.dev_args().has("--onlyskill_lead")) and o.skill_unlocked(only):   # --onlyskill_lead：队长也充（录队长技能演示）
 				o.sp[only] = o.sp_need(only)
 	if g.mode == g.Mode.BALANCE:
 		if g.trace_every > 0.0 and g.state == g.S.PLAY and int(g.t / g.trace_every) != trace_last:
