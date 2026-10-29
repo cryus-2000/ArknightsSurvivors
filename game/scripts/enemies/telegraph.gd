@@ -63,6 +63,14 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 		w.gap_ang = float(w.gaps[0])   # 画面 / 判定都先看 gap_ang；多缺口再看 gaps
 	if w.get("track_pos", "") != "" and w.track > 0.0:
 		w.pos = g.combat.arena_clamp(e.pos if str(w.track_pos) == "self" else g.ppos, 90.0)
+	# Boss 激光蓄力加快（用户 10-29，docs/201）：带 kp（Kanpelle 光束）的预警，蓄力与追踪段 × boss/laser_tell_k，
+	# 不低于 boss/laser_tell_min（0.6 秒，下面的通用下限也兜底）；开火后的保持 / 扫速不在这里，不变
+	if e.boss and w.has("kp"):
+		var lk: float = Bal.v("boss/laser_tell_k", 1.0)
+		if lk < 1.0 and w.dur > Bal.v("boss/laser_tell_min", 0.6):
+			var nd: float = maxf(w.dur * lk, Bal.v("boss/laser_tell_min", 0.6))
+			w.track = float(w.track) * nd / w.dur
+			w.dur = nd
 	# 时序下限（§1.9、docs/48 P0-2）：Boss 预警总时长 ≥0.6 秒；锁定（追踪结束 → 结算）≥0.4 秒，不够时缩短追踪段
 	if e.boss:
 		w.dur = maxf(w.dur, 0.6)
