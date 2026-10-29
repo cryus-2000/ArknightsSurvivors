@@ -1033,9 +1033,8 @@ func draw_world(w) -> void:
 		var c: Color = _col(caster).lerp(Color.WHITE, 0.3)
 		if aim_kind == "point":
 			var r: float = Moves.aim_r(str(caster.id))
-			w.tb_ring(aim, r, 3.0, Color(c, 0.9), 56)
-			w.tb_circle(aim, r, Color(c, 0.12), 1.0, 40)
-			w.tb_line(caster.pos, aim, Color(c, 0.6), 2.0)
+			w.tb_ring(aim, r, 2.0, Color(c, 0.4), 56)   # 落点提示：只在瞄准慢动作里、淡（用户 10-29）
+			w.tb_line(caster.pos, aim, Color(c, 0.3), 1.5)
 		elif aim_kind == "dir":
 			w.tb_line(caster.pos, caster.pos + aim_dir * 520.0, Color(c, 0.8), 4.0)
 		else:
@@ -1071,7 +1070,8 @@ func impact(pos: Vector2) -> void:
 	flash_rt = _imp_rt
 	g.hurt_duck = maxf(float(g.hurt_duck), Bal.v("ult/imp_duck", 0.8))   # 配乐低通：冲击前一瞬压下去
 	var c: Color = _col(caster).lerp(Color.WHITE, 0.5)
-	shape({"kind": "ring", "c": pos, "r": 520.0, "r1": 40.0, "w": 10.0, "col": c, "life": 0.9})
+	if not act.get("no_ring", false):   # 招式自己不要圈（德克萨斯：范围由斩线表达）
+		shape({"kind": "ring", "c": pos, "r": 520.0, "r1": 40.0, "w": 10.0, "col": c, "life": 0.9})
 	if Cfg.reduce_motion:
 		shape({"kind": "ring", "c": pos, "r": 600.0, "r1": 60.0, "w": 16.0, "col": Color(0.02, 0.03, 0.05), "life": 0.6})
 

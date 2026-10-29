@@ -209,7 +209,7 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 		var ang: float = base + PI * float(i) / float(n) + 0.12 * float((i * 5) % 3 - 1)
 		var d: Vector2 = Vector2.from_angle(ang)
 		var off: float = (float((i * 37) % 9) - 4.0) / 4.0 * R * 0.4
-		var ln: float = 2.0 * R + 300.0 + float((i * 53) % 5) * 40.0   # 贯穿刀网并向外延伸（用户 10-29：笔直、细长、贯穿）
+		var ln: float = 2.0 * sqrt(maxf(0.0, R * R - off * off)) * 0.98   # 圆内的一条弦（用户 10-29：斩线收回刀网范围内，两端尖细收在圆边；圆本身不画）
 		var mid: Vector2 = c + d.orthogonal() * off
 		lines.append([mid - d * ln * 0.5, mid + d * ln * 0.5])
 	# 剑雨落点：沿刀痕每 40 一把，只落在落点圆内；按序号交错，各刀痕同时往外铺
@@ -234,21 +234,19 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 	for e in u.in_circle(c, R):
 		if not e.boss:
 			u.g.enemies_sys.add_cc(e, Bal.v("ult/tx_hold", 0.6))   # 定住，暂不受伤
-	var col: Color = u._col(o)
-	u.shape({"kind": "ring", "c": c, "r": R, "w": 3.0, "col": col.lerp(Color.WHITE, 0.4), "life": 1.7})
-	u.shape({"kind": "circle", "c": c, "r": R, "col": col, "fill": 0.08, "life": 1.7})
+	# 用户 10-29：松手斩开后不画任何圆 / 环，范围由斩线本身表达（瞄准时的落点提示由框架画，淡）
 	var rounds: Array = [[0.75, 0.3]]
 	if rt == "rain2":
 		rounds = [[0.75, 0.15], [1.05, 0.15]]
 	# 剑雨帧条：一把 0.3 秒、一轮 0.8 秒铺完，同时在场约 剑数 × 0.375 × 轮数；超过 ult/tx_sword_fx（56）就隔把画（伤害照打每一把）
 	var stride: int = maxi(1, ceili(float(swords.size()) * 0.375 * float(rounds.size()) / Bal.v("ult/tx_sword_fx", 56.0)))
-	return {"k": "texas", "c": c, "R": R, "lines": lines, "drawn": 0, "cut": false, "cut_seg": {}, "swords": swords,
+	return {"k": "texas", "no_ring": true, "c": c, "R": R, "lines": lines, "drawn": 0, "cut": false, "cut_seg": {}, "swords": swords,
 		"rounds": rounds, "rain": [], "sv": [], "stride": stride, "back": rt == "back", "back_done": false, "end": 0.0}
 
 
 ## 斩线（用户 10-29：次元斩式「乱刃」——笔直、细长、贯穿，白芯 + 冷青蓝辉光、两端尖细，1–2 帧出现、停 ult/tx_blade_hold 秒后碎裂）。
 ## Codex 的 fx_ult_texas_slash_front 偏宽偏弧，这里改程序画（地面残痕帧条照用）
-const TX_GLOW := Color(0.45, 0.85, 1.0)
+const TX_GLOW := Color(1.0, 0.55, 0.2)   # 她的主题色（texas.json col）：白芯 + 橙色辉光（用户 10-29，和青蓝环境拉开）
 
 
 static func _tx_blade(u, ln: Array) -> void:
@@ -269,7 +267,7 @@ static func _tx_shatter(u, ln: Array, i0: int) -> void:
 		var tw: float = 0.18 * (1.0 if (k + i0) % 2 == 0 else -1.0)
 		var h: Vector2 = (p1 - p0).rotated(tw) * 0.5
 		var sgn: float = 1.0 if (k * 3 + i0) % 2 == 0 else -1.0
-		u.shape({"kind": "blade", "a": m - h, "b": m + h, "w": 5.0, "col": Color(0.85, 0.97, 1.0), "glow": TX_GLOW, "life": 0.25,
+		u.shape({"kind": "blade", "a": m - h, "b": m + h, "w": 5.0, "col": Color(1.0, 0.88, 0.72), "glow": TX_GLOW, "life": 0.25,
 			"v": nrm * sgn * (70.0 + 25.0 * float((k * 7 + i0) % 4)) + d * 30.0 * float((k % 3) - 1)})
 
 
@@ -280,7 +278,7 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 	var lines: Array = a.lines
 	var n: int = lines.size()
 	while int(a.drawn) < n and t >= float(a.drawn) * 0.5 / float(n):
-		# 画网：一道道冷色发丝线显现（斩开前的预兆）
+		# 画网：一道道橙色发丝线显现（斩开前的预兆）
 		var pl: Array = lines[int(a.drawn)]
 		u.shape({"kind": "line", "a": pl[0], "b": pl[1], "w": 1.5, "col": TX_GLOW, "life": maxf(0.05, 0.75 - t)})
 		a.drawn = int(a.drawn) + 1
@@ -289,7 +287,6 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 		for ln in lines:   # 斩开：5–7 条直线斩痕同时出现、停一下再碎；地面残痕沿刀痕拼接，0.8 秒走完 4 帧淡出
 			_tx_blade(u, ln)
 			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 0.8})
-		_ring(u, a.c, a.R, a.R * 0.3, hi, 0.4, 10.0)
 		_hit_circle(u, a, o, a.c, a.R, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "斩开"})
 		o.screen_shake(0.6)
 		o.play_vis_anim("attack")
@@ -331,8 +328,9 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 			st.i = int(st.i) + 1
 	if a.back and not a.back_done and t >= last:
 		a.back_done = true   # 回马剑：收刀时在她身后再斩一圈（斩开打过的不再打）
-		_ring(u, o.pos, 220.0, 40.0, hi, 0.35, 8.0)
-		u.shape({"kind": "circle", "c": o.pos, "r": 220.0, "col": col, "fill": 0.25, "life": 0.25})
+		for bi in 3:   # 回马剑：身后三道短斩线（不画圈）
+			var bd: Vector2 = Vector2.from_angle(bi * PI / 3.0 + 0.4)
+			_tx_blade(u, [o.pos - bd * 240.0, o.pos + bd * 240.0])
 		_hit_circle(u, a, o, o.pos, 220.0, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "回马剑"})
 	if t >= last + 0.05:
 		_tx_sp(u, o)
