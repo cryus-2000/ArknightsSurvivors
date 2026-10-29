@@ -305,7 +305,7 @@ var prts := false                            # 档 ≥ 1：加警戒斜纹、PRT
 
 
 func _apply_style() -> void:
-	var s: int = int(Bal.v("command/wheel_style", 1.0))
+	var s: int = int(Bal.v("command/wheel_style", 2.0))
 	if s == style:
 		return
 	style = s

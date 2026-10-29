@@ -35,7 +35,7 @@
   "recall_max": 3.0,
   "gather": 0.4,
   "wheel_slow": 0.2,
-  "wheel_style": 1,
+  "wheel_style": 2,
   "target_proto": 0,
   "order_r": 560,
   "order_pt_r": 240,
