@@ -507,7 +507,7 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 	var x: float = vs.x - 16.0
 	var kw: float = g.font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
 	UI.keycap(g.hud, g.font, Vector2(x - kw, y), key, UI.SUB, 11)
-	var lab: String = "指挥 · " + g.squad.STANCE_NAMES[st] + ((" · " + g.squad.PRIO_SHORT[g.squad.priority]) if g.squad.priority != g.squad.default_priority() else "")   # 优先级非缺省时跟在后面（圆盘选的，docs/114 §13 / §15）
+	var lab: String = "指挥 · " + g.squad.STANCE_NAMES[st] + (" · 点位" if g.squad.order_kind == "point" else (" · 集火" if g.squad.order_kind == "focus" else "")) + ((" · " + g.squad.PRIO_SHORT[g.squad.priority]) if g.squad.priority != g.squad.default_priority() else "")   # 优先级非缺省时跟在后面（圆盘选的，docs/114 §13 / §15）
 	UI.text(g.hud, g.font, Vector2(x - kw - 228.0, y + 14.0), lab, 14, col, HORIZONTAL_ALIGNMENT_RIGHT, 220)
 	# 突击耐力条（全队共用）：标签下方右对齐；突击中金色、耗尽冷却灰色，细刻度 = 可再次突击的线（command/min_start）
 	draw_stamina_bar(Rect2(Vector2(x - 180.0, y + 21.0), Vector2(180.0, 7.0)))
