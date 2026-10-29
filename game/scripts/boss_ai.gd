@@ -27,6 +27,7 @@ func _init(game) -> void:
 
 ## Boss 行为
 func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
+	preload("res://scripts/run/boss_diag.gd").step(g, e, dt)
 	e.bt += dt
 	g.combat.gate_update(e, dt)   # 阶段卡点：每幕计时、护盾到时过卡点（docs/38 §1.3）
 	if g.zone_frozen and is_same(e, g.final_boss):
