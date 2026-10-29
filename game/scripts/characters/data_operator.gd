@@ -622,6 +622,10 @@ const EXEC_SEG := {
 	"verb.boil_sand": 0,   # _ext_exec
 	"verb.dash_cd_cut": 0,   # _ext_exec
 	"verb.break_windup": 0,   # _ext_exec
+	"verb.ll_dial_arm": 0,   # _ext_exec → seg_lappland（docs/202 拉普兰德成长节点）
+	"verb.ll_dial_swing": 0,   # _ext_exec → seg_lappland
+	"verb.ll_riposte": 0,   # _ext_exec → seg_lappland
+	"verb.ll_seal_spread": 0,   # _ext_exec → seg_lappland
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
 	"verb.emit_path": 1,   # tx_exec
@@ -1483,6 +1487,8 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 	match str(b.get("_tag", "")):
 		"shape.line":
 			SegHoshiguma.exec_line(self, b)
+		"verb.ll_dial_arm", "verb.ll_dial_swing", "verb.ll_riposte", "verb.ll_seal_spread":   # docs/202 拉普兰德成长节点（blocks/seg_lappland.gd）
+			ObCore._F().ll_exec(self, b)
 		"verb.field":
 			if b.has("tick"):   # 常驻力场（安洁莉娜）在 _sustain 里，这里只管瞬时留场
 				return

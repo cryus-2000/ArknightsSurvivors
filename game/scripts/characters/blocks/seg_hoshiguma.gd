@@ -30,6 +30,11 @@ const EXT_BLOCKS := {
 	"verb.aim_prefer": "sustain",     # 能天使「对空优先」：子弹优先瞄准受控目标，命中即停并追加定身 pin 秒
 	"verb.escort": "sustain",         # 能天使「护航射击」：队长 r 内敌人 ≥ n 时子弹改打离队长最近的，击退 +kb
 	"verb.tracer": "sustain",         # 能天使「曳光弹」：每 every 发一枚曳光弹，命中标记 secs 秒，队友对标记目标伤害 +bonus
+	# docs/202 成长节点 · 拉普兰德（blocks/seg_lappland.gd）
+	"verb.ll_dial_arm": "instant",    # 日晷·反斩：记一次反斩待命（下一道剑气变大剑气）
+	"verb.ll_dial_swing": "instant",  # 待命还没被剑气用掉 → 执行 do（额外掷一道大剑气）并清除待命
+	"verb.ll_riposte": "instant",     # 日晷·回敬：朝最近的敌人原地反斩（r / half / mult / kb / cd / src / slash_fx）
+	"verb.ll_seal_spread": "instant", # 断喝·传染（on_kill 的 do）：刚死的被封印者把封印扩散出去（r / n / dur）
 }
 
 

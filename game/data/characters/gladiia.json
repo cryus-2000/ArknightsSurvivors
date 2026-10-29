@@ -55,8 +55,6 @@
   "s3_end_pull": 60,
   "s3_end_stun": 0.6,
   "pull_elite": 0.5,
-  "chain_range": 0.25,
-  "anchor_mult": 1.15,
   "ram_delay": 0.5,
   "ram_r": 80,
   "ram_front": 2.875,
@@ -65,16 +63,31 @@
   "shield_pct": 0.03,
   "shield_cap": 0.15,
   "shield_dur": 6.0,
-  "shield2_pct": 0.05,
-  "shield2_cap": 0.25,
-  "brute_r": 110,
-  "brute_mult": 1.15,
-  "brute2_r": 130,
-  "brute2_back": 0.9,
   "arrive_stun": 0.9,
   "arrive_stun_e1": 1.4,
   "_leader": "用户 10-22 定：队长 / 队友同一套——拖回落点离她 hook_front（10-22 是 230、不拉到面前；10-24 用户实玩「钩索拉不动人」：射程 240 而落点 230，被钩的人几乎没动、更近的还被推出去，改 110 并去掉 push_out），到位眩晕 arrive_stun 0.9 秒，精一「锚定」延长到 arrive_stun_e1 1.4 秒",
-  "_range": "10-22 第 8 轮：射程回 240（第 7 轮 360 让钩掷得太远、身边的怪打不到，op4h 22.9%）；（10-24 已去掉 push_out：更近的敌人不再被推出去）"
+  "_range": "10-22 第 8 轮：射程回 240（第 7 轮 360 让钩掷得太远、身边的怪打不到，op4h 22.9%）；（10-24 已去掉 push_out：更近的敌人不再被推出去）",
+  "barb_per": 50,
+  "barb_pct": 0.08,
+  "barb_max": 5,
+  "slash_r": 160,
+  "slash_half": 65,
+  "slash_mult": 0.4,
+  "slash_kb": 40,
+  "chain_dur": 2.0,
+  "chain_w": 28,
+  "chain_slow": 0.4,
+  "chain_every": 0.5,
+  "chain_mult": 0.2,
+  "chain_cap": 3,
+  "geyser_gap": 40,
+  "geyser_r": 30,
+  "geyser_air": 0.5,
+  "pop_r": 120,
+  "pop_mult": 0.3,
+  "pop_kb": 160,
+  "pop_cd": 3.0,
+  "_doc_growth": "docs/202 成长节点（数值全部是待试验参数，由数值会话按木桩表定）：节点 1 倒钩 barb_*（每拖过 barb_per 距离受 barb_pct × 攻击的法术伤害，至多 barb_max 层）；节点 2 回收斩 slash_*（到位同帧前方扇形横扫，半角 slash_half 度）；节点 4B 怒海 chain_*（锁链沉底 chain_dur 秒，减速 chain_slow、每 chain_every 秒 chain_mult × 攻击，同时至多 chain_cap 条）；节点 5A 深海的庇护·反震 pop_*（护盾破裂 / 到期，队长处一圈水波，pop_cd 秒内一次）；节点 5B 怒海·暗涌 geyser_*（锁链到期沿钩线每 geyser_gap 一根水柱，浮空 geyser_air 秒）"
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2309 / 防御 331 / 法抗 0（character_table）；有天赋自疗，regen 取 1.2（远程与小额自疗 1.1 口径略上浮，她的自疗精一才有）",
@@ -565,22 +578,62 @@
     "basic",
     "area"
    ]
+  },
+  "倒钩": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "follow_up",
+    "control"
+   ]
+  },
+  "回收斩": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  },
+  "怒海": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "dot",
+    "control"
+   ]
+  },
+  "反震": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
   }
  },
  "progression": [
   {
    "type": "custom",
    "id": "chain",
-   "name": "长链",
+   "name": "倒钩",
    "icon": "growth_b_range",
-   "desc": "钩索射程 +{$chain_range*100}%"
+   "desc": "被钩索拖拽的敌人，每被拖过 {$barb_per} 距离，受到攻击力 {$barb_pct*100}% 的法术伤害（至多 {$barb_max} 层），拖拽路径上迸出火星"
   },
   {
    "type": "custom",
    "id": "anchor",
-   "name": "重锚",
+   "name": "回收斩",
    "icon": "growth_b_size",
-   "desc": "伤害 ×{$anchor_mult}"
+   "desc": "钩索把敌人拖到身前的同一刻，她向前挥出一记横扫：前方 {$slash_half*2}° 扇形，半径 {$slash_r}，{$slash_mult*100}% 伤害，击退 {$slash_kb}"
   },
   {
    "type": "elite",
@@ -609,10 +662,10 @@
      "id": "brute",
      "name": "怒海",
      "icon": "skill_ulpianus_s1",
-     "desc": "钩索落地范围 {$hook_r} → {$brute_r}，落地伤害 ×{$brute_mult}"
+     "desc": "钩索拖拽后，锁链不收回，沉在地面 {$chain_dur} 秒：踩上锁链的敌人移速 -{$chain_slow*100}%（Boss 除外），每 {$chain_every} 秒受到攻击力 {$chain_mult*100}% 的法术伤害"
     }
    },
-   "branch_desc": "「深海的庇护」在掷钩时为队长提供护盾；「怒海」提高钩索的落地范围与伤害",
+   "branch_desc": "「深海的庇护」在掷钩时为队长提供护盾；「怒海」让拖拽后的锁链沉在地面，减速并持续伤害踩上的敌人",
    "bot": "brute"
   },
   {
@@ -620,19 +673,19 @@
    "id": "brute",
    "name": "怒海",
    "icon": "skill_ulpianus_s1",
-   "desc": "钩索落地范围 {$hook_r} → {$brute_r}，落地伤害 ×{$brute_mult}",
+   "desc": "钩索拖拽后，锁链不收回，沉在地面 {$chain_dur} 秒：踩上锁链的敌人移速 -{$chain_slow*100}%（Boss 除外），每 {$chain_every} 秒受到攻击力 {$chain_mult*100}% 的法术伤害",
    "routes": {
     "shield": {
      "id": "shield2",
-     "name": "深海的庇护·深潜",
+     "name": "深海的庇护·反震",
      "icon": "growth_armor",
-     "desc": "护盾改为每次 {$shield2_pct*100} % 最大生命，总量至多 {$shield2_cap*100} %"
+     "desc": "护盾被打破或 {$shield_dur} 秒到期时，以队长为中心迸出一圈水波：半径 {$pop_r}，{$pop_mult*100}% 伤害，击退 {$pop_kb}；{$pop_cd} 秒内至多一次"
     },
     "brute": {
      "id": "brute2",
-     "name": "怒海·巨浪",
+     "name": "怒海·暗涌",
      "icon": "skill_ulpianus_s1",
-     "desc": "钩索落地范围 {$brute2_r}，拖到身前再受 {$brute2_back*100}% 伤害"
+     "desc": "锁链沉没（{$chain_dur} 秒到期）时，沿钩线每隔 {$geyser_gap} 冒出一根水柱，被冲中的敌人浮空 {$geyser_air} 秒（精英减半，Boss 除外）"
     }
    }
   },
@@ -669,7 +722,83 @@
    "range": "$range",
    "src": "钩索",
    "ring": false,
-   "_doc": "名义普攻（不会出手：trait 的 every_n n:1 replace 每一下都换成钩索）；range 决定索敌距离"
+   "_doc": "名义普攻（不会出手：trait 的 every_n n:1 replace 每一下都换成钩索）；range 决定索敌距离",
+   "hook_nodes": {
+    "_doc": "docs/202 成长节点：每项 node = 成长节点 id（o.taken 里有才生效）；钩索（普攻 / S1 重钩）拖拽中、到位同帧、每帧各有一处钩子（seg_ulpianus → seg_gladiia）",
+    "barb": {
+     "node": "chain",
+     "per": "$barb_per",
+     "pct": "$barb_pct",
+     "max": "$barb_max",
+     "src": "倒钩"
+    },
+    "slash": {
+     "node": "anchor",
+     "r": "$slash_r",
+     "half": "$slash_half",
+     "mult": "$slash_mult",
+     "kb": "$slash_kb",
+     "src": "回收斩",
+     "fx": [
+      {
+       "blade": {
+        "strip": "fx_slash_arc_deep",
+        "fit": 40,
+        "k": 1.15,
+        "along": 0.5,
+        "y": -14,
+        "tint": [
+         0.45,
+         0.75,
+         1.1,
+         0.95
+        ],
+        "col": [
+         0.35,
+         0.65,
+         0.95
+        ],
+        "edge": [
+         0.85,
+         0.95,
+         1.0
+        ],
+        "half": 1.1,
+        "life": 0.22
+       }
+      }
+     ]
+    },
+    "chain": {
+     "node": "brute",
+     "dur": "$chain_dur",
+     "w": "$chain_w",
+     "slow": "$chain_slow",
+     "every": "$chain_every",
+     "mult": "$chain_mult",
+     "cap": "$chain_cap",
+     "src": "怒海"
+    },
+    "geyser": {
+     "node": "brute2",
+     "gap": "$geyser_gap",
+     "r": "$geyser_r",
+     "air": "$geyser_air",
+     "fx": [
+      {
+       "sprite": {
+        "name": "fx_splash_blue",
+        "scale": 0.9,
+        "bottom": true
+       },
+       "off": [
+        0,
+        4
+       ]
+      }
+     ]
+    }
+   }
   },
   "skills": [
    {
@@ -945,8 +1074,7 @@
     "trig": "every_n",
     "n": 1,
     "replace": true,
-    "cond": "!node:brute && !node:brute2",
-    "_doc": "钩索（基础版）：每一下普攻都换成掷钩",
+    "_doc": "钩索：每一下普攻都换成掷钩（成长节点的钩索效果见 blocks.attack.hook_nodes，seg_gladiia）",
     "do": [
      {
       "shape": "hookshot",
@@ -956,70 +1084,6 @@
       "basis": "atk",
       "mult": 1.0,
       "back_mult": "$hook_back",
-      "w": "$hook_w",
-      "taut": "$hook_taut",
-      "drag": "$hook_drag",
-      "front": "$hook_front",
-      "speed": "$hook_speed",
-      "max_n": "$hook_n",
-      "lock": true,
-      "src": "钩索",
-      "back_src": "拖拽",
-      "head": "proj_gladiia_hook",
-      "drag_only": "all",
-      "arrive_stun": "$arrive_stun",
-      "arrive_stun_elite1": "$arrive_stun_e1",
-      "thin_chain": true
-     }
-    ]
-   },
-   {
-    "trig": "every_n",
-    "n": 1,
-    "replace": true,
-    "cond": "node:brute && !node:brute2",
-    "_doc": "钩索（路线 怒海 节点 4）：落地范围 90、×1.15",
-    "do": [
-     {
-      "shape": "hookshot",
-      "range": "$range",
-      "min_d": "$hook_min",
-      "r": "$brute_r",
-      "basis": "atk",
-      "mult": "$brute_mult",
-      "back_mult": "$hook_back",
-      "w": "$hook_w",
-      "taut": "$hook_taut",
-      "drag": "$hook_drag",
-      "front": "$hook_front",
-      "speed": "$hook_speed",
-      "max_n": "$hook_n",
-      "lock": true,
-      "src": "钩索",
-      "back_src": "拖拽",
-      "head": "proj_gladiia_hook",
-      "drag_only": "all",
-      "arrive_stun": "$arrive_stun",
-      "arrive_stun_elite1": "$arrive_stun_e1",
-      "thin_chain": true
-     }
-    ]
-   },
-   {
-    "trig": "every_n",
-    "n": 1,
-    "replace": true,
-    "cond": "node:brute2",
-    "_doc": "钩索（路线 怒海 节点 5）：落地范围 110、×1.15、拖回到位再受 90%",
-    "do": [
-     {
-      "shape": "hookshot",
-      "range": "$range",
-      "min_d": "$hook_min",
-      "r": "$brute2_r",
-      "basis": "atk",
-      "mult": "$brute_mult",
-      "back_mult": "$brute2_back",
       "w": "$hook_w",
       "taut": "$hook_taut",
       "drag": "$hook_drag",
@@ -1154,27 +1218,13 @@
   "progression": {
    "chain": {
     "trig": "passive",
-    "_doc": "长链：射程 +25%（hookshot 的 range × op_range）",
-    "do": [
-     {
-      "verb": "buff_self",
-      "stat": "op_range",
-      "op": "add",
-      "value": "$chain_range"
-     }
-    ]
+    "do": [],
+    "_doc": "倒钩（docs/202 节点 1）：效果在 blocks.attack.hook_nodes.barb（seg_gladiia.gl_drag_tick / gl_arrive）"
    },
    "anchor": {
     "trig": "passive",
-    "_doc": "重锚：伤害 ×1.15",
-    "do": [
-     {
-      "verb": "buff_self",
-      "stat": "dmg",
-      "op": "mult",
-      "value": "$anchor_mult"
-     }
-    ]
+    "do": [],
+    "_doc": "回收斩（docs/202 节点 2）：效果在 blocks.attack.hook_nodes.slash（到位同帧前方扇形横扫）"
    },
    "elite1": {
     "trig": "passive",
@@ -1266,25 +1316,72 @@
    "shield2": {
     "trig": "every_n",
     "n": 1,
-    "_doc": "深海的庇护·深潜（路线 shield 节点 5）：改为 5% / 封顶 25%",
+    "_doc": "深海的庇护·反震（docs/202 路线 shield 节点 5）：同深海的庇护的护盾；护盾被打破或到期时执行 pop（队长处一圈水波，ob_summon.sm_shield_pop）",
     "do": [
      {
       "verb": "shield",
-      "pct": "$shield2_pct",
-      "cap": "$shield2_cap",
-      "dur": "$shield_dur"
+      "pct": "$shield_pct",
+      "cap": "$shield_cap",
+      "dur": "$shield_dur",
+      "pop_cd": "$pop_cd",
+      "pop": [
+       {
+        "shape": "circle",
+        "center": "leader",
+        "r": "$pop_r",
+        "r_abs": true,
+        "basis": "atk",
+        "mult": "$pop_mult",
+        "kb": "$pop_kb",
+        "src": "反震",
+        "ring": false,
+        "fx": [
+         {
+          "pfx": {
+           "kind": "ring",
+           "r": 1.0,
+           "r0": 0.2,
+           "life": 0.4,
+           "col": [
+            0.35,
+            0.6,
+            0.9
+           ],
+           "floor": true,
+           "w": 4.0,
+           "alpha": 0.8
+          },
+          "r_scale": [
+           "r",
+           "r0"
+          ]
+         },
+         {
+          "sprite": {
+           "name": "fx_splash_blue",
+           "scale": 1.1,
+           "bottom": true
+          },
+          "off": [
+           0,
+           6
+          ]
+         }
+        ]
+       }
+      ]
      }
     ]
    },
    "brute": {
     "trig": "passive",
     "do": [],
-    "_doc": "怒海（路线 brute 节点 4）：trait 里的钩索按 cond node:brute 换参数"
+    "_doc": "怒海（docs/202 路线 brute 节点 4）：效果在 blocks.attack.hook_nodes.chain（拖拽后锁链沉底 2 秒，不位移）"
    },
    "brute2": {
     "trig": "passive",
     "do": [],
-    "_doc": "怒海·巨浪（路线 brute 节点 5）：trait 里的钩索按 cond node:brute2 换参数"
+    "_doc": "怒海·暗涌（docs/202 路线 brute 节点 5）：效果在 blocks.attack.hook_nodes.geyser（锁链到期沿钩线冒水柱，浮空）"
    }
   },
   "run_fx": {
