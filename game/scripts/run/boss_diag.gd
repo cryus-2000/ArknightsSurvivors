@@ -45,8 +45,10 @@ static func step(g, e: Dictionary, dt: float) -> void:
 			var kk := str(b.get("kind", "?")) + "/" + str(b.get("izu", b.get("motion", b.get("tier", ""))))
 			b._dgk = kk
 			if not a.kinds.has(kk):
-				a.kinds[kk] = {"n": 0, "v0": [], "v1": [], "vmax": 0.0, "home": 0}
+				a.kinds[kk] = {"n": 0, "v0": [], "v1": [], "vmax": 0.0, "home": 0, "r": []}
 			a.kinds[kk].n += 1
+			if a.kinds[kk].r.size() < 200:
+				a.kinds[kk].r.append(snappedf(float(b.get("r", 0.0)), 0.1))
 			if a.kinds[kk].v0.size() < 400:
 				a.kinds[kk].v0.append(snappedf(sp, 1.0))
 			if b.get("home", false) or b.get("homing", false) or b.has("track"):
