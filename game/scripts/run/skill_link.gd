@@ -172,8 +172,12 @@ static func _step_cross(u, a: Dictionary) -> bool:
 ## 技能区域：队长放技能那一刻，身边 260 内最密的一团（半径 ult/link_area_r 150）；没有敌人就不亮
 const SAMPLE := {"texas": "pursue", "eyjafjalla": "lava", "gladiia": "gather", "hoshiguma": "cover"}
 const LAVA := Color(1.0, 0.42, 0.12)
-const MOLTEN := Color(1.0, 0.93, 0.6)    # 连携熔岩弹：白金芯 + 暗红描边（她自己技能的熔岩池是橙色圆片，连携换形态 / 颜色跳出来）
-const MOLTEN_RIM := Color(0.45, 0.04, 0.06)
+## 连携熔岩块（用户 10-30「没有熔岩的力量感」）：暗红岩壳 + 裂缝透亮橙 + 橙白芯，沉甸甸地抛过去；
+## 她自己技能的熔岩池是亮橙圆片，这里主体是暗色岩块（形态 / 明度跳开，不用白金）
+const CRUST := Color(0.15, 0.045, 0.035)
+const CRACK := Color(1.0, 0.45, 0.1)
+const CORE := Color(1.0, 0.8, 0.45)
+const SMOKE := Color(0.32, 0.27, 0.26)
 const PRE := 0.18    # 现身：接的人先亮起 0.18 秒再出手（用户 10-29「展示的可以稍微久一点」）
 const HOOK := Color(0.35, 0.85, 0.95)
 const AMBER := Color(1.0, 0.72, 0.3)
@@ -236,6 +240,8 @@ static func _appear(u, p, t: float) -> void:
 	var k: float = clampf(t / PRE, 0.0, 1.0)
 	u.shape({"kind": "ring", "c": p.pos, "r": lerpf(70.0, 26.0, k), "w": 4.0, "col": cp.lerp(Color.WHITE, 0.3), "life": 0.04})
 	u.shape({"kind": "band", "a": p.pos + Vector2(0, 6), "b": p.pos + Vector2(0, -90), "w": 22.0 * (1.0 - 0.5 * k), "col": cp, "fill": 0.35, "life": 0.04})
+	u.grain("mote_up", p.pos + Vector2(0, -10), Vector2.UP, cp, 1)   # 光柱里往上飘的光点（光学观感）
+	u.light(p.pos, 90.0, cp, 0.05)
 
 
 ## 出手瞬间：轻微放慢（比终结技弱一档）
@@ -274,6 +280,9 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				var d2: Vector2 = (Vector2(a.to_p) - Vector2(a.from_p)).normalized()
 				u.shape({"kind": "blade", "a": mid - d2 * 110.0, "b": mid + d2 * 110.0, "w": 7.0, "col": Color.WHITE, "glow": cp, "grow": 0.03, "life": 0.7})
 				u.shape({"kind": "line", "a": a.from_p, "b": a.to_p, "w": 4.0, "col": cp, "life": 0.45})
+				for q in 6:   # 斩痕上迸刀光颗粒 + 一盏短灯
+					u.grain("blade", mid + d2 * (q - 2.5) * 36.0, d2.orthogonal() * (1.0 if q % 2 == 0 else -1.0), cp, 3)
+				u.light(mid, 180.0, cp, 0.35)
 				for e in u.in_band(a.from_p, a.to_p, 34.0):
 					p.log_hit(_src(p, "追击"), ["连携"])
 					p.deal_damage(e, _dmg(p, Bal.v("ult/link_pursue_mult", 1.6)))
@@ -281,31 +290,71 @@ static func _step_sample(u, a: Dictionary) -> bool:
 						p.add_cc(e, 0.5 * (0.5 if e.elite else 1.0))
 				u.g.vfx.stop(0.04, "link", true)
 			return t >= 0.85
-		"lava":   # 艾雅法拉：抬杖 → 白金熔岩弹（暗红描边 + 拖尾）0.32 秒抛进区域 → 星芒炸开 + 点燃，余辉 0.6 秒
-			var T := 0.32
+		"lava":   # 艾雅法拉：抬杖 → 熔岩块（约 2 倍大、旋转、滴火星冒烟、地上有影子）0.42 秒砸进区域 → 顿帧 + 碎岩迸溅 + 熔岩溅落灼地 → 两跳点燃
+			var T := 0.42
+			var R: float = Bal.v("ult/link_lava_rock_r", 42.0)
 			if not a.done.has("go"):
 				a.done["go"] = true
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				a["from_p"] = p.pos + Vector2(float(p.face) * 10.0, -44.0)
-				u.shape({"kind": "circle", "c": a.from_p, "r": 20.0, "col": MOLTEN, "fill": 0.95, "life": 0.2})
+				u.grain("fire", a.from_p, Vector2.UP, Color.WHITE, 8)
+				u.light(a.from_p, 120.0, CRACK, 0.3)
+				var rock := {"kind": "rock", "c": a.from_p, "r": R * 0.5, "col": CRUST, "glow": CRACK, "core": CORE, "seed": 3.0, "life": T + 0.2}
+				var shadow := {"kind": "ellipse", "c": p.pos, "rx": R, "ry": R * 0.4, "col": Color(0.04, 0.02, 0.02), "fill": 0.45, "hold": true, "layer": "back", "life": T + 0.2}
+				u.shape(rock)
+				u.shape(shadow)
+				a["rock"] = rock
+				a["shadow"] = shadow
 			if t < T:
 				var k: float = t / T
-				var pos: Vector2 = Vector2(a.from_p).lerp(c, k) + Vector2(0, -110.0 * sin(PI * k))
-				u.shape({"kind": "circle", "c": pos, "r": 17.0, "col": MOLTEN_RIM, "fill": 1.0, "life": 0.05})
-				u.shape({"kind": "circle", "c": pos, "r": 12.0, "col": MOLTEN, "fill": 1.0, "life": 0.05})
-				u.shape({"kind": "circle", "c": pos, "r": 6.0, "col": MOLTEN, "fill": 0.6, "life": 0.35})   # 拖尾：每帧留一个小点、慢慢淡
+				var gp: Vector2 = Vector2(a.from_p).lerp(c, k)   # 地面投影
+				var hgt: float = 140.0 * sin(PI * k)
+				var pos: Vector2 = gp + Vector2(0, -hgt)
+				var rock: Dictionary = a.rock
+				rock.c = pos
+				rock.r = R * minf(1.0, 0.5 + k * 3.0)   # 出手时从杖头长大
+				rock.rot = k * 5.0
+				var sh: Dictionary = a.shadow
+				sh.c = gp + Vector2(0, 10)
+				sh.fill = 0.2 + 0.35 * k
+				u.grain("bfx_dust", pos + Vector2(0, -R * 0.4), Vector2.UP, SMOKE, 1)   # 拖烟
+				u.grain("lava", pos, Vector2.DOWN, Color.WHITE, 2)
+				if int(t * 60.0) % 3 == 0:
+					u.spark(pos + Vector2(0, R * 0.5), CRACK, 1, hgt)   # 往下滴的火星，落到地面
+				u.light(gp, 120.0, CRACK, 0.06)   # 灯打在地面投影上（照在岩块上会把暗壳照成亮红）
 				return false
 			if not a.done.has("hit"):
 				a.done["hit"] = true
+				a.rock.life = 0.0
+				a.rock.max = 0.0
+				a.shadow.max = 0.0
 				_beat(u)
+				u.g.vfx.stop(0.07, "link", true)   # 砸地顿一下
 				var hr: float = r * 0.75
-				u.shape({"kind": "circle", "c": c, "r": hr * 0.55, "col": MOLTEN, "fill": 0.9, "life": 0.22})
-				u.shape({"kind": "ring", "c": c, "r": hr, "r1": 24.0, "w": 6.0, "col": MOLTEN_RIM, "life": 0.6})
-				for k2 in 8:   # 星芒：八道白金短线往外射（不是她技能那种橙色圆片）
-					var sd: Vector2 = Vector2.from_angle(k2 * TAU / 8.0 + 0.2)
-					u.shape({"kind": "blade", "a": c + sd * 18.0, "b": c + sd * hr * 0.95, "w": 6.0, "col": MOLTEN, "glow": MOLTEN_RIM, "grow": 0.05, "life": 0.6})
-					u.shape({"kind": "circle", "c": c + sd * hr * 0.5, "r": 6.0, "col": MOLTEN, "fill": 0.95, "life": 0.7, "v": sd * 140.0 + Vector2(0, -60)})
+				u.light(c, 300.0, CRACK, 0.7)
+				u.debris(c, CRACK, 3)
+				u.grain("lava", c, Vector2.UP, Color.WHITE, 40)
+				u.grain("bfx_dust", c, Vector2.UP, SMOKE, 18)
+				u.spark(c + Vector2(0, -6), CRACK, 14, 8.0)
+				# 冲击：一圈压扁的亮橙冲击带（碎裂）+ 中心一团橙白
+				u.shape({"kind": "ring", "c": c, "r": hr, "r1": 30.0, "w": 9.0, "col": CRACK, "life": 0.4})
+				u.shape({"kind": "rock", "c": c, "r": R * 0.9, "col": CRACK, "glow": CORE, "core": CORE, "seed": 7.0, "hold": false, "life": 0.18})
+				# 碎岩迸溅：岩块带重力往外飞
+				for k2 in 9:
+					var ang: float = k2 * TAU / 9.0 + 0.3
+					var sd: Vector2 = Vector2.from_angle(ang)
+					var sp: float = 160.0 + 70.0 * fposmod(k2 * 0.618, 1.0)
+					u.shape({"kind": "rock", "c": c + sd * 14.0, "r": 7.0 + 6.0 * fposmod(k2 * 0.37, 1.0), "col": CRUST, "glow": CRACK, "seed": 11.0 + k2,
+						"spin": 6.0, "v": sd * sp + Vector2(0, -170.0), "grav": 620.0, "hold": false, "life": 0.55})
+				# 熔岩溅落灼地（地面层，压在怪脚下）：几块不规则暗红斑 + 亮橙点，慢慢冷却
+				for k3 in 6:
+					var ang3: float = k3 * TAU / 6.0 + 0.8
+					var off: Vector2 = Vector2.from_angle(ang3) * hr * (0.25 + 0.45 * fposmod(k3 * 0.618, 1.0))
+					var sz: float = 14.0 + 10.0 * fposmod(k3 * 0.41, 1.0)
+					u.shape({"kind": "ellipse", "c": c + off, "rx": sz, "ry": sz * 0.55, "col": Color(0.22, 0.05, 0.03), "fill": 0.75, "layer": "back", "life": 1.6})
+					u.shape({"kind": "ellipse", "c": c + off, "rx": sz * 0.45, "ry": sz * 0.25, "col": CRACK, "fill": 0.9, "layer": "back", "life": 0.9})
+				u.shape({"kind": "ellipse", "c": c, "rx": R * 1.3, "ry": R * 0.6, "col": Color(0.2, 0.05, 0.03), "fill": 0.8, "layer": "back", "life": 1.8})
 				var burn: Array = u.in_circle(c, hr)
 				a["burn"] = burn
 				for e in burn:
@@ -321,7 +370,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 							continue
 						p.log_hit(_src(p, "点燃"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_burn_mult", 0.25)))
-						u.shape({"kind": "circle", "c": e.pos + Vector2(0, -14), "r": 6.0, "col": MOLTEN, "fill": 0.95, "life": 0.4, "v": Vector2(0, -50)})
+						u.grain("fire", e.pos + Vector2(0, -12), Vector2.UP, Color.WHITE, 3)
 			return t >= T + 0.9
 		"gather":   # 歌蕾蒂娅：甩钩 0.14 秒 → 拖 0.36 秒 → 落地，钩索残留 0.5 秒慢慢收
 			var pull: Array = a.pull
@@ -349,8 +398,10 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			if not a.done.has("land"):
 				a.done["land"] = true
 				u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
+				u.light(c, 220.0, HOOK, 0.4)
 				for e in pull:
 					if not e.dead:
+						u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
 						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 2.0, "col": HOOK, "life": 0.5})   # 钩索残留
 						p.log_hit(_src(p, "聚拢"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_gather_mult", 0.6)))
@@ -375,6 +426,8 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			if t >= 0.1 and not a.done.has("beat"):
 				a.done["beat"] = true
 				_beat(u)
+				u.grain("sh_glint", lp + side2 * 46.0, side2, AMBER, 8)
+				u.light(lp + side2 * 46.0, 140.0, AMBER, 0.6)
 				for e in a.taunt:
 					if not e.dead:
 						u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -38), "w": 3.0, "col": AMBER, "life": 1.0})

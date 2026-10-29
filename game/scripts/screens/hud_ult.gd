@@ -416,7 +416,8 @@ func draw_cutins(vs: Vector2) -> void:
 	# 终结技冲击帧闪白（10-29）：0.22 秒淡出；减少动态效果开时不闪（世界层另画暗色描边扩散），Boss 战减半
 	var ft: float = UM.now() - float(g.ult.flash_rt)
 	if ft >= 0.0 and ft < 0.22 and not Cfg.reduce_motion:
-		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1, 1, 1, 0.42 * (1.0 - ft / 0.22) * (0.5 if _boss_on() else 1.0)))
+		var fcol: Color = g.ult._col(g.ult.caster).lerp(Color(0.9, 0.88, 0.82), 0.55) if g.ult.caster != null else Color(0.9, 0.88, 0.82)
+		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(fcol, 0.26 * (1.0 - ft / 0.22) * (0.5 if _boss_on() else 1.0)))   # 闪光：干员色偏暖、封顶不发白（10-30 美术口径）
 	var cs: Array = g.ult.cutins
 	if cs.is_empty():
 		return

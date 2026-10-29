@@ -741,6 +741,8 @@ func _tick_shapes(dt: float) -> void:
 			shapes.remove_at(k)
 			continue
 		if s.has("v") and s.age > 0.0:
+			if s.has("grav"):   # 碎岩等：带重力（画面）
+				s.v = s.v + Vector2(0, float(s.grav) * dt)
 			var dv: Vector2 = s.v * dt
 			for key in ["c", "a", "b"]:
 				if s.has(key):
@@ -880,8 +882,12 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 func draw_world_back(w) -> void:
 	var dim: float = _dim()
 	for s in shapes:
-		if s.age >= 0.0 and str(s.kind) == "strip" and str(s.get("layer", "front")) == "back":
-			_draw_strip(w, s, dim)
+		if s.age >= 0.0 and str(s.get("layer", "front")) == "back":
+			if str(s.kind) == "strip":
+				_draw_strip(w, s, dim)
+			else:
+				_px_shape(w, s, 1.0 - s.age / maxf(0.001, s.max), s.get("col", Color.WHITE), dim)   # 灼地 / 影子等地面图形（一律像素画法）
+	w.tb_flush()
 
 
 # ================================================================ 舞台（技能连携样片，用户 10-29；之后终结技也用）
@@ -986,17 +992,22 @@ func _dim() -> float:
 ## 世界层（world.gd 在干员技能层之后）：瞄准指示 + 占位图形 + 主体层帧条（地面层帧条在 draw_world_back）
 func draw_world(w) -> void:
 	var dim: float = _dim()
+	var px: bool = Bal.vi("ult/px_style", 1) > 0   # 像素风光栅化（用户 10-30）
 	_draw_stage(w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
 	for s in shapes:
 		if s.age < 0.0:
 			continue
+		if str(s.get("layer", "front")) == "back":
+			continue
 		if str(s.kind) == "strip":
-			if str(s.get("layer", "front")) != "back":
-				w.tb_flush()
-				_draw_strip(w, s, dim)
+			w.tb_flush()
+			_draw_strip(w, s, dim)
 			continue
 		var k: float = 1.0 - s.age / maxf(0.001, s.max)
 		var col: Color = s.get("col", Color.WHITE)
+		if px:
+			_px_shape(w, s, k, col, dim)
+			continue
 		match str(s.kind):
 			"circle":
 				w.tb_circle(s.c, s.r, Color(col, float(s.get("fill", 0.3)) * k * dim), 1.0, 40)
@@ -1035,14 +1046,197 @@ func draw_world(w) -> void:
 		var c: Color = _col(caster).lerp(Color.WHITE, 0.3)
 		if aim_kind == "point":
 			var r: float = Moves.aim_r(str(caster.id))
-			w.tb_ring(aim, r, 2.0, Color(c, 0.4), 56)   # 落点提示：只在瞄准慢动作里、淡（用户 10-29）
-			w.tb_line(caster.pos, aim, Color(c, 0.3), 1.5)
+			_px_disc(w, aim, r + 1.5, r - 1.5, _pc(c, 0.4))   # 落点提示：只在瞄准慢动作里、淡（用户 10-29）；像素画法（10-30）
+			_px_thick(w, caster.pos, aim, 1.5, _pc(c, 0.3))
 		elif aim_kind == "dir":
-			w.tb_line(caster.pos, caster.pos + aim_dir * 520.0, Color(c, 0.8), 4.0)
+			_px_thick(w, caster.pos, caster.pos + aim_dir * 520.0, 4.0, _pc(c, 0.8))
 		else:
 			var r2: float = Moves.aim_r(str(caster.id)) if kind != "cult" else VIEW.x * 0.5
-			w.tb_ring(caster.pos, r2, 3.0, Color(c, 0.8), 56)
+			_px_disc(w, caster.pos, r2 + 1.5, r2 - 1.5, _pc(c, 0.8))
 	w.tb_flush()
+
+
+# ================================================================ 像素风光栅化（用户 10-30「特效都要对齐我们的美术风格」）
+## 占位图形不再画平滑的矢量圆 / 线：按 ult/px_grid（3 世界像素格，≈ 本作光学低分辨率格）一行一行算出水平跨度，
+## 每段画一个对齐网格的矩形——硬边、无抗锯齿、无渐变；颜色亮度封顶 ult/px_lum（0.9，受光封顶不发白）。
+## ult/px_style = 0 退回原来的矢量画法（对照用）。帧条（strip）不受影响
+func _pxg() -> float:
+	return maxf(1.0, Bal.v("ult/px_grid", 3.0))
+
+
+func _pc(col: Color, a: float) -> Color:
+	var m: float = maxf(col.r, maxf(col.g, col.b))
+	var cap: float = Bal.v("ult/px_lum", 0.9)
+	var c := col
+	if m > cap:
+		c = Color(col.r * cap / m, col.g * cap / m, col.b * cap / m)
+	return Color(c, clampf(a, 0.0, 1.0))
+
+
+func _span(w, y: float, x0: float, x1: float, G: float, col: Color) -> void:
+	var a: float = floorf(x0 / G) * G
+	var b: float = ceilf(x1 / G) * G
+	if b - a < G * 0.5:
+		return
+	w.tb_quad(Vector2(a, y), Vector2(b, y), Vector2(b, y + G), Vector2(a, y + G), col)
+
+
+## 任意多边形（奇偶填充）：逐行求与各边的交点，两两成段
+func _px_poly(w, pts: PackedVector2Array, col: Color) -> void:
+	if pts.size() < 3 or col.a <= 0.003:
+		return
+	var G: float = _pxg()
+	var y0: float = INF
+	var y1: float = -INF
+	for p in pts:
+		y0 = minf(y0, p.y)
+		y1 = maxf(y1, p.y)
+	var y: float = floorf(y0 / G) * G
+	var n: int = pts.size()
+	while y < y1:
+		var yc: float = y + G * 0.5
+		var xs: Array = []
+		for i in n:
+			var p: Vector2 = pts[i]
+			var q: Vector2 = pts[(i + 1) % n]
+			if (p.y <= yc and q.y > yc) or (q.y <= yc and p.y > yc):
+				xs.append(p.x + (yc - p.y) * (q.x - p.x) / (q.y - p.y))
+		xs.sort()
+		var j := 0
+		while j + 1 < xs.size():
+			_span(w, y, xs[j], xs[j + 1], G, col)
+			j += 2
+		y += G
+
+
+func _px_disc(w, c: Vector2, ro: float, ri: float, col: Color) -> void:
+	if ro <= 0.0 or col.a <= 0.003:
+		return
+	var G: float = _pxg()
+	var y: float = floorf((c.y - ro) / G) * G
+	while y < c.y + ro:
+		var dy: float = y + G * 0.5 - c.y
+		if absf(dy) < ro:
+			var ho: float = sqrt(ro * ro - dy * dy)
+			if ri > 0.0 and absf(dy) < ri:
+				var hi: float = sqrt(ri * ri - dy * dy)
+				_span(w, y, c.x - ho, c.x - hi, G, col)
+				_span(w, y, c.x + hi, c.x + ho, G, col)
+			else:
+				_span(w, y, c.x - ho, c.x + ho, G, col)
+		y += G
+
+
+## 碎裂冲击波（不画整圆环）：沿圆周撒像素块，块大小 / 半径按序号确定性抖动、约三成留空，越往后块越碎小
+func _px_frag(w, c: Vector2, r: float, wd: float, col: Color, k: float) -> void:
+	var G: float = _pxg()
+	var n: int = clampi(int(TAU * r / (G * 5.0)), 8, 220)
+	for i in n:
+		var h: float = fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
+		if h < 0.3:
+			continue
+		var p: Vector2 = c + Vector2.from_angle(TAU * (float(i) + h * 0.6) / n) * (r + (h - 0.65) * wd * 2.0)
+		var sz: float = maxf(G, roundf(wd * (0.4 + 0.6 * h) * (0.5 + 0.5 * k) / G) * G)
+		var q := Vector2(floorf(p.x / G) * G, floorf(p.y / G) * G)
+		w.tb_quad(q, q + Vector2(sz, 0), q + Vector2(sz, sz), q + Vector2(0, sz), col)
+
+
+func _px_thick(w, a: Vector2, b: Vector2, wd: float, col: Color) -> void:
+	var d: Vector2 = (b - a).normalized().orthogonal() * maxf(_pxg(), wd) * 0.5
+	_px_poly(w, PackedVector2Array([a + d, b + d, b - d, a - d]), col)
+
+
+func _px_shape(w, s: Dictionary, k: float, col: Color, dim: float) -> void:
+	var G: float = _pxg()
+	match str(s.kind):
+		"circle":
+			_px_disc(w, s.c, float(s.r), 0.0, _pc(col, float(s.get("fill", 0.3)) * k * dim))
+		"ring":
+			var r: float = lerpf(float(s.get("r1", s.r)), float(s.r), clampf(s.age / maxf(0.001, s.max * 0.5), 0.0, 1.0))
+			var wd: float = maxf(G, float(s.get("w", 3.0)))
+			if s.get("frag", Bal.vi("ult/px_ring_frag", 1) > 0 and not s.get("solid", false)):   # 缺省碎裂（10-30「不用纯几何圆环当主体」）；solid = true 保留整环
+				_px_frag(w, s.c, r, wd, _pc(col, 0.85 * k * dim), k)
+			else:
+				_px_disc(w, s.c, r + wd * 0.5, maxf(0.0, r - wd * 0.5), _pc(col, 0.85 * k * dim))
+		"sector":
+			var pts := PackedVector2Array([s.c])
+			var a0: float = float(s.a) - float(s.half)
+			for i in 21:
+				pts.append(s.c + Vector2.from_angle(a0 + float(s.half) * 2.0 * i / 20.0) * float(s.r))
+			_px_poly(w, pts, _pc(col, float(s.get("fill", 0.3)) * k * dim))
+		"band":
+			_px_thick(w, s.a, s.b, float(s.w), _pc(col, float(s.get("fill", 0.3)) * k * dim))
+		"line":
+			_px_thick(w, s.a, s.b, float(s.get("w", 3.0)), _pc(col, 0.9 * k * dim))
+		"blade":
+			var gr: float = float(s.get("grow", 0.0))
+			var gk: float = clampf(s.age / gr, 0.0, 1.0) if gr > 0.0 else 1.0
+			var m: Vector2 = (s.a + s.b) * 0.5
+			var ha: Vector2 = (s.a - m) * gk
+			var nrm: Vector2 = (s.b - s.a).normalized().orthogonal()
+			var fa: float = 1.0 if s.age < s.max - 0.08 else maxf(0.0, (s.max - s.age) / 0.08)
+			var bw: float = maxf(G, float(s.get("w", 8.0)))
+			var gc: Color = s.get("glow", Color(0.45, 0.85, 1.0))
+			_px_poly(w, PackedVector2Array([m + ha, m + nrm * bw * 1.5, m - ha, m - nrm * bw * 1.5]), _pc(gc, 0.45 * fa * dim))
+			_px_poly(w, PackedVector2Array([m + ha, m + nrm * bw * 0.5, m - ha, m - nrm * bw * 0.5]), _pc(col, fa * dim))
+		"rock":   # 熔岩块 / 碎岩：不规则多边形外壳 + 裂缝透光 + 芯（c、r、rot，col 外壳、glow 裂缝、core 芯；seed 定形状）
+			var sd: float = float(s.get("seed", 1.0))
+			var rot: float = float(s.get("rot", 0.0)) + float(s.get("spin", 0.0)) * s.age
+			var rr: float = float(s.r)
+			var fa: float = float(s.get("fill", 1.0)) * (1.0 if s.get("hold", true) else k) * dim
+			var pts := PackedVector2Array()
+			for i in 9:
+				var h: float = fposmod(sin(sd * 7.13 + float(i) * 12.9898) * 43758.5453, 1.0)
+				pts.append(s.c + Vector2.from_angle(rot + TAU * float(i) / 9.0) * rr * (0.72 + 0.28 * h))
+			_px_poly(w, pts, _pc(col, fa))
+			if s.has("glow"):
+				var gl: Color = _pc(s.glow, fa)
+				for i in 3:
+					var h2: float = fposmod(sin(sd * 3.7 + float(i) * 78.233) * 43758.5453, 1.0)
+					var dd: Vector2 = Vector2.from_angle(rot + TAU * (float(i) + h2 * 0.5) / 3.0)
+					_px_thick(w, s.c + dd * rr * 0.15, s.c + dd * rr * (0.55 + 0.25 * h2), G * (2.0 if rr >= 24.0 else 1.0), gl)
+				_px_disc(w, s.c, rr * 0.3, 0.0, gl)
+			if s.has("core"):
+				_px_disc(w, s.c, maxf(G, rr * 0.15), 0.0, _pc(s.core, fa))
+		"ellipse":   # 地面影子 / 灼地：c、rx、ry
+			var pe := PackedVector2Array()
+			for i in 16:
+				pe.append(s.c + Vector2(cos(TAU * i / 16.0) * float(s.rx), sin(TAU * i / 16.0) * float(s.ry)))
+			_px_poly(w, pe, _pc(col, float(s.get("fill", 0.3)) * (1.0 if s.get("hold", false) else k) * dim))
+		"dots":
+			var n: int = int(s.get("n", 12))
+			var cc: Color = _pc(col, 0.9 * k * dim)
+			for i in n:
+				var ang: float = i * 2.39996
+				var rr: float = float(s.r) * sqrt(float(i + 1) / n) * (0.6 + 0.4 * (1.0 - k))
+				var p: Vector2 = s.c + Vector2.from_angle(ang) * rr
+				var q: Vector2 = Vector2(floorf(p.x / G) * G, floorf(p.y / G) * G)
+				w.tb_quad(q, q + Vector2(G * 2.0, 0), q + Vector2(G * 2.0, G * 2.0), q + Vector2(0, G * 2.0), cc)
+
+
+## 光学光照（本作光学观感：发光的特效照亮地面与怪，docs/130）：登记一盏短命动态灯；光学 / 颗粒关时无事
+func light(pos: Vector2, r: float, col: Color, life: float) -> void:
+	if g.optical != null and g.optical.grains != null:
+		g.optical.grains.light(pos, r, _pc(col, 1.0), life)
+
+
+## 像素颗粒（fx_grains 模板：lava / fire / bfx_dust / sh_shard / blade …；n 颗沿 dir 散开）与带重力落地的火星；颗粒关时无事
+func grain(name: String, pos: Vector2, dir: Vector2, col: Color, n := 6) -> void:
+	if g.optical == null or g.optical.grains == null or not g.optical.grains.on():
+		return
+	for i in n:
+		g.optical.grains.push(name, pos, dir, col)
+
+
+func spark(pos: Vector2, col: Color, n := 6, drop := 24.0) -> void:
+	if g.optical != null and g.optical.grains != null:
+		g.optical.grains.spark(pos, pos.y + drop, col, n)
+
+
+## 碎屑 / 余烬（光学粒子三档迸溅，GPU、不碰模拟随机数）；光学关时无事
+func debris(pos: Vector2, col: Color, tier := 2) -> void:
+	if g.optical_on and g.optical != null and g.optical.particles != null:
+		g.optical.particles.tier_burst(pos, _pc(col, 1.0), clampi(tier, 1, 3))
 
 
 # ================================================================ 冲击帧与连携演出（10-29 用户看录像反馈）
@@ -1101,10 +1295,12 @@ func impact(pos: Vector2) -> void:
 	_imp_boom = false
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
 	flash_rt = _imp_rt
+	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
+	debris(pos, _col(caster), 3)
 	g.hurt_duck = maxf(float(g.hurt_duck), Bal.v("ult/imp_duck", 0.8))   # 配乐低通：冲击前一瞬压下去
 	var c: Color = _col(caster).lerp(Color.WHITE, 0.5)
 	if not act.get("no_ring", false):   # 招式自己不要圈（德克萨斯：范围由斩线表达）
-		shape({"kind": "ring", "c": pos, "r": 520.0, "r1": 40.0, "w": 10.0, "col": c, "life": 0.9})
+		shape({"kind": "ring", "c": pos, "r": 520.0, "r1": 40.0, "w": 10.0, "col": c, "life": 0.9, "frag": true})   # 碎裂冲击波（10-30 美术口径：不用整圆环）
 	if Cfg.reduce_motion:
 		shape({"kind": "ring", "c": pos, "r": 600.0, "r1": 60.0, "w": 16.0, "col": Color(0.02, 0.03, 0.05), "life": 0.6})
 
