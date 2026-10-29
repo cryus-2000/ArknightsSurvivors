@@ -128,10 +128,13 @@ func note_clean(kind: String, amt: float) -> void:
 		var c: Dictionary = sus_seg().clean
 		c[kind] = float(c.get(kind, 0.0)) + amt
 var build: Dictionary = {}
+var feel = null   # 队长手感探针（--feelprobe，feel_probe.gd）
 
 
 func _init(game: Game) -> void:
 	g = game
+	if Cfg.dev_args().has("--feelprobe"):
+		feel = preload("res://scripts/run/feel_probe.gd").new(game)   # 全员手感排查（10-29）：只在该参数下记录
 	var f := FileAccess.open("res://data/build.json", FileAccess.READ)
 	if f != null:
 		var d = JSON.parse_string(f.get_as_text())
@@ -198,6 +201,8 @@ func tick(dt: float) -> void:
 		ring.pop_front()
 	while not ring_ctx.is_empty() and ring_ctx[0][0] < t - RING_S:
 		ring_ctx.pop_front()
+	if feel != null:
+		feel.tick(dt, tot)
 	if g.floor_hits > floor_seen:
 		floor_seen = g.floor_hits
 		if floor_snaps.size() < 5:
@@ -494,6 +499,8 @@ func killer() -> Dictionary:
 
 func on_cast(op_id: String) -> void:
 	op_casts[op_id] = int(op_casts.get(op_id, 0)) + 1
+	if feel != null:
+		feel.on_cast(op_id)
 
 
 ## 入队 / 离队（squad.add / squad.remove）：名字、颜色等当场记下，被替换掉的干员结算时还能画
@@ -657,6 +664,8 @@ func record(marks = null) -> Dictionary:
 		"terrain": g.map.tb_log.duplicate(),   # 地形阻挡（只记录）：挡下的我方 / 敌方直线弹、撞停的冲刺
 		"sus": sus,   # docs/88：治疗分项 / 干员减伤 / 净化 / 照亮
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
+	if feel != null:
+		rec["feel"] = feel.report()
 	if not g.squad.stance_log.is_empty():
 		rec["cmd"] = g.squad.cmd_stats()   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数；没切过模式的局不写（BALANCE 与 main 逐字相同）
 	return rec
