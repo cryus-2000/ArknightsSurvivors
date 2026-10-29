@@ -69,7 +69,12 @@
   "shell2_heal": 0.04,
   "melt4_dur": 3.0,
   "melt4_every": 0.5,
-  "melt4_mult": 0.4
+  "melt4_mult": 0.4,
+  "_growth": "成长节点去数值化（docs/202 §3.14，待试验参数）：清创——clear_n 同一敌人累积几次爪击爆开、clear_win 累积的有效秒数、clear_r 爆开半径、clear_mult 爆开伤害（× m_atk，真实伤害）",
+  "clear_n": 3,
+  "clear_win": 4.0,
+  "clear_r": 70,
+  "clear_mult": 0.35
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1633 / 防御 215 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -606,6 +611,16 @@
     "skill"
    ]
   },
+  "Mon3tr · 清创": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "真实",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
   "Mon3tr · 回防": {
    "emitter": "summon",
    "origin": "core",
@@ -630,7 +645,7 @@
    "id": "wide_arc",
    "name": "清创",
    "icon": "growth_u_area",
-   "desc": "Mon3tr 爪击的扇面扩大 {$m_arc_wide*100-100}%"
+   "desc": "Mon3tr 的爪击在同一名敌人身上累积 {$clear_n} 次后，该敌人身上爆开一圈（半径 {$clear_r}，Mon3tr 攻击 {$clear_mult*100}% 的真实伤害）并清空累积；{$clear_win} 秒内没有再被爪击则清空"
   },
   {
    "type": "elite",
@@ -834,20 +849,6 @@
        },
        "along": 0.6,
        "cond": "!skill_active:2"
-      },
-      {
-       "arc": {
-        "pad": 8,
-        "w": 5,
-        "life": 0.2,
-        "col": [
-         0.5,
-         1.1,
-         0.55
-        ]
-       },
-       "first_only": true,
-       "cond": "node:wide_arc && !skill_active:2"
       },
       {
        "sprite": {
@@ -1825,9 +1826,9 @@
     }
    },
    "wide_arc": {
-    "verb": "summon_mod",
-    "kind": "mon3tr",
-    "arc": "$m_arc_wide"
+    "trig": "passive",
+    "do": [],
+    "_doc": "清创（docs/202）：逻辑在 ob_summon.sm_debride（Mon3tr 爪击在同一敌人上累积 clear_n 次 → 爆开一圈真实伤害）"
    },
    "s1_shell": {
     "trig": "on_skill_start",

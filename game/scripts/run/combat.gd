@@ -1118,6 +1118,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			dmg *= 1.1
 		if float(e.get("frag_t", 0.0)) > g.t:   # 铃兰精一「狐火灼印」：frag_t 之前受到的伤害 + frag_v（docs/91 §15；同名取最高）
 			dmg *= 1.0 + float(e.frag_v)
+		if e.has("tr_t") and float(e.tr_t) > g.t and h.has("op") and str(h.op) != str(e.tr_op):   # 能天使曳光弹标记（docs/202）：其他干员打到被标记的敌人 + tr_v
+			dmg *= 1.0 + float(e.tr_v)
 		dmg *= g.arts_mult if ty[1] == "法术" else g.phys_mult
 		if is_followup(h):
 			dmg *= (hop.stat(&"followup_dmg") if hop != null else g.followup_mult) * g.rfx.followup_extra(hop)

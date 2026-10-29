@@ -1063,5 +1063,10 @@
   "burst_gap": 0.08,
   "cap_shots": 48,
   "cap_qi": 18
+ },
+ "growth_nodes": {
+  "_doc": "成长节点去数值化（docs/202）：控制递减口径。同一敌人 cc_dr_window 秒内第二次受成长节点控制，时长 × cc_dr_mult；cc_dr_mult = 1 即关",
+  "cc_dr_window": 3.0,
+  "cc_dr_mult": 0.5
  }
 }

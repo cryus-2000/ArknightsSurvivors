@@ -1908,3 +1908,37 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 | `shape.hookshot.drag_only` | 钩索积木 | `all`（缺省）/ `ranged`：只把 `e.ai == ranged` 的敌人拖回身前（落地伤害不受影响）。歌蕾蒂娅普攻 |
 | `st.seal.look` | 封印状态 | `cross` = 被封印敌人头顶 8×8 灰叉（#AAAEB2，头顶上方 12 px），不画地面圈与紫菱形；写进 `e.seal_look`，`sm_draw_over` 按它分支。拉普兰德全部封印用它 |
 
+
+
+## 27. 成长节点去数值化的新积木 / 参数：拉普兰德、歌蕾蒂娅（docs/202，10-30）
+
+控制一律走 `op_api.add_cc_growth`（同一敌人 3 秒内第二次受控时长减半，balance.json growth 段）；减速（`lite_slow`）不递减。数值都是待试验参数，在各自 `base`（`_doc_growth` 有清单）。
+
+| 积木 / 参数 | 放哪 | 说明 |
+|---|---|---|
+| `verb.ll_dial_arm` | 触发器 do（`trig.on_negate`） | 拉普兰德「日晷·反斩」：格挡成功 → 记一次反斩待命（`hw.ll_dial`），脚下紫环 + 飘字「反斩」 |
+| `verb.ll_dial_swing` | 触发器 do（`trig.every_n`） | 待命还在（这一下横扫没有剑气把它用掉）→ 清除待命并执行 `do`（额外一道大剑气） |
+| `verb.ll_riposte` | 触发器 do（`trig.on_negate`） | 「日晷·回敬」：朝最近的敌人原地斩出一记扇形（`r` / `half` 度 / `mult` × 攻击 / `kb`），`cd` 秒内至多一次；`slash_fx` 是出手画面（刀光条目，不写 `fx`，免得被通用 fx 再播一遍） |
+| `verb.ll_seal_spread` | `trig.on_kill` 的 do | 「断喝·传染」：刚死的、被本干员封印的敌人把封印扩散给 `r` 内至多 `n` 名（`dur` 秒，精英减半，Boss 除外），死亡处一圈封印环 |
+| `shape.wave.aim: low_hp` | 剑气 | 朝 `aim_r` 内生命比例最低的敌人放出（缺省 `nearest`） |
+| `shape.wave.homing` | 剑气 | 弧度/秒：飞行中朝目标转向（目标死了就在 180 内重选生命比例最低的），非线性路径同样转（`p0` 重基准） |
+| `shape.wave.ll` / `sword` / `big` | 剑气 | `ll` = 走 seg_lappland 的每帧钩子；`sword` = 反斩待命时这一道变大剑气（宽 × `dial_w_mult`、去 `max_hits` 穿透、`proj_scale` × 1.6）；`big` = 本来就是大剑气（画紫边） |
+| `verb.shield.pop` / `pop_cd` | 护盾积木 | 护盾被打破或到期时下一帧执行的积木列表（`pop_cd` 秒内至多一次）。歌蕾蒂娅「深海的庇护·反震」 |
+| `blocks.attack.hook_nodes` | 歌蕾蒂娅普攻段 | 键 = `barb`（倒钩）/ `slash`（回收斩）/ `chain`（怒海）/ `geyser`（怒海·暗涌），每项带 `node`（成长节点 id，`o.taken` 里有才生效）。`shape.hookshot` 拖拽中 / 到位同帧 / 每帧三处钩子（seg_ulpianus → `gl_drag_tick` / `gl_arrive`；ob_hw → `gl_tick` / `gl_draw_floor`）；只有带 `hook_nodes` 的干员的钩索才走（乌尔比安不受影响） |
+| 沉底的锁链 `hw.glc` | 怒海 | 至多 `chain_cap` 条；线段内的敌人 `lite_slow`，每 `every` 秒受 `mult` × 钩索伤害；到期（暗涌）沿线每 `gap` 一根水柱，范围内非 Boss 浮空 `air` 秒（精英减半），走 `add_cc_growth` |
+## 成长节点去数值化（docs/202）：水月 / 归溟幽灵鲨 / 维什戴尔的新积木参数
+
+只往后加，参数都是待试验值（数值在各自 json 的 base，旁边带 `_doc`）。画面随机只用 `g.vrng`，玩法不取随机；控制一律走 `add_cc_growth`（同一敌人 3 秒内第二次受控时长减半）。
+
+| 积木 / 参数 | 类 | 说明 |
+|---|---|---|
+| `shape.umbrella` 的 `tentacle.repeat {cond, window, bind, mult}` | 普攻参数 | 水月节点 1「强迫性重复」：同一敌人 window 秒内第二次被触手命中，触手缠绕它：束缚 bind 秒（精英减半，Boss 除外）并再受一次触手 × mult 的伤害。同屏缠绕记录 ≤ 16 |
+| `shape.umbrella` 的 `tentacle.hyst {cond, hits, below, max}` | 普攻参数 | 水月节点 2「群体性癔症」：一次伞击命中 ≥ hits 名时，触手追击改为全体追击：生命低于 below 的被伞击敌人各挨一根（至多 max 根，不少于原追击数），伞面外画一圈紫环 |
+| `shape.umbrella` 的 `tentacle.cling {cond, dur, near, smash_window}` | 普攻参数 | 水月节点 4B「病理性依恋」：被精一「拖拽」拖到身边（或本来就在 near 内）的敌人缠住 dur 秒（精英减半，Boss 除外），缠住期间水月移动时用 `nudge` 带着走（单帧位移 > 60 视为瞬移，不带）；脚下两道反向旋转的弧 + 一根连到水月的触须 |
+| `shape.umbrella` 的 `tentacle.smash {cond, mult}` | 普攻参数 | 水月节点 5B「病理性依恋·重斩」：被缠住的敌人在 smash_window 秒内受到的下一次伞击 × mult（消耗，不叠加），触手从其脚下钻出 |
+| `verb.saw_echo` | 瞬时（`trig.on_hurt` 的 do） | 原地追加一次环斩（伤害同当前一圈主环斩，不重置普攻间隔）。幽灵鲨节点 4A「困兽」：S1 期间队长每被命中一次（`cd` 0.5 秒） |
+| `shape.saw` 的 `saw_hum {cond, max, dur, tick, mult, r_k}` | 普攻参数 | 幽灵鲨节点 4B「锯鸣」：环斩（主圈 / 反向圈 / 追加圈）每命中 1 名攒 1 点（上限 max）；攒满时下一圈环斩变为旋锯：持续 dur 秒、每 tick 秒一次、范围 × r_k、每次环斩伤害 × mult，之后清零，旋锯期间不再攒。脚下 max 个小点显示能量，满了红色脉动 |
+| `shape.saw` 的 `saw_res {cond, quake_r, quake_mult, push, blade_every, blade_len, blade_mult, blade_max}` | 普攻参数 | 幽灵鲨节点 5B「锯鸣·共振」：旋锯收尾震地一圈（半径 quake_r，环斩 × quake_mult，推开 push：走 `displace_one`，精英 ×0.5、重型 ×0.3、Boss 不动）；旋锯期间每命中 blade_every 次，锯刃甩出一道水刃（飞出 blade_len，穿透，环斩 × blade_mult；一次旋锯至多 blade_max 道，同屏 ≤ 8）。hit_sources：`锯鸣·震地`、`水刃` |
+| `shape.cannon` 的 `lowmark {cond, below}` | 普攻参数 | 维什戴尔节点 4B「亡者回响」：炮击 / 余震 / 魂炮 / 巨炮波及、且生命比例低于 below 的敌人直接挂残影标记（已带标记的不重复）。不再依赖 S2（S2 `attack_effect.mark` 已删） |
+| `shape.cannon` 的 `chain {cond, window, gap, snap_r}` | 普攻参数 | 维什戴尔节点 5A「余烬未冷·续燃」：S1 强化炮击出手后 window 秒内，被炸死 / 带标记倒下的敌人的残影立即殉爆（不等 0.25 秒）；gap 秒内紧接着的下一发强化炮击，落点吸向离原落点 snap_r 内最近的残影 / 标记（一道弧线 + 落点环）。不改伤害 |
+| `shape.cannon` 的 `fb {cond, kills, sp, cd}` | 普攻参数 | 维什戴尔节点 5B「亡者回响·回馈」：一次残影殉爆杀死 ≥ kills 名敌人时，全队（含自身）技能技力各 + sp 秒，cd 秒内至多一次；金色光点（`h4_spmote`，`_h4wd_draw_pfx` 里补了画法）从殉爆处飞向每名队员 |

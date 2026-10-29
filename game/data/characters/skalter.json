@@ -50,12 +50,19 @@
   "dark_slow": 0.1,
   "talent_hunter": 0.08,
   "talent_hunter_cap": 3,
-  "n1_aura": 1.15,
-  "n2_atk": 0.1,
+  "res_r": 70,
+  "res_mult": 0.2,
+  "tide_every": 2.0,
+  "tide_max": 4,
+  "tide_aspd": 0.04,
   "echo_every": 3,
   "echo_delay": 0.25,
   "echo_mult": 0.6,
-  "resonance_mult": 0.3,
+  "reso_cap": 3,
+  "reso_r": 60,
+  "reso_mult": 0.4,
+  "reso_dur": 6.0,
+  "_growth202": "成长节点去数值化（docs/202，10-29）：res_* 共鸣（歌域内干员击杀 → 小声浪），tide_* 潮声渐强（队长未受击叠潮声，每层歌域内干员攻速 +），reso_* 深海的回响（S1 期间声浪叠共振，满层爆开）。数值为待试验参数",
   "_doc_e5": "精英化（docs/91 §13 / §27）：精一「余音」= 每圈声浪 ring_delay 秒后（扩散到边），这圈声浪打中的敌人里位于外圈（半径 ring_in 以外）的再受 ring_mult；精二「远古血亲」= 常驻海嗣（队长 ishar_leash 内敌群最密处，速度 ishar_speed，每 ishar_repick 秒重找），小歌域半径 ishar_r × op_range × (1 + (歌域倍率 − 1) × ishar_share)，S3 的 ×2 不算；每圈声浪海嗣同步一圈：小歌域内最近 ishar_n 个 × ishar_mult",
   "ring_mult": 0.1,
   "ring_in": 0.8,
@@ -483,6 +490,16 @@
   "desc": "灯火通明（≥ {$talent_bright}）：歌域 +{$bright_aura*100}%、回复 ×{$bright_heal}；暗淡（< {$talent_dark}）：歌域内干员攻击 +{$dark_atk*100}%、歌域内敌人移速 -{$dark_slow*100}%（不算减速状态）；编队里每名其他深海猎人，歌域内干员攻击 +{$talent_hunter*100}%（最多 {$talent_hunter_cap} 人）"
  },
  "hit_sources": {
+  "共鸣": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  },
   "声浪": {
    "emitter": "operator",
    "origin": "core",
@@ -539,16 +556,16 @@
   {
    "type": "custom",
    "id": "zone_up",
-   "name": "歌域扩张",
+   "name": "共鸣",
    "icon": "growth_b_range",
-   "desc": "歌域半径 ×{$n1_aura}"
+   "desc": "歌域内的干员每击杀一名敌人，击杀处发出一道小声浪（半径 {$res_r}，{$res_mult*100}% 伤害）"
   },
   {
    "type": "custom",
    "id": "dmg_up",
    "name": "潮声渐强",
    "icon": "growth_b_size",
-   "desc": "歌域内干员攻击 +{$n2_atk*100}%"
+   "desc": "队长每连续 {$tide_every} 秒未受击，歌域内干员叠一层潮声（至多 {$tide_max} 层），每层攻击速度 +{$tide_aspd*100}%；队长受击时清零"
   },
   {
    "type": "elite",
@@ -577,10 +594,10 @@
      "id": "resonance",
      "name": "深海的回响",
      "icon": "skill_skalter_s1",
-     "desc": "「同归殊途之吟」期间歌域内最近 {$wave_n} 个敌人每秒额外受到 {$resonance_mult*$k_pow*100:1}% 法术伤害"
+     "desc": "「同归殊途之吟」期间，歌域内的敌人每被声浪命中一次叠一层共振（至多 {$reso_cap} 层）；满层的敌人在下一次声浪时爆开（半径 {$reso_r}，{$reso_mult*$k_pow*100:1}% 法术伤害）并清层"
     }
    },
-   "branch_desc": "「潮汐和声」每 {$echo_every} 次声浪追加一次回声；「深海的回响」使「同归殊途之吟」期间的歌域持续造成法术伤害",
+   "branch_desc": "「潮汐和声」每 {$echo_every} 次声浪追加一次回声；「深海的回响」使「同归殊途之吟」期间被声浪命中的敌人叠共振，满层爆开",
    "bot": "echo"
   },
   {
@@ -588,7 +605,7 @@
    "id": "resonance",
    "name": "深海的回响",
    "icon": "skill_skalter_s1",
-   "desc": "「同归殊途之吟」期间歌域内最近 {$wave_n} 个敌人每秒额外受到 {$resonance_mult*$k_pow*100:1}% 法术伤害",
+   "desc": "「同归殊途之吟」期间，歌域内的敌人每被声浪命中一次叠一层共振（至多 {$reso_cap} 层）；满层的敌人在下一次声浪时爆开（半径 {$reso_r}，{$reso_mult*$k_pow*100:1}% 法术伤害）并清层",
    "routes": {
     "echo": {
      "id": "echo2",
@@ -693,6 +710,15 @@
    "mult": 0.85,
    "max_n": "$wave_n",
    "src": "声浪",
+   "resonate": {
+    "cond": "node:resonance",
+    "cap": "$reso_cap",
+    "r": "$reso_r",
+    "mult": "$reso_mult",
+    "dur": "$reso_dur",
+    "src": "深海的回响",
+    "_doc": "深海的回响（docs/202）：S1 期间声浪命中的敌人叠共振（上限 3 层，6 秒没再命中清零），满层的敌人在下一次声浪时爆开（半径 60，法术 40% × 技能强度）"
+   },
    "tags": [
     "basic"
    ],
@@ -1055,15 +1081,74 @@
   ],
   "progression": {
    "zone_up": {
-    "verb": "buff_self",
-    "stat": "zone",
-    "op": "mult",
-    "value": "$n1_aura"
+    "trig": "on_kill",
+    "filter": "zone_ally",
+    "_doc": "共鸣（docs/202）：歌域内的干员（含她自己）每击杀一名敌人，击杀处放一道小声浪；自己的声浪（src 共鸣）不再触发",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$res_r",
+      "mult": "$res_mult",
+      "src": "共鸣",
+      "tags": [
+       "follow_up"
+      ],
+      "ring": false,
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 70.0,
+         "r0": 14.0,
+         "life": 0.4,
+         "col": [
+          0.4,
+          1.0,
+          0.9
+         ],
+         "floor": true,
+         "w": 2.5
+        },
+        "r_scale": [
+         "r"
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "sk_song",
+         "life": 0.7,
+         "r": [
+          8,
+          11
+         ],
+         "seed": [
+          0,
+          6.283
+         ],
+         "col": [
+          0.5,
+          1.1,
+          1.0
+         ]
+        },
+        "at": "center",
+        "off": [
+         0,
+         -10
+        ]
+       }
+      ]
+     }
+    ]
    },
    "dmg_up": {
-    "aura": "atk",
-    "value": "$n2_atk",
-    "scope": "in_zone"
+    "aura": "aspd",
+    "value": "$tide_aspd",
+    "per": "gn:tide",
+    "cap": "$tide_max",
+    "scope": "in_zone",
+    "_doc": "潮声渐强（docs/202）：层数在 seg_skalter.sk_gn_tick（队长每连续 tide_every 秒未受击 +1，受击清零），每层歌域内干员攻击速度 + tide_aspd"
    },
    "echo": {
     "trig": "every_n",
@@ -1109,24 +1194,9 @@
     ]
    },
    "resonance": {
-    "trig": "tick",
-    "every": 1.0,
-    "cond": "skill_active:0",
-    "do": [
-     {
-      "shape": "circle",
-      "center": "zone",
-      "r": "zone",
-      "mult": "$resonance_mult",
-      "max_n": "$wave_n",
-      "src": "深海的回响",
-      "tags": [
-       "skill",
-       "dot"
-      ],
-      "power": true
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "深海的回响：写在 attack.resonate（cond node:resonance）"
    },
    "elite1": {
     "trig": "every_n",

@@ -516,6 +516,7 @@ func rng_states() -> Array:
 	return [rng.state, rng_spawn.state, rng_enemy.state, rng_drop.state, rng_op.state]
 var headless_batch := false      # --balance 且无界面：跳过所有重绘
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
+var demo_nodes := -1           # 成长节点验收（docs/202）：>= 0 时图鉴演示按这个数推成长节点（覆盖 demo_stage 的 2 / 5 / 6）；路线用 --route=<干员>:<路线>
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
 var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
 var entry_voice_hold := true   # 开局编队的登场语音先不播：等第一帧局内画面画出来（开场演出则等编队着地）再放（release_entry_voices，用户 10-25）

@@ -301,10 +301,10 @@ func test_others_compat() -> void:
 			others += 1
 			ok(bn[1] == -1, "%s 没有分支节点" % cid)
 	ok(others == Ch.list_ids().size() - PILOT.size(), "其余 %d 人没有分支节点（%d）" % [Ch.list_ids().size() - PILOT.size(), others])
-	# 安洁莉娜（docs/119 §4.1 原表）：开关开时 alt 把双重引力提前到节点 1、节点 2 保留引力扩散；顶层仍是旧线
+	# 安洁莉娜（docs/202 10-29：alt 删除，致密恢复可选）：节点 1 双重引力、节点 2 致密（含重力透镜）、节点 4 起沿分支；顶层不再有死节点
 	var ad: Dictionary = Ch.load_def("angelina")
-	ok(str(ad.progression[0].get("alt", {}).get("id", "")) == "pull2" and str(ad.progression[1].get("alt", {}).get("id", "")) == "wide", "安洁莉娜 alt：节点 1 双重引力、节点 2 引力扩散")
-	ok(str(ad.progression[0].id) == "wide" and str(ad.progression[1].id) == "dense" and str(ad.progression[3].id) == "pull2", "安洁莉娜顶层仍是旧线")
+	ok(not ad.progression[0].has("alt") and not ad.progression[1].has("alt"), "安洁莉娜没有 alt")
+	ok(str(ad.progression[0].id) == "pull2" and str(ad.progression[1].id) == "dense" and str(ad.progression[3].id) == "pull2" and str(ad.progression[4].id) == "lock2", "安洁莉娜成长线：双重引力 / 致密 / 精一 / 分支 / 路线")
 
 
 ## 培养保底（§4.2 简化版）：最近培养的干员有合法成长卡时，升级三选一固定含它的成长卡；离队 / 养满自然失效

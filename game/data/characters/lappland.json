@@ -12,6 +12,8 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_rage": 1.25,
   "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/122）：近卫 · 领主。普攻「双刃」近身横扫（cone），特性「领主」远处（近战触及外）改掷剑气（远程 far_mult 80%、间隔 far_every，狼魂期间 far_s2_mult 100%），近处照常横扫（10-24 用户定，attack.far）；天赋「精神摧毁」命中封印；S1「日晷」永久（攻击 + 队长受击格挡概率）；S2「狼魂」限时（攻击 + 法术剑气）；S3「噤声」（本作自创名，10-25 用户定方案 A，docs/122 §2.7）限时攻击 ×s3_atk，命中叠「观察」，同一敌人 s3_keep 秒内叠满 s3_mark_n 层 → 十字斩 s3_cut_mult + 封印 s3_seal + 定格 s3_stun + 易伤 s3_fragile 秒；精一「狼之舞」每第 dance_n 次改为旋身斩；精二「双生刃」横扫附带两道交叉剑气；节点 4 二选一「断喝」/「狼魂·狂」（docs/119 §4.1）",
   "atk": 35,
   "cd": 0.8,
@@ -43,8 +45,6 @@
   "s3_seal": 3.0,
   "twin_delay": 0.12,
   "twin_mult": 0.5,
-  "far_dist": 270,
-  "far_w": 60,
   "dance_n": 5,
   "dance_r": 120,
   "dance_mult": 1.3,
@@ -57,12 +57,6 @@
   "bark_mult": 0.5,
   "bark_kb": 80,
   "bark_seal": 2.0,
-  "bark2_n": 3,
-  "bark2_r": 190,
-  "bark2_mult": 0.6,
-  "bark2_seal": 3.0,
-  "rage_atk": 0.25,
-  "rage2_aspd": 0.2,
   "far_mult": 0.8,
   "far_every": 1.0,
   "far_s2_mult": 1.0,
@@ -73,7 +67,21 @@
   "s3_cut_mult": 0.8,
   "s3_stun": 0.15,
   "s3_fragile": 3.0,
-  "s3_ring": 200
+  "s3_ring": 200,
+  "far_turn": 2.4,
+  "dial_w_mult": 2.0,
+  "dial_w": 100,
+  "dial_dist": 260,
+  "dial_mult": 0.8,
+  "riposte_mult": 1.5,
+  "riposte_r": 130,
+  "riposte_half": 70,
+  "riposte_kb": 60,
+  "riposte_cd": 0.8,
+  "spread_r": 120,
+  "spread_n": 6,
+  "spread_dur": 2.0,
+  "_doc_growth": "docs/202 成长节点（数值全部是待试验参数，由数值会话按木桩表定）：节点 2 追猎 far_turn（剑气转向弧度/秒，目标 = blade_aim 内生命比例最低）；节点 4B 日晷·反斩 dial_*（格挡后下一道剑气变大剑气：宽 ×dial_w_mult 穿透；没有剑气的横扫额外掷 dial_mult 一道）；节点 5A 断喝·传染 spread_*（被封印者死亡，封印扩散 spread_r 内至多 spread_n 名，spread_dur 秒）；节点 5B 日晷·回敬 riposte_*（格挡后向最近的敌人原地反斩，扇形半角 riposte_half 度）"
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2350 / 防御 365 / 法抗 15（character_table）；近战无自疗 regen 1.4–1.7 口径取 1.5，防御高于斯卡蒂故生命略低、护甲略高",
@@ -398,6 +406,27 @@
     "skill",
     "area"
    ]
+  },
+  "日晷": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area",
+    "projectile"
+   ]
+  },
+  "回敬": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
   }
  },
  "progression": [
@@ -411,9 +440,9 @@
   {
    "type": "custom",
    "id": "far",
-   "name": "远掷",
+   "name": "追猎",
    "icon": "growth_b_range",
-   "desc": "剑气飞出 {$blade_dist} → {$far_dist}，宽度 {$blade_w} → {$far_w}"
+   "desc": "剑气改为追踪：优先飞向 {$blade_aim} 内生命比例最低的敌人（不再取最近的），沿弧线转向（{$far_turn} 弧度/秒）"
   },
   {
    "type": "elite",
@@ -440,32 +469,32 @@
     },
     "rage": {
      "id": "rage",
-     "name": "狼魂·狂",
-     "icon": "skill_skadi_s2",
-     "desc": "「狼魂」期间攻击再 +{$rage_atk*100}%"
+     "name": "日晷·反斩",
+     "icon": "skill_skadi_s1",
+     "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）；伤害 ×{$grow_dmg_rage}"
     }
    },
-   "branch_desc": "「断喝」每 {$bark_n} 次横扫触发封印冲击；「狼魂·狂」提高「狼魂」期间的攻击力",
+   "branch_desc": "「断喝」每 {$bark_n} 次横扫触发封印冲击；「日晷·反斩」格挡成功后下一道剑气变为大剑气",
    "bot": "bark"
   },
   {
    "type": "custom",
    "id": "rage",
-   "name": "狼魂·狂",
-   "icon": "skill_skadi_s2",
-   "desc": "「狼魂」期间攻击再 +{$rage_atk*100}%",
+   "name": "日晷·反斩",
+   "icon": "skill_skadi_s1",
+   "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）；伤害 ×{$grow_dmg_rage}",
    "routes": {
     "bark": {
      "id": "bark2",
-     "name": "断喝·长啸",
+     "name": "断喝·传染",
      "icon": "growth_t_field",
-     "desc": "冲击改为每第 {$bark2_n} 次横扫，半径 {$bark2_r}，{$bark2_mult*100}% 伤害，封印 {$bark2_seal} 秒"
+     "desc": "被她封印的敌人死亡时，封印沿半径 {$spread_r} 扩散：至多 {$spread_n} 名周围敌人被封印 {$spread_dur} 秒（精英减半，Boss 除外），死亡处炸出一圈封印环"
     },
     "rage": {
      "id": "rage2",
-     "name": "狼魂·疾",
-     "icon": "skill_skadi_s2",
-     "desc": "「狼魂」期间攻击速度 +{$rage2_aspd*100}%"
+     "name": "日晷·回敬",
+     "icon": "skill_skadi_s1",
+     "desc": "「日晷」格挡成功时，朝最近的敌人原地斩出一记反击：前方 {$riposte_half*2}° 扇形，半径 {$riposte_r}，{$riposte_mult*100}% 伤害，击退 {$riposte_kb}；{$riposte_cd} 秒内至多一次"
     }
    }
   },
@@ -653,16 +682,16 @@
      "cond": "skill_active:1 && node:far",
      "shape": "wave",
      "from": "self",
-     "aim": "nearest",
+     "aim": "low_hp",
      "aim_r": "$blade_aim",
      "fan": [
       0
      ],
      "basis": "atk",
      "mult": "$far_s2_mult",
-     "dist": "$far_dist",
+     "dist": "$blade_dist",
      "speed": "$blade_spd",
-     "w": "$far_w",
+     "w": "$blade_w",
      "depth": 14,
      "kb": "$blade_kb",
      "cap": 9,
@@ -677,7 +706,11 @@
      "max_hits": 1,
      "every": "$far_every",
      "anim": "throw",
-     "count": false
+     "count": false,
+     "ll": true,
+     "sword": true,
+     "homing": "$far_turn",
+     "_doc": "追猎（docs/202 节点 2）：node:far 时 aim 换成 low_hp（生命比例最低）+ homing 转向；距离 / 宽度不再加"
     },
     {
      "cond": "skill_active:1",
@@ -707,22 +740,24 @@
      "max_hits": 1,
      "every": "$far_every",
      "anim": "throw",
-     "count": false
+     "count": false,
+     "ll": true,
+     "sword": true
     },
     {
      "cond": "node:far",
      "shape": "wave",
      "from": "self",
-     "aim": "nearest",
+     "aim": "low_hp",
      "aim_r": "$blade_aim",
      "fan": [
       0
      ],
      "basis": "atk",
      "mult": "$far_mult",
-     "dist": "$far_dist",
+     "dist": "$blade_dist",
      "speed": "$blade_spd",
-     "w": "$far_w",
+     "w": "$blade_w",
      "depth": 14,
      "kb": "$blade_kb",
      "cap": 9,
@@ -737,7 +772,10 @@
      "max_hits": 1,
      "every": "$far_every",
      "anim": "throw",
-     "count": false
+     "count": false,
+     "ll": true,
+     "sword": true,
+     "homing": "$far_turn"
     },
     {
      "shape": "wave",
@@ -767,7 +805,9 @@
      "every": "$far_every",
      "anim": "throw",
      "count": false,
-     "_doc": "领主（原作特性：可进行远程攻击，攻击力降至 80%）：近战触及（reach）内没有敌人、而 blade_aim 内有 → 这一下改为掷一道剑气（攻击 far_mult、间隔 far_every、帧条 throw，命中第一名即消失）；手动攻击按指向的锥里近战触及内有无敌人选形态；count:false = 远程不数近战的次数。狼魂期间远程不再降攻击（far_s2_mult，原作 S2）；节点 2「远掷」换 far_dist / far_w。前面的先匹配"
+     "_doc": "领主（原作特性：可进行远程攻击，攻击力降至 80%）：近战触及（reach）内没有敌人、而 blade_aim 内有 → 这一下改为掷一道剑气（攻击 far_mult、间隔 far_every、帧条 throw，命中第一名即消失）；手动攻击按指向的锥里近战触及内有无敌人选形态；count:false = 远程不数近战的次数。狼魂期间远程不再降攻击（far_s2_mult，原作 S2）；节点 2「远掷」换 far_dist / far_w。前面的先匹配",
+     "ll": true,
+     "sword": true
     }
    ]
   },
@@ -956,7 +996,9 @@
       "src": "狼魂",
       "proj": "proj_lappland_sword",
       "proj_hold": 1,
-      "proj_front": true
+      "proj_front": true,
+      "ll": true,
+      "sword": true
      }
     ]
    },
@@ -968,16 +1010,16 @@
      {
       "shape": "wave",
       "from": "self",
-      "aim": "nearest",
+      "aim": "low_hp",
       "aim_r": "$blade_aim",
       "fan": [
        0
       ],
       "basis": "attack",
       "mult": "$s2_mult",
-      "dist": "$far_dist",
+      "dist": "$blade_dist",
       "speed": "$blade_spd",
-      "w": "$far_w",
+      "w": "$blade_w",
       "depth": 14,
       "kb": "$blade_kb",
       "cap": 9,
@@ -988,7 +1030,10 @@
       "src": "狼魂",
       "proj": "proj_lappland_sword",
       "proj_hold": 1,
-      "proj_front": true
+      "proj_front": true,
+      "ll": true,
+      "sword": true,
+      "homing": "$far_turn"
      }
     ]
    }
@@ -1003,7 +1048,7 @@
    "far": {
     "trig": "passive",
     "do": [],
-    "_doc": "远掷：trait 里的剑气按 cond node:far 换成 far_dist / far_w 版本"
+    "_doc": "追猎（docs/202 节点 2）：attack.far / trait / elite2 里的剑气按 cond node:far 换 aim: low_hp + homing（seg_lappland）"
    },
    "elite1": {
     "trig": "every_n",
@@ -1095,7 +1140,9 @@
        "proj": "proj_lappland_sword",
        "proj_hold": 1,
        "proj_front": true,
-       "max_hits": 1
+       "max_hits": 1,
+       "ll": true,
+       "sword": true
       }
      ]
     },
@@ -1107,7 +1154,7 @@
       {
        "shape": "wave",
        "from": "self",
-       "aim": "nearest",
+       "aim": "low_hp",
        "aim_r": "$blade_aim",
        "fan": [
         -12,
@@ -1116,9 +1163,9 @@
        "fan_once": true,
        "basis": "attack",
        "mult": "$twin_blade_mult",
-       "dist": "$far_dist",
+       "dist": "$blade_dist",
        "speed": "$blade_spd",
-       "w": "$far_w",
+       "w": "$blade_w",
        "depth": 14,
        "kb": "$blade_kb",
        "cap": 9,
@@ -1130,7 +1177,10 @@
        "proj": "proj_lappland_sword",
        "proj_hold": 1,
        "proj_front": true,
-       "max_hits": 1
+       "max_hits": 1,
+       "ll": true,
+       "sword": true,
+       "homing": "$far_turn"
       }
      ]
     }
@@ -1138,8 +1188,7 @@
    "bark": {
     "trig": "every_n",
     "n": "$bark_n",
-    "cond": "!node:bark2",
-    "_doc": "断喝（docs/119 §4.1 路线 bark 节点 4）：每第 4 次横扫一圈封印冲击",
+    "_doc": "断喝（docs/119 §4.1 路线 bark 节点 4）：每第 4 次横扫一圈封印冲击（节点 5「断喝·传染」不再替换它）",
     "do": [
      {
       "shape": "circle",
@@ -1188,79 +1237,122 @@
     ]
    },
    "bark2": {
-    "trig": "every_n",
-    "n": "$bark2_n",
-    "_doc": "断喝·长啸（路线 bark 节点 5）：改为每第 3 次、半径 190、60%、封印 3 秒；节点 4 的那块按 cond !node:bark2 停用",
+    "trig": "on_kill",
+    "filter": "any",
+    "_doc": "断喝·传染（docs/202 路线 bark 节点 5）：被封印的敌人死亡时，封印沿 spread_r 扩散（至多 spread_n 名，精英减半，Boss 除外），死亡处炸一圈封印环",
     "do": [
      {
-      "shape": "circle",
-      "center": "self",
-      "r": "$bark2_r",
-      "r_abs": true,
-      "basis": "attack",
-      "mult": "$bark2_mult",
-      "kb": "$bark_kb",
-      "src": "断喝",
-      "ring": false,
-      "on_hit": [
+      "verb": "ll_seal_spread",
+      "r": "$spread_r",
+      "n": "$spread_n",
+      "dur": "$spread_dur"
+     }
+    ]
+   },
+   "rage": [
+    {
+     "trig": "on_negate",
+     "_doc": "日晷·反斩（docs/202 路线 rage 节点 4）：S1「日晷」格挡成功 → 记一次反斩待命；下一道剑气（狼魂 / 远掷 / 双生刃）变大剑气（宽 ×dial_w_mult、穿透，seg_lappland.ll_wave_post）",
+     "do": [
+      {
+       "verb": "ll_dial_arm"
+      }
+     ]
+    },
+    {
+     "trig": "every_n",
+     "n": 1,
+     "_doc": "待命时这一下横扫没有剑气（上面的剑气没把它用掉）→ 额外掷出一道大剑气",
+     "do": [
+      {
+       "verb": "ll_dial_swing",
+       "do": [
+        {
+         "shape": "wave",
+         "from": "self",
+         "aim": "nearest",
+         "aim_r": "$blade_aim",
+         "fan": [
+          0
+         ],
+         "basis": "atk",
+         "mult": "$dial_mult",
+         "dist": "$dial_dist",
+         "speed": "$blade_spd",
+         "w": "$dial_w",
+         "depth": 14,
+         "kb": "$blade_kb",
+         "cap": 9,
+         "off": [
+          0,
+          -6
+         ],
+         "src": "日晷",
+         "proj": "proj_lappland_sword",
+         "proj_hold": 1,
+         "proj_front": true,
+         "proj_scale": 1.6,
+         "ll": true,
+         "big": true
+        }
+       ]
+      }
+     ]
+    },
+    {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_rage"}
+   ],
+   "rage2": {
+    "trig": "on_negate",
+    "_doc": "日晷·回敬（docs/202 路线 rage 节点 5）：格挡成功 → 朝最近的敌人原地反斩一记（扇形，不位移）",
+    "do": [
+     {
+      "verb": "ll_riposte",
+      "r": "$riposte_r",
+      "half": "$riposte_half",
+      "mult": "$riposte_mult",
+      "kb": "$riposte_kb",
+      "cd": "$riposte_cd",
+      "src": "回敬",
+      "slash_fx": [
        {
-        "st": "seal",
-        "dur": "$bark2_seal",
-        "elite_mult": "$seal_elite",
-        "boss_mult": "$seal_boss",
-        "boss_max": "$seal_boss_max",
-        "boss_immune": "$seal_boss_imm",
-        "look": "cross"
-       }
-      ],
-      "fx": [
+        "strip": "fx_lappland_slash",
+        "rot": true,
+        "along": 0.5,
+        "scale": 1.15,
+        "off": [
+         0,
+         -10
+        ],
+        "tint": [
+         0.85,
+         0.7,
+         1.0,
+         1.0
+        ],
+        "if_tex": "fx_lappland_slash"
+       },
        {
-        "pfx": {
-         "kind": "ring",
-         "r": 1.0,
-         "r0": 0.15,
-         "life": 0.45,
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.0,
+         "along": 0.5,
          "col": [
-          0.7,
+          0.72,
           0.6,
           1.0
          ],
-         "floor": true,
-         "w": 3.5,
-         "alpha": 0.65
+         "edge": [
+          1.0,
+          1.0,
+          1.0
+         ],
+         "life": 0.2,
+         "half": 1.2
         },
-        "r_scale": [
-         "r",
-         "r0"
-        ]
+        "if_tex": "!fx_lappland_slash"
        }
       ]
-     }
-    ]
-   },
-   "rage": {
-    "trig": "passive",
-    "cond": "skill_active:1",
-    "_doc": "狼魂·狂（路线 rage 节点 4）：狼魂期间攻击再 +25%",
-    "do": [
-     {
-      "verb": "buff_self",
-      "stat": "atk",
-      "op": "mult",
-      "value": "1+$rage_atk"
-     }
-    ]
-   },
-   "rage2": {
-    "trig": "passive",
-    "cond": "skill_active:1",
-    "_doc": "狼魂·疾（路线 rage 节点 5）：狼魂期间攻击速度 +20%",
-    "do": [
-     {
-      "verb": "buff_self",
-      "stat": "op_aspd",
-      "op": "add",
-      "value": "$rage2_aspd"
      }
     ]
    }

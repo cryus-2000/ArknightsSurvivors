@@ -78,6 +78,7 @@ static func h3_tick_effects(o, dt: float) -> void:
 		mz.budget = min(float(mz.budget) + dt * float(kh.get("regen", 0.05)), float(kh.get("cap", 0.05)))
 	_h3_stakes_tick(o, mz, dt)
 	_e3_jelly_tick(o, mz, dt)   # 精英化第 3 批：深蓝之籽
+	_g202_mz_tick(o, mz, dt)   # docs/202：缠住（病理性依恋 / 强迫性重复）
 	mz.s3_fx = maxf(0.0, float(mz.s3_fx) - dt)
 	for i in range(mz.delayed.size() - 1, -1, -1):
 		var dl: Dictionary = mz.delayed[i]
@@ -123,10 +124,11 @@ static func h3_umbrella_release(o, a: Dictionary) -> bool:
 
 static func h3_cancel(o) -> void:
 	var mz: Dictionary = o.hw.mz
-	for key in ["stakes", "delayed", "jel", "binds"]:
+	for key in ["stakes", "delayed", "jel", "binds", "cling"]:
 		if mz.has(key):
 			mz[key].clear()
 	mz["marks"] = {}
+	mz["rep"] = {}
 	mz.s3_fx = 0.0
 	mz.s3_fx_radius = 0.0
 	mz.budget = 0.0
@@ -178,9 +180,10 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	g.crit_hit = empowered
 	dmg *= g.rfx.single_hit_mult(hit.size()) * MzVg.crowd_mult(o, hit)
 	var src: String = str(a.get("src", ""))
+	var sm: Dictionary = _h4_sub(o, a.get("tentacle", _ED).get("smash", null))   # docs/202 病理性依恋·重斩
 	for e in hit:
 		o.log_hit(src, ["empowered"] if empowered else [])
-		o.deal_damage(e, dmg)
+		o.deal_damage(e, dmg * (_g202_smash_take(o, e, sm) if not sm.is_empty() else 1.0))
 		if not e.boss:
 			o.apply_kb(e, (e.pos - o.pos).normalized() * (float(emp.get("kb", 360.0)) if empowered else float(a.get("kb", 240.0))))
 	g.crit_hit = false
@@ -210,12 +213,28 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		if cond_true(o, sv.get("cond", _ED)):
 			tstun = float(sv.get("dur", 0.0))
 			break
-	for i in min(n, alive.size()):
-		_h3_tentacle(o, a, alive[i], tdmg, tstun)
-	if not s3 and hit.size() > 0 and alive.size() < n:
-		var more: Array = o.nearest_enemies(n + 4, radius * float(tb.get("more_r", 1.6)), o.pos).filter(func(e): return not e.dead and not alive.has(e))
-		for i in mini(n - alive.size(), more.size()):
-			_h3_tentacle(o, a, more[i], tdmg, tstun)
+	var hy: Dictionary = _h4_sub(o, tb.get("hyst", null))
+	var lows: Array = []
+	if not hy.is_empty() and hit.size() >= int(hy.get("hits", 4)):
+		lows = alive.filter(func(e): return e.hp < e.maxhp * float(hy.get("below", 0.5)))
+	if not lows.is_empty():
+		var hn: int = maxi(n, mini(int(hy.get("max", 6)), lows.size()))
+		var order: Array = lows.slice(0, int(hy.get("max", 6)))
+		for e in alive:
+			if order.size() >= hn:
+				break
+			if not order.has(e):
+				order.append(e)
+		for i in mini(hn, order.size()):
+			_h3_tentacle(o, a, order[i], tdmg, tstun)
+		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": radius, "r0": radius * 0.4, "life": 0.35, "col": Color(0.85, 0.55, 1.5), "floor": true, "w": 2.5, "alpha": 0.8})
+	else:
+		for i in min(n, alive.size()):
+			_h3_tentacle(o, a, alive[i], tdmg, tstun)
+		if not s3 and hit.size() > 0 and alive.size() < n:
+			var more: Array = o.nearest_enemies(n + 4, radius * float(tb.get("more_r", 1.6)), o.pos).filter(func(e): return not e.dead and not alive.has(e))
+			for i in mini(n - alive.size(), more.size()):
+				_h3_tentacle(o, a, more[i], tdmg, tstun)
 	var sw = emp.get("swarm", null)
 	if empowered and sw is Dictionary and cond_true(o, sw.get("cond", _ED)):
 		var near: Array = o.nearest_enemies(int(sw.get("n", 2)), radius * float(sw.get("r_mult", 1.6)), o.pos)
@@ -264,8 +283,10 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		var dr = tb.get("drag", null)
 		if dr is Dictionary and cond_true(o, dr.get("cond", _ED)) and not target.boss:
 			o.apply_kb(target, (o.pos - target.pos).normalized() * (float(dr.get("kb_elite", 160.0)) if target.elite else float(dr.get("kb", 320.0))))
-		_e3_pull(o, a, target)   # 精英化第 3 批：拖拽
+		var pulled: bool = _e3_pull(o, a, target)   # 精英化第 3 批：拖拽
 		_e3_mark(o, target)   # 精英化第 3 批：深蓝之籽优先打被触手打过的
+		_g202_repeat(o, tb, target, dmg)   # docs/202 强迫性重复
+		_g202_cling(o, tb, target, pulled)   # docs/202 病理性依恋
 	var sk = tb.get("stake", null)
 	if sk is Dictionary and cond_true(o, sk.get("cond", _ED)):
 		if mz.stakes.size() >= int(sk.get("max", 6)) + MzVg.summon_subs(g, "stake"):   # 只扩容量，仍由原触手攻击创建（163B §4）
@@ -380,6 +401,7 @@ static func _h3mz_draw_floor(o) -> void:
 		if f.kind == "tentacle":
 			_h3_draw_tentacle(o, f)
 	_e3_draw_binds(o)
+	_g202_mz_draw(o)
 	for s in mz.stakes:
 		var a: float = clampf(s.t / 0.4, 0.0, 1.0)
 		var sr: float = float(s.b.get("r", 60.0))
@@ -516,14 +538,162 @@ static func _h3mz_rows(o) -> Array:
 	]
 
 
+# ---------------------------------------------------------------- docs/202 成长节点：缠住（强迫性重复 / 病理性依恋 / 重斩）
+#  attack.tentacle.repeat {cond, window, bind}  触手追击同一敌人 window 秒内第二次命中 → 触手缠绕它 bind 秒（精英减半，Boss 除外；控制走 add_cc_growth）
+#  attack.tentacle.hyst   {cond, hits, below, max}  伞击一次命中 ≥ hits 名 → 追击改为全体追击：生命低于 below 的被伞击敌人各挨一根（至多 max 根，不少于原追击数）
+#  attack.tentacle.cling  {cond, dur, near, smash_window}  被精一「拖拽」拖到身边（或本来就在身边 near 内）的敌人被缠住 dur 秒（精英减半，Boss 除外），缠住期间水月移动时带着走
+#  attack.tentacle.smash  {cond, mult}  被缠住的敌人（cling.smash_window 秒内）受到的下一次伞击 × mult，消耗一次；触手从其脚下钻出
+# 同屏缠住记录 ≤ 16 条；画面只用 g.vrng
+
+const G202_CLING_MAX := 16
+
+
+static func _g202_st(mz: Dictionary) -> void:
+	if not mz.has("cling"):
+		mz["cling"] = []
+	if not mz.has("rep"):
+		mz["rep"] = {}
+
+
+static func _g202_mz_tick(o, mz: Dictionary, dt: float) -> void:
+	_g202_st(mz)
+	var cur: Vector2 = o.pos
+	var last: Vector2 = mz.get("lastp", cur)
+	mz["lastp"] = cur
+	var cl: Array = mz.cling
+	if cl.is_empty():
+		return
+	var d := Vector2.ZERO
+	if cur != Vector2.INF and last != Vector2.INF:
+		d = cur - last
+		if d.length() > 60.0:
+			d = Vector2.ZERO   # 瞬移 / 回位不带人
+	for c in cl:
+		c.t = float(c.t) - dt
+		c.mark = float(c.mark) - dt
+		if c.carry and float(c.t) > 0.0 and d != Vector2.ZERO and not c.e.dead:
+			o.nudge(c.e, d)
+	mz.cling = cl.filter(func(c): return float(c.mark) > 0.0 and not c.e.dead)
+
+
+## 强迫性重复：同一敌人 window 秒内被触手第二次命中 → 缠绕
+static func _g202_repeat(o, tb: Dictionary, target: Dictionary, dmg: float) -> void:
+	var rp: Dictionary = _h4_sub(o, tb.get("repeat", null))
+	if rp.is_empty() or target.boss or target.dead:
+		return
+	var g = o.g
+	var mz: Dictionary = o.hw.mz
+	_g202_st(mz)
+	var id: int = int(target.id)
+	var last: float = float(mz.rep.get(id, -99.0))
+	if g.t - last <= float(rp.get("window", 3.0)):
+		mz.rep.erase(id)
+		var dur: float = float(rp.get("bind", 0.5)) * (0.5 if target.elite else 1.0)
+		o.add_cc_growth(target, dur)
+		if float(rp.get("mult", 0.0)) > 0.0:   # 缠紧的那一下：再受一次触手伤害 × mult
+			o.log_hit(str(tb.get("src", "")))
+			o.deal_damage(target, dmg * float(rp.mult))
+		_g202_add_cling(mz, target, dur, dur, false, false)
+		o.fx({"kind": "ring", "pos": target.pos + Vector2(0, 4), "r": target.r + 18.0, "r0": target.r + 4.0, "life": 0.35, "col": h3_deep_col(o, 1.8), "floor": true, "w": 3.0, "alpha": 0.9})
+	else:
+		mz.rep[id] = g.t
+		if mz.rep.size() > 48:
+			for k in mz.rep.keys():
+				if float(mz.rep[k]) < g.t - float(rp.get("window", 3.0)):
+					mz.rep.erase(k)
+
+
+## 病理性依恋：被拖到身边的敌人缠住
+static func _g202_cling(o, tb: Dictionary, target: Dictionary, pulled: bool) -> void:
+	var cb: Dictionary = _h4_sub(o, tb.get("cling", null))
+	if cb.is_empty() or target.boss or target.dead:
+		return
+	if not pulled and target.pos.distance_to(o.pos) > float(target.r) + float(cb.get("near", 70.0)):
+		return
+	var mz: Dictionary = o.hw.mz
+	_g202_st(mz)
+	var dur: float = float(cb.get("dur", 0.8)) * (0.5 if target.elite else 1.0)
+	var sm: Dictionary = _h4_sub(o, tb.get("smash", null))
+	var mark: float = maxf(dur, float(cb.get("smash_window", 1.6))) if not sm.is_empty() else dur
+	o.add_cc_growth(target, dur)
+	_g202_add_cling(mz, target, dur, mark, true, not sm.is_empty())
+
+
+static func _g202_add_cling(mz: Dictionary, e: Dictionary, t: float, mark: float, carry: bool, smash: bool) -> void:
+	for c in mz.cling:
+		if is_same(c.e, e):
+			c.t = maxf(float(c.t), t)
+			c.mark = maxf(float(c.mark), mark)
+			c.carry = c.carry or carry
+			c.smash = c.smash or smash
+			return
+	if mz.cling.size() >= G202_CLING_MAX:
+		mz.cling.pop_front()
+	mz.cling.append({"e": e, "t": t, "mark": mark, "carry": carry, "smash": smash, "ph": 0.0})
+
+
+## 病理性依恋·重斩：被缠住（且带 smash 标记）的敌人吃的下一次伞击 × mult，消耗；返回倍率（没有 = 1）
+static func _g202_smash_take(o, e: Dictionary, sm: Dictionary) -> float:
+	var mz: Dictionary = o.hw.mz
+	if not mz.has("cling"):
+		return 1.0
+	for i in mz.cling.size():
+		var c: Dictionary = mz.cling[i]
+		if is_same(c.e, e) and c.smash:
+			mz.cling.remove_at(i)
+			var g = o.g
+			var p: Vector2 = e.pos
+			g.fx.append({"kind": "rift", "pos": p, "r": 30.0, "life": 0.3, "max": 0.3})
+			if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX * 0.9, 0.0, g.vrng.randf() < 0.5, true, Color(1, 1, 1, 0.9)):
+				g.fx.append({"kind": "tentacle", "pos": p, "life": 0.4, "max": 0.4, "flip": g.vrng.randf() < 0.5})
+			g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 52.0, "life": 0.35, "max": 0.35, "col": Color(0.9, 0.6, 1.6), "op_hit": true})
+			o.sparks(p + Vector2(0, 8), Vector2.UP, Color(0.9, 0.6, 1.6), 9, 240.0)
+			return float(sm.get("mult", 1.5))
+	return 1.0
+
+
+## 画面：缠住的敌人脚下两道反向旋转的弧 + 一根从水月连过去的触须（smash 标记期间偏亮紫）
+static func _g202_mz_draw(o) -> void:
+	var mz: Dictionary = o.hw.mz
+	if not mz.has("cling") or mz.cling.is_empty():
+		return
+	var g = o.g
+	var cv = o.cv
+	for c in mz.cling:
+		var e: Dictionary = c.e
+		if e.dead:
+			continue
+		var live: bool = float(c.t) > 0.0
+		var col: Color = Color(0.9, 0.6, 1.6) if c.smash else h3_deep_col(o, 1.8)
+		var al: float = (0.9 if live else 0.55) * clampf(float(c.mark) / 0.3, 0.0, 1.0)
+		var fp: Vector2 = e.pos + Vector2(0, float(e.r) * 0.6)
+		cv.draw_set_transform(fp, 0.0, Vector2(1.0, 0.45))
+		var r0: float = float(e.r) + 5.0
+		var an: float = g.t * 3.0 + float(e.id)
+		cv.draw_arc(Vector2.ZERO, r0, an, an + TAU * 0.78, 18, Color(col.r, col.g, col.b, al), 2.5)
+		cv.draw_arc(Vector2.ZERO, r0 + 4.0, -an, -an + TAU * 0.6, 16, Color(col.r, col.g, col.b, al * 0.7), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if c.carry and live and o.pos != Vector2.INF:
+			var a0: Vector2 = o.pos + Vector2(0, -10)
+			var a1: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.4)
+			var pts := PackedVector2Array()
+			var nrm: Vector2 = (a1 - a0).orthogonal().normalized()
+			for s in 7:
+				var u: float = float(s) / 6.0
+				pts.append(a0.lerp(a1, u) + nrm * sin(u * PI * 2.0 + g.t * 9.0) * 5.0 * sin(u * PI))
+			cv.draw_polyline(pts, Color(col.r, col.g, col.b, al * 0.8), 2.0)
+
+
 # ---------------------------------------------------------------- 水月：拖拽 / 深蓝之籽
 
-static func _e3_pull(o, a: Dictionary, target: Dictionary) -> void:
+static func _e3_pull(o, a: Dictionary, target: Dictionary) -> bool:
 	var pl = a.get("tentacle", _ED).get("pull", null)
 	if not (pl is Dictionary) or target.dead or not cond_true(o, pl.get("cond", _ED)):
-		return
+		return false
 	if displace_one(o, target, o.pos, pl):
 		o.spawn_fx_sprite(str(pl.get("fx", "fx_mizuki_tentacle_curl")), target.pos + Vector2(0, -target.r * 0.5), o.g.PX * 0.8, 0.0, target.pos.x > o.pos.x)
+		return true
+	return false
 
 
 ## 第 k 只水母在身后的位置（同常驻画法）

@@ -25,8 +25,10 @@
   "s3_mult": 1.8,
   "quake_r": 70,
   "quake_mult": 0.25,
-  "roar_r_mult": 1.4,
   "roar_kb": 200,
+  "roar_col_mult": 0.3,
+  "roar_wall_mult": 0.5,
+  "roar_life": 0.45,
   "leap2_range": 220,
   "leap2_dist": 150,
   "leap2_mult": 0.6,
@@ -45,13 +47,11 @@
   "crush_mult": 0.2,
   "crush_cap": 2,
   "spike_step": 36,
-  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 再跃 / 万兽之王，节点 5：leap3_* 再跃·裂地（两次落地后震圈），cmd2_* 万兽之王·威令（号令回技力 + 自身限时增伤）。数值为待试验参数",
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 再跃 / 万兽之王，节点 5：leap3_* 再跃·裂地（两次落地后震圈），万兽之王·威令（号令波清负面状态，无数值）。数值为待试验参数",
+  "_growth202": "成长节点去数值化（docs/202，10-29）：roar_col_* 狮吼（击退碰撞：撞上别的敌人 / 障碍物时受锤击的这个倍率）。数值为待试验参数",
   "leap3_delay": 0.8,
   "leap3_r": 140,
-  "leap3_mult": 0.8,
-  "cmd2_sp": 1.5,
-  "cmd2_dur": 5.0,
-  "cmd2_mult": 1.3
+  "leap3_mult": 0.8
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2251 / 防御 384 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -329,6 +329,17 @@
     "control"
    ]
   },
+  "狮吼": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "aftershock",
+    "area"
+   ]
+  },
   "粉碎": {
    "emitter": "operator",
    "origin": "core",
@@ -354,7 +365,7 @@
    "id": "roar",
    "name": "狮吼",
    "icon": "growth_b_range",
-   "desc": "冲击环范围 +{$roar_r_mult*100-100}%，并击退敌人"
+   "desc": "冲击环击退敌人；被击退的敌人撞上其他敌人时，双方各受锤击 {$roar_col_mult*100}% 伤害，撞上障碍物时受 {$roar_wall_mult*100}%（Boss 除外）"
   },
   {
    "type": "elite",
@@ -406,7 +417,7 @@
      "id": "beast_king2",
      "name": "万兽之王·威令",
      "icon": "skill_siege_s1",
-     "desc": "释放「冲锋号令·γ型」时，全队技能的技力各 +{$cmd2_sp} 秒，她自身 {$cmd2_dur} 秒内伤害 ×{$cmd2_mult}"
+     "desc": "「冲锋号令·γ型」的金色号令波扫过队长和队友时，清除其一个负面状态（束缚、寒冷、减速、神经损伤之一）；每道号令波对每名干员一次"
     }
    }
   },
@@ -485,8 +496,11 @@
     "src": "震地余波",
     "roar": {
      "cond": "node:roar",
-     "r_mult": "$roar_r_mult",
-     "kb": "$roar_kb"
+     "kb": "$roar_kb",
+     "col_mult": "$roar_col_mult",
+     "wall_mult": "$roar_wall_mult",
+     "life": "$roar_life",
+     "col_src": "狮吼"
     }
    },
    "breach": {
@@ -585,7 +599,11 @@
       "mult": "$cmd_mult",
       "kb": "$cmd_kb",
       "max": 2,
-      "src": "号令"
+      "src": "号令",
+      "purge": {
+       "cond": "node:beast_king2",
+       "_doc": "万兽之王·威令（docs/202，路线 cmd 节点 5）：号令波扫过队长 / 队友时清除一个负面状态，每道波每名干员一次"
+      }
      }
     ]
    },
@@ -724,25 +742,9 @@
     ]
    },
    "beast_king2": {
-    "trig": "on_skill_start",
-    "skill": 0,
-    "_doc": "万兽之王·威令（路线 cmd 节点 5）：全队技力 + 自身限时增伤",
-    "do": [
-     {
-      "verb": "sp_secs",
-      "seconds": "$cmd2_sp",
-      "exclude_self": false
-     },
-     {
-      "verb": "buff_timed",
-      "key": "cmd",
-      "stat": "dmg",
-      "op": "mult",
-      "value": "$cmd2_mult",
-      "dur": "$cmd2_dur",
-      "text": "威令"
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "万兽之王·威令（路线 cmd 节点 5）：写在 S1 的 verb.cmd_wave.purge（cond node:beast_king2）"
    }
   }
  },

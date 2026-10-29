@@ -88,6 +88,16 @@ static func _h3_thrust_release(o, a: Dictionary) -> void:
 		ir.st_t = -1.0
 	ir.st_ang = ang
 	ir.st_mult = mult
+	ir["strict_e"] = null
+	if not first.is_empty() and not first.boss and "strict" in o.taken:   # docs/202 严律：第 1 段命中的第一个敌人停顿，第 2 段直刺它
+		var halt: float = o.base("strict_halt", 0.3) * (0.5 if first.elite else 1.0)
+		o.add_cc_growth(first, halt)
+		ir["strict_e"] = first
+		var hp: Vector2 = first.pos + Vector2(0, -float(first.r) * 2.4 - 12.0)   # 头顶一圈白色刺印
+		o.fx({"kind": "ring", "pos": hp, "r": 13.0, "r0": 13.0, "life": halt + 0.15, "col": Color(2.0, 1.7, 2.0), "keep": true, "w": 3.0})
+		for q in 4:
+			var d4 := Vector2.from_angle(q * PI * 0.5 + PI * 0.25)
+			o.fx({"kind": "line", "pos": hp + d4 * 13.0, "to": hp + d4 * 21.0, "life": halt + 0.15, "col": Color(1.1, 0.8, 1.1), "w": 2.5})
 	if not patch.is_empty() and not first.is_empty():
 		for s in patch.get("on_first", _EA):
 			apply_status(o, first, s, first.pos)
@@ -131,7 +141,13 @@ static func _h3_stage_tick(o, ir: Dictionary, dt: float) -> void:
 		_e3_finisher(o, a)
 		return
 	var m: float = float(ir.st_mult) * float(sg.mult) if sg.has("mult") else float(ir.st_mult)
-	var first: Dictionary = _h3_thrust(o, a, float(ir.st_ang), m, {}, int(ir.st_i))
+	var sang: float = float(ir.st_ang)
+	var se = ir.get("strict_e")
+	if k == 0 and se != null:   # docs/202 严律：第 2 段直刺被停顿的敌人（必中）
+		if not se.dead:
+			sang = (se.pos - (o.pos + Vector2(0, float(a.get("y", -12.0))))).angle()
+		ir["strict_e"] = null
+	var first: Dictionary = _h3_thrust(o, a, sang, m, {}, int(ir.st_i))
 	if not first.is_empty():
 		for s in sg.get("on_first", _EA):   # 精英化第 3 批：这一段首中目标的状态（挑刺）
 			apply_status(o, first, s, first.pos, -1.0, 0.0, 0)

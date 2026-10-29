@@ -21,6 +21,7 @@ func _ready() -> void:
 	var mode := -1
 	var w := 640
 	var h := 360
+	var nodes := -1
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shot_op="):
 			op = a.substr(10)
@@ -36,6 +37,8 @@ func _ready() -> void:
 			every = maxi(1, int(a.substr(13)))
 		elif a.begins_with("--shot_n="):
 			n = int(a.substr(9))
+		elif a.begins_with("--shot_nodes="):
+			nodes = int(a.substr(13))
 		elif a.begins_with("--shot_w="):
 			w = int(a.substr(9))
 		elif a.begins_with("--shot_h="):
@@ -48,6 +51,7 @@ func _ready() -> void:
 	add_child(vp)
 	game = load("res://game.tscn").instantiate()
 	game.demo_op = op
+	game.demo_nodes = nodes   # >= 0：成长节点验收，按节点数推进（路线 --route=<干员>:<路线> 另传）
 	game.demo_sys.configure(stage, mode)
 	vp.add_child(game)
 

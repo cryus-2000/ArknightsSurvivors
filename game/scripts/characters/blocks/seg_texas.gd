@@ -1070,3 +1070,64 @@ static func _tx_rift_draw_trails(o) -> void:
 			var al: float = fade * (0.18 + 0.32 * u)
 			o.draw_body_at(a.lerp(b, u).round(), flip, Color(0.55, 0.72, 1.0, al))
 	o.tx["rtrail"] = keep
+
+
+# ================================================================ docs/202 成长节点（10-29）：德克萨斯「居合」「破绽」
+## 执行入口 gm_exec（data_operator._ext_exec 转来；tag 登记在 seg_hoshiguma EXT_BLOCKS 与 EXEC_SEG 0）。读 o.gm_hits（trig.on_hit_n 记下的这一次拔刀命中列表）。
+## 确定性：不取随机数；画面只用 o.fx / float_text。
+
+static func _tx_gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: String) -> void:
+	match tag:
+		"verb.dash_cd_cut":
+			_num(b, "per", p, ctx, true, 0.0, 5.0)
+			_num(b, "max", p, ctx, true, 0.0, 10.0)
+		"verb.break_windup":
+			_num(b, "kb", p, ctx, false, 0.0, 300.0)
+
+
+## 敌人正在前摇出招：wind（近战 / 远程起手）、dash_w / nova_w / blast_w（冲锋 / 环弹 / 自爆引信）> 0，或有以它为主的未结算预警（docs/182）
+static func _tx_winding(o, e: Dictionary) -> bool:
+	for k in ["wind", "dash_w", "nova_w", "blast_w"]:
+		if float(e.get(k, 0.0)) > 0.0:
+			return true
+	for w in o.g.warns:
+		if is_same(w.get("owner"), e) and not w.get("done", false):
+			return true
+	return false
+
+
+static func gm_exec(o, b: Dictionary) -> void:
+	var g = o.g
+	match str(b.get("_tag", "")):
+		"verb.dash_cd_cut":
+			# 居合：这一次拔刀每命中一名敌人，队长冲刺冷却缩短 per 秒（至多 max 秒）；冷却已空则什么都不发生
+			var n := 0
+			for e in o.gm_hits:
+				if not e.dead:
+					n += 1
+			var cut: float = minf(float(b.per) * float(n), float(b.max))
+			var real: float = minf(cut, float(g.dash_cd))
+			if real <= 0.0 or g.ppos == Vector2.INF:
+				return
+			g.dash_cd = maxf(0.0, float(g.dash_cd) - real)
+			var gold := Color(1.0, 0.85, 0.35)
+			o.fx({"kind": "ring", "pos": g.ppos + Vector2(0, 4), "r": 34.0, "r0": 10.0, "life": 0.3, "col": gold, "floor": true, "w": 3.0, "alpha": 0.95})
+			for k in 4:   # 冲刺条刻度：四粒金色光点从她的位置飞向队长
+				var from: Vector2 = o.pos + Vector2(0, -20)
+				o.fx({"kind": "mote", "pos": from, "vel": (g.ppos + Vector2(0, -20) - from) * 3.0 + Vector2(0, -20), "life": 0.33, "col": gold, "sz": 2.4})
+			o.float_text(g.ppos + Vector2(0, -104), "居合 -%.1f 秒" % real, gold, 13)
+		"verb.break_windup":
+			# 破绽：命中的普通敌人（非精英 / Boss）正在前摇 → 打断（作废预警、清蓄力 / 冲刺 / 环弹 / 引信）+ 小击退，不眩晕
+			var kb: float = float(b.get("kb", 60.0))
+			for e in o.gm_hits:
+				if e.dead or e.boss or e.elite or not _tx_winding(o, e):
+					continue
+				g.enemies_sys.interrupt(e)
+				var dv: Vector2 = e.pos - o.pos
+				o.apply_kb(e, (dv.normalized() if dv.length() > 0.5 else Vector2.RIGHT) * kb)
+				var red := Color(1.0, 0.35, 0.3)
+				var hp0: Vector2 = e.pos + Vector2(0, -float(e.r) - 14.0)
+				o.fx({"kind": "ring", "pos": hp0, "r": 20.0, "r0": 8.0, "life": 0.3, "col": red, "w": 3.0, "alpha": 0.95})   # 头顶红圈碎开
+				for k in 6:
+					o.sparks(hp0, Vector2.from_angle(TAU * float(k) / 6.0), red, 1, 90.0)
+				o.float_text(hp0 + Vector2(0, -14), "破绽", red, 13)
