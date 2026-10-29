@@ -638,7 +638,7 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			if a.pseg.has(int(e.id)):
 				continue
 			a.pseg[int(e.id)] = true
-			_hit(u, a, o, e, Bal.v("ult/ul_path", 0.2), {"src": "锁链", "stun": 0.8 if a.rift else 0.0})
+			_hit(u, a, o, e, Bal.v("ult/ul_path", 0.2), {"src": "锁链", "stun": 0.8 if a.rift else 0.0, "pre": true})   # pre：冲击帧留给第一圈裂地
 			if a.rift and not e.boss:
 				g.enemies_sys.add_cc(e, 0.8, -INF, "airborne")
 		u.shape({"kind": "band", "a": p0, "b": p, "w": hw, "col": COL_STEEL, "fill": 0.15, "life": 0.1})

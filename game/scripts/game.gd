@@ -1464,6 +1464,8 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
+	if ult != null:
+		ult.fx_tick()   # 终结技冲击帧：恢复速度那一刻的音效（真实时间）
 	dt *= tdil.factor(mode == Mode.PLAY or realtime or playclock_test)   # 时间缩放只读这一处（run/time_dilation.gd：圆盘 play 类、终结技 fx 类，取最小）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)

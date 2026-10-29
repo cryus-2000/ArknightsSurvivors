@@ -15,7 +15,8 @@ CLIPS = {
     "kaltsit": ("kaltsit", "hoshiguma,lumen", []),
     "ulpianus": ("ulpianus", "gladiia,specter_unchained", []),
     "cult": ("texas", "exusiai,lappland", ["--bal=ult/test_cells=7"]),
-    "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
+    "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),
+    "combo2": ("skadi", "gladiia,ulpianus", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),   # 深海猎人：组合升级自动接（两人同框条带）   # 连携：两人都跟队长冲刺（master 机器人会冲刺）；这段不放终结技
 }
 ap = argparse.ArgumentParser()
 ap.add_argument("--clips", default=",".join(CLIPS)); ap.add_argument("--at", type=float, default=30.0); ap.add_argument("--secs", type=float, default=14.0)

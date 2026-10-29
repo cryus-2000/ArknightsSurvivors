@@ -200,7 +200,8 @@ func _draw_desk(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(x0, vs.y - 103.0), title, 12, tcol)
 		UI.text(g.hud, g.font, Vector2(x0, vs.y - 103.0), key, 12, UI.TEXT if full else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, bw))
 	# ---- 连携排队（徽记左边）
-	var heads: Array = _queue_slots(Vector2(ec.x - er - 34.0, cy), 20.0, 15.0, -1.0)
+	# 连携亮起（10-29 用户「根本看不出来」）：队首大头像弹在底部中间、能量条上方（半径 34），后面排队的小头像往左排
+	var heads: Array = _queue_slots(Vector2(cx + 30.0, vs.y - 174.0), 34.0, 16.0, -1.0)
 	bg.flush(g.hud)
 	# 贴图：队长头像、排队头像、Q 升级态的全队头像环
 	if ld != null:
@@ -231,6 +232,9 @@ func _queue_slots(c0: Vector2, r0: float, r1: float, dir: float) -> Array:
 		if q.o == null:
 			continue
 		var r: float = r0 if i == 0 else r1
+		if i == 0:
+			var pk: float = clampf((_lit_t() - float(q.left)) / 0.15, 0.0, 1.0)
+			r *= 0.55 + 0.45 * (1.0 - (1.0 - pk) * (1.0 - pk))   # 弹出：0.15 秒从 55% 放大到整
 		if i > 0:
 			x += dir * ((r0 if i == 1 else r1) + r1 + 8.0)
 		var c := Vector2(x, c0.y)
@@ -404,6 +408,10 @@ func draw_cutins(vs: Vector2) -> void:
 		return
 	if _demo_on() and g.state == Game.S.PLAY and g.t > 20.0:
 		_demo_tick()
+	# 终结技冲击帧闪白（10-29）：0.22 秒淡出；减少动态效果开时不闪（世界层另画暗色描边扩散），Boss 战减半
+	var ft: float = UM.now() - float(g.ult.flash_rt)
+	if ft >= 0.0 and ft < 0.22 and not Cfg.reduce_motion:
+		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1, 1, 1, 0.42 * (1.0 - ft / 0.22) * (0.5 if _boss_on() else 1.0)))
 	var cs: Array = g.ult.cutins
 	if cs.is_empty():
 		return
@@ -442,7 +450,10 @@ func draw_cutins(vs: Vector2) -> void:
 			var k2: float = (tt - (dur - CUT_OUT)) / CUT_OUT
 			off = 0.0 if rm else k2 * k2
 			a *= (1.0 - k2) if rm else (1.0 - 0.5 * k2)
-		_strip(ci, vs, right2, y0 + i * step, W - i * 22.0, H, off, a)
+		if ci.get("small", false):   # 连携：小号条带，压在屏幕中下
+			_strip(ci, vs, right2, vs.y * 0.60, W * 0.62, H * 0.6, off, a)
+		else:
+			_strip(ci, vs, right2, y0 + i * step, W - i * 22.0, H, off, a)
 
 
 ## 一条斜切条带：贴着 right（右边缘 / 左边缘），内侧斜切；立绘在靠屏边那头，名字在内侧
@@ -470,8 +481,25 @@ func _strip(ci: Dictionary, vs: Vector2, right: bool, y: float, w: float, hh: fl
 		tb.line(Vector2(x + 10.0, y + 3.0), Vector2(x - 10.0, y + hh - 3.0), mid, 6.0)
 	tb.flush(g.hud)
 	# 立绘：图鉴同款待机帧（@2x），取上半身，按条带高放大；裁在条带框内（不出框）
-	var o = _op_by_id(str(ci.id))
 	var box := Rect2(minf(e, inner) + sx, y + 3.0, w, hh - 6.0)
+	var ids: Array = [str(ci.id)]
+	if ci.has("id2"):
+		ids.append(str(ci.id2))   # 组合升级：两人同框
+	var push := 0.0
+	for oid in ids:
+		push = _strip_art(_op_by_id(oid), e, sg, sx, y, hh, box, a, push)
+	# 名字：内侧，大号白字
+	var nm: String = str(ci.name)
+	var fs: int = 28 if hh >= 90.0 else (24 if hh >= 60.0 else 18)
+	var tw := 260.0
+	var tx0: float = (inner + 40.0 - tw * 0.0) if not right else (inner + 46.0)
+	if not right:
+		tx0 = inner - 46.0 - tw
+	UI.text(g.hud, g.font, Vector2(tx0 + sx, y + hh * 0.5 + fs * 0.38), nm, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_LEFT if right else HORIZONTAL_ALIGNMENT_RIGHT, tw, 5)
+
+
+## 条带上的一张立绘（push = 已画立绘占去的宽度，第二张往屏内挪）；返回新的 push
+func _strip_art(o, e: float, sg: float, sx: float, y: float, hh: float, box: Rect2, a: float, push: float) -> float:
 	if o != null:
 		var art: Dictionary = _art_of(o)
 		if not art.is_empty() and art.bb.size.y > 0.0:
@@ -479,7 +507,8 @@ func _strip(ci: Dictionary, vs: Vector2, right: bool, y: float, w: float, hh: fl
 			var src_h: float = bb.size.y * 0.62
 			var k: float = (hh - 6.0) / src_h
 			var dw: float = bb.size.x * k
-			var px: float = (e + sg * (dw * 0.5 + 34.0)) + sx   # 中心离屏边 34 + 半宽
+			var px: float = (e + sg * (dw * 0.5 + 34.0 + push)) + sx   # 中心离屏边 34 + 半宽（第二张再往里挪）
+			push += dw * 0.8
 			var dst := Rect2(px - dw * 0.5, y + 3.0, dw, hh - 6.0)
 			var src := Rect2(bb.position, Vector2(bb.size.x, src_h))
 			var cl: Rect2 = dst.intersection(box)
@@ -488,11 +517,4 @@ func _strip(ci: Dictionary, vs: Vector2, right: bool, y: float, w: float, hh: fl
 				var t: Texture2D = art.tex
 				g.hud.draw_texture_rect_region(t, Rect2(cl.position + Vector2(4, 4), cl.size), Rect2(s0, cl.size / k), Color(0, 0, 0, 0.35 * a))
 				g.hud.draw_texture_rect_region(t, cl, Rect2(s0, cl.size / k), Color(1, 1, 1, a))
-	# 名字：内侧，大号白字
-	var nm: String = str(ci.name)
-	var fs: int = 28 if hh >= 90.0 else 24
-	var tw := 260.0
-	var tx0: float = (inner + 40.0 - tw * 0.0) if not right else (inner + 46.0)
-	if not right:
-		tx0 = inner - 46.0 - tw
-	UI.text(g.hud, g.font, Vector2(tx0 + sx, y + hh * 0.5 + fs * 0.38), nm, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_LEFT if right else HORIZONTAL_ALIGNMENT_RIGHT, tw, 5)
+	return push

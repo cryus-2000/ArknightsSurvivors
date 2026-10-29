@@ -157,6 +157,7 @@ func on_hurt(amount: float, src: Dictionary) -> void:
 
 ## 连携命中（combo.gd 在第一下命中时调）：能量 +2（每 12 秒至多 1 次）、协同 +1 格（每 40 秒至多 1 格）；记进 ev.hits 给 D 类
 func combo_landed(o, pos: Vector2, n_hit: int, gathered := 0) -> void:
+	_combo_hit_fx(o, pos)
 	var hs: Array = ev.hits
 	hs.append({"t": g.t, "pos": pos, "op": str(o.id), "n": n_hit, "gathered": gathered})
 	if hs.size() > 4:
@@ -398,6 +399,8 @@ func _tick_combo(dt: float) -> void:
 		if Combo.step(self, a, dt):
 			if p != null and not p.syn_mv.is_empty():
 				p.syn_mv = {}
+			if p != null and p.pos != Vector2.INF and p.pos.distance_to(g.ppos) > 80.0:
+				shape({"kind": "line", "a": p.pos, "b": g.ppos, "w": 5.0, "col": _col(p), "life": 0.3})   # 残影回队
 			combo_acts.remove_at(k)
 	# 亮起判定（队长不放连携；冷却中 / 已在排队 / 正在出连携的不判）
 	for o in g.squad.ops:
@@ -408,6 +411,10 @@ func _tick_combo(dt: float) -> void:
 			continue
 		var info: Dictionary = Combo.check(self, o)
 		if not info.is_empty():
+			if queue.is_empty():
+				var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+				if sfx != null:
+					sfx.play("ui_ok", -6.0, 1.45)   # 就绪音（队首亮起时）
 			queue.append({"o": o, "info": info, "t0": g.t, "left": Bal.v("ult/lit_t", 2.5)})
 			stats.lit += 1
 			stats.lit_by[oid] = int(stats.lit_by.get(oid, 0)) + 1
@@ -449,6 +456,7 @@ func _fire_head(auto: bool) -> void:
 	if not a.is_empty():
 		a["p"] = a.get("p", o)
 		combo_acts.append(a)
+		_combo_fx(o, q.info)
 
 
 ## 组合升级等「自动接一段」用：不走亮起、不占冷却，直接挂一个动作
@@ -456,6 +464,10 @@ func add_act(a: Dictionary) -> void:
 	if not a.is_empty():
 		stats.combo_up += 1
 		combo_acts.append(a)
+		var p = a.get("p")
+		var hs: Array = ev.hits
+		if p != null and p.pos != Vector2.INF:
+			_combo_fx(p, {"tgt": a.get("tgt"), "pos": a.get("tpos", p.pos)}, str(hs[-1].op) if not hs.is_empty() and str(hs[-1].op) != str(p.id) else "")
 
 
 func _queued(o) -> bool:
@@ -531,6 +543,8 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	e.ult_d = float(e.ult_d) + got
 	if got > 0.0:
 		last_hit_t = g.t
+		if not opt.get("pre", false):
+			impact(e.pos)   # 冲击帧（这一次终结技第一下掉血）
 	if not e.dead:
 		var st: float = float(opt.get("stun", 0.0))
 		if st > 0.0:
@@ -652,7 +666,7 @@ func _cutin(ld, k: String) -> void:
 			cutins.append({"id": str(o.id), "name": o.display_name(), "col": _col(o), "t0": now + 0.12 * i, "dur": 1.1, "i": i, "cult": true})
 			i += 1
 	else:
-		cutins.append({"id": str(ld.id), "name": ld.display_name(), "col": _col(ld), "t0": now, "dur": 0.9, "i": 0, "cult": false})
+		cutins.append({"id": str(ld.id), "name": ld.display_name(), "col": _col(ld), "t0": now, "dur": 0.7, "i": 0, "cult": false})
 	while cutins.size() > 8:
 		cutins.pop_front()
 
@@ -662,6 +676,9 @@ var _cast_t := -99.0
 
 
 func cam_punch() -> float:
+	var ip: float = _imp_punch()
+	if ip > 1.0:
+		return ip
 	if phase == "aim":
 		return Bal.v("ult/cam_aim", 1.08)
 	var age: float = g.t - _cast_t
@@ -673,9 +690,13 @@ func cam_punch() -> float:
 
 ## 时间缩放（run/time_dilation.gd 读，登记为 fx 类：只在玩家局 / --realtime / --playclock 生效）
 func time_scale() -> float:
-	if phase != "aim":
-		return 1.0
-	return Bal.v("ult/cult_slow", 0.2) if kind == "cult" else Bal.v("ult/slow", 0.25)
+	var s := 1.0
+	if phase == "aim":
+		s = Bal.v("ult/cult_slow", 0.2) if kind == "cult" else Bal.v("ult/slow", 0.25)
+	s = minf(s, _imp_scale())
+	if UM.now() - _cmb_rt < Bal.v("ult/combo_slow_t", 0.3):
+		s = minf(s, Bal.v("ult/combo_slow", 0.5))
+	return s
 
 
 ## 世界层（world.gd 在干员技能层之后）：瞄准指示 + 占位图形
@@ -722,6 +743,117 @@ func draw_world(w) -> void:
 			var r2: float = Moves.aim_r(str(caster.id)) if kind != "cult" else VIEW.x * 0.5
 			w.tb_ring(caster.pos, r2, 3.0, Color(c, 0.8), 56)
 	w.tb_flush()
+
+
+# ================================================================ 冲击帧与连携演出（10-29 用户看录像反馈）
+## ① 终结技的强调放在**打出大范围伤害的那一帧**：顿帧 ult/imp_freeze（0.1）→ ×ult/imp_slow（0.25）慢放 ult/imp_slow_t（0.45 真实秒）
+##   → ult/imp_ease（0.35 秒）先慢后快缓动回 1；推镜 1.15 在慢放里缓慢拉回；闪白（减少动态效果开时换暗色描边扩散）；
+##   冲击时压低配乐、恢复速度那一刻爆一声（镜头震动全项目已移除，这里用一次小推镜代替）。
+##   冲击帧 = 这一次终结技第一下真正掉血的命中（hit() 自动标；opt.pre = true 的段不算，乌尔比安锁链路径就是 pre，冲击帧落在第一圈裂地）。
+## ② 连携技：出手时干员色残影 → 0.3 秒 ×0.5 慢放 + 小号立绘条带；第一下命中顿帧 0.05 + 大号冲击环；结束时残影回队；
+##   组合升级自动接的那段条带写两人名字、两张立绘。
+## 全是演出：时间缩放登记为 fx 类、镜头走 cam_fx、按真实时间（UM.now）算，批跑不缩、不碰随机数。
+var _imp_rt := -99.0
+var _imp_serial := -1
+var _imp_boom := true
+var _imp_pos := Vector2.ZERO
+var flash_rt := -99.0          # HUD 闪白起点（真实时间）
+var _cmb_rt := -99.0           # 连携短慢放起点（真实时间）
+
+
+func impact(pos: Vector2) -> void:
+	if _imp_serial == serial:
+		return
+	_imp_serial = serial
+	_imp_rt = UM.now()
+	_imp_pos = pos
+	_imp_boom = false
+	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
+	flash_rt = _imp_rt
+	g.hurt_duck = maxf(float(g.hurt_duck), Bal.v("ult/imp_duck", 0.8))   # 配乐低通：冲击前一瞬压下去
+	var c: Color = _col(caster).lerp(Color.WHITE, 0.5)
+	shape({"kind": "ring", "c": pos, "r": 520.0, "r1": 40.0, "w": 10.0, "col": c, "life": 0.9})
+	if Cfg.reduce_motion:
+		shape({"kind": "ring", "c": pos, "r": 600.0, "r1": 60.0, "w": 16.0, "col": Color(0.02, 0.03, 0.05), "life": 0.6})
+
+
+func _imp_age() -> float:
+	return UM.now() - _imp_rt
+
+
+## 冲击慢放的倍率（真实时间轴）：顿帧期间由 hitstop 接管，这里从顿帧结束起算
+func _imp_scale() -> float:
+	var t: float = _imp_age() - Bal.v("ult/imp_freeze", 0.1)
+	var st: float = Bal.v("ult/imp_slow_t", 0.45)
+	var et: float = Bal.v("ult/imp_ease", 0.35)
+	var lo: float = Bal.v("ult/imp_slow", 0.25)
+	if t < 0.0 or t >= st + et:
+		return 1.0
+	if t < st:
+		return lo
+	var k: float = (t - st) / et
+	return lerpf(lo, 1.0, k * k)   # 先慢后快（ease-in），不线性
+
+
+func _imp_punch() -> float:
+	var t: float = _imp_age()
+	var fr: float = Bal.v("ult/imp_freeze", 0.1)
+	var st: float = Bal.v("ult/imp_slow_t", 0.45)
+	var et: float = Bal.v("ult/imp_ease", 0.35)
+	var hi: float = Bal.v("ult/imp_cam", 1.15)
+	if t < 0.0 or t > fr + st + et + 0.3:
+		return 1.0
+	if t < fr:
+		return hi
+	if t < fr + st:
+		return lerpf(hi, hi - 0.06, (t - fr) / st)   # 慢放里缓慢拉回
+	var k: float = clampf((t - fr - st) / (et + 0.3), 0.0, 1.0)
+	var kick: float = 0.025 * maxf(0.0, 1.0 - (t - fr - st) / 0.1)   # 恢复速度那一刻轻推一下（代替震屏）
+	return lerpf(hi - 0.06, 1.0, 1.0 - (1.0 - k) * (1.0 - k)) + kick
+
+
+## 每帧真实时间钩子（game._process）：恢复速度那一刻爆一声
+func fx_tick() -> void:
+	if not _imp_boom and _imp_age() >= Bal.v("ult/imp_freeze", 0.1) + Bal.v("ult/imp_slow_t", 0.45):
+		_imp_boom = true
+		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+		if sfx != null:
+			sfx.play("boom", 2.0, 0.8)
+
+
+## 连携出手演出：残影拖尾 + 短慢放 + 小立绘条带（自动连携同样）
+func _combo_fx(o, info: Dictionary, pair_id := "") -> void:
+	var tp: Vector2 = o.pos
+	var tg = info.get("tgt")
+	if tg is Dictionary and not tg.get("dead", true):
+		tp = tg.pos
+	elif info.has("pos"):
+		tp = info.pos
+	var c: Color = _col(o)
+	shape({"kind": "line", "a": o.pos, "b": tp, "w": 8.0, "col": c.lerp(Color.WHITE, 0.25), "life": 0.35})
+	for k in 4:
+		shape({"kind": "circle", "c": o.pos.lerp(tp, 0.25 * k), "r": 16.0 - 2.0 * k, "col": c, "fill": 0.55 - 0.1 * k, "life": 0.25 + 0.06 * k})
+	_cmb_rt = UM.now()
+	var ci := {"id": str(o.id), "name": o.display_name(), "col": c, "t0": _cmb_rt, "dur": 0.8, "i": 0, "cult": false, "small": true}
+	if pair_id != "":
+		var po = g.squad.get_op(pair_id)
+		if po != null:
+			ci["id2"] = pair_id
+			ci["name"] = "%s × %s" % [po.display_name(), o.display_name()]
+	cutins.append(ci)
+	while cutins.size() > 8:
+		cutins.pop_front()
+
+
+## 连携命中（combo_landed 里调）：顿帧 0.05 + 大号冲击环（比普攻明显大一号）
+func _combo_hit_fx(o, pos: Vector2) -> void:
+	g.vfx.stop(Bal.v("ult/combo_freeze", 0.05), "combo", true)
+	var c: Color = _col(o).lerp(Color.WHITE, 0.35)
+	shape({"kind": "ring", "c": pos, "r": 150.0, "r1": 20.0, "w": 8.0, "col": c, "life": 0.4})
+	shape({"kind": "circle", "c": pos, "r": 90.0, "col": c, "fill": 0.35, "life": 0.18})
+	for k in 8:
+		var d := Vector2.from_angle(k * TAU / 8.0 + 0.2)
+		shape({"kind": "line", "a": pos + d * 30.0, "b": pos + d * 140.0, "w": 4.0, "col": c, "life": 0.22})
 
 
 ## 批跑汇总（autotest / bot 结果行带上）
