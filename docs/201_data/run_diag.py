@@ -10,13 +10,16 @@ out, mode = sys.argv[1], sys.argv[2]
 GAME = os.path.join(WT, "game")
 gr.ensure_imported(GAME)
 BOSS = {"paranoia": "standard", "ishar": "deep", "knight_boss": "knight", "izumik": "resolve"}
+if os.environ.get("DIAG_BOSSES"):
+    BOSS = {k: v for k, v in BOSS.items() if k in os.environ["DIAG_BOSSES"].split(",")}
+XTRA = os.environ.get("DIAG_EXTRA", "").split()
 jobs = []
 if mode in ("trial", "idle"):
     for b in BOSS:
         for sq in ["wisadel_m0", "skadi_m0", "kaltsit_m0", "wisadel_m18", "skadi_m18", "kaltsit_m18"]:
             extra = ["--balance", "--bot=" + ("expert" if mode == "trial" else "afk"), "--diagbot", "--realtime"]
             jobs.append(((mode, b, sq), [gr.find_godot(), "--headless", "--path", GAME, "--fixed-fps", "30", "--"] + extra +
-                         ["--bossdiag", "--diagtrial=%s:%s" % (b, sq), "--diagmax=150", "--maxt=900", "--seed=1"]))
+                         ["--bossdiag", "--diagtrial=%s:%s" % (b, sq), "--diagmax=150", "--maxt=900", "--seed=1"] + XTRA))
 else:
     for b, en in BOSS.items():
         for op in ["wisadel", "skadi", "kaltsit"]:
