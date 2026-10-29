@@ -107,7 +107,7 @@ func _test_swarm() -> void:
 			e.maxhp = e.hp
 
 # ---- 增益、画面
-var _buffs: Array = []      # {"src", "until"}：到点 g.stats.remove_source
+var _buffs: Array = []      # {"src", "until", "mods", "zc", "zr", "on"}：到点 g.stats.remove_source；zr > 0 时按队长在不在领域里开关
 var shapes: Array = []      # 程序占位图形（draw_world 画），见 shape()
 var cutins: Array = []      # 立绘切入条带（HUD 画）：{"id", "name", "col", "t0", "dur", "i"}；t0 / dur 按真实时间（UM.now）
 
@@ -688,25 +688,41 @@ func in_view(c: Vector2) -> Array:
 # ================================================================ 增益
 
 ## 全队限时增益：mods = [[stat, op, value], …] 挂 g.stats（同一 src 重复挂先摘旧的）
-func team_buff(src: String, dur: float, mods: Array) -> void:
+## zone_r > 0：只在队长站进 zone_c 为圆心、zone_r 为半径的领域里时生效（浊心斯卡蒂，协调人 10-30「站在她领域里才拿得到」），走出去即失效、回来再生效
+func team_buff(src: String, dur: float, mods: Array, zone_c := Vector2.ZERO, zone_r := 0.0) -> void:
 	g.stats.remove_source(src)
-	for m in mods:
-		g.stats.add(m[0], m[1], float(m[2]), src)
 	for b in _buffs:
 		if b.src == src:
-			b.until = g.t + dur
-			g.sync_stats()
-			return
-	_buffs.append({"src": src, "until": g.t + dur})
+			_buffs.erase(b)
+			break
+	var b2 := {"src": src, "until": g.t + dur, "mods": mods, "zc": zone_c, "zr": zone_r, "on": false}
+	_buffs.append(b2)
+	_buff_apply(b2)
+	g.sync_stats()
+
+
+func _buff_apply(b: Dictionary) -> void:
+	var want: bool = float(b.zr) <= 0.0 or g.ppos.distance_to(b.zc) <= float(b.zr)
+	if want == b.on:
+		return
+	b.on = want
+	if want:
+		for m in b.mods:
+			g.stats.add(m[0], m[1], float(m[2]), b.src)
+	else:
+		g.stats.remove_source(str(b.src))
 	g.sync_stats()
 
 
 func _tick_buffs() -> void:
 	for k in range(_buffs.size() - 1, -1, -1):
-		if g.t >= float(_buffs[k].until):
-			g.stats.remove_source(str(_buffs[k].src))
+		var b: Dictionary = _buffs[k]
+		if g.t >= float(b.until):
+			g.stats.remove_source(str(b.src))
 			_buffs.remove_at(k)
 			g.sync_stats()
+		elif float(b.zr) > 0.0:
+			_buff_apply(b)
 
 
 # ================================================================ 画面：占位图形 + 立绘切入

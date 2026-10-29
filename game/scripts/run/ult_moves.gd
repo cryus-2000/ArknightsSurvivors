@@ -926,7 +926,7 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		u.shape({"kind": "ring", "c": c, "r": L, "w": 6.0, "col": COL_SK_RED, "life": dd, "layer": "back"})   # 领域边：碎裂像素环（原实心淡红圆）
 		# 领域花纹（fx_ult_skalter_domain_back 弧状拼接段，地面层循环）：铺在领域边上往里 20，外缘不出伤害圈
 		_arc(u, "fx_ult_skalter_domain_back", c, L - 20.0, {"layer": "back", "loop": true, "life": dd})
-		u.team_buff("ult:skalter_dom", dd, [[&"dmg", "mult", Bal.v("ult/sk_atk", 1.2)], [&"regen_pct", "flat", Bal.v("ult/sk_heal", 0.015)]])
+		u.team_buff("ult:skalter_dom", dd, [[&"dmg", "mult", Bal.v("ult/sk_atk", 1.2)], [&"regen_pct", "flat", Bal.v("ult/sk_heal", 0.015)]], c, L)   # 只在领域里生效（协调人 10-30）
 		o.play_vis_anim("attack")
 	return a.blasted and a.pend.is_empty() and not a.fx.has(a.sf)
 
