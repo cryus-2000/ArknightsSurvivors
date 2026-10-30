@@ -75,7 +75,11 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		return
 	if g.shield > 0:
 		shield_block(dmg)
-		return
+		# 单层抵挡上限（shield/abs_cap_hp，最大生命的比例，0 = 不设上限）：超出的部分照常结算
+		var cap_hp: float = Bal.v("shield/abs_cap_hp", 0.0) * g.max_hp
+		if cap_hp <= 0.0 or dmg <= cap_hp:
+			return
+		dmg -= cap_hp
 	var negated := false
 	for o in g.squad.ops:
 		if o.has_method("dmg_taken_mult"):
@@ -695,9 +699,9 @@ func shield_block(dmg := 0.0) -> void:
 	g.telemetry.blocks += 1
 	g.telemetry.shield_abs += dmg   # 遥测：层数抵挡掉的原始伤害（护盾复核 10-30）
 	g.shield_flash = 0.3
-	g.invuln = 0.5
+	g.invuln = Bal.v("shield/invuln", 0.5)   # 抵挡后的无敌秒数（缺省 0.5 不变）
 	if g.shield < g.shield_max and g.shield_cd <= 0.0:
-		g.shield_cd = g.shield_every
+		g.shield_cd = g.shield_every * Bal.v("shield/every_x", 1.0)
 	Sfx.play("stake_shatter", -9.0, 1.5, 0.0)   # 轻脆碎裂声（原 dodge 呼声读不出「碎了」）
 	g.vfx.add_text(g.ppos + Vector2(0, -84), "护盾抵挡", Color(1.0, 0.9, 0.7), 16)
 	# 碎片 / 闪环 / 无敌微光：render/world.gd draw_shield 比对层数变化自己画（淡金色，用户 10-28 重画）

@@ -767,6 +767,12 @@
   "dash_stop": 1,
   "dash_stop_px": 3
  },
+ "shield": {
+  "_doc": "护盾层数旋钮（10-30 护盾复核，缺省全部等于旧行为）：invuln 抵挡后无敌秒数；abs_cap_hp 单层最多抵挡的伤害占最大生命的比例（0 = 不限，超出部分照常扣）；every_x 层数生成间隔倍率（乘在 shield_interval 上）",
+  "invuln": 0.5,
+  "abs_cap_hp": 0.0,
+  "every_x": 1.0
+ },
  "protect": {
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",
   "any_2s_cap": 0.7,

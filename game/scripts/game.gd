@@ -2026,7 +2026,7 @@ func _update(dt: float) -> void:
 		shield_cd -= dt
 		if shield_cd <= 0.0:
 			shield += 1
-			shield_cd = shield_every
+			shield_cd = shield_every * Bal.v("shield/every_x", 1.0)
 			rfx.on_shield_gain()   # 嵌体甲片（docs/203）：生成护盾时冲击
 			shield_pop = 0.4
 			Sfx.play("relic", -12.0, 1.6, 0.0)
