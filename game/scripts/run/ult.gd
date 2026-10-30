@@ -317,7 +317,12 @@ func _begin(ld, k: String) -> void:
 	shape({"kind": "ring", "c": ld.pos, "r": 90.0, "r1": 20.0, "w": 4.0, "col": _col(ld).lerp(Color.WHITE, 0.4), "life": _aim_min + 0.1})
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sfx != null:
-		sfx.voice(str(ld.id), "skill_3", false, true)   # 语音方案 A（§11-5）：终结技播现 S3 那句
+		var vl: String = str(_aud(str(ld.id)).get("voice", ""))
+		if vl != "":
+			sfx.voice(str(ld.id), "ult", false, true, vl)   # docs/205：每人固定一句（data/ult_audio.json）
+		else:
+			sfx.voice(str(ld.id), "skill_3", false, true)   # 语音方案 A（§11-5）：终结技播现 S3 那句
+	_ua("charge")
 
 
 func _tick_ult(dt: float) -> void:
@@ -351,6 +356,7 @@ func _cast() -> void:
 	phase = "cast"
 	_cast_t = g.t
 	ev.ult_t = g.t
+	_ua("cast")
 	if kind == "cult":
 		ev.cult_t = g.t
 		act = Moves.start_cult(self, caster, aim, aim_dir)
@@ -631,6 +637,7 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		last_hit_t = g.t
 		if not opt.get("pre", false):
 			impact(e.pos)   # 冲击帧（这一次终结技第一下掉血）
+			_hit_sfx()
 	if not e.dead:
 		var st: float = float(opt.get("stun", 0.0))
 		if st > 0.0:
@@ -1315,6 +1322,7 @@ func impact(pos: Vector2) -> void:
 	_imp_rt = UM.now()
 	_imp_pos = pos
 	_imp_boom = false
+	_ua("impact")
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
 	flash_rt = _imp_rt
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
@@ -1367,8 +1375,60 @@ func fx_tick() -> void:
 	if not _imp_boom and _imp_age() >= Bal.v("ult/imp_freeze", 0.1) + Bal.v("ult/imp_slow_t", 0.45):
 		_imp_boom = true
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
-		if sfx != null:
-			sfx.play("boom", 2.0, 0.8)
+		var bm: Array = _aud(str(caster.id) if caster != null else "").get("boom", ["boom", 2.0, 0.8])
+		if sfx != null and bm.size() >= 3 and str(bm[0]) != "":
+			sfx.play(str(bm[0]), float(bm[1]), float(bm[2]))
+
+
+## 终结技专属音效 / 语音表（docs/205，data/ult_audio.json）：干员的条目叠在 default 上；只在 _begin / _cast / impact / hit 四处读
+const AUDIO_PATH := "res://data/ult_audio.json"
+var _aud_tab := {}
+var _hit_rt := -99.0
+
+
+func _aud(oid: String) -> Dictionary:
+	if _aud_tab.is_empty():
+		var d = JSON.parse_string(FileAccess.get_file_as_string(AUDIO_PATH)) if FileAccess.file_exists(AUDIO_PATH) else null
+		_aud_tab = d if d is Dictionary else {"default": {}}
+	if _aud_tab.has("_m:" + oid):
+		return _aud_tab["_m:" + oid]
+	var m: Dictionary = (_aud_tab.get("default", {}) as Dictionary).duplicate(true)
+	var o: Dictionary = _aud_tab.get("ops", {}).get(oid, {})
+	for k in o:
+		if k == "vol":
+			for s in o.vol:
+				m["vol"][s] = o.vol[s]
+		else:
+			m[k] = o[k]
+	_aud_tab["_m:" + oid] = m
+	return m
+
+
+## 播施放者这一槽的专属音效（charge / cast / impact / hit）：audio/sfx/ult_<干员>_<槽>.wav，缺文件 Sfx 静默
+func _ua(slot: String) -> void:
+	if caster == null or not g.is_inside_tree():
+		return
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx == null:
+		return
+	var oid := str(caster.id)
+	var nm := "ult_%s_%s" % [oid, slot]
+	sfx.ensure([nm])
+	sfx.play(nm, float(_aud(oid).get("vol", {}).get(slot, 0.0)), 1.0, 0.03)
+
+
+## 招式里点名的额外一声（docs/205 §3.4，如收尾大爆 u.cue("finale")）：audio/sfx/ult_<干员>_<槽>.wav，音量取表里同名槽（缺省 0 dB）
+func cue(slot: String) -> void:
+	_ua(slot)
+
+
+## 冲击之后的每次命中（连射 / 连爆 / 多圈）：按 hit_gap 真实秒节流，冲击那一下 0.06 秒内不叠
+func _hit_sfx() -> void:
+	var now := UM.now()
+	if now - _imp_rt < 0.06 or caster == null or now - _hit_rt < float(_aud(str(caster.id)).get("hit_gap", 0.08)):
+		return
+	_hit_rt = now
+	_ua("hit")
 
 
 ## 连携出手演出：残影拖尾 + 短慢放 + 小立绘条带（自动连携同样）
