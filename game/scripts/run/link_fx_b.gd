@@ -251,3 +251,123 @@ static func lu_motes(u, c: Vector2, r: float, t: float) -> bool:
 	var p: Vector2 = c + Vector2.from_angle(hh * TAU) * r * sqrt(LFX.h(hh * 13.0))
 	PF.particles(u, p, 40, "ult_ember", [Color(0.55, 0.5, 0.36) if hh < 0.5 else Color(0.36, 0.5, 0.52)], 0.0, hh * 97.0, 60.0)
 	return true
+
+
+# ================================================================ 转给 B 组的 A 组 5 人（协调人 10-31）：凯尔希 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔
+# 全部复用 ult-fx-power 已有的 pixfx 贴图（终结技同族元素，缩小一档、颜色不变），不另出图；只画画面。
+
+# ---------------- 艾雅法拉：熔岩块高抛砸地（熔岩块 fx_ey_rock 2 种、落点 fx_ey_fork 分叉熔缝冷却 + 碎岩 + 粒子）
+const EY_ROCK := "fx_ey_rock"
+const EY_FORKS := ["fx_ey_fork1", "fx_ey_fork2", "fx_ey_fork3", "fx_ey_fork4"]
+
+
+static func ey_rock(u, a: Dictionary, pos: Vector2, k: float, R: float) -> bool:
+	if not LFX.on() or not u.fx_ready(EY_ROCK):
+		return false
+	if not a.has("ey_f"):
+		a["ey_f"] = int(LFX.h(LFX.vseed(u, pos)) * 2.0) % 2
+	var sc: float = R * 2.2 / (LFX.tex_w(u, EY_ROCK) * 0.5)
+	u.strip(EY_ROCK, pos, {"f": int(a.ey_f), "sc": sc * minf(1.0, 0.5 + k * 3.0), "ang": k * 5.0, "life": 0.05})
+	return true
+
+
+static func ey_slam(u, c: Vector2, hr: float, R: float) -> bool:
+	if not LFX.on() or not u.fx_ready(EY_FORKS[0]):
+		return false
+	var vs: float = LFX.vseed(u, c)
+	PF.crack_net(u, EY_FORKS, c, hr * 1.05, 6, LFX.h(vs) * TAU, vs, 0.12, Color(1.0, 0.62, 0.3), Color(0.22, 0.07, 0.04), R * 0.5)
+	PF.particles(u, c, 200, "ult_burst_s", [Color(0.75, 0.3, 0.08), Color(0.4, 0.12, 0.05)], 0.0, vs, hr * 0.8)
+	PF.particles(u, c, 40, "ult_ember", [Color(0.7, 0.35, 0.1)], 0.1, vs + 3.0, 60.0)
+	for q in 6:
+		var hq: float = LFX.h(vs + q * 3.7)
+		var dv := Vector2.from_angle(TAU * (q + hq) / 6.0)
+		PF.rock(u, c + dv * R * 0.6, dv * (40.0 + 50.0 * hq), 160.0 + 120.0 * hq, hq, 0.32, 0.0, Color(1.0, 0.75, 0.6))
+	u.shape({"kind": "ellipse", "c": c, "rx": R * 1.3, "ry": R * 0.6, "col": Color(0.2, 0.05, 0.03), "fill": 0.75, "layer": "back", "life": 1.8})   # 焦坑
+	u.light(c, 260.0, Color(0.9, 0.42, 0.12), 0.5)
+	return true
+
+
+# ---------------- 歌蕾蒂娅：甩钩拖拽 → 落地一小团漩涡收一下 + 水色粒子（终结技那张漩涡缩到区域大小）
+const GL_VORTEX := "fx_gl_vortex"
+
+
+static func gl_land(u, c: Vector2, r: float) -> bool:
+	if not LFX.on() or not u.fx_ready(GL_VORTEX):
+		return false
+	var vs: float = LFX.vseed(u, c)
+	var rr: float = LFX.tex_w(u, GL_VORTEX) * 0.5
+	u.strip(GL_VORTEX, c, {"layer": "back", "sc": r * 1.1 / rr, "sc1": r * 0.35 / rr, "scd": 0.35, "spin": -7.0, "ang": LFX.h(vs) * TAU, "life": 0.45, "fade": 0.2,
+		"col": Color(1.0, 1.05, 1.1, 0.85)})
+	PF.particles(u, c, 160, "ult_burst_s", [Color(0.25, 0.55, 0.62), Color(0.4, 0.7, 0.78)], 0.3, vs, r * 0.7)
+	u.light(c, 200.0, Color(0.3, 0.62, 0.7), 0.35)
+	return true
+
+
+# ---------------- 安洁莉娜：三颗小重力核心绕区域收拢（终结技核心 fx_an_core 缩小）→ 落定砸坑 fx_an_crater + 紫粒子
+const AN_CORE := "fx_an_core"
+const AN_CRATER := "fx_an_crater"
+
+
+static func an_core(u, sp: Vector2, k: float, j: int) -> bool:
+	if not LFX.on() or not u.fx_ready(AN_CORE):
+		return false
+	var sc: float = 20.0 / (LFX.tex_w(u, AN_CORE) * 0.5)
+	u.strip(AN_CORE, sp, {"sc": sc * (1.0 + 0.3 * sin(k * 20.0 + j)), "ang": k * 8.0 + j, "life": 0.05, "col": Color(1.05, 1.0, 1.1, 0.95)})
+	return true
+
+
+static func an_land(u, c: Vector2, r: float) -> bool:
+	if not LFX.on() or not u.fx_ready(AN_CRATER):
+		return false
+	var vs: float = LFX.vseed(u, c)
+	var rr: float = LFX.tex_w(u, AN_CRATER) * 0.5
+	u.strip(AN_CRATER, c, {"layer": "back", "sc": r * 0.55 / rr, "sy": 0.62, "ang": 0.0, "sx": -1.0 if LFX.h(vs) < 0.5 else 1.0, "life": 1.2, "fade": 0.5,
+		"col": Color(1.0, 1.0, 1.0, 0.9)})
+	PF.particles(u, c, 180, "ult_burst_s", [Color(0.45, 0.28, 0.65), Color(0.28, 0.16, 0.42)], 0.0, vs, r * 0.6)
+	u.light(c, 160.0, Color(0.55, 0.35, 0.8), 0.35)
+	return true
+
+
+# ---------------- 维什戴尔：好礼——暗红残影 0.35 秒后炸开（终结技弹坑 fx_ws_crater 4 种 + 红粒子，缩到半径 60）
+const WS_CRATER := "fx_ws_crater"
+
+
+static func wd_blast(u, gp: Vector2, j: int) -> bool:
+	if not LFX.on() or not u.fx_ready(WS_CRATER):
+		return false
+	var vs: float = LFX.vseed(u, gp) + j
+	var fw: float = LFX.tex_w(u, WS_CRATER) / 4.0
+	var sc: float = 70.0 / fw * (0.8 + 0.4 * LFX.h(vs))
+	u.strip(WS_CRATER, gp + Vector2(0, 4), {"layer": "back", "f": int(LFX.h(vs * 1.7) * 4.0) % 4, "sc": sc, "sy": 0.6, "sx": -1.0 if LFX.h(vs) < 0.5 else 1.0,
+		"life": 1.2, "fade": 0.5})
+	PF.particles(u, gp, 150, "ult_burst_s", [Color(0.75, 0.12, 0.12), Color(0.4, 0.06, 0.08)], 0.0, vs, 70.0)
+	PF.particles(u, gp, 30, "ult_ember", [Color(0.7, 0.25, 0.15)], 0.08, vs + 2.0, 40.0)
+	if j % 3 == 0:
+		u.light(gp, 110.0, Color(0.8, 0.2, 0.15), 0.25)
+	return true
+
+
+static func wd_ghost(u, pos: Vector2) -> bool:   # 死者原地留暗红残影：几缕往上飘的暗红余烬
+	if not LFX.on() or not u.fx_ready(WS_CRATER):
+		return false
+	PF.particles(u, pos + Vector2(0, -12), 30, "ult_ember", [Color(0.5, 0.06, 0.08)], 0.0, pos.x * 0.37, 30.0)
+	u.shape({"kind": "ellipse", "c": pos + Vector2(0, -16), "rx": 10.0, "ry": 16.0, "col": Color(0.45, 0.05, 0.08), "fill": 0.45, "life": 0.35})
+	return true
+
+
+# ---------------- 凯尔希：Mon3tr 落到队长前方挡一下——落地碎裂 + 绿色粒子 + 推开（她的终结技是红色爆，这里用本人青绿）
+static func ka_block(u, mp: Vector2, sd: Vector2) -> bool:
+	if not LFX.on() or not u.fx_ready(PF.BURST_S):
+		return false
+	var vs: float = LFX.vseed(u, mp)
+	PF.particles(u, mp + sd * 30.0, 160, "ult_burst_s", [Color(0.3, 0.7, 0.55), Color(0.18, 0.42, 0.34)], 0.0, vs, 90.0)
+	PF.cracks(u, ["fx_ul_crack_fork", "fx_ul_crack_fork2"], mp, PF.angles(4, sd.angle() - 0.8, vs).slice(0, 3), [60.0, 75.0, 55.0],
+		{"seed": vs, "r0": 10.0, "rev": 0.06, "rev0": 0.2, "life": 0.9, "fade": 0.4, "col": Color(0.5, 0.95, 0.75), "col1": Color(0.1, 0.22, 0.18), "cold": 0.35, "small": 0.4, "big": 0.55})
+	for q in 4:   # 落地重量：几块碎石往外蹦 + 两团尘（预审：缺地面反馈）
+		var hq: float = LFX.h(vs + q * 2.9)
+		var dv: Vector2 = Vector2.from_angle(sd.angle() + (hq - 0.5) * 2.4)
+		PF.rock(u, mp + dv * 20.0, dv * (50.0 + 40.0 * hq), 130.0 + 90.0 * hq, hq, 0.3, 0.0)
+	u.grain("bfx_dust", mp + Vector2(0, 8), sd.orthogonal(), Color(0.5, 0.48, 0.44), 6)
+	u.grain("bfx_dust", mp + Vector2(0, 8), -sd.orthogonal(), Color(0.32, 0.3, 0.28), 6)
+	u.light(mp, 150.0, Color(0.35, 0.85, 0.6), 0.4)
+	return true

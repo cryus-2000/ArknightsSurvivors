@@ -339,6 +339,8 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				rock.c = pos
 				rock.r = R * minf(1.0, 0.5 + k * 3.0)   # 出手时从杖头长大
 				rock.rot = k * 5.0
+				if LFB.ey_rock(u, a, pos, k, R):
+					rock.fill = 0.0   # 贴图熔岩块代替程序岩块
 				var sh: Dictionary = a.shadow
 				sh.c = gp + Vector2(0, 10)
 				sh.fill = 0.2 + 0.35 * k
@@ -361,18 +363,20 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				u.grain("lava", c, Vector2.UP, Color.WHITE, 40)
 				u.grain("bfx_dust", c, Vector2.UP, SMOKE, 18)
 				u.spark(c + Vector2(0, -6), CRACK, 14, 8.0)
+				var ey2: bool = LFB.ey_slam(u, c, hr, R)
 				# 冲击：一圈压扁的亮橙冲击带（碎裂）+ 中心一团橙白
-				u.shape({"kind": "ring", "c": c, "r": hr, "r1": 30.0, "w": 9.0, "col": CRACK, "life": 0.4})
+				if not ey2:
+					u.shape({"kind": "ring", "c": c, "r": hr, "r1": 30.0, "w": 9.0, "col": CRACK, "life": 0.4})
 				u.shape({"kind": "rock", "c": c, "r": R * 0.9, "col": CRACK, "glow": CORE, "core": CORE, "seed": 7.0, "hold": false, "life": 0.18})
 				# 碎岩迸溅：岩块带重力往外飞
-				for k2 in 9:
+				for k2 in (0 if ey2 else 9):
 					var ang: float = k2 * TAU / 9.0 + 0.3
 					var sd: Vector2 = Vector2.from_angle(ang)
 					var sp: float = 160.0 + 70.0 * fposmod(k2 * 0.618, 1.0)
 					u.shape({"kind": "rock", "c": c + sd * 14.0, "r": 7.0 + 6.0 * fposmod(k2 * 0.37, 1.0), "col": CRUST, "glow": CRACK, "seed": 11.0 + k2,
 						"spin": 6.0, "v": sd * sp + Vector2(0, -170.0), "grav": 620.0, "hold": false, "life": 0.55})
 				# 熔岩溅落灼地（地面层，压在怪脚下）：几块不规则暗红斑 + 亮橙点，慢慢冷却
-				for k3 in 6:
+				for k3 in (0 if ey2 else 6):   # 新版由分叉熔缝代替这圈等角度溅落斑（预审：像等距瓦片）
 					var ang3: float = k3 * TAU / 6.0 + 0.8
 					var off: Vector2 = Vector2.from_angle(ang3) * hr * (0.25 + 0.45 * fposmod(k3 * 0.618, 1.0))
 					var sz: float = 14.0 + 10.0 * fposmod(k3 * 0.41, 1.0)
@@ -421,8 +425,9 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				return false
 			if not a.done.has("land"):
 				a.done["land"] = true
-				u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
-				u.light(c, 220.0, HOOK, 0.4)
+				if not LFB.gl_land(u, c, r):
+					u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
+					u.light(c, 220.0, HOOK, 0.4)
 				for e in pull:
 					if not e.dead:
 						u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
@@ -758,18 +763,20 @@ static func _step16(u, a: Dictionary) -> bool:
 					if e.dead and not a.done.has("d%d" % int(e.id)):
 						a.done["d%d" % int(e.id)] = true
 						a.gh.append([e.pos, t])
-						u.shape({"kind": "ellipse", "c": e.pos + Vector2(0, -16), "rx": 12.0, "ry": 18.0, "col": cl, "fill": 0.55, "life": 0.35})
+						if not LFB.wd_ghost(u, e.pos):
+							u.shape({"kind": "ellipse", "c": e.pos + Vector2(0, -16), "rx": 12.0, "ry": 18.0, "col": cl, "fill": 0.55, "life": 0.35})
 			if t >= 0.8 and a.gh.is_empty() and once.call("fallback"):
 				a.gh.append([_tgp(a), t - 0.35])
 			for j in a.gh.size():
 				var gp: Vector2 = a.gh[j][0]
 				if t >= float(a.gh[j][1]) + 0.35 and once.call("b%d" % j):
-					u.shape({"kind": "ring", "c": gp, "r": 60.0, "r1": 12.0, "w": 6.0, "col": cl, "life": 0.3})
-					u.shape({"kind": "rock", "c": gp, "r": 22.0, "col": cl, "glow": Color(1.0, 0.8, 0.55), "seed": 9.0 + j, "hold": false, "life": 0.14})
-					u.shape({"kind": "ellipse", "c": gp + Vector2(0, 4), "rx": 26.0, "ry": 11.0, "col": Color(0.12, 0.06, 0.06), "fill": 0.7, "layer": "back", "life": 0.9})
-					u.debris(gp, cl, 1)
-					if j % 3 == 0:
-						u.light(gp, 110.0, cl, 0.25)
+					if not LFB.wd_blast(u, gp, j):
+						u.shape({"kind": "ring", "c": gp, "r": 60.0, "r1": 12.0, "w": 6.0, "col": cl, "life": 0.3})
+						u.shape({"kind": "rock", "c": gp, "r": 22.0, "col": cl, "glow": Color(1.0, 0.8, 0.55), "seed": 9.0 + j, "hold": false, "life": 0.14})
+						u.shape({"kind": "ellipse", "c": gp + Vector2(0, 4), "rx": 26.0, "ry": 11.0, "col": Color(0.12, 0.06, 0.06), "fill": 0.7, "layer": "back", "life": 0.9})
+						u.debris(gp, cl, 1)
+						if j % 3 == 0:
+							u.light(gp, 110.0, cl, 0.25)
 					for e in u.in_circle(gp, 60.0):
 						_hit16(p, e, "好礼", 0.6)
 			return t >= 1.0 + 0.35 + 0.45
@@ -840,7 +847,8 @@ static func _step16(u, a: Dictionary) -> bool:
 				var rr: float = lerpf(r + 150.0, r * 0.4, k2)
 				for j in 3:
 					var sp: Vector2 = c + Vector2.from_angle(TAU * (k2 * 1.0 + j / 3.0)) * rr
-					u.shape({"kind": "rock", "c": sp, "r": 9.0, "col": Color(0.2, 0.1, 0.3), "glow": cl, "seed": 3.0 + j, "rot": k2 * 6.0, "life": 0.04})
+					if not LFB.an_core(u, sp, k2, j):
+						u.shape({"kind": "rock", "c": sp, "r": 9.0, "col": Color(0.2, 0.1, 0.3), "glow": cl, "seed": 3.0 + j, "rot": k2 * 6.0, "life": 0.04})
 					u.grain("mote_in", sp, (c - sp).normalized(), cl, 1)
 				for e in a.outs:
 					if not e.dead:
@@ -848,8 +856,9 @@ static func _step16(u, a: Dictionary) -> bool:
 						p.nudge(e, (to - e.pos) * 0.16)
 				return false
 			if once.call("land"):
-				u.light(c, 160.0, cl, 0.4)
-				u.shape({"kind": "ring", "c": c, "r": r * 0.6, "r1": r * 0.2, "w": 5.0, "col": cl, "life": 0.4})
+				if not LFB.an_land(u, c, r):
+					u.light(c, 160.0, cl, 0.4)
+					u.shape({"kind": "ring", "c": c, "r": r * 0.6, "r1": r * 0.2, "w": 5.0, "col": cl, "life": 0.4})
 				for e in a.outs:
 					if not e.dead:
 						_hit16(p, e, "引力环", 0.5)
@@ -939,8 +948,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				var sd: Vector2 = a.side
 				var mp: Vector2 = a.mp
-				u.debris(mp, cl, 2)
-				u.light(mp, 150.0, cl, 0.5)
+				if not LFB.ka_block(u, mp, sd):
+					u.debris(mp, cl, 2)
+					u.light(mp, 150.0, cl, 0.5)
 				p.heal_leader(u.g.max_hp * Bal.v("ult/link_kaltsit_heal", 0.03), "技能连携")
 				for e in u.in_circle(mp + sd * 40.0, 90.0):
 					_hit16(p, e, "Mon3tr", 0.8)
