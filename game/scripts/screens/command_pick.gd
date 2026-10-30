@@ -416,10 +416,12 @@ func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 			_dash(hud, ct * o.pos, ct * en.pos, Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, 0.4), true)
 
 
-## 驻扎点标记（移动）：小菱形 + 四角短刻度，屏幕像素约 20 见方，不画范围
+## 驻扎点标记（移动）：深色描边的小菱形 + 四角刻度，屏幕像素约 28 见方，不画范围；画在地面层，被干员挡住时角标仍露在外面
 func _station_mark(ci: CanvasItem, c: Vector2, col: Color) -> void:
-	ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -6), c + Vector2(6, 0), c + Vector2(0, 6), c + Vector2(-6, 0)]), col)
-	_corners(ci, c, 10.0, col, 1.5)
+	ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -10), c + Vector2(10, 0), c + Vector2(0, 10), c + Vector2(-10, 0)]), Color(0.02, 0.03, 0.04, 0.75 * col.a))
+	ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -7), c + Vector2(7, 0), c + Vector2(0, 7), c + Vector2(-7, 0)]), col)
+	_corners(ci, c, 14.0, Color(0.02, 0.03, 0.04, 0.6 * col.a), 3.5)
+	_corners(ci, c, 14.0, col, 2.0)
 
 
 func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, arrow: bool) -> void:
