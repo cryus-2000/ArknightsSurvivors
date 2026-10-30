@@ -33,11 +33,14 @@
   "block_kb_r": 90,
   "block_kb": 200,
   "beacon_bonus": 0.15,
-  "s1_window": 3.0,
-  "s1_mult": 2.0,
-  "s1_r": 120,
-  "s1_kb": 360,
-  "s1_taunt_r": 200,
+  "s1_window": 4.0,
+  "s1_mult": 3.4,
+  "s1_r": 150,
+  "s1_kb": 480,
+  "s1_taunt_r": 220,
+  "s1_pull": 1,
+  "s1_elite_x": 0.5,
+  "s1_stop": 0.08,
   "s1_per": 0.1,
   "s1_cap": 20,
   "s2_dur": 8.0,
@@ -88,8 +91,7 @@
   "wall2_mult": 0.8,
   "wall2_guard": 0.15,
   "wall2_guard_dur": 3.0,
-  "_ember2": "ember2 / ember_* 旧参数（熔流 / 余烬）随 docs/202 删除",
-  "s1_dr": 0.3
+  "_ember2": "ember2 / ember_* 旧参数（熔流 / 余烬）随 docs/202 删除"
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3446 / 防御 625 / 法抗 10%，近战主控有效生命 ×1.06",
@@ -740,11 +742,9 @@
    "_doc": "10-24 格挡窗口里移动（docs/140）：原生 Skill t=0 举盾上半身 + 跑步步态腿（tools/op_1x/native_extra.py），与跑步条共用相位；原来移动时播单帧定格 s1_guard 原地滑行"
   },
   "skills": {
-   "_doc": "S1 起手即反手重斩（s1_counter，10-29 方案 A）→ 站定举盾（s1_guard / 队长移动时 s1_guard_move）至结束；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
+   "_doc": "S1 反手重斩（s1_counter 单条，10-30 改版：不再站定举盾，s1_guard / s1_guard_move 两条素材留档不引用）；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
    "s1": {
-    "start": "s1_counter",
-    "loop": "s1_guard",
-    "run": "s1_guard_move"
+    "anim": "s1_counter"
    },
    "s2": {
     "anim": "skill"
@@ -779,8 +779,8 @@
    "name": "战意",
    "en": "WARPATH",
    "sp": 6,
-   "dur": 3.0,
-   "desc": "起手向周围反手重斩（半径 {$s1_r}，×{$s1_mult*$k_pow:2}）并击退；随后 {$s1_window} 秒内举盾坚守原地，吸引半径 {$s1_taunt_r} 内近战敌人的仇恨，受到的伤害降低 {$s1_dr*100}%（作为队长时可照常移动）",
+   "dur": 4.0,
+   "desc": "向周围反手重斩（半径 {$s1_r}，×{$s1_mult*$k_pow:2}）并大幅击退；命中后 {$s1_window} 秒内，半径 {$s1_taunt_r} 内的近战敌人改追星熊（精英只吸引一半时间，首领不受影响）",
    "icon": "skill_hoshiguma_s1"
   },
   {
@@ -1078,13 +1078,13 @@
       "power": true
      },
      {
-      "verb": "dr",
-      "value": "$s1_dr"
-     },
-     {
       "verb": "taunt_guard",
-      "_doc": "10-29 用户定方案 A「先打后守」：起手即反手重斩（circle，见下），随后 s1_window 秒站定嘲讽 + 受击减伤 s1_dr（verb.dr），结束不再斩；队员时原地站定，队长时照常移动",
+      "_doc": "10-30 用户定改版（docs/140）：不再站定、不再减伤；起手重斩做足，命中后半径 r 内的普通怪在 dur 秒内改追星熊（精英只拉 dur × elite_x 秒，Boss 不吃），stop = 命中顿帧；base.s1_pull = 0 时关闭拉怪。队员 / 队长都照常移动",
       "r": "$s1_taunt_r",
+      "dur": "$s1_window",
+      "elite_x": "$s1_elite_x",
+      "stop": "$s1_stop",
+      "stand": false,
       "fx": [
        {
         "strip": "fx_hoshiguma_block",

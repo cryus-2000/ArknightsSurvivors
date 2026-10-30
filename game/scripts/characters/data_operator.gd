@@ -1558,8 +1558,11 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			if cur_skill >= 0:
 				neg_armed[cur_skill] = b
 		"verb.taunt_guard":
-			if cur_skill >= 0:
-				taunt = {"i": cur_skill, "b": b, "anchor": Vector2.INF if is_leader else pos, "ids": {}}
+			if cur_skill >= 0 and float(base("s1_pull", 1.0)) > 0.0:   # base.s1_pull = 0：关闭拉怪（10-30 改版开关）
+				taunt = {"i": cur_skill, "b": b, "anchor": Vector2.INF if is_leader or not bool(b.get("stand", true)) else pos, "ids": {}, "t0": g.t}
+				var stop: float = float(b.get("stop", 0.0))
+				if stop > 0.0 and not query_ids(pos, float(b.r) * stat(&"op_range")).is_empty():
+					g.hitstop = maxf(g.hitstop, stop)   # 命中顿帧
 				if b.has("fx"):
 					ObFx.fx_play(self, b.fx, pos, 30.0)
 				float_text(pos + Vector2(0, -88), str(b.get("text", "嘲讽")), Color(1.0, 0.85, 0.4), 16)
@@ -1576,6 +1579,8 @@ func _taunt_tick() -> void:
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.chest or e.boss or e.ai != "melee" or e.pos.distance_to(pos) > r:
 				continue
+			if e.elite and b.has("dur") and g.t - float(taunt.get("t0", g.t)) > float(b.dur) * float(b.get("elite_x", 1.0)):
+				continue   # 精英只被拉 dur × elite_x 秒
 			set_aggro(e, pos)
 			taunt.ids[e.id] = true
 		return

@@ -169,6 +169,9 @@ static func _ext_block(b: Dictionary, p: String, kind: String, tag: String, xk: 
 			_num(b, "r", p, ctx, true, 20.0, 600.0)
 			_num(b, "per", p, ctx, false, 0.0, 2.0)
 			_num(b, "cap", p, ctx, false, 1.0, 200.0)
+			_num(b, "dur", p, ctx, false, 0.5, 20.0)
+			_num(b, "elite_x", p, ctx, false, 0.0, 1.0)
+			_num(b, "stop", p, ctx, false, 0.0, 0.3)
 			_list(b.get("on_end", []), p + ".on_end", "instant", ctx)
 		"verb.negate_next":
 			_list(b.get("on_block", []), p + ".on_block", "instant", ctx)
