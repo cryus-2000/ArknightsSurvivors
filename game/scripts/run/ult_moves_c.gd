@@ -1587,8 +1587,8 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 		var bc: Vector2 = c
 		var br: float = float(a.R) * 0.55
 		PF.ring(u, ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"], bc, br * 0.15, br, 0.28, 0.6,
-			{"seed": vs, "layer": "front", "col": Color(0.9, 0.95, 1.05, 0.85), "col1": Color(0.45, 0.55, 0.7, 0.5), "cold": 0.3, "delay": 0.12, "fade": 0.35})
-		PF.particles(u, bc, 600, "ult_burst", [LA_SILVER, LA_ICE], 0.12, vs + 9.0, br * 1.1)
+			{"seed": vs, "layer": "front", "col": Color(0.75, 0.82, 0.95, 0.75), "col1": Color(0.4, 0.5, 0.65, 0.45), "cold": 0.2, "delay": 0.12, "fade": 0.35})
+		PF.particles(u, bc, 300, "ult_burst", [Color(0.55, 0.7, 0.9), LA_ICE.darkened(0.25)], 0.12, vs + 9.0, br * 1.1)   # 预审：爆破别发白（少一层、压暗）
 		PF.particles(u, bc, 200, "ult_ember", [Color(0.62, 0.68, 0.78)], 0.16, vs + 4.0, br * 0.7)
 		u.light(bc, br * 1.4, LA_ICE, 0.3)
 		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
