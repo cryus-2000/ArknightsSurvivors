@@ -626,7 +626,7 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 		if marks.size() >= cap:
 			break
 		var mp: Vector2 = e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0)
-		marks.append({"e": e, "s": _lo_glyph(u, mp, 34.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
+		marks.append({"e": e, "s": _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
 	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "vs": vs,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
@@ -708,7 +708,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 
 
 ## ---- 逻各斯 pixfx（docs/199 §7.9，开关 ult/lo_fx_v2 缺省 1；0 = 细线描边 + 咒文拼接 + 旧标记版）
-## 审阅 10-30「连续边框加萨卡兹字样的符文带，不要火柴人」：边框 = fx_lo_rune（三条符文带首尾接成的无缝圈）沿矩形四边连续铺一整圈，
+## 审阅 10-30「连续边框加萨卡兹字样的符文带，不要火柴人」：边框 = fx_lo_rune（三条符文带横向拼成一张、按周长接着截）沿矩形四边连续铺一整圈，
 ## 从队长身后一角起依次显现（像被写出来）；四角各一枚大咒印 fx_lo_glyph1–4 慢转；敌人头顶标记 = 萨卡兹字咒印（同一组，按序号挑字）从小长到位；
 ## 一词念出 = 一道横跨咒域的符文带从队长扫到尽头 + 各标记扫到时放大闪亮、碎成紫色像素粒子。判定 / 时序 / u.hit / 清弹不动
 const LO_RUNE := "fx_lo_rune"
@@ -766,9 +766,9 @@ static func _lo_field_v2(u, ps: Array, tm: float, vs: float) -> void:
 		for q in n:
 			var l0: float = ln * q / n
 			var l1: float = ln * (q + 1) / n
-			_lo_band(u, a0 + dv * l0, dv, l1 - l0, ux, {"life": tm + 0.12, "fade": 0.12, "rev": wt * (l1 - l0) / per, "delay": wt * (acc + l0) / per,
+			_lo_band(u, a0 + dv * l0, dv, l1 - l0, ux, {"sc": 0.75, "life": tm + 0.12, "fade": 0.12, "rev": wt * (l1 - l0) / per, "delay": wt * (acc + l0) / per,
 				"col": Color(1.0, 1.0, 1.0, 0.92)})
-			ux += (l1 - l0) / kk
+			ux += (l1 - l0) / (kk * 0.75)
 		acc += ln
 	for i in 4:
 		_lo_glyph(u, ps[i], 64.0, tm + 0.12, vs + i * 2.9, {"spin": 1.2 * (1.0 if i % 2 == 0 else -1.0), "sc1d": 0.2, "delay": wt * 0.25 * i, "col": Color(1, 1, 1, 0.9)})
@@ -781,7 +781,7 @@ static func _lo_boom_v2(u, a: Dictionary, org: Vector2, d: Vector2, hw: float, L
 	var spd: float = (L + bk) / sw
 	for l in 2:
 		_lo_band(u, org - d * (bk - 20.0 * l) - n * hw, n, hw * 2.0, PF.h(float(a.vs) + l) * 900.0,
-			{"layer": "front", "sc": 1.5 - 0.4 * l, "life": sw, "fade": 0.05, "v": d * spd, "col": Color(1.1, 1.1, 1.15, 1.0 - 0.4 * l), "delay": 0.02 * l})
+			{"layer": "front", "sc": 1.0 - 0.25 * l, "life": sw, "fade": 0.05, "v": d * spd, "col": Color(1.1, 1.1, 1.15, 1.0 - 0.4 * l), "delay": 0.02 * l})
 	u.light(org + d * (L * 0.5), maxf(L, hw) * 0.8, LO_VIO, 0.25)
 	var i := 0
 	for mk in a.marks:

@@ -299,7 +299,7 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 
 
 ## ---- 斯卡蒂 pixfx（docs/199 §7.9，开关 ult/sd_fx_v2 缺省 1；0 = 程序白沫带 + 浪头帧条一排版）
-## 审阅 10-30「浪面连续，浪冠错落」：fx_sd_wave 是三条浪面（浪冠白沫在上、深蓝水体在下）首尾接成的无缝圈，整道浪宽一条贴图截出（连续不断），
+## 审阅 10-30「浪面连续，浪冠错落」：fx_sd_wave 是三条浪面（浪冠白沫在上、深蓝水体在下）横向拼成一张，整道浪宽从一条里截出（连续不断），
 ## 前后两层错开（后层换一段、略暗、退后 34），浪冠高低错落；每次按 vseed 挑截取起点 + 镜像。浪推完的水痕不再画 5 条直线
 const SD_WAVE := "fx_sd_wave"
 
@@ -311,17 +311,18 @@ static func _sd_v2(u) -> bool:
 static func _sd_face_v2(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, hw: float, T: float) -> void:
 	var t: Texture2D = u._strip_tex(SD_WAVE)
 	var kk: float = PF.tex_w(u, SD_WAVE) / t.get_width()
+	var bw: float = t.get_width() / 3.0   # 三条浪面横向拼在一张里，每条 bw 宽，截取不跨条
 	var uw: float = 2.0 * hw / kk
 	var sc: float = 1.0
-	if uw > t.get_width():   # 浪比贴图宽：整体放大铺满
-		sc = uw / t.get_width()
-		uw = t.get_width()
+	if uw > bw:   # 浪比一条贴图宽：整体放大铺满
+		sc = uw / bw
+		uw = bw
 	var vs: float = PF.vseed(u, o0) + float(w.t0) * 31.0
 	var fh: float = t.get_height()
 	w["face"] = []
 	for l in 2:   # l 0 = 后层（略暗、退后），1 = 前层
 		var s: Dictionary = u.strip(SD_WAVE, o0, {"ang": d.orthogonal().angle(), "o": Vector2(0.0, fh * 0.12), "sc": sc, "sx": 1.0, "sy": -1.0,
-			"ux": floorf(PF.h(vs + l * 5.3) * maxf(0.0, t.get_width() - uw)), "uw": uw, "life": T + 0.2, "fade": 0.18,
+			"ux": floorf(int(PF.h(vs * 0.7 + l * 3.1) * 3.0) % 3 * bw + PF.h(vs + l * 5.3) * maxf(0.0, bw - uw)), "uw": uw, "life": T + 0.2, "fade": 0.18,
 			"col": Color(0.82, 0.86, 0.92, 0.85) if l == 0 else Color(1.0, 1.0, 1.0, 1.0)})
 		a.fx.append(s)
 		w.face.append([s, 34.0 if l == 0 else 0.0])
