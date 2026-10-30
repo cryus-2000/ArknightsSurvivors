@@ -1774,6 +1774,8 @@ static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: fl
 		var turn: float = (_ulh(vs + 5.0) - 0.5) * 0.6   # 整体偏一点，第一条不再死对冲锋方向
 		for j in nc:
 			var name := PF.pick(u, UL_FORKS, vs * 0.37 + j * 1.7)
+			if name == "":   # 变体都没导入（新拉的工作树没 ensure_imported）时别拿空贴图
+				name = UL_CRACK
 			var t: Texture2D = u._strip_tex(name)
 			var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
 			var h1: float = _ulh(j + 1.0 + vs)

@@ -736,7 +736,8 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 			var hb: float = PF.h(p.x * 0.017 + p.y * 0.031)
 			var p0: Vector2 = top.lerp(p, 0.55) + Vector2((hb - 0.5) * 160.0, 0.0)
 			u.strip(EY_ROCK, p0, {"f": 0, "o": Vector2(48, 64), "sc": 0.9 + 0.5 * hb, "ang": (p - p0).angle() - 2.2, "life": fl, "delay": tl - fl, "v": (p - p0) / fl})
-			u.strip(EY_ROCK, p, {"f": 1, "o": Vector2(48, 96), "sc": 1.0 + 0.6 * hb, "sx": -1.0 if hb < 0.5 else 1.0, "life": 0.45, "fade": 0.25, "delay": tl,
+			u.strip(EY_ROCK, p, {"f": 1, "o": Vector2(48, 96), "sc": 0.7 + 1.0 * PF.h(hb * 13.0), "sx": -1.0 if hb < 0.5 else 1.0, "ang": (PF.h(hb * 29.0) - 0.5) * 0.9,
+				"life": 0.45, "fade": 0.25, "delay": tl + 0.06 * PF.h(hb * 37.0),   # 大小 / 转角 / 落地时刻错开（预审报溅射大小间距一致）
 				"col": Color(1.1, 1.0, 1.0), "col1": Color(0.5, 0.35, 0.3), "cold": 0.35})
 			if bi % 3 == 0:
 				PF.particles(u, p, 60, "ult_burst_s", [Color(1.0, 0.45, 0.1)], tl, hb * 40.0, 90.0)
@@ -775,7 +776,7 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 		if a.get("v2", false):   # 火柱 v2：顿帧 + Codex 火柱关键帧（fx_ey_pillar，底部中心）从地里窜起冷却 + 橙色粒子 + 碎石掀起；不画程序带子 / 旧爆炸帧条
 			u.g.vfx.stop(Bal.v("ult/ey_hitstop", 0.1), "ult", true)
 			u.strip(EY_PILLAR, c + Vector2(0, 10), {"o": Vector2(96, 500), "sc": 1.0, "sc1": 1.45, "scd": 0.12, "life": 0.6, "fade": 0.3,
-				"col": Color(0.95, 0.85, 0.8), "col1": Color(0.55, 0.3, 0.24), "cold": 0.25})   # 预审报发白：压峰值、加快冷却
+				"col": Color(0.8, 0.62, 0.55), "col1": Color(0.5, 0.26, 0.2), "cold": 0.2})   # 预审两次报发白：火柱关键帧芯本身很亮，整体压到 0.8
 			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.32, 0.06)], 0.04, PF.vseed(u, c), 260.0)
 			PF.heave(u, c, 160.0, PF.vseed(u, c) + 3.0)
 			u.light(c, 380.0, Color(1.0, 0.5, 0.15), 0.5)
