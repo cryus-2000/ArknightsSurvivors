@@ -91,7 +91,8 @@ async function main() {
     for (const n of footSlots(side)) { const s = sk.findSlot(n), a = s.getAttachment(); if (!a) continue; const v = verts(sp, s, a); for (let i = 1; i < v.length; i += 2) y = Math.min(y, v[i]); }
     return y;
   };
-  const ground = Math.min(bottom(base, 'L'), bottom(base, 'R'));
+  // cfg.ground：直接给地面的世界 y（召唤物没有常规腿 / 本来就悬空，如 Mon3tr 取骨架原点 0，与 Codex 原生条同样离地）
+  const ground = cfg.ground ?? Math.min(bottom(base, 'L'), bottom(base, 'R'));
   // 鞋底贴原点：地面映射到 y=120（最后一行 119），与游戏原点 (64,120) 和旧 run 条一致。
   // bz_18 的 mapped_root 按整身包围盒放置，推进之王因锤头垂到脚下会让鞋底悬空约 4 像素。
   ANCHOR[0] += PAD; ANCHOR[1] = 120 + PAD + ground * SCALE;
@@ -175,6 +176,9 @@ async function main() {
       if (cfg.sample.carry) carry(sk, i);
       // sample.pinX：该帧把髋骨水平拉回待机位置（原作冲锋轨自带根位移，游戏里位移由代码做）
       if (cfg.sample.pinX?.[i]) { const dx = get(base, cfg.body.hip).worldX - get(sk, cfg.body.hip).worldX; for (const b of sk.bones) b.worldX += dx; }
+      // sample.pinY：髋骨竖直拉回待机高度（跃起类：腾空高度由游戏给，推进之王）；数字 = 只拉回这个比例
+      const py = cfg.sample.pinY?.[i];
+      if (py) { const dy = (get(base, cfg.body.hip).worldY - get(sk, cfg.body.hip).worldY) * (py === true ? 1 : py); for (const b of sk.bones) b.worldY += dy; }
       // sample.kick：逐帧 [dx, dy, 度]（@2x 像素，度 + = 朝后仰）整个人绕脚底平移 / 转动——原作循环轨静止时补出连发后坐（维什戴尔）
       const kk = cfg.sample.kick?.[i];
       if (kk) { const h = get(sk, cfg.body.hip), piv = [h.worldX, ground]; rotate(sk, sk.bones[0], kk[2] * P.facing, piv); move(sk, sk.bones[0], kk[0] / SCALE * P.facing, -kk[1] / SCALE); }

@@ -21,8 +21,10 @@ def install(op):
     strip = Image.new("RGBA", (S * n, S))
     for i, im in enumerate(frames):
         strip.paste(im, (S * i, 0))
-    out = os.path.join(ROOT, "game", "art", "operators", op)
-    tex = "op_%s_ult_spine" % op
+    inst = cfg.get("install", {})   # 召唤物（Mon3tr）：装进主人 json 的别的槽，如 {"op": "kaltsit", "slot": "m_ult", "tex": "op_mon3tr_ult_spine"}
+    owner, slot = inst.get("op", op), inst.get("slot", "ult_spine")
+    out = os.path.join(ROOT, "game", "art", "operators", owner)
+    tex = inst.get("tex", "op_%s_ult_spine" % op)
     strip.save(os.path.join(out, tex + "@2x.png"), optimize=True)
     op1x.downsample(strip, n).save(os.path.join(out, tex + "@1x.png"), optimize=True)
     dur = cfg["durations"]
@@ -32,29 +34,29 @@ def install(op):
     spec = {"tex": tex, "frames": n, "foot": foot, "frame_durations": dur}
     if cfg.get("vis_order"):   # 循环段按帧号表重复播（character._vis_frames），不重复画帧
         spec["vis_order"] = cfg["vis_order"]
-    d0 = json.load(open(os.path.join(ROOT, "game", "data", "characters", op + ".json"), encoding="utf-8"))
+    d0 = json.load(open(os.path.join(ROOT, "game", "data", "characters", owner + ".json"), encoding="utf-8"))
     top = d0["sprites"].get("foot", [32, 60])
     base = int(d0["sprites"].get("size", 64))
     if [float(top[0]) + (S // 2 - base) / 2, float(top[1]) + (S // 2 - base) / 2] != [float(x) for x in foot]:   # 契约 V2：foot = 顶层 foot + 透明加边
         spec["foot_exempt"] = "终结技身体条：原作 Spine 像素化，原点 (64,120)@2x 随画布居中，与顶层小数 foot / 画布口径差 <1px（docs/207）"
     spec["_doc"] = "终结技身体条（docs/207，本地原作 Spine 自产：tools/spine_run_trial cfg/%s_ult.json）；ult/spine_body=1 时终结技开头播，缺省关" % op
-    p = os.path.join(ROOT, "game", "data", "characters", op + ".json")
+    p = os.path.join(ROOT, "game", "data", "characters", owner + ".json")
     s = open(p, encoding="utf-8", newline="").read()
     nl = "\r\n" if "\r\n" in s else "\n"
     # 各干员 json 缩进 / 换行风格不同：照 sprites 第一个键的缩进写
     m0 = re.search(r'\n[ \t]*"sprites": \{\r?\n([ \t]*)"', s)
     ind = m0.group(1)
     body = json.dumps(spec, ensure_ascii=False, indent=1).split("\n")
-    blk = nl.join([ind + '"ult_spine": ' + body[0]] + [ind + ln for ln in body[1:]])
-    m = re.search(r'\r?\n[ \t]*"ult_spine": \{.*?\n[ \t]*\},?', s, re.S)
+    blk = nl.join([ind + '"%s": ' % slot + body[0]] + [ind + ln for ln in body[1:]])
+    m = re.search(r'\r?\n[ \t]*"%s": \{.*?\n[ \t]*\},?' % slot, s, re.S)
     if m:
         s = s[:m.start()] + nl + blk + ("," if m.group(0).endswith(",") else "") + s[m.end():]
     else:
         k = m0.end() - len(ind) - 1
         s = s[:k] + blk + "," + nl + s[k:]
     e0 = s.index('"extra_sprites": [') + len('"extra_sprites": [')
-    if '"ult_spine"' not in s[e0:s.index("]", e0)]:
-        s = s[:e0] + '"ult_spine", ' + s[e0:]
+    if '"%s"' % slot not in s[e0:s.index("]", e0)]:
+        s = s[:e0] + '"%s", ' % slot + s[e0:]
     json.loads(s)
     open(p, "w", encoding="utf-8", newline="").write(s)
     print(op, "帧", n, "画布", S, "foot", foot, "合计 %.2f 秒" % sum(dur), "播放 %.2f 秒" % sum(dur[i] for i in cfg.get("vis_order", range(n))))

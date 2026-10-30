@@ -72,6 +72,9 @@
 - `run_trial.js` 新增 `sample.kick`：逐帧整个人绕脚底后移 / 后仰，用于原作循环轨静止时补出后坐。
 - `character.gd` 新增 `sprites.<槽>.vis_order`（纯画面动作按帧号表播、可重复）：循环段不用重复画帧，只影响 play_vis_anim 的画面。
 - 契约 V2：顶层 foot 是小数或画布口径不同（维什戴尔、水月）时，`ult_install` 自动写 `foot_exempt` 说明（同入场 / 跑步条做法）。
+- `run_trial.js`：`sample.pinY`（跃起类竖直位移钉回，腾空由游戏给）、`cfg.ground`（召唤物没有常规腿时直接给地面高度）。
+- `ult_install.py`：cfg 写 `install: {op, slot, tex}` 可装进主人 json 的别的槽（Mon3tr → kaltsit.json `m_ult`）。
+- 召唤物：`ob_summon._mf_frame` 认 `s.ult_anim = {key, t0}`，先播完这一条（按主人 sprites 的 frame_durations / vis_order）；凯尔希终结技落地时在开关打开下设置。
 - 发用户前先过 vreview 预审（`record_sprite` 审对照图与特写，`ult_fx --crop left` 审实机录像左半）。
 
 | 干员 | 原作轨 | 帧 / 时长 | 对齐玩法 | 人工处理 |
@@ -82,5 +85,22 @@
 | 流明 | Skill_3_Begin 举起 → Skill_3_Idle 持械站定 6 帧 × 0.33 秒 → Skill_3_End | 10 帧 / 2.42 秒，64 画布 | 0.2 秒光柱升起时举到位，覆盖 2 秒光柱 | 单子要「站定举高」，所以不用会大幅摆灯的 Skill_3_Loop；原作 S3 举的是长杖（单子：持械以 PRTS 技能动画为准） |
 | 水月 | Skill_1 伞击：后拉 → 由下往上挥伞 → 收 | 10 帧 / 1.10 秒 | f2–f5 对 0.15–0.65 秒触手横扫 | **原作没有「俯身按地」**（技能全是伞的动作），借 Skill_1 挥伞对「抬臂随横扫一挥」；破土交特效层 |
 | 归溟幽灵鲨 | Skill_3_Begin 举锯 → Skill_3_Attack 抡锯一圈 6 帧 → Skill_3_End | 10 帧，播 3.17 秒 | 抡锯 6 帧 × 0.05 = 0.3 秒一圈，`vis_order` 循环 9 遍覆盖 3 秒 | 原作抡锯带根位移，钉回原地（她移动时由游戏位移）；引擎新增 `sprites.<槽>.vis_order` |
+| 铃兰 | Skill3_Begin 捧杖闭眼 → 举杖伸手 → Skill2 扬杖 → Skill3_End | 10 帧 / 1.20 秒，64 画布 | 0–0.3 忍冬现身、0.3–0.6 停顿、0.6 扬杖对斩痕炸开 | 无 |
+| Mon3tr（凯尔希终结技） | Skill_2 蜷身蓄力（往返）→ 张开 → Skill 张爪 | 8 帧，播 1.03 秒 | 落地起播，蓄力 0.48 + 张爪 0.12 = ult/ka_wind 0.6，爪最开那一帧落在爆点（之后解体） | 骨架下载自 PRTS（token_10002_kalts_mon3tr，Spine 3.8，放 build/prts_ref/_raw/mon3tr）；无 bz_18 部件包，比例 0.201 与调色板取 Codex `op_mon3tr_native_idle`；`cfg.ground = 0`（原作悬空）；召唤物走 `ob_summon._mf_frame` 新钩子 `s.ult_anim` |
 
 验证：（第 1 组）本地无头跑一局，打印确认两人放终结技时 anim_kind = ult_spine（1.00 / 1.055 秒），没有脚本错误；快检 asset_index / art_lint / data_lint 通过。录像：`build/spine_anim_pilot/out/<id>_ult_spine_on_vs_off.mp4`（同种子，左开右关）、`<id>_ult_spine_closeup.mp4`（原速 4 倍特写）。第 2 组（逻各斯 0.91 秒 / 流明 2.42 秒）同样无头确认、无脚本错误。
+
+### 6.1 其余 8 人原作轨评估（10-30）
+
+| 干员 | 原作可用轨 | 判断 |
+|---|---|---|
+| 推进之王 | Skill：蹲 → 起跳空翻 → 举锤 → 砸地 → 起身 | 几乎一一对上，已出 cfg（pinY 钉竖直位移） |
+| 安洁莉娜 | Skill2_Begin / Loop / End：举杖 → 托举 → 下压 | 对得上，已出 cfg |
+| 艾雅法拉 | Skill_Start / Loop / End：起杖施法 | 对得上，已出 cfg |
+| 星熊 | Skill_Begin 立盾 → Skill 顶盾 → Skill_End | 对得上 |
+| 歌蕾蒂娅 | Skill_3_Startup / Begin / Chant / Loop / End：举矛吟唱 | 大体对得上（「收—停—爆」靠选帧） |
+| 拉普兰德 | Skill / Combat：双刃斩、半圈旋身 | 部分对得上（原作没有连续四圈狂舞，需循环拼） |
+| 斯卡蒂 | 只有 Attack（横斩，含转身） | **原作没有相近轨**（单子要举剑过头下劈），先跳过 |
+| 塞雷娅 | Skill 是插盾 + 合手（治疗），Attack 是盾击 | **原作没有相近轨**（单子要一拳砸地；插盾入地可作替代，待定），先跳过 |
+
+拉普兰德 / 歌蕾蒂娅的 cfg 原来指向别的工作树里的 build/lg_src，这里改用主仓库 `build/prts_ref/_raw` 的 3.5 骨架（cfg/*_raw.src.json）。

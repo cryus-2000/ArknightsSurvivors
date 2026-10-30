@@ -1,0 +1,78 @@
+{
+ "id": "suzuran",
+ "src": "suzuran.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_forearm",
+   "F_R_Hand_b"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "R",
+ "weapon": "F_Weapon_b",
+ "action": "ult",
+ "canvas": 128,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill3_Begin",
+   "Skill3_Begin",
+   "Skill3_Begin",
+   "Skill3_Begin",
+   "Skill3_Begin",
+   "Skill2",
+   "Skill2",
+   "Skill3_End",
+   "Skill3_End",
+   "Skill3_End"
+  ],
+  "times": [
+   0.111,
+   0.222,
+   0.333,
+   0.389,
+   0.444,
+   0.578,
+   0.77,
+   0.4,
+   0.6,
+   0.9
+  ]
+ },
+ "durations": [
+  0.1,
+  0.1,
+  0.1,
+  0.15,
+  0.15,
+  0.15,
+  0.1,
+  0.1,
+  0.1,
+  0.15
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill3_Begin 捧杖闭眼（0–0.3 忍冬现身）→ 举杖伸手（0.3–0.6 白光飞出、斩痕停顿）→ Skill2 扬杖（0.6 斩痕炸开）→ Skill3_End 收"
+}

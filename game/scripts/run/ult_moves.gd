@@ -1244,6 +1244,10 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		return false
 	var wind: float = a.wind
 	var t1: float = cd + wind
+	# Mon3tr 本体条（docs/207，开关 ult/spine_body）：落地起播蜷身蓄力 → 张爪，爪最开那一帧落在爆点（之后解体）
+	if t < t1 and not a.has("m3_ult") and _ka_alive(a) and Bal.v("ult/spine_body", 0.0) > 0.5 and o.anim_tex("m_ult") != null:
+		a["m3_ult"] = true
+		a.m3["ult_anim"] = {"key": "m_ult", "t0": u.g.t - (t - cd)}
 	if t < t1:   # 落地蓄力：不伤害；地面预警越来越亮、光往落点收、Mon3tr 身上聚能
 		var kw: float = (t - cd) / wind
 		var core: Vector2 = (a.m3.pos if _ka_alive(a) else c) + Vector2(0, -38.0)

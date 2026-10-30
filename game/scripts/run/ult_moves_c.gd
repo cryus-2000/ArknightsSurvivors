@@ -422,7 +422,7 @@ static func _su_start(u, o, d: Vector2) -> Dictionary:
 	u.shape({"kind": "dots", "c": side + Vector2(0, -36), "r": 70.0, "n": 10, "col": gold, "life": tp})
 	o.face_to(d.angle())
 	var fe: float = 0.68 if rt == "hearth" else 0.8
-	return {"org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "bk": bk, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
+	return {"body": _spine_body(o), "org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "bk": bk, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
 		"pf": 1.0 - fe - (0.12 if rt == "hearth" else 0.0), "ef": fe, "pseg": {}, "eseg": {}, "dashed": false, "boom": false,
 		"seal": rt == "seal", "hearth": rt == "hearth", "ht": 0, "hseg": [{}, {}, {}]}
 
@@ -459,7 +459,8 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 			_once(u, a, o, a.pseg, e, float(a.pf), {"src": "瞬身", "stun": 0.3, "pre": true, "edge": absf(_loc(e.pos, org, d).y) > hc})
 	if not a.boom and t >= tb:
 		a.boom = true
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		o.screen_shake(0.7)
 		# 斩痕爆裂：沿斩痕一串白光爆点 + 横贯带宽的交叉斩
 		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_LIGHT, "fill": 0.2, "life": 0.3})
