@@ -114,6 +114,8 @@ func fake_g(elites: Array, trial := false, mode := 0) -> Dictionary:
 
 func ending_elite_tests() -> void:
 	reset_state()
+	Medals.announce = true   # 无头默认不入提示队列；这里验队列（10-30 获得章提示）
+	Medals.pending.clear()
 	Cfg.endings_cleared = ["deep"]
 	Medals.sync(1)
 	check(Medals.has("ending_deep") and not Medals.has("ending_standard") and not Medals.has("ending_knight") and not Medals.has("ending_resolve"), "结局三只给潮声止息：%s" % [Cfg.medals])
@@ -128,7 +130,12 @@ func ending_elite_tests() -> void:
 	Cfg.practice_active = false
 	check(int(Cfg.medal_best.get("elite_three", 0)) == 2, "演练 / 非 PLAY / 练习不应计入")
 	Medals.note_elite(fake_g([2, 1, 2, 2]))
-	check(Medals.sync(3).has("elite_three"), "三人同时精英二应获得协同晋升")
+	check(Medals.has("elite_three"), "三人同时精英二应获得协同晋升（note_elite 当场判定）")
+	var pk: Array = Medals.pending.map(func(q): return q.key)
+	check(pk == ["ending_deep", "elite_three"], "提示队列按获得顺序：%s" % [pk])
+	Medals.sync(4)
+	check(Medals.pending.size() == 2, "已得的章不重复入队：%d" % Medals.pending.size())
+	Medals.pending.clear()
 	Medals.note_elite(fake_g([2]))
 	check(int(Cfg.medal_best.elite_three) == 3, "最好进度只升不降")
 
