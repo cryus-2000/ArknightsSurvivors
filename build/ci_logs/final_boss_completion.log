@@ -1,0 +1,29 @@
+# final_boss_completion
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/final_boss_completion_test.tscn -- --regression --seed=1
+# 用时 0 秒；结束时全机 Godot 4 个；缓存命中 e3840658a3eb
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+NATURAL paranoia ["凝视", "叠影", "追猎泡", "泡影环", "溟泡迸裂", "泡影收束", "呼号"]
+NATURAL knight_boss ["长枪连刺", "断潮劈击", "踏冰裂阵", "冲锋", "侧踏挑枪", "掷枪", "冻结重击", "雪幕劈", "再冲锋", "冰枪封径", "长驱冲锋", "冻潮夹击", "长枪回旋"]
+NATURAL ishar ["三线扫射", "大群之歌", "合唱齐射", "撕咬", "合唱压境", "横扫", "深海触腕", "共鸣", "泪落"]
+NATURAL izumik ["海流牵引", "护群触腕", "潮汐坠落", "震撼", "解读旋涡", "深渊涌流", "分享·全场", "迁徙潮", "分享"]
+FINAL BOSS COMPLETION failures=0
+ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/final_boss_completion_test.gd:32)
+WARNING: 44 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

@@ -1,0 +1,31 @@
+# ui_smoke
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/ui_smoke_test.tscn -- --regression --seed=1
+# 用时 0 秒；结束时全机 Godot 4 个；缓存命中 3f3d4bbaa759
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI SMOKE 跳过：标题·寻访（带测试参数时 Roster 名册未启用，open_browse 直接返回 false）
+UI SMOKE 可选缺图（有回退，不算失败）/ 已计失败的缺图：结算·胜利 / relic_999
+85 checks, 0 failed
+UI SMOKE failures=0
+ERROR: 7 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] game_part (res://tests/ui_smoke_test.gd:131)
+       [3] run (res://tests/ui_smoke_test.gd:85)
+       [4] title_part (res://tests/ui_smoke_test.gd:126)
+       [5] frames (res://tests/ui_smoke_test.gd:37)
+WARNING: 54 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 23 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

@@ -1,0 +1,96 @@
+# suzuran_skill_anim
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/suzuran_skill_anim_test.tscn -- --regression --seed=1 --balance --op=suzuran --squad=lumen
+# 用时 12 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+53 checks, 0 failed
+SUZURAN SKILL ANIM failures=0
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/suzuran_skill_anim_test.gd:20)
+ERROR: 干员 suzuran 的 sprites.skills.s2 有 hold 就要有 intro
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:66)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s2 不能同时写 hold 与 start
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:69)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s2 有 start 就要有 loop
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:75)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills 键「s4」须是 s1 / s2 / s3 且值为字典
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:59)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s3.loop 帧条「skill_nope」不在 sprites（须是带 tex 的槽）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:97)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s2.intro 帧条「skill_s2_intro」没列进 extra_sprites
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:100)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s3.loop 帧条「skill_s3_loop」没列进 extra_sprites
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:100)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s3.end 帧条「skill_s3_end」没列进 extra_sprites
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:100)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s3.end.frames 须是帧条范围内的帧号数组
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:105)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+ERROR: 干员 suzuran 的 sprites.skills.s1 要有 anim、hold 或 start
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:63)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
+       [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
+WARNING: 76 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 46 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

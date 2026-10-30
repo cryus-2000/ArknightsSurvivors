@@ -1,0 +1,12 @@
+# save_migrate
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/save_migrate_test.tscn -- --regression --seed=1
+# 用时 0 秒；结束时全机 Godot 4 个；缓存命中 88a061a7c75f
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SAVE MIGRATE failures=0
+
+
+## stderr
+

@@ -1,0 +1,26 @@
+# op_dummy
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/op_dummy_test.tscn -- --regression --seed=1 --balance --bot=afk --nodeath --op=hoshiguma --squad=wisadel --dummy_op=wisadel --dummy_role=mate --dummy_scene=horde --dummy_stage=2 --dummy_secs=5 --dummy_warm=2 --dummy_check
+# 用时 0 秒；结束时全机 Godot 4 个；缓存命中 ace464d48c0d
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DUMMY {"armor":2.5,"arts_res":0.1,"basic_hit_frames":10,"basic_interval":0.528,"by_src":{"余震":1594.4,"炮击":1469.8,"魂灵之影":121.9},"casts":1,"cls":"狙击","dodge":0.0,"dps":603.43,"dps_basic":580.34,"dps_other":0.0,"dps_skill":0.0,"dps_summon":23.09,"elite":2,"heal_src":{"自身回复":5.0},"horde_alive":11.6,"hps":0.0,"kills":0,"leader":"hoshiguma","manual_casts":0,"max_hp":124.2,"name":"维什戴尔","op":"wisadel","op_aspd":1.0,"op_atk":1.161,"op_kills":0,"op_range":1.0,"prog":6,"regen":0.95,"role":"mate","scene":"horde","secs":5.28,"shield_layers":0,"shield_ps":0.0,"skill_power":1.05,"sp_mult":1.0,"sp_need":[7.0,12.0,22.0],"speed":165.0,"squad":["hoshiguma","wisadel"],"stage":2,"warm":2.0}
+OP DUMMY failures=0
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/op_dummy_test.gd:77)
+WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
