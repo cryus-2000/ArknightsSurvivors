@@ -64,7 +64,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tier", default="b", choices=["a", "b"])   # b = 缺省（乙档，10-31 定）
     ap.add_argument("--out", default=os.path.join(GR.common_root(), "build", "izumik_offspring_1030"))
+    ap.add_argument("--what", default="offspring", choices=["offspring", "bullets"])
     a = ap.parse_args()
+    if a.what == "bullets":
+        return bullets(a)
     import imageio_ffmpeg
     ff = imageio_ffmpeg.get_ffmpeg_exe()
     os.makedirs(a.out, exist_ok=True)
@@ -75,6 +78,27 @@ def main():
     lst = os.path.join(a.out, "list.txt")
     open(lst, "w", encoding="utf-8").write("".join("file '%s'\n" % p.replace("\\", "/") for p in parts))
     final = os.path.join(a.out, "开场子代_改前vs改后%s.mp4" % ("" if a.tier == "b" else "_甲档"))
+    subprocess.run([ff, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", final], check=True)
+    os.remove(lst)
+    for p in parts:
+        os.remove(p)
+    print("视频", final, "%.1f MB" % (os.path.getsize(final) / 1e6))
+    return 0
+
+
+## --what=bullets：阐释阶段一幕 30 秒（登场后 25 秒起，学习期已过），改前 = 弹体 ×1、无轻追踪（10-31 前），改后 = 当前缺省（弹体 ×1.5、轻追踪 0.3）
+def bullets(a):
+    import imageio_ffmpeg
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    out = os.path.join(GR.common_root(), "build", "izumik_bullets_1031")
+    os.makedirs(out, exist_ok=True)
+    GR.ensure_imported(os.path.join(ROOT, "game"))
+    BB.REC_T0 = 175.0
+    parts = [seg(out, "old", ["boss/izumik_r_k=1", "boss/izumik_home_aim=0"], "改前：弹体 ×1、无追踪（新判定下机器人每分钟只被打中约 1 次）", ff),
+             seg(out, "new", [], "改后：弹体 ×1.5（画面 = 判定）、圆珠 / 快弹 / 二幕针轻追踪 0.3 弧度每秒", ff)]
+    lst = os.path.join(out, "list.txt")
+    open(lst, "w", encoding="utf-8").write("".join("file '%s'\n" % p.replace("\\", "/") for p in parts))
+    final = os.path.join(out, "伊祖米克弹幕_改前vs改后.mp4")
     subprocess.run([ff, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", final], check=True)
     os.remove(lst)
     for p in parts:
