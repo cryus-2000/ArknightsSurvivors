@@ -314,14 +314,16 @@ def mizuki():
 
 
 def saria():
-    """docs/205 §4.3（用户 10-31 选原作版 ①）：按 Q = 原作岩石聚起定格 + 余音（轻）→ 举拳聚光 gather（原作 rockboost 起段，fx line+v w3；没有 cast）
+    """docs/205 §4.3（用户 10-31 选原作版 ①）：按 Q = 原作碎岩一下定格 sf → 举拳聚光 gather（原作 rockboost 起段，fx line+v w3）
     → 一拳砸地 slam（fx circle r110，高潮挂画面：原作 jumphammer_2 + 预告片低频；第一下掉血不另响，没有 impact）
-    → 沿裂纹一波波岩柱爆开 rock_1..4（原作 rocksleep 三段，fx strip fx_saria_pillar_break）"""
+    → 沿裂纹一波波岩柱爆开 rock_1..4（原作 rocksleep 起头那一下 + 自然衰减，4 个音高；fx strip pillar_break 节流 0.15 秒）。
+    10-31 用户「奇怪的卡顿声」：原作 rocksleep / rockboost 是 2 秒连续碎石声，先前切成 0.5 秒碎段、0.07 秒连发听着像卡顿 → 改成每声完整一下；
+    没有蓄力 charge（碎石磨擦声连续抖动）"""
     return {
-        "sf": akd("p_skill_rockboost.wav", 0.0, 0.5, 0.9, fout=0.2), "charge": akd("p_skill_rockboost.wav", 0.5, 1.0, fout=0.3),
+        "sf": akd("p_skill_rocksleep.wav", 0.0, 0.45, 0.8, fout=0.25),
         "gather": akd("p_skill_rockboost.wav", 0.0, 0.5, fout=0.15),
         "slam": pad(akd("p_skill_jumphammer_2.wav", 0.0, 1.0, fout=0.4), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
-        **{"rock_%d" % (i + 1): akd("p_skill_rocksleep.wav", t, 0.5, r, fout=0.2) for i, (t, r) in enumerate([(0.0, 1.0), (1.25, 1.0), (1.73, 1.0), (0.0, 1.1)])},
+        **{"rock_%d" % (i + 1): akd("p_skill_rocksleep.wav", 0.0, 0.45, r, fout=0.28) for i, r in enumerate([1.0, 1.08, 0.94, 1.15])},
     }
 
 
