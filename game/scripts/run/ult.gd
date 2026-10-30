@@ -364,6 +364,7 @@ func _tick_ult(dt: float) -> void:
 			phase = ""
 			act = {}
 			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
+			num_end_rt = UM.now()   # 合并大数字从这一刻起停 ult/num_hold 秒再淡出
 
 
 func _cast() -> void:
@@ -641,7 +642,9 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	var src: String = _src(o, str(opt.get("src", "")))
 	var hp0: float = e.hp
 	g.combat.quiet = kills_now >= int(Bal.v("ult/fx_kill_cap", 60.0))
+	num_sup = num_merge_on()   # 合并大数字：这一下的小数字不飘（vfx.dmg_number 读）
 	g.combat.damage(e, amt, g.combat.make_hit(src, ["终结技"]))
+	num_sup = false
 	g.combat.quiet = false
 	if e.dead:
 		kills_now += 1
@@ -649,6 +652,9 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	e.ult_d = float(e.ult_d) + got
 	if got > 0.0:
 		last_hit_t = g.t
+		if num_merge_on():
+			_num_add(got, e.pos)
+		_hs_mark(str(opt.get("src", "")), e.pos)
 		if not opt.get("pre", false):
 			impact(e.pos)   # 冲击帧（这一次终结技第一下掉血）
 		_seg_sfx(str(opt.get("src", "")))
@@ -1043,8 +1049,8 @@ func cam_punch() -> float:
 ## 时间缩放（run/time_dilation.gd 读，登记为 fx 类：只在玩家局 / --realtime / --playclock 生效）
 func time_scale() -> float:
 	var s := 1.0
-	if sf_active():
-		return 0.0   # 超必杀暂停：世界冻结（敌人、弹幕、计时都停，只有演出层动）
+	if sf_active() or hs_active():
+		return 0.0   # 超必杀暂停 / 命中同步顿帧：世界冻结（敌人、弹幕、计时都停，只有演出层动）
 	if phase == "aim":
 		s = Bal.v("ult/cult_slow", 0.2) if kind == "cult" else Bal.v("ult/slow", 0.25)
 		if kind != "cult" and _sf_rt > 0.0 and sf_on():   # 暂停后接的瞄准慢放缩短：游戏时间不变，真实时间 slow_t → sf_slow_t
@@ -1369,6 +1375,12 @@ func impact(pos: Vector2) -> void:
 	_ua("impact")
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
 	flash_rt = _imp_rt
+	if _sf_visual():   # 冲击帧（整屏档）→ 回正常画面 → 顿帧定格（看得见的局里；批跑不走这里）
+		var fr: float = _if_start(pos, true)
+		flash_rt = _imp_rt + fr   # HUD 暖色闪光等冲击帧过了再出
+		if Bal.vi("ult/hs", 1) > 0 and Cfg.hitstop:
+			_hs_rt = _imp_rt
+			_hs_dur = fr + Bal.v("ult/imp_freeze", 0.1)
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
 	debris(pos, _col(caster), 3)
 	g.hurt_duck = maxf(float(g.hurt_duck), Bal.v("ult/imp_duck", 0.8))   # 配乐低通：冲击前一瞬压下去
@@ -1417,6 +1429,7 @@ func _imp_punch() -> float:
 ## 每帧真实时间钩子（game._process）：恢复速度那一刻爆一声
 func fx_tick() -> void:
 	_sf_tick()
+	_if_tick()
 	if not _imp_boom and _imp_age() >= Bal.v("ult/imp_freeze", 0.1) + Bal.v("ult/imp_slow_t", 0.45):
 		_imp_boom = true
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -1617,7 +1630,7 @@ func _sf_tick() -> void:
 		return
 	if not _sf_cut:
 		_sf_cut = true
-		if _sf_ld != null and caster == _sf_ld:
+		if _sf_ld != null and caster == _sf_ld and not sf_band_on():   # 斜带切入已经演过立绘，不再出屏边条带
 			_cutin(_sf_ld, kind)
 
 
@@ -1714,4 +1727,131 @@ func _draw_sf(w) -> void:
 		_px_thick(w, hp - Vector2(L, -L) * 0.4, hp + Vector2(L, -L) * 0.4, G3, _pc(col, 0.85))
 		_px_disc(w, hp, maxf(G3, L * 0.18), 0.0, _pc(Color.WHITE, 0.9))
 		w.tb_flush()
+
+
+# ================================================================ 超必杀演出第二步（用户 10-31：连携终结技暂不做，先把超必杀演出做完）
+## ① 斜带切入 ult/sf_band（缺省 1）：暂停那 ult/sf_t 秒里，HUD 上一条横穿全屏的干员色斜带 + 立绘上半身 + 干员名，一闪而过
+##    （画在 hud_ult._draw_sf_band，时长 ult/sf_band_t 不超过暂停）；开着时暂停后不再出屏边立绘条带，同一件事不演两遍。
+## ② 命中全场同步顿帧 ult/hs（缺省 1，跟设置里的「顿帧」走）：一招里每一段伤害的第一下，全场（敌人、弹幕、特效、队伍）一起停 ult/hs_t 真实秒；
+##    同一段连续掉血不重复停（换了伤害来源，或隔了 ult/hs_lull 游戏秒才算新的一段），两次之间至少 ult/hs_gap 真实秒；第一下照旧由 impact 的顿帧 + 慢放负责。
+##    走 time_scale 的 fx 类（与超必杀暂停同一条路）：只在看得见的局里生效，批跑不停，同 seed TRACE 不变。
+## ③ 合并大伤害数字 ult/num_merge（缺省 1）：终结技每一下的小伤害数字不飘，合计成一个大数字（hud_ult._draw_ult_num）：
+##    首次掉血处上方，边打边往上滚、每涨一次弹一下，收招后停 ult/num_hold 秒淡出；设置里关了伤害数字就不画。少画很多小字，帧时间只降不升。
+var _hs_rt := -99.0       # 上一次同步顿帧起点（真实时间）
+var _hs_src := ""
+var _hs_g := -99.0        # 上一下终结技掉血的游戏时刻
+var num_sup := false      # hit 里调 combat.damage 期间为真：vfx.dmg_number 不飘小数字
+var num_total := 0.0
+var num_serial := -1      # num_total 属于第几次终结技
+var num_rt := -99.0       # 合计最后一次上涨（真实时间）
+var num_end_rt := -99.0   # 收招时刻（真实时间）
+var num_pos := Vector2.ZERO
+
+
+func sf_band_on() -> bool:
+	return sf_on() and Bal.vi("ult/sf_band", 1) > 0
+
+
+func sf_band_t() -> float:
+	return minf(Bal.v("ult/sf_band_t", 0.35), Bal.v("ult/sf_t", 0.35))
+
+
+## 斜带进行到第几秒（真实时间）；不在斜带期间返回 -1
+func sf_band_age() -> float:
+	if _sf_rt <= 0.0 or _sf_ld == null or not sf_band_on():
+		return -1.0
+	var t: float = sf_age()
+	return t if t >= 0.0 and t < sf_band_t() else -1.0
+
+
+func hs_active() -> bool:
+	return UM.now() - _hs_rt < _hs_dur
+
+
+func _hs_mark(src: String, pos: Vector2) -> void:
+	var new_seg: bool = src != _hs_src or g.t - _hs_g > Bal.v("ult/hs_lull", 0.15)
+	_hs_src = src
+	_hs_g = g.t
+	if not new_seg or not _sf_visual():
+		return
+	var now := UM.now()
+	if now - _imp_rt < Bal.v("ult/imp_freeze", 0.1) + Bal.v("ult/imp_slow_t", 0.45) or now - _hs_rt < Bal.v("ult/hs_gap", 0.22):
+		return   # 第一下的冲击顿帧 + 慢放期间不叠；离上一次太近不停
+	var fr: float = _if_start(pos, false)   # 局部冲击帧（每招连整屏那次合计至多 ult/if_max 次）
+	if Bal.vi("ult/hs", 1) > 0 and Cfg.hitstop:
+		_hs_rt = now
+		_hs_dur = fr + Bal.v("ult/hs_t", 0.06)
+
+
+# ---------------------------------------------------------------- 冲击帧（协调人 10-31 转用户：打击感学中村丰的原理——命中那 1–2 帧高对比剪影，再回正常画面，紧接顿帧定格）
+## 开关 ult/impact_frame（缺省 1）。整屏档给这一招最该爆的那一下（impact：招式把铺垫伤害标 pre，冲击落在主击上），局部档给之后新的一段伤害；
+## 每招至多 ult/if_max（2）次（光敏安全）。两个子帧各 ult/if_t（0.035）真实秒：
+##   整屏：① 近黑底 + 干员色亮剪影 ② 干员色暗底 + 暖白剪影——两帧都是暗底，不出纯白全屏；
+##   局部（半径 ult/if_local_r 世界像素的圆）：① 浅灰底 + 黑剪影 ② 黑底 + 干员色亮剪影。
+## 剪影 = 比周围亮的像素（敌人、主体特效），由后期着色器判定（post.gdshader / optical.gdshader 的 if_* 参数），不另开全屏层；
+## 减少动态效果开时不画；招式动作字典设 "hf": false 可关掉这一招的冲击帧。只在看得见的局里，批跑不走。
+var _hs_dur := 0.06
+var _if_rt := -99.0
+var _if_full := false
+var _if_pos := Vector2.ZERO
+var _if_ser := -1
+var _if_n := 0
+
+
+## 起一次冲击帧，返回它占用的真实秒数（没起返回 0）
+func _if_start(pos: Vector2, full: bool) -> float:
+	if Bal.vi("ult/impact_frame", 1) <= 0 or Cfg.reduce_motion or not act.get("hf", true) or g.post == null:
+		return 0.0
+	if _if_ser != serial:
+		_if_ser = serial
+		_if_n = 0
+	if _if_n >= Bal.vi("ult/if_max", 2):
+		return 0.0
+	_if_n += 1
+	_if_rt = UM.now()
+	_if_full = full
+	_if_pos = pos
+	return 2.0 * Bal.v("ult/if_t", 0.035)
+
+
+func _if_tick() -> void:
+	if g.post == null:
+		return
+	var T: float = Bal.v("ult/if_t", 0.035)
+	var t: float = UM.now() - _if_rt
+	if t < 0.0 or t >= 2.0 * T or caster == null:
+		if g.post.if_amt != 0.0:
+			g.post.if_amt = 0.0
+		return
+	var col: Color = _col(caster)
+	var hi: Color = col.lerp(Color.WHITE, 0.55)
+	hi = hi * (0.88 / maxf(0.01, maxf(hi.r, maxf(hi.g, hi.b))))   # 剪影亮度封顶 0.88（不出纯白）
+	var sub2: bool = t >= T
+	g.post.if_amt = 1.0
+	if _if_full:
+		g.post.if_r = 0.0
+		g.post.if_bg = Color(col.r * 0.2, col.g * 0.2, col.b * 0.2) if sub2 else Color(0.015, 0.015, 0.03)
+		g.post.if_fg = Color(0.86, 0.84, 0.8) if sub2 else hi
+	else:
+		var vp: Viewport = g.get_viewport()
+		var xf: Transform2D = vp.get_canvas_transform()
+		var vs: Vector2 = vp.get_visible_rect().size
+		g.post.if_c = (xf * _if_pos) / vs
+		g.post.if_r = Bal.v("ult/if_local_r", 300.0) * xf.get_scale().x / maxf(1.0, vs.y)
+		g.post.if_bg = Color(0.02, 0.02, 0.035) if sub2 else Color(0.78, 0.76, 0.72)
+		g.post.if_fg = hi if sub2 else Color(0.03, 0.03, 0.05)
+
+
+func num_merge_on() -> bool:
+	return Bal.vi("ult/num_merge", 1) > 0
+
+
+func _num_add(got: float, pos: Vector2) -> void:
+	if num_serial != serial:
+		num_serial = serial
+		num_total = 0.0
+		num_pos = pos
+		num_end_rt = -99.0
+	num_total += got
+	num_rt = UM.now()
 

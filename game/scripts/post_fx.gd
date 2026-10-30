@@ -15,6 +15,11 @@ var zone_amt := 0.0    # 失色区强度 0..1（拉普兰德 S3「噤声」，ob
 var zone_c := Vector2(0.5, 0.5)   # 屏幕 uv
 var zone_r := 0.0      # uv（按屏幕高）
 var zone_hole := Vector3(0.5, 0.5, 0.0)
+var if_amt := 0.0      # 终结技冲击帧（ult.gd _if_tick 每帧写）：0 关 / 1 开；if_bg / if_fg 底色与剪影色，if_c / if_r 局部圆（uv），if_r = 0 整屏
+var if_bg := Color.BLACK
+var if_fg := Color.WHITE
+var if_c := Vector2(0.5, 0.5)
+var if_r := 0.0
 var zone_mask: SubViewport
 var mask_canvas: Node2D
 var mask_game
@@ -88,6 +93,15 @@ func apply_zone_guards(target: ShaderMaterial) -> void:
 	else:
 		target.set_shader_parameter("zone_mask", null)
 
+## 冲击帧参数（普通后期与光学后期共用；平时只写一个 0）
+func apply_if(target: ShaderMaterial) -> void:
+	target.set_shader_parameter("if_amt", if_amt)
+	if if_amt > 0.5:
+		target.set_shader_parameter("if_bg", Vector3(if_bg.r, if_bg.g, if_bg.b))
+		target.set_shader_parameter("if_fg", Vector3(if_fg.r, if_fg.g, if_fg.b))
+		target.set_shader_parameter("if_c", if_c)
+		target.set_shader_parameter("if_r", if_r)
+
 func _retire_zone_mask(delta: float) -> void:
 	if zone_mask == null:
 		return
@@ -151,9 +165,10 @@ func _process(delta: float) -> void:
 	mat.set_shader_parameter("zone_c", zone_c)
 	mat.set_shader_parameter("zone_r", zone_r)
 	mat.set_shader_parameter("zone_hole", zone_hole)
+	apply_if(mat)
 	apply_zone_guards(mat)
 	# 全关时整层隐藏，省一次全屏采样
-	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001 or zone_amt > 0.001 or _curve
+	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001 or zone_amt > 0.001 or _curve or if_amt > 0.5
 	# 图鉴开着时，手机网页 / 苹果 WebKit 不叠后期（不读屏，亮度不乘）：iOS 上这一层会把整屏盖成图鉴中途拷屏时的画面（Cfg.screen_copy_ok）
 	if crisp and not Cfg.screen_copy_ok():
 		rect.visible = false

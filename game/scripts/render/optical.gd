@@ -620,4 +620,5 @@ func _process(_dt: float) -> void:
 		mat.set_shader_parameter("zone_c", g.post.zone_c)
 		mat.set_shader_parameter("zone_r", g.post.zone_r)
 		mat.set_shader_parameter("zone_hole", g.post.zone_hole)
+		g.post.apply_if(mat)   # 终结技冲击帧
 		g.post.apply_zone_guards(mat)

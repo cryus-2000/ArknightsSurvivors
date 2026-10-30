@@ -418,6 +418,8 @@ func draw_cutins(vs: Vector2) -> void:
 	if ft >= 0.0 and ft < 0.22 and not Cfg.reduce_motion:
 		var fcol: Color = g.ult._col(g.ult.caster).lerp(Color(0.9, 0.88, 0.82), 0.55) if g.ult.caster != null else Color(0.9, 0.88, 0.82)
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(fcol, 0.26 * (1.0 - ft / 0.22) * (0.5 if _boss_on() else 1.0)))   # 闪光：干员色偏暖、封顶不发白（10-30 美术口径）
+	_draw_ult_num(vs)
+	_draw_sf_band(vs)
 	var cs: Array = g.ult.cutins
 	if cs.is_empty():
 		return
@@ -524,3 +526,114 @@ func _strip_art(o, e: float, sg: float, sx: float, y: float, hh: float, box: Rec
 				g.hud.draw_texture_rect_region(t, Rect2(cl.position + Vector2(4, 4), cl.size), Rect2(s0, cl.size / k), Color(0, 0, 0, 0.35 * a))
 				g.hud.draw_texture_rect_region(t, cl, Rect2(s0, cl.size / k), Color(1, 1, 1, a))
 	return push
+
+
+## 超必杀斜带切入（ult/sf_band，用户 10-31）：暂停那一下，一条横穿全屏、左低右高的干员色斜带一闪而过——
+## 0.06 秒张开 → 停 → 最后 0.08 秒收成一条线；带内立绘上半身慢慢滑过、另一侧写干员名、沿带方向的速度线往外流。
+## 斜带放在队长的另一半屏（队长在下半屏就放上面），不挡队长本人和轮廓光。减少动态效果：不张合、不滑动、不画速度线，只淡入淡出。Boss 战透明度 × 0.7
+func _draw_sf_band(vs: Vector2) -> void:
+	var t: float = g.ult.sf_band_age()
+	if t < 0.0:
+		return
+	var ld = g.ult._sf_ld
+	var T: float = g.ult.sf_band_t()
+	var rm: bool = Cfg.reduce_motion
+	var a: float = 0.7 if _boss_on() else 1.0
+	var hk := 1.0
+	if t < 0.06:
+		hk = t / 0.06
+	elif t > T - 0.08:
+		hk = maxf(0.0, (T - t) / 0.08)
+	if rm:
+		a *= hk
+		hk = 1.0
+	var col: Color = g.ult._col(ld)
+	var sp: Vector2 = g.hud_ct() * ld.pos
+	var Hf: float = clampf(vs.y * 0.18, 90.0, 170.0)
+	var H: float = Hf * hk
+	var tilt: float = vs.x * 0.06   # 右端比左端高 tilt：带中线 y(x) = cy + tilt * (0.5 - x / vs.x)
+	# 带整条让开队长（含她头顶约 90 像素的身体）：先放她上方，上方放不下就放下方
+	var clear: float = Hf * 0.5 + tilt * 0.5 + 24.0
+	var cy: float = sp.y - 90.0 - clear
+	if cy - clear < vs.y * 0.04:   # 顶栏被盖 0.35 秒可以接受
+		cy = minf(sp.y + 20.0 + clear, vs.y * 0.9 - clear)
+	var yl: float = cy + tilt * 0.5
+	var yr: float = cy - tilt * 0.5
+	var p := PackedVector2Array([Vector2(-20, yl - H * 0.5), Vector2(vs.x + 20, yr - H * 0.5), Vector2(vs.x + 20, yr + H * 0.5), Vector2(-20, yl + H * 0.5)])
+	var tb := Tris.new()
+	tb.poly(p, Color(col.r * 0.42, col.g * 0.42, col.b * 0.42, 0.94 * a))
+	tb.line(p[0], p[1], Color(col.lerp(Color.WHITE, 0.55), 0.95 * a), 4.0)
+	tb.line(p[3], p[2], Color(col.lerp(Color.WHITE, 0.55), 0.95 * a), 4.0)
+	if not rm and H > 8.0:   # 带内速度线：长短 / 粗细 / 速度按序号哈希，不等距
+		var d: Vector2 = Vector2(vs.x, yr - yl).normalized()
+		for i in 14:
+			var h1: float = fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
+			var h2: float = fposmod(sin(float(i) * 78.233) * 12345.678, 1.0)
+			var x: float = fposmod(h1 * vs.x * 1.3 - t * vs.x * (2.0 + 2.0 * h2), vs.x * 1.3) - vs.x * 0.15
+			var y: float = cy + tilt * (0.5 - x / vs.x) + (h2 - 0.5) * H * 0.8
+			var L: float = 60.0 + 160.0 * h2
+			tb.line(Vector2(x, y), Vector2(x, y) + d * L, Color(col.lerp(Color.WHITE, 0.4 + 0.4 * h1), (0.18 + 0.25 * h1) * a), 2.0 + 3.0 * float(int(h1 * 2.0)))
+	tb.flush(g.hud)
+	if H <= 8.0:
+		return
+	var right: bool = sp.x < vs.x * 0.5   # 立绘放在离队长远的那一侧
+	var art: Dictionary = _art_of(ld)
+	if not art.is_empty() and art.bb.size.y > 0.0:
+		var bb: Rect2 = art.bb
+		var src_h: float = bb.size.y * 0.62
+		var k: float = Hf * 1.3 / src_h   # 立绘比带高一点，裁在带里
+		var dw: float = bb.size.x * k
+		var slide: float = 0.0 if rm else (t / T - 0.5) * vs.x * 0.06 * (-1.0 if right else 1.0)
+		var px: float = vs.x * (0.7 if right else 0.3) + slide
+		var x0: float = px - dw * 0.5
+		var x1: float = px + dw * 0.5
+		var top: float = cy + tilt * (0.5 - x0 / vs.x) - H * 0.5 + 3.0
+		var bot: float = cy + tilt * (0.5 - x1 / vs.x) + H * 0.5 - 3.0
+		var dst := Rect2(x0, cy + tilt * (0.5 - px / vs.x) - Hf * 0.45, dw, src_h * k)   # 头在带中间
+		var cl: Rect2 = dst.intersection(Rect2(x0, top, dw, maxf(0.0, bot - top)))
+		if cl.has_area():
+			var s0: Vector2 = bb.position + (cl.position - dst.position) / k
+			g.hud.draw_texture_rect_region(art.tex, cl, Rect2(s0, cl.size / k), Color(1, 1, 1, a))
+	var fs: int = 40 if vs.y >= 700.0 else 30
+	var nx: float = vs.x * (0.3 if right else 0.7)
+	var tw := 420.0
+	UI.text(g.hud, g.font, Vector2(nx - tw * 0.5, cy + tilt * (0.5 - nx / vs.x) + fs * 0.38), ld.display_name(), fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, tw, 6)
+
+
+## 终结技合并大伤害数字（ult/num_merge，用户 10-31）：一招的合计，首次掉血处上方；边打边往上滚、每涨一次弹一下；
+## 收招后停 ult/num_hold 秒再 0.3 秒淡出；设置里关了伤害数字就不画。字号只取偶数档（少建字形缓存）
+var _num_disp := 0.0
+var _num_ser := -1
+var _num_prev := 0.0
+var _num_pop := -99.0
+var _num_t := -1.0
+
+
+func _draw_ult_num(vs: Vector2) -> void:
+	var u = g.ult
+	if not Cfg.dmg_numbers or not u.num_merge_on() or u.num_total <= 0.0:
+		return
+	var now: float = UM.now()
+	var going: bool = u.phase == "cast" and u.num_serial == u.serial
+	var since: float = now - maxf(float(u.num_rt), float(u.num_end_rt))
+	var hold: float = Bal.v("ult/num_hold", 0.9)
+	if not going and since > hold + 0.3:
+		return
+	var a: float = 1.0 if (going or since < hold) else 1.0 - (since - hold) / 0.3
+	if _num_ser != int(u.num_serial):
+		_num_ser = int(u.num_serial)
+		_num_disp = 0.0
+		_num_prev = 0.0
+	var dt: float = clampf(now - _num_t, 0.0, 0.1)
+	_num_t = now
+	_num_disp = minf(float(u.num_total), _num_disp + maxf((float(u.num_total) - _num_disp) * minf(1.0, dt * 12.0), dt * 300.0))
+	if float(u.num_total) > _num_prev + 0.5:
+		_num_pop = now
+	_num_prev = float(u.num_total)
+	var pk: float = 1.0 + 0.22 * maxf(0.0, 1.0 - (now - _num_pop) / 0.12)
+	var fs: int = int(round(46.0 * pk / 2.0)) * 2
+	var sp: Vector2 = g.hud_ct() * u.num_pos + Vector2(0, -110)
+	sp.x = clampf(sp.x, vs.x * 0.15, vs.x * 0.85)
+	sp.y = clampf(sp.y, vs.y * 0.16, vs.y * 0.7)
+	var col: Color = (u._col(u.caster) if u.caster != null else Color.WHITE).lerp(Color(1.0, 0.95, 0.82), 0.65)
+	UI.text(g.hud, g.font, Vector2(sp.x - 200.0, sp.y + fs * 0.38), str(int(round(_num_disp))), fs, Color(col, a * (0.7 if _boss_on() else 1.0)), HORIZONTAL_ALIGNMENT_CENTER, 400.0, 7)

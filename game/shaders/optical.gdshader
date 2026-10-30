@@ -37,6 +37,12 @@ uniform float glow_budget = 0.06;      // 全屏发光总量预算（屏幕平�
 uniform float lut_on = 1.0;
 uniform float vignette = 0.12;
 uniform float hurt = 0.0;
+uniform float if_amt = 0.0;            // 终结技冲击帧（ult/impact_frame，post_fx 转写）：0 关、1 开
+uniform vec3 if_bg = vec3(0.0);
+uniform vec3 if_fg = vec3(1.0);
+uniform float if_thr = 0.25;
+uniform vec2 if_c = vec2(0.5);         // 局部冲击帧圆心（屏幕 uv）
+uniform float if_r = 0.0;              // 0 = 整屏；> 0 局部半径（uv，按屏幕高）
 uniform float desat = 0.0;
 // 失色区（10-25 拉普兰德 S3「噤声」；同 post.gdshader，参数由 optical.gd 从 g.post 转来）
 uniform float zone_amt = 0.0;
@@ -185,6 +191,17 @@ void fragment() {
 	if (hurt > 0.001) {
 		float e = smoothstep(0.25, 0.75, length(c) * 1.4);
 		base = mix(base, vec3(0.6, 0.05, 0.08), e * hurt * 0.55);
+	}
+	if (if_amt > 0.5) {   // 终结技冲击帧（ult.gd _if_*）：比周围亮的（敌人 / 主体特效）成剪影，其余压成底色；if_r > 0 只在圆里
+		float l = luma(base);
+		float lb = luma(textureLod(screen_mip, SCREEN_UV, 5.0).rgb);
+		vec3 tw = mix(if_bg, if_fg, step(max(if_thr, lb * 1.15 + 0.04), l));
+		float f = 1.0;
+		if (if_r > 0.0001) {
+			float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;
+			f = 1.0 - smoothstep(if_r * 0.85, if_r, length(vec2((SCREEN_UV.x - if_c.x) * asp, SCREEN_UV.y - if_c.y)));
+		}
+		base = mix(base, tw, f);
 	}
 	COLOR = vec4(base, 1.0);
 }

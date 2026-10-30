@@ -15,6 +15,12 @@ uniform float toe = 1.0;            // 暗部伽马（>1 压暗部），只作�
 uniform float pivot = 0.35;
 uniform float sat = 0.0;            // 饱和度增量（0.1 = +10%，按鲜艳度：灰的多加、已饱和 / 高光少加）
 uniform float hurt = 0.0;           // 0..1 受伤红边
+uniform float if_amt = 0.0;         // 终结技冲击帧（ult/impact_frame，ult.gd 写 post_fx）：0 关、1 开
+uniform vec3 if_bg = vec3(0.0);
+uniform vec3 if_fg = vec3(1.0);
+uniform float if_thr = 0.25;
+uniform vec2 if_c = vec2(0.5);      // 局部冲击帧圆心（屏幕 uv）
+uniform float if_r = 0.0;           // 0 = 整屏；> 0 局部半径（uv，按屏幕高）
 uniform float desat = 0.0;          // 0..1 去色（最终 Boss 击破演出）
 uniform float time = 0.0;
 // 失色区（10-25 拉普兰德 S3「噤声」，ob_summon._mark_draw 写）：屏幕 uv 椭圆（x 按宽高比校正、y 按 zone_ratio 压扁）内去色；
@@ -107,6 +113,17 @@ void fragment() {
 	if (hurt > 0.001) {
 		float edge = smoothstep(0.12, 0.5, r2);
 		col = mix(col, vec3(0.9, 0.08, 0.12), edge * hurt * 0.75);
+	}
+	if (if_amt > 0.5) {   // 终结技冲击帧（ult.gd _if_*）：比周围亮的（敌人 / 主体特效）成剪影，其余压成底色；if_r > 0 只在圆里
+		float l = dot(col, vec3(0.299, 0.587, 0.114));
+		float lb = dot(textureLod(screen_tex, uv, 5.0).rgb, vec3(0.299, 0.587, 0.114));
+		vec3 tw = mix(if_bg, if_fg, step(max(if_thr, lb * 1.15 + 0.04), l));
+		float f = 1.0;
+		if (if_r > 0.0001) {
+			float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;
+			f = 1.0 - smoothstep(if_r * 0.85, if_r, length(vec2((uv.x - if_c.x) * asp, uv.y - if_c.y)));
+		}
+		col = mix(col, tw, f);
 	}
 	COLOR = vec4(col, 1.0);
 }
