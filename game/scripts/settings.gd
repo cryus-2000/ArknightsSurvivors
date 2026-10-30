@@ -85,6 +85,7 @@ var diff_best := {}      # 各档最佳成绩 {"0": {"wins": 通关次数, "best
 var seen_shows: Array = []   # 已看过的解锁演出
 var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
+var event_log := {}           # 事件图鉴（core/event_book.gd）：{seen: {事件: 遇到次数}, opt: {"事件:编号": 见过}, pick: {"事件:编号": 选过次数}}；老存档没有，从空开始
 var seen_intro := false      # 已看过开局引导（聚光框，screens/tour.gd；旧版翻页指南也用它）
 var title_tour := 0          # 主界面引导（screens/title_tour.gd）：0 没有 / 1 新手十连做完待引导 / 2 已引导（老存档恒为 0，不弹）
 var seen_tips: Array = []    # 已弹过的到点小提示 id（tour.gd TIPS；每样只弹一次）
@@ -524,6 +525,8 @@ func _read_cfg(c: ConfigFile) -> void:
 	seen_shows = c.get_value("progress", "seen_shows", seen_shows)
 	gallery_seen = c.get_value("progress", "gallery_seen", [])
 	seen_relics = c.get_value("progress", "seen_relics", seen_relics)
+	var evl = c.get_value("progress", "event_log", {})
+	event_log = evl if evl is Dictionary else {}
 	seen_intro = c.get_value("progress", "seen_intro", seen_intro)
 	seen_tips = c.get_value("progress", "seen_tips", seen_tips)
 	title_tour = int(c.get_value("progress", "title_tour", title_tour))
@@ -841,6 +844,7 @@ func save() -> void:
 	c.set_value("progress", "gallery_seen", gallery_seen)
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
+	c.set_value("progress", "event_log", event_log)
 	c.set_value("progress", "seen_intro", seen_intro)
 	c.set_value("progress", "seen_tips", seen_tips)
 	c.set_value("progress", "title_tour", title_tour)

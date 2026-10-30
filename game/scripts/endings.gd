@@ -10,6 +10,7 @@ const BuildGuide = preload("res://scripts/run/build_guide.gd")   # 构筑引导�
 const Bal = preload("res://scripts/core/balance.gd")
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")
 const UM = preload("res://scripts/ui_motion.gd")
+const EventBook = preload("res://scripts/core/event_book.gd")   # 事件图鉴记录（docs/184 §11）
 
 var g
 var events: Array = []          # 事件表（waves.json）
@@ -563,8 +564,8 @@ static func _gives_core(o) -> bool:
 	return false
 
 
-## 弹事件选项（C 版式）
-func open(ev_id: String) -> void:
+## 弹事件选项（C 版式）；count = false：同一件事件重弹下一屏（深蓝之心继续搜寻），图鉴不再记一次遇到
+func open(ev_id: String, count := true) -> void:
 	var ev: Dictionary = ev_by_id.get(ev_id, {})
 	if ev.is_empty():
 		_close()
@@ -608,6 +609,9 @@ func open(ev_id: String) -> void:
 		opts.append(opt)
 	if opts.is_empty():
 		opts.append({"kind": "event", "id": "%s:-1" % ev_id, "name": "离开", "desc": "什么都不做", "icon": "exit", "chips": [], "cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
+	EventBook.note_open(ev_id, opts.map(func(o): return str(o.id)).filter(func(x): return not x.ends_with(":-1")), count)
+	if g.mode == g.Mode.PLAY:
+		Cfg.save()
 	g.panel_ui.show_choices(ev.name, opts, "event", str(ev.get("text", "")))
 
 
@@ -721,6 +725,9 @@ func pick(o: Dictionary) -> bool:
 	if picks.size() > 0 and picks[-1].size() == 3:
 		picks[-1].append(k)
 	_log("pick %s:%d" % [parts[0], k])
+	EventBook.note_pick("%s:%d" % [parts[0], k])
+	if g.mode == g.Mode.PLAY:
+		Cfg.save()
 	var defer: Array = []   # 要再选一次的（选干员 / 交藏品）：其余效果先生效，再逐个弹选择屏
 	for x in op.get("ops", []):
 		if x.has("chance") and g.rng.randf() >= float(x.chance):
@@ -740,7 +747,7 @@ func pick(o: Dictionary) -> bool:
 		searched.append(str(o.id))
 		var mp: int = int(ev.get("max_picks", 0))   # 梦中之会：最多连选三项（docs/184 §4.2）
 		if mp <= 0 or searched.filter(func(s): return str(s).begins_with(str(ev.id) + ":")).size() < mp:
-			open(str(ev.id))
+			open(str(ev.id), false)
 			return true
 		return false
 	var nxt: String = str(op.get("next", ev.get("next", "")))
