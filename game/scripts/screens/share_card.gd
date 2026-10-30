@@ -11,6 +11,7 @@ const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
 const SB = preload("res://scripts/screens/settle/settle_base.gd")
+const OpFig = preload("res://scripts/screens/op_figure.gd")
 
 const W := 600.0
 const H := 800.0
@@ -47,7 +48,7 @@ func data(screen) -> Dictionary:
 	var won: bool = str(m.get("result", "")) == "win"
 	var ops: Array = []
 	for r in screen.rows:
-		ops.append({"key": str(r.key), "name": str(r.name), "en": str(r.get("en", "")), "elite": int(r.get("elite", 0)), "leader": bool(r.leader), "col": r.col, "art": screen.art.get(r.key, {})})
+		ops.append({"key": str(r.key), "name": str(r.name), "en": str(r.get("en", "")), "elite": int(r.get("elite", 0)), "leader": bool(r.leader), "col": r.col, "art": g.panel_ui.op_idle(str(r.key))})
 	var relics: Array = m.get("relic_list", []).duplicate()
 	var rank := {"升华": 0, "稀有": 1, "遭诅古物": 2, "基础": 3}
 	relics.sort_custom(func(a, b): return int(rank.get(str(a.rarity), 4)) < int(rank.get(str(b.rarity), 4)))
@@ -179,14 +180,7 @@ func _footer(ci: CanvasItem, d: Dictionary, acc: Color) -> void:
 
 ## 立绘按包围盒以 0.5 倍为档缩放、脚底对齐，夹在框里不出框
 func _art(ci: CanvasItem, a: Dictionary, box: Rect2, mod: Color) -> void:
-	if a.is_empty() or not (a.bounds as Rect2).has_area():
-		return
-	var bb: Rect2 = a.bounds
-	var kk: float = maxf(0.5, floorf(minf(box.size.x / bb.size.x, box.size.y / bb.size.y) * 2.0) / 2.0)
-	var sz: Vector2 = bb.size * kk
-	if sz.x > box.size.x or sz.y > box.size.y:
-		sz *= minf(box.size.x / sz.x, box.size.y / sz.y)
-	ci.draw_texture_rect_region(a.tex, Rect2(Vector2(box.position.x + (box.size.x - sz.x) * 0.5, box.end.y - sz.y).round(), sz), bb, mod)
+	OpFig.draw(ci, a, box, 0, mod)   # 全员同一比例、脚底对齐（screens/op_figure.gd，同结算 / 作战记录）
 
 
 # ---------------------------------------------------------------- 共用部件

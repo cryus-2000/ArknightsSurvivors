@@ -7,6 +7,7 @@ const UM = preload("res://scripts/ui_motion.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
 const D = preload("res://scripts/data.gd")
 const Roster = preload("res://scripts/core/roster.gd")
+const OpFig = preload("res://scripts/screens/op_figure.gd")
 
 const MAG := Color8(232, 64, 128)      # 失败 / 击倒（洋红，docs/37）
 const PHONE_MIN_FS := 15
@@ -129,23 +130,12 @@ func para(r: Rect2, col: Color, line := Color(0, 0, 0, 0), w := 1.5) -> void:
 		HH.para(ci, r, Color(col, col.a * fa), Color(line, line.a * fa), w)
 
 
-## 干员待机第一帧：按不透明包围盒整半倍缩放、底边居中、夹在 box 里（立绘不出框）。返回实际画出的矩形
+## 干员待机第一帧（screens/op_figure.gd：全员同一比例、脚底对齐框底、超出裁掉）。max_k = 每美术像素最多几屏幕像素。返回实际画出的矩形
 func art(key: String, box: Rect2, mod := Color.WHITE, max_k := 6.0) -> Rect2:
-	var a: Dictionary = s.art.get(key, {})
-	if a.is_empty() or fa <= 0.0:
+	if fa <= 0.0:
 		return Rect2()
-	var bb: Rect2 = a.bounds
-	if not bb.has_area():
-		return Rect2()
-	var kk := floorf(minf(box.size.x / bb.size.x, box.size.y / bb.size.y) * 2.0) / 2.0
-	kk = clampf(kk, 0.5, max_k)
-	var sz := bb.size * kk
-	if sz.x > box.size.x or sz.y > box.size.y:   # 0.5 倍下限仍放不下：按比例再缩
-		var f := minf(box.size.x / sz.x, box.size.y / sz.y)
-		sz *= f
-	var r := Rect2(Vector2(box.position.x + (box.size.x - sz.x) * 0.5, box.end.y - sz.y).round(), sz)
-	ci.draw_texture_rect_region(a.tex, r, bb, Color(mod, mod.a * fa))
-	return r
+	var idle: Dictionary = s.g.panel_ui.op_idle(key)
+	return OpFig.draw(ci, idle, box, 0, Color(mod, mod.a * fa), minf(max_k, OpFig.k_for(box.size.y)))
 
 
 func relic_tex(id: String) -> Texture2D:

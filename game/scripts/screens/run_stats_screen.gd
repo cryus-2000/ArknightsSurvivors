@@ -24,6 +24,7 @@ const RunStats = preload("res://scripts/run/run_stats.gd")
 const Game = preload("res://scripts/game.gd")
 const HH = preload("res://scripts/screens/hh_style.gd")
 const SB = preload("res://scripts/screens/settle/settle_base.gd")
+const OpFig = preload("res://scripts/screens/op_figure.gd")
 
 const SEG0 := 0.08      # 第一格 / 第一段开始
 const SEG_S := 0.07     # 占比条段间错开
@@ -456,20 +457,20 @@ func _fit(tx: Texture2D, frame: Rect2, bb: Rect2, art: float, box: Rect2, kmax: 
 	return dst
 
 
-## 干员待机帧放进 box（卡片 / 主控块 / 详情身份卡的像框）
-func _portrait(id: String, box: Rect2, kmax: float, by_height := false) -> Rect2:
+## 干员待机帧放进 box（编队行 / 队长卡 / 详情身份卡 / 对局记录的像框）：screens/op_figure.gd 统一比例、脚底对齐框底、超出裁掉。
+## 10-30 起不再按各自帧条包围盒取倍数（水月 192 画布会被压成德克萨斯的一半高）；_kmax / _by_height 保留参数位，不再用
+func _portrait(id: String, box: Rect2, _kmax := 0.0, _by_height := false) -> Rect2:
 	if id == RunStats.OTHER or id == "":
 		return Rect2()
 	var idle: Dictionary = g.panel_ui.op_idle(id)
 	if idle.is_empty():
 		return Rect2()
-	var tx: Texture2D = idle.tex
-	var fw: int = idle.fw
-	var fh: int = idle.fh
-	var nfr: int = maxi(1, tx.get_width() / maxi(1, fw))
+	var nfr: int = maxi(1, int(idle.get("frames", 1)))
 	var fr := 0 if (UM.rm() or UM.skip_all()) else int(UM.now() * 4.0) % nfr
-	var bb := _bbox(tx, fw, fh, nfr)
-	return _fit(tx, Rect2(fr * fw, 0, fw, fh), bb, A.hires_of(tx), box, kmax, 1.0, by_height)   # 原来按 fh > 64 猜 @2x，64 画布 1x 正好卡边界
+	var dst := OpFig.draw(_ci(), idle, box, fr)
+	if dst.has_area():
+		portraits.append([dst, box])
+	return dst
 
 
 ## 环境击倒者的图：溟痕用地面溟痕贴图，其余（黑潮 / 寂灭 / 围猎……）用生成的像素图
