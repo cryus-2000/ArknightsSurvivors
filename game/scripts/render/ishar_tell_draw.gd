@@ -93,7 +93,7 @@ static func _zones(g) -> void:
 static func _laser(g, a: Vector2, d: Vector2, L: float, wid: float, open: float, flash: float, alpha := 1.0, glow := 1.0) -> void:
 	var b: Vector2 = a + d * L
 	var o: Vector2 = d.orthogonal()
-	var w: float = wid * open
+	var w: float = wid * 2.0 * open   # wid 是半宽（与判定的 line wid 同口径）：光束外晕正好贴着判定边（10-31 用户「跟踪大激光粗一倍」）
 	for q in [[1.0, 0.1], [0.7, 0.16]]:
 		var n: Vector2 = o * w * 0.5 * float(q[0])
 		g.draw_colored_polygon(PackedVector2Array([a + n, b + n, b - n, a - n]), Color(CORE.r, CORE.g, CORE.b, float(q[1]) * alpha * glow))
