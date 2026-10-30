@@ -210,16 +210,24 @@ def cmd_run(a):
         base = git("merge-base", sha, "origin/main").stdout.strip()
         tmp = tempfile.mkdtemp()
         bnd = os.path.join(tmp, "repo.bundle")
-        git("bundle", "create", bnd, sha, "^" + base)
+        ref = "refs/gcpbatch/bundle"   # bundle 只认引用名，裸提交号会报 empty bundle
+        git("update-ref", ref, sha)
+        try:
+            git("bundle", "create", bnd, ref, "^" + base)
+        finally:
+            git("update-ref", "-d", ref, check=False)
         print("提交 %s 不在 origin 上：上传 bundle（基于 %s，%.1f MB）" % (sha[:10], base[:10], os.path.getsize(bnd) / 1e6))
         gc("storage", "cp", bnd, gs + "/repo.bundle", "-q")
     t0 = time.time()
     model = "STANDARD" if a.standard else "SPOT"
     rc = None
+    cost = 0.0
     try:
         for attempt in range(2):
+            t1 = time.time()
             create_vm(a, name, gs, sha, base, cmds, model)
             rc = wait(name, a.zone, gs, a.poll)
+            cost += (time.time() - t1) / 3600 * (PRICE.get((a.machine, model), 0.27) + EXTRA_PER_H)
             if rc is not None or model == "STANDARD":
                 break
             print("抢占式虚拟机没跑完就没了（被回收或超时），改用标准机重跑一次")
@@ -234,8 +242,7 @@ def cmd_run(a):
         print("\n".join(log.splitlines()[-30:]))
         sys.exit("虚拟机没跑完（%.1f 分钟）；日志在 %s/vm.log" % (mins, gs))
     print(env_txt(gs, a.tag).strip())
-    cost = mins / 60 * (PRICE.get((a.machine, model), 0.27) + EXTRA_PER_H)
-    print("rc=%d  全程 %.1f 分钟  估算花费 $%.3f（%s %s 牌价）" % (rc, mins, cost, a.machine, model))
+    print("rc=%d  全程 %.1f 分钟  估算花费 $%.3f（%s 牌价，抢占重跑时两次分别计）" % (rc, mins, cost, a.machine))
     if rc in (97, 98):
         sys.exit("虚拟机准备失败（rc=%d），没有结果；日志 %s/vm.log" % (rc, gs))
     collect(a.tag, sha, gs, push=not a.no_push)

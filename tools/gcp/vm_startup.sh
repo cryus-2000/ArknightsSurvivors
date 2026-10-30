@@ -39,7 +39,7 @@ if [ -n "$BASE" ]; then
     # 提交不在 origin 上：浅拉基准提交，再从桶里的 bundle 补上之后的提交
     git fetch -q --depth 1 origin "$BASE" || fail "fetch base" 98
     gcloud storage cp "$GS/repo.bundle" /work/repo.bundle -q
-    git fetch -q /work/repo.bundle "$SHA" || fail bundle 98
+    git fetch -q /work/repo.bundle "refs/gcpbatch/bundle:refs/gcpbatch/bundle" || fail bundle 98
 else
     git fetch -q --depth 1 origin "$SHA" || fail fetch 98
 fi
