@@ -468,6 +468,7 @@
 "fx_corrode_hit@2x": "res://art/fx/fx_corrode_hit@2x.png",
 "fx_corrode_hit_acid@2x": "res://art/fx/fx_corrode_hit_acid@2x.png",
 "fx_death_dissolve": "res://art/fx/fx_death_dissolve.png",
+"fx_dust_seq@2x": "res://art/fx/fx_dust_seq@2x.png",
 "fx_elite_spawn@2x": "res://art/fx/fx_elite_spawn@2x.png",
 "fx_ember@2x": "res://art/fx/fx_ember@2x.png",
 "fx_exusiai_blessed_flash@2x": "res://art/fx/fx_exusiai_blessed_flash@2x.png",

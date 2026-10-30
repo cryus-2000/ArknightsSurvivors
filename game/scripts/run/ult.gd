@@ -1087,7 +1087,8 @@ func draw_world(w) -> void:
 				var m: Vector2 = (s.a + s.b) * 0.5
 				var ha: Vector2 = (s.a - m) * gk
 				var nrm: Vector2 = (s.b - s.a).normalized().orthogonal()
-				var fa: float = 1.0 if s.age < s.max - 0.08 else maxf(0.0, (s.max - s.age) / 0.08)   # 停住时满亮，最后 0.08 秒淡出
+				var fo: float = float(s.get("fo", 0.08))   # 停住时满亮，最后 fo 秒淡出（缺省 0.08；德克萨斯 10-31 起不碎、慢慢淡 0.7 秒）
+				var fa: float = 1.0 if s.age < s.max - fo else maxf(0.0, (s.max - s.age) / fo)
 				var bw: float = float(s.get("w", 8.0))
 				var gc: Color = s.get("glow", Color(0.45, 0.85, 1.0))
 				w.tb_quad(m + ha, m + nrm * bw * 1.5, m - ha, m - nrm * bw * 1.5, Color(gc, 0.35 * fa * dim))
@@ -1109,6 +1110,56 @@ func draw_world(w) -> void:
 		else:
 			var r2: float = Moves.aim_r(str(caster.id)) if kind != "cult" else VIEW.x * 0.5
 			_px_disc(w, caster.pos, r2 + 1.5, r2 - 1.5, _pc(c, 0.8))
+	w.tb_flush()
+	_draw_hit_frame(w)
+
+
+## 冲击帧（中村丰式，用户 10-31；docs/199 §7.10，pixfx §6.6）：命中那一下（impact 起算、真实时间）第 1 拍白底 + 主体黑剪影，
+## 第 2 拍黑底 + 主体白剪影，各 ult/hit_frame_t（0.04 秒，30 帧录像里各 1 帧），然后回正常画面。
+## 开关 ult/hit_frame（缺省 1）；只有动作字典里 hf = true 的招式启用；主体 = 标了 "hf": true 的帧条 / 图形。减少动态效果开时不画。纯画面
+## 冲击帧只给队长终结技（用户 10-31：连携技 / 连携终结技不要冲击帧）
+func _hf_on() -> bool:
+	return kind == "ult" and act.get("hf", false) and Bal.v("ult/hit_frame", 1.0) > 0.0 and not Cfg.reduce_motion
+
+
+var _hf_serial := -1
+var _hf_n := [0, 0]   # 本次冲击帧白 / 黑两拍已画的帧数
+
+
+func _draw_hit_frame(w) -> void:
+	if not _hf_on():
+		return
+	var t: float = _imp_age()
+	if t < 0.0:
+		return
+	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）
+	var ht: float = Bal.v("ult/hit_frame_t", 0.067)
+	if _hf_serial != _imp_serial:
+		_hf_serial = _imp_serial
+		_hf_n = [0, 0]
+	var inv: bool = t < ht or _hf_n[0] < 2   # 第 1 拍：白底黑剪影
+	if not inv and _hf_n[1] >= 2 and t >= ht * 2.0:
+		return
+	_hf_n[0 if inv else 1] += 1
+	var bg := Color(0.92, 0.9, 0.86) if inv else Color(0.02, 0.02, 0.03)
+	var c: Vector2 = g.ppos
+	var R := Vector2(2600.0, 1700.0)
+	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), bg)
+	w.tb_flush()
+	var fg := Color(0.0, 0.0, 0.0) if inv else Color(8.0, 8.0, 8.0)   # 白剪影：调色乘 8 把贴图压成白
+	for s in shapes:
+		if s.age < 0.0 or not s.get("hf", false):
+			continue
+		if str(s.kind) == "strip":
+			var s2: Dictionary = s.duplicate()
+			s2["col"] = Color(fg, 1.0)
+			s2.erase("col1")
+			s2.erase("fade")
+			_draw_strip(w, s2, 1.0)
+		else:
+			var s3: Dictionary = s.duplicate()
+			s3["glow"] = Color(fg, 1.0)
+			_px_shape(w, s3, 1.0, Color(fg.r if inv else 1.0, fg.g if inv else 1.0, fg.b if inv else 1.0), 1.0)
 	w.tb_flush()
 
 
@@ -1230,7 +1281,8 @@ func _px_shape(w, s: Dictionary, k: float, col: Color, dim: float) -> void:
 			var m: Vector2 = (s.a + s.b) * 0.5
 			var ha: Vector2 = (s.a - m) * gk
 			var nrm: Vector2 = (s.b - s.a).normalized().orthogonal()
-			var fa: float = 1.0 if s.age < s.max - 0.08 else maxf(0.0, (s.max - s.age) / 0.08)
+			var fo: float = float(s.get("fo", 0.08))
+			var fa: float = 1.0 if s.age < s.max - fo else maxf(0.0, (s.max - s.age) / fo)
 			var bw: float = maxf(G, float(s.get("w", 8.0)))
 			var gc: Color = s.get("glow", Color(0.45, 0.85, 1.0))
 			_px_poly(w, PackedVector2Array([m + ha, m + nrm * bw * 1.5, m - ha, m - nrm * bw * 1.5]), _pc(gc, 0.45 * fa * dim))
@@ -1350,7 +1402,8 @@ func impact(pos: Vector2) -> void:
 	_imp_pos = pos
 	_imp_boom = false
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
-	flash_rt = _imp_rt
+	if not _hf_on():
+		flash_rt = _imp_rt   # 冲击帧招式不叠共用白闪：白闪会把冲击帧和拖影一起盖掉（用户 10-31「看不出区别」）
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
 	debris(pos, _col(caster), 3)
 	g.hurt_duck = maxf(float(g.hurt_duck), Bal.v("ult/imp_duck", 0.8))   # 配乐低通：冲击前一瞬压下去

@@ -270,6 +270,7 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var cone: bool = _sa_cone()
 	var half: float = Bal.v("ult/sa_half", 0.62)   # 朝前打：扇形半角（约 35°，比漏斗印子略宽，协调人 10-31「可以开宽一点」）；射程 ult/sa_len_k 倍
 	var R: float = Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.35) if cone else 1.0)
+	var ck: float = Bal.v("ult/sa_cone_k", 1.0) if cone else 1.0   # 朝前打命中面变小（同 seed 4 局终结技输出 −32%）；补偿旋钮，用户 10-31 定美术定稿、范围定了再补，缺省先 1
 	var cf: float = 0.3 if rt == "shatter" else Bal.v("ult/sa_crack", 0.2)
 	var nc: int = 14 if rt == "shatter" else int(Bal.v("ult/sa_cracks", 10.0))
 	var c: Vector2 = o.pos
@@ -313,7 +314,7 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var v2: bool = _sa_v2(u)
 	if v2:   # 举拳那一下脚下一大片压暗
 		u.shape({"kind": "circle", "c": c, "r": R * 1.05, "col": Color(0.0, 0.0, 0.01), "fill": 0.45, "life": ch + 0.03, "layer": "back"})
-	return {"v2": v2, "fa": d.angle(), "cone": cone, "half": half, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
+	return {"v2": v2, "fa": d.angle(), "cone": cone, "half": half, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": (1.0 - cf) * ck, "cf": cf * ck, "cracks": cracks, "booms": booms,
 		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "punched2": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 

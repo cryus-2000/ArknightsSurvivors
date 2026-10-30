@@ -228,7 +228,7 @@ static func _gen_step(u, a: Dictionary, o) -> bool:
 	return float(a.t) >= T
 
 
-# ================================================================ 德克萨斯（§4.1）：落点圆内连闪刀痕 → 同时斩开 → 沿刀痕剑雨
+# ================================================================ 德克萨斯（§4.1）：落点圆内连闪刀痕 → 同时斩开（10-31 起剑雨缺省去掉，ult/tx_rain）
 
 static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 	var rt := _route(o)
@@ -263,6 +263,19 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 		for pts in per:
 			if j < pts.size():
 				swords.append(pts[j])
+	# 用户 10-31「剑雨可以去掉了，留下斩击就行」：ult/tx_rain 缺省 0 = 不落剑雨（伤害先不补，用户 10-31「美术定了、范围定了再做」；补偿旋钮 ult/tx_cut_solo）；
+	# 剑雨分支（route rain，原两轮各 0.15）改成斩开 0.7 后隔 0.35 秒换角度再斩一次 0.3。1 = 旧版斩开 + 剑雨
+	var rain_on: bool = Bal.v("ult/tx_rain", 0.0) > 0.0
+	var lines2: Array = []
+	if not rain_on:
+		swords = []
+		if rt == "rain":
+			for ln in lines:
+				var mid2: Vector2 = (ln[0] + ln[1]) * 0.5
+				var d2: Vector2 = (ln[1] - ln[0]).rotated(PI / float(2 * n))
+				var mid3: Vector2 = c + (mid2 - c).rotated(PI / float(2 * n))
+				var L2: float = d2.length() * 0.5
+				lines2.append([mid3 - d2.normalized() * L2, mid3 + d2.normalized() * L2])
 	for e in u.in_circle(c, R):
 		if not e.boss:
 			u.g.enemies_sys.add_cc(e, Bal.v("ult/tx_hold", 0.6))   # 定住，暂不受伤
@@ -270,10 +283,16 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 	var rounds: Array = [[0.75, 0.3]]
 	if rt == "rain":
 		rounds = [[0.75, 0.15], [1.05, 0.15]]
+	if not rain_on:
+		rounds = []
 	# 剑雨帧条：一把 0.3 秒、一轮 0.8 秒铺完，同时在场约 剑数 × 0.375 × 轮数；超过 ult/tx_sword_fx（56）就隔把画（伤害照打每一把）
 	var stride: int = maxi(1, ceili(float(swords.size()) * 0.375 * float(rounds.size()) / Bal.v("ult/tx_sword_fx", 56.0)))
 	# cap / fr：每名敌人本次合计至多 1 份预算（斩开 0.7 + 剑雨 0.3；精英 / Boss 斩开直接吃满 1 份，剑雨不再加）
+	var cut_d: float = Bal.v("ult/tx_cut", 0.7)
+	if not rain_on:
+		cut_d = Bal.v("ult/tx_cut", 0.7) if rt == "rain" else Bal.v("ult/tx_cut_solo", 0.7)
 	return {"k": "texas", "cap": 1.0, "fr": {}, "no_ring": true, "c": c, "R": R, "lines": lines, "drawn": 0, "cut": false, "cut_seg": {}, "swords": swords,
+		"cut_d": cut_d, "lines2": lines2, "cut2": false, "cut2_seg": {},
 		"rounds": rounds, "rain": [], "sv": [], "stride": stride, "back": rt == "back", "back_done": false, "end": 0.0}
 
 
@@ -282,9 +301,37 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 const TX_GLOW := Color(1.0, 0.55, 0.2)   # 她的主题色（texas.json col）：白芯 + 橙色辉光（用户 10-29，和青蓝环境拉开）
 
 
-static func _tx_blade(u, ln: Array) -> void:
+## 乌尔比安打击感试点（10-31，pixfx §6.6）：冲击帧剪影 + 冲锋拖影 + 团块尘；0 = 10-30 用户认可版
+static func _ul_v3() -> bool:
+	return Bal.v("ult/ul_fx_v3", 1.0) > 0.0
+
+
+static func _tx_blade(u, ln: Array, v2 := false) -> void:
 	var hold: float = Bal.v("ult/tx_blade_hold", 0.2)
-	u.shape({"kind": "blade", "a": ln[0], "b": ln[1], "w": Bal.v("ult/tx_blade_w", 10.0), "col": Color.WHITE, "glow": TX_GLOW, "grow": 0.035, "life": hold + 0.035})
+	# v2（打击感试点，pixfx §6.6）：出手 1 帧到位（不长出来）、斩痕进冲击帧剪影
+	u.shape({"kind": "blade", "a": ln[0], "b": ln[1], "w": Bal.v("ult/tx_blade_w", 10.0), "col": Color.WHITE, "glow": TX_GLOW, "grow": 0.0 if v2 else 0.035, "life": hold + (Bal.v("ult/tx_fade", 0.7) if v2 else 0.035), "fo": Bal.v("ult/tx_fade", 0.7) if v2 else 0.08, "hf": v2})
+
+
+## 斩开 v2 的余部：沿刀痕的拖影（smear）+ 逐帧烟尘（五团、大小 / 延迟错开、往刀痕两侧散）；不飞碎石（用户 10-31）
+static func _tx_cut_v2(u, ln: Array) -> void:
+	var a: Vector2 = ln[0]
+	var b: Vector2 = ln[1]
+	var d: Vector2 = (b - a).normalized()
+	var vs: float = PF.h(a.x * 0.013 + b.y * 0.029)
+	# smear：冲击帧过后（0.13 秒）沿刀痕一条又宽又亮、两头拉出去的拖影带，0.1 秒
+	var hf2: float = 2.0 * Bal.v("ult/hit_frame_t", 0.067)
+	u.shape({"kind": "band", "a": a - d * 90.0, "b": b + d * 90.0, "w": 56.0, "col": Color(1.0, 0.95, 0.85), "fill": 0.7, "life": 0.1, "delay": hf2})
+	u.shape({"kind": "band", "a": a - d * 140.0, "b": b + d * 140.0, "w": 22.0, "col": Color(1.0, 0.85, 0.6), "fill": 0.9, "life": 0.14, "delay": hf2})
+	var nrm: Vector2 = d.orthogonal()
+	for k in 3:   # 烟尘团（生成大贴图）：沿刀痕三处、大小 / 延迟错开，往刀痕两侧飘开
+		var hk: float = PF.h(vs + k * 1.7)
+		var p: Vector2 = a.lerp(b, 0.2 + 0.3 * k + 0.12 * (hk - 0.5))
+		var side: float = 1.0 if hk < 0.5 else -1.0
+		PF.dust(u, p, 170.0 + 90.0 * hk, hf2 + 0.03 * k, vs + k * 3.0, nrm * side * (40.0 + 30.0 * hk))
+	for k in 2:   # 碎石去掉（用户 10-31「这里是烟雾比较好」）→ 刀痕上再补两团小烟，贴着刀痕往两侧散开、晚一拍
+		var hk: float = PF.h(vs * 3.0 + k)
+		var p2: Vector2 = a.lerp(b, 0.35 + 0.3 * k + 0.1 * (hk - 0.5))
+		PF.dust(u, p2, 110.0 + 40.0 * hk, hf2 + 0.08 + 0.04 * k, vs + 11.0 + k, nrm * (1.0 if k == 0 else -1.0) * (60.0 + 30.0 * hk))
 
 
 ## 碎裂：每条斩线断成 8 段，各段往两侧飞散、略转一点角度、0.25 秒淡出
@@ -317,18 +364,37 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 		a.drawn = int(a.drawn) + 1
 	if not a.cut and t >= 0.75:
 		a.cut = true
+		var v2: bool = Bal.v("ult/tx_fx_v2", 1.0) > 0.0
+		if v2:
+			a["hf"] = true   # 冲击帧（ult.gd _draw_hit_frame）
+			u.act["hf"] = true
+			u.g.vfx.stop(Bal.v("ult/tx_hitstop", 0.12), "ult", true)
 		for ln in lines:   # 斩开：5–7 条直线斩痕同时出现、停一下再碎；地面残痕沿刀痕拼接，0.8 秒走完 4 帧淡出
-			_tx_blade(u, ln)
-			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 0.8})
-		_hit_circle(u, a, o, a.c, a.R, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "斩开", "big": 1.0})
+			_tx_blade(u, ln, v2)
+			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 1.8 if v2 else 0.8})
+			if v2:
+				_tx_cut_v2(u, ln)
+		_hit_circle(u, a, o, a.c, a.R, float(a.cut_d), a.cut_seg, {"src": "斩开", "big": 1.0})
 		o.screen_shake(0.6)
 		o.play_vis_anim("attack")
-	if a.cut and not a.get("shattered", false) and t >= 0.75 + Bal.v("ult/tx_blade_hold", 0.2):
+	if a.cut and not a.get("shattered", false) and t >= 0.75 + Bal.v("ult/tx_blade_hold", 0.2) and Bal.v("ult/tx_fx_v2", 1.0) <= 0.0:   # v2：斩线不碎，停住后慢慢淡出（用户 10-31）
 		a["shattered"] = true
 		for li in lines.size():
 			_tx_shatter(u, lines[li], li)
+	var t2: float = 0.75 + Bal.v("ult/tx_blade_hold", 0.2) + 0.15   # 剑雨分支的第二斩（无剑雨时）：第一斩碎掉后再来一轮
+	if not a.lines2.is_empty() and not a.cut2 and t >= t2:
+		a.cut2 = true
+		u.g.vfx.stop(Bal.v("ult/tx_hitstop", 0.12) * 0.6, "ult", true)
+		for ln in a.lines2:
+			_tx_blade(u, ln, true)
+			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 1.8})
+			_tx_cut_v2(u, ln)
+		_hit_circle(u, a, o, a.c, a.R, Bal.v("ult/tx_cut2", 0.3), a.cut2_seg, {"src": "斩开", "big": 0.3})
+		o.screen_shake(0.4)
 	var sw: Array = a.swords
 	var last := 0.0
+	if a.rounds.is_empty():   # 无剑雨：最后一道斩线碎完再收
+		last = (t2 if not a.lines2.is_empty() else 0.75) + Bal.v("ult/tx_blade_hold", 0.2) + 0.3
 	for ri in a.rounds.size():
 		var rd: Array = a.rounds[ri]
 		var t0: float = rd[0]
@@ -361,9 +427,25 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 			st.i = int(st.i) + 1
 	if a.back and not a.back_done and t >= last:
 		a.back_done = true   # 回马剑：收刀时在她身后再斩一圈（斩开打过的不再打）
-		for bi in 3:   # 回马剑：身后三道短斩线（不画圈）
-			var bd: Vector2 = Vector2.from_angle(bi * PI / 3.0 + 0.4)
-			_tx_blade(u, [o.pos - bd * 240.0 * float(a.R) / 430.0, o.pos + bd * 240.0 * float(a.R) / 430.0])
+		var br: float = 240.0 * float(a.R) / 430.0
+		if Bal.v("ult/tx_fx_v2", 1.0) > 0.0:
+			# 10-31 用户「为什么还有六芒星」：三道交于她脚下、各差 60° 的旧画法叠成六芒星 → 三道弦各自错开（偏离圆心 ±0.2–0.45 r）、
+			# 角度按 hash 打乱、长短不一，和主斩同一画法（一帧到位、慢慢淡出 + 烟尘碎石）
+			var vs: float = PF.h(o.pos.x * 0.011 + o.pos.y * 0.017 + float(u.serial))
+			for bi in 3:
+				var hb: float = PF.h(vs * 5.0 + bi * 1.3)
+				var ang: float = vs * TAU + bi * 1.15 + (hb - 0.5) * 0.5
+				var bd: Vector2 = Vector2.from_angle(ang)
+				var off: float = (0.2 + 0.25 * hb) * br * (1.0 if bi % 2 == 0 else -1.0)
+				var half: float = sqrt(maxf(0.0, br * br - off * off)) * (0.75 + 0.2 * PF.h(hb * 7.0))
+				var mid: Vector2 = o.pos + bd.orthogonal() * off
+				var ln: Array = [mid - bd * half, mid + bd * half]
+				_tx_blade(u, ln, true)
+				_tx_cut_v2(u, ln)
+		else:
+			for bi in 3:   # 回马剑：身后三道短斩线（不画圈）
+				var bd: Vector2 = Vector2.from_angle(bi * PI / 3.0 + 0.4)
+				_tx_blade(u, [o.pos - bd * br, o.pos + bd * br])
 		_hit_circle(u, a, o, o.pos, 220.0 * float(a.R) / 430.0, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "回马剑", "big": 1.0})
 	if t >= last + 0.05:
 		_tx_sp(u, o)
@@ -1677,6 +1759,8 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			if a.rift and not e.boss:
 				g.enemies_sys.add_cc(e, 0.8, -INF, "airborne")
 		u.shape({"kind": "band", "a": p0, "b": p, "w": hw, "col": COL_STEEL, "fill": 0.07, "life": 0.1})
+		if _ul_v3() and k > 0.3 and int(t * 60.0) % 2 == 0:   # 冲锋拖影（smear）：身后一条拉长的淡带，代替补间（pixfx §6.6）
+			u.shape({"kind": "band", "a": p.lerp(p0, 0.35), "b": p, "w": 46.0, "col": Color(0.75, 0.9, 1.0), "fill": 0.35, "life": 0.06})
 		_ul_chain(u, a, o.pos, c, (c - p0).angle())
 		if k >= 1.0 and not a.landed:
 			a.landed = true
@@ -1767,6 +1851,9 @@ static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: fl
 	var R: float = float(a.rs[3])
 	var span: float = 0.18 * 3.0
 	if i == 0:   # 裂网一次铺好，靠 delay / rev 跟着四圈往外长；每次出招按 vseed 挑变体、条数、角度、长短、镜像
+		if _ul_v3():
+			a["hf"] = true   # 冲击帧剪影（打击感试点，pixfx §6.6）
+			u.act["hf"] = true
 		var vs: float = PF.vseed(u, lc)
 		a["vs"] = vs
 		var base: float = (a.c - a.p0).angle() if a.c.distance_to(a.p0) > 1.0 else 0.0
@@ -1784,7 +1871,7 @@ static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: fl
 			var lk: float = 0.62 + 0.45 * h2   # 长短不一，长的伸出外圈一点
 			var big: bool = _ulh(j + 9.0 + vs) < 0.33
 			var dl: float = 0.06 * _ulh(j + 33.0 + vs)
-			u.strip(name, lc, {"layer": "back", "ang": ang, "o": Vector2(0.0, t.get_height() * 0.5),
+			u.strip(name, lc, {"layer": "back", "ang": ang, "o": Vector2(0.0, t.get_height() * 0.5), "hf": true,
 				"sx": R * lk / tw, "sy": (0.85 if big else 0.55) * (1.0 if _ulh(j + 17.0 + vs) < 0.5 else -1.0),
 				"delay": dl, "rev": span * lk + 0.08, "rev0": 0.18, "life": span + 1.6, "fade": 0.7,
 				"col": UL_HOT, "col1": UL_COLD, "cold": span + 0.45})
@@ -1807,7 +1894,13 @@ static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: fl
 			u.debris(p, Color(0.35, 0.8, 0.95), 2 if i < 3 else 3)
 			u.grain("bfx_dust", p, dirv, Color(0.55, 0.6, 0.62), 3)
 	if i == 3:
-		_ul_wall(u, lc, r)
+		# 尘土墙（同张截段排一圈）改逐帧烟尘：外圈 7 团、延迟错开、往外推（pixfx §6.6 烟尘；预审曾报尘土墙拼接）；ult/ul_fx_v3 0 = 旧尘土墙
+		if not _ul_v3():
+			_ul_wall(u, lc, r)
+		for q in (7 if _ul_v3() else 0):
+			var hq: float = _ulh(q * 4.1 + float(a.get("vs", 0.0)))
+			var pq: Vector2 = lc + Vector2.from_angle(TAU * (q + hq) / 7.0) * r * (0.85 + 0.2 * hq)
+			PF.dust(u, pq, 190.0 + 80.0 * hq, 0.03 * (q % 3), hq * 40.0 + q, (pq - lc).normalized() * (50.0 + 40.0 * hq), Color(0.85, 0.92, 0.95))   # 逐帧烟尘往外推（偏冷灰，配深海）
 		for q in 10:   # 余震：0.3 秒后满圈再跳一批碎石
 			var hh2: float = _ulh(q * 5.0 + 99.0 + float(a.get("vs", 0.0)))
 			var p2: Vector2 = lc + Vector2.from_angle(TAU * (q + hh2) / 10.0) * R * (0.25 + 0.7 * hh2)

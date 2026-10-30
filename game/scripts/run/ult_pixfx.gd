@@ -45,8 +45,13 @@ static func rock(u, p: Vector2, v: Vector2, vy: float, hh: float, sc: float, del
 	var rs: Array = sets[int(h(hh * 53.0) * sets.size()) % sets.size()]
 	var fr: Array = rs[1]
 	var grav: float = 1500.0
-	u.strip(rs[0], p, {"f": int(fr[int(hh * 97.0) % fr.size()]), "sc": sc + 0.2 * h(hh * 17.0), "col": col, "sx": -1.0 if h(hh * 29.0) < 0.5 else 1.0,
-		"v": v + Vector2(0, -vy), "grav": grav, "life": 2.0 * vy / grav, "spin": (hh - 0.5) * 10.0, "delay": delay})
+	var f: int = int(fr[int(hh * 97.0) % fr.size()])
+	var scc: float = sc + 0.2 * h(hh * 17.0)
+	var fl: float = 2.0 * vy / grav
+	var sx: float = -1.0 if h(hh * 29.0) < 0.5 else 1.0
+	u.strip(rs[0], p, {"f": f, "sc": scc, "col": col, "sx": sx, "v": v + Vector2(0, -vy), "grav": grav, "life": fl, "spin": (hh - 0.5) * 10.0, "delay": delay})
+	# 落地停住：落点（横向漂了 v·飞行时间）原地躺 0.6 秒再淡，转角停在落地那一刻（中村丰式碎屑有重量，pixfx §6.6）
+	u.strip(rs[0], p + v * fl, {"f": f, "sc": scc, "col": col, "sx": sx, "ang": (hh - 0.5) * 10.0 * fl, "life": 0.9, "fade": 0.4, "delay": delay + fl, "layer": "back"})
 
 
 ## 沿圈隆起：半径 r 上一圈地块顶起一小跳落回、每 4 块 1 块高飞；delay 整圈延后（波前到达时刻）
@@ -119,6 +124,26 @@ static func cracks(u, names: Array, c: Vector2, angs: Array, lens: Array, opt: D
 ## 像素粒子爆（用户 10-30「粒子能够用贴图来替代，这样减小开销」）：播预烘焙的粒子扩散帧条（tools/imagegen/pxburst.py 离线模拟：
 ## 迸开 → 阻力减速扩散 → 冷却变暗，白灰色阶），col 着色；sc ≈ 2 时 1 纹素 = 2 世界像素，同 fx_grains 2 px 颗粒观感。
 ## kind：ult_burst = 大（半径约 reach，缺省 380）、ult_burst_s = 小（约 110）、ult_ember = 小号慢一点；n 只决定叠几层（每 300 颗一层，层间转角错开）
+const DUST := "fx_dust_seq"
+
+
+## 团块烟尘（pixfx §6.6）：逐帧帧条 fx_dust_seq（7 帧：喷出 → 往外冲 → 翻滚 → 撕开 → 散成丝 → 零星颗粒），
+## 出现和消失都是画出来的帧，不靠缩放 / 淡出（用户 10-31：圆团像「棉花球」、块面不要、「只漂移没有出现消失」）。
+## 主团 + 一团小一点、晚一拍、转个角度的暗团叠在下面（分层）；整体往 v 慢漂。没有贴图时什么都不画
+static func dust(u, p: Vector2, size: float, delay: float, seed0: float, v := Vector2.ZERO, col := Color.WHITE) -> void:
+	if not u.fx_ready(DUST):
+		return
+	var k: float = size / tex_w(u, DUST) * 7.0   # 帧条 7 帧并排，单帧宽 = 总宽 / 7
+	var fps: float = 10.0
+	var a0: float = h(seed0 * 7.0) * TAU
+	var sx: float = -1.0 if h(seed0 * 3.0) < 0.5 else 1.0
+	for l in 2:
+		var cl: float = 1.0 if l == 0 else 0.55
+		u.strip(DUST, p + Vector2.from_angle(a0 + 2.0) * size * 0.12 * l, {"sc": k * (1.0 if l == 0 else 0.8), "ang": a0 + 1.9 * l, "sx": sx * (1.0 if l == 0 else -1.0),
+			"fps": fps * (1.0 if l == 0 else 0.85), "life": 7.0 / (fps * (1.0 if l == 0 else 0.85)), "delay": delay + 0.05 * l, "v": v * (1.0 - 0.3 * l),
+			"col": Color(col.r * cl, col.g * cl, col.b * cl, 1.0), "layer": "back" if l == 1 else "front"})
+
+
 const BURSTS := ["fx_px_burst1", "fx_px_burst2"]
 const BURST_S := "fx_px_burst_s"
 
