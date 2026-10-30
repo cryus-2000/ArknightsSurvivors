@@ -791,7 +791,7 @@ func _cutin(ld, k: String) -> void:
 ##   layer "back"（地面，画在干员之下）/ "front"（缺省，干员之上；orbit 也画这里）、col 调色（含透明度）。
 ##   动画（单张大贴图用，乌尔比安裂地 v2）：rev 秒内从原点往 +x 逐渐显现（rev0 = 一开始已显现的比例；裂缝延伸）、spin 每秒转角、
 ##   sc1 在 scd 秒内缓出放大到的缩放（冲击环扩散）、fade 最后几秒淡出；
-##   ux / uw 只取单帧里从 ux 起宽 uw 的一段（长贴图截一截当拼接段，o 相对这一段）。
+##   ux / uw 只取单帧里从 ux 起宽 uw 的一段（长贴图截一截当拼接段，o 相对这一段）；col1 / cold 冷却到的颜色与秒数。
 ## 帧号按游戏时间推进（慢放里跟着慢），纯画面。
 func strip(name: String, c: Vector2, opt: Dictionary = {}) -> Dictionary:
 	var s := opt.duplicate()
@@ -903,6 +903,10 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 	var o: Vector2 = s.get("o", Vector2(fw * 0.5, fh * 0.5))
 	var col: Color = s.get("col", Color.WHITE)
 	col.a *= dim
+	if s.has("col1"):   # 冷却：cold 秒内从 col 变到 col1（裂缝爆亮后退成暗色余烬）
+		var ca: float = col.a
+		col = col.lerp(s.col1, clampf(age / maxf(0.001, float(s.get("cold", 0.4))), 0.0, 1.0))
+		col.a = ca
 	if s.has("fade"):
 		col.a *= clampf((float(s.max) - age) / maxf(0.001, float(s.fade)), 0.0, 1.0)
 	var ux: float = float(s.get("ux", 0.0))
