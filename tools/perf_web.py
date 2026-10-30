@@ -31,6 +31,11 @@ var buf=[],send=function(){if(!buf.length)return;var b=buf.join("\\n");buf=[];fe
 setInterval(send,1000);var wrap=function(k){var o=console[k];console[k]=function(){var s=Array.prototype.join.call(arguments," ");
 if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR)/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE|PF FTDONE)/.test(s))send();}return o.apply(console,arguments);};};
 wrap("log");wrap("error");wrap("warn");})();
+// 逐秒帧数 + wasm 线性内存峰值（10-30 加：手机网页逐项帧时表要「最低 1 秒」「内存峰值」）；输出 PF W <本秒帧数> <内存 MB>
+(function(){var OM=WebAssembly.Memory,mems=[],mx=0,cnt=0,t0=performance.now();
+WebAssembly.Memory=function(d){var m=new OM(d);mems.push(m);return m;};WebAssembly.Memory.prototype=OM.prototype;
+var rr=window.requestAnimationFrame;window.requestAnimationFrame=function(cb){return rr(function(t){cnt++;var n=performance.now();
+if(n-t0>=1000){var f=cnt*1000/(n-t0);cnt=0;t0=n;for(var i=0;i<mems.length;i++)mx=Math.max(mx,mems[i].buffer.byteLength);console.log("PF W "+f.toFixed(1)+" "+(mx/1048576).toFixed(0));}cb(t);});};})();
 </script>"""
 
 
@@ -231,13 +236,33 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
     late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
     cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr) if emu else None
     t0 = time.time()
+    memk = 0   # Edge 进程树（渲染 / GPU / 主进程）私有内存之和的峰值，字节（10-30 加；wasm 线性内存在渲染进程里）
+    try:
+        import psutil
+        root = psutil.Process(p.pid)
+    except Exception:
+        psutil = None
     while not done.is_set() and time.time() - t0 < timeout:
         done.wait(2)
+        if psutil is not None:
+            try:
+                tot = 0
+                for q in [root] + root.children(recursive=True):
+                    try:
+                        tot += q.memory_full_info().uss
+                    except Exception:
+                        pass
+                memk = max(memk, tot)
+            except Exception:
+                pass
         if late and cdp is not None and "PF RTFROM" in open(log_p, encoding="utf-8").read():
             cdp.cmd("Emulation.setCPUThrottlingRate", {"rate": throttle})
             print("[网页] 快进结束，开 CPU 节流 %gx" % throttle)
             late = False
     time.sleep(2)
+    if memk:
+        print("[网页] Edge 进程树私有内存峰值 %.0f MB" % (memk / 1048576))
+        open(log_p, "a", encoding="utf-8").write("PF EDGEMEM peak_mb=%.0f\n" % (memk / 1048576))
     if cdp is not None:
         cdp.close()
     subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True)
