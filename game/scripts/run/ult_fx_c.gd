@@ -248,26 +248,25 @@ static func sz_body(u) -> bool:
 	return Bal.v("ult/sz_body_v2", 1.0) > 0.0 and u.fx_ready(SZ_WALK) and u.fx_ready(SZ_CUT)
 
 
-## 本体版的现身段长度：走路 ult/sz_walk 秒 + 拔刀到出刀帧（瞬身那一下落在出刀帧）
+## 本体版的现身段长度：用户 10-31 改为不走路（现身 → 停半拍 → 化光闪出），和原来一样 ult/su_appear（0.3 秒），不再加长时序
 static func sz_tp() -> float:
-	return Bal.v("ult/sz_walk", 0.3) + SZ_CUT_HIT
+	return Bal.v("ult/su_appear", 0.3)
 
 
 static func sz_start(u, a: Dictionary, side: Vector2, tp: float) -> void:
 	var vs: float = PF.vseed(u, side)
 	a["sz_vs"] = vs
-	if sz_body(u):   # 本体版：从铃兰身后走进来 → 到位停半拍 → 拔刀一刀
+	if sz_body(u):   # 本体版（用户 10-31）：她在铃兰身旁现身（本人形象）→ 停半拍、拔刀蓄势 → 化作一道光闪出去
 		var d: Vector2 = a.d
 		a["sz_fs"] = -1.0 if d.x < -0.05 else 1.0
 		var out: Vector2 = (side - Vector2(a.org)).normalized()
 		var stand: Vector2 = side + out * 50.0   # 站位离铃兰再远一点，不和她的身体叠在一起
 		a["sz_stand"] = stand
-		a["sz_w0"] = stand + out * Bal.v("ult/sz_walk_dist", 150.0)   # 从外侧横着走进来
-		var wd: Vector2 = stand - Vector2(a.sz_w0)
-		a["sz_walker"] = u.strip(SZ_WALK, a.sz_w0, {"o": SZ_FOOT * A.hires_of(u._strip_tex(SZ_WALK)), "sc": SZ_SC, "loop": true, "fps": 16.0,
-			"life": Bal.v("ult/sz_walk", 0.3) + 0.02, "sx": -1.0 if wd.x < 0.0 else 1.0})
-		a["sz_dim"] = {"kind": "circle", "c": side + Vector2(0, -30), "r": 170.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "life": tp + 0.5}
+		a["sz_cut"] = u.strip(SZ_CUT, stand, {"o": SZ_FOOT * A.hires_of(u._strip_tex(SZ_CUT)), "sc": SZ_SC, "f": 0, "sx": float(a.sz_fs), "life": tp + 0.3,
+			"col": Color(1, 1, 1, 0.0)})
+		a["sz_dim"] = {"kind": "circle", "c": side + Vector2(0, -30), "r": 170.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "life": tp + 0.3}
 		u.shape(a.sz_dim)
+		u.light(stand + Vector2(0, -40), 140.0, Color(0.85, 0.82, 0.7), tp)
 		return
 	# 入场（用户 10-30「要把忍冬的入场停顿做出来，得让玩家知道是她来出手」）：周围压暗一圈 → 她放大现身 → 到位那一刻顿帧 ult/sz_appear_stop
 	a["sz_dim"] = {"kind": "circle", "c": side + Vector2(0, -30), "r": 150.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "life": tp + 0.08}
@@ -281,41 +280,26 @@ static func sz_start(u, a: Dictionary, side: Vector2, tp: float) -> void:
 		u.grain("mote_up", side + Vector2((PF.h(vs + q) - 0.5) * 60.0, -10.0 - 70.0 * PF.h(vs + q * 3.0)), Vector2.UP, Color(0.85, 0.75, 0.5), 2)
 
 
-## 本体版每帧（整段都调）：走路缓停到位 → 到位那一刻顿帧（停半拍）+ 狐火 → 拔刀斩逐帧（出刀帧 = 瞬身）→ 收刀淡出
-static func sz_body_step(u, a: Dictionary, t: float) -> void:
-	var tw: float = Bal.v("ult/sz_walk", 0.3)
-	var side: Vector2 = a.sz_stand
-	if t < tw:
-		var k: float = clampf(t / tw, 0.0, 1.0)
-		a.sz_walker.c = Vector2(a.sz_w0).lerp(side, 1.0 - (1.0 - k) * (1.0 - k))   # 走到跟前放慢
-		a.sz_dim.fill = 0.35 * k
-		return
+## 本体版每帧（现身段）：前 35% 淡入现身 → 到位顿帧停半拍 + 狐火 → 剩下的时间拔刀蓄势（逐帧 f0–f3）
+static func sz_body_step(u, a: Dictionary, t: float, tp: float) -> void:
 	if not a.has("sz_cut"):
-		a.sz_walker.max = float(a.sz_walker.age)
-		var tot: float = 0.0
-		for x in SZ_CUT_DT:
-			tot += float(x)
-		a["sz_cut"] = u.strip(SZ_CUT, side, {"o": SZ_FOOT * A.hires_of(u._strip_tex(SZ_CUT)), "sc": SZ_SC, "f": 0, "sx": float(a.sz_fs), "life": tot + 0.3, "fade": 0.3})
-		a["sz_c0"] = t
+		return
+	var k: float = clampf(t / (tp * 0.35), 0.0, 1.0)
+	a.sz_cut.col = Color(1, 1, 1, k)
+	a.sz_dim.fill = 0.35 * k
+	if k >= 1.0 and not a.has("sz_pop"):
+		a["sz_pop"] = t
+		var side: Vector2 = a.sz_stand
 		u.g.vfx.stop(Bal.v("ult/sz_appear_stop", 0.22), "ult", true)   # 停半拍：画面层顿帧，不改模拟步长
 		u.light(side + Vector2(0, -40), 180.0, Color(0.8, 0.78, 0.68), 0.3)
 		PF.particles(u, side + Vector2(0, -30), 40, "ult_ember", [SZ_FOX, Color(0.62, 0.55, 0.36)], 0.0, float(a.sz_vs) + 7.0, 80.0)
-	var e: float = t - float(a.sz_c0)
-	var f: int = 0
-	var acc: float = 0.0
-	for i in SZ_CUT_DT.size():
-		acc += float(SZ_CUT_DT[i])
-		if e < acc:
-			break
-		f = mini(i + 1, SZ_CUT_DT.size() - 1)
-	a.sz_cut.f = f
-	a.sz_dim.fill = 0.35 * clampf(1.0 - (e - 0.4) / 0.3, 0.0, 1.0)
+	a.sz_cut.f = clampi(int(clampf((t - tp * 0.35) / (tp * 0.65), 0.0, 0.999) * 4.0), 0, 3)
 
 
 ## 现身期间每帧：前 35% 淡入 + 周围压暗；到位那一刻顿帧 + 亮一下 + 狐火迸开
 static func sz_appear(u, a: Dictionary, t: float, tp: float) -> void:
-	if a.has("sz_walker"):
-		sz_body_step(u, a, t)
+	if a.has("sz_stand"):
+		sz_body_step(u, a, t, tp)
 		return
 	var k: float = clampf(t / (tp * 0.35), 0.0, 1.0)
 	if a.has("sz_fig"):
@@ -341,6 +325,15 @@ static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float)
 	var vs: float = float(a.sz_vs)
 	if a.has("sz_stand"):
 		side = Vector2(a.sz_stand) + Vector2(0, -24)   # 刀口高度
+		if a.has("sz_cut"):   # 化光闪出（用户 10-31）：人形亮成冷白一闪即消，沿斩向拖三层光影
+			var cs: Dictionary = a.sz_cut
+			cs.col = Color(1.6, 1.6, 1.7, 1.0)
+			cs.f = 4
+			cs.max = float(cs.age) + 0.07
+			var dd: Vector2 = (tip - side).normalized()
+			for g in 3:
+				u.strip(SZ_CUT, Vector2(a.sz_stand) + dd * 40.0 * (g + 1), {"o": cs.o, "sc": SZ_SC, "f": 4, "sx": float(a.sz_fs) * (1.0 + 0.35 * (g + 1)),
+					"life": 0.1, "fade": 0.1, "delay": 0.015 * g, "col": Color(0.75, 0.82, 0.92, 0.55 - 0.15 * g)})
 	if a.has("sz_fig"):
 		a.sz_fig.max = float(a.sz_fig.age) + 0.06
 	var name: String = PF.pick(u, SZ_SLASH, vs)
@@ -380,6 +373,18 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 			continue
 		PF.particles(u, p, 40, "ult_ember", [SZ_FOX], dl + 0.08, vs + k * 5.0, 90.0)
 	PF.particles(u, org + d * (L - bk) * 0.5, 300, "ult_burst", [SZ_COLD, SZ_PALE], 0.12, vs + 99.0, minf(hw, L) * 0.45)
+	# 沿直线的细小斩击（用户 10-31）：5–7 道，位置 / 角度 / 长短 / 粗细 / 先后都按哈希打乱；只画画面，不加判定
+	var ns: int = 5 + int(PF.h(vs + 7.0) * 3.0)
+	for k in ns:
+		var hh: float = PF.h(vs + 31.0 + k * 2.9)
+		var x: float = lerpf(-bk * 0.5, L * 0.95, (k + 0.15 + 0.7 * hh) / ns)
+		var pc: Vector2 = a0.lerp(b0, clampf((x + bk) / maxf(1.0, L + bk), 0.0, 1.0)) + d.orthogonal() * (PF.h(vs + k * 5.3) - 0.5) * hw * 0.35
+		var sa: float = ang + (1.0 if k % 2 == 0 else -1.0) * (0.25 + 0.9 * PF.h(vs + k * 1.9))
+		var sl: float = 150.0 + 160.0 * PF.h(vs + k * 4.1)   # 用户 10-31「小斩痕都长一点」
+		var sd: Vector2 = Vector2.from_angle(sa)
+		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + k * 0.7 + 11.0), pc - sd * sl * 0.5, sa, sl, {"sy": (0.22 + 0.2 * hh) * (-1.0 if PF.h(vs + k) < 0.5 else 1.0),
+			"rev": 0.04, "rev0": 0.1, "delay": 0.03 + 0.05 * PF.h(vs + k * 8.3), "life": 0.4, "fade": 0.22, "col": Color(1.0, 1.0, 1.02, 0.95),
+			"col1": Color(0.42, 0.52, 0.68, 0.8), "cold": 0.22})
 
 
 
@@ -415,57 +420,30 @@ static func mz_jelly_start(u, a: Dictionary, c: Vector2, a0: float, span: float,
 		a.jl.append({"s": s, "p": p, "ph": hh * TAU, "d0": 0.04 * i + 0.1 * hh, "fs": fs, "sc": sc})
 		u.shape({"kind": "circle", "c": p + Vector2(0, 30), "r": 26.0, "col": Color(0.02, 0.04, 0.08), "fill": 0.45, "life": 0.8, "delay": 0.04 * i, "layer": "back"})   # 冒出的地面暗斑
 		PF.particles(u, p + Vector2(0, 30), 20, "ult_burst_s", [MZ_INK], 0.04 * i, vs + i, 50.0)
-	# 压缩点：水母群的重心往水月那边拉一点；压缩从横扫后段开始，到原「抓漏网」时刻炸开
-	var sum := Vector2.ZERO
-	for j in a.jl:
-		sum += Vector2(j.p)
-	a["jl_core"] = (sum / a.jl.size()).lerp(c, 0.25)
-	a["jl_c0"] = float(a.T0) + float(a.T) * 0.55
+	# 用户 10-31：不贴触手、不收拢；到原「抓漏网」时刻全部水母在各自位置一起炸开（顿帧 + 冲击帧）
 	a["jl_c1"] = float(a.T0) + float(a.T) + 0.12
 
 
-## 每帧：水母缓升 + 上下漂 + 伞盖一张一缩；丝带触手跟着飘、光往敌人那头一节节传
+## 每帧：水母缓升 + 上下漂 + 伞盖一张一缩；临近炸开 0.25 秒伞盖越鼓越亮（预兆）
 static func mz_jelly_step(u, a: Dictionary, t: float) -> void:
 	var bt: float = float(a.get("jl_burst", -1.0))
 	for j in a.jl:
 		var s: Dictionary = j.s
-		if s.age >= s.max:
+		if s.age >= s.max or bt >= 0.0:
 			continue
 		var k: float = clampf((t - float(j.d0)) / 0.55, 0.0, 1.0)
 		var ke: float = 1.0 - (1.0 - k) * (1.0 - k)
 		var ph: float = float(j.ph)
-		# 压缩：横扫后段起，水母被吸向压缩点、越缩越小越亮（先慢后快）
-		var kc: float = clampf((t - float(a.jl_c0)) / (float(a.jl_c1) - float(a.jl_c0)), 0.0, 1.0)
-		var kq: float = kc * kc
-		var home: Vector2 = Vector2(j.p) + Vector2(0, 40.0 * (1.0 - ke) + 5.0 * sin(t * 2.2 + ph))
-		s.c = home.lerp(Vector2(a.jl_core), kq)
-		var pulse: float = sin(t * (5.0 + 10.0 * kc) + ph)
-		s.sc = float(j.sc) * lerpf(1.0, 0.3, kq)
+		var kp: float = clampf((t - (float(a.jl_c1) - 0.25)) / 0.25, 0.0, 1.0)   # 炸开前鼓胀
+		s.c = Vector2(j.p) + Vector2(0, 40.0 * (1.0 - ke) + 5.0 * sin(t * 2.2 + ph))
+		var pulse: float = sin(t * (5.0 + 14.0 * kp) + ph)
+		s.sc = float(j.sc) * (1.0 + 0.18 * kp * kp)
 		s.sy = 1.0 + 0.08 * pulse
 		s.sx = float(j.fs) * (1.0 - 0.05 * pulse)
-		var b: float = 1.0 + 0.3 * kq
+		var b: float = 1.0 + 0.3 * kp
 		s.col = Color(b, b, b, 0.78 * ke)
 		if int(t * 60.0) % 9 == int(ph * 3.0) % 9:
 			u.grain("mote_up", s.c, Vector2.UP, MZ_GLOW, 1)
-	for r in a.jl_rib:
-		_mz_rib_pose(u, a, r, t)
-	# 压缩点：亮核越聚越亮、一圈暗压力环往里收
-	if bt < 0.0 and t >= float(a.jl_c0):
-		var kc2: float = clampf((t - float(a.jl_c0)) / (float(a.jl_c1) - float(a.jl_c0)), 0.0, 1.0)
-		if not a.has("jl_cs"):
-			a["jl_cs"] = {"kind": "circle", "c": a.jl_core, "r": 8.0, "col": Color(0.6, 0.85, 0.88), "fill": 0.0, "life": 2.0}
-			a["jl_cr"] = {"kind": "ring", "c": a.jl_core, "r": 300.0, "w": 6.0, "col": Color(0.15, 0.3, 0.4, 0.0), "life": 2.0}
-			u.shape(a.jl_cs)
-			u.shape(a.jl_cr)
-		a.jl_cs.r = lerpf(8.0, 46.0, kc2 * kc2)
-		a.jl_cs.fill = 0.9 * kc2
-		a.jl_cs.age = 0.0
-		a.jl_cr.r = lerpf(300.0, 50.0, kc2)
-		a.jl_cr.col = Color(0.2, 0.45, 0.55, 0.7 * kc2)
-		a.jl_cr.age = 0.0
-		if int(t * 60.0) % 2 == 0:
-			var hq: float = PF.h(float(a.jl_vs) + t * 7.0)
-			u.grain("mote_in", Vector2(a.jl_core) + Vector2.from_angle(hq * TAU) * 160.0, Vector2.from_angle(hq * TAU + PI), MZ_GLOW, 2)
 
 
 static func _mz_rib_pose(u, a: Dictionary, r: Dictionary, t: float) -> void:
@@ -498,6 +476,8 @@ static func _mz_rib_pose(u, a: Dictionary, r: Dictionary, t: float) -> void:
 
 ## 横扫打到一个敌人（画面）：最近的水母伸一根丝带触手过去
 static func mz_jelly_hit(u, a: Dictionary, p: Vector2, t: float) -> void:
+	if Bal.v("ult/mz_jelly_rib", 0.0) <= 0.0:   # 用户 10-31：不再贴触手（缺省关）
+		return
 	if a.jl_rib.size() >= MZ_RIB_MAX:
 		return
 	var best: Dictionary = a.jl[0]
@@ -517,27 +497,34 @@ static func mz_jelly_hit(u, a: Dictionary, p: Vector2, t: float) -> void:
 	_mz_rib_pose(u, a, r, t)
 
 
-## 抓漏网那一刻：所有水母同步一闪爆开（光点粒子 + 灯），之后慢慢飘散淡出
+## 抓漏网那一刻：所有水母在各自位置同时炸开（用户 10-31「水母一起炸开」）——伞盖一鼓进冲击帧剪影 → 每只一团青紫粒子爆 + 碎环 + 水沫，
+## 中心大灯；顿帧 / 冲击帧由框架 impact 给（调用方先把 hf 打开、横扫标 pre，冲击落在这一下）
 static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
 	a["jl_burst"] = t
 	var vs: float = float(a.jl_vs) + 77.0
-	var core: Vector2 = a.jl_core
 	var R: float = float(a.R)
-	for j in a.jl:   # 水母全被吞进核里
-		j.s.max = float(j.s.age) + 0.04
-	if a.has("jl_cs"):
-		a.jl_cs.max = 0.0
-		a.jl_cr.max = 0.0
-	u.g.vfx.stop(Bal.v("ult/mz_jelly_stop", 0.1), "ult", true)   # 炸开前顿一下（画面层）
-	u.shape({"kind": "circle", "c": core, "r": 90.0, "col": Color(0.75, 0.9, 0.92), "fill": 0.85, "life": 0.12})   # 爆闪（≤ 0.92）
-	u.light(core, R * 0.9, Color(0.25, 0.45, 0.5), 0.4)
-	PF.ring(u, LU_RINGS, core, 40.0, R * 0.85, 0.3, 0.7, {"seed": vs, "layer": "front", "col": Color(0.6, 0.95, 1.0, 0.9), "col1": Color(0.3, 0.3, 0.6, 0.6), "cold": 0.4, "fade": 0.4})
-	PF.ring(u, LU_RINGS, core, 30.0, R * 0.6, 0.38, 0.6, {"seed": vs + 9.0, "col": Color(0.55, 0.45, 0.85, 0.6), "fade": 0.35, "delay": 0.05})
-	PF.particles(u, core, 420, "ult_burst", [Color(0.38, 0.62, 0.68), Color(0.48, 0.4, 0.7)], 0.0, vs, R * 0.85)
-	PF.particles(u, core, 300, "ult_burst", [Color(0.3, 0.55, 0.6)], 0.07, vs + 3.0, R * 0.55)
-	for q in 6:   # 余光：一圈小光点慢慢往上飘
-		var p: Vector2 = core + Vector2.from_angle(TAU * (q + PF.h(vs + q)) / 6.0) * R * (0.25 + 0.3 * PF.h(vs + q * 2.0))
-		PF.particles(u, p, 30, "ult_ember", [Color(0.4, 0.66, 0.7)], 0.15 + 0.03 * q, vs + q * 5.0, 80.0)
+	var sum := Vector2.ZERO
+	for i in a.jl.size():
+		var j: Dictionary = a.jl[i]
+		var s: Dictionary = j.s
+		var p: Vector2 = s.c
+		sum += p
+		s["hf"] = true   # 冲击帧剪影里是一群水母
+		s["sc1"] = float(s.sc) * 1.45
+		s["scd"] = float(s.age) + 0.06
+		s.col = Color(1.3, 1.35, 1.4, 0.9)
+		s.max = float(s.age) + 0.1
+		s["fade"] = 0.05
+		var hh: float = PF.h(vs + i * 3.1)
+		PF.particles(u, p, 300, "ult_burst", [Color(0.38, 0.62, 0.68), Color(0.48, 0.4, 0.7)], 0.0, vs + i, 120.0 + 60.0 * hh)
+		PF.particles(u, p, 40, "ult_burst_s", [Color(0.55, 0.85, 0.9)], 0.0, vs + i * 7.0, 70.0)
+		PF.ring(u, LU_RINGS, p, 10.0, 70.0 + 40.0 * hh, 0.2, 0.45, {"seed": vs + i * 2.0, "layer": "front", "col": Color(0.55, 0.9, 0.95, 0.8), "col1": Color(0.3, 0.28, 0.6, 0.5), "cold": 0.3, "fade": 0.25})
+		u.grain("water", p, Vector2.from_angle(hh * TAU), Color(0.55, 0.85, 0.9), 8)
+		u.light(p, 110.0, Color(0.3, 0.55, 0.62), 0.25)
+		PF.particles(u, p, 30, "ult_ember", [Color(0.4, 0.66, 0.7)], 0.15 + 0.03 * (i % 3), vs + i * 5.0, 60.0)
+	var ctr: Vector2 = sum / maxf(1.0, float(a.jl.size()))
+	u.light(ctr, R * 0.9, Color(0.22, 0.4, 0.46), 0.35)
+	u.shake(3.0, 0.15)
 
 
 # ================================================================ 归溟幽灵鲨 · 弹射撕裂（ult/sp_bounce，用户 10-30 新设计）
@@ -610,26 +597,51 @@ static func sb_tick(u, a: Dictionary, c: Vector2, R: float, tick: int, n: int) -
 		_sz_slash(u, tn, p - Vector2.from_angle(ta) * tl * 0.5, ta, tl, {"layer": "back", "sy": 0.45 * (-1.0 if PF.h(vs + k) < 0.5 else 1.0), "rev": 0.04, "delay": dl + 0.02,
 			"life": 0.9, "fade": 0.5, "col": Color(1.0, 0.3, 0.25, 1.0), "col1": SB_DARK, "cold": 0.35})
 		PF.particles(u, p, 40, "ult_burst_s", [SB_RED, SP_SPARK[0]], dl, vs + k * 11.0, 80.0)
+		# 弹到这里锯一下（用户 10-31「闪出去弹射的时候也要带锯子」）：一把小锯落在落点转一下（缓出放大、快转、淡出）+ 火星
+		var rr: float = PF.tex_w(u, SP_SAW) * 0.5
+		var sr: float = 38.0 + 14.0 * PF.h(vs + k * 6.1)
+		u.strip(SP_SAW, p + Vector2(0, -6), {"sc": sr * 0.7 / rr, "sc1": sr / rr, "scd": 0.05, "spin": -22.0 * (1.0 if PF.h(vs + k) < 0.6 else -1.0),
+			"ang": PF.h(vs + k * 2.2) * TAU, "delay": dl, "life": minf(0.22, dt + 0.08), "fade": 0.08, "col": Color(1.05, 1.0, 1.0, 1.0)})
+		u.grain("sh_shard", p, Vector2.from_angle(ang + PI * 0.5), Color(1.0, 0.6, 0.25), 4)
 		cur = p
 	a.sb_cur = cur
+	if tick == n - 1:
+		sb_warn(u, a, c, R, pts)
 	if tick >= n:
 		sb_finale(u, a, c, R, pts)
 
 
-## 收尾：巨型整圈锯在敌群中心落下、转一下锯开，血色光晕，然后消散
-static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> void:
+## 收尾预兆（最后一圈前 0.25 秒）：落点地面阴影一圈圈扩大压暗 + 大锯从上方压下来（越来越近、越转越快），锯缘火星往下掉
+static func sb_warn(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> void:
 	var ctr: Vector2 = c
 	if pts.size() >= 2:
 		var sum := Vector2.ZERO
 		for p in pts:
 			sum += p
 		ctr = c.lerp(sum / pts.size(), 0.5)
+	a["sb_ctr"] = ctr
+	var rr: float = PF.tex_w(u, SP_SAW) * 0.5
+	var r1: float = R * 0.75
+	var T := 0.25
+	u.strip(SP_SAW, ctr + Vector2(0, 6), {"layer": "back", "sc": r1 * 0.4 / rr, "sc1": r1 * 1.05 / rr, "scd": T, "spin": -6.0, "life": T + 0.04,
+		"col": Color(0.0, 0.0, 0.02, 0.55)})   # 阴影（锯的剪影压在地上，越来越大）
+	u.strip(SP_SAW, ctr + Vector2(0, -170), {"sc": r1 * 1.25 / rr, "sc1": r1 * 1.02 / rr, "scd": T, "spin": -10.0, "v": Vector2(0, 170.0 / T), "life": T,
+		"col": Color(0.8, 0.75, 0.78, 0.75)})   # 大锯从上方压下来
+	u.light(ctr, r1, Color(0.4, 0.05, 0.08), T)
+	for q in 6:
+		var hq: float = PF.h(float(a.sb_vs) + q * 4.3)
+		u.grain("sh_shard", ctr + Vector2.from_angle(hq * TAU) * r1 * 0.9 + Vector2(0, -120), Vector2.DOWN, Color(1.0, 0.55, 0.25), 2)
+
+
+## 收尾：巨锯落地——冲击帧（剪影是这把锯）+ 顿帧 → 转一下锯开：血红分叉裂网撕开地面、碎石隆起飞溅、逐帧烟尘，0.3 秒后余震；然后消散
+static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> void:
+	var ctr: Vector2 = a.get("sb_ctr", c)
 	var rr: float = PF.tex_w(u, SP_SAW) * 0.5
 	var r1: float = R * 0.75
 	u.strip(SP_SAW, ctr, {"sc": r1 * 1.5 / rr, "sc1": r1 * 1.08 / rr, "scd": 0.18, "spin": -9.0, "life": 0.85, "fade": 0.45,
 		"col": Color(1.4, 0.35, 0.35, 0.45)})   # 血色光晕（大一圈、半透明）
-	u.strip(SP_SAW, ctr, {"sc": r1 * 1.4 / rr, "sc1": r1 / rr, "scd": 0.18, "spin": -9.0, "life": 0.85, "fade": 0.4, "col": Color(1.05, 1.0, 1.0, 1.0)})
-	u.g.vfx.stop(Bal.v("ult/sb_hitstop", 0.1), "ult", true)
+	u.strip(SP_SAW, ctr, {"sc": r1 * 1.12 / rr, "sc1": r1 / rr, "scd": 0.06, "spin": -9.0, "life": 0.85, "fade": 0.4, "col": Color(1.05, 1.0, 1.0, 1.0), "hf": true})
+	u.g.vfx.stop(Bal.v("ult/sb_hitstop", 0.16), "ult", true)
 	u.light(ctr, r1 * 1.2, Color(0.55, 0.08, 0.1), 0.35)
 	PF.particles(u, ctr, 300, "ult_burst", [SB_RED, SB_DARK], 0.12, float(a.sb_vs) + 99.0, r1)
 	var vs: float = float(a.sb_vs) + 55.0
@@ -638,3 +650,14 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 		var tl: float = r1 * (0.4 + 0.4 * PF.h(vs + q * 3.0))
 		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + q), ctr + Vector2.from_angle(ta) * r1 * 0.3, ta, tl, {"layer": "back", "sy": 0.5, "rev": 0.12, "delay": 0.12,
 			"life": 1.0, "fade": 0.5, "col": Color(1.0, 0.3, 0.25, 1.0), "col1": SB_DARK, "cold": 0.4})
+	# 地面撕裂 + 碎屑 + 烟尘 + 余震（pixfx §6.6）
+	var forks: Array = ["fx_ul_crack_fork", "fx_ul_crack_fork2", "fx_ul_crack_fork3", "fx_ul_crack_fork4"]
+	PF.crack_net(u, forks, ctr, r1 * 1.25, 9, PF.h(vs) * TAU, vs, 0.14, Color(1.0, 0.35, 0.3), Color(0.25, 0.05, 0.06), r1 * 0.35)
+	PF.heave(u, ctr, r1 * 0.85, vs, 0.02, Color(0.9, 0.8, 0.8))
+	PF.heave(u, ctr, r1 * 0.45, vs + 9.0, 0.0, Color(0.9, 0.8, 0.8), 90.0)
+	for q in 5:
+		var hq: float = PF.h(vs + q * 6.7)
+		PF.dust(u, ctr + Vector2.from_angle(TAU * (q + hq) / 5.0) * r1 * (0.6 + 0.4 * hq), 110.0 + 60.0 * hq, 0.04 * q, vs + q,
+			Vector2.from_angle(TAU * (q + hq) / 5.0) * 60.0, Color(0.55, 0.45, 0.45) if q % 2 == 0 else Color(0.3, 0.22, 0.22))
+	PF.aftershock(u, ctr, r1, vs + 3.0, 0.3, 10, Color(0.9, 0.8, 0.8))
+	u.shake(3.0, 0.15)

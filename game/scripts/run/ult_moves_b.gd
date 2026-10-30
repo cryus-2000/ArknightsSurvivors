@@ -1119,9 +1119,13 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 		var mul: float = (1.0 + (1.0 - hpk) * 0.5) if hpk < 0.5 else 1.0
 		var fr: float = Bal.v("ult/su_frac", 1.0 / 12.0) * mul   # 12 次合计 1（原 0.08 × 12 = 0.96）
 		var nb := 0
+		var sbp: bool = a.has("sb") and int(a.tick) < n   # 弹射版：前 11 圈标 pre，冲击帧 / 顿帧落在最后巨锯落地那一下（用户 10-31）
+		if a.has("sb") and int(a.tick) >= n:
+			a["hf"] = true
+			u.act["hf"] = true
 		for e in u.in_circle(c, full_r):
 			var de: float = e.pos.distance_to(c)
-			_hit(u, a, o, e, fr, {"src": "巨锯", "edge": de > full_r * (1.0 - _edge_w())})
+			_hit(u, a, o, e, fr, {"src": "巨锯", "edge": de > full_r * (1.0 - _edge_w()), "pre": sbp})
 			if nb < 6 and de > full_r * 0.4:   # 锯过的地方飞血 / 火星（每圈最多 6 处）
 				nb += 1
 				if a.has("sp_saws"):
@@ -1279,7 +1283,7 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 				a.seg[int(e.id)] = true
 				var tg: Vector2 = Vector2.from_angle(off.angle() + PI / 2.0)
 				var ep: Vector2 = e.pos
-				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0)})
+				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0), "pre": a.has("jl")})   # 水母群：冲击落在一起炸开那一下
 				if a.has("jl"):
 					FC.mz_jelly_hit(u, a, ep, t)
 				if e.dead and float(a.heal) < 0.05:
@@ -1308,6 +1312,8 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		_fade(u, a, 0.3)
 		var jelly: bool = a.has("jl")
 		if jelly:
+			a["hf"] = true   # 冲击帧：水母一起炸开（用户 10-31）
+			u.act["hf"] = true
 			FC.mz_jelly_burst(u, a, c, t)
 		elif not v2:
 			u.strip("fx_mizuki_tentacle_mass", a.base, {"sc": 1.6, "o": Vector2(96, 90)})

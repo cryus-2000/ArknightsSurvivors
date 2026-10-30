@@ -515,7 +515,7 @@ static func _su_start(u, o, d: Vector2) -> Dictionary:
 	o.face_to(d.angle())
 	if FC.sz_v2(u):   # 斩痕 v2：忍冬本体走路进场 + 拔刀（缺帧条时白光人形）+ 连续冷色斩痕（ult/sz_fx_v2）
 		a["v2"] = true
-		if FC.sz_body(u):   # 本体版现身段 0.3 → 0.55 秒（走路 0.3 + 拔刀到出刀帧 0.25；瞬身那一下落在出刀帧）
+		if FC.sz_body(u):   # 本体版：现身 → 停半拍 → 化光闪出，时序同原来（ult/su_appear 0.3，用户 10-31 去掉走路）
 			a.tp = FC.sz_tp()
 		FC.sz_start(u, a, side, float(a.tp))
 		return a
