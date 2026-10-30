@@ -692,8 +692,6 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		else:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
-			if card.has_meta("brief") and not L.touch:
-				f0 = UI.fit(g.font, display_desc, card_w - 40.0, 64.0, [18, 17, 16, 15, 14, 13])   # 电脑：干员卡一句话，字放大
 			var compact: bool = not f0.fit
 			if L.touch:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
@@ -1051,7 +1049,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)
-		var dc := Color(0.86, 0.9, 0.93, ta) if card.has_meta("brief") else Color(0.655, 0.69, 0.725, ta)
+		var dc := Color(0.86, 0.9, 0.93, ta) if card.has_meta("brief") and L.touch else Color(0.655, 0.69, 0.725, ta)   # 电脑：各类卡说明同字号同色（用户 10-30）
 		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * px)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])

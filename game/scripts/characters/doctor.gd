@@ -120,6 +120,7 @@ func manual_input_dir() -> Vector2:
 ## 设置「普通攻击：手动」（Cfg.manual_attack，玩法系统的设置项）时主控的普攻要按键才出；队友、机器人、图鉴演示一律自动。
 ## 开发测试：--manualatk 强制打开
 const Bal = preload("res://scripts/core/balance.gd")
+const StatDefs = preload("res://scripts/core/stat_defs.gd")
 
 var manual_attack := false
 var atk_buf := 0.0             # 轻点攻击键的缓冲：冷却没转好时先记下，manual/atk_buf 秒内一转好就出（不白按）
@@ -451,7 +452,14 @@ func passive_preview(pid: String) -> String:
 	var c: Dictionary = PASSIVES.get(pid, {})
 	if c.has("stat") and str(c.get("scope", "")) == "":
 		var sn := StringName(str(c.stat))
-		return "%s %.2f → %.2f" % [str(c.stat), st.value(sn), st.value_with(sn, str(c.op), card_value(c))]
+		# 卡面不露内部键名：用属性表的中文名（去掉括注）；倍率类（基值 1）写成 ×，其余写数值
+		var d: Dictionary = StatDefs.PLAYER.get(sn, {})
+		var label := str(d.get("name", c.stat)).get_slice("（", 0)
+		var now: float = st.value(sn)
+		var nxt: float = st.value_with(sn, str(c.op), card_value(c))
+		if is_equal_approx(float(d.get("base", 0.0)), 1.0):
+			return "%s ×%.2f → ×%.2f" % [label.trim_suffix("倍率"), now, nxt]
+		return "%s %s → %s" % [label, _num(now), _num(nxt)]
 	return ""
 
 
