@@ -820,6 +820,17 @@ static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 	a["core"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 3.0, "col": Color.WHITE, "fill": 0.95, "life": life})
 	a["tipc"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 1.0, "col": COL_SK_TEAL, "fill": 0.0, "life": life})
 	a["tipw"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 1.0, "col": Color(1.0, 0.95, 0.97), "fill": 0.0, "life": life})
+	if _sk_v2(u):   # 吐息 v2：程序画的各层带子换成 pixgen 整条光束贴图（两层错开滚动）+ 根部 / 命中点爆闪贴图
+		a["v2"] = true
+		for key in ["cone", "halo", "body", "inner", "wire", "tipc", "tipw"]:
+			u.shapes.erase(a[key])
+		var bh: float = float(u._strip_tex(SK_BEAM).get_height())
+		for key in ["bm", "bm2"]:
+			a[key] = u.strip(SK_BEAM, org, {"o": Vector2(0.0, bh * 0.5), "uw": 1.0, "life": life, "col": Color(1, 1, 1, 0.0)})
+			a.fx.append(a[key])
+		for key in ["rf", "tf"]:
+			a[key] = u.strip(SK_FLASH, org, {"sc": 0.1, "life": life, "col": Color(1, 1, 1, 0.0)})
+			a.fx.append(a[key])
 	o.play_vis_anim("attack")
 	return a
 
@@ -872,10 +883,13 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 	a.nb = i + 1
 	if a.echo:
 		_sk_zone(u, a, p)
-	u.shape({"kind": "circle", "c": p, "r": 40.0, "col": Color(1.0, 0.9, 0.92), "fill": 0.9, "life": 0.07})
-	u.shape({"kind": "rock", "c": p, "r": 58.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.5), "core": COL_SK_TEAL, "seed": float(i), "rot": float(i) * 0.7, "fill": 0.9, "hold": false, "life": 0.22})
+	if a.get("v2", false):
+		_sk_blast_v2(u, p, 1.0, float(i))
+	else:
+		u.shape({"kind": "circle", "c": p, "r": 40.0, "col": Color(1.0, 0.9, 0.92), "fill": 0.9, "life": 0.07})
+		u.shape({"kind": "rock", "c": p, "r": 58.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.5), "core": COL_SK_TEAL, "seed": float(i), "rot": float(i) * 0.7, "fill": 0.9, "hold": false, "life": 0.22})
+		u.shape({"kind": "ring", "c": p, "r": 96.0, "r1": 24.0, "w": 6.0, "col": COL_SK_RED.lerp(Color.WHITE, 0.3), "solid": true, "life": 0.2})
 	u.shape({"kind": "ring", "c": p, "r": 130.0, "r1": 30.0, "w": 8.0, "col": COL_SK_TEAL, "life": 0.34})   # 缺省碎裂
-	u.shape({"kind": "ring", "c": p, "r": 96.0, "r1": 24.0, "w": 6.0, "col": COL_SK_RED.lerp(Color.WHITE, 0.3), "solid": true, "life": 0.2})
 	u.shape({"kind": "ellipse", "c": p + Vector2(0, 8), "rx": 70.0, "ry": 32.0, "col": COL_SK_RED.darkened(0.7), "fill": 0.4, "life": 1.1, "layer": "back"})   # 灼地
 	for m in 4:   # 掀起的碎岩（带重力）
 		var h: float = fposmod(float(i * 5 + m) * 0.618, 1.0)
@@ -888,6 +902,76 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 	u.light(p, 190.0, COL_SK_RED.lerp(COL_SK_TEAL, 0.25 if i % 2 == 0 else 0.0), 0.26)
 	u.debris(p, COL_SK_RED if i % 2 == 0 else COL_SK_TEAL, 2)
 	u.shake(4.0, 0.14)
+
+
+## ---------------- 吐息 v2（ult/sk_beam_v2，缺省 1；0 = 程序画的各层带子版。pixfx 技能，docs/199 §7.7）
+## 光束 = pixgen 整条光束贴图（fx_sk_beam，原点左端中心）从口部铺到末端，两层错开往外滚动 + 粗细随脉动；口部 / 命中点 = 爆闪贴图（fx_sk_flash）转着闪；
+## 轨迹爆点 = 爆炸贴图（fx_sk_blast）先白亮后冷成暗红、缓出放大；收尾大爆 = 中心大爆 + 一圈错开的爆 + 裂网 + 地块隆起。只画画面
+const SK_BEAM := "fx_sk_beam"
+const SK_FLASH := "fx_sk_flash"
+const SK_BLAST := "fx_sk_blast"
+const SK_COLD := Color(0.45, 0.22, 0.26)
+
+
+static func _sk_v2(u) -> bool:
+	return Bal.v("ult/sk_beam_v2", 1.0) > 0.0 and u.fx_ready(SK_BEAM) and u.fx_ready(SK_FLASH) and u.fx_ready(SK_BLAST)
+
+
+static func _sk_beam_v2(u, a: Dictionary, org: Vector2, tip: Vector2, imp: Vector2, wk: float, t: float) -> void:
+	var tex: Texture2D = u._strip_tex(SK_BEAM)
+	var k: float = u.g.PX / A.hires_of(tex)
+	var tw: float = float(tex.get_width())
+	var uw: float = minf(tw, org.distance_to(tip) / k)
+	var room: float = maxf(0.0, tw - uw)
+	var ang: float = (tip - org).angle()
+	var hk: float = 112.0 * wk / (tex.get_height() * k)   # 光束总宽约 112 × 粗细倍率
+	var i := 0
+	for key in ["bm", "bm2"]:
+		var s: Dictionary = a[key]
+		s.c = org
+		s.ang = ang
+		s.uw = uw
+		s.ux = floorf(pingpong(t * (520.0 + 170.0 * i) + 130.0 * i, room)) if room > 0.0 else 0.0   # 往外流
+		s.sy = hk * (1.0 if i == 0 else -0.78)
+		s.col = Color(1, 1, 1, 1.0 if i == 0 else 0.55)
+		i += 1
+	a.rf.c = org
+	a.rf.sc = 0.75 * wk
+	a.rf.ang = t * 7.0
+	a.rf.col = Color(1, 1, 1, 1)
+	a.tf.c = imp
+	a.tf.sc = (0.9 + 0.25 * sin(t * 41.0)) * wk
+	a.tf.ang = -t * 9.0
+	a.tf.col = Color(1, 1, 1, 1)
+
+
+## 一个爆点：爆闪 + 爆炸贴图（缓出放大，白亮 → 暗红余烬）；k = 大小倍率
+static func _sk_blast_v2(u, p: Vector2, k: float, seed0: float, delay := 0.0) -> void:
+	var bt: Texture2D = u._strip_tex(SK_BLAST)
+	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
+	u.strip(SK_FLASH, p, {"sc": 1.1 * k, "ang": seed0 * 0.9, "life": 0.07, "delay": delay})
+	u.strip(SK_BLAST, p, {"sc": 50.0 * k / br, "sc1": 125.0 * k / br, "scd": 0.2, "ang": seed0 * 1.7, "life": 0.5, "fade": 0.28,
+		"col": Color.WHITE, "col1": SK_COLD, "cold": 0.32, "delay": delay})
+
+
+## 收尾大爆：中心大爆 + 外围一圈错开的爆 + 裂网（借乌尔比安分叉裂缝，调成暗红）+ 地块隆起
+static func _sk_final_v2(u, c: Vector2, L: float) -> void:
+	_sk_blast_v2(u, c, 2.4, 3.0)
+	for m in 9:
+		var h: float = _ulh(m + 70.0)
+		_sk_blast_v2(u, c + Vector2.from_angle(TAU * (m + h) / 9.0) * L * (0.45 + 0.25 * h), 1.05, float(m), 0.04 + 0.03 * (m % 4))
+	if u.fx_ready(UL_FORK):
+		var t: Texture2D = u._strip_tex(UL_FORK)
+		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
+		for j in 11:
+			var h1: float = _ulh(j + 80.0)
+			u.strip(UL_FORK, c, {"layer": "back", "ang": TAU * (j + (h1 - 0.5) * 0.7) / 11.0, "o": Vector2(0.0, t.get_height() * 0.5),
+				"sx": L * (0.6 + 0.4 * _ulh(j + 90.0)) / tw, "sy": (0.8 if j % 3 == 0 else 0.5) * (1.0 if j % 2 == 0 else -1.0),
+				"rev": 0.28, "rev0": 0.15, "life": 1.9, "fade": 0.7, "col": Color(1.0, 0.75, 0.8), "col1": Color(0.4, 0.22, 0.26), "cold": 0.7})
+	for q in 18:
+		var hh: float = _ulh(q * 7.0 + 300.0)
+		var dv := Vector2.from_angle(TAU * (q + 0.6 * hh) / 18.0)
+		_ul_rock(u, c + dv * L * (0.3 + 0.6 * hh), dv * 40.0, (120.0 + 60.0 * hh) if q % 3 else (300.0 + 120.0 * hh), hh, 0.5, 0.03 * (q % 4))
 
 
 ## 挑下一个追的目标：圈内（没烧过的优先）敌人按角度分 32 格加权（精英 / Boss × 4），相邻格平滑后除以 (1 + 0.6 × 与当前朝向的角差)，
@@ -971,6 +1055,11 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				var dv := Vector2.from_angle(float(m) * TAU / 6.0 + float(j) * 0.7)
 				u.grain("mote_in", org + dv * 110.0, -dv, COL_SK_TEAL if m % 2 == 0 else COL_SK_RED, 2)
 			u.light(org, lerpf(60.0, 200.0, kc), COL_SK_TEAL, 0.1)
+		if a.get("v2", false):   # 口中爆闪贴图跟着长大
+			a.rf.c = org
+			a.rf.sc = lerpf(0.15, 0.6, kc * kc)
+			a.rf.ang = t * 6.0
+			a.rf.col = Color(1, 1, 1, kc)
 		u.shake(2.0, 0.15)
 		return false
 	if int(a.lap) < int(a.laps):
@@ -1060,6 +1149,8 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		a.tipw.fill = 0.95
 		for s in [a.cone, a.halo, a.body, a.inner, a.wire, a.glow, a.core, a.tipc, a.tipw]:
 			s.age = 0.0
+		if a.get("v2", false):
+			_sk_beam_v2(u, a, org, tip, imp, bw * ramp * pul, t)
 		u.shake(3.5, 0.2)   # 吐息全程小幅持续震
 		var fr2: int = int(a.fr2)
 		var side: Vector2 = dir.orthogonal()
@@ -1100,6 +1191,10 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				for s in [a.cone, a.halo, a.body, a.inner, a.wire, a.tipc, a.tipw]:
 					u.shapes.erase(s)
 					a.fx.erase(s)
+				for key in ["bm", "bm2", "tf"]:
+					if a.has(key):
+						u.shapes.erase(a[key])
+						a.fx.erase(a[key])
 				a.newp = []
 				a.close_t = t   # 海嗣沉下
 				a.blast_t = t + Bal.v("ult/sk_blast_delay", 0.12)
@@ -1111,6 +1206,9 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		for s in [a.glow, a.core]:
 			u.shapes.erase(s)
 			a.fx.erase(s)
+		if a.has("rf"):
+			u.shapes.erase(a.rf)
+			a.fx.erase(a.rf)
 		var er2: float = L * (1.0 - _edge_w())
 		for e in u.in_circle(c, L):   # 收尾大爆份额 + 光束没烧到 / 轨迹没炸到的补上那一份（每人单程合计至多 1）
 			var bf: float = float(a.bfrac) + (0.0 if a.lseg.has(int(e.id)) else float(a.lfrac)) + (0.0 if a.tseg.has(int(e.id)) else float(a.tfrac))
@@ -1121,7 +1219,10 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		u.g.vfx.stop(Bal.v("ult/sk_blast_freeze", 0.08), "ult", true)
 		u.shake(9.0, 0.45)
 		# 收尾大爆：不铺满屏实心红圆（10-30 美术口径），中心一团碎块炸开 + 一圈圈碎裂冲击 + 大量颗粒 / 碎屑
-		u.shape({"kind": "rock", "c": c, "r": 90.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "core": COL_SK_TEAL, "seed": 5.0, "fill": 0.9, "hold": false, "life": 0.22})
+		if a.get("v2", false):
+			_sk_final_v2(u, c, L)
+		else:
+			u.shape({"kind": "rock", "c": c, "r": 90.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "core": COL_SK_TEAL, "seed": 5.0, "fill": 0.9, "hold": false, "life": 0.22})
 		for m2 in 16:
 			var dm: Vector2 = Vector2.from_angle(TAU * float(m2) / 16.0 + 0.2)
 			u.grain("bfx_burst", c + dm * L * 0.3, dm, COL_SK_RED if m2 % 2 == 0 else COL_SK_TEAL, 6)
@@ -1136,7 +1237,7 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 			u.grain("bfx_burst", c + dq * L * 0.35, dq, COL_SK_RED, 8)
 		_ring(u, c, L * 0.92, 30.0, COL_SK_TEAL, 0.55, 10.0, 0.04)
 		_ring(u, c, L * 0.7, 20.0, COL_SK_RED.lerp(Color.WHITE, 0.3), 0.5, 6.0, 0.08)
-		for m in 16:
+		for m in (0 if a.get("v2", false) else 16):
 			var dv := Vector2.from_angle(float(m) * TAU / 16.0 + 0.1)
 			u.shape({"kind": "blade", "a": c + dv * 60.0, "b": c + dv * 200.0, "w": 10.0, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.3), "glow": COL_SK_TEAL if m % 2 == 0 else COL_SK_RED,
 				"life": 0.32, "v": dv * 900.0})
@@ -1258,6 +1359,10 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 			a["aura"] = _ka_keep(u, a, {"kind": "ring", "c": core, "r": 40.0, "w": 4.0, "col": KA_COL.lerp(Color.WHITE, 0.3), "solid": true, "life": 9.0})   # 罩住 Mon3tr 本体的聚能圈（不盖住它）
 			a["glow"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 8.0, "col": KA_COL, "fill": 0.45, "life": 9.0})
 			a["hot"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 4.0, "col": Color(0.9, 1.0, 0.97), "fill": 0.95, "life": 9.0})
+			if _ka_v2(u):   # 蓄力压暗：落点一大片地面渐暗；预兆细裂纹
+				a["v2"] = true
+				a["dark"] = _ka_keep(u, a, {"kind": "circle", "c": c, "r": R * 1.12, "col": Color(0.0, 0.01, 0.02), "fill": 0.0, "life": 9.0, "layer": "back"})
+				_ka_pre(u, c, wind)
 		var pul: float = 1.0 + 0.15 * sin(t * (30.0 + 40.0 * kw))
 		a.glow.c = core
 		a.glow.r = lerpf(8.0, 36.0, kw * kw) * pul
@@ -1269,6 +1374,9 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		for s in [a.glow, a.hot, a.aura]:
 			s.age = 0.0
 		_ka_warn(a, 0.35 + 0.65 * kw, t)
+		if a.has("dark"):
+			a.dark.fill = 0.5 * kw
+			a.dark.age = 0.0
 		# 收光：越到后面越密（0.14 → 0.06 秒一道），外圈往落点收的光圈 + 光点
 		if t >= float(a.ci_t):
 			a.ci_t = t + lerpf(0.14, 0.06, kw)
@@ -1291,10 +1399,13 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		_hit_circle(u, a, o, c, float(rs[i]), float(a.fs[i]), a.segs[i], opt, R)
 		var col: Color = KA_HOT.lerp(Color.WHITE, 0.5 - 0.2 * i)
 		_ring(u, c, float(rs[i]), maxf(30.0, r0), col, 0.35, 10.0 - 2.0 * i)
-		# 每圈：沿圈一道连续的炽热实线（程序画，整圈不断）+ 一圈掀起的地块；裂纹帧条（fx_ult_kaltsit_crack_back，地面层）只作点缀
-		u.shape({"kind": "ring", "c": c, "r": float(rs[i]), "w": 9.0 - 2.0 * i, "col": KA_HOT.lerp(Color(1.0, 0.85, 0.5), 0.4), "solid": true, "life": 0.55, "layer": "back"})
-		_arc(u, "fx_ult_kaltsit_crack_back", c, float(rs[i]), {"layer": "back", "fps": 14.0, "life": 0.7})
-		_ka_chunks(u, c, float(rs[i]), 6 + 2 * i, i)
+		if a.get("v2", false):   # v2：不再画同心炽热实线 + 弧段裂纹；沿圈地块隆起，最外圈尘土墙外推 + 余震
+			_ka_ring_v2(u, c, float(rs[i]), i, R)
+		else:
+			# 每圈：沿圈一道连续的炽热实线（程序画，整圈不断）+ 一圈掀起的地块；裂纹帧条（fx_ult_kaltsit_crack_back，地面层）只作点缀
+			u.shape({"kind": "ring", "c": c, "r": float(rs[i]), "w": 9.0 - 2.0 * i, "col": KA_HOT.lerp(Color(1.0, 0.85, 0.5), 0.4), "solid": true, "life": 0.55, "layer": "back"})
+			_arc(u, "fx_ult_kaltsit_crack_back", c, float(rs[i]), {"layer": "back", "fps": 14.0, "life": 0.7})
+			_ka_chunks(u, c, float(rs[i]), 6 + 2 * i, i)
 		if i > 0:
 			u.shake(5.0 - 1.0 * i, 0.2)
 		if i == 0 and a.shell:
@@ -1337,7 +1448,7 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 	var c: Vector2 = a.c
 	var R: float = float(a.rs[2])
 	var core: Vector2 = (a.m3.pos if _ka_alive(a) else c) + Vector2(0, -38.0)
-	for key in ["glow", "hot", "aura"]:
+	for key in ["glow", "hot", "aura", "dark"]:
 		if a.has(key):
 			u.shapes.erase(a[key])
 			a.fx.erase(a[key])
@@ -1352,6 +1463,14 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 	if _ka_alive(a):
 		o.ObSummon._sm_end(o, a.m3, "leave")   # Mon3tr 炸开用掉：8 秒内不在场（不执行 on_expire）
 		o.set_meta("ult_m3_back", u.g.t + 9.0)   # 兜底：动作被中途清掉时，下次任何人放终结技会补回 Mon3tr
+	if a.get("v2", false):
+		_ka_blast_v2(u, c, core, R)
+		u.light(core, R * 0.9, KA_COL, 0.6)
+		u.light(c, 300.0, Color(1.0, 0.95, 0.85), 0.25)
+		u.debris(c, KA_COL, 3)
+		u.debris(c, KA_HOT, 3)
+		u.shake(9.0, 0.4)
+		return
 	# 白芯爆闪（Mon3tr 身上）+ 青绿外焰
 	u.shape({"kind": "circle", "c": core, "r": 150.0, "col": KA_COL, "fill": 0.55, "life": 0.18})
 	u.shape({"kind": "circle", "c": core, "r": 78.0, "col": Color(0.95, 1.0, 0.98), "fill": 1.0, "life": 0.12})
@@ -1373,6 +1492,63 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 		u.grain("bfx_burst", c + dq * 40.0, dq, KA_COL if m % 2 == 0 else KA_HOT, 8)
 		u.grain("bfx_dust", c + dq * 120.0, dq, Color(0.7, 0.75, 0.75), 4)
 	u.shake(9.0, 0.4)
+
+
+## ---------------- 爆点 v2（ult/ka_blast_v2，缺省 1；0 = 程序画白圈 + 放射斩光版。pixfx 技能，docs/199 §7.7）
+## 蓄力时落点一片地面渐暗（压暗）+ 预兆细裂纹 → 爆点：压暗撤掉、pixgen 大爆炸（fx_ka_blast，白亮 → 暗色余烬、缓出放大）+ 冲击波环（fx_ka_shock 扩到外圈）
+## + 11 条分叉裂缝跟三圈往外长（借 fx_ul_crack_fork，青白调）→ 每圈地块隆起、最外圈尘土墙外推 + 余震碎石。三圈判定 / 时序 / 伤害不动
+const KA_BLAST := "fx_ka_blast"
+const KA_SHOCK := "fx_ka_shock"
+
+
+static func _ka_v2(u) -> bool:
+	return Bal.v("ult/ka_blast_v2", 1.0) > 0.0 and u.fx_ready(KA_BLAST) and u.fx_ready(KA_SHOCK)
+
+
+static func _ka_pre(u, c: Vector2, wind: float) -> void:
+	if not u.fx_ready(UL_FORK):
+		return
+	var t: Texture2D = u._strip_tex(UL_FORK)
+	var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
+	for j in 6:
+		u.strip(UL_FORK, c, {"layer": "back", "ang": TAU * (j + _ulh(j + 140.0)) / 6.0, "o": Vector2(0.0, t.get_height() * 0.5),
+			"sx": (110.0 + 60.0 * _ulh(j + 150.0)) / tw, "sy": 0.4, "rev": wind, "life": wind + 0.2, "col": Color(0.6, 0.95, 0.9, 0.8)})
+
+
+static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
+	var bt: Texture2D = u._strip_tex(KA_BLAST)
+	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
+	u.strip(KA_BLAST, core, {"sc": 70.0 / br, "sc1": R * 0.55 / br, "scd": 0.25, "life": 0.75, "fade": 0.35,
+		"col": Color.WHITE, "col1": Color(0.4, 0.3, 0.3), "cold": 0.5})
+	var st: Texture2D = u._strip_tex(KA_SHOCK)
+	var sr: float = st.get_width() * 0.5 * u.g.PX / A.hires_of(st)
+	u.strip(KA_SHOCK, c, {"layer": "back", "sc": 60.0 / sr, "sc1": R * 1.05 / sr, "scd": 0.3, "life": 0.45, "fade": 0.2})
+	if u.fx_ready(UL_FORK):
+		var t: Texture2D = u._strip_tex(UL_FORK)
+		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
+		for j in 11:
+			var h1: float = _ulh(j + 120.0)
+			u.strip(UL_FORK, c, {"layer": "back", "ang": TAU * (j + (h1 - 0.5) * 0.7) / 11.0, "o": Vector2(0.0, t.get_height() * 0.5),
+				"sx": R * (0.6 + 0.45 * _ulh(j + 130.0)) / tw, "sy": (0.85 if j % 3 == 0 else 0.55) * (1.0 if j % 2 == 0 else -1.0),
+				"delay": 0.04 * _ulh(j + 110.0), "rev": 0.36, "rev0": 0.2, "life": 2.0, "fade": 0.7,
+				"col": Color(0.85, 1.0, 0.95), "col1": Color(0.4, 0.42, 0.45), "cold": 0.9})
+
+
+static func _ka_ring_v2(u, c: Vector2, r: float, i: int, R: float) -> void:
+	var nr: int = roundi(TAU * r / 120.0)
+	for q in nr:
+		var hh: float = _ulh(i * 37.0 + q * 7.0 + 500.0)
+		var dirv: Vector2 = Vector2.from_angle(0.41 * i + TAU * (q + 0.6 * hh) / maxf(1.0, nr))
+		var p: Vector2 = c + dirv * r * (0.86 + 0.16 * hh)
+		var high: bool = q % 4 == 0
+		_ul_rock(u, p, dirv * ((60.0 + 80.0 * hh) if high else 25.0), (260.0 + 160.0 * hh) if high else (110.0 + 60.0 * hh), hh, (0.55 if high else 0.45) + 0.06 * i, 0.02 * (q % 3))
+		if q % 3 == 0:
+			u.grain("bfx_dust", p, dirv, Color(0.6, 0.65, 0.66), 3)
+	if i == 2:
+		_ul_wall(u, c, r)
+		for q in 10:
+			var h2: float = _ulh(q * 5.0 + 520.0)
+			_ul_rock(u, c + Vector2.from_angle(TAU * (q + h2) / 10.0) * R * (0.25 + 0.7 * h2), Vector2.ZERO, 120.0 + 60.0 * h2, h2, 0.4, 0.3 + 0.05 * (q % 3))
 
 
 ## 掀起的地块：沿半径 r 的圈抛出 n 块碎岩（带重力，往外上方飞、转着落下）
