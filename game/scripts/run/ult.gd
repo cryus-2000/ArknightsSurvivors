@@ -1339,6 +1339,11 @@ var _imp_pos := Vector2.ZERO
 var flash_rt := -99.0          # HUD 闪白起点（真实时间）
 var _cmb_rt := -99.0           # 连携短慢放起点（真实时间）
 var _link_rt := -99.0          # 技能连携出手瞬间放慢起点（真实时间）
+var hush_until := -99.0         # 配乐压成寂静到这个真实时间（逻各斯终结技「时空暂停」，用户 10-31；music_director 读）
+
+
+func hush(sec: float) -> void:
+	hush_until = maxf(hush_until, UM.now() + sec)
 
 
 func link_slow() -> void:

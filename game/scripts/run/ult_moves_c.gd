@@ -624,6 +624,10 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var bk: float = Bal.v("ult/lo_back", 160.0)   # 咒域从队长身后 bk 起（10-30 对齐 §3.4：原 60）
 	var org: Vector2 = o.pos
 	var tm: float = Bal.v("ult/lo_mark", 0.5)
+	var v4: bool = _lo_circ() and Bal.v("ult/lo_fx_v4", 1.0) > 0.0 and u.fx_ready(LO_GLYPH[0])   # 用户 10-31「咒文慢慢出现 → 一起真空压缩爆炸」
+	if v4:
+		tm = Bal.v("ult/lo_mark_v4", 1.2)   # 咒文慢慢浮现：结算推迟到 1.2 秒（份额不变）
+		u.hush(tm + 0.5)   # 配乐压成寂静（时空暂停感）
 	var col: Color = u._col(o)
 	var p0: Vector2 = _w(org, d, -bk, -hw)
 	var p1: Vector2 = _w(org, d, L, -hw)
@@ -636,8 +640,10 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var cc: Vector2 = org + d * Bal.v("ult/lo_off", 330.0)
 	var cr: float = Bal.v("ult/lo_cr", 550.0)
 	var a0 := {"circ": circ, "cc": cc, "cr": cr, "org": org, "d": d, "bk": bk, "L": L, "hw": hw}
-	if circ:
+	if circ and not v4:
 		_lo_ink_area(u, cc, cr, tm, vs)
+	if v4:
+		u.shape({"kind": "nop", "c": org, "desat": 0.55, "din": 0.4, "dout": 0.6, "life": tm + 0.7})   # 慢慢褪色 = 时间停住
 	# 咒域：矩形描边 + 底色 + 两条长边的咒文条（fx_logos_script 拼接）+ 横向分隔线
 	if not circ:
 		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
@@ -653,7 +659,7 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	for k in (0 if v3 or circ else 4):
 		var x: float = lerpf(-bk, L, (k + 1) / 5.0)
 		u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 1.5, "col": Color(col, 0.6), "life": tm, "delay": 0.05 * k})
-	if v3:
+	if v3 and not v4:
 		_lo_erase_v3(u, org, d, hw, L, bk, tm, vs, a0)
 	# 标记（头顶咒文，fx_logos_glyph 画入 0–3；同屏至多 ult/lo_mark_fx 个，伤害照打每一个）
 	var marks: Array = []
@@ -662,9 +668,13 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 		if marks.size() >= cap:
 			break
 		var mp: Vector2 = e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0)
+		if v4:   # 每只头顶一枚萨卡兹咒印，按离她远近错开 0–0.4 秒依次浮现、在 tm 内慢慢长到位
+			var dl: float = 0.4 * clampf(e.pos.distance_to(org) / (cr * 2.0), 0.0, 1.0)
+			marks.append({"e": e, "s": _lo_glyph(u, mp + Vector2(0, -10), 62.0, tm - dl, vs + marks.size() * 1.3, {"sc1d": (tm - dl) * 0.8, "fade": 0.05, "delay": dl, "col": Color(1.3, 1.2, 1.45, 1.0)})})
+			continue
 		marks.append({"e": e, "s": {"c": mp} if v3 else _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
-	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "v3": v3, "vs": vs, "circ": circ, "cc": cc, "cr": cr,
+	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "v3": v3, "v4": v4, "vs": vs, "circ": circ, "cc": cc, "cr": cr,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
 
 
@@ -685,7 +695,9 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		a.boom = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		if a.circ:   # 句点：整片抹白一下（不爆）
+		if a.v4:
+			_lo_implode_v4(u, a)
+		elif a.circ:   # 句点：整片抹白一下（不爆）
 			u.shape({"kind": "circle", "c": a.cc, "r": float(a.cr), "col": Color(0.8, 0.79, 0.76), "fill": 0.16, "life": 0.15})   # 预审：抹白别发白
 		elif a.v3:
 			u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": Color(0.96, 0.95, 0.9), "fill": 0.32, "life": 0.2})
@@ -711,7 +723,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 				frac = maxf(frac, float(e.hp) / maxf(1.0, u.budget(e, edge) * u.build_mult(o)) * 1.3)
 			var pos: Vector2 = e.pos
 			_once(u, a, o, a.seg, e, frac, {"src": "处决" if exe else "咒文", "edge": edge})
-			if e.dead and a.v3 and ninks < 18:   # 被划掉的化墨迹散开
+			if e.dead and a.v3 and not a.v4 and ninks < 18:   # 被划掉的化墨迹散开
 				ninks += 1
 				PF.particles(u, pos, 60, "ult_burst_s", [Color(0.08, 0.08, 0.1), Color(0.2, 0.19, 0.22)], 0.0, float(a.vs) + ninks * 2.7, 55.0)
 			if e.dead:
@@ -888,6 +900,32 @@ static func _lo_ink_area(u, cc: Vector2, cr: float, tm: float, vs: float) -> voi
 		var hh: float = PF.h(vs + q * 3.7)
 		var pq: Vector2 = cc + Vector2.from_angle(TAU * (q + hh) / 7.0) * cr * (0.85 + 0.12 * hh)
 		PF.particles(u, pq, 60, "ult_burst_s", [Color(0.06, 0.06, 0.08), Color(0.16, 0.15, 0.18)], 0.03 * q, vs + q * 5.0, 50.0 + 50.0 * hh)
+
+
+## 真空压缩爆炸：所有咒印同时往里一缩（0.1 秒缩到一个亮点，四周光尘往里吸）→ 再同时炸开（紫白像素粒子 + 冷紫小灯 + 一圈暗紫碎环）；不整屏白闪
+static func _lo_implode_v4(u, a: Dictionary) -> void:
+	var i := 0
+	for mk in a.marks:
+		var s: Dictionary = mk.s
+		var p: Vector2 = s.c
+		if not s.is_empty():
+			s.age = 0.0
+			s.max = 0.1
+			s["sc"] = float(s.get("sc1", s.get("sc", 1.0)))
+			s["sc1"] = float(s.sc) * 0.12
+			s["scd"] = 0.1
+			s.erase("delay")
+		if i < 30:
+			u.grain("mote_in", p, Vector2.ZERO, LO_VIO, 3)
+			PF.particles(u, p, 60, "ult_burst_s", [LO_VIO, Color(0.85, 0.8, 1.0)], 0.1, float(a.vs) + i * 3.0, 55.0)
+			u.shape({"kind": "ring", "c": p, "r": 46.0, "r1": 6.0, "w": 3.0, "col": Color(0.5, 0.42, 0.85), "life": 0.3, "delay": 0.1})
+			if i % 3 == 0:   # 余韵：慢慢飘落的暗紫余烬
+				PF.particles(u, p, 40, "ult_ember", [Color(0.42, 0.36, 0.7)], 0.25, float(a.vs) + i * 5.0, 45.0)
+		i += 1
+	u.light(Vector2(a.cc), float(a.cr), LO_VIO, 0.3)
+	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
+	if sfx != null:
+		sfx.play("boom", -4.0, 0.7)
 
 
 static func _lo_outside(u, a: Dictionary, p: Vector2):
