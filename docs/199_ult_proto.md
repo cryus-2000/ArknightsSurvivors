@@ -304,6 +304,11 @@ cloud-results/ult-T2 3c1e79e0f（`python tools/ult_pair.py --t0 cloud-results/ul
 - `fx_ult_exusiai_round_front`（单发子弹，3 帧 24 fps 循环，24 × 8，原点亮头中心 (37, 8)@2x，朝右，front）：24 × 8 太小，3 像素格只有 5 行、金边和渐尾全丢，这一件用 2 像素格（= 1x 一像素，24 × 8 格）。接在 `_ex_bullet`：每发一颗帧条子弹，`_ex_fly` 里只挪位置、跟飞行方向转，原来的两条线 + 圆点作回退。开关 `ult/ex_round_v2`（缺省 1）。
 - 出图 4 张（每件 2 张：第二张用改图模式拿第一张当参照修问题），Lite 模型约 0.14 美元。
 - 同 seed TRACE（seed 3、60 秒、放 1 次终结技）凯尔希、能天使都与 8bd0c6881 逐行相同。
+- 第二轮（用户 10-30：本体动作找 Spine 合作，超过 8 帧和无缝段想办法），只做工具和样片、未接进游戏：
+  - 本体动作：Spine 会话（spine-anim-pilot）回复，第二批 18 人本体从原作技能轨整条重出 8 帧（不补 Codex 关键帧中间帧），特效配 back / front 两层、锚点用本体条 foot；Mon3tr 要先下召唤物骨架；浊心斯卡蒂海嗣原作无骨架，Spine 帮不上。排单归协调人。
+  - 超过 8 帧：`gen --size 2K`（Lite 不支持，要中档 `gemini-3.1-flash-image`）一张 4 × 3 画 12 帧，样片 Mon3tr 重建 12 帧（对照 Codex rebuild_orbit），中段形体一致。
+  - 无缝段：`pixgen.py loop`，模型画 3 条长带，像素格上逐行挑切换点接成一整圈周期贴图；按 A→B→C 轮换铺必然无缝，流动改代码滚动截取（ux / uw，ul-crack 分支 adb228f41 加的字段），不逐帧画。样片风线 3 变体。
+  - 样片：`Claude outputs/帧条试点2_长序列与无缝段.mp4`；做法写进 pixfx 技能 §8 / §9。出图 3 张（中档 2K 2 张 + Lite 1 张，另 2 次 400 未出图），约 0.25 美元。
 
 ## 8 已知问题 / 下一步
 

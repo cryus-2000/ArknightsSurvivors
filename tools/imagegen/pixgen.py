@@ -67,11 +67,11 @@ def _png_b64(path, up=256):
     return base64.b64encode(buf.getvalue()).decode()
 
 
-def _call(prompt, refs, model, aspect="1:1"):
+def _call(prompt, refs, model, aspect="1:1", size=""):
     parts = [{"inline_data": {"mime_type": "image/png", "data": _png_b64(r)}} for r in refs]
     parts.append({"text": prompt})
     body = {"contents": [{"role": "user", "parts": parts}],
-            "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": aspect}}}
+            "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": aspect, **({"imageSize": size} if size else {})}}}
     if BACKEND == "vertex":
         url = VERTEX.format(p=_gcloud("config", "get-value", "project"), m=model)
         auth = {"Authorization": "Bearer " + _gcloud("auth", "print-access-token")}
@@ -95,9 +95,9 @@ def cmd_gen(a):
     d = OUT / a.tag
     d.mkdir(parents=True, exist_ok=True)
     prompt = (a.prompt + "\n\n" + STYLE) if not a.raw_prompt else a.prompt
-    log = {"backend": BACKEND, "model": a.model, "aspect": a.aspect, "prompt": prompt, "refs": a.ref, "files": []}
+    log = {"backend": BACKEND, "model": a.model, "aspect": a.aspect, "size": a.size, "prompt": prompt, "refs": a.ref, "files": []}
     for i in range(a.n):
-        png = _call(prompt, a.ref, a.model, a.aspect)
+        png = _call(prompt, a.ref, a.model, a.aspect, a.size)
         f = d / f"raw_{int(time.time())}_{i}.png"
         f.write_bytes(png)
         log["files"].append(f.name)
@@ -363,6 +363,120 @@ def strip_preview(strip, nf, zoom=3, bg=(30, 30, 40), anchor_px=None):
     return sheet
 
 
+def _seam(x, y, w, dys=range(-2, 3)):
+    """两条像素带 x（左）、y（右）各取 w 列重叠：y 先上下挪 ±2 格对齐 x，然后每一行在重叠区里选 x / y 最一致的位置切换。
+    返回 (x 去掉末 w 列的部分 + 重叠区 + y 去掉头 w 列, 重叠区不一致格数)"""
+    (xc, xa), (yc, ya) = x, y
+    best = None
+    for dy in dys:
+        yc2, ya2 = np.roll(yc, dy, 0), np.roll(ya, dy, 0)
+        d = (np.abs(xc[:, -w:] - yc2[:, :w]).sum(-1) * (xa[:, -w:] & ya2[:, :w]) + 255 * (xa[:, -w:] != ya2[:, :w])).sum()
+        if best is None or d < best[0]:
+            best = (d, yc2, ya2)
+    _, yc, ya = best
+    oc, oa = np.zeros((xc.shape[0], w, 3), int), np.zeros((xc.shape[0], w), bool)
+    bad = 0
+    for r in range(xc.shape[0]):
+        # 第 r 行：前 j 格取 x、后面取 y；挑切换处两边一致（同为空，或同实心且颜色相近）的 j
+        diff = [(xa[r, -w + j] != ya[r, j]) * 255 + (np.abs(xc[r, -w + j] - yc[r, j]).sum() if xa[r, -w + j] and ya[r, j] else 0) for j in range(w)]
+        j = int(np.argmin(diff))
+        bad += diff[j] > 90
+        oc[r, :j], oa[r, :j] = xc[r, -w:-w + j], xa[r, -w:-w + j]
+        oc[r, j:], oa[r, j:] = yc[r, j:w], ya[r, j:w]
+    return (np.concatenate([xc[:, :-w], oc, yc[:, w:]], 1), np.concatenate([xa[:, :-w], oa, ya[:, w:]], 1)), bad
+
+
+def seam_loop(src, rows=3, seg=(128, 16), cell=3, colors=12, lum=0.9, cover=0.4, accent=0.0, fill=0.9, overlap=8,
+              snap=None, fringe=0, drop=0):
+    """无缝段（pixfx §8）：模型在一张图里画 rows 条横向长带（每行一条），每条落到 seg = (长, 高) 格 + overlap 格重叠，
+    按 A→B→C→A 首尾相接、接缝逐行挑切换点（_seam），得到周期 rows × 长 的一整圈。
+    返回 (圈贴图（多拼一段头，任何起点截 seg 长都不用绕回）, 信息)。变体 v = 圈上 [v × 长, (v + 1) × 长)，按 A→B→C→A 轮换铺必然无缝；
+    流动交给代码滚动截取起点（ux），不靠逐帧画。"""
+    im, fg = _cutout(src, fringe=fringe)
+    H, W = fg.shape
+    L, h = seg
+    bands, hs = [], []
+    for r in range(rows):
+        y0, y1 = int(r * H / rows), int((r + 1) * H / rows)
+        ys, xs = np.nonzero(fg[y0:y1])
+        if len(xs) == 0:
+            raise ValueError(f"第 {r} 行抠图后为空")
+        bands.append((y0 + ys.min(), y0 + ys.max() + 1, xs.min(), xs.max() + 1))
+        hs.append(ys.max() + 1 - ys.min())
+    sy = max(hs) / (h * fill)
+    parts, info = [], {"rows": []}
+    for (b0, b1, x0, x1) in bands:
+        cy = (b0 + b1) / 2
+        ey = np.clip(np.round(cy - h * sy / 2 + np.arange(h + 1) * sy), 0, H).astype(int)
+        ex = np.round(np.linspace(x0, x1, L + overlap + 1)).astype(int)
+        o, al = _grid_mode(im, fg, ex, ey, cover, accent)
+        if drop:
+            al = _drop_specks(al, drop)
+        parts.append([o, al])
+        info["rows"].append({"x_stretch": round((x1 - x0) / (L + overlap) / sy, 2)})
+    _quant_cap([q[0] for q in parts], [q[1] for q in parts], colors, lum, snap)
+    # 首尾相接：每段先去掉头 overlap/2、尾 overlap/2 之外的多余，再两两 _seam；最后一段接回第一段的头
+    w = overlap
+    loop, bads = parts[0], []
+    for q in parts[1:]:
+        loop, b = _seam(loop, q, w)
+        bads.append(int(b))
+    # 收圈：把第一段的头 w 列接到末尾做接缝，再把圈的头 w 列换成这段接缝结果（圈长 = rows × L）
+    head = (parts[0][0][:, :w], parts[0][1][:, :w])
+    tail_c, tail_a = loop[0][:, -2 * w:], loop[1][:, -2 * w:]
+    (jc, ja), b = _seam((tail_c, tail_a), head, w, (0,))  # 收圈不能挪 A 的头，否则绕回处上下错位
+    bads.append(int(b))
+    total = rows * L
+    lc = np.concatenate([loop[0][:, :-2 * w], jc], 1)
+    la = np.concatenate([loop[1][:, :-2 * w], ja], 1)
+    # 现在 lc 的末 w 列等于第一段的头 w 列：去掉圈头那 w 列，圈即首尾相接；长度对齐到 total（多的从各段中部均匀抽掉、少的复制）
+    lc, la = lc[:, w:], la[:, w:]
+    idx = np.round(np.linspace(0, lc.shape[1] - 1, total)).astype(int) if lc.shape[1] != total else np.arange(total)
+    lc, la = lc[:, idx], la[:, idx]
+    ext_c = np.concatenate([lc, lc[:, :L]], 1)
+    ext_a = np.concatenate([la, la[:, :L]], 1)
+    img = _rgba(ext_c, ext_a).resize((ext_c.shape[1] * cell, h * cell), Image.NEAREST)
+    info.update({"period_cells": total, "seam_bad_rows": bads, "y_step": round(sy, 2), "size": list(img.size)})
+    return img, info
+
+
+def loop_preview(img, L, rows, cell=3, zoom=2, bg=(30, 30, 40), orders=("012012", "021102")):
+    """无缝段预览：按几种轮换顺序把变体首尾相接铺两遍（第一行按 A→B→C 轮换，后几行乱序作反例），每段交界画洋红短竖线"""
+    seg = L * cell
+    h = img.height
+    out = []
+    for od in orders:
+        row = Image.new("RGBA", (seg * len(od), h), bg + (255,))
+        for i, ch in enumerate(od):
+            v = int(ch)
+            row.alpha_composite(img.crop((v * seg, 0, (v + 1) * seg, h)), (i * seg, 0))
+        out.append(row)
+    pad = 10
+    sheet = Image.new("RGBA", (out[0].width * zoom, len(out) * (h * zoom + pad) + pad), bg + (255,))
+    for k, row in enumerate(out):
+        y = pad + k * (h * zoom + pad)
+        sheet.alpha_composite(row.resize((row.width * zoom, h * zoom), Image.NEAREST), (0, y))
+        for i in range(1, len(orders[k])):
+            for t in range(4):
+                sheet.putpixel((i * seg * zoom, y + t), (255, 0, 255, 255))
+                sheet.putpixel((i * seg * zoom, y + h * zoom - 1 - t), (255, 0, 255, 255))
+    return sheet
+
+
+def cmd_loop(a):
+    d = OUT / a.tag
+    src = Path(a.src) if a.src else sorted(d.glob("raw_*.png"))[-1]
+    L, h = (int(v) for v in a.seg.split("x"))
+    snap = [tuple(int(x.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)) for x in a.snap.split(",")] if a.snap else None
+    img, info = seam_loop(src, a.rows, (L, h), a.cell, a.colors, a.lum, a.cover, a.accent, a.fill, a.overlap, snap, a.fringe, a.drop)
+    out = d / (a.name + "@2x.png")
+    img.save(out)
+    loop_preview(img, L, a.rows, a.cell, orders=("012012", "021120") if a.rows == 3 else ("0" * 4,)).save(d / (a.name + "_preview.png"))
+    info["src"] = src.name
+    (d / (a.name + "_info.json")).write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
+    print("loop", out.relative_to(ROOT), img.size, "周期", info["period_cells"], "格；接缝不一致行数", info["seam_bad_rows"])
+
+
 def cmd_strip(a):
     d = OUT / a.tag
     src = Path(a.src) if a.src else sorted(d.glob("raw_*.png"))[-1]
@@ -412,6 +526,7 @@ def main():
     g = sp.add_parser("gen"); g.add_argument("--prompt", required=True); g.add_argument("--raw-prompt", action="store_true")
     g.add_argument("--n", type=int, default=4); g.add_argument("--model", default=MODEL)
     g.add_argument("--aspect", default="1:1", help="出图宽高比：1:1 / 16:9 / 21:9 …（长条特效用宽图）")
+    g.add_argument("--size", default="", help="出图分辨率档 1K / 2K / 4K（缺省模型自定，约 1K；帧多的精灵表要 2K 以上，各模型支持不同）")
     x = sp.add_parser("pixel"); x.add_argument("--size", type=int, default=32); x.add_argument("--colors", type=int, default=14)
     x.add_argument("--margin", type=int, default=1); x.add_argument("--no-outline", action="store_true")
     x.add_argument("--palette", default=PALETTE_DIR, help="吸附色板来源目录；传空串不吸附")
@@ -430,11 +545,18 @@ def main():
     t.add_argument("--fringe", type=int, default=0, help="去淡紫光晕：红蓝都比绿高出此值的算底（0 = 关）")
     t.add_argument("--snap", default="", help="设定色阶 hex，逗号分隔：量化后吸附到最近的一个")
     t.add_argument("--order", default="", help="输出格号顺序，如 0,1,2,3,4,5,6,7"); t.add_argument("--zoom", type=int, default=3)
+    lp = sp.add_parser("loop", help="几条长带 → 首尾相接的无缝周期贴图（pixfx §8）")
+    lp.add_argument("--src", default=""); lp.add_argument("--name", required=True)
+    lp.add_argument("--rows", type=int, default=3, help="图里几条带（= 变体数）"); lp.add_argument("--seg", default="128x16", help="每个变体 长x高 格")
+    lp.add_argument("--cell", type=int, default=3); lp.add_argument("--colors", type=int, default=12); lp.add_argument("--lum", type=float, default=0.9)
+    lp.add_argument("--cover", type=float, default=0.4); lp.add_argument("--accent", type=float, default=0.0); lp.add_argument("--fill", type=float, default=0.9)
+    lp.add_argument("--overlap", type=int, default=8, help="接缝重叠格数"); lp.add_argument("--snap", default=""); lp.add_argument("--fringe", type=int, default=0)
+    lp.add_argument("--drop", type=int, default=0)
     s = sp.add_parser("sheet")
-    for q in (g, x, s, t):
+    for q in (g, x, s, t, lp):
         q.add_argument("--tag", required=True); q.add_argument("--ref", nargs="*", default=[])
     a = p.parse_args()
-    {"gen": cmd_gen, "pixel": cmd_pixel, "sheet": cmd_sheet, "strip": cmd_strip}[a.cmd](a)
+    {"gen": cmd_gen, "pixel": cmd_pixel, "sheet": cmd_sheet, "strip": cmd_strip, "loop": cmd_loop}[a.cmd](a)
 
 
 if __name__ == "__main__":
