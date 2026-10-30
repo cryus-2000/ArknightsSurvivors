@@ -1408,6 +1408,8 @@ static func _la_start(u, o, d := Vector2.ZERO) -> Dictionary:
 	var rt := _route(o)
 	var n: int = 5 if rt == "rage" else 4
 	var gap: float = 0.2 if rt == "rage" else Bal.v("ult/la_gap", 0.25)
+	if _la_fwd() and d != Vector2.ZERO:   # 用户 10-31「斩击太卵太短，要连续不断」：朝前版圈与圈拉开到 la_fwd_gap，连续斩约 1.5 秒（狂暴路线同比 × 0.8）
+		gap = Bal.v("ult/la_fwd_gap", 0.5) * (0.8 if rt == "rage" else 1.0)
 	var segs: Array = []
 	var wd: Array = []
 	for i in n:
@@ -1548,16 +1550,20 @@ static func _la_frenzy(u, a: Dictionary, t: float) -> void:
 		var dv: Vector2 = fw.rotated((PF.h(sd) - 0.5) * spread)   # 前方（朝前版铺满扇形 ±0.9 半角；旧版 ±69°）
 		var p: Vector2 = (Vector2(a.org) if a.get("fwd", false) else Vector2(a.c)) + dv * R * (0.18 + 0.68 * PF.h(sd + 1.0))
 		var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * PI * lerpf(0.45, 1.0, pr)   # 越砍越乱
-		var ln: float = lerpf(170.0, 400.0, PF.h(sd + 4.0)) * (0.85 + 0.4 * pr)
+		var ln: float = lerpf(260.0, 560.0, PF.h(sd + 4.0)) * (0.9 + 0.3 * pr)
 		var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
-		_la_cut(u, p, ang, ln, sd, 0.2 + 0.1 * PF.h(sd + 6.0), Color(col, 0.95), 1.3)
+		var th: float = lerpf(1.8, 2.8, PF.h(sd + 5.5))   # 粗：用户「太卵」
+		_la_cut(u, p - Vector2.from_angle(ang) * 26.0, ang, ln * 0.9, sd + 0.5, 0.18, Color(0.35, 0.5, 0.75, 0.55), th * 1.3)   # 后一层暗冷蓝残影，给刀身厚度
+		_la_cut(u, p, ang, ln, sd, 0.26 + 0.1 * PF.h(sd + 6.0), Color(col, 0.95), th)
+		if i % 2 == 0:
+			PF.particles(u, p + Vector2(0, 10), 40, "ult_ember", [Color(0.55, 0.62, 0.72)], 0.02, sd, 60.0)
 		if PF.h(sd + 7.0) < 0.22:   # 偶尔一道双刃十字
 			var xn := PF.pick(u, LA_X, sd)
 			u.strip(xn, p, {"ang": ang, "sc": 110.0 / PF.tex_w(u, xn), "life": 0.16, "fade": 0.1, "v": dv * 500.0})
 		if i % 5 == 0:
 			PF.particles(u, p, 60, "ult_burst_s", [LA_ICE, LA_SILVER], 0.0, sd, 60.0)
 		a.sl_i = i + 1
-		a.sl_t = float(a.sl_t) + lerpf(0.06, 0.02, pow(pr, 1.2))
+		a.sl_t = float(a.sl_t) + (lerpf(0.045, 0.028, pr) if a.get("fwd", false) else lerpf(0.06, 0.02, pow(pr, 1.2)))   # 朝前版：几乎匀速连斩，越到后面略密
 
 
 static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> void:
@@ -1577,6 +1583,17 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 	_la_cut(u, c, ang, R * 2.2, vs + 101.0, 0.5, Color(0.8, 0.86, 0.95, 0.9), 0.95, true)   # 压暗（预审报横斩发白）
 	u.light(c, R * 1.2, LA_ICE, 0.3)
 	PF.particles(u, c, 200, "ult_burst_s", [LA_ICE, LA_SILVER], 0.04, vs + 3.0, 140.0)
+	if a.get("fwd", false):   # 用户 10-31：最后接一个空气爆破——横斩之后 0.12 秒，斩线中点一圈冷白气浪炸开（尘浪环三种挑一）+ 一大团银蓝粒子 + 尘
+		var bc: Vector2 = c
+		var br: float = float(a.R) * 0.55
+		PF.ring(u, ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"], bc, br * 0.15, br, 0.28, 0.6,
+			{"seed": vs, "layer": "front", "col": Color(0.9, 0.95, 1.05, 0.85), "col1": Color(0.45, 0.55, 0.7, 0.5), "cold": 0.3, "delay": 0.12, "fade": 0.35})
+		PF.particles(u, bc, 600, "ult_burst", [LA_SILVER, LA_ICE], 0.12, vs + 9.0, br * 1.1)
+		PF.particles(u, bc, 200, "ult_ember", [Color(0.62, 0.68, 0.78)], 0.16, vs + 4.0, br * 0.7)
+		u.light(bc, br * 1.4, LA_ICE, 0.3)
+		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
+		if sfx != null:
+			sfx.play("boom", -2.0, 1.3)
 
 
 static func _la_v2(u) -> bool:

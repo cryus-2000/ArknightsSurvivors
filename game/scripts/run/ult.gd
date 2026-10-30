@@ -324,7 +324,13 @@ func _begin(ld, k: String) -> void:
 	shape({"kind": "ring", "c": ld.pos, "r": 90.0, "r1": 20.0, "w": 4.0, "col": _col(ld).lerp(Color.WHITE, 0.4), "life": _aim_min + 0.1})
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sfx != null:
-		sfx.voice(str(ld.id), "skill_3", false, true)   # 语音方案 A（§11-5）：终结技播现 S3 那句
+		var vstem := ""
+		if str(ld.id) == "lappland" and Bal.v("ult/la_fwd", 1.0) > 0.0:
+			vstem = "lappland_entry_2"   # 用户 10-31「音效是她在笑」：拉普兰德终结技换成她的笑声（CN_024「哈哈！」）
+		if vstem != "" and sfx.has_method("voice_stem"):
+			sfx.voice_stem(str(ld.id), vstem)
+		else:
+			sfx.voice(str(ld.id), "skill_3", false, true)   # 语音方案 A（§11-5）：终结技播现 S3 那句
 
 
 func _tick_ult(dt: float) -> void:

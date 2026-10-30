@@ -794,6 +794,26 @@ func voice(cid: String, key: String, queue := false, urgent := false) -> void:
 		print("VOICEPLAY %s %s %s" % [cid, key, stem])
 
 
+## 指定一条语音文件直接播（终结技专属台词，如拉普兰德终结技的笑声；用户 10-31）：正在说的淡出让路，不走随机池 / 冷却
+func voice_stem(cid: String, stem: String) -> void:
+	var st: AudioStream = _voice_file(stem)
+	if st == null:
+		return
+	if voice_player.playing:
+		_voice_fade_out()
+	var now := _vnow()
+	voice_key = "skill_3"
+	voice_cid = cid
+	voice_player.stream = st
+	voice_player.volume_db = float(VOICE_TRIM.get(cid, 0.0))
+	if voice_player.is_inside_tree():
+		voice_player.play()
+	voice_play_end = now + st.get_length()
+	voice_end = voice_play_end + VOICE_GAP
+	if trace_on:
+		trace.append([Engine.get_process_frames(), "voice:" + stem, voice_player.volume_db, 1.0])
+
+
 ## 把正在播的那条换到 voice_fader 上淡出停掉，voice_player 腾出来给新语音
 func _voice_fade_out() -> void:
 	if voice_fade_tw != null and voice_fade_tw.is_valid():
