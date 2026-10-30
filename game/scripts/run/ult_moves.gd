@@ -263,7 +263,7 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 		for pts in per:
 			if j < pts.size():
 				swords.append(pts[j])
-	# 用户 10-31「剑雨可以去掉了，留下斩击就行」：ult/tx_rain 缺省 0 = 不落剑雨（伤害先不补，用户 10-31「美术定了、范围定了再做」；补偿旋钮 ult/tx_cut_solo）；
+	# 用户 10-31「剑雨可以去掉了，留下斩击就行」：ult/tx_rain 缺省 0 = 不落剑雨（输出按范围统一 ult/dmgk_texas，docs/199 §5.10）；
 	# 剑雨分支（route rain，原两轮各 0.15）改成斩开 0.7 后隔 0.35 秒换角度再斩一次 0.3。1 = 旧版斩开 + 剑雨
 	var rain_on: bool = Bal.v("ult/tx_rain", 0.0) > 0.0
 	var lines2: Array = []
@@ -288,9 +288,7 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 	# 剑雨帧条：一把 0.3 秒、一轮 0.8 秒铺完，同时在场约 剑数 × 0.375 × 轮数；超过 ult/tx_sword_fx（56）就隔把画（伤害照打每一把）
 	var stride: int = maxi(1, ceili(float(swords.size()) * 0.375 * float(rounds.size()) / Bal.v("ult/tx_sword_fx", 56.0)))
 	# cap / fr：每名敌人本次合计至多 1 份预算（斩开 0.7 + 剑雨 0.3；精英 / Boss 斩开直接吃满 1 份，剑雨不再加）
-	var cut_d: float = Bal.v("ult/tx_cut", 0.7)
-	if not rain_on:
-		cut_d = Bal.v("ult/tx_cut", 0.7) if rt == "rain" else Bal.v("ult/tx_cut_solo", 0.7)
+	var cut_d: float = Bal.v("ult/tx_cut", 0.7)   # 剑雨去掉后的输出由范围统一的 ult/dmgk_texas 一并管（协调人 10-31，docs/199 §5.10）
 	return {"k": "texas", "cap": 1.0, "fr": {}, "no_ring": true, "c": c, "R": R, "lines": lines, "drawn": 0, "cut": false, "cut_seg": {}, "swords": swords,
 		"cut_d": cut_d, "lines2": lines2, "cut2": false, "cut2_seg": {},
 		"rounds": rounds, "rain": [], "sv": [], "stride": stride, "back": rt == "back", "back_done": false, "end": 0.0}

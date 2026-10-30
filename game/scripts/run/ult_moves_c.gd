@@ -39,7 +39,7 @@ static func aim_kind(id: String) -> String:
 static func aim_r(id: String) -> float:
 	match id:
 		"saria":
-			return Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.35) if _sa_cone() else 1.0)
+			return Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.70) if _sa_cone() else 1.0)
 		"siege":
 			return Bal.v("ult/sg_r", 540.0)
 		"irene":
@@ -268,9 +268,8 @@ static func _sa_cone() -> bool:
 static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var cone: bool = _sa_cone()
-	var half: float = Bal.v("ult/sa_half", 0.62)   # 朝前打：扇形半角（约 35°，比漏斗印子略宽，协调人 10-31「可以开宽一点」）；射程 ult/sa_len_k 倍
-	var R: float = Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.35) if cone else 1.0)
-	var ck: float = Bal.v("ult/sa_cone_k", 1.0) if cone else 1.0   # 朝前打命中面变小（同 seed 4 局终结技输出 −32%）；补偿旋钮，用户 10-31 定美术定稿、范围定了再补，缺省先 1
+	var half: float = Bal.v("ult/sa_half", 1.05)   # 朝前打：扇形半角 60°、射程 ult/sa_len_k 1.70 倍（终结技范围统一，协调人 10-31，docs/199 §5.10：面积 384 → 866）
+	var R: float = Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.70) if cone else 1.0)
 	var cf: float = 0.3 if rt == "shatter" else Bal.v("ult/sa_crack", 0.2)
 	var nc: int = 14 if rt == "shatter" else int(Bal.v("ult/sa_cracks", 10.0))
 	var c: Vector2 = o.pos
@@ -314,7 +313,7 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var v2: bool = _sa_v2(u)
 	if v2:   # 举拳那一下脚下一大片压暗
 		u.shape({"kind": "circle", "c": c, "r": R * 1.05, "col": Color(0.0, 0.0, 0.01), "fill": 0.45, "life": ch + 0.03, "layer": "back"})
-	return {"v2": v2, "fa": d.angle(), "cone": cone, "half": half, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": (1.0 - cf) * ck, "cf": cf * ck, "cracks": cracks, "booms": booms,
+	return {"v2": v2, "fa": d.angle(), "cone": cone, "half": half, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
 		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "punched2": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 
@@ -447,12 +446,13 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 80.0, "ry": 38.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.6, "life": 1.8, "layer": "back"})
 	# ① 先裂地：中间一道主漏斗 + 两侧两道小一点的，铺满前方扇形
 	for m in 3:
-		var side: float = 0.0 if m == 0 else (half * 0.55 * (1.0 if m == 1 else -1.0))
+		var side: float = 0.0 if m == 0 else (half * 0.6 * (1.0 if m == 1 else -1.0))
+		var wk: float = maxf(1.0, half / 0.62)   # 扇形开宽（范围统一 60°）后漏斗跟着变宽，三道仍铺满前方
 		var fn: String = SA_FUNNELS[(m + int(PF.h(vs) * 2.0)) % SA_FUNNELS.size()]   # 中间和两侧换不同的漏斗（预审报三道一样）
 		var ft: Texture2D = u._strip_tex(fn)
 		var k: float = R * (1.0 if m == 0 else (0.78 if m == 1 else 0.66)) / PF.tex_w(u, fn)
 		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * 0.1, "o": Vector2(0.0, ft.get_height() * 0.5),
-			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
+			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * wk * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
 			"rev": 0.14 + 0.05 * m, "rev0": 0.1, "delay": [0.0, 0.05, 0.09][m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})
 	# ② 再拳风空气爆炸：两层气浪往前炸开
 	var at: Texture2D = u._strip_tex(SA_AIR)
