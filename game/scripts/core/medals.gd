@@ -9,6 +9,10 @@ extends RefCounted
 const PATH := "res://data/medals.json"
 static var _data := {}
 static var _relic_ids := {}
+## 待提示队列（10-30）：新获得章 {key, t}，由 autoload MedalToast（scripts/medal_toast.gd）取出弹横幅；无界面（headless / 批跑）不入队
+static var pending: Array = []
+static var announce := DisplayServer.get_name() != "headless"   # 测试可以改成 true 来验队列
+const PENDING_MAX := 64
 
 
 static func data() -> Dictionary:
@@ -131,6 +135,8 @@ static func sync(now := -1) -> Array:
 			if int(p[0]) >= int(p[1]):
 				Cfg.medals[m.key] = t
 				got.append(m.key)
+				if announce and pending.size() < PENDING_MAX:
+					pending.append({"key": m.key, "t": t})
 	return got
 
 
@@ -149,6 +155,7 @@ static func note_elite(g) -> void:
 		if int(o.elite) >= 2:
 			n += 1
 	record_best("elite_three", n)
+	sync()   # 协同晋升章当场判定、当场入提示队列（局内小横幅；落盘仍在局终 / 下次存档）
 
 
 static func record_best(key: String, n: int) -> void:
