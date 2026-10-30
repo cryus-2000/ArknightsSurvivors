@@ -264,7 +264,7 @@ func draw_zone_warning(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
 		else:
 			# 顶栏楼层条下方；有 Boss 血条时再往下让出位置
-			var zy := maxf(136.0, h.bars.boss_bottom + 22.0)   # 10-31 TA M13：原 116 压在楼层条的威胁标签下沿
+			var zy := maxf(116.0, h.bars.boss_bottom + 22.0)
 			if g.zone_state == 1:
 				UI.text(g.hud, g.font, Vector2(0, zy), "黑潮将至  %d" % int(ceil(20.0 - g.zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 			elif g.zone_state == 2:
@@ -402,17 +402,7 @@ func draw_dash_hint(vs: Vector2) -> void:
 	if not g.dash_used and g.t < 25.0:
 		var a: float = 0.6 + 0.4 * sin(g.t * 4.0)
 		var sp: Vector2 = g.hud_ct() * (g.ppos + Vector2(0, -92))
-		var hc := Color(0.85, 1.0, 1.0, a)
-		if g.touch.active:
-			UI.text(g.hud, g.font, sp - Vector2(100, 0), "点「冲刺」键 · 冲刺中无敌", 15, hc, HORIZONTAL_ALIGNMENT_CENTER, 200, 3)
-		else:
-			# 10-31 TA 审阅 docs/208 L2：键名用按键牌（同底部冲刺牌），不夹在句子里
-			var tail := "冲刺 · 冲刺中无敌"
-			var kw2: float = UI.cwidth(g.font, cap_s, 12) + 12.0
-			var tw2: float = g.font.get_string_size(tail, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(15)).x
-			var x0: float = sp.x - (kw2 + 8.0 + tw2) / 2.0
-			UI.keycap(g.hud, g.font, Vector2(x0, sp.y - 15.0), cap_s, hc, 12)
-			UI.text(g.hud, g.font, Vector2(x0 + kw2 + 8.0, sp.y), tail, 15, hc, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		UI.text(g.hud, g.font, sp - Vector2(100, 0), "按 %s 冲刺（无敌）" % key, 15, Color(0.85, 1.0, 1.0, a), HORIZONTAL_ALIGNMENT_CENTER, 200, 4)
 
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。

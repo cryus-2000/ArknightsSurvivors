@@ -191,10 +191,17 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 		g.panel_ui.draw_icon_fit(card, g.tex.pickup_heal, c, 56.0, mod)
 	else:
 		UI.text(card, g.font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
-	var fs := 15 if g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(15)).x <= r.size.x - 14.0 else 12
+	# 10-31 TA 审阅 docs/208 H8（同组卡字号统一，商人货架同样检查）：原来逐张判断，长名字那张单独缩到 12。改成整排取都放得下的最大字号
+	var fit_all := func(sz: int) -> bool:
+		return g.shop_items.all(func(x): return g.font.get_string_size(str(x.name), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sz)).x <= r.size.x - 14.0)
+	var fs := 12
+	for sz in [15, 14, 13]:
+		if fit_all.call(sz):
+			fs = sz
+			break
 	var nfs: int = int(lay().name_fs)
-	if nfs > 0 and g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nfs)).x <= r.size.x - 14.0:
-		fs = nfs   # 手机：名字 18
+	if nfs > 0 and fit_all.call(nfs):
+		fs = nfs   # 手机：名字 18（整排都放得下才用）
 	UI.text(card, g.font, r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():

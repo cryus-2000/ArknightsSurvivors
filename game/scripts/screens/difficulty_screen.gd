@@ -182,7 +182,7 @@ func draw(host: Control, vs: Vector2) -> void:
 	text(host,font,1200,608,"次",13,MUTED)
 	rect(host,Rect2(0,654,1280,66),INK)
 	rule(host,654,28,1252)
-	# 10-31 TA L6：底栏原来又写一个「返回 Esc」（与右上重复），去掉
+	text(host,font,31,680,"返回",17,MUTED)   # 10-31 TA H7：键名不夹在按钮文字里
 	text(host,font,304,678,"认知塑造",19)
 	UI.btn_key(host,font,Rect2(392,679,40,24),"" if Pad.using else "X", MUTED, 10, 0.0)
 	rect(host,hits.go,Color("39414e") if locked else COLORS[0])

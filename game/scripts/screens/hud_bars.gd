@@ -208,7 +208,7 @@ func draw_top_center(vs: Vector2) -> void:
 	if g.threat < D.THREAT.size() - 1:
 		tfrac = clampf((g.t - tr.t) / (D.THREAT[g.threat + 1].t - tr.t), 0.0, 1.0)
 	var tcol := Color(0.9, 0.45, 1.0).lerp(UI.RED, float(g.threat) / (D.THREAT.size() - 1))
-	UI.quatrefoil(g.hud, Vector2(cx0, 64), 34.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.1), 1.2)   # 10-31 TA L7：四叶环线条穿过楼层名 / 威胁字——压到很淡，只当底纹
+	UI.quatrefoil(g.hud, Vector2(cx0, 64), 34.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.28), 1.6)
 	var fname: String = "Boss 演练" if g.trial.active else tr.name
 	var fen: String = "TRIAL" if g.trial.active else String(tr.get("en", ""))
 	var fw0 := g.font.get_string_size(fname, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x
@@ -561,18 +561,7 @@ func status_items() -> Array:
 		items.append(["黑潮", Color(0.9, 0.4, 1.0), -1.0])
 	if g.lamp < 30.0:
 		items.append(["灯火暗淡", Color(1.0, 0.55, 0.45), -1.0])
-	# 10-31 TA M13：同名状态（多名干员各挂一份「提喻」「延异视阈」）只留一枚，进度取最长的
-	var seen := {}
-	var out: Array = []
-	for it2 in items:
-		var k: String = str(it2[0])
-		if seen.has(k):
-			var j: int = seen[k]
-			out[j][2] = maxf(float(out[j][2]), float(it2[2]))
-			continue
-		seen[k] = out.size()
-		out.append(it2.duplicate())
-	return out
+	return items
 
 
 func draw_status(vs: Vector2, items: Array) -> void:

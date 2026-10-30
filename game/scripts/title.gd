@@ -985,7 +985,7 @@ func _loading_progress() -> void:
 		what = "准备光照贴图"
 		n = nm
 	elif _op_warm_more:
-		what = "读取干员与海嗣资料"   # 10-31 TA L8：原「帧条」是开发口吻
+		what = "读取干员与海嗣帧条"
 		n = tx
 	elif Sfx.warm_busy():
 		what = "准备作战音频"

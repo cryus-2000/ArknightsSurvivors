@@ -358,10 +358,17 @@ static func _pack_chips(items: Array, max_w: float, rows: int, lw: float) -> Arr
 ## 按钮上的按键牌（10-31 TA 审阅 docs/208 H7：按钮文字里不夹键名、卡面价签不写 [n]）：按钮左内侧一个小按键牌（细框 + 大写键名），
 ## 不和文字混写；inset = 离按钮左沿的距离（平行四边形按钮要让开斜边）。触屏不画，key 为空不画
 static func btn_key(ci: CanvasItem, font: Font, r: Rect2, key: String, col := SUB, size := 10, inset := 10.0) -> void:
-	if key == "" or Pad.touch_ui():
+	if key == "" or _touch_ui():
 		return
 	var k := key.to_upper()
 	keycap(ci, font, Vector2(r.position.x + inset, r.get_center().y - (_ks(ci, size) + 7) / 2.0), k, col, size)
+
+
+## 触屏界面（Pad.touch_ui）：ui.gd 也给不带自动加载的测试脚本用，这里按节点名找 Pad，找不到当作非触屏
+static func _touch_ui() -> bool:
+	var ml := Engine.get_main_loop()
+	var pad: Node = (ml as SceneTree).root.get_node_or_null("Pad") if ml is SceneTree else null
+	return pad != null and pad.touch_ui()
 
 
 ## 「标签  键名」拆成 [标签, 键名]（两个以上空格分隔；没有键名返回 [s, ""]）

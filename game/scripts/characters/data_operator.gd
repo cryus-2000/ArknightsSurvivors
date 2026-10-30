@@ -1676,10 +1676,9 @@ func draw_entities_floor() -> void:
 		if ObFx.fx_any_tex(self, f.fx):
 			continue
 		var a: float = clampf((f.n * f.every - f.t) / 0.4, 0.0, 1.0) * clampf(f.t / 0.15, 0.0, 1.0)
-		var cc: Color = col().darkened(0.35)   # 10-31 TA H4：浅色干员的平涂圆盘把地面刷灰——压暗主色、外淡内浓的软晕
+		var cc: Color = col()
 		cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
-		cv.draw_circle(Vector2.ZERO, float(f.r), Color(cc.r, cc.g, cc.b, 0.07 * a))
-		cv.draw_circle(Vector2.ZERO, float(f.r) * 0.72, Color(cc.r, cc.g, cc.b, 0.07 * a))
+		cv.draw_circle(Vector2.ZERO, float(f.r), Color(cc.r, cc.g, cc.b, 0.16 * a))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if not taunt.is_empty() and skill_on(int(taunt.i)):   # 嘲讽圈：本干员脚下一圈金色虚环（范围 = 拉仇恨半径）
 		var tr: float = float(taunt.b.r) * stat(&"op_range")
@@ -1776,7 +1775,7 @@ func _draw_fields() -> void:
 		if st.look == "ring":
 			var rr: float = st.ring if st.ring > 0.0 else r * 0.7
 			var rf: float = ring_flash("field%s" % str(u))   # 10-31 TA H1：两道环只在展开那一瞬，之后靠往里吸的光点读范围
-			cv.draw_circle(Vector2.ZERO, r, Color(0.06, 0.02, 0.12, 0.14))   # 10-31 TA H4：浅紫平涂会把地面刷灰，改成压暗的深紫
+			cv.draw_circle(Vector2.ZERO, r, Color(GRAV.r, GRAV.g, GRAV.b, 0.035))
 			if rf > 0.0:
 				cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(GRAV.r, GRAV.g, GRAV.b, 0.16 * rf), 1.0)
 				var n := 24
@@ -1794,7 +1793,7 @@ func _draw_fields() -> void:
 		else:
 			var pulse: float = 0.5 + 0.5 * sin(gt * 2.4)
 			var lf: float = ring_flash("lift%s" % str(u))   # 10-31 TA H1：虚线外圈 + 内圈只在展开那一瞬
-			cv.draw_circle(Vector2.ZERO, r, Color(0.06, 0.02, 0.12, 0.16 + 0.04 * pulse))   # 10-31 TA H4：同上，压暗不刷灰
+			cv.draw_circle(Vector2.ZERO, r, Color(GRAV.r, GRAV.g, GRAV.b, 0.06 + 0.02 * pulse))
 			if lf > 0.0:
 				for q in 32:
 					var a1: float = TAU * q / 32 - gt * 0.25

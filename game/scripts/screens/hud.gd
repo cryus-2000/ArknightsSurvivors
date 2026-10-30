@@ -371,7 +371,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		var sz := _qs(int(f.size * pop))
 		dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
-	if not dn.is_empty() and g.state != Game.S.SHOP and g.state != Game.S.CHOICE:   # 10-31 TA L4：商人 / 选卡面板打开时飘字不画（原来从压暗层下透出一个孤立数字）
+	if not dn.is_empty():
 		_dmg_numbers(dn)
 
 	if g.demo_op != "" or g.state == Game.S.SHOW:
@@ -385,9 +385,8 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var la := clampf(g.lvup_show / 0.35, 0.0, 1.0)
 		var lp: Vector2 = ct * (g.ppos + Vector2(0, -92 - age * 14.0))
 		var gold := Color(1.0, 0.86, 0.42, la)
-		# 10-31 TA 审阅 docs/208 H2（字样交界面）：英文「LEVEL UP!」大字改中文、缩小一档
-		UI.text(g.hud, g.font, lp - Vector2(150, 0), "等级提升", _qs(int(22 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
-		UI.text(g.hud, g.font, lp + Vector2(-150, 22), "LV %d" % g.level, _qs(int(15 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 3)
+		UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(int(30 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
+		UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(int(18 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
 
 	if g.flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, g.flash * 0.5))
