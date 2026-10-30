@@ -83,6 +83,9 @@ var best_hit: Dictionary = {}   # 最高单次伤害：{v, src, op, t}
 var dodges := 0                 # 闪避次数（enemy_hit 判定闪避）
 var dashes := 0                 # 冲刺次数
 var blocks := 0                 # 护盾抵挡次数
+var shield_abs := 0.0           # 护盾层数抵挡掉的原始伤害合计（遥测，护盾复核 10-30）
+var shield_t0 := -1.0           # 首次拥有护盾层数的时刻
+var shield_peak := 0            # 护盾层数上限的峰值
 var chests := 0                 # 打开补给箱
 var nodes := 0                  # 翻开的节点卡（docs/154，取代「海嗣祭坛」计数 altars）
 var reaper_drain_deaths := 0    # 钵海收割者临战自身流失耗死的只数（docs/95 §18，和被打死的分开）
@@ -768,6 +771,8 @@ func record(marks = null) -> Dictionary:
 		"hordes": g.horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "mix": h.get("mix", ""), "comp": h.comp}),
 		"armor_cf": g.combat.armor_cf, "growth": g.growth.duplicate(), "dashes": dashes, "swaps": g.progression.swaps.duplicate(), "recruit_offers": g.progression.recruit_offers.duplicate(), "levelup_t": g.progression.levelup_t.duplicate(),   # docs/83：物理减伤遥测、被动卡等级、冲刺次数
 		"terrain": g.map.tb_log.duplicate(),   # 地形阻挡（只记录）：挡下的我方 / 敌方直线弹、撞停的冲刺
+		"shield": {"blocks": blocks, "abs": snappedf(shield_abs, 0.1), "t0": shield_t0, "peak": shield_peak, "max": g.shield_max, "every": g.shield_every,
+			"src_max": g.stats.breakdown(&"shield_max").sources, "src_int": g.stats.breakdown(&"shield_interval").sources},
 		"sus": sus,   # docs/88：治疗分项 / 干员减伤 / 净化 / 照亮
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
 	if rich:

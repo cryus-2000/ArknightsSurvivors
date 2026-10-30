@@ -74,7 +74,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		on_dodge()
 		return
 	if g.shield > 0:
-		shield_block()
+		shield_block(dmg)
 		return
 	var negated := false
 	for o in g.squad.ops:
@@ -690,9 +690,10 @@ func zone_dir() -> Vector2:
 
 
 ## 护盾抵挡一次伤害：碎裂特效，可选冲击波与回复
-func shield_block() -> void:
+func shield_block(dmg := 0.0) -> void:
 	g.shield -= 1
 	g.telemetry.blocks += 1
+	g.telemetry.shield_abs += dmg   # 遥测：层数抵挡掉的原始伤害（护盾复核 10-30）
 	g.shield_flash = 0.3
 	g.invuln = 0.5
 	if g.shield < g.shield_max and g.shield_cd <= 0.0:
