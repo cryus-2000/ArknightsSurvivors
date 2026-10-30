@@ -393,7 +393,7 @@ static func _sd_cleave_v4(u, a: Dictionary, o0: Vector2, d: Vector2, n: Vector2,
 
 
 ## 两堵水墙（用户 10-31「一剑劈下，然后海水被劈开往两边走，然后再是剑劈下带来的裂地和爆炸」）：fx_sd_wall1–2（一整条浪唇，中间最高、两端收细成水沫）
-## 沿裂口方向铺 Lc 长，sy 正 = 浪冠朝 +n、负 = 朝 −n；跟着裂口一路立起（rev 0.3 秒）、拔到 1.8 倍高，一路往两侧退到 1.2 hw 外淡掉（不合拢）。
+## 摆成楔形：远端剑痕尽头两墙连在一起（楔尖一团翻涌白沫），近端（她脚下）一路往两侧张开到 1.2 hw；浪冠朝外，跟着裂口一路立起（rev 0.3 秒）、拔到 1.8 倍高，最后淡掉（不合拢）。
 ## 海水退开后（0.35 T）露出的地面沿剑痕裂开：深海青分叉裂缝（fx_ul_crack_fork 组，同乌尔比安）主缝顺劈向 + 6 条斜岔，先亮后冷；
 ## 0.55 T 起沿裂缝从近到远 5 处接连爆开（碎石崩起 + 冷白粒子 + 小水柱 + 冷光，第一下顿帧）。每侧一堵，变体按哈希
 const SD_WALL := ["fx_sd_wall1", "fx_sd_wall2"]
@@ -429,21 +429,33 @@ static func _sd_walls_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vect
 		w.fx[1].fill = 0.0
 		return
 	var Lc: float = _sd_clen(a)
-	var off: float = hw * (0.05 + 1.15 * (1.0 - pow(1.0 - k, 2.2)))   # 一路往两侧退开（先快后缓）
+	var off: float = hw * (0.05 + 1.15 * (1.0 - pow(1.0 - k, 2.2)))   # 近端（她脚下）一路往两侧张开（先快后缓）
 	var rise: float = clampf((t - float(w.t0)) / 0.25, 0.0, 1.0)
 	var hk: float = lerpf(0.3, 1.8, rise * rise * (3.0 - 2.0 * rise))
+	var tip: Vector2 = o0 + d * Lc   # 楔形：远端剑痕尽头两墙连在一起（用户 10-31「被劈开的海浪之间得连在一起」）
 	for wl in w.walls:
 		var side: float = wl[1]
-		wl[0].c = o0 + d * float(wl[3]) + n * side * off
-		wl[0].sy = side * hk
+		var near: Vector2 = o0 + d * float(wl[3]) + n * side * off
+		var v: Vector2 = tip - near
+		var ln: float = v.length()
+		v /= ln
+		wl[0].c = near
+		wl[0].ang = v.angle()
+		wl[0].sc = ln * 1.04 / PF.tex_w(u, str(wl[0].name))
+		wl[0].sy = hk * (1.0 if v.rotated(-PI * 0.5).dot(n * side) > 0.0 else -1.0)   # 浪冠朝外
 	w.fx[0].fill = 0.0
 	w.fx[1].fill = 0.0   # 不画矩形湿底（像素扫描线画出来是一条条横纹，预审报拼接）
-	if t >= float(w.get("wspray_t", 0.0)) and k < 0.85:   # 墙顶水雾往上冒 + 飞沫
+	if t >= float(w.get("wspray_t", 0.0)) and k < 0.85:   # 墙顶水雾往上冒 + 飞沫；楔尖两墙相接处一团翻涌白沫
 		w["wspray_t"] = t + 0.08
 		var j: int = int(t * 100.0)
+		if t - float(w.t0) > 0.2:
+			PF.particles(u, tip, 60, "ult_burst_s", [foam, col], 0.0, float(j) + 9.0, 80.0)
+			if j % 3 == 0:
+				PF.particles(u, tip - Vector2(0, 20.0), 60, "ult_ember", [Color(foam, 0.75)], 0.0, float(j) + 11.0, 100.0)
 		for side in [1.0, -1.0]:
-			var x: float = Lc * fposmod(0.21 + 0.37 * float(j) + 0.5 * side, 1.0) * minf(1.0, (t - float(w.t0)) / 0.3)
-			var p: Vector2 = o0 + d * x + n * side * (off + 6.0)
+			var fx: float = fposmod(0.21 + 0.37 * float(j) + 0.5 * side, 1.0) * minf(1.0, (t - float(w.t0)) / 0.3)
+			var x: float = Lc * fx
+			var p: Vector2 = o0 + d * x + n * side * (off * (1.0 - fx) + 6.0)
 			PF.particles(u, p, 60, "ult_ember", [Color(foam, 0.75)], 0.0, float(j) + side * 3.0, 90.0)
 			if j % 2 == 0:
 				PF.particles(u, p, 60, "ult_burst_s", [foam, col], 0.0, float(j) + side * 5.0, 60.0)
