@@ -4,8 +4,10 @@
   python tools/imagegen/pixgen.py pixel --tag relic265 [--size 32] [--colors 14] [--ref ...]
   python tools/imagegen/pixgen.py sheet --tag relic265 [--ref ...]
 
-- 只用标准库 urllib 直连 generativelanguage.googleapis.com，不经 Gemini CLI，不装任何东西。
-- key 只从环境变量 GEMINI_API_KEY 读，不打印、不写盘。
+- 只用标准库 urllib 直连，不经 Gemini CLI，不装任何东西。两种后端（PIXGEN_BACKEND）：
+  vertex（缺省）：Vertex AI，按 Cloud 项目计费；令牌每次调 `gcloud auth print-access-token` 现取，项目取 gcloud 当前项目。
+  studio：AI Studio Gemini API，key 读环境变量 GEMINI_API_KEY（预付制）。
+  令牌 / key 都不打印、不写盘。
 - 产物都在 build/imagegen/<tag>/（不进 git）：raw_*.png 原图、pix_*.png 成品、sheet.png 对照、log.json 提示词与参数。
 """
 import argparse, base64, io, json, os, sys, time, urllib.request, urllib.error
@@ -17,7 +19,9 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "build" / "imagegen"
 API = "https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent"
-MODEL = os.environ.get("PIXGEN_MODEL", "gemini-2.5-flash-image")
+VERTEX = "https://aiplatform.googleapis.com/v1/projects/{p}/locations/global/publishers/google/models/{m}:generateContent"
+BACKEND = os.environ.get("PIXGEN_BACKEND", "vertex")
+MODEL = os.environ.get("PIXGEN_MODEL", "gemini-3.1-flash-lite-image")
 BG = (255, 0, 255)  # 要求模型用纯洋红底，抠图用
 OUTLINE = (8, 14, 24)  # 现有 264 个藏品图标外轮廓 98% 是这个色
 PALETTE_DIR = "game/art/ui/relics"  # 量化后吸附到这批图标的全体颜色（约 437 色），色相不跑
@@ -26,6 +30,20 @@ STYLE = ("Pixel-art game item icon in the exact style of the reference icons: si
          "front three-quarter view, 1-pixel dark navy outline, soft cel shading, limited palette, "
          "small sparkle accents allowed. Flat solid magenta #FF00FF background filling the whole canvas, "
          "no shadow on background, no text, no frame, no border.")
+
+
+def _gcloud(*args):
+    import shutil, subprocess
+    g = shutil.which("gcloud") or shutil.which("gcloud.cmd")
+    if not g:
+        cand = Path(os.environ.get("LOCALAPPDATA", "")) / "Google/Cloud SDK/google-cloud-sdk/bin/gcloud.cmd"
+        g = str(cand) if cand.exists() else None
+    if not g:
+        sys.exit("找不到 gcloud；装 Google Cloud CLI 并 gcloud auth login，或设 PIXGEN_BACKEND=studio")
+    r = subprocess.run([g, *args], capture_output=True, text=True)
+    if r.returncode != 0 or not r.stdout.strip():
+        sys.exit("gcloud " + args[0] + " 失败：" + r.stderr.strip()[:300])
+    return r.stdout.strip()
 
 
 def _key():
@@ -50,10 +68,14 @@ def _png_b64(path, up=256):
 def _call(prompt, refs, model):
     parts = [{"inline_data": {"mime_type": "image/png", "data": _png_b64(r)}} for r in refs]
     parts.append({"text": prompt})
-    body = {"contents": [{"parts": parts}],
+    body = {"contents": [{"role": "user", "parts": parts}],
             "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "1:1"}}}
-    req = urllib.request.Request(API.format(m=model), data=json.dumps(body).encode(),
-                                 headers={"Content-Type": "application/json", "x-goog-api-key": _key()})
+    if BACKEND == "vertex":
+        url = VERTEX.format(p=_gcloud("config", "get-value", "project"), m=model)
+        auth = {"Authorization": "Bearer " + _gcloud("auth", "print-access-token")}
+    else:
+        url, auth = API.format(m=model), {"x-goog-api-key": _key()}
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json", **auth})
     try:
         with urllib.request.urlopen(req, timeout=180) as r:
             res = json.load(r)
@@ -71,7 +93,7 @@ def cmd_gen(a):
     d = OUT / a.tag
     d.mkdir(parents=True, exist_ok=True)
     prompt = (a.prompt + "\n\n" + STYLE) if not a.raw_prompt else a.prompt
-    log = {"model": a.model, "prompt": prompt, "refs": a.ref, "files": []}
+    log = {"backend": BACKEND, "model": a.model, "prompt": prompt, "refs": a.ref, "files": []}
     for i in range(a.n):
         png = _call(prompt, a.ref, a.model)
         f = d / f"raw_{int(time.time())}_{i}.png"
@@ -97,6 +119,8 @@ def pixelize(src, size=32, colors=14, margin=1, outline=True, pdir=PALETTE_DIR, 
     corners = np.array([im[0, 0], im[0, -1], im[-1, 0], im[-1, -1]])
     bg = np.median(corners, axis=0)
     fg = np.abs(im - bg).sum(-1) > tol
+    r_, g_, b_ = im[..., 0], im[..., 1], im[..., 2]
+    fg &= ~((np.minimum(r_, b_) - g_ > 60) & (np.abs(r_ - b_) < 90))
     ys, xs = np.nonzero(fg)
     if len(xs) == 0:
         raise ValueError("抠图后为空：" + str(src))
@@ -108,12 +132,29 @@ def pixelize(src, size=32, colors=14, margin=1, outline=True, pdir=PALETTE_DIR, 
     rgba[..., 3] = fg * 255
     crop = Image.fromarray(rgba).crop((cx - side // 2, cy - side // 2, cx - side // 2 + side, cy - side // 2 + side))
     inner = size - 2 * margin
-    small = crop.resize((inner, inner), Image.BOX)
-    a = np.array(small)
-    alpha = a[..., 3] >= 128
-    rgb = Image.fromarray(a[..., :3])
-    q = rgb.quantize(colors=colors, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
-    out = np.array(q).astype(int)
+    # 每格取众数色（5 位分箱，只数物体像素）：平均会把描边、暗纹混进本色发灰；再只对物体像素量化，名额不浪费在底色上
+    c = np.array(crop)
+    m = c[..., 3] > 0
+    key = (c[..., 0].astype(int) >> 3) << 10 | (c[..., 1].astype(int) >> 3) << 5 | (c[..., 2].astype(int) >> 3)
+    edges = np.linspace(0, side, inner + 1).astype(int)
+    out = np.zeros((inner, inner, 3), int)
+    alpha = np.zeros((inner, inner), bool)
+    for yi in range(inner):
+        for xi in range(inner):
+            sl = (slice(edges[yi], edges[yi + 1]), slice(edges[xi], edges[xi + 1]))
+            cm = m[sl]
+            if cm.size == 0 or cm.mean() < 0.5:
+                continue
+            ks = key[sl][cm]
+            vals, cnt = np.unique(ks, return_counts=True)
+            k = vals[cnt.argmax()]
+            out[yi, xi] = c[sl][cm][ks == k][:, :3].mean(0)
+            alpha[yi, xi] = True
+    px = out[alpha].astype(np.uint8)
+    if len(px):
+        strip = Image.fromarray(px.reshape(1, -1, 3))
+        qs = strip.quantize(colors=min(colors, len(np.unique(px, axis=0))), method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+        out[alpha] = np.array(qs.convert("RGB")).reshape(-1, 3)
     pal = _palette(pdir)
     if pal is not None and len(pal):
         d = ((out[:, :, None, :] - pal[None, None, :, :]) ** 2).sum(-1)
@@ -125,7 +166,9 @@ def pixelize(src, size=32, colors=14, margin=1, outline=True, pdir=PALETTE_DIR, 
         A = res[..., 3] > 0
         pad = np.pad(A, 1)
         edge = A & ~(pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:])
-        res[edge, :3] = OUTLINE
+        # 亮色（光线、闪点）不描边，和现有图标里不带轮廓的闪光一致
+        luma = res[..., :3].astype(int) @ np.array([299, 587, 114]) // 1000
+        res[edge & (luma < 190), :3] = OUTLINE
     return Image.fromarray(res)
 
 
