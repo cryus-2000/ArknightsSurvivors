@@ -127,7 +127,12 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	if S:
 		txt.append(func():
 			UI.ctext(g.hud, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
-			UI.text(g.hud, g.font, dp.position + Vector2(76, 22), "源石锭", 10, UI.SUB)
+			# 10-31 TA M13：三位数（119）会压住「源石锭」——标签跟在数字后面排，放不下就收到框内右下
+			var lx: float = maxf(76.0, 38.0 + UI.cwidth(g.font, str(g.ingots), 26) + 6.0)
+			if lx + UI.cwidth(g.font, "源石锭", 10) > dp.size.x - 4.0:
+				UI.text(g.hud, g.font, dp.position + Vector2(0, 31), "源石锭", 8, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, dp.size.x - 6.0)
+			else:
+				UI.text(g.hud, g.font, dp.position + Vector2(lx, 22), "源石锭", 10, UI.SUB)
 			UI.text(g.hud, g.font, Vector2(dp.position.x - 160, dp.position.y + 22), cnt, 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 150))
 	var mp := g.hud.get_local_mouse_position()
 	for i in n:

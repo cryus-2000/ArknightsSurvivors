@@ -95,7 +95,7 @@ static func topbar(ci: CanvasItem, font: Font, vs: Vector2, en: Array, title: St
 		return Rect2()
 	para(ci, br, Color(0, 0, 0, 0), Color(1, 1, 1, 0.8))
 	var bk: Array = UI.split_key(back)   # 10-31 TA H7：「返回  Esc」→ 按钮只写「返回」，ESC 进左内侧的按键牌
-	UI.text_at(ci, font, br.get_center(), bk[0], int(15 * s), UI.TEXT, "mm", true)
+	UI.text_at(ci, font, br.get_center() + Vector2(16.0 * s if bk[1] != "" and not Pad.touch_ui() else 0.0, 0.0), bk[0], int(15 * s), UI.TEXT, "mm", true)   # 有按键牌时字往右让
 	UI.btn_key(ci, font, br, bk[1], UI.SUB, 10, br.size.y * SKEW + 10.0 * s)
 	return br
 

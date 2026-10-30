@@ -1189,7 +1189,8 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var fb: Dictionary = card.get_meta("fit", {})
 	if not fb.is_empty():
 		UI.draw_fit(card, g.font, base + Vector2(tx0, 40.0 if ph else 50.0), fb, Color(0.81, 0.79, 0.76))
-	UI.ctext(card, g.font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
+	if not Pad.touch_ui():   # 序号 = 数字键，触屏不画（10-31 TA H7）
+		UI.ctext(card, g.font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	if hov:
 		card.draw_rect(Rect2(base + Vector2(8, 20), Vector2(8, card.size.y - 40.0)), Color(0.18, 0.72, 1.0, 0.25))
 		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, card.size.y - 44.0)), Color(0.18, 0.72, 1.0))

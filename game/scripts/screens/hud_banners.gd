@@ -264,7 +264,7 @@ func draw_zone_warning(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
 		else:
 			# 顶栏楼层条下方；有 Boss 血条时再往下让出位置
-			var zy := maxf(116.0, h.bars.boss_bottom + 22.0)
+			var zy := maxf(136.0, h.bars.boss_bottom + 22.0)   # 10-31 TA M13：原 116 压在楼层条的威胁标签下沿
 			if g.zone_state == 1:
 				UI.text(g.hud, g.font, Vector2(0, zy), "黑潮将至  %d" % int(ceil(20.0 - g.zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 			elif g.zone_state == 2:

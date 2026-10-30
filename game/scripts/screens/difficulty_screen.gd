@@ -2,6 +2,7 @@ extends RefCounted
 ## Approved survey screen. Visual time and selection are local; gameplay settings
 ## are committed only by title._diff_go after its existing unlock check.
 const D = preload("res://scripts/data.gd")
+const UI = preload("res://scripts/ui.gd")   # 按键牌（UI.btn_key，10-31 TA H7）
 const Ocean = preload("res://scripts/screens/difficulty_ocean.gd")
 const COLORS := [Color("38d6f0"), Color("ffce00"), Color("ef727d")]
 const BG := Color("13171e")
@@ -186,7 +187,8 @@ func draw(host: Control, vs: Vector2) -> void:
 	UI.btn_key(host,font,Rect2(392,679,40,24),"" if Pad.using else "X", MUTED, 10, 0.0)
 	rect(host,hits.go,Color("39414e") if locked else COLORS[0])
 	text(host,font,942,676,"未解锁" if locked else "确认难度",22,MUTED if locked else INK)
-	text(host,font,1160,684,Pad.hint("Enter  ›", "A  ›", "›"),12,MUTED if locked else INK)
+	text(host,font,1196,684,"›",14,MUTED if locked else INK)
+	UI.btn_key(host,font,Rect2(1142,679,48,24),"" if Pad.using else "ENTER", MUTED if locked else INK, 10, 0.0)   # 10-31 TA H7：键名进按键牌
 	host.draw_set_transform(Vector2.ZERO,0,Vector2.ONE)
 	host.diff_rects.clear()
 	for key in hits:
