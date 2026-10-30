@@ -869,11 +869,12 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 					var rk: float = 0.65 + 0.8 * PF.h(hp2 * 31.0)
 					var pv: Vector2 = p + Vector2.from_angle(PF.h(hp2 * 17.0) * TAU) * rr * 0.4 * PF.h(hp2 * 23.0)
 					var bdl: float = 0.07 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
-					u.strip("fx_wd_blast" if hp2 < 0.5 else "fx_wd_blast2", pv, {"delay": bdl, "sc": rr * 0.5 * rk / 128.0, "sc1": rr * 1.15 * rk / 128.0, "scd": 0.18, "ang": hp2 * TAU, "sx": -1.0 if hp2 < 0.5 else 1.0,
-						"life": 0.36, "fade": 0.2, "col": Color(0.95, 0.88, 0.85), "col1": Color(0.4, 0.33, 0.3), "cold": 0.18})   # 预审：原 1.2 倍亮、0.55 秒太白太久
+					u.strip("fx_wd_blast" if hp2 < 0.5 else "fx_wd_blast2", pv, {"delay": bdl, "sc": rr * 0.4 * rk / 128.0, "sc1": rr * 0.85 * rk / 128.0, "scd": 0.18, "ang": hp2 * TAU, "sx": -1.0 if hp2 < 0.5 else 1.0,
+						"life": 0.3, "fade": 0.18, "col": Color(1.0, 0.3, 0.26, 0.9), "col1": Color(0.3, 0.07, 0.07, 0.9), "cold": 0.14})   # 用户 10-30「爆炸得要红色，她的主题色」；预审：原 1.2 倍亮、0.55 秒太白太久
 					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
-						"col": Color(1.2, 1.1, 1.0), "col1": Color(0.75, 0.7, 0.68), "cold": 0.8})
-					PF.particles(u, pv, 60, "ult_burst_s", [Color(1.0, 0.6, 0.35)], 0.0, hp2 * 50.0, rr * 1.1 * rk)
+						"col": Color(1.0, 0.75, 0.72), "col1": Color(0.6, 0.55, 0.55), "cold": 0.6})   # 弹坑是焦黑地面，只带一点红余烬（整片染红会糊满屏）
+					if hp2 < 0.35:   # 粒子圆团每发都放会排成一格格（预审报重复），只给约三分之一的炮弹、缩小
+						PF.particles(u, pv, 60, "ult_burst_s", [Color(0.95, 0.1, 0.1)], bdl, hp2 * 50.0, rr * 0.7 * rk)
 				else:
 					u.strip("fx_wisadel_cannon", p, {"sc": 1.9})
 					u.shape({"kind": "circle", "c": p, "r": rr, "col": Color(1.0, 0.55, 0.3), "fill": 0.35, "life": 0.22})
@@ -913,7 +914,7 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 
 
 ## 维什戴尔 v2（ult/wd_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：每发炮弹 = Codex 第二批爆炸关键帧（fx_wd_blast，单帧，代码放大冷却）
-## + 弹坑（fx_ws_crater 4 种按落点哈希挑）留地上 + 橙色粒子帧条；余震 = 一下震 + 碎石掀起。判定 / 时序不动
+## + 弹坑（fx_ws_crater 4 种按落点哈希挑）留地上 + 红色粒子帧条（用户 10-30：红色是她的主题色，爆炸着红）；余震 = 一下震 + 碎石掀起。判定 / 时序不动
 static func _wd_v2(u) -> bool:
 	return Bal.v("ult/wd_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_wd_blast") and u.fx_ready("fx_ws_crater")
 
