@@ -3,6 +3,10 @@
 ## 桌面参考视野 1524 × 857 内均匀摆 120 只普通小怪（每 10 只 1 只重型）、3 只精英（200 / 350 / 500，分在默认瞄准方向两侧）、
 ## 1 只中期 Boss（420，只测伤害）；敌人不移动、不攻击。瞄准 4 个方向（右、右上 45°、上、敌群最密处）各放一次。
 ## --ultbench=cluster：同样 120 只聚成 3 团（§3.4 第二场景，查聚怪时的上限）。
+## --ultbench=area：量判定面积（协调人 10-31「统一终结技打击范围」）：队长周围 ±AREA_HX × ±AREA_HY 且半径 AREA_R 以内每 AREA_STEP 一只打不死的普通小怪（血量 × 1e6，
+##   终结技小怪预算按基准生命算、与血量无关，所以只掉血不倒），瞄右 / 右上 / 上三次；被打到（e.ult_d > 0）的格数 × 格面积 = 各段判定的并集面积，
+##   另报被打到的格的质心离队长多远（形状在身边还是前方）、最远一格多远。招式本身的目标上限（能天使 ult/ex_tgt）照样生效。
+## 每行另报 dmg = 本次终结技对场景内全部敌人造成的伤害合计（基准生命的倍数）、hit_n = 被打到的小怪只数。
 ## 每次打印 ULTBENCH {…}，最后打印 ULTBENCH_AVG {…} 并退出。
 extends RefCounted
 
@@ -13,9 +17,14 @@ const HEAVY := "offspring"
 const ELITE := "skimmer"
 const BOSS := "bishop"
 const AIMS := [0.0, -PI / 4.0, -PI / 2.0, INF]   # 右 / 右上 / 上 / 最密处
+const AREA_STEP := 40.0
+const AREA_HX := 1400.0
+const AREA_HY := 1000.0
+const AREA_R := 1280.0
 
 var g
 var cluster := false
+var area := false
 var _f := 0
 var _trial := -1
 var _stage := ""
@@ -24,11 +33,13 @@ var _set: Array = []
 var _t_press := 0.0
 var _peak := 0
 var rows: Array = []
+var _c0 := Vector2.ZERO
 
 
 func _init(game, arg: String) -> void:
 	g = game
 	cluster = arg == "cluster"
+	area = arg == "area"
 
 
 ## autotest.step 每帧调（--ultbench 时只走这里）
@@ -65,7 +76,7 @@ func step() -> void:
 			if _wait >= 0.6:
 				_measure()
 				_trial += 1
-				if _trial >= AIMS.size():
+				if _trial >= (3 if area else AIMS.size()):
 					_stage = "done"
 					_finish()
 				else:
@@ -99,6 +110,21 @@ func _spawn() -> void:
 	g.hp = g.max_hp
 	_set.clear()
 	var pts: Array = []
+	if area:
+		var nx: int = int(AREA_HX * 2.0 / AREA_STEP)
+		var ny: int = int(AREA_HY * 2.0 / AREA_STEP)
+		for yi in ny:
+			for xi in nx:
+				var p := c + Vector2(-AREA_HX + (xi + 0.5) * AREA_STEP, -AREA_HY + (yi + 0.5) * AREA_STEP)
+				if p.distance_to(c) > AREA_R:
+					continue   # 离队长 1300 以外的敌人会被挪到屏幕边（enemies.gd），格子只摆在圆内
+				var e: Dictionary = g.spawner.spawn_enemy(NORMAL, p)
+				_pin(e)
+				e.hp *= 1e6
+				e.maxhp = e.hp
+				e["_bk"] = "normal"
+				_set.append(e)
+		return
 	if cluster:
 		var cs := [c + Vector2(330, -120), c + Vector2(-380, 180), c + Vector2(120, 300)]
 		for i in 120:
@@ -139,6 +165,7 @@ func _spawn() -> void:
 
 
 func _pin(e: Dictionary) -> void:
+	e["_p0"] = e.pos   # 出生位置（被拉拢 / 击退后仍按原格记面积）
 	e.spd = 0.0
 	e.dmg = 0.0
 	e["dormant"] = false
@@ -156,6 +183,7 @@ func _press() -> void:
 	u.q_held = false
 	var a: float = AIMS[_trial]
 	var ld = g.squad.leader()
+	_c0 = ld.pos
 	if a != INF:
 		var d := Vector2.from_angle(a)
 		u.aim_dir = d
@@ -164,6 +192,32 @@ func _press() -> void:
 
 
 func _measure() -> void:
+	var ref: float = maxf(1.0, g.ult.ref_hp())
+	var dmg := 0.0
+	var hit_n := 0
+	var cen := Vector2.ZERO
+	var far := 0.0
+	var in_view := 0
+	var c0: Vector2 = _c0   # 按下 Q 时队长的位置（有的招式会位移）
+	for e in _set:
+		var d: float = float(e.get("ult_d", 0.0)) if int(e.get("ult_s", -1)) == g.ult.serial else 0.0
+		dmg += d
+		if d > 0.0 and (e._bk == "normal" or e._bk == "heavy"):
+			hit_n += 1
+			var p: Vector2 = e.get("_p0", e.pos)
+			cen += p - c0
+			far = maxf(far, p.distance_to(c0))
+			if absf(p.x - c0.x) <= g.ult.VIEW.x * 0.5 and absf(p.y - c0.y) <= g.ult.VIEW.y * 0.5:
+				in_view += 1
+	if area:
+		var ar := {"op": str(g.squad.leader().id), "aim": ["right", "upright", "up"][_trial], "area": true,
+			"area_k": snappedf(float(hit_n) * AREA_STEP * AREA_STEP / 1000.0, 1.0), "hit_n": hit_n,
+			"view_k": snappedf(float(in_view) * AREA_STEP * AREA_STEP / 1000.0, 1.0),
+			"cen_d": snappedf((cen / maxf(1.0, float(hit_n))).length(), 1.0), "far": snappedf(far, 1.0),
+			"dmg": snappedf(dmg / ref, 0.1), "dur": snappedf(maxf(0.0, g.ult.last_hit_t - _t_press), 0.01), "shapes_peak": _peak}
+		rows.append(ar)
+		print("ULTBENCH ", JSON.stringify(ar))
+		return
 	var n := {"normal": [0, 0], "heavy": [0, 0]}
 	var el: Array = []
 	var boss := 0.0
@@ -184,7 +238,8 @@ func _measure() -> void:
 		"minion": snappedf(100.0 * all_dead / maxf(1.0, n.normal[1] + n.heavy[1]), 0.1),
 		"normal": snappedf(100.0 * n.normal[0] / maxf(1.0, n.normal[1]), 0.1), "heavy": snappedf(100.0 * n.heavy[0] / maxf(1.0, n.heavy[1]), 0.1),
 		"elite": snappedf(100.0 * _avg(el), 0.1), "boss": snappedf(100.0 * boss, 0.1), "boss_invuln": inv,
-		"dur": snappedf(maxf(0.0, g.ult.last_hit_t - _t_press), 0.01), "shapes_peak": _peak}
+		"dur": snappedf(maxf(0.0, g.ult.last_hit_t - _t_press), 0.01), "shapes_peak": _peak,
+		"hit_n": hit_n, "dmg": snappedf(dmg / ref, 0.1)}
 	rows.append(row)
 	print("ULTBENCH ", JSON.stringify(row))
 
@@ -199,8 +254,8 @@ static func _avg(a: Array) -> float:
 
 
 func _finish() -> void:
-	var avg := {"op": rows[0].op, "cluster": cluster}
-	for k in ["minion", "normal", "heavy", "elite", "boss", "dur", "shapes_peak"]:
+	var avg := {"op": rows[0].op, "cluster": cluster, "area": area}
+	for k in (["area_k", "view_k", "hit_n", "cen_d", "far", "dmg", "dur", "shapes_peak"] if area else ["minion", "normal", "heavy", "elite", "boss", "dur", "shapes_peak", "hit_n", "dmg"]):
 		avg[k] = snappedf(_avg(rows.map(func(r): return r[k])), 0.1 if k != "dur" else 0.01)
 	print("ULTBENCH_AVG ", JSON.stringify(avg))
 	_clear()

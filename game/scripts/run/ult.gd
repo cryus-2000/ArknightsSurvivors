@@ -610,6 +610,8 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		e["ult_d"] = 0.0
 	var full_b: float = budget(e, bool(opt.get("edge", false))) * build_mult(o)
 	var amt: float = full_b * frac
+	if not e.boss and not e.elite and not e.get("part", false):
+		amt *= Bal.v("ult/dmgk_" + str(o.id), 1.0)   # 范围统一后的输出补偿（协调人 10-31，docs/199 §5.10）：只乘普通小怪，精英 / Boss 的份额上限不动
 	if e.boss:
 		amt = minf(amt, maxf(0.0, full_b - float(e.ult_d)))
 	elif e.elite or e.get("part", false):
