@@ -150,13 +150,13 @@ func _chorus_rotation(check: Callable, game, spy) -> void:
 
 func _asset_coverage(check: Callable) -> void:
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
-	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 233, "runtime manifest: 121 clips + 2 synergy lines (docs/160) + 110 pooled lines (docs/190)")
+	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 237, "runtime manifest: 121 clips + 2 synergy lines (docs/160) + 110 pooled lines (docs/190) + 4 ultimate lines (docs/205)")
 	if not manifest is Dictionary:
 		return
 	var have := {}
 	for clip in manifest.clips:
 		have[clip.operator + ":" + clip.event] = true
-	check.call(have.size() == 233, "runtime event pairs are unique")
+	check.call(have.size() == 237, "runtime event pairs are unique")
 	var ids := Character.list_ids()
 	check.call(manifest.operators.size() == 20 and ids.size() == 20, "runtime voice map covers20 operators")
 	for cid in ids:

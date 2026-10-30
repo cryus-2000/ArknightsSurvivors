@@ -138,6 +138,7 @@
 | [192_logos_s3_fx_order](192_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3 扇形咒域 | 待转 Codex | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） | seg_logos.gd、art.gd、logos_fx_handoff.md |
 | [194_dmg_curve](194_dmg_curve.md) | 普通怪伤害曲线平滑化 | 已实现 | 10-29：后期一下封顶 30、前期 0–3 分钟平滑曲线、整条单调无断崖（dmg_curve/knots） | spawner.gd、dmg_curve.gd |
 | [195_op_fx_audit_1029](195_op_fx_audit_1029.md) | 干员特效审查 | 记录 | 10-29：全员录像排查实心圆盘、范围跳变、特效与攻击方式不符、白灰色、装饰圆圈 | tools/op_fx_audit_rec.py |
+| [205_ult_audio](205_ult_audio.md) | 终结技语音挑选与专属音效 | 方案，待用户挑 | 10-30：20 人每人终结技固定一句原作语音（候选表 + 推荐）；起手 / 冲击专属音效候选与试听录像；映射表 game/data/ult_audio.json | 198、199、113、53、190；run/ult.gd、sfx.gd |
 | [201_final_boss_weak_diag](201_final_boss_weak_diag.md) | 最终 Boss「太弱」诊断与加伤 | 记录 | 10-29：最终 Boss 加伤血量不动；弹速 / 弹数 / 节奏旋钮；伊祖米克连携调度改版（izumik-sched） | 170、142b、bosses/*.gd |
 | [199_bal_audit](199_bal_audit.md) | balance 旋钮对账 + Bal.v 缓存 | 记录 | 10-29：代码缺省值与 balance.json 不一致的 170 键（已改 208 读点，运行结果不变）；只在代码里的 366 键清单；`Bal.v` 路径缓存（桌面同局轮换 -0.3 ms / 帧）；`tools/bal_audit.py` | 27、balance.gd、data_lint |
 | [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
