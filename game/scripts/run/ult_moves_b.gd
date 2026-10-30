@@ -349,7 +349,7 @@ const SD_BLAST := ["fx_sd_blast1", "fx_sd_blast2", "fx_sd_blast3", "fx_sd_blast4
 
 ## ---- 斯卡蒂「劈开浪潮」（docs/199 §7.13，开关 ult/sd_fx_v4 缺省 1；0 = §7.12 推浪 + 水爆版）。用户 10-30：「我要那种劈开浪潮的感觉」
 ## 下劈 → 海面沿前方被劈开一道裂口 fx_sd_cleave（近端宽、远端尖，0.22 秒从脚下往前裂出，裂口沿线依次炸起水柱）→
-## 两堵水墙（fx_sd_wall1–2）跟着裂口一路立起、拔高、分到两侧停住（摩西分海）→ 最后两墙合拢砸下：沿中线一排大水柱 + 水雾 + 湿痕。
+## 两堵水墙（fx_sd_wall1–2）跟着裂口一路立起、拔高、往两侧退走（摩西分海）→ 露出的地面沿剑痕裂开 → 沿裂缝接连爆开 → 湿痕。
 ## 只改画面；判定仍是往前推的矩形浪（时序 / 扫向改法列给协调人）
 const SD_CLEAVE := "fx_sd_cleave"
 
@@ -392,10 +392,14 @@ static func _sd_cleave_v4(u, a: Dictionary, o0: Vector2, d: Vector2, n: Vector2,
 		_sd_spout(u, o0 + d * x + n * sg * (18.0 + 30.0 * PF.h(vs + k * 3.0)), 120.0 + 70.0 * PF.h(vs + k * 5.0) * (1.0 - 0.5 * x / Lc), rv * x / Lc, vs + k * 2.3, col, k % 2 == 0)
 
 
-## 两堵水墙（摩西分海，用户 10-31「要有那种摩西劈开大海的力量感」）：fx_sd_wall1–2（一整条浪唇，中间最高、两端收细成水沫）沿裂口方向铺 Lc 长，
-## sy 正 = 浪冠朝 +n、负 = 朝 −n；跟着裂口从脚下往前一路立起（rev 0.3 秒），0.25 秒内拔到 2 倍高、分到 ±0.55 hw 停住（墙顶冒水雾、微微起伏），
-## 0.85 T 起两墙往中间合拢砸下 → 沿中线一排大水柱 + 水雾 + 顿帧。每侧一堵，变体按哈希
+## 两堵水墙（用户 10-31「一剑劈下，然后海水被劈开往两边走，然后再是剑劈下带来的裂地和爆炸」）：fx_sd_wall1–2（一整条浪唇，中间最高、两端收细成水沫）
+## 沿裂口方向铺 Lc 长，sy 正 = 浪冠朝 +n、负 = 朝 −n；跟着裂口一路立起（rev 0.3 秒）、拔到 1.8 倍高，一路往两侧退到 1.2 hw 外淡掉（不合拢）。
+## 海水退开后（0.35 T）露出的地面沿剑痕裂开：深海青分叉裂缝（fx_ul_crack_fork 组，同乌尔比安）主缝顺劈向 + 6 条斜岔，先亮后冷；
+## 0.55 T 起沿裂缝从近到远 5 处接连爆开（碎石崩起 + 冷白粒子 + 小水柱 + 冷光，第一下顿帧）。每侧一堵，变体按哈希
 const SD_WALL := ["fx_sd_wall1", "fx_sd_wall2"]
+const SD_FORKS := ["fx_ul_crack_fork", "fx_ul_crack_fork2", "fx_ul_crack_fork3", "fx_ul_crack_fork4"]
+const SD_CRACK_HOT := Color(0.85, 1.0, 1.0)
+const SD_CRACK_COLD := Color(0.3, 0.42, 0.5)
 
 
 static func _sd_walls_v4(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, T: float) -> void:
@@ -405,11 +409,16 @@ static func _sd_walls_v4(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector
 	if a.get("walled", false):   # 跃浪第二道：只劈开一次（两组水墙叠成一条条横纹）
 		return
 	a["walled"] = true
+	w["vs"] = vs
+	w["booms"] = []
+	for q in 5:   # 爆点：沿裂缝从近到远，时刻按 k
+		var hh: float = PF.h(vs + q * 2.9)
+		w.booms.append([Lc * (q + 0.3 + 0.4 * hh) / 5.0, 0.55 + 0.07 * q, (hh - 0.5) * 50.0])
 	for side in [1.0, -1.0]:
 		var nm := PF.pick(u, SD_WALL, vs * 0.4 + side * 1.3)
 		var t: Texture2D = u._strip_tex(nm)
 		var s: Dictionary = u.strip(nm, o0, {"ang": d.angle(), "o": Vector2(0.0, t.get_height() * 0.3), "sc": Lc * 1.05 / PF.tex_w(u, nm),
-			"sy": side * 0.3, "rev": 0.3, "rev0": 0.05, "life": T + 0.3, "fade": 0.15, "col": Color(0.86, 0.9, 0.95, 1.0)})
+			"sy": side * 0.3, "rev": 0.3, "rev0": 0.05, "life": T * 0.95, "fade": 0.3, "col": Color(0.86, 0.9, 0.95, 1.0)})
 		a.fx.append(s)
 		w.walls.append([s, side, 0.0, -30.0, 1.0])
 
@@ -420,19 +429,16 @@ static func _sd_walls_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vect
 		w.fx[1].fill = 0.0
 		return
 	var Lc: float = _sd_clen(a)
-	var op: float = clampf(k / 0.25, 0.0, 1.0)
-	var hold: float = hw * 0.55 * (1.0 - pow(1.0 - op, 3.0))   # 分开：前 25% 猛地分到两侧
-	var cl: float = clampf((k - 0.85) / 0.15, 0.0, 1.0)   # 合拢：最后 15% 砸回中间
-	var off: float = lerpf(hold, 20.0, cl * cl) + sin(t * 9.0) * 5.0 * (1.0 - cl)
+	var off: float = hw * (0.05 + 1.15 * (1.0 - pow(1.0 - k, 2.2)))   # 一路往两侧退开（先快后缓）
 	var rise: float = clampf((t - float(w.t0)) / 0.25, 0.0, 1.0)
-	var hk: float = lerpf(0.3, 2.0, rise * rise * (3.0 - 2.0 * rise)) * lerpf(1.0, 0.6, cl)
+	var hk: float = lerpf(0.3, 1.8, rise * rise * (3.0 - 2.0 * rise))
 	for wl in w.walls:
 		var side: float = wl[1]
 		wl[0].c = o0 + d * float(wl[3]) + n * side * off
 		wl[0].sy = side * hk
 	w.fx[0].fill = 0.0
-	w.fx[1].fill = 0.0   # 不画矩形湿底（像素扫描线画出来是一条条横纹，预审报拼接）；中间露出的海底交给裂口贴图
-	if t >= float(w.get("wspray_t", 0.0)) and cl < 1.0:   # 墙顶水雾往上冒 + 飞沫
+	w.fx[1].fill = 0.0   # 不画矩形湿底（像素扫描线画出来是一条条横纹，预审报拼接）
+	if t >= float(w.get("wspray_t", 0.0)) and k < 0.85:   # 墙顶水雾往上冒 + 飞沫
 		w["wspray_t"] = t + 0.08
 		var j: int = int(t * 100.0)
 		for side in [1.0, -1.0]:
@@ -441,20 +447,37 @@ static func _sd_walls_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vect
 			PF.particles(u, p, 60, "ult_ember", [Color(foam, 0.75)], 0.0, float(j) + side * 3.0, 90.0)
 			if j % 2 == 0:
 				PF.particles(u, p, 60, "ult_burst_s", [foam, col], 0.0, float(j) + side * 5.0, 60.0)
+	var vs: float = w.vs
+	if k >= 0.35 and not w.get("cracked", false):   # 海水退开：露出的地面沿剑痕裂开
+		w["cracked"] = true
+		PF.cracks(u, SD_FORKS, o0 + d * 10.0, [d.angle()], [Lc * 1.02], {"seed": vs, "rev": 0.2, "rev0": 0.1, "life": 2.0, "fade": 0.8, "big": 1.0, "small": 1.0,
+			"col": SD_CRACK_HOT, "col1": SD_CRACK_COLD, "cold": 0.8, "delay": 0.0})
+		for q in 6:   # 斜岔：沿主缝错开起点、两侧交替、长短 / 角度按哈希
+			var hh: float = PF.h(vs + q * 4.1)
+			var side: float = 1.0 if q % 2 == 0 else -1.0
+			var x: float = Lc * (q + 0.3 + 0.5 * hh) / 6.5
+			PF.cracks(u, SD_FORKS, o0 + d * x, [d.angle() + side * (0.35 + 0.6 * PF.h(hh * 3.0))], [120.0 + 160.0 * PF.h(hh * 5.0)],
+				{"seed": vs + q * 3.0, "rev": 0.18, "rev0": 0.1, "life": 1.8, "fade": 0.7, "big": 0.7, "small": 0.5, "col": SD_CRACK_HOT, "col1": SD_CRACK_COLD, "cold": 0.7,
+				"delay": 0.2 * x / Lc})
+		u.light(o0 + d * Lc * 0.5, Lc * 0.5, SD_CRACK_HOT, 0.2)
+	for b in w.booms:   # 沿裂缝接连爆开
+		if b.size() > 3 or k < float(b[1]):
+			continue
+		b.append(true)
+		var p: Vector2 = o0 + d * float(b[0]) + n * float(b[2])
+		var first: bool = b == w.booms[0]
+		if first:
+			u.g.vfx.stop(Bal.v("ult/sd_boom_stop", 0.1), "ult", true)
+		u.light(p, 260.0, foam, 0.25)
+		PF.particles(u, p, 300, "ult_burst", [Color(0.85, 0.95, 1.0), col], 0.0, vs + float(b[0]), 230.0)
+		PF.aftershock(u, p, 110.0, vs + float(b[0]) * 0.1, 0.0, 7, Color(0.75, 0.85, 0.9))
+		PF.heave(u, p, 90.0, vs + float(b[0]) * 0.3, 0.02, Color(0.75, 0.85, 0.9), 70.0)
+		_sd_spout(u, p, 150.0, 0.03, vs + float(b[0]) * 0.07, col, true)
 
 
-## 两墙合拢砸下：沿中线一排大水柱（6 处，变体 / 大小 / 时刻错开）+ 水雾 + 冷光 + 顿帧
+## 浪过：湿痕只留在劈开的那一段
 static func _sd_walls_end(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, n: Vector2, hw: float, col: Color) -> void:
-	var vs: float = PF.vseed(u, o0) + float(w.t0) * 13.0
-	var Lc: float = _sd_clen(a)
-	w["wet_x"] = Lc   # 湿痕只留在劈开的那一段
-	if w.walls.is_empty():
-		return
-	u.g.vfx.stop(Bal.v("ult/sd_crash_stop", 0.08), "ult", true)
-	u.light(o0 + d * Lc * 0.5, Lc * 0.6, col.lerp(Color.WHITE, 0.5), 0.3)
-	for q in 6:
-		var hh: float = PF.h(vs + q * 2.1)
-		_sd_spout(u, o0 + d * Lc * (q + 0.2 + 0.6 * hh) / 6.0 + n * (hh - 0.5) * 60.0, 220.0 + 90.0 * PF.h(hh * 3.0), 0.03 * q, vs + q * 1.7, col, q % 2 == 0)
+	w["wet_x"] = _sd_clen(a)
 
 
 static func _sd_v3(u) -> bool:
