@@ -16,16 +16,42 @@ static func enabled() -> bool:
 
 
 ## 难度校准的中后段削减（docs/200，10-30）：dmg_curve/mid_cut 比例，从 mid_from 秒起按平滑阶梯（smoothstep）削到 mid_to 秒，之后保持；
-## mid_from 之前（前期伤害，用户亲定）不动；目标曲线仍单调（削减的斜率远小于曲线本身的斜率）。mid_cut 0 = 关
+## mid_from 之前（前期伤害，用户亲定）不动。mid_cut 0 = 关
+## 削得多时（如 0.22）削减斜率会超过曲线本身斜率、中段微微回落；用户要「单调平滑」（10-29，协调人 10-31 定 A），
+## 所以削减段取「已过的最高值」：按 1 秒采样的累计最高值做线性插值，削减段之后取 max(当前值, 段内最高)，任意参数都单调不降
+static var _mono_key := []
+static var _mono: PackedFloat32Array = PackedFloat32Array()   # 削减段 [a, b] 每秒累计最高值
+
+
+static func _cut_v(t: float, cut: float, a: float, b: float, sc: float) -> float:
+	var x: float = clampf((t - a) / maxf(1.0, b - a), 0.0, 1.0)
+	return target_raw(t) * sc * (1.0 - cut * x * x * (3.0 - 2.0 * x))
+
+
 static func target(t: float) -> float:
 	var cut: float = Bal.v("dmg_curve/mid_cut", 0.0)
-	var v: float = target_raw(t) * Bal.v("dmg_curve/scale", 1.0)   # 全程整体倍率（难度校准 10-31，缺省 1 = 不变）
+	var sc: float = Bal.v("dmg_curve/scale", 1.0)   # 全程整体倍率（难度校准 10-31，缺省 1 = 不变）
 	if cut <= 0.0:
-		return v
+		return target_raw(t) * sc
 	var a: float = Bal.v("dmg_curve/mid_from", 180.0)
-	var b: float = Bal.v("dmg_curve/mid_to", 420.0)
-	var x: float = clampf((t - a) / maxf(1.0, b - a), 0.0, 1.0)
-	return v * (1.0 - cut * x * x * (3.0 - 2.0 * x))
+	var b: float = maxf(a + 1.0, Bal.v("dmg_curve/mid_to", 420.0))
+	if t <= a:
+		return target_raw(t) * sc
+	var key := [cut, a, b, sc, Bal.sec("dmg_curve").get("knots", []).hash()]
+	if key != _mono_key:
+		_mono_key = key
+		var n: int = int(ceil(b - a)) + 1
+		_mono.resize(n)
+		var m := -INF
+		for i in n:
+			m = maxf(m, _cut_v(minf(a + i, b), cut, a, b, sc))
+			_mono[i] = m
+	var n2: int = _mono.size()
+	if t >= b:
+		return maxf(_cut_v(t, cut, a, b, sc), _mono[n2 - 1])
+	var u: float = t - a
+	var i0: int = mini(int(u), n2 - 2)
+	return lerpf(_mono[i0], _mono[i0 + 1], clampf(u - i0, 0.0, 1.0))
 
 
 ## 关键点曲线本体：关键点 [[秒, 池平均一下伤害], …]，首点之前取首点、末点之后取末点（封顶）；单调三次插值，处处一阶连续
