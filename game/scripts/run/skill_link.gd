@@ -12,8 +12,9 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
-const LFX = preload("res://scripts/run/link_fx_common.gd")
-const LFB = preload("res://scripts/run/link_fx_b.gd")   # B 组 10 人画面（link-fx-b）   # 连携画面公用件：衔接（接力光 + 光柱）/ 变体种子（用户 10-31 连携美术重做）
+const LFX = preload("res://scripts/run/link_fx_common.gd")   # 连携画面公用件：衔接（接力光 + 光柱）/ 变体种子（用户 10-31 连携美术重做）
+const LFB = preload("res://scripts/run/link_fx_b.gd")   # B 组 10 人画面（link-fx-b）
+const LFA = preload("res://scripts/run/link_fx_a.gd")   # A 组画面（link-fx-a：德克萨斯 / 能天使 / 浊心斯卡蒂 / 乌尔比安 / 斯卡蒂）
 
 ## 放技能的干员 id → {技能序号: [搭档 id, 合成类型]}
 const LINKS := {
@@ -302,11 +303,14 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				var tg2: Variant = a.tg
 				var mid: Vector2 = tg2.pos if tg2 != null and not tg2.dead else (Vector2(a.from_p) + Vector2(a.to_p)) * 0.5
 				var d2: Vector2 = (Vector2(a.to_p) - Vector2(a.from_p)).normalized()
-				u.shape({"kind": "blade", "a": mid - d2 * 110.0, "b": mid + d2 * 110.0, "w": 7.0, "col": Color.WHITE, "glow": cp, "grow": 0.03, "life": 0.7})
-				u.shape({"kind": "line", "a": a.from_p, "b": a.to_p, "w": 4.0, "col": cp, "life": 0.45})
-				for q in 6:   # 斩痕上迸刀光颗粒 + 一盏短灯
-					u.grain("blade", mid + d2 * (q - 2.5) * 36.0, d2.orthogonal() * (1.0 if q % 2 == 0 else -1.0), cp, 3)
-				u.light(mid, 180.0, cp, 0.35)
+				if LFA.on(u, "fx_lk_tx1"):
+					LFA.texas_cut(u, a.from_p, a.to_p, mid)
+				else:
+					u.shape({"kind": "blade", "a": mid - d2 * 110.0, "b": mid + d2 * 110.0, "w": 7.0, "col": Color.WHITE, "glow": cp, "grow": 0.03, "life": 0.7})
+					u.shape({"kind": "line", "a": a.from_p, "b": a.to_p, "w": 4.0, "col": cp, "life": 0.45})
+					for q in 6:   # 斩痕上迸刀光颗粒 + 一盏短灯
+						u.grain("blade", mid + d2 * (q - 2.5) * 36.0, d2.orthogonal() * (1.0 if q % 2 == 0 else -1.0), cp, 3)
+					u.light(mid, 180.0, cp, 0.35)
 				for e in u.in_band(a.from_p, a.to_p, 34.0):
 					p.log_hit(_src(p, "追击"), ["连携"])
 					p.deal_damage(e, _dmg(p, Bal.v("ult/link_pursue_mult", 1.6)))
@@ -679,14 +683,20 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 			if t < 0.24:
 				var q: Vector2 = Vector2(a.fp).lerp(a.tp, t / 0.24)
-				u.grain("water", q + Vector2(0, 8), Vector2.UP, Color(0.3, 0.55, 0.75), 2)
+				if LFA.on(u, LFA.SD_TRAIL):
+					LFA.skadi_run(u, q, t)
+				else:
+					u.grain("water", q + Vector2(0, 8), Vector2.UP, Color(0.3, 0.55, 0.75), 2)
 				return false
 			var fp: Vector2 = a.fp
 			var tp2: Vector2 = a.tp
 			if once.call("cut"):
-				u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 34.0, "col": Color(0.12, 0.25, 0.4), "fill": 0.6, "layer": "back", "life": 1.6})   # 水痕
-				u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 6.0, "col": cl, "fill": 0.9, "layer": "back", "life": 0.5})
-				u.light(fp.lerp(tp2, 0.5), 150.0, cl, 0.3)
+				if LFA.on(u, LFA.SD_TRAIL):
+					LFA.skadi_trail(u, fp, tp2)
+				else:
+					u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 34.0, "col": Color(0.12, 0.25, 0.4), "fill": 0.6, "layer": "back", "life": 1.6})   # 水痕
+					u.shape({"kind": "band", "a": fp + Vector2(0, 8), "b": tp2 + Vector2(0, 8), "w": 6.0, "col": cl, "fill": 0.9, "layer": "back", "life": 0.5})
+					u.light(fp.lerp(tp2, 0.5), 150.0, cl, 0.3)
 				for e in u.in_band(fp, tp2, 38.0):
 					_hit16(p, e, "拖刃", 1.2)
 				_sfx_hit(u)
@@ -694,7 +704,10 @@ static func _step16(u, a: Dictionary) -> bool:
 				if t >= 0.24 + 0.5 * (j + 1) and once.call("w%d" % j):
 					for e in u.in_band(fp, tp2, 20.0):
 						_hit16(p, e, "水痕", 0.25)
-					u.grain("water", fp.lerp(tp2, 0.5), Vector2.UP, Color(0.3, 0.55, 0.75), 4)
+					if LFA.on(u, LFA.SD_TRAIL):
+						LFA.skadi_tick(u, fp, tp2, j)
+					else:
+						u.grain("water", fp.lerp(tp2, 0.5), Vector2.UP, Color(0.3, 0.55, 0.75), 4)
 			return t >= 0.24 + 1.6
 		"l_siege":   # 冲阵：从队长身边冲进区域（不跃起），沿途撞开敌人，尾端一锤砸地（碎裂冲击 + 碎石）
 			if once.call("go"):
@@ -744,8 +757,11 @@ static func _step16(u, a: Dictionary) -> bool:
 				var fp: Vector2 = p.pos + Vector2(0, -20)
 				var tp: Vector2 = fp + d * (fp.distance_to(c) + 250.0)
 				var tc: Color = Color(1.0, 0.3, 0.25) if i % 2 == 0 else Color(1.0, 0.82, 0.4)   # 红金交替
-				u.shape({"kind": "line", "a": fp, "b": tp, "w": 3.0, "col": tc, "life": 0.16})
-				u.grain("bfx_flash", fp + d * 30.0, d, tc, 2)
+				if LFA.on(u, "fx_lk_tx1"):
+					LFA.exusiai_shot(u, fp, tp, i)
+				else:
+					u.shape({"kind": "line", "a": fp, "b": tp, "w": 3.0, "col": tc, "life": 0.16})
+					u.grain("bfx_flash", fp + d * 30.0, d, tc, 2)
 				for e in u.in_band(fp, tp, 14.0):
 					_hit16(p, e, "穿透扫射", 0.35)
 				a.k = i + 1
@@ -875,6 +891,9 @@ static func _step16(u, a: Dictionary) -> bool:
 			var tp: Vector2 = _tgp(a)
 			if t < T:
 				var q: Vector2 = Vector2(a.fp).lerp(tp, t / T)
+				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
+					LFA.ulpianus_fly(u, a.fp, q, t / T)
+					return false
 				u.shape({"kind": "line", "a": a.fp, "b": q, "w": 3.0, "col": cl.darkened(0.2), "life": 0.04})
 				u.shape({"kind": "rock", "c": q, "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "life": 0.04})
 				return false
@@ -890,12 +909,18 @@ static func _step16(u, a: Dictionary) -> bool:
 				for e in u.in_circle(tp, 180.0):
 					if e != tg and not e.boss and not e.elite:
 						a.pull.append(e)
-				u.debris(tp, cl, 2)
-				u.light(tp, 150.0, cl, 0.4)
+				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
+					LFA.ulpianus_pin(u, tp)
+				else:
+					u.debris(tp, cl, 2)
+					u.light(tp, 150.0, cl, 0.4)
 				_sfx_hit(u)
 			if t < T + 0.5:
-				u.shape({"kind": "rock", "c": tp + Vector2(0, -6), "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "life": 0.04})
-				u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": tp, "w": 2.0, "col": cl.darkened(0.2), "life": 0.04})
+				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
+					LFA.ulpianus_hold(u, p.pos + Vector2(0, -20), tp)
+				else:
+					u.shape({"kind": "rock", "c": tp + Vector2(0, -6), "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "life": 0.04})
+					u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": tp, "w": 2.0, "col": cl.darkened(0.2), "life": 0.04})
 				for e in a.pull:
 					if not e.dead:
 						p.nudge(e, (tp - e.pos) * 0.12)
@@ -999,6 +1024,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				u.light(c, r, cl, 0.5)
 			if t < 3.0:
 				var fa: float = 1.0 if t < 2.6 else (3.0 - t) / 0.4
+				if LFA.on(u, "fx_ult_skalter_domain_back"):
+					LFA.skalter_song(u, c, r, t, a)
+					return false
 				for j in 8:
 					var np: Vector2 = c + Vector2.from_angle(TAU * (t * 0.25 + j / 8.0)) * r
 					u.shape({"kind": "rock", "c": np, "r": 6.0, "col": cl, "glow": Color(1.0, 0.8, 0.8), "seed": float(j), "fill": fa, "life": 0.04})
