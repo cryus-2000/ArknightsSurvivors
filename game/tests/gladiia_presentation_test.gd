@@ -65,6 +65,8 @@ func _ready():
  ok(not ticks.is_empty(),"actual field tick emits inward water")
  var center=o.pos+Vector2(100,40)
  o.last_hit_pos=center
+ ok(str(b.get("pix",""))=="gl_s3","S3 field uses pixfx vortex (10-31)")
+ b.erase("pix")   # 下面核原帧条后备路径（缺图 / g.ult 关时照播）
  o.s_t[2]=8.0
  o._ext_exec(b,Vector2.INF)
  ok(o.fields.size()==1,"field created once")
@@ -130,6 +132,7 @@ func _ready():
  live.no_attack=true
  live.last_hit_pos=center
  live.s_t[2]=0.01
+ live.B.skills[2].do[0].erase("pix")   # 同上：核原帧条后备路径
  live._ext_exec(live.B.skills[2].do[0],Vector2.INF)
  live.last_hit_pos=center+Vector2(170,0)
  live.update(0.02)
