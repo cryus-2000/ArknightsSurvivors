@@ -1,0 +1,12 @@
+rk18.jsonl runs 18 | spawned 69 killed 66 absorbed 10 | clear 6.09s | learn layers 2 absorb_n 6 stacks 2 | alive@0,5..30s [0, 7.2, 10.3, 13.5, 15.4, 15.4, 1.9] | win 15/18 | fight 78s
+== rk18.jsonl jobs 18 err 0
+izumik       fight  78.5  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 15/18
+     bullet:nerve                       n  18  med 21.4%  max 37.2%  raw med  34.7 max  65.2
+     bullet:nova                        n   5  med 21.6%  max 27.8%  raw med  27.2 max  48.8
+     boss_izumik:                       n   4  med 48.6%  max 48.6%  raw med  85.2 max  85.2
+     boss_izumik:final_attack/迁徙潮       n   2  med 40.9%  max 40.9%  raw med  46.7 max  46.7
+     boss_izumik:nerve                  n   2  med 31.6%  max 31.6%  raw med  55.4 max  55.4
+     bullet:orb                         n   2  med 27.5%  max 27.5%  raw med  31.4 max  31.4
+     boss_izumik:final_attack/          n   1  med 39.5%  max 39.5%  raw med  69.3 max  69.3
+     boss_izumik:sweep/分享               n   1  med  7.2%  max  7.2%  raw med  12.6 max  12.6
+     boss_izumik:orb                    n   1  med 60.8%  max 60.8%  raw med 106.6 max 106.6
