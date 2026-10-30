@@ -845,6 +845,14 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 		if b.life <= 0.0 or int(b.get("source_id", -1)) != int(e.id):
 			continue
 		n += 1
+		var izk: String = str(b.get("izu", ""))
+		if (izk == "" or (izk == "spiral" and str(b.get("kind", "")) == "nerve")) and float(b.get("izu_age", 0.0)) < 1.6:
+			# 轻追踪（协调人 10-31 选 A，docs/201 §8.4）：数据招式的圆珠 / 快弹与二幕螺旋针，出膛 1.6 秒内每秒最多转 boss/izumik_home_aim 弧度；
+			# 潮门环、回流、习得弹 / 习得路径（自带瞄准）不加，缺口与图案不变
+			b.izu_age = float(b.get("izu_age", 0.0)) + dt
+			var ha: float = Bal.v("boss/izumik_home_aim", 0.0) * dt
+			if ha > 0.0:
+				b.vel = b.vel.rotated(clampf(angle_difference(b.vel.angle(), (target - b.pos).angle()), -ha, ha))
 		if not b.has("izu_rk"):
 			# 弹体（画面 = 判定，外缘 100%）放大（10-31 docs/201 §8.3：新判定半径 + 3 下机器人几乎都躲得开）；
 			# 在这里统一乘，连携弹（_shot）和数据招式 / finals 出的圆珠、快弹（方案 A 时命中的大头）一起放大，每颗只乘一次
