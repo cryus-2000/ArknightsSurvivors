@@ -789,6 +789,9 @@ func _cutin(ld, k: String) -> void:
 ##   ang 旋转、sc 缩放（缺省 1 = 美术 1x 像素 × g.PX）、sx / sy 额外拉伸（拼接段铺满用）、
 ##   seg [起, 止] 帧段（缺省整条）、fps（缺省登记值）、loop（帧段循环，否则停在末帧）、f 固定帧（巨锚角度帧之类）、
 ##   layer "back"（地面，画在干员之下）/ "front"（缺省，干员之上；orbit 也画这里）、col 调色（含透明度）。
+##   动画（单张大贴图用，乌尔比安裂地 v2）：rev 秒内从原点往 +x 逐渐显现（rev0 = 一开始已显现的比例；裂缝延伸）、spin 每秒转角、
+##   sc1 在 scd 秒内缓出放大到的缩放（冲击环扩散）、fade 最后几秒淡出；
+##   ux / uw 只取单帧里从 ux 起宽 uw 的一段（长贴图截一截当拼接段，o 相对这一段）；col1 / cold 冷却到的颜色与秒数。
 ## 帧号按游戏时间推进（慢放里跟着慢），纯画面。
 func strip(name: String, c: Vector2, opt: Dictionary = {}) -> Dictionary:
 	var s := opt.duplicate()
@@ -890,13 +893,33 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 	var fw: float = t.get_width() / float(fr[0])
 	var fh: float = float(t.get_height())
 	var hi: float = A.hires_of(t)
-	var k: float = g.PX * float(s.get("sc", 1.0)) / hi
+	var age: float = maxf(0.0, float(s.age))
+	var sc: float = float(s.get("sc", 1.0))
+	if s.has("sc1"):
+		var q: float = clampf(age / maxf(0.001, float(s.get("scd", s.max))), 0.0, 1.0)
+		sc = lerpf(sc, float(s.sc1), 1.0 - (1.0 - q) * (1.0 - q))
+	var k: float = g.PX * sc / hi
 	var f: int = clampi(_strip_frame(s), 0, int(fr[0]) - 1)
 	var o: Vector2 = s.get("o", Vector2(fw * 0.5, fh * 0.5))
 	var col: Color = s.get("col", Color.WHITE)
 	col.a *= dim
-	g.draw_set_transform(s.c, float(s.get("ang", 0.0)), Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0))))
-	g.draw_texture_rect_region(t, Rect2(-o, Vector2(fw, fh)), Rect2(f * fw, 0.0, fw, fh), col)
+	if s.has("col1"):   # 冷却：cold 秒内从 col 变到 col1（裂缝爆亮后退成暗色余烬）
+		var ca: float = col.a
+		col = col.lerp(s.col1, clampf(age / maxf(0.001, float(s.get("cold", 0.4))), 0.0, 1.0))
+		col.a = ca
+	if s.has("fade"):
+		col.a *= clampf((float(s.max) - age) / maxf(0.001, float(s.fade)), 0.0, 1.0)
+	var ux: float = float(s.get("ux", 0.0))
+	var uw: float = minf(float(s.get("uw", fw)), fw - ux)
+	var vw: float = uw
+	if s.has("rev"):   # 逐渐显现：只画原点往 +x 的前一段（按整纹素截，保持硬边）
+		var r0: float = float(s.get("rev0", 0.0))
+		vw = minf(uw, o.x + ceilf((uw - o.x) * clampf(r0 + (1.0 - r0) * age / maxf(0.001, float(s.rev)), 0.0, 1.0)))
+		if vw <= o.x:
+			return
+	var ang: float = float(s.get("ang", 0.0)) + float(s.get("spin", 0.0)) * age
+	g.draw_set_transform(s.c, ang, Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0))))
+	g.draw_texture_rect_region(t, Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
