@@ -1513,7 +1513,7 @@ func _seg_sfx(sg: String) -> void:
 ## 按 data/ult_audio.json 的 fx.<键> 在它出现的那一刻（+ at 秒游戏时间，如剑帧条插地那一帧）播一声。
 ## 键 = 图形 kind（"line" / "blade" …）或 "strip:<帧条名>"；带速度 v 的（碎片）先找 "<键>+v"。
 ## 规则：slot 槽名或槽名数组（数组按序轮换，每声略不同）、gap 真实秒节流（同一帧冒出的几道合成一声）、vol dB、
-## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）。
+## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）、min_sc 帧条缩放至少多少才认（收尾大爆）。
 var _fx_rt := {}
 var _fx_n := {}
 var _fx_serial := -1
@@ -1532,7 +1532,7 @@ func _fx_tag(s: Dictionary) -> void:
 	for f in ["w", "r"]:
 		if r.has(f) and absf(float(s.get(f, 0.0)) - float(r[f])) > 0.01:
 			return
-	if g.t - _cast_t < float(r.get("min_t", -1.0)):
+	if g.t - _cast_t < float(r.get("min_t", -1.0)) or float(s.get("sc", 1.0)) < float(r.get("min_sc", -1.0)):
 		return
 	s["_ar"] = r
 	s["_ak"] = key
