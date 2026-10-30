@@ -268,7 +268,7 @@ static func _sa_cone() -> bool:
 static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var cone: bool = _sa_cone()
-	var half: float = Bal.v("ult/sa_half", 0.55)   # 朝前打：扇形半角（约 31°）；射程 ult/sa_len_k 倍
+	var half: float = Bal.v("ult/sa_half", 0.62)   # 朝前打：扇形半角（约 35°，比漏斗印子略宽，协调人 10-31「可以开宽一点」）；射程 ult/sa_len_k 倍
 	var R: float = Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.35) if cone else 1.0)
 	var cf: float = 0.3 if rt == "shatter" else Bal.v("ult/sa_crack", 0.2)
 	var nc: int = 14 if rt == "shatter" else int(Bal.v("ult/sa_cracks", 10.0))

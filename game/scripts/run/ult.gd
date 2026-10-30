@@ -635,6 +635,8 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	var got: float = maxf(0.0, hp0 - float(e.hp))
 	e.ult_d = float(e.ult_d) + got
 	if got > 0.0:
+		stats["hit_n"] = int(stats.get("hit_n", 0)) + 1   # 终结技掉血次数（批跑统计用，10-31 塞雷娅朝前打对照）
+	if got > 0.0:
 		last_hit_t = g.t
 		if not opt.get("pre", false):
 			impact(e.pos)   # 冲击帧（这一次终结技第一下掉血）
@@ -1442,4 +1444,4 @@ func _combo_hit_fx(o, pos: Vector2) -> void:
 func report() -> Dictionary:
 	return {"ult": stats.ult, "cult": stats.cult, "combo": stats.combo, "combo_auto": stats.combo_auto, "combo_up": stats.combo_up,
 		"lit": stats.lit, "lit_by": stats.lit_by, "link_by": stats.link_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
-		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1)}
+		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1), "hit_n": int(stats.get("hit_n", 0))}
