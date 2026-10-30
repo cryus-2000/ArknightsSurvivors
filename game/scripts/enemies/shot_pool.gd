@@ -106,6 +106,19 @@ func core_r(b: Dictionary) -> float:
 	return float(b.r) * Bal.v("enemy/bullet_hit_scale", 0.6)
 
 
+## Boss 弹判定半径（用户 10-30「弹体的判定范围可以做大一点」，claude/bullet-hitbox）：Boss 弹 = (弹体半径 + boss/bullet_hit_pad) × 倍率，
+## 最终 Boss 在场时用 boss/bullet_hit_k，否则 boss/bullet_hit_k_mid；倍率 0 = 照旧按弹芯（core_r）。画面上弹体可见外缘约为 弹体半径 + 3（深色外圈），
+## pad 3 时倍率就是「占可见外缘的比例」，不超过 1 即不会「没碰到也中」。普通怪弹不变
+func hit_r(b: Dictionary) -> float:
+	if not core_hit_live():
+		return float(b.r) + 12.0
+	if b.get("boss", false):
+		var k: float = Bal.v("boss/bullet_hit_k", 0.0) if not _final_live().is_empty() else Bal.v("boss/bullet_hit_k_mid", 0.0)
+		if k > 0.0:
+			return (float(b.r) + Bal.v("boss/bullet_hit_pad", 3.0)) * k
+	return core_r(b)
+
+
 func _final_live() -> Dictionary:
 	for e in g.bosses:
 		if not e.dead and g.spawner.is_final_boss_type(str(e.type)):
@@ -173,7 +186,7 @@ func update_ebullets(dt: float) -> void:
 			b.life = 0.0
 			b["_die"] = "rock"
 		var hd: float = b.pos.distance_to(g.ppos + Vector2(0, -14))
-		var hitp: bool = not rock and hd < (core_r(b) if core_hit_live() else b.r + 12.0)   # 判定点：敌弹只按弹芯判定
+		var hitp: bool = not rock and hd < hit_r(b)   # 判定点：敌弹只按弹芯判定
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and (not b.get("boss", false) or g.mires.size() < 48) and _boss_mire_ok(b) and (b.get("boss", false) or not g.combat.mire_blocked(b.pos + Vector2(0, 10), float(b.get("mire_r", 52.0)))):

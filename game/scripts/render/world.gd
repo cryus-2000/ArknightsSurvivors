@@ -1047,6 +1047,13 @@ var _dot_a := 0.0
 
 
 func _draw_hit_dot() -> void:
+	# 调试：--hitcircles 画出每颗敌弹的判定圈（绿）和队长判定点（白），录对照用；只开发版
+	if OS.is_debug_build() and Cfg.dev_args().has("--hitcircles") and g.shots != null:
+		for b in g.ebullets:
+			if b.life > 0.0:
+				tb_ring(b.pos, g.shots.hit_r(b), 1.5, Color(0.3, 2.0, 0.6, 0.95))
+		tb_circle(g.ppos + Vector2(0, -14), 3.0, Color(2.0, 2.0, 2.0), 1.0, 8)
+		tb_flush()
 	if g.shots == null or not g.shots.core_hit_live():
 		return
 	var p: Vector2 = g.ppos + Vector2(0, -14)
