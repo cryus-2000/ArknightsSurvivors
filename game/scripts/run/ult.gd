@@ -756,6 +756,8 @@ func shape(s: Dictionary) -> void:
 	s["max"] = float(s.get("life", 0.4))
 	s["age"] = -float(s.get("delay", 0.0))
 	shapes.append(s)
+	if phase == "cast" and caster != null:
+		_fx_tag(s)
 	if shapes.size() > 400:
 		shapes.pop_front()
 
@@ -764,6 +766,8 @@ func _tick_shapes(dt: float) -> void:
 	for k in range(shapes.size() - 1, -1, -1):
 		var s: Dictionary = shapes[k]
 		s.age += dt
+		if s.has("_ar") and s.age >= float(s._ar.get("at", 0.0)):
+			_fx_sfx(s)
 		if s.age >= s.max:
 			shapes.remove_at(k)
 			continue
@@ -1437,7 +1441,7 @@ func _aud(oid: String) -> Dictionary:
 
 
 ## 播施放者这一槽的专属音效（charge / cast / impact / hit）：audio/sfx/ult_<干员>_<槽>.wav，缺文件 Sfx 静默
-func _ua(slot: String) -> void:
+func _ua(slot: String, vol = null) -> void:
 	if caster == null or not g.is_inside_tree():
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
@@ -1447,7 +1451,9 @@ func _ua(slot: String) -> void:
 	var nm := "ult_%s_%s" % [oid, slot]
 	sfx.ensure([nm])
 	var vt: Dictionary = _aud(oid).get("vol", {})
-	sfx.play(nm, float(vt.get(slot, vt.get("hit" if slot.ends_with("_hit") else "seg", 0.0))), 1.0, 0.03)
+	if vol == null:
+		vol = vt.get(slot, vt.get("hit" if slot.ends_with("_hit") else "seg", 0.0))
+	sfx.play(nm, float(vol), 1.0, 0.03)
 
 
 ## 招式里点名的额外一声（docs/205 §3.4，如收尾大爆 u.cue("finale")）：audio/sfx/ult_<干员>_<槽>.wav，音量取表里同名槽（缺省 0 dB）
@@ -1489,6 +1495,61 @@ func _seg_sfx(sg: String) -> void:
 	if str(cfg.get("hit", "")) != "" and now - _imp_rt >= 0.06 and now - float(_seg_rt.get(sg, -99.0)) >= float(cfg.get("gap", 0.08)):
 		_seg_rt[sg] = now
 		_ua(str(cfg.hit))
+
+
+## 画面配声（用户 10-30「画面上几道剑痕就几声剑声」，docs/205 §4）：招式放出期间画的每个图形 / 帧条，
+## 按 data/ult_audio.json 的 fx.<键> 在它出现的那一刻（+ at 秒游戏时间，如剑帧条插地那一帧）播一声。
+## 键 = 图形 kind（"line" / "blade" …）或 "strip:<帧条名>"；带速度 v 的（碎片）先找 "<键>+v"。
+## 规则：slot 槽名或槽名数组（数组按序轮换，每声略不同）、gap 真实秒节流（同一帧冒出的几道合成一声）、vol dB、
+## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）。
+var _fx_rt := {}
+var _fx_n := {}
+var _fx_serial := -1
+
+
+func _fx_tag(s: Dictionary) -> void:
+	var rules: Dictionary = _aud(str(caster.id)).get("fx", {})
+	if rules.is_empty():
+		return
+	var key: String = ("strip:" + str(s.get("name", ""))) if str(s.get("kind", "")) == "strip" else str(s.get("kind", ""))
+	if s.has("v") and rules.has(key + "+v"):
+		key += "+v"
+	var r = rules.get(key)
+	if not r is Dictionary:
+		return
+	for f in ["w", "r"]:
+		if r.has(f) and absf(float(s.get(f, 0.0)) - float(r[f])) > 0.01:
+			return
+	if g.t - _cast_t < float(r.get("min_t", -1.0)):
+		return
+	s["_ar"] = r
+	s["_ak"] = key
+	if s.age >= float(r.get("at", 0.0)):
+		_fx_sfx(s)
+
+
+func _fx_sfx(s: Dictionary) -> void:
+	var r: Dictionary = s._ar
+	var key: String = s._ak
+	s.erase("_ar")
+	if caster == null:
+		return
+	if _fx_serial != serial:
+		_fx_serial = serial
+		_fx_rt.clear()
+		_fx_n.clear()
+	var now := UM.now()
+	if now - float(_fx_rt.get(key, -99.0)) < float(r.get("gap", 0.0)) - 1e-6:
+		return
+	_fx_rt[key] = now
+	var sl = r.get("slot", "")
+	var nm: String = str(sl)
+	if sl is Array:
+		var i: int = int(_fx_n.get(key, 0))
+		_fx_n[key] = i + 1
+		nm = str(sl[i % sl.size()])
+	if nm != "":
+		_ua(nm, r.get("vol"))
 
 
 ## 连携出手演出：残影拖尾 + 短慢放 + 小立绘条带（自动连携同样）

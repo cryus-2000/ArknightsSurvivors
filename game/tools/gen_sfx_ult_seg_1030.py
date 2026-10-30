@@ -6,9 +6,10 @@ sf（按 Q 超必杀暂停那一下）/ charge（按 Q 瞄准）/ cast（放出�
 
 运行：python game/tools/gen_sfx_ult_seg_1030.py            → <主仓库>/build/ult_sfx/S/ult_<干员>_<槽>.wav
       python game/tools/gen_sfx_ult_seg_1030.py --apply    → 写进 game/audio/sfx/（并删掉不再用的旧槽文件）
+      逐人精调（docs/205 §4）：--apply --only texas --reseed（只重写这一人，别人的文件不动）
 响度：峰值 -1 dBFS；最响 100 ms RMS：impact -9、段开头（on）-11、蓄力 / 出手 -13、长持续声 -15、连击（*_hit）-16 dBFS。
 """
-import argparse, glob, os
+import argparse, glob, os, zlib
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,12 @@ exec(_src[_src.index("def rip("):_src.index("OPS = [")])   # rip / horn / heavy_
 OUT = os.path.join(ROOT, "build", "ult_sfx", "S")
 
 
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -14.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+
+
 def level(slot, x):
+    if slot.split("_")[0] in LV:
+        return LV[slot.split("_")[0]]
     if slot.endswith("_hit"):
         return -16.0
     if slot == "impact":
@@ -51,29 +57,42 @@ def loopify(x, sec, fin=0.05, fout=0.3):
 
 # ---------------------------------------------------------------- 20 人（段名 = 招式伤害 src）
 def texas():
-    """隐去 → 0.5 秒连闪画 6 道刀痕（不掉血）→ 停半拍 → 刀痕一齐斩开（冲击）→ 沿刀痕落剑雨 0.8 秒"""
-    marks = seq([(0.05 + i * 0.085, pad(sweep_noise(0.09, 7000, 2500, 0.3) * env(0.09, 0.001, 30), metal(0.25, 2600 + 180 * i, 16, bright=0.45) * 0.35)) for i in range(6)])
-    held = metal(0.22, 1900, 9, bright=0.4) * 0.12   # 停半拍：刀身余颤
-    rain = seq([(0.06 + k * 0.045 + (k * 37 % 7) * 0.004, tink(2600 + (k * 211 % 9) * 160, 34) * (0.35 + 0.4 * ((k * 53) % 5) / 4)) for k in range(18)])
-    return {
+    """docs/205 §4.3：隐去（cast）→ 0.5 秒画 N 道发丝线，每道一声剑鸣 mark_1..6（fx line）→ 斩线齐出一声多刃齐斩 cut（fx blade）
+    + 高潮爆开 impact（第一下掉血）→ 斩线碎裂 shatter（fx blade+v）→ 剑雨每把插地一声轻叮 sword_1..4（fx strip，帧条第 3 帧）"""
+    marks = {"mark_%d" % (i + 1): pad(slash(0.13, 7800, 3200) * 0.45, at(metal(0.4, 2100 * (1.055 ** i), 11, bright=0.55) * 0.55, 0.012),
+                                     at(bell(0.3, 4200 * (1.04 ** i), 16, 1.0, 0.25) * 0.12, 0.012)) for i in range(6)}
+    swords = {"sword_%d" % (k + 1): pad(tink(2500 + 280 * k, 30 + 3 * k) * 0.8, thud(0.07, 340 - 25 * k, 140, 45) * 0.35) for k in range(4)}
+    cut = pad(*[at(slash(0.32, 8200 - 500 * j, 650 + 60 * j) * (1.0 - 0.1 * j), 0.004 * j) for j in range(6)],
+              thud(0.18, 200, 70, 18) * 0.5)
+    boom = pad(sub(1.1, 95, 34, 3.6) * 1.0, burst(0.55, 5200, 7) * 0.55, at(hp(burst(0.25, 11000, 14), 3000) * 0.5, 0.01),
+               metal(1.3, 1180, 2.6, bright=0.5) * 0.3, rumble(1.0, 200, 3.5) * 0.45)
+    shatter = pad(lp(crackle(0.45, 160, 2500, 9500, 8), 10000) * 0.7,
+                  *[at(tink(3000 + 370 * k, 40) * (0.5 - 0.06 * k), 0.025 + 0.045 * k) for k in range(6)])
+    d = {
         "charge": pad(sweep_noise(0.7, 1500, 6500, 0.3) * swell(0.7, 0.95) * 0.5, metal(0.7, 1760, 2.5, bright=0.4) * swell(0.7, 0.9) * 0.4),
-        "cast": pad(whoosh(0.12, 3000, 900) * 0.4, marks, at(held, 0.52)),
-        "impact": pad(slash(0.32, 7500, 700), at(slash(0.3, 5500, 600) * 0.8, 0.012), at(slash(0.28, 6500, 900) * 0.6, 0.025),
-                      metal(1.1, 1180, 2.4, bright=0.55) * 0.45, sub(0.55, 95, 40, 7) * 0.8, at(rain, 0.0) * 0.7),
-        "rain_hit": tink(2900, 32),
+        "cast": pad(whoosh(0.2, 3200, 800) * 0.6, hp(sweep_noise(0.12, 2000, 9000, 0.4), 1500) * env(0.12, 0.002, 18) * 0.3),
+        "cut": cut, "impact": boom, "shatter": shatter,
     }
+    d.update(marks)
+    d.update(swords)
+    return d
 
 
 def exusiai():
-    """锁定框一个个亮起（滴答加速）→ 上膛 → 2.8 秒爆裂弹连射（每发一枪 + 小爆）→ 弹匣装满"""
+    """docs/205 §4.3：双枪举起 + 锁定框齐亮（cast）→ 每颗曳光弹出膛一枪 shot_1..4（fx circle r5，音高 / 尾巴各不同）
+    → 每个爆点一声小爆 pop_1..3（fx strip burst）；第一下掉血 impact 是开场最重的一下"""
     beeps = seq([(sum(0.16 * (0.82 ** j) for j in range(i)), bell(0.06, 2637, 34, 1.0, 0.25) * 0.45) for i in range(9)])
-    return {
+    shots = {"shot_%d" % (k + 1): pad(pitch(gun(), (1.0, 1.06, 0.95, 1.11)[k]) * 0.9, burst(0.05, 6000 + 900 * k, 60) * 0.25) for k in range(4)}
+    pops = {"pop_%d" % (k + 1): pad(pop(3000 + 500 * k, 150 + 25 * k), hp(burst(0.12, 9000, 30), 2500) * 0.25) for k in range(3)}
+    d = {
         "charge": pad(beeps, riser(0.8, 300, 1200, "saw", 2500) * 0.35),
-        "cast": pad(metal(0.1, 950, 32, bright=0.5), at(metal(0.09, 1350, 36, bright=0.5), 0.08), at(thud(0.08, 220, 120, 30) * 0.5, 0.08),
-                    at(bell(0.25, 3136, 14, 1.0, 0.2) * 0.25, 0.12)),
-        "impact": pad(gun(), at(pop(3500, 170), 0.03), sub(0.4, 110, 45, 8) * 0.5),
-        "shot_hit": pad(gun(), at(pop(3200, 160) * 0.6, 0.04)),
+        "cast": pad(metal(0.1, 950, 32, bright=0.5), at(metal(0.09, 1350, 36, bright=0.5), 0.07), at(thud(0.08, 220, 120, 30) * 0.5, 0.07),
+                    at(pad(bell(0.3, 2637, 12, 1.0, 0.25) * 0.3, bell(0.3, 3520, 12, 1.0, 0.25) * 0.25, bell(0.3, 4186, 14, 1.0, 0.25) * 0.2), 0.03)),
+        "impact": pad(gun(), at(pop(3500, 170), 0.02), sub(0.7, 110, 40, 5) * 0.8, at(hp(burst(0.2, 10000, 16), 3000) * 0.35, 0.02)),
     }
+    d.update(shots)
+    d.update(pops)
+    return d
 
 
 def skalter():
@@ -232,17 +251,27 @@ def logos():
 
 
 def hoshiguma():
-    """盾「般若」砸进地面、全场嘲讽 → 挡 1.2 秒（盾面发红、裂纹扩大，每挡一下一声）→ 盾甲反震炸开一大圈（冲击）"""
-    strain = 1.3
+    """docs/205 §4.3：盾砸进地面（cast）+ 吸怪拖线一声 pull（fx line+v）→ 挡 1.5 秒，盾面绷紧 block（seg 格挡 on），
+    每跳一圈新裂纹一声 crack_1..5（fx line w3，一声比一声紧、高、响）→ 盾甲炸开 + 碎片四散 boom（fx blade+v，高潮）→ 热砂 sizzle（fx dots）"""
+    strain = 1.6
     t = T(strain)
     s = pad(drone(strain, 98, 3.0) * swell(strain, 0.97) * 0.4, tone(strain, 140, 260, "saw") * swell(strain, 0.97) * 0.12, crackle(strain, 60, 800, 3000, 0.5) * np.clip(t / strain, 0, 1) * 0.4)
-    return {
+    cracks = {"crack_%d" % (i + 1): pad(metal(0.35, 420 * (1.12 ** i), 10 - i, bright=0.45 + 0.05 * i) * (0.5 + 0.1 * i), crack(0.3, 12 - i) * (0.35 + 0.1 * i),
+                                       thud(0.16, 180 + 20 * i, 70, 22) * 0.5) for i in range(5)}
+    d = {
         "charge": pad(metal(0.9, 140, 2, bright=0.55) * 0.5, lp(N(0.9), 400) * swell(0.9, 0.9) * 0.6),
         "cast": pad(thud(0.5, 110, 40, 8) * 1.2, metal(1.0, 180, 2.8, bright=0.55) * 0.6, crack(0.5, 7) * 0.45),
+        "pull": pad(whoosh(0.3, 300, 1100, 0.5) * 0.6, lp(sweep_noise(0.3, 600, 200, 0.5), 1200) * env(0.3, 0.05, 6) * 0.4),
         "block": s,
-        "block_hit": pad(metal(0.28, 560, 12, bright=0.5) * 0.6, thud(0.14, 170, 70, 25) * 0.5),
-        "impact": pad(metal(1.2, 120, 2.5, bright=0.6) * 0.6, burst(0.9, 2300, 5), sub(0.9, 75, 28, 3.5), crack(0.8, 5) * 0.5),
+        # 高潮挂在画面上盾甲炸开那一帧（fx blade+v），不挂第一下掉血（反震圈扩到敌人要晚约 0.1 秒）：所以没有 impact 槽
+        "boom": pad(metal(1.2, 120, 2.5, bright=0.6) * 0.6, burst(0.9, 2300, 5), sub(1.0, 75, 28, 3.2), crack(0.8, 5) * 0.5,
+                    at(hp(burst(0.2, 10000, 14), 3000) * 0.35, 0.01),
+                    *[at(metal(0.25, 900 + 230 * k, 18, bright=0.5) * (0.3 - 0.03 * k), 0.05 + 0.05 * k) for k in range(7)],
+                    at(lp(crackle(0.4, 120, 1500, 7000, 7), 8000) * 0.35, 0.03)),
+        "sizzle": pad(lp(crackle(0.6, 220, 2500, 9000, 3), 9000) * 0.6, lp(N(0.6), 900) * env(0.6, 0.05, 5) * 0.25),
     }
+    d.update(cracks)
+    return d
 
 
 def siege():
@@ -332,6 +361,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--only", default="")
+    ap.add_argument("--reseed", action="store_true", help="每人用自己的随机序列（逐人精调时配 --only 用）")
     a = ap.parse_args()
     only = set(a.only.split(",")) if a.only else None
     dst_dir = SFX if a.apply else OUT
@@ -340,6 +370,8 @@ def main():
         op = f.__name__
         if only and op not in only:
             continue
+        if a.reseed:   # 每人独立随机序列（docs/205 §4 起逐人精调用；改一人不牵动别人）。没加 --reseed 时沿用旧的全程一条序列
+            rng.bit_generator.state = np.random.default_rng(zlib.crc32(op.encode())).bit_generator.state
         d = f()
         st = rng.bit_generator.state   # sf 不占随机序列：其余槽与加 sf 之前逐字节相同
         d["sf"] = FLASH[op]()
