@@ -1,5 +1,3 @@
 {"_doc": "已知红登记，规则见 docs/204 §5.4 与 tools/known_red.py。过期仍红 = 硬失败；owner / reason / due 必填；期限 ≤ 14 天。",
  "items": [
-  {"scope": "图引用 graph_lint", "pattern": "relics.json:3186", "since": "2026-10-30", "due": "2026-11-12", "owner": "Codex（美术单）",
-   "reason": "藏品 265 缺图标 relic_265（relic_effects.json:4583 已有效果定义）；10-30 已写进 Codex 单补画"}
  ]}
