@@ -132,6 +132,26 @@ def texas():
     return d
 
 
+SN = {   # Sonniss 素材短名（docs/113 §20）
+    "debris": "Cinematic Sound Design - Colossal Impacts/Woosh Debris.wav",
+    "thud": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav",
+    "ice": "Alexander Kopeikin - 100 kHz Designed Ice/ice, crack, ice block snapping-001.wav",
+    "fissure": "Alexander Kopeikin - 100 kHz Designed Ice/ice, surface cracking, fissure, fast, hard-003.wav",
+    "drag": "344 Audio - Extreme Winds Vol. 1/METLFric_Large Metal Box, Drag, Geofon_344 Audio_Extreme Winds Vol 1.wav",
+    "cut": "Cinematic Sound Design - Colossal Impacts/Impact Cut Sweep.wav",
+    "b214": "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_214.wav",
+    "b075": "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_075.wav",
+    "fire": "Ivo Vicic - Campfire - Bonfire FX/24 Campfire, Dropping Fresh Pine Branches in Fire, Crackling, Sizzling Strong, Close 02.wav",
+    "bang": "344 Audio - Haunting Ambiences Vol. 3/METLImpt_Metal Bangs, Metal Hits, Banging On Doors_344 Audio_Haunting Ambiences Vol 3.wav",
+    "elec": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Glitch 01_ESM_EMWI.wav",
+    "flow": "Alexander Kopeikin - Emotion and Magic/magic, energy flow, astonishment-001.wav",
+}
+
+
+def sn(k, *a, **kw):
+    return lib(SN[k], *a, **kw)
+
+
 EX_BLAST = "Epic Stock Media - Anime Game/EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav"
 
 
@@ -168,13 +188,15 @@ def skalter():
 
 
 def kaltsit():
-    """Mon3tr 跃到落点（0.3 秒）→ 落地蓄压 0.6 秒（发红发白）→ 熔毁三圈依次向外炸开（0.15 秒间隔）"""
-    pre = riser(0.6, 120, 1300, "saw", 3200) * 0.8 + drone(0.6, 55, 2.0) * swell(0.6, 0.95) * 0.6 + bell(0.6, 1760, 1.0, 1.0, 0.2) * swell(0.6, 0.95) * 0.15
+    """docs/205 §4.3（用户 10-31 选「原作 Mon3tr 爆发音」）：按 Q = 电光定格 + 能量流（Sonniss）→ Mon3tr 跃出 = 碎石呼啸 cast
+    → 落地 land（原作砸盾落地降调，fx strip melt）→ 蓄力收光每道一声能量聚集 gather_1..3（fx ring r24）
+    → 第一圈熔毁 impact = 原作 p_skill_Mon3trburst 前段 + 预告片低频 → 第二 / 三圈 ring_hit = Mon3trburst 后段"""
     return {
-        "charge": pad(rip(0.25, 4200, 1500) * 0.4, drone(0.9, 55) * swell(0.9, 0.9) * 0.5, seq([(0.2 + i * 0.12, tone(0.07, f) * env(0.07, 0.003, 14) * 0.25) for i, f in enumerate((1175, 1397, 1760))])),
-        "cast": seq([(0, whoosh(0.3, 600, 2400) * 0.8), (0.28, thud(0.2, 160, 60, 18) * 0.8), (0.3, pre)]),
-        "impact": pad(burst(0.8, 3000, 6), sub(0.8, 95, 30, 4), np.sin(2 * np.pi * 220 * T(0.8) + 6 * env(0.8, 0.001, 8) * np.sin(2 * np.pi * 330 * T(0.8))) * env(0.8, 0.001, 5) * 0.3),
-        "ring_hit": pad(burst(0.5, 2600, 8), sub(0.45, 85, 32, 7) * 0.8),
+        "sf": sn("elec", 0.0, 0.6), "charge": sn("flow", 0.0, 1.0, fout=0.2),
+        "cast": sn("debris", 0.1, 0.9, fout=0.3), "land": akd("p_skill_shieldhitground.wav", 0.2, 0.9, 0.85, fout=0.3),
+        **{"gather_%d" % (i + 1): sn("flow", 1.0 + 0.4 * i, 0.3, 1.0 + 0.08 * i, fout=0.1) for i in range(3)},
+        "impact": pad(akd("p_skill_Mon3trburst.wav", 0.0, 1.25, fout=0.4), lp(sn("b075", 0.25, 1.4, fout=0.6), 900) * 0.6),
+        "ring_hit": akd("p_skill_Mon3trburst.wav", 1.27, 0.9, fout=0.3),
     }
 
 
@@ -307,27 +329,21 @@ def logos():
 
 
 def hoshiguma():
-    """docs/205 §4.3：盾砸进地面（cast）+ 吸怪拖线一声 pull（fx line+v）→ 挡 1.5 秒，盾面绷紧 block（seg 格挡 on），
-    每跳一圈新裂纹一声 crack_1..5（fx line w3，一声比一声紧、高、响）→ 盾甲炸开 + 碎片四散 boom（fx blade+v，高潮）→ 热砂 sizzle（fx dots）"""
-    strain = 1.6
-    t = T(strain)
-    s = pad(drone(strain, 98, 3.0) * swell(strain, 0.97) * 0.4, tone(strain, 140, 260, "saw") * swell(strain, 0.97) * 0.12, crackle(strain, 60, 800, 3000, 0.5) * np.clip(t / strain, 0, 1) * 0.4)
-    cracks = {"crack_%d" % (i + 1): pad(metal(0.35, 420 * (1.12 ** i), 10 - i, bright=0.45 + 0.05 * i) * (0.5 + 0.1 * i), crack(0.3, 12 - i) * (0.35 + 0.1 * i),
-                                       thud(0.16, 180 + 20 * i, 70, 22) * 0.5) for i in range(5)}
-    d = {
-        "charge": pad(metal(0.9, 140, 2, bright=0.55) * 0.5, lp(N(0.9), 400) * swell(0.9, 0.9) * 0.6),
-        "cast": pad(thud(0.5, 110, 40, 8) * 1.2, metal(1.0, 180, 2.8, bright=0.55) * 0.6, crack(0.5, 7) * 0.45),
-        "pull": pad(whoosh(0.3, 300, 1100, 0.5) * 0.6, lp(sweep_noise(0.3, 600, 200, 0.5), 1200) * env(0.3, 0.05, 6) * 0.4),
-        "block": s,
-        # 高潮挂在画面上盾甲炸开那一帧（fx blade+v），不挂第一下掉血（反震圈扩到敌人要晚约 0.1 秒）：所以没有 impact 槽
-        "boom": pad(metal(1.2, 120, 2.5, bright=0.6) * 0.6, burst(0.9, 2300, 5), sub(1.0, 75, 28, 3.2), crack(0.8, 5) * 0.5,
-                    at(hp(burst(0.2, 10000, 14), 3000) * 0.35, 0.01),
-                    *[at(metal(0.25, 900 + 230 * k, 18, bright=0.5) * (0.3 - 0.03 * k), 0.05 + 0.05 * k) for k in range(7)],
-                    at(lp(crackle(0.4, 120, 1500, 7000, 7), 8000) * 0.35, 0.03)),
-        "sizzle": pad(lp(crackle(0.6, 220, 2500, 9000, 3), 9000) * 0.6, lp(N(0.6), 900) * env(0.6, 0.05, 5) * 0.25),
+    """docs/205 §4.3（用户 10-31 选录音版 ② 再「低频一点」：整体降调 ×0.8、5 kHz 以上压掉、低频轰加厚）：
+    按 Q = 金属重击 sf + 金属箱拖拽 charge → 盾砸地 cast（重击 + 低频轰）+ 吸怪碎石呼啸 pull（fx line+v）
+    → 挡的期间金属吃力 block（seg 格挡 on）+ 每圈新裂纹一声冰裂 crack_1..5（fx line w3，逐圈略升）
+    → 盾甲炸开 boom（fx blade+v，高潮：斩击冲击 + 预告片低频轰 + 地裂）→ 热砂 sizzle（篝火噼啪，fx dots）"""
+    R = 0.8
+    return {
+        "sf": lp(sn("bang", 0.0, 0.7, R), 5000), "charge": lp(sn("drag", 0.5, 1.0, R, fout=0.2), 5000),
+        "cast": pad(lp(sn("thud", 0.2, 1.0, R, fout=0.3), 5000), lp(sn("b214", 0.25, 1.1, fout=0.4), 700) * 0.9),
+        "pull": lp(sn("debris", 0.1, 0.9, R, fout=0.3), 5000),
+        "block": lp(sn("drag", 1.5, 1.6, R, fout=0.3), 4000),
+        **{"crack_%d" % (i + 1): pad(lp(sn("ice", 0.0, 0.45, R * (1.0 + 0.04 * i)), 5000), lp(sn("thud", 0.38, 0.35, R, fout=0.2), 1500) * 0.4) for i in range(5)},
+        "boom": pad(lp(sn("cut", 0.93, 1.4, R, fout=0.5), 5000), lp(sn("b214", 0.25, 1.6, fout=0.6), 900) * 1.1,
+                    lp(sn("fissure", 0.0, 0.9, 0.7, fout=0.3), 4000) * 0.5),
+        "sizzle": lp(sn("fire", 2.0, 0.6, fout=0.2), 7000),
     }
-    d.update(cracks)
-    return d
 
 
 def siege():
@@ -430,7 +446,8 @@ def main():
             rng.bit_generator.state = np.random.default_rng(zlib.crc32(op.encode())).bit_generator.state
         d = f()
         st = rng.bit_generator.state   # sf 不占随机序列：其余槽与加 sf 之前逐字节相同
-        d["sf"] = FLASH[op]()
+        if "sf" not in d:   # 干员函数自己给了录音版 sf 就不用合成的
+            d["sf"] = FLASH[op]()
         rng.bit_generator.state = st
         if a.apply:   # 旧的通用槽（A/B/C 时代的 hit 等）不再用的删掉
             for old in glob.glob(os.path.join(SFX, "ult_%s_*.wav" % op)):
