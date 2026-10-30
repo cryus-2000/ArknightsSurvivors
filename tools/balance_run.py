@@ -48,6 +48,7 @@ PRESETS = {
         ["logos", "suzuran", "kaltsit"], ["lumen", "suzuran", "kaltsit"],
     ],
     "batch2solo": [["ulpianus"], ["irene"], ["specter_unchained"], ["logos"], ["lumen"], ["skadi"], ["eyjafjalla"], ["kaltsit"]],
+    "ends8": [[o] for o in ["ulpianus", "skadi", "wisadel", "lappland", "exusiai", "eyjafjalla", "gladiia", "skalter"]],
     "b2fix": [["ulpianus"], ["specter_unchained"], ["logos"], ["lumen"]],
     "b2fix3": [["logos", "wisadel", "saria"], ["logos", "suzuran", "kaltsit"]],
     "b2fix2": [["logos", "wisadel", "saria"], ["logos", "suzuran", "kaltsit"], ["irene", "wisadel", "saria"], ["irene", "suzuran", "kaltsit"]],
