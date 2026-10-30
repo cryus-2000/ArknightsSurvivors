@@ -710,26 +710,41 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 	if rt == "meteor":   # 熔岩天降：喷发前先落一轮 6 发熔岩弹预热（各 3%）
 		for i in 6:
 			pre.append([_spiral(c, R * 0.8, i, 6, 1.1), 0.05 + 0.05 * float(i)])
+	var v2: bool = _ey_v2(u)
+	if v2:   # 龟裂 v2：熔岩色分叉裂网（fx_ey_fork1–4）从落点往外爬 t_col 秒，先亮后冷；地面一点压暗
+		var vs: float = PF.vseed(u, c)
+		u.shape({"kind": "circle", "c": c, "r": R * 0.6, "col": Color(0.02, 0.0, 0.0), "fill": 0.35, "life": t_col + 0.1, "layer": "back"})
+		PF.crack_net(u, EY_FORKS, c, R * 0.75, 9 + int(PF.h(vs + 1.0) * 4.0), PF.h(vs + 2.0) * TAU, vs, t_col, Color(1.2, 1.1, 1.0), Color(0.45, 0.25, 0.2), 20.0)
 	# 龟裂：8 道裂纹从落点往外爬（0.4 秒）
-	for i in 8:
+	for i in (0 if v2 else 8):
 		var ang: float = TAU * float(i) / 8.0 + 0.3 * float(i % 3)
 		var pa: Vector2 = c
 		for kq in 4:
 			var pb: Vector2 = c + Vector2.from_angle(ang + 0.18 * float((kq * 5 + i) % 3 - 1)) * (40.0 + 45.0 * float(kq + 1))
 			u.shape({"kind": "line", "a": pa, "b": pb, "w": 5.0 - float(kq), "col": col.lerp(Color(1, 0.9, 0.5), 0.3), "life": t_col + 0.3 - 0.08 * float(kq), "delay": 0.08 * float(kq)})
 			pa = pb
-	u.shape({"kind": "circle", "c": c, "r": 140.0, "col": Color(1.0, 0.35, 0.05), "fill": 0.3, "life": t_col + 0.05})
-	_ring(u, c, 140.0, 20.0, col.lerp(Color.WHITE, 0.4), t_col, 4.0)
+	if not v2:
+		u.shape({"kind": "circle", "c": c, "r": 140.0, "col": Color(1.0, 0.35, 0.05), "fill": 0.3, "life": t_col + 0.05})
+		_ring(u, c, 140.0, 20.0, col.lerp(Color.WHITE, 0.4), t_col, 4.0)
 	# 熔岩块：从火柱顶上落下（下落小球带速度）+ 落地溅射帧条
 	var top: Vector2 = c + Vector2(0.0, -620.0)
 	for bi in blobs.size():
 		var p: Vector2 = blobs[bi][0]
 		var tl: float = blobs[bi][1]
 		var fl: float = 0.16
-		u.shape({"kind": "circle", "c": top.lerp(p, 0.55), "r": 12.0, "col": Color(1.0, 0.55, 0.15), "fill": 0.95, "life": fl, "delay": tl - fl,
-			"v": (p - top.lerp(p, 0.55)) / fl})
-		u.strip("fx_eyja_lava_splash", p, {"sc": 2.0, "delay": tl, "o": Vector2(40, 50)})
-		_ring(u, p, 120.0, 20.0, Color(1.0, 0.5, 0.15), 0.3, 5.0, tl)
+		if v2:   # 熔岩块 v2：Codex 熔岩块关键帧（fx_ey_rock 帧 0 拖尾下落、帧 1 落地溅射），大小 / 落向按落点哈希
+			var hb: float = PF.h(p.x * 0.017 + p.y * 0.031)
+			var p0: Vector2 = top.lerp(p, 0.55) + Vector2((hb - 0.5) * 160.0, 0.0)
+			u.strip(EY_ROCK, p0, {"f": 0, "o": Vector2(48, 64), "sc": 0.9 + 0.5 * hb, "ang": (p - p0).angle() - 2.2, "life": fl, "delay": tl - fl, "v": (p - p0) / fl})
+			u.strip(EY_ROCK, p, {"f": 1, "o": Vector2(48, 96), "sc": 1.0 + 0.6 * hb, "sx": -1.0 if hb < 0.5 else 1.0, "life": 0.45, "fade": 0.25, "delay": tl,
+				"col": Color(1.1, 1.0, 1.0), "col1": Color(0.5, 0.35, 0.3), "cold": 0.35})
+			if bi % 3 == 0:
+				PF.particles(u, p, 60, "ult_burst_s", [Color(1.0, 0.45, 0.1)], tl, hb * 40.0, 90.0)
+		else:
+			u.shape({"kind": "circle", "c": top.lerp(p, 0.55), "r": 12.0, "col": Color(1.0, 0.55, 0.15), "fill": 0.95, "life": fl, "delay": tl - fl,
+				"v": (p - top.lerp(p, 0.55)) / fl})
+			u.strip("fx_eyja_lava_splash", p, {"sc": 2.0, "delay": tl, "o": Vector2(40, 50)})
+			_ring(u, p, 120.0, 20.0, Color(1.0, 0.5, 0.15), 0.3, 5.0, tl)
 	for pi in pre.size():
 		var pp: Vector2 = pre[pi][0]
 		var tp: float = pre[pi][1]
@@ -740,7 +755,7 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 	return {"c": c, "R": R, "t_col": t_col, "col_done": false, "blobs": blobs, "bi": 0, "fseg": {}, "fall_end": t_fall + span + (0.2 if rt == "ignite" else 0.0),
 		"filled": false, "pre": pre, "pi": 0, "pseg": {}, "lava_r": Bal.v("ult/ey_lava_r", 300.0), "lava_t": Bal.v("ult/ey_lava_t", 2.2),
 		"lava_n": int(Bal.v("ult/ey_lava_n", 5.0)), "tick": 0, "t_lava": t_fall + span + 0.05, "fall_frac": 0.5 if rt == "ignite" else Bal.v("ult/ey_fall_frac", 0.6),
-		"pool": false, "fx": []}
+		"pool": false, "fx": [], "v2": v2}
 
 
 static func _ey_step(u, a: Dictionary, o) -> bool:
@@ -757,20 +772,29 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 	if not a.col_done and t >= float(a.t_col):
 		a.col_done = true   # 火柱：25%，只打中心半径 140
 		var top: Vector2 = c + Vector2(0.0, -640.0)
-		u.shape({"kind": "band", "a": c + Vector2(0, 20), "b": top, "w": 290.0, "col": Color(1.0, 0.42, 0.08), "fill": 0.5, "life": 0.6})
-		u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": top + Vector2(0, 60), "w": 120.0, "col": Color(1.0, 0.92, 0.6), "fill": 0.85, "life": 0.45})
-		u.shape({"kind": "circle", "c": c, "r": 150.0, "col": Color(1.0, 0.8, 0.4), "fill": 0.6, "life": 0.3})
-		u.strip("fx_eyja_ignite_boom", top, {"sc": 3.2})
-		u.strip("fx_missile_explode", c, {"sc": 2.4})
-		_ring(u, c, 160.0, 30.0, Color(1.0, 0.85, 0.5), 0.35, 10.0)
-		for i in 8:   # 火柱两侧往上喷的火星
+		if a.get("v2", false):   # 火柱 v2：顿帧 + Codex 火柱关键帧（fx_ey_pillar，底部中心）从地里窜起冷却 + 橙色粒子 + 碎石掀起；不画程序带子 / 旧爆炸帧条
+			u.g.vfx.stop(Bal.v("ult/ey_hitstop", 0.1), "ult", true)
+			u.strip(EY_PILLAR, c + Vector2(0, 10), {"o": Vector2(96, 500), "sc": 1.0, "sc1": 1.45, "scd": 0.12, "life": 0.6, "fade": 0.3,
+				"col": Color(0.95, 0.85, 0.8), "col1": Color(0.55, 0.3, 0.24), "cold": 0.25})   # 预审报发白：压峰值、加快冷却
+			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.32, 0.06)], 0.04, PF.vseed(u, c), 260.0)
+			PF.heave(u, c, 160.0, PF.vseed(u, c) + 3.0)
+			u.light(c, 380.0, Color(1.0, 0.5, 0.15), 0.5)
+		if not a.get("v2", false):
+			u.shape({"kind": "band", "a": c + Vector2(0, 20), "b": top, "w": 290.0, "col": Color(1.0, 0.42, 0.08), "fill": 0.5, "life": 0.6})
+			u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": top + Vector2(0, 60), "w": 120.0, "col": Color(1.0, 0.92, 0.6), "fill": 0.85, "life": 0.45})
+			u.shape({"kind": "circle", "c": c, "r": 150.0, "col": Color(1.0, 0.8, 0.4), "fill": 0.6, "life": 0.3})
+			u.strip("fx_eyja_ignite_boom", top, {"sc": 3.2})
+			u.strip("fx_missile_explode", c, {"sc": 2.4})
+			_ring(u, c, 160.0, 30.0, Color(1.0, 0.85, 0.5), 0.35, 10.0)
+		for i in (0 if a.get("v2", false) else 8):   # 火柱两侧往上喷的火星
 			u.shape({"kind": "dots", "c": c + Vector2(-110.0 + 220.0 * float(i) / 7.0, -20.0), "r": 22.0, "n": 5, "col": Color(1.0, 0.7, 0.3), "life": 0.5,
 				"v": Vector2((float(i) - 3.5) * 40.0, -900.0 - 80.0 * float(i % 3))})
 		for e in u.in_circle(c, R):
 			var de: float = e.pos.distance_to(c)
 			_hit(u, a, o, e, Bal.v("ult/ey_col_frac", 0.25), {"src": "火柱" if de <= 140.0 else "热浪", "edge": de > er})
-		_ring(u, c, R, 140.0, Color(1.0, 0.6, 0.25), 0.4, 12.0)
-		u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.45, 0.1), "fill": 0.16, "life": 0.3})
+		_ring(u, c, R, 140.0, Color(1.0, 0.6, 0.25), 0.4, 12.0 if not a.get("v2", false) else 6.0)
+		if not a.get("v2", false):
+			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.45, 0.1), "fill": 0.16, "life": 0.3})
 		o.screen_shake(0.8)
 	# 熔岩落下：每块打落点 120 内；全部落完时圈内没被砸到的补一下（落满）
 	var ff: float = a.fall_frac
@@ -794,17 +818,37 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 	if not a.pool and t >= float(a.t_lava):
 		a.pool = true
 		var lt: float = float(a.lava_t) + 0.2
-		u.shape({"kind": "circle", "c": c, "r": lr, "col": Color(0.55, 0.1, 0.02), "fill": 0.45, "life": lt})
-		u.shape({"kind": "ring", "c": c, "r": lr, "w": 4.0, "col": Color(1.0, 0.45, 0.1), "life": lt})
-		for i in 12:
+		if a.get("v2", false):   # 熔岩地面 v2：Codex 熔岩地纹关键帧铺成一整张圆池（fx_ey_pool，参差边 + 暗壳），从亮熔岩慢慢结成暗壳，随机镜像
+			var pr: float = PF.tex_w(u, EY_POOL) * 0.5 * 0.92
+			u.strip(EY_POOL, c, {"layer": "back", "sc": lr * 0.85 / pr, "sc1": lr / pr, "scd": 0.25, "sx": -1.0 if PF.h(PF.vseed(u, c)) < 0.5 else 1.0, "life": lt + 0.4,   # 不转角：像素图转了边缘成菱形锯齿（预审报） "fade": 0.5,
+				"col": Color(1.1, 1.0, 1.0, 0.85), "col1": Color(0.55, 0.42, 0.4, 0.85), "cold": lt})
+		else:
+			u.shape({"kind": "circle", "c": c, "r": lr, "col": Color(0.55, 0.1, 0.02), "fill": 0.45, "life": lt})
+			u.shape({"kind": "ring", "c": c, "r": lr, "w": 4.0, "col": Color(1.0, 0.45, 0.1), "life": lt})
+		for i in (0 if a.get("v2", false) else 12):
 			u.strip("fx_eyja_lava_pool", _spiral(c, lr * 0.82, i, 12, 0.7), {"sc": 1.7, "layer": "back", "loop": true, "life": lt, "fps": 8.0 + float(i % 3)})
 	var n_t: int = a.lava_n
 	while bool(a.pool) and int(a.tick) < n_t and t >= float(a.t_lava) + float(a.lava_t) * float(int(a.tick) + 1) / float(n_t):
 		a.tick = int(a.tick) + 1
 		for e in u.in_circle(c, lr):
 			_hit(u, a, o, e, Bal.v("ult/ey_lava_frac", 0.15) / float(n_t), {"src": "熔岩地面", "edge": false})
-		u.shape({"kind": "dots", "c": c, "r": lr * 0.9, "n": 20, "col": Color(1.0, 0.6, 0.2), "life": 0.4, "v": Vector2(0, -60)})
+		if a.get("v2", false):
+			PF.particles(u, c + Vector2.from_angle(float(a.tick) * 2.4) * lr * 0.4, 60, "ult_ember", [Color(1.0, 0.45, 0.12)], 0.0, float(a.tick) * 7.0, lr * 0.5)
+		else:
+			u.shape({"kind": "dots", "c": c, "r": lr * 0.9, "n": 20, "col": Color(1.0, 0.6, 0.2), "life": 0.4, "v": Vector2(0, -60)})
 	return bool(a.pool) and int(a.tick) >= n_t
+
+
+## 艾雅法拉 v2（ult/ey_fx_v2，缺省 1；pixfx，docs/199 §7.9）：龟裂 = 熔岩色分叉裂网（乌尔比安 4 种裂缝转色）；火柱 = 顿帧 + Codex 火柱关键帧窜起冷却 + 粒子 + 隆起；
+## 熔岩块 = Codex 熔岩块关键帧（拖尾下落 → 落地溅射）；熔岩地面 = Codex 地纹铺成整张圆池、慢慢结壳 + 冒火星。判定 / 时序不动
+const EY_FORKS := ["fx_ey_fork1", "fx_ey_fork2", "fx_ey_fork3", "fx_ey_fork4"]
+const EY_PILLAR := "fx_ey_pillar"
+const EY_ROCK := "fx_ey_rock"
+const EY_POOL := "fx_ey_pool"
+
+
+static func _ey_v2(u) -> bool:
+	return Bal.v("ult/ey_fx_v2", 1.0) > 0.0 and u.fx_ready(EY_PILLAR) and u.fx_ready(EY_ROCK) and u.fx_ready(EY_POOL)
 
 
 ## 熔岩地面（半径 lava_r）外的人吃不到地面那 15%：落熔岩时直接补上，圈内每人合计都是 1（10-30 对齐表：原来外圈精英 / Boss 只掉 85%）
