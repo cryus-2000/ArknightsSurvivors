@@ -343,5 +343,36 @@ func _process(_dt: float) -> void:
 	game.progression.pick(0)
 	check(game.state == game.S.PLAY and not game.panel.visible, "leave from the rebuilt panel returns to battle")
 	_close()
+	print("ET step 15")
+	# 15 事件图鉴（docs/184 §11，用户 10-30）：触发一件事件、选一个选项 → 图鉴事件页解锁、遇到 1 次、选过的打勾、显示过的选项见过；没遇到的事件锁着
+	_close()
+	var ua: bool = Cfg.unlock_all
+	Cfg.unlock_all = false
+	Cfg.event_log = {}
+	E.open("glimmer")
+	var gi := -1
+	for i in game.choices.size():
+		if str(game.choices[i].id) == "glimmer:0":
+			gi = i
+	game.progression.pick(gi)
+	_close()
+	var gal = load("res://scripts/gallery.gd").new()
+	add_child(gal)
+	gal.tab = gal.TAB_EVENT
+	gal._build()
+	var ge: Dictionary = {}
+	var other_locked := true
+	for en in gal.entries:
+		if str(en.get("id", "")) == "glimmer":
+			ge = en
+		elif not en.get("locked", false):
+			other_locked = false
+	var EB = load("res://scripts/core/event_book.gd")
+	check(not ge.is_empty() and not ge.get("locked", true) and EB.seen_n("glimmer") == 1, "gallery: glimmer unlocked after meeting it once")
+	check(EB.pick_n("glimmer:0") == 1 and EB.opt_seen("glimmer:1") and EB.pick_n("glimmer:1") == 0, "gallery: picked option ticked, shown option seen, other not picked")
+	check(other_locked, "gallery: events never met stay locked")
+	check(gal.entries.all(func(en): return not str(en.get("id", "")).begins_with("feeding_")), "gallery: follow-up screens fold into their event")
+	gal.queue_free()
+	Cfg.unlock_all = ua
 	print("EVENT TRADE: %d failures" % fails)
 	get_tree().quit(1 if fails > 0 else 0)

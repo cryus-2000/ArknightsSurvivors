@@ -14,6 +14,7 @@ const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/1
 const Bal = preload("res://scripts/core/balance.gd")
 const UIMo = preload("res://scripts/ui_motion.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
+const EventBook = preload("res://scripts/core/event_book.gd")   # 事件页（docs/184 §11）
 
 const TABS := [
 	{"cn": "干员", "en": "OPERATOR"},
@@ -23,7 +24,9 @@ const TABS := [
 	{"cn": "道具", "en": "ITEM"},
 	{"cn": "藏品", "en": "RELIC"},
 	{"cn": "结局", "en": "ENDING"},
+	{"cn": "事件", "en": "EVENT"},
 ]
+const TAB_EVENT := 7
 const ENDING_ORDER := ["standard", "knight", "deep", "resolve"]   # 显示编号 Ⅰ–Ⅳ（按原作：深蓝之心线 = 结局三，抉择线 = 结局四；id 不变，存档不错位）
 
 ## 敌人图鉴说明（机制按本作实现）
@@ -163,6 +166,7 @@ func close() -> void:
 	visible = false
 	rail_focus = false
 	_demo_stop()
+	ev_cg.clear()
 	Sfx.play("ui_ok")
 
 
@@ -415,6 +419,17 @@ func _build() -> void:
 				var stt: Array = [["等级", r.rarity], ["流派" if RelicDb.LANES7.has(r.lane) else "分类", r.lane_name]]
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity + ("" if r.implemented else " · 未实装"), "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
 					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not all_relics, "locked_text": "尚未获得，拿到后收录。"})
+		TAB_EVENT:
+			# 事件（docs/184 §11）：遇到过才解锁；没遇到的格子是压暗的插画 + ???。点开看插画、正文、见过的选项（选过的打勾）
+			for be in EventBook.entries():
+				var met: int = EventBook.seen_n(str(be.id))
+				var picks := 0
+				for o in be.opts:
+					picks += EventBook.pick_n(str(o.key))
+				entries.append({"id": be.id, "name": be.name, "en": str(be.id).to_upper(), "tag": EventBook.GROUPS[int(be.group)],
+					"forms": [{"label": "插画", "tex": null, "frames": 1, "fps": 1.0, "loop": true}],
+					"stats": [["遇到", "%d 次" % met], ["选择", "%d 次" % picks]], "chips": [], "desc": be.text, "ev": be,
+					"locked": met <= 0 and not Cfg.unlock_all, "locked_text": "尚未遇到，遇到后收录。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
 			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火暗淡（< 30）时队长受到的伤害 +5%，海嗣移速与接触伤害 +10%；灯火寂灭（0）时每秒失去 3 点生命。"})
@@ -579,9 +594,9 @@ const CLASS_ICONS := {
 }
 ## 非干员页斜带颜色（干员页用干员色）：敌人 / 精英 / Boss / 道具 / 藏品；结局用各结局自己的颜色
 const TAB_COL := [Color(0.212, 0.886, 0.863), Color(0.85, 0.3, 0.42), Color(0.957, 0.753, 0.306), Color(1.0, 0.239, 0.545),
-	Color(0.212, 0.886, 0.863), Color(0.66, 0.52, 1.0), Color(0.66, 0.52, 1.0)]
+	Color(0.212, 0.886, 0.863), Color(0.66, 0.52, 1.0), Color(0.66, 0.52, 1.0), Color(0.38, 0.62, 1.0)]
 const STAT_EN := {"生命": "HP", "伤害": "DMG", "移速": "SPD", "类型": "TYPE", "射程": "RNG", "体型": "SIZE", "等级": "RANK", "效果分类": "CAT",
-	"原类别": "ORIG", "流派": "LANE", "Boss": "BOSS", "回复": "REGEN", "闪避": "DODGE", "拾取": "PICKUP"}
+	"原类别": "ORIG", "流派": "LANE", "Boss": "BOSS", "回复": "REGEN", "闪避": "DODGE", "拾取": "PICKUP", "遇到": "MET", "选择": "PICKS"}
 const LIGHT_BLOCK := Color(0.925, 0.933, 0.941)
 var glass: Color = UI.C_L_GLASS    # 磨砂不可用时的平涂底（截图对照：--codexglass=<透明度>）
 var glass_fx := true               # 磨砂玻璃（--noglassfx 关；--glassperf 轮换开关量帧时）
@@ -616,6 +631,10 @@ var itab_from := 0.0
 var itab_prev := 0
 var cat_t0 := -100.0               # 非干员页：标本柜格子对角线启辉（docs/62 §3.5）
 var sel_t0 := -100.0               # 非干员页：详情灯箱
+var ev_cg := {}                    # 事件页插画缓存（按需读，关图鉴就放掉）
+var ev_scroll := 0.0               # 事件详情选项列表的滚动（设计像素；手机拖动 / 滚轮）
+var ev_scroll_max := 0.0
+var ev_list_r := Rect2()           # 选项列表区域（设计坐标）：拖动 / 滚轮落在这里时滚列表而不是翻网格
 
 
 ## 触屏用手机版式（同选人页 _touch_mode）
@@ -907,6 +926,10 @@ var drag_acc := 0.0   # 触屏上下滑动翻页（没有滚轮）
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
+		if tab == TAB_EVENT and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) and ev_list_r.has_point(_design(event.position)):
+			ev_scroll = clampf(ev_scroll - event.relative.y / maxf(dk, 0.01), 0.0, ev_scroll_max)
+			queue_redraw()
+			return
 		if Pad.touch and (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
 			drag_acc += event.relative.y / maxf(dk, 0.01)
 			if absf(drag_acc) > 50.0:
@@ -914,6 +937,11 @@ func _gui_input(event: InputEvent) -> void:
 				drag_acc = 0.0
 		return
 	if event is InputEventMouseButton and event.pressed:
+		if (event.button_index == MOUSE_BUTTON_WHEEL_DOWN or event.button_index == MOUSE_BUTTON_WHEEL_UP) and tab == TAB_EVENT and ev_list_r.has_point(_design(event.position)):
+			ev_scroll = clampf(ev_scroll + (40.0 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -40.0), 0.0, ev_scroll_max)
+			queue_redraw()
+			accept_event()
+			return
 		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN or event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			scroll = clampi(scroll + (1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), 0, _max_scroll())
 			accept_event()
@@ -1085,6 +1113,7 @@ func _set_sel(i: int) -> void:
 		form = 0
 		form_t = 0.0
 		row_sel = -1
+		ev_scroll = 0.0
 		var now := _now()
 		sw_t0 = now
 		sel_t0 = now
@@ -1306,6 +1335,9 @@ func _draw_stage(ci: CanvasItem, e: Dictionary, ph: bool, demo: bool) -> void:
 		_draw_demo(ci, e, e.forms[form])
 		return
 	_demo_stop()
+	if tab == TAB_EVENT:
+		_draw_ev_art(ci, e, ph)
+		return
 	if not locked:
 		UI.ghost_name(ci, font, Vector2(150, 40) if ph else Vector2(440, 60), str(e.en), _name_frac(), 90 if ph else 150, UI.C_D_GHOST, 2)
 	if e.has("od") and form == 0 and tab == 0:
@@ -1547,7 +1579,7 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 		UI.hazard(self, Rect2(96, 0, 14, 30), ht)
 		UI.text_at(self, font, Vector2(10, 15), "图鉴 · " + str(TABS[tab].cn), 13, UI.C_HZ, "lm", true)
 		for i in TABS.size():
-			var r := Rect2(116 + i * 50, 5, 48, 21)
+			var r := Rect2(116 + i * 47, 5, 45, 21)   # 8 个页签（10-30 加「事件」）：步距 50 → 47，最后一格止于 490，不压右侧面板（504 起）
 			var on := i == tab
 			UI.para(self, r, 6, UI.C_ACC if on else UI.C_D_PANEL, Color(0, 0, 0, 0) if on else UI.fa(UI.C_D_INK, 0.8))
 			UI.text_at(self, font, r.get_center() + Vector2(0, 1), str(TABS[i].cn), 11, UI.C_HZ if on else UI.C_D_INK, "mm")
@@ -1613,7 +1645,7 @@ func _draw_grid(ph: bool) -> void:
 	var rows_n: int = g.rows
 	scroll = clampi(scroll, 0, _max_scroll())
 	if not ph:
-		var hdr := "%s  //  %s" % [["OPERATORS", "ENEMIES", "ELITES", "BOSSES", "ITEMS", "RELICS", "ENDINGS"][tab], ("GROUP: CLASS" if group_cls else "SORT: CLASS") if tab == 0 and filter == "" else (filter if tab == 0 else "%d ENTRIES" % vlist.size())]
+		var hdr := "%s  //  %s" % [["OPERATORS", "ENEMIES", "ELITES", "BOSSES", "ITEMS", "RELICS", "ENDINGS", "EVENTS"][tab], ("GROUP: CLASS" if group_cls else "SORT: CLASS") if tab == 0 and filter == "" else (filter if tab == 0 else "%d ENTRIES" % vlist.size())]
 		UI.code(self, font, Vector2(g.x0, 56), hdr, 8, UI.C_D_SUB)
 	if tab == 0 and filter == "" and not ph:
 		_draw_group_toggle(g, ph)
@@ -1748,6 +1780,10 @@ func _card(r: Rect2, e: Dictionary, i: int, a: float, flash: float, ph: bool) ->
 
 ## 非干员格子：第一个形态的第 0 帧，按格子缩放（≥ 2 倍取整数倍），裁进卡框；未解锁画暗剪影
 func _tile_art(r: Rect2, e: Dictionary, a: float) -> void:
+	if tab == TAB_EVENT:
+		var area := Rect2(r.position.x + 2, r.position.y + 5, r.size.x - 4, r.size.y - 5 - 22)
+		_ev_blit(self, e, area, a, true)
+		return
 	var f: Dictionary = e.forms[0] if not e.forms.is_empty() else {}
 	var tx: Texture2D = f.get("tex")
 	if tx == null:
@@ -2184,6 +2220,10 @@ func _draw_data(e: Dictionary, ph: bool, px: Vector2, oa: float, odx: float) -> 
 	if locked:
 		var lf := UI.fit(font, str(e.get("locked_text", "")), w, (352.0 if ph else 680.0) - y, [13, 12, 11])
 		UI.draw_fit(self, font, Vector2(x0, y), lf, UI.fa(UI.C_L_INK, a))
+		ev_list_r = Rect2()
+		return
+	if tab == TAB_EVENT:
+		_ev_detail(e, ph, x0, w, y, a)
 		return
 	# 属性：短值两列大数字；长值（流派、效果分类…）占整行
 	var cw := w / 2.0
@@ -2253,3 +2293,96 @@ func _op_profile(cid: String, cd: Dictionary, with_fields := false) -> Array:
 	if mech != "":
 		out.append("【本作定位】" + mech)
 	return out
+
+
+# ---------------------------------------------------------------- 事件页（docs/184 §11）
+## 插画：桌面读 hi、网页读 web（同事件面板），第一次画到才读，关图鉴放掉
+func _ev_tex(key: String) -> Texture2D:
+	if ev_cg.has(key):
+		return ev_cg[key]
+	var p := "res://art/event_cg/%s/%s.webp" % ["web" if OS.has_feature("web") else "hi", key]
+	var tx: Texture2D = load(p) if ResourceLoader.exists(p) else null
+	ev_cg[key] = tx
+	return tx
+
+
+## 把插画按 cover 裁进 dst（偏上取景：插画主体在上方 60%）；未解锁压成剪影色
+func _ev_blit(ci: CanvasItem, e: Dictionary, dst: Rect2, a: float, cover: bool) -> void:
+	var tx := _ev_tex(str(e.get("ev", {}).get("cg", e.get("id", ""))))
+	var locked: bool = e.get("locked", false)
+	ci.draw_rect(dst, UI.fa(UI.C_D_BG, a))
+	if tx == null:
+		return
+	var ts := Vector2(tx.get_width(), tx.get_height())
+	var src := Rect2(Vector2.ZERO, ts)
+	var out := dst
+	if cover:
+		var k: float = maxf(dst.size.x / ts.x, dst.size.y / ts.y)
+		var sz := dst.size / k
+		src = Rect2(Vector2((ts.x - sz.x) / 2.0, (ts.y - sz.y) * 0.3), sz)
+	else:
+		var k2: float = minf(dst.size.x / ts.x, dst.size.y / ts.y)
+		out = Rect2((dst.get_center() - ts * k2 / 2.0).round(), (ts * k2).round())
+	var lk: Color = Color(0.13, 0.14, 0.17, a) if cover else Color(0.055, 0.06, 0.075, a)   # 未解锁：格子压暗、舞台再暗一档（只看得出轮廓，不剧透画面）
+	ci.draw_texture_rect_region(tx, out, src, lk if locked else Color(1, 1, 1, a))
+
+
+## 舞台：整张插画（contain）+ 底部细框；未解锁是压暗剪影
+func _draw_ev_art(ci: CanvasItem, e: Dictionary, ph: bool) -> void:
+	var sr := _stage()
+	var lb := _pa(sel_t0, 0.0, UIMo.T2)
+	var tk := sr.grow(-12.0)
+	UI.code(ci, font, tk.position + Vector2(10, 8), "RECORD  //  NO.%02d" % (vlist.find(sel) + 1), 7 if ph else 8, UI.fa(UI.C_D_SUB, lb))
+	var a := _pa(sel_t0, UIMo.T2, UIMo.T1)
+	var box := sr.grow(-6.0)
+	box.position.y += 16.0
+	box.size.y -= 16.0
+	_ev_blit(ci, e, box, a, false)
+
+
+## 详情：遇到 / 选择次数，事件正文，选项列表（见过的写原文、选过的打勾并记次数，没见过的 ???）；列表放不下时可滚动
+func _ev_detail(e: Dictionary, ph: bool, x0: float, w: float, y: float, a: float) -> void:
+	var cw := w / 2.0
+	var i := 0
+	for s in e.get("stats", []):
+		UI.stat_big(self, font, Vector2(x0 + i * cw, y), str(s[0]), STAT_EN.get(str(s[0]), "DATA"), str(s[1]), 15 if ph else 18, UI.C_L_INK, UI.C_L_SUB, a)
+		i += 1
+	y += 36.0 if ph else 42.0
+	draw_line(Vector2(x0, y), Vector2(x0 + w, y), UI.fa(UI.C_L_INK, 0.3 * a), 1.0)
+	y += 8.0
+	var tf := UI.fit(font, str(e.get("desc", "")), w, 44.0 if ph else 72.0, [13, 12, 11] if not ph else [11, 10])
+	y += UI.draw_fit(self, font, Vector2(x0, y), tf, UI.fa(UI.C_L_INK, a)) + (8.0 if ph else 12.0)
+	UI.code(self, font, Vector2(x0, y), "OPTIONS", 7 if ph else 8, UI.fa(UI.C_L_SUB, a))
+	UI.text_at(self, font, Vector2(x0 + UI.en_width(font, "OPTIONS", 7 if ph else 8) + 6, y - 2), "选项", 9, UI.fa(UI.C_L_SUB, a))
+	y += 14.0
+	var bottom: float = 352.0 if ph else 688.0
+	ev_list_r = Rect2(x0 - 6.0, y, w + 12.0, bottom - y)
+	var rh: float = 40.0 if ph else 50.0
+	var opts: Array = e.get("ev", {}).get("opts", [])
+	ev_scroll_max = maxf(0.0, opts.size() * rh - (bottom - y))
+	ev_scroll = clampf(ev_scroll, 0.0, ev_scroll_max)
+	for k in opts.size():
+		var o: Dictionary = opts[k]
+		var ry: float = y + k * rh - ev_scroll
+		if ry < y - 1.0 or ry + rh - 6.0 > bottom + 1.0:
+			continue   # 只画完整落在列表区里的行（没有裁剪层，滚动时整行出入）
+		var seen: bool = EventBook.opt_seen(str(o.key)) or Cfg.unlock_all
+		var n: int = EventBook.pick_n(str(o.key))
+		var bx := Rect2(x0, ry + 3.0, 14.0, 14.0)
+		draw_rect(bx, UI.fa(UI.C_L_INK, a), false, 1.5)
+		if n > 0:
+			draw_rect(bx.grow(-1.0), UI.fa(UI.C_ACC, a))
+			draw_polyline(PackedVector2Array([bx.position + Vector2(3, 7), bx.position + Vector2(6, 10), bx.position + Vector2(11, 3)]), UI.fa(UI.C_HZ, a), 2.0)
+		var lw: float = w - 22.0 - (40.0 if n > 0 else 0.0)
+		var fl := UI.fit_line(font, str(o.label) if seen else "???", 13 if ph else 14, lw, 9)
+		UI.text_at(self, font, Vector2(x0 + 22.0, ry + 1.0), fl[0], fl[1], UI.fa(UI.C_L_INK if seen else UI.C_L_SUB, a), "la", seen)
+		if n > 0:
+			UI.text_at(self, font, Vector2(x0 + w, ry + 3.0), "×%d" % n, 11 if ph else 12, UI.fa(UI.C_L_INK, a), "ra")
+		if seen:
+			var dl := UI.fit_line(font, str(o.desc), 10 if ph else 11, w - 22.0, 8)
+			UI.text_at(self, font, Vector2(x0 + 22.0, ry + (19.0 if ph else 22.0)), dl[0], dl[1], UI.fa(UI.C_L_SUB, a))
+	if ev_scroll_max > 0.0:
+		var track := Rect2(x0 + w + 4.0, y, 2.0, bottom - y)
+		draw_rect(track, UI.fa(UI.C_L_INK, 0.15 * a))
+		var th: float = track.size.y * track.size.y / (track.size.y + ev_scroll_max)
+		draw_rect(Rect2(track.position.x - 1.0, y + (track.size.y - th) * ev_scroll / ev_scroll_max, 4.0, th), UI.fa(UI.C_L_INK, 0.6 * a))
