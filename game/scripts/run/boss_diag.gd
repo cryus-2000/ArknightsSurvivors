@@ -177,6 +177,14 @@ static func report(g, why: String) -> void:
 		o.acts = a.acts
 		o.phase_t = a.phase_t
 		o.kinds = a.get("kinds", {})
+		# 斯卡蒂 m0 超时诊断（10-31 伊祖米克会话）：收尾时最终 Boss 剩余血量比例 / 阶段 / 已过卡点、最大血量
+		if g.final_boss != null:
+			var fb: Dictionary = g.final_boss
+			o.fb_hp = snappedf(float(fb.hp) / maxf(1.0, float(fb.maxhp)), 0.001)
+			o.fb_maxhp = snappedf(float(fb.maxhp), 1.0)
+			o.fb_phase = int(fb.get("phase", 0))
+			o.fb_gates = int(fb.get("gates_passed", 0))
+			o.fb_gates_left = fb.get("gates", []).size()
 		if a.has("off"):
 			var kt: Array = []
 			var nk := 0
