@@ -101,6 +101,11 @@
     "look"
    ]
   },
+  "ult": {
+   "scenes": [
+    "ult_playback"
+   ]
+  },
   "op_shared": {
    "scenes": [
     "response",
@@ -511,6 +516,15 @@
     "ui"
    ],
    "why": "界面不影响战斗结果"
+  },
+  {
+   "glob": "game/scripts/run/ult*.gd",
+   "groups": [
+    "core",
+    "ult",
+    "repro"
+   ],
+   "why": "终结技（docs/198）：播放形式 / 升级让位回归"
   },
   {
    "glob": "game/scripts/endings.gd",

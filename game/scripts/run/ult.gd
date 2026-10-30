@@ -226,6 +226,8 @@ func can_cult() -> bool:
 
 ## squad.update 开头调（在干员 follow 之前，连携位移 syn_mv 当帧生效；取代 Synergy.tick）
 func tick(dt: float) -> void:
+	if g.state == g.S.PAUSE:
+		return   # 暂停菜单：终结技原样冻住，回来接着播（原来走 _clear 会把正在放的终结技直接掐掉）
 	if g.state != g.S.PLAY:
 		_clear()
 		return
@@ -242,9 +244,23 @@ func tick(dt: float) -> void:
 	Moves.tick_bg(self)   # 终结技的延后部分（凯尔希 Mon3tr 8 秒后重构）
 	if phase != "":
 		_tick_ult(dt)
+	if playing() and Bal.vi("ult/play_invuln", 1) > 0:
+		g.invuln = maxf(g.invuln, 0.1)   # 播放期间队长不能走也不能冲刺：无敌，不闪烁（同技能位移的无敌）
+		g.invuln_move_until = maxf(g.invuln_move_until, g.t + 0.1)
 	_tick_combo(dt)
 	if phase == "" and energy >= FULL and _auto_ult():
 		_auto_cast()
+
+
+## 播放形式（用户 10-31）：按下 Q 起到这一招演出结束（瞄准 + 出招两段），队长不吃移动输入、不冲刺、不位移，
+## 要突进的招式自己写 g.ppos（ult_moves._ul_step / ult_moves_c._lead_move）；移动输入只用来挪落点 / 转方向。
+## 这段时间里升级 / 宝箱三选一、路口发牌、精英化演出都排队（game.check_pending、endings.update），播完按原顺序依次弹。
+## ult/playback 0 = 恢复旧行为（放终结技时照常走路）；ult/play_max 是兜底上限（游戏秒），哪一招收尾没报完成也不会一直锁着
+var _play_t0 := -99.0
+
+
+func playing() -> bool:
+	return phase != "" and Bal.vi("ult/playback", 1) > 0 and g.t - _play_t0 < Bal.v("ult/play_max", 6.0)
 
 
 func _clear() -> void:
@@ -307,6 +323,12 @@ func _begin(ld, k: String) -> void:
 	aim_dir = _default_dir(ld)
 	aim = _default_point(ld)
 	_phase_t = 0.0
+	_play_t0 = g.t
+	if Bal.vi("ult/playback", 1) > 0:
+		g.dash_t = 0.0   # 冲刺到一半按 Q：冲刺就此停住，原地起手
+		if Bal.vi("ult/play_invuln", 1) > 0:
+			g.invuln = maxf(g.invuln, 0.1)   # 起手这一帧就无敌（tick 里每帧续上）
+			g.invuln_move_until = maxf(g.invuln_move_until, g.t + 0.1)
 	var slow: float = Bal.v("ult/cult_slow_t" if k == "cult" else "ult/slow_t", 0.8 if k == "cult" else 0.5)
 	var sc: float = Bal.v("ult/cult_slow" if k == "cult" else "ult/slow", 0.2 if k == "cult" else 0.25)
 	_aim_min = slow * sc   # 游戏时间：0.5 秒真实时间 × 25%

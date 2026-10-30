@@ -140,7 +140,7 @@ func update(_dt: float) -> void:
 			# 中 Boss 全部倒下 delay 秒后弹；最晚 win[1]，到点还没打完也弹（同升级面板，暂停战斗）
 			if (clear_t >= 0.0 and g.t >= clear_t + float(deck_cfg.get("delay", 2.0))) or g.t >= float(win[1]):
 				cross_due = cross_done + 1
-	if cross_due > 0 and g.state == g.S.PLAY and g.pending_chests <= 0:
+	if cross_due > 0 and g.state == g.S.PLAY and g.pending_chests <= 0 and not _ult_busy():
 		_deal(cross_due)
 
 
@@ -179,7 +179,7 @@ func _tick_mid() -> void:
 	if mid_done == 1 and (c1_deal_t >= float(w[0]) or (c1_deal_t < 0.0 and g.t >= float(w[0]))):
 		mid_done = 2
 		return
-	if g.t < float(w[0]) or g.state != g.S.PLAY or g.pending_chests > 0:
+	if g.t < float(w[0]) or g.state != g.S.PLAY or g.pending_chests > 0 or _ult_busy():
 		return
 	var calm: bool = not g.spawner.boss_alive() and elites.is_empty() and squad_pending.is_empty() and chal.is_empty()
 	if not calm and g.t < float(w[1]):
@@ -188,6 +188,11 @@ func _tick_mid() -> void:
 	slot = "m%d" % mid_done
 	deck = build_deck(0)
 	_show_deck("深入海洋 · 途中")
+
+
+## 终结技播放中（ult.playing）：路口 / 途中发牌等播完再弹
+func _ult_busy() -> bool:
+	return g.ult != null and g.ult.playing()
 
 
 ## 还有没有后面的路口（敬奉火焰「麻烦」要有下一个路口兑现）

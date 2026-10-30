@@ -1921,7 +1921,7 @@ func hud_live() -> bool:
 
 
 func _try_dash() -> void:
-	if not dash_ready() or dash_t > 0.0 or state != S.PLAY:
+	if not dash_ready() or dash_t > 0.0 or state != S.PLAY or (ult != null and ult.playing()):
 		return
 	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
@@ -1968,8 +1968,8 @@ func _update(dt: float) -> void:
 	if mode == Mode.BALANCE and autotest_sys.want_dash:
 		autotest_sys.want_dash = false
 		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
-	if pstun > 0.0 or root_t > 0.0:
-		mv = Vector2.ZERO
+	if pstun > 0.0 or root_t > 0.0 or (ult != null and ult.playing()):
+		mv = Vector2.ZERO   # 终结技播放中（ult.playing）：移动输入只给瞄准用（move_in 保留），队长原地不动
 	moving = mv != Vector2.ZERO
 	leader_still_t = 0.0 if moving or dash_t > 0.0 or pstun > 0.0 or root_t > 0.0 else leader_still_t + dt
 	if moving:
@@ -2126,6 +2126,8 @@ func _update(dt: float) -> void:
 func check_pending() -> void:
 	if state != S.PLAY or demo_op != "" or trial.active:
 		return
+	if ult != null and ult.playing():
+		return   # 终结技播放中：升级 / 宝箱三选一、精英化演出、路线选择都等播完再弹（计数照攒，播完逐个按原顺序弹）
 	if not show_queue.is_empty():
 		show_screen.open(show_queue.pop_front())
 		return
