@@ -1,0 +1,12 @@
+def.jsonl runs 18 | spawned 79 killed 64 absorbed 10 | clear 6.38s | learn layers 2 absorb_n 8 stacks 2 | alive@0,5..30s [0, 7.2, 10.3, 13.5, 15.4, 15.5, 1.3] | win 13/18 | fight 86s
+== def.jsonl jobs 18 err 0
+izumik       fight  85.7  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 13/18
+     boss_izumik:nerve                  n   3  med 30.0%  max 31.6%  raw med  34.2 max  55.4
+     bullet:nerve                       n   2  med 24.2%  max 24.2%  raw med  42.4 max  42.4
+     boss_izumik:final_attack/迁徙潮       n   2  med 54.1%  max 54.1%  raw med  61.7 max  61.7
+     boss_izumik:                       n   2  med 46.2%  max 46.2%  raw med  64.8 max  64.8
+     bullet:nova                        n   1  med 15.9%  max 15.9%  raw med  18.1 max  18.1
+     bullet:orb                         n   1  med 20.2%  max 20.2%  raw med  23.1 max  23.1
+     boss_izumik:sweep/分享               n   1  med  7.2%  max  7.2%  raw med  12.6 max  12.6
+     boss_izumik:final_attack/深渊涌流      n   1  med 26.3%  max 26.3%  raw med  36.9 max  36.9
+     boss_izumik:orb                    n   1  med 27.6%  max 27.6%  raw med  48.5 max  48.5
