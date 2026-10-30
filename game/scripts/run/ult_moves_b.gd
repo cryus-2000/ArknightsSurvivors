@@ -396,7 +396,7 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			_fade(u, a, 0.08)
 			for e in u.in_circle(c, R):
 				a.cseg[int(e.id)] = true
-				_hit(u, a, o, e, Bal.v("ult/gl_crush", 0.3), {"src": "收拢", "edge": e.pos.distance_to(c) > er, "stun": H + 0.1})
+				_hit(u, a, o, e, Bal.v("ult/gl_crush", 0.3), {"src": "收拢", "edge": e.pos.distance_to(c) > er, "stun": H + 0.1, "pre": true})   # pre：冲击帧（顿帧 + 慢放）留给爆开那一刻（用户 10-30）
 			u.shake(Bal.v("ult/gl_shake", 7.0), 0.3)
 			_ring(u, c, 30.0, 220.0, col.lerp(Color.WHITE, 0.5), 0.12, 10.0)
 			u.light(c, 260.0, col, H + 0.1)

@@ -371,7 +371,7 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 	if f < R and int(t * 60.0) % 2 == 0:
 		for k in 14:
 			var dq := Vector2.from_angle(float(k) * TAU / 14.0 + t * 3.0)
-			u.grain("bfx_dust", org + dq * f, dq, COL_ROCK.lerp(COL_AMBER, 0.5), 2)
+			u.grain("bfx_dust", org + dq * f, dq, Color(0.62, 0.6, 0.56) if a.v2 else COL_ROCK.lerp(COL_AMBER, 0.5), 2)
 	# 沿裂纹接连爆开
 	for b in a.booms:
 		if b.done or t < float(b.t):
@@ -380,14 +380,19 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 		var p: Vector2 = b.p
 		for e in u.in_circle(p, 80.0):
 			_once(u, a, o, a.cseg, e, float(a.cf), {"src": "裂地", "edge": e.pos.distance_to(org) > hc})
-		u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_AMBER.lerp(Color.WHITE, 0.2), "fill": 0.7, "life": 0.14})
-		if not a.v2:
+		if a.v2:   # v2：沿裂口崩起一簇碎石 + 尘，不画琥珀圆盘 / 晶柱（用户 10-30 嫌琥珀）
+			var hb: float = PF.h(float(a.booms.find(b)) + PF.vseed(u, org))
+			for m in 3:
+				PF.rock(u, p, Vector2.from_angle(TAU * (m + hb) / 3.0) * 70.0, 200.0 + 90.0 * PF.h(hb + m), PF.h(hb * 7.0 + m), 0.45, 0.02 * m)
+			u.grain("bfx_dust", p, Vector2.UP, Color(0.62, 0.6, 0.56), 5)
+		else:
+			u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_AMBER.lerp(Color.WHITE, 0.2), "fill": 0.7, "life": 0.14})
 			_ring(u, p, 92.0, 16.0, COL_AMBER.lerp(Color.WHITE, 0.3), 0.26, 6.0)
-		u.strip("fx_saria_pillar_break", p + Vector2(0, -16), {"sc": 1.4})
+			u.strip("fx_saria_pillar_break", p + Vector2(0, -16), {"sc": 1.4})
 		var bi: int = a.booms.find(b)
-		u.grain("sh_shard", p, Vector2.UP, COL_AMBER, 5)
+		u.grain("sh_shard", p, Vector2.UP, Color(0.7, 0.68, 0.64) if a.v2 else COL_AMBER, 5)
 		u.grain("bfx_dust", p, Vector2.UP, COL_ROCK, 3)
-		if bi % 3 == 0:   # 灯只有 16 盏、碎屑也抽稀
+		if bi % 3 == 0 and not a.v2:   # 灯只有 16 盏、碎屑也抽稀
 			u.light(p, 130.0, COL_AMBER, 0.2)
 			u.debris(p, COL_AMBER, 1)
 			u.spark(p, COL_AMBER, 3, 18.0)
@@ -400,52 +405,90 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 
 
 ## ---------------- 塞雷娅 v2（ult/sa_fx_v2，缺省 1；0 = 程序画同心碎裂环 + 琥珀折线裂纹 + 速度线版。pixfx，docs/199 §7.8）
-## 举拳时脚下压暗 → 砸地：pixgen 整圈拳风冲击环（fx_sa_shock）扩到 R、白亮 → 暗琥珀冷却；整条分叉裂缝（fx_sa_crack，乌尔比安裂缝转琥珀）
-## 顺着原裂纹方向按原生长速度往外长、冷却；波前到哪、哪圈地块顶起；外圈尘土墙外推 + 余震。爆点 / 判定 / 时序不动
+## 举拳时脚下压暗 → 砸地（爆点 / 判定 / 时序不动）。第一版（琥珀冲击环贴图 + 琥珀裂网）已撤：
+## 用户 10-30 第二轮：「一圈超人感没做出来；要的不是琥珀裂网，是一拳打出去以后拳风造成的裂地」——
+## 拳坑：砸点一圈短而粗的灰石裂口（拳坑崩裂，只到 0.3 R）+ 深色坑；拳风：白色气浪薄环 tr 秒扩到 R，
+## 一圈尘土碎石墙（fx_ul_dust_wall 截段）骑在波前一起往外推、波前扫过的地面一圈圈地块被掀起、白色速度线往外飞；外缘尘墙落定后余震
+const SA_CRACKS := ["fx_sg_crack1", "fx_sg_crack2", "fx_sg_crack3"]   # 拳坑崩裂借灰石裂口（短而粗，和推进之王的长断层用法不同）
+const A = preload("res://scripts/art.gd")
+
+
 static func _sa_v2(u) -> bool:
-	return Bal.v("ult/sa_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_sa_shock") and u.fx_ready("fx_sa_crack")
+	return Bal.v("ult/sa_fx_v2", 1.0) > 0.0 and PF.pick(u, SA_CRACKS, 0.0) != "" and u.fx_ready(PF.WALL)
 
 
 static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) -> void:
-	PF.ring(u, "fx_sa_shock", org, 70.0, R * 1.02, tr, tr + 0.12, {"fade": tr * 0.8, "col": Color(1.2, 1.15, 1.1, 0.8), "col1": Color(0.55, 0.42, 0.3, 0.8), "cold": tr})
-	_ring(u, org, R, 40.0, COL_AMBER.lerp(Color.WHITE, 0.3), tr * 2.0, 6.0)   # 细的范围环
-	var angs: Array = []
+	var vs: float = PF.vseed(u, org)
+	# 拳坑 + 坑口崩裂
+	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 120.0, "ry": 60.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.7, "life": 1.6, "layer": "back"})
+	var n: int = 7 + int(PF.h(vs + 1.0) * 4.0)
 	var lens: Array = []
-	var j := 0
-	for pts in a.cracks:
-		angs.append((Vector2(pts[pts.size() - 1]) - org).angle())
-		lens.append(R * (0.85 + 0.2 * PF.h(j + 60.0)))
-		j += 1
-	PF.cracks(u, "fx_sa_crack", org, angs, lens, {"rev": R / float(a.cspd), "rev0": 0.08, "life": 1.5, "fade": 0.6, "delay": 0.0,
-		"col": Color(1.25, 1.15, 1.05), "col1": Color(0.3, 0.24, 0.2), "cold": 0.8, "big": 0.8, "small": 0.5})
+	for j in n:
+		lens.append(R * (0.18 + 0.16 * PF.h(j + vs + 60.0)))
+	PF.cracks(u, SA_CRACKS, org, PF.angles(n, PF.h(vs + 2.0) * TAU, vs), lens, {"seed": vs, "big": 0.9, "small": 0.6, "rev": 0.08, "rev0": 0.3, "life": 1.8, "fade": 0.7})
+	# 白色气浪薄环（两道，后一道稍慢）
+	u.shape({"kind": "ring", "c": org, "r": R, "r1": 50.0, "w": 10.0, "col": Color(0.95, 0.93, 0.88), "solid": true, "life": tr * 2.0})
+	u.shape({"kind": "ring", "c": org, "r": R * 0.85, "r1": 40.0, "w": 5.0, "col": Color(0.9, 0.85, 0.75), "solid": true, "life": tr * 2.3, "delay": 0.04})
+	# 骑在波前往外推的尘土碎石墙
+	_sa_wall(u, org, R * 0.22, R / tr, tr, vs)
+	# 白色速度线（拳风）往外飞
 	var spd: float = R / tr
-	for i in 3:
-		var r: float = R * (0.35 + 0.3 * i)
-		PF.heave(u, org, r, 20.0 + i, r / spd)
-	PF.wall(u, org, R, tr * 0.9)
-	PF.aftershock(u, org, R, 3.0, tr + 0.3)
+	for k in 24:
+		var dv := Vector2.from_angle(TAU * (k + PF.h(k + vs)) / 24.0)
+		var r0: float = 40.0 + 40.0 * PF.h(k * 3.0 + vs)
+		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 90.0 + 60.0 * PF.h(k + 7.0)), "w": 4.0 if k % 3 == 0 else 2.5,
+			"col": Color(0.95, 0.95, 0.9), "life": tr * 0.9, "v": dv * spd * 1.05})
+	for i in 4:   # 波前扫过的地面一圈圈掀起
+		var r: float = R * (0.25 + 0.24 * i)
+		PF.heave(u, org, r, 20.0 + i + vs, r / spd)
+	PF.aftershock(u, org, R, 3.0 + vs, tr + 0.25, 12)
+
+
+## 尘土碎石墙从半径 r0 起以 spd 往外推 dur 秒（段数按终点半径取，起点处互相叠着，不会断开）
+static func _sa_wall(u, c: Vector2, r0: float, spd: float, dur: float, vs: float) -> void:
+	var t: Texture2D = u._strip_tex(PF.WALL)
+	var k: float = u.g.PX / A.hires_of(t)
+	var R1: float = r0 + spd * dur
+	var n: int = maxi(16, roundi(TAU * R1 / 150.0))
+	var chord: float = 2.0 * R1 * sin(PI / n)
+	var uw: float = minf(t.get_width(), chord * 1.1 / k)
+	for q in n:
+		var am: float = TAU * (q + 0.5) / n + PF.h(vs) * TAU
+		var out := Vector2.from_angle(am)
+		var tg: Vector2 = out.orthogonal()
+		var sc: float = r0 / R1
+		u.strip(PF.WALL, c + out * r0 - tg * chord * 0.5 * sc, {"layer": "back", "ang": tg.angle(), "o": Vector2(0.0, t.get_height() * 0.5),
+			"ux": floorf(PF.h(q * 3.0 + vs) * (t.get_width() - uw)), "uw": uw, "sc": sc, "sc1": 1.0, "scd": dur,
+			"v": out * spd - tg * chord * 0.5 * (1.0 - sc) / dur, "life": dur + 0.25, "fade": 0.35, "col": Color(1, 1, 1, 0.9)})
 
 
 ## ---------------- 推进之王 v2（ult/sg_fx_v2，缺省 1；0 = 程序画同心环 + 直线裂地 + 碎石刀光版。pixfx，docs/199 §7.8）
 ## 跃空时落点地面渐暗（压暗）→ 砸落：白闪 + pixgen 灰黑尘浪环（fx_sg_shock）扩到 R、整条灰黑断裂（fx_sg_crack）13 条往外长、
 ## 三圈地块隆起、外圈尘土墙外推、余震；岩刺 / 碎石帧条照旧。不用凯尔希的红白熔缝（验收员 10-30）
+## 变体：尘浪环 3 种、断裂 3 种（宽深沟 + 倾斜石板 / 一侧抬起的断层台阶 / 错位铺石块），无发光
+const SG_RINGS := ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"]
+const SG_CRACKS := ["fx_sg_crack1", "fx_sg_crack2", "fx_sg_crack3"]
+
+
 static func _sg_v2(u) -> bool:
-	return Bal.v("ult/sg_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_sg_shock") and u.fx_ready("fx_sg_crack")
+	return Bal.v("ult/sg_fx_v2", 1.0) > 0.0 and PF.pick(u, SG_RINGS, 0.0) != "" and PF.pick(u, SG_CRACKS, 0.0) != ""
 
 
 static func _sg_smash_v2(u, c: Vector2, R: float) -> void:
-	PF.ring(u, "fx_sg_shock", c, 60.0, R * 1.02, 0.28, 0.4, {"fade": 0.3, "col": Color(1, 1, 1, 0.7)})
+	var vs: float = PF.vseed(u, c)
+	PF.ring(u, SG_RINGS, c, 60.0, R * 1.02, 0.28, 0.4, {"seed": vs, "fade": 0.3, "col": Color(1, 1, 1, 0.7)})
 	_ring(u, c, R, 60.0, COL_ROCK.lerp(Color.WHITE, 0.2), 0.4, 6.0)   # 细的范围环
-	var angs: Array = PF.angles(13, 0.2, 40.0)
+	var n: int = 6 + int(PF.h(vs + 1.0) * 4.0)   # 6–9 条，从锤坑外各自起裂、长短悬殊（不从一点放射成星形）
+	var angs: Array = PF.angles(n, PF.h(vs + 2.0) * TAU, 40.0 + vs)
 	var lens: Array = []
-	for j in 13:
-		lens.append(R * (0.6 + 0.42 * PF.h(j + 45.0)))
-	PF.cracks(u, "fx_sg_crack", c, angs, lens, {"rev": 0.26, "rev0": 0.12, "life": 2.0, "fade": 0.8, "col": Color.WHITE})
+	for j in n:
+		lens.append(R * (0.35 + 0.65 * PF.h(j + 45.0 + vs)))
+	PF.cracks(u, SG_CRACKS, c, angs, lens, {"seed": vs, "r0": R * 0.14, "big": 0.45, "small": 0.3, "rev": 0.26, "rev0": 0.12, "life": 2.0, "fade": 0.8, "col": Color.WHITE})
 	for i in 3:
 		var r: float = R * (0.3 + 0.3 * i)
-		PF.heave(u, c, r, 50.0 + i, r / R * 0.3)
+		PF.heave(u, c, r, 50.0 + i + vs, r / R * 0.3)
 	PF.wall(u, c, R, 0.22)
-	PF.aftershock(u, c, R, 7.0, 0.35, 12)
+	PF.aftershock(u, c, R, 7.0 + vs, 0.35, 12)
 
 
 # ================================================================ 铃兰（§4.14）：忍冬在她身旁现身 → 化白光瞬身斩出 → 停半拍 → 斩痕爆裂
@@ -807,6 +850,8 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 		var nn: int = rings[ri][1]
 		for j in nn:
 			var p: Vector2 = c + Vector2.from_angle(TAU * (j + 0.5 * (ri % 2)) / nn + 0.3 * ri) * rr
+			if v2:   # v2 不画黄色岩刺 / fx_rock_burst（用户 10-30 不喜欢那团黄色烟尘），碎石交给隆起
+				continue
 			if j % 2 == 0:
 				u.strip("fx_siege_rock_spike", p, {"o": Vector2(16, 54), "sc": 1.5, "delay": 0.05 * ri})
 			else:
