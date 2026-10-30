@@ -73,7 +73,7 @@ def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
     return fadeio(y / (np.abs(y).max() + 1e-9), 0.001, fout)
 
 
-LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
 def level(slot, x):
@@ -145,7 +145,19 @@ SN = {   # Sonniss 素材短名（docs/113 §20）
     "bang": "344 Audio - Haunting Ambiences Vol. 3/METLImpt_Metal Bangs, Metal Hits, Banging On Doors_344 Audio_Haunting Ambiences Vol 3.wav",
     "elec": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Glitch 01_ESM_EMWI.wav",
     "flow": "Alexander Kopeikin - Emotion and Magic/magic, energy flow, astonishment-001.wav",
+    "rattle": "344 Audio - Elemental Palette Designed Vol. 1/METLMisc_Metal, Slow Whoosh, Rattle, Pass By x4 01_344 Audio_Elemental Palette Designed Vol 1.wav",
+    "ring": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav",
+    "sub": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/WATRImpt_Impact Water Deep Submerge Bubble Drown Ship Hit 05_ESM_EMWI.wav",
+    "liq": "344 Audio - Elemental Palette Designed Vol. 1/WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04_344 Audio_Elemental Palette Designed Vol 1.wav",
 }
+
+
+def gm(n, t0=0.0, dur=None, fout=0.05):
+    """游戏里已有的录音音效（audio/sfx/<n>.wav，如乌尔比安技能的 CC0 锁链）"""
+    import soundfile as sf
+    x, sr = sf.read(os.path.join(SFX, n + ".wav"))
+    x = x if x.ndim == 1 else x.mean(axis=1)
+    return fadeio(x[int(t0 * sr):int((t0 + dur) * sr) if dur else None] / (np.abs(x).max() + 1e-9), 0.002, fout)
 
 
 def sn(k, *a, **kw):
@@ -201,13 +213,16 @@ def kaltsit():
 
 
 def ulpianus():
-    """掷出巨锚（锁链放出）→ 沿锁链冲过去（路径上的敌人各吃一下）→ 落地，四圈裂地一圈圈炸起"""
+    """docs/205 §4.3（用户 10-31 选录音版 ②）：按 Q = 金属重击定格 + 锁链掠过（轻）→ 掷锚 cast = 游戏里乌尔比安技能的 CC0 锁链
+    → 锚扎地 anchor（金属刃撞击降调，fx ring r90 w5）→ 沿链冲过去 dash（锁链掠过，seg 锁链 on）
+    → 第一圈裂地 impact = 深水冲击 + 预告片低频 → 后三圈 crack_hit（地裂降调）+ 每圈水柱一声液体冲击 splash_1..3（fx strip burst）"""
     return {
-        "charge": pad(heavy_chain(0.8, 8) * 0.6, drone(0.9, 41, 0.3) * swell(0.9, 0.9) * 0.7, rumble(0.9, 140, 1.0) * swell(0.9, 0.9) * 0.4),
-        "cast": pad(sweep_noise(0.45, 300, 1600, 0.45) * swell(0.45, 0.6), heavy_chain(0.45, 14) * 0.9),
-        "dash": pad(sweep_noise(0.25, 1800, 400, 0.5) * env(0.25, 0.003, 9), heavy_chain(0.25, 8) * 0.6),
-        "impact": pad(thud(0.9, 75, 28, 4) * 1.2, crack(0.9, 4.0), metal(0.9, 170, 3.5, bright=0.5) * 0.35),
-        "crack_hit": crack(0.45, 8),
+        "sf": lp(sn("ring", 0.38, 0.6, 0.6, fout=0.25), 4000), "charge": sn("rattle", 0.0, 1.0, 0.85, fout=0.3),
+        "cast": gm("op_ulpianus_s1", fout=0.2), "anchor": lp(sn("ring", 0.38, 0.8, 0.7, fout=0.3), 5000),
+        "dash": sn("rattle", 0.0, 0.9, fout=0.3),
+        "impact": pad(sn("sub", 0.0, 1.4, fout=0.5), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8),
+        "crack_hit": lp(sn("fissure", 0.0, 0.6, 0.8, fout=0.2), 5000),
+        **{"splash_%d" % (i + 1): sn("liq", 0.0, 0.6, r, fout=0.2) for i, r in enumerate([0.9, 1.0, 1.1])},
     }
 
 
@@ -299,13 +314,14 @@ def mizuki():
 
 
 def saria():
-    """举拳蓄力 0.2 秒 → 一拳砸地、拳风冲击环扩开（冲击）→ 十道琥珀裂纹一节节长出、爆点依次炸开"""
-    cracks = seq([(i * 0.055, pad(bell(0.18, 1319 + 90 * (i % 4), 18, 3.5, 1.8) * 0.3, crackle(0.15, 300, 2000, 7000, 18) * 0.5, thud(0.12, 160, 70, 25) * 0.4)) for i in range(10)])
+    """docs/205 §4.3（用户 10-31 选原作版 ①）：按 Q = 原作岩石聚起定格 + 余音（轻）→ 举拳聚光 gather（原作 rockboost 起段，fx line+v w3；没有 cast）
+    → 一拳砸地 slam（fx circle r110，高潮挂画面：原作 jumphammer_2 + 预告片低频；第一下掉血不另响，没有 impact）
+    → 沿裂纹一波波岩柱爆开 rock_1..4（原作 rocksleep 三段，fx strip fx_saria_pillar_break）"""
     return {
-        "charge": pad(lp(N(0.7), 500) * swell(0.7, 0.95) * 0.8, bell(0.7, 988, 2, 3.5, 1.5) * swell(0.7, 0.9) * 0.2),
-        "cast": pad(whoosh(0.2, 600, 2000), thud(0.15, 120, 60, 18) * 0.4),
-        "impact": pad(thud(0.9, 75, 28, 4) * 1.3, crack(0.9, 4.5), burst(0.35, 2200, 11) * 0.6, bell(0.8, 659, 4, 3.5, 2.0) * 0.18),
-        "amber": cracks,
+        "sf": akd("p_skill_rockboost.wav", 0.0, 0.5, 0.9, fout=0.2), "charge": akd("p_skill_rockboost.wav", 0.5, 1.0, fout=0.3),
+        "gather": akd("p_skill_rockboost.wav", 0.0, 0.5, fout=0.15),
+        "slam": pad(akd("p_skill_jumphammer_2.wav", 0.0, 1.0, fout=0.4), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
+        **{"rock_%d" % (i + 1): akd("p_skill_rocksleep.wav", t, 0.5, r, fout=0.2) for i, (t, r) in enumerate([(0.0, 1.0), (1.25, 1.0), (1.73, 1.0), (0.0, 1.1)])},
     }
 
 
