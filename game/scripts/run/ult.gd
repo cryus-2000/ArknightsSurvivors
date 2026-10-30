@@ -312,6 +312,8 @@ func _begin(ld, k: String) -> void:
 	_aim_min = slow * sc   # 游戏时间：0.5 秒真实时间 × 25%
 	_aim_max = _aim_min + Bal.v("ult/hold_max", 1.0) * sc
 	phase = "aim"
+	if k != "cult" and Bal.vi("ult/mate_voice_mute", 1) > 0:
+		_mute_mates(str(ld.id))   # 终结技期间队友不出声（到这次终结技收尾为止，队长自己的终结技语音照播）
 	if k != "cult" and sf_on():
 		_sf_start(ld)   # 超必杀暂停：世界冻结 ult/sf_t 秒（只在看得见的局里），立绘切入推到暂停结束（fx_tick）
 	else:
@@ -327,6 +329,7 @@ func _tick_ult(dt: float) -> void:
 	if caster == null or caster.pos == Vector2.INF:
 		phase = ""
 		act = {}
+		_mute_mates("")
 		return
 	if phase == "aim":
 		_phase_t += dt
@@ -348,6 +351,7 @@ func _tick_ult(dt: float) -> void:
 		if done:
 			phase = ""
 			act = {}
+			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
 
 
 func _cast() -> void:
@@ -1458,6 +1462,17 @@ var _sf_ld = null
 var _sf_cut := false       # 暂停结束时是否已补立绘切入
 
 
+## 终结技从起手到收尾这段（队友静音、「LEVEL UP」等横幅推迟到结束后再显示）
+func show_busy() -> bool:
+	return phase != "" and kind != "cult"
+
+
+func _mute_mates(cid: String) -> void:
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx != null and sfx.has_method("mute_mates") and (cid != "" or str(sfx.get("voice_only")) != ""):
+		sfx.mute_mates(cid)
+
+
 func sf_on() -> bool:
 	return Bal.vi("ult/superflash", 1) > 0
 
@@ -1566,12 +1581,13 @@ func _draw_sf(w) -> void:
 		var hi: float = A.hires_of(tx)
 		var sc: float = g.PX / hi
 		var flip: float = -1.0 if float(_sf_ld.face) < 0.0 else 1.0
-		var oc: Color = _pc(col.lerp(Color.WHITE, 0.2), 0.9 * k)
 		var G2: float = _pxg()
 		var wt: Texture2D = _sf_white(tx)
-		for off in [Vector2(-G2, 0), Vector2(G2, 0), Vector2(0, -G2), Vector2(0, G2), Vector2(-G2, -G2), Vector2(G2, -G2), Vector2(-G2, G2), Vector2(G2, G2)]:
-			g.draw_set_transform(c + off, 0.0, Vector2(sc * flip, sc))
-			g.draw_texture_rect_region(wt, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), oc)
+		for ring in [[2.0, _pc(col, 0.55 * k)], [1.0, _pc(col.lerp(Color.WHITE, 0.35), k)]]:   # 外圈 2 格淡、内圈 1 格亮（10-30 用户嫌读不出）
+			var d: float = G2 * float(ring[0])
+			for off in [Vector2(-d, 0), Vector2(d, 0), Vector2(0, -d), Vector2(0, d), Vector2(-d, -d), Vector2(d, -d), Vector2(-d, d), Vector2(d, d)]:
+				g.draw_set_transform(c + off, 0.0, Vector2(sc * flip, sc))
+				g.draw_texture_rect_region(wt, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), ring[1])
 		g.draw_set_transform(c, 0.0, Vector2(sc * flip, sc))
 		g.draw_texture_rect_region(tx, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

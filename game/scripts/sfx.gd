@@ -745,7 +745,42 @@ func has_voice(cid: String, key: String) -> bool:
 	return not _voice_pool(cid, key).is_empty() or _voice_stream(cid, key) != null
 
 
+## 终结技期间只让队长开口（用户 10-30「超必杀暂停直到干员必杀放完，队友都没有语音」；ult.gd 设 / 清，开关 ult/mate_voice_mute）：
+## voice_only 非空时，别的干员的语音（技能 / 闲聊 / 指挥回应 / 合唱 / 笑声……）一律不播：正在播的淡出 MUTE_FADE 秒，新触发的直接丢（不排队补播）
+var voice_only := ""
+const MUTE_FADE := 0.15
+
+
+func mute_mates(cid: String) -> void:
+	voice_only = cid
+	if cid == "":
+		return
+	voice_queue = voice_queue.filter(func(q): return str(q[0]) == cid)
+	if not voice_urgent.is_empty() and str(voice_urgent[0]) != cid:
+		voice_urgent = []
+	chorus_pending = chorus_pending.filter(func(c): return str(c[0]) == cid)
+	if voice_player != null and voice_player.playing and voice_cid != cid:
+		_mute_fade(voice_player)
+	for k in chorus:
+		if str(k) != cid and (chorus[k] as AudioStreamPlayer).playing:
+			_mute_fade(chorus[k])
+
+
+func _mute_fade(p: AudioStreamPlayer) -> void:
+	if not p.is_inside_tree():
+		p.stop()
+		return
+	var tw := create_tween()
+	var v0: float = p.volume_db
+	tw.tween_property(p, "volume_db", v0 - 40.0, MUTE_FADE)
+	tw.tween_callback(func():
+		p.stop()
+		p.volume_db = v0)
+
+
 func voice(cid: String, key: String, queue := false, urgent := false) -> void:
+	if voice_only != "" and cid != voice_only:
+		return
 	var stem := _voice_pick(cid, key, urgent)
 	var st: AudioStream = _voice_file(stem) if stem != "" else null
 	if st == null:
@@ -830,6 +865,7 @@ func voice_reset() -> void:
 	for lp in loops.values():
 		lp.stop()
 	voice_queue.clear()
+	voice_only = ""
 	voice_bags.clear()
 	voice_line_last.clear()
 	chorus_pending.clear()
@@ -853,6 +889,8 @@ var chorus_pending: Array = []         # [干员, 事件, 开播时刻, 截止�
 
 
 func voice_chorus(cid: String, key: String, delay := 0.0, duck_db := -3.0) -> void:
+	if voice_only != "" and cid != voice_only:
+		return
 	var now := _vnow()
 	chorus_pending.append([cid, key, now + delay, now + delay + 1.5, duck_db])
 	_chorus_tick()
@@ -873,6 +911,8 @@ func _chorus_tick() -> void:
 
 ## true = 处理完（播了或放弃）；false = 等技能语音播完再试
 func _chorus_play(cid: String, key: String, duck_db: float) -> bool:
+	if voice_only != "" and cid != voice_only:
+		return true   # 终结技期间队友不出声：放弃（不等）
 	var stem := _voice_pick(cid, key, true)
 	var st := _voice_file(stem)
 	if st == null:

@@ -695,7 +695,8 @@ func update(dt: float) -> void:
 	g.horde_warn = maxf(0.0, g.horde_warn - dt)
 	g.tab_hint = maxf(0.0, g.tab_hint - dt)
 	g.horde_hit = maxf(0.0, g.horde_hit - dt)
-	g.lvup_show -= dt
+	if g.ult == null or not g.ult.show_busy():   # 终结技期间「LEVEL UP」推迟到结束后再显示（不压在队长身上，10-30）
+		g.lvup_show -= dt
 	g.hud_lv_flash = max(0.0, g.hud_lv_flash - dt * 1.5)
 	g.xp_flash = maxf(0.0, g.xp_flash - dt * 3.0)
 	for f in g.fx:
