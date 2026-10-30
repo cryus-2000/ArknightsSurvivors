@@ -77,27 +77,26 @@ def loopify(x, sec, fin=0.05, fout=0.3):
 
 
 # ---------------------------------------------------------------- 20 人（段名 = 招式伤害 src）
-TX_SWORD = "344 Audio - Historical Weapons Vol. 2/WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav"
 TX_SLICE = "Epic Stock Media - Tower Defense Game/DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04_ESM_TDG.wav"
 TX_SCRAPE = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav"
 TX_HIT = "Cinematic Sound Design - Colossal Impacts/Impact Cut Sweep.wav"
 TX_BOOM = "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_214.wav"
-TX_GLASS = "Epic Stock Media - Elemental Mutation Whooshes and Impacts/GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05_ESM_EMWI.wav"
+TX_RING = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav"
 TX_TAP = "Epic Stock Media - HD Game Materials/METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01_ESM_HDGM.wav"
-TX_MARKS = [(0.13, 0.55), (2.24, 0.53), (4.32, 0.51), (6.33, 0.60), (8.43, 0.76), (10.80, 0.73)]   # 剑录音里 6 刀的起点 / 长度
 
 
 def texas():
-    """docs/205 §4.3（10-31 换 Sonniss 录音）：隐去（cast，长刃挥刮）→ 0.5 秒画 N 道发丝线，每道一声真剑划过 mark_1..6（同一组录音的 6 刀）
-    → 斩线齐出一声多层斩击 cut + 高潮爆开 impact（斩击冲击 + 预告片低频轰）→ 斩线碎裂 shatter（玻璃晶片）→ 剑雨每把插地一声金属轻敲 sword_1..4（4 个音高）"""
-    marks = {"mark_%d" % (i + 1): lib(TX_SWORD, t0, d, fout=0.06) for i, (t0, d) in enumerate(TX_MARKS)}
+    """docs/205 §4.3（10-31 换 Sonniss 录音）：隐去（cast，长刃挥刮）→ 0.5 秒画 N 道发丝线，每道一声清亮的「锵」mark_1..6
+    （用户 10-31「剑痕只要 cing cing cing」：取金属刃撞击的共鸣余音、1.5–9 kHz 带通只留「锵」、音高逐道升）
+    → 斩线齐出一声多层斩击 cut + 高潮爆开 impact（斩击冲击 + 预告片低频轰）→ 剑雨每把插地一声金属轻敲 sword_1..4（4 个音高）。
+    斩线碎裂不配声（玻璃晶片用户 10-31 嫌难听，删掉）"""
+    marks = {"mark_%d" % (i + 1): lp(hp(lib(TX_RING, 0.41, 0.45, rate=1.0 * (1.045 ** i), fin=0.001, fout=0.2), 1500, 4), 9000) for i in range(6)}   # 9 kHz 低通去嘶声
     swords = {"sword_%d" % (k + 1): lp(lib(TX_TAP, 0.12, 0.32, rate=(0.92, 1.0, 1.09, 1.19)[k], fout=0.08), 9000) for k in range(4)}
     d = {
         "charge": pad(sweep_noise(0.7, 1500, 6500, 0.3) * swell(0.7, 0.95) * 0.5, metal(0.7, 1760, 2.5, bright=0.4) * swell(0.7, 0.9) * 0.4),
         "cast": lib(TX_SCRAPE, 0.0, 0.6, rate=1.15, fout=0.15) * 0.8,
         "cut": lib(TX_SLICE, 0.29, 0.8, fout=0.3),   # 起点对到斩击最响处前一点（录音 0.42 s 峰值）
         "impact": pad(lib(TX_HIT, 0.93, 1.5, fout=0.5), lp(lib(TX_BOOM, 0.25, 1.6, fout=0.7), 900) * 0.8),
-        "shatter": lib(TX_GLASS, 0.08, 1.0, fout=0.35),
     }
     d.update(marks)
     d.update(swords)

@@ -396,9 +396,8 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 
 | 游戏文件 | 用途 | 来源（Sonniss GDC 2026 Bundle，royalty-free）原文件名 | 截取 / 处理 | 时长 |
 |---|---|---|---|---|
-| `ult_texas_mark_1..6` | 德克萨斯终结技每道剑痕 | 344 Audio「WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2」 | 同一录音里的 6 刀，各取一刀（0.13 / 2.24 / 4.32 / 6.33 / 8.43 / 10.80 s 起） | 0.5–0.75 s |
+| `ult_texas_mark_1..6` | 德克萨斯终结技每道剑痕（「锵」） | David Dumais「METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01」 | 0.41 s 起 0.45 s（撞击后的共鸣余音），1.5 kHz 高通 + 9 kHz 低通，变调 ×1.045^i | 0.36–0.45 s |
 | `ult_texas_cut` | 斩线齐出 | Epic Stock Media「DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04」 | 0.29 s 起 0.8 s | 0.8 s |
 | `ult_texas_impact` | 高潮爆开 | Cinematic Sound Design「Impact Cut Sweep」+ Federico Soler「EffectiveTrailer_Booms_Vol2_214」 | 前者 0.93 s 起 1.5 s；后者 0.25 s 起 1.6 s、900 Hz 低通垫底 | 1.6 s |
-| `ult_texas_shatter` | 斩线碎裂 | Epic Stock Media「GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05」 | 0.08 s 起 1.0 s | 1.0 s |
 | `ult_texas_sword_1..4` | 剑雨每把插地 | Epic Stock Media「METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01」 | 0.12 s 起 0.32 s，变调 ×0.92 / 1.0 / 1.09 / 1.19，9 kHz 低通 | 0.26–0.33 s |
 | `ult_texas_cast` | 隐去起手 | David Dumais「METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14」 | 0 s 起 0.6 s，×1.15 | 0.52 s |
