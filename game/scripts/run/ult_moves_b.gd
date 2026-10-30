@@ -1198,8 +1198,10 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 				a.bound.append(e)
 		for i in 8:   # 他身边钻出的小触手（画面）
 			var p: Vector2 = c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2) * 300.0 * (0.55 + 0.45 * float(i % 2))
-			if v2:
-				FC.mz_small(u, a, p + Vector2(0, 8), 20 + i, 0.75, 0.02 * float(i))
+			if v2:   # 位置按哈希错开角度 / 距离（预审：均分一圈像一串贴纸）
+				var hq: float = PF.h(float(a.mz_vs) + i * 3.3)
+				p = c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2 + (hq - 0.5) * 0.6) * 300.0 * (0.45 + 0.55 * PF.h(float(a.mz_vs) + i * 5.9))
+				FC.mz_small(u, a, p + Vector2(0, 8), 20 + i, 0.6 + 0.35 * hq, 0.02 * float(i) + 0.05 * hq)
 			else:
 				u.strip("fx_mizuki_tentacle", p + Vector2(0, 8), {"sc": 1.2, "o": Vector2(24, 108), "delay": 0.02 * float(i)})
 		if not v2:

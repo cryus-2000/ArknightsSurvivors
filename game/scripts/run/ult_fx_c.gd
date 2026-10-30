@@ -116,6 +116,7 @@ static func lu_boom(u, a: Dictionary, c: Vector2, R: float) -> void:
 	var vs: float = float(a.lu_vs)
 	u.light(c, R * 1.0, LU_PWARM, 0.3)   # 灯用暗一档的暖色，免得整片发白
 	PF.ring(u, LU_RINGS, c, 40.0, R, float(a.exp), 0.75, {"seed": vs, "col": Color(1.05, 1.0, 0.85, 0.95), "col1": Color(0.55, 0.78, 0.82, 0.8), "cold": 0.45, "fade": 0.4})
+	PF.ring(u, LU_RINGS, c, 40.0, R * 0.97, float(a.exp), 0.7, {"seed": vs + 41.0, "col": Color(1.0, 0.96, 0.82, 0.7), "col1": Color(0.5, 0.72, 0.76, 0.6), "cold": 0.45, "fade": 0.4})   # 第二层错开转角，补上第一层的缺口（预审：像一圈等距方块）
 	PF.ring(u, LU_RINGS, c, 30.0, R * 0.8, float(a.exp) * 1.3, 0.6, {"seed": vs + 17.0, "col": Color(0.8, 0.88, 0.9, 0.35), "fade": 0.35, "delay": 0.05})
 	PF.particles(u, c, 300, "ult_burst", [LU_PWARM, LU_PAQUA], 0.0, vs, R * 0.95)
 	_lu_motes(u, c, R, vs + 3.0, 6, 0.1)
@@ -195,7 +196,7 @@ static func mz_start(u, a: Dictionary, base: Vector2) -> void:
 static func mz_trail(u, a: Dictionary, tip: Vector2, ang: float, n: int) -> void:
 	var tg: Vector2 = Vector2.from_angle(ang + PI / 2.0)
 	u.grain("water", tip, tg, MZ_CYAN, 5)
-	if n % 3 == 0:
+	if n % 5 == 0:
 		PF.particles(u, tip, 30, "ult_burst_s", [MZ_INK, Color(0.3, 0.5, 0.6)], 0.0, float(a.mz_vs) + n)
 
 
@@ -218,12 +219,12 @@ static func mz_small(u, a: Dictionary, p: Vector2, i: int, sc: float, delay: flo
 	u.strip(name, p, {"ang": -PI / 2.0 + (PF.h(vs + 1.0) - 0.5) * 0.3, "o": Vector2(0.0, t.get_height() * 0.5), "sy": -1.0 if PF.h(vs + 2.0) < 0.5 else 1.0,
 		"sc": sc * (0.9 + 0.2 * PF.h(vs + 3.0)), "rev": 0.12, "rev0": 0.1, "delay": delay, "life": 0.85, "fade": 0.3})
 	u.shape({"kind": "circle", "c": p, "r": 22.0 * sc, "col": Color(0.02, 0.02, 0.05), "fill": 0.7, "life": 0.9, "delay": delay, "layer": "back"})
-	PF.particles(u, p, 20, "ult_burst_s", [MZ_INK, Color(0.3, 0.34, 0.5)], delay, vs)
+	PF.particles(u, p, 20, "ult_burst_s", [MZ_INK], delay, vs, 55.0 * sc)   # 根部土屑：小、暗（预审：每根一样的蓝色颗粒团）
 
 
 # ================================================================ 铃兰：忍冬现身 → 瞬身斩 → 斩痕爆裂（ult/sz_fx_v2）
 ## 忍冬 = pixgen 白光人形（照 Codex 忍冬关键帧的轮廓），淡入；瞬身 = pixgen 连续冷色斩痕（亮芯 ≤ 0.9、边缘冷蓝灰）从她身边飞速显现到尽头，
-## 停半拍 → 爆裂：斩痕爆亮再冷却、沿痕一串冷白粒子爆（错开）+ 横贯带宽的交叉斩（3 种斩痕按 vseed 挑、转角 / 镜像各异）+ 狐火橙余烬 + 大灯。
+## 停半拍 → 爆裂：只有这一道斩痕（用户 10-30「忍冬的应该只有一道」；3 种斩痕按 vseed 挑）——爆亮再冷却、沿痕冷白粒子从起点往尽头依次爆开 + 狐火橙余烬 + 大灯。
 const SZ_FIG := "fx_sz_vulpis"
 const SZ_SLASH := ["fx_sz_slash1", "fx_sz_slash2", "fx_sz_slash3"]
 const SZ_COLD := Color(0.5, 0.58, 0.66)
@@ -238,19 +239,31 @@ static func sz_v2(u) -> bool:
 static func sz_start(u, a: Dictionary, side: Vector2, tp: float) -> void:
 	var vs: float = PF.vseed(u, side)
 	a["sz_vs"] = vs
+	# 入场（用户 10-30「要把忍冬的入场停顿做出来，得让玩家知道是她来出手」）：周围压暗一圈 → 她放大现身 → 到位那一刻顿帧 ult/sz_appear_stop
+	a["sz_dim"] = {"kind": "circle", "c": side + Vector2(0, -30), "r": 150.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "life": tp + 0.08}
+	u.shape(a.sz_dim)
 	if u.fx_ready(SZ_FIG):
 		var t: Texture2D = u._strip_tex(SZ_FIG)
-		a["sz_fig"] = u.strip(SZ_FIG, side, {"o": Vector2(t.get_width() / 2.0, t.get_height() - 3.0), "sc": 1.35, "life": tp + 0.06, "col": Color(1, 1, 1, 0.0),
+		a["sz_fig"] = u.strip(SZ_FIG, side, {"o": Vector2(t.get_width() / 2.0, t.get_height() - 3.0), "sc": 1.7, "life": tp + 0.06, "col": Color(1, 1, 1, 0.0),
 			"sx": -1.0 if Vector2(a.d).x < 0.0 else 1.0})
 	u.light(side + Vector2(0, -40), 140.0, Color(0.85, 0.82, 0.7), tp + 0.1)
 	for q in 5:
 		u.grain("mote_up", side + Vector2((PF.h(vs + q) - 0.5) * 60.0, -10.0 - 70.0 * PF.h(vs + q * 3.0)), Vector2.UP, Color(0.85, 0.75, 0.5), 2)
 
 
-## 现身期间每帧：淡入（前 60%）
-static func sz_appear(a: Dictionary, t: float, tp: float) -> void:
+## 现身期间每帧：前 35% 淡入 + 周围压暗；到位那一刻顿帧 + 亮一下 + 狐火迸开
+static func sz_appear(u, a: Dictionary, t: float, tp: float) -> void:
+	var k: float = clampf(t / (tp * 0.35), 0.0, 1.0)
 	if a.has("sz_fig"):
-		a.sz_fig.col = Color(1, 1, 1, clampf(t / (tp * 0.6), 0.0, 1.0) * 0.92)
+		var b: float = 1.0 + (0.25 if a.has("sz_pop") and t - float(a.sz_pop) < 0.06 else 0.0)
+		a.sz_fig.col = Color(b, b, b, k * 0.95)
+	a.sz_dim.fill = 0.4 * k
+	if k >= 1.0 and not a.has("sz_pop"):
+		a["sz_pop"] = t
+		var side: Vector2 = a.side
+		u.g.vfx.stop(Bal.v("ult/sz_appear_stop", 0.22), "ult", true)   # 画面层顿帧，不改模拟步长
+		u.light(side + Vector2(0, -50), 200.0, Color(0.8, 0.78, 0.68), 0.3)
+		PF.particles(u, side + Vector2(0, -40), 40, "ult_ember", [SZ_FOX, Color(0.62, 0.55, 0.36)], 0.0, float(a.sz_vs) + 7.0, 80.0)
 
 
 static func _sz_slash(u, name: String, p: Vector2, ang: float, L: float, opt: Dictionary) -> Dictionary:
@@ -280,21 +293,16 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var b0: Vector2 = org + d * L
 	var ang: float = d.angle()
 	# 主斩痕爆亮：加粗一道，白 → 冷蓝灰冷却
-	_sz_slash(u, PF.pick(u, SZ_SLASH, vs), a0, ang, a0.distance_to(b0), {"sy": 1.6, "life": 0.55, "fade": 0.3, "col": Color(1.05, 1.05, 1.05, 1.0), "col1": Color(0.45, 0.55, 0.7, 0.8), "cold": 0.35})
+	_sz_slash(u, PF.pick(u, SZ_SLASH, vs), a0, ang, a0.distance_to(b0), {"sy": 1.15, "life": 0.55, "fade": 0.3, "col": Color(1.05, 1.05, 1.05, 1.0), "col1": Color(0.45, 0.55, 0.7, 0.8), "cold": 0.35})
 	u.light(org + d * (L - bk) * 0.5, maxf(L, hw) * 0.7, SZ_PALE, 0.3)
-	var n: int = 7 + int(PF.h(vs) * 3.0)   # 7–9 处爆点，位置 / 错开按哈希
+	var n: int = 7 + int(PF.h(vs) * 3.0)   # 7–9 处爆点，从斩痕起点往尽头一节节依次炸开（预审 10-30：同时炸连成一片）
 	for k in n:
 		var hh: float = PF.h(vs + k * 3.7)
 		var x: float = lerpf(30.0 - bk, L - 30.0, (k + 0.2 + 0.6 * hh) / n)
 		var p: Vector2 = org + d * x + d.orthogonal() * (hh - 0.5) * hw * 0.25
-		var dl: float = 0.012 * k + 0.02 * hh
+		var dl: float = 0.035 * k + 0.015 * hh
 		PF.particles(u, p, 60, "ult_burst_s", [SZ_COLD, SZ_PALE], dl, vs + k)
-		var sg: float = 1.0 if k % 2 == 0 else -1.0
-		var ca: float = d.orthogonal().angle() + sg * (0.3 + 0.35 * PF.h(vs + k * 1.3))
-		var cl: float = hw * (1.0 + 0.6 * PF.h(vs + k * 2.9))
-		var cd: Vector2 = Vector2.from_angle(ca)
-		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + k * 0.7), p - cd * cl * 0.5, ca, cl, {"sy": (0.45 + 0.3 * hh) * (-1.0 if hh < 0.5 else 1.0), "rev": 0.06, "rev0": 0.1,
-			"delay": dl, "life": 0.32, "fade": 0.18, "col": Color(1, 1, 1, 0.9), "col1": Color(0.45, 0.55, 0.7, 0.7), "cold": 0.2})
-		if k % 3 == 1:
-			PF.particles(u, p, 40, "ult_ember", [SZ_FOX], dl + 0.08, vs + k * 5.0, 90.0)
-	PF.particles(u, org + d * (L - bk) * 0.5, 300, "ult_burst", [SZ_COLD, SZ_PALE], 0.0, vs + 99.0, minf(hw, L) * 0.6)
+		if k % 2 == 1:
+			continue
+		PF.particles(u, p, 40, "ult_ember", [SZ_FOX], dl + 0.08, vs + k * 5.0, 90.0)
+	PF.particles(u, org + d * (L - bk) * 0.5, 300, "ult_burst", [SZ_COLD, SZ_PALE], 0.12, vs + 99.0, minf(hw, L) * 0.45)

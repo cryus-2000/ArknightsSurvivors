@@ -546,7 +546,7 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 	var v2: bool = a.has("v2")
 	if t < tp:
 		if v2:
-			FC.sz_appear(a, t, tp)
+			FC.sz_appear(u, a, t, tp)
 		return false
 	if not a.dashed and v2:
 		a.dashed = true
@@ -1208,7 +1208,7 @@ static func _lu_start(u, o) -> Dictionary:
 		u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": COL_LIGHT, "fill": 0.85, "life": dur + 0.25})
 		u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": COL_LIGHT, "glow": col, "grow": 0.15, "life": 0.4})
 		u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2})
-	u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(0.85, 0.95, 1.0)})
+		u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(0.85, 0.95, 1.0)})   # v2 不画：旧橙色格纹点燃帧条放大 3 倍，发白且画风不合
 	g.lamp = maxf(g.lamp, float(g.lamp_cap))   # 附带：灯火补满
 	g.nerve = 0.0   # 清除神经损伤，6 秒内不再累积
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
