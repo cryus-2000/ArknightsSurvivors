@@ -1,0 +1,9 @@
+pre.jsonl runs 18 | spawned 46 killed 46 absorbed 0 | clear 4.18s | learn layers 0 absorb_n 0 stacks 0 | alive@0,5..30s [0, 1.3, 1.7, 2.7, 3.6, 4.5, 0.3] | win 12/18 | fight 103s
+a.jsonl runs 18 | spawned 66 killed 56 absorbed 4 | clear 5.34s | learn layers 0 absorb_n 4 stacks 0 | alive@0,5..30s [0, 5.1, 5.2, 8, 9.2, 10.2, 0.1] | win 11/18 | fight 107s
+b.jsonl runs 18 | spawned 85 killed 68 absorbed 10 | clear 6.68s | learn layers 2 absorb_n 7 stacks 1 | alive@0,5..30s [0, 7.2, 10.3, 13.5, 15.4, 15.5, 1.3] | win 12/18 | fight 100s
+== pre.jsonl jobs 18 err 0
+izumik       fight 103.2  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 12/18
+== a.jsonl jobs 18 err 0
+izumik       fight 106.8  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 11/18
+== b.jsonl jobs 18 err 0
+izumik       fight  99.8  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 12/18

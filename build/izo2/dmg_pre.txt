@@ -1,0 +1,9 @@
+== pre.jsonl jobs 18 err 0
+izumik       fight 103.2  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 12/18
+     boss_izumik:                       n   4  med 37.5%  max 39.5%  raw med  42.8 max  55.4
+     bullet:orb                         n   4  med 14.2%  max 14.9%  raw med  17.0 max  26.2
+     boss_izumik:final_attack/迁徙潮       n   3  med 24.2%  max 29.2%  raw med  27.6 max  41.0
+     boss_izumik:nerve                  n   2  med 21.6%  max 21.6%  raw med  37.9 max  37.9
+     bullet:nova                        n   1  med  7.6%  max  7.6%  raw med  13.3 max  13.3
+     boss_izumik:final_attack/          n   1  med 23.2%  max 23.2%  raw med  26.4 max  26.4
+     bullet:nerve                       n   1  med 11.5%  max 11.5%  raw med  16.2 max  16.2
