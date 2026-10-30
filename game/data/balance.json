@@ -253,6 +253,7 @@
   "dmg_early_until": 240,
   "early_until": 0,
   "horde_count_mult": 1.5,
+  "dmg_x_tracer": 0.85,
   "horde_hp_mult": 2.0,
   "horde_xp_mult": -1,
   "horde_elite_late": 2,
