@@ -1083,9 +1083,10 @@ func _horde_loose(he: Dictionary, hunt: bool) -> void:
 
 
 ## 画面对角线一半（世界坐标）：围猎型大群的出生半径按它算（同 run/hunt.gd 的 _spawn_radius）
+## 按名义镜头倍率换算，不读实时画布变换：镜头缩放每个引擎帧按真实时间走（cam_fx.punch 等），批跑一帧跑 8 步模拟，
+## 读实时变换会让同 seed 的出生半径随机器快慢变、整局分叉（10-30 查明，docs/36 §7.7）
 func _view_half_diag() -> float:
-	var vs: Vector2 = g.get_viewport_rect().size
-	return g.get_viewport().get_canvas_transform().affine_inverse().basis_xform(vs).length() * 0.5
+	return (g.get_viewport_rect().size / maxf(0.01, Cfg.battle_zoom())).length() * 0.5
 
 
 ## 本次大群的编成（data/waves.json，EA 1.1 大群混编）：威胁等级写了 horde_mix 就从中随机抽一套（g.rng，同 seed 可复现），

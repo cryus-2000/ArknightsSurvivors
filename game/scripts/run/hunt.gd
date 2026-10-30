@@ -84,9 +84,9 @@ func _log(what: String) -> void:
 
 
 ## 出生半径：画面对角线一半的 1.3 倍（hunt/spawn_mul），夹在 [700, 1250]——比「离主控 1300 外的静止敌人被清掉」（enemies.gd）小，保证整圈在屏幕外
+## 按名义镜头倍率换算，不读实时画布变换（同 spawner._view_half_diag：实时缩放按真实时间走，同 seed 会分叉）
 func _spawn_radius() -> float:
-	var vs: Vector2 = g.get_viewport_rect().size
-	var world: Vector2 = g.get_viewport().get_canvas_transform().affine_inverse().basis_xform(vs)
+	var world: Vector2 = g.get_viewport_rect().size / maxf(0.01, Cfg.battle_zoom())
 	return clampf(world.length() * 0.5 * Bal.v("hunt/spawn_mul", 1.3), 700.0, 1250.0)
 
 
