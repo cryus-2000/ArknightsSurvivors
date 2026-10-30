@@ -1,0 +1,740 @@
+{
+ "_doc": "check.py --changed 的路径映射（docs/204 §2）。规则先匹配先生效；glob 里 ** 跨目录、* 不跨、{a,b} 可选。groups 里的名字：core / prot / repro / smoke-sample / op-tier / test-file 是内置，其余在 groups 表里列场景回归键。",
+ "groups": {
+  "boss": {
+   "scenes": [
+    "boss_variety",
+    "ishar_p2",
+    "ishar_combo",
+    "boss_trial_ui",
+    "ishar_human_ui",
+    "boss_trial",
+    "boss_pressure",
+    "final_boss_completion",
+    "beam_audio",
+    "final_attack_grains",
+    "knight_combo",
+    "paranoia_combos",
+    "izumik_card",
+    "mid_boss",
+    "final_boss_materials",
+    "final_boss_animation",
+    "boss_fx_geometry",
+    "boss_support",
+    "boss_boundary",
+    "route_knight"
+   ]
+  },
+  "enemy": {
+   "scenes": [
+    "enemy_status",
+    "enemy_attack_variety",
+    "enemy_identity",
+    "enemy_prepare",
+    "enemy_demo",
+    "enemy_pixels",
+    "knight_pixel_split",
+    "reaper_rush",
+    "tide",
+    "dmg_curve",
+    "nerve_rules"
+   ]
+  },
+  "command": {
+   "scenes": [
+    "command_ai",
+    "command_wheel",
+    "voice_command",
+    "friendly_target"
+   ]
+  },
+  "relic": {
+   "scenes": [
+    "relic_impl",
+    "relic_reclassification",
+    "vis_growth",
+    "card_desc",
+    "card_desc_fit",
+    "build_affinity",
+    "build_progression",
+    "merchant_build_offer",
+    "economy",
+    "event_trade",
+    "event_maxhp",
+    "node_cards"
+   ]
+  },
+  "ui": {
+   "scenes": [
+    "ea_ui",
+    "op_select",
+    "codex",
+    "credits",
+    "esc_layers",
+    "title_menu",
+    "touch_move",
+    "cam_resize",
+    "cam_resize_touch",
+    "touch_layout",
+    "public_gallery",
+    "gallery_demo",
+    "settlement",
+    "run_stats",
+    "meta",
+    "meta_mech",
+    "roster",
+    "tour",
+    "save_migrate",
+    "medals",
+    "cloud_save",
+    "menu_bgm",
+    "suno_layers",
+    "play_clock",
+    "feedback",
+    "time_scale_combo",
+    "ui_smoke"
+   ]
+  },
+  "render": {
+   "scenes": [
+    "render_perf",
+    "look"
+   ]
+  },
+  "op_shared": {
+   "scenes": [
+    "response",
+    "response_skill",
+    "response_p2a",
+    "response_p2b",
+    "response_p2c",
+    "response_p2d",
+    "response_p2e",
+    "response_p2f",
+    "response_p2g",
+    "skill_lifecycle",
+    "attack_phases",
+    "attack_timing",
+    "attack_rhythm",
+    "move_attack",
+    "operator_transitions",
+    "synergy_a",
+    "synergy_b",
+    "synergy_c",
+    "synergy_d",
+    "synergy_conflict_a",
+    "synergy_conflict_b",
+    "summon_visual",
+    "summon_seal_blocks",
+    "op_dummy",
+    "invuln_skill_hold",
+    "assault_dash",
+    "three_operator_art",
+    "doctor_run",
+    "klc_contract",
+    "hit_fallback"
+   ]
+  }
+ },
+ "op_scenes": {
+  "eyjafjalla": [
+   "eyja_volcanic_weight"
+  ],
+  "siege": [
+   "siege_ulpianus_art"
+  ],
+  "ulpianus": [
+   "siege_ulpianus_art",
+   "ulpianus_charge",
+   "ulpianus_click"
+  ],
+  "exusiai": [
+   "exusiai_blocks"
+  ],
+  "suzuran": [
+   "suzuran_skill_anim"
+  ],
+  "angelina": [
+   "angelina_skill_anim"
+  ],
+  "skalter": [
+   "skalter_specter_anim"
+  ],
+  "specter_unchained": [
+   "skalter_specter_anim"
+  ],
+  "mizuki": [
+   "mizuki_runtime",
+   "mizuki_skill_anim"
+  ],
+  "lappland": [
+   "lappland_presentation"
+  ],
+  "gladiia": [
+   "gladiia_hook",
+   "gladiia_presentation"
+  ],
+  "hoshiguma": [
+   "hoshiguma_taunt"
+  ],
+  "texas": [
+   "texas_contract"
+  ],
+  "logos": [
+   "logos_projectiles"
+  ],
+  "wisadel": [
+   "wisadel_s2",
+   "wisadel_soul",
+   "wisadel_cannon",
+   "wisadel_fx_radius",
+   "wisadel_boom"
+  ],
+  "kaltsit": [
+   "mon3tr_fx",
+   "m3_hp",
+   "m3_hp_off"
+  ],
+  "saria": [
+   "saria_slots"
+  ]
+ },
+ "op_alias": {
+  "specter": "specter_unchained"
+ },
+ "rules": [
+  {
+   "glob": "docs/**",
+   "groups": [],
+   "why": "文档不影响运行"
+  },
+  {
+   "glob": "**/*.md",
+   "groups": [],
+   "why": "文档"
+  },
+  {
+   "glob": "**/*.uid",
+   "groups": [],
+   "why": "uid"
+  },
+  {
+   "glob": "**/*.import",
+   "groups": [],
+   "why": "导入缓存"
+  },
+  {
+   "glob": "tools/check.py",
+   "groups": [
+    "core",
+    "smoke-sample"
+   ],
+   "why": "改测试工具本身：核心契约 + 抽样冒烟；合入 CI 全量兜底"
+  },
+  {
+   "glob": "tools/check_plan.py",
+   "groups": [
+    "core",
+    "smoke-sample"
+   ],
+   "why": "同上"
+  },
+  {
+   "glob": "tools/check_map.json",
+   "groups": [
+    "core",
+    "smoke-sample"
+   ],
+   "why": "同上"
+  },
+  {
+   "glob": "tools/godot_runner.py",
+   "groups": [
+    "core",
+    "smoke-sample"
+   ],
+   "why": "同上"
+  },
+  {
+   "glob": "tools/**",
+   "groups": [],
+   "why": "其余工具：静态项恒跑，不开 Godot（作为某静态项的脚本时它自己的项恒跑）"
+  },
+  {
+   "glob": "game/tests/**",
+   "groups": [
+    "test-file"
+   ],
+   "why": "改测试文件：只跑引用该文件的项（代码内特殊处理）"
+  },
+  {
+   "glob": "game/data/characters/*.json",
+   "groups": [
+    "op-tier"
+   ],
+   "why": "干员数据：该干员冒烟 / 成长节点 / 手动攻击 / 复现 + 含其名的场景",
+   "ops": "stem"
+  },
+  {
+   "glob": "game/scripts/characters/blocks/seg_*.gd",
+   "groups": [
+    "op-tier"
+   ],
+   "why": "单干员积木段",
+   "ops": "seg"
+  },
+  {
+   "glob": "game/scripts/characters/blocks/*.gd",
+   "groups": [
+    "core",
+    "op_shared",
+    "smoke-sample",
+    "repro"
+   ],
+   "why": "积木基座（ob_* 等是单继承链）：影响全员，抽样冒烟 + 干员共用场景"
+  },
+  {
+   "glob": "game/art/operators/**",
+   "groups": [
+    "op-tier"
+   ],
+   "why": "干员帧条",
+   "ops": "art"
+  },
+  {
+   "glob": "game/scripts/characters/*.gd",
+   "groups": [
+    "op-tier"
+   ],
+   "why": "干员脚本（共用文件已在 escalate 里升级）",
+   "ops": "stem"
+  },
+  {
+   "glob": "game/scripts/enemies/bosses/**",
+   "groups": [
+    "core",
+    "boss",
+    "prot",
+    "repro"
+   ],
+   "why": "Boss 脚本"
+  },
+  {
+   "glob": "game/scripts/enemies/shot_pool.gd",
+   "groups": [
+    "core",
+    "boss",
+    "prot",
+    "repro"
+   ],
+   "why": "弹幕池"
+  },
+  {
+   "glob": "game/scripts/enemies/boss_patterns.gd",
+   "groups": [
+    "core",
+    "boss",
+    "prot",
+    "repro"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/enemies/final_attacks.gd",
+   "groups": [
+    "core",
+    "boss",
+    "prot",
+    "repro"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/enemies/mid_cards.gd",
+   "groups": [
+    "core",
+    "boss",
+    "repro"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/enemies/telegraph.gd",
+   "groups": [
+    "core",
+    "boss",
+    "enemy"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/boss_ai.gd",
+   "groups": [
+    "core",
+    "boss",
+    "prot",
+    "repro"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/allies/**",
+   "groups": [
+    "core",
+    "boss",
+    "smoke-sample"
+   ],
+   "why": "骑士友军"
+  },
+  {
+   "glob": "game/scripts/run/boss_*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "prot",
+    "repro"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/run/ishar_encounter.gd",
+   "groups": [
+    "core",
+    "boss",
+    "repro"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/enemies/**",
+   "groups": [
+    "core",
+    "enemy",
+    "smoke-sample",
+    "repro"
+   ],
+   "why": "普通怪"
+  },
+  {
+   "glob": "game/scripts/render/boss_*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/render/ishar*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/render/izumik*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/render/paranoia*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/render/final_*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/render/mid_card*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/render/laser*.gd",
+   "groups": [
+    "core",
+    "boss",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/render/**",
+   "groups": [
+    "core",
+    "render",
+    "enemy"
+   ],
+   "why": "绘制层：画面类场景，不跑整局"
+  },
+  {
+   "glob": "game/scripts/screens/command_wheel.gd",
+   "groups": [
+    "command",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/screens/choice_panel.gd",
+   "groups": [
+    "core",
+    "relic",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/screens/**",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": "界面不影响战斗结果"
+  },
+  {
+   "glob": "game/scripts/endings.gd",
+   "groups": [
+    "core",
+    "relic",
+    "ui"
+   ],
+   "why": "事件结算"
+  },
+  {
+   "glob": "game/scripts/core/relic_db.gd",
+   "groups": [
+    "core",
+    "relic"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/core/meta.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/core/medals.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/core/roster.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/core/cloud_pack.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/run/build_affinity.gd",
+   "groups": [
+    "core",
+    "relic"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/run/practice_squads.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/run/gallery_progress.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/run/music_director.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/scripts/{ui,ui_motion,title,title_bg,title_deep,title_tree,settings,settings_panel,touch,touch_layout,pad,gallery,sfx,post_fx,cloud_save}.gd",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": "界面 / 设置 / 触屏 / 音效"
+  },
+  {
+   "glob": "game/scripts/relic_fx.gd",
+   "groups": [
+    "core",
+    "relic",
+    "render"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/relics.json",
+   "groups": [
+    "core",
+    "relic"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/relic_effects.json",
+   "groups": [
+    "core",
+    "relic"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/build.json",
+   "groups": [
+    "core",
+    "relic"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/events_v2.json",
+   "groups": [
+    "core",
+    "relic"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/cards.json",
+   "groups": [
+    "core",
+    "relic",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/{meta_tree,meta_roots,medals,medals_layout}.json",
+   "groups": [
+    "core",
+    "relic",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/{guide,lore,credits,practice_squads,boot_order}.json",
+   "groups": [
+    "core",
+    "ui"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/synergy.json",
+   "groups": [
+    "core",
+    "op_shared"
+   ],
+   "why": ""
+  },
+  {
+   "glob": "game/data/{waves,enemies,enemy_pixels,enemy_redraw}.json",
+   "groups": [
+    "core",
+    "enemy",
+    "boss",
+    "repro",
+    "smoke-sample"
+   ],
+   "why": "波次 / 敌人数据影响整局"
+  },
+  {
+   "glob": "game/art/**",
+   "groups": [],
+   "why": "贴图：静态项（art_lint / asset_lint / asset_index）已覆盖；运行时贴图缺失靠 graph_lint"
+  },
+  {
+   "glob": "art/**",
+   "groups": [],
+   "why": "素材源：静态项覆盖"
+  },
+  {
+   "glob": "game/audio/**",
+   "groups": [
+    "ui",
+    "boss"
+   ],
+   "why": "音频：menu_bgm / suno_layers / beam_audio"
+  }
+ ],
+ "escalate": [
+  "game/scripts/characters/character.gd",
+  "game/scripts/characters/op_api.gd",
+  "game/scripts/characters/squad.gd",
+  "game/scripts/characters/doctor.gd",
+  "game/scripts/characters/data_operator.gd",
+  "game/scripts/characters/operator_defs.gd",
+  "game/scripts/characters/op_blocks.gd",
+  "game/scripts/game.gd",
+  "game/scripts/run/combat.gd",
+  "game/scripts/core/balance.gd",
+  "game/scripts/core/bot.gd",
+  "game/scripts/core/stat_block.gd",
+  "game/scripts/core/stat_defs.gd",
+  "game/data/balance.json",
+  "game/data/doctor.json",
+  "game/project.godot",
+  "game/scripts/run/progression.gd",
+  "game/scripts/run/enemies.gd",
+  "game/scripts/run/affects.gd",
+  "game/scripts/run/pickups.gd",
+  "game/scripts/data.gd"
+ ],
+ "unknown": [
+  "core",
+  "smoke-sample"
+ ],
+ "full_only": [
+  "runs_log_guard",
+  "trace_fields"
+ ]
+}

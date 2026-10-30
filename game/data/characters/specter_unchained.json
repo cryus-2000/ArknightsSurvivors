@@ -14,6 +14,8 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
+  "_doc_grow202": "docs/202 强度回补（协调人 10-29 木桩 ±10%）：原数值节点换成机制后单体木桩掉秒伤，配套伤害倍率放回节点；待试验参数",
+  "grow_dmg_beast": 1.1,
   "_doc": "基础数值",
   "atk": 46,
   "cd": 1.2,
@@ -39,9 +41,16 @@
   "ring_tick": 0.5,
   "ring_mult": 0.2,
   "ring_max": 6,
-  "beast_reach": 1.5,
-  "elegy_every": 0.8,
-  "elegy_r_mult": 2.0,
+  "beast_cd": 0.5,
+  "hum_max": 12,
+  "hum_rk": 1.3,
+  "res_quake_r": 160,
+  "res_quake_mult": 0.5,
+  "res_push": 60,
+  "res_blade_every": 5,
+  "res_blade_len": 200,
+  "res_blade_mult": 0.3,
+  "res_blade_max": 4,
   "whirl_dur": 0.6,
   "whirl_dur_dark": 1.2,
   "whirl_tick": 0.15,
@@ -60,11 +69,9 @@
   "flash_spins": 3,
   "flash_gap": 0.15,
   "flash_n": 16,
-  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 困兽 / 阿戈尔挽歌，节点 5：beast2_* 困兽·反噬（技巧期间每斩拉近），elegy2_* 阿戈尔挽歌·安魂（渴望期间替身周围伤害 + 减速）。数值为待试验参数",
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22；docs/202 改机制）：节点 4 二选一 困兽（S1 期间队长被命中追加环斩，beast_cd） / 锯鸣（id elegy：命中攒 hum_max 点，攒满下一圈变旋锯，旋锯沿用 whirl_dur / whirl_tick / whirl_mult，范围 × hum_rk）；节点 5：beast2_* 困兽·反噬（技巧期间每斩拉近），res_* 锯鸣·共振（id elegy2：旋锯收尾震地 + 每 res_blade_every 次命中甩水刃）。以上为待试验参数",
   "beast2_r_k": 1.8,
-  "beast2_dist": 25,
-  "elegy2_mult": 0.3,
-  "elegy2_slow": 1.0
+  "beast2_dist": 25
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2803 / 防御 322 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -537,6 +544,25 @@
     "dot"
    ]
   },
+  "锯鸣·震地": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area"
+   ]
+  },
+  "水刃": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "projectile",
+    "entity"
+   ]
+  },
   "血色潮痕": {
    "emitter": "operator",
    "origin": "route",
@@ -589,42 +615,42 @@
    "id": "beast",
    "name": "困兽",
    "icon": "skill_specter_unchained_s1",
-   "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%",
+   "desc": "「生存的技巧」期间，队长每被命中一次，她立即追加一次环斩（{$beast_cd} 秒内至多一次）；伤害 ×{$grow_dmg_beast}",
    "branch": {
     "beast": {
      "id": "beast",
      "name": "困兽",
      "icon": "skill_specter_unchained_s1",
-     "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%"
+     "desc": "「生存的技巧」期间，队长每被命中一次，她立即追加一次环斩（{$beast_cd} 秒内至多一次）；伤害 ×{$grow_dmg_beast}"
     },
     "elegy": {
      "id": "elegy",
-     "name": "阿戈尔挽歌",
-     "icon": "skill_specter_unchained_s2",
-     "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）"
+     "name": "锯鸣",
+     "icon": "growth_b_echo",
+     "desc": "环斩每命中 1 名敌人攒 1 点锯鸣（上限 {$hum_max}）；攒满时下一圈环斩变为旋锯：持续 {$whirl_dur} 秒，每 {$whirl_tick} 秒一次，范围 +{$hum_rk*100-100}%，每次为环斩伤害的 {$whirl_mult*100}%，结束后清零"
     }
    },
-   "branch_desc": "「困兽」扩大「生存的技巧」期间的环斩范围；「阿戈尔挽歌」扩大替身的减速范围",
+   "branch_desc": "「困兽」使「生存的技巧」期间队长受击时追加环斩；「锯鸣」使环斩攒满后变为旋锯",
    "bot": "beast"
   },
   {
    "type": "custom",
    "id": "elegy",
-   "name": "阿戈尔挽歌",
-   "icon": "skill_specter_unchained_s2",
-   "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）",
+   "name": "锯鸣",
+   "icon": "growth_b_echo",
+   "desc": "环斩每命中 1 名敌人攒 1 点锯鸣（上限 {$hum_max}）；攒满时下一圈环斩变为旋锯：持续 {$whirl_dur} 秒，每 {$whirl_tick} 秒一次，范围 +{$hum_rk*100-100}%，每次为环斩伤害的 {$whirl_mult*100}%，结束后清零",
    "routes": {
     "beast": {
      "id": "beast2",
      "name": "困兽·反噬",
-     "icon": "skill_specter_s1",
+     "icon": "skill_specter_unchained_s1",
      "desc": "「生存的技巧」期间每次环斩起手把周围 {$reach_skill*$beast2_r_k:0} 内的敌人拉近 {$beast2_dist}（精英减半，Boss 免疫拉拽）"
     },
     "elegy": {
      "id": "elegy2",
-     "name": "阿戈尔挽歌·安魂",
-     "icon": "skill_specter_s2",
-     "desc": "「生存的渴望」期间每 {$elegy_every} 秒，替身周围 {$doll_r} 内的敌人受到 {$elegy2_mult*$k_pow*100:1}% 法术伤害并减速 {$elegy2_slow} 秒"
+     "name": "锯鸣·共振",
+     "icon": "growth_t_field",
+     "desc": "旋锯结束时震地一圈（半径 {$res_quake_r}，环斩伤害的 {$res_quake_mult*100}%，击退，Boss 除外）；旋锯期间每命中 {$res_blade_every} 次，锯刃甩出一道水刃（飞出 {$res_blade_len}，穿透，环斩伤害的 {$res_blade_mult*100}%，每次旋锯至多 {$res_blade_max} 道）"
     }
    }
   },
@@ -665,11 +691,6 @@
     {
      "cond": "skill_active:2",
      "mult": "$s3_reach"
-    },
-    {
-     "cond": "node:beast && skill_active:0",
-     "mult": "$beast_reach",
-     "status": "困兽"
     }
    ],
    "every": "$cd",
@@ -719,6 +740,26 @@
     "cond": "node:double_spin",
     "delay": "$spin2_delay",
     "mult": "$spin2_mult"
+   },
+   "saw_hum": {
+    "cond": "node:elegy",
+    "max": "$hum_max",
+    "dur": "$whirl_dur",
+    "tick": "$whirl_tick",
+    "mult": "$whirl_mult",
+    "r_k": "$hum_rk",
+    "_doc": "docs/202 节点 4B 锯鸣：环斩每命中 1 名攒 1 点（上限 max），攒满时下一圈环斩变为旋锯（持续 dur 秒、每 tick 秒一次、范围 × r_k、每次环斩伤害 × mult），之后清零"
+   },
+   "saw_res": {
+    "cond": "node:elegy2",
+    "quake_r": "$res_quake_r",
+    "quake_mult": "$res_quake_mult",
+    "push": "$res_push",
+    "blade_every": "$res_blade_every",
+    "blade_len": "$res_blade_len",
+    "blade_mult": "$res_blade_mult",
+    "blade_max": "$res_blade_max",
+    "_doc": "docs/202 节点 5B 锯鸣·共振：旋锯收尾震地（半径 quake_r、主环斩 × quake_mult、推开 push）；旋锯期间每命中 blade_every 次甩一道水刃（飞出 blade_len、穿透、主环斩 × blade_mult，一次旋锯至多 blade_max 道）"
    },
    "trail": {
     "cond": "node:blood_ring",
@@ -953,19 +994,9 @@
        "every": 1.0,
        "r": "$doll_r",
        "slow": 1.0,
-       "slow_mults": [
-        {
-         "cond": "node:elegy",
-         "mult": "$elegy_r_mult"
-        }
-       ],
        "dps": "$doll_dps",
        "src": "替身",
-       "_doc": "天赋拥抱自我：替身每秒对周围 doll_r（10-29 起 168，原 120）内敌人法伤并减速（挽歌：减速范围翻倍）"
-      },
-      "elegy": {
-       "cond": "node:elegy",
-       "every": "$elegy_every"
+       "_doc": "天赋拥抱自我：替身每秒对周围 doll_r（10-29 起 168，原 120）内敌人法伤并减速"
       }
      }
     ],
@@ -1081,15 +1112,24 @@
     "do": [],
     "_doc": "血色潮痕：写在 attack.trail（cond node:blood_ring）"
    },
-   "beast": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "困兽：写在 attack.r_mults（cond node:beast && skill_active:0）"
+   "beast": [
+   {
+    "trig": "on_hurt",
+    "cond": "skill_active:0",
+    "cd": "$beast_cd",
+    "_doc": "困兽（docs/202 节点 4A）：S1「生存的技巧」期间队长每被命中一次，立即追加一次环斩（beast_cd 秒内至多一次）",
+    "do": [
+     {
+      "verb": "saw_echo"
+     }
+    ]
    },
+   {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_beast"}
+   ],
    "elegy": {
     "trig": "passive",
     "do": [],
-    "_doc": "阿戈尔挽歌：写在 S2 的 verb.substitute（doll_aura.slow_mults / elegy）"
+    "_doc": "锯鸣（docs/202 节点 4B，id 沿用 elegy）：写在 attack.saw_hum（cond node:elegy）"
    },
    "elite1": {
     "trig": "on_windup",
@@ -1153,30 +1193,9 @@
     ]
    },
    "elegy2": {
-    "trig": "tick",
-    "every": "$elegy_every",
-    "cond": "skill_active:1",
-    "_doc": "阿戈尔挽歌·安魂（路线 elegy 节点 5）：渴望期间替身（跟随队长）周围伤害 + 减速",
-    "do": [
-     {
-      "shape": "circle",
-      "center": "leader",
-      "r": "$doll_r",
-      "mult": "$elegy2_mult",
-      "power": true,
-      "src": "替身",
-      "tags": [
-       "skill",
-       "dot"
-      ],
-      "on_hit": [
-       {
-        "st": "slow",
-        "dur": "$elegy2_slow"
-       }
-      ]
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "锯鸣·共振（docs/202 节点 5B，id 沿用 elegy2）：写在 attack.saw_res（cond node:elegy2）"
    }
   },
   "response": [

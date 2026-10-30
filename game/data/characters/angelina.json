@@ -71,7 +71,18 @@
   "route_dmg": 1.075,
   "pull4_delay": 0.6,
   "pull4_stun": 0.4,
-  "lock2_mult": 0.2
+  "_growth": "成长节点去数值化（docs/202 §3.11，待试验参数）：lens_* 重力透镜（弹道两侧 lens_r 内、每发至多 lens_pull 像素）；dense_* 致密（落点 ≥ dense_n 名 → 叠向中心 dense_gather 像素 → dense_delay 秒后半径 dense_r、dense_mult 倍攻击的爆开）；lock2_* 潮汐锁·沉落（环带停留 lock2_t 秒 → 悬浮 lock2_air 秒，每名敌人 lock2_cd 秒一次；lock2_every 为停留累计间隔）",
+  "lens_r": 60,
+  "lens_pull": 20,
+  "dense_n": 5,
+  "dense_gather": 36,
+  "dense_delay": 0.3,
+  "dense_r": 60,
+  "dense_mult": 0.3,
+  "lock2_t": 2.0,
+  "lock2_air": 0.6,
+  "lock2_cd": 6.0,
+  "lock2_every": 0.5
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1484 / 防御 134 / 法抗 20%，远程主控有效生命 ×1.00",
@@ -439,29 +450,17 @@
  "progression": [
   {
    "type": "custom",
-   "id": "wide",
-   "name": "引力扩散",
-   "icon": "growth_b_range",
-   "desc": "重力弹的落点范围与拉拢范围 ×{$n1_area}",
-   "alt": {
-    "id": "pull2",
-    "name": "双重引力",
-    "icon": "growth_b_echo",
-    "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）"
-   }
+   "id": "pull2",
+   "name": "双重引力",
+   "icon": "growth_b_echo",
+   "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）"
   },
   {
    "type": "custom",
    "id": "dense",
    "name": "致密",
    "icon": "growth_b_size",
-   "desc": "重力弹伤害 ×{$n2_dmg}",
-   "alt": {
-    "id": "wide",
-    "name": "引力扩散",
-    "icon": "growth_b_range",
-    "desc": "重力弹的落点范围与拉拢范围 ×{$n1_area}"
-   }
+   "desc": "重力弹飞行途中，弹道两侧 {$lens_r} 内的敌人被吸向弹道中线（每发至多 {$lens_pull}，精英减半，重型更小，Boss 除外）；落点内有 {$dense_n} 名以上敌人时，被命中的敌人叠向中心，{$dense_delay} 秒后坍缩爆开（半径 {$dense_r}，{$dense_mult*100}% 法术伤害）"
   },
   {
    "type": "elite",
@@ -498,10 +497,10 @@
   },
   {
    "type": "custom",
-   "id": "lock",
-   "name": "潮汐锁",
+   "id": "lock2",
+   "name": "潮汐锁·沉落",
    "icon": "skill_angelina_s2",
-   "desc": "「秘杖·微粒模式」的环带上的敌人每 {$lock_tick} 秒受到重力弹 {$lock_mult*100}% 的法术伤害",
+   "desc": "「秘杖·微粒模式」环带内停留满 {$lock2_t} 秒的敌人被锁定，悬浮 {$lock2_air} 秒（精英减半，Boss 除外）；每名敌人 {$lock2_cd} 秒内至多一次",
    "routes": {
     "pull": {
      "id": "pull4",
@@ -511,9 +510,9 @@
     },
     "lock": {
      "id": "lock2",
-     "name": "潮汐锁·深锁",
+     "name": "潮汐锁·沉落",
      "icon": "skill_angelina_s2",
-     "desc": "「秘杖·微粒模式」环带上的敌人每 {$lock_tick} 秒再受重力弹 {$lock2_mult*100}% 法术伤害；重力弹伤害 ×{$route_dmg}"
+     "desc": "「秘杖·微粒模式」环带内停留满 {$lock2_t} 秒的敌人被锁定，悬浮 {$lock2_air} 秒（精英减半，Boss 除外）；每名敌人 {$lock2_cd} 秒内至多一次"
     }
    }
   },
@@ -855,17 +854,10 @@
    }
   ],
   "progression": {
-   "wide": {
-    "verb": "buff_self",
-    "stat": "area",
-    "op": "mult",
-    "value": "$n1_area"
-   },
    "dense": {
-    "verb": "buff_self",
-    "stat": "dmg",
-    "op": "mult",
-    "value": "$n2_dmg"
+    "trig": "passive",
+    "do": [],
+    "_doc": "致密（docs/202）：逻辑在 seg_angelina.dense_collapse / dense_tick（落点 ≥ dense_n 名敌人 → 叠向中心 → 坍缩爆开）"
    },
    "pull2": {
     "trig": "on_impact",
@@ -885,24 +877,6 @@
       "dir": "pull",
       "dist": "$pull*$pull2_mult",
       "elite_mult": "$pull_elite"
-     }
-    ]
-   },
-   "lock": {
-    "verb": "field",
-    "center": "leader",
-    "r": "$s2_r",
-    "ring": "$s2_ring",
-    "ring_w": "$lock_w",
-    "every": "$lock_tick",
-    "look": "none",
-    "cond": "skill_active:1",
-    "tick": [
-     {
-      "st": "dot",
-      "mult": "$lock_mult",
-      "src": "潮汐锁",
-      "where": "ring"
      }
     ]
    },
@@ -969,24 +943,19 @@
      "r": "$s2_r",
      "ring": "$s2_ring",
      "ring_w": "$lock_w",
-     "every": "$lock_tick",
+     "every": "$lock2_every",
      "look": "none",
      "cond": "skill_active:1",
      "tick": [
       {
-       "st": "dot",
-       "mult": "$lock2_mult",
-       "src": "潮汐锁",
-       "where": "ring"
+       "st": "airborne",
+       "dur": "$lock2_air",
+       "h": 22,
+       "sink": "$lock2_t",
+       "sink_cd": "$lock2_cd"
       }
      ],
-     "_doc": "潮汐锁·深锁（路线 lock 节点 5）：环带再叠一层持续伤害"
-    },
-    {
-     "verb": "buff_self",
-     "stat": "dmg",
-     "op": "mult",
-     "value": "$route_dmg"
+     "_doc": "潮汐锁·沉落（docs/202，路线 lock 节点 5）：环带内停留满 lock2_t 秒的敌人悬浮 lock2_air 秒（seg_angelina.sink_tick，控制走 add_cc_growth），每名敌人 lock2_cd 秒内至多一次"
     }
    ],
    "lockb": [

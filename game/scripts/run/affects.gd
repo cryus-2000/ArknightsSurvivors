@@ -30,8 +30,12 @@ const LOWER_BETTER := ["dmg_taken", "phys_taken", "corrode_taken", "nerve_taken"
 const TRAIT_STATS := {"melee_dmg": "近战", "ranged_dmg": "远程", "physical_dmg": "物理", "arts_dmg": "法术", "followup_dmg": "追击"}
 ## 流派件（docs/181）：控制时长只收窄标签（效果仍全局，§4 第 2 条）；穿甲弹按流派生效
 const LANE_STATS := {"control_dur": "control"}
-const LANE_RULES := {"atk_pierce_all": "multi", "all_weak": "weak"}
-const LEADER_RULES := ["shield_burst", "shield_heal", "king_cake", "revive_once"]
+const LANE_RULES := {"atk_pierce_all": "multi", "all_weak": "weak",
+	# 改打法件（docs/203）
+	"melee_sweep": "melee", "melee_thrust": "melee", "melee_crowd": "melee", "multi_split": "multi", "multi_far": "multi",
+	"summon_echo": "summon", "summon_burst": "summon", "weak_expose": "weak", "weak_crit": "weak", "weak_pass": "weak",
+	"ctrl_amp": "control", "ctrl_chain": "control", "ctrl_freeze": "control", "kb_stun": "control"}
+const LEADER_RULES := ["shield_burst", "shield_heal", "king_cake", "revive_once", "shield_pulse", "shield_dr", "dash_dodge"]
 const GLOBAL_RULES := ["four_choices", "rare_weight", "deep_sea", "tree_light", "resolve_elite"]
 const LEADER_GAINS := ["heal", "shield_fill"]
 ## 附带数值的短名（标签后缀「仅物伤」，docs/76 简称）

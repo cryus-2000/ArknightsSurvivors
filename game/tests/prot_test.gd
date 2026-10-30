@@ -44,10 +44,14 @@ func _process(_d: float) -> void:
 	# 会改变 Boss 保护各用例的期望值；只在 test_any_cap 里临时打开。测完还原（数值 9/27 收口轮发现）。
 	# 10-30 起代码缺省 = json 值（docs/199 对账），清空整段不再等于「关」，所以写明关的值
 	var bal_bak: Dictionary = Bal._data.duplicate(true)
+	# 「代码缺省」现在 = json 值（docs/199 对账）：这里要的是「关」，显式写出旧缺省（通用 2 秒上限关、超额倍率 1）
 	Bal._data["protect"] = {"any_2s_cap": 0.0, "any_excess_mult": 1.0}
 	if Bal._data.has("enemy"):
 		Bal._data["enemy"]["corrode_pool_cap"] = 0.0
 	# 放一只真的 Boss 在远处（「Boss 在场」），整个测试期间它不动：直接调结算函数，不推进游戏帧
+	# 满血保护的用例按 10% / 30 秒冷却写；docs/178 把 json 调成 5% / 60 秒（难度危险感回调），这里钉回测机制用的旧值，测完随 bal_bak 还原
+	Bal._data["boss"]["fullhp_guard_left"] = 0.1
+	Bal._data["boss"]["fullhp_guard_cd"] = 30.0
 	var b: Dictionary = game.spawner.spawn_enemy("knight_boss", game.ppos + Vector2(2000, 0))
 	game.bosses.append(b)
 	boss_e = b
@@ -101,6 +105,7 @@ func _process(_d: float) -> void:
 
 
 func ok(cond: bool, what: String) -> void:
+	Bal.clear_cache()   # 本文件大量经持有的段引用（nb / p2 / ops …）改 / 还原旋钮，Bal 的读取缓存不知道；每条断言后清一次（docs/199 §5）
 	n += 1
 	if not cond:
 		fails += 1
@@ -1147,6 +1152,7 @@ func test_beacon_guide() -> void:
 	var s1: int = game.rng_spawn.state
 	game.rng_spawn.state = s0
 	nb["shade_deg"] = 50.0
+	Bal.clear_cache()   # 上面 edge_pos 读过 shade_deg = 0，经持有的 nb 引用改值缓存不知道
 	var bad := 0
 	for i in 40:
 		var p: Vector2 = game.spawner.edge_pos()
@@ -1258,7 +1264,7 @@ func test_warn_style() -> void:
 ## 后期暴毙方案 3（用户 9/27）：通用 2 秒掉血上限（protect/any_2s_cap，缺省关）与非 Boss 侵蚀池上限（enemy/corrode_pool_cap，缺省不封顶）
 func test_any_cap() -> void:
 	var mh: float = game.max_hp
-	ok(is_equal_approx(c._any_clamp(mh), mh), "通用 2 秒上限：测试期间关（protect/any_2s_cap 置 0）")
+	ok(is_equal_approx(c._any_clamp(mh), mh), "通用 2 秒上限：关（测试期间 protect 段显式写成关）")
 	var bak_p: Dictionary = Bal._data.get("protect", {}).duplicate()
 	var bak_e: Dictionary = Bal._data.get("enemy", {}).duplicate()
 	Bal._data["protect"] = {"any_2s_cap": 0.45, "any_excess_mult": 0.4}
@@ -1307,6 +1313,7 @@ func test_saria_cleanse() -> void:
 	game.root_t = 0.5
 	ok(not OBs.h4_cleanse_ctrl(sa, false) and game.cold == 2 and game.root_t == 0.5, "operators/saria/cleanse = 0：不净化")
 	ops["saria"] = sbak
+	Bal.clear_cache()   # 经持有的 ops 引用还原，缓存不知道（docs/199 §5）
 	game.cold = 0
 	game.root_t = 0.0
 	c.sync_cold()
@@ -1873,11 +1880,13 @@ func test_squad_sustain_dash() -> void:
 	var t_old := [sq_sec.get("regen_t1", -1.0), sq_sec.get("regen_t2", -1.0)]
 	sq_sec["regen_t1"] = 0.5
 	sq_sec["regen_t2"] = 1.3
+	Bal.clear_cache()   # 经持有的 sq_sec 引用改值（docs/199 §5）
 	ok(absf(sq.regen_bonus(1) - 0.5) < 1e-6 and absf(sq.regen_bonus(2) - 1.8) < 1e-6 and absf(sq.regen_bonus(3) - 1.8 - rper) < 1e-6,
 		"分档 0.5 / 1.3：台阶合计 %.2f / %.2f / %.2f" % [sq.regen_bonus(1), sq.regen_bonus(2), sq.regen_bonus(3)])
 	ok(sq.regen_steps_text() == "0.5 / 1.3", "分档时指南写「%s」" % sq.regen_steps_text())
 	sq_sec["regen_t1"] = t_old[0]
 	sq_sec["regen_t2"] = t_old[1]
+	Bal.clear_cache()
 	var added: Array = []
 	for cid in ["skadi", "kaltsit", "lumen", "eyjafjalla"]:
 		if sq.is_full() or sq.has(cid):

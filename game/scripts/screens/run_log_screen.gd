@@ -260,11 +260,10 @@ func draw(vs: Vector2) -> void:
 		# 编队头像：队长在前、大一号
 		var hx: float = cx.ops + dx
 		for j in mini((e.ops as Array).size(), 6):
-			var hs := (rh - 14.0) if j == 0 else (rh - 22.0)
-			var box := Rect2(hx, r.end.y - 4.0 - hs, hs, hs)
+			var box := Rect2(hx, r.position.y + 2.0, 44.0, r.size.y - 4.0)   # 框高 = 行高：所有人同一比例（op_figure，48 高 → 1 倍）
 			g.run_stats._c = _c
-			g.run_stats._portrait(str(e.ops[j]), box, 2.0, true)
-			hx += hs + 2.0
+			g.run_stats._portrait(str(e.ops[j]), box)
+			hx += 46.0
 		_t(Vector2(cx.end + dx, cy - 9), "探索完成" if e.won else ("中途退出" if e.quit else "探索终止"), 15, Color(ac if e.won else SB.MAG.lightened(0.25), ea))
 		_t(Vector2(cx.end + dx, cy + 11), str(e.end) if not e.quit else "", 12, sub, 0, cx.t - cx.end - 70.0)
 		_p(Vector2(cx.t + dx, cy), "%02d:%02d" % [int(e.t) / 60, int(e.t) % 60], 2.0, ink, 2)

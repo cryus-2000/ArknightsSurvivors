@@ -15,8 +15,21 @@ static func enabled() -> bool:
 	return Bal.v("dmg_curve/on", 1.0) > 0.0
 
 
-## 目标曲线：关键点 [[秒, 池平均一下伤害], …]，首点之前取首点、末点之后取末点（封顶）；单调三次插值，处处一阶连续
+## 难度校准的中后段削减（docs/200，10-30）：dmg_curve/mid_cut 比例，从 mid_from 秒起按平滑阶梯（smoothstep）削到 mid_to 秒，之后保持；
+## mid_from 之前（前期伤害，用户亲定）不动；目标曲线仍单调（削减的斜率远小于曲线本身的斜率）。mid_cut 0 = 关
 static func target(t: float) -> float:
+	var cut: float = Bal.v("dmg_curve/mid_cut", 0.0)
+	var v: float = target_raw(t)
+	if cut <= 0.0:
+		return v
+	var a: float = Bal.v("dmg_curve/mid_from", 180.0)
+	var b: float = Bal.v("dmg_curve/mid_to", 420.0)
+	var x: float = clampf((t - a) / maxf(1.0, b - a), 0.0, 1.0)
+	return v * (1.0 - cut * x * x * (3.0 - 2.0 * x))
+
+
+## 关键点曲线本体：关键点 [[秒, 池平均一下伤害], …]，首点之前取首点、末点之后取末点（封顶）；单调三次插值，处处一阶连续
+static func target_raw(t: float) -> float:
 	var k: Array = Bal.sec("dmg_curve").get("knots", [])
 	var n: int = k.size()
 	if n == 0:

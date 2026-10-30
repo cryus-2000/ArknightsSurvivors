@@ -329,6 +329,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			_num(b, "text", p, ctx, false, 8.0, 40.0)
 			if b.has("full") and not (b.full is bool):
 				errs.append(p + ".full 只能是 true / false")
+			if b.has("split") and not (b.split is bool):
+				errs.append(p + ".split 只能是 true / false（true = 这一拍在队长与 Mon3tr 间分配）")
 			if b.has("scale") and str(b.scale) != "op":
 				errs.append(p + ".scale 只能是 op（× op_atk × 同伴倍率 × heal_out）")
 			if b.has("on_over"):
@@ -364,8 +366,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 				errs.append("%s.scope「%s」只能是 squad / others / in_zone / leader / self / faction:<阵营> / class:<职业>" % [p, sc])
 			if b.has("per"):
 				var pe := str(b.per)
-				if not ((pe.begins_with("faction:") or pe.begins_with("class:") or pe.begins_with("stack:")) and pe.find(":") < pe.length() - 1):
-					errs.append("%s.per「%s」只能是 faction:<阵营> / class:<职业> / stack:<层数 key>" % [p, pe])
+				if not ((pe.begins_with("faction:") or pe.begins_with("class:") or pe.begins_with("stack:") or pe.begins_with("gn:")) and pe.find(":") < pe.length() - 1):
+					errs.append("%s.per「%s」只能是 faction:<阵营> / class:<职业> / stack:<层数 key> / gn:<成长节点层数 key>" % [p, pe])
 				_num(b, "cap", p, ctx, true, 1.0)
 		"st.stun", "st.slow":
 			_num(b, "dur", p, ctx, true, 0.0, 10.0)
@@ -403,8 +405,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			if b.has("countdown") and not (b.countdown is bool):   # 手写迁移段：倒计时写法（生效当帧起算，到点重置为 every）
 				errs.append(p + ".countdown 只能是 true / false")
 		"trig.on_kill":
-			if not str(b.get("filter", "any")) in ["any", "elite", "boss"]:
-				errs.append(p + ".filter 只能是 any / elite / boss")
+			if not str(b.get("filter", "any")) in ["any", "elite", "boss", "zone_ally", "marked"]:
+				errs.append(p + ".filter 只能是 any / elite / boss / zone_ally / marked")
 			_list(b.get("do", []), p + ".do", "instant", ctx)
 
 

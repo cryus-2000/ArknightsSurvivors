@@ -7,6 +7,9 @@ const AIR_RISE := 0.15                        # 悬浮：起跳 / 落地秒数�
 
 const AIR_FALL := 0.2
 
+const _BalA = preload("res://scripts/core/balance.gd")   # docs/202 成长节点：控制递减（growth/cc_dr_*）与 op_api.add_cc_growth 同一旋钮
+const GRAV_C := Color(0.7, 0.5, 0.95)                       # 重力紫（同 data_operator.GRAV）
+
 static var _D = null
 
 
@@ -94,6 +97,9 @@ static func air_height(a: Dictionary) -> float:
 
 
 static func airborne_tick(o, dt: float) -> void:
+	if not o.taken.is_empty():   # docs/202 成长节点（透镜 / 致密）：没选节点时直接跳过，老局逐位不变
+		lens_tick(o, dt)
+		dense_tick(o, dt)
 	if o.air_list.is_empty():
 		return
 	for a in o.air_list:
@@ -101,6 +107,147 @@ static func airborne_tick(o, dt: float) -> void:
 		var e: Dictionary = a.e
 		o.set_air(e, 0.0 if e.dead or a.t >= a.dur else air_height(a))   # 托举不清击退（原样）
 	o.air_list = o.air_list.filter(func(a): return a.t < a.dur and not a.e.dead)
+
+
+## docs/202 沉落用的悬浮：同 lift，但控制走 add_cc_growth（同一敌人 3 秒内第二次受控时长减半）；画面悬浮时长同步减半
+static func lift_growth(o, e: Dictionary, dur: float, h: float) -> void:
+	if not _movable(e) or dur <= 0.0:
+		return
+	if e.elite:
+		dur *= 0.5
+	var dr: float = _BalA.v("growth/cc_dr_mult", 0.5) if o.g.t - float(e.get("gcc_t", -99.0)) < _BalA.v("growth/cc_dr_window", 3.0) else 1.0
+	o.add_cc_growth(e, dur, -INF, "airborne")
+	var vis: float = dur * dr
+	for a in o.air_list:
+		if is_same(a.e, e):
+			a.dur = maxf(a.dur, a.t + vis)
+			return
+	o.air_list.append({"e": e, "t": 0.0, "dur": vis, "h": h})
+
+
+## 节点「致密」带的重力透镜（dense；docs/202：原节点 wide 已并入致密，成长线只有 dense 能选到）：重力弹飞行途中，弹道（脚底到落点的直线）两侧 lens_r 内、弹头已扫过的敌人被吸向弹道中线，
+## 每名敌人每发至多吸 lens_pull 像素（精英 ×0.5、重型 ×0.3、Boss / 固定物不动）
+static func lens_tick(o, dt: float) -> void:
+	if o.shots.is_empty() or not ("dense" in o.taken):
+		return
+	var g = o.g
+	var r: float = o.base("lens_r", 60.0)
+	var cap: float = o.base("lens_pull", 20.0)
+	for s in o.shots:
+		var g0: Vector2 = s.get("g0", s.p0)
+		var L: Vector2 = s.p1 - g0
+		var len: float = L.length()
+		if len < 8.0:
+			continue
+		var d: Vector2 = L / len
+		var done: Dictionary = s.get("lens", {})
+		s["lens"] = done
+		var reach: float = clampf(s.t / maxf(0.05, s.dur), 0.0, 1.0) * len + 36.0
+		var step: float = cap * dt / maxf(0.1, s.dur) * 1.6
+		for j in o.query_ids((g0 + s.p1) * 0.5, len * 0.5 + r + 24.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or not _movable(e):
+				continue
+			var rel: Vector2 = e.pos - g0
+			var along: float = rel.dot(d)
+			if along < 0.0 or along > minf(len, reach):
+				continue
+			var perp: Vector2 = rel - d * along
+			var pd: float = perp.length()
+			if pd > r or pd < 2.0:
+				continue
+			var used: float = float(done.get(e.id, 0.0))
+			if used >= cap:
+				continue
+			var f: float = (0.5 if e.elite else 1.0) * (0.3 if _heavy(e) else 1.0) * float(g.enemy_kb_mult) * float(o.loc.force)
+			var mv: float = minf(minf(step * f, pd), cap - used)
+			o.nudge(e, -perp / pd * mv)
+			if used <= 0.0 and done.size() < 10:
+				o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "vel": -perp / pd * 90.0, "life": 0.22, "col": GRAV_C * 1.5, "sz": 2.0})
+			done[e.id] = used + mv
+
+
+## 重力弹飞行画面（data_operator._draw_shots 逐发调用）：弹道亮线 + 两侧透镜边线（只有选了重力透镜才画）
+static func lens_draw(o, s: Dictionary, _p: Vector2) -> void:
+	if not ("dense" in o.taken):
+		return
+	var cv = o.cv
+	var g0: Vector2 = s.get("g0", s.p0)
+	var L: Vector2 = s.p1 - g0
+	if L.length() < 8.0:
+		return
+	var n: Vector2 = L.normalized().orthogonal() * o.base("lens_r", 60.0) * 0.8
+	var k: float = clampf(s.t / maxf(0.05, s.dur), 0.0, 1.0)
+	var pk: Vector2 = g0.lerp(s.p1, k)
+	cv.draw_line(g0, s.p1, Color(GRAV_C.r, GRAV_C.g, GRAV_C.b, 0.22), 1.5)
+	cv.draw_line(g0, pk, Color(GRAV_C.r * 1.5, GRAV_C.g * 1.5, GRAV_C.b * 1.5, 0.7), 2.5)
+	for sg in [-1.0, 1.0]:   # 两侧向中线收拢的边线（到弹头处汇合）
+		cv.draw_line(g0 + n * sg, pk, Color(GRAV_C.r, GRAV_C.g, GRAV_C.b, 0.28), 1.0)
+
+
+## 节点「致密」（dense）：落点 ≥ dense_n 名敌人时，被命中的敌人叠向中心（dense_gather 像素，走 displace_one 的精英 / 重型倍率），
+## dense_delay 秒后坍缩爆开（半径 dense_r，dense_mult × 攻击）；队列 gr_q 最多 6 个
+static func dense_collapse(o, c: Vector2, hits: Array) -> void:
+	var q: Array = o.get_meta("gr_q", [])
+	if q.size() >= 6:
+		return
+	var gb := {"dir": "pull", "dist": o.base("dense_gather", 36.0), "elite_mult": o.base("pull_elite", 0.5)}
+	for e in hits:
+		if not e.dead:
+			displace_one(o, e, c, gb)
+	q.append({"t": o.base("dense_delay", 0.3), "c": c})
+	o.set_meta("gr_q", q)
+	var r: float = o.base("dense_r", 60.0) * float(o.loc.area)
+	o.fx({"kind": "ring", "pos": c, "r": 6.0, "r0": r * 1.1, "life": 0.3, "col": GRAV_C * 1.4, "floor": true, "keep": true, "w": 2.5})   # 向内收拢的环
+	o.fx({"kind": "glow", "pos": c, "r": 10.0, "life": 0.3, "col": Color(0.35, 0.2, 0.6), "alpha": 0.9})                 # 压缩成黑点
+
+
+static func dense_tick(o, dt: float) -> void:
+	if not o.has_meta("gr_q"):
+		return
+	var q: Array = o.get_meta("gr_q")
+	if q.is_empty():
+		return
+	var g = o.g
+	for it in q:
+		it.t -= dt
+		if it.t > 0.0:
+			continue
+		var r: float = o.base("dense_r", 60.0) * float(o.loc.area)
+		var dmg: float = o.base("atk", 0.0) * o.base("dense_mult", 0.3) * float(o.loc.dmg) * o._dmg_bonus()
+		o.area_hit("致密", it.c, r, dmg)
+		o.fx({"kind": "ring", "pos": it.c, "r": r, "r0": r * 0.2, "life": 0.28, "col": GRAV_C * 1.6, "floor": true, "keep": true, "w": 3.0})
+		o.fx({"kind": "glow", "pos": it.c, "r": r * 0.7, "life": 0.2, "col": Color(1.2, 0.8, 1.6), "alpha": 0.75})
+		for k in 7:
+			var a: float = g.vrng.randf() * TAU
+			o.fx({"kind": "spark", "pos": it.c, "vel": Vector2.from_angle(a) * g.vrng.randf_range(80.0, 170.0), "life": 0.3, "col": GRAV_C * 1.6, "sz": 2.5})
+	o.set_meta("gr_q", q.filter(func(it): return it.t > 0.0))
+
+
+## 节点「潮汐锁·沉落」（lock2）：环带内停留满 sink 秒的敌人被锁定悬浮（lift_growth），每名敌人 sink_cd 秒内至多一次。
+## s = field 的 tick 子项（st: airborne + sink / sink_cd）；停留以 field 的间隔累计，离开环带 / 场停转即清零
+static func sink_tick(o, e: Dictionary, s: Dictionary, c: Vector2, ring: float, rw: float, every: float) -> void:
+	var g = o.g
+	var inband: bool = ring >= 0.0 and absf(e.pos.distance_to(c) - ring) <= rw
+	if not inband or not _movable(e):
+		e["ang_dw"] = 0.0
+		return
+	if g.t - float(e.get("ang_sk", -99.0)) < float(s.get("sink_cd", 6.0)):
+		return
+	var dw: float = float(e.get("ang_dw", 0.0)) if g.t - float(e.get("ang_dwt", -99.0)) <= every * 1.6 else 0.0
+	dw += every
+	e["ang_dw"] = dw
+	e["ang_dwt"] = g.t
+	var need: float = float(s.get("sink", 2.0))
+	if dw < need:
+		o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 3.0, "r0": float(e.r) + 3.0 + 14.0 * (1.0 - dw / need), "life": every, "col": GRAV_C, "floor": true, "w": 1.5, "keep": true, "alpha": 0.6})   # 停留进度：脚下的锁环逐渐收紧
+		return
+	e["ang_dw"] = 0.0
+	e["ang_sk"] = g.t
+	lift_growth(o, e, float(s.dur), float(s.get("h", 22.0)))
+	o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 14.0, "r0": float(e.r), "life": 0.3, "col": GRAV_C * 1.6, "floor": true, "keep": true, "w": 2.5})
+	for k in 3:
+		o.fx({"kind": "mote", "pos": e.pos + Vector2((k - 1) * float(e.r) * 0.5, -float(e.r) * 0.3), "vel": Vector2(0, -50), "life": 0.5, "col": GRAV_C * 1.5, "sz": 2.0})
 
 
 static func airborne_clear(o) -> void:
@@ -139,6 +286,9 @@ static func field_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 		for s in b.get("tick", _EA):
 			if e.dead:
 				break
+			if s.has("sink"):   # docs/202 潮汐锁·沉落
+				sink_tick(o, e, s, c, st.ring, rw, every)
+				continue
 			if str(s.get("_tag", "")) == "verb.displace":
 				if not cond_true(o, s.get("cond", _ED)):
 					continue
@@ -165,7 +315,7 @@ static func point_aoe_fire(o, b: Dictionary, to: Vector2, patch: Dictionary) -> 
 	var mz = b.get("muzzle", [0.0, 0.0])
 	var p0: Vector2 = o.pos + Vector2(float(mz[0]) * o.face, float(mz[1])) if mz is Array and mz.size() == 2 else o.pos
 	var dur: float = o.pos.distance_to(to) / maxf(1.0, float(b.get("speed", 400.0)))
-	o.shots.append({"p0": p0, "p1": to, "t": 0.0, "dur": dur, "patch": patch})
+	o.shots.append({"p0": p0, "p1": to, "t": 0.0, "dur": dur, "patch": patch, "g0": o.pos})
 
 
 ## 落点结算：半径 r（× area × patch.r_mult）伤害 + on_hit（本体的 + patch 的）→ then（瞬时积木，center: target = 落点）→ trig.on_impact
@@ -181,6 +331,8 @@ static func point_aoe_land(o, b: Dictionary, s: Dictionary) -> void:
 			for e in hits:
 				apply_status(o, e, st, c)
 	o._exec_list(b.get("then", []), c)
+	if not o.taken.is_empty() and "dense" in o.taken and hits.size() >= int(o.base("dense_n", 5.0)):   # docs/202 致密
+		dense_collapse(o, c, hits)
 	o.impact(c)
 	o.shot = {}
 

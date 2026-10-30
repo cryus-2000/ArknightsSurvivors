@@ -57,9 +57,23 @@ def _git(*args):
     return r.stdout if r.returncode == 0 else ""
 
 
-def changed_files():
-    """相对 main 的改动：merge-base 到 HEAD 的提交 + 工作区未提交的改动 + 未跟踪的新文件。返回 (文件列表, merge-base)"""
-    base = _git("merge-base", "HEAD", "main").strip()
+def default_base():
+    """--changed 缺省的比较基线：origin/claude/integ-1029、origin/main、main 里「离 HEAD 最近」的那个的 merge-base
+    （工作树都是从集成分支切出来的；只和 main 比会把集成分支上别人的几百个提交算成自己的改动，永远判成全量）"""
+    best = None
+    for ref in ("origin/claude/integ-1029", "origin/main", "main"):
+        mb = _git("merge-base", "HEAD", ref).strip()
+        if not mb:
+            continue
+        n = _git("rev-list", "--count", mb + "..HEAD").strip()
+        if n.isdigit() and (best is None or int(n) < best[0]):
+            best = (int(n), mb, ref)
+    return best
+
+
+def changed_files(base=None):
+    """相对 base（缺省 main）的改动：merge-base 到 HEAD 的提交 + 工作区未提交的改动 + 未跟踪的新文件。返回 (文件列表, merge-base)"""
+    base = (_git("merge-base", "HEAD", base).strip() if base else "") or _git("merge-base", "HEAD", "main").strip()
     files = set()
     if base and base != _git("rev-parse", "HEAD").strip():
         files |= set(_git("diff", "--name-only", base, "HEAD").splitlines())
@@ -135,6 +149,50 @@ def plan_auto():
     return level, ops, why
 
 
+ASSUME_FILES = None   # --assume-files 给的文件列表（测量 / 演示用）
+
+
+def make_plan(base_arg):
+    """--changed：按 tools/check_map.json 选要跑的检查组。返回 (plan, 基线说明)"""
+    import check_plan
+    if base_arg:
+        base, label = base_arg, base_arg
+    else:
+        b = default_base()
+        base, label = (b[1], b[2]) if b else ("main", "main")
+    files, mb = changed_files(base)
+    if ASSUME_FILES is not None:
+        files = ASSUME_FILES   # 测量 / 演示用：不看 git，直接当作这些文件被改了
+    plan = check_plan.decide(files, op_ids(), SCENE_REGRESSIONS, lambda f: ASSUME_FILES is None and os.path.exists(os.path.join(ROOT, f)) and _json_text_only(f, mb))
+    plan["files"], plan["base"], plan["label"] = files, mb, label
+    return plan
+
+
+def print_plan(plan, compare_old=False):
+    print("按改动选项（--changed，基线 %s @ %s）：%d 个改动文件" % (plan["label"], (plan["base"] or "?")[:9], len(plan["files"])), flush=True)
+    for f, why, g in plan["rows"][:40]:
+        print("    %s → %s → %s" % (f, why, "+".join(g) or "只跑静态项"), flush=True)
+    if len(plan["rows"]) > 40:
+        print("    …… 另 %d 个文件" % (len(plan["rows"]) - 40), flush=True)
+    if plan["unmapped"]:
+        print("    注意：%d 个路径没有映射规则，按 unknown（core + 抽样冒烟）保守处理：%s —— 请补进 tools/check_map.json" % (
+            len(plan["unmapped"]), "、".join(plan["unmapped"][:6])), flush=True)
+    if plan["full"]:
+        print("    命中全局公共文件 → 升级为分支全量（精简版，docs/36 §1.4）", flush=True)
+    else:
+        print("    选中：组 %s；干员 %s；场景回归 %d 项" % ("+".join(sorted(plan["groups"])) or "无", "、".join(sorted(plan["ops"])) or "无", len(plan["scenes"])), flush=True)
+    if compare_old and ASSUME_FILES is None:
+        lv, ops, why = plan_auto()
+        print("    对照旧 --auto 计划：%s%s（%d 个文件；旧口径基线 main）" % (lv, "，干员 " + "、".join(sorted(ops)) if ops else "", len(why)), flush=True)
+
+
+def check_map():
+    """不开 Godot（<0.1 秒）：check_map.json 自检——每个场景回归键必须归组，组 / 规则不引用不存在的东西（docs/204 §2.3）"""
+    import check_plan
+    errs = check_plan.selftest(SCENE_REGRESSIONS)
+    return {"name": "检查映射 check_map", "ok": not errs, "detail": "%d 个场景回归全部归组" % len(SCENE_REGRESSIONS) if not errs else "%d 处映射问题" % len(errs), "errors": errs[:8]}
+
+
 def check_static():
     """不开 Godot 的检查：game/data 下所有 JSON 能解析"""
     bad = []
@@ -191,6 +249,34 @@ def check_data_lint():
     data_lint.check_waves(errs)
     unread = data_lint.check_balance(errs, False)
     return {"name": "数据契约 data_lint", "ok": not errs, "detail": "balance.json 无字面读点的键 %d 个（提示）" % len(unread), "errors": errs[:8]}
+
+
+def check_graph_lint():
+    """不开 Godot（<1 秒）：成长线 / 路线 id / 死节点 / 前置 / 事件选项 / 引用键与资源存在（tools/graph_lint.py，docs/204 §4）；
+    已登记的命中经 known_red.json 带负责人 + 到期日放行，过期转硬失败；R6（事件插画缺失）只提示"""
+    import graph_lint, known_red
+    hits = graph_lint.run(ROOT)
+    errs = [graph_lint.format_hit(*h) for r in ("R1", "R2", "R3", "R4", "R5") for h in hits.get(r, [])]
+    items, lerr = known_red.load()
+    left, waived, expired = known_red.waive_errors("图引用 graph_lint", errs, items)
+    left = lerr + left
+    soft = sum(len(hits.get(r, [])) for r in ("R6", "R9"))
+    detail = "无硬命中" if not left else "%d 条硬命中" % len(left)
+    if waived:
+        detail += "；已知红放行 %d 条（known_red.json）" % len(waived)
+    if soft:
+        detail += "；提示 %d 条（事件插画等软缺失）" % soft
+    exp = {e: it for e, it in expired}
+    left = ["已知红过期 %d 天（负责人 %s）：%s" % (exp[e]["expired_days"], exp[e]["owner"], e) if e in exp else e for e in left]
+    return {"name": "图引用 graph_lint", "ok": not left, "detail": detail, "errors": left[:8], "waived": [(e, it) for e, it in waived]}
+
+
+def check_text_reconcile():
+    """不开 Godot（<1 秒）：说明文字里的字面数字都能被该条目自己的参数解释（藏品卡面 / 升级卡 / 局外树 / 事件 / 勋章 / 敌人 / 指南 / 干员响应），
+    基线内的待核只警告，基线外新增未解释 = 失败（tools/text_reconcile.py，docs/204 §3）"""
+    import text_reconcile
+    errs, detail, res, per = text_reconcile.check()
+    return {"name": "说明对账 text_reconcile", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
 def check_cc_lint():
@@ -404,6 +490,9 @@ def _last_durations():
     return est
 
 
+_TL = threading.local()   # 每个 job 线程累计「真正占用 Godot 的秒数」（不含排队），汇总里逐项列出（docs/204 §1.1）
+
+
 def _run(args, timeout, tag, *, cache=True):
     """启动一次 Godot（经本次快检的闸门 GATE + godot_runner 的全机并发上限），把 stdout / stderr 写进 LOG_DIR/<tag>.log，返回 (out, err, 超时, 日志路径)"""
     if BAL_ARGS and "--" in args:
@@ -428,6 +517,7 @@ def _run(args, timeout, tag, *, cache=True):
             _cache_put(key, box["r"][0], box["r"][1], tag)   # 超时的不存（多半是负载，不是结果）
     t0 = box["t0"]
     out, err, to = box["r"]
+    _TL.secs = getattr(_TL, "secs", 0.0) + (time.time() - t0)
     path = None
     if LOG_DIR:
         safe = re.sub(r"[^\w.-]+", "_", tag).strip("_") or "run"
@@ -952,6 +1042,7 @@ def check_blocks_eq(godot):
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
+    "card_desc_fit": ("藏品卡说明放得下（可见成长 7 件必须放得下；其余只报告截断）", "card_desc_fit_test.gd", r"CARD DESC FIT cut=\d+ failures=0", []),
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
     "invuln_skill_hold": ("无敌暂缓技能（Boss 无敌时普攻照打、自动技能就绪不放，解除后 1 秒内放出；开关 combat/hold_skill_on_invuln）", "invuln_skill_hold_test", r"INVULN SKILL HOLD checks=\d+ failures=0", ["--balance", "--seed=1"]),
     "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
@@ -1000,6 +1091,8 @@ SCENE_REGRESSIONS = {
     "wisadel_s2": ("维什戴尔两阶段群攻与四连发", "wisadel_s2_test", r"WISADEL S2 checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "texas_contract": ("新契约只填 json 试点（德克萨斯）", "texas_contract_test", r"TEXAS CONTRACT failures=0", ["--bal=ult/on=0", "--balance", "--seed=1", "--op=texas"]),
     "wisadel_soul": ("维什戴尔魂灵之影原生身体时间线", "wisadel_soul_test", r"WISADEL SOUL failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
+    "m3_hp": ("Mon3tr 血条 / 倒地 / 复活 / 治疗分配（凯尔希）", "m3_hp_test", r"M3 HP failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=kaltsit"]),
+    "m3_hp_off": ("Mon3tr 血条总开关关（回旧行为）", "m3_hp_test", r"M3 HP failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=kaltsit", "--bal=kaltsit/m3_hp=0"]),
     "klc_contract": ("凯尔希本体 / 流明 / 艾丽妮新条：出手时刻逐位同旧条、三段刺 / 光柱换条", "klc_contract_test", r"KLC CONTRACT failures=0", ["--balance", "--seed=1", "--op=irene"]),
     "response": ("干员响应动作（冲刺 / 站定）", "response_test", r"RESPONSE failures=0", ["--bal=ult/on=0", "--balance", "--seed=1", "--op=hoshiguma", "--squad=texas,eyjafjalla"]),
     "response_skill": ("干员响应动作（开技能）", "response_test", r"RESPONSE failures=0", ["--bal=ult/on=0", "--balance", "--seed=1", "--op=suzuran", "--squad=texas"]),
@@ -1042,7 +1135,7 @@ SCENE_REGRESSIONS = {
     "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
-    "hoshiguma_taunt": ("星熊 S1 站定嘲讽 + 防御反击（10-24，docs/140）", "hoshiguma_taunt_test", r"HOSHIGUMA TAUNT failures=0", ["--balance", "--op=mizuki", "--squad=hoshiguma"]),
+    "hoshiguma_taunt": ("星熊 S1 重斩 + 拉怪（10-30 改版，docs/140）", "hoshiguma_taunt_test", r"HOSHIGUMA TAUNT failures=0", ["--balance", "--op=mizuki", "--squad=hoshiguma"]),
     "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--balance", "--op=ulpianus"]),
     "ulpianus_click": ("乌尔比安 S3 左键点场地释放、点 HUD 不误触（10-26）", "ulpianus_click_test", r"ULPIANUS CLICK failures=0", ["--bal=ult/on=0", "--balance", "--op=ulpianus"]),
     "saria_slots": ("塞雷娅 S3 晶柱碰怪即碎、原位重新长出（10-29）", "saria_slots_test", r"SARIA SLOTS failures=0", ["--balance", "--op=saria"]),
@@ -1093,8 +1186,11 @@ SCENE_REGRESSIONS = {
 
 def check_scene(godot, key):
     name, scene, success, extra = SCENE_REGRESSIONS[key]
-    out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/" + scene + ".tscn",
-                             "--", "--regression", "--seed=1"] + extra, 180, key)
+    if scene.endswith(".gd"):   # SceneTree 脚本式测试：godot --script res://tests/<名>.gd
+        out, err, to, log = _run([godot, "--headless", "--path", GAME, "--script", "res://tests/" + scene] + extra, 180, key)
+    else:
+        out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/" + scene + ".tscn",
+                                 "--", "--regression", "--seed=1"] + extra, 180, key)
     errs = GR.script_errors(out, err)
     match = re.search(r"^" + success + r"(?:\s|;|$)", out, re.M)
     fails = re.findall(r"^(?:FAIL|MISSING).*", out + "\n" + err, re.M)
@@ -1190,13 +1286,22 @@ def ab(ref, seeds, keep):
 
 # ---------------------------------------------------------------- 主流程
 
+def _timed(f):
+    """跑一个检查项，记下它真正占用 Godot 的秒数（_run 累计）；没开 Godot 的静态项记墙钟"""
+    _TL.secs = 0.0
+    t = time.time()
+    r = f()
+    r["secs"] = _TL.secs if _TL.secs > 0 else time.time() - t
+    return r
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--bots", action="store_true", help="快检之后再跑机器人标准矩阵")
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1206,13 +1311,28 @@ def main():
     ap.add_argument("--rerecord-golden", action="store_true",
                     help="等价于 --only blocks_eq --eq-all --update-golden：重录积木等价金样（docs/36 §1.3；谁负责跑见该节）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
+    ap.add_argument("--changed", nargs="?", const="", default=None, metavar="BASE",
+                    help="按相对 BASE 的改动文件，用 tools/check_map.json 选要跑的检查组（缺省基线 = origin/claude/integ-1029 / main 里离 HEAD 最近的 merge-base）；"
+                         "全局公共文件升级为分支全量，未映射路径保守跑 core + 抽样冒烟（docs/204 §2）")
+    ap.add_argument("--assume-files", metavar="A,B", help="测量 / 演示用：不看 git，当作这些文件（逗号分隔）被改了，配合 --changed / --explain")
+    ap.add_argument("--explain", action="store_true", help="只打印 --changed 的选项计划并和旧 --auto 的计划对照，不跑任何检查")
     ap.add_argument("--auto", action="store_true",
-                    help="按相对 main 改了哪些文件只跑相关项目；分支上判成全量时跑精简版（不跑积木等价 / 自然流程，冒烟抽样），在 main 上跑真全量（docs/36 §1.4）")
+                    help="--changed 的别名（缺省基线）；分支上判成全量时跑精简版（不跑积木等价 / 自然流程，冒烟抽样），在 main 上跑真全量（docs/36 §1.4）")
     a = ap.parse_args()
     if a.rerecord_golden:   # 等价于 --only blocks_eq --eq-all --update-golden（docs/36 §1.3）
         a.only = "blocks_eq"
         a.eq_all = True
         a.update_golden = True
+    if a.auto and a.changed is None:
+        a.changed = ""
+    if a.assume_files:
+        global ASSUME_FILES
+        ASSUME_FILES = [x for x in a.assume_files.split(",") if x]
+        if a.changed is None:
+            a.changed = ""
+    if a.explain:
+        print_plan(make_plan(a.changed or ""), compare_old=True)
+        return 0
     global JOBS, LOG_DIR, BAL_ARGS
     JOBS = max(1, a.jobs)
     BAL_ARGS = ["--bal=" + b for b in a.bal]
@@ -1245,29 +1365,44 @@ def main():
         jobs.append(check_px_lint)   # 不开 Godot；只在 --only px_lint 时跑（不进 --auto / 全量：样本在 codex-art 工作树，别人机器上可能没有）
     if a.only in (None, "data_lint"):
         jobs.append(check_data_lint)   # 不开 Godot，约 1 秒；--auto 也跑（改数据表最容易静默出错的几类）
+    if a.only in (None, "graph_lint"):
+        jobs.append(check_graph_lint)   # 不开 Godot，<1 秒；--auto 也跑（改成长线 / 路线 / 事件 / 引用键 / 图标最容易静默断链）
+    if a.only in (None, "text_reconcile"):
+        jobs.append(check_text_reconcile)
+    if a.only in (None, "check_map"):
+        jobs.append(check_map)
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
     branch_full, ops = False, set()
-    if a.auto and not a.only:
-        level, ops, why = plan_auto()
-        print("按改动分级（--auto）：%s%s" % (level, "（干员：%s）" % "、".join(sorted(ops)) if ops else ""), flush=True)
-        for w in why[:12]:
-            print("    " + w, flush=True)
-        if len(why) > 12:
-            print("    …… 另 %d 个文件" % (len(why) - 12), flush=True)
-        if level != "full":
-            print("    注意：分级只用于改的过程中；快进合入 main 前仍要跑全量（不带 --auto）", flush=True)
-        if level in ("text", "ops"):
-            jobs.append(lambda: check_core(godot))
-        if level == "ops":
-            jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
-            jobs.append(lambda: check_nodes(godot, ops))
-            jobs.append(lambda: check_manual_all(godot, ops))
-            jobs.append(lambda: check_repro(godot))
-        if level == "full":
-            a.auto = False
+    selective, plan = False, None
+    if a.changed is not None and not a.only:
+        plan = make_plan(a.changed)
+        print_plan(plan, compare_old=True)
+        ops = plan["ops"]
+        if plan["full"]:
             if _git("branch", "--show-current").strip() != "main":
                 branch_full = True   # 分支上的全量：精简版（见下），main 上照旧真全量
+        else:
+            selective = True
+            print("    注意：分级只用于改的过程中；合入 main 的全量在协调人 / 云端 CI 跑", flush=True)
+            if "core" in plan["groups"]:
+                jobs.append(lambda: check_core(godot))
+            if ops:
+                jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
+                jobs.append(lambda: check_nodes(godot, ops))
+                jobs.append(lambda: check_manual_all(godot, ops))
+            if "smoke-sample" in plan["groups"]:
+                head = _git("rev-parse", "HEAD").strip() or "0"
+                allc = smoke_cases()
+                names = op_ids()
+                k0 = int(head[:8], 16) % max(1, len(names))
+                sample = set(names[(k0 + i) % len(names)] for i in range(min(SMOKE_SAMPLE, len(names))))
+                jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in allc if c[0].startswith("冒烟 · ") and c[0].split(" · ")[-1] in sample]
+            if ops or "repro" in plan["groups"]:
+                jobs.append(lambda: check_repro(godot))
+            if "prot" in plan["groups"]:
+                jobs.append(lambda: check_prot(godot))
+            jobs += [(lambda key=key: check_scene(godot, key)) for key in SCENE_REGRESSIONS if key in plan["scenes"]]
     if branch_full:
         # 分支全量精简（用户 10-24「全改」，docs/36 §1.4）：积木等价不跑（分支改玩法后金样必然过期、只能报过期，合入后 main 统一重录比对）；
         # 自然流程两局不跑；冒烟只跑改动涉及的干员 + 按 HEAD 轮换抽 SMOKE_SAMPLE 人。其余（核心契约、成长节点、复现、全部定向回归）照旧
@@ -1278,7 +1413,7 @@ def main():
         smoke_ops = sample | ops
         print("分支全量精简：不跑积木等价、自然流程；冒烟 %d / %d 人（改动涉及：%s；轮换抽样：%s）。合入 main 后跑真全量" % (
             len(smoke_ops), len(ids), "、".join(sorted(ops)) or "无", "、".join(sorted(sample))), flush=True)
-    if not a.auto:
+    if not selective:
         if a.only in (None, "core"):
             jobs.append(lambda: check_core(godot))
         if a.only in (None, "smoke"):
@@ -1309,15 +1444,39 @@ def main():
     if not NOCACHE:
         SCOPES.update(scope_hashes())
     with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 各项一起开始，Godot 在 GATE 排队（最久的先开）；不开 Godot 的静态项不占名额
-        results = list(ex.map(lambda f: f(), jobs))
-    bad = [r for r in results if not r["ok"]]
+        results = list(ex.map(_timed, jobs))
+    import known_red
+    kr_items, kr_errs = known_red.load()
+    hard, known, expired, stale = known_red.classify(results, kr_items)
+    bad = hard + [r for r, _ in expired] + [{"name": "known_red.json", "detail": e, "ok": False} for e in kr_errs]
     lines = []
     for r in results:
-        lines.append("%s %s  %s" % ("通过" if r["ok"] else "失败", r["name"], r["detail"]))
+        lines.append("%s %s  %s%s" % ("通过" if r["ok"] else "失败", r["name"], r["detail"], "  [%.0f 秒]" % r["secs"] if r.get("secs", 0) >= 1 else ""))
         for e in r.get("errors", []):
             lines.append("      " + e[:220])
-    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项，耗时 %.0f 秒（开始时全机 %d 个 Godot，结束时 %d 个）%s" % (
-        "快检通过" if not bad else "快检失败", len(results), len(bad), time.time() - t0, load0, GR.count_godot(),
+    slow = sorted(results, key=lambda r: -r.get("secs", 0))[:10]
+    if slow and slow[0].get("secs", 0) >= 1:
+        lines.append("\n耗时前 10（秒，不含排队）：" + "；".join("%s %.0f" % (r["name"][:24], r["secs"]) for r in slow if r.get("secs", 0) >= 1))
+    if known:
+        lines.append("\n已知红（%d 项，known_red.json，未过期，不算失败）：" % len(known))
+        lines += ["  · %s — 负责人 %s，到期 %s：%s" % (r["name"], it["owner"], it["due"], it["reason"][:60]) for r, it in known]
+    waived = [(r["name"], e, it) for r in results for e, it in r.get("waived", [])]
+    if waived:
+        lines.append("\n已知红放行的单条错误（%d 条）：" % len(waived))
+        lines += ["  · %s — %s，到期 %s" % (e[:90], it["owner"], it["due"]) for _, e, it in waived]
+    for r, it in expired:
+        lines.append("\n已知红过期 %d 天仍红：%s（负责人 %s，到期 %s）" % (it["expired_days"], r["name"], it["owner"], it["due"]))
+    for it in stale:
+        lines.append("\n提示：已知红「%s」现在已绿，可从 known_red.json 删除" % it["scope"])
+    try:
+        os.makedirs(OUT_DIR, exist_ok=True)
+        json.dump({"time": datetime.datetime.now().isoformat(timespec="seconds"), "items": [
+            {"name": r["name"], "ok": r["ok"], "secs": round(r.get("secs", 0), 1), "detail": r["detail"]} for r in results]},
+            open(os.path.join(OUT_DIR, "last_quick.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    except OSError:
+        pass
+    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项（已知红 %d 项另计），耗时 %.0f 秒（开始时全机 %d 个 Godot，结束时 %d 个）%s" % (
+        "快检通过" if not bad else "快检失败", len(results), len(bad), len(known), time.time() - t0, load0, GR.count_godot(),
         "；Godot 结果缓存命中 %d / %d（不用缓存加 --nocache）" % (CACHE_STAT["hit"], CACHE_STAT["hit"] + CACHE_STAT["miss"]) if not NOCACHE else "；未用缓存")
     if bad:
         # 失败项单独再列一遍：名字、原因、完整日志路径（负载高时偶发失败，事后要能查到是哪项、为什么）

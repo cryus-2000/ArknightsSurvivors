@@ -19,6 +19,11 @@ const MOVES := ["冲锋", "冰线", "长枪连刺", "掷枪", "长枪回旋"]
 ## Bounded authored chains. Each child warning still owns its full tell and lock window.
 func on_warning(e: Dictionary, w: Dictionary) -> void:
 	if e.dead or e.get("friendly",false) or e.get("invuln",false): return
+	# 近战招配冰屑（用户 10-30「骑士的加频率、加弹量还是要的」，docs/201 §8）：跳斩 / 横扫 / 劈 / 冲锋收尾结算时，从本体朝队长放一扇冰屑
+	if float(w.dmg) > 0.0 and Bal.v("boss/knight_melee_shards", 0.0) > 0.0 and (str(w.shape) == "cone" or str(w.act) in ["dash", "stab", "sweep", "bite"] or str(w.name) in MELEE_SHARD_MOVES):
+		if not e.has("kn_shard_q"):
+			e.kn_shard_q = []
+		e.kn_shard_q.append(g.t + float(w.dur))
 	if w.dmg <= 0.0 and not (w.act=="final_attack" and w.get("motion","")=="sidestep"): return
 	if not e.get("knight_combo_active",false):
 		var chain: Array = []
@@ -116,7 +121,33 @@ func _act(e: Dictionary) -> int:
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
+## 近战招配冰屑：这些名字的招不论形状都带（docs/201 §8）
+const MELEE_SHARD_MOVES := ["断潮劈击", "雪幕劈", "踏冰裂阵", "长枪回旋", "长枪连刺", "冻结重击", "侧踏挑枪"]
+
+
+## 冰屑加弹（docs/201 §8）：近战招结算时一扇 knight_melee_shards 发；走位间隙每 knight_walk_shard_t 秒朝队长连射 knight_walk_shard_n 发冰锥
+func _extra_shards(e: Dictionary, dt: float) -> void:
+	if e.dead or e.get("friendly", false):
+		return
+	var q: Array = e.get("kn_shard_q", [])
+	if not q.is_empty():
+		var keep: Array = []
+		for at in q:
+			if g.t >= float(at):
+				ice_shards(e, e.pos, aim(e.pos), int(Bal.v("boss/knight_melee_shards", 0.0)), 1.1, 180.0)
+			else:
+				keep.append(at)
+		e.kn_shard_q = keep
+	var wt: float = Bal.v("boss/knight_walk_shard_t", 0.0)
+	if wt <= 0.0 or float(e.get("wind", 0.0)) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or float(e.get("dash_t", 0.0)) > 0.0:
+		return
+	if g.t >= float(e.get("kn_walk_shard_at", 0.0)):
+		e.kn_walk_shard_at = g.t + wt
+		ice_shards(e, e.pos, aim(e.pos), int(Bal.v("boss/knight_walk_shard_n", 2.0)), 0.25, 200.0)
+
+
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
+	_extra_shards(e, dt)
 	if e.get("channel", 0.0) > 0.0:
 		e.channel -= dt
 		if e.channel <= 0.0:
@@ -143,7 +174,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.kn_dashing = false
 		var la: Dictionary = e.get("last_act", {})
 		if str(la.get("act", "")) == "dash" and str(e.get("brk_label", "")) != "眩晕":
-			ice_shards(e, e.pos, aim(e.pos), 3, 0.8, 150.0)   # 冰屑一律朝队长（10-28 用户「boss 的子弹没有追着人打」）
+			ice_shards(e, e.pos, aim(e.pos), int(round(3 * Bal.v("boss/knight_dense_k", 1.0))), 0.8, 150.0)   # 冰屑一律朝队长（10-28 用户「boss 的子弹没有追着人打」）
 			if e.phase == 2:
 				_crack_charge(e, float(la.get("ang", 0.0)))
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
@@ -576,7 +607,7 @@ func _leap_step(e: Dictionary, dt: float, dir: Vector2) -> bool:
 		g.vfx.shake_screen(0.6)
 		Sfx.play("stake_shatter", -6.0, 0.9, 0.0)
 		var to: Vector2 = g.ppos - e.pos
-		ice_shards(e, e.pos, to.angle(), 5, 0.9, 170.0)
+		ice_shards(e, e.pos, to.angle(), int(round(5 * Bal.v("boss/knight_dense_k", 1.0))), 0.9, 170.0)   # 密度招：跳斩落地冰屑（docs/201 §8）
 		var dd: float = to.length()
 		if e.phase == 1 and _act(e) >= 1 and dd >= 160.0 and dd <= 620.0:
 			_spear(e, to.normalized(), dd)
@@ -756,7 +787,7 @@ func _reborn_step(e: Dictionary) -> void:
 	_prism_step(e)
 	_roll_step(e)
 	if e.has("kn_cone_at") and g.t >= float(e.kn_cone_at):
-		ice_shards(e, e.pos, float(e.kn_cone_gap) + PI, 8, TAU, 220.0, float(e.kn_cone_gap), 0.7)
+		ice_shards(e, e.pos, float(e.kn_cone_gap) + PI, int(round(8 * Bal.v("boss/knight_dense_k", 1.0))), TAU, 220.0, float(e.kn_cone_gap), 0.7)   # 密度招：重生冰棱环（缺口半角不变）
 		e.erase("kn_cone_at")
 	if e.has("kn_spin_brk_at") and g.t >= float(e.kn_spin_brk_at):
 		e.erase("kn_spin_brk_at")
@@ -907,7 +938,7 @@ func _drive_end(e: Dictionary, edge: bool) -> void:
 		Sfx.play("stake_hit", 2.0, 1.0, 0.0)
 		Sfx.play("boom", -4.0, 1.2, 0.0)
 		g.vfx.shake_screen(0.8)
-		ice_shards(e, e.pos, aim(e.pos), 5, 1.0, 150.0)
+		ice_shards(e, e.pos, aim(e.pos), int(round(5 * Bal.v("boss/knight_dense_k", 1.0))), 1.0, 150.0)   # 密度招：长驱冲锋收尾冰屑（docs/201 §8）
 	else:
 		t = Bal.v("boss/knight_drive_brk", 1.0)
 		g.combat.start_break(e, t)
@@ -1003,7 +1034,7 @@ func ice_shards(e: Dictionary, from: Vector2, ang: float, n: int, spread: float,
 		if b.get("knight_shard", false) and b.get("source_id", -1) == e.id:
 			own += 1
 	for i in n:
-		if own >= SHARD_CAP:
+		if own >= int(Bal.v("boss/knight_shard_cap", SHARD_CAP)):   # 同屏上限旋钮（docs/201 §8：原 18 片把加弹全截掉了）
 			return
 		var a: float = ang + (lerpf(-spread * 0.5, spread * 0.5, float(i) / maxf(1.0, n - 1)) if spread < TAU else TAU * float(i) / n)
 		if gap_ang != INF and absf(angle_difference(a, gap_ang)) < gap_half:

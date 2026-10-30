@@ -15,6 +15,7 @@ const SkillLifecycle = preload("res://scripts/characters/blocks/skill_lifecycle.
 var lifecycle: Dictionary = {}
 var effect_skill := -1  # Only skill do execution may bind skill-owned effects.
 const NativeMotion = preload("res://scripts/characters/native_motion.gd")
+const M3Hp = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条与治疗分配（10-29）
 const Responses = preload("res://scripts/characters/blocks/responses.gd")
 var rsp: Dictionary = {}   # 响应动作（docs/118）：触发沿 / 冷却记录
 var native_motion: Dictionary = {}
@@ -67,6 +68,7 @@ var kill_w := 1.0                      # trig.on_kill 执行期间这次击杀�
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
 var mhook_cd := {}                     # 联动段（docs/123 §2.7）：trig.on_mate_hook 每块的上次触发时刻（不放 el：el 非空会被精英化段当成「用得到」）
+var gn := {}                           # 成长节点（docs/202）的扩展状态：浊心斯卡蒂的潮声层数 / 共振列表 / 击杀节流；其余干员恒空
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
 
 
@@ -285,6 +287,7 @@ func update(dt: float) -> void:
 	SegExusiai.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
 	ObSummon.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
 	ObElite.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
+	SegSkalter.sk_gn_tick(self, dt)   # 成长节点（docs/202）：浊心斯卡蒂的潮声层数（其余干员第一行就返回）
 	if SegTexas.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
 	if hw_busy or (not hw.is_empty() and ObHw.hw_busy(self)):   # 手写迁移段：喷发序列 / 锚在外面时不起手（同手写的 return）
@@ -585,6 +588,15 @@ func _collect_trig(t: Dictionary, act: Array) -> void:
 func _heal(b: Dictionary) -> void:
 	if b.has("knight") and g.knight.alive:   # 召唤物扩展段（§15.9）：同时治骑士同伴（按骑士最大生命）
 		g.knight.heal(g.knight.maxhp * float(b.knight))
+	if b.get("split", false):   # split: true = 这一拍在队长与 Mon3tr 间分配（m3_hp.gd heal_pick；开关关 / 没有 Mon3tr / 队长危险 → 仍给队长）
+		var m3 = M3Hp.heal_pick(self)
+		if m3 != null:
+			var over_m: float = M3Hp.heal_apply(self, m3, b)
+			if b.has("sfx"):
+				_sfx_op(str(b.sfx))
+			if over_m > 0.0 and b.has("on_over"):
+				_exec_list(b.on_over)   # 庇护算 Mon3tr 身上的溢出（用户 10-29）
+			return
 	if g.hp >= g.max_hp and not b.get("full", false):   # full: true = 满血也照常结算（溢出治疗类藏品 / on_over 照常触发，同手写凯尔希 S1）
 		return
 	var h: float
@@ -615,6 +627,15 @@ const EXEC_SEG := {
 	"verb.field": 0,   # _ext_exec
 	"verb.negate_next": 0,   # _ext_exec
 	"verb.taunt_guard": 0,   # _ext_exec
+	"verb.block_mark": 0,   # _ext_exec（docs/202）
+	"verb.force_block": 0,   # _ext_exec
+	"verb.boil_sand": 0,   # _ext_exec
+	"verb.dash_cd_cut": 0,   # _ext_exec
+	"verb.break_windup": 0,   # _ext_exec
+	"verb.ll_dial_arm": 0,   # _ext_exec → seg_lappland（docs/202 拉普兰德成长节点）
+	"verb.ll_dial_swing": 0,   # _ext_exec → seg_lappland
+	"verb.ll_riposte": 0,   # _ext_exec → seg_lappland
+	"verb.ll_seal_spread": 0,   # _ext_exec → seg_lappland
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
 	"verb.emit_path": 1,   # tx_exec
@@ -654,6 +675,7 @@ const EXEC_SEG := {
 	"verb.beam_window": 7,   # h3_exec
 	"verb.cast_push": 7,   # h3_exec
 	"verb.doll_flash": 7,   # h3_exec
+	"verb.saw_echo": 7,   # h3_exec
 	"verb.followup": 7,   # h3_exec
 	"verb.heal_lamp": 7,   # h3_exec
 	"verb.kill_heal": 7,   # h3_exec
@@ -990,7 +1012,7 @@ func on_kill(e: Dictionary) -> void:
 		if str(t.get("_tag", "")) != "trig.on_kill" or not ObCore.cond_true(self, t.get("cond", _ED)):
 			continue
 		var f: String = str(t.get("filter", "any"))
-		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss):
+		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss) or (f == "zone_ally" and SegSkalter.gn_zone_ally_kill(self, e)) or (f == "marked" and float(e.get("tr_t", 0.0)) > g.t and str(e.get("tr_op", "")) == id):   # marked：被本干员曳光弹标记的敌人（docs/202 能天使）
 			_exec_list(t.get("do", []), e.pos)
 	kill_w = 1.0
 
@@ -1071,6 +1093,7 @@ func draw_auras() -> void:
 		rm = minf(rm, ObVortex.vortex_ring_mul(self, _fxb[u]))
 	if str(B.zone.get("look", "")) == "particles":   # 10-29 浊心斯卡蒂：领域改粒子勾边、内部稀疏，不画实心圆；画面半径缓动 + 波纹（seg_skalter）
 		SegSkalter.sk_draw_domain(self, c, SegSkalter.sk_vis_r(self, "self", c, zr, SegSkalter.SK_DOM), SegSkalter.SK_DOM, on, 0.0)
+		SegSkalter.sk_gn_draw(self)   # 成长节点（docs/202）：潮声音符 / 共振层
 		if not sm.is_empty():
 			SegSkalter.e5_draw_zones(self, cc, on)
 		_draw_hold_strips(cv, "floor")
@@ -1308,6 +1331,8 @@ func _dmg_bonus() -> float:
 const FIELD_CAP := 16                   # 每名干员同时存在的地面区域上限（超出时最早的先消失）
 
 var last_hit_pos := Vector2.INF        # 上一次普攻命中的第一个敌人（verb.field center: last_hit）
+var gm: Dictionary = {}                # docs/202 成长节点的运行时状态（星熊阻挡 / 般若之重；seg_hoshiguma 末尾）；空 = 用不到
+var gm_hits: Array = []                # docs/202：上一次普攻的命中列表（trig.on_hit_n 的 do 读它）
 var neg_armed: Dictionary = {}         # 待命的 verb.negate_next：技能序号 → 积木
 var taunt: Dictionary = {}             # 进行中的 verb.taunt_guard：{i 技能序号, b 积木, anchor 站定点（队长时 INF）, ids 拉到过的敌人}
 var fields: Array = []                 # 地面区域：{pos, r, t, dur, every, n, done, do, fx}
@@ -1415,6 +1440,8 @@ func exec_any_shape(b: Dictionary, at: Vector2 = Vector2.INF, is_attack := false
 	var hits: Array = SegHoshiguma.exec_line(self, b) if str(b.get("shape", "")) == "line" else ObCore.exec_shape(self, b, at)
 	if is_attack:
 		last_hit_pos = hits[0].pos if not hits.is_empty() else Vector2.INF
+		if not hits.is_empty() and tags_all.has("trig.on_hit_n"):   # docs/202：命中 ≥ n 触发（星熊 / 德克萨斯成长节点）
+			SegHoshiguma.gm_hit_n(self, hits)
 		if B.get("_e5_among", false):   # 精英化第 5 批段：记下这一次普攻命中的敌人（shape.circle among: attack）
 			e5["ah"] = SegSkalter.e5_ids(hits)
 		if b.get("slash", false) and not hits.is_empty() and str(b.get("shape", "")) == "cone":
@@ -1444,6 +1471,8 @@ func _ext_sustain(act: Array, dt: float) -> void:
 	swap_atk = sw
 	if not taunt.is_empty():
 		_taunt_tick()
+	if not gm.is_empty():
+		SegHoshiguma.gm_tick(self)   # docs/202：阻挡标记到期 / 近战杂兵改追她
 	# 技能结束仍没挨打：negate_next 执行 on_miss（不白放）
 	if not neg_armed.is_empty():
 		var ks: Array = neg_armed.keys()
@@ -1482,6 +1511,8 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 	match str(b.get("_tag", "")):
 		"shape.line":
 			SegHoshiguma.exec_line(self, b)
+		"verb.ll_dial_arm", "verb.ll_dial_swing", "verb.ll_riposte", "verb.ll_seal_spread":   # docs/202 拉普兰德成长节点（blocks/seg_lappland.gd）
+			ObCore._F().ll_exec(self, b)
 		"verb.field":
 			if b.has("tick"):   # 常驻力场（安洁莉娜）在 _sustain 里，这里只管瞬时留场
 				return
@@ -1494,6 +1525,9 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			fields.append({"pos": c, "r": fr, "t": 0.0, "dur": float(b.dur), "every": ev,
 				"n": maxi(1, roundi(float(b.dur) / ev)), "done": 0, "do": b.get("do", []), "fx": b.get("fx", []), "u": u})
 			var field: Dictionary = fields.back()
+			if b.get("sand", false):
+				field["sand"] = true   # docs/202：热砂（verb.boil_sand 能引爆）
+				gm["on"] = true
 			if b.has("visual_end"):
 				field["visual_end"] = b.visual_end
 			if b.has("cap"):   # 精英化段：这块积木同时最多 cap 处，最早的先消失
@@ -1512,12 +1546,23 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 				ObFx.fx_play(self, fl, c, fr)
 				if b.has("visual_end"):
 					field["visual_particles"] = pfx.slice(fx_start)
+		"verb.block_mark":   # docs/202 成长节点（执行在各干员段：seg_hoshiguma / seg_texas）
+			SegHoshiguma.gm_block_mark(self, b)
+		"verb.force_block":
+			SegHoshiguma.gm_force_block(self, b)
+		"verb.boil_sand":
+			SegHoshiguma.gm_boil_sand(self, b)
+		"verb.dash_cd_cut", "verb.break_windup":
+			SegTexas.gm_exec(self, b)
 		"verb.negate_next":
 			if cur_skill >= 0:
 				neg_armed[cur_skill] = b
 		"verb.taunt_guard":
-			if cur_skill >= 0:
-				taunt = {"i": cur_skill, "b": b, "anchor": Vector2.INF if is_leader else pos, "ids": {}}
+			if cur_skill >= 0 and float(base("s1_pull", 1.0)) > 0.0:   # base.s1_pull = 0：关闭拉怪（10-30 改版开关）
+				taunt = {"i": cur_skill, "b": b, "anchor": Vector2.INF if is_leader or not bool(b.get("stand", true)) else pos, "ids": {}, "t0": g.t}
+				var stop: float = float(b.get("stop", 0.0))
+				if stop > 0.0 and not query_ids(pos, float(b.r) * stat(&"op_range")).is_empty():
+					g.hitstop = maxf(g.hitstop, stop)   # 命中顿帧
 				if b.has("fx"):
 					ObFx.fx_play(self, b.fx, pos, 30.0)
 				float_text(pos + Vector2(0, -88), str(b.get("text", "嘲讽")), Color(1.0, 0.85, 0.4), 16)
@@ -1534,6 +1579,8 @@ func _taunt_tick() -> void:
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.chest or e.boss or e.ai != "melee" or e.pos.distance_to(pos) > r:
 				continue
+			if e.elite and b.has("dur") and g.t - float(taunt.get("t0", g.t)) > float(b.dur) * float(b.get("elite_x", 1.0)):
+				continue   # 精英只被拉 dur × elite_x 秒
 			set_aggro(e, pos)
 			taunt.ids[e.id] = true
 		return
@@ -1565,6 +1612,9 @@ func taunt_anchor() -> Vector2:
 func dmg_taken_mult(src: Dictionary, dmg: float) -> float:
 	var boss: bool = src.get("boss", false)
 	var negated := false
+	if not gm.is_empty() and SegHoshiguma.gm_force_take(self):   # docs/202 星熊「般若之重」：武装后队长的下一次受击必定格挡
+		negated = true
+		_negate_fx({"text": "般若之重"})
 	if not neg_armed.is_empty():
 		var ks: Array = neg_armed.keys()
 		ks.sort()
@@ -1636,6 +1686,8 @@ func draw_entities_floor() -> void:
 		cv.draw_arc(Vector2.ZERO, tr, 0.0, TAU, 48, Color(1.0, 0.82, 0.35, ka), 2.0)
 		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, ka + 0.25), 2.5)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not gm.is_empty():
+		SegHoshiguma.gm_draw(self)   # docs/202：阻挡盾印 / 般若之重金环
 	if not neg_armed.is_empty() and g.ppos != Vector2.INF:
 		var k: float = 0.55 + 0.25 * sin(g.t * 8.0)
 		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
@@ -1771,6 +1823,7 @@ func _draw_shots() -> void:
 		var k: float = clampf(s.t / maxf(0.01, s.dur), 0.0, 1.0)
 		var p: Vector2 = s.p0.lerp(s.p1, k) + Vector2(0, -sin(k * PI) * 26.0)
 		var big: bool = not s.patch.is_empty()
+		SegAngelina.lens_draw(self, s, p)   # docs/202 重力透镜：弹道亮线（没选节点直接返回）
 		cv.draw_circle(p, 11.0 if big else 8.0, Color(GRAV.r, GRAV.g, GRAV.b, 0.25))
 		if _fx_tex("proj_angelina_orb") != null:
 			draw_spr_rot("proj_angelina_orb", int(g.t * 12.0) % 4, p, 0.0, g.PX * (1.35 if big else 1.0))

@@ -4,11 +4,12 @@ extends "res://scripts/characters/blocks/seg_mizuki.gd"
 
 # ---------------------------------------------------------------- 推进之王：锤击
 
+## 成长节点（docs/202）：attack.quake.roar.col_mult / wall_mult / life / col_src = 「狮吼」击退碰撞；verb.cmd_wave.purge {cond} = 「万兽之王·威令」号令波清负面状态
 static func _h4sg(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("sg"):
 		h["sg"] = {"leap_t": -1.0, "leap_pos": Vector2.ZERO, "leap_to": Vector2.ZERO, "leap_n": 0, "leap_second": false, "leap_b": {},
-			"heavy_swing": false, "waves": [], "fissures": [], "spikes": []}
+			"heavy_swing": false, "waves": [], "fissures": [], "spikes": [], "flights": []}
 	return h.sg
 
 
@@ -107,14 +108,83 @@ static func _h4_hammer_after(o, a: Dictionary, hits: Array, dmg: float) -> void:
 		o.fx({"kind": "ring", "pos": p, "r": r, "r0": 6.0, "life": 0.25, "col": H4_GOLD, "floor": true, "w": 2.0, "alpha": 0.6})
 
 
-## 震地 / 狮吼：锤子落地处一圈贴地冲击环（锤击 quake.mult 伤害；roar：范围 × r_mult 并击退）+ 尘土
+## 狮吼（docs/202，10-29 去数值化）：冲击环击退的敌人在 life 秒内撞上别的敌人（没被这一圈击退的）时，两者各受锤击 col_mult 的伤害；
+## 撞上景物底座 / 障碍时那名敌人受锤击 wall_mult 的伤害。只挂在她自己这一圈的击退上，不碰全局击退函数；同时在飞的至多 40 名，每名只撞一次；Boss 不击退也不算
+static func _h4_flights_add(o, ro: Dictionary, hits: Array, c: Vector2) -> void:
+	if not ro.has("col_mult"):
+		return
+	var sg := _h4sg(o)
+	var ids := {}
+	for e in hits:
+		ids[e.id] = true
+	for e in hits:
+		if e.dead or e.boss:
+			continue
+		if sg.flights.size() >= 40:
+			break
+		var d: Vector2 = e.pos - c
+		sg.flights.append({"e": e, "dir": d.normalized() if d.length() > 1.0 else Vector2(o.face, 0), "t": float(ro.get("life", 0.45)), "set": ids, "b": ro})
+
+
+static func _h4_flights_tick(o, sg: Dictionary, dt: float) -> void:
+	if sg.flights.is_empty():
+		return
+	var g = o.g
+	var wall_on: bool = g.map.blocks()
+	var keep: Array = []
+	for f in sg.flights:
+		var e: Dictionary = f.e
+		f.t = float(f.t) - dt
+		if e.dead or float(f.t) <= 0.0:
+			continue
+		var b: Dictionary = f.b
+		var dir: Vector2 = f.dir
+		var base_d: float = o.base("atk", 0.0) * o._dmg_bonus()
+		var done := false
+		if e.kb.length_squared() > 400.0:   # 还在被推着走才算撞
+			if wall_on and g.map.point_blocked(e.pos + dir * (float(e.r) + 6.0)):
+				o.log_hit(str(b.get("col_src", "")))
+				o.deal_damage(e, base_d * float(b.get("wall_mult", 0.5)) * (o.vs_elite() if e.elite else 1.0))
+				_h4_crash_fx(o, e.pos + dir * float(e.r), dir)
+				done = true
+			else:
+				for j in o.query_ids(e.pos + dir * float(e.r), float(e.r) + 50.0):
+					var q: Dictionary = g.enemies[j]
+					if q.dead or is_same(q, e) or f.set.has(q.id) or dir.dot(q.pos - e.pos) <= 0.0:
+						continue
+					if e.pos.distance_to(q.pos) > float(e.r) + float(q.r) + 2.0:
+						continue
+					var dm: float = base_d * float(b.get("col_mult", 0.3))
+					o.log_hit(str(b.get("col_src", "")))
+					o.deal_damage(e, dm * (o.vs_elite() if e.elite else 1.0))
+					o.log_hit(str(b.get("col_src", "")))
+					o.deal_damage(q, dm * (o.vs_elite() if q.elite or q.boss else 1.0))
+					_h4_crash_fx(o, (e.pos + q.pos) * 0.5, dir)
+					done = true
+					break
+		if not done:
+			keep.append(f)
+	sg.flights = keep
+
+
+static func _h4_crash_fx(o, p: Vector2, dir: Vector2) -> void:
+	o.fx({"kind": "glow", "pos": p + Vector2(0, -8), "r": 15.0, "life": 0.16, "col": Color(2.0, 1.6, 0.8), "alpha": 0.85})
+	o.fx({"kind": "ring", "pos": p + Vector2(0, 2), "r": 22.0, "r0": 4.0, "life": 0.2, "col": H4_GOLD, "floor": true, "w": 2.5})
+	o.fx({"kind": "line", "pos": p + Vector2(0, -8) - dir * 12.0, "to": p + Vector2(0, -8) + dir * 12.0, "life": 0.14, "col": Color(2.0, 1.7, 1.0), "w": 3.0})
+	_h3_vsparks(o, p + Vector2(0, -6), H4_GOLD, 6, 200.0, 0.3, 2.5, 200.0)
+	_h3_sfx(o, "hit", 1.0, 0.9)
+
+
+## 震地 / 狮吼：锤子落地处一圈贴地冲击环（锤击 quake.mult 伤害；roar：击退，被击退的敌人撞上别的敌人 / 障碍时受伤）+ 尘土
 static func _h4_quake(o, q: Dictionary, p: Vector2, mult: float) -> void:
 	var g = o.g
 	var ro: Dictionary = _h4_sub(o, q.get("roar", null))
 	var roar: bool = not ro.is_empty()
 	var r: float = float(q.get("r", 70.0)) * (float(ro.get("r_mult", 1.0)) if roar else 1.0) * o.stat(&"op_range")
 	var kb: float = float(ro.get("kb", 0.0)) if roar else 0.0
-	o.area_hit(str(q.get("src", "")), p, r, o.base("atk", 0.0) * mult * float(q.get("mult", 0.25)) * o._dmg_bonus(), kb)
+	var qh: Array = o.area_hit(str(q.get("src", "")), p, r, o.base("atk", 0.0) * mult * float(q.get("mult", 0.25)) * o._dmg_bonus(), kb)
+	if roar and kb > 0.0:
+		_h4_flights_add(o, ro, qh, p)
 	o.fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r, "r0": 10.0, "life": 0.32, "col": H4_GOLD, "floor": true, "w": 3.0 if roar else 2.0})
 	if roar:
 		o.fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r * 0.7, "r0": 6.0, "life": 0.26, "col": Color(2.0, 1.6, 0.8), "floor": true, "w": 1.5})
@@ -312,6 +382,52 @@ static func h4_cmd_wave(o, b: Dictionary) -> void:
 	_h3_sfx(o, "big", -4.0, 1.2)
 
 
+## 万兽之王·威令（docs/202）：号令波扫过队长 / 队友时，每名干员每道波一次：队长清除一个负面状态（束缚 → 寒冷 → 减速 → 神经损伤，按顺序取第一个有的），队友脚下一圈金光（队友没有负面状态）
+static func _h4_wave_purge(o, w: Dictionary, b: Dictionary) -> void:
+	var pg: Dictionary = _h4_sub(o, b.get("purge", null))
+	if pg.is_empty():
+		return
+	var g = o.g
+	if not w.has("purged"):
+		w["purged"] = {}
+	var pd: Dictionary = w.purged
+	var R: float = float(w.r)
+	if not pd.has("leader") and g.ppos.distance_to(w.pos) <= R:
+		pd["leader"] = true
+		var nm: String = _h4_purge_one(o)
+		o.fx({"kind": "ring", "pos": g.ppos, "r": 34.0, "r0": 8.0, "life": 0.4, "col": H4_GOLD, "floor": true, "w": 3.0})
+		o.fx({"kind": "glow", "pos": g.ppos + Vector2(0, -30), "r": 18.0, "life": 0.3, "col": Color(2.0, 1.7, 0.9), "alpha": 0.7})
+		if nm != "":
+			o.float_text(g.ppos + Vector2(0, -96), "净化 · " + nm, H4_GOLD, 14)
+	for m in g.squad.ops:
+		if m == o or m.pos == Vector2.INF or pd.has(m.id):
+			continue
+		if m.pos.distance_to(w.pos) <= R:
+			pd[m.id] = true
+			o.fx({"kind": "ring", "pos": m.pos, "r": 30.0, "r0": 8.0, "life": 0.4, "col": H4_GOLD, "floor": true, "w": 2.5})
+			o.fx({"kind": "glow", "pos": m.pos + Vector2(0, -26), "r": 14.0, "life": 0.3, "col": Color(2.0, 1.7, 0.9), "alpha": 0.6})
+
+
+static func _h4_purge_one(o) -> String:
+	var g = o.g
+	if g.root_t > 0.0:
+		g.root_t = 0.0
+		return "束缚"
+	if g.cold > 0:
+		g.cold = 0
+		g.cold_t = 0.0
+		g.combat.sync_cold()
+		return "寒冷"
+	if g.frost > 0.0 or g.fire_slow_t > 0.0:
+		g.frost = 0.0
+		g.fire_slow_t = 0.0
+		return "减速"
+	if g.nerve > 0.0:
+		g.nerve = 0.0
+		return "神经损伤"
+	return ""
+
+
 static func _h4sg_tick(o, sg: Dictionary, dt: float) -> bool:
 	var g = o.g
 	if not sg.waves.is_empty():
@@ -331,7 +447,9 @@ static func _h4sg_tick(o, sg: Dictionary, dt: float) -> bool:
 				if not e.dead and not e.boss and not e.elite:
 					o.apply_kb(e, (e.pos - w.pos).normalized() * float(b.get("kb", 380.0)))
 				_h3_vsparks(o, e.pos, H4_GOLD, 2, 140.0, 0.3, 2.0)
+			_h4_wave_purge(o, w, b)
 		sg.waves = sg.waves.filter(func(w): return w.t < float(w.b.get("dur", 0.4)) + 0.25)
+	_h4_flights_tick(o, sg, dt)
 	for fs in sg.fissures:
 		fs.t -= dt
 	sg.fissures = sg.fissures.filter(func(fs): return fs.t > 0.0)

@@ -217,6 +217,9 @@ func relic_pool_ids(for_shop := false) -> Array:
 		# 已拥有的藏品升级：出现率减半
 		if g.relics.has(r.id):
 			w *= 0.5
+		# 填充件（docs/203 精简：只给属性、留作填充的藏品）：出现权重 × relic/filler_weight
+		if r.get("filler", false):
+			w *= Bal.v("relic/filler_weight", 0.5)
 		# 后期降权（relic_effects.json 的 late_weight）：一次性源石锭 / 灯火 / 回血、商品打折，6:00 后几乎没价值，少占三选一的位置
 		if g.t > 360.0:
 			w *= float(r.get("late_weight", 1.0))

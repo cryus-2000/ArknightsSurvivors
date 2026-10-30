@@ -5,6 +5,8 @@
 ## 继承关系：op_api.gd ← character.gd ← <干员>.gd
 extends RefCounted
 
+const _BalG = preload("res://scripts/core/balance.gd")   # data/balance.json 旋钮（add_cc_growth 读 growth 段）；名字带下划线避免和子类 const Bal 重名
+
 var g                      # Game (Node2D)
 
 ## 绘制入口（性能 9/30）：干员脚本画东西一律 cv.draw_*（同 CanvasItem 接口）。编队的合批画布（squad.cv，batch_canvas.gd）：
@@ -44,6 +46,14 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 		if outp.size() > n:
 			outp.resize(n)
 		return outp
+	var mb = mid_boss_lock(o, max_dist)
+	if mb != null:
+		var outm: Array = hit_first(g.enemies_sys.nearest(n, max_dist, origin))
+		outm.erase(mb)
+		outm.push_front(mb)
+		if outm.size() > n:
+			outm.resize(n)
+		return outm
 	if prio_mode() == 1:
 		for e in g.enemies_sys.nearest(mini(maxi(n * 6, 14), 24), max_dist, origin):
 			cands.append([e, e.pos.distance_to(o)])
@@ -70,6 +80,30 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	if out.size() > n:
 		out.resize(n)
 	return out
+
+
+## 中期 Boss 战锁定（docs/177 §9 方案 A，10-30 协调人定；boss/mid_focus 0 = 关）：中期 Boss（非结局最终 Boss）可受击、离 origin 在
+## 射程 × boss/mid_focus_k（1.5）内，就排到第一个——清杂 / Boss 优先两档都一样，技能（非范围）同样先选它；
+## 护主只留给队长自己，且只认 boss/mid_focus_guard（30）像素内贴脸的杂兵。返回 Boss 或 null
+func mid_boss_lock(o: Vector2, max_dist: float):
+	var BalS = preload("res://scripts/core/balance.gd")
+	if BalS.v("boss/mid_focus", 1.0) <= 0.0 or g.get("spawner") == null:
+		return null
+	var r: float = max_dist * BalS.v("boss/mid_focus_k", 1.5)
+	var best = null
+	var bd: float = r * r
+	for e in _focus_bosses():
+		if not e.get("boss", false) or g.spawner.is_final_boss_type(str(e.type)):
+			continue
+		var d2: float = e.pos.distance_squared_to(o)
+		if d2 < bd:
+			bd = d2
+			best = e
+	if best != null and bool(get("is_leader")):
+		var gd: Array = g.enemies_sys.nearest(1, BalS.v("boss/mid_focus_guard", 30.0), g.ppos)
+		if not gd.is_empty() and not gd[0].boss:
+			return null
+	return best
 
 
 ## 自动选敌认的「打得动」（10-28 用户：「自动攻击的索敌会打无敌的敌人，特别是打伊祖米克的时候刚开始都在打它，没有打水母」）：
@@ -297,6 +331,18 @@ func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
 
 ## 控制状态统一入口（docs/101 §7.3.10）：转发 enemies_sys，语义见 run/enemies.gd
 func add_cc(e: Dictionary, stun := -INF, slow := -INF, kind := "") -> void:
+	g.enemies_sys.add_cc(e, stun, slow, kind)
+
+
+## 成长节点（docs/202）的控制统一走这里：同一敌人 growth_nodes/cc_dr_window 秒内第二次受控，时长 × growth_nodes/cc_dr_mult（缺省 3 秒 / 0.5），
+## 避免叠控把怪锁死。只对 stun 型（眩晕 / 定身 / 停顿 / 束缚 / 浮空）生效，减速不递减；旋钮 data/balance.json growth_nodes 段（--bal=growth_nodes/cc_dr_mult=1 即关）。
+## 老节点和老技能仍直接 add_cc（基线不变）；docs/202 的新节点一律用本函数。
+func add_cc_growth(e: Dictionary, stun := -INF, slow := -INF, kind := "") -> void:
+	if stun > 0.0:
+		var win: float = _BalG.v("growth_nodes/cc_dr_window", 3.0)
+		if g.t - float(e.get("gcc_t", -99.0)) < win:
+			stun *= _BalG.v("growth_nodes/cc_dr_mult", 0.5)
+		e["gcc_t"] = g.t
 	g.enemies_sys.add_cc(e, stun, slow, kind)
 
 

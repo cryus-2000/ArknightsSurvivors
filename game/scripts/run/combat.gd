@@ -67,7 +67,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		return
 	if g.ult != null and not src.is_empty():
 		g.ult.ev.last_src = src   # 连携（归溟幽灵鲨）：伤害来源
-	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
+	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + g.rfx.dodge_extra() + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
 		g.invuln = 0.3
 		Sfx.play("dodge", -4.0)
 		g.vfx.add_text(g.ppos + Vector2(0, -80), "闪避", Color(0.6, 0.85, 1.0), 16)
@@ -1125,6 +1125,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			dmg *= 1.1
 		if float(e.get("frag_t", 0.0)) > g.t:   # 铃兰精一「狐火灼印」：frag_t 之前受到的伤害 + frag_v（docs/91 §15；同名取最高）
 			dmg *= 1.0 + float(e.frag_v)
+		if e.has("tr_t") and float(e.tr_t) > g.t and h.has("op") and str(h.op) != str(e.tr_op):   # 能天使曳光弹标记（docs/202）：其他干员打到被标记的敌人 + tr_v
+			dmg *= 1.0 + float(e.tr_v)
 		dmg *= g.arts_mult if ty[1] == "法术" else g.phys_mult
 		if is_followup(h):
 			dmg *= (hop.stat(&"followup_dmg") if hop != null else g.followup_mult) * g.rfx.followup_extra(hop)
@@ -1273,7 +1275,7 @@ func heal(v: float, src: String = "其他", sub: String = "", mode := HEAL_FULL,
 func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if not h.is_empty():
 		g.hit = h
-	g.rfx.on_kill(e)
+	g.rfx.on_kill(e, h)
 	if e.dead:
 		return
 	e.dead = true

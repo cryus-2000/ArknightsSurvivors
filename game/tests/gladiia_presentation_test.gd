@@ -49,7 +49,7 @@ func _ready():
  o.pos=g.ppos
  var hooks: Array=[]
  entries(o.B,"shape","hookshot",hooks)
- ok(hooks.size()==4,"all four hook paths covered")
+ ok(hooks.size()==2,"both hook paths covered (%d)" % hooks.size())   # docs/202 怒海改机制后路线不再切三份钩索参数：普攻 + S1 重钩
  for h in hooks:
   ok(h.get("thin_chain",false),"hook uses slim tether")
  for name in ["fx_gladiia_tornado_open","fx_gladiia_tornado_loop","fx_gladiia_tornado_close","fx_gladiia_ram"]:

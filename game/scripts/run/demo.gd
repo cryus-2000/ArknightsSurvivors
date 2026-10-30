@@ -57,6 +57,7 @@ func step(dt: float) -> void:
 	g.hp = clampf(g.hp, g.max_hp * 0.5, g.max_hp)
 	g.xp = 0.0
 	g.gems.clear()
+	_growth_demo(dt)   # docs/202 成长节点演示条件（gallery.demo_dash_cd / demo_ctrl）
 	if g.demo_origin == Vector2.INF:
 		g.demo_origin = g.ppos
 		g.demo_phases = phase_list()
@@ -117,6 +118,41 @@ func step(dt: float) -> void:
 ## 这里按正式局同一接触半径（e.r + 12）判「扑上来」：播攻击帧条（atk_until）、沿离主控方向弹开 DEMO_BITE_KB（走 e.kb，
 ## 和被干员打退同一条路），再以原速走回来，每只至少隔 DEMO_BITE_CD 秒再扑一次——「扑上来 → 弹开 → 再上来」。
 ## 只在 step（demo_op 模式）里调用，正式局的敌人逻辑不变
+var demo_ctrl_t := 0.0
+var demo_wind_t := 0.0
+var demo_surr_t := 0.0
+
+
+## 成长节点演示条件（docs/202，干员 JSON gallery 里写）：demo_dash_cd = 队长冲刺冷却保持在这个秒数（德克萨斯「居合」有东西可缩）；
+## demo_ctrl = 每这么多秒让离队长最近的 3 只怪眩晕 1.5 秒（能天使「对空优先」有受控目标）；demo_windup = 每这么多秒让最近 4 只怪进入前摇；demo_surround = 每这么多秒把最近 4 只怪拉到队长身边。只在图鉴演示里生效
+func _growth_demo(dt: float) -> void:
+	if g.ch == null:
+		return
+	var gl: Dictionary = g.ch.def.get("gallery", {})
+	if gl.has("demo_dash_cd"):
+		g.dash_cd = maxf(g.dash_cd, float(gl.demo_dash_cd))
+	if gl.has("demo_ctrl"):
+		demo_ctrl_t += dt
+		if demo_ctrl_t >= float(gl.demo_ctrl):
+			demo_ctrl_t = 0.0
+			for e in g.ch.nearest_enemies(3, 400.0, g.ppos):
+				g.enemies_sys.add_cc(e, 1.5)
+	if gl.has("demo_windup"):   # 每 demo_windup 秒让离队长最近的 4 只怪进入 0.6 秒前摇（德克萨斯「破绽」有东西可打断）
+		demo_wind_t += dt
+		if demo_wind_t >= float(gl.demo_windup):
+			demo_wind_t = 0.0
+			for e in g.ch.nearest_enemies(4, 400.0, g.ppos):
+				e["wind"] = 0.6
+	if gl.has("demo_surround"):   # 每 demo_surround 秒把最近 4 只怪拉到队长身边一圈（能天使「护航射击」有被围的条件）
+		demo_surr_t += dt
+		if demo_surr_t >= float(gl.demo_surround):
+			demo_surr_t = 0.0
+			var k := 0
+			for e in g.ch.nearest_enemies(4, 600.0, g.ppos):
+				e.pos = g.ppos + Vector2.from_angle(0.6 + float(k) * 0.9) * 100.0
+				k += 1
+
+
 func _contact_cycle() -> void:
 	for e in g.enemies:
 		if e.dead or e.boss or g.t < float(e.get("demo_bite", 0.0)):
@@ -246,7 +282,7 @@ func new_op() -> void:
 	g.ch = g.squad.add(id)   # 图鉴演示直接出现，不播登场条（10-22 用户；局内入场仍播 play_entry）
 	if g.demo_stage >= 0:
 		# 三联对照：按成长节点数推进（N1 N2 → 2 个；到 N5 → 5 个；全部 → 6 个）
-		var nodes: int = [2, 5, 6][clampi(g.demo_stage, 0, 2)]
+		var nodes: int = g.demo_nodes if g.demo_nodes >= 0 else [2, 5, 6][clampi(g.demo_stage, 0, 2)]
 		for k in nodes:
 			if g.ch.next_node().is_empty():
 				break

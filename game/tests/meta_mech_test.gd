@@ -83,7 +83,12 @@ func test_rules() -> void:
 	ok(is_equal_approx(game.dodge, dg), "未雨绸缪Ⅲ：闪避率 %.3f（应为 %.3f）" % [game.dodge, dg])
 	# 补偿：受到伤害倍率基础值 squad/dodge_comp_taken，自我保护Ⅳ（读 meta_tree）照常再乘
 	var d4: float = -float(JSON.parse_string(FileAccess.get_file_as_string("res://data/meta_tree.json")).nodes.def4.effects[0].value)   # 自我保护Ⅳ 4% → 2%（docs/179 前 18 细胞，10-28）
-	var tk: float = Bal.v("squad/dodge_comp_taken", 1.0) * (1.0 - d4 * Bal.v("meta/stat_scale", 1.0))
+	# 开局随机给的藏品也可能带受伤加成（10-30 藏品精简后种子 1 开到 180「编队每人受伤 -3%」），非局外来源照实计入，只核局外那份
+	var other := 0.0
+	for s in game.stats.breakdown(&"dmg_taken").sources:
+		if s.source != "meta" and int(s.op) == 1:
+			other += float(s.value)
+	var tk: float = Bal.v("squad/dodge_comp_taken", 1.0) * (1.0 - d4 * Bal.v("meta/stat_scale", 1.0) + other)
 	ok(is_equal_approx(game.dmg_taken_mult, tk), "闪避补偿：受到伤害倍率 %.4f（应为 %.4f）" % [game.dmg_taken_mult, tk])
 	ok(game.meta_start_relic == 3 or relic_seen or game.relics.size() > 0, "战利品意识：开局待选 3 件（%d，t=%.2f，见过 %s）" % [game.meta_start_relic, game.t, relic_seen])
 	ok(Meta.leader_atk(game) > 0.0, "队长攻击基数 > 0（%.1f）" % Meta.leader_atk(game))

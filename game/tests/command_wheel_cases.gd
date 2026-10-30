@@ -31,6 +31,7 @@ class FakeGame extends RefCounted:
 	var ppos := Vector2.ZERO
 	var stats = preload("res://scripts/core/stat_block.gd").new()
 	var hit_src := {}
+	var beacons: Array = []
 	func get_node_or_null(_p: String):
 		return sfx
 	func is_inside_tree() -> bool:
@@ -67,8 +68,10 @@ func run(check: Callable) -> void:
 	var cmd: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
 	var old_rush = cmd.get("boss_rush", 1)
 	cmd["boss_rush"] = 0
+	preload("res://scripts/core/balance.gd").clear_cache()   # 经持有的 sec 引用改值，缓存不知道（docs/199 §5）
 	check.call(mate.nearest_enemies(1, 600.0)[0].id == 7, "boss_rush 0: old guard rule (mob hugging the leader overrides boss focus)")
 	cmd["boss_rush"] = old_rush
+	preload("res://scripts/core/balance.gd").clear_cache()
 	setl.call([_e(1, 100.0), _e(2, 150.0, "elite"), _e(3, 300.0), _e(4, 360.0), _e(5, 420.0), _e(6, 500.0, "boss")])
 	squad.apply_command("mob")
 	check.call(squad.priority == 1, "mob command sets priority 1")
@@ -94,3 +97,42 @@ func run(check: Callable) -> void:
 	coma["coma"] = true
 	check.call(mate.prio_order([[_e(1, 100.0), 10.0], [coma, 50.0]], 0)[0].id == 1, "prio_order boss: comatose boss is not focused")
 	check.call(not "near" in Squad.PRIO_SHORT and Squad.PRIO_NAMES.size() == 2, "nearest option removed (10-24)")
+	# 指点（docs/196）：圆盘下半圈 移动 / 肃清 / 集火，6 格各 60°（10-30 用户「移动保留，然后增加肃清区域的选项」）
+	var W = preload("res://scripts/screens/command_wheel.gd")
+	var ids: Array = W._items().map(func(it): return str(it.id))
+	check.call(ids == ["guard", "roam", "recall", "point", "clear", "focus"], "wheel has move / clear / focus with target_proto on")
+	# 肃清：圈里没敌人 clear_idle 秒 → 回随行；圈里有敌人则 clear_secs 秒到点回随行；移动照旧（圈空 → 归队）
+	setl.call([_e(1, 100.0)])
+	check.call(squad.apply_order("clear", Vector2(1000.0, 0.0), null) and squad.order_kind == "clear", "clear order applies")
+	check.call(is_equal_approx(squad.order_radius(), 220.0), "clear radius 220")
+	squad._tick_order(0.6)
+	check.call(squad.stance == Squad.ROAM, "clear: still out before clear_idle")
+	squad._tick_order(0.6)
+	check.call(squad.stance == Squad.GUARD and squad.order_kind == "", "clear: empty circle returns to follow")
+	setl.call([_e(1, 1000.0)])
+	squad._order_cd = 0.0
+	check.call(squad.apply_order("clear", Vector2(1000.0, 0.0), null), "clear order applies again")
+	squad._tick_order(5.0)
+	check.call(squad.stance == Squad.ROAM, "clear: enemy in circle keeps the order")
+	squad._tick_order(4.5)
+	check.call(squad.stance == Squad.GUARD, "clear: times out after clear_secs and returns to follow")
+	setl.call([])
+	check.call(squad.apply_order("point", Vector2(500.0, 0.0), null), "move order applies")
+	squad._tick_order(10.0)
+	check.call(squad.stance == Squad.ROAM and squad.order_kind == "point", "move = station: stays put with nothing around (10-30)")
+	check.call(is_equal_approx(squad.order_radius(), 0.0), "move is a point, not a circle")
+	squad.apply_order("clear", Vector2(500.0, 0.0), null)
+	check.call(squad.order_kind == "clear", "another order replaces the station")
+	# 移动指到灯标附近（10-30 用户「移动可以帮忙点亮灯塔」）：落点吸附到灯标中心，守到点燃后回随行
+	var bc := {"pos": Vector2(600.0, 0.0), "lit": false, "dead": false}
+	game.beacons = [bc]
+	squad.set_stance(Squad.GUARD)
+	squad._order_cd = 0.0
+	check.call(squad.apply_order("point", Vector2(640.0, 20.0), null) and squad.order_pos == bc.pos and squad.order_beacon == bc, "move near a beacon snaps onto it")
+	squad._tick_order(5.0)
+	check.call(squad.stance == Squad.ROAM, "beacon move: empty circle does not regroup while unlit")
+	bc.lit = true
+	squad._tick_order(0.1)
+	check.call(squad.stance == Squad.GUARD and squad.order_beacon == null, "beacon move: lit beacon returns to follow")
+	squad.set_stance(Squad.GUARD)
+	check.call(squad.apply_order("point", Vector2(900.0, 0.0), null) and squad.order_beacon == null, "move far from a beacon does not snap")

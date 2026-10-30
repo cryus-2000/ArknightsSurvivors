@@ -49,9 +49,10 @@
   "blast2_mult": 0.5,
   "whirl_r": 130,
   "whirl_mult": 0.6,
-  "drag_n": 3,
-  "drag_r": 200,
-  "drag_mult": 0.6,
+  "chain_dur": 3.0,
+  "chain_r": 140,
+  "after_r": 50,
+  "after_mult": 0.3,
   "rift_mult": 0.8,
   "rift_w": 52,
   "rift_air": 0.8,
@@ -73,7 +74,6 @@
   "pick_r_elite": 420,
   "pick_r": 400,
   "refund": 0.6,
-  "hook_more_r": 1.8,
   "s1_slam_kb": 70,
   "s1_land_kb": 50,
   "s3_land_kb": 60,
@@ -102,12 +102,11 @@
   "combo_mult": 1.0,
   "combo_cd": 2.0,
   "combo_range": 260,
-  "_branch": "分支培养（docs/119 §4.1 / docs/120 §8，10-22）：节点 4 二选一 不容挣脱 / 通路洞开，节点 5：drag2_* 不容挣脱·绞杀（钩回落地后身前再抡一锤），rift2_* 通路洞开·攻势（掷锚技能后限时增伤）。不依赖顺链弹射、不改 attack 积木。数值为待试验参数",
+  "_branch": "分支培养（docs/119 §4.1 / docs/120 §8，10-22）：节点 4 二选一 不容挣脱 / 通路洞开，节点 5：drag2_* 不容挣脱·绞杀（钩回落地后身前再抡一锤），通路洞开·余震（after_*，通路掀飞的敌人落地时炸一圈小冲击）。不依赖顺链弹射、不改 attack 积木。数值为待试验参数",
+  "_growth202": "成长节点去数值化（docs/202，10-29）：chain_* 不容挣脱（S1 钩回的敌人被锁链拴在身边 chain_dur 秒、离他不超过 chain_r），after_* 通路洞开·余震（落地小冲击的半径 / 锚击倍率）。数值为待试验参数",
   "drag2_delay": 0.3,
   "drag2_r_k": 1.3,
   "drag2_mult": 0.8,
-  "rift2_dur": 6.0,
-  "rift2_atk": 0.25,
   "drag2_t": 0.6
  },
  "leader": {
@@ -541,6 +540,17 @@
     "control"
    ]
   },
+  "通路余震": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "aftershock"
+   ]
+  },
   "通路洞开": {
    "emitter": "operator",
    "origin": "skill",
@@ -603,13 +613,13 @@
    "id": "drag",
    "name": "不容挣脱",
    "icon": "skill_ulpianus_s1",
-   "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；锚命中 Boss 时，以锁链将附近至多 {$drag_n} 名敌人拖向落点（掷锚 {$drag_mult*100}% 伤害）",
+   "desc": "「必须促成的接触」钩回的敌人被锁链拴在他身边 {$chain_dur} 秒，离他不能超过 {$chain_r}（精英时长减半，Boss 除外）",
    "branch": {
     "drag": {
      "id": "drag",
      "name": "不容挣脱",
      "icon": "skill_ulpianus_s1",
-     "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；锚命中 Boss 时，以锁链将附近至多 {$drag_n} 名敌人拖向落点（掷锚 {$drag_mult*100}% 伤害）"
+     "desc": "「必须促成的接触」钩回的敌人被锁链拴在他身边 {$chain_dur} 秒，离他不能超过 {$chain_r}（精英时长减半，Boss 除外）"
     },
     "rift": {
      "id": "rift",
@@ -618,7 +628,7 @@
      "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*$k_pow*100:1}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路"
     }
    },
-   "branch_desc": "「不容挣脱」强化钩取，锚命中 Boss 时将附近敌人拖向落点；「通路洞开」沿锁链攻击并浮空敌人",
+   "branch_desc": "「不容挣脱」把钩回的敌人拴在身边；「通路洞开」沿锁链攻击并浮空敌人",
    "bot": "drag"
   },
   {
@@ -636,9 +646,9 @@
     },
     "rift": {
      "id": "rift2",
-     "name": "通路洞开·攻势",
+     "name": "通路洞开·余震",
      "icon": "skill_ulpianus_s3",
-     "desc": "「必须促成的接触」与「必须开辟的通路」出手后 {$rift2_dur} 秒内锚击伤害 +{$rift2_atk*100}%"
+     "desc": "被「通路洞开」掀飞的敌人落地时，各自炸出一圈小冲击（半径 {$after_r}，锚击 {$after_mult*100}% 伤害），落点连成一串"
     }
    }
   },
@@ -784,11 +794,6 @@
       "refund": "$refund",
       "hook_r": "$s1_hook_r",
       "hook_n": "$s1_pull_n",
-      "hook_more": {
-       "cond": "node:drag",
-       "r_mult": "$hook_more_r",
-       "n": "$drag_n"
-      },
       "front": 34,
       "hold": "$s1_hold",
       "r": "$s1_r",
@@ -800,12 +805,12 @@
       "land_kb": "$s1_land_kb",
       "hook_text": "钩住！",
       "hold_frame": 5,
-      "drag": {
+      "leash": {
        "cond": "node:drag",
-       "n": "$drag_n",
-       "r": "$drag_r",
-       "mult": "$drag_mult",
-       "src": "不容挣脱"
+       "dur": "$chain_dur",
+       "r": "$chain_r",
+       "max": 8,
+       "_doc": "不容挣脱（docs/202）：S1 钩回的敌人被锁链拴在身边 3 秒，离他不能超过 140（精英减半，Boss 除外）；同一敌人 3 秒内再被拴时长减半"
       },
       "rift": {
        "cond": "node:rift",
@@ -813,7 +818,15 @@
        "w": "$rift_w",
        "air": "$rift_air",
        "h": "$rift_h",
-       "src": "通路洞开"
+       "src": "通路洞开",
+       "after": {
+        "cond": "node:rift2",
+        "r": "$after_r",
+        "mult": "$after_mult",
+        "max": 12,
+        "src": "通路余震",
+        "_doc": "通路洞开·余震（docs/202，路线 rift 节点 5）：被通路掀飞的敌人落地时炸出一圈小冲击，同一条通路至多 12 处"
+       }
       }
      }
     ],
@@ -961,7 +974,15 @@
        "w": "$rift_w",
        "air": "$rift_air",
        "h": "$rift_h",
-       "src": "通路洞开"
+       "src": "通路洞开",
+       "after": {
+        "cond": "node:rift2",
+        "r": "$after_r",
+        "mult": "$after_mult",
+        "max": 12,
+        "src": "通路余震",
+        "_doc": "通路洞开·余震（docs/202，路线 rift 节点 5）：被通路掀飞的敌人落地时炸出一圈小冲击，同一条通路至多 12 处"
+       }
       }
      }
     ]
@@ -1271,7 +1292,7 @@
    "drag": {
     "trig": "passive",
     "do": [],
-    "_doc": "不容挣脱：写在 S1 verb.tether 的 hook_more / drag（cond node:drag）"
+    "_doc": "不容挣脱：写在 S1 verb.tether 的 leash（cond node:drag）"
    },
    "rift": {
     "trig": "passive",
@@ -1410,37 +1431,11 @@
      }
     ]
    },
-   "rift2": [
-    {
-     "trig": "on_skill_start",
-     "skill": 0,
-     "_doc": "通路洞开·攻势（路线 rift 节点 5）：掷锚后限时增伤（同 key 刷新不叠）",
-     "do": [
-      {
-       "verb": "buff_timed",
-       "key": "rift",
-       "stat": "atk",
-       "value": "$rift2_atk",
-       "dur": "$rift2_dur",
-       "text": "攻势"
-      }
-     ]
-    },
-    {
-     "trig": "on_skill_start",
-     "skill": 2,
-     "do": [
-      {
-       "verb": "buff_timed",
-       "key": "rift",
-       "stat": "atk",
-       "value": "$rift2_atk",
-       "dur": "$rift2_dur",
-       "text": "攻势"
-      }
-     ]
-    }
-   ]
+   "rift2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "通路洞开·余震（路线 rift 节点 5）：写在 S1 / S3 verb.tether.rift.after（cond node:rift2）"
+   }
   },
   "response": [
    {

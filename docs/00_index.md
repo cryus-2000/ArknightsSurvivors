@@ -131,6 +131,8 @@
 | [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
 | [191_relic_pacing](191_relic_pacing.md) | 藏品节奏：来源拆分、降频与核心延后 | 已实现，待整局校准 | 10-28/29：遥测加来源；精英掉箱 0.15 + 2:00 前不掉、途中一后移 35 秒、商店藏品连买涨价；大时刻宝箱多选项 + 稀有加权；升华 / 核心 73 件第一只中期 Boss 倒下前不出。胜局 17 → 12 件，胜率掉，等统一校准 | balance.json relic/*、shop/relic_step、progression、relic_fx、endings |
 | [197_relic_taxonomy](197_relic_taxonomy.md) | 藏品分类统一成一套（映射表） | 待协调人审 | 10-29：lanes A–H / cat / effect_category / tags 四套合成一个 `lane`（docs/181 七流派 + 职业 / 通用 / 生存 / 经济）；265 件逐件映射、每个读取方改法、抽取份额变化 ≤3 点 | 181、35、relics.json、relic_effects.json |
+| [204_test_system_plan](204_test_system_plan.md) | 测试体系方案（模块化快检 + 对账 + 图校验） | 方案 / 部分实装 | 10-30：快检分组、文本数字对账（text_reconcile）、节点 / 引用图校验（graph_lint）；§10 实装记录 | 41、126、199；tools/check.py |
+| [203_relic_trim](203_relic_trim.md) | 藏品精简方案（纯属性三分、被动卡分工、回血 5 条、流派分布） | 待用户审 | 10-30：100 件纯属性藏品逐件分 改打法 19 / 删 30 / 填充 44 / 不动 7；生存被动卡 6 张删、协同 2 张改流派卡 + 新 4 张；回血收成 5 条；改打法份额 36% → 58%；未动数据 | 197、181、191、design_compass_draft_1029 |
 | [187_web_shrink_1028](187_web_shrink_1028.md) | 网页包再压缩评估 | 已实现 | 10-28：按类别拆分；无损四项（字体 WOFF2、WebP 最高档、wasm LZMA 分片 + 自写解码器、art/incoming 关透明渗色）41.62 → 36.10 MiB；音频 C 档 / 音效降采样等用户 | 121、164、22 |
 | [190_op_voice_more](190_op_voice_more.md) | 干员语音扩充 | 已实施 | 10-29：每人入队 4 / 突击 4 / 技能 4 / 闲聊 3 句原作语音（新增 110 条、+1.82 MiB），洗牌不重复 + 同句 60 秒；归队不再开口 | sfx.gd、voice_pools.json、tools/voice_more_1029.py |
 | [192_logos_s3_fx_order](192_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3 扇形咒域 | 待转 Codex | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） | seg_logos.gd、art.gd、logos_fx_handoff.md |
@@ -267,10 +269,12 @@
 | [reference/](reference/README.md) | 用户提供的参考资料：262 件藏品原作表、全局设计框架 v1.0、藏品图标参考 |
 
 | [三人全动画接入](plans/2026-10-18-three-attack-timing.md) | 29 条动画、原生像素与分段时序 | 实施记录 | 三人完整动作、攻速适配及测试包；试验分支，未合入 main | docs/87、character.gd、attack_timing_test |
-| [水月标准化](plans/2026-10-18-mizuki-runtime-standardization.md) | 公共攻击时序、技能生命周期与原生像素接入 | 实施记录 | 水月四步修复、旧分支清理；试验分支，未合入 main | docs/61 §26、art/archive/incoming_1028/mizuki_runtime_handoff.md |
+| [凯尔希削弱方案](plans/2026-10-29-mon3tr-hp-plan.md) | Mon3tr 血条 / 倒地复活 / 治疗分配（待用户审） | 方案（未实施） | 怪不打召唤物的现状、推荐不吸仇恨、削弱估计 85 → 74–78%、改动文件与待定 5 项 | docs/114 §7–8、118、198 §4.4 |
+| [水月标准化](plans/2026-10-18-mizuki-runtime-standardization.md) | 公共攻击时序、技能生命周期与原生像素接入 | 实施记录 | 水月四步修复、旧分支清理；试验分支，未合入 main | docs/61 §26、art/incoming/mizuki_runtime_handoff.md |
 
 | [水月 S3 整范围触手](plans/2026-10-18-mizuki-s3-fx.md) | 原作群攻与控制方向、新触手范围表现 | 试验实现 | 保留本作数值、不扣血，移除镜像 | seg_mizuki、mizuki_s3_fx、mizuki_runtime_test |
 
 | [博士统一画风接入](plans/2026-10-18-doctor-style-integration.md) | 待机、跑步、倒下统一及 64/128 原点 | 测试版接入 | 用户批准新画风；保留既有四干员测试基线 | doctor.json、world、title_bg、doctor_run_test |
 - [2026-10-18 怪物原作机制补齐](plans/2026-10-18-enemy-identity.md)：已实施记录；四类普通怪/精英的防御、光环和控制身份补齐与回归清单；引用：docs/95、enemy_identity_test。
 | [干员特效审查 10-29](195_op_fx_audit_1029.md) | 全员干员特效排查：整片填充圆盘去除、白灰色、待确认项 | 已落地一批 | 浊心 / 逻各斯另会话处理；拉普兰德失色圈待用户定 | data_operator、seg_lumen 等、tools/op_fx_audit_rec.py |
+| [测试体系方案 10-30](204_test_system_plan.md) | 快检耗时盘点、`--changed` 路径映射、说明对账、节点可达性、红项登记、分期 | 方案待审 | 未实装；附只读原型 text_reconcile_scan / graph_lint | check.py、known_red、check_map、tools/graph_lint.py |

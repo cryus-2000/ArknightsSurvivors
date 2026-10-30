@@ -37,8 +37,10 @@ static func card_value(c: Dictionary) -> float:
 		return 1.0 - v if c.get("invert", false) else v
 	return float(c.get("value", 0.0))
 const PASSIVE_CAP := 4         # 生存 / 协同每类最多几种；机动见 cat_cap()
-const CAT_LABEL := {"doctor": "生存  SURVIVAL", "mobility": "机动  MOBILITY", "squad": "协同  SQUAD", "fire": "火力  FIREPOWER"}
-const CATS := ["doctor", "mobility", "squad", "fire"]   # fire（火力，10-23 用户定）：远程普攻子弹的成长，只在编队有能穿透的远程普攻干员时出卡（cards.json requires: ranged_basic）
+const CAT_LABEL := {"doctor": "生存  SURVIVAL", "mobility": "机动  MOBILITY", "squad": "协同  SQUAD", "fire": "火力  FIREPOWER", "lane": "流派  BUILD"}
+const CATS := ["doctor", "mobility", "squad", "fire", "lane"]
+## 流派卡（docs/203）卡面类别写流派名（颜色走 UI.CAT_COL），名字同 relics.json lane_names
+const LANE_LABEL := {"melee": "近战扩域  MELEE", "multi": "多弹火力  MULTI", "summon": "召唤驻场  SUMMON", "control": "控场引爆  CONTROL", "weak": "弱点收割  WEAK", "shield": "护盾反击  SHIELD"}   # fire（火力，10-23 用户定）：远程普攻子弹的成长，只在编队有能穿透的远程普攻干员时出卡（cards.json requires: ranged_basic）
 
 
 ## 类别的种类上限
@@ -118,6 +120,7 @@ func manual_input_dir() -> Vector2:
 ## 设置「普通攻击：手动」（Cfg.manual_attack，玩法系统的设置项）时主控的普攻要按键才出；队友、机器人、图鉴演示一律自动。
 ## 开发测试：--manualatk 强制打开
 const Bal = preload("res://scripts/core/balance.gd")
+const StatDefs = preload("res://scripts/core/stat_defs.gd")
 
 var manual_attack := false
 var atk_buf := 0.0             # 轻点攻击键的缓冲：冷却没转好时先记下，manual/atk_buf 秒内一转好就出（不白按）
@@ -371,10 +374,18 @@ func passive_cards(cat: String) -> Array:
 		var n: int = g.growth.get(pid, 0)
 		if n >= pdef.max or (full and n == 0):
 			continue
+		if not pdef.get("pool", true):
+			continue   # 精简停用（docs/203）：生存属性只在认知塑造
+		var rq: String = str(pdef.get("requires", ""))
+		if rq.begins_with("lane:") and not g.squad.ops.any(func(o): return o.in_lane(rq.substr(5))):
+			continue   # 流派卡：编队里有该流派干员才出
+		if str(pdef.get("stat", "")) == "shield_interval" and g.shield_max <= 0:
+			continue   # 护盾·充能：没有护盾层数时没用
 		if str(pdef.get("requires", "")) == "ranged_basic" and not _squad_has_pierce_atk():
 			continue   # 贯穿（10-23）：编队里没有子弹能穿透的远程普攻干员就不进池
 		var nm: String = pdef.name if pdef.max > 90 else "%s  %d/%d" % [pdef.name, n + 1, pdef.max]
-		out.append({"kind": "growth", "id": pid, "name": nm, "desc": passive_desc(pid) + "\n" + passive_preview(pid), "cat": CAT_LABEL.get(cat, "")})
+		var cl: String = LANE_LABEL.get(rq.substr(5), CAT_LABEL.get(cat, "")) if cat == "lane" else CAT_LABEL.get(cat, "")
+		out.append({"kind": "growth", "id": pid, "name": nm, "desc": passive_desc(pid) + "\n" + passive_preview(pid), "cat": cl})
 	return out
 
 
@@ -441,7 +452,14 @@ func passive_preview(pid: String) -> String:
 	var c: Dictionary = PASSIVES.get(pid, {})
 	if c.has("stat") and str(c.get("scope", "")) == "":
 		var sn := StringName(str(c.stat))
-		return "%s %.2f → %.2f" % [str(c.stat), st.value(sn), st.value_with(sn, str(c.op), card_value(c))]
+		# 卡面不露内部键名：用属性表的中文名（去掉括注）；倍率类（基值 1）写成 ×，其余写数值
+		var d: Dictionary = StatDefs.PLAYER.get(sn, {})
+		var label := str(d.get("name", c.stat)).get_slice("（", 0)
+		var now: float = st.value(sn)
+		var nxt: float = st.value_with(sn, str(c.op), card_value(c))
+		if is_equal_approx(float(d.get("base", 0.0)), 1.0):
+			return "%s ×%.2f → ×%.2f" % [label.trim_suffix("倍率"), now, nxt]
+		return "%s %s → %s" % [label, _num(now), _num(nxt)]
 	return ""
 
 
@@ -449,6 +467,8 @@ func passive_preview(pid: String) -> String:
 func filler_cards() -> Array:
 	var out: Array = []
 	for c in FILLERS:
+		if not c.get("pool", true):
+			continue   # 「急救补给」停用（docs/203 §3：回血收成 5 条）
 		out.append({"kind": "filler", "id": str(c.id), "name": str(c.name), "desc": str(c.desc), "cat": "补给  SUPPLY"})
 	return out
 

@@ -1245,7 +1245,7 @@
    "tier": "A",
    "adapt": "所有敌人移动速度 -15%，更容易被击退",
    "rarity": "基础",
-   "lane": "general",
+   "lane": "control",
    "first_batch": false,
    "boss_only": false,
    "shop_allowed": true

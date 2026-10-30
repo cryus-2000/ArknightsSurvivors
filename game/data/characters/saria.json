@@ -57,10 +57,14 @@
   "pillar_r": 110,
   "pillar_life": 2.0,
   "pillar_mult": 0.2,
-  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 急救针剂 / 碎晶，节点 5：syr2_* 针剂·强心（急救附带回复 + 限时减伤），shatter2_* 碎晶·崩落（每第 3 拳钙晶崩落）。数值为待试验参数",
-  "syr2_heal": 0.03,
-  "syr2_dur": 3.0,
-  "syr2_red": 0.1,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 急救针剂 / 碎晶，节点 5：flow_* 针剂·回流（注射器命中的敌人受伤的一部分转为队长回复），shatter2_* 碎晶·崩落（每第 3 拳钙晶崩落）。数值为待试验参数",
+  "_growth202": "成长节点去数值化（docs/202，10-29）：mark_* 晶簇（环绕钙晶留碎片，被拳击命中时爆开），flow_* 针剂·回流（受伤转回复）。数值为待试验参数",
+  "mark_dur": 2.0,
+  "mark_r": 45,
+  "mark_mult": 0.2,
+  "flow_dur": 4.0,
+  "flow_pct": 0.08,
+  "flow_cap": 0.03,
   "shatter2_n": 3,
   "shatter2_r_k": 1.3,
   "shatter2_mult": 0.5
@@ -366,6 +370,16 @@
     "follow_up"
    ]
   },
+  "晶簇": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "follow_up"
+   ]
+  },
   "急救针剂": {
    "emitter": "operator",
    "origin": "skill",
@@ -411,7 +425,7 @@
    "id": "calc_cluster",
    "name": "晶簇",
    "icon": "growth_b_count",
-   "desc": "环绕的钙质晶体增加到 {$orb_n2} 枚"
+   "desc": "环绕的钙质晶体撞到敌人时，在其身上留下钙晶碎片 {$mark_dur} 秒；被留下碎片的敌人再被拳击命中时，碎片爆开（半径 {$mark_r}，拳击 {$mark_mult*100}% 伤害）"
   },
   {
    "type": "elite",
@@ -455,9 +469,9 @@
    "routes": {
     "syringe": {
      "id": "syringe2",
-     "name": "针剂·强心",
+     "name": "针剂·回流",
      "icon": "skill_saria_s1",
-     "desc": "「急救」时再为队长回复 {$syr2_heal*$k_atk*100:1}% 最大生命，并在 {$syr2_dur} 秒内受到的伤害 -{$syr2_red*100}%"
+     "desc": "被急救针剂命中的敌人，{$flow_dur} 秒内受到伤害的 {$flow_pct*100:0}% 转为队长的回复（每次「急救」至多 {$flow_cap*100:1}% 最大生命）"
     },
     "shatter": {
      "id": "shatter2",
@@ -561,10 +575,6 @@
       "src": "钙晶",
       "n_by": [
        {
-        "cond": "node:calc_cluster",
-        "n": "$orb_n2"
-       },
-       {
         "cond": "node:calc_orb",
         "n": "$orb_n1"
        }
@@ -573,6 +583,15 @@
       "spin": "$orb_spin",
       "mult": "$orb_mult",
       "cd": "$orb_cd",
+      "mark": {
+       "cond": "node:calc_cluster",
+       "dur": "$mark_dur",
+       "r": "$mark_r",
+       "mult": "$mark_mult",
+       "max": 24,
+       "src": "晶簇",
+       "_doc": "晶簇（docs/202）：环绕钙晶撞到敌人留下钙晶碎片 2 秒，被拳击命中时爆开（半径 50，拳击 30%）；同时至多 24 处"
+      },
       "shatter": {
        "cond": "node:shatter",
        "every": "$orb_shatter_every",
@@ -605,7 +624,15 @@
        "slow": "$syringe_slow",
        "range": 260,
        "speed": 460,
-       "src": "急救针剂"
+       "src": "急救针剂",
+       "flow": {
+        "cond": "node:syringe2",
+        "dur": "$flow_dur",
+        "pct": "$flow_pct",
+        "cap": "$flow_cap",
+        "src": "针剂回流",
+        "_doc": "针剂·回流（docs/202，路线 syringe 节点 5）：被注射器命中的敌人 4 秒内受到伤害的 8% 转为队长回复，每次急救至多 3% 最大生命"
+       }
       }
      }
     ]
@@ -677,7 +704,7 @@
    "calc_cluster": {
     "trig": "passive",
     "do": [],
-    "_doc": "晶簇：写在 verb.calc_orbs.n_by（cond node:calc_cluster）"
+    "_doc": "晶簇：写在 verb.calc_orbs.mark（cond node:calc_cluster）"
    },
    "syringe": {
     "trig": "passive",
@@ -726,28 +753,9 @@
     "_doc": "钙化拳：写在 attack.calcify（cond elite >= 1）"
    },
    "syringe2": {
-    "trig": "on_skill_start",
-    "skill": 0,
-    "_doc": "针剂·强心（路线 syringe 节点 5）",
-    "do": [
-     {
-      "verb": "heal",
-      "pct": "$syr2_heal",
-      "scale": "op",
-      "src": "强心针"
-     },
-     {
-      "verb": "guard",
-      "name": "强心",
-      "value": "$syr2_red",
-      "dur": "$syr2_dur",
-      "col": [
-       1.0,
-       0.85,
-       0.45
-      ]
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "针剂·回流（路线 syringe 节点 5）：写在 S1 的 verb.saria_heal.syringe.flow（cond node:syringe2）"
    },
    "shatter2": {
     "trig": "every_n",

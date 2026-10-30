@@ -497,6 +497,7 @@ const OPT_CPP := 131072   # 原生代码对照位（docs/101 §4.7 / B8）：置
 ## docs/50 §21（10-21，网页为主基准）：
 const OPT_HUDSQ := 524288   # HUD 编队栏：各干员 skill_hud() / portrait() 每帧取一次共用，每帧层不再算名字 / 精英标签；置位走旧写法（每帧取 2–3 次）。画面相同
 const OPT_HUDNC := 2097152   # HUD 块缓存（docs/126 §9.2）：置位时所有 HUD 块每帧画（同 --hudnocache），供 --optab 同局轮换量缓存的净收益。画面相同
+const OPT_PARA := 4194304   # 偏执狂二阶段「海嗣滴」弹：两个多边形进 TriBatch（Geometry2D 三角化后随批提交），不再每颗弹 tb_flush + 两次 draw_colored_polygon；置位走旧写法。画面相同（同一三角化）
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
@@ -522,6 +523,7 @@ func rng_states() -> Array:
 	return [rng.state, rng_spawn.state, rng_enemy.state, rng_drop.state, rng_op.state]
 var headless_batch := false      # --balance 且无界面：跳过所有重绘
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
+var demo_nodes := -1           # 成长节点验收（docs/202）：>= 0 时图鉴演示按这个数推成长节点（覆盖 demo_stage 的 2 / 5 / 6）；路线用 --route=<干员>:<路线>
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
 var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
 var entry_voice_hold := true   # 开局编队的登场语音先不播：等第一帧局内画面画出来（开场演出则等编队着地）再放（release_entry_voices，用户 10-25）
@@ -1924,6 +1926,7 @@ func _try_dash() -> void:
 	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
 	dash_cd += dash_cd_full()
+	rfx.on_dash(ppos, dash_dir, dash_dist())   # 舞者手链（docs/203）：冲刺后闪避 + 路线伤害
 	dash_used = true
 	telemetry.dashes += 1   # 作战记录（docs/77）
 	combat.on_dash_break()   # 控制遥测：正在冻结就记一次冲刺挣脱
@@ -2024,6 +2027,7 @@ func _update(dt: float) -> void:
 		if shield_cd <= 0.0:
 			shield += 1
 			shield_cd = shield_every
+			rfx.on_shield_gain()   # 嵌体甲片（docs/203）：生成护盾时冲击
 			shield_pop = 0.4
 			Sfx.play("relic", -12.0, 1.6, 0.0)
 	shield_flash = maxf(0.0, shield_flash - dt)

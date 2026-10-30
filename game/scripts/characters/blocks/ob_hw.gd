@@ -268,6 +268,8 @@ static func hw_draw_floor(o) -> void:
 		h4_draw_floor(o)   # 手写迁移段第 4 批
 	if o.hw.has("links"):
 		_F().hw_draw_melt(o)
+	if o.hw.has("glc"):
+		_F().gl_draw_floor(o)   # docs/202 歌蕾蒂娅：沉底的锁链
 	_F().hw_draw_waves(o)
 	_F().hw_draw_pools(o)
 	_F().hw_draw_rune_floor(o)
@@ -396,6 +398,8 @@ static func _hw5_tick(o, dt: float) -> void:
 		_F()._hw5_lobs(o, dt)
 	if not h.hooks.is_empty():
 		_F()._hw5_hooks(o, dt)
+	if h.has("glc"):   # docs/202 歌蕾蒂娅：沉底的锁链 / 暗涌（seg_gladiia）
+		_F().gl_tick(o, dt)
 
 
 # ---------------------------------------------------------------- 本段的校验
@@ -591,6 +595,8 @@ static func h3_exec(o, b: Dictionary, at: Vector2) -> void:
 			_F()._h3_heal_lamp(o)
 		"verb.doll_flash":
 			_F().h3_doll_flash(o, b)
+		"verb.saw_echo":
+			_F().h3_saw_echo(o, b)
 
 
 # ---------------------------------------------------------------- 画面
@@ -992,6 +998,7 @@ static func _h3_cond_mults(b: Dictionary, k: String, p: String, ctx: Dictionary)
 # ================================================================ 精英化第 3 批（docs/91 §5 / §8 / §9 / §14、§25；docs/61 §20，10-14）
 # 只往后加，建在第 3 批手写迁移段上（o.hw 的 ir / sp / lm / mz）。新积木 / 新参数：
 #  trig.on_windup     普攻起手时（第 3 批的普攻形状）执行 do。幽灵鲨精一「卷刃」：起手把外圈敌人吸近（verb.displace，环斩在出手帧）
+#  verb.saw_echo      瞬时（trig.on_hurt 的 do）：原地追加一次环斩（伤害同当前一圈主环斩，docs/202）。幽灵鲨节点 4A「困兽」：S1 期间队长每被命中一次（cd 0.5 秒）
 #  verb.doll_flash    瞬时（trig.every_n 的 do）：替身人偶在 range（× op_range）内敌群最密处从水花里现身 appear 秒 → spins 次以自身为心的法术脉冲
 #                     （r × op_range，命中最近 max_n 个、Boss / 精英优先，basis × mult，src；10-21 原为旋身锯环）→ 碎成泡沫 burst 秒；同时最多 1 个，本体离场（替身跟随）时不出。幽灵鲨精二「替身闪现」
 #  shape.thrust 的 stages[k].on_first           第 k 段命中的第一个敌人吃的状态（艾丽妮精一「挑刺」：第 2 段挑起，cd 门）
@@ -1004,7 +1011,7 @@ static func _h3_cond_mults(b: Dictionary, k: String, p: String, ctx: Dictionary)
 #  shape.umbrella 的 jelly {cond, every, s3, r, speed, back, mult, stun, src}  身后小水母离身游猎蜇刺（水月精二「深蓝之籽」）
 # 确定性：本段不取 g.rng（选目标都按距离 / 次序）；画面只用 g.vrng 与 g.t。
 
-const E3_TAGS := ["trig.on_windup", "verb.doll_flash"]
+const E3_TAGS := ["trig.on_windup", "verb.doll_flash", "verb.saw_echo"]
 
 const H3_COLD := Color(0.6, 0.8, 1.05)
 
@@ -1034,7 +1041,7 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 	if not tag in E3_TAGS:
 		return false
 	var errs: Array = ctx.errs
-	var where_ok := {"trig.on_windup": ["trig"], "verb.doll_flash": ["skill", "instant"]}
+	var where_ok := {"trig.on_windup": ["trig"], "verb.doll_flash": ["skill", "instant"], "verb.saw_echo": ["skill", "instant"]}
 	if not kind in where_ok[tag]:
 		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
 		return true

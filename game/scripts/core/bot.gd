@@ -62,6 +62,8 @@ func _init(game, p: String, seed_v: int) -> void:
 # 移动
 # =====================================================================
 func move(dt: float) -> Vector2:
+	if profile != "afk" and g.get("squad") != null:
+		g.squad.bot_point(dt)   # 指点：Boss 在场集火、被包围时肃清最密的一块（10-30，command/bot_point）
 	match profile:
 		"afk":
 			return Vector2.ZERO
@@ -427,6 +429,7 @@ func _pick_expert(choices: Array, master := false) -> int:
 				var id: String = c.get("id", "")
 				var early := {"squad_atk": 6.0, "sp": 5.8, "squad_aspd": 5.2, "squad_crit": 4.5, "squad_range": 3.5,
 					"hp": 4.0, "regen": 3.5, "armor": 4.0, "dodge": 3.8, "wick": 3.0, "speed": 3.0, "pickup": 2.5,
+					"lane_melee": 4.5, "lane_multi": 5.0, "lane_summon": 4.5, "lane_control": 4.5, "lane_weak": 4.5, "lane_shield": 4.0,
 					"dash_cd": 3.2, "dash_charge": 3.4, "dash_dist": 2.4, "pierce": 3.6}
 				s = float(early.get(id, 3.0))
 				if id.begins_with("dash_") and not master:
