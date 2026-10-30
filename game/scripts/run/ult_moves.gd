@@ -1498,7 +1498,6 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 ## 用户 10-30 两轮：「m3 的爆炸用红色比较好」→「都改成全红色，不需要裂地，更突出红色的粒子爆炸感」：不画裂网 / 预兆裂纹 / 尘土墙，
 ## 每圈沿圈接连炸几团小红爆 + 红色颗粒 / 火星→ 每圈地块隆起、最外圈尘土墙外推 + 余震碎石。三圈判定 / 时序 / 伤害不动
 const KA_RED := Color(0.9, 0.16, 0.12)
-const KA_SMOKE := "fx_ka_smoke"   # 红黑烟团（pixgen，参照维什戴尔爆炸关键帧）
 
 
 static func _ka_v2(u) -> bool:
@@ -1506,24 +1505,17 @@ static func _ka_v2(u) -> bool:
 
 
 static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
-	# 用户 10-30 第六轮：「有点像放烟花」——不再到处散小爆、多层彩环；改成一团有分量的地面爆炸（参照 Codex 第二批维什戴尔爆炸关键帧）：
-	# 红白爆闪 → 红黑烟团（fx_ka_smoke，从核心往外鼓、热红冷成暗褐、慢慢散）+ 一层红色粒子扩散（预烘焙帧条）+ 一道红色冲击环
-	# + 地面焦黑 + 碎石被掀飞 / 隆起 + 余烬往下落
+	# 用户 10-30 第七轮：「Mon3tr 不是爆炸物也不是纯生物，做成粒子爆炸就可以」——不放烟团 / 血肉 / 散落小爆：
+	# 红白爆闪 → 三层红色粒子帧条（fx_px_burst，预烘焙）错开 0.05 秒从核心叠着迸开、由大到小（外层先到外圈）+ 一层近爆密核 + 一道红环 + 落地余烬
 	var vs: float = PF.vseed(u, core)
-	u.shape({"kind": "circle", "c": core, "r": 80.0, "col": Color(1.0, 0.7, 0.55), "fill": 0.95, "life": 0.07})
-	u.shape({"kind": "ellipse", "c": c + Vector2(0, 10), "rx": R * 0.42, "ry": R * 0.22, "col": Color(0.08, 0.03, 0.03), "fill": 0.55, "life": 2.2, "layer": "back"})   # 焦黑
-	if u.fx_ready(KA_SMOKE):
-		var st: Texture2D = u._strip_tex(KA_SMOKE)
-		var sr: float = st.get_width() * 0.5 * u.g.PX / A.hires_of(st)
-		u.strip(KA_SMOKE, core, {"sc": 70.0 / sr, "sc1": R * 0.42 / sr, "scd": 0.35, "ang": PF.h(vs) * TAU, "sx": -1.0 if PF.h(vs + 1.0) < 0.5 else 1.0,
-			"life": 1.1, "fade": 0.5, "col": Color(1.25, 1.1, 1.05), "col1": Color(0.45, 0.32, 0.3), "cold": 0.6})
-	PF.particles(u, core, 300, "ult_burst", [Color(1.0, 0.3, 0.22)], 0.02, vs, R * 0.75)
+	u.shape({"kind": "circle", "c": core, "r": 80.0, "col": Color(1.0, 0.7, 0.6), "fill": 0.95, "life": 0.07})
+	var reds := [Color(1.0, 0.28, 0.2), Color(1.0, 0.42, 0.3), Color(0.95, 0.18, 0.14)]
+	for l in 3:
+		PF.particles(u, core, 300, "ult_burst", [reds[l]], 0.05 * l, vs + l * 11.0, R * (0.9 - 0.18 * l))
+	PF.particles(u, core, 100, "ult_burst_s", [Color(1.0, 0.55, 0.42)], 0.02, vs + 40.0, 150.0)
 	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 8.0, "col": Color(0.95, 0.3, 0.22), "life": 0.5})
-	for i in 3:   # 冲击往外推：三拍碎石掀起
-		PF.heave(u, c, R * (0.3 + 0.3 * i), vs + 60.0 + i, 0.06 * i)
-	PF.aftershock(u, c, R * 0.8, vs + 70.0, 0.35, 10)
-	u.spark(core, Color(1.0, 0.4, 0.3), 14, 40.0)   # 余烬往下落
-	u.debris(core, KA_RED, 3)
+	u.spark(core, Color(1.0, 0.4, 0.3), 14, 40.0)
+	u.light(core, R * 0.9, KA_RED, 0.5)
 
 
 ## 每圈：v2 不再沿圈散小爆（像烟花），只在圈上扬一圈尘（尘土墙预审报拼接感，去掉）
