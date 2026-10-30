@@ -318,9 +318,21 @@ func _begin(ld, k: String) -> void:
 		g.vfx.stop(Bal.v("ult/cult_freeze" if k == "cult" else "ult/freeze", 0.15 if k == "cult" else 0.1), "ult", true)
 		_cutin(ld, k)
 	shape({"kind": "ring", "c": ld.pos, "r": 90.0, "r1": 20.0, "w": 4.0, "col": _col(ld).lerp(Color.WHITE, 0.4), "life": _aim_min + 0.1})
+	# 声音顺序（用户 10-31「开启终结技时先一下提示音效，然后放语音和对应音效」）：超必杀暂停时先只响定格提示音（sf_sound），
+	# 暂停结束（立绘切入那一刻，_sf_tick）才开口说固定句 + 播蓄力；没有暂停（连携终结技 / 关掉开关）就立刻开口
+	if k != "cult" and sf_on():
+		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+		if sx != null:
+			sx.voice_hush(Bal.v("ult/sf_t", 0.35) + 0.1)   # 正在说的淡出、提示音期间别的干员不开口
+		_sf_voice = true
+	else:
+		_ult_voice(ld)
+
+
+## 终结技开口：每人固定一句（docs/205，data/ult_audio.json voice；没填时从技能池挑一句），开口即停掉别人的语音（10-30 用户）；接着播蓄力
+func _ult_voice(ld) -> void:
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sfx != null:
-		# docs/205：每人固定一句（data/ult_audio.json voice）；没填时从技能池挑一句。开口即停掉别人的语音（10-30 用户）
 		sfx.voice(str(ld.id), "ult", false, true, str(_aud(str(ld.id)).get("voice", "")))
 	_ua("charge")
 
@@ -1605,6 +1617,7 @@ func report() -> Dictionary:
 var _sf_rt := -99.0        # 暂停起点（真实时间）；< 0 = 这一发没有暂停
 var _sf_ld = null
 var _sf_cut := false       # 暂停结束时是否已补立绘切入
+var _sf_voice := false     # 暂停结束时补开口 + 蓄力（提示音先单独响）
 
 
 func sf_on() -> bool:
@@ -1656,6 +1669,9 @@ func _sf_tick() -> void:
 		_sf_cut = true
 		if _sf_ld != null and caster == _sf_ld:
 			_cutin(_sf_ld, kind)
+			if _sf_voice:
+				_sf_voice = false
+				_ult_voice(_sf_ld)
 
 
 ## 队长白剪影（轮廓光用）：按贴图缓存一张，不透明像素全白；调色成干员色画在本体外圈

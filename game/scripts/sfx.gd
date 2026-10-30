@@ -815,6 +815,15 @@ func voice_lock(sec: float) -> void:
 	voice_lock_until = maxf(voice_lock_until, _vnow() + sec)
 
 
+## 终结技按下的那一刻：正在说的语音淡出、清掉排队，再锁 sec 秒（提示音单独响，固定句随后开口，docs/205 §2.1）
+func voice_hush(sec: float) -> void:
+	if voice_player.playing:
+		_voice_fade_out()
+	voice_queue.clear()
+	voice_urgent = []
+	voice_lock(sec)
+
+
 ## 把正在播的那条换到 voice_fader 上淡出停掉，voice_player 腾出来给新语音
 func _voice_fade_out() -> void:
 	if voice_fade_tw != null and voice_fade_tw.is_valid():
