@@ -1,0 +1,116 @@
+{
+ "ult_fx": {
+  "title": "终结技 / 技能特效录像",
+  "context": "Top-down 2D pixel-art survivor game (Arknights fan game). The clip shows one operator's ultimate skill VFX in a real fight. Art rules: every effect pixel is a hard-edged square on a 3x3 world-pixel grid (no anti-aliasing, no smooth gradients, no soft blur halos); brightness is capped at 0.9 (no pure-white blown-out areas); main effects must read as ONE continuous shape, not a chain of identical small tiles; an explosion must have weight: optional wind-up / warning, a short bright peak (2-3 frames), then cooling to darker smoke, debris and ground reaction (cracks, dust, rocks). Severity guide: 'high' only for problems a producer would immediately send back (e.g. projectiles merging into a solid beam, the main hit reading as a chain of identical small tiles, a big skill that looks weak or unreadable, blown-out white screen).",
+  "items": [
+   {
+    "id": "whiteout",
+    "name": "发白",
+    "rule": "Large areas (more than ~1/8 of the screen) of near-white or blown-out color lasting more than ~0.3 s, or the whole effect staying at peak brightness instead of cooling down.",
+    "sev": "high"
+   },
+   {
+    "id": "tiling",
+    "name": "拼接感",
+    "rule": "The main effect is visibly built from IDENTICAL small tiles repeated at EQUAL spacing along a line or ring, with visible seams / gaps between tiles, so it reads as a chain of small stickers instead of one continuous beam / crack / shockwave. Do NOT report: pieces that differ in length, angle, thickness or timing (hand-varied cracks, radial cracks, debris), many separate projectiles, or particles.",
+    "sev": "high"
+   },
+   {
+    "id": "beam_merge",
+    "name": "连成一片",
+    "rule": "Separate projectiles / bullets / slashes overlap so densely that they merge into a solid line or beam and can no longer be counted as individual hits.",
+    "sev": "high"
+   },
+   {
+    "id": "pixel_grid",
+    "name": "像素格",
+    "rule": "Only when obvious even in a compressed video: an effect whose pixels are clearly much finer (1-px hairlines) or much coarser than the other effects, or visibly smeared / rotated pixel blocks. Thin lines alone are fine.",
+    "sev": "low"
+   },
+   {
+    "id": "aa_gradient",
+    "name": "抗锯齿 / 渐变",
+    "rule": "Only when obvious: large smooth gradients or big soft blurry glow halos on effects. Small glows, video compression blur and the game's global lighting are fine.",
+    "sev": "low"
+   },
+   {
+    "id": "frame_jump",
+    "name": "帧跳",
+    "rule": "Between consecutive frames an effect suddenly changes shape, size, position or color in a way that looks like a glitch (pop-in, flicker, wrong frame), not like intended motion.",
+    "sev": "mid"
+   },
+   {
+    "id": "color",
+    "name": "代表色",
+    "rule": "Only if the context note gives the operator's representative colors: the main effect clearly uses different hues. Skip this item when no colors are given.",
+    "sev": "mid"
+   },
+   {
+    "id": "power",
+    "name": "力量感",
+    "rule": "Only for the skill's main heavy impact (ground slam, explosion, big beam): the impact has no readable build-up -> short bright peak -> cool-down, happens so fast that the viewer cannot tell what happened, or the whole impact looks thin / weak for its screen size. Ground reaction (cracks, dust, debris, shake) is expected only for ground slams and explosions. Do NOT report for light multi-hit skills (sword rain, bullet barrages, slashes) just because there are no ground cracks.",
+    "sev": "high"
+   },
+   {
+    "id": "occlusion",
+    "name": "文字遮挡",
+    "rule": "Effects hide HUD text or important UI for more than a moment. Damage numbers over enemies and brief overlaps are fine.",
+    "sev": "low"
+   }
+  ]
+ },
+ "card_ui": {
+  "title": "选卡 / 界面截图",
+  "context": "UI screenshot of a Chinese-language pixel-art game (Arknights fan game). Player-facing text must be Chinese, BUT small uppercase English decorative labels are an intended part of the art style and must NOT be reported: e.g. OPERATOR, MOBILITY, MELEE, RECRUIT, RELIC, SWAP, LEVEL UP, CHOOSE ONE, EVENT, SONAR, LIGHT, RELICS, ELITE, WEAK, SQUAD, GENERAL, ECONOMY, CLASS, SUMMON, CORE, RARE. Numbers and symbols like +6%, x1.2, 107 -> 120 are fine. Card titles may use different lengths; judge font size by glyph height, not by text length.",
+  "items": [
+   {
+    "id": "overflow",
+    "name": "文字溢出 / 截断",
+    "rule": "Text running outside its card / box, overlapping other text or icons, cut off at an edge, or ending with an ellipsis where the full text should show.",
+    "sev": "high"
+   },
+   {
+    "id": "raw_key",
+    "name": "内部键名外露",
+    "rule": "Programmer identifiers visible to the player inside descriptions or stat lines: lowercase snake_case / camelCase words (e.g. control_dur, atk_mult, dmg_taken, dash_dist), raw decimals like 0.35 next to such words, template placeholders like {$x} or %s, 'null' or 'nil'. Uppercase decorative labels listed in the context are NOT raw keys.",
+    "sev": "high"
+   },
+   {
+    "id": "font_size",
+    "name": "字号不一",
+    "rule": "Within the same row of cards, the same kind of text uses a visibly different glyph height or color: e.g. one card's description text is larger / brighter than the other cards' descriptions. Compare descriptions with descriptions and titles with titles.",
+    "sev": "mid"
+   },
+   {
+    "id": "align",
+    "name": "对齐",
+    "rule": "Cards, icons or text blocks that should line up are visibly misaligned (different top / baseline / left edge), uneven spacing between cards, or elements off-center.",
+    "sev": "mid"
+   }
+  ]
+ },
+ "record_sprite": {
+  "title": "作战记录 / 同屏干员立绘",
+  "context": "Screenshot of several pixel-art character sprites shown side by side (battle record, squad lineup). All characters are drawn to one shared scale (64 px body canvas at 2x) and stand on one shared ground line.",
+  "items": [
+   {
+    "id": "scale",
+    "name": "大小不一",
+    "rule": "One character is clearly larger or smaller than the others beyond normal body-type differences (e.g. a head or body 20%+ larger, or chunkier pixels).",
+    "sev": "high"
+   },
+   {
+    "id": "foot",
+    "name": "脚底不对齐",
+    "rule": "Characters' feet do not stand on the same horizontal ground line (one floats higher or sinks lower).",
+    "sev": "high"
+   },
+   {
+    "id": "crop",
+    "name": "裁切",
+    "rule": "A character is cut off by its frame / box, or overlaps a neighbour.",
+    "sev": "mid"
+   }
+  ]
+ }
+}
