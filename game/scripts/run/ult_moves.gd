@@ -8,6 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const A = preload("res://scripts/art.gd")
 ## 其余 15 人（用户 10-29「20 个干员的都做好」）：分两个文件写，接口同本文件（handles / aim_kind / aim_r / start / step）
 const MB = preload("res://scripts/run/ult_moves_b.gd")   # 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔 / 归溟幽灵鲨 / 水月
 const MC = preload("res://scripts/run/ult_moves_c.gd")   # 塞雷娅 / 铃兰 / 逻各斯 / 星熊 / 推进之王 / 艾丽妮 / 拉普兰德 / 流明
@@ -1208,8 +1209,12 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, 1.0 if (e.elite or e.boss or e.get("part", false)) else float(a.fs[i]), op)
 		var col: Color = COL_STEEL.lerp(Color(1.0, 0.55, 0.3), 0.25 * i)
 		_ring(u, lc, r, maxf(30.0, r0), col, 0.35, 8.0 + 2.0 * i)
-		# 裂地（fx_ult_ulpianus_crack_back 弧状拼接段，地面层）+ 沿圈撒喷发单元（fx_ult_ulpianus_burst_front，底部中心；喷 0–3 / 落 4–7）
-		_arc(u, "fx_ult_ulpianus_crack_back", lc, r, {"layer": "back", "fps": 14.0, "life": 0.7, "a0": 0.21 * i})
+		# 裂地：v2 = pixgen 整条裂缝沿圈接成一圈 + 掀起地块 / 尘土（_ul_crack_v2）；0 = fx_ult_ulpianus_crack_back 弧状拼接段（地面层）
+		if Bal.v("ult/ul_crack_v2", 1.0) > 0.0 and u.fx_ready(UL_CRACK):
+			_ul_crack_v2(u, a, lc, i, r, r0)
+		else:
+			_arc(u, "fx_ult_ulpianus_crack_back", lc, r, {"layer": "back", "fps": 14.0, "life": 0.7, "a0": 0.21 * i})
+		# 沿圈撒喷发单元（fx_ult_ulpianus_burst_front，底部中心；喷 0–3 / 落 4–7）
 		var nb: int = clampi(roundi(TAU * r / 140.0), 5, int(Bal.v("ult/ul_burst_fx", 14.0)))
 		var bsc: float = 0.6 + 0.07 * i   # 水柱是竖着的高度，外圈也压在 0.8 以内，免得顶上一圈高出伤害区太多
 		for j in nb:
@@ -1219,6 +1224,54 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 		o.screen_shake(0.35 + 0.15 * i)
 		a.ring = i + 1
 	return int(a.ring) >= 4 and t >= lt + 0.18 * 3.0 + 0.1
+
+
+## 裂地 v2（ult/ul_crack_v2，缺省 1；0 = 原弧状拼接段。pixgen 出的整条裂缝贴图，docs/199 §7.6；用户 10-30 看过放射版嫌像海星，改回沿圈）：
+## 每圈把 fx_ul_crack_line 截成和弦长一样的段（ux / uw 取贴图里不同位置，1 纹素 = 1 世界像素不拉伸），沿圈接成一整圈粗裂缝、一起裂开；
+## 圈上掀起地块（fx_ul_rock，飞起转着落回）、第一圈尘土环（fx_ul_dust_ring 扩散）、青色短灯与碎屑。水柱照旧。
+## 只画画面：不调 u.hit、不抽模拟随机数（散布按 _ulh 哈希）
+const UL_CRACK := "fx_ul_crack_line"
+
+
+static func _ulh(x: float) -> float:
+	return fposmod(sin(x * 12.9898 + 78.233) * 43758.5453, 1.0)
+
+
+static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: float) -> void:
+	var t: Texture2D = u._strip_tex(UL_CRACK)
+	var tw: float = t.get_width() / A.hires_of(t) * u.g.PX   # 贴图长（世界，sc 1）
+	var th: float = float(t.get_height())
+	var n: int = maxi(12, roundi(TAU * r / 110.0))   # 段短些，内圈不显成多边形
+	var a0: float = 0.21 * i
+	var chord: float = 2.0 * r * sin(PI / n)
+	var uw: float = minf(tw, chord * 1.12) / (u.g.PX / A.hires_of(t))   # 纹素
+	for k in n:
+		var p0: Vector2 = lc + Vector2.from_angle(a0 + TAU * k / n) * r
+		var p1: Vector2 = lc + Vector2.from_angle(a0 + TAU * (k + 1) / n) * r
+		var d: Vector2 = (p1 - p0).normalized()
+		var ux: float = floorf(_ulh(i * 13.0 + k) * (t.get_width() - uw))
+		u.strip(UL_CRACK, p0 - d * chord * 0.06, {"layer": "back", "ang": d.angle(), "ux": ux, "uw": uw, "o": Vector2(0.0, th * 0.5),
+			"sy": (0.7 + 0.08 * i) * (1.0 if k % 2 == 0 else -1.0), "rev": 0.1, "life": 0.18 * (3 - i) + 1.5, "fade": 0.6})
+	if i == 0 and u.fx_ready("fx_ul_dust_ring"):   # 只给第一圈：贴图半径约 210，放到外圈像素格会糊成大块
+		var dt: Texture2D = u._strip_tex("fx_ul_dust_ring")
+		var dr: float = dt.get_width() * 0.5 / A.hires_of(dt) * u.g.PX   # 贴图在 sc 1 时的半径（世界）
+		u.strip("fx_ul_dust_ring", lc, {"layer": "back", "sc": maxf(r0, r * 0.6) / dr, "sc1": r * 1.06 / dr, "scd": 0.3,
+			"life": 0.5, "fade": 0.3, "col": Color(1, 1, 1, 0.65)})
+	var nr: int = roundi(TAU * r / 260.0 * Bal.v("ult/ul_rock_fx", 1.0))   # 每圈掀起的地块数（按周长）
+	for q in nr:
+		var hh: float = _ulh(i * 31.0 + q * 7.0)
+		var dirv: Vector2 = Vector2.from_angle(a0 + TAU * (q + 0.5 * hh) / maxf(1.0, nr))
+		var p: Vector2 = lc + dirv * r * (0.9 + 0.12 * hh)
+		var vy: float = 240.0 + 180.0 * _ulh(hh * 91.0) + 30.0 * i
+		var grav: float = 1500.0
+		if u.fx_ready("fx_ul_rock"):
+			u.strip("fx_ul_rock", p, {"f": [0, 1, 3, 0][int(hh * 97.0) % 4], "sc": 0.5 + 0.25 * _ulh(hh * 17.0) + 0.06 * i,   # 第 2 帧整块发青、太抢，不用
+				"v": dirv * (50.0 + 90.0 * hh) + Vector2(0, -vy), "grav": grav, "life": 2.0 * vy / grav,
+				"spin": (hh - 0.5) * 12.0, "delay": 0.03 * (q % 3)})
+		if q % 2 == 0:
+			u.debris(p, Color(0.35, 0.8, 0.95), 2 if i < 3 else 3)
+			u.grain("bfx_dust", p, dirv, Color(0.55, 0.6, 0.62), 4)
+	u.light(lc, r * 1.1, Color(0.3, 0.75, 0.95), 0.22)
 
 
 ## 巨锚（fx_ult_ulpianus_anchor_front）：4 个角度帧 f0–f3 = 锚头朝下（+90°）起每帧顺时针 45°；
