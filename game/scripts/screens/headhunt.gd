@@ -818,15 +818,20 @@ func _draw_entry() -> void:
 		rules = ["新手寻访：一次招募 %d 名不同干员" % Roster.TEN, "从全部干员中随机，招募后即可编队出发"]
 	elif Cfg.roster_draws == 0:
 		rules.append("首次寻访必定获得医疗干员")
+	# 10-31 TA 审阅 docs/208 H9：规则第三条（首次寻访必定获得医疗干员）原来被兑换框压住一半——兑换框接在规则列表后面排，下面的部门字样跟着让
+	var ry0: float = _p(500, 414)
+	var rstep: float = _p(26, 26)
 	for j in rules.size():
-		ci.draw_rect(Rect2(40, _p(506, 418) + j * 28, 6, 6), HS.INK)
-		UI.text_at(ci, f, Vector2(56, _p(509, 421) + j * 28), rules[j], int(_p(14, 17)), HS.INK2, "lm")
+		ci.draw_rect(Rect2(40, ry0 - 3 + j * rstep, 6, 6), HS.INK)
+		UI.text_at(ci, f, Vector2(56, ry0 + j * rstep), rules[j], int(_p(14, 17)), HS.INK2, "lm")
+	var ey: float = ry0 + rules.size() * rstep + 6.0
 	if Roster.exchange_visible() and not first:
-		_draw_exchange(ci, f)
+		_draw_exchange(ci, f, ey)
+		ey += 62.0
 	if not _phone:
-		HS.hr_mark(ci, f, Vector2(40, 640))
+		HS.hr_mark(ci, f, Vector2(40, maxf(640.0, ey + 6.0)))
 	# 卡池：三个灰色剪影（未解锁的前 3 名；10-25 用户：「未解锁」下面的小剪影不要了），缓慢视差
-	HS.outline_px(ci, Vector2(560, _p(180, 130)), "PERSONNEL", 11.0, Color(1, 1, 1, 0.12), HS.DARK)
+	HS.outline_px(ci, Vector2(560, _p(104, 64)), "PERSONNEL", 11.0, Color(1, 1, 1, 0.12), HS.DARK)   # 10-31 TA H9：上移，「寻访范围」标签不再压在大字上
 	var pool := _sorted(locked)
 	var t := _now() - t0
 	for i in mini(3, pool.size()):
@@ -890,8 +895,8 @@ func _draw_entry() -> void:
 
 
 ## 用生机细胞兑换寻访凭证（用户 10-25：1 张 = Roster.TICKET_PRICE 个细胞，不设上限）：凭证数下面一枚按钮，细胞不够就灰掉并写还差多少
-func _draw_exchange(ci: CanvasItem, f: Font) -> void:
-	var r := Rect2(36, _p(570.0, 500.0), 380, 50)
+func _draw_exchange(ci: CanvasItem, f: Font, y := -1.0) -> void:
+	var r := Rect2(36, y if y >= 0.0 else _p(570.0, 500.0), 380, 50)
 	var can := Roster.exchange_short() == 0
 	var hot: bool = can and not (Pad.using or g.kb_nav) and r.has_point((ci.get_local_mouse_position() - _off) / _k)
 	HS.para(ci, r, HS.INK if can else Color(0, 0, 0, 0), Color(0, 0, 0, 0) if can else UI.fa(HS.INK, 0.35), 1.5)
@@ -1164,7 +1169,8 @@ func _skip() -> void:
 	var ci: CanvasItem = g.hud
 	var br := Rect2(D.x - 210, 26, 180, 50)
 	HS.para(ci, br, Color(0, 0, 0, 0.3), UI.TEXT)
-	UI.text_at(ci, g.font, br.get_center(), "跳过" if Pad.touch else "跳过    Esc", 17, UI.TEXT, "mm", true)
+	UI.text_at(ci, g.font, br.get_center(), "跳过", 17, UI.TEXT, "mm", true)
+	UI.btn_key(ci, g.font, br, "ESC", UI.SUB, 10, br.size.y * HS.SKEW + 12.0)   # 10-31 TA H7
 	_btn(br, "skip")
 
 

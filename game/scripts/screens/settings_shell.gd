@@ -23,7 +23,8 @@ static func draw(p: Control) -> void:
 	UI.text(p, p.font, r.position + Vector2(24, 31), "设置", 18, UI.TEXT)
 	UI.en(p, p.font, r.position + Vector2(124, 30), "SYSTEM / CONFIGURATION", 9, UI.SUB, 1.0)
 	p.close_rect = Rect2(r.end.x - 118, r.position.y + 2, 110, 44)
-	UI.text(p, p.font, p.close_rect.position + Vector2(0, 29), Pad.hint("返回 Esc", "返回 Ⓑ", "返回"), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 110)
+	UI.text(p, p.font, p.close_rect.position + Vector2(0, 29), "返回", 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 110)
+	UI.btn_key(p, p.font, p.close_rect, "" if Pad.using else "ESC", UI.SUB, 10, 6.0)   # 10-31 TA H7
 	UI.text(p, p.font, Vector2(r.position.x + 24, top + (32 if compact else 60)), "系统设置", 30, ink)
 	UI.en(p, p.font, Vector2(r.position.x + 24, top + (52 if compact else 86)), "CONFIGURATION", 11, Color("5a636e"), 1.0)
 	var tabs: Array = p._tabs()

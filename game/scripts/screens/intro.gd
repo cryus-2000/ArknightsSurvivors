@@ -263,7 +263,7 @@ func draw(vs: Vector2) -> void:
 		var hov: bool = dr.has_point(mp)
 		UI.diamond(g.hud, dp, 6.0 if hov else 5.0, UI.CYAN if i == g.intro_page else (Color(0.3, 0.5, 0.55) if hov else Color(0.15, 0.25, 0.28)))
 	# 上一页 / 跳过 / 下一页 按钮
-	var btns: Array = [["‹ 上一页", "prev"], [Pad.hint("跳过  Esc", "跳过  Ⓑ", "跳过"), "skip"], ["下一页 ›", "next"]]
+	var btns: Array = [["‹ 上一页", "prev"], ["跳过", "skip"], ["下一页 ›", "next"]]   # 10-31 TA H7：键名不夹在按钮文字里
 	for k in 3:
 		var bw := 118.0 if not touch else 140.0
 		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]

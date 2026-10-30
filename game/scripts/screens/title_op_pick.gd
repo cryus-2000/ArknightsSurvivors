@@ -740,7 +740,8 @@ func _op_draw_desk(od: Dictionary) -> void:
 		UI.text_at(self, font, Vector2(sx, 14), "队长 1 名；其余干员在探索中通过升级招募", 12, UI.B_SUB)
 		UI.text_at(self, font, Vector2(sx, 30), "下一步：选择难度", 11, UI.B_SUB)
 	var back := Rect2(W - 120, 14, 104, 28)
-	_op_btn(back, Pad.hint("返回  Esc", "返回  Ⓑ", "返回"))
+	_op_btn(back, "返回")
+	UI.btn_key(self, font, back, "" if Pad.using else "ESC", UI.B_SUB, 9, 8.0)   # 10-31 TA H7：键名不夹在按钮文字里
 	op_rects["back"] = back.grow(4.0)
 	var px := W - 136.0
 	if _cover_name_id != Cfg.cover_character_id:

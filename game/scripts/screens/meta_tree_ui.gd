@@ -884,7 +884,8 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	# 返回
 	var back := Rect2(vs.x - 160, 12, 140, 36)
 	HS.para(ci, back, Color(1, 1, 1, 0.12) if back.has_point(mouse) else Color(0, 0, 0, 0), Color(1, 1, 1, 0.8))
-	UI.text_at(ci, font, back.get_center(), Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), 15, UI.TEXT, "mm", true)
+	UI.text_at(ci, font, back.get_center(), "返回", 15, UI.TEXT, "mm", true)
+	UI.btn_key(ci, font, back, "" if Pad.using else "ESC", UI.SUB, 10, back.size.y * HS.SKEW + 10.0)   # 10-31 TA H7
 	buttons.append([back, "back"])
 	# 推荐 / 全部重置
 	var bw := 168.0
@@ -937,7 +938,7 @@ func _draw_card(ci: CanvasItem) -> void:
 
 ## 卡外的「收起」键（卡上沿上方，压在暗场上）
 func _card_fold_btn(ci: CanvasItem, r: Rect2) -> void:
-	HS.ghost_btn(ci, font, r, "收起", Pad.hint("Z", "Ⓧ", ""), 0.72)
+	HS.ghost_btn(ci, font, r, "收起", "" if Pad.using or Pad.touch else "Z", 0.72)
 	buttons.append([r, "card"])
 
 
@@ -945,8 +946,8 @@ func _card_fold_btn(ci: CanvasItem, r: Rect2) -> void:
 func _draw_card_tab(ci: CanvasItem, id: String) -> void:
 	var nd: Dictionary = Meta.nodes()[id]
 	var s1 := "%s · %s" % [str(nd.name), "已塑造" if _state(id) == "on" else "%d 生机细胞" % int(nd.cost)]
-	var key := Pad.hint("Z", "Ⓧ", "")
-	var w := UI.cwidth(font, s1, 13) + UI.cwidth(font, "详情", 15) + (UI.cwidth(font, key, 12) + 12.0 if key != "" else 0.0) + 52.0
+	var key := "" if Pad.using else Pad.hint("Z", "Ⓧ", "")   # 10-31 TA H7：键名用按键牌，不混写
+	var w := UI.cwidth(font, s1, 13) + UI.cwidth(font, "详情", 15) + (UI.cwidth(font, key, 12) + 22.0 if key != "" else 0.0) + 52.0
 	var r := Rect2(16.0 if Cfg.phone_ui() else 24.0, vs.y - (12.0 if Cfg.phone_ui() else 20.0) - 34.0, w, 34.0)
 	HS.para(ci, r, Color(0, 0, 0, 0.55), UI.fa(UI.TEXT, 0.85), 1.5)
 	ci.draw_rect(Rect2(r.position.x + 8.0, r.position.y + 7.0, 4.0, r.size.y - 14.0), HS.YEL)
@@ -954,7 +955,7 @@ func _draw_card_tab(ci: CanvasItem, id: String) -> void:
 	x += UI.text_at(ci, font, Vector2(x, r.get_center().y), "详情", 15, UI.TEXT, "lm", true) + 10.0
 	x += UI.text_at(ci, font, Vector2(x, r.get_center().y + 1.0), s1, 13, UI.fa(UI.TEXT, 0.8), "lm") + 10.0
 	if key != "":
-		UI.text_at(ci, font, Vector2(x, r.get_center().y + 1.0), key, 12, UI.fa(UI.TEXT, 0.7), "lm")
+		UI.keycap(ci, font, Vector2(x, r.get_center().y - 9.0), key, UI.fa(UI.TEXT, 0.7), 11)
 	buttons.append([r, "card"])
 
 
