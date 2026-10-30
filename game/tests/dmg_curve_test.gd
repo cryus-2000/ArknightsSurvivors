@@ -55,7 +55,7 @@ func run() -> void:
 	check(worst_step < 0.08, "相邻 1 秒增量不大于 0.08（无断崖），实际最大 %.3f" % worst_step)
 	check(jump < 0.01, "相邻增量变化 < 0.01（一阶连续、无折点），实际最大 %.4f" % jump)
 	var top: float = float(knots[knots.size() - 1][1])
-	var top_cut: float = top * (1.0 - Bal.v("dmg_curve/mid_cut", 0.0))
+	var top_cut: float = top * (1.0 - Bal.v("dmg_curve/mid_cut", 0.0)) * Bal.v("dmg_curve/scale", 1.0)   # 全程整体倍率（diff-1031 缺省 0.94）
 	check(absf(DmgCurve.target(900.0) - top_cut) < 1e-4 and absf(DmgCurve.target(5000.0) - top_cut) < 1e-4, "末点之后封顶 %.1f" % top_cut)
 	# 池平均一下 = 目标曲线（含换池的时刻前后各一秒）
 	for t in [0.0, 60.0, 120.0, 180.0, 240.0, 279.0, 281.0, 299.0, 301.0, 399.0, 401.0, 519.0, 521.0, 600.0, 700.0]:
