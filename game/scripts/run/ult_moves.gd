@@ -1361,10 +1361,9 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 			a["aura"] = _ka_keep(u, a, {"kind": "ring", "c": core, "r": 40.0, "w": 4.0, "col": KA_COL.lerp(Color.WHITE, 0.3), "solid": true, "life": 9.0})   # 罩住 Mon3tr 本体的聚能圈（不盖住它）
 			a["glow"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 8.0, "col": KA_COL, "fill": 0.45, "life": 9.0})
 			a["hot"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 4.0, "col": Color(0.9, 1.0, 0.97), "fill": 0.95, "life": 9.0})
-			if _ka_v2(u):   # 蓄力压暗：落点一大片地面渐暗；预兆细裂纹
+			if _ka_v2(u):   # 蓄力压暗：落点一大片地面渐暗
 				a["v2"] = true
 				a["dark"] = _ka_keep(u, a, {"kind": "circle", "c": c, "r": R * 1.12, "col": Color(0.0, 0.01, 0.02), "fill": 0.0, "life": 9.0, "layer": "back"})
-				_ka_pre(u, c, wind)
 		var pul: float = 1.0 + 0.15 * sin(t * (30.0 + 40.0 * kw))
 		a.glow.c = core
 		a.glow.r = lerpf(8.0, 36.0, kw * kw) * pul
@@ -1467,10 +1466,8 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 		o.set_meta("ult_m3_back", u.g.t + 9.0)   # 兜底：动作被中途清掉时，下次任何人放终结技会补回 Mon3tr
 	if a.get("v2", false):
 		_ka_blast_v2(u, c, core, R)
-		u.light(core, R * 0.9, KA_HOT, 0.6)
-		u.light(c, 300.0, Color(1.0, 0.95, 0.85), 0.25)
-		u.debris(c, KA_RED, 3)
-		u.debris(c, KA_HOT, 3)
+		u.light(core, R * 0.9, KA_RED, 0.6)
+		u.light(c, 300.0, Color(1.0, 0.55, 0.45), 0.25)
 		u.shake(9.0, 0.4)
 		return
 	# 白芯爆闪（Mon3tr 身上）+ 青绿外焰
@@ -1498,60 +1495,57 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 
 ## ---------------- 爆点 v2（ult/ka_blast_v2，缺省 1；0 = 程序画白圈 + 放射斩光版。pixfx 技能，docs/199 §7.7）
 ## 蓄力时落点一片地面渐暗（压暗）+ 预兆细裂纹 → 爆点：压暗撤掉、pixgen 红色大爆炸（fx_ka_blast，白亮 → 暗色余烬、缓出放大）+ 细实线冲击环扩到外圈
-## + 11 条红橙分叉裂缝跟三圈往外长（fx_ka_crack）；用户 10-30「m3 的爆炸用红色比较好」，爆点一律红色调→ 每圈地块隆起、最外圈尘土墙外推 + 余震碎石。三圈判定 / 时序 / 伤害不动
+## 用户 10-30 两轮：「m3 的爆炸用红色比较好」→「都改成全红色，不需要裂地，更突出红色的粒子爆炸感」：不画裂网 / 预兆裂纹 / 尘土墙，
+## 每圈沿圈接连炸几团小红爆 + 红色颗粒 / 火星→ 每圈地块隆起、最外圈尘土墙外推 + 余震碎石。三圈判定 / 时序 / 伤害不动
 const KA_BLAST := "fx_ka_blast"
-const KA_CRACK := "fx_ka_crack"   # fx_ul_crack_fork 转到红橙色相
 const KA_RED := Color(0.9, 0.16, 0.12)
 
 
 static func _ka_v2(u) -> bool:
-	return Bal.v("ult/ka_blast_v2", 1.0) > 0.0 and u.fx_ready(KA_BLAST) and u.fx_ready(KA_CRACK)
-
-
-static func _ka_pre(u, c: Vector2, wind: float) -> void:
-	if not u.fx_ready(UL_FORK):
-		return
-	var t: Texture2D = u._strip_tex(UL_FORK)
-	var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
-	for j in 6:
-		u.strip(UL_FORK, c, {"layer": "back", "ang": TAU * (j + _ulh(j + 140.0)) / 6.0, "o": Vector2(0.0, t.get_height() * 0.5),
-			"sx": (110.0 + 60.0 * _ulh(j + 150.0)) / tw, "sy": 0.4, "rev": wind, "life": wind + 0.2, "col": Color(0.6, 0.95, 0.9, 0.8)})
+	return Bal.v("ult/ka_blast_v2", 1.0) > 0.0 and u.fx_ready(KA_BLAST)
 
 
 static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
+	# 用户 10-30：「m3 的爆炸特效都改成全红色，不需要裂地或者淡一点，更突出红色的粒子爆炸感」——不画裂网，主体 = 红色大爆 + 一大团红色颗粒 / 火星 / 碎屑往外迸
 	var bt: Texture2D = u._strip_tex(KA_BLAST)
 	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
-	u.strip(KA_BLAST, core, {"sc": 50.0 / br, "sc1": R * 0.22 / br, "scd": 0.16, "life": 0.3, "fade": 0.18,
-		"col": Color.WHITE, "col1": Color(0.4, 0.3, 0.3), "cold": 0.2})
-	# 冲击波：细实线冲击环扩到外圈（白热 → 红）
-	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 12.0, "col": Color(1.0, 0.85, 0.7), "solid": true, "life": 0.45})
+	u.shape({"kind": "circle", "c": core, "r": 90.0, "col": Color(1.0, 0.55, 0.45), "fill": 0.95, "life": 0.08})   # 红白爆闪
+	u.strip(KA_BLAST, core, {"sc": 60.0 / br, "sc1": R * 0.3 / br, "scd": 0.16, "life": 0.36, "fade": 0.2,
+		"col": Color(1.15, 1.0, 1.0), "col1": Color(0.45, 0.12, 0.12), "cold": 0.26})
+	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 12.0, "col": Color(1.0, 0.4, 0.32), "solid": true, "life": 0.45})
 	u.shape({"kind": "ring", "c": c, "r": R * 1.08, "r1": 30.0, "w": 9.0, "col": KA_RED, "life": 0.6, "delay": 0.05})
-	if u.fx_ready(KA_CRACK):
-		var t: Texture2D = u._strip_tex(KA_CRACK)
-		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
-		for j in 11:
-			var h1: float = _ulh(j + 120.0)
-			u.strip(KA_CRACK, c, {"layer": "back", "ang": TAU * (j + (h1 - 0.5) * 0.7) / 11.0, "o": Vector2(0.0, t.get_height() * 0.5),
-				"sx": R * (0.6 + 0.45 * _ulh(j + 130.0)) / tw, "sy": (0.85 if j % 3 == 0 else 0.55) * (1.0 if j % 2 == 0 else -1.0),
-				"delay": 0.04 * _ulh(j + 110.0), "rev": 0.36, "rev0": 0.2, "life": 1.3, "fade": 0.6,
-				"col": Color(1.25, 1.1, 1.0), "col1": Color(0.22, 0.17, 0.17), "cold": 0.6})   # 冷得更暗、更早淡，免得像一片树根
+	for m in 24:   # 红色颗粒爆：中心往外三层迸开
+		var dq := Vector2.from_angle(TAU * float(m) / 24.0 + 0.13)
+		u.grain("bfx_burst", core + dq * 30.0, dq, KA_RED if m % 3 else Color(1.0, 0.5, 0.35), 10)
+		if m % 2 == 0:
+			u.grain("lava", core + dq * 80.0, dq, KA_RED, 4)
+		if m % 3 == 0:
+			u.grain("bfx_flash", core + dq * 120.0, dq, Color(1.0, 0.35, 0.28), 4)
+	for m in 8:
+		var dq := Vector2.from_angle(TAU * float(m) / 8.0)
+		u.debris(core + dq * 90.0, KA_RED, 3)
+		u.spark(core + dq * 60.0, Color(1.0, 0.4, 0.3), 6, 30.0)
 
 
+## 每圈：沿圈接连炸开几团小的红色爆（fx_ka_blast 小号）+ 红色颗粒；只少量碎石，不画尘土墙
 static func _ka_ring_v2(u, c: Vector2, r: float, i: int, R: float) -> void:
-	var nr: int = roundi(TAU * r / 120.0)
-	for q in nr:
+	var bt: Texture2D = u._strip_tex(KA_BLAST)
+	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
+	var nb: int = 5 + 3 * i
+	for q in nb:
 		var hh: float = _ulh(i * 37.0 + q * 7.0 + 500.0)
-		var dirv: Vector2 = Vector2.from_angle(0.41 * i + TAU * (q + 0.6 * hh) / maxf(1.0, nr))
-		var p: Vector2 = c + dirv * r * (0.86 + 0.16 * hh)
-		var high: bool = q % 4 == 0
-		_ul_rock(u, p, dirv * ((60.0 + 80.0 * hh) if high else 25.0), (260.0 + 160.0 * hh) if high else (110.0 + 60.0 * hh), hh, (0.55 if high else 0.45) + 0.06 * i, 0.02 * (q % 3))
+		var dv: Vector2 = Vector2.from_angle(0.41 * i + TAU * (q + 0.6 * hh) / nb)
+		var p: Vector2 = c + dv * r * (0.75 + 0.25 * hh)
+		var dl: float = 0.03 * float(q % 4)
+		u.strip(KA_BLAST, p, {"sc": 20.0 / br, "sc1": (55.0 + 25.0 * hh) / br, "scd": 0.14, "ang": hh * TAU, "life": 0.3, "fade": 0.16,
+			"col": Color(1.1, 1.0, 1.0), "col1": Color(0.45, 0.12, 0.12), "cold": 0.2, "delay": dl})
+		u.grain("bfx_burst", p, dv, KA_RED, 6)
+		if q % 2 == 0:
+			u.grain("lava", p, dv, KA_RED, 3)
 		if q % 3 == 0:
-			u.grain("bfx_dust", p, dirv, Color(0.6, 0.65, 0.66), 3)
-	if i == 2:
-		_ul_wall(u, c, r)
-		for q in 10:
-			var h2: float = _ulh(q * 5.0 + 520.0)
-			_ul_rock(u, c + Vector2.from_angle(TAU * (q + h2) / 10.0) * R * (0.25 + 0.7 * h2), Vector2.ZERO, 120.0 + 60.0 * h2, h2, 0.4, 0.3 + 0.05 * (q % 3))
+			_ul_rock(u, p, dv * 60.0, 220.0 + 120.0 * hh, hh, 0.4, dl)
+	if i == 0:
+		u.light(c, R * 0.7, KA_RED, 0.4)
 
 
 ## 掀起的地块：沿半径 r 的圈抛出 n 块碎岩（带重力，往外上方飞、转着落下）
