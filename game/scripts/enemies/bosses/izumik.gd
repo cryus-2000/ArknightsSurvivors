@@ -837,7 +837,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 			if l.lit and not l.get("out", false):
 				lamps.append(l.pos)
 	var lr: float = float(e.get("lamp_r", 120.0))
-	var target: Vector2 = g.ppos + Vector2(0, -14)
+	var target: Vector2 = g.shots.aim_pt()
 	var n := 0
 	var bursts: Array = []
 	for b in g.ebullets:
