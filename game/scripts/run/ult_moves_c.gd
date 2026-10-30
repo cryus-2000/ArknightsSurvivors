@@ -1138,7 +1138,11 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 			continue
 		ct.done = true
 		var p: Vector2 = ct.p
-		u.shape({"kind": "line", "a": a.prev, "b": p, "w": 7.0, "col": col.lerp(Color.WHITE, 0.4), "life": 0.15})   # 化风冲刺的残影
+		if a.v2:   # 化风冲刺的残影：沿路线一段风线（不画直线）
+			var dd: Vector2 = p - a.prev
+			_ir_wind(u, a.prev, dd.normalized(), dd.length(), Vector2.ZERO, 0.18, float(a.vs) + ai * 2.1, Color(0.85, 0.88, 0.94, 0.7))
+		else:
+			u.shape({"kind": "line", "a": a.prev, "b": p, "w": 7.0, "col": col.lerp(Color.WHITE, 0.4), "life": 0.15})   # 化风冲刺的残影
 		_lead_move(u, o, p)
 		a.prev = p
 		var mid: float = (float(ct.lo) + float(ct.hi)) * 0.5
@@ -1169,7 +1173,11 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 	if not a.back and t >= tb:
 		a.back = true   # 瞬身回原地，转身举手炮
 		var home: Vector2 = a.home
-		u.shape({"kind": "line", "a": o.pos, "b": home, "w": 6.0, "col": col.lerp(Color.WHITE, 0.5), "life": 0.15})
+		if a.v2:
+			var dh: Vector2 = home - o.pos
+			_ir_wind(u, o.pos, dh.normalized(), dh.length(), Vector2.ZERO, 0.18, float(a.vs) + 40.0, Color(0.85, 0.88, 0.94, 0.7))
+		else:
+			u.shape({"kind": "line", "a": o.pos, "b": home, "w": 6.0, "col": col.lerp(Color.WHITE, 0.5), "life": 0.15})
 		_lead_move(u, o, home)
 		_lead_land(u, o)
 		o.face_to(ang)
@@ -1242,7 +1250,7 @@ static func _ir_gale_v2(u, org: Vector2, R: float, ang: float, half: float, vs: 
 				hh * 11.0, Color(0.8, 0.84, 0.9, 0.6), 0.03 * j + 0.06 * PF.h(hh * 5.0))
 
 
-## 一刀：灰冷白长弧斩光从 pa 划到 pb（0.05 秒划开、0.3 秒淡），隔刀翻面 + 刀口一小撮风线迸开 + 冷光
+## 一刀：灰冷白长弧斩光从 pa 划到 pb（0.05 秒划开、0.2 秒淡），隔刀翻面 + 刀口一小撮风线迸开 + 冷光
 static func _ir_cut_v2(u, pa: Vector2, pb: Vector2, p: Vector2, sd: float, ai: int) -> void:
 	var name := PF.pick(u, IR_SLASH, sd)
 	var t: Texture2D = u._strip_tex(name)
@@ -1251,7 +1259,7 @@ static func _ir_cut_v2(u, pa: Vector2, pb: Vector2, p: Vector2, sd: float, ai: i
 	var sx: float = L / PF.tex_w(u, name)
 	var fl: float = (1.0 if ai % 2 == 0 else -1.0) * (1.0 if PF.h(sd + 2.0) < 0.7 else -1.0)
 	u.strip(name, pa, {"ang": dv.angle(), "o": Vector2(0.0, t.get_height() * 0.5), "sx": sx, "sy": fl * clampf(sx, 0.85, 1.25),
-		"rev": 0.05, "rev0": 0.08, "life": 0.3, "fade": 0.2, "col": Color(1.0, 1.0, 1.0)})
+		"rev": 0.05, "rev0": 0.08, "life": 0.2, "fade": 0.14, "col": Color(0.88, 0.9, 0.94, 0.85)})   # 六刀 0.075 秒一刀：寿命短、略暗，免得叠成一片白
 	u.light(p, 170.0, Color(0.8, 0.88, 1.0), 0.12)
 	for q in 2:
 		var dq := Vector2.from_angle(dv.angle() + (PF.h(sd + q) - 0.5) * 1.6)
@@ -1272,7 +1280,7 @@ static func _ir_boom_v2(u, eye: Vector2, br: float, org: Vector2, R: float, ang:
 		u.strip(name, eye + Vector2.from_angle(PF.h(vs + l) * TAU) * br * 0.25 * l, {"sc": r0 / rr, "sc1": r1 / rr, "scd": 0.6, "life": 1.1 - 0.2 * l,
 			"fade": 0.75, "ang": PF.h(vs * 1.3 + l * 7.0) * TAU, "sx": -1.0 if PF.h(vs + l * 4.0) < 0.5 else 1.0, "delay": 0.06 + 0.06 * l,
 			"col": Color(1.15, 1.0, 0.85, 0.8), "col1": Color(0.45, 0.38, 0.33, 0.8), "cold": 0.45})
-	PF.particles(u, eye, 600, "ult_burst", [IR_GOLD, Color(0.85, 0.6, 0.3)], 0.03, vs, br * 1.35)
+	PF.particles(u, eye, 600, "ult_burst", [Color(0.8, 0.6, 0.32), Color(0.62, 0.42, 0.22)], 0.03, vs, br * 1.35)
 	PF.particles(u, eye, 100, "ult_ember", [Color(0.8, 0.55, 0.3)], 0.25, vs + 9.0)
 	PF.aftershock(u, eye, br * 0.8, vs, 0.05, 9, Color(0.85, 0.7, 0.5))
 	u.debris(eye, IR_GOLD, 3)
@@ -1382,14 +1390,14 @@ static func _la_v2(u) -> bool:
 
 static func _la_wave_v2(u, a: Dictionary, o, i: int, c: Vector2, R: float, fly: float, spd: float, a0: float, nb: int, bark: bool) -> void:
 	var vs: float = PF.vseed(u, c) + i * 7.0
-	var name := PF.pick(u, LA_X, vs * 0.31)
-	var tw: float = PF.tex_w(u, name)
 	var len: float = 150.0 if bark else 96.0   # 剑气宽（世界）
-	for k in nb:
+	for k in nb:   # 每道各挑变体、大小 0.75–1.25、转角 ±0.35、起点 30–70（同时飞到 R；飞行方向 = 判定方向不变）
 		var dv := Vector2.from_angle(a0 + TAU * k / nb)
 		var hh: float = PF.h(vs + k * 1.7)
-		u.strip(name, c + dv * 40.0, {"ang": dv.angle(), "sc": len / tw * (0.9 + 0.2 * hh), "sx": 1.4 if bark else 1.0, "sy": 1.0 if (k + i) % 2 == 0 else -1.0,
-			"v": dv * spd, "life": fly + 0.04, "fade": 0.1, "col": Color(1.05, 1.05, 1.05)})
+		var name := PF.pick(u, LA_X, vs * 0.31 + k * 2.3)
+		var r0: float = 30.0 + 40.0 * PF.h(hh * 13.0)
+		u.strip(name, c + dv * r0, {"ang": dv.angle() + (PF.h(hh * 5.0) - 0.5) * 0.7, "sc": len / PF.tex_w(u, name) * (0.75 + 0.5 * hh), "sx": 1.4 if bark else 1.0,
+			"sy": 1.0 if PF.h(hh * 3.0) < 0.5 else -1.0, "v": dv * spd * (R - r0) / (R - 40.0), "life": fly + 0.04, "fade": 0.1, "col": Color(1.05, 1.05, 1.05)})
 	PF.ring(u, LA_RING, c, 50.0, R, fly, fly + 0.06, {"seed": vs, "layer": "back", "fade": fly * 0.6, "col": Color(1.0, 1.0, 1.0, 0.3)})
 	var rr: float = PF.tex_w(u, LA_WHIRL) * 0.5
 	u.strip(LA_WHIRL, c, {"sx": -1.0 if i % 2 == 1 else 1.0, "layer": "back", "sc": 70.0 / rr, "sc1": 95.0 / rr, "scd": 0.2, "spin": 14.0 * (1.0 if i % 2 == 0 else -1.0), "ang": PF.h(vs) * TAU, "life": 0.24, "fade": 0.12})
