@@ -863,14 +863,14 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 		if not sh.done and t >= ts:
 			sh.done = true   # 主爆 70%（每人一次）
 			for p in sh.ps:
-				if _wd_v2(u):   # v2：Codex 爆炸关键帧（fx_wd_blast）鼓出冷却 + 弹坑（fx_ws_crater 4 种）留在地上 + 橙色粒子
+				if _wd_v2(u):   # v2：原版尖晶爆裂随机化 + 弹坑（fx_ws_crater 4 种）留在地上 + 少量红色粒子
 					var hp2: float = PF.h(p.x * 0.013 + p.y * 0.029 + float(k))
 					# 用户 10-30「弹坑的分布和大小可以没那么规则」：画面位置按哈希偏 ≤ 0.4 rr、大小 0.65–1.45 倍（判定仍在 p）
 					var rk: float = 0.65 + 0.8 * PF.h(hp2 * 31.0)
 					var pv: Vector2 = p + Vector2.from_angle(PF.h(hp2 * 17.0) * TAU) * rr * 0.4 * PF.h(hp2 * 23.0)
-					var bdl: float = 0.07 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
-					u.strip("fx_wd_blast" if hp2 < 0.5 else "fx_wd_blast2", pv, {"delay": bdl, "sc": rr * 0.4 * rk / 128.0, "sc1": rr * 0.85 * rk / 128.0, "scd": 0.18, "ang": hp2 * TAU, "sx": -1.0 if hp2 < 0.5 else 1.0,
-						"life": 0.3, "fade": 0.18, "col": Color(1.0, 0.3, 0.26, 0.9), "col1": Color(0.3, 0.07, 0.07, 0.9), "cold": 0.14})   # 用户 10-30「爆炸得要红色，她的主题色」；预审：原 1.2 倍亮、0.55 秒太白太久
+					var bdl: float = 0.14 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
+					# 用户 10-30「跟原本的特效风格不一致、缺少高光」：主体回到她自己的红色尖晶爆裂帧条（fx_wisadel_cannon，带高光 / 蓝环），只加随机大小 / 转角 / 镜像 / 偏移 / 起爆错开
+					u.strip("fx_wisadel_cannon", pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0, "delay": bdl})
 					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
 						"col": Color(1.0, 0.75, 0.72), "col1": Color(0.6, 0.55, 0.55), "cold": 0.6})   # 弹坑是焦黑地面，只带一点红余烬（整片染红会糊满屏）
 					if hp2 < 0.35:   # 粒子圆团每发都放会排成一格格（预审报重复），只给约三分之一的炮弹、缩小
@@ -913,10 +913,10 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 	return all_done
 
 
-## 维什戴尔 v2（ult/wd_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：每发炮弹 = Codex 第二批爆炸关键帧（fx_wd_blast，单帧，代码放大冷却）
+## 维什戴尔 v2（ult/wd_fx_v2，缺省 1；pixfx，docs/199 §7.9）：每发炮弹 = 她原有的红色尖晶爆裂帧条（fx_wisadel_cannon，随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；Codex 爆炸关键帧缺高光、用户说风格不一致，已撤）
 ## + 弹坑（fx_ws_crater 4 种按落点哈希挑）留地上 + 红色粒子帧条（用户 10-30：红色是她的主题色，爆炸着红）；余震 = 一下震 + 碎石掀起。判定 / 时序不动
 static func _wd_v2(u) -> bool:
-	return Bal.v("ult/wd_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_wd_blast") and u.fx_ready("fx_ws_crater")
+	return Bal.v("ult/wd_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_ws_crater")
 
 
 # ================================================================ 归溟幽灵鲨（§4.11）：巨锯放大、围着她转 3 秒，跟着队长走；期间不倒、受到的伤害 −50%
