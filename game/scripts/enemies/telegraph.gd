@@ -354,11 +354,7 @@ func _resolve(w: Dictionary) -> void:
 			g.fx.append({"kind": "rays", "pos": w.pos, "life": 0.25, "max": 0.25, "col": c, "enemy": true})
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 		"ishar_strike":
-			if _ishar_laser(e):
-				# 10-31 用户「三重齐击的激光还是没有统一」：落点改成同一套统一光束从上方打下（ishar_tell_draw._fades），不再画水柱
-				g.fx.append({"kind": "ishar_beam_fade", "a": w.pos + Vector2(0, -320), "b": w.pos, "wid": w.r * 0.32, "life": 0.42, "max": 0.42, "hold": 0.12, "enemy": true})
-			else:
-				g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})
+			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})   # 落点打击保留水柱（10-31 用户「三重齐击改回原版，和激光做点差异」）
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 			g.vfx.sparks(w.pos, Vector2.UP, c, 10, 230.0)
 			Sfx.play("tentacle", -6.0, 1.2)
