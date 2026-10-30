@@ -695,9 +695,9 @@ func shield_block(dmg := 0.0) -> void:
 	g.telemetry.blocks += 1
 	g.telemetry.shield_abs += dmg   # 遥测：层数抵挡掉的原始伤害（护盾复核 10-30）
 	g.shield_flash = 0.3
-	g.invuln = 0.5
+	g.invuln = maxf(g.invuln, Bal.v("shield/block_invuln", 0.0))   # 抵挡后的无敌秒数（10-30 用户定取消，缺省 0；碎裂反馈保留）
 	if g.shield < g.shield_max and g.shield_cd <= 0.0:
-		g.shield_cd = g.shield_every
+		g.shield_cd = g.shield_every * Bal.v("shield/every_x", 1.0)
 	Sfx.play("stake_shatter", -9.0, 1.5, 0.0)   # 轻脆碎裂声（原 dodge 呼声读不出「碎了」）
 	g.vfx.add_text(g.ppos + Vector2(0, -84), "护盾抵挡", Color(1.0, 0.9, 0.7), 16)
 	# 碎片 / 闪环 / 无敌微光：render/world.gd draw_shield 比对层数变化自己画（淡金色，用户 10-28 重画）

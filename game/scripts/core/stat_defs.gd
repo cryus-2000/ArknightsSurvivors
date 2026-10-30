@@ -25,7 +25,7 @@ const PLAYER := {
 	&"corrode_taken": {"base": 1.0, "min": 0.0, "name": "受到的侵蚀倍率"},
 	&"nerve_taken": {"base": 1.0, "min": 0.0, "name": "神经损伤累积倍率"},
 	&"shield_max": {"base": 0.0, "min": 0.0, "old": "shield_max", "name": "护盾层数上限"},
-	&"shield_interval": {"base": 12.0, "min": 2.0, "old": "shield_every", "name": "护盾生成间隔"},
+	&"shield_interval": {"base": 15.0, "min": 2.0, "old": "shield_every", "name": "护盾生成间隔"},
 	&"elite_dmg_taken": {"base": 1.0, "min": 0.0, "name": "精英敌人对主控造成的伤害倍率（docs/57 P7）"},
 	# ---- 公共：输出
 	&"dmg": {"base": 1.0, "min": 0.0, "old": "dmg_mult", "name": "全伤害倍率"},
