@@ -1,0 +1,12 @@
+# card_desc_fit
+# 参数：--headless --path /home/user/ArknightsSurvivors/game --script res://tests/card_desc_fit_test.gd
+# 用时 3 秒；结束时全机 Godot 4 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CARD DESC FIT cut=0 failures=0
+
+
+## stderr
+

@@ -1,0 +1,20 @@
+# render_perf
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/render_perf_test.tscn -- --regression --seed=1
+# 用时 5 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CIRCLE_US_10000=351432
+CIRCLE_US_10000=371156
+CIRCLE_US_10000=368650
+CIRCLE_US_10000=326605
+GPU_BEFORE=0
+GPU_ACTIVE=0 SIZE=(1280, 1280)
+GPU_IDLE=0
+GPU_RESTORE=0
+RENDER PERF failures=0
+
+
+## stderr
+

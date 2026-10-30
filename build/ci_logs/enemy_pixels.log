@@ -1,0 +1,12 @@
+# enemy_pixels
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/enemy_pixel_contract.tscn -- --regression --seed=1
+# 用时 223 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ENEMY PIXEL CONTRACT: 200 strips; failures=0
+
+
+## stderr
+

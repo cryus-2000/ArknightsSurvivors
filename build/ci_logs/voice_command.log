@@ -1,0 +1,16 @@
+# voice_command
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/voice_command_test.tscn -- --regression --seed=1
+# 用时 6 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+VOICE COMMAND checks=179 failures=0
+
+
+## stderr
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

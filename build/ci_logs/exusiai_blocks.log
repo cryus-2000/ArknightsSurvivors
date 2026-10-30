@@ -1,0 +1,152 @@
+# exusiai_blocks
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/exusiai_blocks_test.tscn -- --regression --seed=1 --balance --op=exusiai
+# 用时 14 秒；结束时全机 Godot 4 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+85 checks, 0 failed
+EXUSIAI BLOCKS failures=0
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/exusiai_blocks_test.gd:20)
+ERROR: 干员 exusiai 的 blocks.attack 缺参数 shots
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.talent[1] 缺 counter（看哪个计数器满了）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.skills[0].dur.t：dur 的对象写法只有 {"ammo": N}（次数型）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.skills[2].attack_patch.bogus：只能改 mult / pierce / src / tags / tex / power / burst / burst_gap / range_mult / elite_prio / last_on_hit / muzzle_fx / spread_deg / focus_boss / kb / hit_fx
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.progression.ricochet.src「没登记」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.skills[1].do[1]：「verb.counter_cap」不能放在这里（常驻积木只能放在特性 / 天赋 / 成长节点（直接作节点或 trig.passive 的 do））
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.skills[2].attack_patch.last_on_hit[0].dur = 5.0 超出范围 [0.0, 2.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.progression.twin：常驻列表里只能放常驻积木，「shape.projectile」是瞬时的
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.talent[0].do[0] 缺参数 cap
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.attack.shots = 40.0 超出范围 [1.0, 12.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.skills[2].attack_patch 要配持续型或次数型（dur > 0 或 {"ammo": N}）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.attack.muzzle 应是 [x, y]（脚底为原点、朝右、世界像素）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.skills[1].attack_patch.tex 应是帧条名（proj_…，小写字母 / 数字 / 下划线）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+ERROR: 干员 exusiai 的 blocks.attack.hit_fx 应是帧条名（fx_…，小写字母 / 数字 / 下划线）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
+       [5] _process (res://tests/exusiai_blocks_test.gd:29)
+WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

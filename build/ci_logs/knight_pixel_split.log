@@ -1,0 +1,12 @@
+# knight_pixel_split
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/knight_pixel_split.tscn -- --regression --seed=1
+# 用时 3 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+KNIGHT_PIXEL_SPLIT_OK walking draw slots and original combat timings
+
+
+## stderr
+

@@ -1,0 +1,53 @@
+# nodes_kaltsit
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/node_test.tscn -- --balance --seed=1 --op=kaltsit
+# 用时 14 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+NODETEST op=kaltsit prog=0 elite=0
+NODE kaltsit 1 custom twin_claw | imm: var:nodes_taken →twin_claw | sync: 
+NODE kaltsit 2 custom wide_arc | imm: var:nodes_taken twin_claw→twin_claw,wide_arc | sync: 
+NODE kaltsit 3 elite 1.0 | imm: var:elite 0→1; skill2 false→true; sp2 0.0→15.0 | sync: 
+NODE kaltsit 4 custom s1_shell | imm: var:nodes_taken twin_claw,wide_arc→twin_claw,wide_arc,s1_shell; var:route →shell | sync: 
+NODE kaltsit 5 custom melt_triple | imm: var:nodes_taken twin_claw,wide_arc,s1_shell→twin_claw,wide_arc,s1_shell,s1_shell2 | sync: 
+NODE kaltsit 6 elite 2.0 | imm: var:elite 1→2; skill3 false→true; sp3 0.0→24.0 | sync: 
+PASSIVE hp | imm: stat:max_hp 108.0→128.0; g:max_hp 108.0→128.0 | sync: 
+PASSIVE regen | imm: stat:regen 0.8→1.2; g:regen 0.8→1.2 | sync: 
+PASSIVE armor | imm: stat:phys_taken 1.0→0.92 | sync: 
+PASSIVE dodge | imm: stat:dodge 0.0→0.05; g:dodge 0.0→0.05 | sync: 
+PASSIVE pickup | imm: stat:pickup 70.0→91.0; g:pickup 70.0→91.0 | sync: 
+PASSIVE wick | imm: stat:light_decay 1.0→0.85; g:lamp_decay 1.0→0.85 | sync: 
+PASSIVE speed | imm: stat:move_speed 165.0→181.5; g:speed 165.0→181.5 | sync: 
+PASSIVE dash_cd | imm: stat:dash_cd 1.0→0.88 | sync: 
+PASSIVE dash_dist | imm: stat:dash_dist 1.0→1.12 | sync: 
+PASSIVE dash_charge | imm: stat:dash_charges 1.0→2.0 | sync: 
+PASSIVE sp | imm: stat:sp_gain 1.0→1.15; g:sp_mult 1.0→1.15 | sync: 
+PASSIVE squad_atk | imm: stat:op_atk 1.143→1.215 | sync: 
+PASSIVE squad_aspd | imm: stat:op_aspd 1.0→1.06 | sync: 
+PASSIVE squad_range | imm: stat:op_range 1.0→1.08 | sync: 
+PASSIVE squad_crit | imm: stat:op_skill_power 1.03→1.13 | sync: 
+PASSIVE pierce | imm: stat:op_pierce 0.0→2.0 | sync: 
+PASSIVE lane_melee | imm:  | sync: 
+PASSIVE lane_multi | imm:  | sync: 
+PASSIVE lane_summon | imm: stat:followup_dmg 1.0→1.1 | sync: 
+PASSIVE lane_control | imm: stat:control_dur 1.0→1.15 | sync: 
+PASSIVE lane_weak | imm:  | sync: 
+PASSIVE lane_shield | imm: stat:shield_interval 15.0→13.8 | sync: 
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/node_test.gd:20)
+WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

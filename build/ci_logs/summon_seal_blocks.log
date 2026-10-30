@@ -1,0 +1,305 @@
+# summon_seal_blocks
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/summon_seal_blocks_test.tscn -- --regression --seed=1 --balance --op=sstest
+# 用时 14 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+95 checks, 0 failed
+SUMMON SEAL BLOCKS failures=0
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/summon_seal_blocks_test.gd:23)
+ERROR: 干员 sstest 的 blocks.skills[0].do[0].kind「ghost」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.trait[0].do[0]：life = skill（随技能结束消失）的召唤只能放在技能 do 里
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.wolf.cap = 50.0 超出范围 [1.0, 12.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.wolf.move.mode 只能是 orbit / chase / stay / follow / escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.orb.attack 必须是一个伤害形状（shape.circle / shape.cone / shape.line）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.skills[1].do[2]：「st.seal」不能放在这里（skill；只能在 on_hit / field）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.skills[1].do[0].on_hit[0].dur = 20.0 超出范围 [0.1, 10.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.decoy.on_expire[1]：life = skill（随技能结束消失）的召唤只能放在技能 do 里
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.decoy.on_expire：不能再召唤（免得召唤物连环生成）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.orb.body.strip 必须是帧条名（fx_* / proj_* / op_* / ally_*）；缺图时画程序体
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.hound 缺 life（秒数 / "skill" = 召唤它的技能生效期间 / "permanent"）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.wolf：invuln（无敌）的召唤物不写 hp / hp_k
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.decoy 缺参数 hp
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.skills[2].do[0].pct = 5.0 超出范围 [0.01, 1.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.progression.regen.scope 只能是 in_zone（主控在本干员区域内）/ always
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.trait[0].do[1]：「aura.heal」不能放在这里（instant；只能在 skill / sustain）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.skills[0].do[0].at 只能是 self / leader / target / zone / rest
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons 必须是对象（种类名 → 定义）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.skills[0].do[0].kind「wolf」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.skills[1].do[1].kind「decoy」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.trait[0].do[0].kind「decoy」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.progression.orbs.do[0].kind「orb」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.progression.hound.do[0].kind「hound」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.wolf.speed：召唤物定义不认识的字段（只能是 name / hp / hp_k / on_down / invuln / life / cap / r / col / move / attack / on_spawn / on_expire / body / enemy_target / decoy_r / hurt_mult / _doc / anim / patch / float / shadow / fx / status / manual / zone）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.orb.attack.src「没登记」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.decoy.enemy_target 只能是 ignore（缺省：敌人不理召唤物）/ decoy（诱饵：近战杂兵改追它、贴身时它挨打）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.wolf.move.target 只能是 nearest / densest / elite / low_hp
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.wolf.attack.center：召唤物的圆形判定只能以自身（self）或目标（target）为心
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.hound.attack 缺参数 every
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.skills[1].do[0].on_hit[0].boss 只能是 true / false
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+ERROR: 干员 sstest 的 blocks.summons.wolf.move.speed：引用的「$nope」不在 base 里
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_validate (res://tests/summon_seal_blocks_test.gd:124)
+       [5] _process (res://tests/summon_seal_blocks_test.gd:32)
+WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
