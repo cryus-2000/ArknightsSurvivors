@@ -264,8 +264,11 @@ static func sz_start(u, a: Dictionary, side: Vector2, tp: float) -> void:
 		a["sz_stand"] = stand
 		a["sz_cut"] = u.strip(SZ_CUT, stand, {"o": SZ_FOOT * A.hires_of(u._strip_tex(SZ_CUT)), "sc": SZ_SC, "f": 0, "sx": float(a.sz_fs), "life": tp + 0.3,
 			"col": Color(1, 1, 1, 0.0)})
-		a["sz_dim"] = {"kind": "circle", "c": side + Vector2(0, -30), "r": 170.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "life": tp + 0.3}
+		a["sz_dim"] = {"kind": "circle", "c": stand, "r": 2600.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "hold": true, "life": tp + 1.0}   # 全局压暗（用户 10-31「突出忍冬」）
 		u.shape(a.sz_dim)
+		a.sz_cut["life"] = tp + 1.0
+		u.shapes.erase(a.sz_cut)
+		u.shapes.append(a.sz_cut)   # 忍冬画在压暗层上面
 		u.light(stand + Vector2(0, -40), 140.0, Color(0.85, 0.82, 0.7), tp)
 		return
 	# 入场（用户 10-30「要把忍冬的入场停顿做出来，得让玩家知道是她来出手」）：周围压暗一圈 → 她放大现身 → 到位那一刻顿帧 ult/sz_appear_stop
@@ -286,11 +289,13 @@ static func sz_body_step(u, a: Dictionary, t: float, tp: float) -> void:
 		return
 	var k: float = clampf(t / (tp * 0.35), 0.0, 1.0)
 	a.sz_cut.col = Color(1, 1, 1, k)
-	a.sz_dim.fill = 0.35 * k
+	a.sz_dim.fill = 0.6 * k
+	a.sz_dim.age = 0.0
 	if k >= 1.0 and not a.has("sz_pop"):
 		a["sz_pop"] = t
 		var side: Vector2 = a.sz_stand
-		u.g.vfx.stop(Bal.v("ult/sz_appear_stop", 0.22), "ult", true)   # 停半拍：画面层顿帧，不改模拟步长
+		u.g.vfx.stop(0.06, "ult", true)
+		u.prep_slow(Bal.v("ult/sz_prep_slow_t", 0.55), Bal.v("ult/sz_prep_slow", 0.3))   # 预备式慢动作：拔刀蓄势那段放慢（演出类，不改模拟）
 		u.light(side + Vector2(0, -40), 180.0, Color(0.8, 0.78, 0.68), 0.3)
 		PF.particles(u, side + Vector2(0, -30), 40, "ult_ember", [SZ_FOX, Color(0.62, 0.55, 0.36)], 0.0, float(a.sz_vs) + 7.0, 80.0)
 	a.sz_cut.f = clampi(int(clampf((t - tp * 0.35) / (tp * 0.65), 0.0, 0.999) * 4.0), 0, 3)
@@ -330,6 +335,9 @@ static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float)
 			cs.col = Color(1.6, 1.6, 1.7, 1.0)
 			cs.f = 4
 			cs.max = float(cs.age) + 0.07
+			if a.has("sz_dim"):   # 压暗撤掉
+				a.sz_dim.max = float(a.sz_dim.age) + 0.12
+				a.sz_dim["hold"] = false
 			var dd: Vector2 = (tip - side).normalized()
 			for g in 3:
 				u.strip(SZ_CUT, Vector2(a.sz_stand) + dd * 40.0 * (g + 1), {"o": cs.o, "sc": SZ_SC, "f": 4, "sx": float(a.sz_fs) * (1.0 + 0.35 * (g + 1)),
@@ -360,7 +368,7 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 		b0 = a0 + Vector2.from_angle(ang) * float(m.sx) * PF.tex_w(u, str(m.name))
 		sname = str(m.name)
 		m.max = float(m.age)
-	_sz_slash(u, sname, a0, ang, a0.distance_to(b0), {"sy": 1.15, "life": 0.55, "fade": 0.3, "col": Color(1.05, 1.05, 1.05, 1.0), "col1": Color(0.45, 0.55, 0.7, 0.8), "cold": 0.35})
+	_sz_slash(u, sname, a0, ang, a0.distance_to(b0), {"sy": 1.15, "life": 0.55, "fade": 0.3, "col": Color(1.05, 1.05, 1.05, 1.0), "col1": Color(0.45, 0.55, 0.7, 0.8), "cold": 0.35, "hf": true})
 	u.light(org + d * (L - bk) * 0.5, maxf(L, hw) * 0.7, SZ_PALE, 0.3)
 	var n: int = 7 + int(PF.h(vs) * 3.0)   # 7–9 处爆点，从斩痕起点往尽头一节节依次炸开（预审 10-30：同时炸连成一片）
 	for k in n:
@@ -380,9 +388,9 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 		var x: float = lerpf(-bk * 0.5, L * 0.95, (k + 0.15 + 0.7 * hh) / ns)
 		var pc: Vector2 = a0.lerp(b0, clampf((x + bk) / maxf(1.0, L + bk), 0.0, 1.0)) + d.orthogonal() * (PF.h(vs + k * 5.3) - 0.5) * hw * 0.35
 		var sa: float = ang + (1.0 if k % 2 == 0 else -1.0) * (0.25 + 0.9 * PF.h(vs + k * 1.9))
-		var sl: float = 150.0 + 160.0 * PF.h(vs + k * 4.1)   # 用户 10-31「小斩痕都长一点」
+		var sl: float = 230.0 + 200.0 * PF.h(vs + k * 4.1)   # 用户 10-31「小斩痕都长一点」「副斩击都大一点」
 		var sd: Vector2 = Vector2.from_angle(sa)
-		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + k * 0.7 + 11.0), pc - sd * sl * 0.5, sa, sl, {"sy": (0.22 + 0.2 * hh) * (-1.0 if PF.h(vs + k) < 0.5 else 1.0),
+		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + k * 0.7 + 11.0), pc - sd * sl * 0.5, sa, sl, {"hf": true, "sy": (0.5 + 0.3 * hh) * (-1.0 if PF.h(vs + k) < 0.5 else 1.0),
 			"rev": 0.04, "rev0": 0.1, "delay": 0.03 + 0.05 * PF.h(vs + k * 8.3), "life": 0.4, "fade": 0.22, "col": Color(1.0, 1.0, 1.02, 0.95),
 			"col1": Color(0.42, 0.52, 0.68, 0.8), "cold": 0.22})
 
@@ -434,14 +442,30 @@ static func mz_jelly_step(u, a: Dictionary, t: float) -> void:
 		var k: float = clampf((t - float(j.d0)) / 0.55, 0.0, 1.0)
 		var ke: float = 1.0 - (1.0 - k) * (1.0 - k)
 		var ph: float = float(j.ph)
-		var kp: float = clampf((t - (float(a.jl_c1) - 0.25)) / 0.25, 0.0, 1.0)   # 炸开前鼓胀
+		var kp: float = clampf((t - (float(a.jl_c1) - 0.32)) / 0.32, 0.0, 1.0)   # 炸开前 0.32 秒各自往里压缩（用户 10-31「参考上一稿的压缩爆炸」）
+		var kq: float = kp * kp
 		s.c = Vector2(j.p) + Vector2(0, 40.0 * (1.0 - ke) + 5.0 * sin(t * 2.2 + ph))
-		var pulse: float = sin(t * (5.0 + 14.0 * kp) + ph)
-		s.sc = float(j.sc) * (1.0 + 0.18 * kp * kp)
+		var pulse: float = sin(t * (5.0 + 20.0 * kp) + ph)
+		s.sc = float(j.sc) * lerpf(1.0, 0.4, kq)
 		s.sy = 1.0 + 0.08 * pulse
 		s.sx = float(j.fs) * (1.0 - 0.05 * pulse)
-		var b: float = 1.0 + 0.3 * kp
+		var b: float = 1.0 + 0.5 * kq
 		s.col = Color(b, b, b, 0.78 * ke)
+		if kp > 0.0:
+			if not j.has("core"):
+				j["core"] = {"kind": "circle", "c": s.c, "r": 4.0, "col": Color(0.6, 0.86, 0.9), "fill": 0.0, "hold": true, "life": 2.0}
+				j["ring"] = {"kind": "ring", "c": s.c, "r": 90.0, "w": 4.0, "col": Color(0.2, 0.42, 0.52, 0.0), "hold": true, "life": 2.0}
+				u.shape(j.core)
+				u.shape(j.ring)
+			j.core.c = s.c
+			j.core.r = lerpf(4.0, 18.0, kq)
+			j.core.fill = 0.85 * kp
+			j.ring.c = s.c
+			j.ring.r = lerpf(95.0, 18.0, kp)
+			j.ring.col = Color(0.22, 0.45, 0.55, 0.7 * kp)
+			if int(t * 60.0) % 4 == int(ph) % 4:
+				var hq: float = PF.h(ph + t * 9.0)
+				u.grain("mote_in", s.c + Vector2.from_angle(hq * TAU) * 70.0, Vector2.from_angle(hq * TAU + PI), MZ_GLOW, 1)
 		if int(t * 60.0) % 9 == int(ph * 3.0) % 9:
 			u.grain("mote_up", s.c, Vector2.UP, MZ_GLOW, 1)
 
@@ -515,10 +539,14 @@ static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
 		s.col = Color(1.3, 1.35, 1.4, 0.9)
 		s.max = float(s.age) + 0.1
 		s["fade"] = 0.05
+		if j.has("core"):
+			j.core.max = 0.0
+			j.ring.max = 0.0
 		var hh: float = PF.h(vs + i * 3.1)
-		PF.particles(u, p, 300, "ult_burst", [Color(0.38, 0.62, 0.68), Color(0.48, 0.4, 0.7)], 0.0, vs + i, 120.0 + 60.0 * hh)
+		u.shape({"kind": "circle", "c": p, "r": 34.0, "col": Color(0.7, 0.88, 0.9), "fill": 0.85, "life": 0.07})   # 每只的爆闪（≤ 0.9）
+		PF.particles(u, p, 600, "ult_burst", [Color(0.38, 0.62, 0.68), Color(0.48, 0.4, 0.7)], 0.0, vs + i, 190.0 + 90.0 * hh)
 		PF.particles(u, p, 40, "ult_burst_s", [Color(0.55, 0.85, 0.9)], 0.0, vs + i * 7.0, 70.0)
-		PF.ring(u, LU_RINGS, p, 10.0, 70.0 + 40.0 * hh, 0.2, 0.45, {"seed": vs + i * 2.0, "layer": "front", "col": Color(0.55, 0.9, 0.95, 0.8), "col1": Color(0.3, 0.28, 0.6, 0.5), "cold": 0.3, "fade": 0.25})
+		PF.ring(u, LU_RINGS, p, 10.0, 130.0 + 60.0 * hh, 0.22, 0.5, {"seed": vs + i * 2.0, "layer": "front", "col": Color(0.55, 0.9, 0.95, 0.8), "col1": Color(0.3, 0.28, 0.6, 0.5), "cold": 0.3, "fade": 0.25})
 		u.grain("water", p, Vector2.from_angle(hh * TAU), Color(0.55, 0.85, 0.9), 8)
 		u.light(p, 110.0, Color(0.3, 0.55, 0.62), 0.25)
 		PF.particles(u, p, 30, "ult_ember", [Color(0.4, 0.66, 0.7)], 0.15 + 0.03 * (i % 3), vs + i * 5.0, 60.0)
@@ -599,9 +627,10 @@ static func sb_tick(u, a: Dictionary, c: Vector2, R: float, tick: int, n: int) -
 		PF.particles(u, p, 40, "ult_burst_s", [SB_RED, SP_SPARK[0]], dl, vs + k * 11.0, 80.0)
 		# 弹到这里锯一下（用户 10-31「闪出去弹射的时候也要带锯子」）：一把小锯落在落点转一下（缓出放大、快转、淡出）+ 火星
 		var rr: float = PF.tex_w(u, SP_SAW) * 0.5
-		var sr: float = 38.0 + 14.0 * PF.h(vs + k * 6.1)
-		u.strip(SP_SAW, p + Vector2(0, -6), {"sc": sr * 0.7 / rr, "sc1": sr / rr, "scd": 0.05, "spin": -22.0 * (1.0 if PF.h(vs + k) < 0.6 else -1.0),
-			"ang": PF.h(vs + k * 2.2) * TAU, "delay": dl, "life": minf(0.22, dt + 0.08), "fade": 0.08, "col": Color(1.05, 1.0, 1.0, 1.0)})
+		var sr: float = 80.0 + 24.0 * PF.h(vs + k * 6.1)   # 用户 10-31「小圆锯没看出来，画大一点」
+		u.strip(SP_SAW, p + Vector2(0, -6), {"sc": sr * 0.6 / rr, "sc1": sr / rr, "scd": 0.05, "spin": -22.0 * (1.0 if PF.h(vs + k) < 0.6 else -1.0),
+			"ang": PF.h(vs + k * 2.2) * TAU, "delay": dl, "life": maxf(0.26, dt + 0.1), "fade": 0.1, "col": Color(1.1, 1.05, 1.05, 1.0)})
+		u.strip(SP_SAW, p + Vector2(0, -6), {"sc": sr * 1.15 / rr, "spin": -22.0, "delay": dl, "life": 0.14, "fade": 0.1, "col": Color(1.4, 0.3, 0.3, 0.35)})   # 血色光晕
 		u.grain("sh_shard", p, Vector2.from_angle(ang + PI * 0.5), Color(1.0, 0.6, 0.25), 4)
 		cur = p
 	a.sb_cur = cur
@@ -640,7 +669,15 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 	var r1: float = R * 0.75
 	u.strip(SP_SAW, ctr, {"sc": r1 * 1.5 / rr, "sc1": r1 * 1.08 / rr, "scd": 0.18, "spin": -9.0, "life": 0.85, "fade": 0.45,
 		"col": Color(1.4, 0.35, 0.35, 0.45)})   # 血色光晕（大一圈、半透明）
-	u.strip(SP_SAW, ctr, {"sc": r1 * 1.12 / rr, "sc1": r1 / rr, "scd": 0.06, "spin": -9.0, "life": 0.85, "fade": 0.4, "col": Color(1.05, 1.0, 1.0, 1.0), "hf": true})
+	u.strip(SP_SAW, ctr, {"sc": r1 * 1.12 / rr, "sc1": r1 / rr, "scd": 0.06, "spin": -9.0, "life": 0.6, "col": Color(1.05, 1.0, 1.0, 1.0), "hf": true})
+	# 收尾（用户 10-31「最后锯子也接一个有表现力的收尾」）：落地后原地狂转磨地 0.5 秒（一圈火星往外甩）→ 收小、飞回她手里
+	u.strip(SP_SAW, ctr, {"sc": r1 / rr, "spin": -26.0, "delay": 0.6, "life": 0.28, "sc1": r1 * 0.18 / rr, "scd": 0.28, "v": (c - ctr) / 0.28,
+		"col": Color(1.1, 1.0, 1.0, 1.0)})
+	for q in 10:
+		var hq: float = PF.h(float(a.sb_vs) + q * 3.9)
+		var dq: Vector2 = Vector2.from_angle(TAU * (q + hq) / 10.0)
+		PF.particles(u, ctr + dq * r1 * 0.95, 30, "ult_burst_s", [Color(1.0, 0.55, 0.2), SB_RED], 0.15 + 0.04 * q, float(a.sb_vs) + q, 60.0)
+	u.light(c, 160.0, Color(0.6, 0.1, 0.12), 0.25)
 	u.g.vfx.stop(Bal.v("ult/sb_hitstop", 0.16), "ult", true)
 	u.light(ctr, r1 * 1.2, Color(0.55, 0.08, 0.1), 0.35)
 	PF.particles(u, ctr, 300, "ult_burst", [SB_RED, SB_DARK], 0.12, float(a.sb_vs) + 99.0, r1)

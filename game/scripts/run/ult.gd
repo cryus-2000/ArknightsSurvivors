@@ -1038,6 +1038,8 @@ func time_scale() -> float:
 		s = minf(s, Bal.v("ult/combo_slow", 0.5))
 	if UM.now() - _link_rt < Bal.v("ult/link_slow_t", 0.12):
 		s = minf(s, Bal.v("ult/link_slow", 0.6))   # 技能连携出手瞬间的轻微放慢（比终结技弱一档）
+	if UM.now() - _prep_rt < _prep_t:
+		s = minf(s, _prep_s)   # 招式自己要的预备式慢动作（prep_slow；铃兰忍冬拔刀蓄势，用户 10-31）
 	return s
 
 
@@ -1371,6 +1373,18 @@ var _link_rt := -99.0          # 技能连携出手瞬间放慢起点（真实�
 
 func link_slow() -> void:
 	_link_rt = UM.now()
+
+
+## 预备式慢动作：从现在起 dur 真实秒内时间 × scale（演出类，同瞄准慢放：只在玩家局 / 录像生效，批跑不改模拟步长）
+var _prep_rt := -99.0
+var _prep_t := 0.0
+var _prep_s := 1.0
+
+
+func prep_slow(dur: float, scale: float) -> void:
+	_prep_rt = UM.now()
+	_prep_t = dur
+	_prep_s = scale
 
 
 ## 终结技轻震（用户 10-30：歌蕾蒂娅收拢、浊心斯卡蒂激光点名要震屏；全项目镜头震动早先因「看着头疼」移除，这里只给终结技、幅度小）：
