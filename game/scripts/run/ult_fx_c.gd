@@ -5,6 +5,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")
+const A = preload("res://scripts/art.gd")
 
 
 # ================================================================ 归溟幽灵鲨：整圈巨锯（ult/sp_saw_v2）
@@ -225,7 +226,13 @@ static func mz_small(u, a: Dictionary, p: Vector2, i: int, sc: float, delay: flo
 # ================================================================ 铃兰：忍冬现身 → 瞬身斩 → 斩痕爆裂（ult/sz_fx_v2）
 ## 忍冬 = pixgen 白光人形（照 Codex 忍冬关键帧的轮廓），淡入；瞬身 = pixgen 连续冷色斩痕（亮芯 ≤ 0.9、边缘冷蓝灰）从她身边飞速显现到尽头，
 ## 停半拍 → 爆裂：只有这一道斩痕（用户 10-30「忍冬的应该只有一道」；3 种斩痕按 vseed 挑）——爆亮再冷却、沿痕冷白粒子从起点往尽头依次爆开 + 狐火橙余烬 + 大灯。
-const SZ_FIG := "fx_sz_vulpis"
+const SZ_FIG := "fx_sz_vulpis"   # 白光人形（本体帧条缺时的回退）
+const SZ_WALK := "op_vulpis_walk"   # 忍冬本体（Spine 自产，PRTS 原作骨架 char_4026_vulpis，docs/207 §6.3）：96 画布、foot (48, 76)、朝右
+const SZ_CUT := "op_vulpis_slash"
+const SZ_FOOT := Vector2(48.0, 76.0)   # 1x 像素；按实际取到的贴图倍率换算（网页包可能是 @1x）
+const SZ_CUT_DT := [0.06, 0.06, 0.08, 0.05, 0.10, 0.08, 0.10, 0.12]   # 拔刀斩逐帧时长，出刀帧 f4
+const SZ_CUT_HIT := 0.25   # 拔刀开始到出刀帧的秒数（前 4 帧之和）
+const SZ_SC := 1.25   # 忍冬比队员略大一点，一眼认得出是她出手
 const SZ_SLASH := ["fx_sz_slash1", "fx_sz_slash2", "fx_sz_slash3"]
 const SZ_COLD := Color(0.5, 0.58, 0.66)
 const SZ_PALE := Color(0.62, 0.66, 0.7)
@@ -236,9 +243,32 @@ static func sz_v2(u) -> bool:
 	return Bal.v("ult/sz_fx_v2", 1.0) > 0.0 and u.fx_ready(SZ_SLASH[0])
 
 
+## 忍冬本体帧条到了没有（用户 10-30「忍冬刚出现不能说是发光的，得能看出人，然后是走路进场，一刀砍过去」）
+static func sz_body(u) -> bool:
+	return Bal.v("ult/sz_body_v2", 1.0) > 0.0 and u.fx_ready(SZ_WALK) and u.fx_ready(SZ_CUT)
+
+
+## 本体版的现身段长度：走路 ult/sz_walk 秒 + 拔刀到出刀帧（瞬身那一下落在出刀帧）
+static func sz_tp() -> float:
+	return Bal.v("ult/sz_walk", 0.3) + SZ_CUT_HIT
+
+
 static func sz_start(u, a: Dictionary, side: Vector2, tp: float) -> void:
 	var vs: float = PF.vseed(u, side)
 	a["sz_vs"] = vs
+	if sz_body(u):   # 本体版：从铃兰身后走进来 → 到位停半拍 → 拔刀一刀
+		var d: Vector2 = a.d
+		a["sz_fs"] = -1.0 if d.x < -0.05 else 1.0
+		var out: Vector2 = (side - Vector2(a.org)).normalized()
+		var stand: Vector2 = side + out * 50.0   # 站位离铃兰再远一点，不和她的身体叠在一起
+		a["sz_stand"] = stand
+		a["sz_w0"] = stand + out * Bal.v("ult/sz_walk_dist", 150.0)   # 从外侧横着走进来
+		var wd: Vector2 = stand - Vector2(a.sz_w0)
+		a["sz_walker"] = u.strip(SZ_WALK, a.sz_w0, {"o": SZ_FOOT * A.hires_of(u._strip_tex(SZ_WALK)), "sc": SZ_SC, "loop": true, "fps": 16.0,
+			"life": Bal.v("ult/sz_walk", 0.3) + 0.02, "sx": -1.0 if wd.x < 0.0 else 1.0})
+		a["sz_dim"] = {"kind": "circle", "c": side + Vector2(0, -30), "r": 170.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "life": tp + 0.5}
+		u.shape(a.sz_dim)
+		return
 	# 入场（用户 10-30「要把忍冬的入场停顿做出来，得让玩家知道是她来出手」）：周围压暗一圈 → 她放大现身 → 到位那一刻顿帧 ult/sz_appear_stop
 	a["sz_dim"] = {"kind": "circle", "c": side + Vector2(0, -30), "r": 150.0, "col": Color(0.0, 0.0, 0.03), "fill": 0.0, "life": tp + 0.08}
 	u.shape(a.sz_dim)
@@ -251,8 +281,42 @@ static func sz_start(u, a: Dictionary, side: Vector2, tp: float) -> void:
 		u.grain("mote_up", side + Vector2((PF.h(vs + q) - 0.5) * 60.0, -10.0 - 70.0 * PF.h(vs + q * 3.0)), Vector2.UP, Color(0.85, 0.75, 0.5), 2)
 
 
+## 本体版每帧（整段都调）：走路缓停到位 → 到位那一刻顿帧（停半拍）+ 狐火 → 拔刀斩逐帧（出刀帧 = 瞬身）→ 收刀淡出
+static func sz_body_step(u, a: Dictionary, t: float) -> void:
+	var tw: float = Bal.v("ult/sz_walk", 0.3)
+	var side: Vector2 = a.sz_stand
+	if t < tw:
+		var k: float = clampf(t / tw, 0.0, 1.0)
+		a.sz_walker.c = Vector2(a.sz_w0).lerp(side, 1.0 - (1.0 - k) * (1.0 - k))   # 走到跟前放慢
+		a.sz_dim.fill = 0.35 * k
+		return
+	if not a.has("sz_cut"):
+		a.sz_walker.max = float(a.sz_walker.age)
+		var tot: float = 0.0
+		for x in SZ_CUT_DT:
+			tot += float(x)
+		a["sz_cut"] = u.strip(SZ_CUT, side, {"o": SZ_FOOT * A.hires_of(u._strip_tex(SZ_CUT)), "sc": SZ_SC, "f": 0, "sx": float(a.sz_fs), "life": tot + 0.3, "fade": 0.3})
+		a["sz_c0"] = t
+		u.g.vfx.stop(Bal.v("ult/sz_appear_stop", 0.22), "ult", true)   # 停半拍：画面层顿帧，不改模拟步长
+		u.light(side + Vector2(0, -40), 180.0, Color(0.8, 0.78, 0.68), 0.3)
+		PF.particles(u, side + Vector2(0, -30), 40, "ult_ember", [SZ_FOX, Color(0.62, 0.55, 0.36)], 0.0, float(a.sz_vs) + 7.0, 80.0)
+	var e: float = t - float(a.sz_c0)
+	var f: int = 0
+	var acc: float = 0.0
+	for i in SZ_CUT_DT.size():
+		acc += float(SZ_CUT_DT[i])
+		if e < acc:
+			break
+		f = mini(i + 1, SZ_CUT_DT.size() - 1)
+	a.sz_cut.f = f
+	a.sz_dim.fill = 0.35 * clampf(1.0 - (e - 0.4) / 0.3, 0.0, 1.0)
+
+
 ## 现身期间每帧：前 35% 淡入 + 周围压暗；到位那一刻顿帧 + 亮一下 + 狐火迸开
 static func sz_appear(u, a: Dictionary, t: float, tp: float) -> void:
+	if a.has("sz_walker"):
+		sz_body_step(u, a, t)
+		return
 	var k: float = clampf(t / (tp * 0.35), 0.0, 1.0)
 	if a.has("sz_fig"):
 		var b: float = 1.0 + (0.25 if a.has("sz_pop") and t - float(a.sz_pop) < 0.06 else 0.0)
@@ -275,6 +339,8 @@ static func _sz_slash(u, name: String, p: Vector2, ang: float, L: float, opt: Di
 
 static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float) -> void:
 	var vs: float = float(a.sz_vs)
+	if a.has("sz_stand"):
+		side = Vector2(a.sz_stand) + Vector2(0, -24)   # 刀口高度
 	if a.has("sz_fig"):
 		a.sz_fig.max = float(a.sz_fig.age) + 0.06
 	var name: String = PF.pick(u, SZ_SLASH, vs)
@@ -292,8 +358,16 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var a0: Vector2 = org - d * bk
 	var b0: Vector2 = org + d * L
 	var ang: float = d.angle()
-	# 主斩痕爆亮：加粗一道，白 → 冷蓝灰冷却
-	_sz_slash(u, PF.pick(u, SZ_SLASH, vs), a0, ang, a0.distance_to(b0), {"sy": 1.15, "life": 0.55, "fade": 0.3, "col": Color(1.05, 1.05, 1.05, 1.0), "col1": Color(0.45, 0.55, 0.7, 0.8), "cold": 0.35})
+	# 主斩痕爆亮：就在出刀那一道上加粗爆亮（不另起一道，免得两道平行），白 → 冷蓝灰冷却
+	var sname: String = PF.pick(u, SZ_SLASH, vs)
+	if a.has("sz_main"):
+		var m: Dictionary = a.sz_main
+		a0 = m.c
+		ang = float(m.ang)
+		b0 = a0 + Vector2.from_angle(ang) * float(m.sx) * PF.tex_w(u, str(m.name))
+		sname = str(m.name)
+		m.max = float(m.age)
+	_sz_slash(u, sname, a0, ang, a0.distance_to(b0), {"sy": 1.15, "life": 0.55, "fade": 0.3, "col": Color(1.05, 1.05, 1.05, 1.0), "col1": Color(0.45, 0.55, 0.7, 0.8), "cold": 0.35})
 	u.light(org + d * (L - bk) * 0.5, maxf(L, hw) * 0.7, SZ_PALE, 0.3)
 	var n: int = 7 + int(PF.h(vs) * 3.0)   # 7–9 处爆点，从斩痕起点往尽头一节节依次炸开（预审 10-30：同时炸连成一片）
 	for k in n:

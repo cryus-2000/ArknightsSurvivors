@@ -1066,6 +1066,7 @@ const V6_FRAMES := {
 	"fx_ult_mizuki_burrow_back": [6, 16.0], "fx_ult_mizuki_limb_front": [4, 12.0], "fx_ult_mizuki_tip_front": [6, 16.0], "fx_ult_mizuki_small_front": [8, 16.0],
 	"fx_ult_saria_punch_front": [6, 24.0], "fx_ult_saria_shock_front": [6, 20.0], "fx_ult_saria_amber_front": [8, 16.0],
 	"op_vulpis_appear_front": [6, 16.0], "fx_ult_vulpis_light_front": [4, 24.0], "fx_ult_vulpis_slash_front": [8, 20.0],
+	"op_vulpis_walk": [8, 10.0], "op_vulpis_slash": [8, 0.0],   # 忍冬本体（Spine 自产，docs/207 §6.3）：铃兰终结技走路进场 + 拔刀斩（斩帧由 ult_fx_c 逐帧指定）
 	"fx_ult_logos_field_back": [6, 12.0], "fx_ult_logos_glyph_orbit": [8, 20.0], "fx_ult_logos_ash_front": [6, 16.0],
 	"fx_ult_hoshiguma_shield_front": [10, 16.0], "fx_ult_hoshiguma_crack_back": [6, 20.0],
 	"fx_ult_siege_impact_front": [8, 20.0], "fx_ult_siege_rubble_front": [8, 20.0], "fx_ult_siege_shock_back": [6, 20.0],

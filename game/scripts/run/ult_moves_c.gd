@@ -510,9 +510,11 @@ static func _su_start(u, o, d: Vector2) -> Dictionary:
 		"pf": 1.0 - fe - (0.12 if rt == "hearth" else 0.0), "ef": fe, "pseg": {}, "eseg": {}, "dashed": false, "boom": false,
 		"seal": rt == "seal", "hearth": rt == "hearth", "ht": 0, "hseg": [{}, {}, {}]}
 	o.face_to(d.angle())
-	if FC.sz_v2(u):   # 斩痕 v2：pixgen 忍冬白光人形 + 连续冷色斩痕（ult/sz_fx_v2）
+	if FC.sz_v2(u):   # 斩痕 v2：忍冬本体走路进场 + 拔刀（缺帧条时白光人形）+ 连续冷色斩痕（ult/sz_fx_v2）
 		a["v2"] = true
-		FC.sz_start(u, a, side, tp)
+		if FC.sz_body(u):   # 本体版现身段 0.3 → 0.55 秒（走路 0.3 + 拔刀到出刀帧 0.25；瞬身那一下落在出刀帧）
+			a.tp = FC.sz_tp()
+		FC.sz_start(u, a, side, float(a.tp))
 		return a
 	# 忍冬：程序剪影（白光人形 + 狐耳 + 刀 + 三条尾巴），淡入
 	var gold: Color = col.lerp(Color.WHITE, 0.2)
@@ -544,9 +546,9 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 	var hc: float = hw * _band_core()
 	var tb: float = tp + float(a.stall)
 	var v2: bool = a.has("v2")
+	if v2:
+		FC.sz_appear(u, a, t, tp)   # 本体版整段都要逐帧（拔刀 / 收刀跨过瞬身时刻）
 	if t < tp:
-		if v2:
-			FC.sz_appear(u, a, t, tp)
 		return false
 	if not a.dashed and v2:
 		a.dashed = true
