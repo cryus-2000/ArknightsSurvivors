@@ -322,7 +322,7 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 		o.play_vis_anim("attack")
 		u.shake(Bal.v("ult/sa_shake", 8.0), 0.35)
 		# 砸地：落点白闪 + 拳风冲击环（白芯 + 两道琥珀，生长段 = 冲击环走到 R 的时间）+ 往外飞的拳风速度线
-		u.shape({"kind": "circle", "c": org, "r": 110.0, "col": COL_AMBER.lerp(Color.WHITE, 0.45), "fill": 0.95, "life": 0.1})
+		u.shape({"kind": "circle", "c": org, "r": 110.0, "col": COL_AMBER.lerp(Color.WHITE, 0.25 if a.get("v2", false) else 0.45), "fill": 0.7 if a.get("v2", false) else 0.95, "life": 0.07 if a.get("v2", false) else 0.1})   # v2 压白闪（预审 1/3 报发白）
 		u.shape({"kind": "ellipse", "c": org + Vector2(0, 8), "rx": 150.0, "ry": 70.0, "col": COL_ROCK.darkened(0.45), "fill": 0.6, "life": 1.2, "layer": "back"})   # 砸出的浅坑
 		u.light(org, 380.0, COL_AMBER, 0.45)
 		u.debris(org, COL_AMBER, 3)
@@ -431,21 +431,21 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 	var lens: Array = []
 	var j := 0
 	for pts in a.cracks:
-		angs.append((Vector2(pts[pts.size() - 1]) - org).angle())
-		lens.append(R * (0.62 + 0.45 * PF.h(j + 21.0 + vs)))
+		angs.append((Vector2(pts[pts.size() - 1]) - org).angle() + (PF.h(j * 3.3 + vs) - 0.5) * 0.25)   # 画面角度错开一点（判定裂纹不动），预审报等距
+		lens.append(R * (0.45 + 0.6 * PF.h(j + 21.0 + vs)))
 		j += 1
-	PF.cracks(u, SA_FORKS, org, angs, lens, {"seed": vs, "rev": R / float(a.cspd), "rev0": 0.15, "delay": 0.03, "life": 2.0, "fade": 0.7,
+	PF.cracks(u, SA_FORKS, org, angs, lens, {"seed": vs, "crop": true, "small": 0.4, "rev": R / float(a.cspd), "rev0": 0.15, "delay": 0.03,   # crop：预审报同形裂缝重复 "life": 2.0, "fade": 0.7,
 		"col": Color(1.15, 1.1, 1.05), "col1": Color(0.3, 0.27, 0.24), "cold": 0.9})
 	# 白色气浪薄环（两道，后一道稍慢）
 	u.shape({"kind": "ring", "c": org, "r": R, "r1": 50.0, "w": 10.0, "col": Color(0.95, 0.93, 0.88), "solid": true, "life": tr * 2.0})
 	u.shape({"kind": "ring", "c": org, "r": R * 0.85, "r1": 40.0, "w": 5.0, "col": Color(0.9, 0.85, 0.75), "solid": true, "life": tr * 2.3, "delay": 0.04})
-	_sa_wall(u, org, R * 0.22, R / tr, tr, vs)
+	# 波前尘石墙（同一张截段排一圈）预审两次报拼接感，去掉；拳风推地交给气浪环 + 速度线 + 四拍隆起
 	var spd: float = R / tr
-	for k in 24:
-		var dv := Vector2.from_angle(TAU * (k + PF.h(k + vs)) / 24.0)
-		var r0: float = 40.0 + 40.0 * PF.h(k * 3.0 + vs)
-		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 90.0 + 60.0 * PF.h(k + 7.0)), "w": 4.0 if k % 3 == 0 else 2.5,
-			"col": Color(0.95, 0.95, 0.9), "life": tr * 0.9, "v": dv * spd * 1.05})
+	for k in 14:   # 速度线少而乱（24 条等距被预审看成一圈贴纸）
+		var dv := Vector2.from_angle(TAU * PF.h(k * 5.1 + vs))
+		var r0: float = 30.0 + 90.0 * PF.h(k * 3.0 + vs)
+		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 50.0 + 110.0 * PF.h(k + 7.0 + vs)), "w": 4.0 if k % 3 == 0 else 2.5,
+			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(k + 11.0)), "delay": 0.04 * PF.h(k + 13.0 + vs), "v": dv * spd * (0.8 + 0.4 * PF.h(k + 17.0))})
 	# 节奏（用户 10-30「裂地的顿感和节奏」对齐乌尔比安：一拍一圈、每拍震屏 + 隆起 + 灯 + 尘，间隔 0.18）
 	a["vs"] = vs
 	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18, R * 0.55, 1], [float(a.t) + 0.36, R * 0.8, 2], [float(a.t) + 0.54, R * 1.0, 3]]
@@ -487,11 +487,10 @@ static func _sg_smash_v2(u, c: Vector2, R: float) -> void:
 	var vs: float = PF.vseed(u, c)
 	PF.ring(u, SG_RINGS, c, 60.0, R * 1.02, 0.28, 0.4, {"seed": vs, "fade": 0.3, "col": Color(1, 1, 1, 0.7)})
 	_ring(u, c, R, 60.0, COL_ROCK.lerp(Color.WHITE, 0.2), 0.4, 6.0)   # 细的范围环
-	PF.crack_net(u, SG_FORKS, c, R, 11 + int(PF.h(vs + 1.0) * 5.0), PF.h(vs + 2.0) * TAU, vs, 0.54, Color(1.1, 1.08, 1.05), Color(0.3, 0.29, 0.28), 30.0)
+	PF.crack_net(u, SG_FORKS, c, R, 11 + int(PF.h(vs + 1.0) * 5.0), PF.h(vs + 2.0) * TAU, vs, 0.54, Color(1.1, 1.08, 1.05), Color(0.3, 0.29, 0.28), 30.0, true)   # crop：预审报同形瓦片重复
 	u.g.vfx.stop(Bal.v("ult/sg_hitstop", 0.1), "ult", true)
 	PF.particles(u, c, 200, "ult_burst_s", [Color(0.95, 0.92, 0.85), Color(0.7, 0.68, 0.62)], 0.0, vs)   # 锤坑迸出的碎石尘
-	PF.wall(u, c, R, 0.54)
-	PF.aftershock(u, c, R, 7.0 + vs, 0.54 + 0.3, 12)
+	PF.aftershock(u, c, R, 7.0 + vs, 0.54 + 0.3, 12)   # 尘土墙（同一张截段排一圈）预审报瓦片重复，去掉
 
 
 # ================================================================ 铃兰（§4.14）：忍冬在她身旁现身 → 化白光瞬身斩出 → 停半拍 → 斩痕爆裂

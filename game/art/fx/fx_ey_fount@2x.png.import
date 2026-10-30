@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dmqgu4ju0e7iw"
-path="res://.godot/imported/fx_ey_water@2x.png-5fa799f9849e1141eab01b5388c5df32.ctex"
+uid="uid://dxxq2i86x7akk"
+path="res://.godot/imported/fx_ey_fount@2x.png-f8feb91274e06e42bc1a2f8994c8cf4b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_ey_water@2x.png"
-dest_files=["res://.godot/imported/fx_ey_water@2x.png-5fa799f9849e1141eab01b5388c5df32.ctex"]
+source_file="res://art/fx/fx_ey_fount@2x.png"
+dest_files=["res://.godot/imported/fx_ey_fount@2x.png-f8feb91274e06e42bc1a2f8994c8cf4b.ctex"]
 
 [params]
 

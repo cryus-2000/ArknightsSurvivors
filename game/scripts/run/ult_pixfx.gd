@@ -89,7 +89,7 @@ static func wall(u, c: Vector2, r: float, delay := 0.0, col := Color(1, 1, 1, 0.
 
 
 ## 放射裂网：names = 分叉裂缝贴图变体（左粗右细带分叉，原点左端中心），每条按 seed 挑一个、随机镜像；angs 每条的角度，lens 每条的长度（世界）；
-## opt：seed / r0（起点离中心的距离，按哈希 ×0.6–1.4）/ rev（显现秒数）/ rev0 / life / fade / col / col1 / cold / delay（最大随机错开）/ big（粗条的 sy）/ small
+## opt：seed / r0（起点离中心的距离，按哈希 ×0.6–1.4）/ crop（截贴图不同段，增加形状变化）/ rev（显现秒数）/ rev0 / life / fade / col / col1 / cold / delay（最大随机错开）/ big（粗条的 sy）/ small
 static func cracks(u, names: Array, c: Vector2, angs: Array, lens: Array, opt: Dictionary) -> void:
 	var sd: float = float(opt.get("seed", 0.0))
 	for j in angs.size():
@@ -102,6 +102,13 @@ static func cracks(u, names: Array, c: Vector2, angs: Array, lens: Array, opt: D
 			"sx": float(lens[j]) / tw, "sy": float(opt.get("big", 0.85) if h(sd + j * 3.1) < 0.33 else opt.get("small", 0.55)) * (1.0 if h(sd * 1.3 + j) < 0.5 else -1.0),
 			"delay": float(opt.get("delay", 0.04)) * h(j + 110.0), "rev": float(opt.get("rev", 0.3)), "rev0": float(opt.get("rev0", 0.15)),
 			"life": float(opt.get("life", 1.4)), "fade": float(opt.get("fade", 0.6)), "col": opt.get("col", Color.WHITE)}
+		if opt.get("crop", false):   # 截贴图不同的一段当这条裂缝（4 种形状截出几十种，预审报同形重复时用）：起点跳过 0–35%、尾部截掉 0–25%
+			var W: float = float(t.get_width())
+			var ux: float = floorf(h(sd * 0.9 + j * 4.3) * 0.35 * W)
+			var uw: float = W - ux - floorf(h(sd * 1.7 + j * 2.9) * 0.25 * W)
+			s["ux"] = ux
+			s["uw"] = uw
+			s["sx"] = float(lens[j]) / (tw * uw / W)
 		if opt.has("col1"):
 			s["col1"] = opt.col1
 			s["cold"] = float(opt.get("cold", 0.6))
@@ -151,14 +158,14 @@ static func beats_tick(u, a: Dictionary, t: float, c: Vector2, col: Color) -> vo
 
 ## 乌尔比安式裂网（用户 10-30「所有裂地的感觉都跟乌尔比安的对齐」）：names = 这人的分叉裂缝组（同形状、各人调色），
 ## n 条从 c 外 r0 起裂、角度 / 长短 / 粗细 / 起裂时刻按 seed 错开，grow 秒内往外长到 0.62–1.07 R，先亮（hot）再冷成暗色余烬（cold）
-static func crack_net(u, names: Array, c: Vector2, R: float, n: int, base: float, seed0: float, grow: float, hot: Color, cold: Color, r0 := 0.0) -> void:
+static func crack_net(u, names: Array, c: Vector2, R: float, n: int, base: float, seed0: float, grow: float, hot: Color, cold: Color, r0 := 0.0, crop := false) -> void:
 	var angs: Array = []
 	var lens: Array = []
 	for j in n:
 		angs.append(base + TAU * (float(j) + (h(j + 1.0 + seed0) - 0.5) * 0.75) / n)
 		lens.append(R * (0.62 + 0.45 * h(j + 21.0 + seed0)))
 	cracks(u, names, c, angs, lens, {"seed": seed0, "r0": r0, "rev": grow, "rev0": 0.18, "delay": 0.06, "life": grow + 1.6, "fade": 0.7,
-		"col": hot, "col1": cold, "cold": grow + 0.45})
+		"col": hot, "col1": cold, "cold": grow + 0.45, "crop": crop, "small": 0.55 if not crop else 0.4})
 
 
 ## 不规整放射角度：n 条，从 a0 起均分、每条按哈希偏 ±0.35 格

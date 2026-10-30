@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d0wk0fjyeuxra"
-path="res://.godot/imported/fx_ey_pillar@2x.png-1b538b0cff999fe6f3e55f95a91302de.ctex"
+uid="uid://bwvun070s4vgn"
+path="res://.godot/imported/fx_ey_cone@2x.png-bdd131191fc90ba379555d0ce415ccb2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_ey_pillar@2x.png"
-dest_files=["res://.godot/imported/fx_ey_pillar@2x.png-1b538b0cff999fe6f3e55f95a91302de.ctex"]
+source_file="res://art/fx/fx_ey_cone@2x.png"
+dest_files=["res://.godot/imported/fx_ey_cone@2x.png-bdd131191fc90ba379555d0ce415ccb2.ctex"]
 
 [params]
 

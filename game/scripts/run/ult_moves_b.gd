@@ -774,11 +774,9 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 	if not a.col_done and t >= float(a.t_col):
 		a.col_done = true   # 火柱：25%，只打中心半径 140
 		var top: Vector2 = c + Vector2(0.0, -640.0)
-		if a.get("v2", false):   # 火柱 v2：顿帧 + Codex 火柱关键帧（fx_ey_pillar，底部中心）从地里窜起冷却 + 橙色粒子 + 碎石掀起；不画程序带子 / 旧爆炸帧条
+		if a.get("v2", false):   # 喷发 v2：顿帧 + _ey_erupt（火山锥鼓起 + 火山口喷发 + 黑蒸汽）；不画程序带子 / 旧爆炸帧条
 			u.g.vfx.stop(Bal.v("ult/ey_hitstop", 0.1), "ult", true)
 			_ey_erupt(u, c, R)
-			u.strip(EY_PILLAR, c + Vector2(0, 10), {"o": Vector2(96, 500), "sc": 1.0, "sc1": 1.45, "scd": 0.12, "life": 0.6, "fade": 0.3,
-				"col": Color(0.8, 0.62, 0.55), "col1": Color(0.5, 0.26, 0.2), "cold": 0.2})   # 预审两次报发白：火柱关键帧芯本身很亮，整体压到 0.8
 			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.32, 0.06)], 0.04, PF.vseed(u, c), 260.0)
 			PF.heave(u, c, 160.0, PF.vseed(u, c) + 3.0)
 			u.light(c, 380.0, Color(1.0, 0.5, 0.15), 0.5)
@@ -843,16 +841,16 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 
 
 ## 艾雅法拉 v2「海底火山」（协调人 10-30 转用户认可的新设计）：① 地面压暗、暗红裂纹渗开越来越亮、裂缝里一串串气泡往上冒（压力往上顶）
-## → ② 顿帧、整片地面鼓起（一圈圈地块顶起 + 隆起暗影），熔岩柱冲天（Codex 火柱关键帧）裹着黑色蒸汽（fx_ey_steam）和底部翻滚水环（fx_ey_water）
+## → ② 顿帧、整片地面鼓起（一圈圈地块顶起 + 隆起暗影）、鼓出一座火山锥（fx_ey_cone），火山口喷熔岩（fx_ey_fount）、黑色蒸汽（fx_ey_steam）往上翻（水环用户说去掉）
 ## → ③ 火山弹（fx_ey_bomb）拖黑烟雨点般斜砸，落地浮石（fx_ey_pumice）从亮橙冷成黑 → 中间熔岩池结壳。判定 / 时序 / 伤害不动。
 ## 旧注：龟裂 = 熔岩色分叉裂网（乌尔比安 4 种裂缝转色）；火柱 = 顿帧 + Codex 火柱关键帧窜起冷却 + 粒子 + 隆起；
 ## 熔岩块 = Codex 熔岩块关键帧（拖尾下落 → 落地溅射）；熔岩地面 = Codex 地纹铺成整张圆池、慢慢结壳 + 冒火星。判定 / 时序不动
 const EY_FORKS := ["fx_ey_fork1", "fx_ey_fork2", "fx_ey_fork3", "fx_ey_fork4"]
-const EY_PILLAR := "fx_ey_pillar"
 const EY_ROCK := "fx_ey_rock"
 const EY_POOL := "fx_ey_pool"
 const EY_STEAM := "fx_ey_steam"
-const EY_WATER := "fx_ey_water"
+const EY_CONE := "fx_ey_cone"
+const EY_FOUNT := "fx_ey_fount"
 const EY_BOMB := "fx_ey_bomb"
 const EY_PUMICE := "fx_ey_pumice"
 
@@ -871,23 +869,30 @@ static func _ey_bubbles(u, c: Vector2, r: float, dur: float, vs: float) -> void:
 
 ## 喷发：地面鼓起（隆起暗影 + 三圈地块顶起）+ 黑蒸汽裹着熔岩柱往上翻 + 底部翻滚水环往外推 + 一点橙色粒子
 static func _ey_erupt(u, c: Vector2, R: float) -> void:
+	# 用户 10-30：「熔岩柱冲天没有立体感，需要更有火山的感觉；水流去掉」→ 地面先鼓起一座火山锥（fx_ey_cone，三分之二俯视、有明暗坡面），
+	# 火山口喷出熔岩喷泉（fx_ey_fount），黑蒸汽从火山口往上翻；锥体随后冷却变暗、沉下淡出
 	var vs: float = PF.vseed(u, c) + 9.0
 	u.shape({"kind": "ellipse", "c": c + Vector2(0, 6), "rx": R * 0.55, "ry": R * 0.28, "col": Color(0.04, 0.02, 0.02), "fill": 0.55, "life": 0.7, "layer": "back"})
 	for i in 3:
-		PF.heave(u, c, R * (0.2 + 0.22 * i), vs + i, 0.04 * i)
+		PF.heave(u, c, R * (0.25 + 0.22 * i), vs + i, 0.04 * i)
+	var base: Vector2 = c + Vector2(0, 50)
+	var crater: Vector2 = base + Vector2(0, -210.0)   # 锥体贴图：底边在 230、火山口在 20（纹素，sc 1）
+	if u.fx_ready(EY_CONE):
+		var sx: float = -1.0 if PF.h(vs) < 0.5 else 1.0
+		u.strip(EY_CONE, base, {"o": Vector2(225, 230), "sc": 0.55, "sc1": 1.0, "scd": 0.16, "sx": sx, "life": 1.7, "fade": 0.6,
+			"col": Color(1.05, 1.0, 1.0), "col1": Color(0.55, 0.45, 0.45), "cold": 1.2})
+	if u.fx_ready(EY_FOUNT):
+		u.strip(EY_FOUNT, crater + Vector2(0, 8), {"o": Vector2(95, 352), "sc": 0.7, "sc1": 1.5, "scd": 0.14, "delay": 0.08, "life": 0.75, "fade": 0.35,
+			"col": Color(0.95, 0.85, 0.82), "col1": Color(0.55, 0.28, 0.22), "cold": 0.35})
 	if u.fx_ready(EY_STEAM):
 		var sh: float = float(u._strip_tex(EY_STEAM).get_height())
 		var sw: float = float(u._strip_tex(EY_STEAM).get_width())
-		for m in 3:   # 三团黑蒸汽：一前两侧，往上翻、慢慢散开冷成灰
-			var off := Vector2((float(m) - 1.0) * 70.0, 0.0)
-			u.strip(EY_STEAM, c + off + Vector2(0, 20), {"o": Vector2(sw * 0.5, sh * 0.95), "sc": 0.75 + 0.15 * m, "sc1": 1.1 + 0.15 * m, "scd": 0.6,
-				"sx": -1.0 if m == 1 else 1.0, "life": 1.5, "fade": 0.7, "delay": 0.05 * m, "v": Vector2((float(m) - 1.0) * 30.0, -60.0),
-				"col": Color(1.0, 0.95, 0.95, 0.95), "col1": Color(0.75, 0.75, 0.78, 0.8), "cold": 1.2})
-	if u.fx_ready(EY_WATER):
-		var wr: float = PF.tex_w(u, EY_WATER) * 0.5
-		u.strip(EY_WATER, c, {"layer": "back", "sc": 70.0 / wr, "sc1": R * 0.55 / wr, "scd": 0.45, "spin": 2.5, "ang": PF.h(vs) * TAU, "life": 0.9, "fade": 0.4,
-			"col": Color(1, 1, 1, 0.9)})
-	PF.particles(u, c, 200, "ult_burst_s", [Color(1.0, 0.5, 0.15)], 0.0, vs, 160.0)
+		for m in 3:   # 三团黑蒸汽从火山口往上翻、慢慢散开冷成灰
+			var off := Vector2((float(m) - 1.0) * 60.0, 0.0)
+			u.strip(EY_STEAM, crater + off, {"o": Vector2(sw * 0.5, sh * 0.95), "sc": 0.7 + 0.15 * m, "sc1": 1.05 + 0.15 * m, "scd": 0.6,
+				"sx": -1.0 if m == 1 else 1.0, "life": 1.5, "fade": 0.7, "delay": 0.12 + 0.05 * m, "v": Vector2((float(m) - 1.0) * 30.0, -60.0),
+				"col": Color(1.0, 0.95, 0.95, 0.9), "col1": Color(0.75, 0.75, 0.78, 0.75), "cold": 1.2})
+	PF.particles(u, crater, 200, "ult_burst_s", [Color(1.0, 0.5, 0.15)], 0.08, vs, 160.0)
 
 
 static func _ey_bomb_o(u) -> Vector2:   # 火山弹贴图里岩块在右下 0.72 处（烟拖在左上），原点放在岩块上
@@ -896,7 +901,7 @@ static func _ey_bomb_o(u) -> Vector2:   # 火山弹贴图里岩块在右下 0.72
 
 
 static func _ey_v2(u) -> bool:
-	return Bal.v("ult/ey_fx_v2", 1.0) > 0.0 and u.fx_ready(EY_PILLAR) and u.fx_ready(EY_BOMB) and u.fx_ready(EY_PUMICE) and u.fx_ready(EY_POOL)
+	return Bal.v("ult/ey_fx_v2", 1.0) > 0.0 and u.fx_ready(EY_CONE) and u.fx_ready(EY_BOMB) and u.fx_ready(EY_PUMICE) and u.fx_ready(EY_POOL)
 
 
 ## 熔岩地面（半径 lava_r）外的人吃不到地面那 15%：落熔岩时直接补上，圈内每人合计都是 1（10-30 对齐表：原来外圈精英 / Boss 只掉 85%）
