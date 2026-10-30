@@ -637,7 +637,7 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		last_hit_t = g.t
 		if not opt.get("pre", false):
 			impact(e.pos)   # 冲击帧（这一次终结技第一下掉血）
-			_hit_sfx()
+		_seg_sfx(str(opt.get("src", "")))
 	if not e.dead:
 		var st: float = float(opt.get("stun", 0.0))
 		if st > 0.0:
@@ -1414,7 +1414,8 @@ func _ua(slot: String) -> void:
 	var oid := str(caster.id)
 	var nm := "ult_%s_%s" % [oid, slot]
 	sfx.ensure([nm])
-	sfx.play(nm, float(_aud(oid).get("vol", {}).get(slot, 0.0)), 1.0, 0.03)
+	var vt: Dictionary = _aud(oid).get("vol", {})
+	sfx.play(nm, float(vt.get(slot, vt.get("hit" if slot.ends_with("_hit") else "seg", 0.0))), 1.0, 0.03)
 
 
 ## 招式里点名的额外一声（docs/205 §3.4，如收尾大爆 u.cue("finale")）：audio/sfx/ult_<干员>_<槽>.wav，音量取表里同名槽（缺省 0 dB）
@@ -1422,13 +1423,40 @@ func cue(slot: String) -> void:
 	_ua(slot)
 
 
-## 冲击之后的每次命中（连射 / 连爆 / 多圈）：按 hit_gap 真实秒节流，冲击那一下 0.06 秒内不叠
-func _hit_sfx() -> void:
-	var now := UM.now()
-	if now - _imp_rt < 0.06 or caster == null or now - _hit_rt < float(_aud(str(caster.id)).get("hit_gap", 0.08)):
+## 按招式分段配声（用户 10-30「按每个人的终结技特色来做」）：每段伤害带段名（opt.src，如「斩开」「剑雨」「反震」），
+## 表里 seg.<段名> = {"on": 这段第一下播的槽, "hit": 之后每下播的槽, "gap": 节流秒}；冲击那一下 0.06 秒内不叠。
+## 表里没写的段走通用 hit（hit_gap 节流）。录屏开 --sfxtrace 时每下记一条 ultev:<段名>（离线混音会跳过），用来对时间线
+var _seg_on := {}           # 本次终结技已响过开头的段名
+var _seg_serial := -1
+var _seg_rt := {}           # 段名 -> 上次连击声的真实秒
+
+
+func _seg_sfx(sg: String) -> void:
+	if caster == null or not g.is_inside_tree():
 		return
-	_hit_rt = now
-	_ua("hit")
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx != null and sfx.trace_on:
+		sfx.trace.append([Engine.get_process_frames(), "ultev:" + sg, 0.0, 1.0])
+	if _seg_serial != serial:
+		_seg_serial = serial
+		_seg_on.clear()
+		_seg_rt.clear()
+	var now := UM.now()
+	var cfg = (_aud(str(caster.id)).get("seg", {}) as Dictionary).get(sg)
+	if not cfg is Dictionary:
+		if now - _imp_rt >= 0.06 and now - _hit_rt >= float(_aud(str(caster.id)).get("hit_gap", 0.08)):
+			_hit_rt = now
+			_ua("hit")
+		return
+	if not _seg_on.has(sg):
+		_seg_on[sg] = true
+		_seg_rt[sg] = now
+		if str(cfg.get("on", "")) != "":
+			_ua(str(cfg.on))
+		return
+	if str(cfg.get("hit", "")) != "" and now - _imp_rt >= 0.06 and now - float(_seg_rt.get(sg, -99.0)) >= float(cfg.get("gap", 0.08)):
+		_seg_rt[sg] = now
+		_ua(str(cfg.hit))
 
 
 ## 连携出手演出：残影拖尾 + 短慢放 + 小立绘条带（自动连携同样）
