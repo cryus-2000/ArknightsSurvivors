@@ -341,6 +341,7 @@ var _rec_t0 := -2.0
 var _rec_left := 0
 var _rec_sfx0 := {}
 var _rec_f0 := 0               # --sfxtrace：第一张录屏帧的渲染帧号
+var _rec_music: Array = []     # --sfxtrace：每张录屏帧的配乐采样 [帧号, 低通截止 Hz, [[曲目文件, 音量 dB, 播放位置秒], …]]（tools/ult_rec.py --sfx 离线混配乐）
 var _rec_i := 0
 ## --breakloop=<周期秒>:<持续秒>（仅测试，录像用）：每过一个周期给所有活着的 Boss 开一次破绽窗口（combat.start_break），看 / 听「打在破绽上」（break_hit）
 var _brk_next := -1.0
@@ -379,12 +380,23 @@ func _rec_step() -> void:
 			Sfx.trace_on = true   # --sfxtrace：录屏配音（测试局照样静音）：记下每次真正放出的音效，结束时打印 SFXTRACE，离线混音合进 mp4（tools/exu_sync_rec.py）
 			_rec_f0 = Engine.get_process_frames()
 			_rec_sfx0 = Sfx.sfx_by.duplicate(true)   # 配 --sfxstat：录像这段里各音名的 [请求, 实播, 合并, 丢弃, 降音量] 增量，结束时打印 SFXREQ
+		if Sfx.trace_on:   # 配乐只读采样：正在放的 Music 总线播放器（各层 / 叠加乐句）+ 低通（终结技冲击压低配乐）
+			var ms: Array = []
+			for c in Sfx.get_children():
+				if c is AudioStreamPlayer and c.bus == "Music" and c.playing and c.stream != null:
+					ms.append([c.stream.resource_path, c.volume_db, c.get_playback_position()])
+			_rec_music.append([Engine.get_process_frames(), Sfx.music_lp.cutoff_hz, ms])
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%05d.png" % _rec_i)
 		_rec_i += 1
 		_rec_left -= 1
 		if _rec_left == 0:
 			if Sfx.trace_on:
 				print("SFXTRACE " + JSON.stringify({"frame0": _rec_f0, "trace": Sfx.trace}))
+				var buses := {}
+				for bn in ["Music", "SFX", "Voice"]:
+					var bi := AudioServer.get_bus_index(bn)
+					buses[bn] = AudioServer.get_bus_volume_db(bi) if bi >= 0 else 0.0
+				print("MUSTRACE " + JSON.stringify({"buses": buses, "frames": _rec_music}))
 				var dq := {}
 				for n in Sfx.sfx_by:
 					var b: Array = _rec_sfx0.get(n, [0, 0, 0, 0, 0])
