@@ -1,0 +1,14 @@
+# cloud_save
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/cloud_save_test.tscn -- --regression --seed=1
+# 用时 2 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CLOUD SIZE big body=5516 bytes chunks=6 keys=7
+CLOUD SIZE full body=3188 bytes chunks=4 keys=5 (relics=265 gal=42)
+CLOUD SAVE failures=0
+
+
+## stderr
+

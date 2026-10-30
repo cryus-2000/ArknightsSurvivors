@@ -1,0 +1,124 @@
+# angelina_skill_anim
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/angelina_skill_anim_test.tscn -- --regression --seed=1 --balance --op=angelina --squad=lumen
+# 用时 11 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+39 checks, 0 failed
+ANGELINA SKILL ANIM failures=0
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/angelina_skill_anim_test.gd:12)
+ERROR: 干员 angelina 的 sprites.skill_pose 已移除，请按 docs/105 §4 迁移到 sprites.skills
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:41)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills 键「s4」须是 s1 / s2 / s3 且值为字典
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:59)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3.run 帧条「missing」不在 sprites（须是带 tex 的槽）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:97)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3.enter 帧条「float_in」没列进 extra_sprites
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:100)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3.end 帧条「float_in」没列进 extra_sprites
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:100)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3.end.frames 须是帧条范围内的帧号数组
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:105)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3.end.frames 须是帧条范围内的帧号数组
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:105)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3.end.reverse 须是布尔值
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:93)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3 有 start 就要有 loop
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:75)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3 的 attack / run / enter 槽需要 start 与 loop，不能用于 hold
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:78)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3.shadow 须为 0–1 的数值
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:82)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3 单条 anim 不能混写序列字段
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:72)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3 有 start 就要有 loop
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:75)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+ERROR: 干员 angelina 的 sprites.skills.s3 单条 anim 不能混写序列字段
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:72)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_validation (res://tests/angelina_skill_anim_test.gd:135)
+       [3] _process (res://tests/angelina_skill_anim_test.gd:25)
+WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

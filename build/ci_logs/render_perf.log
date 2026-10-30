@@ -1,0 +1,24 @@
+# render_perf
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/render_perf_test.tscn -- --regression --seed=1
+# 用时 4 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CIRCLE_US_10000=280828
+CIRCLE_US_10000=249782
+CIRCLE_US_10000=244522
+CIRCLE_US_10000=248806
+GPU_BEFORE=0
+GPU_ACTIVE=0 SIZE=(1280, 1280)
+GPU_IDLE=0
+GPU_RESTORE=0
+RENDER PERF failures=0
+
+
+## stderr
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

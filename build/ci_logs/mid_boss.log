@@ -1,0 +1,37 @@
+# mid_boss
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/mid_boss_test.tscn -- --regression --seed=1
+# 用时 30 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PATH act=1 peak=24 combos=7 moves=["冲撞", "震地", "错误路线"]
+PATH act=2 peak=47 combos=6 moves=["冲撞", "回流", "震地", "订正"]
+TIDE archon act=1 peak=47 combos=5 moves=["统一", "潮汐柱", "跃击", "镜潮", "蚀潮吐息", "交错潮环", "横扫"]
+TIDE archon act=2 peak=34 combos=4 moves=["换位", "横扫", "换位潮墙", "潮汐柱", "蚀潮吐息", "裂潮", "跃击"]
+TIDE immortal act=1 peak=52 combos=4 moves=["统一", "潮汐柱", "镜潮", "交错潮环"]
+TIDE immortal act=2 peak=34 combos=3 moves=["换位", "换位潮墙", "潮汐柱", "迸发", "连斩"]
+WINDOW {"act":1,"breaks":[2.0,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8],"kind":"path","low_pressure":0.84,"pair_breaks_together":0}
+WINDOW {"act":1,"breaks":[3.0,3.0,3.0],"kind":"bishop+archon","low_pressure":0.91,"pair_breaks_together":3}
+WINDOW {"act":1,"breaks":[3.0,3.0,3.0,3.0,3.0,3.0],"kind":"bishop+immortal","low_pressure":0.92,"pair_breaks_together":6}
+WINDOW {"act":2,"breaks":[2.4,2.2,2.2,2.2,2.2,2.2,2.2,2.2,2.2],"kind":"path","low_pressure":0.81,"pair_breaks_together":0}
+WINDOW {"act":2,"breaks":[3.4,3.4,3.4,3.4,3.4,3.4],"kind":"bishop+archon","low_pressure":0.95,"pair_breaks_together":6}
+WINDOW {"act":2,"breaks":[3.4,3.4,3.4,3.4,3.4],"kind":"bishop+immortal","low_pressure":0.91,"pair_breaks_together":5}
+MID BOSS failures=0
+ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/mid_boss_test.gd:19)
+WARNING: 39 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 17 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
