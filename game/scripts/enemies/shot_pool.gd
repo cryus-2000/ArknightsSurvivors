@@ -142,9 +142,11 @@ func _final_speed(b: Dictionary) -> void:
 	if b.get("home", false):
 		k = minf(k, Bal.v("boss/spd_home_cap", 1.3))
 	if is_equal_approx(k, 1.0):
+		_queue_layers(b, fb)
 		return
 	b.spd_k = k
 	b.vel = b.vel * k
+	_queue_layers(b, fb)
 	for f in ["accel", "max_speed", "p_acc", "p_vmin", "p_vmax", "p_v2", "izu_v0"]:
 		if b.has(f):
 			b[f] = float(b[f]) * k
@@ -157,10 +159,58 @@ func _final_speed(b: Dictionary) -> void:
 
 
 var _spd_cap2 := 0.0
+## 最终 Boss 弹幕加层（用户 10-30「多几层、全方位一点，但要给预警；子弹略放慢」，claude/bullet-hitbox）：
+## 每颗最终 Boss 弹第一次更新时，按 boss/layer_n_<类型> 排出 N 层追加弹：第 i 层绕发射点转 boss/layer_rot_<类型> × i 弧度（交错角度），
+## boss/layer_omni_<类型> = 1 时奇数层再转 π（前后夹击 → 全方位），速度 × boss/layer_spd_<类型>^i（不同速度成层）；
+## 预警 boss/layer_warn_<类型> 秒：发射点画专属色收拢圈（world._draw_layer_warns），到点从发射点射出。不复制：追踪弹、停住的弹、Boss 自己画的弹、追加弹本身；
+## 同屏敌弹超过 boss/layer_cap 不再加。缺省 layer_n 0 = 不加层
+var layer_q: Array = []   # [发射时刻, 发射点, 弹字典, 专属色]
+var _layer_keys := {}
+
+
+func _queue_layers(b: Dictionary, fb: Dictionary) -> void:
+	var typ := str(fb.type)
+	var n: int = int(Bal.v("boss/layer_n_%s" % typ, 0.0))
+	if n <= 0 or b.has("_layer") or b.get("home", false) or b.get("own_draw", false) or b.vel.length_squared() < 400.0:
+		return
+	if g.ebullets.size() + layer_q.size() > int(Bal.v("boss/layer_cap", 240.0)):
+		return
+	var warn: float = Bal.v("boss/layer_warn_%s" % typ, 0.6)
+	var rot: float = Bal.v("boss/layer_rot_%s" % typ, 0.16)
+	var omni: bool = Bal.v("boss/layer_omni_%s" % typ, 0.0) > 0.0
+	var sk: float = Bal.v("boss/layer_spd_%s" % typ, 0.8)
+	var col: Color = g.vfx.boss_color(typ)
+	for i in range(1, n + 1):
+		var c: Dictionary = b.duplicate()
+		c._layer = i
+		c.erase("_dg")
+		var a: float = rot * i * (1.0 if i % 2 == 1 else -1.0) + (PI if omni and i % 2 == 1 else 0.0)
+		c.vel = b.vel.rotated(a) * pow(sk, i)
+		layer_q.append([g.t + warn * float(i), b.pos, c, col])
+
+
+func _fire_layers() -> void:
+	if layer_q.is_empty():
+		return
+	if _final_live().is_empty():
+		layer_q.clear()
+		return
+	var keep: Array = []
+	for q in layer_q:
+		if g.t >= float(q[0]):
+			var c: Dictionary = q[2]
+			c.pos = q[1]
+			g.ebullets.append(c)
+		else:
+			keep.append(q)
+	layer_q = keep
+
+
 
 
 func update_ebullets(dt: float) -> void:
 	_spd_cap2 = pow(Bal.v("boss/spd_cap", 440.0), 2.0)
+	_fire_layers()
 	for b in g.ebullets:
 		if b.life <= 0.0:
 			continue
