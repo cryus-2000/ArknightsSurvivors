@@ -75,5 +75,9 @@
   0.08,
   0.1
  ],
- "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_3_Begin 抬手铺咒域 → Skill_3_Idle 念诵（0.12–0.45）→ Skill_3_Attack 一词（f6 在 0.5 秒标记爆裂时，停 0.15）→ Skill_3_End 收"
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_3_Begin 抬手铺咒域 → Skill_3_Idle 念诵（0.12–0.45）→ Skill_3_Attack 一词（f6 在 0.5 秒标记爆裂时，停 0.15）→ Skill_3_End 收；藏半透明咒刃 F_Weapon3 / F_Weapon_light（特效层）",
+ "hide": [
+  "F_Weapon3",
+  "F_Weapon_light"
+ ]
 }
