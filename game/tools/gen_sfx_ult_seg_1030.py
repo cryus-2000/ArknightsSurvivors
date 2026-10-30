@@ -40,6 +40,23 @@ def lib(name, t0, dur, rate=1.0, gain=1.0, fin=0.004, fout=0.04):
     return fadeio(y / (np.abs(y).max() + 1e-9) * gain, fin, fout)
 
 
+## Freesound CC0 录音（原文件为页面公开的 HQ 试听 mp3，放主仓库 build/sfx_src/freesound_sword/<编号>.mp3，不进 git；登记见 docs/113 §20）
+FREESOUND = os.path.join(ROOT, "build", "sfx_src", "freesound_sword")
+
+
+def fsd(sid, t0, dur, fout=0.08):
+    """截一段 Freesound 录音（<编号>.mp3 解码成单声道 44.1 kHz），300 Hz 高通"""
+    import soundfile as sf
+    import subprocess as sp
+    import imageio_ffmpeg
+    wav = os.path.join(FREESOUND, "%d.wav" % sid)
+    if not os.path.exists(wav):
+        sp.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-i", os.path.join(FREESOUND, "%d.mp3" % sid), "-ac", "1", "-ar", str(SR), wav], check=True)
+    x, sr = sf.read(wav)
+    y = x[max(0, int((t0 - 0.01) * sr)):int((t0 + dur) * sr)]
+    return fadeio(hp(y, 300) / (np.abs(y).max() + 1e-9), 0.002, fout)
+
+
 LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
@@ -81,17 +98,14 @@ TX_SLICE = "Epic Stock Media - Tower Defense Game/DSGNStngr_Action Deploy Units 
 TX_SCRAPE = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav"
 TX_HIT = "Cinematic Sound Design - Colossal Impacts/Impact Cut Sweep.wav"
 TX_BOOM = "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_214.wav"
-TX_RING = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav"
-TX_TAP = "Epic Stock Media - HD Game Materials/METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01_ESM_HDGM.wav"
+TX_DRAW = [0.42, 8.17, 12.84, 16.96, 0.42, 8.17]   # Freesound 611310（IENBA「Dagger」）里 4 次拔匕首「shwing」的起点，6 道剑痕轮着用
 
 
 def texas():
-    """docs/205 §4.3（10-31 换 Sonniss 录音）：隐去（cast，长刃挥刮）→ 0.5 秒画 N 道发丝线，每道一声清亮的「锵」mark_1..6
-    （用户 10-31「剑痕只要 cing cing cing」：取金属刃撞击的共鸣余音、1.5–9 kHz 带通只留「锵」、音高逐道升）
-    → 斩线齐出一声多层斩击 cut + 高潮爆开 impact（斩击冲击 + 预告片低频轰）→ 剑雨每把插地一声金属轻敲 sword_1..4（4 个音高）。
-    斩线碎裂不配声（玻璃晶片用户 10-31 嫌难听，删掉）"""
-    marks = {"mark_%d" % (i + 1): lp(hp(lib(TX_RING, 0.41, 0.45, rate=1.0 * (1.045 ** i), fin=0.001, fout=0.2), 1500, 4), 9000) for i in range(6)}   # 9 kHz 低通去嘶声
-    swords = {"sword_%d" % (k + 1): lp(lib(TX_TAP, 0.12, 0.32, rate=(0.92, 1.0, 1.09, 1.19)[k], fout=0.08), 9000) for k in range(4)}
+    """docs/205 §4.3：隐去（cast，长刃挥刮）→ 0.5 秒画 N 道发丝线，每道一声出鞘「shwing」mark_1..6（用户 10-31 在四版网上录音里选 ④：
+    Freesound IENBA「Dagger」CC0，4 次拔匕首轮着用）→ 斩线齐出一声多层斩击 cut + 高潮爆开 impact（斩击冲击 + 预告片低频轰）。
+    斩线碎裂、剑雨插地都不配声（用户 10-31：玻璃晶片难听、剑雨那串不要）"""
+    marks = {"mark_%d" % (i + 1): fsd(611310, t0, 0.4) for i, t0 in enumerate(TX_DRAW)}
     d = {
         "charge": pad(sweep_noise(0.7, 1500, 6500, 0.3) * swell(0.7, 0.95) * 0.5, metal(0.7, 1760, 2.5, bright=0.4) * swell(0.7, 0.9) * 0.4),
         "cast": lib(TX_SCRAPE, 0.0, 0.6, rate=1.15, fout=0.15) * 0.8,
@@ -99,7 +113,6 @@ def texas():
         "impact": pad(lib(TX_HIT, 0.93, 1.5, fout=0.5), lp(lib(TX_BOOM, 0.25, 1.6, fout=0.7), 900) * 0.8),
     }
     d.update(marks)
-    d.update(swords)
     return d
 
 

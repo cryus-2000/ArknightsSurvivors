@@ -394,10 +394,11 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 用户同意下载 Sonniss GDC 2026 Game Audio Bundle（官方 downloads.sonniss.com）。许可：免版税、可商用、不需署名；**不得转售 / 再分发音效本身、不得用于 AI 训练**。原包放主仓库 `build/sfx_lib/sonniss_gdc2026/extracted/`（不进 git、不进包）。
 处理：`game/tools/gen_sfx_ult_seg_1030.py` 的 `lib()` 写死文件名 + 截取段（转单声道 44.1 kHz、可重采样变调），与合成层同一套响度对齐（§1 口径，rms100 + 软限幅 -1 dBFS），导入沿用项目 QOA 压缩；只截用到的段。
 
-| 游戏文件 | 用途 | 来源（Sonniss GDC 2026 Bundle，royalty-free）原文件名 | 截取 / 处理 | 时长 |
+| 游戏文件 | 用途 | 来源（未注明的为 Sonniss GDC 2026 Bundle，royalty-free）原文件名 | 截取 / 处理 | 时长 |
 |---|---|---|---|---|
-| `ult_texas_mark_1..6` | 德克萨斯终结技每道剑痕（「锵」） | David Dumais「METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01」 | 0.41 s 起 0.45 s（撞击后的共鸣余音），1.5 kHz 高通 + 9 kHz 低通，变调 ×1.045^i | 0.36–0.45 s |
+| `ult_texas_mark_1..6` | 德克萨斯终结技每道剑痕（出鞘「shwing」，用户 10-31 选） | **Freesound 611310 IENBA「Dagger」（CC0）**，页面公开 HQ 试听 mp3，原文件放 `build/sfx_src/freesound_sword/` | 4 次拔匕首各取 0.4 s（0.42 / 8.17 / 12.84 / 16.96 s 起），300 Hz 高通，6 道轮着用 | 0.41 s |
 | `ult_texas_cut` | 斩线齐出 | Epic Stock Media「DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04」 | 0.29 s 起 0.8 s | 0.8 s |
 | `ult_texas_impact` | 高潮爆开 | Cinematic Sound Design「Impact Cut Sweep」+ Federico Soler「EffectiveTrailer_Booms_Vol2_214」 | 前者 0.93 s 起 1.5 s；后者 0.25 s 起 1.6 s、900 Hz 低通垫底 | 1.6 s |
-| `ult_texas_sword_1..4` | 剑雨每把插地 | Epic Stock Media「METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01」 | 0.12 s 起 0.32 s，变调 ×0.92 / 1.0 / 1.09 / 1.19，9 kHz 低通 | 0.26–0.33 s |
 | `ult_texas_cast` | 隐去起手 | David Dumais「METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14」 | 0 s 起 0.6 s，×1.15 | 0.52 s |
+
+剑雨插地（`ult_texas_sword_*`）与斩线碎裂（`ult_texas_shatter`）用户 10-31 不要，已删；`ult_audio.json` 对应画面单元写空槽。

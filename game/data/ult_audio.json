@@ -6,7 +6,7 @@
       "fx": {"line": {"w": 1.5, "slot": ["mark_1", "mark_2", "mark_3", "mark_4", "mark_5", "mark_6"], "gap": 0.03, "vol": -3.0},
              "blade": {"slot": "cut", "gap": 0.12, "vol": -2.0},
              "blade+v": {"slot": ""},
-             "strip:fx_ult_texas_sword_front": {"at": 0.15, "slot": ["sword_1", "sword_2", "sword_3", "sword_4"], "gap": 0.04, "vol": -6.0}}},
+             "strip:fx_ult_texas_sword_front": {"slot": ""}}},
     "exusiai": {"voice": "exusiai_ult", "seg": {"爆裂弹": {}, "跳弹": {}},
       "fx": {"circle": {"r": 5.0, "slot": ["shot_1", "shot_2", "shot_3", "shot_4"], "gap": 0.035, "vol": -5.0},
              "strip:fx_ult_exusiai_burst_front": {"slot": ["pop_1", "pop_2", "pop_3"], "gap": 0.06, "vol": -6.0}}},

@@ -31,6 +31,7 @@ ap.add_argument("--clips", default="")
 ap.add_argument("--from", dest="t0", type=float, default=0.8)
 ap.add_argument("--len", dest="dur", type=float, default=7.5)
 ap.add_argument("--group", type=int, default=5)
+ap.add_argument("--sets", default="", help="自定候选套：目录名:标签,…（build/ult_sfx/<目录>，如 K1:现在,K2:轻敲）；目录里要有这名干员全部 ult_* 文件")
 ap.add_argument("--seg", action="store_true", help="只出一套 build/ult_sfx/S（按招式分段，gen_sfx_ult_seg_1030.py）：按 data/ult_audio.json 和录像里的 ultev 段事件离线模拟各段的 on / hit")
 ap.add_argument("--before", action="store_true", help="--seg 时每人前面先放一遍原样（通用 boom、无专属音效）对照")
 a = ap.parse_args()
@@ -38,6 +39,8 @@ out = os.path.join(ROOT, "build", "ult_rec", a.tag)
 clips = a.clips.split(",") if a.clips else sorted(f[:-11] for f in os.listdir(out) if f.endswith(".sound.json"))
 _orig = _decode
 AUD = json.load(open(os.path.join(ROOT, "game", "data", "ult_audio.json"), encoding="utf-8"))
+if a.sets:
+    SETS = [tuple(x.split(":", 1)) for x in a.sets.split(",")]
 if a.seg:
     SETS = ([("-", "原来")] if a.before else []) + [("S", SEG_LABEL)]
 
