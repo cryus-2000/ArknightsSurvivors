@@ -418,12 +418,21 @@ static func h4_draw_extra(o, it: Dictionary) -> void:
 	var col := Color(1, 1, 1, fade)
 	var rise_n: int = int(g.V6_FRAMES.get("fx_saria_pillar_rise", [5, 20.0])[0])
 	var rise_fps: float = float(g.V6_FRAMES.get("fx_saria_pillar_rise", [5, 20.0])[1])
-	if g.tex.get("fx_saria_pillar_rise") != null and t < rise_n / rise_fps:
-		fx_frame(cv, g, "fx_saria_pillar_rise", rise_n, int(t * rise_fps), p, g.PX, col, Vector2(8, 32))
+	# 变体（docs/208 H5，10-31：同图复制像拼接）：每根按序号 + 位置哈希挑色调（冰蓝 / 琥珀 / 青灰）、镜像、缩放 0.8–1.2、起长错开；纯画面
+	var hk: float = fposmod(sin((float(it.k) * 3.7 + p.x * 0.011 + p.y * 0.017) * 12.9898) * 43758.5453, 1.0)
+	var vsuf: String = ["", "_b", "_c"][int(hk * 3.0) % 3]
+	var vsc: float = g.PX * (0.8 + 0.4 * fposmod(hk * 7.3, 1.0))
+	var vfl: float = -1.0 if fposmod(hk * 13.1, 1.0) < 0.5 else 1.0
+	var tr: float = t - 0.05 * fposmod(hk * 5.9, 1.0)
+	if g.tex.get("fx_saria_pillar_rise" + vsuf) == null:
+		vsuf = ""
+	if g.tex.get("fx_saria_pillar_rise" + vsuf) != null and tr < rise_n / rise_fps:
+		if tr >= 0.0:
+			fx_frame(cv, g, "fx_saria_pillar_rise" + vsuf, rise_n, int(tr * rise_fps), p, vsc, col, Vector2(8, 32), 0.0, vfl)
 		return
-	if g.tex.get("fx_saria_pillar_idle") != null:
+	if g.tex.get("fx_saria_pillar_idle" + vsuf) != null:
 		var idle: Array = g.V6_FRAMES.get("fx_saria_pillar_idle", [4, 6.0])
-		fx_frame(cv, g, "fx_saria_pillar_idle", int(idle[0]), int((t + float(it.k) * 0.13) * float(idle[1])), p, g.PX, col, Vector2(8, 32))
+		fx_frame(cv, g, "fx_saria_pillar_idle" + vsuf, int(idle[0]), int((t + float(it.k) * 0.13) * float(idle[1])), p, vsc, col, Vector2(8, 32), 0.0, vfl)
 		return
 	var grow: float = clampf(t / 0.15, 0.0, 1.0)
 	var h: float = 30.0 * (1.0 - (1.0 - grow) * (1.0 - grow))

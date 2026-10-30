@@ -144,6 +144,11 @@ static func hw_draw_waves(o, front := false) -> void:
 				if b.has("proj_hold"):
 					frame = mini(int((w.t if w.has("ez") else w.dist / float(b.speed)) * float(spec[1])), int(b.proj_hold))
 				var psc: float = g.PX * float(b.get("proj_scale", 1.0))
+				var vfl := 0.0
+				if b.get("ll", false):   # 拉普兰德剑气变体（docs/208 H5，10-31：同屏几道剑气同形同长像拼接）：每道按方向哈希缩放 0.85–1.2、上下翻面；纯画面
+					var hv: float = fposmod(sin(w.dir.angle() * 41.3 + float(w.max) * 0.7) * 43758.5453, 1.0)
+					psc *= 0.85 + 0.35 * hv
+					vfl = (fposmod(hv * 7.7, 1.0) - 0.5) * 0.24   # 角度微偏 ±0.12（同屏几道不再完全平行）
 				if w.has("ez"):   # 力量感：猛冲段拉长、提亮、拖两道残影（残影间距跟速度走），滑行段变短变暗
 					var u: float = w.t / w.T
 					var f: float = SwordEase.fast(w.ez, u)
@@ -152,10 +157,10 @@ static func hw_draw_waves(o, front := false) -> void:
 					var gap: float = w.max / w.T * SwordEase.vel_mul(w.ez, u) * 0.022
 					for gi in range(int(w.ez.ghost), 0, -1):
 						if f > 0.05:
-							fx_frame(cv, g, pn, int(spec[0]), frame, pp - w.dir * gap * gi, psc, Color(br, br, br, pa * f * 0.38 / gi), Vector2(-1, -1), w.dir.angle(), 1.0 + float(w.ez.stretch) * f)
-					fx_frame(cv, g, pn, int(spec[0]), frame, pp, psc, Color(br, br, br, pa), Vector2(-1, -1), w.dir.angle(), 1.0 + float(w.ez.stretch) * f - 0.12 * (1.0 - fa) / 0.45)
+							fx_frame(cv, g, pn, int(spec[0]), frame, pp - w.dir * gap * gi, psc, Color(br, br, br, pa * f * 0.38 / gi), Vector2(-1, -1), w.dir.angle() + vfl, 1.0 + float(w.ez.stretch) * f)
+					fx_frame(cv, g, pn, int(spec[0]), frame, pp, psc, Color(br, br, br, pa), Vector2(-1, -1), w.dir.angle() + vfl, 1.0 + float(w.ez.stretch) * f - 0.12 * (1.0 - fa) / 0.45)
 				else:
-					fx_frame(cv, g, pn, int(spec[0]), frame, pp, psc, Color(1, 1, 1, pa), Vector2(-1, -1), w.dir.angle())
+					fx_frame(cv, g, pn, int(spec[0]), frame, pp, psc, Color(1, 1, 1, pa), Vector2(-1, -1), w.dir.angle() + vfl)
 			else:
 				cv.draw_arc(pp - w.dir * 10.0, w.w * 0.5, w.dir.angle() - 1.0, w.dir.angle() + 1.0, 12, Color(0.6, 0.85, 1.3, 0.9 * pa), 4.0)
 			continue

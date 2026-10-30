@@ -1089,7 +1089,7 @@ const V6_FRAMES := {
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
 	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],
 	"fx_logos_chain_tile": [6, 12.0], "fx_logos_chain_pulse": [4, 20.0], "fx_logos_chain_anchor": [6, 12.0],
-	"fx_eyja_melt_crack": [6, 8.0], "proj_eyja_lava_lob": [4, 16.0], "fx_eyja_lava_pool": [8, 10.0], "fx_eyja_lava_splash": [6, 18.0],
+	"fx_eyja_melt_crack": [6, 8.0], "proj_eyja_lava_lob": [4, 16.0], "fx_eyja_lava_pool": [8, 10.0], "fx_ey_pool1": [1, 0.0], "fx_ey_pool2": [1, 0.0], "fx_ey_pool3": [1, 0.0], "fx_eyja_lava_splash": [6, 18.0],
 	"fx_skadi_leap_splash": [6, 18.0], "proj_skadi_surge_blade": [4, 16.0], "fx_skadi_surge_hit": [5, 18.0], "fx_skadi_surge_release": [4, 18.0],
 	# 拉普兰德 / 歌蕾蒂娅（Codex 199d7b73 + skill_completion，docs/122 / 123 §6）：刀光、剑气弹体、倒钩头、到位冲击、牵引水带、水龙卷 open / loop / close
 	"fx_lappland_slash": [4, 10.0], "proj_lappland_sword": [4, 16.0], "proj_gladiia_hook": [4, 16.0], "fx_gladiia_ram": [6, 18.0], "fx_gladiia_pull": [4, 10.0],
@@ -1107,7 +1107,7 @@ const V6_FRAMES := {
 	"fx_siege_pebbles": [6, 16.0], "fx_siege_rock_spike": [7, 18.0], "fx_siege_fissure_tile": [4, 12.0],
 	"fx_suzuran_seal": [6, 10.0], "fx_suzuran_bigfox_trail": [5, 12.0],
 	"fx_wisadel_gift_mark": [6, 10.0], "op_wisadel_soul_native_die": [12, 12.0], "proj_wisadel_soul_shell": [2, 20.0],
-	"fx_saria_amber_spot": [4, 8.0], "fx_saria_pillar_rise": [5, 20.0], "fx_saria_pillar_idle": [4, 6.0], "fx_saria_pillar_break": [6, 18.0],
+	"fx_saria_amber_spot": [4, 8.0], "fx_saria_pillar_rise": [5, 20.0], "fx_saria_pillar_idle": [4, 6.0], "fx_saria_pillar_rise_b": [5, 20.0], "fx_saria_pillar_rise_c": [5, 20.0], "fx_saria_pillar_idle_b": [4, 6.0], "fx_saria_pillar_idle_c": [4, 6.0], "fx_saria_pillar_break": [6, 18.0],
 	# Codex 精英化第 5 批（docs/93 §5，art/incoming/elite_art_5_manifest.json；接入见 docs/91 §27）：浊心斯卡蒂余音回声环、海嗣小歌域。
 	# 海嗣本体帧条 op_skalter_ishar_* 是人物帧条，登记在 skalter.json sprites（extra_sprites）
 	"fx_skalter_echo_ring": [5, 14.0], "fx_skalter_seaborn_zone": [8, 10.0],

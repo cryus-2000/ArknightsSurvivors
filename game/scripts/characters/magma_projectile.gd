@@ -166,6 +166,8 @@ static func draw_pool(o, l: Dictionary) -> void:
 			var phase: float = fposmod(age * 1.5 + float(i) * 0.37, 1.0)
 			var heat: Color = HOT if phase < 0.35 else Color(0.42, 0.1, 0.035)
 			o.cv.draw_rect(Rect2(_snap(q), Vector2(2, 2)), Color(heat, fade))
+	if _pool_v2(o, l, fade):
+		return
 	var texture := "fx_eyja_lava_pool"
 	if o.g.tex.get(texture) != null and o.g.V6_FRAMES.has(texture):
 		var spec: Array = o.g.V6_FRAMES[texture]
@@ -176,6 +178,33 @@ static func draw_pool(o, l: Dictionary) -> void:
 	_poly(o, [Vector2(-6, 0), Vector2(-2, -2), Vector2(4, -4), Vector2(6, 0), Vector2(2, 2), Vector2(-4, 2)], l.pos, 0.0, scale, Color(HOT, fade * pulse))
 	for crack in [[Vector2(-5, 0), Vector2(-2, -2)], [Vector2(0, 0), Vector2(3, 2)], [Vector2(4, -2), Vector2(6, 0)]]:
 		o.cv.draw_line(_snap(l.pos + crack[0] * scale), _snap(l.pos + crack[1] * scale), Color(HOT, fade * 0.6), 2.0)
+
+## 熔池 v2（docs/208 H5，10-31：同一张椭圆等距排开像拼接）：pixgen 3 种不规则熔岩壳（暗壳 + 分叉亮缝），每个池按位置哈希挑变体、转角、镜像、
+## 缩放 0.85–1.2；从炽亮冷却成暗壳（亮缝跟着呼吸），地面映一圈暗红光。纯画面，不读玩法 RNG
+const POOL_V2 := ["fx_ey_pool1", "fx_ey_pool2", "fx_ey_pool3"]
+
+
+static func _pool_v2(o, l: Dictionary, fade: float) -> bool:
+	var g = o.g
+	var hk: float = fposmod(sin((float(l.pos.x) * 0.0137 + float(l.pos.y) * 0.0291) * 12.9898) * 43758.5453, 1.0)
+	var tn: String = POOL_V2[int(hk * 3.0) % 3]
+	if g.tex.get(tn) == null:
+		return false
+	var age: float = float(l.t)
+	var hot: float = clampf(1.0 - age / maxf(0.5, float(l.dur) * 0.6), 0.0, 1.0)   # 前 6 成时间从炽亮冷到暗壳
+	var br: float = lerpf(0.72, 1.05, hot) + 0.06 * sin(age * 5.0 + hk * 9.0)
+	var tx: Texture2D = g.tex.get(tn)
+	var sc: float = float(l.r) * 2.1 / float(tx.get_width()) * (0.85 + 0.35 * fposmod(hk * 7.1, 1.0))   # 每纹素多少世界像素：池宽约 2.1 r
+	o.cv.draw_set_transform(l.pos, 0.0, Vector2(1.0, 0.55))
+	o.cv.draw_circle(Vector2.ZERO, float(l.r) * 1.15, Color(0.6, 0.12, 0.03, 0.18 * fade * (0.5 + 0.5 * hot)))   # 地面映红
+	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var ang: float = (fposmod(hk * 13.7, 1.0) - 0.5) * 1.2
+	var fl: float = -1.0 if fposmod(hk * 5.3, 1.0) < 0.5 else 1.0
+	o.cv.draw_set_transform(l.pos, ang * 0.25, Vector2(sc * fl, sc * 0.62))   # 地面件压扁成俯视
+	o.cv.draw_texture(tx, -Vector2(tx.get_width(), tx.get_height()) * 0.5, Color(br, br, br, fade))
+	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true
+
 
 static func _poly(o, points: Array, p: Vector2, angle: float, scale: Vector2, color: Color) -> void:
 	var xf := Transform2D(angle, scale, 0.0, p)
