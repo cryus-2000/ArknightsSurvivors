@@ -216,8 +216,11 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		for e in u.in_circle(sc, 210.0):
 			a.sseg[int(e.id)] = true
 			_hit(u, a, o, e, Bal.v("ult/sd_slash", 0.3), {"src": "下劈", "edge": e.pos.distance_to(sc) > 210.0 * (1.0 - _edge_w())})
-		u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3})
-		u.strip("fx_skadi_surge", o0 + d * 120.0, {"sc": 2.4})
+		u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color(0.78, 0.86, 0.94) if _sd_v2(u) else Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3 if not _sd_v2(u) else 0.2})
+		if _sd_v2(u):   # 劈开处溅起水色像素粒子（不用卡通水花帧条）
+			PF.particles(u, o0 + d * 120.0, 300, "ult_burst", [col, col.darkened(0.3)], 0.0, PF.vseed(u, o0), 220.0)
+		else:
+			u.strip("fx_skadi_surge", o0 + d * 120.0, {"sc": 2.4})
 		_ring(u, sc, 210.0, 30.0, foam, 0.35, 8.0)
 		_spray(u, sc, 10, 40.0, 520.0, foam, 0.35, d.angle())
 		o.screen_shake(0.6)
@@ -235,7 +238,7 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			var v2: bool = _sd_v2(u)
 			w.fx.append(_keep(u, a, {"kind": "band", "a": o0 - d * back, "b": o0, "w": hw * 2.0, "col": col, "fill": 0.2, "life": 2.0}))
 			w.fx.append(_keep(u, a, {"kind": "band", "a": o0, "b": o0, "w": hw * 2.0, "col": foam, "fill": 0.1 if v2 else 0.42, "life": 2.0}))
-			w.fx.append(_keep(u, a, {"kind": "line", "a": o0, "b": o0, "w": 5.0, "col": Color(1, 1, 1, 0.0 if v2 else 1.0), "life": 2.0}))
+			w.fx.append(_keep(u, a, {"kind": "nop" if v2 else "line", "a": o0, "b": o0, "w": 5.0, "col": Color.WHITE, "life": 2.0}))
 			if v2:
 				_sd_face_v2(u, a, w, o0, d, hw, T)
 			var ns: int = 0 if v2 else int(Bal.v("ult/sd_crest_fx", 7.0))
@@ -323,7 +326,7 @@ static func _sd_face_v2(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2
 	for l in 2:   # l 0 = 后层（略暗、退后），1 = 前层
 		var s: Dictionary = u.strip(SD_WAVE, o0, {"ang": d.orthogonal().angle(), "o": Vector2(0.0, fh * 0.12), "sc": sc, "sx": 1.0, "sy": -1.0,
 			"ux": floorf(int(PF.h(vs * 0.7 + l * 3.1) * 3.0) % 3 * bw + PF.h(vs + l * 5.3) * maxf(0.0, bw - uw)), "uw": uw, "life": T + 0.2, "fade": 0.18,
-			"col": Color(0.82, 0.86, 0.92, 0.85) if l == 0 else Color(1.0, 1.0, 1.0, 1.0)})
+			"col": Color(0.66, 0.74, 0.84, 0.85) if l == 0 else Color(0.84, 0.88, 0.93, 1.0)})   # 白沫压暗（预审 10-30 报浪冠发白）
 		a.fx.append(s)
 		w.face.append([s, 34.0 if l == 0 else 0.0])
 

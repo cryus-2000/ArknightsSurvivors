@@ -788,8 +788,8 @@ static func _lo_boom_v2(u, a: Dictionary, org: Vector2, d: Vector2, hw: float, L
 		var p: Vector2 = mk.s.c
 		var dl: float = clampf(_loc(p, org, d).x + bk, 0.0, L + bk) / spd   # 符文带扫到才炸
 		_lo_glyph(u, p, 56.0, 0.18, float(a.vs) + i * 1.3, {"sc1d": 0.08, "fade": 0.12, "delay": dl, "col": Color(1.2, 1.15, 1.25)})
-		if i < 24:
-			PF.particles(u, p, 60, "ult_burst_s", [LO_VIO, Color(0.5, 0.42, 0.9)], dl + 0.05, float(a.vs) + i * 3.0, 70.0)
+		if i % 2 == 0 and i < 20:   # 碎成紫色粒子：隔一个放、至多 10 团，聚怪处不堆成一片
+			PF.particles(u, p, 60, "ult_burst_s", [LO_VIO, Color(0.5, 0.42, 0.9)], dl + 0.05, float(a.vs) + i * 3.0, 50.0)
 		u.shapes.erase(mk.s)
 		i += 1
 
