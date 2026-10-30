@@ -438,7 +438,11 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 				var s: Dictionary = a[key]
 				u.shapes.erase(s)
 				u.strip(GL_VORTEX, c, {"layer": "back", "sc": float(s.sc), "sc1": float(s.sc) * 1.6, "scd": 0.25, "ang": float(s.ang), "life": 0.3, "fade": 0.3, "col": s.col})
+			var n0: int = u.shapes.size()
 			_gl_burst_v2(u, c, R, col)
+			if Bal.v("ult/gl_fx_v3", 1.0) > 0.0:   # 打击感（10-31）：炸开那一下冲击帧，水花粒子进剪影（水招不加烟尘）
+				PF.hf_since(u, n0)
+				PF.hf_on(u, a)
 		var bf: float = maxf(0.0, Bal.v("ult/gl_burst", 0.52))
 		var kb: float = Bal.v("ult/gl_kb", 520.0)
 		for e in u.in_circle(c, R):

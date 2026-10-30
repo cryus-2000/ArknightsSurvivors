@@ -963,6 +963,9 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 		_hit(u, a, o, e, float(a.tfrac), {"src": "爆裂", "edge": e.pos.distance_to(c) > er})
 	var i: int = int(a.nb)
 	a.nb = i + 1
+	if not a.has("tp"):
+		a["tp"] = []
+	a.tp.append(p)   # 轨迹爆点位置：收尾大爆沿这条吐息走过的路裂地（用户 10-31）
 	if a.echo:
 		_sk_zone(u, a, p)
 	if a.get("v2", false):
@@ -1034,6 +1037,39 @@ static func _sk_blast_v2(u, p: Vector2, k: float, seed0: float, delay := 0.0) ->
 	u.strip(SK_FLASH, p, {"sc": 1.1 * k, "ang": seed0 * 0.9, "life": 0.07, "delay": delay})
 	u.strip(SK_BLAST, p, {"sc": 40.0 * k / br, "sc1": 95.0 * k / br, "scd": 0.16, "ang": seed0 * 1.7, "life": 0.38, "fade": 0.22,
 		"col": Color.WHITE, "col1": SK_COLD, "cold": 0.22, "delay": delay})
+
+
+## 收尾大爆 v3（用户 10-31「最后的爆炸应该是在攻击方式内裂地」）：不再以她为圆心放一圈放射裂网，改沿吐息烧过的轨迹——
+## 相邻轨迹爆点之间撕开一道暗红裂缝（分叉裂缝贴图顺着路径铺、从吐息起点往末端依次裂开），每个轨迹点（至多 10 个）再炸一团 + 碎岩 + 逐帧烟尘。判定不动
+static func _sk_final_v3(u, tp: Array, c: Vector2) -> void:
+	var pts: Array = []
+	var step: int = maxi(1, ceili(float(tp.size()) / 10.0))
+	for i in range(0, tp.size(), step):
+		pts.append(tp[i])
+	var t: Texture2D = u._strip_tex(UL_FORK) if u.fx_ready(UL_FORK) else null
+	var tw: float = t.get_width() / A.hires_of(t) * u.g.PX if t != null else 1.0
+	for i in pts.size():
+		var p: Vector2 = pts[i]
+		var dl: float = 0.04 * i   # 从吐息起点往末端依次炸开
+		var h: float = _ulh(i * 3.7 + 600.0)
+		_sk_blast_v2(u, p, 0.9 + 0.5 * h, float(i), dl)
+		if t != null and i + 1 < pts.size():   # 裂缝顺着这一段轨迹撕开
+			var q: Vector2 = pts[i + 1]
+			var seg: Vector2 = q - p
+			if seg.length() > 30.0:
+				u.strip(UL_FORK, p, {"layer": "back", "ang": seg.angle(), "o": Vector2(0.0, t.get_height() * 0.5),
+					"sx": seg.length() * 1.15 / tw, "sy": (0.7 if i % 2 == 0 else 0.5) * (1.0 if h < 0.5 else -1.0),
+					"rev": 0.12, "rev0": 0.15, "delay": dl, "life": 1.9, "fade": 0.7, "col": Color(1.0, 0.75, 0.8), "col1": Color(0.4, 0.22, 0.26), "cold": 0.7})
+		if t != null and h < 0.5:   # 轨迹点上再往旁边岔一条短裂缝
+			u.strip(UL_FORK, p, {"layer": "back", "ang": (p - c).angle() + (h - 0.25) * 2.4, "o": Vector2(0.0, t.get_height() * 0.5),
+				"sx": (90.0 + 80.0 * h) / tw, "sy": 0.4, "rev": 0.12, "rev0": 0.15, "delay": dl + 0.04, "life": 1.6, "fade": 0.6,
+				"col": Color(1.0, 0.75, 0.8), "col1": Color(0.4, 0.22, 0.26), "cold": 0.6})
+		for m in 2:
+			var hm: float = _ulh(i * 5.0 + m + 700.0)
+			var dv := Vector2.from_angle(hm * TAU)
+			_ul_rock(u, p + dv * 20.0, dv * 50.0, 160.0 + 160.0 * hm, hm, 0.45, dl + 0.02 * m)
+		if i % 2 == 0:
+			PF.dust(u, p, 170.0 + 60.0 * h, dl + 0.06, h * 40.0 + i, (p - c).normalized() * 40.0, Color(1.0, 0.82, 0.84))
 
 
 ## 收尾大爆：中心大爆 + 外围一圈错开的爆 + 裂网（借乌尔比安分叉裂缝，调成暗红）+ 地块隆起
@@ -1302,7 +1338,15 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		u.shake(9.0, 0.45)
 		# 收尾大爆：不铺满屏实心红圆（10-30 美术口径），中心一团碎块炸开 + 一圈圈碎裂冲击 + 大量颗粒 / 碎屑
 		if a.get("v2", false):
-			_sk_final_v2(u, c, L)
+			var n0: int = u.shapes.size()
+			var v3: bool = Bal.v("ult/sk_fx_v3", 1.0) > 0.0 and a.get("tp", []).size() >= 2
+			if v3:
+				_sk_final_v3(u, a.tp, c)
+				PF.hf_since(u, n0, [SK_BLAST])   # 打击感（10-31）：收尾大爆冲击帧（爆团剪影）+ 顿帧
+				PF.hf_on(u, a)
+				u.g.vfx.stop(Bal.v("ult/sk_hitstop", 0.1), "ult", true)
+			else:
+				_sk_final_v2(u, c, L)
 		else:
 			u.shape({"kind": "rock", "c": c, "r": 90.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "core": COL_SK_TEAL, "seed": 5.0, "fill": 0.9, "hold": false, "life": 0.22})
 		for m2 in 16:
@@ -1545,7 +1589,12 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 		o.ObSummon._sm_end(o, a.m3, "leave")   # Mon3tr 炸开用掉：8 秒内不在场（不执行 on_expire）
 		o.set_meta("ult_m3_back", u.g.t + 9.0)   # 兜底：动作被中途清掉时，下次任何人放终结技会补回 Mon3tr
 	if a.get("v2", false):
+		var n0: int = u.shapes.size()
 		_ka_blast_v2(u, c, core, R)
+		if Bal.v("ult/ka_fx_v3", 1.0) > 0.0:   # 打击感（10-31）：红色粒子爆炸进冲击帧剪影 + 顿帧；Mon3tr 不加烟团（用户 10-30）
+			PF.hf_since(u, n0)
+			PF.hf_on(u, a)
+			u.g.vfx.stop(Bal.v("ult/ka_hitstop", 0.12), "ult", true)
 		u.light(core, R * 0.9, KA_RED, 0.6)
 		u.light(c, 300.0, Color(1.0, 0.55, 0.45), 0.25)
 		u.shake(9.0, 0.4)

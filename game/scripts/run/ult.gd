@@ -1130,8 +1130,6 @@ var _hf_t0 := 0.0
 func _draw_hit_frame(w) -> void:
 	if not _hf_on():
 		return
-	if _imp_age() < 0.0 or _imp_age() > 1.0:
-		return
 	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）；
 	# 按这次终结技（serial）只起算一次：反震 / 炮击会连着 impact 好几次，按 impact 重置会再闪一轮
 	var ht: float = Bal.v("ult/hit_frame_t", 0.067)

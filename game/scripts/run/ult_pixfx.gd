@@ -144,6 +144,20 @@ static func dust(u, p: Vector2, size: float, delay: float, seed0: float, v := Ve
 			"col": Color(col.r * cl, col.g * cl, col.b * cl, 1.0), "layer": "back" if l == 1 else "front"})
 
 
+## 冲击帧（ult.gd _draw_hit_frame）：本招式这一下开冲击帧（只队长终结技画，一次终结技一轮）
+static func hf_on(u, a: Dictionary) -> void:
+	a["hf"] = true
+	u.act["hf"] = true
+
+
+## 把 u.shapes[n0:] 里名字在 names 的帧条标进冲击帧剪影（names 空 = 这段新建的全部帧条和图形：爆闪圈、环一起进）
+static func hf_since(u, n0: int, names := []) -> void:
+	for i in range(n0, u.shapes.size()):
+		var s: Dictionary = u.shapes[i]
+		if names.is_empty() or (s.has("name") and str(s.name) in names):
+			s["hf"] = true
+
+
 const BURSTS := ["fx_px_burst1", "fx_px_burst2"]
 const BURST_S := "fx_px_burst_s"
 

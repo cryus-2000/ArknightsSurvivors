@@ -483,17 +483,30 @@ const SG_RINGS := ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"]
 const SG_FORKS := ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"]
 
 
+static func _sg_v3() -> bool:   # 推进之王打击感（10-31）：冲击帧 + 逐帧烟尘 + 浮空落地扬尘；0 = 10-30 版
+	return Bal.v("ult/sg_fx_v3", 1.0) > 0.0
+
+
 static func _sg_v2(u) -> bool:
 	return Bal.v("ult/sg_fx_v2", 1.0) > 0.0 and PF.pick(u, SG_RINGS, 0.0) != "" and PF.pick(u, SG_FORKS, 0.0) != ""
 
 
-static func _sg_smash_v2(u, c: Vector2, R: float) -> void:
+static func _sg_smash_v2(u, c: Vector2, R: float, a := {}) -> void:
 	var vs: float = PF.vseed(u, c)
+	var n0: int = u.shapes.size()
 	PF.ring(u, SG_RINGS, c, 60.0, R * 1.02, 0.28, 0.4, {"seed": vs, "fade": 0.3, "col": Color(1, 1, 1, 0.7)})
 	_ring(u, c, R, 60.0, COL_ROCK.lerp(Color.WHITE, 0.2), 0.4, 6.0)   # 细的范围环
 	PF.crack_net(u, SG_FORKS, c, R, 11 + int(PF.h(vs + 1.0) * 5.0), PF.h(vs + 2.0) * TAU, vs, 0.54, Color(1.1, 1.08, 1.05), Color(0.3, 0.29, 0.28), 30.0, true)   # crop：预审报同形瓦片重复
 	u.g.vfx.stop(Bal.v("ult/sg_hitstop", 0.1), "ult", true)
-	PF.particles(u, c, 200, "ult_burst_s", [Color(0.95, 0.92, 0.85), Color(0.7, 0.68, 0.62)], 0.0, vs)   # 锤坑迸出的碎石尘
+	if _sg_v3():   # 打击感（10-31，pixfx §6.6）：冲击帧（冲击环 + 裂网剪影）+ 锤坑六团逐帧烟尘往外推，代替灰点粒子
+		PF.hf_since(u, n0)
+		PF.hf_on(u, a)
+		for q in 6:
+			var hq: float = PF.h(vs * 3.0 + q)
+			var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 6.0)
+			PF.dust(u, c + dq * R * (0.2 + 0.25 * hq), 200.0 + 80.0 * hq, 0.03 * (q % 3), vs + q, dq * (60.0 + 50.0 * hq))
+	else:
+		PF.particles(u, c, 200, "ult_burst_s", [Color(0.95, 0.92, 0.85), Color(0.7, 0.68, 0.62)], 0.0, vs)   # 锤坑迸出的碎石尘
 	PF.aftershock(u, c, R, 7.0 + vs, 0.54 + 0.3, 12)   # 尘土墙（同一张截段排一圈）预审报瓦片重复，去掉
 
 
@@ -887,7 +900,7 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 	u.shape({"kind": "circle", "c": c, "r": 100.0, "col": Color.WHITE, "fill": 0.9, "life": 0.1})
 	var v2: bool = big and _sg_v2(u)
 	if v2:
-		_sg_smash_v2(u, c, R)
+		_sg_smash_v2(u, c, R, a)
 	else:
 		u.shape({"kind": "circle", "c": c, "r": R, "col": COL_ROCK, "fill": 0.22, "life": 0.3})
 		_ring(u, c, R, 60.0, col.lerp(Color.WHITE, 0.3), 0.4, 16.0 if big else 10.0)
@@ -972,7 +985,11 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 			_once(u, a, o, a.fseg, e, Bal.v("ult/sg_fall", 0.25), {"src": "落地", "edge": bool(e.get("_sg_edge", false))})
 			if n < 30:
 				n += 1
-				u.shape({"kind": "dots", "c": ar.e.pos, "r": 20.0, "n": 5, "col": COL_ROCK, "life": 0.3})
+				if _sg_v3() and _sg_v2(u):   # 浮空的落地：前 8 只各扬一小团逐帧烟尘（有重量）
+					if n <= 8:
+						PF.dust(u, ar.e.pos, 90.0, 0.0, float(e.id) * 0.37, Vector2.ZERO)
+				else:
+					u.shape({"kind": "dots", "c": ar.e.pos, "r": 20.0, "n": 5, "col": COL_ROCK, "life": 0.3})
 		for e in a.still:
 			if not e.dead:
 				_once(u, a, o, a.fseg, e, Bal.v("ult/sg_fall", 0.25), {"src": "落地", "edge": bool(e.get("_sg_edge", false))})
