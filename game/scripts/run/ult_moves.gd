@@ -1505,31 +1505,30 @@ static func _ka_v2(u) -> bool:
 
 
 static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
-	# 用户 10-30 第三轮：「爆炸很廉价、跟画风不一致，要红色粒子爆炸之后粒子扩散的感觉」——不用大爆炸贴图：
-	# 红白爆闪一下 → 几百颗红色像素粒子从 Mon3tr 身上迸出（快 → 慢、越往外越暗、慢慢淡掉），加火星 / 碎屑 / 红光
-	u.shape({"kind": "circle", "c": core, "r": 70.0, "col": Color(1.0, 0.6, 0.5), "fill": 0.95, "life": 0.07})
-	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 9.0, "col": KA_RED, "life": 0.5})
-	_ka_particles(u, core, 220, R * 0.75, 0.0, 3.0)
-	for m in 12:
-		var dq := Vector2.from_angle(TAU * float(m) / 12.0 + 0.13)
+	# 用户 10-30 第三 / 四轮：红色粒子爆炸之后粒子扩散，再「更加华丽」——白热三连闪 → 三波红色像素粒子（主爆 + 二次 + 远飞火星）
+	# → 碎裂红环三道 + 一圈 10 团二次小爆 + 往上飘的余烬；不用大爆炸贴图
+	var vs: float = PF.vseed(u, core)
+	for m in 3:
+		u.shape({"kind": "circle", "c": core, "r": 50.0 + 45.0 * m, "col": Color(1.0, 0.75 - 0.2 * m, 0.65 - 0.2 * m), "fill": 0.95 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
+	var cols := [Color(1.0, 0.88, 0.8), Color(1.0, 0.35, 0.25), KA_RED, Color(0.55, 0.06, 0.08)]
+	PF.particles(u, core, 260, R * 0.85, 0.0, vs, cols, 0.6, 40.0, 8.0)
+	PF.particles(u, core, 130, R * 0.5, 0.09, vs + 4.0, cols, 0.5, 40.0, 6.0)
+	PF.particles(u, core, 50, R * 1.15, 0.03, vs + 9.0, [Color(1.0, 0.9, 0.8), Color(1.0, 0.45, 0.3)], 0.9, 10.0, 4.0)   # 远飞火星
+	for m in 3:
+		u.shape({"kind": "ring", "c": c, "r": R * (1.05 - 0.2 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": Color(1.0, 0.4, 0.3).lerp(KA_RED, 0.4 * m), "life": 0.55, "delay": 0.04 * m})
+	for q in 10:
+		var hq: float = PF.h(q + vs + 50.0)
+		var p: Vector2 = core + Vector2.from_angle(TAU * (q + hq) / 10.0) * R * (0.3 + 0.35 * hq)
+		var dl: float = 0.1 + 0.04 * (q % 4)
+		u.shape({"kind": "circle", "c": p, "r": 24.0, "col": Color(1.0, 0.6, 0.5), "fill": 0.9, "life": 0.06, "delay": dl})
+		PF.particles(u, p, 20, 100.0, dl, vs + q * 7.0, cols, 0.45, 40.0, 6.0)
+	for m in 16:
+		var dq := Vector2.from_angle(TAU * float(m) / 16.0 + 0.13)
 		u.grain("bfx_burst", core + dq * 20.0, dq, KA_RED, 8)
-		if m % 3 == 0:
-			u.debris(core + dq * 60.0, KA_RED, 2)
-			u.spark(core + dq * 40.0, Color(1.0, 0.4, 0.3), 5, 30.0)
-
-
-## 红色像素粒子：n 颗从 p 迸开，初速按到达距离 reach 反推（v·drag 衰减后约走 reach），寿命 0.6–1.5 秒；颜色白热 / 亮红 / 红 / 暗红四档
-static func _ka_particles(u, p: Vector2, n: int, reach: float, delay: float, seed0: float) -> void:
-	var cols := [Color(1.0, 0.85, 0.75), Color(1.0, 0.3, 0.22), KA_RED, Color(0.55, 0.06, 0.08)]
-	for k in n:
-		var h1: float = _ulh(k * 1.31 + seed0)
-		var h2: float = _ulh(k * 2.17 + seed0 * 3.0)
-		var h3: float = _ulh(k * 0.73 + seed0 * 7.0)
-		var drag: float = 3.0 + 2.0 * h3
-		var dist: float = reach * (0.15 + 0.85 * sqrt(h2))
-		var ci: int = mini(3, int(h2 * 4.0))   # 走得远的偏暗
-		u.shape({"kind": "circle", "c": p, "r": 3.0 + 4.0 * (1.0 - h2) + (3.0 if ci == 0 else 0.0), "col": cols[ci], "fill": 1.0,
-			"v": Vector2.from_angle(h1 * TAU) * dist * drag, "drag": drag, "grav": 40.0, "life": 0.6 + 0.9 * h3, "delay": delay})
+		u.grain("mote_up", core + dq * R * 0.3, Vector2.UP, Color(1.0, 0.4, 0.3), 2)
+		if m % 4 == 0:
+			u.debris(core + dq * 60.0, KA_RED, 3)
+			u.spark(core + dq * 40.0, Color(1.0, 0.4, 0.3), 6, 30.0)
 
 
 ## 每圈：沿圈接连迸几团小的红色粒子爆；只少量碎石
@@ -1541,7 +1540,7 @@ static func _ka_ring_v2(u, c: Vector2, r: float, i: int, R: float) -> void:
 		var p: Vector2 = c + dv * r * (0.75 + 0.25 * hh)
 		var dl: float = 0.03 * float(q % 4)
 		u.shape({"kind": "circle", "c": p, "r": 22.0, "col": Color(1.0, 0.45, 0.35), "fill": 0.9, "life": 0.06, "delay": dl})
-		_ka_particles(u, p, 18, 110.0, dl, float(i * 13 + q))
+		PF.particles(u, p, 18, 110.0, dl, float(i * 13 + q), [Color(1.0, 0.88, 0.8), Color(1.0, 0.35, 0.25), KA_RED, Color(0.55, 0.06, 0.08)])
 		u.grain("bfx_burst", p, dv, KA_RED, 5)
 		if q % 3 == 0:
 			_ul_rock(u, p, dv * 60.0, 220.0 + 120.0 * hh, hh, 0.4, dl)

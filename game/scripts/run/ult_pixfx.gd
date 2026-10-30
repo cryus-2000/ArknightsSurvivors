@@ -109,6 +109,31 @@ static func cracks(u, names: Array, c: Vector2, angs: Array, lens: Array, opt: D
 		u.strip(name, c + Vector2.from_angle(float(angs[j])) * r0, s)
 
 
+## 像素粒子爆：n 颗从 p 迸开，初速按到达距离 reach 反推（v·drag 衰减后约走 reach），寿命 life0–life0+0.9 秒；cols 由亮到暗，走得远的取暗档
+static func particles(u, p: Vector2, n: int, reach: float, delay: float, seed0: float, cols: Array, life0 := 0.6, grav := 40.0, rmax := 7.0) -> void:
+	for k in n:
+		var h1: float = h(k * 1.31 + seed0)
+		var h2: float = h(k * 2.17 + seed0 * 3.0)
+		var h3: float = h(k * 0.73 + seed0 * 7.0)
+		var drag: float = 3.0 + 2.0 * h3
+		var dist: float = reach * (0.15 + 0.85 * sqrt(h2))
+		var ci: int = mini(cols.size() - 1, int(h2 * cols.size()))
+		u.shape({"kind": "circle", "c": p, "r": 3.0 + (rmax - 3.0) * (1.0 - h2) + (3.0 if ci == 0 else 0.0), "col": cols[ci], "fill": 1.0,
+			"v": Vector2.from_angle(h1 * TAU) * dist * drag, "drag": drag, "grav": grav, "life": life0 + 0.9 * h3, "delay": delay})
+
+
+## 乌尔比安式裂网（用户 10-30「所有裂地的感觉都跟乌尔比安的对齐」）：names = 这人的分叉裂缝组（同形状、各人调色），
+## n 条从 c 外 r0 起裂、角度 / 长短 / 粗细 / 起裂时刻按 seed 错开，grow 秒内往外长到 0.62–1.07 R，先亮（hot）再冷成暗色余烬（cold）
+static func crack_net(u, names: Array, c: Vector2, R: float, n: int, base: float, seed0: float, grow: float, hot: Color, cold: Color, r0 := 0.0) -> void:
+	var angs: Array = []
+	var lens: Array = []
+	for j in n:
+		angs.append(base + TAU * (float(j) + (h(j + 1.0 + seed0) - 0.5) * 0.75) / n)
+		lens.append(R * (0.62 + 0.45 * h(j + 21.0 + seed0)))
+	cracks(u, names, c, angs, lens, {"seed": seed0, "r0": r0, "rev": grow, "rev0": 0.18, "delay": 0.06, "life": grow + 1.6, "fade": 0.7,
+		"col": hot, "col1": cold, "cold": grow + 0.45})
+
+
 ## 不规整放射角度：n 条，从 a0 起均分、每条按哈希偏 ±0.35 格
 static func angles(n: int, a0: float, seed0: float) -> Array:
 	var out: Array = []

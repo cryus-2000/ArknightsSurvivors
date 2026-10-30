@@ -421,11 +421,12 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 		# ③ 爆开：剩下的份额 + 加大的击飞，水柱 / 水环放射
 		a.burst = true
 		_fade(u, a, 0.05)
-		if a.has("vo"):   # 凝住的漩涡被潮水冲开：从当前大小放大淡出
+		if a.has("vo"):   # 凝住的漩涡被潮水冲开：从当前大小放大淡出 + 更华丽的爆开（用户 10-30）
 			for key in ["vo", "vi"]:
 				var s: Dictionary = a[key]
 				u.shapes.erase(s)
 				u.strip(GL_VORTEX, c, {"layer": "back", "sc": float(s.sc), "sc1": float(s.sc) * 1.6, "scd": 0.25, "ang": float(s.ang), "life": 0.3, "fade": 0.3, "col": s.col})
+			_gl_burst_v2(u, c, R, col)
 		var bf: float = maxf(0.0, Bal.v("ult/gl_burst", 0.52))
 		var kb: float = Bal.v("ult/gl_kb", 520.0)
 		for e in u.in_circle(c, R):
@@ -468,6 +469,25 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 ## pixgen 整张漩涡（fx_gl_vortex，中心暗）两层：外层按 a.rot 转、内层 1.8 倍更快，跟着收拢缩小；收拢一砸后停顿那一拍不再更新 = 凝住；
 ## 爆开时从当前大小放大淡出。拖拽 / 判定 / 时序不动
 const GL_VORTEX := "fx_gl_vortex"
+
+
+## 爆开：白芯三连闪 → 两波水色像素粒子（白沫 / 浅青 / 青 / 深青）迸开扩散 + 一圈 9 团水花爆 + 碎裂水环三道 + 大灯
+static func _gl_burst_v2(u, c: Vector2, R: float, col: Color) -> void:
+	var vs: float = PF.vseed(u, c)
+	var cols := [Color(0.95, 1.0, 1.0), Color(0.6, 0.9, 0.95), Color(0.25, 0.7, 0.8), Color(0.1, 0.4, 0.5)]
+	for m in 3:
+		u.shape({"kind": "circle", "c": c, "r": 60.0 + 40.0 * m, "col": Color(0.9, 1.0, 1.0), "fill": 0.9 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
+	PF.particles(u, c, 240, R * 0.95, 0.0, vs, cols, 0.7, 20.0, 8.0)
+	PF.particles(u, c, 120, R * 0.6, 0.08, vs + 3.0, cols, 0.6, 20.0, 6.0)
+	for q in 9:
+		var hq: float = PF.h(q + vs)
+		var p: Vector2 = c + Vector2.from_angle(TAU * (q + hq) / 9.0) * R * (0.45 + 0.3 * hq)
+		u.shape({"kind": "circle", "c": p, "r": 26.0, "col": Color(0.9, 1.0, 1.0), "fill": 0.9, "life": 0.06, "delay": 0.06 + 0.03 * (q % 3)})
+		PF.particles(u, p, 22, 120.0, 0.06 + 0.03 * (q % 3), vs + q * 5.0, cols, 0.5, 30.0, 6.0)
+		u.grain("water", p, Vector2.UP, Color(0.85, 1.0, 1.0), 6)
+	for m in 3:
+		u.shape({"kind": "ring", "c": c, "r": R * (1.0 - 0.18 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": Color(0.85, 1.0, 1.0).lerp(col, 0.3 * m), "life": 0.55, "delay": 0.04 * m})
+	u.light(c, R * 1.1, Color(0.5, 0.95, 1.0), 0.6)
 
 
 static func _gl_v2(u) -> bool:

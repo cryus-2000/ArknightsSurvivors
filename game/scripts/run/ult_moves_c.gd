@@ -406,32 +406,38 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 
 ## ---------------- 塞雷娅 v2（ult/sa_fx_v2，缺省 1；0 = 程序画同心碎裂环 + 琥珀折线裂纹 + 速度线版。pixfx，docs/199 §7.8）
 ## 举拳时脚下压暗 → 砸地（爆点 / 判定 / 时序不动）。第一版（琥珀冲击环贴图 + 琥珀裂网）已撤：
-## 用户 10-30 第二轮：「一圈超人感没做出来；要的不是琥珀裂网，是一拳打出去以后拳风造成的裂地」——
-## 拳坑：砸点一圈短而粗的灰石裂口（拳坑崩裂，只到 0.3 R）+ 深色坑；拳风：白色气浪薄环 tr 秒扩到 R，
-## 一圈尘土碎石墙（fx_ul_dust_wall 截段）骑在波前一起往外推、波前扫过的地面一圈圈地块被掀起、白色速度线往外飞；外缘尘墙落定后余震
-const SA_CRACKS := ["fx_sg_crack1", "fx_sg_crack2", "fx_sg_crack3"]   # 拳坑崩裂借灰石裂口（短而粗，和推进之王的长断层用法不同）
+## 用户 10-30 第二轮：「一圈超人感没做出来；要的不是琥珀裂网，是一拳打出去以后拳风造成的裂地」→ 白色气浪 + 波前尘石墙；
+## 第三轮：「裂地的力量感、停顿感还不够，所有裂地都跟乌尔比安的对齐」→ 裂缝换成乌尔比安同形的分叉裂网（fx_sa_fork1–4，淡金白光、暖灰岩唇），
+## 顺原裂纹方向随拳风往外长、先亮后冷；砸地那下另加 ult/sa_hitstop（0.12 秒）顿帧 + 大灯 + 碎屑
+const SA_FORKS := ["fx_sa_fork1", "fx_sa_fork2", "fx_sa_fork3", "fx_sa_fork4"]
 const A = preload("res://scripts/art.gd")
 
 
 static func _sa_v2(u) -> bool:
-	return Bal.v("ult/sa_fx_v2", 1.0) > 0.0 and PF.pick(u, SA_CRACKS, 0.0) != "" and u.fx_ready(PF.WALL)
+	return Bal.v("ult/sa_fx_v2", 1.0) > 0.0 and PF.pick(u, SA_FORKS, 0.0) != "" and u.fx_ready(PF.WALL)
 
 
 static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) -> void:
 	var vs: float = PF.vseed(u, org)
-	# 拳坑 + 坑口崩裂
-	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 120.0, "ry": 60.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.7, "life": 1.6, "layer": "back"})
-	var n: int = 7 + int(PF.h(vs + 1.0) * 4.0)
+	u.g.vfx.stop(Bal.v("ult/sa_hitstop", 0.12), "ult", true)   # 停顿感：砸地那一下顿住（画面层，同 skalter 收尾大爆）
+	u.light(org, R * 0.8, Color(1.0, 0.9, 0.7), 0.4)
+	u.debris(org, Color(0.85, 0.8, 0.7), 3)
+	# 拳坑
+	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 120.0, "ry": 60.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.7, "life": 1.8, "layer": "back"})
+	# 裂网：顺原裂纹方向（爆点都在线上），随拳风往外长
+	var angs: Array = []
 	var lens: Array = []
-	for j in n:
-		lens.append(R * (0.18 + 0.16 * PF.h(j + vs + 60.0)))
-	PF.cracks(u, SA_CRACKS, org, PF.angles(n, PF.h(vs + 2.0) * TAU, vs), lens, {"seed": vs, "big": 0.9, "small": 0.6, "rev": 0.08, "rev0": 0.3, "life": 1.8, "fade": 0.7})
+	var j := 0
+	for pts in a.cracks:
+		angs.append((Vector2(pts[pts.size() - 1]) - org).angle())
+		lens.append(R * (0.62 + 0.45 * PF.h(j + 21.0 + vs)))
+		j += 1
+	PF.cracks(u, SA_FORKS, org, angs, lens, {"seed": vs, "rev": R / float(a.cspd), "rev0": 0.15, "delay": 0.03, "life": 2.0, "fade": 0.7,
+		"col": Color(1.15, 1.1, 1.05), "col1": Color(0.3, 0.27, 0.24), "cold": 0.9})
 	# 白色气浪薄环（两道，后一道稍慢）
 	u.shape({"kind": "ring", "c": org, "r": R, "r1": 50.0, "w": 10.0, "col": Color(0.95, 0.93, 0.88), "solid": true, "life": tr * 2.0})
 	u.shape({"kind": "ring", "c": org, "r": R * 0.85, "r1": 40.0, "w": 5.0, "col": Color(0.9, 0.85, 0.75), "solid": true, "life": tr * 2.3, "delay": 0.04})
-	# 骑在波前往外推的尘土碎石墙
 	_sa_wall(u, org, R * 0.22, R / tr, tr, vs)
-	# 白色速度线（拳风）往外飞
 	var spd: float = R / tr
 	for k in 24:
 		var dv := Vector2.from_angle(TAU * (k + PF.h(k + vs)) / 24.0)
@@ -441,7 +447,7 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 	for i in 4:   # 波前扫过的地面一圈圈掀起
 		var r: float = R * (0.25 + 0.24 * i)
 		PF.heave(u, org, r, 20.0 + i + vs, r / spd)
-	PF.aftershock(u, org, R, 3.0 + vs, tr + 0.25, 12)
+	PF.aftershock(u, org, R, 3.0 + vs, tr + 0.3, 14)
 
 
 ## 尘土碎石墙从半径 r0 起以 spd 往外推 dur 秒（段数按终点半径取，起点处互相叠着，不会断开）
@@ -463,27 +469,23 @@ static func _sa_wall(u, c: Vector2, r0: float, spd: float, dur: float, vs: float
 
 
 ## ---------------- 推进之王 v2（ult/sg_fx_v2，缺省 1；0 = 程序画同心环 + 直线裂地 + 碎石刀光版。pixfx，docs/199 §7.8）
-## 跃空时落点地面渐暗（压暗）→ 砸落：白闪 + pixgen 灰黑尘浪环（fx_sg_shock）扩到 R、整条灰黑断裂（fx_sg_crack）13 条往外长、
+## 跃空时落点地面渐暗（压暗）→ 砸落：白闪 + 顿帧 + pixgen 灰黑尘浪环（fx_sg_shock 3 种）扩到 R、乌尔比安同形灰裂网（fx_sg_fork）11–15 条往外长、
 ## 三圈地块隆起、外圈尘土墙外推、余震；岩刺 / 碎石帧条照旧。不用凯尔希的红白熔缝（验收员 10-30）
-## 变体：尘浪环 3 种、断裂 3 种（宽深沟 + 倾斜石板 / 一侧抬起的断层台阶 / 错位铺石块），无发光
+## 变体：尘浪环 3 种；裂网（用户 10-30「推进之王的裂地感太直」「都跟乌尔比安的对齐」）用乌尔比安同形的分叉裂缝 4 种转灰（fx_sg_fork1–4：灰白尘光、冷灰岩唇）
 const SG_RINGS := ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"]
-const SG_CRACKS := ["fx_sg_crack1", "fx_sg_crack2", "fx_sg_crack3"]
+const SG_FORKS := ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"]
 
 
 static func _sg_v2(u) -> bool:
-	return Bal.v("ult/sg_fx_v2", 1.0) > 0.0 and PF.pick(u, SG_RINGS, 0.0) != "" and PF.pick(u, SG_CRACKS, 0.0) != ""
+	return Bal.v("ult/sg_fx_v2", 1.0) > 0.0 and PF.pick(u, SG_RINGS, 0.0) != "" and PF.pick(u, SG_FORKS, 0.0) != ""
 
 
 static func _sg_smash_v2(u, c: Vector2, R: float) -> void:
 	var vs: float = PF.vseed(u, c)
 	PF.ring(u, SG_RINGS, c, 60.0, R * 1.02, 0.28, 0.4, {"seed": vs, "fade": 0.3, "col": Color(1, 1, 1, 0.7)})
 	_ring(u, c, R, 60.0, COL_ROCK.lerp(Color.WHITE, 0.2), 0.4, 6.0)   # 细的范围环
-	var n: int = 6 + int(PF.h(vs + 1.0) * 4.0)   # 6–9 条，从锤坑外各自起裂、长短悬殊（不从一点放射成星形）
-	var angs: Array = PF.angles(n, PF.h(vs + 2.0) * TAU, 40.0 + vs)
-	var lens: Array = []
-	for j in n:
-		lens.append(R * (0.35 + 0.65 * PF.h(j + 45.0 + vs)))
-	PF.cracks(u, SG_CRACKS, c, angs, lens, {"seed": vs, "r0": R * 0.14, "big": 0.45, "small": 0.3, "rev": 0.26, "rev0": 0.12, "life": 2.0, "fade": 0.8, "col": Color.WHITE})
+	PF.crack_net(u, SG_FORKS, c, R, 11 + int(PF.h(vs + 1.0) * 5.0), PF.h(vs + 2.0) * TAU, vs, 0.32, Color(1.1, 1.08, 1.05), Color(0.3, 0.29, 0.28), 30.0)
+	u.g.vfx.stop(Bal.v("ult/sg_hitstop", 0.1), "ult", true)
 	for i in 3:
 		var r: float = R * (0.3 + 0.3 * i)
 		PF.heave(u, c, r, 50.0 + i + vs, r / R * 0.3)
