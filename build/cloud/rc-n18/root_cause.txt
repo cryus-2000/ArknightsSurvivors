@@ -1,0 +1,31 @@
+rc-n18 批跑在 commit 0d09939da 上全部 6 组均未产出结果：不是机器慢/超时问题，是该提交本身有编译期脚本错误，
+导致游戏永远无法正常起局（进程空转到被杀，CPU 占用很低，real time 远大于 user time）。
+
+根因：
+  game/scripts/screens/choice_panel.gd:1052（commit 56ad8c0f 引入）
+    var dc := Color(0.86, 0.9, 0.93, ta) if card.has_meta("brief") and L.touch else Color(0.655, 0.69, 0.725, ta)
+  所在函数 draw_card()（979 行起）里没有局部变量 L（其它函数里的 L 是 `var L: Dictionary = lay()` 的局部变量，
+  draw_card() 里漏加了这一行），解析期报错：
+    SCRIPT ERROR: Parse Error: Identifier "L" not declared in the current scope.
+              at: GDScript::reload (res://scripts/screens/choice_panel.gd:1052)
+  级联：choice_panel.gd 编译失败 → game.gd / perf_report.gd / perf_view.gd / settings_panel.gd / title.gd 全部
+  "Failed to compile depended scripts" → title.gd 加载失败 → game.gd 的 `new()` 拿到 Nil → 每帧 _process /
+  _draw 对 Nil 调用方法，报错到天荒地老，游戏对象从未真正创建，模拟永远不会结束，只能被 timeout 杀掉。
+
+验证：origin/main 的 choice_panel.gd 没有这一行（draw_card 里是 `if card.has_meta("brief") and not L.touch:`
+这种独立 if，没有在同一函数里新引入裸 `L.touch`），这是 integ-1029 分支 / ci/0d09939da 这条提交链特有的回归，
+main 没有这个问题。
+
+诊断过程：
+  - 全尺寸 batch（P=0 s0=33, 28 局）两次卡到 30 分钟后台上限被杀，没有任何产出（--nocache 下无中间缓存可取）。
+  - 拆半（14 局）重跑一次，依旧卡到 30 分钟被杀。
+  - 换 P=1 s0=33 直接跑，同样超时被杀——排除是某一组参数特有的问题。
+  - 单独跑一局（godot --headless -- --balance --seed=999 --op=wisadel ...），加 280s 超时直接验证：
+    real 4m40s（超时触发）/ user 仅 20s——不是 CPU 瓶颈，是死循环空转。stdout 开头即可见上述 Parse Error 与
+    级联编译失败，随后是每帧重复的
+      SCRIPT ERROR: Invalid call. Nonexistent function 'update' in base 'Nil'.
+                at: _process (res://scripts/game.gd:1448)
+    直到进程被杀。
+
+结论：P×S0 六组矩阵在这个提交上无法产出任何有效局数/胜率；需要先在 game/ 里修好 choice_panel.gd:1052
+（给 draw_card() 补一行局部 `L`，或按它应该取的值改写），这次云端批跑按任务要求不改 game/ 代码，只报告现象。
