@@ -375,7 +375,7 @@ func syn_skill(o, i: int) -> void:
 func update(dt: float) -> void:
 	var pf: bool = g.prof_on   # --prof：编队段细分（sq_follow / sq_ticks / sq_op_<编号> / sq_pfx，docs/50 §35）
 	var t0 := Time.get_ticks_usec() if pf else 0
-	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
+	g.doctor.tick_input(dt)   # 按住瞄准 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
 	if g.ult != null:
 		g.ult.tick(dt)   # 终结技 / 连携技（docs/198）：在 follow 之前，连携位移当帧生效
@@ -764,6 +764,7 @@ func aggro_target(e: Dictionary):
 ## 队友生命：突击中被近战怪碰到掉血（每人 command/op_inv 秒无敌间隔）；不突击时回血（command/hp_regen_secs 空到满）；
 ## 血空倒地 command/revive_secs 秒，到时原地复活；归队集合完毕时倒地的人在队长身边复活。复活给 command/revive_inv 秒无敌
 func _tick_hp(dt: float) -> void:
+	_tick_low()
 	if stance == ROAM:
 		roam_secs += dt
 	for o in ops:
@@ -804,6 +805,35 @@ func _tick_hp(dt: float) -> void:
 					if g.get("trace_every") != null and g.trace_every > 0.0:
 						print("CMD t=%.2f down %s" % [g.t, o.id])
 				break
+
+
+## 队友残血提醒（10-31 用户，docs/114 §21）：血量跌破 command/low_hp 进入提醒（头顶条 / 编队卡 / 屏外箭头红色慢闪，hud_allyhp），
+## 回到 command/low_hp_off 以上解除（两条线防止在线上反复闪）；倒地时清掉（倒地另有显示）。
+## 每次进入时该队友说一句 lowhp 语音：同一人 sfx.VOICE_CD.lowhp 秒冷却、占线就放弃（不打断别人）；没有 <干员>_lowhp 素材就不放
+var _low_banner_t := {}   # 干员 id → 上次残血横幅的 g.t
+
+func _tick_low() -> void:
+	var on: bool = hp_on() and cmd_on()
+	var lo: float = Bal.v("command/low_hp", 0.3)
+	var hi: float = Bal.v("command/low_hp_off", 0.4)
+	for o in ops:
+		if o.is_leader or not on or o.cmd_down > 0.0:
+			o.cmd_low = false
+			continue
+		if o.cmd_low:
+			if o.cmd_hp >= hi:
+				o.cmd_low = false
+		elif o.cmd_hp < lo:
+			o.cmd_low = true
+			if g.get("trace_every") != null and g.trace_every > 0.0:
+				print("CMD t=%.2f low %s" % [g.t, o.id])
+			var sfx: Node = g.get_node_or_null("/root/Sfx")
+			if sfx != null and g.demo_op == "":
+				sfx.voice(o.id, "lowhp")
+			# 弹字（10-31 用户「这些都不太行，不明显，我觉得不如弹文字提醒」）：屏幕中间横幅，同「生命垂危」一级（prio 2，不受横幅间隔）；同一人 command/low_banner_cd 秒内只弹一次
+			if g.t - float(_low_banner_t.get(o.id, -999.0)) >= Bal.v("command/low_banner_cd", 20.0):
+				_low_banner_t[o.id] = g.t
+				g.vfx.show_banner("%s 生命垂危" % o.display_name(), 2)
 
 
 ## 归队瞬回（10-22 用户定）：按下归队，离站位远的队友原地放共用退场闪光、直接出现在队长身边（落点一圈光），1 秒无敌；
@@ -1181,11 +1211,11 @@ func draw_leader_mark() -> void:
 	# 朝向小三角：先垫一个每边大 2 像素的深色三角
 	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
 	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
-	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——手动攻击 = 瞄准方向，
+	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——按住瞄准 = 瞄准方向，
 	# 自动攻击 = 最近 0.8 秒内一次命中的方向（没有就不画）；常亮不闪
 	if Bal.v("render/lead_dir", 0.0) > 0.0 or g.world.lead_lv >= 2:
 		var adir := Vector2.ZERO
-		if Cfg.manual_attack and g.doctor != null:
+		if g.doctor != null and g.doctor.aim_held():
 			adir = g.doctor.attack_dir()
 		elif g.t - g.vfx.lead_hit_t < 0.8:
 			adir = g.vfx.lead_hit_dir

@@ -265,8 +265,10 @@ func _ishar_haste(e: Dictionary) -> float:
 
 
 ## ---- 主轴「破网」（docs/142b §3.6）
-## 网的空位 e.web（[{o, next}]，数量 = 当前上限）；连线海嗣 = bone / slider 底子，ai static、伤害 0（不追人、无接触伤害、不出额外招），
+## 网的空位 e.web（[{o, next, come}]，数量 = 当前上限）；连线海嗣 = bone / slider 底子，ai static、伤害 0（不追人、无接触伤害、不出额外招），
 ## part = 主轴目标（自动攻击先打），每帧走向自己的位置（她周围 240 / 300 交错的一圈，每秒 110 像素）
+## 10-31 用户「小怪不要凭空冒出来」：新海嗣（召唤合唱 / 歌眼补位）先在屏幕外、空位所在方向刷出（sl.come），
+## 以 boss/ishar_web_walk（170）像素 / 秒走到空位，到了才连线（_web_link：进 sl.o、给护盾层、回血、当发射源）；路上被打死就作废
 func _web_step(e: Dictionary, dt: float) -> void:
 	var eyes: Array = e.get("eyes", [])
 	var cap: int = int(Bal.v("boss/ishar_web_cap2", 10.0)) if not eyes.is_empty() else int(Bal.v("boss/ishar_web_cap", 6.0))
@@ -284,15 +286,32 @@ func _web_step(e: Dictionary, dt: float) -> void:
 			sl.o = null
 			sl.next = g.t + Bal.v("boss/ishar_relink", 3.0) if not eyes.is_empty() else INF
 			o = null
+		var c = sl.get("come")
+		if c != null and c.dead:
+			sl.erase("come")
+			sl.next = g.t + Bal.v("boss/ishar_relink", 3.0) if not eyes.is_empty() else INF
+			c = null
 		if i >= cap:
 			if o != null:
 				_unlink(o)   # 泪碎了、上限回到 6：多出来的线断开，海嗣照常追人
 				sl.o = null
+			if c != null:
+				_unlink(c)
+				sl.erase("come")
 			continue
 		if o == null:
-			if not eyes.is_empty() and g.t >= float(sl.next):
-				sl.o = _web_mob(e, _slot_pos(e, i, cap), i)
-				g.fx.append({"kind": "ring", "pos": sl.o.pos, "r": 28.0, "life": 0.4, "max": 0.4, "col": COL, "enemy": true})
+			if c != null:
+				var to: Vector2 = _slot_pos(e, i, cap)
+				c.pos = c.pos.move_toward(to, Bal.v("boss/ishar_web_walk", 170.0) * dt)
+				c.kb = Vector2.ZERO
+				if absf(to.x - c.pos.x) > 1.0:
+					c.fx = signf(to.x - c.pos.x)
+				if c.pos.distance_to(to) < 4.0:
+					sl.erase("come")
+					sl.o = _web_link(e, c)
+			elif not eyes.is_empty() and g.t >= float(sl.next):
+				sl.come = _web_mob(e, _come_pos(e, i, cap), i)
+				sl.next = INF
 			continue
 		o.pos = o.pos.move_toward(_slot_pos(e, i, cap), 110.0 * dt)
 		o.kb = Vector2.ZERO
@@ -313,8 +332,8 @@ func _web_step(e: Dictionary, dt: float) -> void:
 		for i in cap:
 			if n >= 3:
 				break
-			if slots[i].o == null:
-				slots[i].o = _web_mob(e, g.combat.arena_clamp(g.spawner.edge_pos(), 60.0), i)
+			if slots[i].o == null and slots[i].get("come") == null:
+				slots[i].come = _web_mob(e, _come_pos(e, i, cap), i)
 				n += 1
 		if n > 0:
 			g.vfx.add_text(e.pos + Vector2(0, -60), "召唤合唱", COL, 16)
@@ -325,6 +344,23 @@ func _slot_pos(e: Dictionary, i: int, cap: int) -> Vector2:
 	return g.combat.arena_clamp(e.pos + Vector2.from_angle(TAU * i / cap + 0.3) * (240.0 if i % 2 == 0 else 300.0), 60.0)
 
 
+## 刷出点：从空位沿「她 → 空位」方向往外推到屏幕外（视口外 60 像素），没有视口（无头测试）时推 600 像素
+func _come_pos(e: Dictionary, i: int, cap: int) -> Vector2:
+	var slot: Vector2 = _slot_pos(e, i, cap)
+	var d: Vector2 = (slot - e.pos).normalized() if slot.distance_to(e.pos) > 1.0 else Vector2.RIGHT
+	var w = g.get("world")
+	if w == null or not w.has_method("view_rect"):
+		return slot + d * 600.0
+	var view: Rect2 = w.view_rect(60.0)
+	var p: Vector2 = slot
+	for k in 40:
+		if not view.has_point(p):
+			break
+		p += d * 40.0
+	return p
+
+
+## 刷出（还没连线）：不追人、无接触伤害、不出额外招，由 _web_step 带着走向空位
 func _web_mob(e: Dictionary, pos: Vector2, i: int) -> Dictionary:
 	var o: Dictionary = g.spawner.spawn_enemy("bone" if i % 2 == 0 else "slider", pos)
 	o.web_keep = [o.ai, o.spd, o.dmg]   # 断线（_unlink）时还原
@@ -332,10 +368,17 @@ func _web_mob(e: Dictionary, pos: Vector2, i: int) -> Dictionary:
 	o.dmg = 0.0
 	o.spd = 0.0
 	o.extra_next = INF
+	return o
+
+
+## 走到空位：连线（护盾层、回血、发射源都只认连上的）
+func _web_link(e: Dictionary, o: Dictionary) -> Dictionary:
 	o.web_of = e
 	o.part = true
 	o.shield_hp = float(o.get("shield_hp", 0.0)) + o.maxhp * Bal.v("boss/ishar_web_shield", 0.2)   # 连线护盾（10-28）：拆网要多打一层
 	g.enemies_sys.part_add(o)
+	g.fx.append({"kind": "ring", "pos": o.pos, "r": 28.0, "life": 0.4, "max": 0.4, "col": COL, "enemy": true})
+	g.fx.append({"kind": "tide_link", "a": o.pos, "b": e.pos, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
 	return o
 
 
@@ -482,6 +525,7 @@ func on_kill(e: Dictionary) -> void:
 	e.ishar_dash = {}
 	e.ishar_fence = {}
 	e.ishar_zones = []
+	e.rebirth_until = 0.0
 	e.card_live = false
 	for tear in g.ishar.tears(e):
 		g.ishar.release_blessing(tear)
@@ -489,6 +533,9 @@ func on_kill(e: Dictionary) -> void:
 	for sl in e.get("web", []):
 		if sl.o != null and not sl.o.dead:
 			_unlink(sl.o)
+		var c = sl.get("come")
+		if c != null and not c.dead:
+			_unlink(c)
 	for o in e.get("eyes", []):
 		o.dead = true
 
@@ -496,7 +543,7 @@ func on_kill(e: Dictionary) -> void:
 ## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
 ## 变身动画保护（transform_until，0.9 秒）：独立计时，结束后无需清理永久无敌标记
 func block_damage(e: Dictionary) -> bool:
-	return g.t < float(e.get("transform_until", 0.0))
+	return g.t < float(e.get("transform_until", 0.0)) or g.t < float(e.get("rebirth_until", 0.0))   # 重生之歌（ishar_combos._rebirth_song）
 
 
 ## 人形可受伤（boss/ishar_p1_hit）：一阶段最多打到 boss/ishar_p1_line 血线，越线的部分截回，下一帧 IsharEncounter 转化

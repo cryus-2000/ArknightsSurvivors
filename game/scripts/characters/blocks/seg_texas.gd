@@ -132,7 +132,7 @@ static func tx_len(o, b: Dictionary) -> float:
 	return float(b.get("r", 0.0)) * o.stat(&"op_range") * float(o.tx.get("len", 1.0))
 
 
-## 普攻起手点（data_operator.update 转来）：最近敌人在冲刺长度 × 1.3 内就起手（手动普攻 A 方向类：沿瞄准方向照冲）
+## 普攻起手点（data_operator.update 转来）：最近敌人在冲刺长度 × 1.3 内就起手（按住瞄准 A 方向类：沿瞄准方向照冲）
 static func tx_attack_point(o, b: Dictionary) -> Vector2:
 	var r: float = tx_len(o, b)
 	return o.atk_point(o.nearest_enemies(1, r * 1.3, o.pos), r)
@@ -437,7 +437,7 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 			var elen: float = float(b.len) * o.stat(&"op_range")
 			var ets: Array = o.nearest_enemies(1, elen + 30.0, o.pos)
 			var eang: float = (ets[0].pos - o.pos).angle() if not ets.is_empty() else o.facing_angle()
-			if o.manual_attack() and o.atk_aim != Vector2.ZERO:
+			if o.held_aim() and o.atk_aim != Vector2.ZERO:
 				eang = o.atk_aim.angle()
 			tx_emit_path(o, str(b.get("src", "")), o.pos, o.pos + Vector2.from_angle(eang) * elen, float(b.get("w", 44.0)))
 		"verb.fx_scatter":
@@ -835,7 +835,7 @@ static func tx_rift_start(o, b: Dictionary) -> void:
 	var r: float = float(b.r) * o.stat(&"op_range")
 	var ts: Array = o.nearest_enemies(1, r + 30.0, o.pos)
 	var dir_a: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
-	if o.manual_attack() and o.atk_aim != Vector2.ZERO:
+	if o.held_aim() and o.atk_aim != Vector2.ZERO:
 		dir_a = o.atk_aim.angle()
 	var lead: float = float(b.get("lead", 0.12))
 	var n: int = int(b.n)

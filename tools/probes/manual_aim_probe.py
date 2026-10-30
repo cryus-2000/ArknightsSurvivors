@@ -31,7 +31,7 @@ gr.ensure_imported(game)
 
 def one(op):
     args = [gr.find_godot(), '--headless', '--audio-driver', 'Dummy', '--path', game, 'res://tests/manual_aim_probe.tscn', '--',
-            '--regression', '--seed=1', '--op=' + op, '--manualatk', '--probe-op=' + op, '--probe-t=%g' % a.t, '--probe-dx=%g' % a.dx, '--probe-line=%d' % a.line, '--probe-dy=%g' % a.dy, '--probe-card=%d' % a.card, '--probe-mode=' + a.mode, '--probe-input=' + a.input, '--probe-move=' + a.move, '--probe-relic=' + a.relic]
+            '--regression', '--seed=1', '--op=' + op, '--probe-op=' + op, '--probe-t=%g' % a.t, '--probe-dx=%g' % a.dx, '--probe-line=%d' % a.line, '--probe-dy=%g' % a.dy, '--probe-card=%d' % a.card, '--probe-mode=' + a.mode, '--probe-input=' + a.input, '--probe-move=' + a.move, '--probe-relic=' + a.relic]
     o, e, to = gr.run_godot(args, 300)
     line = [l for l in (o or '').splitlines() if l.startswith('MANUALPROBE')]
     errs = [l for l in (o or '').splitlines() + (e or '').splitlines() if 'SCRIPT ERROR' in l]

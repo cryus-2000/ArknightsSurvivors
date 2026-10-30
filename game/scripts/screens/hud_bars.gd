@@ -8,6 +8,7 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
+const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 终结技并进左上的原型开关（ui/hud_ult_v）
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
@@ -47,9 +48,10 @@ func draw_top_left(vs: Vector2) -> void:
 	var bc := UI.CYAN.lerp(UI.GOLD, lf)
 	var lc0 := o + Vector2(26, 30)
 	h.batch_begin()   # 左上面板：色块一批、字最后（性能 9/30）
-	UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, 0.0, bc, lf > 0.2)   # 只显示等级数字；经验进度在屏幕最上沿的通栏细条（draw_xp_top，10-28 用户）
-	UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
-	UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
+	if HudUltV.ver() != 2:   # B′ 徽记环（ui/hud_ult_v 2，10-31 缺省）：等级圆换成队长头像 + 能量环 + 等级牌（hud_ult_v.gd），触屏也是
+		UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, 0.0, bc, lf > 0.2)   # 只显示等级数字；经验进度在屏幕最上沿的通栏细条（draw_xp_top，10-28 用户）
+		UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
 	draw_recall(lc0)
 	# 生命值
 	var hs := Vector2(sin(g.t * 90.0), cos(g.t * 70.0)) * 3.0 * g.hp_shake / 0.35
@@ -80,8 +82,9 @@ func draw_top_left(vs: Vector2) -> void:
 		h._hb.rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
 	# 神经损伤 / 侵蚀：生命条下方一道洋红细条
 	if g.nerve > 1.0:
-		UI.gbar(g.hud, Rect2(Vector2(hx, o.y + 54), Vector2(150, 2)), g.nerve / 100.0, Color(1.0, 0.45, 0.85))
-		UI.en(g.hud, g.font, Vector2(hx + 156, o.y + 58), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
+		var ny: float = o.y + 54 + HudUltV.top_add(g.touch.active)   # 终结技原型 A / C 在生命条下多一层，神经细条跟着下移
+		UI.gbar(g.hud, Rect2(Vector2(hx, ny), Vector2(150, 2)), g.nerve / 100.0, Color(1.0, 0.45, 0.85))
+		UI.en(g.hud, g.font, Vector2(hx + 156, ny + 4), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
 	if g.corrode_pool > 0.5:
 		UI.text(g.hud, g.font, Vector2(hx + 190, o.y + 60), "蚀", 11, Color(0.8, 0.5, 1.0))
 	h.batch_end()
@@ -341,7 +344,7 @@ func _boss_sub(e: Dictionary) -> Array:
 	if e.type == "ishar":
 		if e.phase == 1 and e.get("ishar_p1", false):   # 人形可受伤（10-28）：充能与提前转化的血线都写明
 			var pc: int = roundi(100.0 * clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0))
-			return ["人形 · 转化充能 %d%%（打到 %d%% 血提前转化）" % [pc, roundi(100.0 * Game.Bal.v("boss/ishar_p1_line", 0.85))], UI.SUB]
+			return ["阻止转化 · 充能 %d%%" % pc, UI.SUB]   # 10-31 用户定的人形阶段目标主行（副行在开场横幅，ishar_encounter）
 		return ["转化中" if e.phase == 1 else "已完成转化 · 敌对", UI.SUB]
 	if e.has("ammo"):
 		return ["装填中 —— 攻击以打断！" if e.channel > 0.0 else ("弹药 %d / 3" % e.ammo if e.ammo > 0 else "近战中"), UI.SUB]
@@ -463,7 +466,7 @@ func draw_boss_bars(vs: Vector2) -> void:
 func draw_ishar_human(e: Dictionary, bx: float, bw: float, y0 := BB_Y) -> void:
 	var progress: float = clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0)
 	UI.text(g.hud, g.font, Vector2(bx, y0 + 12.0), str(e.name), 13, UI.CYAN, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
-	UI.text(g.hud, g.font, Vector2(bx + bw - 320.0, y0 + 12.0), "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 320, 2)
+	UI.text(g.hud, g.font, Vector2(bx + bw - 320.0, y0 + 12.0), "阻止转化 · 充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 320, 2)
 	var r := Rect2(bx, y0 + 19.0, bw, 5.0)
 	g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.02, 0.03, 0.85))
 	g.hud.draw_rect(r, Color(1, 1, 1, 0.08))

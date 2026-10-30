@@ -218,26 +218,26 @@
     "irene_skill_1",
     "irene_skill_2",
     "irene_skill_3",
-    "irene_battle"
+    "irene_battle_2"
    ],
    "battle": [
-    "irene_battle",
     "irene_battle_2",
-    "irene_entry_3"
+    "irene_entry_3",
+    "irene_command"
    ]
   },
   "logos": {
    "entry": [
     "logos_entry",
-    "logos_entry_2",
     "logos_entry_3",
-    "logos_entry_4"
+    "logos_entry_4",
+    "logos_command_2"
    ],
    "command": [
     "logos_command",
     "logos_command_2",
     "logos_command_3",
-    "logos_entry_2"
+    "logos_entry_4"
    ],
    "skill": [
     "logos_skill_1",
@@ -368,12 +368,12 @@
     "hoshiguma_skill_1",
     "hoshiguma_skill_2",
     "hoshiguma_skill_3",
-    "hoshiguma_battle"
+    "hoshiguma_battle_2"
    ],
    "battle": [
-    "hoshiguma_battle",
     "hoshiguma_battle_2",
-    "hoshiguma_entry_4"
+    "hoshiguma_entry_4",
+    "hoshiguma_entry_2"
    ]
   },
   "angelina": {
@@ -393,12 +393,12 @@
     "angelina_skill_1",
     "angelina_skill_2",
     "angelina_skill_3",
-    "angelina_battle"
+    "angelina_battle_2"
    ],
    "battle": [
-    "angelina_battle",
     "angelina_battle_2",
-    "angelina_entry_4"
+    "angelina_entry_4",
+    "angelina_entry_2"
    ]
   },
   "skalter": {
@@ -492,12 +492,12 @@
     "gladiia_skill_1",
     "gladiia_skill_2",
     "gladiia_skill_3",
-    "gladiia_battle"
+    "gladiia_battle_2"
    ],
    "battle": [
-    "gladiia_battle",
     "gladiia_battle_2",
-    "gladiia_entry_4"
+    "gladiia_entry_4",
+    "gladiia_entry_2"
    ]
   }
  }

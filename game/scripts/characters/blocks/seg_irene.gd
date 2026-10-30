@@ -13,7 +13,7 @@ static func h3_thrust_w(o, a: Dictionary) -> float:
 	return _h3_mults(o, float(a.get("w", 26.0)), a.get("w_mults", []))
 
 
-## 普攻起手（data_operator.update，手动普攻 A 类）
+## 普攻起手（data_operator.update，按住瞄准 A 类）
 static func h3_attack_aim(o, a: Dictionary) -> Vector2:
 	match str(a.get("shape", "")):
 		"thrust":
@@ -37,7 +37,7 @@ static func h3_attack_start(o, a: Dictionary, dt: float) -> void:
 		return
 	var at: Vector2 = h3_attack_aim(o, a)
 	if at == Vector2.INF:
-		o.cd = o.idle_cd(float(a.get("idle", 0.2)))
+		o.cd = float(a.get("idle", 0.2))
 		return
 	o.cd = _F().h3_attack_cd(o, a)
 	var rp: Dictionary = o._replace_trig(o.atk_n + 1)

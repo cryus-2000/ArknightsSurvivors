@@ -94,7 +94,7 @@ static func h3_umbrella_start(o, a: Dictionary) -> void:
 	var radius := h3_umb_radius(o, a)
 	var at: Vector2 = o.atk_point(o.nearest_enemies(1, radius + float(a.get("aim_pad", 60.0)), o.pos), radius)
 	if at == Vector2.INF:
-		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
+		o.cd = float(a.get("idle", 0.1))
 		return
 	o.cd = h3_umbrella_interval(o, a)
 	var anim := ""
@@ -115,7 +115,7 @@ static func h3_umbrella_interval(o, a: Dictionary) -> float:
 static func h3_umbrella_release(o, a: Dictionary) -> bool:
 	var radius := h3_umb_radius(o, a)
 	var targets: Array = o.nearest_enemies(1, radius + float(a.get("aim_pad", 60.0)), o.pos)
-	if targets.is_empty() and not (o.manual_attack() and o.atk_aim != Vector2.ZERO):
+	if targets.is_empty() and not (o.held_aim() and o.atk_aim != Vector2.ZERO):
 		return false   # 自动：没有目标就没出手；手动（10-24）：按了就沿玩家指向挥伞，周围没有敌人也照常出招（manual-aim 漏了这里）
 	var angle: float = o.atk_angle((targets[0].pos - o.pos).angle() if not targets.is_empty() else o.atk_aim.angle())
 	_h3_umbrella(o, a, o.pos + Vector2.from_angle(angle) * radius)

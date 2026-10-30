@@ -1308,7 +1308,7 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 | `patch` | 种类，数组 ≤ 6 | 第一条 `cond` 成立的生效：`mult`（`power` 再 × 技能强度）、`src`（换伤害来源，如真伤）、`speed`、`anim`（按状态换帧条）、`seq`（`{strip, intro, loop: [首, 末], out}`：待机 / 移动换成「起手 intro 帧 → loop 段循环 → 失效后停在末帧 out 秒」）、`tint`（本体染色）、`sfx`（`db / pitch`） |
 | `verb.summon_mod` | 常驻（技能 do / passive / 节点） | 某种召唤物的 `dmg / aspd / reach / arc / speed` 倍率，按 §5.5 固定顺序**依次相乘**；`then: {delay, mult, pitch?}` = 每次出手后 delay 秒再追一击（追击不再触发 then）；`mirror: {mult}` = 同时向身后镜像一击（没打到不画）。各取第一块 |
 | `attack`（escort） | 种类 | 只能是 `shape.cone`：`dir: face`（朝召唤物面向，缺省）/ `target`；`half` = 半角弧度（也可写 `half_deg`）；判定半径 = `r × op_range × reach 倍率 + pad`，起手距离不含 pad；`origin` / `fx_origin` 判定 / 特效原点偏移；`sfx: {kind}` 打到才播。伤害 = `base[atk_key] × _dmg_bonus × dmg 倍率 [× patch.mult]` × 追击 / 镜像倍率 |
-| `manual: command` | 种类（escort） | 手动普攻 B 类（契约 v2.5）：按攻击键才命令召唤物扑向瞄准方向 ±45° 的目标（按下时换目标），松手 `manual/m_linger`（1.2）秒内打完手上这个，之后回位；本干员自己的普攻照旧自动 |
+| `manual: command` | 种类（escort） | 按住瞄准 B 类（契约 v2.5，10-31 改）：平时自动扑最近的敌人；队长按住瞄准时改扑瞄准方向 ±45° 的目标（按下、目标失效或跑出瞄准锥时换目标），松手后打完手上这个再自动索敌；本干员自己的普攻照旧自动 |
 | `status: false` | 种类 | 状态条不显示在场数（常驻随行的不需要） |
 | `verb.guard` | 瞬时 | 限时减伤 `value`（`dur` 秒）：同 `name` 共用一个计时（重复施加重新计时，不叠层），多种按积木顺序相乘，`dmg_taken_mult` 里在 `verb.dr` 之后、护盾之前；`look` 画主控周身护壳（`strip` = art.gd 贴图 + `frames / fps / anchor / alpha / off / fade_in / blink`，缺图画程序六边形）；状态条显示 `name` |
 | `verb.cleanse` | 瞬时 | `what: ["nerve"]`：清神经损伤 |

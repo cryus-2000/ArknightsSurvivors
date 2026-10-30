@@ -124,6 +124,7 @@ func run(check: Callable) -> void:
 	spy.free()
 	_asset_coverage(check)
 	_channel_rules(check)
+	_ult_mute(check)
 	_pool_rules(check)
 
 ## 指挥合唱（10-28 用户「突击时两名队友的台词可以交替或一起喊」）：两名出击队友都开口，轮换谁先、其余晚 voice_stagger 秒
@@ -149,13 +150,13 @@ func _chorus_rotation(check: Callable, game, spy) -> void:
 
 func _asset_coverage(check: Callable) -> void:
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
-	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 233, "runtime manifest: 121 clips + 2 synergy lines (docs/160) + 110 pooled lines (docs/190)")
+	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 237, "runtime manifest: 121 clips + 2 synergy lines (docs/160) + 110 pooled lines (docs/190) + 4 ultimate lines (docs/205)")
 	if not manifest is Dictionary:
 		return
 	var have := {}
 	for clip in manifest.clips:
 		have[clip.operator + ":" + clip.event] = true
-	check.call(have.size() == 233, "runtime event pairs are unique")
+	check.call(have.size() == 237, "runtime event pairs are unique")
 	var ids := Character.list_ids()
 	check.call(manifest.operators.size() == 20 and ids.size() == 20, "runtime voice map covers20 operators")
 	for cid in ids:
@@ -165,6 +166,34 @@ func _asset_coverage(check: Callable) -> void:
 	for cid in ["lappland", "gladiia"]:
 		for event in ["entry", "skill_1", "skill_2", "skill_3", "battle"]:
 			check.call(have.has(cid + ":" + event), "new operator event registered: " + cid + ":" + event)
+
+## 终结技期间只让队长开口（用户 10-30）：mute_mates 后队友的单通道 / 合唱 / 排队一律不播，队长照播；解除后恢复
+func _ult_mute(check: Callable) -> void:
+	var sfx = load("res://scripts/sfx.gd").new()
+	sfx.voice_pools = {"_": {}}
+	sfx.voice_player = AudioStreamPlayer.new()
+	sfx.voice_fader = AudioStreamPlayer.new()
+	if sfx._voice_stream("texas", "battle") != null and sfx._voice_stream("skadi", "skill_3") != null:
+		sfx.voice_now = 3000.0
+		sfx.mute_mates("skadi")
+		sfx.voice("texas", "battle", true)
+		check.call(sfx.voice_cid != "texas" and sfx.voice_queue.is_empty(), "ult: teammate chatter is dropped, not queued")
+		sfx.voice("texas", "command", false, true)
+		check.call(sfx.voice_cid != "texas" and sfx.voice_urgent.is_empty(), "ult: teammate command response is dropped")
+		sfx.voice_chorus("texas", "command", 0.0)
+		check.call(sfx.chorus_pending.is_empty() and not sfx.chorus.has("texas"), "ult: teammate chorus is dropped")
+		sfx.voice("skadi", "skill_3", false, true)
+		check.call(sfx.voice_cid == "skadi", "ult: leader's own ultimate line still plays")
+		sfx.mute_mates("")
+		sfx.voice_now = 3030.0
+		sfx.voice("texas", "battle")
+		check.call(sfx.voice_cid == "texas", "after the ultimate teammates may speak again")
+	for cp in sfx.chorus.values():
+		cp.free()
+	sfx.voice_player.free()
+	sfx.voice_fader.free()
+	sfx.free()
+
 
 func _channel_rules(check: Callable) -> void:
 	var sfx = load("res://scripts/sfx.gd").new()

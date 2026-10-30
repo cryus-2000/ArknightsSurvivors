@@ -1072,6 +1072,7 @@
       "mult": "$s1_mult",
       "kb": "$s1_kb",
       "src": "举盾反击",
+      "ring": false,
       "tags": [
        "skill"
       ],

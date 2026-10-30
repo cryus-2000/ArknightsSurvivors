@@ -1,0 +1,198 @@
+{
+ "_doc": "B′ 徽记头像的双眼中点（10-31 用户「20 人加 Mon3tr 都要按眼睛位置对齐」）：坐标 = 该干员待机帧 @2x 第 0 帧（帧条标了 mirror 的按镜像后）里的像素，eye = 双眼中点，d = 两眼中心距离，fh = 量的那张 @2x 帧高（游戏里拿到别的分辨率时按帧高比例换算）。screens/hud_ult_v.gd 按它裁圆形头像：眼睛中点落在圆心上方 2% 半径处，眼距统一缩放到半径的 0.42（10-31 用户「露出头多一点，下一点点」）。人工从放大网格图标定（build/eyes/grid_*.png），遮住的按 PRTS 立绘估",
+ "ops": {
+  "angelina": {
+   "tex": "op_angelina_idle",
+   "fh": 128,
+   "eye": [
+    62,
+    68
+   ],
+   "d": 8
+  },
+  "exusiai": {
+   "tex": "op_exusiai_idle",
+   "fh": 128,
+   "eye": [
+    74,
+    71.3
+   ],
+   "d": 7,
+   "note": "侧脸"
+  },
+  "eyjafjalla": {
+   "tex": "op_eyjafjalla_idle",
+   "fh": 128,
+   "eye": [
+    66.5,
+    66
+   ],
+   "d": 9
+  },
+  "gladiia": {
+   "tex": "op_gladiia_idle",
+   "fh": 128,
+   "eye": [
+    63.5,
+    67.5
+   ],
+   "d": 7,
+   "note": "右眼被帽檐阴影遮住，按 PRTS 立绘估"
+  },
+  "hoshiguma": {
+   "tex": "op_hoshiguma_idle",
+   "fh": 128,
+   "eye": [
+    67,
+    63
+   ],
+   "d": 7,
+   "note": "侧脸"
+  },
+  "irene": {
+   "tex": "op_irene_idle",
+   "fh": 128,
+   "eye": [
+    64.5,
+    67
+   ],
+   "d": 9
+  },
+  "kaltsit": {
+   "tex": "op_kaltsit_idle",
+   "fh": 128,
+   "eye": [
+    65,
+    70.8
+   ],
+   "d": 8
+  },
+  "lappland": {
+   "tex": "op_lappland_idle",
+   "fh": 128,
+   "eye": [
+    66,
+    72
+   ],
+   "d": 9
+  },
+  "logos": {
+   "tex": "op_logos_idle",
+   "fh": 128,
+   "eye": [
+    66.5,
+    69.5
+   ],
+   "d": 8
+  },
+  "lumen": {
+   "tex": "op_lumen_idle",
+   "fh": 128,
+   "eye": [
+    67,
+    71
+   ],
+   "d": 8.5
+  },
+  "mizuki": {
+   "tex": "mizuki_runtime_idle",
+   "fh": 192,
+   "eye": [
+    101.5,
+    98
+   ],
+   "d": 10
+  },
+  "saria": {
+   "tex": "op_saria_idle",
+   "fh": 128,
+   "eye": [
+    69.5,
+    62
+   ],
+   "d": 11
+  },
+  "siege": {
+   "tex": "op_siege_idle",
+   "fh": 128,
+   "eye": [
+    67,
+    70.5
+   ],
+   "d": 9.5
+  },
+  "skadi": {
+   "tex": "op_skadi_idle",
+   "fh": 128,
+   "eye": [
+    69.5,
+    63.5
+   ],
+   "d": 9
+  },
+  "skalter": {
+   "tex": "op_skalter_idle",
+   "fh": 128,
+   "eye": [
+    67.5,
+    71
+   ],
+   "d": 8
+  },
+  "specter_unchained": {
+   "tex": "op_specter_unchained_idle",
+   "fh": 128,
+   "eye": [
+    71.5,
+    72.3
+   ],
+   "d": 9
+  },
+  "suzuran": {
+   "tex": "op_suzuran_idle",
+   "fh": 128,
+   "eye": [
+    64,
+    67
+   ],
+   "d": 10
+  },
+  "texas": {
+   "tex": "op_texas_idle",
+   "fh": 128,
+   "eye": [
+    65.5,
+    68.3
+   ],
+   "d": 9
+  },
+  "ulpianus": {
+   "tex": "op_ulpianus_idle",
+   "fh": 128,
+   "eye": [
+    66,
+    71.5
+   ],
+   "d": 8
+  },
+  "wisadel": {
+   "tex": "op_wisadel_idle",
+   "fh": 128,
+   "eye": [
+    67,
+    69.5
+   ],
+   "d": 9.5
+  },
+  "mon3tr": {
+   "tex": "op_mon3tr_idle",
+   "fh": 128,
+   "eye": [
+    81.5,
+    39
+   ],
+   "d": 9,
+   "note": "无五官，取头部两点黄绿光点的中点"
+  }
+ }
+}

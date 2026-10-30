@@ -16,8 +16,8 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 			return
 		var ang: float = o.facing_angle()
 		var ll_tgt: Dictionary = {}   # docs/202 拉普兰德「追猎」：aim: low_hp 挑出的目标（给 ll_wave_post 记追踪）
-		if o.manual_attack() and o.get("in_release") == true and o.atk_aim != Vector2.ZERO:
-			ang = o.atk_aim.angle()   # 手动普攻（10-23 用户定）：普攻里放出的剑气 / 潮刃沿玩家指向，不吸附最近敌人；技能里的照旧找最近
+		if o.held_aim() and o.get("in_release") == true and o.atk_aim != Vector2.ZERO:
+			ang = o.atk_aim.angle()   # 按住瞄准（10-23 用户定）：普攻里放出的剑气 / 潮刃沿玩家指向，不吸附最近敌人；技能里的照旧找最近
 		elif str(b.get("aim", "")) == "nearest":
 			var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos)
 			if not ts.is_empty():

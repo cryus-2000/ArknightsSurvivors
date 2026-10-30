@@ -1,6 +1,6 @@
 extends Node
-## 10-23 手动普攻探针（用户定：手动模式按攻击键不要求有目标，方向由玩家指向，不吸附最近敌人）：
-## 以 PLAY 模式起一局（无机器人），清空敌人，打开手动普攻并模拟按住攻击键、指向右；在队长左侧 220 处放一只不动的木桩。
+## 10-23 手动普攻探针，10-31 改为按住瞄准（按住瞄准时不要求有目标，方向由玩家指向，不吸附最近敌人）：
+## 以 PLAY 模式起一局（无机器人），清空敌人，模拟按住瞄准、指向右；在队长左侧 220 处放一只不动的木桩。
 ## 跑 probe 秒后打印：普攻出手次数 atk_n、队长子弹 / 弹体数、木桩掉血（应为 0 = 没吸附到背后的敌人）。
 ## 用法：tools/probes/manual_aim_probe.py [--ops a,b] [--t 6]
 
@@ -33,7 +33,7 @@ func _mouse(g, down: bool, world_off: Vector2) -> void:
 		Input.parse_input_event(mb)
 
 
-## 真实输入路径：kb = J 攻击 + WASD 移动；mouse = 左键 + 光标在队长右边 200；touch = 触屏攻击键（touch_atk）
+## 真实输入路径：kb = WASD 移动；mouse = 左键 + 光标在队长右边 200；touch = 触屏瞄准键（touch_atk，拖向右）
 func _drive_input(g, inp: String, mode: String, move: Vector2, k: int) -> void:
 	var press: bool = mode == "hold" or (k % 90 >= 10 and k % 90 < 14)
 	_key(KEY_D, move.x > 0.5)
@@ -42,12 +42,12 @@ func _drive_input(g, inp: String, mode: String, move: Vector2, k: int) -> void:
 	_key(KEY_W, move.y < -0.5)
 	match inp:
 		"kb":
-			_key(KEY_J, press)
+			pass   # 10-31 起没有攻击键：键盘只走位，普攻自动
 		"mouse":
 			_mouse(g, press, Vector2(200, 0))
 		"touch":
 			g.doctor.touch_atk = press
-			g.doctor.touch_atk_dir = Vector2.ZERO
+			g.doctor.touch_atk_dir = Vector2(60, 0) if press else Vector2.ZERO
 
 
 func _ready() -> void:
@@ -58,8 +58,8 @@ func _ready() -> void:
 	var dy := 0.0         # 木桩线每只的 y 递增（让木桩排在枪口到第一只的弹道上：能天使约 17、流明约 22）
 	var card := 0         # 先选几次「贯穿」卡
 	var relic := ""       # 先给的藏品编号（穿甲弹 265）
-	var mode := "hold"    # hold = 一直按住攻击键；tap = 每 1.5 秒轻点一次（atk_buf 缓冲）
-	var inp := "sim"      # sim = 直接写 doctor.sim_atk / atk_buf；kb = 真实键盘事件（J 攻击、WASD 移动）；mouse = 真实鼠标左键 + 光标位置；touch = 触屏攻击键模拟
+	var mode := "hold"    # hold = 一直按住瞄准；tap = 每 1.5 秒按一下瞄准
+	var inp := "sim"      # sim = 直接写 doctor.sim_atk / sim_dir；kb = 真实键盘事件（只走位，普攻自动）；mouse = 真实鼠标左键 + 光标位置；touch = 触屏瞄准键模拟（拖向右）
 	var move := Vector2.ZERO   # 移动输入（手动攻击方向取它）
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--probe-op="): id = arg.get_slice("=", 1)
@@ -99,8 +99,8 @@ func _ready() -> void:
 		g.doctor.apply_passive("pierce")
 	if relic != "":
 		g.progression.gain_relic(relic)
-	g.doctor.manual_attack = true
 	g.doctor.sim_atk = mode == "hold" and inp == "sim"
+	g.doctor.sim_dir = Vector2.RIGHT
 	g.move_in = move
 	g.facing = 1.0
 	var hp0: float = dummies[0].hp
@@ -113,9 +113,8 @@ func _ready() -> void:
 		o.sp = [-100000.0, -100000.0, -100000.0]   # 不放技能，只看普攻
 		if inp == "sim":
 			g.move_in = move
-			if mode == "tap" and k % 90 == 10:
-				g.doctor.atk_buf = 0.3
-				g.doctor.atk_edge = true
+			if mode == "tap":
+				g.doctor.sim_atk = k % 90 >= 10 and k % 90 < 14
 		else:
 			_drive_input(g, inp, mode, move, k)
 			await get_tree().process_frame   # 真实输入事件要过一帧才生效（按下和松开不能挤在同一帧里）

@@ -891,6 +891,8 @@ func _current(e: Dictionary) -> void:
 func _current_step(e: Dictionary, dt: float) -> void:
 	if g.invuln > 0.0 and float(g.get("dash_t")) > 0.0:
 		return   # 冲刺中不拖
+	if g.ult != null and g.ult.playing():
+		return   # 终结技播放中队长不位移（ult.playing）
 	for w in g.warns:
 		if w.done or not is_same(w.owner, e) or str(w.get("skin", "")) != "current" or g.bai.finals.cancelled(w):
 			continue

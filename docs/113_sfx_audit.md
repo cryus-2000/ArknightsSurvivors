@@ -388,3 +388,25 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 - **没确认的**：「哪条是能天使」。干员战斗预制体不在热更新包里（在安装包里），骨骼文件只有 `OnAttack` / `OnStart` 事件、没有音效名，`character_table` 里也没有。所以只能按武器类型给候选：P = `pistolup_n / pistolup_d / pistol_n`（有装填变体 `pistolup_sreload`，对得上她技能的装填 / 连射）、Q = `handgun_*`、R = `silncrgun_*`（短促科幻消音枪）。
 - **试听**（`game/tools/gen_sfx_exu5_1026.py`）：主仓库 `build/exu_orig_review/`：`before`（现用 §18）/ `P` / `Q` / `R`，每套 `*_combat.ogg`（6 秒实战混音：普攻 3 次 / 秒轮换 + 命中 + 击杀 / 拾取 / 通用命中背景，按游戏里的播放音量混）、`*_skills.ogg`（s1 / s2 / s3 / big）、各单发；原始候选（未处理，峰值 -3 dBFS）在 `build/ak_exu_candidates/`。切片办法：取第一声枪响 0.30 s、尾 60 ms 淡出、80 Hz 高通、rms100 对齐 -9.5 dBFS（同 §18）；技能用同一套样本重拼。
 - **用户选定后**：`python game/tools/gen_sfx_exu5_1026.py --apply P|Q|R` 写进 `game/audio/sfx/`；网页版走 B 档压缩（`tools/web_audio.py` 只动配乐与语音，音效 QOA 不变）。
+
+## 20. Sonniss GDC 2026 录音（10-31，终结技音效逐人精调，docs/205 §4）
+
+用户同意下载 Sonniss GDC 2026 Game Audio Bundle（官方 downloads.sonniss.com）。许可：免版税、可商用、不需署名；**不得转售 / 再分发音效本身、不得用于 AI 训练**。原包放主仓库 `build/sfx_lib/sonniss_gdc2026/extracted/`（不进 git、不进包）。
+处理：`game/tools/gen_sfx_ult_seg_1030.py` 的 `lib()` 写死文件名 + 截取段（转单声道 44.1 kHz、可重采样变调），与合成层同一套响度对齐（§1 口径，rms100 + 软限幅 -1 dBFS），导入沿用项目 QOA 压缩；只截用到的段。
+
+| 游戏文件 | 用途 | 来源（未注明的为 Sonniss GDC 2026 Bundle，royalty-free）原文件名 | 截取 / 处理 | 时长 |
+|---|---|---|---|---|
+| `ult_texas_mark_1..6` | 德克萨斯终结技每道剑痕（出鞘「shwing」，用户 10-31 选） | **Freesound 611310 IENBA「Dagger」（CC0）**，页面公开 HQ 试听 mp3，原文件放 `build/sfx_src/freesound_sword/` | 4 次拔匕首各取 0.4 s（0.42 / 8.17 / 12.84 / 16.96 s 起），300 Hz 高通，6 道轮着用 | 0.41 s |
+| `ult_texas_cut` | 斩线齐出 | Epic Stock Media「DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04」 | 0.29 s 起 0.8 s | 0.8 s |
+| `ult_texas_impact` | 高潮爆开 | Cinematic Sound Design「Impact Cut Sweep」+ Federico Soler「EffectiveTrailer_Booms_Vol2_214」 | 前者 0.93 s 起 1.5 s；后者 0.25 s 起 1.6 s、900 Hz 低通垫底 | 1.6 s |
+| `ult_texas_cast` | 隐去起手 | David Dumais「METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14」 | 0 s 起 0.6 s，×1.15 | 0.52 s |
+
+| `ult_exusiai_charge` / `_cast` | 能天使终结技瞄准上膛 / 放出拉栓（用户 10-31） | **原作**明日方舟 `p_atk_pistolup_sreload` / `p_atk_pistolup_dreload`（§19 同一热更新，用户同意进游戏） | 整段 0.9 s / 0.3 s | 0.89 / 0.30 s |
+| `ult_exusiai_pop_1..3` / `_impact` | 能天使每个爆点 / 第一下掉血 | Epic Stock Media「EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03」（impact 再叠 Federico Soler Booms_Vol2_214 低频） | 0.02 s 起 0.45 s，变调 ×0.97 / 1.0 / 1.04；impact 1.0 s ×0.85 | 0.43–1.3 s |
+| `ult_kaltsit_impact` / `_ring_hit` | 凯尔希终结技三圈熔毁（用户 10-31 选「原作 Mon3tr 爆发音」） | **原作** `p_skill_Mon3trburst`（impact 前段 0–1.25 s 叠 Booms_Vol2_075 低频；ring_hit 后段 1.27 s 起 0.9 s） | — | 1.36 / 0.9 s |
+| `ult_kaltsit_land` | Mon3tr 落地 | **原作** `p_skill_shieldhitground` 0.2 s 起 0.9 s ×0.85 | — | 1.06 s |
+| `ult_kaltsit_sf` / `_charge` / `_cast` / `_gather_1..3` | 定格 / 瞄准 / 跃出 / 蓄力收光 | ESM「ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Glitch 01」/ Kopeikin「magic, energy flow, astonishment-001」/ CSD「Woosh Debris」/ 同 energy flow 三段 | gather 1.0 / 1.4 / 1.8 s 起各 0.3 s，×1.0 / 1.08 / 1.16 | — |
+| `ult_hoshiguma_*` | 星熊终结技（用户 10-31 选录音版再「低频一点」：整体 ×0.8、5 kHz 低通） | sf 344 Audio「Metal Bangs, Metal Hits, Banging On Doors」；charge / block 344 Audio「METLFric_Large Metal Box, Drag, Geofon」；cast David Dumais「SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01」+ Booms_Vol2_214；pull「Woosh Debris」；crack Kopeikin「ice, crack, ice block snapping-001」+ 重击尾；boom「Impact Cut Sweep」+ Booms_Vol2_214 + Kopeikin「ice, surface cracking, fissure, fast, hard-003」；sizzle Ivo Vicic「24 Campfire, Dropping Fresh Pine Branches in Fire…」 | 见 gen_sfx_ult_seg_1030.py hoshiguma() | 0.45–2.0 s |
+| `ult_ulpianus_*` | 乌尔比安终结技（用户 10-31 选录音版） | cast 游戏内 `op_ulpianus_s1`（§8 Freesound CC0）；sf / anchor David Dumais「METAL SWING HIT … Resonant Tail 01」降调；charge / dash 344 Audio「METLMisc_Metal, Slow Whoosh, Rattle, Pass By x4 01」；impact ESM「WATRImpt_Impact Water Deep Submerge Bubble Drown Ship Hit 05」+ Booms_Vol2_214；crack_hit Kopeikin「ice, surface cracking, fissure…」×0.8；splash 344 Audio「WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04」×0.9 / 1.0 / 1.1 | 见 gen ulpianus() | 0.6–1.4 s |
+| `ult_saria_*` | 塞雷娅终结技（用户 10-31 选原作版） | **原作** `p_skill_rockboost`（sf / charge / gather）、`p_skill_jumphammer_2`（slam，叠 Booms_Vol2_214）、`p_skill_rocksleep`（rock_1..4，0 / 1.25 / 1.73 s 起） | 见 gen saria() | 0.2–1.4 s |
+剑雨插地（`ult_texas_sword_*`）与斩线碎裂（`ult_texas_shatter`）用户 10-31 不要，已删；`ult_audio.json` 对应画面单元写空槽。

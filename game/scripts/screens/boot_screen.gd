@@ -9,9 +9,14 @@ extends Control
 ## 桌面引擎初始化只显示同色背景，不再先放一张静态加载图。
 ## 网页：前面还有 HTML 加载页（tools/web/loader.js，下载占 0–60%、引擎启动 60–80%），这里接着它的百分比走、不倒退；
 ## 网页只保留 HTML 加载页；本页不另绘制，实际进度经 __syBootProgress 回传，主菜单就绪才 __syBootDone。
-## 测试（带命令行参数、无界面）直接切标题页，不走本页；--bootshot / --loadprof 才走（--bootshot 在读到一半时截图退出）。
+## 测试（带命令行参数、无界面）直接切标题页，不走本页；--bootshot / --loadprof / --bootrec 才走（--bootshot 在读到一半时截图退出）。
+## 10-30 用户「更加有 PRTS 的感觉，但是保留点深海的特色」：balance ui/boot_v 1–3 是三个新方向的原型（画法在 boot_views.gd），0 = 本页原样。
+##   三个方向的系统日志按真实加载状态排（启动引擎 → 每个编译类别 n / 总数 → 标题页 → 着色器 → 稳帧），不是预录的动画。
+##   --bootrec=<目录>：逐帧存 rec_<帧>.png 直到标题页出现后 2 秒（录对照片）；--bootslow=<毫秒>：每读完一个文件多等这么久（只给录像拉长，调试参数）
 
 const Tips = preload("res://scripts/screens/loading_tips.gd")
+const Views = preload("res://scripts/screens/boot_views.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
 const ORDER := "res://data/boot_order.json"
 const MAIN := "res://main.tscn"
@@ -56,13 +61,39 @@ var _last_us := 0
 var _budget_ms := 16.7
 var _web_overlay := false
 var _web_last := ""
+var _v := 0                   # ui/boot_v：0 = 现行，1–3 = boot_views 的三个方向
+var views: Views
+var lines: Array = []         # 方向 1–3 的系统日志：{"t", "s", "ok"}（_log_track 每帧重排）
+var _cat_tot := {}            # 编译类别 → 文件数
+var _seen_t := {}             # 日志行 → 第一次出现的时刻
+var _slow_ms := 0
+
+
+## 录对照片：挂在根节点上，启动页释放后接着录 2 秒标题页
+class Rec extends Node:
+	var dir := ""
+	var f := 0
+	var tail := -1
+	func _process(_d: float) -> void:
+		get_viewport().get_texture().get_image().save_png(dir + "/rec_%04d.png" % f)
+		f += 1
+		if tail < 0 and get_tree().root.get_node_or_null("BootDone") != null:
+			tail = f + 60
+		if (tail >= 0 and f >= tail) or f > 1800:
+			get_tree().quit()
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var args := Cfg.dev_args()
 	shot = args.has("--bootshot")
-	if DisplayServer.get_name() == "headless" or (not args.is_empty() and not shot and not args.has("--loadprof") and not args.has("--ftrec")):
+	var rec_dir := ""
+	for a in args:
+		if a.begins_with("--bootrec="):
+			rec_dir = a.substr(10)
+		elif a.begins_with("--bootslow="):
+			_slow_ms = int(a.substr(11))
+	if DisplayServer.get_name() == "headless" or (not args.is_empty() and not shot and not args.has("--loadprof") and not args.has("--ftrec") and rec_dir == ""):
 		if OS.has_feature("web"):
 			_skip_web_boot.call_deferred(get_tree())
 		else:
@@ -100,6 +131,15 @@ func _ready() -> void:
 			items = d.get("items", [])
 	tip_i = randi() % Tips.TIPS.size()
 	_threads = OS.has_feature("threads") and not OS.has_feature("web")
+	_v = clampi(Bal.vi("ui/boot_v", 0), 0, 3)
+	if font != null:
+		views = Views.new(self, font)
+	if rec_dir != "":
+		DirAccess.make_dir_recursive_absolute(rec_dir)
+		var r := Rec.new()
+		r.dir = rec_dir
+		r.process_mode = Node.PROCESS_MODE_ALWAYS
+		get_tree().root.add_child.call_deferred(r)
 	_budget_ms = _frame_budget_ms()
 
 
@@ -114,6 +154,8 @@ static func _skip_web_boot(tree: SceneTree) -> void:
 
 func _process(delta: float) -> void:
 	_web_progress()
+	if _v > 0:
+		_log_track()   # 放在最前：后面打开标题页 / 稳帧阶段会提前 return
 	var now := Time.get_ticks_usec()
 	var dt_ms := (now - _last_us) / 1000.0 if _last_us > 0 else 0.0
 	_last_us = now
@@ -128,6 +170,9 @@ func _process(delta: float) -> void:
 		modulate.a = 1.0 - clampf(out_t / OUT_LEN, 0.0, 1.0)
 		if out_t >= OUT_LEN:
 			set_process(false)
+			var mark := Node.new()
+			mark.name = "BootDone"   # 录像（--bootrec）据此再录 2 秒标题页
+			get_tree().root.add_child(mark)
 			get_parent().queue_free()   # 连同盖层一起释放
 		queue_redraw()
 		return
@@ -165,6 +210,9 @@ func _step_sync() -> void:
 			if FR.enabled() and Time.get_ticks_usec() - l0 > 40000:
 				print("PF FTLOAD %s %.0f ms" % [cur_path, (Time.get_ticks_usec() - l0) / 1000.0])
 		idx += 1
+		if _slow_ms > 0:
+			OS.delay_msec(_slow_ms)
+			return
 		if shot and idx == items.size() / 2:
 			_shot()
 			return
@@ -208,6 +256,8 @@ func _begin_item() -> void:
 
 
 func _end_item() -> void:
+	if _slow_ms > 0:
+		OS.delay_msec(_slow_ms)
 	idx += 1
 	cur_path = ""
 	_req = ""
@@ -323,6 +373,54 @@ func _progress() -> float:
 	return base + (1.0 - base) * f
 
 
+## 系统日志（方向 1–3），每帧按真实状态重排（不预录）：终端唤醒 → 每个编译类别一行（按第一次读到的先后，「n / 总数」，读满标 OK；
+## boot_order 是叶子在前、类别穿插着读，所以不按「换类别就换行」，否则同一类会刷很多行）→ 展开标题页 → 着色器 → 稳帧 → 接入完成。
+## 每行的时间是它第一次出现的时刻
+func _log_track() -> void:
+	if _cat_tot.is_empty():
+		for it in items:
+			var k: String = str(it[1])
+			_cat_tot[k] = int(_cat_tot.get(k, 0)) + 1
+	var cnt := {}
+	var order: Array = []
+	for i in mini(idx + 1, items.size()):
+		var k2: String = str(items[i][1])
+		if not cnt.has(k2):
+			order.append(k2)
+			cnt[k2] = 0
+		if i < idx:
+			cnt[k2] += 1
+	lines.clear()
+	_log_line("boot", "终端唤醒 · 启动引擎", true)
+	var cur_cat: String = str(items[idx][1]) if idx < items.size() else ""
+	for k3 in order:
+		_log_line("c" + k3, "编译 · %s  %d / %d" % [k3, cnt[k3], _cat_tot[k3]], cnt[k3] >= _cat_tot[k3], k3 == cur_cat)
+	var scripts_done: bool = idx >= items.size()
+	if scripts_done:
+		_log_line("title", "展开标题页", _opened, not _opened)
+	if _opened:
+		_log_line("warm", "渲染预热 · 着色器", not is_instance_valid(warm), is_instance_valid(warm))
+		if not is_instance_valid(warm):
+			_log_line("gate", "神经连接校准 · 帧时稳定", out_t >= 0.0, out_t < 0.0)
+	if out_t >= 0.0:
+		_log_line("done", "接入完成", true)
+
+
+## cur = 正在读的这一行（光标闪）；其余没读完的写「..」
+func _log_line(key: String, s: String, ok: bool, cur := false) -> void:
+	if not _seen_t.has(key):
+		_seen_t[key] = t
+	lines.append({"k": key, "t": _seen_t[key], "s": s, "ok": ok, "cur": cur})
+
+
+func _view_state() -> Dictionary:
+	var ta := 1.0 if Cfg.reduce_motion else clampf(tip_t / 0.22, 0.0, 1.0) * clampf((4.0 - tip_t) / 0.22, 0.0, 1.0)
+	var label: String = "进入标题页" if out_t >= 0.0 else (cur_label if _opened else "编译 · " + cur_label)
+	var file: String = cur_file if out_t < 0.0 else ""
+	return {"p": _progress(), "label": label, "file": file, "n": mini(idx, items.size()), "total": items.size(),
+		"lines": lines, "t": t, "tip": Tips.TIPS[tip_i], "tip_a": ta}
+
+
 func _txt(pos: Vector2, s: String, sz: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, w := -1.0) -> void:
 	draw_string(font, pos, s, align, w, sz, col)
 
@@ -347,6 +445,15 @@ func _draw() -> void:
 	if font == null:
 		return
 	var vs := size
+	if _v > 0 and views != null:
+		match _v:
+			1:
+				views.draw_v1(vs, _view_state())
+			2:
+				views.draw_v2(vs, _view_state())
+			3:
+				views.draw_v3(vs, _view_state())
+		return
 	draw_texture_rect(bg, Rect2(Vector2.ZERO, vs), false)
 	var gc := Color(0.47, 0.67, 0.75, 0.05)
 	var gx := 0.0

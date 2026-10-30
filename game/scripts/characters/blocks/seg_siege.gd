@@ -21,9 +21,9 @@ static func _h4_hammer_start(o, a: Dictionary) -> void:
 	if o.cd > 0.0:
 		return
 	var reach: float = float(a.get("r", 108.0)) * o.stat(&"op_range")
-	var at: Vector2 = o.atk_point(o.nearest_enemies(1, reach + 30.0, o.pos), reach)   # 手动普攻 A 类（契约 v2.5）
+	var at: Vector2 = o.atk_point(o.nearest_enemies(1, reach + 30.0, o.pos), reach)   # 按住瞄准 A 类（契约 v2.5）
 	if at == Vector2.INF:
-		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
+		o.cd = float(a.get("idle", 0.1))
 		return
 	var hv: Dictionary = _h4_heavy(o, a)
 	o.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd") * (float(hv.get("interval", 1.0)) if not hv.is_empty() else 1.0)

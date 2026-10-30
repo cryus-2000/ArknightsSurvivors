@@ -10,7 +10,7 @@ extends "res://scripts/characters/blocks/ob_hw.gd"
 ## 族.名 → 放置类别：instant = 瞬时（技能 do、触发器 do、区域 do）；sustain = 常驻（技能 do、passive do、成长节点）；
 ## skill = 只能放技能 do；trig = 触发积木（trait / talent / 成长节点）
 const EXT_BLOCKS := {
-	"shape.line": "instant",          # 直线斩：从自身朝最近目标（手动普攻按 A 方向）长 len、宽 width 的矩形，命中沿线全部
+	"shape.line": "instant",          # 直线斩：从自身朝最近目标（按住瞄准按 A 方向）长 len、宽 width 的矩形，命中沿线全部
 	# verb.displace / verb.field 与安洁莉娜共用，合并时统一到文件末尾「共用积木」段（SHARED_TAGS）
 	"verb.negate_next": "skill",      # 技能持续期间，主控下一次受到的攻击完全格挡（on_block）；持续结束仍没挨打则执行 on_miss
 	"verb.taunt_guard": "skill",      # 10-24 星熊 S1（docs/140）：技能持续期间本干员站定（是队长时照常走）、把半径 r 内近战杂兵的仇恨拉到自己身上；
@@ -368,3 +368,89 @@ static func gm_draw(o) -> void:
 		cv.draw_set_transform(o.g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, k), 3.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+
+# ================================================================ 星熊 S1「战意」重斩画面（用户 10-31：重斩的表现补上、技能圈去掉）
+## 只画画面（借终结技框架 g.ult 的 strip / 灯 / 颗粒，g.ult 关时不画）：沉重下劈弧光（pixgen 3 种新月弧 fx_hs_arc1–3）→ 落点爆亮 + 暖灰金分叉裂网
+## （fx_hs_fork，乌尔比安裂缝转色）一节节往外长、先亮后冷 → 地块顶起落回 + 尘 → 0.25 秒余震；卡肉沿用 s1_stop 命中顿帧，另加一下轻震。
+## 变体：每次按出手时刻 + 位置的哈希挑弧光、转角、裂缝条数 / 角度 / 长短 / 镜像、碎块飞向，同种子同局可重现，不抽模拟随机数。
+## 嘲讽信号：被拉过来的敌人头上闪一下金色「!」（不画圈）。
+const HS_ARCS := ["fx_hs_arc1", "fx_hs_arc2", "fx_hs_arc3"]
+const HS_FORK := "fx_hs_fork"
+const HS_ROCK := "fx_ul_rock"
+const HS_GOLD := Color(1.0, 0.86, 0.55)
+const HS_COLD := Color(0.24, 0.2, 0.16)
+
+
+static func _hh(x: float) -> float:
+	return fposmod(sin(x * 12.9898 + 78.233) * 43758.5453, 1.0)
+
+
+static func s1_slash_fx(o, b: Dictionary) -> void:
+	var u = o.g.ult
+	if u == null or not u.fx_ready(HS_ARCS[0]):
+		return
+	var g = o.g
+	var p0: Vector2 = o.pos
+	var vs: float = floorf(_hh(g.t * 1.37 + p0.x * 0.013 + p0.y * 0.029) * 997.0)
+	var R: float = float(o.base("s1_r", 150.0)) * o.stat(&"op_range")
+	var fx: float = -1.0 if float(o.face) < 0.0 else 1.0
+	var fd := Vector2(fx, 0.18 * (_hh(vs + 1.0) - 0.3)).normalized()   # 朝面向、略往下劈
+	# ① 下劈弧光：新月弧凸向前方，缩放缓出 + 爆亮冷却；后面一道淡残影
+	var arc: String = HS_ARCS[int(_hh(vs) * 3.0) % 3]
+	var t: Texture2D = u._strip_tex(arc)
+	var hw: float = t.get_height()
+	var sc: float = R * 1.25 / maxf(1.0, hw / 2.0 * g.PX)   # 弧高约 1.25 R
+	var ang: float = fd.angle() + (_hh(vs + 2.0) - 0.5) * 0.35
+	var sy: float = -1.0 if _hh(vs + 3.0) < 0.5 else 1.0
+	var ac: Vector2 = p0 + fd * R * 0.3 + Vector2(0, -18)
+	u.strip(arc, ac - fd * 20.0, {"ang": ang - 0.35 * fx, "sc": sc * 0.92, "sy": sy, "life": 0.14, "fade": 0.12, "col": Color(1, 1, 1, 0.35)})
+	u.strip(arc, ac, {"ang": ang, "sc": sc * 0.85, "sc1": sc * 1.05, "scd": 0.06, "sy": sy, "life": 0.22, "fade": 0.14,
+		"col": Color(1.05, 1.02, 0.95, 0.85), "col1": Color(0.45, 0.55, 0.45, 0.9), "cold": 0.2})
+	# ② 落点：爆亮 + 灯 + 轻震
+	var P: Vector2 = p0 + fd * R * 0.55
+	u.shape({"kind": "circle", "c": P, "r": 34.0, "col": Color(0.95, 0.88, 0.7), "fill": 0.85, "life": 0.07})
+	u.light(P, R * 1.5, Color(0.75, 0.62, 0.38), 0.2)
+	u.shake(3.0, 0.12)
+	# ③ 裂网：5–7 条分叉裂缝从落点外跑，角度 / 长短 / 粗细 / 镜像按哈希错开，暖金爆亮冷成暗灰
+	if u.fx_ready(HS_FORK):
+		var ft: Texture2D = u._strip_tex(HS_FORK)
+		var fw: float = ft.get_width() / 2.0 * g.PX
+		var n: int = 5 + int(_hh(vs + 4.0) * 3.0)
+		for j in n:
+			var a: float = fd.angle() + TAU * (float(j) + (_hh(vs + j * 1.7) - 0.5) * 0.8) / n
+			var L: float = R * (0.55 + 0.6 * _hh(vs + j * 2.9))
+			u.strip(HS_FORK, P + Vector2.from_angle(a) * 10.0, {"layer": "back", "ang": a, "o": Vector2(0.0, ft.get_height() * 0.5), "sx": L / fw,
+				"sy": (0.7 if _hh(vs + j * 3.3) < 0.35 else 0.45) * (-1.0 if _hh(vs + j * 4.1) < 0.5 else 1.0), "rev": 0.14, "rev0": 0.15,
+				"delay": 0.03 * _hh(vs + j), "life": 1.2, "fade": 0.5, "col": HS_GOLD, "col1": HS_COLD, "cold": 0.5})
+	# ④ 地块顶起落回 + 尘；0.25 秒余震再跳一批
+	if u.fx_ready(HS_ROCK):
+		for q in 7:
+			var hq: float = _hh(vs + q * 5.3)
+			var dv := Vector2.from_angle(TAU * (q + hq) / 7.0)
+			var high: bool = q % 3 == 0
+			_s1_rock(u, P + dv * R * (0.3 + 0.35 * hq), dv * (70.0 if high else 25.0), (300.0 if high else 130.0) + 60.0 * hq, hq, 0.32 if high else 0.25, 0.04)
+		for q in 4:
+			var hq2: float = _hh(vs + q * 9.1 + 50.0)
+			_s1_rock(u, P + Vector2.from_angle(TAU * hq2) * R * (0.2 + 0.5 * _hh(hq2 * 7.0)), Vector2.ZERO, 120.0, hq2, 0.24, 0.25 + 0.04 * q)
+	for q in 8:
+		var dq := Vector2.from_angle(TAU * (q + _hh(vs + q)) / 8.0)
+		u.grain("bfx_dust", P + dq * R * 0.35, dq, Color(0.6, 0.56, 0.5), 3)
+
+
+static func _s1_rock(u, p: Vector2, v: Vector2, vy: float, hh: float, sc: float, delay: float) -> void:
+	var fr: Array = [0, 1, 3]
+	var grav: float = 1500.0
+	u.strip(HS_ROCK, p, {"f": int(fr[int(hh * 97.0) % 3]), "sc": sc + 0.15 * _hh(hh * 17.0), "sx": -1.0 if _hh(hh * 29.0) < 0.5 else 1.0,
+		"v": v + Vector2(0, -vy), "grav": grav, "life": 2.0 * vy / grav, "spin": (hh - 0.5) * 9.0, "delay": delay, "col": Color(1.1, 1.02, 0.92)})
+
+
+## 嘲讽信号：这名敌人刚被拉过来——头上闪一下金色「!」（竖条 + 点，往上弹一点就淡掉）
+static func s1_taunt_mark(o, p: Vector2) -> void:
+	var u = o.g.ult
+	if u == null:
+		return
+	var top: Vector2 = p + Vector2(0, -34)
+	u.shape({"kind": "line", "a": top, "b": top + Vector2(0, -12), "w": 3.0, "col": HS_GOLD, "life": 0.35, "v": Vector2(0, -30)})
+	u.shape({"kind": "circle", "c": top + Vector2(0, 5), "r": 2.0, "col": HS_GOLD, "fill": 1.0, "life": 0.35, "v": Vector2(0, -30)})

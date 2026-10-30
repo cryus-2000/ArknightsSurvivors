@@ -364,7 +364,7 @@ NOCACHE = False
 SCOPES = {}            # {"logic": 哈希, "full": 哈希}，main 里算一次
 CACHE_STAT = {"hit": 0, "miss": 0}
 ASSET_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg", ".ogg", ".wav", ".mp3", ".ttf", ".otf", ".woff", ".woff2", ".fnt", ".import")
-LOGIC_TAGS = ("冒烟", "自然流程", "nodes_", "prot", "复现", "blocks_eq_", "manual_all_")
+LOGIC_TAGS = ("冒烟", "自然流程", "nodes_", "prot", "复现", "blocks_eq_", "hold_aim_")
 
 
 def _blobs(rel):
@@ -657,16 +657,16 @@ def check_nodes(godot, only=None):
     return {"log": "、".join(p for p in bad_logs if p), "name": "成长节点当场生效", "ok": not bad, "detail": "%d 名干员 × 6 节点" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
 
 
-def check_manual_all(godot, only=None):
-    """手动普攻全员验收（tests/manual_all_test.tscn，10-24 用户「星熊这种手动的时候攻击打不出来」）：每名干员当队长、打开手动普攻，
-    走真实键盘 / 触屏输入：空按、有敌人、边移动边按、轻点 3 次（有敌人 / 空场）都必须出招（攻击事件 + 动画），有敌人时敌人掉血。
+def check_hold_aim(godot, only=None):
+    """按住瞄准全员验收（tests/hold_aim_test.tscn，10-31 取消手动普攻、改为自动普攻 + 按住瞄准）：每名干员当队长，
+    不按时打右边近处木桩（自动），模拟按住瞄准 / 触屏瞄准键朝左时打左边木桩，空场按住照常出招，松手回到自动。
     only：只测这些干员（--auto 按改动选）"""
     ids = [o for o in op_ids() if only is None or o in only]
 
     def one(op):
-        out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--path", GAME, "res://tests/manual_all_test.tscn", "--", "--regression", "--balance", "--seed=1", "--op=" + op, "--manualatk"], 600, "manual_all_" + op)
+        out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--path", GAME, "res://tests/hold_aim_test.tscn", "--", "--regression", "--balance", "--seed=1", "--op=" + op], 600, "hold_aim_" + op)
         fails = re.findall(r"^FAIL: (.*)$", out + chr(10) + err, re.M)
-        return op, ("MANUAL ALL %s failures=0" % op) in out, fails, GR.script_errors(out, err), to
+        return op, ("HOLD AIM %s failures=0" % op) in out, fails, GR.script_errors(out, err), to
 
     with ThreadPoolExecutor(max(1, len(ids))) as ex:
         res = list(ex.map(one, ids))
@@ -675,8 +675,8 @@ def check_manual_all(godot, only=None):
     for op, passed, fails, errs, to in res:
         if to or errs or fails or not passed:
             bad.append("%s：%s" % (op, "超时" if to else (errs[0][:120] if errs else (fails[0][:120] if fails else "没有通过标记"))))
-            bad_logs.append(os.path.join(LOG_DIR, "manual_all_" + op + ".log") if LOG_DIR else "")
-    return {"log": "、".join(p for p in bad_logs if p), "name": "手动普攻全员验收", "ok": not bad, "detail": "%d 名干员 × 6 场景" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
+            bad_logs.append(os.path.join(LOG_DIR, "hold_aim_" + op + ".log") if LOG_DIR else "")
+    return {"log": "、".join(p for p in bad_logs if p), "name": "按住瞄准全员验收", "ok": not bad, "detail": "%d 名干员 × 5 场景" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
 
 
 def check_prot(godot):
@@ -1045,6 +1045,7 @@ SCENE_REGRESSIONS = {
     "card_desc_fit": ("藏品卡说明放得下（可见成长 7 件必须放得下；其余只报告截断）", "card_desc_fit_test.gd", r"CARD DESC FIT cut=\d+ failures=0", []),
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
     "invuln_skill_hold": ("无敌暂缓技能（Boss 无敌时普攻照打、自动技能就绪不放，解除后 1 秒内放出；开关 combat/hold_skill_on_invuln）", "invuln_skill_hold_test", r"INVULN SKILL HOLD checks=\d+ failures=0", ["--balance", "--seed=1"]),
+    "ult_playback": ("终结技播放形式（按 Q 到演出结束队长不走不冲、突进由招式写位置、播放期间无敌；期间的升级排队、播完逐个弹；开关 ult/playback）", "ult_playback_test", r"ULT PLAYBACK checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=irene"]),
     "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
     # 以下旧系统（隐藏连携 / 响应动作 / 手动技能 / 契约试点的响应段）在 ult/on（docs/198 终结技，缺省开）下停用：测试固定 --bal=ult/on=0 守旧路径，旧系统删掉时连同测试一起删
     "synergy_a": ("干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--bal=ult/on=0", "--regression", "--balance", "--seed=1", "--op=texas", "--squad=exusiai,lappland"]),
@@ -1301,7 +1302,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1390,7 +1391,7 @@ def main():
             if ops:
                 jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
                 jobs.append(lambda: check_nodes(godot, ops))
-                jobs.append(lambda: check_manual_all(godot, ops))
+                jobs.append(lambda: check_hold_aim(godot, ops))
             if "smoke-sample" in plan["groups"]:
                 head = _git("rev-parse", "HEAD").strip() or "0"
                 allc = smoke_cases()
@@ -1423,8 +1424,8 @@ def main():
             jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in cases]
         if a.only in (None, "nodes"):
             jobs.append(lambda: check_nodes(godot))
-        if a.only in (None, "manual_all"):
-            jobs.append(lambda: check_manual_all(godot))
+        if a.only in (None, "hold_aim"):
+            jobs.append(lambda: check_hold_aim(godot))
         if a.only in (None, "prot"):
             jobs.append(lambda: check_prot(godot))
         if a.only in (None, "repro"):

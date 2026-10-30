@@ -377,7 +377,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	if g.demo_op != "" or g.state == Game.S.SHOW:
 		return
 	# 升级字样：弹出放大 -> 轻微上浮 -> 淡出
-	if g.lvup_show > 0.0 and g.state == Game.S.PLAY:
+	if g.lvup_show > 0.0 and g.state == Game.S.PLAY and (g.ult == null or not g.ult.show_busy()):
 		var age := 1.3 - g.lvup_show
 		var pop := 1.0 + 0.6 * clampf(1.0 - age / 0.15, 0.0, 1.0)
 		if age > 0.15 and age < 0.3:

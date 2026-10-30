@@ -503,7 +503,7 @@
    "en": "WATERLESS PARTING OF THE GREAT OCEAN",
    "sp": 7,
    "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到身前 {$hook_front} 处（她当队长时 {$hook_front_leader} 处，精英与自爆怪只拖半程），到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
-   "icon": "skill_ulpianus_s1"
+   "icon": "skill_gladiia_s1"
   },
   {
    "name": "缺水的掌握怒海",
@@ -511,7 +511,7 @@
    "sp": 16,
    "dur": 10.0,
    "desc": "{$s2_dur} 秒内伤害 ×{$s2_dmg}、攻击间隔 ×{$s2_interval}、钩索射程 +{$s2_range*100}%；每次掷钩同时把身边 {$s2_pull_r} 内的敌人拉近 {$s2_pull}（精英减半，Boss 除外）",
-   "icon": "skill_ulpianus_s2"
+   "icon": "skill_gladiia_s2"
   },
   {
    "name": "缺水的碎漩狂舞",
@@ -519,7 +519,7 @@
    "sp": 26,
    "dur": 8.0,
    "desc": "在最近一次钩中的敌人处生成半径 {$s3_r} 的漩涡，持续 {$s3_dur} 秒：每 {$s3_every} 秒对涡内敌人造成 {$s3_mult*100}% 法术伤害、减速 {$s3_slow} 秒并拉向中心 {$s3_pull}；结束时把半径 {$s3_end_r} 内的敌人拽向中心 {$s3_end_pull} 并眩晕 {$s3_end_stun} 秒（精英减半，Boss 除外）",
-   "icon": "skill_ulpianus_s3"
+   "icon": "skill_gladiia_s3"
   }
  ],
  "talent": {
@@ -662,7 +662,7 @@
     "brute": {
      "id": "brute",
      "name": "怒海",
-     "icon": "skill_ulpianus_s1",
+     "icon": "skill_gladiia_s1",
      "desc": "钩索拖拽后，锁链不收回，沉在地面 {$chain_dur} 秒：踩上锁链的敌人移速 -{$chain_slow*100}%（Boss 除外），每 {$chain_every} 秒受到攻击力 {$chain_mult*100}% 的法术伤害"
     }
    },
@@ -673,7 +673,7 @@
    "type": "custom",
    "id": "brute",
    "name": "怒海",
-   "icon": "skill_ulpianus_s1",
+   "icon": "skill_gladiia_s1",
    "desc": "钩索拖拽后，锁链不收回，沉在地面 {$chain_dur} 秒：踩上锁链的敌人移速 -{$chain_slow*100}%（Boss 除外），每 {$chain_every} 秒受到攻击力 {$chain_mult*100}% 的法术伤害",
    "routes": {
     "shield": {
@@ -685,7 +685,7 @@
     "brute": {
      "id": "brute2",
      "name": "怒海·暗涌",
-     "icon": "skill_ulpianus_s1",
+     "icon": "skill_gladiia_s1",
      "desc": "锁链沉没（{$chain_dur} 秒到期）时，沿钩线每隔 {$geyser_gap} 冒出一根水柱，被冲中的敌人浮空 {$geyser_air} 秒（精英减半，Boss 除外）"
     }
    }
@@ -930,6 +930,7 @@
      {
       "verb": "field",
       "center": "last_hit",
+      "pix": "gl_s3",
       "r": "$s3_r",
       "dur": "$s3_dur",
       "every": "$s3_every",

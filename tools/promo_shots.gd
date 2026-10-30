@@ -215,15 +215,13 @@ func _process(_dt: float) -> bool:
 		if f.get("name", "") == "fx_mizuki_tentacle_mass" and float(f.max) - float(f.life) > 0.1 and float(f.max) - float(f.life) < 0.35:
 			_shot("ult", 50 + _enemies_on_screen())
 			break
-	# 手动普攻方向指示：manual_t 起 20 秒临时打开（缺省 2:20，场面不太乱、箭头看得清；模拟按住攻击键，不用鼠标瞄准 = 按走位方向 / 朝向）
+	# 按住瞄准方向指示：manual_t 起 20 秒模拟按住瞄准（缺省 2:20，场面不太乱、箭头看得清；方向 = 朝向）
 	var want_manual: bool = only.is_empty() or "manual" in only   # 不截手动指示的局不改操作方式（干净局）
 	if want_manual and g.t >= manual_t and g.t < manual_t + 20.0:
-		g.doctor.manual_attack = true
 		g.doctor.sim_atk = true
-		g.doctor._mouse_t = -99.0
+		g.doctor.sim_dir = Vector2.ZERO
 		if g.t > manual_t + 2.0:
 			_shot("manual", _enemies_on_screen())
-	elif g.t >= manual_t + 20.0 and g.doctor.manual_attack:
-		g.doctor.manual_attack = false
+	elif g.t >= manual_t + 20.0 and g.doctor.sim_atk:
 		g.doctor.sim_atk = false
 	return false

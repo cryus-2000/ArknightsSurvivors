@@ -353,11 +353,8 @@ func draw_open_hints(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(0, 104), g.quality_note, 15, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, clampf(g.quality_note_t / 0.5, 0.0, 1.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	if g.state == Game.S.PLAY:
 		if g.t < 6.0:
-			var ohint: String
-			if g.doctor.manual_attack:
-				ohint = "按住左半屏拖动移动 · 按攻击键出手（拖动选方向）" if g.touch.active else Pad.hint("WASD 移动 · 按住左键 / J 攻击，朝光标（或移动）方向", "左摇杆移动 · Ⓧ / RT 攻击 · 右摇杆瞄准")
-			else:
-				ohint = "按住左半屏拖动移动 · 攻击全自动" if g.touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")
+			# 普攻永远自动；按住瞄准改方向（10-31 取消手动普攻）
+			var ohint: String = "按住左半屏拖动移动 · 攻击自动 · 拖动瞄准键改方向" if g.touch.active else Pad.hint("WASD 移动 · 攻击自动 · 按住左键朝光标瞄准", "左摇杆移动 · 攻击自动 · 右摇杆瞄准")
 			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif ((g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0) and not g.wheel.is_open:   # 指挥圆盘开着时底部是圆盘自己的操作提示，TAB 提示让开（10-24 叠字）
 			var ha := clampf(minf(g.t - 6.0, 16.0 - g.t) / 0.5, 0.0, 1.0) if g.tab_hint <= 0.0 else clampf(g.tab_hint / 0.5, 0.0, 1.0)
@@ -380,15 +377,14 @@ func draw_dash_hint(vs: Vector2) -> void:
 	var ready: bool = g.dash_ready()
 	h.batch_begin()   # 色块一批、字最后（性能 9/30）
 	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
-	if g.doctor.manual_attack:
-		# 手动普攻：冲刺牌左边一枚攻击牌（键鼠 左键 / J，手柄 RT / Ⓧ）
-		var acap: String = Pad.hint("左键 / J", "RT / Ⓧ")
-		var akw := UI.cwidth(g.font, acap, 11) + 12.0
-		var aw := 8.0 + akw + 8.0 + 28.0 + 12.0
-		var ar := Rect2(Vector2(vs.x / 2.0 - aw - 70.0 - 8.0, vs.y - 44), Vector2(aw, 28))
-		h._hb.rect(ar, Color(0.03, 0.035, 0.045, 0.74))
-		UI.keycap(g.hud, g.font, ar.position + Vector2(8, 5), acap, Color(1.0, 0.75, 0.45), 11)
-		UI.text(g.hud, g.font, ar.position + Vector2(16 + akw, 19), "攻击", 13, UI.TEXT)
+	# 冲刺牌左边一枚瞄准牌：普攻自动，按住改朝指向（键鼠 按住左键，手柄 右摇杆）
+	var acap: String = Pad.hint("左键", "右摇杆")
+	var akw := UI.cwidth(g.font, acap, 11) + 12.0
+	var aw := 8.0 + akw + 8.0 + 28.0 + 12.0
+	var ar := Rect2(Vector2(vs.x / 2.0 - aw - 70.0 - 8.0, vs.y - 44), Vector2(aw, 28))
+	h._hb.rect(ar, Color(0.03, 0.035, 0.045, 0.74))
+	UI.keycap(g.hud, g.font, ar.position + Vector2(8, 5), acap, Color(1.0, 0.75, 0.45), 11)
+	UI.text(g.hud, g.font, ar.position + Vector2(16 + akw, 19), "瞄准", 13, UI.TEXT)
 	var cap_s: String = Pad.hint("SPACE", "Ⓑ")
 	var kw := UI.cwidth(g.font, cap_s, 11) + 12.0
 	var w := 8.0 + kw + 8.0 + 28.0 + 12.0
@@ -482,6 +478,8 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)   # 外圈 / 箭头 = 职业色（同图鉴、选人）
 		if o.cmd_down > 0.0:
 			oc = Color(0.5, 0.52, 0.55)   # 倒地：灰圈（docs/114 §7）
+		elif h.allyhp.low(o):
+			oc = oc.lerp(UI.RED, 0.55 + 0.45 * h.allyhp.pulse())   # 残血：外圈 / 箭头红色慢闪（docs/114 §21）
 		g.hud.draw_circle(edge, 20.0, Color(0.03, 0.05, 0.07, 0.9))
 		var pt: Dictionary = o.portrait()   # 编队卡同一份头像帧条（待机帧），裁出头部
 		var tx: Texture2D = g.tex.get(pt.tex)
@@ -515,7 +513,8 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 
 ## 队友小血条（docs/114 §7，command/hp 开时）：突击中、受伤后 3 秒、倒地时显示在头顶；倒地时灰条 = 复活倒计时
 func _draw_op_hp(o, ct: Transform2D, st: int) -> void:
-	if not g.squad.hp_on() or not (st == 1 or o.cmd_show > 0.0 or o.cmd_down > 0.0):
+	var lw: bool = h.allyhp.low(o)
+	if not g.squad.hp_on() or not (st == 1 or o.cmd_show > 0.0 or o.cmd_down > 0.0 or lw):
 		return
 	var c: Vector2 = ct * (o.pos + Vector2(0, -62))
 	var r := Rect2(c - Vector2(16, 0), Vector2(32, 4))
@@ -524,8 +523,12 @@ func _draw_op_hp(o, ct: Transform2D, st: int) -> void:
 		var k: float = 1.0 - clampf(o.cmd_down / maxf(0.1, Bal.v("command/revive_secs", 25.0)), 0.0, 1.0)
 		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(0.55, 0.57, 0.6))
 		return
-	var hc: Color = UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED)
+	var hc: Color = UI.RED if lw else (UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED))
 	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(o.cmd_hp, 0.0, 1.0), r.size.y)), hc)
+	if lw:   # 残血（docs/114 §21）：红框 + 整条提亮，1.2 秒一次慢闪
+		var p: float = h.allyhp.pulse()
+		g.hud.draw_rect(r.grow(2.5), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.6 * p), false, 1.5)
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(o.cmd_hp, 0.0, 1.0), r.size.y)), Color(1, 0.6, 0.6, 0.45 * p))
 
 
 func draw_stamina_bar(r: Rect2) -> void:

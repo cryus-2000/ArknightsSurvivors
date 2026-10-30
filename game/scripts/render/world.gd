@@ -2101,7 +2101,7 @@ func _draw_tells_outlines() -> void:
 	if not _dbg_foe and not _dbg_warn:
 		draw_warn_outlines()
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
-	g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
+	g.squad.draw_leader_mark()   # 内含按住瞄准方向指示（draw_attack_dir，同一批）
 
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）

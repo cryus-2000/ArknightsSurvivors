@@ -235,7 +235,9 @@ func _ready() -> void:
 	if not echoes.is_empty():
 		g.fx.clear()
 		g.bai._warn_resolve(echoes[0])
-		check(g.fx.any(func(f): return f.kind in ["tide_link", "kp_beam"]), "tear resonance draws linked wave (Kanpelle beam, docs/142b §8.5)")
+		echoes[0].done = true
+		g.bai.boss("ishar").cards()._beam_fades(sea)   # 10-31 起伊莎玛拉光束统一由 ishar_tell_draw 画（render/ishar_laser），结算帧写 ishar_beam_fade
+		check(g.fx.any(func(f): return f.kind in ["tide_link", "kp_beam", "ishar_beam_fade"]), "tear resonance draws linked wave (unified Ishar beam, 10-31)")
 	# Codex 第 1 批帧条挂点（docs/95 §13、art/incoming/boss_moves_1_handoff.md）：预警中播蓄力帧 f0 / f1，结算后 0.2 秒内播出手帧 f2（回旋 f2–f4、前刺 f1）
 	g.t = 600.0
 	g.warns.clear()
