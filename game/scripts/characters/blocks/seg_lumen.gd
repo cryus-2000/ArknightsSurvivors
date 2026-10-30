@@ -70,14 +70,14 @@ static func _h3_lantern_start(o, a: Dictionary, dt: float) -> void:
 	if o.cd > 0.0:
 		return
 	var rr: float = _h3_bolt_range(o, a)
-	var ts: Array = o.attack_targets(1, rr, o.pos) if o.manual_attack() else o.los_targets(1, rr, o.pos)
+	var ts: Array = o.attack_targets(1, rr, o.pos) if o.held_aim() else o.los_targets(1, rr, o.pos)
 	lm.armed = not ts.is_empty()
 	var every: float = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 	if not ts.is_empty() or float(lm.heal_t) >= float(hb.get("every", 3.0)):
 		o.cd = every
 		o.start_attack(ts[0].pos if not ts.is_empty() else o.g.ppos, 0.5, 0.25, _h3_lantern_anim(o, lm, ts))
 	else:
-		o.cd = o.idle_cd(every)
+		o.cd = every
 
 
 ## 这一发若是精二灯塔光柱（已充满、有目标），起手播光柱帧条（与 attack 同时长、同出手时刻，纯画面）
@@ -121,7 +121,7 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		g.fx.append({"kind": "beam", "a": hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": H3_WARM, "w": 2.5})
 	lm.hand_glow = 0.18
 	var rr: float = _h3_bolt_range(o, a)
-	var ts: Array = ((o.aim_targets(1, rr, o.pos) if lm.armed else []) if o.manual_attack() else o.los_targets(1, rr, o.pos))
+	var ts: Array = ((o.aim_targets(1, rr, o.pos) if lm.armed else []) if o.held_aim() else o.los_targets(1, rr, o.pos))
 	if not ts.is_empty():
 		var bt: Dictionary = a.get("bolt", {})
 		var d: Vector2 = (ts[0].pos - hand).normalized()

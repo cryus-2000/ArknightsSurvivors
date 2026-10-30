@@ -33,8 +33,8 @@ var skill_id := -1          # 正在按技能键的触点（-1 = 没按）
 var skill_origin := Vector2.ZERO
 var skill_aim := Vector2.ZERO
 var skill_rect := Rect2()
-## 攻击键（契约 v2.5「手动普攻」，只在 g.doctor.manual_attack 为真时显示，冲刺键左侧）：按住 = 攻击（doctor.touch_atk），
-## 拖出方向写 doctor.touch_atk_dir（不到 AIM_DEAD 写 ZERO = 吸附最近目标）
+## 瞄准键（10-31 取消手动普攻后的按住瞄准，冲刺键左侧；布局里可隐藏 TouchLayout.atk_hidden）：普攻永远自动，
+## 按住并拖出方向写 doctor.touch_atk / touch_atk_dir，拖过 AIM_DEAD 才算按住瞄准（不拖 = 仍是自动）
 var atk_id := -1
 var atk_origin := Vector2.ZERO
 var atk_drag := Vector2.ZERO
@@ -217,14 +217,14 @@ func _stick_zone(p: Vector2, vs: Vector2) -> bool:
 	return p.x < vs.x - EDGE and p.x > vs.x * 0.45
 
 
-## 本帧的按键布局（TouchLayout.resolve）：{键: {c, s, custom}}；视口 / 普攻方式 / 自定义布局不变时复用
+## 本帧的按键布局（TouchLayout.resolve）：{键: {c, s, custom}}；视口 / 自定义布局（含瞄准键隐藏）不变时复用
 func layout(vs: Vector2) -> Dictionary:
-	var manual: bool = g.doctor != null and g.doctor.manual_attack
+	var atk_on: bool = not TouchLayout.atk_hidden(Cfg.touch_layout)
 	var ph: bool = Cfg.phone_ui()
-	var key: Array = [vs, manual, Cfg.touch_layout.hash(), Cfg.safe_insets().hash(), ph]
+	var key: Array = [vs, atk_on, Cfg.touch_layout.hash(), Cfg.safe_insets().hash(), ph]
 	if key != _lay_key:
 		_lay_key = key
-		_lay = TouchLayout.resolve(vs, manual, Cfg.touch_layout, Cfg.touch_safe_rect(vs), ph)
+		_lay = TouchLayout.resolve(vs, atk_on, Cfg.touch_layout, Cfg.touch_safe_rect(vs), ph)
 	return _lay
 
 
@@ -339,7 +339,7 @@ func update(dt: float) -> void:
 	_ult_aim()   # 每帧写一次：ult.gd 瞄准阶段还会按左摇杆挪落点，拖动的落点以手指为准
 	if skill_id < 0:
 		skill_aim = Vector2.ZERO
-	if atk_id >= 0 and (g.state != g.S.PLAY or not g.doctor.manual_attack):
+	if atk_id >= 0 and (g.state != g.S.PLAY or TouchLayout.atk_hidden(Cfg.touch_layout)):
 		_atk_release()
 
 
@@ -373,7 +373,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		var ka: float = 0.2 if L.stick.custom else 0.12
 		_arc(hud, c, 40.0 * sk, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka), 1.5)
 		_circ(hud, c, 10.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka))
-	# 冲刺按钮：缺省在右下角编队区（源石锭框 + 「编队 n / m」）正上方；技能键 / 攻击键缺省跟着冲刺键（touch_layout.default_center）
+	# 冲刺按钮：缺省在右下角编队区（源石锭框 + 「编队 n / m」）正上方；技能键 / 瞄准键缺省跟着冲刺键（touch_layout.default_center）
 	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：右侧竖列只放暂停 / 属性，冲刺键左移到 vs.x − 134
 	var ph: bool = vs.y < 520.0 or Cfg.phone_ui()
 	if g.hud_live():
@@ -389,7 +389,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45), "冲刺", dfs, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80))
 		if g.dash_max() > 1:   # 连冲：剩余次数
 			_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45 + 18.0 * clampf(ds, 0.85, 1.3)), "×%d" % g.dash_left(), int(round(12.0 * clampf(ds, 0.85, 1.3))), Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 80))
-		if g.doctor.manual_attack:
+		if not TouchLayout.atk_hidden(Cfg.touch_layout):
 			_draw_atk_button(hud, font, L.atk.c, L.atk.s)
 		else:
 			atk_rect = Rect2()
@@ -450,7 +450,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 				_arc(hud, c, br + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
 
 
-## 攻击键：圆底 + 交叉双刃图标 + 「攻击」；按住时亮、拖动时按钮上画小摇杆（同技能键）
+## 瞄准键：圆底 + 准星图标；按住时亮、拖动时按钮上画小摇杆（同技能键），拖过死区 = 按住瞄准
 func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> void:
 	var r := BTN * 0.62 * sc
 	atk_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
@@ -458,11 +458,11 @@ func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> voi
 	var ac := Color(1.0, 0.72, 0.4)
 	_circ(hud, c, r, Color(0.14, 0.08, 0.04, 0.8 if held else 0.55))
 	_arc(hud, c, r, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.95 if held else 0.6), 3.0 if held else 2.0)
-	for sgn in [-1.0, 1.0]:
-		var a0: Vector2 = c + Vector2(-12.0 * sgn, 12.0) * sc
-		var a1: Vector2 = c + Vector2(12.0 * sgn, -12.0) * sc
-		_ln(hud, a0, a1, Color(1, 1, 1, 0.95 if held else 0.75), 3.0)
-		_ln(hud, a0 + Vector2(-4.0 * sgn, -4.0), a0 + Vector2(4.0 * sgn, 4.0), Color(ac.r, ac.g, ac.b, 0.9), 3.0)
+	var wc := Color(1, 1, 1, 0.95 if held else 0.75)
+	_arc(hud, c, 9.0 * sc, 0.0, TAU, 24, wc, 2.0)
+	for d in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]:
+		_ln(hud, c + d * 5.0 * sc, c + d * 15.0 * sc, wc, 2.5)
+	_circ(hud, c, 2.0 * sc, Color(ac.r, ac.g, ac.b, 0.95))
 	if atk_id >= 0:
 		_seal(hud)   # 拖动小摇杆压在按钮字上（原顺序）
 		var reach := r + 30.0

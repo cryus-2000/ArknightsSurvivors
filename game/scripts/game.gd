@@ -1111,7 +1111,7 @@ func _ready() -> void:
 	A.mark("nodes")
 	panel_ui.build(ul)
 	settings = preload("res://scripts/settings_panel.gd").new()
-	settings.game_ref = self   # 触屏按键布局编辑页按本次探索的普攻方式摆攻击键
+	settings.game_ref = self   # 触屏按键布局编辑页（局内暂停也能开）
 	ul.add_child(settings)
 	if Cfg.ui_k != 1.0:
 		_ui_fit()
@@ -1746,14 +1746,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_dash()
 		get_viewport().set_input_as_handled()
 		return
-	# 终结技 Q / 连携技 E（docs/198 §2.4，ult/on）：取代下面的手动技能路由；J 只在手动普攻时是攻击
+	# 终结技 Q / 连携技 E（docs/198 §2.4，ult/on）：取代下面的手动技能路由
 	var act: String = PlayKeys.action_of(k, true) if ult != null else ""
-	if (act == "ult" or act == "combo" or act == "attack") and state == S.PLAY:
-		if act != "attack" and (ult.press_q() if act == "ult" else ult.press_e()):
+	if (act == "ult" or act == "combo") and state == S.PLAY:
+		if (ult.press_q() if act == "ult" else ult.press_e()):
 			get_viewport().set_input_as_handled()
 		return
-	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）
-	if (k == KEY_Q or k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
+	# 手动技能（ult/on = 0 的旧路由）：Q / E / J（手柄 Ⓐ / Ⓨ 注入 Q，Ⓧ 注入 J）。终结技开着时 J / Ⓧ 不再有动作（10-31 取消攻击键）
+	if (k == KEY_Q or k == KEY_E or (k == KEY_J and ult == null)) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()

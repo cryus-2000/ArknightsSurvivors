@@ -10,7 +10,7 @@ extends "res://scripts/characters/blocks/ob_summon.gd"
 #                    目前作用于弹道命中（shape.projectile，能天使「穿甲连射」）；逻各斯「剜魂」迁积木时接到 st.* 法伤上
 #  verb.buff_timed   瞬时：stat / op（缺省 add）/ value，持续 dur 秒；同 key 再触发只刷新时间、不叠加。生效期间等同一块 verb.buff_self 常驻积木
 #                    （局部倍率或 op_* 属性，fx 里的贴身层 / hold 帧条也照常画），条件 buff:<key> 为真。星熊「反击架势」
-#  shape.boomerang   瞬时：往返弹体。朝最近敌人（手动普攻按 A 方向）飞出 len（× op_range），到头停 hold 秒，再飞回本干员手里（原点跟着她走）；
+#  shape.boomerang   瞬时：往返弹体。朝最近敌人（按住瞄准按 A 方向）飞出 len（× op_range），到头停 hold 秒，再飞回本干员手里（原点跟着她走）；
 #                    去程、回程各扫一遍线段（宽 w），同一敌人每程一次：去程 × mult_out 并按 kb_out 击退，回程 × mult_back 不击退。伤害口径同 shape.line
 #                    （普攻替换时也吃局部倍率 atk）。lock: true = 弹体在外面时本干员不普攻。tex：弹体帧条（缺图画程序圆盾）；spark：沿途火花帧条。星熊「般若回旋」
 #  verb.summon_cmd   瞬时：指挥 kind 种召唤物做一个动作。action: leap = 以 t 秒弧线跃回 to（leader = 队长身边；front = 队长与最近敌群之间、队长前方，落地面朝敌群），落地执行 then（center: target = 落点）。凯尔希「回防」「护主」

@@ -313,13 +313,13 @@ func update(dt: float) -> void:
 	var a: Dictionary = cur_attack()
 	var at := Vector2.INF
 	match str(a.get("shape", "")):
-		"support":   # 召唤物扩展段（§15.9）：不造成伤害的普攻，every 一拍，when 成立才朝主控起手（手动普攻不管它）
+		"support":   # 召唤物扩展段（§15.9）：不造成伤害的普攻，every 一拍，when 成立才朝主控起手（按住瞄准不管它）
 			cd = float(a.get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
 			if ObCore.cond_true(self, a.get("when", {})):
 				start_attack(g.ppos)
 			return
 		"circle":
-			if str(a.get("center", "")) == "front":   # 手写迁移段：锚击砸在身前（手动普攻 A 类）
+			if str(a.get("center", "")) == "front":   # 手写迁移段：锚击砸在身前（按住瞄准 A 类）
 				at = SegUlpianus.hw_front_aim(self, a)
 			else:
 				var c: Vector2 = ObCore.shape_center(self, a)
@@ -327,7 +327,7 @@ func update(dt: float) -> void:
 					c = pos
 				var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else ObCore.shape_radius(self, a)
 				if c != Vector2.INF:
-					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
+					at = atk_point(nearest_enemies(1, r, c), r)   # 按住瞄准（v2.5）：不分方向
 		"cone":
 			var r2: float = ObCore.shape_radius(self, a)
 			var sr = a.get("skill_reach")   # 技能期间起手距离换成 r（德克萨斯剑雨滂沱·次元斩：前方 rift_r 内有敌人就出手）
@@ -335,27 +335,27 @@ func update(dt: float) -> void:
 				r2 = float(sr.r) * stat(&"op_range")
 			var fp0: Dictionary = _far_pick(a)
 			if fp0.is_empty():
-				at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
+				at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 按住瞄准 A 类
 			else:
 				at = _far_aim(a, fp0, r2)   # attack.far：按距离（手动 = 按指向）选近战 / 远程
 		"line":
 			var rl: float = float(a.get("len", 0.0)) * stat(&"op_range")
-			at = atk_point(nearest_enemies(1, rl, pos), rl)   # 手动普攻 A 类
+			at = atk_point(nearest_enemies(1, rl, pos), rl)   # 按住瞄准 A 类
 		"point_aoe":
 			var tp: Vector2 = SegAngelina.point_aoe_target(self, a)
 			atk_to = tp
-			at = atk_point([{"pos": tp}] if tp != Vector2.INF else [], float(a.get("range", 300.0)) * stat(&"op_range"))   # 手动普攻 A 类（落点 aim_land）
+			at = atk_point([{"pos": tp}] if tp != Vector2.INF else [], float(a.get("range", 300.0)) * stat(&"op_range"))   # 按住瞄准 A 类（落点 aim_land）
 		"dash_line":
 			at = SegTexas.tx_attack_point(self, a)   # 德克萨斯段
-		"projectile":   # 能天使段：手动普攻 B 类
+		"projectile":   # 能天使段：按住瞄准 B 类
 			at = SegExusiai.exu_aim(self, a)
-		"shell":   # 手写迁移段：法术弹（手动普攻 A 类，落点 aim_land）
+		"shell":   # 手写迁移段：法术弹（按住瞄准 A 类，落点 aim_land）
 			at = SegEyjafjalla.hw_shell_aim(self, a)
-		"bolt":   # 手写迁移段：飘飞咒文弹（手动普攻 B 类）
+		"bolt":   # 手写迁移段：飘飞咒文弹（按住瞄准 B 类）
 			at = SegLogos.hw_bolt_aim(self, a)
 	if at == Vector2.INF:
 		atk_far = -1
-		cd = idle_cd(float(B.get("attack", _ED).get("idle", 0.2)))   # 手写迁移段：attack.idle（缺省 0.2）
+		cd = float(B.get("attack", _ED).get("idle", 0.2))   # 手写迁移段：attack.idle（缺省 0.2）
 	else:
 		var fp1: Dictionary = _far_pick(a) if atk_far == 1 else {}
 		cd = float(fp1.get("every", B.get("attack", _ED).get("every", 1.0))) / stat(&"op_aspd") * float(loc.interval)
@@ -753,7 +753,7 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 
 # ---------------------------------------------------------------- 出手
 
-var in_release := false                # 正在执行普攻出手（_release 整段，含 replace / far / 连斩排队 / every_n 追加）：手动普攻时剑气 / 钩索按玩家指向（10-23）
+var in_release := false                # 正在执行普攻出手（_release 整段，含 replace / far / 连斩排队 / every_n 追加）：按住瞄准时剑气 / 钩索按玩家指向（10-23）
 var vg := {}                           # 可见成长藏品（docs/163，blocks/vis_growth.gd）：额外弹 / 剑气 / 累加器；空 = 用不到
 var pierce_atk := false                # 普攻子弹能穿透（能天使弹道 / 流明光弹 / 带 max_hits 的普攻剑气）：升级卡「贯穿」只在编队有这样的人时进池（10-23）
 
@@ -1362,13 +1362,11 @@ var atk_far := -1
 
 
 ## 带 attack.far 的近战锥普攻起手：近战触及（半径 + 30）内有敌人 → 近战；否则远程瞄准范围内有 → 远程。
-## 手动普攻：看玩家指向的锥（半角 half）里近战触及内有没有敌人，有 = 近战，没有 = 朝指向掷远程（周围没敌人也照出手）
+## 按住瞄准：看玩家指向的锥（半角 half）里近战触及内有没有敌人，有 = 近战，没有 = 朝指向掷远程（周围没敌人也照出手）
 func _far_aim(a: Dictionary, fp: Dictionary, r2: float) -> Vector2:
 	var fr: float = float(fp.get("aim_r", fp.get("dist", 0.0))) * stat(&"op_range")
 	atk_far = -1
-	if manual_attack():
-		if not g.doctor.attack_want():
-			return atk_point([], r2)
+	if held_aim():
 		var d: Vector2 = g.doctor.attack_dir()
 		var c: float = cos(float(a.get("half", 1.3))) - 0.0001
 		var near := false

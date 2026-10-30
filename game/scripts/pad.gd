@@ -5,7 +5,7 @@ extends Node
 ##
 ## 映射按场景上下文（context）切换，由当前场景每帧设置：
 ##   "title"     标题 / 选人 / 难度 / 图鉴 / 设置：方向 = 方向键，Ⓐ = Enter，Ⓑ = Esc，START = Enter，LB / RB = 翻页，Ⓧ / Ⓨ = 切换动作
-##   "play"      对局中：左摇杆 / 十字键移动（不注入方向键），Ⓐ / Ⓨ = 手动技能（Q），Ⓧ = J（手动普攻时攻击），Ⓑ / RB = 冲刺，RT = 冲刺（手动普攻时攻击），START = 暂停（Esc），SELECT = 属性面板（Tab）
+##   "play"      对局中：左摇杆 / 十字键移动（不注入方向键），Ⓐ / Ⓨ = 手动技能（Q），Ⓧ = J（ult/on = 0 时兼作手动技能），Ⓑ / RB = 冲刺，RT = 冲刺；右摇杆 = 按住瞄准（doctor 每帧读），START = 暂停（Esc），SELECT = 属性面板（Tab）
 ##               终结技开着（balance ult/on，docs/198 §2.4）时对局里改为：Ⓐ / RB = 终结技（Q，按住 = 按住 Q、松开发 Q 的松开事件），Ⓨ = 连携技（E），
 ##               冲刺只剩 Ⓑ / RT；ult/on = 0 时映射完全照旧
 ##   "game_menu" 对局里的选卡 / 商店 / 暂停 / 结算 / 指南 / 属性面板：方向 = 方向键，Ⓐ = Enter，Ⓑ = Esc，START = Esc，
@@ -38,7 +38,7 @@ const MAP := {
 		JOY_BUTTON_X: KEY_Z, JOY_BUTTON_Y: KEY_X,
 	},
 	"play": {
-		JOY_BUTTON_A: KEY_Q, JOY_BUTTON_Y: KEY_Q, JOY_BUTTON_X: KEY_J, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,   # Ⓐ / Ⓨ 手动技能（Q），Ⓧ = J（手动普攻时是攻击，否则兼作手动技能）
+		JOY_BUTTON_A: KEY_Q, JOY_BUTTON_Y: KEY_Q, JOY_BUTTON_X: KEY_J, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,   # Ⓐ / Ⓨ 手动技能（Q），Ⓧ = J（ult/on = 0 时兼作手动技能；终结技开着时无动作）
 		JOY_BUTTON_B: KEY_K, JOY_BUTTON_RIGHT_SHOULDER: KEY_K,   # 冲刺
 		JOY_BUTTON_LEFT_SHOULDER: KEY_F,   # 指挥模式（docs/114）：LB / LT 循环 随行 → 突击 → 归队
 	},
@@ -129,8 +129,7 @@ func _input(event: InputEvent) -> void:
 			var was: bool = _trig[event.axis]
 			var on: bool = event.axis_value > (0.3 if was else 0.6)
 			_trig[event.axis] = on
-			# 开了手动普攻时 RT 是攻击键（doctor 每帧读扳机轴），对局中不再当 RB 冲刺；RB 照旧冲刺
-			if on and not was and not (context == "play" and event.axis == JOY_AXIS_TRIGGER_RIGHT and Cfg.manual_attack):
+			if on and not was:
 				# 对局里 RT 直接按冲刺（Ⓑ）：RB 在切换队长开着时让给切人
 				_press_button(JOY_BUTTON_B if (context == "play" and event.axis == JOY_AXIS_TRIGGER_RIGHT) else TRIGGER_AS[event.axis])
 	elif event is InputEventKey or event is InputEventScreenTouch:

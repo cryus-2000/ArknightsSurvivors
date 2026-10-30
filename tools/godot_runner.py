@@ -132,9 +132,6 @@ music=0.0
 sfx=0.0
 voice=0.0
 
-[input]
-manual_attack=false
-
 [progress]
 difficulty=0
 """

@@ -93,9 +93,9 @@ static func _h4_cannon_start(o, a: Dictionary) -> void:
 		return
 	var reach: float = _h4_wd_reach(o, a, float(a.get("aim_r", 480.0)))
 	var tgt: Dictionary = _h4_wd_target(o, a, reach)
-	var at: Vector2 = o.atk_point([tgt] if not tgt.is_empty() else [], reach)   # 手动普攻 A 类（契约 v2.5）：落点见 aim_land
+	var at: Vector2 = o.atk_point([tgt] if not tgt.is_empty() else [], reach)   # 按住瞄准 A 类（契约 v2.5）：落点见 aim_land
 	if at == Vector2.INF:
-		o.cd = o.idle_cd(float(a.get("idle", 0.2)))
+		o.cd = float(a.get("idle", 0.2))
 	else:
 		var gi: Dictionary = a.get("giant", {})
 		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * (float(gi.get("cd", 0.6)) if int(_h4wd(o).ammo) > 0 else 1.0)

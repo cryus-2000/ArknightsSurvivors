@@ -329,7 +329,7 @@ func draw_manual_hint() -> void:
 			manual_hint_t = 3.5
 			var nm: String = ld.skill_def(i).get("name", "技能")
 			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q / E", "Ⓐ / Ⓨ"), nm])
-			if not g.touch.active and not Pad.using and not g.doctor.manual_attack and ld.manual_point(i):
+			if not g.touch.active and not Pad.using and ld.manual_point(i):
 				manual_hint_text = "左键点地面或按 %s 释放「%s」" % ["Q / E", nm]   # 选落点技能可左键点击释放（doctor.click_skill，10-26）
 	if manual_hint_t <= 0.0:
 		return

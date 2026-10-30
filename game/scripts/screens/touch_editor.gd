@@ -1,6 +1,6 @@
 extends Control
-## 触屏按键布局编辑页（设置 → 游戏 → 触屏按键布局，用户 10-13）：半透明网格上摆出摇杆、冲刺、技能、（手动普攻时的）攻击、暂停、属性、倍速，
-## 按住拖动改位置，选中后在中间的面板里调大小（70%–150%）；「恢复默认」清空自定义，「完成」写进存档（Cfg.touch_layout → settings.cfg），
+## 触屏按键布局编辑页（设置 → 游戏 → 触屏按键布局，用户 10-13）：半透明网格上摆出摇杆、冲刺、技能、瞄准、暂停、属性、倍速，
+## 按住拖动改位置，选中后在中间的面板里调大小（70%–150%），选中瞄准键时可隐藏 / 显示它（TouchLayout.atk_hidden）；「恢复默认」清空自定义，「完成」写进存档（Cfg.touch_layout → settings.cfg），
 ## 「取消」/ Esc 放弃本次改动。位置与夹紧规则全在 touch_layout.gd：拖动时整个按键（含标签）留在安全区内，
 ## 松手时和别的按键几乎整个叠在一起就沿连线推开，推不开退回拖动前的位置。
 ## 父节点是设置面板（标题页与局内暂停共用）；输入走触摸模拟的鼠标事件（_gui_input），桌面鼠标同样能用。
@@ -15,7 +15,6 @@ const PANEL_H := 172.0
 const GRID := 32.0
 
 var font: Font
-var manual_atk := false      # 是否显示攻击键（局内按本次探索的普攻方式，标题页按设置）
 var work := {}               # 编辑中的布局（与 Cfg.touch_layout 同格式）
 var sel := "dash"            # 选中的按键
 var dragging := ""           # 正在拖的按键（空 = 没在拖）
@@ -33,8 +32,7 @@ func _ready() -> void:
 	visible = false
 
 
-func open(manual: bool) -> void:
-	manual_atk = manual
+func open() -> void:
 	work = Cfg.touch_layout.duplicate(true)
 	sel = "dash"
 	dragging = ""
@@ -46,10 +44,7 @@ func open(manual: bool) -> void:
 
 
 func shown_keys() -> Array:
-	var ks: Array = ["stick", "dash", "skill"]
-	if manual_atk:
-		ks.append("atk")
-	ks.append_array(["pause", "stats", "speed"])
+	var ks: Array = ["stick", "dash", "skill", "atk", "pause", "stats", "speed"]   # 瞄准键隐藏时仍列出（画淡），选中它才能再显示
 	if preload("res://scripts/characters/squad.gd").cmd_on():
 		ks.append("cmd")
 	return ks
@@ -60,7 +55,11 @@ func safe() -> Rect2:
 
 
 func lay() -> Dictionary:
-	return TouchLayout.resolve(size, manual_atk, work, safe(), Cfg.phone_ui())
+	return TouchLayout.resolve(size, not atk_off(), work, safe(), Cfg.phone_ui())
+
+
+func atk_off() -> bool:
+	return TouchLayout.atk_hidden(work)
 
 
 func panel_rect() -> Rect2:
@@ -140,9 +139,9 @@ func _press(p: Vector2) -> void:
 	sel = k
 	var L := lay()
 	if k == "dash":
-		# 技能 / 攻击键缺省跟着冲刺键走：开始拖冲刺键前先把它们定在当前位置，所见即所得
+		# 技能 / 瞄准键缺省跟着冲刺键走：开始拖冲刺键前先把它们定在当前位置，所见即所得
 		for f in ["skill", "atk"]:
-			if not work.has(f) and (f != "atk" or manual_atk):
+			if not work.has(f) and (f != "atk" or not atk_off()):
 				work[f] = TouchLayout.encode(L[f].c, size, L[f].s)
 	drag_prev = work.get(k)
 	if drag_prev is Dictionary:
@@ -178,7 +177,7 @@ func _settle(k: String) -> bool:
 	var L := lay()
 	var others := {}
 	for o in shown_keys():
-		if o != k:
+		if o != k and not (o == "atk" and atk_off()):   # 隐藏的瞄准键不占位置
 			others[o] = L[o]
 	var p: Vector2 = TouchLayout.separate(k, L[k].c, L[k].s, others, safe())
 	if p == Vector2.INF:
@@ -220,6 +219,12 @@ func _action(a: String) -> void:
 		"reset":
 			work = {}
 			Sfx.play("ui_ok")
+		"hide":
+			if atk_off():
+				work.erase("atk_off")
+			else:
+				work["atk_off"] = true
+			Sfx.play("ui_move", -6.0)
 		"cancel":
 			close(false)
 		"done":
@@ -256,12 +261,19 @@ func _draw_panel(r: Rect2, L: Dictionary, a: float) -> void:
 	UI.text(self, font, Vector2(x0, r.position.y + 32), "触屏按键布局", 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
 	UI.en(self, font, Vector2(x0 + 132, r.position.y + 30), "TOUCH LAYOUT", 10, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 2.5)
 	UI.text(self, font, Vector2(x0, r.position.y + 56), "拖动按键调整位置；选中按键后调整大小", 13, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, a))
+	btn_rects.clear()
+	if sel == "atk":
+		# 瞄准键可隐藏：普攻永远自动，不用瞄准键也能玩
+		var hr := Rect2(r.end.x - 20.0 - 96.0, r.position.y + 16.0, 96.0, 30.0)
+		btn_rects["hide"] = hr
+		draw_rect(hr, Color(1, 1, 1, 0.06 * a))
+		draw_rect(hr, Color(1.0, 0.72, 0.4, 0.6 * a), false, 1.0)
+		UI.text(self, font, hr.position + Vector2(0, 21), "显示此键" if atk_off() else "隐藏此键", 14, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a), HORIZONTAL_ALIGNMENT_CENTER, hr.size.x)
 	# 大小：选中按键名 + − / 滑块 / + / 百分比
 	var e: Dictionary = L[sel]
 	var y := r.position.y + 76.0
 	UI.text(self, font, Vector2(x0, y + 22), TouchLayout.NAMES[sel], 16, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
 	var bx := x0 + 92.0
-	btn_rects.clear()
 	btn_rects["minus"] = Rect2(bx, y, 40, 32)
 	slider_rect = Rect2(bx + 52, y + 12, 180, 8)
 	btn_rects["plus"] = Rect2(bx + 244, y, 40, 32)
@@ -302,6 +314,7 @@ func _draw_key(k: String, e: Dictionary, on: bool, drag: bool) -> void:
 	var s: float = e.s
 	var r: float = TouchLayout.radius(k) * s
 	var ring := Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 1.0 if on else 0.6)
+	var off: bool = k == "atk" and atk_off()   # 隐藏的瞄准键画淡，标「已隐藏」
 	match k:
 		"stick":
 			draw_arc(c, TouchLayout.RADIUS * s + 10.0 * s, 0.0, TAU, 48, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25), 1.5)
@@ -314,12 +327,14 @@ func _draw_key(k: String, e: Dictionary, on: bool, drag: bool) -> void:
 			draw_rect(rr, ring, false, 2.0 if on else 1.0)
 			UI.text(self, font, rr.position + Vector2(0, rr.size.y / 2.0 + 6.0), "1×", int(round(16.0 * clampf(s, 0.85, 1.3))), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, rr.size.x)
 		_:
-			var fill := Color(0.14, 0.08, 0.04, 0.75) if k == "atk" else Color(0.05, 0.12, 0.16, 0.75)
+			var fill := Color(0.14, 0.08, 0.04, 0.3 if off else 0.75) if k == "atk" else Color(0.05, 0.12, 0.16, 0.75)
 			draw_circle(c, r, fill)
-			draw_arc(c, r, 0.0, TAU, 40, Color(1.0, 0.72, 0.4, 1.0 if on else 0.6) if k == "atk" else ring, 3.0 if on else 2.0)
-			var glyph: String = {"dash": "冲刺", "skill": "技能", "atk": "攻击", "pause": "Ⅱ", "stats": "≡", "cmd": "随行"}.get(k, "")
+			draw_arc(c, r, 0.0, TAU, 40, Color(1.0, 0.72, 0.4, (1.0 if on else 0.6) * (0.5 if off else 1.0)) if k == "atk" else ring, 3.0 if on else 2.0)
+			var glyph: String = {"dash": "冲刺", "skill": "技能", "atk": "瞄准", "pause": "Ⅱ", "stats": "≡", "cmd": "随行"}.get(k, "")
 			var fs: int = int(round((18.0 if k in ["dash", "skill", "atk"] else (13.0 if k == "cmd" else 20.0)) * clampf(s, 0.8, 1.3)))
-			UI.text(self, font, c + Vector2(-40, fs * 0.4), glyph, fs, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+			UI.text(self, font, c + Vector2(-40, fs * 0.4), glyph, fs, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, 0.45 if off else 1.0), HORIZONTAL_ALIGNMENT_CENTER, 80)
+			if off:
+				UI.text(self, font, c + Vector2(-50, r + 16.0), "已隐藏", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 100)
 	# 名称标签（控件下方；冲刺 / 技能 / 攻击的名字已经写在圆里）
 	if k in ["stick", "pause", "stats", "speed", "cmd"]:
 		var bx: Rect2 = TouchLayout.bounds(k, s)

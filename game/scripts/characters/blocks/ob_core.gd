@@ -908,7 +908,7 @@ const SP_TAGS := ["shape.saw", "verb.undying", "verb.substitute"]
 
 # ---------------------------------------------------------------- 流明段（第 3 批续，LM_TAGS）
 #  shape.lantern    普攻「荧光」：每 heal.every 秒（不在出手、没技能可放的帧累计）到点就起手，出手帧驱散优先（侵蚀 > corrode、神经 > nerve）、
-#                   其次治疗（pct × [mults] × op_atk × 同伴 × heal_out）；同时向射程内（视线优先，手动普攻 B 类）最近敌人射一发光弹 bolt
+#                   其次治疗（pct × [mults] × op_atk × 同伴 × heal_out）；同时向射程内（视线优先，按住瞄准 B 类）最近敌人射一发光弹 bolt
 #                   {atk_key, speed, life, r, aoe, splash, lit, src}（本段自己推进，同时 ≤ 12 发，地形挡）；命中照亮 lit 秒并溅射。
 #                   units {nodes, cd0, cd, mult, speed, src, charge {cond, need, shots, mult, speed, heal}}：成长节点给的发光单元，各自定时射光弹
 #  verb.mend        瞬时：为队长回复 pct × 最大生命 × op_atk × 同伴 × heal_out [× 技能强度]（满血也结算），飘字 + 光环

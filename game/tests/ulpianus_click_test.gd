@@ -52,7 +52,6 @@ func reset(o, full: bool) -> void:
 	o.manual_buf = 0.0
 	o.sp = [0.0, 0.0, o.sp_need(2) if full else o.sp_need(2) * 0.5]
 	game.state = game.S.PLAY
-	game.doctor.manual_attack = false
 
 
 func click(vp: Vector2) -> InputEventMouseButton:
@@ -115,11 +114,6 @@ func run(o) -> void:
 		ok(game.hud_view.blocks_click(huds[k]), "%s 算 HUD" % k)
 		ok(not game.doctor.click_skill(huds[k] * Cfg.ui_k), "点在%s上不放技能" % k)
 	ok(o.sp[2] >= o.sp_need(2), "点 HUD 后技力仍满（没放）")
-	# 4. 开了手动普攻：左键是攻击，不接管
-	reset(o, true)
-	game.doctor.manual_attack = true
-	ok(not game.doctor.click_skill(vp), "手动普攻开着时左键不放技能")
-	game.doctor.manual_attack = false
 	# 5. 走 game._unhandled_input 整条路：事件被吞掉并放出
 	reset(o, true)
 	game._unhandled_input(click(vp))

@@ -140,7 +140,7 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 			s.inv = true   # 总开关 kaltsit/m3_hp = 0：回旧行为（Mon3tr 无敌）
 		if esc:   # 召唤物扩展段（§15.9）的状态：动画、出手动作、绕行、追击队列、patch、残影、画面计时
 			s.merge({"mv": 0.0, "ak": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0, "via": Vector2.INF, "via_t": 0.0, "via_off": -99.0,
-				"pend": [], "pidx": -1, "pt": 0.0, "pout": 0.0, "pold": -1, "pcur": {}, "ghost": {}, "fxt": {}, "swing": 1.0, "cmd_t": 0.0})
+				"pend": [], "pidx": -1, "pt": 0.0, "pout": 0.0, "pold": -1, "pcur": {}, "ghost": {}, "fxt": {}, "swing": 1.0})
 			M3.init(o, s, kd)   # 血条：写了 hp_k 且开关开才有血量（否则仍无敌）
 		elif kd.has("anim") or kd.has("zone"):   # 精英化第 5 批段：非随行召唤物的帧条状态（浮现 / 待机 / 移动 / 施放）、自带区域
 			_F().e5_spawn_state(o, s, kd)
@@ -179,6 +179,12 @@ static func sm_clear(o) -> void:
 		_sm_end(o, s, "leave")
 	o.sm.shield = 0.0
 	o.sm.seal = {}
+
+
+## 目标在锚点看来是否落在瞄准方向 ±manual/aim_cone_deg 内（按住瞄准时召唤物换目标用）
+static func _sm_in_cone(anc: Vector2, tg, d: Vector2) -> bool:
+	var off: Vector2 = tg.pos - anc
+	return off.length() < 1.0 or off.normalized().dot(d) >= cos(deg_to_rad(MfBal.v("manual/aim_cone_deg", 45.0))) - 0.0001
 
 
 static func _sm_anchor(o, mv: Dictionary) -> Vector2:
@@ -1077,7 +1083,7 @@ static func _sm_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 #                        anim / seq（换帧条、起手 + 循环 + 收尾）、tint、sfx；第一条成立的生效
 #  verb.summon_mod       常驻：某种召唤物的 dmg / aspd / reach / arc / speed 倍率（按 §5.5 固定顺序依次乘），
 #                        then（延迟 delay 秒再追一击 mult）、mirror（同时向身后镜像一击 mult，没打到不画）
-#  manual = command      手动普攻 B 类：按攻击键才命令召唤物扑向瞄准方向的目标，松手 manual/m_linger 秒内打完
+#  manual = command      按住瞄准 B 类：平时自动扑最近的敌人，按住瞄准时扑向瞄准方向的目标
 #  fx（种类 / 攻击上）     §5.6 条目之外的程序条目：pfx / gfx / sprite / sparks / arc / text / banner / pause / sfx；
 #                        种类上另有 ghost（残影）/ mist（身后红雾）/ side（身体两侧的常驻爪刃）。散布一律 g.vrng
 #  verb.guard            瞬时：限时减伤（同名共用一个计时，重复施加重新计时），dmg_taken_mult 里按积木顺序相乘；look 画护壳
@@ -1515,18 +1521,14 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 	var leash: float = float(mv.get("leash", 240.0))
 	var anc: Vector2 = _sm_anchor(o, mv)
 	var tg = s.tgt
-	if str(kd.get("manual", "")) == "command" and o.manual_attack():
-		# 手动普攻 B 类（契约 v2.5）：按攻击键命令召唤物扑向瞄准方向的目标；按下时换目标，松手后 manual/m_linger 秒内打完手上这个
-		if g.doctor.attack_want():
-			s.cmd_t = MfBal.v("manual/m_linger", 1.2)
-			if g.doctor.atk_edge or tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0:
-				var tsm: Array = o.aim_targets(1, leash, anc)
-				if not tsm.is_empty() and int(tsm[0].get("id", 0)) >= 0:   # 伪目标（指向上没敌人）不命令
-					tg = tsm[0]
-					g.doctor.atk_buf = 0.0
-		else:
-			s.cmd_t = maxf(0.0, float(s.cmd_t) - dt)
-		if float(s.cmd_t) <= 0.0 or (tg != null and (tg.dead or tg.pos.distance_to(anc) > leash + 40.0)):
+	if str(kd.get("manual", "")) == "command" and o.held_aim():
+		# 按住瞄准（10-31 取代手动普攻）：召唤物改扑瞄准方向 ±aim_cone_deg 内的目标；刚按下、目标失效或跑出瞄准锥时换目标。
+		# 松手走下面的自动分支：手上这个还有效就打完，再自动扑最近的
+		if g.doctor.atk_edge or tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0 or not _sm_in_cone(anc, tg, g.doctor.attack_dir()):
+			var tsm: Array = o.aim_targets(1, leash, anc)
+			if not tsm.is_empty() and int(tsm[0].get("id", 0)) >= 0:   # 伪目标（指向上没敌人）不命令，手上的照打
+				tg = tsm[0]
+		if tg != null and (tg.dead or tg.pos.distance_to(anc) > leash + 40.0):
 			tg = null
 		s.tgt = tg
 	elif tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0:
@@ -2190,7 +2192,7 @@ static func _mf_kind(kd: Dictionary, p: String, ctx: Dictionary) -> void:
 				if a.has(q) and not (a[q] is Array and a[q].size() == 2):
 					errs.append("%s.attack.%s 必须是 [x, y]" % [p, q])
 	if kd.has("manual") and str(kd.manual) != "command":
-		errs.append(p + ".manual 只能是 command（手动普攻 B 类：按攻击键才命令它出击）")
+		errs.append(p + ".manual 只能是 command（按住瞄准 B 类：按住瞄准时命令它扑向瞄准方向）")
 	if kd.has("manual") and not esc:
 		errs.append(p + ".manual 只用于 mode = escort")
 	if kd.has("status") and not (kd.status is bool):
