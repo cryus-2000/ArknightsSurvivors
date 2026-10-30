@@ -317,11 +317,8 @@ func _begin(ld, k: String) -> void:
 	shape({"kind": "ring", "c": ld.pos, "r": 90.0, "r1": 20.0, "w": 4.0, "col": _col(ld).lerp(Color.WHITE, 0.4), "life": _aim_min + 0.1})
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sfx != null:
-		var vl: String = str(_aud(str(ld.id)).get("voice", ""))
-		if vl != "":
-			sfx.voice(str(ld.id), "ult", false, true, vl)   # docs/205：每人固定一句（data/ult_audio.json）
-		else:
-			sfx.voice(str(ld.id), "skill_3", false, true)   # 语音方案 A（§11-5）：终结技播现 S3 那句
+		# docs/205：每人固定一句（data/ult_audio.json voice）；没填时从技能池挑一句。开口即停掉别人的语音（10-30 用户）
+		sfx.voice(str(ld.id), "ult", false, true, str(_aud(str(ld.id)).get("voice", "")))
 	_ua("charge")
 
 
@@ -346,6 +343,9 @@ func _tick_ult(dt: float) -> void:
 			_cast()
 		return
 	if phase == "cast":
+		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+		if sx != null:
+			sx.voice_lock(0.5)   # 招式没放完，别的干员不开口（结束后再静 0.5 秒）
 		var done: bool = Moves.step_cult(self, act, dt) if kind == "cult" else Moves.step(self, act, dt)
 		if done:
 			phase = ""

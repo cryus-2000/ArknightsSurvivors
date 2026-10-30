@@ -670,7 +670,7 @@ func _voice_file(stem: String) -> AudioStream:
 ## 冷却 / 优先级 / 打断 / 间隔 / 合唱规则仍按事件名，完全不变。池内「洗牌不重复」：一轮放完再洗，新一轮第一句不接上一轮最后一句；
 ## 同一句（同一文件，几个池共用的也算）VOICE_REPEAT_GAP 秒内不再播——都在间隔内时普通语音放弃，玩家指挥回应（urgent / 合唱）播最久没播的那句。
 ## 选句用自己的 RNG，不碰玩法随机数（同 seed TRACE 不变）。没有池的事件（W 笑声、协同语音）照旧读 <干员>_<事件>.ogg。
-const VOICE_POOL_OF := {"entry": "entry", "command": "command", "skill_1": "skill", "skill_2": "skill", "skill_3": "skill", "battle": "battle"}
+const VOICE_POOL_OF := {"ult": "skill", "entry": "entry", "command": "command", "skill_1": "skill", "skill_2": "skill", "skill_3": "skill", "battle": "battle"}
 const VOICE_REPEAT_GAP := 60.0
 var voice_pools := {}                  # 干员 -> 池 -> [文件主名]；空字典 = 还没读
 var voice_bags := {}                   # "干员:池" -> 这一轮还没放的
@@ -737,6 +737,10 @@ func voice_can_cut(key: String, now: float) -> bool:
 ## 播一条干员语音；queue = true 时占线则排队（部署语音用），否则直接放弃。
 ## urgent = true（指挥模式突击 / 归队回应，玩家按键触发，10-23 用户实测「听不到」）：不受同人 15 秒间隔、不受全队静默间隔，
 ## 能打断正在说的战斗闲聊（同技能语音口径）；只有正在播技能 / 部署 / 指挥语音时才放弃
+## 终结技语音（用户 10-30「放终结技时把别的干员的语音停掉」）：开口时淡出正在说的任何一句、清掉排队，
+## 说完后再留 VOICE_ULT_HOLD 秒，这段时间别的语音一律不播（ult.gd 也可用 voice_lock 延长到招式结束）
+const VOICE_ULT_HOLD := 0.5
+var voice_lock_until := -1.0
 var voice_urgent: Array = []          # [干员, 事件, 截止时刻]：等当前这条播完立即补播的指挥回应
 var voice_log := false                 # --voicelog（测试）：真正开播时打印 VOICEPLAY <干员> <事件>
 
@@ -746,11 +750,15 @@ func has_voice(cid: String, key: String) -> bool:
 
 
 func voice(cid: String, key: String, queue := false, urgent := false, line := "") -> void:
+	var now := _vnow()
+	if key != "ult" and now < voice_lock_until:
+		if voice_log:
+			print("VOICESKIP %s %s ult_lock" % [cid, key])
+		return
 	var stem := line if line != "" else _voice_pick(cid, key, urgent)   # line：指定哪一句（终结技固定句，docs/205）
 	var st: AudioStream = _voice_file(stem) if stem != "" else null
 	if st == null:
 		return
-	var now := _vnow()
 	var lk := cid + ":" + key
 	if not urgent and now - float(voice_last.get(lk, -999.0)) < float(VOICE_CD.get(key, 8.0)):
 		return
@@ -759,7 +767,13 @@ func voice(cid: String, key: String, queue := false, urgent := false, line := ""
 	var prio: int = VOICE_PRIO.get(key, 1)
 	# 占线：不打断（用户要求）；部署语音排队，其余放弃。例外：技能语音打断正在说的战斗台词（10-12）
 	var busy: bool = voice_player.playing or now < voice_end
-	if urgent:
+	if key == "ult":
+		if voice_player.playing:
+			_voice_fade_out()
+		busy = false
+		voice_queue.clear()
+		voice_urgent = []
+	elif urgent:
 		busy = voice_player.playing and now < voice_play_end   # 静默间隔里照播
 		if busy and (voice_key in VOICE_CHATTER or voice_key == "entry"):
 			_voice_fade_out()   # 战斗闲聊 / 部署语音让路给玩家指挥回应
@@ -788,10 +802,17 @@ func voice(cid: String, key: String, queue := false, urgent := false, line := ""
 		voice_player.play()
 	voice_play_end = now + st.get_length()
 	voice_end = voice_play_end + VOICE_GAP
+	if key == "ult":
+		voice_lock_until = maxf(voice_lock_until, voice_play_end + VOICE_ULT_HOLD)
 	if trace_on:
 		trace.append([Engine.get_process_frames(), "voice:" + stem, voice_player.volume_db, 1.0])
 	if voice_log:
 		print("VOICEPLAY %s %s %s" % [cid, key, stem])
+
+
+## 终结技期间别的干员不开口（ult.gd 在招式进行中调用，延长锁定）
+func voice_lock(sec: float) -> void:
+	voice_lock_until = maxf(voice_lock_until, _vnow() + sec)
 
 
 ## 把正在播的那条换到 voice_fader 上淡出停掉，voice_player 腾出来给新语音
@@ -827,6 +848,7 @@ func _voice_tick() -> void:
 
 ## 场景切换 / 回标题时清空（避免上一局的部署语音串到下一局）
 func voice_reset() -> void:
+	voice_lock_until = -1.0
 	for lp in loops.values():
 		lp.stop()
 	voice_queue.clear()
