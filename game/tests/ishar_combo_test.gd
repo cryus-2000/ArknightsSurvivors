@@ -246,7 +246,23 @@ func _ready() -> void:
 	tick_n(e, 2)
 	check(e.web_layers.size() == 2 and e.shield_hp <= per * 2.0 + 0.01, "killing a linked sea-born removes its layer")
 	var wm: Dictionary = g.bai.boss("ishar")._web_mob(e, Vector2(200, 0), 0)
+	check(not wm.has("web_of") and float(wm.shield_hp) < wm.maxhp * Bal.v("boss/ishar_web_shield", 0.4), "a walking sea-born is not linked and has no web shield yet")
+	g.bai.boss("ishar")._web_link(e, wm)
 	check(float(wm.shield_hp) >= wm.maxhp * Bal.v("boss/ishar_web_shield", 0.4) - 0.01, "linked sea-born carry a shield")
+	# 10-31：空位补海嗣先在远处刷出、走到空位才连线（路上不给护盾层）
+	e.web[0].o = null
+	e.web[0].next = g.t
+	e.eyes = [{"dead": false, "pos": e.pos, "id": -99}]
+	e.reso_next = INF
+	var sp0: Vector2 = e.pos
+	tick_n(e, 1)
+	var cm = e.web[0].get("come")
+	check(cm is Dictionary and e.web[0].o == null and cm.pos.distance_to(sp0) > 300.0, "a refill spawns far away and walks in (not linked on spawn)")
+	var lay0: int = e.web_layers.size()
+	var d0: float = cm.pos.distance_to(g.bai.boss("ishar")._slot_pos(e, 0, int(e.web_cap)))
+	tick_n(e, int((d0 / Bal.v("boss/ishar_web_walk", 170.0) + 0.5) / DT))
+	check(e.web[0].get("come") == null and e.web[0].o is Dictionary and e.web_layers.size() > lay0, "it links (and adds a shield layer) only on reaching its slot (%.0f px walk)" % d0)
+	e.eyes = []
 	# 8. 三幕方案新招（docs/170b）：潮涡两臂螺旋并反向；侵蚀之泪先追后直；双束两条追扫在队长两侧、中间留缝
 	e = fresh(1)
 	g.ebullets.clear()

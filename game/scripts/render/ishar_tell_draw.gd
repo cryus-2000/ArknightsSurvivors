@@ -23,15 +23,16 @@ static func _sq(g, p: Vector2, c: Color) -> void:
 	g.draw_rect(Rect2((p * 0.5).floor() * 2.0, Vector2(2, 2)), c)
 
 
-## 光束蓄力：本体从 1 像素细线长到半宽的 35%，亮度随读条递增；发射口光点变大，聚光颗粒向内收
+## 光束蓄力（10-31 用户「激光不像激光」，render/ishar_laser 1）：预警期只画一条 2 像素细瞄准线（她的专属色，亮度随读条递增，锁定后变实）
+## + 发射口一颗越来越大的光点 + 向内收的聚光颗粒；最后 0.15 秒瞄准线转白、发射口光点最亮 = 马上开火。开火后才出现有宽度的光束（_laser），预警和实线一眼分开
 static func _charge(g, w: Dictionary, d: Vector2, k: float) -> void:
 	var kk: float = k * k
-	var half: float = lerpf(1.0, float(w.wid) * 0.35, kk)
-	var a: float = 0.15 + 0.6 * kk
-	var nrm: Vector2 = d.orthogonal() * half
 	var b: Vector2 = w.pos + d * float(w.len)
-	g.draw_colored_polygon(PackedVector2Array([w.pos + nrm, b + nrm, b - nrm, w.pos - nrm]), Color(CORE.r, CORE.g, CORE.b, a))
-	g.draw_circle(w.pos, 3.0 + 9.0 * kk, Color(1.0, 1.0, 1.0, 0.25 + 0.6 * kk))
+	var hot: bool = float(w.dur) - float(w.t) < 0.15
+	var locked: bool = float(w.t) >= float(w.get("track", 0.0))
+	var lc: Color = Color(1, 1, 1, 0.9) if hot else Color(CORE.r, CORE.g, CORE.b, (0.35 if not locked else 0.55) + 0.35 * kk)
+	g.draw_line(w.pos, b, lc, 2.0)
+	_dot(g, w.pos, 3.0 + float(w.wid) * 0.3 * kk, 0.4 + 0.6 * kk)
 	var pool = Beam.grains(g) if Cfg.quality != "low" else null
 	if pool != null and Beam.take(g, 2) > 0:
 		var ang: float = g.t * 7.0 + w.pos.x
@@ -39,7 +40,8 @@ static func _charge(g, w: Dictionary, d: Vector2, k: float) -> void:
 		pool.push("mote_in", w.pos + dir * (28.0 + 20.0 * (1.0 - k)), -dir, CORE)
 
 
-## 开火短闪 + 消散：前 0.06 秒整条白闪；之后光束变细、断成碎段、淡出（g.fx kind = ishar_beam_fade，由 ishar_combos 在结算帧写入）
+## 开火 + 消散（g.fx kind = ishar_beam_fade，由 ishar_combos 在结算帧写入）：hold 期间是稳定光束（开火前 0.06 秒从 0.3 宽张满 + 白闪）；
+## 之后整条一起收细、外晕先散、两端光点缩小、淡出（10-31 起不再断成碎段：用户「不要拼接感」）
 static func _fades(g) -> void:
 	for f in g.fx:
 		if f.kind != "ishar_beam_fade" or f.life <= 0.0:
@@ -51,26 +53,11 @@ static func _fades(g) -> void:
 		var d: Vector2 = (b - a).normalized()
 		var L: float = a.distance_to(b)
 		if el < hold:
-			_beam_body(g, a, d, L, float(f.wid), 1.0, clampf(1.0 - el / 0.08, 0.0, 1.0))
+			_laser(g, a, d, L, float(f.wid), clampf(0.3 + el / 0.06, 0.3, 1.0), clampf(1.0 - el / 0.1, 0.0, 1.0), 1.0, 1.0)
 			continue
 		var p: float = clampf((el - hold) / maxf(0.01, float(f.max) - hold), 0.0, 1.0)
-		if hold <= 0.0 and p < 0.17:
-			var n0: Vector2 = d.orthogonal() * float(f.wid) * 0.9
-			g.draw_colored_polygon(PackedVector2Array([a + n0, b + n0, b - n0, a - n0]), Color(1.0, 1.0, 1.0, 0.55 * (1.0 - p / 0.17)))
-		var half: float = float(f.wid) * 0.45 * (1.0 - p)
-		var seg := 22.0
-		var gap: float = 2.0 + 18.0 * p   # 断口随时间变宽
-		var col := Color(CORE.r, CORE.g, CORE.b, 0.8 * (1.0 - p))
-		var s0 := 0.0
-		var i := 0
-		while s0 < L:
-			var drift: float = (float((i * 37) % 7) - 3.0) * 3.0 * p   # 碎段各自轻微侧漂
-			var o: Vector2 = d.orthogonal() * drift
-			var s1: float = minf(L, s0 + seg - gap)
-			var nn: Vector2 = d.orthogonal() * maxf(1.0, half)
-			g.draw_colored_polygon(PackedVector2Array([a + d * s0 + nn + o, a + d * s1 + nn + o, a + d * s1 - nn + o, a + d * s0 - nn + o]), col)
-			s0 += seg
-			i += 1
+		var fl: float = clampf(1.0 - p / 0.2, 0.0, 1.0) if hold <= 0.0 else 0.0
+		_laser(g, a, d, L, float(f.wid), lerpf(1.0, 0.15, p), fl, 1.0 - p, (1.0 - p) * (1.0 - p))
 
 
 ## 歌声涟漪留下的地带：暗红低填充 + 每 0.6 秒从中心扩出一道像素涟漪，最后 0.4 秒淡出
@@ -100,20 +87,36 @@ static func _zones(g) -> void:
 					_sq(g, z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r), Color(EDGE.r, EDGE.g, EDGE.b, 0.5 * fade))
 
 
-## 稳定光束本体（追扫持续段、小光束结算后的 0.3 秒）：外层专属青绿 → 亮芯 → 2 像素白芯，宽度与透明度每帧相同（不抖、不重伸）；flash = 开火瞬间的白色叠层（单调变暗）
-static func _beam_body(g, a: Vector2, d: Vector2, L: float, wid: float, open: float, flash: float) -> void:
+## 统一光束（10-31 用户「所有激光统一一套」：细亮芯 + 外晕、起止端光点、不拼接）：一整条一次画完（每层一个多边形，没有分段 / 贴图平铺）。
+## 由外到内：两层低透明外晕（宽 1.0 / 0.7）→ 专属色光身（0.34）→ 亮色（0.16）→ 2–4 像素白芯；起点一颗大光点、终点一颗小光点。
+## open = 宽度比例（开火张开、消散收细）；flash = 开火白闪；alpha = 整体透明；glow = 外晕透明（消散时先散）
+static func _laser(g, a: Vector2, d: Vector2, L: float, wid: float, open: float, flash: float, alpha := 1.0, glow := 1.0) -> void:
 	var b: Vector2 = a + d * L
 	var o: Vector2 = d.orthogonal()
-	var n1: Vector2 = o * wid * 0.5 * open
-	var n2: Vector2 = o * wid * 0.22 * open
-	var n3: Vector2 = o * maxf(1.0, wid * 0.06) * open
-	g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(CORE.r, CORE.g, CORE.b, 0.5))
-	var hi: Color = CORE.lerp(Color.WHITE, 0.55)
-	g.draw_colored_polygon(PackedVector2Array([a + n2, b + n2, b - n2, a - n2]), Color(hi.r, hi.g, hi.b, 0.9))
-	g.draw_colored_polygon(PackedVector2Array([a + n3, b + n3, b - n3, a - n3]), Color(1, 1, 1, 0.95))
+	var w: float = wid * open
+	for q in [[1.0, 0.1], [0.7, 0.16]]:
+		var n: Vector2 = o * w * 0.5 * float(q[0])
+		g.draw_colored_polygon(PackedVector2Array([a + n, b + n, b - n, a - n]), Color(CORE.r, CORE.g, CORE.b, float(q[1]) * alpha * glow))
+	var n1: Vector2 = o * maxf(2.0, w * 0.17)
+	g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(CORE.r, CORE.g, CORE.b, 0.8 * alpha))
+	var hi: Color = CORE.lerp(Color.WHITE, 0.6)
+	var n2: Vector2 = o * maxf(1.5, w * 0.08)
+	g.draw_colored_polygon(PackedVector2Array([a + n2, b + n2, b - n2, a - n2]), Color(hi.r, hi.g, hi.b, 0.95 * alpha))
+	var n3: Vector2 = o * clampf(wid * 0.03, 1.0, 2.0) * minf(1.0, open * 1.5)
+	g.draw_colored_polygon(PackedVector2Array([a + n3, b + n3, b - n3, a - n3]), Color(1, 1, 1, alpha))
 	if flash > 0.0:
-		g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(1, 1, 1, 0.45 * flash))
-	g.draw_circle(a, wid * 0.32 * open, Color(1, 1, 1, 0.8))
+		var nf: Vector2 = o * w * 0.4
+		g.draw_colored_polygon(PackedVector2Array([a + nf, b + nf, b - nf, a - nf]), Color(1, 1, 1, 0.5 * flash * alpha))
+	_dot(g, a, maxf(4.0, wid * 0.42 * open) * (1.0 + 0.4 * flash), alpha)
+	_dot(g, b, maxf(3.0, wid * 0.26 * open) * (1.0 + 0.6 * flash), alpha * 0.9)
+
+
+## 光点：外晕（专属色，低透明）→ 亮色 → 白芯
+static func _dot(g, p: Vector2, r: float, alpha: float) -> void:
+	g.draw_circle(p, r * 1.7, Color(CORE.r, CORE.g, CORE.b, 0.18 * alpha))
+	var hi: Color = CORE.lerp(Color.WHITE, 0.6)
+	g.draw_circle(p, r, Color(hi.r, hi.g, hi.b, 0.85 * alpha))
+	g.draw_circle(p, r * 0.5, Color(1, 1, 1, alpha))
 
 
 static func _sweeps(g) -> void:
@@ -127,7 +130,7 @@ static func _sweep_draw(g, s: Dictionary) -> void:
 			return
 		var el: float = g.t - float(s.t0)
 		var d := Vector2.from_angle(float(s.ang))
-		_beam_body(g, s.pos, d, float(s.len), float(s.wid), clampf(el / 0.1, 0.25, 1.0), clampf(1.0 - el / 0.12, 0.0, 1.0))
+		_laser(g, s.pos, d, float(s.len), float(s.wid), clampf(0.3 + el / 0.06, 0.3, 1.0), clampf(1.0 - el / 0.12, 0.0, 1.0))
 		var pool = Beam.grains(g) if Cfg.quality != "low" else null
 		if pool != null and Beam.take(g, 1) > 0:
 			var t: float = fmod(el * 1.7, 1.0)
