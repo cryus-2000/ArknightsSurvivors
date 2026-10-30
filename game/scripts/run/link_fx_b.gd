@@ -5,6 +5,7 @@
 extends RefCounted
 
 const LFX = preload("res://scripts/run/link_fx_common.gd")
+const PF = preload("res://scripts/run/ult_pixfx.gd")
 
 
 # ================================================================ 拉普兰德：月牙剑气（冷紫蓝；她的技能剑气是细长冷蓝，这里是一道大月牙横扫）
@@ -216,7 +217,7 @@ static func sa_ground(u, c: Vector2, r: float) -> bool:
 		var tx: Texture2D = u._strip_tex(name)
 		var sc: float = (26.0 + 14.0 * hh) / LFX.tex_h(u, name)
 		u.strip(name, c + off, {"o": Vector2(tx.get_width() * 0.5, tx.get_height() - 2.0), "sc": sc * 0.3, "sc1": sc, "scd": 0.08, "sx": -1.0 if hh < 0.5 else 1.0,
-			"delay": 0.03 * j, "life": 1.6, "fade": 0.4, "col": Color(1, 1, 1, 1)})
+			"delay": 0.03 * j, "life": 1.6, "fade": 0.4, "col": Color(0.78, 0.82, 0.88, 1)})   # 压暗一档（晶面偏白）
 	return true
 
 
@@ -240,19 +241,13 @@ static func mz_tentacles(u, ts: Array) -> bool:
 	return true
 
 
-# ================================================================ 流明：灼烧光点（3 种上飘光点簇在区域里错开冒）
-const LU_MOTE := ["fx_lk_lu_mote1", "fx_lk_lu_mote2", "fx_lk_lu_mote3"]
-
-
+# ================================================================ 流明：灼烧光点（预烘焙粒子帧条 ult_ember，暖象牙 / 淡青，在区域里错开冒；她的终结技是光柱 + 碎光环）
 static func lu_motes(u, c: Vector2, r: float, t: float) -> bool:
-	if not LFX.on() or not u.fx_ready(LU_MOTE[0]):
+	if not LFX.on() or not u.fx_ready(PF.BURST_S):
 		return false
-	if int(t * 30.0) % 3 != 0:
+	if int(t * 30.0) % 4 != 0:
 		return true
 	var hh: float = LFX.h(t * 7.3 + c.x * 0.01)
 	var p: Vector2 = c + Vector2.from_angle(hh * TAU) * r * sqrt(LFX.h(hh * 13.0))
-	var name: String = LU_MOTE[int(hh * 9.0) % 3]
-	var tx: Texture2D = u._strip_tex(name)
-	u.strip(name, p, {"o": Vector2(tx.get_width() * 0.5, tx.get_height()), "sc": 40.0 / LFX.tex_h(u, name), "v": Vector2(0, -40), "life": 0.6, "fade": 0.4,
-		"sx": -1.0 if hh < 0.5 else 1.0, "col": Color(1, 1, 1, 0.9)})
+	PF.particles(u, p, 40, "ult_ember", [Color(0.55, 0.5, 0.36) if hh < 0.5 else Color(0.36, 0.5, 0.52)], 0.0, hh * 97.0, 60.0)
 	return true
