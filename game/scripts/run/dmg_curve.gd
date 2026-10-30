@@ -19,7 +19,7 @@ static func enabled() -> bool:
 ## mid_from 之前（前期伤害，用户亲定）不动；目标曲线仍单调（削减的斜率远小于曲线本身的斜率）。mid_cut 0 = 关
 static func target(t: float) -> float:
 	var cut: float = Bal.v("dmg_curve/mid_cut", 0.0)
-	var v: float = target_raw(t)
+	var v: float = target_raw(t) * Bal.v("dmg_curve/scale", 1.0)   # 全程整体倍率（难度校准 10-31，缺省 1 = 不变）
 	if cut <= 0.0:
 		return v
 	var a: float = Bal.v("dmg_curve/mid_from", 180.0)
