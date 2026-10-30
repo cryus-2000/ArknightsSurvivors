@@ -6,8 +6,14 @@
 extends RefCounted
 
 const A = preload("res://scripts/art.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 const BEACONS := ["fx_link_beacon1", "fx_link_beacon2", "fx_link_beacon3"]   # 中性灰竖光柱（按人着色）
 const RELAY := ["fx_link_relay1", "fx_link_relay2", "fx_link_relay3"]        # 中性灰彗星光（头在右、尾往左）
+
+
+## 总开关 ult/link_fx_v2（缺省 1；0 = 原来的程序占位，录新旧对照用）
+static func on() -> bool:
+	return Bal.v("ult/link_fx_v2", 1.0) > 0.0
 
 
 static func h(x: float) -> float:
@@ -47,7 +53,7 @@ static func tint(c: Color, k := 1.0, al := 1.0) -> Color:
 
 ## 现身段每帧调（t = 0..PRE）：第一帧放衔接（队长亮 → 接力光 → 队友光柱），之后光柱随 t 收细；返回 false = 贴图缺，调用方照旧画
 static func appear(u, p, t: float, pre: float, cp: Color) -> bool:
-	if not u.fx_ready(BEACONS[0]):
+	if not on() or not u.fx_ready(BEACONS[0]):
 		return false
 	var key := "link_fx_t0"
 	var t0: float = float(p.get_meta(key, -99.0)) if p.has_meta(key) else -99.0

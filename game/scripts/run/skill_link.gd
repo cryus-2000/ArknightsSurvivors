@@ -85,8 +85,8 @@ static func fire(u, p, info: Dictionary) -> Dictionary:
 
 ## 合成瞬间：两人颜色的短促双色闪 + 专属音效
 static func _merge_flash(u, c: Vector2, c1: Color, c2: Color, r: float) -> void:
-	u.shape({"kind": "circle", "c": c, "r": r, "col": c1, "fill": 0.85, "life": 0.08})
-	u.shape({"kind": "ring", "c": c, "r": r * 1.6, "r1": r * 0.5, "w": 6.0, "col": c2, "life": 0.18})
+	u.light(c, r * 1.8, c1, 0.12)   # 用户 10-31「一直闪频不太好」：原来的实心白闪改成短灯（两人颜色），不再整团发白
+	u.shape({"kind": "ring", "c": c, "r": r * 1.6, "r1": r * 0.5, "w": 4.0, "col": LFX.tint(c2, 1.0, 0.8), "life": 0.18})
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
 		sfx.play("crit_tick", -2.0, 0.7)
@@ -450,7 +450,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			if t >= 0.1 and not a.done.has("beat"):
 				a.done["beat"] = true
 				_beat(u)
-				if u.fx_ready(LFB.HS_SHIELD):
+				if LFX.on() and u.fx_ready(LFB.HS_SHIELD):
 					LFB.hs_plant(u, lp + side2 * 46.0, side2)
 				else:
 					u.grain("sh_glint", lp + side2 * 46.0, side2, AMBER, 8)

@@ -13,7 +13,7 @@ const LP_CRES := ["fx_lk_lp_cres1", "fx_lk_lp_cres2", "fx_lk_lp_cres3"]
 
 ## 剑气飞行中每帧：月牙（凸面朝前）+ 两层残影；q = 当前中心，dd = 方向
 static func lp_wave(u, a: Dictionary, q: Vector2, dd: Vector2, k: float) -> bool:
-	if not u.fx_ready(LP_CRES[0]):
+	if not LFX.on() or not u.fx_ready(LP_CRES[0]):
 		return false
 	if not a.has("lp_n"):
 		a["lp_n"] = LFX.pick(u, LP_CRES, LFX.vseed(u, q))
@@ -31,7 +31,7 @@ static func lp_wave(u, a: Dictionary, q: Vector2, dd: Vector2, k: float) -> bool
 
 ## 剑气过完：区域里留一道冷紫斩痕（地面层，冷却变暗）
 static func lp_scar(u, a: Dictionary, sp: Vector2, ep: Vector2) -> void:
-	if not u.fx_ready(LP_CRES[0]):
+	if not LFX.on() or not u.fx_ready(LP_CRES[0]):
 		return
 	u.shape({"kind": "blade", "a": sp, "b": ep, "w": 4.0, "col": Color(0.55, 0.52, 0.85), "glow": Color(0.25, 0.22, 0.5), "life": 0.6, "layer": "back"})
 
@@ -42,7 +42,7 @@ const SP_SLASH := ["fx_lk_sp_slash1", "fx_lk_sp_slash2", "fx_lk_sp_slash3"]
 
 ## 替身冲刺中每帧：她本人帧条的暗红剪影 + 拖影
 static func sp_ghost(u, p, q: Vector2, d: Vector2) -> bool:
-	if not u.fx_ready(SP_SLASH[0]):
+	if not LFX.on() or not u.fx_ready(SP_SLASH[0]):
 		return false
 	var pr: Dictionary = p.portrait()
 	var tn: String = str(pr.get("tex", ""))
@@ -58,7 +58,7 @@ static func sp_ghost(u, p, q: Vector2, d: Vector2) -> bool:
 
 ## 斩出：一道撕裂斩痕（血红 → 暗红冷却，留在地面）+ 血红火花
 static func sp_cut(u, fp: Vector2, tp: Vector2) -> bool:
-	if not u.fx_ready(SP_SLASH[0]):
+	if not LFX.on() or not u.fx_ready(SP_SLASH[0]):
 		return false
 	var vs: float = LFX.vseed(u, tp)
 	var name: String = LFX.pick(u, SP_SLASH, vs)
@@ -84,16 +84,19 @@ const SG_ROCK := "fx_ul_rock"
 
 ## 冲锋中每帧：脚下翻起的尘 + 拖影条
 static func sg_dash(u, q: Vector2, d: Vector2) -> bool:
-	if not u.fx_ready(SG_CRATER[0]):
+	if not LFX.on() or not u.fx_ready(SG_CRATER[0]):
 		return false
 	u.shape({"kind": "band", "a": q - d * 70.0, "b": q, "w": 22.0, "col": Color(0.55, 0.45, 0.3), "fill": 0.3, "life": 0.05})
-	u.grain("bfx_dust", q + Vector2(0, 8), -d, Color(0.45, 0.4, 0.33), 2)
+	var hq: float = LFX.h(q.x * 0.071 + q.y * 0.113)   # 尘按哈希隔几帧冒一团、左右错开、大小不一（预审：每帧一团等距像贴片）
+	if hq < 0.35:
+		var side: Vector2 = d.orthogonal() * (hq * 60.0 - 10.0)
+		u.grain("bfx_dust", q + side + Vector2(0, 8), -d.rotated((hq - 0.17) * 2.0), Color(0.45, 0.4, 0.33) if hq < 0.2 else Color(0.32, 0.29, 0.25), 2 + int(hq * 12.0))
 	return true
 
 
 ## 尾锤：砸坑（3 种）+ 坑口碎石顶起落回（大小不一、少数高飞）+ 两团分层尘 + 灯 + 轻震
 static func sg_slam(u, c: Vector2) -> bool:
-	if not u.fx_ready(SG_CRATER[0]):
+	if not LFX.on() or not u.fx_ready(SG_CRATER[0]):
 		return false
 	var vs: float = LFX.vseed(u, c)
 	var name: String = LFX.pick(u, SG_CRATER, vs)
@@ -122,7 +125,7 @@ const HS_SHIELD := "fx_lk_hs_shield"
 
 ## 举盾期间每帧：盾面朝敌（正视贴图压扁成俯视下的竖牌）+ 受光边；fa = 透明度
 static func hs_shield(u, pos: Vector2, side: Vector2, fa: float, t: float) -> bool:
-	if not u.fx_ready(HS_SHIELD):
+	if not LFX.on() or not u.fx_ready(HS_SHIELD):
 		return false
 	var sh: float = LFX.tex_h(u, HS_SHIELD)
 	var sc: float = 64.0 / sh
