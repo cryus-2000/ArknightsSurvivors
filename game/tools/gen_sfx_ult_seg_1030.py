@@ -73,7 +73,7 @@ def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
     return fadeio(y / (np.abs(y).max() + 1e-9), 0.001, fout)
 
 
-LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "slam_1": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
 def level(slot, x):
@@ -149,6 +149,11 @@ SN = {   # Sonniss 素材短名（docs/113 §20）
     "ring": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav",
     "sub": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/WATRImpt_Impact Water Deep Submerge Bubble Drown Ship Hit 05_ESM_EMWI.wav",
     "liq": "344 Audio - Elemental Palette Designed Vol. 1/WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04_344 Audio_Elemental Palette Designed Vol 1.wav",
+    "astral": "Alexander Kopeikin - Emotion and Magic/magic, energy flow, astral travel-015.wav",
+    "jump": "344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Jump Start Drop 3_344 Audio_Bass Drops and Downers Vol 3.wav",
+    "drop": "344 Audio - Bass Drops & Downers Vol. 1/DSGNBass_Bass Drop & Downer Fast 16_344 Audio_Bass Drops & Downers.wav",
+    "sweep": "Cinematic Sound Design - Ultra Transitions & Impacts/Woosh Sweep Slide Infographics Basic.wav",
+    "b011": "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_011.wav",
 }
 
 
@@ -184,18 +189,14 @@ def exusiai():
 
 
 def skalter():
-    """海嗣从身边升起、张口聚光（0.35 秒）→ 粗激光慢扫一整圈（约 3.4 秒，轻震）→ 扫过的地面连爆（深红，少而大）"""
-    sw = 3.9
-    t = T(sw)
-    beam = (lp(N(sw), 900, 4) * 1.4 + drone(sw, 73, 0.6) * 0.45 + bp(tone(sw, 220, 196, "saw"), 150, 2500) * 0.18
-            + bp(N(sw), 2200, 5500) * 0.1 * (0.7 + 0.3 * np.sin(2 * np.pi * 6 * t)))
-    beam *= np.clip((t - 0.3) / 0.12, 0, 1) * np.clip((sw - t) / 0.4, 0, 1)
-    ignite = at(pad(rev(burst(0.3, 3000, 8)) * 0.5, whisper(0.35, 500, 1500) * 0.3), 0.0)
+    """docs/205 §4.4（用户 10-31 选 ① 原作）：提示 = 原作召潮降调 → 海嗣升起（strip seaborn_front）= 原作召潮
+    → 激光扫一圈 cast（3.9 秒）= 原作电场低鸣降调低通 → 沿途爆裂（strip fx_sk_blast）= 原作灵魂爆裂 3 个音高
+    → 收尾大爆（strip fx_sk_flash，min_sc 1.5，高潮）= 原作陨石 + 黑洞 + 低频；第一下掉血不另响（没有 impact）"""
     return {
-        "charge": pad(drone(0.9, 49, 0.4) * swell(0.9, 0.9) * 0.8, whisper(0.9, 400, 1300) * swell(0.9, 0.8) * 0.45, lp(N(0.9), 300) * swell(0.9, 0.9) * 0.6),
-        "cast": pad(ignite, beam),
-        "impact": pad(burst(0.6, 2200, 7), sub(0.7, 75, 30, 4), splash(0.5, 2500, 7) * 0.4),
-        "burst_hit": pad(burst(0.7, 1800, 6), sub(0.6, 70, 30, 5) * 0.9, splash(0.4, 2200, 8) * 0.35),
+        "sf": akd("p_skill_seasummon.wav", 0.0, 0.5, 0.8, fout=0.25), "cast": lp(akd("p_field_elefield_loop.wav", 5.0, 3.9, 0.7, fout=0.8), 3000),
+        "rise": akd("p_skill_seasummon.wav", 0.0, 1.3, 0.85, fout=0.5),
+        **{"blast_%d" % (i + 1): akd("p_skill_spiritexplo.wav", 0.02, 0.9, r, fout=0.35) for i, r in enumerate([0.8, 0.85, 0.9])},
+        "final": pad(akd("p_skill_aeroliteexplo.wav", 0.0, 1.5, 0.8, fout=0.6), akd("p_skill_darkholeboost.wav", 0.0, 1.2, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.6, fout=0.6), 900)),
     }
 
 
@@ -239,31 +240,29 @@ def skadi():
 
 
 def gladiia():
-    """槊一指，漩涡越转越快把敌人拖向中心（约 0.6 秒）→ 收拢（冲击）→ 潮水从中心爆开"""
-    vx = 0.75
-    t = T(vx)
-    swirl = bp(N(vx), 300, 2600) * (0.55 + 0.45 * np.sin(2 * np.pi * (3 + 12 * t / vx) * t)) * swell(vx, 0.95) + lp(N(vx), 260, 3) * swell(vx, 0.95) * 1.1
+    """docs/205 §4.4（用户 10-31 选 ① 原作海水）：提示 = 原作水炮起头降调 → 放出 / 卷起水龙卷 = 原作召潮（fx strip tornado_open）
+    → 龙卷持续 = 原作潮涌铺底（strip tornado_loop）→ 水环往里收每道一声水泡（ring r40 w4）→ 收拢 = 原作水炮（seg 收拢 on）
+    → 潮涌炸开（高潮，strip fx_skadi_surge）= 原作水炮 + 潮涌 + 低频 → 水花（strip fx_water_splash，Sonniss 液体冲击）"""
     return {
-        "charge": pad(lp(N(0.8), 600) * swell(0.8, 0.9) * 0.7, whoosh(0.8, 200, 900) * 0.4, whisper(0.8, 600, 1800) * swell(0.8, 0.8) * 0.25),
-        "cast": pad(sweep_noise(0.2, 2500, 600, 0.4) * env(0.2, 0.002, 10), metal(0.3, 520, 9, bright=0.45) * 0.3),
-        "vortex": swirl,
-        "impact": pad(thud(0.4, 120, 45, 9), splash(0.4, 3000, 9) * 0.7, sweep_noise(0.2, 400, 2400, 0.4) * env(0.2, 0.002, 10) * 0.5),
-        "surge": pad(splash(1.0, 4500, 3.5) * 1.0, burst(0.6, 2200, 7) * 0.6, sub(0.8, 80, 30, 4)),
+        "sf": akd("p_skill_bigwatercannon.wav", 0.03, 0.5, 0.7, fout=0.25), "cast": akd("p_skill_seasummon.wav", 0.0, 0.6, fout=0.3),
+        "open": akd("p_skill_seasummon.wav", 0.0, 1.2, fout=0.5), "loop": akd("p_skill_tidesurging_1.wav", 0.2, 1.8, fout=0.6),
+        **{"swirl_%d" % (i + 1): akd("p_skill_waterbubble.wav", 0.15, 0.75, r, fout=0.25) for i, r in enumerate([0.9, 1.0, 1.1])},
+        "crush": akd("p_skill_bigwatercannon.wav", 0.03, 0.9, 0.85, fout=0.3),
+        "surge": pad(akd("p_skill_bigwatercannon.wav", 0.0, 1.8, fout=0.6), akd("p_skill_tidesurging.wav", 0.45, 1.4, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8),
+        **{"splash_%d" % (i + 1): sn("liq", 0.0, 0.5, r, fout=0.2) for i, r in enumerate([1.0, 1.1, 1.2])},
     }
 
 
 def angelina():
-    """落点出现黑紫奇点，0.8 秒把敌人吸起悬空（逐渐升高）→ 停顿 → 全部砸向地面（冲击）"""
-    sing = 0.85
-    t = T(sing)
-    lift = pad(tone(sing, 90, 520, "tri") * swell(sing, 0.92) * 0.45, np.sin(2 * np.pi * 60 * t + 4 * np.sin(2 * np.pi * 2.5 * t)) * swell(sing, 0.9) * 0.5,
-               suck(sing, 200, 3000) * 0.4, bell(sing, 1047, 1.5, 1.0, 0.4) * swell(sing, 0.9) * 0.18)
+    """docs/205 §4.4（用户 10-31 选 ② 录音）：提示 = 电光定格 → 重力井张开 = 能量流（strip well_back）→ 吸起 = 低音起跳（seg 奇点 on）
+    → 脉冲环 = 电光（ring r60 w3）、光线往里收 = 短掠过（line+v w2）→ 每次砸地 = 斩击冲击 + 低音下坠（strip well_close，第一下叠预告片低频最重）"""
     return {
-        "charge": pad(drone(0.9, 49, 0.4) * swell(0.9, 0.9) * 0.6, bell(0.9, 784, 2, 1.0, 0.3) * swell(0.9, 0.9) * 0.25),
-        "cast": pad(bell(0.4, 1319, 8, 1.0, 0.3) * 0.4, rev(burst(0.3, 3000, 8)) * 0.4),
-        "singularity": lift,
-        "impact": pad(thud(0.9, 85, 28, 4.5) * 1.3, crack(0.9, 4.5) * 0.9, burst(0.4, 2000, 9) * 0.5),
-        "slam_hit": thud(0.25, 140, 55, 16) * 0.8,
+        "sf": sn("elec", 0.0, 0.6, 0.8, fout=0.25), "cast": sn("astral", 0.0, 0.5, fout=0.2),
+        "open": sn("astral", 0.0, 1.6, fout=0.6), "lift": sn("jump", 0.0, 1.0, fout=0.4),
+        **{"pulse_%d" % (i + 1): sn("elec", 0.0, 0.5, r, fout=0.25) for i, r in enumerate([0.7, 0.8])},
+        **{"streak_%d" % (i + 1): sn("sweep", 0.0, 0.35, r, fout=0.15) for i, r in enumerate([1.2, 1.3, 1.4])},
+        "slam_1": pad(sn("cut", 0.93, 1.4, fout=0.5), lp(sn("drop", 0.0, 1.2, fout=0.5), 1500) * 0.8, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8),
+        **{"slam_%d" % (i + 2): pad(sn("cut", 0.93, 1.0, r, fout=0.4), lp(sn("drop", 0.0, 0.8, r, fout=0.4), 1500) * 0.6) for i, r in enumerate([0.92, 1.08])},
     }
 
 
@@ -279,14 +278,15 @@ def eyjafjalla():
 
 
 def wisadel():
-    """架炮后仰（装填两声）→ 向前一排排地毯式炮击，由近到远推进（每排一声）→ 余震"""
-    def clk(f):
-        return pad(metal(0.12, f, 35, bright=0.5) * 0.6, hp(N(0.02), 2000) * env(0.02, 0.0003, 120))
+    """docs/205 §4.4（用户 10-31 选 ① 原作炮击）：提示 = 原作重炮蓄能 → 放出 = 原作发射架 → 开炮（strip fx_cannon_burst）= 原作重炮
+    → 每发落弹（strip fx_wisadel_cannon）= 原作火爆弹 3 个音高 → 余震（strip fx_missile_explode）= 原作火爆弹发射声
+    → 第一发掉血 impact = 原作陨石爆炸 + 低频（全招最重）"""
     return {
-        "charge": pad(clk(700), at(clk(980), 0.2), at(clk(1250), 0.4), at(metal(0.4, 160, 6, bright=0.5) * 0.5, 0.5), tone(0.9, 45, 72) * swell(0.9, 0.8) * 0.5),
-        "cast": pad(thud(0.3, 150, 45, 12), burst(0.3, 2600, 14) * 0.8, hp(N(0.04), 2000) * env(0.04, 0.0005, 70) * 0.6),
-        "impact": pad(burst(0.8, 2500, 5.5), sub(0.8, 85, 28, 4), rumble(0.8, 160, 3.5) * 0.7),
-        "shell_hit": pad(burst(0.45, 2800, 8) * 0.9, thud(0.35, 115, 40, 10) * 0.8, at(rumble(0.5, 140, 5) * 0.5, 0.3)),
+        "sf": akd("p_skill_blackcannonfull_cast.wav", 0.15, 0.45, fout=0.2), "cast": akd("p_skill_launcher_cast.wav", 0.0, 0.8, fout=0.3),
+        "fire": akd("p_skill_blackcannonfull.wav", 0.0, 1.0, fout=0.4),
+        **{"shell_%d" % (i + 1): akd("p_skill_fireboomexplo.wav", 0.0, 0.9, r, fout=0.35) for i, r in enumerate([1.0, 0.92, 1.08])},
+        **{"after_%d" % (i + 1): akd("p_skill_fireboomshot.wav", 0.0, 0.6, r, fout=0.25) for i, r in enumerate([1.0, 1.1, 0.9])},
+        "impact": pad(akd("p_skill_aeroliteexplo.wav", 0.0, 1.3, fout=0.5), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
     }
 
 
@@ -399,16 +399,14 @@ def lappland():
 
 
 def lumen():
-    """队长脚下升起灯塔光柱（光圈扩散灼烧，冲击）→ 光柱持续 2 秒（嗡鸣）→ 光雨落下 → 熄灭"""
-    col = 1.8
-    t = T(col)
-    hum = (chord(col, [262, 392, 523], "tri") * 0.4 + drone(col, 131, 1.2) * 0.3 + bp(N(col), 1500, 5000) * 0.08) * np.clip(t / 0.15, 0, 1) * np.clip((col - t) / 0.5, 0, 1)
+    """docs/205 §4.4（用户 10-31 选 ① 原作）：提示 = 原作星光 → 放出 = 原作提灯 → 点亮灯塔（strip fx_beacon_ignite）= 原作提灯
+    → 光圈炸开 impact（高潮）= 原作灯火进化 + 低频 → 光柱每跳一声铃（dots，原作召回铃 3 个音高）→ 光雨（line+v w2，原作星光升调）"""
     return {
-        "charge": pad(bell(0.9, 523, 2, 1.0, 0.3) * swell(0.9, 0.9) * 0.4, riser(0.9, 130, 520, "tri", 2500) * 0.45),
-        "cast": pad(sweep_noise(0.3, 500, 3500, 0.5) * swell(0.3, 0.9) * 0.6, bell(0.5, 1047, 4, 1.0, 0.4) * 0.3),
-        "impact": pad(sweep_noise(0.7, 600, 4200, 0.6) * env(0.7, 0.002, 5), sub(0.6, 95, 35, 6) * 0.7, bell(1.0, 392, 3, 1.0, 0.5) * 0.4),
-        "column": hum,
-        "rain_hit": pad(bell(0.18, 2093, 22, 1.0, 0.3) * 0.35, bp(N(0.12), 2500, 7000) * env(0.12, 0.002, 25) * 0.4),
+        "sf": akd("p_skill_shinestar.wav", 0.0, 0.6, 0.9, fout=0.3), "cast": akd("p_skill_lantern_cast.wav", 0.0, 0.6, fout=0.3),
+        "ignite": akd("p_skill_lantern.wav", 0.0, 1.2, fout=0.5),
+        "impact": pad(akd("p_skill_lanternevolution.wav", 0.1, 1.5, fout=0.6), lp(sn("b075", 0.25, 1.2, fout=0.5), 900) * 0.6),
+        **{"pulse_%d" % (i + 1): akd("p_skill_recallbell.wav", 0.0, 0.6, r, fout=0.25) for i, r in enumerate([1.0, 1.12, 1.26])},
+        **{"rain_%d" % (i + 1): akd("p_skill_shinestar.wav", 0.0, 0.5, r, fout=0.25) for i, r in enumerate([1.3, 1.45, 1.6])},
     }
 
 
