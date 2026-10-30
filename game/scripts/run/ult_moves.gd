@@ -1498,6 +1498,7 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 ## 用户 10-30 两轮：「m3 的爆炸用红色比较好」→「都改成全红色，不需要裂地，更突出红色的粒子爆炸感」：不画裂网 / 预兆裂纹 / 尘土墙，
 ## 每圈沿圈接连炸几团小红爆 + 红色颗粒 / 火星→ 每圈地块隆起、最外圈尘土墙外推 + 余震碎石。三圈判定 / 时序 / 伤害不动
 const KA_RED := Color(0.9, 0.16, 0.12)
+const KA_SMOKE := "fx_ka_smoke"   # 红黑烟团（pixgen，参照维什戴尔爆炸关键帧）
 
 
 static func _ka_v2(u) -> bool:
@@ -1505,45 +1506,31 @@ static func _ka_v2(u) -> bool:
 
 
 static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
-	# 用户 10-30 第三 / 四轮：红色粒子爆炸之后粒子扩散，再「更加华丽」——白热三连闪 → 三波红色像素粒子（主爆 + 二次 + 远飞火星）
-	# → 碎裂红环三道 + 一圈 10 团二次小爆 + 往上飘的余烬；不用大爆炸贴图
+	# 用户 10-30 第六轮：「有点像放烟花」——不再到处散小爆、多层彩环；改成一团有分量的地面爆炸（参照 Codex 第二批维什戴尔爆炸关键帧）：
+	# 红白爆闪 → 红黑烟团（fx_ka_smoke，从核心往外鼓、热红冷成暗褐、慢慢散）+ 一层红色粒子扩散（预烘焙帧条）+ 一道红色冲击环
+	# + 地面焦黑 + 碎石被掀飞 / 隆起 + 余烬往下落
 	var vs: float = PF.vseed(u, core)
-	for m in 3:
-		u.shape({"kind": "circle", "c": core, "r": 50.0 + 45.0 * m, "col": Color(1.0, 0.75 - 0.2 * m, 0.65 - 0.2 * m), "fill": 0.95 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
-	var cols := [Color(1.0, 0.42, 0.32), Color(1.0, 0.22, 0.16), Color(1.0, 0.6, 0.45), Color(1.0, 0.3, 0.22), Color(0.95, 0.15, 0.12)]   # 亮红档（乘在热白色阶上，暗底上看得清）
-	PF.particles(u, core, 420, "ult_burst", cols, 0.0, vs)   # 主爆：2 px 红色颗粒迸开、阻力减速扩散
-	PF.particles(u, core, 220, "ult_burst_s", cols, 0.08, vs + 4.0)   # 二次近爆
-	PF.particles(u, core, 90, "ult_ember", [Color(1.0, 0.4, 0.3), KA_RED], 0.12, vs + 9.0)   # 慢飘余烬
-	for m in 3:
-		u.shape({"kind": "ring", "c": c, "r": R * (1.05 - 0.2 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": Color(1.0, 0.4, 0.3).lerp(KA_RED, 0.4 * m), "life": 0.55, "delay": 0.04 * m})
-	for q in 10:
-		var hq: float = PF.h(q + vs + 50.0)
-		var p: Vector2 = core + Vector2.from_angle(TAU * (q + hq) / 10.0) * R * (0.3 + 0.35 * hq)
-		var dl: float = 0.1 + 0.04 * (q % 4)
-		u.shape({"kind": "circle", "c": p, "r": 24.0, "col": Color(1.0, 0.6, 0.5), "fill": 0.9, "life": 0.06, "delay": dl})
-		PF.particles(u, p, 36, "ult_burst_s", cols, dl, vs + q * 7.0)
-	for m in 16:
-		var dq := Vector2.from_angle(TAU * float(m) / 16.0 + 0.13)
-		u.grain("bfx_burst", core + dq * 20.0, dq, KA_RED, 8)
-		u.grain("mote_up", core + dq * R * 0.3, Vector2.UP, Color(1.0, 0.4, 0.3), 2)
-		if m % 4 == 0:
-			u.debris(core + dq * 60.0, KA_RED, 3)
-			u.spark(core + dq * 40.0, Color(1.0, 0.4, 0.3), 6, 30.0)
+	u.shape({"kind": "circle", "c": core, "r": 80.0, "col": Color(1.0, 0.7, 0.55), "fill": 0.95, "life": 0.07})
+	u.shape({"kind": "ellipse", "c": c + Vector2(0, 10), "rx": R * 0.42, "ry": R * 0.22, "col": Color(0.08, 0.03, 0.03), "fill": 0.55, "life": 2.2, "layer": "back"})   # 焦黑
+	if u.fx_ready(KA_SMOKE):
+		var st: Texture2D = u._strip_tex(KA_SMOKE)
+		var sr: float = st.get_width() * 0.5 * u.g.PX / A.hires_of(st)
+		u.strip(KA_SMOKE, core, {"sc": 70.0 / sr, "sc1": R * 0.42 / sr, "scd": 0.35, "ang": PF.h(vs) * TAU, "sx": -1.0 if PF.h(vs + 1.0) < 0.5 else 1.0,
+			"life": 1.1, "fade": 0.5, "col": Color(1.25, 1.1, 1.05), "col1": Color(0.45, 0.32, 0.3), "cold": 0.6})
+	PF.particles(u, core, 300, "ult_burst", [Color(1.0, 0.3, 0.22)], 0.02, vs, R * 0.75)
+	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 8.0, "col": Color(0.95, 0.3, 0.22), "life": 0.5})
+	for i in 3:   # 冲击往外推：三拍碎石掀起
+		PF.heave(u, c, R * (0.3 + 0.3 * i), vs + 60.0 + i, 0.06 * i)
+	PF.aftershock(u, c, R * 0.8, vs + 70.0, 0.35, 10)
+	u.spark(core, Color(1.0, 0.4, 0.3), 14, 40.0)   # 余烬往下落
+	u.debris(core, KA_RED, 3)
 
 
-## 每圈：沿圈接连迸几团小的红色粒子爆；只少量碎石
+## 每圈：v2 不再沿圈散小爆（像烟花），只在圈上扬一圈尘（尘土墙预审报拼接感，去掉）
 static func _ka_ring_v2(u, c: Vector2, r: float, i: int, R: float) -> void:
-	var nb: int = 4 + 2 * i
-	for q in nb:
-		var hh: float = _ulh(i * 37.0 + q * 7.0 + 500.0)
-		var dv: Vector2 = Vector2.from_angle(0.41 * i + TAU * (q + 0.6 * hh) / nb)
-		var p: Vector2 = c + dv * r * (0.75 + 0.25 * hh)
-		var dl: float = 0.03 * float(q % 4)
-		u.shape({"kind": "circle", "c": p, "r": 22.0, "col": Color(1.0, 0.45, 0.35), "fill": 0.9, "life": 0.06, "delay": dl})
-		PF.particles(u, p, 30, "ult_burst_s", [Color(1.0, 0.35, 0.25), KA_RED], dl, float(i * 13 + q))
-		u.grain("bfx_burst", p, dv, KA_RED, 5)
-		if q % 3 == 0:
-			_ul_rock(u, p, dv * 60.0, 220.0 + 120.0 * hh, hh, 0.4, dl)
+	for q in 8:
+		var dq := Vector2.from_angle(TAU * (q + PF.h(q + i)) / 8.0)
+		u.grain("bfx_dust", c + dq * r, dq, Color(0.5, 0.42, 0.4), 3)
 	if i == 0:
 		u.light(c, R * 0.7, KA_RED, 0.4)
 
