@@ -388,3 +388,17 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 - **没确认的**：「哪条是能天使」。干员战斗预制体不在热更新包里（在安装包里），骨骼文件只有 `OnAttack` / `OnStart` 事件、没有音效名，`character_table` 里也没有。所以只能按武器类型给候选：P = `pistolup_n / pistolup_d / pistol_n`（有装填变体 `pistolup_sreload`，对得上她技能的装填 / 连射）、Q = `handgun_*`、R = `silncrgun_*`（短促科幻消音枪）。
 - **试听**（`game/tools/gen_sfx_exu5_1026.py`）：主仓库 `build/exu_orig_review/`：`before`（现用 §18）/ `P` / `Q` / `R`，每套 `*_combat.ogg`（6 秒实战混音：普攻 3 次 / 秒轮换 + 命中 + 击杀 / 拾取 / 通用命中背景，按游戏里的播放音量混）、`*_skills.ogg`（s1 / s2 / s3 / big）、各单发；原始候选（未处理，峰值 -3 dBFS）在 `build/ak_exu_candidates/`。切片办法：取第一声枪响 0.30 s、尾 60 ms 淡出、80 Hz 高通、rms100 对齐 -9.5 dBFS（同 §18）；技能用同一套样本重拼。
 - **用户选定后**：`python game/tools/gen_sfx_exu5_1026.py --apply P|Q|R` 写进 `game/audio/sfx/`；网页版走 B 档压缩（`tools/web_audio.py` 只动配乐与语音，音效 QOA 不变）。
+
+## 20. Sonniss GDC 2026 录音（10-31，终结技音效逐人精调，docs/205 §4）
+
+用户同意下载 Sonniss GDC 2026 Game Audio Bundle（官方 downloads.sonniss.com）。许可：免版税、可商用、不需署名；**不得转售 / 再分发音效本身、不得用于 AI 训练**。原包放主仓库 `build/sfx_lib/sonniss_gdc2026/extracted/`（不进 git、不进包）。
+处理：`game/tools/gen_sfx_ult_seg_1030.py` 的 `lib()` 写死文件名 + 截取段（转单声道 44.1 kHz、可重采样变调），与合成层同一套响度对齐（§1 口径，rms100 + 软限幅 -1 dBFS），导入沿用项目 QOA 压缩；只截用到的段。
+
+| 游戏文件 | 用途 | 来源（Sonniss GDC 2026 Bundle，royalty-free）原文件名 | 截取 / 处理 | 时长 |
+|---|---|---|---|---|
+| `ult_texas_mark_1..6` | 德克萨斯终结技每道剑痕 | 344 Audio「WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2」 | 同一录音里的 6 刀，各取一刀（0.13 / 2.24 / 4.32 / 6.33 / 8.43 / 10.80 s 起） | 0.5–0.75 s |
+| `ult_texas_cut` | 斩线齐出 | Epic Stock Media「DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04」 | 0.29 s 起 0.8 s | 0.8 s |
+| `ult_texas_impact` | 高潮爆开 | Cinematic Sound Design「Impact Cut Sweep」+ Federico Soler「EffectiveTrailer_Booms_Vol2_214」 | 前者 0.93 s 起 1.5 s；后者 0.25 s 起 1.6 s、900 Hz 低通垫底 | 1.6 s |
+| `ult_texas_shatter` | 斩线碎裂 | Epic Stock Media「GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05」 | 0.08 s 起 1.0 s | 1.0 s |
+| `ult_texas_sword_1..4` | 剑雨每把插地 | Epic Stock Media「METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01」 | 0.12 s 起 0.32 s，变调 ×0.92 / 1.0 / 1.09 / 1.19，9 kHz 低通 | 0.26–0.33 s |
+| `ult_texas_cast` | 隐去起手 | David Dumais「METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14」 | 0 s 起 0.6 s，×1.15 | 0.52 s |

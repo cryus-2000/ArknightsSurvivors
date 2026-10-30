@@ -19,7 +19,28 @@ exec(_src[_src.index("def rip("):_src.index("OPS = [")])   # rip / horn / heavy_
 OUT = os.path.join(ROOT, "build", "ult_sfx", "S")
 
 
-LV = {"mark": -13.0, "sword": -18.0, "shatter": -14.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+# ---------------------------------------------------------------- 录音素材（Sonniss GDC 2026 Game Audio Bundle，免版税可商用、不需署名；
+## 原文件只放主仓库 build/sfx_lib/sonniss_gdc2026/extracted/（不进 git、不进包），这里写死文件名 + 截取段，重跑结果一样；登记见 docs/113 §9）
+SONNISS = os.path.join(ROOT, "build", "sfx_lib", "sonniss_gdc2026", "extracted")
+_LIB = {}
+
+
+def lib(name, t0, dur, rate=1.0, gain=1.0, fin=0.004, fout=0.04):
+    """截一段录音（转单声道 44.1 kHz）：name = 包目录/文件名，t0 / dur 秒；rate > 1 升调变短（重采样）"""
+    from fractions import Fraction
+    from scipy.signal import resample_poly
+    import soundfile as sf
+    if name not in _LIB:
+        x, sr = sf.read(os.path.join(SONNISS, name), dtype="float64", always_2d=True)
+        _LIB[name] = (x.mean(axis=1), sr)
+    x, sr = _LIB[name]
+    seg = x[int(t0 * sr):int((t0 + dur) * sr)]
+    fr = Fraction(SR / (sr * rate)).limit_denominator(2000)
+    y = resample_poly(seg, fr.numerator, fr.denominator)
+    return fadeio(y / (np.abs(y).max() + 1e-9) * gain, fin, fout)
+
+
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
 def level(slot, x):
@@ -56,22 +77,27 @@ def loopify(x, sec, fin=0.05, fout=0.3):
 
 
 # ---------------------------------------------------------------- 20 人（段名 = 招式伤害 src）
+TX_SWORD = "344 Audio - Historical Weapons Vol. 2/WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav"
+TX_SLICE = "Epic Stock Media - Tower Defense Game/DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04_ESM_TDG.wav"
+TX_SCRAPE = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav"
+TX_HIT = "Cinematic Sound Design - Colossal Impacts/Impact Cut Sweep.wav"
+TX_BOOM = "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_214.wav"
+TX_GLASS = "Epic Stock Media - Elemental Mutation Whooshes and Impacts/GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05_ESM_EMWI.wav"
+TX_TAP = "Epic Stock Media - HD Game Materials/METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01_ESM_HDGM.wav"
+TX_MARKS = [(0.13, 0.55), (2.24, 0.53), (4.32, 0.51), (6.33, 0.60), (8.43, 0.76), (10.80, 0.73)]   # 剑录音里 6 刀的起点 / 长度
+
+
 def texas():
-    """docs/205 §4.3：隐去（cast）→ 0.5 秒画 N 道发丝线，每道一声剑鸣 mark_1..6（fx line）→ 斩线齐出一声多刃齐斩 cut（fx blade）
-    + 高潮爆开 impact（第一下掉血）→ 斩线碎裂 shatter（fx blade+v）→ 剑雨每把插地一声轻叮 sword_1..4（fx strip，帧条第 3 帧）"""
-    marks = {"mark_%d" % (i + 1): pad(slash(0.13, 7800, 3200) * 0.45, at(metal(0.4, 2100 * (1.055 ** i), 11, bright=0.55) * 0.55, 0.012),
-                                     at(bell(0.3, 4200 * (1.04 ** i), 16, 1.0, 0.25) * 0.12, 0.012)) for i in range(6)}
-    swords = {"sword_%d" % (k + 1): pad(tink(2500 + 280 * k, 30 + 3 * k) * 0.8, thud(0.07, 340 - 25 * k, 140, 45) * 0.35) for k in range(4)}
-    cut = pad(*[at(slash(0.32, 8200 - 500 * j, 650 + 60 * j) * (1.0 - 0.1 * j), 0.004 * j) for j in range(6)],
-              thud(0.18, 200, 70, 18) * 0.5)
-    boom = pad(sub(1.1, 95, 34, 3.6) * 1.0, burst(0.55, 5200, 7) * 0.55, at(hp(burst(0.25, 11000, 14), 3000) * 0.5, 0.01),
-               metal(1.3, 1180, 2.6, bright=0.5) * 0.3, rumble(1.0, 200, 3.5) * 0.45)
-    shatter = pad(lp(crackle(0.45, 160, 2500, 9500, 8), 10000) * 0.7,
-                  *[at(tink(3000 + 370 * k, 40) * (0.5 - 0.06 * k), 0.025 + 0.045 * k) for k in range(6)])
+    """docs/205 §4.3（10-31 换 Sonniss 录音）：隐去（cast，长刃挥刮）→ 0.5 秒画 N 道发丝线，每道一声真剑划过 mark_1..6（同一组录音的 6 刀）
+    → 斩线齐出一声多层斩击 cut + 高潮爆开 impact（斩击冲击 + 预告片低频轰）→ 斩线碎裂 shatter（玻璃晶片）→ 剑雨每把插地一声金属轻敲 sword_1..4（4 个音高）"""
+    marks = {"mark_%d" % (i + 1): lib(TX_SWORD, t0, d, fout=0.06) for i, (t0, d) in enumerate(TX_MARKS)}
+    swords = {"sword_%d" % (k + 1): lp(lib(TX_TAP, 0.12, 0.32, rate=(0.92, 1.0, 1.09, 1.19)[k], fout=0.08), 9000) for k in range(4)}
     d = {
         "charge": pad(sweep_noise(0.7, 1500, 6500, 0.3) * swell(0.7, 0.95) * 0.5, metal(0.7, 1760, 2.5, bright=0.4) * swell(0.7, 0.9) * 0.4),
-        "cast": pad(whoosh(0.2, 3200, 800) * 0.6, hp(sweep_noise(0.12, 2000, 9000, 0.4), 1500) * env(0.12, 0.002, 18) * 0.3),
-        "cut": cut, "impact": boom, "shatter": shatter,
+        "cast": lib(TX_SCRAPE, 0.0, 0.6, rate=1.15, fout=0.15) * 0.8,
+        "cut": lib(TX_SLICE, 0.29, 0.8, fout=0.3),   # 起点对到斩击最响处前一点（录音 0.42 s 峰值）
+        "impact": pad(lib(TX_HIT, 0.93, 1.5, fout=0.5), lp(lib(TX_BOOM, 0.25, 1.6, fout=0.7), 900) * 0.8),
+        "shatter": lib(TX_GLASS, 0.08, 1.0, fout=0.35),
     }
     d.update(marks)
     d.update(swords)
