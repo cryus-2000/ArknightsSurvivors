@@ -57,6 +57,22 @@ def fsd(sid, t0, dur, fout=0.08):
     return fadeio(hp(y, 300) / (np.abs(y).max() + 1e-9), 0.002, fout)
 
 
+## 原作音效（用户 10-31 同意放进游戏）：明日方舟 CN 客户端热更新 26-10-22-14-02-11-51447808 的 audio/sound_beta_2/player/*.ab，
+## ArknightsStudioCLI 导出到主仓库 build/ak_src/flat/、build/ak_exu_candidates/（不进 git；docs/113 §19 / §20）
+def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
+    from fractions import Fraction
+    from scipy.signal import resample_poly
+    import soundfile as sf
+    p = os.path.join(ROOT, "build", "ak_src", "flat", name)
+    if not os.path.exists(p):
+        p = os.path.join(ROOT, "build", "ak_exu_candidates", name)
+    x, sr = sf.read(p, always_2d=True)
+    x = x.mean(axis=1)[int(t0 * sr):int((t0 + dur) * sr) if dur else None]
+    fr = Fraction(SR / (sr * rate)).limit_denominator(2000)
+    y = resample_poly(x, fr.numerator, fr.denominator)
+    return fadeio(y / (np.abs(y).max() + 1e-9), 0.001, fout)
+
+
 LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
@@ -116,17 +132,19 @@ def texas():
     return d
 
 
+EX_BLAST = "Epic Stock Media - Anime Game/EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav"
+
+
 def exusiai():
-    """docs/205 §4.3：双枪举起 + 锁定框齐亮（cast）→ 每颗曳光弹出膛一枪 shot_1..4（fx circle r5，音高 / 尾巴各不同）
-    → 每个爆点一声小爆 pop_1..3（fx strip burst）；第一下掉血 impact 是开场最重的一下"""
-    beeps = seq([(sum(0.16 * (0.82 ** j) for j in range(i)), bell(0.06, 2637, 34, 1.0, 0.25) * 0.45) for i in range(9)])
+    """docs/205 §4.3（用户 10-31 定）：按 Q 瞄准 = 原作手枪换弹上膛（charge，取代原先 9 声滴答）→ 放出 = 原作手枪拉栓一下（cast）
+    → 每颗曳光弹出膛一枪 shot_1..4（fx circle r5）→ 每个爆点一声录音小爆炸 pop_1..3（fx strip burst，Sonniss「Explosion Small Blast」）
+    → 第一下掉血 impact = 同一爆炸降调 + 低频轰"""
     shots = {"shot_%d" % (k + 1): pad(pitch(gun(), (1.0, 1.06, 0.95, 1.11)[k]) * 0.9, burst(0.05, 6000 + 900 * k, 60) * 0.25) for k in range(4)}
-    pops = {"pop_%d" % (k + 1): pad(pop(3000 + 500 * k, 150 + 25 * k), hp(burst(0.12, 9000, 30), 2500) * 0.25) for k in range(3)}
+    pops = {"pop_%d" % (k + 1): lib(EX_BLAST, 0.02, 0.45, (0.97, 1.0, 1.04)[k], fout=0.15) for k in range(3)}
     d = {
-        "charge": pad(beeps, riser(0.8, 300, 1200, "saw", 2500) * 0.35),
-        "cast": pad(metal(0.1, 950, 32, bright=0.5), at(metal(0.09, 1350, 36, bright=0.5), 0.07), at(thud(0.08, 220, 120, 30) * 0.5, 0.07),
-                    at(pad(bell(0.3, 2637, 12, 1.0, 0.25) * 0.3, bell(0.3, 3520, 12, 1.0, 0.25) * 0.25, bell(0.3, 4186, 14, 1.0, 0.25) * 0.2), 0.03)),
-        "impact": pad(gun(), at(pop(3500, 170), 0.02), sub(0.7, 110, 40, 5) * 0.8, at(hp(burst(0.2, 10000, 16), 3000) * 0.35, 0.02)),
+        "charge": akd("p_atk_pistolup_sreload.wav", 0.0, 0.9, fout=0.06),
+        "cast": akd("p_atk_pistolup_dreload.wav", 0.0, 0.3, fout=0.05),
+        "impact": pad(lib(EX_BLAST, 0.02, 1.0, 0.85, fout=0.4), lp(lib(TX_BOOM, 0.25, 1.3, fout=0.6), 900) * 0.8),
     }
     d.update(shots)
     d.update(pops)

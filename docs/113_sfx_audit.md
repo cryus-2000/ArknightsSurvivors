@@ -401,4 +401,6 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 | `ult_texas_impact` | 高潮爆开 | Cinematic Sound Design「Impact Cut Sweep」+ Federico Soler「EffectiveTrailer_Booms_Vol2_214」 | 前者 0.93 s 起 1.5 s；后者 0.25 s 起 1.6 s、900 Hz 低通垫底 | 1.6 s |
 | `ult_texas_cast` | 隐去起手 | David Dumais「METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14」 | 0 s 起 0.6 s，×1.15 | 0.52 s |
 
+| `ult_exusiai_charge` / `_cast` | 能天使终结技瞄准上膛 / 放出拉栓（用户 10-31） | **原作**明日方舟 `p_atk_pistolup_sreload` / `p_atk_pistolup_dreload`（§19 同一热更新，用户同意进游戏） | 整段 0.9 s / 0.3 s | 0.89 / 0.30 s |
+| `ult_exusiai_pop_1..3` / `_impact` | 能天使每个爆点 / 第一下掉血 | Epic Stock Media「EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03」（impact 再叠 Federico Soler Booms_Vol2_214 低频） | 0.02 s 起 0.45 s，变调 ×0.97 / 1.0 / 1.04；impact 1.0 s ×0.85 | 0.43–1.3 s |
 剑雨插地（`ult_texas_sword_*`）与斩线碎裂（`ult_texas_shatter`）用户 10-31 不要，已删；`ult_audio.json` 对应画面单元写空槽。
