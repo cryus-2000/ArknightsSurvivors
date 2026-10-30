@@ -70,7 +70,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				var o: Dictionary = g.spawner.spawn_enemy("offspring", _offspring_edge(e, g.rng_enemy.randf() * TAU))
 				o.feed = true
 				o.feed_to_id = e.id   # 喂食目标存 id 句柄（docs/101 B5：原生端只认 id）
-				o.spd = 45.0
+				o.spd = Bal.v("boss/izumik_learn_spd", 45.0)
 				_beef(o)
 				_tame(o)
 		if e.learn_t <= 0.0:
@@ -326,6 +326,7 @@ func _batch_step(e: Dictionary) -> void:
 			o.spd = Bal.v("boss/izumik_batch_spd", 45.0)
 			if gp == 0:
 				_beef(o)
+				o.spd = Bal.v("boss/izumik_learn_spd", o.spd)   # 一幕批次与学习期同速（10-30：子代要真的走得到她身边）
 			o.part = true
 			o.izu_dir = di
 			_tame(o)

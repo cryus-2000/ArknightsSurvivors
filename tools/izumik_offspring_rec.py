@@ -17,8 +17,8 @@ import boss_bgm_rec as BB
 
 ROOT = BB.ROOT
 FPS, SR = EX.FPS, EX.SR
-OLD = ["boss/izumik_learn_n=2", "boss/izumik_learn_cd=4", "boss/izumik_off_hp=1", "boss/izumik_batch_min=4", "boss/izumik_batch_max=6"]
-TIER_B = ["boss/izumik_learn_n=4", "boss/izumik_learn_cd=2.5", "boss/izumik_off_hp=2", "boss/izumik_batch_min=7", "boss/izumik_batch_max=9"]
+OLD = ["boss/izumik_learn_n=2", "boss/izumik_learn_cd=4", "boss/izumik_off_hp=1", "boss/izumik_batch_min=4", "boss/izumik_batch_max=6", "boss/izumik_learn_spd=45"]
+TIER_B = ["boss/izumik_learn_n=4", "boss/izumik_learn_cd=2.5", "boss/izumik_off_hp=3.5", "boss/izumik_learn_spd=70", "boss/izumik_batch_min=7", "boss/izumik_batch_max=9"]
 
 
 def seg(out, tag, bals, label, ff):
@@ -69,8 +69,8 @@ def main():
     ff = imageio_ffmpeg.get_ffmpeg_exe()
     os.makedirs(a.out, exist_ok=True)
     GR.ensure_imported(os.path.join(ROOT, "game"))
-    new_label = "改后（乙档）：学习期每 2.5 秒 4 只、一幕每批 7–9 只、子代血量 ×2" if a.tier == "b" else "改后（甲档）：学习期每 3 秒 3 只、一幕每批 6–8 只、子代血量 ×1.5"
-    parts = [seg(a.out, "old", OLD, "改前：学习期每 4 秒 2 只、一幕每批 4–6 只、子代血量 ×1", ff),
+    new_label = "改后（乙档）：学习期每 2.5 秒 4 只、一幕每批 7–9 只、子代血量 ×3.5、移速 70" if a.tier == "b" else "改后（甲档）：学习期每 3 秒 3 只、一幕每批 6–8 只、子代血量 ×2.5、移速 60"
+    parts = [seg(a.out, "old", OLD, "改前：学习期每 4 秒 2 只、一幕每批 4–6 只、子代血量 ×1、移速 45", ff),
              seg(a.out, "new_" + a.tier, TIER_B if a.tier == "b" else [], new_label, ff)]
     lst = os.path.join(a.out, "list.txt")
     open(lst, "w", encoding="utf-8").write("".join("file '%s'\n" % p.replace("\\", "/") for p in parts))
