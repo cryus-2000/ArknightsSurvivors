@@ -232,10 +232,13 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		var k: float = clampf((t - t0) / T, 0.0, 1.0)
 		var F: float = -back + (L + back) * k * (1.35 - 0.35 * k)   # 先快后略缓
 		if w.fx.is_empty():   # 水体 + 浪头白沫 + 前沿线 + 浪头帧条一排
+			var v2: bool = _sd_v2(u)
 			w.fx.append(_keep(u, a, {"kind": "band", "a": o0 - d * back, "b": o0, "w": hw * 2.0, "col": col, "fill": 0.2, "life": 2.0}))
-			w.fx.append(_keep(u, a, {"kind": "band", "a": o0, "b": o0, "w": hw * 2.0, "col": foam, "fill": 0.42, "life": 2.0}))
-			w.fx.append(_keep(u, a, {"kind": "line", "a": o0, "b": o0, "w": 5.0, "col": Color.WHITE, "life": 2.0}))
-			var ns: int = int(Bal.v("ult/sd_crest_fx", 7.0))
+			w.fx.append(_keep(u, a, {"kind": "band", "a": o0, "b": o0, "w": hw * 2.0, "col": foam, "fill": 0.1 if v2 else 0.42, "life": 2.0}))
+			w.fx.append(_keep(u, a, {"kind": "line", "a": o0, "b": o0, "w": 5.0, "col": Color(1, 1, 1, 0.0 if v2 else 1.0), "life": 2.0}))
+			if v2:
+				_sd_face_v2(u, a, w, o0, d, hw, T)
+			var ns: int = 0 if v2 else int(Bal.v("ult/sd_crest_fx", 7.0))
 			for i in ns:
 				var lat: float = -hw + (float(i) + 0.5) * 2.0 * hw / float(ns)
 				var s: Dictionary = u.strip("fx_skadi_wave", o0 + n * lat, {"sc": 1.25, "seg": [1, 3], "loop": true, "fps": 12.0,
@@ -252,6 +255,8 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			_hold(s)
 		for sp in w.spr:
 			sp[0].c = fp + n * float(sp[1]) - d * 10.0
+		for wv in w.get("face", []):   # 浪面跟着浪头走
+			wv[0].c = fp + n * (-hw) - d * float(wv[1])
 		if t >= float(w.spray_t):   # 浪头飞沫（往前溅）
 			w.spray_t = t + 0.07
 			var j: int = int(t * 100.0)
@@ -280,7 +285,7 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 				u.shapes.erase(sp[0])
 				a.fx.erase(sp[0])
 			u.shape({"kind": "band", "a": o0 - d * back, "b": o0 + d * L, "w": hw * 2.0, "col": col, "fill": 0.12, "life": 1.5})
-			for i in 5:
+			for i in (0 if w.has("face") else 5):
 				var lat3: float = -hw * 0.8 + hw * 1.6 * float(i) / 4.0
 				u.shape({"kind": "line", "a": o0 + n * lat3 - d * back, "b": o0 + n * lat3 + d * L, "w": 2.0, "col": foam, "life": 1.2})
 	if a.surge and not a.surged and all_done:
@@ -291,6 +296,35 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		u.strip("fx_skadi_surge", ec, {"sc": 2.6})
 		_ring(u, ec, 200.0, 40.0, foam, 0.4, 10.0)
 	return all_done and (not a.surge or a.surged)
+
+
+## ---- 斯卡蒂 pixfx（docs/199 §7.9，开关 ult/sd_fx_v2 缺省 1；0 = 程序白沫带 + 浪头帧条一排版）
+## 审阅 10-30「浪面连续，浪冠错落」：fx_sd_wave 是三条浪面（浪冠白沫在上、深蓝水体在下）首尾接成的无缝圈，整道浪宽一条贴图截出（连续不断），
+## 前后两层错开（后层换一段、略暗、退后 34），浪冠高低错落；每次按 vseed 挑截取起点 + 镜像。浪推完的水痕不再画 5 条直线
+const SD_WAVE := "fx_sd_wave"
+
+
+static func _sd_v2(u) -> bool:
+	return Bal.v("ult/sd_fx_v2", 1.0) > 0.0 and u.fx_ready(SD_WAVE)
+
+
+static func _sd_face_v2(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, hw: float, T: float) -> void:
+	var t: Texture2D = u._strip_tex(SD_WAVE)
+	var kk: float = PF.tex_w(u, SD_WAVE) / t.get_width()
+	var uw: float = 2.0 * hw / kk
+	var sc: float = 1.0
+	if uw > t.get_width():   # 浪比贴图宽：整体放大铺满
+		sc = uw / t.get_width()
+		uw = t.get_width()
+	var vs: float = PF.vseed(u, o0) + float(w.t0) * 31.0
+	var fh: float = t.get_height()
+	w["face"] = []
+	for l in 2:   # l 0 = 后层（略暗、退后），1 = 前层
+		var s: Dictionary = u.strip(SD_WAVE, o0, {"ang": d.orthogonal().angle(), "o": Vector2(0.0, fh * 0.12), "sc": sc, "sx": 1.0, "sy": -1.0,
+			"ux": floorf(PF.h(vs + l * 5.3) * maxf(0.0, t.get_width() - uw)), "uw": uw, "life": T + 0.2, "fade": 0.18,
+			"col": Color(0.82, 0.86, 0.92, 0.85) if l == 0 else Color(1.0, 1.0, 1.0, 1.0)})
+		a.fx.append(s)
+		w.face.append([s, 34.0 if l == 0 else 0.0])
 
 
 # ================================================================ 歌蕾蒂娅（§4.7）：海渊漩涡把半径 560 的敌人拖向中心 → 收拢一砸 → 停住 → 潮水从中心爆开
