@@ -370,6 +370,36 @@ AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
 - **注意（10-15 起与金样比，§1.3）**：云端没有本机的 `build/golden_cache/`，只能比 git 里的证据快照 `game/tests/golden/fd9ce553/`。main 上别处的玩法一变，快照就「过期跳过」，这时每日任务主要是看 seed2 / seed3 有没有报错、能不能跑完；真正的金样比对在本机快检和 ship 重录里做。
 - 结果分支保留 7 天后可删。
 
+### 7.7 Google Cloud 虚拟机批跑（2026-10-30）
+
+纯命令行的批跑（`balance_run` / `run_cloud.sh` / 同种子配对）改在 GCP 虚拟机上跑，**不开 Claude 会话、不花 Claude 额度**；结果照旧推 `cloud-results/<tag>`，`cloud_compare.py` / `eq_compare.py` 等读法不变。用户 10-30 开的试用账户：约 427 美元赠金、90 天，不能用 GPU、不能提配额（全区合计 12 个 vCPU，所以同时只开一台 8 核）。
+
+**用法**（本机仓库根目录，gcloud 已登录，项目取 `gcloud config get-value project`）：
+
+```
+python tools/gcp/batch.py run <tag> --commit <提交> \
+  --cmd 'python3 tools/balance_run.py --preset starts --bot expert --seeds 4 --seed0 9 --nocache --extra="--tier=0" --jobs $GODOT_MAX_PROCS --tag $TAG-s9 --out $OUT/s9'
+```
+
+- `--cmd` 可写多条（依次跑），或 `--cmd-file cmds.sh`。命令在虚拟机仓库根目录用 `bash -euo pipefail` 跑，已 source `tools/cloud/env.sh`；`$OUT` = `build/cloud/<tag>`，**只有 `$OUT` 下的 .md / .json / .txt / .log 会收回**。`$GODOT_MAX_PROCS` = 核数。
+- 一条命令做完全程：开机（缺省 e2-standard-8 抢占式，us-central1-a）→ 浅拉提交 → `setup_linux.sh` → 跑命令 → 结果传 Cloud Storage → **虚拟机自删** → 本机在被测提交之上建一个只加 `build/cloud/<tag>/` 的提交、推 `cloud-results/<tag>`（和例行任务推的结构相同）。终端每分钟打印一行进度。
+- 提交不在 origin 上也行：本机自动把「origin/main 合并基点之后」的提交打成 bundle 传上去，**角色会话不必推工作分支**。
+- 删机三重保险：虚拟机跑完（成功或失败）自删；GCE `--max-run-duration`（`--hours`，缺省 3）到点强制删除；本机脚本结束 / Ctrl-C 时再删一次。`python tools/gcp/batch.py ls` 应当永远为空，有残留就 `kill <tag>`。
+- 抢占式被回收：自动改标准机重跑一次。`--standard` 直接用标准机（贵约 3 倍）。
+- 本机中途断了：虚拟机照样跑完自删，结果留在桶里，`python tools/gcp/batch.py collect <tag>` 再推分支。
+- 安全：虚拟机上**没有 GitHub 令牌**（公开仓库只读拉取），只写 `gs://<项目>-batch/<tag>/`（7 天自动删）；推分支只在本机做。脚本不建、不打印任何密钥。
+
+**费用**（us-central1 牌价）：e2-standard-8 抢占式约 0.08 美元 / 小时、标准 0.27 美元 / 小时，另加 IP + 30 GB 盘约 0.01 美元 / 小时。准备（拉代码 + 装 Godot + 导入）约 待实测 分钟。实测见下表。
+
+| 对照 | 局数 | 例行任务（4 核） | GCP e2-standard-8 | 结果 |
+|---|---|---|---|---|
+| dc4-n0b（bbdb305c9，starts · expert · 安慰剂 0/1/2 × seed0 9/13 × 4 seed） | 168 | 待实测 | 待实测 | 待实测 |
+
+**什么时候用哪个**：
+- **虚拟机**：命令写得出来的批跑、配对、等价 A/B、全量快检——一切「跑完看 JSON」的活。缺省都走这里。
+- **例行任务**：需要 Claude 在云端判断 / 改东西的（跑挂了要看日志修环境、按结果决定下一步）、或要同时开超过 1 台 8 核（试用配额 12 vCPU 只够一台；多份就排队或拆小机型 `--machine e2-standard-4`）。
+- 同平台规则不变（§7.4）：A/B 两边都在虚拟机上跑；**虚拟机结果与例行任务结果能否互比见上表对照**，未确认逐局一致前不要拿来当前后对照。
+
 ## 8. 基线登记
 
 Boss 与关卡改动的对照口径和最近一次基线。新基线出来后替换旧的，旧数字作废时写明原因。
