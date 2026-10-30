@@ -418,7 +418,6 @@ func draw_cutins(vs: Vector2) -> void:
 	if ft >= 0.0 and ft < 0.22 and not Cfg.reduce_motion:
 		var fcol: Color = g.ult._col(g.ult.caster).lerp(Color(0.9, 0.88, 0.82), 0.55) if g.ult.caster != null else Color(0.9, 0.88, 0.82)
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(fcol, 0.26 * (1.0 - ft / 0.22) * (0.5 if _boss_on() else 1.0)))   # 闪光：干员色偏暖、封顶不发白（10-30 美术口径）
-	_draw_ult_num(vs)
 	_draw_sf_band(vs)
 	var cs: Array = g.ult.cutins
 	if cs.is_empty():
@@ -599,41 +598,3 @@ func _draw_sf_band(vs: Vector2) -> void:
 	var tw := 420.0
 	UI.text(g.hud, g.font, Vector2(nx - tw * 0.5, cy + tilt * (0.5 - nx / vs.x) + fs * 0.38), ld.display_name(), fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, tw, 6)
 
-
-## 终结技合并大伤害数字（ult/num_merge，用户 10-31）：一招的合计，首次掉血处上方；边打边往上滚、每涨一次弹一下；
-## 收招后停 ult/num_hold 秒再 0.3 秒淡出；设置里关了伤害数字就不画。字号只取偶数档（少建字形缓存）
-var _num_disp := 0.0
-var _num_ser := -1
-var _num_prev := 0.0
-var _num_pop := -99.0
-var _num_t := -1.0
-
-
-func _draw_ult_num(vs: Vector2) -> void:
-	var u = g.ult
-	if not Cfg.dmg_numbers or not u.num_merge_on() or u.num_total <= 0.0:
-		return
-	var now: float = UM.now()
-	var going: bool = u.phase == "cast" and u.num_serial == u.serial
-	var since: float = now - maxf(float(u.num_rt), float(u.num_end_rt))
-	var hold: float = Bal.v("ult/num_hold", 0.9)
-	if not going and since > hold + 0.3:
-		return
-	var a: float = 1.0 if (going or since < hold) else 1.0 - (since - hold) / 0.3
-	if _num_ser != int(u.num_serial):
-		_num_ser = int(u.num_serial)
-		_num_disp = 0.0
-		_num_prev = 0.0
-	var dt: float = clampf(now - _num_t, 0.0, 0.1)
-	_num_t = now
-	_num_disp = minf(float(u.num_total), _num_disp + maxf((float(u.num_total) - _num_disp) * minf(1.0, dt * 12.0), dt * 300.0))
-	if float(u.num_total) > _num_prev + 0.5:
-		_num_pop = now
-	_num_prev = float(u.num_total)
-	var pk: float = 1.0 + 0.22 * maxf(0.0, 1.0 - (now - _num_pop) / 0.12)
-	var fs: int = int(round(46.0 * pk / 2.0)) * 2
-	var sp: Vector2 = g.hud_ct() * u.num_pos + Vector2(0, -110)
-	sp.x = clampf(sp.x, vs.x * 0.15, vs.x * 0.85)
-	sp.y = clampf(sp.y, vs.y * 0.16, vs.y * 0.7)
-	var col: Color = (u._col(u.caster) if u.caster != null else Color.WHITE).lerp(Color(1.0, 0.95, 0.82), 0.65)
-	UI.text(g.hud, g.font, Vector2(sp.x - 200.0, sp.y + fs * 0.38), str(int(round(_num_disp))), fs, Color(col, a * (0.7 if _boss_on() else 1.0)), HORIZONTAL_ALIGNMENT_CENTER, 400.0, 7)

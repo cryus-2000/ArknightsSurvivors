@@ -541,8 +541,6 @@ var _boss_sum: Array = []   # [{e, dmg, t, weak}]，按 is_same 找（字典内�
 func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool, h := {}) -> void:
 	if not Cfg.dmg_numbers or g.texts.size() >= 80:
 		return
-	if g.ult != null and g.ult.num_sup:
-		return   # 终结技每一下不飘小数字，合计成一个大数字（ult/num_merge，HUD 画）
 	var jit := Vector2(g.vrng.randf_range(-6, 6), 0)
 	if Bal.vi("render/mate_numbers", 0) > 0 and not h.is_empty() and not is_lead_hit(h) and not e.boss:
 		if crit:

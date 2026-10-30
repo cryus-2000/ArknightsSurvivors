@@ -364,7 +364,6 @@ func _tick_ult(dt: float) -> void:
 			phase = ""
 			act = {}
 			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
-			num_end_rt = UM.now()   # 合并大数字从这一刻起停 ult/num_hold 秒再淡出
 
 
 func _cast() -> void:
@@ -642,9 +641,7 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	var src: String = _src(o, str(opt.get("src", "")))
 	var hp0: float = e.hp
 	g.combat.quiet = kills_now >= int(Bal.v("ult/fx_kill_cap", 60.0))
-	num_sup = num_merge_on()   # 合并大数字：这一下的小数字不飘（vfx.dmg_number 读）
 	g.combat.damage(e, amt, g.combat.make_hit(src, ["终结技"]))
-	num_sup = false
 	g.combat.quiet = false
 	if e.dead:
 		kills_now += 1
@@ -652,8 +649,6 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	e.ult_d = float(e.ult_d) + got
 	if got > 0.0:
 		last_hit_t = g.t
-		if num_merge_on():
-			_num_add(got, e.pos)
 		_hs_mark(str(opt.get("src", "")), e.pos)
 		if not opt.get("pre", false):
 			impact(e.pos)   # 冲击帧（这一次终结技第一下掉血）
@@ -1729,23 +1724,15 @@ func _draw_sf(w) -> void:
 		w.tb_flush()
 
 
-# ================================================================ 超必杀演出第二步（用户 10-31：连携终结技暂不做，先把超必杀演出做完）
+# ================================================================ 超必杀演出第二步（用户 10-31：连携终结技暂不做，先把超必杀演出做完；合并大伤害数字试过后用户 10-31 说不要，已删）
 ## ① 斜带切入 ult/sf_band（缺省 1）：暂停那 ult/sf_t 秒里，HUD 上一条横穿全屏的干员色斜带 + 立绘上半身 + 干员名，一闪而过
 ##    （画在 hud_ult._draw_sf_band，时长 ult/sf_band_t 不超过暂停）；开着时暂停后不再出屏边立绘条带，同一件事不演两遍。
 ## ② 命中全场同步顿帧 ult/hs（缺省 1，跟设置里的「顿帧」走）：一招里每一段伤害的第一下，全场（敌人、弹幕、特效、队伍）一起停 ult/hs_t 真实秒；
 ##    同一段连续掉血不重复停（换了伤害来源，或隔了 ult/hs_lull 游戏秒才算新的一段），两次之间至少 ult/hs_gap 真实秒；第一下照旧由 impact 的顿帧 + 慢放负责。
 ##    走 time_scale 的 fx 类（与超必杀暂停同一条路）：只在看得见的局里生效，批跑不停，同 seed TRACE 不变。
-## ③ 合并大伤害数字 ult/num_merge（缺省 1）：终结技每一下的小伤害数字不飘，合计成一个大数字（hud_ult._draw_ult_num）：
-##    首次掉血处上方，边打边往上滚、每涨一次弹一下，收招后停 ult/num_hold 秒淡出；设置里关了伤害数字就不画。少画很多小字，帧时间只降不升。
 var _hs_rt := -99.0       # 上一次同步顿帧起点（真实时间）
 var _hs_src := ""
 var _hs_g := -99.0        # 上一下终结技掉血的游戏时刻
-var num_sup := false      # hit 里调 combat.damage 期间为真：vfx.dmg_number 不飘小数字
-var num_total := 0.0
-var num_serial := -1      # num_total 属于第几次终结技
-var num_rt := -99.0       # 合计最后一次上涨（真实时间）
-var num_end_rt := -99.0   # 收招时刻（真实时间）
-var num_pos := Vector2.ZERO
 
 
 func sf_band_on() -> bool:
@@ -1841,17 +1828,4 @@ func _if_tick() -> void:
 		g.post.if_bg = Color(0.02, 0.02, 0.035) if sub2 else Color(0.78, 0.76, 0.72)
 		g.post.if_fg = hi if sub2 else Color(0.03, 0.03, 0.05)
 
-
-func num_merge_on() -> bool:
-	return Bal.vi("ult/num_merge", 1) > 0
-
-
-func _num_add(got: float, pos: Vector2) -> void:
-	if num_serial != serial:
-		num_serial = serial
-		num_total = 0.0
-		num_pos = pos
-		num_end_rt = -99.0
-	num_total += got
-	num_rt = UM.now()
 
