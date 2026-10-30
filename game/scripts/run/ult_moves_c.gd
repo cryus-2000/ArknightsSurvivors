@@ -27,6 +27,8 @@ static func handles(id: String) -> bool:
 
 
 static func aim_kind(id: String) -> String:
+	if id == "saria" and _sa_cone():   # 用户 10-30：塞雷娅改朝前打（ult/sa_cone 1；0 = 原以自身为圆心的拳风环）
+		return "dir"
 	if id in DIR_OPS:
 		return "dir"
 	if id in POINT_OPS:
@@ -37,7 +39,7 @@ static func aim_kind(id: String) -> String:
 static func aim_r(id: String) -> float:
 	match id:
 		"saria":
-			return Bal.v("ult/sa_r", 502.0)
+			return Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.35) if _sa_cone() else 1.0)
 		"siege":
 			return Bal.v("ult/sg_r", 540.0)
 		"irene":
@@ -259,9 +261,15 @@ static func _launch(u, a: Dictionary, e: Dictionary, dur: float, h: float) -> vo
 ##   举拳 ult/sa_charge（0.2 秒，琥珀光往拳头收）→ 砸地：轻震 + 拳风冲击环 ult/sa_travel（0.25 秒）扩到 R，波前扫过的敌人吃 1 − 裂地份额、往外击飞 ult/sa_kb（360）；
 ##   同时脚下裂开 ult/sa_cracks（10）道放射裂纹（琥珀色折线往外延伸），裂纹上每隔一节接连爆开（半径 80，每人一次 ult/sa_crack 20%）。
 ## 路线：碎晶 → 裂纹 14 道、裂地 30%（冲击环降到 70%）；急救针剂 → 结束时队长回复 6% 最大生命。附带护盾一层照旧
+static func _sa_cone() -> bool:
+	return Bal.v("ult/sa_cone", 1.0) > 0.0
+
+
 static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var R: float = Bal.v("ult/sa_r", 502.0)
+	var cone: bool = _sa_cone()
+	var half: float = Bal.v("ult/sa_half", 0.55)   # 朝前打：扇形半角（约 31°）；射程 ult/sa_len_k 倍
+	var R: float = Bal.v("ult/sa_r", 502.0) * (Bal.v("ult/sa_len_k", 1.35) if cone else 1.0)
 	var cf: float = 0.3 if rt == "shatter" else Bal.v("ult/sa_crack", 0.2)
 	var nc: int = 14 if rt == "shatter" else int(Bal.v("ult/sa_cracks", 10.0))
 	var c: Vector2 = o.pos
@@ -274,6 +282,8 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var a0: float = d.angle() + 0.2
 	for i in nc:
 		var ang: float = a0 + TAU * float(i) / float(nc) + 0.12 * sin(float(i) * 2.7)
+		if cone:   # 朝前打：裂纹 / 爆点都在前方扇形里散开
+			ang = d.angle() + (float(i) / maxf(1.0, float(nc - 1)) - 0.5) * 2.0 * half * 0.9 + 0.06 * sin(float(i) * 2.7)
 		var dv := Vector2.from_angle(ang)
 		var nv: Vector2 = dv.orthogonal()
 		var pts: Array = [c + dv * 26.0]
@@ -303,7 +313,7 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var v2: bool = _sa_v2(u)
 	if v2:   # 举拳那一下脚下一大片压暗
 		u.shape({"kind": "circle", "c": c, "r": R * 1.05, "col": Color(0.0, 0.0, 0.01), "fill": 0.45, "life": ch + 0.03, "layer": "back"})
-	return {"v2": v2, "fa": d.angle(), "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
+	return {"v2": v2, "fa": d.angle(), "cone": cone, "half": half, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
 		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "punched2": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 
@@ -367,6 +377,8 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 	var kb: float = _kb_v(Bal.v("ult/sa_kb", 360.0))
 	for e in u.in_circle(org, f):
 		var off: Vector2 = e.pos - org
+		if a.get("cone", false) and off.length() > 70.0 and absf(wrapf(off.angle() - float(a.fa), -PI, PI)) > float(a.half):
+			continue   # 朝前打：扇形外（脚边 70 内照打）不吃拳风
 		var dv: Vector2 = off.normalized() if off.length() > 1.0 else Vector2.RIGHT
 		_once(u, a, o, a.wseg, e, float(a.wf), {"src": "拳风", "edge": off.length() > hc, "kb": dv * kb, "stun": 0.3})
 	# 拳风扫地扬尘：波前所到的半径上撒一圈尘（颗粒拼出往外推的环）
@@ -422,37 +434,43 @@ static func _sa_v2(u) -> bool:
 
 
 static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) -> void:
+	# 用户 10-30 第六轮：「漏斗范围更大、停顿不够、先裂地再拳风爆炸」——顿帧加长到 ult/sa_hitstop（0.2）→ 地面先撕开（三道漏斗印子铺满前方扇形）
+	# → 0.16 秒后拳风空气爆炸往前炸开 → 四拍隆起
 	var vs: float = PF.vseed(u, org)
-	var fa: float = float(a.get("fa", 0.0)) + (PF.h(vs) - 0.5) * 0.12
+	var fa: float = float(a.get("fa", 0.0)) + (PF.h(vs) - 0.5) * 0.08
 	var fw := Vector2.from_angle(fa)
-	u.g.vfx.stop(Bal.v("ult/sa_hitstop", 0.12), "ult", true)
-	u.light(org + fw * R * 0.4, R * 0.7, Color(1.0, 0.92, 0.75), 0.35)
+	var half: float = float(a.get("half", 0.55))
+	u.g.vfx.stop(Bal.v("ult/sa_hitstop", 0.2), "ult", true)
+	u.light(org + fw * R * 0.4, R * 0.7, Color(1.0, 0.92, 0.75), 0.4)
 	u.debris(org + fw * 60.0, Color(0.85, 0.8, 0.7), 3)
-	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 70.0, "ry": 34.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.6, "life": 1.6, "layer": "back"})
-	# 漏斗形裂地印子：窄端在脚下，往前撕开
-	var fn := PF.pick(u, SA_FUNNELS, vs)
-	var ft: Texture2D = u._strip_tex(fn)
-	var k: float = R * 1.05 / PF.tex_w(u, fn)
-	u.strip(fn, org - fw * 10.0, {"layer": "back", "ang": fa, "o": Vector2(0.0, ft.get_height() * 0.5), "sx": k, "sy": k * (1.0 if PF.h(vs + 1.0) < 0.5 else -1.0),
-		"rev": 0.12, "rev0": 0.1, "life": 2.4, "fade": 0.8, "col": Color(1.1, 1.05, 1.0), "col1": Color(0.6, 0.56, 0.52), "cold": 1.0})
-	# 空气爆炸：两层气浪弧往前炸开
+	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 80.0, "ry": 38.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.6, "life": 1.8, "layer": "back"})
+	# ① 先裂地：中间一道主漏斗 + 两侧两道小一点的，铺满前方扇形
+	for m in 3:
+		var side: float = 0.0 if m == 0 else (half * 0.55 * (1.0 if m == 1 else -1.0))
+		var fn: String = SA_FUNNELS[(m + int(PF.h(vs) * 2.0)) % SA_FUNNELS.size()]   # 中间和两侧换不同的漏斗（预审报三道一样）
+		var ft: Texture2D = u._strip_tex(fn)
+		var k: float = R * (1.0 if m == 0 else (0.78 if m == 1 else 0.66)) / PF.tex_w(u, fn)
+		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * 0.1, "o": Vector2(0.0, ft.get_height() * 0.5),
+			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
+			"rev": 0.14 + 0.05 * m, "rev0": 0.1, "delay": [0.0, 0.05, 0.09][m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})
+	# ② 再拳风空气爆炸：两层气浪往前炸开
 	var at: Texture2D = u._strip_tex(SA_AIR)
-	var ka: float = R * 0.85 / PF.tex_w(u, SA_AIR)
+	var ka: float = R * 0.8 / PF.tex_w(u, SA_AIR)
 	for m in 2:
 		u.strip(SA_AIR, org + fw * (20.0 + 30.0 * m), {"ang": fa + (0.08 if m == 1 else 0.0), "o": Vector2(0.0, at.get_height() * 0.5),
-			"sc": ka * 0.45, "sc1": ka * (1.0 - 0.25 * m), "scd": 0.14, "delay": 0.05 * m, "life": 0.3, "fade": 0.18,
+			"sc": ka * 0.45, "sc1": ka * (1.0 - 0.25 * m), "scd": 0.14, "delay": 0.16 + 0.05 * m, "life": 0.3, "fade": 0.18,
 			"col": Color(1.0, 1.0, 1.0, 0.65 - 0.25 * m), "sy": -1.0 if m == 1 else 1.0})
-	# 前方锥内的速度线（只往前）
 	var spd: float = R / tr
 	for q in 12:
-		var dv := Vector2.from_angle(fa + (PF.h(q * 5.1 + vs) - 0.5) * 0.9)
+		var dv := Vector2.from_angle(fa + (PF.h(q * 5.1 + vs) - 0.5) * 2.0 * half)
 		var r0: float = 30.0 + 80.0 * PF.h(q * 3.0 + vs)
 		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 60.0 + 110.0 * PF.h(q + 7.0 + vs)), "w": 4.0 if q % 3 == 0 else 2.5,
-			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(q + 11.0)), "delay": 0.03 * PF.h(q + 13.0 + vs), "v": dv * spd * (0.9 + 0.4 * PF.h(q + 17.0))})
-	PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.02, vs, R * 0.35)
-	u.shape({"kind": "ring", "c": org, "r": R, "r1": 50.0, "w": 5.0, "col": Color(0.95, 0.9, 0.8, 0.5), "solid": true, "life": tr * 2.0})   # 判定圈的淡提示
+			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(q + 11.0)), "delay": 0.16 + 0.03 * PF.h(q + 13.0 + vs), "v": dv * spd * (0.9 + 0.4 * PF.h(q + 17.0))})
+	PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.16, vs, R * 0.35)
 	a["vs"] = vs
 	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18, R * 0.55, 1], [float(a.t) + 0.36, R * 0.8, 2], [float(a.t) + 0.54, R * 1.0, 3]]
+	if a.get("cone", false):
+		a["beat_fan"] = [fa, half]
 	PF.aftershock(u, org + fw * R * 0.4, R * 0.6, 3.0 + vs, 0.84, 10)
 
 

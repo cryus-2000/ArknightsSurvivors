@@ -149,7 +149,14 @@ static func beats_tick(u, a: Dictionary, t: float, c: Vector2, col: Color) -> vo
 		var r: float = float(b[1])
 		var i: int = int(b[2])
 		u.shake(4.0 + 2.0 * i, 0.18)
-		heave(u, c, r, float(a.get("vs", 0.0)) + 30.0 + i)
+		if a.has("beat_fan"):   # 朝前打：只在前方扇形里零散顶起几块（整圈等距隆起会被看成一圈贴片）
+			var fan: Array = a.beat_fan
+			for q in 5:
+				var hq: float = h(float(a.get("vs", 0.0)) + i * 7.0 + q * 1.9)
+				var dv := Vector2.from_angle(float(fan[0]) + (hq - 0.5) * 2.0 * float(fan[1]))
+				rock(u, c + dv * r * (0.7 + 0.3 * h(hq * 5.0)), dv * 50.0, 140.0 + 140.0 * h(hq * 3.0), hq, 0.45 + 0.2 * hq, 0.03 * q)
+		else:
+			heave(u, c, r, float(a.get("vs", 0.0)) + 30.0 + i)
 		u.light(c, r * 1.1, col, 0.2)
 		for q in 10:
 			var dq := Vector2.from_angle(TAU * (q + h(q + i)) / 10.0)
