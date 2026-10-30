@@ -236,12 +236,16 @@ func draw(vs: Vector2) -> void:
 			UI.ctext(hud, font, cp + Vector2(-24, 4), "BOSS" if en.boss else "ELITE", 10, col, HORIZONTAL_ALIGNMENT_CENTER, 48)
 			var dv: Vector2 = (sp2 - cp).normalized()
 			hud.draw_colored_polygon(PackedVector2Array([cp + dv * 24.0, cp + dv * 14.0 + dv.orthogonal() * 6.0, cp + dv * 14.0 - dv.orthogonal() * 6.0]), col)
-	# 点位：范围格（以点为心、半径 order_pt_r 内的格子，向外渐淡，最外一圈亮边）；无效（超出范围）整体变警示色
+	# 肃清：范围格（以点为心、半径 clear_r 内的格子，向外渐淡，最外一圈亮边）；移动：只画一个小标记（驻扎点，10-30 用户「变成一个小点」）；
+	# 无效（超出范围）整体变警示色
 	if mode != "focus":
 		var col2: Color = W.C_ACC if valid else W.C_WARN
-		var rr: float = Bal.v("command/clear_r", 220.0) if mode == "clear" else Bal.v("command/order_pt_r", 240.0)
+		var rr: float = Bal.v("command/clear_r", 220.0) if mode == "clear" else 24.0
 		var cp2: Vector2 = ct * world_pt
-		_tiles(hud, ct, world_pt, rr, col2, e)
+		if mode == "clear":
+			_tiles(hud, ct, world_pt, rr, col2, e)
+		else:
+			_station_mark(hud, cp2, Color(col2.r, col2.g, col2.b, e))
 		for o in g.squad.ops:
 			if o.is_leader or not o.cmd_roam() or o.pos == Vector2.INF:
 				continue
@@ -379,7 +383,7 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		else:
 			line = "② 准星跟着鼠标：点地面（超出虚线圈算太远）· 左键确认 · 右键 / Esc 取消" if mode != "focus" else "② 把准星移到精英 / Boss 上（屏外的看边缘标签），左键确认 · 右键 / Esc 取消"
 	elif g.squad.order_kind == "point":
-		line = "③ 全队前往点位、在圈内作战；圈里没敌人 2.5 秒后自动归队；作战时限照扣"
+		line = "③ 队友走到标记点驻扎，自动攻击射程内的敌人；下别的指令才离开；作战时限照扣"
 	elif g.squad.order_kind == "clear":
 		line = "③ 队友前往肃清圈、清掉圈内敌人；清空或 9 秒后回到随行；作战时限照扣"
 	elif g.squad.order_kind == "focus":
@@ -397,10 +401,12 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 	var sq = g.squad
 	var W = g.wheel
-	if sq.order_kind == "point" or sq.order_kind == "clear":
+	if sq.order_kind == "clear":
 		var cp: Vector2 = ct * sq.order_pos
 		_tiles(hud, ct, sq.order_pos, sq.order_radius(), W.C_ACC, 0.8)
 		_corners(hud, cp, 14.0, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.95), 2.0)
+	elif sq.order_kind == "point":
+		_station_mark(hud, ct * sq.order_pos, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.9))
 	elif sq.order_kind == "focus" and sq.order_target != null and not sq.order_target.dead:
 		var en = sq.order_target
 		_lock(hud, g.font, ct, en, W.C_WARN, true, 1.0)
@@ -408,6 +414,14 @@ func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 			if o.is_leader or not o.cmd_roam() or o.pos == Vector2.INF:
 				continue
 			_dash(hud, ct * o.pos, ct * en.pos, Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, 0.4), true)
+
+
+## 驻扎点标记（移动）：深色描边的小菱形 + 四角刻度，屏幕像素约 28 见方，不画范围；画在地面层，被干员挡住时角标仍露在外面
+func _station_mark(ci: CanvasItem, c: Vector2, col: Color) -> void:
+	ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -10), c + Vector2(10, 0), c + Vector2(0, 10), c + Vector2(-10, 0)]), Color(0.02, 0.03, 0.04, 0.75 * col.a))
+	ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -7), c + Vector2(7, 0), c + Vector2(0, 7), c + Vector2(-7, 0)]), col)
+	_corners(ci, c, 14.0, Color(0.02, 0.03, 0.04, 0.6 * col.a), 3.5)
+	_corners(ci, c, 14.0, col, 2.0)
 
 
 func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, arrow: bool) -> void:

@@ -243,3 +243,11 @@
 - **测试**：`command_wheel` 29 项（+10：6 格 id、肃清半径、清空 / 超时回随行、移动照旧归队）；`command_ai` 70 项里 1 项「side 0: old rule」在整合分支 7306d6bf1 本身就失败（与本分支无关）；`voice_command` 174 项。
 - **云端配对**（中期 Boss 刷怪 0.5，高手机器人，starts 7 × seed 1–8，m0 / m18）：A_ctl = mid-boss-spawn-1029，B_lock = command-point-mb + `bot_point=0`（只开锁定），C_both = command-point-mb（锁定 + 机器人指点）；结果 `cloud-results/cpoint-{A_ctl,B_lock,C_both}`，读回后补表。
 - **录像**：`build/command_rec/point_midboss.mp4`（30 秒原速，中期 Boss 战：圆盘集火 Boss → 圆盘肃清最密一块）。
+
+## 16. 「移动」改为驻扎点（10-30 用户：「指挥模式下面的移动的范围是不是可以小很多？变成一个小点，并且干员会直接走过去驻扎」，分支 `claude/command-move-point`）
+
+- 落点只画小标记（菱形 + 四角刻度，`command_pick._station_mark`），不画范围格；肃清照旧画 `clear_r` 范围格。
+- 队友走到点上站定（`_slot_offset × command/station_spread` 0.5 错开，不叠在一起），不追怪，射程内的敌人由自动攻击打；不再「圈空 2.5 秒归队」。结束条件只剩：玩家下别的指令（随行 / 突击 / 归队 / 肃清 / 集火）、作战时限耗尽（自动归队，原规则）、队长走出 `order_break` 1400（归队）。倒地 / 复活规则不变。
+- 灯标吸附照旧：落点离未点燃灯标 60 内吸附到灯标中心，守圈到点燃 / 熄灭回随行。机器人：被包围仍用肃清，灯标仍用移动。
+- `order_pt_r` / `order_idle` 删除（已无读点）。指南「队形」条改写为移动 / 肃清 / 集火三句（docs/76）。
+- 测试：`command_wheel` 35（移动驻扎不归队、移动是点、别的指令覆盖）、`command_ai` 70、`voice_command` 174；同种子 seed 1 整局 420 秒无报错（机器人 移动 2 / 肃清 6 / 集火 3，点燃 4 座）。

@@ -20,7 +20,7 @@ const ITEMS_BASE := [
 ## 指点（docs/196，command/target_proto = 1）：下半圈换成「移动」「肃清」「集火」三项，替掉清杂 / Boss 优先；
 ## 「肃清」10-30 用户加（「移动保留，然后增加肃清区域的选项，因为移动可以帮忙点亮灯塔」），圆盘 6 格各 60°
 const ITEMS_PROTO := [
-	{"id": "point", "name": "移动", "en": "MOVE", "sub": "点地面：全队前往，在那里作战", "col": Color(0.36, 0.78, 1.0)},
+	{"id": "point", "name": "移动", "en": "MOVE", "sub": "点一个位置：队友走过去驻扎", "col": Color(0.36, 0.78, 1.0)},
 	{"id": "clear", "name": "肃清", "en": "CLEAR", "sub": "点一块区域：队友清掉圈内敌人，清空后回到随行", "col": Color(0.36, 0.78, 1.0)},
 	{"id": "focus", "name": "集火", "en": "FOCUS", "sub": "点精英或 Boss：全队集火该目标", "col": Color(1.0, 0.239, 0.545)},
 ]
