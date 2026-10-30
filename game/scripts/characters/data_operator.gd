@@ -1103,8 +1103,9 @@ func draw_auras() -> void:
 	cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	# 10-29 特效审查：去掉整片半透明填充圆盘（会把战场糊成灰白、遮敌人和弹幕），只留边线
 	var zring: float = float(B.zone.get("ring", 1.0))   # blocks.zone.ring：区域边线透明度倍率（0 = 不画边线；10-14 浊心斯卡蒂去掉歌域外圈红线，纯画面）
-	if zring > 0.0:
-		cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0)) * rm * zring), 2.0)
+	var zf: float = ring_flash("zone") if on else 0.0   # 10-31 TA H1：边线只在技能开启那一瞬出现，不常驻
+	if zring > 0.0 and zf > 0.0:
+		cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, 0.5 * zf * rm * zring), 2.0)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if not sm.is_empty():
 		SegSkalter.e5_draw_zones(self, cc, on)   # 精英化第 5 批段：召唤物自带的区域椭圆
@@ -1693,15 +1694,15 @@ func draw_entities_floor() -> void:
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if not taunt.is_empty() and skill_on(int(taunt.i)) and bool(taunt.b.get("ring", false)):   # 嘲讽圈：本干员脚下一圈金色虚环（范围 = 拉仇恨半径）；用户 10-31 嫌突兀，缺省不画（ring: true 才画）
 		var tr: float = float(taunt.b.r) * stat(&"op_range")
-		var ka: float = 0.35 + 0.2 * sin(g.t * 6.0)
-		cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		cv.draw_arc(Vector2.ZERO, tr, 0.0, TAU, 48, Color(1.0, 0.82, 0.35, ka), 2.0)
-		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, ka + 0.25), 2.5)
-		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var ka: float = 0.6 * ring_flash("taunt")   # 10-31 TA H1：开启那一瞬亮一下，不常驻
+		if ka > 0.0:
+			cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+			cv.draw_arc(Vector2.ZERO, tr, 0.0, TAU, 48, Color(1.0, 0.82, 0.35, ka), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if not gm.is_empty():
 		SegHoshiguma.gm_draw(self)   # docs/202：阻挡盾印 / 般若之重金环
 	if not neg_armed.is_empty() and g.ppos != Vector2.INF:
-		var k: float = 0.55 + 0.25 * sin(g.t * 8.0)
+		var k: float = 0.8 * ring_flash("negate")   # 10-31 TA H1：待命开始那一瞬亮一下
 		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, k), 2.5)
 # ================================================================ 安洁莉娜 angelina（docs/59 §5；docs/61 §12）—— 第三批追加段，只往后加
@@ -1785,12 +1786,14 @@ func _draw_fields() -> void:
 		cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		if st.look == "ring":
 			var rr: float = st.ring if st.ring > 0.0 else r * 0.7
+			var rf: float = ring_flash("field%s" % str(u))   # 10-31 TA H1：两道环只在展开那一瞬，之后靠往里吸的光点读范围
 			cv.draw_circle(Vector2.ZERO, r, Color(GRAV.r, GRAV.g, GRAV.b, 0.035))
-			cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(GRAV.r, GRAV.g, GRAV.b, 0.16), 1.0)
-			var n := 24
-			for q in n:
-				var a0: float = TAU * q / n + gt * 0.35
-				cv.draw_arc(Vector2.ZERO, rr, a0, a0 + TAU / n * 0.55, 4, Color(GRAV.r * 1.3, GRAV.g * 1.3, GRAV.b * 1.3, 0.55), 2.0)
+			if rf > 0.0:
+				cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(GRAV.r, GRAV.g, GRAV.b, 0.16 * rf), 1.0)
+				var n := 24
+				for q in n:
+					var a0: float = TAU * q / n + gt * 0.35
+					cv.draw_arc(Vector2.ZERO, rr, a0, a0 + TAU / n * 0.55, 4, Color(GRAV.r * 1.3, GRAV.g * 1.3, GRAV.b * 1.3, 0.55 * rf), 2.0)
 			for q in 10:
 				var k: float = fmod(gt * 0.6 + q * 0.1, 1.0)
 				var ang: float = TAU * q / 10.0 + 0.4 * q
@@ -1801,11 +1804,13 @@ func _draw_fields() -> void:
 				cv.draw_circle(pin, 1.8, Color(1.2, 1.0, 1.5, al * 0.7))
 		else:
 			var pulse: float = 0.5 + 0.5 * sin(gt * 2.4)
+			var lf: float = ring_flash("lift%s" % str(u))   # 10-31 TA H1：虚线外圈 + 内圈只在展开那一瞬
 			cv.draw_circle(Vector2.ZERO, r, Color(GRAV.r, GRAV.g, GRAV.b, 0.06 + 0.02 * pulse))
-			for q in 32:
-				var a1: float = TAU * q / 32 - gt * 0.25
-				cv.draw_arc(Vector2.ZERO, r, a1, a1 + TAU / 64.0, 3, Color(GRAV.r * 1.4, GRAV.g * 1.4, GRAV.b * 1.4, 0.6), 2.0)
-			cv.draw_arc(Vector2.ZERO, r * 0.55, 0.0, TAU, 40, Color(GRAV.r, GRAV.g, GRAV.b, 0.12 + 0.1 * pulse), 1.5)
+			if lf > 0.0:
+				for q in 32:
+					var a1: float = TAU * q / 32 - gt * 0.25
+					cv.draw_arc(Vector2.ZERO, r, a1, a1 + TAU / 64.0, 3, Color(GRAV.r * 1.4, GRAV.g * 1.4, GRAV.b * 1.4, 0.6 * lf), 2.0)
+				cv.draw_arc(Vector2.ZERO, r * 0.55, 0.0, TAU, 40, Color(GRAV.r, GRAV.g, GRAV.b, (0.12 + 0.1 * pulse) * lf), 1.5)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		if st.look == "lift":
 			for q in 14:

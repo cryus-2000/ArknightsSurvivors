@@ -2814,6 +2814,21 @@ func _tick_sq_shadow(dt: float) -> void:
 	var up: bool = sq_ph == 2 or sq_ph == 4 or (sq_ph == 1 and not sq.has("enter"))
 	sq_air = move_toward(sq_air, 1.0 if up else 0.0, dt / 0.25)
 
+## 范围圈只在出现的一瞬画（10-31 TA 审阅 docs/208 H1「局内到处是圈」，用户多次说圈突兀）：同一个 key 连续被调用
+## （每帧都调、中断不超过 0.2 秒）算同一次；第一次调用后 0.25 秒全亮、再 0.35 秒淡到 0，之后返回 0 不再画。只读 g.t，不碰随机数
+var _ring_t := {}
+
+func ring_flash(key: String) -> float:
+	var now: float = g.t
+	var r: Array = _ring_t.get(key, [-99.0, -99.0])
+	if now - float(r[1]) > 0.2:
+		r[0] = now
+	r[1] = now
+	_ring_t[key] = r
+	var age: float = now - float(r[0])
+	return 1.0 if age < 0.25 else clampf(1.0 - (age - 0.25) / 0.35, 0.0, 1.0)
+
+
 func shadow_k() -> Vector2:
 	return Vector2.ONE.lerp(sq_shadow, smoothstep(0.0, 1.0, sq_air))
 

@@ -5013,21 +5013,14 @@ func draw_shield() -> void:
 		return
 	var a_dim := 1.0 if n > 0 else 0.0
 	var fresh := clampf(1.0 - tc / 0.35, 0.0, 1.0)   # 刚充好一层：边缘亮一下
-	match int(Bal.v("fx/shield_style", 1.0)):   # 10-28 定 B 气泡（1）；0 = A 细光边、2 = C 环绕光点（候选对照留着）
+	match int(Bal.v("fx/shield_style", 2.0)):   # 10-31 TA 审阅 docs/208 H1 / M16（泡泡盖住本体、又是一个圈）改缺省 C 环绕光点（2）；10-28 定的 B 气泡 = 1、A 细光边 = 0
 		0:
 			_shield_rim(c, r0, n, fresh)
 		2:
 			_shield_motes(c, r0, n, fresh)
 		_:
 			_shield_bubble(c, r0, n, fresh)
-	# 充能进度：外侧细弧从正上方顺时针走；0 层时再加一圈极淡的空槽环
-	if g.shield_max > 0 and n < g.shield_max:
-		var p := clampf(1.0 - g.shield_cd / maxf(g.shield_every, 0.1), 0.0, 1.0)
-		var rp := r0 + 5.0
-		if n == 0:
-			tb_arc(c, r0, 0.0, TAU, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.14), 40)
-		if p > 0.01:
-			tb_arc(c, rp, -PI * 0.5, -PI * 0.5 + TAU * p, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.42), maxi(4, int(40 * p)))
+	# 充能进度不在身上画（10-31 TA 审阅 docs/208 H1：0 层时常驻的空槽环、充能弧都是圈）：左上生命值旁的护盾菱形已经显示层数
 	# 碎裂：碎掉的那一环外扩淡出 0.25 秒；之后无敌期间（0.5 秒）环位上两点微光绕行
 	if tb < 0.25:
 		var e := tb / 0.25

@@ -1037,7 +1037,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	UI.strip(card, g.font, r.position + Vector2(14, 14), tag[0], tag[1], UI.CYAN if hov else Color(1, 1, 1, 0.88), UI.TEXT, 12)
 	if card.get_meta("more", false) and card.get_meta("phone", false):
 		draw_detail_chip(card, r, i)
-	else:
+	elif not Pad.touch_ui():   # 右上序号 = 数字键，触屏不画（10-31 TA H7）
 		UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
 	if tag[2] != "":
 		var rw := UI.cwidth(g.font, tag[2], 10) + 10.0
@@ -1105,16 +1105,13 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		ab = Rect2(r.position + Vector2(16, r.size.y - 54), Vector2(r.size.x - 32, 42))   # 手机：选择条 42 高（× 0.9 ≈ 38 界面像素）
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
-	var kl := "" if Pad.touch_ui() else "[ %d ]" % (i + 1)
-	var sfs := 17 if ph else 14
+	var sfs := 17 if ph else 14   # 10-31 TA H7：操作条只写「选择」，序号只在右上角（桌面）
 	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x
-	var w2 := (UI.cwidth(g.font, kl, 12) + 8.0) if kl != "" else 0.0
-	var sx := ab.get_center().x - (w1 + w2) / 2.0
+	var sx := ab.get_center().x - w1 / 2.0
 	if ph and card.has_meta("brief"):
 		sfs = BTN_FS_PHONE
 		sx = ab.get_center().x - g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x / 2.0
 	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 6.0 if (ph and card.has_meta("brief")) else (21.0 if ph else 20.0))), "选择", sfs, ink)
-	UI.ctext(card, g.font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
 	motion.end(card, i, o)
 
 
@@ -1192,7 +1189,8 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var fb: Dictionary = card.get_meta("fit", {})
 	if not fb.is_empty():
 		UI.draw_fit(card, g.font, base + Vector2(tx0, 40.0 if ph else 50.0), fb, Color(0.81, 0.79, 0.76))
-	UI.ctext(card, g.font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
+	if not Pad.touch_ui():   # 序号 = 数字键，触屏不画（10-31 TA H7）
+		UI.ctext(card, g.font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	if hov:
 		card.draw_rect(Rect2(base + Vector2(8, 20), Vector2(8, card.size.y - 40.0)), Color(0.18, 0.72, 1.0, 0.25))
 		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, card.size.y - 44.0)), Color(0.18, 0.72, 1.0))

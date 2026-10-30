@@ -174,6 +174,12 @@ func draw_cards(items: Array, st: float) -> void:
 	var y0: float = 150.0 if three else 190.0
 	var gap: float = 162.0 if three else 190.0
 	var ch: float = 146.0 if three else 168.0
+	# 10-31 TA 审阅 docs/208 H8「同一组卡字号不一」：原来逐卡 UI.fit，放不下的那张单独缩小。改成整组取都放得下的最大字号
+	var dsz: int = 12
+	for sz in [15, 14, 13, 12]:
+		if items.all(func(it2): return UI.fit(g.font, str(it2.desc), 580.0 - 172.0, ch - 96.0, [sz]).fit):
+			dsz = sz
+			break
 	for i in items.size():
 		var it: Dictionary = items[i]
 		var ia := clampf((st - 0.55 - i * 0.25) / 0.3, 0.0, 1.0)
@@ -192,4 +198,4 @@ func draw_cards(items: Array, st: float) -> void:
 			UI.text(g.hud, g.font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		UI.chip(g.hud, g.font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
 		UI.text(g.hud, g.font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		UI.draw_fit(g.hud, g.font, r.position + Vector2(150, 91), UI.fit(g.font, it.desc, r.size.x - 172, ch - 96.0, [15, 14, 13, 12]), Color(0.78, 0.88, 0.9, e))
+		UI.draw_fit(g.hud, g.font, r.position + Vector2(150, 91), UI.fit(g.font, it.desc, r.size.x - 172, ch - 96.0, [dsz]), Color(0.78, 0.88, 0.9, e))

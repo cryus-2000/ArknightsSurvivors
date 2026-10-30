@@ -1185,18 +1185,20 @@ func draw_leader_mark() -> void:
 	cv.begin()
 	# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
 	var c: Color = o.col()
-	# 可见度（界面与美术 9/30：几十条冲刺预警线交叉压在主控身上时细环认不出）：按预警轮廓的「深边 + 色 + 白芯」画法，任何底色上都跳出来
+	# 10-31 TA 审阅 docs/208 H1（用户多次说圈突兀）：不画整圈——脚下一块实心半透明软影，朝向一侧一段职业色短弧；
+	# 短弧长度 = 冲刺冷却（冷却中从 0 长到 70°，满了是整段 + 白芯）。可见度仍按「深边 + 色 + 白芯」画，几十条预警线压在身上时也认得出
 	var dark := Color(0.02, 0.02, 0.05, 0.75)
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, dark, 5.0)
-	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.9), 2.5)
-	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(1, 1, 1, 0.6), 1.0)
-	# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
+	cv.draw_circle(Vector2.ZERO, 24.0, Color(0.0, 0.0, 0.03, 0.28))
+	cv.draw_circle(Vector2.ZERO, 16.0, Color(0.0, 0.0, 0.03, 0.22))
 	var dk: float = g.dash_frac()
-	if dk < 1.0:
-		cv.draw_arc(Vector2.ZERO, 30.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
-	else:
-		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
+	var fa: float = 0.0 if g.facing > 0.0 else PI
+	var half: float = deg_to_rad(35.0) * (dk if dk < 1.0 else 1.0)
+	if half > 0.01:
+		cv.draw_arc(Vector2.ZERO, 26.0, fa - half, fa + half, 14, dark, 5.0)
+		cv.draw_arc(Vector2.ZERO, 26.0, fa - half, fa + half, 14, Color(c.r, c.g, c.b, 0.95 if dk >= 1.0 else 0.6), 2.5)
+		if dk >= 1.0:
+			cv.draw_arc(Vector2.ZERO, 26.0, fa - half, fa + half, 14, Color(1, 1, 1, 0.6), 1.0)
 	# 连冲（可储存 2 次以上）：外圈右侧一排小点 = 现在能冲几次
 	var dm: int = g.dash_max()
 	if dm > 1:
@@ -1205,12 +1207,7 @@ func draw_leader_mark() -> void:
 			var dp := Vector2(36.0 + 6.0 * di, 0.0)
 			cv.draw_circle(dp, 2.2, dark)
 			cv.draw_circle(dp, 1.5, Color(1, 1, 1, 0.85 if di < dl else 0.2))
-	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var fc: float = g.facing
-	var tip: Vector2 = o.pos + Vector2(30.0 * fc, 4)
-	# 朝向小三角：先垫一个每边大 2 像素的深色三角
-	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
-	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)   # 朝向由短弧表示，原来的小三角去掉
 	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——按住瞄准 = 瞄准方向，
 	# 自动攻击 = 最近 0.8 秒内一次命中的方向（没有就不画）；常亮不闪
 	if Bal.v("render/lead_dir", 0.0) > 0.0 or g.world.lead_lv >= 2:

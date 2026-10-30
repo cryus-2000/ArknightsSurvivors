@@ -94,7 +94,9 @@ static func topbar(ci: CanvasItem, font: Font, vs: Vector2, en: Array, title: St
 	if back == "":
 		return Rect2()
 	para(ci, br, Color(0, 0, 0, 0), Color(1, 1, 1, 0.8))
-	UI.text_at(ci, font, br.get_center(), back, int(15 * s), UI.TEXT, "mm", true)
+	var bk: Array = UI.split_key(back)   # 10-31 TA H7：「返回  Esc」→ 按钮只写「返回」，ESC 进左内侧的按键牌
+	UI.text_at(ci, font, br.get_center() + Vector2(16.0 * s if bk[1] != "" and not Pad.touch_ui() else 0.0, 0.0), bk[0], int(15 * s), UI.TEXT, "mm", true)   # 有按键牌时字往右让
+	UI.btn_key(ci, font, br, bk[1], UI.SUB, 10, br.size.y * SKEW + 10.0 * s)
 	return br
 
 
@@ -176,11 +178,9 @@ static func main_btn(ci: CanvasItem, font: Font, r: Rect2, text: String, key := 
 	para(ci, r, CYB)
 	var size := int(22 * s)
 	var tw := UI.cwidth(font, text, size)
-	var kw := UI.cwidth(font, key, int(15 * s)) if key != "" else 0.0
-	var x := r.get_center().x - (tw + kw + 34 * s) / 2.0
+	var x := r.get_center().x - (tw + 34 * s) / 2.0
 	UI.text_at(ci, font, Vector2(x, r.get_center().y), text, size, INK, "lm", true)
-	if key != "":
-		UI.text_at(ci, font, Vector2(x + tw + 14 * s, r.get_center().y + 1), key, int(15 * s), INK, "lm", true)
+	UI.btn_key(ci, font, r, key, UI.fa(INK, 0.7), 10, r.size.y * SKEW + 12.0 * s)   # 10-31 TA H7：键名不进按钮文字，左内侧一个按键牌
 	chevron(ci, Vector2(r.end.x - r.size.y * SKEW - 26 * s, r.get_center().y), 6 * s, INK)
 
 
@@ -189,11 +189,9 @@ static func ghost_btn(ci: CanvasItem, font: Font, r: Rect2, text: String, key :=
 	var col := UI.TEXT if dark else INK
 	para(ci, r, Color(0, 0, 0, 0.35) if dark else Color(1, 1, 1, 0.5), UI.fa(col, 0.85), 1.5)
 	var tw := UI.cwidth(font, text, int(17 * s))
-	var kw := UI.cwidth(font, key, int(14 * s)) + 12 * s if key != "" else 0.0
-	var x := r.get_center().x - (tw + kw) / 2.0
+	var x := r.get_center().x - tw / 2.0
 	UI.text_at(ci, font, Vector2(x, r.get_center().y), text, int(17 * s), col, "lm", true)
-	if key != "":
-		UI.text_at(ci, font, Vector2(x + tw + 12 * s, r.get_center().y + 1), key, int(14 * s), UI.fa(col, 0.8), "lm")
+	UI.btn_key(ci, font, r, key, UI.fa(col, 0.6), 10, r.size.y * SKEW + 10.0 * s)   # 10-31 TA H7：键名不进按钮文字
 
 
 static func chevron(ci: CanvasItem, c: Vector2, r: float, col: Color) -> void:

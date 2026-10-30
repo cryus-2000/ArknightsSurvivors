@@ -191,10 +191,17 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 		g.panel_ui.draw_icon_fit(card, g.tex.pickup_heal, c, 56.0, mod)
 	else:
 		UI.text(card, g.font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
-	var fs := 15 if g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(15)).x <= r.size.x - 14.0 else 12
+	# 10-31 TA 审阅 docs/208 H8（同组卡字号统一，商人货架同样检查）：原来逐张判断，长名字那张单独缩到 12。改成整排取都放得下的最大字号
+	var fit_all := func(sz: int) -> bool:
+		return g.shop_items.all(func(x): return g.font.get_string_size(str(x.name), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sz)).x <= r.size.x - 14.0)
+	var fs := 12
+	for sz in [15, 14, 13]:
+		if fit_all.call(sz):
+			fs = sz
+			break
 	var nfs: int = int(lay().name_fs)
-	if nfs > 0 and g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nfs)).x <= r.size.x - 14.0:
-		fs = nfs   # 手机：名字 18
+	if nfs > 0 and fit_all.call(nfs):
+		fs = nfs   # 手机：名字 18（整排都放得下才用）
 	UI.text(card, g.font, r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
@@ -230,8 +237,7 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.ctext(card, g.font, pb.position + Vector2(34, 24), str(it.price), 21, pc)
 	if not afford:
 		UI.text(card, g.font, pb.position + Vector2(40 + UI.cwidth(g.font, str(it.price), 21), 21), "不足", 11, pc)
-	if not Pad.touch_ui():
-		UI.ctext(card, g.font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
+	# 10-31 TA H7：价签不再写「[ n ]」（底部提示行已写「按 1–N 购买」）
 
 
 ## 手机版背景（手机端 UI 优化 r2）：标题压在顶栏上（压暗带遮住）、一行交易说明、「藏品 n · 商人还会停留」一行，
@@ -315,7 +321,7 @@ func draw_bg(vs: Vector2) -> void:
 	UI.text(g.panel_fg, g.font, dp.position + Vector2(84, 22), "源石锭", 10, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 110, dp.position.y + 22), "持有", 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 100)
 	# 按键提示：分两行放在按钮右边（再往右是底栏的技能图标，一行长字会压上去）
-	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else (["点击卡片购买", "点「刷新货架」/「离开」"] if Pad.touch else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  Esc 离开"])
+	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else (["点击卡片购买", "点「刷新货架」/「离开」"] if Pad.touch else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  ESC 离开"])
 	var hfs := 12   # 桌面版（触屏在 draw_bg 开头已转去 _draw_bg_phone）
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 30.0), hints[0], hfs, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 49.0 if hfs > 12 else top + CARD_H + 47.0), hints[1], hfs, UI.SUB)
