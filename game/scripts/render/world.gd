@@ -1070,7 +1070,7 @@ func _draw_hit_dot() -> void:
 	if OS.is_debug_build() and Cfg.dev_args().has("--hitcircles") and g.shots != null:
 		for b in g.ebullets:
 			if b.life > 0.0:
-				tb_ring(b.pos, g.shots.hit_r(b), 1.5, Color(0.3, 2.0, 0.6, 0.95))
+				tb_ring(g.shots.hit_c(b), g.shots.hit_r(b), 1.5, Color(0.3, 2.0, 0.6, 0.95))
 		tb_circle(g.ppos + Vector2(0, -14), 3.0, Color(2.0, 2.0, 2.0), 1.0, 8)
 		tb_flush()
 	if g.shots == null or not g.shots.core_hit_live():

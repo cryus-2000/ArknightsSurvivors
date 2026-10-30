@@ -159,6 +159,19 @@ func _final_speed(b: Dictionary) -> void:
 
 
 var _spd_cap2 := 0.0
+## 判定对齐画面（10-30 协调人定，claude/bullet-hitbox）：敌弹画在 b.pos 上方 16 像素（world._ebp），以前判定却按 b.pos（影子位置）算，
+## 看着碰到没中、看着没碰到却中。现在判定取 b.pos 上移 enemy/bullet_hit_lift 像素（= 弹体画面中心）对队长判定点（ppos 上方 14，白点）；
+## 瞄「判定点」的 Boss 弹 / 追踪弹改瞄 aim_pt()（= 判定点下移 lift，飞行时画面正好穿过白点）。0 = 照旧
+var _lift := 16.0
+
+
+func aim_pt() -> Vector2:
+	return g.ppos + Vector2(0, -14.0 + Bal.v("enemy/bullet_hit_lift", 16.0))
+
+
+## 弹的判定中心（画面中心）
+func hit_c(b: Dictionary) -> Vector2:
+	return b.pos + Vector2(0, -_lift)
 ## 最终 Boss 弹幕加层（用户 10-30「多几层、全方位一点，但要给预警；子弹略放慢」，claude/bullet-hitbox）：
 ## 每颗最终 Boss 弹第一次更新时，按 boss/layer_n_<类型> 排出 N 层追加弹：第 i 层绕发射点转 boss/layer_rot_<类型> × i 弧度（交错角度），
 ## boss/layer_omni_<类型> = 1 时奇数层再转 π（前后夹击 → 全方位），速度 × boss/layer_spd_<类型>^i（不同速度成层）；
@@ -210,6 +223,7 @@ func _fire_layers() -> void:
 
 func update_ebullets(dt: float) -> void:
 	_spd_cap2 = pow(Bal.v("boss/spd_cap", 440.0), 2.0)
+	_lift = Bal.v("enemy/bullet_hit_lift", 16.0)
 	_fire_layers()
 	for b in g.ebullets:
 		if b.life <= 0.0:
@@ -219,7 +233,7 @@ func update_ebullets(dt: float) -> void:
 		elif float(b.get("spd_k", 1.0)) > 1.0 and b.vel.length_squared() > _spd_cap2:
 			b.vel = b.vel.normalized() * sqrt(_spd_cap2)   # 放大过的弹被各脚本逐帧加速时也不超过 boss/spd_cap（云端测得泡影最高 590）
 		if b.get("home", false):
-			var want: Vector2 = (g.ppos + Vector2(0, -14) - b.pos).normalized() * b.vel.length()
+			var want: Vector2 = (aim_pt() - b.pos).normalized() * b.vel.length()
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
 		b.pos += b.vel * dt
 		b.life -= dt
@@ -235,7 +249,7 @@ func update_ebullets(dt: float) -> void:
 		if rock:
 			b.life = 0.0
 			b["_die"] = "rock"
-		var hd: float = b.pos.distance_to(g.ppos + Vector2(0, -14))
+		var hd: float = hit_c(b).distance_to(g.ppos + Vector2(0, -14))
 		var hitp: bool = not rock and hd < hit_r(b)   # 判定点：敌弹只按弹芯判定
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
