@@ -279,8 +279,8 @@ var _hh := {}
 ## 双眼中点表（10-31 用户「20 人加 Mon3tr 都要按眼睛位置对齐」，art/operators/avatar_eyes.json，人工标定）：
 ## 有表的人按眼睛裁——双眼中点落在圆心上方 EYE_UP 半径处，眼距统一缩放到半径 × EYE_D，脸在圈里一样大；没表的退回下面按轮廓找头
 const EYES_PATH := "res://art/operators/avatar_eyes.json"
-const EYE_UP := 0.09
-const EYE_D := 0.55
+const EYE_UP := 0.02   # 10-31 用户「露出头多一点，下一点点」：原 0.09 / 0.55
+const EYE_D := 0.42
 static var _eyes: Dictionary = {}
 
 static func eyes_table() -> Dictionary:
