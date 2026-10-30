@@ -605,12 +605,17 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var p1: Vector2 = _w(org, d, L, -hw)
 	var p2: Vector2 = _w(org, d, L, hw)
 	var p3: Vector2 = _w(org, d, -bk, hw)
+	var v2: bool = _lo_v2(u)
+	var vs: float = PF.vseed(u, org)
 	# 咒域：矩形描边 + 底色 + 两条长边的咒文条（fx_logos_script 拼接）+ 横向分隔线
 	u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
-	for pr in [[p0, p1], [p1, p2], [p2, p3], [p3, p0]]:
+	if v2:
+		_lo_field_v2(u, [p0, p1, p2, p3], tm, vs)
+	for pr in ([] if v2 else [[p0, p1], [p1, p2], [p2, p3], [p3, p0]]):
 		u.shape({"kind": "line", "a": pr[0], "b": pr[1], "w": 3.0, "col": col.lerp(Color.WHITE, 0.3), "life": tm + 0.1})
-	u.tiles_line("fx_logos_script", p0 + d.orthogonal() * 14.0, p1 + d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
-	u.tiles_line("fx_logos_script", p3 - d.orthogonal() * 14.0, p2 - d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
+	if not v2:
+		u.tiles_line("fx_logos_script", p0 + d.orthogonal() * 14.0, p1 + d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
+		u.tiles_line("fx_logos_script", p3 - d.orthogonal() * 14.0, p2 - d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
 	for k in 4:
 		var x: float = lerpf(-bk, L, (k + 1) / 5.0)
 		u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 1.5, "col": Color(col, 0.6), "life": tm, "delay": 0.05 * k})
@@ -620,9 +625,10 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	for e in _in_rect(u, org, d, -bk, L, hw):
 		if marks.size() >= cap:
 			break
-		marks.append({"e": e, "s": u.strip("fx_logos_glyph", e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0), {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
+		var mp: Vector2 = e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0)
+		marks.append({"e": e, "s": _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
-	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false,
+	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "vs": vs,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
 
 
@@ -643,11 +649,13 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		a.boom = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.35, "life": 0.25})
-		for k in 6:   # 一词念出：咒文从队长往矩形尽头横扫
+		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.22 if a.v2 else 0.35, "life": 0.25})
+		if a.v2:
+			_lo_boom_v2(u, a, org, d, hw, L, bk)
+		for k in (0 if a.v2 else 6):   # 一词念出：咒文从队长往矩形尽头横扫
 			var x: float = lerpf(-bk, L, (k + 0.5) / 6.0)
 			u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 5.0, "col": Color.WHITE, "life": 0.18, "delay": 0.02 * k})
-		for mk in a.marks:
+		for mk in ([] if a.v2 else a.marks):
 			var p: Vector2 = mk.s.c
 			u.strip("fx_logos_glyph", p, {"seg": [3, 5], "fps": 14.0, "sc": 1.5})
 		var thr: float = u.ref_hp() * Bal.v("ult/lo_exec", 2.0)
@@ -674,7 +682,10 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 							_hit(u, a, o, tg, 0.25, {"src": "转喻", "edge": true})
 					if a.epi and nexe % 5 == 0:   # 墓志铭：每处决 5 名留一枚大咒文，1 秒后爆开
 						a.big.append({"p": pos, "t": t + 1.0})
-						u.strip("fx_logos_glyph", pos + Vector2(0, -10), {"seg": [0, 3], "fps": 4.0, "sc": 2.6, "life": 1.0})
+						if a.v2:
+							_lo_glyph(u, pos + Vector2(0, -10), 70.0, 1.0, float(a.vs) + nexe, {"sc1d": 1.0})
+						else:
+							u.strip("fx_logos_glyph", pos + Vector2(0, -10), {"seg": [0, 3], "fps": 4.0, "sc": 2.6, "life": 1.0})
 			elif not e.boss:
 				e["requiem"] = Bal.v("ult/lo_requiem", 8.0)   # 安魂（受到的法术伤害 +15%）
 		for bl in g.ebullets:   # 只清矩形内的敌方弹幕
@@ -694,6 +705,93 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 	for b in a.big:
 		tend = maxf(tend, float(b.t) + 0.05)
 	return a.boom and t >= tend
+
+
+## ---- 逻各斯 pixfx（docs/199 §7.10，开关 ult/lo_fx_v2 缺省 1；0 = 细线描边 + 咒文拼接 + 旧标记版）
+## 审阅 10-30「连续边框加萨卡兹字样的符文带，不要火柴人」：边框 = fx_lo_rune（三条符文带横向拼成一张、按周长接着截）沿矩形四边连续铺一整圈，
+## 从队长身后一角起依次显现（像被写出来）；四角各一枚大咒印 fx_lo_glyph1–4 慢转；敌人头顶标记 = 萨卡兹字咒印（同一组，按序号挑字）从小长到位；
+## 一词念出 = 一道横跨咒域的符文带从队长扫到尽头 + 各标记扫到时放大闪亮、碎成紫色像素粒子。判定 / 时序 / u.hit / 清弹不动
+const LO_RUNE := "fx_lo_rune"
+const LO_GLYPH := ["fx_lo_glyph1", "fx_lo_glyph2", "fx_lo_glyph3", "fx_lo_glyph4"]
+const LO_VIO := Color(0.72, 0.62, 1.0)
+
+
+static func _lo_v2(u) -> bool:
+	return Bal.v("ult/lo_fx_v2", 1.0) > 0.0 and u.fx_ready(LO_RUNE) and u.fx_ready(LO_GLYPH[0])
+
+
+## 一枚咒印：w = 世界宽；从 0.5 倍在 opt.sc1d 秒内长到位；opt.spin 时画在地面层慢转
+static func _lo_glyph(u, p: Vector2, w: float, life: float, sd: float, opt := {}) -> Dictionary:
+	var name := PF.pick(u, LO_GLYPH, sd * 0.43)
+	var sc: float = w / PF.tex_w(u, name)
+	var s := {"sc": sc * 0.5, "sc1": sc, "scd": float(opt.get("sc1d", 0.12)), "life": life, "fade": float(opt.get("fade", 0.08)),
+		"sx": -1.0 if PF.h(sd + 1.0) < 0.3 else 1.0, "col": opt.get("col", Color(1, 1, 1, 0.95)), "delay": float(opt.get("delay", 0.0))}
+	if opt.has("spin"):
+		s["spin"] = opt.spin
+		s["layer"] = "back"
+	return u.strip(name, p, s)
+
+
+## 符文带一段：从 p 沿 dir 铺 len（截 fx_lo_rune 的一段，ux 起点 ux0）
+static func _lo_band(u, p: Vector2, dir: Vector2, len: float, ux0: float, opt: Dictionary) -> Dictionary:
+	var t: Texture2D = u._strip_tex(LO_RUNE)
+	var kk: float = PF.tex_w(u, LO_RUNE) / t.get_width()
+	var sc: float = float(opt.get("sc", 1.0))
+	var uw: float = minf(t.get_width() - 1.0, len / (kk * sc))
+	var s := {"layer": str(opt.get("layer", "back")), "ang": dir.angle(), "sc": sc, "o": Vector2(0.0, t.get_height() * 0.5),
+		"ux": fposmod(ux0, maxf(1.0, t.get_width() - uw)), "uw": uw, "life": float(opt.life), "fade": float(opt.get("fade", 0.1)),
+		"col": opt.get("col", Color.WHITE), "delay": float(opt.get("delay", 0.0))}
+	for k in ["rev", "rev0", "v"]:
+		if opt.has(k):
+			s[k] = opt[k]
+	return u.strip(LO_RUNE, p, s)
+
+
+## 咒域边框：四边连续符文带（每段接着上一段的截取位置），从 p0（身后一角）起按周长依次写出；四角大咒印慢转
+static func _lo_field_v2(u, ps: Array, tm: float, vs: float) -> void:
+	var t: Texture2D = u._strip_tex(LO_RUNE)
+	var kk: float = PF.tex_w(u, LO_RUNE) / t.get_width()
+	var per: float = 0.0
+	for i in 4:
+		per += (ps[i] as Vector2).distance_to(ps[(i + 1) % 4])
+	var ux: float = floorf(PF.h(vs) * t.get_width())
+	var acc := 0.0
+	var wt: float = minf(0.3, tm * 0.6)   # 写满一圈的时间
+	for i in 4:
+		var a0: Vector2 = ps[i]
+		var b0: Vector2 = ps[(i + 1) % 4]
+		var ln: float = a0.distance_to(b0)
+		var dv: Vector2 = (b0 - a0) / ln
+		var n: int = maxi(1, ceili(ln / 300.0))   # 每段 ≤ 300（贴图截段不超宽）
+		for q in n:
+			var l0: float = ln * q / n
+			var l1: float = ln * (q + 1) / n
+			_lo_band(u, a0 + dv * l0, dv, l1 - l0, ux, {"sc": 0.75, "life": tm + 0.12, "fade": 0.12, "rev": wt * (l1 - l0) / per, "delay": wt * (acc + l0) / per,
+				"col": Color(1.0, 1.0, 1.0, 0.92)})
+			ux += (l1 - l0) / (kk * 0.75)
+		acc += ln
+	for i in 4:
+		_lo_glyph(u, ps[i], 64.0, tm + 0.12, vs + i * 2.9, {"spin": 1.2 * (1.0 if i % 2 == 0 else -1.0), "sc1d": 0.2, "delay": wt * 0.25 * i, "col": Color(1, 1, 1, 0.9)})
+
+
+## 一词念出：一道横跨咒域的符文带从身后扫到尽头（0.16 秒）+ 各标记扫到时放大闪亮、碎成紫色像素粒子 + 冷紫短灯
+static func _lo_boom_v2(u, a: Dictionary, org: Vector2, d: Vector2, hw: float, L: float, bk: float) -> void:
+	var n: Vector2 = d.orthogonal()
+	var sw: float = 0.16
+	var spd: float = (L + bk) / sw
+	for l in 2:
+		_lo_band(u, org - d * (bk - 20.0 * l) - n * hw, n, hw * 2.0, PF.h(float(a.vs) + l) * 900.0,
+			{"layer": "front", "sc": 1.0 - 0.25 * l, "life": sw, "fade": 0.05, "v": d * spd, "col": Color(1.1, 1.1, 1.15, 1.0 - 0.4 * l), "delay": 0.02 * l})
+	u.light(org + d * (L * 0.5), maxf(L, hw) * 0.8, LO_VIO, 0.25)
+	var i := 0
+	for mk in a.marks:
+		var p: Vector2 = mk.s.c
+		var dl: float = clampf(_loc(p, org, d).x + bk, 0.0, L + bk) / spd   # 符文带扫到才炸
+		_lo_glyph(u, p, 56.0, 0.18, float(a.vs) + i * 1.3, {"sc1d": 0.08, "fade": 0.12, "delay": dl, "col": Color(1.2, 1.15, 1.25)})
+		if i % 2 == 0 and i < 20:   # 碎成紫色粒子：隔一个放、至多 10 团，聚怪处不堆成一片
+			PF.particles(u, p, 60, "ult_burst_s", [LO_VIO, Color(0.5, 0.42, 0.9)], dl + 0.05, float(a.vs) + i * 3.0, 50.0)
+		u.shapes.erase(mk.s)
+		i += 1
 
 
 static func _lo_outside(u, a: Dictionary, p: Vector2):
@@ -989,12 +1087,16 @@ static func _ir_start(u, o, d: Vector2) -> Dictionary:
 	var org: Vector2 = home - d * Bal.v("ult/ir_back", 130.0)   # 扇形顶点在她身后 ir_back（10-30 对齐 §3.4：前沿仍约 730，身侧罩得更全）
 	var col: Color = u._col(o)
 	var tw: float = Bal.v("ult/ir_wind", 0.2)
+	var v2: bool = _ir_v2(u)
+	var vs: float = PF.vseed(u, home)
 	# 起风：扇形底色 + 卷风的弧线（沿切向飞）
-	u.shape({"kind": "sector", "c": org, "r": R, "a": ang, "half": half, "col": COL_WIND, "fill": 0.1, "life": 1.0})
-	for j in 4:
+	u.shape({"kind": "sector", "c": org, "r": R, "a": ang, "half": half, "col": COL_WIND, "fill": 0.06 if v2 else 0.1, "life": 1.0})
+	if v2:
+		_ir_gale_v2(u, org, R, ang, half, vs)
+	for j in (0 if v2 else 4):
 		var rr: float = R * (0.3 + 0.22 * j)
 		_arc_lines(u, org, rr, ang - half, ang + half, 12, Color(COL_WIND, 0.7), 2.0, 0.5, 0.04 * j)
-	for j in 28:
+	for j in (0 if v2 else 28):
 		var aj: float = ang - half + 2.0 * half * float((j * 11) % 28) / 27.0
 		var rj: float = R * (0.2 + 0.75 * float((j * 7) % 10) / 9.0)
 		var p: Vector2 = org + Vector2.from_angle(aj) * rj
@@ -1010,7 +1112,8 @@ static func _ir_start(u, o, d: Vector2) -> Dictionary:
 		cuts.append({"lo": lo, "hi": hi, "p": org + Vector2.from_angle(mid) * rr, "t": tw + 0.02 + float(i) * Bal.v("ult/ir_cut_gap", 0.075), "done": false})
 	var tb: float = float(cuts[-1].t) + 0.08
 	return {"org": org, "ang": ang, "half": half, "R": R, "tw": tw, "wseg": {}, "wind": false, "cuts": cuts, "cseg": {}, "cf": Bal.v("ult/ir_cut", 0.6),
-		"tb": tb, "back": false, "shot": false, "eye": home + Vector2.from_angle(ang) * Bal.v("ult/ir_eye", 420.0), "bseg": {}, "air": [], "prev": home, "home": home}
+		"tb": tb, "back": false, "shot": false, "eye": home + Vector2.from_angle(ang) * Bal.v("ult/ir_eye", 420.0), "bseg": {}, "air": [], "prev": home, "home": home,
+		"v2": v2, "vs": vs}
 
 
 static func _ir_step(u, a: Dictionary, o) -> bool:
@@ -1035,7 +1138,11 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 			continue
 		ct.done = true
 		var p: Vector2 = ct.p
-		u.shape({"kind": "line", "a": a.prev, "b": p, "w": 7.0, "col": col.lerp(Color.WHITE, 0.4), "life": 0.15})   # 化风冲刺的残影
+		if a.v2:   # 化风冲刺的残影：沿路线一段风线（不画直线）
+			var dd: Vector2 = p - a.prev
+			_ir_wind(u, a.prev, dd.normalized(), dd.length(), Vector2.ZERO, 0.18, float(a.vs) + ai * 2.1, Color(0.85, 0.88, 0.94, 0.7))
+		else:
+			u.shape({"kind": "line", "a": a.prev, "b": p, "w": 7.0, "col": col.lerp(Color.WHITE, 0.4), "life": 0.15})   # 化风冲刺的残影
 		_lead_move(u, o, p)
 		a.prev = p
 		var mid: float = (float(ct.lo) + float(ct.hi)) * 0.5
@@ -1046,8 +1153,11 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 		if ai % 2 == 1:
 			pa = org + Vector2.from_angle(float(ct.hi)) * R * 0.2
 			pb = org + Vector2.from_angle(float(ct.lo)) * R * 0.97
-		u.shape({"kind": "blade", "a": pa, "b": pb, "w": 10.0, "col": Color.WHITE, "glow": col, "grow": 0.03, "life": 0.2})
-		u.strip("fx_irene_crescent_wide", p, {"ang": mid, "sc": 2.4})
+		if a.v2:
+			_ir_cut_v2(u, pa, pb, p, float(a.vs) + ai * 3.7, ai)
+		else:
+			u.shape({"kind": "blade", "a": pa, "b": pb, "w": 10.0, "col": Color.WHITE, "glow": col, "grow": 0.03, "life": 0.2})
+			u.strip("fx_irene_crescent_wide", p, {"ang": mid, "sc": 2.4})
 		for e in u.in_circle(org, R):
 			var dv: Vector2 = e.pos - org
 			var ea: float = angle_difference(ang, dv.angle())
@@ -1063,7 +1173,11 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 	if not a.back and t >= tb:
 		a.back = true   # 瞬身回原地，转身举手炮
 		var home: Vector2 = a.home
-		u.shape({"kind": "line", "a": o.pos, "b": home, "w": 6.0, "col": col.lerp(Color.WHITE, 0.5), "life": 0.15})
+		if a.v2:
+			var dh: Vector2 = home - o.pos
+			_ir_wind(u, o.pos, dh.normalized(), dh.length(), Vector2.ZERO, 0.18, float(a.vs) + 40.0, Color(0.85, 0.88, 0.94, 0.7))
+		else:
+			u.shape({"kind": "line", "a": o.pos, "b": home, "w": 6.0, "col": col.lerp(Color.WHITE, 0.5), "life": 0.15})
 		_lead_move(u, o, home)
 		_lead_land(u, o)
 		o.face_to(ang)
@@ -1077,10 +1191,13 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 		a["boom"] = true
 		o.screen_shake(0.8)
 		var br: float = Bal.v("ult/ir_boom_r", 280.0)
-		u.strip("fx_cannon_burst", eye + Vector2(0, 30), {"o": Vector2(16, 27), "sc": 5.0})
-		u.shape({"kind": "circle", "c": eye, "r": br, "col": Color(1.0, 0.8, 0.5), "fill": 0.35, "life": 0.25})
-		_ring(u, eye, br, 30.0, col.lerp(Color.WHITE, 0.5), 0.35, 12.0)
-		_arc_lines(u, org, R, ang - half, ang + half, 16, Color(COL_WIND, 0.8), 4.0, 0.3)   # 风暴边缘被炸散
+		if a.v2:
+			_ir_boom_v2(u, eye, br, org, R, ang, half, float(a.vs))
+		else:
+			u.strip("fx_cannon_burst", eye + Vector2(0, 30), {"o": Vector2(16, 27), "sc": 5.0})
+			u.shape({"kind": "circle", "c": eye, "r": br, "col": Color(1.0, 0.8, 0.5), "fill": 0.35, "life": 0.25})
+			_ring(u, eye, br, 30.0, col.lerp(Color.WHITE, 0.5), 0.35, 12.0)
+			_arc_lines(u, org, R, ang - half, ang + half, 16, Color(COL_WIND, 0.8), 4.0, 0.3)   # 风暴边缘被炸散
 		var bf: float = Bal.v("ult/ir_boom", 0.35)
 		for e in _in_sector(u, org, R, ang, half):
 			var de: float = e.pos.distance_to(eye)
@@ -1093,6 +1210,87 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 		_air_end(u, a)
 		return true
 	return false
+
+
+## ---- 艾丽妮 pixfx（docs/199 §7.10，开关 ult/ir_fx_v2 缺省 1；0 = 程序弧线 / 刀光 / 炮弹圆盘版）
+## 风 = fx_ir_gale（三条稀疏风线首尾接成的无缝圈，截段沿扇形各圈切向飞）；刀 = fx_ir_slash1–3 灰冷白长弧斩光，从 pa 到 pb 快速划开；
+## 手炮 = 白金亮核只留约 2–3 帧 → 金褐烟团 fx_ir_smoke1–4 鼓开、冷成暗褐 + 金色粒子 + 碎片飞落 + 风暴边缘风线被炸散。判定 / 时序 / u.hit 不动
+const IR_SLASH := ["fx_ir_slash1", "fx_ir_slash2", "fx_ir_slash3"]
+const IR_SMOKE := ["fx_ir_smoke1", "fx_ir_smoke2", "fx_ir_smoke3", "fx_ir_smoke4"]
+const IR_GALE := "fx_ir_gale"
+const IR_GOLD := Color(1.0, 0.82, 0.48)
+
+
+static func _ir_v2(u) -> bool:
+	return Bal.v("ult/ir_fx_v2", 1.0) > 0.0 and u.fx_ready(IR_GALE) and u.fx_ready(IR_SLASH[0]) and u.fx_ready(IR_SMOKE[0])
+
+
+## 一段风线：从 p 起沿 dir 铺 len 长（截 fx_ir_gale 的一段，起点按哈希挑），往 v 飞、rev 秒内从尾到头显现
+static func _ir_wind(u, p: Vector2, dir: Vector2, len: float, v: Vector2, life: float, hh: float, col: Color, delay := 0.0) -> void:
+	var t: Texture2D = u._strip_tex(IR_GALE)
+	var kk: float = PF.tex_w(u, IR_GALE) / t.get_width()
+	var uw: float = minf(t.get_width() * 0.3, len / kk)
+	u.strip(IR_GALE, p, {"layer": "back", "ang": dir.angle(), "o": Vector2(0.0, t.get_height() * 0.5), "ux": floorf(PF.h(hh) * (t.get_width() - uw)), "uw": uw,
+		"sy": 1.0 if PF.h(hh + 3.0) < 0.5 else -1.0, "v": v, "rev": 0.12, "rev0": 0.25, "life": life, "fade": life * 0.5, "col": col, "delay": delay})
+
+
+## 起风：扇形里三圈稀疏风线沿切向卷（同一圈同向、圈与圈反向错开），长短 / 起点 / 时刻按哈希
+static func _ir_gale_v2(u, org: Vector2, R: float, ang: float, half: float, vs: float) -> void:
+	for j in 3:
+		var rr: float = R * (0.35 + 0.28 * j)
+		var n: int = maxi(2, roundi(2.0 * half * rr / 420.0))
+		var sg: float = 1.0 if j % 2 == 0 else -1.0
+		for q in n:
+			var hh: float = PF.h(vs * 0.7 + j * 13.0 + q * 3.1)
+			var aj: float = ang - half + 2.0 * half * (q + 0.2 + 0.6 * hh) / n
+			var rd := Vector2.from_angle(aj)
+			var tg: Vector2 = rd.orthogonal() * sg
+			var ln: float = 90.0 + 90.0 * PF.h(hh * 7.0)
+			_ir_wind(u, org + rd * rr * (0.94 + 0.12 * hh) - tg * ln * 0.5, tg, ln, tg * (380.0 + 160.0 * hh) + rd * 70.0, 0.45 + 0.15 * hh,
+				hh * 11.0, Color(0.8, 0.84, 0.9, 0.6), 0.03 * j + 0.06 * PF.h(hh * 5.0))
+
+
+## 一刀：灰冷白长弧斩光从 pa 划到 pb（0.05 秒划开、0.2 秒淡），隔刀翻面 + 刀口一小撮风线迸开 + 冷光
+static func _ir_cut_v2(u, pa: Vector2, pb: Vector2, p: Vector2, sd: float, ai: int) -> void:
+	var name := PF.pick(u, IR_SLASH, sd)
+	var t: Texture2D = u._strip_tex(name)
+	var L: float = pa.distance_to(pb)
+	var dv: Vector2 = (pb - pa) / maxf(1.0, L)
+	var sx: float = L / PF.tex_w(u, name)
+	var fl: float = (1.0 if ai % 2 == 0 else -1.0) * (1.0 if PF.h(sd + 2.0) < 0.7 else -1.0)
+	u.strip(name, pa, {"ang": dv.angle(), "o": Vector2(0.0, t.get_height() * 0.5), "sx": sx, "sy": fl * clampf(sx, 0.85, 1.25),
+		"rev": 0.05, "rev0": 0.08, "life": 0.2, "fade": 0.14, "col": Color(0.88, 0.9, 0.94, 0.85)})   # 六刀 0.075 秒一刀：寿命短、略暗，免得叠成一片白
+	u.light(p, 170.0, Color(0.8, 0.88, 1.0), 0.12)
+	for q in 2:
+		var dq := Vector2.from_angle(dv.angle() + (PF.h(sd + q) - 0.5) * 1.6)
+		_ir_wind(u, p, dq, 70.0 + 40.0 * PF.h(sd * 3.0 + q), dq * 520.0, 0.25, sd + q * 5.0, Color(0.85, 0.88, 0.94, 0.6))
+
+
+## 手炮落点：亮核 0.08 秒（约 2–3 帧）→ 金褐烟团两团鼓开冷成暗褐 + 金色粒子 + 碎片飞落 + 顿帧；风暴边缘一圈风线往外炸散
+static func _ir_boom_v2(u, eye: Vector2, br: float, org: Vector2, R: float, ang: float, half: float, vs: float) -> void:
+	u.g.vfx.stop(Bal.v("ult/ir_hitstop", 0.08), "ult", true)   # 停顿感：炸开那一下顿住（画面层）
+	u.shape({"kind": "circle", "c": eye, "r": br * 0.42, "col": Color(1.0, 0.93, 0.72), "fill": 0.92, "life": 0.08})
+	u.shape({"kind": "circle", "c": eye, "r": br * 0.22, "col": Color(1.0, 0.98, 0.9), "fill": 0.95, "life": 0.06})
+	u.light(eye, br * 1.7, IR_GOLD, 0.35)
+	for l in 2:
+		var name := PF.pick(u, IR_SMOKE, vs * 0.37 + l * 1.9)
+		var rr: float = PF.tex_w(u, name) * 0.5
+		var r0: float = br * (0.3 if l == 0 else 0.2)
+		var r1: float = br * (0.78 if l == 0 else 0.55)
+		u.strip(name, eye + Vector2.from_angle(PF.h(vs + l) * TAU) * br * 0.25 * l, {"sc": r0 / rr, "sc1": r1 / rr, "scd": 0.6, "life": 1.1 - 0.2 * l,
+			"fade": 0.75, "ang": PF.h(vs * 1.3 + l * 7.0) * TAU, "sx": -1.0 if PF.h(vs + l * 4.0) < 0.5 else 1.0, "delay": 0.06 + 0.06 * l,
+			"col": Color(1.15, 1.0, 0.85, 0.8), "col1": Color(0.45, 0.38, 0.33, 0.8), "cold": 0.45})
+	PF.particles(u, eye, 600, "ult_burst", [Color(0.8, 0.6, 0.32), Color(0.62, 0.42, 0.22)], 0.03, vs, br * 1.35)
+	PF.particles(u, eye, 100, "ult_ember", [Color(0.8, 0.55, 0.3)], 0.25, vs + 9.0)
+	PF.aftershock(u, eye, br * 0.8, vs, 0.05, 9, Color(0.85, 0.7, 0.5))
+	u.debris(eye, IR_GOLD, 3)
+	_ring(u, eye, br, 30.0, Color(1.0, 0.85, 0.6, 0.6), 0.3, 4.0)
+	var n: int = 6
+	for q in n:   # 风暴边缘被炸散：风线往外甩
+		var hh: float = PF.h(vs * 0.9 + q * 2.3)
+		var aq: float = ang - half + 2.0 * half * (q + hh) / n
+		var rd := Vector2.from_angle(aq)
+		_ir_wind(u, org + rd * R * (0.85 + 0.1 * hh), rd, 90.0 + 60.0 * hh, rd * 600.0, 0.35, hh * 17.0, Color(0.85, 0.88, 0.94, 0.6), 0.04)
 
 
 # ================================================================ 拉普兰德（§4.19）：原地狂舞连斩，4 圈双刃十字剑气向四面八方飞出，命中沉默
@@ -1122,6 +1320,9 @@ static func _la_wave(u, a: Dictionary, o, i: int) -> void:
 	var nb: int = 12
 	var a0: float = (PI / nb) * float(i % 2) + 0.13 * i
 	var last_bark: bool = a.bark and i == int(a.n) - 1
+	if _la_v2(u):
+		_la_wave_v2(u, a, o, i, c, R, fly, spd, a0, nb, last_bark)
+		return
 	for k in nb:
 		var dv := Vector2.from_angle(a0 + TAU * k / nb)
 		var p: Vector2 = c + dv * 40.0
@@ -1172,6 +1373,36 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 				e["seal_look"] = "cross"
 				e["seal_by"] = str(o.id)
 	return int(a.fired) >= n and t >= gap * (n - 1) + fly + 0.05
+
+
+## ---- 拉普兰德 pixfx（docs/199 §7.10，开关 ult/la_fx_v2 缺省 1；0 = 程序白刃十字版）
+## 审阅 10-30「冷蓝，不要纯白 X」：每圈 12 道双刃十字剑气 = fx_la_x1–4（冷蓝两道弯月刃交叉，每圈按 vseed 挑变体、隔道翻面），往外飞到 R、尾段淡；
+## 一圈细弯刃旋环 fx_la_ring2–4（淡、跟剑气同速扩到 R 就散） 从 40 扩到 R（跟剑气同速、转着走）+ 脚底一团小旋刃（地面层，不画在她身上）；断喝末圈 = 加宽加长的十字刃
+const LA_X := ["fx_la_x1", "fx_la_x2", "fx_la_x3", "fx_la_x4"]
+const LA_RING := ["fx_la_ring2", "fx_la_ring3", "fx_la_ring4"]   # fx_la_ring1 粗旋涡太重（四圈叠成满屏蓝墙），只留给脚底小旋刃 fx_la_whirl
+const LA_WHIRL := "fx_la_whirl"
+const LA_COL := Color(0.75, 0.9, 1.0)
+
+
+static func _la_v2(u) -> bool:
+	return Bal.v("ult/la_fx_v2", 1.0) > 0.0 and u.fx_ready(LA_X[0]) and u.fx_ready(LA_RING[0]) and u.fx_ready(LA_WHIRL)
+
+
+static func _la_wave_v2(u, a: Dictionary, o, i: int, c: Vector2, R: float, fly: float, spd: float, a0: float, nb: int, bark: bool) -> void:
+	var vs: float = PF.vseed(u, c) + i * 7.0
+	var len: float = 150.0 if bark else 96.0   # 剑气宽（世界）
+	for k in nb:   # 每道各挑变体、大小 0.75–1.25、转角 ±0.35、起点 30–70（同时飞到 R；飞行方向 = 判定方向不变）
+		var dv := Vector2.from_angle(a0 + TAU * k / nb)
+		var hh: float = PF.h(vs + k * 1.7)
+		var name := PF.pick(u, LA_X, vs * 0.31 + k * 2.3)
+		var r0: float = 30.0 + 40.0 * PF.h(hh * 13.0)
+		u.strip(name, c + dv * r0, {"ang": dv.angle() + (PF.h(hh * 5.0) - 0.5) * 0.7, "sc": len / PF.tex_w(u, name) * (0.75 + 0.5 * hh), "sx": 1.4 if bark else 1.0,
+			"sy": 1.0 if PF.h(hh * 3.0) < 0.5 else -1.0, "v": dv * spd * (R - r0) / (R - 40.0), "life": fly + 0.04, "fade": 0.1, "col": Color(1.05, 1.05, 1.05)})
+	PF.ring(u, LA_RING, c, 50.0, R, fly, fly + 0.06, {"seed": vs, "layer": "back", "fade": fly * 0.6, "col": Color(1.0, 1.0, 1.0, 0.3)})
+	var rr: float = PF.tex_w(u, LA_WHIRL) * 0.5
+	u.strip(LA_WHIRL, c, {"sx": -1.0 if i % 2 == 1 else 1.0, "layer": "back", "sc": 70.0 / rr, "sc1": 95.0 / rr, "scd": 0.2, "spin": 14.0 * (1.0 if i % 2 == 0 else -1.0), "ang": PF.h(vs) * TAU, "life": 0.24, "fade": 0.12})
+	u.light(c, 220.0, LA_COL, 0.15)
+	o.play_vis_anim("attack")
 
 
 # ================================================================ 流明（§4.20）：队长脚下升起灯塔光柱 → 光圈扩散灼烧 → 光柱亮 2 秒（每 0.5 秒一跳、灯塔光束扫过）后熄灭
