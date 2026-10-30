@@ -12,6 +12,7 @@ const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Game = preload("res://scripts/game.gd")
 const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL
+const A = preload("res://scripts/art.gd")
 const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条（10-29 起；10-31 改头顶条 _draw_m3_overhead）：不依赖指挥模式
 var g: Game
 var h
@@ -287,8 +288,37 @@ func _draw_under_leader() -> void:
 ## Mon3tr 头顶血条（10-31 用户「Mon3tr 的血条移到它的头顶上方，样式和队友头顶血条一致」，docs/114 §21）：
 ## 同 banners._draw_op_hp（32×4、绿 / 金 / 红，倒地灰条 = 复活进度）；受击后 3 秒、未满血、倒地或残血时显示。
 ## 残血提醒同队友：跌破 command/low_hp 进、回到 command/low_hp_off 以上出，红框 + 整条提亮 1.2 秒一次慢闪（不说话）
-const M3_HEAD := 70.0
+const M3_HEAD := 70.0     # 还没画过本体（没有 draw_top）时的退路
 var _m3_low := {}   # 召唤物 id → 残血提醒中
+var _top_rows := {}  # 贴图 → 第 0 帧第一行不透明像素（帧条像素）
+
+
+## Mon3tr 头顶在脚底上方多高（世界单位）：按本帧贴图第 0 帧的不透明上沿算（ob_summon 画本体时记下 draw_top），每张贴图只扫一次
+func _m3_head(s: Dictionary) -> float:
+	var dt = s.get("draw_top")
+	if not (dt is Array) or dt[0] == null:
+		return M3_HEAD
+	var tx: Texture2D = dt[0]
+	var hf: int = maxi(1, int(dt[1]))
+	if not _top_rows.has(tx):
+		var top := 0
+		var im: Image = tx.get_image()
+		if im != null:
+			if im.is_compressed():
+				im.decompress()
+			var fw: int = im.get_width() / hf
+			var found := false
+			for y in im.get_height():
+				for x in fw:
+					if im.get_pixel(x, y).a > 0.5:
+						found = true
+						break
+				if found:
+					top = y
+					break
+		_top_rows[tx] = top
+	var pk: float = Game.PX / A.hires_of(tx) * float(dt[3])
+	return (float(tx.get_height()) - float(dt[2]) - float(_top_rows[tx])) * pk - float(dt[4])
 
 
 func m3_low(s: Dictionary) -> bool:
@@ -318,7 +348,7 @@ func _draw_m3_overhead(vs: Vector2) -> void:
 		_m3_low[sid] = lw
 		if not (down or lw or f < 0.999 or float(s.m3.show) > 0.0):
 			continue
-		var c: Vector2 = ct * (s.pos + Vector2(0, -M3_HEAD))
+		var c: Vector2 = ct * (s.pos + Vector2(0, -_m3_head(s) - 6.0))   # 头顶上方 6 世界单位（10-31 用户「m3 的血条不在头顶」）
 		if not Rect2(Vector2(-20, -20), vs + Vector2(40, 40)).has_point(c):
 			continue
 		var r := Rect2(c - Vector2(16, 0), Vector2(32, 4))
