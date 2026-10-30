@@ -611,9 +611,10 @@ static func _step16(u, a: Dictionary) -> bool:
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				_beat(u)
-				u.light(c, r + 60.0, cl, 0.9)
-				u.shape({"kind": "circle", "c": c, "r": r, "col": cl, "fill": 0.16, "layer": "back", "life": 0.9})
-				u.shape({"kind": "dots", "c": c, "r": r, "n": 22, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
+				if not LFB.ir_lamp(u, p, c, r):
+					u.light(c, r + 60.0, cl, 0.9)
+					u.shape({"kind": "circle", "c": c, "r": r, "col": cl, "fill": 0.16, "layer": "back", "life": 0.9})
+					u.shape({"kind": "dots", "c": c, "r": r, "n": 22, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
 				for e in u.in_circle(c, r):
 					e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), u.g.t + 3.0)
 					e["frag_v"] = maxf(float(e.get("frag_v", 0.0)), Bal.v("ult/link_irene_amp", 0.2))
@@ -644,6 +645,11 @@ static func _step16(u, a: Dictionary) -> bool:
 					_hit16(p, e, "小触手", 0.5)
 					_cc(p, e, 1.0)
 					u.grain("water", e.pos, Vector2.UP, cl, 3)
+				a["mzv2"] = LFB.mz_tentacles(u, a.ts)
+			if t < 1.0 and a.get("mzv2", false):
+				if once.call("lt"):
+					u.light(c, 150.0, cl, 0.6)
+				return false
 			if t < 1.0:
 				var hk: float = minf(1.0, t / 0.12)
 				for j in a.ts.size():
@@ -780,9 +786,10 @@ static func _step16(u, a: Dictionary) -> bool:
 					u.g.enemies_sys.lite_slow(e, 0.5, 1.0)
 				u.light(c, r + 40.0, cl, 0.6)
 			if t < 0.8:
-				for j in 8:
-					var gp: Vector2 = c + Vector2.from_angle(TAU * j / 8.0 + t * 1.5) * (r + 20.0)
-					u.shape({"kind": "rock", "c": gp, "r": 8.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0 + j, "rot": PI * 0.25, "life": 0.04})
+				if not LFB.lo_ring(u, c, r + 20.0, t):
+					for j in 8:
+						var gp: Vector2 = c + Vector2.from_angle(TAU * j / 8.0 + t * 1.5) * (r + 20.0)
+						u.shape({"kind": "rock", "c": gp, "r": 8.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0 + j, "rot": PI * 0.25, "life": 0.04})
 				return false
 			return t >= 0.9
 		"l_suzuran":   # 狐火：4 团狐火绕她转一圈，再各追向区域内一名敌人；命中 0.6 倍 + 减速 30% 1.5 秒
@@ -805,10 +812,15 @@ static func _step16(u, a: Dictionary) -> bool:
 						if e != null and not e.dead:
 							_hit16(p, e, "狐火", 0.6)
 							u.g.enemies_sys.lite_slow(e, 0.3, 1.5)
-						u.grain("fire", to, Vector2.UP, cl, 4)
-						u.light(to, 90.0, cl, 0.2)
+						if LFX.on() and u.fx_ready(LFB.SZ_FOX[0]):
+							LFB.sz_pop(u, to)
+						else:
+							u.grain("fire", to, Vector2.UP, cl, 4)
+							u.light(to, 90.0, cl, 0.2)
 				if t < T1 + T2:
-					u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
+					var dv: Vector2 = (q - orb).normalized() if t >= T1 and q != orb else Vector2.from_angle(TAU * (j / 4.0 + minf(t, T1) / T1) + PI / 2.0)
+					if not LFB.sz_fox(u, q, dv, j):
+						u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
 					u.grain("fire", q, Vector2.UP, cl, 1)
 			return t >= T1 + T2 + 0.45
 		# ---------------------------------------------------------------- 聚拢
@@ -891,10 +903,11 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				a["shield0"] = int(u.g.shield)
 				u.g.shield = int(u.g.shield) + 1
-				for j in 7:
-					var off: Vector2 = Vector2.from_angle(j * 2.39996) * r * (0.25 + 0.55 * fposmod(j * 0.618, 1.0))
-					u.shape({"kind": "ellipse", "c": c + off, "rx": 30.0, "ry": 13.0, "col": cl.darkened(0.35), "fill": 0.6, "layer": "back", "life": 1.6})
-					u.shape({"kind": "rock", "c": c + off + Vector2(0, -4), "r": 7.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": 3.0 + j, "life": 1.5, "layer": "back"})
+				if not LFB.sa_ground(u, c, r):
+					for j in 7:
+						var off: Vector2 = Vector2.from_angle(j * 2.39996) * r * (0.25 + 0.55 * fposmod(j * 0.618, 1.0))
+						u.shape({"kind": "ellipse", "c": c + off, "rx": 30.0, "ry": 13.0, "col": cl.darkened(0.35), "fill": 0.6, "layer": "back", "life": 1.6})
+						u.shape({"kind": "rock", "c": c + off + Vector2(0, -4), "r": 7.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": 3.0 + j, "life": 1.5, "layer": "back"})
 				u.light(c, r, cl, 0.6)
 			if t < 1.5:
 				var hk: float = 1.0 if t < 1.2 else (1.5 - t) / 0.3
@@ -959,7 +972,8 @@ static func _step16(u, a: Dictionary) -> bool:
 			if t < 1.2:
 				if int(t * 30.0) % 2 == 0:
 					u.grain("mote_up", c + Vector2.from_angle(t * 11.0) * r * fposmod(t * 3.7, 1.0), Vector2.UP, cl, 2)
-				u.shape({"kind": "dots", "c": c, "r": r, "n": 16, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.04})
+				if not LFB.lu_motes(u, c, r, t):
+					u.shape({"kind": "dots", "c": c, "r": r, "n": 16, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.04})
 				for j in 4:
 					if t >= 0.3 * j and once.call("b%d" % j):
 						for e in u.in_circle(c, r):

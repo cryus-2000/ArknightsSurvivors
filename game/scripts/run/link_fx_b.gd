@@ -142,3 +142,117 @@ static func hs_plant(u, pos: Vector2, side: Vector2) -> void:
 	u.grain("bfx_dust", pos + Vector2(0, 10), side.orthogonal(), Color(0.55, 0.5, 0.42), 6)
 	u.grain("bfx_dust", pos + Vector2(0, 10), -side.orthogonal(), Color(0.55, 0.5, 0.42), 6)
 	u.grain("sh_glint", pos + side * 10.0 + Vector2(0, -20), side, Color(0.95, 0.75, 0.35), 6)
+
+
+# ================================================================ 铃兰：4 团狐火（狐首形火团，绕身转一圈再追敌；她的终结技是忍冬一斩，技能是九尾 / 光域，这里是小狐火）
+const SZ_FOX := ["fx_lk_sz_fox1", "fx_lk_sz_fox2", "fx_lk_sz_fox3"]
+
+
+## 每帧每团：q = 当前位置，dv = 运动方向（转圈时为切线）；j = 第几团
+static func sz_fox(u, q: Vector2, dv: Vector2, j: int) -> bool:
+	if not LFX.on() or not u.fx_ready(SZ_FOX[0]):
+		return false
+	var name: String = SZ_FOX[j % 3]
+	var sc: float = 26.0 / LFX.tex_h(u, name)
+	u.strip(name, q, {"sc": sc, "sx": -1.0 if dv.x < 0.0 else 1.0, "life": 0.05, "col": Color(1.05, 1.0, 0.95, 0.95)})   # 小狐形狐火：始终竖直，按运动方向左右翻
+	return true
+
+
+## 命中：一小团狐火粒子 + 短灯
+static func sz_pop(u, p: Vector2) -> void:
+	u.grain("fire", p, Vector2.UP, Color(1.0, 0.7, 0.3), 5)
+	u.light(p, 80.0, Color(0.9, 0.6, 0.25), 0.18)
+
+
+# ================================================================ 逻各斯：黑金咒文环（区域上空转一圈，消弹处留黑金碎屑）
+const LO_RING := "fx_lk_lo_ring"
+
+
+static func lo_ring(u, c: Vector2, R: float, t: float) -> bool:
+	if not LFX.on() or not u.fx_ready(LO_RING):
+		return false
+	var sc: float = R * 2.0 / LFX.tex_w(u, LO_RING)
+	var k: float = clampf(t / 0.12, 0.0, 1.0)
+	var fa: float = clampf((0.8 - t) / 0.25, 0.0, 1.0)
+	u.strip(LO_RING, c, {"sc": sc * lerpf(1.25, 1.0, k), "sy": 0.55, "ang": t * 0.9, "life": 0.05, "col": Color(1, 1, 1, 0.9 * fa)})
+	return true
+
+
+# ================================================================ 艾丽妮：提灯一照（提灯贴图举在她身前、光扫过区域）→ 补一刺（细冷白刺线）
+const IR_LAMP := ["fx_lk_ir_lamp1", "fx_lk_ir_lamp2", "fx_lk_ir_lamp3"]
+
+
+static func ir_lamp(u, p, c: Vector2, r: float) -> bool:
+	if not LFX.on() or not u.fx_ready(IR_LAMP[0]):
+		return false
+	var vs: float = LFX.vseed(u, c)
+	var name: String = LFX.pick(u, IR_LAMP, vs)
+	var tx: Texture2D = u._strip_tex(name)
+	var d: Vector2 = (c - p.pos).normalized() if c != p.pos else Vector2.RIGHT
+	u.strip(name, p.pos + d * 18.0 + Vector2(0, -34), {"o": Vector2(tx.get_width() * 0.5, 0.0), "sc": 40.0 / LFX.tex_h(u, name), "life": 0.9, "fade": 0.3,
+		"col": Color(1, 1, 1, 1), "spin": 0.4 * (1.0 if LFX.h(vs) < 0.5 else -1.0)})
+	# 光：从提灯扇形扫到区域（暖金、半透明、不实心发白）
+	u.shape({"kind": "sector", "c": p.pos + Vector2(0, -20), "r": p.pos.distance_to(c) + r, "a": d.angle(), "half": 0.32, "col": Color(0.85, 0.7, 0.35), "fill": 0.14, "life": 0.6})
+	u.shape({"kind": "circle", "c": c, "r": r, "col": Color(0.55, 0.42, 0.18), "fill": 0.14, "layer": "back", "life": 0.9})
+	u.light(c, r + 50.0, Color(0.8, 0.62, 0.3), 0.8)
+	for q in 8:
+		var pp: Vector2 = c + Vector2.from_angle(TAU * (q + LFX.h(vs + q)) / 8.0) * r * (0.3 + 0.6 * LFX.h(vs + q * 2.0))
+		u.grain("mote_up", pp, Vector2.UP, Color(0.9, 0.75, 0.4), 2)
+	return true
+
+
+# ================================================================ 塞雷娅：钙质护盾 + 区域钙化（地面冒出 3 种钙晶簇，散布 / 镜像 / 大小按哈希）
+const SA_CALC := ["fx_lk_sa_calc1", "fx_lk_sa_calc2", "fx_lk_sa_calc3"]
+
+
+static func sa_ground(u, c: Vector2, r: float) -> bool:
+	if not LFX.on() or not u.fx_ready(SA_CALC[0]):
+		return false
+	var vs: float = LFX.vseed(u, c)
+	for j in 7:
+		var hh: float = LFX.h(vs + j * 3.3)
+		var off: Vector2 = Vector2.from_angle(TAU * (j + hh) / 7.0) * r * (0.2 + 0.7 * LFX.h(vs + j * 5.1))
+		var name: String = SA_CALC[int(LFX.h(vs + j) * 3.0) % 3]
+		var tx: Texture2D = u._strip_tex(name)
+		var sc: float = (26.0 + 14.0 * hh) / LFX.tex_h(u, name)
+		u.strip(name, c + off, {"o": Vector2(tx.get_width() * 0.5, tx.get_height() - 2.0), "sc": sc * 0.3, "sc1": sc, "scd": 0.08, "sx": -1.0 if hh < 0.5 else 1.0,
+			"delay": 0.03 * j, "life": 1.6, "fade": 0.4, "col": Color(1, 1, 1, 1)})
+	return true
+
+
+# ================================================================ 水月：区域里 6 名敌人脚下钻出小触手（3 种，按序号挑 / 镜像）
+const MZ_TEN := ["fx_lk_mz_ten1", "fx_lk_mz_ten2", "fx_lk_mz_ten3"]
+
+
+static func mz_tentacles(u, ts: Array) -> bool:
+	if not LFX.on() or not u.fx_ready(MZ_TEN[0]):
+		return false
+	var vs: float = LFX.vseed(u, ts[0].pos if not ts.is_empty() else Vector2.ZERO)
+	for j in ts.size():
+		var e = ts[j]
+		var hh: float = LFX.h(vs + j * 2.7)
+		var name: String = MZ_TEN[int(hh * 3.0) % 3]
+		var tx: Texture2D = u._strip_tex(name)
+		var sc: float = (34.0 + 10.0 * hh) / LFX.tex_h(u, name)
+		u.strip(name, e.pos + Vector2(8.0 * (hh - 0.5), 8.0), {"o": Vector2(tx.get_width() * 0.5, tx.get_height() - 2.0), "sc": sc * 0.3, "sc1": sc, "scd": 0.1, "sx": -1.0 if hh < 0.5 else 1.0,
+			"delay": 0.04 * j, "life": 1.0, "fade": 0.3})
+		u.shape({"kind": "circle", "c": e.pos + Vector2(0, 8), "r": 12.0, "col": Color(0.03, 0.03, 0.08), "fill": 0.6, "layer": "back", "life": 1.0, "delay": 0.04 * j})
+	return true
+
+
+# ================================================================ 流明：灼烧光点（3 种上飘光点簇在区域里错开冒）
+const LU_MOTE := ["fx_lk_lu_mote1", "fx_lk_lu_mote2", "fx_lk_lu_mote3"]
+
+
+static func lu_motes(u, c: Vector2, r: float, t: float) -> bool:
+	if not LFX.on() or not u.fx_ready(LU_MOTE[0]):
+		return false
+	if int(t * 30.0) % 3 != 0:
+		return true
+	var hh: float = LFX.h(t * 7.3 + c.x * 0.01)
+	var p: Vector2 = c + Vector2.from_angle(hh * TAU) * r * sqrt(LFX.h(hh * 13.0))
+	var name: String = LU_MOTE[int(hh * 9.0) % 3]
+	var tx: Texture2D = u._strip_tex(name)
+	u.strip(name, p, {"o": Vector2(tx.get_width() * 0.5, tx.get_height()), "sc": 40.0 / LFX.tex_h(u, name), "v": Vector2(0, -40), "life": 0.6, "fade": 0.4,
+		"sx": -1.0 if hh < 0.5 else 1.0, "col": Color(1, 1, 1, 0.9)})
+	return true
