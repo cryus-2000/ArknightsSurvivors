@@ -7,7 +7,7 @@
 
 路径：E:/ArknightsSurvivors 下的相对或绝对路径（主工作区的 build/...，或 .worktrees/... 等）；只收这个目录里的东西。
 桶：gs://<项目>-archive（australia-southeast1，Nearline；最少计 30 天，拉回按量收费），对象名 = e-ark/<相对路径>。
-清单：每次 push 往桶里 e-ark/_manifest/<时间>.json 写一份（相对路径、大小、MD5、本机修改时间），ls 读它。
+清单：每传完一项往桶里 e-ark/_manifest/<时间>_<路径>.json 写一份（相对路径、大小、MD5、本机修改时间）；ls 直接列桶里的对象。
 """
 import argparse, base64, hashlib, json, os, shutil, subprocess, sys, tempfile, time
 
@@ -81,7 +81,6 @@ def verify(b, ap, rp):
 
 def cmd_push(a):
     b = bucket()
-    manifest = []
     for p in a.paths:
         ap, rp = rel(p)
         if not os.path.exists(ap):
@@ -99,15 +98,14 @@ def cmd_push(a):
             print("  核对失败 %d / %d，不删：" % (len(bad), len(files)), bad[:3])
             continue
         print("  核对通过 %d / %d" % (len(files), len(files)), flush=True)
-        manifest += rows
+        # 每项单独写清单（中途停下也不丢），先写清单再删本机
+        tmp = os.path.join(tempfile.mkdtemp(), "m.json")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump({"time": time.strftime("%Y-%m-%d %H:%M:%S"), "files": rows}, f, ensure_ascii=False)
+        gc("storage", "cp", tmp, "%s/%s/_manifest/%s_%s.json" % (b, PREFIX, time.strftime("%Y%m%d_%H%M%S"), rp.replace("/", "__")))
         if a.delete:
             shutil.rmtree(ap) if os.path.isdir(ap) else os.remove(ap)
             print("  已删本机", ap)
-    if manifest:
-        tmp = os.path.join(tempfile.mkdtemp(), "m.json")
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump({"time": time.strftime("%Y-%m-%d %H:%M:%S"), "files": manifest}, f, ensure_ascii=False)
-        gc("storage", "cp", tmp, "%s/%s/_manifest/%s.json" % (b, PREFIX, time.strftime("%Y%m%d_%H%M%S")))
 
 
 def cmd_verify(a):
@@ -134,18 +132,19 @@ def cmd_pull(a):
 
 
 def cmd_ls(a):
+    """直接列桶里的对象（按前两级目录汇总），不依赖清单"""
     b = bucket()
-    r = gc("storage", "ls", "%s/%s/_manifest/" % (b, PREFIX), check=False)
+    r = gc("storage", "objects", "list", "%s/%s/**" % (b, PREFIX), "--format=json(name,size)")
     tops = {}
-    for m in r.stdout.split():
-        for f in json.loads(gc("storage", "cat", m).stdout)["files"]:
-            if a.prefix and not f["path"].startswith(a.prefix):
-                continue
-            parts = f["path"].split("/")
-            k = "/".join(parts[:2] if len(parts) > 2 else parts)
-            t = tops.setdefault(k, [0, 0])
-            t[0] += 1
-            t[1] += f["size"]
+    for o in json.loads(r.stdout or "[]"):
+        path = o["name"][len(PREFIX) + 1:]
+        if path.startswith("_manifest/") or (a.prefix and not path.startswith(a.prefix)):
+            continue
+        parts = path.split("/")
+        k = "/".join(parts[:2] if len(parts) > 2 else parts)
+        t = tops.setdefault(k, [0, 0])
+        t[0] += 1
+        t[1] += int(o["size"])
     for k in sorted(tops):
         print("%-70s %6d 个  %8.1f MB" % (k, tops[k][0], tops[k][1] / 1e6))
 
