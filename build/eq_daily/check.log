@@ -1,0 +1,5 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1030_180719
+通过 数据 JSON 解析  game/data 全部可解析
+通过 积木等价（数据版 vs 金样）  与金样相同 28
+
+快检通过：2 项，失败 0 项，耗时 131 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存
