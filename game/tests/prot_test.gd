@@ -48,6 +48,7 @@ func _process(_d: float) -> void:
 	Bal._data["protect"] = {"any_2s_cap": 0.0, "any_excess_mult": 1.0}
 	if Bal._data.has("enemy"):
 		Bal._data["enemy"]["corrode_pool_cap"] = 0.0
+		Bal._data["enemy"]["bullet_hit_lift"] = 0.0   # 判定点上移（07bd73112，缺省 16）钉回 0：用例把子弹直接放在队长判定点上
 	# 放一只真的 Boss 在远处（「Boss 在场」），整个测试期间它不动：直接调结算函数，不推进游戏帧
 	# 满血保护的用例按 10% / 30 秒冷却写；docs/178 把 json 调成 5% / 60 秒（难度危险感回调），这里钉回测机制用的旧值，测完随 bal_bak 还原
 	Bal._data["boss"]["fullhp_guard_left"] = 0.1

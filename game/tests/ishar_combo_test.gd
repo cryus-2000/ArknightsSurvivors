@@ -16,6 +16,9 @@ func _ready() -> void:
 	Bal.v("boss/count_k_ishar", 1.0)
 	for k in ["count_k_ishar", "tempo_k_ishar", "spd_all_k_ishar", "ishar_dense_k", "ishar_fast_k"]:
 		Bal._data["boss"][k] = 1.0
+	Bal._data["enemy"]["bullet_hit_lift"] = 0.0   # 判定点上移（diff-1031 / bullet-hitbox 07bd73112，缺省 16）在本测试里钉回 0：弹芯距离按影子位置核
+	for k in ["bullet_hit_k", "bullet_hit_k_mid"]:   # Boss 弹判定放大（ef76b3be3 / 07bd73112，缺省 1）钉回 0 = 按弹芯，本测试核的是弹芯规则
+		Bal._data["boss"][k] = 0.0
 	g = load("res://game.tscn").instantiate()
 	g.demo_op = "mizuki"
 	g.demo_enemy = "ishar"
