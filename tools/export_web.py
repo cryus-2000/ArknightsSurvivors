@@ -34,6 +34,15 @@ MARK = "<!--SHUIYUE_LOADER-->"
 TYPES = {"index.pck": "application/octet-stream", "index.wasm": "application/wasm"}
 
 
+
+def _boot_v(src):
+    """启动加载页方向（balance.json ui/boot_v，0 = 现行声呐测绘；10-30 原型）"""
+    try:
+        with open(os.path.join(src, "game", "data", "balance.json"), encoding="utf-8") as fh:
+            return int(json.load(fh).get("ui", {}).get("boot_v", 0))
+    except (OSError, ValueError):
+        return 0
+
 def run(cmd, check=True):
     print(">", " ".join(cmd))
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
@@ -165,7 +174,7 @@ def main():
     with open(os.path.join(WEB, "lzma_dec.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
     with open(os.path.join(WEB, "loader.js"), encoding="utf-8") as fh:
-        js += fh.read().replace("/*SHUIYUE_MANIFEST*/null", json.dumps(manifest, separators=(",", ":")))
+        js += fh.read().replace("/*SHUIYUE_MANIFEST*/null", json.dumps(manifest, separators=(",", ":"))).replace("/*SHUIYUE_BOOT_V*/0", str(_boot_v(src)))   # 启动页方向（balance ui/boot_v）
     # 网页容器适配（B站 Toy 横屏 / 安全区，tools/web/container.js）：接在加载器后面，同一个 <script>
     if a.toy:
         js += "\nwindow.__SY_TOY = 1;   // Toy 包：一律加载 Toy JS SDK（docs/22「Toy 接入」）\n"

@@ -995,7 +995,9 @@
  },
  "ui": {
   "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
-  "phone_font_mult": 1.18
+  "phone_font_mult": 1.18,
+  "_doc_boot_v": "启动加载页原型（10-30 用户「更加有 PRTS 的感觉，但是保留点深海的特色」，screens/boot_views.gd + tools/web/loader.js）：0 = 现行声呐测绘，1 = 终端开机，2 = 深潜（深度计），3 = 声呐终端。网页按导出时写进 loader 的同名开关（网址 ?boot=N 可临时换）。挑定前缺省 0",
+  "boot_v": 0
  },
  "combo": {
   "_doc": "干员专属联动开关（docs/123 §2.7；trig.on_mate_hook 的 knob 读这里）：hook_anchor = 歌蕾蒂娅 × 乌尔比安「钩与锚」。0 = 关（两人同队时同 seed 与无联动相同）",

@@ -44,6 +44,17 @@
     }
     f = shownProgress = Math.max(shownProgress, Math.min(1, f));
     window.__syPct = f;   // 游戏内启动页从这里接着走（boot_screen.gd）
+    if (el.v) {   // 新方向：按真实阶段记系统日志
+      var dl0 = got >= total, st;
+      if (!dl0) st = { key: 'dl', text: '资源下载 · ' + mb(Math.min(got, total)) + ' / ' + mb(total) + ' MB' };
+      else if (!done) st = { key: 'unz', text: '解压校验' };
+      else if (bootProgress === null) st = { key: 'eng', text: '启动引擎 · ' + Math.floor((performance.now() - bootT0) / 1000) + ' s' };
+      else if (bootLabel === '准备主菜单' && !logs.some(function (l) { return l.key.indexOf('b读取') === 0; })) st = { key: 'eng', text: '启动引擎', ok: true };   // __syBootUp：引擎起来了，还没开始编译
+      else st = { key: 'b' + bootLabel, text: String(bootLabel).replace('读取 · ', '编译 · ').replace(/^准备主菜单$/, '渲染预热 · 准备主菜单'), ok: bootProgress >= 1 };
+      if (!logs.length) logs.push({ key: 'wake', t: 0, s: '终端唤醒 · 链路建立', ok: true });
+      updV(el.v, f, st);
+      return;
+    }
     el.ring.style.strokeDashoffset = String(C * (1 - f));
     el.num.innerHTML = Math.floor(f * 100) + '<span>%</span>';
     var dl = got >= total;
@@ -56,9 +67,124 @@
     if (bootProgress !== null) el.l3.textContent = (bootProgress >= 1 ? '[ OK ] ' : '[ .. ] ') + bootLabel;
   }
 
+  // ---------------------------------------------------------------- 启动页新方向（10-30 用户「更加有 PRTS 的感觉，但是保留点深海的特色」）
+  // ui/boot_v（导出时写进 /*SHUIYUE_BOOT_V*/，网址 ?boot=N 可临时换）：0 = 上面的「声呐测绘」原样；1 终端开机 / 2 深潜 / 3 声呐终端，
+  // 画法与游戏内 boot_views.gd 同一套（桌面原生包看那边，网页只看这里）。系统日志按真实阶段逐行加（下载 → 解压 → 启动引擎 → Godot 回传的编译类别 → 主菜单），
+  // 进度同上面的 f；海雪微粒 / 扫描扇面 / 光标都是 CSS 动画（合成线程跑，引擎占住主线程时也在动），系统「减少动态效果」时停住。
+  var BV = (function () { var q = typeof location !== 'undefined' && /[?&]boot=(\d)/.exec(location.search); return q ? +q[1] : /*SHUIYUE_BOOT_V*/0; })();
+  var t0 = performance.now(), logs = [], logKey = '';
+  function nowS() { return (performance.now() - t0) / 1000; }
+  // 同一阶段 / 类别只占一行（Godot 回传的编译类别是穿插着来的，再读到就回到那一行、不刷新行）；
+  // 换到新阶段时它之前的非编译行标 OK，编译阶段结束（准备主菜单）时全部类别标 OK
+  function logStep(key, text, ok) {
+    var hit = -1;
+    for (var i = 0; i < logs.length; i++) if (logs[i].key === key) hit = i;
+    var comp = key.indexOf('b读取') === 0;
+    if (hit < 0) {
+      logs.forEach(function (l) { if (!comp || l.key.indexOf('b读取') !== 0) l.ok = true; });
+      logs.push({ key: key, t: nowS(), s: text, ok: !!ok });
+      hit = logs.length - 1;
+    } else { logs[hit].s = text; if (ok) logs[hit].ok = true; }
+    logKey = key;
+  }
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  function snowLayer(n) {   // 海雪：一个 1px 元素挂 n 个 box-shadow，整层向上平移循环
+    var sh = [];
+    for (var i = 0; i < n; i++) {
+      var h1 = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1, h2 = Math.abs(Math.sin(i * 78.233) * 12543.123) % 1;
+      sh.push((h1 * 100).toFixed(2) + 'vw ' + (h2 * 100).toFixed(2) + 'vh 0 ' + (h2 > 0.6 ? '1px' : '0') + ' rgba(150,230,240,' + (0.15 + 0.35 * h2).toFixed(2) + ')');
+    }
+    return '<div class="sv-snow"><i style="box-shadow:' + sh.join(',') + '"></i><i style="box-shadow:' + sh.join(',') + '"></i></div>';
+  }
+  var JELLY = '<svg class="sv-jelly" viewBox="-40 -30 80 100"><path d="M-34 0 A34 26 0 0 1 34 0 Q28 4 22 0 Q17 4 11 0 Q6 4 0 0 Q-6 4 -11 0 Q-17 4 -22 0 Q-28 4 -34 0Z" fill="rgba(140,235,242,.16)" stroke="rgba(150,240,255,.5)" stroke-width="1.2"/>' +
+    '<g fill="none" stroke="rgba(150,240,255,.32)" stroke-width="1"><path d="M-24 3 q3 16 -1 32 t1 30"/><path d="M-12 3 q-3 18 1 34 t-1 28"/><path d="M0 3 q3 18 -1 36 t1 26"/><path d="M12 3 q-3 16 1 32 t-1 30"/><path d="M24 3 q3 18 -1 34 t1 24"/></g></svg>';
+  var FOOT = '<div class="sy-foot">明日方舟同人作品 · 非商业 · 与鹰角网络无关</div>';
+  function head(title, code) {
+    return '<div class="sv-head"><b class="sy-en">PRTS</b><span>' + title + '</span>' + (code ? '<em class="sv-code"></em>' : '') + '</div>';
+  }
+  function logBox(cls) { return '<div class="sv-log ' + (cls || '') + '"><div class="sv-cap sy-en">SYSTEM LOG</div><div class="sv-lines"></div></div>'; }
+  function tipBox(cls) { return '<div class="sv-tip ' + (cls || '') + '"><div class="sv-cap sy-en">NOTE</div><div class="bd"></div></div>'; }
+
+  function buildV(d) {
+    var segs = '';
+    for (var i = 0; i < 50; i++) segs += '<i></i>';
+    var h = '';
+    if (BV === 1) {
+      h = '<div class="sv-scan"></div>' + snowLayer(46) + head('罗德岛作战终端 · 启动程序', 1) +
+        '<div class="sv-body1">' + logBox('sv-frame') + tipBox() + '</div>' +
+        '<div class="sv-prog"><div class="sv-segs">' + segs + '</div><div class="sv-pct">000%</div><div class="sv-what"></div></div>';
+    } else if (BV === 2) {
+      var ticks = '';   // 深度尺：每 10 m 一格、每 100 m 长刻度 + 读数（0–1500 m，1.2 px / m，随进度整条上移）
+      for (var dm = 0; dm <= 1500; dm += 10) {
+        ticks += '<i class="' + (dm % 100 ? '' : 'mj') + '" style="top:' + (dm * 1.2) + 'px">' + (dm % 100 ? '' : '<b>-' + dm + '</b>') + '</i>';
+      }
+      h = '<div class="sv-deep"></div>' + snowLayer(60) + head('深潜观测 · 终端接入', 0) +
+        '<div class="sv-body2">' + logBox('sv-frame') + tipBox() + '</div>' +
+        '<div class="sv-gauge"><div class="sv-rule"><div class="sv-ruler">' + ticks + '</div></div><div class="sv-read"><div class="sv-cap sy-en">DEPTH</div><div class="sv-depth">-0000<small>m</small></div><div class="sv-sync"></div></div></div>' +
+        '<div class="sv-jwrap">' + JELLY + '</div>';
+    } else {
+      var tk = '';
+      for (var k = 0; k < 72; k++) {
+        var a = -Math.PI / 2 + 2 * Math.PI * k / 72, mj = k % 6 === 0, r0 = 188, r1 = mj ? 200 : 194;
+        tk += '<line x1="' + (Math.cos(a) * r0).toFixed(1) + '" y1="' + (Math.sin(a) * r0).toFixed(1) + '" x2="' + (Math.cos(a) * r1).toFixed(1) + '" y2="' + (Math.sin(a) * r1).toFixed(1) + '" stroke-width="' + (mj ? 2 : 1.5) + '"/>';
+      }
+      h = snowLayer(40) + '<div class="sv-corners"><i></i><i></i><i></i><i></i></div>' + head('声呐终端 · 链路建立', 1) +
+        '<div class="sv-dial"><svg viewBox="-210 -210 420 420"><defs><linearGradient id="sv-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ee6e6" stop-opacity="0"/><stop offset="1" stop-color="#5ee6e6" stop-opacity=".25"/></linearGradient></defs>' +
+        '<circle r="180" fill="none" stroke="rgba(94,230,230,.16)"/><circle r="120" fill="none" stroke="rgba(94,230,230,.09)"/><circle r="60" fill="none" stroke="rgba(94,230,230,.09)"/>' +
+        '<path class="sy-sweep" d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sv-sw)"/><g class="sv-ticks">' + tk + '</g></svg>' +
+        '<div class="sv-jwrap">' + JELLY + '</div><div class="sv-center"><div class="sv-num">0<span>%</span></div><div class="sy-en sv-link">LINK</div></div></div>' +
+        logBox('sv-left') + '<div class="sv-tele"><div class="sv-cap sy-en">TELEMETRY</div><div class="sv-rows"></div>' + tipBox('sv-in') + '</div>';
+    }
+    d.className = 'sv sv' + BV;
+    d.innerHTML = h + FOOT;
+    var q = function (s) { return d.querySelector(s); };
+    return { root: d, lines: q('.sv-lines'), tip: q('.sv-tip .bd'), code: q('.sv-code'), segs: d.querySelectorAll('.sv-segs i'), pct: q('.sv-pct'),
+      what: q('.sv-what'), ruler: q('.sv-ruler'), depth: q('.sv-depth'), sync: q('.sv-sync'), deep: q('.sv-deep'), jelly: q('.sv-jwrap'),
+      ticks: d.querySelectorAll('.sv-ticks line'), num: q('.sv-num'), rows: q('.sv-rows') };
+  }
+
+  // 每次 upd() 调：f = 进度 0–1，stage = {key, text, ok}，n / total = 编译到第几个（Godot 回传后才有）
+  function updV(v, f, stage) {
+    logStep(stage.key, stage.text, stage.ok);
+    var html = '', start = Math.max(0, logs.length - (window.innerHeight < 520 ? 7 : 12));   // 矮屏（手机横屏）少留几行，不压页脚
+    for (var i = start; i < logs.length; i++) {
+      var ln = logs[i], cur = ln.key === logKey && !ln.ok;
+      html += '<div class="' + (ln.ok ? 'ok' : (cur ? 'now' : 'wait')) + '"><b>[' + ('000' + ln.t.toFixed(2)).slice(-6) + ']</b><span>' + esc(ln.s) + '</span><u></u><em>' + (ln.ok ? 'OK' : (cur ? '<i class="sv-cur">_</i>' : '..')) + '</em></div>';
+    }
+    if (v.lines.innerHTML !== html) v.lines.innerHTML = html;
+    var pc = Math.floor(f * 100);
+    if (v.code) v.code.textContent = (BV === 3 ? 'RI-SONAR 07' : 'NODE AS-07') + ' · T+' + ('00' + nowS().toFixed(1)).slice(-5);
+    if (BV === 1) {
+      var lit = f * v.segs.length;
+      for (var s = 0; s < v.segs.length; s++) v.segs[s].className = lit >= s + 1 ? 'on' : (lit > s ? 'half' : '');
+      v.pct.textContent = ('00' + pc).slice(-3) + '%';
+      v.what.textContent = stage.text;
+    } else if (BV === 2) {
+      var dep = Math.floor(1200 * f);
+      v.ruler.style.transform = 'translateY(' + (-dep * 1.2) + 'px)';
+      v.depth.innerHTML = '-' + ('000' + dep).slice(-4) + '<small>m</small>';
+      v.sync.textContent = '同步 ' + pc + '%';
+      v.deep.style.opacity = String(f);
+      v.jelly.style.opacity = String(Math.max(0, Math.min(1, (f - 0.82) / 0.18)));
+      v.jelly.style.transform = 'translateY(' + (12 * (1 - Math.max(0, (f - 0.82) / 0.18))) + 'vh)';
+    } else {
+      var lt = Math.floor(f * v.ticks.length);
+      for (var k = 0; k < v.ticks.length; k++) v.ticks[k].setAttribute('class', k < lt ? 'on' : '');
+      v.num.innerHTML = pc + '<span>%</span>';
+      v.jelly.style.opacity = String(Math.max(0, Math.min(1, (f - 0.8) / 0.2)) * 0.85);
+      v.rows.innerHTML = '<div><b>深度</b>-' + ('000' + Math.floor(1200 * f)).slice(-4) + ' m</div><div><b>阶段</b>' + esc(stage.text) + '</div>';
+    }
+  }
+
   function build() {
     var d = document.createElement('div');
     d.id = 'sy-load';
+    if (BV > 0) {   // 新方向（ui/boot_v 1–3）：同一个 #sy-load，撤页 / 进度回传的生命周期不变
+      document.body.appendChild(d);
+      var v = buildV(d);
+      el = { root: d, v: v, tip: v.tip, ring: true };
+      return finish(d);
+    }
     var blips = '';
     [[70, -96, 0], [-110, 40, 1.1], [30, 130, 2.0], [-60, -120, 2.6]].forEach(function (b) {
       blips += '<circle class="sy-blip" cx="' + b[0] + '" cy="' + b[1] + '" r="3" fill="#5ee6e6" style="animation-delay:' + b[2] + 's"/>';
@@ -79,6 +205,10 @@
     document.body.appendChild(d);
     var lines = d.querySelectorAll('.sy-log .bd div');
     el = { root: d, ring: d.querySelector('.sy-ring'), num: d.querySelector('.sy-num'), l1: lines[0], l2: lines[1], l3: lines[2], tip: d.querySelector('.sy-tips .bd') };
+    finish(d);
+  }
+
+  function finish(d) {
     var ti = Math.floor(Math.random() * TIPS.length);
     el.tip.textContent = TIPS[ti];
     upd();

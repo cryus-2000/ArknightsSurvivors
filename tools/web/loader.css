@@ -60,3 +60,121 @@
   #sy-load .sy-blip { opacity: .6; }
   #sy-load .sy-tips .bd { transition: none; }
 }
+
+/* ---------------- 启动页新方向（ui/boot_v 1–3，10-30；画法同 game/scripts/screens/boot_views.gd，写法见 loader.js 的 buildV）---------------- */
+#sy-load.sv { background: #05090d; font-family: Consolas, "SFMono-Regular", Menlo, "Microsoft YaHei", "PingFang SC", monospace; }
+#sy-load.sv .sy-en { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+#sy-load .sv-head { position: absolute; left: 36px; right: 36px; top: 30px; height: 26px; border-bottom: 1px solid #29383f; display: flex; gap: 18px; align-items: baseline; font-size: 13px; }
+#sy-load .sv-head b { color: #5ee6e6; font-size: 16px; letter-spacing: 4px; font-weight: 400; }
+#sy-load .sv-head em { margin-left: auto; font-style: normal; font-size: 12px; color: #78909a; }
+#sy-load .sv-cap { font-size: 10px; letter-spacing: 3px; color: #78909a; margin-bottom: 8px; }
+#sy-load .sv-frame { position: relative; }
+#sy-load .sv-frame::before, #sy-load .sv-frame::after { content: ""; position: absolute; width: 12px; height: 12px; border: 1.5px solid rgba(94, 230, 230, .55); }
+#sy-load .sv-frame::before { left: -8px; top: 12px; border-right: 0; border-bottom: 0; }
+#sy-load .sv-frame::after { right: -8px; bottom: -8px; border-left: 0; border-top: 0; }
+#sy-load .sv-log, #sy-load .sv-tip { min-width: 0; }
+#sy-load .sv-lines div { display: flex; gap: 8px; white-space: nowrap; overflow: hidden; font-size: 14px; line-height: 22px; color: #eef3f5; }
+#sy-load .sv-lines div.ok { color: #78909a; }
+#sy-load .sv-lines div.wait { color: #b8c6cc; }
+#sy-load .sv-lines b { font-weight: 400; color: #38464d; }
+#sy-load .sv-lines div:last-child b { color: #78909a; }
+#sy-load .sv-lines span { flex: none; }
+#sy-load .sv-lines u { flex: 1 1 0; min-width: 0; text-decoration: none; overflow: hidden; color: #2c393f; }
+#sy-load .sv-lines u::before { content: "................................................................................................"; }
+#sy-load .sv-lines em { font-style: normal; color: #5ee6e6; width: 2ch; text-align: right; }
+#sy-load .sv-cur { font-style: normal; color: #eef3f5; animation: sv-blink 1s steps(1) infinite; }
+@keyframes sv-blink { 55% { opacity: 0; } }
+#sy-load .sv-tip .bd { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 13px; line-height: 21px; color: #b2c4ca; transition: opacity .22s; }
+/* 海雪：两层首尾相接往上走 */
+#sy-load .sv-snow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+#sy-load .sv-snow i { position: absolute; left: 0; top: 0; width: 1px; height: 1px; animation: sv-rise 40s linear infinite; }
+#sy-load .sv-snow i + i { top: 100vh; }
+@keyframes sv-rise { to { transform: translateY(-100vh); } }
+#sy-load .sv-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px); }
+/* 1 终端开机 */
+#sy-load .sv-body1 { position: absolute; left: 36px; right: 36px; top: 92px; bottom: 112px; display: grid; grid-template-columns: 62fr 38fr; gap: 40px; }
+#sy-load .sv-prog { position: absolute; left: 36px; right: 36px; bottom: 40px; display: grid; grid-template-columns: 1fr auto; column-gap: 24px; align-items: end; }
+#sy-load .sv-segs { display: flex; gap: 2px; height: 8px; }
+#sy-load .sv-segs i { flex: 1; background: #172128; }
+#sy-load .sv-segs i.on { background: #5ee6e6; }
+#sy-load .sv-segs i.half { background: rgba(94, 230, 230, .5); }
+#sy-load .sv-pct { font-size: 34px; line-height: 1; color: #eef3f5; }
+#sy-load .sv-what { grid-column: 1 / 3; margin-top: 8px; font-size: 11px; color: #78909a; }
+/* 2 深潜 */
+#sy-load .sv-deep { position: absolute; inset: 0; background: linear-gradient(#04080c, #010305); opacity: 0; transition: opacity .3s; }
+#sy-load.sv2 { background: linear-gradient(#0d2933, #05101a); }
+#sy-load .sv-body2 { position: absolute; left: 36px; width: calc(62% - 72px); top: 92px; bottom: 50px; display: grid; grid-template-rows: 1fr auto; gap: 20px; }
+#sy-load .sv-gauge { position: absolute; right: 36px; top: 70px; bottom: 50px; width: 300px; }
+#sy-load .sv-rule { position: absolute; right: 90px; top: 0; bottom: 0; width: 70px; overflow: hidden; border-left: 1px solid rgba(94, 230, 230, .35); }
+#sy-load .sv-ruler { position: absolute; left: 0; right: 0; top: 50%; height: 1800px; transition: transform .3s linear; }
+#sy-load .sv-ruler i { position: absolute; left: 0; width: 7px; height: 1px; background: rgba(94, 230, 230, .25); }
+#sy-load .sv-ruler i.mj { width: 16px; background: rgba(94, 230, 230, .6); }
+#sy-load .sv-ruler b { position: absolute; left: 22px; top: -7px; font-weight: 400; font-size: 11px; color: #78909a; white-space: nowrap; }
+#sy-load .sv-read { position: absolute; right: 186px; top: 50%; transform: translateY(-50%); text-align: right; }
+#sy-load .sv-read::after { content: ""; position: absolute; right: -16px; top: 50%; border: 6px solid transparent; border-left: 10px solid #5ee6e6; transform: translateY(-50%); }
+#sy-load .sv-depth { font-size: 40px; line-height: 1; color: #eef3f5; }
+#sy-load .sv-depth small { font-size: 16px; color: #5ee6e6; margin-left: 4px; }
+#sy-load .sv-sync { margin-top: 10px; font-size: 12px; color: #5ee6e6; }
+#sy-load .sv2 .sv-jwrap, #sy-load.sv2 .sv-jwrap { position: absolute; left: 58%; top: 52%; width: 110px; opacity: 0; transition: opacity .3s, transform .3s; }
+/* 3 声呐终端 */
+#sy-load .sv-corners i { position: absolute; width: 18px; height: 18px; border: 1.5px solid rgba(94, 230, 230, .45); }
+#sy-load .sv-corners i:nth-child(1) { left: 28px; top: 28px; border-right: 0; border-bottom: 0; }
+#sy-load .sv-corners i:nth-child(2) { right: 28px; top: 28px; border-left: 0; border-bottom: 0; }
+#sy-load .sv-corners i:nth-child(3) { left: 28px; bottom: 28px; border-right: 0; border-top: 0; }
+#sy-load .sv-corners i:nth-child(4) { right: 28px; bottom: 28px; border-left: 0; border-top: 0; }
+#sy-load.sv3 .sv-head { left: 50px; right: 50px; top: 40px; border-bottom: 0; }
+#sy-load .sv-dial { position: absolute; left: 50%; top: 47%; width: min(400px, 56vh, 42vw); aspect-ratio: 1; transform: translate(-50%, -50%); }
+#sy-load .sv-dial svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#sy-load .sv-ticks line { stroke: rgba(94, 230, 230, .14); }
+#sy-load .sv-ticks line.on { stroke: #5ee6e6; }
+#sy-load .sv-center { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; }
+#sy-load .sv-num { font-size: min(56px, 8vh); line-height: 1; color: #eef3f5; }
+#sy-load .sv-num span { font-size: .42em; color: #5ee6e6; }
+#sy-load .sv-link { font-size: 10px; letter-spacing: 3px; color: #5ee6e6; margin-top: 8px; }
+#sy-load.sv3 .sv-jwrap { position: absolute; left: 62%; top: 16%; width: 22%; opacity: 0; transition: opacity .3s; }
+#sy-load .sv-left { position: absolute; left: 56px; top: calc(47% - 80px); width: min(340px, calc(50% - min(200px, 28vh, 21vw) - 90px)); }
+#sy-load .sv-left .sv-lines div { font-size: 13px; line-height: 20px; }
+#sy-load .sv-tele { position: absolute; right: 56px; top: calc(47% - 80px); width: min(320px, calc(50% - min(200px, 28vh, 21vw) - 90px)); font-size: 13px; line-height: 23px; }
+#sy-load .sv-rows b { font-weight: 400; color: #78909a; display: inline-block; width: 3.4em; }
+#sy-load .sv-tele .sv-tip { margin-top: 14px; }
+#sy-load .sv-jelly { width: 100%; height: auto; display: block; animation: sv-bob 3s ease-in-out infinite; }
+@keyframes sv-bob { 50% { transform: translateY(-6px) scaleX(1.04); } }
+/* 矮屏（手机横屏） */
+@media (max-height: 520px) {
+  #sy-load .sv-head { left: 18px; right: 18px; top: 14px; }
+  #sy-load .sv-body1 { left: 18px; right: 18px; top: 66px; bottom: 76px; gap: 24px; }
+  #sy-load .sv-body2 { left: 18px; top: 66px; bottom: 30px; width: calc(62% - 36px); }
+  #sy-load .sv-gauge { right: 18px; top: 50px; bottom: 30px; }
+  #sy-load .sv-prog { left: 18px; right: 18px; bottom: 26px; }
+  #sy-load .sv-pct { font-size: 24px; }
+  #sy-load .sv-lines div { font-size: 12px; line-height: 18px; }
+  #sy-load .sv-depth { font-size: 28px; }
+  #sy-load .sv-tip .bd { font-size: 12px; line-height: 18px; }
+  #sy-load .sv-left, #sy-load .sv-tele { top: calc(47% - 60px); }
+  #sy-load .sv-left { left: 34px; } #sy-load .sv-tele { right: 34px; }
+  #sy-load .sv-corners i:nth-child(1), #sy-load .sv-corners i:nth-child(3) { left: 14px; }
+  #sy-load .sv-corners i:nth-child(2), #sy-load .sv-corners i:nth-child(4) { right: 14px; }
+  #sy-load .sv-corners i:nth-child(1), #sy-load .sv-corners i:nth-child(2) { top: 14px; }
+  #sy-load .sv-corners i:nth-child(3), #sy-load .sv-corners i:nth-child(4) { bottom: 14px; }
+}
+/* 竖屏：上下排 */
+@media (orientation: portrait) {
+  #sy-load .sv-head { left: 18px; right: 18px; }
+  #sy-load .sv-head em { display: none; }
+  #sy-load .sv-body1 { left: 18px; right: 18px; top: 76px; bottom: 120px; grid-template-columns: 1fr; grid-template-rows: 1fr auto; gap: 20px; }
+  #sy-load .sv-prog { left: 18px; right: 18px; }
+  #sy-load .sv-body2 { left: 18px; right: 18px; width: auto; top: 76px; bottom: 210px; }
+  #sy-load .sv-gauge { left: 18px; right: 18px; width: auto; top: auto; bottom: 50px; height: 140px; }
+  #sy-load .sv-rule { display: none; }
+  #sy-load .sv-read { left: 0; right: auto; text-align: left; }
+  #sy-load .sv-read::after { display: none; }
+  #sy-load.sv2 .sv-jwrap { left: 60%; top: 70%; width: 90px; }
+  #sy-load .sv-dial { top: 32%; width: min(78vw, 40vh); }
+  #sy-load .sv-left { left: 34px; right: 34px; width: auto; top: calc(32% + min(39vw, 20vh) + 40px); }
+  #sy-load .sv-tele { left: 34px; right: 34px; width: auto; top: auto; bottom: 46px; }
+  #sy-load .sv-tele > .sv-cap, #sy-load .sv-rows { display: none; }
+  #sy-load .sv-lines div { font-size: 12px; line-height: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sy-load .sv-snow i, #sy-load .sv-cur, #sy-load .sv-jelly { animation: none; }
+}
