@@ -1,0 +1,119 @@
+跑 28 局（1 份实现 × 1 流派 × 1 机器人 × 7 编队 × 4 seed），并行 4（全机上限 4），不用缓存
+### 最终 Boss（按类型；上面的「终局」列是四种混算）
+
+| 机器人 | 最终 Boss | 结局 | 出场 | 击杀 | 用时 均 / 中 / P90 / 最短–最长（出现起算） | 中 / P90（可受伤起算） | 阶段护盾秒 / 过卡点数 均 | 未击杀时剩余血量 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 偏执泡影 | standard 11 | 11 | 8 | 113s / 102s / 165s / 87–165s | 102s / 165s | 6.9 / 3.0 | 21% |
+| expert | 最后的骑士 | knight 6 | 6 | 2 | 98s / 98s / 122s / 74–122s | 98s / 122s | 2.9 / 1.7 | 39% |
+
+### 中期 Boss（按类型）
+
+| 机器人 | 中期 Boss | 出场 | 击杀 | 用时中位 | on_boss 中位 | 周围敌人 均 | 慌乱次数 均 | 慌乱期间掉血 均 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 圣徒卡门 | 20 | 17 | 58s | 0.34 | 9 | - | - |
+| expert | 塑路者 | 15 | 15 | 61s | 0.45 | 10 | - | - |
+| expert | 接潮主教 | 8 | 7 | 48s | 0.09 | 14 | 1.2 | 15% |
+| expert | 接潮蔑死体 | 4 | 3 | 48s | 0.11 | 16 | - | - |
+| expert | 接潮斥亡体 | 4 | 4 | 62s | 0.11 | 13 | - | - |
+| expert | 圣徒伊比利亚 | 2 | 2 | 47s | 0.26 | 9 | - | - |
+
+### 控制（按来源，每局平均）
+
+| 机器人 | 难度 | 局数 | 奠基者 冻结次 / 秒 / 挣脱 / 减速秒 | 漂移体 冻结次 / 秒 / 挣脱 / 减速秒 | Boss 冻结次 / 秒 / 挣脱 / 减速秒 | 其他 冻结次 / 秒 / 挣脱 / 减速秒 | 任何减速秒 |
+|---|---|---|---|---|---|---|---|
+| expert | 0 | 28 | 0.0 / 0.0 / 0.0 / 3 | 0.0 / 0.0 / 0.0 / 0 | 0.0 / 0.0 / 0.0 / 17 | 0.0 / 0.0 / 0.0 / 0 | 20 |
+
+### 胜负构成（超时 = 满血 Boss 未打完，照算失败，死因统计不含）
+
+| 机器人 | 难度 | 局数 | 胜 | 死亡 | 超时（满血 Boss 未打完） | 超时时 Boss 剩余血 均 |
+|---|---|---|---|---|---|---|
+| expert | 0 | 28 | 35% | 42% | 21% (6) | 25% |
+
+### 难度 / 缩圈 / 同屏峰值
+
+#### 前 3 分钟
+
+| 机器人 | 难度 | 局数 | 3:00 前死亡 | 前 3 分钟承伤 均 / 中 | 3:00 时生命 |
+|---|---|---|---|---|---|
+| expert | 0 | 28 | 0% | 203 / 186 | 89% |
+
+#### 死因 × 缩圈阶段 × Boss 在场（失败的局）
+
+| 机器人 | 难度 | 死因 | 缩圈（第几轮 · 阶段） | 圈外 | Boss 在场 | 局数 | 平均死亡时间 |
+|---|---|---|---|---|---|---|---|
+| expert | 0 | contact_tracer | 第 1 轮 · 稳定 | 否 | 否 | 2 | 4:33 |
+| expert | 0 | corrode | 第 3 轮 · 稳定 | 否 | 否 | 1 | 6:55 |
+| expert | 0 | mire | 第 1 轮 · 收缩 | 否 | 否 | 1 | 3:04 |
+| expert | 0 | contact_slider | 第 2 轮 · 收缩 | 否 | 否 | 1 | 5:43 |
+| expert | 0 | boss_knight_boss | 第 5 轮 · 稳定 | 否 | 是 | 1 | 10:27 |
+| expert | 0 | corrode | 第 2 轮 · 预告 | 否 | 否 | 1 | 6:15 |
+| expert | 0 | wound | 第 1 轮 · 稳定 | 否 | 是 | 1 | 6:54 |
+| expert | 0 | atk_tracer | 第 1 轮 · 稳定 | 否 | 是 | 1 | 4:01 |
+| expert | 0 | atk_tracer | 第 2 轮 · 预告 | 否 | 否 | 1 | 4:58 |
+| expert | 0 | contact_founder | 第 4 轮 · 预告 | 否 | 否 | 1 | 8:19 |
+| expert | 0 | contact_tracer | 第 2 轮 · 预告 | 否 | 否 | 1 | 5:29 |
+
+#### 同屏数量峰值（每局峰值的 平均 / 最大）
+
+| 机器人 | 难度 | 局数 | 范围 | 敌人 | 敌方弹幕（含抛射） | 我方子弹 | 特效 | 飘字 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 0 | 28 | 全程 | 101 / 187 | 108 / 199 | 3 / 8 | 331 / 427 | 44 / 48 |
+| expert | 0 | 18 | 8:00–10:00 | 84 / 128 | 43 / 106 | 2 / 5 | 367 / 411 | 34 / 48 |
+
+### 2 秒上限 / Boss 保护 / 单次上限触发（--telemetry=full）
+
+| 机器人 | 难度 | 结果 | 局数 | 受击笔数 均 | 全免(截到0)笔数 均 | 任意2秒上限 触发笔数 / 截掉量占比 | Boss保护 触发笔数 / 占比 | 单次上限 触发笔数 / 占比 | 截掉一半以上笔数 均 |
+|---|---|---|---|---|---|---|---|---|---|
+| expert | 0 | 失败 | 18 | 1672 | 0.0 | 0.9 / 0.3% | 0.0 / 0.0% | 0.0 / 0.0% | 0.0 |
+| expert | 0 | 胜 | 10 | 2070 | 0.1 | 1.6 / 0.4% | 0.4 / 0.9% | 0.0 / 0.0% | 0.2 |
+
+### 大群（按第几次）
+
+| 机器人 | 第几次 | 出现 | 时间 | 数量 | 清 80% 用时 均 / 中（清完/出现） | 20 秒内掉血 均 / 最大 | 30 秒内死亡 | 编成 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 1 | 28 | 1:15 | 15 | 12s / 10s（28/28） | 10 / 32 | 0 | bone/slider ×19；bone/slider/stone ×9 |
+| expert | 2 | 28 | 2:45 | 20 | 14s / 11s（28/28） | 32 / 122 | 1 | bone/slider/stone ×19；bone/slider ×9 |
+| expert | 3 | 23 | 4:44 | 24 | 14s / 11s（21/23） | 21 / 132 | 2 | bone/offspring/slider/stone ×5；bone/floater/runner/slider ×5；bone/offspring/reaper/runner/slider/spitter/tracer ×4 |
+| expert | 4 | 20 | 5:12 | 35 | 34s / 19s（19/20） | 37 / 130 | 1 | bone/floater/reaper/runner/slider/tracer ×8；bone/offspring/reaper/runner/slider/spitter/tracer ×7；bone/reaper/runner/slider/tracer ×4 |
+| expert | 5 | 18 | 6:16 | 40 | 25s / 15s（17/18） | 29 / 93 | 1 | bone/offspring/reaper/runner/slider/spitter/tracer ×7；bone/reaper/runner/slider/tracer ×6；bone/floater/reaper/runner/slider/tracer ×4 |
+| expert | 6 | 15 | 8:09 | 26 | 23s / 13s（15/15） | 20 / 66 | 1 | bone/founder/nest/offspring/runner/slider/stone/tracer ×6；bone/floater/founder/nest/runner/slider/stone/tracer ×5；bone/founder/nest/runner/slider/spitter/stone/tracer ×3 |
+| expert | 7 | 10 | 9:09 | 22 | 15s / 14s（10/10） | 18 / 56 | 0 | bone/floater/founder/nest/reaper/runner/slider/stone/tracer ×4；bone/floater/offspring/reaper/runner/slider/spitter/stone ×3；bone/floater/founder/nest/reaper/runner/slider/spitter/stone ×3 |
+
+| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [expert] wisadel | 4 | 75% | 9:49 / 4:27 | 0.0 / - | 8 / 15 / 23 / 25 | - | 83% | 88 | 1596 | 余震 33% 饱和复仇 10% 爆裂黎明 8% 殉爆 8% | 自身回复 38% 补给 18% 拾取 11% (757 / 0.0) | contact_tracer |
+| [expert] eyjafjalla | 4 | 25% | 6:51 / 3:04 | 0.0 / - | 8 / 15 / 22 / 18 | - | 58% | 70 | 1062 | 熔岩弹 22% 大剑 7% 火星 5% 刺剑 4% | 自身回复 40% 拾取 20% 补给 17% (670 / 0.0) | contact_tracer |
+| [expert] skadi | 4 | 50% | 10:27 / 4:39 | 0.0 / - | 8 / 15 / 21 / 24 | 8% | 91% | 74 | 1552 | 大剑 26% 真实 8% 跃浪 5% 潮刃 5% | 塞雷娅 34% 自身回复 31% 补给 12% (1226 / 0.0) | bullet |
+| [expert] mizuki | 4 | 0% | 12:21 / 10:27 | 0.0 / - | 8 / 15 / 21 / 25 | 41% | 100% | 79 | 1588 | 真实 29% 伞击 8% 锚击 6% 触手 5% | 水月 48% 自身回复 19% 塞雷娅 9% (1829 / 0.0) | contact_tracer |
+| [expert] saria | 4 | 50% | 10:48 / 6:15 | 0.0 / - | 7 / 14 / 20 / 24 | 28% | 91% | 60 | 1380 | 食腐 7% Mon3tr 7% 狐火 6% 拳击 5% | 塞雷娅 50% 自身回复 20% 针剂回流 8% (1304 / 0.0) | bullet |
+| [expert] kaltsit | 4 | 50% | 10:53 / 6:54 | 0.0 / - | 8 / 15 / 22 / 24 | 12% | 75% | 41 | 1592 | Mon3tr 17% 余震 12% Mon3tr · 真伤 7% 真实 5% | 凯尔希 35% 自身回复 20% 结构加固 17% (1628 / 0.0) | contact_tracer |
+| [expert] suzuran | 4 | 0% | 5:41 / 4:01 | 0.0 / - | 8 / 16 / 22 / 17 | 38% | 58% | 43 | 834 | 狐火 29% 狐火点点 6% 藏品 6% 余震 5% | 自身回复 27% 铃兰 17% 流明 17% (648 / 0.0) | contact_tracer |
+
+### 机器人指标（docs/29）
+
+| 机器人 · 开局 | n | 胜率 | 存活 均/最短 | 3:30 存活 | 5:00 存活 | 首次招募 | 首次精一 / 精二 | 中期 Boss 击杀数 / 平均用时 | 受击/分 | 承伤/分 | 低血(<35%)秒 | 熄灯秒 | 静止% | 开局干员 伤害占比 / 每分钟 | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [expert] wisadel | 4 | 75% | 9:49 / 4:27 | 100% | 75% | 1:03 | 0:53 / 3:06 | 1.8 / 46s | 110.9 | 80 | 9 | 0 | 3 | 66% / 45717 | contact_tracer |
+| [expert] eyjafjalla | 4 | 25% | 6:51 / 3:04 | 75% | 75% | 1:02 | 0:45 / 3:17 | 1.0 / 43s | 55.3 | 115 | 24 | 3 | 2 | 40% / 13528 | contact_slider |
+| [expert] skadi | 4 | 50% | 10:27 / 4:39 | 100% | 75% | 1:07 | 0:47 / 2:37 | 2.2 / 59s | 118.2 | 108 | 1 | 19 | 4 | 48% / 29718 | boss_knight_boss |
+| [expert] mizuki | 4 | 0% | 12:21 / 10:27 | 100% | 100% | 0:58 | 0:51 / 2:48 | 1.5 / 107s | 201.3 | 134 | 0 | 60 | 6 | 16% / 11122 | boss_knight_boss |
+| [expert] saria | 4 | 50% | 10:48 / 6:15 | 100% | 100% | 1:19 | 0:52 / 3:21 | 2.2 / 118s | 129.5 | 109 | 2 | 41 | 4 | 10% / 4259 | corrode |
+| [expert] kaltsit | 4 | 50% | 10:53 / 6:54 | 100% | 100% | 1:09 | 0:58 / 3:23 | 2.0 / 61s | 157.9 | 150 | 14 | 17 | 4 | 30% / 15207 | corrode |
+| [expert] suzuran | 4 | 0% | 5:41 / 4:01 | 100% | 50% | 1:00 | 0:52 / 3:02 | 1.2 / 46s | 54.1 | 124 | 8 | 2 | 2 | 36% / 7966 | atk_tracer |
+
+### 藏品（docs/35）
+
+| 机器人 | 开局 | 局数 | 平均藏品数 | 藏品直接伤害 | 各流派 出现 / 拿取 | 无效拿取 |
+|---|---|---|---|---|---|---|
+| expert | eyjafjalla | 4 | 7.8 | 1.0% | class 8/5 economy 8/1 general 22/8 heal 4/2 melee 6/0 multi 9/4 shield 5/3 summon 2/1 survival 10/6 weak 2/1 | 0 |
+| expert | kaltsit | 4 | 10.0 | 9.9% | class 11/2 control 4/2 economy 19/1 general 25/15 heal 9/6 melee 4/1 multi 7/1 shield 5/3 summon 5/1 survival 15/8 weak 1/0 | 0 |
+| expert | mizuki | 4 | 10.0 | 30.4% | class 8/3 control 3/0 economy 7/5 general 23/9 heal 2/1 melee 7/2 multi 2/1 shield 8/3 summon 17/9 survival 8/3 weak 5/4 | 0 |
+| expert | saria | 4 | 8.8 | 13.2% | class 5/0 control 3/1 economy 17/2 general 28/11 heal 19/5 melee 6/4 multi 2/1 shield 3/2 summon 5/2 survival 12/5 weak 5/2 | 0 |
+| expert | skadi | 4 | 11.0 | 8.1% | class 15/5 control 4/3 economy 13/5 general 33/12 heal 5/3 melee 18/6 multi 2/1 shield 2/2 summon 6/4 survival 16/3 weak 2/0 | 0 |
+| expert | suzuran | 4 | 7.5 | 7.5% | class 9/5 control 14/7 economy 12/3 general 16/7 heal 3/0 melee 4/2 multi 2/0 shield 1/1 survival 17/5 weak 3/0 | 0 |
+| expert | wisadel | 4 | 14.0 | 0.3% | class 11/5 control 4/3 economy 23/7 general 47/19 heal 5/3 melee 3/1 multi 26/5 shield 3/3 summon 4/1 survival 15/6 weak 6/3 | 0 |
+| 合计 | | | | | class 67/25 control 32/16 economy 99/24 general 194/81 heal 47/20 melee 48/16 multi 50/13 shield 27/17 summon 39/18 survival 93/36 weak 24/10 | |
+
+拿取最多（出现 / 拿取）：“多功能”发夹 12/8，海潮的气息 0/8，《旧高卢地名源流考》 9/6，猎人的口粮 10/6，皇帝的恩宠 13/5，银餐叉 11/5，散轶诗简 11/5，衍生者终端-超级改 12/4，支援急救包 11/4，极速之手 6/4，食腐者手杖 11/4，凯旋号角 10/4
+耗时 481s
+写入 build/cloud/rt1-n0/p0-s65/rt1-n0-p0-s65_1030_1417.{json,md}
