@@ -478,6 +478,8 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)   # 外圈 / 箭头 = 职业色（同图鉴、选人）
 		if o.cmd_down > 0.0:
 			oc = Color(0.5, 0.52, 0.55)   # 倒地：灰圈（docs/114 §7）
+		elif h.allyhp.low(o):
+			oc = oc.lerp(UI.RED, 0.55 + 0.45 * h.allyhp.pulse())   # 残血：外圈 / 箭头红色慢闪（docs/114 §21）
 		g.hud.draw_circle(edge, 20.0, Color(0.03, 0.05, 0.07, 0.9))
 		var pt: Dictionary = o.portrait()   # 编队卡同一份头像帧条（待机帧），裁出头部
 		var tx: Texture2D = g.tex.get(pt.tex)
@@ -511,7 +513,8 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 
 ## 队友小血条（docs/114 §7，command/hp 开时）：突击中、受伤后 3 秒、倒地时显示在头顶；倒地时灰条 = 复活倒计时
 func _draw_op_hp(o, ct: Transform2D, st: int) -> void:
-	if not g.squad.hp_on() or not (st == 1 or o.cmd_show > 0.0 or o.cmd_down > 0.0):
+	var lw: bool = h.allyhp.low(o)
+	if not g.squad.hp_on() or not (st == 1 or o.cmd_show > 0.0 or o.cmd_down > 0.0 or lw):
 		return
 	var c: Vector2 = ct * (o.pos + Vector2(0, -62))
 	var r := Rect2(c - Vector2(16, 0), Vector2(32, 4))
@@ -520,8 +523,12 @@ func _draw_op_hp(o, ct: Transform2D, st: int) -> void:
 		var k: float = 1.0 - clampf(o.cmd_down / maxf(0.1, Bal.v("command/revive_secs", 25.0)), 0.0, 1.0)
 		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(0.55, 0.57, 0.6))
 		return
-	var hc: Color = UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED)
+	var hc: Color = UI.RED if lw else (UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED))
 	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(o.cmd_hp, 0.0, 1.0), r.size.y)), hc)
+	if lw:   # 残血（docs/114 §21）：红框 + 整条提亮，1.2 秒一次慢闪
+		var p: float = h.allyhp.pulse()
+		g.hud.draw_rect(r.grow(2.5), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.6 * p), false, 1.5)
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(o.cmd_hp, 0.0, 1.0), r.size.y)), Color(1, 0.6, 0.6, 0.45 * p))
 
 
 func draw_stamina_bar(r: Rect2) -> void:

@@ -626,9 +626,9 @@ var driven_t := 0.0      # 距离游戏上一次主动选曲的时间
 const VOICE_MAX_LEN := 8.0             # 只防意外的超长文件；Codex 交付最长 6.4 秒，全部可用
 const VOICE_GAP := 3.0                 # 两条语音之间至少间隔（全队）
 const VOICE_OP_GAP := 15.0             # 同一名干员两条语音之间至少间隔
-const VOICE_CD := {"entry": 0.0, "command": 6.0, "skill_1": 45.0, "skill_2": 30.0, "skill_3": 20.0, "battle": 60.0, "w_laugh": 75.0}
-const VOICE_PRIO := {"skill_3": 4, "skill_2": 3, "skill_1": 3, "entry": 2, "command": 1, "battle": 1, "w_laugh": 1}
-const VOICE_CHATTER := ["battle", "w_laugh"]   # 可被技能语音打断的战斗台词
+const VOICE_CD := {"entry": 0.0, "command": 6.0, "skill_1": 45.0, "skill_2": 30.0, "skill_3": 20.0, "battle": 60.0, "w_laugh": 75.0, "lowhp": 20.0}
+const VOICE_PRIO := {"skill_3": 4, "skill_2": 3, "skill_1": 3, "entry": 2, "command": 1, "battle": 1, "w_laugh": 1, "lowhp": 1}
+const VOICE_CHATTER := ["battle", "w_laugh", "lowhp"]   # 可被技能语音打断的战斗台词
 const VOICE_CUT_FADE := 0.1            # 被打断的台词淡出秒数
 ## 响度归一（Codex 交付的各段 RMS 相差约 7 dB）：按各干员实测平均 RMS 拉到 -17 dB 附近（2026-09-26 测量）
 ## 第五批（10-12 量母带）：能天使平均 -13.2 dB → -4；德克萨斯 -17.7 → +0.5；星熊 / 安洁莉娜 / 浊心 -16.2～-16.4，与斯卡蒂、艾琳同档不调

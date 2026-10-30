@@ -1776,6 +1776,8 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
 	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	if s.has("m3"):
+		s["draw_top"] = [fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g), hov]   # 头顶血条找头顶（hud_allyhp._m3_head，10-31）
 	for f in fl:
 		if f is Dictionary and f.has("side") and fx_on(o, f):
 			_mf_side(o, s, f.side, hov)

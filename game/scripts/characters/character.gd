@@ -1548,6 +1548,7 @@ var cmd_down_age := 0.0
 var cmd_inv := 0.0
 var cmd_show := 0.0
 var cmd_hit_t := -9.0   # 上次突击中被碰到掉血的时刻（g.t）：编队卡血条受击闪（hud_squad）
+var cmd_low := false    # 残血提醒中（squad._tick_low：跌破 command/low_hp 进、回到 command/low_hp_off 以上出；倒地时清掉）
 
 ## 只在队长活动圈里选目标；按指挥优先级挑（op_api.prio_order，与攻击选敌同一套口径：Boss 优先 / 清杂优先）。
 ## Boss 优先 + 圈里有可受击的 Boss / 部件（command/boss_rush 开，10-27 用户「我选择全队打 boss 必然是想让他们去输出一波的」）：
