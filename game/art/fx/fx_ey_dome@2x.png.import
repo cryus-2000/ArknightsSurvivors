@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bwvun070s4vgn"
-path="res://.godot/imported/fx_ey_cone@2x.png-bdd131191fc90ba379555d0ce415ccb2.ctex"
+uid="uid://blmq5tw4usajf"
+path="res://.godot/imported/fx_ey_dome@2x.png-fd834a58b96b3def68661169d509b508.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_ey_cone@2x.png"
-dest_files=["res://.godot/imported/fx_ey_cone@2x.png-bdd131191fc90ba379555d0ce415ccb2.ctex"]
+source_file="res://art/fx/fx_ey_dome@2x.png"
+dest_files=["res://.godot/imported/fx_ey_dome@2x.png-fd834a58b96b3def68661169d509b508.ctex"]
 
 [params]
 

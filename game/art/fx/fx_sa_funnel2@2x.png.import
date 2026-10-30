@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cn3ancm3t4fyk"
-path="res://.godot/imported/fx_sa_fork2@2x.png-2abd400429b96c80b4676149936581c3.ctex"
+uid="uid://b71ai820qxqc2"
+path="res://.godot/imported/fx_sa_funnel2@2x.png-0a6188fcd726e339307bf7280be4491d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_sa_fork2@2x.png"
-dest_files=["res://.godot/imported/fx_sa_fork2@2x.png-2abd400429b96c80b4676149936581c3.ctex"]
+source_file="res://art/fx/fx_sa_funnel2@2x.png"
+dest_files=["res://.godot/imported/fx_sa_funnel2@2x.png-0a6188fcd726e339307bf7280be4491d.ctex"]
 
 [params]
 

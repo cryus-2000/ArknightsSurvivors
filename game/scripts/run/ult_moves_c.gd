@@ -303,7 +303,7 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var v2: bool = _sa_v2(u)
 	if v2:   # 举拳那一下脚下一大片压暗
 		u.shape({"kind": "circle", "c": c, "r": R * 1.05, "col": Color(0.0, 0.0, 0.01), "fill": 0.45, "life": ch + 0.03, "layer": "back"})
-	return {"v2": v2, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
+	return {"v2": v2, "fa": d.angle(), "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
 		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "punched2": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 
@@ -384,8 +384,8 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 			_once(u, a, o, a.cseg, e, float(a.cf), {"src": "裂地", "edge": e.pos.distance_to(org) > hc})
 		if a.v2:   # v2：沿裂口崩起一簇碎石 + 尘，不画琥珀圆盘 / 晶柱（用户 10-30 嫌琥珀）
 			var hb: float = PF.h(float(a.booms.find(b)) + PF.vseed(u, org))
-			for m in 3:
-				PF.rock(u, p, Vector2.from_angle(TAU * (m + hb) / 3.0) * 70.0, 200.0 + 90.0 * PF.h(hb + m), PF.h(hb * 7.0 + m), 0.45, 0.02 * m)
+			if hb < 0.3:   # 爆点沿判定裂纹等距，每处都崩碎石会排成一串方块（预审报），只给约三成、一块
+				PF.rock(u, p, Vector2.from_angle(TAU * hb) * 70.0, 200.0 + 90.0 * PF.h(hb), PF.h(hb * 7.0), 0.45, 0.0)
 			u.grain("bfx_dust", p, Vector2.UP, Color(0.62, 0.6, 0.56), 5)
 		else:
 			u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_AMBER.lerp(Color.WHITE, 0.2), "fill": 0.7, "life": 0.14})
@@ -408,67 +408,52 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 
 ## ---------------- 塞雷娅 v2（ult/sa_fx_v2，缺省 1；0 = 程序画同心碎裂环 + 琥珀折线裂纹 + 速度线版。pixfx，docs/199 §7.8）
 ## 举拳时脚下压暗 → 砸地（爆点 / 判定 / 时序不动）。第一版（琥珀冲击环贴图 + 琥珀裂网）已撤：
-## 用户 10-30 第二轮：「一圈超人感没做出来；要的不是琥珀裂网，是一拳打出去以后拳风造成的裂地」→ 白色气浪 + 波前尘石墙；
-## 第三轮：「裂地的力量感、停顿感还不够，所有裂地都跟乌尔比安的对齐」→ 裂缝换成乌尔比安同形的分叉裂网（fx_sa_fork1–4，淡金白光、暖灰岩唇），
-## 顺原裂纹方向随拳风往外长、先亮后冷；砸地那下另加 ult/sa_hitstop（0.12 秒）顿帧 + 大灯 + 碎屑
-const SA_FORKS := ["fx_sa_fork1", "fx_sa_fork2", "fx_sa_fork3", "fx_sa_fork4"]
+## 用户 10-30 第四轮：「往前打一拳，面前的拳风撕裂空气和大地，在地上留下一个漏斗形的裂地印子，要有空气爆炸的感觉」：
+## 顿帧 → 朝出拳方向（fa）一团空气爆炸（fx_sa_air，白 / 淡金气浪弧往前炸开，两层错开）+ 前方锥内速度线 → 地面撕出漏斗形裂地印子
+## （fx_sa_funnel1/2，窄端在她脚下、往前张开，0.12 秒撕开、慢慢冷却）+ 四拍隆起。判定仍是以她为圆心的拳风环 + 放射裂纹爆点（只改画面），
+## 圈的范围留一道淡的细环提示。旧版的分叉裂网 / 尘石墙 / 360° 速度线不画
+const SA_FUNNELS := ["fx_sa_funnel1", "fx_sa_funnel2"]
+const SA_AIR := "fx_sa_air"
 const A = preload("res://scripts/art.gd")
 
 
 static func _sa_v2(u) -> bool:
-	return Bal.v("ult/sa_fx_v2", 1.0) > 0.0 and PF.pick(u, SA_FORKS, 0.0) != "" and u.fx_ready(PF.WALL)
+	return Bal.v("ult/sa_fx_v2", 1.0) > 0.0 and PF.pick(u, SA_FUNNELS, 0.0) != "" and u.fx_ready(SA_AIR)
 
 
 static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) -> void:
 	var vs: float = PF.vseed(u, org)
-	u.g.vfx.stop(Bal.v("ult/sa_hitstop", 0.12), "ult", true)   # 停顿感：砸地那一下顿住（画面层，同 skalter 收尾大爆）
-	u.light(org, R * 0.8, Color(1.0, 0.9, 0.7), 0.4)
-	u.debris(org, Color(0.85, 0.8, 0.7), 3)
-	# 拳坑
-	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 120.0, "ry": 60.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.7, "life": 1.8, "layer": "back"})
-	# 裂网：顺原裂纹方向（爆点都在线上），随拳风往外长
-	var angs: Array = []
-	var lens: Array = []
-	var j := 0
-	for pts in a.cracks:
-		angs.append((Vector2(pts[pts.size() - 1]) - org).angle() + (PF.h(j * 3.3 + vs) - 0.5) * 0.25)   # 画面角度错开一点（判定裂纹不动），预审报等距
-		lens.append(R * (0.45 + 0.6 * PF.h(j + 21.0 + vs)))
-		j += 1
-	PF.cracks(u, SA_FORKS, org, angs, lens, {"seed": vs, "crop": true, "small": 0.4, "rev": R / float(a.cspd), "rev0": 0.15, "delay": 0.03,   # crop：预审报同形裂缝重复 "life": 2.0, "fade": 0.7,
-		"col": Color(1.15, 1.1, 1.05), "col1": Color(0.3, 0.27, 0.24), "cold": 0.9})
-	# 白色气浪薄环（两道，后一道稍慢）
-	u.shape({"kind": "ring", "c": org, "r": R, "r1": 50.0, "w": 10.0, "col": Color(0.95, 0.93, 0.88), "solid": true, "life": tr * 2.0})
-	u.shape({"kind": "ring", "c": org, "r": R * 0.85, "r1": 40.0, "w": 5.0, "col": Color(0.9, 0.85, 0.75), "solid": true, "life": tr * 2.3, "delay": 0.04})
-	# 波前尘石墙（同一张截段排一圈）预审两次报拼接感，去掉；拳风推地交给气浪环 + 速度线 + 四拍隆起
+	var fa: float = float(a.get("fa", 0.0)) + (PF.h(vs) - 0.5) * 0.12
+	var fw := Vector2.from_angle(fa)
+	u.g.vfx.stop(Bal.v("ult/sa_hitstop", 0.12), "ult", true)
+	u.light(org + fw * R * 0.4, R * 0.7, Color(1.0, 0.92, 0.75), 0.35)
+	u.debris(org + fw * 60.0, Color(0.85, 0.8, 0.7), 3)
+	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 70.0, "ry": 34.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.6, "life": 1.6, "layer": "back"})
+	# 漏斗形裂地印子：窄端在脚下，往前撕开
+	var fn := PF.pick(u, SA_FUNNELS, vs)
+	var ft: Texture2D = u._strip_tex(fn)
+	var k: float = R * 1.05 / PF.tex_w(u, fn)
+	u.strip(fn, org - fw * 10.0, {"layer": "back", "ang": fa, "o": Vector2(0.0, ft.get_height() * 0.5), "sx": k, "sy": k * (1.0 if PF.h(vs + 1.0) < 0.5 else -1.0),
+		"rev": 0.12, "rev0": 0.1, "life": 2.4, "fade": 0.8, "col": Color(1.1, 1.05, 1.0), "col1": Color(0.6, 0.56, 0.52), "cold": 1.0})
+	# 空气爆炸：两层气浪弧往前炸开
+	var at: Texture2D = u._strip_tex(SA_AIR)
+	var ka: float = R * 0.85 / PF.tex_w(u, SA_AIR)
+	for m in 2:
+		u.strip(SA_AIR, org + fw * (20.0 + 30.0 * m), {"ang": fa + (0.08 if m == 1 else 0.0), "o": Vector2(0.0, at.get_height() * 0.5),
+			"sc": ka * 0.45, "sc1": ka * (1.0 - 0.25 * m), "scd": 0.14, "delay": 0.05 * m, "life": 0.3, "fade": 0.18,
+			"col": Color(1.0, 1.0, 1.0, 0.65 - 0.25 * m), "sy": -1.0 if m == 1 else 1.0})
+	# 前方锥内的速度线（只往前）
 	var spd: float = R / tr
-	for k in 14:   # 速度线少而乱（24 条等距被预审看成一圈贴纸）
-		var dv := Vector2.from_angle(TAU * PF.h(k * 5.1 + vs))
-		var r0: float = 30.0 + 90.0 * PF.h(k * 3.0 + vs)
-		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 50.0 + 110.0 * PF.h(k + 7.0 + vs)), "w": 4.0 if k % 3 == 0 else 2.5,
-			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(k + 11.0)), "delay": 0.04 * PF.h(k + 13.0 + vs), "v": dv * spd * (0.8 + 0.4 * PF.h(k + 17.0))})
-	# 节奏（用户 10-30「裂地的顿感和节奏」对齐乌尔比安：一拍一圈、每拍震屏 + 隆起 + 灯 + 尘，间隔 0.18）
+	for q in 12:
+		var dv := Vector2.from_angle(fa + (PF.h(q * 5.1 + vs) - 0.5) * 0.9)
+		var r0: float = 30.0 + 80.0 * PF.h(q * 3.0 + vs)
+		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 60.0 + 110.0 * PF.h(q + 7.0 + vs)), "w": 4.0 if q % 3 == 0 else 2.5,
+			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(q + 11.0)), "delay": 0.03 * PF.h(q + 13.0 + vs), "v": dv * spd * (0.9 + 0.4 * PF.h(q + 17.0))})
+	PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.02, vs, R * 0.35)
+	u.shape({"kind": "ring", "c": org, "r": R, "r1": 50.0, "w": 5.0, "col": Color(0.95, 0.9, 0.8, 0.5), "solid": true, "life": tr * 2.0})   # 判定圈的淡提示
 	a["vs"] = vs
 	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18, R * 0.55, 1], [float(a.t) + 0.36, R * 0.8, 2], [float(a.t) + 0.54, R * 1.0, 3]]
-	PF.particles(u, org, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85), Color(0.75, 0.7, 0.62)], 0.0, vs)   # 拳坑迸出的碎石尘
-	PF.aftershock(u, org, R, 3.0 + vs, 0.54 + 0.3, 14)
-
-
-## 尘土碎石墙从半径 r0 起以 spd 往外推 dur 秒（段数按终点半径取，起点处互相叠着，不会断开）
-static func _sa_wall(u, c: Vector2, r0: float, spd: float, dur: float, vs: float) -> void:
-	var t: Texture2D = u._strip_tex(PF.WALL)
-	var k: float = u.g.PX / A.hires_of(t)
-	var R1: float = r0 + spd * dur
-	var n: int = maxi(16, roundi(TAU * R1 / 150.0))
-	var chord: float = 2.0 * R1 * sin(PI / n)
-	var uw: float = minf(t.get_width(), chord * 1.1 / k)
-	for q in n:
-		var am: float = TAU * (q + 0.5) / n + PF.h(vs) * TAU
-		var out := Vector2.from_angle(am)
-		var tg: Vector2 = out.orthogonal()
-		var sc: float = r0 / R1
-		u.strip(PF.WALL, c + out * r0 - tg * chord * 0.5 * sc, {"layer": "back", "ang": tg.angle(), "o": Vector2(0.0, t.get_height() * 0.5),
-			"ux": floorf(PF.h(q * 3.0 + vs) * (t.get_width() - uw)), "uw": uw, "sc": sc, "sc1": 1.0, "scd": dur,
-			"v": out * spd - tg * chord * 0.5 * (1.0 - sc) / dur, "life": dur + 0.25, "fade": 0.35, "col": Color(1, 1, 1, 0.9)})
+	PF.aftershock(u, org + fw * R * 0.4, R * 0.6, 3.0 + vs, 0.84, 10)
 
 
 ## ---------------- 推进之王 v2（ult/sg_fx_v2，缺省 1；0 = 程序画同心环 + 直线裂地 + 碎石刀光版。pixfx，docs/199 §7.8）
