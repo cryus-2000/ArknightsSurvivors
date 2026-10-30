@@ -1,0 +1,150 @@
+{
+ "id": "lumen",
+ "src": "lumen.src.json",
+ "leadLeg": "L",
+ "nearSide": "L",
+ "name": "流明",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_Weapon",
+ "relativeArms": [
+  "L"
+ ],
+ "follow": [
+  [
+   "F_Kaban",
+   "F_L_Bag",
+   "hang"
+  ]
+ ],
+ "relOffset": {
+  "L": [
+   -6,
+   52
+  ]
+ },
+ "order": [
+  [
+   "F_Kaban_3",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_4",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_2",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_Annex",
+   "F_R_Foot"
+  ],
+  [
+   "C_Light",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_5",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_1",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_Ring",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_3",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_2",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_1",
+   "F_R_Foot"
+  ],
+  [
+   "C_Keycard",
+   "F_R_Foot"
+  ]
+ ],
+ "action": "ult",
+ "canvas": 128,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_3_Begin",
+   "Skill_3_Begin",
+   "Skill_3_Idle",
+   "Skill_3_Idle",
+   "Skill_3_Idle",
+   "Skill_3_Idle",
+   "Skill_3_Idle",
+   "Skill_3_Idle",
+   "Skill_3_End",
+   "Skill_3_End"
+  ],
+  "times": [
+   0.074,
+   0.222,
+   0.0,
+   0.667,
+   1.333,
+   2.0,
+   2.667,
+   3.333,
+   0.119,
+   0.267
+  ]
+ },
+ "durations": [
+  0.1,
+  0.1,
+  0.333,
+  0.333,
+  0.334,
+  0.333,
+  0.333,
+  0.334,
+  0.1,
+  0.12
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_3_Begin 举灯（0–0.2 光柱升起）→ Skill_3_Idle 持灯站定 2 秒（单子：站定举高，不用摆灯的 Skill_3_Loop）→ Skill_3_End 收"
+}

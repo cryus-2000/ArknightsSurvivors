@@ -98,6 +98,28 @@
   "regen": 1.1
  },
  "sprites": {
+  "ult_spine": {
+   "tex": "op_gladiia_ult_spine",
+   "frames": 11,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.08,
+    0.08,
+    0.08,
+    0.137,
+    0.137,
+    0.136,
+    0.2,
+    0.1,
+    0.12,
+    0.12,
+    0.15
+   ],
+   "_doc": "终结技身体条（docs/207，本地原作 Spine 自产：tools/spine_run_trial cfg/gladiia_ult.json）；ult/spine_body=1 时终结技开头播，缺省关"
+  },
   "move_attack": {
    "tex": "op_gladiia_move_attack",
    "frames": 8,
@@ -478,7 +500,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["ult_spine", 
   "entry",
   "s1_begin",
   "s2_start",

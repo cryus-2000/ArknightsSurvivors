@@ -1349,6 +1349,10 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		return false
 	var wind: float = a.wind
 	var t1: float = cd + wind
+	# Mon3tr 本体条（docs/207，开关 ult/spine_body）：落地起播蜷身蓄力 → 张爪，爪最开那一帧落在爆点（之后解体）
+	if t < t1 and not a.has("m3_ult") and _ka_alive(a) and Bal.v("ult/spine_body", 0.0) > 0.5 and o.anim_tex("m_ult") != null:
+		a["m3_ult"] = true
+		a.m3["ult_anim"] = {"key": "m_ult", "t0": u.g.t - (t - cd)}
 	if t < t1:   # 落地蓄力：不伤害；地面预警越来越亮、光往落点收、Mon3tr 身上聚能
 		var kw: float = (t - cd) / wind
 		var core: Vector2 = (a.m3.pos if _ka_alive(a) else c) + Vector2(0, -38.0)
@@ -1635,7 +1639,11 @@ static func _ul_start(u, o, aim: Vector2) -> Dictionary:
 	# 四圈实心圆由内往外依次裂开：每圈对圈内敌人打 ult/ul_ring（0.6）份预算，锁链 ult/ul_path（0.2），每名敌人合计至多 1 份（cap / fr）——
 	# 小怪在它所在的最内一圈就倒；精英 / Boss 裂地第一下补满 1 份（docs/198 §3.4 对齐，10-30）
 	var uf: float = Bal.v("ult/ul_ring", 0.6)
-	return {"k": "ulpianus", "cap": 1.0, "fr": {}, "sc": sc, "p0": o.pos, "c": c, "ta": Bal.v("ult/ul_throw", 0.18), "td": Bal.v("ult/ul_dash", 0.22),
+	# 身体条试点（10-30，docs/207）：本地原作 Spine 自产的掷锚 → 沿链冲 → 落地握锚 8 帧，前 6 帧 0.40 秒对齐 ul_throw + ul_dash；缺省关
+	var body: bool = (Bal.v("ult/ul_spine_body", 0.0) > 0.5 or Bal.v("ult/spine_body", 0.0) > 0.5) and o.anim_tex("ult_spine") != null
+	if body:
+		o.play_vis_anim("ult_spine")
+	return {"k": "ulpianus", "body": body, "cap": 1.0, "fr": {}, "sc": sc, "p0": o.pos, "c": c, "ta": Bal.v("ult/ul_throw", 0.18), "td": Bal.v("ult/ul_dash", 0.22),
 		"hw": 110.0 if rt == "rift" else 80.0, "rift": rt == "rift", "drag": rt == "drag", "pseg": {}, "landed": false, "thrown": false,
 		"rs": [110.0 * sc, 220.0 * sc, 330.0 * sc, 440.0 * sc], "fs": [uf, uf, uf, uf], "ring": 0, "segs": [{}, {}, {}, {}]}
 
@@ -1689,7 +1697,8 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			var hw4 = o.get("hw")   # 落地后 5 秒锚击间隔 −30%：沿用 S3 的 haste 计时（他的数据里没有这个计时就跳过）
 			if hw4 is Dictionary and hw4.has("timers"):
 				hw4.timers["haste"] = maxf(float(hw4.timers.get("haste", 0.0)), Bal.v("ult/ul_haste", 5.0))
-			o.play_vis_anim("attack")
+			if not a.body:
+				o.play_vis_anim("attack")
 		return false
 	var lt: float = a.land_t
 	var rs: Array = a.rs

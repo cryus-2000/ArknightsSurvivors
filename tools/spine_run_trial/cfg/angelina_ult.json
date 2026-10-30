@@ -1,0 +1,91 @@
+{
+ "id": "angelina",
+ "src": "angelina.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "安洁莉娜",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "L",
+ "weapon": "F_Weapon",
+ "footExtra": {
+  "L": [
+   "F_L_Upper"
+  ],
+  "R": [
+   "F_R_Upper"
+  ]
+ },
+ "action": "ult",
+ "canvas": 128,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill2_Begin",
+   "Skill2_Begin",
+   "Skill2_Begin",
+   "Skill2_Loop",
+   "Skill2_Loop",
+   "Skill2_Loop",
+   "Skill2_Loop",
+   "Skill2_End",
+   "Skill2_End",
+   "Skill2_End",
+   "Skill2_End"
+  ],
+  "times": [
+   0.095,
+   0.286,
+   0.476,
+   0.0,
+   0.133,
+   0.267,
+   0.4,
+   0.143,
+   0.286,
+   0.429,
+   0.5
+  ]
+ },
+ "durations": [
+  0.1,
+  0.1,
+  0.1,
+  0.15,
+  0.15,
+  0.15,
+  0.15,
+  0.08,
+  0.1,
+  0.15,
+  0.15
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill2_Begin 举杖（0–0.3）→ Skill2_Loop 托举（0.3–0.9 悬空、停）→ Skill2_End 杖往下压（0.9 砸下）→ 收"
+}

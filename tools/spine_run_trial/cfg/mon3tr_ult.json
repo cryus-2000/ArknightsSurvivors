@@ -1,0 +1,106 @@
+{
+ "id": "mon3tr",
+ "src": "mon3tr.src.json",
+ "name": "Mon3tr",
+ "body": {
+  "hip": "C_Body_I",
+  "chest": "C_Body_III",
+  "head": "C_Head"
+ },
+ "legs": {
+  "L": [
+   "C_Foot_L_A",
+   "C_Foot_L_B",
+   "C_Foot_L_C"
+  ],
+  "R": [
+   "C_Foot_R_A",
+   "C_Foot_R_B",
+   "C_Foot_R_C"
+  ]
+ },
+ "arms": {
+  "L": [
+   "C_Hand_L_A",
+   "C_Hand_L_B",
+   "C_Hand_L_C"
+  ],
+  "R": [
+   "C_Hand_R_A",
+   "C_Hand_R_B",
+   "C_Hand_R_C"
+  ]
+ },
+ "hold": null,
+ "ground": 0,
+ "pack": {
+  "scale": 0.201,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": "game/art/operators/kaltsit/op_mon3tr_native_idle@2x.png"
+ },
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_2",
+   "Skill_2",
+   "Skill_2",
+   "Skill_2",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill"
+  ],
+  "times": [
+   0.704,
+   0.774,
+   0.844,
+   0.915,
+   0.111,
+   0.222,
+   0.333,
+   0.444
+  ],
+  "pinX": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ "durations": [
+  0.12,
+  0.12,
+  0.12,
+  0.06,
+  0.06,
+  0.08,
+  0.2,
+  0.15
+ ],
+ "vis_order": [
+  0,
+  1,
+  2,
+  1,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "_doc": "Mon3tr 终结技本体（10-30 Spine 自产，docs/207；骨架 token_10002_kalts_mon3tr 3.8，比例 / 调色板对齐 Codex op_mon3tr_native_idle）：落地 Skill_2 蜷身蓄力（0.6 秒）→ Skill 张爪熔毁（爆点）；蓄力 f0–f2（f1 往返）0.48 秒 + 张爪 f3–f4 0.12 秒 = ult/ka_wind 0.6，爆点落在 f5 爪最开（之后 Mon3tr 解体）",
+ "install": {
+  "op": "kaltsit",
+  "slot": "m_ult",
+  "tex": "op_mon3tr_ult_spine"
+ }
+}

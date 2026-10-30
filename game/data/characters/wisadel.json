@@ -60,6 +60,28 @@
   "regen": 0.8
  },
  "sprites": {
+  "ult_spine": {
+   "tex": "op_wisadel_ult_spine",
+   "frames": 10,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.05,
+    0.05,
+    0.05,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.1,
+    0.1,
+    0.15
+   ],
+   "foot_exempt": "终结技身体条：原作 Spine 像素化，原点 (64,120)@2x 随画布居中，与顶层小数 foot / 画布口径差 <1px（docs/207）",
+   "_doc": "终结技身体条（docs/207，本地原作 Spine 自产：tools/spine_run_trial cfg/wisadel_ult.json）；ult/spine_body=1 时终结技开头播，缺省关"
+  },
   "move_attack": {
    "tex": "op_wisadel_move_attack",
    "frames": 8,
@@ -1298,6 +1320,7 @@
   ]
  },
  "extra_sprites": [
+  "ult_spine",
   "entry",
   "death",
   "hurt",

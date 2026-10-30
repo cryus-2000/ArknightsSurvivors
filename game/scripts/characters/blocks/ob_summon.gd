@@ -1665,6 +1665,16 @@ static func _mf_hover(o, s: Dictionary, kd: Dictionary) -> float:
 
 ## 这一帧的帧条：[贴图, 帧号, 帧数, 脚底键]；patch 的 seq（起手 intro 帧、loop 段循环、收尾 out 秒停在末帧）代替 idle / run，攻击用 patch.anim.attack
 static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -> Array:
+	# 终结技本体条（docs/207，Mon3tr 落地蓄力 → 张爪）：s.ult_anim = {key, t0} 时先播完这一条（按主人 sprites 的 frame_durations / vis_order），压过其他段；纯画面
+	var ua = s.get("ult_anim")
+	if ua is Dictionary:
+		var ukey: String = str(ua.get("key", ""))
+		var utx: Texture2D = o.anim_tex(ukey)
+		var uel: float = o.g.t - float(ua.get("t0", 0.0))
+		var ufr: Array = o.sprite_spec(ukey).get("vis_order", range(o.anim_hframes(utx, ukey))) if utx != null else []
+		if utx != null and uel < o.frames_seconds(ukey, ufr):
+			return [utx, o.timed_frame(ukey, ufr, uel), o.anim_hframes(utx, ukey), ukey]
+		s.erase("ult_anim")
 	var an: Dictionary = kd.get("anim", {})
 	var pl: Array = kd.get("patch", [])
 	var pt: Dictionary = s.pcur

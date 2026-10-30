@@ -114,6 +114,15 @@ static func _hit(u, a: Dictionary, o, e: Dictionary, frac: float, opt: Dictionar
 	return u.hit(o, e, frac, opt)
 
 
+## 终结技身体条（10-30 docs/207，本地原作 Spine 自产 op_<id>_ult_spine）：开关 ult/spine_body 开、且这名干员有这条时播一整条（纯画面），返回 true；
+## 招式里原来借用的 attack 段就别再播（会盖掉身体条）。缺省关，关时与原来一样
+static func _spine_body(o) -> bool:
+	if Bal.v("ult/spine_body", 0.0) > 0.5 and o.anim_tex("ult_spine") != null:
+		o.play_vis_anim("ult_spine")
+		return true
+	return false
+
+
 ## 同一段只打一次：seg 已命中表
 static func _once(u, a: Dictionary, o, seg: Dictionary, e: Dictionary, frac: float, opt: Dictionary) -> bool:
 	if seg.has(int(e.id)):
@@ -506,7 +515,7 @@ static func _su_start(u, o, d: Vector2) -> Dictionary:
 	var tp: float = Bal.v("ult/su_appear", 0.3)
 	var col: Color = u._col(o)
 	var fe: float = 0.68 if rt == "hearth" else 0.8
-	var a := {"org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "bk": bk, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
+	var a := {"body": _spine_body(o), "org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "bk": bk, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
 		"pf": 1.0 - fe - (0.12 if rt == "hearth" else 0.0), "ef": fe, "pseg": {}, "eseg": {}, "dashed": false, "boom": false,
 		"seal": rt == "seal", "hearth": rt == "hearth", "ht": 0, "hseg": [{}, {}, {}]}
 	o.face_to(d.angle())
@@ -570,7 +579,8 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 			_once(u, a, o, a.pseg, e, float(a.pf), {"src": "瞬身", "stun": 0.3, "pre": true, "edge": absf(_loc(e.pos, org, d).y) > hc})
 	if not a.boom and t >= tb:
 		a.boom = true
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		o.screen_shake(0.7)
 		# 斩痕爆裂：沿斩痕一串白光爆点 + 横贯带宽的交叉斩
 		var n: int = 0 if v2 else 10
@@ -646,7 +656,7 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 		var mp: Vector2 = e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0)
 		marks.append({"e": e, "s": _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
-	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "vs": vs,
+	return {"body": _spine_body(o), "org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "vs": vs,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
 
 
@@ -665,7 +675,8 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 			mk.s.c = mk.e.pos + Vector2(0, -float(mk.e.get("r", 10.0)) - 20.0)
 	if not a.boom and t >= float(a.tm):
 		a.boom = true
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		o.screen_shake(0.6)
 		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.22 if a.v2 else 0.35, "life": 0.25})
 		if a.v2:
@@ -836,7 +847,9 @@ static func _ho_start(u, o) -> Dictionary:
 	var pr: float = Bal.v("ult/ho_pull_r", 438.0)
 	var hold: float = Bal.v("ult/ho_hold", 1.5)
 	var col: Color = u._col(o)
-	o.play_vis_anim("attack")
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
 	o.screen_shake(0.6)
 	u.strip("fx_hoshiguma_block", c + Vector2(0, -14), {"sc": 3.0, "life": 0.3})
 	_hex(u, c, 110.0, 0.0, col, 5.0, hold + 0.1)
@@ -864,7 +877,7 @@ static func _ho_start(u, o) -> Dictionary:
 			"life": hold + 1.4, "fade": 0.6, "col": Color(1.1, 1.08, 1.05), "col1": Color(0.6, 0.58, 0.56), "cold": hold + 0.6})
 		PF.heave(u, c, 120.0, vs0 + 3.0)
 		PF.particles(u, c, 100, "ult_burst_s", [Color(0.85, 0.82, 0.76)], 0.0, vs0, 140.0)
-	return {"v2": hv2, "c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
+	return {"body": body, "v2": hv2, "c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
 		"rf": 0.78 if rt == "ember" else Bal.v("ult/ho_boom", 0.9), "wall": rt == "wall", "ember": rt == "ember", "et": 0, "eseg": [{}, {}, {}],
 		"glow": u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold})}
 
@@ -904,7 +917,8 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 		return false
 	if float(a.boom) < 0.0:
 		a.boom = t
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		o.screen_shake(1.0)
 		u.shapes.erase(a.glow)
 		if a.v2:   # 反震：顿帧 + 石尘冲击环（fx_hs_ring）推到 R + 灰白粒子迸开 + 四拍往外震（节奏同乌尔比安四圈）
@@ -968,8 +982,10 @@ static func _sg_start(u, o, aim: Vector2, d: Vector2) -> Dictionary:
 	_ring(u, o.pos, 110.0, 30.0, COL_ROCK.lerp(Color.WHITE, 0.3), 0.3, 5.0)
 	u.shape({"kind": "dots", "c": o.pos, "r": 80.0, "n": 10, "col": COL_ROCK, "life": 0.35})
 	_ring(u, c, 50.0, R, Color(col, 0.7), T, 3.0)
-	o.play_vis_anim("attack")
-	return {"p0": o.pos, "c": c, "T": T, "R": R, "H": Bal.v("ult/sg_h", 170.0), "landed": false, "mseg": {}, "fseg": {}, "air": [], "still": [],
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
+	return {"body": body, "p0": o.pos, "c": c, "T": T, "R": R, "H": Bal.v("ult/sg_h", 170.0), "landed": false, "mseg": {}, "fseg": {}, "air": [], "still": [],
 		"fall": false, "sp": 0.4 if rt == "cmd" else Bal.v("ult/sg_sp", 0.25), "cmd": rt == "cmd", "leap": rt == "leap",
 		"l2": {}, "l2seg": {}, "prev": o.pos}
 
@@ -977,7 +993,8 @@ static func _sg_start(u, o, aim: Vector2, d: Vector2) -> Dictionary:
 static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, seg: Dictionary, big: bool) -> void:
 	var col: Color = u._col(o)
 	var rc: float = R * _core()
-	o.play_vis_anim("attack")
+	if not a.get("body", false):
+		o.play_vis_anim("attack")
 	o.screen_shake(1.0 if big else 0.6)
 	u.shape({"kind": "circle", "c": c, "r": 100.0, "col": Color.WHITE, "fill": 0.9, "life": 0.1})
 	var v2: bool = big and _sg_v2(u)
@@ -1129,7 +1146,7 @@ static func _ir_start(u, o, d: Vector2) -> Dictionary:
 		var rr: float = R * (0.42 if i % 2 == 0 else 0.68)   # 一近一远，之字形穿过风暴
 		cuts.append({"lo": lo, "hi": hi, "p": org + Vector2.from_angle(mid) * rr, "t": tw + 0.02 + float(i) * Bal.v("ult/ir_cut_gap", 0.075), "done": false})
 	var tb: float = float(cuts[-1].t) + 0.08
-	return {"org": org, "ang": ang, "half": half, "R": R, "tw": tw, "wseg": {}, "wind": false, "cuts": cuts, "cseg": {}, "cf": Bal.v("ult/ir_cut", 0.6),
+	return {"body": _spine_body(o), "org": org, "ang": ang, "half": half, "R": R, "tw": tw, "wseg": {}, "wind": false, "cuts": cuts, "cseg": {}, "cf": Bal.v("ult/ir_cut", 0.6),
 		"tb": tb, "back": false, "shot": false, "eye": home + Vector2.from_angle(ang) * Bal.v("ult/ir_eye", 420.0), "bseg": {}, "air": [], "prev": home, "home": home,
 		"v2": v2, "vs": vs}
 
@@ -1165,7 +1182,8 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 		a.prev = p
 		var mid: float = (float(ct.lo) + float(ct.hi)) * 0.5
 		o.face_to(mid)
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		var pa: Vector2 = org + Vector2.from_angle(float(ct.lo)) * R * 0.2
 		var pb: Vector2 = org + Vector2.from_angle(float(ct.hi)) * R * 0.97
 		if ai % 2 == 1:
@@ -1323,7 +1341,7 @@ static func _la_start(u, o) -> Dictionary:
 		segs.append({})
 		wd.append(false)
 	var R: float = Bal.v("ult/la_r", 502.0)
-	return {"c": o.pos, "R": R, "rc": R * Bal.v("ult/la_core", 0.872), "n": n, "gap": gap, "fly": Bal.v("ult/la_fly", 0.24), "f": 1.0 / n,
+	return {"body": _spine_body(o), "c": o.pos, "R": R, "rc": R * Bal.v("ult/la_core", 0.872), "n": n, "gap": gap, "fly": Bal.v("ult/la_fly", 0.24), "f": 1.0 / n,
 		"segs": segs, "wd": wd, "fired": 0, "bark": rt == "bark"}
 
 
@@ -1354,7 +1372,8 @@ static func _la_wave(u, a: Dictionary, o, i: int) -> void:
 	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 2.0, "col": Color(glow, 0.5), "life": fly * 2.0})
 	for k in 3:   # 她身边旋舞的剑光
 		u.strip("fx_lappland_slash", c + Vector2(0, -16), {"ang": a0 + TAU * k / 3.0, "sc": 1.3, "col": Color(1, 1, 1, 0.9)})
-	o.play_vis_anim("attack")
+	if not a.body:
+		o.play_vis_anim("attack")
 	if i == 0:
 		o.screen_shake(0.5)
 
@@ -1445,7 +1464,7 @@ static func _lu_start(u, o) -> Dictionary:
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
 	var ticks: int = 0 if rt == "watch" else 4
 	var R: float = Bal.v("ult/lu_r", 502.0)
-	var a := {"c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
+	var a := {"body": _spine_body(o), "c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
 		"eseg": {}, "boomed": false, "dur": dur, "tick": 0, "ticks": ticks, "tseg": [{}, {}, {}, {}], "rain": rt == "rain", "rseg": [{}, {}],
 		"rn": 0, "rf": 0, "watch": rt == "watch", "wseg": {}, "wcnt": {}, "rot": 0.0}
 	if v2:
@@ -1466,7 +1485,8 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	var el: float = t - t0
 	if not a.boomed:
 		a.boomed = true
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		o.screen_shake(0.6)
 		if a.has("v2"):
 			FC.lu_boom(u, a, c, R)

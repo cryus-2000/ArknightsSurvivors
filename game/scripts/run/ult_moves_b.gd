@@ -120,6 +120,15 @@ static func _route(o) -> String:
 	return str(r) if r != null else ""
 
 
+## 终结技身体条（10-30 docs/207，本地原作 Spine 自产 op_<id>_ult_spine）：开关 ult/spine_body 开、且这名干员有这条时播一整条（纯画面），返回 true；
+## 招式里原来借用的 attack 段就别再播（会盖掉身体条）。缺省关，关时与原来一样
+static func _spine_body(o) -> bool:
+	if Bal.v("ult/spine_body", 0.0) > 0.5 and o.anim_tex("ult_spine") != null:
+		o.play_vis_anim("ult_spine")
+		return true
+	return false
+
+
 ## 击退距离 → 冲量（敌人 kb 每秒衰减 900）
 static func _kb_v(dist: float) -> float:
 	return sqrt(1800.0 * maxf(0.0, dist))
@@ -352,8 +361,10 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 		# 小怪拖到中心附近（按原距离留一圈，不叠成一点）；精英只拖 160（怒海：拉力更强 +25%）
 		var dt0: float = maxf(36.0, d0 * 0.16 + 30.0) if not (e.elite or e.get("part", false)) else maxf(60.0, d0 - 160.0 * (1.25 if rt == "brute" else 1.0))
 		pulled.append({"e": e, "d0": d0, "d1": minf(d0, dt0), "a0": off.angle(), "sw": 0.0})
-	o.play_vis_anim("attack")
-	var a := {"c": c, "R": R, "DR": DR, "T": Bal.v("ult/gl_spin", 0.65), "H": Bal.v("ult/gl_hold", 0.2), "pulled": pulled, "tick": 0, "rot": 0.0,
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
+	var a := {"body": body, "c": c, "R": R, "DR": DR, "T": Bal.v("ult/gl_spin", 0.65), "H": Bal.v("ult/gl_hold", 0.2), "pulled": pulled, "tick": 0, "rot": 0.0,
 		"crushed": false, "burst": false, "cseg": {}, "arms": [], "shelter": rt == "shield", "ring_t": 0.0, "fx": [], "no_ring": true}
 	_keep(u, a, {"kind": "circle", "c": c, "r": DR, "col": col.darkened(0.5), "fill": 0.16, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 3.0, "col": col.lerp(Color.WHITE, 0.3), "life": 3.0})
@@ -453,7 +464,8 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			a["pt"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": H + 0.3})
 			a["pg"] = _keep(u, a, {"kind": "circle", "c": c, "r": 70.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.55, "life": H + 0.3})
 			a["pr"] = _keep(u, a, {"kind": "ring", "c": c, "r": 120.0, "w": 4.0, "col": col.lerp(Color.WHITE, 0.6), "life": H + 0.3})
-			o.play_vis_anim("attack")
+			if not a.body:
+				o.play_vis_anim("attack")
 		return false
 	if not a.burst:
 		# 一瞬静止：亮点往里收、越收越亮；敌人钉在原地（收拢那下给了 stun）
@@ -514,7 +526,8 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 8.0) * R * 0.32, {"sc": 1.4, "delay": 0.02 * float(i % 2)})
 		if a.shelter:   # 深海的庇护：队长获得 10% 最大生命的护盾（护盾层 API 只有格数，这里先折成回复 10%）
 			u.g.combat.heal(u.g.max_hp * 0.1, "终结技", "gladiia")
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		return false
 	return t >= T + H + 0.15
 
@@ -566,8 +579,10 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 			continue
 		lift.append({"e": e, "d0": off.length(), "a0": off.angle(), "el": e.elite or e.get("part", false)})
 		u.g.enemies_sys.add_cc(e, 1.5 if (e.elite or e.get("part", false)) else 1.2, -INF, "airborne")
-	o.play_vis_anim("attack")
-	var a := {"c": c, "R": R, "lift": lift, "bosses": bosses, "TL": Bal.v("ult/an_lift", 0.6), "TH": Bal.v("ult/an_hold", 0.3), "lifted": false, "slams": 0,
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
+	var a := {"body": body, "c": c, "R": R, "lift": lift, "bosses": bosses, "TL": Bal.v("ult/an_lift", 0.6), "TH": Bal.v("ult/an_hold", 0.3), "lifted": false, "slams": 0,
 		"nslam": 2 if rt == "pull" else 1, "tide": rt == "lock", "tide_t": 0.0, "ring_t": 0.0, "streak_t": 0.0, "fx": []}
 	a["core"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": Color(0.1, 0.02, 0.16), "fill": 0.9, "life": 3.0})
 	a["halo"] = _keep(u, a, {"kind": "ring", "c": c, "r": 60.0, "w": 5.0, "col": col.lerp(Color.WHITE, 0.4), "life": 3.0})
@@ -690,7 +705,8 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 		if si == 0:
 			_fade(u, a, 0.2)
 		o.screen_shake(0.8)
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 	if a.tide and int(a.slams) > 0 and t < 1.5 and t >= float(a.tide_t):
 		a.tide_t = t + 0.3   # 潮汐锁：精英悬浮期间每 0.3 秒 3%
 		for p in a.lift:
@@ -791,8 +807,10 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 		u.shape({"kind": "circle", "c": pp + Vector2(-40, -360), "r": 14.0, "col": Color(1.0, 0.5, 0.1), "fill": 0.95, "life": 0.18, "delay": tp - 0.18 + 0.05,
 			"v": Vector2(40, 360) / 0.18})
 		u.strip("fx_fire_explode", pp, {"sc": 1.4, "delay": tp + 0.05})
-	o.play_vis_anim("attack")
-	return {"c": c, "R": R, "t_col": t_col, "col_done": false, "blobs": blobs, "bi": 0, "fseg": {}, "fall_end": t_fall + span + (0.2 if rt == "ignite" else 0.0),
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
+	return {"body": body, "c": c, "R": R, "t_col": t_col, "col_done": false, "blobs": blobs, "bi": 0, "fseg": {}, "fall_end": t_fall + span + (0.2 if rt == "ignite" else 0.0),
 		"filled": false, "pre": pre, "pi": 0, "pseg": {}, "lava_r": Bal.v("ult/ey_lava_r", 300.0), "lava_t": Bal.v("ult/ey_lava_t", 2.2),
 		"lava_n": int(Bal.v("ult/ey_lava_n", 5.0)), "tick": 0, "t_lava": t_fall + span + 0.05, "fall_frac": 0.5 if rt == "ignite" else Bal.v("ult/ey_fall_frac", 0.6),
 		"pool": false, "fx": [], "v2": v2}
@@ -916,7 +934,8 @@ static func _wd_start(u, o, d: Vector2) -> Dictionary:
 			row.append(o.pos + d * along + n * lat)
 		shells.append({"ps": row, "t": t0 + gap * float(k), "done": false, "after": false})
 	o.face_to(d.angle())
-	o.play_vis_anim("attack")
+	if not _spine_body(o):
+		o.play_vis_anim("attack")
 	var col: Color = u._col(o)
 	# 落点预兆：每发一圈细红环 + 天上落下的炮弹拖线
 	for k in shells.size():
@@ -1015,10 +1034,12 @@ static func _su_start(u, o) -> Dictionary:
 	var dur: float = Bal.v("ult/su_t", 3.0)
 	u.ev["undying_until"] = g.t + dur   # 期间不会倒下（squad.prevent_death 读）
 	u.team_buff("ult:specter_saw", dur, [[&"dmg_taken", "mult", Bal.v("ult/su_taken", 0.5)]])
-	o.play_vis_anim("attack")
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
 	var col: Color = u._col(o)
 	var steel: Color = col.lerp(Color.WHITE, 0.25)
-	var a := {"dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
+	var a := {"body": body, "dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
 	if FC.sp_v2(u):   # 巨锯 v2：一张整圈锯贴图（ult/sp_saw_v2）
 		FC.sp_start(u, a, o.pos)
 	else:
@@ -1107,7 +1128,8 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 			_ring(u, c, full_r + 6.0, full_r + 6.0, Color(1, 1, 1), 0.12, 6.0)
 		if int(a.tick) % 4 == 1:
 			u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
-			o.play_vis_anim("attack")
+			if not a.body:
+				o.play_vis_anim("attack")
 		o.screen_shake(0.25)
 	if int(a.tick) >= n and a.has("sp_saws"):
 		FC.sp_end(u, a)
@@ -1124,7 +1146,9 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 	var half: float = deg_to_rad(Bal.v("ult/mz_arc", 232.0)) * 0.5   # 10-30 对齐表 200 → 232°（朝上瞄时右下 350 处精英也扫得到，屏内小怪 43% → 约 50%）
 	var base: Vector2 = o.pos - d * 90.0
 	o.face_to(d.angle())
-	o.play_vis_anim("attack")
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
 	var v2: bool = FC.mz_v2(u)   # 钻洞 / 小触手 v2：pixgen 小触手 + 地块隆起（ult/mz_grab_v2；大触手是上面的 ult/mz_fx_v2）
 	if not v2:
 		# 破土：身后地面炸开

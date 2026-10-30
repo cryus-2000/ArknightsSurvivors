@@ -105,6 +105,36 @@
   }
  },
  "sprites": {
+  "m_ult": {
+   "tex": "op_mon3tr_ult_spine",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.12,
+    0.12,
+    0.12,
+    0.06,
+    0.06,
+    0.08,
+    0.2,
+    0.15
+   ],
+   "vis_order": [
+    0,
+    1,
+    2,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "_doc": "终结技身体条（docs/207，本地原作 Spine 自产：tools/spine_run_trial cfg/mon3tr_ult.json）；ult/spine_body=1 时终结技开头播，缺省关"
+  },
   "move_attack": {
    "tex": "op_kaltsit_move_attack",
    "frames": 8,
@@ -536,7 +566,7 @@
    ]
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["m_ult", 
   "entry",
   "m_idle",
   "m_run",

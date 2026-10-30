@@ -91,7 +91,8 @@ async function main() {
     for (const n of footSlots(side)) { const s = sk.findSlot(n), a = s.getAttachment(); if (!a) continue; const v = verts(sp, s, a); for (let i = 1; i < v.length; i += 2) y = Math.min(y, v[i]); }
     return y;
   };
-  const ground = Math.min(bottom(base, 'L'), bottom(base, 'R'));
+  // cfg.ground：直接给地面的世界 y（召唤物没有常规腿 / 本来就悬空，如 Mon3tr 取骨架原点 0，与 Codex 原生条同样离地）
+  const ground = cfg.ground ?? Math.min(bottom(base, 'L'), bottom(base, 'R'));
   // 鞋底贴原点：地面映射到 y=120（最后一行 119），与游戏原点 (64,120) 和旧 run 条一致。
   // bz_18 的 mapped_root 按整身包围盒放置，推进之王因锤头垂到脚下会让鞋底悬空约 4 像素。
   ANCHOR[0] += PAD; ANCHOR[1] = 120 + PAD + ground * SCALE;
@@ -168,11 +169,24 @@ async function main() {
     // sample：直接按时间采样现成的 Spine 动画（如 Codex 交来的候选动画），只做像素化
     // retarget：把本体动画的骨骼局部动作转到替身骨骼（名字带 2 后缀）上，只显示替身部件（归溟替身，doll_retarget.js）
     if (cfg.retarget) { const R = cfg.retarget; return finish(require('./doll_retarget.js').retarget(pose, data, R.anim, R.times[i], R.base || ['Idle', 0], R.doll || ['Idle_B', 0.3]), [{ t: R.times[i] }]); }
+    // sample.anims：逐帧换轨（终结技一条横跨掷出 / 冲锋 / 落地几条原作轨）；sample.hide：逐帧按槽名前缀隐藏（离手的锚由游戏特效画）
     if (cfg.sample && cfg.mode !== 'move_attack') {
-      const sk = pose(cfg.sample.anim, cfg.sample.times[i]);
+      const an = cfg.sample.anims?.[i] || cfg.sample.anim, sk = pose(an, cfg.sample.times[i]);
       if (cfg.sample.flatten != null) flatten(sk);
       if (cfg.sample.carry) carry(sk, i);
-      return finish(sk, [{ t: cfg.sample.times[i] }]);
+      // sample.pinX：该帧把髋骨水平拉回待机位置（原作冲锋轨自带根位移，游戏里位移由代码做）
+      if (cfg.sample.pinX?.[i]) { const dx = get(base, cfg.body.hip).worldX - get(sk, cfg.body.hip).worldX; for (const b of sk.bones) b.worldX += dx; }
+      // sample.pinY：髋骨竖直拉回待机高度（跃起类：腾空高度由游戏给，推进之王）；数字 = 只拉回这个比例
+      // sample.snap：整个人竖直平移到最低的脚底贴地（落地 / 砸地帧原作带竖直位移，像素化后陷进地线）
+      if (cfg.sample.snap?.[i]) { const lo = Math.min(bottom(sk, 'L'), bottom(sk, 'R')); if (isFinite(lo)) for (const b of sk.bones) b.worldY += ground - lo; }
+      const py = cfg.sample.pinY?.[i];
+      if (py) { const dy = (get(base, cfg.body.hip).worldY - get(sk, cfg.body.hip).worldY) * (py === true ? 1 : py); for (const b of sk.bones) b.worldY += dy; }
+      // sample.kick：逐帧 [dx, dy, 度]（@2x 像素，度 + = 朝后仰）整个人绕脚底平移 / 转动——原作循环轨静止时补出连发后坐（维什戴尔）
+      const kk = cfg.sample.kick?.[i];
+      if (kk) { const h = get(sk, cfg.body.hip), piv = [h.worldX, ground]; rotate(sk, sk.bones[0], kk[2] * P.facing, piv); move(sk, sk.bones[0], kk[0] / SCALE * P.facing, -kk[1] / SCALE); }
+      const hp = cfg.sample.hide?.[i];
+      if (hp) for (const s of sk.slots) if (hp.some(x => s.data.name.startsWith(x))) s.attachment = null;
+      return finish(sk, [{ anim: an, t: cfg.sample.times[i] }]);
     }
     // base：起始姿势（缺省原生 Idle t=0；如安洁莉娜浮空移动用 Skill2_Loop 举杖姿势）
     const MA = cfg.mode === 'move_attack';
@@ -775,6 +789,8 @@ async function loadPalette() {
     const d = x.getImageData(0, 0, img.width, img.height).data;
     for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 0) set.set((d[i] << 16) | (d[i + 1] << 8) | d[i + 2], [d[i], d[i + 1], d[i + 2]]);
   }
+  // paletteAdd：部件包调色板缺的原作色（乌尔比安锚上铜轮只在技能轨里露出，部件包里没有铜色，像素化后发灰）
+  for (const c of cfg.paletteAdd || []) set.set((c[0] << 16) | (c[1] << 8) | c[2], c);
   return [...set.values()];
 }
 const memo = new Map();

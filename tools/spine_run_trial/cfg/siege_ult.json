@@ -1,0 +1,123 @@
+{
+ "id": "siege",
+ "src": "siege.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Shoulder",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Shoulder",
+   "F_R_Hand"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "R",
+ "weapon": "F_Weapon",
+ "holdPose": {
+  "upper": -115,
+  "fore": 150,
+  "weapon": 158
+ },
+ "editorShift": [
+  0,
+  3.1
+ ],
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill"
+  ],
+  "times": [
+   0.185,
+   0.37,
+   0.556,
+   0.741,
+   0.926,
+   1.02,
+   1.111,
+   1.296,
+   1.481,
+   1.667
+  ],
+  "pinX": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "pinY": [
+   false,
+   false,
+   true,
+   true,
+   true,
+   true,
+   false,
+   false,
+   false,
+   false
+  ],
+  "snap": [
+   true,
+   true,
+   false,
+   false,
+   false,
+   false,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ "durations": [
+  0.06,
+  0.06,
+  0.12,
+  0.12,
+  0.18,
+  0.06,
+  0.15,
+  0.12,
+  0.12,
+  0.15
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：原作 Skill 蹲 → 起跳 → 空中翻身 → 举锤（0–0.6 秒滞空，腾空高度由游戏给，原作竖直位移钉回）→ 下砸（0.6 秒落地）→ 起身；落地后 f6–f9 与起跳前 f0 脚底贴地（snap）；脚底贴地 sample.snap（vreview 10-30 抓到 1–4 px 浮 / 陷）"
+}

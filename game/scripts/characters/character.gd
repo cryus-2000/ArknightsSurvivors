@@ -1447,9 +1447,16 @@ func _act_frame(elapsed: float) -> int:
 
 ## 纯画面动作的时长：帧数 / fps（没写 fps 按 12）
 func vis_dur() -> float:
-	var spec := sprite_spec(vis_anim)
-	var n := float(spec.get("frames", anim_hframes(anim_tex(vis_anim), vis_anim)))
-	return frames_seconds(vis_anim, range(int(n)))
+	return frames_seconds(vis_anim, _vis_frames(vis_anim))
+
+
+## 纯画面动作播哪些帧：缺省整条；sprites.<槽>.vis_order = [帧号…]（可重复）按序播——循环段不必重复画帧
+## （终结技身体条，docs/207：归溟幽灵鲨抡锯 3 秒）。每帧时长仍按该帧号的 frame_durations / fps
+func _vis_frames(kind: String) -> Array:
+	var spec := sprite_spec(kind)
+	if spec.get("vis_order") is Array and not spec.vis_order.is_empty():
+		return spec.vis_order
+	return range(int(spec.get("frames", anim_hframes(anim_tex(kind), kind))))
 
 
 ## kind：逻辑类型（attack / skill，决定出手调哪个函数）；anim：播放的帧条（缺省同 kind）
@@ -2373,7 +2380,7 @@ func _anim_state_raw() -> Dictionary:
 	if sq_ph != 0 and kind == _sq_kind():
 		return {"tex": tx, "frame": _sq_frame(n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if vis_anim != "" and kind == vis_anim:
-		fr = timed_frame(kind, range(n), anim_t)   # 纯画面动作播一遍，停在末帧
+		fr = timed_frame(kind, _vis_frames(kind), anim_t)   # 纯画面动作播一遍，停在末帧
 		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if sprite_spec(kind).has("frame_durations") and act_anim == kind and attack_t > 0.0:
 		fr = attack_phase_frame(n, int(sprite_spec(kind).get("fire", 0)), attack_dur - attack_t, kind) if attack_phased else timed_frame(kind, range(n), attack_dur - attack_t)

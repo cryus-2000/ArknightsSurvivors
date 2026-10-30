@@ -1,0 +1,114 @@
+{
+ "id": "ulpianus",
+ "src": "ulpianus.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "乌尔比安",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Face"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm3",
+   "F_L_Forearm",
+   "F_L_Hand_A"
+  ],
+  "R": [
+   "F_R_Arm3",
+   "F_R_Forearm",
+   "F_R_Hand_A"
+  ]
+ },
+ "hold": null,
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_3_Begin",
+   "Skill_3_Begin",
+   "Skill_3_Begin",
+   "Skill_3_Begin",
+   "Skill_3_ReStart_A",
+   "Skill_3_ReStart_A",
+   "Skill_3_ReStart_A",
+   "Skill_3_ReStart_A"
+  ],
+  "times": [
+   0.061,
+   0.183,
+   0.306,
+   0.428,
+   0.2,
+   0.35,
+   0.55,
+   0.8
+  ],
+  "hide": [
+   [],
+   [],
+   [],
+   [
+    "C_Weapon",
+    "C_Chain"
+   ],
+   [
+    "C_Weapon",
+    "C_Chain"
+   ],
+   [
+    "C_Weapon",
+    "C_Chain"
+   ],
+   [],
+   []
+  ],
+  "pinX": [
+   false,
+   false,
+   false,
+   true,
+   true,
+   true,
+   false,
+   false
+  ]
+ },
+ "durations": [
+  0.045,
+  0.045,
+  0.045,
+  0.045,
+  0.11,
+  0.11,
+  0.15,
+  0.3
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产试点，docs/207）：掷锚 Skill_3_Begin 四帧（f3 锚离手、由游戏飞锚特效画）+ 沿链冲 Skill_3_ReStart_A 两帧（藏锚，锚在落点）+ 落地握锚两帧；durations 对齐 ult/ul_throw 0.18、ul_dash 0.22",
+ "paletteAdd": [
+  [
+   166,
+   138,
+   100
+  ],
+  [
+   128,
+   104,
+   78
+  ]
+ ]
+}
