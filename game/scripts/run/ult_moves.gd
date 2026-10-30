@@ -304,16 +304,46 @@ static func _tx_shatter(u, ln: Array, i0: int) -> void:
 			"v": nrm * sgn * (70.0 + 25.0 * float((k * 7 + i0) % 4)) + d * 30.0 * float((k % 3) - 1)})
 
 
+static func _tx_hh(x: float) -> float:
+	return fposmod(sin(x * 12.9898 + 4.1) * 43758.5453, 1.0)
+
+
+## 第 i 条发丝线的显现时刻：0–0.5 秒内参差（不再等间隔）
+static func _tx_web_t(u, i: int, n: int) -> float:
+	return 0.5 * (float(i) + 0.75 * _tx_hh(float(u.serial) * 7.1 + float(i))) / float(n)
+
+
+static func _tx_web(u, ln: Array, i: int, life: float) -> void:
+	var a: Vector2 = ln[0]
+	var b: Vector2 = ln[1]
+	var L: float = a.distance_to(b)
+	var d: Vector2 = (b - a) / maxf(1.0, L)
+	var nv: Vector2 = d.orthogonal()
+	var sd: float = float(u.serial) * 13.7 + float(i) * 3.3
+	var x: float = L * 0.06 * _tx_hh(sd)
+	var k := 0
+	while x < L * (0.9 + 0.1 * _tx_hh(sd + 9.0)) and k < 12:
+		var h1: float = _tx_hh(sd + 1.7 * k)
+		var h2: float = _tx_hh(sd + 2.9 * k + 0.5)
+		var seg: float = L * (0.07 + 0.16 * h1)
+		var off: Vector2 = nv * (h2 - 0.5) * 8.0
+		var dd: Vector2 = d.rotated((h1 - 0.5) * 0.04)
+		var p0: Vector2 = a + d * x + off
+		u.shape({"kind": "line", "a": p0, "b": p0 + dd * seg, "w": 1.5 if h2 < 0.6 else 3.0, "col": Color(TX_GLOW, 0.55 + 0.45 * h1), "life": life})
+		x += seg + L * (0.015 + 0.05 * h2)
+		k += 1
+
+
 static func _tx_step(u, a: Dictionary, o) -> bool:
 	var t: float = a.t
 	var col: Color = u._col(o)
 	var hi: Color = col.lerp(Color.WHITE, 0.6)
 	var lines: Array = a.lines
 	var n: int = lines.size()
-	while int(a.drawn) < n and t >= float(a.drawn) * 0.5 / float(n):
-		# 画网：一道道橙色发丝线显现（斩开前的预兆）
-		var pl: Array = lines[int(a.drawn)]
-		u.shape({"kind": "line", "a": pl[0], "b": pl[1], "w": 1.5, "col": TX_GLOW, "life": maxf(0.05, 0.75 - t)})
+	while int(a.drawn) < n and t >= _tx_web_t(u, int(a.drawn), n):
+		# 画网：一道道橙色发丝线显现（斩开前的预兆）；10-30 预审「等距重复的斜线」→ 每条拆成长短不一、带缺口的几段，
+		# 各段略偏位 / 偏角、粗细与浓淡不一，显现时刻参差（按终结技序号 + 线序号哈希，可重现、不碰随机数；lines 本身不动）
+		_tx_web(u, lines[int(a.drawn)], int(a.drawn), maxf(0.05, 0.75 - t))
 		a.drawn = int(a.drawn) + 1
 	if not a.cut and t >= 0.75:
 		a.cut = true
@@ -342,8 +372,10 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 			var due_v: int = mini(sw.size(), int(ceil((t + lead - t0) / 0.8 * float(sw.size()))))
 			while int(a.sv[ri]) < due_v:
 				var j: int = int(a.sv[ri])
-				if j % int(a.stride) == 0:
-					u.strip("fx_ult_texas_sword_front", sw[j], {"o": Vector2(32, 224)})
+				if j % int(a.stride) == 0:   # 每把剑只在画面上微偏位 / 偏角 / 变大小（10-30 预审「等距同角度的重复贴图」；伤害落点 sw[j] 不动）
+					var hj: float = float(u.serial) * 5.3 + float(j) * 1.77
+					var jo: Vector2 = Vector2(_tx_hh(hj) - 0.5, _tx_hh(hj + 3.0) - 0.5) * 22.0
+					u.strip("fx_ult_texas_sword_front", sw[j] + jo, {"o": Vector2(32, 224), "ang": (_tx_hh(hj + 6.0) - 0.5) * 0.3, "sc": 0.85 + 0.3 * _tx_hh(hj + 9.0)})
 				a.sv[ri] = j + 1
 		if t < t0:
 			continue
@@ -518,6 +550,10 @@ static func _ex_break(u, lk: Dictionary) -> void:
 
 
 ## 爆裂弹爆点（fx_ult_exusiai_burst_front 放大 + 金色闪光 + 红色冲击环）：同一时刻在场超过 ult/ex_burst_fx（48）个就跳过这一个（只少画、不少打）
+static func i_burst(a: Dictionary) -> int:
+	return (a.bt as Array).size()
+
+
 static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 	var t: float = a.t
 	var bt: Array = a.bt
@@ -526,9 +562,14 @@ static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 	if bt.size() >= int(Bal.v("ult/ex_burst_fx", 48.0)):
 		return
 	bt.append(t)
-	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc * 1.5})
-	u.shape({"kind": "circle", "c": p, "r": 46.0 * sc, "col": EX_GOLD, "fill": 0.7, "life": 0.1})
-	u.shape({"kind": "ring", "c": p, "r": 92.0 * sc, "r1": 20.0, "w": 6.0, "col": EX_RED, "life": 0.24})   # 缺省碎裂：一圈红色碎块往外崩
+	# 10-30 预审「拼接感」：同一张爆点帧条同大小同朝向排满屏 → 每发按发数哈希转角 / 缩放 0.8–1.25 / 左右翻转，核与碎环大小也打散（纯画面）
+	var hf: float = float(int(a.fired)) * 1.618 + float(i_burst(a))
+	var j1: float = fposmod(sin(hf * 12.9898) * 43758.5453, 1.0)
+	var j2: float = fposmod(sin(hf * 78.233) * 12345.678, 1.0)
+	var js: float = 0.8 + 0.45 * j1
+	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc * 1.5 * js, "ang": TAU * j2, "sx": -1.0 if j1 < 0.5 else 1.0})
+	u.shape({"kind": "circle", "c": p, "r": 46.0 * sc * (0.75 + 0.5 * j2), "col": EX_GOLD, "fill": 0.7, "life": 0.1})
+	u.shape({"kind": "ring", "c": p, "r": 92.0 * sc * js, "r1": 20.0, "w": 6.0, "col": EX_RED, "life": 0.2 + 0.08 * j1})   # 缺省碎裂：一圈红色碎块往外崩
 	var i: int = bt.size()
 	u.grain("bul_pop", p, Vector2.from_angle(float(int(a.fired)) * 2.39996), EX_GOLD if i % 2 == 0 else EX_RED, 7)
 	if int(a.fired) % 3 == 0:   # 灯只有 16 盏：每 3 发一盏，火星 / 碎屑同样抽稀
