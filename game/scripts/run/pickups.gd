@@ -328,10 +328,11 @@ func levelup_fx() -> void:
 	if g.lvup_delay <= 0.0:
 		g.lvup_delay = 0.5
 	g.invuln = max(g.invuln, 0.9)
-	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 150.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4)})
-	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 80.0, "life": 0.35, "max": 0.35, "col": Color(0.6, 1.0, 0.95)})
-	g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
-	g.vfx.levelup_burst(g.ppos)   # docs/54 ②：柔光 + 光柱 + 光尘 + 轻闪（fx/levelup_burst）
+	if not g.vfx.levelup_burst_v2(g.ppos):   # docs/208 H2：一次性光爆（不画同心圈 / 光柱帧条）；开关 fx/levelup_v2 = 0 或终结技框架关时退回旧版
+		g.fx.append({"kind": "ring", "pos": g.ppos, "r": 150.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4)})
+		g.fx.append({"kind": "ring", "pos": g.ppos, "r": 80.0, "life": 0.35, "max": 0.35, "col": Color(0.6, 1.0, 0.95)})
+		g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
+		g.vfx.levelup_burst(g.ppos)   # docs/54 ②：柔光 + 光柱 + 光尘 + 轻闪（fx/levelup_burst）
 	for e in g.enemies_sys.query(g.ppos, 170.0):
 		var en: Dictionary = g.enemies[e]
 		if en.boss or en.chest:
