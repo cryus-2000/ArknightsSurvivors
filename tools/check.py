@@ -1135,7 +1135,7 @@ SCENE_REGRESSIONS = {
     "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
-    "hoshiguma_taunt": ("星熊 S1 站定嘲讽 + 防御反击（10-24，docs/140）", "hoshiguma_taunt_test", r"HOSHIGUMA TAUNT failures=0", ["--balance", "--op=mizuki", "--squad=hoshiguma"]),
+    "hoshiguma_taunt": ("星熊 S1 重斩 + 拉怪（10-30 改版，docs/140）", "hoshiguma_taunt_test", r"HOSHIGUMA TAUNT failures=0", ["--balance", "--op=mizuki", "--squad=hoshiguma"]),
     "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--balance", "--op=ulpianus"]),
     "ulpianus_click": ("乌尔比安 S3 左键点场地释放、点 HUD 不误触（10-26）", "ulpianus_click_test", r"ULPIANUS CLICK failures=0", ["--bal=ult/on=0", "--balance", "--op=ulpianus"]),
     "saria_slots": ("塞雷娅 S3 晶柱碰怪即碎、原位重新长出（10-29）", "saria_slots_test", r"SARIA SLOTS failures=0", ["--balance", "--op=saria"]),
