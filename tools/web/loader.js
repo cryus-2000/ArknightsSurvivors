@@ -122,7 +122,7 @@
         '<div class="sv-body2">' + logBox('sv-frame') + tipBox() + '</div>' +
         '<div class="sv-gauge"><div class="sv-rule"><div class="sv-ruler">' + ticks + '</div></div><div class="sv-read"><div class="sv-cap sy-en">DEPTH</div><div class="sv-depth">-0000<small>m</small></div><div class="sv-sync"></div></div></div>' +
         '<div class="sv-jwrap">' + JELLY + '</div>';
-    } else {   // 3 声呐终端（10-31 第三版：照用户给的 PRTS 参考改成浅色终端版式——浅灰底、墨黑线条、盘后巨大空心 PRTS、圈心本作徽记、右上低多边形网格；
+    } else {   // 3 声呐终端（10-31 第三版：照用户给的 PRTS 参考做终端版式（同日用户「不要用浅色」改成深海底浅色线）——盘后巨大空心 PRTS、圈心本作徽记、右上低多边形网格；
                //   去掉水母；声呐接触点 = 日志里的每一项真实加载步骤，扫描扇面扫过时闪亮，读完变实心；读到最后整屏渐暗成深海色接标题页）
       var tk = '', lab = '';
       for (var k = 0; k < 72; k++) {
@@ -149,14 +149,14 @@
       for (var wi = 0; wi <= 20; wi++) wave += (wi === 0 ? 'M' : 'L') + (-33 + 66 * wi / 20).toFixed(1) + ' ' + (27 + Math.sin(wi / 20 * 2 * Math.PI) * 3.2).toFixed(1);   // 徽记里的一道浪
       h = '<svg class="sv-net" viewBox="0 0 100 100" preserveAspectRatio="none">' + net + '</svg>' +
         '<div class="sv-brand"><b>PRTS</b><em class="sy-en">SONAR TERMINAL</em><span>声呐终端 · 链路建立</span></div>' +
-        '<div class="sv-dial"><svg viewBox="-230 -230 460 460"><defs><linearGradient id="sv-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#121416" stop-opacity="0"/><stop offset="1" stop-color="#121416" stop-opacity=".16"/></linearGradient></defs>' +
-        '<circle r="180" fill="rgba(231,233,236,.82)" stroke="#121416" stroke-width="1.5"/><circle r="119" fill="none" stroke="rgba(128,135,143,.5)"/><circle r="60" fill="none" stroke="rgba(128,135,143,.4)"/>' +
-        '<line x1="-180" y1="0" x2="180" y2="0" stroke="rgba(128,135,143,.3)"/><line x1="0" y1="-180" x2="0" y2="180" stroke="rgba(128,135,143,.3)"/>' +
-        '<g class="sy-sweep"><path d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sv-sw)"/><line x1="0" y1="0" x2="180" y2="0" stroke="rgba(18,20,22,.55)"/></g>' +
+        '<div class="sv-dial"><svg viewBox="-230 -230 460 460"><defs><linearGradient id="sv-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ee6e6" stop-opacity="0"/><stop offset="1" stop-color="#5ee6e6" stop-opacity=".2"/></linearGradient></defs>' +
+        '<circle r="180" fill="rgba(6,11,16,.82)" stroke="#dfe9ee" stroke-width="1.5"/><circle r="119" fill="none" stroke="rgba(112,135,148,.5)"/><circle r="60" fill="none" stroke="rgba(112,135,148,.4)"/>' +
+        '<line x1="-180" y1="0" x2="180" y2="0" stroke="rgba(112,135,148,.3)"/><line x1="0" y1="-180" x2="0" y2="180" stroke="rgba(112,135,148,.3)"/>' +
+        '<g class="sy-sweep"><path d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sv-sw)"/><line x1="0" y1="0" x2="180" y2="0" stroke="rgba(223,233,238,.55)"/></g>' +
         '<g class="sv-contacts"></g><g class="sv-ticks">' + tk + '</g><g class="sv-az">' + lab + '</g>' +
-        '<g class="sv-geo1"><path d="M0 -78 L78 0 L0 78 L-78 0 Z" fill="none" stroke="rgba(18,20,22,.55)"/></g><g class="sv-geo2"><path d="M0 -100 L100 0 L0 100 L-100 0 Z" fill="none" stroke="rgba(18,20,22,.32)"/></g>' +
+        '<g class="sv-geo1"><path d="M0 -78 L78 0 L0 78 L-78 0 Z" fill="none" stroke="rgba(223,233,238,.55)"/></g><g class="sv-geo2"><path d="M0 -100 L100 0 L0 100 L-100 0 Z" fill="none" stroke="rgba(223,233,238,.3)"/></g>' +
         '<g class="sv-orbit"><path d="M206 0 l8 5 l0 -10 Z" transform="rotate(0)"/><path d="M206 0 l8 5 l0 -10 Z" transform="rotate(120)"/><path d="M206 0 l8 5 l0 -10 Z" transform="rotate(240)"/></g>' +
-        '<path d="M0 -54 L54 0 L0 54 L-54 0 Z" fill="#e7e9ec" stroke="#121416" stroke-width="3"/><path d="' + wave + '" fill="none" stroke="#121416" stroke-width="1.5"/>' +
+        '<path d="M0 -54 L54 0 L0 54 L-54 0 Z" fill="#060b10" stroke="#dfe9ee" stroke-width="3"/><path d="' + wave + '" fill="none" stroke="#dfe9ee" stroke-width="1.5"/>' +
         '</svg><div class="sv-center"><div class="sv-num">0.0%</div></div><div class="sv-ri sy-en">RHODES ISLAND</div></div>' +
         '<div class="sv-log sv-left"><div class="sv-cap sy-en">SYSTEM LOG</div><div class="sv-lines"></div></div>' +
         '<div class="sv-tele"><div class="sv-cap sy-en">TELEMETRY</div><div class="sv-rows"></div>' + tipBox('sv-in') + '</div>' +
@@ -221,7 +221,7 @@
       }
       v.rows.innerHTML = '<div><b>同步</b>' + (Math.floor(f * 1000) / 10).toFixed(1) + '%</div><div><b>接触</b>' + (logs.length - 1) + '</div><div><b>阶段</b>' + esc(stage.text) + '</div>';
       v.build.textContent = 'BUILD 1031 · T+' + ('00' + nowS().toFixed(1)).slice(-5);
-      v.dark.style.opacity = String(Math.max(0, Math.min(1, (f - 0.93) / 0.07)) * 0.92);
+      v.dark.style.opacity = String(Math.max(0, Math.min(1, (f - 0.93) / 0.07)) * 0.6);
       var ne = Math.floor(v.net.length * Math.min(1, f * 1.05));
       if (v.net.__n !== ne) { for (var e = 0; e < v.net.length; e++) v.net[e].setAttribute('class', e < ne ? 'on' : ''); v.net.__n = ne; }
     }

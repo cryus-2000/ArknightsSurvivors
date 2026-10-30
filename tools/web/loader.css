@@ -116,56 +116,56 @@
 #sy-load .sv-depth small { font-size: 16px; color: #5ee6e6; margin-left: 4px; }
 #sy-load .sv-sync { margin-top: 10px; font-size: 12px; color: #5ee6e6; }
 #sy-load .sv2 .sv-jwrap, #sy-load.sv2 .sv-jwrap { position: absolute; left: 58%; top: 52%; width: 110px; opacity: 0; transition: opacity .3s, transform .3s; }
-/* 3 声呐终端（10-31 第三版：PRTS 浅色终端版式） */
-#sy-load.sv3 { background: #e7e9ec; color: #121416; }
-#sy-load.sv3 .sy-foot { color: #80878f; }
+/* 3 声呐终端（10-31 第三版：PRTS 终端版式，深海底浅色线） */
+#sy-load.sv3 { background: #060b10; color: #dfe9ee; }
+#sy-load.sv3 .sy-foot { color: #6f858f; }
 #sy-load .sv-net { position: absolute; inset: 0; width: 100%; height: 100%; }
-#sy-load .sv-net line { stroke: rgba(184, 190, 196, .95); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0; transition: opacity .6s linear; }
+#sy-load .sv-net line { stroke: rgba(48, 70, 82, .95); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0; transition: opacity .6s linear; }
 #sy-load .sv-net line.on { opacity: 1; }
-#sy-load .sv-net .nd { fill: #9aa1a8; animation: sv-drift 6s ease-in-out infinite alternate; transform-box: fill-box; }
+#sy-load .sv-net .nd { fill: #56707c; animation: sv-drift 6s ease-in-out infinite alternate; transform-box: fill-box; }
 @keyframes sv-drift { to { transform: translate(.6px, .9px); } }
 #sy-load .sv-geo1, #sy-load .sv-geo2, #sy-load .sv-orbit { transform-origin: 0 0; }
 #sy-load .sv-geo1 { animation: sy-spin 18s linear infinite; }
 #sy-load .sv-geo2 { animation: sy-spin 28s linear infinite reverse; }
 #sy-load .sv-orbit { animation: sy-spin 10.5s linear infinite; }
-#sy-load .sv-orbit path { fill: #121416; }
+#sy-load .sv-orbit path { fill: #dfe9ee; }
 #sy-load .sv-brand { position: absolute; left: 40px; top: 30px; line-height: 1.15; }
 #sy-load .sv-brand b { display: block; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 30px; font-weight: 800; letter-spacing: 1px; }
 #sy-load .sv-brand em { display: block; font-style: normal; font-size: 9px; letter-spacing: 2px; }
-#sy-load .sv-brand span { display: block; margin-top: 6px; font-size: 11px; color: #80878f; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+#sy-load .sv-brand span { display: block; margin-top: 6px; font-size: 11px; color: #6f858f; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
 #sy-load.sv3 .sv-dial { position: absolute; left: 50%; top: 50%; width: min(440px, 60vh, 44vw); aspect-ratio: 1; transform: translate(-50%, -50%); }
 #sy-load.sv3 .sv-dial svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 #sy-load.sv3 .sv-ticks line { stroke: rgba(194, 199, 204, .9); }
-#sy-load.sv3 .sv-ticks line.on { stroke: #121416; }
-#sy-load.sv3 .sv-ticks line.cur { stroke: #009aa3; animation: sv-blink .5s steps(1) infinite; }
-#sy-load.sv3 .sv-az text { fill: #80878f; font-size: 10px; text-anchor: middle; font-family: Consolas, Menlo, monospace; }
-#sy-load .sv-contacts rect { fill: #121416; }
-#sy-load .sv-contacts .go rect { fill: #009aa3; }
-#sy-load .sv-contacts .go rect.bx { fill: none; stroke: #009aa3; stroke-width: 1.5; animation: sv-blink .8s steps(1) infinite; }
-#sy-load .sv-contacts text { fill: #80878f; font-size: 9px; font-family: Consolas, Menlo, monospace; }
-#sy-load .sv-contacts .pg { fill: none; stroke: #121416; stroke-width: 1; opacity: 0; transform-box: fill-box; transform-origin: center; animation: sv-ping 3.2s linear infinite; }
-#sy-load .sv-contacts .go .pg { stroke: #009aa3; }
+#sy-load.sv3 .sv-ticks line.on { stroke: #dfe9ee; }
+#sy-load.sv3 .sv-ticks line.cur { stroke: #5ee6e6; animation: sv-blink .5s steps(1) infinite; }
+#sy-load.sv3 .sv-az text { fill: #6f858f; font-size: 10px; text-anchor: middle; font-family: Consolas, Menlo, monospace; }
+#sy-load .sv-contacts rect { fill: #dfe9ee; }
+#sy-load .sv-contacts .go rect { fill: #5ee6e6; }
+#sy-load .sv-contacts .go rect.bx { fill: none; stroke: #5ee6e6; stroke-width: 1.5; animation: sv-blink .8s steps(1) infinite; }
+#sy-load .sv-contacts text { fill: #6f858f; font-size: 9px; font-family: Consolas, Menlo, monospace; }
+#sy-load .sv-contacts .pg { fill: none; stroke: #dfe9ee; stroke-width: 1; opacity: 0; transform-box: fill-box; transform-origin: center; animation: sv-ping 3.2s linear infinite; }
+#sy-load .sv-contacts .go .pg { stroke: #5ee6e6; }
 @keyframes sv-ping { 0% { opacity: .55; transform: scale(1); } 30% { opacity: 0; transform: scale(2.3); } 100% { opacity: 0; } }
 #sy-load.sv3 .sv-center { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; }
-#sy-load.sv3 .sv-num { font-size: min(26px, 4vh); color: #121416; margin-top: -2px; }
-#sy-load .sv-ri { position: absolute; left: 0; right: 0; top: calc(100% + 40px); text-align: center; font-size: 10px; letter-spacing: 9px; color: #121416; }
-#sy-load.sv3 .sv-cap { color: #121416; border-bottom: 1.5px solid #121416; padding-bottom: 6px; margin-bottom: 10px; }
+#sy-load.sv3 .sv-num { font-size: min(26px, 4vh); color: #dfe9ee; margin-top: -2px; }
+#sy-load .sv-ri { position: absolute; left: 0; right: 0; top: calc(100% + 40px); text-align: center; font-size: 10px; letter-spacing: 9px; color: #dfe9ee; }
+#sy-load.sv3 .sv-cap { color: #dfe9ee; border-bottom: 1.5px solid #dfe9ee; padding-bottom: 6px; margin-bottom: 10px; }
 #sy-load.sv3 .sv-left, #sy-load.sv3 .sv-tele { position: absolute; width: min(330px, calc(50% - min(220px, 30vh, 22vw) - 90px)); }
 #sy-load.sv3 .sv-left { left: 40px; bottom: 56px; }
 #sy-load.sv3 .sv-tele { right: 40px; top: calc(50% - 60px); font-size: 13px; line-height: 25px; }
-#sy-load.sv3 .sv-lines div { color: #121416; font-size: 13px; line-height: 20px; }
-#sy-load.sv3 .sv-lines div.ok { color: #121416; }
-#sy-load.sv3 .sv-lines div.wait { color: #80878f; }
-#sy-load.sv3 .sv-lines b { color: #80878f; }
-#sy-load.sv3 .sv-lines u { color: #c2c7cc; }
-#sy-load.sv3 .sv-lines em { color: #121416; }
-#sy-load.sv3 .sv-lines div.now em { color: #009aa3; }
-#sy-load.sv3 .sv-cur { color: #009aa3; }
-#sy-load.sv3 .sv-rows b { font-weight: 400; color: #80878f; display: inline-block; width: 3.4em; }
-#sy-load.sv3 .sv-tip .sv-cap { border: 0; color: #80878f; margin: 12px 0 4px; }
-#sy-load.sv3 .sv-tip .bd { color: #3f454b; }
-#sy-load .sv-build { position: absolute; right: 40px; bottom: 34px; font-size: 11px; color: #80878f; }
-#sy-load .sv-dark { position: absolute; inset: 0; background: #05090d; opacity: 0; pointer-events: none; transition: opacity .3s; }
+#sy-load.sv3 .sv-lines div { color: #dfe9ee; font-size: 13px; line-height: 20px; }
+#sy-load.sv3 .sv-lines div.ok { color: #dfe9ee; }
+#sy-load.sv3 .sv-lines div.wait { color: #6f858f; }
+#sy-load.sv3 .sv-lines b { color: #6f858f; }
+#sy-load.sv3 .sv-lines u { color: #24323a; }
+#sy-load.sv3 .sv-lines em { color: #dfe9ee; }
+#sy-load.sv3 .sv-lines div.now em { color: #5ee6e6; }
+#sy-load.sv3 .sv-cur { color: #5ee6e6; }
+#sy-load.sv3 .sv-rows b { font-weight: 400; color: #6f858f; display: inline-block; width: 3.4em; }
+#sy-load.sv3 .sv-tip .sv-cap { border: 0; color: #6f858f; margin: 12px 0 4px; }
+#sy-load.sv3 .sv-tip .bd { color: #a9bac0; }
+#sy-load .sv-build { position: absolute; right: 40px; bottom: 34px; font-size: 11px; color: #6f858f; }
+#sy-load .sv-dark { position: absolute; inset: 0; background: #02050a; opacity: 0; pointer-events: none; transition: opacity .3s; }
 #sy-load .sv-lines div.nw span { animation: sv-type .35s steps(10) both; display: inline-block; overflow: hidden; }
 @keyframes sv-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 #sy-load .sv-jelly { width: 100%; height: auto; display: block; animation: sv-bob 3s ease-in-out infinite; }

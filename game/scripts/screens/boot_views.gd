@@ -292,16 +292,17 @@ func draw_v2(vs: Vector2, st: Dictionary) -> void:
 # ================================================================ 3 声呐终端
 
 ## 10-31 第三版（用户给 PRTS 风格参考图：浅灰底、黑色几何线条、巨大的空心字、字距拉开的英文小字、低多边形网格；「水母不要，就算要有声呐，声呐上也得显示点」）：
-## 浅色终端版式——底色浅灰、墨黑线条与字、只在「正在进行」处点一点青；圈心是本作徽记（菱形 + 一道浪，不用官方标志）里写百分比。
+## 终端版式（参考图的浅灰底墨黑线，10-31 改成深海底浅色线）——只在「正在进行」处点一点青；圈心是本作徽记（菱形 + 一道浪，不用官方标志）里写百分比。
 ## 同日用户「PRTS 不用放在后面，可以增加一点几何的动效」：去掉盘后的空心大字，加几何动效（_net 右上网格按进度连线、_geo 反向慢转的菱形框与绕圈小三角）。
 ## 声呐接触点 = 真实加载项：系统日志里的每一项（编译类别 / 阶段）一个点（按行的 key 定方位与距离），读到时出现、扫描扇面扫过时闪亮，读满变实心；
 ## 外圈 72 刻度仍是总进度。右上一片低多边形网格，左下系统日志、右侧读数，底部字距拉开的 RHODES ISLAND 与版本行。
-## 读到最后（进度 > 93%）整屏渐暗成深海色，接深海水母标题页
-const PBG := Color(0.905, 0.914, 0.925)
-const INK := Color(0.07, 0.08, 0.09)
-const GRAY := Color(0.5, 0.53, 0.56)
-const PALE := Color(0.76, 0.78, 0.8)
-const ACC := Color(0.0, 0.6, 0.64)
+## 读到最后（进度 > 93%）整屏再压暗一点，接深海水母标题页
+## 10-31 用户「不要用浅色的，这样的话和后面的差距太大了」：版式不变，配色反过来——深海底、浅色线条与字、青色只点在进行中
+const PBG := Color(0.024, 0.043, 0.063)
+const INK := Color(0.87, 0.92, 0.94)
+const GRAY := Color(0.44, 0.53, 0.58)
+const PALE := Color(0.15, 0.22, 0.27)
+const ACC := Color(0.369, 0.902, 0.902)
 const DEEP := Color(0.02, 0.05, 0.08)
 
 
@@ -354,11 +355,11 @@ func _net(vs: Vector2, tt: float, p: float, corner: int) -> void:
 			break
 		var a: Vector2 = pts[edges[e][0]]
 		var b: Vector2 = pts[edges[e][1]]
-		c.draw_line(a, a.lerp(b, f), Color(PALE.darkened(0.05), 0.95), 1.0, true)
+		c.draw_line(a, a.lerp(b, f), Color(PALE.lightened(0.12), 0.95), 1.0, true)
 		if f < 1.0:
 			c.draw_rect(Rect2(a.lerp(b, f) - Vector2(2, 2), Vector2(4, 4)), ACC)   # 正在连的那一端
 	for q2 in pts:
-		c.draw_rect(Rect2(q2 - Vector2(2, 2), Vector2(4, 4)), PALE.darkened(0.2))
+		c.draw_rect(Rect2(q2 - Vector2(2, 2), Vector2(4, 4)), PALE.lightened(0.25))
 
 
 ## 圈心外的几何动效：两层反向慢转的菱形框 + 外圈三枚沿圈转的小三角（减少动态效果时停在原位）
@@ -493,7 +494,7 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 			yy += sz + 12.0
 		var brk := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
 		en(Vector2(rx, yy + 14), "NOTE", 10, GRAY, 3.0)
-		c.draw_multiline_string(font, Vector2(rx, yy + 34), st.tip, HORIZONTAL_ALIGNMENT_LEFT, rw, sz - 1, -1, Color(0.25, 0.27, 0.3, st.tip_a), brk)
+		c.draw_multiline_string(font, Vector2(rx, yy + 34), st.tip, HORIZONTAL_ALIGNMENT_LEFT, rw, sz - 1, -1, Color(0.66, 0.74, 0.77, st.tip_a), brk)
 	else:
 		var lr3 := Rect2(m + 10, cen.y + R + 84, vs.x - 2 * m - 20, vs.y * 0.24)
 		c.draw_line(lr3.position + Vector2(0, -22), lr3.position + Vector2(lr3.size.x, -22), INK, 1.5)
@@ -503,7 +504,7 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 	# 读到最后：整屏渐暗成深海色，接深海水母标题页
 	var dk: float = clampf((p - 0.93) / 0.07, 0.0, 1.0)
 	if dk > 0.0:
-		c.draw_rect(Rect2(Vector2.ZERO, vs), Color(DEEP, 0.92 * dk))
+		c.draw_rect(Rect2(Vector2.ZERO, vs), Color(DEEP, 0.6 * dk))
 
 
 ## 浅色版日志：墨黑字、灰时间戳、完成 OK 墨黑、在读的一行青色光标
