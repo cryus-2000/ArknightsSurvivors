@@ -1,6 +1,7 @@
 extends RefCounted
 ## Read-only run-end presentation. No combat work, RNG or input registration in draw.
 const RS = preload("res://scripts/run/run_stats.gd")
+const OpFig = preload("res://scripts/screens/op_figure.gd")
 const HH = preload("res://scripts/screens/hh_style.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const Roster = preload("res://scripts/core/roster.gd")
@@ -730,13 +731,7 @@ func _card(ci: CanvasItem, r: Dictionary, x: float, index: int, t0 := 0.0) -> vo
 	HH.fill(ci,PackedVector2Array([Vector2(x+16,288),Vector2(x+210,288),Vector2(x+194,459),Vector2(x,459)]),HH.LIGHT if r.leader else HH.DARK2)
 	ci.draw_rect(Rect2(x+16,288,40,3),HH.CYB if index==selected else r.col)
 	if art.has(r.key):
-		var a: Dictionary = art[r.key]
-		var bb: Rect2 = a.bounds
-		if bb.has_area():
-			var k := floorf(minf(190/bb.size.x,146/bb.size.y)*2.0)/2.0
-			k = maxf(0.5,k)
-			var sz := bb.size*k
-			ci.draw_texture_rect_region(a.tex,Rect2(Vector2(x+110-sz.x/2,451-sz.y).round(),sz),bb)
+		OpFig.draw(ci, g.panel_ui.op_idle(str(r.key)), Rect2(x + 15, 305, 190, 146))   # 全员同一比例（screens/op_figure.gd）
 	_text(ci,x+8,474,str(r.name),24,HH.LIGHT,145)
 	_text(ci,x+151,480,"队长" if r.leader else ("已离队" if r.left_t>=0 else ""),11,HH.CYB)
 	_text(ci,x+8,513,"伤害占比",12,HH.MUTE)
