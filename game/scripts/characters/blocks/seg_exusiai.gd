@@ -121,7 +121,7 @@ static func _exu_muzzle(o, p: Dictionary) -> Vector2:
 ## 队友在「清杂优先」（docs/114 §13）下自动瞄准时直接用 aim_targets 的优先级顺序（不再按精英加权重排，也不把 Boss 提前）
 static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 	var pool: Array = o.aim_targets(maxi(n * 3, 8), rr, o.pos)
-	var mob_first: bool = o.prio_mode() == 1 and not o.manual_attack()
+	var mob_first: bool = o.prio_mode() == 1 and not o.held_aim()
 	var ref: Vector2 = o.pos   # 距离的参照点：护航时是队长（docs/202）
 	var prefer := false        # 对空优先：受控目标排最前（docs/202）
 	var escorting := false
@@ -160,7 +160,7 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		out.push_front(pool[0])   # 保留 op_api 的 Boss 优先（ai/boss_focus）
 		if out.size() > n:
 			out.resize(n)
-	if not o.manual_attack() and o.g.map.tb_aim and o.g.map.blocks():
+	if not o.held_aim() and o.g.map.tb_aim and o.g.map.blocks():
 		# 地形阻挡（terrain/aim_los）：自动瞄准时视线内的先（按上面的顺序补被挡的；全被挡 = 原结果）
 		var all: Array = out.duplicate()
 		for kv in keyed:
@@ -192,7 +192,7 @@ static func _exu_behind(o, n: int, rr: float) -> Array:
 ## 普攻起手点（data_operator.update 的 projectile 分支）：B 需要目标类手动普攻走 attack_targets
 static func exu_aim(o, a: Dictionary) -> Vector2:
 	var rr: float = _exu_range(o, _exu_params(o, a, true))
-	var ts: Array = o.attack_targets(1, rr, o.pos) if o.manual_attack() else o.los_targets(1, rr, o.pos)
+	var ts: Array = o.attack_targets(1, rr, o.pos) if o.held_aim() else o.los_targets(1, rr, o.pos)
 	return ts[0].pos if not ts.is_empty() else Vector2.INF
 
 
@@ -733,7 +733,7 @@ static func _exu_gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: Str
 
 ## 受控：眩晕 / 浮空 / 失重中（她的子弹优先打这些）
 static func _exu_controlled(g, e: Dictionary) -> bool:
-	return float(e.stun) > 0.0 or float(e.get("air", 0.0)) > 0.0 or float(e.get("wl_t", 0.0)) > g.t
+	return float(e.get("stun", 0.0)) > 0.0 or float(e.get("air", 0.0)) > 0.0 or float(e.get("wl_t", 0.0)) > g.t   # get：按住瞄准的伪目标（aim_point_target）没有 stun
 
 
 ## 护航：队长 r 内活着的敌人 ≥ n（被围）

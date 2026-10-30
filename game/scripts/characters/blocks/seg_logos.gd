@@ -55,7 +55,7 @@ static func hw_mul(v: float, m) -> float:
 
 # ---------------------------------------------------------------- shape.bolt
 
-## 普攻起手（data_operator.update 的 bolt 分支，手动普攻 B 类）
+## 普攻起手（data_operator.update 的 bolt 分支，按住瞄准 B 类）
 static func hw_bolt_aim(o, a: Dictionary) -> Vector2:
 	var ts: Array = o.attack_targets(1, hw_range(o), o.pos)
 	return ts[0].pos if not ts.is_empty() else Vector2.INF

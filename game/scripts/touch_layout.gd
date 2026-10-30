@@ -1,5 +1,5 @@
 extends RefCounted
-## 触屏按键布局（用户 10-13：「冲刺键之类的也可以在设置中自己改按键大小和位置」）：摇杆、冲刺、技能、攻击、暂停、属性、倍速
+## 触屏按键布局（用户 10-13：「冲刺键之类的也可以在设置中自己改按键大小和位置」）：摇杆、冲刺、技能、瞄准、暂停、属性、倍速
 ## 七个触屏控件的缺省位置、玩家自定义位置 / 大小的存取，以及夹进安全区。touch.gd（局内绘制与点击）和
 ## screens/touch_editor.gd（设置里的编辑页）都只经过这里算位置，两边看到的一定一致。
 ##
@@ -7,9 +7,10 @@ extends RefCounted
 ## 自定义位置按「相对锚点」存：横向记离左边或右边（取近的那边）多远，纵向记离上边或下边多远；
 ## 换一台比例不同的设备（19.5:9 手机 → 4:3 平板）时按钮仍贴着原来那条边，最后再夹进安全区，不会跑出屏幕。
 ## 存档：settings.cfg 的 [touch] layout = {键: {ax, ay, x, y, s}}；没有的键用缺省位置、缩放 1。
+## 瞄准键（键名沿用 "atk"，旧存档不用迁移）可以隐藏：layout 里 "atk_off": true（10-31 取消手动普攻后它只是可选的按住瞄准）。
 
 const KEYS := ["stick", "dash", "skill", "atk", "pause", "stats", "speed", "cmd"]
-const NAMES := {"stick": "移动摇杆", "dash": "冲刺", "skill": "技能", "atk": "攻击", "pause": "暂停", "stats": "属性", "speed": "倍速", "cmd": "指挥"}
+const NAMES := {"stick": "移动摇杆", "dash": "冲刺", "skill": "技能", "atk": "瞄准", "pause": "暂停", "stats": "属性", "speed": "倍速", "cmd": "指挥"}
 const S_MIN := 0.7
 const S_MAX := 1.5
 const S_STEP := 0.05
@@ -107,6 +108,8 @@ static func sanitize(raw) -> Dictionary:
 		out[k] = {"ax": clampi(int(e.ax), 0, 1), "ay": clampi(int(e.ay), 0, 1),
 			"x": clampf(float(e.x), 0.0, 4000.0), "y": clampf(float(e.y), 0.0, 4000.0),
 			"s": clamp_scale(float(s) if (s is int or s is float) else 1.0)}
+	if atk_hidden(raw):
+		out["atk_off"] = true
 	return out
 
 
@@ -114,12 +117,17 @@ static func save_to(c: ConfigFile, layout: Dictionary) -> void:
 	c.set_value("touch", "layout", sanitize(layout))
 
 
+## 瞄准键是否被玩家隐藏
+static func atk_hidden(layout: Dictionary) -> bool:
+	return layout.get("atk_off", false) == true
+
+
 static func load_from(c: ConfigFile) -> Dictionary:
 	return sanitize(c.get_value("touch", "layout", {}))
 
 
 ## 各控件的缺省中心（缩放 1）。技能 / 攻击键跟着冲刺键走（冲刺键被挪过时，它们的缺省位置相对新位置算）
-static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c := Vector2.INF, phone := false) -> Vector2:
+static func default_center(key: String, vs: Vector2, atk_on: bool, dash_c := Vector2.INF, phone := false) -> Vector2:
 	var ph: bool = vs.y < 520.0 or phone   # 手机横屏（Cfg.phone_ui，或界面逻辑高 < 520）
 	var dash := Vector2(vs.x - (134.0 if ph else 80.0), vs.y - SQUAD_TOP_UP - 14.0 - BTN * 0.7)
 	if dash_c != Vector2.INF:
@@ -130,8 +138,8 @@ static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c :=
 		"dash":
 			return dash
 		"skill":
-			# 手动普攻时技能键在攻击键正上方；否则在冲刺键左上斜方（正上方会撞「属性」键）
-			return dash + (Vector2(-BTN * 1.85, -BTN * 1.85) if manual_atk else Vector2(-BTN * 2.0, -BTN * 0.65))
+			# 显示瞄准键时技能键在瞄准键正上方；瞄准键隐藏时在冲刺键左上斜方（正上方会撞「属性」键）
+			return dash + (Vector2(-BTN * 1.85, -BTN * 1.85) if atk_on else Vector2(-BTN * 2.0, -BTN * 0.65))
 		"atk":
 			return dash + Vector2(-BTN * 1.85, -BTN * 0.05)
 		"pause":
@@ -148,7 +156,7 @@ static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c :=
 
 
 ## 解出全部控件的位置与缩放：{键: {"c": 中心, "s": 缩放, "custom": 是否玩家改过}}
-static func resolve(vs: Vector2, manual_atk: bool, custom: Dictionary, safe: Rect2, phone := false) -> Dictionary:
+static func resolve(vs: Vector2, atk_on: bool, custom: Dictionary, safe: Rect2, phone := false) -> Dictionary:
 	var out := {}
 	for k in ["dash", "stick", "skill", "atk", "pause", "stats", "speed", "cmd"]:
 		var e = custom.get(k)
@@ -158,7 +166,7 @@ static func resolve(vs: Vector2, manual_atk: bool, custom: Dictionary, safe: Rec
 			s = clamp_scale(float(e.get("s", 1.0)))
 			c = decode(e, vs)
 		else:
-			c = default_center(k, vs, manual_atk, out.dash.c if out.has("dash") else Vector2.INF, phone)
+			c = default_center(k, vs, atk_on, out.dash.c if out.has("dash") else Vector2.INF, phone)
 		out[k] = {"c": clamp_center(c, k, s, safe), "s": s, "custom": e is Dictionary}
 	return out
 

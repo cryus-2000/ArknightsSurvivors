@@ -375,7 +375,7 @@ func syn_skill(o, i: int) -> void:
 func update(dt: float) -> void:
 	var pf: bool = g.prof_on   # --prof：编队段细分（sq_follow / sq_ticks / sq_op_<编号> / sq_pfx，docs/50 §35）
 	var t0 := Time.get_ticks_usec() if pf else 0
-	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
+	g.doctor.tick_input(dt)   # 按住瞄准 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
 	if g.ult != null:
 		g.ult.tick(dt)   # 终结技 / 连携技（docs/198）：在 follow 之前，连携位移当帧生效
@@ -1181,11 +1181,11 @@ func draw_leader_mark() -> void:
 	# 朝向小三角：先垫一个每边大 2 像素的深色三角
 	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
 	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
-	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——手动攻击 = 瞄准方向，
+	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——按住瞄准 = 瞄准方向，
 	# 自动攻击 = 最近 0.8 秒内一次命中的方向（没有就不画）；常亮不闪
 	if Bal.v("render/lead_dir", 0.0) > 0.0 or g.world.lead_lv >= 2:
 		var adir := Vector2.ZERO
-		if Cfg.manual_attack and g.doctor != null:
+		if g.doctor != null and g.doctor.aim_held():
 			adir = g.doctor.attack_dir()
 		elif g.t - g.vfx.lead_hit_t < 0.8:
 			adir = g.vfx.lead_hit_dir

@@ -353,11 +353,8 @@ func draw_open_hints(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(0, 104), g.quality_note, 15, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, clampf(g.quality_note_t / 0.5, 0.0, 1.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	if g.state == Game.S.PLAY:
 		if g.t < 6.0:
-			var ohint: String
-			if g.doctor.manual_attack:
-				ohint = "按住左半屏拖动移动 · 按攻击键出手（拖动选方向）" if g.touch.active else Pad.hint("WASD 移动 · 按住左键 / J 攻击，朝光标（或移动）方向", "左摇杆移动 · Ⓧ / RT 攻击 · 右摇杆瞄准")
-			else:
-				ohint = "按住左半屏拖动移动 · 攻击全自动" if g.touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")
+			# 普攻永远自动；按住瞄准改方向（10-31 取消手动普攻）
+			var ohint: String = "按住左半屏拖动移动 · 攻击自动 · 拖动瞄准键改方向" if g.touch.active else Pad.hint("WASD 移动 · 攻击自动 · 按住左键朝光标瞄准", "左摇杆移动 · 攻击自动 · 右摇杆瞄准")
 			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif ((g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0) and not g.wheel.is_open:   # 指挥圆盘开着时底部是圆盘自己的操作提示，TAB 提示让开（10-24 叠字）
 			var ha := clampf(minf(g.t - 6.0, 16.0 - g.t) / 0.5, 0.0, 1.0) if g.tab_hint <= 0.0 else clampf(g.tab_hint / 0.5, 0.0, 1.0)
@@ -380,15 +377,14 @@ func draw_dash_hint(vs: Vector2) -> void:
 	var ready: bool = g.dash_ready()
 	h.batch_begin()   # 色块一批、字最后（性能 9/30）
 	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
-	if g.doctor.manual_attack:
-		# 手动普攻：冲刺牌左边一枚攻击牌（键鼠 左键 / J，手柄 RT / Ⓧ）
-		var acap: String = Pad.hint("左键 / J", "RT / Ⓧ")
-		var akw := UI.cwidth(g.font, acap, 11) + 12.0
-		var aw := 8.0 + akw + 8.0 + 28.0 + 12.0
-		var ar := Rect2(Vector2(vs.x / 2.0 - aw - 70.0 - 8.0, vs.y - 44), Vector2(aw, 28))
-		h._hb.rect(ar, Color(0.03, 0.035, 0.045, 0.74))
-		UI.keycap(g.hud, g.font, ar.position + Vector2(8, 5), acap, Color(1.0, 0.75, 0.45), 11)
-		UI.text(g.hud, g.font, ar.position + Vector2(16 + akw, 19), "攻击", 13, UI.TEXT)
+	# 冲刺牌左边一枚瞄准牌：普攻自动，按住改朝指向（键鼠 按住左键，手柄 右摇杆）
+	var acap: String = Pad.hint("左键", "右摇杆")
+	var akw := UI.cwidth(g.font, acap, 11) + 12.0
+	var aw := 8.0 + akw + 8.0 + 28.0 + 12.0
+	var ar := Rect2(Vector2(vs.x / 2.0 - aw - 70.0 - 8.0, vs.y - 44), Vector2(aw, 28))
+	h._hb.rect(ar, Color(0.03, 0.035, 0.045, 0.74))
+	UI.keycap(g.hud, g.font, ar.position + Vector2(8, 5), acap, Color(1.0, 0.75, 0.45), 11)
+	UI.text(g.hud, g.font, ar.position + Vector2(16 + akw, 19), "瞄准", 13, UI.TEXT)
 	var cap_s: String = Pad.hint("SPACE", "Ⓑ")
 	var kw := UI.cwidth(g.font, cap_s, 11) + 12.0
 	var w := 8.0 + kw + 8.0 + 28.0 + 12.0

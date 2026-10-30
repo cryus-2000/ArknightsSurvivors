@@ -72,7 +72,6 @@ const UI_K_PHONE := 1.15
 const UI_MIN_H := 470.0
 ## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
 var touch_layout := {}
-var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
 ## 自动连携 / 自动终结技（docs/198 §1.4、§11-7；run/ult.gd 每帧读）：缺省桌面两个都关、触屏「自动连携」开（_ready 里按设备定，读档覆盖）。
 ## 缺省跟设备走，不上云（同一份云档在电脑和手机上各用各的缺省）
 var auto_combo := false
@@ -136,7 +135,7 @@ var cloud_v := 0
 var cloud_minv := 0
 ## 上云的设置项（Cfg 属性名）。画质 / 全屏 / 分辨率 / 辉光 / 景深 / 法线光照 / 水下滤镜跟设备性能走，不上云
 const CLOUD_SET_KEYS := ["master", "music", "sfx", "voice", "dmg_numbers", "hitstop", "boss_intro", "reduce_motion", "outline",
-	"brightness", "pad_rumble", "manual_attack", "ui_size_pct", "cam_zoom_pct", "play_speed", "cover_character_id", "difficulty", "touch_layout"]
+	"brightness", "pad_rumble", "ui_size_pct", "cam_zoom_pct", "play_speed", "cover_character_id", "difficulty", "touch_layout"]
 
 
 ## ui.ttf（Noto Sans CJK SC 子集）缺的几十个字（娅 / 鲨 / 砥 / 琥珀 / Ⓐ 等）：桌面版靠系统字体补，网页版没有系统字体会显示方块。
@@ -514,7 +513,6 @@ func _read_cfg(c: ConfigFile) -> void:
 	brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
 	brightness = migrate_brightness(brightness, int(c.get_value("video", "look_ver", 0)))
 	pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
-	manual_attack = c.get_value("input", "manual_attack", manual_attack)
 	auto_combo = bool(c.get_value("input", "auto_combo", auto_combo))
 	auto_ult = bool(c.get_value("input", "auto_ult", auto_ult))
 	touch_layout = TouchLayout.load_from(c)
@@ -838,7 +836,6 @@ func save() -> void:
 	c.set_value("video", "brightness", brightness)
 	c.set_value("video", "look_ver", LOOK_VER)
 	c.set_value("input", "pad_rumble", pad_rumble)
-	c.set_value("input", "manual_attack", manual_attack)
 	c.set_value("input", "auto_combo", auto_combo)
 	c.set_value("input", "auto_ult", auto_ult)
 	TouchLayout.save_to(c, touch_layout)
@@ -947,7 +944,7 @@ func cloud_apply(body: Dictionary) -> void:
 	for k in ["master", "music", "sfx", "voice"]:
 		if d.get(k) is float or d.get(k) is int:
 			set(k, clampf(float(d[k]), 0.0, 1.0))
-	for k in ["dmg_numbers", "hitstop", "boss_intro", "reduce_motion", "outline", "pad_rumble", "manual_attack"]:
+	for k in ["dmg_numbers", "hitstop", "boss_intro", "reduce_motion", "outline", "pad_rumble"]:   # 旧档 / 云档里的 manual_attack（10-31 取消手动普攻）不读，忽略
 		if d.get(k) is bool:
 			set(k, d[k])
 	if d.get("brightness") is float or d.get("brightness") is int:

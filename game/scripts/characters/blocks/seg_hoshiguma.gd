@@ -10,7 +10,7 @@ extends "res://scripts/characters/blocks/ob_hw.gd"
 ## 族.名 → 放置类别：instant = 瞬时（技能 do、触发器 do、区域 do）；sustain = 常驻（技能 do、passive do、成长节点）；
 ## skill = 只能放技能 do；trig = 触发积木（trait / talent / 成长节点）
 const EXT_BLOCKS := {
-	"shape.line": "instant",          # 直线斩：从自身朝最近目标（手动普攻按 A 方向）长 len、宽 width 的矩形，命中沿线全部
+	"shape.line": "instant",          # 直线斩：从自身朝最近目标（按住瞄准按 A 方向）长 len、宽 width 的矩形，命中沿线全部
 	# verb.displace / verb.field 与安洁莉娜共用，合并时统一到文件末尾「共用积木」段（SHARED_TAGS）
 	"verb.negate_next": "skill",      # 技能持续期间，主控下一次受到的攻击完全格挡（on_block）；持续结束仍没挨打则执行 on_miss
 	"verb.taunt_guard": "skill",      # 10-24 星熊 S1（docs/140）：技能持续期间本干员站定（是队长时照常走）、把半径 r 内近战杂兵的仇恨拉到自己身上；

@@ -52,9 +52,9 @@ static func _h4_bash_start(o, a: Dictionary) -> void:
 	if o.cd > 0.0:
 		return
 	var reach: float = float(a.get("r", 115.0)) * o.stat(&"op_range")
-	var at: Vector2 = o.atk_point(o.nearest_enemies(1, reach + 40.0, o.pos), reach)   # 手动普攻 A 类（契约 v2.5）
+	var at: Vector2 = o.atk_point(o.nearest_enemies(1, reach + 40.0, o.pos), reach)   # 按住瞄准 A 类（契约 v2.5）
 	if at == Vector2.INF:
-		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
+		o.cd = float(a.get("idle", 0.1))
 	else:
 		o.cd = float(a.get("every", 0.9)) / o.stat(&"op_aspd")
 		o.start_attack(at, 0.5, 0.25, "", o.cd)

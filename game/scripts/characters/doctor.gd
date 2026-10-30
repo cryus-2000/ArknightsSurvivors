@@ -115,45 +115,40 @@ func manual_input_dir() -> Vector2:
 	return Vector2.ZERO
 
 
-# ---------------------------------------------------------------- 手动普攻与选落点（契约 v2.5，docs/26 §v2.5）
+# ---------------------------------------------------------------- 按住瞄准与选落点（契约 v2.5，docs/26 §v2.5；10-31 用户定取消「手动普攻」）
 
-## 设置「普通攻击：手动」（Cfg.manual_attack，玩法系统的设置项）时主控的普攻要按键才出；队友、机器人、图鉴演示一律自动。
-## 开发测试：--manualatk 强制打开
+## 普攻永远自动起手；主控「按住瞄准」期间普攻的方向 / 目标改朝玩家指向，松手立即回到自动索敌。队友、机器人、图鉴演示不响应。
+## 按住瞄准：键鼠 = 按住左键（不在界面按钮上），手柄 = 右摇杆推过 AIM_STICK，触屏 = 瞄准键拖过死区（touch.gd 写 touch_atk / touch_atk_dir）
 const Bal = preload("res://scripts/core/balance.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 
-var manual_attack := false
-var atk_buf := 0.0             # 轻点攻击键的缓冲：冷却没转好时先记下，manual/atk_buf 秒内一转好就出（不白按）
-var atk_edge := false          # 这一帧刚按下攻击键（凯尔希：按下时给 Mon3tr 换目标）
+var aim_on := false            # 这一局主控响应按住瞄准（开局定：机器人 / 自动测试 / 图鉴演示不响应）
+var atk_edge := false          # 这一帧刚开始按住瞄准（凯尔希：按下时给 Mon3tr 换目标）
 var _atk_prev := false
-var touch_atk := false         # 触屏攻击键按住（touch.gd 写）
-var touch_atk_dir := Vector2.ZERO   # 触屏攻击键拖出的方向；ZERO = 不拖，吸附最近目标
-var sim_atk := false           # 测试脚本模拟按住攻击键
+var touch_atk := false         # 触屏瞄准键按住（touch.gd 写）
+var touch_atk_dir := Vector2.ZERO   # 触屏瞄准键拖出的方向；ZERO = 没拖过死区（仍是自动）
+var sim_atk := false           # 测试脚本模拟按住瞄准（方向取 sim_dir）
+var sim_dir := Vector2.ZERO    # 测试脚本给的瞄准方向；ZERO = 朝向
 var _mouse_last := Vector2.INF
-var _mouse_t := -99.0          # 最近一次鼠标移动 / 点击的时刻（g.t）
+var _mouse_t := -99.0          # 最近一次鼠标移动 / 点击的时刻（g.t）：只给选落点技能的 point_now 用
 var charge := {}               # 选落点技能键盘蓄距离中：{"i": 技能序号, "t": 已蓄秒数}
 
 
-## 开局调用：读设置；机器人 / 自动测试 / 图鉴演示不开
-func init_manual_attack() -> void:
-	var on: bool = ("manual_attack" in Cfg and bool(Cfg.get("manual_attack"))) or Cfg.dev_args().has("--manualatk")
-	manual_attack = on and g.bot == null and g.mode == g.Mode.PLAY and g.demo_op == ""
+## 开局调用：机器人 / 自动测试 / 图鉴演示不响应按住瞄准
+func init_aim() -> void:
+	aim_on = g.bot == null and g.mode == g.Mode.PLAY and g.demo_op == ""
 
 
-## 每帧（squad.update 开头）：攻击键边沿与缓冲、鼠标活动、键盘蓄距离
+## 每帧（squad.update 开头）：瞄准边沿、鼠标活动、键盘蓄距离
 var _ma_init := false
 
 func tick_input(dt: float) -> void:
 	if not _ma_init:
 		_ma_init = true
-		init_manual_attack()
-	var held := attack_held()
+		init_aim()
+	var held := aim_held()
 	atk_edge = held and not _atk_prev
 	_atk_prev = held
-	if atk_edge:
-		atk_buf = Bal.v("manual/atk_buf", 0.3)
-	else:
-		atk_buf = maxf(0.0, atk_buf - dt)
 	if not _touching():
 		var mp: Vector2 = g.get_viewport().get_mouse_position()
 		if mp != _mouse_last or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -174,28 +169,29 @@ func tick_input(dt: float) -> void:
 				_press_point(ld, i, pt)
 
 
-## 攻击键此刻是否按着：键鼠左键 / J，手柄 RT / Ⓧ，触屏攻击键
-func attack_held() -> bool:
-	if not manual_attack:
+## 此刻是否在按住瞄准：键鼠左键（不在界面按钮上）、手柄右摇杆推过 AIM_STICK、触屏瞄准键拖过死区
+func aim_held() -> bool:
+	if sim_atk:
+		return true
+	if not aim_on or g.state != g.S.PLAY:
 		return false
-	if sim_atk or touch_atk:
-		return true
 	if _touching():
-		return false   # 触屏会模拟鼠标左键，不能当攻击
-	if (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn()) or Pad.key_down(KEY_J):
+		return touch_atk and touch_atk_dir != Vector2.ZERO   # 触屏会模拟鼠标左键，只认瞄准键；按着不拖 = 自动
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn():
 		return true
+	return _stick_aim() != Vector2.ZERO
+
+
+## 手柄右摇杆推过 AIM_STICK 的方向（单位向量），没推 = ZERO
+func _stick_aim() -> Vector2:
 	for dev in Input.get_connected_joypads():
-		if Input.get_joy_axis(dev, JOY_AXIS_TRIGGER_RIGHT) > 0.5 or Input.is_joy_button_pressed(dev, JOY_BUTTON_X):
-			return true
-	return false
+		var r := Vector2(Input.get_joy_axis(dev, JOY_AXIS_RIGHT_X), Input.get_joy_axis(dev, JOY_AXIS_RIGHT_Y))
+		if r.length() >= AIM_STICK:
+			return r.normalized()
+	return Vector2.ZERO
 
 
-## 主控这一帧要不要普攻（按着，或刚轻点过还在缓冲里）
-func attack_want() -> bool:
-	return manual_attack and (atk_buf > 0.0 or attack_held())
-
-
-## 键鼠此刻用鼠标瞄准：最近 manual/mouse_idle 秒动过鼠标或按着左键，且没在用手柄 / 触屏
+## 键鼠此刻用鼠标给落点（选落点技能 point_now 用）：最近 manual/mouse_idle 秒动过鼠标或按着左键，且没在用手柄 / 触屏
 func mouse_aim() -> bool:
 	if _touching() or Pad.using:
 		return false
@@ -207,18 +203,17 @@ func mouse_world() -> Vector2:
 	return g.get_viewport().get_canvas_transform().affine_inverse() * g.get_viewport().get_mouse_position()
 
 
-## 手动普攻的瞄准方向（单位向量，永远非零）：鼠标 = 主控指向光标；手柄 = 右摇杆，没推取左摇杆 / 朝向；键盘 = 移动方向，站着取朝向；
-## 触屏 = 攻击键拖出的方向，点按不拖 = 移动方向，站着取朝向（10-23 用户定：不再吸附最近目标）
+## 按住瞄准的方向（单位向量，永远非零）：测试 = sim_dir；触屏 = 瞄准键拖出的方向；鼠标按住 = 主控指向光标；手柄 = 右摇杆；都没有取朝向
 func attack_dir() -> Vector2:
+	if sim_atk:
+		return sim_dir.normalized() if sim_dir != Vector2.ZERO else Vector2(g.facing, 0.0)
 	if _touching():
-		if touch_atk_dir != Vector2.ZERO:
-			return touch_atk_dir.normalized()
-		return g.move_in.normalized() if g.move_in != Vector2.ZERO else Vector2(g.facing, 0.0)
-	if mouse_aim():
+		return touch_atk_dir.normalized() if touch_atk_dir != Vector2.ZERO else Vector2(g.facing, 0.0)
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not Pad.using:
 		var off: Vector2 = mouse_world() - g.ppos
 		if off.length() > 4.0:
 			return off.normalized()
-	var d := manual_input_dir()
+	var d := _stick_aim()
 	return d if d != Vector2.ZERO else Vector2(g.facing, 0.0)
 
 
@@ -265,10 +260,10 @@ func point_preview(ld, i: int) -> Vector2:
 
 ## 鼠标左键点场地放选落点技能（用户 10-26「乌尔比安的三技能要设置成鼠标点击也能够触发，否则的话太鸡肋了」）：
 ## 队长的手动技能是选落点（JSON "aim": "point"）、已解锁、技力满且此刻放得出时接管这次点击，落点 = 点击处（press_manual 里夹在 aim_range 内）；
-## 其余情况（技力没满、不是选落点技能、正在出手放不了…）返回 false，点击照旧。触屏（会模拟鼠标左键）、开了手动普攻（左键 = 攻击）、
+## 其余情况（技力没满、不是选落点技能、正在出手放不了…）返回 false，点击照旧（左键 = 按住瞄准）。触屏（会模拟鼠标左键）、
 ## 键盘正在蓄距离、点在 HUD 上（hud.blocks_click）不接管。Q / E / J、手柄、触屏技能键照旧。vp = 视口坐标（事件 position）
 func click_skill(vp: Vector2) -> bool:
-	if _touching() or manual_attack or not charge.is_empty() or Bal.v("manual/click_cast", 1.0) <= 0.0:
+	if _touching() or not charge.is_empty() or Bal.v("manual/click_cast", 1.0) <= 0.0:
 		return false
 	if g.hud_view.blocks_click(vp / Cfg.ui_k):
 		return false
@@ -283,7 +278,7 @@ func click_skill(vp: Vector2) -> bool:
 	return true
 
 
-## 光标在对局右上角的倍速 / 暂停按钮上：左键是点按钮，不算攻击（game.gd 处理那次点击）
+## 光标在对局右上角的倍速 / 暂停按钮上：左键是点按钮，不算按住瞄准（game.gd 处理那次点击）
 func _over_hud_btn() -> bool:
 	var mp: Vector2 = g.get_viewport().get_mouse_position() / Cfg.ui_k   # 两个按钮记的是界面坐标（界面大小 ≠ 100% 时要换算）
 	for k in ["speed_btn", "pause_btn"]:
@@ -298,11 +293,11 @@ func _touching() -> bool:
 
 
 func _skill_key_held() -> bool:
-	if Pad.key_down(KEY_Q) or Pad.key_down(KEY_E) or (not manual_attack and Pad.key_down(KEY_J)):
+	if Pad.key_down(KEY_Q) or Pad.key_down(KEY_E) or Pad.key_down(KEY_J):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.is_joy_button_pressed(dev, JOY_BUTTON_A) or Input.is_joy_button_pressed(dev, JOY_BUTTON_Y) \
-				or (not manual_attack and Input.is_joy_button_pressed(dev, JOY_BUTTON_X)):
+				or Input.is_joy_button_pressed(dev, JOY_BUTTON_X):
 			return true
 	return false
 

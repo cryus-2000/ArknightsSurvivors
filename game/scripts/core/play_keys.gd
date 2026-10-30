@@ -4,18 +4,17 @@
 ## 现状订正（docs/198 §2.4 写的「Ⓨ 现在是 E、RB 沿用手动技能」不对）：旧映射里 Ⓐ / Ⓨ 都是 Q（手动技能），RB 是冲刺；
 ## 新映射 Ⓐ / RB = 终结技（按住瞄准），Ⓨ = 连携技，冲刺只剩 Ⓑ / RT。
 ## hold：手柄按住期间保持键盘键按下（瞄准类），松开才发松开事件；touch：触屏布局键名（touch_editor 布局存档里的名字，不改名不用迁移）。
+## 普攻没有键（10-31 取消手动普攻）：永远自动，按住瞄准 = 鼠标左键 / 右摇杆 / 触屏瞄准键，由 doctor.aim_held 每帧直接读。
 extends RefCounted
 
 const ULT := {
 	"ult": {"keys": [KEY_Q], "pad": [JOY_BUTTON_A, JOY_BUTTON_RIGHT_SHOULDER], "hold": true, "touch": "skill", "hint_key": "Q", "hint_pad": "RB/Ⓐ"},
 	"combo": {"keys": [KEY_E], "pad": [JOY_BUTTON_Y], "hold": false, "touch": "skill", "hint_key": "E", "hint_pad": "Ⓨ"},
-	"attack": {"keys": [KEY_J], "pad": [JOY_BUTTON_X], "hold": false, "touch": "", "hint_key": "J", "hint_pad": "Ⓧ"},
 	"dash": {"keys": [KEY_SPACE, KEY_SHIFT, KEY_K], "pad": [JOY_BUTTON_B], "hold": false, "touch": "dash", "hint_key": "SPACE", "hint_pad": "Ⓑ"},
 	"command": {"keys": [KEY_F], "pad": [JOY_BUTTON_LEFT_SHOULDER], "hold": false, "touch": "", "hint_key": "F", "hint_pad": "LB"},
 }
 const LEGACY := {
-	"manual": {"keys": [KEY_Q, KEY_E], "pad": [JOY_BUTTON_A, JOY_BUTTON_Y], "hold": false, "touch": "skill", "hint_key": "Q/E", "hint_pad": "Ⓐ/Ⓨ"},
-	"attack": {"keys": [KEY_J], "pad": [JOY_BUTTON_X], "hold": false, "touch": "", "hint_key": "J", "hint_pad": "Ⓧ"},
+	"manual": {"keys": [KEY_Q, KEY_E, KEY_J], "pad": [JOY_BUTTON_A, JOY_BUTTON_Y, JOY_BUTTON_X], "hold": false, "touch": "skill", "hint_key": "Q/E", "hint_pad": "Ⓐ/Ⓨ"},
 	"dash": {"keys": [KEY_SPACE, KEY_SHIFT, KEY_K], "pad": [JOY_BUTTON_B, JOY_BUTTON_RIGHT_SHOULDER], "hold": false, "touch": "dash", "hint_key": "SPACE", "hint_pad": "Ⓑ"},
 	"command": {"keys": [KEY_F], "pad": [JOY_BUTTON_LEFT_SHOULDER], "hold": false, "touch": "", "hint_key": "F", "hint_pad": "LB"},
 }

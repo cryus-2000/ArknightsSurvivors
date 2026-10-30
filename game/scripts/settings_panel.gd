@@ -34,7 +34,6 @@ const ROWS := [
 	{"cn": "界面大小", "en": "UI SIZE", "key": "ui_size_pct", "type": "uisize"},
 	{"cn": "战斗画面缩放", "en": "BATTLE ZOOM", "key": "cam_zoom_pct", "type": "zoom"},
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
-	{"cn": "普通攻击", "en": "BASIC ATTACK", "key": "manual_attack", "type": "bool", "on": "手动", "off": "自动", "note": "下局生效"},
 	# 自动连携 / 自动终结技（docs/198 §1.4）：缺省桌面都关、手机自动连携开（Cfg._ready）；局内即时生效（run/ult.gd 每帧读）。ult/on = 0 时不列出
 	{"cn": "自动连携", "en": "AUTO CHAIN", "key": "auto_combo", "type": "bool", "note": "队友头像亮起后自动出手"},
 	{"cn": "自动终结技", "en": "AUTO ULTIMATE", "key": "auto_ult", "type": "bool", "note": "充满后，敌人密集、精英靠近或生命低于 30% 时自动释放"},
@@ -58,7 +57,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
-	["操作", "CONTROLS", ["manual_attack", "auto_combo", "auto_ult", "pad_rumble", "touch_layout"]],
+	["操作", "CONTROLS", ["auto_combo", "auto_ult", "pad_rumble", "touch_layout"]],
 ]
 
 ## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变。
@@ -75,7 +74,7 @@ const CONFIRM_SECS := 4.0
 const TOUCH_HIDE := ["fullscreen", "res_index"]
 ## 只在触屏设备显示的选项键名
 const TOUCH_ONLY := ["touch_layout"]
-## 局内打开设置时由 game.gd 设：触屏按键布局编辑页按本次探索实际的普攻方式决定是否摆出攻击键（标题页为 null，按设置）
+## 局内打开设置时由 game.gd 设（触屏按键布局编辑页等用；标题页为 null）
 var game_ref: Node = null
 var editor: Control = null   # 触屏按键布局编辑页（第一次打开时建）
 var perf_view: Control = null   # 性能报告页（第一次打开时建）
@@ -436,10 +435,7 @@ func open_touch_editor() -> void:
 		editor.closed.connect(func():
 			eat_release = true
 			drag_on = false)
-	var manual: bool = Cfg.manual_attack
-	if game_ref != null and game_ref.get("doctor") != null:
-		manual = game_ref.doctor.manual_attack
-	editor.open(manual)
+	editor.open()
 	Sfx.play("ui_ok")
 
 

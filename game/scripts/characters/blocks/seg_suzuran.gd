@@ -99,9 +99,9 @@ static func _h4_fox_start(o, a: Dictionary) -> void:
 		return   # 狐火迷雾：期间不普攻
 	if o.cd > 0.0:
 		return
-	var ts: Array = o.attack_targets(int(a.get("aim_n", 2)), float(a.get("range", 350.0)) * o.stat(&"op_range"), o.pos)   # 手动普攻 B 类（契约 v2.5）
+	var ts: Array = o.attack_targets(int(a.get("aim_n", 2)), float(a.get("range", 350.0)) * o.stat(&"op_range"), o.pos)   # 按住瞄准 B 类（契约 v2.5）
 	if ts.is_empty():
-		o.cd = o.idle_cd(float(a.get("idle", 0.2)))
+		o.cd = float(a.get("idle", 0.2))
 		return
 	o.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 	sz.merging = _h4_next_merge(o, a) and not _h4_patch_pending(o)
@@ -136,7 +136,7 @@ static func _h4_fox_release(o, a: Dictionary) -> void:
 		room -= 1
 		n = maxi(0, n - 3)
 		var bt: Dictionary = ts[0]
-		if not o.manual_attack():
+		if not o.held_aim():
 			var lt: Array = o.los_targets(1, reach, o.pos)   # 地形阻挡：大狐火是直线弹，视线内的先
 			if not lt.is_empty():
 				bt = lt[0]
