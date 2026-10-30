@@ -27,6 +27,8 @@ static func handles(id: String) -> bool:
 
 
 static func aim_kind(id: String) -> String:
+	if id == "lappland" and _la_fwd():   # 用户 10-31：改成往前乱砍
+		return "dir"
 	if id in DIR_OPS:
 		return "dir"
 	if id in POINT_OPS:
@@ -42,6 +44,8 @@ static func aim_r(id: String) -> float:
 			return Bal.v("ult/sg_r", 540.0)
 		"irene":
 			return Bal.v("ult/ir_r", 860.0)
+		"lappland":
+			return Bal.v("ult/la_fr", 860.0) if _la_fwd() else Bal.v("ult/la_r", 502.0)
 	return 460.0
 
 
@@ -65,7 +69,7 @@ static func start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 		"irene":
 			a = _ir_start(u, o, d)
 		"lappland":
-			a = _la_start(u, o)
+			a = _la_start(u, o, d)
 		"lumen":
 			a = _lu_start(u, o)
 	if a.is_empty():
@@ -1340,7 +1344,21 @@ static func _ir_boom_v2(u, eye: Vector2, br: float, org: Vector2, R: float, ang:
 
 # ================================================================ 拉普兰德（§4.19）：原地狂舞连斩，4 圈双刃十字剑气向四面八方飞出，命中沉默
 
-static func _la_start(u, o) -> Dictionary:
+## 用户 10-31「拉普兰德改成往前攻击，高频剑气保留但朝前方乱砍，不要绕身」（开关 ult/la_fwd 缺省 1；0 = 原绕身四圈）：
+## 判定改成前方扇形——顶点在她身后 ult/la_back（100），半角 ult/la_half、半径 ult/la_fr（按 ult_bench --area 定到标准面积 950 千平方像素 ±15%，docs/199 §5.10）；
+## 四圈剑气照旧按时序从顶点往外扫（每圈 1/n、沉默、断喝末圈击退），只是只打扇形里的；乱砍剑气铺满扇形，收尾横斩横在扇形中段、垂直于朝向
+static func _la_fwd() -> bool:
+	return Bal.v("ult/la_fwd", 1.0) > 0.0
+
+
+static func _la_in(a: Dictionary, p: Vector2) -> bool:
+	if not a.get("fwd", false):
+		return true
+	var v: Vector2 = p - Vector2(a.org)
+	return v.length() < 60.0 or absf(angle_difference(Vector2(a.d).angle(), v.angle())) <= float(a.half)
+
+
+static func _la_start(u, o, d := Vector2.ZERO) -> Dictionary:
 	var rt := _route(o)
 	var n: int = 5 if rt == "rage" else 4
 	var gap: float = 0.2 if rt == "rage" else Bal.v("ult/la_gap", 0.25)
@@ -1350,9 +1368,18 @@ static func _la_start(u, o) -> Dictionary:
 		segs.append({})
 		wd.append(false)
 	var R: float = Bal.v("ult/la_r", 502.0)
-	return {"c": o.pos, "R": R, "rc": R * Bal.v("ult/la_core", 0.872), "n": n, "gap": gap, "fly": Bal.v("ult/la_fly", 0.24), "f": 1.0 / n,
+	var fwd: bool = _la_fwd() and d != Vector2.ZERO
+	var face := Vector2(1.0 if float(o.face) >= 0.0 else -1.0, 0.0)
+	var a := {"c": o.pos, "R": R, "rc": R * Bal.v("ult/la_core", 0.872), "n": n, "gap": gap, "fly": Bal.v("ult/la_fly", 0.24), "f": 1.0 / n,
 		"segs": segs, "wd": wd, "fired": 0, "bark": rt == "bark",
-		"v3": _la_v3(u), "face": Vector2(1.0 if float(o.face) >= 0.0 else -1.0, 0.0), "vs": PF.vseed(u, o.pos), "sl_t": 0.0, "sl_i": 0}
+		"v3": _la_v3(u), "face": face, "vs": PF.vseed(u, o.pos), "sl_t": 0.0, "sl_i": 0}
+	if fwd:
+		var dn: Vector2 = d.normalized()
+		var bk: float = Bal.v("ult/la_back", 100.0)
+		R = Bal.v("ult/la_fr", 860.0)
+		a.merge({"fwd": true, "d": dn, "half": Bal.v("ult/la_half", 1.0), "org": o.pos - dn * bk, "R": R + bk, "rc": (R + bk) * Bal.v("ult/la_core", 0.872), "face": dn}, true)
+		o.face_to(dn.angle())
+	return a
 
 
 static func _la_wave(u, a: Dictionary, o, i: int) -> void:
@@ -1403,7 +1430,7 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 	while int(a.fired) < n and t >= gap * int(a.fired):
 		_la_wave(u, a, o, int(a.fired))
 		a.fired = int(a.fired) + 1
-	var c: Vector2 = a.c
+	var c: Vector2 = a.org if a.get("fwd", false) else a.c
 	for i in int(a.fired):
 		var el: float = t - gap * i
 		if a.wd[i]:
@@ -1413,6 +1440,8 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 		var fr: float = lerpf(40.0, R, clampf(el / fly, 0.0, 1.0))
 		var bark: bool = a.bark and i == n - 1
 		for e in u.in_circle(c, fr + 16.0):
+			if not _la_in(a, e.pos):
+				continue
 			var dist: float = e.pos.distance_to(c)
 			var op := {"src": "剑气", "edge": dist > rc}
 			if bark and dist > 1.0:
@@ -1469,8 +1498,9 @@ static func _la_frenzy(u, a: Dictionary, t: float) -> void:
 		var i: int = a.sl_i
 		var pr: float = float(a.sl_t) / T
 		var sd: float = float(a.vs) * 0.37 + i * 3.17
-		var dv: Vector2 = fw.rotated((PF.h(sd) - 0.5) * 2.4)   # 前方 ±69°
-		var p: Vector2 = a.c + dv * R * (0.18 + 0.68 * PF.h(sd + 1.0))
+		var spread: float = float(a.half) * 1.8 if a.get("fwd", false) else 2.4
+		var dv: Vector2 = fw.rotated((PF.h(sd) - 0.5) * spread)   # 前方（朝前版铺满扇形 ±0.9 半角；旧版 ±69°）
+		var p: Vector2 = (Vector2(a.org) if a.get("fwd", false) else Vector2(a.c)) + dv * R * (0.18 + 0.68 * PF.h(sd + 1.0))
 		var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * PI * lerpf(0.45, 1.0, pr)   # 越砍越乱
 		var ln: float = lerpf(170.0, 400.0, PF.h(sd + 4.0)) * (0.85 + 0.4 * pr)
 		var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
@@ -1492,6 +1522,10 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 	# 收尾横斩：屏幕横向贯穿约 2.2R、最长，下面一层冷蓝宽影；顿帧 + 冷光 + 中心一团银蓝粒子
 	u.g.vfx.stop(Bal.v("ult/la_hitstop", 0.1), "ult", true)
 	var ang: float = (PF.h(vs + 1.0) - 0.5) * 0.24
+	if a.get("fwd", false):   # 朝前版：横斩横在扇形中段、垂直于朝向
+		c = Vector2(a.org) + Vector2(a.d) * R * 0.45
+		ang = Vector2(a.d).orthogonal().angle() + (PF.h(vs + 1.0) - 0.5) * 0.24
+		R = R * sin(float(a.half)) * 0.5
 	var dv := Vector2.from_angle(ang)
 	_la_cut(u, c + dv.orthogonal() * 14.0, ang, R * 2.3, vs + 101.0, 0.45, Color(LA_ICE, 0.55), 1.3, true)   # 一整道（两段拼会成海鸥翅膀形）
 	_la_cut(u, c, ang, R * 2.2, vs + 101.0, 0.5, Color(0.8, 0.86, 0.95, 0.9), 0.95, true)   # 压暗（预审报横斩发白）
