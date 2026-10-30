@@ -151,10 +151,11 @@ func _hint_busy() -> bool:
 func draw(vs: Vector2) -> void:
 	if not _on():
 		return
-	if HudUltV.ver() > 0:
+	if HudUltV.ver() > 0 or HudUltV.link_cue() > 0:
 		if g.state == Game.S.PLAY or g.state == Game.S.PAUSE or (g.touch.active and g.hud_live()):
 			v.draw(vs)
-		return
+		if HudUltV.ver() > 0:
+			return
 	if g.touch.active:
 		if g.hud_live():
 			_draw_touch(vs)

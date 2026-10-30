@@ -48,7 +48,7 @@ func draw_top_left(vs: Vector2) -> void:
 	var bc := UI.CYAN.lerp(UI.GOLD, lf)
 	var lc0 := o + Vector2(26, 30)
 	h.batch_begin()   # 左上面板：色块一批、字最后（性能 9/30）
-	if HudUltV.ver() != 2:   # 终结技原型 B（ui/hud_ult_v 2）：等级圆换成队长头像 + 能量环，等级写在右上小牌（hud_ult_v.gd）
+	if HudUltV.ver() != 2 or g.touch.active:   # 终结技原型 B（ui/hud_ult_v 2，桌面）：等级圆换成队长头像 + 能量环，等级写在右上小牌（hud_ult_v.gd）
 		UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, 0.0, bc, lf > 0.2)   # 只显示等级数字；经验进度在屏幕最上沿的通栏细条（draw_xp_top，10-28 用户）
 		UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
 		UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
@@ -82,7 +82,7 @@ func draw_top_left(vs: Vector2) -> void:
 		h._hb.rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
 	# 神经损伤 / 侵蚀：生命条下方一道洋红细条
 	if g.nerve > 1.0:
-		var ny: float = o.y + 54 + HudUltV.top_add()   # 终结技原型 A / C 在生命条下多一层，神经细条跟着下移
+		var ny: float = o.y + 54 + HudUltV.top_add(g.touch.active)   # 终结技原型 A / C 在生命条下多一层，神经细条跟着下移
 		UI.gbar(g.hud, Rect2(Vector2(hx, ny), Vector2(150, 2)), g.nerve / 100.0, Color(1.0, 0.45, 0.85))
 		UI.en(g.hud, g.font, Vector2(hx + 156, ny + 4), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
 	if g.corrode_pool > 0.5:

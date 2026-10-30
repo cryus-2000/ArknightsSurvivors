@@ -7,8 +7,14 @@ extends RefCounted
 ##     连携 = 队友头像从环的右下边弹出、自带倒计时环，排队的再沿环往下排
 ##   3 C 分段刻度：生命条 / 灯火条各加一层下层——生命条下 = 终结技能量（4 段刻度），灯火条下 = 协同格；
 ##     连携 = 生命条上方一枚菱形头像（闪烁），菱形描边按剩余时间退
-## 三个方向共用：桌面底部中央的终结技条与弹出头像不再画；触屏右下终结技 / 连携键照旧可点，只画成简版（键上不再重复能量环与协同格，
-## 连携键只在亮起时出现），状态都看左上。减少动态效果（Cfg.reduce_motion）时不扫光、不转、不呼吸、不闪，只换颜色与描边。
+## 三个方向共用：桌面底部中央的终结技条与弹出头像不再画；「可以放了」不放角落，挂在队长身上——能量满时队长脚下亮一圈代表色光（_draw_ready）。
+## 触屏（10-30 协调人与用户商定）：能量不并进血条，直接做成右下 Q 键本身的填充（从下往上涨），连携键只在亮起时出现。
+## 上面写的连携徽章只在 ui/link_cue = 0 时画；link_cue 1–3 是连携提示的另一组原型（挂在场上两名干员之间，见下）：
+##   1 A 灯火引线：队长与亮起的队友之间一条灯火色细引线（3 像素格），光点从队友流向队长；像导火索一样从队友端往队长端烧短 = 倒计时，
+##     烧到头窗口关闭；按 E（队首提前离队）整线爆亮、化成火星散掉；减少动态效果时线不流动、只均匀缩短。手机上 E 键跟线同步发光
+##   2 C 战术终端标记：队友四周罗德岛终端风四角框 + 黑底白字「LINK」小标签，标签下一条倒计时刻度
+##   3 A + C：引线 + 引线中点挂「LINK · E」小标签（触屏只写 LINK）
+## 只换提示画面，连携演出的伤害 / 时序不动。减少动态效果（Cfg.reduce_motion）时不扫光、不转、不呼吸、不闪，只换颜色与描边。
 ## 坐标与 hud_bars.draw_top_left 同一套（o = (16, 12)：等级圆心 (42, 42)、生命条 (80, 59) 宽 150、灯火条 (252, 59) 宽 120）
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -37,8 +43,14 @@ static func ver() -> int:
 	return clampi(Bal.vi("ui/hud_ult_v", 0), 0, 3)
 
 
-## 左上灯火行 / 队友血条行 / 神经细条要多让出的像素（A、C 在生命条下多一层）
-static func top_add() -> float:
+static func link_cue() -> int:
+	return clampi(Bal.vi("ui/link_cue", 0), 0, 3)
+
+
+## 左上灯火行 / 队友血条行 / 神经细条要多让出的像素（A、C 在生命条下多一层；触屏能量在 Q 键上，左上不加层）
+static func top_add(touch: bool) -> float:
+	if touch:
+		return 0.0
 	match ver():
 		1:
 			return 8.0
@@ -125,15 +137,21 @@ func _link_label(txt: Array[Callable], q: Dictionary, p: Vector2, align := HORIZ
 
 func draw(vs: Vector2) -> void:
 	_track_full()
-	if g.touch.active:
-		_draw_touch_min(vs)
-	match ver():
-		1:
-			_draw_a()
-		2:
-			_draw_b()
-		3:
-			_draw_c()
+	_track_link()
+	if ver() > 0:
+		if g.touch.active:
+			_draw_touch_min(vs)   # 触屏：能量只在 Q 键上，左上不画
+		else:
+			match ver():
+				1:
+					_draw_a()
+				2:
+					_draw_b()
+				3:
+					_draw_c()
+		_draw_ready()
+	if link_cue() > 0:
+		_draw_cue()
 
 
 # ================================================================ A 血条下嵌
@@ -163,7 +181,7 @@ func _draw_a() -> void:
 	# 条尾「Q」
 	_chip(fg, txt, Vector2(eb.end.x + 4.0, 61.0), _key("ult"), ec, full)
 	# 连携徽章：生命块右端
-	var qs: Array = _head_q()
+	var qs: Array = _head_q() if link_cue() == 0 else []
 	bg.flush(g.hud)
 	if not qs.is_empty():
 		var q: Dictionary = qs[0]
@@ -251,7 +269,7 @@ func _draw_b() -> void:
 	_chip(fg, txt, Vector2(c.x - B_R - 9.0, c.y + 9.0), _key("ult"), ec, full)
 	fg.flush(g.hud)
 	# 连携：从环的右下边（55°）弹出，自带倒计时环；排队的沿环往下（95°）
-	var qs: Array = _head_q()
+	var qs: Array = _head_q() if link_cue() == 0 else []
 	var fg2 := Tris.new()
 	if not qs.is_empty():
 		var q: Dictionary = qs[0]
@@ -312,7 +330,7 @@ func _draw_c() -> void:
 	bg.flush(g.hud)
 	fg.flush(g.hud)
 	# 连携：生命条上方右端一枚菱形头像
-	var qs: Array = _head_q()
+	var qs: Array = _head_q() if link_cue() == 0 else []
 	var fg2 := Tris.new()
 	if not qs.is_empty():
 		var q: Dictionary = qs[0]
@@ -387,10 +405,26 @@ func _draw_touch_min(vs: Vector2) -> void:
 	var bg := Tris.new()
 	var fg := Tris.new()
 	var txt: Array[Callable] = []
-	bg.circle(c, r, Color(0.05, 0.12, 0.16, 0.82 if full or held else 0.5), 32)
+	bg.circle(c, r, Color(0.05, 0.12, 0.16, 0.82 if full or held else 0.6), 32)
+	# 能量 = 键本身的填充：代表色从下往上涨（水位线亮一道）
+	var ek: float = _ek()
+	if ek > 0.0:
+		var hh: float = r - 2.0 * r * ek
+		var a0: float = asin(clampf(hh / r, -1.0, 1.0))
+		var pts := PackedVector2Array()
+		for i in 25:
+			var a: float = lerpf(a0, PI - a0, i / 24.0)
+			pts.append(c + Vector2(cos(a), sin(a)) * (r - 1.0))
+		if ek >= 0.999:
+			pts = PackedVector2Array()
+			for i in 32:
+				pts.append(c + Vector2.from_angle(TAU * i / 32.0) * (r - 1.0))
+		bg.poly(pts, Color(ec.r * 0.55, ec.g * 0.55, ec.b * 0.55, 0.9))
+		if ek < 0.999:
+			bg.line(pts[0], pts[pts.size() - 1], Color(ec.r, ec.g, ec.b, 0.95), 2.0)
 	bg.flush(g.hud)
 	if ld != null:
-		u._avatar(ld, c, r - 5.0, Color.WHITE if full else Color(0.45, 0.48, 0.52, 0.8))
+		u._avatar(ld, c, r - 5.0, Color.WHITE if full else Color(0.75, 0.78, 0.82, 0.55))
 	if full:
 		fg.arc(c, r, 0.0, TAU, 3.0, Color(ec.r, ec.g, ec.b, 0.95), 40)
 		fg.arc(c, r + 6.0, 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.15 + 0.45 * _pulse()), 40)
@@ -414,7 +448,210 @@ func _draw_touch_min(vs: Vector2) -> void:
 		g.hud.draw_circle(cb.c, cb.r, Color(0.05, 0.12, 0.16, 0.85))
 		u._avatar(q.o, cb.c, cb.r - 3.0)
 		fg.arc(cb.c, cb.r + 1.0, 0.0, TAU, 2.5, Color(oc.r, oc.g, oc.b, 0.95), 28)
+		if link_cue() == 1 or link_cue() == 3:
+			var gl: float = 0.6 if _rm() else 0.5 + 0.5 * sin(g.t * TAU * FUSE_FLOW / FUSE_GAP)   # 与引线光点同一节拍
+			fg.arc(cb.c, cb.r + 5.0, 0.0, TAU, 3.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.25 + 0.6 * gl), 28)
 	if g.touch.flash.get("combo", 0.0) > 0.0:
 		fg.arc(cb.c, cb.r + 6.0, 0.0, TAU, 2.0, Color(1, 1, 1, 0.6), 24)
 	fg.flush(g.hud)
 	u.h.text_flush(txt)
+
+
+# ================================================================ 队长脚下的就绪光圈
+
+## 能量满：队长脚下一圈代表色椭圆光（呼吸）；刚满时往外扩一圈。减少动态效果时只留静止的一圈
+func _draw_ready() -> void:
+	if not g.ult.full() or g.ult.phase != "":
+		return
+	var ld = g.squad.leader()
+	if ld == null or ld.pos == Vector2.INF:
+		return
+	var ct: Transform2D = g.hud_ct()
+	var s: float = ct.get_scale().x
+	var p: Vector2 = ct * (ld.pos + Vector2(0, 3.0))
+	var ec: Color = _ecol()
+	var pu: float = _pulse()
+	_ellipse(p, 27.0 * s, 10.0 * s, Color(ec.r, ec.g, ec.b, 0.6 + 0.35 * pu), 3.0)
+	_ellipse(p, (31.0 + 3.0 * pu) * s, (12.0 + 1.2 * pu) * s, Color(ec.r, ec.g, ec.b, 0.15 + 0.25 * pu), 2.0)
+	var fk: float = _flash_k()
+	if fk > 0.0:
+		var k: float = 1.0 + 0.9 * (1.0 - fk)
+		_ellipse(p, 27.0 * s * k, 10.0 * s * k, Color(1, 1, 1, 0.7 * fk), 2.0)
+
+
+func _ellipse(c: Vector2, rx: float, ry: float, col: Color, w: float) -> void:
+	var pts := PackedVector2Array()
+	for i in 41:
+		var a: float = TAU * i / 40.0
+		pts.append(c + Vector2(cos(a) * rx, sin(a) * ry))
+	g.hud.draw_polyline(pts, col, w, true)
+
+
+# ================================================================ 连携提示（ui/link_cue）
+
+const FUSE_PX := 3.0     # 引线像素格
+const FUSE_GAP := 30.0   # 光点间距（屏幕像素）
+const FUSE_FLOW := 90.0  # 光点流速（像素 / 秒，队友 → 队长）
+const BURST_T := 0.45    # 按 E 后爆亮 + 火星散掉
+
+var _last := {}          # 上一帧的队首 {"o", "left"}：队首没到点就离开 = 按了 E（或自动连携出手）
+var _burst: Array = []   # {"o", "t0"}（界面时钟）
+
+
+func _track_link() -> void:
+	var qs: Array = _head_q()
+	var head = qs[0].o if not qs.is_empty() else null
+	if not _last.is_empty() and _last.o != head and float(_last.left) > 0.12:
+		_burst.append({"o": _last.o, "t0": UM.now()})
+	_last = {"o": head, "left": float(qs[0].left)} if head != null else {}
+	_burst = _burst.filter(func(b): return UM.now() - float(b.t0) < BURST_T)
+
+
+func _scr(pos: Vector2) -> Vector2:
+	return g.hud_ct() * pos
+
+
+func _snap(p: Vector2) -> Vector2:
+	return Vector2(floorf(p.x / FUSE_PX) * FUSE_PX, floorf(p.y / FUSE_PX) * FUSE_PX)
+
+
+## 两名干员之间的引线端点（屏幕坐标，身体中段）
+func _ends(o):
+	var ld = g.squad.leader()
+	if ld == null or ld.pos == Vector2.INF or o == null or o.pos == Vector2.INF:
+		return null
+	return [_scr(ld.pos + Vector2(0, -10.0)), _scr(o.pos + Vector2(0, -10.0))]
+
+
+func _draw_cue() -> void:
+	var cue: int = link_cue()
+	var tb := Tris.new()
+	var txt: Array[Callable] = []
+	var qs: Array = _head_q()
+	if not qs.is_empty():
+		var q: Dictionary = qs[0]
+		var k: float = _left_k(q)
+		var e = _ends(q.o)
+		if e != null:
+			if cue == 1 or cue == 3:
+				_fuse(tb, e[0], e[1], k)
+			if cue == 2:
+				_corners(tb, txt, q, k)
+			if cue == 3:
+				var mid: Vector2 = (e[0] + e[1]) * 0.5
+				var key: String = _key("combo")
+				_tag(tb, txt, mid + Vector2(0, -16.0), "LINK" if key == "" else "LINK · %s" % key, true)
+	for b in _burst:
+		var e2 = _ends(b.o)
+		if e2 == null:
+			continue
+		var t: float = (UM.now() - float(b.t0)) / BURST_T
+		if cue == 1 or cue == 3:
+			_fuse_burst(tb, e2[0], e2[1], t)
+		else:
+			_corner_burst(tb, b.o, t)
+	tb.flush(g.hud)
+	u.h.text_flush(txt)
+
+
+## 引线：a = 队长端，b = 队友端；剩下的是 a → a + (b − a)·k 这一段，烧点在末端
+func _fuse(tb: Tris, a: Vector2, b: Vector2, k: float) -> void:
+	var d: Vector2 = b - a
+	var L: float = d.length()
+	if L < 8.0:
+		return
+	var dir: Vector2 = d / L
+	var end: float = L * k
+	var n: int = int(end / FUSE_PX)
+	var col: Color = UI.GOLD
+	var flow: float = 0.0 if _rm() else g.t * FUSE_FLOW
+	for i in n:
+		var x: float = i * FUSE_PX
+		var p: Vector2 = _snap(a + dir * x)
+		var ph: float = fposmod(x + flow, FUSE_GAP) / FUSE_GAP   # 光点往 a（队长）流
+		var hi: float = 0.0 if _rm() else clampf(1.0 - absf(ph - 0.5) * 6.0, 0.0, 1.0)
+		var c: Color = col.lerp(Color(1.0, 0.97, 0.85), hi)
+		tb.rect(Rect2(p, Vector2(FUSE_PX, FUSE_PX)), Color(c.r, c.g, c.b, 0.55 + 0.4 * hi))
+	# 烧点：亮核 + 几粒火星（按时间换位，不用随机数）
+	var tip: Vector2 = _snap(a + dir * end)
+	tb.rect(Rect2(tip - Vector2(FUSE_PX, FUSE_PX), Vector2(FUSE_PX * 3.0, FUSE_PX * 3.0)), Color(1.0, 0.85, 0.5, 0.35))
+	tb.rect(Rect2(tip, Vector2(FUSE_PX, FUSE_PX)), Color(1, 1, 0.92, 1.0))
+	if not _rm():
+		var nrm := Vector2(-dir.y, dir.x)
+		for j in 3:
+			var ph2: float = fposmod(g.t * 3.0 + j * 0.37, 1.0)
+			var sp: Vector2 = tip + dir * (ph2 * 9.0) + nrm * sin(j * 2.1 + g.t * 11.0) * 7.0 * ph2 + Vector2(0, -6.0 * ph2)
+			tb.rect(Rect2(_snap(sp), Vector2(FUSE_PX, FUSE_PX)), Color(1.0, 0.8, 0.4, 0.9 * (1.0 - ph2)))
+
+
+## 按 E：前 30% 整线爆亮，之后化成火星往四周散、淡出
+func _fuse_burst(tb: Tris, a: Vector2, b: Vector2, t: float) -> void:
+	var d: Vector2 = b - a
+	var L: float = d.length()
+	if L < 8.0:
+		return
+	var dir: Vector2 = d / L
+	var nrm := Vector2(-dir.y, dir.x)
+	var n: int = int(L / FUSE_PX)
+	if t < 0.3 or _rm():
+		var a1: float = 1.0 - t if _rm() else 1.0
+		for i in n:
+			tb.rect(Rect2(_snap(a + dir * i * FUSE_PX) - Vector2(1, 1), Vector2(FUSE_PX + 2.0, FUSE_PX + 2.0)), Color(1, 0.95, 0.75, 0.95 * a1))
+		return
+	var k: float = (t - 0.3) / 0.7
+	for i in range(0, n, 2):
+		var hsh: float = sin(i * 12.9898) * 43758.5453
+		var rnd: float = hsh - floorf(hsh)
+		var off: Vector2 = nrm * (rnd - 0.5) * 2.0 * 26.0 * k + Vector2(0, -14.0 * k * rnd)
+		tb.rect(Rect2(_snap(a + dir * i * FUSE_PX + off), Vector2(FUSE_PX, FUSE_PX)), Color(1.0, 0.75 + 0.2 * rnd, 0.35, 0.9 * (1.0 - k)))
+
+
+## 终端风四角框 + LINK 标签 + 倒计时刻度（框亮起时从 1.4 倍收到 1 倍，减少动态效果时直接到位）
+func _corners(tb: Tris, txt: Array[Callable], q: Dictionary, k: float) -> void:
+	var o = q.o
+	var ct: Transform2D = g.hud_ct()
+	var s: float = ct.get_scale().x
+	var c: Vector2 = _scr(o.pos + Vector2(0, -14.0))
+	var lock: float = 1.0 if _rm() else 1.0 + 0.4 * (1.0 - clampf((u._lit_t() - float(q.left)) / 0.15, 0.0, 1.0))
+	var hw: float = 20.0 * s * lock
+	var hh: float = 24.0 * s * lock
+	var box := Rect2(c - Vector2(hw, hh), Vector2(hw, hh) * 2.0)
+	_brackets(tb, box, Color(0.93, 0.95, 0.97, 0.95), 2.0)
+	var lw: float = _tag(tb, txt, Vector2(box.position.x, box.position.y - 20.0), "LINK", false)
+	# 倒计时刻度：10 格，按剩余时间从右往左熄
+	var n := 10
+	var tw: float = maxf(lw, 34.0)
+	var cw: float = (tw - (n - 1) * 1.0) / n
+	for i in n:
+		var on: bool = float(i) < ceil(k * n)
+		tb.rect(Rect2(box.position.x + i * (cw + 1.0), box.position.y - 9.0, cw, 3.0), Color(0.93, 0.95, 0.97, 0.9) if on else Color(0.2, 0.22, 0.25, 0.7))
+
+
+func _brackets(tb: Tris, r: Rect2, col: Color, w: float) -> void:
+	var L: float = minf(9.0, r.size.x * 0.3)
+	for cx in [0, 1]:
+		for cy in [0, 1]:
+			var p := Vector2(r.position.x + r.size.x * cx, r.position.y + r.size.y * cy)
+			var sx: float = 1.0 if cx == 0 else -1.0
+			var sy: float = 1.0 if cy == 0 else -1.0
+			tb.rect(Rect2(Vector2(minf(p.x, p.x + sx * L), p.y - (0.0 if cy == 0 else w)), Vector2(L, w)), col)
+			tb.rect(Rect2(Vector2(p.x - (0.0 if cx == 0 else w), minf(p.y, p.y + sy * L)), Vector2(w, L)), col)
+
+
+## 黑底白字英文小标签（同卡面 SQUAD 标签那套：黑底、白字、字距）；center = true 时 p 是中心。返回宽
+func _tag(tb: Tris, txt: Array[Callable], p: Vector2, s: String, center: bool) -> float:
+	var w: float = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(10)).x + s.length() * 2.0 + 10.0
+	var r := Rect2(p - Vector2(w * 0.5 if center else 0.0, 7.0), Vector2(w, 14.0))
+	tb.rect(r, Color(0, 0, 0, 0.88))
+	txt.append(func(): UI.en(g.hud, g.font, Vector2(r.position.x + 5.0, r.position.y + 11.0), s, 10, Color(1, 1, 1), 2.0))
+	return w
+
+
+## C 按 E：四角框往外弹开、淡出
+func _corner_burst(tb: Tris, o, t: float) -> void:
+	if o == null or o.pos == Vector2.INF:
+		return
+	var s: float = g.hud_ct().get_scale().x
+	var c: Vector2 = _scr(o.pos + Vector2(0, -14.0))
+	var k: float = 1.0 if _rm() else 1.0 + 0.6 * t
+	_brackets(tb, Rect2(c - Vector2(20.0, 24.0) * s * k, Vector2(40.0, 48.0) * s * k), Color(1, 1, 1, 0.9 * (1.0 - t)), 2.0)

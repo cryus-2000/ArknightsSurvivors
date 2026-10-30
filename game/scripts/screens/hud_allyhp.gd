@@ -207,7 +207,7 @@ func guide_rect(vs: Vector2) -> Rect2:
 	if ms.is_empty():
 		return Rect2()
 	if int(Bal.v("command/hpbar_style", 4.0)) == 4:
-		return Rect2(Vector2(UL_X - 8.0, UL_Y + HudUltV.top_add() - 4.0), Vector2(UL_W + 52.0, ms.size() * UL_ROW + 6.0))
+		return Rect2(Vector2(UL_X - 8.0, UL_Y + HudUltV.top_add(g.touch.active) - 4.0), Vector2(UL_W + 52.0, ms.size() * UL_ROW + 6.0))
 	if int(Bal.v("command/hpbar_style", 4.0)) == 3:
 		var y0: float = 150.0 if not g.touch.active else 118.0
 		return Rect2(Vector2(10.0, y0 - 6.0), Vector2(190.0, ms.size() * COL_ROW + 6.0))
@@ -236,7 +236,7 @@ func top_shift() -> float:
 	if h.phone_quiet():
 		return 0.0
 	var n: int = (_mates().size() if style() == 4 else 0) + M3.entries(g).size()
-	return (n * UL_ROW + 4.0 if n > 0 else 0.0) + HudUltV.top_add()
+	return (n * UL_ROW + 4.0 if n > 0 else 0.0) + HudUltV.top_add(g.touch.active)
 
 
 func _draw_under_leader() -> void:
@@ -247,7 +247,7 @@ func _draw_under_leader() -> void:
 	var a: float = 1.0 if roam or ms.any(func(o): return o.cmd_down > 0.0 or o.cmd_hp < 0.999) else 0.6
 	for i in ms.size():
 		var o = ms[i]
-		var y: float = UL_Y + HudUltV.top_add() + i * UL_ROW
+		var y: float = UL_Y + HudUltV.top_add(g.touch.active) + i * UL_ROW
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)
 		var down: bool = o.cmd_down > 0.0
 		g.hud.draw_rect(Rect2(UL_X - 4.0, y - 1.0, 2.0, 11.0), Color(oc.r, oc.g, oc.b, a))   # 职业色小块（同编队卡底条 / 屏外头像外圈）
@@ -272,7 +272,7 @@ func _draw_m3_rows() -> void:
 	for i in es.size():
 		var o = es[i][0]
 		var s: Dictionary = es[i][1]
-		var y: float = UL_Y + HudUltV.top_add() + (base + i) * UL_ROW
+		var y: float = UL_Y + HudUltV.top_add(g.touch.active) + (base + i) * UL_ROW
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)
 		var down: bool = M3.is_down(s)
 		var f: float = clampf(float(s.hp) / maxf(1.0, float(s.max_hp)), 0.0, 1.0)
