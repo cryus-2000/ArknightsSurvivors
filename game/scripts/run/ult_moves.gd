@@ -1510,10 +1510,10 @@ static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
 	var vs: float = PF.vseed(u, core)
 	for m in 3:
 		u.shape({"kind": "circle", "c": core, "r": 50.0 + 45.0 * m, "col": Color(1.0, 0.75 - 0.2 * m, 0.65 - 0.2 * m), "fill": 0.95 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
-	var cols := [Color(1.0, 0.88, 0.8), Color(1.0, 0.35, 0.25), KA_RED, Color(0.55, 0.06, 0.08)]
-	PF.particles(u, core, 260, R * 0.85, 0.0, vs, cols, 0.6, 40.0, 8.0)
-	PF.particles(u, core, 130, R * 0.5, 0.09, vs + 4.0, cols, 0.5, 40.0, 6.0)
-	PF.particles(u, core, 50, R * 1.15, 0.03, vs + 9.0, [Color(1.0, 0.9, 0.8), Color(1.0, 0.45, 0.3)], 0.9, 10.0, 4.0)   # 远飞火星
+	var cols := [Color(1.0, 0.42, 0.32), Color(1.0, 0.22, 0.16), Color(1.0, 0.6, 0.45), Color(1.0, 0.3, 0.22), Color(0.95, 0.15, 0.12)]   # 亮红档（乘在热白色阶上，暗底上看得清）
+	PF.particles(u, core, 420, "ult_burst", cols, 0.0, vs)   # 主爆：2 px 红色颗粒迸开、阻力减速扩散
+	PF.particles(u, core, 220, "ult_burst_s", cols, 0.08, vs + 4.0)   # 二次近爆
+	PF.particles(u, core, 90, "ult_ember", [Color(1.0, 0.4, 0.3), KA_RED], 0.12, vs + 9.0)   # 慢飘余烬
 	for m in 3:
 		u.shape({"kind": "ring", "c": c, "r": R * (1.05 - 0.2 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": Color(1.0, 0.4, 0.3).lerp(KA_RED, 0.4 * m), "life": 0.55, "delay": 0.04 * m})
 	for q in 10:
@@ -1521,7 +1521,7 @@ static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
 		var p: Vector2 = core + Vector2.from_angle(TAU * (q + hq) / 10.0) * R * (0.3 + 0.35 * hq)
 		var dl: float = 0.1 + 0.04 * (q % 4)
 		u.shape({"kind": "circle", "c": p, "r": 24.0, "col": Color(1.0, 0.6, 0.5), "fill": 0.9, "life": 0.06, "delay": dl})
-		PF.particles(u, p, 20, 100.0, dl, vs + q * 7.0, cols, 0.45, 40.0, 6.0)
+		PF.particles(u, p, 36, "ult_burst_s", cols, dl, vs + q * 7.0)
 	for m in 16:
 		var dq := Vector2.from_angle(TAU * float(m) / 16.0 + 0.13)
 		u.grain("bfx_burst", core + dq * 20.0, dq, KA_RED, 8)
@@ -1540,7 +1540,7 @@ static func _ka_ring_v2(u, c: Vector2, r: float, i: int, R: float) -> void:
 		var p: Vector2 = c + dv * r * (0.75 + 0.25 * hh)
 		var dl: float = 0.03 * float(q % 4)
 		u.shape({"kind": "circle", "c": p, "r": 22.0, "col": Color(1.0, 0.45, 0.35), "fill": 0.9, "life": 0.06, "delay": dl})
-		PF.particles(u, p, 18, 110.0, dl, float(i * 13 + q), [Color(1.0, 0.88, 0.8), Color(1.0, 0.35, 0.25), KA_RED, Color(0.55, 0.06, 0.08)])
+		PF.particles(u, p, 30, "ult_burst_s", [Color(1.0, 0.35, 0.25), KA_RED], dl, float(i * 13 + q))
 		u.grain("bfx_burst", p, dv, KA_RED, 5)
 		if q % 3 == 0:
 			_ul_rock(u, p, dv * 60.0, 220.0 + 120.0 * hh, hh, 0.4, dl)

@@ -3,7 +3,7 @@
 ## 复用 CPU 池；GPU 可见层问题已在 main 修复。网页 / 桌面性能仍需分别验证。
 ## 模板参数（TEMPLATES）：ramp 颜色阶（硬边：按年龄落在哪一段就用哪一段的色，不插值；值 > 1 = 发光）、life 寿命 / life_rand 散布、
 ##   speed 初速区间、spread 散射角（度）、grav 重力、drag 阻力（惯性：越小飘越远）、per_frame 单帧新增上限；
-##   budget 每档画质同屏上限（高 / 中；低画质不开，调用方退回非粒子画法）。超预算时新颗粒直接丢（不挤掉旧的），单帧超上限均匀抽稀由调用方做。
+##   budget 每档画质同屏上限（高 / 中；低画质不开，调用方退回非粒子画法）。超预算时新颗粒直接丢（不挤掉旧的），单帧超上限均匀抽稀由调用方做。（10-30 终结技大爆散一次 400–700 颗，900 / 450 → 1600 / 800）
 ## 另带 CPU 火星（spark）：带重力、落到「地面高度」（物体脚底 y）停住、冷却变暗后熄灭——俯视游戏没有真碰撞，按脚底 y 处理。
 ## 只用 g.vrng（画面随机流），不碰玩法随机数
 extends Node2D
@@ -16,7 +16,7 @@ const GRAIN_BODY := {"fx_slash_heavy_deep": true}
 const TEMPLATES := {
 	# 刀光：热白 → 亮本色 → 本色 → 冷暗四阶，带挥刀惯性散开、轻微下落、逐颗熄灭
 	"slash": {"ramp": [[0.0, Color(2.0, 2.0, 2.0, 1)], [0.12, Color(1.35, 1.35, 1.35, 1)], [0.38, Color(0.9, 0.9, 0.9, 1)], [0.7, Color(0.45, 0.45, 0.5, 0.9)]],
-		"life": 0.3, "life_rand": 0.45, "speed": Vector2(10, 46), "spread": 26.0, "grav": 80.0, "drag": 5.0, "per_frame": 140, "budget": [900, 450]},
+		"life": 0.3, "life_rand": 0.45, "speed": Vector2(10, 46), "spread": 26.0, "grav": 80.0, "drag": 5.0, "per_frame": 140, "budget": [1600, 800]},
 }
 # 材质仅改变颗粒运动与冷却，所有材质共享 slash 的总预算。
 const MATERIALS := {
@@ -55,6 +55,13 @@ const MATERIALS := {
 	# 激光 / 弹道沿线的短闪（用户 10-26「激光打完消失得慢」：≤ 0.22 秒收完）
 	"bfx_flash": {"life": 0.22, "life_rand": 0.35, "speed": Vector2(20, 60), "spread": 25.0, "grav": 0.0, "drag": 4.0, "per_frame": 120,
 		"ramp": [[0.0, Color(1.4, 1.4, 1.4, 1)], [0.3, Color(1, 1, 1, 0.85)], [0.7, Color(0.55, 0.55, 0.55, 0.4)]]},
+	# 终结技大爆散（pixfx，用户 10-30「和我们 Noita 的精细像素粒子风对齐」）：远飞 / 近爆两档 + 慢飘余烬；颜色乘在色阶上
+	"ult_burst": {"life": 0.95, "life_rand": 0.45, "speed": Vector2(160, 720), "spread": 180.0, "grav": 30.0, "drag": 3.2, "per_frame": 520,
+		"ramp": [[0.0, Color(1.6, 1.6, 1.6, 1)], [0.12, Color(1.2, 1.2, 1.2, 1)], [0.4, Color(1, 1, 1, 0.95)], [0.7, Color(0.55, 0.55, 0.55, 0.75)], [0.9, Color(0.3, 0.3, 0.3, 0.45)]]},
+	"ult_burst_s": {"life": 0.7, "life_rand": 0.4, "speed": Vector2(50, 260), "spread": 180.0, "grav": 40.0, "drag": 3.6, "per_frame": 420,
+		"ramp": [[0.0, Color(1.5, 1.5, 1.5, 1)], [0.15, Color(1.15, 1.15, 1.15, 1)], [0.45, Color(1, 1, 1, 0.9)], [0.8, Color(0.45, 0.45, 0.45, 0.5)]]},
+	"ult_ember": {"life": 1.6, "life_rand": 0.4, "speed": Vector2(20, 90), "spread": 180.0, "grav": -18.0, "drag": 1.4, "per_frame": 160,
+		"ramp": [[0.0, Color(1.4, 1.4, 1.4, 1)], [0.3, Color(1, 1, 1, 0.9)], [0.7, Color(0.6, 0.6, 0.6, 0.6)], [0.9, Color(0.35, 0.35, 0.35, 0.3)]]},
 	"mote_shed": {"life": 0.55, "life_rand": 0.35, "speed": Vector2(12, 34), "spread": 35.0, "grav": -22.0, "drag": 2.5, "per_frame": 14,
 		"ramp": [[0.0, Color(1.3, 1.3, 1.3, 0.95)], [0.3, Color(1, 1, 1, 0.8)], [0.7, Color(0.5, 0.5, 0.5, 0.4)]]},
 	"mote_burst": {"life": 0.6, "life_rand": 0.35, "speed": Vector2(70, 150), "spread": 8.0, "grav": 0.0, "drag": 3.5, "per_frame": 72,

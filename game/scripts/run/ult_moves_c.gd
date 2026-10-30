@@ -359,6 +359,8 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 		a["shielded"] = true
 		g.shield = mini(g.shield + 1, maxi(g.shield_max, 1) + 1)   # 附带：队长护盾（本作护盾按层；docs 写 15% 最大生命，没有按量的护盾，先给一层）
 		g.shield_pop = 1.0
+	if a.v2:
+		PF.beats_tick(u, a, t, org, Color(1.0, 0.9, 0.7))
 	# 拳风冲击环：波前扫过的敌人各吃一次，往外击飞、短硬直
 	var f: float = R * clampf((t - ch) / tr, 0.0, 1.0)
 	var hc: float = a.rc
@@ -444,10 +446,11 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		var r0: float = 40.0 + 40.0 * PF.h(k * 3.0 + vs)
 		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 90.0 + 60.0 * PF.h(k + 7.0)), "w": 4.0 if k % 3 == 0 else 2.5,
 			"col": Color(0.95, 0.95, 0.9), "life": tr * 0.9, "v": dv * spd * 1.05})
-	for i in 4:   # 波前扫过的地面一圈圈掀起
-		var r: float = R * (0.25 + 0.24 * i)
-		PF.heave(u, org, r, 20.0 + i + vs, r / spd)
-	PF.aftershock(u, org, R, 3.0 + vs, tr + 0.3, 14)
+	# 节奏（用户 10-30「裂地的顿感和节奏」对齐乌尔比安：一拍一圈、每拍震屏 + 隆起 + 灯 + 尘，间隔 0.18）
+	a["vs"] = vs
+	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18, R * 0.55, 1], [float(a.t) + 0.36, R * 0.8, 2], [float(a.t) + 0.54, R * 1.0, 3]]
+	PF.particles(u, org, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85), Color(0.75, 0.7, 0.62)], 0.0, vs)   # 拳坑迸出的碎石尘
+	PF.aftershock(u, org, R, 3.0 + vs, 0.54 + 0.3, 14)
 
 
 ## 尘土碎石墙从半径 r0 起以 spd 往外推 dur 秒（段数按终点半径取，起点处互相叠着，不会断开）
@@ -484,13 +487,11 @@ static func _sg_smash_v2(u, c: Vector2, R: float) -> void:
 	var vs: float = PF.vseed(u, c)
 	PF.ring(u, SG_RINGS, c, 60.0, R * 1.02, 0.28, 0.4, {"seed": vs, "fade": 0.3, "col": Color(1, 1, 1, 0.7)})
 	_ring(u, c, R, 60.0, COL_ROCK.lerp(Color.WHITE, 0.2), 0.4, 6.0)   # 细的范围环
-	PF.crack_net(u, SG_FORKS, c, R, 11 + int(PF.h(vs + 1.0) * 5.0), PF.h(vs + 2.0) * TAU, vs, 0.32, Color(1.1, 1.08, 1.05), Color(0.3, 0.29, 0.28), 30.0)
+	PF.crack_net(u, SG_FORKS, c, R, 11 + int(PF.h(vs + 1.0) * 5.0), PF.h(vs + 2.0) * TAU, vs, 0.54, Color(1.1, 1.08, 1.05), Color(0.3, 0.29, 0.28), 30.0)
 	u.g.vfx.stop(Bal.v("ult/sg_hitstop", 0.1), "ult", true)
-	for i in 3:
-		var r: float = R * (0.3 + 0.3 * i)
-		PF.heave(u, c, r, 50.0 + i + vs, r / R * 0.3)
-	PF.wall(u, c, R, 0.22)
-	PF.aftershock(u, c, R, 7.0 + vs, 0.35, 12)
+	PF.particles(u, c, 200, "ult_burst_s", [Color(0.95, 0.92, 0.85), Color(0.7, 0.68, 0.62)], 0.0, vs)   # 锤坑迸出的碎石尘
+	PF.wall(u, c, R, 0.54)
+	PF.aftershock(u, c, R, 7.0 + vs, 0.54 + 0.3, 12)
 
 
 # ================================================================ 铃兰（§4.14）：忍冬在她身旁现身 → 化白光瞬身斩出 → 停半拍 → 斩痕爆裂
@@ -897,6 +898,10 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 		_lead_move(u, o, c)
 		_lead_land(u, o)
 		_sg_smash(u, a, o, c, float(a.R), Bal.v("ult/sg_smash", 0.75), a.mseg, true)
+		if _sg_v2(u):   # 节奏：一拍一圈往外震（对齐乌尔比安四圈，间隔 0.18）
+			var Rr: float = float(a.R)
+			a["vs"] = PF.vseed(u, c)
+			a["beats"] = [[t, Rr * 0.3, 0], [t + 0.18, Rr * 0.55, 1], [t + 0.36, Rr * 0.8, 2], [t + 0.54, Rr * 1.0, 3]]
 		_team_sp(u, o, float(a.sp))
 		if a.cmd:   # 万兽之王：金色号令波
 			_ring(u, c, 620.0, 100.0, Color(1.0, 0.85, 0.3), 0.6, 6.0, 0.1)
@@ -904,6 +909,7 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 		if a.leap:
 			var nx: Vector2 = u._densest(c, 420.0, 220.0)
 			a.l2 = {"from": c, "to": nx if nx != Vector2.INF and nx.distance_to(c) > 120.0 else c + (c - Vector2(a.p0)).normalized() * 260.0, "t0": t + 0.25, "dur": 0.3, "done": false}
+	PF.beats_tick(u, a, t, c, Color(0.95, 0.9, 0.8))
 	var lt: float = T
 	if not a.fall and t >= lt + Bal.v("ult/sg_lift", 0.8):
 		a.fall = true   # 震上半空的落地：25%

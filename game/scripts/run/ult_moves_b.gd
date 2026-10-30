@@ -435,10 +435,12 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			var fr: float = bf + (0.0 if a.cseg.has(int(e.id)) else Bal.v("ult/gl_crush", 0.3))   # 收拢那下没罩到的（后进圈）这下补上
 			_hit(u, a, o, e, fr, {"src": "潮涌", "edge": off.length() > er, "kb": _kb_for(e, dv, kb, kb * 0.5)})
 		u.shake(5.0, 0.3)
+		var v2: bool = a.has("vo")   # v2：不画卡通水花 / 浪涌帧条和整片淡圆，交给 2 px 水色颗粒（用户 10-30「对齐 Noita 精细像素粒子风」）
 		u.strip("fx_gladiia_tornado_close", c, {"sc": 2.6, "o": Vector2(64, 118)})
-		u.strip("fx_skadi_surge", c, {"sc": 5.2})
+		if not v2:
+			u.strip("fx_skadi_surge", c, {"sc": 5.2})
+			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.3), "fill": 0.28, "life": 0.28})
 		u.shape({"kind": "circle", "c": c, "r": 90.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": 0.1})
-		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.3), "fill": 0.28, "life": 0.28})
 		_ring(u, c, R, 40.0, col.lerp(Color.WHITE, 0.5), 0.45, 18.0)
 		u.light(c, R, col, 0.45)
 		u.debris(c, col, 3)
@@ -448,15 +450,16 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 		var foam: Color = col.lerp(Color.WHITE, 0.7)
 		for i in 12:
 			var dv2 := Vector2.from_angle(float(i) * TAU / 12.0 + 0.13)
-			u.shape({"kind": "blade", "a": c + dv2 * 50.0, "b": c + dv2 * 230.0, "w": 14.0, "col": foam, "glow": col, "grow": 0.05, "life": 0.34, "v": dv2 * 820.0})
+			if not v2:
+				u.shape({"kind": "blade", "a": c + dv2 * 50.0, "b": c + dv2 * 230.0, "w": 14.0, "col": foam, "glow": col, "grow": 0.05, "life": 0.34, "v": dv2 * 820.0})
 			for m in 3:   # 水柱沿线的水沫（颗粒拼出放射的水柱）
 				u.grain("water", c + dv2 * R * (0.25 + 0.3 * float(m)), dv2, foam, 4)
 			if i % 3 == 0:
 				u.debris(c + dv2 * R * 0.6, col, 1)
 		_spray(u, c, 16, 60.0, 1000.0, foam, 0.45)
-		for i in 10:
+		for i in (0 if v2 else 10):
 			u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 10.0 + 0.3) * R * 0.62, {"sc": 1.8, "delay": 0.03 * float(i % 3)})
-		for i in 8:
+		for i in (0 if v2 else 8):
 			u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 8.0) * R * 0.32, {"sc": 1.4, "delay": 0.02 * float(i % 2)})
 		if a.shelter:   # 深海的庇护：队长获得 10% 最大生命的护盾（护盾层 API 只有格数，这里先折成回复 10%）
 			u.g.combat.heal(u.g.max_hp * 0.1, "终结技", "gladiia")
@@ -474,16 +477,17 @@ const GL_VORTEX := "fx_gl_vortex"
 ## 爆开：白芯三连闪 → 两波水色像素粒子（白沫 / 浅青 / 青 / 深青）迸开扩散 + 一圈 9 团水花爆 + 碎裂水环三道 + 大灯
 static func _gl_burst_v2(u, c: Vector2, R: float, col: Color) -> void:
 	var vs: float = PF.vseed(u, c)
-	var cols := [Color(0.95, 1.0, 1.0), Color(0.6, 0.9, 0.95), Color(0.25, 0.7, 0.8), Color(0.1, 0.4, 0.5)]
+	var cols := [Color(0.85, 1.0, 1.0), Color(0.5, 0.9, 0.95), Color(0.3, 0.75, 0.85), Color(0.7, 0.95, 1.0)]
 	for m in 3:
 		u.shape({"kind": "circle", "c": c, "r": 60.0 + 40.0 * m, "col": Color(0.9, 1.0, 1.0), "fill": 0.9 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
-	PF.particles(u, c, 240, R * 0.95, 0.0, vs, cols, 0.7, 20.0, 8.0)
-	PF.particles(u, c, 120, R * 0.6, 0.08, vs + 3.0, cols, 0.6, 20.0, 6.0)
+	PF.particles(u, c, 420, "ult_burst", cols, 0.0, vs)   # 2 px 水色颗粒迸开扩散
+	PF.particles(u, c, 200, "ult_burst_s", cols, 0.08, vs + 3.0)
+	PF.particles(u, c, 80, "ult_ember", [Color(0.7, 0.95, 1.0)], 0.12, vs + 5.0)
 	for q in 9:
 		var hq: float = PF.h(q + vs)
 		var p: Vector2 = c + Vector2.from_angle(TAU * (q + hq) / 9.0) * R * (0.45 + 0.3 * hq)
 		u.shape({"kind": "circle", "c": p, "r": 26.0, "col": Color(0.9, 1.0, 1.0), "fill": 0.9, "life": 0.06, "delay": 0.06 + 0.03 * (q % 3)})
-		PF.particles(u, p, 22, 120.0, 0.06 + 0.03 * (q % 3), vs + q * 5.0, cols, 0.5, 30.0, 6.0)
+		PF.particles(u, p, 34, "ult_burst_s", cols, 0.06 + 0.03 * (q % 3), vs + q * 5.0)
 		u.grain("water", p, Vector2.UP, Color(0.85, 1.0, 1.0), 6)
 	for m in 3:
 		u.shape({"kind": "ring", "c": c, "r": R * (1.0 - 0.18 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": Color(0.85, 1.0, 1.0).lerp(col, 0.3 * m), "life": 0.55, "delay": 0.04 * m})

@@ -109,17 +109,31 @@ static func cracks(u, names: Array, c: Vector2, angs: Array, lens: Array, opt: D
 		u.strip(name, c + Vector2.from_angle(float(angs[j])) * r0, s)
 
 
-## 像素粒子爆：n 颗从 p 迸开，初速按到达距离 reach 反推（v·drag 衰减后约走 reach），寿命 life0–life0+0.9 秒；cols 由亮到暗，走得远的取暗档
-static func particles(u, p: Vector2, n: int, reach: float, delay: float, seed0: float, cols: Array, life0 := 0.6, grav := 40.0, rmax := 7.0) -> void:
+## 像素粒子爆（2 px 精细颗粒，fx_grains 的 ult_burst / ult_burst_s / ult_ember 模板；用户 10-30「对齐 Noita 精细像素粒子风」，原 3 px 大圆点退役）：
+## kind 模板、n 颗、cols 颜色组（按序号轮换，乘在模板热白 → 本色 → 暗的色阶上）、delay 发射延迟。颗粒关（低画质）时无事
+static func particles(u, p: Vector2, n: int, kind: String, cols: Array, delay := 0.0, seed0 := 0.0) -> void:
+	var gr = u.g.optical.grains if u.g.optical != null else null
+	if gr == null or not gr.on():
+		return
 	for k in n:
-		var h1: float = h(k * 1.31 + seed0)
-		var h2: float = h(k * 2.17 + seed0 * 3.0)
-		var h3: float = h(k * 0.73 + seed0 * 7.0)
-		var drag: float = 3.0 + 2.0 * h3
-		var dist: float = reach * (0.15 + 0.85 * sqrt(h2))
-		var ci: int = mini(cols.size() - 1, int(h2 * cols.size()))
-		u.shape({"kind": "circle", "c": p, "r": 3.0 + (rmax - 3.0) * (1.0 - h2) + (3.0 if ci == 0 else 0.0), "col": cols[ci], "fill": 1.0,
-			"v": Vector2.from_angle(h1 * TAU) * dist * drag, "drag": drag, "grav": grav, "life": life0 + 0.9 * h3, "delay": delay})
+		gr.push(kind, p, Vector2.from_angle(h(k * 1.31 + seed0) * TAU), cols[k % cols.size()], delay)
+
+
+## 节拍（顿感 / 节奏对齐乌尔比安的四圈：每 0.18 秒一拍，每拍一次震屏 + 一圈隆起 + 短灯 + 尘）：beats = [[t, r], ...]，在 step 里每帧调 tick_beats
+static func beats_tick(u, a: Dictionary, t: float, c: Vector2, col: Color) -> void:
+	if not a.has("beats"):
+		return
+	var bs: Array = a.beats
+	while not bs.is_empty() and t >= float(bs[0][0]):
+		var b: Array = bs.pop_front()
+		var r: float = float(b[1])
+		var i: int = int(b[2])
+		u.shake(4.0 + 2.0 * i, 0.18)
+		heave(u, c, r, float(a.get("vs", 0.0)) + 30.0 + i)
+		u.light(c, r * 1.1, col, 0.2)
+		for q in 10:
+			var dq := Vector2.from_angle(TAU * (q + h(q + i)) / 10.0)
+			u.grain("bfx_dust", c + dq * r, dq, Color(0.62, 0.6, 0.56), 3)
 
 
 ## 乌尔比安式裂网（用户 10-30「所有裂地的感觉都跟乌尔比安的对齐」）：names = 这人的分叉裂缝组（同形状、各人调色），
