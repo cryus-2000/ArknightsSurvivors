@@ -1,0 +1,11 @@
+hp16.jsonl runs 18 | spawned 69 killed 64 absorbed 7 | clear 6.28s | learn layers 2 absorb_n 4 stacks 1 | alive@0,5..30s [0, 7.2, 10.3, 13.5, 15.4, 15.3, 1.4] | win 15/18 | fight 72s
+== hp16.jsonl jobs 18 err 0
+izumik       fight  71.7  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 15/18
+     bullet:nerve                       n  10  med 19.0%  max 40.2%  raw med  30.5 max  70.4
+     boss_izumik:                       n   5  med 39.5%  max 48.6%  raw med  63.7 max  85.2
+     boss_izumik:final_attack/迁徙潮       n   3  med 28.2%  max 40.9%  raw med  32.2 max  46.7
+     bullet:orb                         n   3  med 27.5%  max 27.5%  raw med  31.4 max  31.4
+     boss_izumik:final_attack/          n   2  med 37.5%  max 37.5%  raw med  43.5 max  43.5
+     bullet:nova                        n   1  med 12.0%  max 12.0%  raw med  13.7 max  13.7
+     boss_izumik:nerve                  n   1  med 31.6%  max 31.6%  raw med  55.4 max  55.4
+     boss_izumik:sweep/分享               n   1  med  7.2%  max  7.2%  raw med  12.6 max  12.6
