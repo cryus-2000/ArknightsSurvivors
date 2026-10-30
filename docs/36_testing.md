@@ -408,6 +408,19 @@ python tools/gcp/batch.py run <tag> --commit <提交> \
 - **例行任务**：需要 Claude 在云端判断 / 改东西的（跑挂了要看日志修环境、按结果决定下一步）、或要同时开超过 1 台 8 核（试用配额 12 vCPU 只够一台；多份就排队或拆小机型 `--machine e2-standard-4`）。
 - 同平台规则（§7.4）：虚拟机（Debian 12 + 官方 Godot）和例行任务（Linux）按上面对照算同一平台；本机 Windows 仍是另一平台。
 
+### 7.8 本机大文件存档到 Cloud Storage（2026-10-30）
+
+E 盘紧张时，把不常用、不能随手重新生成的大文件（旧对内包、备份、源素材、已审阅的录像）挪到桶里，要用时拉回。
+
+- **桶**：`gs://<项目>-archive`（10-30 建：`gs://project-a565589c-4357-4f89-a98-archive`，australia-southeast1，Nearline，禁公开访问）。只用本机 gcloud 登录，没有密钥。对象名 `e-ark/<相对 E:/ArknightsSurvivors 的路径>`。
+- **用法**（`tools/gcp/archive.py`）：
+  - `python tools/gcp/archive.py push <路径>... [--delete]`：上传 → 逐文件核对大小 + MD5 → 全对才删本机（不加 `--delete` 只传不删）；每次往 `e-ark/_manifest/` 写一份清单。
+  - `python tools/gcp/archive.py pull build/release/final_53af20f11`：拉回原位置（可只拉子目录 / 单个文件）。
+  - `python tools/gcp/archive.py ls [前缀]`：按清单列出桶里有什么。
+- **费用**：Nearline 约 0.016 美元 / GB·月（6 GB 约 0.1 美元 / 月）；最少计 30 天，拉回 0.01 美元 / GB 加流量费。经常要用的东西别放这里。
+- **不放**：能从 git / 脚本直接重新生成的（浏览器测试档案、网页导出、快检缓存、录像中间帧）直接删；用户个人目录（E 盘根目录下非 ArknightsSurvivors 的东西）不碰；各会话工作树里的东西由那个会话自己处理。
+- **10-30 首批**（用户确认）：旧对内包 4 个 + 更早 2 份、10-27 工作树清理 / 审计备份、perf_stack、suno_src / ak_src / prts_is3 / arkvoice、≤10-29 已审阅录像，codex-art 工作树检出的 Spine 源 zip（`art/incoming/dn_latest_spine_delivery_1020/`，git 对象库里另有一份，`git -C .worktrees/codex-art checkout -- art/incoming/dn_latest_spine_delivery_1020` 也能恢复），共约 6.1 GB。
+
 ## 8. 基线登记
 
 Boss 与关卡改动的对照口径和最近一次基线。新基线出来后替换旧的，旧数字作废时写明原因。
