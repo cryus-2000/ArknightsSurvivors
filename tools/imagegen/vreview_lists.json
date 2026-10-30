@@ -12,7 +12,7 @@
    {
     "id": "tiling",
     "name": "拼接感",
-    "rule": "The main effect is visibly built from IDENTICAL small tiles repeated at EQUAL spacing along a line or ring, with visible seams / gaps between tiles, so it reads as a chain of small stickers instead of one continuous beam / crack / shockwave. Do NOT report: pieces that differ in length, angle, thickness or timing (hand-varied cracks, radial cracks, debris), many separate projectiles, or particles.",
+    "rule": "The main effect is a CHAIN of IDENTICAL small tiles: same size, same angle, same orientation, placed at EQUAL spacing along a line or ring, with visible seams or gaps where tiles meet, so it reads as a row of stickers instead of one continuous beam / crack / shockwave. NOT tiling (producer's rule 10-30): one texture reused with different angles, lengths, flips, crops or start times (e.g. radial or branching cracks of varied length), separate projectiles or falling swords, particles and debris.",
     "sev": "high"
    },
    {

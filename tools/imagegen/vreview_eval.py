@@ -19,7 +19,7 @@ cases = [
     ("浊心斯卡蒂吐息 fin_u", "ult_fx", [FIN + "u_skalter.mp4"], "", "浊心斯卡蒂：代表色深红 + 伊莎玛拉青绿；海嗣吐息光束", "fix", ["tiling", "power"], "吐息力量感不够；爆炸像好几个小素材拼接"),
     ("乌尔比安裂地 v1 fin_u", "ult_fx", [FIN + "u_ulpianus.mp4"], "", "乌尔比安：代表色深青；裂地", "fix", ["tiling", "power"], "力量感不够；小素材拼接"),
     ("乌尔比安放射版", "ult_fx", [CO + "ul_crack_v2_对照.mp4"], "right", "乌尔比安：代表色深青；裂地（放射裂缝版）", "fix", ["tiling", "power"], "像大海星"),
-    ("乌尔比安裂地 v3（认可）", "ult_fx", [CO + "ul_crack_v3_对照.mp4"], "right", "乌尔比安：代表色深青；裂地", "pass", [], "做的挺好的"),
+    ("乌尔比安裂地 v3（认可；10-30 口径：同图变角度长短复用不算拼接）", "ult_fx", [CO + "ul_crack_v3_对照.mp4"], "right", "乌尔比安：代表色深青；裂地", "pass", [], "做的挺好的"),
     ("德克萨斯 fin_u（无意见）", "ult_fx", [FIN + "u_texas.mp4"], "", "德克萨斯：剑雨（多段轻击）", "pass", [], "这轮没提意见"),
     ("选卡 坏（合成：贴键名 + 一张卡说明放大溢出）", "card_ui", [VR + "card_bad_synth.png"], "", "", "fix", ["raw_key", "font_size"], "（合成）露内部键名；说明字号不一"),
     ("选卡 修复后", "card_ui", [VR + "card_after/shot_choice_%d.png" % i for i in (5, 8, 16, 17)], "", "", "pass", [], "（修复后）"),
