@@ -114,11 +114,11 @@ static func lu_start(u, a: Dictionary, c: Vector2, dur: float) -> void:
 
 static func lu_boom(u, a: Dictionary, c: Vector2, R: float) -> void:
 	var vs: float = float(a.lu_vs)
-	u.light(c, R * 1.15, LU_WARM, 0.35)
+	u.light(c, R * 1.0, LU_PWARM, 0.3)   # 灯用暗一档的暖色，免得整片发白
 	PF.ring(u, LU_RINGS, c, 40.0, R, float(a.exp), 0.75, {"seed": vs, "col": Color(1.05, 1.0, 0.85, 0.95), "col1": Color(0.55, 0.78, 0.82, 0.8), "cold": 0.45, "fade": 0.4})
-	PF.ring(u, LU_RINGS, c, 30.0, R * 0.8, float(a.exp) * 1.3, 0.6, {"seed": vs + 17.0, "col": Color(0.9, 0.95, 0.95, 0.5), "fade": 0.35, "delay": 0.05})
+	PF.ring(u, LU_RINGS, c, 30.0, R * 0.8, float(a.exp) * 1.3, 0.6, {"seed": vs + 17.0, "col": Color(0.8, 0.88, 0.9, 0.35), "fade": 0.35, "delay": 0.05})
 	PF.particles(u, c, 300, "ult_burst", [LU_PWARM, LU_PAQUA], 0.0, vs, R * 0.95)
-	PF.particles(u, c, 120, "ult_ember", [LU_PWARM], 0.1, vs + 3.0, R * 0.5)
+	_lu_motes(u, c, R, vs + 3.0, 6, 0.1)
 
 
 static func lu_step(u, a: Dictionary, c: Vector2, el: float, dur: float) -> void:
@@ -152,8 +152,16 @@ static func lu_beams(u, a: Dictionary, c: Vector2, R: float, angs: Array, al: fl
 static func lu_tick(u, a: Dictionary, c: Vector2, R: float, i: int) -> void:
 	var vs: float = float(a.lu_vs) + 31.0 * (i + 1)
 	PF.ring(u, LU_RINGS, c, R * 0.72, R, 0.3, 0.4, {"seed": vs, "col": Color(0.95, 0.92, 0.8, 0.55), "fade": 0.3})
-	PF.particles(u, c, 60, "ult_ember", [LU_PWARM, LU_PAQUA], 0.0, vs, R * 0.85)
-	u.light(c, R * 0.9, LU_WARM, 0.15)
+	_lu_motes(u, c, R, vs, 4, 0.0)
+	u.light(c, R * 0.9, LU_PWARM, 0.15)
+
+
+## 光圈里散几团小光点（小号粒子帧条只能放到约 100 半径，再大一纹素就成大方块）
+static func _lu_motes(u, c: Vector2, R: float, vs: float, n: int, delay: float) -> void:
+	for q in n:
+		var hh: float = PF.h(vs + q * 2.3)
+		var p: Vector2 = c + Vector2.from_angle(TAU * (q + hh) / n) * R * (0.2 + 0.5 * PF.h(vs + q * 4.1))
+		PF.particles(u, p, 40, "ult_ember", [LU_PWARM if q % 2 == 0 else LU_PAQUA], delay + 0.04 * (q % 3), vs + q, 90.0)
 
 
 static func lu_end(u, a: Dictionary) -> void:
@@ -232,7 +240,7 @@ static func sz_start(u, a: Dictionary, side: Vector2, tp: float) -> void:
 	a["sz_vs"] = vs
 	if u.fx_ready(SZ_FIG):
 		var t: Texture2D = u._strip_tex(SZ_FIG)
-		a["sz_fig"] = u.strip(SZ_FIG, side, {"o": Vector2(t.get_width() / 2.0, t.get_height() - 3.0), "life": tp + 0.06, "col": Color(1, 1, 1, 0.0),
+		a["sz_fig"] = u.strip(SZ_FIG, side, {"o": Vector2(t.get_width() / 2.0, t.get_height() - 3.0), "sc": 1.35, "life": tp + 0.06, "col": Color(1, 1, 1, 0.0),
 			"sx": -1.0 if Vector2(a.d).x < 0.0 else 1.0})
 	u.light(side + Vector2(0, -40), 140.0, Color(0.85, 0.82, 0.7), tp + 0.1)
 	for q in 5:
@@ -283,7 +291,7 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 		PF.particles(u, p, 60, "ult_burst_s", [SZ_COLD, SZ_PALE], dl, vs + k)
 		var sg: float = 1.0 if k % 2 == 0 else -1.0
 		var ca: float = d.orthogonal().angle() + sg * (0.3 + 0.35 * PF.h(vs + k * 1.3))
-		var cl: float = hw * (1.4 + 0.7 * PF.h(vs + k * 2.9))
+		var cl: float = hw * (1.0 + 0.6 * PF.h(vs + k * 2.9))
 		var cd: Vector2 = Vector2.from_angle(ca)
 		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + k * 0.7), p - cd * cl * 0.5, ca, cl, {"sy": (0.45 + 0.3 * hh) * (-1.0 if hh < 0.5 else 1.0), "rev": 0.06, "rev0": 0.1,
 			"delay": dl, "life": 0.32, "fade": 0.18, "col": Color(1, 1, 1, 0.9), "col1": Color(0.45, 0.55, 0.7, 0.7), "cold": 0.2})

@@ -1262,7 +1262,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			FC.lu_beams(u, a, c, R, [float(a.rot), float(a.rot) + PI], (0.75 if a.watch else 0.4) * fade + 0.1)
 		for s in 2:
 			var ba: float = float(a.rot) + PI * s
-			if not a.has("v2"):
+			if not (a.has("v2") and u.fx_ready(FC.LU_SHAFT)):   # 光束贴图缺时仍画扇形
 				u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": COL_LIGHT, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
 			if a.watch:
 				for e in _in_sector(u, c, R, ba, 0.09):
