@@ -410,7 +410,7 @@ func _log_track() -> void:
 func _log_line(key: String, s: String, ok: bool, cur := false) -> void:
 	if not _seen_t.has(key):
 		_seen_t[key] = t
-	lines.append({"t": _seen_t[key], "s": s, "ok": ok, "cur": cur})
+	lines.append({"k": key, "t": _seen_t[key], "s": s, "ok": ok, "cur": cur})
 
 
 func _view_state() -> Dictionary:

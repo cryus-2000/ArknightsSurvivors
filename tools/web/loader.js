@@ -122,38 +122,54 @@
         '<div class="sv-body2">' + logBox('sv-frame') + tipBox() + '</div>' +
         '<div class="sv-gauge"><div class="sv-rule"><div class="sv-ruler">' + ticks + '</div></div><div class="sv-read"><div class="sv-cap sy-en">DEPTH</div><div class="sv-depth">-0000<small>m</small></div><div class="sv-sync"></div></div></div>' +
         '<div class="sv-jwrap">' + JELLY + '</div>';
-    } else {   // 3 声呐终端（10-31 第二版：两层反向慢转的分段环、方位读数、准星、打字机日志、读数小条、信号波形、条码 + 十六进制数据流）
+    } else {   // 3 声呐终端（10-31 第三版：照用户给的 PRTS 参考改成浅色终端版式——浅灰底、墨黑线条、盘后巨大空心 PRTS、圈心本作徽记、右上低多边形网格；
+               //   去掉水母；声呐接触点 = 日志里的每一项真实加载步骤，扫描扇面扫过时闪亮，读完变实心；读到最后整屏渐暗成深海色接标题页）
       var tk = '', lab = '';
       for (var k = 0; k < 72; k++) {
         var a = -Math.PI / 2 + 2 * Math.PI * k / 72, mj = k % 6 === 0, r0 = 188, r1 = mj ? 200 : 194;
         tk += '<line x1="' + (Math.cos(a) * r0).toFixed(1) + '" y1="' + (Math.sin(a) * r0).toFixed(1) + '" x2="' + (Math.cos(a) * r1).toFixed(1) + '" y2="' + (Math.sin(a) * r1).toFixed(1) + '" stroke-width="' + (mj ? 2 : 1.5) + '"/>';
       }
       [[0, -214], [222, 4], [0, 224], [-222, 4]].forEach(function (q, i) { lab += '<text x="' + q[0] + '" y="' + q[1] + '">' + ('00' + i * 90).slice(-3) + '</text>'; });
-      var hexs = '';
-      for (var hx = 0; hx < 120; hx++) hexs += ('0' + (Math.floor(Math.abs(Math.sin(hx * 12.9898) * 43758.5453)) % 256).toString(16).toUpperCase()).slice(-2) + ' ';
+      // 低多边形网格（几何动效，10-31）：右上一片（左下会压到系统日志），连线按进度逐条亮出（updV 给前 n 条加 on），节点缓慢漂移（CSS）
+      var net = '';
+      [0].forEach(function (corner) {
+        var np = [];
+        for (var ni = 0; ni < 16; ni++) {
+          var hx = Math.abs(Math.sin((ni + corner * 31) * 91.7) * 4375.85) % 1, hy = Math.abs(Math.sin((ni + corner * 31) * 47.3) * 2937.11) % 1;
+          var qx = 34 * hx, qy = 34 * hy * hy;
+          np.push(corner === 0 ? [100 - qx, qy] : [qx, 100 - qy]);
+        }
+        np.forEach(function (pt, i) {
+          var ds = np.map(function (q, j) { return [Math.hypot((q[0] - pt[0]) * 16 / 9, q[1] - pt[1]), j]; }).filter(function (x) { return x[1] !== i; }).sort(function (x, y) { return x[0] - y[0]; });
+          for (var kk = 0; kk < 3; kk++) net += '<line x1="' + pt[0].toFixed(2) + '" y1="' + pt[1].toFixed(2) + '" x2="' + np[ds[kk][1]][0].toFixed(2) + '" y2="' + np[ds[kk][1]][1].toFixed(2) + '"/>';
+        });
+        np.forEach(function (pt, i) { net += '<rect class="nd" x="' + (pt[0] - 0.2).toFixed(2) + '" y="' + (pt[1] - 0.35).toFixed(2) + '" width=".4" height=".7" style="animation-delay:-' + (i * 0.7).toFixed(1) + 's"/>'; });
+      });
       var wave = '';
-      for (var wi = 0; wi <= 96; wi++) wave += (wi * 4) + ',' + (8 + 5 * (Math.sin(wi * 0.7) * 0.5 + Math.sin(wi * 1.9) * 0.3)).toFixed(1) + ' ';
-      h = snowLayer(30) + '<div class="sv-corners"><i></i><i></i><i></i><i></i></div>' +
-        '<div class="sv-head"><b class="sy-en">PRTS</b><span>声呐终端 · 链路建立</span><em class="sv-on"><i class="sv-lamp"></i><span class="sy-en">ONLINE</span></em><em class="sv-code"></em></div><div class="sv-hruler"></div>' +
-        '<div class="sv-dial"><svg viewBox="-230 -230 460 460"><defs><linearGradient id="sv-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ee6e6" stop-opacity="0"/><stop offset="1" stop-color="#5ee6e6" stop-opacity=".22"/></linearGradient></defs>' +
-        '<circle r="180" fill="none" stroke="rgba(94,230,230,.2)"/><circle r="60" fill="none" stroke="rgba(94,230,230,.1)"/>' +
-        '<circle class="sv-r1" r="140" fill="none" stroke="rgba(94,230,230,.18)" stroke-width="2" stroke-dasharray="57 16.3 57 16.3 57 16.3 0 73.3"/>' +
-        '<circle class="sv-r2" r="100.8" fill="none" stroke="rgba(94,230,230,.35)" stroke-dasharray="20.6 5.8 20.6 5.8 20.6 5.8 0 26.4"/>' +
-        '<g stroke="rgba(94,230,230,.35)"><line x1="22" y1="0" x2="47" y2="0"/><line x1="-22" y1="0" x2="-47" y2="0"/><line x1="0" y1="22" x2="0" y2="47"/><line x1="0" y1="-22" x2="0" y2="-47"/></g>' +
-        '<g class="sy-sweep"><path d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sv-sw)"/><line x1="0" y1="0" x2="180" y2="0" stroke="rgba(94,230,230,.6)"/></g>' +
-        '<g class="sv-ticks">' + tk + '</g><g class="sv-az">' + lab + '</g></svg>' +
-        '<div class="sv-jwrap">' + JELLY + '<b class="sy-en">CONTACT</b></div><div class="sv-center"><div class="sv-num">0.0<span>%</span></div><div class="sy-en sv-link">SYNC RATE</div></div></div>' +
-        '<div class="sv-log sv-left"><div class="sv-cap sy-en"><i>01</i>SYSTEM LOG</div><div class="sv-lines"></div></div>' +
-        '<div class="sv-tele"><div class="sv-cap sy-en"><i>02</i>TELEMETRY</div><div class="sv-rows"></div>' +
-        '<div class="sv-wave"><b>信号</b><div><svg viewBox="0 0 384 16" preserveAspectRatio="none"><polyline points="' + wave + '" fill="none" stroke="rgba(94,230,230,.7)"/></svg></div></div>' + tipBox('sv-in') + '</div>' +
-        '<div class="sv-foot3"><i class="sv-bar"></i><div class="sv-hex"><span>' + hexs + hexs + '</span></div></div>';
+      for (var wi = 0; wi <= 20; wi++) wave += (wi === 0 ? 'M' : 'L') + (-33 + 66 * wi / 20).toFixed(1) + ' ' + (27 + Math.sin(wi / 20 * 2 * Math.PI) * 3.2).toFixed(1);   // 徽记里的一道浪
+      h = '<svg class="sv-net" viewBox="0 0 100 100" preserveAspectRatio="none">' + net + '</svg>' +
+        '<div class="sv-brand"><b>PRTS</b><em class="sy-en">SONAR TERMINAL</em><span>声呐终端 · 链路建立</span></div>' +
+        '<div class="sv-dial"><svg viewBox="-230 -230 460 460"><defs><linearGradient id="sv-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#121416" stop-opacity="0"/><stop offset="1" stop-color="#121416" stop-opacity=".16"/></linearGradient></defs>' +
+        '<circle r="180" fill="rgba(231,233,236,.82)" stroke="#121416" stroke-width="1.5"/><circle r="119" fill="none" stroke="rgba(128,135,143,.5)"/><circle r="60" fill="none" stroke="rgba(128,135,143,.4)"/>' +
+        '<line x1="-180" y1="0" x2="180" y2="0" stroke="rgba(128,135,143,.3)"/><line x1="0" y1="-180" x2="0" y2="180" stroke="rgba(128,135,143,.3)"/>' +
+        '<g class="sy-sweep"><path d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sv-sw)"/><line x1="0" y1="0" x2="180" y2="0" stroke="rgba(18,20,22,.55)"/></g>' +
+        '<g class="sv-contacts"></g><g class="sv-ticks">' + tk + '</g><g class="sv-az">' + lab + '</g>' +
+        '<g class="sv-geo1"><path d="M0 -78 L78 0 L0 78 L-78 0 Z" fill="none" stroke="rgba(18,20,22,.55)"/></g><g class="sv-geo2"><path d="M0 -100 L100 0 L0 100 L-100 0 Z" fill="none" stroke="rgba(18,20,22,.32)"/></g>' +
+        '<g class="sv-orbit"><path d="M206 0 l8 5 l0 -10 Z" transform="rotate(0)"/><path d="M206 0 l8 5 l0 -10 Z" transform="rotate(120)"/><path d="M206 0 l8 5 l0 -10 Z" transform="rotate(240)"/></g>' +
+        '<path d="M0 -54 L54 0 L0 54 L-54 0 Z" fill="#e7e9ec" stroke="#121416" stroke-width="3"/><path d="' + wave + '" fill="none" stroke="#121416" stroke-width="1.5"/>' +
+        '</svg><div class="sv-center"><div class="sv-num">0.0%</div></div><div class="sv-ri sy-en">RHODES ISLAND</div></div>' +
+        '<div class="sv-log sv-left"><div class="sv-cap sy-en">SYSTEM LOG</div><div class="sv-lines"></div></div>' +
+        '<div class="sv-tele"><div class="sv-cap sy-en">TELEMETRY</div><div class="sv-rows"></div>' + tipBox('sv-in') + '</div>' +
+        '<div class="sv-build"></div><div class="sv-dark"></div>';
+      var sweepT0 = performance.now();
+      d.__sweepT0 = sweepT0;
     }
     d.className = 'sv sv' + BV;
     d.innerHTML = h + FOOT;
     var q = function (s) { return d.querySelector(s); };
     return { root: d, lines: q('.sv-lines'), tip: q('.sv-tip .bd'), code: q('.sv-code'), segs: d.querySelectorAll('.sv-segs i'), pct: q('.sv-pct'),
       what: q('.sv-what'), ruler: q('.sv-ruler'), depth: q('.sv-depth'), sync: q('.sv-sync'), deep: q('.sv-deep'), jelly: q('.sv-jwrap'),
-      ticks: d.querySelectorAll('.sv-ticks line'), num: q('.sv-num'), rows: q('.sv-rows') };
+      ticks: d.querySelectorAll('.sv-ticks line'), num: q('.sv-num'), rows: q('.sv-rows'), contacts: q('.sv-contacts'), build: q('.sv-build'), dark: q('.sv-dark'), net: d.querySelectorAll('.sv-net line') };
   }
 
   // 每次 upd() 调：f = 进度 0–1，stage = {key, text, ok}，n / total = 编译到第几个（Godot 回传后才有）
@@ -184,11 +200,30 @@
     } else {
       var lt = Math.floor(f * v.ticks.length);
       for (var k = 0; k < v.ticks.length; k++) v.ticks[k].setAttribute('class', k < lt ? 'on' : (k === lt ? 'cur' : ''));
-      v.num.innerHTML = (Math.floor(f * 1000) / 10).toFixed(1) + '<span>%</span>';
-      v.jelly.style.opacity = String(Math.max(0, Math.min(1, (f - 0.8) / 0.2)) * 0.85);
-      var dep = Math.floor(1200 * f);
-      v.rows.innerHTML = '<div><b>深度</b>-' + ('000' + dep).slice(-4) + ' m<u><i style="width:' + (f * 100).toFixed(1) + '%"></i></u></div>' +
-        '<div><b>阶段</b>' + esc(stage.text) + '</div>';
+      v.num.textContent = (Math.floor(f * 1000) / 10).toFixed(1) + '%';
+      // 接触点：日志每一项（第一行除外），按 key 定方位 / 距离；扫过时的闪亮与扫描扇面同相（CSS 动画延迟按扇面已转的时间算）
+      var ch = '', el3 = ((performance.now() - v.root.__sweepT0) / 1000) % 3.2;
+      for (var ci = 1; ci < logs.length; ci++) {
+        var key = logs[ci].key, hs = 0;
+        for (var q = 0; q < key.length; q++) hs = (hs * 31 + key.charCodeAt(q)) % 100003;
+        var ang = (Math.abs(Math.sin(hs * 0.731 + 12.9898)) * 43758.5453 % 1) * 2 * Math.PI;
+        var rad = 180 * (0.3 + 0.6 * (Math.abs(Math.sin(hs * 0.731 + 25.9796)) * 43758.5453 % 1));
+        var x = (Math.cos(ang) * rad).toFixed(1), y = (Math.sin(ang) * rad).toFixed(1);
+        var hit = (ang / (2 * Math.PI)) * 3.2, dl = (((hit - el3) % 3.2) + 3.2) % 3.2 - 3.2;
+        ch += '<g class="' + (logs[ci].ok ? 'dn' : 'go') + '" transform="translate(' + x + ' ' + y + ')">' +
+          '<circle class="pg" r="6" style="animation-delay:' + dl.toFixed(2) + 's"/>' +
+          (logs[ci].ok ? '<rect x="-3" y="-3" width="6" height="6"/>' : '<rect class="bx" x="-4" y="-4" width="8" height="8"/><rect x="-1.5" y="-1.5" width="3" height="3"/>') +
+          '<text x="8" y="-5">' + ('0' + ci).slice(-2) + '</text></g>';
+      }
+      if (v.contacts.__n !== logs.length + ':' + logs.filter(function (l) { return l.ok; }).length) {   // 只在接触点增减 / 读完时重建（闪亮相位按重建时刻算）
+        v.contacts.innerHTML = ch;
+        v.contacts.__n = logs.length + ':' + logs.filter(function (l) { return l.ok; }).length;
+      }
+      v.rows.innerHTML = '<div><b>同步</b>' + (Math.floor(f * 1000) / 10).toFixed(1) + '%</div><div><b>接触</b>' + (logs.length - 1) + '</div><div><b>阶段</b>' + esc(stage.text) + '</div>';
+      v.build.textContent = 'BUILD 1031 · T+' + ('00' + nowS().toFixed(1)).slice(-5);
+      v.dark.style.opacity = String(Math.max(0, Math.min(1, (f - 0.93) / 0.07)) * 0.92);
+      var ne = Math.floor(v.net.length * Math.min(1, f * 1.05));
+      if (v.net.__n !== ne) { for (var e = 0; e < v.net.length; e++) v.net[e].setAttribute('class', e < ne ? 'on' : ''); v.net.__n = ne; }
     }
   }
 
