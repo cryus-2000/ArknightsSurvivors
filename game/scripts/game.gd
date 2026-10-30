@@ -2183,6 +2183,9 @@ func sync_stats() -> void:
 		if shield_max == 0 and new_shield > 0:
 			shield_cd = 1.0
 		shield_max = new_shield
+		if new_shield > 0 and telemetry.shield_t0 < 0.0:
+			telemetry.shield_t0 = t
+		telemetry.shield_peak = maxi(telemetry.shield_peak, new_shield)
 	squad.sync_stats(stats)
 
 
