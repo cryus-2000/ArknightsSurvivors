@@ -1226,20 +1226,20 @@ static func _ir_wind(u, p: Vector2, dir: Vector2, len: float, v: Vector2, life: 
 		"sy": 1.0 if PF.h(hh + 3.0) < 0.5 else -1.0, "v": v, "rev": 0.12, "rev0": 0.25, "life": life, "fade": life * 0.5, "col": col, "delay": delay})
 
 
-## 起风：扇形里四圈风线沿切向卷（同一圈同向、圈与圈反向错开），长短 / 起点 / 时刻按哈希
+## 起风：扇形里三圈稀疏风线沿切向卷（同一圈同向、圈与圈反向错开），长短 / 起点 / 时刻按哈希
 static func _ir_gale_v2(u, org: Vector2, R: float, ang: float, half: float, vs: float) -> void:
-	for j in 4:
-		var rr: float = R * (0.3 + 0.22 * j)
-		var n: int = maxi(3, roundi(2.0 * half * rr / 230.0))
+	for j in 3:
+		var rr: float = R * (0.35 + 0.28 * j)
+		var n: int = maxi(2, roundi(2.0 * half * rr / 420.0))
 		var sg: float = 1.0 if j % 2 == 0 else -1.0
 		for q in n:
 			var hh: float = PF.h(vs * 0.7 + j * 13.0 + q * 3.1)
 			var aj: float = ang - half + 2.0 * half * (q + 0.2 + 0.6 * hh) / n
 			var rd := Vector2.from_angle(aj)
 			var tg: Vector2 = rd.orthogonal() * sg
-			var ln: float = 150.0 + 140.0 * PF.h(hh * 7.0)
-			_ir_wind(u, org + rd * rr * (0.94 + 0.12 * hh) - tg * ln * 0.5, tg, ln, tg * (380.0 + 160.0 * hh) + rd * 70.0, 0.5 + 0.2 * hh,
-				hh * 11.0, Color(0.95, 0.97, 1.0, 0.85), 0.03 * j + 0.06 * PF.h(hh * 5.0))
+			var ln: float = 90.0 + 90.0 * PF.h(hh * 7.0)
+			_ir_wind(u, org + rd * rr * (0.94 + 0.12 * hh) - tg * ln * 0.5, tg, ln, tg * (380.0 + 160.0 * hh) + rd * 70.0, 0.45 + 0.15 * hh,
+				hh * 11.0, Color(0.8, 0.84, 0.9, 0.6), 0.03 * j + 0.06 * PF.h(hh * 5.0))
 
 
 ## 一刀：灰冷白长弧斩光从 pa 划到 pb（0.05 秒划开、0.3 秒淡），隔刀翻面 + 刀口一小撮风线迸开 + 冷光
@@ -1253,9 +1253,9 @@ static func _ir_cut_v2(u, pa: Vector2, pb: Vector2, p: Vector2, sd: float, ai: i
 	u.strip(name, pa, {"ang": dv.angle(), "o": Vector2(0.0, t.get_height() * 0.5), "sx": sx, "sy": fl * clampf(sx, 0.85, 1.25),
 		"rev": 0.05, "rev0": 0.08, "life": 0.3, "fade": 0.2, "col": Color(1.0, 1.0, 1.0)})
 	u.light(p, 170.0, Color(0.8, 0.88, 1.0), 0.12)
-	for q in 3:
+	for q in 2:
 		var dq := Vector2.from_angle(dv.angle() + (PF.h(sd + q) - 0.5) * 1.6)
-		_ir_wind(u, p, dq, 90.0 + 50.0 * PF.h(sd * 3.0 + q), dq * 520.0, 0.3, sd + q * 5.0, Color(0.92, 0.95, 1.0, 0.8))
+		_ir_wind(u, p, dq, 70.0 + 40.0 * PF.h(sd * 3.0 + q), dq * 520.0, 0.25, sd + q * 5.0, Color(0.85, 0.88, 0.94, 0.6))
 
 
 ## 手炮落点：亮核 0.08 秒（约 2–3 帧）→ 金褐烟团两团鼓开冷成暗褐 + 金色粒子 + 碎片飞落 + 顿帧；风暴边缘一圈风线往外炸散
@@ -1267,22 +1267,22 @@ static func _ir_boom_v2(u, eye: Vector2, br: float, org: Vector2, R: float, ang:
 	for l in 2:
 		var name := PF.pick(u, IR_SMOKE, vs * 0.37 + l * 1.9)
 		var rr: float = PF.tex_w(u, name) * 0.5
-		var r0: float = br * (0.45 if l == 0 else 0.3)
-		var r1: float = br * (1.05 if l == 0 else 0.75)
-		u.strip(name, eye + Vector2.from_angle(PF.h(vs + l) * TAU) * br * 0.12 * l, {"sc": r0 / rr, "sc1": r1 / rr, "scd": 0.7, "life": 1.4 - 0.2 * l,
-			"fade": 0.7, "ang": PF.h(vs * 1.3 + l * 7.0) * TAU, "sx": -1.0 if PF.h(vs + l * 4.0) < 0.5 else 1.0, "delay": 0.05 + 0.06 * l,
-			"col": Color(1.25, 1.1, 0.9), "col1": Color(0.6, 0.5, 0.42), "cold": 0.6})
+		var r0: float = br * (0.3 if l == 0 else 0.2)
+		var r1: float = br * (0.78 if l == 0 else 0.55)
+		u.strip(name, eye + Vector2.from_angle(PF.h(vs + l) * TAU) * br * 0.25 * l, {"sc": r0 / rr, "sc1": r1 / rr, "scd": 0.6, "life": 1.1 - 0.2 * l,
+			"fade": 0.75, "ang": PF.h(vs * 1.3 + l * 7.0) * TAU, "sx": -1.0 if PF.h(vs + l * 4.0) < 0.5 else 1.0, "delay": 0.06 + 0.06 * l,
+			"col": Color(1.15, 1.0, 0.85, 0.8), "col1": Color(0.45, 0.38, 0.33, 0.8), "cold": 0.45})
 	PF.particles(u, eye, 600, "ult_burst", [IR_GOLD, Color(0.85, 0.6, 0.3)], 0.03, vs, br * 1.35)
 	PF.particles(u, eye, 100, "ult_ember", [Color(0.8, 0.55, 0.3)], 0.25, vs + 9.0)
 	PF.aftershock(u, eye, br * 0.8, vs, 0.05, 9, Color(0.85, 0.7, 0.5))
 	u.debris(eye, IR_GOLD, 3)
 	_ring(u, eye, br, 30.0, Color(1.0, 0.85, 0.6, 0.6), 0.3, 4.0)
-	var n: int = 9
+	var n: int = 6
 	for q in n:   # 风暴边缘被炸散：风线往外甩
 		var hh: float = PF.h(vs * 0.9 + q * 2.3)
 		var aq: float = ang - half + 2.0 * half * (q + hh) / n
 		var rd := Vector2.from_angle(aq)
-		_ir_wind(u, org + rd * R * (0.85 + 0.1 * hh), rd, 120.0 + 80.0 * hh, rd * 600.0, 0.4, hh * 17.0, Color(0.95, 0.97, 1.0, 0.75), 0.04)
+		_ir_wind(u, org + rd * R * (0.85 + 0.1 * hh), rd, 90.0 + 60.0 * hh, rd * 600.0, 0.35, hh * 17.0, Color(0.85, 0.88, 0.94, 0.6), 0.04)
 
 
 # ================================================================ 拉普兰德（§4.19）：原地狂舞连斩，4 圈双刃十字剑气向四面八方飞出，命中沉默
@@ -1369,14 +1369,15 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 
 ## ---- 拉普兰德 pixfx（docs/199 §7.9，开关 ult/la_fx_v2 缺省 1；0 = 程序白刃十字版）
 ## 审阅 10-30「冷蓝，不要纯白 X」：每圈 12 道双刃十字剑气 = fx_la_x1–4（冷蓝两道弯月刃交叉，每圈按 vseed 挑变体、隔道翻面），往外飞到 R、尾段淡；
-## 脚下一圈弯刃旋环 fx_la_ring1–3 从 40 扩到 R（跟剑气同速、转着走）+ 脚底一团小旋刃（地面层，不画在她身上）；断喝末圈 = 加宽加长的十字刃
+## 一圈细弯刃旋环 fx_la_ring2–4（淡、跟剑气同速扩到 R 就散） 从 40 扩到 R（跟剑气同速、转着走）+ 脚底一团小旋刃（地面层，不画在她身上）；断喝末圈 = 加宽加长的十字刃
 const LA_X := ["fx_la_x1", "fx_la_x2", "fx_la_x3", "fx_la_x4"]
-const LA_RING := ["fx_la_ring1", "fx_la_ring2", "fx_la_ring3"]
+const LA_RING := ["fx_la_ring2", "fx_la_ring3", "fx_la_ring4"]   # fx_la_ring1 粗旋涡太重（四圈叠成满屏蓝墙），只留给脚底小旋刃 fx_la_whirl
+const LA_WHIRL := "fx_la_whirl"
 const LA_COL := Color(0.75, 0.9, 1.0)
 
 
 static func _la_v2(u) -> bool:
-	return Bal.v("ult/la_fx_v2", 1.0) > 0.0 and u.fx_ready(LA_X[0]) and u.fx_ready(LA_RING[0])
+	return Bal.v("ult/la_fx_v2", 1.0) > 0.0 and u.fx_ready(LA_X[0]) and u.fx_ready(LA_RING[0]) and u.fx_ready(LA_WHIRL)
 
 
 static func _la_wave_v2(u, a: Dictionary, o, i: int, c: Vector2, R: float, fly: float, spd: float, a0: float, nb: int, bark: bool) -> void:
@@ -1389,10 +1390,9 @@ static func _la_wave_v2(u, a: Dictionary, o, i: int, c: Vector2, R: float, fly: 
 		var hh: float = PF.h(vs + k * 1.7)
 		u.strip(name, c + dv * 40.0, {"ang": dv.angle(), "sc": len / tw * (0.9 + 0.2 * hh), "sx": 1.4 if bark else 1.0, "sy": 1.0 if (k + i) % 2 == 0 else -1.0,
 			"v": dv * spd, "life": fly + 0.04, "fade": 0.1, "col": Color(1.05, 1.05, 1.05)})
-	PF.ring(u, LA_RING, c, 50.0, R, fly, fly * 1.5, {"seed": vs, "layer": "back", "fade": fly * 0.7, "col": Color(1.0, 1.0, 1.0, 0.9)})
-	var rn := PF.pick(u, LA_RING, vs * 0.53 + 2.0)
-	var rr: float = PF.tex_w(u, rn) * 0.5
-	u.strip(rn, c, {"layer": "back", "sc": 70.0 / rr, "sc1": 95.0 / rr, "scd": 0.2, "spin": 14.0 * (1.0 if i % 2 == 0 else -1.0), "ang": PF.h(vs) * TAU, "life": 0.24, "fade": 0.12})
+	PF.ring(u, LA_RING, c, 50.0, R, fly, fly + 0.06, {"seed": vs, "layer": "back", "fade": fly * 0.6, "col": Color(1.0, 1.0, 1.0, 0.3)})
+	var rr: float = PF.tex_w(u, LA_WHIRL) * 0.5
+	u.strip(LA_WHIRL, c, {"sx": -1.0 if i % 2 == 1 else 1.0, "layer": "back", "sc": 70.0 / rr, "sc1": 95.0 / rr, "scd": 0.2, "spin": 14.0 * (1.0 if i % 2 == 0 else -1.0), "ang": PF.h(vs) * TAU, "life": 0.24, "fade": 0.12})
 	u.light(c, 220.0, LA_COL, 0.15)
 	o.play_vis_anim("attack")
 
