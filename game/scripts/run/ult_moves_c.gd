@@ -10,6 +10,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
+const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：流明 / 铃兰（docs/199 §7.9）
 const IDS: Array = ["saria", "suzuran", "logos", "hoshiguma", "siege", "irene", "lappland", "lumen"]
 const DIR_OPS: Array = ["suzuran", "logos", "irene"]   # 塞雷娅 10-30 改成以自身为圆心的拳风环，不瞄
 const POINT_OPS: Array = ["siege"]
@@ -507,6 +508,17 @@ static func _su_start(u, o, d: Vector2) -> Dictionary:
 	var side: Vector2 = o.pos + d.orthogonal() * -48.0 + d * -10.0
 	var tp: float = Bal.v("ult/su_appear", 0.3)
 	var col: Color = u._col(o)
+	var fe: float = 0.68 if rt == "hearth" else 0.8
+	var a := {"org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "bk": bk, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
+		"pf": 1.0 - fe - (0.12 if rt == "hearth" else 0.0), "ef": fe, "pseg": {}, "eseg": {}, "dashed": false, "boom": false,
+		"seal": rt == "seal", "hearth": rt == "hearth", "ht": 0, "hseg": [{}, {}, {}]}
+	o.face_to(d.angle())
+	if FC.sz_v2(u):   # 斩痕 v2：忍冬本体走路进场 + 拔刀（缺帧条时白光人形）+ 连续冷色斩痕（ult/sz_fx_v2）
+		a["v2"] = true
+		if FC.sz_body(u):   # 本体版现身段 0.3 → 0.55 秒（走路 0.3 + 拔刀到出刀帧 0.25；瞬身那一下落在出刀帧）
+			a.tp = FC.sz_tp()
+		FC.sz_start(u, a, side, float(a.tp))
+		return a
 	# 忍冬：程序剪影（白光人形 + 狐耳 + 刀 + 三条尾巴），淡入
 	var gold: Color = col.lerp(Color.WHITE, 0.2)
 	u.shape({"kind": "circle", "c": side + Vector2(0, -36), "r": 54.0, "col": COL_LIGHT, "fill": 0.22, "life": tp + 0.05})
@@ -520,11 +532,7 @@ static func _su_start(u, o, d: Vector2) -> Dictionary:
 	u.shape({"kind": "blade", "a": side + Vector2(5, -73), "b": side + Vector2(11, -88), "w": 5.0, "col": COL_LIGHT, "glow": gold, "life": tp + 0.05})
 	u.shape({"kind": "line", "a": side + Vector2(6, -40) + d * 4.0, "b": side + Vector2(0, -40) + d * 46.0, "w": 2.5, "col": COL_LIGHT, "life": tp + 0.05})
 	u.shape({"kind": "dots", "c": side + Vector2(0, -36), "r": 70.0, "n": 10, "col": gold, "life": tp})
-	o.face_to(d.angle())
-	var fe: float = 0.68 if rt == "hearth" else 0.8
-	return {"org": o.pos, "side": side, "d": d, "hw": hw, "L": L, "bk": bk, "tp": tp, "stall": Bal.v("ult/su_stall", 0.3),
-		"pf": 1.0 - fe - (0.12 if rt == "hearth" else 0.0), "ef": fe, "pseg": {}, "eseg": {}, "dashed": false, "boom": false,
-		"seal": rt == "seal", "hearth": rt == "hearth", "ht": 0, "hseg": [{}, {}, {}]}
+	return a
 
 
 static func _su_step(u, a: Dictionary, o) -> bool:
@@ -540,8 +548,16 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 	var gold: Color = col.lerp(Color.WHITE, 0.2)
 	var hc: float = hw * _band_core()
 	var tb: float = tp + float(a.stall)
+	var v2: bool = a.has("v2")
+	if v2:
+		FC.sz_appear(u, a, t, tp)   # 本体版整段都要逐帧（拔刀 / 收刀跨过瞬身时刻）
 	if t < tp:
 		return false
+	if not a.dashed and v2:
+		a.dashed = true
+		FC.sz_dash(u, a, a.side, org + d * L, float(a.stall))
+		for e in _in_rect(u, org, d, -bk, L, hw):
+			_once(u, a, o, a.pseg, e, float(a.pf), {"src": "瞬身", "stun": 0.3, "pre": true, "edge": absf(_loc(e.pos, org, d).y) > hc})
 	if not a.dashed:
 		a.dashed = true
 		var side: Vector2 = a.side
@@ -562,8 +578,11 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 		o.play_vis_anim("attack")
 		o.screen_shake(0.7)
 		# 斩痕爆裂：沿斩痕一串白光爆点 + 横贯带宽的交叉斩
-		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_LIGHT, "fill": 0.2, "life": 0.3})
-		var n: int = 10
+		var n: int = 0 if v2 else 10
+		if v2:
+			FC.sz_boom(u, a, org, d, bk, L, hw)
+		else:
+			u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_LIGHT, "fill": 0.2, "life": 0.3})
 		for k in n:
 			var x: float = lerpf(30.0 - bk, L - 30.0, (k + 0.5) / n)
 			var p: Vector2 = _w(org, d, x, 0.0)
@@ -573,7 +592,8 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 			var sg: float = 1.0 if k % 2 == 0 else -1.0
 			var cd: Vector2 = d.orthogonal().rotated(0.45 * sg)
 			u.shape({"kind": "blade", "a": p - cd * hw * 1.02, "b": p + cd * hw * 1.02, "w": 9.0, "col": COL_LIGHT, "glow": gold, "grow": 0.04, "life": 0.24, "delay": dl})
-		u.shape({"kind": "line", "a": org + d * L, "b": org - d * bk, "w": 6.0, "col": gold, "life": 0.2, "delay": 0.15})   # 白光收回
+		if not v2:
+			u.shape({"kind": "line", "a": org + d * L, "b": org - d * bk, "w": 6.0, "col": gold, "life": 0.2, "delay": 0.15})   # 白光收回
 		var st: float = Bal.v("ult/su_seal", 1.0) if a.seal else 0.0
 		for e in _in_rect(u, org, d, -bk, L, hw):
 			var opt := {"src": "斩痕", "edge": absf(_loc(e.pos, org, d).y) > hc}
@@ -1204,20 +1224,26 @@ static func _lu_start(u, o) -> Dictionary:
 	var dur: float = Bal.v("ult/lu_dur", 2.0)
 	var col: Color = u._col(o)
 	var H: float = 620.0
-	# 光柱：外层干员色、内芯白；脚下灯塔点亮（fx_beacon_ignite）
-	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -H), "w": 86.0, "col": col, "fill": 0.45, "life": dur + 0.3})
-	u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": COL_LIGHT, "fill": 0.85, "life": dur + 0.25})
-	u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": COL_LIGHT, "glow": col, "grow": 0.15, "life": 0.4})
-	u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(0.85, 0.95, 1.0)})
-	u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2})
+	var v2: bool = FC.lu_v2(u)   # 光柱 v2：pixgen 通透光面 + 碎光环（ult/lu_fx_v2）
+	if not v2:
+		# 光柱：外层干员色、内芯白；脚下灯塔点亮（fx_beacon_ignite）
+		u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -H), "w": 86.0, "col": col, "fill": 0.45, "life": dur + 0.3})
+		u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": COL_LIGHT, "fill": 0.85, "life": dur + 0.25})
+		u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": COL_LIGHT, "glow": col, "grow": 0.15, "life": 0.4})
+		u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2})
+		u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(0.85, 0.95, 1.0)})   # v2 不画：旧橙色格纹点燃帧条放大 3 倍，发白且画风不合
 	g.lamp = maxf(g.lamp, float(g.lamp_cap))   # 附带：灯火补满
 	g.nerve = 0.0   # 清除神经损伤，6 秒内不再累积
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
 	var ticks: int = 0 if rt == "watch" else 4
 	var R: float = Bal.v("ult/lu_r", 502.0)
-	return {"c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
+	var a := {"c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
 		"eseg": {}, "boomed": false, "dur": dur, "tick": 0, "ticks": ticks, "tseg": [{}, {}, {}, {}], "rain": rt == "rain", "rseg": [{}, {}],
 		"rn": 0, "rf": 0, "watch": rt == "watch", "wseg": {}, "wcnt": {}, "rot": 0.0}
+	if v2:
+		a["v2"] = true
+		FC.lu_start(u, a, c, dur)
+	return a
 
 
 static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
@@ -1234,12 +1260,15 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		a.boomed = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
-		_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
-		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
-		for j in 20:   # 光芒放射
-			var dv := Vector2.from_angle(j * TAU / 20.0)
-			u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
+		if a.has("v2"):
+			FC.lu_boom(u, a, c, R)
+		else:
+			_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
+			_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
+			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
+			for j in 20:   # 光芒放射
+				var dv := Vector2.from_angle(j * TAU / 20.0)
+				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
 	var T: float = a.exp
 	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
 		a["edone"] = el >= T
@@ -1251,9 +1280,13 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	if el <= dur:
 		a.rot = float(a.rot) + TAU / Bal.v("ult/lu_rot_t", 1.0) * dt
 		var fade: float = 1.0 - el / dur
+		if a.has("v2"):
+			FC.lu_step(u, a, c, el, dur)
+			FC.lu_beams(u, a, c, R, [float(a.rot), float(a.rot) + PI], (0.75 if a.watch else 0.4) * fade + 0.1)
 		for s in 2:
 			var ba: float = float(a.rot) + PI * s
-			u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": COL_LIGHT, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
+			if not (a.has("v2") and u.fx_ready(FC.LU_SHAFT)):   # 光束贴图缺时仍画扇形
+				u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": COL_LIGHT, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
 			if a.watch:
 				for e in _in_sector(u, c, R, ba, 0.09):
 					var k: int = int(e.id)
@@ -1267,8 +1300,11 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	while int(a.tick) < int(a.ticks) and el >= 0.5 * (int(a.tick) + 1):
 		var i: int = int(a.tick)
 		a.tick = i + 1
-		_ring(u, c, R, R * 0.75, Color(col.lerp(Color.WHITE, 0.5), 0.8), 0.3, 5.0)
-		u.shape({"kind": "dots", "c": c, "r": R * 0.9, "n": 20, "col": COL_LIGHT, "life": 0.35})
+		if a.has("v2"):
+			FC.lu_tick(u, a, c, R, i)
+		else:
+			_ring(u, c, R, R * 0.75, Color(col.lerp(Color.WHITE, 0.5), 0.8), 0.3, 5.0)
+			u.shape({"kind": "dots", "c": c, "r": R * 0.9, "n": 20, "col": COL_LIGHT, "life": 0.35})
 		for e in u.in_circle(c, R):
 			_once(u, a, o, a.tseg[i], e, 0.05, {"src": "光柱", "edge": e.pos.distance_to(c) > rc})
 	if a.rain:   # 光雨：光圈内落 2 秒光雨（每秒 5%）
@@ -1283,4 +1319,6 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			a.rn = i2 + 1
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.rseg[i2], e, 0.05, {"src": "光雨", "edge": e.pos.distance_to(c) > rc})
+	if el >= dur + 0.05 and a.has("v2"):
+		FC.lu_end(u, a)
 	return el >= dur + 0.05
