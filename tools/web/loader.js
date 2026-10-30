@@ -210,10 +210,10 @@
         var rad = 180 * (0.3 + 0.6 * (Math.abs(Math.sin(hs * 0.731 + 25.9796)) * 43758.5453 % 1));
         var x = (Math.cos(ang) * rad).toFixed(1), y = (Math.sin(ang) * rad).toFixed(1);
         var hit = (ang / (2 * Math.PI)) * 3.2, dl = (((hit - el3) % 3.2) + 3.2) % 3.2 - 3.2;
-        ch += '<g class="' + (logs[ci].ok ? 'dn' : 'go') + '" transform="translate(' + x + ' ' + y + ')">' +
-          '<circle class="pg" r="6" style="animation-delay:' + dl.toFixed(2) + 's"/>' +
+        ch += '<g class="' + (logs[ci].ok ? 'dn' : 'go') + '" transform="translate(' + x + ' ' + y + ')"><g class="lt" style="animation-delay:' + dl.toFixed(2) + 's">' +
+          '<circle class="gl" r="10" style="animation-delay:' + dl.toFixed(2) + 's"/><circle class="pg" r="6" style="animation-delay:' + dl.toFixed(2) + 's"/>' +
           (logs[ci].ok ? '<rect x="-3" y="-3" width="6" height="6"/>' : '<rect class="bx" x="-4" y="-4" width="8" height="8"/><rect x="-1.5" y="-1.5" width="3" height="3"/>') +
-          '<text x="8" y="-5">' + ('0' + ci).slice(-2) + '</text></g>';
+          '<text x="8" y="-5">' + ('0' + ci).slice(-2) + '</text></g></g>';
       }
       if (v.contacts.__n !== logs.length + ':' + logs.filter(function (l) { return l.ok; }).length) {   // 只在接触点增减 / 读完时重建（闪亮相位按重建时刻算）
         v.contacts.innerHTML = ch;

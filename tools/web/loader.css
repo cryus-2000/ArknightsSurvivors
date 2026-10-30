@@ -145,7 +145,13 @@
 #sy-load .sv-contacts text { fill: #6f858f; font-size: 9px; font-family: Consolas, Menlo, monospace; }
 #sy-load .sv-contacts .pg { fill: none; stroke: #dfe9ee; stroke-width: 1; opacity: 0; transform-box: fill-box; transform-origin: center; animation: sv-ping 3.2s linear infinite; }
 #sy-load .sv-contacts .go .pg { stroke: #5ee6e6; }
-@keyframes sv-ping { 0% { opacity: .55; transform: scale(1); } 30% { opacity: 0; transform: scale(2.3); } 100% { opacity: 0; } }
+@keyframes sv-ping { 0% { opacity: .7; transform: scale(1); } 30% { opacity: 0; transform: scale(2.6); } 100% { opacity: 0; } }
+/* 扇面扫过就亮（10-31 用户「声呐上面不应该随着转的时候闪烁吗」）：扫到一刻最亮 + 光晕，之后大半圈渐暗到 .25 */
+#sy-load .sv-contacts .lt { animation: sv-lit 3.2s linear infinite; }
+@keyframes sv-lit { 0% { opacity: 1; } 70% { opacity: .25; } 100% { opacity: .25; } }
+#sy-load .sv-contacts .gl { fill: #dfe9ee; opacity: 0; animation: sv-glow 3.2s linear infinite; }
+#sy-load .sv-contacts .go .gl { fill: #5ee6e6; }
+@keyframes sv-glow { 0% { opacity: .22; } 25% { opacity: 0; } 100% { opacity: 0; } }
 #sy-load.sv3 .sv-center { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; }
 #sy-load.sv3 .sv-num { font-size: min(26px, 4vh); color: #dfe9ee; margin-top: -2px; }
 #sy-load .sv-ri { position: absolute; left: 0; right: 0; top: calc(100% + 40px); text-align: center; font-size: 10px; letter-spacing: 9px; color: #dfe9ee; }
@@ -214,6 +220,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   #sy-load .sv-snow i, #sy-load .sv-cur, #sy-load .sv-jelly, #sy-load .sv-ticks line.cur, #sy-load .sv-lines div.nw span,
-  #sy-load .sv-contacts .pg, #sy-load .sv-contacts .go rect.bx,
+  #sy-load .sv-contacts .pg, #sy-load .sv-contacts .go rect.bx, #sy-load .sv-contacts .lt, #sy-load .sv-contacts .gl,
   #sy-load .sv-net .nd, #sy-load .sv-geo1, #sy-load .sv-geo2, #sy-load .sv-orbit { animation: none; }
 }
