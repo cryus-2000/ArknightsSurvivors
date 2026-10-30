@@ -930,6 +930,7 @@
      {
       "verb": "field",
       "center": "last_hit",
+      "pix": "gl_s3",
       "r": "$s3_r",
       "dur": "$s3_dur",
       "every": "$s3_every",
