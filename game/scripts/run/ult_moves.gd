@@ -317,15 +317,16 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 		a.drawn = int(a.drawn) + 1
 	if not a.cut and t >= 0.75:
 		a.cut = true
-		for ln in lines:   # 斩开：5–7 条直线斩痕同时出现、停一下再碎；地面残痕沿刀痕拼接，0.8 秒走完 4 帧淡出
-			_tx_blade(u, ln)
+		for ln in lines:   # 斩开：地面残痕沿刀痕拼接，0.8 秒走完 4 帧淡出；白芯斩线星芒用户 10-30 说不要（ult/tx_star 缺省 0，1 = 恢复）
+			if Bal.vi("ult/tx_star", 0) > 0:
+				_tx_blade(u, ln)
 			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 0.8})
 		_hit_circle(u, a, o, a.c, a.R, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "斩开", "big": 1.0})
 		o.screen_shake(0.6)
 		o.play_vis_anim("attack")
 	if a.cut and not a.get("shattered", false) and t >= 0.75 + Bal.v("ult/tx_blade_hold", 0.2):
 		a["shattered"] = true
-		for li in lines.size():
+		for li in (lines.size() if Bal.vi("ult/tx_star", 0) > 0 else 0):   # 斩线碎裂随星芒一起去掉
 			_tx_shatter(u, lines[li], li)
 	var sw: Array = a.swords
 	var last := 0.0
