@@ -394,18 +394,14 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 			st.i = int(st.i) + 1
 	if a.back and not a.back_done and t >= last:
 		a.back_done = true   # 回马剑：收刀时在她身后再斩一圈（斩开打过的不再打）
-		for bi in 3:   # 回马剑：身后三道短斩线（不画圈）。用户 10-30「最后怎么还有那个六角形」：三道等角白刃交在她身上成六芒星 →
-			# 白刃归 ult/tx_star；缺省改成和斩开同一套地面残痕 + 橙色发丝线，各道偏离中心、角度参差，不交成一点（伤害圆不动）
-			var hb: float = float(u.serial) * 3.7 + float(bi) * 2.3
-			var bd: Vector2 = Vector2.from_angle(bi * PI / 3.0 + 0.4 + (_tx_hh(hb) - 0.5) * 0.5)
-			var bl: float = 240.0 * float(a.R) / 430.0 * (0.5 + 0.25 * _tx_hh(hb + 1.0))
-			var bm: Vector2 = o.pos + bd.orthogonal() * (float(bi) - 1.0 + (_tx_hh(hb + 2.0) - 0.5) * 0.6) * 120.0 * float(a.R) / 430.0
-			var bln: Array = [bm - bd * bl, bm + bd * bl]
-			if Bal.vi("ult/tx_star", 0) > 0:
-				_tx_blade(u, bln)
-			else:
-				_tx_web(u, bln, 20 + bi, 0.3)
-				u.tiles_line("fx_ult_texas_scar_back", bln[0], bln[1], {"layer": "back", "fps": 5.0, "life": 0.8})
+		# 用户 10-30「最后怎么还有那个六角形」「德克萨斯最后的这个不需要」：三道等角白刃交在她身上成六芒星 → 缺省不画任何斩线，
+		# 只做收刀动作 + 轻微震屏（伤害圆不动）；ult/tx_star = 1 恢复旧的三道白刃
+		if Bal.vi("ult/tx_star", 0) > 0:
+			for bi in 3:
+				var bd: Vector2 = Vector2.from_angle(bi * PI / 3.0 + 0.4)
+				_tx_blade(u, [o.pos - bd * 240.0 * float(a.R) / 430.0, o.pos + bd * 240.0 * float(a.R) / 430.0])
+		o.play_vis_anim("attack")
+		o.screen_shake(Bal.v("ult/tx_back_shake", 0.25))
 		_hit_circle(u, a, o, o.pos, 220.0 * float(a.R) / 430.0, Bal.v("ult/tx_cut", 0.7), a.cut_seg, {"src": "回马剑", "big": 1.0})
 	if t >= last + 0.05:
 		_tx_sp(u, o)
