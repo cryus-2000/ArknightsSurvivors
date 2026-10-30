@@ -109,14 +109,27 @@ static func cracks(u, names: Array, c: Vector2, angs: Array, lens: Array, opt: D
 		u.strip(name, c + Vector2.from_angle(float(angs[j])) * r0, s)
 
 
-## 像素粒子爆（2 px 精细颗粒，fx_grains 的 ult_burst / ult_burst_s / ult_ember 模板；用户 10-30「对齐 Noita 精细像素粒子风」，原 3 px 大圆点退役）：
-## kind 模板、n 颗、cols 颜色组（按序号轮换，乘在模板热白 → 本色 → 暗的色阶上）、delay 发射延迟。颗粒关（低画质）时无事
-static func particles(u, p: Vector2, n: int, kind: String, cols: Array, delay := 0.0, seed0 := 0.0) -> void:
-	var gr = u.g.optical.grains if u.g.optical != null else null
-	if gr == null or not gr.on():
+## 像素粒子爆（用户 10-30「粒子能够用贴图来替代，这样减小开销」）：播预烘焙的粒子扩散帧条（tools/imagegen/pxburst.py 离线模拟：
+## 迸开 → 阻力减速扩散 → 冷却变暗，白灰色阶），col 着色；sc ≈ 2 时 1 纹素 = 2 世界像素，同 fx_grains 2 px 颗粒观感。
+## kind：ult_burst = 大（半径约 reach，缺省 380）、ult_burst_s = 小（约 110）、ult_ember = 小号慢一点；n 只决定叠几层（每 300 颗一层，层间转角错开）
+const BURSTS := ["fx_px_burst1", "fx_px_burst2"]
+const BURST_S := "fx_px_burst_s"
+
+
+static func particles(u, p: Vector2, n: int, kind: String, cols: Array, delay := 0.0, seed0 := 0.0, reach := 0.0) -> void:
+	var small: bool = kind != "ult_burst"
+	var name: String = BURST_S if small else pick(u, BURSTS, seed0 * 0.61)
+	if name == "" or not u.fx_ready(name):
 		return
-	for k in n:
-		gr.push(kind, p, Vector2.from_angle(h(k * 1.31 + seed0) * TAU), cols[k % cols.size()], delay)
+	var half: float = 48.0 if small else 180.0   # 帧半宽（纹素）；扩散到约 0.8 × half
+	var rch: float = reach if reach > 0.0 else (110.0 if small else 380.0)
+	var layers: int = clampi(n / 300, 1, 2) if not small else 1
+	var slow: float = 1.4 if kind == "ult_ember" else 1.0
+	for l in layers:
+		var cc: Color = cols[(l + int(h(seed0) * cols.size())) % cols.size()]
+		u.strip(name, p, {"sc": rch / (half * 0.8) * (1.0 - 0.15 * l), "ang": h(seed0 + l * 3.0) * TAU, "sx": -1.0 if h(seed0 + l) < 0.5 else 1.0,
+			"fps": 8.0 / (0.9 * slow), "life": 0.95 * slow, "fade": 0.25, "delay": delay + 0.05 * l,
+			"col": Color(minf(1.6, cc.r * 1.35), minf(1.6, cc.g * 1.35), minf(1.6, cc.b * 1.35), 1.0)})
 
 
 ## 节拍（顿感 / 节奏对齐乌尔比安的四圈：每 0.18 秒一拍，每拍一次震屏 + 一圈隆起 + 短灯 + 尘）：beats = [[t, r], ...]，在 step 里每帧调 tick_beats

@@ -368,11 +368,18 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 				arm[i].b = c + Vector2.from_angle(base + 0.36 * float(i + 1)) * maxf(20.0, r1)
 		for s in a.fx:
 			_hold(s)
-		if a.has("vo"):   # 持续单向旋转（越转越快）、跟旋臂一样往里收；内层再快 0.8 倍
+		if a.has("vo"):   # 凝聚：越转越快、整团往中心收到 0.2，越收越亮越实；内层再快 0.8 倍
+			var kc: float = k * k * (3.0 - 2.0 * k)
+			var sk: float = lerpf(1.0, 0.2, kc)
 			a.vo.ang = -float(a.rot)
-			a.vo.sc = DR * shrink / float(a.rr)
+			a.vo.sc = DR * sk / float(a.rr)
+			a.vo.col = Color(1.0 + 0.4 * kc, 1.0 + 0.4 * kc, 1.0 + 0.4 * kc, lerpf(0.55, 0.95, kc))
 			a.vi.ang = 1.3 - float(a.rot) * 1.8
-			a.vi.sc = DR * 0.5 * shrink / float(a.rr)
+			a.vi.sc = DR * 0.5 * sk / float(a.rr)
+			a.vi.col = Color(1.1 + 0.5 * kc, 1.15 + 0.5 * kc, 1.15 + 0.5 * kc, lerpf(0.7, 1.0, kc))
+			if int(t * 60.0) % 3 == 0:   # 外圈的水沫往里吸
+				var dq := Vector2.from_angle(float(a.rot) * 1.7 + t * 9.0)
+				u.grain("mote_in", c + dq * DR * 0.9, -dq, Color(0.8, 1.0, 1.0), 3)
 		var foam: Color = col.lerp(Color.WHITE, 0.45)
 		for j in a.arms.size():   # 旋臂上甩出的水沫（沿切向）+ 中心越转越亮
 			var arm2: Array = a.arms[j]
@@ -411,6 +418,10 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 	if not a.burst:
 		# 一瞬静止：亮点往里收、越收越亮；敌人钉在原地（收拢那下给了 stun）
 		var kh: float = clampf((t - T) / maxf(0.01, H), 0.0, 1.0)
+		if a.has("vo"):   # 凝住：整团再收一点、越来越亮（爆开前一拍）
+			a.vo.sc = DR * lerpf(0.2, 0.14, kh) / float(a.rr)
+			a.vi.sc = DR * 0.5 * lerpf(0.2, 0.14, kh) / float(a.rr)
+			a.vo.col = Color(1.4 + 0.3 * kh, 1.4 + 0.3 * kh, 1.4 + 0.3 * kh, 1.0)
 		a.pt.r = lerpf(30.0, 12.0, kh)
 		a.pg.r = lerpf(70.0, 26.0, kh)
 		a.pr.r = lerpf(120.0, 30.0, kh)
