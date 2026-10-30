@@ -22,6 +22,7 @@ var native_motion: Dictionary = {}
 
 const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见成长藏品（docs/163）
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
+const FxGlS3 = preload("res://scripts/characters/blocks/fx_gladiia_s3.gd")   # 歌蕾蒂娅 S3 漩涡画面（pixfx，用户 10-31；区域 pix: gl_s3）
 const ObCore = SegSkalter
 const ObElite = SegSkalter
 const ObFx = SegSkalter
@@ -1488,9 +1489,13 @@ func _ext_sustain(act: Array, dt: float) -> void:
 			if f.has("visual_end") and skill_active_left(int(f.visual_end.skill)) <= 0.0:
 				_end_field_visual(f)
 			f.t += dt
+			if f.has("pix"):
+				FxGlS3.step(self, f)   # 纯画面
 			while f.done < f.n and f.t >= (f.done + 1) * f.every - 0.0001:
 				f.done += 1
 				_exec_list(f.do, f.pos)
+				if f.has("pix"):
+					FxGlS3.tick(self, f)
 			if f.done >= f.n:
 				_end_field_visual(f)
 		fields = fields.filter(func(f): return f.done < f.n)
@@ -1498,6 +1503,10 @@ func _ext_sustain(act: Array, dt: float) -> void:
 
 ## 区域画面的收尾只读原场快照，不修改区域伤害、tick 数或最后命中点。
 func _end_field_visual(f: Dictionary) -> void:
+	if f.has("pix") and not f.get("visual_done", false):   # pixfx 画面（只读区域快照）：龙卷砸回海面，不播原收尾帧条
+		f["visual_done"] = true
+		FxGlS3.finish(self, f)
+		return
 	if not f.has("visual_end") or f.get("visual_done", false): return
 	f["visual_done"] = true
 	for px in f.get("visual_particles", []):
@@ -1538,7 +1547,9 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			if fields.size() > FIELD_CAP:
 				_end_field_visual(fields[0])
 				fields.pop_front()
-			if b.has("fx"):   # 通用 fx（§5.6）：中心 = 区域中心、半径 = 区域半径；没写 life 的条目循环到区域结束（once：只播一遍，精英化段）
+			if str(b.get("pix", "")) == "gl_s3" and FxGlS3.start(self, field):
+				pass   # 歌蕾蒂娅 S3：pixfx 漩涡 + 龙卷（g.ult 关 / 缺图时 start 返回 false，照播下面的原帧条）
+			elif b.has("fx"):   # 通用 fx（§5.6）：中心 = 区域中心、半径 = 区域半径；没写 life 的条目循环到区域结束（once：只播一遍，精英化段）
 				var fl: Array = []
 				for f in b.fx:
 					fl.append(f if not (f is Dictionary) or f.has("life") or f.get("once", false) else f.merged({"life": float(b.dur)}))
