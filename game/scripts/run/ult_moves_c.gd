@@ -750,7 +750,13 @@ static func _ho_start(u, o) -> Dictionary:
 		u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.35, "sc1": 0.55, "scd": 0.1, "ang": PF.h(vs0) * TAU, "sx": -1.0 if PF.h(vs0 + 1.0) < 0.5 else 1.0,
 			"life": hold + 1.4, "fade": 0.6, "col": Color(1.1, 1.08, 1.05), "col1": Color(0.6, 0.58, 0.56), "cold": hold + 0.6})
 		PF.heave(u, c, 120.0, vs0 + 3.0)
-		PF.particles(u, c, 100, "ult_burst_s", [Color(0.85, 0.82, 0.76)], 0.0, vs0, 140.0)
+		if _ho_v3():   # 打击感（pixfx §6.6）：盾下四团逐帧烟尘往外推，代替灰点粒子
+			for q in 4:
+				var hq: float = PF.h(vs0 * 3.0 + q)
+				var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 4.0)
+				PF.dust(u, c + dq * 70.0, 170.0 + 60.0 * hq, 0.03 * q, vs0 + q, dq * (60.0 + 40.0 * hq))
+		else:
+			PF.particles(u, c, 100, "ult_burst_s", [Color(0.85, 0.82, 0.76)], 0.0, vs0, 140.0)
 	return {"v2": hv2, "c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
 		"rf": 0.78 if rt == "ember" else Bal.v("ult/ho_boom", 0.9), "wall": rt == "wall", "ember": rt == "ember", "et": 0, "eseg": [{}, {}, {}],
 		"glow": u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold})}
@@ -797,7 +803,15 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 		if a.v2:   # 反震：顿帧 + 石尘冲击环（fx_hs_ring）推到 R + 灰白粒子迸开 + 四拍往外震（节奏同乌尔比安四圈）
 			u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
 			var vs2: float = PF.vseed(u, c) + 50.0
-			PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
+			var rs: Dictionary = PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
+			if _ho_v3():   # 冲击帧：反震那一下，石尘环 + 盾下碎裂进剪影；外圈八团逐帧烟尘往外推
+				a["hf"] = true
+				u.act["hf"] = true
+				rs["hf"] = true   # 只给石尘环；盾下碎裂是整张圆盘，进剪影会成一大块实心圆
+				for q in 8:
+					var hq: float = PF.h(vs2 * 3.0 + q)
+					var dq := Vector2.from_angle(TAU * (q + hq * 0.7) / 8.0)
+					PF.dust(u, c + dq * R * (0.55 + 0.25 * hq), 200.0 + 80.0 * hq, 0.05 + 0.03 * (q % 3), vs2 + q, dq * (70.0 + 50.0 * hq))
 			PF.particles(u, c, 300, "ult_burst", [Color(0.95, 0.9, 0.85), Color(1.0, 0.55, 0.45)], 0.0, vs2, R * 0.8)
 			a["vs"] = vs2
 			a["beats"] = [[t, R * 0.3, 0], [t + 0.18, R * 0.55, 1], [t + 0.36, R * 0.8, 2], [t + 0.54, R, 3]]
@@ -839,6 +853,10 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 
 ## 星熊 v2（ult/ho_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：盾砸地顿帧 + 盾下地面碎裂整张（fx_hs_crack），格挡每跳裂开一圈；
 ## 反震顿帧 + 石尘冲击环（fx_hs_ring）+ 粒子 + 四拍隆起；盾阵六边形照旧（形状一眼是盾阵）。灰黑断裂，不用凯尔希的红缝
+static func _ho_v3() -> bool:   # 打击感（10-31，pixfx §6.6）：反震冲击帧 + 逐帧烟尘；0 = 10-30 版
+	return Bal.v("ult/ho_fx_v3", 1.0) > 0.0
+
+
 static func _ho_v2(u) -> bool:
 	return Bal.v("ult/ho_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_hs_crack") and u.fx_ready("fx_hs_ring")
 

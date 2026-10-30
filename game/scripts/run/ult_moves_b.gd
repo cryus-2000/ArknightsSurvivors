@@ -962,6 +962,9 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 		var ts: float = sh.t
 		if not sh.done and t >= ts:
 			sh.done = true   # 主爆 70%（每人一次）
+			if k == 0 and _wd_v2(u) and _wd_v3():   # 冲击帧：第一排落地那一下（后面几排不再闪），三团爆炸进剪影
+				a["hf"] = true
+				u.act["hf"] = true
 			for p in sh.ps:
 				if _wd_v2(u):   # v2：原版尖晶爆裂随机化 + 弹坑（fx_ws_crater 4 种）留在地上 + 少量红色粒子
 					var hp2: float = PF.h(p.x * 0.013 + p.y * 0.029 + float(k))
@@ -971,7 +974,10 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 					var bdl: float = 0.14 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
 					# 用户 10-30「跟原本的特效风格不一致、缺少高光」：主体回到她自己的红色尖晶爆裂帧条，只加随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；
 					# 「蓝环可以去掉」→ fx_wd_cannon = fx_wisadel_cannon 去掉蓝色像素
-					u.strip("fx_wd_cannon" if u.fx_ready("fx_wd_cannon") else "fx_wisadel_cannon", pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0, "delay": bdl})
+					u.strip("fx_wd_cannon" if u.fx_ready("fx_wd_cannon") else "fx_wisadel_cannon", pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0,
+						"delay": 0.0 if k == 0 else bdl, "hf": k == 0})
+					if _wd_v3() and PF.h(hp2 * 59.0) < 0.6:   # 逐帧烟尘（焦灰带一点红），约六成炮弹，往远离她的方向飘
+						PF.dust(u, pv + Vector2.from_angle(hp2 * TAU) * rr * 0.3, 190.0 * rk, bdl + 0.06, hp2 * 70.0, (pv - o0).normalized() * 50.0, Color(1.0, 0.82, 0.78))
 					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
 						"col": Color(1.0, 0.75, 0.72), "col1": Color(0.6, 0.55, 0.55), "cold": 0.6})   # 弹坑是焦黑地面，只带一点红余烬（整片染红会糊满屏）
 					if hp2 < 0.35:   # 粒子圆团每发都放会排成一格格（预审报重复），只给约三分之一的炮弹、缩小
@@ -1016,6 +1022,10 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 
 ## 维什戴尔 v2（ult/wd_fx_v2，缺省 1；pixfx，docs/199 §7.9）：每发炮弹 = 她原有的红色尖晶爆裂帧条（fx_wisadel_cannon，随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；Codex 爆炸关键帧缺高光、用户说风格不一致，已撤）
 ## + 弹坑（fx_ws_crater 4 种按落点哈希挑）留地上 + 红色粒子帧条（用户 10-30：红色是她的主题色，爆炸着红）；余震 = 一下震 + 碎石掀起。判定 / 时序不动
+static func _wd_v3() -> bool:   # 打击感（10-31，pixfx §6.6）：第一排冲击帧 + 逐帧烟尘；0 = 10-30 版
+	return Bal.v("ult/wd_fx_v3", 1.0) > 0.0
+
+
 static func _wd_v2(u) -> bool:
 	return Bal.v("ult/wd_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_ws_crater")
 
