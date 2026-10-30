@@ -1,17 +1,16 @@
 extends RefCounted
 ## 界面 · 终结技 / 连携并进左上生命块的三个原型（10-30 用户「终结技和连携的 UI 能不能和血条之类的合并一下，出三个设计稿」）。
 ## 开关 balance.json ui/hud_ult_v：0 = 现行（底部中央长条 + 底部弹出队友头像，本文件不画）；1 / 2 / 3 = 下面三个方向，挑定后再精修。
-##   1 A 血条下嵌：生命条正下方一道细能量条（队长代表色），灯火条下同位置是协同格；满了扫一道亮光 + 呼吸光、条尾「Q」小标；
-##     连携 = 生命块右端一枚圆头像徽章 + 倒计时弧 + 「E」小标，后面排队的小头像跟在右边
-##   2 B 环形头像：左上等级圆换成队长头像，外圈 = 终结技能量环（满了亮点绕环转 + 呼吸光），左上弧 = 协同格，等级挪到右上小牌；
-##     连携 = 队友头像从环的右下边弹出、自带倒计时环，排队的再沿环往下排
-##   3 C 分段刻度：生命条 / 灯火条各加一层下层——生命条下 = 终结技能量（4 段刻度），灯火条下 = 协同格；
-##     连携 = 生命条上方一枚菱形头像（闪烁），菱形描边按剩余时间退
+##   （10-30 第二版，用户「UI 再想想怎么设计更加有设计感」：三个方向都改用 docs/37 水月版式的现成语汇，跟生命值 / 灯火一套语法）
+##   1 A′ 第三栏：「生命值」「灯火」右边并排「终结技」——代表色小标签头 + 大号百分比（满了换「就绪」+ 按键牌）+ 4 段刻度细条，协同格是细条下一排小菱形
+##   2 B′ 徽记环：等级圆换成队长头像，外一圈 300° 能量弧（底部缺口嵌按键牌）+ 渐隐细线（满了光点绕行），协同格是外圈左上一排小菱形
+##   3 C′ 节点标签条：生命 / 灯火块下方一条「ULT | 终结技」标签条（满了 READY | 终结技 · Q）+ 4 枚斜切能量格 + 协同小方格
 ## 三个方向共用：桌面底部中央的终结技条与弹出头像不再画；「可以放了」不放角落，挂在队长身上——能量满时队长脚下亮一圈代表色光（_draw_ready）。
 ## 触屏（10-30 协调人与用户商定）：能量不并进血条，直接做成右下 Q 键本身的填充（从下往上涨），连携键只在亮起时出现。
-## 上面写的连携徽章只在 ui/link_cue = 0 时画；link_cue 1–3 是连携提示的另一组原型（挂在场上两名干员之间，见下）：
-##   1 A 灯火引线：队长与亮起的队友之间一条灯火色细引线（3 像素格），光点从队友流向队长；像导火索一样从队友端往队长端烧短 = 倒计时，
-##     烧到头窗口关闭；按 E（队首提前离队）整线爆亮、化成火星散掉；减少动态效果时线不流动、只均匀缩短。手机上 E 键跟线同步发光
+## 连携提示挂在场上两名干员之间（ui/link_cue；三个方向下 link_cue = 0 时按 1 灯火引线画），左上不再画连携徽章：
+##   1 A 灯火引线：队长与亮起的队友之间一条灯火色细引线（3 像素格），光点从队友流向队长；引线全长常驻不缩短（10-30 用户），
+##     倒计时 = 火头从队友端烧向队长端，烧过的一段变成暗红余烬，烧到队长窗口关闭；按 E（队首提前离队）整线爆亮、化成火星散掉；
+##     减少动态效果时光点不流动、火头照走。手机上 E 键跟线同步发光
 ##   2 C 战术终端标记：队友四周罗德岛终端风四角框 + 黑底白字「LINK」小标签，标签下一条倒计时刻度
 ##   3 A + C：引线 + 引线中点挂「LINK · E」小标签（触屏只写 LINK）
 ## 只换提示画面，连携演出的伤害 / 时序不动。减少动态效果（Cfg.reduce_motion）时不扫光、不转、不呼吸、不闪，只换颜色与描边。
@@ -25,7 +24,6 @@ var g
 var u   # screens/hud_ult.gd
 
 const DARK := Color(0.03, 0.035, 0.045, 0.85)
-const TRACK := Color(0.1, 0.12, 0.14, 0.95)
 const HX := 80.0
 const LX := 252.0
 const LV := Vector2(42.0, 42.0)
@@ -44,19 +42,15 @@ static func ver() -> int:
 
 
 static func link_cue() -> int:
-	return clampi(Bal.vi("ui/link_cue", 0), 0, 3)
+	var c: int = clampi(Bal.vi("ui/link_cue", 0), 0, 3)
+	return 1 if c == 0 and ver() > 0 else c   # 三个方向左上不再画连携徽章：没选提示时按灯火引线
 
 
 ## 左上灯火行 / 队友血条行 / 神经细条要多让出的像素（A、C 在生命条下多一层；触屏能量在 Q 键上，左上不加层）
 static func top_add(touch: bool) -> float:
 	if touch:
 		return 0.0
-	match ver():
-		1:
-			return 8.0
-		3:
-			return 6.0
-	return 0.0
+	return 26.0 if ver() == 3 else 0.0
 
 
 func _rm() -> bool:
@@ -100,37 +94,12 @@ func _key(action: String) -> String:
 	return Pad.hint(PlayKeys.hint(action, true, false), PlayKeys.hint(action, true, true))
 
 
-## 小键标（桌面）：深底 + 描边 + 键名
-func _chip(fg: Tris, txt: Array[Callable], p: Vector2, key: String, col: Color, lit: bool) -> void:
-	if key == "":
-		return
-	var w: float = maxf(13.0, g.font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(10)).x + 6.0)
-	var r := Rect2(p, Vector2(w, 12.0))
-	fg.rect(r, DARK)
-	fg.frame(r, Color(col.r, col.g, col.b, 0.9 if lit else 0.35), 1.0)
-	txt.append(func(): UI.text(g.hud, g.font, Vector2(r.position.x, r.position.y + 10.0), key, 10, UI.TEXT if lit else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, w))
-
-
-## 连携队首：亮起后 0.15 秒从 55% 弹到整（减少动态效果时直接整）
-func _pop(q: Dictionary) -> float:
-	if _rm():
-		return 1.0
-	var pk: float = clampf((u._lit_t() - float(q.left)) / 0.15, 0.0, 1.0)
-	return 0.55 + 0.45 * (1.0 - (1.0 - pk) * (1.0 - pk))
-
-
 func _left_k(q: Dictionary) -> float:
 	return clampf(float(q.left) / u._lit_t(), 0.0, 1.0)
 
 
 func _head_q() -> Array:
 	return u._q().filter(func(q): return q.o != null)
-
-
-## 「技能连携」小字（10-29 用户「根本看不出来」后加的：技能连携亮起时写明）
-func _link_label(txt: Array[Callable], q: Dictionary, p: Vector2, align := HORIZONTAL_ALIGNMENT_LEFT, w := 80.0) -> void:
-	if q.info.has("link"):
-		txt.append(func(): UI.text(g.hud, g.font, p, "技能连携", 11, Color(1.0, 0.8, 0.45), align, w, 3))
 
 
 # ================================================================ 入口
@@ -154,239 +123,142 @@ func draw(vs: Vector2) -> void:
 		_draw_cue()
 
 
-# ================================================================ A 血条下嵌
+# ================================================================ A′ 第三栏（同生命值 / 灯火的版式）
+
+## 「生命值」「灯火」之后并排第三栏「终结技」：同一套语法——彩色小标签头（队长代表色压暗）+ 细条下一排小菱形（协同格，同护盾菱形）
+## + 大号数字（充能百分比；满了换成「就绪」+ 按键牌）+ 细条（4 段刻度 = 一局 3–4 次的节奏）。升级态（能量满 + 协同满）标签头换金、写「连携终结技」
+const A_X := 394.0   # 灯火栏（252 起、宽 120）右边留 22，同生命值与灯火的间距
+const A_W := 120.0
 
 func _draw_a() -> void:
-	var bg := Tris.new()
-	var fg := Tris.new()
-	var txt: Array[Callable] = []
 	var full: bool = g.ult.full()
+	var up: bool = u._up()
 	var ec: Color = _ecol()
 	var ek: float = _ek()
-	# 能量条：生命条正下方，同宽 150、高 3
-	var eb := Rect2(HX, 66.0, 150.0, 3.0)
-	bg.rect(eb.grow(1.0), DARK)
-	bg.rect(eb, TRACK)
-	bg.rect(Rect2(eb.position, Vector2(eb.size.x * ek, eb.size.y)), Color(ec.r, ec.g, ec.b, 1.0 if full else 0.75))
+	var pu: float = _pulse()
+	var x: float = A_X
+	var y: float = 12.0
+	var tcol: Color = UI.GOLD.darkened(0.3) if up else ec.darkened(0.45)
+	UI.tab(g.hud, g.font, Vector2(x, y), "连携终结技" if up else "终结技", tcol)
+	# 协同格：细条下面一排小菱形（同护盾菱形的画法；放标签头右边会挤到顶部中央的击杀框）
+	for i in u._n():
+		UI.diamond(g.hud, Vector2(x + 3.5 + i * 9.0, y + 58.0), 3.0, UI.GOLD if i < u._cells() else Color(1, 1, 1, 0.12), Color(1.0, 0.85, 0.5, 0.7))
+	# 数字：充能百分比 / 就绪 + 按键牌
 	if full:
-		var pu: float = _pulse()
-		for k in 2:
-			fg.frame(eb.grow(1.5 + k * 2.0), Color(ec.r, ec.g, ec.b, (0.42 - k * 0.16) * (0.4 + 0.6 * pu)), 1.5)
+		var rc: Color = ec.lerp(Color.WHITE, 0.25 * pu)
+		UI.ctext(g.hud, g.font, Vector2(x, y + 40.0), "就绪", 21, rc)
+		var key: String = _key("ult")
+		if key != "":
+			UI.keycap(g.hud, g.font, Vector2(x + UI.cwidth(g.font, "就绪", 21) + 8.0, y + 25.0), key, UI.TEXT, 11)
+	else:
+		var ps: String = "%d" % int(ek * 100.0)
+		UI.ctext(g.hud, g.font, Vector2(x, y + 40.0), ps, 21, UI.TEXT)
+		UI.ctext(g.hud, g.font, Vector2(x + UI.cwidth(g.font, ps, 21) + 4.0, y + 40.0), "%", 13, UI.SUB)
+	# 细条：4 段刻度
+	var br := Rect2(x, y + 47.0, A_W, 4.0)
+	UI.gbar(g.hud, br, ek, Color(ec.r, ec.g, ec.b, 1.0 if full else 0.85), 4)
+	if full:
+		g.hud.draw_rect(br.grow(2.0), Color(ec.r, ec.g, ec.b, 0.15 + 0.35 * pu), false, 1.5)
 		var fk: float = _flash_k()
 		if fk > 0.0:   # 刚满：一道亮光从左扫到右
-			var x: float = eb.position.x + eb.size.x * (1.0 - fk)
-			fg.rect(Rect2(x - 14.0, eb.position.y - 1.0, 28.0, eb.size.y + 2.0), Color(1, 1, 1, 0.8 * fk))
-	# 协同格：灯火条正下方同位置
-	_cells_row(bg, Rect2(LX, 66.0, 120.0, 3.0))
-	# 条尾「Q」
-	_chip(fg, txt, Vector2(eb.end.x + 4.0, 61.0), _key("ult"), ec, full)
-	# 连携徽章：生命块右端
-	var qs: Array = _head_q() if link_cue() == 0 else []
-	bg.flush(g.hud)
-	if not qs.is_empty():
-		var q: Dictionary = qs[0]
-		var c := Vector2(LX + 120.0 + 30.0, 40.0)
-		var r: float = 16.0 * _pop(q)
-		var oc: Color = q.o.col()
-		g.hud.draw_circle(c, r + 1.0, Color(oc.r * 0.3, oc.g * 0.3, oc.b * 0.3, 0.95))
-		u._avatar(q.o, c, r - 1.5)
-		var cc: Color = oc.lerp(Color.WHITE, 0.35)
-		var k: float = _left_k(q)
-		fg.arc(c, r + 3.0, 0.0, TAU, 3.0, Color(0.02, 0.03, 0.04, 0.75), 32)
-		fg.arc(c, r + 3.0, -PI / 2.0, -PI / 2.0 + TAU * k, 3.0, Color(cc.r, cc.g, cc.b, 0.4 + 0.6 * k), 32)
-		_chip(fg, txt, c + Vector2(-7.0, r + 6.0), _key("combo"), cc, true)
-		# 后面排队的：右边一排小头像（整圈静止亮着）
-		var x: float = c.x + r + 14.0
-		for i in range(1, mini(qs.size(), 4)):
-			var o = qs[i].o
-			var p := Vector2(x, c.y + 6.0)
-			g.hud.draw_circle(p, 8.0, Color(o.col().r * 0.3, o.col().g * 0.3, o.col().b * 0.3, 0.95))
-			u._avatar(o, p, 6.5)
-			fg.arc(p, 8.5, 0.0, TAU, 1.5, Color(o.col().lerp(Color.WHITE, 0.35), 0.85), 20)
-			x += 19.0
-		_link_label(txt, q, Vector2(c.x + r + 7.0, c.y - 6.0))
-	fg.flush(g.hud)
-	u.h.text_flush(txt)
+			var sx: float = br.position.x + br.size.x * (1.0 - fk)
+			g.hud.draw_rect(Rect2(sx - 12.0, br.position.y - 1.0, 24.0, br.size.y + 2.0), Color(1, 1, 1, 0.8 * fk))
 
 
-func _cells_row(bg: Tris, r: Rect2) -> void:
-	var n: int = u._n()
-	var cw: float = (r.size.x - float(n - 1) * 2.0) / float(n)
-	bg.rect(r.grow(1.0), DARK)
-	for i in n:
-		bg.rect(Rect2(r.position.x + i * (cw + 2.0), r.position.y, cw, r.size.y), UI.GOLD if i < u._cells() else TRACK)
+# ================================================================ B′ 徽记环（队长头像 + 能量弧）
 
-
-# ================================================================ B 环形头像
-
-const B_R := 21.0   # 头像半径（原等级圆 22）
+## 左上等级圆换成队长头像徽记：内圈头像、外一圈 300° 能量弧（底部 60° 缺口里嵌按键牌）、再外一圈渐隐细线；
+## 协同格 = 外圈左上一排小菱形；等级挪到头像右下一行小字。满了：能量弧换亮、细线上一粒光点绕行（减少动态效果时不转）
+const B_R := 19.0
+const B_GAP := PI / 3.0   # 底部缺口
 
 func _draw_b() -> void:
-	var bg := Tris.new()
-	var fg := Tris.new()
-	var txt: Array[Callable] = []
 	var ld = g.squad.leader()
 	var full: bool = g.ult.full()
 	var ec: Color = _ecol()
 	var ek: float = _ek()
+	var pu: float = _pulse()
 	var c: Vector2 = LV
-	bg.circle(c, B_R + 5.0, DARK, 32)
-	# 协同格：左上弧（正左 → 正上）
-	var n: int = u._n()
-	var a0: float = PI + 0.12
-	var seg: float = (PI / 2.0 - 0.24) / float(n)
-	bg.flush(g.hud)
+	var tb := Tris.new()
+	var txt: Array[Callable] = []
+	tb.circle(c, B_R + 2.0, DARK, 32)
+	tb.flush(g.hud)
 	if ld != null:
-		u._avatar(ld, c, B_R, Color.WHITE if full else Color(0.55, 0.58, 0.62))
-	# 能量环
-	fg.arc(c, B_R + 3.0, 0.0, TAU, 3.0, Color(0.1, 0.12, 0.14, 0.95), 40)
-	fg.arc(c, B_R + 3.0, -PI / 2.0, -PI / 2.0 + TAU * ek, 3.0, Color(ec.r, ec.g, ec.b, 1.0 if full else 0.8), 40)
-	for i in n:
-		var sa: float = a0 + i * seg + 0.03
-		fg.arc(c, B_R + 8.5, sa, sa + seg - 0.06, 2.5, UI.GOLD if i < u._cells() else Color(0.2, 0.22, 0.25, 0.85), 4)
+		u._avatar(ld, c, B_R, Color.WHITE if full else Color(0.6, 0.63, 0.67))
+	tb = Tris.new()
+	var a0: float = PI / 2.0 + B_GAP / 2.0   # 缺口右沿往顺时针走
+	var span: float = TAU - B_GAP
+	tb.arc(c, B_R + 4.5, a0, a0 + span, 3.5, Color(0.1, 0.12, 0.14, 0.95), 40)
+	tb.arc(c, B_R + 4.5, a0, a0 + span * ek, 3.5, Color(ec.r, ec.g, ec.b, 1.0 if full else 0.85), 40)
+	# 外圈渐隐细线
+	tb.arc(c, B_R + 9.0, a0, a0 + span, 1.0, Color(1, 1, 1, 0.16), 48)
 	if full:
-		var pu: float = _pulse()
-		fg.arc(c, B_R + 6.0, 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.2 + 0.4 * pu), 40)
+		tb.arc(c, B_R + 9.0, a0, a0 + span, 1.5, Color(ec.r, ec.g, ec.b, 0.2 + 0.45 * pu), 48)
 		if not _rm():
-			# 三粒亮点绕环转
-			for k in 3:
-				var sa2: float = g.t * 2.4 + TAU * k / 3.0
-				fg.arc(c, B_R + 3.0, sa2, sa2 + 0.55, 3.5, Color(1, 1, 1, 0.85), 8)
-		else:
-			fg.arc(c, B_R + 3.0, 0.0, TAU, 1.0, Color(1, 1, 1, 0.7), 40)
+			var sa: float = a0 + fposmod(g.t * 1.6, 1.0) * span
+			tb.circle(c + Vector2.from_angle(sa) * (B_R + 9.0), 2.2, Color(1, 1, 1, 0.95), 8)
 		var fk: float = _flash_k()
-		if fk > 0.0:   # 刚满：一圈往外扩散
-			fg.arc(c, B_R + 4.0 + 16.0 * (1.0 - fk), 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.8 * fk), 40)
-	# 等级小牌：右上；Q 小标：左下
-	var lvs: String = "LV%d" % g.level
-	var lw: float = g.font.get_string_size(lvs, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(9)).x + 8.0
-	var lr := Rect2(c.x + 9.0, c.y - B_R - 8.0, lw, 12.0)
-	fg.rect(lr, DARK)
+		if fk > 0.0:
+			tb.arc(c, B_R + 5.0 + 14.0 * (1.0 - fk), 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.8 * fk), 40)
+	# 协同格：外圈左上一排小菱形
+	var n: int = u._n()
+	for i in n:
+		var a: float = PI + 0.25 + (PI / 2.0 - 0.5) * i / maxf(1.0, n - 1.0)
+		tb.diamond(c + Vector2.from_angle(a) * (B_R + 13.0), 3.0, UI.GOLD if i < u._cells() else Color(1, 1, 1, 0.14))
+	tb.flush(g.hud)
+	# 缺口里的按键牌（桌面）
+	var key: String = _key("ult")
+	if key != "":
+		var kw: float = UI.cwidth(g.font, key, 10) + 12.0
+		UI.keycap(g.hud, g.font, c + Vector2(-kw / 2.0, B_R + 0.0), key, UI.TEXT if full else UI.SUB, 10)
+	# 等级：头像右下一行压缩小字（右上会压到能量弧，再往右是生命值标签头）
 	var lf: float = g.hud_lv_flash
-	var lbc: Color = UI.CYAN.lerp(UI.GOLD, lf)
-	fg.frame(lr, Color(lbc.r, lbc.g, lbc.b, 0.75), 1.0)
-	txt.append(func(): UI.text(g.hud, g.font, Vector2(lr.position.x, lr.position.y + 10.0), lvs, 9, Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, lw))
-	_chip(fg, txt, Vector2(c.x - B_R - 9.0, c.y + 9.0), _key("ult"), ec, full)
-	fg.flush(g.hud)
-	# 连携：从环的右下边（55°）弹出，自带倒计时环；排队的沿环往下（95°）
-	var qs: Array = _head_q() if link_cue() == 0 else []
-	var fg2 := Tris.new()
-	if not qs.is_empty():
-		var q: Dictionary = qs[0]
-		var r: float = 12.0 * _pop(q)
-		var p: Vector2 = c + Vector2.from_angle(deg_to_rad(55.0)) * (B_R + 9.0) * (0.7 + 0.3 * _pop(q))
-		var oc: Color = q.o.col()
-		g.hud.draw_circle(p, r + 1.5, Color(oc.r * 0.3, oc.g * 0.3, oc.b * 0.3, 0.95))
-		u._avatar(q.o, p, r - 1.0)
-		var cc: Color = oc.lerp(Color.WHITE, 0.35)
-		var k: float = _left_k(q)
-		fg2.arc(p, r + 3.0, 0.0, TAU, 2.5, Color(0.02, 0.03, 0.04, 0.8), 28)
-		fg2.arc(p, r + 3.0, -PI / 2.0, -PI / 2.0 + TAU * k, 2.5, Color(cc.r, cc.g, cc.b, 0.4 + 0.6 * k), 28)
-		_chip(fg2, txt, p + Vector2(-7.0, r + 5.0), _key("combo"), cc, true)
-		if qs.size() > 1:
-			var o = qs[1].o
-			var p2: Vector2 = c + Vector2.from_angle(deg_to_rad(100.0)) * (B_R + 10.0)
-			g.hud.draw_circle(p2, 7.5, Color(o.col().r * 0.3, o.col().g * 0.3, o.col().b * 0.3, 0.95))
-			u._avatar(o, p2, 6.0)
-			fg2.arc(p2, 8.0, 0.0, TAU, 1.5, Color(o.col().lerp(Color.WHITE, 0.35), 0.85), 20)
-			if qs.size() > 2:
-				txt.append(func(): UI.text(g.hud, g.font, p2 + Vector2(-26.0, 4.0), "+%d" % (qs.size() - 2), 10, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 16.0, 2))
-		_link_label(txt, q, Vector2(p.x - 40.0, p.y + r + 31.0), HORIZONTAL_ALIGNMENT_CENTER, 80.0)
-	fg2.flush(g.hud)
+	UI.ctext(g.hud, g.font, Vector2(c.x + 17.0, c.y + B_R + 12.0), "LV%d" % g.level, 10, UI.SUB.lerp(UI.GOLD, lf))
 	u.h.text_flush(txt)
 
 
-# ================================================================ C 分段刻度
+# ================================================================ C′ 节点标签条
 
-const C_SEGS := 4   # 一局 3–4 次终结技的节奏：能量条分 4 段
+## 生命 / 灯火块下方一条节点标签条（同原作地图标签与下面的灯火状态条）：左段队长代表色底 + 压缩斜体英文 ULT，
+## 右段暗底中文「终结技」，再接 4 枚斜切能量格 + 协同小方格；满了英文换 READY、中文换「终结技 · 按键」，能量格整排亮、呼吸。
+## 灯火状态条与队友血条行往下让 top_add
+const C_SEGS := 4
 
 func _draw_c() -> void:
-	var bg := Tris.new()
-	var fg := Tris.new()
-	var txt: Array[Callable] = []
 	var full: bool = g.ult.full()
+	var up: bool = u._up()
 	var ec: Color = _ecol()
 	var ek: float = _ek()
-	# 生命条下层：能量 4 段（紧贴生命条 59–63 之下）
-	var er := Rect2(HX, 64.0, 150.0, 4.0)
-	bg.rect(er.grow(1.0), DARK)
-	var sw: float = (er.size.x - float(C_SEGS - 1) * 2.0) / float(C_SEGS)
-	var fk: float = _flash_k()
+	var pu: float = _pulse()
+	var p := Vector2(HX - 62.0, 70.0)   # 与左上面板左缘（16 + 2）对齐
+	var key: String = _key("ult")
+	var en_s: String = "READY" if full else "ULT"
+	var cn: String = ("连携终结技" if up else "终结技") + (" · %s" % key if full and key != "" else "")
+	var sc: Color = UI.GOLD if up else ec
+	var w: float = UI.strip(g.hud, g.font, p, en_s, cn, Color(sc.r, sc.g, sc.b, 1.0 if full else 0.8), UI.TEXT, 12)
+	var tb := Tris.new()
+	var x: float = p.x + w + 6.0
+	var hh: float = 20.0
+	var sw := 20.0
 	for i in C_SEGS:
-		var sr := Rect2(er.position.x + i * (sw + 2.0), er.position.y, sw, er.size.y)
-		bg.rect(sr, TRACK)
 		var f: float = clampf(ek * C_SEGS - i, 0.0, 1.0)
+		var x0: float = x + i * (sw + 3.0)
+		var q := PackedVector2Array([Vector2(x0 + 5.0, p.y), Vector2(x0 + sw + 5.0, p.y), Vector2(x0 + sw, p.y + hh), Vector2(x0, p.y + hh)])
+		tb.poly(q, Color(0, 0, 0, 0.6))
 		if f > 0.0:
-			bg.rect(Rect2(sr.position, Vector2(sw * f, sr.size.y)), Color(ec.r, ec.g, ec.b, 1.0 if f >= 1.0 else 0.6))
-		if fk > 0.0:   # 刚满：四段依次亮一下
-			var sk: float = clampf(fk * 1.6 - (C_SEGS - 1 - i) * 0.2, 0.0, 1.0)
-			fg.rect(sr, Color(1, 1, 1, 0.75 * sk))
-	if full:
-		var pu: float = _pulse()
-		fg.frame(Rect2(HX - 2.0, 57.0, 154.0, 13.0), Color(ec.r, ec.g, ec.b, 0.35 + 0.45 * pu), 1.5)
-	# 灯火条下层：协同格
-	_cells_row(bg, Rect2(LX, 64.0, 120.0, 4.0))
-	_chip(fg, txt, Vector2(er.end.x + 4.0, 59.0), _key("ult"), ec, full)
-	bg.flush(g.hud)
-	fg.flush(g.hud)
-	# 连携：生命条上方右端一枚菱形头像
-	var qs: Array = _head_q() if link_cue() == 0 else []
-	var fg2 := Tris.new()
-	if not qs.is_empty():
-		var q: Dictionary = qs[0]
-		var c := Vector2(HX + 136.0, 38.0)
-		var r: float = 14.0 * _pop(q)
-		var oc: Color = q.o.col()
-		var cc: Color = oc.lerp(Color.WHITE, 0.35)
-		if not _rm():   # 闪烁：外圈菱形光随呼吸亮暗
-			var bl: float = 0.5 + 0.5 * sin(g.t * 9.0)
-			fg2.diamond(c, r + 6.0, Color(cc.r, cc.g, cc.b, 0.22 * bl))
-		fg2.diamond(c, r + 1.5, Color(oc.r * 0.3, oc.g * 0.3, oc.b * 0.3, 0.95))
-		fg2.flush(g.hud)
-		fg2 = Tris.new()
-		_avatar_diamond(q.o, c, r - 1.0)
-		# 倒计时：菱形描边从正上方顺时针退
-		_diamond_outline(fg2, c, r + 3.0, 1.0, Color(0.02, 0.03, 0.04, 0.8), 3.0)
-		_diamond_outline(fg2, c, r + 3.0, _left_k(q), Color(cc.r, cc.g, cc.b, 0.45 + 0.55 * _left_k(q)), 3.0)
-		_chip(fg2, txt, c + Vector2(r + 6.0, -6.0), _key("combo"), cc, true)
-		var x: float = c.x - r - 12.0
-		for i in range(1, mini(qs.size(), 3)):
-			var o = qs[i].o
-			var p := Vector2(x, c.y + 4.0)
-			fg2.diamond(p, 7.0, Color(o.col().lerp(Color.WHITE, 0.35), 0.9))
-			fg2.diamond(p, 5.0, Color(o.col().r * 0.35, o.col().g * 0.35, o.col().b * 0.35, 1.0))
-			x -= 16.0
-		_link_label(txt, q, Vector2(c.x - 40.0, c.y - r - 7.0), HORIZONTAL_ALIGNMENT_CENTER, 80.0)
-	fg2.flush(g.hud)
-	u.h.text_flush(txt)
-
-
-## 菱形头像（贴图多边形，uv 取头部正方形的内接菱形）
-func _avatar_diamond(o, c: Vector2, r: float) -> void:
-	var hd: Array = u._head(o)
-	if hd.is_empty():
-		return
-	var t: Texture2D = hd[0]
-	var src: Rect2 = hd[1]
-	var ts: Vector2 = t.get_size()
-	var pts := PackedVector2Array()
-	var uvs := PackedVector2Array()
-	for d in [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]:
-		pts.append(c + d * r)
-		uvs.append((src.get_center() + d * src.size.x * 0.5) / ts)
-	g.hud.draw_colored_polygon(pts, Color.WHITE, uvs, t)
-
-
-## 菱形描边的前 k（0–1）段：从正上方顺时针
-func _diamond_outline(tb: Tris, c: Vector2, r: float, k: float, col: Color, w: float) -> void:
-	var p: Array = [c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0), c + Vector2(0, -r)]
-	var left: float = clampf(k, 0.0, 1.0) * 4.0
-	for i in 4:
-		if left <= 0.0:
-			break
-		var f: float = minf(1.0, left)
-		tb.line(p[i], p[i].lerp(p[i + 1], f), col, w)
-		left -= 1.0
+			var fx: float = sw * f
+			var fq := PackedVector2Array([Vector2(x0 + 5.0, p.y + 3.0), Vector2(x0 + 5.0 + fx - 1.0, p.y + 3.0), Vector2(x0 + fx - 1.0 + 0.5, p.y + hh - 3.0), Vector2(x0 + 0.5, p.y + hh - 3.0)])
+			var a: float = (0.75 + 0.25 * pu) if full else (0.9 if f >= 1.0 else 0.5)
+			tb.poly(fq, Color(sc.r, sc.g, sc.b, a))
+	var fk: float = _flash_k()
+	if fk > 0.0:
+		tb.rect(Rect2(p.x, p.y, (x + C_SEGS * (sw + 3.0) - p.x) * (1.0 - fk), hh), Color(1, 1, 1, 0.25 * fk))
+	# 协同格：能量格右边两行小方格
+	var cx: float = x + C_SEGS * (sw + 3.0) + 6.0
+	for i in u._n():
+		var r := Rect2(cx + (i / 2) * 6.0, p.y + 3.0 + (i % 2) * 8.0, 4.0, 5.0)
+		tb.rect(r, UI.GOLD if i < u._cells() else Color(1, 1, 1, 0.14))
+	tb.flush(g.hud)
 
 
 # ================================================================ 触屏简版键
@@ -554,26 +426,32 @@ func _draw_cue() -> void:
 	u.h.text_flush(txt)
 
 
-## 引线：a = 队长端，b = 队友端；剩下的是 a → a + (b − a)·k 这一段，烧点在末端
+## 引线：a = 队长端，b = 队友端；全长常驻不缩短。火头在 a + (b − a)·k（k 从 1 = 队友端走到 0 = 队长端）：
+## 火头到队长之间是没烧到的一段（灯火金，光点往队长流），火头到队友之间是烧过的余烬（暗红、微微闪）
 func _fuse(tb: Tris, a: Vector2, b: Vector2, k: float) -> void:
 	var d: Vector2 = b - a
 	var L: float = d.length()
 	if L < 8.0:
 		return
 	var dir: Vector2 = d / L
-	var end: float = L * k
-	var n: int = int(end / FUSE_PX)
+	var head: float = L * k
+	var n: int = int(L / FUSE_PX)
 	var col: Color = UI.GOLD
+	var ember := Color(0.78, 0.3, 0.16)
 	var flow: float = 0.0 if _rm() else g.t * FUSE_FLOW
 	for i in n:
 		var x: float = i * FUSE_PX
 		var p: Vector2 = _snap(a + dir * x)
-		var ph: float = fposmod(x + flow, FUSE_GAP) / FUSE_GAP   # 光点往 a（队长）流
-		var hi: float = 0.0 if _rm() else clampf(1.0 - absf(ph - 0.5) * 6.0, 0.0, 1.0)
-		var c: Color = col.lerp(Color(1.0, 0.97, 0.85), hi)
-		tb.rect(Rect2(p, Vector2(FUSE_PX, FUSE_PX)), Color(c.r, c.g, c.b, 0.55 + 0.4 * hi))
-	# 烧点：亮核 + 几粒火星（按时间换位，不用随机数）
-	var tip: Vector2 = _snap(a + dir * end)
+		if x <= head:
+			var ph: float = fposmod(x + flow, FUSE_GAP) / FUSE_GAP   # 光点往 a（队长）流
+			var hi: float = 0.0 if _rm() else clampf(1.0 - absf(ph - 0.5) * 6.0, 0.0, 1.0)
+			var c: Color = col.lerp(Color(1.0, 0.97, 0.85), hi)
+			tb.rect(Rect2(p, Vector2(FUSE_PX, FUSE_PX)), Color(c.r, c.g, c.b, 0.6 + 0.35 * hi))
+		else:
+			var fl: float = 0.0 if _rm() else 0.5 + 0.5 * sin(g.t * 7.0 + i * 1.7)
+			tb.rect(Rect2(p, Vector2(FUSE_PX, FUSE_PX)), Color(ember.r, ember.g, ember.b, 0.35 + 0.2 * fl))
+	# 火头：亮核 + 几粒火星（按时间换位，不用随机数）
+	var tip: Vector2 = _snap(a + dir * head)
 	tb.rect(Rect2(tip - Vector2(FUSE_PX, FUSE_PX), Vector2(FUSE_PX * 3.0, FUSE_PX * 3.0)), Color(1.0, 0.85, 0.5, 0.35))
 	tb.rect(Rect2(tip, Vector2(FUSE_PX, FUSE_PX)), Color(1, 1, 0.92, 1.0))
 	if not _rm():
