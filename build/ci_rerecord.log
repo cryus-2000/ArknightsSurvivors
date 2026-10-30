@@ -1,6 +1,17 @@
-快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1028_080048
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1030_051049
 通过 数据 JSON 解析  game/data 全部可解析
-通过 积木等价（数据版 vs 金样）  与金样相同 0；已重录 28 份到 game/tests/golden_current（git 跟踪，记得 git add + commit）；过期 28 份已随本次 --update-golden 重录刷新（eqtest seed1、eqtest seed2、kaltsit seed1、kaltsit seed3、skadi seed1、skadi seed3……）
+失败 积木等价（数据版 vs 金样）  与金样相同 0  [2104 秒]
+      eqtest seed1 全节点 + 技力常满：超时
+      eqtest seed2 自然流程：超时
+      kaltsit seed1 精零 + 技力常满：超时
+      kaltsit seed3 当队友 + 全藏品（精零）：超时
+      skadi seed1 精零 + 技力常满：超时
 
-快检通过：2 项，失败 0 项，耗时 108 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 28（不用缓存加 --nocache）
-rc=0
+耗时前 10（秒，不含排队）：积木等价（数据版 vs 金样） 2104
+
+快检失败：2 项，失败 1 项（已知红 0 项另计），耗时 2106 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 28（不用缓存加 --nocache）
+
+失败项：
+  · 积木等价（数据版 vs 金样） — 与金样相同 0
+    日志：/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_eqtest_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_eqtest_seed2.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_kaltsit_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_kaltsit_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_skadi_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_skadi_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_eyjafjalla_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_eyjafjalla_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_logos_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_logos_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_ulpianus_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_ulpianus_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_specter_unchained_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_specter_unchained_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_mizuki_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_mizuki_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_irene_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_irene_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_lumen_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_lumen_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_siege_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_siege_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_suzuran_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_suzuran_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_wisadel_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_wisadel_seed3.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_saria_seed1.log、/home/user/ArknightsSurvivors/build/check/quick_1030_051049/blocks_eq_saria_seed3.log
+rc=1
