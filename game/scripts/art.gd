@@ -1054,6 +1054,7 @@ const V6_FRAMES := {
 	"fx_ult_skalter_seaborn_front": [10, 12.0], "fx_ult_skalter_seaborn_back": [6, 12.0], "fx_ult_skalter_beam_front": [6, 24.0], "fx_ult_skalter_domain_back": [6, 10.0],
 	"fx_ult_kaltsit_melt_front": [8, 24.0], "fx_ult_kaltsit_crack_back": [6, 20.0], "fx_ult_kaltsit_rebuild_orbit": [12, 16.0],
 	"fx_ult_ulpianus_anchor_front": [4, 0.0], "fx_ult_ulpianus_chain_front": [2, 12.0], "fx_ult_ulpianus_crack_back": [6, 20.0], "fx_ult_ulpianus_burst_front": [8, 20.0],
+	"fx_ul_crack_line": [1, 0.0], "fx_ul_rock": [4, 0.0], "fx_ul_dust_ring": [1, 0.0], "fx_ul_crack_fork": [1, 0.0], "fx_ul_dust_wall": [1, 0.0],   # 乌尔比安裂地 v2（pixgen 单张大贴图，docs/199 §7.6）
 	# 终结技第二批 15 人 + 忍冬（Codex 单 art/incoming/ult_batch2_1029/codex_order.md；素材未到，先登记帧数 / fps：PNG 放进 game/art/fx/ 即可被 u.strip / u.fx_ready 取到，
 	# 到货时以 manifest 为准改这里；接入步骤见 docs/199「待合入清单」）
 	"fx_ult_skadi_wave_front": [8, 16.0], "fx_ult_skadi_foam_front": [6, 20.0], "fx_ult_skadi_wet_back": [4, 10.0],

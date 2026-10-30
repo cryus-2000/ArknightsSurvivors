@@ -8,6 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const A = preload("res://scripts/art.gd")
 ## 其余 15 人（用户 10-29「20 个干员的都做好」）：分两个文件写，接口同本文件（handles / aim_kind / aim_r / start / step）
 const MB = preload("res://scripts/run/ult_moves_b.gd")   # 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔 / 归溟幽灵鲨 / 水月
 const MC = preload("res://scripts/run/ult_moves_c.gd")   # 塞雷娅 / 铃兰 / 逻各斯 / 星熊 / 推进之王 / 艾丽妮 / 拉普兰德 / 流明
@@ -1502,6 +1503,8 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 		a.thrown = true
 		_ul_anchor(u, a, c, (c - p0).angle())   # 锚扎在落点，等他冲过来
 		_ring(u, c, 90.0, 20.0, COL_STEEL, 0.25, 5.0)
+		if Bal.v("ult/ul_crack_v2", 1.0) > 0.0 and u.fx_ready(UL_CRACK):
+			_ul_pre(u, a, c)
 		if a.drag:   # 不容挣脱：锚落地瞬间把半径 560 内的敌人往落点拖 120
 			for e in u.in_circle(c, 560.0 * float(a.sc) / (410.0 / 440.0)):
 				if not e.boss and e.pos.distance_to(c) > 30.0:
@@ -1556,8 +1559,12 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, 1.0 if (e.elite or e.boss or e.get("part", false)) else float(a.fs[i]), op)
 		var col: Color = COL_STEEL.lerp(Color(1.0, 0.55, 0.3), 0.25 * i)
 		_ring(u, lc, r, maxf(30.0, r0), col, 0.35, 8.0 + 2.0 * i)
-		# 裂地（fx_ult_ulpianus_crack_back 弧状拼接段，地面层）+ 沿圈撒喷发单元（fx_ult_ulpianus_burst_front，底部中心；喷 0–3 / 落 4–7）
-		_arc(u, "fx_ult_ulpianus_crack_back", lc, r, {"layer": "back", "fps": 14.0, "life": 0.7, "a0": 0.21 * i})
+		# 裂地：v2 = pixgen 整条裂缝沿圈接成一圈 + 掀起地块 / 尘土（_ul_crack_v2）；0 = fx_ult_ulpianus_crack_back 弧状拼接段（地面层）
+		if Bal.v("ult/ul_crack_v2", 1.0) > 0.0 and u.fx_ready(UL_CRACK):
+			_ul_crack_v2(u, a, lc, i, r, r0)
+		else:
+			_arc(u, "fx_ult_ulpianus_crack_back", lc, r, {"layer": "back", "fps": 14.0, "life": 0.7, "a0": 0.21 * i})
+		# 沿圈撒喷发单元（fx_ult_ulpianus_burst_front，底部中心；喷 0–3 / 落 4–7）
 		var nb: int = clampi(roundi(TAU * r / 140.0), 5, int(Bal.v("ult/ul_burst_fx", 14.0)))
 		var bsc: float = 0.6 + 0.07 * i   # 水柱是竖着的高度，外圈也压在 0.8 以内，免得顶上一圈高出伤害区太多
 		for j in nb:
@@ -1567,6 +1574,113 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 		o.screen_shake(0.35 + 0.15 * i)
 		a.ring = i + 1
 	return int(a.ring) >= 4 and t >= lt + 0.18 * 3.0 + 0.1
+
+
+## 裂地 v2（ult/ul_crack_v2，缺省 1；0 = 原弧状拼接段。pixgen 出的大贴图 + 代码动画，docs/199 §7.6）。用户 10-30 两轮反馈：
+## 放射 6 条「像大海星」→ 沿圈粗裂缝「力量感不够」→ 本版按「不规整 + 明暗冷却 + 地面隆起 + 前后节奏」：
+##   预兆：锚扎地时落点先冒几道细裂纹（_ul_pre）；
+##   裂网：第一圈裂开时从落点放 UL_CRACKS 条分叉裂缝（fx_ul_crack_fork，左端粗、往右变细带分叉，原点左端中心），
+##         长短 / 角度 / 起裂时刻都按哈希错开，跟着四圈的时序逐段往外长；先爆亮再冷成暗色余烬（col1）；
+##   隆起：每圈沿圈地块（fx_ul_rock）被顶起一小跳落回，少数高飞；第一圈尘土环扩散，最外圈尘土墙（fx_ul_dust_wall 截段）往外推；
+##   余震：最外圈 0.3 秒后再跳一批碎石。水柱、范围环照旧。只画画面：不调 u.hit、不抽模拟随机数（散布按 _ulh 哈希）
+const UL_CRACK := "fx_ul_crack_line"
+const UL_FORK := "fx_ul_crack_fork"
+const UL_CRACKS := 13
+const UL_HOT := Color(1.0, 1.0, 1.0)
+const UL_COLD := Color(0.42, 0.4, 0.48)
+
+
+static func _ulh(x: float) -> float:
+	return fposmod(sin(x * 12.9898 + 78.233) * 43758.5453, 1.0)
+
+
+static func _ul_tex(u) -> String:
+	return UL_FORK if u.fx_ready(UL_FORK) else UL_CRACK
+
+
+## 预兆：锚扎进落点那一刻，落点冒几道短而暗的细裂纹，等他冲过来（约 0.22 秒）
+static func _ul_pre(u, a: Dictionary, c: Vector2) -> void:
+	var name := _ul_tex(u)
+	var t: Texture2D = u._strip_tex(name)
+	var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
+	for j in 5:
+		u.strip(name, c, {"layer": "back", "ang": TAU * (j + _ulh(j + 40.0)) / 5.0, "o": Vector2(0.0, t.get_height() * 0.5),
+			"sx": (90.0 + 40.0 * _ulh(j + 50.0)) / tw, "sy": 0.35, "rev": float(a.td), "life": float(a.td) + 0.5, "fade": 0.3,
+			"col": Color(0.55, 0.7, 0.8, 0.7)})
+
+
+static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: float) -> void:
+	var R: float = float(a.rs[3])
+	var span: float = 0.18 * 3.0
+	if i == 0:   # 裂网一次铺好，靠 delay / rev 跟着四圈往外长
+		var name := _ul_tex(u)
+		var t: Texture2D = u._strip_tex(name)
+		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
+		var base: float = (a.c - a.p0).angle() if a.c.distance_to(a.p0) > 1.0 else 0.0
+		for j in UL_CRACKS:
+			var h1: float = _ulh(j + 1.0)
+			var h2: float = _ulh(j + 21.0)
+			var ang: float = base + TAU * (float(j) + (h1 - 0.5) * 0.7) / UL_CRACKS
+			var lk: float = 0.62 + 0.45 * h2   # 长短不一，长的伸出外圈一点
+			var big: bool = j % 3 == 0
+			var dl: float = 0.06 * _ulh(j + 33.0)
+			u.strip(name, lc, {"layer": "back", "ang": ang, "o": Vector2(0.0, t.get_height() * 0.5),
+				"sx": R * lk / tw, "sy": (0.85 if big else 0.55) * (1.0 if j % 2 == 0 else -1.0),
+				"delay": dl, "rev": span * lk + 0.08, "rev0": 0.18, "life": span + 1.6, "fade": 0.7,
+				"col": UL_HOT, "col1": UL_COLD, "cold": span + 0.45})
+		u.light(lc, R * 0.8, Color(0.4, 0.9, 1.0), 0.35)
+		if u.fx_ready("fx_ul_dust_ring"):   # 贴图半径约 210，只给第一圈，放到外圈像素格会糊成大块
+			var dt: Texture2D = u._strip_tex("fx_ul_dust_ring")
+			var dr: float = dt.get_width() * 0.5 / A.hires_of(dt) * u.g.PX
+			u.strip("fx_ul_dust_ring", lc, {"layer": "back", "sc": r * 0.6 / dr, "sc1": r * 1.15 / dr, "scd": 0.35,
+				"life": 0.55, "fade": 0.3, "col": Color(1, 1, 1, 0.7)})
+	# 隆起：沿这一圈地块被顶起一小跳落回；每 4 块里 1 块高飞
+	var nr: int = roundi(TAU * r / 120.0 * Bal.v("ult/ul_rock_fx", 1.0))
+	for q in nr:
+		var hh: float = _ulh(i * 31.0 + q * 7.0)
+		var dirv: Vector2 = Vector2.from_angle(0.37 * i + TAU * (q + 0.6 * hh) / maxf(1.0, nr))
+		var p: Vector2 = lc + dirv * r * (0.86 + 0.16 * hh)
+		var high: bool = q % 4 == 0
+		var vy: float = (260.0 + 160.0 * hh + 30.0 * i) if high else (110.0 + 60.0 * hh)
+		_ul_rock(u, p, dirv * ((60.0 + 80.0 * hh) if high else 25.0), vy, hh, (0.55 if high else 0.45) + 0.06 * i, 0.02 * (q % 3))
+		if q % 3 == 0:
+			u.debris(p, Color(0.35, 0.8, 0.95), 2 if i < 3 else 3)
+			u.grain("bfx_dust", p, dirv, Color(0.55, 0.6, 0.62), 3)
+	if i == 3:
+		_ul_wall(u, lc, r)
+		for q in 10:   # 余震：0.3 秒后满圈再跳一批碎石
+			var hh2: float = _ulh(q * 5.0 + 99.0)
+			var p2: Vector2 = lc + Vector2.from_angle(TAU * (q + hh2) / 10.0) * R * (0.25 + 0.7 * hh2)
+			_ul_rock(u, p2, Vector2.ZERO, 120.0 + 60.0 * hh2, hh2, 0.4, 0.3 + 0.05 * (q % 3))
+	u.light(lc, r * 1.1, Color(0.3, 0.75, 0.95), 0.22)
+
+
+static func _ul_rock(u, p: Vector2, v: Vector2, vy: float, hh: float, sc: float, delay: float) -> void:
+	if not u.fx_ready("fx_ul_rock"):
+		return
+	var grav: float = 1500.0
+	u.strip("fx_ul_rock", p, {"f": [0, 1, 3, 0][int(hh * 97.0) % 4], "sc": sc + 0.2 * _ulh(hh * 17.0),   # 第 2 帧整块发青、太抢，不用
+		"v": v + Vector2(0, -vy), "grav": grav, "life": 2.0 * vy / grav, "spin": (hh - 0.5) * 10.0, "delay": delay})
+
+
+## 最外圈尘土墙：fx_ul_dust_wall 截成弦长段沿圈摆一圈，整圈往外推、淡出
+static func _ul_wall(u, lc: Vector2, r: float) -> void:
+	if not u.fx_ready("fx_ul_dust_wall"):
+		return
+	var t: Texture2D = u._strip_tex("fx_ul_dust_wall")
+	var k: float = u.g.PX / A.hires_of(t)
+	var n: int = maxi(12, roundi(TAU * r / 150.0))
+	var chord: float = 2.0 * r * sin(PI / n)
+	var uw: float = minf(t.get_width(), chord * 1.15 / k)
+	for q in n:
+		var a0: float = TAU * q / n
+		var p0: Vector2 = lc + Vector2.from_angle(a0) * r
+		var p1: Vector2 = lc + Vector2.from_angle(a0 + TAU / n) * r
+		var d: Vector2 = (p1 - p0).normalized()
+		var out: Vector2 = Vector2.from_angle(a0 + PI / n)
+		u.strip("fx_ul_dust_wall", p0 - d * chord * 0.07, {"layer": "back", "ang": d.angle(), "o": Vector2(0.0, t.get_height() * 0.5),
+			"ux": floorf(_ulh(q * 3.0 + 7.0) * (t.get_width() - uw)), "uw": uw, "v": out * 140.0,
+			"life": 0.6, "fade": 0.4, "col": Color(1, 1, 1, 0.85)})
 
 
 ## 巨锚（fx_ult_ulpianus_anchor_front）：4 个角度帧 f0–f3 = 锚头朝下（+90°）起每帧顺时针 45°；
