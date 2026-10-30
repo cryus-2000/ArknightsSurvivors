@@ -869,8 +869,9 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 					var rk: float = 0.65 + 0.8 * PF.h(hp2 * 31.0)
 					var pv: Vector2 = p + Vector2.from_angle(PF.h(hp2 * 17.0) * TAU) * rr * 0.4 * PF.h(hp2 * 23.0)
 					var bdl: float = 0.14 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
-					# 用户 10-30「跟原本的特效风格不一致、缺少高光」：主体回到她自己的红色尖晶爆裂帧条（fx_wisadel_cannon，带高光 / 蓝环），只加随机大小 / 转角 / 镜像 / 偏移 / 起爆错开
-					u.strip("fx_wisadel_cannon", pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0, "delay": bdl})
+					# 用户 10-30「跟原本的特效风格不一致、缺少高光」：主体回到她自己的红色尖晶爆裂帧条，只加随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；
+					# 「蓝环可以去掉」→ fx_wd_cannon = fx_wisadel_cannon 去掉蓝色像素
+					u.strip("fx_wd_cannon" if u.fx_ready("fx_wd_cannon") else "fx_wisadel_cannon", pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0, "delay": bdl})
 					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
 						"col": Color(1.0, 0.75, 0.72), "col1": Color(0.6, 0.55, 0.55), "cold": 0.6})   # 弹坑是焦黑地面，只带一点红余烬（整片染红会糊满屏）
 					if hp2 < 0.35:   # 粒子圆团每发都放会排成一格格（预审报重复），只给约三分之一的炮弹、缩小
