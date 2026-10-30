@@ -1,0 +1,14 @@
+## t2
+== t2.jsonl jobs 72 err 0
+paranoia     fight 130.6  taken/min  91.5 (78% maxhp/min)  TTK  76.8s  maxhp 128  hits/min 5.3  wins 15/18
+ishar        fight  75.2  taken/min 129.6 (104% maxhp/min)  TTK  57.7s  maxhp 128  hits/min 9.6  wins 14/18
+knight_boss  fight 100.4  taken/min 128.6 (86% maxhp/min)  TTK  69.9s  maxhp 128  hits/min 5.2  wins 15/18
+izumik       fight  96.3  taken/min  22.1 (19% maxhp/min)  TTK 309.3s  maxhp 114  hits/min 0.8  wins 12/18
+t2.jsonl runs 72 peak_bul 185.5 ft>=130 n 239.0 p50 7.39 p95 12.29 | all p50 4.03 p95 8.5
+## t3
+== t3.jsonl jobs 72 err 0
+paranoia     fight 120.7  taken/min  82.2 (56% maxhp/min)  TTK 106.8s  maxhp 128  hits/min 4.3  wins 15/18
+ishar        fight  70.8  taken/min 132.5 (92% maxhp/min)  TTK  65.4s  maxhp 128  hits/min 7.9  wins 13/18
+knight_boss  fight  87.2  taken/min 116.5 (85% maxhp/min)  TTK  70.8s  maxhp 128  hits/min 4.7  wins 15/18
+izumik       fight 103.0  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 12/18
+t3.jsonl runs 72 peak_bul 221.0 ft>=130 n 296.5 p50 7.82 p95 12.88 | all p50 4.12 p95 8.86
