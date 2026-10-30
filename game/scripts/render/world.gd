@@ -1294,7 +1294,10 @@ func _draw_fx() -> void:
 			skip_sparks -= 1
 			continue
 		if f.kind == "kp_beam":
-			BossBeam.draw(g, f)   # Boss 激光（Kanpelle 帧条，docs/142b §8.5）；缺图不画（结算伤害不受影响）
+			if Bal.v("render/laser_v2", 1.0) > 0.0:
+				LaserDraw.draw_kp(g, f)   # 统一激光（docs/208 H3）
+			else:
+				BossBeam.draw(g, f)   # Boss 激光（Kanpelle 帧条，docs/142b §8.5）；缺图不画（结算伤害不受影响）
 			continue
 		if f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer":
 			LaserDraw.draw(g, f, a)   # 激光 A 像素光束（docs/138 §12；旧开关 fx/laser_style 与原画法已删）
@@ -4543,6 +4546,8 @@ func draw_warn_outlines(ground := false) -> void:
 			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
 		if IsharTell.owns(w):
 			continue   # 伊莎玛拉：涟漪勾边已在 ishar_tell_draw 画（docs/170）
+		if TeleDraw.laser_warn(w):
+			continue   # 统一激光预警只画瞄准线（telegraph_draw._laser_aim，docs/208 H3）
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))
 		var tracking: bool = tr > 0.0 and w.t < tr

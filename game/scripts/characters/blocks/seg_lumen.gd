@@ -743,6 +743,10 @@ static func _e3_draw_beam(o, f: Dictionary, a: float) -> void:
 	var p0: Vector2 = f.pos
 	var p1: Vector2 = p0 + (f.dir as Vector2) * float(f.len)
 	var tn: String = str(f.get("tile", "fx_lumen_beam"))
+	if preload("res://scripts/core/balance.gd").v("render/laser_v2", 1.0) > 0.0:   # 统一激光（docs/208 H3「流明灯塔光束是扁平白条」）：暖金细亮芯 + 两层外晕 + 两端光点
+		var LD = preload("res://scripts/render/laser_draw.gd")
+		LD._draw_v2(cv, p0, p1, Color(1.0, 0.8, 0.42), float(f.get("w", 10.0)) * 1.6, a, float(f.get("max", 0.2)) * (1.0 - a) + 0.06, true)
+		return
 	if g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
 		var nfr: int = int(g.V6_FRAMES[tn][0])
 		_hw_draw_tiled(o, tn, p0, p1, g.PX, 0.0, 0, Color(1, 1, 1, clampf(a * 1.4, 0.0, 1.0)), mini(int((1.0 - a) * nfr), nfr - 1))

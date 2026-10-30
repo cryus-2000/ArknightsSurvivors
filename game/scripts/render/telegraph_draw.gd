@@ -5,6 +5,7 @@ extends RefCounted
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const SaintDraw = preload("res://scripts/render/saint_draw.gd")
+const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 
 
 ## 预警绘制（地面填充层；轮廓 / 出口 / 端盖在 world.draw_warn_outlines）：结算瞬间闪白。
@@ -25,6 +26,24 @@ static func quiet(w: Dictionary) -> bool:
 static func knight_line(w: Dictionary) -> bool:
 	var o = w.get("owner")
 	return w.get("shape", "") == "line" and o is Dictionary and o.get("type", "") == "knight_boss" and str(w.get("act", "")) in ["dash", "frost_track", "shot"] and Bal.v("render/knight_frost_tell", 1.0) > 0.0
+
+
+## 统一激光的预警（TA 审阅 docs/208 H3「预警线到实线要有明确转换」，照伊莎玛拉 ishar_tell_draw._charge；render/laser_v2 缺省 1）：
+## 激光类直线预警（act beam）不再画宽矩形斜纹 + 轮廓，只画一条 2 像素瞄准线（危险色，亮度随读条递增）+ 发射口一颗越来越大的光点；
+## 最后 0.15 秒瞄准线转白、光点最亮 = 马上开火。开火后才出现有宽度的光束（laser_draw），预警和实线一眼分开。只读不写
+static func laser_warn(w: Dictionary) -> bool:
+	return w.get("shape", "") == "line" and str(w.get("act", "")) == "beam" and Bal.v("render/laser_v2", 1.0) > 0.0
+
+
+static func _laser_aim(g, w: Dictionary) -> void:
+	var k: float = clampf(w.t / maxf(0.001, w.dur), 0.0, 1.0)
+	var kk: float = k * k
+	var c: Color = g.optical.col_danger if g.optical_on else w.col
+	var d := Vector2.from_angle(w.ang)
+	var b: Vector2 = w.pos + d * float(w.len)
+	var hot: bool = float(w.dur) - float(w.t) < 0.15
+	g.draw_line(w.pos, b, Color(1, 1, 1, 0.9) if hot else Color(c.r, c.g, c.b, 0.4 + 0.45 * kk), 2.0)
+	LaserDraw.dot(g, w.pos, 3.0 + float(w.wid) * 0.3 * kk, c, 0.4 + 0.6 * kk)
 
 
 ## 预警形状的多边形（世界坐标；圆按贴地透视压扁）
@@ -86,6 +105,10 @@ static func draw_fills(g) -> void:
 			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
 		if preload("res://scripts/render/ishar_tell_draw.gd").owns(w):
 			continue   # 伊莎玛拉地面预警由 ishar_tell_draw 画（docs/170）
+		if laser_warn(w):
+			if not w.done:
+				_laser_aim(g, w)   # 统一激光预警（docs/208 H3）：细瞄准线 + 发射口光点，代替斜纹填充与轮廓
+			continue
 		if w.get("act", "") == "izu_wave" and g.optical_on:
 			continue   # 伊祖米克全场震撼 / 分享：预警浪纹与结算海浪由 izumik_attack_draw 画（docs/170），不铺整屏斜线、结算不整屏白闪
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)

@@ -5,6 +5,7 @@ extends RefCounted
 ## 10-29 起固定为 A 像素光束（旧开关 fx/laser_style 已删：0 原画法、2 B 颗粒光束两条一并删掉）。纯画面，随机只走 g.vrng。
 ## 共同点：光束 0.06 秒内从起点伸到终点（不再满长度瞬间出现）；颜色压回 ≤ 1（不靠 HDR 糊辉光）；不画常驻大光晕、不按 sin 抖宽度（原 bbeam 40 Hz 抖动）。
 const BossBeam = preload("res://scripts/render/boss_beam.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 const GROW := 0.06   # 伸出时长（秒）
 
 ## a = 剩余寿命比例（1 → 0）；ci = 画在哪个画布（缺省世界节点 g；干员激光线 "line" 传干员自己的画布）
@@ -23,6 +24,9 @@ static func draw(g, f: Dictionary, a: float, ci = null) -> void:
 	var pe: Vector2 = p0.lerp(p1, grow)
 	var c: Color = _unit(f.col)
 	var base: float = _base_w(f)
+	if Bal.v("render/laser_v2", 1.0) > 0.0:
+		_draw_v2(ci, p0, pe, c, base, a, el, el >= GROW)
+		return
 	_draw_a(ci, g, f, p0, pe, p1, c, base, a, el, grains)
 
 
@@ -69,3 +73,51 @@ static func _unit(c: Color) -> Color:
 
 static func _snap2(v: float) -> float:
 	return maxf(2.0, roundf(v / 2.0) * 2.0)
+
+
+## ---- 统一激光（TA 审阅 docs/208 H3，10-31：「光束不像激光」；开关 render/laser_v2 缺省 1，0 = 上面的 A 像素光束）。
+## 照伊莎玛拉那套（claude/ishar-polish ishar_tell_draw._laser，那边不改）：一整条一次画完，由外到内两层低透明外晕（宽 2.2 / 1.5 倍）→ 本色光身 → 亮色 → 白芯；
+## 起点一颗大光点、伸到头后终点一颗小光点；开火前 0.06 秒从 0.3 宽张满 + 白闪，寿命后 85% 整条收细、外晕先散。各处只换颜色（敌方用敌方色）
+static func _draw_v2(ci, p0: Vector2, pe: Vector2, c: Color, base: float, a: float, el: float, reached: bool) -> void:
+	var k: float = 1.0 - a
+	var open: float = clampf(0.3 + el / GROW, 0.3, 1.0) * (lerpf(1.0, 0.2, (k - 0.15) / 0.85) if k > 0.15 else 1.0)
+	var flash: float = clampf(1.0 - el / 0.1, 0.0, 1.0)
+	var glow: float = a * a
+	var w: float = base * open
+	ci.draw_line(p0, pe, Color(c.r, c.g, c.b, 0.1 * glow), _snap2(w * 2.2))
+	ci.draw_line(p0, pe, Color(c.r, c.g, c.b, 0.16 * glow), _snap2(w * 1.5))
+	ci.draw_line(p0, pe, Color(c.r, c.g, c.b, 0.8 * a), _snap2(maxf(2.0, w * 0.68)))
+	var hi: Color = c.lerp(Color.WHITE, 0.6)
+	ci.draw_line(p0, pe, Color(hi.r, hi.g, hi.b, 0.95 * a), _snap2(maxf(2.0, w * 0.32)))
+	ci.draw_line(p0, pe, Color(1, 1, 1, a), 2.0)
+	if flash > 0.0:
+		ci.draw_line(p0, pe, Color(1, 1, 1, 0.5 * flash * a), _snap2(w * 0.8))
+	dot(ci, p0, maxf(3.0, base * 0.42 * open) * (1.0 + 0.4 * flash), c, a)
+	if reached:
+		dot(ci, pe, maxf(2.0, base * 0.26 * open) * (1.0 + 0.6 * flash), c, a * 0.9)
+
+
+## 光点：外晕（本色、低透明）→ 亮色 → 白芯
+static func dot(ci, p: Vector2, r: float, c: Color, alpha: float) -> void:
+	ci.draw_circle(p, r * 1.7, Color(c.r, c.g, c.b, 0.18 * alpha))
+	var hi: Color = c.lerp(Color.WHITE, 0.6)
+	ci.draw_circle(p, r, Color(hi.r, hi.g, hi.b, 0.85 * alpha))
+	ci.draw_circle(p, r * 0.5, Color(1, 1, 1, alpha))
+
+
+## Boss 帧条激光（kp_beam，原 BossBeam 平铺 Kanpelle 帧条，TA 审阅「粉白扁条、红色锯齿边」）改走统一激光：开合按 on_t、宽按 k、敌方色
+const KP_COL := Color(1.0, 0.32, 0.4)
+
+
+static func draw_kp(g, f: Dictionary) -> void:
+	var el: float = BossBeam.laser_el(f)
+	var left: float = float(f.max) - el
+	if left <= 0.0:
+		return
+	var on_t: float = float(f.get("on_t", 0.06))
+	var p0: Vector2 = f.a
+	var p1: Vector2 = f.b
+	var base: float = 9.0 * float(f.get("k", 2.0))
+	var a: float = clampf(left / maxf(0.001, on_t * 2.0), 0.0, 1.0)
+	var c: Color = _unit(f.get("col", KP_COL))
+	_draw_v2(g, p0, p0.lerp(p1, clampf(el / GROW, 0.0, 1.0)), c, base, maxf(a, 0.25) if left > on_t * 2.0 else a, el, el >= GROW)
