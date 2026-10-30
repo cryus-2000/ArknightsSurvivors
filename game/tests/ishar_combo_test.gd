@@ -263,6 +263,20 @@ func _ready() -> void:
 	tick_n(e, int((d0 / Bal.v("boss/ishar_web_walk", 170.0) + 0.5) / DT))
 	check(e.web[0].get("come") == null and e.web[0].o is Dictionary and e.web_layers.size() > lay0, "it links (and adds a shield layer) only on reaching its slot (%.0f px walk)" % d0)
 	e.eyes = []
+	# 10-31 用户选 A + C：三重齐击（一幕，三处同时落点）；重生之歌（三幕，她免伤、网拆空就结束）
+	e = fresh(0)
+	cards.play(e, "三重齐击", Vector2.RIGHT, 300.0)
+	var tri: Array = g.warns.filter(func(w): return is_same(w.owner, e) and w.act == "ishar_strike")
+	check(tri.size() == 3 and tri.all(func(w): return is_equal_approx(float(w.dur), float(tri[0].dur))), "triple strike drops three circles that resolve together (%d)" % tri.size())
+	e = fresh(2)
+	cards.play(e, "重生之歌", Vector2.RIGHT, 300.0)
+	var hp_r: float = e.hp
+	g.combat.damage(e, e.maxhp * 0.05)
+	check(is_equal_approx(e.hp, hp_r), "rebirth song: she takes no damage while singing")
+	for sl in e.web:
+		sl.o.dead = true
+	tick_n(e, 2)
+	check(g.t >= float(e.rebirth_until), "rebirth song ends as soon as the web is cleared")
 	# 8. 三幕方案新招（docs/170b）：潮涡两臂螺旋并反向；侵蚀之泪先追后直；双束两条追扫在队长两侧、中间留缝
 	e = fresh(1)
 	g.ebullets.clear()

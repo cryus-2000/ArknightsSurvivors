@@ -8,18 +8,18 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Beam = preload("res://scripts/render/boss_beam.gd")
 
 const COL := Color(0.3, 1.0, 0.65)
-const NEW_MOVES := ["合唱环颂", "泪雨", "抚愈之歌", "网鸣", "大群之声", "歌声涟漪", "潮涡", "侵蚀之泪", "大群之声·双束", "潮涌突进", "合围之歌"]
+const NEW_MOVES := ["合唱环颂", "泪雨", "抚愈之歌", "网鸣", "大群之声", "歌声涟漪", "潮涡", "侵蚀之泪", "大群之声·双束", "潮涌突进", "合围之歌", "三重齐击", "重生之歌"]
 ## [幕][组]：name 只用于演练列表与测试（不出横幅），seq 为连段各段（撕咬按距离自动变横扫）
 ## 10-28 用户「不同阶段攻击方式差距不大」→ 每幕一个躲法主题，招式不跨幕复用（docs/170b §2）：
 ##   一幕「读线」：她站定唱歌不追人，只出预警线 / 地带（激光、追扫、涟漪、触腕），不出成片弹幕；
 ##   二幕「躲落、躲旋」：她在场上潮涌突进，落点就是下一招的发射点；全是弹幕，没有光束；
 ##   三幕「被围住」：她沉到场地中央不再移动，场边一圈歌声慢慢收拢（_fence），出追踪 / 合拢 / 链式 / 停顿再射。
 const CARDS := [
-	[{"name": "歌声连段", "seq": ["歌声涟漪", "合唱齐射", "深海触腕"]},
+	[{"name": "歌声连段", "seq": ["歌声涟漪", "合唱齐射", "三重齐击"]},   # 10-31 用户选 A：深海触腕不符合设定，换成原作「同时攻击 3 个目标」
 	 {"name": "锁定连段", "seq": ["三线扫射", "大群之声", "歌声涟漪"]}],
 	[{"name": "泪雨连段", "seq": ["潮涌突进", "泪雨", "潮涡", "撕咬"]},
 	 {"name": "抚愈连段", "seq": ["潮涌突进", "抚愈之歌", "泪落", "大群之歌"]}],
-	[{"name": "网鸣连段", "seq": ["网鸣", "侵蚀之泪"]},
+	[{"name": "网鸣连段", "seq": ["网鸣", "重生之歌", "侵蚀之泪"]},   # 10-31 用户选 C：取材原作变身形态被击败后的重生
 	 {"name": "终曲连段", "seq": ["合唱环颂", "大群之声·双束", "侵蚀之泪"]}],
 ]
 const OWN_CAP := 170   # 她同时在场的弹上限（boss_patterns 单体 160 / 全局 320 同量级）
@@ -212,6 +212,8 @@ func play(e: Dictionary, mv: String, dir: Vector2, dist: float) -> float:
 		"侵蚀之泪": _seeking_tears(e)
 		"大群之声·双束": _twin_beam(e)
 		"潮涌突进": _surge(e)
+		"三重齐击": _triple_strike(e)
+		"重生之歌": _rebirth_song(e)
 		"合围之歌": _inward_song(e)
 		"歌声涟漪": _song_zones(e)
 		_: return 0.0
@@ -310,6 +312,10 @@ func _emit_step(e: Dictionary) -> void:
 				if not held.is_empty():
 					keep.append({"at": g.t + float(d.hold), "kind": "release", "bs": held})
 					_grains(c + Vector2.from_angle(float(d.gc)) * R, 10, "bfx_flash", false)
+			"rebirth_pulse":
+				if g.t < float(e.get("rebirth_until", 0.0)):
+					g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
+					_grains(e.pos, 8, "mote_up", false)
 			"release":
 				for b in d.bs:
 					if b.life > 0.0:
@@ -709,6 +715,50 @@ func _inward_song(e: Dictionary) -> void:
 	e.cdt = maxf(e.cdt, dur)
 
 
+## 三重齐击（一幕，取材原作变身形态「同时攻击 3 个目标，造成真实伤害」，本作改编）：三处 r boss/ishar_triple_r（70）的落点同时预警 1.1 秒、同时结算，
+## 各 e.dmg × 0.7 真伤：队长当前位置、沿移动方向 150 / 300 像素处（站着不动时改为身体两侧 150）。读法：看清三点后往没有圈的方向侧移
+func _triple_strike(e: Dictionary) -> void:
+	var mv: Vector2 = g.pvel.normalized() if g.pvel.length() > 20.0 else Vector2.ZERO
+	var r: float = Bal.v("boss/ishar_triple_r", 70.0)
+	var pts: Array = [g.ppos]
+	if mv == Vector2.ZERO:
+		var side: Vector2 = (g.ppos - e.pos).normalized().orthogonal() if g.ppos.distance_to(e.pos) > 1.0 else Vector2.RIGHT
+		pts.append_array([g.ppos + side * 150.0, g.ppos - side * 150.0])
+	else:
+		pts.append_array([g.ppos + mv * 150.0, g.ppos + mv * 300.0])
+	for k in 3:
+		h._warn(e, "circle", 1.1, {"pos": g.combat.arena_clamp(pts[k], 60.0), "r": r, "act": "ishar_strike", "true": true, "seq_no": k + 1,
+			"name": "三重齐击" if k == 0 else "", "col": COL, "dmg": e.dmg * 0.7, "cancel_dead": true, "lock": k == 0})
+	_grains(e.pos, 12, "mote_in", true)
+	e.wind = maxf(e.wind, 1.3)
+	e.cdt = maxf(e.cdt, 1.3)
+	Sfx.play("tentacle", -8.0, 1.1)
+
+
+## 重生之歌（三幕，取材原作变身形态被击败后原地重生 5 秒，本作改编）：她 boss/ishar_rebirth_t（3）秒内不受伤害（e.rebirth_until，ishar.block_damage），
+## 每只连线海嗣每 0.8 秒放一圈 8 枚音弹（共三圈，源被击杀就停）；网拆空（web_n = 0）当场结束。打她无效，拆网是唯一的应对
+func _rebirth_song(e: Dictionary) -> void:
+	var t: float = Bal.v("boss/ishar_rebirth_t", 3.0)
+	e.rebirth_until = g.t + t
+	var srcs: Array = []
+	for sl in e.get("web", []):
+		var o = sl.get("o")
+		if o is Dictionary and not o.dead:
+			srcs.append(o)
+	for w in 3:
+		for k in srcs.size():
+			_emit(e, g.t + 0.4 + 0.8 * w + 0.05 * k, {"kind": "ring", "src": srcs[k], "n": 8, "a0": 0.39 * w + 0.2 * k, "spd": 90.0, "mult": 0.22})
+		_emit(e, g.t + 0.4 + 0.8 * w, {"kind": "rebirth_pulse", "src": null})
+	if srcs.is_empty():
+		_emit(e, g.t + 0.4, {"kind": "ring", "src": null, "n": 12, "a0": 0.0, "spd": 90.0, "mult": 0.22})
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.8, "max": 0.8, "col": COL, "enemy": true})
+	g.vfx.add_text(e.pos + Vector2(0, -80), "重生之歌 · 拆网打断", COL, 16)
+	_grains(e.pos, 18, "mote_up", false)
+	Sfx.play("tentacle", -6.0, 0.5)
+	e.wind = maxf(e.wind, t)
+	e.cdt = maxf(e.cdt, t)
+
+
 ## 大群之声·双束（三幕终曲）：两束较细的追扫（宽 64）从队长两侧 ±1.0 弧度起，各自追向「队长方向 ±0.32」，向你合拢后在两侧掠过，中间留一条可走的缝
 func _twin_beam(e: Dictionary) -> void:
 	var a: float = _aim(e.pos)
@@ -744,6 +794,9 @@ func _act_step(e: Dictionary) -> void:
 	else:
 		e.spd = float(e.spd_base) * (1.0 if far or act == 1 else 0.0)
 	_fence_step(e)
+	if g.t < float(e.get("rebirth_until", 0.0)) and int(e.get("web_n", 0)) <= 0:
+		e.rebirth_until = g.t   # 重生之歌：网拆空当场结束
+		g.vfx.add_text(e.pos + Vector2(0, -80), "歌声中断", COL, 15)
 
 
 ## 潮涌突进（二幕，取材「潮涌迫近」的位移，本作改编）：0.9 秒直线预警，之后 0.3 秒冲到队长身前 90 像素处（路径上 e.dmg × 0.6）；

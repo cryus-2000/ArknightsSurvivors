@@ -65,6 +65,13 @@ func _ready() -> void:
 			for sl in boss.web:
 				sl.next = INF
 				sl.o.web_of = boss
+			if load("res://scripts/core/balance.gd").v("test/preview_webwalk", 0.0) > 0.0:
+				# 10-31 录「海嗣从屏幕外走进来」：清空环上的海嗣，1 秒后召唤合唱现叫
+				for sl in boss.web:
+					if sl.o != null:
+						sl.o.dead = true
+						sl.o = null
+				boss.choir_next = g.t + 1.0
 			var events: Array = []
 			var watched: Array = []
 			var peak := 0

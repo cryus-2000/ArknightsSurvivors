@@ -525,6 +525,7 @@ func on_kill(e: Dictionary) -> void:
 	e.ishar_dash = {}
 	e.ishar_fence = {}
 	e.ishar_zones = []
+	e.rebirth_until = 0.0
 	e.card_live = false
 	for tear in g.ishar.tears(e):
 		g.ishar.release_blessing(tear)
@@ -542,7 +543,7 @@ func on_kill(e: Dictionary) -> void:
 ## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
 ## 变身动画保护（transform_until，0.9 秒）：独立计时，结束后无需清理永久无敌标记
 func block_damage(e: Dictionary) -> bool:
-	return g.t < float(e.get("transform_until", 0.0))
+	return g.t < float(e.get("transform_until", 0.0)) or g.t < float(e.get("rebirth_until", 0.0))   # 重生之歌（ishar_combos._rebirth_song）
 
 
 ## 人形可受伤（boss/ishar_p1_hit）：一阶段最多打到 boss/ishar_p1_line 血线，越线的部分截回，下一帧 IsharEncounter 转化
