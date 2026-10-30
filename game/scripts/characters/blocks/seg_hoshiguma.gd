@@ -347,9 +347,12 @@ static func gm_draw(o) -> void:
 		if not f.get("sand", false):
 			continue
 		var fa: float = clampf((float(f.n) * float(f.every) - float(f.t)) / 0.4, 0.0, 1.0)
+		var sf: float = o.ring_flash("sand%d" % int(f.pos.x * 7.0 + f.pos.y))   # 10-31 TA H1：外缘椭圆只在铺开那一瞬
+		if sf <= 0.0:
+			continue
 		var hot: float = 0.25 + (0.2 * (0.5 + 0.5 * sin(o.g.t * 7.0)) if o.tags_all.has("verb.boil_sand") else 0.0)
 		cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
-		cv.draw_arc(Vector2.ZERO, float(f.r), 0.0, TAU, 32, Color(1.0, 0.55, 0.2, hot * fa + 0.15 * fa), 2.0)
+		cv.draw_arc(Vector2.ZERO, float(f.r), 0.0, TAU, 32, Color(1.0, 0.55, 0.2, (hot * fa + 0.15 * fa) * sf), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var blk: Dictionary = o.gm.get("blk", {})
 	for id in blk:
@@ -364,7 +367,7 @@ static func gm_draw(o) -> void:
 		cv.draw_colored_polygon(pts, Color(1.0, 0.82, 0.35, 0.42 * a))
 		cv.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1.0, 0.9, 0.5, 1.0 * a), 2.0)
 	if float(o.gm.get("force_until", 0.0)) > o.g.t and o.g.ppos != Vector2.INF:
-		var k: float = 0.55 + 0.25 * sin(o.g.t * 8.0)
+		var k: float = 0.8 * o.ring_flash("force")   # 10-31 TA H1：武装那一瞬亮一下，不常驻
 		cv.draw_set_transform(o.g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, k), 3.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

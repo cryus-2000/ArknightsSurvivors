@@ -570,10 +570,12 @@ static func _h3lm_draw_rain(o) -> void:
 	var b: Dictionary = lm.rain_b
 	var r: float = float(b.get("r", 140.0))
 	var fade: float = clampf(float(lm.rain_t) / 0.4, 0.0, 1.0) * clampf((float(b.get("dur", 3.0)) - float(lm.rain_t)) / 0.3, 0.0, 1.0)
-	cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	feather_ring(cv, r, Color(1.0, 0.85, 0.5), 0.5 * fade, g.t)
-	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(1.3, 1.1, 0.7, 0.35 * fade), 1.5)
-	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var rf: float = o.ring_flash("rain")   # 10-31 TA H1：内外两道边只在开雨那一瞬，之后靠落下的光雨读范围
+	if rf > 0.0:
+		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		feather_ring(cv, r, Color(1.0, 0.85, 0.5), 0.5 * fade * rf, g.t)
+		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(1.3, 1.1, 0.7, 0.35 * fade * rf), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for q in 28:
 		var ph: float = fmod(g.t * 1.8 + q * 0.379, 1.0)
 		var cyc: int = int(g.t * 1.8 + q * 0.379)
