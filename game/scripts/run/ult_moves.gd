@@ -950,16 +950,16 @@ static func _sk_blast_v2(u, p: Vector2, k: float, seed0: float, delay := 0.0) ->
 	var bt: Texture2D = u._strip_tex(SK_BLAST)
 	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
 	u.strip(SK_FLASH, p, {"sc": 1.1 * k, "ang": seed0 * 0.9, "life": 0.07, "delay": delay})
-	u.strip(SK_BLAST, p, {"sc": 50.0 * k / br, "sc1": 125.0 * k / br, "scd": 0.2, "ang": seed0 * 1.7, "life": 0.5, "fade": 0.28,
-		"col": Color.WHITE, "col1": SK_COLD, "cold": 0.32, "delay": delay})
+	u.strip(SK_BLAST, p, {"sc": 40.0 * k / br, "sc1": 95.0 * k / br, "scd": 0.16, "ang": seed0 * 1.7, "life": 0.38, "fade": 0.22,
+		"col": Color.WHITE, "col1": SK_COLD, "cold": 0.22, "delay": delay})
 
 
 ## 收尾大爆：中心大爆 + 外围一圈错开的爆 + 裂网（借乌尔比安分叉裂缝，调成暗红）+ 地块隆起
 static func _sk_final_v2(u, c: Vector2, L: float) -> void:
-	_sk_blast_v2(u, c, 2.4, 3.0)
-	for m in 9:
+	_sk_blast_v2(u, c, 1.8, 3.0)
+	for m in 7:
 		var h: float = _ulh(m + 70.0)
-		_sk_blast_v2(u, c + Vector2.from_angle(TAU * (m + h) / 9.0) * L * (0.45 + 0.25 * h), 1.05, float(m), 0.04 + 0.03 * (m % 4))
+		_sk_blast_v2(u, c + Vector2.from_angle(TAU * (m + h) / 7.0) * L * (0.45 + 0.25 * h), 0.9, float(m), 0.04 + 0.04 * (m % 4))
 	if u.fx_ready(UL_FORK):
 		var t: Texture2D = u._strip_tex(UL_FORK)
 		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
@@ -1375,7 +1375,7 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 			s.age = 0.0
 		_ka_warn(a, 0.35 + 0.65 * kw, t)
 		if a.has("dark"):
-			a.dark.fill = 0.5 * kw
+			a.dark.fill = 0.65 * kw
 			a.dark.age = 0.0
 		# 收光：越到后面越密（0.14 → 0.06 秒一道），外圈往落点收的光圈 + 光点
 		if t >= float(a.ci_t):
@@ -1518,11 +1518,14 @@ static func _ka_pre(u, c: Vector2, wind: float) -> void:
 static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
 	var bt: Texture2D = u._strip_tex(KA_BLAST)
 	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
-	u.strip(KA_BLAST, core, {"sc": 70.0 / br, "sc1": R * 0.55 / br, "scd": 0.25, "life": 0.75, "fade": 0.35,
-		"col": Color.WHITE, "col1": Color(0.4, 0.3, 0.3), "cold": 0.5})
+	u.strip(KA_BLAST, core, {"sc": 50.0 / br, "sc1": R * 0.22 / br, "scd": 0.16, "life": 0.3, "fade": 0.18,
+		"col": Color.WHITE, "col1": Color(0.4, 0.3, 0.3), "cold": 0.2})
+	# 冲击波：fx_ka_shock 是厚环，放到外圈会糊成一大片——只在内圈放一下，外圈交给细的实线冲击环
 	var st: Texture2D = u._strip_tex(KA_SHOCK)
 	var sr: float = st.get_width() * 0.5 * u.g.PX / A.hires_of(st)
-	u.strip(KA_SHOCK, c, {"layer": "back", "sc": 60.0 / sr, "sc1": R * 1.05 / sr, "scd": 0.3, "life": 0.45, "fade": 0.2})
+	u.strip(KA_SHOCK, c, {"layer": "back", "sc": 60.0 / sr, "sc1": R * 0.4 / sr, "scd": 0.16, "life": 0.24, "fade": 0.14, "col": Color(1, 1, 1, 0.85)})
+	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 12.0, "col": Color(0.9, 1.0, 0.97), "solid": true, "life": 0.45})
+	u.shape({"kind": "ring", "c": c, "r": R * 1.08, "r1": 30.0, "w": 9.0, "col": KA_COL, "life": 0.6, "delay": 0.05})
 	if u.fx_ready(UL_FORK):
 		var t: Texture2D = u._strip_tex(UL_FORK)
 		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
