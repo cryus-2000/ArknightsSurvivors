@@ -1251,12 +1251,21 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		a.boomed = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
+		var n0: int = u.shapes.size()
+		var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
 		_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
 		_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
-		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
+		if v3:   # 不铺满圈发白：暖色、很淡（用户 10-31「避免整屏发白」）
+			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.75, 0.4), "fill": 0.08, "life": 0.45})
+		else:
+			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
 		for j in 20:   # 光芒放射
 			var dv := Vector2.from_angle(j * TAU / 20.0)
 			u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
+		if v3:   # 冲击帧：冷暖反差（深蓝底 + 灯火金剪影 → 暗琥珀底 + 冷青剪影），不用纯白
+			PF.hf_since(u, n0)
+			PF.hf_on(u, a)
+			u.act["hf_cols"] = [Color(0.04, 0.07, 0.16), Color(1.0, 0.78, 0.4), Color(0.22, 0.12, 0.04), Color(0.55, 0.9, 1.0)]
 	var T: float = a.exp
 	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
 		a["edone"] = el >= T
@@ -1300,4 +1309,10 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			a.rn = i2 + 1
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.rseg[i2], e, 0.05, {"src": "光雨", "edge": e.pos.distance_to(c) > rc})
+	if el >= dur + 0.05 and Bal.v("ult/lu_fx_v3", 1.0) > 0.0 and not a.get("glow_done", false):   # 余辉：熄灭后地面一圈暖光慢慢褪、金色光尘往上飘
+		a["glow_done"] = true
+		u.shape({"kind": "circle", "c": c, "r": R * 0.85, "col": Color(1.0, 0.72, 0.38), "fill": 0.1, "life": 1.8, "layer": "back"})
+		u.shape({"kind": "ring", "c": c, "r": R * 0.85, "w": 4.0, "col": Color(1.0, 0.8, 0.45, 0.6), "solid": true, "life": 1.6})
+		PF.particles(u, c, 160, "ult_ember", [Color(1.0, 0.82, 0.45)], 0.0, PF.vseed(u, c), R * 0.7)
+		u.light(c, R, Color(1.0, 0.75, 0.4), 1.6)
 	return el >= dur + 0.05

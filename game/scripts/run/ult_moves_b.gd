@@ -543,6 +543,16 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 		a["core"] = u.strip("fx_an_core", c, {"sc": 0.8 * ks, "life": 3.0, "col": Color(1.0, 1.0, 1.0, 0.9)})
 		a.fx.append(a.core)
 	a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2 * ks, "layer": "back", "loop": true, "life": 3.0}))
+	if _an_v3():   # 被吸的碎屑（只画面）：一圈地块先慢后快吸向奇点、悬着抖，砸地时弹开落下（用户 10-31「吸入要有重量感」）
+		var vs: float = PF.vseed(u, c)
+		var deb: Array = []
+		for q in 16:
+			var hq: float = PF.h(vs + q * 1.7)
+			var s: Dictionary = {"kind": "rock", "c": c, "r": 7.0 + 9.0 * hq, "col": Color(0.3, 0.26, 0.34), "glow": Color(0.7, 0.45, 0.95), "seed": float(q) + vs,
+				"rot": hq * TAU, "spin": (hq - 0.5) * 6.0, "life": 3.0}
+			u.shape(s)
+			deb.append({"s": s, "a0": TAU * (q + hq * 0.8) / 16.0, "r0": R * (0.55 + 0.4 * hq), "h": hq})
+		a["deb"] = deb
 	a.fx.append(u.strip("fx_angelina_well_front", c, {"sc": 1.6 * ks, "loop": true, "life": 3.0}))
 	return a
 
@@ -605,6 +615,15 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 				u.shape({"kind": "line", "a": p0, "b": p0 + dv * 46.0, "w": 2.0, "col": col.lerp(Color.WHITE, 0.5), "life": 0.3, "v": dv * 900.0})
 	for s in a.fx:
 		_hold(s)
+	if a.has("deb") and int(a.slams) == 0:   # 碎屑：吸入 ease-in（越近越快）→ 悬在奇点外一圈发抖
+		var kd: float = clampf(t / ts, 0.0, 1.0)
+		for db in a.deb:
+			var s: Dictionary = db.s
+			var r: float = float(db.r0) * (1.0 - 0.8 * kd * kd * kd)
+			var ang: float = float(db.a0) + 1.2 * kd * kd
+			var jit: Vector2 = Vector2(sin(t * 47.0 + float(db.h) * 9.0), cos(t * 53.0 + float(db.h) * 7.0)) * 3.0 * kd
+			s.c = c + Vector2.from_angle(ang) * r + jit + Vector2(0, -40.0 * kd * kd)
+			s.age = 0.0
 	# 砸地：90%（三重引力：60% + 弹起再砸 50%，按 §4.8 草案）；砸下那一刻的位置判外缘
 	while int(a.slams) < nslam and t >= ts + tb * float(int(a.slams)):
 		var si: int = int(a.slams)
@@ -628,6 +647,7 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 			u.strip("fx_angelina_well_close", c, {"sc": 3.6 * R / 470.0})
 		if _an_v2(u):   # v2 砸地：顿帧 + 砸坑（fx_an_crater）+ 紫灰尘环（fx_an_ring）推到 R + 紫色粒子 + 两拍隆起
 			var vs3: float = PF.vseed(u, c) + float(si)
+			var n0: int = u.shapes.size()
 			u.g.vfx.stop(Bal.v("ult/an_hitstop", 0.1), "ult", true)
 			if u.fx_ready("fx_an_crater"):
 				var cr: float = PF.tex_w(u, "fx_an_crater") * 0.5
@@ -637,6 +657,27 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 			PF.particles(u, c, 300, "ult_burst", [Color(0.62, 0.58, 0.7)], 0.06, vs3 + 5.0, R * 0.6)
 			PF.heave(u, c, R * 0.45, vs3 + 2.0)
 			PF.heave(u, c, R * 0.85, vs3 + 3.0, 0.18)
+			if _an_v3() and si == 0:   # 打击感（10-31）：冲击帧（粒子 + 弹开的碎屑进剪影）+ 凹坑压深留久 + 外圈六团紫灰逐帧烟尘
+				PF.hf_since(u, n0, PF.BURSTS)
+				for db in a.get("deb", []):   # 碎屑弹开：往外抛、带重力落下
+					var s: Dictionary = db.s
+					var dv: Vector2 = (Vector2(s.c) - c).normalized() if Vector2(s.c).distance_to(c) > 1.0 else Vector2.from_angle(float(db.a0))
+					s["v"] = dv * (260.0 + 260.0 * float(db.h)) + Vector2(0, -300.0 - 200.0 * float(db.h))
+					s["grav"] = 1500.0
+					s["hold"] = true
+					s.age = 0.0
+					s.max = 0.7 + 0.3 * float(db.h)
+					s["hf"] = true
+				a.erase("deb")
+				PF.hf_on(u, a)
+				if u.fx_ready("fx_an_crater"):
+					var cr2: float = PF.tex_w(u, "fx_an_crater") * 0.5
+					u.strip("fx_an_crater", c, {"layer": "back", "sc": R * 0.5 / cr2, "sc1": R * 0.46 / cr2, "scd": 0.12, "ang": PF.h(vs3 + 4.0) * TAU,
+						"life": 2.8, "fade": 1.0, "col": Color(0.75, 0.7, 0.82), "col1": Color(0.4, 0.36, 0.45), "cold": 1.0})
+				for q in 6:
+					var hq: float = PF.h(vs3 * 3.0 + q)
+					var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 6.0)
+					PF.dust(u, c + dq * R * (0.4 + 0.3 * hq), 190.0 + 70.0 * hq, 0.04 + 0.03 * (q % 3), vs3 + q, dq * (60.0 + 40.0 * hq), Color(0.9, 0.85, 1.0))
 			if a.has("core"):
 				u.shapes.erase(a.core)
 		else:
@@ -678,6 +719,10 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 
 ## 安洁莉娜 v2（ult/an_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：奇点 = Codex 重力核心关键帧持续旋转、越吸越小越亮；
 ## 砸地 = 顿帧 + 砸坑 + 两层紫 / 紫灰粒子 + 两拍隆起（尘环贴图预审报重复拼接，已去掉）。吸起 / 砸地判定与时序不动
+static func _an_v3() -> bool:   # 安洁莉娜打击感（10-31）：被吸碎屑 + 砸地冲击帧 + 深坑 + 逐帧烟尘；0 = 10-30 版
+	return Bal.v("ult/an_fx_v3", 1.0) > 0.0
+
+
 static func _an_v2(u) -> bool:
 	return Bal.v("ult/an_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_an_core")
 

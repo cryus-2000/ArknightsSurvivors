@@ -1145,11 +1145,16 @@ func _draw_hit_frame(w) -> void:
 		return
 	_hf_n[0 if inv else 1] += 1
 	var bg := Color(0.92, 0.9, 0.86) if inv else Color(0.02, 0.02, 0.03)
+	var hc: Array = act.get("hf_cols", [])   # 招式自定两拍配色 [底 1, 剪影 1, 底 2, 剪影 2]（流明：冷暖反差，用户 10-31 不要纯白）
+	if hc.size() == 4:
+		bg = hc[0] if inv else hc[2]
 	var c: Vector2 = g.ppos
 	var R := Vector2(2600.0, 1700.0)
 	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), bg)
 	w.tb_flush()
 	var fg := Color(0.0, 0.0, 0.0) if inv else Color(1.6, 1.6, 1.6)   # 黑底那拍：贴图保持本色提亮（乘 8 会把红压成粉）；程序斩线照样纯白
+	if hc.size() == 4:
+		fg = hc[1] if inv else hc[3]
 	for s in shapes:
 		if s.age < 0.0 or not s.get("hf", false):
 			continue
@@ -1162,7 +1167,7 @@ func _draw_hit_frame(w) -> void:
 		else:
 			var s3: Dictionary = s.duplicate()
 			s3["glow"] = Color(fg, 1.0)
-			_px_shape(w, s3, 1.0, Color(fg.r if inv else 1.0, fg.g if inv else 1.0, fg.b if inv else 1.0), 1.0)
+			_px_shape(w, s3, 1.0, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE, 1.0)
 	w.tb_flush()
 
 
