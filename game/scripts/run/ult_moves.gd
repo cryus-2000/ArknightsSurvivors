@@ -548,11 +548,17 @@ static func _ex_chain(u, p0: Vector2, p1: Vector2, life: float) -> void:
 ## 一发分打多个框 / 跳弹同样从爆点飞出一颗子弹（不再画长连线）；只保留爆点到溅射目标（≤ 60）的短连锁闪线
 static func _ex_bullet(u, a: Dictionary, p0: Vector2, dest: Vector2, tg, k: int, info: Dictionary) -> void:
 	var cc: Color = EX_RED if k % 2 == 0 else EX_GOLD
-	var sh: Array = [
-		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 6.0, "col": cc, "life": 2.0}),
-		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 3.0, "col": Color(1.0, 0.95, 0.75), "life": 2.0}),
-		_ex_keep(u, {"kind": "circle", "c": p0, "r": 5.0, "col": Color(1.0, 0.97, 0.85), "fill": 1.0, "life": 2.0}),
-	]
+	var sh: Array
+	if Bal.v("ult/ex_round_v2", 1.0) > 0.0 and u.fx_ready("fx_ult_exusiai_round_front"):
+		# 单发子弹帧条（pixgen 精灵表，docs/199 §7.7）：24 × 8、亮头中心为原点、朝右，3 帧 24 fps 循环；朝向在 _ex_fly 里跟着飞行方向转
+		sh = [_ex_keep(u, {"kind": "strip", "name": "fx_ult_exusiai_round_front", "c": p0, "o": Vector2(37, 8), "loop": true,
+			"ang": (dest - p0).angle(), "life": 2.0})]
+	else:
+		sh = [
+			_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 6.0, "col": cc, "life": 2.0}),
+			_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 3.0, "col": Color(1.0, 0.95, 0.75), "life": 2.0}),
+			_ex_keep(u, {"kind": "circle", "c": p0, "r": 5.0, "col": Color(1.0, 0.97, 0.85), "fill": 1.0, "life": 2.0}),
+		]
 	a.fx.append_array(sh)
 	a.bul.append({"p": p0, "tg": tg, "dest": dest, "sh": sh, "info": info, "age": 0.0})
 
@@ -576,6 +582,10 @@ static func _ex_fly(u, a: Dictionary, o, dt: float) -> void:
 		var d: Vector2 = dv / dl
 		p += d * step
 		b.p = p
+		if b.sh.size() == 1:   # 帧条子弹：只挪位置、转朝向（帧号随 age 走，不重置 age）
+			b.sh[0].c = p
+			b.sh[0].ang = d.angle()
+			continue
 		var tl: float = minf(ln, Vector2(p).distance_to(Vector2(b.info.get("from", p))))
 		var s0: Dictionary = b.sh[0]
 		s0.a = p - d * tl
@@ -1249,14 +1259,23 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		var core: Vector2 = (a.m3.pos if _ka_alive(a) else c) + Vector2(0, -38.0)
 		if not a.get("charged", false):
 			a["charged"] = true
-			# 落地：一圈尘、轻震，熔毁蓄力帧条（fx_ult_kaltsit_melt_front charge 0–2）铺满蓄力时长
-			u.strip("fx_ult_kaltsit_melt_front", c, {"o": Vector2(192, 192), "seg": [0, 2], "fps": 3.0 / wind, "life": t1 - t, "sc": float(a.sc)})
+			# 落地：一圈尘、轻震；Mon3tr 胸口聚能帧条 fx_ult_kaltsit_charge_front（pixgen 精灵表，docs/199 §7.7；起 0–1 / 循环 2–5 / 收 6–7，帧号下面逐帧算）；
+			# 缺图或 ult/ka_charge_v2 = 0 时退回熔毁蓄力帧条（fx_ult_kaltsit_melt_front charge 0–2）铺满蓄力时长
+			if Bal.v("ult/ka_charge_v2", 1.0) > 0.0 and u.fx_ready("fx_ult_kaltsit_charge_front"):
+				a["chg"] = u.strip("fx_ult_kaltsit_charge_front", core, {"o": Vector2(96, 96), "f": 0, "life": t1 - t})
+			else:
+				u.strip("fx_ult_kaltsit_melt_front", c, {"o": Vector2(192, 192), "seg": [0, 2], "fps": 3.0 / wind, "life": t1 - t, "sc": float(a.sc)})
 			_ring(u, c, 150.0, 30.0, KA_COL.lerp(Color.WHITE, 0.4), 0.3, 8.0)
 			u.grain("bfx_dust", c, Vector2.UP, Color(0.75, 0.8, 0.8), 10)
 			u.shake(3.0, 0.15)
 			a["aura"] = _ka_keep(u, a, {"kind": "ring", "c": core, "r": 40.0, "w": 4.0, "col": KA_COL.lerp(Color.WHITE, 0.3), "solid": true, "life": 9.0})   # 罩住 Mon3tr 本体的聚能圈（不盖住它）
 			a["glow"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 8.0, "col": KA_COL, "fill": 0.45, "life": 9.0})
 			a["hot"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 4.0, "col": Color(0.9, 1.0, 0.97), "fill": 0.95, "life": 9.0})
+		if a.has("chg"):   # 16 fps：前 2 帧起、末 2 帧收（各 0.125 秒），中间 2–5 循环
+			var fk: int = int((t - cd) * 16.0)
+			var fe: int = int((t1 - t) * 16.0)
+			a.chg.c = core
+			a.chg.f = 7 - fe if fe < 2 else (fk if fk < 2 else 2 + (fk - 2) % 4)
 		var pul: float = 1.0 + 0.15 * sin(t * (30.0 + 40.0 * kw))
 		a.glow.c = core
 		a.glow.r = lerpf(8.0, 36.0, kw * kw) * pul

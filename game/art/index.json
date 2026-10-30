@@ -676,6 +676,8 @@
 "fx_ulpianus_drag_dust@2x": "res://art/fx/fx_ulpianus_drag_dust@2x.png",
 "fx_ult_exusiai_burst_front@2x": "res://art/fx/fx_ult_exusiai_burst_front@2x.png",
 "fx_ult_exusiai_lock_orbit@2x": "res://art/fx/fx_ult_exusiai_lock_orbit@2x.png",
+"fx_ult_exusiai_round_front@2x": "res://art/fx/fx_ult_exusiai_round_front@2x.png",
+"fx_ult_kaltsit_charge_front@2x": "res://art/fx/fx_ult_kaltsit_charge_front@2x.png",
 "fx_ult_kaltsit_crack_back@2x": "res://art/fx/fx_ult_kaltsit_crack_back@2x.png",
 "fx_ult_kaltsit_melt_front@2x": "res://art/fx/fx_ult_kaltsit_melt_front@2x.png",
 "fx_ult_kaltsit_rebuild_orbit@2x": "res://art/fx/fx_ult_kaltsit_rebuild_orbit@2x.png",

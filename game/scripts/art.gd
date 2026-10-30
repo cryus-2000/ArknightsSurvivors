@@ -1050,9 +1050,9 @@ const V6_FRAMES := {
 	# 德克萨斯剑雨（10-12 重做，docs/70，verb.fx_rain docs/61 §13.5）：剑 16×40（0–1 下落循环 / 2–5 插地按停留时间铺开，锚 (8, 38)）、冲击 32×24（锚 (16, 20)）、地面标记 24×12（0–2 预兆 / 3–5 焦痕，锚帧中心）
 	# 终结技第一批 5 人（Codex 交付 codex/art 9d57cf262，art/incoming/ult_batch1_1029/manifest.json；docs/198 §8 / docs/199）
 	"fx_ult_texas_slash_front": [8, 24.0], "fx_ult_texas_scar_back": [4, 10.0], "fx_ult_texas_sword_front": [6, 20.0],
-	"fx_ult_exusiai_burst_front": [6, 30.0], "fx_ult_exusiai_lock_orbit": [8, 24.0],
+	"fx_ult_exusiai_burst_front": [6, 30.0], "fx_ult_exusiai_lock_orbit": [8, 24.0], "fx_ult_exusiai_round_front": [3, 24.0],
 	"fx_ult_skalter_seaborn_front": [10, 12.0], "fx_ult_skalter_seaborn_back": [6, 12.0], "fx_ult_skalter_beam_front": [6, 24.0], "fx_ult_skalter_domain_back": [6, 10.0],
-	"fx_ult_kaltsit_melt_front": [8, 24.0], "fx_ult_kaltsit_crack_back": [6, 20.0], "fx_ult_kaltsit_rebuild_orbit": [12, 16.0],
+	"fx_ult_kaltsit_melt_front": [8, 24.0], "fx_ult_kaltsit_charge_front": [8, 16.0], "fx_ult_kaltsit_crack_back": [6, 20.0], "fx_ult_kaltsit_rebuild_orbit": [12, 16.0],
 	"fx_ult_ulpianus_anchor_front": [4, 0.0], "fx_ult_ulpianus_chain_front": [2, 12.0], "fx_ult_ulpianus_crack_back": [6, 20.0], "fx_ult_ulpianus_burst_front": [8, 20.0],
 	# 终结技第二批 15 人 + 忍冬（Codex 单 art/incoming/ult_batch2_1029/codex_order.md；素材未到，先登记帧数 / fps：PNG 放进 game/art/fx/ 即可被 u.strip / u.fx_ready 取到，
 	# 到货时以 manifest 为准改这里；接入步骤见 docs/199「待合入清单」）
