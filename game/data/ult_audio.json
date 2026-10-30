@@ -1,6 +1,6 @@
 {
-  "_doc": "终结技语音与专属音效（docs/205）。run/ult.gd 读：按 Q 进入瞄准 charge（同时说 voice）、放出 cast、第一下掉血 impact；之后按招式分段：seg.<段名>（= 招式伤害的 src）.on 这段第一下播、.hit 之后每下播（.gap 真实秒节流），写了空 {} 的段不出声，没写的段走通用 hit（hit_gap）。文件 audio/sfx/ult_<干员>_<槽>.wav（game/tools/gen_sfx_ult_seg_1030.py），缺文件静默。vol：槽名 → 播放 dB；没列的槽，*_hit 用 vol.hit、其余用 vol.seg。voice 为空 = 从技能池挑一句；boom = 慢放结束那一声 [名字, 音量, 音高]。",
-  "default": {"vol": {"charge": -6.0, "cast": -4.0, "impact": 0.0, "hit": -9.0, "seg": -3.0}, "hit_gap": 0.08, "boom": ["boom", 2.0, 0.8]},
+  "_doc": "终结技语音与专属音效（docs/205）。run/ult.gd 读：按 Q 超必杀暂停 sf（sf_sound）、进入瞄准 charge（同时说 voice）、放出 cast、第一下掉血 impact；之后按招式分段：seg.<段名>（= 招式伤害的 src）.on 这段第一下播、.hit 之后每下播（.gap 真实秒节流），写了空 {} 的段不出声，没写的段走通用 hit（hit_gap）。文件 audio/sfx/ult_<干员>_<槽>.wav（game/tools/gen_sfx_ult_seg_1030.py），缺文件静默。vol：槽名 → 播放 dB；没列的槽，*_hit 用 vol.hit、其余用 vol.seg。voice 为空 = 从技能池挑一句；boom = 慢放结束那一声 [名字, 音量, 音高]。",
+  "default": {"vol": {"sf": -1.0, "charge": -6.0, "cast": -4.0, "impact": 0.0, "hit": -9.0, "seg": -3.0}, "hit_gap": 0.08, "boom": ["boom", 2.0, 0.8]},
   "ops": {
     "texas": {"seg": {"斩开": {}, "剑雨": {"on": "rain_hit", "hit": "rain_hit", "gap": 0.05}, "回马剑": {}}},
     "exusiai": {"seg": {"爆裂弹": {"hit": "shot_hit", "gap": 0.07}, "跳弹": {"hit": "shot_hit", "gap": 0.07}}},

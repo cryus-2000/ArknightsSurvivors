@@ -1538,7 +1538,7 @@ func report() -> Dictionary:
 ##   机器人批跑不冻结，所以同 seed TRACE 与关掉时逐行相同；暂停期间队长不受伤（时间不走，另在看得见的局里给一点无敌兜底）；
 ##   背景与敌人压暗到约 30%（ult/sf_dim 0.7 的黑），队长原亮度 + 一圈干员代表色轮廓光，手 / 武器位置闪一道像素光（3 像素格、亮度封顶 0.9）；
 ##   干员色放射速度线 ult/sf_lines（28 条，手机网页减半），暂停结束 ult/sf_out（0.2）秒内退掉；
-##   起手「锵」占位音（sf_sound：ult-audio 会话后面换成专属音的挂点）。
+##   起手音 sf_sound（每人专属 ult_<干员>_sf，docs/205 §3.6）。
 ## 暂停结束才出立绘切入，接着是瞄准慢放（真实时间 ult/sf_slow_t 0.3 秒，原 0.5；游戏时间里的瞄准时长不变）。不加镜头震动。
 ## 减少动态效果：压暗改淡入淡出、不画速度线。连携终结技不走这里（先不做）。
 var _sf_rt := -99.0        # 暂停起点（真实时间）；< 0 = 这一发没有暂停
@@ -1569,10 +1569,17 @@ func _sf_start(ld) -> void:
 	sf_sound(ld)
 
 
-## 起手「锵」：占位用现有金属剑声；ult-audio 会话（game/data/ult_audio.json）接专属音时改这里
+## 起手音：每人专属 audio/sfx/ult_<干员>_sf.wav（docs/205 §3.6，共用「定格」瞬态 + 各人身份的一声）；缺文件退回金属剑声
 func sf_sound(ld) -> void:
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
-	if sfx != null:
+	if sfx == null:
+		return
+	var oid := str(ld.id)
+	var nm := "ult_%s_sf" % oid
+	if ResourceLoader.exists("res://audio/sfx/%s.wav" % nm):
+		sfx.ensure([nm])
+		sfx.play(nm, float(_aud(oid).get("vol", {}).get("sf", 0.0)), 1.0, 0.0)
+	else:
 		sfx.play("carmen_sword", 1.0, 1.3, 0.0)
 
 

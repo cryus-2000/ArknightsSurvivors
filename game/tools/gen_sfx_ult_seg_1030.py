@@ -1,6 +1,6 @@
 """终结技专属音效·按招式分段（docs/205 §3.5，10-30 用户「音效按照每个人的终结技特色来做」）。
 取代 gen_sfx_ult_1030.py 的 A / B / C 三套通用风格：每人一套，跟着他那一招的段落走——
-charge（按 Q 瞄准）/ cast（放出）/ impact（第一下掉血）+ 各段专属声（data/ult_audio.json 的 seg.<段名>.on / hit，
+sf（按 Q 超必杀暂停那一下）/ charge（按 Q 瞄准）/ cast（放出）/ impact（第一下掉血）+ 各段专属声（data/ult_audio.json 的 seg.<段名>.on / hit，
 段名就是招式里伤害的 src，如德克萨斯「斩开」「剑雨」、星熊「格挡」「反震」）。时间按 d61028742 实录（docs/205 §3.5 表）。
 全部程序合成或加工本仓库现有音效（工具函数同 gen_sfx_ult_1030.py），不含原作音频。
 
@@ -23,6 +23,8 @@ def level(slot, x):
         return -16.0
     if slot == "impact":
         return -9.0
+    if slot == "sf":
+        return -10.0
     if slot in ("charge", "cast"):
         return -15.0 if len(x) > 1.6 * SR else -13.0
     return -15.0 if len(x) > 1.6 * SR else -11.0
@@ -291,6 +293,37 @@ def lumen():
     }
 
 
+# ---------------------------------------------------------------- 超必杀暂停起手音 sf（claude/ult-superflash ae79de511 的 sf_sound 挂点）
+## 按 Q 世界冻结 0.35 秒那一下：共用一个「定格」的瞬态（短促高频爆裂 + 低沉一顿），上面叠各人身份的一声，0.6 秒内收掉，
+## 后面紧接 charge（瞄准蓄力），所以不做上扬。
+def _sf_core(f0=170, bright=1.0):
+    return pad(hp(burst(0.06, 11000, 70), 2500) * 0.45 * bright, thud(0.3, f0, 55, 13) * 0.7, sub(0.35, 80, 40, 9) * 0.45)
+
+
+FLASH = {
+    "texas": lambda: pad(_sf_core(), slash(0.2, 8000, 2200) * 0.6, metal(0.55, 2350, 7, bright=0.5) * 0.4),          # 拔剑一声「锵」
+    "exusiai": lambda: pad(_sf_core(), metal(0.08, 1100, 40, bright=0.5) * 0.7, at(metal(0.08, 1500, 40, bright=0.5) * 0.6, 0.06), at(bell(0.4, 3520, 10, 1.0, 0.2) * 0.3, 0.1)),   # 上膛 + 光环叮
+    "skalter": lambda: pad(_sf_core(120, 0.6), bell(0.6, 523, 5, 1.41, 1.2) * 0.35, lp(drone(0.6, 65, 0.8), 400) * fadeio(np.ones(int(0.6 * SR)), 0.01, 0.3) * 0.4),   # 海潮深处的低鸣
+    "kaltsit": lambda: pad(_sf_core(150), zap(0.3, 1800, 600) * 0.3, bell(0.5, 880, 8, 2.0, 0.8) * 0.3),              # 冷光电鸣（Mon3tr）
+    "ulpianus": lambda: pad(_sf_core(110), heavy_chain(0.35, 5, 420, 900, 30) * 0.5, sub(0.5, 55, 30, 5) * 0.4),       # 锁链一绷
+    "skadi": lambda: pad(_sf_core(140), metal(0.5, 980, 6, bright=0.45) * 0.45, lp(splash(0.4, 3000, 9), 3000) * 0.35),   # 巨剑出鞘 + 浪声
+    "gladiia": lambda: pad(_sf_core(130), whoosh(0.35, 400, 1600, 0.6) * 0.35, metal(0.45, 1320, 7, bright=0.4) * 0.35),   # 长枪破空
+    "angelina": lambda: pad(_sf_core(160, 0.7), bell(0.55, 1568, 6, 1.5, 1.0) * 0.35, rev(fit(bell(0.3, 784, 8, 1.5, 0.8), 0.3)) * 0.2),   # 重力反转的颤鸣
+    "eyjafjalla": lambda: pad(_sf_core(150), lp(crackle(0.45, 120, 1200, 6000, 7), 7000) * 0.5, rumble(0.45, 260, 6) * 0.4),   # 火山噼啪
+    "wisadel": lambda: pad(_sf_core(130), metal(0.1, 700, 30, bright=0.5) * 0.7, at(thud(0.15, 260, 90, 24) * 0.5, 0.05), bell(0.4, 1046, 9, 3.0, 1.5) * 0.25),   # 炮膛合上
+    "specter_unchained": lambda: pad(_sf_core(140), fit(rip(0.4, 160, 260), 0.4) * 0.3, metal(0.45, 760, 6, bright=0.5) * 0.4),   # 链锯一拉
+    "mizuki": lambda: pad(_sf_core(150, 0.7), rev(fit(splash(0.3, 4000, 8), 0.3)) * 0.3, bell(0.5, 659, 6, 1.41, 1.5) * 0.3),   # 水泡倒吸 + 幽鸣
+    "saria": lambda: pad(_sf_core(130), crack(0.3, 14) * 0.4, ring(0.5, 740, 6, 0.4) * 0.35),                          # 琥珀结晶
+    "suzuran": lambda: pad(_sf_core(170, 0.8), bell(0.5, 1760, 7, 1.0, 0.3) * 0.35, at(bell(0.4, 2349, 9, 1.0, 0.3) * 0.25, 0.07)),   # 铃音
+    "logos": lambda: pad(_sf_core(140), bell(0.6, 440, 5, 1.0, 0.4) * 0.3, bell(0.6, 659, 5, 1.0, 0.4) * 0.25, hp(sweep_noise(0.3, 5000, 1500, 0.4), 1200) * env(0.3, 0.002, 12) * 0.25),   # 咒文低吟的和音
+    "hoshiguma": lambda: pad(_sf_core(110), metal(0.5, 520, 7, bright=0.35) * 0.55, thud(0.25, 140, 50, 12) * 0.5),    # 大盾一顿
+    "siege": lambda: pad(_sf_core(110), thud(0.3, 120, 45, 10) * 0.7, metal(0.4, 640, 9, bright=0.4) * 0.35),          # 战锤上肩
+    "irene": lambda: pad(_sf_core(160), slash(0.18, 7000, 2500) * 0.55, metal(0.5, 1975, 8, bright=0.5) * 0.35, whoosh(0.3, 700, 2200, 0.5) * 0.2),   # 细剑出鞘 + 风
+    "lappland": lambda: pad(_sf_core(150), slash(0.2, 6000, 1800) * 0.5, at(slash(0.2, 7000, 2000) * 0.4, 0.08), metal(0.45, 1480, 8, bright=0.5) * 0.3),   # 双剑交错
+    "lumen": lambda: pad(_sf_core(170, 0.7), bell(0.55, 1318, 6, 1.0, 0.25) * 0.35, bell(0.55, 1975, 7, 1.0, 0.25) * 0.25),   # 灯火一亮
+}
+
+
 OPS = [texas, exusiai, skalter, kaltsit, ulpianus, skadi, gladiia, angelina, eyjafjalla, wisadel, specter_unchained, mizuki,
        saria, suzuran, logos, hoshiguma, siege, irene, lappland, lumen]
 
@@ -308,6 +341,9 @@ def main():
         if only and op not in only:
             continue
         d = f()
+        st = rng.bit_generator.state   # sf 不占随机序列：其余槽与加 sf 之前逐字节相同
+        d["sf"] = FLASH[op]()
+        rng.bit_generator.state = st
         if a.apply:   # 旧的通用槽（A/B/C 时代的 hit 等）不再用的删掉
             for old in glob.glob(os.path.join(SFX, "ult_%s_*.wav" % op)):
                 if os.path.basename(old)[len("ult_%s_" % op):-4] not in d:
