@@ -1,0 +1,17 @@
+pre.jsonl runs 18 | spawned 46 killed 46 absorbed 0 | clear 4.18s | learn layers 0 absorb_n 0 stacks 0 | alive@0,5..30s [0, 1.3, 1.7, 2.7, 3.6, 4.5, 0.3] | win 12/18 | fight 103s
+a.jsonl runs 18 | spawned 64 killed 61 absorbed 0 | clear 5.30s | learn layers 0 absorb_n 0 stacks 0 | alive@0,5..30s [0, 4.9, 4.9, 7.7, 8.2, 9.3, 0.3] | win 11/18 | fight 101s
+b.jsonl runs 18 | spawned 86 killed 84 absorbed 0 | clear 6.21s | learn layers 0 absorb_n 0 stacks 0 | alive@0,5..30s [0, 6.6, 10.9, 13.2, 16.5, 15.1, 1.4] | win 12/18 | fight 101s
+== pre.jsonl jobs 18 err 0
+izumik       fight 103.2  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 12/18
+== a.jsonl jobs 18 err 0
+izumik       fight 100.7  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 11/18
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_dmg.py", line 24, in <module>
+    print("     %-34s n%4d  med %4.1f%%  max %4.1f%%  raw med %5.1f max %5.1f" % (s[:34], len(v), 100 * pc[len(pc) // 2], 100 * pc[-1], rw[len(rw) // 2] if rw else -1, rw[-1] if rw else -1))
+BrokenPipeError: [Errno 32] Broken pipe
+== b.jsonl jobs 18 err 0
+izumik       fight 101.0  taken/min   0.0 (0% maxhp/min)  TTK 60000.0s  maxhp   0  hits/min 0.0  wins 12/18
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/docs/201_data/agg_dmg.py", line 24, in <module>
+    print("     %-34s n%4d  med %4.1f%%  max %4.1f%%  raw med %5.1f max %5.1f" % (s[:34], len(v), 100 * pc[len(pc) // 2], 100 * pc[-1], rw[len(rw) // 2] if rw else -1, rw[-1] if rw else -1))
+BrokenPipeError: [Errno 32] Broken pipe
