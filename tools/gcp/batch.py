@@ -66,6 +66,29 @@ def ensure_bucket(bucket, region):
     gc("storage", "buckets", "update", "gs://" + bucket, "--lifecycle-file", rule)
 
 
+def ensure_identity(proj, bucket):
+    """虚拟机用的专用服务账号：只能读写批跑桶、删除虚拟机（自删）。新项目的缺省计算账号没有任何角色，不用它。"""
+    sa = "batch-runner@%s.iam.gserviceaccount.com" % proj
+    if gc("iam", "service-accounts", "describe", sa, check=False).returncode != 0:
+        print("建服务账号", sa)
+        gc("iam", "service-accounts", "create", "batch-runner", "--display-name", "batch VM (tools/gcp/batch.py)")
+        time.sleep(10)   # 新账号要几秒才能被 IAM 绑定看到
+    role = "projects/%s/roles/batchSelfDelete" % proj
+    if gc("iam", "roles", "describe", "batchSelfDelete", "--project", proj, check=False).returncode != 0:
+        print("建自定义角色 batchSelfDelete")
+        gc("iam", "roles", "create", "batchSelfDelete", "--project", proj, "--title", "batch VM self delete",
+           "--permissions", "compute.instances.get,compute.instances.delete,compute.disks.delete", "--stage", "GA")
+    pol = gc("projects", "get-iam-policy", proj, "--format=json").stdout
+    if not any(b["role"] == role and "serviceAccount:" + sa in b.get("members", []) for b in json.loads(pol).get("bindings", [])):
+        gc("projects", "add-iam-policy-binding", proj, "--member", "serviceAccount:" + sa, "--role", role, "--condition=None")
+    bpol = gc("storage", "buckets", "get-iam-policy", "gs://" + bucket, "--format=json").stdout
+    if not any(b["role"] == "roles/storage.objectAdmin" and "serviceAccount:" + sa in b.get("members", [])
+               for b in json.loads(bpol).get("bindings", [])):
+        gc("storage", "buckets", "add-iam-policy-binding", "gs://" + bucket, "--member", "serviceAccount:" + sa,
+           "--role", "roles/storage.objectAdmin")
+    return sa
+
+
 def gs_cat(path):
     r = gc("storage", "cat", path, check=False)
     return r.stdout if r.returncode == 0 else None
@@ -98,7 +121,7 @@ def create_vm(a, name, gs, sha, base, cmds, model):
     args = ["compute", "instances", "create", name, "--zone", a.zone, "--machine-type", a.machine,
             "--image-family", "debian-12", "--image-project", "debian-cloud",
             "--boot-disk-size", "30GB", "--boot-disk-type", "pd-balanced",
-            "--scopes", "cloud-platform", "--labels", "purpose=batch",
+            "--service-account", a.sa, "--scopes", "cloud-platform", "--labels", "purpose=batch",
             "--provisioning-model", model, "--instance-termination-action", "DELETE",
             "--max-run-duration", "%ds" % int(a.hours * 3600),
             "--metadata", ",".join("%s=%s" % kv for kv in md.items()),
@@ -180,6 +203,7 @@ def cmd_run(a):
         sys.exit("没有要跑的命令（--cmd / --cmd-file）")
     name = vm_name(a.tag)
     ensure_bucket(bucket, region)
+    a.sa = ensure_identity(proj, bucket)
     gc("storage", "rm", "-r", gs, "-q", check=False)   # 同名重跑：清掉旧标记
     base = ""
     if not on_origin(sha):
@@ -236,6 +260,7 @@ def cmd_kill(a):
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="op", required=True)
     r = sub.add_parser("run")

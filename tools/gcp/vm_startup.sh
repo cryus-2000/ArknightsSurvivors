@@ -28,24 +28,26 @@ selfdelete() {
 }
 trap selfdelete EXIT
 
+fail() { status "fail $1"; echo "$2" | gcloud storage cp - "$GS/done" -q; exit 1; }
 T0=$(date +%s)
+status "apt"
+apt-get update -qq && apt-get install -y -qq git python3-pip >/dev/null || fail apt 97
 status "fetch $SHA"
 mkdir -p "$WORK" && cd "$WORK" || exit 1
 git init -q && git remote add origin https://github.com/cryus-2000/ArknightsSurvivors.git
 if [ -n "$BASE" ]; then
     # 提交不在 origin 上：浅拉基准提交，再从桶里的 bundle 补上之后的提交
-    git fetch -q --depth 1 origin "$BASE" || { status "fail fetch base"; echo 98 | gcloud storage cp - "$GS/done" -q; exit 1; }
+    git fetch -q --depth 1 origin "$BASE" || fail "fetch base" 98
     gcloud storage cp "$GS/repo.bundle" /work/repo.bundle -q
-    git fetch -q /work/repo.bundle "$SHA" || { status "fail bundle"; echo 98 | gcloud storage cp - "$GS/done" -q; exit 1; }
+    git fetch -q /work/repo.bundle "$SHA" || fail bundle 98
 else
-    git fetch -q --depth 1 origin "$SHA" || { status "fail fetch"; echo 98 | gcloud storage cp - "$GS/done" -q; exit 1; }
+    git fetch -q --depth 1 origin "$SHA" || fail fetch 98
 fi
 git -c advice.detachedHead=false checkout -q --detach "$SHA"
 T1=$(date +%s)
 
 status "setup"
-apt-get update -qq && apt-get install -y -qq python3-pip git >/dev/null
-bash tools/cloud/setup_linux.sh || { status "fail setup"; echo 97 | gcloud storage cp - "$GS/done" -q; exit 1; }
+bash tools/cloud/setup_linux.sh || fail setup 97
 T2=$(date +%s)
 
 OUT="build/cloud/$TAG"
@@ -69,7 +71,7 @@ cp /work/run.log "$OUT/run.log"
     echo "godot_version: $(source tools/cloud/env.sh && "$GODOT" --version)"
     echo "nproc: $(nproc)"
     echo "date_utc: $(date -u)"
-    echo "runner: gcp $(md machine-type | awk -F/ '{print $NF}') $ZONE $(md scheduling/provisioning-model 2>/dev/null)"
+    echo "runner: gcp $(md machine-type | awk -F/ '{print $NF}') $ZONE preemptible=$(md scheduling/preemptible)"
     echo "secs: fetch $((T1-T0)) setup $((T2-T1)) run $((T3-T2))"
     echo "rc: $RC"
 } > "$OUT/env.txt"
