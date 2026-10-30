@@ -1562,14 +1562,20 @@ func _draw_sf(w) -> void:
 		if Cfg.mobile_web():
 			n = maxi(4, n / 2)
 		var G: float = _pxg()
-		for i in n:
+		for i in n:   # 每条长短 / 粗细 / 速度 / 角度都打散（10-30 预审：等间距同长的线像重复矩形拼出来的）；尖头细尾
 			var h1: float = fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
 			var h2: float = fposmod(sin(float(i) * 78.233) * 12345.678, 1.0)
-			var d: Vector2 = Vector2.from_angle(TAU * (float(i) + h1 * 0.8) / float(n))
-			var r0: float = 70.0 + fposmod(t * 1500.0 + h2 * 700.0, 820.0)
-			var ln: float = 110.0 + 170.0 * h1
-			var lc: Color = col.lerp(Color.WHITE, 0.25 * h2)
-			_px_thick(w, c + d * r0, c + d * (r0 + ln), G * (1.0 + float(int(h2 * 2.0))), _pc(lc, (0.35 + 0.35 * h1) * k))
+			var h3: float = fposmod(sin(float(i) * 39.425) * 24634.633, 1.0)
+			var d: Vector2 = Vector2.from_angle(TAU * h3 + 0.35 * (h1 - 0.5))
+			var spd: float = 900.0 + 1400.0 * h2
+			var r0: float = 50.0 + fposmod(t * spd + h1 * 900.0, 860.0)
+			var ln: float = 50.0 + 320.0 * h1 * h1
+			var wd: float = G * (1.0 + floorf(h2 * 2.99))
+			var lc: Color = col.lerp(Color.WHITE, 0.4 * h3)
+			var a0: float = (0.25 + 0.5 * h2) * k
+			var p0: Vector2 = c + d * r0
+			_px_thick(w, p0, p0 + d * ln * 0.35, wd, _pc(lc, a0))                         # 亮头
+			_px_thick(w, p0 + d * ln * 0.35, p0 + d * ln, maxf(G, wd - G), _pc(col, a0 * 0.55))   # 细尾
 	w.tb_flush()
 	# 队长：原亮度 + 一圈干员色轮廓光（画在压暗层之上）
 	var pr: Dictionary = _sf_ld.portrait()
