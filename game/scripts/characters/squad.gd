@@ -528,7 +528,7 @@ func apply_command(id: String) -> void:
 
 
 ## ---------------------------------------------------------------- 指点（示意原型，docs/196；command/target_proto = 0 时永远不会有指令）
-## order_kind：""（无，原来的自动突击）/ "point"（点位：全队去 order_pos、在半径 command/order_pt_r 内作战）/ "focus"（集火：全队打 order_target）
+## order_kind：""（无，原来的自动突击）/ "point"（移动：队友走到 order_pos 驻扎，10-30 起不再是作战圈）/ "clear"（肃清）/ "focus"（集火：全队打 order_target）
 var order_kind := ""
 var order_pos := Vector2.INF
 var order_target = null
@@ -577,7 +577,7 @@ func clear_order() -> void:
 	_order_idle = 0.0
 
 
-## 移动（点位）：圈里（command/order_pt_r + 80）没有敌人超过 command/order_idle 秒、或队长走远（> order_break）→ 归队。
+## 移动（驻扎）：只在队长走远（> order_break）时归队，其余等玩家下别的指令。
 ## 肃清（10-30 用户加）：圈（command/clear_r）里没有敌人超过 command/clear_idle 秒、或下令后 command/clear_secs 秒、或队长走远 → 回到随行（不空耗作战时限）。
 ## 集火目标死了 = 指令结束（继续自动突击）
 func _tick_order(dt: float) -> void:
@@ -596,24 +596,30 @@ func _tick_order(dt: float) -> void:
 		elif g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0):
 			set_stance(RECALL)
 		return
-	var back: int = GUARD if clr else RECALL
-	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) or (clr and _order_age >= Bal.v("command/clear_secs", 9.0)):
+	if not clr:
+		# 移动 = 驻扎（10-30 用户「移动的范围是不是可以小很多？变成一个小点，并且干员会直接走过去驻扎」）：
+		# 走到点上站定、自动攻击射程内的敌人，不再「圈空就归队」；只有玩家下别的指令、作战时限耗尽、或队长走出 order_break 才结束
+		if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0):
+			set_stance(RECALL)
+		return
+	var back: int = GUARD
+	if g.ppos.distance_to(order_pos) > Bal.v("command/order_break", 1400.0) or _order_age >= Bal.v("command/clear_secs", 9.0):
 		set_stance(back)
 		return
 	var any := false
-	for e in g.enemies_sys.nearest(1, order_radius() + (0.0 if clr else 80.0), order_pos):
+	for e in g.enemies_sys.nearest(1, order_radius(), order_pos):
 		any = not e.dead
 	if any:
 		_order_idle = 0.0
 	else:
 		_order_idle += dt
-		if _order_idle >= (Bal.v("command/clear_idle", 1.0) if clr else Bal.v("command/order_idle", 2.5)):
+		if _order_idle >= Bal.v("command/clear_idle", 1.0):
 			set_stance(back)
 
 
-## 当前地面指令的作战圈半径：移动 command/order_pt_r，肃清 command/clear_r
+## 当前地面指令的作战圈半径：肃清 command/clear_r；移动是一个点（驻扎），返回 0
 func order_radius() -> float:
-	return Bal.v("command/clear_r", 220.0) if order_kind == "clear" else Bal.v("command/order_pt_r", 240.0)
+	return Bal.v("command/clear_r", 220.0) if order_kind == "clear" else 0.0
 
 
 ## 机器人用指点（10-30 协调人：「机器人也要会用」，否则云端测的数不准；command/bot_point 0 = 关）：每 command/bot_point_every 秒看一次，

@@ -1680,7 +1680,7 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	return _cmd_spread(g.ppos + (p - g.ppos).limit_length(radius))
 
 
-## 指点的站位（示意原型）：点位 = 以 order_pos 为圆心、半径 order_pt_r 内选离自己最近的敌人，没有就站在点上（按编队位散开）；
+## 指点的站位：移动 = 走到 order_pos 驻扎（编队位错开，不追怪）；肃清 = 以 order_pos 为圆心、半径 clear_r 内选离自己最近的敌人，没有就站在点上；
 ## 集火 = 直接打 order_target（贴近 / 进射程），不做紧急护主。正式实现应并进上面的评分（锁定档位 + 以点为圆心的候选圈），这里只求演示读得出来
 func _order_goal(slot_pos: Vector2) -> Vector2:
 	var sq = g.squad
@@ -1695,9 +1695,10 @@ func _order_goal(slot_pos: Vector2) -> Vector2:
 		if dd <= rr:
 			return pos
 		return t.pos + (pos - t.pos).normalized() * rr
-	if sq.order_beacon != null:
+	if sq.order_beacon != null or sq.order_kind == "point":
+		# 移动 = 驻扎 / 守灯标：走到点上站定（编队位 × command/station_spread 错开，不叠在一起；灯标光圈 r 70 内），不追怪，射程内的敌人由攻击侧自动打
 		roam_tgt = null
-		return sq.order_pos + g.squad._slot_offset(slot) * 0.5   # 守灯标：站进光圈（r 70）读条，不追怪
+		return sq.order_pos + g.squad._slot_offset(slot) * CmdBal.v("command/station_spread", 0.5)
 	var pr: float = sq.order_radius()
 	var best = null
 	var bd := INF

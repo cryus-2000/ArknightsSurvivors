@@ -118,8 +118,11 @@ func run(check: Callable) -> void:
 	check.call(squad.stance == Squad.GUARD, "clear: times out after clear_secs and returns to follow")
 	setl.call([])
 	check.call(squad.apply_order("point", Vector2(500.0, 0.0), null), "move order applies")
-	squad._tick_order(3.0)
-	check.call(squad.stance == Squad.RECALL, "move: empty circle still regroups (prototype rule)")
+	squad._tick_order(10.0)
+	check.call(squad.stance == Squad.ROAM and squad.order_kind == "point", "move = station: stays put with nothing around (10-30)")
+	check.call(is_equal_approx(squad.order_radius(), 0.0), "move is a point, not a circle")
+	squad.apply_order("clear", Vector2(500.0, 0.0), null)
+	check.call(squad.order_kind == "clear", "another order replaces the station")
 	# 移动指到灯标附近（10-30 用户「移动可以帮忙点亮灯塔」）：落点吸附到灯标中心，守到点燃后回随行
 	var bc := {"pos": Vector2(600.0, 0.0), "lit": false, "dead": false}
 	game.beacons = [bc]
