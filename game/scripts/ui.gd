@@ -155,8 +155,9 @@ static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int,
 ## 中文自动换行：在每个 CJK 字符后插入零宽空格（U+200B）作为换行机会，
 ## 避免文本服务把整段中文当成一个「词」、只在空格处换行（表现为第一行极短）。
 ## 不在开头标点（《「（）后、也不在结尾标点（》」，。）前插入，避免标点悬在行首。
-const _NO_BREAK_AFTER := "《「『（【〈"
-const _NO_BREAK_BEFORE := "》」』）】〉，。、；：！？"
+## 弯引号（10-30 招募卡简介「……冲锋”，对她来说」把后引号甩到了行首）：后引号不放行首、前引号不留行尾
+const _NO_BREAK_AFTER := "《「『（【〈“‘"
+const _NO_BREAK_BEFORE := "》」』）】〉，。、；：！？”’…"
 static func soft(s: String) -> String:
 	var out := ""
 	var n := s.length()

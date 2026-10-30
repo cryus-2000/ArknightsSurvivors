@@ -74,12 +74,21 @@ func lay() -> Dictionary:
 ## 左右 PAD_X_PHONE 26（卡宽 272 的 9.6%，缩放后约 21 UI 像素；原 20）；名字基线 162、说明从 186 起（原 160 / 176，名字与说明间多留 10）；
 ## 「影响 / 特性」标签行中线在卡底上方 66（原 53，原来下沿贴着选择条）；选择条左右内缩 20、底边离卡底 16。
 ## 说明区 = 卡高 − DESC_PAD_PHONE：186 起，到标签行顶边（卡底上方约 77）再留 20
+## 10-30 用户「字体不符合设计理念，重新设计字号和间距」：手机卡字号四级（实际像素，UI.fs 放大后）——
+##   名字 24（唯一的最大字）> 选择 19 > 说明 17 > 标签 / 流派 14；说明固定行高（字体自身约 1.5 倍），不再为塞下或撑满改行距。
+##   名字 / 说明各上移 2–4、说明区多 8（标签行与选择条不动）：17 号四行放得下
 const PAD_X_PHONE := 26.0
-const NAME_Y_PHONE := 162.0
-const DESC_Y_PHONE := 186.0
+const NAME_Y_PHONE := 160.0
+const DESC_Y_PHONE := 182.0
 const CHIP_UP_PHONE := 66.0
-const DESC_PAD_PHONE := 283.0
+const DESC_PAD_PHONE := 275.0
+const BTN_FS_PHONE := 16      # 选择（× phone_font_mult 1.18 ≈ 19）
+const CHIP_FS_PHONE := 12     # 流派 / 影响标签（≈ 14）
 const DESC_SIZES_PHONE := [20, 19, 18, 17, 16, 15]
+## 手机招募卡的整段简介（10-30 用户「手机版本的字体需要缩小点」）：单独一档，不用一句话的 24–19；
+## 写的是放大前的字号（UI.fs 乘 ui/phone_font_mult 1.18）：17 号，整组放不下降 15、再 14；行距固定（RECRUIT_GAPS_PHONE 只一档）
+const RECRUIT_SIZES_PHONE := [14, 13, 12]
+const RECRUIT_GAPS_PHONE := [0.0]
 ## 本次三选一的卡片高（未缩放的设计像素）：手机横屏按最长说明加高，0 = 用 card_h()
 var row_h := 0.0
 ## 一排卡片按张数自适应宽度（用户 10-13 截图：5 选 1 藏品最右一张出框）。视口按 1280×720 拉伸（canvas_items + expand），
@@ -678,8 +687,9 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		card.draw.connect((draw_event_bar if ev else (draw_node_card if kind == "cross" else draw_card)).bind(card, o, i))
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		if card.get_meta("more", false) and L.touch:
-			card.pressed.connect(_phone_press.bind(card, i))   # 点「详情」看完整说明，点别处照常选
+		if L.touch:
+			# 点「详情」看完整说明，点别处照常选；more 在下面排版后才定（手机招募卡缩到 15 还放不下才给详情），按下时再看
+			card.pressed.connect(func(): _phone_press(card, i) if card.get_meta("more", false) else g.progression.pick(i))
 		else:
 			card.pressed.connect(g.progression.pick.bind(i))
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
@@ -697,8 +707,17 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
 				if row_h > 0.0:
-					f0 = UI.fit(g.font, display_desc, card_w - 2.0 * PAD_X_PHONE, row_h - DESC_PAD_PHONE, BRIEF_SIZES_PHONE if briefs else DESC_SIZES_PHONE)
+					var dh := row_h - DESC_PAD_PHONE
+					var dw := card_w - 2.0 * PAD_X_PHONE
+					if o.kind == "recruit":
+						# 招募卡整段简介：先按这张自己排（下面整组统一字号 / 行距时重排，_even_recruit_phone）
+						f0 = _recruit_fit(display_desc, dw, dh)
+						card.set_meta("intro_box", [display_desc, dw, dh])
+					else:
+						f0 = UI.fit(g.font, display_desc, dw, dh, BRIEF_SIZES_PHONE if briefs else DESC_SIZES_PHONE)
 					card.set_meta("roomy", true)
+					if not f0.fit:
+						card.set_meta("more", true)   # 缩到 15 还放不下：给「详情」键，点开看全文
 				else:
 					f0 = UI.fit(g.font, display_desc, card_w - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
 			elif compact:
@@ -723,8 +742,35 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 				if not c.get_meta("compact"):
 					c.set_meta("compact", true)
 					c.set_meta("fit", UI.fit(g.font, c.get_meta("face_desc", c.get_meta("full_desc", "")), card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11]))
+	if not ev and L.touch:
+		_even_recruit_phone()
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
+
+
+## 手机招募卡的整段简介（10-30 用户写定，最长 40 字）：从大到小试 RECRUIT_SIZES_PHONE，others（同屏各卡）全部放得下就用这一档。
+## 都放不下返回最小一档的排版（截断，调用方给「详情」）
+func _recruit_fit(text: String, dw: float, dh: float, others: Array = []) -> Dictionary:
+	var last := {}
+	for sz in RECRUIT_SIZES_PHONE:
+		for gp in RECRUIT_GAPS_PHONE:
+			last = UI.fit(g.font, text, dw, dh, [sz], gp)
+			if last.fit and others.all(func(b): return UI.fit(g.font, str(b[0]), float(b[1]), float(b[2]), [sz], gp).fit):
+				return last
+	return last
+
+
+## 同一屏的手机招募卡用同一字号（并排时说明不一会儿大一会儿小）：取全组都放得下的最大一档
+func _even_recruit_phone() -> void:
+	var cards: Array = g.panel_box.get_children().filter(func(c): return c is Button and c.has_meta("intro_box"))
+	if cards.size() < 2:
+		return
+	var boxes: Array = cards.map(func(c): return c.get_meta("intro_box"))
+	for c in cards:
+		var b: Array = c.get_meta("intro_box")
+		var f := _recruit_fit(str(b[0]), float(b[1]), float(b[2]), boxes)
+		c.set_meta("fit", f)
+		c.set_meta("more", c.get_meta("more", false) or not f.fit)
 
 
 ## 手机卡片上的一句核心效果：说明第一行的第一句（到「；」「。」为止），去掉括号里的补充说明；还长于 BRIEF_MAX 字
@@ -836,10 +882,8 @@ const CN_NUM := ["一", "二", "三", "四"]
 
 func headline(o: Dictionary) -> String:
 	if str(o.get("kind", "")) == "recruit":
-		# 招募卡：第一句里讲到技能的半句不写（「普攻熔岩弹清理敌群，技能喷发火山…」只留前半），技能看详情
-		var b := brief(option_description(o))
-		var c := b.find("，")
-		return b.substr(0, c) if c >= 4 and b.substr(c).contains("技能") and brief_whole(b.substr(0, c)) else ""
+		# 招募卡写的是干员简介（gallery.intro，用户 10-30 逐条写定）：整段照写，不截第一句、不去括号，换行保留
+		return option_description(o).strip_edges()
 	if str(o.get("kind", "")) != "prog" or int(o.get("elite", 0)) <= 0 or o.get("branch", false):
 		return ""
 	var op = g.squad.get_op(str(o.get("op", ""))) if g.squad != null else null
@@ -1049,12 +1093,12 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)
-		var dc := Color(0.86, 0.9, 0.93, ta) if card.has_meta("brief") and lay().touch else Color(0.655, 0.69, 0.725, ta)   # 电脑：各类卡说明同字号同色（用户 10-30）
+		var dc := Color(0.86, 0.9, 0.93, ta) if card.has_meta("brief") and card.get_meta("phone", false) else Color(0.655, 0.69, 0.725, ta)   # 电脑：各类卡说明同字号同色（用户 10-30）；phone = 建卡时的 lay().touch
 		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * px)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
-		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "流派" if o.kind in ["recruit", "swap_out"] else "影响", 14 if (ph and card.has_meta("brief")) else 11, ta)
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "流派" if o.kind in ["recruit", "swap_out"] else "影响", CHIP_FS_PHONE if (ph and card.has_meta("brief")) else 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(20, r.size.y - 46), Vector2(r.size.x - 40, 30)) if roomy else Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	if ph and card.has_meta("brief"):
@@ -1067,9 +1111,9 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var w2 := (UI.cwidth(g.font, kl, 12) + 8.0) if kl != "" else 0.0
 	var sx := ab.get_center().x - (w1 + w2) / 2.0
 	if ph and card.has_meta("brief"):
-		sfs = 20
+		sfs = BTN_FS_PHONE
 		sx = ab.get_center().x - g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x / 2.0
-	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 7.0 if (ph and card.has_meta("brief")) else (21.0 if ph else 20.0))), "选择", sfs, ink)
+	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 6.0 if (ph and card.has_meta("brief")) else (21.0 if ph else 20.0))), "选择", sfs, ink)
 	UI.ctext(card, g.font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
 	motion.end(card, i, o)
 
