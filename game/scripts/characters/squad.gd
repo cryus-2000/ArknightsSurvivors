@@ -764,6 +764,7 @@ func aggro_target(e: Dictionary):
 ## 队友生命：突击中被近战怪碰到掉血（每人 command/op_inv 秒无敌间隔）；不突击时回血（command/hp_regen_secs 空到满）；
 ## 血空倒地 command/revive_secs 秒，到时原地复活；归队集合完毕时倒地的人在队长身边复活。复活给 command/revive_inv 秒无敌
 func _tick_hp(dt: float) -> void:
+	_tick_low()
 	if stance == ROAM:
 		roam_secs += dt
 	for o in ops:
@@ -804,6 +805,29 @@ func _tick_hp(dt: float) -> void:
 					if g.get("trace_every") != null and g.trace_every > 0.0:
 						print("CMD t=%.2f down %s" % [g.t, o.id])
 				break
+
+
+## 队友残血提醒（10-31 用户，docs/114 §21）：血量跌破 command/low_hp 进入提醒（头顶条 / 编队卡 / 屏外箭头红色慢闪，hud_allyhp），
+## 回到 command/low_hp_off 以上解除（两条线防止在线上反复闪）；倒地时清掉（倒地另有显示）。
+## 每次进入时该队友说一句 lowhp 语音：同一人 sfx.VOICE_CD.lowhp 秒冷却、占线就放弃（不打断别人）；没有 <干员>_lowhp 素材就不放
+func _tick_low() -> void:
+	var on: bool = hp_on() and cmd_on()
+	var lo: float = Bal.v("command/low_hp", 0.3)
+	var hi: float = Bal.v("command/low_hp_off", 0.4)
+	for o in ops:
+		if o.is_leader or not on or o.cmd_down > 0.0:
+			o.cmd_low = false
+			continue
+		if o.cmd_low:
+			if o.cmd_hp >= hi:
+				o.cmd_low = false
+		elif o.cmd_hp < lo:
+			o.cmd_low = true
+			if g.get("trace_every") != null and g.trace_every > 0.0:
+				print("CMD t=%.2f low %s" % [g.t, o.id])
+			var sfx: Node = g.get_node_or_null("/root/Sfx")
+			if sfx != null and g.demo_op == "":
+				sfx.voice(o.id, "lowhp")
 
 
 ## 归队瞬回（10-22 用户定）：按下归队，离站位远的队友原地放共用退场闪光、直接出现在队长身边（落点一圈光），1 秒无敌；
