@@ -1508,13 +1508,13 @@ static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
 	# 用户 10-30 第七轮：「Mon3tr 不是爆炸物也不是纯生物，做成粒子爆炸就可以」——不放烟团 / 血肉 / 散落小爆：
 	# 红白爆闪 → 三层红色粒子帧条（fx_px_burst，预烘焙）错开 0.05 秒从核心叠着迸开、由大到小（外层先到外圈）+ 一层近爆密核 + 一道红环 + 落地余烬
 	var vs: float = PF.vseed(u, core)
-	u.shape({"kind": "circle", "c": core, "r": 80.0, "col": Color(1.0, 0.7, 0.6), "fill": 0.95, "life": 0.07})
-	var reds := [Color(1.0, 0.28, 0.2), Color(1.0, 0.42, 0.3), Color(0.95, 0.18, 0.14)]
+	u.shape({"kind": "circle", "c": core, "r": 80.0, "col": Color(1.0, 0.32, 0.28), "fill": 0.95, "life": 0.07})
+	var reds := [Color(0.95, 0.07, 0.07), Color(1.0, 0.14, 0.12), Color(0.8, 0.04, 0.06)]   # 用户 10-30「更红一点，现在像橙色」：去掉橙调
 	for l in 3:
 		PF.particles(u, core, 300, "ult_burst", [reds[l]], 0.05 * l, vs + l * 11.0, R * (0.9 - 0.18 * l))
-	PF.particles(u, core, 100, "ult_burst_s", [Color(1.0, 0.55, 0.42)], 0.02, vs + 40.0, 150.0)
+	PF.particles(u, core, 100, "ult_burst_s", [Color(1.0, 0.2, 0.16)], 0.02, vs + 40.0, 150.0)
 	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 8.0, "col": Color(0.95, 0.3, 0.22), "life": 0.5})
-	u.spark(core, Color(1.0, 0.4, 0.3), 14, 40.0)
+	u.spark(core, Color(1.0, 0.18, 0.14), 14, 40.0)
 	u.light(core, R * 0.9, KA_RED, 0.5)
 
 

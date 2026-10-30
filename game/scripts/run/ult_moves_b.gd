@@ -9,7 +9,8 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
+const PF = preload("res://scripts/run/ult_pixfx.gd")
+const A = preload("res://scripts/art.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -534,6 +535,9 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 	_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": Color(0.25, 0.08, 0.35), "fill": 0.14, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 2.5, "col": col, "life": 3.0})
 	var ks: float = R / 470.0   # 帧条按 470 时的比例跟着半径缩放
+	if _an_v2(u):   # 奇点：Codex 第二批重力核心关键帧（fx_an_core），代码持续旋转、吸起期间缩小变亮
+		a["core"] = u.strip("fx_an_core", c, {"sc": 0.8 * ks, "life": 3.0, "col": Color(1.0, 1.0, 1.0, 0.9)})
+		a.fx.append(a.core)
 	a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2 * ks, "layer": "back", "loop": true, "life": 3.0}))
 	a.fx.append(u.strip("fx_angelina_well_front", c, {"sc": 1.6 * ks, "loop": true, "life": 3.0}))
 	return a
@@ -542,6 +546,7 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 static func _an_step(u, a: Dictionary, o) -> bool:
 	var t: float = a.t
 	var c: Vector2 = a.c
+	_an_core_tick(a, float(a.t), 0.45)
 	var R: float = a.R
 	var TL: float = a.TL
 	var TH: float = a.TH
@@ -615,10 +620,25 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 		for e in a.bosses:
 			_hit(u, a, o, e, fr, {"src": "砸地", "stun": 0.3})
 		var dust := Color(0.6, 0.5, 0.68)
-		u.strip("fx_angelina_well_close", c, {"sc": 3.6 * R / 470.0})
-		_ring(u, c, R, 50.0, dust, 0.55, 20.0)
-		_ring(u, c, R * 0.6, 40.0, col.lerp(Color.WHITE, 0.6), 0.35, 8.0)
-		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.3, "life": 0.22})
+		if not _an_v2(u):   # v2 不画旧的亮白收拢帧条（预审报砸地发白）
+			u.strip("fx_angelina_well_close", c, {"sc": 3.6 * R / 470.0})
+		if _an_v2(u):   # v2 砸地：顿帧 + 砸坑（fx_an_crater）+ 紫灰尘环（fx_an_ring）推到 R + 紫色粒子 + 两拍隆起
+			var vs3: float = PF.vseed(u, c) + float(si)
+			u.g.vfx.stop(Bal.v("ult/an_hitstop", 0.1), "ult", true)
+			if u.fx_ready("fx_an_crater"):
+				var cr: float = PF.tex_w(u, "fx_an_crater") * 0.5
+				u.strip("fx_an_crater", c, {"layer": "back", "sc": R * 0.3 / cr, "sc1": R * 0.42 / cr, "scd": 0.1, "ang": PF.h(vs3) * TAU, "sx": -1.0 if PF.h(vs3 + 1.0) < 0.5 else 1.0,
+					"life": 1.8, "fade": 0.7, "col": Color(0.95, 0.9, 1.0), "col1": Color(0.55, 0.5, 0.6), "cold": 0.6})
+			PF.particles(u, c, 300, "ult_burst", [Color(0.6, 0.45, 0.85)], 0.0, vs3, R * 0.85)   # 尘环贴图预审报重复拼接，改两层紫灰粒子
+			PF.particles(u, c, 300, "ult_burst", [Color(0.62, 0.58, 0.7)], 0.06, vs3 + 5.0, R * 0.6)
+			PF.heave(u, c, R * 0.45, vs3 + 2.0)
+			PF.heave(u, c, R * 0.85, vs3 + 3.0, 0.18)
+			if a.has("core"):
+				u.shapes.erase(a.core)
+		else:
+			_ring(u, c, R, 50.0, dust, 0.55, 20.0)
+			_ring(u, c, R * 0.6, 40.0, col.lerp(Color.WHITE, 0.6), 0.35, 8.0)
+			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.3, "life": 0.22})
 		_spray(u, c, 16, R * 0.35, 700.0, dust.lerp(Color.WHITE, 0.3), 0.45, 0.2 * float(si))
 		var nd := 0
 		for p in a.lift:   # 每只砸下的敌人脚下一圈尘
@@ -650,6 +670,21 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 	if has_el:
 		end_t = maxf(end_t, 1.5)
 	return t >= end_t
+
+
+## 安洁莉娜 v2（ult/an_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：奇点 = Codex 重力核心关键帧持续旋转、越吸越小越亮；
+## 砸地 = 顿帧 + 砸坑 + 两层紫 / 紫灰粒子 + 两拍隆起（尘环贴图预审报重复拼接，已去掉）。吸起 / 砸地判定与时序不动
+static func _an_v2(u) -> bool:
+	return Bal.v("ult/an_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_an_core")
+
+
+static func _an_core_tick(a: Dictionary, t: float, ks_end: float) -> void:
+	if not a.has("core"):
+		return
+	var k: float = clampf(t / maxf(0.01, float(a.TL) + float(a.TH)), 0.0, 1.0)
+	a.core.ang = -t * lerpf(4.0, 14.0, k)
+	a.core.sc = lerpf(0.8, ks_end, k * k)
+	a.core.col = Color(1.0 + 0.5 * k, 1.0 + 0.4 * k, 1.0 + 0.6 * k, 0.9)
 
 
 # ================================================================ 艾雅法拉（§4.9）：地面龟裂 → 火柱 → 熔岩块落满一圈 → 中间留熔岩地面
@@ -828,9 +863,21 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 		if not sh.done and t >= ts:
 			sh.done = true   # 主爆 70%（每人一次）
 			for p in sh.ps:
-				u.strip("fx_wisadel_cannon", p, {"sc": 1.9})
-				u.shape({"kind": "circle", "c": p, "r": rr, "col": Color(1.0, 0.55, 0.3), "fill": 0.35, "life": 0.22})
-				_ring(u, p, rr, 30.0, Color(1.0, 0.75, 0.55), 0.28, 9.0)
+				if _wd_v2(u):   # v2：Codex 爆炸关键帧（fx_wd_blast）鼓出冷却 + 弹坑（fx_ws_crater 4 种）留在地上 + 橙色粒子
+					var hp2: float = PF.h(p.x * 0.013 + p.y * 0.029 + float(k))
+					# 用户 10-30「弹坑的分布和大小可以没那么规则」：画面位置按哈希偏 ≤ 0.4 rr、大小 0.65–1.45 倍（判定仍在 p）
+					var rk: float = 0.65 + 0.8 * PF.h(hp2 * 31.0)
+					var pv: Vector2 = p + Vector2.from_angle(PF.h(hp2 * 17.0) * TAU) * rr * 0.4 * PF.h(hp2 * 23.0)
+					var bdl: float = 0.07 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
+					u.strip("fx_wd_blast" if hp2 < 0.5 else "fx_wd_blast2", pv, {"delay": bdl, "sc": rr * 0.5 * rk / 128.0, "sc1": rr * 1.15 * rk / 128.0, "scd": 0.18, "ang": hp2 * TAU, "sx": -1.0 if hp2 < 0.5 else 1.0,
+						"life": 0.36, "fade": 0.2, "col": Color(0.95, 0.88, 0.85), "col1": Color(0.4, 0.33, 0.3), "cold": 0.18})   # 预审：原 1.2 倍亮、0.55 秒太白太久
+					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
+						"col": Color(1.2, 1.1, 1.0), "col1": Color(0.75, 0.7, 0.68), "cold": 0.8})
+					PF.particles(u, pv, 60, "ult_burst_s", [Color(1.0, 0.6, 0.35)], 0.0, hp2 * 50.0, rr * 1.1 * rk)
+				else:
+					u.strip("fx_wisadel_cannon", p, {"sc": 1.9})
+					u.shape({"kind": "circle", "c": p, "r": rr, "col": Color(1.0, 0.55, 0.3), "fill": 0.35, "life": 0.22})
+					_ring(u, p, rr, 30.0, Color(1.0, 0.75, 0.55), 0.28, 9.0)
 				_spray(u, p, 6, 30.0, 520.0, Color(1.0, 0.6, 0.3), 0.3, 0.5 * float(k))
 				for e in u.in_circle(p, rr):
 					if a.mseg.has(int(e.id)):
@@ -845,9 +892,13 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 			sh.after = true   # 余震 30%，眩晕 0.8（精英 0.4）；余烬未冷：余震 3 圈、眩晕 1 秒
 			var rings: int = 3 if a.ember else 1
 			for p in sh.ps:
-				u.strip("fx_missile_explode", p, {"sc": 2.4})
-				for ri in rings:
-					_ring(u, p, rr * (1.0 + 0.12 * float(ri)), 40.0, col.lerp(Color(0.3, 0.0, 0.0), 0.3), 0.3, 6.0, 0.08 * float(ri))
+				if _wd_v2(u):   # 余震：一下震 + 弹坑周围碎石掀起 + 尘，不画余震圆环
+					u.shake(3.0, 0.12)
+					PF.heave(u, p, rr * 0.9, p.x * 0.01 + float(k), 0.0, Color.WHITE, 70.0)
+				else:
+					u.strip("fx_missile_explode", p, {"sc": 2.4})
+					for ri in rings:
+						_ring(u, p, rr * (1.0 + 0.12 * float(ri)), 40.0, col.lerp(Color(0.3, 0.0, 0.0), 0.3), 0.3, 6.0, 0.08 * float(ri))
 				for e in u.in_circle(p, rr + 40.0):   # 主爆的小击退（小怪 60 / 精英 30）会把圈边的人推出圈：主爆打过的放宽 40 再判
 					if a.aseg.has(int(e.id)) or (e.pos.distance_to(p) > rr and not a.mseg.has(int(e.id))):
 						continue
@@ -859,6 +910,12 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 		if not sh.after:
 			all_done = false
 	return all_done
+
+
+## 维什戴尔 v2（ult/wd_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：每发炮弹 = Codex 第二批爆炸关键帧（fx_wd_blast，单帧，代码放大冷却）
+## + 弹坑（fx_ws_crater 4 种按落点哈希挑）留地上 + 橙色粒子帧条；余震 = 一下震 + 碎石掀起。判定 / 时序不动
+static func _wd_v2(u) -> bool:
+	return Bal.v("ult/wd_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_wd_blast") and u.fx_ready("fx_ws_crater")
 
 
 # ================================================================ 归溟幽灵鲨（§4.11）：巨锯放大、围着她转 3 秒，跟着队长走；期间不倒、受到的伤害 −50%
@@ -980,7 +1037,47 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": w * 0.5, "col": col.darkened(0.35).lerp(Color(0.25, 0.1, 0.4), 0.3), "fill": 0.95, "life": 2.0}))
 	for i in 8:   # 吸盘高光
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": 5.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.9, "life": 2.0}))
+	if _mz_v2(u):   # 触手 v2：pixgen 整条触手贴图（fx_mz_tent，左粗右细带吸盘）沿贝塞尔切成 MZ_SEGS 段贴，程序圆链不画
+		for s in a.chain:
+			u.shapes.erase(s)
+		var tt: Texture2D = u._strip_tex(MZ_TENT)
+		a["tsegs"] = []
+		for i in MZ_SEGS:
+			var sg: Dictionary = u.strip(MZ_TENT, base, {"ux": floorf(tt.get_width() * float(i) / MZ_SEGS), "uw": ceilf(tt.get_width() / float(MZ_SEGS)) + 2.0,
+				"o": Vector2(0.0, tt.get_height() * 0.5), "life": 2.0})
+			a.tsegs.append(sg)
+			a.fx.append(sg)
 	return a
+
+
+## 水月 v2（ult/mz_fx_v2，缺省 1；用户 10-30「水月的触手需要重新生成」）：pixgen 整条触手（fx_mz_tent）沿 _mz_pose 的贝塞尔切段贴，
+## 每段按切线转角、按段长拉伸，粗细跟贴图本身（根部粗、尖端卷曲）
+const MZ_TENT := "fx_mz_tent"
+const MZ_SEGS := 20   # 段越多弯处接缝越小（预审报 10 段拼接感明显）
+
+
+static func _mz_v2(u) -> bool:
+	return Bal.v("ult/mz_fx_v2", 1.0) > 0.0 and u.fx_ready(MZ_TENT)
+
+
+static func _mz_tent_pose(u, a: Dictionary, ctrl: Vector2, tip: Vector2) -> void:
+	if not a.has("tsegs"):
+		return
+	var base: Vector2 = a.base
+	var tt: Texture2D = u._strip_tex(MZ_TENT)
+	var seg_w: float = tt.get_width() / float(MZ_SEGS)   # 纹素
+	var k0: float = u.g.PX / A.hires_of(tt)
+	for i in MZ_SEGS:
+		var ka: float = float(i) / MZ_SEGS
+		var kb: float = float(i + 1) / MZ_SEGS
+		var pa: Vector2 = base.lerp(ctrl, ka).lerp(ctrl.lerp(tip, ka), ka)
+		var pb: Vector2 = base.lerp(ctrl, kb).lerp(ctrl.lerp(tip, kb), kb)
+		var s: Dictionary = a.tsegs[i]
+		s.c = pa
+		s.ang = (pb - pa).angle()
+		s.sx = pa.distance_to(pb) / (seg_w * k0) * 1.12   # 段间多叠一点，弯处不露缝
+		s.sy = 0.9
+		s.age = 0.0
 
 
 ## 触手形状：从身后根部出发，弯一道弧到当前角度的尖端（二次贝塞尔，控制点偏向扫动的来向）
@@ -989,6 +1086,9 @@ static func _mz_pose(a: Dictionary, ang: float, reach: float) -> void:
 	var c: Vector2 = a.c
 	var tip: Vector2 = c + Vector2.from_angle(ang) * reach
 	var ctrl: Vector2 = c + Vector2.from_angle(ang - 0.45) * reach * 0.55
+	if a.has("tsegs"):
+		a["_ctrl"] = ctrl
+		a["_tip"] = tip
 	var ch: Array = a.chain
 	for i in 28:
 		var k: float = float(i) / 27.0
@@ -1040,6 +1140,8 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 				u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": col, "fill": 0.18, "life": 0.3})
 				u.shape({"kind": "line", "a": c + Vector2.from_angle(ang) * R * 0.95, "b": c + Vector2.from_angle(ang - 0.08) * R, "w": 6.0, "col": col.lerp(Color.WHITE, 0.6), "life": 0.2})
 		_mz_pose(a, ang, reach)
+		if a.has("tsegs"):
+			_mz_tent_pose(u, a, a._ctrl, a._tip)
 		for s in a.fx:
 			_hold(s)
 		return false

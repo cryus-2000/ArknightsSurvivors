@@ -740,7 +740,15 @@ static func _ho_start(u, o) -> Dictionary:
 		if n < 36 and pull > 60.0:
 			n += 1
 			u.shape({"kind": "line", "a": e.pos, "b": e.pos + dv / dist * minf(pull, 120.0), "w": 2.0, "col": col.lerp(Color.WHITE, 0.3), "life": 0.2, "v": dv / dist * 500.0})
-	return {"c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
+	var hv2: bool = _ho_v2(u)
+	if hv2:   # 盾砸地：顿帧 + 盾下地面碎裂（fx_hs_crack 整张，压出来）+ 碎石掀起 + 灰尘粒子
+		u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
+		var vs0: float = PF.vseed(u, c)
+		u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.35, "sc1": 0.55, "scd": 0.1, "ang": PF.h(vs0) * TAU, "sx": -1.0 if PF.h(vs0 + 1.0) < 0.5 else 1.0,
+			"life": hold + 1.4, "fade": 0.6, "col": Color(1.1, 1.08, 1.05), "col1": Color(0.6, 0.58, 0.56), "cold": hold + 0.6})
+		PF.heave(u, c, 120.0, vs0 + 3.0)
+		PF.particles(u, c, 100, "ult_burst_s", [Color(0.85, 0.82, 0.76)], 0.0, vs0, 140.0)
+	return {"v2": hv2, "c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
 		"rf": 0.78 if rt == "ember" else Bal.v("ult/ho_boom", 0.9), "wall": rt == "wall", "ember": rt == "ember", "et": 0, "eseg": [{}, {}, {}],
 		"glow": u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold})}
 
@@ -765,8 +773,13 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			a.tick = i + 1
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.tseg[i], e, 0.02, {"src": "格挡", "pre": true, "edge": e.pos.distance_to(c) > rc})
-			# 裂纹扩大：每跳多几道放射裂纹、盾阵泛红
-			for j in 3 + i:
+			if a.v2:   # 裂纹扩大：每跳地面碎裂再撑大一圈 + 一下震 + 碎石（v2 不画程序线段裂纹）
+				var vs1: float = PF.vseed(u, c) + i
+				u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.55 + 0.12 * i, "sc1": 0.6 + 0.12 * (i + 1), "scd": 0.08, "ang": PF.h(vs1) * TAU,
+					"life": hold - t + 1.2, "fade": 0.6, "col": Color(0.95, 0.9, 0.88, 0.8), "col1": Color(0.55, 0.52, 0.5, 0.8), "cold": 0.5})
+				u.shake(2.0 + i, 0.12)
+				PF.heave(u, c, 130.0 + 40.0 * i, vs1 + 7.0)
+			for j in (0 if a.v2 else 3 + i):
 				var ang: float = j * 2.39996 + i * 0.7
 				var dv := Vector2.from_angle(ang)
 				u.shape({"kind": "line", "a": c + dv * 60.0, "b": c + dv * (90.0 + 40.0 * i), "w": 3.0, "col": col.lerp(COL_RED, k), "life": hold - t + 0.15})
@@ -778,11 +791,22 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 		o.play_vis_anim("attack")
 		o.screen_shake(1.0)
 		u.shapes.erase(a.glow)
-		u.shape({"kind": "circle", "c": c, "r": R, "col": COL_RED.lerp(col, 0.5), "fill": 0.3, "life": 0.22})
-		_ring(u, c, R, 80.0, col.lerp(Color.WHITE, 0.3), 0.45, 14.0)
-		for j in 18:   # 盾甲碎片往外飞
+		if a.v2:   # 反震：顿帧 + 石尘冲击环（fx_hs_ring）推到 R + 灰白粒子迸开 + 四拍往外震（节奏同乌尔比安四圈）
+			u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
+			var vs2: float = PF.vseed(u, c) + 50.0
+			PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
+			PF.particles(u, c, 300, "ult_burst", [Color(0.95, 0.9, 0.85), Color(1.0, 0.55, 0.45)], 0.0, vs2, R * 0.8)
+			a["vs"] = vs2
+			a["beats"] = [[t, R * 0.3, 0], [t + 0.18, R * 0.55, 1], [t + 0.36, R * 0.8, 2], [t + 0.54, R, 3]]
+			PF.aftershock(u, c, R, vs2 + 9.0, 0.84, 10)
+		else:
+			u.shape({"kind": "circle", "c": c, "r": R, "col": COL_RED.lerp(col, 0.5), "fill": 0.3, "life": 0.22})
+			_ring(u, c, R, 80.0, col.lerp(Color.WHITE, 0.3), 0.45, 14.0)
+		for j in (0 if a.v2 else 18):   # 盾甲碎片往外飞
 			var dv := Vector2.from_angle(j * TAU / 18.0 + 0.17)
 			u.shape({"kind": "blade", "a": c + dv * 90.0, "b": c + dv * 130.0, "w": 7.0, "col": Color(1.0, 0.9, 0.7), "glow": COL_RED, "life": 0.4, "v": dv * 900.0})
+	if a.v2:
+		PF.beats_tick(u, a, t, c, Color(1.0, 0.85, 0.8))
 	var el: float = t - float(a.boom)
 	var T: float = 0.14
 	if el <= T + 0.1:   # 反震：两层六边形从盾前扩到 R（逐帧描，形状一眼是盾阵）
@@ -808,6 +832,12 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 				_once(u, a, o, a.eseg[i], e, 0.04, {"src": "热砂", "edge": e.pos.distance_to(c) > rc})
 		return int(a.et) >= 3
 	return el >= T + 0.12
+
+
+## 星熊 v2（ult/ho_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：盾砸地顿帧 + 盾下地面碎裂整张（fx_hs_crack），格挡每跳裂开一圈；
+## 反震顿帧 + 石尘冲击环（fx_hs_ring）+ 粒子 + 四拍隆起；盾阵六边形照旧（形状一眼是盾阵）。灰黑断裂，不用凯尔希的红缝
+static func _ho_v2(u) -> bool:
+	return Bal.v("ult/ho_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_hs_crack") and u.fx_ready("fx_hs_ring")
 
 
 # ================================================================ 推进之王（§4.17）：高高跃起 → 0.6 秒后巨锤砸落点 → 冲击波横扫、碎石飞溅、敌人震上半空 0.8 秒后落地
