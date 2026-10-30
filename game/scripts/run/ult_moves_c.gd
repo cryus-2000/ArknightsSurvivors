@@ -597,6 +597,26 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 
 # ================================================================ 逻各斯（§4.15）：面前长方形咒域 → 区域内敌人头顶咒文标记 → 一词念出、标记同时爆裂（处决 / 清矩形内弹幕）
 
+## 用户 10-31「方形面积和边缘那一圈咒文都很奇怪」（开关 ult/lo_circ 缺省 1；0 = 原长方形咒域）：
+## 判定与画面改成她面前一个圆（圆心在瞄准方向 ult/lo_off 处、半径 ult/lo_cr，按 ult_bench --area 定到标准面积 950 千平方像素 ±15%，docs/199 §5.10）；
+## 不画边框 / 咒文带 / 分隔线；圆里一层淡墨、边缘几团墨渍；「删去」的墨线改成横贯圆的弦。处决 / 安魂 / 清弹 / 转喻 / 墓志铭照旧，只是改按圆判
+static func _lo_circ() -> bool:
+	return Bal.v("ult/lo_circ", 1.0) > 0.0
+
+
+static func _lo_in(a: Dictionary, p: Vector2) -> bool:
+	if a.get("circ", false):
+		return p.distance_to(Vector2(a.cc)) <= float(a.cr)
+	var l: Vector2 = _loc(p, a.org, a.d)
+	return l.x >= -float(a.bk) and l.x <= float(a.L) and absf(l.y) <= float(a.hw)
+
+
+static func _lo_targets(u, a: Dictionary) -> Array:
+	if a.get("circ", false):
+		return u.in_circle(Vector2(a.cc), float(a.cr))
+	return _in_rect(u, a.org, a.d, -float(a.bk), float(a.L), float(a.hw))
+
+
 static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var hw: float = Bal.v("ult/lo_w", 920.0) * 0.5
@@ -612,30 +632,39 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var v2: bool = _lo_v2(u)
 	var v3: bool = v2 and Bal.v("ult/lo_fx_v3", 1.0) > 0.0   # 「删去」粗稿（§7.11）
 	var vs: float = PF.vseed(u, org)
+	var circ: bool = _lo_circ()
+	var cc: Vector2 = org + d * Bal.v("ult/lo_off", 330.0)
+	var cr: float = Bal.v("ult/lo_cr", 550.0)
+	var a0 := {"circ": circ, "cc": cc, "cr": cr, "org": org, "d": d, "bk": bk, "L": L, "hw": hw}
+	if circ:
+		_lo_ink_area(u, cc, cr, tm, vs)
 	# 咒域：矩形描边 + 底色 + 两条长边的咒文条（fx_logos_script 拼接）+ 横向分隔线
-	u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
-	if v2:
+	if not circ:
+		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
+	if circ:
+		pass
+	elif v2:
 		_lo_field_v2(u, [p0, p1, p2, p3], tm, vs)
-	for pr in ([] if v2 else [[p0, p1], [p1, p2], [p2, p3], [p3, p0]]):
+	for pr in ([] if v2 or circ else [[p0, p1], [p1, p2], [p2, p3], [p3, p0]]):
 		u.shape({"kind": "line", "a": pr[0], "b": pr[1], "w": 3.0, "col": col.lerp(Color.WHITE, 0.3), "life": tm + 0.1})
-	if not v2:
+	if not v2 and not circ:
 		u.tiles_line("fx_logos_script", p0 + d.orthogonal() * 14.0, p1 + d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
 		u.tiles_line("fx_logos_script", p3 - d.orthogonal() * 14.0, p2 - d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
-	for k in (0 if v3 else 4):
+	for k in (0 if v3 or circ else 4):
 		var x: float = lerpf(-bk, L, (k + 1) / 5.0)
 		u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 1.5, "col": Color(col, 0.6), "life": tm, "delay": 0.05 * k})
 	if v3:
-		_lo_erase_v3(u, org, d, hw, L, bk, tm, vs)
+		_lo_erase_v3(u, org, d, hw, L, bk, tm, vs, a0)
 	# 标记（头顶咒文，fx_logos_glyph 画入 0–3；同屏至多 ult/lo_mark_fx 个，伤害照打每一个）
 	var marks: Array = []
 	var cap: int = int(Bal.v("ult/lo_mark_fx", 40.0))
-	for e in _in_rect(u, org, d, -bk, L, hw):
+	for e in _lo_targets(u, a0):
 		if marks.size() >= cap:
 			break
 		var mp: Vector2 = e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0)
 		marks.append({"e": e, "s": {"c": mp} if v3 else _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
-	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "v3": v3, "vs": vs,
+	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "v3": v3, "vs": vs, "circ": circ, "cc": cc, "cr": cr,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
 
 
@@ -656,13 +685,15 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		a.boom = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		if a.v3:   # 句点：整片抹白一下（不爆）
+		if a.circ:   # 句点：整片抹白一下（不爆）
+			u.shape({"kind": "circle", "c": a.cc, "r": float(a.cr), "col": Color(0.8, 0.79, 0.76), "fill": 0.16, "life": 0.15})   # 预审：抹白别发白
+		elif a.v3:
 			u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": Color(0.96, 0.95, 0.9), "fill": 0.32, "life": 0.2})
 		else:
 			u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.22 if a.v2 else 0.35, "life": 0.25})
-		if a.v2 and not a.v3:
+		if a.v2 and not a.v3 and not a.circ:
 			_lo_boom_v2(u, a, org, d, hw, L, bk)
-		for k in (0 if a.v2 else 6):   # 一词念出：咒文从队长往矩形尽头横扫
+		for k in (0 if a.v2 or a.circ else 6):   # 一词念出：咒文从队长往矩形尽头横扫
 			var x: float = lerpf(-bk, L, (k + 0.5) / 6.0)
 			u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 5.0, "col": Color.WHITE, "life": 0.18, "delay": 0.02 * k})
 		for mk in ([] if a.v2 else a.marks):
@@ -672,8 +703,8 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		var nexe := 0
 		var nmeto := 0
 		var ninks := 0
-		for e in _in_rect(u, org, d, -bk, L, hw):
-			var edge: bool = absf(_loc(e.pos, org, d).y) > hc
+		for e in _lo_targets(u, a):
+			var edge: bool = e.pos.distance_to(Vector2(a.cc)) > float(a.cr) * _core() if a.circ else absf(_loc(e.pos, org, d).y) > hc
 			var frac: float = a.mf
 			var exe: bool = _minion(e) and float(e.hp) < thr   # 处决按生命阈值，外缘也算（§3.3：和小怪档同一档）
 			if exe:   # 处决：按她的生命直接补满（照亮的 1.25 折扣也补回）
@@ -706,8 +737,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		for bl in g.ebullets:   # 只清矩形内的敌方弹幕
 			if float(bl.get("life", 0.0)) <= 0.0:
 				continue
-			var l: Vector2 = _loc(bl.pos, org, d)
-			if l.x >= -bk and l.x <= L and absf(l.y) <= hw:
+			if _lo_in(a, bl.pos):
 				bl.life = 0.0
 	for b in a.big:
 		if not b.get("done", false) and t >= float(b.t):
@@ -816,7 +846,8 @@ static func _lo_boom_v2(u, a: Dictionary, org: Vector2, d: Vector2, hw: float, L
 const LO_INK := Color(0.07, 0.07, 0.09)
 
 
-static func _lo_erase_v3(u, org: Vector2, d: Vector2, hw: float, L: float, bk: float, tm: float, vs: float) -> void:
+static func _lo_erase_v3(u, org: Vector2, d: Vector2, hw: float, L: float, bk: float, tm: float, vs: float, ar := {}) -> void:
+	var circ: bool = ar.get("circ", false)
 	u.shape({"kind": "nop", "c": org, "desat": 0.85, "din": 0.12, "dout": 0.8, "life": tm + 0.95})
 	var n := 6
 	var t: Texture2D = u._strip_tex(LO_RUNE)
@@ -834,6 +865,13 @@ static func _lo_erase_v3(u, org: Vector2, d: Vector2, hw: float, L: float, bk: f
 		var j: float = (PF.h(vs + k * 5.9) - 0.5) * 120.0
 		var a0: Vector2 = _w(org, d, x + j, -hw * 0.96)
 		var a1: Vector2 = _w(org, d, x - j, hw * 0.96)
+		if circ:   # 圆：沿瞄准方向排 6 道横贯圆的弦（长短跟着圆、略斜）
+			var cr: float = ar.cr
+			var y: float = lerpf(-cr * 0.85, cr * 0.85, (k + 0.5) / n) + (PF.h(vs + k * 3.3) - 0.5) * 40.0
+			var hl: float = sqrt(maxf(0.0, cr * cr - y * y)) * 0.92
+			var cc: Vector2 = ar.cc
+			a0 = cc + d * y + d.orthogonal() * (-hl) + d * j * 0.4
+			a1 = cc + d * y + d.orthogonal() * hl - d * j * 0.4
 		var nm := PF.pick(u, IR_SLASH, vs * 0.2 + k * 1.9)
 		var st: Texture2D = u._strip_tex(nm)
 		var sx: float = a0.distance_to(a1) / PF.tex_w(u, nm)
@@ -843,12 +881,20 @@ static func _lo_erase_v3(u, org: Vector2, d: Vector2, hw: float, L: float, bk: f
 	u.shape({"kind": "circle", "c": w0 + Vector2(lw * kk * (n + 0.4), 10.0), "r": 9.0, "col": Color(0.95, 0.93, 0.88), "fill": 0.95, "delay": tm - 0.02, "life": 0.4})
 
 
+## 圆形咒域的底：一层淡墨（地面层）+ 边缘 7 团大小不一的墨渍（粒子帧条着墨色），不画边线
+static func _lo_ink_area(u, cc: Vector2, cr: float, tm: float, vs: float) -> void:
+	u.shape({"kind": "circle", "c": cc, "r": cr, "col": Color(0.04, 0.04, 0.06), "fill": 0.22, "life": tm + 0.6, "layer": "back"})
+	for q in 7:
+		var hh: float = PF.h(vs + q * 3.7)
+		var pq: Vector2 = cc + Vector2.from_angle(TAU * (q + hh) / 7.0) * cr * (0.85 + 0.12 * hh)
+		PF.particles(u, pq, 60, "ult_burst_s", [Color(0.06, 0.06, 0.08), Color(0.16, 0.15, 0.18)], 0.03 * q, vs + q * 5.0, 50.0 + 50.0 * hh)
+
+
 static func _lo_outside(u, a: Dictionary, p: Vector2):
 	var best = null
 	var bd := 400.0 * 400.0
 	for e in u.in_circle(p, 400.0):
-		var l: Vector2 = _loc(e.pos, a.org, a.d)
-		if l.x >= -float(a.bk) and l.x <= float(a.L) and absf(l.y) <= float(a.hw):
+		if _lo_in(a, e.pos):
 			continue
 		var d2: float = e.pos.distance_squared_to(p)
 		if d2 < bd:
