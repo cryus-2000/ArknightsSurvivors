@@ -606,6 +606,7 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var p2: Vector2 = _w(org, d, L, hw)
 	var p3: Vector2 = _w(org, d, -bk, hw)
 	var v2: bool = _lo_v2(u)
+	var v3: bool = v2 and Bal.v("ult/lo_fx_v3", 1.0) > 0.0   # 「删去」粗稿（§7.11）
 	var vs: float = PF.vseed(u, org)
 	# 咒域：矩形描边 + 底色 + 两条长边的咒文条（fx_logos_script 拼接）+ 横向分隔线
 	u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
@@ -616,9 +617,11 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	if not v2:
 		u.tiles_line("fx_logos_script", p0 + d.orthogonal() * 14.0, p1 + d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
 		u.tiles_line("fx_logos_script", p3 - d.orthogonal() * 14.0, p2 - d.orthogonal() * 14.0, {"loop": true, "life": tm + 0.1})
-	for k in 4:
+	for k in (0 if v3 else 4):
 		var x: float = lerpf(-bk, L, (k + 1) / 5.0)
 		u.shape({"kind": "line", "a": _w(org, d, x, -hw), "b": _w(org, d, x, hw), "w": 1.5, "col": Color(col, 0.6), "life": tm, "delay": 0.05 * k})
+	if v3:
+		_lo_erase_v3(u, org, d, hw, L, bk, tm, vs)
 	# 标记（头顶咒文，fx_logos_glyph 画入 0–3；同屏至多 ult/lo_mark_fx 个，伤害照打每一个）
 	var marks: Array = []
 	var cap: int = int(Bal.v("ult/lo_mark_fx", 40.0))
@@ -626,9 +629,9 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 		if marks.size() >= cap:
 			break
 		var mp: Vector2 = e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0)
-		marks.append({"e": e, "s": _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
+		marks.append({"e": e, "s": {"c": mp} if v3 else _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
-	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "vs": vs,
+	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false, "v2": v2, "v3": v3, "vs": vs,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
 
 
@@ -649,8 +652,11 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		a.boom = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.22 if a.v2 else 0.35, "life": 0.25})
-		if a.v2:
+		if a.v3:   # 句点：整片抹白一下（不爆）
+			u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": Color(0.96, 0.95, 0.9), "fill": 0.32, "life": 0.2})
+		else:
+			u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.22 if a.v2 else 0.35, "life": 0.25})
+		if a.v2 and not a.v3:
 			_lo_boom_v2(u, a, org, d, hw, L, bk)
 		for k in (0 if a.v2 else 6):   # 一词念出：咒文从队长往矩形尽头横扫
 			var x: float = lerpf(-bk, L, (k + 0.5) / 6.0)
@@ -661,6 +667,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 		var thr: float = u.ref_hp() * Bal.v("ult/lo_exec", 2.0)
 		var nexe := 0
 		var nmeto := 0
+		var ninks := 0
 		for e in _in_rect(u, org, d, -bk, L, hw):
 			var edge: bool = absf(_loc(e.pos, org, d).y) > hc
 			var frac: float = a.mf
@@ -669,11 +676,15 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 				frac = maxf(frac, float(e.hp) / maxf(1.0, u.budget(e, edge) * u.build_mult(o)) * 1.3)
 			var pos: Vector2 = e.pos
 			_once(u, a, o, a.seg, e, frac, {"src": "处决" if exe else "咒文", "edge": edge})
+			if e.dead and a.v3 and ninks < 18:   # 被划掉的化墨迹散开
+				ninks += 1
+				PF.particles(u, pos, 60, "ult_burst_s", [Color(0.08, 0.08, 0.1), Color(0.2, 0.19, 0.22)], 0.0, float(a.vs) + ninks * 2.7, 55.0)
 			if e.dead:
 				if exe:
 					nexe += 1
-					u.shape({"kind": "dots", "c": pos, "r": 22.0, "n": 6, "col": Color(0.25, 0.25, 0.3), "life": 0.5})   # 化灰
-					u.shape({"kind": "line", "a": pos + Vector2(0, 8), "b": pos + Vector2(0, -46), "w": 3.0, "col": col.lerp(Color.WHITE, 0.6), "life": 0.16})
+					if not a.v3:
+						u.shape({"kind": "dots", "c": pos, "r": 22.0, "n": 6, "col": Color(0.25, 0.25, 0.3), "life": 0.5})   # 化灰
+						u.shape({"kind": "line", "a": pos + Vector2(0, 8), "b": pos + Vector2(0, -46), "w": 3.0, "col": col.lerp(Color.WHITE, 0.6), "life": 0.16})
 					if a.meto and nmeto < 10:   # 转喻：溢出伤害转给矩形外最近一名敌人
 						var tg = _lo_outside(u, a, pos)
 						if tg != null:
@@ -792,6 +803,40 @@ static func _lo_boom_v2(u, a: Dictionary, org: Vector2, d: Vector2, hw: float, L
 			PF.particles(u, p, 60, "ult_burst_s", [LO_VIO, Color(0.5, 0.42, 0.9)], dl + 0.05, float(a.vs) + i * 3.0, 50.0)
 		u.shapes.erase(mk.s)
 		i += 1
+
+
+## ---- 逻各斯「删去」粗稿（docs/199 §7.11，开关 ult/lo_fx_v3 缺省 1；0 = §7.10 符文咒域版）。用户 10-30：「做个大概的给我看看」
+## 画面褪成墨色（全屏去色 0.85，ult.gd desat 图形）像一页手稿 → 空中一行萨卡兹字逐字写出（截 fx_lo_rune 单字，每字 0.07 秒）→
+## 每写完一字，咒域里对应一段被一笔墨线横向划掉（fx_ir_slash 染墨黑）→ 0.5 秒（原结算时刻）落「句点」：整片抹白一下、被划掉的敌人化墨迹散开、
+## 颜色 0.8 秒内慢慢回来。安静克制、不爆。时序沿用原判定（0.5 秒一次结算），逐字逐段结算要改判定，列给协调人
+const LO_INK := Color(0.07, 0.07, 0.09)
+
+
+static func _lo_erase_v3(u, org: Vector2, d: Vector2, hw: float, L: float, bk: float, tm: float, vs: float) -> void:
+	u.shape({"kind": "nop", "c": org, "desat": 0.85, "din": 0.12, "dout": 0.8, "life": tm + 0.95})
+	var n := 6
+	var t: Texture2D = u._strip_tex(LO_RUNE)
+	var lw: float = t.get_width() / 66.0   # fx_lo_rune 三条 × 22 字，一字宽
+	var sc := 0.85
+	var kk: float = PF.tex_w(u, LO_RUNE) / t.get_width() * sc
+	var w0: Vector2 = org + d * 160.0 + Vector2(-lw * kk * n * 0.5, -240.0)   # 一行字：她前上方（避开本体），屏幕横排
+	for k in n:
+		var tk: float = 0.04 + 0.07 * k
+		var li: int = int(PF.h(vs * 0.3 + k * 7.1) * 66.0) % 66
+		u.strip(LO_RUNE, w0 + Vector2(lw * kk * k, 0.0), {"sc": sc, "o": Vector2(0.0, t.get_height() * 0.5), "ux": li * lw, "uw": lw,
+			"rev": 0.06, "rev0": 0.0, "delay": tk, "life": tm + 0.35 - tk, "fade": 0.3, "col": Color(1.2, 1.15, 1.25)})
+		# 写完这一字：咒域第 k 段被一笔墨线划掉（横跨整个宽度，略斜、按哈希错开）
+		var x: float = lerpf(-bk, L, (k + 0.5) / n) + (PF.h(vs + k * 3.3) - 0.5) * 60.0
+		var j: float = (PF.h(vs + k * 5.9) - 0.5) * 120.0
+		var a0: Vector2 = _w(org, d, x + j, -hw * 0.96)
+		var a1: Vector2 = _w(org, d, x - j, hw * 0.96)
+		var nm := PF.pick(u, IR_SLASH, vs * 0.2 + k * 1.9)
+		var st: Texture2D = u._strip_tex(nm)
+		var sx: float = a0.distance_to(a1) / PF.tex_w(u, nm)
+		u.strip(nm, a0, {"ang": (a1 - a0).angle(), "o": Vector2(0.0, st.get_height() * 0.5), "sx": sx, "sy": 0.9 * (1.0 if k % 2 == 0 else -1.0),
+			"rev": 0.08, "rev0": 0.0, "delay": tk + 0.06, "life": tm + 0.3 - tk, "fade": 0.25, "col": LO_INK})
+	# 句点：一行字末尾一个墨点，0.5 秒落下
+	u.shape({"kind": "circle", "c": w0 + Vector2(lw * kk * (n + 0.4), 10.0), "r": 9.0, "col": Color(0.95, 0.93, 0.88), "fill": 0.95, "delay": tm - 0.02, "life": 0.4})
 
 
 static func _lo_outside(u, a: Dictionary, p: Vector2):
@@ -1306,7 +1351,8 @@ static func _la_start(u, o) -> Dictionary:
 		wd.append(false)
 	var R: float = Bal.v("ult/la_r", 502.0)
 	return {"c": o.pos, "R": R, "rc": R * Bal.v("ult/la_core", 0.872), "n": n, "gap": gap, "fly": Bal.v("ult/la_fly", 0.24), "f": 1.0 / n,
-		"segs": segs, "wd": wd, "fired": 0, "bark": rt == "bark"}
+		"segs": segs, "wd": wd, "fired": 0, "bark": rt == "bark",
+		"v3": _la_v3(u), "face": Vector2(1.0 if float(o.face) >= 0.0 else -1.0, 0.0), "vs": PF.vseed(u, o.pos), "sl_t": 0.0, "sl_i": 0}
 
 
 static func _la_wave(u, a: Dictionary, o, i: int) -> void:
@@ -1320,6 +1366,9 @@ static func _la_wave(u, a: Dictionary, o, i: int) -> void:
 	var nb: int = 12
 	var a0: float = (PI / nb) * float(i % 2) + 0.13 * i
 	var last_bark: bool = a.bark and i == int(a.n) - 1
+	if a.get("v3", false):   # 乱砍版：剑气由 _la_frenzy 按时刻撒，这里只播动作，末圈落横斩（不画脚底旋刃：会压在她身上）
+		_la_wave_v3(u, a, o, i, c, R)
+		return
 	if _la_v2(u):
 		_la_wave_v2(u, a, o, i, c, R, fly, spd, a0, nb, last_bark)
 		return
@@ -1349,6 +1398,8 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 	var fly: float = a.fly
 	var R: float = a.R
 	var rc: float = a.rc
+	if a.get("v3", false):
+		_la_frenzy(u, a, t)
 	while int(a.fired) < n and t >= gap * int(a.fired):
 		_la_wave(u, a, o, int(a.fired))
 		a.fired = int(a.fired) + 1
@@ -1382,6 +1433,70 @@ const LA_X := ["fx_la_x1", "fx_la_x2", "fx_la_x3", "fx_la_x4"]
 const LA_RING := ["fx_la_ring2", "fx_la_ring3", "fx_la_ring4"]   # fx_la_ring1 粗旋涡太重（四圈叠成满屏蓝墙），只留给脚底小旋刃 fx_la_whirl
 const LA_WHIRL := "fx_la_whirl"
 const LA_COL := Color(0.75, 0.9, 1.0)
+
+
+## ---- 拉普兰德「狂舞乱砍」（docs/199 §7.11，开关 ult/la_fx_v3 缺省 1；0 = §7.10 十字剑气圈版）。用户 10-30 认可方向：
+## 对前方扇形高频乱砍，每道剑气角度 / 长短 / 弯度都不同、有交叉有残缺，冷蓝夹狼的银白，越砍越快越乱，最后一道最大的横斩收尾。
+## 只改画面：剑气在 0 → 末圈时刻（gap ×（n−1））之间按哈希撒（间隔 0.06 → 0.02 秒），末圈落横斩；判定仍是原来的四圈全向（时序 / 扇形化列给协调人）
+const LA_SILVER := Color(0.93, 0.95, 1.0)
+const LA_ICE := Color(0.6, 0.82, 1.0)
+
+
+static func _la_v3(u) -> bool:
+	return Bal.v("ult/la_fx_v3", 1.0) > 0.0 and _la_v2(u) and u.fx_ready(IR_SLASH[0])
+
+
+## 一道乱砍剑气：p 中点、ang 方向、ln 长；sd 哈希定变体 / 弯度 / 翻面 / 残缺 / 颜色
+static func _la_cut(u, p: Vector2, ang: float, ln: float, sd: float, life: float, col: Color, thick := 1.0, whole := false) -> void:
+	var nm := PF.pick(u, IR_SLASH, sd * 0.41)
+	var t: Texture2D = u._strip_tex(nm)
+	var tw: float = PF.tex_w(u, nm)
+	var dv := Vector2.from_angle(ang)
+	var o := {"ang": ang, "o": Vector2(0.0, t.get_height() * 0.5), "sx": ln / tw, "sy": thick * (1.0 if whole else 0.55 + 1.1 * PF.h(sd + 5.0)) * (1.0 if PF.h(sd + 2.0) < 0.5 else -1.0),
+		"rev": 0.035, "rev0": 0.1, "life": life, "fade": life * 0.6, "col": col}
+	if not whole and PF.h(sd + 8.0) < 0.3:   # 残缺：只截中间一段
+		var uw: float = t.get_width() * (0.45 + 0.35 * PF.h(sd + 9.0))
+		o["ux"] = floorf(PF.h(sd + 10.0) * (t.get_width() - uw))
+		o["uw"] = uw
+	u.strip(nm, p - dv * ln * 0.5, o)
+
+
+static func _la_frenzy(u, a: Dictionary, t: float) -> void:
+	var T: float = float(a.gap) * (int(a.n) - 1)
+	var R: float = a.R
+	var fw: Vector2 = a.face
+	while float(a.sl_t) <= t and float(a.sl_t) < T - 0.02:
+		var i: int = a.sl_i
+		var pr: float = float(a.sl_t) / T
+		var sd: float = float(a.vs) * 0.37 + i * 3.17
+		var dv: Vector2 = fw.rotated((PF.h(sd) - 0.5) * 2.4)   # 前方 ±69°
+		var p: Vector2 = a.c + dv * R * (0.18 + 0.68 * PF.h(sd + 1.0))
+		var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * PI * lerpf(0.45, 1.0, pr)   # 越砍越乱
+		var ln: float = lerpf(170.0, 400.0, PF.h(sd + 4.0)) * (0.85 + 0.4 * pr)
+		var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
+		_la_cut(u, p, ang, ln, sd, 0.2 + 0.1 * PF.h(sd + 6.0), Color(col, 0.95), 1.3)
+		if PF.h(sd + 7.0) < 0.22:   # 偶尔一道双刃十字
+			var xn := PF.pick(u, LA_X, sd)
+			u.strip(xn, p, {"ang": ang, "sc": 110.0 / PF.tex_w(u, xn), "life": 0.16, "fade": 0.1, "v": dv * 500.0})
+		if i % 5 == 0:
+			PF.particles(u, p, 60, "ult_burst_s", [LA_ICE, LA_SILVER], 0.0, sd, 60.0)
+		a.sl_i = i + 1
+		a.sl_t = float(a.sl_t) + lerpf(0.06, 0.02, pow(pr, 1.2))
+
+
+static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> void:
+	var vs: float = float(a.vs) + i * 7.0
+	o.play_vis_anim("attack")
+	if i != int(a.n) - 1:
+		return
+	# 收尾横斩：屏幕横向贯穿约 2.2R、最长，下面一层冷蓝宽影；顿帧 + 冷光 + 中心一团银蓝粒子
+	u.g.vfx.stop(Bal.v("ult/la_hitstop", 0.1), "ult", true)
+	var ang: float = (PF.h(vs + 1.0) - 0.5) * 0.24
+	var dv := Vector2.from_angle(ang)
+	_la_cut(u, c + dv.orthogonal() * 14.0, ang, R * 2.3, vs + 101.0, 0.45, Color(LA_ICE, 0.55), 1.3, true)   # 一整道（两段拼会成海鸥翅膀形）
+	_la_cut(u, c, ang, R * 2.2, vs + 101.0, 0.5, Color(0.8, 0.86, 0.95, 0.9), 0.95, true)   # 压暗（预审报横斩发白）
+	u.light(c, R * 1.2, LA_ICE, 0.3)
+	PF.particles(u, c, 200, "ult_burst_s", [LA_ICE, LA_SILVER], 0.04, vs + 3.0, 140.0)
 
 
 static func _la_v2(u) -> bool:

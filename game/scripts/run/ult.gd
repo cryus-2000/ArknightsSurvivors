@@ -757,7 +757,30 @@ func shape(s: Dictionary) -> void:
 		shapes.pop_front()
 
 
+## 全屏去色（逻各斯「删去」：画面褪成墨色、句点后颜色慢慢回来；docs/199 §7.11）：带 desat 字段的图形（kind 随意，"nop" = 不画）活着时，
+## g.post.desat = 各图形包络的最大值（desat 峰值 × 前 din 秒淡入 × 末 dout 秒淡出）；没有这类图形时把自己写过的值归 0，不碰别处（最终 Boss 演出）写的
+var _dsat_on := false
+
+
+func _tick_desat() -> void:
+	if g.post == null:
+		return
+	var dz := -1.0
+	for s in shapes:
+		if s.has("desat") and s.age >= 0.0:
+			var kin: float = clampf(s.age / maxf(0.001, float(s.get("din", 0.1))), 0.0, 1.0)
+			var kout: float = clampf((s.max - s.age) / maxf(0.001, float(s.get("dout", 0.3))), 0.0, 1.0)
+			dz = maxf(dz, float(s.desat) * kin * kout * kout * (3.0 - 2.0 * kout))
+	if dz >= 0.0:
+		g.post.desat = dz
+		_dsat_on = true
+	elif _dsat_on:
+		g.post.desat = 0.0
+		_dsat_on = false
+
+
 func _tick_shapes(dt: float) -> void:
+	_tick_desat()
 	for k in range(shapes.size() - 1, -1, -1):
 		var s: Dictionary = shapes[k]
 		s.age += dt
