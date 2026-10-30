@@ -273,9 +273,23 @@ func _draw_ready_toast(vs: Vector2) -> void:
 		UI.keycap(g.hud, g.font, Vector2(x + tw + 12.0, r.position.y + 10.0), key, Color(ec.r, ec.g, ec.b, a), 13)
 
 
-## 高清头像（A.tex_hi 的 @2x 待机帧，图鉴 / 选人同款）：按不透明像素找头部（帧顶往下约 40% 高度内的横向范围），取正方形、圆形裁切；
+## 高清头像（A.tex_hi 的 @2x 待机帧，图鉴 / 选人同款）：有双眼中点表按眼睛裁；没有的按不透明像素找头部（帧顶往下约 40% 高度内的横向范围），取正方形、圆形裁切；
 ## 每名干员只扫描一次图像并缓存。没有高清帧时退回 hud_ult._avatar（小像素头）
 var _hh := {}
+## 双眼中点表（10-31 用户「20 人加 Mon3tr 都要按眼睛位置对齐」，art/operators/avatar_eyes.json，人工标定）：
+## 有表的人按眼睛裁——双眼中点落在圆心上方 EYE_UP 半径处，眼距统一缩放到半径 × EYE_D，脸在圈里一样大；没表的退回下面按轮廓找头
+const EYES_PATH := "res://art/operators/avatar_eyes.json"
+const EYE_UP := 0.09
+const EYE_D := 0.55
+static var _eyes: Dictionary = {}
+
+static func eyes_table() -> Dictionary:
+	if _eyes.is_empty():
+		var f := FileAccess.open(EYES_PATH, FileAccess.READ)
+		var d = JSON.parse_string(f.get_as_text()) if f != null else null
+		_eyes = d.get("ops", {}) if d is Dictionary else {"_none": true}
+	return _eyes
+
 
 func _hi_head(o) -> Array:
 	var oid := str(o.id)
@@ -283,6 +297,14 @@ func _hi_head(o) -> Array:
 		return _hh[oid]
 	var out: Array = []
 	var art: Dictionary = u._art_of(o)
+	var ey: Dictionary = eyes_table().get(oid, {})
+	if not art.is_empty() and not ey.is_empty():
+		var k: float = float((art.tex as Texture2D).get_height()) / float(ey.get("fh", 0.0)) if float(ey.get("fh", 0.0)) > 0.0 else 1.0   # 表按 @2x 帧量，按帧高换算（1 倍帧 / 镜像副本都对）
+		var side: float = float(ey.d) * k * 2.0 / EYE_D
+		var c := Vector2(float(ey.eye[0]), float(ey.eye[1])) * k + Vector2(0.0, EYE_UP * side * 0.5)
+		out = [art.tex, Rect2(c - Vector2(side, side) * 0.5, Vector2(side, side))]
+		_hh[oid] = out
+		return out
 	if not art.is_empty() and art.bb.size.y > 0.0:
 		var tex: Texture2D = art.tex
 		var bb: Rect2 = art.bb
