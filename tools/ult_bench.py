@@ -40,9 +40,10 @@ def main():
     ap.add_argument("--extra", default="")
     ap.add_argument("--rows", action="store_true", help="另打印每个瞄准方向的明细")
     ap.add_argument("--area", action="store_true")
+    ap.add_argument("--t", type=float, default=-1.0)
     ap.add_argument("--json", default="")
     a = ap.parse_args()
-    extra = shlex.split(a.extra)
+    extra = shlex.split(a.extra) + (["--ub_t=%g" % a.t] if a.t >= 0 else [])
     with ThreadPoolExecutor(a.jobs) as ex:
         res = list(ex.map(lambda op: one(op, a.cluster, extra, a.area), a.ops.split(",")))
     if a.json:
@@ -62,15 +63,17 @@ def main():
             for e in errs:
                 print("ERR", op, e)
         return
-    print("| 干员 | 屏内小怪倒下 | 普通 | 重型 | 精英掉血 | 中期 Boss | 时长 秒 | 图形峰值 | 命中小怪 | 伤害合计 |")
-    print("|---|---|---|---|---|---|---|---|---|---|")
+    print("| 干员 | 屏内小怪倒下 | 普通 | 重型 | 精英掉血 | 中期 Boss | 时长 秒 | 图形峰值 | 命中小怪 | 伤害合计 | 范围内清光 |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|")
     mins = []
     for op, rows, avg, errs, to in res:
         if avg is None:
             print("| %s | 失败 %s %s |" % (op, "超时" if to else "", errs))
             continue
         mins.append(avg["minion"])
-        print("| %s | %.1f%% | %.1f%% | %.1f%% | %.1f%% | %.1f%% | %.2f | %d | %.1f | %.1f |" % (op, avg["minion"], avg["normal"], avg["heavy"], avg["elite"], avg["boss"], avg["dur"], avg["shapes_peak"], avg.get("hit_n", 0), avg.get("dmg", 0)))
+        print("| %s | %.1f%% | %.1f%% | %.1f%% | %.1f%% | %.1f%% | %.2f | %d | %.1f | %.1f | %.1f%% |" % (op, avg["minion"], avg["normal"], avg["heavy"], avg["elite"], avg["boss"], avg["dur"], avg["shapes_peak"], avg.get("hit_n", 0), avg.get("dmg", 0), avg.get("clear", 0)))
+        if avg.get("by"):
+            print("|  · 各种类 倒下/被打到 | " + "，".join("%s %d/%d" % (k, v[0], v[1]) for k, v in sorted(avg["by"].items())) + " |")
         if a.rows:
             for r in rows:
                 print("|  · %s | %.1f%% | %.1f%% | %.1f%% | %.1f%% | %.1f%% | %.2f | %d |" % (r["aim"], r["minion"], r["normal"], r["heavy"], r["elite"], r["boss"], r["dur"], r["shapes_peak"]))
