@@ -934,7 +934,9 @@ static func _su_start(u, o) -> Dictionary:
 	var col: Color = u._col(o)
 	var steel: Color = col.lerp(Color.WHITE, 0.25)
 	var a := {"dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
-	if FC.sp_v2(u):   # 巨锯 v2：一张整圈锯贴图（ult/sp_saw_v2）
+	if FC.sp_bounce(u):   # 弹射撕裂（ult/sp_bounce，用户 10-30 新设计）：红黑剪影在敌人间弹射 + 收尾巨锯
+		FC.sb_start(u, a, o, o.pos)
+	elif FC.sp_v2(u):   # 巨锯 v2：一张整圈锯贴图（ult/sp_saw_v2）
 		FC.sp_start(u, a, o.pos)
 	else:
 		a["rim"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 14.0, "col": steel, "life": dur + 1.0})
@@ -966,7 +968,7 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 	var sp: float = a.spin
 	if a.has("sp_saws"):
 		FC.sp_step(u, a, c, R, dt)
-	else:
+	elif a.has("rim"):
 		a.rim.c = c
 		a.rim.r = R
 		a.rim2.c = c
@@ -1013,15 +1015,21 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 				if a.has("sp_saws"):
 					FC.sp_hit(u, a, e.pos, int(a.tick), nb)
 					continue
+				if a.has("sb"):
+					FC.sb_hit(a, e.pos)
+					continue
 				var tg: Vector2 = (e.pos - c).orthogonal().normalized()
 				u.shape({"kind": "dots", "c": e.pos, "r": 18.0, "n": 5, "col": Color(0.85, 0.15, 0.2), "life": 0.25, "v": tg * 380.0})
 				u.shape({"kind": "line", "a": e.pos, "b": e.pos + tg * 30.0, "w": 2.0, "col": Color(1.0, 0.9, 0.7), "life": 0.15, "v": tg * 600.0})
-		if a.has("sp_saws"):
+		if a.has("sb"):
+			FC.sb_tick(u, a, c, full_r, int(a.tick), n)
+		elif a.has("sp_saws"):
 			FC.sp_tick(u, a, c, full_r, int(a.tick))
 		else:
 			_ring(u, c, full_r + 6.0, full_r + 6.0, Color(1, 1, 1), 0.12, 6.0)
 		if int(a.tick) % 4 == 1:
-			u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
+			if not a.has("sb"):
+				u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
 			o.play_vis_anim("attack")
 		o.screen_shake(0.25)
 	if int(a.tick) >= n and a.has("sp_saws"):
