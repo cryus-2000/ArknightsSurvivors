@@ -745,6 +745,96 @@ def mizuki_mirage(ic):
     frame(ic)
 
 
+# ---------------------------------------------------------------- 拉普兰德（docs/208 M1，10-31：原来借用斯卡蒂的图标）
+# 按原作技能图标的构图重画（PRTS「技能_日晷」「技能_狼魂」；原作只有两个技能，S3「噤声」是本作自创，照前两张的画风画）
+def _sword(ic, cx, cy, deg, ln=13.0, w=2.4, rp=WHT):
+    """细长单刃剑：剑身 + 尖 + 短护手（以中心 cx, cy 摆，deg 朝向）"""
+    blade = [(-ln, -w / 2), (ln - 3, -w / 2), (ln, 0), (ln - 3, w / 2), (-ln, w / 2)]
+    ic.poly(rot([(cx + x, cy + y) for x, y in blade], cx, cy, deg), rp, 1.0)
+    guard = [(-ln + 3, -w * 1.6), (-ln + 4.4, -w * 1.6), (-ln + 4.4, w * 1.6), (-ln + 3, w * 1.6)]
+    ic.poly(rot([(cx + x, cy + y) for x, y in guard], cx, cy, deg), rp, 1.0)
+
+
+@icon("lappland", 1)
+def lappland_sundial(ic):
+    """日晷：左下红块上一道分节的白色日晷弧，一柄剑形晷针从左下斜指右上"""
+    tile(ic)
+    ic.poly([(3, 15), (19, 15), (28, 28), (3, 28)], REDM, 1.0)
+    ic.crescent(13, 17, 11.5, 3.2, -3.2, 8.4, WHT, 1.0)   # 朝右上开口的粗月牙（日晷盘）
+    for a in (150, 195, 240, 285):   # 切出分节
+        r = math.radians(a)
+        ic.line(13 + 6 * math.cos(r), 17 - 6 * math.sin(r), 13 + 12 * math.cos(r), 17 - 12 * math.sin(r), DARK, w=1.0, shade=0.5)
+    _sword(ic, 17.5, 14.5, -55, ln=12.5, w=2.2)
+    frame(ic)
+
+
+@icon("lappland", 2)
+def lappland_wolf_soul(ic):
+    """狼魂：红色底角 + 白色圆盘，圆里一颗朝右的暗色狼首剪影"""
+    tile(ic)
+    ic.poly([(3, 3), (15, 3), (3, 15)], REDM, 1.0)
+    ic.circle(16, 16, 11.5, WHT, 1.0)
+    wolf = [(8, 20), (10, 15), (12, 12), (12, 7), (15, 11), (19, 11), (21, 8), (22, 13), (26, 16), (24, 18), (19, 18), (17, 22), (12, 24)]
+    ic.poly(wolf, DARK, 0.5)
+    ic.poly([(20, 15), (22, 15), (21, 16)], REDM, 1.0)   # 眼
+    frame(ic)
+
+
+@icon("lappland", 3)
+def lappland_silence(ic):
+    """噤声（本作自创，命中叠满十字斩 + 封印）：红色 X 楔形 + 两柄交叉的白剑，中间一道封口横杠"""
+    tile(ic)
+    xrays(ic, REDM, 1.0, half=11)
+    _sword(ic, 15.5, 15.5, -45, ln=12.5, w=2.2)
+    _sword(ic, 15.5, 15.5, -135, ln=12.5, w=2.2)
+    ic.rect(9, 14, 22, 17, DARK, 0.5)
+    ic.rect(10, 15, 21, 16, REDM, 1.0)
+    frame(ic)
+
+
+# ---------------------------------------------------------------- 歌蕾蒂娅（docs/208 M1，10-31：原来借用乌尔比安的图标）
+# 按原作技能图标的构图重画（PRTS「技能_缺水的大洋裂断」「…掌握怒海」「…碎漩狂舞」）
+def _spear(ic, cx, cy, deg, ln=13.0, rp=WHT):
+    """长槊 / 鱼叉：杆 + 宽叶刃 + 两枚倒钩"""
+    pts = [(-ln, -1.0), (ln - 6, -1.0), (ln - 6, -2.8), (ln, 0), (ln - 6, 2.8), (ln - 6, 1.0), (-ln, 1.0)]
+    ic.poly(rot([(cx + x, cy + y) for x, y in pts], cx, cy, deg), rp, 1.0)
+    for sx in (-1, 1):
+        barb = [(ln - 8, sx * 1.0), (ln - 10.5, sx * 3.6), (ln - 9, sx * 1.0)]
+        ic.poly(rot([(cx + x, cy + y) for x, y in barb], cx, cy, deg), rp, 1.0)
+
+
+@icon("gladiia", 1)
+def gladiia_parting(ic):
+    """缺水的大洋裂断：红色放射 + 一柄从左下掷向右上的白色鱼叉，尾后两道速度线"""
+    tile(ic)
+    for a, h in ((30, 9), (60, 9), (90, 9), (120, 9)):
+        wedge(ic, 4, 29, a, h)
+    _spear(ic, 16.5, 14.5, -45, ln=14)
+    ic.line(4, 22, 9, 17, WHT, w=1.0, shade=0.0)
+    ic.line(8, 26, 13, 21, WHT, w=1.0, shade=0.0)
+    frame(ic)
+
+
+@icon("gladiia", 2)
+def gladiia_grasp(ic):
+    """缺水的掌握怒海：红五边形 + 两柄交叉的白色长槊"""
+    tile(ic)
+    house(ic)
+    _spear(ic, 15.5, 16, -50, ln=13)
+    _spear(ic, 15.5, 16, -130, ln=13)
+    frame(ic)
+
+
+@icon("gladiia", 3)
+def gladiia_maelstrom(ic):
+    """缺水的碎漩狂舞：白框 + 红底上三圈白色漩涡弧，中心一个暗色漩眼"""
+    tile(ic, REDBG)
+    for r0, r1, a0 in ((10.0, 12.2, 20), (6.6, 8.6, 140), (3.4, 5.0, 260)):
+        ic.ring(15.5, 15.5, r0, r1, WHT, 1.0, a0=a0, a1=a0 + 270)
+    ic.circle(15.5, 15.5, 2.2, DARK, 0.5)
+    frame(ic)
+
+
 # ---------------------------------------------------------------- 塞雷娅
 @icon("saria", 1)
 def saria_first_aid(ic):

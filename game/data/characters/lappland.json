@@ -310,7 +310,7 @@
    "sp": 10,
    "permanent": true,
    "desc": "充能一次后永久生效：攻击 +{$s1_atk*100-100}%；队长受到的攻击有 {$s1_resist*100}% 概率被她格挡（完全抵消这一下）",
-   "icon": "skill_skadi_s1"
+   "icon": "skill_lappland_s1"
   },
   {
    "name": "狼魂",
@@ -318,7 +318,7 @@
    "sp": 14,
    "dur": 12.0,
    "desc": "{$s2_dur} 秒内攻击 +{$s2_atk*100-100}%，每次横扫额外掷出一道法术剑气（横扫 {$s2_mult*100}% 伤害，飞出 {$blade_dist}，穿透）",
-   "icon": "skill_skadi_s2"
+   "icon": "skill_lappland_s2"
   },
   {
    "name": "噤声",
@@ -326,7 +326,7 @@
    "sp": 24,
    "dur": 8.0,
    "desc": "{$s3_dur} 秒内攻击力 +{$s3_atk*100-100}%，每次命中在敌人身上刻下一道「观察」；同一名敌人 {$s3_keep} 秒内被刻满 {$s3_mark_n} 道即封锁完成：十字斩造成攻击力 {$s3_cut_mult*100}% 的伤害，封印 {$s3_seal} 秒（精英减半，Boss {$s3_seal*$seal_boss:2} 秒）、眩晕 {$s3_stun} 秒（精英减半，Boss 除外），并在 {$s3_fragile} 秒内受到的伤害 +10%",
-   "icon": "skill_skadi_s3"
+   "icon": "skill_lappland_s3"
   }
  ],
  "talent": {
@@ -470,7 +470,7 @@
     "rage": {
      "id": "rage",
      "name": "日晷·反斩",
-     "icon": "skill_skadi_s1",
+     "icon": "skill_lappland_s1",
      "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）；伤害 ×{$grow_dmg_rage}"
     }
    },
@@ -481,7 +481,7 @@
    "type": "custom",
    "id": "rage",
    "name": "日晷·反斩",
-   "icon": "skill_skadi_s1",
+   "icon": "skill_lappland_s1",
    "desc": "「日晷」格挡成功后，下一道剑气变为大剑气：宽度 ×{$dial_w_mult}，穿透全部敌人；下一次横扫没有剑气时，额外掷出一道（{$dial_mult*100}% 伤害）；伤害 ×{$grow_dmg_rage}",
    "routes": {
     "bark": {
@@ -493,7 +493,7 @@
     "rage": {
      "id": "rage2",
      "name": "日晷·回敬",
-     "icon": "skill_skadi_s1",
+     "icon": "skill_lappland_s1",
      "desc": "「日晷」格挡成功时，朝最近的敌人原地斩出一记反击：前方 {$riposte_half*2}° 扇形，半径 {$riposte_r}，{$riposte_mult*100}% 伤害，击退 {$riposte_kb}；{$riposte_cd} 秒内至多一次"
     }
    }
