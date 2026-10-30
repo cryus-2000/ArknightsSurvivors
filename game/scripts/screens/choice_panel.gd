@@ -836,10 +836,8 @@ const CN_NUM := ["一", "二", "三", "四"]
 
 func headline(o: Dictionary) -> String:
 	if str(o.get("kind", "")) == "recruit":
-		# 招募卡：第一句里讲到技能的半句不写（「普攻熔岩弹清理敌群，技能喷发火山…」只留前半），技能看详情
-		var b := brief(option_description(o))
-		var c := b.find("，")
-		return b.substr(0, c) if c >= 4 and b.substr(c).contains("技能") and brief_whole(b.substr(0, c)) else ""
+		# 招募卡写的是干员简介（gallery.intro，用户 10-30 逐条写定）：整段照写，不截第一句、不去括号，换行保留
+		return option_description(o).strip_edges()
 	if str(o.get("kind", "")) != "prog" or int(o.get("elite", 0)) <= 0 or o.get("branch", false):
 		return ""
 	var op = g.squad.get_op(str(o.get("op", ""))) if g.squad != null else null
