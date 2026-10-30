@@ -823,7 +823,6 @@ func _shot(e: Dictionary, p: Vector2, a: float, spd: float, r: float, life: floa
 	e.izu_live = int(e.get("izu_live", 0)) + 1
 	# 单发伤害旋钮（协调人 10-27：弹幕变密，先 ×0.8，云端测完再定）
 	var act: int = _act(e)
-	r *= Bal.v("boss/izumik_r_k", 1.0)   # 弹体（画面 = 判定，外缘 100%）放大（10-31 docs/201 §8.3：新判定半径 + 3 下机器人几乎都躲得开）
 	var b := {"pos": p, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * mult * Bal.v("boss/izumik_bullet_mult", 1.15), "r": r, "life": life,
 		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": ACT_KIND[act], "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "own_col": COL, "src_type": e.type, "izu_t": 0.0}
@@ -841,10 +840,16 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 	var target: Vector2 = g.shots.aim_pt()
 	var n := 0
 	var bursts: Array = []
+	var rk: float = Bal.v("boss/izumik_r_k", 1.0)
 	for b in g.ebullets:
 		if b.life <= 0.0 or int(b.get("source_id", -1)) != int(e.id):
 			continue
 		n += 1
+		if not b.has("izu_rk"):
+			# 弹体（画面 = 判定，外缘 100%）放大（10-31 docs/201 §8.3：新判定半径 + 3 下机器人几乎都躲得开）；
+			# 在这里统一乘，连携弹（_shot）和数据招式 / finals 出的圆珠、快弹（方案 A 时命中的大头）一起放大，每颗只乘一次
+			b.izu_rk = true
+			b.r = float(b.r) * rk
 		var kind: String = str(b.get("izu", ""))
 		if kind != "":
 			b.izu_t = float(b.izu_t) + dt
