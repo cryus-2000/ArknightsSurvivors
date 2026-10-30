@@ -122,18 +122,31 @@
         '<div class="sv-body2">' + logBox('sv-frame') + tipBox() + '</div>' +
         '<div class="sv-gauge"><div class="sv-rule"><div class="sv-ruler">' + ticks + '</div></div><div class="sv-read"><div class="sv-cap sy-en">DEPTH</div><div class="sv-depth">-0000<small>m</small></div><div class="sv-sync"></div></div></div>' +
         '<div class="sv-jwrap">' + JELLY + '</div>';
-    } else {
-      var tk = '';
+    } else {   // 3 声呐终端（10-31 第二版：两层反向慢转的分段环、方位读数、准星、打字机日志、读数小条、信号波形、条码 + 十六进制数据流）
+      var tk = '', lab = '';
       for (var k = 0; k < 72; k++) {
         var a = -Math.PI / 2 + 2 * Math.PI * k / 72, mj = k % 6 === 0, r0 = 188, r1 = mj ? 200 : 194;
         tk += '<line x1="' + (Math.cos(a) * r0).toFixed(1) + '" y1="' + (Math.sin(a) * r0).toFixed(1) + '" x2="' + (Math.cos(a) * r1).toFixed(1) + '" y2="' + (Math.sin(a) * r1).toFixed(1) + '" stroke-width="' + (mj ? 2 : 1.5) + '"/>';
       }
-      h = snowLayer(40) + '<div class="sv-corners"><i></i><i></i><i></i><i></i></div>' + head('声呐终端 · 链路建立', 1) +
-        '<div class="sv-dial"><svg viewBox="-210 -210 420 420"><defs><linearGradient id="sv-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ee6e6" stop-opacity="0"/><stop offset="1" stop-color="#5ee6e6" stop-opacity=".25"/></linearGradient></defs>' +
-        '<circle r="180" fill="none" stroke="rgba(94,230,230,.16)"/><circle r="120" fill="none" stroke="rgba(94,230,230,.09)"/><circle r="60" fill="none" stroke="rgba(94,230,230,.09)"/>' +
-        '<path class="sy-sweep" d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sv-sw)"/><g class="sv-ticks">' + tk + '</g></svg>' +
-        '<div class="sv-jwrap">' + JELLY + '</div><div class="sv-center"><div class="sv-num">0<span>%</span></div><div class="sy-en sv-link">LINK</div></div></div>' +
-        logBox('sv-left') + '<div class="sv-tele"><div class="sv-cap sy-en">TELEMETRY</div><div class="sv-rows"></div>' + tipBox('sv-in') + '</div>';
+      [[0, -214], [222, 4], [0, 224], [-222, 4]].forEach(function (q, i) { lab += '<text x="' + q[0] + '" y="' + q[1] + '">' + ('00' + i * 90).slice(-3) + '</text>'; });
+      var hexs = '';
+      for (var hx = 0; hx < 120; hx++) hexs += ('0' + (Math.floor(Math.abs(Math.sin(hx * 12.9898) * 43758.5453)) % 256).toString(16).toUpperCase()).slice(-2) + ' ';
+      var wave = '';
+      for (var wi = 0; wi <= 96; wi++) wave += (wi * 4) + ',' + (8 + 5 * (Math.sin(wi * 0.7) * 0.5 + Math.sin(wi * 1.9) * 0.3)).toFixed(1) + ' ';
+      h = snowLayer(30) + '<div class="sv-corners"><i></i><i></i><i></i><i></i></div>' +
+        '<div class="sv-head"><b class="sy-en">PRTS</b><span>声呐终端 · 链路建立</span><em class="sv-on"><i class="sv-lamp"></i><span class="sy-en">ONLINE</span></em><em class="sv-code"></em></div><div class="sv-hruler"></div>' +
+        '<div class="sv-dial"><svg viewBox="-230 -230 460 460"><defs><linearGradient id="sv-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ee6e6" stop-opacity="0"/><stop offset="1" stop-color="#5ee6e6" stop-opacity=".22"/></linearGradient></defs>' +
+        '<circle r="180" fill="none" stroke="rgba(94,230,230,.2)"/><circle r="60" fill="none" stroke="rgba(94,230,230,.1)"/>' +
+        '<circle class="sv-r1" r="140" fill="none" stroke="rgba(94,230,230,.18)" stroke-width="2" stroke-dasharray="57 16.3 57 16.3 57 16.3 0 73.3"/>' +
+        '<circle class="sv-r2" r="100.8" fill="none" stroke="rgba(94,230,230,.35)" stroke-dasharray="20.6 5.8 20.6 5.8 20.6 5.8 0 26.4"/>' +
+        '<g stroke="rgba(94,230,230,.35)"><line x1="22" y1="0" x2="47" y2="0"/><line x1="-22" y1="0" x2="-47" y2="0"/><line x1="0" y1="22" x2="0" y2="47"/><line x1="0" y1="-22" x2="0" y2="-47"/></g>' +
+        '<g class="sy-sweep"><path d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sv-sw)"/><line x1="0" y1="0" x2="180" y2="0" stroke="rgba(94,230,230,.6)"/></g>' +
+        '<g class="sv-ticks">' + tk + '</g><g class="sv-az">' + lab + '</g></svg>' +
+        '<div class="sv-jwrap">' + JELLY + '<b class="sy-en">CONTACT</b></div><div class="sv-center"><div class="sv-num">0.0<span>%</span></div><div class="sy-en sv-link">SYNC RATE</div></div></div>' +
+        '<div class="sv-log sv-left"><div class="sv-cap sy-en"><i>01</i>SYSTEM LOG</div><div class="sv-lines"></div></div>' +
+        '<div class="sv-tele"><div class="sv-cap sy-en"><i>02</i>TELEMETRY</div><div class="sv-rows"></div>' +
+        '<div class="sv-wave"><b>信号</b><div><svg viewBox="0 0 384 16" preserveAspectRatio="none"><polyline points="' + wave + '" fill="none" stroke="rgba(94,230,230,.7)"/></svg></div></div>' + tipBox('sv-in') + '</div>' +
+        '<div class="sv-foot3"><i class="sv-bar"></i><div class="sv-hex"><span>' + hexs + hexs + '</span></div></div>';
     }
     d.className = 'sv sv' + BV;
     d.innerHTML = h + FOOT;
@@ -146,10 +159,11 @@
   // 每次 upd() 调：f = 进度 0–1，stage = {key, text, ok}，n / total = 编译到第几个（Godot 回传后才有）
   function updV(v, f, stage) {
     logStep(stage.key, stage.text, stage.ok);
-    var html = '', start = Math.max(0, logs.length - (window.innerHeight < 520 ? 7 : 12));   // 矮屏（手机横屏）少留几行，不压页脚
+    var nmax = window.innerHeight < 520 ? 7 : (window.innerHeight > window.innerWidth ? 9 : 12);   // 矮屏（手机横屏）/ 竖屏少留几行，不压页脚和提示
+    var html = '', start = Math.max(0, logs.length - nmax);
     for (var i = start; i < logs.length; i++) {
       var ln = logs[i], cur = ln.key === logKey && !ln.ok;
-      html += '<div class="' + (ln.ok ? 'ok' : (cur ? 'now' : 'wait')) + '"><b>[' + ('000' + ln.t.toFixed(2)).slice(-6) + ']</b><span>' + esc(ln.s) + '</span><u></u><em>' + (ln.ok ? 'OK' : (cur ? '<i class="sv-cur">_</i>' : '..')) + '</em></div>';
+      html += '<div class="' + (ln.ok ? 'ok' : (cur ? 'now' : 'wait')) + (nowS() - ln.t < 0.35 ? ' nw' : '') + '"><b>[' + ('000' + ln.t.toFixed(2)).slice(-6) + ']</b><span>' + esc(ln.s) + '</span><u></u><em>' + (ln.ok ? 'OK' : (cur ? '<i class="sv-cur">_</i>' : '..')) + '</em></div>';
     }
     if (v.lines.innerHTML !== html) v.lines.innerHTML = html;
     var pc = Math.floor(f * 100);
@@ -169,10 +183,12 @@
       v.jelly.style.transform = 'translateY(' + (12 * (1 - Math.max(0, (f - 0.82) / 0.18))) + 'vh)';
     } else {
       var lt = Math.floor(f * v.ticks.length);
-      for (var k = 0; k < v.ticks.length; k++) v.ticks[k].setAttribute('class', k < lt ? 'on' : '');
-      v.num.innerHTML = pc + '<span>%</span>';
+      for (var k = 0; k < v.ticks.length; k++) v.ticks[k].setAttribute('class', k < lt ? 'on' : (k === lt ? 'cur' : ''));
+      v.num.innerHTML = (Math.floor(f * 1000) / 10).toFixed(1) + '<span>%</span>';
       v.jelly.style.opacity = String(Math.max(0, Math.min(1, (f - 0.8) / 0.2)) * 0.85);
-      v.rows.innerHTML = '<div><b>深度</b>-' + ('000' + Math.floor(1200 * f)).slice(-4) + ' m</div><div><b>阶段</b>' + esc(stage.text) + '</div>';
+      var dep = Math.floor(1200 * f);
+      v.rows.innerHTML = '<div><b>深度</b>-' + ('000' + dep).slice(-4) + ' m<u><i style="width:' + (f * 100).toFixed(1) + '%"></i></u></div>' +
+        '<div><b>阶段</b>' + esc(stage.text) + '</div>';
     }
   }
 
