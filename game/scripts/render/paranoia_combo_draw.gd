@@ -44,12 +44,16 @@ static func draw_top(g, e: Dictionary) -> void:
 				var a: float = PI * 0.5 + PI * q / 9.0
 				pts.append(p2 - fwd * rb * 0.2 + (side * cos(a) + fwd * sin(a)) * rb)
 			pts.append(p2 + fwd * rb * 2.0)
-			tw.tb_flush()
-			g.draw_colored_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
 			var inner := PackedVector2Array()
 			for pt in pts:
 				inner.append(p2 + (pt - p2) * 0.78)
-			g.draw_colored_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
+			if g.opt_old & g.OPT_PARA:
+				tw.tb_flush()
+				g.draw_colored_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
+				g.draw_colored_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
+			else:
+				tw.tb_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
+				tw.tb_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
 			tw.tb_circle(p2 + fwd * 1.5, 2.5, Color(0.9, 1.0, 1.0, 1.0))
 			continue
 		# 10-27 用户「换成紫色泡泡」：淡紫 → 饱和紫（高光仍白）

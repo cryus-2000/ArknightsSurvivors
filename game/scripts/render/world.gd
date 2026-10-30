@@ -4135,6 +4135,11 @@ func tb_poly(pts: PackedVector2Array, col: Color) -> void:
 	_tbb.fan(pts, col)
 
 
+## 任意（可凹）多边形：同 draw_colored_polygon 的三角化（Geometry2D.triangulate_polygon），进批
+func tb_polygon(pts: PackedVector2Array, col: Color) -> void:
+	_tbb.polygon(pts, col)
+
+
 func tb_flush(ci: CanvasItem = null) -> void:   # ci：提交到哪个画布（缺省世界；HUD 传 g.hud）
 	_tbb.flush(ci if ci != null else g)
 

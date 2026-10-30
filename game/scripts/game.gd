@@ -491,6 +491,7 @@ const OPT_CPP := 131072   # 原生代码对照位（docs/101 §4.7 / B8）：置
 ## docs/50 §21（10-21，网页为主基准）：
 const OPT_HUDSQ := 524288   # HUD 编队栏：各干员 skill_hud() / portrait() 每帧取一次共用，每帧层不再算名字 / 精英标签；置位走旧写法（每帧取 2–3 次）。画面相同
 const OPT_HUDNC := 2097152   # HUD 块缓存（docs/126 §9.2）：置位时所有 HUD 块每帧画（同 --hudnocache），供 --optab 同局轮换量缓存的净收益。画面相同
+const OPT_PARA := 4194304   # 偏执狂二阶段「海嗣滴」弹：两个多边形进 TriBatch（Geometry2D 三角化后随批提交），不再每颗弹 tb_flush + 两次 draw_colored_polygon；置位走旧写法。画面相同（同一三角化）
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
