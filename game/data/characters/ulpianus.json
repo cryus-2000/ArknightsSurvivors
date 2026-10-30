@@ -285,6 +285,25 @@
    "fire_time": 0.25,
    "fire": 3
   },
+  "ult_spine": {
+   "tex": "op_ulpianus_ult_spine",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.045,
+    0.045,
+    0.045,
+    0.045,
+    0.11,
+    0.11,
+    0.15,
+    0.3
+   ],
+   "_doc": "10-30 终结技身体条试点（docs/207）：本地原作 Spine 自产（tools/spine_run_trial cfg/ulpianus_ult.json），96 画布 @2x；f0–f3 掷锚（Skill_3_Begin，f3 起藏锚）、f4–f5 沿链冲（Skill_3_ReStart_A，钉回原地）、f6–f7 落地握锚；缺省不播，--bal=ult/ul_spine_body=1 开"
+  },
   "death": {
    "tex": "op_ulpianus_death",
    "frames": 8,
@@ -1527,7 +1546,8 @@
   "zip_native",
   "whirl_native",
   "attack_s2",
-  "anchor_native"
+  "anchor_native",
+  "ult_spine"
  ],
  "combo": {
   "with": "gladiia",
