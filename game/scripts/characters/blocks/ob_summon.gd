@@ -825,6 +825,8 @@ static func shield_mult(o, m: float, raw: float) -> float:
 		return m
 	var ab: float = minf(float(o.sm.shield), d)
 	o.sm.shield = float(o.sm.shield) - ab
+	if not (o.g is Dictionary) and o.g.bot != null:
+		o.g.telemetry.note_dr(str(o.id) + "·盾", ab)   # 遥测：干员护盾吸收量
 	o.float_text(o.g.ppos + Vector2(18, -92), "护盾 -%d" % int(ab), SHIELD_COL, 13)
 	if float(o.sm.shield) <= 0.0:
 		sm_shield_pop(o)   # 护盾被打破

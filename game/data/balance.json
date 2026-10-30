@@ -772,6 +772,11 @@
   "dash_stop": 1,
   "dash_stop_px": 3
  },
+ "shield": {
+  "_doc": "护盾层数旋钮（10-30 用户定：抵挡后取消无敌、回层间隔 12 → 15 秒）：block_invuln 抵挡后无敌秒数（旧 0.5，现缺省 0；碎裂反馈保留）；every_x 回层间隔倍率（乘在 shield_interval 上，仅供对照：0.8 = 旧 12 秒）",
+  "block_invuln": 0.0,
+  "every_x": 1.0
+ },
  "protect": {
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",
   "any_2s_cap": 0.7,
@@ -784,7 +789,8 @@
   "on": 1,
   "ref_taken": 0.9,
   "ref_armor": 1.9,
-  "mid_cut": 0.11,
+  "mid_cut": 0.22,
+  "scale": 1.0,
   "mid_from": 180,
   "mid_to": 420,
   "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]

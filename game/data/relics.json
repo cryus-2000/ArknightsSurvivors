@@ -1423,7 +1423,7 @@
    "name": "药枚",
    "original": "所有我方单位在部署时获得2层护盾",
    "tier": "A",
-   "adapt": "【v0.8 已实装】每 12 秒生成一层护盾，抵挡一次伤害",
+   "adapt": "【v0.8 已实装】每 15 秒生成一层护盾，抵挡一次伤害",
    "rarity": "核心",
    "lane": "shield",
    "first_batch": false,

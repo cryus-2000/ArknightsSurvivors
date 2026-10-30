@@ -576,6 +576,13 @@
    "why": ""
   },
   {
+   "glob": "game/scripts/run/telemetry.gd",
+   "groups": [
+    "core"
+   ],
+   "why": "局内遥测（只读记录，批跑 / 对内包用）"
+  },
+  {
    "glob": "game/scripts/run/build_affinity.gd",
    "groups": [
     "core",
