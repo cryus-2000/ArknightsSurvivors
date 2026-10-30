@@ -75,5 +75,7 @@
 |---|---|---|---|---|
 | 维什戴尔 | Skill_3_Begin 架炮 → Skill_3_Loop 炮口朝天 → Loop 放平 → Skill_3_End | 10 帧 / 1.00 秒 | f3–f6 对 6 排炮击（0.15–0.65 秒） | 原作循环里炮身不动，用 kick 补后坐（隔帧后仰 6°、后移 4 px） |
 | 艾丽妮 | Skill_3_Start 拔剑起风 → Skill_2 风中斩 ×6 → Skill_3_Attack 回原地举手炮开枪 | 12 帧 / 1.055 秒 | 起风 0–0.22、6 刀每 0.075 秒、0.675 秒回原地、0.735 秒开枪 | 隐藏 `F_Weapon(2)`（原作刀光拖影，按单子归特效层）；原作 S3 里化风那段是全空帧，按单子「风中一现一刀」改借 Skill_2 斩击 |
+| 逻各斯 | Skill_3_Begin 抬手 → Skill_3_Idle 念诵 → Skill_3_Attack 一词（双臂展开）→ Skill_3_End | 10 帧 / 0.91 秒，64 画布 | f6「一词」落在 0.5 秒标记爆裂，停 0.15 秒 | 无 |
+| 流明 | Skill_3_Begin 举起 → Skill_3_Idle 持械站定 6 帧 × 0.33 秒 → Skill_3_End | 10 帧 / 2.42 秒，64 画布 | 0.2 秒光柱升起时举到位，覆盖 2 秒光柱 | 单子要「站定举高」，所以不用会大幅摆灯的 Skill_3_Loop；原作 S3 举的是长杖（单子：持械以 PRTS 技能动画为准） |
 
-验证：本地无头跑一局，打印确认两人放终结技时 anim_kind = ult_spine（1.00 / 1.055 秒），没有脚本错误；快检 asset_index / art_lint / data_lint 通过。录像：`build/spine_anim_pilot/out/<id>_ult_spine_on_vs_off.mp4`（同种子，左开右关）。
+验证：（第 1 组）本地无头跑一局，打印确认两人放终结技时 anim_kind = ult_spine（1.00 / 1.055 秒），没有脚本错误；快检 asset_index / art_lint / data_lint 通过。录像：`build/spine_anim_pilot/out/<id>_ult_spine_on_vs_off.mp4`（同种子，左开右关）、`<id>_ult_spine_closeup.mp4`（原速 4 倍特写）。第 2 组（逻各斯 0.91 秒 / 流明 2.42 秒）同样无头确认、无脚本错误。

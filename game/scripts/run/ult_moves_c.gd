@@ -525,7 +525,7 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 			break
 		marks.append({"e": e, "s": u.strip("fx_logos_glyph", e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0), {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
-	return {"org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false,
+	return {"body": _spine_body(o), "org": org, "d": d, "hw": hw, "L": L, "bk": bk, "tm": tm, "marks": marks, "seg": {}, "boom": false,
 		"mf": 0.9 if rt == "epitaph" else 1.0, "meto": rt == "metonymy", "epi": rt == "epitaph", "big": [], "bseg": {}, "mseg": {}}
 
 
@@ -544,7 +544,8 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 			mk.s.c = mk.e.pos + Vector2(0, -float(mk.e.get("r", 10.0)) - 20.0)
 	if not a.boom and t >= float(a.tm):
 		a.boom = true
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		o.screen_shake(0.6)
 		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.35, "life": 0.25})
 		for k in 6:   # 一词念出：咒文从队长往矩形尽头横扫
@@ -1055,7 +1056,7 @@ static func _lu_start(u, o) -> Dictionary:
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
 	var ticks: int = 0 if rt == "watch" else 4
 	var R: float = Bal.v("ult/lu_r", 502.0)
-	return {"c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
+	return {"body": _spine_body(o), "c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
 		"eseg": {}, "boomed": false, "dur": dur, "tick": 0, "ticks": ticks, "tseg": [{}, {}, {}, {}], "rain": rt == "rain", "rseg": [{}, {}],
 		"rn": 0, "rf": 0, "watch": rt == "watch", "wseg": {}, "wcnt": {}, "rot": 0.0}
 
@@ -1072,7 +1073,8 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	var el: float = t - t0
 	if not a.boomed:
 		a.boomed = true
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		o.screen_shake(0.6)
 		_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
 		_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
