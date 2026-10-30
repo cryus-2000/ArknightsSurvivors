@@ -595,7 +595,7 @@
   "izumik_absorb_need": 3.0,
   "izumik_batch_min": 7.0,
   "izumik_batch_max": 9.0,
-  "_izumik_learn_n": "前段子代（用户 10-30「一开始的水母可以多一点，队友能全部清完」）：学习期每 izumik_learn_cd 秒 izumik_learn_n 只、一幕每批 izumik_batch_min–max 只；学习期与一幕子代生命 × izumik_off_hp、移速 izumik_learn_spd。甲档 3 / 3 秒 / 6–8 / ×2.5 / 60，乙档（10-31 缺省）4 / 2.5 秒 / 7–9 / ×3.5 / 70，吸收门槛 izumik_absorb_need 5 → 3；改前 2 / 4 秒 / 4–6 / ×1 / 45。第一轮（血 ×1.5 / ×2、移速 45）三档都 0 只走到她身边，见 docs/170 §22",
+  "_izumik_learn_n": "前段子代（用户 10-30「一开始的水母可以多一点，队友能全部清完」）：学习期每 izumik_learn_cd 秒 izumik_learn_n 只、一幕每批 izumik_batch_min–max 只；学习期与一幕子代生命 × izumik_off_hp、移速 izumik_learn_spd。甲档 3 / 3 秒 / 6–8 / ×2.5 / 60，乙档（10-31 缺省）4 / 2.5 秒 / 7–9 / ×3.5 / 70，吸收门槛 izumik_absorb_need 5 → 3；改前 2 / 4 秒 / 4–6 / ×1 / 45。第一轮（血 ×1.5 / ×2、移速 45）三档都 0 只走到她身边，见 docs/174 §22",
   "izumik_home_rate": 0.4,
   "izumik_tentacle_n": 6.0,
   "izumik_tentacle_gap": 0.45,
