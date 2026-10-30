@@ -1255,17 +1255,22 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
 		_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
 		_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
-		if v3:   # 不铺满圈发白：暖色、很淡（用户 10-31「避免整屏发白」）
-			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.75, 0.4), "fill": 0.08, "life": 0.45})
+		var n1: int = u.shapes.size()   # 冲击帧剪影只要这两道光圈（放射光芒线不进，用户 10-31「为什么加了这么多线条」）
+		if v3:   # 暖光（用户 10-31「他应该是暖光」「改的有点多了」）：满圈填充浓度同旧版、只换成暖金；放射光芒 20 → 12 道、暖色、更短
+			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.78, 0.45), "fill": 0.2, "life": 0.45})
+			for j in 12:
+				var dv := Vector2.from_angle(j * TAU / 12.0 + 0.13)
+				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R * 0.85, "w": 2.0, "col": Color(1.0, 0.86, 0.55), "life": 0.22})
 		else:
 			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
-		for j in 20:   # 光芒放射
-			var dv := Vector2.from_angle(j * TAU / 20.0)
-			u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
-		if v3:   # 冲击帧：冷暖反差（深蓝底 + 灯火金剪影 → 暗琥珀底 + 冷青剪影），不用纯白
-			PF.hf_since(u, n0)
+			for j in 20:   # 光芒放射
+				var dv := Vector2.from_angle(j * TAU / 20.0)
+				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
+		if v3:   # 冲击帧：暖光（用户 10-31「他应该是暖光」）——深棕底 + 暖金光圈 → 暖金底 + 深棕光圈，不用冷色、不用纯白
+			for i in range(n0, n1):
+				u.shapes[i]["hf"] = true
 			PF.hf_on(u, a)
-			u.act["hf_cols"] = [Color(0.04, 0.07, 0.16), Color(1.0, 0.78, 0.4), Color(0.22, 0.12, 0.04), Color(0.55, 0.9, 1.0)]
+			u.act["hf_cols"] = [Color(0.14, 0.07, 0.02), Color(1.0, 0.78, 0.4), Color(0.85, 0.62, 0.3), Color(0.2, 0.1, 0.03)]
 	var T: float = a.exp
 	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
 		a["edone"] = el >= T

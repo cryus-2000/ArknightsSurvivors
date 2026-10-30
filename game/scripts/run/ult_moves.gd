@@ -691,14 +691,18 @@ static func _ex_land(u, a: Dictionary, o, b: Dictionary) -> void:
 	var R: float = a.R
 	var er: float = R * (1.0 - _edge_w())
 	var kind: String = str(info.get("kind", "ground"))
-	# 收尾齐射（用户 10-31）：最后 0.15 秒落地的第一发打冲击帧（这一发的爆点 + 一道红金碎环进剪影）+ 短顿帧
-	var fv: bool = _ex_v3() and not a.get("fv", false) and float(a.t) >= float(a.dur) - 0.15
+	# 冲击帧（用户 10-31「放在第一轮爆炸最多的时候」）：0.2 秒内落地的爆点第一次达到 ult/ex_hf_n（5）个时（1 秒还没到就在 1 秒时）
+	# 这一发打冲击帧（这一发的爆点 + 一道红金碎环 + 同屏在场的爆点帧条进剪影）+ 短顿帧
+	var fv: bool = _ex_v3() and not a.get("fv", false) and (a.bt.size() + 1 >= int(Bal.v("ult/ex_hf_n", 5.0)) or float(a.t) >= 1.0)
 	var n0: int = u.shapes.size()
 	if fv:
 		a["fv"] = true
 		u.strip("fx_ult_exusiai_burst_front", imp, {"o": Vector2(64, 64), "sc": 2.4})
 		u.shape({"kind": "ring", "c": imp, "r": 170.0, "r1": 30.0, "w": 10.0, "col": EX_GOLD, "life": 0.35})
 		PF.hf_since(u, n0)
+		for s in u.shapes:   # 同屏还在炸的爆点一起进剪影（第一轮一片爆点）
+			if str(s.get("name", "")) == "fx_ult_exusiai_burst_front":
+				s["hf"] = true
 		PF.hf_on(u, a)
 		u.g.vfx.stop(Bal.v("ult/ex_hitstop", 0.08), "ult", true)
 	if kind == "ground":
