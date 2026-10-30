@@ -818,10 +818,12 @@ static func _su_start(u, o) -> Dictionary:
 	var dur: float = Bal.v("ult/su_t", 3.0)
 	u.ev["undying_until"] = g.t + dur   # 期间不会倒下（squad.prevent_death 读）
 	u.team_buff("ult:specter_saw", dur, [[&"dmg_taken", "mult", Bal.v("ult/su_taken", 0.5)]])
-	o.play_vis_anim("attack")
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
 	var col: Color = u._col(o)
 	var steel: Color = col.lerp(Color.WHITE, 0.25)
-	var a := {"dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
+	var a := {"body": body, "dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
 	a["rim"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 14.0, "col": steel, "life": dur + 1.0})
 	a["rim2"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 40.0, "w": 4.0, "col": Color(0.75, 0.12, 0.16), "life": dur + 1.0})
 	a["disk"] = _keep(u, a, {"kind": "circle", "c": o.pos, "r": 60.0, "col": col.darkened(0.4), "fill": 0.12, "life": dur + 1.0})
@@ -898,7 +900,8 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 		_ring(u, c, full_r + 6.0, full_r + 6.0, Color(1, 1, 1), 0.12, 6.0)
 		if int(a.tick) % 4 == 1:
 			u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
-			o.play_vis_anim("attack")
+			if not a.body:
+				o.play_vis_anim("attack")
 		o.screen_shake(0.25)
 	return int(a.tick) >= n
 
@@ -913,7 +916,9 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 	var half: float = deg_to_rad(Bal.v("ult/mz_arc", 232.0)) * 0.5   # 10-30 对齐表 200 → 232°（朝上瞄时右下 350 处精英也扫得到，屏内小怪 43% → 约 50%）
 	var base: Vector2 = o.pos - d * 90.0
 	o.face_to(d.angle())
-	o.play_vis_anim("attack")
+	var body := _spine_body(o)
+	if not body:
+		o.play_vis_anim("attack")
 	# 破土：身后地面炸开
 	u.strip("fx_rock_burst", base, {"sc": 2.6})
 	_ring(u, base, 110.0, 20.0, col.lerp(Color.WHITE, 0.3), 0.35, 8.0)

@@ -1,0 +1,159 @@
+{
+ "id": "specter_unchained",
+ "src": "specter_unchained.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "归溟幽灵鲨",
+ "body": {
+  "hip": "F_hip",
+  "chest": "F_chest",
+  "head": "F_head"
+ },
+ "legs": {
+  "L": [
+   "F_R_thigh",
+   "F_R_shin",
+   "F_R_shoes"
+  ],
+  "R": [
+   "F_L_thigh",
+   "F_L_shin",
+   "F_L_shoes"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_R_arm_A",
+   "F_R_arm_B",
+   "F_R_hand_close"
+  ],
+  "R": [
+   "F_L_arm_A",
+   "F_L_arm_B",
+   "F_L_palm"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_Weapon2",
+ "relativeArms": [
+  "L"
+ ],
+ "grip": [
+  86.5,
+  16.3
+ ],
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_3_Begin",
+   "Skill_3_Begin",
+   "Skill_3_Attack",
+   "Skill_3_Attack",
+   "Skill_3_Attack",
+   "Skill_3_Attack",
+   "Skill_3_Attack",
+   "Skill_3_Attack",
+   "Skill_3_End",
+   "Skill_3_End"
+  ],
+  "times": [
+   0.111,
+   0.259,
+   0.489,
+   0.733,
+   0.978,
+   1.344,
+   1.589,
+   1.711,
+   0.148,
+   0.296
+  ],
+  "pinX": [
+   false,
+   false,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   false,
+   false
+  ]
+ },
+ "durations": [
+  0.1,
+  0.1,
+  0.05,
+  0.05,
+  0.05,
+  0.05,
+  0.05,
+  0.05,
+  0.12,
+  0.15
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_3_Begin 举锯 → Skill_3_Attack 抡锯一圈 6 帧（钉回原地，vis_order 循环 9 遍 = 2.7 秒）→ Skill_3_End 收",
+ "vis_order": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9
+ ]
+}

@@ -70,6 +70,9 @@
 - `tools/spine_run_trial/ult_install.py <id>`：把逐帧拼成 `op_<id>_ult_spine@2x / @1x`，写 json 的 sprites.ult_spine 和 extra_sprites，重建索引。
 - `compare3.py --codex-at 行=png`：Codex 第二批只交了 f0 和代表帧两张关键帧，按行放进第三列。
 - `run_trial.js` 新增 `sample.kick`：逐帧整个人绕脚底后移 / 后仰，用于原作循环轨静止时补出后坐。
+- `character.gd` 新增 `sprites.<槽>.vis_order`（纯画面动作按帧号表播、可重复）：循环段不用重复画帧，只影响 play_vis_anim 的画面。
+- 契约 V2：顶层 foot 是小数或画布口径不同（维什戴尔、水月）时，`ult_install` 自动写 `foot_exempt` 说明（同入场 / 跑步条做法）。
+- 发用户前先过 vreview 预审（`record_sprite` 审对照图与特写，`ult_fx --crop left` 审实机录像左半）。
 
 | 干员 | 原作轨 | 帧 / 时长 | 对齐玩法 | 人工处理 |
 |---|---|---|---|---|
@@ -77,5 +80,7 @@
 | 艾丽妮 | Skill_3_Start 拔剑起风 → Skill_2 风中斩 ×6 → Skill_3_Attack 回原地举手炮开枪 | 12 帧 / 1.055 秒 | 起风 0–0.22、6 刀每 0.075 秒、0.675 秒回原地、0.735 秒开枪 | 隐藏 `F_Weapon(2)`（原作刀光拖影，按单子归特效层）；原作 S3 里化风那段是全空帧，按单子「风中一现一刀」改借 Skill_2 斩击 |
 | 逻各斯 | Skill_3_Begin 抬手 → Skill_3_Idle 念诵 → Skill_3_Attack 一词（双臂展开）→ Skill_3_End | 10 帧 / 0.91 秒，64 画布 | f6「一词」落在 0.5 秒标记爆裂，停 0.15 秒 | 隐藏半透明咒刃 F_Weapon3 / F_Weapon_light（像素化后成白点，归特效层） |
 | 流明 | Skill_3_Begin 举起 → Skill_3_Idle 持械站定 6 帧 × 0.33 秒 → Skill_3_End | 10 帧 / 2.42 秒，64 画布 | 0.2 秒光柱升起时举到位，覆盖 2 秒光柱 | 单子要「站定举高」，所以不用会大幅摆灯的 Skill_3_Loop；原作 S3 举的是长杖（单子：持械以 PRTS 技能动画为准） |
+| 水月 | Skill_1 伞击：后拉 → 由下往上挥伞 → 收 | 10 帧 / 1.10 秒 | f2–f5 对 0.15–0.65 秒触手横扫 | **原作没有「俯身按地」**（技能全是伞的动作），借 Skill_1 挥伞对「抬臂随横扫一挥」；破土交特效层 |
+| 归溟幽灵鲨 | Skill_3_Begin 举锯 → Skill_3_Attack 抡锯一圈 6 帧 → Skill_3_End | 10 帧，播 3.17 秒 | 抡锯 6 帧 × 0.05 = 0.3 秒一圈，`vis_order` 循环 9 遍覆盖 3 秒 | 原作抡锯带根位移，钉回原地（她移动时由游戏位移）；引擎新增 `sprites.<槽>.vis_order` |
 
 验证：（第 1 组）本地无头跑一局，打印确认两人放终结技时 anim_kind = ult_spine（1.00 / 1.055 秒），没有脚本错误；快检 asset_index / art_lint / data_lint 通过。录像：`build/spine_anim_pilot/out/<id>_ult_spine_on_vs_off.mp4`（同种子，左开右关）、`<id>_ult_spine_closeup.mp4`（原速 4 倍特写）。第 2 组（逻各斯 0.91 秒 / 流明 2.42 秒）同样无头确认、无脚本错误。
