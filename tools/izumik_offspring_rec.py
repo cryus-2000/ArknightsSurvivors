@@ -3,7 +3,7 @@
 
 同 tools/boss_bgm_rec.py：--autotest --bossacts=izumik，Boss 在队长旁刷出，从登场后 1 秒起录 30 秒（学习期 20 秒 + 一幕开头），
 30 帧 / 秒原速，带声音（配乐按 --musiclog 离线混、音效按 --sfxtrace 离线混；测试局本身静音、窗口经 godot_runner 放副屏 / 屏幕外）。
-改前 = --bal 覆盖回 10-30 前的值（学习期每 4 秒 2 只、一幕每批 4–6 只、血量 ×1），改后 = 当前缺省（或 --tier=b 用乙档）。
+改前 = --bal 覆盖回 10-30 前的值（学习期每 4 秒 2 只、一幕每批 4–6 只、血量 ×1），改后 = 当前缺省（乙档；--tier=a 用甲档）。
 用法：python tools/izumik_offspring_rec.py [--tier=a|b]   输出：主仓库 build/izumik_offspring_1030/开场子代_改前vs改后.mp4
 """
 import argparse, glob, json, os, re, shutil, subprocess, sys
@@ -17,8 +17,8 @@ import boss_bgm_rec as BB
 
 ROOT = BB.ROOT
 FPS, SR = EX.FPS, EX.SR
-OLD = ["boss/izumik_learn_n=2", "boss/izumik_learn_cd=4", "boss/izumik_off_hp=1", "boss/izumik_batch_min=4", "boss/izumik_batch_max=6", "boss/izumik_learn_spd=45"]
-TIER_B = ["boss/izumik_learn_n=4", "boss/izumik_learn_cd=2.5", "boss/izumik_off_hp=3.5", "boss/izumik_learn_spd=70", "boss/izumik_batch_min=7", "boss/izumik_batch_max=9"]
+OLD = ["boss/izumik_learn_n=2", "boss/izumik_learn_cd=4", "boss/izumik_off_hp=1", "boss/izumik_batch_min=4", "boss/izumik_batch_max=6", "boss/izumik_learn_spd=45", "boss/izumik_absorb_need=5"]
+TIER_A = ["boss/izumik_learn_n=3", "boss/izumik_learn_cd=3", "boss/izumik_off_hp=2.5", "boss/izumik_learn_spd=60", "boss/izumik_batch_min=6", "boss/izumik_batch_max=8", "boss/izumik_absorb_need=5"]
 
 
 def seg(out, tag, bals, label, ff):
@@ -62,19 +62,19 @@ def seg(out, tag, bals, label, ff):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tier", default="a", choices=["a", "b"])
+    ap.add_argument("--tier", default="b", choices=["a", "b"])   # b = 缺省（乙档，10-31 定）
     ap.add_argument("--out", default=os.path.join(GR.common_root(), "build", "izumik_offspring_1030"))
     a = ap.parse_args()
     import imageio_ffmpeg
     ff = imageio_ffmpeg.get_ffmpeg_exe()
     os.makedirs(a.out, exist_ok=True)
     GR.ensure_imported(os.path.join(ROOT, "game"))
-    new_label = "改后（乙档）：学习期每 2.5 秒 4 只、一幕每批 7–9 只、子代血量 ×3.5、移速 70" if a.tier == "b" else "改后（甲档）：学习期每 3 秒 3 只、一幕每批 6–8 只、子代血量 ×2.5、移速 60"
+    new_label = "改后：学习期每 2.5 秒 4 只、一幕每批 7–9 只、子代血量 ×3.5、移速 70、吸收 3 只强化一层" if a.tier == "b" else "改后（甲档）：学习期每 3 秒 3 只、一幕每批 6–8 只、子代血量 ×2.5、移速 60"
     parts = [seg(a.out, "old", OLD, "改前：学习期每 4 秒 2 只、一幕每批 4–6 只、子代血量 ×1、移速 45", ff),
-             seg(a.out, "new_" + a.tier, TIER_B if a.tier == "b" else [], new_label, ff)]
+             seg(a.out, "new_" + a.tier, [] if a.tier == "b" else TIER_A, new_label, ff)]
     lst = os.path.join(a.out, "list.txt")
     open(lst, "w", encoding="utf-8").write("".join("file '%s'\n" % p.replace("\\", "/") for p in parts))
-    final = os.path.join(a.out, "开场子代_改前vs改后%s.mp4" % ("_乙档" if a.tier == "b" else ""))
+    final = os.path.join(a.out, "开场子代_改前vs改后%s.mp4" % ("" if a.tier == "b" else "_甲档"))
     subprocess.run([ff, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", final], check=True)
     os.remove(lst)
     for p in parts:
