@@ -12,6 +12,8 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
+const LFX = preload("res://scripts/run/link_fx_common.gd")   # 连携画面公用件：衔接（接力光 + 光柱）/ 变体种子（用户 10-31 连携美术重做）
+const LFA = preload("res://scripts/run/link_fx_a.gd")   # 连携画面 A 组 10 人（德克萨斯 / 能天使 / 浊心斯卡蒂 / 凯尔希 / 乌尔比安 / 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔）
 
 ## 放技能的干员 id → {技能序号: [搭档 id, 合成类型]}
 const LINKS := {
@@ -83,8 +85,8 @@ static func fire(u, p, info: Dictionary) -> Dictionary:
 
 ## 合成瞬间：两人颜色的短促双色闪 + 专属音效
 static func _merge_flash(u, c: Vector2, c1: Color, c2: Color, r: float) -> void:
-	u.shape({"kind": "circle", "c": c, "r": r, "col": c1, "fill": 0.85, "life": 0.08})
-	u.shape({"kind": "ring", "c": c, "r": r * 1.6, "r1": r * 0.5, "w": 6.0, "col": c2, "life": 0.18})
+	u.light(c, r * 1.8, c1, 0.12)   # 用户 10-31「一直闪频不太好」：原来的实心白闪改成短灯（两人颜色），不再整团发白
+	u.shape({"kind": "ring", "c": c, "r": r * 1.6, "r1": r * 0.5, "w": 4.0, "col": LFX.tint(c2, 1.0, 0.8), "life": 0.18})
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
 		sfx.play("crit_tick", -2.0, 0.7)
@@ -257,6 +259,8 @@ static func _fire_sample(u, p, info: Dictionary, a: Dictionary) -> void:
 ## 现身（0..PRE）：接的人脚下干员色光柱 + 收拢光环，告诉玩家「谁来了」
 static func _appear(u, p, t: float) -> void:
 	var cp: Color = u._col(p)
+	if LFX.appear(u, p, t, PRE, cp):   # 衔接：队长亮 → 接力光飞到队友脚下 → 本人色光柱（贴图缺时照旧画下面的程序光柱）
+		return
 	var k: float = clampf(t / PRE, 0.0, 1.0)
 	u.shape({"kind": "ring", "c": p.pos, "r": lerpf(70.0, 26.0, k), "w": 4.0, "col": cp.lerp(Color.WHITE, 0.3), "life": 0.04})
 	u.shape({"kind": "band", "a": p.pos + Vector2(0, 6), "b": p.pos + Vector2(0, -90), "w": 22.0 * (1.0 - 0.5 * k), "col": cp, "fill": 0.35, "life": 0.04})
