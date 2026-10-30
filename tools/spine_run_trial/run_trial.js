@@ -175,6 +175,9 @@ async function main() {
       if (cfg.sample.carry) carry(sk, i);
       // sample.pinX：该帧把髋骨水平拉回待机位置（原作冲锋轨自带根位移，游戏里位移由代码做）
       if (cfg.sample.pinX?.[i]) { const dx = get(base, cfg.body.hip).worldX - get(sk, cfg.body.hip).worldX; for (const b of sk.bones) b.worldX += dx; }
+      // sample.kick：逐帧 [dx, dy, 度]（@2x 像素，度 + = 朝后仰）整个人绕脚底平移 / 转动——原作循环轨静止时补出连发后坐（维什戴尔）
+      const kk = cfg.sample.kick?.[i];
+      if (kk) { const h = get(sk, cfg.body.hip), piv = [h.worldX, ground]; rotate(sk, sk.bones[0], kk[2] * P.facing, piv); move(sk, sk.bones[0], kk[0] / SCALE * P.facing, -kk[1] / SCALE); }
       const hp = cfg.sample.hide?.[i];
       if (hp) for (const s of sk.slots) if (hp.some(x => s.data.name.startsWith(x))) s.attachment = null;
       return finish(sk, [{ anim: an, t: cfg.sample.times[i] }]);

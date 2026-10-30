@@ -59,3 +59,21 @@
 
 - 三列对照与录像交用户看。认可的话开关可以改成缺省开，并把这条身体条推广到其余 19 人的终结技。
 - 画布 96（@2x 192）比普通 64 画布大，因为抡锚要占地方。游戏里 foot 对齐后人的大小不变，只是贴图更宽。
+
+## 6. 第二批终结技本体动作（协调人 10-30 排单）
+
+做法：从原作技能轨整条重出，替代 Codex 第二批动画单 `codex_order_anim.md`（6ba45c89b）。特效层由 fx-strip-pilot / session-2 叠在本体上，锚点用本体条脚底（96 画布 foot (48,76)）。
+顺序：维什戴尔 → 艾丽妮 → 逻各斯 → 流明 → 水月 → 归溟幽灵鲨 → 铃兰 → Mon3tr（骨架需下载）→ 其余人。每做完 2 人接游戏、发三列对照与录像。
+
+通用接法：
+- 统一开关 `--bal=ult/spine_body=1`（缺省关）。`ult_moves_b / _c._spine_body(o)` 在终结技开头播 `ult_spine`，原来借用的 attack 段不再播；乌尔比安也认这个开关。
+- `tools/spine_run_trial/ult_install.py <id>`：把逐帧拼成 `op_<id>_ult_spine@2x / @1x`，写 json 的 sprites.ult_spine 和 extra_sprites，重建索引。
+- `compare3.py --codex-at 行=png`：Codex 第二批只交了 f0 和代表帧两张关键帧，按行放进第三列。
+- `run_trial.js` 新增 `sample.kick`：逐帧整个人绕脚底后移 / 后仰，用于原作循环轨静止时补出后坐。
+
+| 干员 | 原作轨 | 帧 / 时长 | 对齐玩法 | 人工处理 |
+|---|---|---|---|---|
+| 维什戴尔 | Skill_3_Begin 架炮 → Skill_3_Loop 炮口朝天 → Loop 放平 → Skill_3_End | 10 帧 / 1.00 秒 | f3–f6 对 6 排炮击（0.15–0.65 秒） | 原作循环里炮身不动，用 kick 补后坐（隔帧后仰 6°、后移 4 px） |
+| 艾丽妮 | Skill_3_Start 拔剑起风 → Skill_2 风中斩 ×6 → Skill_3_Attack 回原地举手炮开枪 | 12 帧 / 1.055 秒 | 起风 0–0.22、6 刀每 0.075 秒、0.675 秒回原地、0.735 秒开枪 | 隐藏 `F_Weapon(2)`（原作刀光拖影，按单子归特效层）；原作 S3 里化风那段是全空帧，按单子「风中一现一刀」改借 Skill_2 斩击 |
+
+验证：本地无头跑一局，打印确认两人放终结技时 anim_kind = ult_spine（1.00 / 1.055 秒），没有脚本错误；快检 asset_index / art_lint / data_lint 通过。录像：`build/spine_anim_pilot/out/<id>_ult_spine_on_vs_off.mp4`（同种子，左开右关）。

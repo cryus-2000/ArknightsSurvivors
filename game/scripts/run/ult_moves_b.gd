@@ -117,6 +117,15 @@ static func _route(o) -> String:
 	return str(r) if r != null else ""
 
 
+## 终结技身体条（10-30 docs/207，本地原作 Spine 自产 op_<id>_ult_spine）：开关 ult/spine_body 开、且这名干员有这条时播一整条（纯画面），返回 true；
+## 招式里原来借用的 attack 段就别再播（会盖掉身体条）。缺省关，关时与原来一样
+static func _spine_body(o) -> bool:
+	if Bal.v("ult/spine_body", 0.0) > 0.5 and o.anim_tex("ult_spine") != null:
+		o.play_vis_anim("ult_spine")
+		return true
+	return false
+
+
 ## 击退距离 → 冲量（敌人 kb 每秒衰减 900）
 static func _kb_v(dist: float) -> float:
 	return sqrt(1800.0 * maxf(0.0, dist))
@@ -733,7 +742,8 @@ static func _wd_start(u, o, d: Vector2) -> Dictionary:
 			row.append(o.pos + d * along + n * lat)
 		shells.append({"ps": row, "t": t0 + gap * float(k), "done": false, "after": false})
 	o.face_to(d.angle())
-	o.play_vis_anim("attack")
+	if not _spine_body(o):
+		o.play_vis_anim("attack")
 	var col: Color = u._col(o)
 	# 落点预兆：每发一圈细红环 + 天上落下的炮弹拖线
 	for k in shells.size():

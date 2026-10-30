@@ -1,0 +1,122 @@
+{
+ "id": "wisadel",
+ "src": "wisadel.src.json",
+ "name": "维什戴尔",
+ "body": {
+  "hip": "F_Waist_5",
+  "chest": "F_Chest_1",
+  "head": "F_Head_02"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg_01",
+   "F_L_Calf_01_01",
+   "F_L_Foot_01"
+  ],
+  "R": [
+   "F_R_Leg_01",
+   "F_R_Calf_01",
+   "F_R_Foot_01"
+  ]
+ },
+ "footExtra": {
+  "L": [
+   "F_L_Foot_1",
+   "F_L_Foot_02",
+   "F_L_Foot_04",
+   "F_L_Foot_05"
+  ],
+  "R": [
+   "F_R_Foot_1",
+   "F_R_Foot_02",
+   "F_R_Foot_04",
+   "F_R_Foot_05"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm_01",
+   "F_L_Forearm_01",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm_01",
+   "F_R_Forearm_01",
+   "F_R_Hand_01"
+  ]
+ },
+ "leadLeg": "L",
+ "nearSide": "R",
+ "hold": "L",
+ "weapon": "F_Knife_01",
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_3_Begin",
+   "Skill_3_Begin",
+   "Skill_3_Loop",
+   "Skill_3_Loop",
+   "Skill_3_Loop",
+   "Skill_3_Loop",
+   "Skill_3_Loop",
+   "Skill_3_Loop",
+   "Skill_3_Loop",
+   "Skill_3_End"
+  ],
+  "times": [
+   0.37,
+   0.556,
+   0.568,
+   0.636,
+   0.636,
+   0.705,
+   0.705,
+   1.114,
+   1.25,
+   0.444
+  ],
+  "kick": [
+   null,
+   null,
+   null,
+   [
+    -4,
+    0,
+    6
+   ],
+   [
+    -1,
+    0,
+    1
+   ],
+   [
+    -4,
+    0,
+    6
+   ],
+   [
+    -1,
+    0,
+    1
+   ],
+   null,
+   null,
+   null
+  ]
+ },
+ "durations": [
+  0.05,
+  0.05,
+  0.05,
+  0.125,
+  0.125,
+  0.125,
+  0.125,
+  0.1,
+  0.1,
+  0.15
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_3_Begin 架炮 → Skill_3_Loop 炮口朝天连发（f3–f6 对 6 排炮击 0.15–0.65 秒）→ 放平收炮；1.0 秒；f3–f6 补后坐：sample.kick 偶数发后仰 6° 后移 4 px、奇数发回弹"
+}

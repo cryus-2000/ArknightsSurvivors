@@ -1482,7 +1482,7 @@ static func _ul_start(u, o, aim: Vector2) -> Dictionary:
 	# 小怪在它所在的最内一圈就倒；精英 / Boss 裂地第一下补满 1 份（docs/198 §3.4 对齐，10-30）
 	var uf: float = Bal.v("ult/ul_ring", 0.6)
 	# 身体条试点（10-30，docs/207）：本地原作 Spine 自产的掷锚 → 沿链冲 → 落地握锚 8 帧，前 6 帧 0.40 秒对齐 ul_throw + ul_dash；缺省关
-	var body: bool = Bal.v("ult/ul_spine_body", 0.0) > 0.5 and o.anim_tex("ult_spine") != null
+	var body: bool = (Bal.v("ult/ul_spine_body", 0.0) > 0.5 or Bal.v("ult/spine_body", 0.0) > 0.5) and o.anim_tex("ult_spine") != null
 	if body:
 		o.play_vis_anim("ult_spine")
 	return {"k": "ulpianus", "body": body, "cap": 1.0, "fr": {}, "sc": sc, "p0": o.pos, "c": c, "ta": Bal.v("ult/ul_throw", 0.18), "td": Bal.v("ult/ul_dash", 0.22),

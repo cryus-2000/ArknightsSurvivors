@@ -112,6 +112,15 @@ static func _hit(u, a: Dictionary, o, e: Dictionary, frac: float, opt: Dictionar
 	return u.hit(o, e, frac, opt)
 
 
+## 终结技身体条（10-30 docs/207，本地原作 Spine 自产 op_<id>_ult_spine）：开关 ult/spine_body 开、且这名干员有这条时播一整条（纯画面），返回 true；
+## 招式里原来借用的 attack 段就别再播（会盖掉身体条）。缺省关，关时与原来一样
+static func _spine_body(o) -> bool:
+	if Bal.v("ult/spine_body", 0.0) > 0.5 and o.anim_tex("ult_spine") != null:
+		o.play_vis_anim("ult_spine")
+		return true
+	return false
+
+
 ## 同一段只打一次：seg 已命中表
 static func _once(u, a: Dictionary, o, seg: Dictionary, e: Dictionary, frac: float, opt: Dictionary) -> bool:
 	if seg.has(int(e.id)):
@@ -860,7 +869,7 @@ static func _ir_start(u, o, d: Vector2) -> Dictionary:
 		var rr: float = R * (0.42 if i % 2 == 0 else 0.68)   # 一近一远，之字形穿过风暴
 		cuts.append({"lo": lo, "hi": hi, "p": org + Vector2.from_angle(mid) * rr, "t": tw + 0.02 + float(i) * Bal.v("ult/ir_cut_gap", 0.075), "done": false})
 	var tb: float = float(cuts[-1].t) + 0.08
-	return {"org": org, "ang": ang, "half": half, "R": R, "tw": tw, "wseg": {}, "wind": false, "cuts": cuts, "cseg": {}, "cf": Bal.v("ult/ir_cut", 0.6),
+	return {"body": _spine_body(o), "org": org, "ang": ang, "half": half, "R": R, "tw": tw, "wseg": {}, "wind": false, "cuts": cuts, "cseg": {}, "cf": Bal.v("ult/ir_cut", 0.6),
 		"tb": tb, "back": false, "shot": false, "eye": home + Vector2.from_angle(ang) * Bal.v("ult/ir_eye", 420.0), "bseg": {}, "air": [], "prev": home, "home": home}
 
 
@@ -891,7 +900,8 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 		a.prev = p
 		var mid: float = (float(ct.lo) + float(ct.hi)) * 0.5
 		o.face_to(mid)
-		o.play_vis_anim("attack")
+		if not a.body:
+			o.play_vis_anim("attack")
 		var pa: Vector2 = org + Vector2.from_angle(float(ct.lo)) * R * 0.2
 		var pb: Vector2 = org + Vector2.from_angle(float(ct.hi)) * R * 0.97
 		if ai % 2 == 1:

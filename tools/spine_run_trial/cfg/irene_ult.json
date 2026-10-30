@@ -1,0 +1,98 @@
+{
+ "id": "irene",
+ "src": "irene.src.json",
+ "leadLeg": "L",
+ "nearSide": "L",
+ "name": "艾丽妮",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "L",
+ "weapon": "F_Weapon",
+ "relativeArms": [
+  "R"
+ ],
+ "follow": [
+  [
+   "F_Handle",
+   "F_R_Light"
+  ]
+ ],
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_3_Start",
+   "Skill_3_Start",
+   "Skill_3_Start",
+   "Skill_2",
+   "Skill_2",
+   "Skill_2",
+   "Skill_2",
+   "Skill_2",
+   "Skill_2",
+   "Skill_3_Attack",
+   "Skill_3_Attack",
+   "Skill_3_Attack"
+  ],
+  "times": [
+   0.048,
+   0.145,
+   0.194,
+   0.364,
+   0.455,
+   0.545,
+   0.636,
+   0.727,
+   0.818,
+   3.3,
+   3.48,
+   3.83
+  ]
+ },
+ "durations": [
+  0.07,
+  0.07,
+  0.08,
+  0.076,
+  0.076,
+  0.076,
+  0.076,
+  0.076,
+  0.075,
+  0.06,
+  0.12,
+  0.2
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_3_Start 拔剑起风 0–0.22 → Skill_2 斩击 6 帧对 6 刀（每 0.075 秒一刀）→ Skill_3_Attack 回原地举手炮开枪（0.675 起）",
+ "hide": [
+  "F_Weapon(2)"
+ ]
+}
