@@ -1124,21 +1124,26 @@ func _hf_on() -> bool:
 
 var _hf_serial := -1
 var _hf_n := [0, 0]   # 本次冲击帧白 / 黑两拍已画的帧数
+var _hf_t0 := 0.0
 
 
 func _draw_hit_frame(w) -> void:
 	if not _hf_on():
 		return
-	var t: float = _imp_age()
-	if t < 0.0:
+	if _imp_age() < 0.0 or _imp_age() > 1.0:
 		return
-	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）
+	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）；
+	# 按这次终结技（serial）只起算一次：反震 / 炮击会连着 impact 好几次，按 impact 重置会再闪一轮
 	var ht: float = Bal.v("ult/hit_frame_t", 0.067)
-	if _hf_serial != _imp_serial:
-		_hf_serial = _imp_serial
+	if _hf_serial != serial:
+		_hf_serial = serial
 		_hf_n = [0, 0]
+		_hf_t0 = UM.now()
+	var t: float = UM.now() - _hf_t0
 	var inv: bool = t < ht or _hf_n[0] < 2   # 第 1 拍：白底黑剪影
 	if not inv and _hf_n[1] >= 2 and t >= ht * 2.0:
+		act["hf"] = false   # 一次终结技只闪一次（维什戴尔后几排落地也会 impact）
+		act["hf_done"] = true
 		return
 	_hf_n[0 if inv else 1] += 1
 	var bg := Color(0.92, 0.9, 0.86) if inv else Color(0.02, 0.02, 0.03)
@@ -1146,7 +1151,7 @@ func _draw_hit_frame(w) -> void:
 	var R := Vector2(2600.0, 1700.0)
 	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), bg)
 	w.tb_flush()
-	var fg := Color(0.0, 0.0, 0.0) if inv else Color(8.0, 8.0, 8.0)   # 白剪影：调色乘 8 把贴图压成白
+	var fg := Color(0.0, 0.0, 0.0) if inv else Color(1.6, 1.6, 1.6)   # 黑底那拍：贴图保持本色提亮（乘 8 会把红压成粉）；程序斩线照样纯白
 	for s in shapes:
 		if s.age < 0.0 or not s.get("hf", false):
 			continue
@@ -1402,7 +1407,7 @@ func impact(pos: Vector2) -> void:
 	_imp_pos = pos
 	_imp_boom = false
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
-	if not _hf_on():
+	if not (_hf_on() or act.get("hf_done", false)):
 		flash_rt = _imp_rt   # 冲击帧招式不叠共用白闪：白闪会把冲击帧和拖影一起盖掉（用户 10-31「看不出区别」）
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
 	debris(pos, _col(caster), 3)
