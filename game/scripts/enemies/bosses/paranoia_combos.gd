@@ -338,7 +338,7 @@ func _update_emitters(e: Dictionary) -> void:
 
 
 func _aim(from: Vector2) -> float:
-	return (g.ppos + Vector2(0, -14) - from).angle()
+	return (g.shots.aim_pt() - from).angle()
 
 
 func _fire(e: Dictionary, em: Dictionary, k: int) -> void:

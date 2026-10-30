@@ -645,6 +645,11 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		e["ult_d"] = 0.0
 	var full_b: float = budget(e, bool(opt.get("edge", false))) * build_mult(o)
 	var amt: float = full_b * frac
+	if not e.boss and not e.elite and not e.get("part", false):
+		# 只乘普通小怪，精英 / Boss 的份额上限不动：ult/minion_k 全员统一上调（协调人 10-31「范围内普通小怪基本清光」，docs/199 §5.11）×
+		# ult/dmgk_<干员> 范围统一后的输出补偿（§5.10）；ult/minion_hpk > 0（试验，缺省关）：预算至少是这只小怪自身最大生命 × hpk（后期高血种类也能清）
+		amt = maxf(amt, e.maxhp * Bal.v("ult/minion_hpk", 0.0) * frac)
+		amt *= Bal.v("ult/minion_k", 1.0) * Bal.v("ult/dmgk_" + str(o.id), 1.0)
 	if e.boss:
 		amt = minf(amt, maxf(0.0, full_b - float(e.ult_d)))
 	elif e.elite or e.get("part", false):

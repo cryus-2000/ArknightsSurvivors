@@ -986,6 +986,8 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		# 小触手：从扫过区域与他身边 300 内，抓生命最低的漏网（每根 20%，束缚 1.5 秒）
 		var cand: Array = []
 		for e in u.in_circle(c, R):
+			if e.elite or e.boss or e.get("part", false):
+				continue   # 只抓小怪漏网（10-31 精英份额上调到 60–80% 后，横扫后血比最低的精英总被抓、多吃一份超到 89%）
 			var off2: Vector2 = e.pos - c
 			var rel2: float = fposmod(off2.angle() - a0, TAU)
 			if rel2 <= span + 0.05 or off2.length() <= 300.0:

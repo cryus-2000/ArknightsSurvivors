@@ -1046,7 +1046,33 @@ func _se_draw(ob, kd: int) -> void:
 var _dot_a := 0.0
 
 
+## 加层预警（shot_pool.layer_q）：同一发射点、同一时刻只画一个收拢圈（专属色），离出弹越近越小越亮；纯画面
+func _draw_layer_warns() -> void:
+	if g.shots == null or g.shots.layer_q.is_empty():
+		return
+	var seen := {}
+	for q in g.shots.layer_q:
+		var key := Vector3i(int(q[1].x / 8.0), int(q[1].y / 8.0), int(float(q[0]) * 10.0))
+		if seen.has(key):
+			continue
+		seen[key] = true
+		var left: float = float(q[0]) - g.t
+		var kk: float = clampf(left / 0.6, 0.0, 1.0)
+		var c: Color = q[3]
+		tb_ring(q[1], 10.0 + 26.0 * kk, 2.0, Color(c.r, c.g, c.b, 0.35 + 0.5 * (1.0 - kk)))
+		tb_circle(q[1], 4.0, Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, 0.3 + 0.6 * (1.0 - kk)), 1.0, 8)
+	tb_flush()
+
+
 func _draw_hit_dot() -> void:
+	_draw_layer_warns()
+	# 调试：--hitcircles 画出每颗敌弹的判定圈（绿）和队长判定点（白），录对照用；只开发版
+	if OS.is_debug_build() and Cfg.dev_args().has("--hitcircles") and g.shots != null:
+		for b in g.ebullets:
+			if b.life > 0.0:
+				tb_ring(g.shots.hit_c(b), g.shots.hit_r(b), 1.5, Color(0.3, 2.0, 0.6, 0.95))
+		tb_circle(g.ppos + Vector2(0, -14), 3.0, Color(2.0, 2.0, 2.0), 1.0, 8)
+		tb_flush()
 	if g.shots == null or not g.shots.core_hit_live():
 		return
 	var p: Vector2 = g.ppos + Vector2(0, -14)

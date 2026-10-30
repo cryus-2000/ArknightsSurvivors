@@ -106,6 +106,19 @@ func core_r(b: Dictionary) -> float:
 	return float(b.r) * Bal.v("enemy/bullet_hit_scale", 0.6)
 
 
+## Boss 弹判定半径（用户 10-30「弹体的判定范围可以做大一点」，claude/bullet-hitbox）：Boss 弹 = (弹体半径 + boss/bullet_hit_pad) × 倍率，
+## 最终 Boss 在场时用 boss/bullet_hit_k，否则 boss/bullet_hit_k_mid；倍率 0 = 照旧按弹芯（core_r）。画面上弹体可见外缘约为 弹体半径 + 3（深色外圈），
+## pad 3 时倍率就是「占可见外缘的比例」，不超过 1 即不会「没碰到也中」。普通怪弹不变
+func hit_r(b: Dictionary) -> float:
+	if not core_hit_live():
+		return float(b.r) + 12.0
+	if b.get("boss", false):
+		var k: float = Bal.v("boss/bullet_hit_k", 0.0) if not _final_live().is_empty() else Bal.v("boss/bullet_hit_k_mid", 0.0)
+		if k > 0.0:
+			return (float(b.r) + Bal.v("boss/bullet_hit_pad", 3.0)) * k
+	return core_r(b)
+
+
 func _final_live() -> Dictionary:
 	for e in g.bosses:
 		if not e.dead and g.spawner.is_final_boss_type(str(e.type)):
@@ -129,9 +142,11 @@ func _final_speed(b: Dictionary) -> void:
 	if b.get("home", false):
 		k = minf(k, Bal.v("boss/spd_home_cap", 1.3))
 	if is_equal_approx(k, 1.0):
+		_queue_layers(b, fb)
 		return
 	b.spd_k = k
 	b.vel = b.vel * k
+	_queue_layers(b, fb)
 	for f in ["accel", "max_speed", "p_acc", "p_vmin", "p_vmax", "p_v2", "izu_v0"]:
 		if b.has(f):
 			b[f] = float(b[f]) * k
@@ -144,10 +159,72 @@ func _final_speed(b: Dictionary) -> void:
 
 
 var _spd_cap2 := 0.0
+## 判定对齐画面（10-30 协调人定，claude/bullet-hitbox）：敌弹画在 b.pos 上方 16 像素（world._ebp），以前判定却按 b.pos（影子位置）算，
+## 看着碰到没中、看着没碰到却中。现在判定取 b.pos 上移 enemy/bullet_hit_lift 像素（= 弹体画面中心）对队长判定点（ppos 上方 14，白点）；
+## 瞄「判定点」的 Boss 弹 / 追踪弹改瞄 aim_pt()（= 判定点下移 lift，飞行时画面正好穿过白点）。0 = 照旧
+var _lift := 16.0
+
+
+func aim_pt() -> Vector2:
+	return g.ppos + Vector2(0, -14.0 + Bal.v("enemy/bullet_hit_lift", 16.0))
+
+
+## 弹的判定中心（画面中心）
+func hit_c(b: Dictionary) -> Vector2:
+	return b.pos + Vector2(0, -_lift)
+## 最终 Boss 弹幕加层（用户 10-30「多几层、全方位一点，但要给预警；子弹略放慢」，claude/bullet-hitbox）：
+## 每颗最终 Boss 弹第一次更新时，按 boss/layer_n_<类型> 排出 N 层追加弹：第 i 层绕发射点转 boss/layer_rot_<类型> × i 弧度（交错角度），
+## boss/layer_omni_<类型> = 1 时奇数层再转 π（前后夹击 → 全方位），速度 × boss/layer_spd_<类型>^i（不同速度成层）；
+## 预警 boss/layer_warn_<类型> 秒：发射点画专属色收拢圈（world._draw_layer_warns），到点从发射点射出。不复制：追踪弹、停住的弹、Boss 自己画的弹、追加弹本身；
+## 同屏敌弹超过 boss/layer_cap 不再加。缺省 layer_n 0 = 不加层
+var layer_q: Array = []   # [发射时刻, 发射点, 弹字典, 专属色]
+var _layer_keys := {}
+
+
+func _queue_layers(b: Dictionary, fb: Dictionary) -> void:
+	var typ := str(fb.type)
+	var n: int = int(Bal.v("boss/layer_n_%s" % typ, 0.0))
+	if n <= 0 or b.has("_layer") or b.get("home", false) or b.get("own_draw", false) or b.vel.length_squared() < 400.0:
+		return
+	if g.ebullets.size() + layer_q.size() > int(Bal.v("boss/layer_cap", 240.0)):
+		return
+	var warn: float = Bal.v("boss/layer_warn_%s" % typ, 0.6)
+	var rot: float = Bal.v("boss/layer_rot_%s" % typ, 0.16)
+	var omni: bool = Bal.v("boss/layer_omni_%s" % typ, 0.0) > 0.0
+	var sk: float = Bal.v("boss/layer_spd_%s" % typ, 0.8)
+	var col: Color = g.vfx.boss_color(typ)
+	for i in range(1, n + 1):
+		var c: Dictionary = b.duplicate()
+		c._layer = i
+		c.erase("_dg")
+		var a: float = rot * i * (1.0 if i % 2 == 1 else -1.0) + (PI if omni and i % 2 == 1 else 0.0)
+		c.vel = b.vel.rotated(a) * pow(sk, i)
+		layer_q.append([g.t + warn * float(i), b.pos, c, col])
+
+
+func _fire_layers() -> void:
+	if layer_q.is_empty():
+		return
+	if _final_live().is_empty():
+		layer_q.clear()
+		return
+	var keep: Array = []
+	for q in layer_q:
+		if g.t >= float(q[0]):
+			var c: Dictionary = q[2]
+			c.pos = q[1]
+			g.ebullets.append(c)
+		else:
+			keep.append(q)
+	layer_q = keep
+
+
 
 
 func update_ebullets(dt: float) -> void:
 	_spd_cap2 = pow(Bal.v("boss/spd_cap", 440.0), 2.0)
+	_lift = Bal.v("enemy/bullet_hit_lift", 16.0)
+	_fire_layers()
 	for b in g.ebullets:
 		if b.life <= 0.0:
 			continue
@@ -156,7 +233,7 @@ func update_ebullets(dt: float) -> void:
 		elif float(b.get("spd_k", 1.0)) > 1.0 and b.vel.length_squared() > _spd_cap2:
 			b.vel = b.vel.normalized() * sqrt(_spd_cap2)   # 放大过的弹被各脚本逐帧加速时也不超过 boss/spd_cap（云端测得泡影最高 590）
 		if b.get("home", false):
-			var want: Vector2 = (g.ppos + Vector2(0, -14) - b.pos).normalized() * b.vel.length()
+			var want: Vector2 = (aim_pt() - b.pos).normalized() * b.vel.length()
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
 		b.pos += b.vel * dt
 		b.life -= dt
@@ -172,8 +249,8 @@ func update_ebullets(dt: float) -> void:
 		if rock:
 			b.life = 0.0
 			b["_die"] = "rock"
-		var hd: float = b.pos.distance_to(g.ppos + Vector2(0, -14))
-		var hitp: bool = not rock and hd < (core_r(b) if core_hit_live() else b.r + 12.0)   # 判定点：敌弹只按弹芯判定
+		var hd: float = hit_c(b).distance_to(g.ppos + Vector2(0, -14))
+		var hitp: bool = not rock and hd < hit_r(b)   # 判定点：敌弹只按弹芯判定
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and (not b.get("boss", false) or g.mires.size() < 48) and _boss_mire_ok(b) and (b.get("boss", false) or not g.combat.mire_blocked(b.pos + Vector2(0, 10), float(b.get("mire_r", 52.0)))):
