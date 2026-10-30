@@ -380,3 +380,128 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 			continue
 		PF.particles(u, p, 40, "ult_ember", [SZ_FOX], dl + 0.08, vs + k * 5.0, 90.0)
 	PF.particles(u, org + d * (L - bk) * 0.5, 300, "ult_burst", [SZ_COLD, SZ_PALE], 0.12, vs + 99.0, minf(hw, L) * 0.45)
+
+
+
+# ================================================================ 水月 · 水母群（ult/mz_jelly，协调人 10-30 转用户「做个大概的给我看看」：粗稿）
+## 半透明发光水母从地底缓缓升起、触手像丝带慢慢飘；横扫打到的敌人由最近的水母伸丝带触手贴上去，光沿触手一节节传过去；
+## 到原来「小触手抓漏网」那一刻所有水母同步一闪爆开，然后慢慢飘散淡出。节奏慢、要美，和别人的大砸大爆反差。
+## 判定 / 时序 / 伤害照旧（横扫扇区、抓漏网都还在原时刻），只是画法换掉：大触手、钻洞、小触手不画。
+const MZ_JELLY := ["fx_mz_jelly1", "fx_mz_jelly2", "fx_mz_jelly3"]
+const MZ_JN := 9
+const MZ_RIB_N := 10   # 丝带段数
+const MZ_RIB_MAX := 10
+const MZ_GLOW := Color(0.55, 0.9, 0.95)
+
+
+static func mz_jelly(u) -> bool:
+	return Bal.v("ult/mz_jelly", 1.0) > 0.0 and u.fx_ready(MZ_JELLY[0])
+
+
+static func mz_jelly_start(u, a: Dictionary, c: Vector2, a0: float, span: float, R: float) -> void:
+	var vs: float = PF.vseed(u, c)
+	a["jl"] = []
+	a["jl_vs"] = vs
+	a["jl_rib"] = []
+	for i in MZ_JN:
+		var hh: float = PF.h(vs + i * 4.7)
+		var ang: float = a0 + span * (float(i) + 0.2 + 0.6 * hh) / MZ_JN
+		var p: Vector2 = c + Vector2.from_angle(ang) * R * (0.3 + 0.55 * PF.h(vs + i * 9.1))
+		var name := PF.pick(u, MZ_JELLY, vs + i * 1.3)
+		var t: Texture2D = u._strip_tex(name)
+		var sc: float = (105.0 + 45.0 * PF.h(vs + i * 2.2)) / (PF.tex_w(u, name) * t.get_height() / t.get_width())   # 按高度定大小（三种水母宽窄不一）
+		var fs: float = -1.0 if PF.h(vs + i * 6.6) < 0.5 else 1.0
+		var s: Dictionary = u.strip(name, p + Vector2(0, 40), {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.22), "sc": sc, "sx": fs, "life": 4.0, "col": Color(1, 1, 1, 0.0)})
+		a.jl.append({"s": s, "p": p, "ph": hh * TAU, "d0": 0.04 * i + 0.1 * hh, "fs": fs})
+		u.shape({"kind": "circle", "c": p + Vector2(0, 30), "r": 26.0, "col": Color(0.02, 0.04, 0.08), "fill": 0.45, "life": 0.8, "delay": 0.04 * i, "layer": "back"})   # 冒出的地面暗斑
+		PF.particles(u, p + Vector2(0, 30), 20, "ult_burst_s", [MZ_INK], 0.04 * i, vs + i, 50.0)
+
+
+## 每帧：水母缓升 + 上下漂 + 伞盖一张一缩；丝带触手跟着飘、光往敌人那头一节节传
+static func mz_jelly_step(u, a: Dictionary, t: float) -> void:
+	var bt: float = float(a.get("jl_burst", -1.0))
+	for j in a.jl:
+		var s: Dictionary = j.s
+		if s.age >= s.max:
+			continue
+		var k: float = clampf((t - float(j.d0)) / 0.55, 0.0, 1.0)
+		var ke: float = 1.0 - (1.0 - k) * (1.0 - k)
+		var ph: float = float(j.ph)
+		if not s.has("v"):
+			s.c = Vector2(j.p) + Vector2(0, 40.0 * (1.0 - ke) + 5.0 * sin(t * 2.2 + ph))
+		var pulse: float = sin(t * 5.0 + ph)
+		s.sy = 1.0 + 0.08 * pulse
+		s.sx = float(j.fs) * (1.0 - 0.05 * pulse)
+		var b: float = 1.0
+		if bt >= 0.0 and t - bt < 0.08:
+			b = 1.2   # 同步一闪（预审：1.45 发白）
+		s.col = Color(b, b, b, 0.78 * ke)
+		if int(t * 60.0) % 9 == int(ph * 3.0) % 9:
+			u.grain("mote_up", s.c, Vector2.UP, MZ_GLOW, 1)
+	for r in a.jl_rib:
+		_mz_rib_pose(u, a, r, t)
+
+
+static func _mz_rib_pose(u, a: Dictionary, r: Dictionary, t: float) -> void:
+	var j: Dictionary = r.j
+	var p0: Vector2 = Vector2(j.s.c) + Vector2(0, 26)
+	var p1: Vector2 = r.e
+	var nrm: Vector2 = (p1 - p0).orthogonal().normalized()
+	var ph: float = float(j.ph)
+	var mid: Vector2 = p0.lerp(p1, 0.5) + nrm * (36.0 * sin(t * 3.0 + ph) + 20.0)
+	var age: float = t - float(r.t0)
+	var reveal: float = clampf(age / 0.15, 0.0, 1.0) * MZ_RIB_N
+	var pk: float = (age - 0.12) / 0.3 * MZ_RIB_N   # 光传到哪一节
+	var q0: Vector2 = p0
+	for i in MZ_RIB_N:
+		var kk: float = float(i + 1) / MZ_RIB_N
+		var wob: Vector2 = nrm * 6.0 * sin(t * 6.0 + i * 0.9 + ph) * kk
+		var q1: Vector2 = p0.lerp(mid, kk).lerp(mid.lerp(p1, kk), kk) + wob
+		var sg: Dictionary = r.segs[i]
+		sg.a = q0
+		sg.b = q1
+		var lit: float = clampf(1.0 - absf(float(i) - pk) / 1.6, 0.0, 1.0)
+		var al: float = 0.0 if float(i) >= reveal else 0.5 + 0.45 * lit
+		sg.col = Color(0.35 + 0.5 * lit, 0.62 + 0.26 * lit, 0.8 + 0.08 * lit, al)
+		sg.w = 2.0 + 2.0 * lit
+		q0 = q1
+	if pk >= MZ_RIB_N and not r.has("pop"):
+		r["pop"] = true
+		PF.particles(u, p1, 30, "ult_burst_s", [Color(0.36, 0.6, 0.66), Color(0.5, 0.42, 0.7)], 0.0, float(a.jl_vs) + float(r.t0) * 31.0, 70.0)
+
+
+## 横扫打到一个敌人（画面）：最近的水母伸一根丝带触手过去
+static func mz_jelly_hit(u, a: Dictionary, p: Vector2, t: float) -> void:
+	if a.jl_rib.size() >= MZ_RIB_MAX:
+		return
+	var best: Dictionary = a.jl[0]
+	var bd: float = INF
+	for j in a.jl:
+		var dd: float = Vector2(j.p).distance_squared_to(p)
+		if dd < bd:
+			bd = dd
+			best = j
+	var segs: Array = []
+	for i in MZ_RIB_N:
+		var sg := {"kind": "line", "a": p, "b": p, "w": 2.0, "col": Color(0.4, 0.7, 0.85, 0.0), "life": 1.1}
+		u.shape(sg)
+		segs.append(sg)
+	var r := {"j": best, "e": p, "t0": t, "segs": segs}
+	a.jl_rib.append(r)
+	_mz_rib_pose(u, a, r, t)
+
+
+## 抓漏网那一刻：所有水母同步一闪爆开（光点粒子 + 灯），之后慢慢飘散淡出
+static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
+	a["jl_burst"] = t
+	var vs: float = float(a.jl_vs) + 77.0
+	u.light(c, float(a.R) * 0.8, Color(0.2, 0.36, 0.4), 0.3)
+	for i in a.jl.size():
+		var j: Dictionary = a.jl[i]
+		var s: Dictionary = j.s
+		u.light(s.c, 110.0, Color(0.3, 0.5, 0.55), 0.22)
+		PF.particles(u, s.c, 40, "ult_burst_s", [Color(0.38, 0.62, 0.68), Color(0.5, 0.42, 0.72)], 0.0, vs + i, 100.0)
+		PF.particles(u, s.c, 30, "ult_ember", [Color(0.4, 0.66, 0.7)], 0.08, vs + i * 3.0, 70.0)
+		s.max = float(s.age) + 0.9
+		s["fade"] = 0.8
+		s["v"] = Vector2((PF.h(vs + i) - 0.5) * 30.0, -24.0)

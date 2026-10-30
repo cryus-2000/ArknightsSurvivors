@@ -1040,8 +1040,9 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 	var base: Vector2 = o.pos - d * 90.0
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
-	var v2: bool = FC.mz_v2(u)   # 钻洞 / 小触手 v2：pixgen 小触手 + 地块隆起（ult/mz_grab_v2；大触手是上面的 ult/mz_fx_v2）
-	if not v2:
+	var jelly: bool = FC.mz_jelly(u)   # 水母群（ult/mz_jelly，用户 10-30 粗稿）：大触手 / 钻洞 / 小触手都不画
+	var v2: bool = FC.mz_v2(u) and not jelly   # 钻洞 / 小触手 v2：pixgen 小触手 + 地块隆起（ult/mz_grab_v2；大触手是上面的 ult/mz_fx_v2）
+	if not v2 and not jelly:
 		# 破土：身后地面炸开
 		u.strip("fx_rock_burst", base, {"sc": 2.6})
 		_ring(u, base, 110.0, 20.0, col.lerp(Color.WHITE, 0.3), 0.35, 8.0)
@@ -1051,12 +1052,17 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 		"attach": rt == "bind", "bound": [], "trail_t": 0.0, "fx": [], "chain": [], "no_ring": true, "heal": 0.0}
 	if v2:
 		FC.mz_start(u, a, base)
+	if jelly:
+		FC.mz_jelly_start(u, a, o.pos, float(a.a0), float(a.span), R)
 	for i in 28:   # 触手：28 节圆，由粗到细
 		var w: float = lerpf(60.0, 10.0, float(i) / 27.0)
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": w * 0.5, "col": col.darkened(0.35).lerp(Color(0.25, 0.1, 0.4), 0.3), "fill": 0.95, "life": 2.0}))
 	for i in 8:   # 吸盘高光
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": 5.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.9, "life": 2.0}))
-	if _mz_v2(u):   # 触手 v2：pixgen 整条触手贴图（fx_mz_tent，左粗右细带吸盘）沿贝塞尔切成 MZ_SEGS 段贴，程序圆链不画
+	if jelly:
+		for s in a.chain:
+			u.shapes.erase(s)
+	elif _mz_v2(u):   # 触手 v2：pixgen 整条触手贴图（fx_mz_tent，左粗右细带吸盘）沿贝塞尔切成 MZ_SEGS 段贴，程序圆链不画
 		for s in a.chain:
 			u.shapes.erase(s)
 		var tt: Texture2D = u._strip_tex(MZ_TENT)
@@ -1129,6 +1135,8 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 	var col: Color = u._col(o)
 	var a0: float = a.a0
 	var span: float = a.span
+	if a.has("jl"):
+		FC.mz_jelly_step(u, a, t)
 	if t < T0 + T + 0.12:
 		var reach: float
 		var ang: float
@@ -1150,11 +1158,14 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 					continue
 				a.seg[int(e.id)] = true
 				var tg: Vector2 = Vector2.from_angle(off.angle() + PI / 2.0)
+				var ep: Vector2 = e.pos
 				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0)})
+				if a.has("jl"):
+					FC.mz_jelly_hit(u, a, ep, t)
 				if e.dead and float(a.heal) < 0.05:
 					a.heal = float(a.heal) + 0.002
 					g.combat.heal(g.max_hp * 0.002, "终结技", "mizuki")
-			if t >= float(a.trail_t):   # 扫过的残影
+			if t >= float(a.trail_t) and not a.has("jl"):   # 扫过的残影（水母群不画）
 				a.trail_t = t + 0.03
 				if a.has("mz_vs"):
 					u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": Color(0.03, 0.04, 0.1), "fill": 0.22, "life": 0.35, "layer": "back"})
@@ -1175,7 +1186,10 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		if v2:
 			FC.mz_retract(u, a)   # 先把大触手段从 a.fx 摘出来淡出（不被 _fade 直接收掉）
 		_fade(u, a, 0.3)
-		if not v2:
+		var jelly: bool = a.has("jl")
+		if jelly:
+			FC.mz_jelly_burst(u, a, c, t)
+		elif not v2:
 			u.strip("fx_mizuki_tentacle_mass", a.base, {"sc": 1.6, "o": Vector2(96, 90)})
 		# 小触手：从扫过区域与他身边 300 内，抓生命最低的漏网（每根 20%，束缚 1.5 秒）
 		var cand: Array = []
@@ -1188,7 +1202,9 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		var ng: int = mini(int(a.n_grab), cand.size())
 		for i in ng:
 			var e: Dictionary = cand[i]
-			if v2:
+			if jelly:
+				FC.mz_jelly_hit(u, a, e.pos, t)
+			elif v2:
 				FC.mz_small(u, a, e.pos + Vector2(0, 8), i, 1.0, 0.03 * float(i))
 			else:
 				u.strip("fx_mizuki_tentacle", e.pos + Vector2(0, 8), {"sc": 1.7, "o": Vector2(24, 108), "delay": 0.03 * float(i)})
@@ -1196,7 +1212,7 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, Bal.v("ult/mz_grab_frac", 0.2), {"src": "小触手", "stun": 1.5})
 			if not e.dead:
 				a.bound.append(e)
-		for i in 8:   # 他身边钻出的小触手（画面）
+		for i in (0 if jelly else 8):   # 他身边钻出的小触手（画面；水母群不画）
 			var p: Vector2 = c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2) * 300.0 * (0.55 + 0.45 * float(i % 2))
 			if v2:   # 位置按哈希错开角度 / 距离（预审：均分一圈像一串贴纸）
 				var hq: float = PF.h(float(a.mz_vs) + i * 3.3)
@@ -1204,7 +1220,7 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 				FC.mz_small(u, a, p + Vector2(0, 8), 20 + i, 0.6 + 0.35 * hq, 0.02 * float(i) + 0.05 * hq)
 			else:
 				u.strip("fx_mizuki_tentacle", p + Vector2(0, 8), {"sc": 1.2, "o": Vector2(24, 108), "delay": 0.02 * float(i)})
-		if not v2:
+		if not v2 and not jelly:
 			_ring(u, c, 300.0, 40.0, col.lerp(Color.WHITE, 0.4), 0.35, 5.0)
 		a["grab_t"] = t
 	if a.attach and t < float(a.grab_t) + 0.5:   # 病理性依恋：被束缚的敌人拖到水月身边
