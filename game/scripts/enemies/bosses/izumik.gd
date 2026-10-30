@@ -63,13 +63,15 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.learn_t -= dt
 		var lk: float = 1.0 - clampf(e.learn_t / maxf(1.0, e.count_max), 0.0, 1.0)
 		e.hp = e.maxhp * (0.35 + 0.65 * lk)
-		if e.bt > 4.0 * SKILL_COOLDOWN_SCALE:
+		# 用户 10-30「一开始的水母可以多一点，现在队友能全部清完」：每 izumik_learn_cd 秒 izumik_learn_n 只，子代血量 × izumik_off_hp（仍不近战伤人，10-27）
+		if e.bt > Bal.v("boss/izumik_learn_cd", 4.0) * SKILL_COOLDOWN_SCALE:
 			e.bt = 0.0
-			for k in 2:
+			for k in int(Bal.v("boss/izumik_learn_n", 2.0)):
 				var o: Dictionary = g.spawner.spawn_enemy("offspring", _offspring_edge(e, g.rng_enemy.randf() * TAU))
 				o.feed = true
 				o.feed_to_id = e.id   # 喂食目标存 id 句柄（docs/101 B5：原生端只认 id）
 				o.spd = 45.0
+				_beef(o)
 				_tame(o)
 		if e.learn_t <= 0.0:
 			e.phase = 2
@@ -196,8 +198,8 @@ func _share(e: Dictionary, dir: Vector2, small: bool) -> void:
 func _wave(e: Dictionary) -> void:
 	var gp: int = int(e.get("gates_passed", 0))
 	var cd: float = Bal.v("boss/izumik_wave_cd2", 20.0) if gp >= 2 else Bal.v("boss/izumik_wave_cd", 25.0)
-	# 蓄力 2 → 5 秒（用户 10-28：1.5 倍速下反应不过来，定 5 秒，1.5 倍速下约 3.3 秒）；读秒警告音取消（同日用户）
-	var wt: float = Bal.v("boss/izumik_wave_charge", 5.0)
+	# 蓄力 2 → 5 秒（用户 10-28：1.5 倍速下反应不过来）→ 3.5 秒（用户 10-30）；读秒警告音取消（10-28）。预警圈 / 灯柱提示按预警时长走，自动同步
+	var wt: float = Bal.v("boss/izumik_wave_charge", 3.5)
 	e.wave_next = g.t + wt + cd
 	_warn(e, "circle", wt, {"follow": true, "r": 2400.0, "act": "izu_wave", "name": "震撼", "must_dash": true, "col": COL,
 		"dmg": minf(e.dmg * 2.0, g.max_hp * Bal.v("boss/izumik_wave_cap", 0.25)), "burn": (e.dmg * 0.12) if gp >= 2 else 0.0})
@@ -315,13 +317,15 @@ func _batch_step(e: Dictionary) -> void:
 		dirs.append(a0 + PI + g.rng_enemy.randf_range(-0.7, 0.7))
 	for di in dirs.size():
 		var a: float = dirs[di]
-		var n: int = g.rng_enemy.randi_range(4, 6) if dirs.size() == 1 else 3   # 二幕两路各 3 只（用户 10-27：二幕少一点）
+		var n: int = g.rng_enemy.randi_range(int(Bal.v("boss/izumik_batch_min", 4.0)), int(Bal.v("boss/izumik_batch_max", 6.0))) if dirs.size() == 1 else 3   # 一幕一路（10-30 可调）；二幕两路各 3 只（用户 10-27：二幕少一点）
 		for k in n:
 			var p: Vector2 = _offspring_edge(e, a + (float(k) - (n - 1) * 0.5) * 0.09)
 			var o: Dictionary = g.spawner.spawn_enemy("offspring", p)
 			o.feed = true
 			o.feed_to_id = e.id
 			o.spd = Bal.v("boss/izumik_batch_spd", 45.0)
+			if gp == 0:
+				_beef(o)
 			o.part = true
 			o.izu_dir = di
 			_tame(o)
@@ -404,6 +408,13 @@ func izumik_safe(e: Dictionary) -> bool:
 		if l.lit and g.combat.ground_d(g.ppos, l.pos) < float(e.get("lamp_r", 120.0)):
 			return true
 	return false
+
+
+## 前段子代更肉（用户 10-30）：学习期与一幕批次的子代生命 × boss/izumik_off_hp
+func _beef(o: Dictionary) -> void:
+	var k: float = Bal.v("boss/izumik_off_hp", 1.0)
+	o.maxhp *= k
+	o.hp *= k
 
 
 ## 子代只走路、不伤人（用户 10-27：取消小水母近战、远程少一点）：无接触伤害、不出横扫、不放自己的孢子环；远程只剩本体点名的「子代共鸣」
