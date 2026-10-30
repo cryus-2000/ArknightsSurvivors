@@ -256,7 +256,7 @@
   "dmg_early_until": 240,
   "early_until": 0,
   "horde_count_mult": 1.5,
-  "dmg_x_tracer": 0.85,
+  "dmg_x_tracer": 0.81,
   "horde_hp_mult": 2.0,
   "horde_xp_mult": -1,
   "horde_elite_late": 2,
@@ -804,7 +804,7 @@
   "ref_taken": 0.9,
   "ref_armor": 1.9,
   "mid_cut": 0.22,
-  "scale": 1.0,
+  "scale": 0.94,
   "mid_from": 180,
   "mid_to": 420,
   "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]
