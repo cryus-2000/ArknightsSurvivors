@@ -24,7 +24,7 @@ func step_ally(e: Dictionary, dt: float) -> void:
 		e.ally_tear_cd = INF
 		for i in 3:
 			spawn_tear(e)
-		g.vfx.show_banner("触碰泪滴可净化，并解除对应海嗣的强化")
+		g.vfx.show_banner("触碰泪滴以减缓充能，在她转化前削减其生命", 2)   # 10-31 用户定的人形阶段目标副行（主行「阻止转化」在 Boss 条，hud_bars._boss_sub）
 	cleanup_blessings(e)
 	var tear_bonus := 0.0
 	for o in g.enemies:

@@ -341,7 +341,7 @@ func _boss_sub(e: Dictionary) -> Array:
 	if e.type == "ishar":
 		if e.phase == 1 and e.get("ishar_p1", false):   # 人形可受伤（10-28）：充能与提前转化的血线都写明
 			var pc: int = roundi(100.0 * clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0))
-			return ["人形 · 转化充能 %d%%（打到 %d%% 血提前转化）" % [pc, roundi(100.0 * Game.Bal.v("boss/ishar_p1_line", 0.85))], UI.SUB]
+			return ["阻止转化 · 充能 %d%%" % pc, UI.SUB]   # 10-31 用户定的人形阶段目标主行（副行在开场横幅，ishar_encounter）
 		return ["转化中" if e.phase == 1 else "已完成转化 · 敌对", UI.SUB]
 	if e.has("ammo"):
 		return ["装填中 —— 攻击以打断！" if e.channel > 0.0 else ("弹药 %d / 3" % e.ammo if e.ammo > 0 else "近战中"), UI.SUB]
@@ -463,7 +463,7 @@ func draw_boss_bars(vs: Vector2) -> void:
 func draw_ishar_human(e: Dictionary, bx: float, bw: float, y0 := BB_Y) -> void:
 	var progress: float = clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0)
 	UI.text(g.hud, g.font, Vector2(bx, y0 + 12.0), str(e.name), 13, UI.CYAN, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
-	UI.text(g.hud, g.font, Vector2(bx + bw - 320.0, y0 + 12.0), "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 320, 2)
+	UI.text(g.hud, g.font, Vector2(bx + bw - 320.0, y0 + 12.0), "阻止转化 · 充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 320, 2)
 	var r := Rect2(bx, y0 + 19.0, bw, 5.0)
 	g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.02, 0.03, 0.85))
 	g.hud.draw_rect(r, Color(1, 1, 1, 0.08))

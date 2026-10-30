@@ -330,7 +330,9 @@ func _resolve(w: Dictionary) -> void:
 			Sfx.play("tentacle", -8.0, 1.1)
 			warn_damage(w)
 		"ishar_echo":
-			if not _kp(w, w.pos, w.pos + dv * w.len):
+			if _ishar_laser(e):
+				pass   # 10-31：统一光束由 render/ishar_tell_draw 画（ishar_combos._fade_fx）
+			elif not _kp(w, w.pos, w.pos + dv * w.len):
 				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": KP_LIFE, "max": KP_LIFE, "col": c, "enemy": true})
 			g.vfx.fx_sprite("fx_water_splash", w.pos, g.PX * 1.0)
 			Sfx.play("tentacle", -8.0, 1.25)
@@ -352,16 +354,18 @@ func _resolve(w: Dictionary) -> void:
 			g.fx.append({"kind": "rays", "pos": w.pos, "life": 0.25, "max": 0.25, "col": c, "enemy": true})
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 		"ishar_strike":
-			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})
+			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})   # 落点打击保留水柱（10-31 用户「三重齐击改回原版，和激光做点差异」）
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 			g.vfx.sparks(w.pos, Vector2.UP, c, 10, 230.0)
 			Sfx.play("tentacle", -6.0, 1.2)
 			g.vfx.shake_screen(0.3)
 			warn_damage(w)
 		"ishar_line":
-			if not _kp(w, w.pos, w.pos + dv * w.len):
+			if _ishar_laser(e):
+				pass   # 10-31：统一光束由 render/ishar_tell_draw 画（ishar_combos._fade_fx），不叠通用光束和棘鳍闪光
+			elif not _kp(w, w.pos, w.pos + dv * w.len):
 				g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.28, "max": 0.28, "col": c, "wid": w.wid})
-			if g.vfx.fx_sprite("fx_ishar_line_muzzle", w.pos + dv * 30.0, g.PX * 1.2, w.ang):
+			if not _ishar_laser(e) and g.vfx.fx_sprite("fx_ishar_line_muzzle", w.pos + dv * 30.0, g.PX * 1.2, w.ang):
 				g.fx[g.fx.size() - 1]["enemy"] = true   # 每条线起点的棘鳍闪光（Codex fx_ishar_line_muzzle；缺图只有光束）
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 			g.vfx.shake_screen(0.25)
@@ -571,6 +575,11 @@ func _resolve(w: Dictionary) -> void:
 
 
 ## Boss 激光（Kanpelle 帧条，docs/142b §8.5）：预警带 kp（帧条里的 Boss 段名）就画 kp_beam，返回 true = 调用方跳过原来的光束画法；kp_k = 粗细
+## 伊莎玛拉统一光束（10-31 用户「激光不像激光、所有激光统一」）：render/ishar_laser 1 时结算帧只留伤害与音效，画面全交 ishar_tell_draw
+func _ishar_laser(e: Dictionary) -> bool:
+	return str(e.get("type", "")) == "ishar" and Bal.v("render/ishar_laser", 1.0) > 0.0 and Bal.v("render/ishar_tell", 1.0) > 0.0
+
+
 func _kp(w: Dictionary, a: Vector2, b: Vector2) -> bool:
 	if str(w.get("kp", "")) == "":
 		return false
