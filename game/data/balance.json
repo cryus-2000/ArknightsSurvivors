@@ -995,7 +995,9 @@
  },
  "ui": {
   "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
-  "phone_font_mult": 1.18
+  "phone_font_mult": 1.18,
+  "_doc_hud_ult_v": "终结技 / 连携并进左上生命块的原型（10-30 用户「和血条之类的合并一下，出三个设计稿」，screens/hud_ult_v.gd）：0 = 现行（底部中央条 + 弹出头像），1 = A 血条下嵌，2 = B 环形头像，3 = C 分段刻度。用户挑定前缺省 0",
+  "hud_ult_v": 0
  },
  "combo": {
   "_doc": "干员专属联动开关（docs/123 §2.7；trig.on_mate_hook 的 knob 读这里）：hook_anchor = 歌蕾蒂娅 × 乌尔比安「钩与锚」。0 = 关（两人同队时同 seed 与无联动相同）",
