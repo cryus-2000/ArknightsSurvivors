@@ -1,0 +1,124 @@
+{
+ "id": "lappland",
+ "src": "lappland_raw.src.json",
+ "name": "拉普兰德",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Shoulder",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Shoulder",
+   "F_R_Hand"
+  ]
+ },
+ "leadLeg": "L",
+ "nearSide": "R",
+ "hold": null,
+ "pack": {
+  "scale": 0.17722,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": "E:/ArknightsSurvivors/build/lg_src/lappland/idle@2x.png"
+ },
+ "relativeArms": [
+  "L",
+  "R"
+ ],
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Combat",
+   "Combat",
+   "Combat",
+   "Combat",
+   "Combat",
+   "Combat",
+   "Combat"
+  ],
+  "times": [
+   0.09,
+   0.179,
+   0.269,
+   0.359,
+   0.449,
+   1.077,
+   1.167
+  ],
+  "pinX": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "snap": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ "durations": [
+  0.05,
+  0.05,
+  0.05,
+  0.05,
+  0.05,
+  0.1,
+  0.15
+ ],
+ "vis_order": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  0,
+  1,
+  2,
+  3,
+  4,
+  0,
+  1,
+  2,
+  3,
+  4,
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：原作没有连续狂舞，取 Combat 前段五个方向的双刃斩为一圈 0.25 秒（钉回原地），循环 4 遍对 4 圈十字剑气（0 / 0.25 / 0.5 / 0.75）→ 收刀；骨架用主仓库 build/prts_ref/_raw/lappland 3.5，调色板沿用 build/lg_src；脚底贴地 sample.snap（vreview 10-30 抓到 1–4 px 浮 / 陷）"
+}

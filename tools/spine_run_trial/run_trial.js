@@ -177,6 +177,8 @@ async function main() {
       // sample.pinX：该帧把髋骨水平拉回待机位置（原作冲锋轨自带根位移，游戏里位移由代码做）
       if (cfg.sample.pinX?.[i]) { const dx = get(base, cfg.body.hip).worldX - get(sk, cfg.body.hip).worldX; for (const b of sk.bones) b.worldX += dx; }
       // sample.pinY：髋骨竖直拉回待机高度（跃起类：腾空高度由游戏给，推进之王）；数字 = 只拉回这个比例
+      // sample.snap：整个人竖直平移到最低的脚底贴地（落地 / 砸地帧原作带竖直位移，像素化后陷进地线）
+      if (cfg.sample.snap?.[i]) { const lo = Math.min(bottom(sk, 'L'), bottom(sk, 'R')); if (isFinite(lo)) for (const b of sk.bones) b.worldY += ground - lo; }
       const py = cfg.sample.pinY?.[i];
       if (py) { const dy = (get(base, cfg.body.hip).worldY - get(sk, cfg.body.hip).worldY) * (py === true ? 1 : py); for (const b of sk.bones) b.worldY += dy; }
       // sample.kick：逐帧 [dx, dy, 度]（@2x 像素，度 + = 朝后仰）整个人绕脚底平移 / 转动——原作循环轨静止时补出连发后坐（维什戴尔）

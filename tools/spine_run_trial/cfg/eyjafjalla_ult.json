@@ -1,0 +1,96 @@
+{
+ "id": "eyjafjalla",
+ "src": "eyjafjalla.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "艾雅法拉",
+ "body": {
+  "hip": "F_skirt_A",
+  "chest": "F_chest",
+  "head": "F_head"
+ },
+ "legs": {
+  "L": [
+   "F_L_thigh",
+   "F_L_shin",
+   "F_L_shose"
+  ],
+  "R": [
+   "F_R_thigh",
+   "F_R_shin",
+   "F_R_shose"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_arm_A",
+   "F_L_arm_B",
+   "F_L_palm"
+  ],
+  "R": [
+   "F_R_arm_A",
+   "F_R_arm_B",
+   "F_R_palm"
+  ]
+ },
+ "hold": "L",
+ "weapon": "F_weapon",
+ "action": "ult",
+ "canvas": 128,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_Start",
+   "Skill_Start",
+   "Skill_Start",
+   "Skill_Loop",
+   "Skill_Loop",
+   "Skill_Loop",
+   "Skill_Loop",
+   "Skill_End",
+   "Skill_End",
+   "Skill_End",
+   "Skill_End"
+  ],
+  "times": [
+   0.229,
+   0.686,
+   1.143,
+   0.0,
+   0.3,
+   0.6,
+   0.9,
+   0.286,
+   0.857,
+   1.429,
+   2.0
+  ],
+  "snap": [
+   true,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   true,
+   true
+  ]
+ },
+ "durations": [
+  0.13,
+  0.13,
+  0.14,
+  0.15,
+  0.15,
+  0.15,
+  0.15,
+  0.12,
+  0.12,
+  0.12,
+  0.12
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_Start 起杖引火（f2 对 0.4 秒火柱）→ Skill_Loop 举杖施法（熔岩落下期）→ Skill_End 收杖；脚底贴地 sample.snap（vreview 10-30 抓到 1–4 px 浮 / 陷）"
+}

@@ -75,6 +75,7 @@
 - `run_trial.js`：`sample.pinY`（跃起类竖直位移钉回，腾空由游戏给）、`cfg.ground`（召唤物没有常规腿时直接给地面高度）。
 - `ult_install.py`：cfg 写 `install: {op, slot, tex}` 可装进主人 json 的别的槽（Mon3tr → kaltsit.json `m_ult`）。
 - 召唤物：`ob_summon._mf_frame` 认 `s.ult_anim = {key, t0}`，先播完这一条（按主人 sprites 的 frame_durations / vis_order）；凯尔希终结技落地时在开关打开下设置。
+- `run_trial.js`：`sample.snap`（整个人竖直平移到最低脚底贴地，落地帧用）。
 - 发用户前先过 vreview 预审（`record_sprite` 审对照图与特写，`ult_fx --crop left` 审实机录像左半）。
 
 | 干员 | 原作轨 | 帧 / 时长 | 对齐玩法 | 人工处理 |
@@ -87,6 +88,12 @@
 | 归溟幽灵鲨 | Skill_3_Begin 举锯 → Skill_3_Attack 抡锯一圈 6 帧 → Skill_3_End | 10 帧，播 3.17 秒 | 抡锯 6 帧 × 0.05 = 0.3 秒一圈，`vis_order` 循环 9 遍覆盖 3 秒 | 原作抡锯带根位移，钉回原地（她移动时由游戏位移）；引擎新增 `sprites.<槽>.vis_order` |
 | 铃兰 | Skill3_Begin 捧杖闭眼 → 举杖伸手 → Skill2 扬杖 → Skill3_End | 10 帧 / 1.20 秒，64 画布 | 0–0.3 忍冬现身、0.3–0.6 停顿、0.6 扬杖对斩痕炸开 | 无 |
 | Mon3tr（凯尔希终结技） | Skill_2 蜷身蓄力（往返）→ 张开 → Skill 张爪 | 8 帧，播 1.03 秒 | 落地起播，蓄力 0.48 + 张爪 0.12 = ult/ka_wind 0.6，爪最开那一帧落在爆点（之后解体） | 骨架下载自 PRTS（token_10002_kalts_mon3tr，Spine 3.8，放 build/prts_ref/_raw/mon3tr）；无 bz_18 部件包，比例 0.201 与调色板取 Codex `op_mon3tr_native_idle`；`cfg.ground = 0`（原作悬空）；召唤物走 `ob_summon._mf_frame` 新钩子 `s.ult_anim` |
+| 推进之王 | Skill：蹲 → 起跳空翻 → 举锤 → 砸地 → 起身 | 10 帧 / 1.14 秒 | 0–0.6 秒滞空，f5 下砸对 0.6 秒落地 | 原作水平 / 竖直位移钉回（pinX / pinY，腾空由游戏给）；落地帧脚陷地 3–4 px（vreview 抓到），加 `sample.snap` 脚底贴地 |
+| 安洁莉娜 | Skill2_Begin 举杖 → Skill2_Loop 托举 → Skill2_End 下压 | 已做（见上表） | 0–0.3 举、0.3–0.9 悬空停、0.9 砸下 | 无 |
+| 艾雅法拉 | Skill_Start 起杖 → Skill_Loop 施法 → Skill_End 收杖 | 已做（见上表） | f2 对 0.4 秒火柱 | 原作施法时浮空，照原作 |
+| 星熊 | Skill_Begin 砸盾 → Skill 顶盾 → Skill_End 推盾 | 已做（见上表） | 顶盾 4 帧往返循环挡到 1.5 秒，推盾对反震 | 顶盾循环首尾盾位差大，改往返（vis_order 3-4-5-6-5-4） |
+| 歌蕾蒂娅 | Skill_3_Startup 举矛 → Chant 收拢 → Begin 矛压低（停）→ 上挑 → Skill_3_End | 已做（见上表） | 收拢到 0.65、停 0.2 秒、0.85 爆开 | 「收—停—爆」靠选帧：停 = 矛压低单帧 0.2 秒 |
+| 拉普兰德 | Combat 前段五向双刃斩 → 收刀 | 已做（见上表） | 一圈 0.25 秒循环 4 遍，对 4 圈剑气 | **原作没有连续狂舞**，取五个方向的斩击当一圈（钉回原地），是近似 |
 
 验证：（第 1 组）本地无头跑一局，打印确认两人放终结技时 anim_kind = ult_spine（1.00 / 1.055 秒），没有脚本错误；快检 asset_index / art_lint / data_lint 通过。录像：`build/spine_anim_pilot/out/<id>_ult_spine_on_vs_off.mp4`（同种子，左开右关）、`<id>_ult_spine_closeup.mp4`（原速 4 倍特写）。第 2 组（逻各斯 0.91 秒 / 流明 2.42 秒）同样无头确认、无脚本错误。
 
@@ -94,7 +101,7 @@
 
 | 干员 | 原作可用轨 | 判断 |
 |---|---|---|
-| 推进之王 | Skill：蹲 → 起跳空翻 → 举锤 → 砸地 → 起身 | 几乎一一对上，已出 cfg（pinY 钉竖直位移） |
+| 推进之王 | Skill：蹲 → 起跳空翻 → 举锤 → 砸地 → 起身 | 已做（见上表） |
 | 安洁莉娜 | Skill2_Begin / Loop / End：举杖 → 托举 → 下压 | 对得上，已出 cfg |
 | 艾雅法拉 | Skill_Start / Loop / End：起杖施法 | 对得上，已出 cfg |
 | 星熊 | Skill_Begin 立盾 → Skill 顶盾 → Skill_End | 对得上 |

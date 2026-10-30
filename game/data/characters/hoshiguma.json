@@ -84,6 +84,55 @@
   "regen": 0.8
  },
  "sprites": {
+  "ult_spine": {
+   "tex": "op_hoshiguma_ult_spine",
+   "frames": 10,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.08,
+    0.08,
+    0.09,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.08,
+    0.1,
+    0.15
+   ],
+   "vis_order": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    5,
+    4,
+    3,
+    4,
+    5,
+    6,
+    5,
+    4,
+    3,
+    4,
+    5,
+    6,
+    5,
+    4,
+    3,
+    4,
+    7,
+    8,
+    9
+   ],
+   "_doc": "终结技身体条（docs/207，本地原作 Spine 自产：tools/spine_run_trial cfg/hoshiguma_ult.json）；ult/spine_body=1 时终结技开头播，缺省关"
+  },
   "move_attack": {
    "tex": "op_hoshiguma_move_attack",
    "frames": 8,
@@ -741,7 +790,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["ult_spine", 
   "entry",
   "death",
   "s1",

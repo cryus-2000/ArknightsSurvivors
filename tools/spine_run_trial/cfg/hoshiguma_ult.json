@@ -1,0 +1,128 @@
+{
+ "id": "hoshiguma",
+ "src": "hoshiguma.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "星熊",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_Weapon_A",
+ "footExtra": {
+  "L": [
+   "F_L_Shoelace"
+  ],
+  "R": [
+   "F_R_Shoelace"
+  ]
+ },
+ "action": "ult",
+ "canvas": 192,
+ "skipAdditive": true,
+ "sample": {
+  "anims": [
+   "Skill_Begin",
+   "Skill_Begin",
+   "Skill_Begin",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill",
+   "Skill_End",
+   "Skill_End",
+   "Skill_End"
+  ],
+  "times": [
+   0.105,
+   0.21,
+   0.42,
+   0.0,
+   0.083,
+   0.166,
+   0.25,
+   0.114,
+   0.229,
+   0.4
+  ],
+  "snap": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ "durations": [
+  0.08,
+  0.08,
+  0.09,
+  0.0625,
+  0.0625,
+  0.0625,
+  0.0625,
+  0.08,
+  0.1,
+  0.15
+ ],
+ "vis_order": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  5,
+  4,
+  3,
+  4,
+  5,
+  6,
+  5,
+  4,
+  3,
+  4,
+  5,
+  6,
+  5,
+  4,
+  3,
+  4,
+  7,
+  8,
+  9
+ ],
+ "_doc": "终结技身体条（10-30 Spine 自产，docs/207）：Skill_Begin 盾「般若」砸地（0–0.25）→ Skill 顶盾 4 帧往返循环（挡到 1.5 秒）→ Skill_End 推盾反震；脚底贴地 sample.snap（vreview 10-30 抓到 1–4 px 浮 / 陷）"
+}
