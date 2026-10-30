@@ -334,8 +334,13 @@ func _begin(ld, k: String) -> void:
 	_aim_min = slow * sc   # 游戏时间：0.5 秒真实时间 × 25%
 	_aim_max = _aim_min + Bal.v("ult/hold_max", 1.0) * sc
 	phase = "aim"
-	g.vfx.stop(Bal.v("ult/cult_freeze" if k == "cult" else "ult/freeze", 0.15 if k == "cult" else 0.1), "ult", true)
-	_cutin(ld, k)
+	if k != "cult" and Bal.vi("ult/mate_voice_mute", 1) > 0:
+		_mute_mates(str(ld.id))   # 终结技期间队友不出声（到这次终结技收尾为止，队长自己的终结技语音照播）
+	if k != "cult" and sf_on():
+		_sf_start(ld)   # 超必杀暂停：世界冻结 ult/sf_t 秒（只在看得见的局里），立绘切入推到暂停结束（fx_tick）
+	else:
+		g.vfx.stop(Bal.v("ult/cult_freeze" if k == "cult" else "ult/freeze", 0.15 if k == "cult" else 0.1), "ult", true)
+		_cutin(ld, k)
 	shape({"kind": "ring", "c": ld.pos, "r": 90.0, "r1": 20.0, "w": 4.0, "col": _col(ld).lerp(Color.WHITE, 0.4), "life": _aim_min + 0.1})
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sfx != null:
@@ -346,6 +351,7 @@ func _tick_ult(dt: float) -> void:
 	if caster == null or caster.pos == Vector2.INF:
 		phase = ""
 		act = {}
+		_mute_mates("")
 		return
 	if phase == "aim":
 		_phase_t += dt
@@ -367,6 +373,7 @@ func _tick_ult(dt: float) -> void:
 		if done:
 			phase = ""
 			act = {}
+			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
 
 
 func _cast() -> void:
@@ -1042,8 +1049,12 @@ func cam_punch() -> float:
 ## 时间缩放（run/time_dilation.gd 读，登记为 fx 类：只在玩家局 / --realtime / --playclock 生效）
 func time_scale() -> float:
 	var s := 1.0
+	if sf_active():
+		return 0.0   # 超必杀暂停：世界冻结（敌人、弹幕、计时都停，只有演出层动）
 	if phase == "aim":
 		s = Bal.v("ult/cult_slow", 0.2) if kind == "cult" else Bal.v("ult/slow", 0.25)
+		if kind != "cult" and _sf_rt > 0.0 and sf_on():   # 暂停后接的瞄准慢放缩短：游戏时间不变，真实时间 slow_t → sf_slow_t
+			s = minf(1.0, s * Bal.v("ult/slow_t", 0.5) / maxf(0.05, Bal.v("ult/sf_slow_t", 0.3)))
 	s = minf(s, _imp_scale())
 	if UM.now() - _cmb_rt < Bal.v("ult/combo_slow_t", 0.3):
 		s = minf(s, Bal.v("ult/combo_slow", 0.5))
@@ -1061,6 +1072,7 @@ func draw_world(w) -> void:
 	var dim: float = _dim()
 	var px: bool = Bal.vi("ult/px_style", 1) > 0   # 像素风光栅化（用户 10-30）
 	_draw_stage(w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
+	_draw_sf(w)   # 超必杀暂停：压暗到约 30% + 队长轮廓光 + 手部闪光 + 干员色放射速度线
 	for s in shapes:
 		if s.age < 0.0:
 			continue
@@ -1409,6 +1421,7 @@ func _imp_punch() -> float:
 
 ## 每帧真实时间钩子（game._process）：恢复速度那一刻爆一声
 func fx_tick() -> void:
+	_sf_tick()
 	if not _imp_boom and _imp_age() >= Bal.v("ult/imp_freeze", 0.1) + Bal.v("ult/imp_slow_t", 0.45):
 		_imp_boom = true
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -1456,3 +1469,167 @@ func report() -> Dictionary:
 	return {"ult": stats.ult, "cult": stats.cult, "combo": stats.combo, "combo_auto": stats.combo_auto, "combo_up": stats.combo_up,
 		"lit": stats.lit, "lit_by": stats.lit_by, "link_by": stats.link_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
 		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1)}
+
+# ================================================================ 超必杀暂停（用户 10-30「终结技还不够明显，借鉴 MUGEN / 格斗游戏超必杀，先试试看」）
+## 开关 ult/superflash（缺省 1，0 = 现行起手）。按下 Q 的瞬间：
+##   世界冻结 ult/sf_t（0.35）真实秒——走 time_dilation 的 fx 类来源（倍率 0），只在玩家局 / --realtime / --playclock 生效，
+##   机器人批跑不冻结，所以同 seed TRACE 与关掉时逐行相同；暂停期间队长不受伤（时间不走，另在看得见的局里给一点无敌兜底）；
+##   背景与敌人压暗到约 30%（ult/sf_dim 0.7 的黑），队长原亮度 + 一圈干员代表色轮廓光，手 / 武器位置闪一道像素光（3 像素格、亮度封顶 0.9）；
+##   干员色放射速度线 ult/sf_lines（28 条，手机网页减半），暂停结束 ult/sf_out（0.2）秒内退掉；
+##   起手「锵」占位音（sf_sound：ult-audio 会话后面换成专属音的挂点）。
+## 暂停结束才出立绘切入，接着是瞄准慢放（真实时间 ult/sf_slow_t 0.3 秒，原 0.5；游戏时间里的瞄准时长不变）。不加镜头震动。
+## 减少动态效果：压暗改淡入淡出、不画速度线。连携终结技不走这里（先不做）。
+var _sf_rt := -99.0        # 暂停起点（真实时间）；< 0 = 这一发没有暂停
+var _sf_ld = null
+var _sf_cut := false       # 暂停结束时是否已补立绘切入
+
+
+## 终结技从起手到收尾这段（队友静音、「LEVEL UP」等横幅推迟到结束后再显示）
+func show_busy() -> bool:
+	return phase != "" and kind != "cult"
+
+
+func _mute_mates(cid: String) -> void:
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx != null and sfx.has_method("mute_mates") and (cid != "" or str(sfx.get("voice_only")) != ""):
+		sfx.mute_mates(cid)
+
+
+func sf_on() -> bool:
+	return Bal.vi("ult/superflash", 1) > 0
+
+
+func sf_age() -> float:
+	return UM.now() - _sf_rt
+
+
+func sf_active() -> bool:
+	return _sf_rt > 0.0 and sf_age() < Bal.v("ult/sf_t", 0.35)
+
+
+func _sf_visual() -> bool:
+	return g.mode == g.Mode.PLAY or g.realtime or g.playclock_test
+
+
+func _sf_start(ld) -> void:
+	_sf_rt = UM.now()
+	_sf_ld = ld
+	_sf_cut = false
+	sf_sound(ld)
+
+
+## 起手「锵」：占位用现有金属剑声；ult-audio 会话（game/data/ult_audio.json）接专属音时改这里
+func sf_sound(ld) -> void:
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx != null:
+		sfx.play("carmen_sword", 1.0, 1.3, 0.0)
+
+
+func _sf_tick() -> void:
+	if _sf_rt <= 0.0:
+		return
+	if sf_active():
+		if _sf_visual():   # 时间不走本来就不会挨打；看得见的局里再给一点无敌兜底（批跑不走这里，不改模拟）
+			g.invuln = maxf(g.invuln, 0.05)
+			g.invuln_move_until = maxf(g.invuln_move_until, g.t + 0.05)   # 这段无敌不闪烁
+		return
+	if not _sf_cut:
+		_sf_cut = true
+		if _sf_ld != null and caster == _sf_ld:
+			_cutin(_sf_ld, kind)
+
+
+## 队长白剪影（轮廓光用）：按贴图缓存一张，不透明像素全白；调色成干员色画在本体外圈
+var _sf_wcache := {}
+
+
+func _sf_white(tx: Texture2D) -> Texture2D:
+	var key := tx.get_rid()
+	if not _sf_wcache.has(key):
+		var img: Image = tx.get_image()
+		if img == null or img.is_empty():
+			_sf_wcache[key] = tx
+		else:
+			if img.is_compressed():
+				img.decompress()
+			img.convert(Image.FORMAT_RGBA8)
+			for y in img.get_height():
+				for x in img.get_width():
+					var a: float = img.get_pixel(x, y).a
+					img.set_pixel(x, y, Color(1, 1, 1, 1.0 if a > 0.3 else 0.0))
+			_sf_wcache[key] = ImageTexture.create_from_image(img)
+	return _sf_wcache[key]
+
+
+func _draw_sf(w) -> void:
+	if _sf_rt <= 0.0 or _sf_ld == null or _sf_ld.pos == Vector2.INF:
+		return
+	var T: float = Bal.v("ult/sf_t", 0.35)
+	var out: float = Bal.v("ult/sf_out", 0.2)
+	var t: float = sf_age()
+	if t < 0.0 or t > T + out:
+		return
+	var rm: bool = Cfg.reduce_motion
+	var k: float = 1.0 if t < T else 1.0 - (t - T) / out
+	if rm:   # 减少动态效果：压暗淡入淡出
+		k = minf(k, clampf(t / 0.12, 0.0, 1.0))
+	var col: Color = _col(_sf_ld)
+	var c: Vector2 = _sf_ld.pos
+	var R := Vector2(2400.0, 1600.0)
+	var gc: Vector2 = g.ppos
+	w.tb_quad(gc - R, gc + Vector2(R.x, -R.y), gc + R, gc + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/sf_dim", 0.7) * k))
+	# 干员色放射速度线（往外流）：位置按序号哈希定，不抽随机数
+	if not rm:
+		var n: int = Bal.vi("ult/sf_lines", 28)
+		if Cfg.mobile_web():
+			n = maxi(4, n / 2)
+		var G: float = _pxg()
+		for i in n:   # 每条长短 / 粗细 / 速度 / 角度都打散（10-30 预审：等间距同长的线像重复矩形拼出来的）；尖头细尾
+			var h1: float = fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
+			var h2: float = fposmod(sin(float(i) * 78.233) * 12345.678, 1.0)
+			var h3: float = fposmod(sin(float(i) * 39.425) * 24634.633, 1.0)
+			var d: Vector2 = Vector2.from_angle(TAU * h3 + 0.35 * (h1 - 0.5))
+			var spd: float = 900.0 + 1400.0 * h2
+			var r0: float = 50.0 + fposmod(t * spd + h1 * 900.0, 860.0)
+			var ln: float = 50.0 + 320.0 * h1 * h1
+			var wd: float = G * (1.0 + floorf(h2 * 2.99))
+			var lc: Color = col.lerp(Color.WHITE, 0.4 * h3)
+			var a0: float = (0.25 + 0.5 * h2) * k
+			var p0: Vector2 = c + d * r0
+			_px_thick(w, p0, p0 + d * ln * 0.35, wd, _pc(lc, a0))                         # 亮头
+			_px_thick(w, p0 + d * ln * 0.35, p0 + d * ln, maxf(G, wd - G), _pc(col, a0 * 0.55))   # 细尾
+	w.tb_flush()
+	# 队长：原亮度 + 一圈干员色轮廓光（画在压暗层之上）
+	var pr: Dictionary = _sf_ld.portrait()
+	var tx: Texture2D = g.tex.get(str(pr.get("tex", "")))
+	if tx != null:
+		var nf: int = maxi(1, int(pr.get("frames", 1)))
+		var fw: float = tx.get_width() / float(nf)
+		var fh: float = float(tx.get_height())
+		var hi: float = A.hires_of(tx)
+		var sc: float = g.PX / hi
+		var flip: float = -1.0 if float(_sf_ld.face) < 0.0 else 1.0
+		var G2: float = _pxg()
+		var wt: Texture2D = _sf_white(tx)
+		for ring in [[2.0, _pc(col, 0.55 * k)], [1.0, _pc(col.lerp(Color.WHITE, 0.35), k)]]:   # 外圈 2 格淡、内圈 1 格亮（10-30 用户嫌读不出）
+			var d: float = G2 * float(ring[0])
+			for off in [Vector2(-d, 0), Vector2(d, 0), Vector2(0, -d), Vector2(0, d), Vector2(-d, -d), Vector2(d, -d), Vector2(-d, d), Vector2(d, d)]:
+				g.draw_set_transform(c + off, 0.0, Vector2(sc * flip, sc))
+				g.draw_texture_rect_region(wt, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), ring[1])
+		g.draw_set_transform(c, 0.0, Vector2(sc * flip, sc))
+		g.draw_texture_rect_region(tx, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# 手 / 武器位置一道像素闪光：十字 + 斜十字，暂停前段长出、后段收回
+	if t < T:
+		var hp: Vector2 = c + Vector2(14.0 * (1.0 if float(_sf_ld.face) >= 0.0 else -1.0), -34.0)
+		var ph: float = t / T
+		var L: float = 46.0 * sin(PI * minf(1.0, ph * 1.4))
+		var fc: Color = _pc(col.lerp(Color.WHITE, 0.6), 1.0)
+		var G3: float = _pxg()
+		_px_thick(w, hp - Vector2(L, 0), hp + Vector2(L, 0), G3 * 2.0, fc)
+		_px_thick(w, hp - Vector2(0, L * 0.8), hp + Vector2(0, L * 0.8), G3 * 2.0, fc)
+		_px_thick(w, hp - Vector2(L, L) * 0.4, hp + Vector2(L, L) * 0.4, G3, _pc(col, 0.85))
+		_px_thick(w, hp - Vector2(L, -L) * 0.4, hp + Vector2(L, -L) * 0.4, G3, _pc(col, 0.85))
+		_px_disc(w, hp, maxf(G3, L * 0.18), 0.0, _pc(Color.WHITE, 0.9))
+		w.tb_flush()
+
