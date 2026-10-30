@@ -823,6 +823,7 @@ func _shot(e: Dictionary, p: Vector2, a: float, spd: float, r: float, life: floa
 	e.izu_live = int(e.get("izu_live", 0)) + 1
 	# 单发伤害旋钮（协调人 10-27：弹幕变密，先 ×0.8，云端测完再定）
 	var act: int = _act(e)
+	r *= Bal.v("boss/izumik_r_k", 1.0)   # 弹体（画面 = 判定，外缘 100%）放大（10-31 docs/201 §8.3：新判定半径 + 3 下机器人几乎都躲得开）
 	var b := {"pos": p, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * mult * Bal.v("boss/izumik_bullet_mult", 1.15), "r": r, "life": life,
 		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": ACT_KIND[act], "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "own_col": COL, "src_type": e.type, "izu_t": 0.0}
