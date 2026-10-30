@@ -1,0 +1,17 @@
+boss | kind | n | r | visible outer r+3 | core 0.6r | 70% | 85% | 100%
+paranoia | orb/ | 4737 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+paranoia | nova/ | 593 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+ishar | ishar_shard/ | 1180 | 6.0 | 9.0 | 3.6 | 6.3 | 7.6 | 9.0
+ishar | ishar_tear/ | 391 | 6.0 | 9.0 | 3.6 | 6.3 | 7.6 | 9.0
+ishar | ishar_note/ | 233 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+knight_boss | boss_blade/ | 2235 | 9.0 | 12.0 | 5.4 | 8.4 | 10.2 | 12.0
+izumik | orb/wave | 2252 | 6.0 | 9.0 | 3.6 | 6.3 | 7.6 | 9.0
+izumik | orb/gate | 1694 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+izumik | orb/fan | 1242 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+izumik | nova/ | 474 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+izumik | nerve/spiral | 394 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+izumik | nerve/fan | 200 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+izumik | nerve/learn | 122 | 9.0 | 12.0 | 5.4 | 8.4 | 10.2 | 12.0
+izumik | orb/ | 82 | 7.0 | 10.0 | 4.2 | 7.0 | 8.5 | 10.0
+izumik | nova/back | 48 | 8.0 | 11.0 | 4.8 | 7.7 | 9.3 | 11.0
+izumik | nova/spore | 5 | 15.0 | 18.0 | 9.0 | 12.6 | 15.3 | 18.0
