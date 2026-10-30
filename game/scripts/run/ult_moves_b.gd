@@ -301,7 +301,7 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 	return all_done and (not a.surge or a.surged)
 
 
-## ---- 斯卡蒂 pixfx（docs/199 §7.9，开关 ult/sd_fx_v2 缺省 1；0 = 程序白沫带 + 浪头帧条一排版）
+## ---- 斯卡蒂 pixfx（docs/199 §7.10，开关 ult/sd_fx_v2 缺省 1；0 = 程序白沫带 + 浪头帧条一排版）
 ## 审阅 10-30「浪面连续，浪冠错落」：fx_sd_wave 是三条浪面（浪冠白沫在上、深蓝水体在下）横向拼成一张，整道浪宽从一条里截出（连续不断），
 ## 前后两层错开（后层换一段、略暗、退后 34），浪冠高低错落；每次按 vseed 挑截取起点 + 镜像。浪推完的水痕不再画 5 条直线
 const SD_WAVE := "fx_sd_wave"

@@ -707,7 +707,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 	return a.boom and t >= tend
 
 
-## ---- 逻各斯 pixfx（docs/199 §7.9，开关 ult/lo_fx_v2 缺省 1；0 = 细线描边 + 咒文拼接 + 旧标记版）
+## ---- 逻各斯 pixfx（docs/199 §7.10，开关 ult/lo_fx_v2 缺省 1；0 = 细线描边 + 咒文拼接 + 旧标记版）
 ## 审阅 10-30「连续边框加萨卡兹字样的符文带，不要火柴人」：边框 = fx_lo_rune（三条符文带横向拼成一张、按周长接着截）沿矩形四边连续铺一整圈，
 ## 从队长身后一角起依次显现（像被写出来）；四角各一枚大咒印 fx_lo_glyph1–4 慢转；敌人头顶标记 = 萨卡兹字咒印（同一组，按序号挑字）从小长到位；
 ## 一词念出 = 一道横跨咒域的符文带从队长扫到尽头 + 各标记扫到时放大闪亮、碎成紫色像素粒子。判定 / 时序 / u.hit / 清弹不动
@@ -1212,7 +1212,7 @@ static func _ir_step(u, a: Dictionary, o) -> bool:
 	return false
 
 
-## ---- 艾丽妮 pixfx（docs/199 §7.9，开关 ult/ir_fx_v2 缺省 1；0 = 程序弧线 / 刀光 / 炮弹圆盘版）
+## ---- 艾丽妮 pixfx（docs/199 §7.10，开关 ult/ir_fx_v2 缺省 1；0 = 程序弧线 / 刀光 / 炮弹圆盘版）
 ## 风 = fx_ir_gale（三条稀疏风线首尾接成的无缝圈，截段沿扇形各圈切向飞）；刀 = fx_ir_slash1–3 灰冷白长弧斩光，从 pa 到 pb 快速划开；
 ## 手炮 = 白金亮核只留约 2–3 帧 → 金褐烟团 fx_ir_smoke1–4 鼓开、冷成暗褐 + 金色粒子 + 碎片飞落 + 风暴边缘风线被炸散。判定 / 时序 / u.hit 不动
 const IR_SLASH := ["fx_ir_slash1", "fx_ir_slash2", "fx_ir_slash3"]
@@ -1375,7 +1375,7 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 	return int(a.fired) >= n and t >= gap * (n - 1) + fly + 0.05
 
 
-## ---- 拉普兰德 pixfx（docs/199 §7.9，开关 ult/la_fx_v2 缺省 1；0 = 程序白刃十字版）
+## ---- 拉普兰德 pixfx（docs/199 §7.10，开关 ult/la_fx_v2 缺省 1；0 = 程序白刃十字版）
 ## 审阅 10-30「冷蓝，不要纯白 X」：每圈 12 道双刃十字剑气 = fx_la_x1–4（冷蓝两道弯月刃交叉，每圈按 vseed 挑变体、隔道翻面），往外飞到 R、尾段淡；
 ## 一圈细弯刃旋环 fx_la_ring2–4（淡、跟剑气同速扩到 R 就散） 从 40 扩到 R（跟剑气同速、转着走）+ 脚底一团小旋刃（地面层，不画在她身上）；断喝末圈 = 加宽加长的十字刃
 const LA_X := ["fx_la_x1", "fx_la_x2", "fx_la_x3", "fx_la_x4"]
