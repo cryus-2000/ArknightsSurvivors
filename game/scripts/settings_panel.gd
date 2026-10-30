@@ -35,6 +35,9 @@ const ROWS := [
 	{"cn": "战斗画面缩放", "en": "BATTLE ZOOM", "key": "cam_zoom_pct", "type": "zoom"},
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
 	{"cn": "普通攻击", "en": "BASIC ATTACK", "key": "manual_attack", "type": "bool", "on": "手动", "off": "自动", "note": "下局生效"},
+	# 自动连携 / 自动终结技（docs/198 §1.4）：缺省桌面都关、手机自动连携开（Cfg._ready）；局内即时生效（run/ult.gd 每帧读）。ult/on = 0 时不列出
+	{"cn": "自动连携", "en": "AUTO CHAIN", "key": "auto_combo", "type": "bool", "note": "队友头像亮起后自动出手"},
+	{"cn": "自动终结技", "en": "AUTO ULTIMATE", "key": "auto_ult", "type": "bool", "note": "充满后，敌人密集、精英靠近或生命低于 30% 时自动释放"},
 	# 触屏按键布局（用户 10-13）：点「调整」进编辑页（screens/touch_editor.gd），拖动改位置、调大小；只在触屏设备列出
 	{"cn": "触屏按键布局", "en": "TOUCH LAYOUT", "key": "touch_layout", "type": "touchpad"},
 	# 测试版对局记录（docs/40，用户 10-10）：只在 Cfg.runs_log_enabled() 时列出（调试版 / 对内包），对外包没有这一行；
@@ -55,7 +58,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
-	["操作", "CONTROLS", ["manual_attack", "pad_rumble", "touch_layout"]],
+	["操作", "CONTROLS", ["manual_attack", "auto_combo", "auto_ult", "pad_rumble", "touch_layout"]],
 ]
 
 ## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变。
@@ -201,6 +204,8 @@ func _set_tab(t: int) -> void:
 			continue
 		if key == "runs" and not Cfg.runs_log_enabled():
 			continue   # 对外包不记录，也不显示这一行
+		if (key == "auto_combo" or key == "auto_ult") and preload("res://scripts/core/balance.gd").vi("ult/on", 1) <= 0:
+			continue   # 终结技总开关关着（balance ult/on = 0）：没有终结技 / 连携技，这两行不列出
 		for i in ROWS.size():
 			if ROWS[i].key == key:
 				cur.append(i)

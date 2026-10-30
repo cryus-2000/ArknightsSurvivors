@@ -1,0 +1,181 @@
+{
+  "name": "fx_ult_skalter_seaborn_back",
+  "logical_size": [
+    160,
+    48
+  ],
+  "physical_size": [
+    320,
+    96
+  ],
+  "frame_count": 6,
+  "timing": "6 / 12",
+  "origin": "中心",
+  "segments": {
+    "start": [
+      0,
+      2
+    ],
+    "loop": [
+      3,
+      4
+    ],
+    "close": [
+      5,
+      5
+    ]
+  },
+  "planned_rgba_mib": 0.703125,
+  "status": "full_animation_final_art_delivery",
+  "source_candidate": "revision_water.png",
+  "palette_reference": [
+    "fx_skalter_wave@2x.png",
+    "fx_water_splash.png"
+  ],
+  "representative_frame": 3,
+  "review_note": "蓝黑水体与青色破碎边，中心留空；少量深红共鸣边。",
+  "art_revision": 3,
+  "file": "animation_work/native/fx_ult_skalter_seaborn_back@2x.png",
+  "sha256": "32af06960662f85880acfb90143b4328002c01fe581ce9774dfecde11fc09f8e",
+  "fps": 12,
+  "suggested_fps": 12,
+  "origin_px_2x": [
+    160,
+    48
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "file": "animation_work/native/frames/fx_ult_skalter_seaborn_back_f00@2x.png",
+      "sha256": "2d4178986f10b07a36e01bcbd7c1a4b159aba97c76cea51012b0bee73d0fcee4",
+      "bbox": [
+        100,
+        22,
+        218,
+        74
+      ],
+      "opaque_pixels": 1340,
+      "ellipse_material_rotation_rad": 0,
+      "radial_scale": 1,
+      "water_motion": "crest advection; last frame flattened ripple with falling droplets"
+    },
+    {
+      "frame": 1,
+      "file": "animation_work/native/frames/fx_ult_skalter_seaborn_back_f01@2x.png",
+      "sha256": "aaa3968ab59a5a2ec16a49f524982fee7a4321beff775d4fe75467b373fd584d",
+      "bbox": [
+        66,
+        20,
+        256,
+        76
+      ],
+      "opaque_pixels": 2684,
+      "ellipse_material_rotation_rad": -0.065,
+      "radial_scale": 0.72,
+      "water_motion": "crest advection; last frame flattened ripple with falling droplets"
+    },
+    {
+      "frame": 2,
+      "file": "animation_work/native/frames/fx_ult_skalter_seaborn_back_f02@2x.png",
+      "sha256": "e8508c30d8cbd11e54e5e3113a7d798820715647f9e308bd8f2fa4a1aebea5d2",
+      "bbox": [
+        38,
+        12,
+        282,
+        84
+      ],
+      "opaque_pixels": 4396,
+      "ellipse_material_rotation_rad": -0.025,
+      "radial_scale": 0.92,
+      "water_motion": "crest advection; last frame flattened ripple with falling droplets"
+    },
+    {
+      "frame": 3,
+      "file": "animation_work/native/frames/fx_ult_skalter_seaborn_back_f03@2x.png",
+      "sha256": "c7226790514213fb67b18cd238e3a470b3c1c819959ee230502d412eb8fe60f7",
+      "bbox": [
+        26,
+        8,
+        292,
+        88
+      ],
+      "opaque_pixels": 5116,
+      "ellipse_material_rotation_rad": 0,
+      "radial_scale": 1,
+      "water_motion": "crest advection; last frame flattened ripple with falling droplets"
+    },
+    {
+      "frame": 4,
+      "file": "animation_work/native/frames/fx_ult_skalter_seaborn_back_f04@2x.png",
+      "sha256": "ac1599c352d9b7420a42883098bbfff7620f16d4a9af8d51c3fb4b67fc972eac",
+      "bbox": [
+        24,
+        6,
+        292,
+        88
+      ],
+      "opaque_pixels": 5108,
+      "ellipse_material_rotation_rad": 0.035,
+      "radial_scale": 1,
+      "water_motion": "crest advection; last frame flattened ripple with falling droplets"
+    },
+    {
+      "frame": 5,
+      "file": "animation_work/native/frames/fx_ult_skalter_seaborn_back_f05@2x.png",
+      "sha256": "69bcae734900b09f151c9a442cf05f6fe8827f2e96f37ecb339a459d60deae74",
+      "bbox": [
+        48,
+        32,
+        262,
+        64
+      ],
+      "opaque_pixels": 1652,
+      "ellipse_material_rotation_rad": 0.08,
+      "radial_scale": 0.82,
+      "water_motion": "crest advection; last frame flattened ripple with falling droplets"
+    }
+  ],
+  "rgba_mib": 0.703125,
+  "source_files": [
+    {
+      "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\revision_water.png",
+      "sha256": "513b14550cda466e7e9c3c79432549b3e094e527528b0f7311f8e4b94868e471"
+    }
+  ],
+  "runtime_verified": false,
+  "approved_keyframe_source_hashes": [
+    {
+      "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_skalter_seaborn_back_f00@2x.png",
+      "sha256": "2d4178986f10b07a36e01bcbd7c1a4b159aba97c76cea51012b0bee73d0fcee4"
+    },
+    {
+      "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_skalter_seaborn_back_f03@2x.png",
+      "sha256": "c7226790514213fb67b18cd238e3a470b3c1c819959ee230502d412eb8fe60f7"
+    }
+  ],
+  "world_anchor": "shared seaborn foot/root",
+  "front_to_back_frame_mapping": [
+    0,
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    4,
+    5,
+    5
+  ],
+  "common_world_origin_mapping": {
+    "front_origin_px_2x": [
+      160,
+      316
+    ],
+    "back_origin_px_2x": [
+      160,
+      48
+    ]
+  },
+  "back_loop_sync": "Back f3 accompanies front f6; back f4 accompanies front f7. Start advances once per two front frames.",
+  "approved_raster_reuse": "Dark navy/teal approved source; no generated body; no white flash."
+}

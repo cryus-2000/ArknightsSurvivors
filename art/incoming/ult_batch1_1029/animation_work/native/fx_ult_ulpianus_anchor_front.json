@@ -1,0 +1,652 @@
+{
+  "name": "fx_ult_ulpianus_anchor_front",
+  "logical_size": [
+    96,
+    96
+  ],
+  "physical_size": [
+    192,
+    192
+  ],
+  "frame_count": 4,
+  "timing": "4 / —",
+  "origin": "锚中心",
+  "segments": {
+    "orientation_samples": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "planned_rgba_mib": 0.5625,
+  "status": "full_animation_final_art_delivery",
+  "source_candidate": "references/native_anchor/source.json",
+  "palette_reference": [
+    "fx_water_splash.png",
+    "op_mon3tr_native_idle@2x.png"
+  ],
+  "representative_frame": 2,
+  "review_note": "同一原作Spine武器附件，去链条；代表帧严格平面旋转90度。",
+  "body_policy": "Original Ulpianus weapon attachments, original draw order, no chain, fixed shared scale",
+  "rotation_degrees": [
+    0,
+    45,
+    90,
+    135
+  ],
+  "rotation_pivot": [
+    96,
+    96
+  ],
+  "art_revision": 3,
+  "file": "animation_work/native/fx_ult_ulpianus_anchor_front@2x.png",
+  "sha256": "f76a4f7e20b5b5bf68fb51fab97c35843e8a6a04749e35cbb1ccbe49c8e0efc0",
+  "fps": null,
+  "suggested_fps": null,
+  "origin_px_2x": [
+    96,
+    96
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "file": "animation_work/native/frames/fx_ult_ulpianus_anchor_front_f00@2x.png",
+      "sha256": "f03126c47e60617d746cb1a7c91d24da4f4c893ee261382084d4e3a5111dcb40",
+      "bbox": [
+        34,
+        14,
+        148,
+        178
+      ],
+      "opaque_pixels": 6188,
+      "clockwise_degrees": 0,
+      "parts": [
+        {
+          "slot": "C_Weapon_B2",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B2.png",
+            "sha256": "457ee5adcbb2eec1a16cf5f6e00c3354be97569b40c773c60317369e614cdcbe"
+          }
+        },
+        {
+          "slot": "C_Weapon_B",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_a2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B.png",
+            "sha256": "2a31db0d56803eb536c761162c5129f3681c609d15d7cbe0b7d2541f8d4cadc2"
+          }
+        },
+        {
+          "slot": "C_Weapon_C",
+          "attachment": "C_Weapon_C",
+          "bone": "C_Weapon_C",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_C.png",
+            "sha256": "5d6d92f9e8989b502be32f6a18aa0918c65eb707de47b8de6b85718f906a607f"
+          }
+        },
+        {
+          "slot": "C_Weapon_Stick",
+          "attachment": "C_Weapon_Stick",
+          "bone": "F_Weapon",
+          "parent": "C_Weapon_B3",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_Stick.png",
+            "sha256": "1376611d30c88c1854edd4fbd906dbec0a1a07712f23a04e6bf569df6d501f15"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Aa",
+          "attachment": "C_Weapon_R_Aa",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Aa.png",
+            "sha256": "f81f24bce9f14cf4b003cebe43663f7662378889dc594decbed7e9692cac3a96"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A.png",
+            "sha256": "5f586d120fcea564804c04f97d026652672d3fa893079b2db5decca3af798435"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A2",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A2.png",
+            "sha256": "8b4618103e99802822b61fdf2030e6cb1b1d6636ef61f9b3bd27d83ac258ece2"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Aa",
+          "attachment": "C_Weapon_L_Aa",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Aa.png",
+            "sha256": "264270884c74fba56703b94eb2e38ed49f9cec4560dc928b377d815e2899d4d3"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Ba",
+          "attachment": "C_Weapon_L_Ba",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Ba.png",
+            "sha256": "edf6c2875adbe291899ed9b391ba2cabaaa1fc3821dae07b3064881672c0a74a"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Ba",
+          "attachment": "C_Weapon_R_Ba",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Ba.png",
+            "sha256": "0856d89918c502c4c9f33eec11bc20db3b2b31caeeed84f6bd58c8c4f4d76b2a"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_B",
+          "attachment": "C_Weapon_L_B",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_B.png",
+            "sha256": "fa17cc623e26d91b31ae460dc8f284294f4f4e982b7afc298573033a1b590e24"
+          }
+        },
+        {
+          "slot": "C_Weapon_M",
+          "attachment": "C_Weapon_M",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_M.png",
+            "sha256": "809ebe5762eff06bf016441fc7457baf0b2f06a9d5027d51fc09da763233df64"
+          }
+        }
+      ],
+      "shared_source_scale": 0.192587620551195,
+      "shared_source_pivot": [
+        256,
+        256
+      ],
+      "motion": "rigid original weapon rotation; program interpolates orientation, no body animation"
+    },
+    {
+      "frame": 1,
+      "file": "animation_work/native/frames/fx_ult_ulpianus_anchor_front_f01@2x.png",
+      "sha256": "f8f9e421c0b8a118627ccd0ac86f2f0c169ddbb5df4ef815515cd5d0750cd4ae",
+      "bbox": [
+        18,
+        26,
+        162,
+        166
+      ],
+      "opaque_pixels": 6176,
+      "clockwise_degrees": 45,
+      "parts": [
+        {
+          "slot": "C_Weapon_B2",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B2.png",
+            "sha256": "457ee5adcbb2eec1a16cf5f6e00c3354be97569b40c773c60317369e614cdcbe"
+          }
+        },
+        {
+          "slot": "C_Weapon_B",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_a2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B.png",
+            "sha256": "2a31db0d56803eb536c761162c5129f3681c609d15d7cbe0b7d2541f8d4cadc2"
+          }
+        },
+        {
+          "slot": "C_Weapon_C",
+          "attachment": "C_Weapon_C",
+          "bone": "C_Weapon_C",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_C.png",
+            "sha256": "5d6d92f9e8989b502be32f6a18aa0918c65eb707de47b8de6b85718f906a607f"
+          }
+        },
+        {
+          "slot": "C_Weapon_Stick",
+          "attachment": "C_Weapon_Stick",
+          "bone": "F_Weapon",
+          "parent": "C_Weapon_B3",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_Stick.png",
+            "sha256": "1376611d30c88c1854edd4fbd906dbec0a1a07712f23a04e6bf569df6d501f15"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Aa",
+          "attachment": "C_Weapon_R_Aa",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Aa.png",
+            "sha256": "f81f24bce9f14cf4b003cebe43663f7662378889dc594decbed7e9692cac3a96"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A.png",
+            "sha256": "5f586d120fcea564804c04f97d026652672d3fa893079b2db5decca3af798435"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A2",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A2.png",
+            "sha256": "8b4618103e99802822b61fdf2030e6cb1b1d6636ef61f9b3bd27d83ac258ece2"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Aa",
+          "attachment": "C_Weapon_L_Aa",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Aa.png",
+            "sha256": "264270884c74fba56703b94eb2e38ed49f9cec4560dc928b377d815e2899d4d3"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Ba",
+          "attachment": "C_Weapon_L_Ba",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Ba.png",
+            "sha256": "edf6c2875adbe291899ed9b391ba2cabaaa1fc3821dae07b3064881672c0a74a"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Ba",
+          "attachment": "C_Weapon_R_Ba",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Ba.png",
+            "sha256": "0856d89918c502c4c9f33eec11bc20db3b2b31caeeed84f6bd58c8c4f4d76b2a"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_B",
+          "attachment": "C_Weapon_L_B",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_B.png",
+            "sha256": "fa17cc623e26d91b31ae460dc8f284294f4f4e982b7afc298573033a1b590e24"
+          }
+        },
+        {
+          "slot": "C_Weapon_M",
+          "attachment": "C_Weapon_M",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_M.png",
+            "sha256": "809ebe5762eff06bf016441fc7457baf0b2f06a9d5027d51fc09da763233df64"
+          }
+        }
+      ],
+      "shared_source_scale": 0.192587620551195,
+      "shared_source_pivot": [
+        256,
+        256
+      ],
+      "motion": "rigid original weapon rotation; program interpolates orientation, no body animation"
+    },
+    {
+      "frame": 2,
+      "file": "animation_work/native/frames/fx_ult_ulpianus_anchor_front_f02@2x.png",
+      "sha256": "18b589003c9ce937d3f11a39fc6b6bd9cd9cf176840920de0f4ddc7ea8978c5e",
+      "bbox": [
+        14,
+        34,
+        178,
+        148
+      ],
+      "opaque_pixels": 6188,
+      "clockwise_degrees": 90,
+      "parts": [
+        {
+          "slot": "C_Weapon_B2",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B2.png",
+            "sha256": "457ee5adcbb2eec1a16cf5f6e00c3354be97569b40c773c60317369e614cdcbe"
+          }
+        },
+        {
+          "slot": "C_Weapon_B",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_a2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B.png",
+            "sha256": "2a31db0d56803eb536c761162c5129f3681c609d15d7cbe0b7d2541f8d4cadc2"
+          }
+        },
+        {
+          "slot": "C_Weapon_C",
+          "attachment": "C_Weapon_C",
+          "bone": "C_Weapon_C",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_C.png",
+            "sha256": "5d6d92f9e8989b502be32f6a18aa0918c65eb707de47b8de6b85718f906a607f"
+          }
+        },
+        {
+          "slot": "C_Weapon_Stick",
+          "attachment": "C_Weapon_Stick",
+          "bone": "F_Weapon",
+          "parent": "C_Weapon_B3",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_Stick.png",
+            "sha256": "1376611d30c88c1854edd4fbd906dbec0a1a07712f23a04e6bf569df6d501f15"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Aa",
+          "attachment": "C_Weapon_R_Aa",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Aa.png",
+            "sha256": "f81f24bce9f14cf4b003cebe43663f7662378889dc594decbed7e9692cac3a96"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A.png",
+            "sha256": "5f586d120fcea564804c04f97d026652672d3fa893079b2db5decca3af798435"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A2",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A2.png",
+            "sha256": "8b4618103e99802822b61fdf2030e6cb1b1d6636ef61f9b3bd27d83ac258ece2"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Aa",
+          "attachment": "C_Weapon_L_Aa",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Aa.png",
+            "sha256": "264270884c74fba56703b94eb2e38ed49f9cec4560dc928b377d815e2899d4d3"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Ba",
+          "attachment": "C_Weapon_L_Ba",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Ba.png",
+            "sha256": "edf6c2875adbe291899ed9b391ba2cabaaa1fc3821dae07b3064881672c0a74a"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Ba",
+          "attachment": "C_Weapon_R_Ba",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Ba.png",
+            "sha256": "0856d89918c502c4c9f33eec11bc20db3b2b31caeeed84f6bd58c8c4f4d76b2a"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_B",
+          "attachment": "C_Weapon_L_B",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_B.png",
+            "sha256": "fa17cc623e26d91b31ae460dc8f284294f4f4e982b7afc298573033a1b590e24"
+          }
+        },
+        {
+          "slot": "C_Weapon_M",
+          "attachment": "C_Weapon_M",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_M.png",
+            "sha256": "809ebe5762eff06bf016441fc7457baf0b2f06a9d5027d51fc09da763233df64"
+          }
+        }
+      ],
+      "shared_source_scale": 0.192587620551195,
+      "shared_source_pivot": [
+        256,
+        256
+      ],
+      "motion": "rigid original weapon rotation; program interpolates orientation, no body animation"
+    },
+    {
+      "frame": 3,
+      "file": "animation_work/native/frames/fx_ult_ulpianus_anchor_front_f03@2x.png",
+      "sha256": "5c4e57dbc3e6d5f4883534040ce2bf58fb11668c044c28f113c1159fe15cdcba",
+      "bbox": [
+        26,
+        18,
+        166,
+        162
+      ],
+      "opaque_pixels": 6176,
+      "clockwise_degrees": 135,
+      "parts": [
+        {
+          "slot": "C_Weapon_B2",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B2.png",
+            "sha256": "457ee5adcbb2eec1a16cf5f6e00c3354be97569b40c773c60317369e614cdcbe"
+          }
+        },
+        {
+          "slot": "C_Weapon_B",
+          "attachment": "C_Weapon_B",
+          "bone": "C_Weapon_RA_a2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_B.png",
+            "sha256": "2a31db0d56803eb536c761162c5129f3681c609d15d7cbe0b7d2541f8d4cadc2"
+          }
+        },
+        {
+          "slot": "C_Weapon_C",
+          "attachment": "C_Weapon_C",
+          "bone": "C_Weapon_C",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_C.png",
+            "sha256": "5d6d92f9e8989b502be32f6a18aa0918c65eb707de47b8de6b85718f906a607f"
+          }
+        },
+        {
+          "slot": "C_Weapon_Stick",
+          "attachment": "C_Weapon_Stick",
+          "bone": "F_Weapon",
+          "parent": "C_Weapon_B3",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_Stick.png",
+            "sha256": "1376611d30c88c1854edd4fbd906dbec0a1a07712f23a04e6bf569df6d501f15"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Aa",
+          "attachment": "C_Weapon_R_Aa",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Aa.png",
+            "sha256": "f81f24bce9f14cf4b003cebe43663f7662378889dc594decbed7e9692cac3a96"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A.png",
+            "sha256": "5f586d120fcea564804c04f97d026652672d3fa893079b2db5decca3af798435"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_A2",
+          "attachment": "C_Weapon_L_A",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_A2.png",
+            "sha256": "8b4618103e99802822b61fdf2030e6cb1b1d6636ef61f9b3bd27d83ac258ece2"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Aa",
+          "attachment": "C_Weapon_L_Aa",
+          "bone": "C_Weapon_RA_d2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Aa.png",
+            "sha256": "264270884c74fba56703b94eb2e38ed49f9cec4560dc928b377d815e2899d4d3"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_Ba",
+          "attachment": "C_Weapon_L_Ba",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_Ba.png",
+            "sha256": "edf6c2875adbe291899ed9b391ba2cabaaa1fc3821dae07b3064881672c0a74a"
+          }
+        },
+        {
+          "slot": "C_Weapon_R_Ba",
+          "attachment": "C_Weapon_R_Ba",
+          "bone": "C_Weapon_RA_b2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_R_Ba.png",
+            "sha256": "0856d89918c502c4c9f33eec11bc20db3b2b31caeeed84f6bd58c8c4f4d76b2a"
+          }
+        },
+        {
+          "slot": "C_Weapon_L_B",
+          "attachment": "C_Weapon_L_B",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_L_B.png",
+            "sha256": "fa17cc623e26d91b31ae460dc8f284294f4f4e982b7afc298573033a1b590e24"
+          }
+        },
+        {
+          "slot": "C_Weapon_M",
+          "attachment": "C_Weapon_M",
+          "bone": "C_Weapon_RA_c2a3",
+          "parent": "F_Weapon",
+          "source": {
+            "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\references\\native_anchor\\parts\\C_Weapon_M.png",
+            "sha256": "809ebe5762eff06bf016441fc7457baf0b2f06a9d5027d51fc09da763233df64"
+          }
+        }
+      ],
+      "shared_source_scale": 0.192587620551195,
+      "shared_source_pivot": [
+        256,
+        256
+      ],
+      "motion": "rigid original weapon rotation; program interpolates orientation, no body animation"
+    }
+  ],
+  "rgba_mib": 0.5625,
+  "source_files": [
+    {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\ulpianus\\char_4145_ulpia.skel",
+      "sha256": "f498d919ff86b7ed44c769d8dffcae84644035a647a2d5cd244c383e18c7f01f"
+    },
+    {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\ulpianus\\char_4145_ulpia.atlas",
+      "sha256": "35a1edddb4f896e01908fd20af2dd7c9fb42859b7b268d7436627b5baa039671"
+    },
+    {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\ulpianus\\char_4145_ulpia.png",
+      "sha256": "aae6ea86a84cba61cc66b4a295a45fdda891c9cad7601cf73c0b5e66ff705ee4"
+    }
+  ],
+  "runtime_verified": false,
+  "approved_keyframe_source_hashes": [
+    {
+      "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_anchor_front_f00@2x.png",
+      "sha256": "f03126c47e60617d746cb1a7c91d24da4f4c893ee261382084d4e3a5111dcb40"
+    },
+    {
+      "path": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_anchor_front_f02@2x.png",
+      "sha256": "18b589003c9ce937d3f11a39fc6b6bd9cd9cf176840920de0f4ddc7ea8978c5e"
+    }
+  ],
+  "angle_frames": [
+    0,
+    45,
+    90,
+    135
+  ],
+  "preview_rotation_degrees_per_second": 180,
+  "playback_mode": "orientation lookup, never auto-loop as gameplay animation",
+  "quarter_turn_exact": true
+}

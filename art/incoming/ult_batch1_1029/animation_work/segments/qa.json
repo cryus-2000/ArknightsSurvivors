@@ -1,0 +1,144 @@
+{
+  "assets": [
+    {
+      "name": "fx_ult_texas_scar_back",
+      "frames": 4,
+      "dimensions": true,
+      "binary_alpha": true,
+      "every_frame_endpoint_rgba_equal": true,
+      "adjacent_changed_pixels": [
+        1000,
+        820,
+        536
+      ],
+      "unique_frames": 4,
+      "adjacent_silhouette_changed_pixels": [
+        236,
+        312,
+        232
+      ],
+      "particle_trajectory_count": 7
+    },
+    {
+      "name": "fx_ult_skalter_beam_front",
+      "frames": 6,
+      "dimensions": true,
+      "binary_alpha": true,
+      "every_frame_endpoint_rgba_equal": true,
+      "adjacent_changed_pixels": [
+        7692,
+        7668,
+        7688,
+        7816,
+        7680
+      ],
+      "unique_frames": 6,
+      "adjacent_silhouette_changed_pixels": [
+        1560,
+        1556,
+        1568,
+        1696,
+        1548
+      ],
+      "particle_trajectory_count": 0,
+      "loop_wrap_changed_pixels": 7688,
+      "loop_wrap_to_largest_step_ratio": 0.9836233367451381
+    },
+    {
+      "name": "fx_ult_skalter_domain_back",
+      "frames": 6,
+      "dimensions": true,
+      "binary_alpha": true,
+      "every_frame_endpoint_rgba_equal": true,
+      "adjacent_changed_pixels": [
+        604,
+        600,
+        612,
+        604,
+        596
+      ],
+      "unique_frames": 6,
+      "adjacent_silhouette_changed_pixels": [
+        456,
+        456,
+        468,
+        460,
+        448
+      ],
+      "particle_trajectory_count": 0,
+      "loop_wrap_changed_pixels": 608,
+      "loop_wrap_to_largest_step_ratio": 0.9934640522875817
+    },
+    {
+      "name": "fx_ult_kaltsit_crack_back",
+      "frames": 6,
+      "dimensions": true,
+      "binary_alpha": true,
+      "every_frame_endpoint_rgba_equal": true,
+      "adjacent_changed_pixels": [
+        992,
+        1052,
+        2184,
+        1160,
+        1316
+      ],
+      "unique_frames": 6,
+      "adjacent_silhouette_changed_pixels": [
+        908,
+        1032,
+        1548,
+        116,
+        912
+      ],
+      "particle_trajectory_count": 10
+    },
+    {
+      "name": "fx_ult_ulpianus_chain_front",
+      "frames": 2,
+      "dimensions": true,
+      "binary_alpha": true,
+      "every_frame_endpoint_rgba_equal": true,
+      "adjacent_changed_pixels": [
+        404
+      ],
+      "unique_frames": 2,
+      "adjacent_silhouette_changed_pixels": [
+        52
+      ],
+      "particle_trajectory_count": 0,
+      "loop_wrap_changed_pixels": 404,
+      "loop_wrap_to_largest_step_ratio": 1.0
+    },
+    {
+      "name": "fx_ult_ulpianus_crack_back",
+      "frames": 6,
+      "dimensions": true,
+      "binary_alpha": true,
+      "every_frame_endpoint_rgba_equal": true,
+      "adjacent_changed_pixels": [
+        1152,
+        1276,
+        2616,
+        2256,
+        2192
+      ],
+      "unique_frames": 6,
+      "adjacent_silhouette_changed_pixels": [
+        1124,
+        1240,
+        1860,
+        100,
+        1356
+      ],
+      "particle_trajectory_count": 10
+    }
+  ],
+  "assets_checked": 6,
+  "frames_checked": 30,
+  "rgba_mib": 1.2421875,
+  "ground_source": {
+    "path": "E:\\ArknightsSurvivors\\art\\incoming\\tiles.png",
+    "sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1"
+  },
+  "runtime_verified": false
+}

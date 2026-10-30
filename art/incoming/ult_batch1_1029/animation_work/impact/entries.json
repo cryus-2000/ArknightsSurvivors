@@ -1,0 +1,286 @@
+[
+  {
+    "name": "fx_ult_texas_slash_front",
+    "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\animation_work\\impact\\fx_ult_texas_slash_front@2x.png",
+    "physical_size": [
+      768,
+      80
+    ],
+    "logical_size": [
+      384,
+      40
+    ],
+    "frame_count": 8,
+    "layer": "front",
+    "rgba_mib": 1.875,
+    "sha256": "21cc765dafa23a7c9343bc66f4572b38dba5333d935d0239f2d56b3d3496b3cf",
+    "sourcehash": [
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_texas_slash_front_f00@2x.png",
+        "sha256": "f284dd49ca1151fd1ec0fa8e69388f6123e4f59329972251becfa530024bb441"
+      },
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_texas_slash_front_f04@2x.png",
+        "sha256": "94bb6947403a3e3a4528e46cae43801b12d5bd8117ee0d2a21340e124a99ba52"
+      }
+    ],
+    "status": "full_animation_art_candidate",
+    "runtime_verified": false,
+    "fps": 24,
+    "origin_px_2x": [
+      384,
+      40
+    ],
+    "segments": {
+      "start": [
+        0,
+        2
+      ],
+      "burst": [
+        3,
+        5
+      ],
+      "out": [
+        6,
+        7
+      ]
+    },
+    "motion": "Authored core reveals in 1/2/5px bands; independent source splinters diverge and fall; core breaks into cooling streaks.",
+    "representative_frame": 4,
+    "approved_keyframes_exact": [
+      0,
+      4
+    ]
+  },
+  {
+    "name": "fx_ult_texas_sword_front",
+    "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\animation_work\\impact\\fx_ult_texas_sword_front@2x.png",
+    "physical_size": [
+      64,
+      224
+    ],
+    "logical_size": [
+      32,
+      112
+    ],
+    "frame_count": 6,
+    "layer": "front",
+    "rgba_mib": 0.328125,
+    "sha256": "12b981bc2dfd11b81bf71a8e2ae34e8215fe010b87bd300076a537f29d48debe",
+    "sourcehash": [
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_texas_sword_front_f00@2x.png",
+        "sha256": "da1859aaa53e982d57cc9f83237511c07d80fa47319ca3137d6b607a67390e35"
+      },
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_texas_sword_front_f03@2x.png",
+        "sha256": "88696b81049bea69638150f971ed37639e312ea2a4fd23c7a595c8d27dad49f0"
+      },
+      {
+        "file": "E:\\ArknightsSurvivors\\art\\incoming\\fx_texas_sword_drop@2x.png",
+        "sha256": "c11b6e37b545898d2f8b54d48b18949a7af3bf5647ec4e1d118e2f17e972f6de"
+      }
+    ],
+    "status": "full_animation_art_candidate",
+    "runtime_verified": false,
+    "fps": 20,
+    "origin_px_2x": [
+      32,
+      224
+    ],
+    "segments": {
+      "fall": [
+        0,
+        2
+      ],
+      "impact": [
+        3,
+        4
+      ],
+      "settle": [
+        5,
+        5
+      ]
+    },
+    "representative_frame": 4,
+    "native_source": "E:\\ArknightsSurvivors\\art\\incoming\\fx_texas_sword_drop@2x.png",
+    "native_source_frame_count": 5,
+    "source_frame_map": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      4
+    ],
+    "source_to_delivery_offset": [
+      20,
+      148
+    ],
+    "source_frame_size": [
+      24,
+      80
+    ],
+    "motion": "Current runtime strip frames 0..4 unchanged in original order and at 20fps; sixth frame adds independently landed chips outside source rectangle.",
+    "spec_change": "Old keyframe f3 showed native frame4. Full animation representative is now f4 to retain every native frame in original order; sixth settling frame preserves the 6-frame delivery contract.",
+    "approved_keyframes_exact": [
+      0
+    ]
+  },
+  {
+    "name": "fx_ult_exusiai_burst_front",
+    "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\animation_work\\impact\\fx_ult_exusiai_burst_front@2x.png",
+    "physical_size": [
+      128,
+      128
+    ],
+    "logical_size": [
+      64,
+      64
+    ],
+    "frame_count": 6,
+    "layer": "front",
+    "rgba_mib": 0.375,
+    "sha256": "5017c215e6c6ede14549a29237e86c29bd9d1afc9fe81c21f4befa2dbf95b68c",
+    "sourcehash": [
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_exusiai_burst_front_f00@2x.png",
+        "sha256": "a144bd6f9cf3860602e05377b2d1b1949b79be1a4f09e374f8a736922bb1db11"
+      },
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_exusiai_burst_front_f02@2x.png",
+        "sha256": "924b8a00f2ca7a9b099a462eb60db8f3a8ff8b78e605e7b03912c264e90a4dac"
+      }
+    ],
+    "status": "full_animation_art_candidate",
+    "runtime_verified": false,
+    "fps": 30,
+    "origin_px_2x": [
+      64,
+      64
+    ],
+    "segments": {
+      "ignite": [
+        0,
+        1
+      ],
+      "burst": [
+        2,
+        2
+      ],
+      "out": [
+        3,
+        5
+      ]
+    },
+    "representative_frame": 2,
+    "motion": "Compact ignition; authored orange/red peak; asymmetric source-material fragments cool to orange/red, separate and curve down under gravity.",
+    "approved_keyframes_exact": [
+      0,
+      2
+    ]
+  },
+  {
+    "name": "fx_ult_exusiai_lock_orbit",
+    "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\animation_work\\impact\\fx_ult_exusiai_lock_orbit@2x.png",
+    "physical_size": [
+      96,
+      96
+    ],
+    "logical_size": [
+      48,
+      48
+    ],
+    "frame_count": 8,
+    "layer": "orbit",
+    "rgba_mib": 0.28125,
+    "sha256": "043c5e255c054f2627fcdf427ffb5ad1bfe5cc7e0d7b734597f6b6685f9f183b",
+    "sourcehash": [
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_exusiai_lock_orbit_f00@2x.png",
+        "sha256": "97c9474f6371314b2a089bcd4b9cda39840fc37eb8e308d6502ec6aa1ede1269"
+      },
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_exusiai_lock_orbit_f04@2x.png",
+        "sha256": "db719b9b17d8fc65e37687dabaf86a33864331f6a0e55aa3377d97e7e071f06b"
+      }
+    ],
+    "status": "full_animation_art_candidate",
+    "runtime_verified": false,
+    "fps": 24,
+    "origin_px_2x": [
+      48,
+      48
+    ],
+    "segments": {
+      "start": [
+        0,
+        3
+      ],
+      "loop": [
+        4,
+        5
+      ],
+      "out": [
+        6,
+        7
+      ]
+    },
+    "representative_frame": 4,
+    "motion": "Four thin native corners converge, identical hold-loop endpoints, then each arm breaks into two outward moving fragments.",
+    "loop_endpoint_exact": true,
+    "approved_keyframes_exact": [
+      0,
+      4
+    ]
+  },
+  {
+    "name": "fx_ult_ulpianus_burst_front",
+    "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\animation_work\\impact\\fx_ult_ulpianus_burst_front@2x.png",
+    "physical_size": [
+      128,
+      192
+    ],
+    "logical_size": [
+      64,
+      96
+    ],
+    "frame_count": 8,
+    "layer": "front",
+    "rgba_mib": 0.75,
+    "sha256": "733ab1bad1eca33fd61ce6a7b78f876eca3a5ddb0e46cb100c2232701b7b785e",
+    "sourcehash": [
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_burst_front_f00@2x.png",
+        "sha256": "24c32f558d3c3ba2a2ea71429063eb69786af1b7a272996a3ca746af7c1dac71"
+      },
+      {
+        "file": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\ult_batch1_1029\\keyframes\\fx_ult_ulpianus_burst_front_f03@2x.png",
+        "sha256": "dd28ca1ae6d4234ecbcafea20ce8881f76c168c6e5ce0141641a6065bd213ccf"
+      }
+    ],
+    "status": "full_animation_art_candidate",
+    "runtime_verified": false,
+    "fps": 20,
+    "origin_px_2x": [
+      64,
+      192
+    ],
+    "segments": {
+      "eruption": [
+        0,
+        3
+      ],
+      "fall": [
+        4,
+        7
+      ]
+    },
+    "representative_frame": 3,
+    "motion": "Ground-up water-front reveal and independent neutral rock launches; jet breaks into source-texture droplets, rocks accelerate down and become contact chips.",
+    "approved_keyframes_exact": [
+      0,
+      3
+    ]
+  }
+]

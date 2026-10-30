@@ -672,6 +672,13 @@ func _webshot_step() -> bool:
 
 func step() -> void:
 	g.at_frames += 1
+	if g.ult_bench == null and g.ult != null and g.mode == g.Mode.BALANCE and g.at_frames == 1:
+		for a in Cfg.dev_args():
+			if a == "--ultbench" or a.begins_with("--ultbench="):
+				g.ult_bench = preload("res://scripts/run/ult_bench.gd").new(g, a.substr(11) if a.length() > 10 else "")
+	if g.ult_bench != null:
+		g.ult_bench.step()   # 终结技对齐测试：整局只走测试台（不刷怪、不选卡、机器人不动）
+		return
 	if g.prof_on:   # --prof：同屏敌弹 / 我方子弹峰值（docs/50 §37 子弹系统量测）
 		g.prof["peak_ebul"] = maxi(int(g.prof.get("peak_ebul", 0)), g.ebullets.size())
 		g.prof["peak_bul"] = maxi(int(g.prof.get("peak_bul", 0)), g.bullets.size())
@@ -1035,7 +1042,7 @@ func step() -> void:
 			_clutter_log()
 	# 机器人的手动技能（契约 v2.3：只有主控有手动技能）：就绪且干员自己想放时替玩家按下。
 	# 时机由干员的 bot_wants_manual 决定：缺省保命型（主控生命 < bot/manual_hp），乌尔比安 S3 就绪即放
-	if g.state == g.S.PLAY:
+	if g.state == g.S.PLAY and g.ult == null:   # ult/on：没有手动技能（Q 是终结技，机器人由 ult.gd 自动放）
 		for o in g.squad.ops:
 			var mi: int = o.manual_index()
 			if o.manual_ready(mi) and o.bot_wants_manual(mi):

@@ -1,0 +1,169 @@
+{
+  "status": "PASS",
+  "assets": 16,
+  "rgba_mib": 17.5234375,
+  "checks": [
+    {
+      "name": "fx_ult_texas_slash_front",
+      "frames": 8,
+      "unique_frames": 8,
+      "rgba_mib": 1.875,
+      "seams_all_frames": null,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 389076
+    },
+    {
+      "name": "fx_ult_texas_scar_back",
+      "frames": 4,
+      "unique_frames": 4,
+      "rgba_mib": 0.125,
+      "seams_all_frames": true,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 344523
+    },
+    {
+      "name": "fx_ult_texas_sword_front",
+      "frames": 6,
+      "unique_frames": 6,
+      "rgba_mib": 0.328125,
+      "seams_all_frames": null,
+      "video_decoded_frames": 126,
+      "video_fps": 30.0,
+      "video_bytes": 230694
+    },
+    {
+      "name": "fx_ult_exusiai_burst_front",
+      "frames": 6,
+      "unique_frames": 6,
+      "rgba_mib": 0.375,
+      "seams_all_frames": null,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 291862
+    },
+    {
+      "name": "fx_ult_exusiai_lock_orbit",
+      "frames": 8,
+      "unique_frames": 6,
+      "rgba_mib": 0.28125,
+      "seams_all_frames": null,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 231606
+    },
+    {
+      "name": "fx_ult_skalter_seaborn_front",
+      "frames": 10,
+      "unique_frames": 9,
+      "rgba_mib": 3.90625,
+      "seams_all_frames": null,
+      "video_decoded_frames": 150,
+      "video_fps": 30.0,
+      "video_bytes": 310673
+    },
+    {
+      "name": "fx_ult_skalter_seaborn_back",
+      "frames": 6,
+      "unique_frames": 6,
+      "rgba_mib": 0.703125,
+      "seams_all_frames": null,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 280937
+    },
+    {
+      "name": "fx_ult_skalter_beam_front",
+      "frames": 6,
+      "unique_frames": 6,
+      "rgba_mib": 0.3515625,
+      "seams_all_frames": true,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 634386
+    },
+    {
+      "name": "fx_ult_skalter_domain_back",
+      "frames": 6,
+      "unique_frames": 6,
+      "rgba_mib": 0.1875,
+      "seams_all_frames": true,
+      "video_decoded_frames": 144,
+      "video_fps": 30.0,
+      "video_bytes": 322672
+    },
+    {
+      "name": "fx_ult_kaltsit_melt_front",
+      "frames": 8,
+      "unique_frames": 8,
+      "rgba_mib": 4.5,
+      "seams_all_frames": null,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 749002
+    },
+    {
+      "name": "fx_ult_kaltsit_crack_back",
+      "frames": 6,
+      "unique_frames": 6,
+      "rgba_mib": 0.28125,
+      "seams_all_frames": true,
+      "video_decoded_frames": 126,
+      "video_fps": 30.0,
+      "video_bytes": 442571
+    },
+    {
+      "name": "fx_ult_kaltsit_rebuild_orbit",
+      "frames": 12,
+      "unique_frames": 12,
+      "rgba_mib": 3.0,
+      "seams_all_frames": null,
+      "video_decoded_frames": 136,
+      "video_fps": 30.0,
+      "video_bytes": 329909
+    },
+    {
+      "name": "fx_ult_ulpianus_anchor_front",
+      "frames": 4,
+      "unique_frames": 4,
+      "rgba_mib": 0.5625,
+      "seams_all_frames": null,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 468784
+    },
+    {
+      "name": "fx_ult_ulpianus_chain_front",
+      "frames": 2,
+      "unique_frames": 2,
+      "rgba_mib": 0.015625,
+      "seams_all_frames": true,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 228364
+    },
+    {
+      "name": "fx_ult_ulpianus_crack_back",
+      "frames": 6,
+      "unique_frames": 6,
+      "rgba_mib": 0.28125,
+      "seams_all_frames": true,
+      "video_decoded_frames": 126,
+      "video_fps": 30.0,
+      "video_bytes": 428221
+    },
+    {
+      "name": "fx_ult_ulpianus_burst_front",
+      "frames": 8,
+      "unique_frames": 8,
+      "rgba_mib": 0.75,
+      "seams_all_frames": null,
+      "video_decoded_frames": 120,
+      "video_fps": 30.0,
+      "video_bytes": 345992
+    }
+  ],
+  "runtime_verified": false,
+  "scope": "full strips and original-speed dual-background MP4s"
+}

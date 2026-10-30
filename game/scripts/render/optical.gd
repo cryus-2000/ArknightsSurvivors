@@ -379,14 +379,16 @@ func _lo_step() -> void:
 		var target: float = Bal.v("render/optical_view_h_phone", 360.0) if Cfg.phone_ui() else Bal.v("render/optical_view_h", 450.0)
 		# docs/139 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
 		zw = maxi(2, roundi(vs.y * sx * rel / target)) / (2.0 * sx)
+	var pk: float = g.cam_fx.punch()   # 演出推镜（run/cam_fx.gd）：没有来源时恒 1
+	zw *= pk
 	if g.cam != null and absf(g.cam.zoom.x - zw) > 0.0001:
 		g.cam.zoom = Vector2(zw, zw)
 	var xf: Transform2D = vp.get_canvas_transform()
 	var z: float = xf.x.x   # 本帧实际生效的镜头缩放（改了缩放的那一帧还是旧值，下一帧对齐）
 	var cellw: float = 2.0 * z   # 1 个低分辨率像素 = 多少设计单位
 	var lsz := Vector2i(ceili(vs.x / cellw) + 3, ceili(vs.y / cellw) + 3)
-	if lo_vp.size != lsz:
-		lo_vp.size = lsz
+	if lo_vp.size != lsz and (pk <= 1.0 or lsz.x > lo_vp.size.x or lsz.y > lo_vp.size.y):
+		lo_vp.size = lsz   # 推镜期间画布只放大不缩小（拉近时需要的格子变少，沿用大的那块，不每帧重分配）
 	var lo_off: Vector2 = (xf.origin / cellw).floor() + Vector2.ONE
 	lo_vp.canvas_transform = Transform2D(Vector2(0.5, 0), Vector2(0, 0.5), lo_off)
 	var rp: Vector2 = xf.origin - lo_off * cellw

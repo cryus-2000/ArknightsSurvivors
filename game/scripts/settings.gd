@@ -73,6 +73,10 @@ const UI_MIN_H := 470.0
 ## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
 var touch_layout := {}
 var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
+## 自动连携 / 自动终结技（docs/198 §1.4、§11-7；run/ult.gd 每帧读）：缺省桌面两个都关、触屏「自动连携」开（_ready 里按设备定，读档覆盖）。
+## 缺省跟设备走，不上云（同一份云档在电脑和手机上各用各的缺省）
+var auto_combo := false
+var auto_ult := false
 var difficulty := 0      # 上次选的难度档（D.DIFF_PRESETS 下标）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var cover_character_id := "mizuki"
@@ -392,6 +396,7 @@ func _ready() -> void:
 		dof = DisplayServer.is_touchscreen_available() == false
 	_toy_init()
 	brightness = Look.p("bright_def")
+	auto_combo = touch_device()   # 手机缺省自动连携（§11-7）；存档里有就用存档的
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
 		_read_cfg(c)
@@ -509,6 +514,8 @@ func _read_cfg(c: ConfigFile) -> void:
 	brightness = migrate_brightness(brightness, int(c.get_value("video", "look_ver", 0)))
 	pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
 	manual_attack = c.get_value("input", "manual_attack", manual_attack)
+	auto_combo = bool(c.get_value("input", "auto_combo", auto_combo))
+	auto_ult = bool(c.get_value("input", "auto_ult", auto_ult))
 	touch_layout = TouchLayout.load_from(c)
 	ui_size_pct = clampi(int(c.get_value("video", "ui_size", 100)) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
 	cam_zoom_pct = int(c.get_value("video", "cam_zoom", -1))
@@ -829,6 +836,8 @@ func save() -> void:
 	c.set_value("video", "look_ver", LOOK_VER)
 	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("input", "manual_attack", manual_attack)
+	c.set_value("input", "auto_combo", auto_combo)
+	c.set_value("input", "auto_ult", auto_ult)
 	TouchLayout.save_to(c, touch_layout)
 	c.set_value("video", "ui_size", ui_size_pct)
 	c.set_value("video", "cam_zoom", cam_zoom_pct)
