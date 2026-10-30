@@ -1565,6 +1565,7 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 					g.hitstop = maxf(g.hitstop, stop)   # 命中顿帧
 				if b.has("fx"):
 					ObFx.fx_play(self, b.fx, pos, 30.0)
+				SegHoshiguma.s1_slash_fx(self, b)   # 重斩画面（用户 10-31）：弧光 + 裂网 + 碎石，纯画面
 				float_text(pos + Vector2(0, -88), str(b.get("text", "嘲讽")), Color(1.0, 0.85, 0.4), 16)
 				_sfx_op("big")
 
@@ -1582,6 +1583,8 @@ func _taunt_tick() -> void:
 			if e.elite and b.has("dur") and g.t - float(taunt.get("t0", g.t)) > float(b.dur) * float(b.get("elite_x", 1.0)):
 				continue   # 精英只被拉 dur × elite_x 秒
 			set_aggro(e, pos)
+			if not taunt.ids.has(e.id):
+				SegHoshiguma.s1_taunt_mark(self, e.pos)   # 嘲讽信号：刚被拉过来的敌人头上闪一下「!」（纯画面，代替原来的圈）
 			taunt.ids[e.id] = true
 		return
 	var n: int = taunt.ids.size()
@@ -1679,7 +1682,7 @@ func draw_entities_floor() -> void:
 		cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
 		cv.draw_circle(Vector2.ZERO, float(f.r), Color(cc.r, cc.g, cc.b, 0.16 * a))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if not taunt.is_empty() and skill_on(int(taunt.i)):   # 嘲讽圈：本干员脚下一圈金色虚环（范围 = 拉仇恨半径）
+	if not taunt.is_empty() and skill_on(int(taunt.i)) and bool(taunt.b.get("ring", false)):   # 嘲讽圈：本干员脚下一圈金色虚环（范围 = 拉仇恨半径）；用户 10-31 嫌突兀，缺省不画（ring: true 才画）
 		var tr: float = float(taunt.b.r) * stat(&"op_range")
 		var ka: float = 0.35 + 0.2 * sin(g.t * 6.0)
 		cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
