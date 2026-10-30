@@ -317,6 +317,14 @@ cloud-results/ult-T2 3c1e79e0f（`python tools/ult_pair.py --t0 cloud-results/ul
 - 素材 6 张出图（`fx_sk_beam` / `fx_sk_blast` / `fx_sk_flash` / `fx_ka_blast` 两版 / 已删的 `fx_ka_shock`），约 0.2 美元；裂缝 / 碎石 / 尘土墙复用 §7.6 的 `fx_ul_*`。
 - 录像（左旧右新，各 8 秒，原速 30 帧，带音效）：`Claude outputs/skalter_v2_对照.mp4`、`kaltsit_v2_对照.mp4`。
 
+### 7.8 第二批 pixfx：塞雷娅 / 推进之王 / 歌蕾蒂娅（10-30，claude/ult-fx-power）
+
+协调人 10-30：Codex 第二批 fe4727cb9 只交关键帧，弧段 / 小段拼接件划给 pixfx；先做 3 人给用户看，认可后批量做其余 12 人。公用画法抽到 `run/ult_pixfx.gd`（`PF`：哈希、地块隆起 heave、余震、尘土墙、放射裂网 cracks、整圈环 ring）。
+- 塞雷娅（`ult/sa_fx_v2`）：举拳时脚下压暗 → 砸地 pixgen 整圈拳风环 `fx_sa_shock`（660，扩到 R、白亮 → 暗琥珀）+ 琥珀分叉裂缝 `fx_sa_crack`（乌尔比安裂缝转色相）顺原裂纹方向按原速度长出、冷却 + 三圈隆起 + 外圈尘土墙 + 余震；原同心碎裂环 / 速度线 / 折线裂纹不画。
+- 推进之王（`ult/sg_fx_v2`，只主砸）：跃空时落点渐暗 → 灰黑尘浪环 `fx_sg_shock` + 灰黑断裂 `fx_sg_crack`（转灰、缝里压成近黑）13 条 + 隆起 + 尘土墙 + 余震；岩刺 / 碎石帧条照旧；不用凯尔希的熔缝。
+- 歌蕾蒂娅（`ult/gl_fx_v2`）：整张漩涡 `fx_gl_vortex`（600，中心暗）两层，外层按 rot 转、内层 1.8 倍快，跟着收拢缩小；停顿那拍不更新 = 凝住；爆开时放大淡出；四条程序旋臂不画。
+- 判定 / 时序 / 伤害不动；同 seed TRACE 三人都与 8bd0c6881 逐行相同（终结技 20.1 秒放出）。出图 3 张约 0.1 美元（裂缝两张是转色，不花钱）。录像 `Claude outputs/{saria,siege,gladiia}_v2_对照.mp4`（左旧右新、带音效）。
+
 ## 8 已知问题 / 下一步
 
 - 对齐已定稿（§5.7）；聚怪档 5 名自身圆心的人 76.7% 超上限 1.7 点、归溟幽灵鲨均匀 44.2% 差 0.8，属测试台圈距台阶。重型小怪不倒照 §3.3 口径。

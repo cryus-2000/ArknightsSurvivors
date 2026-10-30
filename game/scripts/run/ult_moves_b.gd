@@ -9,6 +9,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -321,6 +322,14 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 		for i in 10:
 			arm.append(_keep(u, a, {"kind": "line", "a": c, "b": c, "w": 3.0 + 0.9 * float(i), "col": col.lerp(Color.WHITE, 0.25 + 0.06 * float(i)), "life": 3.0}))
 		a.arms.append(arm)
+	if _gl_v2(u):   # 漩涡 v2：程序画的四条旋臂换成整张漩涡贴图，外层 + 内层（内圈转得更快）
+		for arm in a.arms:
+			for s in arm:
+				u.shapes.erase(s)
+		var rr: float = PF.tex_w(u, GL_VORTEX) * 0.5
+		a["vo"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR / rr, "life": 3.0, "col": Color(1, 1, 1, 0.55)})
+		a["vi"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR * 0.5 / rr, "ang": 1.3, "life": 3.0, "col": Color(1.1, 1.15, 1.15, 0.7)})
+		a["rr"] = rr
 	a.fx.append(u.strip("fx_gladiia_tornado_open", c, {"sc": 2.6, "o": Vector2(64, 118)}))
 	a.fx.append(u.strip("fx_gladiia_tornado_loop", c, {"sc": 2.6, "o": Vector2(64, 118), "loop": true, "delay": 0.3, "life": 2.0}))
 	return a
@@ -359,6 +368,11 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 				arm[i].b = c + Vector2.from_angle(base + 0.36 * float(i + 1)) * maxf(20.0, r1)
 		for s in a.fx:
 			_hold(s)
+		if a.has("vo"):   # 持续单向旋转（越转越快）、跟旋臂一样往里收；内层再快 0.8 倍
+			a.vo.ang = -float(a.rot)
+			a.vo.sc = DR * shrink / float(a.rr)
+			a.vi.ang = 1.3 - float(a.rot) * 1.8
+			a.vi.sc = DR * 0.5 * shrink / float(a.rr)
 		var foam: Color = col.lerp(Color.WHITE, 0.45)
 		for j in a.arms.size():   # 旋臂上甩出的水沫（沿切向）+ 中心越转越亮
 			var arm2: Array = a.arms[j]
@@ -407,6 +421,11 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 		# ③ 爆开：剩下的份额 + 加大的击飞，水柱 / 水环放射
 		a.burst = true
 		_fade(u, a, 0.05)
+		if a.has("vo"):   # 凝住的漩涡被潮水冲开：从当前大小放大淡出
+			for key in ["vo", "vi"]:
+				var s: Dictionary = a[key]
+				u.shapes.erase(s)
+				u.strip(GL_VORTEX, c, {"layer": "back", "sc": float(s.sc), "sc1": float(s.sc) * 1.6, "scd": 0.25, "ang": float(s.ang), "life": 0.3, "fade": 0.3, "col": s.col})
 		var bf: float = maxf(0.0, Bal.v("ult/gl_burst", 0.52))
 		var kb: float = Bal.v("ult/gl_kb", 520.0)
 		for e in u.in_circle(c, R):
@@ -443,6 +462,16 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 		o.play_vis_anim("attack")
 		return false
 	return t >= T + H + 0.15
+
+
+## ---------------- 歌蕾蒂娅 v2（ult/gl_fx_v2，缺省 1；0 = 程序画四条旋臂版。pixfx，docs/199 §7.8）
+## pixgen 整张漩涡（fx_gl_vortex，中心暗）两层：外层按 a.rot 转、内层 1.8 倍更快，跟着收拢缩小；收拢一砸后停顿那一拍不再更新 = 凝住；
+## 爆开时从当前大小放大淡出。拖拽 / 判定 / 时序不动
+const GL_VORTEX := "fx_gl_vortex"
+
+
+static func _gl_v2(u) -> bool:
+	return Bal.v("ult/gl_fx_v2", 1.0) > 0.0 and u.fx_ready(GL_VORTEX)
 
 
 # ================================================================ 安洁莉娜（§4.8）：重力奇点把圈内小怪吸起悬空 → 停半拍 → 全部砸向地面

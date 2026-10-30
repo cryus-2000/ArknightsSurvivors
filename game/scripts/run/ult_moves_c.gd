@@ -9,6 +9,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const IDS: Array = ["saria", "suzuran", "logos", "hoshiguma", "siege", "irene", "lappland", "lumen"]
 const DIR_OPS: Array = ["suzuran", "logos", "irene"]   # 塞雷娅 10-30 改成以自身为圆心的拳风环，不瞄
 const POINT_OPS: Array = ["siege"]
@@ -299,8 +300,11 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 		var dq := Vector2.from_angle(k * TAU / 8.0)
 		u.grain("mote_in", fist + dq * 120.0, -dq, COL_AMBER, 2)
 	u.shake(2.0, 0.15)
-	return {"org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
-		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
+	var v2: bool = _sa_v2(u)
+	if v2:   # 举拳那一下脚下一大片压暗
+		u.shape({"kind": "circle", "c": c, "r": R * 1.05, "col": Color(0.0, 0.0, 0.01), "fill": 0.45, "life": ch + 0.03, "layer": "back"})
+	return {"v2": v2, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
+		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "punched2": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 
 static func _sa_step(u, a: Dictionary, o) -> bool:
@@ -319,12 +323,16 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 		u.shake(Bal.v("ult/sa_shake", 8.0), 0.35)
 		# 砸地：落点白闪 + 拳风冲击环（白芯 + 两道琥珀，生长段 = 冲击环走到 R 的时间）+ 往外飞的拳风速度线
 		u.shape({"kind": "circle", "c": org, "r": 110.0, "col": COL_AMBER.lerp(Color.WHITE, 0.45), "fill": 0.95, "life": 0.1})
-		u.shape({"kind": "circle", "c": org, "r": R, "col": COL_AMBER, "fill": 0.16, "life": tr + 0.15})
 		u.shape({"kind": "ellipse", "c": org + Vector2(0, 8), "rx": 150.0, "ry": 70.0, "col": COL_ROCK.darkened(0.45), "fill": 0.6, "life": 1.2, "layer": "back"})   # 砸出的浅坑
 		u.light(org, 380.0, COL_AMBER, 0.45)
 		u.debris(org, COL_AMBER, 3)
 		u.debris(org, COL_ROCK, 2)
 		u.spark(org, COL_AMBER, 10, 30.0)
+		if a.v2:
+			_sa_punch_v2(u, a, org, R, tr)
+	if not a.punched2 and not a.v2:
+		a.punched2 = true
+		u.shape({"kind": "circle", "c": org, "r": R, "col": COL_AMBER, "fill": 0.16, "life": tr + 0.15})
 		_ring(u, org, R, 40.0, COL_AMBER.lerp(Color.WHITE, 0.5), tr * 2.0, 26.0)   # 缺省碎裂：拳风是一圈往外崩的碎块
 		_ring(u, org, R * 0.96, 30.0, COL_AMBER.lerp(Color.WHITE, 0.25), tr * 2.0, 14.0, 0.03)
 		_ring(u, org, R * 0.9, 20.0, COL_AMBER, tr * 2.0 + 0.1, 6.0, 0.07)
@@ -347,6 +355,8 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 				u.shape({"kind": "line", "a": p0, "b": p1, "w": 3.0 + 6.0 * wk, "col": COL_AMBER.darkened(0.15), "life": 1.1 - dl, "delay": dl, "layer": "back"})   # 裂纹画在地面层（怪脚下）
 				if j < 2:
 					u.shape({"kind": "line", "a": p0, "b": p1, "w": 1.5 + 1.5 * wk, "col": COL_AMBER.lerp(Color.WHITE, 0.45), "life": 0.6 - dl, "delay": dl, "layer": "back"})
+	if a.punched and not a.get("shielded", false):
+		a["shielded"] = true
 		g.shield = mini(g.shield + 1, maxi(g.shield_max, 1) + 1)   # 附带：队长护盾（本作护盾按层；docs 写 15% 最大生命，没有按量的护盾，先给一层）
 		g.shield_pop = 1.0
 	# 拳风冲击环：波前扫过的敌人各吃一次，往外击飞、短硬直
@@ -371,7 +381,8 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 		for e in u.in_circle(p, 80.0):
 			_once(u, a, o, a.cseg, e, float(a.cf), {"src": "裂地", "edge": e.pos.distance_to(org) > hc})
 		u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_AMBER.lerp(Color.WHITE, 0.2), "fill": 0.7, "life": 0.14})
-		_ring(u, p, 92.0, 16.0, COL_AMBER.lerp(Color.WHITE, 0.3), 0.26, 6.0)
+		if not a.v2:
+			_ring(u, p, 92.0, 16.0, COL_AMBER.lerp(Color.WHITE, 0.3), 0.26, 6.0)
 		u.strip("fx_saria_pillar_break", p + Vector2(0, -16), {"sc": 1.4})
 		var bi: int = a.booms.find(b)
 		u.grain("sh_shard", p, Vector2.UP, COL_AMBER, 5)
@@ -386,6 +397,55 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 			g.combat.heal(g.max_hp * Bal.v("ult/sa_heal", 0.06), "终结技", "saria")
 		return true
 	return false
+
+
+## ---------------- 塞雷娅 v2（ult/sa_fx_v2，缺省 1；0 = 程序画同心碎裂环 + 琥珀折线裂纹 + 速度线版。pixfx，docs/199 §7.8）
+## 举拳时脚下压暗 → 砸地：pixgen 整圈拳风冲击环（fx_sa_shock）扩到 R、白亮 → 暗琥珀冷却；整条分叉裂缝（fx_sa_crack，乌尔比安裂缝转琥珀）
+## 顺着原裂纹方向按原生长速度往外长、冷却；波前到哪、哪圈地块顶起；外圈尘土墙外推 + 余震。爆点 / 判定 / 时序不动
+static func _sa_v2(u) -> bool:
+	return Bal.v("ult/sa_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_sa_shock") and u.fx_ready("fx_sa_crack")
+
+
+static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) -> void:
+	PF.ring(u, "fx_sa_shock", org, 70.0, R * 1.02, tr, tr + 0.12, {"fade": tr * 0.8, "col": Color(1.2, 1.15, 1.1, 0.8), "col1": Color(0.55, 0.42, 0.3, 0.8), "cold": tr})
+	_ring(u, org, R, 40.0, COL_AMBER.lerp(Color.WHITE, 0.3), tr * 2.0, 6.0)   # 细的范围环
+	var angs: Array = []
+	var lens: Array = []
+	var j := 0
+	for pts in a.cracks:
+		angs.append((Vector2(pts[pts.size() - 1]) - org).angle())
+		lens.append(R * (0.85 + 0.2 * PF.h(j + 60.0)))
+		j += 1
+	PF.cracks(u, "fx_sa_crack", org, angs, lens, {"rev": R / float(a.cspd), "rev0": 0.08, "life": 1.5, "fade": 0.6, "delay": 0.0,
+		"col": Color(1.25, 1.15, 1.05), "col1": Color(0.3, 0.24, 0.2), "cold": 0.8, "big": 0.8, "small": 0.5})
+	var spd: float = R / tr
+	for i in 3:
+		var r: float = R * (0.35 + 0.3 * i)
+		PF.heave(u, org, r, 20.0 + i, r / spd)
+	PF.wall(u, org, R, tr * 0.9)
+	PF.aftershock(u, org, R, 3.0, tr + 0.3)
+
+
+## ---------------- 推进之王 v2（ult/sg_fx_v2，缺省 1；0 = 程序画同心环 + 直线裂地 + 碎石刀光版。pixfx，docs/199 §7.8）
+## 跃空时落点地面渐暗（压暗）→ 砸落：白闪 + pixgen 灰黑尘浪环（fx_sg_shock）扩到 R、整条灰黑断裂（fx_sg_crack）13 条往外长、
+## 三圈地块隆起、外圈尘土墙外推、余震；岩刺 / 碎石帧条照旧。不用凯尔希的红白熔缝（验收员 10-30）
+static func _sg_v2(u) -> bool:
+	return Bal.v("ult/sg_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_sg_shock") and u.fx_ready("fx_sg_crack")
+
+
+static func _sg_smash_v2(u, c: Vector2, R: float) -> void:
+	PF.ring(u, "fx_sg_shock", c, 60.0, R * 1.02, 0.28, 0.4, {"fade": 0.3, "col": Color(1, 1, 1, 0.7)})
+	_ring(u, c, R, 60.0, COL_ROCK.lerp(Color.WHITE, 0.2), 0.4, 6.0)   # 细的范围环
+	var angs: Array = PF.angles(13, 0.2, 40.0)
+	var lens: Array = []
+	for j in 13:
+		lens.append(R * (0.6 + 0.42 * PF.h(j + 45.0)))
+	PF.cracks(u, "fx_sg_crack", c, angs, lens, {"rev": 0.26, "rev0": 0.12, "life": 2.0, "fade": 0.8, "col": Color.WHITE})
+	for i in 3:
+		var r: float = R * (0.3 + 0.3 * i)
+		PF.heave(u, c, r, 50.0 + i, r / R * 0.3)
+	PF.wall(u, c, R, 0.22)
+	PF.aftershock(u, c, R, 7.0, 0.35, 12)
 
 
 # ================================================================ 铃兰（§4.14）：忍冬在她身旁现身 → 化白光瞬身斩出 → 停半拍 → 斩痕爆裂
@@ -728,10 +788,14 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 	o.play_vis_anim("attack")
 	o.screen_shake(1.0 if big else 0.6)
 	u.shape({"kind": "circle", "c": c, "r": 100.0, "col": Color.WHITE, "fill": 0.9, "life": 0.1})
-	u.shape({"kind": "circle", "c": c, "r": R, "col": COL_ROCK, "fill": 0.22, "life": 0.3})
-	_ring(u, c, R, 60.0, col.lerp(Color.WHITE, 0.3), 0.4, 16.0 if big else 10.0)
-	_ring(u, c, R * 0.7, 40.0, COL_ROCK.lerp(col, 0.5), 0.35, 8.0, 0.04)
-	var nc: int = 14 if big else 8
+	var v2: bool = big and _sg_v2(u)
+	if v2:
+		_sg_smash_v2(u, c, R)
+	else:
+		u.shape({"kind": "circle", "c": c, "r": R, "col": COL_ROCK, "fill": 0.22, "life": 0.3})
+		_ring(u, c, R, 60.0, col.lerp(Color.WHITE, 0.3), 0.4, 16.0 if big else 10.0)
+		_ring(u, c, R * 0.7, 40.0, COL_ROCK.lerp(col, 0.5), 0.35, 8.0, 0.04)
+	var nc: int = 0 if v2 else (14 if big else 8)
 	for j in nc:   # 放射裂地
 		var dv := Vector2.from_angle(j * TAU / nc + 0.2)
 		var ln: float = R * (0.55 + 0.4 * float((j * 5) % 4) / 3.0)
@@ -747,7 +811,7 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 				u.strip("fx_siege_rock_spike", p, {"o": Vector2(16, 54), "sc": 1.5, "delay": 0.05 * ri})
 			else:
 				u.strip("fx_rock_burst", p, {"sc": 1.6, "delay": 0.05 * ri})
-	for j in 16:   # 碎石块往外飞
+	for j in (0 if v2 else 16):   # 碎石块往外飞
 		var dv := Vector2.from_angle(j * 2.39996)
 		u.shape({"kind": "blade", "a": c + dv * 50.0, "b": c + dv * 64.0, "w": 6.0, "col": COL_ROCK.lerp(Color.WHITE, 0.2), "glow": COL_ROCK, "life": 0.45, "v": dv * (500.0 + 120.0 * float(j % 3))})
 	for e in u.in_circle(c, R):
@@ -777,6 +841,8 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 		u.shape({"kind": "circle", "c": gp, "r": 22.0 - 8.0 * sin(k * PI), "col": Color(0.05, 0.04, 0.03), "fill": 0.5, "life": 0.04})
 		u.shape({"kind": "circle", "c": c, "r": lerpf(30.0, 70.0, k), "col": Color(0.05, 0.04, 0.03), "fill": 0.35 * k, "life": 0.04})
 		u.shape({"kind": "line", "a": a.prev, "b": p, "w": 6.0, "col": col.lerp(Color.WHITE, 0.3), "life": 0.2})
+		if _sg_v2(u):   # 落点一大片地面跟着渐暗（压暗，砸下那一刻撤掉）
+			u.shape({"kind": "circle", "c": c, "r": float(a.R) * 1.05, "col": Color(0.0, 0.0, 0.01), "fill": 0.5 * k * k, "life": 0.04, "layer": "back"})
 		a.prev = p
 		return false
 	if not a.landed:
