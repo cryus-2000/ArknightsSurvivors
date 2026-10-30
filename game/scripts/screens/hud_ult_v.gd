@@ -228,7 +228,7 @@ func _draw_b(phone := false) -> void:
 	var lf: float = g.hud_lv_flash
 	var lvs: String = "LV %d" % g.level
 	var lw: float = UI.cwidth(g.font, lvs, 13) + 14.0
-	var lr := Rect2(c.x - lw / 2.0, c.y - B_R - 13.0, lw, 18.0)
+	var lr := Rect2(c.x - lw / 2.0, c.y - B_R - 17.0, lw, 18.0)   # 头像露出头顶后上移 4，少压耳朵 / 帽檐
 	g.hud.draw_rect(lr, Color(0.02, 0.03, 0.05, 0.95))
 	var bc: Color = UI.CYAN.lerp(UI.GOLD, lf)
 	g.hud.draw_rect(lr, bc, false, 1.5)
