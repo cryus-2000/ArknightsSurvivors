@@ -8,6 +8,7 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
+const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 终结技并进左上的原型开关（ui/hud_ult_v）
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
@@ -47,9 +48,10 @@ func draw_top_left(vs: Vector2) -> void:
 	var bc := UI.CYAN.lerp(UI.GOLD, lf)
 	var lc0 := o + Vector2(26, 30)
 	h.batch_begin()   # 左上面板：色块一批、字最后（性能 9/30）
-	UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, 0.0, bc, lf > 0.2)   # 只显示等级数字；经验进度在屏幕最上沿的通栏细条（draw_xp_top，10-28 用户）
-	UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
-	UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
+	if HudUltV.ver() != 2:   # B′ 徽记环（ui/hud_ult_v 2，10-31 缺省）：等级圆换成队长头像 + 能量环 + 等级牌（hud_ult_v.gd），触屏也是
+		UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, 0.0, bc, lf > 0.2)   # 只显示等级数字；经验进度在屏幕最上沿的通栏细条（draw_xp_top，10-28 用户）
+		UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
 	draw_recall(lc0)
 	# 生命值
 	var hs := Vector2(sin(g.t * 90.0), cos(g.t * 70.0)) * 3.0 * g.hp_shake / 0.35
@@ -80,8 +82,9 @@ func draw_top_left(vs: Vector2) -> void:
 		h._hb.rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
 	# 神经损伤 / 侵蚀：生命条下方一道洋红细条
 	if g.nerve > 1.0:
-		UI.gbar(g.hud, Rect2(Vector2(hx, o.y + 54), Vector2(150, 2)), g.nerve / 100.0, Color(1.0, 0.45, 0.85))
-		UI.en(g.hud, g.font, Vector2(hx + 156, o.y + 58), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
+		var ny: float = o.y + 54 + HudUltV.top_add(g.touch.active)   # 终结技原型 A / C 在生命条下多一层，神经细条跟着下移
+		UI.gbar(g.hud, Rect2(Vector2(hx, ny), Vector2(150, 2)), g.nerve / 100.0, Color(1.0, 0.45, 0.85))
+		UI.en(g.hud, g.font, Vector2(hx + 156, ny + 4), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
 	if g.corrode_pool > 0.5:
 		UI.text(g.hud, g.font, Vector2(hx + 190, o.y + 60), "蚀", 11, Color(0.8, 0.5, 1.0))
 	h.batch_end()

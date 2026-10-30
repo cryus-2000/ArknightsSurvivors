@@ -14,8 +14,10 @@ const Game = preload("res://scripts/game.gd")
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
+const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 并进左上生命块的三个原型（ui/hud_ult_v 1–3，10-30）
 var g: Game
 var h   # screens/hud.gd
+var v: HudUltV
 
 const DARK := Color(0.03, 0.035, 0.045, 0.82)
 
@@ -23,6 +25,7 @@ const DARK := Color(0.03, 0.035, 0.045, 0.82)
 func _init(hud) -> void:
 	h = hud
 	g = hud.g
+	v = HudUltV.new(self)
 
 
 func _on() -> bool:
@@ -148,6 +151,11 @@ func _hint_busy() -> bool:
 func draw(vs: Vector2) -> void:
 	if not _on():
 		return
+	if HudUltV.ver() > 0 or HudUltV.link_cue() > 0:
+		if g.state == Game.S.PLAY or g.state == Game.S.PAUSE or (g.touch.active and g.hud_live()):
+			v.draw(vs)
+		if HudUltV.ver() > 0:
+			return
 	if g.touch.active:
 		if g.hud_live():
 			_draw_touch(vs)

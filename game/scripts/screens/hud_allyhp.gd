@@ -14,6 +14,7 @@ const Game = preload("res://scripts/game.gd")
 const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL
 const A = preload("res://scripts/art.gd")
 const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条（10-29 起；10-31 改头顶条 _draw_m3_overhead）：不依赖指挥模式
+const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 终结技并进左上的原型（A / C）在生命条下多一层，队友行下移 top_add
 var g: Game
 var h
 
@@ -231,7 +232,7 @@ func guide_rect(vs: Vector2) -> Rect2:
 	if ms.is_empty():
 		return Rect2()
 	if int(Bal.v("command/hpbar_style", 4.0)) == 4:
-		return Rect2(Vector2(UL_X - 8.0, UL_Y - 4.0), Vector2(UL_W + 52.0, ms.size() * UL_ROW + 6.0))
+		return Rect2(Vector2(UL_X - 8.0, UL_Y + HudUltV.top_add(g.touch.active) - 4.0), Vector2(UL_W + 52.0, ms.size() * UL_ROW + 6.0))
 	if int(Bal.v("command/hpbar_style", 4.0)) == 3:
 		var y0: float = 150.0 if not g.touch.active else 118.0
 		return Rect2(Vector2(10.0, y0 - 6.0), Vector2(190.0, ms.size() * COL_ROW + 6.0))
@@ -260,7 +261,7 @@ func top_shift() -> float:
 	if h.phone_quiet():
 		return 0.0
 	var n: int = _mates().size() if style() == 4 else 0   # Mon3tr 10-31 起改头顶条，不再占行
-	return n * UL_ROW + 4.0 if n > 0 else 0.0
+	return (n * UL_ROW + 4.0 if n > 0 else 0.0) + HudUltV.top_add(g.touch.active)
 
 
 func _draw_under_leader() -> void:
@@ -271,7 +272,7 @@ func _draw_under_leader() -> void:
 	var a: float = 1.0 if roam or ms.any(func(o): return o.cmd_down > 0.0 or o.cmd_hp < 0.999) else 0.6
 	for i in ms.size():
 		var o = ms[i]
-		var y: float = UL_Y + i * UL_ROW
+		var y: float = UL_Y + HudUltV.top_add(g.touch.active) + i * UL_ROW
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)
 		var down: bool = o.cmd_down > 0.0
 		g.hud.draw_rect(Rect2(UL_X - 4.0, y - 1.0, 2.0, 11.0), Color(oc.r, oc.g, oc.b, a))   # 职业色小块（同编队卡底条 / 屏外头像外圈）
