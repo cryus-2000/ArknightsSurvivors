@@ -236,6 +236,7 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
     late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
     cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr) if emu else None
     t0 = time.time()
+    lastmem = 0
     memk = 0   # Edge 进程树（渲染 / GPU / 主进程）私有内存之和的峰值，字节（10-30 加；wasm 线性内存在渲染进程里）
     try:
         import psutil
@@ -253,6 +254,17 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
                     except Exception:
                         pass
                 memk = max(memk, tot)
+                if time.time() - lastmem >= 15:   # 每 15 秒一行：按进程类型分的私有内存（MB），用来看是哪类进程在涨
+                    lastmem = time.time()
+                    by = {}
+                    for q in [root] + root.children(recursive=True):
+                        try:
+                            cl = q.cmdline()
+                            ty = next((a[7:] for a in cl if a.startswith("--type=")), "browser")
+                            by[ty] = by.get(ty, 0) + q.memory_full_info().uss
+                        except Exception:
+                            pass
+                    open(log_p, "a", encoding="utf-8").write("PF MEM wall=%d %s" % (lastmem - t0, " ".join("%s=%d" % (k, v / 1048576) for k, v in sorted(by.items())) + chr(10)))
             except Exception:
                 pass
         if late and cdp is not None and "PF RTFROM" in open(log_p, encoding="utf-8").read():
