@@ -823,8 +823,7 @@ static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 	a["tipw"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 1.0, "col": Color(1.0, 0.95, 0.97), "fill": 0.0, "life": life})
 	if _sk_v2(u):   # 吐息 v2：程序画的各层带子换成 pixgen 整条光束贴图（两层错开滚动）+ 根部 / 命中点爆闪贴图
 		a["v2"] = true
-		for key in ["cone", "halo", "body", "inner", "wire", "tipc", "tipw"]:
-			u.shapes.erase(a[key])
+		u.shapes.erase(a.body)   # 只换暗红主体带；外辉光 / 青白芯 / 白芯线 / 命中点亮核照旧（用户 10-30「亮度我喜欢左边的」）
 		var bh: float = float(u._strip_tex(SK_BEAM).get_height())
 		for key in ["bm", "bm2"]:
 			a[key] = u.strip(SK_BEAM, org, {"o": Vector2(0.0, bh * 0.5), "uw": 1.0, "life": life, "col": Color(1, 1, 1, 0.0)})
@@ -832,6 +831,9 @@ static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 		for key in ["rf", "tf"]:
 			a[key] = u.strip(SK_FLASH, org, {"sc": 0.1, "life": life, "col": Color(1, 1, 1, 0.0)})
 			a.fx.append(a[key])
+		for key in ["inner", "wire", "tipw"]:   # 亮芯画在贴图上面
+			u.shapes.erase(a[key])
+			u.shapes.append(a[key])
 	o.play_vis_anim("attack")
 	return a
 
@@ -934,7 +936,7 @@ static func _sk_beam_v2(u, a: Dictionary, org: Vector2, tip: Vector2, imp: Vecto
 		s.uw = uw
 		s.ux = floorf(pingpong(t * (520.0 + 170.0 * i) + 130.0 * i, room)) if room > 0.0 else 0.0   # 往外流
 		s.sy = hk * (1.0 if i == 0 else -0.78)
-		s.col = Color(1, 1, 1, 1.0 if i == 0 else 0.55)
+		s.col = Color(1.45, 1.3, 1.3, 1.0) if i == 0 else Color(1.3, 1.2, 1.2, 0.6)   # 提亮到接近程序画版（用户 10-30 喜欢原亮度）
 		i += 1
 	a.rf.c = org
 	a.rf.sc = 0.75 * wk
@@ -1360,10 +1362,9 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 			a["aura"] = _ka_keep(u, a, {"kind": "ring", "c": core, "r": 40.0, "w": 4.0, "col": KA_COL.lerp(Color.WHITE, 0.3), "solid": true, "life": 9.0})   # 罩住 Mon3tr 本体的聚能圈（不盖住它）
 			a["glow"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 8.0, "col": KA_COL, "fill": 0.45, "life": 9.0})
 			a["hot"] = _ka_keep(u, a, {"kind": "circle", "c": core, "r": 4.0, "col": Color(0.9, 1.0, 0.97), "fill": 0.95, "life": 9.0})
-			if _ka_v2(u):   # 蓄力压暗：落点一大片地面渐暗；预兆细裂纹
+			if _ka_v2(u):   # 蓄力压暗：落点一大片地面渐暗
 				a["v2"] = true
 				a["dark"] = _ka_keep(u, a, {"kind": "circle", "c": c, "r": R * 1.12, "col": Color(0.0, 0.01, 0.02), "fill": 0.0, "life": 9.0, "layer": "back"})
-				_ka_pre(u, c, wind)
 		var pul: float = 1.0 + 0.15 * sin(t * (30.0 + 40.0 * kw))
 		a.glow.c = core
 		a.glow.r = lerpf(8.0, 36.0, kw * kw) * pul
@@ -1466,10 +1467,8 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 		o.set_meta("ult_m3_back", u.g.t + 9.0)   # 兜底：动作被中途清掉时，下次任何人放终结技会补回 Mon3tr
 	if a.get("v2", false):
 		_ka_blast_v2(u, c, core, R)
-		u.light(core, R * 0.9, KA_COL, 0.6)
-		u.light(c, 300.0, Color(1.0, 0.95, 0.85), 0.25)
-		u.debris(c, KA_COL, 3)
-		u.debris(c, KA_HOT, 3)
+		u.light(core, R * 0.9, KA_RED, 0.6)
+		u.light(c, 300.0, Color(1.0, 0.55, 0.45), 0.25)
 		u.shake(9.0, 0.4)
 		return
 	# 白芯爆闪（Mon3tr 身上）+ 青绿外焰
@@ -1496,63 +1495,37 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 
 
 ## ---------------- 爆点 v2（ult/ka_blast_v2，缺省 1；0 = 程序画白圈 + 放射斩光版。pixfx 技能，docs/199 §7.7）
-## 蓄力时落点一片地面渐暗（压暗）+ 预兆细裂纹 → 爆点：压暗撤掉、pixgen 大爆炸（fx_ka_blast，白亮 → 暗色余烬、缓出放大）+ 冲击波环（fx_ka_shock 扩到外圈）
-## + 11 条分叉裂缝跟三圈往外长（借 fx_ul_crack_fork，青白调）→ 每圈地块隆起、最外圈尘土墙外推 + 余震碎石。三圈判定 / 时序 / 伤害不动
-const KA_BLAST := "fx_ka_blast"
-const KA_SHOCK := "fx_ka_shock"
+## 蓄力时落点一片地面渐暗（压暗）+ 预兆细裂纹 → 爆点：压暗撤掉、pixgen 红色大爆炸（fx_ka_blast，白亮 → 暗色余烬、缓出放大）+ 细实线冲击环扩到外圈
+## 用户 10-30 两轮：「m3 的爆炸用红色比较好」→「都改成全红色，不需要裂地，更突出红色的粒子爆炸感」：不画裂网 / 预兆裂纹 / 尘土墙，
+## 每圈沿圈接连炸几团小红爆 + 红色颗粒 / 火星→ 每圈地块隆起、最外圈尘土墙外推 + 余震碎石。三圈判定 / 时序 / 伤害不动
+const KA_RED := Color(0.9, 0.16, 0.12)
 
 
 static func _ka_v2(u) -> bool:
-	return Bal.v("ult/ka_blast_v2", 1.0) > 0.0 and u.fx_ready(KA_BLAST) and u.fx_ready(KA_SHOCK)
-
-
-static func _ka_pre(u, c: Vector2, wind: float) -> void:
-	if not u.fx_ready(UL_FORK):
-		return
-	var t: Texture2D = u._strip_tex(UL_FORK)
-	var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
-	for j in 6:
-		u.strip(UL_FORK, c, {"layer": "back", "ang": TAU * (j + _ulh(j + 140.0)) / 6.0, "o": Vector2(0.0, t.get_height() * 0.5),
-			"sx": (110.0 + 60.0 * _ulh(j + 150.0)) / tw, "sy": 0.4, "rev": wind, "life": wind + 0.2, "col": Color(0.6, 0.95, 0.9, 0.8)})
+	return Bal.v("ult/ka_blast_v2", 1.0) > 0.0
 
 
 static func _ka_blast_v2(u, c: Vector2, core: Vector2, R: float) -> void:
-	var bt: Texture2D = u._strip_tex(KA_BLAST)
-	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
-	u.strip(KA_BLAST, core, {"sc": 50.0 / br, "sc1": R * 0.22 / br, "scd": 0.16, "life": 0.3, "fade": 0.18,
-		"col": Color.WHITE, "col1": Color(0.4, 0.3, 0.3), "cold": 0.2})
-	# 冲击波：fx_ka_shock 是厚环，放到外圈会糊成一大片——只在内圈放一下，外圈交给细的实线冲击环
-	var st: Texture2D = u._strip_tex(KA_SHOCK)
-	var sr: float = st.get_width() * 0.5 * u.g.PX / A.hires_of(st)
-	u.strip(KA_SHOCK, c, {"layer": "back", "sc": 60.0 / sr, "sc1": R * 0.4 / sr, "scd": 0.16, "life": 0.24, "fade": 0.14, "col": Color(1, 1, 1, 0.85)})
-	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 12.0, "col": Color(0.9, 1.0, 0.97), "solid": true, "life": 0.45})
-	u.shape({"kind": "ring", "c": c, "r": R * 1.08, "r1": 30.0, "w": 9.0, "col": KA_COL, "life": 0.6, "delay": 0.05})
-	if u.fx_ready(UL_FORK):
-		var t: Texture2D = u._strip_tex(UL_FORK)
-		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
-		for j in 11:
-			var h1: float = _ulh(j + 120.0)
-			u.strip(UL_FORK, c, {"layer": "back", "ang": TAU * (j + (h1 - 0.5) * 0.7) / 11.0, "o": Vector2(0.0, t.get_height() * 0.5),
-				"sx": R * (0.6 + 0.45 * _ulh(j + 130.0)) / tw, "sy": (0.85 if j % 3 == 0 else 0.55) * (1.0 if j % 2 == 0 else -1.0),
-				"delay": 0.04 * _ulh(j + 110.0), "rev": 0.36, "rev0": 0.2, "life": 2.0, "fade": 0.7,
-				"col": Color(0.85, 1.0, 0.95), "col1": Color(0.4, 0.42, 0.45), "cold": 0.9})
+	# 用户 10-30 第七轮：「Mon3tr 不是爆炸物也不是纯生物，做成粒子爆炸就可以」——不放烟团 / 血肉 / 散落小爆：
+	# 红白爆闪 → 三层红色粒子帧条（fx_px_burst，预烘焙）错开 0.05 秒从核心叠着迸开、由大到小（外层先到外圈）+ 一层近爆密核 + 一道红环 + 落地余烬
+	var vs: float = PF.vseed(u, core)
+	u.shape({"kind": "circle", "c": core, "r": 80.0, "col": Color(1.0, 0.32, 0.28), "fill": 0.95, "life": 0.07})
+	var reds := [Color(0.95, 0.07, 0.07), Color(1.0, 0.14, 0.12), Color(0.8, 0.04, 0.06)]   # 用户 10-30「更红一点，现在像橙色」：去掉橙调
+	for l in 3:
+		PF.particles(u, core, 300, "ult_burst", [reds[l]], 0.05 * l, vs + l * 11.0, R * (0.9 - 0.18 * l))
+	PF.particles(u, core, 100, "ult_burst_s", [Color(1.0, 0.2, 0.16)], 0.02, vs + 40.0, 150.0)
+	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 8.0, "col": Color(0.95, 0.3, 0.22), "life": 0.5})
+	u.spark(core, Color(1.0, 0.18, 0.14), 14, 40.0)
+	u.light(core, R * 0.9, KA_RED, 0.5)
 
 
+## 每圈：v2 不再沿圈散小爆（像烟花），只在圈上扬一圈尘（尘土墙预审报拼接感，去掉）
 static func _ka_ring_v2(u, c: Vector2, r: float, i: int, R: float) -> void:
-	var nr: int = roundi(TAU * r / 120.0)
-	for q in nr:
-		var hh: float = _ulh(i * 37.0 + q * 7.0 + 500.0)
-		var dirv: Vector2 = Vector2.from_angle(0.41 * i + TAU * (q + 0.6 * hh) / maxf(1.0, nr))
-		var p: Vector2 = c + dirv * r * (0.86 + 0.16 * hh)
-		var high: bool = q % 4 == 0
-		_ul_rock(u, p, dirv * ((60.0 + 80.0 * hh) if high else 25.0), (260.0 + 160.0 * hh) if high else (110.0 + 60.0 * hh), hh, (0.55 if high else 0.45) + 0.06 * i, 0.02 * (q % 3))
-		if q % 3 == 0:
-			u.grain("bfx_dust", p, dirv, Color(0.6, 0.65, 0.66), 3)
-	if i == 2:
-		_ul_wall(u, c, r)
-		for q in 10:
-			var h2: float = _ulh(q * 5.0 + 520.0)
-			_ul_rock(u, c + Vector2.from_angle(TAU * (q + h2) / 10.0) * R * (0.25 + 0.7 * h2), Vector2.ZERO, 120.0 + 60.0 * h2, h2, 0.4, 0.3 + 0.05 * (q % 3))
+	for q in 8:
+		var dq := Vector2.from_angle(TAU * (q + PF.h(q + i)) / 8.0)
+		u.grain("bfx_dust", c + dq * r, dq, Color(0.5, 0.42, 0.4), 3)
+	if i == 0:
+		u.light(c, R * 0.7, KA_RED, 0.4)
 
 
 ## 掀起的地块：沿半径 r 的圈抛出 n 块碎岩（带重力，往外上方飞、转着落下）
@@ -1765,6 +1738,8 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 ##   余震：最外圈 0.3 秒后再跳一批碎石。水柱、范围环照旧。只画画面：不调 u.hit、不抽模拟随机数（散布按 _ulh 哈希）
 const UL_CRACK := "fx_ul_crack_line"
 const UL_FORK := "fx_ul_crack_fork"
+const UL_FORKS := ["fx_ul_crack_fork", "fx_ul_crack_fork2", "fx_ul_crack_fork3", "fx_ul_crack_fork4"]   # 变体（用户 10-30「多做几种」）
+const PF = preload("res://scripts/run/ult_pixfx.gd")
 const UL_CRACKS := 13
 const UL_HOT := Color(1.0, 1.0, 1.0)
 const UL_COLD := Color(0.42, 0.4, 0.48)
@@ -1792,20 +1767,26 @@ static func _ul_pre(u, a: Dictionary, c: Vector2) -> void:
 static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: float) -> void:
 	var R: float = float(a.rs[3])
 	var span: float = 0.18 * 3.0
-	if i == 0:   # 裂网一次铺好，靠 delay / rev 跟着四圈往外长
-		var name := _ul_tex(u)
-		var t: Texture2D = u._strip_tex(name)
-		var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
+	if i == 0:   # 裂网一次铺好，靠 delay / rev 跟着四圈往外长；每次出招按 vseed 挑变体、条数、角度、长短、镜像
+		var vs: float = PF.vseed(u, lc)
+		a["vs"] = vs
 		var base: float = (a.c - a.p0).angle() if a.c.distance_to(a.p0) > 1.0 else 0.0
-		for j in UL_CRACKS:
-			var h1: float = _ulh(j + 1.0)
-			var h2: float = _ulh(j + 21.0)
-			var ang: float = base + TAU * (float(j) + (h1 - 0.5) * 0.7) / UL_CRACKS
+		var nc: int = UL_CRACKS - 2 + int(_ulh(vs + 3.0) * 5.0)   # 11–15 条
+		var turn: float = (_ulh(vs + 5.0) - 0.5) * 0.6   # 整体偏一点，第一条不再死对冲锋方向
+		for j in nc:
+			var name := PF.pick(u, UL_FORKS, vs * 0.37 + j * 1.7)
+			if name == "":   # 变体都没导入（新拉的工作树没 ensure_imported）时别拿空贴图
+				name = UL_CRACK
+			var t: Texture2D = u._strip_tex(name)
+			var tw: float = t.get_width() / A.hires_of(t) * u.g.PX
+			var h1: float = _ulh(j + 1.0 + vs)
+			var h2: float = _ulh(j + 21.0 + vs)
+			var ang: float = base + turn + TAU * (float(j) + (h1 - 0.5) * 0.75) / nc
 			var lk: float = 0.62 + 0.45 * h2   # 长短不一，长的伸出外圈一点
-			var big: bool = j % 3 == 0
-			var dl: float = 0.06 * _ulh(j + 33.0)
+			var big: bool = _ulh(j + 9.0 + vs) < 0.33
+			var dl: float = 0.06 * _ulh(j + 33.0 + vs)
 			u.strip(name, lc, {"layer": "back", "ang": ang, "o": Vector2(0.0, t.get_height() * 0.5),
-				"sx": R * lk / tw, "sy": (0.85 if big else 0.55) * (1.0 if j % 2 == 0 else -1.0),
+				"sx": R * lk / tw, "sy": (0.85 if big else 0.55) * (1.0 if _ulh(j + 17.0 + vs) < 0.5 else -1.0),
 				"delay": dl, "rev": span * lk + 0.08, "rev0": 0.18, "life": span + 1.6, "fade": 0.7,
 				"col": UL_HOT, "col1": UL_COLD, "cold": span + 0.45})
 		u.light(lc, R * 0.8, Color(0.4, 0.9, 1.0), 0.35)
@@ -1817,8 +1798,8 @@ static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: fl
 	# 隆起：沿这一圈地块被顶起一小跳落回；每 4 块里 1 块高飞
 	var nr: int = roundi(TAU * r / 120.0 * Bal.v("ult/ul_rock_fx", 1.0))
 	for q in nr:
-		var hh: float = _ulh(i * 31.0 + q * 7.0)
-		var dirv: Vector2 = Vector2.from_angle(0.37 * i + TAU * (q + 0.6 * hh) / maxf(1.0, nr))
+		var hh: float = _ulh(i * 31.0 + q * 7.0 + float(a.get("vs", 0.0)))
+		var dirv: Vector2 = Vector2.from_angle(0.37 * i + float(a.get("vs", 0.0)) + TAU * (q + 0.6 * hh) / maxf(1.0, nr))
 		var p: Vector2 = lc + dirv * r * (0.86 + 0.16 * hh)
 		var high: bool = q % 4 == 0
 		var vy: float = (260.0 + 160.0 * hh + 30.0 * i) if high else (110.0 + 60.0 * hh)
@@ -1829,18 +1810,14 @@ static func _ul_crack_v2(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: fl
 	if i == 3:
 		_ul_wall(u, lc, r)
 		for q in 10:   # 余震：0.3 秒后满圈再跳一批碎石
-			var hh2: float = _ulh(q * 5.0 + 99.0)
+			var hh2: float = _ulh(q * 5.0 + 99.0 + float(a.get("vs", 0.0)))
 			var p2: Vector2 = lc + Vector2.from_angle(TAU * (q + hh2) / 10.0) * R * (0.25 + 0.7 * hh2)
 			_ul_rock(u, p2, Vector2.ZERO, 120.0 + 60.0 * hh2, hh2, 0.4, 0.3 + 0.05 * (q % 3))
 	u.light(lc, r * 1.1, Color(0.3, 0.75, 0.95), 0.22)
 
 
 static func _ul_rock(u, p: Vector2, v: Vector2, vy: float, hh: float, sc: float, delay: float) -> void:
-	if not u.fx_ready("fx_ul_rock"):
-		return
-	var grav: float = 1500.0
-	u.strip("fx_ul_rock", p, {"f": [0, 1, 3, 0][int(hh * 97.0) % 4], "sc": sc + 0.2 * _ulh(hh * 17.0),   # 第 2 帧整块发青、太抢，不用
-		"v": v + Vector2(0, -vy), "grav": grav, "life": 2.0 * vy / grav, "spin": (hh - 0.5) * 10.0, "delay": delay})
+	PF.rock(u, p, v, vy, hh, sc, delay)   # 两组地块按哈希挑、随机镜像
 
 
 ## 最外圈尘土墙：fx_ul_dust_wall 截成弦长段沿圈摆一圈，整圈往外推、淡出

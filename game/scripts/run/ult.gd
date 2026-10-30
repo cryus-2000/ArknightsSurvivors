@@ -63,6 +63,7 @@ var ev := {
 }
 var _prev_dash := 0.0
 var _filled := false
+var _refill_t := 0.0
 var _swarm_t := -1.0
 var _skill_t := -1.0
 
@@ -237,6 +238,12 @@ func tick(dt: float) -> void:
 		energy = FULL
 		full_since = g.t
 		cells = mini(CELLS, Bal.vi("ult/test_cells", 0))
+		_refill_t = g.t
+	var fe: float = Bal.v("ult/test_fill_every", -1.0)   # 录像用（缺省 -1 = 关）：充满之后每 fe 秒再充满一次，连放几次看特效变体
+	if _filled and fe > 0.0 and phase == "" and energy < FULL and g.t - _refill_t >= fe:
+		_refill_t = g.t
+		energy = FULL
+		full_since = g.t
 	_tick_buffs()
 	_tick_shapes(dt)
 	Moves.tick_bg(self)   # 终结技的延后部分（凯尔希 Mon3tr 8 秒后重构）
@@ -747,13 +754,13 @@ static func _col(o) -> Color:
 ##   line   {a, b, w, col}             线
 ##   dots   {c, r, n, col}             简单粒子（n 个点散在 r 内，位置按 i 定、不抽随机数）
 ##   blade  {a, b, w, col, glow}       两端尖细的直线斩痕（菱形：中段宽 w，白芯 + glow 色辉光宽 w × 3）；grow 秒内从中间拉满
-##   v      Vector2（可选）            每秒位移（碎片飞散用；c / a / b 一起挪）
+##   v      Vector2（可选）            每秒位移（碎片飞散用；c / a / b 一起挪）；drag 每秒阻尼（粒子迸开后减速扩散）
 ## 共有：life（秒，游戏时间）、delay（秒后才出现）；Boss 战整体透明度 × 0.5（§7.4）
 func shape(s: Dictionary) -> void:
 	s["max"] = float(s.get("life", 0.4))
 	s["age"] = -float(s.get("delay", 0.0))
 	shapes.append(s)
-	if shapes.size() > 400:
+	if shapes.size() > 900:   # 粒子爆一次两三百颗（凯尔希 v2）
 		shapes.pop_front()
 
 
@@ -767,6 +774,8 @@ func _tick_shapes(dt: float) -> void:
 		if s.has("v") and s.age > 0.0:
 			if s.has("grav"):   # 碎岩等：带重力（画面）
 				s.v = s.v + Vector2(0, float(s.grav) * dt)
+			if s.has("drag"):
+				s.v = s.v * exp(-float(s.drag) * dt)
 			var dv: Vector2 = s.v * dt
 			for key in ["c", "a", "b"]:
 				if s.has(key):

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dippvd0vpc83"
-path="res://.godot/imported/fx_ka_shock@2x.png-13404c70a87e60681ffa4647a990173c.ctex"
+uid="uid://bpvid2rywqx2a"
+path="res://.godot/imported/fx_sg_fork2@2x.png-18eb8498f0e22d0bc7e694918eaeda87.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_ka_shock@2x.png"
-dest_files=["res://.godot/imported/fx_ka_shock@2x.png-13404c70a87e60681ffa4647a990173c.ctex"]
+source_file="res://art/fx/fx_sg_fork2@2x.png"
+dest_files=["res://.godot/imported/fx_sg_fork2@2x.png-18eb8498f0e22d0bc7e694918eaeda87.ctex"]
 
 [params]
 
