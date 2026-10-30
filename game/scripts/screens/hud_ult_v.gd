@@ -38,7 +38,7 @@ func _init(hud_ult) -> void:
 
 
 static func ver() -> int:
-	return clampi(Bal.vi("ui/hud_ult_v", 0), 0, 3)
+	return clampi(Bal.vi("ui/hud_ult_v", 2), 0, 3)   # 10-31 用户选定 B′ 徽记环（2）为缺省
 
 
 static func link_cue() -> int:
@@ -109,7 +109,9 @@ func draw(vs: Vector2) -> void:
 	_track_link()
 	if ver() > 0:
 		if g.touch.active:
-			_draw_touch_min(vs)   # 触屏：能量只在 Q 键上，左上不画
+			_draw_touch_min(vs)   # 触屏：能量只在 Q 键上
+			if ver() == 2:
+				_draw_b(true)   # B′ 徽记（头像 + 等级）触屏也画，不画能量弧
 		else:
 			match ver():
 				1:
@@ -119,6 +121,8 @@ func draw(vs: Vector2) -> void:
 				3:
 					_draw_c()
 		_draw_ready()
+		if ver() == 2:
+			_draw_ready_toast(vs)
 	if link_cue() > 0:
 		_draw_cue()
 
@@ -172,7 +176,10 @@ func _draw_a() -> void:
 const B_R := 19.0
 const B_GAP := PI / 3.0   # 底部缺口
 
-func _draw_b() -> void:
+## 10-31 用户选定 B′，四点修改（协调人转）：① 头像用高清待机帧（图鉴 / 选人同款 @2x，A.tex_hi）裁头部，不用小像素头；
+## ② 等级放大、提高对比，挂在徽记顶上一块深底亮边小牌，手机横屏也画；③ 能量刚满：头像闪两下 + 屏幕中上一次「终结技就绪」提示（约 1.8 秒淡出，不常驻）；
+## ④ 缺省 B′（ui/hud_ult_v 2），A′ / C′ 留开关。触屏：徽记照画（头像 + 等级），能量仍做在 Q 键上，徽记上不画能量弧和协同格
+func _draw_b(phone := false) -> void:
 	var ld = g.squad.leader()
 	var full: bool = g.ult.full()
 	var ec: Color = _ecol()
@@ -183,38 +190,137 @@ func _draw_b() -> void:
 	var txt: Array[Callable] = []
 	tb.circle(c, B_R + 2.0, DARK, 32)
 	tb.flush(g.hud)
+	var fl: float = _flash_b()
 	if ld != null:
-		u._avatar(ld, c, B_R, Color.WHITE if full else Color(0.6, 0.63, 0.67))
+		var tint: Color = Color.WHITE if (full or phone) else Color(0.62, 0.65, 0.7)
+		_avatar_hi(ld, c, B_R, tint)
+		if fl > 0.0:
+			g.hud.draw_circle(c, B_R, Color(1, 1, 1, 0.55 * fl))   # 刚满：头像闪
 	tb = Tris.new()
-	var a0: float = PI / 2.0 + B_GAP / 2.0   # 缺口右沿往顺时针走
-	var span: float = TAU - B_GAP
-	tb.arc(c, B_R + 4.5, a0, a0 + span, 3.5, Color(0.1, 0.12, 0.14, 0.95), 40)
-	tb.arc(c, B_R + 4.5, a0, a0 + span * ek, 3.5, Color(ec.r, ec.g, ec.b, 1.0 if full else 0.85), 40)
-	# 外圈渐隐细线
-	tb.arc(c, B_R + 9.0, a0, a0 + span, 1.0, Color(1, 1, 1, 0.16), 48)
-	if full:
-		tb.arc(c, B_R + 9.0, a0, a0 + span, 1.5, Color(ec.r, ec.g, ec.b, 0.2 + 0.45 * pu), 48)
-		if not _rm():
-			var sa: float = a0 + fposmod(g.t * 1.6, 1.0) * span
-			tb.circle(c + Vector2.from_angle(sa) * (B_R + 9.0), 2.2, Color(1, 1, 1, 0.95), 8)
-		var fk: float = _flash_k()
-		if fk > 0.0:
-			tb.arc(c, B_R + 5.0 + 14.0 * (1.0 - fk), 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.8 * fk), 40)
-	# 协同格：外圈左上一排小菱形
-	var n: int = u._n()
-	for i in n:
-		var a: float = PI + 0.25 + (PI / 2.0 - 0.5) * i / maxf(1.0, n - 1.0)
-		tb.diamond(c + Vector2.from_angle(a) * (B_R + 13.0), 3.0, UI.GOLD if i < u._cells() else Color(1, 1, 1, 0.14))
+	if not phone:
+		var a0: float = PI / 2.0 + B_GAP / 2.0   # 缺口右沿往顺时针走
+		var span: float = TAU - B_GAP
+		tb.arc(c, B_R + 4.5, a0, a0 + span, 3.5, Color(0.1, 0.12, 0.14, 0.95), 40)
+		tb.arc(c, B_R + 4.5, a0, a0 + span * ek, 3.5, Color(ec.r, ec.g, ec.b, 1.0 if full else 0.85), 40)
+		tb.arc(c, B_R + 9.0, a0, a0 + span, 1.0, Color(1, 1, 1, 0.16), 48)
+		if full:
+			tb.arc(c, B_R + 9.0, a0, a0 + span, 1.5, Color(ec.r, ec.g, ec.b, 0.2 + 0.45 * pu), 48)
+			if not _rm():
+				var sa: float = a0 + fposmod(g.t * 1.6, 1.0) * span
+				tb.circle(c + Vector2.from_angle(sa) * (B_R + 9.0), 2.2, Color(1, 1, 1, 0.95), 8)
+			var fk: float = _flash_k()
+			if fk > 0.0:
+				tb.arc(c, B_R + 5.0 + 14.0 * (1.0 - fk), 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.8 * fk), 40)
+		# 协同格：外圈左下一排小菱形（顶上让给等级牌）
+		var n: int = u._n()
+		for i in n:
+			var a: float = PI * 0.62 + (PI * 0.5) * i / maxf(1.0, n - 1.0)
+			tb.diamond(c + Vector2.from_angle(a) * (B_R + 13.0), 3.0, UI.GOLD if i < u._cells() else Color(1, 1, 1, 0.14))
+	else:
+		tb.arc(c, B_R + 2.0, 0.0, TAU, 1.5, Color(ec.r, ec.g, ec.b, 0.9 if full else 0.4), 40)
 	tb.flush(g.hud)
 	# 缺口里的按键牌（桌面）
 	var key: String = _key("ult")
-	if key != "":
+	if key != "" and not phone:
 		var kw: float = UI.cwidth(g.font, key, 10) + 12.0
 		UI.keycap(g.hud, g.font, c + Vector2(-kw / 2.0, B_R + 0.0), key, UI.TEXT if full else UI.SUB, 10)
-	# 等级：头像右下一行压缩小字（右上会压到能量弧，再往右是生命值标签头）
+	# 等级牌：徽记顶上，深底 + 青边（升级时闪金），白色大字
 	var lf: float = g.hud_lv_flash
-	UI.ctext(g.hud, g.font, Vector2(c.x + 17.0, c.y + B_R + 12.0), "LV%d" % g.level, 10, UI.SUB.lerp(UI.GOLD, lf))
+	var lvs: String = "LV %d" % g.level
+	var lw: float = UI.cwidth(g.font, lvs, 13) + 14.0
+	var lr := Rect2(c.x - lw / 2.0, c.y - B_R - 13.0, lw, 18.0)
+	g.hud.draw_rect(lr, Color(0.02, 0.03, 0.05, 0.95))
+	var bc: Color = UI.CYAN.lerp(UI.GOLD, lf)
+	g.hud.draw_rect(lr, bc, false, 1.5)
+	UI.ctext(g.hud, g.font, Vector2(lr.position.x, lr.position.y + 15.0), lvs, 13, Color.WHITE.lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, lw)
 	u.h.text_flush(txt)
+
+
+## 刚满时头像闪两下（0.8 秒，减少动态效果时不闪）
+func _flash_b() -> float:
+	if _rm():
+		return 0.0
+	var t: float = UM.now() - _full_rt
+	if t < 0.0 or t > 0.8:
+		return 0.0
+	return maxf(0.0, sin(t / 0.8 * TAU * 2.0)) * (1.0 - t / 0.8)
+
+
+## 「终结技就绪」提示：能量刚满时屏幕中上出一次，约 1.8 秒（0.2 秒淡入、停留、最后 0.5 秒淡出），不常驻
+const READY_T := 1.8
+
+func _draw_ready_toast(vs: Vector2) -> void:
+	var t: float = UM.now() - _full_rt
+	if t < 0.0 or t > READY_T or not g.ult.full():
+		return
+	var a: float = clampf(t / 0.2, 0.0, 1.0) * clampf((READY_T - t) / 0.5, 0.0, 1.0)
+	var ec: Color = _ecol()
+	var y: float = vs.y * 0.3
+	var s := "终结技就绪"
+	var fsz := 22
+	var tw: float = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz)).x
+	var key: String = _key("ult")
+	var kw: float = (UI.cwidth(g.font, key, 13) + 12.0 + 12.0) if key != "" else 0.0
+	var w: float = tw + kw + 64.0
+	var rise: float = 0.0 if _rm() else 8.0 * (1.0 - clampf(t / 0.25, 0.0, 1.0))
+	var r := Rect2(vs.x / 2.0 - w / 2.0, y - 22.0 + rise, w, 40.0)
+	g.hud.draw_rect(r, Color(0.02, 0.03, 0.05, 0.82 * a))
+	g.hud.draw_rect(Rect2(r.position, Vector2(4, r.size.y)), Color(ec.r, ec.g, ec.b, a))
+	g.hud.draw_rect(Rect2(r.end.x - 4.0, r.position.y, 4, r.size.y), Color(ec.r, ec.g, ec.b, a))
+	var x: float = r.position.x + 32.0
+	UI.text(g.hud, g.font, Vector2(x, r.position.y + 28.0), s, fsz, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	if key != "":
+		UI.keycap(g.hud, g.font, Vector2(x + tw + 12.0, r.position.y + 10.0), key, Color(ec.r, ec.g, ec.b, a), 13)
+
+
+## 高清头像（A.tex_hi 的 @2x 待机帧，图鉴 / 选人同款）：按不透明像素找头部（帧顶往下约 40% 高度内的横向范围），取正方形、圆形裁切；
+## 每名干员只扫描一次图像并缓存。没有高清帧时退回 hud_ult._avatar（小像素头）
+var _hh := {}
+
+func _hi_head(o) -> Array:
+	var oid := str(o.id)
+	if _hh.has(oid):
+		return _hh[oid]
+	var out: Array = []
+	var art: Dictionary = u._art_of(o)
+	if not art.is_empty() and art.bb.size.y > 0.0:
+		var tex: Texture2D = art.tex
+		var bb: Rect2 = art.bb
+		var img: Image = tex.get_image()
+		if img != null:
+			if img.is_compressed():
+				img.decompress()
+			var hh: int = int(bb.size.y * 0.4)
+			var x0 := int(bb.end.x)
+			var x1 := int(bb.position.x)
+			for yy in range(int(bb.position.y), int(bb.position.y) + hh):
+				for xx in range(int(bb.position.x), int(bb.end.x)):
+					if img.get_pixel(xx, yy).a > 0.5:
+						x0 = mini(x0, xx)
+						x1 = maxi(x1, xx)
+			if x1 > x0:
+				var side: float = clampf(float(x1 - x0), float(hh) * 0.8, float(hh) * 1.15)
+				var cx: float = (x0 + x1) * 0.5
+				out = [tex, Rect2(cx - side * 0.5, bb.position.y - side * 0.02, side, side)]
+	_hh[oid] = out
+	return out
+
+
+func _avatar_hi(o, c: Vector2, r: float, tint := Color.WHITE) -> void:
+	var hd: Array = _hi_head(o)
+	if hd.is_empty():
+		u._avatar(o, c, r, tint)
+		return
+	var t: Texture2D = hd[0]
+	var src: Rect2 = hd[1]
+	var ts: Vector2 = t.get_size()
+	var pts := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	for i in 24:
+		var d := Vector2.from_angle(TAU * i / 24.0)
+		pts.append(c + d * r)
+		uvs.append((src.get_center() + d * src.size.x * 0.5) / ts)
+	g.hud.draw_colored_polygon(pts, tint, uvs, t)
 
 
 # ================================================================ C′ 节点标签条
