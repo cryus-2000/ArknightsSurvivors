@@ -12,6 +12,8 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
+const LFX = preload("res://scripts/run/link_fx_common.gd")
+const LFB = preload("res://scripts/run/link_fx_b.gd")   # B 组 10 人画面（link-fx-b）   # 连携画面公用件：衔接（接力光 + 光柱）/ 变体种子（用户 10-31 连携美术重做）
 
 ## 放技能的干员 id → {技能序号: [搭档 id, 合成类型]}
 const LINKS := {
@@ -83,8 +85,8 @@ static func fire(u, p, info: Dictionary) -> Dictionary:
 
 ## 合成瞬间：两人颜色的短促双色闪 + 专属音效
 static func _merge_flash(u, c: Vector2, c1: Color, c2: Color, r: float) -> void:
-	u.shape({"kind": "circle", "c": c, "r": r, "col": c1, "fill": 0.85, "life": 0.08})
-	u.shape({"kind": "ring", "c": c, "r": r * 1.6, "r1": r * 0.5, "w": 6.0, "col": c2, "life": 0.18})
+	u.light(c, r * 1.8, c1, 0.12)   # 用户 10-31「一直闪频不太好」：原来的实心白闪改成短灯（两人颜色），不再整团发白
+	u.shape({"kind": "ring", "c": c, "r": r * 1.6, "r1": r * 0.5, "w": 4.0, "col": LFX.tint(c2, 1.0, 0.8), "life": 0.18})
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
 		sfx.play("crit_tick", -2.0, 0.7)
@@ -257,6 +259,8 @@ static func _fire_sample(u, p, info: Dictionary, a: Dictionary) -> void:
 ## 现身（0..PRE）：接的人脚下干员色光柱 + 收拢光环，告诉玩家「谁来了」
 static func _appear(u, p, t: float) -> void:
 	var cp: Color = u._col(p)
+	if LFX.appear(u, p, t, PRE, cp):   # 衔接：队长亮 → 接力光飞到队友脚下 → 本人色光柱（贴图缺时照旧画下面的程序光柱）
+		return
 	var k: float = clampf(t / PRE, 0.0, 1.0)
 	u.shape({"kind": "ring", "c": p.pos, "r": lerpf(70.0, 26.0, k), "w": 4.0, "col": cp.lerp(Color.WHITE, 0.3), "life": 0.04})
 	u.shape({"kind": "band", "a": p.pos + Vector2(0, 6), "b": p.pos + Vector2(0, -90), "w": 22.0 * (1.0 - 0.5 * k), "col": cp, "fill": 0.35, "life": 0.04})
@@ -335,6 +339,8 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				rock.c = pos
 				rock.r = R * minf(1.0, 0.5 + k * 3.0)   # 出手时从杖头长大
 				rock.rot = k * 5.0
+				if LFB.ey_rock(u, a, pos, k, R):
+					rock.fill = 0.0   # 贴图熔岩块代替程序岩块
 				var sh: Dictionary = a.shadow
 				sh.c = gp + Vector2(0, 10)
 				sh.fill = 0.2 + 0.35 * k
@@ -357,18 +363,20 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				u.grain("lava", c, Vector2.UP, Color.WHITE, 40)
 				u.grain("bfx_dust", c, Vector2.UP, SMOKE, 18)
 				u.spark(c + Vector2(0, -6), CRACK, 14, 8.0)
+				var ey2: bool = LFB.ey_slam(u, c, hr, R)
 				# 冲击：一圈压扁的亮橙冲击带（碎裂）+ 中心一团橙白
-				u.shape({"kind": "ring", "c": c, "r": hr, "r1": 30.0, "w": 9.0, "col": CRACK, "life": 0.4})
+				if not ey2:
+					u.shape({"kind": "ring", "c": c, "r": hr, "r1": 30.0, "w": 9.0, "col": CRACK, "life": 0.4})
 				u.shape({"kind": "rock", "c": c, "r": R * 0.9, "col": CRACK, "glow": CORE, "core": CORE, "seed": 7.0, "hold": false, "life": 0.18})
 				# 碎岩迸溅：岩块带重力往外飞
-				for k2 in 9:
+				for k2 in (0 if ey2 else 9):
 					var ang: float = k2 * TAU / 9.0 + 0.3
 					var sd: Vector2 = Vector2.from_angle(ang)
 					var sp: float = 160.0 + 70.0 * fposmod(k2 * 0.618, 1.0)
 					u.shape({"kind": "rock", "c": c + sd * 14.0, "r": 7.0 + 6.0 * fposmod(k2 * 0.37, 1.0), "col": CRUST, "glow": CRACK, "seed": 11.0 + k2,
 						"spin": 6.0, "v": sd * sp + Vector2(0, -170.0), "grav": 620.0, "hold": false, "life": 0.55})
 				# 熔岩溅落灼地（地面层，压在怪脚下）：几块不规则暗红斑 + 亮橙点，慢慢冷却
-				for k3 in 6:
+				for k3 in (0 if ey2 else 6):   # 新版由分叉熔缝代替这圈等角度溅落斑（预审：像等距瓦片）
 					var ang3: float = k3 * TAU / 6.0 + 0.8
 					var off: Vector2 = Vector2.from_angle(ang3) * hr * (0.25 + 0.45 * fposmod(k3 * 0.618, 1.0))
 					var sz: float = 14.0 + 10.0 * fposmod(k3 * 0.41, 1.0)
@@ -417,8 +425,9 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				return false
 			if not a.done.has("land"):
 				a.done["land"] = true
-				u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
-				u.light(c, 220.0, HOOK, 0.4)
+				if not LFB.gl_land(u, c, r):
+					u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
+					u.light(c, 220.0, HOOK, 0.4)
 				for e in pull:
 					if not e.dead:
 						u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
@@ -446,15 +455,19 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			if t >= 0.1 and not a.done.has("beat"):
 				a.done["beat"] = true
 				_beat(u)
-				u.grain("sh_glint", lp + side2 * 46.0, side2, AMBER, 8)
-				u.light(lp + side2 * 46.0, 140.0, AMBER, 0.6)
+				if LFX.on() and u.fx_ready(LFB.HS_SHIELD):
+					LFB.hs_plant(u, lp + side2 * 46.0, side2)
+				else:
+					u.grain("sh_glint", lp + side2 * 46.0, side2, AMBER, 8)
+					u.light(lp + side2 * 46.0, 140.0, AMBER, 0.6)
 				for e in a.taunt:
 					if not e.dead:
 						u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -38), "w": 3.0, "col": AMBER, "life": 1.0})
 			if t < 1.5:
 				var fa: float = 1.0 if t < 1.0 else 1.0 - (t - 1.0) / 0.5
-				u.shape({"kind": "sector", "c": lp + side2 * 46.0, "r": 60.0, "a": side2.angle(), "half": 0.9, "col": AMBER, "fill": 0.5 * fa, "life": 0.04})
-				u.shape({"kind": "line", "a": lp + side2 * 46.0 + side2.orthogonal() * 42.0, "b": lp + side2 * 46.0 - side2.orthogonal() * 42.0, "w": 5.0, "col": Color(AMBER, fa), "life": 0.04})
+				if t < 0.1 or not LFB.hs_shield(u, lp + side2 * 46.0, side2, fa, t):
+					u.shape({"kind": "sector", "c": lp + side2 * 46.0, "r": 60.0, "a": side2.angle(), "half": 0.9, "col": AMBER, "fill": 0.5 * fa, "life": 0.04})
+					u.shape({"kind": "line", "a": lp + side2 * 46.0 + side2.orthogonal() * 42.0, "b": lp + side2 * 46.0 - side2.orthogonal() * 42.0, "w": 5.0, "col": Color(AMBER, fa), "life": 0.04})
 				if t < 1.0:
 					for e in a.taunt:
 						if not e.dead:
@@ -555,11 +568,12 @@ static func _step16(u, a: Dictionary) -> bool:
 				var dd: Vector2 = a.d
 				var q: Vector2 = Vector2(a.sp).lerp(c + dd * (r + 50.0), k)
 				var nv: Vector2 = dd.orthogonal()
-				for j in 5:   # 月牙：一串弧形排开的刃块（中间厚两端尖）
-					var off: float = (float(j) - 2.0) / 2.0
-					var bp: Vector2 = q + nv * off * 70.0 - dd * (off * off) * 26.0
-					u.shape({"kind": "blade", "a": bp - nv * 16.0, "b": bp + nv * 16.0, "w": 9.0 * (1.0 - absf(off) * 0.5), "col": Color(0.95, 0.93, 1.0), "glow": cl, "life": 0.05})
-				u.grain("blade", q, dd, cl, 2)
+				if not LFB.lp_wave(u, a, q, dd, k):
+					for j in 5:   # 月牙：一串弧形排开的刃块（中间厚两端尖）
+						var off: float = (float(j) - 2.0) / 2.0
+						var bp: Vector2 = q + nv * off * 70.0 - dd * (off * off) * 26.0
+						u.shape({"kind": "blade", "a": bp - nv * 16.0, "b": bp + nv * 16.0, "w": 9.0 * (1.0 - absf(off) * 0.5), "col": Color(0.95, 0.93, 1.0), "glow": cl, "life": 0.05})
+					u.grain("blade", q, dd, cl, 2)
 				for e in u.in_circle(q, 70.0):
 					if not a.done.has("h%d" % int(e.id)):
 						a.done["h%d" % int(e.id)] = true
@@ -568,6 +582,7 @@ static func _step16(u, a: Dictionary) -> bool:
 				return false
 			if once.call("trail"):
 				u.light(c, 150.0, cl, 0.3)
+				LFB.lp_scar(u, a, a.sp, c + Vector2(a.d) * (r + 50.0))
 			return t >= 0.1 + T + 0.45
 		"l_specter":   # 替身：她身后分出一个暗红替身，冲过区域斩一次（替身 = 一串干员色残影块 + 一刀）；本人不动
 			if once.call("go"):
@@ -579,17 +594,19 @@ static func _step16(u, a: Dictionary) -> bool:
 			var T := 0.2
 			if t < T:
 				var q: Vector2 = Vector2(a.fp).lerp(a.tp, t / T)
-				u.shape({"kind": "ellipse", "c": q + Vector2(0, -20), "rx": 10.0, "ry": 22.0, "col": cl, "fill": 0.55, "life": 0.18})   # 替身残影（人形竖块）
-				u.shape({"kind": "ellipse", "c": q + Vector2(0, -46), "rx": 7.0, "ry": 7.0, "col": cl, "fill": 0.55, "life": 0.18})
+				if not LFB.sp_ghost(u, p, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
+					u.shape({"kind": "ellipse", "c": q + Vector2(0, -20), "rx": 10.0, "ry": 22.0, "col": cl, "fill": 0.55, "life": 0.18})   # 替身残影（人形竖块）
+					u.shape({"kind": "ellipse", "c": q + Vector2(0, -46), "rx": 7.0, "ry": 7.0, "col": cl, "fill": 0.55, "life": 0.18})
 				u.grain("fluid", q, Vector2.UP, Color(0.5, 0.05, 0.08), 1)
 				return false
 			if once.call("cut"):
 				_beat(u)
 				var fp: Vector2 = a.fp
 				var tp2: Vector2 = a.tp
-				u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 7.0, "col": Color(1.0, 0.86, 0.84), "glow": cl, "grow": 0.03, "life": 0.6})
-				u.grain("blade", fp.lerp(tp2, 0.5), (tp2 - fp).normalized().orthogonal(), cl, 8)
-				u.light(fp.lerp(tp2, 0.6), 150.0, cl, 0.3)
+				if not LFB.sp_cut(u, fp, tp2):
+					u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 7.0, "col": Color(1.0, 0.86, 0.84), "glow": cl, "grow": 0.03, "life": 0.6})
+					u.grain("blade", fp.lerp(tp2, 0.5), (tp2 - fp).normalized().orthogonal(), cl, 8)
+					u.light(fp.lerp(tp2, 0.6), 150.0, cl, 0.3)
 				for e in u.in_band(fp, tp2, 40.0):
 					_hit16(p, e, "替身斩", 1.6)
 				_sfx_hit(u)
@@ -599,9 +616,10 @@ static func _step16(u, a: Dictionary) -> bool:
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				_beat(u)
-				u.light(c, r + 60.0, cl, 0.9)
-				u.shape({"kind": "circle", "c": c, "r": r, "col": cl, "fill": 0.16, "layer": "back", "life": 0.9})
-				u.shape({"kind": "dots", "c": c, "r": r, "n": 22, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
+				if not LFB.ir_lamp(u, p, c, r):
+					u.light(c, r + 60.0, cl, 0.9)
+					u.shape({"kind": "circle", "c": c, "r": r, "col": cl, "fill": 0.16, "layer": "back", "life": 0.9})
+					u.shape({"kind": "dots", "c": c, "r": r, "n": 22, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
 				for e in u.in_circle(c, r):
 					e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), u.g.t + 3.0)
 					e["frag_v"] = maxf(float(e.get("frag_v", 0.0)), Bal.v("ult/link_irene_amp", 0.2))
@@ -632,6 +650,11 @@ static func _step16(u, a: Dictionary) -> bool:
 					_hit16(p, e, "小触手", 0.5)
 					_cc(p, e, 1.0)
 					u.grain("water", e.pos, Vector2.UP, cl, 3)
+				a["mzv2"] = LFB.mz_tentacles(u, a.ts)
+			if t < 1.0 and a.get("mzv2", false):
+				if once.call("lt"):
+					u.light(c, 150.0, cl, 0.6)
+				return false
 			if t < 1.0:
 				var hk: float = minf(1.0, t / 0.12)
 				for j in a.ts.size():
@@ -690,16 +713,18 @@ static func _step16(u, a: Dictionary) -> bool:
 						var side: float = signf((e.pos - q).dot(nv))
 						p.apply_kb(e, nv * (side if side != 0.0 else 1.0) * 200.0)
 						_hit16(p, e, "冲阵", 0.6)
-				u.grain("bfx_dust", q + Vector2(0, 8), Vector2.UP, Color(0.4, 0.36, 0.3), 1)
+				if not LFB.sg_dash(u, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
+					u.grain("bfx_dust", q + Vector2(0, 8), Vector2.UP, Color(0.4, 0.36, 0.3), 1)
 				return false
 			if once.call("slam"):
 				_beat(u)
 				u.g.vfx.stop(0.05, "link", true)
-				u.shape({"kind": "ring", "c": c, "r": 95.0, "r1": 20.0, "w": 8.0, "col": cl, "life": 0.4})
-				u.shape({"kind": "ellipse", "c": c + Vector2(0, 4), "rx": 50.0, "ry": 20.0, "col": Color(0.12, 0.1, 0.08), "fill": 0.7, "layer": "back", "life": 1.0})
-				u.debris(c, cl, 2)
-				u.grain("bfx_dust", c, Vector2.UP, Color(0.45, 0.4, 0.34), 14)
-				u.light(c, 170.0, cl, 0.35)
+				if not LFB.sg_slam(u, c):
+					u.shape({"kind": "ring", "c": c, "r": 95.0, "r1": 20.0, "w": 8.0, "col": cl, "life": 0.4})
+					u.shape({"kind": "ellipse", "c": c + Vector2(0, 4), "rx": 50.0, "ry": 20.0, "col": Color(0.12, 0.1, 0.08), "fill": 0.7, "layer": "back", "life": 1.0})
+					u.debris(c, cl, 2)
+					u.grain("bfx_dust", c, Vector2.UP, Color(0.45, 0.4, 0.34), 14)
+					u.light(c, 170.0, cl, 0.35)
 				for e in u.in_circle(c, 90.0):
 					_hit16(p, e, "冲阵", 1.4)
 					_cc(p, e, 0.5)
@@ -738,18 +763,20 @@ static func _step16(u, a: Dictionary) -> bool:
 					if e.dead and not a.done.has("d%d" % int(e.id)):
 						a.done["d%d" % int(e.id)] = true
 						a.gh.append([e.pos, t])
-						u.shape({"kind": "ellipse", "c": e.pos + Vector2(0, -16), "rx": 12.0, "ry": 18.0, "col": cl, "fill": 0.55, "life": 0.35})
+						if not LFB.wd_ghost(u, e.pos):
+							u.shape({"kind": "ellipse", "c": e.pos + Vector2(0, -16), "rx": 12.0, "ry": 18.0, "col": cl, "fill": 0.55, "life": 0.35})
 			if t >= 0.8 and a.gh.is_empty() and once.call("fallback"):
 				a.gh.append([_tgp(a), t - 0.35])
 			for j in a.gh.size():
 				var gp: Vector2 = a.gh[j][0]
 				if t >= float(a.gh[j][1]) + 0.35 and once.call("b%d" % j):
-					u.shape({"kind": "ring", "c": gp, "r": 60.0, "r1": 12.0, "w": 6.0, "col": cl, "life": 0.3})
-					u.shape({"kind": "rock", "c": gp, "r": 22.0, "col": cl, "glow": Color(1.0, 0.8, 0.55), "seed": 9.0 + j, "hold": false, "life": 0.14})
-					u.shape({"kind": "ellipse", "c": gp + Vector2(0, 4), "rx": 26.0, "ry": 11.0, "col": Color(0.12, 0.06, 0.06), "fill": 0.7, "layer": "back", "life": 0.9})
-					u.debris(gp, cl, 1)
-					if j % 3 == 0:
-						u.light(gp, 110.0, cl, 0.25)
+					if not LFB.wd_blast(u, gp, j):
+						u.shape({"kind": "ring", "c": gp, "r": 60.0, "r1": 12.0, "w": 6.0, "col": cl, "life": 0.3})
+						u.shape({"kind": "rock", "c": gp, "r": 22.0, "col": cl, "glow": Color(1.0, 0.8, 0.55), "seed": 9.0 + j, "hold": false, "life": 0.14})
+						u.shape({"kind": "ellipse", "c": gp + Vector2(0, 4), "rx": 26.0, "ry": 11.0, "col": Color(0.12, 0.06, 0.06), "fill": 0.7, "layer": "back", "life": 0.9})
+						u.debris(gp, cl, 1)
+						if j % 3 == 0:
+							u.light(gp, 110.0, cl, 0.25)
 					for e in u.in_circle(gp, 60.0):
 						_hit16(p, e, "好礼", 0.6)
 			return t >= 1.0 + 0.35 + 0.45
@@ -766,9 +793,10 @@ static func _step16(u, a: Dictionary) -> bool:
 					u.g.enemies_sys.lite_slow(e, 0.5, 1.0)
 				u.light(c, r + 40.0, cl, 0.6)
 			if t < 0.8:
-				for j in 8:
-					var gp: Vector2 = c + Vector2.from_angle(TAU * j / 8.0 + t * 1.5) * (r + 20.0)
-					u.shape({"kind": "rock", "c": gp, "r": 8.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0 + j, "rot": PI * 0.25, "life": 0.04})
+				if not LFB.lo_ring(u, c, r + 20.0, t):
+					for j in 8:
+						var gp: Vector2 = c + Vector2.from_angle(TAU * j / 8.0 + t * 1.5) * (r + 20.0)
+						u.shape({"kind": "rock", "c": gp, "r": 8.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0 + j, "rot": PI * 0.25, "life": 0.04})
 				return false
 			return t >= 0.9
 		"l_suzuran":   # 狐火：4 团狐火绕她转一圈，再各追向区域内一名敌人；命中 0.6 倍 + 减速 30% 1.5 秒
@@ -791,10 +819,15 @@ static func _step16(u, a: Dictionary) -> bool:
 						if e != null and not e.dead:
 							_hit16(p, e, "狐火", 0.6)
 							u.g.enemies_sys.lite_slow(e, 0.3, 1.5)
-						u.grain("fire", to, Vector2.UP, cl, 4)
-						u.light(to, 90.0, cl, 0.2)
+						if LFX.on() and u.fx_ready(LFB.SZ_FOX[0]):
+							LFB.sz_pop(u, to)
+						else:
+							u.grain("fire", to, Vector2.UP, cl, 4)
+							u.light(to, 90.0, cl, 0.2)
 				if t < T1 + T2:
-					u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
+					var dv: Vector2 = (q - orb).normalized() if t >= T1 and q != orb else Vector2.from_angle(TAU * (j / 4.0 + minf(t, T1) / T1) + PI / 2.0)
+					if not LFB.sz_fox(u, q, dv, j):
+						u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
 					u.grain("fire", q, Vector2.UP, cl, 1)
 			return t >= T1 + T2 + 0.45
 		# ---------------------------------------------------------------- 聚拢
@@ -814,7 +847,8 @@ static func _step16(u, a: Dictionary) -> bool:
 				var rr: float = lerpf(r + 150.0, r * 0.4, k2)
 				for j in 3:
 					var sp: Vector2 = c + Vector2.from_angle(TAU * (k2 * 1.0 + j / 3.0)) * rr
-					u.shape({"kind": "rock", "c": sp, "r": 9.0, "col": Color(0.2, 0.1, 0.3), "glow": cl, "seed": 3.0 + j, "rot": k2 * 6.0, "life": 0.04})
+					if not LFB.an_core(u, sp, k2, j):
+						u.shape({"kind": "rock", "c": sp, "r": 9.0, "col": Color(0.2, 0.1, 0.3), "glow": cl, "seed": 3.0 + j, "rot": k2 * 6.0, "life": 0.04})
 					u.grain("mote_in", sp, (c - sp).normalized(), cl, 1)
 				for e in a.outs:
 					if not e.dead:
@@ -822,8 +856,9 @@ static func _step16(u, a: Dictionary) -> bool:
 						p.nudge(e, (to - e.pos) * 0.16)
 				return false
 			if once.call("land"):
-				u.light(c, 160.0, cl, 0.4)
-				u.shape({"kind": "ring", "c": c, "r": r * 0.6, "r1": r * 0.2, "w": 5.0, "col": cl, "life": 0.4})
+				if not LFB.an_land(u, c, r):
+					u.light(c, 160.0, cl, 0.4)
+					u.shape({"kind": "ring", "c": c, "r": r * 0.6, "r1": r * 0.2, "w": 5.0, "col": cl, "life": 0.4})
 				for e in a.outs:
 					if not e.dead:
 						_hit16(p, e, "引力环", 0.5)
@@ -877,10 +912,11 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				a["shield0"] = int(u.g.shield)
 				u.g.shield = int(u.g.shield) + 1
-				for j in 7:
-					var off: Vector2 = Vector2.from_angle(j * 2.39996) * r * (0.25 + 0.55 * fposmod(j * 0.618, 1.0))
-					u.shape({"kind": "ellipse", "c": c + off, "rx": 30.0, "ry": 13.0, "col": cl.darkened(0.35), "fill": 0.6, "layer": "back", "life": 1.6})
-					u.shape({"kind": "rock", "c": c + off + Vector2(0, -4), "r": 7.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": 3.0 + j, "life": 1.5, "layer": "back"})
+				if not LFB.sa_ground(u, c, r):
+					for j in 7:
+						var off: Vector2 = Vector2.from_angle(j * 2.39996) * r * (0.25 + 0.55 * fposmod(j * 0.618, 1.0))
+						u.shape({"kind": "ellipse", "c": c + off, "rx": 30.0, "ry": 13.0, "col": cl.darkened(0.35), "fill": 0.6, "layer": "back", "life": 1.6})
+						u.shape({"kind": "rock", "c": c + off + Vector2(0, -4), "r": 7.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": 3.0 + j, "life": 1.5, "layer": "back"})
 				u.light(c, r, cl, 0.6)
 			if t < 1.5:
 				var hk: float = 1.0 if t < 1.2 else (1.5 - t) / 0.3
@@ -912,8 +948,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				var sd: Vector2 = a.side
 				var mp: Vector2 = a.mp
-				u.debris(mp, cl, 2)
-				u.light(mp, 150.0, cl, 0.5)
+				if not LFB.ka_block(u, mp, sd):
+					u.debris(mp, cl, 2)
+					u.light(mp, 150.0, cl, 0.5)
 				p.heal_leader(u.g.max_hp * Bal.v("ult/link_kaltsit_heal", 0.03), "技能连携")
 				for e in u.in_circle(mp + sd * 40.0, 90.0):
 					_hit16(p, e, "Mon3tr", 0.8)
@@ -945,7 +982,8 @@ static func _step16(u, a: Dictionary) -> bool:
 			if t < 1.2:
 				if int(t * 30.0) % 2 == 0:
 					u.grain("mote_up", c + Vector2.from_angle(t * 11.0) * r * fposmod(t * 3.7, 1.0), Vector2.UP, cl, 2)
-				u.shape({"kind": "dots", "c": c, "r": r, "n": 16, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.04})
+				if not LFB.lu_motes(u, c, r, t):
+					u.shape({"kind": "dots", "c": c, "r": r, "n": 16, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.04})
 				for j in 4:
 					if t >= 0.3 * j and once.call("b%d" % j):
 						for e in u.in_circle(c, r):
