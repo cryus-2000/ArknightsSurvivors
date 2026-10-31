@@ -9,6 +9,9 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const PF = preload("res://scripts/run/ult_pixfx.gd")
+const A = preload("res://scripts/art.gd")   # pixfx 大贴图画法（docs/199 §7.8）
+const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：归溟幽灵鲨 / 水月钻洞与小触手（docs/199 §7.9）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -321,6 +324,14 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 		for i in 10:
 			arm.append(_keep(u, a, {"kind": "line", "a": c, "b": c, "w": 3.0 + 0.9 * float(i), "col": col.lerp(Color.WHITE, 0.25 + 0.06 * float(i)), "life": 3.0}))
 		a.arms.append(arm)
+	if _gl_v2(u):   # 漩涡 v2：程序画的四条旋臂换成整张漩涡贴图，外层 + 内层（内圈转得更快）
+		for arm in a.arms:
+			for s in arm:
+				u.shapes.erase(s)
+		var rr: float = PF.tex_w(u, GL_VORTEX) * 0.5
+		a["vo"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR / rr, "life": 3.0, "col": Color(1, 1, 1, 0.55)})
+		a["vi"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR * 0.5 / rr, "ang": 1.3, "life": 3.0, "col": Color(1.1, 1.15, 1.15, 0.7)})
+		a["rr"] = rr
 	a.fx.append(u.strip("fx_gladiia_tornado_open", c, {"sc": 2.6, "o": Vector2(64, 118)}))
 	a.fx.append(u.strip("fx_gladiia_tornado_loop", c, {"sc": 2.6, "o": Vector2(64, 118), "loop": true, "delay": 0.3, "life": 2.0}))
 	return a
@@ -359,6 +370,18 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 				arm[i].b = c + Vector2.from_angle(base + 0.36 * float(i + 1)) * maxf(20.0, r1)
 		for s in a.fx:
 			_hold(s)
+		if a.has("vo"):   # 凝聚：越转越快、整团往中心收到 0.2，越收越亮越实；内层再快 0.8 倍
+			var kc: float = k * k * (3.0 - 2.0 * k)
+			var sk: float = lerpf(1.0, 0.2, kc)
+			a.vo.ang = -float(a.rot)
+			a.vo.sc = DR * sk / float(a.rr)
+			a.vo.col = Color(1.0 + 0.4 * kc, 1.0 + 0.4 * kc, 1.0 + 0.4 * kc, lerpf(0.55, 0.95, kc))
+			a.vi.ang = 1.3 - float(a.rot) * 1.8
+			a.vi.sc = DR * 0.5 * sk / float(a.rr)
+			a.vi.col = Color(1.1 + 0.5 * kc, 1.15 + 0.5 * kc, 1.15 + 0.5 * kc, lerpf(0.7, 1.0, kc))
+			if int(t * 60.0) % 3 == 0:   # 外圈的水沫往里吸
+				var dq := Vector2.from_angle(float(a.rot) * 1.7 + t * 9.0)
+				u.grain("mote_in", c + dq * DR * 0.9, -dq, Color(0.8, 1.0, 1.0), 3)
 		var foam: Color = col.lerp(Color.WHITE, 0.45)
 		for j in a.arms.size():   # 旋臂上甩出的水沫（沿切向）+ 中心越转越亮
 			var arm2: Array = a.arms[j]
@@ -382,7 +405,7 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			_fade(u, a, 0.08)
 			for e in u.in_circle(c, R):
 				a.cseg[int(e.id)] = true
-				_hit(u, a, o, e, Bal.v("ult/gl_crush", 0.3), {"src": "收拢", "edge": e.pos.distance_to(c) > er, "stun": H + 0.1})
+				_hit(u, a, o, e, Bal.v("ult/gl_crush", 0.3), {"src": "收拢", "edge": e.pos.distance_to(c) > er, "stun": H + 0.1, "pre": true})   # pre：冲击帧（顿帧 + 慢放）留给爆开那一刻（用户 10-30）
 			u.shake(Bal.v("ult/gl_shake", 7.0), 0.3)
 			_ring(u, c, 30.0, 220.0, col.lerp(Color.WHITE, 0.5), 0.12, 10.0)
 			u.light(c, 260.0, col, H + 0.1)
@@ -397,6 +420,10 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 	if not a.burst:
 		# 一瞬静止：亮点往里收、越收越亮；敌人钉在原地（收拢那下给了 stun）
 		var kh: float = clampf((t - T) / maxf(0.01, H), 0.0, 1.0)
+		if a.has("vo"):   # 凝住：整团再收一点、越来越亮（爆开前一拍）
+			a.vo.sc = DR * lerpf(0.2, 0.14, kh) / float(a.rr)
+			a.vi.sc = DR * 0.5 * lerpf(0.2, 0.14, kh) / float(a.rr)
+			a.vo.col = Color(1.4 + 0.3 * kh, 1.4 + 0.3 * kh, 1.4 + 0.3 * kh, 1.0)
 		a.pt.r = lerpf(30.0, 12.0, kh)
 		a.pg.r = lerpf(70.0, 26.0, kh)
 		a.pr.r = lerpf(120.0, 30.0, kh)
@@ -407,6 +434,12 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 		# ③ 爆开：剩下的份额 + 加大的击飞，水柱 / 水环放射
 		a.burst = true
 		_fade(u, a, 0.05)
+		if a.has("vo"):   # 凝住的漩涡被潮水冲开：从当前大小放大淡出 + 更华丽的爆开（用户 10-30）
+			for key in ["vo", "vi"]:
+				var s: Dictionary = a[key]
+				u.shapes.erase(s)
+				u.strip(GL_VORTEX, c, {"layer": "back", "sc": float(s.sc), "sc1": float(s.sc) * 1.6, "scd": 0.25, "ang": float(s.ang), "life": 0.3, "fade": 0.3, "col": s.col})
+			_gl_burst_v2(u, c, R, col)
 		var bf: float = maxf(0.0, Bal.v("ult/gl_burst", 0.52))
 		var kb: float = Bal.v("ult/gl_kb", 520.0)
 		for e in u.in_circle(c, R):
@@ -415,10 +448,12 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			var fr: float = bf + (0.0 if a.cseg.has(int(e.id)) else Bal.v("ult/gl_crush", 0.3))   # 收拢那下没罩到的（后进圈）这下补上
 			_hit(u, a, o, e, fr, {"src": "潮涌", "edge": off.length() > er, "kb": _kb_for(e, dv, kb, kb * 0.5)})
 		u.shake(5.0, 0.3)
+		var v2: bool = a.has("vo")   # v2：不画卡通水花 / 浪涌帧条和整片淡圆，交给 2 px 水色颗粒（用户 10-30「对齐 Noita 精细像素粒子风」）
 		u.strip("fx_gladiia_tornado_close", c, {"sc": 2.6, "o": Vector2(64, 118)})
-		u.strip("fx_skadi_surge", c, {"sc": 5.2})
+		if not v2:
+			u.strip("fx_skadi_surge", c, {"sc": 5.2})
+			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.3), "fill": 0.28, "life": 0.28})
 		u.shape({"kind": "circle", "c": c, "r": 90.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": 0.1})
-		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.3), "fill": 0.28, "life": 0.28})
 		_ring(u, c, R, 40.0, col.lerp(Color.WHITE, 0.5), 0.45, 18.0)
 		u.light(c, R, col, 0.45)
 		u.debris(c, col, 3)
@@ -428,21 +463,52 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 		var foam: Color = col.lerp(Color.WHITE, 0.7)
 		for i in 12:
 			var dv2 := Vector2.from_angle(float(i) * TAU / 12.0 + 0.13)
-			u.shape({"kind": "blade", "a": c + dv2 * 50.0, "b": c + dv2 * 230.0, "w": 14.0, "col": foam, "glow": col, "grow": 0.05, "life": 0.34, "v": dv2 * 820.0})
+			if not v2:
+				u.shape({"kind": "blade", "a": c + dv2 * 50.0, "b": c + dv2 * 230.0, "w": 14.0, "col": foam, "glow": col, "grow": 0.05, "life": 0.34, "v": dv2 * 820.0})
 			for m in 3:   # 水柱沿线的水沫（颗粒拼出放射的水柱）
 				u.grain("water", c + dv2 * R * (0.25 + 0.3 * float(m)), dv2, foam, 4)
 			if i % 3 == 0:
 				u.debris(c + dv2 * R * 0.6, col, 1)
 		_spray(u, c, 16, 60.0, 1000.0, foam, 0.45)
-		for i in 10:
+		for i in (0 if v2 else 10):
 			u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 10.0 + 0.3) * R * 0.62, {"sc": 1.8, "delay": 0.03 * float(i % 3)})
-		for i in 8:
+		for i in (0 if v2 else 8):
 			u.strip("fx_water_splash", c + Vector2.from_angle(float(i) * TAU / 8.0) * R * 0.32, {"sc": 1.4, "delay": 0.02 * float(i % 2)})
 		if a.shelter:   # 深海的庇护：队长获得 10% 最大生命的护盾（护盾层 API 只有格数，这里先折成回复 10%）
 			u.g.combat.heal(u.g.max_hp * 0.1, "终结技", "gladiia")
 		o.play_vis_anim("attack")
 		return false
 	return t >= T + H + 0.15
+
+
+## ---------------- 歌蕾蒂娅 v2（ult/gl_fx_v2，缺省 1；0 = 程序画四条旋臂版。pixfx，docs/199 §7.8）
+## pixgen 整张漩涡（fx_gl_vortex，中心暗）两层：外层按 a.rot 转、内层 1.8 倍更快，跟着收拢缩小；收拢一砸后停顿那一拍不再更新 = 凝住；
+## 爆开时从当前大小放大淡出。拖拽 / 判定 / 时序不动
+const GL_VORTEX := "fx_gl_vortex"
+
+
+## 爆开：白芯三连闪 → 两波水色像素粒子（白沫 / 浅青 / 青 / 深青）迸开扩散 + 一圈 9 团水花爆 + 碎裂水环三道 + 大灯
+static func _gl_burst_v2(u, c: Vector2, R: float, col: Color) -> void:
+	var vs: float = PF.vseed(u, c)
+	var cols := [Color(0.85, 1.0, 1.0), Color(0.5, 0.9, 0.95), Color(0.3, 0.75, 0.85), Color(0.7, 0.95, 1.0)]
+	for m in 3:
+		u.shape({"kind": "circle", "c": c, "r": 60.0 + 40.0 * m, "col": Color(0.9, 1.0, 1.0), "fill": 0.9 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
+	PF.particles(u, c, 420, "ult_burst", cols, 0.0, vs)   # 2 px 水色颗粒迸开扩散
+	PF.particles(u, c, 200, "ult_burst_s", cols, 0.08, vs + 3.0)
+	PF.particles(u, c, 80, "ult_ember", [Color(0.7, 0.95, 1.0)], 0.12, vs + 5.0)
+	for q in 9:
+		var hq: float = PF.h(q + vs)
+		var p: Vector2 = c + Vector2.from_angle(TAU * (q + hq) / 9.0) * R * (0.45 + 0.3 * hq)
+		u.shape({"kind": "circle", "c": p, "r": 26.0, "col": Color(0.9, 1.0, 1.0), "fill": 0.9, "life": 0.06, "delay": 0.06 + 0.03 * (q % 3)})
+		PF.particles(u, p, 34, "ult_burst_s", cols, 0.06 + 0.03 * (q % 3), vs + q * 5.0)
+		u.grain("water", p, Vector2.UP, Color(0.85, 1.0, 1.0), 6)
+	for m in 3:
+		u.shape({"kind": "ring", "c": c, "r": R * (1.0 - 0.18 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": Color(0.85, 1.0, 1.0).lerp(col, 0.3 * m), "life": 0.55, "delay": 0.04 * m})
+	u.light(c, R * 1.1, Color(0.5, 0.95, 1.0), 0.6)
+
+
+static func _gl_v2(u) -> bool:
+	return Bal.v("ult/gl_fx_v2", 1.0) > 0.0 and u.fx_ready(GL_VORTEX)
 
 
 # ================================================================ 安洁莉娜（§4.8）：重力奇点把圈内小怪吸起悬空 → 停半拍 → 全部砸向地面
@@ -470,6 +536,9 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 	_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": Color(0.25, 0.08, 0.35), "fill": 0.14, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 2.5, "col": col, "life": 3.0})
 	var ks: float = R / 470.0   # 帧条按 470 时的比例跟着半径缩放
+	if _an_v2(u):   # 奇点：Codex 第二批重力核心关键帧（fx_an_core），代码持续旋转、吸起期间缩小变亮
+		a["core"] = u.strip("fx_an_core", c, {"sc": 0.8 * ks, "life": 3.0, "col": Color(1.0, 1.0, 1.0, 0.9)})
+		a.fx.append(a.core)
 	a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2 * ks, "layer": "back", "loop": true, "life": 3.0}))
 	a.fx.append(u.strip("fx_angelina_well_front", c, {"sc": 1.6 * ks, "loop": true, "life": 3.0}))
 	return a
@@ -478,6 +547,7 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 static func _an_step(u, a: Dictionary, o) -> bool:
 	var t: float = a.t
 	var c: Vector2 = a.c
+	_an_core_tick(a, float(a.t), 0.45)
 	var R: float = a.R
 	var TL: float = a.TL
 	var TH: float = a.TH
@@ -551,10 +621,25 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 		for e in a.bosses:
 			_hit(u, a, o, e, fr, {"src": "砸地", "stun": 0.3})
 		var dust := Color(0.6, 0.5, 0.68)
-		u.strip("fx_angelina_well_close", c, {"sc": 3.6 * R / 470.0})
-		_ring(u, c, R, 50.0, dust, 0.55, 20.0)
-		_ring(u, c, R * 0.6, 40.0, col.lerp(Color.WHITE, 0.6), 0.35, 8.0)
-		u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.3, "life": 0.22})
+		if not _an_v2(u):   # v2 不画旧的亮白收拢帧条（预审报砸地发白）
+			u.strip("fx_angelina_well_close", c, {"sc": 3.6 * R / 470.0})
+		if _an_v2(u):   # v2 砸地：顿帧 + 砸坑（fx_an_crater）+ 紫灰尘环（fx_an_ring）推到 R + 紫色粒子 + 两拍隆起
+			var vs3: float = PF.vseed(u, c) + float(si)
+			u.g.vfx.stop(Bal.v("ult/an_hitstop", 0.1), "ult", true)
+			if u.fx_ready("fx_an_crater"):
+				var cr: float = PF.tex_w(u, "fx_an_crater") * 0.5
+				u.strip("fx_an_crater", c, {"layer": "back", "sc": R * 0.3 / cr, "sc1": R * 0.42 / cr, "scd": 0.1, "ang": PF.h(vs3) * TAU, "sx": -1.0 if PF.h(vs3 + 1.0) < 0.5 else 1.0,
+					"life": 1.8, "fade": 0.7, "col": Color(0.95, 0.9, 1.0), "col1": Color(0.55, 0.5, 0.6), "cold": 0.6})
+			PF.particles(u, c, 300, "ult_burst", [Color(0.6, 0.45, 0.85)], 0.0, vs3, R * 0.85)   # 尘环贴图预审报重复拼接，改两层紫灰粒子
+			PF.particles(u, c, 300, "ult_burst", [Color(0.62, 0.58, 0.7)], 0.06, vs3 + 5.0, R * 0.6)
+			PF.heave(u, c, R * 0.45, vs3 + 2.0)
+			PF.heave(u, c, R * 0.85, vs3 + 3.0, 0.18)
+			if a.has("core"):
+				u.shapes.erase(a.core)
+		else:
+			_ring(u, c, R, 50.0, dust, 0.55, 20.0)
+			_ring(u, c, R * 0.6, 40.0, col.lerp(Color.WHITE, 0.6), 0.35, 8.0)
+			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.3, "life": 0.22})
 		_spray(u, c, 16, R * 0.35, 700.0, dust.lerp(Color.WHITE, 0.3), 0.45, 0.2 * float(si))
 		var nd := 0
 		for p in a.lift:   # 每只砸下的敌人脚下一圈尘
@@ -588,6 +673,21 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 	return t >= end_t
 
 
+## 安洁莉娜 v2（ult/an_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：奇点 = Codex 重力核心关键帧持续旋转、越吸越小越亮；
+## 砸地 = 顿帧 + 砸坑 + 两层紫 / 紫灰粒子 + 两拍隆起（尘环贴图预审报重复拼接，已去掉）。吸起 / 砸地判定与时序不动
+static func _an_v2(u) -> bool:
+	return Bal.v("ult/an_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_an_core")
+
+
+static func _an_core_tick(a: Dictionary, t: float, ks_end: float) -> void:
+	if not a.has("core"):
+		return
+	var k: float = clampf(t / maxf(0.01, float(a.TL) + float(a.TH)), 0.0, 1.0)
+	a.core.ang = -t * lerpf(4.0, 14.0, k)
+	a.core.sc = lerpf(0.8, ks_end, k * k)
+	a.core.col = Color(1.0 + 0.5 * k, 1.0 + 0.4 * k, 1.0 + 0.6 * k, 0.9)
+
+
 # ================================================================ 艾雅法拉（§4.9）：地面龟裂 → 火柱 → 熔岩块落满一圈 → 中间留熔岩地面
 
 ## 熔岩落点半径：§3.2 草案 460；实测外缘带打不死普通小怪时屏内只倒 30%，这里放到 ult/ey_r（520，10-30 对齐表再放到 590）。
@@ -611,26 +711,44 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 	if rt == "meteor":   # 熔岩天降：喷发前先落一轮 6 发熔岩弹预热（各 3%）
 		for i in 6:
 			pre.append([_spiral(c, R * 0.8, i, 6, 1.1), 0.05 + 0.05 * float(i)])
+	var v2: bool = _ey_v2(u)
+	if v2:   # 海底火山 ①：地面压暗，暗红裂纹从落点渗开、越来越亮（压力往上顶），裂缝里一串串气泡往上冒
+		var vs: float = PF.vseed(u, c)
+		u.shape({"kind": "circle", "c": c, "r": R * 0.6, "col": Color(0.02, 0.0, 0.0), "fill": 0.35, "life": t_col + 0.1, "layer": "back"})
+		PF.crack_net(u, EY_FORKS, c, R * 0.75, 9 + int(PF.h(vs + 1.0) * 4.0), PF.h(vs + 2.0) * TAU, vs, t_col, Color(0.6, 0.22, 0.18), Color(1.15, 0.7, 0.5), 20.0)
+		_ey_bubbles(u, c, R * 0.6, t_col, vs)
+		pass   # 鼓包（fx_ey_dome）用户 10-30 改成「熔岩池 + 熔岩」后不用
 	# 龟裂：8 道裂纹从落点往外爬（0.4 秒）
-	for i in 8:
+	for i in (0 if v2 else 8):
 		var ang: float = TAU * float(i) / 8.0 + 0.3 * float(i % 3)
 		var pa: Vector2 = c
 		for kq in 4:
 			var pb: Vector2 = c + Vector2.from_angle(ang + 0.18 * float((kq * 5 + i) % 3 - 1)) * (40.0 + 45.0 * float(kq + 1))
 			u.shape({"kind": "line", "a": pa, "b": pb, "w": 5.0 - float(kq), "col": col.lerp(Color(1, 0.9, 0.5), 0.3), "life": t_col + 0.3 - 0.08 * float(kq), "delay": 0.08 * float(kq)})
 			pa = pb
-	u.shape({"kind": "circle", "c": c, "r": 140.0, "col": Color(1.0, 0.35, 0.05), "fill": 0.3, "life": t_col + 0.05})
-	_ring(u, c, 140.0, 20.0, col.lerp(Color.WHITE, 0.4), t_col, 4.0)
+	if not v2:
+		u.shape({"kind": "circle", "c": c, "r": 140.0, "col": Color(1.0, 0.35, 0.05), "fill": 0.3, "life": t_col + 0.05})
+		_ring(u, c, 140.0, 20.0, col.lerp(Color.WHITE, 0.4), t_col, 4.0)
 	# 熔岩块：从火柱顶上落下（下落小球带速度）+ 落地溅射帧条
 	var top: Vector2 = c + Vector2(0.0, -620.0)
 	for bi in blobs.size():
 		var p: Vector2 = blobs[bi][0]
 		var tl: float = blobs[bi][1]
 		var fl: float = 0.16
-		u.shape({"kind": "circle", "c": top.lerp(p, 0.55), "r": 12.0, "col": Color(1.0, 0.55, 0.15), "fill": 0.95, "life": fl, "delay": tl - fl,
-			"v": (p - top.lerp(p, 0.55)) / fl})
-		u.strip("fx_eyja_lava_splash", p, {"sc": 2.0, "delay": tl, "o": Vector2(40, 50)})
-		_ring(u, p, 120.0, 20.0, Color(1.0, 0.5, 0.15), 0.3, 5.0, tl)
+		if v2:   # 海底火山 ③：火山弹（fx_ey_bomb，拖着黑烟）雨点般斜砸下来；落地留浮石（fx_ey_pumice 4 种）从亮橙冷成黑
+			var hb: float = PF.h(p.x * 0.017 + p.y * 0.031)
+			var dl2: float = 0.06 * PF.h(hb * 37.0)
+			var p0: Vector2 = p + Vector2(-140.0 - 120.0 * hb, -420.0 - 160.0 * PF.h(hb * 5.0))
+			u.strip(EY_BOMB, p0, {"o": _ey_bomb_o(u), "sc": 0.45 + 0.3 * hb, "ang": (p - p0).angle() - PI / 4.0, "life": fl, "delay": tl - fl + dl2, "v": (p - p0) / fl})
+			u.strip(EY_PUMICE, p, {"layer": "back", "f": int(hb * 97.0) % 4, "sc": 0.55 + 0.55 * PF.h(hb * 13.0), "sx": -1.0 if hb < 0.5 else 1.0,
+				"life": 2.6, "fade": 0.6, "delay": tl + dl2, "col": Color(1.25, 1.1, 1.0), "col1": Color(0.2, 0.17, 0.17), "cold": 1.4})
+			if bi % 3 == 0:
+				PF.particles(u, p, 60, "ult_burst_s", [Color(1.0, 0.45, 0.1)], tl + dl2, hb * 40.0, 80.0)
+		else:
+			u.shape({"kind": "circle", "c": top.lerp(p, 0.55), "r": 12.0, "col": Color(1.0, 0.55, 0.15), "fill": 0.95, "life": fl, "delay": tl - fl,
+				"v": (p - top.lerp(p, 0.55)) / fl})
+			u.strip("fx_eyja_lava_splash", p, {"sc": 2.0, "delay": tl, "o": Vector2(40, 50)})
+			_ring(u, p, 120.0, 20.0, Color(1.0, 0.5, 0.15), 0.3, 5.0, tl)
 	for pi in pre.size():
 		var pp: Vector2 = pre[pi][0]
 		var tp: float = pre[pi][1]
@@ -641,7 +759,7 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 	return {"c": c, "R": R, "t_col": t_col, "col_done": false, "blobs": blobs, "bi": 0, "fseg": {}, "fall_end": t_fall + span + (0.2 if rt == "ignite" else 0.0),
 		"filled": false, "pre": pre, "pi": 0, "pseg": {}, "lava_r": Bal.v("ult/ey_lava_r", 300.0), "lava_t": Bal.v("ult/ey_lava_t", 2.2),
 		"lava_n": int(Bal.v("ult/ey_lava_n", 5.0)), "tick": 0, "t_lava": t_fall + span + 0.05, "fall_frac": 0.5 if rt == "ignite" else Bal.v("ult/ey_fall_frac", 0.6),
-		"pool": false, "fx": []}
+		"pool": false, "fx": [], "v2": v2}
 
 
 static func _ey_step(u, a: Dictionary, o) -> bool:
@@ -658,20 +776,28 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 	if not a.col_done and t >= float(a.t_col):
 		a.col_done = true   # 火柱：25%，只打中心半径 140
 		var top: Vector2 = c + Vector2(0.0, -640.0)
-		u.shape({"kind": "band", "a": c + Vector2(0, 20), "b": top, "w": 290.0, "col": Color(1.0, 0.42, 0.08), "fill": 0.5, "life": 0.6})
-		u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": top + Vector2(0, 60), "w": 120.0, "col": Color(1.0, 0.92, 0.6), "fill": 0.85, "life": 0.45})
-		u.shape({"kind": "circle", "c": c, "r": 150.0, "col": Color(1.0, 0.8, 0.4), "fill": 0.6, "life": 0.3})
-		u.strip("fx_eyja_ignite_boom", top, {"sc": 3.2})
-		u.strip("fx_missile_explode", c, {"sc": 2.4})
-		_ring(u, c, 160.0, 30.0, Color(1.0, 0.85, 0.5), 0.35, 10.0)
-		for i in 8:   # 火柱两侧往上喷的火星
+		if a.get("v2", false):   # 喷发 v2：顿帧 + _ey_erupt（火山锥鼓起 + 火山口喷发 + 黑蒸汽）；不画程序带子 / 旧爆炸帧条
+			u.g.vfx.stop(Bal.v("ult/ey_hitstop", 0.1), "ult", true)
+			_ey_erupt(u, c, R, a)
+			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.32, 0.06)], 0.04, PF.vseed(u, c), 260.0)
+			PF.heave(u, c, 160.0, PF.vseed(u, c) + 3.0)
+			u.light(c, 380.0, Color(1.0, 0.5, 0.15), 0.5)
+		if not a.get("v2", false):
+			u.shape({"kind": "band", "a": c + Vector2(0, 20), "b": top, "w": 290.0, "col": Color(1.0, 0.42, 0.08), "fill": 0.5, "life": 0.6})
+			u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": top + Vector2(0, 60), "w": 120.0, "col": Color(1.0, 0.92, 0.6), "fill": 0.85, "life": 0.45})
+			u.shape({"kind": "circle", "c": c, "r": 150.0, "col": Color(1.0, 0.8, 0.4), "fill": 0.6, "life": 0.3})
+			u.strip("fx_eyja_ignite_boom", top, {"sc": 3.2})
+			u.strip("fx_missile_explode", c, {"sc": 2.4})
+			_ring(u, c, 160.0, 30.0, Color(1.0, 0.85, 0.5), 0.35, 10.0)
+		for i in (0 if a.get("v2", false) else 8):   # 火柱两侧往上喷的火星
 			u.shape({"kind": "dots", "c": c + Vector2(-110.0 + 220.0 * float(i) / 7.0, -20.0), "r": 22.0, "n": 5, "col": Color(1.0, 0.7, 0.3), "life": 0.5,
 				"v": Vector2((float(i) - 3.5) * 40.0, -900.0 - 80.0 * float(i % 3))})
 		for e in u.in_circle(c, R):
 			var de: float = e.pos.distance_to(c)
 			_hit(u, a, o, e, Bal.v("ult/ey_col_frac", 0.25), {"src": "火柱" if de <= 140.0 else "热浪", "edge": de > er})
-		_ring(u, c, R, 140.0, Color(1.0, 0.6, 0.25), 0.4, 12.0)
-		u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.45, 0.1), "fill": 0.16, "life": 0.3})
+		_ring(u, c, R, 140.0, Color(1.0, 0.6, 0.25), 0.4, 12.0 if not a.get("v2", false) else 6.0)
+		if not a.get("v2", false):
+			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.45, 0.1), "fill": 0.16, "life": 0.3})
 		o.screen_shake(0.8)
 	# 熔岩落下：每块打落点 120 内；全部落完时圈内没被砸到的补一下（落满）
 	var ff: float = a.fall_frac
@@ -695,17 +821,91 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 	if not a.pool and t >= float(a.t_lava):
 		a.pool = true
 		var lt: float = float(a.lava_t) + 0.2
-		u.shape({"kind": "circle", "c": c, "r": lr, "col": Color(0.55, 0.1, 0.02), "fill": 0.45, "life": lt})
-		u.shape({"kind": "ring", "c": c, "r": lr, "w": 4.0, "col": Color(1.0, 0.45, 0.1), "life": lt})
-		for i in 12:
+		if a.get("v2", false):   # 熔岩地面 v2：池子已在喷发时铺开（_ey_erupt），这里不再另铺
+			pass
+		else:
+			u.shape({"kind": "circle", "c": c, "r": lr, "col": Color(0.55, 0.1, 0.02), "fill": 0.45, "life": lt})
+			u.shape({"kind": "ring", "c": c, "r": lr, "w": 4.0, "col": Color(1.0, 0.45, 0.1), "life": lt})
+		for i in (0 if a.get("v2", false) else 12):
 			u.strip("fx_eyja_lava_pool", _spiral(c, lr * 0.82, i, 12, 0.7), {"sc": 1.7, "layer": "back", "loop": true, "life": lt, "fps": 8.0 + float(i % 3)})
 	var n_t: int = a.lava_n
 	while bool(a.pool) and int(a.tick) < n_t and t >= float(a.t_lava) + float(a.lava_t) * float(int(a.tick) + 1) / float(n_t):
 		a.tick = int(a.tick) + 1
 		for e in u.in_circle(c, lr):
 			_hit(u, a, o, e, Bal.v("ult/ey_lava_frac", 0.15) / float(n_t), {"src": "熔岩地面", "edge": false})
-		u.shape({"kind": "dots", "c": c, "r": lr * 0.9, "n": 20, "col": Color(1.0, 0.6, 0.2), "life": 0.4, "v": Vector2(0, -60)})
+		if a.get("v2", false):
+			PF.particles(u, c + Vector2.from_angle(float(a.tick) * 2.4) * lr * 0.4, 60, "ult_ember", [Color(1.0, 0.45, 0.12)], 0.0, float(a.tick) * 7.0, lr * 0.5)
+		else:
+			u.shape({"kind": "dots", "c": c, "r": lr * 0.9, "n": 20, "col": Color(1.0, 0.6, 0.2), "life": 0.4, "v": Vector2(0, -60)})
 	return bool(a.pool) and int(a.tick) >= n_t
+
+
+## 艾雅法拉 v2「海底火山」（协调人 10-30 转用户认可的新设计）：① 地面压暗、暗红裂纹渗开越来越亮、裂缝里一串串气泡往上冒（压力往上顶）
+## → ② 顿帧、地面撑破：碎块崩飞、熔岩从裂口冲起（fx_ey_fount）、黑蒸汽往上翻，熔岩池同时从裂口漫开（0.9 秒铺满、判定结束后再留 1.6 秒结壳）
+##   （水环、火山锥、地壳鼓包用户先后说去掉；10-30「熔岩池 + 熔岩更合理、熔岩池太快了」）
+## → ③ 火山弹（fx_ey_bomb）拖黑烟雨点般斜砸，落地浮石（fx_ey_pumice）从亮橙冷成黑 → 中间熔岩池结壳。判定 / 时序 / 伤害不动。
+## 旧注：龟裂 = 熔岩色分叉裂网（乌尔比安 4 种裂缝转色）；火柱 = 顿帧 + Codex 火柱关键帧窜起冷却 + 粒子 + 隆起；
+## 熔岩块 = Codex 熔岩块关键帧（拖尾下落 → 落地溅射）；熔岩地面 = Codex 地纹铺成整张圆池、慢慢结壳 + 冒火星。判定 / 时序不动
+const EY_FORKS := ["fx_ey_fork1", "fx_ey_fork2", "fx_ey_fork3", "fx_ey_fork4"]
+const EY_ROCK := "fx_ey_rock"
+const EY_POOL := "fx_ey_pool"
+const EY_STEAM := "fx_ey_steam"
+const EY_FOUNT := "fx_ey_fount"
+const EY_BOMB := "fx_ey_bomb"
+const EY_PUMICE := "fx_ey_pumice"
+
+
+## 气泡：沿 8 个渗口，每口一串 5–7 颗由小到大往上冒、冒到顶破掉；铺满蓄压的 t_col 秒
+static func _ey_bubbles(u, c: Vector2, r: float, dur: float, vs: float) -> void:
+	for k in 8:
+		var hk: float = PF.h(vs + k * 3.7)
+		var p: Vector2 = c + Vector2.from_angle(TAU * (k + hk) / 8.0) * r * (0.25 + 0.7 * PF.h(hk * 11.0))
+		var n: int = 5 + int(PF.h(hk * 7.0) * 3.0)
+		for m in n:
+			var hm: float = PF.h(hk * 13.0 + m)
+			u.shape({"kind": "circle", "c": p + Vector2((hm - 0.5) * 14.0, 0.0), "r": 3.0 + 3.0 * float(m) / n, "col": Color(0.75, 0.88, 0.9), "fill": 0.75,
+				"life": 0.35 + 0.2 * hm, "delay": dur * float(m) / (n + 1) * (0.6 + 0.4 * hk), "v": Vector2((hm - 0.5) * 20.0, -110.0 - 60.0 * hm)})
+
+
+## 喷发：地面鼓起（隆起暗影 + 三圈地块顶起）+ 黑蒸汽裹着熔岩柱往上翻 + 底部翻滚水环往外推 + 一点橙色粒子
+static func _ey_erupt(u, c: Vector2, R: float, a: Dictionary) -> void:
+	# 用户 10-30：「直接出现个火山有点奇怪」→ 鼓包被撑破：地壳碎块往外崩飞（高抛 + 一圈顶起）、熔岩从裂口喷泉般冲上去（fx_ey_fount 底部贴地）、
+	# 黑蒸汽从裂口翻起；不再画火山锥
+	var vs: float = PF.vseed(u, c) + 9.0
+	u.shape({"kind": "ellipse", "c": c + Vector2(0, 6), "rx": R * 0.45, "ry": R * 0.22, "col": Color(0.05, 0.02, 0.02), "fill": 0.6, "life": 0.9, "layer": "back"})
+	for q in 14:   # 地壳碎块往外崩飞
+		var hq: float = PF.h(vs + q * 2.3)
+		var dv := Vector2.from_angle(TAU * (q + hq) / 14.0)
+		PF.rock(u, c + dv * 60.0 * hq, dv * (160.0 + 160.0 * hq), 300.0 + 200.0 * PF.h(hq * 7.0), hq, 0.6 + 0.3 * hq, 0.0)
+	for i in 3:
+		PF.heave(u, c, R * (0.25 + 0.22 * i), vs + i, 0.04 * i)
+	if u.fx_ready(EY_FOUNT):
+		u.strip(EY_FOUNT, c + Vector2(0, 12), {"o": Vector2(95, 352), "sc": 0.7, "sc1": 1.6, "scd": 0.14, "delay": 0.03, "life": 0.75, "fade": 0.35,
+			"col": Color(0.95, 0.85, 0.82), "col1": Color(0.55, 0.28, 0.22), "cold": 0.35})
+	if u.fx_ready(EY_STEAM):
+		var sh: float = float(u._strip_tex(EY_STEAM).get_height())
+		var sw: float = float(u._strip_tex(EY_STEAM).get_width())
+		for m in 3:
+			var off := Vector2((float(m) - 1.0) * 70.0, 0.0)
+			u.strip(EY_STEAM, c + off + Vector2(0, 16), {"o": Vector2(sw * 0.5, sh * 0.95), "sc": 0.7 + 0.15 * m, "sc1": 1.05 + 0.15 * m, "scd": 0.6,
+				"sx": -1.0 if m == 1 else 1.0, "life": 1.5, "fade": 0.7, "delay": 0.1 + 0.05 * m, "v": Vector2((float(m) - 1.0) * 30.0, -60.0),
+				"col": Color(1.0, 0.95, 0.95, 0.9), "col1": Color(0.75, 0.75, 0.78, 0.75), "cold": 1.2})
+	PF.particles(u, c, 220, "ult_burst_s", [Color(1.0, 0.5, 0.15)], 0.02, vs, 170.0)
+	# 熔岩池（用户 10-30「熔岩池 + 熔岩更合理、熔岩池太快了」）：喷发那一刻从裂口开始漫开，0.9 秒铺满，判定结束后再留 1.6 秒慢慢结壳淡掉
+	var lr: float = float(a.lava_r)
+	var pr: float = PF.tex_w(u, EY_POOL) * 0.5 * 0.92
+	var tl: float = float(a.t_lava) - float(a.t) + float(a.lava_t) + 1.6
+	u.strip(EY_POOL, c, {"layer": "back", "sc": lr * 0.15 / pr, "sc1": lr / pr, "scd": 0.9, "sx": -1.0 if PF.h(vs) < 0.5 else 1.0, "life": tl, "fade": 1.2,
+		"col": Color(0.95, 0.85, 0.8, 0.9), "col1": Color(0.4, 0.33, 0.32, 0.9), "cold": tl - 0.4})
+
+
+static func _ey_bomb_o(u) -> Vector2:   # 火山弹贴图里岩块在右下 0.72 处（烟拖在左上），原点放在岩块上
+	var t: Texture2D = u._strip_tex(EY_BOMB)
+	return Vector2(t.get_width() * 0.72, t.get_height() * 0.72) if t != null else Vector2.ZERO
+
+
+static func _ey_v2(u) -> bool:
+	return Bal.v("ult/ey_fx_v2", 1.0) > 0.0 and u.fx_ready(EY_FOUNT) and u.fx_ready(EY_BOMB) and u.fx_ready(EY_PUMICE) and u.fx_ready(EY_POOL)
 
 
 ## 熔岩地面（半径 lava_r）外的人吃不到地面那 15%：落熔岩时直接补上，圈内每人合计都是 1（10-30 对齐表：原来外圈精英 / Boss 只掉 85%）
@@ -763,10 +963,30 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 		var ts: float = sh.t
 		if not sh.done and t >= ts:
 			sh.done = true   # 主爆 70%（每人一次）
+			if k == 0 and _wd_v2(u) and _wd_v3():   # 冲击帧：第一排落地那一下（后面几排不再闪），三团爆炸进剪影
+				a["hf"] = true
+				u.act["hf"] = true
 			for p in sh.ps:
-				u.strip("fx_wisadel_cannon", p, {"sc": 1.9})
-				u.shape({"kind": "circle", "c": p, "r": rr, "col": Color(1.0, 0.55, 0.3), "fill": 0.35, "life": 0.22})
-				_ring(u, p, rr, 30.0, Color(1.0, 0.75, 0.55), 0.28, 9.0)
+				if _wd_v2(u):   # v2：原版尖晶爆裂随机化 + 弹坑（fx_ws_crater 4 种）留在地上 + 少量红色粒子
+					var hp2: float = PF.h(p.x * 0.013 + p.y * 0.029 + float(k))
+					# 用户 10-30「弹坑的分布和大小可以没那么规则」：画面位置按哈希偏 ≤ 0.4 rr、大小 0.65–1.45 倍（判定仍在 p）
+					var rk: float = 0.65 + 0.8 * PF.h(hp2 * 31.0)
+					var pv: Vector2 = p + Vector2.from_angle(PF.h(hp2 * 17.0) * TAU) * rr * 0.4 * PF.h(hp2 * 23.0)
+					var bdl: float = 0.14 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
+					# 用户 10-30「跟原本的特效风格不一致、缺少高光」：主体回到她自己的红色尖晶爆裂帧条，只加随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；
+					# 「蓝环可以去掉」→ fx_wd_cannon = fx_wisadel_cannon 去掉蓝色像素
+					u.strip("fx_wd_cannon" if u.fx_ready("fx_wd_cannon") else "fx_wisadel_cannon", pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0,
+						"delay": 0.0 if k == 0 else bdl, "hf": k == 0})
+					if _wd_v3() and PF.h(hp2 * 59.0) < 0.6:   # 逐帧烟尘（焦灰带一点红），约六成炮弹，往远离她的方向飘
+						PF.dust(u, pv + Vector2.from_angle(hp2 * TAU) * rr * 0.3, 190.0 * rk, bdl + 0.06, hp2 * 70.0, (pv - o0).normalized() * 50.0, Color(1.0, 0.82, 0.78))
+					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
+						"col": Color(1.0, 0.75, 0.72), "col1": Color(0.6, 0.55, 0.55), "cold": 0.6})   # 弹坑是焦黑地面，只带一点红余烬（整片染红会糊满屏）
+					if hp2 < 0.35:   # 粒子圆团每发都放会排成一格格（预审报重复），只给约三分之一的炮弹、缩小
+						PF.particles(u, pv, 60, "ult_burst_s", [Color(0.95, 0.1, 0.1)], bdl, hp2 * 50.0, rr * 0.7 * rk)
+				else:
+					u.strip("fx_wisadel_cannon", p, {"sc": 1.9})
+					u.shape({"kind": "circle", "c": p, "r": rr, "col": Color(1.0, 0.55, 0.3), "fill": 0.35, "life": 0.22})
+					_ring(u, p, rr, 30.0, Color(1.0, 0.75, 0.55), 0.28, 9.0)
 				_spray(u, p, 6, 30.0, 520.0, Color(1.0, 0.6, 0.3), 0.3, 0.5 * float(k))
 				for e in u.in_circle(p, rr):
 					if a.mseg.has(int(e.id)):
@@ -781,9 +1001,13 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 			sh.after = true   # 余震 30%，眩晕 0.8（精英 0.4）；余烬未冷：余震 3 圈、眩晕 1 秒
 			var rings: int = 3 if a.ember else 1
 			for p in sh.ps:
-				u.strip("fx_missile_explode", p, {"sc": 2.4})
-				for ri in rings:
-					_ring(u, p, rr * (1.0 + 0.12 * float(ri)), 40.0, col.lerp(Color(0.3, 0.0, 0.0), 0.3), 0.3, 6.0, 0.08 * float(ri))
+				if _wd_v2(u):   # 余震：一下震 + 弹坑周围碎石掀起 + 尘，不画余震圆环
+					u.shake(3.0, 0.12)
+					PF.heave(u, p, rr * 0.9, p.x * 0.01 + float(k), 0.0, Color.WHITE, 70.0)
+				else:
+					u.strip("fx_missile_explode", p, {"sc": 2.4})
+					for ri in rings:
+						_ring(u, p, rr * (1.0 + 0.12 * float(ri)), 40.0, col.lerp(Color(0.3, 0.0, 0.0), 0.3), 0.3, 6.0, 0.08 * float(ri))
 				for e in u.in_circle(p, rr + 40.0):   # 主爆的小击退（小怪 60 / 精英 30）会把圈边的人推出圈：主爆打过的放宽 40 再判
 					if a.aseg.has(int(e.id)) or (e.pos.distance_to(p) > rr and not a.mseg.has(int(e.id))):
 						continue
@@ -795,6 +1019,16 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 		if not sh.after:
 			all_done = false
 	return all_done
+
+
+## 维什戴尔 v2（ult/wd_fx_v2，缺省 1；pixfx，docs/199 §7.9）：每发炮弹 = 她原有的红色尖晶爆裂帧条（fx_wisadel_cannon，随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；Codex 爆炸关键帧缺高光、用户说风格不一致，已撤）
+## + 弹坑（fx_ws_crater 4 种按落点哈希挑）留地上 + 红色粒子帧条（用户 10-30：红色是她的主题色，爆炸着红）；余震 = 一下震 + 碎石掀起。判定 / 时序不动
+static func _wd_v3() -> bool:   # 打击感（10-31，pixfx §6.6）：第一排冲击帧 + 逐帧烟尘；0 = 10-30 版
+	return Bal.v("ult/wd_fx_v3", 1.0) > 0.0
+
+
+static func _wd_v2(u) -> bool:
+	return Bal.v("ult/wd_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_ws_crater")
 
 
 # ================================================================ 归溟幽灵鲨（§4.11）：巨锯放大、围着她转 3 秒，跟着队长走；期间不倒、受到的伤害 −50%
@@ -812,11 +1046,16 @@ static func _su_start(u, o) -> Dictionary:
 	var col: Color = u._col(o)
 	var steel: Color = col.lerp(Color.WHITE, 0.25)
 	var a := {"dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
-	a["rim"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 14.0, "col": steel, "life": dur + 1.0})
-	a["rim2"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 40.0, "w": 4.0, "col": Color(0.75, 0.12, 0.16), "life": dur + 1.0})
-	a["disk"] = _keep(u, a, {"kind": "circle", "c": o.pos, "r": 60.0, "col": col.darkened(0.4), "fill": 0.12, "life": dur + 1.0})
-	for i in int(Bal.v("ult/su_teeth", 30.0)):   # 半径 340 → 505 时 20 → 30，齿距不变
-		a.teeth.append(_keep(u, a, {"kind": "blade", "a": o.pos, "b": o.pos, "w": 9.0, "col": Color.WHITE, "glow": steel, "life": dur + 1.0}))
+	if FC.sp_bounce(u):   # 弹射撕裂（ult/sp_bounce，用户 10-30 新设计）：红黑剪影在敌人间弹射 + 收尾巨锯
+		FC.sb_start(u, a, o, o.pos)
+	elif FC.sp_v2(u):   # 巨锯 v2：一张整圈锯贴图（ult/sp_saw_v2）
+		FC.sp_start(u, a, o.pos)
+	else:
+		a["rim"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 14.0, "col": steel, "life": dur + 1.0})
+		a["rim2"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 40.0, "w": 4.0, "col": Color(0.75, 0.12, 0.16), "life": dur + 1.0})
+		a["disk"] = _keep(u, a, {"kind": "circle", "c": o.pos, "r": 60.0, "col": col.darkened(0.4), "fill": 0.12, "life": dur + 1.0})
+		for i in int(Bal.v("ult/su_teeth", 30.0)):   # 半径 340 → 505 时 20 → 30，齿距不变
+			a.teeth.append(_keep(u, a, {"kind": "blade", "a": o.pos, "b": o.pos, "w": 9.0, "col": Color.WHITE, "glow": steel, "life": dur + 1.0}))
 	if a.elegy:
 		a["slowr"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 3.0, "col": Color(0.4, 0.6, 0.9), "life": dur + 1.0})
 	return a
@@ -839,12 +1078,15 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 	var dur: float = a.dur
 	a.spin = float(a.spin) + dt * 11.0
 	var sp: float = a.spin
-	a.rim.c = c
-	a.rim.r = R
-	a.rim2.c = c
-	a.rim2.r = R - 30.0
-	a.disk.c = c
-	a.disk.r = R
+	if a.has("sp_saws"):
+		FC.sp_step(u, a, c, R, dt)
+	elif a.has("rim"):
+		a.rim.c = c
+		a.rim.r = R
+		a.rim2.c = c
+		a.rim2.r = R - 30.0
+		a.disk.c = c
+		a.disk.r = R
 	var nt: int = a.teeth.size()
 	for i in nt:   # 锯齿：外缘一圈斜向的刃，跟着转
 		var ang: float = sp + TAU * float(i) / float(nt)
@@ -877,19 +1119,37 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 		var mul: float = (1.0 + (1.0 - hpk) * 0.5) if hpk < 0.5 else 1.0
 		var fr: float = Bal.v("ult/su_frac", 1.0 / 12.0) * mul   # 12 次合计 1（原 0.08 × 12 = 0.96）
 		var nb := 0
+		var sbp: bool = a.has("sb") and int(a.tick) < n   # 弹射版：前 11 圈标 pre，冲击帧 / 顿帧落在最后巨锯落地那一下（用户 10-31）
+		if a.has("sb") and int(a.tick) >= n:
+			a["hf"] = true
+			u.act["hf"] = true
 		for e in u.in_circle(c, full_r):
 			var de: float = e.pos.distance_to(c)
-			_hit(u, a, o, e, fr, {"src": "巨锯", "edge": de > full_r * (1.0 - _edge_w())})
+			_hit(u, a, o, e, fr, {"src": "巨锯", "edge": de > full_r * (1.0 - _edge_w()), "pre": sbp})
 			if nb < 6 and de > full_r * 0.4:   # 锯过的地方飞血 / 火星（每圈最多 6 处）
 				nb += 1
+				if a.has("sp_saws"):
+					FC.sp_hit(u, a, e.pos, int(a.tick), nb)
+					continue
+				if a.has("sb"):
+					FC.sb_hit(a, e.pos)
+					continue
 				var tg: Vector2 = (e.pos - c).orthogonal().normalized()
 				u.shape({"kind": "dots", "c": e.pos, "r": 18.0, "n": 5, "col": Color(0.85, 0.15, 0.2), "life": 0.25, "v": tg * 380.0})
 				u.shape({"kind": "line", "a": e.pos, "b": e.pos + tg * 30.0, "w": 2.0, "col": Color(1.0, 0.9, 0.7), "life": 0.15, "v": tg * 600.0})
-		_ring(u, c, full_r + 6.0, full_r + 6.0, Color(1, 1, 1), 0.12, 6.0)
+		if a.has("sb"):
+			FC.sb_tick(u, a, c, full_r, int(a.tick), n)
+		elif a.has("sp_saws"):
+			FC.sp_tick(u, a, c, full_r, int(a.tick))
+		else:
+			_ring(u, c, full_r + 6.0, full_r + 6.0, Color(1, 1, 1), 0.12, 6.0)
 		if int(a.tick) % 4 == 1:
-			u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
+			if not a.has("sb"):
+				u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
 			o.play_vis_anim("attack")
 		o.screen_shake(0.25)
+	if int(a.tick) >= n and a.has("sp_saws"):
+		FC.sp_end(u, a)
 	return int(a.tick) >= n
 
 
@@ -904,19 +1164,69 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 	var base: Vector2 = o.pos - d * 90.0
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
-	# 破土：身后地面炸开
-	u.strip("fx_rock_burst", base, {"sc": 2.6})
-	_ring(u, base, 110.0, 20.0, col.lerp(Color.WHITE, 0.3), 0.35, 8.0)
-	u.shape({"kind": "circle", "c": base, "r": 70.0, "col": Color(0.08, 0.04, 0.12), "fill": 0.8, "life": 1.2})
+	var jelly: bool = FC.mz_jelly(u)   # 水母群（ult/mz_jelly，用户 10-30 粗稿）：大触手 / 钻洞 / 小触手都不画
+	var v2: bool = FC.mz_v2(u) and not jelly   # 钻洞 / 小触手 v2：pixgen 小触手 + 地块隆起（ult/mz_grab_v2；大触手是上面的 ult/mz_fx_v2）
+	if not v2 and not jelly:
+		# 破土：身后地面炸开
+		u.strip("fx_rock_burst", base, {"sc": 2.6})
+		_ring(u, base, 110.0, 20.0, col.lerp(Color.WHITE, 0.3), 0.35, 8.0)
+		u.shape({"kind": "circle", "c": base, "r": 70.0, "col": Color(0.08, 0.04, 0.12), "fill": 0.8, "life": 1.2})
 	var a := {"d": d, "c": o.pos, "base": base, "R": R, "a0": d.angle() - half, "span": half * 2.0, "T0": Bal.v("ult/mz_rise", 0.15),
 		"T": Bal.v("ult/mz_sweep", 0.5), "seg": {}, "kills": 0, "grab": false, "n_grab": 9 if rt == "awaken" else int(Bal.v("ult/mz_grab_n", 6.0)),
 		"attach": rt == "bind", "bound": [], "trail_t": 0.0, "fx": [], "chain": [], "no_ring": true, "heal": 0.0}
+	if v2:
+		FC.mz_start(u, a, base)
+	if jelly:
+		FC.mz_jelly_start(u, a, o.pos, float(a.a0), float(a.span), R)
 	for i in 28:   # 触手：28 节圆，由粗到细
 		var w: float = lerpf(60.0, 10.0, float(i) / 27.0)
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": w * 0.5, "col": col.darkened(0.35).lerp(Color(0.25, 0.1, 0.4), 0.3), "fill": 0.95, "life": 2.0}))
 	for i in 8:   # 吸盘高光
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": 5.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.9, "life": 2.0}))
+	if jelly:
+		for s in a.chain:
+			u.shapes.erase(s)
+	elif _mz_v2(u):   # 触手 v2：pixgen 整条触手贴图（fx_mz_tent，左粗右细带吸盘）沿贝塞尔切成 MZ_SEGS 段贴，程序圆链不画
+		for s in a.chain:
+			u.shapes.erase(s)
+		var tt: Texture2D = u._strip_tex(MZ_TENT)
+		a["tsegs"] = []
+		for i in MZ_SEGS:
+			var sg: Dictionary = u.strip(MZ_TENT, base, {"ux": floorf(tt.get_width() * float(i) / MZ_SEGS), "uw": ceilf(tt.get_width() / float(MZ_SEGS)) + 2.0,
+				"o": Vector2(0.0, tt.get_height() * 0.5), "life": 2.0})
+			a.tsegs.append(sg)
+			a.fx.append(sg)
 	return a
+
+
+## 水月 v2（ult/mz_fx_v2，缺省 1；用户 10-30「水月的触手需要重新生成」）：pixgen 整条触手（fx_mz_tent）沿 _mz_pose 的贝塞尔切段贴，
+## 每段按切线转角、按段长拉伸，粗细跟贴图本身（根部粗、尖端卷曲）
+const MZ_TENT := "fx_mz_tent"
+const MZ_SEGS := 20   # 段越多弯处接缝越小（预审报 10 段拼接感明显）
+
+
+static func _mz_v2(u) -> bool:
+	return Bal.v("ult/mz_fx_v2", 1.0) > 0.0 and u.fx_ready(MZ_TENT)
+
+
+static func _mz_tent_pose(u, a: Dictionary, ctrl: Vector2, tip: Vector2) -> void:
+	if not a.has("tsegs"):
+		return
+	var base: Vector2 = a.base
+	var tt: Texture2D = u._strip_tex(MZ_TENT)
+	var seg_w: float = tt.get_width() / float(MZ_SEGS)   # 纹素
+	var k0: float = u.g.PX / A.hires_of(tt)
+	for i in MZ_SEGS:
+		var ka: float = float(i) / MZ_SEGS
+		var kb: float = float(i + 1) / MZ_SEGS
+		var pa: Vector2 = base.lerp(ctrl, ka).lerp(ctrl.lerp(tip, ka), ka)
+		var pb: Vector2 = base.lerp(ctrl, kb).lerp(ctrl.lerp(tip, kb), kb)
+		var s: Dictionary = a.tsegs[i]
+		s.c = pa
+		s.ang = (pb - pa).angle()
+		s.sx = pa.distance_to(pb) / (seg_w * k0) * 1.12   # 段间多叠一点，弯处不露缝
+		s.sy = 0.9
+		s.age = 0.0
 
 
 ## 触手形状：从身后根部出发，弯一道弧到当前角度的尖端（二次贝塞尔，控制点偏向扫动的来向）
@@ -925,6 +1235,9 @@ static func _mz_pose(a: Dictionary, ang: float, reach: float) -> void:
 	var c: Vector2 = a.c
 	var tip: Vector2 = c + Vector2.from_angle(ang) * reach
 	var ctrl: Vector2 = c + Vector2.from_angle(ang - 0.45) * reach * 0.55
+	if a.has("tsegs"):
+		a["_ctrl"] = ctrl
+		a["_tip"] = tip
 	var ch: Array = a.chain
 	for i in 28:
 		var k: float = float(i) / 27.0
@@ -946,6 +1259,8 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 	var col: Color = u._col(o)
 	var a0: float = a.a0
 	var span: float = a.span
+	if a.has("jl"):
+		FC.mz_jelly_step(u, a, t)
 	if t < T0 + T + 0.12:
 		var reach: float
 		var ang: float
@@ -967,22 +1282,41 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 					continue
 				a.seg[int(e.id)] = true
 				var tg: Vector2 = Vector2.from_angle(off.angle() + PI / 2.0)
-				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0)})
+				var ep: Vector2 = e.pos
+				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0), "pre": a.has("jl")})   # 水母群：冲击落在一起炸开那一下
+				if a.has("jl"):
+					FC.mz_jelly_hit(u, a, ep, t)
 				if e.dead and float(a.heal) < 0.05:
 					a.heal = float(a.heal) + 0.002
 					g.combat.heal(g.max_hp * 0.002, "终结技", "mizuki")
-			if t >= float(a.trail_t):   # 扫过的残影
+			if t >= float(a.trail_t) and not a.has("jl"):   # 扫过的残影（水母群不画）
 				a.trail_t = t + 0.03
-				u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": col, "fill": 0.18, "life": 0.3})
-				u.shape({"kind": "line", "a": c + Vector2.from_angle(ang) * R * 0.95, "b": c + Vector2.from_angle(ang - 0.08) * R, "w": 6.0, "col": col.lerp(Color.WHITE, 0.6), "life": 0.2})
+				if a.has("mz_vs"):
+					u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": Color(0.03, 0.04, 0.1), "fill": 0.22, "life": 0.35, "layer": "back"})
+					a["mz_n"] = int(a.get("mz_n", 0)) + 1
+					FC.mz_trail(u, a, c + Vector2.from_angle(ang) * R, ang, int(a.mz_n))
+				else:
+					u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": col, "fill": 0.18, "life": 0.3})
+					u.shape({"kind": "line", "a": c + Vector2.from_angle(ang) * R * 0.95, "b": c + Vector2.from_angle(ang - 0.08) * R, "w": 6.0, "col": col.lerp(Color.WHITE, 0.6), "life": 0.2})
 		_mz_pose(a, ang, reach)
+		if a.has("tsegs"):
+			_mz_tent_pose(u, a, a._ctrl, a._tip)
 		for s in a.fx:
 			_hold(s)
 		return false
 	if not a.grab:
 		a.grab = true
+		var v2: bool = a.has("mz_vs")
+		if v2:
+			FC.mz_retract(u, a)   # 先把大触手段从 a.fx 摘出来淡出（不被 _fade 直接收掉）
 		_fade(u, a, 0.3)
-		u.strip("fx_mizuki_tentacle_mass", a.base, {"sc": 1.6, "o": Vector2(96, 90)})
+		var jelly: bool = a.has("jl")
+		if jelly:
+			a["hf"] = true   # 冲击帧：水母一起炸开（用户 10-31）
+			u.act["hf"] = true
+			FC.mz_jelly_burst(u, a, c, t)
+		elif not v2:
+			u.strip("fx_mizuki_tentacle_mass", a.base, {"sc": 1.6, "o": Vector2(96, 90)})
 		# 小触手：从扫过区域与他身边 300 内，抓生命最低的漏网（每根 20%，束缚 1.5 秒）
 		var cand: Array = []
 		for e in u.in_circle(c, R):
@@ -994,15 +1328,26 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		var ng: int = mini(int(a.n_grab), cand.size())
 		for i in ng:
 			var e: Dictionary = cand[i]
-			u.strip("fx_mizuki_tentacle", e.pos + Vector2(0, 8), {"sc": 1.7, "o": Vector2(24, 108), "delay": 0.03 * float(i)})
+			if jelly:
+				FC.mz_jelly_hit(u, a, e.pos, t)
+			elif v2:
+				FC.mz_small(u, a, e.pos + Vector2(0, 8), i, 1.0, 0.03 * float(i))
+			else:
+				u.strip("fx_mizuki_tentacle", e.pos + Vector2(0, 8), {"sc": 1.7, "o": Vector2(24, 108), "delay": 0.03 * float(i)})
 			u.strip("fx_mizuki_bind_ring", e.pos, {"sc": 2.2, "loop": true, "life": 1.2})
 			_hit(u, a, o, e, Bal.v("ult/mz_grab_frac", 0.2), {"src": "小触手", "stun": 1.5})
 			if not e.dead:
 				a.bound.append(e)
-		for i in 8:   # 他身边钻出的小触手（画面）
+		for i in (0 if jelly else 8):   # 他身边钻出的小触手（画面；水母群不画）
 			var p: Vector2 = c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2) * 300.0 * (0.55 + 0.45 * float(i % 2))
-			u.strip("fx_mizuki_tentacle", p + Vector2(0, 8), {"sc": 1.2, "o": Vector2(24, 108), "delay": 0.02 * float(i)})
-		_ring(u, c, 300.0, 40.0, col.lerp(Color.WHITE, 0.4), 0.35, 5.0)
+			if v2:   # 位置按哈希错开角度 / 距离（预审：均分一圈像一串贴纸）
+				var hq: float = PF.h(float(a.mz_vs) + i * 3.3)
+				p = c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2 + (hq - 0.5) * 0.6) * 300.0 * (0.45 + 0.55 * PF.h(float(a.mz_vs) + i * 5.9))
+				FC.mz_small(u, a, p + Vector2(0, 8), 20 + i, 0.6 + 0.35 * hq, 0.02 * float(i) + 0.05 * hq)
+			else:
+				u.strip("fx_mizuki_tentacle", p + Vector2(0, 8), {"sc": 1.2, "o": Vector2(24, 108), "delay": 0.02 * float(i)})
+		if not v2 and not jelly:
+			_ring(u, c, 300.0, 40.0, col.lerp(Color.WHITE, 0.4), 0.35, 5.0)
 		a["grab_t"] = t
 	if a.attach and t < float(a.grab_t) + 0.5:   # 病理性依恋：被束缚的敌人拖到水月身边
 		for e in a.bound:

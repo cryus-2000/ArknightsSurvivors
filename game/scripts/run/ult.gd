@@ -63,6 +63,7 @@ var ev := {
 }
 var _prev_dash := 0.0
 var _filled := false
+var _refill_t := 0.0
 var _swarm_t := -1.0
 var _skill_t := -1.0
 
@@ -237,6 +238,12 @@ func tick(dt: float) -> void:
 		energy = FULL
 		full_since = g.t
 		cells = mini(CELLS, Bal.vi("ult/test_cells", 0))
+		_refill_t = g.t
+	var fe: float = Bal.v("ult/test_fill_every", -1.0)   # 录像用（缺省 -1 = 关）：充满之后每 fe 秒再充满一次，连放几次看特效变体
+	if _filled and fe > 0.0 and phase == "" and energy < FULL and g.t - _refill_t >= fe:
+		_refill_t = g.t
+		energy = FULL
+		full_since = g.t
 	_tick_buffs()
 	_tick_shapes(dt)
 	Moves.tick_bg(self)   # 终结技的延后部分（凯尔希 Mon3tr 8 秒后重构）
@@ -650,6 +657,8 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	var got: float = maxf(0.0, hp0 - float(e.hp))
 	e.ult_d = float(e.ult_d) + got
 	if got > 0.0:
+		stats["hit_n"] = int(stats.get("hit_n", 0)) + 1   # 终结技掉血次数（批跑统计用，10-31 塞雷娅朝前打对照）
+	if got > 0.0:
 		last_hit_t = g.t
 		if not opt.get("pre", false):
 			impact(e.pos)   # 冲击帧（这一次终结技第一下掉血）
@@ -763,7 +772,7 @@ static func _col(o) -> Color:
 ##   line   {a, b, w, col}             线
 ##   dots   {c, r, n, col}             简单粒子（n 个点散在 r 内，位置按 i 定、不抽随机数）
 ##   blade  {a, b, w, col, glow}       两端尖细的直线斩痕（菱形：中段宽 w，白芯 + glow 色辉光宽 w × 3）；grow 秒内从中间拉满
-##   v      Vector2（可选）            每秒位移（碎片飞散用；c / a / b 一起挪）
+##   v      Vector2（可选）            每秒位移（碎片飞散用；c / a / b 一起挪）；drag 每秒阻尼（粒子迸开后减速扩散）
 ## 共有：life（秒，游戏时间）、delay（秒后才出现）；Boss 战整体透明度 × 0.5（§7.4）
 func shape(s: Dictionary) -> void:
 	s["max"] = float(s.get("life", 0.4))
@@ -771,11 +780,13 @@ func shape(s: Dictionary) -> void:
 	shapes.append(s)
 	if phase == "cast" and caster != null:
 		_fx_tag(s)
-	if shapes.size() > 400:
+	if shapes.size() > 900:   # 粒子爆一次两三百颗（凯尔希 v2）
 		shapes.pop_front()
 
 
 func _tick_shapes(dt: float) -> void:
+	if not _stops.is_empty():
+		_tick_stops(dt)
 	for k in range(shapes.size() - 1, -1, -1):
 		var s: Dictionary = shapes[k]
 		s.age += dt
@@ -787,6 +798,8 @@ func _tick_shapes(dt: float) -> void:
 		if s.has("v") and s.age > 0.0:
 			if s.has("grav"):   # 碎岩等：带重力（画面）
 				s.v = s.v + Vector2(0, float(s.grav) * dt)
+			if s.has("drag"):
+				s.v = s.v * exp(-float(s.drag) * dt)
 			var dv: Vector2 = s.v * dt
 			for key in ["c", "a", "b"]:
 				if s.has(key):
@@ -1058,6 +1071,8 @@ func time_scale() -> float:
 		s = minf(s, Bal.v("ult/combo_slow", 0.5))
 	if UM.now() - _link_rt < Bal.v("ult/link_slow_t", 0.12):
 		s = minf(s, Bal.v("ult/link_slow", 0.6))   # 技能连携出手瞬间的轻微放慢（比终结技弱一档）
+	if UM.now() - _prep_rt < _prep_t:
+		s = minf(s, _prep_s)   # 招式自己要的预备式慢动作（prep_slow；铃兰忍冬拔刀蓄势，用户 10-31）
 	return s
 
 
@@ -1108,7 +1123,8 @@ func draw_world(w) -> void:
 				var m: Vector2 = (s.a + s.b) * 0.5
 				var ha: Vector2 = (s.a - m) * gk
 				var nrm: Vector2 = (s.b - s.a).normalized().orthogonal()
-				var fa: float = 1.0 if s.age < s.max - 0.08 else maxf(0.0, (s.max - s.age) / 0.08)   # 停住时满亮，最后 0.08 秒淡出
+				var fo: float = float(s.get("fo", 0.08))   # 停住时满亮，最后 fo 秒淡出（缺省 0.08；德克萨斯 10-31 起不碎、慢慢淡 0.7 秒）
+				var fa: float = 1.0 if s.age < s.max - fo else maxf(0.0, (s.max - s.age) / fo)
 				var bw: float = float(s.get("w", 8.0))
 				var gc: Color = s.get("glow", Color(0.45, 0.85, 1.0))
 				w.tb_quad(m + ha, m + nrm * bw * 1.5, m - ha, m - nrm * bw * 1.5, Color(gc, 0.35 * fa * dim))
@@ -1130,6 +1146,61 @@ func draw_world(w) -> void:
 		else:
 			var r2: float = Moves.aim_r(str(caster.id)) if kind != "cult" else VIEW.x * 0.5
 			_px_disc(w, caster.pos, r2 + 1.5, r2 - 1.5, _pc(c, 0.8))
+	w.tb_flush()
+	_draw_hit_frame(w)
+
+
+## 冲击帧（中村丰式，用户 10-31；docs/199 §7.10，pixfx §6.6）：命中那一下（impact 起算、真实时间）第 1 拍白底 + 主体黑剪影，
+## 第 2 拍黑底 + 主体白剪影，各 ult/hit_frame_t（0.04 秒，30 帧录像里各 1 帧），然后回正常画面。
+## 开关 ult/hit_frame（缺省 1）；只有动作字典里 hf = true 的招式启用；主体 = 标了 "hf": true 的帧条 / 图形。减少动态效果开时不画。纯画面
+## 冲击帧只给队长终结技（用户 10-31：连携技 / 连携终结技不要冲击帧）
+func _hf_on() -> bool:
+	return kind == "ult" and act.get("hf", false) and Bal.v("ult/hit_frame", 1.0) > 0.0 and not Cfg.reduce_motion
+
+
+var _hf_serial := -1
+var _hf_n := [0, 0]   # 本次冲击帧白 / 黑两拍已画的帧数
+var _hf_t0 := 0.0
+
+
+func _draw_hit_frame(w) -> void:
+	if not _hf_on():
+		return
+	if _imp_age() < 0.0 or _imp_age() > 1.0:
+		return
+	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）；
+	# 按这次终结技（serial）只起算一次：反震 / 炮击会连着 impact 好几次，按 impact 重置会再闪一轮
+	var ht: float = Bal.v("ult/hit_frame_t", 0.067)
+	if _hf_serial != serial:
+		_hf_serial = serial
+		_hf_n = [0, 0]
+		_hf_t0 = UM.now()
+	var t: float = UM.now() - _hf_t0
+	var inv: bool = t < ht or _hf_n[0] < 2   # 第 1 拍：白底黑剪影
+	if not inv and _hf_n[1] >= 2 and t >= ht * 2.0:
+		act["hf"] = false   # 一次终结技只闪一次（维什戴尔后几排落地也会 impact）
+		act["hf_done"] = true
+		return
+	_hf_n[0 if inv else 1] += 1
+	var bg := Color(0.92, 0.9, 0.86) if inv else Color(0.02, 0.02, 0.03)
+	var c: Vector2 = g.ppos
+	var R := Vector2(2600.0, 1700.0)
+	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), bg)
+	w.tb_flush()
+	var fg := Color(0.0, 0.0, 0.0) if inv else Color(1.6, 1.6, 1.6)   # 黑底那拍：贴图保持本色提亮（乘 8 会把红压成粉）；程序斩线照样纯白
+	for s in shapes:
+		if s.age < 0.0 or not s.get("hf", false):
+			continue
+		if str(s.kind) == "strip":
+			var s2: Dictionary = s.duplicate()
+			s2["col"] = Color(fg, 1.0)
+			s2.erase("col1")
+			s2.erase("fade")
+			_draw_strip(w, s2, 1.0)
+		else:
+			var s3: Dictionary = s.duplicate()
+			s3["glow"] = Color(fg, 1.0)
+			_px_shape(w, s3, 1.0, Color(fg.r if inv else 1.0, fg.g if inv else 1.0, fg.b if inv else 1.0), 1.0)
 	w.tb_flush()
 
 
@@ -1251,7 +1322,8 @@ func _px_shape(w, s: Dictionary, k: float, col: Color, dim: float) -> void:
 			var m: Vector2 = (s.a + s.b) * 0.5
 			var ha: Vector2 = (s.a - m) * gk
 			var nrm: Vector2 = (s.b - s.a).normalized().orthogonal()
-			var fa: float = 1.0 if s.age < s.max - 0.08 else maxf(0.0, (s.max - s.age) / 0.08)
+			var fo: float = float(s.get("fo", 0.08))
+			var fa: float = 1.0 if s.age < s.max - fo else maxf(0.0, (s.max - s.age) / fo)
 			var bw: float = maxf(G, float(s.get("w", 8.0)))
 			var gc: Color = s.get("glow", Color(0.45, 0.85, 1.0))
 			_px_poly(w, PackedVector2Array([m + ha, m + nrm * bw * 1.5, m - ha, m - nrm * bw * 1.5]), _pc(gc, 0.45 * fa * dim))
@@ -1337,6 +1409,34 @@ func link_slow() -> void:
 	_link_rt = UM.now()
 
 
+## 预备式慢动作：从现在起 dur 真实秒内时间 × scale（演出类，同瞄准慢放：只在玩家局 / 录像生效，批跑不改模拟步长）
+var _prep_rt := -99.0
+var _prep_t := 0.0
+var _prep_s := 1.0
+
+
+## 延时顿帧：delay 游戏秒后顿 dur（画面层，同 vfx.stop；终结技结束后的收招一下用）
+var _stops: Array = []
+
+
+func stop_later(delay: float, dur: float) -> void:
+	_stops.append([delay, dur])
+
+
+func _tick_stops(dt: float) -> void:
+	for i in range(_stops.size() - 1, -1, -1):
+		_stops[i][0] = float(_stops[i][0]) - dt
+		if float(_stops[i][0]) <= 0.0:
+			g.vfx.stop(float(_stops[i][1]), "ult", true)
+			_stops.remove_at(i)
+
+
+func prep_slow(dur: float, scale: float) -> void:
+	_prep_rt = UM.now()
+	_prep_t = dur
+	_prep_s = scale
+
+
 ## 终结技轻震（用户 10-30：歌蕾蒂娅收拢、浊心斯卡蒂激光点名要震屏；全项目镜头震动早先因「看着头疼」移除，这里只给终结技、幅度小）：
 ## shake(像素, 真实秒) 取较大者；按真实时间线性衰减，方向用正弦组合（不抽随机数）；减少动态效果开时不震
 var _shk_px := 0.0
@@ -1372,7 +1472,8 @@ func impact(pos: Vector2) -> void:
 	_imp_boom = false
 	_ua("impact")
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
-	flash_rt = _imp_rt
+	if not (_hf_on() or act.get("hf_done", false)):
+		flash_rt = _imp_rt   # 冲击帧招式不叠共用白闪：白闪会把冲击帧和拖影一起盖掉（用户 10-31「看不出区别」）
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
 	debris(pos, _col(caster), 3)
 	g.hurt_duck = maxf(float(g.hurt_duck), Bal.v("ult/imp_duck", 0.8))   # 配乐低通：冲击前一瞬压下去
@@ -1606,7 +1707,7 @@ func _combo_hit_fx(o, pos: Vector2) -> void:
 func report() -> Dictionary:
 	return {"ult": stats.ult, "cult": stats.cult, "combo": stats.combo, "combo_auto": stats.combo_auto, "combo_up": stats.combo_up,
 		"lit": stats.lit, "lit_by": stats.lit_by, "link_by": stats.link_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
-		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1)}
+		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1), "hit_n": int(stats.get("hit_n", 0))}
 
 # ================================================================ 超必杀暂停（用户 10-30「终结技还不够明显，借鉴 MUGEN / 格斗游戏超必杀，先试试看」）
 ## 开关 ult/superflash（缺省 1，0 = 现行起手）。按下 Q 的瞬间：
