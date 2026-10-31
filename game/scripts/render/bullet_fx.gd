@@ -18,6 +18,8 @@
 ##   （tools/imagegen/pxburst.py --boss，8–14 颗、减速、冷却变暗；3 行花样 + 左右镜像），按弹专属色着色；飞行时身后贴拖尾帧条 fx_px_btrail
 ##   （4 帧循环、按速度拉长、沿速度转向；同屏 Boss 弹 > render/btrail_thin（100）颗时隔颗画；伊祖米克 130 弹实测 p95 0.4 ms（探针含放大））。都是贴图矩形，不走逐颗粒循环；
 ##   render/boss_pop = 0 / render/boss_trail = 0 各自关回旧画面
+## 贴图颗粒全部走本层贴图三角批（_tq 攒四边形，_tq_flush 按贴图一次 canvas_item_add_triangle_array，同 TriBatch 的提交方式；
+##   perf-60fps 10-31：别每颗弹单独 draw_texture），不用 draw_set_transform
 ## Boss 激光（kp_beam 帧条光束、bbeam 粗光束、敌方 tracer）：beam_px 沿光束每 22 px 贴一格 fx_px_bpop 后段帧（错相循环 = 边缘颗粒持续飘出），
 ##   收束最后 0.07 秒整条按 _pop 碎成颗粒（从起点往末端依次）；render/boss_beam_px = 0 关
 ## Boss 地面招式落地（telegraph.warn_resolve：Boss 的圆形落点圈结算那一刻）：ground_burst 按圈半径播一次 fx_px_burst1/2（大号迸散），
@@ -331,11 +333,49 @@ func draw_grounds() -> void:
 		var fh: float = float(t.get_height())
 		var f: int = mini(7, int(float(gg[2]) / GROUND_T * 8.0))
 		var sz := Vector2(fw, fh * float(g.combat.GROUND_Y)) * (float(gg[3]) * 2.2 / fw)   # 压扁成地面透视（同落点圈）
-		var dst := Rect2((gg[0] as Vector2) - sz * 0.5, sz)
-		if gg[5]:
-			dst = Rect2(dst.position + Vector2(sz.x, 0.0), Vector2(-sz.x, sz.y))
 		var c: Color = gg[1]
-		g.draw_texture_rect_region(t, dst, Rect2(float(f) * fw, 0.0, fw, fh), Color(c.r * 1.15, c.g * 1.15, c.b * 1.15, 0.9))
+		_tq_rect(t, (gg[0] as Vector2) - sz * 0.5, sz, Rect2(float(f) * fw, 0.0, fw, fh), gg[5], Color(c.r * 1.15, c.g * 1.15, c.b * 1.15, 0.9))
+	_tq_flush()
+
+
+## ---- 贴图三角批：同一张贴图的四边形攒进成员数组（Packed 数组是值类型，只有成员能原地追加），换贴图或 _tq_flush 时一次提交；
+## 提交时画布变换须为单位矩阵（本层不改变换）
+var _tq_t: Texture2D = null
+var _tq_p := PackedVector2Array()
+var _tq_c := PackedColorArray()
+var _tq_u := PackedVector2Array()
+
+
+## 四边形 p0..p3（左上、右上、右下、左下，对应源区 src 的四角）；flip = 左右镜像
+func _tq(t: Texture2D, p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, src: Rect2, flip: bool, col: Color) -> void:
+	if t != _tq_t:
+		_tq_flush()
+		_tq_t = t
+	var ts: Vector2 = t.get_size()
+	var u0: float = src.position.x / ts.x
+	var u1: float = src.end.x / ts.x
+	if flip:
+		var tu: float = u0
+		u0 = u1
+		u1 = tu
+	var v0: float = src.position.y / ts.y
+	var v1: float = src.end.y / ts.y
+	_tq_p.append_array([p0, p1, p2, p0, p2, p3])
+	_tq_u.append_array([Vector2(u0, v0), Vector2(u1, v0), Vector2(u1, v1), Vector2(u0, v0), Vector2(u1, v1), Vector2(u0, v1)])
+	_tq_c.append_array([col, col, col, col, col, col])
+
+
+func _tq_rect(t: Texture2D, pos: Vector2, sz: Vector2, src: Rect2, flip: bool, col: Color) -> void:
+	_tq(t, pos, pos + Vector2(sz.x, 0.0), pos + sz, pos + Vector2(0.0, sz.y), src, flip, col)
+
+
+func _tq_flush() -> void:
+	if _tq_t != null and not _tq_p.is_empty():
+		RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), _tq_p, _tq_c, _tq_u, PackedInt32Array(), PackedFloat32Array(), _tq_t.get_rid())
+	_tq_p = PackedVector2Array()
+	_tq_c = PackedColorArray()
+	_tq_u = PackedVector2Array()
+	_tq_t = null
 
 
 static func _hh(i: int) -> float:
@@ -379,10 +419,8 @@ func beam_line(st: Dictionary, a: Vector2, b: Vector2, c: Color, hw: float, el: 
 		var ph: float = fposmod(el * 2.4 + h, 1.0)
 		var fi: int = 2 + int(ph * 6.0)   # 只用后 6 帧（散开的颗粒），不要开头那团亮核
 		var p: Vector2 = a + d * (float(i) + 0.5) * step + nr * (1.0 if i % 2 == 0 else -1.0) * (hw + 4.0 + 8.0 * h)
-		var dst := Rect2(p - sz * 0.5, sz)
-		if i % 2 == 1:
-			dst = Rect2(dst.position + Vector2(sz.x, 0.0), Vector2(-sz.x, sz.y))
-		g.draw_texture_rect_region(t, dst, Rect2(float(fi) * fw, float(i % 3) * fh, fw, fh), Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.85))
+		_tq_rect(t, p - sz * 0.5, sz, Rect2(float(fi) * fw, float(i % 3) * fh, fw, fh), i % 2 == 1, Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.85))
+	_tq_flush()
 
 
 func _grains():
@@ -460,9 +498,11 @@ func draw_trails() -> void:
 		var c: Color = _col(b, true, Color(0, 0, 0, 0))
 		var d: Vector2 = v / sp
 		var sx: float = 2.0 * clampf(sp / 200.0, 0.8, 1.8)   # 拖尾按速度拉长：120 速约 26 px、快弹到 58 px
-		g.draw_set_transform(p - d * (float(b.get("r", 5.0)) + 2.0), d.angle(), Vector2(sx, 2.0))   # 从弹体可见边缘（r + 3）往后拖
-		g.draw_texture_rect_region(t, Rect2(-fw, -fh * 0.5, fw, fh), Rect2(float((fr0 + id) % 4) * fw, 0.0, fw, fh), Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.9))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var o: Vector2 = p - d * (float(b.get("r", 5.0)) + 2.0)   # 从弹体可见边缘（r + 3）往后拖
+		var ax: Vector2 = d * fw * sx
+		var ay: Vector2 = d.orthogonal() * fh   # 纵向 1 纹素 = 2 世界像素：半高 fh
+		_tq(t, o - ax - ay, o - ay, o + ay, o - ax + ay, Rect2(float((fr0 + id) % 4) * fw, 0.0, fw, fh), false, Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.9))
+	_tq_flush()
 
 
 ## 弹体上层（world 画完敌弹之后）：Boss 弹迸散帧条 + 新弹亮芯闪 + 消失残影（后两者进 world 的无贴图批）
@@ -479,10 +519,8 @@ func draw_top() -> void:
 					continue
 				var f: int = mini(7, int(el / POP_T * 8.0))
 				var c: Color = pp[1]
-				var dst := Rect2((pp[0] as Vector2) - sz * 0.5, sz)
-				if pp[5]:
-					dst = Rect2(dst.position + Vector2(sz.x, 0.0), Vector2(-sz.x, sz.y))
-				g.draw_texture_rect_region(t, dst, Rect2(f * fw, int(pp[4]) * fh, fw, fh), Color(c.r * 1.25, c.g * 1.25, c.b * 1.25, 1.0))
+				_tq_rect(t, (pp[0] as Vector2) - sz * 0.5, sz, Rect2(f * fw, int(pp[4]) * fh, fw, fh), pp[5], Color(c.r * 1.25, c.g * 1.25, c.b * 1.25, 1.0))
+			_tq_flush()
 	if not _on and ghosts.is_empty():
 		return
 	var k := 0
