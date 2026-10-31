@@ -198,3 +198,16 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 10-31 合入 claude/ult-fx-c2（水月水母群第三轮、归溟幽灵鲨弹射 + 巨锯、塞雷娅朝前打 v2、德克萨斯去剑雨）：塞雷娅岩柱改挂崩起碎石（strip fx_ul_rock+v）+ 拳风前推（strip fx_sa_air）；德克萨斯剑痕 / 斩开挂点仍对得上。画面配声加 match（任意字段等值）、#2 / #3（同一图形多条规则）、then（第二次起换槽）。生成器删槽时连孤立 .import 一起删（否则 Godot 从导入缓存继续放旧声；本次清掉 20 个）。
 重做中、等新画面再配：水月、归溟幽灵鲨、斯卡蒂、逻各斯、艾丽妮、拉普兰德、艾雅法拉、铃兰（10-31 夜 claude/ult-fx-c2、ult-irene-verdict、ult-la-lo-fwd 仍在改）。另 claude/ult-fx-power 改了塞雷娅范围（扇形），合并后要核对她的画面单元挂点（circle r110 / strip pillar_break）是否还在。
 挂点（ult_audio.json fx）与占位文件已在工作区，用户挑定后用 gen_sfx_ult_seg_1030.py 写正式文件再提交；没挑定前不提交这几人的 json，免得游戏里缺声。
+
+### 4.5 合入 ult-fx-power 06b3db7f9（冲击帧 + 时序调整）后的核对（10-31）
+冲击帧不跟第一下掉血走：招式自己在某一刻置 hf，下一帧起画（ult.gd `_draw_hit_frame`）。录屏 trace 加 `ultev:HF`（冲击帧第一拍）、`ultev:IMPACT`（第一下掉血）对时间线；新增 `hf_slot`：冲击帧第一拍直接播这个槽，高潮必落在冲击帧上。
+| 干员 | 冲击帧 | 结果 |
+|---|---|---|
+| 推进之王 | 2.70 | 砸地（circle r100）同帧，不用改 |
+| 塞雷娅 | 2.47 | 砸地（circle r110）同帧，不用改 |
+| 凯尔希 | 3.00 | impact 同帧，不用改 |
+| 维什戴尔 | 2.27 | impact 同帧；落弹帧条改名 fx_wd_cannon、余震改崩起碎石（fx_ul_rock+v），挂点补上 |
+| 星熊 | 3.60（掉血 3.70） | 原挂盾甲碎片（blade+v）已不画 → hf_slot = boom；裂纹改挂 strip fx_hs_crack（min_t 0.2） |
+| 歌蕾蒂娅 | 2.97 | 潮涌帧条已不画 → hf_slot = surge（水花帧条也没了，暂无水花声） |
+| 浊心斯卡蒂 | 6.53 | 收尾大爆改 v3（沿轨迹裂地）→ hf_slot = final |
+合并冲突：ult_moves_c.gd 流明段 ult-fx-c2（pixgen 光柱 lu_v2）与 ult-fx-power（暖光 v3，用户 10-31 反馈的版本）冲突，按协调人「ult-fx-power 为准」取后者整段；铃兰段保留 ult-fx-c2。

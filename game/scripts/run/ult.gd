@@ -1209,6 +1209,11 @@ func _draw_hit_frame(w) -> void:
 		_hf_serial = serial
 		_hf_n = [0, 0]
 		_hf_t0 = UM.now()
+		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+		if sx != null and sx.trace_on:   # 录屏对时间线：冲击帧第一拍（高潮音效要落在这一刻，docs/205 §4.2）
+			sx.trace.append([Engine.get_process_frames(), "ultev:HF", 0.0, 1.0])
+		if caster != null and str(_aud(str(caster.id)).get("hf_slot", "")) != "":   # 高潮音效直接挂冲击帧第一拍（ult_audio.json hf_slot）
+			_ua(str(_aud(str(caster.id)).hf_slot))
 	var t: float = UM.now() - _hf_t0
 	var inv: bool = t < ht or _hf_n[0] < 2   # 第 1 拍：白底黑剪影
 	if not inv and _hf_n[1] >= 2 and t >= ht * 2.0:
@@ -1510,6 +1515,9 @@ func impact(pos: Vector2) -> void:
 	_imp_pos = pos
 	_imp_boom = false
 	_ua("impact")
+	var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sx != null and sx.trace_on:   # 录屏对时间线：第一下掉血（impact）那一刻
+		sx.trace.append([Engine.get_process_frames(), "ultev:IMPACT", 0.0, 1.0])
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
 	if not (_hf_on() or act.get("hf_done", false) or act.get("soft", false)):   # soft：温柔型招式（流明）不闪白
 		flash_rt = _imp_rt   # 冲击帧招式不叠共用白闪：白闪会把冲击帧和拖影一起盖掉（用户 10-31「看不出区别」）
