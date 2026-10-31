@@ -836,8 +836,8 @@ static func _lo_v2(u) -> bool:
 ## 一枚咒印：w = 世界宽；从 0.5 倍在 opt.sc1d 秒内长到位；opt.spin 时画在地面层慢转
 static func _lo_glyph(u, p: Vector2, w: float, life: float, sd: float, opt := {}) -> Dictionary:
 	var name := PF.pick(u, LO_GLYPH, sd * 0.43)
-	var sc: float = w / PF.tex_w(u, name)
-	var s := {"sc": sc * 0.5, "sc1": sc, "scd": float(opt.get("sc1d", 0.12)), "life": life, "fade": float(opt.get("fade", 0.08)),
+	var sc: float = w / PF.tex_w(u, name) * (0.8 + 0.4 * PF.h(sd + 6.0))   # 11-01 预审「咒文等距同形」：每只大小 / 转角错开
+	var s := {"ang": (PF.h(sd + 3.0) - 0.5) * 0.6, "sc": sc * 0.5, "sc1": sc, "scd": float(opt.get("sc1d", 0.12)), "life": life, "fade": float(opt.get("fade", 0.08)),
 		"sx": -1.0 if PF.h(sd + 1.0) < 0.3 else 1.0, "col": opt.get("col", Color(1, 1, 1, 0.95)), "delay": float(opt.get("delay", 0.0))}
 	if opt.has("spin"):
 		s["spin"] = opt.spin
@@ -1002,6 +1002,10 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 			s["dout"] = 0.25
 	u.hush_until = preload("res://scripts/ui_motion.gd").now() + 0.05   # 寂静随爆炸收回，配乐回来
 	u.light(Vector2(a.cc), float(a.cr), LO_VIO, 0.4)
+	for q in 6:   # 11-01 预审「爆开后缺冷却、没分量」：圆内几团暗紫烟往外漫开（逐帧烟尘，错开时刻 / 大小）
+		var hq: float = PF.h(float(a.vs) + q * 2.7)
+		var dq := Vector2.from_angle(TAU * (q + hq * 0.7) / 6.0)
+		PF.dust(u, cc + dq * cr * (0.25 + 0.4 * hq), 180.0 + 90.0 * hq, 0.14 + 0.04 * q, float(a.vs) + q, dq * (50.0 + 40.0 * hq), Color(0.42, 0.36, 0.58))
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
 		sfx.play("boom", 0.0, 0.75)
@@ -1727,7 +1731,7 @@ static func _irv_final_cut(u, c: Vector2, R: float, vs: float, a := {}) -> void:
 		var x: float = (float(i) - 3.0) / 3.0
 		var bp: Vector2 = c + dv * R * x * 0.95 + dv.orthogonal() * (PF.h(vs + i) - 0.5) * 30.0
 		var dl: float = 0.08 + 0.04 * absf(x) * 3.0
-		PF.particles(u, bp, 200, "ult_burst", [Color(0.85, 0.72, 0.42), Color(0.5, 0.58, 0.78)], dl, vs + i * 9.0, 110.0 + 30.0 * PF.h(vs + i * 2.0))
+		PF.particles(u, bp, 80, "ult_burst", [Color(0.72, 0.6, 0.34), Color(0.36, 0.42, 0.6)], dl, vs + i * 9.0, 110.0 + 30.0 * PF.h(vs + i * 2.0))   # 11-01 预审：冲击帧后 7 团叠成一片近白 → 减量压暗
 		PF.dust(u, bp, 110.0, dl + 0.03, vs + i * 3.0, dv.orthogonal() * (60.0 if i % 2 == 0 else -60.0), Color(0.62, 0.62, 0.66))
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
