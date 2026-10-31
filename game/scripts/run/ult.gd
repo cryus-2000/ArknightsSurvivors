@@ -23,6 +23,7 @@ var g
 var energy := 0.0
 var cells := 0
 var _cell_t := -999.0       # 上一格协同的时刻（每格最短 ult/cell_gap 秒）
+var e_combo_on: bool = Bal.vi("ult/e_combo_on", 1) > 0   # E 连携技总开关（价值测量对照，缺省 1）
 var _combo_e_t := -999.0    # 上一次连携计入能量的时刻（每 ult/e_combo_gap 秒至多 1 次）
 var _sec := -1
 var _sec_gain := 0.0        # 本秒已获取（每秒总上限 ult/e_sec_cap）
@@ -538,6 +539,8 @@ func _tick_combo(dt: float) -> void:
 		var oid := str(o.id)
 		if g.t < float(cd.get(oid, -99.0)) or _queued(o) or _busy(o):
 			continue
+		if not e_combo_on:
+			continue   # 对照开关 ult/e_combo_on 0：E 连携技不亮（技能连携 / 终结技照旧；只供价值测量，缺省 1）
 		var info: Dictionary = Combo.check(self, o)
 		if not info.is_empty():
 			if queue.is_empty():
