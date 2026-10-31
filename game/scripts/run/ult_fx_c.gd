@@ -371,28 +371,28 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var dv: Vector2 = Vector2.from_angle(ang)
 	var nv: Vector2 = dv.orthogonal()
 	# 这一道爆亮（冲击帧）：橙白 → 暗红迅速冷却
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95, "life": 0.3, "fade": 0.18, "col": Color(1.15, 0.85, 0.7, 1.0), "col1": Color(0.55, 0.04, 0.04, 0.9), "cold": 0.14, "hf": true})
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95, "life": 0.3, "fade": 0.18, "col": Color(1.15, 0.85, 0.7, 1.0), "col1": Color(0.5, 0.16, 0.05, 0.9), "cold": 0.14, "hf": true})
 	# 斩开：上下两半往两边错开、同时沿刀向滑一点
 	for sd in [1.0, -1.0]:
 		_sz_slash(u, sname, a0 + nv * sd * 4.0, ang, SL, {"sy": 0.45 * sd, "delay": 0.04, "life": 0.26, "fade": 0.2, "v": nv * sd * 70.0 + dv * 60.0 * sd,
-			"col": Color(1.0, 0.5, 0.3, 0.9), "col1": Color(0.5, 0.03, 0.03, 0.7), "cold": 0.16})
+			"col": Color(1.0, 0.62, 0.35, 0.9), "col1": Color(0.45, 0.14, 0.05, 0.7), "cold": 0.16})
 	# 刀口：地上一道暗红细痕，慢慢褪
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.32, 0.03, 0.03, 0.9)})
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.2, 0.08, 0.05, 0.9)})
 	# 刀痕爆裂（用户 10-31「最后接一个刀痕爆裂」→「喷溅去掉，要收敛但冲击力足」）：不加任何喷溅，力量全靠一条线上的反差——
 	# 斩开后周围再压暗静一拍，刀口独亮；然后整条刀痕一下子绷开（一帧白热细芯 + 爆宽橙红 + 顿帧），立刻收回成更深更宽的刀口
 	var TB: float = Bal.v("ult/sz_rupt_t", 0.32)
 	u.shape({"kind": "circle", "c": a0.lerp(b0, 0.5), "r": 2600.0, "col": Color(0.0, 0.0, 0.02), "fill": 0.35, "hold": true, "delay": 0.14, "life": TB - 0.14})   # 静一拍：压暗
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.75, 0.12, 0.08, 0.95)})   # 刀口在压暗层上独亮
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.85, 0.42, 0.2, 0.95)})   # 刀口在压暗层上独亮
 	_sz_slash(u, sname, a0, ang, SL, {"sy": 1.35, "delay": TB, "life": 0.2, "fade": 0.14,
-		"col": Color(1.2, 0.7, 0.45, 1.0), "col1": Color(0.6, 0.04, 0.04, 0.9), "cold": 0.1})   # 绷开：爆宽后收
+		"col": Color(1.2, 0.7, 0.45, 1.0), "col1": Color(0.55, 0.18, 0.05, 0.9), "cold": 0.1})   # 绷开：爆宽后收
 	u.shape({"kind": "band", "a": a0, "b": b0, "w": 8.0, "col": Color(0.9, 0.82, 0.7), "fill": 0.85, "life": 0.05, "delay": TB})   # 白热细芯一帧（≤ 0.9）
 	u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.1))
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.26, 0.02, 0.02, 0.95)})   # 收成更深更宽的刀口
-	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_RED, 0.22)
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.17, 0.07, 0.04, 0.95)})   # 收成更深更宽的刀口
+	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_HOT, 0.22)
 	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)
 		var p: Vector2 = a0.lerp(b0, (k + 0.3 + 0.4 * hh) / 3.0)
-		PF.particles(u, p, 18, "ult_burst_s", [SZ_HOT, SZ_RED], 0.02 * k, vs + k, 50.0)
+		PF.particles(u, p, 18, "ult_burst_s", [SZ_HOT, SZ_FOX], 0.02 * k, vs + k, 50.0)
 
 
 # ================================================================ 水月 · 水母群（ult/mz_jelly，协调人 10-30 转用户「做个大概的给我看看」：粗稿）
