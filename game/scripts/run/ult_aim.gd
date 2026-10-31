@@ -20,7 +20,7 @@ static var _plan_src := ""
 
 
 static func on(u) -> bool:
-	if Bal.vi("ult/aim", 1) <= 0 or u.g.bot != null:
+	if Bal.vi("ult/aim", 1) <= 0:
 		return false
 	if _arg < 0:
 		_arg = 0
@@ -29,6 +29,8 @@ static func on(u) -> bool:
 				_arg = 1
 				if a.begins_with("--ultaimplan="):
 					_plan_src = a.substr(13)
+	if u.g.bot != null:
+		return _plan_src != ""   # 机器人局只在录片计划（--ultaimplan）时走 v2，批跑同 seed 不变
 	return not u.g.autotest or _arg == 1
 
 
@@ -41,6 +43,8 @@ static func begin(u) -> Array:
 	u._q_rt0 = UM.now()
 	u._aim_rt0 = UM.now()
 	u._aim_plan = _parse_plan()
+	if not u._aim_plan.is_empty():
+		u.aim_latched = true   # 录片计划：等计划里的 ok 再放（机器人按完 Q 立刻松开）
 	u._mouse0 = u.g.hud.get_local_mouse_position() if u.g.get("hud") != null else Vector2.ZERO
 	var mn: float = Bal.v("ult/aim_min_t", 0.12) * sc
 	if u.aim_kind == "none":
