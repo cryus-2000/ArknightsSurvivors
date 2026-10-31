@@ -922,10 +922,26 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 			if i % 3 == 0:   # 余韵：慢慢飘落的暗紫余烬
 				PF.particles(u, p, 40, "ult_ember", [Color(0.42, 0.36, 0.7)], 0.25, float(a.vs) + i * 5.0, 45.0)
 		i += 1
-	u.light(Vector2(a.cc), float(a.cr), LO_VIO, 0.3)
+	# 用户 10-31「logos 缺一个爆发的感觉」：咒印缩完那一下整片同时爆——冲击帧（顿帧 + 慢放）+ 圆心一团大紫白爆 + 一圈暗紫冲击环推到圆边 +
+	# 每只咒印处一团大号紫粒子（不只是小撮）+ 去色在爆的瞬间收回（颜色一下回来 = 时间重新流动）
+	u.impact(Vector2(a.cc))
+	PF.particles(u, Vector2(a.cc), 600, "ult_burst", [LO_VIO, Color(0.9, 0.85, 1.0)], 0.1, float(a.vs) + 50.0, float(a.cr) * 0.9)
+	PF.ring(u, ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"], Vector2(a.cc), 40.0, float(a.cr) * 1.05, 0.25, 0.55,
+		{"seed": float(a.vs), "layer": "front", "col": Color(0.85, 0.75, 1.1, 0.85), "col1": Color(0.35, 0.28, 0.55, 0.5), "cold": 0.25, "delay": 0.1, "fade": 0.3})
+	var j := 0
+	for mk in a.marks:
+		if j < 24:
+			PF.particles(u, mk.s.c, 120, "ult_burst_s", [LO_VIO, Color(0.85, 0.8, 1.0)], 0.1, float(a.vs) + j * 4.0, 90.0)
+		j += 1
+	for s in u.shapes:   # 去色在爆的瞬间收回
+		if s.has("desat"):
+			s.max = minf(float(s.max), float(s.age) + 0.25)
+			s["dout"] = 0.25
+	u.hush_until = preload("res://scripts/ui_motion.gd").now() + 0.05   # 寂静随爆炸收回，配乐回来
+	u.light(Vector2(a.cc), float(a.cr), LO_VIO, 0.4)
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
-		sfx.play("boom", -4.0, 0.7)
+		sfx.play("boom", 0.0, 0.75)
 
 
 static func _lo_outside(u, a: Dictionary, p: Vector2):
@@ -1590,14 +1606,14 @@ static func _la_fly_wave(u, a: Dictionary, dv: Vector2, sd: float, pr: float, i:
 	var p0: Vector2 = Vector2(a.org) + Vector2(a.d) * (float(Bal.v("ult/la_back", 100.0)) + 40.0) + dv.orthogonal() * (PF.h(sd + 2.2) - 0.5) * 60.0
 	var life: float = float(a.R) / spd
 	var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * lerpf(0.3, 0.8, pr)
-	var ln: float = lerpf(220.0, 420.0, PF.h(sd + 4.0))
-	var th: float = lerpf(2.0, 3.0, PF.h(sd + 5.5))
+	var ln: float = lerpf(150.0, 260.0, PF.h(sd + 4.0))   # 用户 10-31「稍微小一点，现在太粗糙」：长 220–420 → 150–260、粗 2–3 → 1.1–1.5（放大过头像素块糊）
+	var th: float = lerpf(1.1, 1.5, PF.h(sd + 5.5))
 	var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
 	_la_cut(u, p0, ang, ln * 0.95, sd + 0.5, life, Color(0.4, 0.4, 0.43, 0.55), th * 1.25, true, dv * spd, 0.03)   # 残影
 	_la_cut(u, p0, ang, ln, sd, life, Color(col, 0.95), th, true, dv * spd)
 	if PF.h(sd + 7.0) < 0.18:
 		var xn := PF.pick(u, LA_X, sd)
-		u.strip(xn, p0, {"ang": dv.angle(), "sc": 130.0 / PF.tex_w(u, xn), "life": life, "fade": life * 0.35, "v": dv * spd * 0.9, "col": Color(1.25, 1.0, 0.85)})   # 十字刃原图冷蓝，压成灰白
+		u.strip(xn, p0, {"ang": dv.angle(), "sc": 90.0 / PF.tex_w(u, xn), "life": life, "fade": life * 0.35, "v": dv * spd * 0.9, "col": Color(1.25, 1.0, 0.85)})   # 十字刃原图冷蓝，压成灰白
 	if i % 4 == 0:
 		PF.particles(u, p0, 40, "ult_burst_s", [LA_ICE, LA_SILVER], 0.0, sd, 50.0)
 
