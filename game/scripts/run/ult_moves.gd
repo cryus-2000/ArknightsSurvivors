@@ -606,7 +606,7 @@ static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 		return
 	bt.append(t)
 	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc * 1.5})
-	u.shape({"kind": "circle", "c": p, "r": 46.0 * sc, "col": EX_GOLD, "fill": 0.7, "life": 0.1})
+	u.shape({"kind": "circle", "c": p, "r": 46.0 * sc, "col": EX_GOLD, "fill": 0.4 if _ex_v3() else 0.7, "life": 0.1})
 	u.shape({"kind": "ring", "c": p, "r": 92.0 * sc, "r1": 20.0, "w": 6.0, "col": EX_RED, "life": 0.24})   # 缺省碎裂：一圈红色碎块往外崩
 	var i: int = bt.size()
 	u.grain("bul_pop", p, Vector2.from_angle(float(int(a.fired)) * 2.39996), EX_GOLD if i % 2 == 0 else EX_RED, 7)
@@ -631,16 +631,17 @@ static func _ex_bullet(u, a: Dictionary, p0: Vector2, dest: Vector2, tg, k: int,
 	var cc: Color = EX_RED if k % 2 == 0 else EX_GOLD
 	var sh: Array = [
 		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 6.0, "col": cc, "life": 2.0}),
-		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 3.0, "col": Color(1.0, 0.95, 0.75), "life": 2.0}),
-		_ex_keep(u, {"kind": "circle", "c": p0, "r": 5.0, "col": Color(1.0, 0.97, 0.85), "fill": 1.0, "life": 2.0}),
+		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 3.0, "col": EX_GOLD if _ex_v3() else Color(1.0, 0.95, 0.75), "life": 2.0}),   # v3 芯改金色：近距离连射白芯叠成一片白（预审 10-31）
+		_ex_keep(u, {"kind": "circle", "c": p0, "r": 4.0 if _ex_v3() else 5.0, "col": Color(1.0, 0.88, 0.55) if _ex_v3() else Color(1.0, 0.97, 0.85), "fill": 1.0, "life": 2.0}),
 	]
 	a.fx.append_array(sh)
-	a.bul.append({"p": p0, "tg": tg, "dest": dest, "sh": sh, "info": info, "age": 0.0})
+	a.bul.append({"p": p0, "tg": tg, "dest": dest, "sh": sh, "info": info, "age": 0.0, "L0": maxf(1.0, p0.distance_to(dest)),
+		"bend": (1.0 if int(info.get("n", k)) % 2 == 0 else -1.0) * (14.0 + 22.0 * PF.h(float(info.get("n", k)) * 0.73))})
 
 
 static func _ex_fly(u, a: Dictionary, o, dt: float) -> void:
 	var spd: float = Bal.v("ult/ex_bspd", 2600.0)
-	var ln: float = Bal.v("ult/ex_tr_len", 40.0)
+	var ln: float = Bal.v("ult/ex_tr_len", 26.0 if _ex_v3() else 40.0)   # v3 曳光再短一截：同方向连射时弹与弹之间空隙更大（用户「到后面会连成光束」，10-31 预审仍报）
 	var arrived: Array = []
 	for b in a.bul:
 		var tg = b.tg
@@ -658,14 +659,21 @@ static func _ex_fly(u, a: Dictionary, o, dt: float) -> void:
 		p += d * step
 		b.p = p
 		var tl: float = minf(ln, Vector2(p).distance_to(Vector2(b.info.get("from", p))))
+		var vp: Vector2 = p   # 画面位置：v3 每颗子弹往左 / 右各弯一点（中途最弯、落点不变），同方向连射散成交错的弧，不排成一条虚线
+		var vd: Vector2 = d
+		if _ex_v3():
+			var pr: float = clampf(1.0 - (dl - step) / float(b.L0), 0.0, 1.0)
+			var bend: float = float(b.bend)
+			vp = p + d.orthogonal() * bend * sin(pr * PI)
+			vd = (d + d.orthogonal() * bend * cos(pr * PI) * PI / float(b.L0)).normalized()
 		var s0: Dictionary = b.sh[0]
-		s0.a = p - d * tl
-		s0.b = p
+		s0.a = vp - vd * tl
+		s0.b = vp
 		var s1: Dictionary = b.sh[1]
-		s1.a = p - d * tl * 0.45
-		s1.b = p
+		s1.a = vp - vd * tl * 0.45
+		s1.b = vp
 		var s2: Dictionary = b.sh[2]
-		s2.c = p
+		s2.c = vp
 		for s in b.sh:
 			s.age = 0.0
 	for b in arrived:
@@ -683,6 +691,20 @@ static func _ex_land(u, a: Dictionary, o, b: Dictionary) -> void:
 	var R: float = a.R
 	var er: float = R * (1.0 - _edge_w())
 	var kind: String = str(info.get("kind", "ground"))
+	# 冲击帧（用户 10-31「放在第一轮爆炸最多的时候」）：0.2 秒内落地的爆点第一次达到 ult/ex_hf_n（5）个时（1 秒还没到就在 1 秒时）
+	# 这一发打冲击帧（这一发的爆点 + 一道红金碎环 + 同屏在场的爆点帧条进剪影）+ 短顿帧
+	var fv: bool = _ex_v3() and not a.get("fv", false) and (a.bt.size() + 1 >= int(Bal.v("ult/ex_hf_n", 5.0)) or float(a.t) >= 1.0)
+	var n0: int = u.shapes.size()
+	if fv:
+		a["fv"] = true
+		u.strip("fx_ult_exusiai_burst_front", imp, {"o": Vector2(64, 64), "sc": 2.4})
+		u.shape({"kind": "ring", "c": imp, "r": 170.0, "r1": 30.0, "w": 10.0, "col": EX_GOLD, "life": 0.35})
+		PF.hf_since(u, n0)
+		for s in u.shapes:   # 同屏还在炸的爆点一起进剪影（第一轮一片爆点）
+			if str(s.get("name", "")) == "fx_ult_exusiai_burst_front":
+				s["hf"] = true
+		PF.hf_on(u, a)
+		u.g.vfx.stop(Bal.v("ult/ex_hitstop", 0.08), "ult", true)
 	if kind == "ground":
 		_ex_burst(u, a, imp, 0.8)
 		return
@@ -744,6 +766,15 @@ static func _ex_shoot(u, a: Dictionary, o, dest: Vector2, tg, info: Dictionary) 
 	u.grain("bul_spawn", mz + d * 14.0, d, EX_GOLD, 2)
 	var mf: Dictionary = a.mzf[k]
 	mf.r = 30.0
+	if _ex_v3():   # 火药烟（每把枪每 3 发一小团逐帧烟尘）+ 弹壳（每 2 发往外侧后方抛一枚黄铜壳，带重力落地）
+		var nf: int = int(a.fired)
+		var side: Vector2 = Vector2(-1.0 if k == 0 else 1.0, 0.0)
+		if nf % 3 == k:
+			PF.dust(u, mz + d * 26.0, 70.0, 0.0, float(nf) * 0.37, d * 40.0 + Vector2(0, -30), Color(0.85, 0.82, 0.78))
+		if nf % 2 == 0:
+			var hs: float = PF.h(float(nf) * 0.61)
+			u.shape({"kind": "rock", "c": mz + Vector2(0, 6), "r": 3.0, "col": Color(0.85, 0.65, 0.25), "glow": Color(1.0, 0.85, 0.4), "seed": float(nf), "rot": hs * TAU,
+				"spin": 18.0 * (hs - 0.5), "v": side * (120.0 + 80.0 * hs) + Vector2(0, -260.0 - 80.0 * hs), "grav": 1500.0, "hold": true, "life": 0.55})
 	info["n"] = int(a.fired)
 	info["from"] = mz + d * 16.0
 	_ex_bullet(u, a, mz + d * 16.0, dest, tg, k, info)
@@ -784,6 +815,11 @@ static func _ex_step(u, a: Dictionary, o) -> bool:
 			ext.cnt["mag"] = float(ext.cap["mag"])
 		return true
 	return false
+
+
+## 能天使打击感（10-31，pixfx §6.6）：收尾齐射冲击帧 + 火药烟 + 弹壳；0 = 10-30 版
+static func _ex_v3() -> bool:
+	return Bal.v("ult/ex_fx_v3", 1.0) > 0.0
 
 
 ## 能天使的伤害：连携终结技时份额上限在 a.share（_hit 读 cap，这里换名避免和总发数冲突）
@@ -963,6 +999,9 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 		_hit(u, a, o, e, float(a.tfrac), {"src": "爆裂", "edge": e.pos.distance_to(c) > er})
 	var i: int = int(a.nb)
 	a.nb = i + 1
+	if not a.has("tp"):
+		a["tp"] = []
+	a.tp.append(p)   # 轨迹爆点位置：收尾大爆沿这条吐息走过的路裂地（用户 10-31）
 	if a.echo:
 		_sk_zone(u, a, p)
 	if a.get("v2", false):
@@ -1034,6 +1073,39 @@ static func _sk_blast_v2(u, p: Vector2, k: float, seed0: float, delay := 0.0) ->
 	u.strip(SK_FLASH, p, {"sc": 1.1 * k, "ang": seed0 * 0.9, "life": 0.07, "delay": delay})
 	u.strip(SK_BLAST, p, {"sc": 40.0 * k / br, "sc1": 95.0 * k / br, "scd": 0.16, "ang": seed0 * 1.7, "life": 0.38, "fade": 0.22,
 		"col": Color.WHITE, "col1": SK_COLD, "cold": 0.22, "delay": delay})
+
+
+## 收尾大爆 v3（用户 10-31「最后的爆炸应该是在攻击方式内裂地」）：不再以她为圆心放一圈放射裂网，改沿吐息烧过的轨迹——
+## 相邻轨迹爆点之间撕开一道暗红裂缝（分叉裂缝贴图顺着路径铺、从吐息起点往末端依次裂开），每个轨迹点（至多 10 个）再炸一团 + 碎岩 + 逐帧烟尘。判定不动
+static func _sk_final_v3(u, tp: Array, c: Vector2) -> void:
+	var pts: Array = []
+	var step: int = maxi(1, ceili(float(tp.size()) / 10.0))
+	for i in range(0, tp.size(), step):
+		pts.append(tp[i])
+	var t: Texture2D = u._strip_tex(UL_FORK) if u.fx_ready(UL_FORK) else null
+	var tw: float = t.get_width() / A.hires_of(t) * u.g.PX if t != null else 1.0
+	for i in pts.size():
+		var p: Vector2 = pts[i]
+		var dl: float = 0.04 * i   # 从吐息起点往末端依次炸开
+		var h: float = _ulh(i * 3.7 + 600.0)
+		_sk_blast_v2(u, p, 0.9 + 0.5 * h, float(i), dl)
+		if t != null and i + 1 < pts.size():   # 裂缝顺着这一段轨迹撕开
+			var q: Vector2 = pts[i + 1]
+			var seg: Vector2 = q - p
+			if seg.length() > 30.0:
+				u.strip(UL_FORK, p, {"layer": "back", "ang": seg.angle(), "o": Vector2(0.0, t.get_height() * 0.5),
+					"sx": seg.length() * 1.15 / tw, "sy": (0.7 if i % 2 == 0 else 0.5) * (1.0 if h < 0.5 else -1.0),
+					"rev": 0.12, "rev0": 0.15, "delay": dl, "life": 1.9, "fade": 0.7, "col": Color(1.0, 0.75, 0.8), "col1": Color(0.4, 0.22, 0.26), "cold": 0.7})
+		if t != null and h < 0.5:   # 轨迹点上再往旁边岔一条短裂缝
+			u.strip(UL_FORK, p, {"layer": "back", "ang": (p - c).angle() + (h - 0.25) * 2.4, "o": Vector2(0.0, t.get_height() * 0.5),
+				"sx": (90.0 + 80.0 * h) / tw, "sy": 0.4, "rev": 0.12, "rev0": 0.15, "delay": dl + 0.04, "life": 1.6, "fade": 0.6,
+				"col": Color(1.0, 0.75, 0.8), "col1": Color(0.4, 0.22, 0.26), "cold": 0.6})
+		for m in 2:
+			var hm: float = _ulh(i * 5.0 + m + 700.0)
+			var dv := Vector2.from_angle(hm * TAU)
+			_ul_rock(u, p + dv * 20.0, dv * 50.0, 160.0 + 160.0 * hm, hm, 0.45, dl + 0.02 * m)
+		if i % 2 == 0:
+			PF.dust(u, p, 170.0 + 60.0 * h, dl + 0.06, h * 40.0 + i, (p - c).normalized() * 40.0, Color(1.0, 0.82, 0.84))
 
 
 ## 收尾大爆：中心大爆 + 外围一圈错开的爆 + 裂网（借乌尔比安分叉裂缝，调成暗红）+ 地块隆起
@@ -1302,7 +1374,15 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		u.shake(9.0, 0.45)
 		# 收尾大爆：不铺满屏实心红圆（10-30 美术口径），中心一团碎块炸开 + 一圈圈碎裂冲击 + 大量颗粒 / 碎屑
 		if a.get("v2", false):
-			_sk_final_v2(u, c, L)
+			var n0: int = u.shapes.size()
+			var v3: bool = Bal.v("ult/sk_fx_v3", 1.0) > 0.0 and a.get("tp", []).size() >= 2
+			if v3:
+				_sk_final_v3(u, a.tp, c)
+				PF.hf_since(u, n0, [SK_BLAST])   # 打击感（10-31）：收尾大爆冲击帧（爆团剪影）+ 顿帧
+				PF.hf_on(u, a)
+				u.g.vfx.stop(Bal.v("ult/sk_hitstop", 0.1), "ult", true)
+			else:
+				_sk_final_v2(u, c, L)
 		else:
 			u.shape({"kind": "rock", "c": c, "r": 90.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "core": COL_SK_TEAL, "seed": 5.0, "fill": 0.9, "hold": false, "life": 0.22})
 		for m2 in 16:
@@ -1545,7 +1625,12 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 		o.ObSummon._sm_end(o, a.m3, "leave")   # Mon3tr 炸开用掉：8 秒内不在场（不执行 on_expire）
 		o.set_meta("ult_m3_back", u.g.t + 9.0)   # 兜底：动作被中途清掉时，下次任何人放终结技会补回 Mon3tr
 	if a.get("v2", false):
+		var n0: int = u.shapes.size()
 		_ka_blast_v2(u, c, core, R)
+		if Bal.v("ult/ka_fx_v3", 1.0) > 0.0:   # 打击感（10-31）：红色粒子爆炸进冲击帧剪影 + 顿帧；Mon3tr 不加烟团（用户 10-30）
+			PF.hf_since(u, n0)
+			PF.hf_on(u, a)
+			u.g.vfx.stop(Bal.v("ult/ka_hitstop", 0.12), "ult", true)
 		u.light(core, R * 0.9, KA_RED, 0.6)
 		u.light(c, 300.0, Color(1.0, 0.55, 0.45), 0.25)
 		u.shake(9.0, 0.4)

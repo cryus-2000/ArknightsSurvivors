@@ -17,6 +17,8 @@ const POINT_OPS: Array = ["siege"]
 
 const COL_AMBER := Color(1.0, 0.72, 0.3)
 const COL_LIGHT := Color(0.96, 0.98, 1.0)
+const LU_WARM := Color(1.0, 0.72, 0.36)   # 流明 v3 暖光：外层 / 光芒
+const LU_HI := Color(1.0, 0.93, 0.78)     # 流明 v3 暖光：内芯 / 光圈
 const COL_INK := Color(0.3, 0.32, 0.85)
 const COL_RED := Color(0.95, 0.25, 0.18)
 const COL_ROCK := Color(0.62, 0.48, 0.3)
@@ -445,6 +447,11 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 	u.light(org + fw * R * 0.4, R * 0.7, Color(1.0, 0.92, 0.75), 0.4)
 	u.debris(org + fw * 60.0, Color(0.85, 0.8, 0.7), 3)
 	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 80.0, "ry": 38.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.6, "life": 1.8, "layer": "back"})
+	var v3: bool = Bal.v("ult/sa_fx_v3", 1.0) > 0.0
+	var n0: int = u.shapes.size()
+	if v3:   # 拳影拖影（smear）：出拳一帧拉长的拳风带，代替补间（pixfx §6.6）
+		u.shape({"kind": "band", "a": org + fw * 20.0, "b": org + fw * 220.0, "w": 70.0, "col": Color(1.0, 0.95, 0.85), "fill": 0.55, "life": 0.08})
+		u.shape({"kind": "band", "a": org + fw * 20.0, "b": org + fw * 300.0, "w": 26.0, "col": Color(1.0, 0.85, 0.55), "fill": 0.8, "life": 0.1})
 	# ① 先裂地：中间一道主漏斗 + 两侧两道小一点的，铺满前方扇形
 	for m in 3:
 		var side: float = 0.0 if m == 0 else (half * 0.6 * (1.0 if m == 1 else -1.0))
@@ -454,7 +461,10 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		var k: float = R * (1.0 if m == 0 else (0.78 if m == 1 else 0.66)) / PF.tex_w(u, fn)
 		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * 0.1, "o": Vector2(0.0, ft.get_height() * 0.5),
 			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * wk * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
-			"rev": 0.14 + 0.05 * m, "rev0": 0.1, "delay": [0.0, 0.05, 0.09][m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})
+			"rev": 0.12 if v3 else 0.14 + 0.05 * m, "rev0": 0.1, "delay": ([0.0, 0.02, 0.03] if v3 else [0.0, 0.05, 0.09])[m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})   # v3：两侧漏斗和中间一样快撕开（用户 10-31「最旁边的出现太慢」）
+	if v3:   # 冲击帧（用户 10-31）：出拳那一下，拳影 + 三道漏斗印子进剪影（往前张开的一把扇）
+		PF.hf_since(u, n0)
+		PF.hf_on(u, a)
 	# ② 再拳风空气爆炸：两层气浪往前炸开
 	var at: Texture2D = u._strip_tex(SA_AIR)
 	var ka: float = R * 0.8 / PF.tex_w(u, SA_AIR)
@@ -468,7 +478,13 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		var r0: float = 30.0 + 80.0 * PF.h(q * 3.0 + vs)
 		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 60.0 + 110.0 * PF.h(q + 7.0 + vs)), "w": 4.0 if q % 3 == 0 else 2.5,
 			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(q + 11.0)), "delay": 0.16 + 0.03 * PF.h(q + 13.0 + vs), "v": dv * spd * (0.9 + 0.4 * PF.h(q + 17.0))})
-	PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.16, vs, R * 0.35)
+	if v3:   # 拳风卷起的逐帧烟尘：前方扇形里五团、由近到远依次冒、往前推（代替灰点粒子）
+		for q in 5:
+			var hq: float = PF.h(vs * 3.0 + q)
+			var dq := Vector2.from_angle(fa + (float(q) / 4.0 - 0.5) * 1.6 * half + (hq - 0.5) * 0.2)
+			PF.dust(u, org + dq * R * (0.3 + 0.35 * hq), 200.0 + 80.0 * hq, 0.16 + 0.04 * q, vs + q, dq * (90.0 + 60.0 * hq), Color(1.0, 0.95, 0.88))
+	else:
+		PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.16, vs, R * 0.35)
 	a["vs"] = vs
 	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18, R * 0.55, 1], [float(a.t) + 0.36, R * 0.8, 2], [float(a.t) + 0.54, R * 1.0, 3]]
 	if a.get("cone", false):
@@ -484,17 +500,30 @@ const SG_RINGS := ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"]
 const SG_FORKS := ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"]
 
 
+static func _sg_v3() -> bool:   # 推进之王打击感（10-31）：冲击帧 + 逐帧烟尘 + 浮空落地扬尘；0 = 10-30 版
+	return Bal.v("ult/sg_fx_v3", 1.0) > 0.0
+
+
 static func _sg_v2(u) -> bool:
 	return Bal.v("ult/sg_fx_v2", 1.0) > 0.0 and PF.pick(u, SG_RINGS, 0.0) != "" and PF.pick(u, SG_FORKS, 0.0) != ""
 
 
-static func _sg_smash_v2(u, c: Vector2, R: float) -> void:
+static func _sg_smash_v2(u, c: Vector2, R: float, a := {}) -> void:
 	var vs: float = PF.vseed(u, c)
+	var n0: int = u.shapes.size()
 	PF.ring(u, SG_RINGS, c, 60.0, R * 1.02, 0.28, 0.4, {"seed": vs, "fade": 0.3, "col": Color(1, 1, 1, 0.7)})
 	_ring(u, c, R, 60.0, COL_ROCK.lerp(Color.WHITE, 0.2), 0.4, 6.0)   # 细的范围环
 	PF.crack_net(u, SG_FORKS, c, R, 11 + int(PF.h(vs + 1.0) * 5.0), PF.h(vs + 2.0) * TAU, vs, 0.54, Color(1.1, 1.08, 1.05), Color(0.3, 0.29, 0.28), 30.0, true)   # crop：预审报同形瓦片重复
 	u.g.vfx.stop(Bal.v("ult/sg_hitstop", 0.1), "ult", true)
-	PF.particles(u, c, 200, "ult_burst_s", [Color(0.95, 0.92, 0.85), Color(0.7, 0.68, 0.62)], 0.0, vs)   # 锤坑迸出的碎石尘
+	if _sg_v3():   # 打击感（10-31，pixfx §6.6）：冲击帧（冲击环 + 裂网剪影）+ 锤坑六团逐帧烟尘往外推，代替灰点粒子
+		PF.hf_since(u, n0)
+		PF.hf_on(u, a)
+		for q in 6:
+			var hq: float = PF.h(vs * 3.0 + q)
+			var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 6.0)
+			PF.dust(u, c + dq * R * (0.2 + 0.25 * hq), 200.0 + 80.0 * hq, 0.03 * (q % 3), vs + q, dq * (60.0 + 50.0 * hq))
+	else:
+		PF.particles(u, c, 200, "ult_burst_s", [Color(0.95, 0.92, 0.85), Color(0.7, 0.68, 0.62)], 0.0, vs)   # 锤坑迸出的碎石尘
 	PF.aftershock(u, c, R, 7.0 + vs, 0.54 + 0.3, 12)   # 尘土墙（同一张截段排一圈）预审报瓦片重复，去掉
 
 
@@ -909,7 +938,7 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 	u.shape({"kind": "circle", "c": c, "r": 100.0, "col": Color.WHITE, "fill": 0.9, "life": 0.1})
 	var v2: bool = big and _sg_v2(u)
 	if v2:
-		_sg_smash_v2(u, c, R)
+		_sg_smash_v2(u, c, R, a)
 	else:
 		u.shape({"kind": "circle", "c": c, "r": R, "col": COL_ROCK, "fill": 0.22, "life": 0.3})
 		_ring(u, c, R, 60.0, col.lerp(Color.WHITE, 0.3), 0.4, 16.0 if big else 10.0)
@@ -994,7 +1023,11 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 			_once(u, a, o, a.fseg, e, Bal.v("ult/sg_fall", 0.25), {"src": "落地", "edge": bool(e.get("_sg_edge", false))})
 			if n < 30:
 				n += 1
-				u.shape({"kind": "dots", "c": ar.e.pos, "r": 20.0, "n": 5, "col": COL_ROCK, "life": 0.3})
+				if _sg_v3() and _sg_v2(u):   # 浮空的落地：前 8 只各扬一小团逐帧烟尘（有重量）
+					if n <= 8:
+						PF.dust(u, ar.e.pos, 90.0, 0.0, float(e.id) * 0.37, Vector2.ZERO)
+				else:
+					u.shape({"kind": "dots", "c": ar.e.pos, "r": 20.0, "n": 5, "col": COL_ROCK, "life": 0.3})
 		for e in a.still:
 			if not e.dead:
 				_once(u, a, o, a.fseg, e, Bal.v("ult/sg_fall", 0.25), {"src": "落地", "edge": bool(e.get("_sg_edge", false))})
@@ -1224,35 +1257,33 @@ static func _lu_start(u, o) -> Dictionary:
 	var g = u.g
 	var c: Vector2 = o.pos
 	var dur: float = Bal.v("ult/lu_dur", 2.0)
-	var col: Color = u._col(o)
+	var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
+	var col: Color = LU_WARM if v3 else u._col(o)   # v3 暖光（用户 10-31「流明的光现在还是蓝色的」）：干员色偏蓝青、COL_LIGHT 偏冷白，都换暖色
+	var hi: Color = LU_HI if v3 else COL_LIGHT
 	var H: float = 620.0
-	var v2: bool = FC.lu_v2(u)   # 光柱 v2：pixgen 通透光面 + 碎光环（ult/lu_fx_v2）
-	if not v2:
-		# 光柱：外层干员色、内芯白；脚下灯塔点亮（fx_beacon_ignite）
-		u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -H), "w": 86.0, "col": col, "fill": 0.45, "life": dur + 0.3})
-		u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": COL_LIGHT, "fill": 0.85, "life": dur + 0.25})
-		u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": COL_LIGHT, "glow": col, "grow": 0.15, "life": 0.4})
-		u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2})
-		u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(0.85, 0.95, 1.0)})   # v2 不画：旧橙色格纹点燃帧条放大 3 倍，发白且画风不合
+	# 光柱：外层干员色、内芯白；脚下灯塔点亮（fx_beacon_ignite）
+	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -H), "w": 86.0, "col": col, "fill": 0.45, "life": dur + 0.3})
+	u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": hi, "fill": 0.85, "life": dur + 0.25})
+	u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": hi, "glow": col, "grow": 0.15, "life": 0.4})
+	u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(1.0, 0.85, 0.6) if v3 else Color(0.85, 0.95, 1.0)})
+	u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2, "col": Color(1.0, 0.82, 0.55) if v3 else Color.WHITE})
 	g.lamp = maxf(g.lamp, float(g.lamp_cap))   # 附带：灯火补满
 	g.nerve = 0.0   # 清除神经损伤，6 秒内不再累积
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
 	var ticks: int = 0 if rt == "watch" else 4
 	var R: float = Bal.v("ult/lu_r", 502.0)
-	var a := {"c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
+	return {"c": c, "R": R, "rc": R * Bal.v("ult/lu_core", 0.872), "t0": Bal.v("ult/lu_rise", 0.2), "exp": 0.25, "ef": 0.7 if rt == "rain" else 0.8,
 		"eseg": {}, "boomed": false, "dur": dur, "tick": 0, "ticks": ticks, "tseg": [{}, {}, {}, {}], "rain": rt == "rain", "rseg": [{}, {}],
 		"rn": 0, "rf": 0, "watch": rt == "watch", "wseg": {}, "wcnt": {}, "rot": 0.0}
-	if v2:
-		a["v2"] = true
-		FC.lu_start(u, a, c, dur)
-	return a
 
 
 static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	var t: float = a.t
 	var c: Vector2 = a.c
 	var R: float = a.R
-	var col: Color = u._col(o)
+	var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
+	var col: Color = LU_WARM if v3 else u._col(o)
+	var lc: Color = LU_HI if v3 else COL_LIGHT   # v3 暖光：本函数里的「光色」全换暖白
 	var rc: float = a.rc
 	var t0: float = a.t0
 	if t < t0:
@@ -1262,15 +1293,26 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		a.boomed = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		if a.has("v2"):
-			FC.lu_boom(u, a, c, R)
+		_ring(u, c, R, 40.0, lc, 0.5, 18.0)
+		_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
+		if v3:   # 暖光（用户 10-31「他应该是暖光」「改的有点多了」）：满圈填充浓度同旧版、只换成暖金；放射光芒 20 → 12 道、暖色、更短
+			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.78, 0.45), "fill": 0.2, "life": 0.45})
+			for j in 12:
+				var dv := Vector2.from_angle(j * TAU / 12.0 + 0.13)
+				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R * 0.85, "w": 2.0, "col": Color(1.0, 0.86, 0.55), "life": 0.22})
 		else:
-			_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
-			_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
 			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
 			for j in 20:   # 光芒放射
 				var dv := Vector2.from_angle(j * TAU / 20.0)
-				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
+				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": lc, "life": 0.3})
+		if v3:   # 不打冲击帧、不叠共用白闪（用户 10-31「流明不加冲击帧，他应该是比较温柔的」）
+			a["soft"] = true
+			u.act["soft"] = true
+			# 余辉（用户 10-31「余辉像弹出来的」）：光圈扩散起就铺一层地面暖光，随光柱持续慢慢亮起，熄灭后 2 秒褪掉
+			a["glow_s"] = {"kind": "circle", "c": c, "r": R * 0.85, "col": Color(1.0, 0.72, 0.38), "fill": 0.0, "life": 99.0, "layer": "back"}
+			u.shape(a.glow_s)
+			a["glow_r"] = {"kind": "ring", "c": c, "r": R * 0.85, "w": 4.0, "col": Color(1.0, 0.8, 0.45, 0.0), "solid": true, "life": 99.0}
+			u.shape(a.glow_r)
 	var T: float = a.exp
 	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
 		a["edone"] = el >= T
@@ -1282,13 +1324,9 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	if el <= dur:
 		a.rot = float(a.rot) + TAU / Bal.v("ult/lu_rot_t", 1.0) * dt
 		var fade: float = 1.0 - el / dur
-		if a.has("v2"):
-			FC.lu_step(u, a, c, el, dur)
-			FC.lu_beams(u, a, c, R, [float(a.rot), float(a.rot) + PI], (0.75 if a.watch else 0.4) * fade + 0.1)
 		for s in 2:
 			var ba: float = float(a.rot) + PI * s
-			if not (a.has("v2") and u.fx_ready(FC.LU_SHAFT)):   # 光束贴图缺时仍画扇形
-				u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": COL_LIGHT, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
+			u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": lc, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
 			if a.watch:
 				for e in _in_sector(u, c, R, ba, 0.09):
 					var k: int = int(e.id)
@@ -1302,11 +1340,8 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	while int(a.tick) < int(a.ticks) and el >= 0.5 * (int(a.tick) + 1):
 		var i: int = int(a.tick)
 		a.tick = i + 1
-		if a.has("v2"):
-			FC.lu_tick(u, a, c, R, i)
-		else:
-			_ring(u, c, R, R * 0.75, Color(col.lerp(Color.WHITE, 0.5), 0.8), 0.3, 5.0)
-			u.shape({"kind": "dots", "c": c, "r": R * 0.9, "n": 20, "col": COL_LIGHT, "life": 0.35})
+		_ring(u, c, R, R * 0.75, Color(col.lerp(Color.WHITE, 0.5), 0.8), 0.3, 5.0)
+		u.shape({"kind": "dots", "c": c, "r": R * 0.9, "n": 20, "col": lc, "life": 0.35})
 		for e in u.in_circle(c, R):
 			_once(u, a, o, a.tseg[i], e, 0.05, {"src": "光柱", "edge": e.pos.distance_to(c) > rc})
 	if a.rain:   # 光雨：光圈内落 2 秒光雨（每秒 5%）
@@ -1315,12 +1350,30 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			for k in 3:
 				var q: int = int(a.rf) * 3 + k
 				var p: Vector2 = c + Vector2.from_angle(q * 2.39996) * R * sqrt(float((q * 37) % 97) / 97.0)
-				u.shape({"kind": "line", "a": p + Vector2(0, -60), "b": p + Vector2(0, -20), "w": 2.0, "col": COL_LIGHT, "life": 0.2, "v": Vector2(0, 200)})
+				u.shape({"kind": "line", "a": p + Vector2(0, -60), "b": p + Vector2(0, -20), "w": 2.0, "col": lc, "life": 0.2, "v": Vector2(0, 200)})
 		while int(a.rn) < 2 and el >= 1.0 * (int(a.rn) + 1):
 			var i2: int = int(a.rn)
 			a.rn = i2 + 1
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.rseg[i2], e, 0.05, {"src": "光雨", "edge": e.pos.distance_to(c) > rc})
-	if el >= dur + 0.05 and a.has("v2"):
-		FC.lu_end(u, a)
+	if a.has("glow_s"):   # 余辉：随光柱持续慢慢亮（smoothstep），熄灭时交给寿命线性褪 2 秒；后半段起小光点慢慢往上飘
+		var kg: float = smoothstep(0.0, dur, el)
+		if el < dur + 0.05:
+			a.glow_s.fill = 0.12 * kg
+			a.glow_s.age = 0.0
+			a.glow_r.col = Color(1.0, 0.8, 0.45, 0.55 * kg)
+			a.glow_r.age = 0.0
+		elif not a.get("glow_done", false):
+			a["glow_done"] = true
+			for gs in [a.glow_s, a.glow_r]:
+				gs.age = 0.0
+				gs.max = 2.0
+		if el >= dur * 0.4 and el < dur and t >= float(a.get("mote_t", 0.0)):   # 光点：每 0.12 秒在暖光里两处各升起几颗小光点，慢慢往上飘（迸开的粒子像放烟花，用户 10-31）
+			a["mote_t"] = t + 0.12
+			var mi: int = int(a.get("mote_n", 0))
+			a["mote_n"] = mi + 1
+			for q in 2:
+				var vs: float = PF.h(float(mi * 2 + q) * 0.71 + c.x * 0.01)
+				var pm: Vector2 = c + Vector2.from_angle(vs * TAU) * R * 0.8 * sqrt(PF.h(vs * 13.0))
+				u.grain("mote_up", pm, Vector2.UP, Color(1.0, 0.82, 0.48), 2)
 	return el >= dur + 0.05
