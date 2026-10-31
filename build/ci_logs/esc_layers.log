@@ -1,0 +1,67 @@
+# esc_layers
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/esc_layers_test.tscn -- --regression --seed=1
+# 用时 20 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ESC LAYERS: 0 failures
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _input (res://scripts/settings_panel.gd:240)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _input (res://scripts/settings_panel.gd:240)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _input (res://scripts/settings_panel.gd:240)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _input (res://scripts/settings_panel.gd:240)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _input (res://scripts/settings_panel.gd:240)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _input (res://scripts/settings_panel.gd:240)
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] game_part (res://tests/esc_layers_test.gd:180)
+       [3] run (res://tests/esc_layers_test.gd:270)
+       [4] frames (res://tests/esc_layers_test.gd:24)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _unhandled_input (res://scripts/game.gd:1740)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:271)
+       [1] _unhandled_input (res://scripts/game.gd:1736)
+WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

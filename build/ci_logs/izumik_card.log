@@ -1,0 +1,29 @@
+# izumik_card
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/izumik_card_test.tscn -- --regression --seed=1
+# 用时 15 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+IZUMIK PRESSURE act=0 low=0.53 peak_on_screen=96 breaks=[1.56, 1.56, 1.56, 1.56, 1.56, 1.56, 1.56]
+IZUMIK PRESSURE act=1 low=0.53 peak_on_screen=89 breaks=[1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8]
+IZUMIK PRESSURE act=2 low=0.40 peak_on_screen=58 breaks=[2.16, 2.16, 2.16, 2.16, 2.16, 2.16]
+IZUMIK CARDS [{"act":0,"name":"迁徙潮汐","segs":["潮汐相位流","海流牵引","潮门环"],"t":0.0},{"act":0,"name":"护群共鸣","segs":["护群触腕","子代共鸣","潮汐坠落"],"t":11.35},{"act":0,"name":"迁徙潮汐","segs":["潮汐相位流","海流牵引","潮门环"],"t":19.75},{"act":0,"name":"护群共鸣","segs":["护群触腕","子代共鸣","潮汐坠落"],"t":31.05},{"act":0,"name":"迁徙潮汐","segs":["潮汐相位流","海流牵引","潮门环"],"t":39.3},{"act":0,"name":"护群共鸣","segs":["护群触腕","子代共鸣","潮汐坠落"],"t":50.45},{"act":0,"name":"迁徙潮汐","segs":["潮汐相位流","海流牵引","潮门环"],"t":58.7},{"act":0,"name":"护群共鸣","segs":["震撼"],"t":69.85},{"act":1,"name":"解读螺旋","segs":["螺旋弹臂","解读旋涡","深渊涌流"],"t":75.0},{"act":1,"name":"习得变形","segs":["习得弹","习得路径","信息回传"],"t":84.4},{"act":1,"name":"解读螺旋","segs":["螺旋弹臂","解读旋涡","深渊涌流"],"t":93.2},{"act":1,"name":"习得变形","segs":["习得弹","习得路径","信息回传"],"t":102.7},{"act":1,"name":"解读螺旋","segs":["螺旋弹臂","解读旋涡","深渊涌流"],"t":111.5},{"act":1,"name":"习得变形","segs":["习得弹","习得路径","信息回传"],"t":121.0},{"act":1,"name":"解读螺旋","segs":["螺旋弹臂","解读旋涡","深渊涌流"],"t":129.8},{"act":1,"name":"习得变形","segs":["习得弹"],"t":139.3},{"act":2,"name":"灯下三叶","segs":["分享·全场","迁徙潮","分享"],"t":141.45},{"act":2,"name":"深蓝回流","segs":["回流弹","孢子潮"],"t":156.05},{"act":2,"name":"灯下三叶","segs":["分享·全场","迁徙潮","分享"],"t":161.15},{"act":2,"name":"深蓝回流","segs":["回流弹","孢子潮"],"t":175.75},{"act":2,"name":"灯下三叶","segs":["分享·全场","迁徙潮","分享"],"t":186.65},{"act":2,"name":"深蓝回流","segs":["回流弹","孢子潮"],"t":201.25},{"act":2,"name":"灯下三叶","segs":["分享·全场"],"t":208.0}]
+IZUMIK CARD failures=0
+ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/izumik_card_test.gd:15)
+WARNING: 39 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 17 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
