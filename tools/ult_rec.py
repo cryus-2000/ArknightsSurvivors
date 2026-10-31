@@ -19,6 +19,8 @@ CLIPS = {
     "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),
     "link1": ("texas", "exusiai,lappland", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=0"], 60.0),   # 技能连携样片①：德克萨斯剑雨 + 能天使 → 爆炸剑雨
     "link2": ("lappland", "texas,saria", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=1"], 60.0),   # 样片②：拉普兰德狼魂剑气 + 德克萨斯 → 十字斩
+    "lf": ("texas", "exusiai,lappland", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.5", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=4", "--bal=ult/link_gap=3.5", "--bal=link/calm=0"], 60.0),   # 连携轻量演出（link/flash）：约 4 秒一次、关掉防疲劳（link/calm=0，只为录像），每次完整演出
+    "lf_calm": ("texas", "exusiai,lappland", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.5", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3", "--bal=ult/link_gap=1"], 60.0),   # 同上隔 3 秒：防疲劳（第一次完整，之后只打聚光）
     "s_pursue": ("skadi", "texas", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：追击·德克萨斯
     "s_lava": ("skadi", "eyjafjalla", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：附加·艾雅法拉
     "s_gather": ("skadi", "gladiia", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"], 60.0),   # 技能连携四类样片：聚拢·歌蕾蒂娅

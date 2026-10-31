@@ -69,7 +69,8 @@ static func _src(o, kind: String) -> String:
 
 ## 出手：返回动作（u.combo_acts 推进）
 static func fire(u, p, info: Dictionary) -> Dictionary:
-	u.stage(info.pos, p)
+	if not u.lf_on():   # link/flash 开着时由 ult.link_flash 演（_fire_head）
+		u.stage(info.pos, p)
 	var a := {"p": p, "link": info.link, "from": info.from, "pos": info.pos, "r": info.get("r", 150.0), "age": 0.0, "done": {}, "k": 0}
 	if SAMPLE.values().has(str(info.link)):
 		_fire_sample(u, p, info, a)
@@ -271,7 +272,8 @@ static func _appear(u, p, t: float) -> void:
 
 ## 出手瞬间：轻微放慢（比终结技弱一档）
 static func _beat(u) -> void:
-	u.link_slow()
+	if not u.lf_on():   # link/flash 开着时慢放在出手那一刻做（ult.link_flash）
+		u.link_slow()
 
 
 static func _step_sample(u, a: Dictionary) -> bool:
