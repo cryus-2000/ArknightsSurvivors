@@ -965,6 +965,7 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 		var s: Dictionary = mk.s
 		var p: Vector2 = s.c
 		if not s.is_empty():
+			s["hf"] = true   # 11-01 细调：咒印一起被压缩那一拍进冲击帧剪影（主体只给咒印，不给粒子）
 			s.age = 0.0
 			s.max = 0.1
 			s["sc"] = float(s.get("sc1", s.get("sc", 1.0)))
@@ -980,14 +981,20 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 		i += 1
 	# 用户 10-31「logos 缺一个爆发的感觉」：咒印缩完那一下整片同时爆——冲击帧（顿帧 + 慢放）+ 圆心一团大紫白爆 + 一圈暗紫冲击环推到圆边 +
 	# 每只咒印处一团大号紫粒子（不只是小撮）+ 去色在爆的瞬间收回（颜色一下回来 = 时间重新流动）
+	PF.hf_on(u, a)
 	u.impact(Vector2(a.cc))
-	PF.particles(u, Vector2(a.cc), 600, "ult_burst", [LO_VIO, Color(0.9, 0.85, 1.0)], 0.1, float(a.vs) + 50.0, float(a.cr) * 0.9)
-	PF.ring(u, ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"], Vector2(a.cc), 40.0, float(a.cr) * 1.05, 0.25, 0.55,
-		{"seed": float(a.vs), "layer": "front", "col": Color(0.85, 0.75, 1.1, 0.85), "col1": Color(0.35, 0.28, 0.55, 0.5), "cold": 0.25, "delay": 0.1, "fade": 0.3})
+	# 11-01 细调（「高级感」）：去掉推进之王那圈粗块尘浪环（录像里是一圈紫色块状甜甜圈）和满屏近白粒子 →
+	# 真空压缩：一道细环从圆边猛收到圆心（0.1 秒）→ 爆开一道碎裂细冲击波推回圆边、冷成暗紫；粒子减半、去掉近白
+	var cc: Vector2 = Vector2(a.cc)
+	var cr: float = float(a.cr)
+	u.shape({"kind": "ring", "c": cc, "r": 10.0, "r1": cr, "w": 3.0, "col": Color(0.78, 0.7, 1.0), "life": 0.1, "solid": true})
+	u.shape({"kind": "ring", "c": cc, "r": cr * 1.02, "r1": 30.0, "w": 10.0, "col": Color(0.74, 0.62, 1.0), "life": 0.5, "delay": 0.1})
+	u.shape({"kind": "ring", "c": cc, "r": cr * 0.75, "r1": 20.0, "w": 4.0, "col": Color(0.45, 0.36, 0.78), "life": 0.6, "delay": 0.17})
+	PF.particles(u, cc, 260, "ult_burst", [LO_VIO, LO_VIO.darkened(0.35)], 0.1, float(a.vs) + 50.0, cr * 0.8)
 	var j := 0
 	for mk in a.marks:
 		if j < 24:
-			PF.particles(u, mk.s.c, 120, "ult_burst_s", [LO_VIO, Color(0.85, 0.8, 1.0)], 0.1, float(a.vs) + j * 4.0, 90.0)
+			PF.particles(u, mk.s.c, 50, "ult_burst_s", [LO_VIO, LO_VIO.darkened(0.3)], 0.1, float(a.vs) + j * 4.0, 70.0)
 		j += 1
 	for s in u.shapes:   # 去色在爆的瞬间收回
 		if s.has("desat"):
@@ -1623,7 +1630,7 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			a["shatter"] = true   # 纹章碎裂：金色分叉裂纹从中心炸开 + 纹章快淡 + 大光 + 金白粒子
 			var s: Dictionary = a.seal
 			if _irv3() and Bal.v("ult/ir_final_cut", 1.0) > 0.0:   # 用户 10-31「最后接一个斩击暴烈」
-				_irv_final_cut(u, c, R, vs)
+				_irv_final_cut(u, c, R, vs, a)
 			if not s.is_empty() and _irv3():   # 用户 10-31「纹章改成缓慢消失，而不是被切碎」：1.4 秒慢慢冷下去、淡掉
 				s["col"] = s.get("col1", s.get("col", Color.WHITE))
 				s.erase("col1")
@@ -1685,15 +1692,18 @@ static func _irv_shuttle(u, a: Dictionary, o, k: float) -> void:
 
 ## 收尾斩击爆裂：连环爆之后一刀横贯整个纹章（冷白主刃 + 金色细刃 + 深蓝宽影，0.05 秒划开），斩线上从中心往两端接连炸开 7 团金白爆 + 烟尘；顿帧 0.06；
 ## 不点短灯（用户嫌闪）。只有画面，伤害 / 时长不变（图形在终结技结束后自己播完）
-static func _irv_final_cut(u, c: Vector2, R: float, vs: float) -> void:
+static func _irv_final_cut(u, c: Vector2, R: float, vs: float, a := {}) -> void:
 	var dv := Vector2.from_angle(PF.h(vs + 77.0) * PI)
-	u.impact(c)   # 冲击帧放在这一刀（顿帧 + 慢放 + 闪，用户 10-31）
+	var n0: int = u.shapes.size()
+	if not a.is_empty() and Bal.v("ult/ir_cut_hf", 1.0) > 0.0:   # 11-01 细调：原来只调 impact、没开冲击帧 → 走了共用白闪，录像里整屏发白一拍；改成真正的冲击帧（剪影只给斩线 + 主裂缝）
+		PF.hf_on(u, a)
+	u.impact(c)   # 冲击帧放在这一刀（顿帧 + 慢放，用户 10-31）
 	# 一刀劈开大地：斩线两侧各一条粗分叉裂缝从中心往两端长出去（先金亮后冷成暗缝）+ 沿线地块崩起 + 两侧尘墙往外推
 	var fk: Array = []
 	for k in 2:
 		fk.append(dv.angle() + PI * k)
 	PF.cracks(u, IRV_FORKS, c, fk, [R * 1.15, R * 1.15], {"seed": vs + 3.0, "r0": 10.0, "rev": 0.12, "rev0": 0.1, "life": 2.0, "fade": 0.8,
-		"big": 1.6, "small": 1.6, "col": Color(1.0, 0.86, 0.5), "col1": Color(0.16, 0.15, 0.17), "cold": 0.5, "delay": 0.0})
+		"big": 1.05, "small": 1.0, "col": Color(1.0, 0.86, 0.5), "col1": Color(0.3, 0.28, 0.3, 0.8), "cold": 0.5, "delay": 0.0})   # 11-01：1.6 倍粗 + 近黑冷色在录像里成一条黑色大沟，收细、冷成暗灰
 	for k in 2:   # 再各补一条细一点、略偏的副裂，避免一根直线
 		var side: float = -1.0 if k == 0 else 1.0
 		PF.cracks(u, IRV_FORKS, c + dv * side * R * 0.25, [dv.angle() + (PI if side < 0.0 else 0.0) + side * 0.12], [R * 0.8],
@@ -1707,9 +1717,12 @@ static func _irv_final_cut(u, c: Vector2, R: float, vs: float) -> void:
 		var nv2: Vector2 = dv.orthogonal() * (1.0 if k == 0 else -1.0)
 		for q in 4:
 			PF.dust(u, c + dv * R * ((float(q) - 1.5) / 1.5) * 0.8 + nv2 * 20.0, 130.0, 0.05 + 0.03 * q, vs + k * 5.0 + q, nv2 * 140.0, Color(0.6, 0.58, 0.56))
-	u.shape({"kind": "blade", "a": c - dv * R * 1.15, "b": c + dv * R * 1.15, "w": 22.0, "col": Color(0.35, 0.45, 0.7), "glow": IRV_NAVY, "grow": 0.05, "life": 0.45})
-	u.shape({"kind": "blade", "a": c - dv * R * 1.1, "b": c + dv * R * 1.1, "w": 10.0, "col": IRV_WHITE, "glow": IRV_NAVY, "grow": 0.05, "life": 0.35})
-	u.shape({"kind": "blade", "a": c - dv * R * 1.05, "b": c + dv * R * 1.05, "w": 3.0, "col": IRV_GOLD, "glow": IRV_GOLD, "grow": 0.05, "life": 0.6})
+	u.shape({"kind": "blade", "a": c - dv * R * 1.15, "b": c + dv * R * 1.15, "w": 22.0, "col": Color(0.35, 0.45, 0.7), "glow": IRV_NAVY, "grow": 0.0, "life": 0.45})   # 出手一帧到位（pixfx §6.6-1）
+	u.shape({"kind": "blade", "a": c - dv * R * 1.1, "b": c + dv * R * 1.1, "w": 10.0, "col": IRV_WHITE, "glow": IRV_NAVY, "grow": 0.0, "life": 0.35, "hf": true})
+	u.shape({"kind": "blade", "a": c - dv * R * 1.05, "b": c + dv * R * 1.05, "w": 3.0, "col": IRV_GOLD, "glow": IRV_GOLD, "grow": 0.0, "life": 0.6})
+	for i in range(n0, u.shapes.size()):   # 主裂缝进剪影
+		if str(u.shapes[i].get("name", "")) in IRV_FORKS:
+			u.shapes[i]["hf"] = true
 	for i in 7:
 		var x: float = (float(i) - 3.0) / 3.0
 		var bp: Vector2 = c + dv * R * x * 0.95 + dv.orthogonal() * (PF.h(vs + i) - 0.5) * 30.0
@@ -2094,17 +2107,26 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 		ang = Vector2(a.d).orthogonal().angle() + (PF.h(vs + 1.0) - 0.5) * 0.24
 		R = R * sin(float(a.half)) * 0.5
 	var dv := Vector2.from_angle(ang)
+	var n0: int = u.shapes.size()
 	_la_cut(u, c + dv.orthogonal() * 14.0, ang, R * 2.3, vs + 101.0, 0.45, Color(LA_ICE, 0.55), 1.3, true)   # 一整道（两段拼会成海鸥翅膀形）
 	_la_cut(u, c, ang, R * 2.2, vs + 101.0, 0.5, Color(0.86, 0.86, 0.84, 0.9), 0.95, true)   # 压暗（预审报横斩发白）
+	if a.get("fwd", false) and Bal.v("ult/la_final_hf", 1.0) > 0.0:   # 11-01 细调：收尾横斩是全招最重一拍 → 冲击帧（横斩进剪影）
+		PF.hf_since(u, n0)
+		PF.hf_on(u, a)
 	u.light(c, R * 1.2, LA_ICE, 0.3)
-	PF.particles(u, c, 200, "ult_burst_s", [LA_ICE, LA_SILVER], 0.04, vs + 3.0, 140.0)
+	PF.particles(u, c, 200 if not a.get("fwd", false) else 60, "ult_burst_s", [LA_ICE, LA_SILVER] if not a.get("fwd", false) else [LA_ICE.darkened(0.3), LA_ICE.darkened(0.5)], 0.04, vs + 3.0, 140.0)   # 11-01：朝前版叠上空气爆破成一团白，压暗减量
 	if a.get("fwd", false):   # 用户 10-31：最后接一个空气爆破——横斩之后 0.12 秒，斩线中点一圈冷白气浪炸开（尘浪环三种挑一）+ 一大团银蓝粒子 + 尘
 		var bc: Vector2 = c
 		var br: float = float(a.R) * 0.55
-		PF.ring(u, ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"], bc, br * 0.15, br, 0.28, 0.6,
-			{"seed": vs, "layer": "front", "col": Color(0.82, 0.82, 0.8, 0.75), "col1": Color(0.45, 0.45, 0.47, 0.45), "cold": 0.2, "delay": 0.12, "fade": 0.35})
-		PF.particles(u, bc, 300, "ult_burst", [Color(0.72, 0.72, 0.7), LA_ICE.darkened(0.25)], 0.12, vs + 9.0, br * 1.1)   # 预审：爆破别发白（少一层、压暗）
-		PF.particles(u, bc, 200, "ult_ember", [Color(0.62, 0.62, 0.62)], 0.16, vs + 4.0, br * 0.7)
+		# 11-01 细调：原用推进之王粗块尘浪环 + 500 颗灰白粒子（录像里是白团 + 灰烟甜甜圈 + 满屏白点，像放烟花）→
+		# 气压一下撕开：两道碎裂细冲击波（一快一慢、带缺口）+ 少量压暗的银灰碎屑沿斩线两侧甩出 + 几团逐帧烟尘
+		u.shape({"kind": "ring", "c": bc, "r": br, "r1": br * 0.12, "w": 6.5, "col": Color(0.78, 0.8, 0.82), "life": 0.32, "delay": 0.12})
+		u.shape({"kind": "ring", "c": bc, "r": br * 0.7, "r1": br * 0.1, "w": 3.0, "col": Color(0.55, 0.58, 0.62), "life": 0.45, "delay": 0.18})
+		PF.particles(u, bc, 70, "ult_burst", [Color(0.5, 0.51, 0.53), LA_ICE.darkened(0.5)], 0.12, vs + 9.0, br * 0.9)
+		PF.particles(u, bc, 50, "ult_ember", [Color(0.5, 0.5, 0.52)], 0.2, vs + 4.0, br * 0.6)
+		for q in 3:
+			var dq: Vector2 = dv * (1.0 if q % 2 == 0 else -1.0) * (0.35 + 0.25 * PF.h(vs + q)) * br
+			PF.dust(u, bc + dq, 150.0 + 60.0 * PF.h(vs + q * 2.0), 0.14 + 0.05 * q, vs + q, dq.normalized() * 70.0, Color(0.5, 0.52, 0.55))
 		u.light(bc, br * 1.4, LA_ICE, 0.3)
 		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 		if sfx != null:

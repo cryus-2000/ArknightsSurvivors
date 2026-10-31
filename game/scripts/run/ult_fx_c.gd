@@ -371,10 +371,11 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var dv: Vector2 = Vector2.from_angle(ang)
 	var nv: Vector2 = dv.orthogonal()
 	# 这一道爆亮（冲击帧）：冷白 → 冷钢灰迅速冷却
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95, "life": 0.3, "fade": 0.18, "col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.42, 0.46, 0.54, 0.9), "cold": 0.14, "hf": true})
+	var KW: float = Bal.v("ult/sz_cut_w", 1.35)   # 11-01 细调：原作录像里这一道偏细、隔远看像一根线 → 斩痕整体加粗 1.35 倍
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95 * KW, "life": 0.3, "fade": 0.18, "col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.42, 0.46, 0.54, 0.9), "cold": 0.14, "hf": true})
 	# 斩开：上下两半往两边错开、同时沿刀向滑一点
 	for sd in [1.0, -1.0]:
-		_sz_slash(u, sname, a0 + nv * sd * 4.0, ang, SL, {"sy": 0.45 * sd, "delay": 0.04, "life": 0.26, "fade": 0.2, "v": nv * sd * 70.0 + dv * 60.0 * sd,
+		_sz_slash(u, sname, a0 + nv * sd * 4.0, ang, SL, {"sy": 0.45 * sd * KW, "delay": 0.04, "life": 0.26, "fade": 0.2, "v": nv * sd * 70.0 + dv * 60.0 * sd,
 			"col": Color(0.95, 0.95, 1.0, 0.9), "col1": Color(0.42, 0.46, 0.54, 0.7), "cold": 0.16})
 	# 刀口：地上一道暗红细痕，慢慢褪
 	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.16, 0.08, 0.09, 0.9)})
@@ -383,11 +384,14 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var TB: float = Bal.v("ult/sz_rupt_t", 0.32)
 	u.shape({"kind": "circle", "c": a0.lerp(b0, 0.5), "r": 2600.0, "col": Color(0.0, 0.0, 0.02), "fill": 0.35, "hold": true, "delay": 0.14, "life": TB - 0.14})   # 静一拍：压暗
 	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.72, 0.76, 0.84, 0.95)})   # 刀口在压暗层上独亮
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 1.35, "delay": TB, "life": 0.2, "fade": 0.14,
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 1.35 * KW, "delay": TB, "life": 0.2, "fade": 0.14,
 		"col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.42, 0.46, 0.54, 0.9), "cold": 0.1})   # 绷开：爆宽后收
 	u.shape({"kind": "band", "a": a0, "b": b0, "w": 8.0, "col": Color(0.86, 0.89, 0.93), "fill": 0.85, "life": 0.05, "delay": TB})   # 冷白细芯一帧（≤ 0.9）
 	u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.1))
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.15, 0.06, 0.07, 0.95)})   # 收成更深更宽的刀口
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5 * KW, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.15, 0.06, 0.07, 0.95)})   # 收成更深更宽的刀口
+	for k in 2:   # 11-01 细调：绷开那一下刀口两侧各掀起一团冷灰逐帧烟尘往外推（体积；不是喷溅）
+		var sd2: float = 1.0 if k == 0 else -1.0
+		PF.dust(u, a0.lerp(b0, 0.35 + 0.3 * k) + nv * sd2 * 18.0, 140.0, TB + 0.02, vs + 30.0 + k, nv * sd2 * 90.0, Color(0.5, 0.53, 0.58))
 	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_ICE, 0.22)
 	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)

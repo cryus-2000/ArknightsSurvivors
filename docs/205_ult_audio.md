@@ -54,6 +54,34 @@
   逻各斯 入队池补 选中 1（CN_021 logos_command_2）、突击池补 行动出发（CN_019 logos_entry_4）。补位都是已有文件，没有新切。
 - 其他语音位（入队 / 技能 / 闲聊 / 突击）用户没改，维持现状。
 
+### 2.3 终结技语音备选（11-01 夜，用户「终结技语音所有的都做好相关的选项」）
+语音挑选页（旧账号 artifact RBGUoqkHMZAQ7KGS12mJm3）在新账号下打不开（404），没能读 picks、也没能往页面写数据；用户 10-30 在页面上的选择已全部记在 §2.2，照用。
+20 人都已有用户选定的句子，缺省不变；唯一改动：拉普兰德按 10-31 用户「音效是她在笑」（claude/ult-la-lo-fwd a242c5e4a 原在 ult.gd 里硬切）改成 `voice = lappland_entry_2`（CN_024「哈哈！」），10-30 选的 CN_029 留作第一备选。
+备选都是原作整句（ArknightsGameData charword_table，与 §2 同源），标了文件名的已在游戏里，换 `data/ult_audio.json` 的 `voice` 即可（`voice_alt` 列的就是这几条）；标「需新切」的按 `tools/voice_ult_1030.py` 流程切。
+
+| 干员 | 现用 | 备选 |
+|---|---|---|
+| 德克萨斯 | CN_030「不堪一击。」（`texas_ult`） | CN_027「斩尽杀绝。」（`texas_skill_3`）；CN_023「拔刀。」（`texas_entry`） |
+| 能天使 | CN_030「愿我的弹雨能熄灭你们的苦痛。」（`exusiai_ult`） | CN_027「弹幕！」（`exusiai_skill_3`）；CN_019「出发！让我们像风暴一样碾过去！」（`exusiai_entry_3`） |
+| 浊心斯卡蒂 | CN_018「不该再有更多生命消逝了。」（`skalter_command_2`） | CN_022「我已经不再是独自行走了。我的血亲在我身侧。」（需新切）；CN_023「那么，就请听听这远海的歌吧……」（`skalter_entry`）；CN_027「随我走吧，随我回去我们永恒的故乡。」（`skalter_skill_3`） |
+| 凯尔希 | CN_025「Mon3tr。」（`kaltsit_skill_1`） | CN_027「醒过来。」（`kaltsit_skill_3`）；CN_030「Mon3tr，采集好我需要的组织样本。」（需新切）；CN_026「执行你的任务。」（`kaltsit_skill_2`） |
+| 乌尔比安 | CN_022「我会解决。」（`ulpianus_command_2`） | CN_024「这一场处决，不值得谁来见证。」（`ulpianus_entry_2`）；CN_027「海渊会消化你们的骨骸。」（`ulpianus_skill_3`）；CN_028「耍弄无聊的伎俩，只会让死状更惨。」（`ulpianus_battle`） |
+| 斯卡蒂 | CN_028「别眨眼，你会错过自己的死状。」（`skadi_battle`） | CN_030「敌人怎么说，怎么想，都与我无关。我只知道他们会怎么倒下。」（需新切）；CN_023「起舞吧。」（`skadi_entry`） |
+| 歌蕾蒂娅 | CN_028「戏弄玩具的时间到此结束。」（`gladiia_battle`） | CN_024「立刻解决。」（`gladiia_entry_2`）；CN_029「生存。您唯一需要遵守的准则。」（需新切） |
+| 安洁莉娜 | CN_028「想不想试试漂浮在空中的感觉？」（`angelina_battle`） | CN_027「我可是很擅长这个法术的。」（`angelina_skill_3`）；CN_017「无论是战斗还是工作，都要全力以赴！」（`angelina_entry_3`） |
+| 艾雅法拉 | CN_028「这招怎么样！」（`eyjafjalla_battle`） | CN_026「可能有点热哦？」（`eyjafjalla_skill_2`）；CN_024「加油！」（`eyjafjalla_entry_2`） |
+| 维什戴尔 | CN_020「今天又轮到谁粉身碎骨了呢？」（`wisadel_battle_2`） | CN_027「你们很小心脚下呢。不如，抬头看看怎么样？」（`wisadel_skill_3`）；CN_026「别急别急，人人有份~」（`wisadel_skill_2`） |
+| 归溟幽灵鲨 | CN_028「来吧，再多些，再多些！」（`specter_unchained_battle`） | CN_024「我现在的心情……非常好！」（`specter_unchained_entry_2`）；CN_027「我还没有满足。」（`specter_unchained_skill_3`） |
+| 水月 | CN_027「你什么时候产生了这些附肢只是幻象的错觉？」（`mizuki_skill_3`） | CN_028「总得有人，也总会有人来处理掉恶徒呢。」（`mizuki_battle`）；CN_031「嗯？博士怎么放跑了几个坏人？我去替博士收拾一下吧。」（需新切） |
+| 塞雷娅 | CN_024「害虫。」（`saria_entry_2`） | CN_022「压制他们。」（`saria_command_2`）；CN_025「这种程度，又能阻止谁？」（`saria_skill_1`）；CN_030「一切必须回归既有的秩序，我不准许任何人违背法则。」（需新切） |
+| 铃兰 | CN_025「小、小心！」（`suzuran_skill_1`） | CN_024「我们都可以做到的，嗯！」（`suzuran_entry_2`）；CN_027「坚持住！」（`suzuran_skill_3`）；CN_017「难得的出战机会，我会好好努力的！」（`suzuran_entry_3`） |
+| 逻各斯 | CN_024「丧钟应声而鸣。」（`logos_entry_2`） | CN_028「“句点，终焉扭转。”」（`logos_battle`）；CN_030「我落下的每句咒文皆有用处，言语的一字一词亦无落空。精妙的配合，博士。」（需新切） |
+| 星熊 | CN_028「般若啊，把你父亲铸造你时掺杂的怒火，全都喷发出来吧！」（`hoshiguma_battle`） | CN_025「般若会将你碾碎。」（`hoshiguma_skill_1`）；CN_026「想伤害我的朋友，先问问这面盾答不答应！」（`hoshiguma_skill_2`） |
+| 推进之王 | CN_030「对拒绝投降者无需怜悯。」（`siege_ult`） | CN_027「上了战场，就要有饮败的觉悟！」（`siege_skill_3`）；CN_024「一口气解决。」（`siege_command`） |
+| 艾丽妮 | CN_028「我的心会作出判决。」（`irene_battle`） | CN_026「我的剑将劈开海潮！」（`irene_skill_2`）；CN_031「漏过一个敌人，都可能会导致防线崩溃！快下令，让我去抹除威胁！」（需新切） |
+| 拉普兰德 | CN_024「哈哈！」（10-31 用户「音效是她在笑」）（`lappland_entry_2`） | CN_029「这样就结束了？真无聊。」（`lappland_ult`，10-30 选定的那句）；CN_027「试着抵抗我吧！」（`lappland_skill_3`）；CN_020「你们就是敌人？那就拜托你们进攻用点力了，别让我太无聊！」（`lappland_battle_2`） |
+| 流明 | CN_020「我会尽力保证大家的安全！」（`lumen_battle_2`） | CN_024「没事的，只要我鼓起勇气……！」（`lumen_entry_2`）；CN_023「我能处理好的！」（`lumen_entry`） |
+
 ## 3. 专属音效
 
 ### 3.1 接法（只动框架，不动招式）
@@ -197,7 +225,7 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 已定稿：德克萨斯、能天使、星熊、凯尔希、乌尔比安、塞雷娅、歌蕾蒂娅、安洁莉娜、维什戴尔、流明、浊心斯卡蒂、推进之王、水月（① 原作）、归溟幽灵鲨（② 录音）、艾雅法拉（② 录音，11-01）。
 **11-01 艾雅法拉**（画面按喷发冲击帧 v3，cf4b93c71）：候选 ① 原作 / ② 录音 / ③ 混合，用户选 ②。提示 = 火焰低吼；瞄准 = 雷声低滚 + 噼啪；放出（裂纹渗开 0.4 秒）= 冰面龟裂降调；喷发 impact = 雷暴炸裂 + 火焰低吼 + 低频 + 碎屑（录像核对：ultev:IMPACT 与 ultev:HF 同帧，不用 hf_slot）；每颗火山弹落地 = 近距烟花爆破降调 bomb_1..3（fx strip fx_ey_pumice，gap 0.07、-8 dB，比喷发低 ≥4 dB）；黑蒸汽 = 浇水灭火的蒸汽（strip fx_ey_steam）；熔岩池铺开 1 秒后篝火噼啪（strip fx_ey_pool at 1.0——原 seg 熔岩地面 on 只在打中敌人时响，敌人清光就没声，改挂画面）；seg 熔岩 / 熔岩地面写空。
 10-31 合入 claude/ult-fx-c2（水月水母群第三轮、归溟幽灵鲨弹射 + 巨锯、塞雷娅朝前打 v2、德克萨斯去剑雨）：塞雷娅岩柱改挂崩起碎石（strip fx_ul_rock+v）+ 拳风前推（strip fx_sa_air）；德克萨斯剑痕 / 斩开挂点仍对得上。画面配声加 match（任意字段等值）、#2 / #3（同一图形多条规则）、then（第二次起换槽）。生成器删槽时连孤立 .import 一起删（否则 Godot 从导入缓存继续放旧声；本次清掉 20 个）。
-重做中、等新画面再配：斯卡蒂、逻各斯、艾丽妮、拉普兰德、铃兰（水月、归溟幽灵鲨 10-31、艾雅法拉 11-01 已配）（10-31 夜 claude/ult-fx-c2、ult-irene-verdict、ult-la-lo-fwd 仍在改）。另 claude/ult-fx-power 改了塞雷娅范围（扇形），合并后要核对她的画面单元挂点（circle r110 / strip pillar_break）是否还在。
+20 人全部配完（斯卡蒂、逻各斯、艾丽妮、拉普兰德、铃兰 11-01 夜，§4.6）。另 claude/ult-fx-power 改了塞雷娅范围（扇形），合并后要核对她的画面单元挂点（circle r110 / strip pillar_break）是否还在。
 挂点（ult_audio.json fx）与占位文件已在工作区，用户挑定后用 gen_sfx_ult_seg_1030.py 写正式文件再提交；没挑定前不提交这几人的 json，免得游戏里缺声。
 
 ### 4.5 合入 ult-fx-power 06b3db7f9（冲击帧 + 时序调整）后的核对（10-31）
@@ -212,3 +240,16 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 | 歌蕾蒂娅 | 2.97 | 潮涌帧条已不画 → hf_slot = surge（水花帧条也没了，暂无水花声） |
 | 浊心斯卡蒂 | 6.53 | 收尾大爆改 v3（沿轨迹裂地）→ hf_slot = final |
 合并冲突：ult_moves_c.gd 流明段 ult-fx-c2（pixgen 光柱 lu_v2）与 ult-fx-power（暖光 v3，用户 10-31 反馈的版本）冲突，按协调人「ult-fx-power 为准」取后者整段；铃兰段保留 ult-fx-c2。
+
+### 4.6 剩下 5 人：斯卡蒂 / 铃兰 / 逻各斯 / 艾丽妮 / 拉普兰德（11-01 夜，claude/ult-finish-1101；用户授权直接选定）
+画面细调见 docs/199 §7.17。按 §4.2 模板配：高潮只一下且落在冲击帧第一拍（录像 trace 核对 ultev:HF），次级声比高潮低 ≥4 dB；录音 / 原作为主，不用合成。
+生成：`python game/tools/gen_sfx_ult_seg_1030.py --apply --only <干员> --reseed`（① 定稿）；备选 `--only <干员> --variant 2 --out <目录>`（不带 --apply 只出候选），换备选 = 用 `--variant` 重跑带 `--apply`。
+
+| 干员 | 定稿 ① | 冲击帧 / 高潮 | 备选 |
+|---|---|---|---|
+| 斯卡蒂 | 提示剑斩一挥；下劈 cast + impact（次级 -4 dB）= 斩击冲击 + 液体冲击；立浪 wave（seg 浪头 on）= 海浪拍岸（Just Sound Effects「Medium Waves at Pebble Beach」）；劈浪 crash = 深水冲击 + 预告片低频 + 斩击冲击 | 劈浪 2.87 s（hf_slot = crash，下劈掉血 2.23 s 只响次级） | ② 原作：浪 = 原作潮涌、劈浪 = 原作水炮 + 低频、下劈 = 原作沉默之剑；③ = ① 的浪 + ② 的劈浪 |
+| 铃兰 | 提示原作忍刀命中；忍冬现身 = 能量流升调；瞬身 flash = 原作忍刀一挥；斩痕爆亮 impact = 原作暗刃 + 斩击冲击 + 低频；刀痕绷开 rupt（fx band w8，-4 dB）= 鞭响 + 原作忍刀命中 | 爆亮 = impact = 冲击帧同帧 | ② 录音：瞬身 = 长刃刮擦、爆亮 = 多层剑斩 + 斩击冲击 + 低频、绷开 = 斩击冲击降调 |
+| 逻各斯 | 提示魔能暗涌；时间停住 cast = 魔法低鸣（Kopeikin「drone, tension, spellbound」，-6 dB）；每只头上浮现咒文 glyph_1..3（fx strip fx_lo_glyph1–4，很轻、节流 0.09 s）= 能量流高音；整片爆开 impact = 电光低鸣冲击降调 + 原作黑洞 + 低频 | 爆开 = impact = 冲击帧同帧 | ② 原作：咒文 / 爆开 = 原作锐咒 + 低频 |
+| 艾丽妮 | 提示原作光剑；盖下纹章 seal = 金属重击共鸣降调 + 原作铜印；穿梭 6 刀 cut_1..3（fx blade w6）= 长刃刮擦升调轮换；连环爆 boom_1 / boom_hit（seg 宣判）= 小爆炸降调；最后一刀 impact = 斩击冲击 + 多层剑斩 + 低频 | 最后一刀 = impact = 冲击帧同帧 | ② 原作：每刀 = 原作弧切、最后一刀 = 原作沉默之剑重斩 + 低频 |
+| 拉普兰德 | 起手笑声（voice）；每道飞出的剑气 slash_1..4（fx strip fx_ir_slash1–3+v）= 长刃刮擦升调轮换；第一下掉血 impact 很轻（-8 dB）；收尾横斩 final = 斩击冲击 + 鞭响 + 低频；空气爆破 air（fx ring w6.5）= 碎屑呼啸 + 雷暴炸裂升调 | 横斩 4.10 s（hf_slot = final；第一下掉血 2.17 s 只是第一道剑气） | ② 原作：剑气 = 原作沉默之剑连斩截段、横斩 = 原作沉默之剑重斩 + 低频 |
+旧的合成槽（斯卡蒂 charge / wave_hit、艾丽妮 gale / cannon / slash_hit、拉普兰德 wave_hit、各人 charge）生成器 --apply 时连 .import 一起删掉了。素材登记 docs/113 §20。

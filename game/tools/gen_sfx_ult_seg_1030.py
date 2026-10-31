@@ -73,7 +73,7 @@ def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
     return fadeio(y / (np.abs(y).max() + 1e-9), 0.001, fout)
 
 
-LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "burst": -9.0, "slam_1": -9.0, "smash": -8.0, "sizzle": -17.0, "bomb": -18.0, "steam": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "burst": -9.0, "slam_1": -9.0, "smash": -8.0, "sizzle": -17.0, "bomb": -18.0, "steam": -17.0, "crash": -9.0, "final": -9.0, "rupt": -12.0, "glyph": -19.0, "slash": -16.0, "seal": -12.0, "air": -13.0, "boom": -15.0, "wave": -13.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
 def level(slot, x):
@@ -163,6 +163,10 @@ SN = {   # Sonniss 素材短名（docs/113 §20）
     "steam": "Ivo Vicic - Campfire - Bonfire FX/42 Campfire, Putting Out Fire, Water from Bottle, Variation, Close.wav",
     "cauldron": "344 Audio - Haunting Ambiences Vol. 5/FIRECrkl_Fire Crackling, Popping, Witch's Cauldron_344 Audio_Haunting Ambiences Vol 5.wav",
     "fworks": "Ivo Vicic - Fireworks FX/13 Fireworks_powerful explosions_multiples in a row_near.wav",
+    "waves": "Just Sound Effects - Rocky Coast of Norway/WATRWave_Medium Waves at Pebble Beach_JSE_RCoN_Stereo.wav",
+    "whip": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav",
+    "drone": "Alexander Kopeikin - Emotion and Magic/magic, drone, tension, spellbound, evanescence-002.wav",
+    "onslaught": "Alexander Kopeikin - Emotion and Magic/magic, action gesture, evil presence, onslaught-004.wav",
 }
 
 
@@ -236,17 +240,21 @@ def ulpianus():
     }
 
 
-def skadi():
-    """举巨剑向前下劈（冲击）→ 劈开处立起一道大浪，0.8 秒推过屏幕"""
-    wave = lp(N(1.4), 2800, 3) * swell(1.4, 0.3) * 1.1 + splash(1.4, 4500, 2.2) * 0.45 + lp(N(1.4), 250, 3) * swell(1.4, 0.35) * 0.8
-    return {
-        "charge": pad(metal(0.8, 210, 2, bright=0.5) * swell(0.8, 0.9) * 0.4, sweep_noise(0.8, 250, 1000, 0.5) * swell(0.8, 0.9) * 0.5, lp(N(0.8), 350) * swell(0.8, 0.9) * 0.7),
-        "cast": sweep_noise(0.16, 2500, 500, 0.5) * swell(0.16, 0.7),
-        "impact": pad(thud(0.5, 110, 40, 9), burst(0.35, 2500, 11) * 0.7, metal(0.6, 260, 5, bright=0.5) * 0.35, sub(0.5, 85, 32, 6) * 0.7),
-        "wave": wave,
-        "wave_hit": splash(0.22, 4000, 15) * 0.8,
+def skadi(v=1):
+    """docs/205 §4.6（11-01 定稿 ① 录音；画面分镜 A「斩浪」）：提示 = 剑斩一挥 → 下劈 cast / 第一下掉血 impact（次级）= 斩击冲击 + 液体冲击
+    → 立浪往前滚 wave（seg 浪头 on）= 海浪拍岸 → 劈浪 crash（hf_slot，冲击帧第一拍，全招最响）= 深水冲击 + 预告片低频 + 斩击冲击。
+    v=2 原作：浪 = 原作潮涌，劈浪 = 原作水炮 + 低频，下劈 = 原作剑击；v=3 = ① 的浪 + ② 的劈浪"""
+    d = {
+        "sf": sn("slice", 0.29, 0.45, 0.9, fout=0.2), "cast": sn("scrape", 0.0, 0.4, 0.9, fout=0.15),
+        "impact": pad(sn("cut", 0.93, 0.8, 1.1, fout=0.3), sn("liq", 0.0, 0.5, fout=0.2) * 0.5),
+        "wave": lp(sn("waves", 74.8, 1.4, fout=0.6), 6000),
+        "crash": pad(sn("sub", 0.0, 1.4, 0.9, fout=0.6), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9, sn("liq", 0.0, 0.8, 0.8, fout=0.3) * 0.6, sn("cut", 0.93, 1.0, 0.9, fout=0.4) * 0.5),
     }
-
+    if v in (2, 3):
+        d["crash"] = pad(akd("p_skill_bigwatercannon.wav", 0.0, 1.5, 0.9, fout=0.6), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8)
+    if v == 2:
+        d.update({"wave": akd("p_skill_tidesurging.wav", 0.5, 1.4, fout=0.6), "impact": akd("p_skill_reticentsword_h.wav", 0.1, 0.8, 0.9, fout=0.3)})
+    return d
 
 def gladiia():
     """docs/205 §4.4（用户 10-31 选 ① 原作海水）：提示 = 原作水炮起头降调 → 放出 / 卷起水龙卷 = 原作召潮（fx strip tornado_open）
@@ -346,24 +354,35 @@ def saria():
     }
 
 
-def suzuran():
-    """忍冬出现在铃兰身边 → 化作白光瞬身飞出、留下一道斩痕（定住）→ 停半拍 → 斩痕炸开（冲击）"""
+def suzuran(v=1):
+    """docs/205 §4.6（11-01 定稿 ① 原作刀声 + 录音）：提示 = 原作忍刀命中 → 忍冬现身 cast = 能量流升调 → 瞬身 flash（seg 瞬身 on）= 原作忍刀一挥
+    → 斩痕爆亮 impact（冲击帧同帧，全招最响）= 原作暗刃 + 斩击冲击 + 低频 → 0.32 秒后刀痕绷开 rupt（fx band w8 冷白细芯，次级）= 鞭响脆裂 + 原作忍刀命中。
+    v=2 录音：瞬身 = 长刃刮擦，爆亮 = 多层剑斩 + 斩击冲击 + 低频，绷开 = 斩击冲击降调"""
+    if v == 2:
+        return {"sf": sn("scrape", 0.0, 0.4, 1.1, fout=0.15), "cast": sn("astral", 0.0, 0.5, 1.3, fout=0.2), "flash": sn("scrape", 0.0, 0.35, 1.25, fout=0.12),
+                "impact": pad(sn("slice", 0.29, 0.7, fout=0.3), sn("cut", 0.93, 1.1, fout=0.4) * 0.8, lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7),
+                "rupt": pad(sn("cut", 0.93, 0.6, 0.8, fout=0.25), sn("whip", 0.45, 0.4, 0.9, fout=0.15) * 0.5)}
     return {
-        "charge": pad(bell(0.8, 1760, 2.5, 1.0, 0.3) * swell(0.8, 0.9) * 0.35, whisper(0.8, 1500, 4500) * swell(0.8, 0.9) * 0.35, suck(0.7, 1500, 7000) * 0.3),
-        "cast": pad(metal(0.4, 2200, 7, bright=0.45) * 0.35, sweep_noise(0.12, 3000, 6000, 0.3) * env(0.12, 0.002, 18) * 0.5),
-        "flash": pad(sweep_noise(0.3, 8000, 1800, 0.3) * env(0.3, 0.002, 9), bell(0.4, 2349, 8, 2.0, 1.0) * 0.25, at(metal(0.35, 1900, 6, bright=0.4) * 0.15, 0.25)),
-        "impact": pad(seq([(0, slash(0.3, 6500, 900)), (0.03, slash(0.3, 5000, 800) * 0.7)]), burst(0.6, 3500, 7) * 0.8, sub(0.6, 105, 40, 6) * 0.8),
+        "sf": akd("p_skill_ninjasword_imp.wav", 0.05, 0.5, fout=0.2), "cast": sn("astral", 0.0, 0.5, 1.3, fout=0.2),
+        "flash": akd("p_skill_ninjasword.wav", 0.05, 0.5, fout=0.2),
+        "impact": pad(akd("p_skill_darkatana.wav", 0.0, 1.0, fout=0.4), sn("cut", 0.93, 0.9, fout=0.4) * 0.6, lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7),
+        "rupt": pad(sn("whip", 0.45, 0.45, fout=0.15), akd("p_skill_ninjasword_imp.wav", 0.05, 0.5, 0.85, fout=0.2) * 0.7),
     }
 
-
-def logos():
-    """铺开长方形咒域、敌人头上浮现咒文（0.5 秒，咒文一个个亮起）→ 念出一词，标记同时爆裂（冲击）"""
-    return {
-        "charge": pad(whisper(0.9, 450, 1500) * swell(0.9, 0.85) * 0.8, drone(0.9, 62, 0.3) * swell(0.9, 0.9) * 0.5),
-        "cast": pad(seq([(i * 0.055, bell(0.25, 392 * (1.0595 ** (i * 2)), 10, 2.0, 1.5) * 0.25) for i in range(9)]), lp(N(0.55), 900) * swell(0.55, 0.95) * 0.45),
-        "impact": pad(burst(0.7, 2500, 6), sub(0.7, 70, 28, 4), chord(0.9, [73, 78, 110], "saw") * env(0.9, 0.002, 3.5) * 0.4, rev(burst(0.12, 3000, 20)) * 0.3),
+def logos(v=1):
+    """docs/205 §4.6（11-01 定稿 ① 录音；画面 v4「咒文 → 真空压缩爆炸」）：提示 = 魔能暗涌 → 时间停住 cast = 魔法低鸣（寂静里的张力）
+    → 每只敌人头上浮现咒文 glyph_1..3（fx strip fx_lo_glyph1–4，节流 0.09 秒、很轻）= 能量流高音一闪
+    → 咒印一起压缩、整片爆开 impact（冲击帧同帧，全招最响）= 电光低鸣冲击降调 + 原作黑洞 + 预告片低频。
+    v=2 原作：咒文 = 原作锐咒短截，爆开 = 原作锐咒 + 低频"""
+    d = {
+        "sf": sn("onslaught", 30.0, 0.55, 0.9, fout=0.25), "cast": lp(sn("drone", 8.0, 1.6, 0.8, fout=0.6), 3000),
+        **{"glyph_%d" % (i + 1): hp(sn("astral", 0.3, 0.3, r, fout=0.15), 800) for i, r in enumerate([1.5, 1.62, 1.75])},
+        "impact": pad(sn("elec", 0.0, 0.9, 0.6, fout=0.4), akd("p_skill_darkholespell.wav", 0.0, 1.2, 0.85, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
     }
-
+    if v == 2:
+        d.update({**{"glyph_%d" % (i + 1): hp(akd("p_skill_sharpspell.wav", 0.3, 0.25, r, fout=0.12), 600) for i, r in enumerate([1.4, 1.5, 1.6])},
+                  "impact": pad(akd("p_skill_sharpspell.wav", 0.3, 1.5, 0.85, fout=0.6), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9)})
+    return d
 
 def hoshiguma():
     """docs/205 §4.3（用户 10-31 选录音版 ② 再「低频一点」：整体降调 ×0.8、5 kHz 以上压掉、低频轰加厚）：
@@ -399,29 +418,39 @@ def siege():
     }
 
 
-def irene():
-    """前方卷起狂风（敌人浮空）→ 冲进风里连斩 5–6 刀（每刀一声）→ 瞬身回原地 → 手炮一枪在风眼炸开"""
-    return {
-        "charge": pad(whoosh(0.9, 300, 1500) * 0.7, bell(0.9, 1175, 2, 1.0, 0.3) * swell(0.9, 0.9) * 0.2, lp(N(0.9), 500) * swell(0.9, 0.9) * 0.5),
-        "cast": sweep_noise(0.15, 1500, 4000, 0.5) * swell(0.15, 0.6) * 0.6,
-        "gale": pad(sweep_noise(0.9, 400, 2400, 0.6) * env(0.9, 0.01, 3.0), lp(N(0.9), 500) * env(0.9, 0.01, 3) * 0.8),
-        "impact": pad(slash(0.2, 6500, 1800), metal(0.4, 1500, 9, bright=0.45) * 0.3),
-        "slash_hit": slash(0.14, 6200, 1900) * 0.8,
-        "cannon": pad(thud(0.18, 170, 60, 20) * 0.6, at(pad(burst(0.8, 2800, 6), sub(0.8, 85, 30, 4)), 0.03)),
+def irene(v=1):
+    """docs/205 §4.6（11-01 定稿 ① 录音 + 原作；画面「宣判」）：提示 = 原作光剑 → 盖下审判纹章 seal（fx strip fx_irv_seal）= 金属重击共鸣降调 + 原作铜印
+    → 纹章内来回穿梭 6 刀 cut_1..3（fx blade w6，每刀一声）= 长刃刮擦升调轮换 → 连环爆 boom_1 / boom_hit（seg 宣判）= 小爆炸降调
+    → 最后一刀劈开纹章 impact（冲击帧同帧，全招最响）= 斩击冲击 + 多层剑斩 + 预告片低频。
+    v=2 原作：每刀 = 原作弧切，最后一刀 = 原作沉默之剑重斩 + 低频"""
+    d = {
+        "sf": akd("p_skill_lightsword.wav", 0.0, 0.5, 1.05, fout=0.2), "cast": sn("slice", 0.29, 0.45, 1.1, fout=0.2),
+        "seal": pad(sn("ring", 0.0, 1.0, 0.75, fout=0.4), akd("p_skill_copperseal.wav", 0.0, 1.0, fout=0.4) * 0.5),
+        **{"cut_%d" % (i + 1): sn("scrape", 0.0, 0.3, r, fout=0.12) for i, r in enumerate([1.15, 1.28, 1.05])},
+        "boom_1": sn("blast", 0.02, 0.5, 0.85, fout=0.2), "boom_hit": sn("blast", 0.02, 0.4, 0.95, fout=0.15),
+        "impact": pad(sn("cut", 0.93, 1.4, fout=0.5), sn("slice", 0.29, 0.7, fout=0.3) * 0.7, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
     }
+    if v == 2:
+        d.update({**{"cut_%d" % (i + 1): akd("p_skill_arccutting.wav", 0.0, 0.4, r, fout=0.15) for i, r in enumerate([1.1, 1.2, 1.0])},
+                  "impact": pad(akd("p_skill_reticentsword_h.wav", 0.1, 1.2, fout=0.5), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9)})
+    return d
 
-
-def lappland():
-    """原地狂舞连斩，四圈双刃剑气向四面飞出（0.25 秒一圈，每圈一声交叉的风切）"""
-    def x(i):
-        return pad(sweep_noise(0.28, 5200, 900, 0.4) * env(0.28, 0.003, 9), at(sweep_noise(0.26, 4800, 800, 0.4) * env(0.26, 0.003, 9) * 0.7, 0.04), metal(0.3, 1700 + 140 * i, 10, bright=0.45) * 0.25)
-    return {
-        "charge": pad(seq([(i * 0.14, slash(0.14, 4200, 1500) * 0.35) for i in range(6)]), whisper(0.8, 800, 2400) * swell(0.8, 0.9) * 0.25),
-        "cast": slash(0.16, 5000, 1500) * 0.6,
-        "impact": pad(x(0), sub(0.35, 110, 45, 9) * 0.5),
-        "wave_hit": x(2),
+def lappland(v=1):
+    """docs/205 §4.6（11-01 定稿 ① 录音；画面「往前飞的剑气 + 收尾横斩 + 空气爆破」）：起手语音 = 她的笑声（voice）
+    → 放出 cast = 多层剑斩 → 每道往前飞的剑气 slash_1..4（fx strip fx_ir_slash1–3+v，节流 0.05 秒）= 长刃刮擦升调轮换；第一下掉血 impact 很轻（只是第一道剑气）
+    → 收尾横斩 final（hf_slot，冲击帧第一拍，全招最响）= 斩击冲击 + 鞭响 + 预告片低频 → 空气爆破 air（fx ring w6）= 碎屑呼啸 + 雷暴炸裂升调。
+    v=2 原作：剑气 = 原作沉默之剑连斩截段，横斩 = 原作沉默之剑重斩 + 低频"""
+    d = {
+        "sf": sn("scrape", 0.0, 0.4, 0.95, fout=0.15), "cast": sn("slice", 0.29, 0.5, 1.1, fout=0.2),
+        **{"slash_%d" % (i + 1): sn("scrape", 0.0, 0.28, r, fout=0.1) for i, r in enumerate([1.12, 1.24, 1.36, 1.05])},
+        "impact": sn("scrape", 0.0, 0.3, 1.0, fout=0.1),
+        "final": pad(sn("cut", 0.93, 1.2, fout=0.45), sn("whip", 0.45, 0.6, fout=0.2) * 0.8, lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.8),
+        "air": pad(sn("debris", 0.3, 1.0, fout=0.4), sn("thunder", 3.27, 1.0, 1.2, fout=0.4) * 0.4),
     }
-
+    if v == 2:
+        d.update({**{"slash_%d" % (i + 1): akd("p_skill_reticentsword_s.wav", t, 0.3, fout=0.1) for i, t in enumerate([0.1, 0.55, 1.0, 1.6])},
+                  "final": pad(akd("p_skill_reticentsword_h.wav", 0.1, 1.2, fout=0.5), lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.8)})
+    return d
 
 def lumen():
     """docs/205 §4.4（用户 10-31 选 ① 原作）：提示 = 原作星光 → 放出 = 原作提灯 → 点亮灯塔（strip fx_beacon_ignite）= 原作提灯
@@ -475,9 +504,11 @@ def main():
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--only", default="")
     ap.add_argument("--reseed", action="store_true", help="每人用自己的随机序列（逐人精调时配 --only 用）")
+    ap.add_argument("--variant", type=int, default=1, help="备选版（docs/205 §4.6，干员函数带 v 参数的才认；配 --only、不带 --apply 出候选）")
+    ap.add_argument("--out", default="", help="候选输出目录（缺省 build/ult_sfx/S）")
     a = ap.parse_args()
     only = set(a.only.split(",")) if a.only else None
-    dst_dir = SFX if a.apply else OUT
+    dst_dir = SFX if a.apply else (a.out or OUT)
     os.makedirs(dst_dir, exist_ok=True)
     for f in OPS:
         op = f.__name__
@@ -485,7 +516,7 @@ def main():
             continue
         if a.reseed:   # 每人独立随机序列（docs/205 §4 起逐人精调用；改一人不牵动别人）。没加 --reseed 时沿用旧的全程一条序列
             rng.bit_generator.state = np.random.default_rng(zlib.crc32(op.encode())).bit_generator.state
-        d = f()
+        d = f(a.variant) if a.variant != 1 else f()
         st = rng.bit_generator.state   # sf 不占随机序列：其余槽与加 sf 之前逐字节相同
         if "sf" not in d:   # 干员函数自己给了录音版 sf 就不用合成的
             d["sf"] = FLASH[op]()

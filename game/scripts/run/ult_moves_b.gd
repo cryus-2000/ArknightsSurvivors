@@ -247,6 +247,8 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			w.fx.append(_keep(u, a, {"kind": "nop" if v2 else "line", "a": o0, "b": o0, "w": 5.0, "col": Color.WHITE, "life": 2.0}))
 			if v2 and _sd_v5(u):
 				_sd_roll_v5(u, a, w, o0, d, hw, T)
+				w.fx[0].fill = 0.0   # 斩浪（11-01 细调）：卷浪贴图自带水体，不再垫整块扁平蓝矩形（录像里看成一块菱形色板）
+				w.fx[1].fill = 0.0
 			elif v2 and _sd_v4(u):
 				_sd_walls_v4(u, a, w, o0, d, T)
 			elif v2:
@@ -321,8 +323,9 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 				a.fx.erase(sp[0])
 			if w.has("walls"):
 				_sd_walls_end(u, a, w, o0, d, n, hw, col)
-			u.shape({"kind": "band", "a": o0 - d * back, "b": o0 + d * float(w.get("wet_x", L)), "w": hw * 2.0, "col": col.darkened(0.3) if w.has("wet_x") else col,
-				"fill": 0.16 if w.has("wet_x") else 0.12, "life": 1.8 if w.has("wet_x") else 1.5, "layer": "back" if w.has("wet_x") else "front"})   # 湿痕
+			if not w.has("roll"):   # 斩浪版不画整块湿痕（扁平色板），余韵交给水爆的水雾 / 水珠
+				u.shape({"kind": "band", "a": o0 - d * back, "b": o0 + d * float(w.get("wet_x", L)), "w": hw * 2.0, "col": col.darkened(0.3) if w.has("wet_x") else col,
+					"fill": 0.16 if w.has("wet_x") else 0.12, "life": 1.8 if w.has("wet_x") else 1.5, "layer": "back" if w.has("wet_x") else "front"})   # 湿痕
 			for i in (0 if w.has("face") or w.has("walls") or w.has("roll") else 5):
 				var lat3: float = -hw * 0.8 + hw * 1.6 * float(i) / 4.0
 				u.shape({"kind": "line", "a": o0 + n * lat3 - d * back, "b": o0 + n * lat3 + d * L, "w": 2.0, "col": foam, "life": 1.2})
@@ -406,13 +409,17 @@ static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vecto
 	if F >= minf(L, Bal.v("ult/sd_crash_x", 520.0)):
 		w["crashed"] = true   # 用户 10-31「再来个劈开巨浪爆炸收尾」：一道剑光顺着她的朝向把浪从中间劈开 → 两半往两侧分开 → 劈口炸成水柱 / 水雾
 		u.g.vfx.stop(Bal.v("ult/sd_crash_stop", 0.08), "ult", true)
-		u.shape({"kind": "blade", "a": o0 + d * 60.0, "b": fp + d * 140.0, "w": 18.0, "col": Color(0.8, 0.9, 1.0), "glow": col, "grow": 0.03, "life": 0.2})
+		var n0: int = u.shapes.size()
+		u.shape({"kind": "blade", "a": o0 + d * 60.0, "b": fp + d * 140.0, "w": 18.0, "col": Color(0.8, 0.9, 1.0), "glow": col, "grow": 0.0, "life": 0.2})   # 出手一帧到位（pixfx §6.6-1）
 		if u.fx_ready(SD_CLEAVE):
 			var ct: Texture2D = u._strip_tex(SD_CLEAVE)
 			u.strip(SD_CLEAVE, fp - d * 120.0, {"layer": "back", "ang": d.angle(), "o": Vector2(0.0, ct.get_height() * 0.47), "sx": 380.0 / PF.tex_w(u, SD_CLEAVE), "sy": 0.6,
 				"rev": 0.08, "rev0": 0.1, "life": 1.2, "fade": 0.6, "col": Color(1.0, 1.0, 1.05), "col1": Color(0.55, 0.65, 0.78), "cold": 0.3})
 		for r in w.roll:
 			_sd_split(u, r[0], n)
+		if Bal.v("ult/sd_crash_hf", 1.0) > 0.0:   # 11-01 细调：劈浪那一下是全招最该爆的一拍 → 冲击帧（剑光 + 劈口 + 两半浪墙进剪影）
+			PF.hf_since(u, n0)
+			PF.hf_on(u, a)
 		_sd_blast_v3(u, o0, d, n, hw * 0.45, fp + d * 20.0, PF.vseed(u, o0) + float(w.t0) * 17.0, col, 3)
 		w["wet_x"] = F
 
