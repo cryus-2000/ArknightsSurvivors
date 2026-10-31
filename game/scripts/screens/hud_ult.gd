@@ -46,6 +46,8 @@ func _demo_on() -> bool:
 
 
 func _q() -> Array:
+	if Bal.vi("link/v2", 1) > 0:
+		return []   # 连携 v2（docs/209 §2）：全自动，不亮头像、不画连携键 / E 提示
 	if not _demo_on():
 		return g.ult.queue
 	_demo_q.clear()
@@ -325,7 +327,9 @@ func _draw_touch(vs: Vector2) -> void:
 	var cr: float = cb.r
 	var qn: int = _q().size()
 	var clit: bool = qn > 0
-	bg.circle(cc, cr, Color(0.05, 0.12, 0.16, 0.82 if clit else 0.5), 24)
+	var v2: bool = Bal.vi("link/v2", 1) > 0   # 连携 v2：没有连携键
+	if not v2:
+		bg.circle(cc, cr, Color(0.05, 0.12, 0.16, 0.82 if clit else 0.5), 24)
 	# 后面排队的：连携键左边一列小头像（静止亮着）
 	var rest: Array = []
 	for i in range(1, mini(qn, 4)):
@@ -364,7 +368,9 @@ func _draw_touch(vs: Vector2) -> void:
 	var lcol: Color = (UI.GOLD if up else UI.TEXT) if full else UI.SUB
 	txt.append(func(): UI.text(g.hud, g.font, c + Vector2(-50.0, r + 19.0), lab, 13, lcol, HORIZONTAL_ALIGNMENT_CENTER, 100.0))
 	# ---- 连携键
-	if clit:
+	if v2:
+		pass
+	elif clit:
 		var q: Dictionary = _q()[0]
 		var oc: Color = q.o.col().lerp(Color.WHITE, 0.35)
 		var k: float = clampf(float(q.left) / _lit_t(), 0.0, 1.0)
@@ -373,7 +379,7 @@ func _draw_touch(vs: Vector2) -> void:
 	else:
 		fg.arc(cc, cr, 0.0, TAU, 1.5, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), 24)
 		txt.append(func(): UI.text(g.hud, g.font, cc + Vector2(-30.0, 5.0), "连携", 13, Color(1, 1, 1, 0.45), HORIZONTAL_ALIGNMENT_CENTER, 60.0))
-	if g.touch.flash.get("combo", 0.0) > 0.0:
+	if g.touch.flash.get("combo", 0.0) > 0.0 and not v2:
 		fg.arc(cc, cr + 6.0, 0.0, TAU, 2.0, Color(1, 1, 1, 0.6), 24)
 	_queue_rings(fg, txt, rest, "")
 	fg.flush(g.hud)

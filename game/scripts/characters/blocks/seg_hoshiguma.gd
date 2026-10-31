@@ -126,7 +126,7 @@ static func exec_line(o, b: Dictionary) -> Array:
 static func field_center(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Vector2:
 	match str(b.get("center", "self")):
 		"leader":
-			return o.g.ppos
+			return o.lead_pos()
 		"target":
 			return at
 		"zone":

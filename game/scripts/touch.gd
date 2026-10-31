@@ -9,6 +9,7 @@ const UI = preload("res://scripts/ui.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")   # 各按键位置 / 大小（缺省 + 设置里的自定义，10-13）
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const RADIUS := 64.0        # 摇杆最大行程
 const DEAD := 10.0          # 死区
@@ -398,7 +399,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 			var ub: Dictionary = ult_btn(vs)
 			var cb: Dictionary = combo_btn(vs)
 			ult_rect = Rect2(ub.c - Vector2(ub.r, ub.r), Vector2(ub.r, ub.r) * 2.0)
-			combo_rect = Rect2(cb.c - Vector2(cb.r, cb.r), Vector2(cb.r, cb.r) * 2.0)
+			combo_rect = Rect2(cb.c - Vector2(cb.r, cb.r), Vector2(cb.r, cb.r) * 2.0) if Bal.vi("link/v2", 1) <= 0 else Rect2()   # 连携 v2：没有连携键
 		else:
 			_draw_skill_button(hud, font, L.skill.c, L.skill.s)
 		btn_rects.append([speed_rect(vs), "speed"])
@@ -426,7 +427,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		if sq.stamina_on() and sq.stamina > 0.0:
 			hud.draw_arc(cc, cr + 5.0, -PI / 2.0, -PI / 2.0 + TAU * clampf(sq.stamina, 0.0, 1.0), 32, fc, 4.0)
 		var cfs: int = int(round(14.0 * clampf(float(ce.s), 0.8, 1.3)))
-		UI.text(hud, font, cc + Vector2(-30, cfs * 0.38), g.squad.STANCE_NAMES[st], cfs, Color(scol.r, scol.g, scol.b, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 60)
+		UI.text(hud, font, cc + Vector2(-30, cfs * 0.38), "部署" if g.squad.Tactics.on() and g.squad.order_kind == "point" else g.squad.STANCE_NAMES[st], cfs, Color(scol.r, scol.g, scol.b, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 60)
 		UI.text(hud, font, cc + Vector2(-30, cr + 15), "指挥" if g.squad.priority == g.squad.default_priority() else g.squad.PRIO_SHORT[g.squad.priority], 13 if ph else 12, UI.SUB if g.squad.priority == g.squad.default_priority() else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 60)
 	# 按钮：右侧中部纵向两个（暂停 / 属性）
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:

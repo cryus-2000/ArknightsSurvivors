@@ -130,7 +130,7 @@ func _src_tag() -> String:
 func zone_c() -> Vector2:
 	var z: Dictionary = B.get("zone", {})
 	if str(z.get("center", "self")) == "leader" and g.demo_op == "":
-		return g.ppos
+		return lead_pos()   # 指挥 v2：突击 / 部署中的队友以自己为中心（docs/209 §1.3）
 	return pos
 
 

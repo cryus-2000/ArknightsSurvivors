@@ -205,6 +205,8 @@ func _set_tab(t: int) -> void:
 			continue   # 对外包不记录，也不显示这一行
 		if (key == "auto_combo" or key == "auto_ult") and preload("res://scripts/core/balance.gd").vi("ult/on", 1) <= 0:
 			continue   # 终结技总开关关着（balance ult/on = 0）：没有终结技 / 连携技，这两行不列出
+		if key == "auto_combo" and preload("res://scripts/core/balance.gd").vi("link/v2", 1) > 0:
+			continue   # 连携 v2（docs/209 §2）：连携全自动，没有这一行
 		for i in ROWS.size():
 			if ROWS[i].key == key:
 				cur.append(i)

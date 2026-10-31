@@ -91,7 +91,7 @@ static func fx_vortex(sink, o, e: Dictionary, layer: String, alpha: float, c_zon
 			"self":
 				c = o.pos
 			"leader":
-				c = g.ppos
+				c = o.lead_pos()
 		var ov = f.get("off", [])
 		if ov is Array and ov.size() == 2:
 			c += Vector2(float(ov[0]), float(ov[1]))

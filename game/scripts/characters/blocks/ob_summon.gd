@@ -95,7 +95,7 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 	var c := Vector2.INF
 	match str(b.get("at", "self")):
 		"leader":
-			c = g.ppos
+			c = o.lead_pos()
 		"target":
 			c = at
 		"zone":
@@ -1854,7 +1854,7 @@ static func _mf_points(o, f: Dictionary, ctx: Dictionary) -> Array:
 		"self":
 			out.append(o.pos)
 		"leader":
-			out.append(g.ppos)
+			out.append(o.lead_pos())
 		"hits":
 			var cap: int = int(f.get("max_pts", 0))   # max_pts：最多在前几个命中点播（浊心歌声纹：一次领域命中十几个，只挑几个）
 			for e in ctx.get("hits", _EA):

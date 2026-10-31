@@ -105,9 +105,10 @@ func title_part(tag: String) -> void:
 	# 按住 Enter 不连发：音乐行切开关不适用（是音量），换到「游戏」页的开关行测
 	await key(KEY_E)
 	st.sel = 0
-	var b0 = Cfg.auto_combo
+	var rk: String = str(st.ROWS[st.cur[0]].key)   # 本页第一行开关（连携 v2 下「自动连携」隐藏，第一行是「自动终结技」）
+	var b0 = Cfg.get(rk)
 	await key(KEY_ENTER, false, 3)
-	check(Cfg.auto_combo != b0, tag + ": held Enter toggles exactly once")
+	check(Cfg.get(rk) != b0, tag + ": held Enter toggles exactly once (%s)" % rk)
 	await key(KEY_ENTER)
 	await key(KEY_Q)
 	st.sel = 1

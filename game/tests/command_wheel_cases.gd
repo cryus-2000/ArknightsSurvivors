@@ -100,7 +100,12 @@ func run(check: Callable) -> void:
 	# 指点（docs/196）：圆盘下半圈 移动 / 肃清 / 集火，6 格各 60°（10-30 用户「移动保留，然后增加肃清区域的选项」）
 	var W = preload("res://scripts/screens/command_wheel.gd")
 	var ids: Array = W._items().map(func(it): return str(it.id))
-	check.call(ids == ["guard", "roam", "recall", "point", "clear", "focus"], "wheel has move / clear / focus with target_proto on")
+	var Bal = preload("res://scripts/core/balance.gd")
+	check.call(ids == ["guard", "roam", "point", "focus"], "v2 wheel merges to escort / assault / deploy / focus (docs/209 §1.6)")
+	Bal.sec("command")["v2"] = 0
+	ids = W._items().map(func(it): return str(it.id))
+	check.call(ids == ["guard", "roam", "recall", "point", "clear", "focus"], "wheel has move / clear / focus with target_proto on (v2 0)")
+	Bal.sec("command")["v2"] = 1
 	# 肃清：圈里没敌人 clear_idle 秒 → 回随行；圈里有敌人则 clear_secs 秒到点回随行；移动照旧（圈空 → 归队）
 	setl.call([_e(1, 100.0)])
 	check.call(squad.apply_order("clear", Vector2(1000.0, 0.0), null) and squad.order_kind == "clear", "clear order applies")

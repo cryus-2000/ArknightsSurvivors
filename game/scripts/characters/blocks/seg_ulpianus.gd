@@ -1024,7 +1024,7 @@ static func _hw_ring_one(o, f: Dictionary, al: float) -> void:
 	var g = o.g
 	var rv: Dictionary = f.aura_ring
 	var r: float = shape_radius(o, o.cur_attack()) if str(rv.get("r", "attack")) == "attack" else float(rv.r)
-	var c: Vector2 = g.ppos if str(f.get("at", "self")) == "leader" else o.pos
+	var c: Vector2 = o.lead_pos() if str(f.get("at", "self")) == "leader" else o.pos
 	var ov = f.get("off", [0, 4])
 	c += Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
 	var col: Color = _mf_col(rv.get("col", []), o.col())

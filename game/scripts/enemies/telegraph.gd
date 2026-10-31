@@ -171,6 +171,8 @@ func update_warns(dt: float) -> void:
 			w.done = true
 			if not e.dead or (w.shape == "circle" and not w.get("cancel_dead", false)):
 				warn_resolve(w)
+				if g.get("squad") != null:
+					g.squad.warn_hit(w)   # 指挥 v2：突击 / 部署中的队友站在判定区里也吃（docs/209 §1.5）
 	g.warns = g.warns.filter(func(w): return w.t < w.dur + 0.25)
 
 

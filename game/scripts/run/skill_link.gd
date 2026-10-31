@@ -56,8 +56,20 @@ static func on_skill(u, o, i: int) -> void:
 		sfx.play("ui_ok", -4.0, 1.25)
 
 
-static func _dmg(o, mult: float) -> float:
-	return o.base("atk", 0.0) * mult * o._dmg_bonus()
+static func _dmg(o, mult: float, e = null) -> float:
+	var atk: float = o.base("atk", 0.0) * mult * o._dmg_bonus()
+	if Bal.vi("link/v2", 1) <= 0 or e == null or o.g.get("ult") == null:
+		return atk
+	# 连携 v2（docs/209 §2.2「少而重」）：和终结技同一套「按目标生命的预算」——小怪按当前基准生命、精英 / Boss 按最大生命的比例，
+	# 后期也打得动；× 这一下的倍率（各接法原倍率）× link/v2_mult。取它和攻击力口径的较大者
+	var b: float
+	if e.boss:
+		b = e.maxhp * (Bal.v("link/v2_final", 0.004) if e == o.g.final_boss else Bal.v("link/v2_boss", 0.01))
+	elif e.elite or e.get("part", false):
+		b = e.maxhp * Bal.v("link/v2_elite", 0.06)
+	else:
+		b = o.g.ult.ref_hp() * Bal.v("link/v2_minion", 0.9)
+	return maxf(atk, b * mult * Bal.v("link/v2_mult", 1.0) * o.g.ult.build_mult(o))
 
 
 static func _src(o, kind: String) -> String:
@@ -141,7 +153,7 @@ static func _step_boom(u, a: Dictionary) -> bool:
 			u.strip("fx_ult_exusiai_burst_front", c, {"o": Vector2(64, 64), "sc": 1.2})
 			for e in u.in_circle(c, 46.0):
 				p.log_hit(_src(p, "爆炸剑雨"), ["连携"])
-				p.deal_damage(e, _dmg(p, Bal.v("ult/link_boom_mult", 0.8)))
+				p.deal_damage(e, _dmg(p, Bal.v("ult/link_boom_mult", 0.8), e))
 	return t >= 0.2 + 0.035 * pts.size() + 0.25
 
 
@@ -172,7 +184,7 @@ static func _step_cross(u, a: Dictionary) -> bool:
 			var who = pair[2] if pair[2] != null and pair[2].pos != Vector2.INF else p
 			for e in u.in_band(c - d * L * 0.5, c + d * L * 0.5, W * 0.5):
 				who.log_hit(_src(who, "十字斩"), ["连携"])
-				who.deal_damage(e, _dmg(who, Bal.v("ult/link_cross_mult", 1.5)))
+				who.deal_damage(e, _dmg(who, Bal.v("ult/link_cross_mult", 1.5), e))
 		_merge_flash(u, c, c1.lerp(Color.WHITE, 0.4), c2, 40.0)
 		u.g.vfx.stop(0.05, "link", true)
 	return t >= 0.5
@@ -315,7 +327,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 					u.light(mid, 180.0, cp, 0.35)
 				for e in u.in_band(a.from_p, a.to_p, 34.0):
 					p.log_hit(_src(p, "追击"), ["连携"])
-					p.deal_damage(e, _dmg(p, Bal.v("ult/link_pursue_mult", 1.6)))
+					p.deal_damage(e, _dmg(p, Bal.v("ult/link_pursue_mult", 1.6), e))
 					if not e.dead and not e.boss:
 						p.add_cc(e, 0.5 * (0.5 if e.elite else 1.0))
 				u.g.vfx.stop(0.04, "link", true)
@@ -393,7 +405,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				a["burn"] = burn
 				for e in burn:
 					p.log_hit(_src(p, "熔岩"), ["连携"])
-					p.deal_damage(e, _dmg(p, Bal.v("ult/link_lava_mult", 1.0)))
+					p.deal_damage(e, _dmg(p, Bal.v("ult/link_lava_mult", 1.0), e))
 			for j in 2:
 				var tj: float = T + 0.3 * (j + 1)
 				var key := "b%d" % j
@@ -403,7 +415,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 						if e.dead:
 							continue
 						p.log_hit(_src(p, "点燃"), ["连携"])
-						p.deal_damage(e, _dmg(p, Bal.v("ult/link_burn_mult", 0.25)))
+						p.deal_damage(e, _dmg(p, Bal.v("ult/link_burn_mult", 0.25), e))
 						u.grain("fire", e.pos + Vector2(0, -12), Vector2.UP, Color.WHITE, 3)
 			return t >= T + 0.9
 		"gather":   # 歌蕾蒂娅：甩钩 0.14 秒 → 拖 0.36 秒 → 落地，钩索残留 0.5 秒慢慢收
@@ -439,7 +451,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 						u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
 						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 2.0, "col": HOOK, "life": 0.5})   # 钩索残留
 						p.log_hit(_src(p, "聚拢"), ["连携"])
-						p.deal_damage(e, _dmg(p, Bal.v("ult/link_gather_mult", 0.6)))
+						p.deal_damage(e, _dmg(p, Bal.v("ult/link_gather_mult", 0.6), e))
 						if not e.boss:
 							p.add_cc(e, 0.4 * (0.5 if e.elite else 1.0))
 			return t >= 1.0
@@ -503,7 +515,7 @@ static func _lc(u, p) -> Color:
 
 static func _hit16(p, e, name: String, mult: float) -> void:
 	p.log_hit(_src(p, name), ["连携"])
-	p.deal_damage(e, _dmg(p, mult * Bal.v("ult/link16_mult", 1.0)))
+	p.deal_damage(e, _dmg(p, mult * Bal.v("ult/link16_mult", 1.0), e))
 
 
 static func _cc(p, e, stun: float) -> void:

@@ -310,6 +310,8 @@ func _draw_body() -> void:
 	if g.ult != null:
 		_layer("ult_cut", null, func(): ult.draw_cutins(vs))   # 终结技立绘切入条带（压在各块之上、整屏状态界面之下）
 	g.pick.draw(vs)   # 指点（示意原型）：已下达指令的标记 + 选点阶段的准星
+	if g.ult != null:
+		g.ult.draw_aim(vs)   # 终结技慢动作瞄准 v2（ult/aim，docs/209 §3）：PRTS 范围格 + 信息板，同指点一套画法
 	g.wheel.draw(vs)   # 指挥圆盘（docs/114 §12）：打开时盖在 HUD 上，直接画在 hud 画布（缓存层之上）
 	match g.state:
 		Game.S.SHOW:
