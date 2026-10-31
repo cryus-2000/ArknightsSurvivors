@@ -670,6 +670,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			card.set_meta("brief", bf)
 			card.set_meta("more", bf != display_desc.strip_edges() or card.has_meta("squad_cut"))
 			display_desc = bf
+			if hl.begins_with("解锁") and hl.contains(" · "):
+				display_desc = hl.replace(" · ", "\n")   # 精英化卡：技能名单独一行，不在名字中间折行（11-01 巡检：手机「囚 / 徒困境」「扫 / 射模式」）
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
 		if L.touch:
 			card.set_meta("phone", true)
