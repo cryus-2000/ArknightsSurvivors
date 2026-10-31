@@ -46,3 +46,9 @@ a = 新画法、b = 旧画法（`g.perf_alt`：本单四处——迸散 / 拖尾
 
 两次（c5507e5ff 1500 秒、8112c40e8 放宽日志过滤 700 秒）都没有任何 `BOSSACTS` 行——连第 20 帧刷 Boss 的那一行都没有，说明 `--autotest --bossacts` 在网页测量副本里根本没进对局（停在标题页或别处），不是性能问题；逐秒帧数一直约 30，Edge 进程树私有内存峰值 3.5 / 4.9 GB。
 下一步：在测量副本里先确认 `--autotest` 能进局（看 `PF W` 之外有没有 `BALANCE` / `TRACE`），再量；或改用 docs/50 §42 的 `--balance --perf --realtime --rtfrom` 跑到伊祖米克登场的时段。
+
+11-01 早补查（docs/211 任务 C 顺手项）：
+- 启动页「开始游戏」按钮不是原因：带任何调试参数时启动页直接跳过（boot_screen._ready），网页走 `_skip_web_boot`。
+- 标题页自测进局（`auto_go`）原来没有玩家路径那道 60 秒等待上限，494707dc6 补上并在等满时打 `PF AUTOGO …`。但这一轮（494707dc6，paranoia，900 秒）照旧没进局，也没打出 `PF AUTOGO`：卡点不在载入页。
+- 对照：7536764e6 的 `out_w_izu.txt`（同样 `--autotest`、没有 `--bossacts`）有 `PF AUDIOFREE track=title / battle1 / boss` 等行，进了对局；三次 `--bossacts` 连 `track=title` 那行都没有，卡在标题页之前。
+- 下一步：在测量副本里二分参数（先去掉 `--bossacts` / `--perfab` / `--noshots` / `--bal=boss/acts_demo_len` 各一个），找出哪个让网页停在标题页之前；或改用 docs/50 §42 的 `--balance --perf --realtime --rtfrom` 跑到 Boss 登场的时段。
