@@ -760,6 +760,8 @@ func shape(s: Dictionary) -> void:
 
 
 func _tick_shapes(dt: float) -> void:
+	if not _stops.is_empty():
+		_tick_stops(dt)
 	for k in range(shapes.size() - 1, -1, -1):
 		var s: Dictionary = shapes[k]
 		s.age += dt
@@ -1379,6 +1381,22 @@ func link_slow() -> void:
 var _prep_rt := -99.0
 var _prep_t := 0.0
 var _prep_s := 1.0
+
+
+## 延时顿帧：delay 游戏秒后顿 dur（画面层，同 vfx.stop；终结技结束后的收招一下用）
+var _stops: Array = []
+
+
+func stop_later(delay: float, dur: float) -> void:
+	_stops.append([delay, dur])
+
+
+func _tick_stops(dt: float) -> void:
+	for i in range(_stops.size() - 1, -1, -1):
+		_stops[i][0] = float(_stops[i][0]) - dt
+		if float(_stops[i][0]) <= 0.0:
+			g.vfx.stop(float(_stops[i][1]), "ult", true)
+			_stops.remove_at(i)
 
 
 func prep_slow(dur: float, scale: float) -> void:
