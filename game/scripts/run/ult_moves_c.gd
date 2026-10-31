@@ -1179,7 +1179,9 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 	# ② 行刑：旋风转身
 	var t0: float = 0.18
 	var T: float = 0.6
-	if t >= t0 and t < t0 + T:
+	if _irv3() and t >= t0 and t < t0 + T:
+		_irv_shuttle(u, a, o, (t - t0) / T)
+	elif t >= t0 and t < t0 + T:
 		var k: float = (t - t0) / T
 		var th: float = float(a.spins) * TAU * (k * (1.2 - 0.2 * k))   # 起手猛、尾段略收
 		o.face_to(th)
@@ -1224,6 +1226,10 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 	if t >= t0 + T and not a.has("spun"):
 		a["spun"] = true
 		o.play_vis_anim("attack")
+		if _irv3():   # 穿梭完瞬身回纹章中心
+			u.shape({"kind": "blade", "a": o.pos, "b": c, "w": 4.0, "col": IRV_WHITE, "glow": IRV_NAVY, "life": 0.12})
+			_lead_move(u, o, c)
+			_lead_land(u, o)
 		for e in u.in_circle(c, R):   # 收刀前扫漏的补斩（刀扫过时还没进圈的）
 			_once(u, a, o, a.cseg, e, float(a.cf), {"src": "行刑", "pre": true, "edge": e.pos.distance_to(c) > float(a.rc)})
 	# ③ 收尾：由近到远连环炸开
@@ -1287,6 +1293,42 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			PF.aftershock(u, c, R * 0.7, vs, 0.05, 10, Color(0.75, 0.72, 0.7))   # 纹章碎块崩起
 			u.light(c, R * 0.6, IRV_GOLD, 0.25)
 	return a.boomed and t >= float(a.end_t)
+
+
+## ---- 「宣判」行刑第三版（用户 10-31「从旋风连斩改成在纹章内来回穿梭斩击，最后爆炸」；开关 ult/ir_verdict3 缺省 1，0 = 旋风连斩）：
+## 0.6 秒里她在纹章内来回瞬身穿梭 6 刀（狂飙路线 8 刀）：落点在纹章 0.78 R 圈上按星形跳（每刀转 ~0.62 圈，来回交错），每刀一道冷白细斩线贯穿全程 +
+## 刀口迸冷白 / 深蓝粒子 + 沿线一撮金色碎光 + 起落两端尘；结算同旋风版（按刀扫过的方位角先后斩到每只，0.6 份额），穿梭完瞬身回中心，接连环爆
+static func _irv3() -> bool:
+	return Bal.v("ult/ir_verdict3", 1.0) > 0.0
+
+
+static func _irv_shuttle(u, a: Dictionary, o, k: float) -> void:
+	var c: Vector2 = a.c
+	var R: float = a.R
+	var vs: float = a.vs
+	var nd: int = 8 if int(a.spins) >= 4 else 6
+	var j: int = mini(nd - 1, int(k * nd))
+	if j != int(a.get("dash", -1)):
+		a["dash"] = j
+		var a0: float = PF.h(vs) * TAU + j * TAU * 0.62
+		var np: Vector2 = c + Vector2.from_angle(a0 + (PF.h(vs + j) - 0.5) * 0.4) * R * (0.65 + 0.2 * PF.h(vs + j * 3.0))
+		var fp: Vector2 = o.pos
+		var dv: Vector2 = (np - fp).normalized() if np != fp else Vector2.RIGHT
+		u.shape({"kind": "blade", "a": fp - dv * 30.0, "b": np + dv * 40.0, "w": 6.0, "col": IRV_WHITE, "glow": IRV_NAVY, "grow": 0.03, "life": 0.28})   # 斩线
+		u.shape({"kind": "blade", "a": fp, "b": np, "w": 2.0, "col": IRV_GOLD, "glow": IRV_NAVY, "life": 0.4})   # 留下的金丝
+		for q in 3:
+			PF.particles(u, fp.lerp(np, (q + 0.5) / 3.0), 40, "ult_burst_s", [IRV_WHITE, IRV_NAVY], 0.02 * q, vs + j * 7.0 + q, 50.0)
+		PF.dust(u, np + Vector2(0, 8), 80.0, 0.0, vs + j, -dv * 60.0, Color(0.62, 0.64, 0.7))
+		u.light(np, 140.0, IRV_WHITE, 0.12)
+		_lead_move(u, o, np)
+		o.face_to(dv.angle())
+		o.play_vis_anim("attack")
+	for e in u.in_circle(c, R):   # 结算同旋风版：按方位角先后斩到
+		if a.cseg.has(int(e.id)):
+			continue
+		var fa: float = fposmod((e.pos - c).angle(), TAU) / TAU
+		if fa <= minf(1.0, k * float(a.spins)):
+			_once(u, a, o, a.cseg, e, float(a.cf), {"src": "行刑", "pre": true, "edge": e.pos.distance_to(c) > float(a.rc)})
 
 
 ## ---- 「宣判」表现第二版（用户 10-31「纹章没问题，后面的表现形式需要改」：锁链 / 旋风 / 连环爆 / 碎裂四段都改；开关 ult/ir_verdict2 缺省 1，0 = 第一版）
