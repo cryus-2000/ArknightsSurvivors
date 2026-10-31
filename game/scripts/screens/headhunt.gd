@@ -948,7 +948,7 @@ func _draw_class() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	HS.left_panel(ci, D, 500, 380, 62)
-	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业"), "back")
+	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业", 1.0, "01 / 02", "")   # 11-01 docs/211 D13：有底栏的页「返回」只放底栏
 	var by := HS.title_block(ci, f, Vector2(36, _p(150, 116)), "01", "定向寻访", "定向寻访", "DIRECTED", 1.0, int(_p(72, 60)))
 	UI.text_at(ci, f, Vector2(36, by + 34), "先选职业，再从未解锁干员中指定 1 名。", int(_p(15, 17)), HS.INK, "lm")
 	UI.text_at(ci, f, Vector2(36, by + 60), "消耗寻访凭证 %d 张。" % _cost_pick(), int(_p(15, 17)), HS.INK, "lm")
@@ -990,6 +990,9 @@ func _draw_class() -> void:
 		if lt < 0.1:
 			HS.para(ci, r.grow(2), UI.fa(Color.WHITE, 0.35 * (1.0 - lt / 0.1)), UI.fa(Color.WHITE, 1.0 - lt / 0.1), 2.0)
 	_bottom("" if Pad.touch else "方向键选择")
+	var bb := Rect2(D.x - 560, D.y - 72, 210, 56)
+	HS.ghost_btn(ci, f, bb, "返回", "" if Pad.touch else "Esc")
+	_btn(bb, "back")
 	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
 	HS.main_btn(ci, f, br, "确认职业", "" if Pad.touch else "Enter")
 	_btn(br, "ok")
@@ -1038,7 +1041,7 @@ func _draw_pick() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	HS.right_panel(ci, D, 780, 640, 62, D.y - 88)
-	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员"), "back")
+	HS.topbar(ci, f, D, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员", 1.0, "02 / 02", "")   # D13：返回在底栏
 	var n := choices.size()
 	var gm := _pick_geom()
 	var cap: int = gm.cap

@@ -152,6 +152,14 @@ func trace_nerve_hash() -> int:
 	return ("%d,%d,%d,%d" % [int(roundf(g.nerve * 1000.0)), int(roundf(g.nerve_lock * 1000.0)), int(roundf(g.nerve_taken_mult * 1000.0)), int(roundf(g.nerve_aura_t * 1000.0))]).hash()
 
 
+## --resultwait=<秒>：结算截图再多等这么久（底栏按钮淡入完，11-01 巡检看按键牌）
+func _ss_wait() -> float:
+	for a in Cfg.dev_args():
+		if a.begins_with("--resultwait="):
+			return float(a.substr(13))
+	return 0.0
+
+
 ## --statsshot=<秒>[,dead]（docs/77 实机截图）：机器人照常打到第 <秒> 秒后直接进胜利（结局一）/ 失败结算，
 ## 依次截 结算面板（多了「作战记录」按钮）→ 作战记录总览动效中（0.3 秒）→ 总览终态 → 主控详情 → 第二名干员详情，
 ## 存到 --shotdir：shot_stats_result / _motion / _overview / _detail0 / _detail1.png，截完退出。无头不截（只走流程）。
@@ -196,7 +204,7 @@ func _stats_shot() -> bool:
 			_ss.f += 1
 			if _ss.hold:
 				return true
-			if g.state_age > (2.6 if _ss.dead else 0.8):
+			if g.state_age > (2.6 if _ss.dead else 0.8) + _ss_wait():
 				shot.call("result")
 				g._do_action("stats")
 				_ss.phase = 2
@@ -1400,6 +1408,8 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_result_meta.png")   # 没有券：直接截结算面板
 			g.get_tree().quit()
 		var shoot := DisplayServer.get_name() != "headless"
+		if g.at_frames == 100 and not g.headhunt.open:
+			g.headhunt.maybe_open()   # 同结算「寻访」按钮（settlement_screen._action）；11-01 巡检：以前没打开，7 张都截成结算页
 		# 新流程（10-22，单一寻访凭证）：入口 → 定向寻访 → 选职业 → 指定干员 → 拉包 → 揭示 → 本次寻访；[帧, 动作]，动作在截图之后执行
 		var acts := {120: "directed", 170: "ok", 220: "ok"}
 		if Cfg.dev_args().has("--huntrec"):

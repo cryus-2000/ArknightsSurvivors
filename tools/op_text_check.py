@@ -24,7 +24,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHAR_DIR = os.path.join(ROOT, "game", "data", "characters")
 
-TEXT_FILL_KEYS = ("desc", "banner", "branch_desc")
+TEXT_FILL_KEYS = ("desc", "banner", "branch_desc", "brief")
 PH = re.compile(r"\{([^{}]*)\}")
 
 # 字面数字里允许、base / blocks 里对不上的（引擎通用规则或写死在代码里的数）：(干员 id 或 "*", 文字片段)。

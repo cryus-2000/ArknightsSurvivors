@@ -34,8 +34,8 @@ const ENDING_ORDER := ["standard", "knight", "deep", "resolve"]   # 显示编号
 const ENEMY_DESC := {
 	"tracer": "生命不高于 50% 时加速并铺设溟痕，受到的物理伤害减少 35%；发动前刺攻击。",
 	"nest": "光环持续造成法术伤害和神经损伤，重叠法伤仅取最强者。眩晕、寒冷时长减半，免疫停顿；近身发动触须攻击。",
-	"bone": "最常见的海嗣个体，成群漂流而来。近战，命中附带「侵蚀」。",
-	"slider": "贴着海床高速滑行。近战；冲刺撞上队长时额外熄灭 8 点灯火。",
+	"bone": "近战，命中附带「侵蚀」。",   # 11-01 docs/211 D7：设定段（lore.json）已写「最常见的海嗣个体」，机制段不重复
+	"slider": "近战；冲刺撞上队长时额外熄灭 8 点灯火。",   # D7：「贴着海床滑行」设定段已写
 	"stone": "远程投掷碎石。首次接敌架起 20 秒，期间受到的物理伤害减少 45%，法术伤害增加 50%。",
 	"offspring": "伊祖米克的子代，行动迟缓但生命很高；碰到队长时蜕变成 2 只其他海嗣。",
 	"brood": "由投嗣育母投出、落地孵化的子体，不会移动并逐渐衰亡，接触造成侵蚀。",
@@ -1589,7 +1589,7 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 			hits.append([r.grow(2.0), "cat", i])
 		var br := Rect2(W - 52, 6, 42, 20)
 		UI.para(self, br, 6, UI.C_L_INK)
-		UI.text_at(self, font, br.get_center() + Vector2(0, 1), Pad.hint("Esc", "Ⓑ", "返回"), 10, UI.C_L_INV, "mm")
+		UI.text_at(self, font, br.get_center() + Vector2(0, 1), Pad.hint("ESC", "Ⓑ", "返回"), 10, UI.C_L_INV, "mm")
 		hits.append([br.grow(6.0), "back", 0])
 		return
 	draw_rect(Rect2(120, 0, vr.end.x - 120.0, 48), UI.C_D_PANEL)
@@ -1608,7 +1608,9 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 	UI.code(self, font, Vector2(W - 128, 20), "%d / %d" % [unl, total], 9, UI.C_D_SUB, "ra")
 	var back := Rect2(W - 112, 10, 96, 28)
 	UI.para(self, back, 8, Color(0, 0, 0, 0), UI.C_D_INK)
-	UI.text_at(self, font, back.get_center() + Vector2(0, 1), Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), 12, UI.C_D_INK, "mm")
+	var bk := "" if Pad.using else "ESC"   # 11-01 巡检：键名不夹在按钮文字里（同 10-31 TA H7），左内侧按键牌、字往右让
+	UI.text_at(self, font, back.get_center() + Vector2(UI.key_shift(bk, 14.0), 1), Pad.hint("返回", "返回  Ⓑ", "返回"), 12, UI.C_D_INK, "mm")
+	UI.btn_key(self, font, back, bk, UI.C_D_INK, 9, 12.0)
 	hits.append([back.grow(4.0), "back", 0])
 
 

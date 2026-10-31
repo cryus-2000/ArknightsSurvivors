@@ -7,6 +7,8 @@ extends Control
 ## 等连续 GOOD_N 帧稳在一帧预算内再淡出，标题开场从头播（10-25 用户「等能渲染到稳定 60 帧之后再正式进入游戏主界面」，docs/50 §27）。
 ## 以前这一段（桌面调试版 8–12 秒、网页十几秒）全在 Godot 静态启动图下面，没有进度。
 ## 桌面引擎初始化只显示同色背景，不再先放一张静态加载图。
+## 11-01 起读完、稳帧后不自动进标题页：出「开始游戏」（boot_views.draw_start），玩家点 / 按任意键 / 触屏点 / 手柄键才揭开标题页、开场从头播；
+## 网页由 HTML 加载页出同一个按钮（loader.js __syBootReady → window.__syStart）。录像 / 计时类调试参数停 1.2 秒自动开始。
 ## 网页：前面还有 HTML 加载页（tools/web/loader.js，下载占 0–60%、引擎启动 60–80%），这里接着它的百分比走、不倒退；
 ## 网页只保留 HTML 加载页；本页不另绘制，实际进度经 __syBootProgress 回传，主菜单就绪才 __syBootDone。
 ## 测试（带命令行参数、无界面）直接切标题页，不走本页；--bootshot / --loadprof / --bootrec 才走（--bootshot 在读到一半时截图退出）。
@@ -67,6 +69,11 @@ var lines: Array = []         # 方向 1–3 的系统日志：{"t", "s", "ok"}�
 var _cat_tot := {}            # 编译类别 → 文件数
 var _seen_t := {}             # 日志行 → 第一次出现的时刻
 var _slow_ms := 0
+var _await := -1.0            # 读完、稳帧后等玩家开始的秒数（-1 = 还没到）；11-01 起读完不自动进标题页
+var _hover := false
+var _touch := false
+var _shot_ready := false      # --bootshot=ready：读完、「开始游戏」出现 0.6 秒后截 shot_boot_ready.png 退出
+var _auto_go := false         # 录像 / 计时类调试参数：停一下就自动开始，不卡住脚本
 
 
 ## 录对照片：挂在根节点上，启动页释放后接着录 2 秒标题页
@@ -86,7 +93,8 @@ class Rec extends Node:
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var args := Cfg.dev_args()
-	shot = args.has("--bootshot")
+	_shot_ready = args.has("--bootshot=ready")
+	shot = args.has("--bootshot") or _shot_ready
 	var rec_dir := ""
 	for a in args:
 		if a.begins_with("--bootrec="):
@@ -141,6 +149,8 @@ func _ready() -> void:
 		r.process_mode = Node.PROCESS_MODE_ALWAYS
 		get_tree().root.add_child.call_deferred(r)
 	_budget_ms = _frame_budget_ms()
+	_auto_go = (shot and not _shot_ready) or rec_dir != "" or args.has("--loadprof") or args.has("--ftrec")
+	_touch = Cfg.touch_device()
 
 
 ## 静态协程不依附即将释放的启动节点；测试跳过预热时也要在新场景画出后关闭 HTML 遮罩。
@@ -174,6 +184,18 @@ func _process(delta: float) -> void:
 			mark.name = "BootDone"   # 录像（--bootrec）据此再录 2 秒标题页
 			get_tree().root.add_child(mark)
 			get_parent().queue_free()   # 连同盖层一起释放
+		queue_redraw()
+		return
+	if _await >= 0.0:
+		_await += delta
+		if _web_overlay:
+			if bool(JavaScriptBridge.eval("!!window.__syStart", true)):
+				_start()
+		elif _shot_ready and _await >= 0.6:
+			_shot("shot_boot_ready.png")
+			return
+		elif _auto_go and _await >= 1.2:
+			_start()
 		queue_redraw()
 		return
 	if _opened:   # 不用 title != null：标题页被测试切走释放后，那个引用按 null 算，会再建一个标题页（实测死循环）
@@ -213,7 +235,7 @@ func _step_sync() -> void:
 		if _slow_ms > 0:
 			OS.delay_msec(_slow_ms)
 			return
-		if shot and idx == items.size() / 2:
+		if shot and not _shot_ready and idx == items.size() / 2:
 			_shot()
 			return
 
@@ -241,7 +263,7 @@ func _step_threaded() -> void:
 		if FR.enabled() and Time.get_ticks_usec() - _req_t > 40000:
 			print("PF FTLOAD %s %.0f ms（后台）" % [_req, (Time.get_ticks_usec() - _req_t) / 1000.0])
 		_end_item()
-		if shot and idx == items.size() / 2:
+		if shot and not _shot_ready and idx == items.size() / 2:
 			_shot()
 			return
 		if Time.get_ticks_usec() - t0 > WAIT_USEC:
@@ -311,11 +333,48 @@ func _gate(dt_ms: float) -> void:
 			print("PF FTGATE held=%.2f good=%d slow=%d timeout=%s budget=%.1f" % [held, _good, _good_slow, timeout, _budget_ms])
 		if Cfg.dev_args().has("--loadprof"):
 			print("BOOTPROF boot_done=%d" % Time.get_ticks_msec())
-		if title.has_method("boot_reveal"):
-			title.boot_reveal()
-		FR.mark("reveal")
-		out_t = 0.0
-		_web_progress(true)
+		cur_label = "就绪"
+		cur_file = ""
+		_await = 0.0
+		if _web_overlay:
+			# 网页：HTML 加载页显示同样的「开始游戏」，玩家点了它置 window.__syStart（旧加载页没有这个函数就照旧直接进）
+			if not bool(JavaScriptBridge.eval("typeof window.__syBootReady === 'function' ? (window.__syBootReady(), true) : false", true)):
+				_start()
+
+
+## 玩家点「开始游戏」/ 按任意键：揭开标题页（开场从头播），本页淡出
+func _start() -> void:
+	if _await < 0.0 or out_t >= 0.0:
+		return
+	_await = -1.0
+	if is_instance_valid(title) and title.has_method("boot_reveal"):
+		title.boot_reveal()
+	FR.mark("reveal")
+	if not _web_overlay:
+		Sfx.play("ui_ok")
+	out_t = 0.0
+	_web_progress(true)
+
+
+## 等开始时：任意键 / 鼠标键 / 触屏按下都算（标题页在 boot_cover 期间不收输入，这一下不会漏给它；松开时开场已在播，只认按下）
+func _input(event: InputEvent) -> void:
+	if _await < 0.0 or _web_overlay:
+		return
+	if event is InputEventMouseMotion:
+		_hover = views != null and views.start_rect(_v, size).has_point(event.position)
+		return
+	var go := false
+	if event is InputEventKey and event.pressed and not event.echo:
+		go = true
+	elif event is InputEventMouseButton and event.pressed:
+		go = true
+	elif event is InputEventScreenTouch and event.pressed:
+		go = true
+	elif event is InputEventJoypadButton and event.pressed:
+		go = true
+	if go and _await >= 0.25:   # 刚出现的 0.25 秒内不认，免得读完那一刻正好按着键直接跳过
+		get_viewport().set_input_as_handled()
+		_start()
 
 
 
@@ -343,7 +402,7 @@ func _frame_budget_ms() -> float:
 	return 1000.0 / fps
 
 
-func _shot() -> void:
+func _shot(fname := "shot_boot.png") -> void:
 	var dir := "/tmp/claude-0"
 	for a in Cfg.dev_args():
 		if a.begins_with("--shotdir="):
@@ -352,7 +411,7 @@ func _shot() -> void:
 	queue_redraw()
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png(dir + "/shot_boot.png")
+	get_viewport().get_texture().get_image().save_png(dir + "/" + fname)
 	get_tree().quit()
 
 
@@ -368,7 +427,7 @@ func _progress() -> float:
 		if is_instance_valid(warm):
 			w = 0.5 * warm.progress()
 		f = 0.92 + 0.08 * w
-	if out_t >= 0.0:
+	if out_t >= 0.0 or _await >= 0.0:
 		f = 1.0
 	return base + (1.0 - base) * f
 
@@ -401,9 +460,9 @@ func _log_track() -> void:
 	if _opened:
 		_log_line("warm", "渲染预热 · 着色器", not is_instance_valid(warm), is_instance_valid(warm))
 		if not is_instance_valid(warm):
-			_log_line("gate", "神经连接校准 · 帧时稳定", out_t >= 0.0, out_t < 0.0)
-	if out_t >= 0.0:
-		_log_line("done", "接入完成", true)
+			_log_line("gate", "神经连接校准 · 帧时稳定", out_t >= 0.0 or _await >= 0.0, out_t < 0.0 and _await < 0.0)
+	if out_t >= 0.0 or _await >= 0.0:
+		_log_line("done", "接入完成 · 等待指令" if out_t < 0.0 else "接入完成", true)
 
 
 ## cur = 正在读的这一行（光标闪）；其余没读完的写「..」
@@ -417,7 +476,7 @@ func _view_state() -> Dictionary:
 	var ta := 1.0 if Cfg.reduce_motion else clampf(tip_t / 0.22, 0.0, 1.0) * clampf((4.0 - tip_t) / 0.22, 0.0, 1.0)
 	var label: String = "进入标题页" if out_t >= 0.0 else (cur_label if _opened else "编译 · " + cur_label)
 	var file: String = cur_file if out_t < 0.0 else ""
-	return {"p": _progress(), "label": label, "file": file, "n": mini(idx, items.size()), "total": items.size(),
+	return {"p": _progress(), "label": label, "ready": _await >= 0.0 or out_t >= 0.0, "file": file, "n": mini(idx, items.size()), "total": items.size(),
 		"lines": lines, "t": t, "tip": Tips.TIPS[tip_i], "tip_a": ta}
 
 
@@ -453,6 +512,7 @@ func _draw() -> void:
 				views.draw_v2(vs, _view_state())
 			3:
 				views.draw_v3(vs, _view_state())
+		_draw_start(vs)
 		return
 	draw_texture_rect(bg, Rect2(Vector2.ZERO, vs), false)
 	var gc := Color(0.47, 0.67, 0.75, 0.05)
@@ -475,6 +535,14 @@ func _draw() -> void:
 	_draw_sonar(vs)
 	_draw_panels(vs, compact)
 	_txt(Vector2(0, vs.y - (16 if not compact else 8)), "明日方舟同人作品 · 非商业 · 与鹰角网络无关", 11, Color(0.44, 0.52, 0.56), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	_draw_start(vs)
+
+
+func _draw_start(vs: Vector2) -> void:
+	if views == null or (_await < 0.0 and out_t < 0.0):
+		return
+	var a := 1.0 if Cfg.reduce_motion else clampf((_await if _await >= 0.0 else 1.0) / 0.35, 0.0, 1.0)
+	views.draw_start(views.start_rect(_v, vs), a, t, _hover, _touch)
 
 
 func _draw_sonar(vs: Vector2) -> void:
@@ -519,6 +587,8 @@ func _draw_sonar(vs: Vector2) -> void:
 	_en(Vector2(c.x, c.y + big * 0.32 + 26.0 * u + 6.0), "SONAR · BOOT", 11, CYAN, 3.0, true)
 	# 圈下：正在读什么
 	var ty := c.y + 210.0 * u + 30.0
+	if _await >= 0.0 or out_t >= 0.0:
+		return   # 读完：说明行让给「开始游戏」
 	var what := "打开标题页" if out_t >= 0.0 else (cur_label if _opened else "读取 · " + cur_label)
 	_txt(Vector2(0, ty), what, 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 	if out_t < 0.0 and _opened:
@@ -549,7 +619,7 @@ func _draw_panels(vs: Vector2, compact: bool) -> void:
 	var scripts_done := idx >= items.size()
 	lines.append([1 if scripts_done else 0, "编译脚本　%d / %d" % [mini(idx, items.size()), items.size()]])
 	lines.append([1 if _opened else (0 if scripts_done else -1), "打开标题页"])
-	lines.append([1 if out_t >= 0.0 else (0 if _opened else -1), "预热画面"])
+	lines.append([1 if out_t >= 0.0 or _await >= 0.0 else (0 if _opened else -1), "预热画面"])
 	var y := by + 26 + lh
 	for ln in lines:
 		var st: int = ln[0]

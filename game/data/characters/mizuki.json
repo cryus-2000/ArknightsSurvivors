@@ -468,6 +468,7 @@
       "id": "tentacle_a",
       "name": "强迫性重复",
       "icon": "growth_t_count",
+      "brief": "触手二次命中即缠绕：束缚 {$rep_bind} 秒并追加伤害",
       "desc": "触手追击同一名敌人，{$rep_window} 秒内第二次命中时，触手缠绕它：束缚 {$rep_bind} 秒（精英减半，Boss 除外），并再受一次 {$rep_mult*100}% 触手伤害"
     },
     {

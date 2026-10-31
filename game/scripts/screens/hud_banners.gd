@@ -28,8 +28,21 @@ func draw_leader_hints(ct: Transform2D) -> void:
 		# 冻结 / 束缚：脚下提示「冲刺挣脱」（键位随输入设备），跳动吸引注意
 		var fz: bool = g.world.leader_frozen()
 		var bp: float = absf(sin(g.t * 8.0)) * 4.0
-		var key: String = "冲刺键" if g.touch.active else Pad.hint("空格", "Ⓑ")
-		UI.text(g.hud, g.font, ct * g.ppos + Vector2(-90, 58 + bp), "%s！按 %s 冲刺挣脱" % [g.world.root_label(), key], 15, Color(0.7, 0.92, 1.0) if fz else Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 180, 4)
+		var rcol: Color = Color(0.7, 0.92, 1.0) if fz else Color(0.85, 0.6, 1.0)
+		if g.touch.active:
+			UI.text(g.hud, g.font, ct * g.ppos + Vector2(-90, 58 + bp), "%s！按冲刺键挣脱" % g.world.root_label(), 15, rcol, HORIZONTAL_ALIGNMENT_CENTER, 180, 4)
+		else:
+			_key_hint(ct * g.ppos + Vector2(0, 58 + bp), "%s！按" % g.world.root_label(), Pad.hint("SPACE", "Ⓑ"), "冲刺挣脱", 15, rcol)
+
+
+## 「按 [键] 做某事」一行：键名走按键牌（跟底栏「SPACE 冲刺」同写法，11-01 docs/211 D6），牌居中在 c.x，前后文字左右排开；c.y = 文字基线
+func _key_hint(c: Vector2, pre: String, key: String, post: String, size: int, col: Color) -> void:
+	var kw: float = UI.cwidth(g.font, key, 12) + 12.0
+	var kx: float = c.x - kw / 2.0
+	UI.text(g.hud, g.font, Vector2(kx - 6.0 - 300.0, c.y), pre, size, col, HORIZONTAL_ALIGNMENT_RIGHT, 300, 4)
+	g.hud.draw_rect(Rect2(kx, c.y - 16.0, kw, 19.0), Color(0.02, 0.03, 0.04, 0.72 * col.a))
+	UI.keycap(g.hud, g.font, Vector2(kx, c.y - 16.0), key, col, 12)
+	UI.text(g.hud, g.font, Vector2(kx + kw + 6.0, c.y), post, size, col, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
 
 
 ## 商人方向指示：屏外时边缘圆圈 + 头像 + 箭头 + 距离；屏内时头顶跳动箭头
@@ -373,7 +386,6 @@ func draw_open_hints(vs: Vector2) -> void:
 func draw_dash_hint(vs: Vector2) -> void:
 	if g.state != Game.S.PLAY or g.touch.active or g.demo_op != "":
 		return
-	var key: String = Pad.hint("空格", "Ⓑ")
 	var ready: bool = g.dash_ready()
 	h.batch_begin()   # 色块一批、字最后（性能 9/30）
 	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
@@ -398,7 +410,7 @@ func draw_dash_hint(vs: Vector2) -> void:
 	if not g.dash_used and g.t < 25.0:
 		var a: float = 0.6 + 0.4 * sin(g.t * 4.0)
 		var sp: Vector2 = g.hud_ct() * (g.ppos + Vector2(0, -92))
-		UI.text(g.hud, g.font, sp - Vector2(100, 0), "按 %s 冲刺（无敌）" % key, 15, Color(0.85, 1.0, 1.0, a), HORIZONTAL_ALIGNMENT_CENTER, 200, 4)
+		_key_hint(sp - Vector2(36, 0), "按", Pad.hint("SPACE", "Ⓑ"), "冲刺（无敌）", 15, Color(0.85, 1.0, 1.0, a))
 
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。

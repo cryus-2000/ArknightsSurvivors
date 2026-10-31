@@ -90,7 +90,7 @@ func _pt_of(i: int) -> Dictionary:
 
 ## 编队栏静态层的签名：这些变了才重画静态层
 func _squad_sig(br: Vector2) -> Array:
-	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots]
+	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots, g.panel.visible]
 	for i in g.squad.ops.size():
 		var o = g.squad.ops[i]
 		var pt: Dictionary = _pt_of(i)
@@ -119,12 +119,14 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	var sk_y: float = card_y - SQ_SK - 14.0
 	# 源石锭费用框（明日方舟部署费用的位置与样子）+ 编队人数
 	var dp := Rect2(Vector2(br.x - 116, sk_y - 46), Vector2(116, 34))   # 顶 = squad_top()
-	if S:
+	# 11-01 docs/211 D10：选卡 / 商店 / 换队友整屏面板打开时不画源石锭框与编队人数（以前从卡片下面露出半截；商店页自己写持有数）
+	var dp_on: bool = not g.panel.visible
+	if S and dp_on:
 		bg.rect(dp, Color(0.03, 0.035, 0.045, 0.82))
 		bg.rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
 		texq.append([g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14))])
 	var cnt := "编队 %d / %d" % [n, g.squad.cap()]
-	if S:
+	if S and dp_on:
 		txt.append(func():
 			UI.ctext(g.hud, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
 			UI.text(g.hud, g.font, dp.position + Vector2(76, 22), "源石锭", 10, UI.SUB)

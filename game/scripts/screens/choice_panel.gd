@@ -85,9 +85,13 @@ const DESC_PAD_PHONE := 275.0
 const BTN_FS_PHONE := 16      # 选择（× phone_font_mult 1.18 ≈ 19）
 const CHIP_FS_PHONE := 12     # 流派 / 影响标签（≈ 14）
 const DESC_SIZES_PHONE := [20, 19, 18, 17, 16, 15]
+## 电脑卡片说明（11-01 docs/211 D12）：14 起、最小 13（docs/37 桌面正文 ≥ 13）；说明区往下用到「影响」标签行上方（标准 244 起 / 紧凑 198 起，标签行顶约 318）
+const DESC_SIZES_DESK := [14, 13]
+const DESC_H_DESK := 72.0
+const DESC_H_DESK_C := 116.0
 ## 手机招募卡的整段简介（10-30 用户「手机版本的字体需要缩小点」）：单独一档，不用一句话的 24–19；
 ## 写的是放大前的字号（UI.fs 乘 ui/phone_font_mult 1.18）：17 号，整组放不下降 15、再 14；行距固定（RECRUIT_GAPS_PHONE 只一档）
-const RECRUIT_SIZES_PHONE := [14, 13, 12]
+const RECRUIT_SIZES_PHONE := [15, 14, 13]   # 11-01 docs/211 D11：最小一档 13（× 1.18 ≈ 15，docs/37 手机正文下限），用户 10-30「小一点」仍只比原来大一档
 const RECRUIT_GAPS_PHONE := [0.0]
 ## 本次三选一的卡片高（未缩放的设计像素）：手机横屏按最长说明加高，0 = 用 card_h()
 var row_h := 0.0
@@ -666,10 +670,12 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		if briefs or (row_cards and is_op_card(o)):
 			# 一句话（手机全部卡；电脑 / 平板只有干员卡，10-26 用户「干员相关卡别再细说技能」）。完整说明：手机 / 平板点「详情」，电脑悬停
 			var hl := headline(o)
-			var bf := hl if hl != "" else brief(display_desc)
+			var bf := hl if hl != "" else (str(o.brief) if str(o.get("brief", "")) != "" else brief(display_desc))   # 11-01 docs/211 D5：数据里手写的 brief 优先
 			card.set_meta("brief", bf)
 			card.set_meta("more", bf != display_desc.strip_edges() or card.has_meta("squad_cut"))
 			display_desc = bf
+			if hl.begins_with("解锁") and hl.contains(" · "):
+				display_desc = hl.replace(" · ", "\n")   # 精英化卡：技能名单独一行，不在名字中间折行（11-01 巡检：手机「囚 / 徒困境」「扫 / 射模式」）
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
 		if L.touch:
 			card.set_meta("phone", true)
@@ -701,7 +707,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			ev_bars_h += card.custom_minimum_size.y + (10.0 if ph else 14.0)
 		else:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
-			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
+			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0 if Pad.touch_ui() else DESC_H_DESK, [15, 14, 13, 12] if Pad.touch_ui() else DESC_SIZES_DESK)
 			var compact: bool = not f0.fit
 			if L.touch:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
@@ -721,8 +727,9 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 				else:
 					f0 = UI.fit(g.font, display_desc, card_w - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
 			elif compact:
-				f0 = UI.fit(g.font, display_desc, card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11])
+				f0 = UI.fit(g.font, display_desc, card_w - 40.0, 108.0 if Pad.touch_ui() else DESC_H_DESK_C, [15, 14, 13, 12, 11] if Pad.touch_ui() else DESC_SIZES_DESK)
 			card.set_meta("fit", f0)
+			card.set_meta("desc_text", display_desc)   # 卡面实际写的那段（一句话 / 本编队部分 / 全文），整排重排版时用
 			card.set_meta("compact", compact)
 			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全
 			var chips: Array = [] if kind == "cross" else Affects.chips(g, o)
@@ -741,11 +748,27 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			for c in cards:
 				if not c.get_meta("compact"):
 					c.set_meta("compact", true)
-					c.set_meta("fit", UI.fit(g.font, c.get_meta("face_desc", c.get_meta("full_desc", "")), card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11]))
+					c.set_meta("fit", UI.fit(g.font, c.get_meta("desc_text", ""), card_w - 40.0, 108.0 if Pad.touch_ui() else DESC_H_DESK_C, [15, 14, 13, 12, 11] if Pad.touch_ui() else DESC_SIZES_DESK))
+		if not Pad.touch_ui():
+			_even_desk(cards)
 	if not ev and L.touch:
 		_even_recruit_phone()
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
+
+
+## 电脑同一排卡的说明统一字号（11-01 docs/211 D12：以前各卡各自缩，同排 13 / 12 / 11 混着）：取全排都放得下的最大一档，
+## 都放不下用最小一档（截断的那张悬停看全文）
+func _even_desk(cards: Array) -> void:
+	if cards.size() < 2:
+		return
+	var texts: Array = cards.map(func(c): return [c, c.get_meta("desc_text", ""), DESC_H_DESK_C if c.get_meta("compact") else DESC_H_DESK])
+	for sz in DESC_SIZES_DESK:
+		var fits: Array = texts.map(func(t): return UI.fit(g.font, str(t[1]), card_w - 40.0, float(t[2]), [sz]))
+		if fits.all(func(f): return f.fit) or sz == DESC_SIZES_DESK[-1]:
+			for k in texts.size():
+				texts[k][0].set_meta("fit", fits[k])
+			return
 
 
 ## 手机招募卡的整段简介（10-30 用户写定，最长 40 字）：从大到小试 RECRUIT_SIZES_PHONE，others（同屏各卡）全部放得下就用这一档。
@@ -816,6 +839,8 @@ static func brief(desc: String) -> String:
 	# 整句太长：在冒号 / 逗号处找一个完整的前半句——不以「每秒 / 期间 / 的」这类半截词结尾，原句有数字时前半句也要有数字
 	# （10-26：水月「病理性依恋·缠缚」以前切成「「囚徒困境」期间每秒」）。都不行就整句（字号由 fit 往下缩）
 	var has_num := _re_digit.search(sent) != null
+	# 11-01 docs/211 D5 试过「冒号后半句是效果就取后半句」：全部卡里 64 条一句话跟着变，多数变差（「前方 130° 扇形」「每 60 距离 +10%」丢了主语 / 条件），
+	# 没采用；前半句只剩条件的卡（水月「强迫性重复」）在数据里手写 brief
 	for sep in ["：", "，"]:
 		var k := sent.find(sep)
 		while k >= 4:

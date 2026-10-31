@@ -3,6 +3,7 @@ extends RefCounted
 const RS = preload("res://scripts/run/run_stats.gd")
 const OpFig = preload("res://scripts/screens/op_figure.gd")
 const HH = preload("res://scripts/screens/hh_style.gd")
+const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 const D = preload("res://scripts/data.gd")
@@ -265,7 +266,7 @@ func _buttons() -> Array:
 		out.append(["runs", 206, 150, "对局记录", false])
 	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
-	out.append(["hunt", 910, 342, ("寻访 ×%d  A" if Pad.using else ("寻访 ×%d" if tch else "寻访 ×%d  Enter")) % Roster.tickets(), Roster.tickets() > 0])
+	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.tickets() > 0])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读
 	return out
 
 
@@ -422,12 +423,12 @@ func _share_side(ci: CanvasItem) -> void:
 	var sv := _share_save()
 	_text(ci, sv.position.x, SHARE_POS.y + 6, "分享战绩", 20, HH.LIGHT)
 	ci.draw_rect(sv, Color(HH.CYB.lightened(0.2) if share_toy.busy else HH.CYB, _fa))
-	_text(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
+	_text_key(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
 	if share_toy.status != "":
 		_text(ci, sv.position.x, sv.end.y + 12, share_toy.status, 13, HH.MUTE, 200)
 	var c := _share_close()
 	ci.draw_rect(c, Color(HH.DARK2, _fa))
-	_text(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)
+	_text_key(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)
 
 
 func _set_hover(id: String) -> void:
@@ -568,6 +569,18 @@ func _action(action: String) -> void:
 const PHONE_MIN_FS := 15
 
 
+## 「标签  键名」（两个空格分隔，UI.split_key）：标签照常写，键名大写进标签后面的按键牌（docs/37：按钮牌上的键名用大写英文；
+## 11-01 巡检：结算按钮以前把「Esc / Enter / Tab」小写混写进按钮文字）
+func _text_key(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT) -> void:
+	var sk: Array = UI.split_key(text)
+	_text(ci, x, y, sk[0], size, color)
+	if sk[1] == "" or _fa <= 0.0:
+		return
+	var fs := maxi(size, PHONE_MIN_FS) if Cfg.phone_ui() else size
+	var tw: float = g.font.get_string_size(sk[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	UI.keycap(ci, g.font, Vector2(x + _dx + tw + 10.0, y + size * 0.55 - 7.0), str(sk[1]).to_upper(), Color(color, color.a * 0.75 * _fa), 11)
+
+
 func _text(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT, width := -1.0) -> void:
 	if _fa <= 0.0:
 		return
@@ -676,7 +689,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 		if b.size() <= 5:
 			r.position.y += 80.0 * (1.0 - fp)
 		var primary: bool = b[4]
-		var text_btn: bool = id == "records" or id == "runs"
+		var text_btn: bool = (id == "records" or id == "runs") and not ph   # 11-01 docs/211 D14：手机上无底色的 16 号文字按钮太小，改成同款按钮、同字号
 		var hov: bool = hover == id
 		var foc: bool = focus == i
 		var prs: bool = press_id == id
@@ -702,7 +715,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 				ci.draw_line(o, o + corner[2] * c, HH.CYB, 3.0)
 		var fg: Color = HH.INK if (primary or prs) else (HH.LIGHT if (hov or foc or not text_btn) else HH.MUTE)
 		var fs: int = (20 if ph else 18) if not text_btn else 16
-		_text(ci, r.position.x + (20.0 if not text_btn else 0.0) + (4.0 if text_btn and (hov or foc or prs) else 0.0), r.position.y + (r.size.y - fs) * 0.5 - 2.0, str(b[3]), fs, fg)
+		_text_key(ci, r.position.x + (20.0 if not text_btn else 0.0) + (4.0 if text_btn and (hov or foc or prs) else 0.0), r.position.y + (r.size.y - fs) * 0.5 - 2.0, str(b[3]), fs, fg)
 
 
 func draw_cards(ci: CanvasItem) -> void:

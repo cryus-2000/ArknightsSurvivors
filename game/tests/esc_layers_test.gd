@@ -132,10 +132,11 @@ func title_part(tag: String) -> void:
 	await key(KEY_ESCAPE, true)
 	check(not st.visible, tag + ": physical-only Esc closes settings")
 	await wait_idle()
-	# ---- 右上角 ×
+	# ---- 底栏「返回」（11-01 docs/211 D3 / D13：顶栏右上那枚去掉，返回只在底栏）
 	await open_settings()
-	check(st.close_rect.size.x >= 44.0 and st.close_rect.size.y >= 44.0, tag + ": close button hit area >= 44 (%s)" % st.close_rect.size)
-	await click(st, st.close_rect.get_center())
+	check(st.close_rect.size == Vector2.ZERO, tag + ": no duplicate back button in the top bar (%s)" % st.close_rect.size)
+	check(st.footer_rect.size.x >= 44.0 and st.footer_rect.size.y >= 44.0, tag + ": close button hit area >= 44 (%s)" % st.footer_rect.size)
+	await click(st, st.footer_rect.get_center())
 	check(not st.visible, tag + ": close button closes settings")
 	await wait_idle()
 	# ---- 标题设置使用完整页面

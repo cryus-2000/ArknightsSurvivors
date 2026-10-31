@@ -189,7 +189,7 @@ static func ghost_btn(ci: CanvasItem, font: Font, r: Rect2, text: String, key :=
 	var col := UI.TEXT if dark else INK
 	para(ci, r, Color(0, 0, 0, 0.35) if dark else Color(1, 1, 1, 0.5), UI.fa(col, 0.85), 1.5)
 	var tw := UI.cwidth(font, text, int(17 * s))
-	var x := r.get_center().x - tw / 2.0
+	var x := r.get_center().x - tw / 2.0 + UI.key_shift(key, 14.0 * s)   # 有按键牌时字往右让（11-01 巡检）
 	UI.text_at(ci, font, Vector2(x, r.get_center().y), text, int(17 * s), col, "lm", true)
 	UI.btn_key(ci, font, r, key, UI.fa(col, 0.6), 10, r.size.y * SKEW + 10.0 * s)   # 10-31 TA H7：键名不进按钮文字
 

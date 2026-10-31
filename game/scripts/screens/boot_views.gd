@@ -467,8 +467,9 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 	var big: int = int(clampf(R * 0.17, 14.0, 30.0))
 	var pct := "%.1f%%" % (floorf(p * 1000.0) / 10.0)
 	_mono_c(cen + Vector2(0, big * 0.3), pct, big, INK)
-	# 盘下：字距拉开的 RHODES ISLAND
-	_spaced(cen.x, cen.y + R + 58.0, "RHODES ISLAND", 10, INK, 9.0)
+	# 盘下：字距拉开的 RHODES ISLAND（读完等玩家开始时，这里让给「开始游戏」）
+	if not st.get("ready", false) or port:
+		_spaced(cen.x, cen.y + R + 58.0, "RHODES ISLAND", 10, INK, 9.0)
 	# ---- 两侧
 	var sz: int = 12 if compact else 13
 	var tlines: Array = []
@@ -505,6 +506,50 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 	var dk: float = clampf((p - 0.93) / 0.07, 0.0, 1.0)
 	if dk > 0.0:
 		c.draw_rect(Rect2(Vector2.ZERO, vs), Color(DEEP, 0.6 * dk))
+
+
+## 读完后的「开始游戏」放在哪（11-01：读完不自动进标题页，等玩家点 / 按任意键）。方向 0 在声呐圈下的说明行，方向 3 横屏占盘下 RHODES ISLAND 的位置，竖屏与方向 1 / 2 放底部
+func start_rect(v: int, vs: Vector2) -> Rect2:
+	var compact: bool = vs.y <= 520.0
+	var bw: float = 232.0 if not compact else 200.0
+	var bh: float = 50.0 if not compact else 42.0
+	var cy: float = vs.y - (96.0 if not compact else 64.0)
+	if v == 0:
+		var w0: float = minf(400.0, minf(vs.y * 0.52, vs.x * 0.6))
+		cy = vs.y * 0.45 + 210.0 * w0 / 420.0 + 36.0
+	elif v == 3 and vs.y <= vs.x:
+		var R: float = minf(vs.y * 0.27, vs.x * 0.2)
+		cy = vs.y * 0.5 + R + 62.0 + bh * 0.5   # 让开 180 方位读数
+		cy = minf(cy, vs.y - 26.0 - bh * 0.5)   # 不压页脚声明
+	return Rect2(vs.x * 0.5 - bw * 0.5, cy - bh * 0.5, bw, bh)
+
+
+## 「开始游戏」：暗底细青框 + 四角菱形饰角（同选人页出击框，docs/37 §8），框线慢呼吸；下面一行字距拉开的英文提示。
+## a = 出现进度 0–1（上浮淡入），hover = 鼠标在框上（底色提亮）
+func draw_start(r: Rect2, a: float, t: float, hover: bool, touch: bool) -> void:
+	if a <= 0.0:
+		return
+	var e: float = 1.0 - pow(1.0 - clampf(a, 0.0, 1.0), 3.0)
+	var rr := Rect2(r.position + Vector2(0, 10.0 * (1.0 - e)), r.size)
+	var br: float = 1.0 if _rm() else 0.62 + 0.38 * (0.5 + 0.5 * sin(t * 2.6))
+	c.draw_rect(rr, Color(0.02, 0.05, 0.07, 0.86 * e))
+	if hover:
+		c.draw_rect(rr, Color(ACC, 0.14 * e))
+	c.draw_rect(rr, Color(ACC, (0.85 if hover else 0.55 * br + 0.2) * e), false, 1.5)
+	# 内侧短横：左右各一条青色刻线，压住两端
+	for sx in [rr.position.x + 14.0, rr.end.x - 26.0]:
+		c.draw_line(Vector2(sx, rr.get_center().y), Vector2(sx + 12.0, rr.get_center().y), Color(ACC, 0.7 * e), 1.5)
+	for k in 4:
+		var p: Vector2 = [rr.position, Vector2(rr.end.x, rr.position.y), rr.end, Vector2(rr.position.x, rr.end.y)][k]
+		var d: float = 4.0
+		c.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -d), p + Vector2(d, 0), p + Vector2(0, d), p + Vector2(-d, 0)]), Color(ACC, e))
+	var fs: int = 20 if r.size.y >= 46.0 else 18
+	var lab := "开始游戏"
+	var lw: float = font.get_string_size(lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	c.draw_string(font, Vector2(rr.get_center().x - lw * 0.5, rr.get_center().y + fs * 0.36), lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(TEXT, e))
+	var hint := "TAP TO START" if touch else "PRESS ANY KEY"
+	if rr.end.y + 24.0 < c.size.y - 22.0:   # 矮屏（手机横屏）放不下就不写，别压页脚声明
+		_spaced(rr.get_center().x, rr.end.y + 20.0, hint, 10, Color(GRAY, e * (0.55 + 0.45 * br)), 4.0)
 
 
 ## 浅色版日志：墨黑字、灰时间戳、完成 OK 墨黑、在读的一行青色光标

@@ -275,11 +275,13 @@ func open_swap(card: Dictionary, sel: int) -> void:
 		var sw: String = affinity.swap_lines(op, str(card.id))
 		if sw != "":
 			desc += "\n" + sw
-		opts.append({"kind": "swap_out", "op": op.id, "new": str(card.id), "name": "换下 " + op.display_name(), "desc": desc,
+		# 11-01 docs/211 D8：卡面只写两行（以前 5–6 行被缩到 11 号）；完整说明（继承节点数、继承后技能、藏品受益）悬停 / 详情看，「离队后可再招募」在页头
+		var face := "当前：%s · 节点 %d/%d\n接替后继承同阶段" % [["精英零", "精英一", "精英二"][clampi(op.elite, 0, 2)], op.prog, total]
+		opts.append({"kind": "swap_out", "op": op.id, "new": str(card.id), "name": "换下 " + op.display_name(), "desc": face, "full": desc,
 			"cat": "队友 · %s  SWAP OUT" % op.cls})
 	opts.append({"kind": "swap_keep", "name": "不替换", "desc": "保留当前编队，返回上一步重新选择。
 这次升级不消耗。", "cat": "保留编队  KEEP", "col": UI.SUB})
-	var sub := "「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换" % [card.name, card.get("cls", "")]
+	var sub := "「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换 · 换下的干员之后仍可能再被招募" % [card.name, card.get("cls", "")]
 	g.panel_ui.show_choices("更换队友", opts, "swap", sub, true)
 
 
