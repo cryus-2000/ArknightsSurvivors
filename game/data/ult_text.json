@@ -1,0 +1,89 @@
+{
+	"_doc": "图鉴「技能」页的终结技 / 连携技两行（gallery._skill_rows）。招式是本作新增（docs/198 / docs/199），名称为本作自拟，不是原作技能名；动作对应 run/ult_moves*.gd 与 run/combo.gd，触发条件对应 combo.gd 的 match id 段。改招式时同步这里。",
+	"ult_note": "由队长释放：能量满后按 Q",
+	"ult_note_touch": "由队长释放：能量满后点终结技键",
+	"link_note": "在队时满足条件即亮起，按 E 出手",
+	"link_note_touch": "在队时满足条件即自动出手",
+	"ops": {
+		"texas": {
+			"ult": {"name": "刀痕雨幕", "en": "BLADE CURTAIN", "desc": "落点一圈内接连闪出刀痕，同时斩开，再沿刀痕落下剑雨"},
+			"link": {"name": "追风斩", "en": "TAILWIND CUT", "desc": "沿队长冲刺的方向冲刺斩，路径上的敌人都挨一刀，前两名被阻挡", "trigger": "队长冲刺起步"}
+		},
+		"exusiai": {
+			"ult": {"name": "全弹倾泻", "en": "FULL BARRAGE", "desc": "自动锁定周围敌人，2.5 秒内连续倾泻爆裂弹"},
+			"link": {"name": "回身扫射", "en": "COVER SWEEP", "desc": "朝队长身后最近的敌群扫射一轮", "trigger": "队长冲刺起步"}
+		},
+		"skalter": {
+			"ult": {"name": "海嗣吐息", "en": "ABYSSAL BREATH", "desc": "海嗣张口聚光，粗吐息追着敌群烧过去、沿途接连爆炸，收尾一次大爆并留下领域"},
+			"link": {"name": "和声低语", "en": "ECHO CHORUS", "desc": "声浪扫过敌群，之后 3 秒全队攻击速度提升", "trigger": "另一名队友的连携命中后"}
+		},
+		"kaltsit": {
+			"ult": {"name": "三环裂解", "en": "TRIPLE RUPTURE", "desc": "Mon3tr 冲到落点，连续三圈熔毁爆发；8 秒后重构归队"},
+			"link": {"name": "急救扑击", "en": "AID POUNCE", "desc": "Mon3tr 扑击击退敌人，队长回复生命并清除神经损伤", "trigger": "队长生命低于 40%，或神经损伤达到 80%"}
+		},
+		"ulpianus": {
+			"ult": {"name": "锚链裂地", "en": "ANCHOR QUAKE", "desc": "掷出铁锚，沿锁链冲过去，落地后四圈裂地"},
+			"link": {"name": "沉锚", "en": "SINKING ANCHOR", "desc": "砸下铁锚，击退并眩晕周围敌人", "trigger": "另一名队友的连携命中、附近敌人聚成一团时"}
+		},
+		"skadi": {
+			"ult": {"name": "巨浪推进", "en": "TIDAL WALL", "desc": "大剑下劈，劈开处立起大浪，推过整个屏幕"},
+			"link": {"name": "落潮横扫", "en": "EBB SWEEP", "desc": "跃到队长冲刺的落点，大剑横扫一周并击退", "trigger": "队长冲刺结束"}
+		},
+		"gladiia": {
+			"ult": {"name": "渊涡", "en": "ABYSSAL VORTEX", "desc": "海渊漩涡把大范围的敌人拖向中心，收拢一砸，潮水再从中心爆开"},
+			"link": {"name": "远钩", "en": "LONG HOOK", "desc": "甩出钩索，把远处的精英或远程敌人拖到身边", "trigger": "屏幕内远离队长处出现精英或远程敌人"}
+		},
+		"angelina": {
+			"ult": {"name": "奇点坠落", "en": "SINGULARITY FALL", "desc": "重力奇点把圈内敌人吸起悬空，停顿半拍后全部砸向地面"},
+			"link": {"name": "牵引弹", "en": "TETHER SHOT", "desc": "重力弹把周围敌人拉向目标，给出手的队友聚怪", "trigger": "另一名队友的连携亮起时（抢在它出手前）"}
+		},
+		"eyjafjalla": {
+			"ult": {"name": "地火喷涌", "en": "MAGMA SURGE", "desc": "地面龟裂、火柱冲起，熔岩块落满一圈，中间留下熔岩地面"},
+			"link": {"name": "熔岩重投", "en": "LAVA HURL", "desc": "投出放大的熔岩弹，落点留下 2 秒熔岩", "trigger": "队长站定满 1.2 秒"}
+		},
+		"wisadel": {
+			"ult": {"name": "地毯式炮击", "en": "CARPET BARRAGE", "desc": "架炮后仰，朝指定方向一排排炮击，每处炮击后还有余震"},
+			"link": {"name": "余震炮", "en": "AFTERSHOCK SHELL", "desc": "朝敌群补一发炮击，随后余震", "trigger": "另一名队友的连携命中后"}
+		},
+		"specter_unchained": {
+			"ult": {"name": "巨锯回旋", "en": "SAWBLADE ORBIT", "desc": "巨锯放大、绕身旋转 3 秒，跟着队长移动；期间不会倒下，受到的伤害降低"},
+			"link": {"name": "替身连斩", "en": "PROXY SLASH", "desc": "替身连斩三下，之后 2 秒队长生命不会低于 1", "trigger": "队长一次受到最大生命 10% 以上的伤害"}
+		},
+		"mizuki": {
+			"ult": {"name": "巨触横扫", "en": "GREAT TENTACLE", "desc": "身后破土一条巨型触手，横扫指定方向的半圆，小触手再抓漏网之敌"},
+			"link": {"name": "缠足触手", "en": "SNARE TENDRILS", "desc": "触手追击附近生命低于一半的敌人并束缚", "trigger": "身边多名敌人生命低于一半"}
+		},
+		"saria": {
+			"ult": {"name": "冲击裂环", "en": "SHOCK RING", "desc": "举拳蓄力一拳砸地，冲击环向四周打出，脚下裂纹沿途接连爆开"},
+			"link": {"name": "琥珀晶壁", "en": "AMBER WALL", "desc": "琥珀晶柱围住队长挡 2 秒，队长回复生命", "trigger": "队长生命低于 50%"}
+		},
+		"suzuran": {
+			"ult": {"name": "白光瞬斩", "en": "WHITE FLASH", "desc": "忍冬在身旁现身，化作白光瞬身斩出，停顿半拍后斩痕爆裂"},
+			"link": {"name": "灵狐追迹", "en": "FOX TRAIL", "desc": "狐火追向那批敌人，减速并使其受到的伤害提升", "trigger": "另一名队友的连携命中后"}
+		},
+		"logos": {
+			"ult": {"name": "咒域宣判", "en": "EDICT FIELD", "desc": "面前展开长方形咒域，区域内敌人头顶浮现咒文，一词念出后同时爆裂，并清除区域内弹幕"},
+			"link": {"name": "咒文扩散", "en": "SPREADING GLYPH", "desc": "咒文扩散，处决至多 6 名生命低于 30% 的普通敌人", "trigger": "屏幕内多名普通敌人生命低于 30%"}
+		},
+		"hoshiguma": {
+			"ult": {"name": "般若反震", "en": "HANNYA RECOIL", "desc": "盾「般若」砸地，嘲讽全场并把敌人吸到盾前，硬挡 1.5 秒后盾甲反震炸开"},
+			"link": {"name": "举盾推挡", "en": "SHIELD SHOVE", "desc": "冲到队长身边举盾推开周围敌人，队长短时间受到的伤害降低", "trigger": "队长短时间内连续被近战命中，或被敌人围住"}
+		},
+		"siege": {
+			"ult": {"name": "天降重锤", "en": "SKYFALL HAMMER", "desc": "高高跃起，巨锤砸向落点，冲击波横扫、敌人被震上半空"},
+			"link": {"name": "落点砸锤", "en": "LANDING SMASH", "desc": "跃向队长落点附近最密的敌群砸锤，眩晕敌人，其他干员技力回复加快", "trigger": "队长冲刺结束"}
+		},
+		"irene": {
+			"ult": {"name": "狂风连斩", "en": "GALE ASSAULT", "desc": "前方扇形狂风卷起敌人，化风冲入连斩，瞬身回原地后手炮朝风眼一枪收尾"},
+			"link": {"name": "浮空双刺", "en": "AERIAL THRUST", "desc": "连刺两下，对浮空、眩晕中的敌人伤害提升", "trigger": "屏幕内多名敌人浮空或眩晕"}
+		},
+		"lappland": {
+			"ult": {"name": "十字剑舞", "en": "CROSS DANCE", "desc": "原地狂舞连斩，四圈双刃十字剑气飞向四面八方，命中沉默"},
+			"link": {"name": "封招横扫", "en": "SEALING SWEEP", "desc": "横扫打断精英这次出招，2 秒内不能再放特殊招式", "trigger": "精英开始读招"}
+		},
+		"lumen": {
+			"ult": {"name": "长明灯柱", "en": "EVERLIGHT PILLAR", "desc": "队长脚下升起灯塔光柱，光圈扩散灼烧，光束扫过周围 2 秒后熄灭"},
+			"link": {"name": "清创光弹", "en": "CLEANSING SHOT", "desc": "光弹清除队长的神经损伤，灯火回复，并照亮队长身边", "trigger": "队长神经损伤达到 60%，或灯火暗淡"}
+		}
+	}
+}
