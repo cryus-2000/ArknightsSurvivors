@@ -426,6 +426,7 @@ func draw_cutins(vs: Vector2) -> void:
 	if ft >= 0.0 and ft < 0.22 and not Cfg.reduce_motion:
 		var fcol: Color = g.ult._col(g.ult.caster).lerp(Color(0.9, 0.88, 0.82), 0.55) if g.ult.caster != null else Color(0.9, 0.88, 0.82)
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(fcol, 0.26 * (1.0 - ft / 0.22) * (0.5 if _boss_on() else 1.0)))   # 闪光：干员色偏暖、封顶不发白（10-30 美术口径）
+	_draw_link_tag(vs)
 	var cs: Array = g.ult.cutins
 	if cs.is_empty():
 		return
@@ -532,3 +533,28 @@ func _strip_art(o, e: float, sg: float, sx: float, y: float, hh: float, box: Rec
 				g.hud.draw_texture_rect_region(t, Rect2(cl.position + Vector2(4, 4), cl.size), Rect2(s0, cl.size / k), Color(0, 0, 0, 0.35 * a))
 				g.hud.draw_texture_rect_region(t, cl, Rect2(s0, cl.size / k), Color(1, 1, 1, a))
 	return push
+
+
+## 连携轻量演出的标识（link/flash，用户 10-31）：左侧闪出接手队友的小头像 + 连携名，0.08 秒淡入、link/tag_t（0.6）秒淡出；
+## 防疲劳（只打聚光）的那几次不出；不做斜带切入。Boss 战透明度 × 0.7
+func _draw_link_tag(vs: Vector2) -> void:
+	var u = g.ult
+	if not u.lf_on() or not u.lf_full or u.lf_op == null:
+		return
+	var t: float = UM.now() - float(u.lf_rt)
+	var T: float = Bal.v("link/tag_t", 0.6)
+	if t < 0.0 or t > T:
+		return
+	var a: float = minf(1.0, t / 0.08) * (1.0 if t < T - 0.2 else (T - t) / 0.2) * (0.7 if _boss_on() else 1.0)
+	var col: Color = u._col(u.lf_op)
+	var sx: float = 0.0 if Cfg.reduce_motion else -18.0 * pow(1.0 - minf(1.0, t / 0.12), 2.0)   # 从左边滑进来一点
+	var c := Vector2(48.0 + sx, vs.y * 0.24)
+	var r := 26.0
+	var tb := Tris.new()
+	tb.poly(PackedVector2Array([c + Vector2(-r - 8.0, -r - 4.0), c + Vector2(r + 210.0, -r - 4.0), c + Vector2(r + 190.0, r + 4.0), c + Vector2(-r - 8.0, r + 4.0)]),
+		Color(col.r * 0.3, col.g * 0.3, col.b * 0.3, 0.78 * a))
+	tb.line(c + Vector2(-r - 8.0, r + 4.0), c + Vector2(r + 190.0, r + 4.0), Color(col.lerp(Color.WHITE, 0.35), 0.9 * a), 2.0)
+	tb.circle(c, r + 2.0, Color(col.lerp(Color.WHITE, 0.3), a))
+	tb.flush(g.hud)
+	_avatar(u.lf_op, c, r, Color(1, 1, 1, a))
+	UI.text(g.hud, g.font, Vector2(c.x + r + 12.0, c.y + 8.0), str(u.lf_name), 22, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_LEFT, 200.0, 4)

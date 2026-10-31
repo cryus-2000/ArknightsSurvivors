@@ -570,6 +570,8 @@ func _fire_head(auto: bool) -> void:
 		else:
 			stats.combo_e += 1
 		combo_acts.append(la)
+		if lf_on():
+			link_flash(o, str(LINK_NAME.get(str(q.info.link), o.display_name())))
 		var tc: Color = _col(o)
 		shape({"kind": "line", "a": o.pos, "b": q.info.pos, "w": 5.0, "col": tc, "life": 0.2})   # 技能连携：只留一道干员色残影（不出条带、不慢放）
 		return
@@ -1085,6 +1087,8 @@ func time_scale() -> float:
 		if kind != "cult" and _sf_rt > 0.0 and sf_on():   # 暂停后接的瞄准慢放缩短：游戏时间不变，真实时间 slow_t → sf_slow_t
 			s = minf(1.0, s * Bal.v("ult/slow_t", 0.5) / maxf(0.05, Bal.v("ult/sf_slow_t", 0.3)))
 	s = minf(s, _imp_scale())
+	if lf_slow_on():
+		s = minf(s, Bal.v("link/slow", 0.3))   # 连携轻量演出：0.3 倍 0.2 真实秒后弹回（link/flash）
 	if UM.now() - _cmb_rt < Bal.v("ult/combo_slow_t", 0.3):
 		s = minf(s, Bal.v("ult/combo_slow", 0.5))
 	if UM.now() - _link_rt < Bal.v("ult/link_slow_t", 0.12):
@@ -1104,6 +1108,7 @@ func draw_world(w) -> void:
 	var px: bool = Bal.vi("ult/px_style", 1) > 0   # 像素风光栅化（用户 10-30）
 	_draw_stage(w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
 	_draw_sf(w)   # 超必杀暂停：压暗到约 30% + 队长轮廓光 + 手部闪光 + 干员色放射速度线
+	_draw_lf(w)   # 连携轻量演出：压暗到约 60% + 接手队友原亮度（link/flash）
 	for s in shapes:
 		if s.age < 0.0:
 			continue
@@ -1699,6 +1704,9 @@ func _combo_fx(o, info: Dictionary, pair_id := "") -> void:
 	shape({"kind": "line", "a": o.pos, "b": tp, "w": 8.0, "col": c.lerp(Color.WHITE, 0.25), "life": 0.35})
 	for k in 4:
 		shape({"kind": "circle", "c": o.pos.lerp(tp, 0.25 * k), "r": 16.0 - 2.0 * k, "col": c, "fill": 0.55 - 0.1 * k, "life": 0.25 + 0.06 * k})
+	if lf_on():   # 连携轻量演出代替小条带 + 0.5 倍慢放
+		link_flash(o, o.display_name() if pair_id == "" else "%s × %s" % [g.squad.get_op(pair_id).display_name() if g.squad.get_op(pair_id) != null else "", o.display_name()])
+		return
 	_cmb_rt = UM.now()
 	var ci := {"id": str(o.id), "name": o.display_name(), "col": c, "t0": _cmb_rt, "dur": 0.8, "i": 0, "cult": false, "small": true}
 	if pair_id != "":
@@ -1898,3 +1906,88 @@ func _draw_sf(w) -> void:
 		_px_disc(w, hp, maxf(G3, L * 0.18), 0.0, _pc(Color.WHITE, 0.9))
 		w.tb_flush()
 
+# ================================================================ 连携轻量演出（用户 10-31 批准；协调人：在超必杀那套上加、比终结技低一档）
+## 开关 link/flash（缺省 1；0 = 原来的：技能连携舞台压暗 25% + 队友放大残影 + 出手瞬间 0.6 倍、普通连携小条带 + 0.5 倍）。
+## 连携出手（技能连携 Link.fire / 普通连携 Combo.fire，E 或自动）那一刻：
+##   压暗：背景压到约 60%（link/dim 0.4 的黑），link/dim_in（0.06）秒淡入、停到 link/dim_t（0.25）秒、再 link/dim_out（0.15）秒淡出；
+##     接手队友原大小原亮度画在压暗层之上；连携自己的特效（前景层 u.shape / u.strip，含 link_fx_common 的接力光与光柱）本来就画在压暗层之后，保持原亮度；
+##   聚光：队友脚下一圈本人色光（地面椭圆 + u.light，link/spot_t 0.5 秒，亮度封顶 0.85），压暗时照样亮；
+##   慢放：link/slow（0.3）倍、link/slow_t（0.2）真实秒，到点直接弹回（不定格）；
+##   标识：HUD 左侧闪出队友小头像 + 连携名，link/tag_t（0.6）秒淡出（hud_ult._draw_link_tag；不做斜带切入）；
+##   防疲劳：离上一次连携演出不到 link/calm（8）游戏秒，只打聚光，不压暗、不慢放、不出标识。
+## 不加冲击帧、不白闪（用户 10-31「一直闪频不好」）。压暗 / 慢放都是画面与 time_dilation 的 fx 类：批跑不生效，同 seed TRACE 不变。
+const LINK_NAME := {"pursue": "追击", "lava": "熔岩", "gather": "钩索", "cover": "举盾", "boom_rain": "爆炸剑雨", "cross": "十字斩",
+	"l_lappland": "月牙剑气", "l_specter": "替身斩", "l_irene": "提灯一照", "l_mizuki": "小触手", "l_skadi": "拖刃冲锋", "l_siege": "冲阵",
+	"l_exusiai": "穿透扫射", "l_wisadel": "好礼", "l_logos": "消弹", "l_suzuran": "狐火", "l_angelina": "引力环", "l_ulpianus": "掷锚",
+	"l_saria": "钙质护盾", "l_kaltsit": "Mon3tr 掩护", "l_lumen": "灯火", "l_skalter": "歌声"}
+var lf_rt := -99.0        # 本次演出起点（真实时间）
+var lf_full := false      # 完整演出（否则防疲劳：只打聚光）
+var lf_op = null
+var lf_name := ""
+var _lf_g := -INF         # 上一次演出的游戏时刻
+
+
+func lf_on() -> bool:
+	return Bal.vi("link/flash", 1) > 0
+
+
+func link_flash(p, nm: String) -> void:
+	if p == null or p.pos == Vector2.INF:
+		return
+	lf_full = g.t - _lf_g >= Bal.v("link/calm", 8.0)
+	_lf_g = g.t
+	lf_rt = UM.now()
+	lf_op = p
+	lf_name = nm
+	var cp: Color = _col(p)
+	var m: float = maxf(cp.r, maxf(cp.g, cp.b))
+	var sc: Color = cp * minf(1.0, 0.85 / maxf(0.01, m))   # 亮度封顶 0.85
+	var st: float = Bal.v("link/spot_t", 0.5)
+	shape({"kind": "ellipse", "c": p.pos + Vector2(0, 6), "rx": 58.0, "ry": 22.0, "col": Color(sc, 1.0), "fill": 0.42, "life": st})
+	shape({"kind": "ellipse", "c": p.pos + Vector2(0, 6), "rx": 34.0, "ry": 13.0, "col": Color(sc.lerp(Color.WHITE, 0.25), 1.0), "fill": 0.38, "life": st * 0.8})
+	light(p.pos, 150.0, sc, st)
+
+
+## 压暗强度 0..1（只在完整演出里）
+func lf_dim_k() -> float:
+	if not lf_full:
+		return 0.0
+	var t: float = UM.now() - lf_rt
+	var ti: float = Bal.v("link/dim_in", 0.06)
+	var th: float = Bal.v("link/dim_t", 0.25)
+	var to: float = Bal.v("link/dim_out", 0.15)
+	if t < 0.0 or t > th + to:
+		return 0.0
+	if t < ti:
+		return t / ti
+	if t > th:
+		return 1.0 - (t - th) / to
+	return 1.0
+
+
+func lf_slow_on() -> bool:
+	return lf_full and UM.now() - lf_rt < Bal.v("link/slow_t", 0.2)
+
+
+func _draw_lf(w) -> void:
+	var k: float = lf_dim_k()
+	if k <= 0.0:
+		return
+	var c: Vector2 = g.ppos
+	var R := Vector2(2400.0, 1600.0)
+	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("link/dim", 0.4) * k))
+	w.tb_flush()
+	if lf_op == null or lf_op.pos == Vector2.INF:
+		return
+	var pr: Dictionary = lf_op.portrait()
+	var t: Texture2D = g.tex.get(str(pr.get("tex", "")))
+	if t == null:
+		return
+	var n: int = maxi(1, int(pr.get("frames", 1)))
+	var fw: float = t.get_width() / float(n)
+	var fh: float = float(t.get_height())
+	var s: float = g.PX / A.hires_of(t)
+	var flip: float = -1.0 if float(lf_op.face) < 0.0 else 1.0
+	g.draw_set_transform(lf_op.pos, 0.0, Vector2(s * flip, s))   # 接手队友原大小原亮度压在暗层之上
+	g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
