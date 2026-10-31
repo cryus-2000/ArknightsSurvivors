@@ -45,7 +45,7 @@ func open(sc: Dictionary) -> void:
 	g.state = Game.S.SHOW
 	# 精英化演出：左侧放一个实机演示（demo 模式的 game.tscn），干员已在新阶段并循环施放新解锁的技能
 	demo_stop()
-	if sc.has("op") and int(sc.get("elite", 0)) > 0 and g.mode != g.Mode.BALANCE and DisplayServer.get_name() != "headless":
+	if sc.has("op") and int(sc.get("elite", 0)) > 0 and g.mode != g.Mode.BALANCE and DisplayServer.get_name() != "headless" and not Cfg.phone_ui():   # 手机版式不放实机演示（见 _phone）
 		show_vp = SubViewport.new()
 		show_vp.size = Vector2i(540, 300)
 		show_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -81,10 +81,18 @@ func close() -> void:
 ## （用户 10-13 手机实测「获得新干员 / 精英化时超出屏幕」：手机横屏界面逻辑约 1181×544，说明卡右边与第二张卡底边出框、「点击继续」压在卡上）。
 ## 放得下（电脑 1280×720、两张卡）时缩放 1、不平移，版面与原来逐像素一致
 const DESIGN_W := 1240.0
+const PH_GAP := 140.0   # 手机版式：卡距 / 卡高
+const PH_CH := 128.0
+
+
+## 手机横屏（Cfg.phone_ui）：11-01 巡检——整页按 1240 设计宽缩到 0.6–0.7，说明字只剩 7–8 像素（docs/37 手机说明字 ≥ 14）。
+## 手机改成单列：不放左侧实机演示，说明卡占满宽、压矮，设计高约 610，缩放约 0.88，说明字 16–18 号
+func _phone() -> bool:
+	return Cfg.phone_ui()
 
 
 func fit_xf(vs: Vector2, n: int) -> Array:
-	var dh: float = maxf(620.0, 190.0 + n * 190.0 + 20.0)
+	var dh: float = (150.0 + n * PH_GAP + 40.0) if _phone() else maxf(620.0, 190.0 + n * 190.0 + 20.0)
 	var k: float = minf(1.0, minf(vs.x / DESIGN_W, vs.y / dh))
 	if k >= 1.0:
 		return [1.0, Vector2.ZERO, vs]
@@ -122,6 +130,11 @@ func _draw_body(sc: Dictionary, st: float, col: Color, vs: Vector2) -> void:
 	# 左侧：干员演示。有实机演示画面就画它（新阶段的干员在假人堆里循环放新技能），否则退回静态挥击示意
 	var cx := Vector2(330, vs.y * 0.58)
 	var da := clampf((st - 0.35) / 0.35, 0.0, 1.0)
+	if _phone():
+		draw_cards(sc["items"], st)
+		if st > 1.0:
+			UI.text(g.hud, g.font, Vector2(0, vs.y - 22), "点击继续", 16, Color(0.75, 0.88, 0.92, 0.75 + 0.25 * sin(st * 4.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+		return
 	if show_vp != null:
 		var dr := Rect2(Vector2(60, 180), Vector2(540, 300))
 		g.hud.draw_texture_rect(show_vp.get_texture(), dr, false, Color(1, 1, 1, da))
@@ -171,13 +184,17 @@ func _draw_body(sc: Dictionary, st: float, col: Color, vs: Vector2) -> void:
 func draw_cards(items: Array, st: float) -> void:
 	# 三张卡（精一：技能 + 天赋 + 普攻形态，docs/91 §0.5）时整列上移、卡片压矮，不压到底部的「点击继续」
 	var three: bool = items.size() >= 3
-	var y0: float = 150.0 if three else 190.0
-	var gap: float = 162.0 if three else 190.0
-	var ch: float = 146.0 if three else 168.0
+	var ph := _phone()
+	var y0: float = 150.0 if three or ph else 190.0
+	var gap: float = PH_GAP if ph else (162.0 if three else 190.0)
+	var ch: float = PH_CH if ph else (146.0 if three else 168.0)
+	var cx0: float = 40.0 if ph else 620.0
+	var cw: float = 1160.0 if ph else 580.0
+	var dy: float = 66.0 if ph else 96.0    # 说明区顶部离卡顶（手机：名字与说明上移）
 	# 10-31 TA 审阅 docs/208 H8「同一组卡字号不一」：原来逐卡 UI.fit，放不下的那张单独缩小。改成整组取都放得下的最大字号
 	var dsz: int = 12
-	for sz in [15, 14, 13, 12]:
-		if items.all(func(it2): return UI.fit(g.font, str(it2.desc), 580.0 - 172.0, ch - 96.0, [sz]).fit):
+	for sz in ([20, 19, 18, 17, 16, 15] if ph else [15, 14, 13, 12]):
+		if items.all(func(it2): return UI.fit(g.font, str(it2.desc), cw - 172.0, ch - dy, [sz]).fit):
 			dsz = sz
 			break
 	for i in items.size():
@@ -186,7 +203,7 @@ func draw_cards(items: Array, st: float) -> void:
 		if ia <= 0.0:
 			continue
 		var e := 1.0 - pow(1.0 - ia, 3)
-		var r := Rect2(Vector2(620 + (1.0 - e) * 120.0, y0 + i * gap), Vector2(580, ch))
+		var r := Rect2(Vector2(cx0 + (1.0 - e) * 120.0, y0 + i * gap), Vector2(cw, ch))
 		var ic: Color = it.col
 		UI.frame(g.hud, r, Color(ic.r, ic.g, ic.b, e), {"t": g.t, "vines": true, "seed": 50 + i, "vine_k": 0.6, "cut": 12.0, "bracket": 12.0, "alpha": e, "glow": 0.6 * e})
 		var gc := r.position + Vector2(70, ch * 0.5)
@@ -196,6 +213,11 @@ func draw_cards(items: Array, st: float) -> void:
 			g.hud.draw_texture_rect(itex, Rect2(gc - Vector2(32, 32), Vector2(64, 64)), false, Color(1, 1, 1, e))
 		else:
 			UI.text(g.hud, g.font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
-		UI.chip(g.hud, g.font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
-		UI.text(g.hud, g.font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		UI.draw_fit(g.hud, g.font, r.position + Vector2(150, 91), UI.fit(g.font, it.desc, r.size.x - 172, ch - 96.0, [dsz]), Color(0.78, 0.88, 0.9, e))
+		if ph:   # 手机：分类小签和名字同一行，下面两行说明
+			var nw: float = g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+			UI.text(g.hud, g.font, r.position + Vector2(150, 44), it.name, 24, Color(1, 1, 1, e))
+			UI.chip(g.hud, g.font, r.position + Vector2(166 + nw, 22), "新%s" % it.tag, Color(ic.r, ic.g, ic.b, e), 14)
+		else:
+			UI.chip(g.hud, g.font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
+			UI.text(g.hud, g.font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
+		UI.draw_fit(g.hud, g.font, r.position + Vector2(150, dy - 5.0), UI.fit(g.font, it.desc, r.size.x - 172, ch - dy, [dsz]), Color(0.78, 0.88, 0.9, e))

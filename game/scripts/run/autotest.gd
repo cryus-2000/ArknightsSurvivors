@@ -1400,6 +1400,8 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_result_meta.png")   # 没有券：直接截结算面板
 			g.get_tree().quit()
 		var shoot := DisplayServer.get_name() != "headless"
+		if g.at_frames == 100 and not g.headhunt.open:
+			g.headhunt.maybe_open()   # 同结算「寻访」按钮（settlement_screen._action）；11-01 巡检：以前没打开，7 张都截成结算页
 		# 新流程（10-22，单一寻访凭证）：入口 → 定向寻访 → 选职业 → 指定干员 → 拉包 → 揭示 → 本次寻访；[帧, 动作]，动作在截图之后执行
 		var acts := {120: "directed", 170: "ok", 220: "ok"}
 		if Cfg.dev_args().has("--huntrec"):

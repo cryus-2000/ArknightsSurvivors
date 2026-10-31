@@ -699,10 +699,10 @@ func _op_hline(y: float, w: float) -> void:
 	draw_polyline_colors(PackedVector2Array([Vector2(0, y), Vector2(w / 2.0, y), Vector2(w, y)]), PackedColorArray([cl, Color(cl.r, cl.g, cl.b, 0.43), cl]), 1.0)
 
 
-func _op_btn(r: Rect2, s: String, size := 12) -> void:
+func _op_btn(r: Rect2, s: String, size := 12, dx := 0.0) -> void:
 	var hot := r.has_point(_op_design(get_local_mouse_position())) and not _touch_mode()
 	UI.bpanel(self, r, false, hot, 1.0, UI.CYAN)
-	UI.text_at(self, font, r.get_center(), s, size, UI.TEXT, "mm")
+	UI.text_at(self, font, r.get_center() + Vector2(dx, 0), s, size, UI.TEXT, "mm")
 
 
 func _op_deploy(r: Rect2, size: int, sub: String) -> void:
@@ -740,8 +740,9 @@ func _op_draw_desk(od: Dictionary) -> void:
 		UI.text_at(self, font, Vector2(sx, 14), "队长 1 名；其余干员在探索中通过升级招募", 12, UI.B_SUB)
 		UI.text_at(self, font, Vector2(sx, 30), "下一步：选择难度", 11, UI.B_SUB)
 	var back := Rect2(W - 120, 14, 104, 28)
-	_op_btn(back, "返回")
-	UI.btn_key(self, font, back, "" if Pad.using else "ESC", UI.B_SUB, 9, 8.0)   # 10-31 TA H7：键名不夹在按钮文字里
+	var bk := "" if Pad.using else "ESC"
+	_op_btn(back, "返回", 12, UI.key_shift(bk, 14.0))
+	UI.btn_key(self, font, back, bk, UI.B_SUB, 9, 8.0)   # 10-31 TA H7：键名不夹在按钮文字里
 	op_rects["back"] = back.grow(4.0)
 	var px := W - 136.0
 	if _cover_name_id != Cfg.cover_character_id:

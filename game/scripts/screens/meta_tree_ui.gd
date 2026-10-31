@@ -884,8 +884,9 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	# 返回
 	var back := Rect2(vs.x - 160, 12, 140, 36)
 	HS.para(ci, back, Color(1, 1, 1, 0.12) if back.has_point(mouse) else Color(0, 0, 0, 0), Color(1, 1, 1, 0.8))
-	UI.text_at(ci, font, back.get_center(), "返回", 15, UI.TEXT, "mm", true)
-	UI.btn_key(ci, font, back, "" if Pad.using else "ESC", UI.SUB, 10, back.size.y * HS.SKEW + 10.0)   # 10-31 TA H7
+	var bk := "" if Pad.using else "ESC"
+	UI.text_at(ci, font, back.get_center() + Vector2(UI.key_shift(bk, 14.0), 0), "返回", 15, UI.TEXT, "mm", true)
+	UI.btn_key(ci, font, back, bk, UI.SUB, 10, back.size.y * HS.SKEW + 10.0)   # 10-31 TA H7
 	buttons.append([back, "back"])
 	# 推荐 / 全部重置
 	var bw := 168.0

@@ -364,6 +364,11 @@ static func btn_key(ci: CanvasItem, font: Font, r: Rect2, key: String, col := SU
 	keycap(ci, font, Vector2(r.position.x + inset, r.get_center().y - (_ks(ci, size) + 7) / 2.0), k, col, size)
 
 
+## btn_key 画了按键牌时，按钮字该往右让多少（11-01 巡检：10-31 加的左内侧按键牌有几处贴着居中的「返回」）；不画按键牌（空键名 / 触屏）时 0
+static func key_shift(key: String, px: float) -> float:
+	return px if key != "" and not _touch_ui() else 0.0
+
+
 ## 触屏界面（Pad.touch_ui）：ui.gd 也给不带自动加载的测试脚本用，这里按节点名找 Pad，找不到当作非触屏
 static func _touch_ui() -> bool:
 	var ml := Engine.get_main_loop()
