@@ -163,6 +163,9 @@ var _spd_cap2 := 0.0
 ## 看着碰到没中、看着没碰到却中。现在判定取 b.pos 上移 enemy/bullet_hit_lift 像素（= 弹体画面中心）对队长判定点（ppos 上方 14，白点）；
 ## 瞄「判定点」的 Boss 弹 / 追踪弹改瞄 aim_pt()（= 判定点下移 lift，飞行时画面正好穿过白点）。0 = 照旧
 var _lift := 16.0
+## Boss 弹体大小统一（用户 10-31「所有 Boss 的弹体大小不能差太多」，claude/boss-buff-1031）：实测各 Boss 主弹可见半径（弹体半径 + 3）分两档 小 9 / 中 12，
+## 另有大弹 15–16；只有伊莎玛拉碎片、中期卡牌小弹、圣徒碎弹是 r 5（可见 8）落在小档外沿，统一抬到 boss/bullet_r_min（6 = 可见 9）。画面和判定一起变
+var _rmin := 6.0
 
 
 func aim_pt() -> Vector2:
@@ -224,10 +227,15 @@ func _fire_layers() -> void:
 func update_ebullets(dt: float) -> void:
 	_spd_cap2 = pow(Bal.v("boss/spd_cap", 440.0), 2.0)
 	_lift = Bal.v("enemy/bullet_hit_lift", 16.0)
+	_rmin = Bal.v("boss/bullet_r_min", 6.0)
 	_fire_layers()
 	for b in g.ebullets:
 		if b.life <= 0.0:
 			continue
+		if b.get("boss", false) and not b.has("_rmin"):
+			b._rmin = true
+			if float(b.r) > 0.0:
+				b.r = maxf(float(b.r), _rmin)   # Boss 弹统一档位：最小一档不低于 boss/bullet_r_min（见 _rmin 注释）
 		if not b.has("spd_k") and b.get("boss", false):
 			_final_speed(b)
 		elif float(b.get("spd_k", 1.0)) > 1.0 and b.vel.length_squared() > _spd_cap2:

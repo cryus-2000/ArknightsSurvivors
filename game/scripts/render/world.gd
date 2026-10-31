@@ -415,6 +415,8 @@ func draw_world() -> void:
 	BossBeam.draw_top(g)   # 主控寒冷条（骑士在场时）
 	_pk("fx")
 	if not _dbg_foe:   # --clutterdbg=nofoe：敌方弹幕 / 预警整层不画（量测）
+		bulfx.draw_grounds()   # Boss 落地迸散（docs/206 §4）
+		bulfx.draw_trails()   # Boss 弹拖尾光粒（压在弹体之下，docs/206 §2）
 		_draw_ebullets_lobs_shocks()
 	bulfx.draw_top()   # 新弹亮芯闪 + 消失残影（压在弹体之上）
 	_draw_hit_dot()
@@ -1321,9 +1323,12 @@ func _draw_fx() -> void:
 			continue
 		if f.kind == "kp_beam":
 			BossBeam.draw(g, f)   # Boss 激光（Kanpelle 帧条，docs/142b §8.5）；缺图不画（结算伤害不受影响）
+			bulfx.beam_px(f, g.vfx.boss_color(str(f.get("boss", ""))), 6.0 * float(f.get("k", 2.0)))   # 光束颗粒（docs/206 §3）
 			continue
 		if f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer":
 			LaserDraw.draw(g, f, a)   # 激光 A 像素光束（docs/138 §12；旧开关 fx/laser_style 与原画法已删）
+			if f.kind == "bbeam" or (f.kind == "tracer" and f.get("enemy", false)):
+				bulfx.beam_px(f, LaserDraw._unit(f.get("col", Color.WHITE)), LaserDraw._base_w(f) * 0.5)   # Boss 光束颗粒（docs/206 §3）
 			continue
 		match f.kind:
 			"leave_jump":   # 队友离队 / 换人：原地一蹲后向上跳出屏幕（squad._leave_fx，10-22）

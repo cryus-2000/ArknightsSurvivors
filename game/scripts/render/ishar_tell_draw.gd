@@ -54,7 +54,9 @@ static func _fades(g) -> void:
 		var L: float = a.distance_to(b)
 		if el < hold:
 			_laser(g, a, d, L, float(f.wid), clampf(0.3 + el / 0.06, 0.3, 1.0), clampf(1.0 - el / 0.1, 0.0, 1.0), 1.0, 1.0)
+			g.world.bulfx.beam_line(f, a, b, CORE, float(f.wid) * 0.7, el, false)   # 光束边缘颗粒（docs/206 §3）
 			continue
+		g.world.bulfx.beam_line(f, a, b, CORE, float(f.wid) * 0.7, el, true)   # 收束：整条碎成颗粒（只碎一回）
 		var p: float = clampf((el - hold) / maxf(0.01, float(f.max) - hold), 0.0, 1.0)
 		var fl: float = clampf(1.0 - p / 0.2, 0.0, 1.0) if hold <= 0.0 else 0.0
 		_laser(g, a, d, L, float(f.wid), lerpf(1.0, 0.15, p), fl, 1.0 - p, (1.0 - p) * (1.0 - p))
@@ -131,6 +133,7 @@ static func _sweep_draw(g, s: Dictionary) -> void:
 		var el: float = g.t - float(s.t0)
 		var d := Vector2.from_angle(float(s.ang))
 		_laser(g, s.pos, d, float(s.len), float(s.wid), clampf(0.3 + el / 0.06, 0.3, 1.0), clampf(1.0 - el / 0.12, 0.0, 1.0))
+		g.world.bulfx.beam_line(s, s.pos, s.pos + d * float(s.len), CORE, float(s.wid) * 0.7, el, false)   # 扫射光束边缘颗粒（docs/206 §3）
 		var pool = Beam.grains(g) if Cfg.quality != "low" else null
 		if pool != null and Beam.take(g, 1) > 0:
 			var t: float = fmod(el * 1.7, 1.0)
