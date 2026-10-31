@@ -377,7 +377,20 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 		_sz_slash(u, sname, a0 + nv * sd * 4.0, ang, SL, {"sy": 0.45 * sd, "delay": 0.04, "life": 0.26, "fade": 0.2, "v": nv * sd * 70.0 + dv * 60.0 * sd,
 			"col": Color(1.0, 0.5, 0.3, 0.9), "col1": Color(0.5, 0.03, 0.03, 0.7), "cold": 0.16})
 	# 刀口：地上一道暗红细痕，慢慢褪
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.3, "fade": 0.9, "col": Color(0.32, 0.03, 0.03, 0.9)})
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.32, 0.03, 0.03, 0.9)})
+	# 刀痕爆裂（用户 10-31「最后接一个刀痕爆裂」）：斩开后静一拍，刀口从起点往尽头一节节迸裂（顿一下 + 红光一闪 + 往两侧喷）
+	var TB: float = Bal.v("ult/sz_rupt_t", 0.32)
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.85, "delay": TB, "life": 0.3, "fade": 0.2, "col": Color(1.2, 0.62, 0.38, 1.0), "col1": Color(0.5, 0.03, 0.03, 0.85), "cold": 0.12})
+	u.shape({"kind": "band", "a": a0, "b": b0, "w": 34.0, "col": Color(0.85, 0.2, 0.12), "fill": 0.5, "life": 0.05, "delay": TB})
+	u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.06))
+	var nb: int = 6
+	for k in nb:
+		var hb: float = PF.h(vs + 60.0 + k * 2.3)
+		var pb: Vector2 = a0.lerp(b0, (k + 0.25 + 0.5 * hb) / nb)
+		var db: float = TB + 0.014 * k
+		PF.particles(u, pb, 70, "ult_burst", [SZ_HOT, SZ_RED], db, vs + 70.0 + k, 95.0 + 35.0 * hb)
+		PF.particles(u, pb, 30, "ult_burst_s", [Color(1.0, 0.75, 0.45), SZ_HOT], db, vs + 90.0 + k, 55.0)
+		PF.particles(u, pb, 12, "ult_ember", [SZ_RED], db + 0.04, vs + 80.0 + k, 50.0)
 	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_RED, 0.22)
 	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)
