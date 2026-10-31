@@ -29,7 +29,7 @@ RAF_JS = """<script>
 window.requestAnimationFrame=function(cb){q.push(cb);if(q.length===1)ch.port2.postMessage(0);return q.length;};window.cancelAnimationFrame=function(){};
 var buf=[],send=function(){if(!buf.length)return;var b=buf.join("\\n");buf=[];fetch("/log",{method:"POST",body:b}).catch(function(){});};
 setInterval(send,1000);var wrap=function(k){var o=console[k];console[k]=function(){var s=Array.prototype.join.call(arguments," ");
-if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR|BOSSACTS (PERF|END))/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE|PF FTDONE|BOSSACTS END)/.test(s))send();}return o.apply(console,arguments);};};
+if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR|BOSSACTS)/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE|PF FTDONE|BOSSACTS END)/.test(s))send();}return o.apply(console,arguments);};};
 wrap("log");wrap("error");wrap("warn");})();
 // 逐秒帧数 + wasm 线性内存峰值（10-30 加：手机网页逐项帧时表要「最低 1 秒」「内存峰值」）；输出 PF W <本秒帧数> <内存 MB>
 (function(){var OM=WebAssembly.Memory,mems=[],mx=0,cnt=0,t0=performance.now();
