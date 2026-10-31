@@ -1320,7 +1320,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			a.rn = i2 + 1
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.rseg[i2], e, 0.05, {"src": "光雨", "edge": e.pos.distance_to(c) > rc})
-	if a.has("glow_s"):   # 余辉：随光柱持续慢慢亮（smoothstep），熄灭时交给寿命线性褪 2 秒；后半段起金色光尘慢慢往上飘
+	if a.has("glow_s"):   # 余辉：随光柱持续慢慢亮（smoothstep），熄灭时交给寿命线性褪 2 秒；后半段起小光点慢慢往上飘
 		var kg: float = smoothstep(0.0, dur, el)
 		if el < dur + 0.05:
 			a.glow_s.fill = 0.12 * kg
@@ -1332,10 +1332,12 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			for gs in [a.glow_s, a.glow_r]:
 				gs.age = 0.0
 				gs.max = 2.0
-		while int(a.get("ember_n", 0)) < 3 and el >= dur * (0.4 + 0.3 * int(a.get("ember_n", 0))):   # 光尘：分三小批、不同位置慢慢飘起（一次迸一大团像「弹出来」）
-			var ei: int = int(a.get("ember_n", 0))
-			a["ember_n"] = ei + 1
-			var vs: float = PF.vseed(u, c) + ei * 7.0
-			var pe: Vector2 = c + Vector2.from_angle(PF.h(vs) * TAU) * R * (0.25 + 0.3 * PF.h(vs + 1.0))
-			PF.particles(u, pe, 40, "ult_ember", [Color(1.0, 0.82, 0.45)], 0.0, vs, R * 0.3)
+		if el >= dur * 0.4 and el < dur and t >= float(a.get("mote_t", 0.0)):   # 光点：每 0.12 秒在暖光里两处各升起几颗小光点，慢慢往上飘（迸开的粒子像放烟花，用户 10-31）
+			a["mote_t"] = t + 0.12
+			var mi: int = int(a.get("mote_n", 0))
+			a["mote_n"] = mi + 1
+			for q in 2:
+				var vs: float = PF.h(float(mi * 2 + q) * 0.71 + c.x * 0.01)
+				var pm: Vector2 = c + Vector2.from_angle(vs * TAU) * R * 0.8 * sqrt(PF.h(vs * 13.0))
+				u.grain("mote_up", pm, Vector2.UP, Color(1.0, 0.82, 0.48), 2)
 	return el >= dur + 0.05
