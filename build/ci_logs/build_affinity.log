@@ -1,0 +1,47 @@
+# build_affinity
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/build_affinity_test.tscn -- --regression --seed=1 --balance --op=angelina --squad=skadi,kaltsit
+# 用时 11 秒；结束时全机 Godot 4 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PROFILE angelina lanes=["control"] nodes=6 elite=[0, 3, 6]
+PROFILE exusiai lanes=["multi"] nodes=6 elite=[0, 3, 6]
+PROFILE eyjafjalla lanes=["multi"] nodes=6 elite=[0, 3, 6]
+PROFILE gladiia lanes=["control"] nodes=6 elite=[0, 3, 6]
+PROFILE hoshiguma lanes=["melee", "shield"] nodes=6 elite=[0, 3, 6]
+PROFILE irene lanes=["melee", "control"] nodes=6 elite=[0, 3, 6]
+PROFILE kaltsit lanes=["heal", "summon"] nodes=6 elite=[0, 3, 6]
+PROFILE lappland lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE logos lanes=["weak"] nodes=6 elite=[0, 3, 6]
+PROFILE lumen lanes=["heal"] nodes=6 elite=[0, 3, 6]
+PROFILE mizuki lanes=["summon", "weak"] nodes=6 elite=[0, 3, 6]
+PROFILE saria lanes=["heal"] nodes=6 elite=[0, 3, 6]
+PROFILE siege lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE skadi lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE skalter lanes=["heal"] nodes=6 elite=[0, 3, 6]
+PROFILE specter_unchained lanes=["melee", "summon"] nodes=6 elite=[0, 3, 6]
+PROFILE suzuran lanes=["control"] nodes=6 elite=[0, 3, 6]
+PROFILE texas lanes=["melee", "control"] nodes=6 elite=[0, 3, 6]
+PROFILE ulpianus lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE wisadel lanes=["multi", "summon"] nodes=6 elite=[0, 3, 6]
+INTERACTION { "exusiai": 0, "eyjafjalla": 0, "irene": 2, "skadi": 0, "skalter": 0, "wisadel": 0 }
+82 checks, 0 failed
+BUILD AFFINITY failures=0
+ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/build_affinity_test.gd:18)
+WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

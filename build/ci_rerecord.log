@@ -1,6 +1,8 @@
-快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1028_080048
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1031_015949
 通过 数据 JSON 解析  game/data 全部可解析
-通过 积木等价（数据版 vs 金样）  与金样相同 0；已重录 28 份到 game/tests/golden_current（git 跟踪，记得 git add + commit）；过期 28 份已随本次 --update-golden 重录刷新（eqtest seed1、eqtest seed2、kaltsit seed1、kaltsit seed3、skadi seed1、skadi seed3……）
+通过 积木等价（数据版 vs 金样）  与金样相同 0；已重录 28 份到 game/tests/golden_current（git 跟踪，记得 git add + commit）；过期 28 份已随本次 --update-golden 重录刷新（eqtest seed1、eqtest seed2、kaltsit seed1、kaltsit seed3、skadi seed1、skadi seed3……）  [105 秒]
 
-快检通过：2 项，失败 0 项，耗时 108 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 28（不用缓存加 --nocache）
+耗时前 10（秒，不含排队）：积木等价（数据版 vs 金样） 105
+
+快检通过：2 项，失败 0 项（已知红 0 项另计），耗时 106 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 28（不用缓存加 --nocache）
 rc=0

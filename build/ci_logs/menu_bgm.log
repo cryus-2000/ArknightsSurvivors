@@ -1,0 +1,14 @@
+# menu_bgm
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/menu_bgm_test.tscn -- --regression --seed=1
+# 用时 15 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+MENU BGM: 0 failures
+
+
+## stderr
+WARNING: 1 ObjectDB instance was leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+
