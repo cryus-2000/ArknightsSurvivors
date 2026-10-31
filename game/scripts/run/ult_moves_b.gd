@@ -826,7 +826,19 @@ static func _ey_step(u, a: Dictionary, o) -> bool:
 		var top: Vector2 = c + Vector2(0.0, -640.0)
 		if a.get("v2", false):   # 喷发 v2：顿帧 + _ey_erupt（火山锥鼓起 + 火山口喷发 + 黑蒸汽）；不画程序带子 / 旧爆炸帧条
 			u.g.vfx.stop(Bal.v("ult/ey_hitstop", 0.1), "ult", true)
+			var n0: int = u.shapes.size()
 			_ey_erupt(u, c, R, a)
+			if Bal.v("ult/ey_fx_v3", 1.0) > 0.0:   # 打击感（10-31）：喷发冲击帧（熔岩柱 + 崩飞碎块进剪影）+ 外圈四团暗灰火山灰逐帧烟尘往外推
+				for i in range(n0, u.shapes.size()):   # 熔岩柱原来晚 0.03 秒出，冲击帧那一拍它还不在：喷发那一刻就冒
+					if str(u.shapes[i].get("name", "")) == EY_FOUNT:
+						u.shapes[i].age = 0.0
+				PF.hf_since(u, n0, [EY_FOUNT, "fx_ul_rock", "fx_ul_rock2"])
+				PF.hf_on(u, a)
+				var vs4: float = PF.vseed(u, c) + 21.0
+				for q in 4:
+					var hq: float = PF.h(vs4 + q * 1.9)
+					var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 4.0)
+					PF.dust(u, c + dq * R * (0.3 + 0.2 * hq), 210.0 + 80.0 * hq, 0.08 + 0.05 * q, vs4 + q, dq * (60.0 + 40.0 * hq) + Vector2(0, -20), Color(0.62, 0.55, 0.55))
 			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.32, 0.06)], 0.04, PF.vseed(u, c), 260.0)
 			PF.heave(u, c, 160.0, PF.vseed(u, c) + 3.0)
 			u.light(c, 380.0, Color(1.0, 0.5, 0.15), 0.5)

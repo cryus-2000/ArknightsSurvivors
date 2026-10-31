@@ -446,6 +446,11 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 	u.light(org + fw * R * 0.4, R * 0.7, Color(1.0, 0.92, 0.75), 0.4)
 	u.debris(org + fw * 60.0, Color(0.85, 0.8, 0.7), 3)
 	u.shape({"kind": "ellipse", "c": org + Vector2(0, 6), "rx": 80.0, "ry": 38.0, "col": Color(0.08, 0.07, 0.06), "fill": 0.6, "life": 1.8, "layer": "back"})
+	var v3: bool = Bal.v("ult/sa_fx_v3", 1.0) > 0.0
+	var n0: int = u.shapes.size()
+	if v3:   # 拳影拖影（smear）：出拳一帧拉长的拳风带，代替补间（pixfx §6.6）
+		u.shape({"kind": "band", "a": org + fw * 20.0, "b": org + fw * 220.0, "w": 70.0, "col": Color(1.0, 0.95, 0.85), "fill": 0.55, "life": 0.08})
+		u.shape({"kind": "band", "a": org + fw * 20.0, "b": org + fw * 300.0, "w": 26.0, "col": Color(1.0, 0.85, 0.55), "fill": 0.8, "life": 0.1})
 	# ① 先裂地：中间一道主漏斗 + 两侧两道小一点的，铺满前方扇形
 	for m in 3:
 		var side: float = 0.0 if m == 0 else (half * 0.6 * (1.0 if m == 1 else -1.0))
@@ -456,6 +461,9 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * 0.1, "o": Vector2(0.0, ft.get_height() * 0.5),
 			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * wk * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
 			"rev": 0.14 + 0.05 * m, "rev0": 0.1, "delay": [0.0, 0.05, 0.09][m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})
+	if v3:   # 冲击帧（用户 10-31）：出拳那一下，拳影 + 三道漏斗印子进剪影（往前张开的一把扇）
+		PF.hf_since(u, n0)
+		PF.hf_on(u, a)
 	# ② 再拳风空气爆炸：两层气浪往前炸开
 	var at: Texture2D = u._strip_tex(SA_AIR)
 	var ka: float = R * 0.8 / PF.tex_w(u, SA_AIR)
@@ -469,7 +477,13 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		var r0: float = 30.0 + 80.0 * PF.h(q * 3.0 + vs)
 		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 60.0 + 110.0 * PF.h(q + 7.0 + vs)), "w": 4.0 if q % 3 == 0 else 2.5,
 			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(q + 11.0)), "delay": 0.16 + 0.03 * PF.h(q + 13.0 + vs), "v": dv * spd * (0.9 + 0.4 * PF.h(q + 17.0))})
-	PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.16, vs, R * 0.35)
+	if v3:   # 拳风卷起的逐帧烟尘：前方扇形里五团、由近到远依次冒、往前推（代替灰点粒子）
+		for q in 5:
+			var hq: float = PF.h(vs * 3.0 + q)
+			var dq := Vector2.from_angle(fa + (float(q) / 4.0 - 0.5) * 1.6 * half + (hq - 0.5) * 0.2)
+			PF.dust(u, org + dq * R * (0.3 + 0.35 * hq), 200.0 + 80.0 * hq, 0.16 + 0.04 * q, vs + q, dq * (90.0 + 60.0 * hq), Color(1.0, 0.95, 0.88))
+	else:
+		PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.16, vs, R * 0.35)
 	a["vs"] = vs
 	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18, R * 0.55, 1], [float(a.t) + 0.36, R * 0.8, 2], [float(a.t) + 0.54, R * 1.0, 3]]
 	if a.get("cone", false):
