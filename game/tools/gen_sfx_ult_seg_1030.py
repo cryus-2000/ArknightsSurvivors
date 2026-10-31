@@ -73,7 +73,7 @@ def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
     return fadeio(y / (np.abs(y).max() + 1e-9), 0.001, fout)
 
 
-LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "burst": -9.0, "slam_1": -9.0, "smash": -8.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "burst": -9.0, "slam_1": -9.0, "smash": -8.0, "sizzle": -17.0, "bomb": -18.0, "steam": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
 def level(slot, x):
@@ -157,6 +157,12 @@ SN = {   # Sonniss 素材短名（docs/113 §20）
     "scrape": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav",
     "slice": "Epic Stock Media - Tower Defense Game/DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04_ESM_TDG.wav",
     "blast": "Epic Stock Media - Anime Game/EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav",
+    "fwhsh": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav",
+    "thunder": "Epic Stock Media - Public Spaces - Storms Lakes Parks and Rural Nature Exteriors/STORM_Texas Rain Thunder Initial Crash Boom Storm 01 Clap Lightning_ESM_CPS.wav",
+    "rumbleT": "Jake Fielding - Interior Wind Rain and Storms/THUN_Interior Thunder Rumble_JF_INT Storm_01.wav",
+    "steam": "Ivo Vicic - Campfire - Bonfire FX/42 Campfire, Putting Out Fire, Water from Bottle, Variation, Close.wav",
+    "cauldron": "344 Audio - Haunting Ambiences Vol. 5/FIRECrkl_Fire Crackling, Popping, Witch's Cauldron_344 Audio_Haunting Ambiences Vol 5.wav",
+    "fworks": "Ivo Vicic - Fireworks FX/13 Fireworks_powerful explosions_multiples in a row_near.wav",
 }
 
 
@@ -270,14 +276,21 @@ def angelina():
 
 
 def eyjafjalla():
-    """落点龟裂 0.4 秒 → 巨大火柱喷出（冲击）→ 熔岩块落满一圈（每块一声）→ 中间留熔岩地面"""
-    return {
-        "charge": pad(rumble(0.9, 160, 0.6) * swell(0.9, 0.9), crackle(0.9, 120, 900, 4000, 1.0) * swell(0.9, 0.9) * 0.5),
-        "cast": pad(crack(0.45, 7) * 0.8, lp(N(0.45), 1300) * swell(0.45, 0.95) * 0.6),
-        "impact": pad(sweep_noise(1.2, 400, 2400, 0.7) * env(1.2, 0.003, 2.8) * 1.0, burst(0.8, 2200, 5), sub(0.9, 70, 28, 3.5), crackle(1.2, 320, 1300, 6000, 3) * 0.55),
-        "lava_hit": pad(thud(0.28, 120, 45, 14) * 0.8, crackle(0.25, 220, 1500, 5000, 13) * 0.5, splash(0.2, 1800, 16) * 0.3),
-        "ground": pad(crackle(1.2, 160, 1200, 5000, 2.0) * 0.6, lp(N(1.2), 600) * env(1.2, 0.05, 2.0) * 0.7),
+    """docs/205 §4.4（用户 11-01 选 ② 录音；画面按喷发冲击帧 v3）：提示 = 火焰低吼 → 瞄准 = 雷声低滚 + 噼啪
+    → 放出（裂纹渗开、气泡上冒 0.4 秒）= 冰面龟裂降调 + 低滚 → 喷发 impact（与冲击帧同一帧）= 雷暴炸裂 + 火焰低吼 + 预告片低频 + 碎屑
+    → 每颗火山弹落地（fx strip fx_ey_pumice）= 近距烟花爆破降调 bomb_1..3 → 黑蒸汽翻起（strip fx_ey_steam）= 浇水灭火的蒸汽
+    → 熔岩池铺开 1 秒后（strip fx_ey_pool at 1.0）= 篝火噼啪；熔岩天降路线的预热弹（seg 熔岩弹）沿用 bomb_1"""
+    d = {
+        "sf": sn("fwhsh", 0.35, 0.55, 1.0, fout=0.25),
+        "charge": pad(lp(sn("rumbleT", 6.0, 0.9, fout=0.3), 1500), hp(sn("cauldron", 60.0, 0.9, fout=0.3), 1500) * 0.4),
+        "cast": pad(lp(sn("fissure", 0.0, 0.45, 0.8, fout=0.15), 4000), lp(sn("rumbleT", 6.2, 0.45, fout=0.1), 900) * 0.7),
+        "impact": pad(sn("thunder", 3.27, 1.5, 0.85, fout=0.6), sn("fwhsh", 0.45, 1.3, 0.85, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8, sn("debris", 0.35, 1.0, fout=0.4) * 0.4),
+        **{"bomb_%d" % (i + 1): lp(sn("fworks", t, 0.6, r, fout=0.25), 5000) for i, (t, r) in enumerate(zip([4.32, 6.57, 9.07], [0.72, 0.66, 0.78]))},
+        "steam": sn("steam", 0.08, 1.5, fout=0.6),
+        "ground": sn("fire", 0.5, 1.2, fout=0.5),
     }
+    d["lava_hit"] = d["bomb_1"]
+    return d
 
 
 def wisadel():
