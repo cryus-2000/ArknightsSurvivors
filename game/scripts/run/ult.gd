@@ -458,13 +458,11 @@ func _tick_ult(dt: float) -> void:
 		if done:
 			phase = ""
 			act = {}
-			if LinkV2.on():
-				LinkV2.on_ult(self, _ult_at)   # 连携 v2：终结技放完，队友在落点上接一招收割
 			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
 
 
 var v2_waves: Array = []    # 连携 v2 余波（link_v2.spread_start / tick_waves，link/v2_spread）
-var _ult_at := Vector2.INF   # 这次终结技的作用中心（落点 / 方向前方 300 / 自身）：连携 v2 收割用
+var _ult_at := Vector2.INF   # 这次终结技的作用中心（落点 / 方向前方 300 / 自身）；快检 ult_aim 读（11-01 用户「终结技后不用连携」后不再触发连携）
 
 
 func _cast() -> void:
@@ -648,6 +646,9 @@ func _fire_head(auto: bool) -> void:
 	var q: Dictionary = queue.pop_front()
 	var o = q.o
 	if q.info.has("link"):   # 技能连携：接进那个技能，不走连携冷却
+		if q.info.has("v2") and in_circle(q.info.pos, float(q.info.get("r", 150.0)) + 60.0).is_empty():
+			LinkV2.refund(self, q.info)   # 亮起到出手之间区域被清空：不出手、退还全队间隔，留到下次有目标再接
+			return
 		var la: Dictionary = Link.fire(self, o, q.info)
 		stats.link_by[str(o.id)] = int(stats.link_by.get(str(o.id), 0)) + 1   # 遥测：每人技能连携出手次数
 		stats.combo += 1

@@ -1063,7 +1063,7 @@
   "skill_link": 1
  },
  "link": {
-  "_doc": "连携 v2（docs/209 §2）：v2 1 = 全自动、只由队长触发（放技能：全队共用间隔 v2_gap 秒；放完终结技：不占间隔），按指挥姿态挑接法类别（随行 掩护优先 / 突击 追击优先 / 部署 聚拢优先 / 终结技后 追击收割），E 连携技不再亮起、没有 E 键；伤害按目标生命的预算（小怪 v2_minion × 当前基准生命、精英 v2_elite / Boss v2_boss / 最终 Boss v2_final × 最大生命）× 各接法倍率 × v2_mult（与攻击力口径取大）、区域 × v2_area；聚拢类在随行时拉拢中心离队长至少 v2_gather_out；每次连携 +1 协同格。不压暗、不慢放、不停顿。余波（第三轮，v2_spread 1 开）：连携出手后 v2_spread_delay 秒起在连携区域放 v2_spread_n 圈，每 v2_spread_gap 秒一圈，半径 = 区域 × v2_spread_r，圈内每名敌人各吃一下（预算 × v2_spread_mult）。0 = 旧（E 连携技 + 技能连携）。flash / slow / dim 等轻量演出旋钮缺省写在 ult.gd（link/flash 段）",
+  "_doc": "连携 v2（docs/209 §2）：v2 1 = 全自动、只由队长放技能触发（全队共用间隔 v2_gap 秒；附近没有敌人不亮、不计间隔，亮起后区域被清空退还间隔；11-01 用户定终结技不触发），按指挥姿态挑接法类别（随行 掩护优先 / 突击 追击优先 / 部署 聚拢优先），E 连携技不再亮起、没有 E 键；伤害按目标生命的预算（小怪 v2_minion × 当前基准生命、精英 v2_elite / Boss v2_boss / 最终 Boss v2_final × 最大生命）× 各接法倍率 × v2_mult（与攻击力口径取大）、区域 × v2_area；聚拢类在随行时拉拢中心离队长至少 v2_gather_out；每次连携 +1 协同格。不压暗、不慢放、不停顿。余波（第三轮，v2_spread 1 开）：连携出手后 v2_spread_delay 秒起在连携区域放 v2_spread_n 圈，每 v2_spread_gap 秒一圈，半径 = 区域 × v2_spread_r，圈内每名敌人各吃一下（预算 × v2_spread_mult）。0 = 旧（E 连携技 + 技能连携）。flash / slow / dim 等轻量演出旋钮缺省写在 ult.gd（link/flash 段）",
   "v2": 1, "v2_gap": 60.0, "v2_mult": 4.0, "v2_minion": 0.9, "v2_elite": 0.06, "v2_boss": 0.01, "v2_final": 0.004, "v2_area": 1.8, "v2_gather_out": 220.0, "v2_delay": 0.15, "v2_spread": 0, "v2_spread_n": 3, "v2_spread_gap": 0.35, "v2_spread_r": 1.0, "v2_spread_mult": 0.07, "v2_spread_delay": 0.5
  },
  "ult": {
