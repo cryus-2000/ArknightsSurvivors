@@ -16,6 +16,8 @@ const POINT_OPS: Array = ["siege"]
 
 const COL_AMBER := Color(1.0, 0.72, 0.3)
 const COL_LIGHT := Color(0.96, 0.98, 1.0)
+const LU_WARM := Color(1.0, 0.72, 0.36)   # 流明 v3 暖光：外层 / 光芒
+const LU_HI := Color(1.0, 0.93, 0.78)     # 流明 v3 暖光：内芯 / 光圈
 const COL_INK := Color(0.3, 0.32, 0.85)
 const COL_RED := Color(0.95, 0.25, 0.18)
 const COL_ROCK := Color(0.62, 0.48, 0.3)
@@ -1219,14 +1221,16 @@ static func _lu_start(u, o) -> Dictionary:
 	var g = u.g
 	var c: Vector2 = o.pos
 	var dur: float = Bal.v("ult/lu_dur", 2.0)
-	var col: Color = u._col(o)
+	var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
+	var col: Color = LU_WARM if v3 else u._col(o)   # v3 暖光（用户 10-31「流明的光现在还是蓝色的」）：干员色偏蓝青、COL_LIGHT 偏冷白，都换暖色
+	var hi: Color = LU_HI if v3 else COL_LIGHT
 	var H: float = 620.0
 	# 光柱：外层干员色、内芯白；脚下灯塔点亮（fx_beacon_ignite）
 	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -H), "w": 86.0, "col": col, "fill": 0.45, "life": dur + 0.3})
-	u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": COL_LIGHT, "fill": 0.85, "life": dur + 0.25})
-	u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": COL_LIGHT, "glow": col, "grow": 0.15, "life": 0.4})
-	u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(0.85, 0.95, 1.0)})
-	u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2})
+	u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": hi, "fill": 0.85, "life": dur + 0.25})
+	u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": hi, "glow": col, "grow": 0.15, "life": 0.4})
+	u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(1.0, 0.85, 0.6) if v3 else Color(0.85, 0.95, 1.0)})
+	u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2, "col": Color(1.0, 0.82, 0.55) if v3 else Color.WHITE})
 	g.lamp = maxf(g.lamp, float(g.lamp_cap))   # 附带：灯火补满
 	g.nerve = 0.0   # 清除神经损伤，6 秒内不再累积
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
@@ -1241,7 +1245,9 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	var t: float = a.t
 	var c: Vector2 = a.c
 	var R: float = a.R
-	var col: Color = u._col(o)
+	var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
+	var col: Color = LU_WARM if v3 else u._col(o)
+	var lc: Color = LU_HI if v3 else COL_LIGHT   # v3 暖光：本函数里的「光色」全换暖白
 	var rc: float = a.rc
 	var t0: float = a.t0
 	if t < t0:
@@ -1251,8 +1257,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		a.boomed = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
-		_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
+		_ring(u, c, R, 40.0, lc, 0.5, 18.0)
 		_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
 		if v3:   # 暖光（用户 10-31「他应该是暖光」「改的有点多了」）：满圈填充浓度同旧版、只换成暖金；放射光芒 20 → 12 道、暖色、更短
 			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.78, 0.45), "fill": 0.2, "life": 0.45})
@@ -1263,10 +1268,15 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
 			for j in 20:   # 光芒放射
 				var dv := Vector2.from_angle(j * TAU / 20.0)
-				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
+				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": lc, "life": 0.3})
 		if v3:   # 不打冲击帧、不叠共用白闪（用户 10-31「流明不加冲击帧，他应该是比较温柔的」）
 			a["soft"] = true
 			u.act["soft"] = true
+			# 余辉（用户 10-31「余辉像弹出来的」）：光圈扩散起就铺一层地面暖光，随光柱持续慢慢亮起，熄灭后 2 秒褪掉
+			a["glow_s"] = {"kind": "circle", "c": c, "r": R * 0.85, "col": Color(1.0, 0.72, 0.38), "fill": 0.0, "life": 99.0, "layer": "back"}
+			u.shape(a.glow_s)
+			a["glow_r"] = {"kind": "ring", "c": c, "r": R * 0.85, "w": 4.0, "col": Color(1.0, 0.8, 0.45, 0.0), "solid": true, "life": 99.0}
+			u.shape(a.glow_r)
 	var T: float = a.exp
 	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
 		a["edone"] = el >= T
@@ -1280,7 +1290,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		var fade: float = 1.0 - el / dur
 		for s in 2:
 			var ba: float = float(a.rot) + PI * s
-			u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": COL_LIGHT, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
+			u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": lc, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
 			if a.watch:
 				for e in _in_sector(u, c, R, ba, 0.09):
 					var k: int = int(e.id)
@@ -1295,7 +1305,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		var i: int = int(a.tick)
 		a.tick = i + 1
 		_ring(u, c, R, R * 0.75, Color(col.lerp(Color.WHITE, 0.5), 0.8), 0.3, 5.0)
-		u.shape({"kind": "dots", "c": c, "r": R * 0.9, "n": 20, "col": COL_LIGHT, "life": 0.35})
+		u.shape({"kind": "dots", "c": c, "r": R * 0.9, "n": 20, "col": lc, "life": 0.35})
 		for e in u.in_circle(c, R):
 			_once(u, a, o, a.tseg[i], e, 0.05, {"src": "光柱", "edge": e.pos.distance_to(c) > rc})
 	if a.rain:   # 光雨：光圈内落 2 秒光雨（每秒 5%）
@@ -1304,16 +1314,28 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			for k in 3:
 				var q: int = int(a.rf) * 3 + k
 				var p: Vector2 = c + Vector2.from_angle(q * 2.39996) * R * sqrt(float((q * 37) % 97) / 97.0)
-				u.shape({"kind": "line", "a": p + Vector2(0, -60), "b": p + Vector2(0, -20), "w": 2.0, "col": COL_LIGHT, "life": 0.2, "v": Vector2(0, 200)})
+				u.shape({"kind": "line", "a": p + Vector2(0, -60), "b": p + Vector2(0, -20), "w": 2.0, "col": lc, "life": 0.2, "v": Vector2(0, 200)})
 		while int(a.rn) < 2 and el >= 1.0 * (int(a.rn) + 1):
 			var i2: int = int(a.rn)
 			a.rn = i2 + 1
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.rseg[i2], e, 0.05, {"src": "光雨", "edge": e.pos.distance_to(c) > rc})
-	if el >= dur + 0.05 and Bal.v("ult/lu_fx_v3", 1.0) > 0.0 and not a.get("glow_done", false):   # 余辉：熄灭后地面一圈暖光慢慢褪、金色光尘往上飘
-		a["glow_done"] = true
-		u.shape({"kind": "circle", "c": c, "r": R * 0.85, "col": Color(1.0, 0.72, 0.38), "fill": 0.1, "life": 1.8, "layer": "back"})
-		u.shape({"kind": "ring", "c": c, "r": R * 0.85, "w": 4.0, "col": Color(1.0, 0.8, 0.45, 0.6), "solid": true, "life": 1.6})
-		PF.particles(u, c, 160, "ult_ember", [Color(1.0, 0.82, 0.45)], 0.0, PF.vseed(u, c), R * 0.7)
-		u.light(c, R, Color(1.0, 0.75, 0.4), 1.6)
+	if a.has("glow_s"):   # 余辉：随光柱持续慢慢亮（smoothstep），熄灭时交给寿命线性褪 2 秒；后半段起金色光尘慢慢往上飘
+		var kg: float = smoothstep(0.0, dur, el)
+		if el < dur + 0.05:
+			a.glow_s.fill = 0.12 * kg
+			a.glow_s.age = 0.0
+			a.glow_r.col = Color(1.0, 0.8, 0.45, 0.55 * kg)
+			a.glow_r.age = 0.0
+		elif not a.get("glow_done", false):
+			a["glow_done"] = true
+			for gs in [a.glow_s, a.glow_r]:
+				gs.age = 0.0
+				gs.max = 2.0
+		while int(a.get("ember_n", 0)) < 3 and el >= dur * (0.4 + 0.3 * int(a.get("ember_n", 0))):   # 光尘：分三小批、不同位置慢慢飘起（一次迸一大团像「弹出来」）
+			var ei: int = int(a.get("ember_n", 0))
+			a["ember_n"] = ei + 1
+			var vs: float = PF.vseed(u, c) + ei * 7.0
+			var pe: Vector2 = c + Vector2.from_angle(PF.h(vs) * TAU) * R * (0.25 + 0.3 * PF.h(vs + 1.0))
+			PF.particles(u, pe, 40, "ult_ember", [Color(1.0, 0.82, 0.45)], 0.0, vs, R * 0.3)
 	return el >= dur + 0.05
