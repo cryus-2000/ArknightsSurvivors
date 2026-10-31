@@ -1260,7 +1260,8 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			var e: Dictionary = pn.e
 			var bp: Vector2 = e.pos if not e.dead else pn.get("last", e.pos)
 			var fr: float = Bal.v("ult/ir_boom", 0.35) * (1.0 if float(pn.d) <= R * 0.5 else Bal.v("ult/ir_boom_out", 0.6))
-			_once(u, a, o, a.bseg, e, fr, {"src": "宣判", "edge": float(pn.d) > float(a.rc)})   # 第一下（非 pre）= 冲击帧
+			var fc: bool = _irv3() and Bal.v("ult/ir_final_cut", 1.0) > 0.0   # 用户 10-31「冲击帧放在最后的斩击」：连环爆都标 pre，冲击帧挪到斩击爆裂
+			_once(u, a, o, a.bseg, e, fr, {"src": "宣判", "pre": fc, "edge": float(pn.d) > float(a.rc)})   # 第一下（非 pre）= 冲击帧
 			var hh: float = PF.h(vs + float(pn.d))
 			if _irv2():   # 用户 10-31 改表现：每一炸更大更实——金白爆团 + 烟尘 + 地块崩起；链子崩成链节飞散
 				PF.particles(u, bp, 200, "ult_burst", [Color(0.8, 0.66, 0.38), Color(0.45, 0.52, 0.7)], 0.0, vs + float(pn.d), 90.0 + 40.0 * hh)   # 预审：连环爆叠起来发白，压暗一档
@@ -1347,7 +1348,26 @@ static func _irv_shuttle(u, a: Dictionary, o, k: float) -> void:
 ## 不点短灯（用户嫌闪）。只有画面，伤害 / 时长不变（图形在终结技结束后自己播完）
 static func _irv_final_cut(u, c: Vector2, R: float, vs: float) -> void:
 	var dv := Vector2.from_angle(PF.h(vs + 77.0) * PI)
-	u.g.vfx.stop(0.06, "ult", true)
+	u.impact(c)   # 冲击帧放在这一刀（顿帧 + 慢放 + 闪，用户 10-31）
+	# 一刀劈开大地：斩线两侧各一条粗分叉裂缝从中心往两端长出去（先金亮后冷成暗缝）+ 沿线地块崩起 + 两侧尘墙往外推
+	var fk: Array = []
+	for k in 2:
+		fk.append(dv.angle() + PI * k)
+	PF.cracks(u, IRV_FORKS, c, fk, [R * 1.15, R * 1.15], {"seed": vs + 3.0, "r0": 10.0, "rev": 0.12, "rev0": 0.1, "life": 2.0, "fade": 0.8,
+		"big": 1.6, "small": 1.6, "col": Color(1.0, 0.86, 0.5), "col1": Color(0.16, 0.15, 0.17), "cold": 0.5, "delay": 0.0})
+	for k in 2:   # 再各补一条细一点、略偏的副裂，避免一根直线
+		var side: float = -1.0 if k == 0 else 1.0
+		PF.cracks(u, IRV_FORKS, c + dv * side * R * 0.25, [dv.angle() + (PI if side < 0.0 else 0.0) + side * 0.12], [R * 0.8],
+			{"seed": vs + 9.0 + k, "rev": 0.15, "rev0": 0.1, "life": 1.8, "fade": 0.7, "big": 0.8, "small": 0.8, "col": Color(0.95, 0.8, 0.45), "col1": Color(0.2, 0.19, 0.2), "cold": 0.5, "delay": 0.04})
+	for q in 14:   # 沿线地块崩起（离中心越远越晚）
+		var x: float = (float(q) - 6.5) / 6.5
+		var hh: float = PF.h(vs + q * 1.9)
+		var nv: Vector2 = dv.orthogonal() * (1.0 if q % 2 == 0 else -1.0)
+		PF.rock(u, c + dv * R * x * 1.05 + nv * (10.0 + 20.0 * hh), nv * (60.0 + 80.0 * hh), 160.0 + 140.0 * hh, hh, 0.5, 0.03 * absf(x) * 4.0, Color(0.8, 0.76, 0.72))
+	for k in 2:
+		var nv2: Vector2 = dv.orthogonal() * (1.0 if k == 0 else -1.0)
+		for q in 4:
+			PF.dust(u, c + dv * R * ((float(q) - 1.5) / 1.5) * 0.8 + nv2 * 20.0, 130.0, 0.05 + 0.03 * q, vs + k * 5.0 + q, nv2 * 140.0, Color(0.6, 0.58, 0.56))
 	u.shape({"kind": "blade", "a": c - dv * R * 1.15, "b": c + dv * R * 1.15, "w": 22.0, "col": Color(0.35, 0.45, 0.7), "glow": IRV_NAVY, "grow": 0.05, "life": 0.45})
 	u.shape({"kind": "blade", "a": c - dv * R * 1.1, "b": c + dv * R * 1.1, "w": 10.0, "col": IRV_WHITE, "glow": IRV_NAVY, "grow": 0.05, "life": 0.35})
 	u.shape({"kind": "blade", "a": c - dv * R * 1.05, "b": c + dv * R * 1.05, "w": 3.0, "col": IRV_GOLD, "glow": IRV_GOLD, "grow": 0.05, "life": 0.6})
