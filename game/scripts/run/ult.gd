@@ -1615,7 +1615,7 @@ func _seg_sfx(sg: String) -> void:
 ## 按 data/ult_audio.json 的 fx.<键> 在它出现的那一刻（+ at 秒游戏时间，如剑帧条插地那一帧）播一声。
 ## 键 = 图形 kind（"line" / "blade" …）或 "strip:<帧条名>"；带速度 v 的（碎片）先找 "<键>+v"。
 ## 规则：slot 槽名或槽名数组（数组按序轮换，每声略不同）、gap 真实秒节流（同一帧冒出的几道合成一声）、vol dB、
-## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）、min_sc 帧条缩放至少多少才认（收尾大爆）、then 第二次起改播的槽。
+## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）、min_sc 帧条缩放至少多少才认（收尾大爆）、then 第二次起改播的槽、match {字段: 值} 任意字段等值匹配；同一种图形要分几条时键后加 #2 / #3。
 var _fx_rt := {}
 var _fx_n := {}
 var _fx_serial := -1
@@ -1628,18 +1628,25 @@ func _fx_tag(s: Dictionary) -> void:
 	var key: String = ("strip:" + str(s.get("name", ""))) if str(s.get("kind", "")) == "strip" else str(s.get("kind", ""))
 	if s.has("v") and rules.has(key + "+v"):
 		key += "+v"
-	var r = rules.get(key)
-	if not r is Dictionary:
-		return
+	for k in [key, key + "#2", key + "#3"]:   # 同一种图形可写几条规则（键后加 #2 / #3），按序取第一条对得上的
+		var r = rules.get(k)
+		if r is Dictionary and _fx_match(s, r):
+			s["_ar"] = r
+			s["_ak"] = k
+			if s.age >= float(r.get("at", 0.0)):
+				_fx_sfx(s)
+			return
+
+
+func _fx_match(s: Dictionary, r: Dictionary) -> bool:
 	for f in ["w", "r"]:
 		if r.has(f) and absf(float(s.get(f, 0.0)) - float(r[f])) > 0.01:
-			return
-	if g.t - _cast_t < float(r.get("min_t", -1.0)) or float(s.get("sc", 1.0)) < float(r.get("min_sc", -1.0)):
-		return
-	s["_ar"] = r
-	s["_ak"] = key
-	if s.age >= float(r.get("at", 0.0)):
-		_fx_sfx(s)
+			return false
+	var mt: Dictionary = r.get("match", {})
+	for f in mt:   # 任意字段等值匹配（如归溟幽灵鲨弹射小锯的 scd 0.05，和同名的大锯分开）
+		if absf(float(s.get(f, -999.0)) - float(mt[f])) > 0.001:
+			return false
+	return g.t - _cast_t >= float(r.get("min_t", -1.0)) and float(s.get("sc", 1.0)) >= float(r.get("min_sc", -1.0))
 
 
 func _fx_sfx(s: Dictionary) -> void:
