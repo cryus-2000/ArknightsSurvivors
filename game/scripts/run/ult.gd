@@ -1362,6 +1362,8 @@ var _imp_pos := Vector2.ZERO
 var flash_rt := -99.0          # HUD 闪白起点（真实时间）
 var _cmb_rt := -99.0           # 连携短慢放起点（真实时间）
 var _link_rt := -99.0          # 技能连携出手瞬间放慢起点（真实时间）
+var cam_hold := Vector2.INF     # 终结技期间镜头钉住的位置（艾丽妮「宣判」穿梭时不跟队长晃，用户 10-31「镜头不要晃，固定」）；g.t < cam_hold_until 时 game.cam_center 用它
+var cam_hold_until := -99.0
 
 
 func link_slow() -> void:

@@ -1127,6 +1127,9 @@ static func _irv_start(u, o) -> Dictionary:
 	var vs: float = PF.vseed(u, c)
 	var spins: int = 4 if rt == "gale" else 3
 	o.play_vis_anim("attack")
+	if _irv3():   # 用户 10-31「镜头不要晃，固定」：整段终结技镜头钉在纹章中心（她穿梭时镜头不跟）
+		u.cam_hold = c
+		u.cam_hold_until = u.g.t + 1.7
 	# 定罪前一拍：纹章从 1.25 倍压下来（0.1 秒），金光收拢
 	if u.fx_ready(IRV_SEAL):
 		var rr: float = PF.tex_w(u, IRV_SEAL) * 0.5
@@ -1278,7 +1281,12 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 		if t >= float(a.end_t) - 0.3 and not a.has("shatter"):
 			a["shatter"] = true   # 纹章碎裂：金色分叉裂纹从中心炸开 + 纹章快淡 + 大光 + 金白粒子
 			var s: Dictionary = a.seal
-			if not s.is_empty() and _irv2():   # 用户 10-31 改表现：纹章本体碎成 7 条竖片，各自往外崩飞、转着落地淡掉
+			if not s.is_empty() and _irv3():   # 用户 10-31「纹章改成缓慢消失，而不是被切碎」：1.4 秒慢慢冷下去、淡掉
+				s["col"] = s.get("col1", s.get("col", Color.WHITE))
+				s.erase("col1")
+				s.max = float(s.age) + 1.4
+				s["fade"] = 1.4
+			elif not s.is_empty() and _irv2():   # 用户 10-31 改表现：纹章本体碎成 7 条竖片，各自往外崩飞、转着落地淡掉
 				_irv_shatter(u, s, c, vs)
 				s.max = float(s.age)
 			elif not s.is_empty():
@@ -1290,7 +1298,8 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 				PF.cracks(u, IRV_FORKS, c, PF.angles(8, PF.h(vs) * TAU, vs), cl_l, {"seed": vs, "r0": 40.0, "rev": 0.15, "rev0": 0.2, "life": 0.9, "fade": 0.5,
 				"big": 0.45, "small": 0.3, "col": Color(1.0, 0.86, 0.5), "col1": Color(0.3, 0.3, 0.34, 0.6), "cold": 0.35})
 			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.7, 0.4)], 0.0, vs, R * 0.5)   # 深蓝粒子团放大后成一块平的蓝圆盘，只留暗金
-			PF.aftershock(u, c, R * 0.7, vs, 0.05, 10, Color(0.75, 0.72, 0.7))   # 纹章碎块崩起
+			if not _irv3():
+				PF.aftershock(u, c, R * 0.7, vs, 0.05, 10, Color(0.75, 0.72, 0.7))   # 纹章碎块崩起
 			u.light(c, R * 0.6, IRV_GOLD, 0.25)
 	return a.boomed and t >= float(a.end_t)
 

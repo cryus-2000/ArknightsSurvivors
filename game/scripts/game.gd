@@ -1297,6 +1297,8 @@ func glance_step(rd: float) -> void:
 ## 镜头实际看着的位置 = view_center 加上一瞥的偏移；只给镜头与铺满视野的地面 / 地纹 / 大道具用，玩法一律读 view_center / ppos
 func cam_center() -> Vector2:
 	var c: Vector2 = view_center()
+	if ult != null and t < float(ult.cam_hold_until) and ult.cam_hold != Vector2.INF:
+		c = ult.cam_hold   # 终结技钉住镜头（艾丽妮穿梭斩，用户 10-31）
 	if swap_off != Vector2.ZERO:
 		c += swap_off * (1.0 - smoothstep(0.0, 1.0, clampf(swap_t / swap_ease, 0.0, 1.0)))   # 切队长：镜头从原位置缓动到新队长（0.25 秒，整数像素在 world.gd 取整）
 	if glance_pos == Vector2.INF:
