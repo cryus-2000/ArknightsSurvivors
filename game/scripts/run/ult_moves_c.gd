@@ -1157,7 +1157,12 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			if not e.boss:
 				u.g.enemies_sys.add_cc(e, Bal.v("ult/ir_lift", 1.2) * (0.5 if e.elite else 1.0))   # 钉住（原来是挑飞浮空，同时长）
 			var pin := {"e": e, "d": e.pos.distance_to(c), "chain": {}}
-			if n < 18:   # 锁链至多 18 根（伤害照打每一个）
+			if n < 18 and _irv2():   # 用户 10-31 改表现：锁链从纹章外圈一根根射出、绷直扎到怪身上（链节沿线逐节伸出 0.12 秒），扎中处金色碎光
+				var rim: Vector2 = c + (e.pos - c).normalized() * R * 0.97 if e.pos.distance_to(c) > 1.0 else c + Vector2.RIGHT * R
+				pin["rim"] = rim
+				pin["links"] = _irv_chain(u, rim, e.pos + Vector2(0, -10), 0.02 * (n % 6))
+				PF.particles(u, e.pos + Vector2(0, -10), 60, "ult_burst_s", [IRV_GOLD, IRV_WHITE], 0.12 + 0.02 * (n % 6), vs + n * 3.0, 40.0)
+			elif n < 18:   # 锁链至多 18 根（伤害照打每一个）
 				var nm := PF.pick(u, IRV_CHAIN, vs * 0.3 + n * 1.7)
 				if nm != "":
 					var tex: Texture2D = u._strip_tex(nm)
@@ -1168,6 +1173,9 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			n += 1
 			a.pins.append(pin)
 		a.pins.sort_custom(func(x, y): return float(x.d) < float(y.d))
+	for pn in a.pins:   # 链子末端跟着被锁的怪（被推挤时链子绷着跟）
+		if pn.has("links") and not pn.e.dead and not pn.get("done", false):
+			_irv_chain_follow(pn.links, Vector2(pn.rim), pn.e.pos + Vector2(0, -10))
 	# ② 行刑：旋风转身
 	var t0: float = 0.18
 	var T: float = 0.6
@@ -1183,11 +1191,25 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			var nm2 := PF.pick(u, IRV_SMEAR, vs * 0.5 + t * 13.0)
 			if nm2 != "":
 				var rr2: float = PF.tex_w(u, nm2) * 0.5
-				u.strip(nm2, c + Vector2(0, -6), {"layer": "back", "sc": 150.0 / rr2, "sc1": 175.0 / rr2, "scd": 0.12, "ang": th, "spin": 30.0, "life": 0.14, "fade": 0.08,
+				var big: float = 1.6 if _irv2() else 1.0   # 用户 10-31 改表现：刀弧加大 + 外面再套一层反向的暗弧
+				u.strip(nm2, c + Vector2(0, -6), {"layer": "back", "sc": 150.0 * big / rr2, "sc1": 175.0 * big / rr2, "scd": 0.12, "ang": th, "spin": 30.0, "life": 0.14, "fade": 0.08,
 					"col": Color(0.78, 0.84, 0.95, 0.8)})   # 预审：旋斩中心别发白
+				if _irv2():
+					u.strip(nm2, c + Vector2(0, -6), {"layer": "back", "sc": 300.0 / rr2, "sc1": 340.0 / rr2, "scd": 0.12, "ang": th + 2.0, "spin": 26.0, "sx": -1.0, "life": 0.12, "fade": 0.08,
+						"col": Color(0.4, 0.5, 0.72, 0.55)})
+					for q in 3:   # 放射速度线：刀扫过的方向甩出三道细冷光
+						var sv := Vector2.from_angle(th + q * 0.35)
+						u.shape({"kind": "blade", "a": c + sv * 90.0, "b": c + sv * (200.0 + 80.0 * PF.h(t * 7.0 + q)), "w": 2.0, "col": IRV_WHITE, "glow": IRV_NAVY, "life": 0.07, "v": sv * 900.0})
 		if t >= float(a.shot_t):   # 手铳朝四周连射：短曳光 + 枪口火光
 			a.shot_t = t + 0.08
 			var sd: Vector2 = Vector2.from_angle(th + 1.3 + (PF.h(t * 31.0) - 0.5) * 0.6)
+			if _irv2() and not a.pins.is_empty():   # 用户 10-31 改表现：子弹真打到被锁的怪身上（金色细曳光一闪到目标 + 命中碎光）
+				var pk: Dictionary = a.pins[int(PF.h(t * 17.0) * a.pins.size()) % a.pins.size()]
+				if not pk.e.dead:
+					sd = (pk.e.pos - c).normalized()
+					var mz2: Vector2 = c + Vector2(0, -22) + sd * 26.0
+					u.shape({"kind": "blade", "a": mz2, "b": pk.e.pos + Vector2(0, -12), "w": 2.0, "col": IRV_GOLD, "glow": IRV_NAVY, "life": 0.05})
+					PF.particles(u, pk.e.pos + Vector2(0, -12), 20, "ult_burst_s", [IRV_GOLD], 0.0, t * 41.0, 24.0)
 			var mz: Vector2 = c + Vector2(0, -22) + sd * 26.0
 			u.shape({"kind": "blade", "a": mz, "b": mz + sd * 70.0, "w": 2.0, "col": IRV_GOLD, "glow": IRV_NAVY, "life": 0.05, "v": sd * 1600.0})
 			PF.particles(u, mz, 20, "ult_burst_s", [IRV_GOLD], 0.0, t * 53.0, 16.0)
@@ -1231,10 +1253,18 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			var fr: float = Bal.v("ult/ir_boom", 0.35) * (1.0 if float(pn.d) <= R * 0.5 else Bal.v("ult/ir_boom_out", 0.6))
 			_once(u, a, o, a.bseg, e, fr, {"src": "宣判", "edge": float(pn.d) > float(a.rc)})   # 第一下（非 pre）= 冲击帧
 			var hh: float = PF.h(vs + float(pn.d))
-			PF.particles(u, bp, 120, "ult_burst_s", [IRV_GOLD, IRV_NAVY], 0.0, vs + float(pn.d), 60.0 + 30.0 * hh)
-			if int(pn.d) % 2 == 0:
-				PF.dust(u, bp, 90.0, 0.04, vs + float(pn.d) * 0.1, Vector2.ZERO, Color(0.7, 0.72, 0.78))
-			u.light(bp, 120.0, IRV_WHITE, 0.15)
+			if _irv2():   # 用户 10-31 改表现：每一炸更大更实——金白爆团 + 烟尘 + 地块崩起；链子崩成链节飞散
+				PF.particles(u, bp, 300, "ult_burst", [IRV_GOLD, Color(0.55, 0.62, 0.8)], 0.0, vs + float(pn.d), 100.0 + 40.0 * hh)
+				PF.dust(u, bp, 120.0, 0.03, vs + float(pn.d) * 0.1, Vector2.ZERO, Color(0.7, 0.68, 0.66))
+				PF.aftershock(u, bp, 50.0, vs + float(pn.d), 0.02, 3, Color(0.75, 0.72, 0.7))
+				u.light(bp, 180.0, IRV_GOLD, 0.2)
+				if pn.has("links"):
+					_irv_chain_break(pn.links, Vector2(pn.rim), bp, vs + float(pn.d))
+			else:
+				PF.particles(u, bp, 120, "ult_burst_s", [IRV_GOLD, IRV_NAVY], 0.0, vs + float(pn.d), 60.0 + 30.0 * hh)
+				if int(pn.d) % 2 == 0:
+					PF.dust(u, bp, 90.0, 0.04, vs + float(pn.d) * 0.1, Vector2.ZERO, Color(0.7, 0.72, 0.78))
+				u.light(bp, 120.0, IRV_WHITE, 0.15)
 			var ch: Dictionary = pn.chain
 			if not ch.is_empty():   # 锁链断：链子 0.1 秒内淡掉、迸几颗链节碎片
 				ch.max = float(ch.age) + 0.1
@@ -1242,17 +1272,93 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 		if t >= float(a.end_t) - 0.3 and not a.has("shatter"):
 			a["shatter"] = true   # 纹章碎裂：金色分叉裂纹从中心炸开 + 纹章快淡 + 大光 + 金白粒子
 			var s: Dictionary = a.seal
-			if not s.is_empty():
+			if not s.is_empty() and _irv2():   # 用户 10-31 改表现：纹章本体碎成 7 条竖片，各自往外崩飞、转着落地淡掉
+				_irv_shatter(u, s, c, vs)
+				s.max = float(s.age)
+			elif not s.is_empty():
 				s.max = float(s.age) + 0.25
 			var cl_l: Array = []
 			for j in 8:   # 纹章碎裂：细、短、长短悬殊的金色裂纹，亮一下很快冷掉（粗长的会像树根）
 				cl_l.append(R * (0.3 + 0.35 * PF.h(vs + j * 4.3)))
-			PF.cracks(u, IRV_FORKS, c, PF.angles(8, PF.h(vs) * TAU, vs), cl_l, {"seed": vs, "r0": 40.0, "rev": 0.15, "rev0": 0.2, "life": 0.9, "fade": 0.5,
+			if not _irv2():
+				PF.cracks(u, IRV_FORKS, c, PF.angles(8, PF.h(vs) * TAU, vs), cl_l, {"seed": vs, "r0": 40.0, "rev": 0.15, "rev0": 0.2, "life": 0.9, "fade": 0.5,
 				"big": 0.45, "small": 0.3, "col": Color(1.0, 0.86, 0.5), "col1": Color(0.3, 0.3, 0.34, 0.6), "cold": 0.35})
 			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.7, 0.4)], 0.0, vs, R * 0.5)   # 深蓝粒子团放大后成一块平的蓝圆盘，只留暗金
 			PF.aftershock(u, c, R * 0.7, vs, 0.05, 10, Color(0.75, 0.72, 0.7))   # 纹章碎块崩起
 			u.light(c, R * 0.6, IRV_GOLD, 0.25)
 	return a.boomed and t >= float(a.end_t)
+
+
+## ---- 「宣判」表现第二版（用户 10-31「纹章没问题，后面的表现形式需要改」：锁链 / 旋风 / 连环爆 / 碎裂四段都改；开关 ult/ir_verdict2 缺省 1，0 = 第一版）
+const IRV_LINK := "fx_ulpianus_chain_tile"   # 链节（乌尔比安锚链那张，染金）
+
+
+static func _irv2() -> bool:
+	return Bal.v("ult/ir_verdict2", 1.0) > 0.0
+
+
+## 从 a 往 b 逐节铺链节（每节晚 0.012 秒出现 = 链子射出去），返回链节列表（跟随 / 断裂用）
+static func _irv_chain(u, a: Vector2, b: Vector2, d0: float) -> Array:
+	var out: Array = []
+	if not u.fx_ready(IRV_LINK):
+		return out
+	var arr: Array = u.tiles_line(IRV_LINK, a, b, {"life": 1.8, "fade": 0.2, "col": Color(2.4, 1.9, 1.0), "sc": 1.2, "f": 0})   # 链节原图是暗青，乘亮成金
+	var L0: float = maxf(1.0, a.distance_to(b))
+	for i in arr.size():
+		arr[i].age = -(d0 + 0.012 * i)
+		arr[i]["sx0"] = float(arr[i].get("sx", 1.0))
+		arr[i]["L0"] = L0
+		out.append(arr[i])
+	return out
+
+
+## 链子末端跟着怪：各节按比例重新摆、角度 / 拉伸跟着改
+static func _irv_chain_follow(links: Array, a: Vector2, b: Vector2) -> void:
+	var n: int = links.size()
+	if n == 0:
+		return
+	var L: float = a.distance_to(b)
+	var ang: float = (b - a).angle()
+	for i in n:
+		var s: Dictionary = links[i]
+		s.c = a.lerp(b, float(i) / n)
+		s.ang = ang
+		s.sx = float(s.sx0) * L / maxf(1.0, float(s.L0))
+
+
+## 链子断：每节带一点往外的速度 + 重力 + 转，0.4 秒淡掉
+static func _irv_chain_break(links: Array, a: Vector2, b: Vector2, sd: float) -> void:
+	var n: int = links.size()
+	for i in n:
+		var s: Dictionary = links[i]
+		var k: float = float(i) / maxf(1.0, float(n))
+		var dv: Vector2 = ((b - a).normalized().orthogonal() * (PF.h(sd + i) - 0.5) * 2.0 + (b - a).normalized() * k).normalized()
+		s["v"] = dv * (120.0 + 160.0 * PF.h(sd + i * 3.0)) + Vector2(0, -120.0)
+		s["grav"] = 900.0
+		s["spin"] = (PF.h(sd + i * 5.0) - 0.5) * 12.0
+		s.max = float(s.age) + 0.4
+		s["fade"] = 0.3
+
+
+## 纹章碎裂：把纹章贴图按 7 条竖片切开（ux / uw），每片放回原位，往外崩飞、转着落地、淡掉
+static func _irv_shatter(u, s: Dictionary, c: Vector2, vs: float) -> void:
+	var t: Texture2D = u._strip_tex(IRV_SEAL)
+	var W: float = t.get_width()
+	var H: float = t.get_height()
+	var sc: float = float(s.get("sc1", s.get("sc", 1.0)))
+	var wk: float = PF.tex_w(u, IRV_SEAL) / W * sc   # 1 纹素 = 多少世界
+	var ang: float = float(s.get("ang", 0.0))
+	var m := 7
+	for k in m:
+		var ux: float = floorf(W * k / m)
+		var uw: float = floorf(W * (k + 1) / m) - ux
+		var xw: float = (ux + uw * 0.5 - W * 0.5) * wk
+		var pc: Vector2 = c + Vector2(xw, 0.0).rotated(ang)
+		var out: Vector2 = (pc - c).normalized() if pc.distance_to(c) > 1.0 else Vector2.from_angle(PF.h(vs + k) * TAU)
+		var hh: float = PF.h(vs + k * 2.3)
+		u.strip(IRV_SEAL, pc, {"layer": "back", "sc": sc, "ang": ang, "o": Vector2(uw * 0.5, H * 0.5), "ux": ux, "uw": uw,
+			"v": out * (160.0 + 140.0 * hh) + Vector2(0, -60.0), "grav": 260.0, "spin": (hh - 0.5) * 2.4, "life": 0.8, "fade": 0.5,
+			"col": Color(1.15, 1.05, 0.85, 0.7), "col1": Color(0.6, 0.6, 0.66, 0.4), "cold": 0.35})
 
 
 # ================================================================ 拉普兰德（§4.19）：原地狂舞连斩，4 圈双刃十字剑气向四面八方飞出，命中沉默
