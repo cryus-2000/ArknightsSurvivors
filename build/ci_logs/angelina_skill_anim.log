@@ -1,6 +1,6 @@
 # angelina_skill_anim
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/angelina_skill_anim_test.tscn -- --regression --seed=1 --balance --op=angelina --squad=lumen
-# 用时 10 秒；结束时全机 Godot 3 个
+# 用时 11 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

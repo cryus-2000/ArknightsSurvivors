@@ -1,6 +1,6 @@
 # hold_aim_angelina
 # 参数：--headless --audio-driver Dummy --path /home/user/ArknightsSurvivors/game res://tests/hold_aim_test.tscn -- --regression --balance --seed=1 --op=angelina
-# 用时 10 秒；结束时全机 Godot 3 个
+# 用时 12 秒；结束时全机 Godot 4 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

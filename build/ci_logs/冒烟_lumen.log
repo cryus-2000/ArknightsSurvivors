@@ -1,6 +1,6 @@
 # 冒烟 · lumen
 # 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=1 --op=lumen --squad=mizuki,skalter --bot=expert --maxt=90 --relics=all --maxprog --sptest --bosstimes=20,45,70 --forceboss=4 --dccheck
-# 用时 23 秒；结束时全机 Godot 3 个
+# 用时 21 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

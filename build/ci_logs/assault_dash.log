@@ -1,6 +1,6 @@
 # assault_dash
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/assault_dash_test.tscn -- --regression --seed=1 --regression --balance --seed=1 --op=skadi --squad=texas,lappland
-# 用时 14 秒；结束时全机 Godot 4 个
+# 用时 15 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

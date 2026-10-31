@@ -1,6 +1,6 @@
 # blocks_eq_saria_seed1
 # 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=1 --op=saria --bot=expert --maxt=45 --trace=1 --sptest
-# 用时 11 秒；结束时全机 Godot 0 个
+# 用时 12 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

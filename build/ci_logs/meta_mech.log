@@ -1,6 +1,6 @@
 # meta_mech
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/meta_mech_test.tscn -- --regression --seed=1 --balance --seed=1 --op=wisadel --metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4,dodge1,dodge2,dodge3
-# 用时 14 秒；结束时全机 Godot 3 个
+# 用时 14 秒；结束时全机 Godot 4 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

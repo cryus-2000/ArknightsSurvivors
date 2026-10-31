@@ -6,19 +6,19 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 TOUCH MOVE 1280x720: visible=(1113.043, 626.087) ui_k=1.11 hud=(1000.0, 562.5001)
-TOUCH MOVE 1280x720 idx=0: dx=33.3 stick=0 vec=(0.976563, 0.0)
-TOUCH MOVE 1280x720 idx=5: dx=31.3 stick=0 vec=(-0.976562, 0.0)
-TOUCH MOVE 1280x720 idx=2147483000: dx=32.4 stick=0 vec=(0.976563, 0.0)
-TOUCH MOVE 1280x720 idx=-1294967296: dx=37.1 stick=0 vec=(-0.976562, 0.0)
-TOUCH MOVE 1280x720 idx=-1: dx=38.3 stick=0 vec=(0.976563, 0.0)
-TOUCH MOVE 1280x720 idx=-1294967297: dx=38.3 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1280x720 idx=0: dx=33.0 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=5: dx=31.2 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1280x720 idx=2147483000: dx=32.3 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=-1294967296: dx=32.2 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1280x720 idx=-1: dx=32.6 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=-1294967297: dx=32.5 stick=0 vec=(-0.976562, 0.0)
 TOUCH MOVE 1560x720: visible=(1356.522, 626.087) ui_k=1.15 hud=(1179.584, 544.4235)
-TOUCH MOVE 1560x720 idx=0: dx=38.1 stick=0 vec=(0.94518, 0.0)
-TOUCH MOVE 1560x720 idx=5: dx=36.0 stick=0 vec=(-0.945179, 0.0)
-TOUCH MOVE 1560x720 idx=2147483000: dx=36.7 stick=0 vec=(0.94518, 0.0)
-TOUCH MOVE 1560x720 idx=-1294967296: dx=37.0 stick=0 vec=(-0.945179, 0.0)
-TOUCH MOVE 1560x720 idx=-1: dx=31.5 stick=0 vec=(0.94518, 0.0)
-TOUCH MOVE 1560x720 idx=-1294967297: dx=32.6 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE 1560x720 idx=0: dx=29.8 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=5: dx=30.8 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE 1560x720 idx=2147483000: dx=31.4 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=-1294967296: dx=31.4 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE 1560x720 idx=-1: dx=31.4 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=-1294967297: dx=31.3 stick=0 vec=(-0.945179, 0.0)
 TOUCH MOVE: 0 failures
 ERROR: 5 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 

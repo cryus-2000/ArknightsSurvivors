@@ -1,6 +1,6 @@
 # eyja_volcanic_weight
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/eyja_volcanic_weight_test.tscn -- --regression --seed=1 --balance --seed=1 --op=eyjafjalla --route=eyjafjalla:meteor
-# 用时 12 秒；结束时全机 Godot 3 个
+# 用时 11 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

@@ -1,6 +1,6 @@
 # prot
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/prot_test.tscn -- --balance --seed=1 --op=wisadel --bal=boss/leader_2s_cap=0.5 --bal=protect/any_2s_cap=0.55 --bal=boss/fullhp_guard_cd=30 --bal=boss/fullhp_guard_left=0.1
-# 用时 11 秒；结束时全机 Godot 3 个
+# 用时 13 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
