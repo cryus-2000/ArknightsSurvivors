@@ -87,7 +87,7 @@ def main():
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
     ap.add_argument("--audio-tier", default="C", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 缺省（10-28 用户定，B 可回退） / D、E 试听档（docs/187 §7）；off = 不压）")
     ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/187 §5）")
-    ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.9、音效 32 kHz 上限，docs/201），对照用")
+    ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.85、音效 32 kHz 上限，docs/201），对照用")
     ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
@@ -253,9 +253,9 @@ def webp_max(gpath):
     print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100", flush=True)
 
 
-CG_LOSSY_Q = 0.9     # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/201）
-SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 1% 的文件设，QOA 体积按采样数线性下降（docs/201）
-SFX_HF_MAX = 0.01
+CG_LOSSY_Q = 0.85    # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/201）
+SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 3% 的文件设，QOA 体积按采样数线性下降（docs/201）
+SFX_HF_MAX = 0.03
 
 
 def _set_import(path, kv):
@@ -275,8 +275,8 @@ def _set_import(path, kv):
 
 def web_lossy_assets(gpath):
     """网页包专用的近无损压缩（10-31 第八批超预算，docs/201）。只改打包副本的 .import，桌面包与仓库不动：
-    - 事件插画 art/event_cg/web/*.webp：源图本身是有损 WebP（合计 1.24 MiB），缺省按无损重编后 2.48 MiB；改有损导入 0.9（相对源图 PSNR 中位 43.6 dB）。
-    - 音效 audio/sfx/*.wav：16 kHz 以上能量不到 1% 的设 force/max_rate 32 kHz（听不出的高频本来就几乎没有；其余照旧 44.1 kHz），QOA 按采样数缩小"""
+    - 事件插画 art/event_cg/web/*.webp：源图本身是有损 WebP（合计 1.24 MiB），缺省按无损重编后 2.48 MiB；改有损导入 0.85（相对源图 PSNR 中位 40.4 dB、最低 37.8）。
+    - 音效 audio/sfx/*.wav：16 kHz 以上能量不到 3% 的设 force/max_rate 32 kHz（听不出的高频本来就几乎没有；其余照旧 44.1 kHz），QOA 按采样数缩小"""
     import numpy as np
     import soundfile as sf
     n_cg = 0
