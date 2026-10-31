@@ -11,6 +11,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")
 const A = preload("res://scripts/art.gd")   # pixfx 大贴图画法（docs/199 §7.8）
+const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：归溟幽灵鲨 / 水月钻洞与小触手（docs/199 §7.9）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -1106,11 +1107,16 @@ static func _su_start(u, o) -> Dictionary:
 	var col: Color = u._col(o)
 	var steel: Color = col.lerp(Color.WHITE, 0.25)
 	var a := {"dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
-	a["rim"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 14.0, "col": steel, "life": dur + 1.0})
-	a["rim2"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 40.0, "w": 4.0, "col": Color(0.75, 0.12, 0.16), "life": dur + 1.0})
-	a["disk"] = _keep(u, a, {"kind": "circle", "c": o.pos, "r": 60.0, "col": col.darkened(0.4), "fill": 0.12, "life": dur + 1.0})
-	for i in int(Bal.v("ult/su_teeth", 30.0)):   # 半径 340 → 505 时 20 → 30，齿距不变
-		a.teeth.append(_keep(u, a, {"kind": "blade", "a": o.pos, "b": o.pos, "w": 9.0, "col": Color.WHITE, "glow": steel, "life": dur + 1.0}))
+	if FC.sp_bounce(u):   # 弹射撕裂（ult/sp_bounce，用户 10-30 新设计）：红黑剪影在敌人间弹射 + 收尾巨锯
+		FC.sb_start(u, a, o, o.pos)
+	elif FC.sp_v2(u):   # 巨锯 v2：一张整圈锯贴图（ult/sp_saw_v2）
+		FC.sp_start(u, a, o.pos)
+	else:
+		a["rim"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 14.0, "col": steel, "life": dur + 1.0})
+		a["rim2"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 40.0, "w": 4.0, "col": Color(0.75, 0.12, 0.16), "life": dur + 1.0})
+		a["disk"] = _keep(u, a, {"kind": "circle", "c": o.pos, "r": 60.0, "col": col.darkened(0.4), "fill": 0.12, "life": dur + 1.0})
+		for i in int(Bal.v("ult/su_teeth", 30.0)):   # 半径 340 → 505 时 20 → 30，齿距不变
+			a.teeth.append(_keep(u, a, {"kind": "blade", "a": o.pos, "b": o.pos, "w": 9.0, "col": Color.WHITE, "glow": steel, "life": dur + 1.0}))
 	if a.elegy:
 		a["slowr"] = _keep(u, a, {"kind": "ring", "c": o.pos, "r": 60.0, "w": 3.0, "col": Color(0.4, 0.6, 0.9), "life": dur + 1.0})
 	return a
@@ -1133,12 +1139,15 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 	var dur: float = a.dur
 	a.spin = float(a.spin) + dt * 11.0
 	var sp: float = a.spin
-	a.rim.c = c
-	a.rim.r = R
-	a.rim2.c = c
-	a.rim2.r = R - 30.0
-	a.disk.c = c
-	a.disk.r = R
+	if a.has("sp_saws"):
+		FC.sp_step(u, a, c, R, dt)
+	elif a.has("rim"):
+		a.rim.c = c
+		a.rim.r = R
+		a.rim2.c = c
+		a.rim2.r = R - 30.0
+		a.disk.c = c
+		a.disk.r = R
 	var nt: int = a.teeth.size()
 	for i in nt:   # 锯齿：外缘一圈斜向的刃，跟着转
 		var ang: float = sp + TAU * float(i) / float(nt)
@@ -1171,19 +1180,37 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 		var mul: float = (1.0 + (1.0 - hpk) * 0.5) if hpk < 0.5 else 1.0
 		var fr: float = Bal.v("ult/su_frac", 1.0 / 12.0) * mul   # 12 次合计 1（原 0.08 × 12 = 0.96）
 		var nb := 0
+		var sbp: bool = a.has("sb") and int(a.tick) < n   # 弹射版：前 11 圈标 pre，冲击帧 / 顿帧落在最后巨锯落地那一下（用户 10-31）
+		if a.has("sb") and int(a.tick) >= n:
+			a["hf"] = true
+			u.act["hf"] = true
 		for e in u.in_circle(c, full_r):
 			var de: float = e.pos.distance_to(c)
-			_hit(u, a, o, e, fr, {"src": "巨锯", "edge": de > full_r * (1.0 - _edge_w())})
+			_hit(u, a, o, e, fr, {"src": "巨锯", "edge": de > full_r * (1.0 - _edge_w()), "pre": sbp})
 			if nb < 6 and de > full_r * 0.4:   # 锯过的地方飞血 / 火星（每圈最多 6 处）
 				nb += 1
+				if a.has("sp_saws"):
+					FC.sp_hit(u, a, e.pos, int(a.tick), nb)
+					continue
+				if a.has("sb"):
+					FC.sb_hit(a, e.pos)
+					continue
 				var tg: Vector2 = (e.pos - c).orthogonal().normalized()
 				u.shape({"kind": "dots", "c": e.pos, "r": 18.0, "n": 5, "col": Color(0.85, 0.15, 0.2), "life": 0.25, "v": tg * 380.0})
 				u.shape({"kind": "line", "a": e.pos, "b": e.pos + tg * 30.0, "w": 2.0, "col": Color(1.0, 0.9, 0.7), "life": 0.15, "v": tg * 600.0})
-		_ring(u, c, full_r + 6.0, full_r + 6.0, Color(1, 1, 1), 0.12, 6.0)
+		if a.has("sb"):
+			FC.sb_tick(u, a, c, full_r, int(a.tick), n)
+		elif a.has("sp_saws"):
+			FC.sp_tick(u, a, c, full_r, int(a.tick))
+		else:
+			_ring(u, c, full_r + 6.0, full_r + 6.0, Color(1, 1, 1), 0.12, 6.0)
 		if int(a.tick) % 4 == 1:
-			u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
+			if not a.has("sb"):
+				u.strip("fx_specter_saw_blood", c + Vector2(0, -6), {"sc": full_r / 70.0, "sy": 1.8})
 			o.play_vis_anim("attack")
 		o.screen_shake(0.25)
+	if int(a.tick) >= n and a.has("sp_saws"):
+		FC.sp_end(u, a)
 	return int(a.tick) >= n
 
 
@@ -1198,19 +1225,29 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 	var base: Vector2 = o.pos - d * 90.0
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
-	# 破土：身后地面炸开
-	u.strip("fx_rock_burst", base, {"sc": 2.6})
-	_ring(u, base, 110.0, 20.0, col.lerp(Color.WHITE, 0.3), 0.35, 8.0)
-	u.shape({"kind": "circle", "c": base, "r": 70.0, "col": Color(0.08, 0.04, 0.12), "fill": 0.8, "life": 1.2})
+	var jelly: bool = FC.mz_jelly(u)   # 水母群（ult/mz_jelly，用户 10-30 粗稿）：大触手 / 钻洞 / 小触手都不画
+	var v2: bool = FC.mz_v2(u) and not jelly   # 钻洞 / 小触手 v2：pixgen 小触手 + 地块隆起（ult/mz_grab_v2；大触手是上面的 ult/mz_fx_v2）
+	if not v2 and not jelly:
+		# 破土：身后地面炸开
+		u.strip("fx_rock_burst", base, {"sc": 2.6})
+		_ring(u, base, 110.0, 20.0, col.lerp(Color.WHITE, 0.3), 0.35, 8.0)
+		u.shape({"kind": "circle", "c": base, "r": 70.0, "col": Color(0.08, 0.04, 0.12), "fill": 0.8, "life": 1.2})
 	var a := {"d": d, "c": o.pos, "base": base, "R": R, "a0": d.angle() - half, "span": half * 2.0, "T0": Bal.v("ult/mz_rise", 0.15),
 		"T": Bal.v("ult/mz_sweep", 0.5), "seg": {}, "kills": 0, "grab": false, "n_grab": 9 if rt == "awaken" else int(Bal.v("ult/mz_grab_n", 6.0)),
 		"attach": rt == "bind", "bound": [], "trail_t": 0.0, "fx": [], "chain": [], "no_ring": true, "heal": 0.0}
+	if v2:
+		FC.mz_start(u, a, base)
+	if jelly:
+		FC.mz_jelly_start(u, a, o.pos, float(a.a0), float(a.span), R)
 	for i in 28:   # 触手：28 节圆，由粗到细
 		var w: float = lerpf(60.0, 10.0, float(i) / 27.0)
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": w * 0.5, "col": col.darkened(0.35).lerp(Color(0.25, 0.1, 0.4), 0.3), "fill": 0.95, "life": 2.0}))
 	for i in 8:   # 吸盘高光
 		a.chain.append(_keep(u, a, {"kind": "circle", "c": base, "r": 5.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.9, "life": 2.0}))
-	if _mz_v2(u):   # 触手 v2：pixgen 整条触手贴图（fx_mz_tent，左粗右细带吸盘）沿贝塞尔切成 MZ_SEGS 段贴，程序圆链不画
+	if jelly:
+		for s in a.chain:
+			u.shapes.erase(s)
+	elif _mz_v2(u):   # 触手 v2：pixgen 整条触手贴图（fx_mz_tent，左粗右细带吸盘）沿贝塞尔切成 MZ_SEGS 段贴，程序圆链不画
 		for s in a.chain:
 			u.shapes.erase(s)
 		var tt: Texture2D = u._strip_tex(MZ_TENT)
@@ -1283,6 +1320,8 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 	var col: Color = u._col(o)
 	var a0: float = a.a0
 	var span: float = a.span
+	if a.has("jl"):
+		FC.mz_jelly_step(u, a, t)
 	if t < T0 + T + 0.12:
 		var reach: float
 		var ang: float
@@ -1304,14 +1343,22 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 					continue
 				a.seg[int(e.id)] = true
 				var tg: Vector2 = Vector2.from_angle(off.angle() + PI / 2.0)
-				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0)})
+				var ep: Vector2 = e.pos
+				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0), "pre": a.has("jl")})   # 水母群：冲击落在一起炸开那一下
+				if a.has("jl"):
+					FC.mz_jelly_hit(u, a, ep, t)
 				if e.dead and float(a.heal) < 0.05:
 					a.heal = float(a.heal) + 0.002
 					g.combat.heal(g.max_hp * 0.002, "终结技", "mizuki")
-			if t >= float(a.trail_t):   # 扫过的残影
+			if t >= float(a.trail_t) and not a.has("jl"):   # 扫过的残影（水母群不画）
 				a.trail_t = t + 0.03
-				u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": col, "fill": 0.18, "life": 0.3})
-				u.shape({"kind": "line", "a": c + Vector2.from_angle(ang) * R * 0.95, "b": c + Vector2.from_angle(ang - 0.08) * R, "w": 6.0, "col": col.lerp(Color.WHITE, 0.6), "life": 0.2})
+				if a.has("mz_vs"):
+					u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": Color(0.03, 0.04, 0.1), "fill": 0.22, "life": 0.35, "layer": "back"})
+					a["mz_n"] = int(a.get("mz_n", 0)) + 1
+					FC.mz_trail(u, a, c + Vector2.from_angle(ang) * R, ang, int(a.mz_n))
+				else:
+					u.shape({"kind": "sector", "c": c, "r": R, "a": ang - 0.12, "half": 0.12, "col": col, "fill": 0.18, "life": 0.3})
+					u.shape({"kind": "line", "a": c + Vector2.from_angle(ang) * R * 0.95, "b": c + Vector2.from_angle(ang - 0.08) * R, "w": 6.0, "col": col.lerp(Color.WHITE, 0.6), "life": 0.2})
 		_mz_pose(a, ang, reach)
 		if a.has("tsegs"):
 			_mz_tent_pose(u, a, a._ctrl, a._tip)
@@ -1320,8 +1367,17 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		return false
 	if not a.grab:
 		a.grab = true
+		var v2: bool = a.has("mz_vs")
+		if v2:
+			FC.mz_retract(u, a)   # 先把大触手段从 a.fx 摘出来淡出（不被 _fade 直接收掉）
 		_fade(u, a, 0.3)
-		u.strip("fx_mizuki_tentacle_mass", a.base, {"sc": 1.6, "o": Vector2(96, 90)})
+		var jelly: bool = a.has("jl")
+		if jelly:
+			a["hf"] = true   # 冲击帧：水母一起炸开（用户 10-31）
+			u.act["hf"] = true
+			FC.mz_jelly_burst(u, a, c, t)
+		elif not v2:
+			u.strip("fx_mizuki_tentacle_mass", a.base, {"sc": 1.6, "o": Vector2(96, 90)})
 		# 小触手：从扫过区域与他身边 300 内，抓生命最低的漏网（每根 20%，束缚 1.5 秒）
 		var cand: Array = []
 		for e in u.in_circle(c, R):
@@ -1335,15 +1391,26 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		var ng: int = mini(int(a.n_grab), cand.size())
 		for i in ng:
 			var e: Dictionary = cand[i]
-			u.strip("fx_mizuki_tentacle", e.pos + Vector2(0, 8), {"sc": 1.7, "o": Vector2(24, 108), "delay": 0.03 * float(i)})
+			if jelly:
+				FC.mz_jelly_hit(u, a, e.pos, t)
+			elif v2:
+				FC.mz_small(u, a, e.pos + Vector2(0, 8), i, 1.0, 0.03 * float(i))
+			else:
+				u.strip("fx_mizuki_tentacle", e.pos + Vector2(0, 8), {"sc": 1.7, "o": Vector2(24, 108), "delay": 0.03 * float(i)})
 			u.strip("fx_mizuki_bind_ring", e.pos, {"sc": 2.2, "loop": true, "life": 1.2})
 			_hit(u, a, o, e, Bal.v("ult/mz_grab_frac", 0.2), {"src": "小触手", "stun": 1.5})
 			if not e.dead:
 				a.bound.append(e)
-		for i in 8:   # 他身边钻出的小触手（画面）
+		for i in (0 if jelly else 8):   # 他身边钻出的小触手（画面；水母群不画）
 			var p: Vector2 = c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2) * 300.0 * (0.55 + 0.45 * float(i % 2))
-			u.strip("fx_mizuki_tentacle", p + Vector2(0, 8), {"sc": 1.2, "o": Vector2(24, 108), "delay": 0.02 * float(i)})
-		_ring(u, c, 300.0, 40.0, col.lerp(Color.WHITE, 0.4), 0.35, 5.0)
+			if v2:   # 位置按哈希错开角度 / 距离（预审：均分一圈像一串贴纸）
+				var hq: float = PF.h(float(a.mz_vs) + i * 3.3)
+				p = c + Vector2.from_angle(TAU * float(i) / 8.0 + 0.2 + (hq - 0.5) * 0.6) * 300.0 * (0.45 + 0.55 * PF.h(float(a.mz_vs) + i * 5.9))
+				FC.mz_small(u, a, p + Vector2(0, 8), 20 + i, 0.6 + 0.35 * hq, 0.02 * float(i) + 0.05 * hq)
+			else:
+				u.strip("fx_mizuki_tentacle", p + Vector2(0, 8), {"sc": 1.2, "o": Vector2(24, 108), "delay": 0.02 * float(i)})
+		if not v2 and not jelly:
+			_ring(u, c, 300.0, 40.0, col.lerp(Color.WHITE, 0.4), 0.35, 5.0)
 		a["grab_t"] = t
 	if a.attach and t < float(a.grab_t) + 0.5:   # 病理性依恋：被束缚的敌人拖到水月身边
 		for e in a.bound:
