@@ -1150,7 +1150,7 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 	if not a.stamped and t >= 0.1:
 		a.stamped = true
 		u.g.vfx.stop(0.05, "ult", true)   # 局部顿一下
-		u.light(c, R * 0.5, IRV_GOLD, 0.25)   # 预审：盖章那下别发白
+		u.light(c, R * 0.5, IRV_GOLD, 2.0 if _irv3() else 0.25)   # 用户 10-31「灯火的快速闪动让画面有闪烁感」：第三版只留这一盏、2 秒慢慢暗下去，其余短灯都不点
 		PF.dust(u, c, 260.0, 0.0, vs, Vector2.ZERO, Color(0.6, 0.58, 0.55))
 		var n := 0
 		for e in u.in_circle(c, R):
@@ -1266,7 +1266,7 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 				PF.particles(u, bp, 200, "ult_burst", [Color(0.8, 0.66, 0.38), Color(0.45, 0.52, 0.7)], 0.0, vs + float(pn.d), 90.0 + 40.0 * hh)   # 预审：连环爆叠起来发白，压暗一档
 				PF.dust(u, bp, 120.0, 0.03, vs + float(pn.d) * 0.1, Vector2.ZERO, Color(0.6, 0.58, 0.56))
 				PF.aftershock(u, bp, 50.0, vs + float(pn.d), 0.02, 3, Color(0.75, 0.72, 0.7))
-				if int(pn.d) % 3 == 0:
+				if int(pn.d) % 3 == 0 and not _irv3():
 					u.light(bp, 130.0, IRV_GOLD, 0.15)
 				if pn.has("links"):
 					_irv_chain_break(pn.links, Vector2(pn.rim), bp, vs + float(pn.d))
@@ -1301,7 +1301,8 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.7, 0.4)], 0.0, vs, R * 0.5)   # 深蓝粒子团放大后成一块平的蓝圆盘，只留暗金
 			if not _irv3():
 				PF.aftershock(u, c, R * 0.7, vs, 0.05, 10, Color(0.75, 0.72, 0.7))   # 纹章碎块崩起
-			u.light(c, R * 0.6, IRV_GOLD, 0.25)
+			if not _irv3():
+				u.light(c, R * 0.6, IRV_GOLD, 0.25)
 	return a.boomed and t >= float(a.end_t)
 
 
@@ -1329,7 +1330,6 @@ static func _irv_shuttle(u, a: Dictionary, o, k: float) -> void:
 		for q in 3:
 			PF.particles(u, fp.lerp(np, (q + 0.5) / 3.0), 40, "ult_burst_s", [IRV_WHITE, IRV_NAVY], 0.02 * q, vs + j * 7.0 + q, 50.0)
 		PF.dust(u, np + Vector2(0, 8), 80.0, 0.0, vs + j, -dv * 60.0, Color(0.62, 0.64, 0.7))
-		u.light(np, 140.0, IRV_WHITE, 0.12)
 		_lead_move(u, o, np)
 		o.face_to(dv.angle())
 		o.play_vis_anim("attack")
