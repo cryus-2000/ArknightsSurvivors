@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://daqrucd1feeq3"
-path="res://.godot/imported/fx_ka_blast@2x.png-6e3a8e0bbe68b85976757974dbdd1831.ctex"
+uid="uid://d00pe0fbt4dli"
+path="res://.godot/imported/fx_ul_rock2@2x.png-3c825b50f46b66559a6022839b045558.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_ka_blast@2x.png"
-dest_files=["res://.godot/imported/fx_ka_blast@2x.png-6e3a8e0bbe68b85976757974dbdd1831.ctex"]
+source_file="res://art/fx/fx_ul_rock2@2x.png"
+dest_files=["res://.godot/imported/fx_ul_rock2@2x.png-3c825b50f46b66559a6022839b045558.ctex"]
 
 [params]
 
