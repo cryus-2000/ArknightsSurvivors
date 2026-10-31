@@ -2,9 +2,12 @@ extends RefCounted
 ## 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）：分段轮播技能、刷怪海、主控冲向怪群出手。
 ## 演示状态（demo_op / demo_stage / demo_label …）仍在 game.gd，图鉴直接读。2026-09-26 从 game.gd 拆出。
 
+const Ult = preload("res://scripts/run/ult.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 一 / 二 / 三技能分段轮流）
+## 终结技演示段（图鉴按钮「终结技」，mode = ULT）：干员当队长，DEMO_FILL_AT 时替它充满能量、按一下 Q 自动瞄准放出；演出结束再停 DEMO_HOLD 秒重放
+const ULT := 4
 ## 图鉴演示每帧：主控满状态；三个位置各维持一只不动、不伤人的假人海嗣，被打死 1.5 秒后原地重生。
 ## 假人会慢慢挪向开局干员并停在 70 以外，让近战干员也够得着；击退后自然回位
 ## 图鉴 / 精英化演出（2026-09-25 改版，用户要求）：按「一技能 → 二技能 → 三技能」分段循环，每段单独展示一招。
@@ -65,6 +68,11 @@ func step(dt: float) -> void:
 	_contact_cycle()
 	var si: int = g.demo_phases[g.demo_pi]
 	demo_ph_t += dt
+	if g.ult != null and si != ULT:
+		g.ult.energy = 0.0   # 技能段不攒终结技能量（免得 HUD 一直提示就绪）
+	if si == ULT:
+		_ult_step(dt)
+		return
 	if g.demo_basic:
 		# 三联对照：只看普攻，技能全部压住；怪少了就补
 		for i in 3:
@@ -212,12 +220,42 @@ func wander() -> Vector2:
 	return dv.normalized() * WALK_MV
 
 
+## 终结技段：技能全部压住；充满能量按 Q（随即松开 = 自动瞄准，ult.gd auto_aim），演出（ult.phase / playing）结束后停 DEMO_HOLD 秒重开这一段
+func _ult_step(dt: float) -> void:
+	for i in 3:
+		if not g.ch.perm[i]:
+			g.ch.sp[i] = 0.0
+	var u = g.ult
+	if u == null:
+		return
+	if demo_cast_t < 0.0:
+		if demo_ph_t >= DEMO_FILL_AT:
+			u.cells = 0
+			u.energy = u.FULL
+			if u.press_q():
+				u.release_q()
+				demo_cast_t = 0.0
+	else:
+		demo_cast_t += dt
+	var busy: bool = u.phase != "" or u.playing()
+	demo_after_t = 0.0 if busy or demo_cast_t < 0.0 else demo_after_t + dt
+	if (demo_cast_t >= 0.0 and demo_after_t >= DEMO_HOLD) or demo_ph_t >= DEMO_MAX_LINGER:
+		next_phase()
+		return
+	var alive := 0
+	for e in g.enemies:
+		if not e.dead:
+			alive += 1
+	if alive < 4:
+		horde(10)
+
+
 ## 图鉴手动切换（gallery.gd 点击调用）：stage 0 精零（N1 N2 后）/ 1 精一（N5 后）/ 2 精二；
-## mode -1 轮播已解锁的技能 / 0–2 只放该技能 / 3 只普攻。立即重置场地与干员
+## mode -1 轮播已解锁的技能 / 0–2 只放该技能 / 3 只普攻 / ULT 只放终结技。立即重置场地与干员
 func configure(stage: int, mode: int) -> void:
 	g.demo_stage = clampi(stage, 0, 2)
 	g.demo_basic = mode == 3
-	demo_skill = mode if mode >= 0 and mode <= 2 else -1
+	demo_skill = mode if (mode >= 0 and mode <= 2) or mode == ULT else -1
 	if g.demo_origin == Vector2.INF:
 		return   # 还没开始跑：第一帧 _demo_step 初始化时按这些设置来
 	g.demo_phases = phase_list()
@@ -265,6 +303,15 @@ func next_phase() -> void:
 	demo_after_t = 0.0
 	horde(DEMO_HORDE)
 	var si: int = g.demo_phases[g.demo_pi]
+	if si == ULT:
+		g.demo_label = "终结技"
+		if g.ult != null:
+			g.ult.energy = 0.0
+			g.ult.cells = 0
+		var un: String = str(Ult.text_table().get("ops", {}).get(str(g.ch.id), {}).get("ult", {}).get("name", ""))
+		if un != "":
+			g.demo_label = "终结技「%s」" % un
+		return
 	g.demo_label = "普攻「%s」" % g.ch.attack_def().get("name", "") if g.demo_basic else "%s技能「%s」" % [["一", "二", "三"][si], g.ch.skill_def(si).get("name", "")]
 
 

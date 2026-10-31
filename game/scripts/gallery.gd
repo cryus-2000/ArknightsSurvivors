@@ -12,6 +12,7 @@ const Doctor = preload("res://scripts/characters/doctor.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：未解锁的干员在图鉴里显示锁定
 const Bal = preload("res://scripts/core/balance.gd")
+const Ult = preload("res://scripts/run/ult.gd")   # 终结技 / 连携技名称表（图鉴技能页两行）
 const UIMo = preload("res://scripts/ui_motion.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 const EventBook = preload("res://scripts/core/event_book.gd")   # 事件页（docs/184 §11）
@@ -1476,6 +1477,8 @@ func _draw_demo(ci: CanvasItem, e: Dictionary, f: Dictionary) -> void:
 		["stage", [["精零", 0], ["精一", 1], ["精二", 2]]],
 		["mode", [["普攻", 3], ["一技能", 0], ["二技能", 1], ["三技能", 2], ["轮播", -1]]],
 	]
+	if not is_enemy and Ult.on():
+		rows[1][1].insert(4, ["终结技", 4])   # 终结技演示段（run/demo.gd ULT）
 	if is_enemy:
 		rows = [["enemy_replay", [["重播", 0]]]]
 		if f.enemy_demo in ["ishar", "paranoia", "knight_boss", "izumik"]:
@@ -2017,7 +2020,19 @@ func _skill_rows(cd: Dictionary) -> Array:
 			str(int(sk.sp)) if sk.has("sp") else "", tag, sk.get("mode", "auto") == "manual", str(sk.get("desc", ""))])
 	if cd.has("talent"):
 		rows.append(["TALENT  //  精英一", str(cd.talent.get("name", "")), "", "", "", "天赋", false, str(cd.talent.get("desc", ""))])
+	# 终结技 / 连携技（10-31 协调人：接在技能后面；本作新增招式，名称自拟，data/ult_text.json）；ult/on 关时不列
+	var ut := Ult.text_table()
+	var ue: Dictionary = ut.get("ops", {}).get(str(cd.get("id", "")), {})
+	if not ue.is_empty() and Bal.vi("ult/on", 1) > 0:
+		var tu := "_touch" if UI._touch_ui() else ""
+		var ul: Dictionary = ue.get("ult", {})
+		var lk: Dictionary = ue.get("link", {})
+		rows.append(["ULTIMATE  //  终结技", str(ul.get("name", "")), str(ul.get("en", "")), "", "", "终结技" if UI._touch_ui() else "终结技 Q", true,
+			"%s。\n%s" % [str(ul.get("desc", "")), str(ut.get("ult_note" + tu, ""))]])
+		rows.append(["LINK  //  连携技", str(lk.get("name", "")), str(lk.get("en", "")), "", "", "连携" if UI._touch_ui() else "连携 E", false,
+			"%s。\n触发：%s。%s" % [str(lk.get("desc", "")), str(lk.get("trigger", "")), str(ut.get("link_note" + tu, ""))]])
 	return rows
+
 
 
 func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motion: bool) -> void:
@@ -2031,6 +2046,10 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 	var cnt := _count() if motion else 1.0
 	var defs := [["hp", "生命", "HP"], ["atk", "Mon3tr" if b_mon3tr(sh) else "攻击", "ATK"], ["cd", "间隔", "INT"], ["reach", "范围", "RNG"]]
 	var cw := w / 4.0
+	var rows := _skill_rows(cd)
+	# 手机点开一行时收起这排数字，让出高度给说明（7 行时只剩一行说明，10-31 加终结技 / 连携技后）
+	if ph and row_sel >= 0 and row_sel < rows.size():
+		defs = []
 	for j in defs.size():
 		var raw: String = str(InitialStats.row(sh, defs[j][0]).text).split(" ")[0]
 		var v := raw.to_float()
@@ -2042,9 +2061,11 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 		else:
 			shown = "%d" % int(round(v * cnt))
 		UI.stat_big(self, font, Vector2(x0 + j * cw, y), defs[j][1], defs[j][2], shown, 16 if ph else 20, UI.C_L_INK, UI.C_L_SUB, a)
-	y += 38.0 if ph else 46.0
-	var rows := _skill_rows(cd)
-	var hh := 28.0 if ph else 46.0
+	if not defs.is_empty():
+		y += 38.0 if ph else 46.0
+	# 桌面行多（加了终结技 / 连携技）时标题区压紧：不写英文名，说明多出一到两行
+	var tight: bool = not ph and rows.size() > 5
+	var hh := 28.0 if ph else (34.0 if tight else 46.0)
 	var gap := 4.0 if ph else 6.0
 	var hs := _row_heights(rows.map(func(r): return r[7]), box.end.y - y, hh, gap, w - (16.0 if ph else 24.0), ph)
 	for i in rows.size():
@@ -2052,21 +2073,20 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 		var r: Array = rows[i]
 		var rr := Rect2(x0, y, w, hs[i])
 		UI.cpanel(self, rr, r[6], a)
-		if ph:
-			hits.append([rr, "row", i])
-		var isz := 24.0 if ph else 32.0
-		var ib := Rect2(x0 + (6 if ph else 8), y + (3 if ph else 7), isz, isz)
+		hits.append([rr, "row", i])   # 桌面也能点开一行看全文（行多放不下时，_row_heights）
+		var isz := 24.0 if ph or tight else 32.0
+		var ib := Rect2(x0 + (6 if ph else 8), y + (3 if ph else (5 if tight else 7)), isz, isz)
 		draw_rect(ib, UI.fa(UI.C_L_INK, a))
 		var itx: Texture2D = A.tex(r[3]) if r[3] != "" else null
 		if itx != null:
 			draw_texture_rect(itx, ib.grow(-2.0), false, Color(1, 1, 1, a))
 		else:
-			UI.text_at(self, font, ib.get_center() + Vector2(0, 1), "A" if i == 0 else "T", 13 if ph else 15, UI.fa(UI.C_L_INV, a), "mm", true)
+			UI.text_at(self, font, ib.get_center() + Vector2(0, 1), r[0].left(1), 13 if ph else 15, UI.fa(UI.C_L_INV, a), "mm", true)
 		var tx0 := ib.end.x + 8.0
 		var right := rr.end.x - 8.0
 		if r[4] != "":
-			var spw := UI.text_at(self, font, Vector2(right, y + (2 if ph else 4)), r[4], 16 if ph else 20, UI.fa(UI.C_L_INK, a), "ra", true)
-			UI.code(self, font, Vector2(right, y + (20 if ph else 29)), "SP", 7, UI.fa(UI.C_L_SUB, a), "ra")
+			var spw := UI.text_at(self, font, Vector2(right, y + (2 if ph or tight else 4)), r[4], 16 if ph or tight else 20, UI.fa(UI.C_L_INK, a), "ra", true)
+			UI.code(self, font, Vector2(right, y + (20 if ph else (21 if tight else 29))), "SP", 7, UI.fa(UI.C_L_SUB, a), "ra")
 			right -= maxf(spw, 14.0) + 8.0
 		var tgw := font.get_string_size(r[5], HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 22.0
 		var tg := Rect2(right - tgw, y + (5 if ph else 8), tgw, 18)
@@ -2076,7 +2096,7 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 			UI.code(self, font, Vector2(tx0, y + 5), r[0], 7, UI.fa(UI.C_L_SUB, a))
 		var nf := UI.fit_line(font, r[1], 12 if ph else 14, tg.position.x - tx0 - 6.0, 9)
 		UI.text_at(self, font, Vector2(tx0, y + (8 if ph else 15)), nf[0], nf[1], UI.fa(UI.C_L_INK, a))
-		if not ph and r[2] != "":
+		if not ph and not tight and r[2] != "":
 			UI.code(self, font, Vector2(tx0 + 1, y + 33), r[2], 7, UI.fa(UI.C_L_SUB, a))
 		_row_desc(r[7], rr, hh, ph, a)
 		y += hs[i] + gap
@@ -2173,9 +2193,32 @@ func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, 
 			tot += h2
 		if tot <= room:
 			return hs
-	var each := room / n
+	# 放不下（10-31 加了终结技 / 连携技两行）：每行先保证标题 + 一行说明，剩下的按各行还差多少分；
+	# 点开的一行（row_sel，桌面也能点）先拿满它要的高度，其余只留标题 + 一行
+	var need: Array = []
+	var mins: Array = []
+	var tmin := 0.0
+	for d in descs:
+		var nd: float = hh + (UI.fit(font, d, dw, 9999.0, [10]).h if d != "" else 0.0) + 8.0
+		var mn: float = minf(nd, hh + 22.0)
+		need.append(nd)
+		mins.append(mn)
+		tmin += mn
+	if tmin > room:
+		for i in n:
+			out.append(room / n)
+		return out
+	var extra := room - tmin
+	if row_sel >= 0 and row_sel < n:
+		var give: float = minf(extra, need[row_sel] - mins[row_sel])
+		for i in n:
+			out.append(mins[i] + (give if i == row_sel else 0.0))
+		return out
+	var want := 0.0
 	for i in n:
-		out.append(each)
+		want += need[i] - mins[i]
+	for i in n:
+		out.append(mins[i] + (extra * (need[i] - mins[i]) / want if want > 0.0 else 0.0))
 	return out
 
 

@@ -1569,6 +1569,17 @@ func fx_tick() -> void:
 			sfx.play(str(bm[0]), float(bm[1]), float(bm[2]))
 
 
+## 终结技 / 连携技名称与简介（data/ult_text.json，图鉴技能页两行 + 终结技演示段标签读；本作新增招式，名称自拟）
+const TEXT_PATH := "res://data/ult_text.json"
+static var _text: Dictionary = {}
+
+static func text_table() -> Dictionary:
+	if _text.is_empty():
+		var d = JSON.parse_string(FileAccess.get_file_as_string(TEXT_PATH)) if FileAccess.file_exists(TEXT_PATH) else null
+		_text = d if d is Dictionary else {"ops": {}}
+	return _text
+
+
 ## 终结技专属音效 / 语音表（docs/205，data/ult_audio.json）：干员的条目叠在 default 上；只在 _begin / _cast / impact / hit 四处读
 const AUDIO_PATH := "res://data/ult_audio.json"
 var _aud_tab := {}
