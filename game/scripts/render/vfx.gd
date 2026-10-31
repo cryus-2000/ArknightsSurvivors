@@ -1241,8 +1241,8 @@ func levelup_burst(pos: Vector2) -> void:
 
 
 ## 升级光爆（TA 审阅 docs/208 H2，10-31：原来同心双圈 + 光柱帧条 + 柔光 + 火花叠在一起，「圈、发白、拼接」三样全占）：
-## 改成一次性干净主体——脚下白金爆亮 0.08 秒 → 金色光粒迸开（短、阻力大）→ 上升青色光尘；
-## 脚底一道不规整的尘浪环（fx_ul_dust_ring，每次按哈希换转角 / 镜像 / 大小）往外推开、从暖白冷成青灰淡掉，不画正圆描边。开关 fx/levelup_v2（缺省 1），
+## 改成一次性干净主体——脚下白金爆亮 0.08 秒 → 金色光粒迸开（短、阻力大）→ 一道柔和金色光柱 + 沿柱往上的金色光点（10-31 去掉青色尘环 / 青尘）；
+## （10-31 起不画脚底尘浪环；fx_ul_dust_ring 只用来判定终结技框架的贴图在不在）。开关 fx/levelup_v2（缺省 1），
 ## 终结技框架（g.ult，借它的帧条 / 光照）关着时返回 false，调用方退回旧版。纯画面，随机只走 g.vrng（光尘）与哈希
 const LVUP_GOLD := Color(1.0, 0.86, 0.5)
 const LVUP_CYAN := Color(0.55, 0.95, 1.0)
@@ -1255,13 +1255,12 @@ func levelup_burst_v2(pos: Vector2) -> bool:
 	var hh: float = fposmod(sin(g.t * 12.9898 + pos.x * 0.078 + pos.y * 0.033) * 43758.5453, 1.0)   # 每次升级的变体（哈希，不抽模拟随机数）
 	var c: Vector2 = pos + Vector2(0, -18)
 	u.shape({"kind": "circle", "c": c, "r": 30.0, "col": Color(1.0, 0.95, 0.82), "fill": 0.85, "life": 0.08})   # 爆亮 2–3 帧
-	var t: Texture2D = u._strip_tex("fx_ul_dust_ring")
-	var rr: float = t.get_width() * 0.5 / A.hires_of(t) * g.PX
-	u.strip("fx_ul_dust_ring", pos + Vector2(0, 4), {"layer": "back", "sc": 30.0 / rr, "sc1": (150.0 + 40.0 * hh) / rr, "scd": 0.3, "life": 0.5, "fade": 0.3,
-		"ang": hh * TAU, "sx": -1.0 if hh < 0.5 else 1.0, "col": Color(1.0, 0.92, 0.75, 0.8), "col1": Color(0.6, 0.85, 0.9, 0.6), "cold": 0.25})
-	u.light(c, 200.0, LVUP_CYAN, 0.3)
+	# 10-31 用户「金光保留，往外推的青色尘环和上升青色光尘像潮水奔发、看着奇怪」→ 只留金色：白金爆亮 + 金色光粒迸开 + 一道柔和金色光柱往上收（不画尘环、青尘）
+	u.light(c, 200.0, LVUP_GOLD, 0.45)
 	motes(c, Vector2.ZERO, Color(LVUP_GOLD.r * 1.5, LVUP_GOLD.g * 1.5, LVUP_GOLD.b * 1.5), 14, 260.0, 0.35, 0.0, 4.0, 2.0, 3.2, 6.0, true)   # 迸开的金色光粒（短、阻力大）
-	motes(pos + Vector2(0, -10), Vector2.UP, Color(LVUP_CYAN.r * 1.4, LVUP_CYAN.g * 1.4, LVUP_CYAN.b * 1.4), Bal.vi("fx/levelup_motes", 24), 150.0, 1.1, -70.0, 1.0, 2.0, 0.8, 18.0, true)   # 上升青色光尘
+	u.shape({"kind": "band", "a": pos + Vector2(0, 4), "b": pos + Vector2(0, -150), "w": 30.0, "col": LVUP_GOLD, "fill": 0.28, "life": 0.55})   # 柔和金色光柱（往上，0.55 秒淡）
+	u.shape({"kind": "band", "a": pos + Vector2(0, 4), "b": pos + Vector2(0, -110), "w": 10.0, "col": Color(1.0, 0.95, 0.8), "fill": 0.4, "life": 0.4})
+	motes(pos + Vector2(0, -10), Vector2.UP, Color(LVUP_GOLD.r * 1.3, LVUP_GOLD.g * 1.3, LVUP_GOLD.b * 1.3), 10, 120.0, 0.9, -90.0, 1.2, 2.0, 0.25, 8.0, true)   # 沿光柱往上收的金色光点（细、少）
 	g.flash = maxf(g.flash, 0.08)
 	return true
 
