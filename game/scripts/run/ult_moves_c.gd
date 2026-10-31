@@ -1282,6 +1282,8 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 		if t >= float(a.end_t) - 0.3 and not a.has("shatter"):
 			a["shatter"] = true   # 纹章碎裂：金色分叉裂纹从中心炸开 + 纹章快淡 + 大光 + 金白粒子
 			var s: Dictionary = a.seal
+			if _irv3() and Bal.v("ult/ir_final_cut", 1.0) > 0.0:   # 用户 10-31「最后接一个斩击暴烈」
+				_irv_final_cut(u, c, R, vs)
 			if not s.is_empty() and _irv3():   # 用户 10-31「纹章改成缓慢消失，而不是被切碎」：1.4 秒慢慢冷下去、淡掉
 				s["col"] = s.get("col1", s.get("col", Color.WHITE))
 				s.erase("col1")
@@ -1339,6 +1341,25 @@ static func _irv_shuttle(u, a: Dictionary, o, k: float) -> void:
 		var fa: float = fposmod((e.pos - c).angle(), TAU) / TAU
 		if fa <= minf(1.0, k * float(a.spins)):
 			_once(u, a, o, a.cseg, e, float(a.cf), {"src": "行刑", "pre": true, "edge": e.pos.distance_to(c) > float(a.rc)})
+
+
+## 收尾斩击爆裂：连环爆之后一刀横贯整个纹章（冷白主刃 + 金色细刃 + 深蓝宽影，0.05 秒划开），斩线上从中心往两端接连炸开 7 团金白爆 + 烟尘；顿帧 0.06；
+## 不点短灯（用户嫌闪）。只有画面，伤害 / 时长不变（图形在终结技结束后自己播完）
+static func _irv_final_cut(u, c: Vector2, R: float, vs: float) -> void:
+	var dv := Vector2.from_angle(PF.h(vs + 77.0) * PI)
+	u.g.vfx.stop(0.06, "ult", true)
+	u.shape({"kind": "blade", "a": c - dv * R * 1.15, "b": c + dv * R * 1.15, "w": 22.0, "col": Color(0.35, 0.45, 0.7), "glow": IRV_NAVY, "grow": 0.05, "life": 0.45})
+	u.shape({"kind": "blade", "a": c - dv * R * 1.1, "b": c + dv * R * 1.1, "w": 10.0, "col": IRV_WHITE, "glow": IRV_NAVY, "grow": 0.05, "life": 0.35})
+	u.shape({"kind": "blade", "a": c - dv * R * 1.05, "b": c + dv * R * 1.05, "w": 3.0, "col": IRV_GOLD, "glow": IRV_GOLD, "grow": 0.05, "life": 0.6})
+	for i in 7:
+		var x: float = (float(i) - 3.0) / 3.0
+		var bp: Vector2 = c + dv * R * x * 0.95 + dv.orthogonal() * (PF.h(vs + i) - 0.5) * 30.0
+		var dl: float = 0.08 + 0.04 * absf(x) * 3.0
+		PF.particles(u, bp, 200, "ult_burst", [Color(0.85, 0.72, 0.42), Color(0.5, 0.58, 0.78)], dl, vs + i * 9.0, 110.0 + 30.0 * PF.h(vs + i * 2.0))
+		PF.dust(u, bp, 110.0, dl + 0.03, vs + i * 3.0, dv.orthogonal() * (60.0 if i % 2 == 0 else -60.0), Color(0.62, 0.62, 0.66))
+	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
+	if sfx != null:
+		sfx.play("boom", -1.0, 1.1)
 
 
 ## ---- 「宣判」表现第二版（用户 10-31「纹章没问题，后面的表现形式需要改」：锁链 / 旋风 / 连环爆 / 碎裂四段都改；开关 ult/ir_verdict2 缺省 1，0 = 第一版）
