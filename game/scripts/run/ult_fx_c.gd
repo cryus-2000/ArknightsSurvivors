@@ -378,19 +378,16 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 			"col": Color(1.0, 0.5, 0.3, 0.9), "col1": Color(0.5, 0.03, 0.03, 0.7), "cold": 0.16})
 	# 刀口：地上一道暗红细痕，慢慢褪
 	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.32, 0.03, 0.03, 0.9)})
-	# 刀痕爆裂（用户 10-31「最后接一个刀痕爆裂」）：斩开后静一拍，刀口从起点往尽头一节节迸裂（顿一下 + 红光一闪 + 往两侧喷）
+	# 刀痕爆裂（用户 10-31「最后接一个刀痕爆裂」→「喷溅去掉，要收敛但冲击力足」）：不加任何喷溅，力量全靠一条线上的反差——
+	# 斩开后周围再压暗静一拍，刀口独亮；然后整条刀痕一下子绷开（一帧白热细芯 + 爆宽橙红 + 顿帧），立刻收回成更深更宽的刀口
 	var TB: float = Bal.v("ult/sz_rupt_t", 0.32)
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.85, "delay": TB, "life": 0.3, "fade": 0.2, "col": Color(1.2, 0.62, 0.38, 1.0), "col1": Color(0.5, 0.03, 0.03, 0.85), "cold": 0.12})
-	u.shape({"kind": "band", "a": a0, "b": b0, "w": 34.0, "col": Color(0.85, 0.2, 0.12), "fill": 0.5, "life": 0.05, "delay": TB})
-	u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.06))
-	var nb: int = 6
-	for k in nb:
-		var hb: float = PF.h(vs + 60.0 + k * 2.3)
-		var pb: Vector2 = a0.lerp(b0, (k + 0.25 + 0.5 * hb) / nb)
-		var db: float = TB + 0.014 * k
-		PF.particles(u, pb, 70, "ult_burst", [SZ_HOT, SZ_RED], db, vs + 70.0 + k, 95.0 + 35.0 * hb)
-		PF.particles(u, pb, 30, "ult_burst_s", [Color(1.0, 0.75, 0.45), SZ_HOT], db, vs + 90.0 + k, 55.0)
-		PF.particles(u, pb, 12, "ult_ember", [SZ_RED], db + 0.04, vs + 80.0 + k, 50.0)
+	u.shape({"kind": "circle", "c": a0.lerp(b0, 0.5), "r": 2600.0, "col": Color(0.0, 0.0, 0.02), "fill": 0.35, "hold": true, "delay": 0.14, "life": TB - 0.14})   # 静一拍：压暗
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.75, 0.12, 0.08, 0.95)})   # 刀口在压暗层上独亮
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 1.35, "delay": TB, "life": 0.2, "fade": 0.14,
+		"col": Color(1.2, 0.7, 0.45, 1.0), "col1": Color(0.6, 0.04, 0.04, 0.9), "cold": 0.1})   # 绷开：爆宽后收
+	u.shape({"kind": "band", "a": a0, "b": b0, "w": 8.0, "col": Color(0.9, 0.82, 0.7), "fill": 0.85, "life": 0.05, "delay": TB})   # 白热细芯一帧（≤ 0.9）
+	u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.1))
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.26, 0.02, 0.02, 0.95)})   # 收成更深更宽的刀口
 	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_RED, 0.22)
 	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)
