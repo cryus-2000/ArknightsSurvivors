@@ -460,7 +460,7 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		var k: float = R * (1.0 if m == 0 else (0.78 if m == 1 else 0.66)) / PF.tex_w(u, fn)
 		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * 0.1, "o": Vector2(0.0, ft.get_height() * 0.5),
 			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * wk * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
-			"rev": 0.14 + 0.05 * m, "rev0": 0.1, "delay": [0.0, 0.05, 0.09][m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})
+			"rev": 0.12 if v3 else 0.14 + 0.05 * m, "rev0": 0.1, "delay": ([0.0, 0.02, 0.03] if v3 else [0.0, 0.05, 0.09])[m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})   # v3：两侧漏斗和中间一样快撕开（用户 10-31「最旁边的出现太慢」）
 	if v3:   # 冲击帧（用户 10-31）：出拳那一下，拳影 + 三道漏斗印子进剪影（往前张开的一把扇）
 		PF.hf_since(u, n0)
 		PF.hf_on(u, a)
