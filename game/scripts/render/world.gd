@@ -415,6 +415,7 @@ func draw_world() -> void:
 	BossBeam.draw_top(g)   # 主控寒冷条（骑士在场时）
 	_pk("fx")
 	if not _dbg_foe:   # --clutterdbg=nofoe：敌方弹幕 / 预警整层不画（量测）
+		bulfx.draw_trails()   # Boss 弹拖尾光粒（压在弹体之下，docs/206 §2）
 		_draw_ebullets_lobs_shocks()
 	bulfx.draw_top()   # 新弹亮芯闪 + 消失残影（压在弹体之上）
 	_draw_hit_dot()

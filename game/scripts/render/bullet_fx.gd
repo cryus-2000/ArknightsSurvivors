@@ -14,6 +14,10 @@
 ## 开销：颗粒走 fx_grains（docs/136），另有本层令牌桶（render/bullet_fx_rate 每秒、render/bullet_fx_burst 攒量，手机网页再乘 grains.adapt_k），
 ##   且颗粒层已用到上限的 85% 时不再要；要不到就只剩缩放 / 淡出（几个合批三角形）。低画质、关光学观感、fx/bullet_grains = 0 时只做缩放淡出；
 ##   render/bullet_fx = 0 整层关（--bulfxab=N 同局轮换量帧，--perf 分 /b1 /b0）
+## Boss 弹粒子化（docs/206，用户 10-31「没有粒子感」）：Boss 弹（b.boss）命中 / 到期 / 被消不再整颗淡出，改播预烘焙迸散帧条 fx_px_bpop
+##   （tools/imagegen/pxburst.py --boss，8–14 颗、减速、冷却变暗；3 行花样 + 左右镜像），按弹专属色着色；飞行时身后贴拖尾帧条 fx_px_btrail
+##   （4 帧循环、按速度拉长、沿速度转向；同屏 Boss 弹 > render/btrail_thin（100）颗时隔颗画；伊祖米克 130 弹实测 p95 0.4 ms（探针含放大））。都是贴图矩形，不走逐颗粒循环；
+##   render/boss_pop = 0 / render/boss_trail = 0 各自关回旧画面
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -22,6 +26,10 @@ const SPAWN_T := 0.09        # 出现动画时长（秒）
 const GHOST_MAX := 220       # 同屏消失残影上限（超了新的直接不画）
 const CLUSTER := 40.0        # 同帧出现按 40 世界像素格聚成一簇
 const EB_LIFT := Vector2(0, -16)   # 敌弹画在脚下 16 像素上方（同 world._ebp）
+const POP := "fx_px_bpop"    # 8 帧 × 3 行，1 纹素 = 2 世界像素
+const POP_T := 0.45
+const POP_MAX := 400
+const TRAIL := "fx_px_btrail"   # 4 帧循环，弹头在帧的右端中心
 
 var g
 var w   # render/world.gd
@@ -31,6 +39,7 @@ var _id := 0
 var _prev := {}              # 渠道名 → {_bid: 弹字典}
 var _young: Array = []       # 还在出现动画里的弹 [弹字典, 画面偏移, 半径, 颜色]
 var ghosts: Array = []       # [种类, 位置, 半径, 颜色, 已过, 时长, 延迟]；种类 0 闪 / 1 缩 / 2 溶 / 3 出膛环
+var pops: Array = []         # Boss 弹迸散 [位置, 颜色, 已过, 延迟, 行, 镜像]
 var _spawns: Array = []      # 本帧新出现 [起点（画面位置）, 方向, 颜色, 半径, 弹字典, 渠道]
 var _dq: Array = []          # 本帧待溶解 [位置, 半径, 颜色]
 var hooks := {}
@@ -76,6 +85,13 @@ func frame() -> void:
 			ghosts[k] = gh
 			k += 1
 	ghosts.resize(k)
+	k = 0
+	for pp in pops:
+		pp[2] = float(pp[2]) + dt
+		if float(pp[2]) < POP_T + float(pp[3]):
+			pops[k] = pp
+			k += 1
+	pops.resize(k)
 	if not _on:
 		_young.clear()
 		_prev.clear()
@@ -203,9 +219,13 @@ func _die(b: Dictionary, pk: String, enemy: bool, abrupt_own: bool, col: Color) 
 	var c: Color = _col(b, enemy, col)
 	var r: float = _r(b)
 	stat_why[reason] = int(stat_why.get(reason, 0)) + 1
+	var bp: bool = b.get("boss", false) and _pop_ok()
+	if bp and reason != "cancel" and reason != "clear":
+		_pop(p, c)
+		return
 	match reason:
 		"cancel", "clear":
-			_dq.append([p, r, c])
+			_dq.append([p, r, c, bp])
 		"expire":
 			_ghost(1, p, r, c, 0.12)
 			_burst("bul_cool", p, c, 2)
@@ -251,6 +271,9 @@ func flush() -> void:
 		for i in _dq.size():
 			var q: Array = _dq[i]
 			var d: float = minf(0.25, (q[0] as Vector2).distance_to(pp) / sweep) if _dq.size() > 6 else 0.0
+			if q[3]:
+				_pop(q[0], q[2], d)
+				continue
 			_ghost(2, q[0], q[1], q[2], 0.16, d)
 			if i < gn:
 				_burst("bul_dis", q[0], q[2], 3, Vector2.UP, d)
@@ -261,6 +284,16 @@ func _ghost(kind: int, p: Vector2, r: float, c: Color, dur: float, delay := 0.0)
 	if ghosts.size() >= GHOST_MAX:
 		return
 	ghosts.append([kind, p, r, c, 0.0, dur, delay])
+
+
+func _pop_ok() -> bool:
+	return Bal.v("render/boss_pop", 1.0) > 0.0 and w._lazy_tex(POP) != null
+
+
+func _pop(p: Vector2, c: Color, delay := 0.0) -> void:
+	if pops.size() >= POP_MAX:
+		return
+	pops.append([p, c, 0.0, delay, g.vrng.randi_range(0, 2), g.vrng.randf() < 0.5])
 
 
 func _grains():
@@ -302,8 +335,65 @@ func _push(tpl: String, p: Vector2, d: Vector2, c: Color) -> void:
 	g.optical.grains.push(tpl, p, d, c)
 
 
-## 弹体上层（world 画完敌弹之后）：新弹亮芯闪 + 消失残影，全部进 world 的无贴图批
+## Boss 弹拖尾（world 画敌弹之前调，压在弹体之下）：沿速度方向贴 fx_px_btrail，按速度拉长；同屏多时隔颗
+
+
+func draw_trails() -> void:
+	if not _on or Bal.v("render/boss_trail", 1.0) <= 0.0:
+		return
+	var t: Texture2D = w._lazy_tex(TRAIL)
+	if t == null:
+		return
+	var fw: float = t.get_width() / 4.0
+	var fh: float = float(t.get_height())
+	var vr: Rect2 = w.view_rect(48.0)
+	var n := 0
+	for b in g.ebullets:
+		if b.get("boss", false):
+			n += 1
+	if n == 0:
+		return
+	var thin: bool = n > int(Bal.v("render/btrail_thin", 100.0))
+	var fr0: int = int(clock * 14.0)
+	for b in g.ebullets:
+		if not b.get("boss", false) or b.get("hidden", false) or str(b.get("kind", "")) == "boss_blade" or float(b.life) <= 0.0:
+			continue
+		var id: int = int(b.get("_bid", 0))
+		if thin and id % 2 == 1:
+			continue
+		var v: Vector2 = b.get("vel", b.get("v", Vector2.ZERO))
+		var sp: float = v.length()
+		if sp < 30.0:
+			continue
+		var p: Vector2 = (b.pos as Vector2) + EB_LIFT
+		if not vr.has_point(p):
+			continue
+		var c: Color = _col(b, true, Color(0, 0, 0, 0))
+		var d: Vector2 = v / sp
+		var sx: float = 2.0 * clampf(sp / 200.0, 0.8, 1.8)   # 拖尾按速度拉长：120 速约 26 px、快弹到 58 px
+		g.draw_set_transform(p - d * (float(b.get("r", 5.0)) + 2.0), d.angle(), Vector2(sx, 2.0))   # 从弹体可见边缘（r + 3）往后拖
+		g.draw_texture_rect_region(t, Rect2(-fw, -fh * 0.5, fw, fh), Rect2(float((fr0 + id) % 4) * fw, 0.0, fw, fh), Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.9))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 弹体上层（world 画完敌弹之后）：Boss 弹迸散帧条 + 新弹亮芯闪 + 消失残影（后两者进 world 的无贴图批）
 func draw_top() -> void:
+	if not pops.is_empty():
+		var t: Texture2D = w._lazy_tex(POP)
+		if t != null:
+			var fw: float = t.get_width() / 8.0
+			var fh: float = t.get_height() / 3.0
+			var sz := Vector2(fw * 2.0, fh * 2.0)
+			for pp in pops:
+				var el: float = float(pp[2]) - float(pp[3])
+				if el < 0.0:
+					continue
+				var f: int = mini(7, int(el / POP_T * 8.0))
+				var c: Color = pp[1]
+				var dst := Rect2((pp[0] as Vector2) - sz * 0.5, sz)
+				if pp[5]:
+					dst = Rect2(dst.position + Vector2(sz.x, 0.0), Vector2(-sz.x, sz.y))
+				g.draw_texture_rect_region(t, dst, Rect2(f * fw, int(pp[4]) * fh, fw, fh), Color(c.r * 1.25, c.g * 1.25, c.b * 1.25, 1.0))
 	if not _on and ghosts.is_empty():
 		return
 	var k := 0
