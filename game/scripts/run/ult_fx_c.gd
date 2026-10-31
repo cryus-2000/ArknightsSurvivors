@@ -234,13 +234,14 @@ const SZ_CUT_DT := [0.06, 0.06, 0.08, 0.05, 0.10, 0.08, 0.10, 0.12]   # 拔刀�
 const SZ_CUT_HIT := 0.25   # 拔刀开始到出刀帧的秒数（前 4 帧之和）
 const SZ_SC := 1.25   # 忍冬比队员略大一点，一眼认得出是她出手
 const SZ_SLASH := ["fx_sz_slash1", "fx_sz_slash2", "fx_sz_slash3"]
-const SZ_COLD := Color(0.5, 0.58, 0.66)
-const SZ_PALE := Color(0.62, 0.66, 0.7)
+const SZ_RSLASH := ["fx_sz_rslash1", "fx_sz_rslash2", "fx_sz_rslash3"]   # 忍冬一刀：橙芯红边（用户 10-31「橙色 + 红色」；冷色那份留给幽灵鲨）
+const SZ_HOT := Color(1.0, 0.55, 0.22)
+const SZ_RED := Color(0.78, 0.1, 0.08)
 const SZ_FOX := Color(0.7, 0.42, 0.16)
 
 
 static func sz_v2(u) -> bool:
-	return Bal.v("ult/sz_fx_v2", 1.0) > 0.0 and u.fx_ready(SZ_SLASH[0])
+	return Bal.v("ult/sz_fx_v2", 1.0) > 0.0 and u.fx_ready(SZ_RSLASH[0])
 
 
 ## 忍冬本体帧条到了没有（用户 10-30「忍冬刚出现不能说是发光的，得能看出人，然后是走路进场，一刀砍过去」）
@@ -296,8 +297,8 @@ static func sz_body_step(u, a: Dictionary, t: float, tp: float) -> void:
 		var side: Vector2 = a.sz_stand
 		u.g.vfx.stop(0.06, "ult", true)
 		u.prep_slow(Bal.v("ult/sz_prep_slow_t", 0.55), Bal.v("ult/sz_prep_slow", 0.3))   # 预备式慢动作：拔刀蓄势那段放慢（演出类，不改模拟）
-		u.light(side + Vector2(0, -40), 180.0, Color(0.8, 0.78, 0.68), 0.3)
-		PF.particles(u, side + Vector2(0, -30), 40, "ult_ember", [SZ_FOX, Color(0.62, 0.55, 0.36)], 0.0, float(a.sz_vs) + 7.0, 80.0)
+		u.light(side + Vector2(0, -40), 180.0, Color(0.85, 0.6, 0.42), 0.3)
+		PF.particles(u, side + Vector2(0, -30), 24, "ult_ember", [SZ_FOX, SZ_RED], 0.0, float(a.sz_vs) + 7.0, 70.0)
 	a.sz_cut.f = clampi(int(clampf((t - tp * 0.35) / (tp * 0.65), 0.0, 0.999) * 4.0), 0, 3)
 
 
@@ -326,32 +327,31 @@ static func _sz_slash(u, name: String, p: Vector2, ang: float, L: float, opt: Di
 	return u.strip(name, p, s)
 
 
+## 一刀（用户 10-31「切回一刀，杀手快准狠」）：化光闪出那一下斩痕几乎一帧伸满、细而锐；停半拍后只在这一道上爆亮、
+## 上下错开成两半（斩开），沿线只迸几颗火星，地上留一道暗红刀口。不加副斩、不铺爆点。
 static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float) -> void:
 	var vs: float = float(a.sz_vs)
 	if a.has("sz_stand"):
 		side = Vector2(a.sz_stand) + Vector2(0, -24)   # 刀口高度
-		if a.has("sz_cut"):   # 化光闪出（用户 10-31）：人形亮成冷白一闪即消，沿斩向拖三层光影
+		if a.has("sz_cut"):   # 化光闪出：人形亮成橙白一闪即消，沿斩向拖两层橙红残影
 			var cs: Dictionary = a.sz_cut
-			cs.col = Color(1.6, 1.6, 1.7, 1.0)
+			cs.col = Color(1.6, 1.3, 1.1, 1.0)
 			cs.f = 4
-			cs.max = float(cs.age) + 0.07
+			cs.max = float(cs.age) + 0.05
 			if a.has("sz_dim"):   # 压暗撤掉
-				a.sz_dim.max = float(a.sz_dim.age) + 0.12
+				a.sz_dim.max = float(a.sz_dim.age) + 0.1
 				a.sz_dim["hold"] = false
 			var dd: Vector2 = (tip - side).normalized()
-			for g in 3:
-				u.strip(SZ_CUT, Vector2(a.sz_stand) + dd * 40.0 * (g + 1), {"o": cs.o, "sc": SZ_SC, "f": 4, "sx": float(a.sz_fs) * (1.0 + 0.35 * (g + 1)),
-					"life": 0.1, "fade": 0.1, "delay": 0.015 * g, "col": Color(0.75, 0.82, 0.92, 0.55 - 0.15 * g)})
+			for g in 2:
+				u.strip(SZ_CUT, Vector2(a.sz_stand) + dd * 60.0 * (g + 1), {"o": cs.o, "sc": SZ_SC, "f": 4, "sx": float(a.sz_fs) * (1.0 + 0.5 * (g + 1)),
+					"life": 0.07, "fade": 0.07, "delay": 0.01 * g, "col": Color(1.0, 0.45, 0.25, 0.5 - 0.2 * g)})
 	if a.has("sz_fig"):
 		a.sz_fig.max = float(a.sz_fig.age) + 0.06
-	var name: String = PF.pick(u, SZ_SLASH, vs)
+	var name: String = PF.pick(u, SZ_RSLASH, vs)
 	var L: float = side.distance_to(tip)
 	var ang: float = (tip - side).angle()
-	a["sz_main"] = _sz_slash(u, name, side, ang, L, {"sy": 0.9, "rev": 0.07, "rev0": 0.02, "life": stall + 0.12, "col": Color(1.0, 1.0, 1.0, 0.95)})
-	u.light(side.lerp(tip, 0.3), 220.0, SZ_PALE, 0.15)
-	for k in 6:   # 瞬身沿途的光屑
-		var p: Vector2 = side.lerp(tip, (k + 0.5) / 6.0)
-		u.grain("sh_glint", p, Vector2.from_angle(ang), SZ_PALE, 4)
+	a["sz_main"] = _sz_slash(u, name, side, ang, L, {"sy": 0.5, "rev": 0.03, "rev0": 0.0, "life": stall + 0.12, "col": Color(1.05, 0.95, 0.9, 1.0)})
+	u.light(side.lerp(tip, 0.5), 200.0, SZ_HOT, 0.12)
 
 
 static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: float, hw: float) -> void:
@@ -359,8 +359,7 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var a0: Vector2 = org - d * bk
 	var b0: Vector2 = org + d * L
 	var ang: float = d.angle()
-	# 主斩痕爆亮：就在出刀那一道上加粗爆亮（不另起一道，免得两道平行），白 → 冷蓝灰冷却
-	var sname: String = PF.pick(u, SZ_SLASH, vs)
+	var sname: String = PF.pick(u, SZ_RSLASH, vs)
 	if a.has("sz_main"):
 		var m: Dictionary = a.sz_main
 		a0 = m.c
@@ -368,32 +367,22 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 		b0 = a0 + Vector2.from_angle(ang) * float(m.sx) * PF.tex_w(u, str(m.name))
 		sname = str(m.name)
 		m.max = float(m.age)
-	_sz_slash(u, sname, a0, ang, a0.distance_to(b0), {"sy": 1.15, "life": 0.55, "fade": 0.3, "col": Color(1.05, 1.05, 1.05, 1.0), "col1": Color(0.45, 0.55, 0.7, 0.8), "cold": 0.35, "hf": true})
-	u.light(org + d * (L - bk) * 0.5, maxf(L, hw) * 0.7, SZ_PALE, 0.3)
-	var n: int = 7 + int(PF.h(vs) * 3.0)   # 7–9 处爆点，从斩痕起点往尽头一节节依次炸开（预审 10-30：同时炸连成一片）
-	for k in n:
+	var SL: float = a0.distance_to(b0)
+	var dv: Vector2 = Vector2.from_angle(ang)
+	var nv: Vector2 = dv.orthogonal()
+	# 这一道爆亮（冲击帧）：橙白 → 暗红迅速冷却
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95, "life": 0.3, "fade": 0.18, "col": Color(1.15, 0.85, 0.7, 1.0), "col1": Color(0.55, 0.04, 0.04, 0.9), "cold": 0.14, "hf": true})
+	# 斩开：上下两半往两边错开、同时沿刀向滑一点
+	for sd in [1.0, -1.0]:
+		_sz_slash(u, sname, a0 + nv * sd * 4.0, ang, SL, {"sy": 0.45 * sd, "delay": 0.04, "life": 0.26, "fade": 0.2, "v": nv * sd * 70.0 + dv * 60.0 * sd,
+			"col": Color(1.0, 0.5, 0.3, 0.9), "col1": Color(0.5, 0.03, 0.03, 0.7), "cold": 0.16})
+	# 刀口：地上一道暗红细痕，慢慢褪
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.3, "fade": 0.9, "col": Color(0.32, 0.03, 0.03, 0.9)})
+	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_RED, 0.22)
+	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)
-		var x: float = lerpf(30.0 - bk, L - 30.0, (k + 0.2 + 0.6 * hh) / n)
-		var p: Vector2 = org + d * x + d.orthogonal() * (hh - 0.5) * hw * 0.25
-		var dl: float = 0.035 * k + 0.015 * hh
-		PF.particles(u, p, 60, "ult_burst_s", [SZ_COLD, SZ_PALE], dl, vs + k)
-		if k % 2 == 1:
-			continue
-		PF.particles(u, p, 40, "ult_ember", [SZ_FOX], dl + 0.08, vs + k * 5.0, 90.0)
-	PF.particles(u, org + d * (L - bk) * 0.5, 300, "ult_burst", [SZ_COLD, SZ_PALE], 0.12, vs + 99.0, minf(hw, L) * 0.45)
-	# 沿直线的细小斩击（用户 10-31）：5–7 道，位置 / 角度 / 长短 / 粗细 / 先后都按哈希打乱；只画画面，不加判定
-	var ns: int = 5 + int(PF.h(vs + 7.0) * 3.0)
-	for k in ns:
-		var hh: float = PF.h(vs + 31.0 + k * 2.9)
-		var x: float = lerpf(-bk * 0.5, L * 0.95, (k + 0.15 + 0.7 * hh) / ns)
-		var pc: Vector2 = a0.lerp(b0, clampf((x + bk) / maxf(1.0, L + bk), 0.0, 1.0)) + d.orthogonal() * (PF.h(vs + k * 5.3) - 0.5) * hw * 0.35
-		var sa: float = ang + (1.0 if k % 2 == 0 else -1.0) * (0.25 + 0.9 * PF.h(vs + k * 1.9))
-		var sl: float = 230.0 + 200.0 * PF.h(vs + k * 4.1)   # 用户 10-31「小斩痕都长一点」「副斩击都大一点」
-		var sd: Vector2 = Vector2.from_angle(sa)
-		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + k * 0.7 + 11.0), pc - sd * sl * 0.5, sa, sl, {"hf": true, "sy": (0.5 + 0.3 * hh) * (-1.0 if PF.h(vs + k) < 0.5 else 1.0),
-			"rev": 0.04, "rev0": 0.1, "delay": 0.03 + 0.05 * PF.h(vs + k * 8.3), "life": 0.4, "fade": 0.22, "col": Color(1.0, 1.0, 1.02, 0.95),
-			"col1": Color(0.42, 0.52, 0.68, 0.8), "cold": 0.22})
-
+		var p: Vector2 = a0.lerp(b0, (k + 0.3 + 0.4 * hh) / 3.0)
+		PF.particles(u, p, 18, "ult_burst_s", [SZ_HOT, SZ_RED], 0.02 * k, vs + k, 50.0)
 
 
 # ================================================================ 水月 · 水母群（ult/mz_jelly，协调人 10-30 转用户「做个大概的给我看看」：粗稿）

@@ -580,7 +580,7 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 		# 斩痕爆裂：沿斩痕一串白光爆点 + 横贯带宽的交叉斩
 		var n: int = 0 if v2 else 10
 		if v2:
-			a["hf"] = true   # 冲击帧：斩痕爆裂那一下（主斩 / 副斩进剪影）
+			a["hf"] = true   # 冲击帧：斩痕爆裂那一下（这一刀进剪影）
 			u.act["hf"] = true
 			FC.sz_boom(u, a, org, d, bk, L, hw)
 		else:
