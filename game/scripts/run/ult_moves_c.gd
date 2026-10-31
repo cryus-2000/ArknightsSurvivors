@@ -1562,18 +1562,44 @@ static func _la_v3(u) -> bool:
 
 
 ## 一道乱砍剑气：p 中点、ang 方向、ln 长；sd 哈希定变体 / 弯度 / 翻面 / 残缺 / 颜色
-static func _la_cut(u, p: Vector2, ang: float, ln: float, sd: float, life: float, col: Color, thick := 1.0, whole := false) -> void:
+static func _la_cut(u, p: Vector2, ang: float, ln: float, sd: float, life: float, col: Color, thick := 1.0, whole := false, vel := Vector2.ZERO, delay := 0.0) -> void:
 	var nm := PF.pick(u, IR_SLASH, sd * 0.41)
 	var t: Texture2D = u._strip_tex(nm)
 	var tw: float = PF.tex_w(u, nm)
 	var dv := Vector2.from_angle(ang)
 	var o := {"ang": ang, "o": Vector2(0.0, t.get_height() * 0.5), "sx": ln / tw, "sy": thick * (1.0 if whole else 0.55 + 1.1 * PF.h(sd + 5.0)) * (1.0 if PF.h(sd + 2.0) < 0.5 else -1.0),
 		"rev": 0.035, "rev0": 0.1, "life": life, "fade": life * 0.6, "col": col}
+	if vel != Vector2.ZERO:   # 飞行剑气：整道跟着飞，不逐渐显现、不残缺
+		o.erase("rev")
+		o["v"] = vel
+		o["delay"] = delay
+		o["fade"] = life * 0.35
+		whole = true
 	if not whole and PF.h(sd + 8.0) < 0.3:   # 残缺：只截中间一段
 		var uw: float = t.get_width() * (0.45 + 0.35 * PF.h(sd + 9.0))
 		o["ux"] = floorf(PF.h(sd + 10.0) * (t.get_width() - uw))
 		o["uw"] = uw
 	u.strip(nm, p - dv * ln * 0.5, o)
+
+
+## 用户 10-31「剑气是全部往前飞行的，不是凭空出现；相当于她普攻剑气的 pro max 版本」（开关 ult/la_fly_wave 缺省 1）：
+## 每道剑气从她身前发出（弧面垂直于飞行方向，像普攻的剑气波），以 ult/la_wave_spd（1900）飞到扇形尽头、尾段淡；长 220–420、粗 2–3 倍，
+## 后面拖一层暗冷蓝残影（晚 0.03 秒同速）；方向在扇形里按哈希散、越到后面越乱；偶尔一道双刃十字同飞。判定仍是四圈扫
+static func _la_fly_wave(u, a: Dictionary, dv: Vector2, sd: float, pr: float, i: int) -> void:
+	var spd: float = Bal.v("ult/la_wave_spd", 1900.0)
+	var p0: Vector2 = Vector2(a.org) + Vector2(a.d) * (float(Bal.v("ult/la_back", 100.0)) + 40.0) + dv.orthogonal() * (PF.h(sd + 2.2) - 0.5) * 60.0
+	var life: float = float(a.R) / spd
+	var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * lerpf(0.3, 0.8, pr)
+	var ln: float = lerpf(220.0, 420.0, PF.h(sd + 4.0))
+	var th: float = lerpf(2.0, 3.0, PF.h(sd + 5.5))
+	var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
+	_la_cut(u, p0, ang, ln * 0.95, sd + 0.5, life, Color(0.35, 0.5, 0.75, 0.55), th * 1.25, true, dv * spd, 0.03)   # 残影
+	_la_cut(u, p0, ang, ln, sd, life, Color(col, 0.95), th, true, dv * spd)
+	if PF.h(sd + 7.0) < 0.18:
+		var xn := PF.pick(u, LA_X, sd)
+		u.strip(xn, p0, {"ang": dv.angle(), "sc": 130.0 / PF.tex_w(u, xn), "life": life, "fade": life * 0.35, "v": dv * spd * 0.9})
+	if i % 4 == 0:
+		PF.particles(u, p0, 40, "ult_burst_s", [LA_ICE, LA_SILVER], 0.0, sd, 50.0)
 
 
 static func _la_frenzy(u, a: Dictionary, t: float) -> void:
@@ -1586,6 +1612,11 @@ static func _la_frenzy(u, a: Dictionary, t: float) -> void:
 		var sd: float = float(a.vs) * 0.37 + i * 3.17
 		var spread: float = float(a.half) * 1.8 if a.get("fwd", false) else 2.4
 		var dv: Vector2 = fw.rotated((PF.h(sd) - 0.5) * spread)   # 前方（朝前版铺满扇形 ±0.9 半角；旧版 ±69°）
+		if a.get("fwd", false) and Bal.v("ult/la_fly_wave", 1.0) > 0.0:
+			_la_fly_wave(u, a, dv, sd, pr, i)
+			a.sl_i = i + 1
+			a.sl_t = float(a.sl_t) + lerpf(0.05, 0.03, pr)
+			continue
 		var p: Vector2 = (Vector2(a.org) if a.get("fwd", false) else Vector2(a.c)) + dv * R * (0.18 + 0.68 * PF.h(sd + 1.0))
 		var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * PI * lerpf(0.45, 1.0, pr)   # 越砍越乱
 		var ln: float = lerpf(260.0, 560.0, PF.h(sd + 4.0)) * (0.9 + 0.3 * pr)
