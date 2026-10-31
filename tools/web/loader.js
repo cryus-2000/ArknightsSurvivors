@@ -278,8 +278,52 @@
       bootLabel = '准备主菜单';
       upd();
     };
+    // 11-01：读完不自动进标题页。Godot 稳帧后调 __syBootReady → 这里出「开始游戏」，玩家点任意处 / 按任意键置 window.__syStart，
+    // boot_screen.gd 每帧读到后揭开标题页并调 __syBootDone 撤页（同桌面 boot_views.draw_start）
+    var ready = false;
+    window.__syBootReady = function () {
+      if (ready || closing) return;
+      ready = true;
+      bootProgress = 1;
+      bootLabel = '接入完成 · 等待指令';
+      upd();
+      // 按钮挂在页面根上（盘 / 声呐圈有 transform，挂进去会被同在根上的收尾压暗层 .sv-dark 盖住），位置按圈的实际外框算：圈下留一段，
+      // 不压页脚声明；方向 3 竖屏盘下是系统日志，放底部
+      var dial = d.querySelector('.sv-dial') || d.querySelector('.sy-sonar');
+      var touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sy-go';
+      b.innerHTML = '<i class="c0"></i><i class="c1"></i><i class="c2"></i><i class="c3"></i><span>开始游戏</span><em class="sy-en">' + (touch ? 'TAP TO START' : 'PRESS ANY KEY') + '</em>';
+      var place = function () {
+        var low = window.innerHeight < 520, bh = low ? 42 : 50;
+        var y = window.innerHeight - (low ? 64 : 96) - bh / 2;   // 缺省：底部
+        if (dial && !(BV === 3 && window.innerHeight > window.innerWidth)) {
+          y = dial.getBoundingClientRect().bottom + (BV === 3 ? 34 : 30) + bh / 2;
+          y = Math.min(y, window.innerHeight - 30 - bh / 2 - (low ? 0 : 22));   // 让出页脚声明（矮屏不写下面那行英文）
+        }
+        b.style.top = Math.round(y - bh / 2) + 'px';
+      };
+      place();
+      window.addEventListener('resize', place);
+      d.appendChild(b);
+      d.classList.add('sy-ready');
+      var t1 = performance.now();
+      var go = function (e) {
+        if (performance.now() - t1 < 250) return;   // 读完那一刻正好按着键，不算
+        if (e.type === 'keydown' && (e.ctrlKey || e.metaKey || e.altKey || /^F\d+$/.test(e.key))) return;   // 刷新 / 开发者工具之类的组合键放行
+        e.preventDefault();
+        e.stopPropagation();
+        window.__syStart = 1;
+        b.classList.add('on');
+        d.removeEventListener('pointerdown', go, true);
+        window.removeEventListener('keydown', go, true);
+      };
+      d.addEventListener('pointerdown', go, true);
+      window.addEventListener('keydown', go, true);
+    };
     window.__syBootProgress = function (value, label) {
-      if (closing || !Number.isFinite(value)) return;
+      if (closing || ready || !Number.isFinite(value)) return;
       bootProgress = Math.max(shownProgress, Math.min(1, value));
       bootLabel = String(label || '准备主菜单');
       upd();

@@ -8,6 +8,30 @@
   transition: opacity .4s;
 }
 #sy-load.sy-out { opacity: 0; pointer-events: none; }
+/* 读完后的「开始游戏」（11-01，同桌面 boot_views.draw_start）：暗底细青框 + 四角菱形饰角，框线慢呼吸，下面字距拉开的英文提示；
+   放在声呐圈（方向 0）/ 盘（方向 3）下面（top 由 loader.js 按圈的外框算），方向 3 的 RHODES ISLAND 让位；整页任意处点 / 按任意键都算 */
+#sy-load .sy-go {
+  position: absolute; left: 50%; top: 70%; width: 232px; height: 50px; margin-left: -116px; z-index: 20;
+  background: rgba(5, 13, 18, .86); border: 1.5px solid rgba(94, 230, 230, .75); color: #edf2f5; cursor: pointer;
+  font: inherit; font-size: 20px; letter-spacing: 2px; padding: 0;
+  animation: sy-go-in .35s cubic-bezier(.2, .7, .3, 1) both, sy-go-br 2.4s ease-in-out .35s infinite;
+}
+#sy-load .sy-go:hover, #sy-load .sy-go.on { background: rgba(28, 70, 78, .9); border-color: #5ee6e6; }
+#sy-load .sy-go span { position: relative; }
+#sy-load .sy-go span::before, #sy-load .sy-go span::after { content: ""; position: absolute; top: 50%; width: 12px; height: 1.5px; background: rgba(94, 230, 230, .7); }
+#sy-load .sy-go span::before { right: calc(100% + 34px); } #sy-load .sy-go span::after { left: calc(100% + 34px); }
+#sy-load .sy-go i { position: absolute; width: 6px; height: 6px; background: #5ee6e6; transform: rotate(45deg); }
+#sy-load .sy-go i.c0 { left: -4px; top: -4px; } #sy-load .sy-go i.c1 { right: -4px; top: -4px; }
+#sy-load .sy-go i.c2 { right: -4px; bottom: -4px; } #sy-load .sy-go i.c3 { left: -4px; bottom: -4px; }
+#sy-load .sy-go em { position: absolute; left: -40px; right: -40px; top: calc(100% + 12px); font-style: normal; font-size: 10px; letter-spacing: 4px; color: #708794; }
+#sy-load.sy-ready .sv-ri { display: none; }
+@keyframes sy-go-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes sy-go-br { 50% { border-color: rgba(94, 230, 230, .4); } }
+@media (max-height: 520px) {
+  #sy-load .sy-go { width: 200px; height: 42px; margin-left: -100px; font-size: 18px; }
+  #sy-load .sy-go em { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { #sy-load .sy-go { animation: none; } }
 #sy-load .sy-grid {
   position: absolute; inset: 0;
   background-image: linear-gradient(rgba(120, 170, 190, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 170, 190, .05) 1px, transparent 1px);
