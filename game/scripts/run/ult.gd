@@ -361,6 +361,7 @@ func _tick_ult(dt: float) -> void:
 		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 		if sx != null:
 			sx.voice_lock(0.5)   # 招式没放完，别的干员不开口（结束后再静 0.5 秒）
+			sx.op_skill_mute(0.25)   # 招式放出期间干员技能音效不出声（落地回技力当场放出的技能，10-31 用户）
 		var done: bool = Moves.step_cult(self, act, dt) if kind == "cult" else Moves.step(self, act, dt)
 		if done:
 			phase = ""
@@ -1513,7 +1514,7 @@ func _seg_sfx(sg: String) -> void:
 ## 按 data/ult_audio.json 的 fx.<键> 在它出现的那一刻（+ at 秒游戏时间，如剑帧条插地那一帧）播一声。
 ## 键 = 图形 kind（"line" / "blade" …）或 "strip:<帧条名>"；带速度 v 的（碎片）先找 "<键>+v"。
 ## 规则：slot 槽名或槽名数组（数组按序轮换，每声略不同）、gap 真实秒节流（同一帧冒出的几道合成一声）、vol dB、
-## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）、min_sc 帧条缩放至少多少才认（收尾大爆）。
+## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）、min_sc 帧条缩放至少多少才认（收尾大爆）、then 第二次起改播的槽。
 var _fx_rt := {}
 var _fx_n := {}
 var _fx_serial := -1
@@ -1555,10 +1556,12 @@ func _fx_sfx(s: Dictionary) -> void:
 		return
 	_fx_rt[key] = now
 	var sl = r.get("slot", "")
+	var i: int = int(_fx_n.get(key, 0))
+	_fx_n[key] = i + 1
+	if i > 0 and r.has("then"):   # 同一招里第二次起改播 then（如推进之王再跃的小砸地，不再整声大爆）
+		sl = r.then
 	var nm: String = str(sl)
 	if sl is Array:
-		var i: int = int(_fx_n.get(key, 0))
-		_fx_n[key] = i + 1
 		nm = str(sl[i % sl.size()])
 	if nm != "":
 		_ua(nm, r.get("vol"))

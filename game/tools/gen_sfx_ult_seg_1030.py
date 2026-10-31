@@ -73,7 +73,7 @@ def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
     return fadeio(y / (np.abs(y).max() + 1e-9), 0.001, fout)
 
 
-LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "slam_1": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "slam_1": -9.0, "smash": -8.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
 def level(slot, x):
@@ -365,12 +365,18 @@ def hoshiguma():
 
 
 def siege():
-    """高高跃起（风声上扬 0.6 秒）→ 巨锤砸地、冲击波横扫（冲击）→ 敌人被震上半空，落地一片"""
+    """docs/205 §4.4（用户 10-31：两版都不要 → 要「拿着锤子爆裂的感觉」、去掉「咚」；暂用 ⑨）：提示 = 原作磁锤原样 → 起跳 = 原作跳劈起手
+    → 落地砸地 smash（fx circle r100，高潮挂画面）= 原作磁锤砸实 + 原作火爆弹炸裂 + 碎石飞溅，200 Hz 以下切掉（闷低频听成「咚」）
+    → 再跃小砸地 smash2（同一 circle 的第二次，then）= 原作跳劈落地清脆一锤 + 冰裂 → 碎岩 rock_1..3（fx strip rock_burst）= 冰岩碎裂 + 碎石，去低频
+    → 敌人落地 land（seg 落地 on）= 原作跳劈落地升调。没有 impact、没有蓄力。
+    落地那一刻队友技能被回技力当场放出，自带的技能音效由 Sfx.op_skill_mute 压住（那才是用户听到的「咚」）"""
     return {
-        "charge": pad(lp(N(0.8), 600) * swell(0.8, 0.9) * 0.6, metal(0.4, 300, 6, bright=0.5) * 0.3, horn(0.2, 220) * 0.15),
-        "cast": sweep_noise(0.62, 350, 2600, 0.5) * swell(0.62, 0.9),
-        "impact": pad(thud(0.9, 70, 26, 4) * 1.3, metal(1.0, 210, 3, bright=0.6) * 0.45, crack(1.0, 4) * 0.8, burst(0.4, 2000, 10) * 0.5),
-        "land": seq([(i * 0.07, thud(0.2, 130 - 10 * i, 50, 18) * 0.6) for i in range(5)] + [(0, crackle(0.5, 200, 1200, 5000, 6) * 0.6)]),
+        "sf": akd("p_skill_magnetichammer.wav", 0.0, 0.45, 1.0, fout=0.2), "cast": akd("p_skill_jumphammer_1.wav", 0.0, 0.7, fout=0.25),
+        "smash": hp(pad(akd("p_skill_magnetichammer.wav", 0.0, 1.0, fout=0.4), akd("p_skill_fireboomexplo.wav", 0.0, 1.4, fout=0.5) * 0.9,
+                        sn("debris", 0.1, 1.0, fout=0.4) * 0.5), 200, 4),
+        "smash2": hp(pad(akd("p_skill_jumphammer_2.wav", 0.0, 0.6, 1.05, fout=0.3), sn("ice", 0.0, 0.4, 0.9) * 0.5), 250),
+        **{"rock_%d" % (i + 1): hp(pad(sn("ice", 0.0, 0.4, r), sn("debris", 0.3, 0.35, fout=0.2) * 0.4), 600) for i, r in enumerate([1.0, 1.1, 0.92])},
+        "land": hp(akd("p_skill_jumphammer_2.wav", 0.0, 0.4, 1.1, fout=0.2), 400),
     }
 
 

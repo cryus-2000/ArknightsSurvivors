@@ -741,6 +741,7 @@ func voice_can_cut(key: String, now: float) -> bool:
 ## 说完后再留 VOICE_ULT_HOLD 秒，这段时间别的语音一律不播（ult.gd 也可用 voice_lock 延长到招式结束）
 const VOICE_ULT_HOLD := 0.5
 var voice_lock_until := -1.0
+var op_skill_mute_until := -1.0   # 终结技放出期间干员技能音效静音（ult.gd 每帧续，docs/205 §2.1）
 var voice_urgent: Array = []          # [干员, 事件, 截止时刻]：等当前这条播完立即补播的指挥回应
 var voice_log := false                 # --voicelog（测试）：真正开播时打印 VOICEPLAY <干员> <事件>
 
@@ -811,6 +812,13 @@ func voice(cid: String, key: String, queue := false, urgent := false, line := ""
 
 
 ## 终结技期间别的干员不开口（ult.gd 在招式进行中调用，延长锁定）
+const OP_SKILL_KINDS := ["s1", "s2", "s3", "big"]
+
+
+func op_skill_mute(sec: float) -> void:
+	op_skill_mute_until = maxf(op_skill_mute_until, Time.get_ticks_usec() / 1000000.0 + sec)
+
+
 func voice_lock(sec: float) -> void:
 	voice_lock_until = maxf(voice_lock_until, _vnow() + sec)
 
@@ -858,6 +866,7 @@ func _voice_tick() -> void:
 ## 场景切换 / 回标题时清空（避免上一局的部署语音串到下一局）
 func voice_reset() -> void:
 	voice_lock_until = -1.0
+	op_skill_mute_until = -1.0
 	for lp in loops.values():
 		lp.stop()
 	voice_queue.clear()
@@ -1330,6 +1339,8 @@ var cmd_cue := "soft"
 
 
 func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) -> void:
+	if kind in OP_SKILL_KINDS and Time.get_ticks_usec() / 1000000.0 < op_skill_mute_until:
+		return   # 终结技播放中：队友 / 队长技能自带的音效不出声（10-31 用户：推进之王落地给全队回技力，技能当场放出，那声「咚」盖住砸地）
 	var sn := "op_%s_%s" % [oid, kind]
 	if sn in CMD_CUE_NAMES and cmd_cue != "old":
 		if cmd_cue == "mute":
