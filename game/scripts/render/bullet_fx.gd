@@ -17,7 +17,7 @@
 ## Boss 弹粒子化（docs/206，用户 10-31「没有粒子感」）：Boss 弹（b.boss）命中 / 到期 / 被消不再整颗淡出，改播预烘焙迸散帧条 fx_px_bpop
 ##   （tools/imagegen/pxburst.py --boss，8–14 颗、减速、冷却变暗；3 行花样 + 左右镜像），按弹专属色着色；飞行时身后贴拖尾帧条 fx_px_btrail
 ##   （4 帧循环、按速度拉长、沿速度转向；同屏 Boss 弹 > render/btrail_thin（100）颗时隔颗画；伊祖米克 130 弹实测 p95 0.4 ms（探针含放大））。都是贴图矩形，不走逐颗粒循环；
-##   render/boss_pop = 0 / render/boss_trail = 0 各自关回旧画面
+##   render/boss_pop = 0 / render/boss_trail = 0 各自关回旧画面；--bossacts --perfab 同局轮换的旧画法桶（g.perf_alt）四处全关，量粒子化净成本（tools/probes/boss_fx_compare.py perf；正常游戏恒为 false）
 ## 贴图颗粒全部走本层贴图三角批（_tq 攒四边形，_tq_flush 按贴图一次 canvas_item_add_triangle_array，同 TriBatch 的提交方式；
 ##   perf-60fps 10-31：别每颗弹单独 draw_texture），不用 draw_set_transform
 ## Boss 激光（kp_beam 帧条光束、bbeam 粗光束、敌方 tracer）：beam_px 沿光束每 22 px 贴一格 fx_px_bpop 后段帧（错相循环 = 边缘颗粒持续飘出），
@@ -305,7 +305,7 @@ func _ghost(kind: int, p: Vector2, r: float, c: Color, dur: float, delay := 0.0)
 
 
 func _pop_ok() -> bool:
-	return Bal.v("render/boss_pop", 1.0) > 0.0 and w._lazy_tex(POP) != null
+	return not g.perf_alt and Bal.v("render/boss_pop", 1.0) > 0.0 and w._lazy_tex(POP) != null
 
 
 func _pop(p: Vector2, c: Color, delay := 0.0) -> void:
@@ -316,7 +316,7 @@ func _pop(p: Vector2, c: Color, delay := 0.0) -> void:
 
 ## Boss 落地迸散（telegraph.warn_resolve 调，纯画面；随机只用 g.vrng）
 func ground_burst(p: Vector2, r: float, c: Color) -> void:
-	if not _on or Bal.v("render/boss_ground_px", 1.0) <= 0.0 or grounds.size() >= GROUND_MAX or r < 12.0:
+	if not _on or g.perf_alt or Bal.v("render/boss_ground_px", 1.0) <= 0.0 or grounds.size() >= GROUND_MAX or r < 12.0:
 		return
 	if not w.view_rect(r + 40.0).has_point(p):
 		return
@@ -393,7 +393,7 @@ func beam_px(f: Dictionary, c: Color, hw: float) -> void:
 ## 光束颗粒通用画法（伊莎玛拉统一光束 ishar_tell_draw 也调）：颗粒贴在两侧边缘往外飘（提亮一档免得和光束同色糊在一起）；
 ## closing = 收束那一刻：整条按 _pop 从起点往末端碎成颗粒（st 记一次，只碎一回）
 func beam_line(st: Dictionary, a: Vector2, b: Vector2, c: Color, hw: float, el: float, closing: bool) -> void:
-	if not _on or Bal.v("render/boss_beam_px", 1.0) <= 0.0:
+	if not _on or g.perf_alt or Bal.v("render/boss_beam_px", 1.0) <= 0.0:
 		return
 	var t: Texture2D = w._lazy_tex(POP)
 	var L: float = a.distance_to(b)
@@ -466,7 +466,7 @@ func _push(tpl: String, p: Vector2, d: Vector2, c: Color) -> void:
 
 
 func draw_trails() -> void:
-	if not _on or Bal.v("render/boss_trail", 1.0) <= 0.0:
+	if not _on or g.perf_alt or Bal.v("render/boss_trail", 1.0) <= 0.0:
 		return
 	var t: Texture2D = w._lazy_tex(TRAIL)
 	if t == null:
