@@ -217,8 +217,16 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		for e in u.in_circle(sc, 210.0):
 			a.sseg[int(e.id)] = true
 			_hit(u, a, o, e, Bal.v("ult/sd_slash", 0.3), {"src": "下劈", "edge": e.pos.distance_to(sc) > 210.0 * (1.0 - _edge_w())})
-		u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3})
-		u.strip("fx_skadi_surge", o0 + d * 120.0, {"sc": 2.4})
+		u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color(0.78, 0.86, 0.94) if _sd_v2(u) else Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3 if not _sd_v2(u) else 0.2})
+		if _sd_v5(u):
+			u.g.vfx.stop(Bal.v("ult/sd_cut_stop", 0.06), "ult", true)   # 劈下那一下顿住
+			PF.particles(u, o0 + d * 120.0, 300, "ult_burst", [col, col.darkened(0.3)], 0.0, PF.vseed(u, o0), 220.0)
+		elif _sd_v4(u):
+			_sd_cleave_v4(u, a, o0, d, a.n, col)
+		elif _sd_v2(u):   # 劈开处溅起水色像素粒子（不用卡通水花帧条）
+			PF.particles(u, o0 + d * 120.0, 300, "ult_burst", [col, col.darkened(0.3)], 0.0, PF.vseed(u, o0), 220.0)
+		else:
+			u.strip("fx_skadi_surge", o0 + d * 120.0, {"sc": 2.4})
 		_ring(u, sc, 210.0, 30.0, foam, 0.35, 8.0)
 		_spray(u, sc, 10, 40.0, 520.0, foam, 0.35, d.angle())
 		o.screen_shake(0.6)
@@ -233,10 +241,17 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		var k: float = clampf((t - t0) / T, 0.0, 1.0)
 		var F: float = -back + (L + back) * k * (1.35 - 0.35 * k)   # 先快后略缓
 		if w.fx.is_empty():   # 水体 + 浪头白沫 + 前沿线 + 浪头帧条一排
+			var v2: bool = _sd_v2(u)
 			w.fx.append(_keep(u, a, {"kind": "band", "a": o0 - d * back, "b": o0, "w": hw * 2.0, "col": col, "fill": 0.2, "life": 2.0}))
-			w.fx.append(_keep(u, a, {"kind": "band", "a": o0, "b": o0, "w": hw * 2.0, "col": foam, "fill": 0.42, "life": 2.0}))
-			w.fx.append(_keep(u, a, {"kind": "line", "a": o0, "b": o0, "w": 5.0, "col": Color.WHITE, "life": 2.0}))
-			var ns: int = int(Bal.v("ult/sd_crest_fx", 7.0))
+			w.fx.append(_keep(u, a, {"kind": "band", "a": o0, "b": o0, "w": hw * 2.0, "col": foam, "fill": 0.1 if v2 else 0.42, "life": 2.0}))
+			w.fx.append(_keep(u, a, {"kind": "nop" if v2 else "line", "a": o0, "b": o0, "w": 5.0, "col": Color.WHITE, "life": 2.0}))
+			if v2 and _sd_v5(u):
+				_sd_roll_v5(u, a, w, o0, d, hw, T)
+			elif v2 and _sd_v4(u):
+				_sd_walls_v4(u, a, w, o0, d, T)
+			elif v2:
+				_sd_face_v2(u, a, w, o0, d, hw, T)
+			var ns: int = 0 if v2 else int(Bal.v("ult/sd_crest_fx", 7.0))
 			for i in ns:
 				var lat: float = -hw + (float(i) + 0.5) * 2.0 * hw / float(ns)
 				var s: Dictionary = u.strip("fx_skadi_wave", o0 + n * lat, {"sc": 1.25, "seg": [1, 3], "loop": true, "fps": 12.0,
@@ -253,7 +268,31 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			_hold(s)
 		for sp in w.spr:
 			sp[0].c = fp + n * float(sp[1]) - d * 10.0
-		if t >= float(w.spray_t):   # 浪头飞沫（往前溅）
+		if w.has("roll"):   # 分镜 A：一堵卷浪压着往前滚，滚到前方砸成水爆
+			_sd_roll_tick(u, a, w, o0, d, n, hw, t, F, L, col, foam)
+		if w.has("walls"):   # 劈开：两堵浪墙从裂口往两侧推开（画面；判定照旧是往前推的矩形）
+			_sd_walls_tick(u, a, w, o0, d, n, hw, t, k, col, foam)
+		var v3: bool = _sd_v3(u) and w.has("face")
+		var rise: float = clampf((t - t0) / 0.18, 0.0, 1.0) if v3 else 1.0   # 立浪：浪面从她身前 0.18 秒内立起
+		for wv in w.get("face", []):   # 浪面跟着浪头走
+			wv[0].c = fp + n * (-hw) - d * float(wv[1])
+			wv[0].sy = -lerpf(0.2, 1.0, rise * rise * (3.0 - 2.0 * rise)) * float(wv[2]) if wv.size() > 2 else wv[0].sy
+		if v3 and not w.get("blasted", false) and F >= minf(L, Bal.v("ult/sd_blast_x", 480.0)):
+			w["blasted"] = true   # 浪推到尽头（屏边）：浪体炸开成水柱 + 水雾 + 飞溅水珠，浪面 / 水体收掉（只有画面；判定照旧推到 L）
+			_sd_blast_v3(u, o0, d, n, hw, fp, PF.vseed(u, o0) + float(w.t0) * 17.0, col)
+			for wv in w.face:
+				wv[0].max = wv[0].age + 0.12
+			w.fx[0].fill = 0.0
+			w.fx[1].fill = 0.0
+			w["wet_x"] = F
+		if v3:
+			if not w.get("blasted", false) and t >= float(w.spray_t):   # 浪冠飞沫：像素水珠（不画圆点）
+				w.spray_t = t + 0.1
+				var j2: int = int(t * 100.0)
+				for i in 2:
+					var lat4: float = -hw + hw * 2.0 * fposmod(0.23 + 0.41 * float(i) + 0.37 * float(j2), 1.0)
+					PF.particles(u, fp + n * lat4 + d * 10.0, 60, "ult_burst_s", [foam, col], 0.0, float(j2) + i * 3.0, 70.0)
+		elif not w.has("walls") and not w.has("roll") and t >= float(w.spray_t):   # 浪头飞沫（往前溅）
 			w.spray_t = t + 0.07
 			var j: int = int(t * 100.0)
 			for i in 4:
@@ -280,8 +319,11 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			for sp in w.spr:
 				u.shapes.erase(sp[0])
 				a.fx.erase(sp[0])
-			u.shape({"kind": "band", "a": o0 - d * back, "b": o0 + d * L, "w": hw * 2.0, "col": col, "fill": 0.12, "life": 1.5})
-			for i in 5:
+			if w.has("walls"):
+				_sd_walls_end(u, a, w, o0, d, n, hw, col)
+			u.shape({"kind": "band", "a": o0 - d * back, "b": o0 + d * float(w.get("wet_x", L)), "w": hw * 2.0, "col": col.darkened(0.3) if w.has("wet_x") else col,
+				"fill": 0.16 if w.has("wet_x") else 0.12, "life": 1.8 if w.has("wet_x") else 1.5, "layer": "back" if w.has("wet_x") else "front"})   # 湿痕
+			for i in (0 if w.has("face") or w.has("walls") or w.has("roll") else 5):
 				var lat3: float = -hw * 0.8 + hw * 1.6 * float(i) / 4.0
 				u.shape({"kind": "line", "a": o0 + n * lat3 - d * back, "b": o0 + n * lat3 + d * L, "w": 2.0, "col": foam, "life": 1.2})
 	if a.surge and not a.surged and all_done:
@@ -289,9 +331,301 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		var ec: Vector2 = o0 + d * minf(L, 640.0)
 		for e in u.in_circle(ec, 200.0):
 			_hit(u, a, o, e, 0.25, {"src": "涌潮", "edge": e.pos.distance_to(ec) > 170.0})
-		u.strip("fx_skadi_surge", ec, {"sc": 2.6})
-		_ring(u, ec, 200.0, 40.0, foam, 0.4, 10.0)
+		if _sd_v3(u):
+			_sd_blast_v3(u, ec, d, n, 180.0, ec, PF.vseed(u, ec) + 77.0, col, 3)
+		else:
+			u.strip("fx_skadi_surge", ec, {"sc": 2.6})
+			_ring(u, ec, 200.0, 40.0, foam, 0.4, 10.0)
 	return all_done and (not a.surge or a.surged)
+
+
+## ---- 斯卡蒂 pixfx（docs/199 §7.10，开关 ult/sd_fx_v2 缺省 1；0 = 程序白沫带 + 浪头帧条一排版）
+## 审阅 10-30「浪面连续，浪冠错落」：fx_sd_wave 是三条浪面（浪冠白沫在上、深蓝水体在下）横向拼成一张，整道浪宽从一条里截出（连续不断），
+## 前后两层错开（后层换一段、略暗、退后 34），浪冠高低错落；每次按 vseed 挑截取起点 + 镜像。浪推完的水痕不再画 5 条直线
+const SD_WAVE := "fx_sd_wave"
+
+
+static func _sd_v2(u) -> bool:
+	return Bal.v("ult/sd_fx_v2", 1.0) > 0.0 and u.fx_ready(SD_WAVE)
+
+
+## ---- 斯卡蒂新设计（docs/199 §7.12，开关 ult/sd_fx_v3 缺省 1；0 = §7.10 版）。用户 10-30 定：一剑劈出巨浪（身前立起、向前推进横扫，浪冠错落、浪唇连续、带泡沫）
+## → 浪推到尽头紧接水爆（浪体在前方炸开成水柱 + 水雾 + 飞溅水珠，先亮后散，地面留湿痕）。水爆 = fx_sd_blast1–4（按 vseed 挑变体 / 镜像 / 错开），
+## 水珠 / 水雾 = PF.particles 预烘焙粒子帧条着水色；浪推到 ult/sd_blast_x（480，屏内）就炸、浪面收掉，判定照旧推到 L（1500）
+const SD_BLAST := ["fx_sd_blast1", "fx_sd_blast2", "fx_sd_blast3", "fx_sd_blast4"]
+
+
+## ---- 斯卡蒂「劈开浪潮」（docs/199 §7.13，开关 ult/sd_fx_v4 缺省 1；0 = §7.12 推浪 + 水爆版）。用户 10-30：「我要那种劈开浪潮的感觉」
+## 下劈 → 海面沿前方被劈开一道裂口 fx_sd_cleave（近端宽、远端尖，0.22 秒从脚下往前裂出，裂口沿线依次炸起水柱）→
+## 两堵水墙（fx_sd_wall1–2）跟着裂口一路立起、拔高、往两侧退走（摩西分海）→ 露出的地面沿剑痕裂开 → 沿裂缝接连爆开 → 湿痕。
+## 只改画面；判定仍是往前推的矩形浪（时序 / 扫向改法列给协调人）
+const SD_CLEAVE := "fx_sd_cleave"
+
+
+## ---- 斯卡蒂分镜 A「斩浪」（用户 10-31 选 A；docs/199 §7.16；开关 ult/sd_fx_v5 缺省 1，0 = §7.13 劈开浪潮版）：
+## 劈下顿一下 → 身前立起一堵厚卷浪（fx_sd_wall1–2 横跨整条浪宽、浪冠朝前，0.25 秒从 0.3 拔到 3 倍高）→
+## 浪压着往前滚（跟判定浪头走，浪冠前方不断溅水珠 / 水雾）→ 浪头到 ult/sd_crash_x（520，屏内）砸下：顿帧 + 沿浪线 5 处水柱 + 水雾 + 浪墙 0.15 秒收掉 → 劈过的那段留湿痕。
+## 判定 / 时序不动（浪头判定照旧推到 L）
+static func _sd_v5(u) -> bool:
+	return Bal.v("ult/sd_fx_v5", 1.0) > 0.0 and _sd_v3(u) and u.fx_ready("fx_sd_wall1")
+
+
+static func _sd_roll_v5(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, hw: float, T: float) -> void:
+	var vs: float = PF.vseed(u, o0) + float(w.t0) * 29.0
+	w["roll"] = []
+	if a.get("rolled", false):   # 用户 10-31「只有一道巨浪」：跃浪路线第二道不画
+		return
+	a["rolled"] = true
+	for l in [1]:   # 只留一堵（前后两层叠成两条平行带，预审报拼接）
+		var nm := PF.pick(u, SD_WALL, vs * 0.4 + l * 1.3)
+		var t: Texture2D = u._strip_tex(nm)
+		var s: Dictionary = u.strip(nm, o0, {"ang": d.orthogonal().angle(), "o": Vector2(t.get_width() * 0.5, t.get_height() * 0.8), "sc": hw * 2.0 * (1.15 if l == 0 else 1.08) / PF.tex_w(u, nm),
+			"sx": -1.0 if PF.h(vs + l) < 0.5 else 1.0, "sy": -0.3, "life": T + 0.4, "fade": 0.2,
+			"col": Color(0.45, 0.55, 0.72, 0.9) if l == 0 else Color(0.8, 0.85, 0.92, 1.0)})
+		a.fx.append(s)
+		w.roll.append([s, 80.0 if l == 0 else 0.0, 2.4 if l == 0 else 3.0])   # 厚：俯视下浪墙要有体积
+
+
+static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, n: Vector2, hw: float, t: float, F: float, L: float, col: Color, foam: Color) -> void:
+	w.fx[0].fill = 0.0
+	w.fx[1].fill = 0.0
+	if w.get("crashed", false) or w.roll.is_empty():
+		return
+	var fp: Vector2 = o0 + d * F
+	var rise: float = clampf((t - float(w.t0)) / 0.25, 0.0, 1.0)
+	var e: float = rise * rise * (3.0 - 2.0 * rise)
+	for r in w.roll:
+		r[0].c = fp - d * float(r[1])
+		r[0].sy = -lerpf(0.3, float(r[2]), e)
+	if t >= float(w.spray_t):   # 浪冠前方溅水珠（压暗，别糊成白雾）
+		w.spray_t = t + 0.12
+		var j: int = int(t * 100.0)
+		for i in 2:
+			var lat: float = -hw + hw * 2.0 * fposmod(0.21 + 0.37 * float(i) + 0.29 * float(j), 1.0)
+			PF.particles(u, fp + n * lat + d * 30.0, 40, "ult_burst_s", [col, col.darkened(0.3)], 0.0, float(j) + i * 3.0, 60.0)
+	if F >= minf(L, Bal.v("ult/sd_crash_x", 520.0)):
+		w["crashed"] = true   # 用户 10-31「再来个劈开巨浪爆炸收尾」：一道剑光顺着她的朝向把浪从中间劈开 → 两半往两侧分开 → 劈口炸成水柱 / 水雾
+		u.g.vfx.stop(Bal.v("ult/sd_crash_stop", 0.08), "ult", true)
+		u.shape({"kind": "blade", "a": o0 + d * 60.0, "b": fp + d * 140.0, "w": 18.0, "col": Color(0.8, 0.9, 1.0), "glow": col, "grow": 0.03, "life": 0.2})
+		if u.fx_ready(SD_CLEAVE):
+			var ct: Texture2D = u._strip_tex(SD_CLEAVE)
+			u.strip(SD_CLEAVE, fp - d * 120.0, {"layer": "back", "ang": d.angle(), "o": Vector2(0.0, ct.get_height() * 0.47), "sx": 380.0 / PF.tex_w(u, SD_CLEAVE), "sy": 0.6,
+				"rev": 0.08, "rev0": 0.1, "life": 1.2, "fade": 0.6, "col": Color(1.0, 1.0, 1.05), "col1": Color(0.55, 0.65, 0.78), "cold": 0.3})
+		for r in w.roll:
+			_sd_split(u, r[0], n)
+		_sd_blast_v3(u, o0, d, n, hw * 0.45, fp + d * 20.0, PF.vseed(u, o0) + float(w.t0) * 17.0, col, 3)
+		w["wet_x"] = F
+
+
+## 浪墙劈成两半：贴图左右各一半（ux / uw）放回原位，各自往两侧（±n）滑开、略往外转、0.35 秒淡掉；原整条收掉
+static func _sd_split(u, s: Dictionary, n: Vector2) -> void:
+	var t: Texture2D = u._strip_tex(str(s.name))
+	var W: float = t.get_width()
+	var o: Vector2 = s.get("o", Vector2(W * 0.5, t.get_height() * 0.5))
+	var sxs: float = 1.0 if float(s.get("sx", 1.0)) >= 0.0 else -1.0
+	for half in 2:
+		var ux: float = 0.0 if half == 0 else floorf(W * 0.5)
+		var uw: float = floorf(W * 0.5) if half == 0 else W - floorf(W * 0.5)
+		var side: float = (-1.0 if half == 0 else 1.0) * sxs   # 贴图左半在 −n 一侧（镜像时反过来）
+		var h2 := s.duplicate()
+		h2.erase("max")
+		h2.erase("age")
+		h2["ux"] = ux
+		h2["uw"] = uw
+		h2["o"] = Vector2(o.x - ux, o.y)
+		h2["v"] = n * side * 520.0
+		h2["spin"] = side * 0.8
+		h2["life"] = 0.4
+		h2["fade"] = 0.3
+		u.shape(h2)
+	s.max = float(s.age)
+
+
+static func _sd_v4(u) -> bool:
+	return Bal.v("ult/sd_fx_v4", 1.0) > 0.0 and _sd_v3(u) and u.fx_ready(SD_CLEAVE) and u.fx_ready("fx_sd_wall1")
+
+
+static func _sd_clen(a: Dictionary) -> float:
+	return minf(float(a.L), Bal.v("ult/sd_cleave_len", 820.0))
+
+
+## 一处水柱（水爆贴图从小鼓到位、白亮冷成水蓝）+ 水珠；w1 世界宽，dl 延迟
+static func _sd_spout(u, p: Vector2, w1: float, dl: float, sd: float, col: Color, mist := false) -> void:
+	var foam: Color = col.lerp(Color.WHITE, 0.6)
+	var nm := PF.pick(u, SD_BLAST, sd * 0.29)
+	var t: Texture2D = u._strip_tex(nm)
+	var tw: float = PF.tex_w(u, nm)
+	u.strip(nm, p, {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.95), "sc": w1 * 0.4 / tw, "sc1": w1 / tw, "scd": 0.22, "sx": -1.0 if PF.h(sd * 7.0) < 0.5 else 1.0,
+		"life": 0.8, "fade": 0.45, "delay": dl, "col": Color(0.96, 0.99, 1.03), "col1": Color(col.r * 0.85, col.g * 0.9, col.b, 0.9), "cold": 0.25})   # 起始压暗、快冷（预审报合拢水柱发白）
+	PF.particles(u, p - Vector2(0, 30.0), 100, "ult_burst_s", [foam, col], dl + 0.02, sd, w1 * 0.6)
+	if mist:
+		PF.particles(u, p - Vector2(0, 50.0), 100, "ult_ember", [Color(foam, 0.7)], dl + 0.12, sd + 5.0, w1 * 0.5)
+
+
+## 劈开：裂口从脚下往前裂出（rev），沿线依次炸起 6 处水柱；冷光一闪
+static func _sd_cleave_v4(u, a: Dictionary, o0: Vector2, d: Vector2, n: Vector2, col: Color) -> void:
+	var vs: float = PF.vseed(u, o0)
+	var Lc: float = _sd_clen(a)
+	var t: Texture2D = u._strip_tex(SD_CLEAVE)
+	var sx: float = Lc / PF.tex_w(u, SD_CLEAVE)
+	var rv: float = 0.22
+	u.strip(SD_CLEAVE, o0 + d * 20.0, {"layer": "back", "ang": d.angle(), "o": Vector2(0.0, t.get_height() * 0.47), "sx": sx, "sy": (1.0 if PF.h(vs) < 0.5 else -1.0) * 0.75,
+		"rev": rv, "rev0": 0.05, "life": 1.5, "fade": 0.8, "col": Color(1.05, 1.05, 1.1), "col1": Color(0.6, 0.68, 0.78), "cold": 0.35})   # 窄一点、快冷：横向泡沫纹放大后像条纹
+	u.g.vfx.stop(Bal.v("ult/sd_part_stop", 0.1), "ult", true)   # 劈下那一下顿住
+	u.light(o0 + d * Lc * 0.4, Lc * 0.6, col.lerp(Color.WHITE, 0.4), 0.25)
+	for k in 6:
+		var x: float = Lc * (k + 0.4 + 0.3 * PF.h(vs + k)) / 6.0
+		var sg: float = 1.0 if k % 2 == 0 else -1.0
+		_sd_spout(u, o0 + d * x + n * sg * (18.0 + 30.0 * PF.h(vs + k * 3.0)), 120.0 + 70.0 * PF.h(vs + k * 5.0) * (1.0 - 0.5 * x / Lc), rv * x / Lc, vs + k * 2.3, col, k % 2 == 0)
+
+
+## 两堵水墙（用户 10-31「一剑劈下，然后海水被劈开往两边走，然后再是剑劈下带来的裂地和爆炸」）：fx_sd_wall1–2（一整条浪唇，中间最高、两端收细成水沫）
+## 摆成楔形：远端剑痕尽头两墙连在一起（楔尖一团翻涌白沫），近端（她脚下）一路往两侧张开到 1.2 hw；浪冠朝外，跟着裂口一路立起（rev 0.3 秒）、拔到 1.8 倍高，最后淡掉（不合拢）。
+## 海水退开后（0.35 T）露出的地面沿剑痕裂开：深海青分叉裂缝（fx_ul_crack_fork 组，同乌尔比安）主缝顺劈向 + 6 条斜岔，先亮后冷；
+## 0.55 T 起沿裂缝从近到远 5 处接连爆开（碎石崩起 + 冷白粒子 + 小水柱 + 冷光，第一下顿帧）。每侧一堵，变体按哈希
+const SD_WALL := ["fx_sd_wall1", "fx_sd_wall2"]
+const SD_FORKS := ["fx_ul_crack_fork", "fx_ul_crack_fork2", "fx_ul_crack_fork3", "fx_ul_crack_fork4"]
+const SD_CRACK_HOT := Color(0.85, 1.0, 1.0)
+const SD_CRACK_COLD := Color(0.3, 0.42, 0.5)
+
+
+static func _sd_walls_v4(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, T: float) -> void:
+	var Lc: float = _sd_clen(a)
+	var vs: float = PF.vseed(u, o0) + float(w.t0) * 31.0
+	w["walls"] = []
+	if a.get("walled", false):   # 跃浪第二道：只劈开一次（两组水墙叠成一条条横纹）
+		return
+	a["walled"] = true
+	w["vs"] = vs
+	w["booms"] = []
+	for q in 5:   # 爆点：沿裂缝从近到远，时刻按 k
+		var hh: float = PF.h(vs + q * 2.9)
+		w.booms.append([Lc * (q + 0.3 + 0.4 * hh) / 5.0, 0.55 + 0.07 * q, (hh - 0.5) * 50.0])
+	for side in [1.0, -1.0]:
+		var nm := PF.pick(u, SD_WALL, vs * 0.4 + side * 1.3)
+		var t: Texture2D = u._strip_tex(nm)
+		var s: Dictionary = u.strip(nm, o0, {"ang": d.angle(), "o": Vector2(0.0, t.get_height() * 0.3), "sc": Lc * 1.05 / PF.tex_w(u, nm),
+			"sy": side * 0.3, "rev": 0.3, "rev0": 0.05, "life": T * 0.95, "fade": 0.3, "col": Color(0.86, 0.9, 0.95, 1.0)})
+		a.fx.append(s)
+		w.walls.append([s, side, 0.0, -30.0, 1.0])
+
+
+static func _sd_walls_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, n: Vector2, hw: float, t: float, k: float, col: Color, foam: Color) -> void:
+	if w.walls.is_empty():
+		w.fx[0].fill = 0.0
+		w.fx[1].fill = 0.0
+		return
+	var Lc: float = _sd_clen(a)
+	var off: float = hw * (0.05 + 1.15 * (1.0 - pow(1.0 - k, 2.2)))   # 近端（她脚下）一路往两侧张开（先快后缓）
+	var rise: float = clampf((t - float(w.t0)) / 0.25, 0.0, 1.0)
+	var hk: float = lerpf(0.3, 1.8, rise * rise * (3.0 - 2.0 * rise))
+	var tip: Vector2 = o0 + d * Lc   # 楔形：远端剑痕尽头两墙连在一起（用户 10-31「被劈开的海浪之间得连在一起」）
+	for wl in w.walls:
+		var side: float = wl[1]
+		var near: Vector2 = o0 + d * float(wl[3]) + n * side * off
+		var v: Vector2 = tip - near
+		var ln: float = v.length()
+		v /= ln
+		wl[0].c = near
+		wl[0].ang = v.angle()
+		wl[0].sc = ln * 1.04 / PF.tex_w(u, str(wl[0].name))
+		wl[0].sy = hk * (1.0 if v.rotated(-PI * 0.5).dot(n * side) > 0.0 else -1.0)   # 浪冠朝外
+	w.fx[0].fill = 0.0
+	w.fx[1].fill = 0.0   # 不画矩形湿底（像素扫描线画出来是一条条横纹，预审报拼接）
+	if t >= float(w.get("wspray_t", 0.0)) and k < 0.85:   # 墙顶水雾往上冒 + 飞沫；楔尖两墙相接处一团翻涌白沫
+		w["wspray_t"] = t + 0.08
+		var j: int = int(t * 100.0)
+		if t - float(w.t0) > 0.2:
+			PF.particles(u, tip, 60, "ult_burst_s", [foam, col], 0.0, float(j) + 9.0, 80.0)
+			if j % 3 == 0:
+				PF.particles(u, tip - Vector2(0, 20.0), 60, "ult_ember", [Color(foam, 0.75)], 0.0, float(j) + 11.0, 100.0)
+		for side in [1.0, -1.0]:
+			var fx: float = fposmod(0.21 + 0.37 * float(j) + 0.5 * side, 1.0) * minf(1.0, (t - float(w.t0)) / 0.3)
+			var x: float = Lc * fx
+			var p: Vector2 = o0 + d * x + n * side * (off * (1.0 - fx) + 6.0)
+			PF.particles(u, p, 60, "ult_ember", [Color(foam, 0.75)], 0.0, float(j) + side * 3.0, 90.0)
+			if j % 2 == 0:
+				PF.particles(u, p, 60, "ult_burst_s", [foam, col], 0.0, float(j) + side * 5.0, 60.0)
+	var vs: float = w.vs
+	if k >= 0.35 and not w.get("cracked", false):   # 海水退开：露出的地面沿剑痕裂开
+		w["cracked"] = true
+		PF.cracks(u, SD_FORKS, o0 + d * 10.0, [d.angle()], [Lc * 1.02], {"seed": vs, "rev": 0.2, "rev0": 0.1, "life": 2.0, "fade": 0.8, "big": 1.0, "small": 1.0,
+			"col": SD_CRACK_HOT, "col1": SD_CRACK_COLD, "cold": 0.8, "delay": 0.0})
+		for q in 6:   # 斜岔：沿主缝错开起点、两侧交替、长短 / 角度按哈希
+			var hh: float = PF.h(vs + q * 4.1)
+			var side: float = 1.0 if q % 2 == 0 else -1.0
+			var x: float = Lc * (q + 0.3 + 0.5 * hh) / 6.5
+			PF.cracks(u, SD_FORKS, o0 + d * x, [d.angle() + side * (0.35 + 0.6 * PF.h(hh * 3.0))], [120.0 + 160.0 * PF.h(hh * 5.0)],
+				{"seed": vs + q * 3.0, "rev": 0.18, "rev0": 0.1, "life": 1.8, "fade": 0.7, "big": 0.7, "small": 0.5, "col": SD_CRACK_HOT, "col1": SD_CRACK_COLD, "cold": 0.7,
+				"delay": 0.2 * x / Lc})
+		u.light(o0 + d * Lc * 0.5, Lc * 0.5, SD_CRACK_HOT, 0.2)
+	for b in w.booms:   # 沿裂缝接连爆开
+		if b.size() > 3 or k < float(b[1]):
+			continue
+		b.append(true)
+		var p: Vector2 = o0 + d * float(b[0]) + n * float(b[2])
+		var first: bool = b == w.booms[0]
+		if first:
+			u.g.vfx.stop(Bal.v("ult/sd_boom_stop", 0.1), "ult", true)
+		u.light(p, 260.0, foam, 0.25)
+		PF.particles(u, p, 300, "ult_burst", [Color(0.85, 0.95, 1.0), col], 0.0, vs + float(b[0]), 230.0)
+		PF.aftershock(u, p, 110.0, vs + float(b[0]) * 0.1, 0.0, 7, Color(0.75, 0.85, 0.9))
+		PF.heave(u, p, 90.0, vs + float(b[0]) * 0.3, 0.02, Color(0.75, 0.85, 0.9), 70.0)
+		_sd_spout(u, p, 150.0, 0.03, vs + float(b[0]) * 0.07, col, true)
+
+
+## 浪过：湿痕只留在劈开的那一段
+static func _sd_walls_end(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, n: Vector2, hw: float, col: Color) -> void:
+	w["wet_x"] = _sd_clen(a)
+
+
+static func _sd_v3(u) -> bool:
+	return Bal.v("ult/sd_fx_v3", 1.0) > 0.0 and _sd_v2(u) and u.fx_ready(SD_BLAST[0])
+
+
+## 水爆：沿浪线 m 处水柱（变体 / 镜像 / 大小 / 时刻按哈希错开）从小鼓到大、白亮冷成水蓝、淡出；每处水珠 + 上飘水雾 + 湿痕；整排一下冷光 + 短顿帧
+static func _sd_blast_v3(u, c0: Vector2, d: Vector2, n: Vector2, hw: float, fp: Vector2, vs: float, col: Color, m := 5) -> void:
+	u.g.vfx.stop(Bal.v("ult/sd_hitstop", 0.06), "ult", true)
+	var foam: Color = col.lerp(Color.WHITE, 0.6)
+	u.light(fp, hw * 1.3, foam, 0.3)
+	for i in m:
+		var hh: float = PF.h(vs + i * 2.7)
+		var lat: float = -hw * 0.85 + hw * 1.7 * (i + 0.2 + 0.6 * hh) / m if m > 1 else 0.0
+		var p: Vector2 = fp + n * lat + d * (20.0 + 50.0 * PF.h(hh * 9.0))
+		var nm := PF.pick(u, SD_BLAST, vs * 0.29 + i * 1.7)
+		var t: Texture2D = u._strip_tex(nm)
+		var tw: float = PF.tex_w(u, nm)
+		var w1: float = (180.0 + 80.0 * PF.h(hh * 5.0)) * (hw * 2.0 / 920.0 if m < 5 else 1.0)
+		var dl: float = 0.05 * PF.h(hh * 3.0) + 0.03 * i
+		u.strip(nm, p, {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.95), "sc": w1 * 0.45 / tw, "sc1": w1 / tw, "scd": 0.28, "sx": -1.0 if PF.h(hh * 7.0) < 0.5 else 1.0,
+			"life": 0.95, "fade": 0.55, "delay": dl, "col": Color(1.12, 1.12, 1.16), "col1": Color(col.r * 0.9, col.g * 0.95, col.b, 0.9), "cold": 0.4})
+		PF.particles(u, p - Vector2(0, 40.0), 200, "ult_burst_s" if i % 2 == 1 else "ult_burst", [col.lerp(foam, 0.4), col.darkened(0.2)], dl + 0.02, vs + i * 3.0, 130.0 if i % 2 == 1 else 190.0)   # 压暗（白色大团糊成一片）
+		if i % 2 == 0:
+			PF.particles(u, p - Vector2(0, 60.0), 100, "ult_ember", [Color(col.lerp(foam, 0.5), 0.45)], dl + 0.15, vs + i * 5.0, 100.0)   # 水雾：慢、上飘
+		u.shape({"kind": "circle", "c": p, "r": w1 * 0.4, "col": col.darkened(0.45), "fill": 0.28, "life": 1.8, "delay": dl + 0.1, "layer": "back"})   # 湿痕
+
+
+static func _sd_face_v2(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, hw: float, T: float) -> void:
+	var t: Texture2D = u._strip_tex(SD_WAVE)
+	var kk: float = PF.tex_w(u, SD_WAVE) / t.get_width()
+	var bw: float = t.get_width() / 3.0   # 三条浪面横向拼在一张里，每条 bw 宽，截取不跨条
+	var uw: float = 2.0 * hw / kk
+	var sc: float = 1.0
+	if uw > bw:   # 浪比一条贴图宽：整体放大铺满
+		sc = uw / bw
+		uw = bw
+	var vs: float = PF.vseed(u, o0) + float(w.t0) * 31.0
+	var fh: float = t.get_height()
+	w["face"] = []
+	var nl: int = 3 if _sd_v3(u) else 2
+	for l in nl:   # l 0 = 后层（略暗、退后），1 = 前层；v3 多一层中层（再退后、更淡、高度 0.8），浪冠三层错落
+		var lay: int = [0, 1, 2][l] if nl == 3 else l
+		var hk: float = [1.0, 1.0, 0.8][lay]
+		var s: Dictionary = u.strip(SD_WAVE, o0, {"ang": d.orthogonal().angle(), "o": Vector2(0.0, fh * 0.12), "sc": sc, "sx": 1.0, "sy": -hk,
+			"ux": floorf(int(PF.h(vs * 0.7 + l * 3.1) * 3.0) % 3 * bw + PF.h(vs + l * 5.3) * maxf(0.0, bw - uw)), "uw": uw, "life": T + 0.2, "fade": 0.18,
+			"col": [Color(0.66, 0.74, 0.84, 0.85), Color(0.84, 0.88, 0.93, 1.0), Color(0.6, 0.7, 0.82, 0.6)][lay]})   # 白沫压暗（预审 10-30 报浪冠发白）
+		a.fx.append(s)
+		w.face.append([s, [34.0, 0.0, 70.0][lay], hk])
 
 
 # ================================================================ 歌蕾蒂娅（§4.7）：海渊漩涡把半径 560 的敌人拖向中心 → 收拢一砸 → 停住 → 潮水从中心爆开

@@ -4,6 +4,7 @@ extends RefCounted
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Bal = preload("res://scripts/core/balance.gd")
+const UM = preload("res://scripts/ui_motion.gd")
 var g: Game
 var stinger_done := false
 var lamp_prev := 100.0          # 上一帧灯火：战斗中降到 0 那一刻播 lamp_empty
@@ -36,6 +37,8 @@ func update(_dt: float) -> void:
 		target = 1800.0
 	if g.hurt_duck > 0.0:
 		target = minf(target, Bal.v("fx/hurt_duck_hz", 900.0))   # 重击闷音（combat.hurt 写，docs/53）
+	if g.ult != null and UM.now() < float(g.ult.hush_until):
+		target = minf(target, 400.0)   # 逻各斯终结技：配乐闷成一片寂静（用户 10-31「时空暂停的感觉」）
 	Sfx.cut_target = target
 	Sfx.view = g.world.view_rect(0.0) if g.state == g.S.PLAY and g.world != null else Rect2()   # 带位置的音效按离画面多远降音量（Sfx.play_at）
 	if g.state == g.S.PLAY and lamp_prev > 0.0 and g.lamp <= 0.0:
@@ -43,7 +46,7 @@ func update(_dt: float) -> void:
 	lamp_prev = g.lamp
 	if g.state != g.S.PLAY:
 		Sfx.loop_stop("ulp_charge_loop")   # 暂停 / 选卡 / 倒下时蓄力循环音别一直响（doctor.tick_input 不跑）
-	Sfx.vol_target = -4.0
+	Sfx.vol_target = -4.0 if g.ult == null or UM.now() >= float(g.ult.hush_until) else -26.0
 	# ---- 选曲与战斗分层（v2.0 配乐，docs/21）
 	if g.state == g.S.DEAD or g.state == g.S.WIN:
 		# 灯灭：过渡被跳过（state_age 直接跳到 DEATH_T）就不播，免得在结算面板上响
