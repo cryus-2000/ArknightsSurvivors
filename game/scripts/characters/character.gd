@@ -977,14 +977,14 @@ func deep_cards() -> Array:
 			for c in chs:
 				var cd: Dictionary = chs[c]
 				out.append({"kind": "prog", "op": id, "choice": c, "name": "%s · %s" % [n.get("name", "精英化"), cd.get("name", c)],
-					"desc": cd.get("desc", n.get("desc", "")), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
+					"desc": cd.get("desc", n.get("desc", "")), "brief": cd.get("brief", ""), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
 		else:
 			n = node_view(n)   # 节点 5：按已选路线的名字 / 说明 / 图标
 			var req_txt := node_requires_text(n)
 			# 普通节点另带统一的攻击 +6%（NODE_ATK，advance()）：写在卡面说明末尾，免得这部分成长看不见
 			var node_atk: String = ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))) if n.get("type", "") != "elite" else ""
 			out.append({"kind": "prog", "op": id, "choice": "", "name": "%s · %s" % [display_name(), n.get("name", "成长 " + stage_txt)],
-				"desc": n.get("desc", "") + node_atk + (("\n条件：%s（已满足）" % req_txt) if req_txt != "" and avail else ""), "icon": n.get("icon", ""), "avail": avail, "req": req_txt, "elite": n.get("level", 0)})
+				"desc": n.get("desc", "") + node_atk + (("\n条件：%s（已满足）" % req_txt) if req_txt != "" and avail else ""), "brief": n.get("brief", ""), "icon": n.get("icon", ""), "avail": avail, "req": req_txt, "elite": n.get("level", 0)})
 	out.append_array(extra_cards())
 	return out
 

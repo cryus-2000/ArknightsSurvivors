@@ -202,6 +202,7 @@ func open() -> void:
 				sel = Vector2i(i, k)
 				found = true
 	reset_armed = false
+	card_hide = Cfg.phone_ui()   # D4：手机详情条缺省收起（以前盖住下半屏节点），左下「详情」标签点开
 	lit_id = ""
 	open_t0 = t
 	follow = true
@@ -827,9 +828,18 @@ func _draw_labels(ci: CanvasItem) -> void:
 		var ps := "%d/%d" % [done, ch.size()]
 		TUI.ptext(ci, c, d + Vector2(-TUI.ptext_w(c, ps, 1.0) / 2.0, 13.0), ps, 1.0, Color(T_SUB, 0.75 * g))
 	# 星名 + 消耗：按布局 lside 摆在星的 右 / 左 / 下 / 上（layout.py 选的避开连线的那边）
+	# 手机（11-01 docs/211 D4）：整页缩到约 0.84，13 号编号只剩 10 像素、满屏编号也挤——只写选中节点和同一条线上相邻的节点，字号抬到 16
+	var ph: bool = Cfg.phone_ui()
+	var fs_n: int = 16 if ph else 13
+	var fs_s: int = 17 if ph else 14
+	var pk: float = 2.0 if ph else 1.5
 	var sides: Dictionary = lay.get("lside", {})
-	for ch in chains:
-		for id: String in ch:
+	for ci_ in chains.size():
+		var ch: Array = chains[ci_]
+		for k_ in ch.size():
+			var id: String = ch[k_]
+			if ph and not (ci_ == sel.x and absi(k_ - sel.y) <= 1):
+				continue
 			var g := _appear(id)
 			if g <= 0.0:
 				continue
@@ -841,9 +851,9 @@ func _draw_labels(ci: CanvasItem) -> void:
 			var col := T_ON if st == "on" or st == "ok" else (T_POOR if st == "poor" else T_LOCK)
 			var sel_on := id == sid
 			var nm := str(Meta.nodes()[id].name) if sel_on else _short(id)
-			var nw := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 14 if sel_on else 13).x + (20.0 if sel_on else 0.0)
+			var nw := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_s if sel_on else fs_n).x + (20.0 if sel_on else 0.0)
 			var cost := "" if st == "on" else str(int(Meta.nodes()[id].cost))
-			var w := nw + (14.0 + TUI.ptext_w(c, cost, 1.5) if cost != "" else 0.0)
+			var w := nw + (14.0 + TUI.ptext_w(c, cost, pk) if cost != "" else 0.0)
 			var np := Vector2(d.x + r + 6.0, d.y - 9.0)
 			match str(sides.get(id, "r")):
 				"l":
@@ -853,15 +863,15 @@ func _draw_labels(ci: CanvasItem) -> void:
 				"t":
 					np = Vector2(d.x - w / 2.0, d.y - r - 22.0)
 			if sel_on:   # 选中：黄色名牌写全名
-				HS.para(ci, Rect2(np.x, np.y - 1.0, nw, 21.0), HS.YEL)
-				UI.text_at(ci, font, Vector2(np.x + nw / 2.0, np.y + 9.5), nm, 14, HS.INK, "mm", true)
+				HS.para(ci, Rect2(np.x, np.y - 1.0, nw, 21.0 if not ph else 25.0), HS.YEL)
+				UI.text_at(ci, font, Vector2(np.x + nw / 2.0, np.y + (9.5 if not ph else 11.5)), nm, fs_s, HS.INK, "mm", true)
 			else:
-				_txt(ci, np, nm, 13, UI.fa(col, g), "la")
+				_txt(ci, np, nm, fs_n, UI.fa(col, g), "la")
 			if cost != "":
 				var cc := C_YEL if st == "ok" else col
 				var cx := np.x + nw + 6.0
 				TUI.pdiamond(ci, c, Vector2(cx + 2.0, np.y + 9.0), 2, TUI.cell(c, 1.0), UI.fa(cc, g))
-				TUI.ptext(ci, c, Vector2(cx + 8.0, np.y + 9.0), cost, 1.5, UI.fa(cc, g))
+				TUI.ptext(ci, c, Vector2(cx + 8.0, np.y + 9.0), cost, pk, UI.fa(cc, g))
 
 
 func _draw_chrome(ci: CanvasItem) -> void:
@@ -906,7 +916,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 		hint = "点节点选中 · 再点塑造" + (" · 拖动平移" if pan else "")
 	else:
 		hint = Pad.hint("方向键 选择  ·  Enter 塑造  ·  Z 详情" + ("  ·  拖动 平移" if pan else ""), "十字键 选择  ·  Ⓐ 塑造  ·  Ⓧ 详情", "")
-	UI.text_at(ci, font, Vector2(24, 84), hint, 12, UI.fa(T_SUB, 0.85))
+	UI.text_at(ci, font, Vector2(24, 84), hint, 15 if Cfg.phone_ui() else 12, UI.fa(T_SUB, 0.85))   # D4：手机 12 号只剩 10 像素
 
 
 ## 详情卡。桌面：左下浅色档案卡（左黄条、右上切角、「NODE // 认知节点」、组色标签、名称、效果大字、质变、本线进度、状态、塑造按钮），

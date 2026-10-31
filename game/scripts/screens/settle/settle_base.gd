@@ -225,7 +225,7 @@ func btn_text(id: String) -> String:
 		"runs": return "对局记录"
 		"title": return "返回主界面  B" if pad else ("返回主界面" if tch else "返回主界面  Esc")
 		"meta": return "认知塑造  Y" if pad else ("认知塑造" if tch else "认知塑造  X")
-		"hunt": return ("寻访 ×%d  A" if pad else ("寻访 ×%d" if tch else "寻访 ×%d  Enter")) % Roster.tickets()
+		"hunt": return ("寻访（持有 %d）  A" if pad else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets()   # 11-01 docs/211 D14：写明持有数
 	return id
 
 

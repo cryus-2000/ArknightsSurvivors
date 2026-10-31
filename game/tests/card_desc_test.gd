@@ -112,6 +112,9 @@ func _collect(v, src: String, out: Array) -> void:
 	if v is Dictionary:
 		if v.get("desc") is String and str(v.desc) != "":
 			out.append(["%s · %s" % [src, v.get("name", v.get("id", ""))], str(v.desc)])
+		if v.get("brief") is String and str(v.brief) != "":   # 手写一句话（docs/211 D5）：占位填好、不是半截、不比全文长
+			var bf: String = str(v.brief)
+			ok(not (bf.contains("{") and bf.contains("}")) and game.panel_ui.brief_whole(bf) and bf.length() <= 32, "%s · %s 手写 brief 不合规：「%s」" % [src, v.get("name", ""), bf])
 		for k in v:
 			if v[k] is Dictionary or v[k] is Array:
 				_collect(v[k], src, out)

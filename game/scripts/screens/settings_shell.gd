@@ -22,18 +22,18 @@ static func draw(p: Control) -> void:
 	p.draw_colored_polygon(PackedVector2Array([Vector2(r.position.x, top), Vector2(r.position.x + rail, top), Vector2(r.position.x + rail - 38, bottom), Vector2(r.position.x, bottom)]), white)
 	UI.text(p, p.font, r.position + Vector2(24, 31), "设置", 18, UI.TEXT)
 	UI.en(p, p.font, r.position + Vector2(124, 30), "SYSTEM / CONFIGURATION", 9, UI.SUB, 1.0)
-	p.close_rect = Rect2(r.end.x - 118, r.position.y + 2, 110, 44)
-	var ck := "" if Pad.using else "ESC"
-	UI.text(p, p.font, p.close_rect.position + Vector2(UI.key_shift(ck, 16.0), 29), "返回", 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 110)
-	UI.btn_key(p, p.font, p.close_rect, ck, UI.SUB, 10, 6.0)   # 10-31 TA H7
-	UI.text(p, p.font, Vector2(r.position.x + 24, top + (32 if compact else 60)), "系统设置", 30, ink)
-	UI.en(p, p.font, Vector2(r.position.x + 24, top + (52 if compact else 86)), "CONFIGURATION", 11, Color("5a636e"), 1.0)
+	# 11-01 docs/211 D3 / D13：有底栏的页「返回」只放底栏（顶栏只写标题），顶栏右上不再重复一枚
+	p.close_rect = Rect2()
+	var ph: bool = Cfg.phone_ui()
+	if not ph:   # 手机：顶栏已写「设置」，左栏大标题去掉，分类页签往上提
+		UI.text(p, p.font, Vector2(r.position.x + 24, top + (32 if compact else 60)), "系统设置", 30, ink)
+		UI.en(p, p.font, Vector2(r.position.x + 24, top + (52 if compact else 86)), "CONFIGURATION", 11, Color("5a636e"), 1.0)
 	var tabs: Array = p._tabs()
 	p.tab_rects.resize(tabs.size())
 	var order: Array = [1, 0, 2]
 	if tabs.size() > 3:
 		order.append(3)
-	var rail_top: float = 64 if compact else 132
+	var rail_top: float = (16.0 if ph else 64.0) if compact else (40.0 if ph else 132.0)
 	var spacing: float = maxf(46, minf(88, (bottom - top - rail_top) / order.size()))
 	for slot in order.size():
 		var index: int = order[slot]
@@ -57,4 +57,6 @@ static func draw(p: Control) -> void:
 
 	p.footer_rect = Rect2(r.end.x - 158, bottom + 6, 146, 44)
 	p.draw_rect(p.footer_rect, UI.CYAN)
-	UI.text(p, p.font, p.footer_rect.position + Vector2(0, 29), "返回", 20, ink, HORIZONTAL_ALIGNMENT_CENTER, p.footer_rect.size.x)
+	var ck := "" if Pad.using else "ESC"
+	UI.text(p, p.font, p.footer_rect.position + Vector2(UI.key_shift(ck, 16.0), 29), "返回", 20, ink, HORIZONTAL_ALIGNMENT_CENTER, p.footer_rect.size.x)
+	UI.btn_key(p, p.font, p.footer_rect, ck, ink, 10, 8.0)

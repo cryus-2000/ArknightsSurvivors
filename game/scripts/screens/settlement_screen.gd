@@ -266,7 +266,7 @@ func _buttons() -> Array:
 		out.append(["runs", 206, 150, "对局记录", false])
 	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
-	out.append(["hunt", 910, 342, ("寻访 ×%d  A" if Pad.using else ("寻访 ×%d" if tch else "寻访 ×%d  Enter")) % Roster.tickets(), Roster.tickets() > 0])
+	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.tickets() > 0])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读
 	return out
 
 
@@ -689,7 +689,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 		if b.size() <= 5:
 			r.position.y += 80.0 * (1.0 - fp)
 		var primary: bool = b[4]
-		var text_btn: bool = id == "records" or id == "runs"
+		var text_btn: bool = (id == "records" or id == "runs") and not ph   # 11-01 docs/211 D14：手机上无底色的 16 号文字按钮太小，改成同款按钮、同字号
 		var hov: bool = hover == id
 		var foc: bool = focus == i
 		var prs: bool = press_id == id

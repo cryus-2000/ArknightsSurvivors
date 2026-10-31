@@ -4,6 +4,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")   # 按键牌（UI.btn_key，10-31 TA H7）
 const Ocean = preload("res://scripts/screens/difficulty_ocean.gd")
+const Settle = preload("res://scripts/screens/settlement_screen.gd")   # 评级用时线 GRADE_FAST
 const COLORS := [Color("38d6f0"), Color("ffce00"), Color("ef727d")]
 const BG := Color("13171e")
 const INK := Color("111318")
@@ -117,8 +118,8 @@ func draw(host: Control, vs: Vector2) -> void:
 	rule(host,46,28,1252)
 	text(host,font,32,12,"‹   选择难度",18)
 	text(host,font,212,19,"OPERATION / SURVEY",10,MUTED)
-	text(host,font,1135,14,"返回",15)
-	UI.btn_key(host,font,Rect2(1175,12,60,24),"" if Pad.using else "ESC", MUTED, 10, 0.0)   # 10-31 TA H7：键名不夹在按钮文字里，「返回」右边一个按键牌
+	# 11-01 docs/211 D2 / D13：「返回」只留底栏左端，顶栏右上只放档位页码
+	text(host,font,1176,14,"%02d / %02d" % [tier+1, D.DIFF_PRESETS.size()],15,MUTED)
 	rect(host,Rect2(0,48,267,606),WHITE)
 	text(host,font,30,78,"探索深度",36,INK)
 	text(host,font,32,132,"DEPTH / SELECT",12,Color("5c616a"))
@@ -126,7 +127,7 @@ func draw(host: Control, vs: Vector2) -> void:
 	host.draw_line(Vector2(58,239),Vector2(58,559),Color("9da5ae"),2)
 	for y in range(239,560,10):
 		host.draw_line(Vector2(48,y),Vector2(58,y),Color("9da5ae"),2)
-	var hits := {"back": Rect2(20,664,200,48), "top_back": Rect2(1100,0,160,46), "growth":Rect2(290,664,250,48), "go":Rect2(915,666,337,46)}
+	var hits := {"back": Rect2(20,664,200,48), "growth":Rect2(290,664,250,48), "go":Rect2(915,666,337,46)}
 	for i in D.DIFF_PRESETS.size():
 		var y := 251 + i*135
 		var active := i == tier
@@ -161,8 +162,9 @@ func draw(host: Control, vs: Vector2) -> void:
 	text(host,font,305,562,hint,15,MUTED)
 	text(host,font,305,602,"结算系数",13,MUTED)
 	text(host,font,410,586,"×%.2f" % float(preset.factor),29,col)
-	text(host,font,628,602,"通关评级",13,MUTED)
+	text(host,font,628,602,"最高评级",13,MUTED)
 	text(host,font,743,586,["S","SS","SSS"][tier],29)
+	text(host,font,628,628,"无人倒地且 %d:%02d 内通关" % [int(Settle.GRADE_FAST) / 60, int(Settle.GRADE_FAST) % 60],11,Color("5c616a"))
 	rect(host,Rect2(902,48,378,606),Color("1b2029"))
 	rect(host,Rect2(902,48,4,107),col)
 	text(host,font,935,81,"行动条件",27)
@@ -178,11 +180,12 @@ func draw(host: Control, vs: Vector2) -> void:
 	rule(host,565,935,1244)
 	text(host,font,936,590,"本档通关",16,MUTED)
 	var best: Dictionary = Cfg.diff_best.get(str(tier),{})
-	text(host,font,1130,576,"%02d" % int(best.get("wins",0)),39)
+	text(host,font,1130,576,"%d" % int(best.get("wins",0)),39)
 	text(host,font,1200,608,"次",13,MUTED)
 	rect(host,Rect2(0,654,1280,66),INK)
 	rule(host,654,28,1252)
 	text(host,font,31,680,"返回",17,MUTED)   # 10-31 TA H7：键名不夹在按钮文字里
+	UI.btn_key(host,font,Rect2(78,679,48,24),"" if Pad.using else "ESC", MUTED, 10, 0.0)
 	text(host,font,304,678,"认知塑造",19)
 	UI.btn_key(host,font,Rect2(392,679,40,24),"" if Pad.using else "X", MUTED, 10, 0.0)
 	rect(host,hits.go,Color("39414e") if locked else COLORS[0])

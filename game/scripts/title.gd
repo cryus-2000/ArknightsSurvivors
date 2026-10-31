@@ -588,12 +588,18 @@ func _process_main(delta: float) -> void:
 				if loading.done():
 					A.mark("title_leave")
 					get_tree().change_scene_to_file("res://game.tscn")
-	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun and not is_instance_valid(_game_warm):
-		loading.finish()
-		if loading.done():
-			auto_go = false
-			A.mark("title_leave")
-			get_tree().change_scene_to_file("res://game.tscn")
+	elif auto_go:
+		# 自测进局同玩家路径最多等 60 秒（11-01：网页测量副本 --autotest --bossacts 三次都停在载入页 700–1500 秒、没进局；玩家路径一直有这道上限）
+		if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or not _op_warm_begun or is_instance_valid(_game_warm)) and wait_t < 60.0:
+			wait_t += delta
+		else:
+			if wait_t >= 60.0:
+				print("PF AUTOGO 载入页等满 60 秒：prewarm=%s sfx=%s op=%s shader=%s" % [A.prewarm_busy(), Sfx.warm_busy(), _op_warm_more, is_instance_valid(_game_warm)])
+			loading.finish()
+			if loading.done():
+				auto_go = false
+				A.mark("title_leave")
+				get_tree().change_scene_to_file("res://game.tscn")
 	queue_redraw()
 
 
@@ -855,10 +861,12 @@ func _draw_menu(vs: Vector2) -> void:
 	var lg: Dictionary = menu_lay.legal
 	var ph: bool = menu_lay.compact
 	var tc := TUI.ctx(self)
-	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges() if not ph else "同人作品 · 与鹰角网络无关 · 致谢与声明"
-	var fs := 12 if not ph else 11
+	# 11-01 docs/211 D1：手机底栏只留「设置 / 操作说明 / 退出 / 致谢与声明」四个入口，同字号；声明全文与版本号在致谢页
+	var fk: float = menu_lay.foot.k
+	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges() if not ph else "致谢与声明"
+	var fs := 12 if not ph else int(round(15 * fk))
 	var fw: float = font.get_string_size(ftxt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var vw := TUI.ptext_w(tc, "V2.0", 1.0)
+	var vw: float = TUI.ptext_w(tc, "V2.0", 1.0) if not ph else -12.0
 	var fx: float = lg.pos.x - fw - 12.0 - vw if lg.align == "r" else lg.pos.x
 	var fy: float = lg.pos.y
 	credits_rect = Rect2(fx - 6, fy - 18, fw + 12, 26)
@@ -866,8 +874,15 @@ func _draw_menu(vs: Vector2) -> void:
 		credits_rect = Rect2()   # 窄屏放不下：只留键盘 C / 手柄 Ⓨ 入口（设置页也能进）
 	elif ff > 0.0:
 		var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-		UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(Color(0.616, 0.898, 0.937) if cr_hover else Color(0.45, 0.53, 0.58), ff))
-		TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", 1.0, _fa(Color(0.45, 0.53, 0.58), ff))
+		if ph:   # 跟底栏三项同款：「/」分隔 + 浅灰字（文字顶边对齐底栏 y + 12）
+			var top: float = menu_lay.foot.o.y + 12.0 * fk
+			fy = top + font.get_ascent(fs)
+			credits_rect = Rect2(fx - 8.0 * fk, menu_lay.foot.o.y + 25.0 * fk - 22.0, fw + 16.0 * fk, 44.0)
+			UI.text(self, font, Vector2(fx - 19.0 * fk, top + font.get_ascent(int(round(12 * fk)))), "/", int(round(12 * fk)), _fa(Color(0.231, 0.333, 0.4), ff))
+			UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(Color.WHITE if cr_hover else Color(0.776, 0.831, 0.863), ff))
+		else:
+			UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(Color(0.616, 0.898, 0.937) if cr_hover else Color(0.45, 0.53, 0.58), ff))
+			TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", 1.0, _fa(Color(0.45, 0.53, 0.58), ff))
 	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
 		UI.text(self, font, Vector2(lg.pos.x - 310, fy - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
@@ -1215,6 +1230,7 @@ func _draw_credits(vs: Vector2) -> void:
 	var r := Rect2(roundf(px0), 0.0, pw, h)
 	cr_panel = Rect2(Vector2.ZERO, vs)   # 整屏都算面板：只有「返回」/ 按键关
 	HS.spaced(self, font, r.position + Vector2(36, 44), credits_data.get("en", "CREDITS"), 11, HS.MUTE, 3.0)
+	UI.text(self, font, Vector2(r.position.x + pw - 336, 50), "明日方舟同人作品 · 非商业 · V2.0", 13, HS.MUTE, HORIZONTAL_ALIGNMENT_RIGHT, 300)   # D1：手机标题页底栏不再写声明与版本号，这里补上
 	UI.rule(self, r.position + Vector2(36, 68), r.position + Vector2(pw - 36, 68), UI.EDGE_DIM)
 	# 正文可视区（钉住的标题与底部之间）
 	cr_vr = Rect2(r.position.x + 20, r.position.y + CREDITS_HEAD - 8.0, pw - 40, h - CREDITS_HEAD + 8.0 - CREDITS_FOOT)

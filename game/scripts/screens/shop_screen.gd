@@ -102,7 +102,7 @@ func build(restart := false) -> void:
 		else:
 			card.pressed.connect(g.shop_sys.buy.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
-		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [13, 12]   # 电脑：说明不低于 13（docs/37 最小字号）
+		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [13]   # 电脑：说明一律 13（docs/37 最小字号；D9 同排同字号）
 		if ph:
 			szs = [20, 19, 18, 17]
 		var chips := Affects.chips(g, it)
@@ -133,6 +133,11 @@ func build(restart := false) -> void:
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
 			fs0 = UI.fit(g.font, sdesc, cw - 20.0, (ch - 152.0 - bot) if touch else 80.0, szs)
+			if not fs0.fit and not Pad.touch_ui():
+				# 电脑 13 号紧凑版还放不下：卡面只写一句（同手机），完整说明悬停看（11-01 docs/211 D9：以前这张单独缩到 12，同排字号不一）
+				card.set_meta("full_desc", sfull)
+				card.set_meta("squad_cut", true)
+				fs0 = UI.fit(g.font, g.panel_ui.brief(sdesc), cw - 20.0, 80.0, szs)
 		card.set_meta("fit", fs0)
 		card.set_meta("compact", sc_compact)
 		card.set_meta("affects", chips)

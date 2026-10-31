@@ -540,7 +540,7 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 	UI.text(ci, font, rr.position + Vector2(18, ty0), row.cn, fs_cn, UI.TEXT if on else UI.SUB)
 	UI.en(ci, font, rr.position + Vector2(18, ty0 + 16), row.en, 9, UI.CYAN_DIM, 1.0)
 	if row.has("note"):
-		UI.text(ci, font, rr.position + Vector2(18, ty0 + 31), row.note, 11 if not touch else 13, UI.SUB)
+		UI.text(ci, font, rr.position + Vector2(18, ty0 + 35), row.note, 11 if not touch else 13, UI.SUB)
 	var vx := rr.position.x + rr.size.x - (230.0 if not touch else 252.0)   # 触屏数值块左移 22：音量「100」（20 号字）不压到右侧滚动条
 	match row.type:
 		"cloud":
