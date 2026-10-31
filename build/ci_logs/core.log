@@ -1,0 +1,2572 @@
+# core
+# 参数：--headless --path /home/user/ArknightsSurvivors/game -s res://tests/test_core.gd
+# 用时 6 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+4211 checks, 0 failed
+CORE TESTS PASSED
+
+
+## stderr
+ERROR: 干员 bad 必须恰好定义 3 个技能（skills 数组）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:24)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_squad_contract (res://tests/test_core.gd:303)
+       [3] _init (res://tests/test_core.gd:31)
+ERROR: 干员 bad 必须恰好定义 3 个技能（skills 数组）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:24)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_squad_contract (res://tests/test_core.gd:304)
+       [3] _init (res://tests/test_core.gd:31)
+ERROR: 干员 bad 最多只能有 1 个手动技能
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:38)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_squad_contract (res://tests/test_core.gd:307)
+       [3] _init (res://tests/test_core.gd:31)
+ERROR: 干员 bad 的技能 2 的 mode 只能是 auto / manual
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:32)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_squad_contract (res://tests/test_core.gd:308)
+       [3] _init (res://tests/test_core.gd:31)
+ERROR: 干员 bad 的精英化节点 0 缺 level
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] validate_operator (res://scripts/characters/operator_validate.gd:120)
+       [1] validate_operator (res://scripts/characters/character.gd:140)
+       [2] test_squad_contract (res://tests/test_core.gd:309)
+       [3] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 blocks.skills[0].do[0]：不认识的积木「verb.lamb」
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 blocks.skills[0].do[4]：积木「shape.chain」已登记（docs/61 📝）但还没实现
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 blocks.skills[0].do[0].value：引用的「$nope」不在 base 里
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 blocks.attack.src「没登记」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 blocks.progression.echo.do[1]：触发器的 do 只执行一次，「verb.buff_self」是常驻积木，放这里不会生效
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 skills[1] 是 permanent，blocks.skills[1].dur 也要写 "permanent"
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 blocks.talent[0].cond：看不懂的条件「lamp ~ 3」
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 progression 的 custom 节点「res」在 blocks.progression 里没有积木
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 eqtest 的 blocks.progression.echo.do[0].max_n = 0.0 超出范围 [1.0, 99.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_squad_contract (res://tests/test_core.gd:333)
+       [5] _init (res://tests/test_core.gd:31)
+ERROR: 干员 hoshiguma 的 blocks.talent[0].do[1]：「verb.negate_next」（只能放技能 do）不能放在这里（instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.talent[0].do[1]：「verb.dr」（常驻）不能放在这里（instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.talent[0].chance = 1.5 超出范围 [0.0, 1.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.talent[0].negate 只能是 true / false
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.skills[2].do[2].attack 缺参数 len
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.skills[2].do[2].attack.src「没登记」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.skills[2].do[2].attack 必须是一个伤害形状（shape.circle / shape.cone / shape.line）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.trait[1].do[0]：verb.field 要有 do（瞬时留场每次 tick 执行的瞬时积木）或 tick（常驻力场）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.trait[1].do[0].center 只能是 self / leader / target / zone / last_hit
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.skills[1].do[1].value = 1.2 超出范围 [0.0, 0.9]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.skills[1].do[2]：verb.negate_chance 要写 add / mult 之一
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.talent[0].do[0]：verb.displace 要写 kb（冲量）或 dist（位移距离）其中一个
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.progression.wall.do[1]：「verb.negate_chance」（常驻）不能放在这里（instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 hoshiguma 的 blocks.talent[1].cond：看不懂的条件「beacon_chargin」
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_hoshiguma_blocks (res://tests/test_core.gd:506)
+       [5] _init (res://tests/test_core.gd:33)
+ERROR: 干员 angelina 的 blocks.skills[2].do[5]：「shape.point_aoe」不能放在这里（只能在 attack）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.attack.then[0].dir 只能是 pull / push
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.skills[1].do[0].tick 至少要一个子项（verb.displace / st.*）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.skills[2].do[0].tick[3]：where / dir 为 ring 时力场要写 ring
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.attack.on_hit[2]：「st.dot」不能放在这里（只能在 field）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.skills[0].dur：permanent 技能不能写 next_attacks
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.skills[0].attack_patch.boom：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.skills[2].attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{"next_attacks": N}）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.skills[1].do[1].stat 只能是 move_speed / pickup
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.attack.then[0].on_hit[0].kb_mult = 0.5 超出范围 [1.0, 3.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.progression.pull2.do[2]：「verb.buff_leader」是常驻积木，不能放在这里（instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 angelina 的 blocks.attack.then[0].dist = 999.0 超出范围 [0.0, 400.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_angelina (res://tests/test_core.gd:559)
+       [5] _init (res://tests/test_core.gd:36)
+ERROR: 干员 texas 的 blocks.response[1].do[0].aim 只能是 nearest / densest / leader_dir / reverse
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.response[1].do[0].need_target 应是 true / false（aim nearest：aim_r 内没有敌人就不冲）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.trait[1].no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.trait[2].no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.response[1].do[0] 缺参数 w
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].need_enemy = 0.5 超出范围 [1.0, 2000.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[1].do[2].stat 只能是 move_speed / pickup
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.talent[2].do[0]：常驻列表里只能放常驻积木，「shape.dash_line」不是
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.progression.wide：常驻列表里只能放常驻积木，「shape.dash_line」不是
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.trait[0].do[1]：触发器的 do 只执行一次，「verb.dash_mod」不是瞬时积木
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].do[3]：技能 do 里不能放「trig.on_dash_end」
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.trait[6].src「没登记」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.progression.elite2.do[0].mult = 50.0 超出范围 [0.0, 20.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].do[2].strip 必须是帧条名（fx_*）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].do[2]：verb.fx_rain 要写 density（每 1 万平方像素几柄）或 n（固定柄数）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].do[2]：verb.fx_rain 没有参数「fal」
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].do[2].hit 必须是帧条名（fx_*）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].do[2].layer 只能是 over / add
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.skills[0].do[2].fall_t = 3.0 超出范围 [0.02, 1.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 texas 的 blocks.progression.wide：常驻列表里只能放常驻积木，「verb.fx_rain」不是
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_texas (res://tests/test_core.gd:651)
+       [5] _init (res://tests/test_core.gd:37)
+ERROR: 干员 skalter 的 blocks.skills[2].fx[1].hold 是常驻跟随帧条，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].layer = ground 只给常驻跟随帧条（hold: true）用
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].every：hold 帧条跟着积木生效循环，不写这个字段
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].layer：hold 帧条只能是 ground / floor / add / over
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].at = hits 只能挂在伤害形状（shape.circle / shape.cone）上
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].at：hold 帧条只能是 zone / self / leader / members
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].hold 必须是 true / false
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].layer = ground 只给常驻跟随帧条（hold: true）用
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].fade 超出范围（0–5 秒）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].fade 必须是秒数，或 [淡入, 淡出] 两个秒数
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].fx[0].fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[1].if_tex 必须是帧条名（fx_* / proj_*），前面加 ! 表示缺这条贴图时才画
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[1].hold：vortex 本来就跟着积木常驻，不写 hold
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:709)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.attack.fx[1].ease 只能是 out / out2 / linear（grow / grow0 / grow_to / wake 要配 ease）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.attack.fx[1].ease 只能是 out / out2 / linear（grow / grow0 / grow_to / wake 要配 ease）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.attack.fx[1].grow_to 只能是 zone（扩到区域半径、跟着区域走）/ summon:<带 zone 的召唤物种类>
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.attack.fx[1].grow = 9.0 超出范围 [0.1, 3.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.attack.fx[1].wake.glow：不认识的参数（只能是 n / w / a / lag / sy / col）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.attack.fx[1].wake.n 超出范围（0–4）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.attack.fx[1].xfade 要配 cond（按 cond 的真假交叉淡入淡出）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 skalter 的 blocks.skills[2].do[0].fx[0].ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_fx_hold (res://tests/test_core.gd:745)
+       [5] _init (res://tests/test_core.gd:40)
+ERROR: 干员 sstest 的 blocks.skills[0].do[0].kind「ghost」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.trait[0].do[0]：life = skill（随技能结束消失）的召唤只能放在技能 do 里
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.summons.wolf.cap = 13.0 超出范围 [1.0, 12.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.summons.wolf.move.mode 只能是 orbit / chase / stay / follow / escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.progression.spare：「st.seal」不能放在这里（sustain；只能在 on_hit / field）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.skills[1].do[0].on_hit[0].boss_immune = 1.0 超出范围 [3.0, 60.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.progression.spare：「verb.shield」不能放在这里（sustain；只能在 skill / instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.progression.regen.pct = 0.5 超出范围 [0.0, 0.1]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.skills[0].do[0].n = 20.0 超出范围 [1.0, 12.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 sstest 的 blocks.summons.狼 首：种类名只能是字母 / 数字 / 下划线（不以数字开头）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_seal (res://tests/test_core.gd:851)
+       [5] _init (res://tests/test_core.gd:43)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.anim.run「m_fly」不是本干员 sprites 里的帧条
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.patch[0].src「Mon3tr · 不存在」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.patch[1] 缺 cond（什么时候生效）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.progression.elite1.kind「wolf」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.progression.elite1.arc = 50.0 超出范围 [0.1, 10.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.trait[0].do[1]：「verb.summon_mod」不能放在这里（instant；只能在 skill / sustain）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.progression.twin_claw.then 缺参数 delay
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.progression.s1_shell.do[0] 缺参数 value
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.skills[0].do[1].what 必须是非空数组，取值 nerve
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.attack.fx[8].ghost 只能写在召唤物种类的 fx 里
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.attack.dir 只用于 shape.cone
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.attack：escort 召唤物的攻击只能是 shape.cone（朝面向挥出）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.hp_k：只有随行（escort）召唤物能用（倒下 / 复活 / 治疗分配走随行分支）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.move.rest 只用于 mode = escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.move.gap 只用于 mode = escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.move.avoid 只用于 mode = escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.move.solid 只用于 mode = escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.move.recall 只用于 mode = escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.manual 只用于 mode = escort
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.anim.lunge：非随行召唤物只能是 idle / run / attack / spawn
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.anim.leap：非随行召唤物只能是 idle / run / attack / spawn
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr：非随行召唤物写了 anim 就不写 attack（出手用 verb.summon_cmd action: cast 指挥）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.trait[2].at 只能是 self / leader / summon:<blocks.summons 里的种类>
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.skills[0].aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.attack.r：shape.support 只有 every / first / when / do
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.attack.when 看不懂（条件串，§1.3）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.trait[2].cond：看不懂的条件「node:」
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.attack.do[0].scale 只能是 op（× op_atk × 同伴倍率 × heal_out）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.fx[2]：程序 fx 条目恰好写一种（pfx / gfx / sprite / sparks / arc / text / banner / pause / sfx / ghost / mist / side），这里有 2 种
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.fx[2].pfx.kind 只能是 ring / glow / spark / shard / line / mote / crescent / impact / core / qshard / beamray / crack / flame / lava_pillar / s1link / h4_cross / ulp_wave / ulp_fracture / ulp_burst / sk_song
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 kaltsit 的 blocks.progression.melt_triple：积木数组要有 1–8 块
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_summon_ext (res://tests/test_core.gd:957)
+       [5] _init (res://tests/test_core.gd:44)
+ERROR: 干员 ulpianus 的 blocks.trait[0]：trig.on_mate_hook 要有 do（落点处执行的瞬时积木）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 ulpianus 的 blocks.trait[0].knob 须是 balance.json 的「段/键」路径
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 ulpianus 的 blocks.trait[0].cd = 99.0 超出范围 [0.0, 60.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 ulpianus 的 blocks.skills[0].do[1]：「trig.on_mate_hook」不能放在这里（skill；只能在 trig）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.skills[1].do[1]：「st.stack」不能放在这里（skill；只能在 sustain）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite1.do[0].per = 2.0 超出范围 [0.0, 1.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite1.do[0].src「没登记」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite1.do[0].tex 必须是 1–6 个 proj_* 帧条名的数组（按层数分档）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite2[1]：trig.on_mate_attack 只挂画面，要写 fx
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite2[1]：trig.on_mate_attack 只挂画面，不写 do
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite2[0].do[1].fx[0].at = members（光环受益者）只能挂在 aura.* 上
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite2[0].do[0].fx[0].flash 只能是 fire，且只给常驻跟随帧条（hold）用
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 exusiai 的 blocks.progression.elite2[0].do[0].fx[0].at = mate 只能挂在 trig.on_mate_attack 上
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 hoshiguma 的 blocks.progression.elite1.do[0] 缺 key（同 key 再触发只刷新时间）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 hoshiguma 的 blocks.progression.reach：「verb.buff_timed」不能放在这里（sustain；只能在 skill / instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 hoshiguma 的 blocks.progression.elite2[0].do[0] 缺参数 t_back
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 hoshiguma 的 blocks.progression.elite2[0].do[0].src「没登记」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 hoshiguma 的 blocks.progression.elite2[0].anim「throw_x」不是 sprites 里的帧条键
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 hoshiguma 的 blocks.progression.elite2[0].anim 只配 replace: true（换掉的那一次普攻播别的帧条）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 hoshiguma 的 blocks.progression.elite1.do[0].fx[0]：delay / stay 只给一次性帧条用
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 texas 的 blocks.attack.on_hit[1].first_only 只能是 true / false
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 texas 的 blocks.progression.elite2.do[0].on_expire[0] 缺参数 step
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 texas 的 blocks.progression.elite2.do[0].on_expire[2].along 只能是 path（沿上一次冲刺路径）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 texas 的 blocks.progression.elite2.do[0].on_expire[2]：verb.fx_rain 要写 density（每 1 万平方像素几柄）或 n（固定柄数）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 texas 的 blocks.progression.elite2.do[0].on_expire[2] 缺参数 r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 texas 的 blocks.attack.on_hit[1].fx[0].stay = 9.0 超出范围 [0.05, 5.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 texas 的 blocks.progression.elite2.do[0].on_expire[4]：触发器的 do 只执行一次，「verb.dash_mod」不是瞬时积木
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 angelina 的 blocks.attack.then[1].do[1].only 必须是非空数组，取值 weightless / airborne
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 angelina 的 blocks.attack.then[1].cap = 40.0 超出范围 [1.0, 16.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 kaltsit 的 blocks.progression.elite2[1].do[0].action 只能是 leap（跃回 to 身边）/ cast（原地施放，精英化第 5 批段）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 kaltsit 的 blocks.progression.elite2[1].do[0].kind「wolf」没在 blocks.summons 里定义
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 kaltsit 的 blocks.progression.elite1.lunge 缺参数 r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 kaltsit 的 blocks.summons.mon3tr.anim.leap「m_jump」不是本干员 sprites 里的帧条
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_elite1 (res://tests/test_core.gd:1037)
+       [5] _init (res://tests/test_core.gd:45)
+ERROR: 干员 skadi 的 blocks.talent[0].do[0].basis 只能是 attack / prev / hit / atk
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.talent[0].do[0]：写了 basis（按已算好的伤害取百分比）就不写 power / atk_key
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.attack.face 只能是 true / false 或条件串
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.talent[0].do[0].dir 只能是 back（本次普攻的反方向）/ face / target
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.attack.aim_mult 要配 aim_r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.attack.combo[0].mult：连斩一段只有 cond / delay / do
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.attack.combo[0] 缺参数 delay
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.skills[0].do[3]：「trig.on_combo_end」不能放在这里（skill；只能在 trig）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.skills[1].do[2] 缺参数 speed
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.follow 缺参数 gap
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.progression.surge.countdown 只能是 true / false
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.attack 缺参数 aoe
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.attack.on_explode[0].pick 只能是 near_out / shuffle / ring
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.skills[1].do[1]：「st.burn」不能放在这里（skill；只能在 on_hit / field）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.skills[1].do[0].on_explode[1].on_hit[2].kind 只能是 arts（不写 = 受到的全部伤害 +10%）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.skills[0].cast 只能是 instant
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.skills[1].pulse 要配 dur.pulses
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.skills[0].attack_patch.burn_x：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.skills[2].pulse.do[1].look 只能是 lava / pool / rune
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.attack：要写 then（命中后执行的积木），或 then_of: attack（用普攻那块的）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.talent[0].do[1]：「verb.lock」不能放在这里（instant；只能在 skill）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.attack.then[0] 缺参数 thr
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.skills[2].do[0] 缺参数 deg
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.skills[0].do[1]：「st.requiem」不能放在这里（skill；只能在 on_hit / field）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.skills[0].do[0].mode 只能是 reel / zip
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.talent[0].do[0] 缺 key
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.skills[2].do[0].then[0] 缺参数 dur
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.talent[1].do[0].per「kills」只能是 faction:<阵营> / class:<职业> / stack:<层数 key> / gn:<成长节点层数 key>
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.talent[0].do[1]：「verb.tether」不能放在这里（instant；只能在 skill）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.attack.center 只能是 zone / self / leader / target / path / front / summon:<种类>
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.progression.elite1.do[0] 缺参数 per
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.progression.elite1.do[0].look 必须是 fx_* 帧条名的数组（按层数分档）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.attack.then[2] 缺参数 share
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 logos 的 blocks.progression.elite1.do[1]：「verb.link」不能放在这里（sustain；只能在 instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.attack.lob 缺参数 flight
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.attack.lob.mults 必须是数字数组（第 k 发的倍率）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.attack.lob.tex 必须是 proj_* 帧条名
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 eyjafjalla 的 blocks.attack.lob.pool[0] 缺参数 every
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.progression.elite2[0].do[0].fan 必须是 1–8 个偏角（度）的数组
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.progression.elite2[0].do[0].from 只能是 prev / self
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 skadi 的 blocks.progression.elite2[0].do[0].proj 必须是 proj_* 帧条名
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.progression.elite2.do[0] 缺参数 range
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.progression.elite2.do[0].back_src「回收」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.progression.elite2.do[0].basis 只能是 attack / prev / hit / atk
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 ulpianus 的 blocks.progression.elite1.do[0]：「shape.hookshot」不能放在这里（sustain；只能在 skill / instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_handwritten (res://tests/test_core.gd:1151)
+       [5] _init (res://tests/test_core.gd:46)
+ERROR: 干员 irene 的 blocks.attack 缺参数 len
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.skills[0]：推不出自动释放的门槛距离，请写 need_enemy（半径，× op_range）或让技能 / 普攻带 r / range
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.attack.stages[1].delay：一段只有 cond / mult / on_first
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.attack.stages[1].cond 看不懂
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.attack.pursue 缺参数 cd
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.skills[1].do[2]：「st.launch」不能放在这里（skill；只能在 on_hit）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.skills[1].do[0].aim 只能是 nearest / thrust
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.skills[2].do[1].cannon 必须是对象 {mult, power, r, src}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.skills[1].do[1] 缺参数 delay
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.skills[0].attack_patch.lift：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 specter_unchained 的 blocks.attack 缺参数 r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 specter_unchained 的 blocks.skills[1].do[1].anim「falling」不是 sprites 里的帧条键
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 specter_unchained 的 blocks.talent[0].do[0]：「verb.undying」不能放在这里（sustain；只能在 skill）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 specter_unchained 的 blocks.attack.trail 缺 src（伤害来源名）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 lumen 的 blocks.attack：shape.lantern 要写 heal {every, pct} 与 bolt {atk_key, speed, src}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 lumen 的 blocks.skills[0].do[6]：「verb.beam」不能放在这里（skill；只能在 sustain）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 lumen 的 blocks.progression.watch.do[0]：「verb.tower」不能放在这里（instant；只能在 skill）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 lumen 的 blocks.skills[1].do[0]：verb.lamp 要写 add / per_sec / loss_mult / decay_mult / radius_mult 之一
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 mizuki 的 blocks.attack.tentacle 必须是对象
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 mizuki 的 blocks.progression.tentacle_a.op 只能是 add / mult（专属属性还可 flat）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 mizuki 的 blocks.progression.tentacle_a.stat「mizuki_nope」只能是 zone / dmg / heal / interval / area / force / force_lit / atk / op_atk / op_aspd / op_range / op_skill_power / op_shots 或本干员 stat_defs 里的专属属性
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 mizuki 的 blocks.progression.tentacle_a.op 只能是 add / mult（专属属性还可 flat）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 mizuki 的 blocks.skills[1].do[1]：「verb.kill_heal」不能放在这里（skill；只能在 instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 specter_unchained 的 blocks.skills[0].do[0]：「trig.on_windup」不能放在这里（skill；只能在 trig）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 specter_unchained 的 blocks.progression.elite2.do[0] 缺参数 r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 specter_unchained 的 blocks.progression.elite2.do[0].anim「spin」不是 sprites 里的帧条键
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.attack.finisher.anim「slash2」不是 sprites 里的帧条键
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.attack.finisher 缺参数 every
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 irene 的 blocks.attack.stages[0].on_first[0]：on_hit 里只能放 st.stun / st.slow，不能放「verb.lamp」
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 lumen 的 blocks.attack.beam 缺参数 len
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 lumen 的 blocks.attack.bolt.refract 缺 src（伤害来源名）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 mizuki 的 blocks.attack.jelly 缺 src（伤害来源名）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw3 (res://tests/test_core.gd:1224)
+       [5] _init (res://tests/test_core.gd:47)
+ERROR: 干员 siege 的 blocks.attack 缺参数 r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.skills[0]：推不出自动释放的门槛距离，请写 need_enemy（半径，× op_range）或让技能 / 普攻带 r / range
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.attack 缺 src（伤害来源名）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.attack.breach.src「裂地」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.attack.heavy.anim「smash」不是 sprites 里的帧条键
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.talent[0].do[0]：「verb.leap_slam」不能放在这里（sustain；只能在 skill / instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.skills[0].do[1] 缺参数 dur
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 suzuran 的 blocks.attack 缺参数 speed
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 suzuran 的 blocks.skills[1].do[1]：「verb.foxlight」不能放在这里（skill；只能在 sustain）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 suzuran 的 blocks.trait[0].do[0].hearth.src「炉火」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 suzuran 的 blocks.skills[1].do[0] 缺参数 buff
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 suzuran 的 blocks.skills[0].attack_patch.volley：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.attack 缺参数 aoe
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.attack.quake_src「余波」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.skills[1].aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.progression.elite2.do[0] 缺参数 n
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.progression.elite2.do[0] 缺参数 cd
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.progression.elite2.do[0].fire 缺参数 every
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.progression.elite2.do[1]：「verb.cannon_load」不能放在这里（sustain；只能在 skill / instant）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.attack 缺参数 r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.progression.calc_orb.do[0]：「verb.guard_ring」不能放在这里（instant；只能在 sustain）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.trait[0].do[1].n_by 必须是数组 [{cond, n}]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.progression.elite2.do[0] 缺参数 seg_t
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.follow.side 必须是 [x, y]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.attack.crush 缺 src（伤害来源名）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.attack.crush 必须是带 cond 的对象
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 siege 的 blocks.attack.breach.spikes 缺参数 step
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 suzuran 的 blocks.attack.brand 缺参数 value
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 suzuran 的 blocks.attack.merge.trail.src「拖尾」没在 hit_sources 里登记
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.attack.gift 缺参数 mult
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 wisadel 的 blocks.progression.elite2.do[0].fire 缺 src（伤害来源名）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.attack.calcify 缺参数 pct
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.progression.elite2.do[0].pillars 缺参数 n
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 saria 的 blocks.progression.elite2.do[0].pillars.n = 20.0 超出范围 [3.0, 16.0]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_hw4 (res://tests/test_core.gd:1288)
+       [5] _init (res://tests/test_core.gd:48)
+ERROR: 干员 skalter 的 blocks.progression.elite1.do[0].band 要满足 0 ≤ 内 < 外 ≤ 1
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.progression.elite1.do[0].band 必须是 [内, 外]（半径的比例，只用于 shape.circle）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.progression.elite1.do[0].among 只能是 attack（只打本干员上一次普攻命中的敌人；只用于 shape.circle）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.progression.elite1.do[0]：band / among 不和 only 同用
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar.zone 缺参数 r
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar.zone.radius：不认识的字段（只能是 r / share / mode / look）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar.zone.look.strip 必须是 fx_* 帧条名（V6_FRAMES 里登记）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar.zone.mode 只能是 true / false（false = 不算 verb.mode 的 zone_mult）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar.move.repick 只用于 mode = chase
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar.anim.walk：非随行召唤物只能是 idle / run / attack / spawn
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar.anim.spawn「ishar_rise」不是本干员 sprites 里的帧条
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.summons.ishar：非随行召唤物写了 anim 就不写 attack（出手用 verb.summon_cmd action: cast 指挥）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.progression.elite2[1].do[0].action 只能是 leap（跃回 to 身边）/ cast（原地施放，精英化第 5 批段）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.progression.elite2[1].do[0].then[0]：center: summon:<种类> 配 r: zone 时，这种召唤物要写 zone（召唤物自带区域）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.progression.elite2[1].do[0].then[0].fx[0].grow_to：程序 fx 条目不认识的字段
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.progression.elite1.do[0].fx[0].play：程序 fx 条目不认识的字段
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+ERROR: 干员 skalter 的 blocks.skills[0].fx[0].play 要配 ease（只用于扩散缓动条目）
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/characters/blocks/ob_check.gd:154)
+       [1] validate (res://scripts/characters/blocks/ob_check.gd:149)
+       [2] validate_operator (res://scripts/characters/operator_validate.gd:127)
+       [3] validate_operator (res://scripts/characters/character.gd:140)
+       [4] test_blocks_e5 (res://tests/test_core.gd:1372)
+       [5] _init (res://tests/test_core.gd:49)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

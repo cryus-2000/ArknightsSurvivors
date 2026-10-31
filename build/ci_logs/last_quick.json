@@ -1,0 +1,1 @@
+{"time": "2026-10-31T14:46:10", "items": [{"name": "数据 JSON 解析", "ok": true, "secs": 0.0, "detail": "game/data 全部可解析"}, {"name": "积木等价（数据版 vs 金样）", "ok": true, "secs": 117.1, "detail": "与金样相同 0；已重录 28 份到 game/tests/golden_current（git 跟踪，记得 git add + commit）；过期 28 份已随本次 --update-golden 重录刷新（eqtest seed1、eqtest seed2、kaltsit seed1、kaltsit seed3、skadi seed1、skadi seed3……）"}]}

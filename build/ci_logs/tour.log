@@ -1,0 +1,12 @@
+# tour
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/tour_test.tscn -- --regression --seed=1 --roster=new
+# 用时 8 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TOUR failures=0
+
+
+## stderr
+

@@ -1,0 +1,26 @@
+# response_skill
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/response_test.tscn -- --regression --seed=1 --bal=ult/on=0 --balance --seed=1 --op=suzuran --squad=texas
+# 用时 11 秒；结束时全机 Godot 4 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+10 checks, 0 failed
+RESPONSE failures=0
+ERROR: 3 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/response_test.gd:27)
+WARNING: 46 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 19 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
