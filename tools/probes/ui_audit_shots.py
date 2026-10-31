@@ -17,6 +17,7 @@ game = os.path.join(ROOT, 'game')
 gr.ensure_imported(game)
 godot = gr.find_godot()
 AT = ['--autotest']
+SQ = ['--balance', '--seed=1', '--op=texas', '--squad=hoshiguma,exusiai,kaltsit', '--realtime', '--nodeath', '--bot=afk']
 JOBS = {
     'boot': ['--bootshot=ready', '--bal=ui/boot_v=3'],
     'title': ['--titleshot'],
@@ -45,6 +46,10 @@ JOBS = {
     'win': AT + ['--statsshot=20'],
     'fail': AT + ['--statsshot=20,dead'],
     'choices': AT + ['--choiceshots', '--maxt=320'],
+    # 指挥 v2 / 终结技瞄准（docs/209）：四人小队，录帧（rec_*.png）取需要的那张
+    'hud_sq': SQ + ['--recframes=20,1'],
+    'wheel': SQ + ['--wheelplan=open@6,sel@0.4:2', '--recframes=6,45'],
+    'ultaim': SQ + ['--bal=ult/start_energy=100', '--bal=ult/bot_n=0', '--ultaimplan=rel@0.15:320:-140,ok@2.0', '--recframes=0,150'],
 }
 ONLY = sys.argv[2].split(',') if len(sys.argv) > 2 else None
 if ONLY:

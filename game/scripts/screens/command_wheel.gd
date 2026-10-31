@@ -480,7 +480,7 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 	hud.draw_multiline(hatch, _ca(C_DIAL, 0.14 * e * sweep), 1.0)
 	if not hatch_hi.is_empty():
 		hud.draw_multiline(hatch_hi, _ca(C_ACC, 0.85 * e), 1.4)
-	# 分组线：0° / 180° 的缝里穿过，左端标上半圈「队形」、下半圈「索敌」
+	# 分组线：0° / 180° 的缝里穿过，左端标上半圈「队形」、下半圈「索敌」（v2 为「指点」）
 	for sx in [-1.0, 1.0]:
 		hud.draw_line(Vector2(c.x + sx * (r_in - 4.0 * k), c.y), Vector2(c.x + sx * (r_dial + 44.0 * k), c.y), _ca(C_DIAL, 0.38 * e), 1.0)
 		hud.draw_rect(Rect2(Vector2(c.x + sx * (r_dial + 44.0 * k) - 2.0 * k, c.y - 2.0 * k), Vector2(4.0, 4.0) * k), _ca(C_ACC, 0.9 * e))
@@ -488,8 +488,9 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 		var lx: float = c.x - r_dial - 104.0 * k
 		UI.text(hud, font, Vector2(lx, c.y - 8.0 * k), "队形", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
 		UI.ctext(hud, font, Vector2(lx, c.y - 25.0 * k), "FORMATION", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
-		UI.text(hud, font, Vector2(lx, c.y + 20.0 * k), "索敌", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
-		UI.ctext(hud, font, Vector2(lx, c.y + 33.0 * k), "TARGETING", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+		var v2: bool = ITEMS == ITEMS_V2   # v2 下半圈是部署 / 集火：标「指点」
+		UI.text(hud, font, Vector2(lx, c.y + 20.0 * k), "指点" if v2 else "索敌", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+		UI.ctext(hud, font, Vector2(lx, c.y + 33.0 * k), "ORDERS" if v2 else "TARGETING", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
 	# 扇区
 	var gap: float = deg_to_rad(GAP)
 	var ch: float = 9.0 * k
@@ -580,7 +581,8 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 	hud.draw_rect(Rect2(Vector2(c.x - pw / 2.0, py), Vector2(pw, 48.0 * k)), _ca(C_PLATE, 0.92 * e))
 	if prts:
 		hazard(hud, Rect2(Vector2(c.x - pw / 2.0, py), Vector2(16.0 * k, 48.0 * k)), e)   # PRTS：左端警戒斜纹
-		UI.ctext(hud, font, Vector2(c.x + pw / 2.0 - 214.0 * k, py + 11.0 * k), "PRTS // COMMAND TERMINAL", int(round(8.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 206.0 * k)
+		# 标签放在底板上沿外侧（11-01 合入巡检：放板内会和较长的说明行叠字）
+		UI.ctext(hud, font, Vector2(c.x + pw / 2.0 - 308.0 * k, py - 4.0 * k), "PRTS // COMMAND TERMINAL", int(round(8.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 300.0 * k)
 	else:
 		hud.draw_rect(Rect2(Vector2(c.x - pw / 2.0, py), Vector2(3.0 * k, 48.0 * k)), _ca(C_ACC, e))
 	hud.draw_line(Vector2(c.x - pw / 2.0, py + 48.0 * k), Vector2(c.x + pw / 2.0, py + 48.0 * k), _ca(C_DIAL, 0.25 * e), 1.0)

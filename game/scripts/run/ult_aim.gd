@@ -227,7 +227,7 @@ static func draw(u, vs: Vector2) -> void:
 	var lp: Vector2 = ct * u.caster.pos
 	if u.aim_kind == "point":
 		P._range_ring(hud, font, lp, ct.basis_xform(Vector2(REACH, 0)).length(), e, int(REACH))
-	_cells(hud, ct, s, acc, e)
+	_cells(hud, ct, s, acc, e, vs)
 	var tip_w: Vector2
 	match str(s.kind):
 		"disc":
@@ -264,8 +264,10 @@ static func _tip(u) -> String:
 	return "鼠标选择 · 松开 Q 释放"
 
 
-## 范围格：形状里的 48 格，越靠外越淡、边上一圈亮边（同 command_pick._tiles 的画法）
-static func _cells(hud: CanvasItem, ct: Transform2D, s: Dictionary, col: Color, e: float) -> void:
+## 范围格：形状里的 48 格，越靠外越淡、边上一圈亮边（同 command_pick._tiles 的画法）；
+## 离屏幕边 edge_band 内渐隐（11-01 合入巡检：520 半径的亮边压在顶栏 / 编队卡 / 小地图上，HUD 都靠屏幕边）
+static func _cells(hud: CanvasItem, ct: Transform2D, s: Dictionary, col: Color, e: float, vs: Vector2) -> void:
+	var band: float = vs.y * 0.15
 	var b: Array = _bound(s)
 	var center: Vector2 = b[0]
 	var rr: float = b[1]
@@ -285,5 +287,9 @@ static func _cells(hud: CanvasItem, ct: Transform2D, s: Dictionary, col: Color, 
 			var q0: Vector2 = ct * (cc - Vector2(CELL, CELL) * 0.46)
 			var q1: Vector2 = ct * (cc + Vector2(CELL, CELL) * 0.46)
 			var rc := Rect2(q0, q1 - q0)
-			hud.draw_rect(rc, Color(col.r, col.g, col.b, (0.06 + 0.14 * k) * e))
-			hud.draw_rect(rc, Color(col.r, col.g, col.b, (0.8 if edge else 0.2) * e), false, 1.4 if edge else 1.0)
+			var m: Vector2 = rc.get_center()
+			var ef: float = e * smoothstep(0.0, band, minf(minf(m.x, vs.x - m.x), minf(m.y, vs.y - m.y)))
+			if ef <= 0.0:
+				continue
+			hud.draw_rect(rc, Color(col.r, col.g, col.b, (0.06 + 0.14 * k) * ef))
+			hud.draw_rect(rc, Color(col.r, col.g, col.b, (0.8 if edge else 0.2) * ef), false, 1.4 if edge else 1.0)
