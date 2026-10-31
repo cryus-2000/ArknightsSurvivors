@@ -152,6 +152,14 @@ func trace_nerve_hash() -> int:
 	return ("%d,%d,%d,%d" % [int(roundf(g.nerve * 1000.0)), int(roundf(g.nerve_lock * 1000.0)), int(roundf(g.nerve_taken_mult * 1000.0)), int(roundf(g.nerve_aura_t * 1000.0))]).hash()
 
 
+## --resultwait=<秒>：结算截图再多等这么久（底栏按钮淡入完，11-01 巡检看按键牌）
+func _ss_wait() -> float:
+	for a in Cfg.dev_args():
+		if a.begins_with("--resultwait="):
+			return float(a.substr(13))
+	return 0.0
+
+
 ## --statsshot=<秒>[,dead]（docs/77 实机截图）：机器人照常打到第 <秒> 秒后直接进胜利（结局一）/ 失败结算，
 ## 依次截 结算面板（多了「作战记录」按钮）→ 作战记录总览动效中（0.3 秒）→ 总览终态 → 主控详情 → 第二名干员详情，
 ## 存到 --shotdir：shot_stats_result / _motion / _overview / _detail0 / _detail1.png，截完退出。无头不截（只走流程）。
@@ -196,7 +204,7 @@ func _stats_shot() -> bool:
 			_ss.f += 1
 			if _ss.hold:
 				return true
-			if g.state_age > (2.6 if _ss.dead else 0.8):
+			if g.state_age > (2.6 if _ss.dead else 0.8) + _ss_wait():
 				shot.call("result")
 				g._do_action("stats")
 				_ss.phase = 2
