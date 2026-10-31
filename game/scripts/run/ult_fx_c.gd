@@ -234,7 +234,7 @@ const SZ_CUT_DT := [0.06, 0.06, 0.08, 0.05, 0.10, 0.08, 0.10, 0.12]   # 拔刀�
 const SZ_CUT_HIT := 0.25   # 拔刀开始到出刀帧的秒数（前 4 帧之和）
 const SZ_SC := 1.25   # 忍冬比队员略大一点，一眼认得出是她出手
 const SZ_SLASH := ["fx_sz_slash1", "fx_sz_slash2", "fx_sz_slash3"]
-const SZ_RSLASH := ["fx_sz_rslash1", "fx_sz_rslash2", "fx_sz_rslash3"]   # 忍冬一刀：冷白芯红刃边（用户 10-31「冷白 + 红，要杀手感」；幽灵鲨用的那份不动）
+const SZ_RSLASH := ["fx_sz_rslash1", "fx_sz_rslash2", "fx_sz_rslash3"]   # 忍冬一刀：冷白为主、红只留最外刃边（用户 10-31「红色少一点，冷白为主」；幽灵鲨用的那份不动）
 const SZ_ICE := Color(0.8, 0.85, 0.92)   # 冷白（用户 10-31「刀光冷白 + 红」）
 const SZ_RED := Color(0.78, 0.1, 0.08)
 const SZ_FOX := Color(0.7, 0.42, 0.16)
@@ -333,7 +333,7 @@ static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float)
 	var vs: float = float(a.sz_vs)
 	if a.has("sz_stand"):
 		side = Vector2(a.sz_stand) + Vector2(0, -24)   # 刀口高度
-		if a.has("sz_cut"):   # 化光闪出：人形亮成冷白一闪即消，沿斩向拖两层红色残影
+		if a.has("sz_cut"):   # 化光闪出：人形亮成冷白一闪即消，沿斩向拖两层冷白残影
 			var cs: Dictionary = a.sz_cut
 			cs.col = Color(1.6, 1.6, 1.7, 1.0)
 			cs.f = 4
@@ -344,7 +344,7 @@ static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float)
 			var dd: Vector2 = (tip - side).normalized()
 			for g in 2:
 				u.strip(SZ_CUT, Vector2(a.sz_stand) + dd * 60.0 * (g + 1), {"o": cs.o, "sc": SZ_SC, "f": 4, "sx": float(a.sz_fs) * (1.0 + 0.5 * (g + 1)),
-					"life": 0.07, "fade": 0.07, "delay": 0.01 * g, "col": Color(0.85, 0.12, 0.14, 0.5 - 0.2 * g)})
+					"life": 0.07, "fade": 0.07, "delay": 0.01 * g, "col": Color(0.82, 0.88, 0.96, 0.5 - 0.2 * g)})
 	if a.has("sz_fig"):
 		a.sz_fig.max = float(a.sz_fig.age) + 0.06
 	var name: String = PF.pick(u, SZ_RSLASH, vs)
@@ -370,24 +370,24 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var SL: float = a0.distance_to(b0)
 	var dv: Vector2 = Vector2.from_angle(ang)
 	var nv: Vector2 = dv.orthogonal()
-	# 这一道爆亮（冲击帧）：冷白 → 暗红迅速冷却
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95, "life": 0.3, "fade": 0.18, "col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.5, 0.04, 0.06, 0.9), "cold": 0.14, "hf": true})
+	# 这一道爆亮（冲击帧）：冷白 → 冷钢灰迅速冷却
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95, "life": 0.3, "fade": 0.18, "col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.42, 0.46, 0.54, 0.9), "cold": 0.14, "hf": true})
 	# 斩开：上下两半往两边错开、同时沿刀向滑一点
 	for sd in [1.0, -1.0]:
 		_sz_slash(u, sname, a0 + nv * sd * 4.0, ang, SL, {"sy": 0.45 * sd, "delay": 0.04, "life": 0.26, "fade": 0.2, "v": nv * sd * 70.0 + dv * 60.0 * sd,
-			"col": Color(0.95, 0.95, 1.0, 0.9), "col1": Color(0.5, 0.04, 0.06, 0.7), "cold": 0.16})
+			"col": Color(0.95, 0.95, 1.0, 0.9), "col1": Color(0.42, 0.46, 0.54, 0.7), "cold": 0.16})
 	# 刀口：地上一道暗红细痕，慢慢褪
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.24, 0.03, 0.04, 0.9)})
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.16, 0.08, 0.09, 0.9)})
 	# 刀痕爆裂（用户 10-31「最后接一个刀痕爆裂」→「喷溅去掉，要收敛但冲击力足」）：不加任何喷溅，力量全靠一条线上的反差——
 	# 斩开后周围再压暗静一拍，刀口独亮；然后整条刀痕一下子绷开（一帧冷白细芯 + 爆宽冷白 + 顿帧），立刻收回成更深更宽的刀口
 	var TB: float = Bal.v("ult/sz_rupt_t", 0.32)
 	u.shape({"kind": "circle", "c": a0.lerp(b0, 0.5), "r": 2600.0, "col": Color(0.0, 0.0, 0.02), "fill": 0.35, "hold": true, "delay": 0.14, "life": TB - 0.14})   # 静一拍：压暗
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.8, 0.1, 0.12, 0.95)})   # 刀口在压暗层上独亮（红）
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.72, 0.76, 0.84, 0.95)})   # 刀口在压暗层上独亮
 	_sz_slash(u, sname, a0, ang, SL, {"sy": 1.35, "delay": TB, "life": 0.2, "fade": 0.14,
-		"col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.55, 0.04, 0.06, 0.9), "cold": 0.1})   # 绷开：爆宽后收
+		"col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.42, 0.46, 0.54, 0.9), "cold": 0.1})   # 绷开：爆宽后收
 	u.shape({"kind": "band", "a": a0, "b": b0, "w": 8.0, "col": Color(0.86, 0.89, 0.93), "fill": 0.85, "life": 0.05, "delay": TB})   # 冷白细芯一帧（≤ 0.9）
 	u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.1))
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.2, 0.02, 0.03, 0.95)})   # 收成更深更宽的刀口
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.15, 0.06, 0.07, 0.95)})   # 收成更深更宽的刀口
 	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_ICE, 0.22)
 	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)
