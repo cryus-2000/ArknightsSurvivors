@@ -1263,10 +1263,11 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			_once(u, a, o, a.bseg, e, fr, {"src": "宣判", "edge": float(pn.d) > float(a.rc)})   # 第一下（非 pre）= 冲击帧
 			var hh: float = PF.h(vs + float(pn.d))
 			if _irv2():   # 用户 10-31 改表现：每一炸更大更实——金白爆团 + 烟尘 + 地块崩起；链子崩成链节飞散
-				PF.particles(u, bp, 300, "ult_burst", [IRV_GOLD, Color(0.55, 0.62, 0.8)], 0.0, vs + float(pn.d), 100.0 + 40.0 * hh)
-				PF.dust(u, bp, 120.0, 0.03, vs + float(pn.d) * 0.1, Vector2.ZERO, Color(0.7, 0.68, 0.66))
+				PF.particles(u, bp, 200, "ult_burst", [Color(0.8, 0.66, 0.38), Color(0.45, 0.52, 0.7)], 0.0, vs + float(pn.d), 90.0 + 40.0 * hh)   # 预审：连环爆叠起来发白，压暗一档
+				PF.dust(u, bp, 120.0, 0.03, vs + float(pn.d) * 0.1, Vector2.ZERO, Color(0.6, 0.58, 0.56))
 				PF.aftershock(u, bp, 50.0, vs + float(pn.d), 0.02, 3, Color(0.75, 0.72, 0.7))
-				u.light(bp, 180.0, IRV_GOLD, 0.2)
+				if int(pn.d) % 3 == 0:
+					u.light(bp, 130.0, IRV_GOLD, 0.15)
 				if pn.has("links"):
 					_irv_chain_break(pn.links, Vector2(pn.rim), bp, vs + float(pn.d))
 			else:
