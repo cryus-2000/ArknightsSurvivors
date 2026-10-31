@@ -20,7 +20,7 @@
 解压拼回（见该文件注释）。托管平台单文件上限 25 MB（EdgeOne / Cloudflare Pages），导出后逐个检查。
 不发布、不上传：部署命令见 docs/22。
 """
-import argparse, datetime, gzip, io, json, lzma, os, shutil, subprocess, sys, tarfile
+import argparse, datetime, glob, gzip, io, json, lzma, os, shutil, subprocess, sys, tarfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import release_slim
@@ -87,6 +87,7 @@ def main():
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
     ap.add_argument("--audio-tier", default="C", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 缺省（10-28 用户定，B 可回退） / D、E 试听档（docs/187 §7）；off = 不压）")
     ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/187 §5）")
+    ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.9、音效 32 kHz 上限，docs/201），对照用")
     ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
@@ -133,6 +134,8 @@ def main():
     if not a.no_lossless:
         woff2_fonts(gpath, [r[0] for r in font_rows])
         webp_max(gpath)
+    if not a.no_web_lossy:
+        web_lossy_assets(gpath)
     # 网页包专用音频再压缩（tools/web_audio.py，docs/121 §4）：只改打包副本，桌面包与仓库不动；--audio-tier off 关闭
     import web_audio
     freed = web_audio.drop_unused_music(gpath)   # Suno 分层配乐接入后旧乐句文件不进网页包（tools/web_audio.py drop_unused_music）
@@ -248,6 +251,51 @@ def webp_max(gpath):
     with open(p, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(txt)
     print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100", flush=True)
+
+
+CG_LOSSY_Q = 0.9     # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/201）
+SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 1% 的文件设，QOA 体积按采样数线性下降（docs/201）
+SFX_HF_MAX = 0.01
+
+
+def _set_import(path, kv):
+    """改 .import 的 [params] 键值（有就替换、没有就追加）"""
+    with open(path, encoding="utf-8") as fh:
+        lines = fh.read().split("\n")
+    for k, v in kv.items():
+        for i, ln in enumerate(lines):
+            if ln.startswith(k + "="):
+                lines[i] = "%s=%s" % (k, v)
+                break
+        else:
+            lines.insert(lines.index("[params]") + 1, "%s=%s" % (k, v))
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("\n".join(lines))
+
+
+def web_lossy_assets(gpath):
+    """网页包专用的近无损压缩（10-31 第八批超预算，docs/201）。只改打包副本的 .import，桌面包与仓库不动：
+    - 事件插画 art/event_cg/web/*.webp：源图本身是有损 WebP（合计 1.24 MiB），缺省按无损重编后 2.48 MiB；改有损导入 0.9（相对源图 PSNR 中位 43.6 dB）。
+    - 音效 audio/sfx/*.wav：16 kHz 以上能量不到 1% 的设 force/max_rate 32 kHz（听不出的高频本来就几乎没有；其余照旧 44.1 kHz），QOA 按采样数缩小"""
+    import numpy as np
+    import soundfile as sf
+    n_cg = 0
+    for f in sorted(glob.glob(os.path.join(gpath, "art", "event_cg", "web", "*.webp.import"))):
+        _set_import(f, {"compress/mode": "1", "compress/lossy_quality": str(CG_LOSSY_Q)})
+        n_cg += 1
+    n_sfx = 0
+    for f in sorted(glob.glob(os.path.join(gpath, "audio", "sfx", "*.wav"))):
+        if not os.path.exists(f + ".import"):
+            continue
+        x, sr = sf.read(f, always_2d=True)
+        if sr <= SFX_MAX_HZ:
+            continue
+        X = np.abs(np.fft.rfft(x.mean(1))) ** 2
+        fr = np.fft.rfftfreq(len(x), 1.0 / sr)
+        if X[fr > SFX_MAX_HZ / 2].sum() < SFX_HF_MAX * max(X.sum(), 1e-12):
+            _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(SFX_MAX_HZ)})
+            n_sfx += 1
+    print("[瘦身] 网页近无损：事件插画 %d 张改有损 WebP %.2f；音效 %d 个设 %d Hz 上限" % (n_cg, CG_LOSSY_Q, n_sfx, SFX_MAX_HZ), flush=True)
 
 
 TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守
