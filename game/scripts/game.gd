@@ -1722,6 +1722,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			Sfx.play("ui_ok", -4.0)
 			state = S.PAUSE
 			return
+		if state == S.PLAY and ult != null and ult.aim_click():   # 终结技慢动作瞄准中：左键释放（docs/209 §3）
+			get_viewport().set_input_as_handled()
+			return
 		if state == S.PLAY and doctor.click_skill(event.position):   # 左键点场地放选落点技能（乌尔比安 S3，10-26）；放不了时点击照旧
 			get_viewport().set_input_as_handled()
 			return

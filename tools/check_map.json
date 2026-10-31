@@ -103,7 +103,8 @@
   },
   "ult": {
    "scenes": [
-    "ult_playback"
+    "ult_playback",
+    "ult_aim"
    ]
   },
   "op_shared": {

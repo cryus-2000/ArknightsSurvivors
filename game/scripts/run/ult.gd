@@ -12,6 +12,7 @@ const Combo = preload("res://scripts/run/combo.gd")
 const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携（combo/skill_link，10-30 起缺省开）
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
+const Aim = preload("res://scripts/run/ult_aim.gd")   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
 const FULL := 100.0
@@ -46,6 +47,15 @@ var q_held := false
 var last_hit_t := -1.0       # 终结技最后一次造成伤害的时刻（ult_bench 量时长）
 var kills_now := 0          # 本次终结技已击杀数：超过 ult/fx_kill_cap（60，§7.4）后普通怪静默倒下（combat.quiet）
 var tier := "ult"           # 当前伤害档：ult / cult（hit 读）
+# 慢动作瞄准 v2（run/ult_aim.gd）：本次瞄准走 v2、轻点后保持瞄准、输入源（key / mouse / pad / touch / plan）、按下 Q 与进入瞄准的真实时刻
+var aim_v2 := false
+var aim_latched := false
+var aim_src := "key"
+var _q_rt0 := 0.0
+var _aim_rt0 := 0.0
+var _aim_plan: Array = []
+var _mouse0 := Vector2.ZERO
+var _plan_goal := Vector2.ZERO
 
 # ---- 连携（§2.5 / §5）
 var cd := {}                # 干员 id → 冷却结束时刻
@@ -296,6 +306,9 @@ func _events() -> void:
 
 ## Q（手柄 RB / Ⓐ、手机终结技键按下）：能量满就进入顿帧 + 慢动作瞄准；松开（release_q）或时间到放出
 func press_q() -> bool:
+	if phase == "aim" and aim_v2 and aim_latched:
+		confirm_aim()   # 轻点进入的瞄准：再按一次 Q 释放
+		return true
 	if phase != "" or energy < FULL:
 		return false
 	var ld = g.squad.leader() if g.squad != null else null
@@ -308,6 +321,25 @@ func press_q() -> bool:
 
 func release_q() -> void:
 	q_held = false
+	if aim_v2:
+		Aim.release(self)
+
+
+## 瞄准中确认释放（再按 Q / 左键 / 录片计划）
+func confirm_aim() -> void:
+	if phase == "aim":
+		aim_latched = false
+		_cast()
+
+
+## 鼠标左键（game.gd）：瞄准中点一下 = 释放；不在瞄准里返回 false，点击照常
+func aim_click() -> bool:
+	return Aim.click(self)
+
+
+## HUD 层的瞄准画面（hud.gd，在指点之后）
+func draw_aim(vs: Vector2) -> void:
+	Aim.draw(self, vs)
 
 
 func _begin(ld, k: String) -> void:
@@ -340,6 +372,11 @@ func _begin(ld, k: String) -> void:
 	var sc: float = Bal.v("ult/cult_slow" if k == "cult" else "ult/slow", 0.2 if k == "cult" else 0.25)
 	_aim_min = slow * sc   # 游戏时间：0.5 秒真实时间 × 25%
 	_aim_max = _aim_min + Bal.v("ult/hold_max", 1.0) * sc
+	aim_v2 = false
+	if Aim.on(self):
+		var mm: Array = Aim.begin(self)   # 慢动作瞄准 v2：0.3 倍、最长 1.5 真实秒；自身周围类只闪一下
+		_aim_min = mm[0]
+		_aim_max = mm[1]
 	phase = "aim"
 	if k != "cult" and Bal.vi("ult/mate_voice_mute", 1) > 0:
 		_mute_mates(str(ld.id))   # 终结技期间队友不出声（到这次终结技收尾为止，队长自己的终结技语音照播）
@@ -373,6 +410,12 @@ func _tick_ult(dt: float) -> void:
 		phase = ""
 		act = {}
 		_mute_mates("")
+		return
+	if phase == "aim" and aim_v2:
+		_phase_t += dt
+		Aim.tick(self, dt)
+		if phase == "aim" and ((_phase_t >= _aim_min and not (q_held or aim_latched)) or _phase_t >= _aim_max):
+			_cast()
 		return
 	if phase == "aim":
 		_phase_t += dt
@@ -1095,7 +1138,9 @@ func time_scale() -> float:
 	var s := 1.0
 	if sf_active():
 		return 0.0   # 超必杀暂停：世界冻结（敌人、弹幕、计时都停，只有演出层动）
-	if phase == "aim":
+	if phase == "aim" and aim_v2:
+		s = Bal.v("ult/aim_slow", 0.3)
+	elif phase == "aim":
 		s = Bal.v("ult/cult_slow", 0.2) if kind == "cult" else Bal.v("ult/slow", 0.25)
 		if kind != "cult" and _sf_rt > 0.0 and sf_on():   # 暂停后接的瞄准慢放缩短：游戏时间不变，真实时间 slow_t → sf_slow_t
 			s = minf(1.0, s * Bal.v("ult/slow_t", 0.5) / maxf(0.05, Bal.v("ult/sf_slow_t", 0.3)))
@@ -1171,7 +1216,7 @@ func draw_world(w) -> void:
 					var ang: float = i * 2.39996
 					var rr: float = float(s.r) * sqrt(float(i + 1) / n) * (0.6 + 0.4 * (1.0 - k))
 					w.tb_circle(s.c + Vector2.from_angle(ang) * rr, 3.0, Color(col, 0.9 * k * dim), 1.0, 6)
-	if phase == "aim" and caster != null:
+	if phase == "aim" and caster != null and not aim_v2:   # v2 的范围格画在 HUD 层（ult_aim.draw）
 		var c: Color = _col(caster).lerp(Color.WHITE, 0.3)
 		if aim_kind == "point":
 			var r: float = Moves.aim_r(str(caster.id))
