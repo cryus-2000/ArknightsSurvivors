@@ -18,6 +18,10 @@
 ##   （tools/imagegen/pxburst.py --boss，8–14 颗、减速、冷却变暗；3 行花样 + 左右镜像），按弹专属色着色；飞行时身后贴拖尾帧条 fx_px_btrail
 ##   （4 帧循环、按速度拉长、沿速度转向；同屏 Boss 弹 > render/btrail_thin（100）颗时隔颗画；伊祖米克 130 弹实测 p95 0.4 ms（探针含放大））。都是贴图矩形，不走逐颗粒循环；
 ##   render/boss_pop = 0 / render/boss_trail = 0 各自关回旧画面
+## Boss 激光（kp_beam 帧条光束、bbeam 粗光束、敌方 tracer）：beam_px 沿光束每 22 px 贴一格 fx_px_bpop 后段帧（错相循环 = 边缘颗粒持续飘出），
+##   收束最后 0.07 秒整条按 _pop 碎成颗粒（从起点往末端依次）；render/boss_beam_px = 0 关
+## Boss 地面招式落地（telegraph.warn_resolve：Boss 的圆形落点圈结算那一刻）：ground_burst 按圈半径播一次 fx_px_burst1/2（大号迸散），
+##   专属色着色、画在弹体之下；同屏最多 GROUND_MAX 个；render/boss_ground_px = 0 关
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -26,10 +30,14 @@ const SPAWN_T := 0.09        # 出现动画时长（秒）
 const GHOST_MAX := 220       # 同屏消失残影上限（超了新的直接不画）
 const CLUSTER := 40.0        # 同帧出现按 40 世界像素格聚成一簇
 const EB_LIFT := Vector2(0, -16)   # 敌弹画在脚下 16 像素上方（同 world._ebp）
+const BossBeam = preload("res://scripts/render/boss_beam.gd")
 const POP := "fx_px_bpop"    # 8 帧 × 3 行，1 纹素 = 2 世界像素
 const POP_T := 0.45
 const POP_MAX := 400
 const TRAIL := "fx_px_btrail"   # 4 帧循环，弹头在帧的右端中心
+const GROUND := ["fx_px_burst1", "fx_px_burst2"]   # 8 帧 / 0.9 秒，帧 360 纹素见方（颗粒最远约 180 纹素）
+const GROUND_T := 0.9
+const GROUND_MAX := 24
 
 var g
 var w   # render/world.gd
@@ -40,6 +48,7 @@ var _prev := {}              # 渠道名 → {_bid: 弹字典}
 var _young: Array = []       # 还在出现动画里的弹 [弹字典, 画面偏移, 半径, 颜色]
 var ghosts: Array = []       # [种类, 位置, 半径, 颜色, 已过, 时长, 延迟]；种类 0 闪 / 1 缩 / 2 溶 / 3 出膛环
 var pops: Array = []         # Boss 弹迸散 [位置, 颜色, 已过, 延迟, 行, 镜像]
+var grounds: Array = []      # Boss 落地迸散 [位置, 颜色, 已过, 半径, 哪张, 镜像]
 var _spawns: Array = []      # 本帧新出现 [起点（画面位置）, 方向, 颜色, 半径, 弹字典, 渠道]
 var _dq: Array = []          # 本帧待溶解 [位置, 半径, 颜色]
 var hooks := {}
@@ -92,6 +101,13 @@ func frame() -> void:
 			pops[k] = pp
 			k += 1
 	pops.resize(k)
+	k = 0
+	for gg in grounds:
+		gg[2] = float(gg[2]) + dt
+		if float(gg[2]) < GROUND_T:
+			grounds[k] = gg
+			k += 1
+	grounds.resize(k)
 	if not _on:
 		_young.clear()
 		_prev.clear()
@@ -294,6 +310,79 @@ func _pop(p: Vector2, c: Color, delay := 0.0) -> void:
 	if pops.size() >= POP_MAX:
 		return
 	pops.append([p, c, 0.0, delay, g.vrng.randi_range(0, 2), g.vrng.randf() < 0.5])
+
+
+## Boss 落地迸散（telegraph.warn_resolve 调，纯画面；随机只用 g.vrng）
+func ground_burst(p: Vector2, r: float, c: Color) -> void:
+	if not _on or Bal.v("render/boss_ground_px", 1.0) <= 0.0 or grounds.size() >= GROUND_MAX or r < 12.0:
+		return
+	if not w.view_rect(r + 40.0).has_point(p):
+		return
+	grounds.append([p, c, 0.0, r, g.vrng.randi_range(0, 1), g.vrng.randf() < 0.5])
+
+
+## 落地迸散（world 画敌弹之前，压在弹体之下）：颗粒最远处约等于落点圈半径
+func draw_grounds() -> void:
+	for gg in grounds:
+		var t: Texture2D = w._lazy_tex(GROUND[int(gg[4])])
+		if t == null:
+			continue
+		var fw: float = t.get_width() / 8.0
+		var fh: float = float(t.get_height())
+		var f: int = mini(7, int(float(gg[2]) / GROUND_T * 8.0))
+		var sz := Vector2(fw, fh * float(g.combat.GROUND_Y)) * (float(gg[3]) * 2.2 / fw)   # 压扁成地面透视（同落点圈）
+		var dst := Rect2((gg[0] as Vector2) - sz * 0.5, sz)
+		if gg[5]:
+			dst = Rect2(dst.position + Vector2(sz.x, 0.0), Vector2(-sz.x, sz.y))
+		var c: Color = gg[1]
+		g.draw_texture_rect_region(t, dst, Rect2(float(f) * fw, 0.0, fw, fh), Color(c.r * 1.15, c.g * 1.15, c.b * 1.15, 0.9))
+
+
+static func _hh(i: int) -> float:
+	return fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
+
+
+## Boss 激光颗粒（world._draw_fx 画完 kp_beam / bbeam / 敌方 tracer 后调）：c = 光束本色、hw = 光束可见半宽
+func beam_px(f: Dictionary, c: Color, hw: float) -> void:
+	if not f.has("a") or not f.has("b"):
+		return
+	var left: float = float(f.max) - BossBeam.laser_el(f)
+	beam_line(f, f.a, f.b, c, hw, float(f.max) - left, left < minf(0.07, float(f.max) * 0.3))
+
+
+## 光束颗粒通用画法（伊莎玛拉统一光束 ishar_tell_draw 也调）：颗粒贴在两侧边缘往外飘（提亮一档免得和光束同色糊在一起）；
+## closing = 收束那一刻：整条按 _pop 从起点往末端碎成颗粒（st 记一次，只碎一回）
+func beam_line(st: Dictionary, a: Vector2, b: Vector2, c: Color, hw: float, el: float, closing: bool) -> void:
+	if not _on or Bal.v("render/boss_beam_px", 1.0) <= 0.0:
+		return
+	var t: Texture2D = w._lazy_tex(POP)
+	var L: float = a.distance_to(b)
+	if t == null or L < 8.0:
+		return
+	var d: Vector2 = (b - a) / L
+	var nr: Vector2 = d.orthogonal()
+	var step := 22.0
+	var n: int = mini(int(L / step) + 1, 60)
+	var seed: int = int(absf(a.x * 7.0 + a.y * 13.0)) % 977
+	c = c.lerp(Color.WHITE, 0.35)
+	if closing:
+		if not st.get("px_end", false):
+			st["px_end"] = true
+			for i in n:
+				_pop(a + d * (float(i) + 0.5) * step + nr * (_hh(seed + i) - 0.5) * hw, c, 0.01 * float(i))
+		return
+	var fw: float = t.get_width() / 8.0
+	var fh: float = t.get_height() / 3.0
+	var sz := Vector2(fw * 2.0, fh * 2.0)
+	for i in n:
+		var h: float = _hh(seed + i)
+		var ph: float = fposmod(el * 2.4 + h, 1.0)
+		var fi: int = 2 + int(ph * 6.0)   # 只用后 6 帧（散开的颗粒），不要开头那团亮核
+		var p: Vector2 = a + d * (float(i) + 0.5) * step + nr * (1.0 if i % 2 == 0 else -1.0) * (hw + 4.0 + 8.0 * h)
+		var dst := Rect2(p - sz * 0.5, sz)
+		if i % 2 == 1:
+			dst = Rect2(dst.position + Vector2(sz.x, 0.0), Vector2(-sz.x, sz.y))
+		g.draw_texture_rect_region(t, dst, Rect2(float(fi) * fw, float(i % 3) * fh, fw, fh), Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.85))
 
 
 func _grains():

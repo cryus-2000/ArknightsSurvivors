@@ -265,6 +265,8 @@ func warn_resolve(w: Dictionary) -> void:
 		for i in range(n0, g.fx.size()):
 			if not g.fx[i].has("bfx"):
 				g.fx[i]["bfx"] = bc
+		if w.shape == "circle" and int(w.get("style", 1)) != 0 and g.world != null and g.world.bulfx != null:
+			g.world.bulfx.ground_burst(w.pos, float(w.r), bc)   # 落地一圈颗粒迸开（docs/206 §4，纯画面）
 
 
 func _resolve(w: Dictionary) -> void:
