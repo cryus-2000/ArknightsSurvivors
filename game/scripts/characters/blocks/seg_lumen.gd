@@ -40,16 +40,22 @@ static func _h3_heal_lamp(o) -> void:
 		o.g.lamp = minf(o.g.lamp_cap, o.g.lamp + float(b.get("add", 2.0)))
 
 
-## 治疗队长（同手写 _heal_doctor：满血也结算）
-static func _h3_mend(o, h: float, size: int, sub: String) -> void:
+## 治疗队长（同手写 _heal_doctor：满血也结算）；10-31 起这一拍可能改给 Mon3tr（m3_hp.heal_pick_mate，规则同凯尔希），返回落点
+static func _h3_mend(o, h: float, size: int, sub: String) -> Vector2:
 	var g = o.g
 	if h <= 0.0:
-		return
+		return g.ppos
+	var m3: Array = M3.heal_pick_mate(g)
+	if not m3.is_empty():
+		M3.heal_from_mate(o, m3[0], m3[1], h, H3_WARM)
+		o.spawn_fx_sprite("fx_holy_impact_lantern", m3[1].pos + Vector2(0, -34), g.PX * 0.9)
+		return m3[1].pos
 	o.heal_leader(h, o.display_name(), sub)
 	o.float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), H3_WARM, size)
 	o.spawn_fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
 	if not o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
 		o.fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.4, "col": H3_WARM, "floor": true, "keep": true})
+	return g.ppos
 
 
 ## 出手帧提灯位置（脚底前 hand[0]、上 hand[1]）
@@ -94,6 +100,7 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 	var hb: Dictionary = a.get("heal", {})
 	var hand: Vector2 = _h3_lamp_hand(o, a)
 	var did := false
+	var mend_at: Vector2 = g.ppos   # 这拍治疗的落点（队长或 Mon3tr），手部光束连到这里
 	if float(lm.heal_t) < float(hb.get("every", 3.0)):
 		pass
 	elif g.corrode_pool > 0.5 or g.nerve > 0.5:
@@ -104,13 +111,13 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		g.afflict.cut_nerve(float(hb.get("nerve_cut", 15.0)))
 		o.float_text(g.ppos + Vector2(0, -96), "驱散", H3_PALE, 14)
 		did = true
-	elif g.hp < g.max_hp:
+	elif g.hp < g.max_hp or not M3.hurt_entry(g).is_empty():   # 队长满血但 Mon3tr 受伤也出手（10-31）
 		var pct: float = g.max_hp * float(hb.get("pct", 0.02))
 		var gm := 1.0
 		for m in hb.get("mults", _EA):
 			if cond_true(o, m.get("cond", _ED)):
 				gm *= float(m.get("mult", 1.0))   # 10-21 响应动作起成立的依次乘（原来只有一条，取最后一条 = 乘）
-		_h3_mend(o, pct * gm * _h3_heal_mult(o), 15, str(hb.get("sub", "")))
+		mend_at = _h3_mend(o, pct * gm * _h3_heal_mult(o), 15, str(hb.get("sub", "")))
 		did = true
 	if did:
 		lm.heal_t = 0.0
@@ -118,7 +125,7 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		for m in hb.get("lamp_adds", _EA):   # 响应动作（docs/118 §4.2）：cond 成立时这次回复 / 驱散另给灯火 + add
 			if cond_true(o, m.get("cond", _ED)):
 				g.lamp = minf(g.lamp_cap, g.lamp + float(m.get("add", 0.0)))
-		g.fx.append({"kind": "beam", "a": hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": H3_WARM, "w": 2.5})
+		g.fx.append({"kind": "beam", "a": hand, "b": mend_at + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": H3_WARM, "w": 2.5})
 	lm.hand_glow = 0.18
 	var rr: float = _h3_bolt_range(o, a)
 	var ts: Array = ((o.aim_targets(1, rr, o.pos) if lm.armed else []) if o.held_aim() else o.los_targets(1, rr, o.pos))

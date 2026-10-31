@@ -577,7 +577,7 @@ static func sm_draw(o, s: Dictionary) -> void:
 		o.cv.draw_circle(q + Vector2(-r * 0.25, -r * 0.3), r * 0.45, Color(minf(cc.r * 1.5, 1.5), minf(cc.g * 1.5, 1.5), minf(cc.b * 1.5, 1.5), 0.5 * al))
 		var ex: float = float(s.face) * r * 0.45
 		o.cv.draw_circle(q + Vector2(ex, -r * 0.15), maxf(1.5, r * 0.18), Color(1.0, 0.95, 0.85, al))
-	if not s.inv and float(s.hp) < float(s.max_hp):
+	if not s.inv and float(s.hp) < float(s.max_hp) and not s.has("m3"):   # Mon3tr 的血条只画头顶那根（hud_allyhp，10-31 用户「身上有两根血条」）
 		var w: float = 18.0
 		var bp: Vector2 = s.pos + Vector2(-w * 0.5, -hov - float(kd.get("r", 10.0)) * 2.0 - 8.0)
 		o.cv.draw_rect(Rect2(bp, Vector2(w, 2.5)), Color(0.05, 0.05, 0.08, 0.8 * al))
@@ -1783,8 +1783,6 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	for f in fl:
 		if f is Dictionary and f.has("side") and fx_on(o, f):
 			_mf_side(o, s, f.side, hov)
-	if s.has("m3"):
-		M3.draw_bar(o, s, kd, hov)
 	return true
 
 
