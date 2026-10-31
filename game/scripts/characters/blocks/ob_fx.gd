@@ -106,7 +106,7 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 		"self":
 			pts.append(o.pos)
 		"leader":
-			pts.append(g.ppos)
+			pts.append(o.lead_pos())
 		"zone":
 			pts.append(o.zone_c() if o.has_method("zone_c") else c)
 		"hits":
@@ -537,7 +537,7 @@ static func fx_hold_strips(ci, o, e: Dictionary, layer: String, c_zone: Vector2,
 			"self":
 				cs = [o.pos]
 			"leader":
-				cs = [g.ppos]
+				cs = [o.lead_pos()]
 			"members":   # 精英化段：光环（aura.*）的受益者，每人头顶一个
 				cs = []
 				for m in aura_members(o, str(e.b.get("scope", "others"))):

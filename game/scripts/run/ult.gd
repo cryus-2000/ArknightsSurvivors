@@ -12,7 +12,8 @@ const Combo = preload("res://scripts/run/combo.gd")
 const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携（combo/skill_link，10-30 起缺省开）
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
-const Aim = preload("res://scripts/run/ult_aim.gd")   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
+const Aim = preload("res://scripts/run/ult_aim.gd")
+const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
 const FULL := 100.0
@@ -124,7 +125,8 @@ var cutins: Array = []      # 立绘切入条带（HUD 画）：{"id", "name", "
 
 # ---- 统计（批跑汇总 / ult_bench）
 var stats := {"ult": 0, "cult": 0, "combo": 0, "combo_auto": 0, "combo_e": 0, "combo_up": 0, "lit": 0, "miss": 0,
-	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "link_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0}
+	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "link_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0,
+	"v2_links": 0, "link_t": []}
 
 
 func _init(game) -> void:
@@ -217,6 +219,18 @@ func combo_landed(o, pos: Vector2, n_hit: int, gathered := 0) -> void:
 	hs.append({"t": g.t, "pos": pos, "op": str(o.id), "n": n_hit, "gathered": gathered})
 	if hs.size() > 4:
 		hs.pop_front()
+	if g.t - _combo_e_t >= Bal.v("ult/e_combo_gap", 12.0):
+		_combo_e_t = g.t
+		_gain(Bal.v("ult/e_combo", 2.0), "combo")
+	if cells < CELLS and g.t - _cell_t >= Bal.v("ult/cell_gap", 40.0):
+		_cell_t = g.t
+		cells += 1
+
+
+## 连携 v2 出手：能量 +ult/e_combo（每 ult/e_combo_gap 秒至多 1 次）、协同 +1 格（每 ult/cell_gap 秒至多 1 格）；不打连携命中的顿帧 / 大环
+func link_landed(o) -> void:
+	stats.v2_links = int(stats.get("v2_links", 0)) + 1
+	stats.link_t.append(snappedf(g.t, 0.1))
 	if g.t - _combo_e_t >= Bal.v("ult/e_combo_gap", 12.0):
 		_combo_e_t = g.t
 		_gain(Bal.v("ult/e_combo", 2.0), "combo")
@@ -441,11 +455,17 @@ func _tick_ult(dt: float) -> void:
 		if done:
 			phase = ""
 			act = {}
+			if LinkV2.on():
+				LinkV2.on_ult(self, _ult_at)   # 连携 v2：终结技放完，队友在落点上接一招收割
 			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
+
+
+var _ult_at := Vector2.INF   # 这次终结技的作用中心（落点 / 方向前方 300 / 自身）：连携 v2 收割用
 
 
 func _cast() -> void:
 	phase = "cast"
+	_ult_at = aim if aim_kind == "point" else (caster.pos + aim_dir * 300.0 if aim_kind == "dir" else caster.pos)
 	_cast_t = g.t
 	ev.ult_t = g.t
 	_ua("cast")
@@ -574,8 +594,8 @@ func _tick_combo(dt: float) -> void:
 			if p != null and p.pos != Vector2.INF and p.pos.distance_to(g.ppos) > 80.0:
 				shape({"kind": "line", "a": p.pos, "b": g.ppos, "w": 5.0, "col": _col(p), "life": 0.3})   # 残影回队
 			combo_acts.remove_at(k)
-	# 亮起判定（队长不放连携；冷却中 / 已在排队 / 正在出连携的不判）
-	for o in g.squad.ops:
+	# 亮起判定（队长不放连携；冷却中 / 已在排队 / 正在出连携的不判）；连携 v2 不再有 E 连携技（A–D 四类）亮起
+	for o in (g.squad.ops if not LinkV2.on() else []):
 		if o.is_leader or o.pos == Vector2.INF or o.cmd_down > 0.0:
 			continue
 		var oid := str(o.id)
@@ -602,12 +622,18 @@ func _tick_combo(dt: float) -> void:
 		queue.pop_front()   # 漏按：什么也不发生，冷却不走
 		stats.miss += 1
 		return
+	if LinkV2.on():
+		if Bal.v("ult/lit_t", 2.5) - head.left >= Bal.v("link/v2_delay", 0.15) or head.info.has("v2"):
+			_fire_head(true)   # v2：全自动，亮起后不等按键
+		return
 	if auto_combo() and Bal.v("ult/lit_t", 2.5) - head.left >= Bal.v("ult/auto_delay", 0.6):
 		_fire_head(true)
 
 
 ## E（手柄 Ⓨ、手机连携键）：放队首
 func press_e() -> bool:
+	if LinkV2.on():
+		return false   # 连携 v2：全自动，E 键不再有动作
 	if queue.is_empty() or g.state != g.S.PLAY:
 		return false
 	_fire_head(false)
@@ -626,6 +652,8 @@ func _fire_head(auto: bool) -> void:
 		else:
 			stats.combo_e += 1
 		combo_acts.append(la)
+		if q.info.has("v2"):
+			link_landed(o)   # v2：每次连携 +1 协同格（喂连携终结技）+ 能量
 		if lf_on():
 			link_flash(o, str(LINK_NAME.get(str(q.info.link), o.display_name())))
 		var tc: Color = _col(o)
@@ -1060,7 +1088,9 @@ var _stage_op = null
 
 
 func on_skill(o, i: int) -> void:
-	if Link.on():
+	if LinkV2.on():
+		LinkV2.on_skill(self, o, i)
+	elif Link.on():
 		Link.on_skill(self, o, i)
 
 
@@ -2040,7 +2070,7 @@ func link_flash(p, nm: String) -> void:
 
 ## 压暗强度 0..1（只在完整演出里）
 func lf_dim_k() -> float:
-	if not lf_full:
+	if not lf_full or LinkV2.on():   # 连携 v2：不压暗（docs/209 §2.2「不停顿、不挡视线」）
 		return 0.0
 	var t: float = UM.now() - lf_rt
 	var ti: float = Bal.v("link/dim_in", 0.06)
@@ -2056,7 +2086,7 @@ func lf_dim_k() -> float:
 
 
 func lf_slow_on() -> bool:
-	return lf_full and UM.now() - lf_rt < Bal.v("link/slow_t", 0.2)
+	return lf_full and not LinkV2.on() and UM.now() - lf_rt < Bal.v("link/slow_t", 0.2)
 
 
 func _draw_lf(w) -> void:

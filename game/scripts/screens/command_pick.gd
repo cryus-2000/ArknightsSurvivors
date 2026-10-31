@@ -7,6 +7,7 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const Tactics = preload("res://scripts/characters/tactics.gd")   # 指挥 v2：部署的阻挡数 / 职业（docs/209 §1.4）
 
 var g
 var active := false
@@ -268,13 +269,14 @@ func draw(vs: Vector2) -> void:
 		hud.draw_arc(pointer, 30.0, 0.0, TAU, 28, Color(1, 1, 1, 0.55), 2.0)
 		_dash(hud, pointer + Vector2(0, -30), rp + Vector2(0, 22), Color(1, 1, 1, 0.45), false)
 	# 底部信息板：左端警戒斜纹 + PRTS 标签 + 类型 / 状态 / 提示（切角板）
-	var title: String = {"point": "指点 · 移动", "clear": "指点 · 肃清"}.get(mode, "指点 · 集火")
-	var code: String = {"point": "ORDER // POINT", "clear": "ORDER // CLEAR"}.get(mode, "ORDER // FOCUS FIRE")
+	var v2: bool = Tactics.on()
+	var title: String = {"point": "指挥 · 部署" if v2 else "指点 · 移动", "clear": "指点 · 肃清"}.get(mode, "指点 · 集火")
+	var code: String = {"point": "ORDER // DEPLOY" if v2 else "ORDER // POINT", "clear": "ORDER // CLEAR"}.get(mode, "ORDER // FOCUS FIRE")
 	var stt: String
 	if mode == "focus":
 		stt = ("锁定 %s" % ("Boss" if snapped.boss else "精英")) if snapped != null else "把准星移到精英或 Boss 上"
 	else:
-		stt = "全队前往此处作战" if valid else "太远了"
+		stt = ("队友前往此处落位，重装 / 近卫阻挡敌人" if v2 and mode == "point" else "全队前往此处作战") if valid else "太远了"
 	var w: float = minf(vs.x - 40.0, 440.0)
 	var r := Rect2(Vector2((vs.x - w) / 2.0, vs.y * 0.76), Vector2(w, 76))
 	_plate(hud, r, e)
@@ -407,6 +409,8 @@ func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 		_corners(hud, cp, 14.0, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.95), 2.0)
 	elif sq.order_kind == "point":
 		_station_mark(hud, ct * sq.order_pos, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.9))
+		if Tactics.on():
+			_draw_deploy(hud, ct)
 	elif sq.order_kind == "focus" and sq.order_target != null and not sq.order_target.dead:
 		var en = sq.order_target
 		_lock(hud, g.font, ct, en, W.C_WARN, true, 1.0)
@@ -414,6 +418,50 @@ func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 			if o.is_leader or not o.cmd_roam() or o.pos == Vector2.INF:
 				continue
 			_dash(hud, ct * o.pos, ct * en.pos, Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, 0.4), true)
+
+
+## 部署（指挥 v2，docs/209 §1.4）：站定的远程干员地面画攻击范围的边格（同范围格画法，只画外圈一层，不糊敌人）；
+## 阻挡者脚下一排小方块 = 阻挡数，挡住几个亮几个（精英占 2）
+func _draw_deploy(hud: CanvasItem, ct: Transform2D) -> void:
+	var W = g.wheel
+	var sq = g.squad
+	for o in sq.ops:
+		if o.is_leader or o.pos == Vector2.INF or not sq.roaming_op(o):
+			continue
+		var st: Vector2 = sq.station_of(o)
+		if st == Vector2.INF or o.pos.distance_to(st) > Bal.v("command/block_at", 40.0):
+			continue
+		if Tactics.role(o) == "ranged":
+			_edge_tiles(hud, ct, o.pos, o.cmd_attack_range(), W.C_ACC, 0.55)
+		var cap: int = Tactics.block_cap(o)
+		if cap <= 0:
+			continue
+		var used := 0
+		for e in o.cmd_blk:
+			used += 2 if e.elite else 1
+		var fp: Vector2 = ct * (o.pos + Vector2(0, 12))
+		var w: float = cap * 9.0 - 3.0
+		for i in cap:
+			var r := Rect2(fp + Vector2(-w * 0.5 + i * 9.0, 0), Vector2(6, 6))
+			hud.draw_rect(r.grow(1.0), Color(0.02, 0.03, 0.04, 0.8))
+			hud.draw_rect(r, W.C_WARN if i < used else Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.35))
+
+
+## 范围的外圈格（只画边上一层）：远程部署的射程
+func _edge_tiles(hud: CanvasItem, ct: Transform2D, center: Vector2, rr: float, col: Color, e: float) -> void:
+	var n: int = int(ceil(rr / CELL))
+	var base := Vector2(floor(center.x / CELL), floor(center.y / CELL))
+	for iy in range(-n, n + 1):
+		for ix in range(-n, n + 1):
+			var cc := (base + Vector2(ix, iy) + Vector2(0.5, 0.5)) * CELL
+			var d: float = cc.distance_to(center)
+			if d > rr or d < rr - CELL * 0.9:
+				continue
+			var q0: Vector2 = ct * (cc - Vector2(CELL, CELL) * 0.46)
+			var q1: Vector2 = ct * (cc + Vector2(CELL, CELL) * 0.46)
+			var rc := Rect2(q0, q1 - q0)
+			hud.draw_rect(rc, Color(col.r, col.g, col.b, 0.08 * e))
+			hud.draw_rect(rc, Color(col.r, col.g, col.b, 0.6 * e), false, 1.2)
 
 
 ## 驻扎点标记（移动）：深色描边的小菱形 + 四角刻度，屏幕像素约 28 见方，不画范围；画在地面层，被干员挡住时角标仍露在外面

@@ -269,7 +269,7 @@ static func hw_draw_rings(o) -> void:
 				r = shape_radius(o, o.cur_attack())
 			else:
 				r = float(rv.r)
-			var c: Vector2 = g.ppos if str(f.get("at", "self")) == "leader" else o.pos
+			var c: Vector2 = o.lead_pos() if str(f.get("at", "self")) == "leader" else o.pos
 			var ov = f.get("off", [0, 4])
 			c += Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
 			var al: float = fx_hold_alpha(f, e)

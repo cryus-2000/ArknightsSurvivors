@@ -20,6 +20,15 @@ var cv:
 		return _cv
 
 
+# ---------------------------------------------------------------- 「以队长为中心」的范围中心（docs/209 §1.3）
+## 积木里 center / at = leader 的范围：平时是队长位置；指挥 v2（command/self_center）下这名队友突击 / 部署中时改以她自己为中心
+func lead_pos() -> Vector2:
+	var sq = g.get("squad") if g != null else null
+	if sq != null and sq.has_method("self_center") and sq.self_center(self):
+		return get("pos")
+	return g.ppos
+
+
 # ---------------------------------------------------------------- 索敌
 
 ## 离 origin（缺省为主控位置）最近的 n 个活着的敌人，max_dist 以内，按指挥优先级排序（prio_order；队长恒为 Boss 优先）。

@@ -7,6 +7,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
+const Tactics = preload("res://scripts/characters/tactics.gd")   # 战术姿态 v2（command/v2，docs/209 §1）
 
 const REGULAR_MAX := 3
 ## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
@@ -31,6 +32,7 @@ var priority: int = default_priority()
 static func default_priority() -> int:
 	return clampi(int(Bal.v("command/priority_default", 1.0)), 0, 1)
 var stance := GUARD
+var escort_dir := Vector2.ZERO   # 护卫阵型的威胁方向（平滑后的单位向量；tactics.threat_dir）
 var recall_t := 0.0
 var gather_t := -1.0          # 归队：全员到位后站定的剩余秒数（-1 = 还在往回跑）
 ## 突击耐力（10-21 用户定）：全队共用 0–1。突击时按时间消耗（满 command/stamina_secs 秒），耗尽自动归队并进冷却；
@@ -384,8 +386,12 @@ func update(dt: float) -> void:
 	var bl: bool = _blink_on()
 	if bl:
 		_blink_pre()
+	var esc: Dictionary = {}
+	if Tactics.sub("escort") and g.demo_op == "" and ops.size() > 1:
+		escort_dir = Tactics.threat_dir(g, escort_dir, dt)
+		esc = Tactics.escort_offsets(self, escort_dir)   # 随行 = 护卫阵型：按职业站位（docs/209 §1.2）
 	for o in ops:
-		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
+		o.follow(dt, g.ppos if o.is_leader else g.ppos + esc.get(o, _slot_offset(o.slot)))
 	if bl:
 		_blink_check(dt, "")
 	if pf:
@@ -396,6 +402,9 @@ func update(dt: float) -> void:
 	_tick_stamina(dt)
 	_tick_order(dt)
 	_tick_hp(dt)
+	if Tactics.on():
+		Tactics.tick_block(self)   # 部署：阻挡（docs/209 §1.4）
+		Tactics.tick_medic(self, dt)   # 医疗给队友回血（§1.1）
 	_tick_rush_buff()
 	if pf:
 		t0 = g.prof_add("sq_ticks", t0)
@@ -514,7 +523,9 @@ func apply_command(id: String) -> void:
 		return
 	match id:
 		"guard":
-			if stance != GUARD:
+			if Tactics.on() and stance != GUARD and _far_out():
+				set_stance(RECALL)   # v2 圆盘合并：随行 = 队友离得远时先闪回集合（原「归队」，docs/209 §1.6）
+			elif stance != GUARD:
 				set_stance(GUARD)
 		"roam":
 			if stance != ROAM:
@@ -732,9 +743,44 @@ func op_maxhp(o) -> float:
 	return maxf(1.0, g.max_hp * k * Bal.v("command/hp_mul", 4.0))
 
 
-## 能吸引仇恨 / 会受伤的队友：突击中、肯出击、没倒地
+## 能吸引仇恨 / 会受伤的队友：突击中、肯出击（out_op）、没倒地
 func roaming_op(o) -> bool:
-	return stance == ROAM and not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and o.cmd_roam()
+	return stance == ROAM and not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and out_op(o)
+
+
+## 突击 / 部署时这名队友出不出去：json command.roam（医疗 / 辅助 false）；v2 部署时医疗也跟去治疗；残血撤回中的不出去（docs/209 §1.1）
+func out_op(o) -> bool:
+	if o.cmd_retreat:
+		return false
+	return o.cmd_roam() or (Tactics.sub("heal_mates") and str(o.cls) == "医疗" and order_kind == "point")
+
+
+## 积木「以队长为中心」的范围改以她自己为中心（op_api.lead_pos，docs/209 §1.3）：突击 / 部署中的队友
+func self_center(o) -> bool:
+	return Tactics.sub("self_center") and roaming_op(o)
+
+
+## 残血撤回中（连携 v2 不挑她接招）
+func retreating(o) -> bool:
+	return o.cmd_retreat
+
+
+## 部署（移动）时这名队友的站位：驻扎点 + 编队位错开；医疗站在驻扎点朝队长一侧 60（阻挡者身后）
+func station_of(o) -> Vector2:
+	if order_kind != "point" or order_pos == Vector2.INF:
+		return Vector2.INF
+	if Tactics.sub("heal_mates") and str(o.cls) == "医疗":
+		var back: Vector2 = g.ppos - order_pos
+		return order_pos + (back.normalized() if back.length() > 1.0 else Vector2(-1, 0)) * 60.0
+	return order_pos + _slot_offset(o.slot) * Bal.v("command/station_spread", 0.5)
+
+
+## 有队友离随行位（护卫站位）超过 recall_done × 3：圆盘「随行」时先闪回
+func _far_out() -> bool:
+	for o in ops:
+		if not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > Bal.v("command/recall_done", 28.0) * 3.0 + 80.0:
+			return true
+	return false
 
 
 ## 仇恨（A 段逐只调用，enemies.gd）：突击中半径 command/aggro_r 内最近的突击队友；本只第一次进圈时用 rng_enemy 掷一次，
@@ -782,29 +828,93 @@ func _tick_hp(dt: float) -> void:
 			continue
 		if not hp_on():
 			continue
-		if stance != ROAM:
+		_tick_retreat(o)
+		if stance != ROAM or o.cmd_retreat:
 			o.cmd_hp = minf(1.0, o.cmd_hp + dt / maxf(0.1, Bal.v("command/hp_regen_secs", 30.0)))
 			continue
-		if not roaming_op(o) or o.cmd_inv > 0.0:
+		if not roaming_op(o):
+			continue
+		if Tactics.sub("expose"):
+			_bullet_hits(o)   # v2：突击 / 部署中吃敌弹（docs/209 §1.5）
+			if o.cmd_down > 0.0:
+				continue
+		if o.cmd_inv > 0.0:
 			continue
 		for e in g.enemies_sys.nearest(4, 60.0, o.pos):
 			if e.dmg > 0.0 and e.ai == "melee" and not e.get("coma", false) and not e.get("dormant", false) and o.pos.distance_to(e.pos) < e.r + 12.0:
-				o.cmd_hp -= e.dmg * Bal.v("command/op_dmg_k", 1.0) / op_maxhp(o)
+				op_hurt(o, e.dmg * Bal.v("command/op_dmg_k", 1.0))
 				o.cmd_inv = Bal.v("command/op_inv", 0.5)
-				o.cmd_show = 3.0
-				o.cmd_hit_t = g.t
-				if o.cmd_hp <= 0.0:
-					o.cmd_hp = 0.0
-					o.cmd_down = Bal.v("command/revive_secs", 25.0)
-					o.cmd_down_age = 0.0
-					o.roam_tgt = null
-					downs_n += 1
-					if not _sortie_down:
-						_sortie_down = true
-						sortie_downs_n += 1
-					if g.get("trace_every") != null and g.trace_every > 0.0:
-						print("CMD t=%.2f down %s" % [g.t, o.id])
 				break
+
+
+## 队友受伤（接触 / 敌弹 / 预警招式共用）：扣生命比例、受击闪、空血倒地
+func op_hurt(o, amount: float) -> void:
+	if o.cmd_down > 0.0 or amount <= 0.0:
+		return
+	o.cmd_hp -= amount / op_maxhp(o)
+	o.cmd_show = 3.0
+	o.cmd_hit_t = g.t
+	if o.cmd_hp <= 0.0:
+		o.cmd_hp = 0.0
+		o.cmd_down = Bal.v("command/revive_secs", 25.0)
+		o.cmd_down_age = 0.0
+		o.roam_tgt = null
+		o.cmd_retreat = false
+		o.cmd_blk.clear()
+		downs_n += 1
+		if not _sortie_down:
+			_sortie_down = true
+			sortie_downs_n += 1
+		if g.get("trace_every") != null and g.trace_every > 0.0:
+			print("CMD t=%.2f down %s" % [g.t, o.id])
+
+
+## 残血撤回（docs/209 §1.1）：突击 / 部署中生命跌破 command/retreat_hp 自动回队长身边（算随行：不受伤、回血），回到 retreat_back 再归位
+func _tick_retreat(o) -> void:
+	if not Tactics.sub("retreat"):
+		o.cmd_retreat = false
+		return
+	if o.cmd_retreat:
+		if o.cmd_hp >= Bal.v("command/retreat_back", 0.6) or stance != ROAM:
+			o.cmd_retreat = false
+		return
+	if stance == ROAM and out_op(o) and o.cmd_hp < Bal.v("command/retreat_hp", 0.3):
+		o.cmd_retreat = true
+		o.roam_tgt = null
+		o.cmd_blk.clear()
+		if g.get("vfx") != null and g.demo_op == "":
+			g.vfx.add_text(o.pos + Vector2(0, -78), "撤回", Color(0.55, 0.9, 1.0), 15)
+		if g.get("trace_every") != null and g.trace_every > 0.0:
+			print("CMD t=%.2f retreat %s" % [g.t, o.id])
+
+
+## 敌弹碰到突击 / 部署中的队友：子弹消失（_die = block），伤害 × command/op_bullet_k
+func _bullet_hits(o) -> void:
+	var lst = g.get("ebullets")
+	if lst == null:
+		return
+	var p: Vector2 = o.pos + Vector2(0, -16)
+	for bl in lst:
+		if bl.life <= 0.0 or bl.get("friendly", false):
+			continue
+		if bl.pos.distance_squared_to(p) < pow(float(bl.get("r", 6.0)) + 16.0, 2.0):
+			bl.life = 0.0
+			bl["_die"] = "block"
+			op_hurt(o, float(bl.get("dmg", 0.0)) * Bal.v("command/op_bullet_k", 1.0))
+			if o.cmd_down > 0.0:
+				return
+
+
+## 预警招式结算（telegraph.update_warns 调）：站在判定区里的突击 / 部署队友吃 w.dmg × command/op_warn_k（docs/209 §1.5）
+func warn_hit(w: Dictionary) -> void:
+	if not Tactics.sub("expose") or not hp_on() or stance != ROAM:
+		return
+	var dmg: float = float(w.get("dmg", 0.0))
+	if dmg <= 0.0:
+		return
+	for o in ops:
+		if roaming_op(o) and o._warn_has(w, o.pos, 0.0):
+			op_hurt(o, dmg * Bal.v("command/op_warn_k", 1.0))
 
 
 ## 队友残血提醒（10-31 用户，docs/114 §21）：血量跌破 command/low_hp 进入提醒（头顶条 / 编队卡 / 屏外箭头红色慢闪，hud_allyhp），
@@ -845,7 +955,7 @@ func _recall_blink() -> void:
 			continue
 		if o.cmd_down > 0.0:
 			continue   # 倒地的留在倒地点，复活计时照走（10-23 用户实测：不跟着漂）
-		var dst: Vector2 = g.ppos + _slot_offset(o.slot)
+		var dst: Vector2 = g.ppos + (Tactics.escort_offsets(self, escort_dir).get(o, _slot_offset(o.slot)) if Tactics.sub("escort") and escort_dir != Vector2.ZERO else _slot_offset(o.slot))
 		o.cmd_inv = maxf(o.cmd_inv, Bal.v("command/recall_inv", 1.0))
 		o.roam_tgt = null
 		if o.pos.distance_to(dst) <= lim:

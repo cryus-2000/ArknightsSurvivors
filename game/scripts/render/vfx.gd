@@ -55,6 +55,8 @@ var stop_stat := {}   # kind -> [请求, 实给, 实给秒数]（--perf 打印�
 
 
 func stop(seconds: float, kind: String, must := false) -> bool:
+	if kind == "link" and Bal.vi("link/v2", 1) > 0:
+		return true   # 连携 v2：不停顿（docs/209 §2.2）
 	var st: Array = stop_stat.get(kind, [0, 0, 0.0])
 	stop_stat[kind] = st
 	st[0] += 1

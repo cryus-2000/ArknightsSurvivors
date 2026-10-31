@@ -1047,6 +1047,7 @@ SCENE_REGRESSIONS = {
     "invuln_skill_hold": ("无敌暂缓技能（Boss 无敌时普攻照打、自动技能就绪不放，解除后 1 秒内放出；开关 combat/hold_skill_on_invuln）", "invuln_skill_hold_test", r"INVULN SKILL HOLD checks=\d+ failures=0", ["--balance", "--seed=1"]),
     "ult_playback": ("终结技播放形式（按 Q 到演出结束队长不走不冲、突进由招式写位置、播放期间无敌；期间的升级排队、播完逐个弹；开关 ult/playback）", "ult_playback_test", r"ULT PLAYBACK checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=irene"]),
     "ult_aim": ("终结技慢动作瞄准 v2（docs/209 §3：0.3 倍慢动作、计划挪落点、轻点保持再按释放、按住到上限自动放、自身周围类不停留、开关 ult/aim）", "ult_aim_test", r"ULT AIM checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=texas", "--ultaim"]),
+    "squad_v2": ("小队指挥 v2（docs/209：护卫阵型站位、突击职业分工、部署阻挡、突击中吃敌弹 / 预警、残血撤回、医疗回血、圆盘随行合并归队、以施放者为中心、连携 v2 按姿态挑人、开关 command/v2）", "squad_v2_test", r"SQUAD V2 checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=texas", "--squad=hoshiguma,exusiai"]),
     "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
     # 以下旧系统（隐藏连携 / 响应动作 / 手动技能 / 契约试点的响应段）在 ult/on（docs/198 终结技，缺省开）下停用：测试固定 --bal=ult/on=0 守旧路径，旧系统删掉时连同测试一起删
     "synergy_a": ("干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--bal=ult/on=0", "--regression", "--balance", "--seed=1", "--op=texas", "--squad=exusiai,lappland"]),

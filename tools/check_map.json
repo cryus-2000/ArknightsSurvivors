@@ -44,6 +44,7 @@
    "scenes": [
     "command_ai",
     "command_wheel",
+    "squad_v2",
     "voice_command",
     "friendly_target"
    ]

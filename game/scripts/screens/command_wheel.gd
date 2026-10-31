@@ -24,15 +24,25 @@ const ITEMS_PROTO := [
 	{"id": "clear", "name": "肃清", "en": "CLEAR", "sub": "点一块区域：队友清掉圈内敌人，清空后回到随行", "col": Color(0.36, 0.78, 1.0)},
 	{"id": "focus", "name": "集火", "en": "FOCUS", "sub": "点精英或 Boss：全队集火该目标", "col": Color(1.0, 0.239, 0.545)},
 ]
+## 指挥 v2（docs/209 §1.6，command/v2 = 1）：合并成四项——上半圈两个姿态（随行 = 护卫阵型，队友远时先闪回集合；突击 = 职业分工），
+## 下半圈两个指点（部署 = 原「移动 / 驻扎」升级成落位阻挡；集火）；「肃清」和部署重复、从圆盘移除（机器人内部仍可下）
+const ITEMS_V2 := [
+	{"id": "guard", "name": "随行", "en": "ESCORT", "sub": "护卫阵型：队长身边安全，队友不受伤", "col": Color(0.212, 0.886, 0.863)},
+	{"id": "roam", "name": "突击", "en": "ASSAULT", "sub": "按职业分工出击：会受伤，限时行动", "col": Color(0.957, 0.753, 0.306)},
+	{"id": "point", "name": "部署", "en": "DEPLOY", "sub": "点一个位置落位：重装、近卫阻挡敌人", "col": Color(0.36, 0.78, 1.0)},
+	{"id": "focus", "name": "集火", "en": "FOCUS", "sub": "点精英或 Boss：全队集火该目标", "col": Color(1.0, 0.239, 0.545)},
+]
 var ITEMS: Array = _items()
 
 static func _items() -> Array:
+	if Bal.v("command/target_proto", 0.0) > 0.0 and Bal.v("command/v2", 1.0) > 0.0:
+		return ITEMS_V2
 	if Bal.v("command/target_proto", 0.0) <= 0.0:
 		return ITEMS_BASE
 	return ITEMS_BASE.slice(0, 3) + ITEMS_PROTO
 
-var ANG: Array = [-150.0, -90.0, -30.0, 45.0, 135.0] if ITEMS.size() == 5 else [-150.0, -90.0, -30.0, 30.0, 90.0, 150.0]
-var HALF: Array = [30.0, 30.0, 30.0, 45.0, 45.0] if ITEMS.size() == 5 else [30.0, 30.0, 30.0, 30.0, 30.0, 30.0]
+var ANG: Array = [-135.0, -45.0, 45.0, 135.0] if ITEMS.size() == 4 else ([-150.0, -90.0, -30.0, 45.0, 135.0] if ITEMS.size() == 5 else [-150.0, -90.0, -30.0, 30.0, 90.0, 150.0])
+var HALF: Array = [45.0, 45.0, 45.0, 45.0] if ITEMS.size() == 4 else ([30.0, 30.0, 30.0, 45.0, 45.0] if ITEMS.size() == 5 else [30.0, 30.0, 30.0, 30.0, 30.0, 30.0])
 const TAP := 0.25          # 轻点 / 按住的分界（真实秒）
 const DEAD := 30.0         # 按住模式：鼠标 / 摇杆离起点多远才算选中（像素 / 摇杆 0.5 比例见 _pad_vec）
 const R_IN := 70.0

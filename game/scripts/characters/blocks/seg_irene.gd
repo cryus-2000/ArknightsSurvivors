@@ -309,7 +309,7 @@ static func h3_lift_around(o, b: Dictionary, at: Vector2) -> void:
 	var g = o.g
 	var ir := _h3ir(o)
 	if at == Vector2.INF and b.has("center"):   # 响应动作（docs/118）：没有命中点时以 center（self / leader）为心
-		at = g.ppos if str(b.center) == "leader" else o.pos
+		at = o.lead_pos() if str(b.center) == "leader" else o.pos
 	if at == Vector2.INF:
 		return
 	var r: float = float(b.get("r", 70.0))

@@ -9,6 +9,7 @@ const UI = preload("res://scripts/ui.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")   # 各按键位置 / 大小（缺省 + 设置里的自定义，10-13）
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const RADIUS := 64.0        # 摇杆最大行程
 const DEAD := 10.0          # 死区
@@ -398,7 +399,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 			var ub: Dictionary = ult_btn(vs)
 			var cb: Dictionary = combo_btn(vs)
 			ult_rect = Rect2(ub.c - Vector2(ub.r, ub.r), Vector2(ub.r, ub.r) * 2.0)
-			combo_rect = Rect2(cb.c - Vector2(cb.r, cb.r), Vector2(cb.r, cb.r) * 2.0)
+			combo_rect = Rect2(cb.c - Vector2(cb.r, cb.r), Vector2(cb.r, cb.r) * 2.0) if Bal.vi("link/v2", 1) <= 0 else Rect2()   # 连携 v2：没有连携键
 		else:
 			_draw_skill_button(hud, font, L.skill.c, L.skill.s)
 		btn_rects.append([speed_rect(vs), "speed"])

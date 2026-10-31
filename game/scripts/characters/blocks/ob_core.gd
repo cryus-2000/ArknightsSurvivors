@@ -498,7 +498,7 @@ static func shape_center(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Vector2
 		"self":
 			return o.pos
 		"leader":
-			return o.g.ppos
+			return o.lead_pos()   # 指挥 v2：突击 / 部署中的队友以自己为中心（docs/209 §1.3）
 		"target":
 			return at
 	return o.zone_c()

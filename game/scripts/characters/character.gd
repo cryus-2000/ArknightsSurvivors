@@ -1139,8 +1139,8 @@ func _follow_paused(dt: float, d: float) -> bool:
 func follow(dt: float, target: Vector2) -> void:
 	var sq = g.get("squad")
 	var st: int = sq.stance if sq != null and not is_leader else 0   # 指挥模式（docs/114）：0 随行 / 1 突击 / 2 归队
-	if st == 1 and not cmd_roam():
-		st = 0   # 不突击的干员（json command.roam: false）突击时照旧随行
+	if st == 1 and not (sq.out_op(self) if sq.has_method("out_op") else cmd_roam()):
+		st = 0   # 不突击的干员（json command.roam: false）/ 残血撤回中的（v2）突击时照旧随行
 	if cmd_down > 0.0 and pos != Vector2.INF and not is_leader:
 		_sample_motion(Vector2.ZERO, dt)   # 倒地：留在倒地点，不跟随、不瞬移归位（10-23 用户实测：原来躺着跟编队漂）
 		mv = 0.0
@@ -1530,6 +1530,7 @@ func cmd_reach() -> float:
 
 ## 突击接敌：近战 / 远程两套行为，重装只修正选敌偏好，不再站在射程外的群心比例点。
 const CmdBal = preload("res://scripts/core/balance.gd")
+const Tactics = preload("res://scripts/characters/tactics.gd")   # 指挥 v2 战术姿态（docs/209 §1）
 var roam_tgt = null
 var cmd_d := 0.0
 
@@ -1548,6 +1549,9 @@ var cmd_down_age := 0.0
 var cmd_inv := 0.0
 var cmd_show := 0.0
 var cmd_hit_t := -9.0   # 上次突击中被碰到掉血的时刻（g.t）：编队卡血条受击闪（hud_squad）
+var cmd_retreat := false   # 指挥 v2：残血撤回中（squad._tick_retreat；算随行，不受伤、回血，docs/209 §1.1）
+var cmd_blk: Array = []    # 指挥 v2：部署时挡住的敌人（tactics.tick_block）
+var cmd_heal_t := -9.0     # 指挥 v2：上次被医疗回血的时刻（画面）
 var cmd_low := false    # 残血提醒中（squad._tick_low：跌破 command/low_hp 进、回到 command/low_hp_off 以上出；倒地时清掉）
 
 ## 只在队长活动圈里选目标；按指挥优先级挑（op_api.prio_order，与攻击选敌同一套口径：Boss 优先 / 清杂优先）。
@@ -1573,6 +1577,7 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var focus_d := INF
 	var focus_part := false
 	var cands: Array = []   # [候选, 原得分]：再按优先级重排
+	var roles: bool = Tactics.sub("roles")
 	var shut: Array = []   # 圈里打不动的（op_api.hittable）：只在没别的可打时才当候选（10-28）
 	for j in query_ids(g.ppos, radius):
 		var en: Dictionary = g.enemies[j]
@@ -1595,6 +1600,8 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 		var d: float = en.pos.distance_to(rear)
 		if cls == "重装":
 			d += leader_d   # 重装优先近身威胁，但同样必须进入自己的攻击距离。
+		if roles:
+			d = Tactics.role_score(self, en, d)   # 指挥 v2 职业分工（docs/209 §1.3）
 		cands.append([en, d])
 		if d < score:
 			score = d
@@ -1605,7 +1612,9 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 			if c[1] < score:
 				score = c[1]
 				best = c[0]
-	if not cands.is_empty():
+	if not cands.is_empty() and roles and prio == 1:
+		pass   # 职业分工：得分本身就是更细的优先级，不再按清杂密度重排（best 已是最小得分）
+	elif not cands.is_empty():
 		if prio == 1:
 			cands.sort_custom(func(a, b): return a[1] < b[1] or (a[1] == b[1] and int(a[0].id) < int(b[0].id)))
 		else:
@@ -1682,6 +1691,8 @@ func _order_goal(slot_pos: Vector2) -> Vector2:
 	if sq.order_beacon != null or sq.order_kind == "point":
 		# 移动 = 驻扎 / 守灯标：走到点上站定（编队位 × command/station_spread 错开，不叠在一起；灯标光圈 r 70 内），不追怪，射程内的敌人由攻击侧自动打
 		roam_tgt = null
+		if sq.has_method("station_of"):
+			return sq.station_of(self)   # v2：医疗站在阻挡者身后（docs/209 §1.4）
 		return sq.order_pos + g.squad._slot_offset(slot) * CmdBal.v("command/station_spread", 0.5)
 	var pr: float = sq.order_radius()
 	var best = null
