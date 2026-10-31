@@ -204,7 +204,63 @@ static func _burst(o) -> float:
 static func heal_pick(o):
 	if not on():
 		return null
-	var s = live(o)
+	return _pick(o, live(o))
+
+
+## 编队里第一只在场、没倒、没满血的 Mon3tr：[凯尔希, 召唤物]；没有 = []
+static func hurt_entry(g) -> Array:
+	if not on() or g.get("squad") == null:
+		return []
+	for o in g.squad.ops:
+		if o.get("sm") is Dictionary and not o.sm.is_empty():
+			var s = live(o)
+			if s != null and float(s.hp) < float(s.max_hp) - 0.5:
+				return [o, s]
+	return []
+
+
+## 别的医疗干员（流明）这一拍治疗给谁（10-31 修：原来只有凯尔希自己的治疗拍会分给 Mon3tr，别的医疗只治队长）。
+## 规则与凯尔希同一套（队长危险 → 队长；Mon3tr 百分比更低才给；10 秒内给 Mon3tr 的拍数不超过 m3_heal_share_max，记在凯尔希身上共用）
+static func heal_pick_mate(g) -> Array:
+	var en := hurt_entry(g)
+	if en.is_empty():
+		return []
+	return en if _pick(en[0], en[1]) != null else []
+
+
+## 别的医疗干员治 Mon3tr：h = 这一拍本来给队长的量（世界数值）；按队长生命上限折成比例再 × Mon3tr 上限 × m3_heal_k（同凯尔希口径）
+static func heal_from_mate(caster, owner, s: Dictionary, h: float, col: Color) -> void:
+	var g = caster.g
+	var v: float = float(s.max_hp) * h / maxf(1.0, g.max_hp) * k(owner, "m3_heal_k", 2.0) * g.heal_mult
+	var got: float = minf(v, float(s.max_hp) - float(s.hp))
+	s.hp = minf(float(s.max_hp), float(s.hp) + v)
+	_tel(g, "heal_to_m3", got)
+	_tel(g, "heal_ticks_m3", 1.0)
+	_log(g, "heal(mate %s)->m3 +%.0f m3=%.0f%% leader=%.0f%% lead_h=%.1f" % [caster.id, v, 100.0 * float(s.hp) / float(s.max_hp), 100.0 * g.hp / maxf(1.0, g.max_hp), h])
+	heal_fx(caster, s, v, col)
+
+
+## 治疗打到 Mon3tr 身上的画面（凯尔希 / 别的医疗共用，10-31 用户「要看得出治疗打到了它身上」）：
+## 施术者手部 → Mon3tr 胸口的治疗光束（命中端一圈闪光）、脚下扩散环、身上冒绿色治疗粒子、头顶飘「+数字」（同队长被治疗）
+static func heal_fx(caster, s: Dictionary, v: float, col: Color) -> void:
+	var g = caster.g
+	var hit: Vector2 = s.pos + Vector2(0, -30)
+	s.flash = 0.15
+	s.m3.show = 3.0
+	caster.fx({"kind": "beam", "a": caster.pos + Vector2(0, -28), "b": hit, "life": 0.3, "max": 0.3, "col": col, "w": 3.0})
+	caster.fx({"kind": "glow", "pos": hit, "r": 14.0, "life": 0.3, "col": col, "alpha": 0.6})
+	caster.fx({"kind": "ring", "pos": s.pos, "r": 26.0, "r0": 6.0, "life": 0.4, "col": HEAL_COL, "floor": true, "w": 2.0, "alpha": 0.7})
+	for q in 7:
+		caster.fx({"kind": "mote", "pos": s.pos + Vector2(g.vrng.randf_range(-14, 14), g.vrng.randf_range(-40, -6)), "vel": Vector2(g.vrng.randf_range(-10, 10), g.vrng.randf_range(-60, -35)),
+			"life": g.vrng.randf_range(0.45, 0.75), "col": HEAL_COL * 1.4, "sz": 2.0})
+	caster.float_text(s.pos + Vector2(0, -78), "+%d" % int(v), HEAL_COL, 14)
+
+
+const HEAL_COL := Color(0.55, 1.0, 0.5)
+
+
+## 治疗分配主体（凯尔希自己 / 别的医疗共用；rec 记在凯尔希 o.sm 上）
+static func _pick(o, s):
 	if s == null or float(s.hp) >= float(s.max_hp) - 0.5:
 		return null
 	var g = o.g
@@ -240,14 +296,10 @@ static func heal_apply(o, s: Dictionary, b: Dictionary) -> float:
 	var over: float = maxf(0.0, float(s.hp) + h - float(s.max_hp))
 	var got: float = minf(h, float(s.max_hp) - float(s.hp))
 	s.hp = minf(float(s.max_hp), float(s.hp) + h)
-	s.flash = 0.15
-	s.m3.show = 3.0
 	_tel(g, "heal_to_m3", got)
 	_tel(g, "heal_ticks_m3", 1.0)
 	_log(g, "heal->m3 +%.0f m3=%.0f%% leader=%.0f%%" % [h, 100.0 * float(s.hp) / float(s.max_hp), 100.0 * g.hp / maxf(1.0, g.max_hp)])
-	o.float_text(s.pos + Vector2(0, -56), "+%d" % int(h), Color(0.55, 1.0, 0.5), 14)
-	o.fx({"kind": "beam", "a": o.pos + Vector2(0, -28), "b": s.pos + Vector2(0, -26), "life": 0.3, "max": 0.3, "col": Color(0.55, 1.0, 0.5), "w": 3.0})
-	o.fx({"kind": "ring", "pos": s.pos, "r": 24.0, "r0": 6.0, "life": 0.35, "col": Color(0.55, 1.0, 0.5), "floor": true, "w": 2.0, "alpha": 0.6})
+	heal_fx(o, s, h, HEAL_COL)
 	return over
 
 
@@ -273,17 +325,6 @@ static func draw_down(o, s: Dictionary, kd: Dictionary, fr: Array, hov: float) -
 
 
 ## 头顶短血条：受击后 3 秒、或血量低于 60% 时画
-static func draw_bar(o, s: Dictionary, kd: Dictionary, hov: float) -> void:
-	var f: float = clampf(float(s.hp) / maxf(1.0, float(s.max_hp)), 0.0, 1.0)
-	if is_down(s) or (float(s.m3.show) <= 0.0 and f >= 0.6):
-		return
-	var w := 24.0
-	var bp: Vector2 = s.pos + Vector2(-w * 0.5, hov - float(kd.get("r", 14.0)) * 2.0 - 34.0)
-	o.cv.draw_rect(Rect2(bp - Vector2(1, 1), Vector2(w + 2, 4.5)), Color(0.05, 0.05, 0.08, 0.85))
-	var col := Color(0.5, 1.0, 0.6) if f > 0.5 else (Color(1.0, 0.82, 0.3) if f > 0.25 else Color(1.0, 0.35, 0.35))
-	o.cv.draw_rect(Rect2(bp, Vector2(w * f, 2.5)), col)
-
-
 ## 编队里所有在场的 Mon3tr 条目 [[干员, 召唤物], …]（HUD 血条行用）
 static func entries(g) -> Array:
 	var out: Array = []
