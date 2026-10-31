@@ -372,6 +372,9 @@ static func _sd_v5(u) -> bool:
 static func _sd_roll_v5(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, hw: float, T: float) -> void:
 	var vs: float = PF.vseed(u, o0) + float(w.t0) * 29.0
 	w["roll"] = []
+	if a.get("rolled", false):   # 用户 10-31「只有一道巨浪」：跃浪路线第二道不画
+		return
+	a["rolled"] = true
 	for l in [1]:   # 只留一堵（前后两层叠成两条平行带，预审报拼接）
 		var nm := PF.pick(u, SD_WALL, vs * 0.4 + l * 1.3)
 		var t: Texture2D = u._strip_tex(nm)
@@ -385,7 +388,7 @@ static func _sd_roll_v5(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2
 static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, n: Vector2, hw: float, t: float, F: float, L: float, col: Color, foam: Color) -> void:
 	w.fx[0].fill = 0.0
 	w.fx[1].fill = 0.0
-	if w.get("crashed", false):
+	if w.get("crashed", false) or w.roll.is_empty():
 		return
 	var fp: Vector2 = o0 + d * F
 	var rise: float = clampf((t - float(w.t0)) / 0.25, 0.0, 1.0)
@@ -400,12 +403,41 @@ static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vecto
 			var lat: float = -hw + hw * 2.0 * fposmod(0.21 + 0.37 * float(i) + 0.29 * float(j), 1.0)
 			PF.particles(u, fp + n * lat + d * 30.0, 40, "ult_burst_s", [col, col.darkened(0.3)], 0.0, float(j) + i * 3.0, 60.0)
 	if F >= minf(L, Bal.v("ult/sd_crash_x", 520.0)):
-		w["crashed"] = true   # 砸下：顿帧 + 沿浪线水柱 / 水雾，浪墙收掉
+		w["crashed"] = true   # 用户 10-31「再来个劈开巨浪爆炸收尾」：一道剑光顺着她的朝向把浪从中间劈开 → 两半往两侧分开 → 劈口炸成水柱 / 水雾
 		u.g.vfx.stop(Bal.v("ult/sd_crash_stop", 0.08), "ult", true)
-		_sd_blast_v3(u, o0, d, n, hw, fp, PF.vseed(u, o0) + float(w.t0) * 17.0, col)
+		u.shape({"kind": "blade", "a": o0 + d * 60.0, "b": fp + d * 140.0, "w": 18.0, "col": Color(0.8, 0.9, 1.0), "glow": col, "grow": 0.03, "life": 0.2})
+		if u.fx_ready(SD_CLEAVE):
+			var ct: Texture2D = u._strip_tex(SD_CLEAVE)
+			u.strip(SD_CLEAVE, fp - d * 120.0, {"layer": "back", "ang": d.angle(), "o": Vector2(0.0, ct.get_height() * 0.47), "sx": 380.0 / PF.tex_w(u, SD_CLEAVE), "sy": 0.6,
+				"rev": 0.08, "rev0": 0.1, "life": 1.2, "fade": 0.6, "col": Color(1.0, 1.0, 1.05), "col1": Color(0.55, 0.65, 0.78), "cold": 0.3})
 		for r in w.roll:
-			r[0].max = float(r[0].age) + 0.15
+			_sd_split(u, r[0], n)
+		_sd_blast_v3(u, o0, d, n, hw * 0.45, fp + d * 20.0, PF.vseed(u, o0) + float(w.t0) * 17.0, col, 3)
 		w["wet_x"] = F
+
+
+## 浪墙劈成两半：贴图左右各一半（ux / uw）放回原位，各自往两侧（±n）滑开、略往外转、0.35 秒淡掉；原整条收掉
+static func _sd_split(u, s: Dictionary, n: Vector2) -> void:
+	var t: Texture2D = u._strip_tex(str(s.name))
+	var W: float = t.get_width()
+	var o: Vector2 = s.get("o", Vector2(W * 0.5, t.get_height() * 0.5))
+	var sxs: float = 1.0 if float(s.get("sx", 1.0)) >= 0.0 else -1.0
+	for half in 2:
+		var ux: float = 0.0 if half == 0 else floorf(W * 0.5)
+		var uw: float = floorf(W * 0.5) if half == 0 else W - floorf(W * 0.5)
+		var side: float = (-1.0 if half == 0 else 1.0) * sxs   # 贴图左半在 −n 一侧（镜像时反过来）
+		var h2 := s.duplicate()
+		h2.erase("max")
+		h2.erase("age")
+		h2["ux"] = ux
+		h2["uw"] = uw
+		h2["o"] = Vector2(o.x - ux, o.y)
+		h2["v"] = n * side * 520.0
+		h2["spin"] = side * 0.8
+		h2["life"] = 0.4
+		h2["fade"] = 0.3
+		u.shape(h2)
+	s.max = float(s.age)
 
 
 static func _sd_v4(u) -> bool:
