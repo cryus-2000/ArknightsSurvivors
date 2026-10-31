@@ -1410,7 +1410,7 @@ func impact(pos: Vector2) -> void:
 	_imp_pos = pos
 	_imp_boom = false
 	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
-	if not (_hf_on() or act.get("hf_done", false)):
+	if not (_hf_on() or act.get("hf_done", false) or act.get("soft", false)):   # soft：温柔型招式（流明）不闪白
 		flash_rt = _imp_rt   # 冲击帧招式不叠共用白闪：白闪会把冲击帧和拖影一起盖掉（用户 10-31「看不出区别」）
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
 	debris(pos, _col(caster), 3)

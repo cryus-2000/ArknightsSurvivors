@@ -1251,11 +1251,9 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		a.boomed = true
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
-		var n0: int = u.shapes.size()
 		var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
 		_ring(u, c, R, 40.0, COL_LIGHT, 0.5, 18.0)
 		_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
-		var n1: int = u.shapes.size()   # 冲击帧剪影只要这两道光圈（放射光芒线不进，用户 10-31「为什么加了这么多线条」）
 		if v3:   # 暖光（用户 10-31「他应该是暖光」「改的有点多了」）：满圈填充浓度同旧版、只换成暖金；放射光芒 20 → 12 道、暖色、更短
 			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.78, 0.45), "fill": 0.2, "life": 0.45})
 			for j in 12:
@@ -1266,11 +1264,9 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			for j in 20:   # 光芒放射
 				var dv := Vector2.from_angle(j * TAU / 20.0)
 				u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R, "w": 3.0 if j % 2 == 0 else 1.5, "col": COL_LIGHT, "life": 0.3})
-		if v3:   # 冲击帧：暖光（用户 10-31「他应该是暖光」）——深棕底 + 暖金光圈 → 暖金底 + 深棕光圈，不用冷色、不用纯白
-			for i in range(n0, n1):
-				u.shapes[i]["hf"] = true
-			PF.hf_on(u, a)
-			u.act["hf_cols"] = [Color(0.14, 0.07, 0.02), Color(1.0, 0.78, 0.4), Color(0.85, 0.62, 0.3), Color(0.2, 0.1, 0.03)]
+		if v3:   # 不打冲击帧、不叠共用白闪（用户 10-31「流明不加冲击帧，他应该是比较温柔的」）
+			a["soft"] = true
+			u.act["soft"] = true
 	var T: float = a.exp
 	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
 		a["edone"] = el >= T
