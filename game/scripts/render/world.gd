@@ -199,7 +199,10 @@ func update_visuals(dt: float) -> void:
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
 	if g.state == Game.S.DEAD:
 		radius *= 1.0 - clampf(g.state_age / Game.HudView.DEATH_LAMP_T, 0.0, 1.0)   # 倒下过渡：灯火熄灭（hud.draw_death_transition）
-	g.lamp_light.position = g.ppos + Vector2(0, -20)
+	var lamp_at: Vector2 = g.ppos
+	if g.ult != null and g.t < float(g.ult.cam_hold_until) and g.ult.cam_hold != Vector2.INF:
+		lamp_at = g.ult.cam_hold   # 终结技钉住镜头期间灯火圈也停在原地（艾丽妮穿梭斩，用户 10-31「灯火的圈停留在原地，不要跟随人」）
+	g.lamp_light.position = lamp_at + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
 	g.lamp_light.color = Color(1.0, 0.98, 0.94)
 	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
