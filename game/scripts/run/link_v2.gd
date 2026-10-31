@@ -99,3 +99,37 @@ static func _area(u, key: String, p, ld, at: Vector2, ar: float) -> Vector2:
 		if off.length() < out_d:
 			c = ld.pos + (off.normalized() if off.length() > 1.0 else Vector2(float(g.facing), 0.0)) * out_d
 	return c
+
+
+## 余波（docs/209 §2.4 第三轮，link/v2_spread；0 = 不放）：连携出手后 v2_spread_delay 秒起，在连携区域放 v2_spread_n 圈余波，
+## 每隔 v2_spread_gap 秒一圈，半径 = 区域 × v2_spread_r，圈内每名敌人各吃一下（按目标生命的预算 × v2_spread_mult，同 skill_link._dmg）。
+## 小怪一下就死、单下伤害被溢出封顶，余波靠「多段 + 波及更多目标」抬连携占比，不加单下伤害。
+static func spread_on() -> bool:
+	return Bal.v("link/v2_spread", 0.0) > 0.0
+
+
+static func spread_start(u, o, info: Dictionary) -> void:
+	if not spread_on() or info.get("pos", Vector2.INF) == Vector2.INF:
+		return
+	u.v2_waves.append({"o": o, "c": info.pos, "r": float(info.get("r", area_r())) * Bal.v("link/v2_spread_r", 1.0),
+		"next": u.g.t + Bal.v("link/v2_spread_delay", 0.5), "left": int(Bal.v("link/v2_spread_n", 3.0))})
+
+
+static func tick_waves(u) -> void:
+	if u.v2_waves.is_empty():
+		return
+	var keep: Array = []
+	for w in u.v2_waves:
+		var o = w.o
+		while w.left > 0 and u.g.t >= w.next:
+			w.left -= 1
+			w.next += Bal.v("link/v2_spread_gap", 0.35)
+			if o == null or o.pos == Vector2.INF:
+				continue
+			var col: Color = Link._lc(u, o)
+			u.shape({"kind": "ring", "c": w.c, "r": w.r, "r1": w.r * 0.35, "w": 3.0, "col": Color(col, 0.7), "life": 0.28})
+			for e in u.in_circle(w.c, w.r):
+				Link._hit16(o, e, "余波", Bal.v("link/v2_spread_mult", 0.07))
+		if w.left > 0:
+			keep.append(w)
+	u.v2_waves = keep

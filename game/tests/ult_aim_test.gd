@@ -85,6 +85,66 @@ func _ready() -> void:
 	u.aim_kind = "none"
 	var mm: Array = Aim.begin(u)
 	ok(absf(float(mm[0]) - float(mm[1])) < 0.0001, "自身周围类不需要选：上限 = 下限")
+	# 6. 触屏拖动（docs/209 §3）：走 Input.parse_input_event 整条链（含 Godot 从 0 号触点模拟出的鼠标左键 → game._unhandled_input → ult.aim_click），
+	#    按下终结技键进瞄准、拖动写落点、松手按拖到的落点放
+	if kind == "point":
+		var tc = g.touch
+		var was_active: bool = tc.active
+		tc.active = true
+		var ub: Dictionary = tc.ult_btn(g.hud.size)
+		tc.ult_rect = Rect2(ub.c - Vector2(ub.r, ub.r), Vector2(ub.r, ub.r) * 2.0)
+		var c0: Vector2 = tc.ult_rect.get_center() * Cfg.ui_k
+		u.energy = u.FULL
+		_touch(true, c0)
+		step.call(1)
+		ok(u.phase == "aim" and u.aim_v2, "触屏按下终结技键进入 v2 瞄准（phase=%s）" % u.phase)
+		u._sf_rt = -99.0
+		var drag := Vector2(80.0, -40.0)   # 界面像素；touch.ULT_AIM_REACH 90 = 最远 520
+		for k in 6:
+			_drag(c0 + drag * float(k + 1) / 6.0)
+			await _frames(1)
+			step.call(1)
+		ok(u.phase == "aim", "拖动中仍在瞄准（模拟鼠标左键没有提前释放）：%s" % u.phase)
+		ok(u.aim_src == "touch", "输入源 = 触屏（%s）" % u.aim_src)
+		var want: Vector2 = ld.pos + drag.normalized() * minf(520.0, drag.length() / 90.0 * 520.0)
+		ok(u.aim.distance_to(want) < 30.0, "落点 = 队长 + 拖动方向 × 距离（离预期 %.0f）" % u.aim.distance_to(want))
+		_touch(false, c0 + drag)
+		step.call(2)
+		ok(u.phase == "cast" or u.phase == "", "松手释放（%s）" % u.phase)
+		ok(u._ult_at.distance_to(want) < 40.0, "按拖到的落点放（离预期 %.0f）" % u._ult_at.distance_to(want))
+		step.call(600)
+		# 轻点终结技键（不拖）：保持瞄准，再点一次放
+		u.energy = u.FULL
+		_touch(true, c0)
+		step.call(1)
+		_touch(false, c0)
+		step.call(4)
+		ok(u.phase == "aim" and u.aim_latched, "触屏轻点后保持瞄准（phase=%s latched=%s）" % [u.phase, u.aim_latched])
+		_touch(true, c0)
+		_touch(false, c0)
+		step.call(2)
+		ok(u.phase == "cast" or u.phase == "", "再点一次终结技键释放（%s）" % u.phase)
+		step.call(600)
+		tc.active = was_active
+		# 7. 手柄右摇杆：推到底 = 最远 520，方向跟摇杆
+		u.energy = u.FULL
+		u.press_q()
+		u._sf_rt = -99.0
+		var dev: int = Pad.device
+		Pad.device = 0
+		_axis(JOY_AXIS_RIGHT_X, 0.0)
+		_axis(JOY_AXIS_RIGHT_Y, 1.0)
+		await _frames(1)
+		step.call(2)
+		ok(u.aim_src == "pad", "输入源 = 手柄（%s）" % u.aim_src)
+		ok(u.aim.distance_to(ld.pos + Vector2(0, 520)) < 30.0, "右摇杆推到底 → 落点在队长正下方 520（离预期 %.0f）" % u.aim.distance_to(ld.pos + Vector2(0, 520)))
+		_axis(JOY_AXIS_RIGHT_Y, 0.0)
+		_axis(JOY_AXIS_RIGHT_X, 0.0)
+		await _frames(1)
+		Pad.device = dev
+		u.release_q()
+		u.press_q()
+		step.call(600)
 	# 5. 开关 0：旧路径
 	Bal.sec("ult")["aim"] = 0
 	ok(not Aim.on(u), "ult/aim 0 不走 v2")
@@ -95,6 +155,54 @@ func _ready() -> void:
 	step.call(600)
 	Bal.sec("ult")["aim"] = 1
 	_done()
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await get_tree().process_frame
+
+
+## 触屏事件：按 Godot Input 的顺序先发 0 号触点模拟出的鼠标事件（emulate_mouse_from_touch 缺省开，真机 / 网页都有），再发触摸本身。
+## headless 下 Input.parse_input_event / viewport.push_input 都到不了场景，直接按视口的派发顺序调 game._input → _unhandled_input
+func _send(ev: InputEvent, unhandled: bool) -> void:
+	g._input(ev)
+	if unhandled:
+		g._unhandled_input(ev)
+
+
+func _touch(down: bool, p: Vector2) -> void:
+	var mb := InputEventMouseButton.new()
+	mb.button_index = MOUSE_BUTTON_LEFT
+	mb.position = p
+	mb.global_position = p
+	mb.pressed = down
+	_send(mb, true)
+	var ev := InputEventScreenTouch.new()
+	ev.index = 0
+	ev.position = p
+	ev.pressed = down
+	_send(ev, false)
+
+
+func _drag(p: Vector2) -> void:
+	var mm := InputEventMouseMotion.new()
+	mm.position = p
+	mm.global_position = p
+	mm.button_mask = MOUSE_BUTTON_MASK_LEFT
+	_send(mm, true)
+	var ev := InputEventScreenDrag.new()
+	ev.index = 0
+	ev.position = p
+	_send(ev, false)
+
+
+func _axis(a: JoyAxis, v: float) -> void:
+	var ev := InputEventJoypadMotion.new()
+	ev.device = 0
+	ev.axis = a
+	ev.axis_value = v
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
 
 
 func _done() -> void:

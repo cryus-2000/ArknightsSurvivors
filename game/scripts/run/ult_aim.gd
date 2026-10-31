@@ -39,6 +39,7 @@ static func begin(u) -> Array:
 	var sc: float = Bal.v("ult/aim_slow", 0.3)
 	u.aim_v2 = true
 	u.aim_latched = false
+	u.aim_moved = false
 	u.aim_src = "key"
 	u._q_rt0 = UM.now()
 	u._aim_rt0 = UM.now()
@@ -85,6 +86,7 @@ static func tick(u, dt: float) -> void:
 	var mv: Vector2 = g.move_in
 	if mv != Vector2.ZERO:
 		u.aim_src = "key"
+		u.aim_moved = true
 		if u.aim_kind == "point":
 			u.aim += mv.normalized() * Bal.v("ult/aim_spd", 2400.0) * dt
 			_clamp(u)
@@ -93,6 +95,7 @@ static func tick(u, dt: float) -> void:
 
 
 static func _point_at(u, w: Vector2, d: Vector2) -> void:
+	u.aim_moved = true
 	if u.aim_kind == "point":
 		u.aim = w
 		_clamp(u)
@@ -107,8 +110,9 @@ static func _clamp(u) -> void:
 
 
 ## 松开 Q：按下不到 TAP 秒 = 轻点，保持瞄准（再按一次 Q / 点左键释放）
+## 拖过 / 挪过落点再松手（快速一甩也算）一律直接放，只有没动过的轻点才保持
 static func release(u) -> void:
-	if u.phase == "aim" and u.aim_kind != "none" and UM.now() - u._q_rt0 < TAP:
+	if u.phase == "aim" and u.aim_kind != "none" and UM.now() - u._q_rt0 < TAP and not u.aim_moved:
 		u.aim_latched = true
 
 
