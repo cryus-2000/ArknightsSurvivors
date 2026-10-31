@@ -349,9 +349,21 @@ func _begin(ld, k: String) -> void:
 		g.vfx.stop(Bal.v("ult/cult_freeze" if k == "cult" else "ult/freeze", 0.15 if k == "cult" else 0.1), "ult", true)
 		_cutin(ld, k)
 	shape({"kind": "ring", "c": ld.pos, "r": 90.0, "r1": 20.0, "w": 4.0, "col": _col(ld).lerp(Color.WHITE, 0.4), "life": _aim_min + 0.1})
+	# 声音顺序（用户 10-31「开启终结技时先一下提示音效，然后放语音和对应音效」）：超必杀暂停时先只响定格提示音（sf_sound），
+	# 暂停结束（立绘切入那一刻，_sf_tick）才开口说固定句 + 播蓄力；没有暂停（连携终结技 / 关掉开关）就立刻开口
+	if k != "cult" and sf_on():
+		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+		if sx != null:
+			sx.voice_hush(Bal.v("ult/sf_t", 0.35) + 0.1)   # 正在说的淡出、提示音期间别的干员不开口
+		_sf_voice = true
+	else:
+		_ult_voice(ld)
+
+
+## 终结技开口：每人固定一句（docs/205，data/ult_audio.json voice；没填时从技能池挑一句），开口即停掉别人的语音（10-30 用户）；接着播蓄力
+func _ult_voice(ld) -> void:
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sfx != null:
-		# docs/205：每人固定一句（data/ult_audio.json voice）；没填时从技能池挑一句。开口即停掉别人的语音（10-30 用户）
 		sfx.voice(str(ld.id), "ult", false, true, str(_aud(str(ld.id)).get("voice", "")))
 	_ua("charge")
 
@@ -381,6 +393,7 @@ func _tick_ult(dt: float) -> void:
 		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 		if sx != null:
 			sx.voice_lock(0.5)   # 招式没放完，别的干员不开口（结束后再静 0.5 秒）
+			sx.op_skill_mute(0.25)   # 招式放出期间干员技能音效不出声（落地回技力当场放出的技能，10-31 用户）
 		var done: bool = Moves.step_cult(self, act, dt) if kind == "cult" else Moves.step(self, act, dt)
 		if done:
 			phase = ""
@@ -1641,7 +1654,7 @@ func _seg_sfx(sg: String) -> void:
 ## 按 data/ult_audio.json 的 fx.<键> 在它出现的那一刻（+ at 秒游戏时间，如剑帧条插地那一帧）播一声。
 ## 键 = 图形 kind（"line" / "blade" …）或 "strip:<帧条名>"；带速度 v 的（碎片）先找 "<键>+v"。
 ## 规则：slot 槽名或槽名数组（数组按序轮换，每声略不同）、gap 真实秒节流（同一帧冒出的几道合成一声）、vol dB、
-## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）。
+## w / r 只认这个线宽 / 半径（和连携拖尾、枪口火光等同 kind 图形分开）、min_t 放出后至少多少游戏秒才认（避开起手同款图形）、min_sc 帧条缩放至少多少才认（收尾大爆）、then 第二次起改播的槽、match {字段: 值} 任意字段等值匹配；同一种图形要分几条时键后加 #2 / #3。
 var _fx_rt := {}
 var _fx_n := {}
 var _fx_serial := -1
@@ -1654,18 +1667,25 @@ func _fx_tag(s: Dictionary) -> void:
 	var key: String = ("strip:" + str(s.get("name", ""))) if str(s.get("kind", "")) == "strip" else str(s.get("kind", ""))
 	if s.has("v") and rules.has(key + "+v"):
 		key += "+v"
-	var r = rules.get(key)
-	if not r is Dictionary:
-		return
+	for k in [key, key + "#2", key + "#3"]:   # 同一种图形可写几条规则（键后加 #2 / #3），按序取第一条对得上的
+		var r = rules.get(k)
+		if r is Dictionary and _fx_match(s, r):
+			s["_ar"] = r
+			s["_ak"] = k
+			if s.age >= float(r.get("at", 0.0)):
+				_fx_sfx(s)
+			return
+
+
+func _fx_match(s: Dictionary, r: Dictionary) -> bool:
 	for f in ["w", "r"]:
 		if r.has(f) and absf(float(s.get(f, 0.0)) - float(r[f])) > 0.01:
-			return
-	if g.t - _cast_t < float(r.get("min_t", -1.0)):
-		return
-	s["_ar"] = r
-	s["_ak"] = key
-	if s.age >= float(r.get("at", 0.0)):
-		_fx_sfx(s)
+			return false
+	var mt: Dictionary = r.get("match", {})
+	for f in mt:   # 任意字段等值匹配（如归溟幽灵鲨弹射小锯的 scd 0.05，和同名的大锯分开）
+		if absf(float(s.get(f, -999.0)) - float(mt[f])) > 0.001:
+			return false
+	return g.t - _cast_t >= float(r.get("min_t", -1.0)) and float(s.get("sc", 1.0)) >= float(r.get("min_sc", -1.0))
 
 
 func _fx_sfx(s: Dictionary) -> void:
@@ -1683,10 +1703,12 @@ func _fx_sfx(s: Dictionary) -> void:
 		return
 	_fx_rt[key] = now
 	var sl = r.get("slot", "")
+	var i: int = int(_fx_n.get(key, 0))
+	_fx_n[key] = i + 1
+	if i > 0 and r.has("then"):   # 同一招里第二次起改播 then（如推进之王再跃的小砸地，不再整声大爆）
+		sl = r.then
 	var nm: String = str(sl)
 	if sl is Array:
-		var i: int = int(_fx_n.get(key, 0))
-		_fx_n[key] = i + 1
 		nm = str(sl[i % sl.size()])
 	if nm != "":
 		_ua(nm, r.get("vol"))
@@ -1748,6 +1770,7 @@ func report() -> Dictionary:
 var _sf_rt := -99.0        # 暂停起点（真实时间）；< 0 = 这一发没有暂停
 var _sf_ld = null
 var _sf_cut := false       # 暂停结束时是否已补立绘切入
+var _sf_voice := false     # 暂停结束时补开口 + 蓄力（提示音先单独响）
 
 
 ## 终结技从起手到收尾这段（队友静音、「LEVEL UP」等横幅推迟到结束后再显示）
@@ -1810,6 +1833,9 @@ func _sf_tick() -> void:
 		_sf_cut = true
 		if _sf_ld != null and caster == _sf_ld:
 			_cutin(_sf_ld, kind)
+			if _sf_voice:
+				_sf_voice = false
+				_ult_voice(_sf_ld)
 
 
 ## 队长白剪影（轮廓光用）：按贴图缓存一张，不透明像素全白；调色成干员色画在本体外圈

@@ -73,7 +73,7 @@ def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
     return fadeio(y / (np.abs(y).max() + 1e-9), 0.001, fout)
 
 
-LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
+LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "burst": -9.0, "slam_1": -9.0, "smash": -8.0, "sizzle": -17.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
 def level(slot, x):
@@ -149,6 +149,14 @@ SN = {   # Sonniss 素材短名（docs/113 §20）
     "ring": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav",
     "sub": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/WATRImpt_Impact Water Deep Submerge Bubble Drown Ship Hit 05_ESM_EMWI.wav",
     "liq": "344 Audio - Elemental Palette Designed Vol. 1/WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04_344 Audio_Elemental Palette Designed Vol 1.wav",
+    "astral": "Alexander Kopeikin - Emotion and Magic/magic, energy flow, astral travel-015.wav",
+    "jump": "344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Jump Start Drop 3_344 Audio_Bass Drops and Downers Vol 3.wav",
+    "drop": "344 Audio - Bass Drops & Downers Vol. 1/DSGNBass_Bass Drop & Downer Fast 16_344 Audio_Bass Drops & Downers.wav",
+    "sweep": "Cinematic Sound Design - Ultra Transitions & Impacts/Woosh Sweep Slide Infographics Basic.wav",
+    "b011": "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_011.wav",
+    "scrape": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav",
+    "slice": "Epic Stock Media - Tower Defense Game/DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04_ESM_TDG.wav",
+    "blast": "Epic Stock Media - Anime Game/EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav",
 }
 
 
@@ -184,18 +192,14 @@ def exusiai():
 
 
 def skalter():
-    """海嗣从身边升起、张口聚光（0.35 秒）→ 粗激光慢扫一整圈（约 3.4 秒，轻震）→ 扫过的地面连爆（深红，少而大）"""
-    sw = 3.9
-    t = T(sw)
-    beam = (lp(N(sw), 900, 4) * 1.4 + drone(sw, 73, 0.6) * 0.45 + bp(tone(sw, 220, 196, "saw"), 150, 2500) * 0.18
-            + bp(N(sw), 2200, 5500) * 0.1 * (0.7 + 0.3 * np.sin(2 * np.pi * 6 * t)))
-    beam *= np.clip((t - 0.3) / 0.12, 0, 1) * np.clip((sw - t) / 0.4, 0, 1)
-    ignite = at(pad(rev(burst(0.3, 3000, 8)) * 0.5, whisper(0.35, 500, 1500) * 0.3), 0.0)
+    """docs/205 §4.4（用户 10-31 选 ① 原作）：提示 = 原作召潮降调 → 海嗣升起（strip seaborn_front）= 原作召潮
+    → 激光扫一圈 cast（3.9 秒）= 原作电场低鸣降调低通 → 沿途爆裂（strip fx_sk_blast）= 原作灵魂爆裂 3 个音高
+    → 收尾大爆（strip fx_sk_flash，min_sc 1.5，高潮）= 原作陨石 + 黑洞 + 低频；第一下掉血不另响（没有 impact）"""
     return {
-        "charge": pad(drone(0.9, 49, 0.4) * swell(0.9, 0.9) * 0.8, whisper(0.9, 400, 1300) * swell(0.9, 0.8) * 0.45, lp(N(0.9), 300) * swell(0.9, 0.9) * 0.6),
-        "cast": pad(ignite, beam),
-        "impact": pad(burst(0.6, 2200, 7), sub(0.7, 75, 30, 4), splash(0.5, 2500, 7) * 0.4),
-        "burst_hit": pad(burst(0.7, 1800, 6), sub(0.6, 70, 30, 5) * 0.9, splash(0.4, 2200, 8) * 0.35),
+        "sf": akd("p_skill_seasummon.wav", 0.0, 0.5, 0.8, fout=0.25), "cast": lp(akd("p_field_elefield_loop.wav", 5.0, 3.9, 0.7, fout=0.8), 3000),
+        "rise": akd("p_skill_seasummon.wav", 0.0, 1.3, 0.85, fout=0.5),
+        **{"blast_%d" % (i + 1): akd("p_skill_spiritexplo.wav", 0.02, 0.9, r, fout=0.35) for i, r in enumerate([0.8, 0.85, 0.9])},
+        "final": pad(akd("p_skill_aeroliteexplo.wav", 0.0, 1.5, 0.8, fout=0.6), akd("p_skill_darkholeboost.wav", 0.0, 1.2, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.6, fout=0.6), 900)),
     }
 
 
@@ -239,31 +243,29 @@ def skadi():
 
 
 def gladiia():
-    """槊一指，漩涡越转越快把敌人拖向中心（约 0.6 秒）→ 收拢（冲击）→ 潮水从中心爆开"""
-    vx = 0.75
-    t = T(vx)
-    swirl = bp(N(vx), 300, 2600) * (0.55 + 0.45 * np.sin(2 * np.pi * (3 + 12 * t / vx) * t)) * swell(vx, 0.95) + lp(N(vx), 260, 3) * swell(vx, 0.95) * 1.1
+    """docs/205 §4.4（用户 10-31 选 ① 原作海水）：提示 = 原作水炮起头降调 → 放出 / 卷起水龙卷 = 原作召潮（fx strip tornado_open）
+    → 龙卷持续 = 原作潮涌铺底（strip tornado_loop）→ 水环往里收每道一声水泡（ring r40 w4）→ 收拢 = 原作水炮（seg 收拢 on）
+    → 潮涌炸开（高潮，strip fx_skadi_surge）= 原作水炮 + 潮涌 + 低频 → 水花（strip fx_water_splash，Sonniss 液体冲击）"""
     return {
-        "charge": pad(lp(N(0.8), 600) * swell(0.8, 0.9) * 0.7, whoosh(0.8, 200, 900) * 0.4, whisper(0.8, 600, 1800) * swell(0.8, 0.8) * 0.25),
-        "cast": pad(sweep_noise(0.2, 2500, 600, 0.4) * env(0.2, 0.002, 10), metal(0.3, 520, 9, bright=0.45) * 0.3),
-        "vortex": swirl,
-        "impact": pad(thud(0.4, 120, 45, 9), splash(0.4, 3000, 9) * 0.7, sweep_noise(0.2, 400, 2400, 0.4) * env(0.2, 0.002, 10) * 0.5),
-        "surge": pad(splash(1.0, 4500, 3.5) * 1.0, burst(0.6, 2200, 7) * 0.6, sub(0.8, 80, 30, 4)),
+        "sf": akd("p_skill_bigwatercannon.wav", 0.03, 0.5, 0.7, fout=0.25), "cast": akd("p_skill_seasummon.wav", 0.0, 0.6, fout=0.3),
+        "open": akd("p_skill_seasummon.wav", 0.0, 1.2, fout=0.5), "loop": akd("p_skill_tidesurging_1.wav", 0.2, 1.8, fout=0.6),
+        **{"swirl_%d" % (i + 1): akd("p_skill_waterbubble.wav", 0.15, 0.75, r, fout=0.25) for i, r in enumerate([0.9, 1.0, 1.1])},
+        "crush": akd("p_skill_bigwatercannon.wav", 0.03, 0.9, 0.85, fout=0.3),
+        "surge": pad(akd("p_skill_bigwatercannon.wav", 0.0, 1.8, fout=0.6), akd("p_skill_tidesurging.wav", 0.45, 1.4, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8),
+        **{"splash_%d" % (i + 1): sn("liq", 0.0, 0.5, r, fout=0.2) for i, r in enumerate([1.0, 1.1, 1.2])},
     }
 
 
 def angelina():
-    """落点出现黑紫奇点，0.8 秒把敌人吸起悬空（逐渐升高）→ 停顿 → 全部砸向地面（冲击）"""
-    sing = 0.85
-    t = T(sing)
-    lift = pad(tone(sing, 90, 520, "tri") * swell(sing, 0.92) * 0.45, np.sin(2 * np.pi * 60 * t + 4 * np.sin(2 * np.pi * 2.5 * t)) * swell(sing, 0.9) * 0.5,
-               suck(sing, 200, 3000) * 0.4, bell(sing, 1047, 1.5, 1.0, 0.4) * swell(sing, 0.9) * 0.18)
+    """docs/205 §4.4（用户 10-31 选 ② 录音）：提示 = 电光定格 → 重力井张开 = 能量流（strip well_back）→ 吸起 = 低音起跳（seg 奇点 on）
+    → 脉冲环 = 电光（ring r60 w3）、光线往里收 = 短掠过（line+v w2）→ 每次砸地 = 斩击冲击 + 低音下坠（strip well_close，第一下叠预告片低频最重）"""
     return {
-        "charge": pad(drone(0.9, 49, 0.4) * swell(0.9, 0.9) * 0.6, bell(0.9, 784, 2, 1.0, 0.3) * swell(0.9, 0.9) * 0.25),
-        "cast": pad(bell(0.4, 1319, 8, 1.0, 0.3) * 0.4, rev(burst(0.3, 3000, 8)) * 0.4),
-        "singularity": lift,
-        "impact": pad(thud(0.9, 85, 28, 4.5) * 1.3, crack(0.9, 4.5) * 0.9, burst(0.4, 2000, 9) * 0.5),
-        "slam_hit": thud(0.25, 140, 55, 16) * 0.8,
+        "sf": sn("elec", 0.0, 0.6, 0.8, fout=0.25), "cast": sn("astral", 0.0, 0.5, fout=0.2),
+        "open": sn("astral", 0.0, 1.6, fout=0.6), "lift": sn("jump", 0.0, 1.0, fout=0.4),
+        **{"pulse_%d" % (i + 1): sn("elec", 0.0, 0.5, r, fout=0.25) for i, r in enumerate([0.7, 0.8])},
+        **{"streak_%d" % (i + 1): sn("sweep", 0.0, 0.35, r, fout=0.15) for i, r in enumerate([1.2, 1.3, 1.4])},
+        "slam_1": pad(sn("cut", 0.93, 1.4, fout=0.5), lp(sn("drop", 0.0, 1.2, fout=0.5), 1500) * 0.8, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8),
+        **{"slam_%d" % (i + 2): pad(sn("cut", 0.93, 1.0, r, fout=0.4), lp(sn("drop", 0.0, 0.8, r, fout=0.4), 1500) * 0.6) for i, r in enumerate([0.92, 1.08])},
     }
 
 
@@ -279,49 +281,55 @@ def eyjafjalla():
 
 
 def wisadel():
-    """架炮后仰（装填两声）→ 向前一排排地毯式炮击，由近到远推进（每排一声）→ 余震"""
-    def clk(f):
-        return pad(metal(0.12, f, 35, bright=0.5) * 0.6, hp(N(0.02), 2000) * env(0.02, 0.0003, 120))
+    """docs/205 §4.4（用户 10-31 选 ① 原作炮击）：提示 = 原作重炮蓄能 → 放出 = 原作发射架 → 开炮（strip fx_cannon_burst）= 原作重炮
+    → 每发落弹（strip fx_wisadel_cannon）= 原作火爆弹 3 个音高 → 余震（strip fx_missile_explode）= 原作火爆弹发射声
+    → 第一发掉血 impact = 原作陨石爆炸 + 低频（全招最重）"""
     return {
-        "charge": pad(clk(700), at(clk(980), 0.2), at(clk(1250), 0.4), at(metal(0.4, 160, 6, bright=0.5) * 0.5, 0.5), tone(0.9, 45, 72) * swell(0.9, 0.8) * 0.5),
-        "cast": pad(thud(0.3, 150, 45, 12), burst(0.3, 2600, 14) * 0.8, hp(N(0.04), 2000) * env(0.04, 0.0005, 70) * 0.6),
-        "impact": pad(burst(0.8, 2500, 5.5), sub(0.8, 85, 28, 4), rumble(0.8, 160, 3.5) * 0.7),
-        "shell_hit": pad(burst(0.45, 2800, 8) * 0.9, thud(0.35, 115, 40, 10) * 0.8, at(rumble(0.5, 140, 5) * 0.5, 0.3)),
+        "sf": akd("p_skill_blackcannonfull_cast.wav", 0.15, 0.45, fout=0.2), "cast": akd("p_skill_launcher_cast.wav", 0.0, 0.8, fout=0.3),
+        "fire": akd("p_skill_blackcannonfull.wav", 0.0, 1.0, fout=0.4),
+        **{"shell_%d" % (i + 1): akd("p_skill_fireboomexplo.wav", 0.0, 0.9, r, fout=0.35) for i, r in enumerate([1.0, 0.92, 1.08])},
+        **{"after_%d" % (i + 1): akd("p_skill_fireboomshot.wav", 0.0, 0.6, r, fout=0.25) for i, r in enumerate([1.0, 1.1, 0.9])},
+        "impact": pad(akd("p_skill_aeroliteexplo.wav", 0.0, 1.3, fout=0.5), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
     }
 
 
 def specter_unchained():
-    """举起巨锯，锯刃放大绕着她转 3 秒（cast 带整段锯声）→ 第一下切进去（冲击）→ 之后每圈切到一声"""
-    dur = 3.4
-    t = T(dur)
-    saw = lp(tone(dur, 118, 132, "saw"), 1700) * (0.65 + 0.35 * np.sin(2 * np.pi * 4 * t)) * 0.55 + bp(N(dur), 1500, 5000) * (0.4 + 0.6 * np.sin(2 * np.pi * 4 * t) ** 2) * 0.3
+    """docs/205 §4.4（用户 10-31 选 ② 录音；画面按 claude/ult-fx-c2 弹射撕裂 + 巨锯）：提示 = 刃刮 → 放出 = 多层剑斩
+    → 每次弹射一声刃刮 zip_1..3（fx strip fx_sp_saw，match scd 0.05 = 弹射小锯）→ 巨锯压下 warn（strip fx_sp_saw+v，spin -10，金属呼啸）
+    → 落地锯开 impact（高潮，最后一圈不是 pre 的掉血）= 斩击冲击 + 爆炸 + 低频"""
     return {
-        "charge": pad(tone(0.8, 40, 120, "saw") * swell(0.8, 0.9) * 0.35, metal(0.5, 300, 6, bright=0.5) * 0.35, lp(N(0.8), 800) * swell(0.8, 0.9) * 0.5),
-        "cast": saw * np.clip(t / 0.1, 0, 1) * np.clip((dur - t) / 0.3, 0, 1),
-        "impact": pad(rip(0.35, 5200, 900), metal(0.7, 230, 4, bright=0.55) * 0.5, sub(0.5, 95, 35, 6) * 0.7),
-        "saw_hit": pad(rip(0.13, 4800, 1500) * 0.7, metal(0.15, 880, 25, bright=0.5) * 0.25),
+        "sf": sn("scrape", 0.0, 0.45, 0.9, fout=0.2), "cast": sn("slice", 0.29, 0.6, fout=0.25),
+        **{"zip_%d" % (i + 1): sn("scrape", 0.0, 0.32, r, fout=0.12) for i, r in enumerate([1.2, 1.32, 1.1])},
+        "warn": sn("rattle", 0.0, 1.0, 0.8, fout=0.3),
+        "impact": pad(sn("cut", 0.93, 1.4, fout=0.5), sn("blast", 0.02, 1.0, 0.8, fout=0.4) * 0.8, lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7),
     }
 
 
 def mizuki():
-    """地下蠕动 → 巨型触手破土横扫半圆（冲击）→ 小触手从地下钻出抓住漏网"""
+    """docs/205 §4.4（用户 10-31 选 ① 原作；画面按 claude/ult-fx-c2 水母群第三轮）：提示 = 原作水泡降调 → 放出 = 原作召潮升调
+    → 每只水母冒出一声水泡 rise_1..3（fx circle r26 地面暗斑）→ 一起压缩 compress（原作黑洞吸入，fx ring r90 w4 出现）
+    → 一起炸开 burst（高潮，fx ring w10 r1 60 群心冲击波）= 原作水炮 + 潮涌 + 低频 → 每只爆闪一声小水泡 pop_1..3（fx circle r34）"""
     return {
-        "charge": pad(lp(N(0.9), 300, 3) * swell(0.9, 0.9) * 1.1, whisper(0.9, 400, 1200) * swell(0.9, 0.8) * 0.35, splash(0.9, 1500, 1.5) * swell(0.9, 0.9) * 0.35),
-        "cast": pad(crack(0.35, 8) * 0.8, sweep_noise(0.35, 200, 900, 0.5) * swell(0.35, 0.6) * 0.7),
-        "impact": pad(sweep_noise(0.55, 2600, 280, 0.5) * env(0.55, 0.002, 5.5), sub(0.6, 80, 30, 5), splash(0.5, 2400, 7) * 0.7),
-        "tendril": pad(seq([(i * 0.06, pad(splash(0.18, 2000, 18) * 0.7, thud(0.14, 170, 70, 25) * 0.5)) for i in range(3)]), crack(0.3, 10) * 0.4),
+        "sf": akd("p_skill_waterbubble.wav", 0.15, 0.5, 0.8, fout=0.25), "cast": akd("p_skill_seasummon.wav", 0.0, 0.6, 1.1, fout=0.3),
+        **{"rise_%d" % (i + 1): akd("p_skill_waterbubble.wav", 0.15, 0.5, r, fout=0.2) for i, r in enumerate([1.3, 1.42, 1.55])},
+        "compress": akd("p_skill_darkholespell.wav", 0.0, 0.55, 1.1, fout=0.1),
+        "burst": pad(akd("p_skill_bigwatercannon.wav", 0.0, 1.6, 0.9, fout=0.6), akd("p_skill_tidesurging.wav", 0.45, 1.2, 1.1, fout=0.5) * 0.6, lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7),
+        **{"pop_%d" % (i + 1): akd("p_skill_waterbubble.wav", 0.15, 0.4, r, fout=0.15) for i, r in enumerate([1.7, 1.85, 2.0])},
     }
 
 
 def saria():
-    """docs/205 §4.3（用户 10-31 选原作版 ①）：按 Q = 原作岩石聚起定格 + 余音（轻）→ 举拳聚光 gather（原作 rockboost 起段，fx line+v w3；没有 cast）
+    """docs/205 §4.3（用户 10-31 选原作版 ①）：按 Q = 原作碎岩一下定格 sf → 举拳聚光 gather（原作 rockboost 起段，fx line+v w3）
     → 一拳砸地 slam（fx circle r110，高潮挂画面：原作 jumphammer_2 + 预告片低频；第一下掉血不另响，没有 impact）
-    → 沿裂纹一波波岩柱爆开 rock_1..4（原作 rocksleep 三段，fx strip fx_saria_pillar_break）"""
+    → 沿裂纹一波波岩柱爆开 rock_1..4（原作 rocksleep 起头那一下 + 自然衰减，4 个音高；fx strip pillar_break 节流 0.15 秒）。
+    10-31 用户「奇怪的卡顿声」：原作 rocksleep / rockboost 是 2 秒连续碎石声，先前切成 0.5 秒碎段、0.07 秒连发听着像卡顿 → 改成每声完整一下；
+    没有蓄力 charge（碎石磨擦声连续抖动）"""
     return {
-        "sf": akd("p_skill_rockboost.wav", 0.0, 0.5, 0.9, fout=0.2), "charge": akd("p_skill_rockboost.wav", 0.5, 1.0, fout=0.3),
+        "sf": akd("p_skill_rocksleep.wav", 0.0, 0.45, 0.8, fout=0.25),
         "gather": akd("p_skill_rockboost.wav", 0.0, 0.5, fout=0.15),
+        "air": sn("debris", 0.1, 0.8, 0.9, fout=0.3),   # 10-31 朝前打 v2：拳风往前推出（fx strip fx_sa_air）；岩柱改成崩起碎石（fx_ul_rock / rock2 带速度）
         "slam": pad(akd("p_skill_jumphammer_2.wav", 0.0, 1.0, fout=0.4), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
-        **{"rock_%d" % (i + 1): akd("p_skill_rocksleep.wav", t, 0.5, r, fout=0.2) for i, (t, r) in enumerate([(0.0, 1.0), (1.25, 1.0), (1.73, 1.0), (0.0, 1.1)])},
+        **{"rock_%d" % (i + 1): akd("p_skill_rocksleep.wav", 0.0, 0.45, r, fout=0.28) for i, r in enumerate([1.0, 1.08, 0.94, 1.15])},
     }
 
 
@@ -363,12 +371,18 @@ def hoshiguma():
 
 
 def siege():
-    """高高跃起（风声上扬 0.6 秒）→ 巨锤砸地、冲击波横扫（冲击）→ 敌人被震上半空，落地一片"""
+    """docs/205 §4.4（用户 10-31：两版都不要 → 要「拿着锤子爆裂的感觉」、去掉「咚」；暂用 ⑨）：提示 = 原作磁锤原样 → 起跳 = 原作跳劈起手
+    → 落地砸地 smash（fx circle r100，高潮挂画面）= 原作磁锤砸实 + 原作火爆弹炸裂 + 碎石飞溅，200 Hz 以下切掉（闷低频听成「咚」）
+    → 再跃小砸地 smash2（同一 circle 的第二次，then）= 原作跳劈落地清脆一锤 + 冰裂 → 碎岩 rock_1..3（fx strip rock_burst）= 冰岩碎裂 + 碎石，去低频
+    → 敌人落地 land（seg 落地 on）= 原作跳劈落地升调。没有 impact、没有蓄力。
+    落地那一刻队友技能被回技力当场放出，自带的技能音效由 Sfx.op_skill_mute 压住（那才是用户听到的「咚」）"""
     return {
-        "charge": pad(lp(N(0.8), 600) * swell(0.8, 0.9) * 0.6, metal(0.4, 300, 6, bright=0.5) * 0.3, horn(0.2, 220) * 0.15),
-        "cast": sweep_noise(0.62, 350, 2600, 0.5) * swell(0.62, 0.9),
-        "impact": pad(thud(0.9, 70, 26, 4) * 1.3, metal(1.0, 210, 3, bright=0.6) * 0.45, crack(1.0, 4) * 0.8, burst(0.4, 2000, 10) * 0.5),
-        "land": seq([(i * 0.07, thud(0.2, 130 - 10 * i, 50, 18) * 0.6) for i in range(5)] + [(0, crackle(0.5, 200, 1200, 5000, 6) * 0.6)]),
+        "sf": akd("p_skill_magnetichammer.wav", 0.0, 0.45, 1.0, fout=0.2), "cast": akd("p_skill_jumphammer_1.wav", 0.0, 0.7, fout=0.25),
+        "smash": hp(pad(akd("p_skill_magnetichammer.wav", 0.0, 1.0, fout=0.4), akd("p_skill_fireboomexplo.wav", 0.0, 1.4, fout=0.5) * 0.9,
+                        sn("debris", 0.1, 1.0, fout=0.4) * 0.5), 200, 4),
+        "smash2": hp(pad(akd("p_skill_jumphammer_2.wav", 0.0, 0.6, 1.05, fout=0.3), sn("ice", 0.0, 0.4, 0.9) * 0.5), 250),
+        **{"rock_%d" % (i + 1): hp(pad(sn("ice", 0.0, 0.4, r), sn("debris", 0.3, 0.35, fout=0.2) * 0.4), 600) for i, r in enumerate([1.0, 1.1, 0.92])},
+        "land": hp(akd("p_skill_jumphammer_2.wav", 0.0, 0.4, 1.1, fout=0.2), 400),
     }
 
 
@@ -397,16 +411,14 @@ def lappland():
 
 
 def lumen():
-    """队长脚下升起灯塔光柱（光圈扩散灼烧，冲击）→ 光柱持续 2 秒（嗡鸣）→ 光雨落下 → 熄灭"""
-    col = 1.8
-    t = T(col)
-    hum = (chord(col, [262, 392, 523], "tri") * 0.4 + drone(col, 131, 1.2) * 0.3 + bp(N(col), 1500, 5000) * 0.08) * np.clip(t / 0.15, 0, 1) * np.clip((col - t) / 0.5, 0, 1)
+    """docs/205 §4.4（用户 10-31 选 ① 原作）：提示 = 原作星光 → 放出 = 原作提灯 → 点亮灯塔（strip fx_beacon_ignite）= 原作提灯
+    → 光圈炸开 impact（高潮）= 原作灯火进化 + 低频 → 光柱每跳一声铃（dots，原作召回铃 3 个音高）→ 光雨（line+v w2，原作星光升调）"""
     return {
-        "charge": pad(bell(0.9, 523, 2, 1.0, 0.3) * swell(0.9, 0.9) * 0.4, riser(0.9, 130, 520, "tri", 2500) * 0.45),
-        "cast": pad(sweep_noise(0.3, 500, 3500, 0.5) * swell(0.3, 0.9) * 0.6, bell(0.5, 1047, 4, 1.0, 0.4) * 0.3),
-        "impact": pad(sweep_noise(0.7, 600, 4200, 0.6) * env(0.7, 0.002, 5), sub(0.6, 95, 35, 6) * 0.7, bell(1.0, 392, 3, 1.0, 0.5) * 0.4),
-        "column": hum,
-        "rain_hit": pad(bell(0.18, 2093, 22, 1.0, 0.3) * 0.35, bp(N(0.12), 2500, 7000) * env(0.12, 0.002, 25) * 0.4),
+        "sf": akd("p_skill_shinestar.wav", 0.0, 0.6, 0.9, fout=0.3), "cast": akd("p_skill_lantern_cast.wav", 0.0, 0.6, fout=0.3),
+        "ignite": akd("p_skill_lantern.wav", 0.0, 1.2, fout=0.5),
+        "impact": pad(akd("p_skill_lanternevolution.wav", 0.1, 1.5, fout=0.6), lp(sn("b075", 0.25, 1.2, fout=0.5), 900) * 0.6),
+        **{"pulse_%d" % (i + 1): akd("p_skill_recallbell.wav", 0.0, 0.6, r, fout=0.25) for i, r in enumerate([1.0, 1.12, 1.26])},
+        **{"rain_%d" % (i + 1): akd("p_skill_shinestar.wav", 0.0, 0.5, r, fout=0.25) for i, r in enumerate([1.3, 1.45, 1.6])},
     }
 
 
@@ -465,7 +477,10 @@ def main():
         if "sf" not in d:   # 干员函数自己给了录音版 sf 就不用合成的
             d["sf"] = FLASH[op]()
         rng.bit_generator.state = st
-        if a.apply:   # 旧的通用槽（A/B/C 时代的 hit 等）不再用的删掉
+        if a.apply:   # 旧的通用槽（A/B/C 时代的 hit 等）不再用的删掉；只剩 .import 的也删（否则 Godot 照样从导入缓存放旧声）
+            for imp in glob.glob(os.path.join(SFX, "ult_%s_*.wav.import" % op)):
+                if not os.path.exists(imp[:-7]) and os.path.basename(imp)[len("ult_%s_" % op):-11] not in d:
+                    os.remove(imp)
             for old in glob.glob(os.path.join(SFX, "ult_%s_*.wav" % op)):
                 if os.path.basename(old)[len("ult_%s_" % op):-4] not in d:
                     os.remove(old)
