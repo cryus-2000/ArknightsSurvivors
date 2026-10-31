@@ -1050,7 +1050,7 @@ SCENE_REGRESSIONS = {
     "squad_v2": ("小队指挥 v2（docs/209：护卫阵型站位、突击职业分工、部署阻挡、突击中吃敌弹 / 预警、残血撤回、医疗回血、圆盘随行合并归队、以施放者为中心、连携 v2 按姿态挑人、开关 command/v2）", "squad_v2_test", r"SQUAD V2 checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=texas", "--squad=hoshiguma,exusiai"]),
     "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
     # 以下旧系统（隐藏连携 / 响应动作 / 手动技能 / 契约试点的响应段）在 ult/on（docs/198 终结技，缺省开）下停用：测试固定 --bal=ult/on=0 守旧路径，旧系统删掉时连同测试一起删
-    "synergy_a": ("干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--bal=ult/on=0", "--regression", "--balance", "--seed=1", "--op=texas", "--squad=exusiai,lappland"]),
+    "synergy_a": ("干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--bal=ult/on=0", "--bal=command/v2=0", "--regression", "--balance", "--seed=1", "--op=texas", "--squad=exusiai,lappland"]),
     "synergy_b": ("干员连携技（集群狩猎：猎人 ≥ 3 人一起扑向同一目标）", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--bal=ult/on=0", "--regression", "--balance", "--seed=1", "--op=skadi", "--squad=ulpianus,gladiia"]),
     "synergy_c": ("干员连携技（乌尔比安 × 斯卡蒂「手段应当有效」）", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--bal=ult/on=0", "--regression", "--balance", "--seed=1", "--op=ulpianus", "--squad=skadi"]),
     "synergy_d": ("干员连携技（战争设计：歌蕾蒂娅 S3 控场 → 乌尔比安收割；技能就绪才放、队长不位移）", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--bal=ult/on=0", "--regression", "--balance", "--seed=1", "--op=gladiia", "--squad=ulpianus"]),

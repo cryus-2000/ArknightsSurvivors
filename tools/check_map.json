@@ -529,6 +529,16 @@
    "why": "终结技（docs/198）：播放形式 / 升级让位回归"
   },
   {
+   "glob": "game/scripts/run/{skill_link,link_v2,combo,link_fx_*}.gd",
+   "groups": [
+    "core",
+    "ult",
+    "command",
+    "repro"
+   ],
+   "why": "连携（docs/199 §7.5 / docs/209 §2）：连携 v2 按姿态挑人在 squad_v2 里测"
+  },
+  {
    "glob": "game/scripts/endings.gd",
    "groups": [
     "core",
