@@ -69,7 +69,17 @@ func _ready() -> void:
 		ok(u.aim.distance_to(ld.pos + Vector2(300, -120)) < 200.0, "落点跟着计划挪过去（离目标 %.0f）" % u.aim.distance_to(ld.pos + Vector2(300, -120)))
 		ok(u.aim.distance_to(ld.pos) <= Aim.REACH + 1.0, "落点不超出 520")
 	ok(u.press_q() or kind == "none", "再按 Q 释放")
-	ok(u.phase == "cast" or u.phase == "", "释放后进入出招（%s）" % u.phase)
+	ok(u.phase == "windup" or u.phase == "cast" or u.phase == "", "释放后进入起手 / 出招（%s）" % u.phase)
+	# 起手慢放（11-01 用户，ult/windup_slow）：看得见的局里确认后先 0.5 真实秒慢速起手（0.15 游戏秒），再正式出招
+	ok(u.phase == "windup", "看得见的局：确认后先进起手（%s）" % u.phase)
+	ok(absf(u.time_scale() - Bal.v("ult/windup_s", 0.3)) < 0.001, "起手中世界 0.3 倍（%.2f）" % u.time_scale())
+	ok(u.cam_punch() >= Bal.v("ult/cam_aim", 1.08) - 0.001, "起手中镜头不往回拉（%.3f）" % u.cam_punch())
+	var wn := 0
+	while u.phase == "windup" and wn < 60:
+		step.call(1)
+		wn += 1
+	ok(u.phase == "cast" or u.phase == "", "起手到点正式出招（%d 帧 = %.2f 游戏秒）" % [wn, wn * dt])
+	ok(wn >= 6 and wn <= 12, "起手 0.15 游戏秒左右（%d 帧）" % wn)
 	step.call(600)
 	ok(u.phase == "", "招式放完")
 	# 3. 按住不松：到上限自动释放
@@ -116,7 +126,8 @@ func _ready() -> void:
 		ok(u.aim.distance_to(want) < 30.0, "落点 = 队长 + 拖动方向 × 距离（离预期 %.0f）" % u.aim.distance_to(want))
 		_touch(false, c0 + drag)
 		step.call(2)
-		ok(u.phase == "cast" or u.phase == "", "松手释放（%s）" % u.phase)
+		ok(u.phase == "windup" or u.phase == "cast" or u.phase == "", "松手释放（%s）" % u.phase)
+		step.call(12)   # 走完起手慢放（0.15 游戏秒）才正式出招、定作用中心
 		ok(u._ult_at.distance_to(want) < 40.0, "按拖到的落点放（离预期 %.0f）" % u._ult_at.distance_to(want))
 		step.call(600)
 		# 轻点终结技键（不拖）：保持瞄准，再点一次放
@@ -130,7 +141,7 @@ func _ready() -> void:
 		_touch(true, c0)
 		_touch(false, c0)
 		step.call(2)
-		ok(u.phase == "cast" or u.phase == "", "再点一次终结技键释放（%s）" % u.phase)
+		ok(u.phase == "windup" or u.phase == "cast" or u.phase == "", "再点一次终结技键释放（%s）" % u.phase)
 		step.call(600)
 		tc.active = was_active
 		# 7. 手柄右摇杆：推到底 = 最远 520，方向跟摇杆
@@ -170,6 +181,17 @@ func _ready() -> void:
 	# 5. 开关 0：旧路径
 	Bal.sec("ult")["aim"] = 0
 	ok(not Aim.on(u), "ult/aim 0 不走 v2")
+	Bal.sec("ult")["windup_slow"] = 0
+	u.energy = u.FULL
+	u.press_q()
+	u._sf_rt = -99.0
+	var on := 0
+	while u.phase == "aim" and on < 200:
+		step.call(1)
+		on += 1
+	ok(u.phase != "windup", "ult/windup_slow 0：确认即出招（%s）" % u.phase)
+	step.call(600)
+	Bal.sec("ult")["windup_slow"] = 1
 	u.energy = u.FULL
 	u.press_q()
 	ok(not u.aim_v2, "开关 0 时按 Q 走旧瞄准")

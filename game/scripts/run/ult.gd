@@ -477,6 +477,10 @@ func _tick_ult(dt: float) -> void:
 		if (_phase_t >= _aim_min and not q_held) or _phase_t >= _aim_max:
 			_cast()
 		return
+	if phase == "windup":
+		if _wu_k() >= 1.0:
+			_wu_end()
+		return
 	if phase == "cast":
 		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 		if sx != null:
@@ -499,7 +503,6 @@ var _cut_pending := false
 
 
 func _cast() -> void:
-	phase = "cast"
 	_hf_tail = {}
 	if _cut_pending:
 		_cut_pending = false
@@ -508,6 +511,14 @@ func _cast() -> void:
 			if _sf_voice:
 				_sf_voice = false
 				_ult_voice(caster)
+	if _wu_on():
+		_wu_start()
+		return
+	_cast_go()
+
+
+func _cast_go() -> void:
+	phase = "cast"
 	_ult_at = aim if aim_kind == "point" else (caster.pos + aim_dir * 300.0 if aim_kind == "dir" else caster.pos)
 	_cast_t = g.t
 	ev.ult_t = g.t
@@ -1229,10 +1240,12 @@ func cam_punch() -> float:
 		return ip
 	if phase == "aim":
 		return Bal.v("ult/cam_aim", 1.08)
+	if phase == "windup":   # 起手慢放：往干员身上微推（镜头本来就以队长为中心），先快后慢
+		return lerpf(Bal.v("ult/cam_aim", 1.08), _wu_cam(), 1.0 - pow(1.0 - _wu_k(), 2.0))
 	var age: float = g.t - _cast_t
 	if age < 0.0 or age > 1.0:
 		return 1.0
-	var hi: float = Bal.v("ult/cam_cast", 1.12)
+	var hi: float = maxf(Bal.v("ult/cam_cast", 1.12), _wu_cam() if _wu_did else 0.0)   # 接着起手推到的位置往回拉，不跳
 	return hi if age < 0.6 else lerpf(hi, 1.0, (age - 0.6) / 0.4)
 
 
@@ -1241,7 +1254,9 @@ func time_scale() -> float:
 	var s := 1.0
 	if sf_active():
 		return 0.0   # 超必杀暂停：世界冻结（敌人、弹幕、计时都停，只有演出层动）
-	if phase == "aim" and aim_v2:
+	if phase == "windup":
+		s = Bal.v("ult/windup_s", 0.3)   # 起手慢放：世界保持慢速，到点恢复原速出招
+	elif phase == "aim" and aim_v2:
 		s = Bal.v("ult/aim_slow", 0.3)
 	elif phase == "aim":
 		s = Bal.v("ult/cult_slow", 0.2) if kind == "cult" else Bal.v("ult/slow", 0.25)
@@ -1268,6 +1283,7 @@ func draw_world(w) -> void:
 	var dim: float = _dim()
 	var px: bool = Bal.vi("ult/px_style", 1) > 0   # 像素风光栅化（用户 10-30）
 	_draw_stage(w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
+	_draw_windup(w)   # 起手慢放：蓄力粒子往身上收 + 脚下光圈收紧
 	_draw_sf(w)   # 超必杀暂停：压暗到约 30% + 队长轮廓光 + 手部闪光 + 干员色放射速度线
 	_draw_lf(w)   # 连携轻量演出：压暗到约 60% + 接手队友原亮度（link/flash）
 	for s in shapes:
@@ -1735,6 +1751,7 @@ func _imp_punch() -> float:
 ## 每帧真实时间钩子（game._process）：恢复速度那一刻爆一声
 func fx_tick() -> void:
 	_sf_tick()
+	_wu_tick()
 	_dur_tick()
 	if _fin_pending and _imp_age() >= _fin_in():
 		_fin_pending = false
@@ -2321,3 +2338,101 @@ func tk_of(id: String) -> float:
 	if Bal.v("ult/dur_unify", 1.0) <= 0.0:
 		return 1.0
 	return clampf(Bal.v("ult/tk_" + id, float(TK.get(id, 1.0))), 0.5, 2.5)
+
+
+# ---------------------------------------------------------------- 起手慢放（用户 11-01「终结技开头加准备动作慢放」，开关 ult/windup_slow 缺省 1；0 = 确认即出招）
+## 和立绘切入合在一起，不加停住时间：确认释放后 ult/windup_t（0.5，同切入）真实秒里世界保持慢速 ult/windup_s（0.3）——按游戏时间计
+## （windup_t × windup_s = 0.15 游戏秒；慢放生效时正好 0.5 真实秒，逐帧推进的测试里也会按时结束），
+## 干员本人把技能帧条出手帧之前那段（起手 / 蓄力）拉长慢放到出手前一刻（没有 skill 帧条用 attack；都没有出手帧就定住待机帧——20 人目前都有），
+## 镜头往干员身上推约 5%（ult/windup_cam_k 1.05，接在瞄准 1.08 之上）、蓄力粒子往身上收、脚下光圈收紧；到点恢复原速、正式出招（_cast_go）。
+## 只在看得见的局（玩家局 / --realtime / --playclock）里走；机器人批跑确认即出招，同 seed TRACE 不变。连携终结技不走。纯画面：伤害与判定不动
+var _wu_t0 := -99.0   # 起手开始的游戏时间
+var _wu_anim := ""
+var _wu_pre := 0.0
+var _wu_did := false   # 这次出招前走过起手慢放（推镜接着往回拉）
+
+
+func _wu_on() -> bool:
+	return kind == "ult" and caster != null and Bal.v("ult/windup_slow", 1.0) > 0.0 and _sf_visual()
+
+
+func _wu_t() -> float:
+	return maxf(0.05, Bal.v("ult/windup_t", 0.5))
+
+
+## 起手进度 0..1（游戏时间）
+func _wu_k() -> float:
+	return clampf((g.t - _wu_t0) / (_wu_t() * clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)), 0.0, 1.0)
+
+
+func _wu_cam() -> float:
+	return Bal.v("ult/cam_aim", 1.08) * Bal.v("ult/windup_cam_k", 1.05)
+
+
+func _wu_start() -> void:
+	phase = "windup"
+	_wu_t0 = g.t
+	_wu_did = true
+	_wu_anim = ""
+	_wu_pre = 0.0
+	for k in ["skill", "attack"]:
+		var fire: int = int(caster.sprite_spec(k).get("fire", 0))
+		if caster.anim_tex(k) != null and fire > 0:
+			_wu_anim = k
+			_wu_pre = caster.frames_seconds(k, range(fire))
+			break
+	if _wu_anim != "":
+		caster.play_vis_anim(_wu_anim)
+
+
+func _wu_end() -> void:
+	if caster != null and _wu_anim != "" and caster.vis_anim == _wu_anim:
+		caster.anim_t = _wu_pre   # 招式没换帧条就从出手帧接着播（换了就由招式自己从头播）
+	_play_t0 += g.t - _wu_t0   # 播放形式的兜底上限（ult/play_max）从正式出招算，起手不占
+	_cast_go()
+
+
+## 每帧把起手帧钉在 进度 × 出手前时长 的位置：0.5 秒播完出手前那一段，停在出手前一刻
+func _wu_tick() -> void:
+	if phase != "windup" or caster == null:
+		return
+	if _sf_visual():
+		g.invuln = maxf(g.invuln, 0.05)   # 世界慢下来时队长别挨打（同超必杀暂停的兜底，不闪烁）
+		g.invuln_move_until = maxf(g.invuln_move_until, g.t + 0.05)
+	if _wu_anim != "":
+		var wk: float = _wu_k()
+		caster.vis_anim = _wu_anim
+		caster.anim_kind = _wu_anim
+		caster.anim_t = _wu_pre * 0.97 * wk
+
+
+func _draw_windup(w) -> void:
+	if phase != "windup" or caster == null or caster.pos == Vector2.INF:
+		return
+	var wk: float = _wu_k()
+	var col: Color = _col(caster)
+	var c: Vector2 = caster.pos
+	var body: Vector2 = c + Vector2(0, -22.0)
+	# 脚下光圈：72 → 22 收紧，越收越亮（3 像素格的椭圆点环）
+	var r: float = lerpf(72.0, 22.0, 1.0 - pow(1.0 - wk, 2.0))
+	var a: float = 0.35 + 0.55 * wk
+	var n := 40
+	for i in n:
+		var t: float = TAU * float(i) / n
+		var p: Vector2 = (c + Vector2(cos(t) * r, sin(t) * r * 0.38)).snapped(Vector2(3, 3))
+		w.tb_quad(p, p + Vector2(3, 0), p + Vector2(3, 3), p + Vector2(0, 3), Color(col.r, col.g, col.b, a))
+	# 蓄力粒子：22 颗从 70–150 外往身上收（各自错开起点与速度，按 serial 定，不抽随机数），越近越亮越小
+	if not Cfg.reduce_motion:
+		var cw: Color = col.lerp(Color.WHITE, 0.45)
+		for i in 22:
+			var h1: float = fposmod(sin(float(i) * 12.9898 + float(serial) * 78.233) * 43758.5453, 1.0)
+			var h2: float = fposmod(sin(float(i) * 39.346 + float(serial) * 11.135) * 24634.6345, 1.0)
+			var k: float = clampf(wk * (1.2 + 0.6 * h2) - 0.25 * h1, 0.0, 1.0)
+			if k <= 0.0 or k >= 1.0:
+				continue
+			var ang: float = TAU * (float(i) + h1) / 22.0
+			var d: float = lerpf(70.0 + 80.0 * h2, 6.0, k * k)
+			var p: Vector2 = (body + Vector2.from_angle(ang) * Vector2(d, d * 0.7)).snapped(Vector2(3, 3))
+			var sz: float = 6.0 if k < 0.6 else 3.0
+			w.tb_quad(p, p + Vector2(sz, 0), p + Vector2(sz, sz), p + Vector2(0, sz), Color(cw.r, cw.g, cw.b, 0.4 + 0.5 * k))
+	w.tb_flush()
