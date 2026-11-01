@@ -400,12 +400,16 @@ static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vecto
 	for r in w.roll:
 		r[0].c = fp - d * float(r[1])
 		r[0].sy = -lerpf(0.3, float(r[2]), e)
+	var r2: bool = Bal.v("ult/sd_r2", 1.0) > 0.0   # 11-01 第二轮：浪冠沿整条浪线持续卷沫 + 浪后拖水雾（体积）
 	if t >= float(w.spray_t):   # 浪冠前方溅水珠（压暗，别糊成白雾）
-		w.spray_t = t + 0.12
+		w.spray_t = t + (0.07 if r2 else 0.12)
 		var j: int = int(t * 100.0)
-		for i in 2:
+		for i in (3 if r2 else 2):
 			var lat: float = -hw + hw * 2.0 * fposmod(0.21 + 0.37 * float(i) + 0.29 * float(j), 1.0)
-			PF.particles(u, fp + n * lat + d * 30.0, 40, "ult_burst_s", [col, col.darkened(0.3)], 0.0, float(j) + i * 3.0, 60.0)
+			PF.particles(u, fp + n * lat + d * 30.0, 40, "ult_burst_s", [col, col.darkened(0.3)], 0.0, float(j) + i * 3.0, 60.0 if not r2 else 80.0)
+		if r2 and j % 2 == 0:   # 浪后拖一层水雾往后飘（浪墙有厚度，不是一张贴图在滑）
+			var lat2: float = -hw * 0.8 + hw * 1.6 * fposmod(0.5 + 0.61 * float(j), 1.0)
+			PF.dust(u, fp + n * lat2 - d * 110.0, 120.0 + 50.0 * fposmod(0.37 * float(j), 1.0), 0.0, float(j) * 0.7, -d * 80.0, Color(0.42, 0.52, 0.62))
 	if F >= minf(L, Bal.v("ult/sd_crash_x", 520.0)):
 		w["crashed"] = true   # 用户 10-31「再来个劈开巨浪爆炸收尾」：一道剑光顺着她的朝向把浪从中间劈开 → 两半往两侧分开 → 劈口炸成水柱 / 水雾
 		u.g.vfx.stop(Bal.v("ult/sd_crash_stop", 0.08), "ult", true)
@@ -421,6 +425,21 @@ static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vecto
 			PF.hf_since(u, n0)
 			PF.hf_on(u, a)
 		_sd_blast_v3(u, o0, d, n, hw * 0.45, fp + d * 20.0, PF.vseed(u, o0) + float(w.t0) * 17.0, col, 3)
+		if Bal.v("ult/sd_r2", 1.0) > 0.0:   # 11-01 第二轮：劈开后两半浪各自砸塌成水柱（往两侧错开、晚一拍）+ 劈口一路炸起水柱 + 两侧水雾墙往外推 + 落水珠
+			var vs2: float = PF.vseed(u, o0) + 300.0
+			for side in [-1.0, 1.0]:
+				for q in (2 if side > 0.0 else 3):   # 两侧不对称：一边两根一边三根，位置 / 大小 / 先后都按哈希错开
+					var hq: float = PF.h(vs2 + q * 2.3 + side * 5.1)
+					var pq: Vector2 = fp + n * side * hw * (0.3 + 0.5 * PF.h(hq * 3.0 + q)) + d * (hq - 0.5) * 160.0
+					_sd_spout(u, pq, 170.0 + 140.0 * hq, 0.1 + 0.12 * PF.h(hq + 7.0), vs2 + side * 3.0 + q, col, q == 0)
+				for q in 3:
+					var pw: Vector2 = fp + n * side * hw * (0.3 + 0.3 * q)
+					PF.dust(u, pw, 170.0 + 40.0 * PF.h(vs2 + q * 2.0 + side), 0.1 + 0.04 * q, vs2 + q + side * 7.0, n * side * 110.0, Color(0.46, 0.56, 0.66))
+			for q in 3:   # 劈口一路往回炸起三根水柱（从浪头往她身前，越近越小；间距 / 偏左右错开）
+				var hq2: float = PF.h(vs2 + 40.0 + q * 1.9)
+				_sd_spout(u, fp - d * (100.0 + 120.0 * q + 60.0 * hq2) + n * (hq2 - 0.5) * 70.0, (220.0 - 40.0 * q) * (0.8 + 0.4 * hq2), 0.05 + 0.05 * q + 0.03 * hq2, vs2 + 20.0 + q, col)
+			PF.particles(u, fp, 300, "ult_ember", [col.lerp(Color.WHITE, 0.4), col], 0.35, vs2 + 40.0, hw * 1.2)   # 落水珠
+			u.shake(6.0, 0.2)
 		w["wet_x"] = F
 
 
@@ -673,9 +692,42 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 		a["vo"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR / rr, "life": 3.0, "col": Color(1, 1, 1, 0.55)})
 		a["vi"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR * 0.5 / rr, "ang": 1.3, "life": 3.0, "col": Color(1.1, 1.15, 1.15, 0.7)})
 		a["rr"] = rr
-	a.fx.append(u.strip("fx_gladiia_tornado_open", c, {"sc": 2.6, "o": Vector2(64, 118)}))
-	a.fx.append(u.strip("fx_gladiia_tornado_loop", c, {"sc": 2.6, "o": Vector2(64, 118), "loop": true, "delay": 0.3, "life": 2.0}))
+	var op: int = Bal.vi("ult/gl_open", 1)
+	a["op"] = op
+	var od: float = 0.12 if op > 0 else 0.0   # 开头动作先出手，龙卷晚一拍
+	if op > 0:
+		_gl_open(u, a, o, c, col)
+	a.fx.append(u.strip("fx_gladiia_tornado_open", c, {"sc": 2.6, "o": Vector2(64, 118), "delay": od}))
+	a.fx.append(u.strip("fx_gladiia_tornado_loop", c, {"sc": 2.6, "o": Vector2(64, 118), "loop": true, "delay": 0.3 + od, "life": 2.0}))
 	return a
+
+
+## 开头动作（用户 11-01「格雷蒂娅终结技开头的动作是不是可以改一下」→ 选方案 A，ult/gl_open；0 = 原版：原地一挥、漩涡整张直接出现）。
+## 「掷枪落涡」：她朝落点掷出长枪（白芯青光的枪影 0.1 秒飞到）→ 枪扎进地面、一帧爆亮 + 细裂缝 + 水花和水雾炸开 → 漩涡从枪尖处淡入转起来。
+## （落选的方案 B「旋枪卷潮」已删，见 docs/199 §7.18）
+## 只有画面：判定 / 时序 / 伤害不变（漩涡淡入在 _gl_step 里乘 alpha / 缩放）
+static func _gl_open(u, a: Dictionary, o, c: Vector2, col: Color) -> void:
+	var vs: float = PF.vseed(u, c)
+	var p0: Vector2 = o.pos + Vector2(0, -16)
+	var d: Vector2 = (c - p0).normalized() if c.distance_to(p0) > 1.0 else Vector2.RIGHT
+	var foam := Color(0.82, 0.97, 1.0)
+	var deep: Color = col.darkened(0.35)
+	o.face_to(d.angle())
+	# 掷枪：枪影一道飞到落点，扎地后枪身留 0.5 秒
+	u.shape({"kind": "blade", "a": p0, "b": c, "w": 5.0, "col": foam, "glow": col, "grow": 0.1, "life": 0.17, "fo": 0.07})
+	u.shape({"kind": "blade", "a": c - d * 80.0 + Vector2(0, -30), "b": c + d * 6.0, "w": 4.0, "col": Color(0.8, 0.93, 1.0), "glow": deep, "life": 0.55, "fo": 0.3, "delay": 0.1})
+	u.shape({"kind": "ring", "c": c, "r": 24.0, "r1": a.DR * 0.55, "w": 5.0, "col": Color(foam.r, foam.g, foam.b, 0.7), "life": 0.24, "delay": 0.1})   # 扎地那一下的水圈（缺省碎环）
+	PF.particles(u, c, 160, "ult_burst_s", [foam, col, deep], 0.1, vs, 110.0)
+	PF.dust(u, c, 180.0, 0.1, vs, Vector2.ZERO, Color(0.42, 0.58, 0.66))
+	u.light(c, 160.0, col, 0.3)
+	u.shape({"kind": "circle", "c": c, "r": 46.0, "col": Color(0.8, 0.92, 0.95), "fill": 0.85, "life": 0.06, "delay": 0.1})   # 扎地一帧爆亮（≤ 0.9）
+	var fa: Array = []
+	var fl: Array = []
+	for q in 4:   # 枪尖处崩出几道不规整的细裂缝（角度 / 长短按哈希错开）
+		fa.append(PF.h(vs + q * 1.7) * TAU)
+		fl.append(70.0 + 90.0 * PF.h(vs + q * 3.3))
+	PF.cracks(u, ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"], c, fa, fl, {"seed": vs, "r0": 8.0, "rev": 0.08, "rev0": 0.0, "delay": 0.1, "life": 1.0, "fade": 0.5,
+		"small": 0.45, "big": 0.6, "col": Color(0.85, 0.97, 1.0), "col1": Color(0.12, 0.2, 0.26, 0.85), "cold": 0.15})
 
 
 static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
@@ -720,6 +772,12 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			a.vi.ang = 1.3 - float(a.rot) * 1.8
 			a.vi.sc = DR * 0.5 * sk / float(a.rr)
 			a.vi.col = Color(1.1 + 0.5 * kc, 1.15 + 0.5 * kc, 1.15 + 0.5 * kc, lerpf(0.7, 1.0, kc))
+			if int(a.get("op", 0)) > 0 and t < 0.3:   # 开头动作：漩涡等枪扎地才淡入
+				var ko: float = smoothstep(0.08, 0.28, t)
+				for key in ["vo", "vi"]:
+					var cc: Color = a[key].col
+					cc.a *= ko
+					a[key].col = cc
 			if int(t * 60.0) % 3 == 0:   # 外圈的水沫往里吸
 				var dq := Vector2.from_angle(float(a.rot) * 1.7 + t * 9.0)
 				u.grain("mote_in", c + dq * DR * 0.9, -dq, Color(0.8, 1.0, 1.0), 3)

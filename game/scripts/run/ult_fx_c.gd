@@ -393,10 +393,44 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 		var sd2: float = 1.0 if k == 0 else -1.0
 		PF.dust(u, a0.lerp(b0, 0.35 + 0.3 * k) + nv * sd2 * 18.0, 140.0, TB + 0.02, vs + 30.0 + k, nv * sd2 * 90.0, Color(0.5, 0.53, 0.58))
 	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_ICE, 0.22)
+	if Bal.v("ult/sz_rupt_chain", 1.0) > 0.0:
+		_sz_rupt_chain(u, a0, b0, dv, nv, SL, TB, vs)
+		return
 	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)
 		var p: Vector2 = a0.lerp(b0, (k + 0.3 + 0.4 * hh) / 3.0)
 		PF.particles(u, p, 18, "ult_burst_s", [SZ_ICE, SZ_RED], 0.02 * k, vs + k, 50.0)
+
+
+## 刀痕连环爆裂（用户 11-01「忍冬最后的爆裂要做出来」，ult/sz_rupt_chain；0 = 10-31 收敛版只迸三颗火星）：
+## 绷开那一拍起，爆裂沿刀痕从起点一路炸到尽头（7 处、每处晚 0.03 秒、间距和大小错开）——每处冷白爆亮迅速冷成钢灰的粒子团 + 一缕狐火红余烬，
+## 刀口两侧各崩出一两道不规整的暗红细裂缝，最后一处最大；不喷溅（10-31「喷溅去掉」），烟尘往刀口两侧推。只有画面
+const SZ_FORKS := ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"]
+
+
+static func _sz_rupt_chain(u, a0: Vector2, b0: Vector2, dv: Vector2, nv: Vector2, SL: float, TB: float, vs: float) -> void:
+	var N := 7
+	for k in N:
+		var hh: float = PF.h(vs + k * 3.7)
+		var p: Vector2 = a0.lerp(b0, clampf((k + 0.1 + 0.8 * hh) / float(N), 0.0, 1.0)) + nv * (PF.h(vs + k * 5.3) - 0.5) * 16.0
+		var dl: float = TB + 0.045 * k + 0.02 * PF.h(vs + k * 2.9)
+		var big: float = (1.0 if k < N - 1 else 1.6) * (0.65 + 0.7 * hh)
+		PF.particles(u, p, 600, "ult_burst", [Color(0.66, 0.7, 0.78), Color(0.5, 0.54, 0.6)], dl, vs + k * 5.0, 170.0 * big)   # 第二轮录像里 85 太小、看着像火星 → 加大到 170、两层；颜色压一档（粒子着色 ×1.35，冷白原色会成纯白团）
+		u.shape({"kind": "circle", "c": p, "r": 34.0 * big, "col": Color(0.86, 0.89, 0.94), "fill": 0.85, "life": 0.05, "delay": dl})   # 每处爆亮一帧（≤ 0.9），随后粒子冷成钢灰
+		if k % 3 == 2:
+			PF.particles(u, p, 20, "ult_ember", [SZ_RED.darkened(0.45)], dl + 0.06, vs + k * 5.0 + 2.0, 50.0 * big)   # 狐火红只留零星几缕（红点团像血珠）
+		var sgn: float = 1.0 if PF.h(vs + k * 1.9) < 0.5 else -1.0
+		PF.dust(u, p + nv * sgn * 14.0, 90.0 * big, dl + 0.03, vs + 60.0 + k, nv * sgn * 70.0, Color(0.46, 0.48, 0.53))
+		if k % 2 == 0 or k == N - 1:   # 刀口两侧崩出的细裂缝（斜着岔出去、长短不一）
+			var fa: Array = [(nv * sgn).angle() + (PF.h(vs + k) - 0.5) * 1.1]
+			if k == N - 1:
+				fa.append((-nv * sgn).angle() + (PF.h(vs + k + 9.0) - 0.5) * 1.1)
+			var fl: Array = []
+			for q in fa.size():
+				fl.append(70.0 + 70.0 * PF.h(vs + k * 2.3 + q))
+			PF.cracks(u, SZ_FORKS, p, fa, fl, {"seed": vs + k * 7.0, "r0": 6.0, "rev": 0.06, "rev0": 0.0, "delay": 0.0, "life": 1.3, "fade": 0.7,
+				"small": 0.4, "big": 0.55, "col": Color(1.0, 0.95, 0.95), "col1": Color(0.2, 0.08, 0.09, 0.9), "cold": 0.12})
+	u.light(b0, SL * 0.3, SZ_ICE, 0.2)
 
 
 # ================================================================ 水月 · 水母群（ult/mz_jelly，协调人 10-30 转用户「做个大概的给我看看」：粗稿）

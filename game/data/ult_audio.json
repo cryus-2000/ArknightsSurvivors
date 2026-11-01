@@ -1,5 +1,5 @@
 {
-  "_doc": "终结技语音与专属音效（docs/205）。run/ult.gd 读：按 Q 超必杀暂停 sf（sf_sound）、进入瞄准 charge（同时说 voice）、放出 cast、第一下掉血 impact；之后按招式分段：seg.<段名>（= 招式伤害的 src）.on 这段第一下播、.hit 之后每下播（.gap 真实秒节流），写了空 {} 的段不出声，没写的段走通用 hit（hit_gap）。文件 audio/sfx/ult_<干员>_<槽>.wav（game/tools/gen_sfx_ult_seg_1030.py），缺文件静默。vol：槽名 → 播放 dB；没列的槽，*_hit 用 vol.hit、其余用 vol.seg。fx.<图形 kind 或 strip:帧条名> = 画面单元出现时播（docs/205 §4，slot 可为数组轮换、at 延后游戏秒、gap 节流、w / r 限线宽 / 半径、min_t 放出后几秒起才认、vol dB）。hf_slot = 冲击帧第一拍播的槽（高潮直接挂冲击帧）；voice 为空 = 从技能池挑一句；voice_alt = 备选台词（原作整句、文件已在游戏里，换 voice 即可，docs/205 §2.3）；boom = 慢放结束那一声 [名字, 音量, 音高]（名字空 = 不播：高潮只留一下，docs/205 §4.2）。",
+  "_doc": "终结技语音与专属音效（docs/205）。run/ult.gd 读：按 Q 超必杀暂停 sf（sf_sound）、进入瞄准 charge（同时说 voice）、放出 cast、第一下掉血 impact；之后按招式分段：seg.<段名>（= 招式伤害的 src）.on 这段第一下播、.hit 之后每下播（.gap 真实秒节流），写了空 {} 的段不出声，没写的段走通用 hit（hit_gap）。文件 audio/sfx/ult_<干员>_<槽>.wav（game/tools/gen_sfx_ult_seg_1030.py），缺文件静默。vol：槽名 → 播放 dB；没列的槽，*_hit 用 vol.hit、其余用 vol.seg。fx.<图形 kind 或 strip:帧条名> = 画面单元出现时播（docs/205 §4，slot 可为数组轮换、at 延后游戏秒、gap 节流、w / r 限线宽 / 半径、min_t 放出后几秒起才认、vol dB）。hf_slot = 冲击帧第一拍播的槽（高潮直接挂冲击帧）；voice 为空 = 从技能池挑一句；sf_off = 不放超必杀暂停提示音（逻各斯 11-01）；voice_alt = 备选台词（原作整句、文件已在游戏里，换 voice 即可，docs/205 §2.3）；boom = 慢放结束那一声 [名字, 音量, 音高]（名字空 = 不播：高潮只留一下，docs/205 §4.2）。",
   "default": {"vol": {"sf": -5.0, "charge": -10.0, "cast": -4.0, "impact": 0.0, "hit": -9.0, "seg": -3.0}, "hit_gap": 0.08, "boom": ["", 0.0, 1.0]},
   "ops": {
     "texas": {"voice": "texas_ult", "voice_alt": ["texas_skill_3", "texas_entry"], "vol": {"impact": 2.0}, "seg": {"斩开": {}, "剑雨": {}, "回马剑": {}},
@@ -56,11 +56,11 @@
              "strip:fx_ul_rock+v": {"slot": ["rock_1", "rock_2", "rock_3", "rock_4"], "gap": 0.15, "vol": -9.0},
              "strip:fx_sa_air": {"slot": "air", "gap": 0.5, "vol": -5.0}}},
     "suzuran": {"voice": "suzuran_skill_1", "voice_alt": ["suzuran_entry_2", "suzuran_skill_3", "suzuran_entry_3"], "seg": {"瞬身": {"on": "flash"}, "斩痕": {}, "狐火": {}},
-      "fx": {"band": {"w": 8.0, "slot": "rupt", "gap": 0.3, "vol": -4.0}}},
-    "logos": {"voice": "logos_entry_2", "voice_alt": ["logos_battle"], "vol": {"cast": -6.0, "impact": 1.0}, "seg": {"处决": {}, "咒文": {}, "爆裂": {}, "转喻": {}, "墓志铭": {}},
+      "fx": {"band": {"w": 8.0, "slot": "rupt", "gap": 0.3, "vol": -2.0}}},
+    "logos": {"sf_off": true, "voice": "logos_entry_2", "voice_alt": ["logos_battle"], "vol": {"impact": 1.0}, "seg": {"处决": {}, "咒文": {}, "爆裂": {}, "转喻": {}, "墓志铭": {}},
       "fx": {"strip:fx_lo_glyph1": {"slot": ["glyph_1", "glyph_2", "glyph_3"], "gap": 0.16, "vol": -6.0}, "strip:fx_lo_glyph2": {"slot": ["glyph_2", "glyph_3", "glyph_1"], "gap": 0.16, "vol": -6.0},
              "strip:fx_lo_glyph3": {"slot": ["glyph_3", "glyph_1", "glyph_2"], "gap": 0.16, "vol": -6.0}, "strip:fx_lo_glyph4": {"slot": ["glyph_1", "glyph_3", "glyph_2"], "gap": 0.16, "vol": -6.0}}},
-    "hoshiguma": {"hf_slot": "boom", "voice": "hoshiguma_battle", "voice_alt": ["hoshiguma_skill_1", "hoshiguma_skill_2"], "seg": {"格挡": {"on": "block"}, "反震": {}, "热砂": {}},
+    "hoshiguma": {"hf_slot": "boom", "voice": "hoshiguma_skill_1", "voice_alt": ["hoshiguma_battle", "hoshiguma_skill_2"], "seg": {"格挡": {"on": "block"}, "反震": {}, "热砂": {}},
       "fx": {"line+v": {"w": 2.0, "slot": "pull", "gap": 0.3, "vol": -4.0},
              "line": {"w": 3.0, "min_t": 0.2, "slot": ["crack_1", "crack_2", "crack_3", "crack_4", "crack_5"], "gap": 0.15, "vol": -3.0},
              "blade+v": {"slot": "boom", "gap": 0.3, "vol": 0.0},
