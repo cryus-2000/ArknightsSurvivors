@@ -47,3 +47,9 @@
 
 - 对比图（主仓库 `build/run_trail_colors/compare_all.png`）：20 人各一对（上 old = 灯火橙，下 new = 代表色），1280×720 高画质、`--fixed-fps 60`，按住 D 跑约 5.5 秒后截主控附近 400×240。录帧：`tests/trail_shot.tscn`（`-- --shotdir=… [--old] [--ids=a,b]`）。
 - 纯画面：粒子颜色与队长身份只在画面路径读，不碰 `g.rng`；同 seed 不受影响（无头批跑光学关，不走这段）。
+
+## 5. 11-01 补合 + 队友余烬
+
+- 本文 10-26 写成「已实施」，但 `claude/run-trail-colors` fb9ad7608 一直没合进 main；11-01 合进 `claude/integ-1101`（390358103）。
+- 队友也加（用户「每个干员的跑步的粒子动效也可以加上」）：`optical_particles.step_mates`，每位队友一簇，颜色用本人 `trail_col`；颗数 `render/mate_ember_n` 10（队长 `ember_n` 32 的约 1/3）、整体透明度 `render/mate_ember_a` 0.55，倒地 / 不在场的不发，队长为主。3 簇 × 10 颗 GPU 粒子，低画质随余烬一起关。
+- 录像：`Claude outputs/run_trail_1101/run_trail.mp4`（凯尔希 / 能天使 / 安洁莉娜 / 歌蕾蒂娅 四位队长各带三名队友跑 5 秒）；`trail_shot.tscn` 加 `--squad=a,b,c --rec=N`。
