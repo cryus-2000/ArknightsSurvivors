@@ -598,7 +598,7 @@
     "portrait": "portraits/boss_path",
     "line": "它把自己的碎片撒向每一条岔路，让它们先去走那些错的路。"
    },
-   "portrait_crop": [50, 28, 44, 44],
+   "portrait_crop": [51, 27, 42, 42],
    "draw_full": true,
    "ecol": [0.6, 0.7, 1.0]
   },
@@ -870,7 +870,7 @@
     "portrait": "portraits/boss_archon",
     "line": "粗壮的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"
    },
-   "portrait_crop": [20, 10, 44, 44],
+   "portrait_crop": [30, 8, 42, 42],
    "ecol": [0.5, 0.9, 0.9]
   },
   "immortal": {
@@ -924,7 +924,7 @@
     "portrait": "portraits/boss_immortal",
     "line": "迅捷的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"
    },
-   "portrait_crop": [20, 10, 44, 44],
+   "portrait_crop": [30, 8, 42, 42],
    "ecol": [0.6, 0.8, 1.0]
   },
   "paranoia": {
