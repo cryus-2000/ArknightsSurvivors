@@ -226,11 +226,13 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 			# A short filling arc encodes time, not a solid white spell body.
 			_ring(r, p, w.r, gy, 3.0, _ink(Color(1.0, 0.48, 0.57), alpha), -PI * 0.5, -PI * 0.5 + maxf(0.02, progress) * TAU)
 		"line":
-			if w.get("skin", "") in ["ice_thrust", "spear", "ice_lance"]:   # ice_lance 直线 = 绕场巡猎掷冰枪 / 裂地冲锋地缝（11-01 用户截图：原来退回通用粉框）
+			if w.get("skin", "") in ["ice_thrust", "spear", "ice_lance", "ice_javelin"]:   # ice_lance 直线 = 裂地冲锋地缝、ice_javelin = 绕场巡猎投枪（11-01 用户截图：原来退回通用粉框）
 				var tr: float = float(w.get("track", 0.0))
 				var since_lock: float = float(w.get("t", 0.0)) - tr
 				var lock_flash: float = 1.0 - since_lock / 0.15 if tr > 0.0 and since_lock >= 0.0 and since_lock < 0.15 else 0.0
-				_frost_line(r, p, w.ang, w.len, w.wid, progress, tr <= 0.0 or since_lock >= 0.0, alpha, lock_flash * 0.6)
+				var thrown: bool = w.get("skin", "") == "ice_javelin"
+				_frost_line(r, p, w.ang, w.len, w.wid, progress, tr <= 0.0 or since_lock >= 0.0, alpha, lock_flash * 0.6, false, not thrown)
+				if thrown: _javelin_tell(r, w, progress, alpha)
 				return
 			if w.get("skin","") == "tide":   # 伊祖米克迁徙潮：波峰勾边，不画矩形框（docs/170）
 				IzumikDraw.tide_warning(g,w,alpha,progress)
@@ -327,7 +329,25 @@ static func _knight_line_tell(g, w: Dictionary) -> void:
 	var k: float = clampf(t / dur, 0.0, 1.0)
 	_frost_line(g.world, w.pos, w.ang, w.len, w.wid, k, tr <= 0.0 or since_lock >= 0.0, 0.7 + 0.25 * k, lock_flash * 0.6)
 
-static func _frost_line(r, p: Vector2, ang: float, length: float, half_w: float, k: float, locked: bool, alpha: float, flash := 0.0, released := false) -> void:
+## 投枪预警（11-01 用户「要读得出这是投掷的直线，不要看成裂地」）：冰裂边框照旧，中间不画地面裂纹，改画
+## ① 骑士身前逐渐凝成的冰枪（同飞行枪身，半透明 → 实，出手前往后蓄力）；② 沿中线朝远端流动的细瞄准虚线 + 远端瞄准角标
+static func _javelin_tell(r, w: Dictionary, k: float, alpha: float) -> void:
+	var d := Vector2.from_angle(float(w.ang))
+	var n := d.orthogonal()
+	var p: Vector2 = w.pos
+	var L: float = float(w.len)
+	var dash_c: Color = Color(0.8, 0.94, 1.0)
+	var s: float = 130.0 + fmod(k * 160.0, 32.0)
+	while s < L - 24.0:
+		_strip(r, p + d * s, p + d * minf(s + 14.0, L - 24.0), 2.0, _ink(dash_c, alpha * (0.25 + 0.35 * k)))
+		s += 32.0
+	var end: Vector2 = p + d * L
+	for sd in [-1.0, 1.0]:
+		_strip(r, end - d * 14.0 + n * sd * 10.0, end - d * 2.0 + n * sd * 3.0, 2.0, _ink(dash_c, alpha * (0.4 + 0.5 * k)))
+	var pull: float = 8.0 + 14.0 * smoothstep(0.6, 1.0, k)
+	Materials.javelin_body(r, p + d * (18.0 - pull), d, Materials.JAVELIN_DRAW_LEN, alpha * (0.35 + 0.65 * smoothstep(0.0, 0.7, k)), 0.6 + 0.6 * k)
+
+static func _frost_line(r, p: Vector2, ang: float, length: float, half_w: float, k: float, locked: bool, alpha: float, flash := 0.0, released := false, route := true) -> void:
 	var d := Vector2.from_angle(ang)
 	var n := d.orthogonal()
 	var end: Vector2 = p + d * length
@@ -370,6 +390,7 @@ static func _frost_line(r, p: Vector2, ang: float, length: float, half_w: float,
 		prev_end = at
 	# 4. Route crack spreading from the Knight: shows direction and timing without arrows. Kinks every ~32 px with
 	# straight runs between (ice fracture), not a per-cell zigzag that would read as lightning.
+	if not route: return   # 投枪不画地面裂纹，免得读成裂地
 	var reach: float = length * k
 	if reach < 4.0: return
 	var seg: int = maxi(1, ceili(reach / 8.0))

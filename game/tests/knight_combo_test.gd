@@ -291,7 +291,7 @@ func check_reborn3() -> void:
 		var n0: int = g.warns.size()
 		tick(e)
 		far = maxf(far,e.pos.length())
-		lances += g.warns.slice(n0).filter(func(w):return w.get("skin","")=="ice_lance").size()
+		lances += g.warns.slice(n0).filter(func(w):return w.get("skin","")=="ice_javelin").size()   # 11-01 起巡猎掷的是飞行投枪 ice_javelin
 		if e.get("break_t",0.0)>0.0: brk = true
 		if brk: break
 		e.pos += e.kb*0.05

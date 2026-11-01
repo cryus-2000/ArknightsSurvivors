@@ -2370,7 +2370,7 @@ func _final_boss_strip(e: Dictionary, skin: String) -> String:
 			match skin:
 				"ice", "ice_field", "ice_lance", "ice_wall": return "e_knight_plant"
 				"ice_wave": return "e_knight_spin"
-				"ice_thrust": return "e_knight_thrust"
+				"ice_thrust", "ice_javelin": return "e_knight_thrust"
 				"crescent": return "e_knight_spin"
 				"spear": return "e_knight_thrust"
 				"step": return "e_knight_charge_form"

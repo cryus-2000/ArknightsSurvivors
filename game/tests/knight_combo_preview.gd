@@ -66,7 +66,7 @@ func _ready() -> void:
 		scenarios = [{"name":"绕场巡猎 · 掷冰枪", "move":"绕场巡猎", "phase":2}, {"name":"重生冲锋 · 裂地", "move":"冲锋", "phase":2}, {"name":"断潮劈击", "move":"断潮劈击", "phase":1}]
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--only="):
-			scenarios = scenarios.filter(func(s): return s.move == arg.substr(7))
+			scenarios = scenarios.filter(func(s): return s.move in arg.substr(7).split(","))
 	if stake_review:
 		scenarios=[{"name":"首次插枪布柱","move":"","phase":1},{"name":"末柱冲撞后掷枪补柱 · 已破四柱","move":"冲锋","phase":1},{"name":"二阶段连续追击 · 不再布柱","move":"冲锋","phase":2}]
 	for scenario in scenarios:

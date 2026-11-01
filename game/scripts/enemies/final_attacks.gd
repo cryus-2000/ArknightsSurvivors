@@ -1,7 +1,7 @@
 extends RefCounted
 const MaterialGrains = preload("res://scripts/render/final_attack_grains.gd")
 const Bal = preload("res://scripts/core/balance.gd")
-const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "crescent"]
+const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_javelin", "ice_wall", "crescent"]
 ## 最终首领的补充攻击。状态只存敌人字典；预警、命中与绘制使用同一份几何。
 ## 招式为本作改编：泡影的侵蚀与幻觉、骑士的长枪与寒冰、合唱与海流。
 const NAMES := {
@@ -22,6 +22,8 @@ func names_for(e: Dictionary) -> Array:
 			return PHASE2_NAMES
 		return KNIGHT_ACT_NAMES[clampi(int(e.get("gates_passed", 0)), 0, 2)]   # 每幕自己的一组，重复少（用户 10-28）
 	return NAMES[e.type]
+
+const JAVELIN_LEN := 110.0
 
 func _init(game) -> void:
 	g = game
@@ -219,6 +221,9 @@ func resolve(w: Dictionary) -> void:
 		if w.get("skin","")=="ice_thrust":
 			h.len=90.0
 			h.speed=(w.len-h.len)/h.life
+		if w.get("skin","")=="ice_javelin":
+			h.len=JAVELIN_LEN   # 枪身段：从骑士手里飞到预警线尽头
+			h.life=maxf(0.05,(float(w.len)-h.len)/maxf(1.0,float(h.speed)))
 		h.velocity = w.get("velocity", Vector2.from_angle(w.ang) * float(h.get("speed", 0.0)))
 		if hazards.size() < 80:
 			hazards.append(h)
@@ -280,8 +285,8 @@ func update(e: Dictionary, dt: float) -> void:
 				g.tele.warn_damage(h)
 				h.hit = true
 				if h.skin == "bubble": break
-		if h.hit and h.skin == "bubble":
-			_pop(h)
+		if h.hit and h.skin in ["bubble", "ice_javelin"]:
+			_pop(h)   # 投枪扎中队长就在那里碎开，不穿过去
 			continue
 		MaterialGrains.trail(g, h, step_dt)
 		if finish_motion and h.age>=h.life:
@@ -301,8 +306,10 @@ func _pop(h: Dictionary) -> void:
 		tail.life=0.38
 		tail.max=0.38
 		g.fx.append(tail)
-	if h.get("skin", "") == "ice_thrust" and not g is Dictionary:
-		g.vfx.fx_sprite("fx_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX,h.ang)
+	if h.get("skin", "") in ["ice_thrust", "ice_javelin"] and not g is Dictionary:
+		g.vfx.fx_sprite("fx_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX*(1.3 if h.skin=="ice_javelin" else 1.0),h.ang)
+		if h.skin == "ice_javelin":
+			Sfx.play_at("knight_frost", h.pos+Vector2.from_angle(h.ang)*h.len, -14.0, 1.35, 0.1)   # 冰枪碎裂（纯音频）
 	if h.get("skin", "") != "bubble":
 		MaterialGrains.finish(g, h)
 		return
