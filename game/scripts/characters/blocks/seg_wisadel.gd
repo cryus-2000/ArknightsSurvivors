@@ -21,6 +21,146 @@ const WdVg = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见
 const BalW = preload("res://scripts/core/balance.gd")
 
 
+# ---------------------------------------------------------------- 维什戴尔：收特效（11-01 用户「维什戴尔特效太花了」，docs/220）
+#  全部是纯画面旋钮：只改画不画 / 画多少 / 多亮，伤害与判定照旧，只少抽 vrng（画面随机数，不进 TRACE）。
+#  fx/wd_calm = 0 一键回到改前（每项旋钮也可单独设回旧值，旧值写在 _wc 的第三个参数）。
+#  --wdfxstat（调试构建）：每秒打印一行 WDFX（各类新生成数 + 同屏层数），tools/wisadel_calm_rec.py 统计改前 / 改后
+
+## 旋钮：收特效开着时取 fx/<key>（缺省 on），关着时取改前的 off
+static func _wc(key: String, on: float, off: float) -> float:
+	return BalW.v("fx/" + key, on) if BalW.v("fx/wd_calm", 1.0) > 0.0 else off
+
+
+static func _calm() -> bool:
+	return BalW.v("fx/wd_calm", 1.0) > 0.0
+
+
+## 当队友时整体降一档（fx/wd_mate_a 透明度、fx/wd_mate_n 粒子数）
+static func _mate(o) -> bool:
+	return not o.is_leader and _calm()
+
+
+## 粒子个数：收特效时 × fx/wd_spark_k，当队友再 × fx/wd_mate_n（至少 1 个）
+static func _n(o, n: int) -> int:
+	if not _calm() or n <= 0:
+		return n
+	var k: float = BalW.v("fx/wd_spark_k", 0.5) * (BalW.v("fx/wd_mate_n", 0.5) if _mate(o) else 1.0)
+	return maxi(1, int(round(n * k)))
+
+
+const WD_FX_CAT := {"h4_burst": "boom", "h4_flash": "boom", "h4_shade": "soul", "h4_spmote": "soul",
+	"spark": "spark", "h4_ember": "spark", "h4_sliver": "spark", "mote": "spark", "h4_smoke": "smoke", "h4_scorch": "smoke"}
+
+## 维什戴尔的粒子都走这里：统计；deco（纯装饰）在同屏粒子 ≥ fx/wd_pfx_cap 时跳过；颜色亮度封顶 fx/wd_bright；当队友降透明度
+static func _wfx(o, f: Dictionary, deco := true) -> void:
+	_wstat(o, WD_FX_CAT.get(f.kind, "ring"))
+	_wstat(o, "k_" + str(f.kind))
+	if _calm():
+		if deco and o.pfx.size() >= int(BalW.v("fx/wd_pfx_cap", 60.0)):
+			_wstat(o, "capped")
+			return
+		if f.has("col"):
+			f.col = _wcap(f.col)
+		if _mate(o):
+			var ma: float = BalW.v("fx/wd_mate_a", 0.6)
+			f["am"] = ma
+			if f.kind == "ring":
+				f["alpha"] = float(f.get("alpha", 0.9)) * ma
+			elif f.kind == "glow":
+				f["alpha"] = float(f.get("alpha", 0.35)) * ma
+	o.fx(f)
+
+
+## 亮度封顶：rgb 最大分量压到 fx/wd_bright（HDR 颜色 > 1 会进辉光、发白）
+static func _wcap(c: Color) -> Color:
+	var cap: float = BalW.v("fx/wd_bright", 1.3)
+	var m: float = maxf(c.r, maxf(c.g, c.b))
+	if m <= cap:
+		return c
+	return Color(c.r * cap / m, c.g * cap / m, c.b * cap / m, c.a)
+
+
+## 火花：收特效关着时就是 _h3_vsparks（逐字节同旧）；开着时个数按 _n、走 _wfx
+static func _wsparks(o, p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	if not _calm():
+		_wstat(o, "spark", int(round(n * (1.0 + 0.2 * o.node_lv))))
+		_h3_vsparks(o, p, c, n, spd, life, sz, grav, floor_layer)
+		return
+	var g = o.g
+	for k in _n(o, int(round(n * (1.0 + 0.2 * o.node_lv)))):
+		_wfx(o, {"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})
+
+
+## 帧条特效：收特效时 炮击爆炸（boom）亮度 × fx/wd_boom_bright、播放加速 fx/wd_boom_speed（持续时间缩短）；当队友透明度 × fx/wd_mate_a
+static func _wspr(o, name: String, pos: Vector2, scale: float, ang := 0.0, flip := false, col := Color.WHITE, delay := 0.0, boom := false) -> bool:
+	var g = o.g
+	if _calm():
+		if boom:
+			var bb: float = BalW.v("fx/wd_boom_bright", 0.85)
+			col = Color(col.r * bb, col.g * bb, col.b * bb, col.a)
+		if _mate(o):
+			col.a *= BalW.v("fx/wd_mate_a", 0.6)
+	var n0: int = g.fx.size()
+	if not g.vfx.fx_sprite(name, pos, scale, ang, flip, false, col, false, Vector2(-1, -1), delay):
+		return false
+	_wstat(o, "boom" if boom else ("soul" if name.begins_with("op_wisadel_soul") or name == "fx_muzzle_flash" else "ring"))
+	if boom and _calm() and g.fx.size() > n0:
+		var sp: float = BalW.v("fx/wd_boom_speed", 1.3)
+		var f: Dictionary = g.fx[g.fx.size() - 1]
+		if sp > 1.0 and str(f.get("name", "")) == name and f.kind == "sprite":
+			var spec: Array = g.V6_FRAMES[name]
+			var d: float = float(f.get("delay", 0.0))
+			f["fps"] = float(spec[1]) * sp
+			f.max = (f.max - d) / sp + d
+			f.life = f.max
+	return true
+
+
+## 统计（--wdfxstat）：wd.fxst 累计各类新生成数
+static func _wstat(o, cat: String, n := 1) -> void:
+	var wd := _h4wd(o)
+	if not wd.has("st_on"):
+		wd["st_on"] = (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--wdfxstat")   # 不经 Cfg：核心契约测试里没有自动加载
+	if not wd.st_on:
+		return
+	if not wd.has("fxst"):
+		wd["fxst"] = {}
+	wd.fxst[cat] = int(wd.fxst.get(cat, 0)) + n
+
+
+## 每帧采样同屏层数，每整秒打印一行：WDFX t=秒 lead=0/1 spawn{类:数} live{类:平均同屏数}
+static func _wstat_tick(o, wd: Dictionary) -> void:
+	if not wd.get("st_on", false):
+		return
+	var g = o.g
+	if not wd.has("lv"):
+		wd["lv"] = {}
+		wd["lv_n"] = 0
+		wd["lv_s"] = floorf(g.t)
+	var lv: Dictionary = wd.lv
+	for f in o.pfx:
+		var c: String = WD_FX_CAT.get(f.kind, "ring")
+		lv[c] = int(lv.get(c, 0)) + 1
+	for f in g.fx:
+		var nm: String = str(f.get("name", ""))
+		if nm.begins_with("fx_wisadel_cannon"):
+			lv["boom"] = int(lv.get("boom", 0)) + 1
+		elif nm.begins_with("op_wisadel_soul"):
+			lv["soul"] = int(lv.get("soul", 0)) + 1
+	lv["souls"] = int(lv.get("souls", 0)) + wd.souls.size()
+	wd.lv_n = int(wd.lv_n) + 1
+	if g.t >= float(wd.lv_s) + 1.0:
+		var avg := {}
+		for k in lv:
+			avg[k] = snappedf(float(lv[k]) / maxf(1.0, float(wd.lv_n)), 0.1)
+		print("WDFX t=%d lead=%d spawn=%s live=%s" % [int(wd.lv_s), 1 if o.is_leader else 0, JSON.stringify(wd.get("fxst", {})), JSON.stringify(avg)])
+		wd["fxst"] = {}
+		wd["lv"] = {}
+		wd.lv_n = 0
+		wd.lv_s = floorf(g.t)
+
+
 static func _h4wd(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("wd"):
@@ -162,8 +302,8 @@ static func _g202_chain_aim(o, a: Dictionary, to: Vector2) -> Vector2:
 				best = d2
 				out = sd.pos
 		if out != to:
-			o.fx({"kind": "line", "pos": to, "to": out, "life": 0.18, "col": H4_EMBER, "w": 2.0, "laser": true})
-			o.fx({"kind": "ring", "pos": out, "r": 34.0, "r0": 8.0, "life": 0.3, "col": Color(1.7, 0.7, 0.3), "floor": true, "w": 2.5, "alpha": 0.9})
+			_wfx(o, {"kind": "line", "pos": to, "to": out, "life": 0.18, "col": H4_EMBER, "w": 2.0, "laser": true}, false)
+			_wfx(o, {"kind": "ring", "pos": out, "r": 34.0, "r0": 8.0, "life": 0.3, "col": Color(1.7, 0.7, 0.3), "floor": true, "w": 2.5, "alpha": 0.9}, false)
 	wd["chain_prev"] = g.t
 	wd["chain_until"] = g.t + float(ch.get("window", 1.2))
 	return out
@@ -196,8 +336,8 @@ static func _g202_feedback(o, a: Dictionary, c: Vector2, n_kill: int) -> void:
 		if m.pos == Vector2.INF:
 			continue
 		for q in 3:
-			o.fx({"kind": "h4_spmote", "pos": c + Vector2(0, -16), "start": c + Vector2(0, -16), "tgt": m, "life": 0.45 + 0.08 * q, "col": col, "bend": g.vrng.randf_range(-40, 40)})
-	o.fx({"kind": "ring", "pos": c, "r": 46.0, "r0": 10.0, "life": 0.35, "col": Color(2.0, 1.6, 0.6), "floor": true, "w": 3.0, "alpha": 0.9})
+			_wfx(o, {"kind": "h4_spmote", "pos": c + Vector2(0, -16), "start": c + Vector2(0, -16), "tgt": m, "life": 0.45 + 0.08 * q, "col": col, "bend": g.vrng.randf_range(-40, 40)}, false)
+	_wfx(o, {"kind": "ring", "pos": c, "r": 46.0, "r0": 10.0, "life": 0.35, "col": Color(2.0, 1.6, 0.6), "floor": true, "w": 3.0, "alpha": 0.9})
 
 
 ## 礼尚往来：第二发炮弹打次优目标（候选里第一个离首发落点超过爆炸半径的；没有就取下一个候选），伤害 × twin.mult
@@ -228,9 +368,9 @@ static func _h4_fire_giant(o, a: Dictionary, to: Vector2) -> void:
 	_h4_fire(o, a, to, o.base(str(a.get("atk_key", "atk")), 0.0) * float(gi.get("mult", 1.6)) * o.skill_power(), str(gi.get("src", "")), float(gi.get("size", 2.0)), true, 0.0, false, false, "giant")
 	var mz: Vector2 = _h4_muzzle(o, a)
 	var dir: Vector2 = (to - mz).normalized()
-	o.fx({"kind": "glow", "pos": mz, "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
-	for k in 8:
-		o.fx({"kind": "spark", "pos": mz, "vel": (-dir).rotated(g.vrng.randf_range(-0.9, 0.9)) * g.vrng.randf_range(120, 260), "life": 0.3, "col": H4_EMBER, "sz": 2.5, "drag": 3.0})
+	_wfx(o, {"kind": "glow", "pos": mz, "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
+	for k in _n(o, 8):
+		_wfx(o, {"kind": "spark", "pos": mz, "vel": (-dir).rotated(g.vrng.randf_range(-0.9, 0.9)) * g.vrng.randf_range(120, 260), "life": 0.3, "col": H4_EMBER, "sz": 2.5, "drag": 3.0})
 
 
 ## 发一发炮弹（rings：灰烬弹幕的强化炮弹，余震三圈并眩晕；kind：画面 / 音效档（"" 普通 / giant 巨炮 / exec 凋零处刑）；mark_c：炸到的敌人挂标记的条件，爆炸时求值）
@@ -250,10 +390,11 @@ static func _h4_fire(o, a: Dictionary, to: Vector2, base_dmg: float, src: String
 		return s
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
 	var dir := (to - from).normalized()
-	o.fx({"kind": "h4_muzzle", "pos": from, "dir": dir, "life": 0.07, "col": H4_RED, "sz": 30.0 * size})
-	o.fx({"kind": "glow", "pos": from, "r": 9.0 * size, "life": 0.06, "col": Color(2.0, 1.1, 0.8), "alpha": 0.8})
-	for k in 3:
-		o.fx({"kind": "spark", "pos": from, "vel": (-dir).rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 140), "life": 0.2, "col": H4_EMBER, "sz": 2.0, "drag": 3.0})
+	_wfx(o, {"kind": "h4_muzzle", "pos": from, "dir": dir, "life": 0.07, "col": H4_RED, "sz": 30.0 * size})
+	if _wc("wd_muzzle_glow", 0.0, 1.0) > 0.0:   # 炮口小光团：收特效时不画（锥形炮口焰保留）
+		_wfx(o, {"kind": "glow", "pos": from, "r": 9.0 * size, "life": 0.06, "col": Color(2.0, 1.1, 0.8), "alpha": 0.8})
+	for k in _n(o, 3):
+		_wfx(o, {"kind": "spark", "pos": from, "vel": (-dir).rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 140), "life": 0.2, "col": H4_EMBER, "sz": 2.0, "drag": 3.0})
 	_h3_sfx(o, "atk", 2.0 if size <= 1.2 else 4.0, 1.0 if size <= 1.2 else 0.85)
 	return s
 
@@ -270,8 +411,8 @@ static func h4_cannon_exec(o, b: Dictionary) -> void:
 		return
 	_h4_fire(o, a, tgt.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * float(b.get("mult", 3.0)) * o.skill_power(), str(b.get("src", "")), float(b.get("size", 1.6)), true, float(b.get("stun", 0.8)), false, false, "exec", b.get("mark", null))
 	var mz: Vector2 = _h4_muzzle(o, a)
-	o.fx({"kind": "glow", "pos": mz, "r": 28.0, "life": 0.3, "col": H4_RED, "alpha": 0.6})
-	_h3_vsparks(o, mz, H4_EMBER, 10, 200.0, 0.3)
+	_wfx(o, {"kind": "glow", "pos": mz, "r": 28.0, "life": 0.3, "col": H4_RED, "alpha": 0.6})
+	_wsparks(o, mz, H4_EMBER, 10, 200.0, 0.3)
 
 
 ## 饱和炮击：装填巨型炮弹，第一发立刻打出去，之后的普攻换成巨炮直到打完
@@ -286,8 +427,8 @@ static func h4_cannon_load(o, b: Dictionary) -> void:
 	if b.has("banner"):
 		o.show_banner(str(b.banner) % int(wd.ammo))
 	var mz: Vector2 = _h4_muzzle(o, a)
-	o.fx({"kind": "glow", "pos": mz, "r": 30.0, "life": 0.4, "col": H4_RED, "alpha": 0.6})
-	_h3_vsparks(o, mz, H4_EMBER, 10, 160.0, 0.3)
+	_wfx(o, {"kind": "glow", "pos": mz, "r": 30.0, "life": 0.4, "col": H4_RED, "alpha": 0.6})
+	_wsparks(o, mz, H4_EMBER, 10, 160.0, 0.3)
 	var tg3: Dictionary = _h4_wd_target(o, a, _h4_wd_reach(o, a, float(b.get("aim_r", 540.0))))
 	if not tg3.is_empty():
 		wd.ammo = int(wd.ammo) - 1
@@ -299,14 +440,15 @@ static func h4_cannon_load(o, b: Dictionary) -> void:
 static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 	var g = o.g
 	var a: Dictionary = o.B.get("attack", {})
+	_wstat_tick(o, wd)
 	# 炮弹
 	for s in wd.shells:
 		s.t += dt
 		s.trail -= dt
 		if s.trail <= 0.0 and s.t < s.dur:
-			s.trail = 0.03
+			s.trail = _wc("wd_trail_dt", 0.06, 0.03)   # 炮弹拖尾黑烬：收特效时间隔加倍
 			var p: Vector2 = _h4_shell_at(s, s.t / s.dur) if s.hist.size() < 3 else s.hist[s.hist.size() - 3]
-			o.fx({"kind": "h4_ember", "pos": p, "vel": Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-20, 30)), "life": 0.3, "col": H4_DARK, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
+			_wfx(o, {"kind": "h4_ember", "pos": p, "vel": Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-20, 30)), "life": 0.3, "col": H4_DARK, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
 		if s.t < s.dur:
 			s.hist.append(_h4_shell_at(s, s.t / s.dur))
 			if s.hist.size() > 9:
@@ -316,7 +458,8 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 			var me = s.get("mark_e", null)   # 魂炮（follow）：命中时给它的目标挂残影标记（目标还活着、在爆炸范围内）
 			if me != null and not me.dead and me.pos.distance_to(s.to) < float(s.r) + float(me.r):
 				_h4_mark(o, a, me)
-			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0)), "laser": true})
+			if _wc("wd_tracer", 0.0, 1.0) > 0.0:   # 落地瞬间补的一道弹道线（二次闪光）：收特效时不画
+				_wfx(o, {"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0)), "laser": true})
 			if s.quake:
 				var qd: float = s.dmg * _h4_first_val(o, a.get("quakes", []), float(a.get("quake", 0.4)))
 				var qs: float = float(a.get("ash", _ED).get("stun", 0.8)) if s.rings else 0.0
@@ -368,7 +511,7 @@ static func _h4_mark(o, a: Dictionary, e: Dictionary, gift := false, mult := -1.
 	var keep: bool = wd.marks.has(e.id) and wd.marks[e.id].get("gift", false)
 	var m0: float = float(wd.marks[e.id].get("mult", -1.0)) if wd.marks.has(e.id) else -1.0
 	wd.marks[e.id] = {"e": e, "t": float(mk.get("dur", 4.0)), "gift": gift or keep, "mult": maxf(m0, mult if mult >= 0.0 else float(mk.get("mult", 0.45)))}
-	o.fx({"kind": "h4_shade", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3, "col": H4_DARK})
+	_wfx(o, {"kind": "h4_shade", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3, "col": H4_DARK}, false)
 
 
 ## 击杀钩子：带残影标记的敌人殉爆（0.25 秒前摇 → 殉爆，伤害 = 攻击 × mark.mult）
@@ -384,7 +527,7 @@ static func _h4wd_on_kill(o, e: Dictionary) -> void:
 		return
 	var mk: Dictionary = a.get("mark", {})
 	wd.shades.append({"pos": e.pos, "t": _g202_shade_delay(o), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * (mm if mm >= 0.0 else float(mk.get("mult", 0.45))) * o._dmg_bonus(), "r": _h4_wd_aoe(o, a) * float(mk.get("r", 0.9)), "depth": 1})
-	o.fx({"kind": "h4_shade", "pos": e.pos, "life": 0.3, "col": H4_DARK})
+	_wfx(o, {"kind": "h4_shade", "pos": e.pos, "life": 0.3, "col": H4_DARK}, false)
 
 
 ## 魂灵之影：悬在维什戴尔肩后；每 cd 秒各自飞向附近一名（优先未标记的）敌人挂上残影，再飞回来
@@ -427,10 +570,10 @@ static func _h4_souls_tick(o, wd: Dictionary, a: Dictionary, dt: float) -> void:
 					var to: Vector2 = tg2.pos + Vector2(0, -tg2.r - 10.0)
 					s.p = s.p.move_toward(to, spd * dt)
 					if g.vrng.randf() < dt * 30.0:
-						o.fx({"kind": "mote", "pos": s.p + Vector2(g.vrng.randf_range(-4, 4), 6), "vel": Vector2(0, -20), "life": 0.35, "col": Color(0.3, 0.05, 0.08), "sz": 2.5})
+						_wfx(o, {"kind": "mote", "pos": s.p + Vector2(g.vrng.randf_range(-4, 4), 6), "vel": Vector2(0, -20), "life": 0.35, "col": Color(0.3, 0.05, 0.08), "sz": 2.5})
 					if s.p.distance_to(to) < 8.0:
 						_h4_mark(o, a, tg2)
-						o.fx({"kind": "ring", "pos": tg2.pos, "r": tg2.r + 16.0, "r0": 4.0, "life": 0.3, "col": H4_RED, "floor": true, "w": 2.0})
+						_wfx(o, {"kind": "ring", "pos": tg2.pos, "r": tg2.r + 16.0, "r0": 4.0, "life": 0.3, "col": H4_RED, "floor": true, "w": 2.0})
 						s.st = "back"
 			"back":
 				s.p = s.p.move_toward(home, spd * dt)
@@ -505,9 +648,9 @@ static func _h4_soul_shot(o, a: Dictionary, fc: Dictionary, s: Dictionary, tg: D
 	if fc.get("mark", false):
 		sh["mark_e"] = tg
 	var dir: Vector2 = (tg.pos - from).normalized()
-	o.spawn_fx_sprite("fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, false, Color(0.55, 0.3, 0.75))   # 炮口一团暗紫烟（10-21 用户：魂灵之影不要攻击帧，直接出弹）
-	for q in 3:
-		o.fx({"kind": "spark", "pos": from, "vel": dir.rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 130), "life": 0.2, "col": Color(0.55, 0.15, 0.35), "sz": 2.0, "drag": 3.0})
+	_wspr(o, "fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, Color(0.55, 0.3, 0.75))   # 炮口一团暗紫烟（10-21 用户：魂灵之影不要攻击帧，直接出弹）
+	for q in _n(o, 3):
+		_wfx(o, {"kind": "spark", "pos": from, "vel": dir.rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 130), "life": 0.2, "col": Color(0.55, 0.15, 0.35), "sz": 2.0, "drag": 3.0})
 	_h3_sfx(o, "atk", -4.0, 1.25, 0.05)
 
 
@@ -612,7 +755,13 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 		_g202_feedback(o, a, c, n_kill)
 	var sh: Dictionary = a.get("shade", {})
 	if not _h4_boom_dup(o, c, kind):   # 同一处短时间内只画一次爆炸动画 / 只响一次（10-26 用户）；上面的伤害判定每发都照打
-		_h4_boom_visual(o, a, c, r, kind, light, rings)
+		if kind != "quake" and kind != "giant" and kind != "exec" and _h4_boom_over_cap(o):
+			_h4_dup_puff(o, c)   # 收特效：同屏主爆炸已到上限，这一发缩成小火花（声音照响）
+			_h3_sfx(o, "hit", -3.0 if light else 0.0, 1.0, 0.08)
+		else:
+			_h4_boom_visual(o, a, c, r, kind, light, rings)
+	elif kind != "quake" and _calm():
+		_h4_dup_puff(o, c)   # 收特效：同一轮齐射里只留第一团主爆炸，其余缩成小火花
 	var shc: Dictionary = _h4_sub(o, sh)
 	if not shc.is_empty() and depth < 1:
 		var wd := _h4wd(o)
@@ -620,26 +769,28 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			if wd.shades.size() >= int(sh.get("max", 12)):
 				break
 			wd.shades.append({"pos": killed[k], "t": _g202_shade_delay(o), "dmg": dmg * float(sh.get("mult", 0.4)), "r": r * float(sh.get("r", 0.8)), "depth": depth + 1})
-			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
+			_wfx(o, {"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK}, false)
 
 
 ## 爆炸的画面 + 音效（伤害在 _h4_explode 里先结算，这里只管看和听）
 static func _h4_boom_visual(o, a: Dictionary, c: Vector2, r: float, kind: String, light: bool, rings: bool) -> void:
 	var g = o.g
+	_wstat(o, "b_" + (kind if kind != "" else "main"))
 	if kind == "quake":
 		# 只在地面：双红环 + 裂纹 + 一圈向上的余烬，不闪光不冒烟
-		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": H4_RED, "floor": true, "w": 3.0})
-		o.fx({"kind": "ring", "pos": c, "r": r * 0.65, "r0": r * 0.1, "life": 0.45, "col": Color(1.0, 0.45, 0.35), "floor": true, "w": 2.0})
+		_wfx(o, {"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": H4_RED, "floor": true, "w": 3.0})
+		if _wc("wd_quake_ring2", 0.0, 1.0) > 0.0:   # 余震第二道内环（同心圈）：收特效时不画
+			_wfx(o, {"kind": "ring", "pos": c, "r": r * 0.65, "r0": r * 0.1, "life": 0.45, "col": Color(1.0, 0.45, 0.35), "floor": true, "w": 2.0})
 		if rings:
-			o.fx({"kind": "ring", "pos": c, "r": r * 1.3, "r0": r * 0.5, "life": 0.6, "col": Color(1.6, 0.6, 0.3), "floor": true, "w": 4.0})
-			_h3_vsparks(o, c, H4_EMBER, 6, 160.0, 0.35, 2.5, -80.0)
-		o.fx({"kind": "crack", "pos": c, "r": r * 0.7, "life": 0.35, "col": H4_RED, "floor": true, "n": 7, "ang": c.x * 0.01})
-		for k in (4 if light else 8):
+			_wfx(o, {"kind": "ring", "pos": c, "r": r * 1.3, "r0": r * 0.5, "life": 0.6, "col": Color(1.6, 0.6, 0.3), "floor": true, "w": 4.0})
+			_wsparks(o, c, H4_EMBER, 6, 160.0, 0.35, 2.5, -80.0)
+		_wfx(o, {"kind": "crack", "pos": c, "r": r * 0.7, "life": 0.35, "col": H4_RED, "floor": true, "n": 7, "ang": c.x * 0.01})
+		for k in _n(o, 4 if light else 8):
 			var ox: float = g.vrng.randf_range(-r * 0.6, r * 0.6)
-			o.fx({"kind": "spark", "pos": c + Vector2(ox, 0), "vel": Vector2(ox * 0.4, g.vrng.randf_range(-110, -60)), "life": 0.4, "col": H4_RED, "sz": 2.0, "grav": 160.0})
+			_wfx(o, {"kind": "spark", "pos": c + Vector2(ox, 0), "vel": Vector2(ox * 0.4, g.vrng.randf_range(-110, -60)), "life": 0.4, "col": H4_RED, "sz": 2.0, "grav": 160.0})
 	elif kind == "shade":
-		o.fx({"kind": "h4_smoke", "pos": c, "r": r * 0.8, "life": 0.45, "col": H4_DARK})
-		h4_impact_fx(o, c, r, light)
+		_wfx(o, {"kind": "h4_smoke", "pos": c, "r": r * 0.8, "life": 0.45 * _wc("wd_smoke_k", 0.65, 1.0), "col": H4_DARK})
+		h4_impact_fx(o, c, r * _wc("wd_shade_k", 0.7, 1.0), light or _calm())   # 收特效：残影殉爆缩成 0.7、减量档
 	elif kind == "giant":
 		h4_burst_fx(o, c, r)
 		o.impact_pause(0.05)   # 巨炮落地：短顿帧
@@ -660,13 +811,20 @@ static func _h4_boom_visual(o, a: Dictionary, c: Vector2, r: float, kind: String
 ## 同一处（半径 fx/boom_dedup_r 以内）fx/boom_dedup_t 秒内已经画过爆炸 / 余震就返回 true（并记数）；余震圈和爆炸动画各记各的，fx/boom_dedup_t = 0 关闭
 static func _h4_boom_dup(o, c: Vector2, kind: String) -> bool:
 	var win: float = BalW.v("fx/boom_dedup_t", 0.2)
+	var rr: float = BalW.v("fx/boom_dedup_r", 24.0)
+	if _calm():   # 收特效：窗口 / 半径放大到盖住一轮齐射（主炮 + 礼尚往来 + 魂炮 + 回响余震）
+		win = maxf(win, BalW.v("fx/wd_dedup_t", 0.35))
+		rr = maxf(rr, BalW.v("fx/wd_dedup_r", 110.0))
 	if win <= 0.0:
 		return false
 	var wd := _h4wd(o)
 	var key: String = "qbooms" if kind == "quake" else "booms"
 	var now: float = o.g.t
 	var log_: Array = wd[key].filter(func(e): return now - float(e.t) < win)
-	var rr: float = BalW.v("fx/boom_dedup_r", 24.0)
+	if _calm() and (kind == "giant" or kind == "exec"):   # 巨炮 / 处刑是这一轮的主爆炸，总是画
+		log_.append({"pos": c, "t": now})
+		wd[key] = log_
+		return false
 	for e in log_:
 		if Vector2(e.pos).distance_to(c) <= rr:
 			wd[key] = log_
@@ -676,6 +834,31 @@ static func _h4_boom_dup(o, c: Vector2, kind: String) -> bool:
 	log_.append({"pos": c, "t": now})
 	wd[key] = log_
 	return false
+
+
+## 收特效：最近 fx/wd_boom_win 秒画过的主爆炸已有 fx/wd_boom_cap 团就返回 true（不记数）；没到上限就记一团
+static func _h4_boom_over_cap(o) -> bool:
+	if not _calm():
+		return false
+	var wd := _h4wd(o)
+	var now: float = o.g.t
+	var win: float = BalW.v("fx/wd_boom_win", 0.5)
+	var lg: Array = wd.get("blog", []).filter(func(t): return now - float(t) < win)
+	if lg.size() >= int(BalW.v("fx/wd_boom_cap", 3.0)):
+		wd["blog"] = lg
+		_wstat(o, "boom_capped")
+		return true
+	lg.append(now)
+	wd["blog"] = lg
+	return false
+
+
+## 缩掉的爆炸：落点几颗暗红小火花
+static func _h4_dup_puff(o, c: Vector2) -> void:
+	var g = o.g
+	for k in _n(o, int(BalW.v("fx/wd_puff_n", 2.0)) * 2):
+		_wfx(o, {"kind": "spark", "pos": c + Vector2(g.vrng.randf_range(-8, 8), g.vrng.randf_range(-6, 4)), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(50, 120) + Vector2(0, -30),
+			"life": 0.25, "col": H4_EMBER, "sz": 2.0, "drag": 3.0, "grav": 120.0})
 
 
 ## 炮击帧条按爆炸半径放大（10-24 范围改版，docs/137 §8）。fx_wisadel_cannon 最亮那帧的实心部分（不透明像素 90 分位）离中心约 37 美术像素，
@@ -691,7 +874,7 @@ static func _h4_cannon_sprite(o, c: Vector2, r: float, fill: float) -> float:
 	# 10-26 用户「爆炸半径 78 → 66 之后特效也得跟着变」：原来取整进位（r 66 和 78 都落在 2 档，画面一点没缩，66 的实心边还比判定圈大 12%），
 	# 现在实心边直接 = 判定半径 × fill（小数倍率，帧条本来就支持）；fx/boom_scale_exact = 0 回到旧的取整档（对照用）
 	var sc: float = clampf(want, 1.0, cap) if BalW.v("fx/boom_scale_exact", 1.0) > 0.0 else clampf(ceilf(want - 0.3), 1.0, cap)
-	if not o.spawn_fx_sprite("fx_wisadel_cannon", c, sc):
+	if not _wspr(o, "fx_wisadel_cannon", c, sc, 0.0, false, Color.WHITE, 0.0, true):
 		return 0.0
 	var rv: float = sc * H4_BOOM_CORE
 	if want > sc * 1.15:
@@ -699,11 +882,13 @@ static func _h4_cannon_sprite(o, c: Vector2, r: float, fill: float) -> float:
 		var rs: float = ss * H4_BOOM_CORE
 		var d: float = maxf(rv * 0.6, r * fill - rs)   # 外圈中心到圆心：实心外沿 ≈ 判定圈
 		var n: int = clampi(ceili(TAU * d / (rs * 1.8)), 3, 8)
+		if _calm():   # 收特效：连环爆外圈最多 fx/wd_ring_n 团（缺省 4，改前 3–8）
+			n = mini(n, int(BalW.v("fx/wd_ring_n", 4.0)))
 		var a0: float = g.vrng.randf() * TAU
 		for i in n:
 			var p: Vector2 = c + Vector2.from_angle(a0 + TAU * i / n) * d
-			g.vfx.fx_sprite("fx_wisadel_cannon", p, ss, 0.0, i % 2 == 1, false, Color(1, 1, 1, 0.85), false, Vector2(-1, -1), 0.02 + 0.02 * i)
-		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.5, "life": 0.4, "col": H4_RED, "w": 2.0, "floor": true, "alpha": 0.6})
+			_wspr(o, "fx_wisadel_cannon", p, ss, 0.0, i % 2 == 1, Color(1, 1, 1, 0.85), 0.02 + 0.02 * i, true)
+		_wfx(o, {"kind": "ring", "pos": c, "r": r, "r0": r * 0.5, "life": 0.4, "col": H4_RED, "w": 2.0, "floor": true, "alpha": 0.6})
 	return minf(r, rv)
 
 
@@ -712,18 +897,18 @@ static func h4_impact_fx(o, c: Vector2, r: float, light: bool) -> void:
 	var g = o.g
 	var rv: float = _h4_cannon_sprite(o, c, r, 0.82 if light else 1.0)
 	if rv > 0.0:
-		o.fx({"kind": "h4_scorch", "pos": c, "r": rv * 0.7, "life": 1.2, "floor": true})
+		_wfx(o, {"kind": "h4_scorch", "pos": c, "r": rv * 0.7, "life": 1.2 * _wc("wd_scorch_k", 0.5, 1.0), "floor": true})
 		return
-	o.fx({"kind": "h4_flash", "pos": c, "r": r * 0.7, "life": 0.1})
-	o.fx({"kind": "h4_smoke", "pos": c, "r": r * (0.75 if light else 1.0), "life": 0.5, "col": H4_DARK})
+	_wfx(o, {"kind": "h4_flash", "pos": c, "r": r * 0.7, "life": 0.1})
+	_wfx(o, {"kind": "h4_smoke", "pos": c, "r": r * (0.75 if light else 1.0), "life": 0.5, "col": H4_DARK})
 	if not light:
-		o.fx({"kind": "h4_smoke", "pos": c + Vector2(r * 0.25, -r * 0.2), "r": r * 0.7, "life": 0.6, "col": H4_DARK, "delay": 0.06})
-	o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": H4_RED, "w": 3.0})
+		_wfx(o, {"kind": "h4_smoke", "pos": c + Vector2(r * 0.25, -r * 0.2), "r": r * 0.7, "life": 0.6, "col": H4_DARK, "delay": 0.06})
+	_wfx(o, {"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": H4_RED, "w": 3.0})
 	for k in (3 if light else 7):
 		var v: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(90, 210) + Vector2(0, -90)
-		o.fx({"kind": "h4_ember", "pos": c, "vel": v, "life": 0.5, "col": Color(0.25, 0.16, 0.18), "sz": 5.0, "ang": g.vrng.randf() * TAU, "spin": 12.0, "grav": 420.0})
-	_h3_vsparks(o, c, H4_EMBER, 4 if light else 8, 200.0, 0.3)
-	o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.8, "life": 2.0, "floor": true})
+		_wfx(o, {"kind": "h4_ember", "pos": c, "vel": v, "life": 0.5, "col": Color(0.25, 0.16, 0.18), "sz": 5.0, "ang": g.vrng.randf() * TAU, "spin": 12.0, "grav": 420.0})
+	_wsparks(o, c, H4_EMBER, 4 if light else 8, 200.0, 0.3)
+	_wfx(o, {"kind": "h4_scorch", "pos": c, "r": r * 0.8, "life": 2.0, "floor": true})
 
 
 ## 饱和炮击 / 凋零处刑的爆炸：Codex 炮击帧条放大；缺图 = 白粉核心星芒 → 放射红刀锋 → 贴地冲击波 + 错落黑烟 → 红色碎刃
@@ -732,27 +917,38 @@ static func h4_burst_fx(o, c: Vector2, r: float, small := false) -> void:
 	var sc: float = 0.7 if small else 1.0
 	var rv: float = _h4_cannon_sprite(o, c, r, 1.0)
 	if rv > 0.0:
-		o.fx({"kind": "h4_scorch", "pos": c, "r": rv * 0.8, "life": 2.0, "floor": true})
+		_wfx(o, {"kind": "h4_scorch", "pos": c, "r": rv * 0.8, "life": 2.0 * _wc("wd_scorch_k", 0.5, 1.0), "floor": true})
 		return
-	o.fx({"kind": "h4_burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.vrng.randf() * TAU, "n": 8 if small else 12})
-	o.fx({"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": H4_RED, "floor": true, "w": 2.5, "alpha": 0.75})
+	_wfx(o, {"kind": "h4_burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.vrng.randf() * TAU, "n": 8 if small else 12})
+	_wfx(o, {"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": H4_RED, "floor": true, "w": 2.5, "alpha": 0.75})
 	var n: int = 3 if small else 5
 	var seed: float = g.vrng.randf() * TAU
 	for q in n:
 		var ang: float = seed + q * TAU / n + g.vrng.randf_range(-0.45, 0.45)
 		var off: Vector2 = Vector2.from_angle(ang) * r * sc * g.vrng.randf_range(0.3, 0.7)
 		off.y *= 0.55
-		o.fx({"kind": "h4_smoke", "pos": c + off, "r": r * sc * g.vrng.randf_range(0.32, 0.5), "life": g.vrng.randf_range(0.5, 0.75), "col": H4_DARK, "delay": q * 0.035})
+		_wfx(o, {"kind": "h4_smoke", "pos": c + off, "r": r * sc * g.vrng.randf_range(0.32, 0.5), "life": g.vrng.randf_range(0.5, 0.75), "col": H4_DARK, "delay": q * 0.035})
 	for k in (5 if small else 8):
 		var v: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(120, 260)
-		o.fx({"kind": "h4_sliver", "pos": c, "vel": v, "life": 0.45, "col": H4_BOLT, "sz": g.vrng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
-	o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.9, "life": 2.0, "floor": true})
+		_wfx(o, {"kind": "h4_sliver", "pos": c, "vel": v, "life": 0.45, "col": H4_BOLT, "sz": g.vrng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
+	_wfx(o, {"kind": "h4_scorch", "pos": c, "r": r * 0.9, "life": 2.0, "floor": true})
 
 
 # ---------------------------------------------------------------- 维什戴尔：画面
 
 static func _h4wd_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
+	var al: float = a * float(f.get("am", 1.0))   # 当队友降一档（_wfx 记的 am）：只乘透明度，动画进度仍按 a
+	if al < a:
+		match str(f.kind):
+			"spark":   # 同 character.draw_pfx 的火花 / 光点，透明度 × am
+				var c: Color = f.get("col", o.col())
+				cv.draw_rect(Rect2(f.pos.round(), Vector2(f.get("sz", 3.0), f.get("sz", 3.0))), Color(c.r, c.g, c.b, al))
+				return true
+			"mote":
+				var c2: Color = f.get("col", o.col())
+				cv.draw_circle(f.pos, f.get("sz", 2.0), Color(c2.r * 1.6, c2.g * 1.6, c2.b * 1.6, al))
+				return true
 	match str(f.kind):
 		"h4_spmote":   # docs/202 亡者回响·回馈：金色技力光点飞向队友（同推进之王的 h4_spmote，金色光点 + 细尾）
 			var kk := 1.0 - a
@@ -766,14 +962,14 @@ static func _h4wd_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			var d: Vector2 = f.dir
 			var n: Vector2 = d.orthogonal()
 			var L: float = f.sz * (0.6 + 0.4 * a)
-			cv.draw_colored_polygon(PackedVector2Array([f.pos + n * 3.0, f.pos + d * L, f.pos - n * 3.0, f.pos - d * 2.0]), Color(H4_RED.r, H4_RED.g, H4_RED.b, 0.7 * a))
-			cv.draw_colored_polygon(PackedVector2Array([f.pos + n * 1.4, f.pos + d * L * 0.55, f.pos - n * 1.4]), Color(2.2, 1.2, 0.8, 0.9 * a))
+			cv.draw_colored_polygon(PackedVector2Array([f.pos + n * 3.0, f.pos + d * L, f.pos - n * 3.0, f.pos - d * 2.0]), Color(H4_RED.r, H4_RED.g, H4_RED.b, 0.7 * al))
+			cv.draw_colored_polygon(PackedVector2Array([f.pos + n * 1.4, f.pos + d * L * 0.55, f.pos - n * 1.4]), Color(2.2, 1.2, 0.8, 0.9 * al))
 			return true
 		"h4_burst":
 			var k := 1.0 - a
 			var r: float = f.r
 			var sd: float = f.seed
-			cv.draw_circle(f.pos, r * (0.3 + 0.5 * k), Color(1.3, 0.1, 0.22, 0.4 * a))
+			cv.draw_circle(f.pos, r * (0.3 + 0.5 * k), Color(1.3, 0.1, 0.22, 0.4 * al))
 			var nq: int = int(f.get("n", 12)) if Dc.hit_spokes() else 0
 			for q in nq:
 				var h: float = fmod(sd * 7.3 + q * 2.399, 1.0)
@@ -785,22 +981,22 @@ static func _h4wd_draw_pfx(o, f: Dictionary, a: float) -> bool:
 				var s0: Vector2 = f.pos + dv * L2 * (0.1 + 0.35 * k)
 				var s1: Vector2 = f.pos + dv * L2
 				var sm: Vector2 = f.pos + dv * L2 * 0.45
-				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w, s1, sm - nv * w]), Color(1.9, 0.1, 0.26, 0.9 * a))
-				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w * 0.3, s1, sm - nv * w * 0.3]), Color(2.4, 0.7, 0.8, 0.7 * a))
+				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w, s1, sm - nv * w]), Color(1.9, 0.1, 0.26, 0.9 * al))
+				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w * 0.3, s1, sm - nv * w * 0.3]), Color(2.4, 0.7, 0.8, 0.7 * al))
 			var cr: float = r * 0.16 * (1.0 if k < 0.2 else maxf(0.0, 1.0 - (k - 0.2) / 0.45))
-			cv.draw_circle(f.pos, cr * 1.8, Color(1.6, 0.1, 0.12, 0.6 * a))
-			cv.draw_circle(f.pos, cr, Color(2.2, 0.5, 0.32, a))
-			cv.draw_circle(f.pos, cr * 0.45, Color(0.12, 0.02, 0.04, a))
+			cv.draw_circle(f.pos, cr * 1.8, Color(1.6, 0.1, 0.12, 0.6 * al))
+			cv.draw_circle(f.pos, cr, Color(2.2, 0.5, 0.32, al))
+			cv.draw_circle(f.pos, cr * 0.45, Color(0.12, 0.02, 0.04, al))
 			return true
 		"h4_sliver":
 			var dv: Vector2 = Vector2.from_angle(f.ang) * f.sz
 			var nv: Vector2 = dv.orthogonal().normalized() * 1.6
-			cv.draw_colored_polygon(PackedVector2Array([f.pos - dv, f.pos + nv, f.pos + dv, f.pos - nv]), Color(2.2, 0.3, 0.5, a))
-			cv.draw_line(f.pos - dv * 0.6, f.pos + dv * 0.6, Color(2.8, 1.4, 1.6, a), 1.0)
+			cv.draw_colored_polygon(PackedVector2Array([f.pos - dv, f.pos + nv, f.pos + dv, f.pos - nv]), Color(2.2, 0.3, 0.5, al))
+			cv.draw_line(f.pos - dv * 0.6, f.pos + dv * 0.6, Color(2.8, 1.4, 1.6, al), 1.0)
 			return true
 		"h4_flash":
-			cv.draw_circle(f.pos, f.r * (0.5 + 0.5 * a), Color(2.0, 0.4, 0.3, 0.75 * a))
-			cv.draw_circle(f.pos, f.r * 0.4 * a, Color(2.8, 1.6, 1.2, a))
+			cv.draw_circle(f.pos, f.r * (0.5 + 0.5 * a), Color(2.0, 0.4, 0.3, 0.75 * al))
+			cv.draw_circle(f.pos, f.r * 0.4 * a, Color(2.8, 1.6, 1.2, al))
 			return true
 		"h4_smoke":
 			var age: float = f.max - f.life
@@ -808,29 +1004,29 @@ static func _h4wd_draw_pfx(o, f: Dictionary, a: float) -> bool:
 				return true
 			var k := 1.0 - a
 			var p: Vector2 = f.pos + Vector2(0, -22.0 * k)
-			cv.draw_circle(p, f.r * (0.4 + 0.8 * k), Color(0.14, 0.1, 0.12, 0.6 * a))
-			cv.draw_circle(p + Vector2(f.r * 0.25, -f.r * 0.2), f.r * (0.3 + 0.55 * k), Color(0.22, 0.15, 0.17, 0.45 * a))
-			cv.draw_circle(p + Vector2(-f.r * 0.2, -f.r * 0.1), f.r * (0.2 + 0.4 * k), Color(0.3, 0.2, 0.22, 0.3 * a))
+			cv.draw_circle(p, f.r * (0.4 + 0.8 * k), Color(0.14, 0.1, 0.12, 0.6 * al))
+			cv.draw_circle(p + Vector2(f.r * 0.25, -f.r * 0.2), f.r * (0.3 + 0.55 * k), Color(0.22, 0.15, 0.17, 0.45 * al))
+			cv.draw_circle(p + Vector2(-f.r * 0.2, -f.r * 0.1), f.r * (0.2 + 0.4 * k), Color(0.3, 0.2, 0.22, 0.3 * al))
 			return true
 		"h4_ember":
 			var sv: Vector2 = Vector2.from_angle(f.ang) * f.sz
-			cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(0.16, 0.08, 0.12, a))
+			cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(0.16, 0.08, 0.12, al))
 			if not f.get("cold", false):
-				cv.draw_circle(f.pos + sv, 1.6, Color(2.0, 0.9, 0.5, a))
+				cv.draw_circle(f.pos + sv, 1.6, Color(2.0, 0.9, 0.5, al))
 			return true
 		"h4_scorch":
 			cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
-			cv.draw_circle(Vector2.ZERO, f.r, Color(0.04, 0.02, 0.03, 0.45 * minf(1.0, a * 2.0)))
-			cv.draw_circle(Vector2(f.r * 0.15, 0), f.r * 0.55, Color(0.02, 0.01, 0.02, 0.35 * minf(1.0, a * 2.0)))
+			cv.draw_circle(Vector2.ZERO, f.r, Color(0.04, 0.02, 0.03, 0.45 * minf(1.0, al * 2.0)))
+			cv.draw_circle(Vector2(f.r * 0.15, 0), f.r * 0.55, Color(0.02, 0.01, 0.02, 0.35 * minf(1.0, al * 2.0)))
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			return true
 		"h4_shade":
 			var p: Vector2 = f.pos + Vector2(0, -6.0 - 10.0 * (1.0 - a))
 			cv.draw_set_transform(p, 0.0, Vector2(1.0, 1.7))
-			cv.draw_circle(Vector2.ZERO, 9.0, Color(0.05, 0.03, 0.05, 0.8 * a))
+			cv.draw_circle(Vector2.ZERO, 9.0, Color(0.05, 0.03, 0.05, 0.8 * al))
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			cv.draw_circle(p + Vector2(-3, -7), 1.5, Color(2.0, 0.3, 0.3, a))
-			cv.draw_circle(p + Vector2(3, -7), 1.5, Color(2.0, 0.3, 0.3, a))
+			cv.draw_circle(p + Vector2(-3, -7), 1.5, Color(2.0, 0.3, 0.3, al))
+			cv.draw_circle(p + Vector2(3, -7), 1.5, Color(2.0, 0.3, 0.3, al))
 			return true
 	return false
 
@@ -1041,7 +1237,7 @@ static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> 
 	var frame: int = o.attack_phase_frame(int(spec.frames), int(spec.fire), o.attack_dur - o.attack_t)
 	var origin: Vector2 = o.sprite_point_at(slot, "muzzles", frame, muzzle, null, false)
 	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(effect.src), float(effect.size), true, 0.0, false, false, "exec", effect.get("mark", null), origin)
-	o.fx({"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
+	_wfx(o, {"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
 	_h3_sfx(o, "atk", 2.0)
 	_h4_cannon_after(o, a, target)
 	if muzzle == 0:
