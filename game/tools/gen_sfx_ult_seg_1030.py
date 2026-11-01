@@ -174,6 +174,11 @@ SN = {   # Sonniss 素材短名（docs/113 §20）
     "whip": "David Dumais Audio - Melee Weapons Sound Effects Pack 2/WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav",
     "drone": "Alexander Kopeikin - Emotion and Magic/magic, drone, tension, spellbound, evanescence-002.wav",
     "onslaught": "Alexander Kopeikin - Emotion and Magic/magic, action gesture, evil presence, onslaught-004.wav",
+    "braam": "Jake Fielding - Cinematic Horn Braams/DSGNBram____Cinematic Horn Braam, Epic, Cinematic, Dark, Instrument, Huge-32.wav",
+    "tbraam": "Cinematic Sound Design - Ultra Transitions & Impacts/Transition Braam Slow Dark Creepy.wav",
+    "clock": "344 Audio - Antique Clocks/CLOCKTick_Crooked Antique Clock_344 Audio_Antique Clocks.wav",
+    "indamb": "Cinematic Sound Design - Sci-Fi Drones/Dark Industrial Ambience.wav",
+    "wind": "344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav",
     "smash": "Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit/GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav",
 }
 
@@ -372,19 +377,32 @@ def suzuran():
     }
 
 def logos(v=1):
-    """docs/205 §4.6（11-01 定稿 ① 录音；画面 v4「咒文 → 真空压缩爆炸」）：提示 = 魔能暗涌 → 时间停住 cast = 魔法低鸣（寂静里的张力）
-    → 每只敌人头上浮现咒文 glyph_1..3（fx strip fx_lo_glyph1–4，节流 0.09 秒、很轻）= 能量流高音一闪
-    → 咒印一起压缩、整片爆开 impact（冲击帧同帧，全招最响）= 电光低鸣冲击降调 + 原作黑洞 + 预告片低频。
-    v=2 原作：咒文 = 原作锐咒短截，爆开 = 原作锐咒 + 低频"""
-    d = {   # 11-01 用户「logos 终结技开头的声音要去掉」：不要提示音 sf（ult_audio.json sf_off）、不要时停低鸣 cast；从咒文开始响
-        "sf": None,
-        **{"glyph_%d" % (i + 1): hp(sn("astral", 0.3, 0.3, r, fout=0.15), 800) for i, r in enumerate([1.5, 1.62, 1.75])},
-        "impact": pad(sn("elec", 0.0, 0.9, 0.6, fout=0.4), akd("p_skill_darkholespell.wav", 0.0, 1.2, 0.85, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9),
-    }
+    """docs/205 §4.8（11-01 定稿 ① 录音；画面 v4「咒文 → 真空压缩爆炸」）：提示音 sf 不放（ult_audio.json sf_off，用户 11-01「开头的声音要去掉」）
+    → 时间停住 cast（用户 11-01「时停低鸣保留，可以参考那种 JoJo 里时间停止的声音」）：先倒吸进去的一口（空间被抽走）→ 凝住那一下低沉的「咚——」+ 钟摆停住 → 空荡的低鸣垫底
+    → 每只敌人头上浮现咒文 glyph_1..3（fx strip fx_lo_glyph1–4，节流 0.16 秒、很轻）= 能量流高音一闪
+    → 咒印一起压缩、整片爆开 impact（冲击帧同帧，全招最响）= 时间恢复的反向释放（气流往外冲）+ 电光低鸣冲击降调 + 原作黑洞 + 预告片低频。
+    ① 倒吸 = 预告片轰鸣倒放；凝住 = 电影号角低音（降调、闷）+ 一记老座钟摆声降调；垫底 = 魔法低鸣。释放 = 长风呼啸
+    ② 倒吸 = 碎屑呼啸倒放 + 暗黑号角渐强倒放；凝住 = 魔法低鸣深降调 + 工业空腔嗡鸣（真空感）+ 座钟三下越来越慢、越来越低直到停；释放 = 碎屑呼啸往外推"""
     if v == 2:
-        d.update({**{"glyph_%d" % (i + 1): hp(akd("p_skill_sharpspell.wav", 0.3, 0.25, r, fout=0.12), 600) for i, r in enumerate([1.4, 1.5, 1.6])},
-                  "impact": pad(akd("p_skill_sharpspell.wav", 0.3, 1.5, 0.85, fout=0.6), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9)})
-    return d
+        suck = pad(rev(sn("debris", 0.1, 0.8, fout=0.05))[-int(0.6 * SR):], rev(lp(sn("tbraam", 1.8, 0.8, 0.8, fout=0.05), 2500))[-int(0.6 * SR):] * 0.8)   # 倒放取尾段：越吸越紧、到凝住那一刻最满
+        hold = pad(lp(sn("drone", 8.0, 1.2, 0.6, fout=0.5), 900), lp(sn("indamb", 8.0, 1.2, 0.8, fout=0.5), 1500) * 0.6)
+        ticks = pad(at(lp(sn("clock", 0.95, 0.18, 0.8, fout=0.08), 4000) * 0.7, 0.0), at(lp(sn("clock", 0.95, 0.18, 0.7, fout=0.08), 3500) * 0.5, 0.24),
+                    at(lp(sn("clock", 0.95, 0.18, 0.6, fout=0.08), 3000) * 0.35, 0.56))
+        cast = pad(suck, at(pad(hold, ticks), 0.55))
+        release = sn("debris", 0.1, 0.9, 1.1, fout=0.4)
+    else:
+        suck = rev(lp(sn("b214", 0.25, 1.0, fout=0.05), 1500))[-int(0.5 * SR):]
+        hold = pad(lp(sn("braam", 0.3, 1.0, 0.7, fout=0.5), 1200), lp(sn("drone", 8.0, 1.0, 0.8, fout=0.5), 2000) * 0.4, lp(sn("clock", 0.95, 0.2, 0.6, fout=0.1), 3000) * 0.8)
+        cast = pad(suck, at(hold, 0.48))
+        release = sn("wind", 0.05, 0.8, 1.1, fout=0.35)
+    return {
+        "sf": None,
+        "cast": fadeio(fit(cast, 1.3), 0.01, 0.35),   # 时停到爆开约 1.2 秒，不拖进爆开
+        **{"glyph_%d" % (i + 1): hp(sn("astral", 0.3, 0.3, r, fout=0.15), 800) for i, r in enumerate([1.5, 1.62, 1.75])},
+        "impact": pad(sn("elec", 0.0, 0.9, 0.6, fout=0.4), akd("p_skill_darkholespell.wav", 0.0, 1.2, 0.85, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9,
+                      release * 0.5),
+    }
+
 
 def hoshiguma():
     """docs/205 §4.3（用户 10-31 选录音版 ② 再「低频一点」：整体降调 ×0.8、5 kHz 以上压掉、低频轰加厚）：

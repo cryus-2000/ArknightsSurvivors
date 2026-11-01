@@ -271,3 +271,38 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 生成器修正：LV 里 `boom` 前缀原被艾丽妮连环爆的 -15 覆盖（dict 后写的赢），重生成星熊会把高潮压到 -15 → 星熊回 -9，艾丽妮两槽按槽名单独给（文件不变）。干员函数给 `None` = 不要这一槽（逻各斯 sf）。
 素材登记 docs/113 §20。
 **11-01 用户选定**：推进之王 ①、归溟幽灵鲨 ①、星熊 ②（原作爆裂，已写进游戏）、铃兰 ①、斯卡蒂 ①、拉普兰德 ①；落选的候选代码已从生成器删掉（要找回看 df767fd5c）。逻各斯「时停低鸣要保留，参考 JoJo 时间停止」另做（§4.8）。
+
+### 4.8 逻各斯时停声（11-01 第三轮；用户「logos 时停低鸣保留，可以参考那种 jojo 里时间停止的声音」）
+第二轮删掉的「开头的声音」里就有时停低鸣（cast）→ 加回来、按 JoJo 时间停止的感觉重做；提示音 sf 仍不放（sf_off）。时停 cast 截到 1.3 秒（时停到爆开约 1.2 秒），-3 dB；爆开 impact 叠一层「时间恢复」的反向释放（气流往外冲，×0.5），仍落冲击帧 3.30。
+- ①（游戏里现在）：倒吸 = 预告片轰鸣倒放（取尾段，越吸越紧、到凝住最满，0.5 秒）→ 凝住 = 电影号角低音降调闷化（Jake Fielding「Cinematic Horn Braam…Huge-32」）+ 一记老座钟摆声降调（344 Audio「CLOCKTick_Crooked Antique Clock」）+ 魔法低鸣垫底；释放 = 长风呼啸。
+- ②：倒吸 = 碎屑呼啸倒放 + 暗黑号角渐强倒放（CSD「Transition Braam Slow Dark Creepy」）→ 凝住 = 魔法低鸣深降调 + 工业空腔嗡鸣（CSD「Dark Industrial Ambience」，真空感）+ 座钟三下越来越慢、越来越低直到停；释放 = 碎屑呼啸往外推。
+换 ② = `python game/tools/gen_sfx_ult_seg_1030.py --apply --only logos --reseed --variant 2`。对照录像 `Claude outputs/ult_round3_1101/logos_timestop_1vs2.mp4`。
+
+
+### 4.9 提示音三件（11-01 第四轮；生成器 `game/tools/gen_sfx_ult_cue_1101.py`，claude/ult-review-1101）
+用户要求：逻各斯时停加时钟停止声、按 Q 那一下做成格斗游戏超必杀「锵」、就绪提醒更明显。全部用录音，不用合成音；不用 MUGEN 里扒出的音效（卡普空 / SNK 版权素材），只按特征从可商用录音里叠。
+
+**素材来源与授权**（本轮没有下载新素材，都在已登记的库里）：
+| 用途 | 文件（包 / 文件名） | 授权 |
+| --- | --- | --- |
+| 秒针滴答、钟锤闷响（候选一） | 344 Audio - Antique Clocks「CLOCKTick_Crooked Antique Clock」 | Sonniss GDC 2026 Game Audio Bundle：免版税、可商用、不需署名；不得再分发原文件、不得用于 AI 训练（docs/113 §20） |
+| 秒针滴答（候选二，滴 / 答交替） | 344 Audio - Antique Clocks「CLOCKTick_You're Running Late」 | 同上 |
+| 「咔」停住 | Epic Stock Media - HD Lock And Mechanism「MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02」+ ESM HD Game Materials「METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01」 | 同上 |
+| 停住期间的低嗡鸣 | Jake Fielding - Fridge Hums Vol.2「MACHAppl_Deep Fridge Hum, Buzz, Electric Tone, Deep」（200 Hz 低通） | 同上 |
+| 超必杀「锵」 | Freesound 611310 IENBA「Dagger」（出鞘 shwing，德克萨斯已用）；ESM Anime Game「DSGNStngr_Power Up Bright Positive…Crash Shimmer 05」；ESM Tower Defense「DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04」；CSD Ultra Transitions「Impact Hit Rapid Chord Reverb」；Federico Soler Trailer Booms 214（低频顿）；ESM HD Game Materials 铁件敲击（同上） | Freesound 611310 = CC0；其余 Sonniss 同上 |
+| 就绪提示音 | CB Sounddesign - APPlicable Sounds「UIMisc_Kalimba 3 Up」+ CSD UI Interaction「Ting Coins」 | Sonniss 同上 |
+
+**1. 逻各斯时停 + 时钟（2 候选，未写进游戏）**：cast = 前 0.45 秒秒针三下（越走越紧）→ 0.46 秒「咔」停住（深闩扣降调 + 钟锤闷响 + 金属余震）→ 停住期间原来的低鸣 + 很低的电器嗡鸣；原来低鸣里的钟声删掉（换成这套）。impact（爆开 = 时间恢复）：爆开尾巴 0.45 秒起压低 12 dB，0.55 秒起时钟重新走（滴、答、滴，渐弱）。
+- 候选一 LC1 = ① 号角低鸣 + 歪钟（重、闷）；候选二 LC2 = ② 空腔嗡鸣 + 座钟（清脆滴答）。文件在 `<主仓库>/build/ult_sfx/LC1|LC2`；用户选定后把对应版写进 `gen_sfx_ult_seg_1030.py` 的 logos 再 `--apply`。
+
+**2. 超必杀提示音（3 候选，缺省 ①）**：按 Q 进入超必杀暂停那一刻，20 人共用 `ult_super_<n>`，叠在各人 sf 前面（逻各斯 sf 关着也放）；`ult/super_cue` 1–3 选版、0 = 不放，`ult/super_cue_db` 调响度（缺省 0，文件 -10 dBFS 同 sf）。
+- ① 剑鸣「锵」：出鞘 shwing + 亮闪碎光 + 很短的低频顿，按下即响。
+- ② 金属撞击：0.09 秒碎光倒吸 → 铁件敲击升调 + 特招斩击层。
+- ③ 和弦冲击：电影冲击和弦截头 + 出鞘高频层。
+
+**3. 就绪提醒（`ult/ready_cue` 缺省 1，0 = 原样）**：能量充满那一刻只提醒一次——
+- 声音：`ult_ready`（拇指琴两音上行 + 硬币 ting 亮尾，-17 dBFS，没有低频和冲击，和超必杀那声分得开；`ult/ready_cue_db` 调响度）。
+- 队长就绪台词：读 `data/ult_audio.json` 的 `ready_voice`（语音页 picks 里选）；picks 现在没有「就绪」这一栏、也读不到（换账号后语音页数据库无权限），先不放。
+- 画面（hud_ult_v）：徽记环 / 触屏终结技键爆亮 0.6 秒（白圈 + 代表色圈外扩 + 光晕）；屏幕四边淡青光一闪 0.5 秒（6% 屏高渐隐，减少动态效果时更淡）；之后徽记呼吸光晕、缺口里换成大一号代表色按键牌（刚满时弹出），触屏终结技键外圈发光。原有的「终结技就绪」横幅和队长脚下光圈不变。
+
+对照录像 `Claude outputs/ult_review_1101/ult_cues_1101.mp4`（33 秒）：0–13 秒逻各斯时停候选一 / 二（同一段画面重混声音）→ 13–25 秒德克萨斯按 Q 超必杀提示音 ① / ② / ③ → 25–33 秒就绪提醒电脑 / 手机。录像时超必杀那段关了就绪提醒、逻各斯那段两样都关，只听要比的那一声。

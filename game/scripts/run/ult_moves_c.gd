@@ -1611,6 +1611,8 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			var bp: Vector2 = e.pos if not e.dead else pn.get("last", e.pos)
 			var fr: float = Bal.v("ult/ir_boom", 0.35) * (1.0 if float(pn.d) <= R * 0.5 else Bal.v("ult/ir_boom_out", 0.6))
 			var fc: bool = _irv3() and Bal.v("ult/ir_final_cut", 1.0) > 0.0   # 用户 10-31「冲击帧放在最后的斩击」：连环爆都标 pre，冲击帧挪到斩击爆裂
+			if e.dead:
+				u._seg_sfx("宣判")   # 被钉住的敌人多半已被行刑斩死、_once 不再命中：炸开照样出声（原来只在命中时配声，11-01 终结技审查录像里连环爆一声都没有）
 			_once(u, a, o, a.bseg, e, fr, {"src": "宣判", "pre": fc, "edge": float(pn.d) > float(a.rc)})   # 第一下（非 pre）= 冲击帧
 			var hh: float = PF.h(vs + float(pn.d))
 			if _irv2():   # 用户 10-31 改表现：每一炸更大更实——金白爆团 + 烟尘 + 地块崩起；链子崩成链节飞散
@@ -1995,13 +1997,43 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 			var op := {"src": "剑气", "edge": dist > rc}
 			if bark and dist > 1.0:
 				op["kb"] = (e.pos - c).normalized() * _kb_v(200.0)
-			if _once(u, a, o, a.segs[i], e, float(a.f), op) and not e.dead and not e.boss:
+			var hit_now: bool = _once(u, a, o, a.segs[i], e, float(a.f), op)
+			if hit_now and _la_r3() and a.get("v3", false):
+				_la_hit_fx(u, a, e, t)
+			if hit_now and not e.dead and not e.boss:
 				var sl: float = Bal.v("ult/la_silence", 4.0) * (0.5 if e.elite else 1.0)
 				g.enemies_sys.silence(e, g.t + sl)
 				e["seal_t"] = maxf(float(e.get("seal_t", 0.0)), g.t + sl)   # 甲壳 / 潮盾失效（同天赋「精神摧毁」的封印状态）
 				e["seal_look"] = "cross"
 				e["seal_by"] = str(o.id)
 	return int(a.fired) >= n and t >= gap * (n - 1) + fly + 0.05
+
+
+## ---- 拉普兰德第三轮（用户 11-01「必杀技我觉得需要点打击感，并且现在的有点过于粗糙」，ult/la_r3 缺省 1；0 = 第二轮）：
+## ① 命中：剑气扫到谁，谁身上就闪一记细十字刀口（白芯 0.06 秒、一帧到位）+ 一小撮压暗碎屑，每 0.05 秒至多 6 处（不糊屏）；
+## ② 剑气本体变细变利：去掉厚暗灰残影和冷蓝十字刃，改成「银灰刀身 + 细亮刀芯」两层，边缘干净；
+## ③ 每圈出手轻震 3 px / 0.12 秒（用户 10-31 认可的量级），收尾横斩再震一次并加一道细亮刀芯。只有画面
+static func _la_r3() -> bool:
+	return Bal.v("ult/la_r3", 1.0) > 0.0
+
+
+static func _la_hit_fx(u, a: Dictionary, e: Dictionary, t: float) -> void:
+	var slot: int = int(t / 0.05)
+	if slot != int(a.get("hx_slot", -1)):
+		a["hx_slot"] = slot
+		a["hx_n"] = 0
+	var sd: float = float(e.id) * 0.37 + t * 11.0
+	if int(a.hx_n) >= 6 or PF.h(sd + 9.0) < 0.3:   # 限量 + 三成跳过（预审报刀口一串等距重复）
+		return
+	a.hx_n = int(a.hx_n) + 1
+	var p: Vector2 = e.pos + Vector2((PF.h(sd + 4.0) - 0.5) * 14.0, -12.0 + (PF.h(sd + 5.0) - 0.5) * 12.0)
+	var ang: float = PF.h(sd) * PI
+	var one: bool = PF.h(sd + 6.0) < 0.35   # 有的只一道、有的十字
+	for q in (1 if one else 2):   # 刀口：长短 / 交叉角 / 先后都错开
+		var dv := Vector2.from_angle(ang + q * (0.9 + 0.9 * PF.h(sd + 2.0)))
+		var L: float = (36.0 if q == 0 else 22.0) * (0.6 + 0.8 * PF.h(sd + q * 1.3))
+		u.shape({"kind": "blade", "a": p - dv * L, "b": p + dv * L, "w": 3.0 - q, "col": Color(0.9, 0.9, 0.88), "glow": Color(0.35, 0.35, 0.4), "grow": 0.0, "life": 0.05 + 0.04 * PF.h(sd + 7.0), "fo": 0.04, "delay": 0.01 * q + 0.02 * PF.h(sd + 8.0)})
+	PF.particles(u, p, 20, "ult_burst_s", [Color(0.46, 0.47, 0.5), LA_ICE.darkened(0.45)], 0.0, sd, 34.0)
 
 
 ## ---- 拉普兰德 pixfx（docs/199 §7.10，开关 ult/la_fx_v2 缺省 1；0 = 程序白刃十字版）
@@ -2033,6 +2065,9 @@ static func _la_cut(u, p: Vector2, ang: float, ln: float, sd: float, life: float
 	var o := {"ang": ang, "o": Vector2(0.0, t.get_height() * 0.5), "sx": ln / tw, "sy": thick * (1.0 if whole else 0.55 + 1.1 * PF.h(sd + 5.0)) * (1.0 if PF.h(sd + 2.0) < 0.5 else -1.0),
 		"rev": 0.035, "rev0": 0.1, "life": life, "fade": life * 0.6, "col": col}
 	if vel != Vector2.ZERO:   # 飞行剑气：整道跟着飞，不逐渐显现、不残缺
+		# 弧面一律朝飞行方向（朝外）：贴图的弧凸向本地 +y，按它和速度的点积定翻面（用户 11-01「剑气的方向应该都是朝外的」，原来按哈希随机翻，一半朝里）
+		var conv: float = 1.0 if Vector2.from_angle(ang + PI * 0.5).dot(vel) >= 0.0 else -1.0
+		o["sy"] = absf(float(o.sy)) * conv
 		o.erase("rev")
 		o["v"] = vel
 		o["delay"] = delay
@@ -2056,6 +2091,12 @@ static func _la_fly_wave(u, a: Dictionary, dv: Vector2, sd: float, pr: float, i:
 	var ln: float = lerpf(150.0, 260.0, PF.h(sd + 4.0))   # 用户 10-31「稍微小一点，现在太粗糙」：长 220–420 → 150–260、粗 2–3 → 1.1–1.5（放大过头像素块糊）
 	var th: float = lerpf(1.1, 1.5, PF.h(sd + 5.5))
 	var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
+	if _la_r3():   # 第三轮：刀身细一档 + 细亮刀芯，边缘干净；不画厚残影、不叠冷蓝十字刃
+		_la_cut(u, p0, ang, ln, sd, life, Color(col.darkened(0.12), 0.85), th * 0.45, true, dv * spd)
+		_la_cut(u, p0, ang, ln * 0.92, sd, life * 0.85, Color(0.97, 0.97, 0.95, 0.95), th * 0.16, true, dv * spd)
+		if i % 4 == 0:
+			PF.particles(u, p0, 30, "ult_burst_s", [Color(0.5, 0.5, 0.53), LA_ICE.darkened(0.3)], 0.0, sd, 40.0)
+		return
 	_la_cut(u, p0, ang, ln * 0.95, sd + 0.5, life, Color(0.4, 0.4, 0.43, 0.55), th * 1.25, true, dv * spd, 0.03)   # 残影
 	_la_cut(u, p0, ang, ln, sd, life, Color(col, 0.95), th, true, dv * spd)
 	if PF.h(sd + 7.0) < 0.18:
@@ -2101,6 +2142,8 @@ static func _la_frenzy(u, a: Dictionary, t: float) -> void:
 static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> void:
 	var vs: float = float(a.vs) + i * 7.0
 	o.play_vis_anim("attack")
+	if _la_r3() and a.get("fwd", false):
+		u.shake(3.0, 0.12)   # 每圈出手一记轻震（用户 10-31 认可 3 px / 0.12 秒）
 	if i != int(a.n) - 1:
 		return
 	# 收尾横斩：屏幕横向贯穿约 2.2R、最长，下面一层冷蓝宽影；顿帧 + 冷光 + 中心一团银蓝粒子
@@ -2114,6 +2157,14 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 	var n0: int = u.shapes.size()
 	_la_cut(u, c + dv.orthogonal() * 14.0, ang, R * 2.3, vs + 101.0, 0.45, Color(LA_ICE, 0.55), 1.3, true)   # 一整道（两段拼会成海鸥翅膀形）
 	_la_cut(u, c, ang, R * 2.2, vs + 101.0, 0.5, Color(0.86, 0.86, 0.84, 0.9), 0.95, true)   # 压暗（预审报横斩发白）
+	if _la_r3() and a.get("fwd", false):   # 第三轮：细亮刀芯（一帧到位、0.18 秒冷掉）+ 沿斩线 6 处命中爆点错开炸开
+		_la_cut(u, c, ang, R * 2.15, vs + 101.0, 0.18, Color(0.98, 0.98, 0.96, 1.0), 0.3, true)
+		for q in 6:
+			var hq: float = PF.h(vs + q * 2.9)
+			var pq: Vector2 = c + dv * (float(q) / 5.0 - 0.5 + (hq - 0.5) * 0.12) * R * 1.9 + dv.orthogonal() * (hq - 0.5) * 24.0
+			u.shape({"kind": "circle", "c": pq, "r": 16.0 + 14.0 * hq, "col": Color(0.88, 0.88, 0.86), "fill": 0.8, "life": 0.05, "delay": 0.02 + 0.025 * q})
+			PF.particles(u, pq, 300, "ult_burst", [Color(0.5, 0.51, 0.54), LA_ICE.darkened(0.5)], 0.02 + 0.025 * q, vs + q * 4.0, 60.0 + 40.0 * hq)
+		u.shake(3.0, 0.12)
 	if a.get("fwd", false) and Bal.v("ult/la_final_hf", 1.0) > 0.0:   # 11-01 细调：收尾横斩是全招最重一拍 → 冲击帧（横斩进剪影）
 		PF.hf_since(u, n0)
 		PF.hf_on(u, a)
