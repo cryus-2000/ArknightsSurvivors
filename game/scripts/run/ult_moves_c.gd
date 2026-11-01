@@ -2063,6 +2063,9 @@ static func _la_cut(u, p: Vector2, ang: float, ln: float, sd: float, life: float
 	var o := {"ang": ang, "o": Vector2(0.0, t.get_height() * 0.5), "sx": ln / tw, "sy": thick * (1.0 if whole else 0.55 + 1.1 * PF.h(sd + 5.0)) * (1.0 if PF.h(sd + 2.0) < 0.5 else -1.0),
 		"rev": 0.035, "rev0": 0.1, "life": life, "fade": life * 0.6, "col": col}
 	if vel != Vector2.ZERO:   # 飞行剑气：整道跟着飞，不逐渐显现、不残缺
+		# 弧面一律朝飞行方向（朝外）：贴图的弧凸向本地 +y，按它和速度的点积定翻面（用户 11-01「剑气的方向应该都是朝外的」，原来按哈希随机翻，一半朝里）
+		var conv: float = 1.0 if Vector2.from_angle(ang + PI * 0.5).dot(vel) >= 0.0 else -1.0
+		o["sy"] = absf(float(o.sy)) * conv
 		o.erase("rev")
 		o["v"] = vel
 		o["delay"] = delay
