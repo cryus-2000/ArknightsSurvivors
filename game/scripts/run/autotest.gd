@@ -384,6 +384,26 @@ func _breakloop_step() -> void:
 			g.combat.start_break(e, _brk_dur)
 
 
+## --pickframes=<帧数>（仅测试，录像用：docs/213 选卡余光演示）：进选卡面板后机器人等这么多渲染帧再选（录屏每帧存图，按真实秒会只剩几帧）；
+## 配 --recchoice 让 --recframes 在面板打开时也录
+var _pick_ms := -1
+var _pick_delay := -1.0
+func _pick_wait() -> bool:
+	if _pick_delay < 0.0:
+		_pick_delay = 0.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--pickframes="):
+				_pick_delay = float(a.substr(13))
+	if _pick_delay <= 0.0:
+		return false
+	if _pick_ms < 0:
+		_pick_ms = Engine.get_process_frames()
+	if Engine.get_process_frames() - _pick_ms < int(_pick_delay):
+		return true
+	_pick_ms = -1
+	return false
+
+
 func _rec_step() -> void:
 	if _rec_t0 < -1.0:
 		_rec_t0 = -1.0
@@ -395,7 +415,7 @@ func _rec_step() -> void:
 			if a == "--legacyfeel":
 				g.perf_alt = true
 				PlayClockT.test_legacy = true
-	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and g.state == g.S.PLAY and DisplayServer.get_name() != "headless":
+	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and (g.state == g.S.PLAY or (g.state == g.S.CHOICE and Cfg.dev_args().has("--recchoice"))) and DisplayServer.get_name() != "headless":
 		if _rec_i == 0 and Cfg.dev_args().has("--sfxtrace"):
 			Sfx.trace_on = true   # --sfxtrace：录屏配音（测试局照样静音）：记下每次真正放出的音效，结束时打印 SFXTRACE，离线混音合进 mp4（tools/exu_sync_rec.py）
 			_rec_f0 = Engine.get_process_frames()
@@ -1155,6 +1175,8 @@ func step() -> void:
 		if g.state == g.S.CHOICE:
 			if g.choice_kind == "cross" and g.endg.flipped >= 0:
 				return   # 翻面中（有画面时等计时器兑现）
+			if _pick_wait():
+				return   # --pickframes：录像用，面板先停一会儿再选
 			var pi := bot_pick()
 			for a in Cfg.dev_args():
 				# --evpick=1 或 --evpick=madness:0,knight_stay:0,default:1
