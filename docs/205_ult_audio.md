@@ -272,7 +272,7 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 素材登记 docs/113 §20。
 **11-01 用户选定**：推进之王 ①、归溟幽灵鲨 ①、星熊 ②（原作爆裂，已写进游戏）、铃兰 ①、斯卡蒂 ①、拉普兰德 ①；落选的候选代码已从生成器删掉（要找回看 df767fd5c）。逻各斯「时停低鸣要保留，参考 JoJo 时间停止」另做（§4.8）。
 
-### 4.8 逻各斯时停声（11-01 第三轮；用户「logos 时停低鸣保留，可以参考那种 jojo 里时间停止的声音」）
+### 4.8 逻各斯时停声（11-01 第三轮，已被 §4.10 取代；用户「logos 时停低鸣保留，可以参考那种 jojo 里时间停止的声音」）
 第二轮删掉的「开头的声音」里就有时停低鸣（cast）→ 加回来、按 JoJo 时间停止的感觉重做；提示音 sf 仍不放（sf_off）。时停 cast 截到 1.3 秒（时停到爆开约 1.2 秒），-3 dB；爆开 impact 叠一层「时间恢复」的反向释放（气流往外冲，×0.5），仍落冲击帧 3.30。
 - ①（游戏里现在）：倒吸 = 预告片轰鸣倒放（取尾段，越吸越紧、到凝住最满，0.5 秒）→ 凝住 = 电影号角低音降调闷化（Jake Fielding「Cinematic Horn Braam…Huge-32」）+ 一记老座钟摆声降调（344 Audio「CLOCKTick_Crooked Antique Clock」）+ 魔法低鸣垫底；释放 = 长风呼啸。
 - ②：倒吸 = 碎屑呼啸倒放 + 暗黑号角渐强倒放（CSD「Transition Braam Slow Dark Creepy」）→ 凝住 = 魔法低鸣深降调 + 工业空腔嗡鸣（CSD「Dark Industrial Ambience」，真空感）+ 座钟三下越来越慢、越来越低直到停；释放 = 碎屑呼啸往外推。
@@ -292,7 +292,7 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 | 超必杀「锵」 | Freesound 611310 IENBA「Dagger」（出鞘 shwing，德克萨斯已用）；ESM Anime Game「DSGNStngr_Power Up Bright Positive…Crash Shimmer 05」；ESM Tower Defense「DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04」；CSD Ultra Transitions「Impact Hit Rapid Chord Reverb」；Federico Soler Trailer Booms 214（低频顿）；ESM HD Game Materials 铁件敲击（同上） | Freesound 611310 = CC0；其余 Sonniss 同上 |
 | 就绪提示音 | CB Sounddesign - APPlicable Sounds「UIMisc_Kalimba 3 Up」+ CSD UI Interaction「Ting Coins」 | Sonniss 同上 |
 
-**1. 逻各斯时停 + 时钟（2 候选，未写进游戏）**：cast = 前 0.45 秒秒针三下（越走越紧）→ 0.46 秒「咔」停住（深闩扣降调 + 钟锤闷响 + 金属余震）→ 停住期间原来的低鸣 + 很低的电器嗡鸣；原来低鸣里的钟声删掉（换成这套）。impact（爆开 = 时间恢复）：爆开尾巴 0.45 秒起压低 12 dB，0.55 秒起时钟重新走（滴、答、滴，渐弱）。
+**1. 逻各斯时停 + 时钟（2 候选；已被 §4.10 取代，生成代码已删）**：cast = 前 0.45 秒秒针三下（越走越紧）→ 0.46 秒「咔」停住（深闩扣降调 + 钟锤闷响 + 金属余震）→ 停住期间原来的低鸣 + 很低的电器嗡鸣；原来低鸣里的钟声删掉（换成这套）。impact（爆开 = 时间恢复）：爆开尾巴 0.45 秒起压低 12 dB，0.55 秒起时钟重新走（滴、答、滴，渐弱）。
 - 候选一 LC1 = ① 号角低鸣 + 歪钟（重、闷）；候选二 LC2 = ② 空腔嗡鸣 + 座钟（清脆滴答）。文件在 `<主仓库>/build/ult_sfx/LC1|LC2`；用户选定后把对应版写进 `gen_sfx_ult_seg_1030.py` 的 logos 再 `--apply`。
 
 **2. 超必杀提示音（3 候选，缺省 ①）**：按 Q 进入超必杀暂停那一刻，20 人共用 `ult_super_<n>`，叠在各人 sf 前面（逻各斯 sf 关着也放）；`ult/super_cue` 1–3 选版、0 = 不放，`ult/super_cue_db` 调响度（缺省 0，文件 -10 dBFS 同 sf）。
@@ -306,3 +306,18 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 - 画面（hud_ult_v）：徽记环 / 触屏终结技键爆亮 0.6 秒（白圈 + 代表色圈外扩 + 光晕）；屏幕四边淡青光一闪 0.5 秒（6% 屏高渐隐，减少动态效果时更淡）；之后徽记呼吸光晕、缺口里换成大一号代表色按键牌（刚满时弹出），触屏终结技键外圈发光。原有的「终结技就绪」横幅和队长脚下光圈不变。
 
 对照录像 `Claude outputs/ult_review_1101/ult_cues_1101.mp4`（33 秒）：0–13 秒逻各斯时停候选一 / 二（同一段画面重混声音）→ 13–25 秒德克萨斯按 Q 超必杀提示音 ① / ② / ③ → 25–33 秒就绪提醒电脑 / 手机。录像时超必杀那段关了就绪提醒、逻各斯那段两样都关，只听要比的那一声。
+
+### 4.10 逻各斯「世界」时停声（11-01 第五轮；取代 §4.8 的 ① / ② 和 §4.9 的时钟候选 LC1 / LC2）
+用户澄清：要 JoJo「世界」时停那种声音（参考是粉丝从动画里扒的片段，**不下载、不扒**，有版权；只按特征用可商用录音重做）。生成器 `gen_sfx_ult_seg_1030.py` 的 logos（v=1 候选一偏重，已写进游戏；`--variant 2` 候选二偏清脆，候选文件在 `<主仓库>/build/ult_sfx/Z1|Z2`）。
+| 段 | 什么时候响 | 做法（候选一 / 候选二的差别） |
+| --- | --- | --- |
+| 开始·吸 | 新槽 `charge`：确认释放后的 0.5 秒起手里（ult/windup_slow），到时停那一刻最满 | 倒放的大钟一击（锣的金属体）+ 倒放的碎钹亮尾，越吸越响（一：大钟降到 0.7、亮尾少；二：大钟原调、亮尾多） |
+| 开始·嗡——咚 | `cast` 开头（正式出招 = 时停那一刻） | 低音瞬态 + 音高快速下坠 + 预告片低频 + 大钟降调 + 长音下坠，卷一道长混响尾巴，约 1 秒衰减到近乎无声（一：混响 1.8 秒、低频压底；二：1.4 秒、大钟更亮） |
+| 停住 | `cast` 0.55–1.35 秒 | 只留很轻的座钟滴答（§4.9 候选二那只，一降调 0.85 / 二原调）+ 极低的电器嗡鸣（160 Hz 低通） |
+| 结束·呼—— | `cast` 末尾 0.4–0.45 秒，对准爆开 | 反向扫频往上提：低音下坠倒放（= 音高回正）+ 碎屑呼啸倒放（一）/ 碎钹亮尾倒放 + 扫频倒放（二） |
+| 结束·咔哒 | `impact` 开头（收尾加强吸气之后、冲击帧同帧），0.1 秒后接原来的真空压缩爆炸 | 一：深闩扣降调 + 座钟一记降调 + 低频闷「咚」；二：闩扣原调 + 座钟一记 + 铁件敲击 |
+
+**其他声音一起沉下去**：时停那一刻配乐低通 400 Hz、压到 -26 dB（原有 hush），别的音效也一起压 `ult/lg_sfx_duck_db` -18 dB（新，sfx.gd `world_duck_db`；她自己的 ult_logos_* 不压，语音不经这条路）；爆开那一刻随配乐一起弹回来。`cast` 到爆开实测 1.8 秒（54 帧），结束段按这个对齐。
+**画面**：时停开始那一刻加以逻各斯为中心扩散的反色环 + 环扫过处去色（`ult/lg_invert_wave` 缺省 1，`ult/lg_wave_t` 0.6 秒；后处理 post / optical 着色器的 wave 参数；减少动态效果时只去色不反色），接招式原有的慢慢褪色。
+**素材来源与授权**（都已在库里，本轮没有下载）：Ivo Vicic - Church Bells「04 Church Bells, Near Distance, In Church Tower-3 Different Bell 02」；344 Audio - Bass Drops & Downers「DSGNBass_Bass Drop & Downer Fast 16」/「DSGNBass_Tone Downer (Reverb)」；ESM Anime Game「DSGNStngr_Power Up Bright Positive…Crash Shimmer 05」；CSD「Woosh Sweep Slide Infographics Basic」/「Woosh Debris」；Federico Soler Trailer Booms 214；344 Audio Antique Clocks「CLOCKTick_You're Running Late」；ESM HD Lock And Mechanism「MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02」；ESM HD Game Materials 铁件敲击；Jake Fielding Fridge Hums「Deep Fridge Hum」；爆炸层沿用 §4.6（ESM 电光冲击、原作 `p_skill_darkholespell`、344 Audio 长风 / CSD 碎屑）。Sonniss GDC 2026 Bundle：免版税、可商用、不需署名，不得再分发原文件、不得用于 AI 训练（docs/113 §20）。
+对照录像 `Claude outputs/ult_review_1101/logos_zawarudo.mp4`：同一段画面，候选一 / 候选二各一遍。

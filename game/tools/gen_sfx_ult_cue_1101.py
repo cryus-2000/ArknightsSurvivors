@@ -2,10 +2,9 @@
 1. 超必杀提示音 ult_super_<n>（按 Q 进入超必杀暂停那一刻，20 人共用，叠在各人 sf 前面；ult/super_cue 选哪一版，0 = 不放）：
    格斗游戏超必杀那种短促、亮的「锵」——不用 MUGEN / 卡普空 / SNK 的音效，只按特征从录音里叠
 2. 就绪提示音 ult_ready（能量充满那一刻一次，ult/ready_cue）：比超必杀那声轻、短、柔，一听就分得开
-3. 逻各斯时停加时钟（用户「秒针滴答几下，然后『咔』一声停住，停住期间很低的嗡鸣，解除时钟声再走起来」）：
-   候选 LC1 = 现在的 ① 低鸣 + 时钟、LC2 = ② 低鸣 + 时钟，输出整套 ult_logos_* 到 <主仓库>/build/ult_sfx/LC1|LC2（tools/ult_sfx_review.py --sets 重混对照）
-运行：python game/tools/gen_sfx_ult_cue_1101.py            → 候选进 build/ult_sfx/CUE/、LC1/、LC2/
-      python game/tools/gen_sfx_ult_cue_1101.py --apply    → ult_super_1..3 / ult_ready 写进 game/audio/sfx/（逻各斯候选不写，选定后再改 gen_sfx_ult_seg_1030.py）
+（逻各斯时停加时钟的 LC1 / LC2 候选已被第五轮「世界」时停声取代，见 gen_sfx_ult_seg_1030.py logos 与 docs/205 §4.10）
+运行：python game/tools/gen_sfx_ult_cue_1101.py            → 候选进 build/ult_sfx/CUE/
+      python game/tools/gen_sfx_ult_cue_1101.py --apply    → ult_super_1..3 / ult_ready 写进 game/audio/sfx/
 """
 import argparse, os, runpy, shutil
 import numpy as np
@@ -58,35 +57,6 @@ def ready_cue():
     return pad(lib(KALIMBA, 0.0, 0.5, fout=0.2), at(hp(lib(TING, 0.09, 0.35, 1.2, fout=0.2), 2500) * 0.3, 0.12))
 
 
-# ---------------------------------------------------------------- 3. 逻各斯时停 + 时钟
-def logos_clock(v):
-    """cast（时停起点，0.48 秒凝住，到爆开约 1.1 秒）：前 0.45 秒秒针三下（越走越紧）→ 0.46「咔」停住（深闩扣 + 钟锤一记闷响 + 金属余震）
-    → 停住期间原来的 ① / ② 低鸣 + 一层很低的电器嗡鸣（冰箱压缩机，200 Hz 低通）；原来低鸣里的钟声删掉（换成这套）
-    impact（爆开 = 时间恢复）：原来的爆开 + 0.55 秒起时钟重新走（滴、答、滴，渐弱）
-    v=1：歪钟（重、闷）+ ① 号角低鸣；v=2：座钟（清脆滴答）+ ② 空腔嗡鸣"""
-    seg = S["logos"](v) if v == 2 else S["logos"]()
-    src, ts = (CLK_A, TICK_A) if v == 1 else (CLK_B, TICK_B)
-    ticks = pad(at(tick(src, ts[0], 0.55), 0.0), at(tick(src, ts[1], 0.7), 0.17), at(tick(src, ts[2], 0.85), 0.31))
-    stop = pad(lp(lib(LATCH, 0.0, 0.38, 0.8, fout=0.15), 6000), tick(src, ts[3], 0.9, 0.7, 0.3) * 0.8, hp(lib(CLANK, 0.12, 0.34, 0.75, fout=0.25), 400) * 0.35)
-    hum = lp(lib(HUM, 20.0, 1.0, fout=0.4), 200)
-    if v == 1:
-        suck = rev(lp(sn("b214", 0.25, 1.0, fout=0.05), 1500))[-int(0.5 * SR):]
-        hold = pad(lp(sn("braam", 0.3, 1.0, 0.7, fout=0.5), 1200), lp(sn("drone", 8.0, 1.0, 0.8, fout=0.5), 2000) * 0.4)
-    else:
-        suck = pad(rev(sn("debris", 0.1, 0.8, fout=0.05))[-int(0.6 * SR):], rev(lp(sn("tbraam", 1.8, 0.8, 0.8, fout=0.05), 2500))[-int(0.6 * SR):] * 0.8)
-        hold = pad(lp(sn("drone", 8.0, 1.2, 0.6, fout=0.5), 900), lp(sn("indamb", 8.0, 1.2, 0.8, fout=0.5), 1500) * 0.6)
-    cast = pad(suck * 0.8, ticks * 0.9, at(stop, 0.46), at(pad(hold, hum * 0.7), 0.48))
-    resume = pad(at(tick(src, ts[4], 0.6), 0.0), at(tick(src, ts[5], 0.45), 0.36 if v == 1 else 0.3), at(tick(src, ts[0], 0.3), 0.72 if v == 1 else 0.6))
-    d = dict(seg)
-    d["cast"] = fadeio(fit(cast, 1.3), 0.01, 0.35)
-    duck = np.ones(len(seg["impact"]))   # 爆开的尾巴 0.45 秒起压低，让时钟重新走起来听得见（压 12 dB）
-    i0, i1 = int(0.45 * SR), int(0.65 * SR)
-    duck[i0:i1] = np.linspace(1.0, 0.25, i1 - i0)
-    duck[i1:] = 0.25
-    d["impact"] = pad(seg["impact"] * duck, at(resume * 3.0, 0.55))
-    return d
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
@@ -97,17 +67,6 @@ def main():
     os.makedirs(dst, exist_ok=True)
     for k, x in {**super_cues(), "ult_ready": ready_cue()}.items():
         print(k, "%.2f" % write(os.path.join(dst, k + ".wav"), np.asarray(x, dtype=np.float64), "super" if "super" in k else "ready"))
-    for v in (1, 2):
-        od = os.path.join(cand, "LC%d" % v)
-        shutil.rmtree(od, ignore_errors=True)
-        os.makedirs(od)
-        info = []
-        for slot, x in logos_clock(v).items():
-            if x is None:
-                continue
-            RMS[slot] = S["level"](slot, np.asarray(x))
-            info.append("%s %.2f" % (slot, write(os.path.join(od, "ult_logos_%s.wav" % slot), np.asarray(x, dtype=np.float64), slot)))
-        print("LC%d" % v, " / ".join(info))
 
 
 if __name__ == "__main__":

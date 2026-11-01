@@ -683,7 +683,8 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var v4: bool = _lo_circ() and Bal.v("ult/lo_fx_v4", 1.0) > 0.0 and u.fx_ready(LO_GLYPH[0])   # 用户 10-31「咒文慢慢出现 → 一起真空压缩爆炸」
 	if v4:
 		tm = Bal.v("ult/lo_mark_v4", 1.2)   # 咒文慢慢浮现：结算推迟到 1.2 秒（份额不变）
-		u.hush(tm + 0.5)   # 配乐压成寂静（时空暂停感）
+		u.world_hush(tm + 0.5)   # 时停：配乐低通压成寂静、别的音效一起压低（用户 11-01「JoJo『世界』时停」，docs/205 §4.10），爆开时弹回
+		u.invert_wave(o.pos)   # 以她为中心扩散的反色 / 去色波（ult/lg_invert_wave）
 	var col: Color = u._col(o)
 	var p0: Vector2 = _w(org, d, -bk, -hw)
 	var p1: Vector2 = _w(org, d, L, -hw)

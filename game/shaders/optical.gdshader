@@ -38,6 +38,8 @@ uniform float lut_on = 1.0;
 uniform float vignette = 0.12;
 uniform float hurt = 0.0;
 uniform float desat = 0.0;
+uniform vec4 wave = vec4(0.5, 0.5, -1.0, 0.0);
+uniform float wave_desat = 0.6;
 // 失色区（10-25 拉普兰德 S3「噤声」；同 post.gdshader，参数由 optical.gd 从 g.post 转来）
 uniform float zone_amt = 0.0;
 uniform vec2 zone_c = vec2(0.5);
@@ -72,6 +74,16 @@ float emissive(vec3 c) {
 	float s = l > 0.001 ? (l - mn) / l : 0.0;
 	float e = smoothstep(emissive_th, 1.0, l);
 	return e * mix(0.55, 1.0, smoothstep(0.15, 0.5, s));
+}
+
+// 反色 / 去色波（逻各斯时停，ult/lg_invert_wave）：圆心 wave.xy（屏幕 uv）、半径 wave.z（屏高为单位）的一圈反色环往外扩，环内去色
+vec3 wave_fx(vec3 c, vec2 uv, vec2 px) {
+	float asp = px.y / px.x;
+	float d = length(vec2((uv.x - wave.x) * asp, uv.y - wave.y));
+	float band = 1.0 - smoothstep(0.0, 0.07, abs(d - wave.z));
+	float inside = 1.0 - smoothstep(wave.z - 0.03, wave.z, d);
+	c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))), inside * wave_desat);
+	return mix(c, clamp(vec3(1.0) - c, 0.0, 1.0), band * 0.85 * wave.w);
 }
 
 void fragment() {
@@ -172,6 +184,9 @@ void fragment() {
 	base *= 1.0 - dot(c, c) * vignette * 2.0;
 	if (desat > 0.001) {
 		base = mix(base, vec3(luma(base)), desat);
+	}
+	if (wave.z > 0.0) {
+		base = wave_fx(base, SCREEN_UV, SCREEN_PIXEL_SIZE);
 	}
 	if (zone_amt > 0.001 && zone_r > 0.0001) {
 		float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;

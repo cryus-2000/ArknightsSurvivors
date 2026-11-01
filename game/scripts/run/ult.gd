@@ -1627,6 +1627,52 @@ func hush(sec: float) -> void:
 	hush_until = maxf(hush_until, UM.now() + sec)
 
 
+## 时停（逻各斯「世界」时停声，用户 11-01，docs/205 §4.10）：配乐低通压到很小（hush）之外，别的音效也一起压低 ult/lg_sfx_duck_db（-18）dB，
+## 时停自己的 ult_<干员>_* 不压；爆开那一刻（_fin_release）随配乐一起弹回来
+var world_hush_until := -99.0
+
+
+func world_hush(sec: float) -> void:
+	hush(sec)
+	world_hush_until = maxf(world_hush_until, UM.now() + sec)
+
+
+func _world_hush_tick() -> void:
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx == null or not ("world_duck_db" in sfx):
+		return
+	var on: bool = UM.now() < world_hush_until and caster != null
+	sfx.world_duck_db = Bal.v("ult/lg_sfx_duck_db", -18.0) if on else 0.0
+	sfx.world_duck_keep = ("ult_%s_" % str(caster.id)) if on else ""
+
+
+## 时停开始那一刻的反色 / 去色波（ult/lg_invert_wave 缺省 1）：以施放者为中心一圈反色环往外扩 ult/lg_wave_t（0.6）真实秒扫过全屏，
+## 环扫过的地方去色（接招式自己的慢慢褪色）；后处理着色器 post / optical 的 wave 参数画。减少动态效果时只去色不反色
+var _wave_rt := -99.0
+var _wave_pos := Vector2.ZERO
+
+
+func invert_wave(p: Vector2) -> void:
+	if Bal.v("ult/lg_invert_wave", 1.0) <= 0.0 or not _sf_visual():
+		return
+	_wave_rt = UM.now()
+	_wave_pos = p
+
+
+func _wave_tick() -> void:
+	if g.post == null or not ("wave" in g.post):
+		return
+	var k: float = (UM.now() - _wave_rt) / maxf(0.05, Bal.v("ult/lg_wave_t", 0.6))
+	if k < 0.0 or k >= 1.0:
+		g.post.wave = Vector4(0.5, 0.5, -1.0, 0.0)
+		return
+	var vs: Vector2 = g.get_viewport().get_visible_rect().size
+	var sp: Vector2 = g.hud_ct() * _wave_pos
+	var e: float = 1.0 - pow(1.0 - k, 1.3)   # 接近匀速、末段略收（看得清环一路扫过去）
+	g.post.wave = Vector4(sp.x / maxf(1.0, vs.x), sp.y / maxf(1.0, vs.y), 0.02 + 1.9 * e, (1.0 - smoothstep(0.7, 1.0, k)) * (0.0 if Cfg.reduce_motion else 1.0))
+	g.post.wave_desat = 0.6
+
+
 func link_slow() -> void:
 	_link_rt = UM.now()
 
@@ -1695,8 +1741,10 @@ func impact(pos: Vector2) -> void:
 	if _fin_on():
 		_fin_pending = true   # 收尾加强：先「吸气」（压暗 + 声音收一下），fx_tick 到点再爆（_fin_release）
 		hush(_fin_in() + 0.05)
+		world_hush_until = minf(world_hush_until, UM.now() + _fin_in())
 	else:
 		_ua("impact")
+		world_hush_until = UM.now()
 	var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sx != null and sx.trace_on:   # 录屏对时间线：第一下掉血（impact）那一刻
 		sx.trace.append([Engine.get_process_frames(), "ultev:IMPACT", 0.0, 1.0])
@@ -1752,6 +1800,8 @@ func _imp_punch() -> float:
 func fx_tick() -> void:
 	_sf_tick()
 	_wu_tick()
+	_world_hush_tick()
+	_wave_tick()
 	_dur_tick()
 	if _fin_pending and _imp_age() >= _fin_in():
 		_fin_pending = false
@@ -2309,6 +2359,7 @@ func _draw_inhale(w) -> void:
 func _fin_release() -> void:
 	_ua("impact")
 	hush_until = UM.now()   # 配乐随「爆」回来
+	world_hush_until = UM.now()   # 时停压下去的音效一起弹回来
 	if act.get("soft", false):
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null

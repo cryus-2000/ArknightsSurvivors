@@ -627,6 +627,8 @@ func _process(_dt: float) -> void:
 	if g.post != null:
 		mat.set_shader_parameter("hurt", g.post.hurt)
 		mat.set_shader_parameter("desat", g.post.desat)
+		mat.set_shader_parameter("wave", g.post.wave)
+		mat.set_shader_parameter("wave_desat", g.post.wave_desat)
 		mat.set_shader_parameter("zone_amt", g.post.zone_amt)
 		mat.set_shader_parameter("zone_c", g.post.zone_c)
 		mat.set_shader_parameter("zone_r", g.post.zone_r)
