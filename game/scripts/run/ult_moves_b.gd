@@ -1255,9 +1255,10 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 			"v": Vector2(40, 360) / 0.18})
 		u.strip("fx_fire_explode", pp, {"sc": 1.4, "delay": tp + 0.05})
 	o.play_vis_anim("attack")
+	# 段表 lava_t / lava_n（docs/216 §7 v2）：熔岩地面跳数 / 持续缩短，合计份额不变（每跳 ey_lava_frac / 跳数）
 	return {"c": c, "R": R, "t_col": t_col, "col_done": false, "blobs": blobs, "bi": 0, "fseg": {}, "fall_end": t_fall + span + (0.2 if rt == "ignite" else 0.0),
-		"filled": false, "pre": pre, "pi": 0, "pseg": {}, "lava_r": Bal.v("ult/ey_lava_r", 300.0), "lava_t": Bal.v("ult/ey_lava_t", 2.2),
-		"lava_n": int(Bal.v("ult/ey_lava_n", 5.0)), "tick": 0, "t_lava": t_fall + span + 0.05, "fall_frac": 0.5 if rt == "ignite" else Bal.v("ult/ey_fall_frac", 0.6),
+		"filled": false, "pre": pre, "pi": 0, "pseg": {}, "lava_r": Bal.v("ult/ey_lava_r", 300.0), "lava_t": u.seg("eyjafjalla", "lava_t", Bal.v("ult/ey_lava_t", 2.2)),
+		"lava_n": maxi(1, int(u.seg("eyjafjalla", "lava_n", Bal.v("ult/ey_lava_n", 5.0)))), "tick": 0, "t_lava": t_fall + span + 0.05, "fall_frac": 0.5 if rt == "ignite" else Bal.v("ult/ey_fall_frac", 0.6),
 		"pool": false, "fx": [], "v2": v2}
 
 

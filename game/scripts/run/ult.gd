@@ -390,6 +390,7 @@ func _begin(ld, k: String) -> void:
 	serial += 1
 	_cut_pending = false
 	_wu_did = false
+	_tail_end = -1.0
 	_tk = tk_of(str(ld.id)) if k == "ult" else 1.0
 	if _dur_arg():
 		_dur = {"id": str(ld.id), "t0": UM.now(), "last": UM.now(), "frozen": 0.0, "slow": 0.0}
@@ -479,7 +480,7 @@ func _tick_ult(dt: float) -> void:
 			_cast()
 		return
 	if phase == "windup":
-		if _wu_k() >= 1.0:
+		if g.t - _wu_t0 >= (_wu_t() + _wu_hold()) * _wu_s():
 			_wu_end()
 		return
 	if phase == "cast":
@@ -487,13 +488,26 @@ func _tick_ult(dt: float) -> void:
 		if sx != null:
 			sx.voice_lock(0.5)   # 招式没放完，别的干员不开口（结束后再静 0.5 秒）
 			sx.op_skill_mute(0.25)   # 招式放出期间干员技能音效不出声（落地回技力当场放出的技能，10-31 用户）
+		if _tail_end >= 0.0:   # 余韵段（段表 post）：招式已收尾，不再步进，烟尘 / 碎屑照常消散，到点才算演出结束
+			if g.t >= _tail_end:
+				_cast_done()
+			return
 		var done: bool = Moves.step_cult(self, act, dt) if kind == "cult" else Moves.step(self, act, dt)
 		if done:
-			# 招式在标冲击帧的同一帧收尾（归溟幽灵鲨最后一圈巨锯落地即结束）：act 清空后冲击帧来不及画，留个尾巴把两拍画完（11-01 终结技审查）
-			_hf_tail = {"hf": true, "hf_cols": act.get("hf_cols", [])} if kind == "ult" and act.get("hf", false) and not act.get("hf_done", false) else {}
-			phase = ""
-			act = {}
-			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
+			var post: float = seg(str(caster.id), "post", 0.0) if kind == "ult" else 0.0
+			if post > 0.0:
+				_tail_end = g.t + post
+				return
+			_cast_done()
+
+
+func _cast_done() -> void:
+	_tail_end = -1.0
+	# 招式在标冲击帧的同一帧收尾（归溟幽灵鲨最后一圈巨锯落地即结束）：act 清空后冲击帧来不及画，留个尾巴把两拍画完（11-01 终结技审查）
+	_hf_tail = {"hf": true, "hf_cols": act.get("hf_cols", [])} if kind == "ult" and act.get("hf", false) and not act.get("hf_done", false) else {}
+	phase = ""
+	act = {}
+	_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
 
 
 var v2_waves: Array = []    # 连携 v2 余波（link_v2.spread_start / tick_waves，link/v2_spread）
@@ -520,6 +534,7 @@ func _cast() -> void:
 
 func _cast_go() -> void:
 	phase = "cast"
+	_tail_end = -1.0
 	_ult_at = aim if aim_kind == "point" else (caster.pos + aim_dir * 300.0 if aim_kind == "dir" else caster.pos)
 	_cast_t = g.t
 	ev.ult_t = g.t
@@ -2385,9 +2400,33 @@ func _fin_release() -> void:
 ## 每人一个演出时间系数：招式步进（_tick_ult）和这次终结技的图形 / 帧条寿命（_tick_shapes）一起乘它，整条画面时间线同比伸缩，
 ## 只在出招阶段（phase cast）伸缩，瞄准和招式结束后的余韵照原速；伤害份额与判定形状不变（落点时刻跟着同比缩放）；
 ## 超必杀暂停、顿帧、冲击帧、冲击慢放按真实时间走，不受影响。
-## 系数按 tools/ult_dur.py 量的「按下 → 招式结束」对齐到中位数（TK 表，balance ult/tk_<干员> 可覆盖）
-const TK := {"angelina": 1.10, "exusiai": 1.94, "eyjafjalla": 2.01, "gladiia": 0.69, "hoshiguma": 1.50, "irene": 1.26, "kaltsit": 0.83, "lappland": 1.36, "logos": 0.91, "lumen": 1.43, "mizuki": 0.70, "saria": 0.50, "siege": 1.09, "skadi": 0.88, "skalter": 2.50, "specter_unchained": 1.55, "suzuran": 0.75, "texas": 0.88, "ulpianus": 0.75, "wisadel": 0.71}
+## 系数按 tools/ult_dur.py 量的「按下 → 招式结束」对齐到中位数（TK 表，balance ult/tk_<干员> 可覆盖）。
+## 11-01 用户看速度对照：「终结技直接加速或者减速会打乱原来的节奏」——差得多的 7 人（浊心斯卡蒂 / 艾雅法拉 / 能天使偏长，
+## 塞雷娅 / 水月 / 维什戴尔 / 歌蕾蒂娅偏短）不再变速，改走下面的段表 SEG：动作按原速，偏短的补停顿 / 余韵，偏长的删重复段
+const TK := {"angelina": 1.10, "hoshiguma": 1.50, "irene": 1.26, "kaltsit": 0.83, "lappland": 1.36, "logos": 0.91, "lumen": 1.43, "siege": 1.09, "skadi": 0.88, "specter_unchained": 1.55, "suzuran": 0.75, "texas": 0.88, "ulpianus": 0.75}
 var _tk := 1.0
+
+
+## 段表（docs/216 §7 v2）：不打乱动作的段来补 / 削时长，目标「按下 → 招式结束」落在中位 ±15%；balance ult/seg_<干员>_<段> 可覆盖，ult/dur_unify 0 = 全部回原样。
+## pre = 起手慢放到出手前一刻后再定住多久（真实秒，蓄势停顿；只在看得见的局里有起手）；post = 招式收尾后留多久余韵（游戏秒，不再步进，烟尘 / 碎屑照常消散，队长仍锁着）；
+## 其余是各招自己的段：浊心斯卡蒂 sweep = 吐息追烧时长（原 3.4）；艾雅法拉 lava_t / lava_n = 熔岩地面持续 / 跳数（原 2.2 / 5，合计份额不变）；
+## 能天使 dur = 扫射时长（原 2.5；射速节拍不变，总发数 / 每名精英发数按比例减，份额与覆盖面不变）
+const SEG := {
+	"skalter": {"sweep": 1.1},
+	"eyjafjalla": {"lava_t": 0.6, "lava_n": 2.0},
+	"exusiai": {"dur": 1.25},
+	"saria": {"pre": 0.25, "post": 0.4},
+	"mizuki": {"pre": 0.15, "post": 0.2},
+	"wisadel": {"pre": 0.1, "post": 0.15},
+	"gladiia": {"pre": 0.15, "post": 0.2},
+}
+var _tail_end := -1.0   # 余韵段结束的游戏时间（< 0 = 不在余韵里）
+
+
+func seg(id: String, key: String, base: float) -> float:
+	if Bal.v("ult/dur_unify", 1.0) <= 0.0 or kind != "ult":
+		return base
+	return Bal.v("ult/seg_%s_%s" % [id, key], float(SEG.get(id, {}).get(key, base)))
 
 
 func tk_of(id: String) -> float:
@@ -2417,9 +2456,18 @@ func _wu_t() -> float:
 	return maxf(0.05, Bal.v("ult/windup_t", 0.5))
 
 
-## 起手进度 0..1（游戏时间）
+func _wu_s() -> float:
+	return clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)
+
+
+## 段表 pre：起手播到出手前一刻后再定住的真实秒数（蓄势停顿，镜头 / 黑边 / 慢速照旧）
+func _wu_hold() -> float:
+	return clampf(seg(str(caster.id), "pre", 0.0), 0.0, 1.0) if caster != null else 0.0
+
+
+## 起手进度 0..1（游戏时间；有 pre 停顿时到 1 后定住）
 func _wu_k() -> float:
-	return clampf((g.t - _wu_t0) / (_wu_t() * clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)), 0.0, 1.0)
+	return clampf((g.t - _wu_t0) / (_wu_t() * _wu_s()), 0.0, 1.0)
 
 
 func _wu_cam() -> float:
