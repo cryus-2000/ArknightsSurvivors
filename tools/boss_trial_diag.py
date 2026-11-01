@@ -17,7 +17,12 @@ ap.add_argument("--out", required=True)
 ap.add_argument("--seeds", default="1,2,3")
 ap.add_argument("--cap", type=int, default=300)
 ap.add_argument("--jobs", type=int, default=0)
+ap.add_argument("--groups", default="")
+ap.add_argument("--extra", default="", help="追加的游戏参数（如 --bal=… 恢复旧值做对照）")
+ap.add_argument("--name", default="trial_diag")
 a = ap.parse_args()
+if a.groups:
+    GROUPS = a.groups.split(",")
 os.makedirs(a.out, exist_ok=True)
 GAME = os.path.join(ROOT, "game")
 gr.ensure_imported(GAME)
@@ -26,7 +31,7 @@ for grp in GROUPS:
     for sq in SQUADS:
         for s in a.seeds.split(","):
             jobs.append(((grp, sq, int(s)), [gr.find_godot(), "--headless", "--path", GAME, "--fixed-fps", "30", "--", "--balance", "--bot=expert",
-                         "--diagbot", "--realtime", "--diagtrial=%s:%s" % (grp, sq), "--diagmax=%d" % a.cap, "--maxt=1500", "--seed=" + s]))
+                         "--diagbot", "--realtime", "--diagtrial=%s:%s" % (grp, sq), "--diagmax=%d" % a.cap, "--maxt=1500", "--seed=" + s] + a.extra.split()))
 
 
 def one(j):
@@ -37,7 +42,7 @@ def one(j):
 
 
 n = a.jobs or gr._max_procs()
-with ThreadPoolExecutor(max_workers=max(1, n)) as ex, open(os.path.join(a.out, "trial_diag.txt"), "w", encoding="utf-8") as f:
+with ThreadPoolExecutor(max_workers=max(1, n)) as ex, open(os.path.join(a.out, a.name + ".txt"), "w", encoding="utf-8") as f:
     for r in ex.map(one, jobs):
         f.write(json.dumps(r, ensure_ascii=False) + "\n")
         f.flush()
