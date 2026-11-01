@@ -271,3 +271,10 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 生成器修正：LV 里 `boom` 前缀原被艾丽妮连环爆的 -15 覆盖（dict 后写的赢），重生成星熊会把高潮压到 -15 → 星熊回 -9，艾丽妮两槽按槽名单独给（文件不变）。干员函数给 `None` = 不要这一槽（逻各斯 sf）。
 素材登记 docs/113 §20。
 **11-01 用户选定**：推进之王 ①、归溟幽灵鲨 ①、星熊 ②（原作爆裂，已写进游戏）、铃兰 ①、斯卡蒂 ①、拉普兰德 ①；落选的候选代码已从生成器删掉（要找回看 df767fd5c）。逻各斯「时停低鸣要保留，参考 JoJo 时间停止」另做（§4.8）。
+
+### 4.8 逻各斯时停声（11-01 第三轮；用户「logos 时停低鸣保留，可以参考那种 jojo 里时间停止的声音」）
+第二轮删掉的「开头的声音」里就有时停低鸣（cast）→ 加回来、按 JoJo 时间停止的感觉重做；提示音 sf 仍不放（sf_off）。时停 cast 截到 1.3 秒（时停到爆开约 1.2 秒），-3 dB；爆开 impact 叠一层「时间恢复」的反向释放（气流往外冲，×0.5），仍落冲击帧 3.30。
+- ①（游戏里现在）：倒吸 = 预告片轰鸣倒放（取尾段，越吸越紧、到凝住最满，0.5 秒）→ 凝住 = 电影号角低音降调闷化（Jake Fielding「Cinematic Horn Braam…Huge-32」）+ 一记老座钟摆声降调（344 Audio「CLOCKTick_Crooked Antique Clock」）+ 魔法低鸣垫底；释放 = 长风呼啸。
+- ②：倒吸 = 碎屑呼啸倒放 + 暗黑号角渐强倒放（CSD「Transition Braam Slow Dark Creepy」）→ 凝住 = 魔法低鸣深降调 + 工业空腔嗡鸣（CSD「Dark Industrial Ambience」，真空感）+ 座钟三下越来越慢、越来越低直到停；释放 = 碎屑呼啸往外推。
+换 ② = `python game/tools/gen_sfx_ult_seg_1030.py --apply --only logos --reseed --variant 2`。对照录像 `Claude outputs/ult_round3_1101/logos_timestop_1vs2.mp4`。
+
