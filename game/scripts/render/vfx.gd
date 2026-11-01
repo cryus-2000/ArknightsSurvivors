@@ -520,10 +520,6 @@ func slash_tex(kind := "base") -> String:
 		n += "_mirage"
 	if g.tex.get(n) != null:
 		return n
-	if kind == "awaken" and g.tex.get("fx_s1_slash") != null:
-		return "fx_s1_slash"
-	if kind == "mirage" and g.tex.get("fx_s3_slash") != null:
-		return "fx_s3_slash"
 	return "slash"
 
 

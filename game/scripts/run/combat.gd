@@ -1347,8 +1347,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 				shattered = g.vfx.death_shatter(e, death_name, dp, dsc, Vector2(0.5, 0.5))
 	elif lean or q:
 		pass   # 光学 + 新击杀：没有死亡帧条的怪不画溶解，下面当帧碎
-	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
-		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
+	else:
+		g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0))
 	if not q and not shattered and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
 		g.optical.particles.kill_burst(e)   # 光学观感原型：击杀碎屑（纯画面，GPU 随机，不碰模拟随机数）
 	if e.elite:

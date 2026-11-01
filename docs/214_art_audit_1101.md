@@ -51,3 +51,11 @@
 - 文件：`game/art/ui/growth/growth_{pierce,lane_melee,lane_multi,lane_summon,lane_control,lane_weak,lane_shield,oil,atk}.png`，32×32，透明底，带 .import。
 - 风格：照现有 `growth_b_*` / `growth_squad_*`（青蓝线描 + 少量实心块、1 像素暗边、无渐变）；同屏三选一时与现有卡不能一眼分出手笔。
 - 题材见 §2 A2。交付后在三选一里截桌面 + 手机两张看。
+
+## 4. 批复落实（11-01 协调人：A1 工具方案、A2 pixgen、A3 pixfx、A4 删两类登记、A6 删；A5 暂缓，A7 / A8 不改）
+
+| # | 做法 | 结果 |
+|---|---|---|
+| A1 | 新增 `tools/op_1x/eye_fix.py`，make_op_1x 出完每人后调用（以后重出 1x 不丢）：avatar_eyes 眼位折半到 1x，用未改过的待机首帧量出两个瞳孔格写死（PUPIL），逐帧拿待机首帧 11×7 眼部作模板找脸（每条帧条先用分数好的帧定位置，其余帧位置 ±3 格内才改；转头 / 闭眼不改），瞳孔格换成 IRIS 虹膜色。虹膜色取 PRTS 战斗小人眼部同色系中位数：铃兰绿 #5c6b2b、德克萨斯橙 #ef9462、艾丽妮浅灰紫 #a47186、推进之王琥珀 #a37747、凯尔希黄绿 #6e7425、拉普兰德灰（#90907f 压到 0.64 明度，原色在白脸上比黑瞳孔还难看出）。只登记这 6 人，其余 14 人 1x 眼睛本来清楚或侧脸，不处理 | 6 人 34 条帧条共 354 像素改动，逐像素 diff：全部在眼部（每条 y 跨度 ≤ 5、x 27–42）、每条只有虹膜一种颜色、透明度不变；重复跑 0 改动。眼部放大前后对照 `Claude outputs/art_audit_1101/eyes_1x_before_after.png` |
+| A4 | art.gd 删终结技第二批 `fx_ult_<人>_front/back` + 忍冬 39 条登记（忍冬本体 op_vulpis_walk / slash 留）、FXF 删水月旧特效 9 条（留 fx_hit）；连带删掉只为这些名字存在的死分支（seg_mizuki 的 fx_s1_burst / fx_cast 播放与 fx_s2_aura / fx_s2_bind / fx_stun 帧条、vfx 的 fx_s1_slash / fx_s3_slash 回退、combat 的 fx_death 回退），缺图时本来就走这些分支之外的画法，画面不变。怪物 / Boss 两批登记留着 | — |
+| A6 | 删 `game/art/enemies/_portraits/` 10 张（@1x / @2x 共 40 个文件）、enemies.json 10 个 `portrait` 字段；boss_intro 去掉专画头像分支（没有裁切框时直接用待机帧条），重建 index.json | 生成器 tools/boss_portraits_hand.py 留着没删（不再接入） |

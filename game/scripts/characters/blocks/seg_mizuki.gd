@@ -261,8 +261,6 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	var slash_tex: String = o.slash_tex_name("awaken" if empowered else ("mirage" if s3 else "base"))
 	if slash_tex.begins_with("fx_umbrella_slash"):
 		slash_col = Color(1.15, 1.15, 1.15)
-	if empowered and alive.size() > 0:
-		o.play_anim_fx("fx_s1_burst", alive[0].pos, 0.35)
 	for k in min(hit.size(), 3):
 		o.enemy_hit_fx(hit[k], hit[k].pos - o.pos)
 	if not s3:
@@ -352,7 +350,6 @@ static func _h3_run_delayed(o, dl: Dictionary) -> void:
 static func h3_cast_push(o, b: Dictionary) -> void:
 	var g = o.g
 	var big: bool = b.get("big", false)
-	o.play_anim_fx("fx_cast", o.pos, 0.5, g.PX * (1.3 if big else 1.0), true)
 	o.screen_shake(0.8 if big else 0.5)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = _mf_col(b.get("col", []), Color(0.45, 0.8, 1.0))
@@ -499,19 +496,13 @@ static func _h3mz_draw_over(o) -> void:
 static func _h3mz_draw_auras(o) -> void:
 	var g = o.g
 	var cv = o.cv
-	if o.s_t[1] > 0.0 and g.tex.get("fx_s2_aura") == null:
+	if o.s_t[1] > 0.0:
 		cv.draw_arc(o.pos + Vector2(0, -10), 30.0 + sin(g.t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
 
 
-static func _h3mz_draw_add(o, ci, loop: int) -> void:
-	var g = o.g
-	if o.s_t[1] > 0.0 and g.tex.get("fx_s2_aura") != null:
-		o.draw_spr_on(ci, "fx_s2_aura", g.FXF.fx_s2_aura, loop, o.pos + Vector2(0, 4))
-	var mark := "fx_s2_bind" if o.s_t[1] > 0.0 else "fx_stun"
-	if g.tex.get(mark) != null:
-		for e in g.enemies:
-			if e.stun > 0.3:
-				o.draw_spr_on(ci, mark, g.FXF[mark], loop + e.id, e.pos + Vector2(0, -e.r - 10))
+## 原来画 fx_s2_aura / fx_s2_bind / fx_stun 帧条，这三张从没交过图（11-01 删登记，docs/214 A4），留空入口
+static func _h3mz_draw_add(_o, _ci, _loop: int) -> void:
+	pass
 
 
 static func _h3mz_status(o) -> Array:

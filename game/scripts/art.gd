@@ -969,8 +969,8 @@ const BASE_TEX := ["e_knight_walk", "e_knight_walk_move", "e_knight_walk_attack"
 ## 敌人贴图的附加帧条后缀（_ready 按 data/enemies.json 逐个尝试；_slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克））
 const ENEMY_SUFFIXES := ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee", "_wound", "_revive", "_skill", "_spin", "_reveal", "_change"]
 ## 美术交付的特效帧数（见 docs/05_art_handoff.md）
-const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
-	"fx_s3_slash": 4, "fx_cast": 8, "fx_stun": 4, "fx_hit": 4, "fx_death": 5}
+## 11-01 删掉从没交过图的水月旧特效 9 条（fx_s1_burst / fx_cast / fx_stun 等，docs/214 A4），只剩 fx_hit
+const FXF := {"fx_hit": 4}
 
 ## 美术 V6 帧条：名称 -> [帧数, fps]
 const V6_FRAMES := {
@@ -1058,24 +1058,8 @@ const V6_FRAMES := {
 	"fx_ult_kaltsit_melt_front": [8, 24.0], "fx_ult_kaltsit_crack_back": [6, 20.0], "fx_ult_kaltsit_rebuild_orbit": [12, 16.0],
 	"fx_ult_ulpianus_anchor_front": [4, 0.0], "fx_ult_ulpianus_chain_front": [2, 12.0], "fx_ult_ulpianus_crack_back": [6, 20.0], "fx_ult_ulpianus_burst_front": [8, 20.0],
 	"fx_ul_crack_line": [1, 0.0], "fx_ul_rock": [4, 0.0], "fx_ul_dust_ring": [1, 0.0], "fx_ul_crack_fork": [1, 0.0], "fx_ul_dust_wall": [1, 0.0], "fx_sk_beam": [1, 0.0], "fx_sk_blast": [1, 0.0], "fx_sk_flash": [1, 0.0], "fx_sg_shock": [1, 0.0], "fx_gl_vortex": [1, 0.0], "fx_px_burst1": [8, 9.0], "fx_px_burst2": [8, 9.0], "fx_px_burst_s": [8, 9.0], "fx_mz_tent": [1, 0.0], "fx_hs_crack": [1, 0.0], "fx_hs_ring": [1, 0.0], "fx_ws_crater": [4, 0.0], "fx_wd_cannon": [4, 12.0], "fx_ey_rock": [2, 0.0], "fx_ey_pool": [1, 0.0], "fx_ey_steam": [1, 0.0], "fx_ey_bomb": [1, 0.0], "fx_ey_pumice": [4, 0.0], "fx_ey_fount": [1, 0.0], "fx_sa_funnel1": [1, 0.0], "fx_sa_funnel2": [1, 0.0], "fx_sa_air": [1, 0.0], "fx_dust_seq": [7, 10.0], "fx_ey_fork1": [1, 0.0], "fx_ey_fork2": [1, 0.0], "fx_ey_fork3": [1, 0.0], "fx_ey_fork4": [1, 0.0], "fx_an_core": [1, 0.0], "fx_an_crater": [1, 0.0], "fx_ul_crack_fork2": [1, 0.0], "fx_ul_crack_fork3": [1, 0.0], "fx_ul_crack_fork4": [1, 0.0], "fx_ul_rock2": [4, 0.0], "fx_sg_shock2": [1, 0.0], "fx_sg_shock3": [1, 0.0], "fx_sg_fork1": [1, 0.0], "fx_sg_fork2": [1, 0.0], "fx_sg_fork3": [1, 0.0], "fx_sg_fork4": [1, 0.0],   # pixfx 大贴图：乌尔比安裂地 / 浊心斯卡蒂吐息 / 凯尔希爆点（docs/199 §7.6–7.7）
-	# 终结技第二批 15 人 + 忍冬（Codex 单 art/incoming/ult_batch2_1029/codex_order.md；素材未到，先登记帧数 / fps：PNG 放进 game/art/fx/ 即可被 u.strip / u.fx_ready 取到，
-	# 到货时以 manifest 为准改这里；接入步骤见 docs/199「待合入清单」）
-	"fx_ult_skadi_wave_front": [8, 16.0], "fx_ult_skadi_foam_front": [6, 20.0], "fx_ult_skadi_wet_back": [4, 10.0],
-	"fx_ult_gladiia_vortex_back": [6, 16.0], "fx_ult_gladiia_burst_front": [8, 20.0],
-	"fx_ult_angelina_core_front": [8, 16.0], "fx_ult_angelina_dust_back": [6, 20.0],
-	"fx_ult_eyja_pillar_front": [8, 16.0], "fx_ult_eyja_rock_front": [6, 20.0], "fx_ult_eyja_lava_back": [4, 8.0],
-	"fx_ult_wisadel_blast_front": [8, 20.0], "fx_ult_wisadel_quake_back": [6, 20.0],
-	"fx_ult_specter_saw_orbit": [4, 24.0], "fx_ult_specter_spark_front": [6, 30.0],
-	"fx_ult_mizuki_burrow_back": [6, 16.0], "fx_ult_mizuki_limb_front": [4, 12.0], "fx_ult_mizuki_tip_front": [6, 16.0], "fx_ult_mizuki_small_front": [8, 16.0],
-	"fx_ult_saria_punch_front": [6, 24.0], "fx_ult_saria_shock_front": [6, 20.0], "fx_ult_saria_amber_front": [8, 16.0],
-	"op_vulpis_appear_front": [6, 16.0], "fx_ult_vulpis_light_front": [4, 24.0], "fx_ult_vulpis_slash_front": [8, 20.0],
+	# 终结技第二批 Codex 单（art/incoming/ult_batch2_1029）的 front / back 帧条登记 11-01 删掉：素材没交，全部由程序特效做完（docs/199、docs/214 A4）
 	"op_vulpis_walk": [8, 10.0], "op_vulpis_slash": [8, 0.0],   # 忍冬本体（Spine 自产，docs/207 §6.3）：铃兰终结技走路进场 + 拔刀斩（斩帧由 ult_fx_c 逐帧指定）
-	"fx_ult_logos_field_back": [6, 12.0], "fx_ult_logos_glyph_orbit": [8, 20.0], "fx_ult_logos_ash_front": [6, 16.0],
-	"fx_ult_hoshiguma_shield_front": [10, 16.0], "fx_ult_hoshiguma_crack_back": [6, 20.0],
-	"fx_ult_siege_impact_front": [8, 20.0], "fx_ult_siege_rubble_front": [8, 20.0], "fx_ult_siege_shock_back": [6, 20.0],
-	"fx_ult_irene_gale_back": [6, 20.0], "fx_ult_irene_slash_front": [6, 24.0], "fx_ult_irene_shell_front": [8, 20.0],
-	"fx_ult_lappland_blade_front": [6, 24.0], "fx_ult_lappland_silence_orbit": [6, 12.0],
-	"fx_ult_lumen_beam_front": [8, 16.0], "fx_ult_lumen_ring_back": [6, 20.0],
 	"fx_texas_blade": [6, 20.0], "fx_texas_rain_mark": [6, 12.0],
 	# Codex 精英化第 1 批（docs/93 §1，art/incoming/elite_art_1_manifest.json；接入见 docs/91 第 1 批）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor。
 	# fx_hoshiguma_slash_rose / fx_exusiai_pierce_gold 是 Codex 这批交来时覆盖了已有的 fx_slash_heavy_rose（艾丽妮用）/ fx_exusiai_hit_gold（倾泻用），
