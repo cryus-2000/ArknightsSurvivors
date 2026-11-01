@@ -1356,9 +1356,14 @@ func mire_motes(m: Dictionary, budget: int) -> int:
 func promote_burst(pos: Vector2, elite: bool) -> void:
 	if not p2:
 		return
-	var c := Color(1.0, 0.85, 0.45) if elite else Color(0.6, 0.95, 1.0)
-	glow(pos + Vector2(0, -24), 150.0 if elite else 100.0, Color(c.r, c.g, c.b, 0.6), 0.6, 0.4)
-	motes(pos + Vector2(0, -10), Vector2.UP, Color(c.r * 2.0, c.g * 1.8, c.b * 1.3), 18 if elite else 10, 130.0, 1.2, -60.0, 1.0, 2.0, 1.2, 18.0)
+	# 11-01 用户「升级时看到的还是潮水」：非精英（选干员培养卡 / 入队 / 换人）原来是青色柔光 + 10 粒往上冲的青尘，紧跟升级金光读成「潮水奔发」
+	# → 一律金色、光尘减到 5 粒且慢、只在身边（和升级光爆同一套金色，docs/208 H2 口径「金光保留」）
+	var c := Color(1.0, 0.85, 0.45) if elite else LVUP_GOLD
+	glow(pos + Vector2(0, -24), 150.0 if elite else 80.0, Color(c.r, c.g, c.b, 0.6 if elite else 0.45), 0.6, 0.4)
+	if elite:
+		motes(pos + Vector2(0, -10), Vector2.UP, Color(c.r * 2.0, c.g * 1.8, c.b * 1.3), 18, 130.0, 1.2, -60.0, 1.0, 2.0, 1.2, 18.0)
+	else:
+		motes(pos + Vector2(0, -10), Vector2.UP, Color(c.r * 1.4, c.g * 1.3, c.b * 1.1), 5, 70.0, 0.8, -30.0, 1.0, 2.0, 0.6, 10.0)
 	if elite:
 		g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.45, "max": 0.45, "col": c})
 		g.fx.append({"kind": "pillar", "pos": pos + Vector2(0, 8), "life": 0.6, "max": 0.6, "col": c})
