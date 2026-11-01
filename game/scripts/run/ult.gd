@@ -480,7 +480,7 @@ func _tick_ult(dt: float) -> void:
 			_cast()
 		return
 	if phase == "windup":
-		if g.t - _wu_t0 >= (_wu_t() + _wu_hold()) * _wu_s():
+		if _wu_k() >= 1.0:
 			_wu_end()
 		return
 	if phase == "cast":
@@ -1788,7 +1788,7 @@ func _imp_age() -> float:
 ## 冲击慢放的倍率（真实时间轴）：顿帧期间由 hitstop 接管，这里从顿帧结束起算
 func _imp_scale() -> float:
 	var t: float = _imp_age() - _imp_fr()
-	var st: float = Bal.v("ult/imp_slow_t", 0.45)
+	var st: float = _imp_st()
 	var et: float = Bal.v("ult/imp_ease", 0.35)
 	var lo: float = Bal.v("ult/imp_slow", 0.25)
 	if t < 0.0 or t >= st + et:
@@ -1802,7 +1802,7 @@ func _imp_scale() -> float:
 func _imp_punch() -> float:
 	var t: float = _imp_age()
 	var fr: float = _imp_fr()
-	var st: float = Bal.v("ult/imp_slow_t", 0.45)
+	var st: float = _imp_st()
 	var et: float = Bal.v("ult/imp_ease", 0.35)
 	var hi: float = Bal.v("ult/imp_cam", 1.15)
 	if t < 0.0 or t > fr + st + et + 0.3:
@@ -1826,7 +1826,7 @@ func fx_tick() -> void:
 	if _fin_pending and _imp_age() >= _fin_in():
 		_fin_pending = false
 		_fin_release()
-	if not _imp_boom and _imp_age() >= _imp_fr() + Bal.v("ult/imp_slow_t", 0.45):
+	if not _imp_boom and _imp_age() >= _imp_fr() + _imp_st():
 		_imp_boom = true
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 		var bm: Array = _aud(str(caster.id) if caster != null else "").get("boom", ["boom", 2.0, 0.8])
@@ -2355,7 +2355,16 @@ func _fin_on() -> bool:
 
 
 func _imp_fr() -> float:
-	return Bal.v("ult/finish_hitstop", 0.25) if _fin_on() else Bal.v("ult/imp_freeze", 0.1)
+	return (Bal.v("ult/finish_hitstop", 0.25) if _fin_on() else Bal.v("ult/imp_freeze", 0.1)) + _imp_seg("imp_fr")
+
+
+## 冲击慢放时长（真实秒）：ult/imp_slow_t + 段表 imp_slow（docs/216 §7 v3：偏短的招式拉长冲击那一刻的慢放，出手动作不动）
+func _imp_st() -> float:
+	return Bal.v("ult/imp_slow_t", 0.45) + _imp_seg("imp_slow")
+
+
+func _imp_seg(key: String) -> float:
+	return maxf(0.0, seg(str(caster.id), key, 0.0)) if caster != null else 0.0
 
 
 func _fin_in() -> float:
@@ -2401,24 +2410,25 @@ func _fin_release() -> void:
 ## 只在出招阶段（phase cast）伸缩，瞄准和招式结束后的余韵照原速；伤害份额与判定形状不变（落点时刻跟着同比缩放）；
 ## 超必杀暂停、顿帧、冲击帧、冲击慢放按真实时间走，不受影响。
 ## 系数按 tools/ult_dur.py 量的「按下 → 招式结束」对齐到中位数（TK 表，balance ult/tk_<干员> 可覆盖）。
-## 11-01 用户看速度对照：「终结技直接加速或者减速会打乱原来的节奏」——差得多的 7 人（浊心斯卡蒂 / 艾雅法拉 / 能天使偏长，
-## 塞雷娅 / 水月 / 维什戴尔 / 歌蕾蒂娅偏短）不再变速，改走下面的段表 SEG：动作按原速，偏短的补停顿 / 余韵，偏长的删重复段
-const TK := {"angelina": 1.10, "hoshiguma": 1.50, "irene": 1.26, "kaltsit": 0.83, "lappland": 1.36, "logos": 0.91, "lumen": 1.43, "siege": 1.09, "skadi": 0.88, "specter_unchained": 1.55, "suzuran": 0.75, "texas": 0.88, "ulpianus": 0.75}
+## 11-02 用户看速度对照：「终结技直接加速或者减速会打乱原来的节奏」——动作一律原速，TK 只做 0.9–1.1 的微调；
+## 窗口放宽到「按下 → 结束」3–4.5 秒后，原速落在窗口外 / 贴边的 7 人走下面的段表 SEG（偏长删重复段，偏短拉长冲击慢放 + 余韵）
+const TK := {"lumen": 1.03, "specter_unchained": 1.06}
 var _tk := 1.0
 
 
-## 段表（docs/216 §7 v2）：不打乱动作的段来补 / 削时长，目标「按下 → 招式结束」落在中位 ±15%；balance ult/seg_<干员>_<段> 可覆盖，ult/dur_unify 0 = 全部回原样。
-## pre = 起手慢放到出手前一刻后再定住多久（真实秒，蓄势停顿；只在看得见的局里有起手）；post = 招式收尾后留多久余韵（游戏秒，不再步进，烟尘 / 碎屑照常消散，队长仍锁着）；
+## 段表（docs/216 §7 v3）：不打乱动作的段来补 / 削时长，目标「按下 → 招式结束」3–4.5 秒；balance ult/seg_<干员>_<段> 可覆盖，ult/dur_unify 0 = 全部回原样。
+## 偏短的（用户 11-02：出手要「一下子打出去」，别拖慢出手）：imp_fr = 冲击那一下的顿帧多停多久（真实秒）、imp_slow = 冲击慢放多放多久（真实秒，×ult/imp_slow 0.25；
+## 两项只在看得见的局里有），post = 招式收尾后留多久余韵（游戏秒，不再步进，冲击波 / 碎屑 / 烟尘 / 光效照常消散，队长仍锁着）；
 ## 其余是各招自己的段：浊心斯卡蒂 sweep = 吐息追烧时长（原 3.4）；艾雅法拉 lava_t / lava_n = 熔岩地面持续 / 跳数（原 2.2 / 5，合计份额不变）；
 ## 能天使 dur = 扫射时长（原 2.5；射速节拍不变，总发数 / 每名精英发数按比例减，份额与覆盖面不变）
 const SEG := {
-	"skalter": {"sweep": 1.1},
-	"eyjafjalla": {"lava_t": 0.6, "lava_n": 2.0},
-	"exusiai": {"dur": 1.25},
-	"saria": {"pre": 0.25, "post": 0.4},
-	"mizuki": {"pre": 0.15, "post": 0.2},
-	"wisadel": {"pre": 0.1, "post": 0.15},
-	"gladiia": {"pre": 0.15, "post": 0.2},
+	"skalter": {"sweep": 1.4},
+	"eyjafjalla": {"lava_t": 1.0, "lava_n": 3.0},
+	"exusiai": {"dur": 1.7},
+	"saria": {"imp_fr": 0.05, "imp_slow": 0.35, "post": 0.25},
+	"mizuki": {"imp_slow": 0.15, "post": 0.15},
+	"gladiia": {"imp_slow": 0.15, "post": 0.15},
+	"wisadel": {"imp_slow": 0.1, "post": 0.1},
 }
 var _tail_end := -1.0   # 余韵段结束的游戏时间（< 0 = 不在余韵里）
 
@@ -2460,12 +2470,8 @@ func _wu_s() -> float:
 	return clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)
 
 
-## 段表 pre：起手播到出手前一刻后再定住的真实秒数（蓄势停顿，镜头 / 黑边 / 慢速照旧）
-func _wu_hold() -> float:
-	return clampf(seg(str(caster.id), "pre", 0.0), 0.0, 1.0) if caster != null else 0.0
 
-
-## 起手进度 0..1（游戏时间；有 pre 停顿时到 1 后定住）
+## 起手进度 0..1（游戏时间）
 func _wu_k() -> float:
 	return clampf((g.t - _wu_t0) / (_wu_t() * _wu_s()), 0.0, 1.0)
 
