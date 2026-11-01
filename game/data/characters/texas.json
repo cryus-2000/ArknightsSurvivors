@@ -1,5 +1,6 @@
 {
  "id": "texas",
+ "trail_col": {"main": [0.96, 0.8, 0.4], "alt": [0.62, 0.68, 0.8]},
  "name": "德克萨斯",
  "en": "TEXAS",
  "class": "先锋",

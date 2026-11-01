@@ -1,5 +1,6 @@
 {
  "id": "kaltsit",
+ "trail_col": {"main": [0.55, 1, 0.5], "alt": [0.95, 0.95, 0.85]},
  "name": "凯尔希",
  "en": "KAL'TSIT",
  "class": "医疗",

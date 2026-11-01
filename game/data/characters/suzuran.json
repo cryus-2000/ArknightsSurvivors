@@ -1,5 +1,6 @@
 {
   "id": "suzuran",
+  "trail_col": {"main": [1, 0.85, 0.5], "alt": [0.6, 0.85, 0.85]},
   "name": "铃兰",
   "en": "SUZURAN",
   "class": "辅助",

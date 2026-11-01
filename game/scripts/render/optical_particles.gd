@@ -230,7 +230,7 @@ func set_active(on: bool) -> void:
 
 
 ## 每帧（optical.gd）：孢子发射区跟着镜头，余烬跟着灯火；颜色按颜色语言（孢子 = 环境色、余烬 = 灯火色）
-func step(cam_center: Vector2, lamp_pos: Vector2, env: Color, lamp: Color) -> void:
+func step(cam_center: Vector2, lamp_pos: Vector2, env: Color, lamp: Color, trail: Array = []) -> void:
 	if not active:
 		return
 	spores.global_position = cam_center
@@ -239,8 +239,31 @@ func step(cam_center: Vector2, lamp_pos: Vector2, env: Color, lamp: Color) -> vo
 		warm_spores.global_position = cam_center
 		warm_spores.modulate = lamp
 	spores.modulate = env
-	embers.modulate = lamp
+	_ember_colors(trail)
+	embers.modulate = lamp if _ember_key == "" else Color.WHITE
 	env_col = env
+
+
+## 跑动拖尾（余烬）用队长自己的代表色（character.trail_cols：[主色, 辅色]，10-26 用户定，docs/146）：每颗出生时在 主色 → 辅色 的渐变上随机取一个色
+## （ParticleProcessMaterial.color_initial_ramp），数量 / 尺寸 / 寿命都不变；只在队长换人（颜色变了）时重建一次渐变；没有数据（空）退回灯火色
+var _ember_key := ""
+func _ember_colors(cols: Array) -> void:
+	var key := ""
+	if cols.size() >= 2:
+		key = "%s|%s" % [cols[0], cols[1]]
+	if key == _ember_key:
+		return
+	_ember_key = key
+	var em: ParticleProcessMaterial = embers.process_material
+	if key == "":
+		em.color_initial_ramp = null
+		return
+	var gr := Gradient.new()
+	gr.set_color(0, cols[0])
+	gr.set_color(1, cols[1])
+	var t := GradientTexture1D.new()
+	t.gradient = gr
+	em.color_initial_ramp = t
 
 
 ## 某种怪的碎屑材质：首帧像素（1 美术像素取 1 个）均匀抽 DEBRIS_PTS 个，位置相对锚点、按画面缩放

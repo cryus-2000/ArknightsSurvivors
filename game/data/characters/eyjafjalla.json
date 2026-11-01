@@ -1,5 +1,6 @@
 {
  "id": "eyjafjalla",
+ "trail_col": {"main": [1, 0.5, 0.2], "alt": [1, 0.78, 0.4]},
  "name": "艾雅法拉",
  "en": "EYJAFJALLA",
  "class": "术师",

@@ -1,5 +1,6 @@
 {
  "id": "gladiia",
+ "trail_col": {"main": [0.35, 0.6, 0.95], "alt": [0.85, 0.95, 1]},
  "name": "歌蕾蒂娅",
  "en": "GLADIIA",
  "class": "特种",

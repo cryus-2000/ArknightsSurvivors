@@ -1,5 +1,6 @@
 {
  "id": "wisadel",
+ "trail_col": {"main": [1, 0.28, 0.25], "alt": [1, 0.65, 0.25]},
  "name": "维什戴尔",
  "en": "WIS'ADEL",
  "class": "狙击",

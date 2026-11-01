@@ -1,5 +1,6 @@
 {
  "id": "saria",
+ "trail_col": {"main": [1, 0.72, 0.38], "alt": [0.7, 0.78, 0.9]},
  "name": "塞雷娅",
  "en": "SARIA",
  "class": "重装",
