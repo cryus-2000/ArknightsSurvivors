@@ -1,11 +1,11 @@
 # ult_playback
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/ult_playback_test.tscn -- --regression --seed=1 --regression --balance --seed=1 --op=irene
-# 用时 11 秒；结束时全机 Godot 3 个
+# 用时 14 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-ULTPLAY op=irene dur=1.73 frames=104 max_off=454.4 hp_drop=1.2/112
+ULTPLAY op=irene dur=1.73 frames=104 max_off=454.4 hp_drop=1.1/112
 ULT PLAYBACK checks=15 failures=0
 ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 

@@ -1,0 +1,50 @@
+# knight_cleave
+# 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/knight_cleave_test.tscn -- --regression --seed=1
+# 用时 14 秒；结束时全机 Godot 4 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CLEAVE v2=0 D=120 stand hits=0/1
+CLEAVE v2=0 D=120 strafe hits=1/1
+CLEAVE v2=0 D=120 kite hits=1/1
+CLEAVE v2=0 D=120 dash hits=0/1
+CLEAVE v2=0 D=260 stand hits=1/1
+CLEAVE v2=0 D=260 strafe hits=1/1
+CLEAVE v2=0 D=260 kite hits=1/1
+CLEAVE v2=0 D=260 dash hits=0/1
+CLEAVE v2=0 D=420 stand hits=1/1
+CLEAVE v2=0 D=420 strafe hits=1/1
+CLEAVE v2=0 D=420 kite hits=1/1
+CLEAVE v2=0 D=420 dash hits=0/1
+CLEAVE v2=1 D=120 stand hits=0/2
+CLEAVE v2=1 D=120 strafe hits=2/2
+CLEAVE v2=1 D=120 kite hits=2/2
+CLEAVE v2=1 D=120 dash hits=0/2
+CLEAVE v2=1 D=260 stand hits=2/2
+CLEAVE v2=1 D=260 strafe hits=2/2
+CLEAVE v2=1 D=260 kite hits=2/2
+CLEAVE v2=1 D=260 dash hits=0/2
+CLEAVE v2=1 D=420 stand hits=2/2
+CLEAVE v2=1 D=420 strafe hits=2/2
+CLEAVE v2=1 D=420 kite hits=2/2
+CLEAVE v2=1 D=420 dash hits=0/2
+CLEAVE total old=8 v2=16  dash old=0 v2=0
+KNIGHT CLEAVE failures=0
+ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
+   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
+   GDScript backtrace (most recent call first):
+       [0] make_actor_mat (res://scripts/render/look.gd:286)
+       [1] _ready (res://scripts/game.gd:1074)
+       [2] _ready (res://tests/knight_cleave_test.gd:22)
+WARNING: 39 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 17 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
