@@ -1001,8 +1001,11 @@ func _lap_step(e: Dictionary, dt: float) -> bool:
 	e.dash_t = maxf(float(e.get("dash_t", 0.0)), 0.1)
 	if g.t >= float(L.throw) and k < lt:
 		L.throw = float(L.throw) + 0.5
+		# 投枪（11-01 用户「冰枪现在更像是地裂，而不是冰枪」）：预警 0.6 秒后真飞出一支冰枪（ice_javelin，速度 knight_lap_lance_spd），
+		# 判定 = 飞行中的枪身段；碰到队长或飞到头就碎成冰晶。裂地冲锋的地缝仍是 ice_lance
 		g.bai.finals._warn(e, "line", 0.6, {"name": "", "pos": e.pos, "ang": (g.ppos - e.pos).angle(), "len": 620.0, "wid": 20.0,
-			"skin": "ice_lance", "dmg": e.dmg * Bal.v("boss/knight_lap_lance", 0.7), "chill": 0.4})
+			"skin": "ice_javelin", "motion": "linear", "speed": Bal.v("boss/knight_lap_lance_spd", 1500.0),
+			"dmg": e.dmg * Bal.v("boss/knight_lap_lance", 0.7), "chill": 0.4})
 	if k >= lt:
 		e.erase("kn_lap")
 		var to_c: Vector2 = c - e.pos

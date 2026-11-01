@@ -1,7 +1,7 @@
 extends RefCounted
 const MaterialGrains = preload("res://scripts/render/final_attack_grains.gd")
 const Bal = preload("res://scripts/core/balance.gd")
-const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "crescent"]
+const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_javelin", "ice_wall", "crescent"]
 ## 最终首领的补充攻击。状态只存敌人字典；预警、命中与绘制使用同一份几何。
 ## 招式为本作改编：泡影的侵蚀与幻觉、骑士的长枪与寒冰、合唱与海流。
 const NAMES := {
@@ -22,6 +22,8 @@ func names_for(e: Dictionary) -> Array:
 			return PHASE2_NAMES
 		return KNIGHT_ACT_NAMES[clampi(int(e.get("gates_passed", 0)), 0, 2)]   # 每幕自己的一组，重复少（用户 10-28）
 	return NAMES[e.type]
+
+const JAVELIN_LEN := 110.0
 
 func _init(game) -> void:
 	g = game
@@ -109,9 +111,19 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 					"velocity":side*(-sign_side*420.0),"life":1.0,"chill":0.8})
 		"断潮劈击", "雪幕劈":
 			# 雪幕劈（三幕变体，docs/183 v2）：同一道弧斩，收尾碎成 8 片两层速度的雪片（_knight_shards 读 snow）
-			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
-				"skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0, "life": 0.8, "dmg": e.dmg * 1.15,
-				"snow": name == "雪幕劈"})
+			# 弧斩 v2（11-01 用户「现在也打不到人，前摇太长」，boss/knight_cleave_v2）：前摇 1.7 → 1.1（锁定 0.4 秒）、追踪时按队长移速预判
+			# knight_cleave_lead 秒；锁定后 knight_cleave_gap 秒再补一道（冲刺躲过第一道还要再躲一次）。弧形不变：贴身 160 内的空心仍是安全区（final_boss_completion 守着），
+			# 第二道在第一道出手前 0.1 秒才显形、自己追踪到出手前 0.4 秒。冰屑 / 雪片只在最后一道收尾出
+			var cv2: bool = Bal.v("boss/knight_cleave_v2", 1.0) > 0.0
+			var cn: int = maxi(1, int(Bal.v("boss/knight_cleave_n", 2.0))) if cv2 else 1
+			var cd: float = Bal.v("boss/knight_cleave_warn", 1.1) if cv2 else 1.7
+			var ct: float = Bal.v("boss/knight_cleave_track", 0.7) if cv2 else 0.85
+			var gap: float = Bal.v("boss/knight_cleave_gap", 0.7)
+			for k in cn:
+				_warn(e, "arc", cd + gap * k, {"name": name if k == 0 else "", "ang": dir.angle(), "track": ct + gap * k, "r": 640.0, "half": 0.52,
+					"arc_back": Bal.v("boss/knight_cleave_back", 480.0), "wid": 26.0, "style": 3, "lead": Bal.v("boss/knight_cleave_lead", 0.35) if cv2 else 0.0,
+					"tell_after": 0.0 if k == 0 else maxf(0.0, cd - 0.1), "skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0,
+					"life": 0.8, "dmg": e.dmg * 1.15, "snow": name == "雪幕劈", "shards": k == cn - 1})
 			e.fx = dir.x
 		"寒潮回卷":
 			g.bai.boss("knight_boss").roll_start(e, dir)
@@ -209,6 +221,9 @@ func resolve(w: Dictionary) -> void:
 		if w.get("skin","")=="ice_thrust":
 			h.len=90.0
 			h.speed=(w.len-h.len)/h.life
+		if w.get("skin","")=="ice_javelin":
+			h.len=JAVELIN_LEN   # 枪身段：从骑士手里飞到预警线尽头
+			h.life=maxf(0.05,(float(w.len)-h.len)/maxf(1.0,float(h.speed)))
 		h.velocity = w.get("velocity", Vector2.from_angle(w.ang) * float(h.get("speed", 0.0)))
 		if hazards.size() < 80:
 			hazards.append(h)
@@ -222,6 +237,12 @@ func resolve(w: Dictionary) -> void:
 		f.enemy = true
 		g.fx.append(f)
 		MaterialGrains.burst(g, w)
+		if e.type == "knight_boss" and w.get("skin", "") == "ice_lance" and w.shape == "line":
+			# 直线冰枪命中（11-01）：一声冰裂 + 一盏 0.25 秒冷光，照亮刚喷出的冰刺（纯画面 / 音频）
+			var mid: Vector2 = w.pos + Vector2.from_angle(w.ang) * float(w.len) * 0.5
+			Sfx.play_at("knight_frost", mid, -13.0, 1.2, 0.08)
+			if g.get("optical") != null and g.optical.grains != null:
+				g.optical.grains.light(mid, float(w.len) * 0.6, Color(0.55, 0.85, 1.0), 0.25)
 	if w.name != "":   # One cue for the cast, not one loud layer per bubble/segment.
 		Sfx.play("tentacle" if e.type != "knight_boss" else "swing", -9.0, 0.9)
 
@@ -264,8 +285,8 @@ func update(e: Dictionary, dt: float) -> void:
 				g.tele.warn_damage(h)
 				h.hit = true
 				if h.skin == "bubble": break
-		if h.hit and h.skin == "bubble":
-			_pop(h)
+		if h.hit and h.skin in ["bubble", "ice_javelin"]:
+			_pop(h)   # 投枪扎中队长就在那里碎开，不穿过去
 			continue
 		MaterialGrains.trail(g, h, step_dt)
 		if finish_motion and h.age>=h.life:
@@ -285,8 +306,10 @@ func _pop(h: Dictionary) -> void:
 		tail.life=0.38
 		tail.max=0.38
 		g.fx.append(tail)
-	if h.get("skin", "") == "ice_thrust" and not g is Dictionary:
-		g.vfx.fx_sprite("fx_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX,h.ang)
+	if h.get("skin", "") in ["ice_thrust", "ice_javelin"] and not g is Dictionary:
+		g.vfx.fx_sprite("fx_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX*(1.3 if h.skin=="ice_javelin" else 1.0),h.ang)
+		if h.skin == "ice_javelin":
+			Sfx.play_at("knight_frost", h.pos+Vector2.from_angle(h.ang)*h.len, -14.0, 1.35, 0.1)   # 冰枪碎裂（纯音频）
 	if h.get("skin", "") != "bubble":
 		MaterialGrains.finish(g, h)
 		return
@@ -306,6 +329,8 @@ func _knight_shards(h: Dictionary) -> void:
 		return
 	match str(h.get("skin", "")):
 		"crescent":
+			if not h.get("shards", true):
+				return
 			var tip: Vector2 = h.pos + Vector2.from_angle(h.ang) * (float(h.r) - float(h.get("arc_back", 0.0)))
 			if h.get("snow", false):
 				kb.ice_shards(e, tip, kb.aim(tip), 4, 1.3, 120.0)
