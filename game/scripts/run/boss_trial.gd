@@ -26,7 +26,17 @@ var recorded := false
 func _init(game: Game) -> void:
 	g = game
 
+## 体检分支专用（claude/boss-diag-1101，不合入）：--diagtrial=<Boss 组用 + 连接>:<成品分队> 起一局演练，--diagbot 保留批跑模式让机器人打，
+## --diagmax=<秒> 超时收尾；每局结束打印 TRIALREC <run.trial JSON> 后退出
+static func diag() -> bool:
+	return Cfg.dev_args().has("--diagbot")
+
+
 func consume() -> void:
+	for a in Cfg.dev_args():
+		if a.begins_with("--diagtrial="):
+			var p: PackedStringArray = a.substr(12).split(":")
+			Cfg.boss_trial_request = {"group": Array(p[0].split("+")), "operator": "mizuki", "growth": 2, "phase": 1, "safe": true, "squad": p[1] if p.size() > 1 else ""}
 	Meta.practice_budget = -1
 	if g.demo_op != "" or Cfg.boss_trial_request.is_empty():
 		return
@@ -63,7 +73,8 @@ func consume() -> void:
 func setup() -> void:
 	if not active:
 		return
-	g.mode = g.Mode.PLAY   # 演练按正式模式跑（不记自测 / 批跑）
+	if not diag():
+		g.mode = g.Mode.PLAY   # 演练按正式模式跑（不记自测 / 批跑）
 	g.state = g.S.PLAY
 	# 按正式登场时间计算 Boss 血量，演练计时不触发普通波次或结局事件。
 	g.t = 600.0 if g.spawner.is_final_boss_type(config.group[0]) else 420.0
@@ -108,6 +119,15 @@ func setup() -> void:
 
 func maintain() -> void:
 	_watch_phases()
+	if diag() and not recorded:
+		var cap := 300.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--diagmax="):
+				cap = float(a.substr(10))
+		if won() or g.t - started_at > cap:
+			record("win" if won() else "timeout")
+			g.get_tree().quit()
+			return
 	for e in targets:
 		if e.type == "ishar" and e.phase == 1:
 			g.ishar.practice_targets(e)
@@ -216,6 +236,9 @@ func record(result: String) -> void:
 	if not active or recorded:
 		return
 	recorded = true
+	if diag():
+		print("TRIALREC ", JSON.stringify(report(result)))
+		return
 	g.telemetry.save_trial(result, report(result))
 
 
