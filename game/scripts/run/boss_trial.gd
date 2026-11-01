@@ -12,6 +12,16 @@ var config: Dictionary = {}
 var saved_progress: Dictionary = {}
 var targets: Array = []
 var squad_snap: Dictionary = {}   # 选了成品分队时：这组 Boss 对应登场位的快照
+# ---- 演练记录（11-01 用户想看「最新的 Boss 试炼用时和造成的伤害」：原来试炼局不写 runs.jsonl）。只记账，不改玩法
+var move := ""                     # 当前这一下的招式标签（telegraph.warn_damage 结算期间设，结算完清空）
+var boss_dmg: Dictionary = {}      # 干员 id → 对 Boss（含二阶段）造成的有效伤害
+var boss_dmg_type: Dictionary = {} # Boss 类型 → 受到的有效伤害
+var taken: Dictionary = {}         # 招式标签 → 队长承受伤害（安全模式下照记，只是血会补满）
+var taken_n: Dictionary = {}       # 招式标签 → 命中次数
+var casts: Dictionary = {}         # 招式标签 → 出手次数（有伤害的预警，每段算一次；命中率 = taken.hits / casts）
+var phase_log: Array = []          # [Boss 类型, 阶段, 进入时刻（演练秒）]；击破记成阶段 0
+var _phase_seen: Dictionary = {}
+var recorded := false
 
 func _init(game: Game) -> void:
 	g = game
@@ -97,6 +107,7 @@ func setup() -> void:
 	maintain()
 
 func maintain() -> void:
+	_watch_phases()
 	for e in targets:
 		if e.type == "ishar" and e.phase == 1:
 			g.ishar.practice_targets(e)
@@ -108,6 +119,105 @@ func maintain() -> void:
 	g.chest_src.clear()
 	g.gems.clear()
 	g.show_queue.clear()
+
+## 每帧看各 Boss 的阶段：变了就记一笔（击破记阶段 0）
+func _watch_phases() -> void:
+	for i in targets.size():
+		var e: Dictionary = targets[i]
+		var ph: int = 0 if e.dead else int(e.get("phase", 1))
+		var key := "%d" % i
+		if int(_phase_seen.get(key, -1)) != ph:
+			_phase_seen[key] = ph
+			phase_log.append([str(e.type), ph, snappedf(g.t - started_at, 0.1)])
+
+
+## 队长掉血（combat.lose_hp 调用）：按招式标签记；没有招式标签的按来源键（敌弹 / 接触 / 冲击环 / 侵蚀……）
+func on_lose(amount: float, src: String) -> void:
+	if not active or amount <= 0.0:
+		return
+	var key: String = move if move != "" else src
+	taken[key] = float(taken.get(key, 0.0)) + amount
+	taken_n[key] = int(taken_n.get(key, 0)) + 1
+
+
+## Boss 放出一段有伤害的预警（telegraph.warn 调用）：按招式标签数出手次数
+func on_cast(w: Dictionary) -> void:
+	if not active or float(w.get("dmg", 0.0)) <= 0.0:
+		return
+	var key := move_tag(w)
+	casts[key] = int(casts.get(key, 0)) + 1
+
+
+## 对 Boss 的有效伤害（telemetry.on_dmg 调用）
+func on_boss_dmg(op: String, e: Dictionary, eff: float) -> void:
+	if not active or eff <= 0.0 or not e.get("boss", false) or e.get("friendly", false):
+		return
+	boss_dmg[op] = float(boss_dmg.get(op, 0.0)) + eff
+	var ty := str(e.type)
+	boss_dmg_type[ty] = float(boss_dmg_type.get(ty, 0.0)) + eff
+
+
+## 招式标签：Boss 类型 / 招式名（无名的分段用皮肤或动作名）
+static func move_tag(w: Dictionary) -> String:
+	var o = w.get("owner")
+	var ty: String = str(o.get("type", "")) if o is Dictionary else ""
+	var nm: String = str(w.get("name", ""))
+	if nm == "":
+		nm = str(w.get("skin", ""))
+	if nm == "":
+		nm = str(w.get("act", ""))
+	return ty + "/" + nm
+
+
+## 一局演练的记录（telemetry.save_trial 写进 runs.jsonl 的 run.trial）：胜 / 负 / 退出各写一次
+func report(result: String) -> Dictionary:
+	_watch_phases()
+	var bosses: Array = []
+	for e in targets:
+		bosses.append({"type": str(e.type), "phase": int(e.get("phase", 1)), "dead": bool(e.dead),
+			"hp": snappedf(maxf(0.0, float(e.hp)), 1.0), "maxhp": snappedf(float(e.maxhp), 1.0),
+			"hp_pct": snappedf(maxf(0.0, float(e.hp)) / maxf(1.0, float(e.maxhp)), 0.001)})
+	# 各阶段用时：按 phase_log 相邻两笔相减（最后一段到结束）
+	var dur: float = snappedf(g.t - started_at, 0.1)
+	var phases: Array = []
+	for i in phase_log.size():
+		var p: Array = phase_log[i]
+		if int(p[1]) == 0:
+			continue
+		var t1: float = dur
+		for j in range(i + 1, phase_log.size()):
+			if str(phase_log[j][0]) == str(p[0]):
+				t1 = float(phase_log[j][2])
+				break
+		phases.append({"type": str(p[0]), "phase": int(p[1]), "t0": float(p[2]), "t": snappedf(t1 - float(p[2]), 0.1)})
+	var dmg_ops := {}
+	for k in boss_dmg:
+		dmg_ops[k] = snappedf(float(boss_dmg[k]), 1.0)
+	var dmg_types := {}
+	for k in boss_dmg_type:
+		dmg_types[k] = snappedf(float(boss_dmg_type[k]), 1.0)
+	var tk := {}
+	for k in taken:
+		tk[k] = {"dmg": snappedf(float(taken[k]), 0.1), "hits": int(taken_n.get(k, 0))}
+	var killer: Dictionary = {}
+	if result == "dead":
+		killer = g.telemetry.killer()
+	return {"group": config.get("group", []), "phase": int(config.get("phase", 1)), "growth": int(config.get("growth", 2)),
+		"squad": str(config.get("squad", "")), "operator": str(config.get("operator", "")), "safe": bool(config.get("safe", true)),
+		"ops": g.squad.ops.map(func(o): return str(o.id)), "leader_elite": int(g.ch.elite) if g.ch != null else 0, "level": g.level,
+		"max_hp": snappedf(g.max_hp, 1.0), "result": result, "t": dur, "phases": phases, "phase_log": phase_log.duplicate(true),
+		"bosses": bosses, "boss_dmg": dmg_ops, "boss_dmg_type": dmg_types, "taken": tk, "casts": casts.duplicate(),
+		"taken_total": snappedf(taken.values().reduce(func(a, b): return a + b, 0.0), 0.1),
+		"downs": int(g.squad.downs_n), "dead": result == "dead", "killer": killer}
+
+
+## 写一次（胜 / 负进入时 game._process 调；退出时 game._exit_tree 调）
+func record(result: String) -> void:
+	if not active or recorded:
+		return
+	recorded = true
+	g.telemetry.save_trial(result, report(result))
+
 
 func won() -> bool:
 	return active and not targets.is_empty() and targets.all(func(e): return e.dead)

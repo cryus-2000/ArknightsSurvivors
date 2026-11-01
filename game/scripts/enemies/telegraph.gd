@@ -103,6 +103,8 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 		w.dur *= wm
 		w.track *= wm
 	g.warns.append(w)
+	if e.boss and g.trial.active:
+		g.trial.on_cast(w)   # Boss 演练记录：按招式的出手次数（算命中率）
 	if e.type == "knight_boss":
 		g.bai.boss(e.type).on_warning(e,w)
 	# 大招固定音效（docs/38 §8.11）：有名字的 Boss 招式起手播「类别起手音 + Boss 专属音色」，结算时播命中音
@@ -236,8 +238,11 @@ func warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 		it[0] = str(w.hit_range)
 	if g.invuln <= 0.0:
 		var hp_before: float = g.hp
+		if g.trial.active:
+			g.trial.move = g.trial.move_tag(w)   # Boss 演练记录：这一下的承伤记到招式名下（enemy_hit 结算完清空）
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)),
 			"frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type, "warn": true}, true_damage, true, it, dsrc)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
+		g.trial.move = ""
 		if not e.boss and g.hp < hp_before and float(w.get("stun", 0.0)) > 0.0 and g.t >= g.combat.enemy_stun_next:
 			g.combat.enemy_stun_next = g.t + 8.0
 			if not g.combat.stun_as_slow():

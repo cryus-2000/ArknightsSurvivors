@@ -1453,6 +1453,8 @@ func _process(delta: float) -> void:
 	var simulated_dt := 0.0
 	if state != _last_state:
 		_last_state = state
+		if trial.active and (state == S.WIN or state == S.DEAD):
+			trial.record("win" if state == S.WIN else "dead")   # Boss 演练记录（11-01：原来试炼局一行都不写）
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
@@ -2266,6 +2268,7 @@ func _exit_tree() -> void:
 	if demo_op == "":
 		UI.fk = 1.0
 	if trial.active:
+		trial.record("quit")   # 没胜没负就离开的演练按「退出」记（胜 / 负那一刻已经记过的不重复）
 		trial.leave()
 	else:
 		telemetry.on_exit()

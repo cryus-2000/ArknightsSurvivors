@@ -88,6 +88,23 @@ func run() -> void:
 	await get_tree().process_frame
 	g = trial_game(["knight_boss"], 2, false)
 	check(g.final_boss.phase == 2 and g.final_boss.hp == g.final_boss.maxhp * 0.5, "knight phase two matches real rebirth HP")
+	# 演练记录（11-01）：按干员的对 Boss 伤害、按招式的承伤、阶段时间线、Boss 剩余血量
+	var kb: Dictionary = g.final_boss
+	g.trial.maintain()
+	g.telemetry.on_dmg(kb, 120.0, 120.0, {"op": "wisadel", "src": "core"})
+	g.invuln = 0.0
+	g.tele.warn_damage({"owner": kb, "shape": "circle", "pos": g.ppos, "r": 200.0, "dmg": 10.0, "name": "冲锋", "act": "dash", "corrode": 0.0})
+	check(g.trial.move == "", "move tag cleared after the hit resolves")
+	var rep: Dictionary = g.trial.report("dead")
+	check(rep.group == ["knight_boss"] and int(rep.phase) == 2 and not bool(rep.safe) and str(rep.operator) == "wisadel", "trial record keeps scenario")
+	check(float(rep.boss_dmg.get("wisadel", 0.0)) >= 120.0 and float(rep.boss_dmg_type.get("knight_boss", 0.0)) >= 120.0, "trial record splits Boss damage by operator")
+	check(rep.taken.has("knight_boss/冲锋") and float(rep.taken["knight_boss/冲锋"].dmg) > 0.0, "trial record splits damage taken by Boss move")
+	g.tele.warn(kb, "line", 0.8, {"ang": 0.0, "len": 300.0, "wid": 30.0, "name": "冲锋", "act": "dash", "dmg": 10.0})
+	check(int(g.trial.report("dead").casts.get("knight_boss/冲锋", 0)) >= 1, "trial record counts casts per move")
+	check(not rep.phases.is_empty() and int(rep.phases[0].phase) == 2, "trial record has the phase timeline")
+	check(rep.bosses.size() == 1 and float(rep.bosses[0].hp_pct) <= 0.5001, "trial record has Boss remaining HP")
+	g.trial.record("dead")
+	check(g.trial.recorded, "trial record is written once")
 	g.hp = -1.0
 	g._update(0.01)
 	check(g.state == g.S.DEAD, "real combat mode can fail")
