@@ -2,12 +2,15 @@ extends Node
 ## 跑动拖尾代表色对照截图（docs/146；不进快检）：逐个干员当队长，按住 D 向右跑 80 帧，截主控附近一块（每人一张）。
 ##   godot --fixed-fps 60 --resolution 1280x720 --path game res://tests/trail_shot.tscn -- --shotdir=<目录> [--old] [--ids=a,b,c]
 ## --old：render/trail_col = 0（余烬回到灯火色，旧版）。
+## --squad=a,b,c：每局再带这几位队友（看队友余烬，11-01）；--rec=N：每人从第 60 帧起逐帧存 N 张整屏 <shotdir>/<id>/rec_*.png（配 --fixed-fps 30 拼录像）
 
 const Bal = preload("res://scripts/core/balance.gd")
 const IDS := ["mizuki", "texas", "exusiai", "skadi", "eyjafjalla", "hoshiguma", "irene", "kaltsit", "lappland", "logos", "lumen", "saria", "siege", "suzuran", "skalter", "specter_unchained", "ulpianus", "wisadel", "angelina", "gladiia"]
 var shot_dir := ""
 var old := false
 var ids: Array = IDS.duplicate()
+var squad_ids: Array = []
+var rec_n := 0
 var game: Node
 
 
@@ -19,6 +22,10 @@ func _ready() -> void:
 			old = true
 		elif a.begins_with("--ids="):
 			ids = a.substr(6).split(",")
+		elif a.begins_with("--squad="):
+			squad_ids = a.substr(8).split(",")
+		elif a.begins_with("--rec="):
+			rec_n = int(a.substr(6))
 	Bal.v("render/trail_col", 1.0)
 	if not (Bal._data.get("render") is Dictionary):
 		Bal._data["render"] = {}
@@ -48,17 +55,29 @@ func run() -> void:
 		game.enemies = []
 		game.max_hp = 99999.0
 		game.hp = 99999.0
+		for cid in squad_ids:
+			if cid != id and not game.squad.has(cid):
+				game.squad.add(cid, false)
+		var rd := "%s/%s" % [shot_dir, id]
+		if rec_n > 0:
+			DirAccess.make_dir_recursive_absolute(rd)
 		key(KEY_D, true)
-		for i in 330:
+		for i in (330 if rec_n <= 0 else 60 + rec_n):
 			game.state = game.S.PLAY
 			game.pending_levelups = 0
 			game.pending_chests = 0
 			game.invuln = 1.0
 			await get_tree().process_frame
+			if rec_n > 0 and i >= 60:
+				get_viewport().get_texture().get_image().save_png("%s/rec_%04d.png" % [rd, i - 60])
+			if rec_n > 0 and i == 60 + rec_n / 2:   # 半程换向，录到转身和队友跟上
+				key(KEY_D, false)
+				key(KEY_A, true)
 		var img: Image = get_viewport().get_texture().get_image()
 		var c := Vector2i(img.get_width() / 2, img.get_height() / 2)
 		img.get_region(Rect2i(c.x - 200, c.y - 120, 400, 240)).save_png("%s/%s.png" % [shot_dir, id])
 		key(KEY_D, false)
+		key(KEY_A, false)
 		game.queue_free()
 		await get_tree().process_frame
 		await get_tree().process_frame

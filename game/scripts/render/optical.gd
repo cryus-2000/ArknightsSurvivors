@@ -570,7 +570,17 @@ func _process(_dt: float) -> void:
 			_pa_last = pa
 		if pa and g.cam != null and g.lamp_light != null:
 			var ld = g.squad.leader() if g.squad != null else null
-			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp, ld.trail_cols() if ld != null and ld.has_method("trail_cols") and Bal.v("render/trail_col", 1.0) > 0.0 else [])
+			var tc_on: bool = Bal.v("render/trail_col", 1.0) > 0.0
+			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp, ld.trail_cols() if ld != null and ld.has_method("trail_cols") and tc_on else [])
+			# 队友跑动余烬（淡、少，队长为主）：倒地 / 不在场的不给
+			var ml: Array = []
+			if g.squad != null:
+				for o in g.squad.ops:
+					if ml.size() >= particles.MATE_MAX:
+						break
+					if not o.is_leader and o.pos != Vector2.INF and o.cmd_down <= 0.0:
+						ml.append([o.pos, o.trail_cols() if tc_on else [col_lamp, col_lamp]])
+			particles.step_mates(ml)
 	_was_on = on
 	pt = _pt("op_particles", pt)
 	if glow_layer.visible:

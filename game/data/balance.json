@@ -976,6 +976,9 @@
   "demo_zoom": 0.68
  },
  "render": {
+    "_doc_mate_ember": "队友跑动余烬（11-01 用户「每个干员的跑步的粒子动效也可以加上」，render/optical_particles.step_mates）：每位队友一簇，颜色用本人 trail_col（docs/160_run_trail_colors），mate_ember_n 颗数（队长 ember_n 32 的约 1/3，0 = 不加）、mate_ember_a 整体透明度，保持队长为主",
+    "mate_ember_n": 10,
+    "mate_ember_a": 0.55,
     "_doc_lead_emph": "突出队长（docs/139 §11）：0 关 / 1 中（队长特效提亮 ×1.35 + 伤害数字放大）/ 2 强（×1.6 + 琥珀偏色 + 方向弧）。用户 10-25 看对照视频后定开，缺省用中档",
     "lead_emph": 1,
   "_doc_op_unlit": "干员不吃灯火（用户 10-24「干员身上的灯光附着取消掉」，选「受灯火提亮 / 染色」）：1 = 干员按贴图原色画，不随离灯远近变亮 / 变暖，也没有朝灯亮线；0 = 原来的受光封顶 + 白色保护。只管干员与博士，敌人不动（render/look.gd op_unlit_mod）",

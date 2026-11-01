@@ -37,6 +37,9 @@ var _spark_t := 0.0
 var spores: GPUParticles2D
 var warm_spores: GPUParticles2D   # docs/139 §6.6 暖色孢子（render/warm_spores > 0 时才建）
 var embers: GPUParticles2D
+var mates: Array = []         # 队友跑动余烬：每位队友一簇（step_mates），比队长那簇淡、少，保持主次（11-01 用户「每个干员的跑步的粒子动效也可以加上」）
+var _mate_keys: Array = []
+const MATE_MAX := 3
 var _mat_cache := {}          # 帧条名 → [ParticleProcessMaterial, 发光色]
 var fluid_mat: ParticleProcessMaterial
 var skill: Array = []
@@ -137,6 +140,22 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 	em.initial_velocity_min = 12.0
 	em.initial_velocity_max = 30.0
 	em.gravity = Vector3(0, -6, 0)
+	# 队友那几簇：数量约队长的 1/3、整体透明度 0.55、发射半径小一点（render/mate_ember_n / mate_ember_a，0 = 不加）
+	var mn: int = int(Bal.v("render/mate_ember_n", 10.0) * k_amount)
+	if mn > 0:
+		for i in MATE_MAX:
+			var mp := _ambient(glow_parent, mn, 1.3, Color.WHITE)
+			var mm: ParticleProcessMaterial = mp.process_material
+			mm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			mm.emission_sphere_radius = 7.0
+			mm.direction = Vector3(0, -1, 0)
+			mm.spread = 25.0
+			mm.initial_velocity_min = 10.0
+			mm.initial_velocity_max = 24.0
+			mm.gravity = Vector3(0, -6, 0)
+			mp.modulate = Color(1, 1, 1, Bal.v("render/mate_ember_a", 0.55))
+			mates.append(mp)
+			_mate_keys.append("")
 
 
 func _one_shot(parent: Node, amount: int, life: float) -> GPUParticles2D:
@@ -221,6 +240,9 @@ func set_active(on: bool) -> void:
 		warm_spores.emitting = active
 	embers.visible = active
 	embers.emitting = active
+	for p in mates:
+		p.visible = active
+		p.emitting = false   # 有队友时 step_mates 再开
 	if not active:
 		trails.emitting = false
 		trails.visible = false
@@ -242,6 +264,35 @@ func step(cam_center: Vector2, lamp_pos: Vector2, env: Color, lamp: Color, trail
 	_ember_colors(trail)
 	embers.modulate = lamp if _ember_key == "" else Color.WHITE
 	env_col = env
+
+
+## 每帧（optical.gd）：队友各一簇余烬跟着本人，颜色用本人代表色（trail_cols）；list = [[位置, [主色, 辅色]], …]，最多 MATE_MAX 人，
+## 倒地 / 不在场的不给（簇停发、已发的颗粒自然熄灭）
+func step_mates(list: Array) -> void:
+	if not active:
+		return
+	for i in mates.size():
+		var p: GPUParticles2D = mates[i]
+		var on: bool = i < list.size()
+		if p.emitting != on:
+			p.emitting = on
+		if not on:
+			continue
+		p.global_position = list[i][0] + Vector2(0, -6)
+		var cols: Array = list[i][1]
+		var key := "%s|%s" % [cols[0], cols[1]] if cols.size() >= 2 else ""
+		if key != _mate_keys[i]:
+			_mate_keys[i] = key
+			var pm: ParticleProcessMaterial = p.process_material
+			if key == "":
+				pm.color_initial_ramp = null
+			else:
+				var gr := Gradient.new()
+				gr.set_color(0, cols[0])
+				gr.set_color(1, cols[1])
+				var tx := GradientTexture1D.new()
+				tx.gradient = gr
+				pm.color_initial_ramp = tx
 
 
 ## 跑动拖尾（余烬）用队长自己的代表色（character.trail_cols：[主色, 辅色]，10-26 用户定，docs/146）：每颗出生时在 主色 → 辅色 的渐变上随机取一个色
