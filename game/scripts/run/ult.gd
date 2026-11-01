@@ -1887,6 +1887,17 @@ func _combo_hit_fx(o, pos: Vector2) -> void:
 
 ## 批跑汇总（autotest / bot 结果行带上）
 func report() -> Dictionary:
+	var bd := {}
+	for k in stats:
+		if str(k).begins_with("bond_"):
+			bd[str(k).substr(5)] = stats[k]   # 羁绊合击次数（docs/217）；没有就不写，BALANCE 与改动前逐字相同
+	var r := _report()
+	if not bd.is_empty():
+		r["bond"] = bd
+	return r
+
+
+func _report() -> Dictionary:
 	return {"ult": stats.ult, "cult": stats.cult, "combo": stats.combo, "combo_auto": stats.combo_auto, "combo_up": stats.combo_up,
 		"lit": stats.lit, "lit_by": stats.lit_by, "link_by": stats.link_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
 		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1), "hit_n": int(stats.get("hit_n", 0))}
