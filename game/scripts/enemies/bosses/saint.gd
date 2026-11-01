@@ -345,10 +345,16 @@ func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> Dictionary:
 		ang = f.ang
 		track = 0.5
 		dur = 1.0
+	# 11-01 用户批 docs/212 §4.3「狙击对机器人 0 命中」：前摇 × carmen_snipe_k（0.75），锁定到开火至少留 0.3 秒；
+	# 追踪时预判 carmen_snipe_lead（0.3）秒，不加伤害。旧值 k = 1、lead = 0
+	var sk: float = Bal.v("boss/carmen_snipe_k", 0.75)
+	if sk != 1.0:
+		dur *= sk
+		track = minf(track, dur - 0.3)
 	var q: Array = e.get("lane_gaps", [])
 	q.append(g.rng_enemy.randf_range(0.3, 0.7))
 	e.lane_gaps = q
-	var w := _warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "track_center": p2 and k == 2, "act": "shot", "name": "狙击",
+	var w := _warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "lead": 0.0 if p2 and k == 2 else Bal.v("boss/carmen_snipe_lead", 0.3), "track_center": p2 and k == 2, "act": "shot", "name": "狙击",
 		"col": Color(1.0, 0.94, 0.82), "dmg": e.dmg * Bal.v("boss/carmen_lane_mult", 1.56), "kp": "carmen", "kp_k": 2.0, "lock": k == 0, "saint_beam": true})   # 原 2.0（10-25 加密 ×0.78）
 	_spend(e, 1)
 	return w
