@@ -175,11 +175,6 @@ SN = {   # Sonniss 素材短名（docs/113 §20）
     "drone": "Alexander Kopeikin - Emotion and Magic/magic, drone, tension, spellbound, evanescence-002.wav",
     "onslaught": "Alexander Kopeikin - Emotion and Magic/magic, action gesture, evil presence, onslaught-004.wav",
     "smash": "Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit/GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav",
-    "pipe": "InMotionAudio - Sinister Textures 5/GOREMisc_Concrete_MetalPipe02_InMotionAudio_SinisterTextures5.wav",
-    "shatter": "Epic Stock Media - Tower Defense Game/ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav",
-    "swcut": "344 Audio - Historical Weapons Vol. 2/WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav",
-    "glass": "Epic Stock Media - Elemental Mutation Whooshes and Impacts/GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05_ESM_EMWI.wav",
-    "wind": "344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav",
 }
 
 
@@ -253,19 +248,10 @@ def ulpianus():
     }
 
 
-def skadi(v=1):
+def skadi():
     """docs/205 §4.7（用户 11-01「斯卡蒂的也是」——音效和画面再做一轮；11-01 夜的 ①〔海浪拍岸 / 深水冲击〕作废）：
-    ① 原作：提示 = 原作沉默之剑连斩起头 → 下劈 cast / impact（次级）= 原作沉默之剑重斩 + 液体冲击 → 立浪往前滚 wave = 原作潮涌（浪涌最满那段）
-    → 劈浪 crash（hf_slot，全招最响）= 原作大水炮 + 原作盾斧砸地爆裂 + 深水冲击（70 Hz 以下切）。
-    ② 录音：提示 = 剑斩一挥 → 下劈 = 斩击冲击 + 液体冲击 → 立浪 = 海浪拍岸 + 长风呼啸 → 劈浪 = 重击碎裂 + 深水冲击 + 液体冲击 + 雷暴炸裂"""
-    if v == 2:
-        return {
-            "sf": sn("slice", 0.29, 0.45, 0.9, fout=0.2), "cast": sn("scrape", 0.0, 0.4, 0.9, fout=0.15),
-            "impact": pad(sn("cut", 0.93, 0.8, 1.1, fout=0.3), sn("liq", 0.0, 0.5, fout=0.2) * 0.5),
-            "wave": pad(lp(sn("waves", 74.8, 1.4, fout=0.6), 6000), sn("wind", 0.05, 1.0, 0.85, fout=0.4) * 0.5),
-            "crash": hp(pad(sn("smash", 0.0, 1.2, 0.8, fout=0.5), sn("sub", 0.0, 1.4, 0.85, fout=0.6) * 0.8, sn("liq", 0.0, 0.8, 0.75, fout=0.3) * 0.6,
-                            sn("thunder", 3.27, 1.0, 0.8, fout=0.4) * 0.4), 70, 4),
-        }
+    11-01 选定 ① 原作：提示 = 原作沉默之剑连斩起头 → 下劈 cast / impact（次级）= 原作沉默之剑重斩 + 液体冲击 → 立浪往前滚 wave = 原作潮涌（浪涌最满那段）
+    → 劈浪 crash（hf_slot，全招最响）= 原作大水炮 + 原作盾斧砸地爆裂 + 深水冲击（70 Hz 以下切）"""
     return {
         "sf": akd("p_skill_reticentsword_s.wav", 0.1, 0.45, fout=0.2), "cast": akd("p_skill_reticentsword_h.wav", 0.1, 0.5, fout=0.2),
         "impact": pad(akd("p_skill_reticentsword_h.wav", 0.1, 0.8, fout=0.3), sn("liq", 0.0, 0.5, fout=0.2) * 0.5),
@@ -333,19 +319,10 @@ def wisadel():
     }
 
 
-def specter_unchained(v=1):
-    """docs/205 §4.7（用户 11-01「归溟幽灵鲨的终结技音效也要修改」，覆盖 10-31 的 ②；画面弹射撕裂 + 巨锯不动）：
-    ① 原作链锯：提示 = 原作链锯起转 → 放出 = 原作链锯展开起头 → 每次弹射一声链锯咬合 zip_1..3（原作链锯不同段）
-    → 巨锯压下 warn = 原作链锯持续研磨降调 → 落地锯开 impact（高潮）= 原作链锯收尾 + 原作盾斧砸地爆裂（80 Hz 以下切，不留「咚」）。
-    ② 录音金属：提示 = 金属剑滑切 → 每次弹射一声金属滑切 zip_1..3 → 巨锯压下 warn = 玻璃碎片呼啸降调 + 金属掠过
-    → 锯开 impact = 重击碎裂 + 斩击冲击 + 金属滑切"""
-    if v == 2:
-        return {
-            "sf": sn("swcut", 0.12, 0.45, 0.9, fout=0.2), "cast": sn("slice", 0.29, 0.6, fout=0.25),
-            **{"zip_%d" % (i + 1): sn("swcut", t, 0.32, r, fout=0.12) for i, (t, r) in enumerate([(0.12, 1.1), (2.18, 1.0), (0.12, 1.25)])},
-            "warn": pad(sn("glass", 0.8, 1.1, 0.8, fout=0.4), sn("rattle", 0.0, 1.0, 0.8, fout=0.3) * 0.5),
-            "impact": hp(pad(sn("smash", 0.0, 1.2, 0.9, fout=0.5), sn("cut", 0.93, 1.2, fout=0.5) * 0.7, sn("swcut", 2.18, 0.6, 0.85, fout=0.3) * 0.5), 80, 4),
-        }
+def specter_unchained():
+    """docs/205 §4.7（用户 11-01「归溟幽灵鲨的终结技音效也要修改」→ 11-01 选定 ① 原作链锯；画面弹射撕裂 + 巨锯不动）：
+    提示 = 原作链锯起转 → 放出 = 原作链锯展开起头 → 每次弹射一声链锯咬合 zip_1..3（原作链锯不同段）
+    → 巨锯压下 warn = 原作链锯持续研磨降调 → 落地锯开 impact（高潮）= 原作链锯收尾 + 原作盾斧砸地爆裂（80 Hz 以下切，不留「咚」）"""
     return {
         "sf": akd("p_skill_chainsawextension.wav", 0.0, 0.45, fout=0.2), "cast": akd("p_skill_chainsawulmextension_1_intro.wav", 0.0, 0.8, fout=0.3),
         **{"zip_%d" % (i + 1): akd("p_skill_chainsawextension.wav", t, 0.3, r, fout=0.12) for i, (t, r) in enumerate([(0.3, 1.1), (0.75, 1.2), (1.2, 1.0)])},
@@ -382,15 +359,11 @@ def saria():
     }
 
 
-def suzuran(v=1):
+def suzuran():
     """docs/205 §4.6（11-01 定稿 ① 原作刀声 + 录音）：提示 = 原作忍刀命中 → 忍冬现身 cast = 能量流升调 → 瞬身 flash（seg 瞬身 on）= 原作忍刀一挥
     → 斩痕爆亮 impact（冲击帧同帧，全招最响）= 原作暗刃 + 斩击冲击 + 低频 → 0.32 秒后刀痕绷开 rupt（fx band w8 冷白细芯，次级）= 鞭响脆裂 + 原作忍刀命中。
-    v=2（11-01 第二轮）只换 rupt，见下"""
-    # 11-01 第二轮（用户「忍冬最后的爆裂要做出来」，画面改成刀痕连环爆裂 ult/sz_rupt_chain）：只换 rupt，其余同 11-01 夜定稿 ①。
-    # rupt ① 原作：灵魂爆裂升调 + 原作忍刀命中；② 录音：小爆炸 + 近距烟花炸裂 + 鞭响
+    11-01 第二轮（用户「忍冬最后的爆裂要做出来」，画面刀痕连环爆裂 ult/sz_rupt_chain）rupt 改成 原作灵魂爆裂升调 + 原作忍刀命中（用户选 ①）"""
     rupt = pad(akd("p_skill_spiritexplo.wav", 0.02, 0.9, 1.15, fout=0.35), akd("p_skill_ninjasword_imp.wav", 0.05, 0.5, 0.85, fout=0.2) * 0.6)
-    if v == 2:
-        rupt = pad(sn("blast", 0.02, 0.7, 0.9, fout=0.25), lp(sn("fworks", 6.57, 0.7, 0.9, fout=0.3), 6000) * 0.6, sn("whip", 0.45, 0.4, fout=0.15) * 0.4)
     return {
         "sf": akd("p_skill_ninjasword_imp.wav", 0.05, 0.5, fout=0.2), "cast": sn("astral", 0.0, 0.5, 1.3, fout=0.2),
         "flash": akd("p_skill_ninjasword.wav", 0.05, 0.5, fout=0.2),
@@ -413,18 +386,15 @@ def logos(v=1):
                   "impact": pad(akd("p_skill_sharpspell.wav", 0.3, 1.5, 0.85, fout=0.6), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9)})
     return d
 
-def hoshiguma(v=1):
+def hoshiguma():
     """docs/205 §4.3（用户 10-31 选录音版 ② 再「低频一点」：整体降调 ×0.8、5 kHz 以上压掉、低频轰加厚）：
     按 Q = 金属重击 sf + 金属箱拖拽 charge → 盾砸地 cast（重击 + 低频轰）+ 吸怪碎石呼啸 pull（fx line+v）
     → 挡的期间金属吃力 block（seg 格挡 on）+ 每圈新裂纹一声冰裂 crack_1..5（fx line w3，逐圈略升）
     → 盾甲炸开 boom（fx blade+v，高潮：斩击冲击 + 预告片低频轰 + 地裂）→ 热砂 sizzle（篝火噼啪，fx dots）"""
     R = 0.8
     boom = pad(lp(sn("cut", 0.93, 1.4, R, fout=0.5), 5000), lp(sn("b214", 0.25, 1.6, fout=0.6), 900) * 1.1, lp(sn("fissure", 0.0, 0.9, 0.7, fout=0.3), 4000) * 0.5)
-    # 11-01 用户「最后缺个爆裂的声音」：盾甲炸开叠一层爆裂。① 录音：近距烟花炸裂降调 + 小爆炸；② 原作：火爆弹炸裂 + 机械爆炸
-    if v == 2:
-        boom = pad(boom * 0.8, akd("p_skill_fireboomexplo.wav", 0.0, 1.3, 0.85, fout=0.5) * 0.9, akd("p_skill_robotexplo.wav", 0.55, 1.0, 0.9, fout=0.4) * 0.5)
-    else:
-        boom = pad(boom * 0.8, lp(sn("fworks", 4.32, 1.0, 0.75, fout=0.4), 6000) * 0.9, sn("blast", 0.02, 0.8, 0.8, fout=0.3) * 0.5)
+    # 11-01 用户「最后缺个爆裂的声音」→ 选 ②：盾甲炸开叠一层原作火爆弹炸裂 + 机械爆炸
+    boom = pad(boom * 0.8, akd("p_skill_fireboomexplo.wav", 0.0, 1.3, 0.85, fout=0.5) * 0.9, akd("p_skill_robotexplo.wav", 0.55, 1.0, 0.9, fout=0.4) * 0.5)
     return {
         "sf": lp(sn("bang", 0.0, 0.7, R), 5000), "charge": lp(sn("drag", 0.5, 1.0, R, fout=0.2), 5000),
         "cast": pad(lp(sn("thud", 0.2, 1.0, R, fout=0.3), 5000), lp(sn("b214", 0.25, 1.1, fout=0.4), 700) * 0.9),
@@ -436,20 +406,10 @@ def hoshiguma(v=1):
     }
 
 
-def siege(v=1):
+def siege():
     """docs/205 §4.7（用户 11-01「推进之王的终结技音效需要修改」；10-31 要「拿着锤子爆裂的感觉」、不要「咚」——那一声已查实是队友技能音效，放出期间静音）：
-    ① 原作盾斧爆裂：提示 = 原作磁锤 → 起跳 = 原作跳劈起手 → 落地砸地 smash（fx circle r100，高潮）= 原作盾斧砸地榴弹爆裂 + 原作磁锤砸实瞬态 + 碎石
-    → 再跃小砸地 smash2 = 原作盾斧重击 → 碎岩 rock_1..3 = 原作碎盾 3 个音高 → 敌人落地 land = 原作盾斧收势。90 Hz 以下切，保留锤身的重量
-    ② 录音重锤爆破：砸地 = 重击碎裂 + 近距烟花炸裂降调 + 雷暴炸裂 + 碎石 → 小砸地 = 钢管砸混凝土 + 金属共鸣 → 碎岩 = 冰裂碎块 → 落地 = 重击闷响"""
-    if v == 2:
-        return {
-            "sf": akd("p_skill_magnetichammer.wav", 0.0, 0.45, 1.0, fout=0.2), "cast": akd("p_skill_jumphammer_1.wav", 0.0, 0.7, fout=0.25),
-            "smash": hp(pad(sn("smash", 0.0, 1.2, 0.85, fout=0.5), lp(sn("fworks", 4.32, 1.0, 0.8, fout=0.4), 6000) * 0.8, sn("thunder", 3.27, 1.0, 0.9, fout=0.4) * 0.5,
-                            sn("debris", 0.1, 1.0, fout=0.4) * 0.4), 90, 4),
-            "smash2": hp(pad(sn("pipe", 0.0, 0.44, 0.9, fout=0.1), sn("ring", 0.38, 0.5, 0.9, fout=0.25) * 0.4), 200),
-            **{"rock_%d" % (i + 1): hp(pad(sn("shatter", 0.08, 0.45, r, fout=0.2), sn("debris", 0.3, 0.35, fout=0.2) * 0.4), 500) for i, r in enumerate([1.0, 1.1, 0.92])},
-            "land": hp(sn("thud", 0.38, 0.35, 1.05, fout=0.15), 300),
-        }
+    11-01 选定 ① 原作盾斧爆裂：提示 = 原作磁锤 → 起跳 = 原作跳劈起手 → 落地砸地 smash（fx circle r100，高潮）= 原作盾斧砸地榴弹爆裂 + 原作磁锤砸实瞬态 + 碎石
+    → 再跃小砸地 smash2 = 原作盾斧重击 → 碎岩 rock_1..3 = 原作碎盾 3 个音高 → 敌人落地 land = 原作盾斧收势。90 Hz 以下切，保留锤身的重量"""
     return {
         "sf": akd("p_skill_magnetichammer.wav", 0.0, 0.45, 1.0, fout=0.2), "cast": akd("p_skill_jumphammer_1.wav", 0.0, 0.7, fout=0.25),
         "smash": hp(pad(akd("p_skill_MHshieldaxe_ground2.wav", 0.0, 1.35, fout=0.5), akd("p_skill_magnetichammer.wav", 0.0, 0.5, fout=0.2) * 0.6,
@@ -477,20 +437,11 @@ def irene(v=1):
                   "impact": pad(akd("p_skill_reticentsword_h.wav", 0.1, 1.2, fout=0.5), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9)})
     return d
 
-def lappland(v=1):
+def lappland():
     """docs/205 §4.7（用户 11-01「拉普兰德的音效和终结技还得做一下」；11-01 夜的 ① 作废）：起手语音 = 她的笑声（voice）
-    ① 原作：放出 = 原作双刀展开 → 每道剑气 slash_1..4 = 原作弧切（亮金属掠过，4 个音高）；第一下掉血 impact 很轻
+    11-01 选定 ① 原作：放出 = 原作双刀展开 → 每道剑气 slash_1..4 = 原作弧切（亮金属掠过，4 个音高）；第一下掉血 impact 很轻
     → 收尾横斩 final（hf_slot，全招最响）= 原作沉默之剑重斩 + 原作双刀 + 预告片低频 → 空气爆破 air = 原作盾斧砸地爆裂升调 + 碎屑呼啸。
-    ② 录音：每道剑气 = 金属剑滑切 → 横斩 = 多层剑斩 + 斩击冲击 + 鞭响 + 低频 → 空气爆破 = 玻璃碎片呼啸升调 + 雷暴炸裂。
     画面原来硬写的通用 boom 已去掉（ult/la_r2），空气爆破只响 air 这一声"""
-    if v == 2:
-        return {
-            "sf": sn("swcut", 0.12, 0.4, 0.95, fout=0.15), "cast": sn("slice", 0.29, 0.5, 1.1, fout=0.2),
-            **{"slash_%d" % (i + 1): sn("swcut", t, 0.28, r, fout=0.1) for i, (t, r) in enumerate([(0.12, 1.1), (2.18, 1.05), (0.12, 1.25), (2.18, 1.2)])},
-            "impact": sn("swcut", 0.12, 0.3, 1.0, fout=0.1),
-            "final": pad(sn("slice", 0.29, 0.7, fout=0.3), sn("cut", 0.93, 1.2, fout=0.45) * 0.8, sn("whip", 0.45, 0.5, fout=0.2) * 0.6, lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7),
-            "air": pad(sn("glass", 0.8, 1.0, 1.1, fout=0.4), sn("thunder", 3.27, 1.0, 1.2, fout=0.4) * 0.5),
-        }
     return {
         "sf": akd("p_skill_arccutting.wav", 0.0, 0.4, 0.95, fout=0.15), "cast": akd("p_skill_MHdualswords_on.wav", 0.0, 0.6, fout=0.2),
         **{"slash_%d" % (i + 1): akd("p_skill_arccutting.wav", 0.0, 0.3, r, fout=0.1) for i, r in enumerate([1.0, 1.1, 1.2, 0.92])},

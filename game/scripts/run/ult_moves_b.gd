@@ -702,9 +702,9 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 	return a
 
 
-## 开头动作（用户 11-01「格雷蒂娅终结技开头的动作是不是可以改一下」，ult/gl_open；0 = 原版：原地一挥、漩涡整张直接出现）。
-## 1「掷枪落涡」：她朝落点掷出长枪（白芯青光的枪影 0.1 秒飞到）→ 枪扎进地面、水花和水雾炸开 → 漩涡从枪尖处淡入转起来；
-## 2「旋枪卷潮」：她原地抡枪一圈（脚下两道水色弧）→ 一股海水沿弧线从她身边涌向落点（0.22 秒）→ 海水在落点卷进去、漩涡从 1.35 倍收到原大淡入。
+## 开头动作（用户 11-01「格雷蒂娅终结技开头的动作是不是可以改一下」→ 选方案 A，ult/gl_open；0 = 原版：原地一挥、漩涡整张直接出现）。
+## 「掷枪落涡」：她朝落点掷出长枪（白芯青光的枪影 0.1 秒飞到）→ 枪扎进地面、一帧爆亮 + 细裂缝 + 水花和水雾炸开 → 漩涡从枪尖处淡入转起来。
+## （落选的方案 B「旋枪卷潮」已删，见 docs/199 §7.18）
 ## 只有画面：判定 / 时序 / 伤害不变（漩涡淡入在 _gl_step 里乘 alpha / 缩放）
 static func _gl_open(u, a: Dictionary, o, c: Vector2, col: Color) -> void:
 	var vs: float = PF.vseed(u, c)
@@ -713,30 +713,6 @@ static func _gl_open(u, a: Dictionary, o, c: Vector2, col: Color) -> void:
 	var foam := Color(0.82, 0.97, 1.0)
 	var deep: Color = col.darkened(0.35)
 	o.face_to(d.angle())
-	if int(a.op) == 2:
-		for q in 2:   # 抡枪：脚下两道水色弧，一正一反
-			var nm: String = "fx_irv_smear%d" % (1 + (q + int(vs * 7.0)) % 4)
-			if u.fx_ready(nm):
-				var rr: float = PF.tex_w(u, nm) * 0.5
-				u.strip(nm, o.pos + Vector2(0, -6), {"layer": "back", "sc": (110.0 + 50.0 * q) / rr, "sc1": (140.0 + 50.0 * q) / rr, "scd": 0.14, "ang": d.angle() + q * 2.4,
-					"spin": 26.0 * (1.0 if q == 0 else -1.0), "sx": 1.0 if q == 0 else -1.0, "life": 0.18, "fade": 0.1, "col": Color(col.r, col.g, col.b, 0.75 - 0.2 * q)})
-		var side: Vector2 = d.orthogonal() * (1.0 if PF.h(vs) < 0.5 else -1.0)
-		var L: float = p0.distance_to(c)
-		var mid: Vector2 = (p0 + c) * 0.5 + side * L * 0.28
-		var prev: Vector2 = p0
-		var N := 7
-		var k: float = 0.0
-		for i in range(1, N + 1):   # 海水沿弧线涌过去：一节节水带接力显现（节长 / 粗细 / 起止错开，不等距），越往前越宽，节点甩水沫
-			var hk: float = PF.h(vs + i * 2.7)
-			k = minf(1.0, k + (0.6 + 0.8 * hk) / float(N)) if i < N else 1.0
-			var q2: Vector2 = p0.lerp(mid, k).lerp(mid.lerp(c, k), k) + side * (hk - 0.5) * 18.0 * (1.0 - k)
-			u.shape({"kind": "blade", "a": prev, "b": q2, "w": (5.0 + 12.0 * k) * (0.75 + 0.5 * hk), "col": foam, "glow": deep, "life": 0.13 + 0.08 * hk, "fo": 0.1, "delay": 0.2 * k})
-			if hk < 0.55:
-				PF.particles(u, q2, 26, "ult_burst_s", [foam, col], 0.2 * k, vs + i * 3.0, 30.0 + 30.0 * hk)
-			prev = q2
-		PF.particles(u, c, 140, "ult_burst_s", [foam, col, deep], 0.22, vs + 50.0, 120.0)
-		PF.dust(u, c, 200.0, 0.2, vs, Vector2.ZERO, Color(0.42, 0.58, 0.66))
-		return
 	# 掷枪：枪影一道飞到落点，扎地后枪身留 0.5 秒
 	u.shape({"kind": "blade", "a": p0, "b": c, "w": 5.0, "col": foam, "glow": col, "grow": 0.1, "life": 0.17, "fo": 0.07})
 	u.shape({"kind": "blade", "a": c - d * 80.0 + Vector2(0, -30), "b": c + d * 6.0, "w": 4.0, "col": Color(0.8, 0.93, 1.0), "glow": deep, "life": 0.55, "fo": 0.3, "delay": 0.1})
@@ -796,14 +772,12 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			a.vi.ang = 1.3 - float(a.rot) * 1.8
 			a.vi.sc = DR * 0.5 * sk / float(a.rr)
 			a.vi.col = Color(1.1 + 0.5 * kc, 1.15 + 0.5 * kc, 1.15 + 0.5 * kc, lerpf(0.7, 1.0, kc))
-			if int(a.get("op", 0)) > 0 and t < 0.3:   # 开头动作：漩涡等枪扎地 / 海水涌到才淡入（2 = 从外面卷进来，1.35 倍收到原大）
+			if int(a.get("op", 0)) > 0 and t < 0.3:   # 开头动作：漩涡等枪扎地才淡入
 				var ko: float = smoothstep(0.08, 0.28, t)
 				for key in ["vo", "vi"]:
 					var cc: Color = a[key].col
 					cc.a *= ko
 					a[key].col = cc
-					if int(a.op) == 2:
-						a[key].sc = float(a[key].sc) * lerpf(1.35, 1.0, ko)
 			if int(t * 60.0) % 3 == 0:   # 外圈的水沫往里吸
 				var dq := Vector2.from_angle(float(a.rot) * 1.7 + t * 9.0)
 				u.grain("mote_in", c + dq * DR * 0.9, -dq, Color(0.8, 1.0, 1.0), 3)
