@@ -1,6 +1,6 @@
 # ui_smoke
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/ui_smoke_test.tscn -- --regression --seed=1
-# 用时 20 秒；结束时全机 Godot 4 个
+# 用时 16 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
@@ -17,7 +17,7 @@ ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builti
    at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
    GDScript backtrace (most recent call first):
        [0] make_actor_mat (res://scripts/render/look.gd:286)
-       [1] _ready (res://scripts/game.gd:1078)
+       [1] _ready (res://scripts/game.gd:1079)
        [2] game_part (res://tests/ui_smoke_test.gd:131)
        [3] run (res://tests/ui_smoke_test.gd:85)
        [4] title_part (res://tests/ui_smoke_test.gd:126)

@@ -1,6 +1,6 @@
 # suzuran_skill_anim
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/suzuran_skill_anim_test.tscn -- --regression --seed=1 --balance --op=suzuran --squad=lumen
-# 用时 14 秒；结束时全机 Godot 3 个
+# 用时 11 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
@@ -15,7 +15,7 @@ ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builti
    at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
    GDScript backtrace (most recent call first):
        [0] make_actor_mat (res://scripts/render/look.gd:286)
-       [1] _ready (res://scripts/game.gd:1078)
+       [1] _ready (res://scripts/game.gd:1079)
        [2] _ready (res://tests/suzuran_skill_anim_test.gd:20)
 ERROR: 干员 suzuran 的 sprites.skills.s2 有 hold 就要有 intro
    at: push_error (core/variant/variant_utility.cpp:1023)
