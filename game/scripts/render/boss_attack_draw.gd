@@ -216,6 +216,9 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 				var tip: Vector2 = arc_center+Vector2.from_angle(w.ang+side*w.half)*w.r
 				_strip(r,tip,tip+forward*180,2.0,_ink(DANGER,0.35))
 		"circle":
+			if _knight_circle(w):   # 冰枪封径 / 冻结重击 / 寒潮回卷（11-01 巡检：原来退回通用粉圆）
+				_frost_circle(r, w, gy, progress, alpha)
+				return
 			_circle_fill(r, w, gy, fill)
 			_ring(r, p, w.r, gy, 5.0, _ink(DARK, 0.8))
 			_ring(r, p, w.r, gy, 2.0, edge)
@@ -233,6 +236,12 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 				var thrown: bool = w.get("skin", "") == "ice_javelin"
 				_frost_line(r, p, w.ang, w.len, w.wid, progress, tr <= 0.0 or since_lock >= 0.0, alpha, lock_flash * 0.6, false, not thrown)
 				if thrown: _javelin_tell(r, w, progress, alpha)
+				return
+			if w.get("skin", "") == "step":   # 侧踏挑枪的滑步（无伤害，只是位移）：一道淡冰痕，不画危险框（11-01 巡检：原来是粉框）
+				_step_trail(r, p, w.ang, w.len, progress, alpha)
+				return
+			if w.get("skin", "") == "ice_wall" and _knight_owned(w):   # 冻潮夹击：冰墙本体用冰裂勾边，横扫范围用冰色箭头（11-01 巡检：原来是粉线）
+				_frost_wall(r, w, progress, alpha)
 				return
 			if w.get("skin","") == "tide":   # 伊祖米克迁徙潮：波峰勾边，不画矩形框（docs/170）
 				IzumikDraw.tide_warning(g,w,alpha,progress)
@@ -313,6 +322,88 @@ static func _shape(g, w: Dictionary, alpha: float, warning: bool) -> void:
 const CRACK_ICE := Color(0.6, 0.84, 0.95)
 const CRACK_EDGE := Color(0.6, 0.14, 0.27)
 const CRACK_SHADE := Color(0.03, 0.04, 0.07)
+
+static func _knight_owned(w: Dictionary) -> bool:
+	var o = w.get("owner", null)
+	return o is Dictionary and str(o.get("type", "")) == "knight_boss"
+
+static func _knight_circle(w: Dictionary) -> bool:
+	return _knight_owned(w) and str(w.get("skin", "")) in ["ice_lance", "ice_field"]
+
+## Knight circle tell (冰枪封径 / 冻结重击 / 寒潮回卷): same language as _frost_line. Low dark-red fill, a ragged crack rim
+## that only steps inward (the outer edge is exactly the hit ellipse), frost needles creeping round the rim as the timer,
+## and ice cracks growing out from the centre. No solid ring, no fill arc.
+static func _frost_circle(r, w: Dictionary, gy: float, k: float, alpha: float) -> void:
+	var p: Vector2 = w.pos
+	var radius: float = float(w.r)
+	var salt: int = (int(radius) + int(p.x) * 7 + int(p.y) * 13) & 255
+	var white := Color(0.88, 0.98, 1.0)
+	_circle_fill(r, w, gy, Color(0.24, 0.035, 0.085, 0.08 + 0.07 * k))
+	var steps: int = clampi(ceili(TAU * radius / 6.0), 24, 160)
+	var prev := Vector2.ZERO
+	for i in steps + 1:
+		var a: float = TAU * float(i) / steps
+		var inset: float = 0.0 if i == 0 or i == steps else floorf(_noise(int(i / 3.0), salt) * 3.0) * 2.0
+		var dir := Vector2(cos(a), sin(a) * gy)
+		var at: Vector2 = p + dir * (radius - inset)
+		if i > 0:
+			_strip(r, prev, at, 2.0, _ink(CRACK_EDGE, alpha * 0.85))
+		prev = at
+		# Needles creep clockwise from the top over the tell: the timer, read on the rim instead of a pink arc.
+		var u: float = fposmod(a + PI * 0.5, TAU) / TAU
+		if i < steps and u <= k and _noise(i, salt + 13) < 0.45:
+			var reach_in: float = 4.0 + _noise(i, salt + 19) * 8.0
+			_strip(r, at - dir * 2.0, at - dir * reach_in, 2.0, _ink(CRACK_ICE, alpha * 0.7))
+			if _noise(i, salt + 29) < 0.3:
+				_dot(r, at - dir * (reach_in + 3.0), _ink(white, alpha * 0.6))
+	# Centre cracks: 5 kinked fractures growing to ~70% of the radius.
+	var reach: float = radius * 0.7 * k
+	if reach < 4.0: return
+	for j in 5:
+		var base: float = TAU * (j + _noise(j, salt + 31) * 0.6) / 5.0
+		var last: Vector2 = p
+		var seg: int = maxi(1, ceili(reach / 8.0))
+		for i in seg:
+			var s: float = minf(reach, float(i + 1) * 8.0)
+			var bend: float = (_noise(int(s / 24.0), salt + 37 + j) - 0.5) * 0.5
+			var at: Vector2 = p + Vector2(cos(base + bend), sin(base + bend) * gy) * s
+			_strip(r, last, at, 4.0, _ink(CRACK_SHADE, alpha * 0.35))
+			_strip(r, last, at, 2.0, _ink(CRACK_ICE, alpha * 0.65))
+			last = at
+		if k < 1.0:
+			_dot(r, last, _ink(white, alpha), 2.0)
+
+## Knight sidestep (侧踏挑枪 first half, no damage): a faint ice scrape along the slide, not a danger shape.
+static func _step_trail(r, p: Vector2, ang: float, length: float, k: float, alpha: float) -> void:
+	var d := Vector2.from_angle(ang)
+	var reach: float = length * k
+	var n := d.orthogonal()
+	for i in maxi(1, ceili(reach / 10.0)):
+		var a: Vector2 = p + d * minf(reach, i * 10.0)
+		var b: Vector2 = p + d * minf(reach, i * 10.0 + 6.0)
+		for side in [-1.0, 1.0]:
+			_strip(r, a + n * side * 6.0, b + n * side * 6.0, 2.0, _ink(CRACK_ICE, alpha * 0.4))
+	_dot(r, p + d * reach, _ink(Color(0.88, 0.98, 1.0), alpha * 0.8), 4.0)
+
+## 冻潮夹击 ice wall: the wall's own footprint as a frost tell (no route crack), plus the sweep it will travel shaded low with
+## ice-coloured edge runs and three ice chevrons pointing the way it moves.
+static func _frost_wall(r, w: Dictionary, k: float, alpha: float) -> void:
+	var p: Vector2 = w.pos
+	var d := Vector2.from_angle(w.ang)
+	var end: Vector2 = p + d * w.len
+	_frost_line(r, p, w.ang, w.len, w.wid, k, true, alpha, 0.0, false, false)
+	var travel: Vector2 = w.velocity * float(w.life)
+	if travel.length() < 1.0: return
+	r.tb_quad(p, end, end + travel, p + travel, Color(0.24, 0.035, 0.085, 0.045))
+	var v: Vector2 = travel.normalized()
+	for edge in [p, end]:
+		var runs: int = maxi(1, ceili(travel.length() * k / 12.0))
+		for i in runs:
+			_strip(r, edge + travel * (i * 12.0 / travel.length()), edge + travel * minf(1.0, (i * 12.0 + 7.0) / travel.length()), 2.0, _ink(CRACK_ICE, alpha * 0.5))
+	for j in 3:
+		var at: Vector2 = p.lerp(end, (j + 1) / 4.0) + travel * (0.3 + 0.4 * k)
+		_strip(r, at - v * 12.0 + d * 9.0, at, 2.0, _ink(CRACK_ICE, alpha * 0.8))
+		_strip(r, at - v * 12.0 - d * 9.0, at, 2.0, _ink(CRACK_ICE, alpha * 0.8))
 
 ## Generic Knight line warnings from g.warns (charge, re-charge, cold pursuit, ice line, spear throw).
 static func _knight_line_tell(g, w: Dictionary) -> void:

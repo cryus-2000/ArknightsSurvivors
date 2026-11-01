@@ -55,7 +55,7 @@ func _ready() -> void:
 	var segment_seconds := 18.0
 	if ice_review:
 		segment_seconds = 12.0
-		scenarios = [{"name":"环形冰波", "move":"长枪回旋", "phase":2}, {"name":"三段冰锋", "move":"长枪连刺", "phase":1}, {"name":"放射双冰阵", "move":"踏冰裂阵", "phase":1}, {"name":"快速弧斩", "move":"断潮劈击", "phase":2}, {"name":"冰枪封径", "move":"冰枪封径", "phase":2}, {"name":"冻潮夹击", "move":"冻潮夹击", "phase":2}]
+		scenarios = [{"name":"环形冰波", "move":"长枪回旋", "phase":2}, {"name":"三段冰锋", "move":"长枪连刺", "phase":1}, {"name":"放射双冰阵", "move":"踏冰裂阵", "phase":1}, {"name":"快速弧斩", "move":"断潮劈击", "phase":2}, {"name":"冰枪封径", "move":"冰枪封径", "phase":2}, {"name":"冻潮夹击", "move":"冻潮夹击", "phase":2}, {"name":"侧踏挑枪", "move":"侧踏挑枪", "phase":1}]   # 侧踏挑枪：11-01 巡检补（原来是通用粉框）
 	if "--knight-wall-review" in OS.get_cmdline_user_args():
 		scenarios=scenarios.filter(func(s):return s.move=="冻潮夹击")
 	# --knight-1101-review（11-01 用户截图「特效是不是没有做」+「弧斩打不到人」）：掷冰枪 / 裂地的直线冰枪新画面、弧斩 v2；
