@@ -2029,10 +2029,20 @@ func _skill_rows(cd: Dictionary) -> Array:
 		var tu := "_touch" if UI._touch_ui() else ""
 		var ul: Dictionary = ue.get("ult", {})
 		var lk: Dictionary = ue.get("link", {})
+		var un := "ult_note_aim" if Bal.vi("ult/aim", 0) > 0 and ut.has("ult_note_aim") else "ult_note"
 		rows.append(["ULTIMATE  //  终结技", str(ul.get("name", "")), str(ul.get("en", "")), "", "", "终结技" if UI._touch_ui() else "终结技 Q", true,
-			"%s。\n%s" % [str(ul.get("desc", "")), str(ut.get("ult_note" + tu, ""))]])
-		rows.append(["LINK  //  连携技", str(lk.get("name", "")), str(lk.get("en", "")), "", "", "连携" if UI._touch_ui() else "连携 E", false,
-			"%s。\n触发：%s。%s" % [str(lk.get("desc", "")), str(lk.get("trigger", "")), str(ut.get("link_note" + tu, ""))]])
+			"%s。\n%s" % [str(ul.get("desc", "")), str(ut.get(un + tu, ut.get(un, "")))]])
+		var l2: Dictionary = ue.get("link_v2", {})
+		if Bal.vi("link/v2", 0) > 0 and not l2.is_empty():   # 指挥 v2（docs/209 §2）：技能连携，全自动、没有 E 键
+			var lb := {}
+			for k in ["link_irene_amp", "link_kaltsit_heal", "link_lumen_lamp", "link_skalter_atk"]:
+				lb[k] = Bal.v("ult/" + k, {"link_irene_amp": 0.2, "link_kaltsit_heal": 0.03, "link_lumen_lamp": 10.0, "link_skalter_atk": 1.2}[k])
+			rows.append(["LINK  //  连携", str(l2.get("name", "")), str(l2.get("en", "")), "", "", str(l2.get("kind", "连携")), false,
+				"%s。\n%s。" % [Character.fill_line(str(l2.get("desc", "")), lb),
+					str(ut.get("link_note_v2", "")).replace("{gap}", Character.text_fmt(Bal.v("link/v2_gap", 60.0), 0))]])
+		else:
+			rows.append(["LINK  //  连携技", str(lk.get("name", "")), str(lk.get("en", "")), "", "", "连携" if UI._touch_ui() else "连携 E", false,
+				"%s。\n触发：%s。%s" % [str(lk.get("desc", "")), str(lk.get("trigger", "")), str(ut.get("link_note" + tu, ""))]])
 	return rows
 
 

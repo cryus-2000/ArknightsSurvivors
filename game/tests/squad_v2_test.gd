@@ -176,6 +176,25 @@ func _ready() -> void:
 		ok(kind_r in ["追击", "冲阵", "附加"], "突击优先进攻类（%s）" % kind_r)
 		u.queue.clear()
 		ok(not u.press_e(), "v2 没有 E 键")
+		# 没有敌人：队长放技能不亮、不占间隔；亮起后区域被清空：不出手、退还间隔（11-01 用户「终结技后不用连携」一并确认）
+		var ld0 = sq.leader()
+		u.set_meta("link_next", -INF)
+		_clear()
+		g.enemies_sys.build_grid()
+		LinkV2.on_skill(u, ld0, 0)
+		ok(u.queue.is_empty() and float(u.get_meta("link_next", -INF)) == -INF, "范围里没有敌人：不亮、不占间隔")
+		for k in 6:
+			_foe(g.ppos + Vector2(150, -20 + k * 8))
+		g.enemies_sys.build_grid()
+		LinkV2.on_skill(u, ld0, 0)
+		ok(not u.queue.is_empty() and float(u.get_meta("link_next", -INF)) > g.t, "有敌人：亮起并占间隔")
+		var n0: int = int(u.stats.get("v2_links", 0))
+		_clear()
+		g.enemies_sys.build_grid()
+		u._fire_head(true)
+		ok(int(u.stats.get("v2_links", 0)) == n0 and float(u.get_meta("link_next", -INF)) == -INF, "出手前区域清空：不出手、退还间隔")
+		ok(not (load("res://scripts/run/link_v2.gd") as Script).get_script_method_list().any(func(m): return str(m.name) == "on_ult") and not LinkV2.PREF.has("ult"), "终结技不再触发连携")
+		u.queue.clear()
 	sq.set_stance(sq.GUARD)
 	# 10. 开关 0：圆盘回旧项、不吃弹
 	Bal.sec("command")["v2"] = 0

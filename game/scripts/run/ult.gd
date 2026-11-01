@@ -51,6 +51,7 @@ var tier := "ult"           # 当前伤害档：ult / cult（hit 读）
 # 慢动作瞄准 v2（run/ult_aim.gd）：本次瞄准走 v2、轻点后保持瞄准、输入源（key / mouse / pad / touch / plan）、按下 Q 与进入瞄准的真实时刻
 var aim_v2 := false
 var aim_latched := false
+var aim_moved := false       # 这次瞄准里玩家挪过落点 / 方向（拖动、鼠标、摇杆、移动键）：松手直接放，不当轻点保持
 var aim_src := "key"
 var _q_rt0 := 0.0
 var _aim_rt0 := 0.0
@@ -279,6 +280,7 @@ func tick(dt: float) -> void:
 		g.invuln = maxf(g.invuln, 0.1)   # 播放期间队长不能走也不能冲刺：无敌，不闪烁（同技能位移的无敌）
 		g.invuln_move_until = maxf(g.invuln_move_until, g.t + 0.1)
 	_tick_combo(dt)
+	LinkV2.tick_waves(self)
 	if phase == "" and energy >= FULL and _auto_ult():
 		_auto_cast()
 
@@ -300,6 +302,7 @@ func _clear() -> void:
 			a.p.syn_mv = {}
 	combo_acts.clear()
 	queue.clear()
+	v2_waves.clear()
 	if phase != "":
 		phase = ""
 		act = {}
@@ -455,12 +458,11 @@ func _tick_ult(dt: float) -> void:
 		if done:
 			phase = ""
 			act = {}
-			if LinkV2.on():
-				LinkV2.on_ult(self, _ult_at)   # 连携 v2：终结技放完，队友在落点上接一招收割
 			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
 
 
-var _ult_at := Vector2.INF   # 这次终结技的作用中心（落点 / 方向前方 300 / 自身）：连携 v2 收割用
+var v2_waves: Array = []    # 连携 v2 余波（link_v2.spread_start / tick_waves，link/v2_spread）
+var _ult_at := Vector2.INF   # 这次终结技的作用中心（落点 / 方向前方 300 / 自身）；快检 ult_aim 读（11-01 用户「终结技后不用连携」后不再触发连携）
 
 
 func _cast() -> void:
@@ -644,6 +646,9 @@ func _fire_head(auto: bool) -> void:
 	var q: Dictionary = queue.pop_front()
 	var o = q.o
 	if q.info.has("link"):   # 技能连携：接进那个技能，不走连携冷却
+		if q.info.has("v2") and in_circle(q.info.pos, float(q.info.get("r", 150.0)) + 60.0).is_empty():
+			LinkV2.refund(self, q.info)   # 亮起到出手之间区域被清空：不出手、退还全队间隔，留到下次有目标再接
+			return
 		var la: Dictionary = Link.fire(self, o, q.info)
 		stats.link_by[str(o.id)] = int(stats.link_by.get(str(o.id), 0)) + 1   # 遥测：每人技能连携出手次数
 		stats.combo += 1
@@ -654,6 +659,7 @@ func _fire_head(auto: bool) -> void:
 		combo_acts.append(la)
 		if q.info.has("v2"):
 			link_landed(o)   # v2：每次连携 +1 协同格（喂连携终结技）+ 能量
+			LinkV2.spread_start(self, o, q.info)
 		if lf_on():
 			link_flash(o, str(LINK_NAME.get(str(q.info.link), o.display_name())))
 		var tc: Color = _col(o)

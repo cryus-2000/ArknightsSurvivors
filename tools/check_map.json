@@ -105,7 +105,8 @@
   "ult": {
    "scenes": [
     "ult_playback",
-    "ult_aim"
+    "ult_aim",
+    "link_text"
    ]
   },
   "op_shared": {
@@ -630,7 +631,8 @@
    "glob": "game/scripts/{ui,ui_motion,title,title_bg,title_deep,title_tree,settings,settings_panel,touch,touch_layout,pad,gallery,sfx,post_fx,cloud_save}.gd",
    "groups": [
     "core",
-    "ui"
+    "ui",
+    "ult"
    ],
    "why": "界面 / 设置 / 触屏 / 音效"
   },
@@ -642,6 +644,14 @@
     "render"
    ],
    "why": ""
+  },
+  {
+   "glob": "game/data/ult_text.json",
+   "groups": [
+    "core",
+    "ult"
+   ],
+   "why": "终结技 / 连携图鉴文案（link_text）"
   },
   {
    "glob": "game/data/relics.json",

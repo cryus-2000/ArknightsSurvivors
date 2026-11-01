@@ -278,6 +278,7 @@ func _ult_aim() -> void:
 	if u == null or skill_id < 0 or u.phase != "aim" or u.caster == null or skill_aim.length() < AIM_DEAD:
 		return
 	var d: Vector2 = skill_aim.normalized()
+	u.aim_moved = true   # 拖过死区：松手直接放（快速一甩不当轻点）
 	if u.aim_kind == "point":
 		u.aim = u.caster.pos + d * minf(ULT_AIM_MAX, skill_aim.length() / ULT_AIM_REACH * ULT_AIM_MAX)
 	elif u.aim_kind == "dir":
