@@ -19,7 +19,8 @@ godot = gr.find_godot()
 AT = ['--autotest']
 SQ = ['--balance', '--seed=1', '--op=texas', '--squad=hoshiguma,exusiai,kaltsit', '--realtime', '--nodeath', '--bot=afk']
 JOBS = {
-    'boot': ['--bootshot=ready', '--bal=ui/boot_v=3'],
+    'boot_mid': ['--bootshot'],
+    'boot': ['--bootshot=ready'],
     'title': ['--titleshot'],
     'diff': ['--diffshot=1,3'],
     'guide': ['--guideshot'],
