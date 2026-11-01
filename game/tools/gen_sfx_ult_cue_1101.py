@@ -26,6 +26,9 @@ BOOM = "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_V
 SPELL = "Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms/MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav"
 TING = "Cinematic Sound Design - UI Interaction Elements/Ting Coins.wav"
 KALIMBA = "CB_Sounddesign - Applicable Sounds - Organic UI and Building Games SFX/UIMisc_Kalimba 3 Up_CB Sounddesign_APPlicable Sounds.wav"
+MBOX = "Sonic Bat - Music Boxes/SBmb_Music Box B 028.wav"   # 八音盒一音：基频 1326 Hz、泛音 2653 / 3980
+RING = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav"   # 0.42 秒处金属共振，3.4 kHz 一层
+XBELL = "344 Audio - Christmas Vol. 1/MAGMisc_Magic Christmas Bells 2_344 Audio_Christmas.wav"   # 2.21 秒一串小铃：7–14 kHz 闪烁
 TICK_A = [2.06, 3.055, 7.035, 8.06, 9.055, 10.06]   # 歪钟里响亮的几下（起点，onset 实测）
 TICK_B = [0.755, 1.5, 2.255, 3.005, 3.755, 4.5]      # 座钟：偶数 = 滴、奇数 = 答
 
@@ -38,7 +41,8 @@ def tick(src, t0, gain=1.0, rate=1.0, dur=0.16):
 def super_cues():
     """① 剑鸣「锵」：出鞘 shwing（Freesound IENBA「Dagger」CC0）+ 亮闪碎光（ESM 动漫 power up 头 0.35 秒）+ 一记很短的低频顿
     ② 金属撞击亮鸣：铁件敲击（ESM 金属材质）升调 + 前面 0.1 秒碎光倒吸 + 特招斩击层（ESM 塔防 special move）
-    ③ 和弦冲击：电影冲击和弦（CSD Rapid Chord）截头 0.45 秒 + 出鞘 shwing 高频层"""
+    ③ 和弦冲击：电影冲击和弦（CSD Rapid Chord）截头 0.45 秒 + 出鞘 shwing 高频层
+    ④ 电子游戏「叮——」（11-01 用户要 MUGEN 同款，原文件是卡普空的不能用）：高亮金属单音 + 闪烁尾，0.42 秒，没有低频冲击"""
     shwing = fsd(611310, 0.42, 0.4, fout=0.15)
     flash = hp(lib(SHIM, 0.13, 0.4, fout=0.2), 2500)
     thump = lp(lib(BOOM, 0.25, 0.3, fout=0.15), 400)
@@ -48,7 +52,13 @@ def super_cues():
     c2 = pad(pre * 0.5, at(pad(clank, hp(lib(SLICE, 0.4, 0.4, 1.1, fout=0.2), 1500) * 0.5, thump * 0.4), 0.09))
     chord = lib(CHORD, 0.84, 0.45, 1.06, fout=0.2)   # 起点对到和弦最响（0.86）前一点，按下即响
     c3 = pad(chord, hp(shwing, 3000) * 0.5)
-    return {"ult_super_1": c1, "ult_super_2": c2, "ult_super_3": c3}
+    # ④ 电子游戏「叮——」：八音盒一音升八度（基频约 2.65 kHz，泛音 5.3 / 8 kHz）+ 剑鸣共振尾里 3.4 kHz 那层 + 圣诞铃 7–14 kHz 闪烁尾，1.2 kHz 以下切掉
+    ding = lib(MBOX, 0.03, 0.9, 2.0, fin=0.001, fout=0.2)
+    ring = hp(lib(RING, 0.40, 0.6, 1.0, fin=0.002, fout=0.25), 2200)
+    sparkle = hp(lib(XBELL, 2.19, 0.5, 1.0, fin=0.002, fout=0.25), 5000)
+    c4 = hp(pad(ding * 1.3, ring * 0.7, at(sparkle * 0.12, 0.01)), 1200)
+    c4 = c4[:int(0.42 * SR)] * np.exp(-np.arange(min(len(c4), int(0.42 * SR))) / SR / 0.16)
+    return {"ult_super_1": c1, "ult_super_2": c2, "ult_super_3": c3, "ult_super_4": c4}
 
 
 # ---------------------------------------------------------------- 2. 就绪提示音

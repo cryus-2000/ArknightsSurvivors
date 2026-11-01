@@ -389,6 +389,7 @@ func _begin(ld, k: String) -> void:
 	caster = ld
 	serial += 1
 	_cut_pending = false
+	_wu_did = false
 	_tk = tk_of(str(ld.id)) if k == "ult" else 1.0
 	if _dur_arg():
 		_dur = {"id": str(ld.id), "t0": UM.now(), "last": UM.now(), "frozen": 0.0, "slow": 0.0}
@@ -1240,12 +1241,16 @@ func cam_punch() -> float:
 		return ip
 	if phase == "aim":
 		return Bal.v("ult/cam_aim", 1.08)
-	if phase == "windup":   # 起手慢放：往干员身上微推（镜头本来就以队长为中心），先快后慢
-		return lerpf(Bal.v("ult/cam_aim", 1.08), _wu_cam(), 1.0 - pow(1.0 - _wu_k(), 2.0))
+	if phase == "windup":   # 起手慢放：镜头以队长为中心，缓入曲线推到 ult/windup_zoom（用户 11-01「慢动作用镜头拉近来体现」）
+		var wk: float = _wu_k()
+		return lerpf(Bal.v("ult/cam_aim", 1.08), _wu_cam(), wk * wk * (2.0 - wk))
 	var age: float = g.t - _cast_t
 	if age < 0.0 or age > 1.0:
 		return 1.0
-	var hi: float = maxf(Bal.v("ult/cam_cast", 1.12), _wu_cam() if _wu_did else 0.0)   # 接着起手推到的位置往回拉，不跳
+	if _wu_did:   # 出招瞬间 ult/windup_back（0.12）秒快速拉回原景别，配合冲击感
+		var bt: float = maxf(0.01, Bal.v("ult/windup_back", 0.12))
+		return lerpf(_wu_cam(), 1.0, smoothstep(0.0, 1.0, age / bt)) if age < bt else 1.0
+	var hi: float = Bal.v("ult/cam_cast", 1.12)
 	return hi if age < 0.6 else lerpf(hi, 1.0, (age - 0.6) / 0.4)
 
 
@@ -2395,7 +2400,8 @@ func tk_of(id: String) -> float:
 ## 和立绘切入合在一起，不加停住时间：确认释放后 ult/windup_t（0.5，同切入）真实秒里世界保持慢速 ult/windup_s（0.3）——按游戏时间计
 ## （windup_t × windup_s = 0.15 游戏秒；慢放生效时正好 0.5 真实秒，逐帧推进的测试里也会按时结束），
 ## 干员本人把技能帧条出手帧之前那段（起手 / 蓄力）拉长慢放到出手前一刻（没有 skill 帧条用 attack；都没有出手帧就定住待机帧——20 人目前都有），
-## 镜头往干员身上推约 5%（ult/windup_cam_k 1.05，接在瞄准 1.08 之上）、蓄力粒子往身上收、脚下光圈收紧；到点恢复原速、正式出招（_cast_go）。
+## 镜头以干员为中心缓入推到 ult/windup_zoom（1.3，可调 1.15–1.4）+ 上下细黑边（draw_bars）、蓄力粒子往身上收、脚下光圈收紧；
+## 到点恢复原速、正式出招（_cast_go），出招 0.12 秒快速拉回原景别、黑边一起收（11-01 用户第二轮：原来只在 1.08 上推 5% 看不出来）。
 ## 只在看得见的局（玩家局 / --realtime / --playclock）里走；机器人批跑确认即出招，同 seed TRACE 不变。连携终结技不走。纯画面：伤害与判定不动
 var _wu_t0 := -99.0   # 起手开始的游戏时间
 var _wu_anim := ""
@@ -2417,13 +2423,36 @@ func _wu_k() -> float:
 
 
 func _wu_cam() -> float:
-	return Bal.v("ult/cam_aim", 1.08) * Bal.v("ult/windup_cam_k", 1.05)
+	return clampf(Bal.v("ult/windup_zoom", 1.3), 1.0, 1.6)
+
+
+## 起手的上下细黑边（letterbox，ult/windup_bars 0.06 屏高；0 = 不画）：起手头 0.12 秒滑入，出招 ult/windup_back 秒内随拉镜收掉。
+## 画在 HUD 最底层（hud.gd under 块），血条等 HUD 与立绘切入条都在它上面
+func bars_k() -> float:
+	if not _wu_did or Bal.v("ult/windup_bars", 0.06) <= 0.0:
+		return 0.0
+	if phase == "windup":
+		return smoothstep(0.0, 1.0, clampf((g.t - _wu_t0) / (0.12 * clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)), 0.0, 1.0))
+	var age: float = g.t - _cast_t
+	if phase == "cast" and age >= 0.0:
+		return 1.0 - smoothstep(0.0, 1.0, age / maxf(0.01, Bal.v("ult/windup_back", 0.12)))
+	return 0.0
+
+
+func draw_bars(ci: CanvasItem, vs: Vector2) -> void:
+	var k: float = bars_k()
+	if k <= 0.0:
+		return
+	var h: float = vs.y * Bal.v("ult/windup_bars", 0.06) * k
+	ci.draw_rect(Rect2(0, 0, vs.x, h), Color(0, 0, 0, 0.92))
+	ci.draw_rect(Rect2(0, vs.y - h, vs.x, h), Color(0, 0, 0, 0.92))
 
 
 func _wu_start() -> void:
 	phase = "windup"
 	_wu_t0 = g.t
 	_wu_did = true
+	cam_hold_until = -99.0   # 起手推镜以队长为中心（别被上一招钉住的镜头带偏）
 	_wu_anim = ""
 	_wu_pre = 0.0
 	for k in ["skill", "attack"]:

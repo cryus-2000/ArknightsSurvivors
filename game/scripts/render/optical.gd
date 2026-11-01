@@ -393,7 +393,7 @@ func _lo_step() -> void:
 	lo_vp.canvas_transform = Transform2D(Vector2(0.5, 0), Vector2(0, 0.5), lo_off)
 	var rp: Vector2 = xf.origin - lo_off * cellw
 	lo_rect.position = (rp * sx).round() / sx
-	lo_rect.size = Vector2(lsz) * cellw
+	lo_rect.size = Vector2(lo_vp.size) * cellw   # 按画布实际尺寸贴（推镜期间画布比需要的大：原来按 lsz 贴会把大画布压进小矩形，推镜被抵消、右边露黑，11-01 终结技起手推镜查出）
 	op_node.queue_redraw()
 
 

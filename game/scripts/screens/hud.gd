@@ -250,7 +250,10 @@ func _draw_body() -> void:
 		g.intro_screen.draw_opening_hud(vs)
 		return
 	# 底层（每帧画，最下层）：精英标记、飘字、全屏色调与暗角
-	_layer("under", null, func(): _draw_under(vs, ct))
+	_layer("under", null, func():
+		_draw_under(vs, ct)
+		if g.ult != null:
+			g.ult.draw_bars(g.hud, vs))   # 终结技起手的上下细黑边：最底层，HUD 与立绘切入条压在上面
 	if g.demo_op != "":
 		return   # 图鉴演示：只要伤害数字，不画其余 HUD
 	if g.state == Game.S.SHOW:
