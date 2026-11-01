@@ -7,6 +7,7 @@
      缩放按原待机首帧身高对齐（各人原画布尺度不同）；普攻按原生 OnAttack 时刻对齐 fire 帧。
      斯卡蒂普攻换成自制「侧向劈砍」（cfg/skadi_sideslash_power.json，用户 10-23 逐版定：从拖剑位起手、剑不过肩不挡脸、加力量感）。
   ② 其余帧条（技能 / 入场 / 死亡 / 召唤物 …）：@2x 逐帧 2×2 合并（按 alpha 加权取色、覆盖过半才留）+ 本条调色板。
+  出完每名干员后跑瞳色保护（eye_fix.py，docs/214 A1）：1 倍上被并进脸的瞳孔格换回本人虹膜色。
 
 用法：python -X utf8 tools/op_1x/make_op_1x.py [--only mizuki,skadi] [--jobs 6] [--dry]
 输出：运行时 <tex>@1x.png（game/art/operators/<op>/）；中间帧与对照在 build/op_1x/（主仓库 build，不进 git）。
@@ -22,6 +23,8 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as _GR
 COMMON = _GR.common_root()
 import asset_paths
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import eye_fix
 INC = asset_paths.INCOMING   # 过渡期回退目录（测试会替换它）；读图走 _rt，写图走 asset_paths.out_png
 CHARS = os.path.join(ROOT, "game", "data", "characters")
 RT = os.path.join(ROOT, "tools", "spine_run_trial")
@@ -318,6 +321,9 @@ def build_op(op, dry=False):
                 results[tex] = skalter_fallback_eyes(results[tex], "run" if tex.endswith("_run") else "attack")
         for tex, img in results.items():
             img.save(asset_paths.out_png(tex + "@1x"))
+        if results:
+            eye_fix.fix_op(op)   # 瞳色保护（docs/214 A1）：只改 IRIS 里登记的人的瞳孔格
+            log.append("eye_fix")
         for tex, fn in done2x.items():
             fn().save(asset_paths.out_png(tex + "@2x"))
             log.append(f"spine @2x -> {tex}")

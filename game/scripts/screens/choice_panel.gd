@@ -1049,7 +1049,7 @@ func card_icon(o: Dictionary) -> Texture2D:
 	match o.kind:
 		"relic":
 			return g.tex.get("relic_" + o.id)
-		"growth":
+		"growth", "filler":   # 补给卡图标与成长卡同前缀（growth_oil / growth_atk；急救补给停用、没有图，退回画首字）
 			return g.tex.get("growth_" + o.id)
 		"weapon":
 			return g.tex.get("weapon_" + o.id)

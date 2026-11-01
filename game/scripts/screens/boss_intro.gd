@@ -21,10 +21,9 @@ const BAR_T := 0.25       # 黑边滑入 / 滑出用时
 ## 名片数据（每只 Boss 一条；缺的字段按缺省）：
 ##   cn 名字行（缺省 enemies.json 的 name）、en 英文副标、sub 一句标题（小标签右段）、col 强调色（缺省 vfx.BOSS_STYLE 的招式色）、
 ##   sfx 登场音（缺省 boss_<id>，Sfx.CUE_VOL 里有电平；没有文件就静默）、line 一句台词（lore.json 口径）、
-##   portrait 头像：10-11 交付过一版专门画的 art/incoming/portraits/boss_<id>.png（88×88 手摆头肩像 + @2x），
-##   但整只缩成 88×88 的半身像细节少、辨识度不够；10-21 用户选候选 A，card_for() 对 PORTRAIT_CROP 里有裁切框的
-##   Boss 改用战斗帧条（e.tex）裁一块头部 / 标志特征再放大（见下方 PORTRAIT_CROP），不读这里的 `portrait` 字段了；
-##   没有裁切框的 Boss 仍走旧路径：读这里的 `portrait`（缺图退回 e.tex 待机条第 0 帧整体缩小，见 _portrait_name）
+##   头像：10-21 用户选候选 A，card_for() 对 PORTRAIT_CROP 里有裁切框的 Boss 用战斗帧条（e.tex）裁一块头部 / 标志特征再放大
+##   （见下方 PORTRAIT_CROP）；没有裁切框的 Boss 用 e.tex 待机条第 0 帧整体缩小。10-11 那版专画头像（portraits/boss_<id>，
+##   88×88 头肩像）11-01 删掉（候选 B 不做，docs/214 A6），`portrait` 字段一并删
 ## 名片数据在 enemies.json 各 Boss 的 intro 字段（docs/126 A3，10-22 从这里的常量原样迁出）
 static func _card(type: String) -> Dictionary:
 	return D.ENEMIES.get(type, {}).get("intro", {})
@@ -32,9 +31,8 @@ static func _card(type: String) -> Dictionary:
 
 ## 候选 A（docs/115 §2，10-21 用户选定）：10-11 交付的专画头像把整只战斗本体整体缩小进 88×88，细节少、大多看着像一团剪影；
 ## 改成从战斗帧条（e.tex）idle 第 0 帧里裁一块头部 / 标志特征的小方块，逐只手动对齐，按整数倍最近邻放大。单位是帧条原始
-## （1x）像素，坐标系原点在该 Boss 本体帧条左上角（取的是 idle 第 0 帧，即帧条左半张）。card_for() 里，只要这里登记了
-## 裁切框就不再读 CARDS 的 `portrait` 字段（art/incoming/portraits/boss_<id>.png 那版专画头像暂时弃用，文件不删，
-## 留给以后候选 B 用）。没有登记裁切框的 Boss（目前没有）仍走旧路径。只改这张名片怎么取图，不碰战斗绘制、不进模拟字段（同 seed 不变）
+## （1x）像素，坐标系原点在该 Boss 本体帧条左上角（取的是 idle 第 0 帧，即帧条左半张）。没有登记裁切框的 Boss（目前没有）
+## 用待机条第 0 帧整体缩小。只改这张名片怎么取图，不碰战斗绘制、不进模拟字段（同 seed 不变）。11-01 按 10-23 重画后的帧条重对过（docs/214）
 ## 裁切框在 enemies.json 各 Boss 的 portrait_crop 字段 [x, y, 宽, 高]（docs/126 A3，10-22 从这里的常量原样迁出）
 static func _crop(type: String) -> Rect2:
 	var r = D.ENEMIES.get(type, {}).get("portrait_crop", null)
@@ -130,16 +128,15 @@ func card_for(bosses: Array) -> Dictionary:
 		en += " & " + str(cd2.get("en", b2.type.to_upper()))
 	var col: Color = cd.get("col", g.vfx.boss_color(main.type))
 	return {"cn": cn, "en": en, "sub": str(cd.get("sub", "")), "col": col, "line": str(cd.get("line", "")),
-		"sfx": str(cd.get("sfx", "boss_" + main.type)), "portrait": _portrait_source(main, str(cd.get("portrait", ""))), "type": main.type}
+		"sfx": str(cd.get("sfx", "boss_" + main.type)), "portrait": _portrait_source(main), "type": main.type}
 
 
-## 头像贴图名：PORTRAIT_CROP 登记过的 Boss 直接用战斗帧条（e.tex，候选 A）裁一块；否则走旧路径——CARDS 指定的专画头像
-## 按需加载进 g.tex（不在开局预载表里），没指定或缺图就用待机帧条。登场名片在 Boss 刚刷出的那一帧就画，这时世界层可能还
-## 没画过它（_lazy_tex 懒加载没触发过），两条路径都要保证贴图已经进了 g.tex 缓存，不强制加载会拿到 null
-func _portrait_source(main: Dictionary, cd_portrait: String) -> String:
+## 头像贴图名：PORTRAIT_CROP 登记过的 Boss 直接用战斗帧条（e.tex，候选 A）裁一块；否则用待机帧条。登场名片在 Boss 刚刷出的
+## 那一帧就画，这时世界层可能还没画过它（_lazy_tex 懒加载没触发过），两条路径都要保证贴图已经进了 g.tex 缓存，不强制加载会拿到 null
+func _portrait_source(main: Dictionary) -> String:
 	if _crop(main.type).has_area():
 		return _portrait_tex_1x_key(str(main.tex))
-	return _portrait_name(cd_portrait, str(main.tex))
+	return _portrait_name(str(main.tex))
 
 
 ## 候选 A 的裁切框（PORTRAIT_CROP）是照着 <name>.png 这张 1x 基础图量的；<name>@2x.png 不保证是干净的
@@ -155,12 +152,10 @@ func _portrait_tex_1x_key(name: String) -> String:
 	return key
 
 
-func _portrait_name(name: String, fallback: String) -> String:
-	if name == "":
-		return fallback
+func _portrait_name(name: String) -> String:
 	if not g.tex.has(name):
 		g.tex[name] = A.tex(name)
-	return name if g.tex[name] != null else fallback
+	return name
 
 
 ## 每渲染帧（game._process 的 delta，真实时间）：面板 / 非战斗状态时停表，关掉后接着播
@@ -332,19 +327,13 @@ func _draw_top() -> void:
 	# 半透明暗带托底（两端渐隐）
 	var band := Rect2(cx - maxf(total_w, 420.0) * 0.5 - 60.0, y0 - 54.0, maxf(total_w, 420.0) + 120.0, 118.0)
 	UI.fade_band(ci, band, Color(0.03, 0.035, 0.045, 0.72 * a), 120.0)
-	# 头像：手摆头肩像（portraits/boss_<id>，88×88；@2x 按密度折半画成 88）整张贴进 88 框；
-	# 退回待机帧条时取第 0 帧放大到 80 高。左侧细边与强调色底
+	# 头像：战斗帧条裁切框整数倍放大进 88 框；没有裁切框时取待机条第 0 帧放大到 84 内。左侧细边与强调色底
 	if ptx != null:
-		var is_portrait: bool = card.portrait.begins_with("portraits/")
 		var crop: Rect2 = _crop(card.type)
 		var fw: int
 		var fh: int
 		var src: Rect2
-		if is_portrait:
-			fw = ptx.get_width()
-			fh = ptx.get_height()
-			src = Rect2(0, 0, fw, fh)
-		elif crop.size != Vector2.ZERO:
+		if crop.size != Vector2.ZERO:
 			# 候选 A（docs/115）：裁头部 / 标志特征小方块；ptx 这里固定是 _portrait_tex_1x_key 强制读的 1x 原图，
 			# 不走 @2x，PORTRAIT_CROP 的坐标就是源图像素坐标，不用再乘密度
 			fw = int(crop.size.x)
@@ -354,7 +343,7 @@ func _draw_top() -> void:
 			fw = ptx.get_width() / 2
 			fh = ptx.get_height()
 			src = Rect2(0, 0, fw, fh)
-		var sc: float = 1.0 / A.hires_of(ptx) if is_portrait else minf(84.0 / float(fh), 84.0 / float(fw))
+		var sc: float = minf(84.0 / float(fh), 84.0 / float(fw))
 		sc = floorf(sc) if sc >= 1.0 else sc
 		var sz := Vector2(fw, fh) * sc
 		var pc := Vector2(x0 + 42.0, y0 - 2.0)

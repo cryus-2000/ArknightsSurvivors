@@ -2,6 +2,7 @@ extends RefCounted
 ## 界面动效自测（docs/62 §2.7，第一批）：只在 --autotest 下由 autotest.step() 每帧调用；返回 true 时本帧不再跑自测的其余逻辑。
 ##   --motionshot=<界面>,<秒,秒,…>  第 30 帧打开该界面，按界面时钟在指定时刻各截一张 shot_motion_<界面>_<full|rm>_<毫秒>.png，截完退出。
 ##                                   界面：levelup / relic / recruit / shop / pause / banner / fail（fail 的时刻从倒下算，结算动效从 1.7 秒起）
+##                                   levelup 可配 --motioncards=<成长 / 补给卡 id,…> 直接摆指定的卡
 ##   --reducemotion                   同时打开「减少动态效果」（Cfg.reduce_motion，不写存档）
 ##   --motionpress=<key|mouse|touch|pad>@<秒>  在该时刻注入一次按下 + 松开（键盘 1 / Enter、鼠标左键、触屏、手柄 Ⓐ），
 ##                                   2 帧后打印 MOTIONPRESS（动效是否被跳过、有没有误选）；0.4 秒后再按一次，打印 MOTIONPRESS2（这次应该生效）
@@ -100,7 +101,24 @@ func open(s: String) -> void:
 		n = int(m.get_string(2))
 	match s:
 		"levelup":
-			g.progression.open_levelup()
+			var want: Array = []
+			for a in Cfg.dev_args():   # --motioncards=pierce,lane_melee,oil：升级三选一直接摆这几张成长 / 补给卡（图标验收截图，docs/214 A2）
+				if a.begins_with("--motioncards="):
+					want = Array(a.substr(14).split(","))
+			if want.is_empty():
+				g.progression.open_levelup()
+			else:
+				var cards: Array = []
+				for id in want:
+					if g.doctor.PASSIVES.has(id):
+						var pd: Dictionary = g.doctor.PASSIVES[id]
+						cards.append({"kind": "growth", "id": id, "name": "%s  1/%d" % [pd.name, pd.max], "desc": g.doctor.passive_desc(id) + "
+" + g.doctor.passive_preview(id), "cat": g.doctor.LANE_LABEL.get(str(pd.get("requires", "")).substr(5), g.doctor.CAT_LABEL.get(pd.cat, "")) if pd.cat == "lane" else g.doctor.CAT_LABEL.get(pd.cat, "")})
+					else:
+						for c in g.doctor.filler_cards():
+							if c.id == id:
+								cards.append(c)
+				g.panel_ui.show_choices("升级", cards, "level")
 		"relic":
 			g.panel_ui.show_choices("获得藏品", _relic_opts(n), "relic")
 		"recruit":
