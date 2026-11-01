@@ -26,7 +26,7 @@
              "ring": {"r": 40.0, "w": 4.0, "slot": ["swirl_1", "swirl_2", "swirl_3"], "gap": 0.2, "vol": -9.0},
              "strip:fx_skadi_surge": {"slot": "surge", "vol": 1.0},
              "strip:fx_water_splash": {"slot": ["splash_1", "splash_2", "splash_3"], "gap": 0.08, "vol": -9.0}}},
-    "angelina": {"voice": "angelina_battle", "voice_alt": ["angelina_skill_3", "angelina_entry_3"], "seg": {"奇点": {"on": "lift"}, "砸地": {}, "潮汐锁": {}},
+    "angelina": {"hf_slot": "slam_1", "voice": "angelina_battle", "voice_alt": ["angelina_skill_3", "angelina_entry_3"], "seg": {"奇点": {"on": "lift"}, "砸地": {}, "潮汐锁": {}},
       "fx": {"strip:fx_angelina_well_back": {"slot": "open"},
              "ring": {"r": 60.0, "w": 3.0, "slot": ["pulse_1", "pulse_2"], "gap": 0.25, "vol": -9.0},
              "line+v": {"w": 2.0, "slot": ["streak_1", "streak_2", "streak_3"], "gap": 0.12, "vol": -11.0},

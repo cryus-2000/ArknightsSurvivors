@@ -81,6 +81,8 @@ func slow() -> float:
 func open(from_event: InputEvent = null, touch := false) -> void:
 	if is_open or g.state != g.S.PLAY or not g.squad.cmd_on() or g.demo_op != "":
 		return
+	if g.get("ult") != null and g.ult.phase == "aim":
+		return   # 终结技瞄准中不开圆盘（11-01 终结技审查：两层慢动作和范围格叠在一起，圆盘还会吞掉松开 Q）
 	is_open = true
 	t_open = 0.0
 	hover = -1

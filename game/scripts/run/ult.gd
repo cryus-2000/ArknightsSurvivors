@@ -328,6 +328,8 @@ func press_q() -> bool:
 		return true
 	if phase != "" or energy < FULL:
 		return false
+	if g.get("wheel") != null and g.wheel.is_open:
+		return false   # 指挥圆盘开着时不进终结技（键盘的 Q 本来就被圆盘吞掉；触屏终结技键不经过圆盘，11-01 终结技审查）
 	var ld = g.squad.leader() if g.squad != null else null
 	if ld == null or ld.pos == Vector2.INF or ld.cmd_down > 0.0:
 		return false
@@ -364,6 +366,8 @@ func _begin(ld, k: String) -> void:
 	tier = k
 	caster = ld
 	serial += 1
+	if _dur_arg():
+		_dur = {"id": str(ld.id), "t0": UM.now(), "last": UM.now(), "frozen": 0.0, "slow": 0.0}
 	kills_now = 0
 	energy = 0.0
 	full_since = -1.0
@@ -456,6 +460,8 @@ func _tick_ult(dt: float) -> void:
 			sx.op_skill_mute(0.25)   # 招式放出期间干员技能音效不出声（落地回技力当场放出的技能，10-31 用户）
 		var done: bool = Moves.step_cult(self, act, dt) if kind == "cult" else Moves.step(self, act, dt)
 		if done:
+			# 招式在标冲击帧的同一帧收尾（归溟幽灵鲨最后一圈巨锯落地即结束）：act 清空后冲击帧来不及画，留个尾巴把两拍画完（11-01 终结技审查）
+			_hf_tail = {"hf": true, "hf_cols": act.get("hf_cols", [])} if kind == "ult" and act.get("hf", false) and not act.get("hf_done", false) else {}
 			phase = ""
 			act = {}
 			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
@@ -467,6 +473,7 @@ var _ult_at := Vector2.INF   # 这次终结技的作用中心（落点 / 方向�
 
 func _cast() -> void:
 	phase = "cast"
+	_hf_tail = {}
 	_ult_at = aim if aim_kind == "point" else (caster.pos + aim_dir * 300.0 if aim_kind == "dir" else caster.pos)
 	_cast_t = g.t
 	ev.ult_t = g.t
@@ -1295,9 +1302,10 @@ func draw_world(w) -> void:
 ## 开关 ult/hit_frame（缺省 1）；只有动作字典里 hf = true 的招式启用；主体 = 标了 "hf": true 的帧条 / 图形。减少动态效果开时不画。纯画面
 ## 冲击帧只给队长终结技（用户 10-31：连携技 / 连携终结技不要冲击帧）
 func _hf_on() -> bool:
-	return kind == "ult" and act.get("hf", false) and Bal.v("ult/hit_frame", 1.0) > 0.0 and not Cfg.reduce_motion
+	return kind == "ult" and (act.get("hf", false) or _hf_tail.get("hf", false)) and Bal.v("ult/hit_frame", 1.0) > 0.0 and not Cfg.reduce_motion
 
 
+var _hf_tail := {}   # 招式已收尾、冲击帧还没画完时代替 act（见 _tick_ult 的 done）
 var _hf_serial := -1
 var _hf_n := [0, 0]   # 本次冲击帧白 / 黑两拍已画的帧数
 var _hf_t0 := 0.0
@@ -1306,6 +1314,7 @@ var _hf_t0 := 0.0
 func _draw_hit_frame(w) -> void:
 	if not _hf_on():
 		return
+	var ha: Dictionary = act if act.get("hf", false) else _hf_tail
 	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）；
 	# 按这次终结技（serial）只起算一次：反震 / 炮击会连着 impact 好几次，按 impact 重置会再闪一轮
 	var ht: float = Bal.v("ult/hit_frame_t", 0.067)
@@ -1321,12 +1330,12 @@ func _draw_hit_frame(w) -> void:
 	var t: float = UM.now() - _hf_t0
 	var inv: bool = t < ht or _hf_n[0] < 2   # 第 1 拍：白底黑剪影
 	if not inv and _hf_n[1] >= 2 and t >= ht * 2.0:
-		act["hf"] = false   # 一次终结技只闪一次（维什戴尔后几排落地也会 impact）
-		act["hf_done"] = true
+		ha["hf"] = false   # 一次终结技只闪一次（维什戴尔后几排落地也会 impact）
+		ha["hf_done"] = true
 		return
 	_hf_n[0 if inv else 1] += 1
 	var bg := Color(0.92, 0.9, 0.86) if inv else Color(0.02, 0.02, 0.03)
-	var hc: Array = act.get("hf_cols", [])   # 招式自定两拍配色 [底 1, 剪影 1, 底 2, 剪影 2]（流明：冷暖反差，用户 10-31 不要纯白）
+	var hc: Array = ha.get("hf_cols", [])   # 招式自定两拍配色 [底 1, 剪影 1, 底 2, 剪影 2]（流明：冷暖反差，用户 10-31 不要纯白）
 	if hc.size() == 4:
 		bg = hc[0] if inv else hc[2]
 	var c: Vector2 = g.ppos
@@ -1680,6 +1689,7 @@ func _imp_punch() -> float:
 ## 每帧真实时间钩子（game._process）：恢复速度那一刻爆一声
 func fx_tick() -> void:
 	_sf_tick()
+	_dur_tick()
 	if not _imp_boom and _imp_age() >= Bal.v("ult/imp_freeze", 0.1) + Bal.v("ult/imp_slow_t", 0.45):
 		_imp_boom = true
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -2149,3 +2159,39 @@ func _draw_lf(w) -> void:
 	g.draw_set_transform(lf_op.pos, 0.0, Vector2(s * flip, s))   # 接手队友原大小原亮度压在暗层之上
 	g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---------------------------------------------------------------- --ultdur（docs/216 §4）：量一次终结技的真实时长（界面时钟 UM.now，--fixed-fps 下按固定步长）。
+## 从按下 Q 起：cast = 放出、done = 招式结束（phase 清空）、end = 最后一个图形 / 帧条消失（最长 20 秒）；
+## frozen = 世界停住的时间（超必杀暂停 + 顿帧）、slow = 慢放（时间系数 < 0.5，瞄准 / 冲击慢放）。打印 ULTDUR {…}，纯测量
+var _dur := {}
+static var _dur_on := -1
+
+
+static func _dur_arg() -> bool:
+	if _dur_on < 0:
+		_dur_on = 1 if Cfg.dev_args().has("--ultdur") else 0
+	return _dur_on == 1
+
+
+func _dur_tick() -> void:
+	if _dur.is_empty():
+		return
+	var now := UM.now()
+	var dt: float = now - float(_dur.last)
+	_dur.last = now
+	if sf_active() or (g.hitstop > 0.0 and Cfg.hitstop):
+		_dur.frozen = float(_dur.frozen) + dt
+	elif time_scale() < 0.5:
+		_dur.slow = float(_dur.slow) + dt
+	if phase == "cast" and not _dur.has("cast"):
+		_dur["cast"] = now - float(_dur.t0)
+	if phase == "" and _dur.has("cast") and not _dur.has("done"):
+		_dur["done"] = now - float(_dur.t0)
+	if _dur.has("done") and (shapes.is_empty() or now - float(_dur.t0) > 20.0):
+		var out := {}
+		for k in ["id", "cast", "done", "frozen", "slow"]:
+			out[k] = _dur[k] if k == "id" else snappedf(float(_dur[k]), 0.01)
+		out["end"] = snappedf(now - float(_dur.t0), 0.01)
+		print("ULTDUR ", JSON.stringify(out))
+		_dur = {}

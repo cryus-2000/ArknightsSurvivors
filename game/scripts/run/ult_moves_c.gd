@@ -1611,6 +1611,8 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			var bp: Vector2 = e.pos if not e.dead else pn.get("last", e.pos)
 			var fr: float = Bal.v("ult/ir_boom", 0.35) * (1.0 if float(pn.d) <= R * 0.5 else Bal.v("ult/ir_boom_out", 0.6))
 			var fc: bool = _irv3() and Bal.v("ult/ir_final_cut", 1.0) > 0.0   # 用户 10-31「冲击帧放在最后的斩击」：连环爆都标 pre，冲击帧挪到斩击爆裂
+			if e.dead:
+				u._seg_sfx("宣判")   # 被钉住的敌人多半已被行刑斩死、_once 不再命中：炸开照样出声（原来只在命中时配声，11-01 终结技审查录像里连环爆一声都没有）
 			_once(u, a, o, a.bseg, e, fr, {"src": "宣判", "pre": fc, "edge": float(pn.d) > float(a.rc)})   # 第一下（非 pre）= 冲击帧
 			var hh: float = PF.h(vs + float(pn.d))
 			if _irv2():   # 用户 10-31 改表现：每一炸更大更实——金白爆团 + 烟尘 + 地块崩起；链子崩成链节飞散

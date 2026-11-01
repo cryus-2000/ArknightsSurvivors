@@ -257,12 +257,14 @@ static func draw(u, vs: Vector2) -> void:
 	hud.draw_rect(Rect2(r.position + Vector2(16, r.size.y - 3), Vector2((r.size.x - 16) * left, 3)), Color(acc.r, acc.g, acc.b, 0.9 * e))
 
 
+## 提示按「这次用什么在瞄」写：触屏轻点终结技键保持瞄准时 aim_src 还是 key，原来落到鼠标那句（「再按 Q 或左键释放」，11-01 终结技审查）
 static func _tip(u) -> String:
-	match str(u.aim_src):
-		"touch":
-			return "拖动选择 · 松手释放"
-		"pad":
-			return "摇杆选择 · 松开释放"
+	var tc = u.g.get("touch")
+	var src: String = str(u.aim_src)
+	if src == "touch" or (src != "mouse" and tc != null and tc.active):
+		return "拖动选择 · 再点终结技键释放" if u.aim_latched else "拖动选择 · 松手释放"
+	if src == "pad" or (src != "mouse" and Pad.device >= 0):
+		return "摇杆选择 · 再按终结技键释放" if u.aim_latched else "摇杆选择 · 松开释放"
 	if u.aim_latched:
 		return "鼠标选择 · 再按 Q 或左键释放"
 	return "鼠标选择 · 松开 Q 释放"

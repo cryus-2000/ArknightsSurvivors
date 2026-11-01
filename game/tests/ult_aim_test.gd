@@ -120,6 +120,7 @@ func _ready() -> void:
 		_touch(false, c0)
 		step.call(4)
 		ok(u.phase == "aim" and u.aim_latched, "触屏轻点后保持瞄准（phase=%s latched=%s）" % [u.phase, u.aim_latched])
+		ok(Aim._tip(u).begins_with("拖动选择") and not Aim._tip(u).contains("Q"), "触屏保持瞄准的提示不写鼠标 / Q（%s）" % Aim._tip(u))
 		_touch(true, c0)
 		_touch(false, c0)
 		step.call(2)
@@ -145,6 +146,21 @@ func _ready() -> void:
 		u.release_q()
 		u.press_q()
 		step.call(600)
+	# 8. 指挥圆盘与终结技瞄准互斥（11-01 终结技审查）：瞄准中开不了圆盘；圆盘开着时按不出终结技
+	if g.squad.cmd_on():
+		u.energy = u.FULL
+		u.press_q()
+		ok(u.phase == "aim", "进入瞄准（圆盘互斥前置）")
+		g.wheel.open()
+		ok(not g.wheel.is_open, "瞄准中不开指挥圆盘")
+		u.release_q()
+		u.confirm_aim()
+		step.call(600)
+		g.wheel.open()
+		ok(g.wheel.is_open, "平时能开指挥圆盘")
+		u.energy = u.FULL
+		ok(not u.press_q() and u.phase == "", "圆盘开着时按不出终结技（phase=%s）" % u.phase)
+		g.wheel.cancel()
 	# 5. 开关 0：旧路径
 	Bal.sec("ult")["aim"] = 0
 	ok(not Aim.on(u), "ult/aim 0 不走 v2")
