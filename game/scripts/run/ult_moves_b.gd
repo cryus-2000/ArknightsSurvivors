@@ -392,6 +392,8 @@ static func _sd_roll_v5(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2
 static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2, n: Vector2, hw: float, t: float, F: float, L: float, col: Color, foam: Color) -> void:
 	w.fx[0].fill = 0.0
 	w.fx[1].fill = 0.0
+	if Bal.v("ult/sd_r3", 1.0) > 0.0 and not w.roll.is_empty():   # 11-01 第三轮（用户「画面也需要更加精细」）：边缘 / 层次 / 粒子细节
+		_sd_edge_r3(u, a, w, o0 + d * F, d, n, hw, t, col, foam)
 	if w.get("crashed", false) or w.roll.is_empty():
 		return
 	var fp: Vector2 = o0 + d * F
@@ -441,6 +443,55 @@ static func _sd_roll_tick(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vecto
 			PF.particles(u, fp, 300, "ult_ember", [col.lerp(Color.WHITE, 0.4), col], 0.35, vs2 + 40.0, hw * 1.2)   # 落水珠
 			u.shake(6.0, 0.2)
 		w["wet_x"] = F
+
+
+## 斯卡蒂第三轮（ult/sd_r3 缺省 1）：浪墙贴图边缘是一排像素台阶、和地面之间没有过渡 → 加三层细节跟着浪头走：
+## 前方贴地一条暗影（浪压过来的阴影，层次）、浪脚一条不规整的白沫线（分 6 段、每段宽度 / 前后错开、微微抖动，边缘干净）、
+## 浪冠前沿两色细水珠（小、密、压暗，不糊成白雾）。劈浪那一刻白沫线跟着两半往两侧散开淡掉
+static func _sd_edge_r3(u, a: Dictionary, w: Dictionary, fp: Vector2, d: Vector2, n: Vector2, hw: float, t: float, col: Color, foam: Color) -> void:
+	if w.get("crashed", false):
+		if w.has("lip") and not w.get("lip_gone", false):
+			w["lip_gone"] = true
+			for k in w.lip.size():
+				var s: Dictionary = w.lip[k]
+				s["v"] = n * (1.0 if k >= w.lip.size() / 2 else -1.0) * 380.0
+				s["life"] = float(s.age) + 0.25
+				s["fo"] = 0.25
+			if w.has("shade"):
+				w.shade["life"] = float(w.shade.age) + 0.2
+				w.shade["fo"] = 0.2
+		return
+	if not w.has("lip"):   # 浪脚白沫：一条贯穿整条浪宽的细线（连续，不分段）+ 3 处更亮更粗的翻沫（位置 / 长短按哈希、沿浪线慢慢漂）
+		w["lip"] = [_keep(u, a, {"kind": "blade", "a": fp, "b": fp, "w": 2.5, "col": Color(foam.r, foam.g, foam.b, 0.7), "glow": col.darkened(0.3), "life": 0.2})]
+		for k in 3:
+			w.lip.append(_keep(u, a, {"kind": "blade", "a": fp, "b": fp, "w": 5.0, "col": Color(foam.r, foam.g, foam.b, 0.9), "glow": col.darkened(0.2), "life": 0.2}))
+		w["shade"] = _keep(u, a, {"kind": "band", "a": fp, "b": fp, "w": hw * 2.0, "col": Color(0.0, 0.02, 0.06), "fill": 0.28, "life": 0.2, "layer": "back"})
+	var rise: float = clampf((t - float(w.t0)) / 0.25, 0.0, 1.0)
+	var bow: float = sin(t * 9.0) * 6.0
+	w.lip[0].a = fp + d * 12.0 + n * hw
+	w.lip[0].b = fp + d * (12.0 + bow) - n * hw
+	w.lip[0].w = 2.5 * rise
+	_hold(w.lip[0])
+	for k in range(1, w.lip.size()):
+		var s: Dictionary = w.lip[k]
+		var h0: float = PF.h(float(w.t0) * 13.0 + k * 3.1)
+		var c0: float = fposmod(h0 + t * (0.25 + 0.3 * PF.h(h0 * 5.0)) * (1.0 if k % 2 == 0 else -1.0), 1.0)   # 沿浪线漂
+		var half: float = hw * (0.08 + 0.14 * PF.h(h0 * 7.0))
+		var lc: float = -hw + 2.0 * hw * c0
+		var l0: float = clampf(lc - half, -hw, hw)
+		var l1: float = clampf(lc + half, -hw, hw)
+		var dj: float = 12.0 + bow * (1.0 - c0) + (PF.h(h0 * 3.0) - 0.5) * 8.0
+		s.a = fp + d * dj + n * l0
+		s.b = fp + d * dj + n * l1
+		s.w = (3.5 + 2.5 * h0) * rise
+		_hold(s)
+	w.shade.a = fp + d * 18.0
+	w.shade.b = fp + d * (18.0 + 70.0 * rise)
+	_hold(w.shade)
+	if int(t * 60.0) % 2 == 0:   # 浪冠细水珠：小、密、两色压暗
+		var j2: int = int(t * 120.0)
+		var lat: float = -hw + 2.0 * hw * fposmod(0.13 + 0.618 * float(j2), 1.0)
+		PF.particles(u, fp + n * lat + d * 20.0, 20, "ult_burst_s", [col.lerp(Color.WHITE, 0.25), col.darkened(0.25)], 0.0, float(j2) * 0.31, 36.0)
 
 
 ## 浪墙劈成两半：贴图左右各一半（ux / uw）放回原位，各自往两侧（±n）滑开、略往外转、0.35 秒淡掉；原整条收掉

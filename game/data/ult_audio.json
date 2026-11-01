@@ -57,7 +57,7 @@
              "strip:fx_sa_air": {"slot": "air", "gap": 0.5, "vol": -5.0}}},
     "suzuran": {"voice": "suzuran_skill_1", "voice_alt": ["suzuran_entry_2", "suzuran_skill_3", "suzuran_entry_3"], "seg": {"瞬身": {"on": "flash"}, "斩痕": {}, "狐火": {}},
       "fx": {"band": {"w": 8.0, "slot": "rupt", "gap": 0.3, "vol": -2.0}}},
-    "logos": {"sf_off": true, "voice": "logos_entry_2", "voice_alt": ["logos_battle"], "vol": {"impact": 1.0}, "seg": {"处决": {}, "咒文": {}, "爆裂": {}, "转喻": {}, "墓志铭": {}},
+    "logos": {"sf_off": true, "voice": "logos_entry_2", "voice_alt": ["logos_battle"], "vol": {"cast": -3.0, "impact": 1.0}, "seg": {"处决": {}, "咒文": {}, "爆裂": {}, "转喻": {}, "墓志铭": {}},
       "fx": {"strip:fx_lo_glyph1": {"slot": ["glyph_1", "glyph_2", "glyph_3"], "gap": 0.16, "vol": -6.0}, "strip:fx_lo_glyph2": {"slot": ["glyph_2", "glyph_3", "glyph_1"], "gap": 0.16, "vol": -6.0},
              "strip:fx_lo_glyph3": {"slot": ["glyph_3", "glyph_1", "glyph_2"], "gap": 0.16, "vol": -6.0}, "strip:fx_lo_glyph4": {"slot": ["glyph_1", "glyph_3", "glyph_2"], "gap": 0.16, "vol": -6.0}}},
     "hoshiguma": {"hf_slot": "boom", "voice": "hoshiguma_skill_1", "voice_alt": ["hoshiguma_battle", "hoshiguma_skill_2"], "seg": {"格挡": {"on": "block"}, "反震": {}, "热砂": {}},
