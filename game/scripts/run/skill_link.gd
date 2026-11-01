@@ -21,6 +21,26 @@ const LINKS := {
 	"texas": {0: ["exusiai", "boom_rain"]},
 	"lappland": {1: ["texas", "cross"]},
 }
+## 羁绊连携（连携 v2 第二期，docs/217，开关 link/bond）：原作关系配对 → 专属合击（逻辑在 link_bond.gd）。
+## ops = 一对（对称，谁当队长谁原地出手）；group = 群体（队长在内同队 ≥ min 人）。tag = 选人页 / 招募卡 / 图鉴的羁绊名，name = 合击名（本作自拟）
+const BONDS := [
+	{"id": "b_penguin", "ops": ["texas", "exusiai"], "tag": "企鹅物流", "name": "急件专送",
+		"desc": "能天使朝区域连射八发曳光，德克萨斯一侧的六把剑随后从上空落下，落地炸开"},
+	{"id": "b_rival", "ops": ["texas", "lappland"], "tag": "宿敌", "name": "旧怨交锋",
+		"desc": "一方瞬身穿过目标，另一方原地挥出剑气，两道刃光在目标处交叉；拉普兰德那一道附带沉默"},
+	{"id": "b_lesson", "ops": ["ulpianus", "skadi"], "tag": "深海猎人", "name": "潮下授课",
+		"desc": "乌尔比安掷锚钉住目标，把周围的敌人拖过去；斯卡蒂随后一剑砸在钉住的位置"},
+	{"id": "b_tide", "ops": ["gladiia", "specter_unchained"], "tag": "深海猎人", "name": "引潮夺命",
+		"desc": "歌蕾蒂娅甩钩把外圈的敌人拖进区域，归溟幽灵鲨随即冲进中心横斩"},
+	{"id": "b_vortex", "ops": ["gladiia", "ulpianus"], "tag": "深海猎人", "name": "漩涡钉锚",
+		"desc": "歌蕾蒂娅在区域中心卷起漩涡，乌尔比安的锚从高处砸进漩涡中心"},
+	{"id": "b_fins", "ops": ["skadi", "specter_unchained"], "tag": "深海猎人", "name": "双鳍",
+		"desc": "斯卡蒂与归溟幽灵鲨的冲锋在区域中心交错，各留下一道水痕"},
+	{"id": "b_inq", "ops": ["irene", "lumen"], "tag": "审判庭", "name": "灯下审决",
+		"desc": "流明提灯照亮区域，其中的敌人受到的伤害提高；艾丽妮随后一刺穿过目标"},
+	{"id": "b_hunt", "group": ["skadi", "gladiia", "specter_unchained", "ulpianus", "skalter"], "min": 3, "tag": "深海猎人", "name": "群猎",
+		"desc": "其余深海猎人依次扑向同一个目标；浊心斯卡蒂改为原地吟唱，提高全队攻击"},
+]
 const WARM := Color(1.0, 0.55, 0.18)
 const HOT := Color(1.0, 0.86, 0.45)
 const CRIMSON := Color(1.0, 0.25, 0.22)
@@ -84,6 +104,8 @@ static func fire(u, p, info: Dictionary) -> Dictionary:
 	if not u.lf_on():   # link/flash 开着时由 ult.link_flash 演（_fire_head）
 		u.stage(info.pos, p)
 	var a := {"p": p, "link": info.link, "from": info.from, "pos": info.pos, "r": info.get("r", 150.0), "age": 0.0, "done": {}, "k": 0}
+	if info.has("mates"):
+		a["mates"] = info.mates   # 羁绊连携：本次出手的全部队友
 	if SAMPLE.values().has(str(info.link)):
 		_fire_sample(u, p, info, a)
 	if str(info.link) == "boom_rain":

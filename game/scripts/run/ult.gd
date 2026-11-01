@@ -13,6 +13,7 @@ const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携（combo
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
+const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
@@ -590,7 +591,7 @@ func _tick_combo(dt: float) -> void:
 			p.syn_mv = {}
 			combo_acts.remove_at(k)
 			continue
-		if (Link.step(self, a, dt) if a.has("link") else Combo.step(self, a, dt)):
+		if ((Bond.step(self, a, dt) if a.has("mates") else Link.step(self, a, dt)) if a.has("link") else Combo.step(self, a, dt)):
 			if p != null and not p.syn_mv.is_empty():
 				p.syn_mv = {}
 			if p != null and p.pos != Vector2.INF and p.pos.distance_to(g.ppos) > 80.0:
@@ -661,7 +662,9 @@ func _fire_head(auto: bool) -> void:
 			link_landed(o)   # v2：每次连携 +1 协同格（喂连携终结技）+ 能量
 			LinkV2.spread_start(self, o, q.info)
 		if lf_on():
-			link_flash(o, str(LINK_NAME.get(str(q.info.link), o.display_name())))
+			link_flash(o, str(LINK_NAME.get(str(q.info.link), o.display_name())) if not q.info.has("bond") else Bond.bond_name(str(q.info.bond)))
+			if q.info.has("bond"):
+				lf_op2 = q.info.from   # 羁绊：标识里并排出两个人的头像
 		var tc: Color = _col(o)
 		shape({"kind": "line", "a": o.pos, "b": q.info.pos, "w": 5.0, "col": tc, "life": 0.2})   # 技能连携：只留一道干员色残影（不出条带、不慢放）
 		return
@@ -2081,6 +2084,7 @@ const LINK_NAME := {"pursue": "追击", "lava": "熔岩", "gather": "钩索", "c
 var lf_rt := -99.0        # 本次演出起点（真实时间）
 var lf_full := false      # 完整演出（否则防疲劳：只打聚光）
 var lf_op = null
+var lf_op2 = null         # 羁绊连携的另一人（队长）；普通连携为 null
 var lf_name := ""
 var _lf_g := -INF         # 上一次演出的游戏时刻
 
@@ -2096,6 +2100,7 @@ func link_flash(p, nm: String) -> void:
 	_lf_g = g.t
 	lf_rt = UM.now()
 	lf_op = p
+	lf_op2 = null
 	lf_name = nm
 	var cp: Color = _col(p)
 	var m: float = maxf(cp.r, maxf(cp.g, cp.b))

@@ -91,6 +91,7 @@ static func snapshot(g) -> Dictionary:
 		"best": tm.best_hit.duplicate(), "bosses": bosses, "lamp_s": tm.lamp_s.duplicate(),
 		"beacons": [int(g.beacon_sys.lit_n), g.beacons.size()], "dodges": tm.dodges, "dashes": tm.dashes, "blocks": tm.blocks,
 		"low_hp_s": tm.low_hp_s, "fuse": fuse, "relic_list": relic_list, "killer": killer, "final_boss": final_boss,
+		"bonds": g.get_meta("bond_log", []).map(func(x): return str(x.tag) + "·" + str(x.name)),   # 羁绊（docs/217 §7）：本局成立过的
 		"xp": float(g.pickups.xp_total), "chests": tm.chests, "nodes": tm.nodes, "ingots_got": tm.ingots_got, "ingots_spent": tm.ingots_spent}
 
 
@@ -317,6 +318,9 @@ static func model(raw: Dictionary) -> Dictionary:
 	stats.append({"label": "冲刺", "v": float(raw.get("dashes", 0)), "fmt": "n"})
 	stats.append({"label": "技能发动", "v": float(casts_all), "fmt": "n"})
 	stats.append({"label": "藏品", "v": float(relic_list.size()), "fmt": "n"})
+	var bonds: Array = raw.get("bonds", [])
+	if not bonds.is_empty():   # 本局成立的羁绊（docs/217 §7）
+		stats.append({"label": "羁绊成立", "v": float(bonds.size()), "fmt": "txt", "txt": "%d 条" % bonds.size(), "sub": "、".join(bonds.map(func(x): return str(x).get_slice("·", 0))) if bonds.size() > 1 else str(bonds[0]).get_slice("·", 0)})
 	if bool(fu.get("on", false)):
 		stats.append({"label": "源石锭熔铸", "v": float(fu.get("pct", 0.0)) * 100.0, "fmt": "txt", "txt": "全队伤害 +%s%%" % str(snappedf(float(fu.get("pct", 0.0)) * 100.0, 0.1)).trim_suffix(".0")})
 	return {"relic_list": relic_list, "killer": raw.get("killer", {}), "final_boss": raw.get("final_boss", {}), "stats": stats,

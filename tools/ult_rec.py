@@ -36,6 +36,12 @@ for _op in _ALL20:
 _LINK = ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=61.2", "--bal=ult/test_skill_idx=0", "--bal=ult/test_skill_every=3"]
 for _op in _ALL20:
     CLIPS["l_" + _op] = ("saria" if _op == "skadi" else "skadi", _op, _LINK, 60.6)
+# 羁绊连携（docs/217）各一段（b_<羁绊>）：队长 + 搭档 + 塞雷娅（无羁绊），连携间隔压到 2.5 秒、队长每 3 秒放一次技能（只为录像）
+_BOND = _LINK + ["--bal=link/v2_gap=2.5"]
+for _b, _ld, _sq in [("penguin", "texas", "exusiai,saria"), ("rival", "lappland", "texas,saria"), ("lesson", "ulpianus", "skadi,saria"),
+                     ("tide", "gladiia", "specter_unchained,saria"), ("vortex", "ulpianus", "gladiia,saria"), ("fins", "skadi", "specter_unchained,saria"),
+                     ("inq", "lumen", "irene,saria"), ("hunt", "gladiia", "skadi,specter_unchained,skalter")]:
+    CLIPS["b_" + _b] = (_ld, _sq, _BOND, 60.6)
 ap = argparse.ArgumentParser()
 ap.add_argument("--clips", default=",".join(CLIPS)); ap.add_argument("--at", type=float, default=30.0); ap.add_argument("--secs", type=float, default=14.0)
 ap.add_argument("--tag", default="now"); ap.add_argument("--jobs", type=int, default=3); ap.add_argument("--extra", default="")
