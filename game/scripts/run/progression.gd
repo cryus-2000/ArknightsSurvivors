@@ -462,7 +462,6 @@ func pick(i: int) -> void:
 				var fop = g.squad.get_op(str(o.get("op", "")))
 				if fop != null:
 					fop.advance(str(o.route))
-					g.fx.append({"kind": "ring", "pos": fop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
 					g.vfx.promote_burst(fop.pos, false)
 				g.panel.visible = false
 				Sfx.play("ui_ok", -4.0)
@@ -503,7 +502,7 @@ func pick(i: int) -> void:
 				pop.advance(o.get("choice", ""))
 				prog_log.append([int(g.t), str(o.op), pop.prog])
 				focus_op = str(o.op)   # 培养保底：成为「最近培养对象」
-				g.fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
+				# 11-01 用户「升级时还是潮水特效」：原来这里再放一圈青色扩散环 + promote_burst 青光青尘，紧跟在升级金光后面，读成升级演出的一部分 → 去掉青环，promote_burst 改金色
 				g.vfx.promote_burst(pop.pos, o.get("elite", 0) > 0)   # docs/54 ⑥（fx/promote_burst）
 				if o.get("elite", 0) > 0:
 					g.vfx.show_banner("%s 晋升至精英%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
@@ -520,7 +519,7 @@ func pick(i: int) -> void:
 			if nop != null:
 				g.vfx.show_banner("「%s」加入编队" % nop.display_name())
 				g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
-				g.vfx.promote_burst(nop.pos, false)   # docs/54 ⑥ 入队：青色柔光 + 光尘
+				g.vfx.promote_burst(nop.pos, false)   # docs/54 ⑥ 入队：金色柔光 + 少量光尘（11-01 起不用青色）
 		"relic":
 			gain_relic(o.id, "choice:" + (str(g.chest_src[0]) if not g.chest_src.is_empty() else "?"))
 		"weapon":
