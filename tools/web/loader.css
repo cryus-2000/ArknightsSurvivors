@@ -221,6 +221,11 @@
   #sy-load .sv-corners i:nth-child(1), #sy-load .sv-corners i:nth-child(2) { top: 14px; }
   #sy-load .sv-corners i:nth-child(3), #sy-load .sv-corners i:nth-child(4) { bottom: 14px; }
 }
+/* 方向 3 很矮的手机横屏（≤ 420，如 740×360）：右侧提示三行时会压到右下角 BUILD 行，行距收紧并把 BUILD 让掉 */
+@media (max-height: 420px) {
+  #sy-load.sv3 .sv-tele { line-height: 21px; }
+  #sy-load.sv3 .sv-build { display: none; }
+}
 /* 竖屏：上下排 */
 @media (orientation: portrait) {
   #sy-load .sv-head { left: 18px; right: 18px; }
