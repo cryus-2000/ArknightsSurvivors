@@ -170,6 +170,8 @@ static func _abort(u, a: Dictionary) -> void:
 	_fx_end(u, a)
 	if str(a.get("k", "")) == "kaltsit":
 		_m3_back(u, a.o, false)
+	if str(a.get("k", "")) == "texas" and a.get("dash", false):
+		u.cam_hold_until = -99.0   # 冲出去途中被打断：放开镜头
 
 
 # ================================================================ 帧条公用
@@ -291,7 +293,29 @@ static func _tx_start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 	var cut_d: float = Bal.v("ult/tx_cut", 0.7)   # 剑雨去掉后的输出由范围统一的 ult/dmgk_texas 一并管（协调人 10-31，docs/199 §5.10）
 	return {"k": "texas", "cap": 1.0, "fr": {}, "no_ring": true, "c": c, "R": R, "lines": lines, "drawn": 0, "cut": false, "cut_seg": {}, "swords": swords,
 		"cut_d": cut_d, "lines2": lines2, "cut2": false, "cut2_seg": {},
-		"rounds": rounds, "rain": [], "sv": [], "stride": stride, "back": rt == "back", "back_done": false, "end": 0.0}
+		"rounds": rounds, "rain": [], "sv": [], "stride": stride, "back": rt == "back", "back_done": false, "end": 0.0,
+		"dash": _tx_dash_start(u, o), "home": o.pos, "ret": false}
+
+
+## 冲出去打（用户 11-01「德克萨斯的终结技人也要出去，同时镜头原地不变，终结技结束回到原点」，ult/tx_dash 0 = 原地版）：
+## 刀网一道道显现时她沿每道斩线闪身划过（白芯橙光的一道身影线）→ 斩开前落到圆心 → 收刀后冲回原位；整段镜头钉在原位（cam_hold）。
+## 只对队长本人（位移走 _lead_move，期间无敌）；判定 / 时序 / 伤害不变
+static func _tx_dash_start(u, o) -> bool:
+	if Bal.v("ult/tx_dash", 1.0) <= 0.0 or o.pos.distance_to(u.g.ppos) > 1.0:
+		return false
+	u.cam_hold = o.pos
+	u.cam_hold_until = u.g.t + 3.0   # 回到原位那一刻放开（_tx_dash_to ret）
+	return true
+
+
+static func _tx_dash_to(u, a: Dictionary, o, p0: Vector2, p1: Vector2, w := 4.0) -> void:
+	var d: Vector2 = (p1 - p0).normalized() if p1 != p0 else Vector2.RIGHT
+	u.shape({"kind": "blade", "a": p0 - d * 20.0, "b": p1 + d * 20.0, "w": w, "col": Color(1.0, 0.97, 0.9), "glow": TX_GLOW, "grow": 0.025, "life": 0.13, "fo": 0.08})   # 身影线：一闪划过
+	var vs: float = PF.h(p0.x * 0.007 + p1.y * 0.013)
+	PF.dust(u, p0 + Vector2(0, 8), 60.0 + 30.0 * vs, 0.0, vs * 9.0, -d * 50.0, Color(0.6, 0.58, 0.56))   # 起步蹬地一小团烟
+	MC._lead_move(u, o, p1)
+	o.face_to(d.angle())
+	o.play_vis_anim("attack")
 
 
 ## 斩线（用户 10-29：次元斩式「乱刃」——笔直、细长、贯穿，白芯 + 冷青蓝辉光、两端尖细，1–2 帧出现、停 ult/tx_blade_hold 秒后碎裂）。
@@ -360,6 +384,13 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 		var pl: Array = lines[int(a.drawn)]
 		u.shape({"kind": "line", "a": pl[0], "b": pl[1], "w": 1.5, "col": TX_GLOW, "life": maxf(0.05, 0.75 - t)})
 		a.drawn = int(a.drawn) + 1
+		if a.dash:   # 沿这道斩线闪身划过：从离她近的一端进、远的一端出
+			var near0: bool = o.pos.distance_to(pl[0]) <= o.pos.distance_to(pl[1])
+			_tx_dash_to(u, a, o, pl[0] if near0 else pl[1], pl[1] if near0 else pl[0])
+	if a.dash and not a.get("landed", false) and int(a.drawn) >= n and t >= 0.6:   # 斩开前落到圆心，刀网在她周围同时斩开
+		a["landed"] = true
+		_tx_dash_to(u, a, o, o.pos, a.c, 6.0)
+		MC._lead_land(u, o)
 	if not a.cut and t >= 0.75:
 		a.cut = true
 		var v2: bool = Bal.v("ult/tx_fx_v2", 1.0) > 0.0
@@ -423,6 +454,10 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 				_hit(u, a, o, e, float(rd[1]), {"stun": Bal.v("ult/tx_rain_stun", 0.4), "src": "剑雨",
 					"edge": e.pos.distance_to(a.c) > float(a.R) * (1.0 - _edge_w())})
 			st.i = int(st.i) + 1
+	if a.dash and not a.ret and t >= last - 0.12:   # 收刀冲回原位（回马剑路线回到原位再斩那一圈）
+		a.ret = true
+		_tx_dash_to(u, a, o, o.pos, a.home, 6.0)
+		u.cam_hold_until = u.g.t + 0.05
 	if a.back and not a.back_done and t >= last:
 		a.back_done = true   # 回马剑：收刀时在她身后再斩一圈（斩开打过的不再打）
 		var br: float = 240.0 * float(a.R) / 430.0

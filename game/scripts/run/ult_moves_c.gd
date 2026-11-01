@@ -2117,22 +2117,39 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 	if a.get("fwd", false) and Bal.v("ult/la_final_hf", 1.0) > 0.0:   # 11-01 细调：收尾横斩是全招最重一拍 → 冲击帧（横斩进剪影）
 		PF.hf_since(u, n0)
 		PF.hf_on(u, a)
-	u.light(c, R * 1.2, LA_ICE, 0.3)
+	if a.get("fwd", false) and Bal.v("ult/la_r2", 1.0) > 0.0:   # 11-01 第二轮：横斩在地上留一道暗刀口（先亮后冷、慢慢褪），沿刀口崩出几道不规整细裂缝
+		_la_cut(u, c, ang, R * 2.1, vs + 101.0, 1.4, Color(0.14, 0.14, 0.17, 0.85), 0.5, true)
+		u.shapes[u.shapes.size() - 1]["layer"] = "back"
+		for q in 4:
+			var pq: Vector2 = c + dv * (PF.h(vs + q * 3.1) - 0.5) * R * 1.6
+			var sg: float = 1.0 if q % 2 == 0 else -1.0
+			PF.cracks(u, ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"], pq, [(dv.orthogonal() * sg).angle() + (PF.h(vs + q) - 0.5) * 1.0], [80.0 + 70.0 * PF.h(vs + q * 1.7)],
+				{"seed": vs + q * 5.0, "r0": 4.0, "rev": 0.06, "rev0": 0.0, "delay": 0.0, "life": 1.3, "fade": 0.7, "small": 0.4, "big": 0.5,
+				"col": Color(0.9, 0.9, 0.92), "col1": Color(0.16, 0.16, 0.19, 0.9), "cold": 0.12})
+	u.light(c, R * 1.2, LA_ICE, 0.3 if not (a.get("fwd", false) and Bal.v("ult/la_r2", 1.0) > 0.0) else 0.15)
 	PF.particles(u, c, 200 if not a.get("fwd", false) else 60, "ult_burst_s", [LA_ICE, LA_SILVER] if not a.get("fwd", false) else [LA_ICE.darkened(0.3), LA_ICE.darkened(0.5)], 0.04, vs + 3.0, 140.0)   # 11-01：朝前版叠上空气爆破成一团白，压暗减量
 	if a.get("fwd", false):   # 用户 10-31：最后接一个空气爆破——横斩之后 0.12 秒，斩线中点一圈冷白气浪炸开（尘浪环三种挑一）+ 一大团银蓝粒子 + 尘
 		var bc: Vector2 = c
 		var br: float = float(a.R) * 0.55
 		# 11-01 细调：原用推进之王粗块尘浪环 + 500 颗灰白粒子（录像里是白团 + 灰烟甜甜圈 + 满屏白点，像放烟花）→
 		# 气压一下撕开：两道碎裂细冲击波（一快一慢、带缺口）+ 少量压暗的银灰碎屑沿斩线两侧甩出 + 几团逐帧烟尘
-		u.shape({"kind": "ring", "c": bc, "r": br, "r1": br * 0.12, "w": 6.5, "col": Color(0.78, 0.8, 0.82), "life": 0.32, "delay": 0.12})
+		var r2: bool = Bal.v("ult/la_r2", 1.0) > 0.0
+		u.shape({"kind": "ring", "c": bc, "r": br, "r1": br * 0.12, "w": 6.5, "col": Color(0.78, 0.8, 0.82) if not r2 else Color(0.6, 0.62, 0.66), "life": 0.32, "delay": 0.12})
 		u.shape({"kind": "ring", "c": bc, "r": br * 0.7, "r1": br * 0.1, "w": 3.0, "col": Color(0.55, 0.58, 0.62), "life": 0.45, "delay": 0.18})
-		PF.particles(u, bc, 70, "ult_burst", [Color(0.5, 0.51, 0.53), LA_ICE.darkened(0.5)], 0.12, vs + 9.0, br * 0.9)
-		PF.particles(u, bc, 50, "ult_ember", [Color(0.5, 0.5, 0.52)], 0.2, vs + 4.0, br * 0.6)
-		for q in 3:
-			var dq: Vector2 = dv * (1.0 if q % 2 == 0 else -1.0) * (0.35 + 0.25 * PF.h(vs + q)) * br
-			PF.dust(u, bc + dq, 150.0 + 60.0 * PF.h(vs + q * 2.0), 0.14 + 0.05 * q, vs + q, dq.normalized() * 70.0, Color(0.5, 0.52, 0.55))
-		u.light(bc, br * 1.4, LA_ICE, 0.3)
-		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
+		if r2:   # 11-01 第二轮：录像里中心还是一团白点 → 碎屑只往斩线两侧（垂直斩向）甩、颜色再压一档；烟尘改成沿刀口两侧各一排往外推（气压撕开）
+			for sg in [-1.0, 1.0]:
+				PF.particles(u, bc + dv.orthogonal() * sg * br * 0.25, 30, "ult_burst_s", [Color(0.38, 0.39, 0.42), LA_ICE.darkened(0.6)], 0.12, vs + 9.0 + sg, br * 0.5)
+				for q in 3:
+					var pq: Vector2 = bc + dv * (q - 1.0) * br * 0.55 + dv.orthogonal() * sg * 30.0
+					PF.dust(u, pq, 130.0 + 50.0 * PF.h(vs + q * 2.0 + sg), 0.13 + 0.04 * q, vs + q + sg * 5.0, dv.orthogonal() * sg * 120.0, Color(0.42, 0.44, 0.48))
+		else:
+			PF.particles(u, bc, 70, "ult_burst", [Color(0.5, 0.51, 0.53), LA_ICE.darkened(0.5)], 0.12, vs + 9.0, br * 0.9)
+			PF.particles(u, bc, 50, "ult_ember", [Color(0.5, 0.5, 0.52)], 0.2, vs + 4.0, br * 0.6)
+			for q in 3:
+				var dq: Vector2 = dv * (1.0 if q % 2 == 0 else -1.0) * (0.35 + 0.25 * PF.h(vs + q)) * br
+				PF.dust(u, bc + dq, 150.0 + 60.0 * PF.h(vs + q * 2.0), 0.14 + 0.05 * q, vs + q, dq.normalized() * 70.0, Color(0.5, 0.52, 0.55))
+			u.light(bc, br * 1.4, LA_ICE, 0.3)
+		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() and not r2 else null   # 第二轮：硬写的通用 boom 去掉（和 ult_audio 的 air 叠成两声）
 		if sfx != null:
 			sfx.play("boom", -2.0, 1.3)
 

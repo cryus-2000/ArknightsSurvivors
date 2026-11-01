@@ -1862,6 +1862,8 @@ func sf_sound(ld) -> void:
 	if sfx == null:
 		return
 	var oid := str(ld.id)
+	if _aud(oid).get("sf_off", false):
+		return   # 表里关掉提示音（逻各斯，用户 11-01「开头的声音要去掉」）
 	var nm := "ult_%s_sf" % oid
 	if ResourceLoader.exists("res://audio/sfx/%s.wav" % nm):
 		sfx.ensure([nm])
