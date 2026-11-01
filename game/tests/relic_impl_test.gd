@@ -443,6 +443,23 @@ func test_docs74() -> void:
 	if had189:
 		game.relics.append("189")
 		rfx.lv["189"] = lv189
+	# ---- 商店按售价保底（docs/218）：买「立即获得源石锭」藏品至少拿回 ceil(实付 × 1.2)；补给箱 / 事件照原数额
+	var shop = game.shop_sys
+	ok(shop.ingot_floor("27", 18) == 22, "古旧钱币：实付 18 保底 22 锭（%d）" % shop.ingot_floor("27", 18))
+	ok(shop.ingot_floor("27", 10) == 12, "古旧钱币：实付 10 保底 12 锭（浮点不多进一）")
+	ok(shop.ingot_floor("29", 14) == 25, "无瑕宝玉：原数额更高时照原数额")
+	ok(shop.ingot_floor("124", 30) == 0, "不给源石锭的藏品没有保底")
+	var sit := {"kind": "relic", "id": "27", "price": 18, "sold": false}
+	shop.ingot_desc(sit)
+	ok(str(sit.desc).contains("源石锭 +22（按售价保底）"), "商店卡面写出保底数额（%s）" % sit.desc)
+	var ig: int = game.ingots
+	rfx.ingot_floor = shop.ingot_floor("27", 18)
+	grant("27")
+	rfx.ingot_floor = 0
+	ok(game.ingots == ig + 22, "商店买古旧钱币：到手 22（%d）" % (game.ingots - ig))
+	ig = game.ingots
+	grant("28")
+	ok(game.ingots == ig + 18, "补给箱拿演员的首饰盒：照原数额 18")
 	# ---- 吸血 #263：伤害的 0.05%，每秒上限 0.5% 最大生命，低于 50% 翻倍；上限按受治疗加成之前算
 	grant("263")
 	game.wound = 0

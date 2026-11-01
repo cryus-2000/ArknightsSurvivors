@@ -79,6 +79,34 @@ func relic_buys_left() -> int:
 	return maxi(0, Bal.vi("shop/relic_buy_limit", -1) - int(g.merchant.get("relic_purchases", 0)))
 
 
+## 按售价保底（docs/218，用户 11-01「越买越赚可以，不能亏」）：商店买的「立即获得源石锭」藏品，
+## 到手 = max(原数额, ceil(实付 × shop/ingot_relic_floor))；不给源石锭的藏品返回 0。补给箱 / 事件不走这里，照原数额
+func ingot_floor(id: String, paid: int) -> int:
+	var base: int = g.rfx.instant_ingots(id)
+	if base <= 0:
+		return 0
+	return maxi(base, int(ceil(float(paid) * Bal.v("shop/ingot_relic_floor", 1.2) - 0.001)))
+
+
+## 货架上的立即得锭藏品：卡面写实际能拿的数额（成交涨价后跟着改）
+func ingot_desc(it: Dictionary) -> void:
+	if it.get("kind", "") != "relic":
+		return
+	var base: int = g.rfx.instant_ingots(str(it.id))
+	var n := ingot_floor(str(it.id), int(it.price))
+	if base <= 0:
+		return
+	var d: String = g.rfx.display_desc(it.id)
+	var f: String = g.rfx.display_desc(it.id, true)
+	if n > base:
+		var a := "源石锭 +%d" % base
+		var b := "源石锭 +%d（按售价保底）" % n
+		d = d.replace(a, b) if d.contains(a) else d + "\n（按售价保底：源石锭 +%d）" % n
+		f = f.replace(a, b) if f.contains(a) else f + "\n（按售价保底：源石锭 +%d）" % n
+	it.desc = d
+	it.full = f
+
+
 func can_buy(it: Dictionary) -> bool:
 	return not it.sold and g.ingots >= it.price and (it.kind != "relic" or (relic_buys_left() > 0 and g.progression.can_gain_relic(it.id)))
 
@@ -120,6 +148,8 @@ func roll(first := false) -> void:
 			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "full": g.rfx.display_desc(cid, true), "price": g.rfx.db.price(cid, relic_mult()), "sold": false, "deep": true})
 	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "shop", g.shop_items.map(func(it): return it.id)])
+	for it in g.shop_items:
+		ingot_desc(it)
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
 	g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": price("oil"), "sold": false})
 
@@ -203,7 +233,9 @@ func buy(i: int) -> void:
 		"relic":
 			if not trader:
 				g.merchant["relic_purchases"] = int(g.merchant.get("relic_purchases", 0)) + 1
+			g.rfx.ingot_floor = ingot_floor(str(it.id), int(it.price))
 			g.progression.gain_relic(it.id, "shop")
+			g.rfx.ingot_floor = 0
 		"heal":
 			g.combat.heal(g.max_hp * 0.4, "商店")
 		"oil":
@@ -213,6 +245,7 @@ func buy(i: int) -> void:
 	for item in g.shop_items:
 		if not item.sold:
 			item.price = g.rfx.db.price(item.id, relic_mult()) if item.kind == "relic" else price(item.kind)
+			ingot_desc(item)
 	# 预告的商品售出即撤销（docs/119 §4.5）；预告价格由 preview_item 从货架现价读，这里不用改
 	if not trader and not g.merchant.is_empty() and g.merchant.has("preview") and str(g.merchant.preview) == str(it.id):
 		g.merchant.erase("preview")

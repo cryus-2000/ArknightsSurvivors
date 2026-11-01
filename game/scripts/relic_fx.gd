@@ -78,6 +78,7 @@ var hurt_cd := {}          # DamageTaken 冷却：id -> 可再次触发的时刻
 var sp_stack := {}         # stack_stat 层数：id -> 层
 var medkits := {}          # 急救包剩余：id -> 个数
 var used := {}             # 一次性触发（args.once）已用：id -> true
+var ingot_floor := 0       # 商店按售价保底（docs/218）：shop.buy 在 gain_relic 前设、后清；「立即获得源石锭」至少给这么多
 var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
 var stakes: Array = []     # 防暴桩：{pos, life}
 # ---- docs/74（用户 10-12）：吸血 / 击杀回复 / 源石锭熔铸
@@ -323,6 +324,15 @@ func ingot_value_of(id: String) -> int:
 	return n
 
 
+## 获得时「立即获得源石锭」的数额（on_gain ingots；招募 / 击败 Boss 时的不算）。商店按售价保底用（docs/218）
+func instant_ingots(id: String) -> int:
+	var n := 0
+	for ef in db.get_relic(id).get("effects", []):
+		if ef.get("type", "") == "on_gain" and str(ef.get("do", "")) == "ingots":
+			n += int(ef.get("args", {}).get("amount", 0))
+	return n
+
+
 func _pct_s(v: float) -> String:
 	return ("%.1f" % (v * 100.0)).trim_suffix(".0")
 
@@ -477,7 +487,7 @@ func _on_gain_impl(what: String, args: Dictionary) -> void:
 			g.knight_alive = true
 			g.vfx.show_banner("猎潮的骑士加入编队")
 		"ingots":
-			gain_ingots(int(amt))
+			gain_ingots(maxi(int(amt), ingot_floor))
 		"heal":
 			# amount = 最大生命的比例
 			g.combat.heal(g.max_hp * amt, "藏品")
