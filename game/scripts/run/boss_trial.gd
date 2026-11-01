@@ -36,7 +36,7 @@ func consume() -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--diagtrial="):
 			var p: PackedStringArray = a.substr(12).split(":")
-			Cfg.boss_trial_request = {"group": Array(p[0].split("+")), "operator": "mizuki", "growth": 2, "phase": 1, "safe": true, "squad": p[1] if p.size() > 1 else ""}
+			Cfg.boss_trial_request = {"group": Array(p[0].split("+")), "operator": "mizuki", "growth": 2, "phase": int(Cfg.dev_args().filter(func(x): return x.begins_with("--diagphase=")).map(func(x): return x.substr(12)).front()) if Cfg.dev_args().any(func(x): return x.begins_with("--diagphase=")) else 1, "safe": true, "squad": p[1] if p.size() > 1 else ""}
 	Meta.practice_budget = -1
 	if g.demo_op != "" or Cfg.boss_trial_request.is_empty():
 		return
