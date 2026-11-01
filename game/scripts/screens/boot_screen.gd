@@ -26,7 +26,9 @@ const BUDGET_USEC := 30000   # 每帧最多读多久（单个脚本超过也只�
 const CYAN := Color(0.369, 0.902, 0.902)
 const TEXT := Color(0.949, 0.957, 0.961)
 const DIM := Color(0.5, 0.6, 0.65)
-const OUT_LEN := 0.3
+const OUT_LEN := 0.45
+const PRESS_REVEAL := 0.28   # 按下后先放反白 + 声呐脉冲，这么久再交叉淡出揭开标题页（boot_views.draw_start）
+const APPEAR := 1.25         # 「开始游戏」出现动效时长
 const WAIT_USEC := 4000      # 桌面后台编译时主线程每帧最多等多久（小脚本一帧能过一两个；留够画面的时间，稳 60）
 const GOOD_N := 30           # 稳帧门：连续多少帧在预算内
 const GATE_MIN := 0.4
@@ -72,8 +74,11 @@ var _slow_ms := 0
 var _await := -1.0            # 读完、稳帧后等玩家开始的秒数（-1 = 还没到）；11-01 起读完不自动进标题页
 var _hover := false
 var _touch := false
-var _shot_ready := false      # --bootshot=ready：读完、「开始游戏」出现 0.6 秒后截 shot_boot_ready.png 退出
+var _shot_ready := false      # --bootshot=ready：读完、「开始游戏」出现动效放完（APPEAR + 0.35 秒）后截 shot_boot_ready.png 退出
 var _auto_go := false         # 录像 / 计时类调试参数：停一下就自动开始，不卡住脚本
+var _press := -1.0            # 按下「开始游戏」后的秒数（-1 = 没按）
+var _hv := 0.0                # 悬停 / 手柄聚焦 0–1（平滑）
+var _demo := false            # --bootrec 录像：出按钮后 2 秒假悬停、3.2 秒按下（录完整一套动效）
 
 
 ## 录对照片：挂在根节点上，启动页释放后接着录 2 秒标题页
@@ -149,6 +154,7 @@ func _ready() -> void:
 		r.process_mode = Node.PROCESS_MODE_ALWAYS
 		get_tree().root.add_child.call_deferred(r)
 	_budget_ms = _frame_budget_ms()
+	_demo = rec_dir != ""
 	_auto_go = (shot and not _shot_ready) or rec_dir != "" or args.has("--loadprof") or args.has("--ftrec")
 	_touch = Cfg.touch_device()
 
@@ -171,6 +177,10 @@ func _process(delta: float) -> void:
 	_last_us = now
 	t += delta
 	tip_t += delta
+	if _press >= 0.0:
+		_press += delta
+	var hov := _hover or (_demo and _await >= 2.0) or (not _touch and not Input.get_connected_joypads().is_empty())
+	_hv = move_toward(_hv, 1.0 if hov and _press < 0.0 else 0.0, delta / 0.12)
 	if tip_t >= 4.0:
 		tip_t = 0.0
 		tip_i = (tip_i + 1) % Tips.TIPS.size()
@@ -188,13 +198,16 @@ func _process(delta: float) -> void:
 		return
 	if _await >= 0.0:
 		_await += delta
-		if _web_overlay:
+		if _press >= 0.0:
+			if _press >= PRESS_REVEAL or Cfg.reduce_motion:
+				_reveal()
+		elif _web_overlay:
 			if bool(JavaScriptBridge.eval("!!window.__syStart", true)):
 				_start()
-		elif _shot_ready and _await >= 0.6:
+		elif _shot_ready and _await >= APPEAR + 0.35:
 			_shot("shot_boot_ready.png")
 			return
-		elif _auto_go and _await >= 1.2:
+		elif _auto_go and _await >= (3.2 if _demo else 1.2):
 			_start()
 		queue_redraw()
 		return
@@ -342,23 +355,30 @@ func _gate(dt_ms: float) -> void:
 				_start()
 
 
-## 玩家点「开始游戏」/ 按任意键：揭开标题页（开场从头播），本页淡出
+## 玩家点「开始游戏」/ 按任意键：先放按下动效（反白 + 声呐脉冲，PRESS_REVEAL 秒），再揭开标题页
+## 网页的按下动效由 loader.js 画，这里只计时和放音效（loader 在点按那一刻已 resume 音频上下文）
 func _start() -> void:
+	if _await < 0.0 or out_t >= 0.0 or _press >= 0.0:
+		return
+	_press = 0.0
+	Sfx.play("ui_ok")
+
+
+## 揭开标题页（开场从头播），本页交叉淡出
+func _reveal() -> void:
 	if _await < 0.0 or out_t >= 0.0:
 		return
 	_await = -1.0
 	if is_instance_valid(title) and title.has_method("boot_reveal"):
 		title.boot_reveal()
 	FR.mark("reveal")
-	if not _web_overlay:
-		Sfx.play("ui_ok")
 	out_t = 0.0
 	_web_progress(true)
 
 
 ## 等开始时：任意键 / 鼠标键 / 触屏按下都算（标题页在 boot_cover 期间不收输入，这一下不会漏给它；松开时开场已在播，只认按下）
 func _input(event: InputEvent) -> void:
-	if _await < 0.0 or _web_overlay:
+	if _await < 0.0 or _web_overlay or _press >= 0.0:
 		return
 	if event is InputEventMouseMotion:
 		_hover = views != null and views.start_rect(_v, size).has_point(event.position)
@@ -541,8 +561,7 @@ func _draw() -> void:
 func _draw_start(vs: Vector2) -> void:
 	if views == null or (_await < 0.0 and out_t < 0.0):
 		return
-	var a := 1.0 if Cfg.reduce_motion else clampf((_await if _await >= 0.0 else 1.0) / 0.35, 0.0, 1.0)
-	views.draw_start(views.start_rect(_v, vs), a, t, _hover, _touch)
+	views.draw_start(views.start_rect(_v, vs), {"u": _await if _await >= 0.0 else 9.0, "t": t, "h": _hv, "press": _press, "touch": _touch})
 
 
 func _draw_sonar(vs: Vector2) -> void:

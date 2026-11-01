@@ -208,6 +208,7 @@
         for (var q = 0; q < key.length; q++) hs = (hs * 31 + key.charCodeAt(q)) % 100003;
         var ang = (Math.abs(Math.sin(hs * 0.731 + 12.9898)) * 43758.5453 % 1) * 2 * Math.PI;
         var rad = 180 * (0.3 + 0.6 * (Math.abs(Math.sin(hs * 0.731 + 25.9796)) * 43758.5453 % 1));
+        if (key === 'b接入完成 · 等待指令') { ang = Math.PI / 2; rad = 144; }   // 钉在 180 方位：「开始游戏」的引线从它竖直落到按钮上（同桌面 boot_views）
         var x = (Math.cos(ang) * rad).toFixed(1), y = (Math.sin(ang) * rad).toFixed(1);
         var hit = (ang / (2 * Math.PI)) * 3.2, dl = (((hit - el3) % 3.2) + 3.2) % 3.2 - 3.2;
         ch += '<g class="' + (logs[ci].ok ? 'dn' : 'go') + '" transform="translate(' + x + ' ' + y + ')"><g class="lt" style="animation-delay:' + dl.toFixed(2) + 's">' +
@@ -291,10 +292,26 @@
       // 不压页脚声明；方向 3 竖屏盘下是系统日志，放底部
       var dial = d.querySelector('.sv-dial') || d.querySelector('.sy-sonar');
       var touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var LAB = '开始游戏', SCR = '0123456789ABCDEF#/<>+=';
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'sy-go';
-      b.innerHTML = '<i class="c0"></i><i class="c1"></i><i class="c2"></i><i class="c3"></i><span>开始游戏</span><em class="sy-en">' + (touch ? 'TAP TO START' : 'PRESS ANY KEY') + '</em>';
+      b.innerHTML = '<b class="gw"></b><b class="fl"></b><b class="sc"></b><svg class="fr"></svg><i class="c0"></i><i class="c1"></i><i class="c2"></i><i class="c3"></i>' +
+        '<b class="r0"></b><b class="r1"></b><span>' + LAB.split('').map(function (c) { return '<s>' + (rm ? c : '') + '</s>'; }).join('') + '</span>' +
+        '<em class="sy-en">' + (touch ? 'TAP TO START' : 'PRESS ANY KEY') + '</em>';
+      // 边框三条路径按按钮像素写（矮屏换尺寸时重写）：tr 两条从上沿正中分向两边描出，bd 整框（呼吸），fw 一段青光沿边慢转
+      var frame = function () {
+        var w = b.offsetWidth, hh = b.offsetHeight, fr = b.querySelector('.fr');
+        if (!w || fr.__w === w + 'x' + hh) return;
+        fr.__w = w + 'x' + hh;
+        fr.setAttribute('width', w); fr.setAttribute('height', hh); fr.setAttribute('viewBox', '0 0 ' + w + ' ' + hh);
+        var m = w / 2, bd = 'M' + m + ' 0H' + w + 'V' + hh + 'H0V0Z';
+        fr.innerHTML = '<path class="tr" pathLength="1" d="M' + m + ' 0H' + w + 'V' + hh + 'H' + m + '"/><path class="tr" pathLength="1" d="M' + m + ' 0H0V' + hh + 'H' + m + '"/>' +
+          '<path class="bd" d="' + bd + '"/><path class="fw" pathLength="100" d="' + bd + '"/>';
+        b.style.setProperty('--sx', ((w - 6) / w).toFixed(4));
+        b.style.setProperty('--sy', ((hh - 6) / hh).toFixed(4));
+      };
       var place = function () {
         var low = window.innerHeight < 520, bh = low ? 42 : 50;
         var y = window.innerHeight - (low ? 64 : 96) - bh / 2;   // 缺省：底部
@@ -303,19 +320,62 @@
           y = Math.min(y, window.innerHeight - 30 - bh / 2 - (low ? 0 : 22));   // 让出页脚声明（矮屏不写下面那行英文）
         }
         b.style.top = Math.round(y - bh / 2) + 'px';
+        frame();
       };
+      d.appendChild(b);
       place();
       window.addEventListener('resize', place);
-      d.appendChild(b);
       d.classList.add('sy-ready');
+      // 引线：从「接入完成」接触点（方向 3 钉在 180 方位）竖直落到按钮上沿，接触点上一个收拢的锁定框（横屏才拉，竖屏盘下是日志）
+      var ct = d.querySelector('.sv-contacts');
+      ct = ct && ct.lastElementChild;
+      if (ct && !rm && window.innerWidth >= window.innerHeight) {
+        var cr = ct.querySelector('rect').getBoundingClientRect(), br0 = b.getBoundingClientRect(), dr = d.getBoundingClientRect();
+        var cx = cr.left + cr.width / 2 - dr.left, cy = cr.top + cr.height / 2 - dr.top;
+        var ld = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        ld.setAttribute('class', 'sy-lead');
+        ld.innerHTML = '<line pathLength="1" x1="' + cx + '" y1="' + cy + '" x2="' + (br0.left + br0.width / 2 - dr.left) + '" y2="' + (br0.top - dr.top) + '"/>' +
+          '<rect x="' + (cx - 6) + '" y="' + (cy - 6) + '" width="12" height="12"/>';
+        d.appendChild(ld);
+        setTimeout(function () { ld.remove(); }, 1500);
+      }
+      // 字：先乱码、再从左到右逐个解出（0.45 秒起，每字隔 0.08 秒）
+      if (!rm) {
+        var ss = b.querySelectorAll('span s'), t0 = performance.now();
+        var dec = setInterval(function () {
+          var u = (performance.now() - t0) / 1000, all = true;
+          for (var k = 0; k < ss.length; k++) {
+            if (u >= 0.62 + 0.08 * k) { ss[k].textContent = LAB[k]; ss[k].className = ''; }
+            else { all = false; if (u >= 0.45) { ss[k].textContent = SCR[Math.floor(Math.random() * SCR.length)]; ss[k].className = 'x'; } }
+          }
+          if (all) clearInterval(dec);
+        }, 42);
+      }
       var t1 = performance.now();
       var go = function (e) {
         if (performance.now() - t1 < 250) return;   // 读完那一刻正好按着键，不算
         if (e.type === 'keydown' && (e.ctrlKey || e.metaKey || e.altKey || /^F\d+$/.test(e.key))) return;   // 刷新 / 开发者工具之类的组合键放行
         e.preventDefault();
         e.stopPropagation();
+        // 点按是用户手势：先把引擎的音频上下文唤醒（power.js 记下的实例），引擎读到 __syStart 时按下音效才放得出来
+        (window.__syAudioCtx || []).forEach(function (c) { try { c.resume(); } catch (err) {} });
         window.__syStart = 1;
         b.classList.add('on');
+        // 按下：整屏一下压暗 + 三圈声呐脉冲从按钮扩到整屏（引擎 0.28 秒后揭开标题页）
+        var r = b.getBoundingClientRect(), dr2 = d.getBoundingClientRect();
+        var px = r.left + r.width / 2 - dr2.left, py = r.top + r.height / 2 - dr2.top;
+        var dim = document.createElement('div');
+        dim.className = 'sy-dim';
+        d.insertBefore(dim, b);
+        if (!rm) {
+          var R = Math.hypot(Math.max(px, dr2.width - px), Math.max(py, dr2.height - py));
+          for (var j = 0; j < 3; j++) {
+            var pu = document.createElement('div');
+            pu.className = 'sy-pulse p' + j;
+            pu.style.cssText = 'left:' + (px - R) + 'px;top:' + (py - R) + 'px;width:' + 2 * R + 'px;height:' + 2 * R + 'px;--s0:' + (r.height / 2 / R).toFixed(4) + ';animation-delay:' + (j * 0.1) + 's';
+            d.insertBefore(pu, b);
+          }
+        }
         d.removeEventListener('pointerdown', go, true);
         window.removeEventListener('keydown', go, true);
       };

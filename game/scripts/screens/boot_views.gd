@@ -15,6 +15,8 @@ const DEPTH_MAX := 1200.0   # 方向 2 / 3：读完 = 下潜到 -1200 m
 
 var c: Control   # boot_screen
 var font: Font
+var last_cp := Vector2.ZERO   # 方向 3 最后一个接触点（「开始游戏」出现时从这里拉引线，draw_start）
+var has_cp := false
 
 
 func _init(ctl: Control, f: Font) -> void:
@@ -434,6 +436,9 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 		var nm: String = str(ct.name)
 		var a: float = _h1(nm, 1) * TAU
 		var rr: float = R * (0.3 + 0.6 * _h1(nm, 2))
+		if nm == "done":   # 「接入完成」钉在 180 方位：「开始游戏」的引线从它竖直落到按钮上（draw_start）
+			a = PI / 2.0
+			rr = R * 0.8
 		var cp: Vector2 = cen + Vector2.from_angle(a) * rr
 		# 扇面扫过就亮（10-31 用户「声呐上面不应该随着转的时候闪烁吗」）：扫到的一刻最亮 + 光晕，之后大半圈里渐暗到 0.25，等下一圈再亮
 		var since: float = fposmod(ang - a, TAU) / TAU   # 扇面扫过后 0 → 1
@@ -450,6 +455,8 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 			c.draw_rect(Rect2(cp - Vector2(sz2 + 1, sz2 + 1), Vector2(sz2 + 1, sz2 + 1) * 2.0), Color(ACC, lv), false, 1.5)
 			c.draw_rect(Rect2(cp - Vector2(1.5, 1.5), Vector2(3, 3)), Color(ACC, maxf(lv, 0.6)))
 		mono(cp + Vector2(8, -5), "%02d" % int(ct.i), 9, Color(GRAY, 0.4 + 0.6 * lv))
+		last_cp = cp
+	has_cp = not contacts.is_empty()
 	# 外圈 72 刻度 = 总进度；方位读数
 	var n := 72
 	var lit: int = int(floor(p * n))
@@ -528,32 +535,184 @@ func start_rect(v: int, vs: Vector2) -> Rect2:
 	return Rect2(vs.x * 0.5 - bw * 0.5, cy - bh * 0.5, bw, bh)
 
 
-## 「开始游戏」：暗底细青框 + 四角菱形饰角（同选人页出击框，docs/37 §8），框线慢呼吸；下面一行字距拉开的英文提示。
-## a = 出现进度 0–1（上浮淡入），hover = 鼠标在框上（底色提亮）
-func draw_start(r: Rect2, a: float, t: float, hover: bool, touch: bool) -> void:
-	if a <= 0.0:
-		return
-	var e: float = 1.0 - pow(1.0 - clampf(a, 0.0, 1.0), 3.0)
-	var rr := Rect2(r.position + Vector2(0, 10.0 * (1.0 - e)), r.size)
-	var br: float = 1.0 if _rm() else 0.62 + 0.38 * (0.5 + 0.5 * sin(t * 2.6))
-	c.draw_rect(rr, Color(0.02, 0.05, 0.07, 0.86 * e))
-	if hover:
-		c.draw_rect(rr, Color(ACC, 0.14 * e))
-	c.draw_rect(rr, Color(ACC, (0.85 if hover else 0.55 * br + 0.2) * e), false, 1.5)
-	# 内侧短横：左右各一条青色刻线，压住两端
-	for sx in [rr.position.x + 14.0, rr.end.x - 26.0]:
-		c.draw_line(Vector2(sx, rr.get_center().y), Vector2(sx + 12.0, rr.get_center().y), Color(ACC, 0.7 * e), 1.5)
+## 「开始游戏」动效（11-01 用户「加载页开始游戏的动效也做一下」，网页同款在 loader.js / loader.css .sy-go）：
+##   出现（约 1.25 秒）：从最后一个接触点（「接入完成」）拉一条青色引线到按钮上沿 → 四角饰角从外收拢锁定 → 竖扫描线左到右揭开底色
+##     → 边框从上沿正中向两边描出 → 四个字先乱码再逐个解出 → 下一行英文打字机出现；
+##   待机：框线慢呼吸 + 一小段青光沿边框慢转一圈 5.5 秒，左右两枚小方框反向慢转；
+##   悬停 / 手柄聚焦（h 0–1）：边框收紧 3 像素、饰角外扩并伸出 L 形短臂、外圈青色微光；
+##   按下（press 秒）：瞬间反白（墨色底深色字）+ 整屏一下压暗 + 三圈声呐脉冲从按钮扩散到整屏，0.28 秒后交叉淡出揭开标题页。
+## 减少动态效果：只淡入、不乱码、不转、不发脉冲（反白保留）。
+## st：u = 读完后的秒数（出现时间轴）、t、h、press（-1 = 没按）、touch
+func draw_start(r: Rect2, st: Dictionary) -> void:
+	var u: float = st.u
+	var t: float = st.t
+	var h: float = st.h
+	var pv: float = st.press
+	var rm := _rm()
+	var vs: Vector2 = c.size
+	var e: float = clampf(u / 0.25, 0.0, 1.0) if rm else 1.0
+	var pf := 0.0   # 反白 1 → 0
+	if pv >= 0.0:
+		pf = 1.0 if pv < 0.08 else clampf(1.0 - (pv - 0.08) / 0.16, 0.0, 1.0)
+	var rr := r.grow(-3.0 * maxf(h, pf))
+	var cen := rr.get_center()
+	# ---- 按下：整屏压暗 + 声呐脉冲（画在按钮下面）
+	if pv >= 0.0:
+		c.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.02, 0.42 * clampf(1.0 - pv / 0.5, 0.0, 1.0)))
+		if not rm:
+			var diag: float = vs.length()
+			for j in 3:
+				var q: float = (pv - j * 0.1) / 0.85
+				if q <= 0.0 or q >= 1.0:
+					continue
+				var rad: float = lerpf(rr.size.y * 0.5, diag, _ease(q))
+				var al: float = pow(1.0 - q, 1.6) * (1.0 if j == 0 else 0.5)
+				if j == 0:
+					c.draw_arc(cen, rad - 7.0, 0.0, TAU, 160, Color(ACC, 0.1 * al), 12.0, true)
+				c.draw_arc(cen, rad, 0.0, TAU, 160, Color(ACC, 0.6 * al), 2.0 if j == 0 else 1.0, true)
+	# ---- 出现：从最后一个接触点引线过来（方向 3），接触点上一个收拢的锁定框
+	if has_cp and not rm and u < 1.4 and vs.x >= vs.y:   # 竖屏盘下是系统日志，不拉引线
+		var top := Vector2(cen.x, rr.position.y)
+		var f := _ph(u, 0.0, 0.25)
+		var fa: float = 1.0 - _ph(u, 0.75, 1.4)
+		var hd: Vector2 = last_cp.lerp(top, _ease(f))
+		c.draw_line(last_cp, hd, Color(ACC, 0.6 * fa), 1.0, true)
+		c.draw_rect(Rect2(hd - Vector2(2, 2), Vector2(4, 4)), Color(ACC, fa))
+		var lk: float = 6.0 + 10.0 * (1.0 - _ease(_ph(u, 0.0, 0.2)))
+		c.draw_rect(Rect2(last_cp - Vector2(lk, lk), Vector2(lk, lk) * 2.0), Color(ACC, 0.85 * fa), false, 1.0)
+	# ---- 悬停微光
+	if h > 0.0:
+		for i in 3:
+			c.draw_rect(rr.grow(2.0 + i * 3.0), Color(ACC, 0.09 * h * (1.0 - i / 3.0)), false, 3.0)
+	# ---- 底色：竖扫描线左 → 右揭开
+	var sf := _ph(u, 0.3, 0.6)
+	if rm:
+		sf = 1.0
+	if sf > 0.0:
+		var fr := Rect2(rr.position, Vector2(rr.size.x * sf, rr.size.y))
+		c.draw_rect(fr, Color(0.02, 0.05, 0.07, 0.86 * e))
+		if h > 0.0:
+			c.draw_rect(fr, Color(ACC, 0.12 * h))
+		if sf < 1.0:
+			c.draw_rect(Rect2(Vector2(fr.end.x - 16.0, rr.position.y), Vector2(16.0, rr.size.y)), Color(ACC, 0.12))
+			c.draw_line(Vector2(fr.end.x, rr.position.y - 7.0), Vector2(fr.end.x, rr.end.y + 7.0), Color(ACC, 0.9), 1.5)
+	if pf > 0.0:
+		c.draw_rect(rr, Color(INK, 0.94 * pf))
+	# ---- 边框：从上沿正中向两边描出；描完后待机呼吸 + 一段青光沿边慢转
+	var P: float = 2.0 * (rr.size.x + rr.size.y)
+	var bf := _ph(u, 0.35, 0.8)
+	var br: float = 1.0 if rm else 0.62 + 0.38 * (0.5 + 0.5 * sin(t * 2.6))
+	if rm or bf >= 1.0:
+		c.draw_rect(rr, Color(ACC, lerpf(0.55 * br + 0.2, 0.95, h) * e), false, 1.5)
+		if not rm:
+			var s0: float = fposmod(t * P / 5.5, P)
+			var fl := Color(ACC, 0.9 * (1.0 - pf))
+			var seg := _perim(rr, s0, minf(s0 + 44.0, P))
+			if seg.size() >= 2:
+				c.draw_polyline(seg, fl, 2.0, true)
+			if s0 + 44.0 > P:
+				var seg2 := _perim(rr, 0.0, s0 + 44.0 - P)
+				if seg2.size() >= 2:
+					c.draw_polyline(seg2, fl, 2.0, true)
+	elif bf > 0.0:
+		var half: float = P * 0.5 * _ease(bf)
+		var a1 := _perim(rr, 0.0, half)
+		var a2 := _perim(rr, P - half, P)
+		for pl in [a1, a2]:
+			if (pl as PackedVector2Array).size() >= 2:
+				c.draw_polyline(pl, Color(INK, 0.85), 1.5, true)
+		for hp in [a1[a1.size() - 1] if a1.size() > 0 else cen, a2[0] if a2.size() > 0 else cen]:
+			c.draw_rect(Rect2(hp - Vector2(2, 2), Vector2(4, 4)), ACC)
+	# ---- 四角饰角：从外收拢锁定；悬停外扩 + L 形短臂；锁定那一下外框闪一圈
+	var cf := _ph(u, 0.1, 0.45)
+	if rm:
+		cf = 1.0
+	var off: float = 16.0 * (1.0 - _ease(cf)) + 5.0 * h
+	if not rm and u >= 0.45 and u < 0.7:
+		var lf: float = (u - 0.45) / 0.25
+		c.draw_rect(rr.grow(2.0 + 8.0 * lf), Color(ACC, 0.4 * (1.0 - lf)), false, 1.0)
 	for k in 4:
-		var p: Vector2 = [rr.position, Vector2(rr.end.x, rr.position.y), rr.end, Vector2(rr.position.x, rr.end.y)][k]
-		var d: float = 4.0
-		c.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -d), p + Vector2(d, 0), p + Vector2(0, d), p + Vector2(-d, 0)]), Color(ACC, e))
+		var sx: float = -1.0 if k == 0 or k == 3 else 1.0
+		var sy: float = -1.0 if k < 2 else 1.0
+		var p: Vector2 = [rr.position, Vector2(rr.end.x, rr.position.y), rr.end, Vector2(rr.position.x, rr.end.y)][k] + Vector2(sx, sy) * off
+		var d: float = 4.0 + 1.5 * h
+		var cc := Color(ACC, cf * e)
+		c.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -d), p + Vector2(d, 0), p + Vector2(0, d), p + Vector2(-d, 0)]), cc)
+		if h > 0.0:
+			c.draw_line(p + Vector2(-sx * 6.0, 0), p + Vector2(-sx * (6.0 + 12.0 * h), 0), cc, 1.5)
+			c.draw_line(p + Vector2(0, -sy * 6.0), p + Vector2(0, -sy * (6.0 + 9.0 * h)), cc, 1.5)
+	# ---- 左右两枚小方框（待机反向慢转）
+	var ia: float = _ph(u, 0.75, 1.0) * e
+	if rm:
+		ia = e
+	for side in [-1.0, 1.0]:
+		var pc := Vector2(cen.x + side * (rr.size.x * 0.5 - 20.0), cen.y)
+		var an: float = PI / 4.0 + (0.0 if rm else t * 0.9 * side)
+		var sq := PackedVector2Array()
+		for q in 5:
+			sq.append(pc + Vector2.from_angle(an + q * PI / 2.0) * 5.0)
+		var ic := Color(ACC, 0.8 * ia).lerp(Color(PBG, ia), pf)
+		c.draw_polyline(sq, ic, 1.2, true)
+		c.draw_rect(Rect2(pc - Vector2(1, 1), Vector2(2, 2)), ic)
+	# ---- 字：先乱码、再逐个解出（反白时字变深色）
 	var fs: int = 20 if r.size.y >= 46.0 else 18
 	var lab := "开始游戏"
 	var lw: float = font.get_string_size(lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	c.draw_string(font, Vector2(rr.get_center().x - lw * 0.5, rr.get_center().y + fs * 0.36), lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(TEXT, e))
-	var hint := "TAP TO START" if touch else "PRESS ANY KEY"
-	if rr.end.y + 24.0 < c.size.y - 22.0:   # 矮屏（手机横屏）放不下就不写，别压页脚声明
-		_spaced(rr.get_center().x, rr.end.y + 20.0, hint, 10, Color(GRAY, e * (0.55 + 0.45 * br)), 4.0)
+	var x: float = cen.x - lw * 0.5
+	var base_y: float = cen.y + fs * 0.36
+	var tc: Color = Color(TEXT, e).lerp(Color(PBG, 1.0), pf)
+	for i in lab.length():
+		var ch: String = lab[i]
+		var cw: float = font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		if rm or u >= 0.62 + 0.08 * i:
+			c.draw_string(font, Vector2(x, base_y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, tc)
+		elif u >= 0.45:
+			var g: String = SCR[int(_h1(ch, int(u * 24.0)) * SCR.length()) % SCR.length()]
+			var gs: int = int(fs * 0.8)
+			var gw: float = font.get_string_size(g, HORIZONTAL_ALIGNMENT_LEFT, -1, gs).x
+			c.draw_string(font, Vector2(x + (cw - gw) * 0.5, base_y - 1.0), g, HORIZONTAL_ALIGNMENT_LEFT, -1, gs, Color(ACC, 0.85))
+		x += cw
+	# ---- 下一行英文：打字机（矮屏放不下就不写，别压页脚声明）
+	var hint := "TAP TO START" if st.touch else "PRESS ANY KEY"
+	if rr.end.y + 24.0 < vs.y - 22.0:
+		var hf: float = 1.0 if rm else _ph(u, 0.9, 1.25)
+		if hf > 0.0:
+			var hw := 0.0
+			for ch in hint:
+				hw += font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 4.0
+			en(Vector2(cen.x - (hw - 4.0) * 0.5, r.end.y + 20.0), hint.substr(0, int(ceil(hint.length() * hf))), 10, Color(GRAY, e * (0.55 + 0.45 * br) * (1.0 - pf)), 4.0)
+
+
+const SCR := "0123456789ABCDEF#/<>+="
+
+func _ph(u: float, a0: float, a1: float) -> float:
+	return clampf((u - a0) / (a1 - a0), 0.0, 1.0)
+
+
+func _ease(x: float) -> float:
+	return 1.0 - pow(1.0 - clampf(x, 0.0, 1.0), 3.0)
+
+
+## 按钮边框上弧长 s0–s1 的一段（从上沿正中起顺时针）
+func _perim(r: Rect2, s0: float, s1: float) -> PackedVector2Array:
+	var tc := Vector2(r.get_center().x, r.position.y)
+	var cs: Array = [tc, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y), r.position, tc]
+	var out := PackedVector2Array()
+	var acc := 0.0
+	for k in 5:
+		var a: Vector2 = cs[k]
+		var b: Vector2 = cs[k + 1]
+		var L: float = a.distance_to(b)
+		var lo: float = clampf((s0 - acc) / L, 0.0, 1.0)
+		var hi: float = clampf((s1 - acc) / L, 0.0, 1.0)
+		if hi > lo:
+			var p0: Vector2 = a.lerp(b, lo)
+			if out.is_empty() or out[out.size() - 1] != p0:
+				out.append(p0)
+			out.append(a.lerp(b, hi))
+		acc += L
+	return out
+
 
 
 ## 浅色版日志：墨黑字、灰时间戳、完成 OK 墨黑、在读的一行青色光标
