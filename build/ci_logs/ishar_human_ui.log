@@ -1,6 +1,6 @@
 # ishar_human_ui
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/boss_trial_ui_test.tscn -- --regression --seed=1 --ishar-human
-# 用时 14 秒；结束时全机 Godot 3 个
+# 用时 15 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
@@ -14,7 +14,7 @@ ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builti
    at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
    GDScript backtrace (most recent call first):
        [0] make_actor_mat (res://scripts/render/look.gd:286)
-       [1] _ready (res://scripts/game.gd:1074)
+       [1] _ready (res://scripts/game.gd:1078)
 WARNING: 1 RID of type "Canvas" was leaked.
    at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
 WARNING: 1 RID of type "CanvasItem" was leaked.

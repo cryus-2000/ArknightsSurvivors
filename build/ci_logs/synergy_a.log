@@ -1,6 +1,6 @@
 # synergy_a
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/synergy_test.tscn -- --regression --seed=1 --bal=ult/on=0 --bal=command/v2=0 --regression --balance --seed=1 --op=texas --squad=exusiai,lappland
-# 用时 14 秒；结束时全机 Godot 3 个
+# 用时 15 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
@@ -14,7 +14,7 @@ ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builti
    at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
    GDScript backtrace (most recent call first):
        [0] make_actor_mat (res://scripts/render/look.gd:286)
-       [1] _ready (res://scripts/game.gd:1074)
+       [1] _ready (res://scripts/game.gd:1078)
        [2] _ready (res://tests/synergy_test.gd:24)
 WARNING: 46 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
