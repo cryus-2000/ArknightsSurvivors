@@ -2,6 +2,7 @@ extends "res://scripts/screens/title_diff_pick.gd"
 ## 标题界面：「方舟幸存者」Logo + 菜单；背景是深海沉船与水母（title_deep.gd，10-24 用户定，docs/67 §13）
 const HS = preload("res://scripts/screens/hh_style.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
+const Bal = preload("res://scripts/core/balance.gd")   # 操作说明按 ult/on 换终结技一行（图鉴已 preload，不多编译）
 func _ready() -> void:
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
@@ -169,6 +170,12 @@ func _ready() -> void:
 			get_tree().create_timer(0.6).timeout.connect(func(): meta_ui._buy(meta_ui._sel_id()))
 		get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
+			get_tree().quit())
+	if Cfg.dev_args().has("--trialshot"):
+		# Boss 演练入口截图（11-01 UI 巡检二轮，docs/213）
+		boss_trial.open()
+		get_tree().create_timer(1.0).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_trial.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--medalshot"):
 		# 蚀刻章页截图（10-25）：--medalsel=<key> 选中哪枚；--medalgif=<张数>,<间隔秒> 连拍（背景动态做 gif）；
@@ -863,9 +870,14 @@ func _draw_menu(vs: Vector2) -> void:
 	var tc := TUI.ctx(self)
 	# 11-01 docs/211 D1：手机底栏只留「设置 / 操作说明 / 退出 / 致谢与声明」四个入口，同字号；声明全文与版本号在致谢页
 	var fk: float = menu_lay.foot.k
-	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges() if not ph else "致谢与声明"
+	# 11-01 巡检二轮：键盘的「C」画成按键牌（docs/37 键名进按键牌，原先「致谢与声明 C」直接写在字里）；手柄 Ⓨ 仍跟在字后
+	var fkey: String = Pad.hint("C", "Ⓨ", "") if not ph else ""
+	var fcap: bool = fkey == "C"
+	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % ("" if fcap else fkey)).strip_edges() if not ph else "致谢与声明"
 	var fs := 12 if not ph else int(round(15 * fk))
 	var fw: float = font.get_string_size(ftxt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var kw: float = font.get_string_size("C", HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 18.0 if fcap else 0.0
+	fw += kw
 	var vw: float = TUI.ptext_w(tc, "V2.0", 1.0) if not ph else -12.0
 	var fx: float = lg.pos.x - fw - 12.0 - vw if lg.align == "r" else lg.pos.x
 	var fy: float = lg.pos.y
@@ -882,6 +894,8 @@ func _draw_menu(vs: Vector2) -> void:
 			UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(Color.WHITE if cr_hover else Color(0.776, 0.831, 0.863), ff))
 		else:
 			UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(Color(0.616, 0.898, 0.937) if cr_hover else Color(0.45, 0.53, 0.58), ff))
+			if fcap:
+				UI.keycap(self, font, Vector2(fx + fw - kw + 6.0, fy - 13.0), "C", _fa(Color(0.45, 0.53, 0.58), ff), 10)
 			TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", 1.0, _fa(Color(0.45, 0.53, 0.58), ff))
 	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
@@ -1000,7 +1014,7 @@ func _loading_progress() -> void:
 		what = "准备光照贴图"
 		n = nm
 	elif _op_warm_more:
-		what = "读取干员与海嗣帧条"
+		what = "读取干员与海嗣形象"   # 11-01 巡检二轮：「帧条」是内部用语
 		n = tx
 	elif Sfx.warm_busy():
 		what = "准备作战音频"
@@ -1046,6 +1060,21 @@ const TOUCH_GUIDE := [
 ]
 
 
+## 终结技开着（ult/on，10-29 起三技能全自动、Q 是终结技；连携 v2 全自动没有 E 键）时，把旧「队长技能 Q / E」一行换成终结技，
+## 冲刺的手柄键去掉 RB（RB 归终结技，见 core/play_keys.gd ULT 表）。11-01 UI 巡检二轮：操作说明还写着旧手动技能
+func _guide_rows(touch: bool) -> Array:
+	var rows: Array = (TOUCH_GUIDE if touch else GUIDE_ROWS).duplicate(true)
+	if Bal.vi("ult/on", 1) <= 0:
+		return rows
+	for i in rows.size():
+		match str(rows[i][0]):
+			"队长技能":
+				rows[i] = ["终结技", "终结技键 · 拖动选落点，松手释放"] if touch else ["终结技", "Q（按住瞄准，松开释放）", "Ⓐ / RB"]
+			"冲刺":
+				if not touch:
+					rows[i] = ["冲刺", "空格", "Ⓑ"]
+	return rows
+
 ## 寻访同款版式：暗场 + 左侧浅灰斜切栏（大号中文 + 像素描边英文）+ 右侧键位表 + 底栏返回
 func _draw_guide(vs: Vector2) -> void:
 	HS.backdrop(self, vs)
@@ -1054,7 +1083,7 @@ func _draw_guide(vs: Vector2) -> void:
 	HS.title_block(self, font, Vector2(48, vs.y * 0.2), "01", "操 作", "操作说明", "GUIDE", 1.0, 64)
 	HS.hr_mark(self, font, Vector2(48, vs.y - 120), 1.0, HS.INK2, ["RHODES ISLAND", "OPERATION", "MANUAL"])
 	var touch: bool = Pad.touch_ui()
-	var rows: Array = TOUCH_GUIDE if touch else GUIDE_ROWS
+	var rows: Array = _guide_rows(touch)
 	var x0: float = wt + 60.0
 	var x1: float = vs.x - 48.0
 	var top: float = maxf(40.0, vs.y / 2.0 - rows.size() * 22.0 - 30.0)

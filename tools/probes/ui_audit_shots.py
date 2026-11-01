@@ -33,6 +33,8 @@ JOBS = {
     'oppick': ['--unlockall', '--opshot', '--opid=mizuki'],
     'codex': ['--unlockall', '--galleryshot=0,0,0,1.5', '--galleryid=mizuki'],
     'codex_enemy': ['--unlockall', '--galleryshot=1,0,0,1.5'],
+    'codex_skill': ['--unlockall', '--infotab=2', '--galleryshot=0,0,0,1.5', '--galleryid=mizuki'],   # 技能页：终结技 / 连携栏（11-01）
+    'trial': ['--trialshot'],   # Boss 演练入口（11-01）
     'loading': ['--loadingshot'],
     'hunt': AT + ['--huntshot', '--roster=start5', '--rostertickets=1,1,1'],
     'hud': ['--balance', '--seed=1', '--op=mizuki', '--realtime', '--nodeath', '--maxt=22', '--shots=1260'],
@@ -57,6 +59,8 @@ ONLY = sys.argv[2].split(',') if len(sys.argv) > 2 else None
 if ONLY:
     JOBS = {k: v for k, v in JOBS.items() if k in ONLY}
 DEVS = [('desktop', '1280x720', []), ('phone', '1170x540', ['--touch'])]
+if os.environ.get('UIA_DEVS'):   # 二轮巡检（docs/213）：UIA_DEVS=desktop:1920x1080,phone:1170x540:t,portrait:540x1170:t
+    DEVS = [(d.split(':')[0], d.split(':')[1], ['--touch'] if d.endswith(':t') else []) for d in os.environ['UIA_DEVS'].split(',')]
 
 
 def run(item):

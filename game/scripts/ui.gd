@@ -1321,7 +1321,8 @@ static func ctag(ci: CanvasItem, font: Font, pos: Vector2, s: String, size := 11
 	ci.draw_rect(Rect2(pos, Vector2(w, h)), fa(C_D_PANEL if dark else C_L_PANEL, a))
 	ci.draw_rect(Rect2(pos, Vector2(w, h)), fa(ink, a), false, 1.0)
 	ci.draw_rect(Rect2(pos, Vector2(3, h)), fa(PURPLE, a))
-	text_at(ci, font, pos + Vector2(9, 4), s, size, fa(ink, a))
+	# 竖向按字形居中（11-01 巡检二轮：原先顶边 +4 按字体 ascent 排，中文字贴着框底）
+	text_at(ci, font, pos + Vector2(9, h / 2.0), s, size, fa(ink, a), "lm")
 	return w + 6.0
 
 

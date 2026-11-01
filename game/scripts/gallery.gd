@@ -1719,7 +1719,9 @@ func _draw_group_toggle(g: Dictionary, ph: bool) -> void:
 		UI.text_at(self, font, r.get_center() + Vector2(0, 1), labels[k], 10 if ph else 11, UI.C_HZ if on else UI.C_D_INK, "mm", on)
 		hits.append([r.grow(3.0), "group", k == 1])
 	if not ph and not Pad.touch:
-		UI.code(self, font, Vector2(x1 - 2.0 * (w + 2.0) - 8.0, y + h * 0.5 - 4.0), "G", 8, UI.C_D_SUB, "ra")
+		# 键名画成按键牌（11-01 巡检二轮：原先一个孤零零的 8 号「G」，看不出是快捷键）
+		var gw: float = font.get_string_size("G", HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x + 12.0
+		UI.keycap(self, font, Vector2(x1 - 2.0 * (w + 2.0) - 6.0 - gw, y + 1.0), "G", UI.C_D_SUB, 9)
 
 
 ## 分组条（学原作：只用小图标，不占卡位）：原作职业线稿小图标 + 职业名 + 人数，后面一条细线，左端职业色短竖条
@@ -2324,7 +2326,8 @@ func _draw_data(e: Dictionary, ph: bool, px: Vector2, oa: float, odx: float) -> 
 func _draw_hint(ph: bool) -> void:
 	if ph or Pad.touch_ui():
 		return
-	var s := Pad.hint("Q / E 分类 · 方向键选择（最左再 ← 进职业轨）· Z / X 动作 · Enter 页签 · Esc 返回", "LB / RB 分类 · 十字键选择 · Ⓧ / Ⓨ 动作 · Ⓐ 页签 · Ⓑ 返回")
+	# 职业轨只在干员页（11-01 巡检二轮：敌人 / 道具等页也写着「最左再 ← 进职业轨」）
+	var s := Pad.hint("Q / E 分类 · 方向键选择%s· Z / X 动作 · Enter 页签 · Esc 返回" % ("（最左再 ← 进职业轨）" if tab == 0 else " "), "LB / RB 分类 · 十字键选择 · Ⓧ / Ⓨ 动作 · Ⓐ 页签 · Ⓑ 返回")
 	var fl := UI.fit_line(font, s, 11, 404.0, 9)
 	UI.text_at(self, font, Vector2(24, 694), fl[0], fl[1], UI.C_D_SUB)
 

@@ -1294,8 +1294,9 @@ func _taken_list(r: Rect2, t: float, title: bool) -> void:
 			tx += tw2 + 6.0
 		if str(row.get("killer_by", "")) != "" and tx < vx - 40.0:
 			_t(Vector2(tx + 2.0, cy - (8.0 if two else 0.0)), "由%s施加" % str(row.killer_by), 12 if not _ph else 11, _fa(Color(0.85, 0.6, 1.0), a), 0, vx - tx - 20.0)
-		_p(Vector2(x1 - 12.0, cy - (6.0 if two else 0.0)), "%d%%" % int(row.pct), 2.0, _fa(SB.MAG if kil else HH.LIGHT, a), 2)
-		_p(Vector2(vx, cy - (6.0 if two else 0.0)), fmt_n(float(row.v)), 2.0 if _ph else 1.5, _fa(HH.MUTE, a), 0)
+		# 手机上像素数字原先 ×0.7 只剩 8 像素（11-01 巡检二轮），承伤页数字是主信息，手机放大
+		_p(Vector2(x1 - 12.0, cy - (6.0 if two else 0.0)), "%d%%" % int(row.pct), 2.9 if _ph else 2.0, _fa(SB.MAG if kil else HH.LIGHT, a), 2)
+		_p(Vector2(vx, cy - (6.0 if two else 0.0)), fmt_n(float(row.v)), 2.6 if _ph else 1.5, _fa(HH.MUTE, a), 0)
 		if two:
 			var e := 1.0 if UM.rm() else UM.out_cubic((t - 0.1 - k * 0.1) / 0.55)
 			var bc: Color = SB.MAG if kil else (_acc if bool(row.get("boss", false)) else HH.LIGHT2)

@@ -243,7 +243,10 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		br.position.x += bm[0]
 		g.hud.draw_rect(br, _fa(UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4), bm[1]))
 		var bink := _fa(Color(0.04, 0.07, 0.09) if hov else UI.TEXT, bm[1])
-		UI.text(g.hud, g.font, br.position + Vector2(14, 38 if touch else 26), op[0], 19 if touch else 15, bink)
+		if Pad.touch and not Pad.using:   # 触屏不画按键牌：字居中（11-01 巡检二轮：原先靠左、右半空着）
+			UI.text(g.hud, g.font, Vector2(br.position.x, br.position.y + (38 if touch else 26)), op[0], 19 if touch else 15, bink, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		else:
+			UI.text(g.hud, g.font, br.position + Vector2(14, 38 if touch else 26), op[0], 19 if touch else 15, bink)
 		var kst: String = ("Ⓐ" if hov else "") if Pad.using else ("" if Pad.touch else str(op[1]).to_upper())   # 10-31 TA H7：键名统一大写（ESC）
 		if kst != "":
 			UI.keycap(g.hud, g.font, Vector2(br.end.x - UI.cwidth(g.font, kst, 10) - 20, br.position.y + 11), kst, bink, 10)

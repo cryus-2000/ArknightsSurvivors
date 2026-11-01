@@ -92,7 +92,7 @@ func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 ## 第一位商人预告（docs/119 §4.5）：指示下方 / 上方再写一行联动商品与差额，余额变了随帧更新；手机字号过 UI.fs。宽 240、夹在画面内
 func _preview_line(at: Vector2, vs: Vector2) -> void:
 	var pv: String = g.shop_sys.preview_text()
-	if pv == "":
+	if pv == "" or g.panel.visible:   # 11-01 巡检二轮：选卡 / 商店面板开着时这行亮在压暗层上面（同 docs/211 D10）
 		return
 	var w := 320.0
 	var x: float = clampf(at.x - w / 2.0, 8.0, vs.x - w - 8.0)

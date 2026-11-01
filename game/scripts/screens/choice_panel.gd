@@ -1114,7 +1114,14 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var px: float = PAD_X_PHONE if roomy else 20.0
 	var ny: float = NAME_Y_PHONE if roomy else ((160.0 if ph else 184.0) if compact else 230.0)
 	var nx: float = px if roomy else 0.0
-	UI.text(card, g.font, r.position + Vector2(nx, ny), nm, (24 if card.has_meta("brief") else 22) if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
+	# 名字按卡宽缩字（11-01 巡检二轮：手机「水月 · 惊跳反射·余悸」被宽度裁成「水月 · 惊跳反射 ·」，后两字直接没了）
+	var nsz: int = (24 if card.has_meta("brief") else 22) if ph else 20
+	var nmax: float = r.size.x - 2.0 * maxf(nx, 10.0) - 8.0
+	while nsz > (15 if ph else 14) and g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:   # UI.text 画时还会按 fs 放大，这里按放大后的量
+		nsz -= 1
+	if g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:
+		nm = UI.fit_line(g.font, nm, nsz, nmax, nsz)[0]
+	UI.text(card, g.font, r.position + Vector2(nx, ny), nm, nsz, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)

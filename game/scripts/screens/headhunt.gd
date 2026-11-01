@@ -821,9 +821,14 @@ func _draw_entry() -> void:
 	# 10-31 TA 审阅 docs/208 H9：规则第三条（首次寻访必定获得医疗干员）原来被兑换框压住一半——兑换框接在规则列表后面排，下面的部门字样跟着让
 	var ry0: float = _p(500, 414)
 	var rstep: float = _p(26, 26)
+	# 11-01 巡检二轮：手机上「…通关获得 4 张」伸出左侧斜切面板：每行按该行处面板右缘的宽度量，几行统一取都放得下的字号
+	var rfs: int = 99
+	for j in rules.size():
+		var edge: float = 470.0 + (330.0 - 470.0) * (ry0 + j * rstep - 62.0) / maxf(1.0, D.y - 62.0)
+		rfs = mini(rfs, int(UI.fit_line(f, rules[j], int(_p(14, 17)), edge - 56.0 - 14.0, 12)[1]))
 	for j in rules.size():
 		ci.draw_rect(Rect2(40, ry0 - 3 + j * rstep, 6, 6), HS.INK)
-		UI.text_at(ci, f, Vector2(56, ry0 + j * rstep), rules[j], int(_p(14, 17)), HS.INK2, "lm")
+		UI.text_at(ci, f, Vector2(56, ry0 + j * rstep), rules[j], rfs, HS.INK2, "lm")
 	var ey: float = ry0 + rules.size() * rstep + 6.0
 	if Roster.exchange_visible() and not first:
 		_draw_exchange(ci, f, ey)
@@ -831,7 +836,8 @@ func _draw_entry() -> void:
 	if not _phone:
 		HS.hr_mark(ci, f, Vector2(40, maxf(640.0, ey + 6.0)))
 	# 卡池：三个灰色剪影（未解锁的前 3 名；10-25 用户：「未解锁」下面的小剪影不要了），缓慢视差
-	HS.outline_px(ci, Vector2(560, _p(104, 64)), "PERSONNEL", 11.0, Color(1, 1, 1, 0.12), HS.DARK)   # 10-31 TA H9：上移，「寻访范围」标签不再压在大字上
+	# 11-01 巡检二轮：手机上 11 倍大字顶到顶栏、压住右上「返回」和页码，手机缩到 7 倍、放在顶栏下
+	HS.outline_px(ci, Vector2(560, _p(104, 96)), "PERSONNEL", _p(11.0, 7.0), Color(1, 1, 1, 0.12), HS.DARK)   # 10-31 TA H9：上移，「寻访范围」标签不再压在大字上
 	var pool := _sorted(locked)
 	var t := _now() - t0
 	for i in mini(3, pool.size()):

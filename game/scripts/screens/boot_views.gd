@@ -476,6 +476,9 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 	c.draw_colored_polygon(PackedVector2Array([cen + Vector2(0, -er), cen + Vector2(er, 0), cen + Vector2(0, er), cen + Vector2(-er, 0)]), PBG)
 	_emblem(cen, er, INK, 3.0 if not compact else 2.0)
 	var big: int = int(clampf(R * 0.17, 14.0, 30.0))
+	# 字放进菱形里（11-01 UI 巡检二轮：「100.0%」原先压到菱形两侧边）：按最宽的「100.0%」量，字高处菱形宽度留 8% 余量
+	while big > 10 and mono_w("100.0%", big) > 2.0 * (er - big * 0.45) * 0.92:
+		big -= 1
 	var pct := "%.1f%%" % (floorf(p * 1000.0) / 10.0)
 	_mono_c(cen + Vector2(0, big * 0.3), pct, big, INK)
 	# 盘下：字距拉开的 RHODES ISLAND（读完等玩家开始时，这里让给「开始游戏」）

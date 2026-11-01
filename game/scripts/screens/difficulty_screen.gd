@@ -181,7 +181,8 @@ func draw(host: Control, vs: Vector2) -> void:
 	text(host,font,936,590,"本档通关",16,MUTED)
 	var best: Dictionary = Cfg.diff_best.get(str(tier),{})
 	text(host,font,1130,576,"%d" % int(best.get("wins",0)),39)
-	text(host,font,1200,608,"次",13,MUTED)
+	# 「次」紧跟数字、底边对齐（11-01 巡检二轮：原先固定在 x 1200，离数字一大截且低半格）
+	text(host,font,1130 + font.get_string_size("%d" % int(best.get("wins",0)), HORIZONTAL_ALIGNMENT_LEFT, -1, 39).x + 8,600,"次",16,MUTED)
 	rect(host,Rect2(0,654,1280,66),INK)
 	rule(host,654,28,1252)
 	text(host,font,31,680,"返回",17,MUTED)   # 10-31 TA H7：键名不夹在按钮文字里
