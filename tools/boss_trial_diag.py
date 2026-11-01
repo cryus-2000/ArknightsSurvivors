@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Boss 体检（11-01，claude/boss-diag-1101 专用，不合入）：每组 Boss × 成品分队 × 种子起一局演练，机器人 expert 打，
-读 boss_trial.gd 打印的 TRIALREC（run.trial 同格式），一局一行写 <out>/trial_diag.jsonl。
+读 boss_trial.gd 打印的 TRIALREC（run.trial 同格式），一局一行写 <out>/trial_diag.txt（云端只收 md / json / txt / log）。
 用法：python tools/boss_trial_diag.py --out <目录> [--seeds 1,2,3] [--cap 300] [--jobs N]
 """
 import argparse, json, os, sys
@@ -37,7 +37,7 @@ def one(j):
 
 
 n = a.jobs or gr._max_procs()
-with ThreadPoolExecutor(max_workers=max(1, n)) as ex, open(os.path.join(a.out, "trial_diag.jsonl"), "w", encoding="utf-8") as f:
+with ThreadPoolExecutor(max_workers=max(1, n)) as ex, open(os.path.join(a.out, "trial_diag.txt"), "w", encoding="utf-8") as f:
     for r in ex.map(one, jobs):
         f.write(json.dumps(r, ensure_ascii=False) + "\n")
         f.flush()
