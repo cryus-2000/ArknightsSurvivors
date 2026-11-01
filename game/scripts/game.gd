@@ -118,6 +118,7 @@ var combat = Combat.new(self)   # 战斗结算
 var afflict = Afflict.new(self)   # 负面状态门面（神经损伤 / 侵蚀 / 创口，run/afflict.gd）
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
+var onboard = preload("res://scripts/screens/onboard.gd").new(self)   # 新手引导：问一次 + 两条线的提示卡与实时小演示（docs/219）
 var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
 var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
@@ -1146,6 +1147,8 @@ func _ready() -> void:
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
 	elif trial.active:
 		pass
+	elif onboard.dev != "" or onboard.demo_id != "":
+		onboard.begin.call_deferred()   # --onboard=… / --onboarddemo=…：自动测试局里跳过开场直接走新手引导（docs/219 录片 / 截图）
 	elif tour.demo_active():
 		pass   # --tourdemo / --tipdemo=<id>：跳过开场，screens/tour.gd 第 25 帧起接管（录片 / 截图）
 	elif Cfg.dev_args().has("--introshot") or Cfg.dev_args().has("--guidepages"):
@@ -1450,6 +1453,7 @@ func mobile_cap() -> bool:
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
+	onboard.update(delta)   # 新手引导（screens/onboard.gd）：真实帧间隔
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
@@ -1553,6 +1557,8 @@ func _do_action(act: String) -> void:
 			settings.open()
 		"guide":
 			intro_screen.open(S.PAUSE)
+		"demos":
+			onboard.open_viewer()
 		"restart":
 			if trial.active:
 				trial.retry()
@@ -1582,6 +1588,9 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if _motion_skip(event):
+		get_viewport().set_input_as_handled()
+		return
+	if onboard.input(event):   # 新手引导：问题框 / 演示图鉴 / 提示卡的「跳过」
 		get_viewport().set_input_as_handled()
 		return
 	if pick.input(event):
@@ -1807,6 +1816,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		settings.open()
 	elif k == KEY_G and state == S.PAUSE:
 		intro_screen.open(S.PAUSE)
+	elif k == KEY_H and state == S.PAUSE:
+		onboard.open_viewer()
 	elif k == KEY_M:
 		vfx.show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
 	elif k == KEY_T and (state == S.DEAD or state == S.WIN or state == S.PAUSE):

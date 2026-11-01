@@ -383,6 +383,12 @@
   "ingot_relic_floor": 1.2,
   "_ingot_relic_floor": "商店买的「立即获得源石锭」藏品按售价保底：到手 = max(原数额, ceil(实付 × 本值))；补给箱 / 事件照原数额（docs/218，用户 11-01「越买越赚可以，不能亏」）；0 = 改前"
  },
+ "onboard": {
+  "_doc": "新手引导演示局（docs/219）：Cfg.onboard = new 且没走过演示局时，第一局是 1–2 分钟的演示局（移动 → 升级 → 招募 → 终结技），结束后重开进正式局；演示局里怪物密度 × density、敌人伤害 × enemy_dmg，最晚 drill_max 秒强制结束。只在真人局生效，机器人 / 批跑不受影响",
+  "density": 0.5,
+  "enemy_dmg": 0.5,
+  "drill_max": 150
+ },
  "levelup": {
   "_doc": "升级卡池（game.gd _open_levelup）",
   "recruit_from_level": 4,

@@ -127,6 +127,7 @@ func confirm(i: int) -> void:
 		return
 	Sfx.play("ui_ok", -6.0)
 	g.squad.apply_command(str(ITEMS[i].id))
+	g.onboard.note("wheel")   # 新手引导「指挥圆盘」做完判定（docs/219）
 
 
 ## 当前生效的项（画「当前」标记）
@@ -397,6 +398,22 @@ const OUT_T := 0.16    # 收起时长（秒）
 func draw_preview(c: Vector2, k: float, t: float) -> void:
 	var n: int = maxi(1, ITEMS.size())
 	_draw_ef(Vector2.ZERO, int(t / 1.4) % n, 0.0, c, k, t + 1.0, fmod(t, 1.4))
+
+
+## 新手引导演示（docs/219）：同 draw_preview 缩小画真圆盘，悬停项由调用方给（-1 = 无），st = 悬停后秒数，out = 收起进度 0–1
+func draw_demo(c: Vector2, k: float, t: float, hov: int, st: float, out := 0.0) -> void:
+	var fk0: float = UI.fk
+	UI.fk = 1.0   # 缩小画：字号跟 k 走，不吃手机局内的正文放大（否则小圆盘上的字挤成一团）
+	_draw_ef(Vector2.ZERO, hov, out, c, k, t, st)
+	UI.fk = fk0
+
+
+## 圆盘项的下标（演示用）：没有该项返回 -1
+func item_index(id: String) -> int:
+	for i in ITEMS.size():
+		if str(ITEMS[i].id) == id:
+			return i
+	return -1
 
 
 func draw(vs: Vector2) -> void:

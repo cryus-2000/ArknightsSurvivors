@@ -1072,7 +1072,7 @@ var _dacc := {}         # 各渠道的累计余数（"horde" / "threat"）
 
 
 func density() -> float:
-	return Bal.v("enemy/density", 0.4)
+	return Bal.v("enemy/density", 0.4) * g.onboard.dens_k()   # 引导局（docs/219）× onboard/density，其余恒 1
 
 
 func escale() -> float:

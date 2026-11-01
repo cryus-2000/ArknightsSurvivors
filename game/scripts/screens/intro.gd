@@ -83,7 +83,8 @@ func end_opening() -> void:
 	g.state = Game.S.PLAY
 	g.release_entry_voices()   # 跳过开场：没等到着地也放
 	# 首局改聚光框引导（协调人 10-26，screens/tour.gd）；翻页指南只在暂停菜单「指南」里重看
-	if not Cfg.seen_intro:
+	# 新手引导（docs/219）接管时不再弹旧的聚光框引导
+	if not g.onboard.begin() and not Cfg.seen_intro:
 		g.tour.start()
 
 
@@ -172,6 +173,9 @@ func close() -> void:
 
 
 func draw(vs: Vector2) -> void:
+	if g.onboard.modal():
+		g.onboard.draw_modal(vs)   # 新手引导的问题框 / 演示图鉴（screens/onboard.gd）
+		return
 	if g.tour.active:
 		g.tour.draw(vs)
 		return
