@@ -406,15 +406,6 @@ ZW_CLK_A = "344 Audio - Antique Clocks/CLOCKTick_Crooked Antique Clock_344 Audio
 ZW_A_ON = {0.755: 2.06, 1.5: 3.055, 2.255: 7.035, 3.005: 8.06, 3.755: 9.055}   # 座钟第 n 下 → 歪钟里对应用哪一下（起点实测）
 
 
-def _zw_after(blast, tk):
-    """爆开 + 时钟接着走两下：爆开尾巴 0.35 秒起压低 15 dB，0.45 / 0.8 秒各一下滴答"""
-    duck = np.ones(len(blast))
-    i0, i1 = int(0.35 * SR), int(0.5 * SR)
-    duck[i0:i1] = np.linspace(1.0, 0.18, i1 - i0)
-    duck[i1:] = 0.18
-    return pad(blast * duck, at(tk(1.5, 2.2), 0.45), at(tk(2.255, 2.0), 0.8))
-
-
 def logos(v=1):
     """docs/205 §4.10（11-01 第五轮，用户「要 JoJo『世界』时停那种声音」；只按特征用录音重做，不扒原片）：
     开始（charge，确认释放后的 0.5 秒起手里响）= 倒放的大钟 + 碎钹亮尾往里吸，越来越响 →
@@ -422,8 +413,8 @@ def logos(v=1):
     → 停住：完全没有滴答（静止感），只留极低的电器嗡鸣 → 结束（cast 末尾，对准爆开）= 反向扫频「呼——」往上提（低音下坠倒放 = 音高回正）
     → 爆开 impact：世界的声音从低通里弹回来（ult.gd _fin_release），真空压缩爆炸。
     时钟是主角（11-01 第六轮，用户「logos 的是不是还没有时钟的声音」）：起手 0.5 秒里秒针「滴、答、滴」三下越走越紧、在前景（吸气垫在下面）；
-    时停那一刻同帧一记清楚的机械卡死「咔」（高通，和嗡——咚叠着也能单独听出来）；停住期间无滴答；爆开前 0.3 秒一记「咔哒」，
-    时钟重新走：爆开前一下、爆开后两下（爆开尾巴压低让出来）。
+    时停那一刻同帧一记清楚的机械卡死「咔」（高通，和嗡——咚叠着也能单独听出来）；停住期间无滴答；
+    爆开就是原来的爆炸（第七轮用户「只保留开头的」，爆开前咔哒和之后重新走的滴答删掉）。
     每只敌人头上咒文 glyph_1..3 照旧（很轻）。提示音 sf 不放（sf_off）。
     v=1 偏重：大钟降到 0.7、预告片低频压底、混响 1.8 秒；v=2 偏清脆：大钟原调、碎钹亮尾多、混响 1.4 秒、滴答原调更亮"""
     heavy = v != 2
@@ -454,9 +445,7 @@ def logos(v=1):
     else:
         riser = pad(rev(lib(ZW_DROP, 0.11, 0.6, 1.1, fout=0.05))[-int(0.4 * SR):], rev(shim)[-int(0.4 * SR):] * 0.6, rev(lib(ZW_SWEEP, 0.03, 0.4, fout=0.05)) * 0.5)
     riser = riser * np.linspace(0.2, 1.0, len(riser)) ** 2
-    # 爆开前 0.3 秒「咔哒」（钟重新卡上）+ 0.15 秒后第一下滴答
-    restart = hp(pad(lib(ZW_LATCH, 0.0, 0.38, 0.9 if heavy else 1.1, fout=0.15), _zw_tick(3.755, 0.7, tr, 0.2)), 800)
-    cast = pad(boom, at(stop * 2.4, 0.0), at(hum, 0.45), at(riser * 0.6, ZW_CAST_T - len(riser) / SR), at(restart * 2.2, ZW_CAST_T - 0.3), at(tk(0.755, 1.8), ZW_CAST_T - 0.15))
+    cast = pad(boom, at(stop * 2.4, 0.0), at(hum, 0.45), at(riser * 0.6, ZW_CAST_T - len(riser) / SR))
     release = sn("wind", 0.05, 0.8, 1.1, fout=0.35) if heavy else sn("debris", 0.1, 0.9, 1.1, fout=0.4)
     blast = pad(sn("elec", 0.0, 0.9, 0.6, fout=0.4), akd("p_skill_darkholespell.wav", 0.0, 1.2, 0.85, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9, release * 0.5)
     return {
@@ -464,7 +453,7 @@ def logos(v=1):
         "charge": fadeio(charge, 0.01, 0.01),
         "cast": cast,
         **{"glyph_%d" % (i + 1): hp(sn("astral", 0.3, 0.3, rr, fout=0.15), 800) for i, rr in enumerate([1.5, 1.62, 1.75])},
-        "impact": _zw_after(blast, tk),
+        "impact": blast,   # 爆开就是原来的爆炸声（11-01 第七轮用户「只保留开头的时钟」：爆开前咔哒 / 之后重新走的滴答删掉）
     }
 
 
