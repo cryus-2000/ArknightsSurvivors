@@ -1,11 +1,11 @@
 # ult_aim
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/ult_aim_test.tscn -- --regression --seed=1 --regression --balance --seed=1 --op=texas --ultaim
-# 用时 12 秒；结束时全机 Godot 3 个
+# 用时 11 秒；结束时全机 Godot 4 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-ULT AIM checks=17 failures=0
+ULT AIM checks=27 failures=0
 ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
 
