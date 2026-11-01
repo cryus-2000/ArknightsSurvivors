@@ -322,3 +322,11 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 **画面**：时停开始那一刻加以逻各斯为中心扩散的反色环 + 环扫过处去色（`ult/lg_invert_wave` 缺省 1，`ult/lg_wave_t` 0.6 秒；后处理 post / optical 着色器的 wave 参数；减少动态效果时只去色不反色），接招式原有的慢慢褪色。
 **素材来源与授权**（都已在库里，本轮没有下载）：Ivo Vicic - Church Bells「04 Church Bells, Near Distance, In Church Tower-3 Different Bell 02」；344 Audio - Bass Drops & Downers「DSGNBass_Bass Drop & Downer Fast 16」/「DSGNBass_Tone Downer (Reverb)」；ESM Anime Game「DSGNStngr_Power Up Bright Positive…Crash Shimmer 05」；CSD「Woosh Sweep Slide Infographics Basic」/「Woosh Debris」；Federico Soler Trailer Booms 214；344 Audio Antique Clocks「CLOCKTick_You're Running Late」；ESM HD Lock And Mechanism「MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02」；ESM HD Game Materials 铁件敲击；Jake Fielding Fridge Hums「Deep Fridge Hum」；爆炸层沿用 §4.6（ESM 电光冲击、原作 `p_skill_darkholespell`、344 Audio 长风 / CSD 碎屑）。Sonniss GDC 2026 Bundle：免版税、可商用、不需署名，不得再分发原文件、不得用于 AI 训练（docs/113 §20）。
 对照录像 `Claude outputs/ult_review_1101/logos_zawarudo.mp4`：同一段画面，候选一 / 候选二各一遍。
+
+**11-01 第六轮：时钟当主角**（用户看 logos_zawarudo.mp4 后问「是不是还没有时钟的声音」——座钟滴答太轻；结构不变，候选一 / 二都改）：
+- 起手 0.5 秒（charge）里秒针「滴、答、滴」三下越走越紧（0.03 / 0.21 / 0.36 秒），在前景；吸气垫在下面（×0.35）。偏重那版每下叠一层歪钟（344 Audio「Crooked Antique Clock」）更厚。charge 槽响度 -9（原 -14），音量表补 `vol.charge = 0`（原来没写，回退成分段音量 -10 dB，这是之前秒针听不见的主因）。
+- 时停那一刻同帧一记机械卡死「咔」：深闩扣 + 钟锤一记 + 铁件敲击，1 kHz 以下切掉，嗡——咚在低频、咔在中高频，叠着能单独听出来（实测起音那 100 ms 高频段就是最响成分）。
+- 停住期间完全没有滴答（原来的三下删掉），只留极低嗡鸣；咒文浮现那几声很轻的闪光音照旧。
+- 爆开前 0.3 秒一记「咔哒」（钟重新卡上），0.15 秒后第一下滴答；爆开后 0.45 / 0.8 秒再两下（爆开尾巴 0.35 秒起压低 15 dB 让出来）。爆开开头原来那声「咔哒 / 咚」挪到了爆开前。
+- 别的音效和配乐从起手就开始沉下去（`ult_audio.json` 逻各斯 `hush_windup`），秒针不被战斗声盖住；她开口的台词不压（语音不走这条路），秒针比台词高 4–8 dB。
+对照录像 `Claude outputs/ult_review_1101/logos_clock_v2.mp4`（7.9 MiB，同一段画面候选一 / 候选二各一遍）。

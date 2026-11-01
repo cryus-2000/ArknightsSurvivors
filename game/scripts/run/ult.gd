@@ -2453,6 +2453,8 @@ func _wu_start() -> void:
 	_wu_t0 = g.t
 	_wu_did = true
 	cam_hold_until = -99.0   # 起手推镜以队长为中心（别被上一招钉住的镜头带偏）
+	if _aud(str(caster.id)).get("hush_windup", false):
+		world_hush(_wu_t() + 0.1)   # 逻各斯：起手里秒针「滴、答、滴」要在前景，别的音效和配乐从这时就沉下去（招式开始后由她自己的 world_hush 接上）
 	_wu_anim = ""
 	_wu_pre = 0.0
 	for k in ["skill", "attack"]:
