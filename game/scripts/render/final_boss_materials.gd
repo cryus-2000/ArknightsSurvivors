@@ -23,7 +23,9 @@ static func draw(g, w: Dictionary, alpha: float) -> bool:
 			_ice_wave_sprites(g,w,age,alpha)
 		"ice_thrust":
 			if not _ice_projectile(g,w,age,alpha): _ice_thrust(r,w,age,alpha)
-		"ice_lance": _ice_lance(g,w,age,alpha)
+		"ice_lance":
+			if str(w.get("shape","")) == "line": _ice_lance_line(g,w,age,alpha)
+			else: _ice_lance(g,w,age,alpha)
 		"ice_wall": _ice_wall(g,w,age,alpha)
 		"crescent": _blade(r, w, age, alpha)
 		"spear", "step": _spear(r, w, age, alpha)
@@ -252,6 +254,77 @@ static func _ice_lance(g, w: Dictionary, age: float, alpha: float) -> void:
 		_band(r,w.pos+d*12,w.pos+Vector2(d.x,d.y*.62)*w.r*.9,1,1,_c(Color(.48,.65,.76),alpha*.6))
 	for j in 3:
 		_crystal(g,w.pos+Vector2((j-1)*w.r*.45,(j%2)*10),age,.47 if j!=1 else .7,alpha,_remaining(w,age))
+
+## 直线冰枪的命中（绕场巡猎掷冰枪 / 裂地冲锋地缝，11-01 用户「特效没有做」）：0.12 秒内从骑士一端扫到远端——白芯爆亮后冷却成冰蓝、
+## 不规整的主地缝带分叉、沿线不等距喷出一排冰刺，最后 0.18 秒冰刺下沉碎落（碎屑在 final_attack_grains）。只读几何，不碰模拟随机数
+static func _ice_lance_line(g, w: Dictionary, age: float, alpha: float) -> void:
+	var r = g.world
+	var d := Vector2.from_angle(float(w.ang))
+	var n := d.orthogonal()
+	var p: Vector2 = w.pos
+	var L: float = float(w.len)
+	var hw: float = float(w.wid)
+	var life: float = float(w.get("max", 0.5))
+	var salt: int = (int(absf(p.x)) * 3 + int(absf(p.y)) * 7 + int(L)) & 1023
+	var sweep: float = 0.12
+	var head: float = maxf(6.0, clampf(age / sweep, 0.0, 1.0) * L)   # 第 0 帧也在骑士一端亮一点：出手那一下就有反馈
+	var fade: float = clampf((life - age) / 0.22, 0.0, 1.0)
+	var hot: float = clampf(1.0 - age / 0.16, 0.0, 1.0)
+	# 1. 爆亮冷却：冷光晕铺满已扫过的一段，白芯只在前 0.16 秒
+	_band(r, p, p + d * head, hw * 1.05, hw * 1.05, _c(Color(0.45, 0.75, 0.95), alpha * 0.16 * fade))
+	if hot > 0.0:
+		var core: Color = Color(0.95, 1.0, 1.0).lerp(Color(0.55, 0.85, 1.0), 1.0 - hot)
+		_band(r, p, p + d * head, 1.0 + hw * 0.5 * hot, 1.0 + hw * 0.5 * hot, _c(core, alpha * (0.3 + 0.65 * hot)))
+	# 2. 主地缝：每两格拐一次（冰裂，不是闪电锯齿），一部分节点甩出分叉，个别分叉再分一次
+	var crack: Color = Color(0.92, 0.99, 1.0) if age < 0.12 else Color(0.58, 0.84, 0.95)
+	var steps: int = maxi(4, int(L / 14.0))
+	var last: Vector2 = p
+	for i in steps:
+		var s: float = L * float(i + 1) / steps
+		if s > head:
+			break
+		var at: Vector2 = p + d * s + n * (_n(i / 2, salt) - 0.5) * hw * 0.7
+		_band(r, last, at, 2.0, 2.0, _c(Color(0.03, 0.05, 0.08), alpha * 0.5 * fade))
+		_band(r, last, at, 1.0, 1.0, _c(crack, alpha * fade))
+		if _n(i, salt + 5) < 0.34:
+			var side: float = 1.0 if _n(i, salt + 7) < 0.5 else -1.0
+			var ba: float = d.angle() + side * (0.45 + 0.75 * _n(i, salt + 9))
+			var bl: float = hw * (1.0 + 1.4 * _n(i, salt + 13)) * clampf((head - s) / 40.0, 0.2, 1.0)
+			var mid: Vector2 = at + Vector2.from_angle(ba) * bl * 0.55
+			var tip: Vector2 = mid + Vector2.from_angle(ba - side * 0.35 * _n(i, salt + 15)) * bl * 0.45
+			_band(r, at, mid, 1.0, 1.0, _c(crack, alpha * 0.75 * fade))
+			_band(r, mid, tip, 1.0, 1.0, _c(crack, alpha * 0.5 * fade))
+			if _n(i, salt + 17) < 0.4:
+				_band(r, mid, mid + Vector2.from_angle(ba + side * 0.6) * bl * 0.35, 1.0, 1.0, _c(crack, alpha * 0.4 * fade))
+		last = at
+	# 3. 冰刺簇：沿线不等距（约四成空位）冒出 1–3 根一簇、高矮粗细与倾角都不同的冰刺，扫到哪里长到哪里（0.06 秒弹起），
+	# 末段下沉；暗面 / 受光面 / 白棱三色。不排成等距栅栏（11-01 自审）
+	var count: int = maxi(3, int(L / 36.0))
+	for j in count:
+		if _n(j, salt + 37) < 0.38 and j != 0 and j != count - 1:
+			continue
+		var u: float = (float(j) + 0.1 + 0.8 * _n(j, salt + 11)) / count
+		var born: float = sweep * u
+		if age < born:
+			continue
+		var grow: float = clampf((age - born) / 0.06, 0.0, 1.0)
+		grow = 1.0 - (1.0 - grow) * (1.0 - grow)
+		var sink: float = clampf((life - age) / 0.18, 0.0, 1.0)
+		var a: float = alpha * maxf(sink, 0.0)
+		var root: Vector2 = p + d * L * u + n * (_n(j, salt + 19) - 0.5) * hw * 1.2
+		var big: float = 1.6 if _n(j, salt + 41) > 0.8 else 1.0
+		for q in 1 + int(_n(j, salt + 43) * 2.99):
+			var s: int = j * 3 + q
+			var base: Vector2 = root + Vector2((float(q) - 1.0) * (5.0 + 6.0 * _n(s, salt + 47)), (_n(s, salt + 53) - 0.5) * 6.0)
+			var h: float = (10.0 + 34.0 * _n(s, salt + 23) * _n(s, salt + 59) + 8.0) * big * (1.0 if q == 0 else 0.55 + 0.3 * _n(s, salt + 61)) * grow * (0.35 + 0.65 * sink)
+			var bw: float = (3.0 + 6.0 * _n(s, salt + 29)) * (1.0 if q == 0 else 0.7)
+			var lean: float = (_n(s, salt + 31) - 0.5) * 0.7 + (float(q) - 1.0) * 0.35
+			var tip: Vector2 = base + Vector2(lean * h, -h)
+			_poly(r, [base - Vector2(bw, 0), tip, base + Vector2(0, 2)], _c(Color(0.16, 0.3, 0.42), a))
+			_poly(r, [base + Vector2(0, 2), tip, base + Vector2(bw, 0)], _c(Color(0.55, 0.8, 0.92), a))
+			_band(r, tip, tip.lerp(base, 0.4), 1.0, 1.0, _c(Color(0.95, 1.0, 1.0), a))
+		if grow < 1.0:
+			_grain(r, root + Vector2(0, -2), _c(Color(1, 1, 1), alpha))
 
 static func _ice_wall(g, w: Dictionary, age: float, alpha: float) -> void:
 	var d := Vector2.from_angle(w.ang)

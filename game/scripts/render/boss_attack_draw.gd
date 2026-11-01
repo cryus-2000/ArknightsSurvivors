@@ -226,7 +226,7 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 			# A short filling arc encodes time, not a solid white spell body.
 			_ring(r, p, w.r, gy, 3.0, _ink(Color(1.0, 0.48, 0.57), alpha), -PI * 0.5, -PI * 0.5 + maxf(0.02, progress) * TAU)
 		"line":
-			if w.get("skin", "") in ["ice_thrust", "spear"]:
+			if w.get("skin", "") in ["ice_thrust", "spear", "ice_lance"]:   # ice_lance 直线 = 绕场巡猎掷冰枪 / 裂地冲锋地缝（11-01 用户截图：原来退回通用粉框）
 				var tr: float = float(w.get("track", 0.0))
 				var since_lock: float = float(w.get("t", 0.0)) - tr
 				var lock_flash: float = 1.0 - since_lock / 0.15 if tr > 0.0 and since_lock >= 0.0 and since_lock < 0.15 else 0.0

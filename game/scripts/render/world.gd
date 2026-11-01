@@ -3077,7 +3077,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 冲刺预警线改在特效之上的覆盖层画（draw_enemy_tells，docs/48 ②）
 	if e.get("dash_t", 0.0) > 0.0 and Bal.v("render/enemy_dash_sparks", 1.0) > 0.0:   # docs/139 §7：0 = 冲刺途中不喷火花
-		g.vfx.sparks(e.pos, -e.dash_dir, Color(0.8, 0.9, 1.0), 1, 80.0)
+		g.vfx.sparks(e.pos, -e.get("dash_dir", Vector2.ZERO), Color(0.8, 0.9, 1.0), 1, 80.0)   # 骑士绕场巡猎只设 dash_t 不设 dash_dir（11-01 预览报错，整只骑士那帧画不出）
 	if e.get("nova_w", 0.0) > 0.0:
 		var nk: float = 1.0 - e.nova_w / 0.6
 		g.draw_circle(e.pos, e.r + 6.0 + 10.0 * nk, Color(1.4, 0.5, 2.0, 0.2 + 0.3 * nk))

@@ -109,9 +109,19 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 					"velocity":side*(-sign_side*420.0),"life":1.0,"chill":0.8})
 		"断潮劈击", "雪幕劈":
 			# 雪幕劈（三幕变体，docs/183 v2）：同一道弧斩，收尾碎成 8 片两层速度的雪片（_knight_shards 读 snow）
-			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
-				"skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0, "life": 0.8, "dmg": e.dmg * 1.15,
-				"snow": name == "雪幕劈"})
+			# 弧斩 v2（11-01 用户「现在也打不到人，前摇太长」，boss/knight_cleave_v2）：前摇 1.7 → 1.1（锁定 0.4 秒）、追踪时按队长移速预判
+			# knight_cleave_lead 秒；锁定后 knight_cleave_gap 秒再补一道（冲刺躲过第一道还要再躲一次）。弧形不变：贴身 160 内的空心仍是安全区（final_boss_completion 守着），
+			# 第二道在第一道出手前 0.1 秒才显形、自己追踪到出手前 0.4 秒。冰屑 / 雪片只在最后一道收尾出
+			var cv2: bool = Bal.v("boss/knight_cleave_v2", 1.0) > 0.0
+			var cn: int = maxi(1, int(Bal.v("boss/knight_cleave_n", 2.0))) if cv2 else 1
+			var cd: float = Bal.v("boss/knight_cleave_warn", 1.1) if cv2 else 1.7
+			var ct: float = Bal.v("boss/knight_cleave_track", 0.7) if cv2 else 0.85
+			var gap: float = Bal.v("boss/knight_cleave_gap", 0.7)
+			for k in cn:
+				_warn(e, "arc", cd + gap * k, {"name": name if k == 0 else "", "ang": dir.angle(), "track": ct + gap * k, "r": 640.0, "half": 0.52,
+					"arc_back": Bal.v("boss/knight_cleave_back", 480.0), "wid": 26.0, "style": 3, "lead": Bal.v("boss/knight_cleave_lead", 0.35) if cv2 else 0.0,
+					"tell_after": 0.0 if k == 0 else maxf(0.0, cd - 0.1), "skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0,
+					"life": 0.8, "dmg": e.dmg * 1.15, "snow": name == "雪幕劈", "shards": k == cn - 1})
 			e.fx = dir.x
 		"寒潮回卷":
 			g.bai.boss("knight_boss").roll_start(e, dir)
@@ -222,6 +232,12 @@ func resolve(w: Dictionary) -> void:
 		f.enemy = true
 		g.fx.append(f)
 		MaterialGrains.burst(g, w)
+		if e.type == "knight_boss" and w.get("skin", "") == "ice_lance" and w.shape == "line":
+			# 直线冰枪命中（11-01）：一声冰裂 + 一盏 0.25 秒冷光，照亮刚喷出的冰刺（纯画面 / 音频）
+			var mid: Vector2 = w.pos + Vector2.from_angle(w.ang) * float(w.len) * 0.5
+			Sfx.play_at("knight_frost", mid, -13.0, 1.2, 0.08)
+			if g.get("optical") != null and g.optical.grains != null:
+				g.optical.grains.light(mid, float(w.len) * 0.6, Color(0.55, 0.85, 1.0), 0.25)
 	if w.name != "":   # One cue for the cast, not one loud layer per bubble/segment.
 		Sfx.play("tentacle" if e.type != "knight_boss" else "swing", -9.0, 0.9)
 
@@ -306,6 +322,8 @@ func _knight_shards(h: Dictionary) -> void:
 		return
 	match str(h.get("skin", "")):
 		"crescent":
+			if not h.get("shards", true):
+				return
 			var tip: Vector2 = h.pos + Vector2.from_angle(h.ang) * (float(h.r) - float(h.get("arc_back", 0.0)))
 			if h.get("snow", false):
 				kb.ice_shards(e, tip, kb.aim(tip), 4, 1.3, 120.0)

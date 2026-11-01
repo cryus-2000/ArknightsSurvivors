@@ -107,6 +107,14 @@ static func _ice_burst(g, pool, w: Dictionary) -> void:
 					var at: Vector2 = root + Vector2(g.vrng.randf_range(-8.0, 8.0), -g.vrng.randf_range(10.0, 44.0))
 					pool.push("ice", at, (Vector2.UP * 0.4 + Vector2(g.vrng.randf_range(-1.0, 1.0), 0)).normalized(), ice_tint, 0.65, root.y + g.vrng.randf_range(0.0, 6.0))
 		"ice_lance":
+			if w.shape == "line":
+				# 直线冰枪（绕场巡猎 / 裂地冲锋）：沿线迸出碎冰，每三颗一团冷雾，按离骑士远近错开（和画面的 0.12 秒扫过对齐）
+				var count_l: int = Beam.take(g, 18)
+				for i in count_l:
+					var u: float = (float(i) + g.vrng.randf()) / maxf(1.0, count_l)
+					var at: Vector2 = w.pos + d * float(w.len) * u + n * g.vrng.randf_range(-1.0, 1.0) * float(w.wid) * 0.7
+					_chip(g, pool, at, (Vector2.UP * 1.3 + n * g.vrng.randf_range(-0.7, 0.7)).normalized(), 0.12 * u, 8.0, i % 3 == 2)
+				return
 			var count: int = Beam.take(g, 12)
 			for i in count:
 				var v := Vector2.from_angle(TAU * (i + g.vrng.randf()) / maxf(1.0, count))
