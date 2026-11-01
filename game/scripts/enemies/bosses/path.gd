@@ -253,7 +253,10 @@ func on_gate(e: Dictionary) -> void:
 ## 二幕沿锁定线留一排弹（_wall_step）。fixed：折角冲撞不追踪、不改顺路
 func _dash(e: Dictionary, dir: Vector2, fixed := false) -> Dictionary:
 	var ang: float = dir.angle() if fixed else _charge_ang(e, dir)
-	var w: Dictionary = _warn(e, "line", 0.9 if not fixed else 0.8, {"ang": ang, "len": 440.0, "wid": 30.0, "track": 0.45 if not fixed else 0.0, "act": "dash", "fit_len": true,
+	# 11-01 用户批 docs/212 §4.3「冲撞对机器人 0 命中、只是走位提示」：缩前摇 + 预判，不加伤害（boss/path_dash_warn / _track / _lead；
+	# 旧值 0.9 / 0.45 / 0）。折角冲撞（fixed）方向是定死的，不追踪也不预判
+	var w: Dictionary = _warn(e, "line", Bal.v("boss/path_dash_warn", 0.65) if not fixed else 0.8, {"ang": ang, "len": 440.0, "wid": 30.0,
+		"track": Bal.v("boss/path_dash_track", 0.4) if not fixed else 0.0, "lead": Bal.v("boss/path_dash_lead", 0.3) if not fixed else 0.0, "act": "dash", "fit_len": true,
 		"name": "冲撞" if not fixed else "", "col": DANGER, "skin": "mc_dash"})
 	e.last_dash_ang = ang
 	if int(e.get("pat_act", 0)) == 1:

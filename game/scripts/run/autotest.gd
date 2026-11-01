@@ -1657,9 +1657,8 @@ func _bossmoves_step(spec: String) -> void:
 		var h = g.bai.boss(type)
 		bm_list = h.demo_moves(b) if h != null else []
 		for a in Cfg.dev_args():
-			if a.begins_with("--bossonly="):   # 只放这几招（逗号分隔；录修后短片用，docs/215）
-				var keep: PackedStringArray = a.substr(11).split(",")
-				bm_list = bm_list.filter(func(m): return keep.has(str(m)))
+			if a.begins_with("--bossonly="):   # 只放这几招，按给出的顺序、可重复（逗号分隔；录修后短片 / 改前改后对照用，docs/215、docs/212 §5）
+				bm_list = Array(a.substr(11).split(","))
 		bm_next_t = g.t + 1.0
 		print("BOSSMOVES %s moves=%s" % [spec, str(bm_list)])
 		return
