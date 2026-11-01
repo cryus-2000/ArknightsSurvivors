@@ -15,7 +15,8 @@ static func owns(w: Dictionary) -> bool:
 	var o = w.get("owner")
 	var act: String = str(w.get("act", ""))
 	# 补充招式里的直线预警（合唱齐射 choir、深海触腕 tentacle）也归这里；移动实体（合唱压境音波）仍由 boss_attack_draw 画材质
-	var mine: bool = act in ACTS or (act == "final_attack" and w.get("shape", "") == "line" and str(w.get("skin", "")) in ["choir", "tentacle"])
+	# 合唱压境的发射圈（circle choir，11-01 巡检 D3：原来退回通用粉圈）也归这里：涟漪圈 + 朝音波方向的一段水纹
+	var mine: bool = act in ACTS or (act == "final_attack" and ((w.get("shape", "") == "line" and str(w.get("skin", "")) in ["choir", "tentacle"]) or (w.get("shape", "") == "circle" and str(w.get("skin", "")) == "choir")))
 	return mine and o is Dictionary and o.get("type", "") == "ishar" and not w.get("dim", false) and Bal.v("render/ishar_tell", 1.0) > 0.0
 
 
@@ -265,6 +266,15 @@ static func draw(g) -> void:
 							continue   # 断续：读作水纹，不是第二道实线
 						var a: float = TAU * i / m + q * 0.4
 						_sq(g, w.pos + Vector2(cos(a), sin(a) * gy) * rk, ripple)
+				if str(w.get("motion", "")) == "linear":
+					# 合唱压境：音波从这里朝 ang 飞出——圈外一段随读条伸长的水纹，指明这一路的方向（判定仍是飞行中的音波本体）
+					var dv := Vector2.from_angle(float(w.ang))
+					var reach: float = 18.0 + 46.0 * k
+					var f2 := 0.0
+					while f2 < reach:
+						var amp2: float = sin(f2 * 0.2 - g.t * 8.0) * 3.0
+						_sq(g, w.pos + dv * (r + 4.0 + f2) + dv.orthogonal() * amp2, edge)
+						f2 += 4.0
 			"line":
 				var d := Vector2.from_angle(w.ang)
 				var nrm: Vector2 = d.orthogonal() * float(w.wid)

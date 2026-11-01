@@ -27,6 +27,8 @@ var _done_t := -1.0         # 确认 / 取消后的残影计时
 var _done_ok := false
 var _done_pt := Vector2.ZERO
 var _done_target = null
+var _clear_at := Vector2.INF   # 肃清目标格最近一次「亮起」的位置与时刻（毫秒）：下令 / 目标区挪动超过 2 格时整片亮 1.5 秒
+var _clear_ms := 0
 
 
 func _init(game) -> void:
@@ -403,10 +405,22 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 func _draw_order(hud: CanvasItem, ct: Transform2D) -> void:
 	var sq = g.squad
 	var W = g.wheel
+	if sq.order_kind != "clear":
+		_clear_at = Vector2.INF
 	if sq.order_kind == "clear":
 		var cp: Vector2 = ct * sq.order_pos
-		_tiles(hud, ct, sq.order_pos, sq.order_radius(), W.C_ACC, 0.8)
-		_corners(hud, cp, 14.0, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.95), 2.0)
+		# 11-01 巡检 D5：整片格子常驻会一直铺在怪群上、和特效叠成一片。下令 / 目标区挪动后整片亮 1.5 秒，
+		# 0.3 秒淡掉，之后只留外圈一层格（约三成亮度）+ 中心角标
+		if _clear_at == Vector2.INF or _clear_at.distance_to(sq.order_pos) > CELL * 2.0:
+			_clear_at = sq.order_pos
+			_clear_ms = Time.get_ticks_msec()
+		var age: float = (Time.get_ticks_msec() - _clear_ms) / 1000.0
+		var fade: float = clampf((age - 1.5) / 0.3, 0.0, 1.0)
+		if fade < 1.0:
+			_tiles(hud, ct, sq.order_pos, sq.order_radius(), W.C_ACC, 0.8 * (1.0 - fade))
+		if fade > 0.0:
+			_edge_tiles(hud, ct, sq.order_pos, sq.order_radius(), W.C_ACC, 0.4 * fade)
+		_corners(hud, cp, 14.0, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.95 - 0.35 * fade), 2.0)
 	elif sq.order_kind == "point":
 		_station_mark(hud, ct * sq.order_pos, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.9))
 		if Tactics.on():

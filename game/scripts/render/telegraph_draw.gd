@@ -20,11 +20,11 @@ static func quiet(w: Dictionary) -> bool:
 	return w.get("act", "") == "final_attack" or knight_line(w) or w.get("skin", "") in ["gaze", "howl"] or o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
 
 
-## 最后的骑士的线形预警（冲锋 / 再冲锋 / 寒冷追击 / 冰线 / 掷枪）：10-27 改由 boss_attack_draw 画冰裂纹（暗红低填充 + 冰裂勾边 + 路线裂纹蔓延），
+## 最后的骑士的线形预警（冲锋 / 再冲锋 / 寒冷追击 / 冰线 / 掷枪 / 长驱冲锋——长驱冲锋 11-01 巡检补进来，原来是通用斜线红框）：10-27 改由 boss_attack_draw 画冰裂纹（暗红低填充 + 冰裂勾边 + 路线裂纹蔓延），
 ## 这里和 world.draw_warn_outlines 都跳过（不画斜线、箭头和结算白闪）。范围 = 判定矩形不变；render/knight_frost_tell = 0 恢复旧画法
 static func knight_line(w: Dictionary) -> bool:
 	var o = w.get("owner")
-	return w.get("shape", "") == "line" and o is Dictionary and o.get("type", "") == "knight_boss" and str(w.get("act", "")) in ["dash", "frost_track", "shot"] and Bal.v("render/knight_frost_tell", 1.0) > 0.0
+	return w.get("shape", "") == "line" and o is Dictionary and o.get("type", "") == "knight_boss" and str(w.get("act", "")) in ["dash", "frost_track", "shot", "knight_drive"] and Bal.v("render/knight_frost_tell", 1.0) > 0.0
 
 
 ## 预警形状的多边形（世界坐标；圆按贴地透视压扁）
