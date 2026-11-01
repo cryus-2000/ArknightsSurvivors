@@ -844,6 +844,8 @@ func _meta(result: String) -> Dictionary:
 
 
 func save_local(result: String) -> void:
+	if not Cfg.runs_log_enabled():
+		return   # 对外包不写：判断显式放在这里（tools/check_release.py 第 6 条只认 save_local 里这一句；_log_path 里同一判断保留）
 	var path := _log_path()
 	if path == "" or saved or g.demo_op != "" or g.t < MIN_SAVE_T:
 		return
@@ -858,6 +860,8 @@ func save_local(result: String) -> void:
 ## Boss 剩余血量、按干员的对 Boss 伤害、按招式的承伤、倒地与击倒者），另带 op_stats / rs，对局记录面板照常能点开看作战记录。
 ## 不足 3 秒就退出的不记（误点）
 func save_trial(result: String, data: Dictionary) -> void:
+	if not Cfg.runs_log_enabled():
+		return   # 同 save_local：对外包不写
 	var path := _log_path()
 	if path == "" or saved or g.demo_op != "" or float(data.get("t", 0.0)) < 3.0:
 		return
