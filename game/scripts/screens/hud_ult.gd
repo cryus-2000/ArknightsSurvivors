@@ -562,5 +562,14 @@ func _draw_link_tag(vs: Vector2) -> void:
 	tb.line(c + Vector2(-r - 8.0, r + 4.0), c + Vector2(r + 190.0, r + 4.0), Color(col.lerp(Color.WHITE, 0.35), 0.9 * a), 2.0)
 	tb.circle(c, r + 2.0, Color(col.lerp(Color.WHITE, 0.3), a))
 	tb.flush(g.hud)
+	var tx: float = c.x + r + 12.0
+	var op2 = u.get("lf_op2")
+	if op2 != null and op2.pos != Vector2.INF:   # 羁绊连携：两人头像并排（队长在后）
+		var c2 := c + Vector2(r * 1.55, 0.0)
+		var tb2 := Tris.new()
+		tb2.circle(c2, r + 2.0, Color(u._col(op2).lerp(Color.WHITE, 0.3), a))
+		tb2.flush(g.hud)
+		_avatar(op2, c2, r, Color(1, 1, 1, a))
+		tx += r * 1.55
 	_avatar(u.lf_op, c, r, Color(1, 1, 1, a))
-	UI.text(g.hud, g.font, Vector2(c.x + r + 12.0, c.y + 8.0), str(u.lf_name), 22, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_LEFT, 200.0, 4)
+	UI.text(g.hud, g.font, Vector2(tx, c.y + 8.0), str(u.lf_name), 22, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_LEFT, 200.0, 4)

@@ -47,6 +47,7 @@
     "command_ai",
     "command_wheel",
     "squad_v2",
+    "bond_link",
     "voice_command",
     "friendly_target"
    ]
@@ -532,7 +533,7 @@
    "why": "终结技（docs/198）：播放形式 / 升级让位回归"
   },
   {
-   "glob": "game/scripts/run/{skill_link,link_v2,combo,link_fx_*}.gd",
+   "glob": "game/scripts/run/{skill_link,link_v2,link_bond,combo,link_fx_*}.gd",
    "groups": [
     "core",
     "ult",

@@ -10,7 +10,8 @@ extends "res://scripts/screens/title_base.gd"
 # 位移 / 缩放 / 扫入 / 浪幕直接到终态，只留 ≤ 120 ms 淡入淡出（OP_FADE），呼吸光不动
 # =====================================================================
 const OP_TABS := ["属性", "技能", "编队"]
-const Bal = preload("res://scripts/core/balance.gd")   # 技能页终结技 / 连携行（ult/on、link/v2）与操作说明（title.gd）用
+const Bal = preload("res://scripts/core/balance.gd")
+const Bond = preload("res://scripts/run/link_bond.gd")   # 编队页羁绊行（docs/217）   # 技能页终结技 / 连携行（ult/on、link/v2）与操作说明（title.gd）用
 const OP_TAB_EN := ["STATUS", "SKILL", "SQUAD"]
 const OP_STAGE := ["招募", "精英一", "精英二"]
 const OP_FADE := 0.12
@@ -1239,6 +1240,18 @@ func _op_squad(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bo
 		var cx := box.position.x + UI.btab(ci, font, Vector2(box.position.x, y + 3), "定位", UI.TAB_HP, 9) + 8.0
 		for c in care:
 			cx += UI.pill(ci, font, Vector2(cx, y), c, UI.PURPLE, 10)
+		y += 26.0
+	# 羁绊（docs/217）：开局只有队长，全部灰显；招募到搭档后在招募卡上点亮
+	var bt: Array = Bond.tags_for(str(d.get("id", "")), []) if Bond.ui_on() else []
+	if not bt.is_empty() and y + 20.0 < box.end.y:
+		var bx := box.position.x + UI.btab(ci, font, Vector2(box.position.x, y + 3), "羁绊", UI.TAB_HP, 9) + 8.0
+		for b in bt:   # 「企鹅物流：全队攻速 +8%」；一行放不下的换到下一行
+			var s: String = str(b[0]) + ("：" + str(b[2]) if str(b[2]) != "" else "")
+			var pw: float = UI.pill_width(font, s, 10)
+			if bx + pw > box.end.x and bx > box.position.x + 60.0:
+				y += 24.0
+				bx = box.position.x + 40.0
+			bx += UI.pill(ci, font, Vector2(bx, y), s, UI.GOLD if b[1] else Bond.DIM, 10)
 		y += 26.0
 	for n in d.get("progression", []):
 		if n is Dictionary and n.get("type", "") == "elite" and int(n.get("level", 0)) == 2 and n.has("requires"):

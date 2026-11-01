@@ -7,6 +7,7 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Affects = preload("res://scripts/run/affects.gd")
+const Bond = preload("res://scripts/run/link_bond.gd")   # 招募卡羁绊标签（docs/217）
 const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面板的入场动效分派（docs/62 第一批）
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
 const NodeCardsUI = preload("res://scripts/screens/node_cards_ui.gd")   # 翻节点卡卡面与演出（docs/154）
@@ -740,6 +741,10 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 				if nl > 0:
 					chips = [["联动 %d" % nl, UI.GOLD]] + chips   # 和已持有藏品 / 在队干员的联动，详情在悬停提示
 					card.set_meta("links", g.progression.affinity.recruit_lines(str(o.id)))
+				if Bond.ui_on():   # 羁绊（docs/217）：搭档已在队的点亮，没在队的灰显
+					var ids: Array = g.squad.ops.map(func(p): return str(p.id))
+					for bt in Bond.tags_for(str(o.id), ids):
+						chips.append(["羁绊 · " + str(bt[0]) + ("：" + str(bt[2]) if str(bt[2]) != "" else ""), UI.GOLD if bt[1] else Bond.DIM])
 			card.set_meta("affects", chips)
 			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, card_w - (2.0 * PAD_X_PHONE if row_h > 0.0 else 32.0)))
 		(g.panel_col if ev else g.panel_box).add_child(card)

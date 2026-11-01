@@ -12,7 +12,8 @@ const Doctor = preload("res://scripts/characters/doctor.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：未解锁的干员在图鉴里显示锁定
 const Bal = preload("res://scripts/core/balance.gd")
-const Ult = preload("res://scripts/run/ult.gd")   # 终结技 / 连携技名称表（图鉴技能页两行）
+const Ult = preload("res://scripts/run/ult.gd")
+const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（docs/217）：图鉴连携栏列羁绊   # 终结技 / 连携技名称表（图鉴技能页两行）
 const UIMo = preload("res://scripts/ui_motion.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 const EventBook = preload("res://scripts/core/event_book.gd")   # 事件页（docs/184 §11）
@@ -2045,6 +2046,9 @@ func _skill_rows(cd: Dictionary) -> Array:
 		else:
 			rows.append(["LINK  //  连携技", str(lk.get("name", "")), str(lk.get("en", "")), "", "", "连携", false,
 				"%s。\n触发：%s。%s" % [str(lk.get("desc", "")), str(lk.get("trigger", "")), str(ut.get("link_note" + tu, ""))]])
+		if Bond.ui_on():   # 羁绊连携（docs/217）：连携栏下列出这名干员的全部羁绊
+			for br in Bond.gallery_rows(str(cd.get("id", ""))):
+				rows.append(["BOND  //  羁绊 · %s" % br[1], br[0], "", "", "", "羁绊", false, br[2]])
 	return rows
 
 

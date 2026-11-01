@@ -164,6 +164,7 @@ func _ready() -> void:
 		_foe(g.ppos + Vector2(150, -40 + k * 8))
 	g.enemies_sys.build_grid()
 	var u = g.ult
+	Bal.sec("link")["bond"] = 0   # 这一节测按姿态挑人；德克萨斯 + 能天使的羁绊优先在 bond_link 里测（docs/217）
 	if u != null and LinkV2.on():
 		u.queue.clear()
 		ok(LinkV2.lit(u, "guard", Vector2.INF), "随行：队长放技能有队友接")
@@ -195,6 +196,7 @@ func _ready() -> void:
 		ok(int(u.stats.get("v2_links", 0)) == n0 and float(u.get_meta("link_next", -INF)) == -INF, "出手前区域清空：不出手、退还间隔")
 		ok(not (load("res://scripts/run/link_v2.gd") as Script).get_script_method_list().any(func(m): return str(m.name) == "on_ult") and not LinkV2.PREF.has("ult"), "终结技不再触发连携")
 		u.queue.clear()
+	Bal.sec("link")["bond"] = 1
 	sq.set_stance(sq.GUARD)
 	# 10. 开关 0：圆盘回旧项、不吃弹
 	Bal.sec("command")["v2"] = 0

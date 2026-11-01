@@ -6,6 +6,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const Link = preload("res://scripts/run/skill_link.gd")
+const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 
 ## 姿态 → 接法类别的优先顺序（随行护队长、突击追着打、部署把怪拖进阻挡线）
 const PREF := {
@@ -67,6 +68,21 @@ static func lit(u, key: String, at: Vector2, gap0 := -INF) -> bool:
 		return false
 	cands.sort_custom(func(a, b): return a[1] < b[1] or (a[1] == b[1] and (a[2] < b[2] or (a[2] == b[2] and int(a[0].slot) < int(b[0].slot)))))
 	var ar: float = area_r()
+	if Bond.on():   # 羁绊：和队长有原作关系的队友优先接，换专属合击（区域照 v2 规则取）
+		var bd: Dictionary = Bond.pick(u, ld, cands)
+		if not bd.is_empty():
+			var bp = bd.p
+			var bpos: Vector2 = _area(u, key, bp, ld, at, ar)
+			if bpos != Vector2.INF:
+				var binfo: Dictionary = Bond.info(u, bd.bond, ld, bpos, ar, bd.mates)
+				binfo["v2"] = key
+				binfo["gap0"] = gap0
+				u.queue.push_front({"o": bp, "info": binfo, "t0": g.t, "left": Bal.v("ult/link_window", 1.5)})
+				for m in bd.mates:
+					u.set_meta("lv2_" + str(m.id), g.t)
+				u.stats.lit += 1
+				u.stats["v2_" + key] = int(u.stats.get("v2_" + key, 0)) + 1
+				return true
 	for c in cands:
 		var p = c[0]
 		var pos: Vector2 = _area(u, key, p, ld, at, ar)

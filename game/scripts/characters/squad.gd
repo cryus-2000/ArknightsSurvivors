@@ -2,6 +2,7 @@
 ## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追主控。
 extends RefCounted
 
+const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊常驻加成（docs/217 §7，link/bond_buff）
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
@@ -145,6 +146,7 @@ func _add(cid: String, recruit_event: bool):
 	validate_squad()
 	if not _hold_size:
 		_apply_size_hp()
+	Bond.refresh(g)
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
 		if not op.is_leader and recruit_event:
@@ -172,6 +174,7 @@ func remove(cid: String) -> void:
 	assign_slots()
 	if not _hold_size:
 		_apply_size_hp()
+	Bond.refresh(g)
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
 
