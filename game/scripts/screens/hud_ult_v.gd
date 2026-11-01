@@ -123,6 +123,7 @@ func draw(vs: Vector2) -> void:
 		_draw_ready()
 		if ver() == 2:
 			_draw_ready_toast(vs)
+		_draw_edge(vs)
 	if link_cue() > 0:
 		_draw_cue()
 
@@ -188,6 +189,9 @@ func _draw_b(phone := false) -> void:
 	var c: Vector2 = LV
 	var tb := Tris.new()
 	var txt: Array[Callable] = []
+	if full and ready_cue():   # 就绪后徽记呼吸光（代表色光晕垫在底下）
+		tb.circle(c, B_R + 15.0, Color(ec.r, ec.g, ec.b, 0.06 + 0.1 * pu), 32)
+		tb.circle(c, B_R + 10.0, Color(ec.r, ec.g, ec.b, 0.08 + 0.12 * pu), 32)
 	tb.circle(c, B_R + 2.0, DARK, 32)
 	tb.flush(g.hud)
 	var fl: float = _flash_b()
@@ -218,12 +222,24 @@ func _draw_b(phone := false) -> void:
 			tb.diamond(c + Vector2.from_angle(a) * (B_R + 13.0), 3.0, UI.GOLD if i < u._cells() else Color(1, 1, 1, 0.14))
 	else:
 		tb.arc(c, B_R + 2.0, 0.0, TAU, 1.5, Color(ec.r, ec.g, ec.b, 0.9 if full else 0.4), 40)
+	if full:
+		_burst_ring(tb, c, B_R + 4.5, ec)
 	tb.flush(g.hud)
-	# 缺口里的按键牌（桌面）
+	# 缺口里的按键牌（桌面）；就绪提醒开着时：就绪后换成大一号、代表色、跟着呼吸的按键牌（刚满时弹出来）
 	var key: String = _key("ult")
 	if key != "" and not phone:
-		var kw: float = UI.cwidth(g.font, key, 10) + 12.0
-		UI.keycap(g.hud, g.font, c + Vector2(-kw / 2.0, B_R + 0.0), key, UI.TEXT if full else UI.SUB, 10)
+		var ks: int = 10
+		var kc: Color = UI.TEXT if full else UI.SUB
+		if full and ready_cue():
+			ks = 13
+			kc = Color(ec.r, ec.g, ec.b, 1.0).lerp(Color.WHITE, 0.35 + 0.35 * pu)
+		var kw: float = UI.cwidth(g.font, key, ks) + 12.0
+		var kp: Vector2 = c + Vector2(-kw / 2.0, B_R + 0.0)
+		if full and ready_cue():
+			var pop: float = 0.0 if _rm() else 6.0 * (1.0 - clampf((UM.now() - _full_rt) / 0.25, 0.0, 1.0))
+			kp.y += 2.0 - pop
+			g.hud.draw_rect(Rect2(kp - Vector2(2, 2), Vector2(kw + 4.0, ks + 11.0)), Color(0.02, 0.03, 0.05, 0.9))
+		UI.keycap(g.hud, g.font, kp, key, kc, ks)
 	# 等级牌：徽记顶上，深底 + 青边（升级时闪金），白色大字
 	var lf: float = g.hud_lv_flash
 	var lvs: String = "LV %d" % g.level
@@ -405,6 +421,9 @@ func _draw_touch_min(vs: Vector2) -> void:
 	var bg := Tris.new()
 	var fg := Tris.new()
 	var txt: Array[Callable] = []
+	if full and ready_cue():   # 就绪后终结技键发光（代表色光晕，呼吸）
+		bg.circle(c, r + 16.0, Color(ec.r, ec.g, ec.b, 0.07 + 0.1 * _pulse()), 40)
+		bg.circle(c, r + 9.0, Color(ec.r, ec.g, ec.b, 0.12 + 0.16 * _pulse()), 40)
 	bg.circle(c, r, Color(0.05, 0.12, 0.16, 0.82 if full or held else 0.6), 32)
 	# 能量 = 键本身的填充：代表色从下往上涨（水位线亮一道）
 	var ek: float = _ek()
@@ -428,6 +447,7 @@ func _draw_touch_min(vs: Vector2) -> void:
 	if full:
 		fg.arc(c, r, 0.0, TAU, 3.0, Color(ec.r, ec.g, ec.b, 0.95), 40)
 		fg.arc(c, r + 6.0, 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.15 + 0.45 * _pulse()), 40)
+		_burst_ring(fg, c, r, ec)
 	else:
 		fg.arc(c, r, 0.0, TAU, 1.5, Color(1, 1, 1, 0.16), 40)
 	if g.touch.skill_id >= 0 and g.ult.phase == "aim" and g.ult.aim_kind != "none":
@@ -455,6 +475,52 @@ func _draw_touch_min(vs: Vector2) -> void:
 		fg.arc(cb.c, cb.r + 6.0, 0.0, TAU, 2.0, Color(1, 1, 1, 0.6), 24)
 	fg.flush(g.hud)
 	u.h.text_flush(txt)
+
+
+# ================================================================ 就绪提醒（用户 11-01「终结技就绪提醒做得更明显」，ult/ready_cue 缺省 1；0 = 原样）
+## 只在充满那一刻一次：徽记环 / 触屏终结技键爆亮（白圈 + 代表色圈外扩 + 光晕，0.6 秒）+ 屏幕四边淡青光一闪（0.5 秒）；
+## 之后徽记呼吸光晕 + 大一号按键牌（_draw_b）、触屏终结技键发光（_draw_touch_min）。提示音 / 就绪台词在 ult.gd _ready_tick
+const BURST_RDY := 0.6
+const EDGE_T := 0.5
+
+
+static func ready_cue() -> bool:
+	return Bal.v("ult/ready_cue", 1.0) > 0.0
+
+
+func _burst_ring(tb: Tris, c: Vector2, r: float, ec: Color) -> void:
+	if not ready_cue():
+		return
+	var t: float = UM.now() - _full_rt
+	if t < 0.0 or t > BURST_RDY:
+		return
+	var k: float = t / BURST_RDY
+	var a: float = 1.0 - k
+	tb.circle(c, r + 6.0, Color(ec.r, ec.g, ec.b, 0.35 * a * a), 32)
+	tb.arc(c, r, 0.0, TAU, 3.0 + 2.0 * a, Color(1, 1, 1, 0.95 * a), 40)
+	if not _rm():
+		var e: float = 1.0 - pow(1.0 - k, 3.0)   # 先快后慢地外扩
+		tb.arc(c, r + 4.0 + 34.0 * e, 0.0, TAU, 3.0 * a + 1.0, Color(ec.r, ec.g, ec.b, 0.85 * a), 48)
+		tb.arc(c, r + 2.0 + 18.0 * e, 0.0, TAU, 1.5, Color(1, 1, 1, 0.6 * a), 40)
+
+
+## 屏幕四边淡青光：0.06 秒升到顶，0.5 秒内退掉；光从边往里 6% 屏高渐隐。减少动态效果时只淡淡亮一下
+func _draw_edge(vs: Vector2) -> void:
+	if not ready_cue() or not g.ult.full():
+		return
+	var t: float = UM.now() - _full_rt
+	if t < 0.0 or t > EDGE_T:
+		return
+	var a: float = clampf(t / 0.06, 0.0, 1.0) * pow(1.0 - t / EDGE_T, 1.5) * (0.22 if _rm() else 0.4)
+	var cy: Color = UI.CYAN
+	var c0 := Color(cy.r, cy.g, cy.b, a)
+	var c1 := Color(cy.r, cy.g, cy.b, 0.0)
+	var d: float = vs.y * 0.06
+	var o := [Vector2.ZERO, Vector2(vs.x, 0), vs, Vector2(0, vs.y)]
+	var n := [Vector2(d, d), Vector2(vs.x - d, d), vs - Vector2(d, d), Vector2(d, vs.y - d)]
+	for i in 4:
+		var j: int = (i + 1) % 4
+		g.hud.draw_polygon(PackedVector2Array([o[i], o[j], n[j], n[i]]), PackedColorArray([c0, c0, c1, c1]))
 
 
 # ================================================================ 队长脚下的就绪光圈

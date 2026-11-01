@@ -245,6 +245,25 @@ func full() -> bool:
 	return energy >= FULL
 
 
+## 就绪提醒的声音（用户 11-01「终结技就绪提醒做得更明显」，ult/ready_cue 缺省 1；画面在 hud_ult_v）：能量充满那一刻只响一次——
+## 轻提示音 ult_ready（比超必杀那声轻、短、柔）+ 队长就绪台词（data/ult_audio.json 的 ready_voice，语音页 picks 里选；没填就不放）
+var _rdy_was := false
+
+
+func _ready_tick() -> void:
+	var f := full()
+	if f and not _rdy_was and phase == "" and Bal.v("ult/ready_cue", 1.0) > 0.0:
+		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+		var ld = g.squad.leader()
+		if sfx != null and ld != null:
+			sfx.ensure(["ult_ready"])
+			sfx.play("ult_ready", Bal.v("ult/ready_cue_db", 0.0), 1.0, 0.0)
+			var line := str(_aud(str(ld.id)).get("ready_voice", ""))
+			if line != "":
+				sfx.voice(str(ld.id), "ready", false, false, line)
+	_rdy_was = f
+
+
 func can_cult() -> bool:
 	return energy >= FULL and cells >= CELLS
 
@@ -272,6 +291,7 @@ func tick(dt: float) -> void:
 		_refill_t = g.t
 		energy = FULL
 		full_since = g.t
+	_ready_tick()
 	_tick_buffs()
 	var tk: float = _tk if phase == "cast" else 1.0   # 只在出招阶段伸缩：瞄准（1.5 秒上限）和招式结束后的余韵照原速
 	_tick_shapes(dt * tk)
@@ -1982,6 +2002,12 @@ func sf_sound(ld) -> void:
 	if sfx == null:
 		return
 	var oid := str(ld.id)
+	# 超必杀提示音（用户 11-01「格斗游戏超必杀那种感觉：短促、亮、『锵』一下，配画面一暗」，docs/205 §4.9）：20 人共用 ult_super_<n>，
+	# 叠在各人 sf 前面；ult/super_cue 选版（1–3，0 = 不放）。逻各斯的 sf 关着也照放
+	var sn: int = Bal.vi("ult/super_cue", 1)
+	if sn > 0 and ResourceLoader.exists("res://audio/sfx/ult_super_%d.wav" % sn):
+		sfx.ensure(["ult_super_%d" % sn])
+		sfx.play("ult_super_%d" % sn, Bal.v("ult/super_cue_db", 0.0), 1.0, 0.0)
 	if _aud(oid).get("sf_off", false):
 		return   # 表里关掉提示音（逻各斯，用户 11-01「开头的声音要去掉」）
 	var nm := "ult_%s_sf" % oid
