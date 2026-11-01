@@ -1121,6 +1121,7 @@ SCENE_REGRESSIONS = {
     "final_attack_grains": ("最终 Boss 材质颗粒与安全区", "final_attack_grains_test", r"FINAL ATTACK GRAINS failures=0", []),
     "knight_combo": ("骑士连段、取消与喘息", "knight_combo_test", r"KNIGHT COMBO failures=0", []),
     "knight_cleave": ("骑士弧斩 v2 命中与可躲", "knight_cleave_test", r"KNIGHT CLEAVE failures=0", []),
+    "final_boss_tells": ("最终 Boss 预警不退回通用画法（docs/215 §5）", "final_boss_tells_test", r"FINAL BOSS TELLS failures=0", []),
     "paranoia_combos": ("偏执泡影连携攻势：连段轮换、打断、转幕、复现", "paranoia_combos_test", r"PARANOIA COMBOS failures=0", []),
     "izumik_card": ("伊祖米克连携、弹幕与拦截通道", "izumik_card_test", r"IZUMIK CARD failures=0", []),
     "mid_boss": ("塑路者 / 接潮组弹幕与连段（docs/170）", "mid_boss_test", r"MID BOSS failures=0", []),

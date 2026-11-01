@@ -4685,7 +4685,7 @@ func draw_warn_outlines(ground := false) -> void:
 		if w.has("gap_ang"):
 			var safe_col := Color(1.0, 0.85, 0.35, 0.9)
 			var r_in: float = minf(90.0, float(w.r) * 0.6)
-			var r_out: float = maxf(190.0, float(w.r) + 40.0)
+			var r_out: float = float(w.r) + 40.0   # 11-01 巡检 D6：原来下限 190，环小、Boss 靠上时金线扎进 Boss 血条下面，像外来连线
 			for ga in w.get("gaps", [w.gap_ang]):
 				for side in [-1.0, 1.0]:
 					var v := Vector2.from_angle(float(ga) + side * float(w.gap_half))

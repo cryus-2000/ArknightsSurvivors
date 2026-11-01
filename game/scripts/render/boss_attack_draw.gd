@@ -183,6 +183,14 @@ static func _circle_fill(r, w: Dictionary, gy: float, c: Color) -> void:
 		var vb := points[i + 1]
 		r.tb_quad(w.pos + va * inner, w.pos + va * w.r, w.pos + vb * w.r, w.pos + vb * inner, c)
 
+## 测试钩子（tests/final_boss_tells_test，docs/215 §5）：最终 Boss 的预警走到下面的通用画法（粉框 / 粉圈 / 通用扇形）时回调 (w)。
+## 正式局不设、零开销；骑士粉框那类「新招 skin 没登记、静默退回通用画法」靠它在快检里拦下
+static var on_generic := Callable()
+
+static func _generic(w: Dictionary) -> void:
+	if on_generic.is_valid():
+		on_generic.call(w)
+
 static func _warning(g, w: Dictionary, alpha: float) -> void:
 	var r = g.world
 	var p: Vector2 = w.pos
@@ -219,6 +227,10 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 			if _knight_circle(w):   # 冰枪封径 / 冻结重击 / 寒潮回卷（11-01 巡检：原来退回通用粉圆）
 				_frost_circle(r, w, gy, progress, alpha)
 				return
+			if _owner_type(w) == "izumik":   # 海流牵引 / 护群触腕 / 深渊涌流（11-01 巡检 D2：原来是通用粉圈 + 白进度弧）
+				_izu_circle(g, w, gy, progress, alpha)
+				return
+			_generic(w)
 			_circle_fill(r, w, gy, fill)
 			_ring(r, p, w.r, gy, 5.0, _ink(DARK, 0.8))
 			_ring(r, p, w.r, gy, 2.0, edge)
@@ -246,6 +258,7 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 			if w.get("skin","") == "tide":   # 伊祖米克迁徙潮：波峰勾边，不画矩形框（docs/170）
 				IzumikDraw.tide_warning(g,w,alpha,progress)
 				return
+			_generic(w)
 			var d := Vector2.from_angle(w.ang)
 			var n := d.orthogonal()
 			var end: Vector2 = p + d * w.len
@@ -293,6 +306,7 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 					if Materials.field_radius(w,direction.angle())>inner:
 						_strip(r,p+direction*inner,p+direction*Materials.field_radius(w,direction.angle()),2,edge)
 				return
+			_generic(w)
 			var pts := PackedVector2Array([p])
 			for i in 25: pts.append(p + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * i / 24.0) * w.r)
 			r.tb_poly(pts, fill)
@@ -323,9 +337,39 @@ const CRACK_ICE := Color(0.6, 0.84, 0.95)
 const CRACK_EDGE := Color(0.6, 0.14, 0.27)
 const CRACK_SHADE := Color(0.03, 0.04, 0.07)
 
-static func _knight_owned(w: Dictionary) -> bool:
+static func _owner_type(w: Dictionary) -> String:
 	var o = w.get("owner", null)
-	return o is Dictionary and str(o.get("type", "")) == "knight_boss"
+	return str(o.get("type", "")) if o is Dictionary else ""
+
+static func _knight_owned(w: Dictionary) -> bool:
+	return _owner_type(w) == "knight_boss"
+
+## Izumik circle tell (D2): dark-red low fill, the rim as a row of 2 px water dots in her own colour, and three broken
+## ripples converging on the centre as the timer (last one reaches the centre = release). Ring bands (inner_r) get a dotted
+## inner rim and ripples only inside the band. Outer rim = hit ellipse.
+static func _izu_circle(g, w: Dictionary, gy: float, k: float, alpha: float) -> void:
+	var r = g.world
+	var p: Vector2 = w.pos
+	var radius: float = float(w.r)
+	var inner: float = float(w.get("inner_r", 0.0))
+	var bc: Color = g.vfx.boss_color("izumik")
+	var hot: float = 1.0 if float(w.dur) - float(w.t) < 0.15 else 0.0
+	_circle_fill(r, w, gy, Color(0.24, 0.035, 0.085, 0.08 + 0.07 * k + 0.06 * hot))
+	var rim := _ink(bc.lerp(Color(1, 1, 1), 0.25 * hot), alpha * (0.75 + 0.25 * hot))
+	for rad in ([radius, inner] if inner > 0.0 else [radius]):
+		var n: int = clampi(int(rad * TAU / 9.0), 16, 150)
+		for i in n:
+			var a: float = TAU * i / n + sin(g.t * 2.0 + i * 0.7) * 0.004   # 点列沿圈微微起伏，读作水面
+			_dot(r, p + Vector2(cos(a), sin(a) * gy) * rad, rim)
+	var span: float = radius - inner
+	for q in 3:
+		var rk: float = inner + span * (1.0 - fmod(k + q / 3.0, 1.0) * 0.9) if k < 0.98 else inner + span * 0.1
+		var m: int = clampi(int(rk * TAU / 14.0), 8, 100)
+		for i in m:
+			if (i + q) % 3 == 0:
+				continue
+			var a2: float = TAU * i / m + q * 0.4
+			_dot(r, p + Vector2(cos(a2), sin(a2) * gy) * rk, _ink(bc, alpha * (0.25 + 0.3 * k)))
 
 static func _knight_circle(w: Dictionary) -> bool:
 	return _knight_owned(w) and str(w.get("skin", "")) in ["ice_lance", "ice_field"]
