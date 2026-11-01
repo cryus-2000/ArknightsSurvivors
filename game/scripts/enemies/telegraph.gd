@@ -103,6 +103,8 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 		w.dur *= wm
 		w.track *= wm
 	g.warns.append(w)
+	if e.boss and g.trial.active:
+		g.trial.on_cast(w)   # Boss 演练记录：按招式的出手次数（算命中率）
 	if e.type == "knight_boss":
 		g.bai.boss(e.type).on_warning(e,w)
 	# 大招固定音效（docs/38 §8.11）：有名字的 Boss 招式起手播「类别起手音 + Boss 专属音色」，结算时播命中音

@@ -99,6 +99,8 @@ func run() -> void:
 	check(rep.group == ["knight_boss"] and int(rep.phase) == 2 and not bool(rep.safe) and str(rep.operator) == "wisadel", "trial record keeps scenario")
 	check(float(rep.boss_dmg.get("wisadel", 0.0)) >= 120.0 and float(rep.boss_dmg_type.get("knight_boss", 0.0)) >= 120.0, "trial record splits Boss damage by operator")
 	check(rep.taken.has("knight_boss/冲锋") and float(rep.taken["knight_boss/冲锋"].dmg) > 0.0, "trial record splits damage taken by Boss move")
+	g.tele.warn(kb, "line", 0.8, {"ang": 0.0, "len": 300.0, "wid": 30.0, "name": "冲锋", "act": "dash", "dmg": 10.0})
+	check(int(g.trial.report("dead").casts.get("knight_boss/冲锋", 0)) >= 1, "trial record counts casts per move")
 	check(not rep.phases.is_empty() and int(rep.phases[0].phase) == 2, "trial record has the phase timeline")
 	check(rep.bosses.size() == 1 and float(rep.bosses[0].hp_pct) <= 0.5001, "trial record has Boss remaining HP")
 	g.trial.record("dead")

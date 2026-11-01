@@ -18,6 +18,7 @@ var boss_dmg: Dictionary = {}      # 干员 id → 对 Boss（含二阶段）造
 var boss_dmg_type: Dictionary = {} # Boss 类型 → 受到的有效伤害
 var taken: Dictionary = {}         # 招式标签 → 队长承受伤害（安全模式下照记，只是血会补满）
 var taken_n: Dictionary = {}       # 招式标签 → 命中次数
+var casts: Dictionary = {}         # 招式标签 → 出手次数（有伤害的预警，每段算一次；命中率 = taken.hits / casts）
 var phase_log: Array = []          # [Boss 类型, 阶段, 进入时刻（演练秒）]；击破记成阶段 0
 var _phase_seen: Dictionary = {}
 var recorded := false
@@ -139,6 +140,14 @@ func on_lose(amount: float, src: String) -> void:
 	taken_n[key] = int(taken_n.get(key, 0)) + 1
 
 
+## Boss 放出一段有伤害的预警（telegraph.warn 调用）：按招式标签数出手次数
+func on_cast(w: Dictionary) -> void:
+	if not active or float(w.get("dmg", 0.0)) <= 0.0:
+		return
+	var key := move_tag(w)
+	casts[key] = int(casts.get(key, 0)) + 1
+
+
 ## 对 Boss 的有效伤害（telemetry.on_dmg 调用）
 func on_boss_dmg(op: String, e: Dictionary, eff: float) -> void:
 	if not active or eff <= 0.0 or not e.get("boss", false) or e.get("friendly", false):
@@ -197,7 +206,7 @@ func report(result: String) -> Dictionary:
 		"squad": str(config.get("squad", "")), "operator": str(config.get("operator", "")), "safe": bool(config.get("safe", true)),
 		"ops": g.squad.ops.map(func(o): return str(o.id)), "leader_elite": int(g.ch.elite) if g.ch != null else 0, "level": g.level,
 		"max_hp": snappedf(g.max_hp, 1.0), "result": result, "t": dur, "phases": phases, "phase_log": phase_log.duplicate(true),
-		"bosses": bosses, "boss_dmg": dmg_ops, "boss_dmg_type": dmg_types, "taken": tk,
+		"bosses": bosses, "boss_dmg": dmg_ops, "boss_dmg_type": dmg_types, "taken": tk, "casts": casts.duplicate(),
 		"taken_total": snappedf(taken.values().reduce(func(a, b): return a + b, 0.0), 0.1),
 		"downs": int(g.squad.downs_n), "dead": result == "dead", "killer": killer}
 
