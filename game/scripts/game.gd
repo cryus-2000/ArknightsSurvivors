@@ -575,6 +575,8 @@ static func demo_warm_names() -> Array:
 	names.append_array(Vfx.STRIPS)
 	for pid in Doctor.PASSIVES:
 		names.append("growth_" + pid)
+	for c in Doctor.FILLERS:
+		names.append("growth_" + str(c.id))   # 补给卡图标（灯油 / 临时协同，11-01 docs/214 A2）与成长卡同目录同前缀
 	for wid in D.WEAPONS:
 		names.append("weapon_" + wid)
 	for n in BASE_TEX:
@@ -952,6 +954,8 @@ func _ready() -> void:
 		optional.append("relic_" + rid)
 	for pid in doctor.PASSIVES:
 		optional.append("growth_" + pid)
+	for c in doctor.FILLERS:
+		optional.append("growth_" + str(c.id))
 	for wid in D.WEAPONS:
 		optional.append("weapon_" + wid)
 	for n in optional:
