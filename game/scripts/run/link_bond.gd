@@ -600,8 +600,8 @@ static func _inq(u, a: Dictionary, t: float) -> bool:
 			lu.play_vis_anim("skill")
 		u.g.lamp = minf(float(u.g.lamp_cap), float(u.g.lamp) + Bal.v("ult/link_lumen_lamp", 10.0))
 		u.g.nerve = 0.0
-		u.light(c, r + 60.0, Color(1.0, 0.95, 0.8), 1.2)
-		u.shape({"kind": "circle", "c": c, "r": r, "col": Color(1.0, 0.94, 0.78), "fill": 0.14, "layer": "back", "life": 3.0})
+		u.light(c, r + 40.0, Color(1.0, 0.9, 0.7), 0.8)   # 预审 11-02：3 秒实心光罩叠起来发白 → 只留 1.2 秒淡底 + 一圈灯色边（增伤仍是 3 秒）
+		u.shape({"kind": "circle", "c": c, "r": r, "col": Color(1.0, 0.86, 0.6), "fill": 0.07, "layer": "back", "life": 1.2})
 		u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.9, "w": 3.0, "col": cl, "life": 1.0})
 		for e in u.in_circle(c, r):
 			e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), u.g.t + 3.0)
@@ -622,8 +622,8 @@ static func _inq(u, a: Dictionary, t: float) -> bool:
 		var fp: Vector2 = a.fp
 		var tp2: Vector2 = a.tp2
 		u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 4.0, "col": Color(1.0, 0.96, 0.85), "glow": ci, "grow": 0.04, "life": 0.55})
-		for q in 5:
-			u.spark(fp.lerp(tp2, (q + 0.5) / 5.0), ci, 2, 10.0)
+		for k in [0.14, 0.33, 0.52, 0.81]:   # 火花不等距（预审 11-02：等距排列像贴图拼接）
+			u.spark(fp.lerp(tp2, k), ci, 1 + int(k * 3.0) % 2, 10.0)
 		for e in u.in_band(fp, tp2, 30.0):
 			_hit(ir, e, "灯下审决", 1.6)
 		Link._merge_flash(u, tp2.lerp(fp, 0.3), cl.lerp(Color.WHITE, 0.4), ci, 38.0)
