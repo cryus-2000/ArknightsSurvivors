@@ -219,6 +219,7 @@ func _collect(g_item: Dictionary) -> void:
 			g.telemetry.lamp_note("精英灯油" if g_item.val >= 25.0 else "灯油", g.lamp - l0)
 			Sfx.play("oil", -4.0)
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
+			g.onboard.note("oil")   # 新手引导「灯火」做完判定（docs/219）
 		"chest":
 			g.pending_chests += 1
 			g.chest_src.append(str(g_item.get("src", "?")))

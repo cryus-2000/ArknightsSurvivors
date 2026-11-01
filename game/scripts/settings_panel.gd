@@ -34,6 +34,8 @@ const ROWS := [
 	{"cn": "界面大小", "en": "UI SIZE", "key": "ui_size_pct", "type": "uisize"},
 	{"cn": "战斗画面缩放", "en": "BATTLE ZOOM", "key": "cam_zoom_pct", "type": "zoom"},
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
+	# 新手引导（docs/219）：三格 没玩过 / 玩过 / 关闭；改成没玩过 / 玩过时清掉已出过的卡，下一局重新教
+	{"cn": "新手引导", "en": "TUTORIAL", "key": "onboard", "type": "onboard"},
 	# 自动连携 / 自动终结技（docs/198 §1.4）：缺省桌面都关、手机自动连携开（Cfg._ready）；局内即时生效（run/ult.gd 每帧读）。ult/on = 0 时不列出
 	{"cn": "自动连携", "en": "AUTO CHAIN", "key": "auto_combo", "type": "bool", "note": "队友头像亮起后自动出手"},
 	{"cn": "自动终结技", "en": "AUTO ULTIMATE", "key": "auto_ult", "type": "bool", "note": "充满后，敌人密集、精英靠近或生命低于 30% 时自动释放"},
@@ -57,7 +59,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
-	["操作", "CONTROLS", ["auto_combo", "auto_ult", "pad_rumble", "touch_layout"]],
+	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "pad_rumble", "touch_layout"]],
 ]
 
 ## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变。
@@ -343,6 +345,8 @@ func _tap(mp: Vector2, button: int) -> void:
 						Cfg.max_fps = fv
 						Cfg.apply()
 						Sfx.play("ui_move")
+				elif ROWS[i].type == "onboard" and mp.x >= control_x + 16.0:
+					_set_onboard(ONBOARD_OPTS[clampi(int((mp.x - (control_x + 16.0)) / 60.0), 0, 2)][0])
 				elif ROWS[i].type == "quality" and mp.x >= control_x - 40.0:
 					# 四格（推荐 / 低 / 中 / 高，各 56 宽、间距 4）：点哪格选哪档
 					var qi := clampi(int((mp.x - (control_x - 40.0)) / 60.0), 0, 3)
@@ -353,6 +357,20 @@ func _tap(mp: Vector2, button: int) -> void:
 				else:
 					_adjust(i, dir)
 	get_viewport().set_input_as_handled()
+
+
+## 新手引导三档（docs/219）：[存档值, 格内文字]
+const ONBOARD_OPTS := [["new", "没玩过"], ["vet", "玩过"], ["off", "关闭"]]
+
+
+func _set_onboard(m: String) -> void:
+	if m == Cfg.onboard:
+		return
+	Cfg.onboard = m
+	if m != "off":
+		Cfg.onboard_seen = []   # 重新打开：已出过的卡清掉，下一局重新教
+	Cfg.save()
+	Sfx.play("ui_move")
 
 
 func _adjust(i: int, dir: int) -> void:
@@ -368,6 +386,9 @@ func _adjust(i: int, dir: int) -> void:
 		"fps":
 			var fo: Array = Cfg.MAX_FPS_OPTS
 			Cfg.max_fps = fo[posmod(fo.find(Cfg.max_fps) + dir, fo.size())]
+		"onboard":
+			var oi: int = ONBOARD_OPTS.map(func(o): return o[0]).find(Cfg.onboard)
+			_set_onboard(ONBOARD_OPTS[posmod((oi if oi >= 0 else -1) + dir, 3)][0])
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"uisize":
@@ -625,6 +646,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				UI.text(ci, font, fr.position + Vector2(0, 25), "自动" if fv == 0 else str(fv), fs_v - (2 if fv == 0 else 0), Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, fr.size.x)
 			if Cfg.max_fps == 0 and Cfg.fps_lock30:
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "已按本机锁 30", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
+		"onboard":
+			# 三格 没玩过 / 玩过 / 关闭（同帧率格的样式）；还没问过时三格都不亮，行尾写「下局开局时询问」
+			for oi in 3:
+				var active: bool = ONBOARD_OPTS[oi][0] == Cfg.onboard
+				var orr := Rect2(vx + 16 + oi * 60, rr.position.y + ty0 - 25, 56, 36)
+				ci.draw_rect(orr, UI.CYAN if active else Color("1b252e"))
+				UI.text(ci, font, orr.position + Vector2(0, 25), ONBOARD_OPTS[oi][1], fs_v - 3, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, orr.size.x)
+			if Cfg.onboard == "":
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "下局开局时询问", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"uisize", "zoom":
 			var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
 			var dflt: bool = (Cfg.ui_size_pct == 100) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)

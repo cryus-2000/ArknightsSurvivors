@@ -321,7 +321,7 @@ func _draw_body() -> void:
 		Game.S.STATS:
 			g.stats_screen.draw(vs)
 		Game.S.PAUSE:
-			g.result_screen.draw(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
+			g.result_screen.draw(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["演示", "H", "demos"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
 		Game.S.DEAD:
 			if g.state_age < DEATH_T:
 				draw_death_transition(vs)
@@ -351,6 +351,7 @@ func _draw_body() -> void:
 				g.run_log.draw(vs)   # 对局记录
 			else:
 				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["作战记录", "Tab", "stats"], ["回到标题", "T", "title"]], true)
+	g.onboard.draw(vs)   # 新手引导提示卡（screens/onboard.gd）：不拦输入，只在 PLAY 显示
 	g.tour.draw_tip(vs)   # 到点小提示（screens/tour.gd）：压在所有界面之上，不拦输入
 	# 寻访（docs/109 §12）：打不打开由 headhunt.tick 在主循环里定（docs/126 R4），这里只画
 	if g.headhunt.open and (g.state == Game.S.WIN or g.state == Game.S.DEAD) and not g.run_stats.open and not g.run_log.open:
