@@ -162,7 +162,7 @@ func _ss_wait() -> float:
 
 ## --statsshot=<秒>[,dead]（docs/77 实机截图）：机器人照常打到第 <秒> 秒后直接进胜利（结局一）/ 失败结算，
 ## 依次截 结算面板（多了「作战记录」按钮）→ 作战记录总览动效中（0.3 秒）→ 总览终态 → 主控详情 → 第二名干员详情，
-## 存到 --shotdir：shot_stats_result / _motion / _overview / _detail0 / _detail1.png，截完退出。无头不截（只走流程）。
+## 存到 --shotdir：shot_stats_result / _motion / _overview / _detail0 / _detail1 / _taken（承伤来源，有数据时）.png，截完退出。无头不截（只走流程）。
 ## 失败截图可加 cause=corrode@<敌人类型> 或 cause=mire / zone 摆拍击倒者（倒下前补一段扣血记账，只影响击倒者显示）。
 var _ss := {}
 func _stats_shot() -> bool:
@@ -238,10 +238,22 @@ func _stats_shot() -> bool:
 		4:
 			if UM.now() - float(_ss.t) >= 0.9:
 				shot.call("detail1")
+				_ss.phase = 5
+				_ss.t = UM.now()
+				if g.run_stats.has_taken():   # 承伤来源（11-01）：桌面 V 键进页，手机总览第四页
+					g.run_stats.page = 0
+					if Cfg.touch_device():
+						g.run_stats.tab = 3
+					else:
+						g.run_stats.key(KEY_V)
+		5:
+			if UM.now() - float(_ss.t) >= 0.9:
+				if g.run_stats.has_taken():
+					shot.call("taken")
 				var m: Dictionary = g.run_stats.model
 				print("STATSSHOT_MODEL ", JSON.stringify({"total": m.total, "taken": int(m.leader.taken), "heal": int(m.leader.heal), "heal_src": m.leader.heal_src.map(func(x): return [x.name, int(x.v)]), "taken_src": m.leader.taken_src.map(func(x): return [x.name, int(x.v)]), "hp": [int(g.hp), int(g.max_hp)], "floor": g.floor_hits, "hits": g.telemetry.hits, "rows": m.rows.map(func(r): return [r.key, int(r.dmg), r.pct, r.kills, r.casts, snappedf(r.join_t, 1)])}))
 				g.get_tree().quit()
-				_ss.phase = 5
+				_ss.phase = 6
 	return true
 
 

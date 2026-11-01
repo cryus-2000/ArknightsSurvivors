@@ -269,6 +269,7 @@ static func model(raw: Dictionary) -> Dictionary:
 		if float(taken[k]) >= 0.5:
 			taken_l.append({"name": k, "v": float(taken[k])})
 	taken_l.sort_custom(func(a, b): return a.v > b.v)
+	var t_rank := taken_rank(raw)
 	var heal_l: Array = []
 	for k in heal:
 		if float(heal[k]) >= 0.5:
@@ -326,9 +327,71 @@ static func model(raw: Dictionary) -> Dictionary:
 		"best": {"v": float(best.get("v", 0.0)), "src": str(best.get("src", "")), "op": best_op},
 		"timeline": {"bin_s": bin_s, "series": series, "peak": peak}, "bosses": bosses,
 		"lamp_s": raw.get("lamp_s", [0.0, 0.0, 0.0, 0.0]), "beacons": raw.get("beacons", [0, 0]), "fuse": raw.get("fuse", {}),
-		"leader": {"taken": _sum(taken), "hits": int(raw.get("hits", 0)), "taken_src": taken_l, "heal": _sum(heal), "heal_src": heal_l,
+		"leader": {"taken": _sum(taken), "hits": int(raw.get("hits", 0)), "taken_src": taken_l, "taken_rank": t_rank, "heal": _sum(heal), "heal_src": heal_l,
 			"dodges": int(raw.get("dodges", 0)), "dashes": int(raw.get("dashes", 0)), "blocks": int(raw.get("blocks", 0)),
 			"low_hp_s": float(raw.get("low_hp_s", 0.0))}}
+
+
+## 承伤来源排名（11-01 用户「最后作战报告里面是不是可以加上敌人造成的伤害排名」）：队长的承伤（combat.lose_hp 的 g.dmg_log，只有队长；
+## 队友生命是突击生命比例 squad.op_hurt，不记来源）按来源合并成行——同一种敌人的接触 / 招式 / 冲击环 / 弹幕记成一行（Boss 也是按种类一行），
+## 环境（黑潮、溟痕、侵蚀、神经损伤、寂灭……）各自一行。行：{name, v, pct, type（敌人类型，环境为空）, env（环境键）, boss, killer（击倒者那一行）}，
+## killer_by：击倒者是施加持续伤害的敌人、对上的是侵蚀这类行时，记施加者名字。按伤害从大到小、pct 合计 100。前 RANK_N 行之外如果有击倒者，追加在后面（rank 记真实名次）；other = 其余行合计。没有承伤数据返回空
+const RANK_N := 5
+static func taken_rank(raw: Dictionary) -> Dictionary:
+	var by := {}
+	var td: Dictionary = raw.get("taken", {})
+	for k in td:
+		var ks := str(k)
+		var v := float(td[k])
+		var ty := taken_type(ks)
+		var gk := ("e:" + ty) if ty != "" else ("env:" + ks)
+		if not by.has(gk):
+			var ed: Dictionary = D.ENEMIES.get(ty, {}) if ty != "" else {}
+			by[gk] = {"name": taken_name(ks), "v": 0.0, "type": ty, "env": "" if ty != "" else ks, "boss": str(ed.get("role", "")) == "boss" or ks.begins_with("boss_"), "killer": false}
+		by[gk].v = float(by[gk].v) + v
+		if ks.begins_with("boss_"):
+			by[gk].boss = true
+	if float(raw.get("dark_dmg", 0.0)) > 0.5:
+		by["env:dark"] = {"name": TAKEN_NAME.dark, "v": float(raw.dark_dmg), "type": "", "env": "dark", "boss": false, "killer": false}
+	var all: Array = []
+	for gk in by:
+		if float(by[gk].v) >= 0.5:
+			all.append(by[gk])
+	if all.is_empty():
+		return {}
+	all.sort_custom(func(a, b): return a.v > b.v or (a.v == b.v and str(a.name) < str(b.name)))
+	var pc := pct_ints(all.map(func(x): return x.v))
+	var tot := 0.0
+	for i in all.size():
+		all[i]["pct"] = pc[i]
+		all[i]["rank"] = i + 1
+		tot += float(all[i].v)
+	# 击倒者：先按敌人种类 / 环境键对上；对不上（持续伤害记给了施加者、这一行却记在侵蚀下）再按死因名对
+	var kd: Dictionary = raw.get("killer", {})
+	var ki := -1
+	if not kd.is_empty():
+		for i in all.size():
+			var r: Dictionary = all[i]
+			if (str(kd.get("type", "")) != "" and r.type == str(kd.type)) or (str(kd.get("env", "")) != "" and (r.env == str(kd.env) or (str(kd.env) == "mire" and r.env == "nerve"))):
+				ki = i
+				break
+		if ki < 0 and str(kd.get("cause", "")) != "":
+			for i in all.size():
+				if str(all[i].name) == str(kd.cause):
+					ki = i
+					if str(kd.get("name", "")) != "" and str(kd.name) != str(kd.cause):
+						all[i]["killer_by"] = str(kd.name)   # 持续伤害记在侵蚀这类行下，施加它的敌人才是击倒者：界面写「由 X 施加」
+					break
+		if ki >= 0:
+			all[ki].killer = true
+	var rows: Array = all.slice(0, RANK_N)
+	if ki >= RANK_N:
+		rows.append(all[ki])
+	var other := 0.0
+	for i in range(RANK_N, all.size()):
+		if i != ki:
+			other += float(all[i].v)
+	return {"rows": rows, "total": tot, "n": all.size(), "other": other, "other_n": all.size() - rows.size()}
 
 
 ## 对局记录（10-29 用户：结算「对局记录」改游戏内面板，点一局看它的作战记录）：runs.jsonl 的一行 → 原始记录（喂 model）。

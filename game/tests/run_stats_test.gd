@@ -96,6 +96,33 @@ func test_fake_details() -> void:
 	var tk: Array = m.leader.taken_src
 	ok(not tk.is_empty() and tk[0].name == "接潮主教" and absf(float(tk[0].v) - 2140.0) < 0.01, "承伤：同一 Boss 的招式与接触合并（接潮主教 2140）")
 	ok(tk.any(func(x): return str(x.name).begins_with("寂灭")), "承伤：熄灯持续掉血单列")
+	# 承伤来源排名（11-01）：同种敌人一行、Boss 标出、环境单列、pct 合计 100；击倒者标出，前 5 名以外的击倒者追加在后
+	var tr: Dictionary = m.leader.taken_rank
+	var trr: Array = tr.get("rows", [])
+	ok(trr.size() == 5 and trr[0].type == "bishop" and bool(trr[0].boss) and absf(float(trr[0].v) - 2140.0) < 0.01, "承伤排名：接潮主教一行（Boss，2140）")
+	ok(trr.any(func(x): return x.env == "zone" and x.type == ""), "承伤排名：黑潮作为环境来源")
+	ok(not trr.any(func(x): return bool(x.killer)), "承伤排名：胜利局没有击倒者")
+	near(float(tr.total), 4659.0, "承伤排名：合计 = 受到的伤害", 0.0001)
+	var rk := RunStats.fake_raw()
+	rk.taken = {"contact_bone": 900.0, "atk_bone": 100.0, "contact_slider": 800.0, "zone": 700.0, "bullet": 600.0, "corrode": 500.0, "mire": 400.0, "contact_carver": 50.0}
+	rk.dark_dmg = 0.0
+	rk.killer = {"type": "carver", "env": "", "name": "固海凿石者", "cause": ""}
+	var tr2: Dictionary = RunStats.model(rk).leader.taken_rank
+	var r2: Array = tr2.rows
+	ok(r2.size() == 6 and r2[0].type == "bone" and absf(float(r2[0].v) - 1000.0) < 0.01, "承伤排名：同种敌人接触 + 招式合并（骨海漂流体 1000）")
+	ok(r2[5].type == "carver" and bool(r2[5].killer) and int(r2[5].rank) == 7, "承伤排名：前 5 以外的击倒者追加在后、名次 7")
+	ok(int(tr2.other_n) == 1 and absf(float(tr2.other) - 400.0) < 0.01, "承伤排名：其余 1 项（溟痕 400）")
+	ok(r2.map(func(x): return int(x.pct)).reduce(func(a2, b2): return a2 + b2, 0) <= 100, "承伤排名：百分比不超 100")
+	rk.killer = {"type": "", "env": "mire", "name": "溟痕", "cause": "神经损伤"}
+	rk.taken = {"contact_bone": 900.0, "nerve": 300.0}
+	var r3: Array = RunStats.model(rk).leader.taken_rank.rows
+	ok(r3.size() == 2 and r3[1].env == "nerve" and bool(r3[1].killer), "承伤排名：溟痕击倒者对上神经损伤那一行")
+	rk.killer = {"type": "spitter", "env": "", "name": "脊海喷吐者", "cause": "侵蚀"}
+	rk.taken = {"contact_bone": 900.0, "corrode": 300.0}
+	var r4: Array = RunStats.model(rk).leader.taken_rank.rows
+	ok(r4[1].env == "corrode" and bool(r4[1].killer) and str(r4[1].get("killer_by", "")) == "脊海喷吐者", "承伤排名：持续伤害的施加者击倒 → 标侵蚀那一行并记施加者")
+	rk.taken = {}
+	ok((RunStats.model(rk).leader.taken_rank as Dictionary).is_empty(), "承伤排名：没有承伤数据时为空（界面不显示）")
 	ok(m.best.op == "斯卡蒂" and int(m.best.v) == 18412, "最高单次：数值与干员名")
 	ok(RunStats.pct_ints([1, 1, 1]).reduce(func(a, b): return a + b, 0) == 100, "最大余数法：三等分合计 100")
 	ok(RunStats.pct_ints([0, 0]) == [0, 0], "最大余数法：全 0")

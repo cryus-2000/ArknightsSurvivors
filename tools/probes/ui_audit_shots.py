@@ -46,6 +46,7 @@ JOBS = {
     'tab': AT + ['--tabshot=600'],
     'win': AT + ['--statsshot=20'],
     'fail': AT + ['--statsshot=20,dead'],
+    'taken': AT + ['--statsshot=150,dead,cause=corrode@slider'],   # 承伤来源（11-01）：多打一会儿才有几种来源
     'choices': AT + ['--choiceshots', '--maxt=320'],
     # 指挥 v2 / 终结技瞄准（docs/209）：四人小队，录帧（rec_*.png）取需要的那张
     'hud_sq': SQ + ['--recframes=20,1'],

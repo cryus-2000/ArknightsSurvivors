@@ -14,6 +14,9 @@ extends RefCounted
 ##   数字一律直接显示终值（只淡入 / 滑入、输出条照常增长）：原来数值从 0 滚动、队长那条最后才出，
 ##   开页约 1 秒内截图会看到「队长 0%」「藏品 0」「探索用时 01:57 ≠ 02:42」这类中间值。
 ## 从对局记录（run_log_screen）进来时返回键写「返回对局记录」，关掉回到列表。
+## 11-01 用户「最后作战报告里面是不是可以加上敌人造成的伤害排名」：「承伤来源」页（page 2）——队长承伤按来源前 5 名（同种敌人一行、Boss 按种类一行、
+##   环境各一行），像框 + 名称 + 伤害 + 占比条，击倒者那一行洋红标出（不在前 5 时追加在后）。桌面：底栏「承伤来源」按钮 / V 键 / 点队长卡上的击倒者；
+##   手机：总览第四页「承伤」。旧对局记录没有承伤数据时按钮 / 页都不出（model.leader.taken_rank 为空）。
 
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
@@ -46,11 +49,11 @@ var open := false
 var back_label := "返回结算"   # 从对局记录进来时是「返回对局记录」
 var _acc := HH.CYB            # 本页主题色（队长设定色，失败降饱和）
 var model: Dictionary = {}
-var page := 0           # 0 总览 / 1 详情
+var page := 0           # 0 总览 / 1 详情 / 2 承伤来源
 var sel := 0            # 选中的干员行
 var zone := 1           # 总览焦点：0 藏品格 / 1 编队列表
 var rel := 0            # 选中的藏品
-var tab := 0            # 手机总览页：0 编队 / 1 藏品 / 2 数据
+var tab := 0            # 手机总览页：0 编队 / 1 藏品 / 2 数据 / 3 承伤（有承伤数据时）
 var stat_scroll := 0    # 统计表滚动
 var t_open := 0.0
 var t_page := 0.0
@@ -191,7 +194,7 @@ func key(k: int) -> bool:
 				stat_scroll += 3
 			KEY_TAB:
 				if _ph:
-					tab = (tab + 1) % 3
+					tab = (tab + 1) % _ntabs()
 					Sfx.play("ui_move")
 				else:
 					Sfx.play("ui_ok", -6.0)
@@ -199,6 +202,9 @@ func key(k: int) -> bool:
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				if zone == 1 and n > 0:
 					_detail(sel)
+			KEY_V:
+				if has_taken():
+					_taken_page()
 			KEY_ESCAPE, KEY_C, KEY_BACKSPACE:
 				Sfx.play("ui_ok", -6.0)
 				close()
@@ -207,6 +213,13 @@ func key(k: int) -> bool:
 		if nr == 0:
 			zone = 1
 		return true
+	if page == 2:
+		if k in [KEY_ESCAPE, KEY_BACKSPACE, KEY_C, KEY_TAB, KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_V]:
+			page = 0
+			t_page = UM.now()
+			Sfx.play("ui_ok", -6.0)
+			return true
+		return false
 	match k:
 		KEY_LEFT, KEY_A, KEY_UP, KEY_W, KEY_PAGEUP:
 			if sel > 0:
@@ -258,6 +271,25 @@ func _detail(i: int) -> void:
 	Sfx.play("ui_ok", -4.0)
 
 
+## 承伤来源：队长承伤排名（model.leader.taken_rank；旧对局记录没有就是空）
+func taken_rank() -> Dictionary:
+	return model.get("leader", {}).get("taken_rank", {})
+
+
+func has_taken() -> bool:
+	return not (taken_rank().get("rows", []) as Array).is_empty()
+
+
+func _ntabs() -> int:
+	return 4 if has_taken() else 3
+
+
+func _taken_page() -> void:
+	page = 2
+	t_page = UM.now()
+	Sfx.play("ui_ok", -4.0)
+
+
 ## 鼠标 / 触屏（触屏由引擎模拟成鼠标）：mp 为 UI 逻辑坐标
 func click(mp: Vector2) -> bool:
 	if not open:
@@ -288,13 +320,20 @@ func _act(a: String, arg) -> void:
 		"relic":
 			zone = 0
 			rel = int(arg)
+		"taken":
+			if has_taken():
+				if _ph:
+					tab = 3
+					Sfx.play("ui_move")
+				else:
+					_taken_page()
 		"tab":
 			if tab != int(arg):
 				tab = int(arg)
 				Sfx.play("ui_move")
 		"back":
 			Sfx.play("ui_ok", -6.0)
-			if page == 1:
+			if page >= 1:
 				page = 0
 				t_page = UM.now()
 			else:
@@ -595,6 +634,8 @@ func draw(vs: Vector2) -> void:
 		_last_mouse = mp
 	if page == 0:
 		_draw_overview(vs)
+	elif page == 2 and has_taken():
+		_draw_taken(vs)
 	else:
 		_draw_detail(vs)
 
@@ -669,7 +710,7 @@ func _enemy_frame(ty: String) -> Array:
 	if tx == null:
 		return []
 	var fh: int = tx.get_height()
-	var fw: int = tx.get_width() / 2   # 敌人常态帧条固定 2 帧（同 world 画敌人；帧不是正方形，不能按宽高比推帧数）
+	var fw: int = tx.get_width() / maxi(1, A.enemy_frames(tn, 2))   # 帧数按重画表（enemy_redraw.json，缺省 2 帧；帧不是正方形，不能按宽高比推帧数）；11-01 前固定除 2，重画的 6 帧条一格里并排三只
 	return [tx, Rect2(0, 0, fw, fh)]
 
 
@@ -685,9 +726,10 @@ func _draw_overview(vs: Vector2) -> void:
 		var half := (vs.x - M * 2.0 - 12.0) * 0.48
 		_banner(Rect2(M, top, half, 96.0))
 		_leader_card(Rect2(M + half + 12.0, top, vs.x - M * 2.0 - half - 12.0, 96.0))
-		var names := ["编队", "藏品", "数据"]
+		var names := ["编队", "藏品", "数据", "承伤"]
 		var ty := top + 108.0
-		for i in 3:
+		tab = mini(tab, _ntabs() - 1)
+		for i in _ntabs():
 			var trr := Rect2(M + i * 100.0, ty, 92.0, 36.0)
 			var rr := _tile(trr, 2, tab == i)
 			_t(rr.get_center(), names[i], 15, HH.LIGHT if tab == i else HH.MUTE, 1)
@@ -703,6 +745,8 @@ func _draw_overview(vs: Vector2) -> void:
 				_relic_popup(body.end.x, gb)
 			2:
 				_stats(body, t, 2)
+			3:
+				_taken_list(body, t, true)
 	else:
 		var lw := (vs.x - M * 2.0) * 0.4
 		_banner(Rect2(M, top, lw, 112.0))
@@ -716,6 +760,9 @@ func _draw_overview(vs: Vector2) -> void:
 	var br := Rect2(vs.x - M - (190.0 if not _ph else 170.0), vs.y - (52.0 if not _ph else 56.0), 190.0 if not _ph else 170.0, 34.0 if not _ph else 44.0)
 	_button(br, back_label, "ESC" if not Pad.using else "B", "back", _hovered(br))
 	if not _ph:
+		if has_taken():
+			var tb := Rect2(br.position.x - 172.0, br.position.y, 160.0, br.size.y)
+			_button(tb, "承伤来源", "V", "taken", _hovered(tb))
 		_hints(Vector2(M, br.get_center().y), [["↑ ↓", "选干员"], ["← →", "编队 / 藏品"], ["ENTER" if not Pad.using else "A", "干员详情"]])
 
 
@@ -784,6 +831,8 @@ func _leader_card(r: Rect2) -> void:
 		return
 	var side := minf(56.0, row_h)
 	var ab := Rect2(tx, row_y + (row_h - side) * 0.5, side, side)
+	if not won and has_taken():
+		cells.append([Rect2(tx, row_y, x1 - tx, row_h), "taken", null])   # 点击倒者 → 承伤来源
 	var fr: Array = _enemy_frame(str(kd.get("type", ""))) if str(kd.get("env", "")) == "" else _env_art(str(kd.env))
 	if not fr.is_empty():
 		var tx0: Texture2D = fr[0]
@@ -1170,3 +1219,110 @@ func _survival(r: Rect2, t: float) -> void:
 	if bool(fu.get("on", false)) and y < rr.end.y - 16.0:
 		_t(Vector2(x0, y), "源石锭熔铸", fs, HH.MUTE)
 		_t(Vector2(x1, y), "全队伤害 +%s%%" % str(snappedf(float(fu.pct) * 100.0, 0.1)).trim_suffix(".0"), fs, HH.LIGHT, 2)
+
+
+# ------------------------------------------------------------------ 承伤来源（page 2；手机是总览第四页）
+## 环境来源没有现成像框时的单字（docs/76 术语首字 / 意义字）
+const ENV_GLYPH := {"corrode": "蚀", "wound": "创", "nerve": "神", "bullet": "弹", "relic": "藏", "shock": "环"}
+
+
+func _draw_taken(vs: Vector2) -> void:
+	var t := _mt(t_page)
+	var M := 40.0 if not _ph else 24.0
+	var top := _header(vs, "作战记录 · 承伤来源", "RHODES ISLAND  //  RUN RECORD  //  DAMAGE TAKEN") + (6.0 if not _ph else 0.0)
+	var bot := vs.y - (72.0 if not _ph else 66.0)
+	_taken_list(Rect2(M, top, minf(vs.x - M * 2.0, 900.0), bot - top), t, true)
+	var br := Rect2(vs.x - M - (160.0 if not _ph else 150.0), vs.y - (52.0 if not _ph else 56.0), 160.0 if not _ph else 150.0, 34.0 if not _ph else 44.0)
+	_button(br, "返回总览", "ESC" if not Pad.using else "B", "back", _hovered(br))
+
+
+## 承伤来源排名：标题行（队长承受的伤害 合计 · 被击中次数）+ 前 5 行（击倒者不在前 5 时追加）+ 其余合计。
+## 行：名次 · 像框（敌人首帧 / 环境图）· 名称 + 标签（Boss / 环境 / 击倒者）· 伤害 · 占比 · 占比条（相对第一名，依次长出）
+func _taken_list(r: Rect2, t: float, title: bool) -> void:
+	var tr := taken_rank()
+	var rl: Array = tr.get("rows", [])
+	var x0 := r.position.x
+	var x1 := r.end.x
+	var y := r.position.y + 10.0
+	if title:
+		var tw := _sect(Vector2(x0, y), "DAMAGE TAKEN", "队长承受的伤害")
+		var ld: Dictionary = model.get("leader", {})
+		var sub := "合计 %s" % fmt_n(float(tr.get("total", 0.0)))
+		if int(ld.get("hits", 0)) > 0:
+			sub += " · 被击中 %s 次" % fmt_n(float(ld.hits))
+		_t(Vector2(x1, y), sub, 13 if not _ph else 12, HH.MUTE, 2, x1 - x0 - tw - 20.0)
+		y += 26.0
+	if rl.is_empty():
+		return
+	var foot := 22.0 if float(tr.get("other", 0.0)) >= 1.0 else 0.0
+	var gap := 6.0
+	var rh: float = clampf((r.end.y - y - foot + gap) / rl.size(), 40.0, 72.0 if not _ph else 56.0)
+	var vmax: float = maxf(1.0, float(rl[0].v))
+	for k in rl.size():
+		var row: Dictionary = rl[k]
+		var cr := Rect2(x0, y + k * rh, x1 - x0, rh - gap)
+		var a := 1.0 if UM.rm() else clampf((t - k * 0.06) / UM.T1, 0.0, 1.0)
+		var kil: bool = bool(row.get("killer", false))
+		_ci().draw_rect(cr, _fa(HH.DARK2, a))
+		if kil:
+			_ci().draw_rect(cr, _fa(Color(SB.MAG, 0.12), a))
+			_ci().draw_rect(Rect2(cr.position, Vector2(4, cr.size.y)), _fa(SB.MAG, a))
+		var cy := cr.get_center().y
+		_p(Vector2(cr.position.x + 14.0, cy), "%02d" % int(row.get("rank", k + 1)), 1.0 if _ph else 1.5, _fa(SB.MAG if kil else HH.MUTE, a))
+		var side: float = cr.size.y - 8.0
+		var ab := Rect2(cr.position.x + (40.0 if not _ph else 34.0), cr.position.y + 4.0, side, side)
+		_taken_icon(ab, row, a)
+		var nx := ab.end.x + 12.0
+		var vx := x1 - (150.0 if not _ph else 112.0)
+		var two: bool = cr.size.y >= 44.0
+		var nw := _t(Vector2(nx, cy - (8.0 if two else 0.0)), str(row.name), 15 if not _ph else 13, _fa(HH.LIGHT, a), 0, vx - nx - 120.0)
+		# 标签：击倒者 / Boss / 环境
+		var tags: Array = []
+		if kil:
+			tags.append(["击倒者", SB.MAG])
+		if bool(row.get("boss", false)):
+			tags.append(["Boss", _acc])
+		elif str(row.get("env", "")) != "":
+			tags.append(["环境", HH.MUTE])
+		var tx := nx + nw + 10.0
+		for tg in tags:
+			var tw2: float = g.font.get_string_size(str(tg[0]), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(11)).x + 12.0
+			var tr2 := Rect2(tx, cy - (8.0 if two else 0.0) - 9.0, tw2, 18.0)
+			_ci().draw_rect(tr2, _fa(Color(tg[1], 0.16), a))
+			_ci().draw_rect(tr2, _fa(Color(tg[1], 0.8), a), false, 1.0)
+			_t(tr2.get_center(), str(tg[0]), 11, _fa(HH.LIGHT, a), 1)
+			tx += tw2 + 6.0
+		if str(row.get("killer_by", "")) != "" and tx < vx - 40.0:
+			_t(Vector2(tx + 2.0, cy - (8.0 if two else 0.0)), "由%s施加" % str(row.killer_by), 12 if not _ph else 11, _fa(Color(0.85, 0.6, 1.0), a), 0, vx - tx - 20.0)
+		_p(Vector2(x1 - 12.0, cy - (6.0 if two else 0.0)), "%d%%" % int(row.pct), 2.0, _fa(SB.MAG if kil else HH.LIGHT, a), 2)
+		_p(Vector2(vx, cy - (6.0 if two else 0.0)), fmt_n(float(row.v)), 2.0 if _ph else 1.5, _fa(HH.MUTE, a), 0)
+		if two:
+			var e := 1.0 if UM.rm() else UM.out_cubic((t - 0.1 - k * 0.1) / 0.55)
+			var bc: Color = SB.MAG if kil else (_acc if bool(row.get("boss", false)) else HH.LIGHT2)
+			_bar(Rect2(nx, cy + 11.0, x1 - 12.0 - nx, 4.0), [[1.0, bc]], e * float(row.v) / vmax, true, a)
+	if foot > 0.0:
+		_t(Vector2(x0 + 14.0, y + rl.size() * rh + 6.0), "其余 %d 项 · 合计 %s" % [int(tr.get("other_n", 0)), fmt_n(float(tr.other))], 12, HH.MUTE)
+
+
+## 承伤来源的像框：敌人首帧（按包围盒整数倍放进框）/ 环境图（黑潮、溟痕、寂灭）/ 其余环境写一个字
+func _taken_icon(ab: Rect2, row: Dictionary, a: float) -> void:
+	_ci().draw_rect(ab, _fa(HH.DARK, a))
+	_ci().draw_rect(ab, _fa(Color(1, 1, 1, 0.1), a), false, 1.0)
+	var ty := str(row.get("type", ""))
+	var env := str(row.get("env", ""))
+	if ty != "":
+		var fr: Array = _enemy_frame(ty)
+		if not fr.is_empty():
+			var tx0: Texture2D = fr[0]
+			var src: Rect2 = fr[1]
+			_fit(tx0, src, _bbox(tx0, int(src.size.x), int(src.size.y), 1), A.hires_of(tx0), ab.grow(-3.0), 3.0, a)
+			return
+		_t(ab.get_center(), str(row.name).substr(0, 1), 16, _fa(HH.LIGHT, a), 1)
+		return
+	if env in ["zone", "mire", "nerve", "dark"]:
+		var fr2: Array = _env_art("mire" if env == "nerve" else env)
+		var tx1: Texture2D = fr2[0]
+		var src2: Rect2 = fr2[1]
+		_fit(tx1, src2, Rect2(Vector2.ZERO, src2.size), 1.0, ab.grow(-3.0), 3.0, a)
+		return
+	_t(ab.get_center(), str(ENV_GLYPH.get(env, str(row.name).substr(0, 1))), 18 if not _ph else 15, _fa(HH.MUTE, a), 1)
