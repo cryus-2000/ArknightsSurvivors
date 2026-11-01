@@ -130,7 +130,7 @@ func weighted_order(cards: Array) -> Array:
 
 ## ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
 func must_recruit(recruit: Array) -> bool:
-	return not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 5) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 9) and g.squad.size() < Squad.REGULAR_MAX))
+	return not recruit.is_empty() and (g.onboard.force_recruit() or (g.level >= Bal.vi("levelup/force_recruit_level_1", 5) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 9) and g.squad.size() < Squad.REGULAR_MAX))
 
 
 ## 强制招募保底（docs/119 §4.3）：先按原规则洗牌，开关开且有合格人选时把一名「与已有藏品有实际互动」的候选放进前 want 张；

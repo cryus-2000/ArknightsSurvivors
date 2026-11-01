@@ -1,14 +1,15 @@
 extends RefCounted
-## 新手引导（docs/219）：两条线 + 在当下教 + 实时小演示。取代首局聚光框引导（screens/tour.gd 的到点小提示照旧）。
+## 新手引导（docs/219，11-01 用户改口径）：问一次 + 1–2 分钟演示局 + 正式局里第一次碰到时弹提示卡（带实时小演示）。取代首局聚光框引导。
 ## 1. 问一次：首局开场结束后（intro.end_opening）暂停局内弹问题框「玩过《吸血鬼幸存者》这类游戏吗？」玩过 / 没玩过 / 跳过引导，
 ##    结果存 Cfg.onboard（"" 未问 / new / vet / off），设置「操作 · 新手引导」可改。
-## 2. 没玩过（new）：基础卡按顺序在当下弹出（移动 → 经验与升级 → 灯火 → 招募；商人 / Boss 到点出），做完动作才算完；
-##    第一局到第一只 Boss 倒下（最晚 onboard/guided_until 秒）为引导局：怪物密度 × onboard/density、敌人伤害 × onboard/enemy_dmg。
-## 3. 玩过（vet）只出本作特有系统卡（小队与队长 / 指挥圆盘 / 终结技 / 连携 / 溟痕与引航灯标 / 节点卡）；没玩过的基础卡之后也走这些（小队卡并进招募卡）。
+## 2. 没玩过（new）：先走演示局（drill）——移动与自动攻击 → 捡经验升级三选一（身边放经验结晶）→ 招募一名队友（直接弹招募画面）
+##    → 放一次终结技（直接充满）→「演示结束」，2.5 秒后重开进正式局（同一套开局配置）。演示局怪少（onboard/density）、敌伤低（onboard/enemy_dmg），
+##    最晚 onboard/drill_max 秒强制结束；每张卡的「跳过演示」直接进正式局。
+## 3. 正式局（两条线共用）：灯火 / 商人 / Boss / 小队与队长 / 指挥圆盘 / 终结技 / 连携 / 溟痕与引航灯标 / 节点卡，第一次碰到时弹提示卡。
 ## 每张卡只出一次（Cfg.onboard_seen）。卡片不暂停、不拦输入（只拦「跳过」按钮），只在 PLAY 状态显示。演示图鉴：暂停菜单「演示」，←/→ 翻全部卡。
 ## 只在真人对局生效（机器人 / 自动测试 / 演练 / 练习 / 图鉴演示不进，同 seed 不变）。
-## 测试 / 录片：--onboard=new|vet|ask|view（自动测试局里也走引导，不读不写存档；ask = 先弹问题框，2.4 秒后自动选「没玩过」）、
-##   --onboarddemo=<卡 id>（进局即出该卡，常驻不收起）。文案在 data/onboard.json，演示画法在 screens/onboard_demos.gd。
+## 测试 / 录片：--onboard=new|vet|ask|view（自动测试局里也走引导，不读不写存档；ask = 先弹问题框，2.4 秒后自动选「没玩过」；
+##   测试里演示局结束时直接退出，不重开）、--onboarddemo=<卡 id>（进局即出该卡，常驻不收起）。文案在 data/onboard.json，演示画法在 screens/onboard_demos.gd。
 
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")
@@ -18,7 +19,8 @@ const Character = preload("res://scripts/characters/character.gd")
 
 const INFO_SECS := 9.0       # 看完自动收起的卡（hint 为空）停留秒数
 const MOVE_NEED := 450.0     # 「移动」做完：累计移动像素
-const OIL_DIST := 260.0      # 「灯火」：在队长身边多远放一桶灯油（拾取半径之外，要走过去）
+const XP_DIST := 170.0       # 演示局「经验与升级」：经验结晶放在队长身边多远（拾取半径之外，要走过去）
+const END_SECS := 2.5        # 演示局「演示结束」卡停留几秒后进正式局
 const ACT_SECS := 40.0       # 特有系统的动作卡（指挥 / 终结技）等这么久没做也收起，不挡后面的卡
 const MIN_SHOW := 4.0        # 每张卡至少显示几秒（动作做得快也让人看完一句话；期间做完的动作照算）
 const GAP := 1.6             # 两张卡之间至少隔几秒
@@ -30,7 +32,8 @@ var mode := ""               # 本局生效的线：new / vet / ""（不引导�
 var dev := ""                # --onboard=…：测试用，不读不写存档
 var demo_id := ""            # --onboarddemo=<id>
 var seen_mem: Array = []     # 测试模式下的「已出过」（不进存档）
-var guided := false          # 引导局修正生效中
+var drill := false           # 演示局进行中
+var drill_left := -1.0       # 「演示结束」卡出现后的倒计时（≥ 0 时到 0 进正式局）
 
 var cur := ""                # 当前卡
 var cur_t := 0.0             # 当前卡在 PLAY 状态下已显示的秒数
@@ -43,6 +46,7 @@ var ev := {}                 # 事件计数：oil / wheel
 var ev0 := {}                # 当前卡开始时的事件计数
 var recruit_t := -1.0        # 第一次编队 ≥ 2 人的局内时刻
 var beacons0 := 0
+var lv0 := 1                 # 当前卡开始时的等级（「经验与升级」：升过一级才算）
 var skip_rect := Rect2()
 var now := 0.0               # 真实秒（演示动画用）
 
@@ -108,32 +112,49 @@ func _setup(m: String) -> void:
 	mode = m if m in ["new", "vet"] else ""
 	if dev == "":
 		Cfg.seen_intro = true   # 新引导取代旧的聚光框引导
-		if mode == "new":
-			for id in ["levelup", "lamp", "boss"]:   # 旧到点小提示里这三条由基础卡覆盖
+		if mode != "":
+			for id in ["levelup", "lamp", "boss"]:   # 旧到点小提示里这三条由演示局 / 提示卡覆盖
 				if not Cfg.seen_tips.has(id):
 					Cfg.seen_tips.append(id)
 		Cfg.save()
-	if mode == "new" and not _seen("move"):
-		_guided_on()
+	if mode == "new" and not _seen("drill"):
+		_drill_on()
 
 
-func _guided_on() -> void:
-	guided = true
-	g.stats.add(&"enemy_dmg", "mult", Bal.v("onboard/enemy_dmg", 0.7), "onboard")
+func _drill_on() -> void:
+	drill = true
+	g.stats.add(&"enemy_dmg", "mult", Bal.v("onboard/enemy_dmg", 0.5), "onboard")
 	g.sync_stats()
 
 
-func _guided_off() -> void:
-	if not guided:
+func _drill_off() -> void:
+	if not drill:
 		return
-	guided = false
+	drill = false
 	g.stats.remove_source("onboard")
 	g.sync_stats()
 
 
-## 引导局的怪物密度系数（spawner.density 乘上）
+## 演示局的怪物密度系数（spawner.density 乘上）
 func dens_k() -> float:
-	return Bal.v("onboard/density", 0.6) if guided else 1.0
+	return Bal.v("onboard/density", 0.5) if drill else 1.0
+
+
+## 演示局「招募」这一步：升级面板按保底招募画面弹（build_guide.must_recruit）
+func force_recruit() -> bool:
+	return drill and cur == "recruit"
+
+
+## 演示局结束：记下看过，重开进正式局（测试里直接退出）
+func _drill_end() -> void:
+	_mark("drill")
+	_drill_off()
+	cur = ""
+	drill_left = -1.0
+	if dev != "":
+		g.get_tree().quit()
+		return
+	g.get_tree().reload_current_scene()
 
 
 func _seen(id: String) -> bool:
@@ -150,7 +171,7 @@ func _mark(id: String) -> void:
 		Cfg.save()
 
 
-## 局内事件（pickups 拾取灯油 "oil"、指挥圆盘下令 "wheel"）
+## 局内事件（指挥圆盘下令 "wheel"）
 func note(what: String) -> void:
 	ev[what] = int(ev.get(what, 0)) + 1
 
@@ -166,30 +187,52 @@ func text_of(id: String, touch: bool) -> String:
 	return str(c.get("touch", c.get("text", ""))) if touch else str(c.get("text", ""))
 
 
+## 演示局的步骤（不含「演示结束」）
+func drill_ids() -> Array:
+	return (data.get("drill", []) as Array).filter(func(x): return x != "drill_end")
+
+
+## 演示图鉴列出的卡：演示局步骤 + 正式局提示卡（去重，不含「演示结束」）
 func all_ids() -> Array:
-	return (data.get("basic", []) as Array) + (data.get("special", []) as Array)
+	var out: Array = drill_ids()
+	for id in data.get("tips", []):
+		if not out.has(id):
+			out.append(id)
+	return out
+
+
+## 当前该轮询的卡：演示局只走演示步骤，正式局走提示卡
+func _queue_ids() -> Array:
+	return (data.get("drill", []) as Array) if drill else (data.get("tips", []) as Array)
 
 
 ## 卡能否出现（触发条件）
 func _trigger(id: String) -> bool:
 	var sq: int = g.squad.size()
+	if drill:
+		match id:
+			"move":
+				return true
+			"xp":
+				return _seen("move")
+			"recruit":
+				return _seen("xp")
+			"ult":
+				return _seen("recruit")
+			"drill_end":
+				return _seen("ult")
+		return false
 	match id:
-		"move":
-			return mode == "new"
-		"xp":
-			return mode == "new" and _seen("move")
 		"lamp":
-			return mode == "new" and _seen("xp")
-		"recruit":
-			return mode == "new" and _seen("lamp") and g.level >= 3
+			return g.lamp < 75.0 and g.t > 5.0
 		"merchant":
-			return mode == "new" and _seen("move") and not g.merchant.is_empty()
+			return not g.merchant.is_empty()
 		"boss":
-			return mode == "new" and _seen("move") and g.spawner.boss_alive()
+			return g.spawner.boss_alive()
 		"squad":
-			return mode == "vet" and sq >= 2
+			return sq >= 2
 		"command":
-			return g.squad.cmd_on() and sq >= 2 and recruit_t >= 0.0 and g.t - recruit_t >= 8.0 and (mode == "vet" or _seen("recruit"))
+			return g.squad.cmd_on() and sq >= 2 and recruit_t >= 0.0 and g.t - recruit_t >= 8.0
 		"ult":
 			return g.ult != null and g.ult.full()
 		"link":
@@ -206,37 +249,35 @@ func _trigger(id: String) -> bool:
 	return false
 
 
-## 已经不用教了（条件早已满足）：不弹，直接记成看过
+## 已经不用教了：不弹，直接记成看过（演示局里招募过 → 正式局不出小队卡；没有终结技 / 招募不了 → 演示局跳过那一步）
 func _moot(id: String) -> bool:
 	match id:
+		"squad":
+			return _seen("recruit")
 		"recruit":
-			return g.squad.size() >= 2
-		"lamp", "xp":
-			return false
+			return drill and g.progression.recruit_cards().is_empty() and g.squad.size() < 2
+		"ult":
+			return drill and g.ult == null
 	return false
 
 
 ## 当前卡做完了吗
 func _done(id: String) -> bool:
-	if demo_id != "":
+	if demo_id != "" or id == "drill_end":
 		return false
 	match id:
 		"move":
 			return moved >= MOVE_NEED
 		"xp":
-			return g.level >= 2
-		"lamp":
-			return int(ev.get("oil", 0)) > int(ev0.get("oil", 0))
+			return g.level > lv0
 		"recruit":
 			return g.squad.size() >= 2
 		"merchant":
 			return g.merchant.is_empty() or g.state == Game.S.SHOP
-		"boss":
-			return not g.spawner.boss_alive() or cur_t > 30.0
 		"command":
 			return int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)) or cur_t > ACT_SECS
 		"ult":
-			return not g.ult.full() or cur_t > ACT_SECS
+			return not g.ult.full() or (cur_t > ACT_SECS and not drill)
 		"mire":
 			return _lit_count() > beacons0 or cur_t > 25.0
 	return cur_t >= INFO_SECS
@@ -253,12 +294,23 @@ func _lit_count() -> int:
 func _show(id: String) -> void:
 	cur = id
 	cur_t = 0.0
+	lv0 = g.level
 	ev0 = ev.duplicate()
 	beacons0 = _lit_count()
-	if id == "lamp" and demo_id == "":
-		# 身边放一桶灯油（引导局：保证这一步做得完）
-		var dir := Vector2.RIGHT.rotated(-0.5)
-		g.pickups.drop(g.ppos + dir * OIL_DIST, "oil", 50.0)
+	if drill and demo_id == "":
+		match id:
+			"xp":
+				# 身边放一圈经验结晶，够升一级（走过去捡）
+				var need: float = maxf(1.0, g.xp_need - g.xp) * 1.15
+				for k in 5:
+					var dir := Vector2.RIGHT.rotated(-0.9 + k * 0.45)
+					g.pickups.drop(g.ppos + dir * (XP_DIST + k * 12.0), "xp", need / 5.0)
+			"recruit":
+				g.pending_levelups += 1   # 下一次升级面板按保底招募画面弹（force_recruit）
+			"ult":
+				g.ult.energy = g.ult.FULL   # 终结技直接充满
+			"drill_end":
+				drill_left = END_SECS
 	Sfx.play("ui_move", -6.0)
 
 
@@ -278,7 +330,7 @@ func skip_all() -> void:
 	if cur != "":
 		_finish(true)
 	mode = ""
-	_guided_off()
+	_drill_off()
 	if dev == "":
 		Cfg.onboard = "off"
 		Cfg.save()
@@ -323,8 +375,16 @@ func update(dt: float) -> void:
 	_last_p = g.ppos
 	if recruit_t < 0.0 and g.squad.size() >= 2:
 		recruit_t = g.t
-	if guided and (g.mid_boss_down or g.t >= Bal.v("onboard/guided_until", 240.0)):
-		_guided_off()
+	if drill_left >= 0.0:
+		cur_t += dt   # 「演示结束」卡照常淡入
+		drill_left -= dt
+		if drill_left <= 0.0:
+			_drill_end()
+		return
+	if drill and g.t >= Bal.v("onboard/drill_max", 150.0) and cur != "drill_end":
+		cur = ""
+		_show("drill_end")   # 演示局拖太久：直接结束
+		return
 	if cur != "":
 		cur_t += dt
 		if cur_t >= MIN_SHOW and _done(cur):
@@ -333,7 +393,7 @@ func update(dt: float) -> void:
 	if gap_t > 0.0:
 		gap_t -= dt
 		return
-	for id in all_ids():
+	for id in _queue_ids():
 		if _seen(id):
 			continue
 		if _moot(id):
@@ -461,7 +521,10 @@ func input(event: InputEvent) -> bool:
 					return true
 		return event is InputEventMouseButton or event is InputEventScreenTouch
 	if press and skip_rect.has_area() and skip_rect.has_point(mp):
-		_finish(true)
+		if drill:
+			_drill_end()   # 演示局：直接进正式局
+		else:
+			_finish(true)
 		return true
 	return false
 
@@ -537,8 +600,8 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 	if a > 0.6:
 		Demos.draw(hud, id, dr, t, _ctx())
 	var tp: Vector2 = (dr.position + Vector2(0, dh + 12.0)) if stacked else Vector2(dr.end.x + pad, pr.position.y + pad - 2.0)
-	var basic: Array = data.get("basic", [])
-	var en: String = ("GUIDE  %d / %d  ·  %s" % [basic.find(id) + 1, basic.size(), c.get("en", "")]) if (mode == "new" and basic.has(id) and not big) else ("NEW  ·  %s" % c.get("en", ""))
+	var basic: Array = drill_ids()
+	var en: String = ("TUTORIAL  %d / %d" % [basic.find(id) + 1, basic.size()]) if (drill and basic.has(id) and not big) else (("TUTORIAL  ·  %s" % c.get("en", "")) if id == "drill_end" else ("NEW  ·  %s" % c.get("en", "")))
 	UI.en(hud, font, tp + Vector2(0, 14), en, 10, gold, 2.5)
 	UI.text(hud, font, tp + Vector2(0, 40), str(c.get("title", "")), 20 if not big else 24, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
 	var asc: float = font.get_ascent(UI.fs(fsz))
@@ -558,16 +621,17 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 				hud.draw_rect(br, Color(1, 1, 1, 0.12 * a))
 				hud.draw_rect(Rect2(br.position, Vector2(br.size.x * clampf(moved / MOVE_NEED, 0.0, 1.0), br.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
 		else:
-			var left: float = clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
+			var left: float = clampf(drill_left / END_SECS, 0.0, 1.0) if id == "drill_end" else clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
 			hud.draw_rect(Rect2(Vector2(tp.x, hy + 6.0), Vector2(tx_w * left, 2.0)), Color(1, 1, 1, 0.3 * a))
 		# 跳过（只跳这一张）
-		var sw: float = 58.0 if touch else 46.0
+		var skip_s: String = "跳过演示" if drill else "跳过"
+		var sw: float = (58.0 if touch else 46.0) + (28.0 if drill else 0.0)
 		var sh: float = 30.0 if touch else 22.0
 		skip_rect = Rect2(Vector2(pr.end.x - sw - 10.0, pr.position.y + 8.0), Vector2(sw, sh))
 		hud.draw_rect(skip_rect, Color(0.03, 0.04, 0.05, 0.8 * a))
 		hud.draw_rect(skip_rect, Color(1, 1, 1, 0.3 * a), false, 1.0)
-		var stw: float = font.get_string_size("跳过", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x
-		hud.draw_string(font, skip_rect.get_center() + Vector2(-stw / 2.0, UI.fs(12) * 0.36), "跳过", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, a))
+		var stw: float = font.get_string_size(skip_s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x
+		hud.draw_string(font, skip_rect.get_center() + Vector2(-stw / 2.0, UI.fs(12) * 0.36), skip_s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, a))
 	# 做完：打勾
 	if done_k > 0.0:
 		var cc: Vector2 = pr.position + Vector2(pr.size.x - 30.0, 26.0)
