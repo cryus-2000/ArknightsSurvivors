@@ -14,7 +14,7 @@ const Materials = preload("res://scripts/render/final_boss_materials.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 ## Knight ice bodies use the docs/136 "ice" material: chips leave the advancing front, land on the ground line and cool.
 ## Low quality keeps them at the template's low_k share instead of switching them off; every hazard outline is drawn separately.
-const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear", "crescent"]
+const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_javelin", "ice_wall", "spear", "crescent"]
 const ICE_TINT := Color(1.0, 1.0, 1.0, 0.95)
 static var ice_tint := ICE_TINT   # 分阶段冰色（docs/169）：boss_attack_draw 每帧按骑士阶段写
 static var ice_off := false # --iceab same-run perf rotation only
@@ -47,7 +47,7 @@ static func _ring_dir(g, w: Dictionary) -> Vector2:
 ## Front-edge chips while a Knight ice body advances (20Hz ticks, shared Boss emission budget).
 static func _ice_trail(g, pool, h: Dictionary, ticks: int) -> void:
 	var skin: String = str(h.get("skin", ""))
-	var per: int = int({"ice_wave": 6, "crescent": 4, "ice_wall": 5, "ice_thrust": 3, "ice_lance": 1}.get(skin, 2))
+	var per: int = int({"ice_wave": 6, "crescent": 4, "ice_wall": 5, "ice_thrust": 3, "ice_lance": 1, "ice_javelin": 3}.get(skin, 2))
 	var count: int = Beam.take(g, ticks * per)
 	var axis := Vector2.from_angle(float(h.get("ang", 0.0)))
 	var velocity: Vector2 = h.get("velocity", Vector2.ZERO)
@@ -71,6 +71,10 @@ static func _ice_trail(g, pool, h: Dictionary, ticks: int) -> void:
 			"ice_thrust", "spear":
 				var at: Vector2 = h.pos + axis * float(h.len) + across * g.vrng.randf_range(-1.0, 1.0) * float(h.get("wid", 12.0)) * 0.6
 				_chip(g, pool, at, (axis * 0.4 + Vector2.UP + across * g.vrng.randf_range(-0.6, 0.6)).normalized(), 0.0, 4.0, i % 3 == 2)
+			"ice_javelin":
+				# 投枪尾迹：枪尾掉碎冰、每三颗一团寒气，留在原地慢慢落下（枪身飞走后尾迹还在）
+				var at: Vector2 = h.pos + across * g.vrng.randf_range(-3.0, 3.0) + axis * g.vrng.randf_range(0.0, 20.0)
+				_chip(g, pool, at, (-axis * 0.5 + Vector2.UP * 0.6 + across * g.vrng.randf_range(-0.5, 0.5)).normalized(), 0.0, 10.0, i % 3 == 2)
 			"ice_lance":
 				var v := Vector2.from_angle(g.vrng.randf_range(0.0, TAU))
 				var at: Vector2 = h.pos + Vector2(v.x, v.y * 0.62) * float(h.r) * sqrt(g.vrng.randf())
@@ -106,7 +110,20 @@ static func _ice_burst(g, pool, w: Dictionary) -> void:
 					# Crystal break starts 0.30 s before the 0.95 s impact ends: shards spill from the column and settle.
 					var at: Vector2 = root + Vector2(g.vrng.randf_range(-8.0, 8.0), -g.vrng.randf_range(10.0, 44.0))
 					pool.push("ice", at, (Vector2.UP * 0.4 + Vector2(g.vrng.randf_range(-1.0, 1.0), 0)).normalized(), ice_tint, 0.65, root.y + g.vrng.randf_range(0.0, 6.0))
+		"ice_javelin":
+			# 出手：骑士手边一小团寒气 + 几片碎冰往后崩（不沿整条线撒，避免读成地缝）
+			var count_j: int = Beam.take(g, 6)
+			for i in count_j:
+				_chip(g, pool, w.pos + d * g.vrng.randf_range(10.0, 40.0) + n * g.vrng.randf_range(-8.0, 8.0), (-d * 0.6 + Vector2.UP + n * g.vrng.randf_range(-0.6, 0.6)).normalized(), 0.0, 8.0, i % 2 == 0)
 		"ice_lance":
+			if w.shape == "line":
+				# 直线冰枪（绕场巡猎 / 裂地冲锋）：沿线迸出碎冰，每三颗一团冷雾，按离骑士远近错开（和画面的 0.12 秒扫过对齐）
+				var count_l: int = Beam.take(g, 18)
+				for i in count_l:
+					var u: float = (float(i) + g.vrng.randf()) / maxf(1.0, count_l)
+					var at: Vector2 = w.pos + d * float(w.len) * u + n * g.vrng.randf_range(-1.0, 1.0) * float(w.wid) * 0.7
+					_chip(g, pool, at, (Vector2.UP * 1.3 + n * g.vrng.randf_range(-0.7, 0.7)).normalized(), 0.12 * u, 8.0, i % 3 == 2)
+				return
 			var count: int = Beam.take(g, 12)
 			for i in count:
 				var v := Vector2.from_angle(TAU * (i + g.vrng.randf()) / maxf(1.0, count))
@@ -145,12 +162,15 @@ static func _ice_shatter(g, pool, h: Dictionary) -> void:
 				if v != Vector2.ZERO: points.append(h.pos + v * float(h.r))
 		"ice_wall":
 			for i in 14: points.append(h.pos + d * float(h.len) * (i + 0.5) / 14.0 + Vector2(0, -g.vrng.randf_range(0.0, 30.0)))
+		"ice_javelin":
+			var tip: Vector2 = h.pos + d * float(h.len)
+			for j in 10: points.append(tip + Vector2.from_angle(TAU * (j + g.vrng.randf()) / 10.0) * g.vrng.randf_range(4.0, 26.0) + Vector2(0, -g.vrng.randf_range(4.0, 22.0)))
 		"ice_lance":
 			for j in 3:
 				for k in 3: points.append(h.pos + Vector2((j - 1) * float(h.r) * 0.45, (j % 2) * 10.0 - g.vrng.randf_range(6.0, 40.0)))
 	if points.is_empty(): return
 	var count: int = Beam.take(g, points.size())
-	var drop: float = 30.0 if skin in ["ice_wall", "ice_lance"] else 10.0
+	var drop: float = 30.0 if skin in ["ice_wall", "ice_lance", "ice_javelin"] else 10.0
 	for i in count:
 		var at: Vector2 = points[i]
 		var side := Vector2(g.vrng.randf_range(-1.0, 1.0), 0.0)
@@ -177,7 +197,7 @@ static func dash_frost(g, e: Dictionary) -> void:
 static func _color(w: Dictionary) -> Color:
 	var c: Color = w.col
 	match str(w.get("skin", "")):
-		"ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear", "crescent", "step":
+		"ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_javelin", "ice_wall", "spear", "crescent", "step":
 			return Color(0.48, 0.81, 1.0, 0.9)
 		"phantom", "bubble":
 			return Color(0.78, 0.48, 1.0, 0.9)   # 偏执泡影：紫（用户 10-27，原青）
@@ -189,7 +209,7 @@ static func _color(w: Dictionary) -> Color:
 
 static func _material(skin: String) -> String:
 	match skin:
-		"ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear", "crescent", "step": return "blade"
+		"ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_javelin", "ice_wall", "spear", "crescent", "step": return "blade"
 		"phantom", "choir": return "bfx_flash"
 		"tentacle": return "fluid"
 	return "water"

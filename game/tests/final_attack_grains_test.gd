@@ -94,7 +94,7 @@ func check_safe_centers(fx, g: Dictionary, pool: Pool) -> void:
 func check_knight_ice(fx, g: Dictionary, pool: Pool, gameplay: RandomNumberGenerator) -> void:
 	var knight := {"type": "knight_boss"}
 	var state := gameplay.state
-	for skin in ["ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "crescent", "spear"]:
+	for skin in ["ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_javelin", "ice_wall", "crescent", "spear"]:
 		var shape := "line"
 		if skin == "ice_wave" or skin == "ice_lance": shape = "circle"
 		elif skin == "ice_field": shape = "cone"

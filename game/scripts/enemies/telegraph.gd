@@ -156,6 +156,8 @@ func update_warns(dt: float) -> void:
 				var op = w.get("aim_op")
 				if is_instance_valid(op) and op.pos != Vector2.INF:
 					target = op.pos + Vector2(0, -14)
+				elif float(w.get("lead", 0.0)) > 0.0:
+					target += g.pvel.limit_length(float(g.speed) * 1.5) * float(w.lead)   # 预判（骑士弧斩 v2，11-01）：瞄队长 lead 秒后的位置；冲刺中的速度按步行 1.5 倍封顶，不被一次冲刺带偏
 				if source is Dictionary:
 					w.pos = source.pos
 				var want: float = (target - w.pos).angle() + float(w.get("aim_offset", 0.0))

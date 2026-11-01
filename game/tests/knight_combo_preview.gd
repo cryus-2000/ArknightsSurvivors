@@ -58,6 +58,15 @@ func _ready() -> void:
 		scenarios = [{"name":"环形冰波", "move":"长枪回旋", "phase":2}, {"name":"三段冰锋", "move":"长枪连刺", "phase":1}, {"name":"放射双冰阵", "move":"踏冰裂阵", "phase":1}, {"name":"快速弧斩", "move":"断潮劈击", "phase":2}, {"name":"冰枪封径", "move":"冰枪封径", "phase":2}, {"name":"冻潮夹击", "move":"冻潮夹击", "phase":2}]
 	if "--knight-wall-review" in OS.get_cmdline_user_args():
 		scenarios=scenarios.filter(func(s):return s.move=="冻潮夹击")
+	# --knight-1101-review（11-01 用户截图「特效是不是没有做」+「弧斩打不到人」）：掷冰枪 / 裂地的直线冰枪新画面、弧斩 v2；
+	# --only=<招名> 只录这一段；--every-frame 每帧都存（30 帧原速）
+	var every_frame := "--every-frame" in OS.get_cmdline_user_args()
+	if "--knight-1101-review" in OS.get_cmdline_user_args():
+		segment_seconds = 10.0
+		scenarios = [{"name":"绕场巡猎 · 掷冰枪", "move":"绕场巡猎", "phase":2}, {"name":"重生冲锋 · 裂地", "move":"冲锋", "phase":2}, {"name":"断潮劈击", "move":"断潮劈击", "phase":1}]
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="):
+			scenarios = scenarios.filter(func(s): return s.move in arg.substr(7).split(","))
 	if stake_review:
 		scenarios=[{"name":"首次插枪布柱","move":"","phase":1},{"name":"末柱冲撞后掷枪补柱 · 已破四柱","move":"冲锋","phase":1},{"name":"二阶段连续追击 · 不再布柱","move":"冲锋","phase":2}]
 	for scenario in scenarios:
@@ -127,7 +136,7 @@ func _ready() -> void:
 			visual_step(DT)
 			await get_tree().process_frame
 			if not check_only: await RenderingServer.frame_post_draw
-			if frame_i % 2 == 0:
+			if every_frame or frame_i % 2 == 0:
 				var result: Error = OK if check_only else get_viewport().get_texture().get_image().save_png(out_dir.path_join("frame_%05d.png" % shot_i))
 				if result != OK:
 					push_error("Could not save combo frame")
