@@ -352,6 +352,8 @@ func lose_hp(amount: float, src: String, boss := false) -> float:
 	g.telemetry.on_lose(amount, src)   # 作战记录：击倒者归属（持续伤害记给施加它的敌人，docs/77）
 	if not src in NO_LOG:
 		g.dmg_log[src] = g.dmg_log.get(src, 0.0) + amount
+	if g.trial.active:
+		g.trial.on_lose(amount, src)   # Boss 演练记录：按招式的承伤
 	return amount
 
 

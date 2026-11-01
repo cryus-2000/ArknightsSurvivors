@@ -472,6 +472,8 @@ func on_dmg(e: Dictionary, eff: float, raw: float, hd: Dictionary = {}) -> void:
 		e["_hb"] = hb
 	hb[op] = g.t
 	var src: String = str(h.get("src", "?"))
+	if g.trial.active:
+		g.trial.on_boss_dmg(op, e, eff)   # Boss 演练记录：按干员的对 Boss 伤害
 	var d: Dictionary = op_out.get(op, {})
 	if d.is_empty():
 		op_out[op] = d
@@ -819,29 +821,54 @@ func _current_scene_path() -> String:
 	return cs.scene_file_path if cs != null else ""
 
 
-func save_local(result: String) -> void:
+## 本地记录写到哪：空串 = 这一局不写（测试运行 / 对外包）
+func _log_path() -> String:
 	# 测试运行不写玩家的记录；自测写本地记录用 --runslog=<路径>（写到指定文件，不碰玩家目录）
-	var path := RUNS_PATH
 	var test_path := ""
 	for a in Cfg.dev_args():
 		if a.begins_with("--runslog="):
 			test_path = a.substr(10)
 	if test_path != "":
-		path = test_path
-	elif not Cfg.dev_args().is_empty() or scene_is_test(_current_scene_path()):
-		return   # 不带 -- 参数直接起 tests/ 场景的回归（check.py 里额外参数为空的那些）同样不写：10-14 / 10-20 / 10-27 的「水月 lv1 0 击杀 quit」就是它们
-	elif not Cfg.runs_log_enabled():
-		return   # 对外发布包不记任何玩家数据（用户 2026-09-26 决定暂不收集，docs/43）；调试版与对内包（audience = internal）记
-	if saved or g.demo_op != "" or g.t < MIN_SAVE_T:
+		return test_path
+	if not Cfg.dev_args().is_empty() or scene_is_test(_current_scene_path()):
+		return ""   # 不带 -- 参数直接起 tests/ 场景的回归（check.py 里额外参数为空的那些）同样不写：10-14 / 10-20 / 10-27 的「水月 lv1 0 击杀 quit」就是它们
+	if not Cfg.runs_log_enabled():
+		return ""   # 对外发布包不记任何玩家数据（用户 2026-09-26 决定暂不收集，docs/43）；调试版与对内包（audience = internal）记
+	return RUNS_PATH
+
+
+func _meta(result: String) -> Dictionary:
+	return {"version": str(build.get("version", "dev")), "commit": str(build.get("commit", "dev")),
+		"platform": OS.get_name(), "time": Time.get_datetime_string_from_system(true), "seed": g.rng.seed,
+		"diff": g.diff, "map": Cfg.map_id, "start_op": g.ch.id if g.ch != null else "", "result": result}
+
+
+func save_local(result: String) -> void:
+	var path := _log_path()
+	if path == "" or saved or g.demo_op != "" or g.t < MIN_SAVE_T:
 		return
 	saved = true
-	var line := {"schema": SCHEMA, "meta": {
-		"version": str(build.get("version", "dev")), "commit": str(build.get("commit", "dev")),
-		"platform": OS.get_name(), "time": Time.get_datetime_string_from_system(true), "seed": g.rng.seed,
-		"diff": g.diff, "map": Cfg.map_id, "start_op": g.ch.id if g.ch != null else "", "result": result},
-		"run": record()}
+	var line := {"schema": SCHEMA, "meta": _meta(result), "run": record()}
 	line.run["op_stats"] = op_summary()   # 作战记录的按干员汇总（docs/77；只进本地记录，对外包整段不写，见上面的判断）
 	line.run["rs"] = rs_compact()        # 作战记录原始数据（10-29 用户：对局记录点开要和结算里的一样全；新增字段，旧行没有，SCHEMA 不变）
+	_append(path, line)
+
+
+## Boss 演练（run/boss_trial.gd）的一局：meta.trial = true，run.trial = 演练记录（Boss 组 / 阶段 / 成长档 / 编队 / 安全模式、用时与各阶段用时、
+## Boss 剩余血量、按干员的对 Boss 伤害、按招式的承伤、倒地与击倒者），另带 op_stats / rs，对局记录面板照常能点开看作战记录。
+## 不足 3 秒就退出的不记（误点）
+func save_trial(result: String, data: Dictionary) -> void:
+	var path := _log_path()
+	if path == "" or saved or g.demo_op != "" or float(data.get("t", 0.0)) < 3.0:
+		return
+	saved = true
+	var meta := _meta(result)
+	meta["trial"] = true
+	var line := {"schema": SCHEMA, "meta": meta, "run": {"trial": data, "t": float(data.get("t", 0.0)), "op_stats": op_summary(), "rs": rs_compact()}}
+	_append(path, line)
+
+
+func _append(path: String, line: Dictionary) -> void:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	_rotate_if_big(path)
 	var f := FileAccess.open(path, FileAccess.READ_WRITE if FileAccess.file_exists(path) else FileAccess.WRITE)

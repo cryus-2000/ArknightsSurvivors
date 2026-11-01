@@ -88,7 +88,12 @@ static func summary(d: Dictionary) -> Dictionary:
 		ops.erase(lead)
 		ops.push_front(lead)
 	var end := ""
-	if won:
+	if bool(meta.get("trial", false)):
+		# Boss 演练（11-01 起记录）：列表写「Boss 演练 · Boss 名（结果）」，点开照常是作战记录
+		var tr: Dictionary = run.get("trial", {})
+		var names: Array = (tr.get("group", []) as Array).map(func(id): return str(D.ENEMIES.get(str(id), {}).get("name", id)).replace("\"", ""))
+		end = "Boss 演练 · %s（%s）" % ["、".join(names), "击破" if won else ("退出" if res == "quit" else "倒下")]
+	elif won:
 		end = str(D.ENDINGS.get(str(run.get("ending", "")), {}).get("name", "探索完成"))
 	elif res == "quit":
 		end = "中途退出"
