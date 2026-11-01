@@ -435,17 +435,21 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 		var a: float = _h1(nm, 1) * TAU
 		var rr: float = R * (0.3 + 0.6 * _h1(nm, 2))
 		var cp: Vector2 = cen + Vector2.from_angle(a) * rr
+		# 扇面扫过就亮（10-31 用户「声呐上面不应该随着转的时候闪烁吗」）：扫到的一刻最亮 + 光晕，之后大半圈里渐暗到 0.25，等下一圈再亮
 		var since: float = fposmod(ang - a, TAU) / TAU   # 扇面扫过后 0 → 1
-		var hi: float = 0.0 if _rm() else clampf(1.0 - since * 3.0, 0.0, 1.0)
+		var hi: float = 1.0 if _rm() else pow(clampf(1.0 - since * 1.4, 0.0, 1.0), 2.0)
+		var lv: float = 1.0 if _rm() else 0.25 + 0.75 * hi
+		var kc: Color = INK if ct.done else ACC
+		if hi > 0.02 and not _rm():
+			c.draw_circle(cp, 4.0 + 7.0 * hi, Color(kc, 0.18 * hi))   # 光晕
+			c.draw_arc(cp, 6.0 + 10.0 * (1.0 - hi), 0, TAU, 16, Color(kc, 0.6 * hi), 1.0, true)
+		var sz2: float = 3.0 + 1.5 * hi
 		if ct.done:
-			c.draw_rect(Rect2(cp - Vector2(3, 3), Vector2(6, 6)), INK)
+			c.draw_rect(Rect2(cp - Vector2(sz2, sz2), Vector2(sz2, sz2) * 2.0), Color(INK, lv))
 		else:
-			var bl: bool = _rm() or fmod(t, 0.8) < 0.5
-			c.draw_rect(Rect2(cp - Vector2(4, 4), Vector2(8, 8)), Color(ACC, 1.0 if bl else 0.35), false, 1.5)
-			c.draw_rect(Rect2(cp - Vector2(1.5, 1.5), Vector2(3, 3)), ACC)
-		if hi > 0.0:
-			c.draw_arc(cp, 6.0 + 8.0 * (1.0 - hi), 0, TAU, 16, Color(INK if ct.done else ACC, 0.5 * hi), 1.0, true)
-		mono(cp + Vector2(7, -5), "%02d" % int(ct.i), 9, GRAY)
+			c.draw_rect(Rect2(cp - Vector2(sz2 + 1, sz2 + 1), Vector2(sz2 + 1, sz2 + 1) * 2.0), Color(ACC, lv), false, 1.5)
+			c.draw_rect(Rect2(cp - Vector2(1.5, 1.5), Vector2(3, 3)), Color(ACC, maxf(lv, 0.6)))
+		mono(cp + Vector2(8, -5), "%02d" % int(ct.i), 9, Color(GRAY, 0.4 + 0.6 * lv))
 	# 外圈 72 刻度 = 总进度；方位读数
 	var n := 72
 	var lit: int = int(floor(p * n))
