@@ -243,32 +243,29 @@ func test_batch_g() -> void:
 	var dk: float = game.stats.value_with(&"dmg_taken", "add", 1.0) - t0
 	grant("180")
 	near(game.stats.value(&"dmg_taken") - t0, -0.03 * game.squad.size() * dk, "地形图：按编队人数 -3%% / 人（%d 人）" % game.squad.size())
-	# 招募事件：残弩-突破只对狙击、一份演讲稿只一次、地区行动方案加选项（docs/218，原给源石锭）、人事部密信给三选一
+	# 招募事件：残弩-突破只对狙击、一份演讲稿只一次、地区行动方案给源石锭、人事部密信给三选一
 	grant("147")
 	grant("187")
 	grant("184")
 	grant("186")
 	var van = op_of("先锋")
-	var ce0: int = rfx.rule("choice_extra")
+	var ig0: int = game.ingots
 	var pl0: int = game.pending_levelups
 	var p0: int = sn.prog if sn != null else 0
 	if sn != null:
 		rfx.on_recruit(sn)
 		ok(sn.prog == p0 + 2, "残弩-突破 + 演讲稿：狙击入队推进 2 个节点（%d → %d）" % [p0, sn.prog])
-	ok(rfx.rule("choice_extra") == ce0 + 2, "地区行动方案：招募后接下来 2 次三选一加选项")
+	ok(game.ingots == ig0 + 10, "地区行动方案：招募 +10 源石锭")
 	ok(game.pending_levelups == pl0 + 1, "人事部密信：招募 +1 次成长三选一")
 	if van != null:
 		var vp: int = van.prog
 		rfx.on_recruit(van)
 		ok(van.prog == vp, "残弩-突破不对先锋生效、演讲稿只一次（%d → %d）" % [vp, van.prog])
 	game.pending_levelups = pl0
-	rfx.rules["choice_extra"] = 0
 	grant("189")
 	ok(rfx.rule("recruit_extra") == 1, "罗德岛战术电台：招募加选项规则")
 	grant("11")
 	ok(rfx.rule("choice_extra") == 1, "源石鸢尾花：下一次三选一加选项")
-	ok(game.pending_levelups == pl0 + 2, "源石鸢尾花：编队已满，2 次招募推进折成 2 次成长三选一（%d → %d）" % [pl0, game.pending_levelups])
-	game.pending_levelups = pl0
 	ok(rfx.take_choice_extra() == 1 and rfx.take_choice_extra() == 0, "加选项只用一次")
 	# 支援装置：补给站掉药剂、轰隆隆自爆、起重机束缚精英、防暴桩减速
 	var gems0: int = game.gems.size()
@@ -418,7 +415,7 @@ func test_batch_general() -> void:
 	var ig0: int = game.ingots
 	pl0 = game.pending_levelups
 	rfx.on_kill({"boss": true, "dead": false})
-	ok(game.ingots == ig0 + 5, "国王的水晶：击败 Boss +5 源石锭（docs/218）")
+	ok(game.ingots == ig0 + 15, "国王的水晶：击败 Boss +15 源石锭")
 	ok(game.pending_levelups == pl0 + 1, "国王的水晶：击败 Boss 一次成长三选一")
 	ok(rfx.rule("choice_extra") >= 2, "判官经文布：击败 Boss 后 2 次加选项")
 	ok(game.hp > game.max_hp * 0.44 and game.hp < game.max_hp * 0.52, "立体艺术装置 + 国王的水晶：失去 20%% 当前生命再回约 10%%（%.1f%% 最大生命）" % (100.0 * game.hp / game.max_hp))
@@ -446,24 +443,23 @@ func test_docs74() -> void:
 	if had189:
 		game.relics.append("189")
 		rfx.lv["189"] = lv189
-	# ---- 希望系（docs/218）：计次招募推进照常出现，编队满员时折成长三选一；立即得锭件不进商店
-	ok(game.relics.has("8") or rfx.can_offer(rfx.db.get_relic("8"), true), "蓝色丝巾：编队满员也出现在商店（满员折成长三选一）")
-	ok(not rfx.can_offer(rfx.db.get_relic("27"), true) and (game.relics.has("27") or rfx.can_offer(rfx.db.get_relic("27"), false)), "古旧钱币：商店不卖，补给箱照常")
-	var kop = game.squad.ops.pop_back()
-	var plh: int = game.pending_levelups
-	grant("26")
-	ok(game.pending_levelups == plh and int(rfx.used.get("26", 0)) == 0, "女妖之吻：编队未满时不折算")
-	ok(rfx.rule("choice_extra") >= 2, "女妖之吻：接下来 2 次三选一加选项")
-	rfx.on_recruit(kop)
-	ok(int(rfx.used.get("26", 0)) == 1, "女妖之吻：招募一名用掉一次")
-	game.squad.ops.append(kop)
-	var plh2: int = game.pending_levelups
-	rfx._spare_check()
-	ok(game.pending_levelups == plh2 + 1 and int(rfx.used.get("26", 0)) == 2, "女妖之吻：编队满员后剩下 1 次折成成长三选一")
-	rfx._spare_check()
-	ok(game.pending_levelups == plh2 + 1, "女妖之吻：折算只发生一次")
-	game.pending_levelups = plh
-	rfx.rules["choice_extra"] = 0
+	# ---- 商店按售价保底（docs/218）：买「立即获得源石锭」藏品至少拿回 ceil(实付 × 1.2)；补给箱 / 事件照原数额
+	var shop = game.shop_sys
+	ok(shop.ingot_floor("27", 18) == 22, "古旧钱币：实付 18 保底 22 锭（%d）" % shop.ingot_floor("27", 18))
+	ok(shop.ingot_floor("27", 10) == 12, "古旧钱币：实付 10 保底 12 锭（浮点不多进一）")
+	ok(shop.ingot_floor("29", 14) == 25, "无瑕宝玉：原数额更高时照原数额")
+	ok(shop.ingot_floor("124", 30) == 0, "不给源石锭的藏品没有保底")
+	var sit := {"kind": "relic", "id": "27", "price": 18, "sold": false}
+	shop.ingot_desc(sit)
+	ok(str(sit.desc).contains("源石锭 +22（按售价保底）"), "商店卡面写出保底数额（%s）" % sit.desc)
+	var ig: int = game.ingots
+	rfx.ingot_floor = shop.ingot_floor("27", 18)
+	grant("27")
+	rfx.ingot_floor = 0
+	ok(game.ingots == ig + 22, "商店买古旧钱币：到手 22（%d）" % (game.ingots - ig))
+	ig = game.ingots
+	grant("28")
+	ok(game.ingots == ig + 18, "补给箱拿演员的首饰盒：照原数额 18")
 	# ---- 吸血 #263：伤害的 0.05%，每秒上限 0.5% 最大生命，低于 50% 翻倍；上限按受治疗加成之前算
 	grant("263")
 	game.wound = 0
@@ -556,9 +552,9 @@ func test_docs74() -> void:
 	ok(rfx.fuse_on and game.ingots == 0 and rfx.fuse_left == 150 and rfx.fuse_pool == 150, "熔铸：最后一位商人离开后剩余 150 枚全部熔铸")
 	near(rfx.fuse_pct(), 0.1, "熔铸：150 枚 = 全队伤害 +10%")
 	near(game.stats.value_for(&"dmg", []) - dm0, 0.1, "熔铸：全队伤害属性 +10%")
-	var ivx: int = rfx.ingot_value_of("28")
-	ok(ivx > 0 and rfx.display_desc("28").contains("熔铸"), "熔铸后源石锭藏品的说明写出折算值（%s）" % rfx.display_desc("28"))
-	grant("28")
+	var ivx: int = rfx.ingot_value_of("12")
+	ok(ivx > 0 and rfx.display_desc("12").contains("熔铸"), "熔铸后源石锭藏品的说明写出折算值（%s）" % rfx.display_desc("12"))
+	grant("12")
 	ok(game.ingots == 0 and rfx.fuse_pool == 150 + ivx, "熔铸后获得源石锭藏品：锭进熔铸池（+%d）" % ivx)
 	grant("188")
 	ok(rfx.fuse_pool == 150 + ivx + 60, "熔铸后获得锈蚀的铁锤：熔铸 60 枚")

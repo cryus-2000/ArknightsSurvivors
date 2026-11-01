@@ -146,7 +146,7 @@
 | [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
 | [196_command_target](196_command_target.md) | 指挥模式「指点」：指定地点 / 目标进攻（方案） | 方案稿，待用户拍板 | 10-29：突击中指点地面（点位）或精英 / Boss（集火），取代清杂 / Boss 优先，圆盘仍 5 格；慢动作选点沿用 ×0.2 + 扣作战时限防滥用；手机拖拽 / 电脑点选 / 手柄光标；机器人三档校准；含默认关的示意原型与 52 秒操作录像 | 114、36、56、设计总纲草稿 |
 | [200_telemetry_plan](200_telemetry_plan.md) | 数据埋点：死因分析与补洞提案 | 提案，待协调人审 | 10-29：用 cal1029 云端 1237 个死亡局做死因分析（tools/death_report.py，暴毙 = 普通怪围死为主）；现有埋点清单、三支柱缺口、分期（P0 遥测补洞 1）；只提案不实现 | 36、40、43、77、82、193；run/telemetry.gd、tools/death_report.py、balance_run.py、runs_report.py |
-| [218_relic_ingot_1101](218_relic_ingot_1101.md) | 源石锭藏品与商店价格对账 11-01 | 已实施 | 希望系 12 件 + 红色蝴蝶结去源石锭，改「下 N 名招募的干员推进节点（满员折成长三选一）」+ 多一个选项；立即得锭 4 件下架商店；地区行动方案、国王的水晶修循环 | 57、74、191；relic_fx.gd、relic_effects.json |
+| [218_relic_ingot_1101](218_relic_ingot_1101.md) | 源石锭藏品：商店按售价保底 11-01 | 已实施 | 用户口径「越买越赚可以，不能亏」：商店买的立即得锭藏品到手 = max(原数额, ceil(实付 × shop/ingot_relic_floor 1.2))，卡面写保底数额；补给箱 / 事件照原数额；第一版（去锭 / 下架 / 修循环）已撤回 | 57、74、191；shop.gd、relic_fx.gd、balance.json |
 | [214_art_audit_1101](214_art_audit_1101.md) | 美术巡检 11-01 | 已修 1 项，待定 8 项 | 干员 / 怪物 / Boss 名片 / 图标 / 地面件 / 导入设置；Boss 名片裁切已修；1x 瞳色、升级卡缺图标等待定，附重画单 | 87、131、199、211；tools/art_audit_scan.py |
 | [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范 + 迁移方案 | 草案，待用户批 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_lint.py（只报告） | tools/asset_lint.py、art.gd |
 | [188_asset_audit_1028](188_asset_audit_1028.md) | 素材命名与目录核对 | 待用户看 | 10-28：art/incoming 归档留底、旧合成配乐已删；game/ 没人读的 2 个、语音母带 22 MB 在运行时目录、同内容不同名 16 组、命名不合约定 4 处，只列不改 | art/archive/incoming_1028、game/audio/voice/masters |

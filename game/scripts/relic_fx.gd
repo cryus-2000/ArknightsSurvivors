@@ -12,7 +12,6 @@
 ## docs/57（第二批 129 件）新增：
 ##   trigger 事件 LevelUp / Recruited / BossKilled / Dodge(invuln) / SkillStarted(refund, stack_stat, 带 class) / DamageTaken(damage_all, stun_near) /
 ##     EnemyKilled(sp 带 class) / Tick damage_area 带 class（职业周期伤害，174 / 153 / 168 共用）；args 一律从数据读（_targs / _triggers）
-##     Recruited 另有 do choice_extra，args.uses 计次、args.spare 满员折成长三选一（希望系，docs/218）
 ##   rule：per_relic（按持有藏品数）/ zone（旗帜）/ sp_pulse / hp_dmg / low_hp_haste / far_dmg / chest_keys / choice_extra / recruit_extra /
 ##     rej_immune / def_pierce / medkit / unhurt_light；带参数的规则用 _rule_args(name) 取第一件持有者的 args
 ##   spawn what：supply / bomb / crane / stakes / fill_random / rejection
@@ -78,7 +77,8 @@ var unhurt := {}           # unhurt_light 计时：id -> 连续未受伤秒数
 var hurt_cd := {}          # DamageTaken 冷却：id -> 可再次触发的时刻
 var sp_stack := {}         # stack_stat 层数：id -> 层
 var medkits := {}          # 急救包剩余：id -> 个数
-var used := {}             # 计次触发（args.once = 1 次 / args.uses = N 次）已用次数：id -> 次数（每件藏品最多一条计次触发）
+var used := {}             # 一次性触发（args.once）已用：id -> true
+var ingot_floor := 0       # 商店按售价保底（docs/218）：shop.buy 在 gain_relic 前设、后清；「立即获得源石锭」至少给这么多
 var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
 var stakes: Array = []     # 防暴桩：{pos, life}
 # ---- docs/74（用户 10-12）：吸血 / 击杀回复 / 源石锭熔铸
@@ -267,8 +267,8 @@ func can_offer(r: Dictionary, for_shop: bool) -> bool:
 		if ef.get("type", "") == "rule" and str(ef.get("rule", "")) == "recruit_extra":
 			if g.squad.size() >= g.squad.REGULAR_MAX or g.progression.recruit_cards().is_empty():
 				return false
-		# 招募事件类（docs/57 P10）：编队已满、没人可招就不出（避免废卡）；带 spare 的计次件照常出，满员时折成成长三选一（docs/218）
-		if ef.get("type", "") == "trigger" and str(ef.get("event", "")) == "Recruited" and not ef.get("args", {}).get("spare", false) and g.progression.recruit_cards().is_empty():
+		# 招募事件类（docs/57 P10）：编队已满、没人可招就不出（避免废卡）
+		if ef.get("type", "") == "trigger" and str(ef.get("event", "")) == "Recruited" and g.progression.recruit_cards().is_empty():
 			return false
 	return true
 
@@ -321,6 +321,15 @@ func ingot_value_of(id: String) -> int:
 			n += int(a.get("amount", a.get("ingots", 0)))
 		elif a.has("ingots"):
 			n += int(a.ingots)
+	return n
+
+
+## 获得时「立即获得源石锭」的数额（on_gain ingots；招募 / 击败 Boss 时的不算）。商店按售价保底用（docs/218）
+func instant_ingots(id: String) -> int:
+	var n := 0
+	for ef in db.get_relic(id).get("effects", []):
+		if ef.get("type", "") == "on_gain" and str(ef.get("do", "")) == "ingots":
+			n += int(ef.get("args", {}).get("amount", 0))
 	return n
 
 
@@ -451,7 +460,6 @@ func apply(id: String) -> void:
 		refresh_squad()
 	if rule("per_relic") > 0:
 		refresh_relic_count()
-	_spare_check()
 	# 商店类藏品（锈蚀的铁锤）在熔铸后获得：按 late_fuse 枚源石锭熔铸（docs/74）
 	if fuse_on and int(r.get("late_fuse", 0)) > 0:
 		gain_ingots(int(r.late_fuse), r.name + " · ")
@@ -479,7 +487,7 @@ func _on_gain_impl(what: String, args: Dictionary) -> void:
 			g.knight_alive = true
 			g.vfx.show_banner("猎潮的骑士加入编队")
 		"ingots":
-			gain_ingots(int(amt))
+			gain_ingots(maxi(int(amt), ingot_floor))
 		"heal":
 			# amount = 最大生命的比例
 			g.combat.heal(g.max_hp * amt, "藏品")
@@ -1312,8 +1320,7 @@ func on_recruit(op) -> void:
 	for t in _triggers("Recruited"):
 		var id: String = t[0]
 		var a: Dictionary = t[1].get("args", {})
-		var uses := _trig_uses(a)
-		if uses > 0 and int(used.get(id, 0)) >= uses:
+		if bool(a.get("once", false)) and used.get(id, false):
 			continue
 		var cls: String = str(a.get("class", ""))
 		if cls != "" and op.cls != cls:
@@ -1329,33 +1336,8 @@ func on_recruit(op) -> void:
 				gain_ingots(int(a.get("amount", 10)))
 			"growth_pick":
 				g.pending_levelups += int(a.get("n", 1))
-			"choice_extra":
-				rules["choice_extra"] = rule("choice_extra") + int(a.get("n", 1))
-		if uses > 0:
-			used[id] = int(used.get(id, 0)) + 1
-	_spare_check()
-
-
-## 计次触发的总次数：args.uses，args.once = 1 次，都没有 = 不计次
-static func _trig_uses(a: Dictionary) -> int:
-	return int(a.get("uses", 1 if bool(a.get("once", false)) else 0))
-
-
-## 希望系藏品（docs/218）：带 spare 的计次招募触发，编队已满 / 没人可招时，没用完的次数折成成长三选一（获得时、每次招募后检查）
-func _spare_check() -> void:
-	var cards_empty := -1
-	for t in _triggers("Recruited"):
-		var a: Dictionary = t[1].get("args", {})
-		var left: int = _trig_uses(a) - int(used.get(t[0], 0))
-		if not a.get("spare", false) or left <= 0:
-			continue
-		if cards_empty < 0:
-			cards_empty = 1 if g.progression.recruit_cards().is_empty() else 0
-		if cards_empty == 0:
-			return
-		used[t[0]] = _trig_uses(a)
-		g.pending_levelups += left
-		g.vfx.show_banner("%s：编队已满，改为%s成长三选一" % [db.get_relic(t[0]).name, "一次" if left == 1 else " %d 次" % left])
+		if bool(a.get("once", false)):
+			used[id] = true
 
 
 func on_hurt(src_corrode: bool, amount := 0.0) -> void:

@@ -123,16 +123,14 @@
   "8": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）",
+   "desc": "源石锭 +12",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -140,12 +138,19 @@
   "9": {
    "effects": [
     {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 6
+     }
+    },
+    {
      "type": "rule",
      "rule": "choice_extra",
-     "value": 2
+     "value": 1
     }
    ],
-   "desc": "接下来 2 次三选一各多一个选项",
+   "desc": "源石锭 +6；下一次三选一多一个选项",
    "rarity": "基础",
    "shop_allowed": true,
    "late_weight": 0.3,
@@ -154,36 +159,32 @@
   "10": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
     },
     {
      "type": "trigger",
      "event": "Recruited",
-     "do": "choice_extra",
+     "do": "ingots",
      "args": {
-      "n": 1
+      "amount": 12
      }
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；此后每招募一名干员，下一次三选一多一个选项",
+   "desc": "源石锭 +12；此后每招募一名干员再 +12",
    "rarity": "基础",
    "new": true
   },
   "11": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 2,
-      "spare": true
+      "amount": 18
      }
     },
     {
@@ -192,7 +193,7 @@
      "value": 1
     }
    ],
-   "desc": "接下来招募的 2 名干员各立即推进 1 个成长节点（编队已满时改为成长三选一）；下一次三选一多一个选项",
+   "desc": "源石锭 +18；下一次三选一多一个选项",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -200,21 +201,14 @@
   "12": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
-    },
-    {
-     "type": "rule",
-     "rule": "choice_extra",
-     "value": 1
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；下一次三选一多一个选项",
+   "desc": "源石锭 +12",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -222,21 +216,14 @@
   "13": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
-    },
-    {
-     "type": "rule",
-     "rule": "choice_extra",
-     "value": 1
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；下一次三选一多一个选项",
+   "desc": "源石锭 +12",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -244,24 +231,22 @@
   "14": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
     },
     {
      "type": "trigger",
      "event": "BossKilled",
-     "do": "choice_extra",
+     "do": "ingots",
      "args": {
-      "choice_extra": 1
+      "ingots": 15
      }
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；每击败一个 Boss，下一次三选一多一个选项",
+   "desc": "源石锭 +12；每击败一个 Boss 再 +15",
    "rarity": "基础",
    "new": true
   },
@@ -311,12 +296,14 @@
      "value": 10
     },
     {
-     "type": "rule",
-     "rule": "choice_extra",
-     "value": 1
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 3
+     }
     }
    ],
-   "desc": "队长最大生命 +10；下一次三选一多一个选项",
+   "desc": "队长最大生命 +10；源石锭 +3",
    "rarity": "基础",
    "new": true
   },
@@ -393,21 +380,14 @@
   "22": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
-    },
-    {
-     "type": "rule",
-     "rule": "choice_extra",
-     "value": 1
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；下一次三选一多一个选项",
+   "desc": "源石锭 +12",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -415,21 +395,14 @@
   "23": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
-    },
-    {
-     "type": "rule",
-     "rule": "choice_extra",
-     "value": 1
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；下一次三选一多一个选项",
+   "desc": "源石锭 +12",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -437,21 +410,14 @@
   "24": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
-    },
-    {
-     "type": "rule",
-     "rule": "choice_extra",
-     "value": 1
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；下一次三选一多一个选项",
+   "desc": "源石锭 +12",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -459,12 +425,10 @@
   "25": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 1,
-      "spare": true
+      "amount": 12
      }
     },
     {
@@ -473,7 +437,7 @@
      "value": 2
     }
    ],
-   "desc": "下一名招募的干员立即推进 1 个成长节点（编队已满时改为成长三选一）；补给箱钥匙 +2（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）",
+   "desc": "源石锭 +12；补给箱钥匙 +2（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -481,21 +445,14 @@
   "26": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Recruited",
-     "do": "advance",
+     "type": "on_gain",
+     "do": "ingots",
      "args": {
-      "uses": 2,
-      "spare": true
+      "amount": 24
      }
-    },
-    {
-     "type": "rule",
-     "rule": "choice_extra",
-     "value": 2
     }
    ],
-   "desc": "接下来招募的 2 名干员各立即推进 1 个成长节点（编队已满时改为成长三选一）；接下来 2 次三选一各多一个选项",
+   "desc": "源石锭 +24",
    "rarity": "稀有",
    "late_weight": 0.3,
    "new": true
@@ -511,8 +468,7 @@
     }
    ],
    "late_weight": 0.3,
-   "rarity": "基础",
-   "shop_allowed": false
+   "rarity": "基础"
   },
   "28": {
    "effects": [
@@ -525,8 +481,7 @@
     }
    ],
    "late_weight": 0.3,
-   "rarity": "基础",
-   "shop_allowed": false
+   "rarity": "基础"
   },
   "29": {
    "effects": [
@@ -539,8 +494,7 @@
     }
    ],
    "late_weight": 0.3,
-   "rarity": "稀有",
-   "shop_allowed": false
+   "rarity": "稀有"
   },
   "30": {
    "effects": [
@@ -3410,13 +3364,13 @@
     {
      "type": "trigger",
      "event": "Recruited",
-     "do": "choice_extra",
+     "do": "ingots",
      "args": {
-      "n": 2
+      "amount": 10
      }
     }
    ],
-   "desc": "招募干员时，接下来 2 次三选一各多一个选项",
+   "desc": "招募干员时源石锭 +10",
    "rarity": "基础",
    "shop_allowed": true,
    "new": true
@@ -4021,8 +3975,7 @@
    "desc": "源石锭 +10；补给箱钥匙 +1（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）",
    "rarity": "基础",
    "late_weight": 0.3,
-   "new": true,
-   "shop_allowed": false
+   "new": true
   },
   "225": {
    "effects": [
@@ -4481,12 +4434,12 @@
      "do": "growth_pick",
      "args": {
       "lose_hp": 0.2,
-      "ingots": 5,
+      "ingots": 15,
       "growth_pick": 1
      }
     }
    ],
-   "desc": "每击败一个 Boss：队长失去 20% 当前生命，获得 5 源石锭和一次成长三选一",
+   "desc": "每击败一个 Boss：队长失去 20% 当前生命，获得 15 源石锭和一次成长三选一",
    "rarity": "稀有",
    "new": true
   },
