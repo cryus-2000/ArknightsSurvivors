@@ -1,7 +1,9 @@
 ## 终结技慢动作瞄准 v2（docs/209 §3，开关 balance ult/aim；0 = 旧的「移动键挪落点、0.25 倍 0.5 秒 + 按住最多 1 秒」）。
 ## 按下 Q 后 ult/aim_slow（0.3）倍速、最长 ult/aim_max（1.5）真实秒：电脑跟鼠标、手机拖终结技键、手柄右摇杆（没推看左摇杆），
 ## 没有这些输入时照旧用移动键挪；松开 Q / 手指释放，轻点（< TAP）则保持瞄准、再按一次 Q 或点左键释放，到上限自动释放。
-## 自身周围类（aim_kind none）不需要选：只闪一下范围就放。机器人 / 批跑不走这里（旧的自动瞄准，同 seed 不变）。
+## 自身周围类（aim_kind none）：用户 11-01「原地放的终结技也要先显示范围再确认」（ult/aim_self 缺省 1）——同样进慢动作、画以自身为中心的
+## 范围格（跟着人走），松开 Q / 再按 Q / 点左键 / 1.5 秒确认；手机按下显示、松手就放（不保持）。0 = 旧的「闪一下范围就放」。
+## 机器人 / 批跑不走这里（旧的自动瞄准，同 seed 不变）。
 ## 画面：HUD 层画 PRTS 范围格 + 取景角标 + 信息板，和指挥的部署范围格 / 圆盘同一套配色（command_wheel 的 C_* 与 command_pick 的格子）。
 extends RefCounted
 
@@ -48,8 +50,8 @@ static func begin(u) -> Array:
 		u.aim_latched = true   # 录片计划：等计划里的 ok 再放（机器人按完 Q 立刻松开）
 	u._mouse0 = u.g.hud.get_local_mouse_position() if u.g.get("hud") != null else Vector2.ZERO
 	var mn: float = Bal.v("ult/aim_min_t", 0.12) * sc
-	if u.aim_kind == "none":
-		return [mn, mn]   # 自身周围：不用选，闪一下范围就放
+	if u.aim_kind == "none" and not self_aim():
+		return [mn, mn]   # 旧：自身周围不用选，闪一下范围就放
 	return [mn, Bal.v("ult/aim_max", 1.5) * sc]
 
 
@@ -112,8 +114,14 @@ static func _clamp(u) -> void:
 ## 松开 Q：按下不到 TAP 秒 = 轻点，保持瞄准（再按一次 Q / 点左键释放）
 ## 拖过 / 挪过落点再松手（快速一甩也算）一律直接放，只有没动过的轻点才保持
 static func release(u) -> void:
-	if u.phase == "aim" and u.aim_kind != "none" and UM.now() - u._q_rt0 < TAP and not u.aim_moved:
+	if u.aim_kind == "none" and (not self_aim() or (u.g.get("touch") != null and u.g.touch.active)):
+		return   # 自身周围：手机松手就放；旧口径本来就不停留
+	if u.phase == "aim" and UM.now() - u._q_rt0 < TAP and not u.aim_moved:
 		u.aim_latched = true
+
+
+static func self_aim() -> bool:
+	return Bal.v("ult/aim_self", 1.0) > 0.0
 
 
 ## 鼠标左键（game._unhandled_input）：瞄准中点一下 = 释放
@@ -261,6 +269,12 @@ static func draw(u, vs: Vector2) -> void:
 static func _tip(u) -> String:
 	var tc = u.g.get("touch")
 	var src: String = str(u.aim_src)
+	if u.aim_kind == "none":   # 自身周围：没有要选的，只看范围
+		if tc != null and tc.active:
+			return "按住看范围 · 松手释放"
+		if Pad.device >= 0 and src != "mouse":
+			return "按住看范围 · 再按终结技键释放" if u.aim_latched else "按住看范围 · 松开释放"
+		return "按住看范围 · 再按 Q 或左键释放" if u.aim_latched else "按住看范围 · 松开 Q 释放"
 	if src == "touch" or (src != "mouse" and tc != null and tc.active):
 		return "拖动选择 · 再点终结技键释放" if u.aim_latched else "拖动选择 · 松手释放"
 	if src == "pad" or (src != "mouse" and Pad.device >= 0):

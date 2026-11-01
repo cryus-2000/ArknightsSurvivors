@@ -81,10 +81,16 @@ func _ready() -> void:
 		n += 1
 	ok(u.phase != "aim" and n <= int(ceil(u._aim_max / dt)) + 2, "按住到上限自动释放（%d 帧）" % n)
 	step.call(600)
-	# 4. 自身周围类：不停留
+	# 4. 自身周围类（11-01 用户「原地放的终结技也要先显示范围再确认」，ult/aim_self）：也停在瞄准里看范围；开关 0 = 旧的不停留
 	u.aim_kind = "none"
 	var mm: Array = Aim.begin(u)
-	ok(absf(float(mm[0]) - float(mm[1])) < 0.0001, "自身周围类不需要选：上限 = 下限")
+	ok(float(mm[1]) > float(mm[0]) + 0.1, "自身周围类也停在瞄准里（上限 %.2f）" % float(mm[1]))
+	ok(Aim.shape_of(u).kind == "disc" and Vector2(Aim.shape_of(u).c) == u.caster.pos, "自身周围类范围 = 以队长为中心的圆（跟着人走）")
+	ok(Aim._tip(u).begins_with("按住看范围"), "自身周围类提示「按住看范围」（%s）" % Aim._tip(u))
+	Bal.sec("ult")["aim_self"] = 0
+	mm = Aim.begin(u)
+	ok(absf(float(mm[0]) - float(mm[1])) < 0.0001, "ult/aim_self 0：上限 = 下限（旧的不停留）")
+	Bal.sec("ult")["aim_self"] = 1
 	# 6. 触屏拖动（docs/209 §3）：走 Input.parse_input_event 整条链（含 Godot 从 0 号触点模拟出的鼠标左键 → game._unhandled_input → ult.aim_click），
 	#    按下终结技键进瞄准、拖动写落点、松手按拖到的落点放
 	if kind == "point":

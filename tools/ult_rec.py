@@ -140,8 +140,9 @@ def one(name):
     at = CLIPS[name][3] if len(CLIPS[name]) > 3 else a.at   # 连携段要 1:30 以后（敌人够密）
     fdir = os.path.join(out, "fr_" + name); shutil.rmtree(fdir, ignore_errors=True); os.makedirs(fdir)
     # 录像口径（10-29）：放终结技前 1.2 秒刷一团怪、之后每 6 秒一团（ult/test_swarm_*）
+    # --playclock（11-01 终结技审查）：按玩家局时钟推进——没有它时 --balance 局里顿帧不停（game.gd 只在 Mode.PLAY / playclock_test 扣 hitstop），录像看不到顿帧
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
-            "--balance", "--realtime", "--rtfrom=%g" % max(0.0, at - 3), "--nodeath", "--seed=3", "--op=" + op, "--squad=" + squad] + ([] if any(x.startswith("--bot=") for x in ex) else ["--bot=expert"]) + [
+            "--balance", "--realtime", "--playclock", "--rtfrom=%g" % max(0.0, at - 3), "--nodeath", "--seed=3", "--op=" + op, "--squad=" + squad] + ([] if any(x.startswith("--bot=") for x in ex) else ["--bot=expert"]) + [
             "--maxprog", "--bal=ult/bot_n=1", "--bal=ult/test_swarm_at=%g" % (at + 0.3), "--bal=ult/test_swarm_every=6"] + ([] if any(x.startswith("--bal=ult/test_fill_at") for x in ex) else ["--bal=ult/test_fill_at=%g" % (at + 1.5)]) + ex + a.extra.split() + [
             "--recframes=%g,%d" % (at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (at + a.secs + 8)] + (["--sfxtrace"] if a.sfx else [])
     o, e, to = GR.run_godot([x for x in args if x], 1800)

@@ -6,8 +6,8 @@
 	"link_note_touch": "在队时满足条件即自动出手",
 	"_v2_doc": "link_v2 / *_v2 / ult_note_aim*：小队指挥 v2（docs/209）下图鉴用这几项。link_v2 = 技能连携（run/skill_link.gd SAMPLE 表的接法，kind = KIND4 类别），全自动、由队长触发；名称本作自拟，避开原作技能名（铃兰「狐火」、乌尔比安「掷锚」原作已用）。{$键} 读 balance.json ult 段（relic_db.fill_desc 同一写法）。link_note_v2 的 {gap} 由 gallery 按 link/v2_gap 填。",
 	"link_note_v2": "队长放技能时自动出手（全队每 {gap} 秒最多一次；附近没有敌人时不出手，也不计间隔）。随行时掩护类优先，突击时追击类优先，部署时聚拢类优先；残血撤回中的干员不出手",
-	"ult_note_aim": "由队长释放：能量满后按住 Q 选落点或方向，松开释放；轻点 Q 保持瞄准，再按一次 Q 或点左键释放",
-	"ult_note_aim_touch": "由队长释放：能量满后按住终结技键拖动选落点或方向，松手释放",
+	"ult_note_aim": "由队长释放：能量满后按住 Q 看范围（落点 / 方向类跟鼠标选），松开释放；轻点 Q 保持，再按一次 Q 或点左键释放",
+	"ult_note_aim_touch": "由队长释放：能量满后按住终结技键看范围（落点 / 方向类拖动选），松手释放",
 	"ops": {
 		"texas": {
 			"ult": {"name": "刀痕雨幕", "en": "BLADE CURTAIN", "desc": "冲进落点一圈内接连斩出刀痕，同时斩开，隔半拍换个角度再斩一次，收刀回到原位"},
@@ -15,7 +15,7 @@
 			"link_v2": {"name": "瞬身斩", "en": "BLINK CUT", "kind": "追击", "desc": "瞬身穿过连携区域的主目标（精英优先），停在它身后；路径上的敌人受到伤害并眩晕 0.5 秒（精英减半）"}
 		},
 		"exusiai": {
-			"ult": {"name": "全弹倾泻", "en": "FULL BARRAGE", "desc": "自动锁定周围敌人，2.5 秒内连续倾泻爆裂弹"},
+			"ult": {"name": "全弹倾泻", "en": "FULL BARRAGE", "desc": "自动锁定周围敌人，转瞬之间连续倾泻爆裂弹"},
 			"link": {"name": "回身扫射", "en": "COVER SWEEP", "desc": "朝队长身后最近的敌群扫射一轮", "trigger": "队长冲刺起步"},
 			"link_v2": {"name": "穿透扫射", "en": "PIERCING SWEEP", "kind": "附加", "desc": "原地朝区域打出 8 发穿透曳光，每发穿过区域后再飞 250"}
 		},
@@ -60,7 +60,7 @@
 			"link_v2": {"name": "残影爆破", "en": "AFTERIMAGE BURST", "kind": "附加", "desc": "队长这次技能后 1 秒内在区域里被打死的敌人留下暗红残影，0.35 秒后炸开（半径 60）；没有敌人被打死时，在主目标处补一发"}
 		},
 		"specter_unchained": {
-			"ult": {"name": "巨锯回旋", "en": "SAWBLADE ORBIT", "desc": "巨锯放大、绕身旋转 3 秒，跟着队长移动；期间不会倒下，受到的伤害降低"},
+			"ult": {"name": "巨锯回旋", "en": "SAWBLADE ORBIT", "desc": "巨锯放大、绕身旋转，跟着队长移动；放出后 3 秒内不会倒下，受到的伤害降低"},
 			"link": {"name": "替身连斩", "en": "PROXY SLASH", "desc": "替身连斩三下，之后 2 秒队长生命不会低于 1", "trigger": "队长一次受到最大生命 10% 以上的伤害"},
 			"link_v2": {"name": "替身斩", "en": "SHADE CUT", "kind": "追击", "desc": "本人不动，分出一个暗红替身冲过区域斩一次"}
 		},
@@ -85,7 +85,7 @@
 			"link_v2": {"name": "消弹咒文", "en": "NULLIFY SIGIL", "kind": "附加", "desc": "区域上空展开一圈咒文，当场消除区域内的敌方弹幕，区域内敌人减速 50%，持续 1 秒；不造成伤害"}
 		},
 		"hoshiguma": {
-			"ult": {"name": "般若反震", "en": "HANNYA RECOIL", "desc": "盾「般若」砸地，嘲讽全场并把敌人吸到盾前，硬挡 1.5 秒后盾甲反震炸开"},
+			"ult": {"name": "般若反震", "en": "HANNYA RECOIL", "desc": "盾「般若」砸地，嘲讽全场并把敌人吸到盾前，硬挡片刻后盾甲反震炸开"},
 			"link": {"name": "举盾推挡", "en": "SHIELD SHOVE", "desc": "冲到队长身边举盾推开周围敌人，队长短时间受到的伤害降低", "trigger": "队长短时间内连续被近战命中，或被敌人围住"},
 			"link_v2": {"name": "举盾", "en": "SHIELD UP", "kind": "掩护", "desc": "瞬到队长身侧举盾，挡一次伤害（1.5 秒内）；区域内的近战敌人被嘲讽 1 秒"}
 		},
@@ -105,7 +105,7 @@
 			"link_v2": {"name": "月牙剑气", "en": "CRESCENT WAVE", "kind": "追击", "desc": "站到区域边缘，掷出一道月牙剑气横扫过区域，命中的敌人沉默 1 秒"}
 		},
 		"lumen": {
-			"ult": {"name": "长明灯柱", "en": "EVERLIGHT PILLAR", "desc": "队长脚下升起灯塔光柱，光圈扩散灼烧，光束扫过周围 2 秒后熄灭"},
+			"ult": {"name": "长明灯柱", "en": "EVERLIGHT PILLAR", "desc": "队长脚下升起灯塔光柱，光圈扩散灼烧，光束扫过周围一圈后熄灭"},
 			"link": {"name": "清创光弹", "en": "CLEANSING SHOT", "desc": "光弹清除队长的神经损伤，灯火回复，并照亮队长身边", "trigger": "队长神经损伤达到 60%，或灯火暗淡"},
 			"link_v2": {"name": "引灯", "en": "LAMPLIGHT", "kind": "掩护", "desc": "队长灯火 +{$link_lumen_lamp:0}，清除神经损伤；区域里飘起灼烧光点 1.2 秒，每 0.3 秒对区域内敌人造成伤害"}
 		}

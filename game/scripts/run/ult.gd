@@ -13,6 +13,7 @@ const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携（combo
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
+const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
@@ -272,10 +273,11 @@ func tick(dt: float) -> void:
 		energy = FULL
 		full_since = g.t
 	_tick_buffs()
-	_tick_shapes(dt)
+	var tk: float = _tk if phase == "cast" else 1.0   # 只在出招阶段伸缩：瞄准（1.5 秒上限）和招式结束后的余韵照原速
+	_tick_shapes(dt * tk)
 	Moves.tick_bg(self)   # 终结技的延后部分（凯尔希 Mon3tr 8 秒后重构）
 	if phase != "":
-		_tick_ult(dt)
+		_tick_ult(dt * tk)
 	if playing() and Bal.vi("ult/play_invuln", 1) > 0:
 		g.invuln = maxf(g.invuln, 0.1)   # 播放期间队长不能走也不能冲刺：无敌，不闪烁（同技能位移的无敌）
 		g.invuln_move_until = maxf(g.invuln_move_until, g.t + 0.1)
@@ -366,6 +368,8 @@ func _begin(ld, k: String) -> void:
 	tier = k
 	caster = ld
 	serial += 1
+	_cut_pending = false
+	_tk = tk_of(str(ld.id)) if k == "ult" else 1.0
 	if _dur_arg():
 		_dur = {"id": str(ld.id), "t0": UM.now(), "last": UM.now(), "frozen": 0.0, "slow": 0.0}
 	kills_now = 0
@@ -471,9 +475,19 @@ var v2_waves: Array = []    # 连携 v2 余波（link_v2.spread_start / tick_wav
 var _ult_at := Vector2.INF   # 这次终结技的作用中心（落点 / 方向前方 300 / 自身）；快检 ult_aim 读（11-01 用户「终结技后不用连携」后不再触发连携）
 
 
+var _cut_pending := false
+
+
 func _cast() -> void:
 	phase = "cast"
 	_hf_tail = {}
+	if _cut_pending:
+		_cut_pending = false
+		if caster != null:
+			_cutin(caster, kind)
+			if _sf_voice:
+				_sf_voice = false
+				_ult_voice(caster)
 	_ult_at = aim if aim_kind == "point" else (caster.pos + aim_dir * 300.0 if aim_kind == "dir" else caster.pos)
 	_cast_t = g.t
 	ev.ult_t = g.t
@@ -946,7 +960,10 @@ func _tick_shapes(dt: float) -> void:
 					s[key] = s[key] + dv
 
 
+## 立绘切入（ult/cutin 缺省 1；0 = 不切入）：超必杀暂停结束、开口那一刻（_sf_tick），斜切条带 + @2x 立绘裁在框内，队长那条 ult/cutin_t 秒（用户 11-01 定约 0.5，原 0.7）
 func _cutin(ld, k: String) -> void:
+	if Bal.v("ult/cutin", 1.0) <= 0.0:
+		return
 	var now := UM.now()
 	if k == "cult":
 		var i := 0
@@ -958,7 +975,7 @@ func _cutin(ld, k: String) -> void:
 			cutins.append({"id": str(o.id), "name": o.display_name(), "col": _col(o), "t0": now + 0.12 * i, "dur": 1.1, "i": i, "cult": true})
 			i += 1
 	else:
-		cutins.append({"id": str(ld.id), "name": ld.display_name(), "col": _col(ld), "t0": now, "dur": 0.7, "i": 0, "cult": false})
+		cutins.append({"id": str(ld.id), "name": ld.display_name(), "col": _col(ld), "t0": now, "dur": Bal.v("ult/cutin_t", 0.5), "i": 0, "cult": false})
 	while cutins.size() > 8:
 		cutins.pop_front()
 
@@ -1294,6 +1311,7 @@ func draw_world(w) -> void:
 			var r2: float = Moves.aim_r(str(caster.id)) if kind != "cult" else VIEW.x * 0.5
 			_px_disc(w, caster.pos, r2 + 1.5, r2 - 1.5, _pc(c, 0.8))
 	w.tb_flush()
+	_draw_inhale(w)
 	_draw_hit_frame(w)
 
 
@@ -1314,6 +1332,10 @@ var _hf_t0 := 0.0
 func _draw_hit_frame(w) -> void:
 	if not _hf_on():
 		return
+	if _hf_serial != serial and _imp_serial != serial and _fin_on():
+		impact(caster.pos if caster != null else g.ppos)   # 高潮伤害全标了 pre 的招式（水月水母齐爆）：冲击帧起算这一刻补上 impact，收尾加强 / 冲击慢放才落得到这一下
+	if _hf_serial != serial and _fin_wait():
+		return   # 收尾加强：吸气还没完，冲击帧两拍从「爆」那一刻起算
 	var ha: Dictionary = act if act.get("hf", false) else _hf_tail
 	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）；
 	# 按这次终结技（serial）只起算一次：反震 / 炮击会连着 impact 好几次，按 impact 重置会再闪一轮
@@ -1634,11 +1656,15 @@ func impact(pos: Vector2) -> void:
 	_imp_rt = UM.now()
 	_imp_pos = pos
 	_imp_boom = false
-	_ua("impact")
+	if _fin_on():
+		_fin_pending = true   # 收尾加强：先「吸气」（压暗 + 声音收一下），fx_tick 到点再爆（_fin_release）
+		hush(_fin_in() + 0.05)
+	else:
+		_ua("impact")
 	var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sx != null and sx.trace_on:   # 录屏对时间线：第一下掉血（impact）那一刻
 		sx.trace.append([Engine.get_process_frames(), "ultev:IMPACT", 0.0, 1.0])
-	g.vfx.stop(Bal.v("ult/imp_freeze", 0.1), "ult_imp", true)
+	g.vfx.stop(_imp_fr(), "ult_imp", true)
 	if not (_hf_on() or act.get("hf_done", false) or act.get("soft", false)):   # soft：温柔型招式（流明）不闪白
 		flash_rt = _imp_rt   # 冲击帧招式不叠共用白闪：白闪会把冲击帧和拖影一起盖掉（用户 10-31「看不出区别」）
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
@@ -1657,7 +1683,7 @@ func _imp_age() -> float:
 
 ## 冲击慢放的倍率（真实时间轴）：顿帧期间由 hitstop 接管，这里从顿帧结束起算
 func _imp_scale() -> float:
-	var t: float = _imp_age() - Bal.v("ult/imp_freeze", 0.1)
+	var t: float = _imp_age() - _imp_fr()
 	var st: float = Bal.v("ult/imp_slow_t", 0.45)
 	var et: float = Bal.v("ult/imp_ease", 0.35)
 	var lo: float = Bal.v("ult/imp_slow", 0.25)
@@ -1671,7 +1697,7 @@ func _imp_scale() -> float:
 
 func _imp_punch() -> float:
 	var t: float = _imp_age()
-	var fr: float = Bal.v("ult/imp_freeze", 0.1)
+	var fr: float = _imp_fr()
 	var st: float = Bal.v("ult/imp_slow_t", 0.45)
 	var et: float = Bal.v("ult/imp_ease", 0.35)
 	var hi: float = Bal.v("ult/imp_cam", 1.15)
@@ -1690,7 +1716,10 @@ func _imp_punch() -> float:
 func fx_tick() -> void:
 	_sf_tick()
 	_dur_tick()
-	if not _imp_boom and _imp_age() >= Bal.v("ult/imp_freeze", 0.1) + Bal.v("ult/imp_slow_t", 0.45):
+	if _fin_pending and _imp_age() >= _fin_in():
+		_fin_pending = false
+		_fin_release()
+	if not _imp_boom and _imp_age() >= _imp_fr() + Bal.v("ult/imp_slow_t", 0.45):
 		_imp_boom = true
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 		var bm: Array = _aud(str(caster.id) if caster != null else "").get("boom", ["boom", 2.0, 0.8])
@@ -1974,6 +2003,9 @@ func _sf_tick() -> void:
 	if not _sf_cut:
 		_sf_cut = true
 		if _sf_ld != null and caster == _sf_ld:
+			if phase == "aim" and aim_v2:
+				_cut_pending = true   # 玩家瞄准中：立绘切入 + 开口挪到确认释放那一刻（_cast，用户 11-01「立绘切入接在确认之后」）
+				return
 			_cutin(_sf_ld, kind)
 			if _sf_voice:
 				_sf_voice = false
@@ -2195,3 +2227,71 @@ func _dur_tick() -> void:
 		out["end"] = snappedf(now - float(_dur.t0), 0.01)
 		print("ULTDUR ", JSON.stringify(out))
 		_dur = {}
+
+
+# ---------------------------------------------------------------- 收尾加强（用户 11-01「收尾斩击 / 爆炸加强停顿和震撼」，docs/216 §5；开关 ult/finish 缺省 1，0 = 原来的 0.1 秒顿帧、impact 当场响）
+## 落在每次终结技的高潮那一下（impact：这次终结技第一下非 pre 的掉血，各招已把铺垫伤害标 pre，冲击帧也在这一下）：
+## 顿帧 ult/finish_hitstop（0.25）——前 ult/finish_inhale（0.15）秒「吸气」：画面压暗、配乐收成寂静；然后冲击帧两拍 + impact 音效 + 低频轰鸣
+## （boom 降调）+ 震屏 ult/finish_shake（4.5 px）/ ult/finish_shake_t（0.2 秒）+ 余震碎屑和烟尘，之后接原来的冲击慢放。
+## 温柔型（act.soft：流明）不震屏、不加轰鸣。纯画面 / 声音，伤害判定与时序不变（顿帧期间世界本来就停）
+var _fin_pending := false
+
+
+func _fin_on() -> bool:
+	return kind == "ult" and Bal.v("ult/finish", 1.0) > 0.0
+
+
+func _imp_fr() -> float:
+	return Bal.v("ult/finish_hitstop", 0.25) if _fin_on() else Bal.v("ult/imp_freeze", 0.1)
+
+
+func _fin_in() -> float:
+	return minf(Bal.v("ult/finish_inhale", 0.15), _imp_fr()) if _fin_on() else 0.0
+
+
+func _fin_wait() -> bool:
+	return _fin_on() and _imp_serial == serial and _imp_age() < _fin_in()
+
+
+func _draw_inhale(w) -> void:
+	if not _fin_wait() or Cfg.reduce_motion:
+		return
+	var k: float = clampf(_imp_age() / maxf(0.01, _fin_in() * 0.5), 0.0, 1.0)
+	var c: Vector2 = g.ppos
+	var R := Vector2(2600.0, 1700.0)
+	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/finish_dim", 0.4) * k))
+	w.tb_flush()
+
+
+func _fin_release() -> void:
+	_ua("impact")
+	hush_until = UM.now()   # 配乐随「爆」回来
+	if act.get("soft", false):
+		return
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx != null:
+		sfx.play("boom", Bal.v("ult/finish_rumble_db", 2.0), Bal.v("ult/finish_rumble_pitch", 0.55))   # 低频轰鸣：通用 boom 降调
+	shake(Bal.v("ult/finish_shake", 4.5), Bal.v("ult/finish_shake_t", 0.2))
+	var col: Color = _col(caster) if caster != null else Color.WHITE
+	var sd: float = float(serial) * 7.31 + _imp_pos.x * 0.013 + _imp_pos.y * 0.007
+	var grey := Color(0.56, 0.54, 0.51)
+	PF.particles(self, _imp_pos, 260, "ult_burst", [col.lerp(grey, 0.5), col.darkened(0.45)], 0.0, sd, 220.0)
+	PF.aftershock(self, _imp_pos, 170.0, sd, 0.05, 8, col.lerp(grey, 0.65))
+	for q in 3:   # 烟尘三团：大小 / 延迟 / 漂移错开
+		var dq := Vector2.from_angle(TAU * (q + PF.h(sd + q)) / 3.0)
+		PF.dust(self, _imp_pos + dq * (40.0 + 50.0 * PF.h(sd + q * 2.0)), 150.0 + 90.0 * PF.h(sd + q * 3.0), 0.03 * q, sd + q, dq * 30.0, grey)
+
+
+# ---------------------------------------------------------------- 演出时长统一（用户 11-01「20 人演出时长统一」，docs/216 §6；开关 ult/dur_unify 缺省 1，0 = 各招原速）
+## 每人一个演出时间系数：招式步进（_tick_ult）和这次终结技的图形 / 帧条寿命（_tick_shapes）一起乘它，整条画面时间线同比伸缩，
+## 只在出招阶段（phase cast）伸缩，瞄准和招式结束后的余韵照原速；伤害份额与判定形状不变（落点时刻跟着同比缩放）；
+## 超必杀暂停、顿帧、冲击帧、冲击慢放按真实时间走，不受影响。
+## 系数按 tools/ult_dur.py 量的「按下 → 招式结束」对齐到中位数（TK 表，balance ult/tk_<干员> 可覆盖）
+const TK := {"angelina": 1.10, "exusiai": 1.94, "eyjafjalla": 2.01, "gladiia": 0.69, "hoshiguma": 1.50, "irene": 1.26, "kaltsit": 0.83, "lappland": 1.36, "logos": 0.91, "lumen": 1.43, "mizuki": 0.70, "saria": 0.50, "siege": 1.09, "skadi": 0.88, "skalter": 2.50, "specter_unchained": 1.55, "suzuran": 0.75, "texas": 0.88, "ulpianus": 0.75, "wisadel": 0.71}
+var _tk := 1.0
+
+
+func tk_of(id: String) -> float:
+	if Bal.v("ult/dur_unify", 1.0) <= 0.0:
+		return 1.0
+	return clampf(Bal.v("ult/tk_" + id, float(TK.get(id, 1.0))), 0.5, 2.5)

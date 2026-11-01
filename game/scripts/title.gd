@@ -1068,7 +1068,7 @@ func _guide_rows(touch: bool) -> Array:
 	for i in rows.size():
 		match str(rows[i][0]):
 			"队长技能":
-				rows[i] = ["终结技", "终结技键 · 拖动选落点，松手释放"] if touch else ["终结技", "Q（按住瞄准，松开释放）", "Ⓐ / RB"]
+				rows[i] = ["终结技", "终结技键 · 按住看范围，松手释放"] if touch else ["终结技", "Q（按住看范围，松开释放）", "Ⓐ / RB"]
 			"冲刺":
 				if not touch:
 					rows[i] = ["冲刺", "空格", "Ⓑ"]
