@@ -293,7 +293,7 @@ func _draw_more_cell(p: Vector2, cs: float, n: int, fs: int) -> void:
 ## 底栏汇总 + 悬停提示（藏品 / 成长 / 技能行）
 func _draw_footer(vs: Vector2, r: Rect2) -> void:
 	var mouse2 := g.hud.get_local_mouse_position()
-	UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [g.relics.size(), g.kills, g.ingots]) + Pad.hint("按 Tab / C / Esc 返回", "按 SELECT / Ⓑ 返回", "点空白处返回"), 16 if Cfg.touch_device() else 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [g.relics.size(), g.kills, g.ingots]) + Pad.hint("按 TAB / C / ESC 返回", "按 SELECT / Ⓑ 返回", "点空白处返回"), 16 if Cfg.touch_device() else 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	# 悬停提示（藏品 / 成长）
 	for cellinfo in g.stats_cells:
 		var cr2: Rect2 = cellinfo[0]

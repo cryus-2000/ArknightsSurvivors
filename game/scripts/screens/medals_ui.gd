@@ -11,13 +11,14 @@ extends Control
 ##   章按组、组内按列错开 60 ms 压入（已解锁的落定时闪一下亮光，空插槽只淡入）→ 记录栏淡入。
 ##   切换选中：记录栏分层换入（名称 → 条件 → 进度格逐格点亮 → 日期），选中框两档收紧；跨组时新组的框闪一下。
 ##   进场中点击 / 任意键 = 直接到终态（docs/62 §2.5）；减少动态效果：全部只留 0.12 秒淡入。
-## 操作：点章 / 方向键选中（按几何方向找最近的一枚）；左上「‹ 行动履历」/ Esc / 退格返回。
+## 操作：点章 / 方向键选中（按几何方向找最近的一枚）；右上「返回」/ Esc / 退格返回（11-01 docs/213 P9 前是左上「‹ 行动履历」）。
 signal closed
 
 const Medals = preload("res://scripts/core/medals.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
 const Tiles = preload("res://scripts/screens/title_jelly_menu.gd")
 const UI = preload("res://scripts/ui.gd")
+const HS = preload("res://scripts/screens/hh_style.gd")
 
 const CANVAS := Vector2(1672, 941)
 const LAYOUT := "res://data/medals_layout.json"
@@ -366,17 +367,15 @@ func _draw_medals(a: float) -> void:
 			draw_texture_rect(it.ring, Rect2(c - Vector2(rs, rs) / 2.0, Vector2(rs, rs)), false, _fa(col, a))
 
 
-## 左上返回：箭头 + 「行动履历」（设计稿原文，等字距）
+## 左上页名「蚀刻章」（docs/213 P9：原「‹ 行动履历」与标题菜单不同名）；返回挪右上、带 ESC 按键牌（docs/37 §4：没有底栏的页返回在右上）
 func _draw_head(a: float) -> void:
-	var col := C if back_hot else T
-	var w := maxf(2.0, 2.4 * k)
-	draw_polyline(PackedVector2Array([_Q(59, 31), _Q(46, 45.5), _Q(59, 60)]), _fa(col, a), w)
 	var fs := _F(22)
-	var x := _Q(104, 0).x
-	var y := _base(_Q(0, 46).y, fs)
-	_spaced(Vector2(x, y), "行动履历", fs, _fa(col, a), 5.0 * k, font, 0)
-	var tw := _spaced_w("行动履历", fs, 5.0 * k, font)
-	back_rect = Rect2(_Q(30, 18), Vector2(x + tw - _Q(30, 0).x + 16.0 * k, 56.0 * k))
+	_spaced(Vector2(_Q(46, 0).x, _base(_Q(0, 46).y, fs)), "蚀刻章", fs, _fa(T, a), 5.0 * k, font, 0)
+	var s: float = clampf(k * _tk(), 0.7, 1.4)
+	back_rect = Rect2(_P(CANVAS.x - 40.0, 20.0) - Vector2(170.0 * s, 0), Vector2(170.0, 40.0) * s)
+	HS.ghost_btn(self, font, back_rect, "返回", Pad.hint("ESC", "Ⓑ", ""), s)
+	if back_hot:
+		draw_rect(back_rect.grow(2.0), _fa(C, 0.6 * a), false, 1.0)
 	if back_rect.size.y < 44.0 and Cfg.touch_device():
 		back_rect = back_rect.grow_individual(0, (44.0 - back_rect.size.y) / 2.0, 0, (44.0 - back_rect.size.y) / 2.0)
 

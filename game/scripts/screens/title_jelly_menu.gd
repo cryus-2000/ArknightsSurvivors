@@ -16,7 +16,7 @@ const MENU := [
 	{"id": 6, "cn": "认知塑造", "en": "COGNITION", "slot": "list", "icon": "cognition", "tier": 0},
 	{"id": 1, "cn": "图鉴", "en": "ARCHIVE", "slot": "list", "icon": "gallery", "tier": 1},
 	{"id": 8, "cn": "蚀刻章", "en": "MEDALS", "slot": "list", "icon": "medals", "tier": 1},   # 10-25 蚀刻章「深蓝之下」（screens/medals_ui.gd）
-	{"id": 2, "cn": "试炼", "en": "TRIAL", "slot": "list", "icon": "trial", "tier": 2, "tag": "测试版"},
+	{"id": 2, "cn": "Boss 演练", "en": "TRIAL", "slot": "list", "icon": "trial", "tier": 2, "tag": "测试版"},
 	{"id": 4, "cn": "设置", "en": "SETTINGS", "slot": "foot"},
 	{"id": 3, "cn": "操作说明", "en": "GUIDE", "slot": "foot"},
 	{"id": 5, "cn": "退出", "en": "EXIT", "slot": "foot"},

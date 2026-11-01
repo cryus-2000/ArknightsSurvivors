@@ -517,9 +517,9 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 		if sel:
 			var f: float = 1.0 if rm else _ease(clampf(st / 0.09, 0.0, 1.0))
 			var ro: float = lerpf(r_in + 2.0, r_out, f)
-			hud.draw_colored_polygon(_wedge(cc, r_in, ro, a0, a1, ch * f), _ca(C_ACC, ea))
+			hud.draw_colored_polygon(_wedge(cc, r_in, ro, a0, a1, ch * f), _ca(UI.CYAN if style == 2 else C_ACC, 0.35 * ea))   # docs/213 P4：选中块青色 35%（原来整块不透明，终端档是一大块近白）
 			if f > 0.85:
-				hud.draw_colored_polygon(_wedge(cc, r_out - depth * 0.12, ro, a0, a1, ch * f), _ca(C_ACC_HI, ea))
+				hud.draw_colored_polygon(_wedge(cc, r_out - depth * 0.12, ro, a0, a1, ch * f), _ca(UI.CYAN if style == 2 else C_ACC_HI, 0.6 * ea))   # 外沿亮带也降到半透明（P4：原不透明白带）
 			# 外推虚框：选中后从扇区外沿推出 9 px（out_back），确认收起时继续外扩淡出
 			var go: float = 9.0 * k if rm else 9.0 * k * _back(clampf(st / 0.16, 0.0, 1.0))
 			go += 26.0 * k * _ease(out)
@@ -528,10 +528,10 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 			hud.draw_polyline(gp, _ca(C_ACC, 0.6 * ea), 1.2)
 		var ol: PackedVector2Array = poly.duplicate()
 		ol.append(poly[0])
-		hud.draw_polyline(ol, _ca(C_ACC if sel else C_LINE, (1.0 if sel else 0.45) * ea), 1.5 if sel else 1.0)
+		hud.draw_polyline(ol, _ca(C_ACC_HI if sel else C_LINE, (1.0 if sel else 0.45) * ea), 2.0 if sel else 1.0)   # 选中：亮边
 		if not sel:   # 内沿属性色条（终末地技能按钮底部的属性色）
 			hud.draw_arc(cc, r_in + 3.0 * k, a0 + 0.02, a1 - 0.02, 12, _ca(item_col(it), 0.9 * ea), 3.0 * k)
-		var tx: Color = C_INK if sel else C_TEXT
+		var tx: Color = C_TEXT   # 选中块改半透明后字一律反白（docs/213 P4）
 		var tc: Vector2 = cc + dirv * (r_in + depth * 0.52)   # 不画图标（用户 10-24），名字 + 英文行居扇区中部
 		UI.text(hud, font, tc + Vector2(-70.0 * k, 1.0 * k), str(it.name), int(round(17.0 * k)), _ca(tx, ea), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
 		UI.ctext(hud, font, tc + Vector2(-70.0 * k, 14.0 * k), "0%d // %s" % [i + 1, it.en], int(round(9.0 * k)), _ca(tx, 0.62 * ea), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
@@ -627,8 +627,8 @@ func _tip() -> String:
 	if g.touch != null and g.touch.active and not Pad.using:
 		return "点选指令 · 点空白处取消"
 	if src != "":
-		return Pad.hint("按住移动鼠标选择，松开确认 · Esc 取消", "按住 LB，推摇杆选择，松开确认 · Ⓑ 取消")
-	return Pad.hint("点选指令，或 Enter 确认 · Esc / F 取消", "推摇杆选择，Ⓐ 确认 · Ⓑ 取消")
+		return Pad.hint("按住移动鼠标选择，松开确认 · ESC 取消", "按住 LB，推摇杆选择，松开确认 · Ⓑ 取消")
+	return Pad.hint("点选指令，或 ENTER 确认 · ESC / F 取消", "推摇杆选择，Ⓐ 确认 · Ⓑ 取消")
 
 
 # ---------------------------------------------------------------- 测试计划（只在 autotest / 录片里用）

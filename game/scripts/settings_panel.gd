@@ -51,7 +51,7 @@ const ROWS := [
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
-## 分类：[中文, 英文, 该页的选项键名]（返回行每页都有）。10-22 用户定 16 行清单（Codex 界面单 §4）：
+## 分类：[中文, 英文, 该页的选项键名]（11-01 docs/213 P10 起列表里不再放返回行，返回在底栏）。10-22 用户定 16 行清单（Codex 界面单 §4）：
 ## 命中顿帧 / Boss 登场演出 / Boss 轮廓光 / 景深 / 辉光 / 水下滤镜 / 法线光照 / 战斗画面缩放 / 对局记录不再露出——
 ## ROWS 与存档键都保留（旧存档兼容），后期四项跟画质档走，对局记录挪到作战结算底栏
 const TABS := [
@@ -210,7 +210,8 @@ func _set_tab(t: int) -> void:
 		for i in ROWS.size():
 			if ROWS[i].key == key:
 				cur.append(i)
-	cur.append(ROWS.size() - 1)   # 返回
+	if cur.is_empty():
+		cur.append(ROWS.size() - 1)   # 返回行只在本页没有别的行时留着（docs/213 P10：返回在底栏，列表里不再重复一行）
 	sel = clampi(sel, 0, cur.size() - 1)
 	scroll = 0.0
 	scroll_f = 0.0

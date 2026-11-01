@@ -211,12 +211,13 @@ func draw_top_center(vs: Vector2) -> void:
 	if g.threat < D.THREAT.size() - 1:
 		tfrac = clampf((g.t - tr.t) / (D.THREAT[g.threat + 1].t - tr.t), 0.0, 1.0)
 	var tcol := Color(0.9, 0.45, 1.0).lerp(UI.RED, float(g.threat) / (D.THREAT.size() - 1))
-	UI.quatrefoil(g.hud, Vector2(cx0, 64), 34.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.28), 1.6)
 	var fname: String = "Boss 演练" if g.trial.active else tr.name
 	var fen: String = "TRIAL" if g.trial.active else String(tr.get("en", ""))
 	var fw0 := g.font.get_string_size(fname, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x
 	var few := UI.en_width(g.font, fen, 10, 3.0)
 	var fx0 := cx0 - (14.0 + fw0 + 10.0 + few) / 2.0
+	# 四叶饰只衬在海域名字后面（docs/213 P3：原来 r 34、0.28 横穿英文名和击杀 / 计时底条）
+	UI.quatrefoil(g.hud, Vector2(fx0 + 14 + fw0 / 2.0, 61), 22.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.14), 1.4)
 	UI.diamond(g.hud, Vector2(fx0 + 4, 61), 3.5, UI.GOLD)
 	UI.text(g.hud, g.font, Vector2(fx0 + 14, 66), fname, 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 	UI.en(g.hud, g.font, Vector2(fx0 + 24 + fw0, 65), fen, 10, UI.SUB, 3.0)

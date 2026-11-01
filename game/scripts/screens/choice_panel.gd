@@ -11,6 +11,7 @@ const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
 const NodeCardsUI = preload("res://scripts/screens/node_cards_ui.gd")   # 翻节点卡卡面与演出（docs/154）
 const UM = preload("res://scripts/ui_motion.gd")
+const HudSquad = preload("res://scripts/screens/hud_squad.gd")   # 选中余光飞向编队卡：用它的排法常量
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -49,10 +50,11 @@ const BRIEF_SIZES_PHONE := [24, 23, 22, 21, 20, 19]
 ## 手机：正在看完整说明的那张卡（-1 = 没有）；点「详情」开 / 关，换一批卡、选中时清掉
 var detail_i := -1
 ## 选中余光（10-26 用户「优化动效」：以前一选卡片就凭空消失）：选中那一刻记下这张卡的屏幕矩形，
-## 面板照旧马上关、游戏马上继续，HUD 上在原位置画 PICK_GLOW 秒的「亮一下 → 青框外扩散开」。只有两三个矩形，手机 30 帧无负担
+## 面板照旧马上关、游戏马上继续，HUD 上画 PICK_GLOW 秒「整卡缩成光点飞向编队卡 / 藏品栏」（11-01 docs/215 D1；原为原位外扩青框）。几个矩形 + 圆，手机 30 帧无负担
 const PICK_GLOW := 0.3
 var picked_r := Rect2()
 var picked_t := -10.0
+var picked_to := "op:"   # 余光飞向：「op:<干员 id>」（空 id = 队长）/「relic」
 const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
 ## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏）。正文只读 lay()，不再各自判断平台。
 ## touch：触屏版式（事件条横跨整屏、卡片紧凑排版、面板压暗带从顶到底）；phone：手机横屏（整排缩 card_scale、按说明加高、上下居中）；
@@ -877,21 +879,54 @@ func mark_pick(i: int) -> void:
 	var c := box.get_child(i) as Control
 	picked_r = c.get_global_rect()
 	picked_t = UM.now()
+	# 飞去哪（docs/215 D1）：招募 / 干员培养 / 精英化卡 → 那名干员的编队卡；藏品卡 → 藏品栏；其余（通用强化、事件）→ 队长的编队卡
+	var o: Dictionary = g.choices[i] if i < g.choices.size() and g.choices[i] is Dictionary else {}
+	picked_to = "relic" if str(o.get("kind", "")) == "relic" else ("op:" + (str(o.id) if str(o.get("kind", "")) == "recruit" else str(o.get("op", ""))) if is_op_card(o) else "op:")
 
 
-## 选中余光：前 1/3 整卡一层白光淡出，青框从卡边外扩 18 px 并淡出（画在 HUD 最上层的 front 块里）
+## 余光终点（HUD 设计坐标）：编队卡 = hud_squad 的排法（右下角往左每张 SQ_COL_W，卡底贴 vs.y - 16）的卡上 1/3；藏品栏 = 右上藏品框中部
+func _pick_target(vs: Vector2) -> Vector2:
+	if picked_to == "relic":
+		return Vector2(vs.x - 150.0, 34.0)
+	var oid: String = picked_to.substr(3)
+	var n: int = maxi(1, g.squad.size())
+	var idx := 0
+	for j in g.squad.ops.size():
+		if str(g.squad.ops[j].id) == oid:
+			idx = j
+	var x: float = vs.x - 16.0 - (n - idx) * HudSquad.SQ_COL_W + (HudSquad.SQ_COL_W - HudSquad.SQ_CARD.x) + HudSquad.SQ_CARD.x / 2.0
+	return Vector2(x, vs.y - 16.0 - HudSquad.SQ_CARD.y * 0.66)
+
+
+## 选中余光（docs/215 D1，11-01 改）：整卡缩成一颗光点飞向编队栏对应头像 / 藏品栏，PICK_GLOW 秒；
+## 前 35% 原地收缩（青色薄底 + 亮边），之后光点沿弧线飞过去，到点一圈小光环。原来是在原卡位外扩青框 + 整卡白光，回到战场时像场地上的调试框
 func draw_pick_glow(ci: CanvasItem) -> void:
 	var e := (UM.now() - picked_t) / PICK_GLOW
 	if e < 0.0 or e >= 1.0:
 		return
 	var r := picked_r
 	r.position -= (ci as Control).get_global_rect().position
-	var k := 1.0 - e
-	if e < 0.33:
-		ci.draw_rect(r, Color(1, 1, 1, 0.28 * (1.0 - e / 0.33)))
-	var gr := r.grow(4.0 + 18.0 * UI.ease_out(e))
-	ci.draw_rect(gr, Color(UI.CYAN, 0.9 * k), false, 2.0)
-	ci.draw_rect(gr.grow(3.0), Color(UI.CYAN, 0.25 * k), false, 3.0)
+	var vs: Vector2 = (ci as Control).size
+	var to := _pick_target(vs)
+	var c0 := r.get_center()
+	var sk: float = UI.ease_out(clampf(e / 0.35, 0.0, 1.0))   # 收缩
+	var fly: float = clampf((e - 0.2) / 0.8, 0.0, 1.0)
+	fly = fly * fly * (3.0 - 2.0 * fly)
+	var mid := c0.lerp(to, 0.5) + Vector2(0, -60.0)   # 弧线：二次贝塞尔，中点抬高
+	var c := c0.lerp(mid, fly).lerp(mid.lerp(to, fly), fly)
+	var sz: Vector2 = r.size.lerp(Vector2(10, 10), sk)
+	if sk < 1.0:
+		var rr := Rect2(c - sz / 2.0, sz)
+		ci.draw_rect(rr, Color(UI.CYAN, 0.16 * (1.0 - sk)))
+		ci.draw_rect(rr, Color(UI.CYAN, 0.85 * (1.0 - sk * 0.5)), false, 2.0)
+	ci.draw_circle(c, 5.0 + 3.0 * (1.0 - sk), Color(UI.CYAN, 0.35))
+	ci.draw_circle(c, 3.0, Color(0.85, 1.0, 1.0, 0.95))
+	if fly > 0.0 and fly < 1.0:
+		var tail := c0.lerp(mid, fly * 0.7).lerp(mid.lerp(to, fly * 0.7), fly * 0.7)
+		ci.draw_line(tail, c, Color(UI.CYAN, 0.5), 2.0, true)
+	if e > 0.8:
+		var ae: float = (e - 0.8) / 0.2
+		ci.draw_arc(to, 6.0 + 20.0 * ae, 0.0, TAU, 24, Color(UI.CYAN, 0.8 * (1.0 - ae)), 2.0, true)
 
 
 ## 干员相关卡（招募 / 干员培养 / 精英化 / 技能进阶）

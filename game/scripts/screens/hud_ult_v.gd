@@ -424,7 +424,7 @@ func _draw_touch_min(vs: Vector2) -> void:
 			bg.line(pts[0], pts[pts.size() - 1], Color(ec.r, ec.g, ec.b, 0.95), 2.0)
 	bg.flush(g.hud)
 	if ld != null:
-		u._avatar(ld, c, r - 5.0, Color.WHITE if full else Color(0.75, 0.78, 0.82, 0.55))
+		_avatar_hi(ld, c, r - 5.0, Color.WHITE if full else Color(0.75, 0.78, 0.82, 0.55))   # docs/213 P5：触屏键里原是像素小头放大（糊成色块），换高清头像按眼睛对齐（同电脑徽记）
 	if full:
 		fg.arc(c, r, 0.0, TAU, 3.0, Color(ec.r, ec.g, ec.b, 0.95), 40)
 		fg.arc(c, r + 6.0, 0.0, TAU, 2.0, Color(ec.r, ec.g, ec.b, 0.15 + 0.45 * _pulse()), 40)

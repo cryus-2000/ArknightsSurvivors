@@ -146,7 +146,7 @@ func _draw() -> void:
 		return
 	var st: Dictionary = STEPS[step]
 	skip_rect = Spotlight.draw(self, tl.font, size, [h], {"idx": step, "n": STEPS.size(), "tag": "TOUR", "en": st.en, "title": st.title, "text": st.text,
-		"hint": Pad.hint("点击高亮处　Esc：跳过", "Ⓐ：确认　Ⓑ：跳过", "点击高亮处"), "e": 1.0 - pow(1.0 - clampf(t / 0.28, 0.0, 1.0), 3.0), "t": t,
+		"hint": Pad.hint("点击高亮处　ESC：跳过", "Ⓐ：确认　Ⓑ：跳过", "点击高亮处"), "e": 1.0 - pow(1.0 - clampf(t / 0.28, 0.0, 1.0), 3.0), "t": t,
 		"dim": 0.0 if step == 1 else 0.68, "skip": step != 1, "panel": st.get("panel", true), "touch": Cfg.touch_device()})
 
 

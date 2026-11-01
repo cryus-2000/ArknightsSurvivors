@@ -202,7 +202,7 @@ func open() -> void:
 				sel = Vector2i(i, k)
 				found = true
 	reset_armed = false
-	card_hide = Cfg.phone_ui()   # D4：手机详情条缺省收起（以前盖住下半屏节点），左下「详情」标签点开
+	card_hide = true   # D4：手机详情条缺省收起（以前盖住下半屏节点），左下「详情」标签点开；11-01 docs/213 P11 电脑的详情卡也缺省收起
 	lit_id = ""
 	open_t0 = t
 	follow = true
@@ -258,7 +258,8 @@ func _pannable() -> bool:
 func _safe() -> Rect2:
 	if Cfg.phone_ui():
 		return Rect2(40.0, 120.0, vs.x - 80.0, vs.y - 120.0 - (64.0 if card_hide else SHEET_H + 80.0))
-	return Rect2(80.0 if card_hide else 380.0, 130.0, vs.x - (120.0 if card_hide else 420.0), vs.y - 196.0)
+	# 右边 / 下边各留 120（docs/213 P11：选中节点在画布边缘时右侧名字标签「◇30」被屏幕切掉）
+	return Rect2(80.0 if card_hide else 380.0, 130.0, vs.x - (200.0 if card_hide else 500.0), vs.y - 250.0)
 
 
 ## 镜头能去的范围：世界比视口大的那一维 = 世界范围（四周留一点）；比视口小 = 在余量里平移（世界始终整个可见）；
@@ -271,14 +272,14 @@ func _cam_range() -> Rect2:
 		lo.x = w.x - vs.x
 	else:
 		lo.x = -40.0
-		hi.x = w.x - vs.x + 40.0
+		hi.x = w.x - vs.x + (40.0 if Cfg.phone_ui() else 160.0)   # 电脑多给 120，最右的节点也能拉进安全区（P11）
 	var extra := SHEET_H + 24.0 if Cfg.phone_ui() else 0.0
 	if w.y <= vs.y:
 		lo.y = w.y - vs.y
 		hi.y = minf(0.0 + extra, maxf(0.0, w.y + extra - vs.y))
 	else:
 		lo.y = -60.0
-		hi.y = w.y - vs.y + 30.0 + extra
+		hi.y = w.y - vs.y + 30.0 + (extra if Cfg.phone_ui() else 120.0)
 	return Rect2(lo, hi - lo)
 
 
@@ -915,7 +916,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	if tch:
 		hint = "点节点选中 · 再点塑造" + (" · 拖动平移" if pan else "")
 	else:
-		hint = Pad.hint("方向键 选择  ·  Enter 塑造  ·  Z 详情" + ("  ·  拖动 平移" if pan else ""), "十字键 选择  ·  Ⓐ 塑造  ·  Ⓧ 详情", "")
+		hint = Pad.hint("方向键 选择  ·  ENTER 塑造  ·  Z 详情" + ("  ·  拖动 平移" if pan else ""), "十字键 选择  ·  Ⓐ 塑造  ·  Ⓧ 详情", "")
 	UI.text_at(ci, font, Vector2(24, 84), hint, 15 if Cfg.phone_ui() else 12, UI.fa(T_SUB, 0.85))   # D4：手机 12 号只剩 10 像素
 
 

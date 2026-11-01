@@ -2032,7 +2032,7 @@ func _skill_rows(cd: Dictionary) -> Array:
 		var ul: Dictionary = ue.get("ult", {})
 		var lk: Dictionary = ue.get("link", {})
 		var un := "ult_note_aim" if Bal.vi("ult/aim", 0) > 0 and ut.has("ult_note_aim") else "ult_note"
-		rows.append(["ULTIMATE  //  终结技", str(ul.get("name", "")), str(ul.get("en", "")), "", "", "终结技" if UI._touch_ui() else "终结技 Q", true,
+		rows.append(["ULTIMATE  //  终结技", str(ul.get("name", "")), str(ul.get("en", "")), "", "", "终结技", true,
 			"%s。\n%s" % [str(ul.get("desc", "")), str(ut.get(un + tu, ut.get(un, "")))]])
 		var l2: Dictionary = ue.get("link_v2", {})
 		if Bal.vi("link/v2", 0) > 0 and not l2.is_empty():   # 指挥 v2（docs/209 §2）：技能连携，全自动、没有 E 键
@@ -2043,7 +2043,7 @@ func _skill_rows(cd: Dictionary) -> Array:
 				"%s。\n%s。" % [Character.fill_line(str(l2.get("desc", "")), lb),
 					str(ut.get("link_note_v2", "")).replace("{gap}", Character.text_fmt(Bal.v("link/v2_gap", 60.0), 0))]])
 		else:
-			rows.append(["LINK  //  连携技", str(lk.get("name", "")), str(lk.get("en", "")), "", "", "连携" if UI._touch_ui() else "连携 E", false,
+			rows.append(["LINK  //  连携技", str(lk.get("name", "")), str(lk.get("en", "")), "", "", "连携", false,
 				"%s。\n触发：%s。%s" % [str(lk.get("desc", "")), str(lk.get("trigger", "")), str(ut.get("link_note" + tu, ""))]])
 	return rows
 
@@ -2081,7 +2081,11 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 	var tight: bool = not ph and rows.size() > 5
 	var hh := 28.0 if ph else (34.0 if tight else 46.0)
 	var gap := 4.0 if ph else 6.0
-	var hs := _row_heights(rows.map(func(r): return r[7]), box.end.y - y, hh, gap, w - (16.0 if ph else 24.0), ph)
+	var big3: Array = []   # 终结技 / 连携两行放不下时也保证 3 行说明（docs/213 P6）
+	for ri in rows.size():
+		if str(rows[ri][0]).begins_with("ULTIMATE") or str(rows[ri][0]).begins_with("LINK"):
+			big3.append(ri)
+	var hs := _row_heights(rows.map(func(r): return r[7]), box.end.y - y, hh, gap, w - (16.0 if ph else 24.0), ph, big3)
 	for i in rows.size():
 		a = _rowm(i + 1, am, odx, motion)
 		var r: Array = rows[i]
@@ -2108,7 +2112,11 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 		UI.text_at(self, font, tg.get_center() + Vector2(0, 1), r[5], 10, UI.fa(UI.C_HZ if r[6] else UI.C_L_INK, a), "mm")
 		if not ph:
 			UI.code(self, font, Vector2(tx0, y + 5), r[0], 7, UI.fa(UI.C_L_SUB, a))
-		var nf := UI.fit_line(font, r[1], 12 if ph else 14, tg.position.x - tx0 - 6.0, 9)
+		var kcw := 0.0   # 终结技键画成按键牌放在标签左边（docs/213 P6：原来写进标签「终结技 Q」）；触屏不画
+		if str(r[0]).begins_with("ULTIMATE") and not UI._touch_ui():
+			kcw = font.get_string_size("Q", HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 18.0
+			UI.keycap(self, font, Vector2(tg.position.x - kcw, tg.position.y + 1.0), "Q", UI.fa(UI.C_L_INK, a), 10)
+		var nf := UI.fit_line(font, r[1], 12 if ph else 14, tg.position.x - tx0 - 6.0 - kcw, 9)
 		UI.text_at(self, font, Vector2(tx0, y + (8 if ph else 15)), nf[0], nf[1], UI.fa(UI.C_L_INK, a))
 		if not ph and not tight and r[2] != "":
 			UI.code(self, font, Vector2(tx0 + 1, y + 33), r[2], 7, UI.fa(UI.C_L_SUB, a))
@@ -2182,7 +2190,7 @@ func _c_growth(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 
 ## 各行高度：桌面每行 = 标题 + 说明（字号 12 → 10，仍放不下就平分剩余高度并截断）；
 ## 手机 = 未展开时每行标题 + 一行说明，点开一行后其余只留标题、这一行拿剩下的高度
-func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, ph: bool) -> Array:
+func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, ph: bool, big3: Array = []) -> Array:
 	var n := descs.size()
 	var out: Array = []
 	if n == 0:
@@ -2214,7 +2222,7 @@ func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, 
 	var tmin := 0.0
 	for d in descs:
 		var nd: float = hh + (UI.fit(font, d, dw, 9999.0, [10]).h if d != "" else 0.0) + 8.0
-		var mn: float = minf(nd, hh + 22.0)
+		var mn: float = minf(nd, hh + (44.0 if big3.has(mins.size()) else 22.0))
 		need.append(nd)
 		mins.append(mn)
 		tmin += mn
@@ -2327,7 +2335,7 @@ func _draw_hint(ph: bool) -> void:
 	if ph or Pad.touch_ui():
 		return
 	# 职业轨只在干员页（11-01 巡检二轮：敌人 / 道具等页也写着「最左再 ← 进职业轨」）
-	var s := Pad.hint("Q / E 分类 · 方向键选择%s· Z / X 动作 · Enter 页签 · Esc 返回" % ("（最左再 ← 进职业轨）" if tab == 0 else " "), "LB / RB 分类 · 十字键选择 · Ⓧ / Ⓨ 动作 · Ⓐ 页签 · Ⓑ 返回")
+	var s := Pad.hint("Q / E 分类 · 方向键选择%s· Z / X 动作 · ENTER 页签 · ESC 返回" % ("（最左再 ← 进职业轨）" if tab == 0 else " "), "LB / RB 分类 · 十字键选择 · Ⓧ / Ⓨ 动作 · Ⓐ 页签 · Ⓑ 返回")
 	var fl := UI.fit_line(font, s, 11, 404.0, 9)
 	UI.text_at(self, font, Vector2(24, 694), fl[0], fl[1], UI.C_D_SUB)
 

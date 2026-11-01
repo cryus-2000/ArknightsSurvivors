@@ -10,6 +10,7 @@ extends "res://scripts/screens/title_base.gd"
 # 位移 / 缩放 / 扫入 / 浪幕直接到终态，只留 ≤ 120 ms 淡入淡出（OP_FADE），呼吸光不动
 # =====================================================================
 const OP_TABS := ["属性", "技能", "编队"]
+const Bal = preload("res://scripts/core/balance.gd")   # 技能页终结技 / 连携行（ult/on、link/v2）与操作说明（title.gd）用
 const OP_TAB_EN := ["STATUS", "SKILL", "SQUAD"]
 const OP_STAGE := ["招募", "精英一", "精英二"]
 const OP_FADE := 0.12
@@ -819,7 +820,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 	_op_hline(rb - 6, W)
 	var lst := _op_list()
 	UI.code(self, font, Vector2(70, rb - 1), "ROSTER  %d / %d   //   %s" % [lst.size(), op_defs.size(), "SORT: CLASS" if op_filter == "" else "CLASS: " + op_filter], 8)
-	UI.text_at(self, font, Vector2(1258, rb - 2), Pad.hint("◀ ▶ / 滚轮 切换    ↑↓ 页签    Q / E 职业    Enter 下一步", "◀ ▶ 切换    ↑↓ 页签    LB / RB 职业    Ⓐ 下一步", "点卡片切换 · 再点一次出击"), 10, UI.B_SUB, "ra")
+	UI.text_at(self, font, Vector2(1258, rb - 2), Pad.hint("◀ ▶ / 滚轮 切换    ↑↓ 页签    Q / E 职业    ENTER 下一步", "◀ ▶ 切换    ↑↓ 页签    LB / RB 职业    Ⓐ 下一步", "点卡片切换 · 再点一次出击"), 10, UI.B_SUB, "ra")
 	var gx := 70.0
 	var go := Rect2(1036, rb + 40, W - 22 - 1036, 72)
 	op_vis = maxi(1, int((go.position.x - 24.0 - gx) / 90.0))
@@ -1120,7 +1121,9 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 	if sks.size() > op_skill and m.rows[2] >= 1.0:
 		var sk: Dictionary = sks[op_skill]
 		var txt: String = ("队长按 Q 释放；作为队友自动。" if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
-		var room := (box.end.y - y) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0))
+		var urows := _op_ult_rows(d)
+		var ures: float = urows.size() * (20.0 if ph else 24.0)
+		var room := (box.end.y - y - ures) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0) - ures)
 		var f := UI.fit(font, txt, box.size.x - 8.0, room, [11, 10] if not ph else [10, 9])
 		UI.draw_fit(ci, font, Vector2(box.position.x + 2, y - 2), f, UI.B_SUB)
 		y += maxf(54.0, f.h + 10.0)
@@ -1128,7 +1131,35 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 			var w := UI.pill(ci, font, Vector2(box.position.x + 2, y), "天赋", col, 10)
 			var tf := UI.fit_line(font, str(d.talent.get("name", "")) + "  精英一解锁", 12, box.size.x - w - 8.0, 10)
 			UI.text_at(ci, font, Vector2(box.position.x + 2 + w, y + 9), tf[0], tf[1], UI.TEXT, "lm")
+			y += 24.0
+		# 终结技 / 连携各一行（docs/213 P7：图鉴有、选人页原来没有）：标签 + 名字 + 一句
+		for ur in urows:
+			if y + 18.0 > box.end.y:
+				break
+			var uw := UI.pill(ci, font, Vector2(box.position.x + 2, y), ur[0], UI.CYAN if ur[0] == "终结技" else col, 9 if ph else 10)
+			var ul := UI.fit_line(font, ur[1] + ("  " + ur[2] if ur[2] != "" else ""), 11 if ph else 12, box.size.x - uw - 8.0, 9)
+			UI.text_at(ci, font, Vector2(box.position.x + 2 + uw, y + 9), ul[0], ul[1], UI.TEXT, "lm")
+			y += 20.0 if ph else 24.0
 
+
+## 终结技 / 连携的 [标签, 名字, 一句]（data/ult_text.json；ult/on 关时没有）。连携 v2 的说明带 {占位} 时只写名字
+func _op_ult_rows(d: Dictionary) -> Array:
+	if Bal.vi("ult/on", 1) <= 0 or not FileAccess.file_exists("res://data/ult_text.json"):
+		return []
+	if _ult_txt.is_empty():
+		var j = JSON.parse_string(FileAccess.get_file_as_string("res://data/ult_text.json"))
+		_ult_txt = j if j is Dictionary else {"ops": {}}
+	var ue: Dictionary = _ult_txt.get("ops", {}).get(str(d.get("id", "")), {})
+	var out: Array = []
+	var ul: Dictionary = ue.get("ult", {})
+	if not ul.is_empty():
+		out.append(["终结技", str(ul.get("name", "")), str(ul.get("desc", ""))])
+	var lk: Dictionary = ue.get("link_v2", {}) if Bal.vi("link/v2", 0) > 0 and ue.has("link_v2") else ue.get("link", {})
+	if not lk.is_empty():
+		var ld: String = str(lk.get("desc", ""))
+		out.append(["连携", str(lk.get("name", "")), "" if ld.contains("{") else ld])
+	return out
+var _ult_txt := {}
 
 func _op_skill_row(ci: CanvasItem, r: Rect2, od: Dictionary, i: int, compact: bool, a: float) -> void:
 	var sk: Dictionary = od.def.skills[i]

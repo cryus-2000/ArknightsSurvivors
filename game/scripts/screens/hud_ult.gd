@@ -336,7 +336,7 @@ func _draw_touch(vs: Vector2) -> void:
 		rest.append({"q": _q()[i], "c": cc + Vector2(-cr - 14.0 - (i - 1) * 24.0, 0.0), "r": 9.0, "head": false})
 	bg.flush(g.hud)
 	if ld != null:
-		_avatar(ld, c, r - 5.0, Color.WHITE if full else Color(0.5, 0.53, 0.57))
+		v._avatar_hi(ld, c, r - 5.0, Color.WHITE if full else Color(0.5, 0.53, 0.57))   # docs/213 P5：高清头像按眼睛对齐
 	if clit:
 		var q: Dictionary = _q()[0]
 		var since: float = _lit_t() - float(q.left)

@@ -185,13 +185,25 @@ func draw(host: Control, vs: Vector2) -> void:
 	text(host,font,1130 + font.get_string_size("%d" % int(best.get("wins",0)), HORIZONTAL_ALIGNMENT_LEFT, -1, 39).x + 8,600,"次",16,MUTED)
 	rect(host,Rect2(0,654,1280,66),INK)
 	rule(host,654,28,1252)
-	text(host,font,31,680,"返回",17,MUTED)   # 10-31 TA H7：键名不夹在按钮文字里
+	# 手机（docs/213 P12）：「返回」「认知塑造」与「确认难度」同款按钮（底板 + 细边、字居中），确认条不画「›」（15 号看着像逗号）
+	var ph_ft: bool = Cfg.phone_ui()
+	if ph_ft:
+		for bk in [["back", "返回", MUTED], ["growth", "认知塑造", WHITE]]:
+			var br: Rect2 = (hits[bk[0]] as Rect2).grow(-3)
+			rect(host, br, Color("1b2029"))
+			host.draw_rect(br, Color(1, 1, 1, 0.3), false, 1.0)
+			var bw: float = font.get_string_size(bk[1], HORIZONTAL_ALIGNMENT_LEFT, -1, PHONE_MIN_FS + 3).x
+			text(host, font, br.position.x + (br.size.x - bw) / 2.0, br.get_center().y - (PHONE_MIN_FS + 3) * 0.62, bk[1], PHONE_MIN_FS + 3, bk[2])
+	else:
+		text(host,font,31,680,"返回",17,MUTED)   # 10-31 TA H7：键名不夹在按钮文字里
+	if not ph_ft:
+		text(host,font,304,678,"认知塑造",19)
 	UI.btn_key(host,font,Rect2(78,679,48,24),"" if Pad.using else "ESC", MUTED, 10, 0.0)
-	text(host,font,304,678,"认知塑造",19)
 	UI.btn_key(host,font,Rect2(392,679,40,24),"" if Pad.using else "X", MUTED, 10, 0.0)
 	rect(host,hits.go,Color("39414e") if locked else COLORS[0])
 	text(host,font,942,676,"未解锁" if locked else "确认难度",22,MUTED if locked else INK)
-	text(host,font,1196,684,"›",14,MUTED if locked else INK)
+	if not ph_ft:
+		text(host,font,1196,684,"›",14,MUTED if locked else INK)
 	UI.btn_key(host,font,Rect2(1142,679,48,24),"" if Pad.using else "ENTER", MUTED if locked else INK, 10, 0.0)   # 10-31 TA H7：键名进按键牌
 	host.draw_set_transform(Vector2.ZERO,0,Vector2.ONE)
 	host.diff_rects.clear()

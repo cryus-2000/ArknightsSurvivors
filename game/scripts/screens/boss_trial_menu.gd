@@ -1,5 +1,7 @@
 extends Control
 ## EA practice setup. Actual battle initialization belongs to run/boss_trial.gd.
+## 版式（11-01 docs/213 P1）：原来是 Godot 默认控件 + 青色粗框；改成设置页同款——暗面板左侧一道青条、标题 + 英文代码小标、
+## 每行「名称 | ‹ 选项 ›」（‹ › 与键盘 ← / → 逐项切换，点中间仍弹下拉）、「开始演练」青底主按钮、「返回」描边按钮。节点 API 不变（测试直接 select）
 signal closed
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
@@ -38,10 +40,12 @@ func _ready() -> void:
 	center.add_child(panel)
 	resized.connect(_resize_panel)
 	var style := StyleBoxFlat.new()
-	style.bg_color = UI.BG
+	style.bg_color = Color(0.075, 0.082, 0.098, 0.97)
+	style.border_color = Color(1, 1, 1, 0.14)
+	style.set_border_width_all(1)
+	style.border_width_left = 4
 	style.border_color = UI.CYAN
-	style.set_border_width_all(2)
-	style.content_margin_left = 28
+	style.content_margin_left = 32
 	style.content_margin_right = 28
 	style.content_margin_top = 24
 	style.content_margin_bottom = 24
@@ -52,12 +56,22 @@ func _ready() -> void:
 	box.add_theme_color_override("font_color", UI.TEXT)
 	panel.add_child(box)
 	var heading := Label.new()
-	heading.text = "Boss 演练 · EA"
+	var code := Label.new()
+	code.text = "BOSS TRIAL  //  PRACTICE"
+	code.add_theme_font_size_override("font_size", 11)
+	code.add_theme_color_override("font_color", UI.CYAN)
+	box.add_child(code)
+	heading.text = "Boss 演练"
 	heading.add_theme_font_size_override("font_size", 30)
 	box.add_child(heading)
+	var rule := ColorRect.new()
+	rule.color = Color(1, 1, 1, 0.16)
+	rule.custom_minimum_size = Vector2(0, 1)
+	box.add_child(rule)
 	var note := Label.new()
 	note.text = "直接进入真实 Boss 战；不写入通关、难度或图鉴进度。"
-	note.add_theme_font_size_override("font_size", 16)
+	note.add_theme_font_size_override("font_size", 15)
+	note.add_theme_color_override("font_color", UI.SUB)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(note)
 	boss_pick = _select_row(box, "对手")
@@ -86,6 +100,10 @@ func _ready() -> void:
 	safe_pick = CheckBox.new()
 	safe_pick.text = "观察模式：队长不会倒下"
 	safe_pick.button_pressed = true
+	safe_pick.add_theme_color_override("font_color", UI.TEXT)
+	safe_pick.add_theme_color_override("font_hover_color", UI.CYAN)
+	safe_pick.add_theme_color_override("font_focus_color", UI.CYAN)
+	safe_pick.add_theme_color_override("font_pressed_color", UI.TEXT)
 	box.add_child(safe_pick)
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 20)
@@ -94,6 +112,7 @@ func _ready() -> void:
 		var b := Button.new()
 		b.text = label
 		b.custom_minimum_size = Vector2(0, 46)
+		_style_btn(b, label == "开始演练")
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		action_buttons.append(b)
 		b.pressed.connect(_start if label == "开始演练" else close)
@@ -121,15 +140,68 @@ func _select_row(box: VBoxContainer, label: String) -> OptionButton:
 	var text := Label.new()
 	text.text = label
 	text.custom_minimum_size.x = 96
+	text.add_theme_color_override("font_color", UI.SUB)
 	row.add_child(text)
 	var pick := OptionButton.new()
 	pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pick.fit_to_longest_item = false
 	pick.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	pick.custom_minimum_size.y = 38
+	_style_pick(pick)
+	row.add_child(_arrow("‹", pick, -1))
 	row.add_child(pick)
+	row.add_child(_arrow("›", pick, 1))
+	pick.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventKey and ev.pressed and (Pad.kc(ev) == KEY_LEFT or Pad.kc(ev) == KEY_RIGHT):
+			_step(pick, -1 if Pad.kc(ev) == KEY_LEFT else 1)
+			pick.accept_event())
 	box.add_child(row)
 	return pick
+
+
+## ‹ / › 逐项切换（置灰的行不动）；分队行切换后同步队长 / 成长两行
+func _step(pick: OptionButton, d: int) -> void:
+	if pick.disabled or pick.item_count == 0:
+		return
+	pick.select((pick.selected + d + pick.item_count) % pick.item_count)
+	if pick == squad_pick:
+		_sync_squad()
+func _arrow(t: String, pick: OptionButton, d: int) -> Button:
+	var b := Button.new()
+	b.text = t
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(38, 38)
+	_style_btn(b, false)
+	b.pressed.connect(func(): _step(pick, d))
+	return b
+func _sb(bg: Color, edge: Color, w := 1) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = edge
+	sb.set_border_width_all(w)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	return sb
+func _style_pick(pick: OptionButton) -> void:
+	pick.add_theme_stylebox_override("normal", _sb(Color(0.035, 0.04, 0.05, 0.9), Color(1, 1, 1, 0.18)))
+	pick.add_theme_stylebox_override("hover", _sb(Color(0.05, 0.07, 0.08, 0.95), UI.CYAN))
+	pick.add_theme_stylebox_override("pressed", _sb(Color(0.05, 0.07, 0.08, 0.95), UI.CYAN))
+	pick.add_theme_stylebox_override("focus", _sb(Color(0, 0, 0, 0), UI.CYAN, 2))
+	pick.add_theme_stylebox_override("disabled", _sb(Color(0.035, 0.04, 0.05, 0.5), Color(1, 1, 1, 0.08)))
+	pick.add_theme_color_override("font_color", UI.TEXT)
+	pick.add_theme_color_override("font_hover_color", UI.TEXT)
+	pick.add_theme_color_override("font_disabled_color", UI.SUB)
+## 主按钮青底深字（同设置页底栏「返回」/ 难度页「确认难度」），其余暗底描边
+func _style_btn(b: Button, primary: bool) -> void:
+	var base: Color = UI.CYAN if primary else Color(0.035, 0.04, 0.05, 0.9)
+	b.add_theme_stylebox_override("normal", _sb(base, UI.CYAN if primary else Color(1, 1, 1, 0.3)))
+	b.add_theme_stylebox_override("hover", _sb(base.lightened(0.15) if primary else Color(0.05, 0.08, 0.09, 0.95), UI.CYAN))
+	b.add_theme_stylebox_override("pressed", _sb(base.darkened(0.15), UI.CYAN))
+	b.add_theme_stylebox_override("focus", _sb(Color(0, 0, 0, 0), Color.WHITE if primary else UI.CYAN, 2))
+	var ink: Color = Color(0.03, 0.07, 0.09) if primary else UI.TEXT
+	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(k, ink)
+	b.add_theme_font_size_override("font_size", 18 if primary else 16)
 func _add_boss_group(group: Array) -> void:
 	if boss_groups.has(group):
 		return
@@ -157,4 +229,4 @@ func _input(event: InputEvent) -> void:
 		close()
 		get_viewport().set_input_as_handled()
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(UI.BG, 0.95))
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0.02, 0.025, 0.03, 0.9))

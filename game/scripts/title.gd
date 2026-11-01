@@ -2,7 +2,6 @@ extends "res://scripts/screens/title_diff_pick.gd"
 ## 标题界面：「方舟幸存者」Logo + 菜单；背景是深海沉船与水母（title_deep.gd，10-24 用户定，docs/67 §13）
 const HS = preload("res://scripts/screens/hh_style.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
-const Bal = preload("res://scripts/core/balance.gd")   # 操作说明按 ult/on 换终结技一行（图鉴已 preload，不多编译）
 func _ready() -> void:
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
@@ -1041,8 +1040,8 @@ const GUIDE_ROWS := [
 	["指挥圆盘", "F（按住选，松开确认）", "LB"],
 	["按住瞄准", "按住左键", "右摇杆"],
 	["选卡", "数字键 / 点击", "Ⓐ"],
-	["暂停", "Esc", "START"],
-	["属性", "Tab / C", "SELECT"],
+	["暂停", "ESC", "START"],
+	["属性", "TAB / C", "SELECT"],
 	["重看指南", "暂停时 G", "暂停菜单"],
 	["倍速", "V", ""],
 	["音乐开关", "M", ""],
