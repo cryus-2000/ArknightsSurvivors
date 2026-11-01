@@ -1,0 +1,123 @@
+bad [] 0
+
+== path n=18 用时中位 44（m0 35 / m18 53） 胜 18/18 ≤150s 18  承伤%/分 0  被打中/分 0.0
+   contact_path                 承伤占比 100.0%  每次命中  15.7%HP  命中/出手 7/-
+   path/mc_dash                 承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/45=0%
+   path/mc_slam                 承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/144=0%
+   path/冲撞                      承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/138=0%
+   path/震地                      承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/140=0%
+   path/订正                      承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/1=0%
+   几乎打不中（出手≥10、命中<5%）: ['path/mc_dash', 'path/mc_slam', 'path/冲撞', 'path/震地']
+
+== iberia n=18 用时中位 28（m0 24 / m18 32） 胜 18/18 ≤150s 18  承伤%/分 19  被打中/分 15.8
+   boss_iberia                  承伤占比  89.4%  每次命中   1.4%HP  命中/出手 129/-
+   bullet                       承伤占比   9.6%  每次命中   5.0%HP  命中/出手 4/-
+   corrode                      承伤占比   1.0%  每次命中   0.0%HP  命中/出手 72/-
+   iberia/手炮                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/18=0%
+   iberia/lob                   承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/42=0%
+   iberia/pattern_ring          承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/15=0%
+   iberia/shot                  承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/30=0%
+   iberia/三连曲射                  承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/21=0%
+   iberia/手炮·三连                 承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/15=0%
+   iberia/清膛                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/15=0%
+   iberia/pattern_fan           承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/2=0%
+   iberia/散射                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/2=0%
+   几乎打不中（出手≥10、命中<5%）: ['iberia/手炮', 'iberia/lob', 'iberia/pattern_ring', 'iberia/shot', 'iberia/三连曲射', 'iberia/手炮·三连', 'iberia/清膛']
+
+== carmen n=18 用时中位 43（m0 43 / m18 42） 胜 18/18 ≤150s 18  承伤%/分 24  被打中/分 2.3
+   boss_carmen                  承伤占比  80.3%  每次命中  10.9%HP  命中/出手 19/-
+   bullet                       承伤占比  17.6%  每次命中   7.6%HP  命中/出手 6/-
+   corrode                      承伤占比   2.1%  每次命中   0.0%HP  命中/出手 146/-
+   carmen/pattern_ring          承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/18=0%
+   carmen/炮身砸击                  承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/25=0%
+   carmen/狙击                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/53=0%
+   carmen/环射                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/18=0%
+   几乎打不中（出手≥10、命中<5%）: ['carmen/pattern_ring', 'carmen/炮身砸击', 'carmen/狙击', 'carmen/环射']
+
+== bishop+archon n=18 用时中位 34（m0 30 / m18 36） 胜 18/18 ≤150s 18  承伤%/分 17  被打中/分 55.9
+   corrode                      承伤占比  37.5%  每次命中   0.1%HP  命中/出手 2077/-
+   archon/mc_cone               承伤占比  22.1%  每次命中  16.7%HP  命中/出手 6/81=7%
+   archon/跃击                    承伤占比  14.4%  每次命中  21.8%HP  命中/出手 3/43=7%
+   contact_archon               承伤占比   9.8%  每次命中  11.1%HP  命中/出手 4/-
+   archon/蚀潮吐息                  承伤占比   8.7%  每次命中  13.2%HP  命中/出手 3/75=4%
+   bullet                       承伤占比   6.9%  每次命中   5.2%HP  命中/出手 6/-
+   bishop/mc_link               承伤占比   0.4%  每次命中   2.0%HP  命中/出手 1/135=1%
+   archon/横扫                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/81=0%
+   bishop/mc_pillar             承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/182=0%
+   bishop/换位                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/45=0%
+   bishop/潮汐柱                   承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/91=0%
+   bishop/统一                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/36=0%
+   几乎打不中（出手≥10、命中<5%）: ['archon/横扫', 'archon/蚀潮吐息', 'bishop/mc_link', 'bishop/mc_pillar', 'bishop/换位', 'bishop/潮汐柱', 'bishop/统一']
+
+== bishop+immortal n=18 用时中位 34（m0 34 / m18 34） 胜 18/18 ≤150s 18  承伤%/分 29  被打中/分 181.6
+   contact_immortal             承伤占比  42.2%  每次命中  10.5%HP  命中/出手 8/-
+   corrode                      承伤占比  36.7%  每次命中   0.1%HP  命中/出手 1197/-
+   immortal/连斩                  承伤占比  14.3%  每次命中   9.5%HP  命中/出手 3/60=5%
+   bishop/mc_link               承伤占比   6.9%  每次命中   2.3%HP  命中/出手 6/99=6%
+   bishop/mc_pillar             承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/132=0%
+   bishop/换位                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/33=0%
+   bishop/潮汐柱                   承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/66=0%
+   bishop/统一                    承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/28=0%
+   immortal/mc_line             承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/135=0%
+   immortal/迸发                  承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/36=0%
+   几乎打不中（出手≥10、命中<5%）: ['bishop/mc_pillar', 'bishop/换位', 'bishop/潮汐柱', 'bishop/统一', 'immortal/mc_line', 'immortal/迸发']
+
+== paranoia n=18 用时中位 120（m0 122 / m18 100） 胜 15/18 ≤150s 15  承伤%/分 109  被打中/分 108.6
+   shock_paranoia               承伤占比  51.1%  每次命中  21.2%HP  命中/出手 100/-
+   bullet                       承伤占比  17.5%  每次命中  19.7%HP  命中/出手 37/-
+   paranoia/bubble              承伤占比  17.1%  每次命中  18.3%HP  命中/出手 39/496=8%
+   corrode                      承伤占比   8.5%  每次命中   0.1%HP  命中/出手 6417/-
+   paranoia/gaze                承伤占比   2.4%  每次命中  33.9%HP  命中/出手 3/48=6%
+   boss_paranoia                承伤占比   2.0%  每次命中  28.2%HP  命中/出手 3/-
+   paranoia/追猎泡                 承伤占比   1.3%  每次命中  18.4%HP  命中/出手 3/18=17%
+   paranoia/burst               承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/117=0%
+   paranoia/pattern_ring        承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/30=0%
+   paranoia/凝视                  承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/24=0%
+   paranoia/叠影                  承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/39=0%
+   paranoia/呼号                  承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/62=0%
+   几乎打不中（出手≥10、命中<5%）: ['paranoia/burst', 'paranoia/pattern_ring', 'paranoia/凝视', 'paranoia/叠影', 'paranoia/呼号', 'paranoia/泡影收束', 'paranoia/泡影环', 'paranoia/溟泡迸裂']
+
+== ishar n=18 用时中位 68（m0 163 / m18 52） 胜 18/18 ≤150s 13  承伤%/分 126  被打中/分 11.1
+   ishar/歌声围拢                   承伤占比  37.6%  每次命中   9.6%HP  命中/出手 152/-
+   ishar/歌声涟漪                   承伤占比  26.8%  每次命中  13.5%HP  命中/出手 77/29=266%
+   ishar/ishar_strike           承伤占比  13.1%  每次命中  14.2%HP  命中/出手 36/669=5%
+   shock_ishar                  承伤占比   5.9%  每次命中  28.5%HP  命中/出手 8/-
+   bullet                       承伤占比   5.0%  每次命中  17.7%HP  命中/出手 11/-
+   ishar/ishar_line             承伤占比   3.6%  每次命中  17.5%HP  命中/出手 8/39=21%
+   corrode                      承伤占比   3.2%  每次命中   0.1%HP  命中/出手 1091/-
+   ishar/大群之声                   承伤占比   2.4%  每次命中  18.6%HP  命中/出手 5/4=125%
+   ishar/大群之声·双束                承伤占比   1.4%  每次命中  13.1%HP  命中/出手 4/9=44%
+   ishar/sweep                  承伤占比   1.0%  每次命中  40.1%HP  命中/出手 1/18=6%
+   ishar/ishar_echo             承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/65=0%
+   ishar/三重齐击                   承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/17=0%
+   几乎打不中（出手≥10、命中<5%）: ['ishar/ishar_echo', 'ishar/三重齐击', 'ishar/共鸣', 'ishar/合唱齐射', 'ishar/横扫', 'ishar/泪滴共鸣', 'ishar/潮涌突进', 'ishar/song_ring', 'ishar/三线扫射']
+
+== knight_boss n=18 用时中位 103（m0 110 / m18 73） 胜 18/18 ≤150s 15  承伤%/分 171  被打中/分 7.7
+   knight_boss/crescent         承伤占比  23.1%  每次命中  24.6%HP  命中/出手 51/60=85%
+   knight_boss/断潮劈击             承伤占比  16.9%  每次命中  25.5%HP  命中/出手 36/41=88%
+   bullet                       承伤占比  15.9%  每次命中  18.4%HP  命中/出手 47/-
+   knight_boss/长枪回旋             承伤占比   9.6%  每次命中  30.9%HP  命中/出手 17/25=68%
+   knight_boss/踏冰裂阵             承伤占比   7.4%  每次命中  22.5%HP  命中/出手 18/46=39%
+   knight_boss/冰枪封径             承伤占比   4.9%  每次命中  17.7%HP  命中/出手 15/45=33%
+   knight_boss/ice_thrust       承伤占比   4.8%  每次命中  26.1%HP  命中/出手 10/108=9%
+   knight_boss/ice_lance        承伤占比   4.8%  每次命中  21.6%HP  命中/出手 12/210=6%
+   knight_boss/ice_wall         承伤占比   3.9%  每次命中  21.4%HP  命中/出手 10/36=28%
+   knight_boss/冻潮夹击             承伤占比   2.7%  每次命中  20.8%HP  命中/出手 7/36=19%
+   contact_knight_boss          承伤占比   2.0%  每次命中  27.7%HP  命中/出手 4/-
+   knight_boss/雪幕劈              承伤占比   1.7%  每次命中  23.3%HP  命中/出手 4/19=21%
+   几乎打不中（出手≥10、命中<5%）: ['knight_boss/ice_field', 'knight_boss/再冲锋', 'knight_boss/冲锋', 'knight_boss/掷枪', 'knight_boss/裂地冲锋', 'knight_boss/长枪连刺', 'knight_boss/长驱冲锋', 'knight_boss/ice_javelin', 'knight_boss/侧踏挑枪', 'knight_boss/dash']
+
+== izumik n=18 用时中位 74（m0 144 / m18 54） 胜 18/18 ≤150s 14  承伤%/分 76  被打中/分 378.7
+   bullet                       承伤占比  61.5%  每次命中  25.7%HP  命中/出手 63/-
+   izumik/迁徙潮                   承伤占比   9.4%  每次命中  35.3%HP  命中/出手 7/16=44%
+   boss_izumik                  承伤占比   8.4%  每次命中  37.0%HP  命中/出手 6/-
+   wound                        承伤占比   7.7%  每次命中   0.0%HP  命中/出手 10041/-
+   izumik/分享                    承伤占比   4.9%  每次命中  16.2%HP  命中/出手 8/60=13%
+   izumik/深渊涌流                  承伤占比   3.1%  每次命中  40.1%HP  命中/出手 2/40=5%
+   corrode                      承伤占比   2.5%  每次命中   0.0%HP  命中/出手 1432/-
+   izumik/海流牵引                  承伤占比   1.5%  每次命中  40.0%HP  命中/出手 1/51=2%
+   mire                         承伤占比   1.0%  每次命中   1.0%HP  命中/出手 26/-
+   izumik/abyss                 承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/40=0%
+   izumik/pattern_ring          承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/80=0%
+   izumik/sweep                 承伤占比   0.0%  每次命中   0.0%HP  命中/出手 0/32=0%
+   几乎打不中（出手≥10、命中<5%）: ['izumik/abyss', 'izumik/pattern_ring', 'izumik/sweep', 'izumik/分享·全场', 'izumik/海流牵引', 'izumik/解读旋涡', 'izumik/震撼', 'izumik/pattern_rain', 'izumik/tentacle', 'izumik/护群触腕', 'izumik/潮汐坠落']
