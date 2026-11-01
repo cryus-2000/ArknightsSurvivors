@@ -2090,7 +2090,7 @@ func sf_sound(ld) -> void:
 		return
 	var oid := str(ld.id)
 	# 超必杀提示音（用户 11-01「格斗游戏超必杀那种感觉：短促、亮、『锵』一下，配画面一暗」，docs/205 §4.9）：20 人共用 ult_super_<n>，
-	# 叠在各人 sf 前面；ult/super_cue 选版（1–3，0 = 不放）。逻各斯的 sf 关着也照放
+	# 叠在各人 sf 前面；ult/super_cue 选版（1–6，0 = 不放；⑤ ⑥ 不带武器属性）。逻各斯的 sf 关着也照放
 	var sn: int = Bal.vi("ult/super_cue", 1)
 	if sn > 0 and ResourceLoader.exists("res://audio/sfx/ult_super_%d.wav" % sn):
 		sfx.ensure(["ult_super_%d" % sn])

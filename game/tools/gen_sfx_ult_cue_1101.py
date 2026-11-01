@@ -4,7 +4,7 @@
 2. 就绪提示音 ult_ready（能量充满那一刻一次，ult/ready_cue）：比超必杀那声轻、短、柔，一听就分得开
 （逻各斯时停加时钟的 LC1 / LC2 候选已被第五轮「世界」时停声取代，见 gen_sfx_ult_seg_1030.py logos 与 docs/205 §4.10）
 运行：python game/tools/gen_sfx_ult_cue_1101.py            → 候选进 build/ult_sfx/CUE/
-      python game/tools/gen_sfx_ult_cue_1101.py --apply    → ult_super_1..3 / ult_ready 写进 game/audio/sfx/
+      python game/tools/gen_sfx_ult_cue_1101.py --apply    → ult_super_1..6 / ult_ready 写进 game/audio/sfx/
 """
 import argparse, os, runpy, shutil
 import numpy as np
@@ -29,6 +29,11 @@ KALIMBA = "CB_Sounddesign - Applicable Sounds - Organic UI and Building Games SF
 MBOX = "Sonic Bat - Music Boxes/SBmb_Music Box B 028.wav"   # 八音盒一音：基频 1326 Hz、泛音 2653 / 3980
 RING = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav"   # 0.42 秒处金属共振，3.4 kHz 一层
 XBELL = "344 Audio - Christmas Vol. 1/MAGMisc_Magic Christmas Bells 2_344 Audio_Christmas.wav"   # 2.21 秒一串小铃：7–14 kHz 闪烁
+WIND = "344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav"   # 0.1 秒处一记风冲
+GLASSY = "Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav"   # 晶体般的短「闪」，0.44 秒、重心 5.9 kHz
+ARP = "Cinematic Sound Design - System & UI Feedback Elements/Interface Arp Reveal Down Long.wav"   # 极高的电子琶音闪光（重心 12 kHz）
+PING = "Cinematic Sound Design - System & UI Feedback Elements/Interface Sci-Fi Ping Down.wav"   # 科幻下行 ping，倒放 = 往上扬的能量扫
+SWEEP = "Cinematic Sound Design - Ultra Transitions & Impacts/Woosh Sweep Slide Infographics Basic.wav"
 TICK_A = [2.06, 3.055, 7.035, 8.06, 9.055, 10.06]   # 歪钟里响亮的几下（起点，onset 实测）
 TICK_B = [0.755, 1.5, 2.255, 3.005, 3.755, 4.5]      # 座钟：偶数 = 滴、奇数 = 答
 
@@ -42,7 +47,10 @@ def super_cues():
     """① 剑鸣「锵」：出鞘 shwing（Freesound IENBA「Dagger」CC0）+ 亮闪碎光（ESM 动漫 power up 头 0.35 秒）+ 一记很短的低频顿
     ② 金属撞击亮鸣：铁件敲击（ESM 金属材质）升调 + 前面 0.1 秒碎光倒吸 + 特招斩击层（ESM 塔防 special move）
     ③ 和弦冲击：电影冲击和弦（CSD Rapid Chord）截头 0.45 秒 + 出鞘 shwing 高频层
-    ④ 电子游戏「叮——」（11-01 用户要 MUGEN 同款，原文件是卡普空的不能用）：高亮金属单音 + 闪烁尾，0.42 秒，没有低频冲击"""
+    ④ 电子游戏「叮——」（11-01 用户要 MUGEN 同款，原文件是卡普空的不能用）：高亮金属单音 + 闪烁尾，0.42 秒，没有低频冲击
+    ⑤ / ⑥（11-02 用户「要更通用」：20 人共用，剑鸣 / 金属只贴近战，术师 / 医疗 / 狙击不搭）——不带武器属性、无金属无铃：
+    ⑤ 气流往里一吸（风冲倒放 0.16 秒）+ 一记晶体般明亮的「闪」（玻璃质感 UI 闪 + 极高电子琶音闪光），像闪光弹 / 能量瞬间点亮，0.42 秒
+    ⑥ 很短的低频「咚」（预告片 boom 低通截 0.18 秒）+ 往上扬的能量光扫（科幻 ping 倒放 + 扫频 woosh 升调），屏幕闪光的声音化，0.48 秒"""
     shwing = fsd(611310, 0.42, 0.4, fout=0.15)
     flash = hp(lib(SHIM, 0.13, 0.4, fout=0.2), 2500)
     thump = lp(lib(BOOM, 0.25, 0.3, fout=0.15), 400)
@@ -58,7 +66,18 @@ def super_cues():
     sparkle = hp(lib(XBELL, 2.19, 0.5, 1.0, fin=0.002, fout=0.25), 5000)
     c4 = hp(pad(ding * 1.3, ring * 0.7, at(sparkle * 0.12, 0.01)), 1200)
     c4 = c4[:int(0.42 * SR)] * np.exp(-np.arange(min(len(c4), int(0.42 * SR))) / SR / 0.16)
-    return {"ult_super_1": c1, "ult_super_2": c2, "ult_super_3": c3, "ult_super_4": c4}
+    # ⑤ 吸 → 闪：风冲倒放垫在前 0.16 秒越吸越紧，0.16 秒处玻璃闪 + 琶音闪光同时点亮，600 Hz 以下切掉（没有低频冲击）
+    suck = rev(hp(lib(WIND, 0.06, 0.3, 1.1, fout=0.03), 700))[-int(0.16 * SR):]
+    suck = suck * np.linspace(0.1, 1.0, len(suck)) ** 2
+    flash5 = pad(hp(lib(GLASSY, 0.0, 0.3, 1.0, fin=0.001, fout=0.15), 1800), hp(lib(ARP, 0.05, 0.26, 1.0, fin=0.002, fout=0.15), 4000) * 0.35)
+    c5 = hp(pad(suck * 0.5, at(flash5, 0.16)), 600)[:int(0.42 * SR)]
+    c5 = fadeio(c5, 0.002, 0.08)
+    # ⑥ 咚 → 上扬：低频咚当头，科幻 ping 倒放从下往上扬到 0.42 秒，扫频 woosh 升调叠一层空气感
+    dong = lp(lib(BOOM, 0.25, 0.18, 1.0, fin=0.001, fout=0.1), 260)
+    rise = rev(lib(PING, 0.0, 0.4, 1.0, fin=0.004, fout=0.004))
+    swp = hp(lib(SWEEP, 0.02, 0.4, 1.25, fout=0.15), 2000)
+    c6 = fadeio(pad(dong * 0.6, at(hp(rise, 500) * 1.5, 0.04), at(swp * 0.45, 0.08))[:int(0.48 * SR)], 0.001, 0.05)
+    return {"ult_super_1": c1, "ult_super_2": c2, "ult_super_3": c3, "ult_super_4": c4, "ult_super_5": c5, "ult_super_6": c6}
 
 
 # ---------------------------------------------------------------- 2. 就绪提示音

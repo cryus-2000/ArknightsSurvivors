@@ -295,11 +295,15 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 **1. 逻各斯时停 + 时钟（2 候选；已被 §4.10 取代，生成代码已删）**：cast = 前 0.45 秒秒针三下（越走越紧）→ 0.46 秒「咔」停住（深闩扣降调 + 钟锤闷响 + 金属余震）→ 停住期间原来的低鸣 + 很低的电器嗡鸣；原来低鸣里的钟声删掉（换成这套）。impact（爆开 = 时间恢复）：爆开尾巴 0.45 秒起压低 12 dB，0.55 秒起时钟重新走（滴、答、滴，渐弱）。
 - 候选一 LC1 = ① 号角低鸣 + 歪钟（重、闷）；候选二 LC2 = ② 空腔嗡鸣 + 座钟（清脆滴答）。文件在 `<主仓库>/build/ult_sfx/LC1|LC2`；用户选定后把对应版写进 `gen_sfx_ult_seg_1030.py` 的 logos 再 `--apply`。
 
-**2. 超必杀提示音（4 候选，缺省 ①）**：按 Q 进入超必杀暂停那一刻，20 人共用 `ult_super_<n>`，叠在各人 sf 前面（逻各斯 sf 关着也放）；`ult/super_cue` 1–3 选版、0 = 不放，`ult/super_cue_db` 调响度（缺省 0，文件 -10 dBFS 同 sf）。
+**2. 超必杀提示音（6 候选，缺省 ①）**：按 Q 进入超必杀暂停那一刻，20 人共用 `ult_super_<n>`，叠在各人 sf 前面（逻各斯 sf 关着也放）；`ult/super_cue` 1–6 选版、0 = 不放，`ult/super_cue_db` 调响度（缺省 0，文件 -10 dBFS 同 sf）。
 - ① 剑鸣「锵」：出鞘 shwing + 亮闪碎光 + 很短的低频顿，按下即响。
 - ② 金属撞击：0.09 秒碎光倒吸 → 铁件敲击升调 + 特招斩击层。
 - ③ 和弦冲击：电影冲击和弦截头 + 出鞘高频层。
 - ④ 电子游戏「叮——」（11-01 追加，用户要 MUGEN 同款；原文件是卡普空的不能用）：八音盒一音升八度（基频约 2.65 kHz）+ 剑鸣共振尾里 3.4 kHz 那层 + 圣诞铃 7–14 kHz 闪烁尾，1.2 kHz 以下切掉，0.04 秒到峰、0.42 秒，没有低频冲击。素材：Sonic Bat - Music Boxes「SBmb_Music Box B 028」、David Dumais「METLImpt_METAL SWING HIT…Resonant Tail 01」、344 Audio Christmas「MAGMisc_Magic Christmas Bells 2」（Sonniss，授权同上表）。`ult/super_cue` 4 选它。
+- ⑤ / ⑥（11-02 追加，用户「要更通用」：20 人共用，剑鸣 / 金属声只贴近战，术师 / 医疗 / 狙击用不搭）——不带武器属性，无金属、无铃：
+  - ⑤ 吸气 + 晶体闪：风冲倒放 0.16 秒越吸越紧，0.16 秒处玻璃质感 UI 闪 + 极高电子琶音闪光同时点亮（像闪光弹 / 能量瞬间点亮），600 Hz 以下切掉，0.42 秒、200 Hz 以下能量 0%。`ult/super_cue` 5。
+  - ⑥ 低频咚 + 上扬光扫：预告片 boom 低通截 0.18 秒的「咚」当头，科幻 ping 倒放从下往上扬到 0.42 秒 + 扫频 woosh 升调叠空气感（屏幕闪光的声音化），0.44 秒。`ult/super_cue` 6。
+  - 素材（Sonniss GDC 2026）：344 Audio Elemental Palette「WINDDsgn_Wind, Rush, Whoosh, Long x5 01」、CSD Interface & Infographics「Interface Accept Glassy Snap」、CSD System & UI Feedback「Interface Arp Reveal Down Long」/「Interface Sci-Fi Ping Down」、CSD Ultra Transitions「Woosh Sweep Slide Infographics Basic」、Federico Soler 预告片 boom 214（已登记）。对照 `super_cue_v2.mp4`：德克萨斯 / 艾雅法拉各按 ④ ⑤ ⑥。
 
 **3. 就绪提醒（`ult/ready_cue` 缺省 1，0 = 原样）**：能量充满那一刻只提醒一次——
 - 声音：`ult_ready`（拇指琴两音上行 + 硬币 ting 亮尾，-17 dBFS，没有低频和冲击，和超必杀那声分得开；`ult/ready_cue_db` 调响度）。
