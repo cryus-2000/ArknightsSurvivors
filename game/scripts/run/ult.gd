@@ -1043,6 +1043,12 @@ func _cutin(ld, k: String) -> void:
 func strip(name: String, c: Vector2, opt: Dictionary = {}) -> Dictionary:
 	var s := opt.duplicate()
 	s["kind"] = "strip"
+	if name.find("_px_") >= 0:   # pixelfx（连携复用）：挑变体 + 随机镜像 / 小转角 + 实时火星（vfx.px_vary，纯画面）
+		var pv: Array = g.vfx.px_vary(name)
+		g.vfx.px_spark(name, c, Vector2.from_angle(float(s.get("ang", 0.0))) if s.has("ang") else Vector2.ZERO)
+		name = pv[0]
+		s["sy"] = float(s.get("sy", 1.0)) * float(pv[1])
+		s["ang"] = float(s.get("ang", 0.0)) + float(pv[2])
 	s["name"] = name
 	s["c"] = c
 	if not s.has("life"):
