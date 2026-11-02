@@ -863,9 +863,9 @@
       "ring": false,
       "fx": [
        {
-        "strip": "fx_skadi_surge",
+        "strip": "fx_skadi_px_surge",
         "layer": "floor",
-        "fit": 37,
+        "fit": 62,
         "max_scale": 6,
         "off": [
          0,
@@ -1564,9 +1564,9 @@
       "ring": false,
       "fx": [
        {
-        "strip": "fx_skadi_surge",
+        "strip": "fx_skadi_px_surge",
         "layer": "floor",
-        "fit": 37,
+        "fit": 62,
         "max_scale": 6,
         "off": [
          0,

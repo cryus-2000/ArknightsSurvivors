@@ -1074,7 +1074,7 @@ const V6_FRAMES := {
 	# 手写干员迁积木（docs/61 §17）：斯卡蒂成长线帧条原来由 skadi.gd 自己按帧切，积木的 fx 条目要登记在这里（帧数 / fps 同原脚本）
 	"fx_skadi_surge": [6, 14.0], "fx_skadi_wave": [6, 14.0],
 	# pixelfx 试点（docs/228 §7，源码 tools/pixelfx_fx，导出 tools/pixelfx_export.py）：斯卡蒂刀光 / 星熊力之锯 / 能天使技能枪口焰与命中
-	"fx_skadi_px_sweep": [11, 20.0], "fx_skadi_px_cleave": [11, 20.0], "fx_hoshiguma_px_saw": [8, 20.0],
+	"fx_skadi_px_sweep": [11, 20.0], "fx_skadi_px_cleave": [11, 20.0], "fx_skadi_px_surge": [14, 20.0], "fx_hoshiguma_px_saw": [8, 20.0],
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。

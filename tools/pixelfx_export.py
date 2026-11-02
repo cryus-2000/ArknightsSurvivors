@@ -28,6 +28,7 @@ EXU = {
 TARGETS = {
     "fx_skadi_px_sweep": ("melee/ak-skadi-sweep", {}, False, False),
     "fx_skadi_px_cleave": ("melee/ak-skadi-sweep", {"heavy": 1, "seed": 7}, False, False),
+    "fx_skadi_px_surge": ("water/ak-skadi-surge", {}, False, False),
     "fx_hoshiguma_px_saw": ("melee/ak-hoshiguma-saw", {}, False, False),
 }
 for k, pal in EXU.items():
