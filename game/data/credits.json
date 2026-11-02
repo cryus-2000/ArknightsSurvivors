@@ -35,7 +35,7 @@
   ],
   [
    "字体",
-   "界面字体 Noto Sans CJK SC / Noto Sans SC，事件标题字体 Noto Serif SC（© 2014–2023 Adobe，Google Noto 项目），按 SIL Open Font License 1.1 子集化后随游戏分发。",
+   "界面字体 Noto Sans CJK SC / Noto Sans SC，事件标题字体 Noto Serif SC（© 2014–2023 Adobe，Google Noto 项目），按 SIL Open Font License 1.1 子集化后随游戏分发；局内数字与英文标签用 Montserrat（© 2024 The Montserrat.Git Project Authors，SIL Open Font License 1.1，子集化，许可全文见 fonts/OFL_Montserrat.txt）。",
    "https://openfontlicense.org"
   ],
   [

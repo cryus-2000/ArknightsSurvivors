@@ -503,3 +503,17 @@
 - 状态行跟着上下挪，永远在最下面。
 
 和现行版的关系：现行 `command/hpbar_style 4` 就是「队长生命条下的队友名单」，这次只是换成新造型并加上显示条件。
+
+## 13. 加 Montserrat 字体与两个颜色令牌（11-02）
+
+用户：「Montserrat 加着先看看。颜色也加。」
+
+- **字体**：
+  - 来源：Google Fonts 官方仓库 `google/fonts`，`ofl/montserrat/Montserrat[wght].ttf`，SIL OFL 1.1。
+  - 生成：用 fontTools 实例化出 Bold（700）/ SemiBold（600），子集到 ASCII 加 `× · − – — / % : +`。
+  - 文件：`game/fonts/montserrat_bold.ttf`、`montserrat_semibold.ttf`，各约 25 KB；许可全文 `game/fonts/OFL_Montserrat.txt`；`data/credits.json` 字体条已补署名。
+- **取用**：`UI.latin(semibold := false)`。中文等子集外的字自动回退 `ui.ttf`，混排可以直接用。
+- **颜色**：`UI.PAPER` #e9e7e1（反白名牌）、`UI.ORANGE` #f08030（只用于步骤指示 / 做完条件标记，不表意）。docs/37 §2 颜色表、§3 组件表已补。
+- **游戏内实渲**：`Claude outputs/hud_redesign_1102/R11_font_colors_ingame.png`，用临时场景画、未提交。内容包括：大数字、字距标签、中文混排回退、两个颜色块、橙色步骤指示，以及和原 UI 字体的对照。
+- **效果稿**：`hud_mock_1102g.py` 起改用这两份字体（以前用 Segoe UI 代替）。`R10_*` 已用真字体重出。
+- **现在只加了字体与令牌**，HUD 还没换。快检 core / data_lint / ui_smoke / credits / touch_layout 通过。

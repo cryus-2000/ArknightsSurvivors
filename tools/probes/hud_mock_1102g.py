@@ -11,8 +11,8 @@ from hud_mock_1102 import M, C, TEXT, SUB, CYAN, GOLD, OPS, RELIC, BADGE
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 OUT = sys.argv[2]
-LATB = 'C:/Windows/Fonts/segoeuib.ttf'    # 几何粗体（代 Montserrat Bold）
-LATS = 'C:/Windows/Fonts/seguisb.ttf'     # 半粗（代 Montserrat SemiBold，小标签）
+LATB = os.path.join(sys.argv[1], 'game', 'fonts', 'montserrat_bold.ttf')       # Montserrat Bold 子集（11-02 起游戏内同一份）
+LATS = os.path.join(sys.argv[1], 'game', 'fonts', 'montserrat_semibold.ttf')   # Montserrat SemiBold 子集（小标签）
 _lf = {}
 PAPER = (233, 231, 225, 255)              # 纸白（名牌反白）
 INK = (16, 17, 19, 255)

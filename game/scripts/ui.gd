@@ -35,6 +35,9 @@ const CAT_EN := {"灯火": "LIGHT", "战斗": "COMBAT", "生存": "SURVIVAL", "�
 	"治疗转伤": "HEALING", "职业": "CLASS", "通用": "GENERAL", "经济": "ECONOMY"}
 
 # 兼容旧代码的色名（外观已换成 A）
+## 局内 HUD 编辑式（docs/222 §10–12，用户 11-02 定加）：纸白 = 反白名牌（队长名牌、倍速 ≠ 1 的提醒）；橙 = 只用于步骤指示与指南卡的做完条件标记，不表意（危险仍是 RED）
+const PAPER := Color("#e9e7e1")
+const ORANGE := Color("#f08030")
 const EDGE := Color(1.0, 1.0, 1.0, 0.24)
 const EDGE_DIM := Color(1.0, 1.0, 1.0, 0.12)
 const GLOW := CYAN
@@ -71,6 +74,24 @@ static func fs(size: int) -> int:
 
 static func _ks(ci: CanvasItem, size: int) -> int:
 	return fs(size) if fk != 1.0 and ci is Control else size
+
+
+## 拉丁几何粗体（docs/222 §10，用户 11-02 定加 Montserrat）：局内大数字与英文小标签。子集只含 ASCII 与 × · − – — 等符号，
+## 其余字（中文）回退到 ui.ttf。semibold = 小号字距标签用的半粗
+static var _latin := {}
+static func latin(semibold := false) -> Font:
+	if _latin.has(semibold):
+		return _latin[semibold]
+	var p := "res://fonts/montserrat_semibold.ttf" if semibold else "res://fonts/montserrat_bold.ttf"
+	var f: Font = load(p) if ResourceLoader.exists(p) else null
+	if f == null:
+		f = load("res://fonts/ui.ttf")
+	else:
+		var fb: Font = load("res://fonts/ui.ttf")
+		if fb != null and f is FontFile:
+			(f as FontFile).fallbacks = [fb]
+	_latin[semibold] = f
+	return f
 
 
 static func cond(base: Font, italic := false) -> Font:
