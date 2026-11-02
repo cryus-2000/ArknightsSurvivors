@@ -175,7 +175,7 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 			var vfr := frames
 			var vlife := life
 			if name.find("_px_") >= 0 and g.vfx != null:   # pixelfx：挑变体 + 随机镜像 / 小转角 + 实时火星（vfx.px_vary，纯画面）
-				var pv: Array = g.vfx.px_vary(name)
+				var pv: Array = g.vfx.px_vary(name, layer == "floor")
 				g.vfx.px_spark(name, q, Vector2.from_angle(angle) if f.get("rot", false) else Vector2.ZERO)
 				vname = pv[0]
 				vfy = pv[1]
