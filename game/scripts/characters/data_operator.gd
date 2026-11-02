@@ -293,6 +293,8 @@ func update(dt: float) -> void:
 		return
 	if hw_busy or (not hw.is_empty() and ObHw.hw_busy(self)):   # 手写迁移段：喷发序列 / 锚在外面时不起手（同手写的 return）
 		return
+	if g.ult != null and g.ult.mute_atk():   # 终结技期间不起手（ult/mute_atk）：上面的弹体 / 召唤物 / 持续效果照走，冷却照扣
+		return
 	if acting():
 		return
 	var ready := charge_skills(dt)

@@ -1121,7 +1121,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 		y += rs
 	if sks.size() > op_skill and m.rows[2] >= 1.0:
 		var sk: Dictionary = sks[op_skill]
-		var txt: String = ("队长按 Q 释放；作为队友自动。" if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
+		var txt: String = ((Pad.hint("队长按 Q 释放；", "队长按 Ⓐ 释放；", "队长点技能键释放；") + "作为队友自动。") if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
 		var urows := _op_ult_rows(d)
 		var ures: float = urows.size() * (20.0 if ph else 24.0)
 		var room := (box.end.y - y - ures) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0) - ures)

@@ -72,9 +72,14 @@ func _ready() -> void:
 	# 1. 播放前：移动输入能走
 	_hold(true)
 	var p0: Vector2 = g.ppos
+	var pre := 0
+	for o in g.squad.ops:
+		pre -= int(o.act_n)
 	for f in 30:
 		g.hp = g.max_hp
 		step.call()
+	for o in g.squad.ops:
+		pre += int(o.act_n)   # 按 Q 前 0.5 秒的起手次数（凯尔希这类本人不普攻的 = 0，下面的「恢复出手」不查）
 	ok(g.ppos.x - p0.x > 20.0, "%s 按 Q 前：移动输入能让队长走（%.1f）" % [op, g.ppos.x - p0.x])
 	# 2. 按 Q，按住 10 帧（瞄准时移动输入挪落点），松开放出；全程按着移动键、中途按冲刺、攒 2 次升级
 	g.hp = g.max_hp
@@ -90,6 +95,10 @@ func _ready() -> void:
 	var max_off := 0.0
 	var frames := 0
 	var dash_fired := false
+	var acts0 := {}   # 终结技期间不普攻（ult/mute_atk）：每名干员按 Q 时的起手次数
+	for o in g.squad.ops:
+		acts0[o] = int(o.act_n)
+	var acts1 := acts0.duplicate()   # 最后一帧还在演出时的起手次数（收尾那一帧终结技先结束、干员随后出手，算演出后）
 	g.pending_levelups += 2
 	while g.ult.phase != "" and frames < 60 * 12:
 		frames += 1
@@ -101,6 +110,8 @@ func _ready() -> void:
 		step.call()
 		if g.ult.phase == "":
 			break
+		for o in g.squad.ops:
+			acts1[o] = int(o.act_n)
 		if g.moving or (g.dash_t <= 0.0 and g.pvel != Vector2.ZERO):
 			moved_by_input += 1
 		if g.state != g.S.PLAY:
@@ -110,7 +121,12 @@ func _ready() -> void:
 		hp_min = minf(hp_min, g.hp)
 		max_off = maxf(max_off, g.ppos.distance_to(start))
 	var dur: float = g.t - t0
-	print("ULTPLAY op=%s dur=%.2f frames=%d max_off=%.1f hp_drop=%.1f/%.0f" % [op, dur, frames, max_off, hp0 - hp_min, g.max_hp])
+	var acts := 0
+	for o in g.squad.ops:
+		acts += int(acts1[o]) - int(acts0[o])
+	var mute: bool = Bal.v("ult/mute_atk", 1.0) > 0.0
+	ok(acts == 0 if mute else true, "%s 终结技期间队长 / 队友不起新的普攻 / 技能（%d 次起手，%d 人）" % [op, acts, g.squad.ops.size()])
+	print("ULTPLAY op=%s dur=%.2f frames=%d max_off=%.1f hp_drop=%.1f/%.0f acts=%d" % [op, dur, frames, max_off, hp0 - hp_min, g.max_hp, acts])
 	ok(g.ult.phase == "", "%s 终结技在 12 秒内收尾（%.2f 秒）" % [op, dur])
 	ok(dur < Bal.v("ult/play_max", 6.0) - 0.05, "%s 演出在兜底上限 ult/play_max 之前自己结束（%.2f 秒）" % [op, dur])
 	ok(moved_by_input == 0, "%s 播放期间移动输入不带动队长（%d 帧有输入位移）" % [op, moved_by_input])
@@ -140,10 +156,20 @@ func _ready() -> void:
 	# 4. 播完移动恢复（触屏：三选一弹出时摇杆触点被收掉，重新按住）
 	_hold(true)
 	var p1: Vector2 = g.ppos
+	for k in 6:   # 终结技可能清掉了原来那圈敌人：在前进方向上补几只打不死的，看演出完能不能马上出手
+		var e2: Dictionary = g.spawner.spawn_enemy("bone", g.ppos + Vector2(30.0 + 25.0 * k, -20.0 + 8.0 * k))
+		e2.hp = 1.0e9
+		e2.maxhp = 1.0e9
+		e2.spd = 0.0
 	for f in 30:
 		g.hp = g.max_hp
 		step.call()
 	ok(g.ppos.distance_to(p1) > 20.0, "%s 播完恢复操控（%.1f）" % [op, g.ppos.distance_to(p1)])
+	if mute and pre > 0:   # 收尾那一帧就弹升级三选一（界面停住），所以在选完回到战斗的这 30 帧里看
+		var back := 0
+		for o in g.squad.ops:
+			back += int(o.act_n) - int(acts1[o])
+		ok(back > 0, "%s 演出结束后恢复出手（回到战斗 0.5 秒内 %d 次起手）" % [op, back])
 	_hold(false)
 	_done()
 

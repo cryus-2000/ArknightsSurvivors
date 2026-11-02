@@ -190,6 +190,10 @@ static func shape_of(u) -> Dictionary:
 				return {"kind": "band", "o": c.pos, "d": u.aim_dir, "len": Bal.v("ult/su_len", 900.0), "hw": Bal.v("ult/su_w", 1000.0) * 0.5, "back": Bal.v("ult/su_back", 150.0)}
 			"saria":
 				return {"kind": "sector", "o": c.pos, "d": u.aim_dir, "r": r, "half": Bal.v("ult/sa_half", 1.05)}
+			"lappland":   # 朝前乱砍：扇形顶点在她身后 la_back，半径 la_fr + la_back、半角 la_half，和判定一致（11-02 扩大范围后预览跟着变）
+				if Bal.v("ult/la_fwd", 1.0) > 0.0:
+					var bk: float = Bal.v("ult/la_back", 100.0)
+					return {"kind": "sector", "o": c.pos - u.aim_dir.normalized() * bk, "d": u.aim_dir, "r": r + bk, "half": Bal.v("ult/la_half", 1.0)}
 		return {"kind": "sector", "o": c.pos, "d": u.aim_dir, "r": r, "half": 0.6}
 	return {"kind": "disc", "c": c.pos, "r": r}
 

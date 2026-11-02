@@ -219,7 +219,7 @@ func update(dt: float) -> void:
 			if absf(g.ppos.x - pos.x) > 8.0:
 				face = signf(g.ppos.x - pos.x)
 			cd -= dt
-			if cd <= 0.0:
+			if cd <= 0.0 and not (g.ult != null and g.ult.mute_atk()):   # 终结技期间不出击（ult/mute_atk）
 				var tgt: Dictionary = _target()
 				if tgt.is_empty():
 					cd = 0.3
