@@ -18,6 +18,7 @@ export const meta = {
 const JETS = [[-6, -0.5, 13, 1.4], [-1, -0.12, 20, 1.8], [4, 0.28, 16, 1.5], [9, 0.62, 9, 1.1]];   // [x, 斜度, 高, 宽]
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]] });
+  const W = C[C.length - 1]; for (let i = 6; i < C.length; i++) C[i] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到第 5 阶，白只留核心（W）
   for (const [x, lean, h] of JETS)
     for (let i = 0; i < 2; i++) ps.spawn(P.SPARK, x + lean * h, -h, lean * 60 + Rg.range(-25, 25), -Rg.range(40, 100), Rg.range(0.2, 0.3), 0, 1, 0.08 + Rg.range(0, 0.06));
   let t = 0;

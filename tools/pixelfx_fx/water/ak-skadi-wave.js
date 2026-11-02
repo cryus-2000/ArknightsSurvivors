@@ -24,6 +24,7 @@ const BREAK = 0.3;
 
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), HW = o.half;
+  const W = C[C.length - 1]; for (let i = 6; i < C.length; i++) C[i] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到第 5 阶，白只留核心（W）
   const ps = new Particles({ rng: Rg, ground: () => 1e9, haze: C[4] }), lights = new Lights();
   // 浪墙沿 y 方向；s = y / HW ∈ [-1, 1]。前缘 x：两端靠后，按噪声起伏（不等距）
   const lip = (s, t) => -8 * s * s + 2.0 * noise(s * 3.9 + t * 3, o.seed) + 0.8 * noise(s * 9.1 - t * 5, o.seed + 9);

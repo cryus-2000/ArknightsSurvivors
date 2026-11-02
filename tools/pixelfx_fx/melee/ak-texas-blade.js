@@ -14,7 +14,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#fff6c4", "#ffffff"],
+    palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#ffe58a", "#ffffff"],
     seed: 2,
   },
 };
@@ -37,6 +37,7 @@ function sword(p, C, life, heat, brk, sd) {
 export function draw(p, t, o) {
   if (t >= meta.duration - 1e-6) return;
   const C = fit(o.palette, 7), f = Math.floor(t * meta.fps + 1e-6), sd = o.seed;
+  C[6] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体不用纯白，亮处交给光晕层
   if (f <= 1) {   // 下落：剑身 + 上方拖光（几根不等长、不等距的竖线）
     const off = f === 0 ? 0 : 1;
     sword(p, C, 1, 0, 0, sd);

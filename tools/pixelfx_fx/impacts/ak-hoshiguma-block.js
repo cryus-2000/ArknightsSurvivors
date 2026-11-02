@@ -18,6 +18,7 @@ export const meta = {
 
 export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed);
+  const W = C[C.length - 1]; for (let i = 5; i < C.length; i++) C[i] = C[4];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到第 4 阶，白只留核心（W）
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
   lights.add(0, 0, 16, C[5], 0.3, 0.15);
   for (let i = 0; i < 10; i++) {   // 火星：集中在右上（外侧），角度、速度、寿命各异

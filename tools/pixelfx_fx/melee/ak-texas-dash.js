@@ -13,13 +13,14 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#fff6c4", "#ffffff"], seed: 6 },
+  options: { palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#ffe58a", "#ffffff"], seed: 6 },
 };
 
 const LINES = [[-6, 0.55, 0.5], [-3, 0.8, 0.7], [4, 0.4, 0.45], [7, 0.25, 0.35]];   // [y, 长度占比, 亮度]：行距与长短不等
 export function draw(p, t, o) {
   if (t >= meta.duration - 1e-6) return;
   const C = fit(o.palette, 7), f = Math.floor(t * meta.fps + 1e-6), cut = [0, 0.25, 0.6, 0.85][f];   // 从左往右断开的进度
+  C[6] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体不用纯白，亮处交给光晕层
   for (let x = -63; x <= 63; x++) {
     const u = (x + 63) / 126;                                   // 0 左 → 1 右（刃口）
     if (u < cut) continue;

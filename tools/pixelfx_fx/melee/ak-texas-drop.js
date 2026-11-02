@@ -12,13 +12,14 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#fff6c4", "#ffffff"], seed: 3 },
+  options: { palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#ffe58a", "#ffffff"], seed: 3 },
 };
 
 const L = 40;
 export function draw(p, t, o) {
   if (t >= meta.duration - 1e-6) return;
   const C = fit(o.palette, 7), f = Math.floor(t * meta.fps + 1e-6);
+  C[6] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体不用纯白，亮处交给光晕层
   for (let d = 0; d <= L; d++) {
     const guard = d >= 28 && d <= 29, grip = d > 29, w = guard ? 6 : grip ? 0.7 : d < 5 ? d * 0.45 : 2.2;
     for (let x = -w; x <= w + 0.01; x++) {

@@ -12,11 +12,12 @@ export const meta = {
   loop: false,
   fps: 18,
   bg: "dark",
-  options: { palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#fff6c4", "#ffffff"], seed: 7 },
+  options: { palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#ffe58a", "#ffffff"], seed: 7 },
 };
 
 export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed);
+  C[6] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体不用纯白，亮处交给光晕层
   const bits = new Bits({ ground: () => 1e9 }), ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] });
   for (let i = 0; i < 7; i++) {
     const a = -Math.PI / 2 + Rg.range(-1.4, 1.4), sp = Rg.range(60, 150);

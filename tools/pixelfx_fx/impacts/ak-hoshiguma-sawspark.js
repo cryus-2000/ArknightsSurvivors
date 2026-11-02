@@ -17,7 +17,8 @@ export const meta = {
 };
 
 export function create(o) {
-  const C = fit(o.palette, 7), Rg = new Rng(o.seed), ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] });
+  const C = fit(o.palette, 7), Rg = new Rng(o.seed), ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[4], C[3], C[2], C[1]] });   // 火星头用第 4 阶（近白 ≤ 12%）
+  const W = C[C.length - 1]; for (let i = 5; i < C.length; i++) C[i] = C[4];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到第 4 阶，白只留核心（W）
   for (let i = 0; i < 6; i++) {
     const a = -0.6 + Rg.range(-0.7, 0.9), sp = Rg.range(80, 150);
     ps.spawn(P.SPARK, 0, 0, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.06, 0.14), 0, 1);

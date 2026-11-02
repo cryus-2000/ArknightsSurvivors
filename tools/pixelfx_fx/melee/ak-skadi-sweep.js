@@ -68,6 +68,7 @@ function drawSlash(p, s, t) {
 
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), heavy = +o.heavy > 0;
+  const W = C[C.length - 1]; for (let i = 6; i < C.length; i++) C[i] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到第 5 阶，白只留核心（W）
   const ps = new Particles({ rng: Rg, ground: () => 1e9, haze: C[4] }), lights = new Lights();
   const R0 = o.radius, a0 = -o.span / 2, a1 = o.span / 2;
   const A = { seed: o.seed, cx: 0, cy: 0, R: R0, a0, a1, W: heavy ? 22 : 16, t0: 0, sweep: heavy ? 0.08 : 0.065, hold: 0.05, trail: 0.3, ramp: C };

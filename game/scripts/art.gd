@@ -1119,7 +1119,7 @@ const V6_FRAMES := {
 	# 手写干员迁积木（docs/61 §17）：斯卡蒂成长线帧条原来由 skadi.gd 自己按帧切，积木的 fx 条目要登记在这里（帧数 / fps 同原脚本）
 	"fx_skadi_surge": [6, 14.0], "fx_skadi_wave": [6, 14.0],
 	# pixelfx 试点（docs/228 §7，源码 tools/pixelfx_fx，导出 tools/pixelfx_export.py）：斯卡蒂刀光 / 星熊力之锯 / 能天使技能枪口焰与命中
-	"fx_skadi_px_sweep": [11, 20.0], "fx_skadi_px_cleave": [11, 20.0], "fx_skadi_px_surge": [14, 20.0], "fx_hoshiguma_px_saw": [8, 20.0],
+	"fx_skadi_px_sweep": [11, 20.0], "fx_skadi_px_cleave": [11, 20.0], "fx_skadi_px_surge": [14, 20.0, [8, 5, 170.0]], "fx_hoshiguma_px_saw": [8, 20.0, [10, 4, 200.0]],
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
 	# ---- pixelfx 组 A（docs/229 §9）：本组新帧条只加在这行与下面「组 A 止」之间
@@ -1130,7 +1130,7 @@ const V6_FRAMES := {
 	"fx_hoshiguma_px_rose": [5, 24.0, [3, 5, 150.0]], "fx_hoshiguma_px_rose_glow": [5, 24.0], "fx_hoshiguma_px_rose_v1": [5, 24.0], "fx_hoshiguma_px_rose_v1_glow": [5, 24.0],
 	"fx_lappland_px_riposte": [5, 20.0, [6, 5, 180.0]], "fx_lappland_px_riposte_glow": [5, 20.0], "fx_lappland_px_riposte_v1": [5, 20.0], "fx_lappland_px_riposte_v1_glow": [5, 20.0],
 	"fx_lappland_px_riposte_v2": [5, 20.0], "fx_lappland_px_riposte_v2_glow": [5, 20.0], "proj_lappland_px_sword": [4, 16.0], "proj_lappland_px_sword_glow": [4, 16.0],
-	"fx_texas_px_blade": [6, 20.0], "fx_texas_px_blade_glow": [6, 20.0], "fx_texas_px_mark": [6, 20.0], "fx_skalter_px_note": [4, 8.0],
+	"fx_texas_px_blade": [6, 20.0], "fx_texas_px_blade_glow": [6, 20.0], "fx_texas_px_mark": [6, 12.0], "fx_skalter_px_note": [4, 8.0],
 	"fx_skadi_px_splash": [8, 18.0], "fx_skadi_px_splash_glow": [8, 18.0], "fx_skadi_px_splash_v1": [8, 18.0], "fx_skadi_px_splash_v1_glow": [8, 18.0],
 	"fx_hoshiguma_px_block": [5, 20.0, [7, 5, 200.0]], "fx_hoshiguma_px_block_glow": [5, 20.0], "fx_hoshiguma_px_block_v1": [5, 20.0], "fx_hoshiguma_px_block_v1_glow": [5, 20.0],
 	"fx_hoshiguma_px_block_v2": [5, 20.0], "fx_hoshiguma_px_block_v2_glow": [5, 20.0], "fx_hoshiguma_px_guard": [6, 10.0], "fx_hoshiguma_px_sand": [4, 8.0],

@@ -8,12 +8,12 @@ export const meta = {
   tags: ["floor", "mark", "rain", "sheet"],
   size: [24, 12],
   origin: [12, 6],
-  duration: 0.3,
+  duration: 0.5,
   loop: false,
-  fps: 20,
+  fps: 12,
   bg: "dark",
   options: {
-    palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#fff6c4", "#ffffff"],
+    palette: ["#2a1606", "#5c3208", "#a8620e", "#f0a020", "#ffe053", "#ffe58a", "#ffffff"],
     seed: 5,
   },
 };
@@ -22,6 +22,7 @@ const SY = 0.5;
 export function draw(p, t, o) {
   if (t >= meta.duration - 1e-6) return;
   const C = fit(o.palette, 7), f = Math.floor(t * meta.fps + 1e-6), sd = o.seed;
+  C[6] = C[5];   // 近白 ≤ 12%（docs/229 §2.4）：本体不用纯白，亮处交给光晕层
   if (f <= 2) {
     const R = 10 - f * 2;
     for (let a = 0; a < TAU; a += 0.1) {   // 几段长短不一的虚弧，断口随噪声（不等距）

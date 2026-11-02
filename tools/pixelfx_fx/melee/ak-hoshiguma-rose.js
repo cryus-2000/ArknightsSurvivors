@@ -25,6 +25,7 @@ export const meta = {
 
 export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), cx = -o.half, R = o.radius;
+  const W = C[C.length - 1]; for (let i = 5; i < C.length; i++) C[i] = C[4];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到第 4 阶，白只留核心（W）
   const A0 = -0.62, A1 = 0.62;                      // 刀从上往下扫（俯视），弧端到帧边
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
   lights.add(cx + Math.cos(A1) * R, Math.sin(A1) * R, 12, C[5], 0.5, 0.12);

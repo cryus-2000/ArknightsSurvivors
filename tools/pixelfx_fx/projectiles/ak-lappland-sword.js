@@ -41,6 +41,7 @@ function crescent(p, C, cx, H, front, thick, sd, life, brk) {
 export function draw(p, t, o) {
   if (t >= meta.duration - 1e-6) return;
   const C = fit(o.palette, 7), f = Math.min(3, Math.floor(t * meta.fps + 1e-6));
+  for (let i = 4; i < C.length; i++) C[i] = C[3];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到设定色 #dbe0f2，亮处交给光晕层
   const life = [1, 1, 0.75, 0.4][f], grow = [0.65, 1, 1.05, 1.1][f], brk = [0, 0, 0.35, 0.7][f];
   if (f <= 2)
     for (const [y, L, b] of TRAILS) {

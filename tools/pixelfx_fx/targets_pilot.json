@@ -14,11 +14,22 @@
  },
  "fx_skadi_px_surge": {
   "fx": "water/ak-skadi-surge",
-  "variants": 1
+  "variants": 1,
+  "colors": 24,
+  "spark": [
+   8,
+   5,
+   170.0
+  ]
  },
  "fx_hoshiguma_px_saw": {
   "fx": "melee/ak-hoshiguma-saw",
-  "variants": 2
+  "variants": 2,
+  "spark": [
+   10,
+   4,
+   200.0
+  ]
  },
  "fx_exusiai_px_muzzle_s1": {
   "fx": "projectiles/ak-exu-muzzle",

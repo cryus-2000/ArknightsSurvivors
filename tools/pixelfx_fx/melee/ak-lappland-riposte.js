@@ -24,6 +24,7 @@ export const meta = {
 
 export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), cx = -o.half;
+  const W = C[C.length - 1]; for (let i = 4; i < C.length; i++) C[i] = C[3];   // 近白 ≤ 12%（docs/229 §2.4）：本体只到第 3 阶，白只留核心（W）
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
   const cuts = [
     { R: o.radius, a0: -0.88, a1: 0.8, W: 8, t0: 0, sd: o.seed },
