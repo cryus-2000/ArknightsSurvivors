@@ -12,7 +12,7 @@
 
 | 档 | 灯火 | 数值 | 画面 / 声音 |
 |---|---|---|---|
-| 通明 | ≥ 70 | 光中敌人受伤 +25% → **+40%**（新旋钮 `lamp/lit_bonus_hi` 0.40；< 70 仍 `lamp/lit_bonus` 0.25）；技力 ×1.3、溟痕退散保留 | 打中光中敌人冒金色小火花（每只敌人 0.12 秒冷却、全场每秒上限 `fx/lit_spark_rate`，走 vfx 粒子总上限，低画质减半）；灯圈暖亮一档（灯色偏暖、能量 +8%，0.6 秒过渡）；HUD 灯火条亮金 |
+| 通明 | ≥ 70 | 光中敌人受伤 +25% → **+40%**（新旋钮 `lamp/lit_bonus_hi` 0.40；< 70 仍 `lamp/lit_bonus` 0.25）；技力 ×1.3、溟痕退散保留 | 打中光中敌人冒金色小火花（每只敌人 0.12 秒冷却、全场每秒上限 `fx/lit_spark_rate`，走 vfx 粒子总上限，低画质减半）；灯圈暖亮一档（灯色偏暖，0.6 秒过渡；能量不动，开场动画在调能量）；HUD 灯火条亮金 |
 | 摇曳 | 30–70 | 不变（+25%） | 不变 |
 | 暗淡 | < 30 | **不加新数值**（原有 dark_taken 1.05 / dark_enemy 1.1 / 拾取 −30% 保留） | 灯圈外的普通海嗣本体压暗成暗轮廓，只剩光学层的发光眼点（精英、Boss、敌弹、预警、精英标记不压）；灯圈边缘轻微抖动（±2.5%，纯画面）；低沉心跳（录音，见 §4）；HUD 灯火条暗红慢闪 |
 | 寂灭 | 0 | 保留每秒 −3 生命 | 全屏边缘暗红压迫（慢呼吸）；屏幕中下提示「灯火寂灭——寻找灯油或灯标」 |
@@ -21,7 +21,7 @@
 
 - `run/combat.gd` `_damage`：光中加伤倍率按档取 `lamp/lit_bonus_hi` / `lamp/lit_bonus`；通明档调 `vfx.lit_spark(e)`（纯画面、只用 vrng）。
 - `render/vfx.gd`：`lit_spark()`；`watch_lamp` 记 `lit_k`（通明过渡 0..1）与 `dark_k`（暗淡过渡 0..1），world / hud 读。
-- `render/world.gd`：灯光颜色 / 能量按 `lit_k`；暗淡档半径抖动；`draw_enemy` 里圈外普通怪 `_act_mod` 按 `dark_k` 压暗（每帧算，不进敌人画法缓存签名）；暗淡档心跳（与低血心跳共用节拍，不叠两套）。
+- `render/world.gd`：灯光颜色按 `lit_k`；暗淡档半径抖动；`draw_enemy` 里圈外普通怪 `_act_mod` 按 `dark_k` 压暗（每帧算，不进敌人画法缓存签名）；暗淡档心跳（与低血心跳共用节拍，不叠两套）。
 - `screens/hud_bars.gd`：灯火条三档颜色（30 / 70 刻度已有）；状态条文字写明加伤 %。
 - `screens/hud.gd`：寂灭边缘暗红 + 提示。
 - `gallery.gd`：图鉴「灯油」说明改写成三档。
@@ -40,4 +40,13 @@ Sonniss GDC 2026 包里没有现成心跳。用库里已有的真实录音 344 A
 
 ## 6. 结果
 
-（待填）
+实现提交 f5aa99181（分支 claude/lamp-tiers-1102，已推）。
+
+- 快检 `check.py --auto`：164 过 / 0 失败。
+- 同种子：seed1 mizuki 240 秒，钉 `--bal=lamp/lit_bonus_hi=0.25` 时 241 行 TRACE 与 c73d2ff86 逐行相同；不钉时 t=6.01 起只有敌人血量和分叉，符合预期。
+- 录像：`Claude outputs/lamp_tiers_1102.mp4`（本机 E:\ArknightsSurvivors\Claude outputs，7.15 MB，通明 100 / 暗淡 20 / 寂灭 0 各 6 秒，seed3 mizuki 70 秒起，`tools/lamp_tiers_rec.py` 可重录）。
+- 云端配对（11-02 17:10 本机关机前状态，待收）：
+  - `lt1102-m0`（无成长，`--tier=0 --tide=0`，expert，4 seed × 7 编队 × 安慰剂 3 份，新 f5aa99181 对 基线 c73d2ff86）：虚拟机 batch-lt1102-m0 在跑，new 已写出，base 在跑。结果传 GCS，收法：本机 `python tools/gcp/batch.py collect lt1102-m0`，再看 `build/cloud/lt1102-m0/{new,base}/*.md`。
+  - `lt1102-m18`（`--tide=0 --meta=18`）：**未开跑**——12 vCPU 配额被别的批跑占着，本机等待循环随关机中断。开法：`python tools/gcp/batch.py run lt1102-m18 --commit f5aa99181 --cmd-file <同 m0 的命令文件，加 --meta=18> --machine e2-standard-8`。
+  - 判定：无成长 45–55%、18 细胞 65–75%（≥3 份均值）；超窗口只调灯油掉率（`lamp/oil_kill_chance` 等），不削加伤。
+  - 胜率：（待收）
