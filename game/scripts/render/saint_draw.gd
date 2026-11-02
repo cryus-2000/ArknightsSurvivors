@@ -22,14 +22,14 @@ static func charge(g, w: Dictionary) -> void:
 	var locked: bool = float(w.get("track", 0.0)) <= 0.0 or w.t >= float(w.track)
 	# 判定宽度：危险色细边（不闪、不填充），锁定后加亮
 	var ea: float = (0.35 + 0.35 * k) * (1.3 if locked else 1.0)
-	g.draw_line(a + n * hw, b + n * hw, Color(dc.r, dc.g, dc.b, minf(1.0, ea)), 2.0)
-	g.draw_line(a - n * hw, b - n * hw, Color(dc.r, dc.g, dc.b, minf(1.0, ea)), 2.0)
+	g.wcv.draw_line(a + n * hw, b + n * hw, Color(dc.r, dc.g, dc.b, minf(1.0, ea)), 2.0)
+	g.wcv.draw_line(a - n * hw, b - n * hw, Color(dc.r, dc.g, dc.b, minf(1.0, ea)), 2.0)
 	# 光束本体：由细到粗、由暗到亮
 	var bw: float = lerpf(1.0, hw * 1.2, pow(k, 0.8))
-	g.draw_line(a, b, Color(bc.r, bc.g, bc.b, 0.18 + 0.5 * k), bw)
+	g.wcv.draw_line(a, b, Color(bc.r, bc.g, bc.b, 0.18 + 0.5 * k), bw)
 	if locked:
 		var ck: float = 1.6 + 0.6 * k
-		g.draw_line(a, b, Color(ck, ck * 0.95, ck * 0.85, 0.35 + 0.5 * k), maxf(1.0, bw * 0.35))
+		g.wcv.draw_line(a, b, Color(ck, ck * 0.95, ck * 0.85, 0.35 + 0.5 * k), maxf(1.0, bw * 0.35))
 	# 枪口聚光：颗粒从外圈收拢，越接近开火越多
 	var gr = BossBeam.grains(g)
 	if gr != null and g.vrng.randf() < 0.35 + 0.6 * k:
@@ -50,16 +50,16 @@ static func embers(g, e: Dictionary) -> void:
 		var r: float = float(x.r)
 		if g.t < float(x.arm):
 			var k: float = clampf((g.t - float(x.born)) / maxf(0.01, float(x.arm) - float(x.born)), 0.0, 1.0)
-			g.draw_arc(x.pos, r * (1.35 - 0.35 * k), 0.0, TAU, 32, Color(dc.r, dc.g, dc.b, 0.35 + 0.5 * k), 2.0)
+			g.wcv.draw_arc(x.pos, r * (1.35 - 0.35 * k), 0.0, TAU, 32, Color(dc.r, dc.g, dc.b, 0.35 + 0.5 * k), 2.0)
 			var fp: Vector2 = Vector2(x.from).lerp(x.pos, k) + Vector2(0, -90.0 * 4.0 * k * (1.0 - k))
-			g.draw_circle(fp, 5.0, Color(1.4, 1.0, 0.7))
-			g.draw_circle(fp, 8.0, Color(bc.r, bc.g, bc.b, 0.45))
+			g.wcv.draw_circle(fp, 5.0, Color(1.4, 1.0, 0.7))
+			g.wcv.draw_circle(fp, 8.0, Color(bc.r, bc.g, bc.b, 0.45))
 			continue
 		var fade: float = clampf((float(x.until) - g.t) / 0.5, 0.0, 1.0)
 		var fl: float = 0.85 + 0.15 * sin(g.t * 17.0 + float(x.born) * 5.0)
-		g.draw_circle(x.pos, r, Color(bc.r * 0.6, bc.g * 0.35, bc.b * 0.2, 0.32 * fade))
-		g.draw_circle(x.pos, r * 0.55, Color(bc.r, bc.g * 0.7, bc.b * 0.4, 0.22 * fade * fl))
-		g.draw_arc(x.pos, r, 0.0, TAU, 32, Color(bc.r * 1.3, bc.g, bc.b, 0.75 * fade * fl), 2.0)
+		g.wcv.draw_circle(x.pos, r, Color(bc.r * 0.6, bc.g * 0.35, bc.b * 0.2, 0.32 * fade))
+		g.wcv.draw_circle(x.pos, r * 0.55, Color(bc.r, bc.g * 0.7, bc.b * 0.4, 0.22 * fade * fl))
+		g.wcv.draw_arc(x.pos, r, 0.0, TAU, 32, Color(bc.r * 1.3, bc.g, bc.b, 0.75 * fade * fl), 2.0)
 		if gr != null and g.vrng.randf() < 0.3 * fade:
 			for i in BossBeam.take(g, 1):
 				gr.push("mote_up", x.pos + Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf() * r, Vector2.UP, bc)
@@ -103,4 +103,4 @@ static func fades(g, e: Dictionary) -> void:
 			var lk: float = 1.4 - 0.6 * p
 			cols.append(Color(bc.r * lk, bc.g * lk, bc.b * lk, 0.85 * (1.0 - p)))
 		if not cols.is_empty():
-			g.draw_multiline_colors(pts, cols, wd)
+			g.wcv.draw_multiline_colors(pts, cols, wd)

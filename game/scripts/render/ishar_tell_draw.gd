@@ -21,7 +21,7 @@ static func owns(w: Dictionary) -> bool:
 
 
 static func _sq(g, p: Vector2, c: Color) -> void:
-	g.draw_rect(Rect2((p * 0.5).floor() * 2.0, Vector2(2, 2)), c)
+	g.wcv.draw_rect(Rect2((p * 0.5).floor() * 2.0, Vector2(2, 2)), c)
 
 
 ## 光束蓄力（10-31 用户「激光不像激光」，render/ishar_laser 1）：预警期只画一条 2 像素细瞄准线（她的专属色，亮度随读条递增，锁定后变实）
@@ -32,7 +32,7 @@ static func _charge(g, w: Dictionary, d: Vector2, k: float) -> void:
 	var hot: bool = float(w.dur) - float(w.t) < 0.15
 	var locked: bool = float(w.t) >= float(w.get("track", 0.0))
 	var lc: Color = Color(1, 1, 1, 0.9) if hot else Color(CORE.r, CORE.g, CORE.b, (0.35 if not locked else 0.55) + 0.35 * kk)
-	g.draw_line(w.pos, b, lc, 2.0)
+	g.wcv.draw_line(w.pos, b, lc, 2.0)
 	_dot(g, w.pos, 3.0 + float(w.wid) * 0.3 * kk, 0.4 + 0.6 * kk)
 	var pool = Beam.grains(g) if Cfg.quality != "low" else null
 	if pool != null and Beam.take(g, 2) > 0:
@@ -75,7 +75,7 @@ static func _zones(g) -> void:
 			for i in 33:
 				var an: float = TAU * i / 32.0
 				pts.append(z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r))
-			g.draw_colored_polygon(pts, Color(FILL.r, FILL.g, FILL.b, 0.3 * fade))   # 10-28：地带内受治疗降低，底色比预警更实
+			g.wcv.draw_colored_polygon(pts, Color(FILL.r, FILL.g, FILL.b, 0.3 * fade))   # 10-28：地带内受治疗降低，底色比预警更实
 			for q in 2:
 				var ph: float = fmod((g.t - float(z.born)) / 0.6 + q * 0.5, 1.0)
 				var rr: float = float(z.r) * ph
@@ -99,27 +99,27 @@ static func _laser(g, a: Vector2, d: Vector2, L: float, wid: float, open: float,
 	var w: float = wid * 2.0 * open   # wid 是半宽（与判定的 line wid 同口径）：光束外晕正好贴着判定边（10-31 用户「跟踪大激光粗一倍」）
 	for q in [[1.0, 0.1], [0.7, 0.16]]:
 		var n: Vector2 = o * w * 0.5 * float(q[0])
-		g.draw_colored_polygon(PackedVector2Array([a + n, b + n, b - n, a - n]), Color(CORE.r, CORE.g, CORE.b, float(q[1]) * alpha * glow))
+		g.wcv.draw_colored_polygon(PackedVector2Array([a + n, b + n, b - n, a - n]), Color(CORE.r, CORE.g, CORE.b, float(q[1]) * alpha * glow))
 	var n1: Vector2 = o * maxf(2.0, w * 0.17)
-	g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(CORE.r, CORE.g, CORE.b, 0.8 * alpha))
+	g.wcv.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(CORE.r, CORE.g, CORE.b, 0.8 * alpha))
 	var hi: Color = CORE.lerp(Color.WHITE, 0.6)
 	var n2: Vector2 = o * maxf(1.5, w * 0.08)
-	g.draw_colored_polygon(PackedVector2Array([a + n2, b + n2, b - n2, a - n2]), Color(hi.r, hi.g, hi.b, 0.95 * alpha))
+	g.wcv.draw_colored_polygon(PackedVector2Array([a + n2, b + n2, b - n2, a - n2]), Color(hi.r, hi.g, hi.b, 0.95 * alpha))
 	var n3: Vector2 = o * clampf(wid * 0.03, 1.0, 2.0) * minf(1.0, open * 1.5)
-	g.draw_colored_polygon(PackedVector2Array([a + n3, b + n3, b - n3, a - n3]), Color(1, 1, 1, alpha))
+	g.wcv.draw_colored_polygon(PackedVector2Array([a + n3, b + n3, b - n3, a - n3]), Color(1, 1, 1, alpha))
 	if flash > 0.0:
 		var nf: Vector2 = o * w * 0.4
-		g.draw_colored_polygon(PackedVector2Array([a + nf, b + nf, b - nf, a - nf]), Color(1, 1, 1, 0.5 * flash * alpha))
+		g.wcv.draw_colored_polygon(PackedVector2Array([a + nf, b + nf, b - nf, a - nf]), Color(1, 1, 1, 0.5 * flash * alpha))
 	_dot(g, a, maxf(4.0, wid * 0.42 * open) * (1.0 + 0.4 * flash), alpha)
 	_dot(g, b, maxf(3.0, wid * 0.26 * open) * (1.0 + 0.6 * flash), alpha * 0.9)
 
 
 ## 光点：外晕（专属色，低透明）→ 亮色 → 白芯
 static func _dot(g, p: Vector2, r: float, alpha: float) -> void:
-	g.draw_circle(p, r * 1.7, Color(CORE.r, CORE.g, CORE.b, 0.18 * alpha))
+	g.wcv.draw_circle(p, r * 1.7, Color(CORE.r, CORE.g, CORE.b, 0.18 * alpha))
 	var hi: Color = CORE.lerp(Color.WHITE, 0.6)
-	g.draw_circle(p, r, Color(hi.r, hi.g, hi.b, 0.85 * alpha))
-	g.draw_circle(p, r * 0.5, Color(1, 1, 1, alpha))
+	g.wcv.draw_circle(p, r, Color(hi.r, hi.g, hi.b, 0.85 * alpha))
+	g.wcv.draw_circle(p, r * 0.5, Color(1, 1, 1, alpha))
 
 
 static func _sweeps(g) -> void:
@@ -155,7 +155,7 @@ static func _arena(g) -> void:
 			for i in 49:
 				var an: float = TAU * i / 48.0
 				pts.append(g.zone_c + Vector2(cos(an), sin(an) * gy) * R)
-			g.draw_colored_polygon(pts, Color(0.55, 0.06, 0.16, 0.2 + 0.04 * sin(g.t * TAU / 4.0)))
+			g.wcv.draw_colored_polygon(pts, Color(0.55, 0.06, 0.16, 0.2 + 0.04 * sin(g.t * TAU / 4.0)))
 		if act >= 1:
 			var ph: float = fmod(g.t / 2.4, 1.0)
 			var rr: float = lerpf(60.0, R, ph)
@@ -182,7 +182,7 @@ static func _shield(g) -> void:
 			for i in 33:
 				var an: float = TAU * i / 32.0
 				pts.append(e.pos + Vector2(0, -e.r * 0.5) + Vector2(cos(an), sin(an) * 0.85) * r)
-			g.draw_colored_polygon(pts, Color(c.r, c.g, c.b, 0.06 + 0.03 * up))
+			g.wcv.draw_colored_polygon(pts, Color(c.r, c.g, c.b, 0.06 + 0.03 * up))
 			var n: int = clampi(int(r * TAU / 8.0), 16, 60)
 			for i in n:
 				if (i + int(g.t * 6.0)) % 4 == 0:
@@ -193,7 +193,7 @@ static func _shield(g) -> void:
 		for k in layers.size():
 			var on: bool = float(layers[k].hp) > 0.0
 			var q: Vector2 = e.pos + Vector2(-w0 * 0.5 + k * 8.0 + 4.0, -e.r * 2.0 - 30.0)
-			g.draw_rect(Rect2((q * 0.5).floor() * 2.0 - Vector2(2, 2), Vector2(6, 6)), Color(c.r, c.g, c.b, 0.95) if on else Color(1, 1, 1, 0.18))
+			g.wcv.draw_rect(Rect2((q * 0.5).floor() * 2.0 - Vector2(2, 2), Vector2(6, 6)), Color(c.r, c.g, c.b, 0.95) if on else Color(1, 1, 1, 0.18))
 
 
 ## 三幕歌声围拢（10-29 用户「青绿点线不清楚」）：红色场地底色固定不动；围拢圈 = 3 像素实线（专属色）+ 两侧暗描边 + 内侧一圈流动亮点，
@@ -216,11 +216,11 @@ static func _fence(g) -> void:
 		for i in n:
 			var a0: float = TAU * i / n
 			var a1: float = TAU * (i + 1) / n
-			g.draw_colored_polygon(PackedVector2Array([ring[i], ring[i + 1],
+			g.wcv.draw_colored_polygon(PackedVector2Array([ring[i], ring[i + 1],
 				f.c + Vector2(cos(a1), sin(a1) * gy) * Ro, f.c + Vector2(cos(a0), sin(a0) * gy) * Ro]), veil)
 		var pulse: float = 0.8 + 0.2 * sin(g.t * TAU / 1.2)
-		g.draw_polyline(ring, Color(0.02, 0.05, 0.06, 0.8), 7.0)
-		g.draw_polyline(ring, Color(c.r, c.g, c.b, pulse), 3.0)
+		g.wcv.draw_polyline(ring, Color(0.02, 0.05, 0.06, 0.8), 7.0)
+		g.wcv.draw_polyline(ring, Color(c.r, c.g, c.b, pulse), 3.0)
 		var m: int = clampi(int(R * TAU / 22.0), 24, 160)
 		for i in m:
 			var an: float = TAU * (float(i) + fmod(g.t * 1.5, 1.0)) / m
@@ -252,7 +252,7 @@ static func draw(g) -> void:
 				for i in 33:
 					var a: float = TAU * i / 32.0
 					pts.append(w.pos + Vector2(cos(a), sin(a) * gy) * r)
-				g.draw_colored_polygon(pts, fill)
+				g.wcv.draw_colored_polygon(pts, fill)
 				var n: int = clampi(int(r * TAU / 9.0), 16, 120)
 				for i in n:
 					var a: float = TAU * i / n
@@ -279,7 +279,7 @@ static func draw(g) -> void:
 				var d := Vector2.from_angle(w.ang)
 				var nrm: Vector2 = d.orthogonal() * float(w.wid)
 				var L: float = w.len
-				g.draw_colored_polygon(PackedVector2Array([w.pos + nrm, w.pos + d * L + nrm, w.pos + d * L - nrm, w.pos - nrm]), fill)
+				g.wcv.draw_colored_polygon(PackedVector2Array([w.pos + nrm, w.pos + d * L + nrm, w.pos + d * L - nrm, w.pos - nrm]), fill)
 				var s := 0.0
 				var step: float = 8.0 if locked else 14.0   # 锁定前点列稀疏（还在跟踪），锁定后加密
 				while s <= L:
@@ -299,7 +299,7 @@ static func draw(g) -> void:
 				var pts := PackedVector2Array([w.pos])
 				for i in 17:
 					pts.append(w.pos + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * i / 16.0) * w.r)
-				g.draw_colored_polygon(pts, fill)
+				g.wcv.draw_colored_polygon(pts, fill)
 				var n: int = clampi(int(w.r * w.half * 2.0 / 8.0), 8, 90)
 				for i in n + 1:
 					_sq(g, w.pos + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * i / n) * w.r, edge)

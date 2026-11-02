@@ -62,12 +62,12 @@ static func _hatch(g, w: Dictionary, c: Color, a: float, k: float) -> void:
 		var a0 := Vector2(x, bb.position.y)
 		var a1 := Vector2(x + bb.size.y, bb.end.y)
 		for seg in Geometry2D.intersect_polyline_with_polygon(PackedVector2Array([a0, a1]), poly):
-			g.draw_polyline(seg, col, 2.0)
+			g.wcv.draw_polyline(seg, col, 2.0)
 		x += gap
 	if k > 0.05:
 		var inner := _poly(g, w, k) if w.shape != "line" else _poly_line_k(w, k)
 		if inner.size() >= 3:
-			g.draw_colored_polygon(inner, Color(c.r, c.g, c.b, a * 0.35))
+			g.wcv.draw_colored_polygon(inner, Color(c.r, c.g, c.b, a * 0.35))
 
 
 static func _poly_line_k(w: Dictionary, k: float) -> PackedVector2Array:
@@ -126,31 +126,31 @@ static func draw_fills(g) -> void:
 		if not hatched:
 			match w.shape:
 				"circle":
-					g.draw_set_transform(w.pos, 0.0, Vector2(1.0, g.combat.GROUND_Y))
+					g.wcv.draw_set_transform(w.pos, 0.0, Vector2(1.0, g.combat.GROUND_Y))
 					if st == 4 and not w.done:
 						# ④ 空心环：只画线；进度用一圈从内向外长的细环表示
-						g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 48, line, 2.5)
-						g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 40, Color(c.r, c.g, c.b, oa * 0.5), 1.5)
+						g.wcv.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 48, line, 2.5)
+						g.wcv.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 40, Color(c.r, c.g, c.b, oa * 0.5), 1.5)
 					else:
-						g.draw_circle(Vector2.ZERO, w.r, fill)
-						g.draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
-						g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)
-					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+						g.wcv.draw_circle(Vector2.ZERO, w.r, fill)
+						g.wcv.draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+						g.wcv.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)
+					g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				"line":
-					g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
-					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), fill)
+					g.wcv.draw_set_transform(w.pos, w.ang, Vector2.ONE)
+					g.wcv.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), fill)
 					if st == 2 and not w.done:
 						# ② 斜条纹：间距 28，随结算进度向终点流动；总数按线长封顶（820 长约 30 条）
 						var sc := Color(c.r, c.g, c.b, fa * 1.4)
 						var off: float = fmod(k * 140.0 + g.t * 40.0, 28.0)
 						var x: float = off - w.wid
 						while x < w.len:
-							g.draw_line(Vector2(x, -w.wid), Vector2(x + w.wid, w.wid), sc, 3.0)
+							g.wcv.draw_line(Vector2(x, -w.wid), Vector2(x + w.wid, w.wid), sc, 3.0)
 							x += 28.0
 					else:
-						g.draw_rect(Rect2(0.0, -w.wid * k, w.len, w.wid * 2.0 * k), Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
-					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
-					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+						g.wcv.draw_rect(Rect2(0.0, -w.wid * k, w.len, w.wid * 2.0 * k), Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+					g.wcv.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
+					g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				"cone":
 					var pts := PackedVector2Array([w.pos])
 					var pts2 := PackedVector2Array([w.pos])
@@ -159,17 +159,17 @@ static func draw_fills(g) -> void:
 						var dv := Vector2.from_angle(a)
 						pts.append(w.pos + dv * w.r)
 						pts2.append(w.pos + dv * w.r * k)
-					g.draw_colored_polygon(pts, fill)
+					g.wcv.draw_colored_polygon(pts, fill)
 					if k > 0.05:
-						g.draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * (1.0 if st == 3 else 1.6)))
+						g.wcv.draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * (1.0 if st == 3 else 1.6)))
 					pts.append(w.pos)
-					g.draw_polyline(pts, line, 2.5)
+					g.wcv.draw_polyline(pts, line, 2.5)
 					if st == 3 and not w.done:
-						g.draw_arc(w.pos, w.r, w.ang - w.half, w.ang + w.half, 20, bright, 3.5)   # ③ 亮边：外弧 130% 亮
+						g.wcv.draw_arc(w.pos, w.r, w.ang - w.half, w.ang + w.half, 20, bright, 3.5)   # ③ 亮边：外弧 130% 亮
 		# 连发序号（凝视 1 / 2 / 3、叠影圈号）：circle 画在圈心上方，line / cone 画在起点
 		var sq: int = int(w.get("seq_no", 0))
 		if sq > 0 and not w.done:
 			var sp: Vector2 = w.pos + (Vector2(0, -w.r * g.combat.GROUND_Y - 18.0) if w.shape == "circle" else Vector2.from_angle(w.ang) * 26.0 + Vector2(0, -22.0))
-			g.draw_circle(sp, 9.0, Color(0.02, 0.02, 0.05, 0.8))
-			g.draw_arc(sp, 9.0, 0.0, TAU, 16, Color(1, 1, 1, 0.9), 1.5)
-			UI.text(g, g.font, sp + Vector2(-9.0, 5.0), str(sq), 12, Color(1, 1, 1, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 18.0)
+			g.wcv.draw_circle(sp, 9.0, Color(0.02, 0.02, 0.05, 0.8))
+			g.wcv.draw_arc(sp, 9.0, 0.0, TAU, 16, Color(1, 1, 1, 0.9), 1.5)
+			UI.text(g.wcv, g.font, sp + Vector2(-9.0, 5.0), str(sq), 12, Color(1, 1, 1, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 18.0)

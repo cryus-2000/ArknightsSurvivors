@@ -14,7 +14,7 @@ static func draw(g, f: Dictionary, a: float, ci = null) -> void:
 	if a <= 0.0:
 		return
 	if ci == null:
-		ci = g
+		ci = g.wcv
 	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
 	var p0: Vector2 = f.a if f.has("a") else f.pos   # 干员激光线（"line"，laser 标记）用 pos / to
 	var p1: Vector2 = f.b if f.has("b") else f.get("to", f.pos)

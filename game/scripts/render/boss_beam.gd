@@ -86,15 +86,15 @@ static func draw(g, f: Dictionary) -> bool:
 	var b: Vector2 = f.b
 	var lp: float = maxf(a.distance_to(b) / k, SEG * 2.0)   # 光束长度（美术像素），至少起点 + 命中端
 	var src_rect := Rect2(fr * SEG, 0, SEG, HALF_H * 2.0)
-	g.draw_set_transform(a, (b - a).angle(), Vector2(k, k))
-	g.draw_texture_rect_region(t_src, Rect2(0, -HALF_H, SEG, HALF_H * 2.0), src_rect)
+	g.wcv.draw_set_transform(a, (b - a).angle(), Vector2(k, k))
+	g.wcv.draw_texture_rect_region(t_src, Rect2(0, -HALF_H, SEG, HALF_H * 2.0), src_rect)
 	var x: float = SEG
 	while x < lp - SEG:
 		var w: float = minf(SEG, lp - SEG - x)
-		g.draw_texture_rect_region(t_mid, Rect2(x, -HALF_H, w, HALF_H * 2.0), Rect2(fr * SEG, 0, w, HALF_H * 2.0))
+		g.wcv.draw_texture_rect_region(t_mid, Rect2(x, -HALF_H, w, HALF_H * 2.0), Rect2(fr * SEG, 0, w, HALF_H * 2.0))
 		x += SEG
-	g.draw_texture_rect_region(t_hit, Rect2(lp - SEG, -HALF_H, SEG, HALF_H * 2.0), src_rect)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.wcv.draw_texture_rect_region(t_hit, Rect2(lp - SEG, -HALF_H, SEG, HALF_H * 2.0), src_rect)
+	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	return true
 
 
@@ -103,13 +103,13 @@ static func _tile(g, tex: Texture2D, a: Vector2, b: Vector2, k: float, fr: int, 
 	var lp: float = a.distance_to(b) / k
 	if lp <= 0.5:
 		return
-	g.draw_set_transform(a, (b - a).angle(), Vector2(k, k))
+	g.wcv.draw_set_transform(a, (b - a).angle(), Vector2(k, k))
 	var x: float = 0.0
 	while x < lp:
 		var w: float = minf(SEG, lp - x)
-		g.draw_texture_rect_region(tex, Rect2(x, -HALF_H, w, HALF_H * 2.0), Rect2(fr * SEG, 0, w, HALF_H * 2.0), Color(1, 1, 1, al))
+		g.wcv.draw_texture_rect_region(tex, Rect2(x, -HALF_H, w, HALF_H * 2.0), Rect2(fr * SEG, 0, w, HALF_H * 2.0), Color(1, 1, 1, al))
 		x += SEG
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 卡门的封锁线（saint.gd _fire_step 写 e.fire_lines）：贴地余烬带，缺口空出来、画白圈；
@@ -152,15 +152,15 @@ static func _fire_lines(g, e: Dictionary) -> void:
 			var k: float = 0.45 + 0.55 * h
 			cols.append(Color(ember.r * (0.8 + 0.5 * k), ember.g * (0.8 + 0.5 * k), ember.b * (0.8 + 0.5 * k), al * k))
 		if not cols.is_empty():
-			g.draw_multiline_colors(pts, cols, lw)
+			g.wcv.draw_multiline_colors(pts, cols, lw)
 		var fgr = grains(g)
 		if brk > 0.0 and fgr != null and g.vrng.randf() < 0.5:
 			for i in take(g, 2):
 				fgr.push("mote_up", a.lerp(b, g.vrng.randf()), Vector2.UP, ember)
 		var gp: Vector2 = a.lerp(b, gt)
-		g.draw_set_transform(gp, 0.0, Vector2(1.0, 0.6))
-		g.draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 20, Color(1, 1, 1, minf(1.0, al * 1.6)), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		g.wcv.draw_set_transform(gp, 0.0, Vector2(1.0, 0.6))
+		g.wcv.draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 20, Color(1, 1, 1, minf(1.0, al * 1.6)), 2.0)
+		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 塑路者的生路（path.gd 写 e.paths）：钢蓝折线（低亮度宽线 + 亮芯）、每段末端金色路标；截断的路变暗、断口画叉
@@ -170,17 +170,17 @@ static func _paths(g, e: Dictionary) -> void:
 		var cut: bool = p.cut
 		var al: float = 0.18 if cut else 0.42
 		var pa := PackedVector2Array(pts)
-		g.draw_polyline(pa, Color(0.55, 0.65, 1.0, al * 0.6), 9.0)
-		g.draw_polyline(pa, Color(0.8, 0.88, 1.0, al * 1.6), 2.0)
+		g.wcv.draw_polyline(pa, Color(0.55, 0.65, 1.0, al * 0.6), 9.0)
+		g.wcv.draw_polyline(pa, Color(0.8, 0.88, 1.0, al * 1.6), 2.0)
 		for i in range(1, pts.size()):
 			var q: Vector2 = pts[i]
 			if cut and i == int(p.get("cut_i", -1)):
-				g.draw_line(q + Vector2(-8, -8), q + Vector2(8, 8), Color(1.0, 0.85, 0.4, 0.9), 3.0)
-				g.draw_line(q + Vector2(-8, 8), q + Vector2(8, -8), Color(1.0, 0.85, 0.4, 0.9), 3.0)
+				g.wcv.draw_line(q + Vector2(-8, -8), q + Vector2(8, 8), Color(1.0, 0.85, 0.4, 0.9), 3.0)
+				g.wcv.draw_line(q + Vector2(-8, 8), q + Vector2(8, -8), Color(1.0, 0.85, 0.4, 0.9), 3.0)
 				continue
 			var c := Color(1.0, 0.82, 0.3, 0.35 if cut else 1.0)
-			g.draw_colored_polygon(PackedVector2Array([q + Vector2(0, -9), q + Vector2(7, 0), q + Vector2(0, 9), q + Vector2(-7, 0)]), c)
-			g.draw_polyline(PackedVector2Array([q + Vector2(0, -9), q + Vector2(7, 0), q + Vector2(0, 9), q + Vector2(-7, 0), q + Vector2(0, -9)]), Color(1, 1, 1, c.a), 1.5)
+			g.wcv.draw_colored_polygon(PackedVector2Array([q + Vector2(0, -9), q + Vector2(7, 0), q + Vector2(0, 9), q + Vector2(-7, 0)]), c)
+			g.wcv.draw_polyline(PackedVector2Array([q + Vector2(0, -9), q + Vector2(7, 0), q + Vector2(0, 9), q + Vector2(-7, 0), q + Vector2(0, -9)]), Color(1, 1, 1, c.a), 1.5)
 
 
 ## 偏执泡影「打落」读法（docs/142b §3.5）：悬浮时身下白色双描边椭圆（主控冲刺可用时加亮）；
@@ -190,10 +190,10 @@ static func _paranoia_ground(g, e: Dictionary) -> void:
 	if e.get("cocoon_t", 0.0) > 0.0 or e.phase != 1 or float(e.get("drop_until", 0.0)) > g.t:
 		return   # 收招破绽期间照常画（可以打落），只有已坠地时不画
 	var al: float = 0.75 if g.dash_ready() else 0.3
-	g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
-	g.draw_arc(Vector2.ZERO, e.r * 1.25, 0.0, TAU, 40, Color(1, 1, 1, al), 2.0)
-	g.draw_arc(Vector2.ZERO, e.r * 1.25 + 5.0, 0.0, TAU, 40, Color(1, 1, 1, al * 0.6), 1.5)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.wcv.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
+	g.wcv.draw_arc(Vector2.ZERO, e.r * 1.25, 0.0, TAU, 40, Color(1, 1, 1, al), 2.0)
+	g.wcv.draw_arc(Vector2.ZERO, e.r * 1.25 + 5.0, 0.0, TAU, 40, Color(1, 1, 1, al * 0.6), 1.5)
+	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 static func _paranoia_top(g, e: Dictionary) -> void:
@@ -207,8 +207,8 @@ static func _paranoia_top(g, e: Dictionary) -> void:
 		return
 	var c := Color(0.45, 0.95, 1.0, 0.9)
 	var r: float = e.r * 1.5
-	g.draw_arc(e.pos, r, -PI * 0.5, -PI * 0.5 + TAU * left, 48, c, 3.0)
-	g.draw_arc(e.pos, r, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.18), 1.5)
+	g.wcv.draw_arc(e.pos, r, -PI * 0.5, -PI * 0.5 + TAU * left, 48, c, 3.0)
+	g.wcv.draw_arc(e.pos, r, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.18), 1.5)
 
 
 ## 伊莎玛拉「破网」读法（docs/142b §3.6）：地面层——她到每只连线海嗣一条低亮度青绿细线、海嗣脚下金色描边圈，泪脚下金圈随心跳缩放；
@@ -222,15 +222,15 @@ static func _web_ground(g, e: Dictionary) -> void:
 		var o = sl.o
 		if o == null or o.dead:
 			continue
-		g.draw_line(e.pos, o.pos, Color(ISHAR_LINK.r, ISHAR_LINK.g, ISHAR_LINK.b, 0.28), 1.5)
-		g.draw_set_transform(o.pos + Vector2(0, o.r * 0.8), 0.0, Vector2(1.0, 0.5))
-		g.draw_arc(Vector2.ZERO, o.r + 6.0, 0.0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.8), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		g.wcv.draw_line(e.pos, o.pos, Color(ISHAR_LINK.r, ISHAR_LINK.g, ISHAR_LINK.b, 0.28), 1.5)
+		g.wcv.draw_set_transform(o.pos + Vector2(0, o.r * 0.8), 0.0, Vector2(1.0, 0.5))
+		g.wcv.draw_arc(Vector2.ZERO, o.r + 6.0, 0.0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.8), 2.0)
+		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var beat: float = pow(maxf(0.0, sin(g.t * 5.0)), 6.0)
 	for o in e.get("eyes", []):
 		if o.dead:
 			continue
-		g.draw_arc(o.pos, o.r + 8.0 + beat * 6.0, 0.0, TAU, 28, Color(GOLD.r, GOLD.g, GOLD.b, 0.6 + beat * 0.4), 2.5)
+		g.wcv.draw_arc(o.pos, o.r + 8.0 + beat * 6.0, 0.0, TAU, 28, Color(GOLD.r, GOLD.g, GOLD.b, 0.6 + beat * 0.4), 2.5)
 
 
 static func _web_top(g, e: Dictionary) -> void:
@@ -242,16 +242,16 @@ static func _web_top(g, e: Dictionary) -> void:
 		if o == null or o.dead:
 			continue
 		var h: Vector2 = o.pos + Vector2(0, -o.r - 22.0 + sin(g.t * 3.0 + float(o.id)) * 2.0)
-		g.draw_circle(h + Vector2(-3, 4), 3.0, GOLD)
-		g.draw_line(h + Vector2(0, 4), h + Vector2(0, -6), GOLD, 1.5)
-		g.draw_line(h + Vector2(0, -6), h + Vector2(4, -3), GOLD, 1.5)
+		g.wcv.draw_circle(h + Vector2(-3, 4), 3.0, GOLD)
+		g.wcv.draw_line(h + Vector2(0, 4), h + Vector2(0, -6), GOLD, 1.5)
+		g.wcv.draw_line(h + Vector2(0, -6), h + Vector2(4, -3), GOLD, 1.5)
 	var n: int = int(e.get("web_n", 0))
 	var r: float = float(e.r) * 1.45
 	var step: float = TAU / float(cap)
 	for i in cap:
 		var a0: float = -PI * 0.5 + step * i + step * 0.1
 		var on: bool = i < n
-		g.draw_arc(e.pos, r, a0, a0 + step * 0.8, 8, Color(ISHAR_LINK.r, ISHAR_LINK.g, ISHAR_LINK.b, 0.85 if on else 0.15), 3.0 if on else 1.5)
+		g.wcv.draw_arc(e.pos, r, a0, a0 + step * 0.8, 8, Color(ISHAR_LINK.r, ISHAR_LINK.g, ISHAR_LINK.b, 0.85 if on else 0.15), 3.0 if on else 1.5)
 
 
 ## 伊祖米克「拦截」读法（docs/142b §3.7）：地面层——每只批次子代脚下金色描边圈 + 一条细线连向她，茧外青色倒计时环；
@@ -262,12 +262,12 @@ static func _izumik_ground(g, e: Dictionary) -> void:
 			continue
 		if o.get("izu_cocoon", false):
 			var left: float = clampf((float(o.cocoon_until) - g.t) / maxf(0.1, Bal.v("boss/izumik_cocoon_t", 4.0)), 0.0, 1.0)
-			g.draw_arc(o.pos, o.r + 12.0, -PI * 0.5, -PI * 0.5 + TAU * left, 32, Color(0.45, 0.95, 1.0, 0.9), 3.0)
+			g.wcv.draw_arc(o.pos, o.r + 12.0, -PI * 0.5, -PI * 0.5 + TAU * left, 32, Color(0.45, 0.95, 1.0, 0.9), 3.0)
 			continue
-		g.draw_line(o.pos, e.pos, Color(GOLD.r, GOLD.g, GOLD.b, 0.16), 1.0)
-		g.draw_set_transform(o.pos + Vector2(0, o.r * 0.8), 0.0, Vector2(1.0, 0.5))
-		g.draw_arc(Vector2.ZERO, o.r + 6.0, 0.0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.8), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		g.wcv.draw_line(o.pos, e.pos, Color(GOLD.r, GOLD.g, GOLD.b, 0.16), 1.0)
+		g.wcv.draw_set_transform(o.pos + Vector2(0, o.r * 0.8), 0.0, Vector2(1.0, 0.5))
+		g.wcv.draw_arc(Vector2.ZERO, o.r + 6.0, 0.0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.8), 2.0)
+		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 static func _izumik_top(g, e: Dictionary) -> void:
@@ -288,13 +288,13 @@ static func _izumik_top(g, e: Dictionary) -> void:
 		var tip: Vector2 = g.ppos + d * 70.0
 		var side: Vector2 = d.orthogonal() * 9.0
 		var pts := PackedVector2Array([tip, tip - d * 16.0 + side, tip - d * 16.0 - side])
-		g.draw_colored_polygon(pts, Color(GOLD.r, GOLD.g, GOLD.b, 0.9))
-		g.draw_polyline(PackedVector2Array([pts[0], pts[1], pts[2], pts[0]]), Color(0.2, 0.12, 0.0, 0.8), 1.5)
+		g.wcv.draw_colored_polygon(pts, Color(GOLD.r, GOLD.g, GOLD.b, 0.9))
+		g.wcv.draw_polyline(PackedVector2Array([pts[0], pts[1], pts[2], pts[0]]), Color(0.2, 0.12, 0.0, 0.8), 1.5)
 	var n: int = int(e.get("izu_stacks", 0))
 	for i in n:
 		var p: Vector2 = e.pos + Vector2((float(i) - (n - 1) * 0.5) * 12.0, -e.r - 30.0)
-		g.draw_circle(p, 4.0, Color(0.5, 1.0, 0.6))
-		g.draw_arc(p, 5.5, 0.0, TAU, 12, Color(1, 1, 1, 0.7), 1.0)
+		g.wcv.draw_circle(p, 4.0, Color(0.5, 1.0, 0.6))
+		g.wcv.draw_arc(p, 5.5, 0.0, TAU, 12, Color(1, 1, 1, 0.7), 1.0)
 
 
 ## ---- 每幕一套颗粒（docs/142b §8.2「特效 / 转场」列，docs/142 §1「肉眼可见」）：本体周围按这一幕的颜色 / 方向持续冒颗粒；
@@ -398,7 +398,7 @@ static func _song_band(g, sh: Dictionary, segs: Array, dr: float, gy: float, t: 
 			var k: float = 0.55 + 0.45 * fposmod(h * 7.31, 1.0)
 			cols.append(Color(col.r, col.g, col.b, col.a * k))
 	if not cols.is_empty():
-		g.draw_multiline_colors(pts, cols, width)
+		g.wcv.draw_multiline_colors(pts, cols, width)
 
 
 ## Boss 冲击环（大群之歌、震地、跃击；判定不变：shot_pool.update_shocks 按 sh.r 一条环带）：
@@ -450,7 +450,7 @@ static func draw_song(g, sh: Dictionary, gy: float, ripples: bool = true) -> voi
 			var v := Vector2.from_angle(float(ga) + side * gh)
 			var p0: Vector2 = sh.pos + Vector2(v.x, v.y * gy) * (float(sh.r) - 16.0)
 			var p1: Vector2 = sh.pos + Vector2(v.x, v.y * gy) * (float(sh.r) + 16.0)
-			g.draw_line(p0, p1, Color(1.0, 0.85, 0.35, 0.9), 2.0)
+			g.wcv.draw_line(p0, p1, Color(1.0, 0.85, 0.35, 0.9), 2.0)
 	# 前沿沿途散颗粒 + 波内由内向外流的颗粒（走预算）
 	var grains = grains(g)
 	if grains != null and a > 0.2:
@@ -477,9 +477,9 @@ static func _song_windup(g, e: Dictionary) -> void:
 		var k: float = clampf(float(w.t) / maxf(0.05, float(w.dur)), 0.0, 1.0)
 		var c: Color = w.col
 		var rr: float = lerpf(150.0, float(w.r), k * k)
-		g.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.72))
-		g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.15 + 0.5 * k), 2.0 + 3.0 * k)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		g.wcv.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.72))
+		g.wcv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.15 + 0.5 * k), 2.0 + 3.0 * k)
+		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var grains = grains(g)
 		if grains != null:
 			for i in take(g, 3):
@@ -514,15 +514,15 @@ static func draw_ground(g) -> void:
 		var r: float = float(e.kcold_r)
 		var off: bool = float(e.get("break_t", 0.0)) > 0.0   # 破绽期不涨寒冷：圈变淡
 		var al: float = 0.05 if off else 0.11
-		g.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.72))
+		g.wcv.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.72))
 		# Sparse fractures mark the active first-phase cold field without an opaque disc.
 		for j in 12:
 			var d := Vector2.from_angle(j*TAU/12)
 			var bend := d.rotated(.12 if j%2==0 else -.1)
-			g.draw_line(d*r*.42,bend*r*.69,Color(.43,.65,.75,al*1.1),1)
-			g.draw_line(bend*r*.69,d*r*.89,Color(.43,.65,.75,al*1.1),1)
-		g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0.75, 0.95, 1.0, al * 2.6), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			g.wcv.draw_line(d*r*.42,bend*r*.69,Color(.43,.65,.75,al*1.1),1)
+			g.wcv.draw_line(bend*r*.69,d*r*.89,Color(.43,.65,.75,al*1.1),1)
+		g.wcv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0.75, 0.95, 1.0, al * 2.6), 2.0)
+		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 接潮组「同步」护盾（docs/142b §3.8）：血少的那具身上一圈六边形护盾（专属色、缓慢旋转），读法「这具现在打不动，去打另一具」
@@ -536,8 +536,8 @@ static func _shields(g) -> void:
 		var pts := PackedVector2Array()
 		for k in 7:
 			pts.append(e.pos + Vector2.from_angle(rot + TAU * k / 6.0) * r)
-		g.draw_colored_polygon(pts.slice(0, 6), Color(c.r, c.g, c.b, 0.10))
-		g.draw_polyline(pts, Color(c.r * 0.6 + 0.4, c.g * 0.6 + 0.4, c.b * 0.6 + 0.4, 0.75), 2.5)
+		g.wcv.draw_colored_polygon(pts.slice(0, 6), Color(c.r, c.g, c.b, 0.10))
+		g.wcv.draw_polyline(pts, Color(c.r * 0.6 + 0.4, c.g * 0.6 + 0.4, c.b * 0.6 + 0.4, 0.75), 2.5)
 
 
 ## 顶层：接潮护盾；主控脚下的寒冷条（骑士在场且寒冷 > 0 时）；满了之后「冻伤」期间整条变白
@@ -559,7 +559,7 @@ static func draw_top(g) -> void:
 		if v <= 0.01 and not bite:
 			continue
 		var p: Vector2 = g.ppos + Vector2(-22, 16)
-		g.draw_rect(Rect2(p - Vector2(1, 1), Vector2(46, 6)), Color(0.02, 0.04, 0.08, 0.85))
+		g.wcv.draw_rect(Rect2(p - Vector2(1, 1), Vector2(46, 6)), Color(0.02, 0.04, 0.08, 0.85))
 		var c: Color = Color(0.95, 1.0, 1.0) if bite else Color(0.55, 0.85, 1.0).lerp(Color(0.9, 0.98, 1.0), v)
-		g.draw_rect(Rect2(p, Vector2(44.0 * (1.0 if bite else v), 4)), c)
+		g.wcv.draw_rect(Rect2(p, Vector2(44.0 * (1.0 if bite else v), 4)), c)
 		return

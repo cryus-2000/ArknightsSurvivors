@@ -55,7 +55,7 @@ static func draw(g, w: Dictionary, alpha: float, charging := false) -> void:
 	g.world.tb_flush()
 	var stretch := 1.0 + sin(age * 5.0 + float(w.get("ang", 0.0))) * 0.035
 	var extent := Vector2(radius * stretch, radius / stretch)
-	g.draw_texture_rect(texture(int(age*10.0 + float(w.get("ang",0.0))*2.0)),Rect2((p-extent).snapped(Vector2(2,2)),extent*2),false,Color(1,1,1,alpha))
+	g.wcv.draw_texture_rect(texture(int(age*10.0 + float(w.get("ang",0.0))*2.0)),Rect2((p-extent).snapped(Vector2(2,2)),extent*2),false,Color(1,1,1,alpha))
 	if charging:
 		# Four small ground ticks indicate a forming projectile, not a floor explosion.
 		for side in [-1.0,1.0]:
