@@ -66,8 +66,10 @@ def frame(phone, mode, show_mates, name):
     E.leader(m, lx, ly, phone=phone)
     sy = ly + 82
     if show_mates:
-        sy += mates_hp(m, lx, ly + 84, phone) + 4
-        E.cap(m, lx + 36, ly + 78, 'SQUAD HP' + ('  ·  突击中' if mode == 1 else ''), 5.5, CYAN if mode == 1 else E.SUB)
+        sy += mates_hp(m, lx, ly + 98, phone) + 18
+        cw_ = E.cap(m, lx + 36, ly + 84, 'SQUAD HP', 5.5, CYAN if mode == 1 else E.SUB)
+        if mode == 1:
+            m.text(lx + 36 + cw_ + 6, ly + 84.5, '突击中', 8, CYAN)
         sy += 8
     E.status(m, lx, sy + 14, phone=phone)
     E.top_bar(m, 6 if phone else 10, compact=phone)
