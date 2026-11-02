@@ -46,10 +46,6 @@
     "status": "不换",
     "why": "seg_eyjafjalla 的 look:lava 分支：S3 熔岩池是 weighted，走 magma_projectile.draw_pool（已换 px 熔池），这条分支实际不播"
   },
-  "eyjafjalla|fx_logos_s1_link": {
-    "status": "不换",
-    "why": "逻各斯 S1 湮灭余伤咒文链（s1link，代码在 seg_eyjafjalla 里），咒文锁链由设定字形链环拼成，链环等距是锁链结构本身；@2x 原密度合规"
-  },
   "angelina|proj_angelina_orb": {
     "status": "不换",
     "why": "if_tex !fx_angelina_px_well_front 兜底，px 井心在时不播；且属弹体"
@@ -78,50 +74,6 @@
     "status": "已做",
     "new": "fx_angelina_px_float_dust"
   },
-  "logos|fx_logos_glyph": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_glyphs": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_script": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_soul_rune_1": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_soul_rune_2": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_soul_rune_3": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_s3_ribbon": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效；扇形边的条位已改不等距（seg_logos）"
-  },
-  "logos|fx_logos_s3_slow": {
-    "status": "不换",
-    "why": "逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效（减速标记字形）"
-  },
-  "logos|fx_logos_s3_back": {
-    "status": "不换",
-    "why": "S3 自身周围的咒文环（字形绕身），逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_s3_front": {
-    "status": "不换",
-    "why": "同 s3_back，逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
-  "logos|fx_logos_s3_orbit": {
-    "status": "不换",
-    "why": "同 s3_back，逻各斯设定文字字形（Codex 按设定画的咒文 / 符文），pixelfx 生成不出可读字形；@2x 原密度合规，不做程序特效"
-  },
   "logos|fx_logos_s3_fan_open": {
     "status": "已做",
     "new": "fx_logos_px_fan_open"
@@ -133,26 +85,6 @@
   "logos|fx_logos_s3_fan_close": {
     "status": "已做",
     "new": "fx_logos_px_fan_close"
-  },
-  "logos|fx_logos_chain_anchor": {
-    "status": "不换",
-    "why": "咒文锁链由设定字形链环拼成，链环等距是锁链结构本身；@2x 原密度合规"
-  },
-  "logos|fx_logos_chain_pulse": {
-    "status": "不换",
-    "why": "咒文锁链由设定字形链环拼成，链环等距是锁链结构本身；@2x 原密度合规"
-  },
-  "logos|fx_logos_chain_tile": {
-    "status": "不换",
-    "why": "咒文锁链由设定字形链环拼成，链环等距是锁链结构本身；@2x 原密度合规"
-  },
-  "logos|fx_logos_s1_chain": {
-    "status": "不换",
-    "why": "咒文锁链由设定字形链环拼成，链环等距是锁链结构本身；@2x 原密度合规"
-  },
-  "logos|fx_logos_s1_link": {
-    "status": "不换",
-    "why": "咒文锁链由设定字形链环拼成，链环等距是锁链结构本身；@2x 原密度合规"
   },
   "lumen|fx_heal_aura_amber": {
     "status": "已做",
@@ -191,52 +123,67 @@
     "status": "已做",
     "new": "fx_suzuran_px_wisp"
   },
-  "suzuran|fx_suzuran_ninetails": {
+  "eyjafjalla|proj_eyja_lava_lob": {
     "status": "不换",
-    "why": "九尾虚影是设定剪影（PRTS 立绘九条尾），按人物附件处理；@2x 原密度合规"
+    "why": "不播：熔岩块全是 weighted，走 MagmaProjectile.draw 程序画岩块，这张帧条在现行路径上不画（seg_eyjafjalla 非 weighted 分支才用）"
   },
-  "eyjafjalla|fx_ey_fork1": {
+  "suzuran|proj_max": {
     "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
-  },
-  "eyjafjalla|fx_ey_fork2": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
-  },
-  "eyjafjalla|fx_ey_fork3": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
-  },
-  "eyjafjalla|fx_ey_fork4": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "why": "不是贴图：JSON 里弹体数量上限键 proj_max，扫描误认"
   },
   "eyjafjalla|fx_ey_rock": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "status": "已做",
+    "new": "fx_eyjafjalla_px_lk_rock",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+  },
+  "eyjafjalla|fx_ey_fork1": {
+    "status": "已做",
+    "new": "fx_eyjafjalla_px_lk_fork1",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+  },
+  "eyjafjalla|fx_ey_fork2": {
+    "status": "已做",
+    "new": "fx_eyjafjalla_px_lk_fork2",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+  },
+  "eyjafjalla|fx_ey_fork3": {
+    "status": "已做",
+    "new": "fx_eyjafjalla_px_lk_fork3",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+  },
+  "eyjafjalla|fx_ey_fork4": {
+    "status": "已做",
+    "new": "fx_eyjafjalla_px_lk_fork4",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
   },
   "angelina|fx_an_core": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "status": "已做",
+    "new": "fx_angelina_px_lk_core",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
   },
   "angelina|fx_an_crater": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "status": "已做",
+    "new": "fx_angelina_px_lk_crater",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
   },
   "logos|fx_lk_lo_ring": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "status": "已做",
+    "new": "fx_logos_px_lk_ring",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
   },
   "suzuran|fx_lk_sz_fox1": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "status": "已做",
+    "new": "fx_suzuran_px_lk_fox1",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
   },
   "suzuran|fx_lk_sz_fox2": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "status": "已做",
+    "new": "fx_suzuran_px_lk_fox2",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
   },
   "suzuran|fx_lk_sz_fox3": {
-    "status": "不换",
-    "why": "连携复用终结技同族的 pixfx 单帧大贴图、由 link_fx_b.gd 代码驱动演出（docs/229 §1 合规路线；协调人 10-31 定连携复用终结技元素、缩小一档；终结技主视觉只统一不重做），同 A 组处理"
+    "status": "已做",
+    "new": "fx_suzuran_px_lk_fox3",
+    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
   }
 }

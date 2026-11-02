@@ -1,4 +1,4 @@
-// 逻各斯 S3「咒域」扇形常驻段（循环，0.8 s @10）：墨云按噪声从扇心往外流，弧边一道不规整亮边缓缓明暗。画法见 _ak-logos-fan.js。
+// 逻各斯 S3「咒域」扇形常驻段（循环，0.6 s @10）：墨云按噪声从扇心往外流，弧边一道不规整亮边缓缓明暗。画法见 _ak-logos-fan.js。
 import { fan, SIZE, ORIGIN } from "./_ak-logos-fan.js";
 import { OP } from "../house.js";
 
@@ -8,7 +8,7 @@ export const meta = {
   tags: ["arcane", "ink", "field", "fan", "loop"],
   size: SIZE,
   origin: ORIGIN,
-  duration: 0.8,
+  duration: 0.6,
   loop: true,
   fps: 10,
   bg: "dark",

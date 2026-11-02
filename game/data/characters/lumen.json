@@ -606,7 +606,7 @@
     "splash": 0.6,
     "lit": 3.0,
     "src": "光弹",
-    "tex": "proj_lumen_bolt",
+    "tex": "proj_lumen_px_bolt",
     "refract": {
      "cond": "elite >= 1",
      "r": "$refract_r",

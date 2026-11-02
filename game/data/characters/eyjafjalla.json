@@ -607,7 +607,7 @@
    ],
    "look": {
     "glow": 13,
-    "tex": "proj_lavaball",
+    "tex": "proj_eyjafjalla_px_lavaball",
     "scale": 1.1,
     "weighted": true
    },
@@ -998,10 +998,10 @@
       "look": {
        "glow": 17,
        "glow2": 26,
-       "big_tex": "proj_eyja_ignite",
+       "big_tex": "proj_eyjafjalla_px_ignite",
        "big_scale": 1.5,
        "back": 14,
-       "tex": "proj_lavaball",
+       "tex": "proj_eyjafjalla_px_lavaball",
        "scale": 1.5,
        "weighted": true
       },

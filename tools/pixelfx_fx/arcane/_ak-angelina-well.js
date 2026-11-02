@@ -22,7 +22,7 @@ export function vortex(p, palette, seed, { rot = 0, k = 1, hot = 0, reach = 1, r
   if (rim > 0)
     for (let a = 0; a < TAU; a += 0.7 / Rr) {
       const r = Rr * (1 + 0.06 * noise(a * 3.7 + rot * 0.5, seed) + 0.03 * noise(a * 9.1, seed + 2));
-      p.blend(Math.cos(a) * r, Math.sin(a) * r * SY, C[clamp(Math.round(3 + hot * 3), 2, 6)], 0.55 * k * rim);
+      p.blend(Math.cos(a) * r, Math.sin(a) * r * SY, C[clamp(Math.round(3 + hot * 2), 2, 4)], 0.55 * k * rim);
     }
   // 中心暗团
   p.shade(-Rr * 0.4, -Rr * 0.2, Rr * 0.4, Rr * 0.2, (x, y) => {
@@ -35,7 +35,7 @@ export function vortex(p, palette, seed, { rot = 0, k = 1, hot = 0, reach = 1, r
     for (let s = 0; s <= 1; s += 0.6 / (Rr * m.len)) {
       const r = Rr * (m.r1 - (m.r1 - m.r0) * s), a = m.a + rot + m.len * s;
       const w = m.w * (0.5 + 0.5 * Math.sin(Math.PI * s));
-      const ci = clamp(Math.round(1.5 + 3 * s * m.b + hot * 2), 1, 6);
+      const ci = clamp(Math.round(1.5 + 3 * s * m.b + hot * 2), 1, 4);   // 安洁莉娜第 6 阶 #e8d9fb 按近白算，最亮只到第 5 阶
       for (let q = -w; q <= w; q += 0.8)
         p.blend(Math.cos(a) * (r + q), Math.sin(a) * (r + q) * SY, C[ci], (0.5 + 0.4 * s) * k * m.b);
     }

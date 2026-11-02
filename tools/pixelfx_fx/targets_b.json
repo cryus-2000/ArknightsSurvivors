@@ -21,8 +21,7 @@
 12,
 5,
 210
-],
- "variants": 2
+]
 },
  "fx_eyjafjalla_px_splash": {
  "fx": "explosions/ak-eyjafjalla-splash",
@@ -32,8 +31,7 @@
 5,
 4,
 150
-],
- "variants": 2
+]
 },
  "fx_eyjafjalla_px_pool": {
  "fx": "fire/ak-eyjafjalla-pool",
@@ -65,7 +63,7 @@
 4,
 140
 ],
- "variants": 2
+ "variants": 1
 },
  "fx_logos_px_pillar": {
  "fx": "arcane/ak-logos-pillar",
@@ -76,7 +74,7 @@
 4,
 160
 ],
- "variants": 2
+ "variants": 1
 },
  "fx_lumen_px_hit": {
  "fx": "impacts/ak-lumen-hit",
@@ -97,8 +95,7 @@
 6,
 5,
 160
-],
- "variants": 2
+]
 },
  "fx_suzuran_px_pillar": {
  "fx": "holy/ak-suzuran-pillar",
@@ -108,8 +105,7 @@
 6,
 5,
 150
-],
- "variants": 2
+]
 },
  "fx_suzuran_px_pillar_s": {
  "fx": "holy/ak-suzuran-pillar",
@@ -132,8 +128,7 @@
 8,
 5,
 160
-],
- "variants": 2
+]
 },
  "fx_logos_px_fan_open": {
  "fx": "arcane/ak-logos-fan-open",
@@ -262,5 +257,264 @@
  "hires": true,
  "variants": 1,
  "seed": 3
+},
+ "proj_eyjafjalla_px_lavaball": {
+ "fx": "projectiles/ak-eyjafjalla-lavaball",
+ "hires": true,
+ "variants": 1
+},
+ "proj_eyjafjalla_px_ignite": {
+ "fx": "projectiles/ak-eyjafjalla-ignite-proj",
+ "hires": true,
+ "variants": 1
+},
+ "proj_lumen_px_bolt": {
+ "fx": "projectiles/ak-lumen-bolt",
+ "hires": true,
+ "variants": 1
+},
+ "proj_suzuran_px_foxfire": {
+ "fx": "projectiles/ak-suzuran-foxfire",
+ "hires": true,
+ "variants": 1
+},
+ "proj_suzuran_px_bigfox": {
+ "fx": "projectiles/ak-suzuran-bigfox",
+ "hires": true,
+ "variants": 1
+},
+ "proj_logos_px_ink": {
+ "fx": "projectiles/ak-logos-ink",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 3
+},
+ "proj_logos_px_ink_a": {
+ "fx": "projectiles/ak-logos-ink",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 1,
+ "opts": {
+ "curl": 1
+}
+},
+ "proj_logos_px_ink_b": {
+ "fx": "projectiles/ak-logos-ink",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 5,
+ "opts": {
+ "curl": 1.6
+}
+},
+ "fx_eyjafjalla_px_lk_rock": {
+ "fx": "fire/ak-eyjafjalla-lk-rock",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 2
+},
+ "fx_eyjafjalla_px_lk_fork1": {
+ "fx": "fire/ak-eyjafjalla-lk-fork",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 1
+},
+ "fx_eyjafjalla_px_lk_fork2": {
+ "fx": "fire/ak-eyjafjalla-lk-fork",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 2
+},
+ "fx_eyjafjalla_px_lk_fork3": {
+ "fx": "fire/ak-eyjafjalla-lk-fork",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 3
+},
+ "fx_eyjafjalla_px_lk_fork4": {
+ "fx": "fire/ak-eyjafjalla-lk-fork",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 4
+},
+ "fx_angelina_px_lk_core": {
+ "fx": "arcane/ak-angelina-lk-core",
+ "hires": true,
+ "variants": 1,
+ "seed": 3
+},
+ "fx_angelina_px_lk_crater": {
+ "fx": "arcane/ak-angelina-lk-crater",
+ "hires": true,
+ "variants": 1,
+ "seed": 4
+},
+ "fx_logos_px_lk_ring": {
+ "fx": "arcane/ak-logos-lk-ring",
+ "hires": true,
+ "variants": 1,
+ "seed": 5
+},
+ "fx_suzuran_px_lk_fox1": {
+ "fx": "holy/ak-suzuran-lk-fox",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 1
+},
+ "fx_suzuran_px_lk_fox2": {
+ "fx": "holy/ak-suzuran-lk-fox",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 2
+},
+ "fx_suzuran_px_lk_fox3": {
+ "fx": "holy/ak-suzuran-lk-fox",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 3
+},
+ "fx_logos_px_glyph": {
+ "fx": "arcane/ak-logos-glyph",
+ "hires": true,
+ "variants": 2,
+ "seed": 4
+},
+ "fx_logos_px_glyphs": {
+ "fx": "arcane/ak-logos-glyphs",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 20
+},
+ "fx_logos_px_script": {
+ "fx": "arcane/ak-logos-script",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 8
+},
+ "fx_logos_px_rune_1": {
+ "fx": "arcane/ak-logos-rune",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 30,
+ "opts": {
+ "layers": 1
+}
+},
+ "fx_logos_px_rune_2": {
+ "fx": "arcane/ak-logos-rune",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 31,
+ "opts": {
+ "layers": 2
+}
+},
+ "fx_logos_px_rune_3": {
+ "fx": "arcane/ak-logos-rune",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 32,
+ "opts": {
+ "layers": 3
+}
+},
+ "fx_logos_px_ribbon": {
+ "fx": "arcane/ak-logos-ribbon",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 40
+},
+ "fx_logos_px_slow": {
+ "fx": "arcane/ak-logos-slow",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 50
+},
+ "fx_logos_px_aura_back": {
+ "fx": "arcane/ak-logos-aura",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 60,
+ "opts": {
+ "layer": "back"
+}
+},
+ "fx_logos_px_aura_front": {
+ "fx": "arcane/ak-logos-aura",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 60,
+ "opts": {
+ "layer": "front"
+}
+},
+ "fx_logos_px_aura": {
+ "fx": "arcane/ak-logos-aura",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 60
+},
+ "fx_logos_px_chain_tile": {
+ "fx": "arcane/ak-logos-chain-tile",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 70
+},
+ "fx_logos_px_chain_pulse": {
+ "fx": "arcane/ak-logos-chain-pulse",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 70
+},
+ "fx_logos_px_chain_anchor": {
+ "fx": "arcane/ak-logos-chain-anchor",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 70
+},
+ "fx_logos_px_s1_chain": {
+ "fx": "arcane/ak-logos-s1-chain",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 70
+},
+ "fx_logos_px_s1_link": {
+ "fx": "arcane/ak-logos-s1-link",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 70
+},
+ "fx_suzuran_px_tails": {
+ "fx": "holy/ak-suzuran-tails",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 9
 }
 }

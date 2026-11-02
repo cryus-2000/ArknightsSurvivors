@@ -43,7 +43,7 @@ export function create(o) {
       if (t < 0.04)
         for (let a = 0; a < TAU; a += 0.6 / R) {
           const r = R * (1 + 0.06 * noise(a * 4.3, S) + 0.04 * noise(a * 11, S + 2));
-          p.px(Math.cos(a) * r, Math.sin(a) * r * SY, C[5]);
+          p.px(Math.cos(a) * r, Math.sin(a) * r * SY, C[4]);
           p.px(Math.cos(a) * (r - 1.5), Math.sin(a) * (r - 1.5) * SY, C[3]);
         }
       // 弧线沿螺旋往里卷：u 0 → 1 收到中心
@@ -63,7 +63,8 @@ export function create(o) {
       const g = smooth(0.12, 0.28, t) * (1 - smooth(0.3, 0.36, t));
       if (g > 0) {
         const r = 1 + 3 * g;
-        p.ellipse(0, 0, r, r * SY + 0.5, C[g > 0.6 ? 6 : 5]);
+        p.ellipse(0, 0, r, r * SY + 0.5, C[4]);
+        if (g > 0.6) p.px(0, 0, C[6]);
         p.glow(0, 0, 10, C[4], 0.28 * g);
       }
       ps.draw(p);

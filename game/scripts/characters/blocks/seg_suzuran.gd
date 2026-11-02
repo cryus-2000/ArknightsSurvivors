@@ -649,7 +649,7 @@ static func _h4_draw_tails(o, tl: Dictionary) -> void:
 	var g = o.g
 	var cv = o.cv
 	var root: Vector2 = o.pos + Vector2(-4.0 * o.face, -28)
-	if o._fx_strip(str(tl.get("tex", "fx_suzuran_ninetails")), 4, int(g.t * 4.0), root, Vector2(0.5, 46.0 / 48.0), 0.0, Color(1, 1, 1, float(tl.get("alpha", 0.45))), o.face < 0.0):
+	if o._fx_strip(str(tl.get("tex", "fx_suzuran_px_tails")), 4, int(g.t * 4.0), root, Vector2(0.5, 46.0 / 48.0), 0.0, Color(1, 1, 1, float(tl.get("alpha", 0.45))), o.face < 0.0):
 		return
 	var center: float = -PI / 2.0 - 0.25 * o.face
 	for k in 9:
@@ -719,18 +719,18 @@ static func _h4sz_draw_over(o) -> void:
 	for f in sz.bigfox:
 		cv.draw_circle(f.pos, 24.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
 		cv.draw_circle(f.pos, 14.0, Color(2.0, 1.6, 0.8, 0.45))
-		if o._fx_strip("proj_suzuran_bigfox", 4, int(g.t * 10.0), f.pos, Vector2(0.5, 0.5), f.vel.angle()):
+		if o._fx_strip("proj_suzuran_px_bigfox", 4, int(g.t * 10.0), f.pos, Vector2(0.5, 0.5), f.vel.angle()):
 			pass
-		elif g.tex.get("proj_foxfire") != null:
-			o.draw_spr_rot("proj_foxfire", int(g.t * 12.0) % 6, f.pos, f.vel.angle(), g.PX * 1.9)
+		elif g.tex.get("proj_suzuran_px_foxfire") != null:
+			o.draw_spr_rot("proj_suzuran_px_foxfire", int(g.t * 12.0) % 6, f.pos, f.vel.angle(), g.PX * 1.1)
 		else:
 			cv.draw_circle(f.pos, 9.0, Color(2.4, 2.0, 1.2))
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("op", "") != o.id or b.kind != "arcane":
 			continue
 		cv.draw_circle(b.pos, 10.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
-		if g.tex.get("proj_foxfire") != null:
-			o.draw_spr_rot("proj_foxfire", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX)
+		if g.tex.get("proj_suzuran_px_foxfire") != null:
+			o.draw_spr_rot("proj_suzuran_px_foxfire", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX)
 		else:
 			cv.draw_circle(b.pos, 5.5, Color(2.2, 1.8, 1.0))
 

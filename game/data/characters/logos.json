@@ -688,8 +688,8 @@
    "shape": "bolt",
    "flight_visual": {
     "variants": [
-     "proj_logos_ink_a",
-     "proj_logos_ink_b"
+     "proj_logos_px_ink_a",
+     "proj_logos_px_ink_b"
     ],
     "fps": 16,
     "arc_lift": [
@@ -857,7 +857,7 @@
         },
         {
          "sprite": {
-          "name": "fx_logos_glyph",
+          "name": "fx_logos_px_glyph",
           "scale": 1.4
          },
          "off": [
@@ -909,17 +909,17 @@
      "fx": [
       {
        "sprite": {
-        "name": "fx_logos_glyph",
+        "name": "fx_logos_px_glyph",
         "scale": 0.6667
        },
-       "if_tex": "fx_logos_glyph"
+       "if_tex": "fx_logos_px_glyph"
       },
       {
        "sprite": {
         "name": "fx_logos_px_hit",
         "scale": 1.0
        },
-       "if_tex": "!fx_logos_glyph"
+       "if_tex": "!fx_logos_px_glyph"
       },
       {
        "pfx": {
@@ -974,9 +974,9 @@
      "exclude": [
       "延异视阈"
      ],
-     "tile": "fx_logos_chain_tile",
-     "pulse": "fx_logos_chain_pulse",
-     "anchor": "fx_logos_chain_anchor"
+     "tile": "fx_logos_px_chain_tile",
+     "pulse": "fx_logos_px_chain_pulse",
+     "anchor": "fx_logos_px_chain_anchor"
     },
     {
      "shape": "pool",
@@ -1156,9 +1156,9 @@
        }
       ],
       "body": [
-       "fx_logos_s3_back",
-       "fx_logos_s3_front",
-       "fx_logos_s3_orbit"
+       "fx_logos_px_aura_back",
+       "fx_logos_px_aura_front",
+       "fx_logos_px_aura"
       ]
      }
     ],
@@ -1226,9 +1226,9 @@
       "per": "$rq_per",
       "max": "$rq_max",
       "look": [
-       "fx_logos_soul_rune_1",
-       "fx_logos_soul_rune_2",
-       "fx_logos_soul_rune_3"
+       "fx_logos_px_rune_1",
+       "fx_logos_px_rune_2",
+       "fx_logos_px_rune_3"
       ]
      }
     ]

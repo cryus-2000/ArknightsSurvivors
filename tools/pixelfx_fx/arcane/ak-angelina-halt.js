@@ -32,7 +32,7 @@ export function create(o) {
         for (let a = a0; a < a1; a += 0.9 / r) {
           const rr = r * (1 + 0.08 * noise(a * 3.1, S)), v = (a - a0) / (a1 - a0);
           if (u > 0.5 && noise(a * 7 + t * 40, S + 3) > 1.6 - 1.6 * u) continue;   // 按噪声断开溶解
-          p.px(Math.cos(a) * rr, Math.sin(a) * rr * SY, C[clamp(Math.round((t < 0.04 ? 5.4 : 4.4 - u * 2.5) - v), 1, 5)]);
+          p.px(Math.cos(a) * rr, Math.sin(a) * rr * SY, C[clamp(Math.round((t < 0.04 ? 4.4 : 3.8 - u * 2.5) - v), 1, 4)]);
         }
       if (t < 0.04) p.px(0, 0, C[6]);
     },

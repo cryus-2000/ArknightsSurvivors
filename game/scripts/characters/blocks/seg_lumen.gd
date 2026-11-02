@@ -518,14 +518,14 @@ static func _h3lm_draw_over(o) -> void:
 	var lm: Dictionary = o.hw.lm
 	var a: Dictionary = o.B.get("attack", {})
 	var bt: Dictionary = a.get("bolt", {})
-	var tn: String = str(bt.get("tex", "proj_lumen_bolt"))
+	var tn: String = str(bt.get("tex", "proj_lumen_px_bolt"))
 	for b in lm.bolts:
 		var big: bool = b.get("big", false)
 		if g.tex.get(tn) != null:
 			if big:
 				cv.draw_line(b.pos - b.vel.normalized() * 22.0, b.pos, Color(2.0, 1.6, 0.9, 0.55), 6.0)
 				cv.draw_circle(b.pos, 8.0, Color(1.6, 1.3, 0.7, 0.5))
-			o.draw_spr_rot(tn, int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.0), Color(1.5, 1.35, 1.1) if big else Color.WHITE)
+			o.draw_spr_rot(tn, int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * ((1.1 if tn.contains("_px_") else 1.5) if big else 1.0), Color(1.5, 1.35, 1.1) if big else Color.WHITE)
 		else:
 			cv.draw_line(b.pos - b.vel.normalized() * 14.0, b.pos, Color(H3_WARM.r * 1.4, H3_WARM.g * 1.3, H3_WARM.b, 0.5), 5.0 if big else 3.0)
 			cv.draw_circle(b.pos, 6.0 if big else 4.0, Color(2.0, 1.8, 1.2))
