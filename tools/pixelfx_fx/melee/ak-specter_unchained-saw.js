@@ -11,7 +11,7 @@ export const meta = {
   tags: ["melee", "spin", "saw", "topdown", "one-shot"],
   size: [200, 120],
   origin: [100, 60],
-  duration: 0.32,   // 主体 + 余韵
+  duration: 0.29,   // 主体 + 余韵（幽灵鲨普攻 2 变体 + 血色版要压在每人 8 KB 内）
   loop: false,
   fps: FPS.basic,
   bg: "dark",
@@ -27,7 +27,7 @@ const SY = 0.55;
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), R = o.radius;
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]] });
-  const SPIN = 0.1, BAND = 5.2, W = 9;              // 一圈用时、刃带拖尾长度（弧度）、刃带厚
+  const SPIN = 0.1, BAND = 4.6, W = 8;              // 一圈用时、刃带拖尾长度（弧度）、刃带厚
   // 齿：不等距、不等大
   const teeth = [];
   for (let a = Rg.range(0, 0.3); a < TAU - 0.15; a += Rg.range(0.22, 0.5)) teeth.push({ a, h: Rg.range(2.5, 6.5), w: Rg.range(0.06, 0.13) });
@@ -69,7 +69,7 @@ export function create(o) {
   for (let a = Rt.range(0, 0.4); a < TAU; a += Rt.range(0.35, 0.9)) res.push({ a, d: Rt.range(0, 0.04), out: Rt.range(2, 8) });
   function tail(p) {
     for (const r of res) {
-      const u = (t - SPIN - 0.03 - r.d) / DUR.basicTail;
+      const u = (t - SPIN - 0.02 - r.d) / (DUR.basicTail * 0.8);
       if (u < 0 || u >= 1) continue;
       const rr = R + r.out * u;
       p.blend(Math.round(Math.cos(r.a) * rr), Math.round(Math.sin(r.a) * rr * SY), C[5], TAIL_ALPHA * (1 - u));

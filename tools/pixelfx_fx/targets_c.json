@@ -1,24 +1,60 @@
 {
- "_doc": "C 组深海猎人系（docs/229 §9）：歌蕾蒂娅 / 水月 / 乌尔比安 / 归溟幽灵鲨 / 凯尔希；全部 @2x，32 色调色板",
+ "_doc": "C 组深海猎人系（docs/229 §9）：歌蕾蒂娅 / 水月 / 乌尔比安 / 归溟幽灵鲨 / 凯尔希；全部 @2x，32 色调色板；11-03 变体（缺省 3、普攻 2；seg 代码按帧号画的 / 单帧连携 / 漩涡大条出 1 个）+ spark 火星（docs/229 §2.11）",
  "fx_gladiia_px_slash": {
   "fx": "melee/ak-gladiia-slash",
-  "hires": true
+  "hires": true,
+  "seed": 4,
+  "variants": 2,
+  "spark": [
+   3,
+   5,
+   170
+  ]
  },
  "fx_mizuki_px_slash": {
   "fx": "melee/ak-mizuki-slash",
-  "hires": true
+  "hires": true,
+  "seed": 2,
+  "variants": 2,
+  "spark": [
+   3,
+   5,
+   150
+  ]
  },
  "fx_ulpianus_px_slam": {
   "fx": "melee/ak-ulpianus-slam",
-  "hires": true
+  "hires": true,
+  "seed": 6,
+  "variants": 2,
+  "spark": [
+   4,
+   4,
+   180
+  ]
  },
  "fx_kaltsit_px_claw": {
   "fx": "melee/ak-kaltsit-claw",
-  "hires": true
+  "hires": true,
+  "seed": 3,
+  "variants": 2,
+  "spark": [
+   3,
+   5,
+   170
+  ]
  },
  "fx_specter_unchained_px_saw": {
   "fx": "melee/ak-specter_unchained-saw",
-  "hires": true
+  "hires": true,
+  "seed": 8,
+  "variants": 2,
+  "spark": [
+   3,
+   5,
+   170
+  ],
+  "colors": 24
  },
  "fx_specter_unchained_px_saw_blood": {
   "fx": "melee/ak-specter_unchained-saw",
@@ -34,18 +70,33 @@
     "#f6d3cb",
     "#ffffff"
    ]
-  }
+  },
+  "variants": 1,
+  "spark": [
+   4,
+   4,
+   180
+  ],
+  "colors": 24
  },
  "fx_specter_unchained_px_ripple": {
-  "fx": "water/ak-specter_unchained-ripple"
+  "fx": "water/ak-specter_unchained-ripple",
+  "seed": 5
  },
  "fx_specter_unchained_px_cast": {
   "fx": "water/ak-specter_unchained-cast",
-  "hires": true
+  "hires": true,
+  "seed": 11
  },
  "fx_kaltsit_px_slam": {
   "fx": "impacts/ak-kaltsit-slam",
-  "hires": true
+  "hires": true,
+  "seed": 4,
+  "spark": [
+   12,
+   5,
+   200
+  ]
  },
  "fx_kaltsit_px_slam_s": {
   "fx": "impacts/ak-kaltsit-slam",
@@ -53,39 +104,74 @@
   "opts": {
    "radius": 40,
    "seed": 9
-  }
+  },
+  "spark": [
+   6,
+   5,
+   160
+  ]
  },
  "fx_mizuki_px_sting": {
   "fx": "impacts/ak-mizuki-sting",
-  "hires": true
+  "hires": true,
+  "seed": 6,
+  "spark": [
+   5,
+   5,
+   140
+  ],
+  "variants": 2
  },
  "fx_mizuki_px_bind": {
   "fx": "status/ak-mizuki-bind",
-  "hires": true
+  "hires": true,
+  "seed": 3,
+  "variants": 1
  },
  "fx_gladiia_px_ram": {
   "fx": "water/ak-gladiia-ram",
-  "hires": true
+  "hires": true,
+  "seed": 2,
+  "spark": [
+   10,
+   5,
+   180
+  ]
  },
  "fx_kaltsit_px_heal": {
   "fx": "holy/ak-kaltsit-heal",
-  "hires": true
+  "hires": true,
+  "seed": 7
  },
  "fx_kaltsit_px_melt": {
   "fx": "melee/ak-kaltsit-melt",
-  "hires": true
+  "hires": true,
+  "seed": 12,
+  "variants": 1,
+  "spark": [
+   3,
+   4,
+   160
+  ]
  },
  "fx_mizuki_px_tentacle": {
   "fx": "water/ak-mizuki-tentacle",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "seed": 4,
+  "spark": [
+   4,
+   5,
+   140
+  ]
  },
  "fx_specter_unchained_px_lkslash1": {
   "fx": "melee/ak-specter_unchained-lkslash",
   "hires": true,
   "opts": {
    "variant": 1
-  }
+  },
+  "variants": 1
  },
  "fx_mizuki_px_lkten1": {
   "fx": "water/ak-mizuki-lkten",
@@ -93,14 +179,16 @@
   "keep": true,
   "opts": {
    "variant": 1
-  }
+  },
+  "variants": 1
  },
  "fx_specter_unchained_px_lkslash2": {
   "fx": "melee/ak-specter_unchained-lkslash",
   "hires": true,
   "opts": {
    "variant": 2
-  }
+  },
+  "variants": 1
  },
  "fx_mizuki_px_lkten2": {
   "fx": "water/ak-mizuki-lkten",
@@ -108,14 +196,16 @@
   "keep": true,
   "opts": {
    "variant": 2
-  }
+  },
+  "variants": 1
  },
  "fx_specter_unchained_px_lkslash3": {
   "fx": "melee/ak-specter_unchained-lkslash",
   "hires": true,
   "opts": {
    "variant": 3
-  }
+  },
+  "variants": 1
  },
  "fx_mizuki_px_lkten3": {
   "fx": "water/ak-mizuki-lkten",
@@ -123,30 +213,42 @@
   "keep": true,
   "opts": {
    "variant": 3
-  }
+  },
+  "variants": 1
  },
  "fx_specter_unchained_px_doll_appear": {
   "fx": "water/ak-specter_unchained-doll",
   "hires": true,
   "opts": {
    "mode": "appear"
-  }
+  },
+  "seed": 3,
+  "variants": 1
  },
  "fx_specter_unchained_px_doll_burst": {
   "fx": "water/ak-specter_unchained-doll",
   "hires": true,
   "opts": {
    "mode": "burst"
-  }
+  },
+  "seed": 3,
+  "variants": 1
  },
  "fx_ulpianus_px_drag": {
   "fx": "impacts/ak-ulpianus-drag",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "seed": 5
  },
  "fx_ulpianus_px_guard": {
   "fx": "holy/ak-ulpianus-guard",
-  "hires": true
+  "hires": true,
+  "seed": 2,
+  "spark": [
+   6,
+   5,
+   150
+  ]
  },
  "fx_gladiia_px_tornado_open": {
   "fx": "water/ak-gladiia-tornado",
@@ -154,7 +256,9 @@
   "keep": true,
   "opts": {
    "mode": "open"
-  }
+  },
+  "seed": 6,
+  "variants": 1
  },
  "fx_gladiia_px_tornado_loop": {
   "fx": "water/ak-gladiia-tornado",
@@ -162,7 +266,9 @@
   "keep": true,
   "opts": {
    "mode": "loop"
-  }
+  },
+  "seed": 6,
+  "variants": 1
  },
  "fx_gladiia_px_tornado_close": {
   "fx": "water/ak-gladiia-tornado",
@@ -170,25 +276,31 @@
   "keep": true,
   "opts": {
    "mode": "close"
-  }
+  },
+  "seed": 6,
+  "variants": 1
  },
  "fx_gladiia_px_pull": {
   "fx": "water/ak-gladiia-stream",
   "hires": true,
   "opts": {
    "mode": "pull"
-  }
+  },
+  "seed": 4
  },
  "fx_gladiia_px_glide": {
   "fx": "water/ak-gladiia-stream",
   "hires": true,
   "opts": {
    "mode": "glide"
-  }
+  },
+  "seed": 4
  },
  "fx_mizuki_px_field": {
   "fx": "water/ak-mizuki-field",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "seed": 9,
+  "variants": 1
  }
 }
