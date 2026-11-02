@@ -31,8 +31,10 @@ def mates_hp(m, x, y, phone=False):
 def squad_cards_only(m, x, y, mode, phone=False):
     """编队区：四格指挥 + 全身立绘 + 名牌（不再画生命）"""
     k = 1.0 if not phone else 0.75     # 手机立绘框放大 1.5 倍（docs/222 §15.1，用户「人物的框有点小」）
-    cw = 80 * k / m.s + (14 if not phone else 4)
-    ch = 92 * k / m.s
+    Q.BODY = Q.BODY_T                  # 竖版框（§15.2）
+    bw, bh = Q.BODY[0].size
+    cw = bw * k / m.s + 4
+    ch = bh * k / m.s
     gap = 6
     W = 4 * cw + 3 * gap
     nh = 15 if not phone else 6
@@ -75,12 +77,12 @@ def frame(phone, mode, show_mates, name):
     E.info(m, phone=phone)
     if phone:
         H.phone_buttons(m, ['随行', '突击', '部署', '集火'][mode], speed=False, pause=False)
-        cw = 60 / 1.25 + 4
-        squad_cards_only(m, W - 16 - (4 * cw + 18), Hh - 12 - (36 + 69 / 1.25 + 6), mode, phone=True)
+        cw = 78 * 0.75 / 1.25 + 4
+        squad_cards_only(m, W - 16 - (4 * cw + 18), Hh - 12 - (36 + 112 * 0.75 / 1.25 + 6), mode, phone=True)
         H.minimap(m, 10, Hh - 10 - 84, 84)
     else:
-        cw = 80 / 1.5 + 14
-        squad_cards_only(m, W - 24 - (4 * cw + 18), Hh - 24 - (40 + 92 / 1.5 + 15), mode)
+        cw = 78 / 1.5 + 4
+        squad_cards_only(m, W - 24 - (4 * cw + 18), Hh - 24 - (40 + 112 / 1.5 + 15), mode)
         H.minimap(m, 16, Hh - 16 - 130, 130)
         H.key_hints(m)
     title = '队友生命回到左上 · %s（%s）' % (['随行', '突击', '部署', '集火'][mode] + ('：队友生命显示' if show_mates else '：满血收起'), '手机横屏' if phone else '电脑 1920×1080')

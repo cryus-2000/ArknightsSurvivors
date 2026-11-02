@@ -27,6 +27,8 @@ def full_body(oid, top=34, bot=126, w=80):
 
 
 BODY = [full_body(o) for o in IDS]
+# §15.2（用户「人物框太扁了，可以稍微高一点」）：竖版框——头顶多留空、宽度收窄，约 3:4
+BODY_T = [full_body(o, top=14, bot=126, w=78) for o in IDS]
 
 
 def body(m, x, y, w, h, i, k):
