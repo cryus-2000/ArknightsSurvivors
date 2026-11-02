@@ -790,7 +790,7 @@ const OP_RAMP := {
 	"saria": ["#443d38", "#826646", "#c18f53", "#ffb861", "#ffd198", "#ffead0", "#ffffff"],
 	"siege": ["#444136", "#826e42", "#c19a4d", "#ffc759", "#ffdb93", "#ffeecd", "#ffffff"],
 	"skadi": ["#1b325c", "#30508e", "#446ec0", "#598cf2", "#93b4f7", "#cddcfb", "#ffffff"],
-	"skalter": ["#3b1f36", "#702a42", "#a4354d", "#d94059", "#e68393", "#f4c6cd", "#ffffff"],
+	"skalter": ["#0a0610", "#24081a", "#460d22", "#6e122d", "#9c1b38", "#e9c9d0", "#ffffff"],
 	"specter_unchained": ["#34455c", "#62768e", "#91a8c0", "#bfd9f2", "#d5e6f7", "#ecf4fb", "#ffffff"],
 	"suzuran": ["#44433c", "#82724e", "#c1a261", "#ffd173", "#ffe1a4", "#fff1d5", "#ffffff"],
 	"texas": ["#44322c", "#82502e", "#c16e31", "#ff8c33", "#ffb47a", "#ffdcc2", "#ffffff"],
