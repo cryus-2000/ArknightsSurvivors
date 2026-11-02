@@ -745,7 +745,7 @@
         "blade": {
          "strip": "fx_skadi_px_sweep",
          "fit": 74,
-         "k": 1.0,
+         "k": 0.85,
          "along": 0.0,
          "tint": [
           1.0,
@@ -809,7 +809,7 @@
         "blade": {
          "strip": "fx_skadi_px_sweep",
          "fit": 74,
-         "k": 1.0,
+         "k": 0.85,
          "along": 0.0,
          "tint": [
           1.0,
@@ -985,7 +985,7 @@
         "blade": {
          "strip": "fx_skadi_px_cleave",
          "fit": 74,
-         "k": 1.0,
+         "k": 0.85,
          "along": 0.0,
          "tint": [
           1.0,
@@ -1168,7 +1168,7 @@
         "blade": {
          "strip": "fx_skadi_px_cleave",
          "fit": 74,
-         "k": 1.0,
+         "k": 0.85,
          "along": 0.0,
          "tint": [
           1.0,
@@ -1791,7 +1791,7 @@
         "blade": {
          "strip": "fx_skadi_px_sweep",
          "fit": 74,
-         "k": 1.0,
+         "k": 0.85,
          "along": 0.0,
          "tint": [
           1.0,
