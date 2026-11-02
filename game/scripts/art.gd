@@ -1033,9 +1033,9 @@ const V6_FRAMES := {
 	"fx_saint_shell_burst": [6, 14.0],
 	# 第 2 批（docs/95 §5.4 / §6.4 / §7.4；帧条 e_path_slam / e_saint_dark_lob / e_carmen_spin 由 world.boss_strip_animation 按帧数取，不在这里登记）
 	"fx_path_fractal_rise": [5, 12.0], "fx_path_correct_ring": [4, 12.0], "fx_path_reflow": [3, 12.0],
-	"proj_saint_shell": [2, 8.0], "fx_saint_scatter": [3, 16.0], "fx_saint_clear_ring": [4, 12.0], "fx_carmen_smash": [11, 15.0],
+	"proj_saint_shell": [2, 8.0], "fx_saint_scatter": [3, 16.0], "fx_saint_clear_ring": [4, 12.0], "fx_carmen_smash": [4, 14.0],
 	# 第 3 批（docs/95 §8.4 / §9.4 / §10.4；帧条 e_bishop_attack / e_archon_attack / e_immortal_attack 在 world.boss_strip_animation）
-	"fx_bishop_wave": [6, 12.0], "fx_tide_link_tile": [4, 12.0], "fx_archon_breath": [5, 14.0], "fx_immortal_burst": [11, 15.0],
+	"fx_bishop_wave": [6, 12.0], "fx_tide_link_tile": [4, 12.0], "fx_archon_breath": [5, 14.0], "fx_immortal_burst": [5, 16.0],
 	# 第三方开放许可素材魔改（tools/fx_import.py，docs/25 §3）：圣光 / 治疗 / 火 / 爪 / 斩 / 碎石 / 弹道
 	"fx_holy_pillar": [16, 14.0], "fx_holy_pillar_amber": [16, 14.0], "fx_holy_impact": [7, 16.0],
 	"fx_heal_aura_green": [5, 10.0], "fx_heal_aura_amber": [5, 10.0], "fx_circle_gold": [4, 8.0], "fx_circle_amber": [4, 8.0], "fx_shield_amber": [6, 12.0],
@@ -1121,6 +1121,9 @@ const V6_FRAMES := {
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
 	# ---- 组 D 止
 	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
+	# 敌方 / Boss 砸地落点（docs/236，tools/pixelfx_fx/impacts/ak-e-slam.js）：按每招判定半径导出、Game.PX 画；_glow 加色层叠画
+	"fx_e_px_carmen_smash": [13, 20.0], "fx_e_px_carmen_smash_glow": [13, 20.0],   # 卡门炮身砸击 r70（R 35），80×54
+	"fx_e_px_immortal_burst": [12, 20.0], "fx_e_px_immortal_burst_glow": [12, 20.0],   # 斥亡体迸发 r120（R 60），130×76
 	# ---- 组 E 止
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）

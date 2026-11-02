@@ -1,3 +1,6 @@
 {
-  "_doc": "docs/237 特效覆盖登记（组 e 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py"
+  "_doc": "docs/237 特效覆盖登记（组 e 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py",
+  "boss_patterns|fx_col": {"status": "不换", "why": "不是贴图：enemies.json 出招的 fx 着色字段（boss_patterns.gd:225），扫描误抓"},
+  "boss_patterns|fx_scale": {"status": "不换", "why": "不是贴图：enemies.json 出招的 fx 缩放字段（boss_patterns.gd:227），扫描误抓"},
+  "bullet_fx|fx_col": {"status": "不换", "why": "不是贴图：弹体字典的颜色字段（bullet_fx.gd:192），扫描误抓"}
 }

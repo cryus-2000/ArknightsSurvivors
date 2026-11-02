@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b0vvr3dvovvgg"
-path="res://.godot/imported/fx_carmen_smash.png-9f335f0a4a5e69dc3243d52fc354d581.ctex"
+uid="uid://b05ih6l66io6"
+path="res://.godot/imported/fx_e_px_immortal_burst.png-a3395fbd304cbab5648004297e3f6f12.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_carmen_smash.png"
-dest_files=["res://.godot/imported/fx_carmen_smash.png-9f335f0a4a5e69dc3243d52fc354d581.ctex"]
+source_file="res://art/fx/fx_e_px_immortal_burst.png"
+dest_files=["res://.godot/imported/fx_e_px_immortal_burst.png-a3395fbd304cbab5648004297e3f6f12.ctex"]
 
 [params]
 
@@ -31,7 +31,7 @@ process/channel_remap/red=0
 process/channel_remap/green=1
 process/channel_remap/blue=2
 process/channel_remap/alpha=3
-process/fix_alpha_border=true
+process/fix_alpha_border=false
 process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false

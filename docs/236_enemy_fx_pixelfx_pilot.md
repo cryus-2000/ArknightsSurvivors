@@ -1,17 +1,16 @@
-# 236 敌方 / Boss 攻击特效盘点 + pixelfx 试点（11-02）
+# 236 敌方 / Boss 攻击特效盘点 + pixelfx 试点（11-02 起，组 E）
 
-用户 11-02 定：敌方 / Boss 攻击特效改用 pixelfx 自写（不用库模板；技能 `.claude/skills/pixelfx`，库在 `<主仓库>/build/pixelfx`，评估见 docs/228）。怪物本体精灵不归 pixelfx。
-敌方档口径（统一规范 docs/2xx_fx_style_spec 写好前先按这几条）：危险色用 balance.json `render/optical_col_danger`；预警形状与真实判定严格一致；可读性优先于华丽；
-不与我方特效同色系（灯火金 `#F4C04E`、UI 青 `#36E2DC`）；不被我方特效盖住。力量感：不规整分叉裂网、首帧爆亮后冷却、隆起尘墙、预兆余震；禁止规整放射与同心圈。
-
-本稿做了三件：§1 盘点全部敌方 / Boss 攻击特效并排出前 8；§2 两个试点（卡门「炮身砸击」、斥亡体「迸发」）；§3 对照录像、帧时、包体。
+用户 11-02 定：敌方 / Boss 攻击特效改用 pixelfx 自写（不用库模板；技能 `.claude/skills/pixelfx`，库在 `<主仓库>/build/pixelfx`）。怪物本体精灵不归 pixelfx。
+本稿是 docs/229 §9 的 **E 组**：按 docs/229 §0 / §4 的硬数字（危险色 #ff2667、Boss #ff6726、20 fps、主体 ≤ 0.4 s + 余韵 ≤ 0.4 s / alpha ≤ 0.4、
+本体 + glow 单条 ≤ 14 KB、本组 ≤ 200 KB、32 色调色板、近白 ≤ 12%、末帧空、落点 = 判定半径、预警由程序画且 = 判定前摇），
+用户 11-02「整套替换，不留旧帧条」，盘点基准是 docs/237 §5（`tools/fx_coverage.py` 生成，59 项）+ §6 动态拼名。
 
 ## 0 结论先看
 
-- **前 8 名**（§1.3）：通用 `ring` 环、`explode` 兜底、Boss 换幕、Boss 倒下、`rays` 齐射放射线、骑士寒冷时钟阵、轰击落点、普通弹命中 / 消散 / 齐射口（含一处无画面 bug）。
-- **试点已接进游戏**：两个原本缺图走兜底的槽位换成 pixelfx 自写的 `foe/slam-quake`。判定、伤害、预警都没动；同 seed TRACE 逐行相同（§3.1）。
-- **包体 +27 KB**（导入后 .ctex 10.1 + 16.5 KB）。网页包现在贴着 44.5 MiB 预算，合入前要确认余量或在别处省出同等体积（§3.3）。
-- **帧时**：§3.2。
+- **试点 2 项已按组 E 规范接进游戏**：卡门「炮身砸击」→ `fx_e_px_carmen_smash`，斥亡体「迸发」→ `fx_e_px_immortal_burst`（源 `tools/pixelfx_fx/impacts/ak-e-slam.js`，目标 `targets_e.json`）。判定、伤害、预警一行不动（§3）。
+- **覆盖率 5 / 59（8%）**：2 项已做 + 3 项扫描误抓（变量名，登记「不换」）。其余 54 项的去向见 §1.4。
+- **包体**：调色板 PNG 合计 24.8 KB（本体 + glow：卡门 11.3、斥亡体 13.5），导入后 .ctex 21.8 KB；组 E 额度 200 KB 已用 12%。
+- **前 8 名**（§1.3）不变，排序口径不变。
 
 ## 1 盘点
 
@@ -93,77 +92,91 @@
 | 7 | 轰击落点 + 炮弹（#26/#27） | 炮弹是两个圆；落点留 1.5 秒平环；缺 `fx_saint_shell_burst` / `proj_saint_shell` | 落点：同本稿砸地按 r 80 / 38 导出，火光改危险色冷却；炮弹另补小帧条 |
 | 8 | 普通弹命中 / 消散 / 齐射口（#13–#15） | 全游戏出现最频繁的敌方画面，全是平涂圆 + 细环；**另有神经弹 / 碎石弹命中无画面的 bug** | 一张 ≤ 16×16、4 帧的通用溅射帧条按弹色着色；先修 `hit_fx` 缺图时回落通用命中 |
 
-## 2 试点：`foe/slam-quake`
+### 1.4 对齐 docs/237 §5（59 项 + 动态拼名）的去向
+
+按「整套替换」口径分五类。「换」= 本组用 pixelfx 新出 `fx_e_px_*`（按各招判定半径导出），旧名对应的图删掉或不再引用。
+
+| 类 | 项（docs/237 §5 原名） | 数 | 去向 |
+|---|---|---|---|
+| 已做 | `fx_e_px_carmen_smash`、`fx_e_px_immortal_burst`（原 `fx_carmen_smash` / `fx_immortal_burst`，缺图） | 2 | 本稿试点 |
+| 扫描误抓 | `boss_patterns|fx_col`、`boss_patterns|fx_scale`、`bullet_fx|fx_col` | 3 | 不是贴图，登记「不换」 |
+| 缺图槽位（现在走程序兜底，补图即上） | `fx_runner_blast` `fx_slider_dash` `fx_reaper_scythe` `fx_tracer_thrust(_enraged)` `fx_nest_sweep` `fx_mimic_bite` `fx_rock_hit` `fx_nerve_hit` `fx_saint_shell_burst` `fx_saint_scatter` `fx_saint_clear_ring`（carmen / iberia 两行） `fx_path_correct_ring` `fx_path_fractal_rise` `fx_bishop_wave` `fx_paranoia_stack` `fx_paranoia_gaze_hit` `fx_paranoia_howl` `fx_izumik_share` `fx_archon_breath` `fx_knight_frost_burst` `fx_knight_thrust` `fx_ishar_line_muzzle` `fx_ishar_maw_red` `proj_offspring_spore` | 26 | 换。第一批：轰击 `fx_saint_shell_burst`（r 80 / 38，同砸地写法）、`fx_runner_blast`、`fx_rock_hit` / `fx_nerve_hit`（顺带修 §1.1 无画面 bug，要改 bullet_fx 回落，提给组长） |
+| 已有旧帧条（Codex / 库存，整套替换要重画） | `fx_mother_throw` `fx_brood_land` `fx_acid_splash` `fx_corrode_hit` `fx_corrode_hit_acid` `fx_skimmer_muzzle` `fx_spitter_land` `fx_pocket_burst`（back / front）`fx_pocket_puddle` `fx_knight_impact` `fx_knight_rebirth` `fx_knight_ice_hit`（两处）`fx_knight_crystal_rise/hold/break` `fx_knight_ice_crest` `fx_knight_ice_wall` `fx_water_splash`（telegraph 两处）`fx_slash_heavy_steel`（长枪回旋，现为 45° 等距，§1.2 #28） | 20 | 换。docs/229 §4 的前 3（育母落点、喷吐落点、囊海破膜）优先 |
+| 弹体 / 公共预烘颗粒 | `proj_skimmer_corrode` `proj_spitter_acid` `proj_knight_ice` `proj_knight_spear`；`fx_px_bpop` `fx_px_btrail` `fx_px_burst1` `fx_px_burst2`（docs/206 pxburst 预烘，Boss 弹迸散 / 拖尾 / 落地迸散） | 8 | 待组长定：弹体是否算「特效」（docs/229 §2.5 有弹道档，按它就换成 ≤ 4 帧循环、敌弹色 #33ceff）；`fx_px_*` 是程序着色的颗粒预烘、已合口径，倾向登记「不换：预烘颗粒，按弹色程序着色」 |
+
+**§6 动态拼名 `fx_kp_%s_{src,mid,hit}[_on]`**（render/boss_beam.gd:79–81，Kanpelle 激光）手查结果：现有 6 只 Boss × 3 段 × 2（常亮 / `_on`）= 36 张：
+archon、bishop、carmen、iberia、ishar、paranoia。激光是长条拼接件、按线长平铺，pixelfx 重画要保持三段接口（源 / 中段可平铺 / 命中）。
+归入「已有旧帧条」一类，数量另计（不在 59 项内）；排在缺图槽位之后。
+
+## 2 试点：`impacts/ak-e-slam`
 
 ### 2.1 选谁、为什么
 
-首选 Boss 砸地 / 裂地类。现有塑路者震地已经是不规则地裂 + Boss 冲击颗粒带，基本合口径；最差的两个砸地类是**缺图在走兜底**的：
+首选 Boss 砸地 / 裂地类。塑路者震地已经是不规则地裂 + Boss 冲击颗粒带，基本合口径；最差的两个砸地类都是**缺图在走兜底**：
 
-- 卡门「炮身砸击」（`act: smash`，r 70）：原画面 = **金色**地裂 + 火花（金色是我方灯火色系）。
-- 斥亡体「迸发」（`act: erupt`，r 120，自身为心）：原画面 = `explode` 平涂圆 + 亮芯 + 环。
+- 卡门「炮身砸击」（`act: smash`，r 70）：原画面 = **金色**地裂 + 暖金火花（我方灯火色系）。
+- 斥亡体「迸发」（`act: erupt`，r 120，自身为心）：原画面 = `explode` 平涂圆 + 亮芯 + 环，火花是海嗣青。
 
-两个都是现成的帧条槽位（`fx_carmen_smash` / `fx_immortal_burst`），补图即上，判定、伤害、预警一行不动。
+### 2.2 画法（`tools/pixelfx_fx/impacts/ak-e-slam.js`）
 
-### 2.2 画法
-
-源文件 `tools/pixelfx_foe/foe/slam-quake.js`（pixelfx「simulated」写法，自写，没套库里的 ground-slam / quake）。俯视 3/4 地面，判定圈 = R × R·0.55 的地面椭圆（与游戏 `ground_y` 同）。
+俯视 3/4 地面，判定圈 = R × R·0.55 的地面椭圆（与游戏 `ground_y` 同）。色取 house.js：普通敌方 `DANGER_RAMP`，`opts.boss = 1` 用 Boss 色 #ff6726 的同构 7 阶（house.js 只给了单色，阶数照 DANGER_RAMP 的明度比例）。尘土 = 色阶暗阶混中性灰，不用深海青、不用我方色阶。
 
 | 拍 | 时间 | 画面 |
 |---|---|---|
-| 爆亮 | 0–0.07 s（第 0 帧） | 不规则白热团（9–12 顶点，半径抖动 0.55–1.3）+ 危险粉外缘；热裂同帧长满 |
-| 冷却 | 0.07–0.5 s | 白 → 浅粉 → 危险色 `#ff2667` → 暗红 → 焦黑，逐级实色（不抖动成棋盘格） |
-| 裂网 | 0–0.6 s | 4–6 条主裂，角度随机且两两 ≥ 0.6 弧度，长 0.45–0.95 R，各 0–2 个分叉；**不等距、不等长** |
-| 尘墙 | 0–0.26 s 推出，之后沉降 | 44 个尘团互相叠压、半径 0.84–1.0 R 抖动、近侧厚远侧薄、顶亮底暗、高低错落、2–3 个断口；远侧先画、碎石、近侧后画；**尘墙外沿 = 判定半径** |
-| 碎石 | 0–0.5 s | 12 块，地面影子 + 抬高石块，落地弹一次 |
-| 余震 | 0.30 s、0.46 s | 热裂根部回红 + 尘墙整圈抖 1 纹素 + 坑内 3 团小尘 |
-| 收尾 | 0.72 s | 全空 |
-
-配色：危险色梯度取自 `render/optical_col_danger`（h 0.95 s 0.85 v 1 ≈ `#ff2667`），尘土中性冷灰 5 阶；不用金 / 青。光只给首 0.18 秒两盏小灯（k 0.35 / 0.5），避免发白。
+| 爆亮 | 第 0 帧 | 不规则热团（9–12 顶点、半径抖动 0.55–1.3），**白只在核心**（0.36 R × 0.4）；热裂同帧长到 60% |
+| 冷却 | 0–0.35 s | house.js `heat(t)`：白 → 浅 → 设定色 → 暗阶，逐级实色 |
+| 裂网 | 0–0.4 s | 4–6 条主裂，角度随机且两两 ≥ 0.6 弧度，长 0.45–0.95 R，各 0–2 个分叉；**不等距、不等长** |
+| 尘墙 | 0–0.2 s 推出 | 叠压尘团（半径 0.86–1.0 R 抖动、近厚远薄、顶亮底暗、2–3 个断口）；**外沿 = 判定半径** |
+| 碎石 | 0–0.4 s | 12 块，地面影子 + 抬高石块，落地弹一次 |
+| 余震 | 0.2 s、0.3 s | 热裂根部回热 + 尘墙整圈抖 1 纹素 + 坑内小尘团 |
+| 余韵 | 0.4 s 起 | 只剩尘墙沉降，alpha ≤ 0.4（`TAIL_ALPHA`），卡门 0.32 s、斥亡体 0.24 s；末帧空 |
+| 光晕 | 0–0.18 s | 两盏小灯（色阶第 4 阶 k 0.35、白 k 0.45），单独导出成 `_glow` 条，加色层叠画 |
 
 ### 2.3 导出与接入
 
 ```bash
-python tools/pixelfx_foe/export.py foe/slam-quake fx_carmen_smash --opts '{"R":35,"seed":3}'
-python tools/pixelfx_foe/export.py foe/slam-quake fx_immortal_burst --opts '{"R":60,"seed":8}'
+python tools/pixelfx_export.py --lib <主仓库>/build/pixelfx --only fx_e_px_carmen_smash,fx_e_px_immortal_burst
 ```
 
-脚本把源拷进 pixelfx 检出、`render --sheet`、裁并集边框、去首尾空帧、横排、量化 ≤ 32 色，写 `game/art/fx/`；之后 `python tools/asset_index.py` 重写索引。
+| 贴图 | 帧 × 单帧 | fps | 色数 | 本体 + glow（PNG） | .ctex | 近白 |
+|---|---|---|---|---|---|---|
+| `fx_e_px_carmen_smash` | 13 × 80×54 | 20 | 32 | 10.9 + 0.4 = 11.3 KB | 9.5 + 0.3 KB | 0.3% |
+| `fx_e_px_immortal_burst` | 12 × 130×76 | 20 | 20 | 13.0 + 0.5 = 13.5 KB | 11.2 + 0.4 KB | 0.4% |
 
-| 贴图 | 帧 × 单帧 | fps | 锚点（1x 纹素） | PNG | 导入后 .ctex |
-|---|---|---|---|---|---|
-| `fx_carmen_smash` | 11 × 81×57 | 15 | (42, 29) | 8.6 KB | 10.1 KB |
-| `fx_immortal_burst` | 11 × 131×78 | 15 | (65, 37) | 13.0 KB | 16.5 KB |
+斥亡体 R 60 半透明尘多，32 色时 20.6 KB：按 docs/229 §2.9 的顺序先收短余韵（0.32 → 0.24 s）、关墙后内尘（`inner: 0`），再降到 20 色，才进 14 KB。
 
-代码改动只有三处，全是画面：
-- `art.gd` V6_FRAMES：两条改成 `[11, 15.0]`。
-- `telegraph.gd` smash：有图时只播帧条（`Game.PX` 缩放、锚点对落点、地面层），**不再叠金色地裂**；缺图照旧地裂。
-- `telegraph.gd` erupt：缩放由 `PX × r / 60` 改为固定 `PX`、加锚点。
+代码改动（只改帧条和调用参数，判定不动）：
+- `art.gd` 组 E 块登记 4 行（本体 + glow）；原 `fx_carmen_smash` / `fx_immortal_burst` 两行恢复原值（不再引用）。
+- `telegraph.gd` smash：有图时只播 `fx_e_px_carmen_smash`（`Game.PX`、地面层、居中 = 落点），**不再叠金色地裂**；缺图照旧地裂。火花改 Boss 色系。
+- `telegraph.gd` erupt：改播 `fx_e_px_immortal_burst`，缩放由 `PX × r / 60` 改为固定 `PX`；火花改 Boss 色系。
+- `.import` 的 `process/fix_alpha_border` 改 false（docs/229 §10）。`game/art/index.json` 不提交（合并人跑 `python tools/asset_index.py`）。
+- `autotest.gd`（调试开关）：`--bossmoves` 加 `--shotstep=N` 逐帧截图（`shot_bmframe_*`）与 `--perfab` 帧时输出（`BOSSMOVES PERF`），供逐招前后对照。
 
-**按每招 r 单独导出、固定 `Game.PX` 缩放**的原因：地面帧条在光学低分辨率层会被 `vfx.int_scale` 取整到 2 的倍数（`render/fx_int_scale`），按 `w.r` 连续缩放的话，r 70 会被取整成 r 88、r 120 取整成 r 88，尘墙外沿对不上判定。1 纹素 = 2 世界像素，与地裂的 2 像素网格一致。
+**按每招 r 单独导出、固定 `Game.PX`** 的原因：地面帧条在光学低分辨率层会被 `vfx.int_scale` 取整到 2 的倍数（`render/fx_int_scale`），按 `w.r` 连续缩放的话 r 70 / r 120 都会取整成 r 88，尘墙外沿对不上判定。1 纹素 = 2 世界像素，密度正好 2.0（§0 要求 1.6–2.2）。
 
 ## 3 验证
 
-### 3.1 同 seed TRACE
+### 3.1 同 seed
 
-seed 13、德克萨斯 + 能天使 + 拉普兰德、`--balance --bot=expert --maxt=660 --trace=1`，改前（c73d2ff86 独立检出）与改后逐行比：**512 行 TRACE 全同**；末行 BALANCE 只差 `bot/peak` 第 4 / 5 项（g.fx 数、飘字数峰值，纯画面计数）。这局没出现卡门 / 斥亡体。
-另：`--bossacts=carmen` / `bishop+immortal` 改前改后的 BOSSACTS 状态行逐行相同（但 14 秒演示里两招都没触发，所以改用 §3.4 的逐招录制）。
-（代码改动只在 `fx_sprite` 调用与帧表；`fx_sprite` 不抽随机数，地裂兜底用自己的局部随机数，按理不会动模拟。）
+- TRACE：seed 13、德克萨斯 + 能天使 + 拉普兰德、`--balance --bot=expert --maxt=660 --trace=1`，改前（c73d2ff86 独立检出）与改后：**512 行 TRACE 全同**；末行 BALANCE 只差 `bot/peak` 的 g.fx 数、飘字数峰值（纯画面计数）。这局没有卡门 / 斥亡体出场，只证明没有动到模拟。
+- 逐招：`--bossmoves=carmen2 / immortal --bossonly=…`（seed 1），改前改后 BOSSMOVES 日志行对照见 §3.4。
 
 ### 3.2 帧时
 
-**未完成**：逐招帧时（`--bossmoves --perfab=30`，autotest 已加 BOSSMOVES PERF 输出）已排队，本机 Godot 并发满，11-02 夜未跑完。按画法估计：每个实例每帧 1 次贴图绘制（原兜底是地裂 tb 批或 3 次矢量绘制），预期无可测差异。
+RESULT_PERF
 
 ### 3.3 包体
 
-导入后 .ctex：`fx_carmen_smash` 10.1 KB + `fx_immortal_burst` 16.5 KB = **+27 KB（约 0.026 MiB）**。网页包 b0343aca1 后约 44.47 MiB，预算 44.5，加上后贴线，合入前要实测网页导出或在别处省出同等体积。
+调色板 PNG +24.8 KB，导入后 .ctex +21.8 KB（≈ 0.021 MiB）。组 E 额度 200 KB 已用 24.8 KB。
+网页包 b0343aca1 后约 44.47 MiB、预算 44.5；总增量按 docs/229 §0 由音频腾出的 1.39 MiB 补（组长前置任务），本组不另腾。
 
-### 3.4 对照录像
+### 3.4 对照录像与预警 = 判定
 
-**未完成**：`tools/pixelfx_foe/rec_moves.py immortal:迸发,迸发 carmen2:炮身砸击,炮身砸击`（卡门要 `carmen2`，砸击只在第二幕）→ `compare_video.py <输出> immortal:120,-40 carmen2`。改前侧斥亡体 260 帧已录，改后侧排队中；vreview 预审未跑。
-注意：`--bossacts` 的 14 秒演示不一定放出这两招（第一次录的视频里没有砸击，已删）。
+RESULT_VIDEO
 
 ## 4 后续
 
-- 前 8 的 #1（其余 `explode` 兜底）与 #7（轰击）可以直接复用本稿的导出脚本：改源里的配色 / 拍子，按各招 r 导出即可。
-- `hit_fx` 缺图时跳过通用命中的 bug（§1.1）另案修。
-- 地面帧条画在单位之下（`gsprite`），尘墙不会盖住干员；docs/226 的敌方顶层合入后，可以考虑把爆亮第 0–1 帧挪到顶层，保证不被我方特效盖住。
+- 下一批按 §1.4「缺图槽位」第一批：轰击落点 `fx_saint_shell_burst`、狂奔者自爆 `fx_runner_blast`、碎石 / 神经弹命中（顺带修无画面 bug，要动 bullet_fx，提给组长）。
+- docs/229 §4 前 3（育母落点、喷吐落点、囊海破膜）属「已有旧帧条」，整套替换时一起做。
+- 弹体与 `fx_px_*` 是否在替换范围，等组长定（§1.4 末行）。
+- docs/226 的敌方顶层合入后，可以考虑把爆亮第 0 帧挪到顶层，保证不被我方特效盖住；现在落点帧条画在地面层（预警 / 单位之下），不会盖住预警。
