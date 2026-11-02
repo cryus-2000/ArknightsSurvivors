@@ -4,5 +4,9 @@
   "status": "已做",
   "new": "proj_exusiai_px_bullet",
   "why": "普攻试点 docs/231：数据与代码缺省已换新条；seg_exusiai 锚点表留旧名只为 --bal=fx/px_basic=0 回退"
+ },
+ "lappland|fx_slash_heavy_deep": {
+  "status": "不换",
+  "why": "兜底件：attack 段 if_tex「!fx_lappland_px_slash」只在专属刀光缺失时播；回敬（rage2）共用的那份归 A 组成长形态（组长 11-03 定）"
  }
 }
