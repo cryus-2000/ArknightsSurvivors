@@ -975,7 +975,7 @@ func _sorted_fast(evr: Rect2) -> bool:
 			ka.append(xb.y)
 			objs.append([o, xb])
 			kind.append(6)
-	if g.knight.alive:
+	if g.knight.alive or g.knight.leaving():   # leaving：离队就地解散的那 0.35 秒照常排进绘制顺序
 		ka.append(g.knight.pos.y + 18.0)
 		objs.append(null)
 		kind.append(4)

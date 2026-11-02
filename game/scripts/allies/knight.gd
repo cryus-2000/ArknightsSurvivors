@@ -80,8 +80,9 @@ func leave() -> void:
 		return
 	alive = false
 	g.knight_alive = false
+	leave_t = g.t   # 就地解散（11-02 用户「突然向上飞走」排查）：原来本体瞬间消失、12 颗火花向上喷 200，改为光圈收拢 + 泛青白淡出（draw）
 	g.vfx.show_banner("骑士无法接受海嗣的气息 —— 他离开了")
-	g.vfx.sparks(pos, Vector2.UP, Color(0.6, 0.8, 1.0), 12, 200.0)
+	g.vfx.sparks(pos, Vector2.ZERO, Color(0.6, 0.8, 1.0), 12, 70.0)   # 颗数不变（同 seed），改成四散慢飘
 	if not g.rfx.has_relic("rocinante"):
 		g.progression.gain_relic("223", "knight")
 
@@ -376,8 +377,18 @@ func _target() -> Dictionary:
 
 
 ## 队友使用独立步行部件；敌对骑士仍使用 e_knight 骑乘帧条。
+const LEAVE_T := 0.35   # 离队就地解散的时长（纯画面）
+var leave_t := -1.0
+
+
+func leaving() -> bool:
+	return not alive and leave_t >= 0.0 and g.t - leave_t < LEAVE_T
+
+
 func draw(mask: CanvasItem = null) -> void:
 	if not alive:
+		if mask == null and leave_t >= 0.0 and g.t - leave_t < LEAVE_T:
+			_draw_leave((g.t - leave_t) / LEAVE_T)
 		return
 	var name := "e_knight_walk"
 	var frames: int = A.enemy_frames(name, 2)
@@ -461,6 +472,25 @@ func draw(mask: CanvasItem = null) -> void:
 	var top: Vector2 = bpos + Vector2(-w / 2.0, -visible_height * tsc - 8.0)
 	g.draw_rect(Rect2(top, Vector2(w, 4)), Color(0, 0, 0, 0.6))
 	g.draw_rect(Rect2(top, Vector2(w * clampf(hp / maxhp, 0.0, 1.0), 4)), Color(0.6, 0.85, 1.0))
+
+
+## 离队就地解散：脚下光圈收拢 + 本体泛青白淡出 + 身上 2 像素碎格四散（不抽随机数）
+func _draw_leave(k: float) -> void:
+	var name := "e_knight_walk"
+	if g.tex.get(name) == null:
+		return
+	var frames: int = A.enemy_frames(name, 2)
+	var anc := A.enemy_pixel_anchor(name, Vector2(0.5, 77.0 / 80.0))
+	var sc: float = g.PX * DRAW_K * A.enemy_pixel_scale(name)
+	var tsc: float = sc / A.hires_of(g.tex.get(name))
+	var bpos: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * sc)
+	g.draw_arc(pos + Vector2(0, R * 0.6), lerpf(30.0, 4.0, k), 0.0, TAU, 24, Color(0.6, 0.9, 1.4, 0.8 * (1.0 - k)), 2.0)
+	g.vfx.spr(name, frames, 0, bpos, tsc, face < 0.0, Color(1.0 + 0.6 * k, 1.0 + 0.7 * k, 1.0 + 0.8 * k, 1.0 - k), anc)
+	for q in 16:
+		var h: int = (q * 977 + 131) & 1023
+		var base := Vector2(float(h % 25) - 12.0, -float((h >> 3) % 44) - 6.0)
+		var pp: Vector2 = ((bpos + base + Vector2(base.x * 0.8, -8.0) * k) / g.PX).floor() * g.PX
+		g.draw_rect(Rect2(pp, Vector2(g.PX, g.PX)), Color(0.85, 1.2, 1.6, (1.0 - k) * (0.6 + 0.4 * float(q % 2))))
 
 
 ## HUD：援护栏右侧的骑士格（不占 3 个援护位）

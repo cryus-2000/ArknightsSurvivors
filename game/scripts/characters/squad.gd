@@ -235,7 +235,7 @@ func _replace(old_id: String, new_id: String, route: String):
 	ops.insert(mini(idx, ops.size()), op)
 	assign_slots()
 	op.pos = g.ppos + _slot_offset(op.slot)
-	op.arrive_t = 0.0   # 等被换下的跳出屏幕后从上方落下（纯画面，character.arrive_dy）
+	op.arrive_t = 0.0   # 等被换下的就地解散后从上方落下（纯画面，character.arrive_dy）
 	op.play_entry(op.ARRIVE_WAIT + op.ARRIVE_FALL)   # 着地接入场条
 	var sq0: int = g.show_queue.size()
 	if route != "":

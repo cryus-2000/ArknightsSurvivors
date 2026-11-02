@@ -2954,7 +2954,7 @@ func warp_k() -> float:
 	return clampf((warp_t - WARP_OUT) / WARP_IN, 0.0, 1.0)
 
 
-## 换人入队（10-22 用户定）：等被换下的队友跳出屏幕（ARRIVE_WAIT 秒）后从屏幕上方落到编队位，纯画面（玩法照常从入队起算）。
+## 换人入队（10-22 用户定）：等被换下的队友就地解散（ARRIVE_WAIT 秒；11-02 前是跳出屏幕）后从屏幕上方落到编队位，纯画面（玩法照常从入队起算）。
 ## arrive_t 由 world.update_visuals 推进，< 0 = 不在入场
 const ARRIVE_WAIT := 0.35
 const ARRIVE_FALL := 0.35
