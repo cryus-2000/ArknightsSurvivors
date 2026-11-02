@@ -20,11 +20,11 @@ export function draw(p, t, o) {
   for (let x = 0; x > -L; x -= 1) {
     const u = -x / L;
     if (u > 0.78 && (Math.floor(-x) % 3 !== (f ? 1 : 0))) continue;   // 尾端断成点
-    const ci = clamp(Math.round(5 - u * 4 - (f ? 0.5 : 0)), 1, 5);
+    const ci = clamp(Math.round(3.6 - u * 3 - (f ? 0.4 : 0)), 1, 3);   // 尾巴不到近白，白只在弹头一点
     p.px(x, 0, C[ci]);
     if (th > 0 && u < 0.45) { p.px(x, -1, C[Math.max(1, ci - 2)]); p.px(x, 1, C[Math.max(1, ci - 2)]); }
   }
-  p.rect(-1, -1, 3, 3, C[f ? 4 : 5]);
-  p.px(2, 0, C[5]);
+  p.rect(-1, -1, 3, 3, C[3]);
+  p.px(1, 0, C[f ? 4 : 5]);
   p.glow(0, 0, 5, C[3], 0.2);
 }

@@ -13,7 +13,7 @@ export const meta = {
   loop: false,
   fps: 10,
   bg: "ground",
-  options: { palette: ["#06142a", "#3a2a1c", OP.saria[1], OP.saria[2], OP.saria[3], "#ffe6c0", "#f4f8ff", "#ffffff"], shape: 0, seed: 2 },
+  options: { palette: ["#06142a", "#3a2a1c", OP.saria[1], OP.saria[2], OP.saria[3], "#ffe6c0", "#fff0d8", "#ffffff"], shape: 0, seed: 2 },
 };
 
 export function draw(p, t, o) {
@@ -28,7 +28,7 @@ export function draw(p, t, o) {
   const ramp = f === 0 ? C.slice(1, 8) : C.slice(0, 7);
   for (const s of (xs.length > 3 ? xs : [xs[1], xs[2], xs[0]])) {
     const h = s.h * grow;
-    crystal(p, s.x, 0, h, s.w * (f >= 5 ? 0.8 : 1), s.lean, ramp, { white: f === 0, glint: f === 4 ? 0.55 : f === 3 ? 0.8 : -1 });
+    crystal(p, s.x, 0, h, s.w * (f >= 5 ? 0.8 : 1), s.lean, ramp, { glint: f === 0 ? 0.9 : f === 4 ? 0.55 : f === 3 ? 0.8 : -1 });
   }
   if (f >= 5) {   // 碎片往外蹦：位置随帧外移，大小不一
     const k = f - 4;

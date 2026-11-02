@@ -35,7 +35,7 @@ export function create(o) {
       const up = ease.outBack(clamp((t + 0.02) / 0.1)), down = clamp((t - 0.22) / 0.12), g = up * (1 - down);
       if (g > 0.05) {
         crystal(p, side.x, 0, side.h * g, 7, side.x * 0.3, C.slice(0, 7));
-        crystal(p, 0, 0, H * g, 12, lean, t < 0.06 ? C.slice(1, 8) : C.slice(0, 7), { white: t < 0.03, glint: t < 0.15 ? 0.85 : -1 });
+        crystal(p, 0, 0, H * g, 12, lean, t < 0.06 ? C.slice(1, 8) : C.slice(0, 7), { glint: t < 0.15 ? 0.85 : -1 });
         // 金色裂纹：不等距的两三道斜缝
         for (const v of [0.25 + R.range(0, 0.1), 0.55 + R.range(0, 0.1)]) {
           const y = -H * g * v, x = lean * v;

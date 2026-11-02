@@ -13,12 +13,12 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#06142a", ...OP.irene], star: 0, seed: 4 },
+  options: { palette: [...OP.irene], star: 0, seed: 4 },
 };
 
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), star = +o.star > 0;
-  const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[3]] });
+  const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] });
   if (!star) for (let i = 0; i < 6; i++) {
     const a = Rg.range(-0.8, 0.8), sp = Rg.range(80, 200);
     ps.spawn(P.SPARK, 1, 0, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.06, 0.14));
@@ -35,9 +35,9 @@ export function create(o) {
         for (const [dx, dy, l] of arms)
           for (let d = 0; d <= l * s; d += 0.5) {
             const u = d / (l * s);
-            p.px(dx * d, dy * d, C[t < 0.03 ? (u < 0.5 ? 7 : 6) : u < 0.3 ? 6 : u < 0.65 ? 5 : 3]);
+            p.px(dx * d, dy * d, C[t < 0.03 ? (u < 0.25 ? 7 : 6) : u < 0.3 ? 5 : u < 0.65 ? 4 : 3]);
           }
-        p.poly([[0, -1.6], [1.8, 0], [0, 1.6], [-1.6, 0]], C[t < 0.03 ? 7 : 5]);
+        p.poly([[0, -1.6], [1.8, 0], [0, 1.6], [-1.6, 0]], C[t < 0.03 ? 7 : 4]);
       }
       if (!star) {
         const r = 3 + 8 * ease.outQuart(clamp(t / 0.12)), ak = 1 - clamp((t - 0.03) / 0.12);

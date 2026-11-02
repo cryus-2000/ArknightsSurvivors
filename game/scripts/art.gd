@@ -1014,7 +1014,7 @@ const V6_FRAMES := {
 	"fx_knight_ice_wall": [36, 30.0],
 	"fx_knight_crystal_rise": [7, 28.0], "fx_knight_crystal_hold": [3, 8.0], "fx_knight_crystal_break": [10, 32.0],
 	"fx_knight_ice_crest": [11, 30.0], "proj_knight_ice": [10, 18.0], "fx_knight_ice_hit": [12, 24.0],
-	"fx_wisadel_cannon": [9, 20.0],   # 11-02 D 组 pixelfx 同名重画（docs/229 §9）
+	"fx_wisadel_cannon": [17, 20.0],   # 11-02 D 组 pixelfx 同名重画（docs/229 §9）
 	"fx_mon3tr_claw": [4, 16.0], "fx_mon3tr_melt_slash": [4, 16.0],
 	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0],
 	"fx_fire_explode": [6, 15.0], "fx_missile_explode": [6, 15.0], "fx_bullet_hit": [3, 24.0],
@@ -1119,19 +1119,89 @@ const V6_FRAMES := {
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
-	"fx_irene_px_cleave": [6, 20.0],   # 190x172 x 6, 4 KB
-	"fx_saria_px_calcify": [12, 20.0], "fx_saria_px_heal": [9, 20.0],   # 1x 94x140 x 12 / 40x44 x 9
-	"fx_siege_px_slam": [10, 20.0], "fx_siege_px_smash": [10, 20.0],   # 1x 104x80 / 66x46 x 10
-	"fx_wisadel_px_muzzle": [3, 24.0],   # @2x 34x16 x 3
-	"fx_exusiai_px_muzzle_gold": [4, 30.0], "fx_exusiai_px_hit_gold": [5, 25.0], "fx_exusiai_px_pierce": [4, 24.0],   # @2x
-	"fx_irene_px_thrust": [4, 24.0], "fx_irene_px_hit": [4, 24.0], "fx_irene_px_star": [3, 24.0], "fx_irene_px_lift": [8, 20.0],   # @2x 普攻 / 精一
-	"fx_irene_px_crescent": [7, 20.0], "fx_irene_px_cannon": [9, 20.0], "fx_irene_px_gun": [3, 20.0],   # 精二裂潮余波 1x / 追斩手炮
-	"fx_wisadel_px_crater": [4, 0.0], "fx_exusiai_px_burst": [11, 24.0],   # 连携：弹坑 4 种变体 / 爆炸剑雨
-	"fx_exusiai_px_halo": [8, 10.0], "fx_exusiai_px_bless": [4, 20.0], "proj_exusiai_px_bullet_s1": [2, 20.0], "proj_exusiai_px_bullet_s2": [2, 20.0], "proj_exusiai_px_bullet_s3": [2, 20.0], "proj_exusiai_px_bullet_power": [2, 20.0],   # 能天使精二 / 技能弹体
-	"fx_saria_px_calcite": [8, 10.0], "fx_saria_px_calcite2": [8, 10.0], "fx_saria_px_pillar_rise": [6, 20.0], "fx_saria_px_pillar_idle": [4, 6.0], "fx_saria_px_pillar_break": [6, 20.0],   # 塞雷娅晶柱 / 钙晶 @2x
-	"fx_saria_px_bash": [4, 24.0], "fx_saria_px_star": [7, 20.0], "fx_saria_px_ward": [10, 20.0], "fx_saria_px_spot": [4, 8.0],   # 塞雷娅盾击 / 星光 / 护盾 / 琥珀斑
-	"fx_siege_px_fissure": [4, 10.0], "fx_siege_px_spike": [7, 18.0],   # 推进之王破阵地裂（平铺）/ 岩刺 @2x
-	"fx_wisadel_px_mark": [2, 4.0], "fx_wisadel_px_gift": [6, 10.0], "proj_wisadel_px_shell": [2, 20.0], "fx_wisadel_px_soulmuzzle": [3, 24.0],   # 维什戴尔标记 / 魂炮
+	"fx_irene_px_cleave": [10, 20.0],
+	"fx_irene_px_cleave_glow": [10, 20.0],
+	"fx_saria_px_calcify": [18, 20.0],
+	"fx_saria_px_calcify_glow": [18, 20.0],
+	"fx_saria_px_heal": [9, 20.0],
+	"fx_saria_px_heal_glow": [9, 20.0],
+	"fx_siege_px_slam": [18, 20.0],
+	"fx_siege_px_slam_glow": [18, 20.0],
+	"fx_siege_px_smash": [18, 20.0],
+	"fx_siege_px_smash_glow": [18, 20.0],
+	"fx_wisadel_px_muzzle": [3, 24.0],
+	"fx_wisadel_px_muzzle_glow": [3, 24.0],
+	"fx_exusiai_px_muzzle_gold": [4, 30.0],
+	"fx_exusiai_px_muzzle_gold_glow": [4, 30.0],
+	"fx_exusiai_px_hit_gold": [5, 25.0],
+	"fx_exusiai_px_hit_gold_glow": [5, 25.0],
+	"fx_exusiai_px_pierce": [4, 24.0],
+	"fx_exusiai_px_pierce_glow": [4, 24.0],
+	"fx_irene_px_thrust": [4, 24.0],
+	"fx_irene_px_thrust_glow": [4, 24.0],
+	"fx_irene_px_hit": [4, 24.0],
+	"fx_irene_px_hit_glow": [4, 24.0],
+	"fx_irene_px_star": [3, 24.0],
+	"fx_irene_px_star_glow": [3, 24.0],
+	"fx_irene_px_lift": [8, 20.0],
+	"fx_irene_px_lift_glow": [8, 20.0],
+	"fx_irene_px_crescent": [12, 20.0],
+	"fx_irene_px_crescent_glow": [12, 20.0],
+	"fx_irene_px_cannon": [13, 20.0],
+	"fx_irene_px_cannon_glow": [13, 20.0],
+	"fx_irene_px_gun": [3, 20.0],
+	"fx_irene_px_gun_glow": [3, 20.0],
+	"fx_irene_px_lamp1": [1, 10.0],
+	"fx_irene_px_lamp1_glow": [1, 10.0],
+	"fx_saria_px_calc1": [1, 10.0],
+	"fx_siege_px_crater1": [1, 10.0],
+	"fx_irene_px_lamp2": [1, 10.0],
+	"fx_irene_px_lamp2_glow": [1, 10.0],
+	"fx_saria_px_calc2": [1, 10.0],
+	"fx_siege_px_crater2": [1, 10.0],
+	"fx_irene_px_lamp3": [1, 10.0],
+	"fx_irene_px_lamp3_glow": [1, 10.0],
+	"fx_saria_px_calc3": [1, 10.0],
+	"fx_siege_px_crater3": [1, 10.0],
+	"fx_wisadel_px_crater": [4, 10.0],
+	"fx_exusiai_px_burst": [18, 24.0],
+	"fx_exusiai_px_burst_glow": [18, 24.0],
+	"fx_exusiai_px_halo": [8, 10.0],
+	"fx_exusiai_px_halo_glow": [8, 10.0],
+	"fx_exusiai_px_bless": [4, 20.0],
+	"fx_exusiai_px_bless_glow": [4, 20.0],
+	"proj_exusiai_px_bullet_s1": [2, 20.0],
+	"proj_exusiai_px_bullet_s1_glow": [2, 20.0],
+	"proj_exusiai_px_bullet_s2": [2, 20.0],
+	"proj_exusiai_px_bullet_s2_glow": [2, 20.0],
+	"proj_exusiai_px_bullet_s3": [2, 20.0],
+	"proj_exusiai_px_bullet_s3_glow": [2, 20.0],
+	"proj_exusiai_px_bullet_power": [2, 20.0],
+	"proj_exusiai_px_bullet_power_glow": [2, 20.0],
+	"fx_saria_px_calcite": [8, 10.0],
+	"fx_saria_px_pillar_rise": [6, 20.0],
+	"fx_saria_px_pillar_idle": [4, 6.0],
+	"fx_saria_px_pillar_break": [6, 20.0],
+	"fx_saria_px_pillar_break_glow": [6, 20.0],
+	"fx_saria_px_bash": [4, 24.0],
+	"fx_saria_px_bash_glow": [4, 24.0],
+	"fx_saria_px_star": [7, 20.0],
+	"fx_saria_px_star_glow": [7, 20.0],
+	"fx_saria_px_ward": [10, 20.0],
+	"fx_saria_px_ward_glow": [10, 20.0],
+	"fx_saria_px_spot": [4, 8.0],
+	"fx_siege_px_fissure": [4, 10.0],
+	"fx_siege_px_fissure_glow": [4, 10.0],
+	"fx_siege_px_spike": [7, 18.0],
+	"fx_wisadel_cannon_glow": [17, 20.0],
+	"fx_wisadel_px_mark": [2, 4.0],
+	"fx_wisadel_px_mark_glow": [2, 4.0],
+	"fx_wisadel_px_gift": [6, 10.0],
+	"fx_wisadel_px_gift_glow": [6, 10.0],
+	"proj_wisadel_px_shell": [2, 20.0],
+	"fx_wisadel_px_soulmuzzle": [3, 24.0],
+	"fx_wisadel_px_soulmuzzle_glow": [3, 24.0],
+	"fx_saria_px_calcite2": [8, 10.0],
 	# ---- 组 D 止
 	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
 	# ---- 组 E 止

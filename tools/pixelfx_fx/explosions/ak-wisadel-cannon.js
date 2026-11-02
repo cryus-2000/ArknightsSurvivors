@@ -10,7 +10,7 @@ export const meta = {
   tags: ["explosion", "crystal", "one-shot"],
   size: [256, 256],
   origin: [128, 128],
-  duration: 0.45,
+  duration: 0.95,
   loop: false,
   fps: 20,
   bg: "dark",
@@ -24,7 +24,7 @@ export function create(o) {
   const spikes = [];
   for (let a = R.range(0, 0.5); a < TAU - 0.2; a += R.chance(0.3) ? R.range(0.12, 0.25) : R.range(0.4, 1.1)) spikes.push({ a: a + R.range(-0.1, 0.1), L: CORE * (R.chance(0.35) ? R.range(0.9, 1.1) : R.range(1.15, 1.6)), w: R.range(4, 14), d: R.range(0, 0.05), km: R.range(0.3, 0.7), kink: R.range(-0.8, 0.8), asym: R.range(0.5, 1.2), side: R.chance(0.35) ? R.sign() * R.range(0.4, 0.9) : 0 });
   for (let i = 0; i < 10; i++) { const a = R.range(0, TAU); ps.spawn(P.SPARK, Math.cos(a) * 20, Math.sin(a) * 20, Math.cos(a) * R.range(200, 380), Math.sin(a) * R.range(200, 380), R.range(0.08, 0.18)); }
-  for (let i = 0; i < 9; i++) { const a = R.range(0, TAU), d = CORE * R.range(0.4, 0.9); ps.spawn(P.SMOKE, Math.cos(a) * d, Math.sin(a) * d, Math.cos(a) * 40, Math.sin(a) * 40 - 20, R.range(0.22, 0.32), 0, R.range(10, 18), R.range(0.05, 0.12)); }
+  for (let i = 0; i < 9; i++) { const a = R.range(0, TAU), d = CORE * R.range(0.4, 0.9); ps.spawn(P.SMOKE, Math.cos(a) * d, Math.sin(a) * d, Math.cos(a) * 30, Math.sin(a) * 30 - 15, R.range(0.45, 0.8), 0, R.range(10, 18), R.range(0.05, 0.12)); }
   const embers = [];
   for (let i = 0; i < 7; i++) { const a = R.range(0, TAU), d = CORE * R.range(0.15, 0.7); embers.push([Math.cos(a) * d, Math.sin(a) * d]); }
   let t = 0;
@@ -43,7 +43,7 @@ export function create(o) {
             if (d > edge) continue;
             const q = d / edge;
             const qn = q + 0.22 * noise(x * 0.09, y * 0.09 + o.seed);   // 斑驳，免得色阶排成同心圈
-            const ci = t < 0.03 ? (q < 0.6 ? 7 : 6) : clamp(Math.round(6 - qn * 3 - cool * 4.5 - (t < 0.06 ? 0 : 0.6)), 1, 7);
+            const ci = t < 0.03 ? (q < 0.3 ? 7 : 6) : clamp(Math.round(6 - qn * 3 - cool * 4.5 - (t < 0.06 ? 0 : 0.6)), 1, 7);
             if (cool > 0.55 && noise(x * 0.12, y * 0.12 + 5) < cool * 1.6 - 1.1) continue;   // 冷却后期碎成块散掉
             p.px(x, y, C[ci]);
           }
@@ -65,7 +65,7 @@ export function create(o) {
           p.line(kx, ky, tip[0], tip[1], C[Math.min(7, lit + 1)]);
           if (s.side) { const a2 = s.a + s.side, l2 = (L - base) * 0.45; p.tri(kx + Math.cos(a2) * l2, ky + Math.sin(a2) * l2, kx + nx * 2, ky + ny * 2, kx - nx * 2, ky - ny * 2, C[Math.max(1, lit - 1)]); }
         }
-      if (t > 0.22 && t < 0.36) for (const [x, y] of embers) if (noise(x, y + t * 30) > -0.2) p.px(x, y, C[t < 0.32 ? 5 : 4]);
+      if (t > 0.22 && t < 0.85) for (const [x, y] of embers) if (noise(x, y + t * 30) > -0.2) p.blend(x, y, C[t < 0.32 ? 5 : 4], t < 0.4 ? 1 : 0.4 * (1 - (t - 0.4) / 0.45));   // 余韵：余烬半透明慢慢灭
       if (t < 0.1) p.glow(0, 0, CORE * 0.8, C[5], 0.25 * (1 - t / 0.1));
       ps.draw(p, "front");
     },

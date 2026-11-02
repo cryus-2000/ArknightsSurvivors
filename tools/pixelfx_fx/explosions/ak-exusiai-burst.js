@@ -8,7 +8,7 @@ export const meta = {
   tags: ["explosion", "gun", "one-shot"],
   size: [112, 112],
   origin: [56, 60],
-  duration: 0.45,
+  duration: 0.85,
   loop: false,
   fps: 24,
   bg: "dark",
@@ -25,7 +25,7 @@ export function create(o) {
   }
   for (let i = 0; i < 5; i++) {
     const a = Rg.range(0, TAU);
-    ps.spawn(P.SMOKE, Math.cos(a) * R0 * 0.3, Math.sin(a) * R0 * 0.3, Math.cos(a) * 20, Math.sin(a) * 20 - 15, Rg.range(0.25, 0.35), 0, Rg.range(5, 9), 0.08);
+    ps.spawn(P.SMOKE, Math.cos(a) * R0 * 0.3, Math.sin(a) * R0 * 0.3, Math.cos(a) * 16, Math.sin(a) * 16 - 12, Rg.range(0.45, 0.7), 0, Rg.range(5, 9), 0.08);
   }
   const blobs = [[0, 0, 0.62]];
   for (let i = 0; i < 4; i++) { const a = Rg.range(0, TAU), d = Rg.range(0.25, 0.45); blobs.push([Math.cos(a) * d, Math.sin(a) * d, Rg.range(0.3, 0.5)]); }
@@ -45,10 +45,10 @@ export function create(o) {
             for (const [dx, dy, s] of blobs) f = Math.max(f, 1 - Math.hypot(x - dx * rr, y - dy * rr) / (rr * s));
             f += 0.1 * noise(Math.atan2(y, x) * 3, o.seed);
             if (f <= 0) continue;
-            const ci = clamp(Math.round(4 + f * 4 - u * 5.5), 1, 7);
+            const ci = clamp(Math.round(4 + f * 3 - u * 5.5), 1, 6);
             p.blend(x, y, C[ci], (1 - u * u) * Math.min(1, f * 4));
           }
-        if (t < 0.03) p.circle(0, 0, R0 * 0.35, C[7]);
+        if (t < 0.03) p.circle(0, 0, R0 * 0.16, C[7]);
         p.glow(0, 0, R0, C[5], 0.3 * (1 - u));
       }
       ps.draw(p, "front");

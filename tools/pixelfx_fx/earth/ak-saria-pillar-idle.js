@@ -13,7 +13,7 @@ export const meta = {
   loop: true,
   fps: 6,
   bg: "ground",
-  options: { palette: ["#06142a", "#3a2a1c", OP.saria[1], OP.saria[2], OP.saria[3], "#ffe6c0", "#f4f8ff", "#ffffff"], seed: 4 },
+  options: { palette: ["#06142a", "#3a2a1c", OP.saria[1], OP.saria[2], OP.saria[3], "#ffe6c0", "#fff0d8", "#ffffff"], seed: 4 },
 };
 
 export function draw(p, t, o) {

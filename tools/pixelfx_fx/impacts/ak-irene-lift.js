@@ -13,7 +13,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#06142a", ...OP.irene], seed: 6 },
+  options: { palette: [...OP.irene], seed: 6 },
 };
 
 export function create(o) {

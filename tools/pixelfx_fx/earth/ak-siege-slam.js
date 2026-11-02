@@ -10,11 +10,11 @@ export const meta = {
   tags: ["earth", "impact", "ground", "hammer", "one-shot"],
   size: [144, 104],
   origin: [72, 62],
-  duration: 0.55,
+  duration: 0.9,
   loop: false,
   fps: 20,
   bg: "ground",
-  options: { palette: ["#06142a", ...OP.siege], radius: 55, seed: 21 },
+  options: { palette: [...OP.siege], radius: 55, seed: 21 },
 };
 
 const SY = 0.55;
@@ -57,14 +57,18 @@ export function create(o) {
         // 尘墙：沿外圈不连续地隆起，团与团间距随机
         for (let a = Rg.range(0, 0.6); a < TAU; a += Rg.range(0.35, 0.9)) {
           const r = R0 * Rg.range(0.55, 0.85), x = Math.cos(a) * r, y = Math.sin(a) * r * SY;
-          ps.spawn(P.DUST, x, y, Math.cos(a) * Rg.range(20, 45), Math.sin(a) * 10 - Rg.range(15, 35), Rg.range(0.3, 0.45), C[2], Rg.range(3, 6) * (big ? 1 : 0.7), Rg.range(0, 0.05));
+          ps.spawn(P.DUST, x, y, Math.cos(a) * Rg.range(20, 45), Math.sin(a) * 10 - Rg.range(15, 35), Rg.range(0.45, 0.8), C[2], Rg.range(3, 6) * (big ? 1 : 0.7), Rg.range(0, 0.05));
         }
       }
       ps.update(dt); bits.update(dt); lights.update(dt);
     },
     drawBack(p) {
       const reach = R0 * 1.05 * ease.outQuart(clamp(t / RUN)), fade = 1 - clamp((t - 0.25) / 0.25);
-      if (fade <= 0) return;
+      if (fade <= 0) {   // 余韵：冷掉的裂网半透明留在地上慢慢淡（alpha ≤ 0.35）
+        const k = 0.35 * (1 - clamp((t - 0.5) / 0.38));
+        if (k > 0) for (const s of segs) p.blend((s.x0 + s.x1) / 2, (s.y0 + s.y1) / 2 * SY, C[2], k);
+        return;
+      }
       for (const s of segs) {
         if (s.d > reach) continue;
         const age = t - (s.d / (R0 * 1.05)) * RUN;   // 这一段裂开了多久
@@ -82,7 +86,7 @@ export function create(o) {
           for (let x = -rr; x <= rr; x++) {
             const q = Math.hypot(x, y / SY) / rr;
             if (q > 1) continue;
-            if (t < 0.03 && q < 0.75) p.px(x, y, C[q < 0.45 ? 7 : 6]);   // 首帧实心爆亮
+            if (t < 0.03 && q < 0.75) p.px(x, y, C[q < 0.2 ? 7 : q < 0.45 ? 6 : 5]);   // 首帧实心爆亮，白只在芯
             else p.blend(x, y, C[q < 0.4 ? ci : Math.max(2, ci - 2)], (1 - t / 0.15) * (1 - q * 0.6));
           }
         p.glow(0, -2, R0 * 0.6, C[5], 0.3 * (1 - t / 0.15));

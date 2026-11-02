@@ -13,7 +13,7 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#06142a", ...OP.irene], len: 128, seed: 3 },
+  options: { palette: [...OP.irene], len: 128, seed: 3 },
 };
 
 export function create(o) {
@@ -39,7 +39,7 @@ export function create(o) {
         for (let x = tail; x <= head; x += 0.5) {
           const u = (x - x0) / L, hot = t < 0.03;
           const w = (0.6 + 1.6 * u) * (0.5 + 0.5 * k);   // 往前变粗
-          const ci = hot ? 7 : clamp(Math.round(7 - (1 - u) * 3 - (1 - k) * 3), 2, 7);
+          const ci = hot ? (u > 0.75 ? 7 : 6) : clamp(Math.round(7 - (1 - u) * 3 - (1 - k) * 3), 2, 7);
           p.px(x, 0, C[ci]);
           if (w > 1) { p.px(x, -1, C[Math.max(2, ci - 2)]); p.px(x, 1, C[Math.max(1, ci - 3)]); }
           if (w > 1.8 && u > 0.6) { p.px(x, -2, C[Math.max(1, ci - 4)]); p.px(x, 2, C[Math.max(1, ci - 4)]); }

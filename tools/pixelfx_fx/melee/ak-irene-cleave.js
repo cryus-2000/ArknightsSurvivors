@@ -11,12 +11,12 @@ export const meta = {
   tags: ["melee", "slash", "rapier", "topdown", "one-shot"],
   size: [192, 176],
   origin: [96, 88],
-  duration: 0.35,
+  duration: 0.6,
   loop: false,
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.irene],
+    palette: [...OP.irene],
     radius: 84,       // 1x 像素：判定半径 199 × 0.85 ÷ 2
     span: 1.75,       // 弧度：判定 ±0.8 rad 再收一点
     seed: 5,
@@ -40,7 +40,7 @@ function crescent(p, s, ta, L, W, age) {
     if (w < 0.35) return;
     const q = (Rr - r) / w;
     if (q < 0 || q > 1) return;
-    const hot = age < 0.1 ? 3 : 0;   // 第一帧整条爆亮
+    const hot = age < 0.1 ? 1.5 : 0;   // 第一帧爆亮，白只在刃口   // 第一帧整条爆亮
     const ci = q < 0.18 && age < 0.2 ? 0 : Math.round(q * (n - 1) * 0.75 + age * 4 - v * 0.6 + 1.6 - hot);
     out.c = R[n - 1 - clamp(ci, 0, n - 1)];
     out.a = Math.min(1, v / 0.3) * (q > 0.75 ? 0.75 : 1);
@@ -88,7 +88,7 @@ export function create(o) {
         // 刃口外缘散几粒光屑：不等距
         for (let a = a0 + 0.12; a < a1; a += Rg.range(0.14, 0.34)) {
           const [x, y] = onArc(A, A.R + Rg.range(0, 2), a), sp = Rg.range(20, 60);
-          ps.spawn(P.MOTE, x, y, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.15, 0.3), C[5 + Rg.int(0, 2)], Rg.range(0.5, 0.9), Rg.range(0, 0.05));
+          ps.spawn(P.MOTE, x, y, Math.cos(a) * sp * 0.6, Math.sin(a) * sp * 0.6, Rg.range(0.3, 0.55), C[4 + Rg.int(0, 2)], Rg.range(0.5, 0.8), Rg.range(0, 0.05));   // 余韵：光屑慢慢飘散
         }
         lights.add(tip[0], tip[1], 22, C[5], 0.4, 0.2);
       }

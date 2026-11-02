@@ -9,11 +9,11 @@ export const meta = {
   tags: ["earth", "crystal", "ground", "buff", "one-shot"],
   size: [128, 112],
   origin: [64, 72],
-  duration: 0.6,
+  duration: 0.95,
   loop: false,
   fps: 20,
   bg: "ground",
-  options: { palette: ["#06142a", ...OP.saria], radius: 44, seed: 11 },
+  options: { palette: [...OP.saria], radius: 44, seed: 11 },
 };
 
 const SY = 0.55;
@@ -37,7 +37,7 @@ export function create(o) {
       const r = R0 * (0.92 + 0.12 * noise(a * 3, o.seed)) + 1.5 * noise(a * 17, o.seed + 3);
       const x = Math.cos(a) * r, y = Math.sin(a) * r * SY;
       const ci = clamp(Math.round(6 - k * 4 - (Math.sin(a) < 0 ? 1 : 0)), 1, 7);
-      const al = clamp(1.15 - k * 1.25, 0, 1);
+      const al = t < 0.5 ? clamp(1.15 - k * 1.25, 0, 1) : 0.35 * (1 - clamp((t - 0.5) / 0.4));   // 后段余韵：裂口半透明慢慢淡
       if (al > 0) { p.blend(x, y, C[ci], al); p.blend(x * 0.95, y * 0.95, C[Math.max(1, ci - 2)], al * 0.7); }
     }
   };
@@ -60,7 +60,7 @@ export function create(o) {
       ps.update(dt); bits.update(dt); lights.update(dt);
     },
     drawBack(p) {
-      const k = clamp(t / 0.5);
+      const k = clamp(t / 0.5);   // 0.5 s 后转余韵
       crack(p, k);
       for (const s of shards) if (s.y < 0) drawShard(p, s);
     },
@@ -71,7 +71,7 @@ export function create(o) {
         const ci = clamp(7 - Math.floor(t / 0.05), 3, 7), H = 70 * (1 - u * 0.4);
         for (let y = -H; y <= 0; y++) {
           const w = (5 + 3 * noise(y * 0.15, o.seed + 9)) * (1 - u) * (0.5 + 0.5 * (y + H) / H);
-          if (w > 0.4) for (let x = -w; x <= w; x++) p.blend(x, y, C[Math.abs(x) < w * 0.4 ? ci : Math.max(2, ci - 2)], (1 - u) * (0.35 + 0.65 * (y + H) / H));
+          if (w > 0.4) for (let x = -w; x <= w; x++) p.blend(x, y, C[Math.abs(x) < w * 0.2 ? ci : Math.max(2, ci - 1 - (ci === 7 ? 1 : 0))], (1 - u) * (0.35 + 0.65 * (y + H) / H));
         }
         p.glow(0, -10, 30, C[6], 0.35 * (1 - u));
       }
