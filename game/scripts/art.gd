@@ -1118,6 +1118,12 @@ const V6_FRAMES := {
 	"fx_texas_px_blade": [6, 20.0], "fx_texas_px_mark": [6, 12.0], "fx_skalter_px_note": [4, 8.0],
 	"fx_skadi_px_splash": [8, 18.0], "fx_hoshiguma_px_block": [5, 20.0], "fx_hoshiguma_px_guard": [6, 10.0], "fx_hoshiguma_px_sand": [4, 8.0], "fx_hoshiguma_px_sawspark": [3, 20.0],
 	"fx_texas_px_dash": [4, 20.0], "fx_texas_px_pin": [4, 12.0], "fx_texas_px_shatter": [4, 18.0], "fx_texas_px_drop": [5, 20.0], "fx_skalter_px_vortex": [8, 10.0],
+	# 光晕层（docs/229 §2.7 / docs/238：导出分层，vfx.glow 在加色层按同一变换叠画）
+	"fx_skadi_px_wave_glow": [11, 20.0], "fx_skadi_px_leap_glow": [10, 20.0], "proj_skadi_px_tideblade_glow": [4, 20.0], "fx_skadi_px_tidehit_glow": [5, 20.0],
+	"fx_skadi_px_tiderelease_glow": [7, 20.0], "fx_hoshiguma_px_rose_glow": [5, 24.0], "fx_lappland_px_riposte_glow": [5, 20.0], "proj_lappland_px_sword_glow": [4, 16.0], "fx_texas_px_blade_glow": [6, 20.0],
+	"fx_skadi_px_splash_glow": [8, 18.0], "fx_hoshiguma_px_block_glow": [5, 20.0], "fx_hoshiguma_px_sawspark_glow": [3, 20.0], "fx_texas_px_dash_glow": [4, 20.0], "fx_texas_px_pin_glow": [4, 12.0],
+	"fx_texas_px_shatter_glow": [4, 18.0], "fx_texas_px_drop_glow": [5, 20.0], "fx_skadi_px_sweep_glow": [11, 20.0], "fx_skadi_px_cleave_glow": [11, 20.0], "fx_skadi_px_surge_glow": [14, 20.0],
+	"fx_hoshiguma_px_saw_glow": [8, 20.0],
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# ---- 组 B 止

@@ -1,20 +1,17 @@
 {
  "_doc": "试点组（docs/228 §7–8）：斯卡蒂 / 星熊 / 能天使",
  "fx_skadi_px_sweep": {
-  "fx": "melee/ak-skadi-sweep",
-  "colors": 24
+  "fx": "melee/ak-skadi-sweep"
  },
  "fx_skadi_px_cleave": {
   "fx": "melee/ak-skadi-sweep",
   "opts": {
    "heavy": 1,
    "seed": 7
-  },
-  "colors": 16
+  }
  },
  "fx_skadi_px_surge": {
-  "fx": "water/ak-skadi-surge",
-  "colors": 24
+  "fx": "water/ak-skadi-surge"
  },
  "fx_hoshiguma_px_saw": {
   "fx": "melee/ak-hoshiguma-saw"
