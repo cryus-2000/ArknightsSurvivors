@@ -77,12 +77,12 @@ def frame(phone, mode, show_mates, name):
     E.info(m, phone=phone)
     if phone:
         H.phone_buttons(m, ['随行', '突击', '部署', '集火'][mode], speed=False, pause=False)
-        cw = 78 * 0.75 / 1.25 + 4
-        squad_cards_only(m, W - 16 - (4 * cw + 18), Hh - 12 - (36 + 112 * 0.75 / 1.25 + 6), mode, phone=True)
+        cw = 79 * 0.75 / 1.25 + 4
+        squad_cards_only(m, W - 16 - (4 * cw + 18), Hh - 12 - (36 + 102 * 0.75 / 1.25 + 6), mode, phone=True)
         H.minimap(m, 10, Hh - 10 - 84, 84)
     else:
-        cw = 78 / 1.5 + 4
-        squad_cards_only(m, W - 24 - (4 * cw + 18), Hh - 24 - (40 + 112 / 1.5 + 15), mode)
+        cw = 79 / 1.5 + 4
+        squad_cards_only(m, W - 24 - (4 * cw + 18), Hh - 24 - (40 + 102 / 1.5 + 15), mode)
         H.minimap(m, 16, Hh - 16 - 130, 130)
         H.key_hints(m)
     title = '队友生命回到左上 · %s（%s）' % (['随行', '突击', '部署', '集火'][mode] + ('：队友生命显示' if show_mates else '：满血收起'), '手机横屏' if phone else '电脑 1920×1080')
