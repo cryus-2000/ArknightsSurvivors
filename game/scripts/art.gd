@@ -775,28 +775,28 @@ static func normal_stats() -> String:
 	return "normals=%s sync_names=%s" % [str(_nm_stats), str(_nm_sync_names)]
 
 
-## 干员特效色阶（docs/229 §2.2）：7 阶，暗 → 设定色 → 白。与 tools/pixelfx_fx/house.js 的 OP 同步，改色阶走美术组组长（两处一起改）
+## 干员特效色阶（docs/229 §2.2）：7 阶，暗 → 设定色 → 白（低三阶 = 设定色 × 明度 35 / 60 / 80%，docs/238）。与 tools/pixelfx_fx/house.js 的 OP 同步，改色阶走美术组组长（两处一起改）
 const OP_RAMP := {
-	"angelina": ["#312f5c", "#5c4a8e", "#8765c0", "#b280f2", "#cdacf7", "#e8d9fb", "#ffffff"],
-	"exusiai": ["#412232", "#7c303b", "#b73e44", "#f24c4c", "#f78b8b", "#fbc9c9", "#ffffff"],
-	"eyjafjalla": ["#442f2c", "#824a2e", "#c16531", "#ff8033", "#ffac7a", "#ffd9c2", "#ffffff"],
-	"gladiia": ["#182f51", "#294a78", "#3a65a0", "#4c80c7", "#8bacdb", "#c9d9ee", "#ffffff"],
-	"hoshiguma": ["#413f32", "#7c6a3b", "#b79444", "#f2bf4c", "#f7d58b", "#fbecc9", "#ffffff"],
-	"irene": ["#413552", "#7c567b", "#b778a4", "#f299cc", "#f7bdde", "#fbe0f0", "#ffffff"],
-	"kaltsit": ["#284f40", "#498a55", "#6ac46a", "#8cff80", "#b4ffac", "#dcffd9", "#ffffff"],
-	"lappland": ["#3b475c", "#707a8e", "#a6adc0", "#dbe0f2", "#e8ebf7", "#f4f6fb", "#ffffff"],
-	"mizuki": ["#0d0e27", "#1e2766", "#284286", "#3d5fd6", "#8f9ae6", "#c9bdf0", "#ffffff"],
-	"logos": ["#28355f", "#495694", "#6a78ca", "#8c99ff", "#b4bdff", "#dce0ff", "#ffffff"],
-	"lumen": ["#28455f", "#497694", "#6aa8ca", "#8cd9ff", "#b4e6ff", "#dcf4ff", "#ffffff"],
-	"saria": ["#443d38", "#826646", "#c18f53", "#ffb861", "#ffd198", "#ffead0", "#ffffff"],
-	"siege": ["#444136", "#826e42", "#c19a4d", "#ffc759", "#ffdb93", "#ffeecd", "#ffffff"],
-	"skadi": ["#1b325c", "#30508e", "#446ec0", "#598cf2", "#93b4f7", "#cddcfb", "#ffffff"],
+	"angelina": ["#3e2d55", "#6b4d91", "#8e66c2", "#b280f2", "#cdacf7", "#e8d9fb", "#ffffff"],
+	"exusiai": ["#551b1b", "#912e2e", "#c23d3d", "#f24c4c", "#f78b8b", "#fbc9c9", "#ffffff"],
+	"eyjafjalla": ["#592d12", "#994d1f", "#cc6629", "#ff8033", "#ffac7a", "#ffd9c2", "#ffffff"],
+	"gladiia": ["#1b2d46", "#2e4d77", "#3d669f", "#4c80c7", "#8bacdb", "#c9d9ee", "#ffffff"],
+	"hoshiguma": ["#55431b", "#91732e", "#c2993d", "#f2bf4c", "#f7d58b", "#fbecc9", "#ffffff"],
+	"irene": ["#553647", "#915c7a", "#c27aa3", "#f299cc", "#f7bdde", "#fbe0f0", "#ffffff"],
+	"kaltsit": ["#31592d", "#54994d", "#70cc66", "#8cff80", "#b4ffac", "#dcffd9", "#ffffff"],
+	"lappland": ["#4d4e55", "#838691", "#afb3c2", "#dbe0f2", "#e8ebf7", "#f4f6fb", "#ffffff"],
+	"mizuki": ["#15214b", "#253980", "#314cab", "#3d5fd6", "#8f9ae6", "#c9bdf0", "#ffffff"],
+	"logos": ["#313659", "#545c99", "#707acc", "#8c99ff", "#b4bdff", "#dce0ff", "#ffffff"],
+	"lumen": ["#314c59", "#548299", "#70aecc", "#8cd9ff", "#b4e6ff", "#dcf4ff", "#ffffff"],
+	"saria": ["#594022", "#996e3a", "#cc934e", "#ffb861", "#ffd198", "#ffead0", "#ffffff"],
+	"siege": ["#59461f", "#997735", "#cc9f47", "#ffc759", "#ffdb93", "#ffeecd", "#ffffff"],
+	"skadi": ["#1f3155", "#355491", "#4770c2", "#598cf2", "#93b4f7", "#cddcfb", "#ffffff"],
 	"skalter": ["#0a0610", "#24081a", "#460d22", "#6e122d", "#9c1b38", "#e9c9d0", "#ffffff"],
-	"specter_unchained": ["#34455c", "#62768e", "#91a8c0", "#bfd9f2", "#d5e6f7", "#ecf4fb", "#ffffff"],
-	"suzuran": ["#44433c", "#82724e", "#c1a261", "#ffd173", "#ffe1a4", "#fff1d5", "#ffffff"],
-	"texas": ["#44322c", "#82502e", "#c16e31", "#ff8c33", "#ffb47a", "#ffdcc2", "#ffffff"],
-	"ulpianus": ["#213c5c", "#3c638e", "#588ac0", "#73b2f2", "#a4cdf7", "#d5e8fb", "#ffffff"],
-	"wisadel": ["#411d2c", "#7c262e", "#b72f31", "#f23833", "#f77e7a", "#fbc3c2", "#ffffff"],
+	"specter_unchained": ["#434c55", "#738291", "#99aec2", "#bfd9f2", "#d5e6f7", "#ecf4fb", "#ffffff"],
+	"suzuran": ["#594928", "#997d45", "#cca75c", "#ffd173", "#ffe1a4", "#fff1d5", "#ffffff"],
+	"texas": ["#593112", "#99541f", "#cc7029", "#ff8c33", "#ffb47a", "#ffdcc2", "#ffffff"],
+	"ulpianus": ["#283e55", "#456b91", "#5c8ec2", "#73b2f2", "#a4cdf7", "#d5e8fb", "#ffffff"],
+	"wisadel": ["#551412", "#91221f", "#c22d29", "#f23833", "#f77e7a", "#fbc3c2", "#ffffff"],
 }
 const ENV_RAMP := ["#06142a", "#0b2d55", "#134f86", "#1f7fb5", "#3fb4d8", "#8fe3ef", "#d9fbff", "#ffffff"]   # 深海环境梯度（暗 → 亮），未登记干员的兜底
 static var _op_ramp_cache := {}
@@ -1104,7 +1104,6 @@ const V6_FRAMES := {
 	"fx_angelina_well_close": [5, 14.0], "fx_angelina_float_dust": [4, 8.0],
 	"proj_exusiai_bullet_t1": [2, 20.0], "proj_exusiai_bullet_t2": [2, 20.0], "proj_exusiai_bullet_t3": [2, 20.0], "fx_exusiai_pierce_gold": [5, 20.0],
 	"fx_exusiai_halo": [8, 10.0], "fx_exusiai_blessed_flash": [4, 20.0],
-	"fx_hoshiguma_slash_rose": [4, 20.0], "fx_hoshiguma_guard_glow": [6, 10.0], "proj_hoshiguma_sawshield": [8, 24.0], "fx_hoshiguma_saw_spark": [4, 20.0],
 	"fx_mon3tr_slam_ring": [6, 16.0],
 	"fx_texas_pin_sword": [4, 12.0], "fx_texas_pin_shatter": [5, 18.0], "fx_texas_sword_drop": [5, 20.0],
 	# 手写干员迁积木（docs/61 §17）：斯卡蒂成长线帧条原来由 skadi.gd 自己按帧切，积木的 fx 条目要登记在这里（帧数 / fps 同原脚本）
