@@ -1522,7 +1522,7 @@ func _process(delta: float) -> void:
 				if state == S.PLAY:
 					_update(dt)
 					simulated_dt += dt
-	if not panel.visible and state != S.SHOW and state != S.PAUSE and state != S.INTRO:
+	if not panel.visible and state != S.SHOW and state != S.PAUSE and state != S.INTRO and not (ult != null and ult.cutin_holds_banner()):   # 手机上立绘切入在场时横幅让位、计时冻结（docs/216 D4）
 		banner_t -= delta   # 选卡 / 商人面板 / 精英化演出 / 暂停 / 指南时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
 	_pm("")
 	world.update_visuals(simulated_dt if state == S.PLAY else 0.0)

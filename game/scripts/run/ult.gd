@@ -1011,6 +1011,21 @@ func _tick_shapes(dt: float) -> void:
 
 
 ## 立绘切入（ult/cutin 缺省 1；0 = 不切入）：超必杀暂停结束、开口那一刻（_sf_tick），斜切条带 + @2x 立绘裁在框内，队长那条 ult/cutin_t 秒（用户 11-01 定约 0.5，原 0.7）
+## 手机（触屏 + 横屏比例 ≥ 1.9 或竖屏）上立绘切入条带在场时横幅让位（docs/216 D4）：切入条带 y = 0.26 屏高，
+## 横幅 0.24 屏高，手机上两条紧挨。返回 true 时横幅不画、计时冻结（切入 0.5 秒 / 连携终结技 1.1 秒后接着播），桌面不变
+func cutin_holds_banner() -> bool:
+	if cutins.is_empty() or g.touch == null or not g.touch.active:
+		return false
+	var vs: Vector2 = g.get_viewport_rect().size
+	if not (Cfg.phone_ui() or vs.y > vs.x):
+		return false
+	var now := UM.now()
+	for ci in cutins:
+		if not ci.get("small", false) and now >= float(ci.t0) - 0.05 and now <= float(ci.t0) + float(ci.dur) + 0.1:
+			return true
+	return false
+
+
 func _cutin(ld, k: String) -> void:
 	if Bal.v("ult/cutin", 1.0) <= 0.0:
 		return
