@@ -50,3 +50,12 @@ Sonniss GDC 2026 包里没有现成心跳。用库里已有的真实录音 344 A
   - `lt1102-m18`（`--tide=0 --meta=18`）：**未开跑**——12 vCPU 配额被别的批跑占着，本机等待循环随关机中断。开法：`python tools/gcp/batch.py run lt1102-m18 --commit f5aa99181 --cmd-file <同 m0 的命令文件，加 --meta=18> --machine e2-standard-8`。
   - 判定：无成长 45–55%、18 细胞 65–75%（≥3 份均值）；超窗口只调灯油掉率（`lamp/oil_kill_chance` 等），不削加伤。
   - 胜率：（待收）
+
+m18 命令文件（`--cmd-file`；m0 同此，去掉 `--meta=18`）：
+
+```sh
+python3 tools/balance_run.py --preset starts --bot expert --seeds 4 --seed0 1 --placebos 0,1,2 --nocache --jobs $GODOT_MAX_PROCS --extra="--tide=0 --meta=18" --tag $TAG-new --out $OUT/new
+git fetch -q --depth 1 origin c73d2ff86bfb50529def537a7288974a7feae819
+git worktree add -q --detach /tmp/lt_base c73d2ff86bfb50529def537a7288974a7feae819
+python3 tools/balance_run.py --preset starts --bot expert --seeds 4 --seed0 1 --placebos 0,1,2 --nocache --jobs $GODOT_MAX_PROCS --extra="--tide=0 --meta=18" --game /tmp/lt_base/game --tag $TAG-base --out $OUT/base
+```
