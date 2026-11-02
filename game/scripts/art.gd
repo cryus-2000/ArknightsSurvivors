@@ -1116,7 +1116,7 @@ const V6_FRAMES := {
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# 术师 · 法术（源码 tools/pixelfx_fx/**/ak-{eyjafjalla,angelina,logos,lumen,suzuran}-*.js，导出目标 targets_b.json；全部 @2x）
-	"fx_eyjafjalla_px_hit": [5, 24.0], "fx_eyjafjalla_px_ignite": [12, 20.0], "fx_eyjafjalla_px_splash": [8, 20.0],
+	"fx_eyjafjalla_px_hit": [5, 24.0], "fx_eyjafjalla_px_ignite": [12, 20.0], "fx_eyjafjalla_px_splash": [8, 20.0], "fx_eyjafjalla_px_pool": [8, 10.0],
 	"fx_angelina_px_pull": [8, 20.0],
 	"fx_logos_px_hit": [5, 24.0], "fx_logos_px_ring": [9, 20.0], "fx_logos_px_pillar": [12, 20.0],
 	"fx_lumen_px_hit": [5, 24.0], "fx_lumen_px_pillar": [12, 20.0],

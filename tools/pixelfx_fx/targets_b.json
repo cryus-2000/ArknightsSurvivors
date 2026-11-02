@@ -3,6 +3,7 @@
  "fx_eyjafjalla_px_hit": {"fx": "impacts/ak-eyjafjalla-hit", "hires": true},
  "fx_eyjafjalla_px_ignite": {"fx": "explosions/ak-eyjafjalla-ignite", "opts": {"radius": 44}},
  "fx_eyjafjalla_px_splash": {"fx": "explosions/ak-eyjafjalla-splash", "hires": true},
+ "fx_eyjafjalla_px_pool": {"fx": "fire/ak-eyjafjalla-pool", "hires": true},
  "fx_angelina_px_pull": {"fx": "arcane/ak-angelina-pull", "hires": true},
  "fx_logos_px_hit": {"fx": "impacts/ak-logos-hit", "hires": true},
  "fx_logos_px_ring": {"fx": "arcane/ak-logos-ring", "hires": true},

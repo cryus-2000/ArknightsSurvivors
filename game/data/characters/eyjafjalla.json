@@ -825,8 +825,8 @@
       "src": "熔池",
       "look": "pool",
       "weighted": true,
-      "tex": "fx_eyja_lava_pool",
-      "fit": 22
+      "tex": "fx_eyjafjalla_px_pool",
+      "fit": 23
      }
     ],
     "weighted": true
