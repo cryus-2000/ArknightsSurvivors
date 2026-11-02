@@ -616,3 +616,35 @@
 - **E 灯火那行下面**：读数列最后一行「LV 28」，和 HP / LAMP 同一列。
 
 这两种都会让状态行再往下让一行（约 12）。
+
+## 17. 做进游戏（11-02）
+
+协调人转用户：「所有会话继续工作」，把已定的部分做进游戏，等级框保持现状。
+
+**总开关** `balance.json ui/hud_v2`：1 = 编辑式（缺省），0 = 旧 HUD 原样。
+- 各块入口开头判开关后转到新文件 `game/scripts/screens/hud_v2.gd`。
+- 旧画法一行没删，所以开关 0 时和改前逐项相同。
+
+| 块 | 做法 | 入口 |
+|---|---|---|
+| 左上队长 | B′ 徽记与等级牌不改；右边小标签 HP + Montserrat 粗体大数字 + 小字上限 + 一根青色细线（受击残影照旧），护盾菱形跟在 HP 后；LAMP + 数字 + 金线（30 / 70 刻度）；神经细线、侵蚀、回收提示照旧 | `hud_bars.draw_top_left` |
+| 队友生命 | 左上队长读数下面：「SQUAD HP」（突击时写「突击中」）+ 每人一行（职业色短条、羁绊菱形、名字、细线、百分比；倒地写复活读秒）。**突击时常显，随行 / 部署 / 集火时只在有人不满血或倒地时显示**，满血收起；手机行距加大 | `hud_allyhp._draw_under_leader / top_shift` |
+| 状态行 | 「STATUS」+ 用「/」隔开的一行字，最多两行，多的收成「+N」；原来单独一行的灯火状态条并进最前面（灯火通明 / 摇曳 / 暗淡 / 寂灭） | `hud_bars.draw_status`、`draw_lamp_strip` |
+| 顶部中央 | KILLS / TIME 小标签 + 粗体大数字；海域中文 + 一行英文（含 THREAT）+ 威胁细线；手机数字小一号、海域与威胁并成一行；Boss 血条不动 | `hud_bars.draw_top_center` |
+| 右上 | INGOT（源石锭，从右下挪来）+ RELICS 粗体数 + 最近 3 件（悬停照样有说明；手机只留数字）+ 暂停 / 倍速小牌；倍速不是 1× 时反白成纸白。手机再加一块 INFO（属性），三块并排；玩家在「触屏按键布局」里挪过的键照他的位置 | `hud_relics.draw_right_top / update_buttons / register_tray`、`touch._draw_side_buttons` |
+| 右下编队 | COMMAND · F / BOND n / SQUAD n/m 小标签 + 四格指挥（随行 / 突击 / 部署 / 集火，只显示当前，不能点）+ 突击耐力细线；四张全身立绘卡（@2x 待机帧同一裁切窗，脚底对齐）+ 职业色顶线 + 名牌（队长纸白 +「LEADER」）；倒地暗幕读秒、残血红框、技能生效青框。电脑编队上方原来那行「指挥 · 随行」并进四格；技能格不再画 | `hud_squad.draw / squad_top`、`hud_banners.draw_command` |
+| 手机按键 | 冲刺 / 瞄准 / 指挥：暗底圆 + 发丝圈 + 中文 + 小英文；冲刺两颗充能点；指挥写当前模式 + 耐力细弧；终结技：外圈青色能量弧，充满整颗纸白「ULT · READY」 | `touch.gd`、`hud_ult_v._draw_touch_v2` |
+
+验证：
+- 快检 core / data_lint / ui_smoke / card_desc / touch_layout / title_menu / tour / cam_resize_touch 都过。
+- touch_layout 一度失败：「点自定义位置的倍速键应切倍速」。已改成玩家挪过的键照自定义位置，复测通过。
+
+交付：
+- `Claude outputs/hud_redesign_1102/ingame.mp4`：seed 13 A 组 9:56–10:16 实战 20 秒，上电脑、下手机，原色原速，11.2 MiB；
+- `ingame_desktop.png`、`ingame_phone.png`（10:06）、`ingame_desktop_early.png`（1:00）。
+
+没做 / 待定：
+- 等级框不改。
+- Boss 血条沿用旧样式。
+- 指南卡（onboard）还没换编辑式。
+- 触屏按键布局编辑页里暂停 / 属性 / 倍速仍按旧位置显示（编辑式下只有挪过的才生效）。

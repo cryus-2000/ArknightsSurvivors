@@ -388,12 +388,15 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		var dr0 := Rect2(dc - Vector2(dr, dr), Vector2(dr * 2.0, dr * 2.0))
 		btn_rects.append([dr0, "dash"])
 		var ready: bool = g.dash_ready()
-		_circ(hud, dc, dr, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
-		_arc(hud, dc, dr, -PI / 2.0, -PI / 2.0 + TAU * g.dash_frac(), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
-		var dfs: int = int(round(18.0 * clampf(ds, 0.85, 1.3)))
-		_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45), "冲刺", dfs, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80))
-		if g.dash_max() > 1:   # 连冲：剩余次数
-			_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45 + 18.0 * clampf(ds, 0.85, 1.3)), "×%d" % g.dash_left(), int(round(12.0 * clampf(ds, 0.85, 1.3))), Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 80))
+		if g.hud_view.v2.on():
+			_v2_dash(hud, dc, dr, ready)
+		else:
+			_circ(hud, dc, dr, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
+			_arc(hud, dc, dr, -PI / 2.0, -PI / 2.0 + TAU * g.dash_frac(), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
+			var dfs: int = int(round(18.0 * clampf(ds, 0.85, 1.3)))
+			_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45), "冲刺", dfs, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80))
+			if g.dash_max() > 1:   # 连冲：剩余次数
+				_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45 + 18.0 * clampf(ds, 0.85, 1.3)), "×%d" % g.dash_left(), int(round(12.0 * clampf(ds, 0.85, 1.3))), Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 80))
 		if not TouchLayout.atk_hidden(Cfg.touch_layout):
 			_draw_atk_button(hud, font, L.atk.c, L.atk.s)
 		else:
@@ -406,7 +409,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 			combo_rect = Rect2(cb.c - Vector2(cb.r, cb.r), Vector2(cb.r, cb.r) * 2.0) if Bal.vi("link/v2", 1) <= 0 else Rect2()   # 连携 v2：没有连携键
 		else:
 			_draw_skill_button(hud, font, L.skill.c, L.skill.s)
-		btn_rects.append([speed_rect(vs), "speed"])
+		btn_rects.append([g.hud_view.v2.plates(vs).speed if g.hud_view.v2.on() else speed_rect(vs), "speed"])   # 编辑式：倍速在右上小牌
 	else:
 		skill_rect = Rect2()
 		atk_rect = Rect2()
@@ -421,6 +424,16 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		var st: int = g.squad.stance
 		var scol: Color = [UI.CYAN, UI.GOLD, UI.GREEN][st]
 		var lit: bool = flash.get("cmd", 0.0) > 0.0 or st != 0
+		if g.hud_view.v2.on():
+			_v2_cmd(hud, cc, cr, st)
+		else:
+			_draw_cmd_old(hud, font, cc, cr, ce, st, scol, lit, ph)
+	_draw_side_buttons(hud, font, vs, L, ph)
+
+
+## 指挥键旧画法（ui/hud_v2 0）
+func _draw_cmd_old(hud: CanvasItem, font: Font, cc: Vector2, cr: float, ce: Dictionary, st: int, scol: Color, lit: bool, ph: bool) -> void:
+	if true:
 		hud.draw_circle(cc, cr, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
 		hud.draw_arc(cc, cr, 0.0, TAU, 32, Color(scol.r, scol.g, scol.b, 0.95 if lit else 0.6), 2.0 if st == 0 else 3.0)
 		# 突击耐力：键外一圈（从正上方顺时针，突击中金色、耗尽冷却灰色）
@@ -433,6 +446,15 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		var cfs: int = int(round(14.0 * clampf(float(ce.s), 0.8, 1.3)))
 		UI.text(hud, font, cc + Vector2(-30, cfs * 0.38), "部署" if g.squad.Tactics.on() and g.squad.order_kind == "point" else g.squad.STANCE_NAMES[st], cfs, Color(scol.r, scol.g, scol.b, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 60)
 		UI.text(hud, font, cc + Vector2(-30, cr + 15), "指挥" if g.squad.priority == g.squad.default_priority() else g.squad.PRIO_SHORT[g.squad.priority], 13 if ph else 12, UI.SUB if g.squad.priority == g.squad.default_priority() else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 60)
+
+
+## 暂停 / 属性键。编辑式（docs/222 §15）：并到右上，和倍速三块小牌并排（hud_v2.right_top 画），这里只登记点击区
+func _draw_side_buttons(hud: CanvasItem, font: Font, vs: Vector2, L: Dictionary, ph: bool) -> void:
+	if (g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS) and g.hud_view.v2.on():
+		var P: Dictionary = g.hud_view.v2.plates(vs)
+		btn_rects.append([P.pause, "pause"])
+		btn_rects.append([P.stats, "stats"])
+		return
 	# 按钮：右侧中部纵向两个（暂停 / 属性）
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:
 		var items := [["Ⅱ", "pause", "暂停"], ["≡", "stats", "属性"]]
@@ -455,11 +477,55 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 				_arc(hud, c, br + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
 
 
+## 编辑式按键（docs/222 §14）：暗底圆 + 1 像素发丝圈；中文粗体 + 下一行字距拉开的小英文；按住时圈变青、底稍亮
+func _v2_btn(hud: CanvasItem, c: Vector2, r: float, held: bool, cn: String, en: String, cn_col := UI.TEXT) -> void:
+	_circ(hud, c, r, Color(0.157, 0.235, 0.25, 0.8) if held else Color(0.04, 0.047, 0.055, 0.7))
+	_arc(hud, c, r, 0.0, TAU, 40, UI.CYAN if held else Color(1, 1, 1, 0.42), 1.5 if held else 1.0)
+	var fs: int = 13 if r > 30.0 else (12 if r > 24.0 else 11)
+	var v2 = g.hud_view.v2
+	_tx(func():
+		UI.text(hud, g.font, c + Vector2(-40, fs * 0.25), cn, fs, cn_col, HORIZONTAL_ALIGNMENT_CENTER, 80)
+		v2.cap(c + Vector2(0, fs * 0.25 + 10.0), en, 5.5, UI.SUB, 1.0, 1))
+
+
+## 冲刺：同上 + 圈下沿两颗充能点（亮 = 可用）；用掉时外圈一道白色充能弧
+func _v2_dash(hud: CanvasItem, c: Vector2, r: float, ready: bool) -> void:
+	_v2_btn(hud, c, r, flash.get("dash", 0.0) > 0.0, "冲刺", "DASH")
+	var n: int = g.dash_max()
+	var left: int = g.dash_left() if n > 1 else (1 if ready else 0)
+	for k in maxi(1, n):
+		var a: float = PI / 2.0 + (k - (maxi(1, n) - 1) / 2.0) * 0.38
+		_circ(hud, c + Vector2.from_angle(a) * (r - 7.0), 2.6, UI.CYAN if k < left else Color(1, 1, 1, 0.18))
+	if not ready or left < n:
+		_arc(hud, c, r + 3.0, -PI / 2.0, -PI / 2.0 + TAU * g.dash_frac(), 40, Color(1, 1, 1, 0.5), 1.5)
+
+
+## 指挥：圈里写当前模式（青）+「CMD」；突击耐力是外圈一道细弧
+func _v2_cmd(hud: CanvasItem, c: Vector2, r: float, st: int) -> void:
+	var v2 = g.hud_view.v2
+	_v2_btn(hud, c, r, flash.get("cmd", 0.0) > 0.0, v2.SEG_NAMES[v2.seg_index()], "CMD", UI.CYAN)
+	var sq = g.squad
+	if sq.stamina_on() and sq.stamina > 0.0:
+		var fc: Color = UI.GOLD if st == sq.ROAM else (Color(0.5, 0.52, 0.55) if sq.exhausted else UI.CYAN)
+		_arc(hud, c, r + 4.0, -PI / 2.0, -PI / 2.0 + TAU * clampf(sq.stamina, 0.0, 1.0), 32, fc, 2.0)
+
+
 ## 瞄准键：圆底 + 准星图标；按住时亮、拖动时按钮上画小摇杆（同技能键），拖过死区 = 按住瞄准
 func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> void:
 	var r := BTN * 0.62 * sc
 	atk_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
 	var held: bool = atk_id >= 0 or flash.get("atk", 0.0) > 0.0
+	if g.hud_view.v2.on():
+		_v2_btn(hud, c, r, held, "瞄准", "AIM")
+		if atk_id >= 0:
+			_seal(hud)   # 拖动小摇杆压在按钮字上
+			var reach0 := r + 30.0
+			_arc(hud, c, reach0, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), 1.5)
+			_arc(hud, c, AIM_DEAD, 0.0, TAU, 24, Color(1, 1, 1, 0.25), 1.0)
+			var k0: Vector2 = atk_drag.limit_length(reach0)
+			_circ(hud, c + k0, 12.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 if atk_drag.length() >= AIM_DEAD else 0.25))
+			_arc(hud, c + k0, 12.0, 0.0, TAU, 20, Color(0.85, 1.0, 1.0, 0.9), 2.0)
+		return
 	var ac := Color(1.0, 0.72, 0.4)
 	_circ(hud, c, r, Color(0.14, 0.08, 0.04, 0.8 if held else 0.55))
 	_arc(hud, c, r, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.95 if held else 0.6), 3.0 if held else 2.0)

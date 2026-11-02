@@ -411,6 +411,9 @@ func _draw_c() -> void:
 func _draw_touch_min(vs: Vector2) -> void:
 	if not g.hud_live():
 		return
+	if u.h.v2.on():
+		_draw_touch_v2(vs)
+		return
 	var ld = g.squad.leader()
 	var ub: Dictionary = g.touch.ult_btn(vs)
 	var c: Vector2 = ub.c
@@ -475,6 +478,40 @@ func _draw_touch_min(vs: Vector2) -> void:
 		fg.arc(cb.c, cb.r + 6.0, 0.0, TAU, 2.0, Color(1, 1, 1, 0.6), 24)
 	fg.flush(g.hud)
 	u.h.text_flush(txt)
+
+
+## 编辑式终结技键（docs/222 §14）：暗底圆 + 发丝圈 + 外圈一道青色能量弧（从正上方顺时针）；
+## 充满时整颗反白成纸白（黑字「终结技」+「ULT · READY」，同倍速 ≠ 1 的反白提醒），英文行充能中写百分比。按住拖动的小摇杆同原样
+func _draw_touch_v2(vs: Vector2) -> void:
+	var ub: Dictionary = g.touch.ult_btn(vs)
+	var c: Vector2 = ub.c
+	var r: float = ub.r
+	var full: bool = g.ult.full()
+	var held: bool = g.touch.skill_id >= 0 or g.touch.flash.get("skill", 0.0) > 0.0
+	var ek: float = _ek()
+	var fg := Tris.new()
+	if full:
+		fg.circle(c, r, UI.PAPER, 40)
+		fg.arc(c, r + 4.0, 0.0, TAU, 1.0, Color(UI.PAPER.r, UI.PAPER.g, UI.PAPER.b, 0.35 + 0.3 * _pulse()), 40)
+		if ready_cue():
+			_burst_ring(fg, c, r, UI.CYAN)
+	else:
+		fg.circle(c, r, Color(0.157, 0.235, 0.25, 0.8) if held else Color(0.04, 0.047, 0.055, 0.7), 40)
+		fg.arc(c, r, 0.0, TAU, 1.0, Color(1, 1, 1, 0.42), 40)
+		fg.arc(c, r + 4.0, 0.0, TAU, 2.5, Color(1, 1, 1, 0.12), 40)
+		if ek > 0.0:
+			fg.arc(c, r + 4.0, -PI / 2.0, -PI / 2.0 + TAU * ek, 2.5, UI.CYAN, 40)
+	if g.touch.skill_id >= 0 and g.ult.phase == "aim" and g.ult.aim_kind != "none":
+		var reach: float = r + 30.0
+		fg.arc(c, reach, 0.0, TAU, 1.5, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), 40)
+		var kn: Vector2 = g.touch.skill_aim.limit_length(reach)
+		fg.circle(c + kn, 13.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45), 16)
+		fg.arc(c + kn, 13.0, 0.0, TAU, 2.0, Color(1, 1, 1, 0.9), 20)
+	fg.flush(g.hud)
+	var ink := Color(0.055, 0.063, 0.07)
+	var lab: String = "连携终结技" if u._up() else "终结技"
+	UI.text(g.hud, g.font, c + Vector2(-50.0, 3.0), lab, 13, ink if full else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 100.0)
+	u.h.v2.cap(c + Vector2(0, 15.0), "ULT · READY" if full else "ULT  %d%%" % int(round(ek * 100.0)), 5.5, Color(0.31, 0.31, 0.31) if full else UI.SUB, 1.0, 1)
 
 
 # ================================================================ 就绪提醒（用户 11-01「终结技就绪提醒做得更明显」，ult/ready_cue 缺省 1；0 = 原样）

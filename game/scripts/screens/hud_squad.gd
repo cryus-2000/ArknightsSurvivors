@@ -1,6 +1,7 @@
 extends RefCounted
 ## 界面 · HUD 右下编队栏与手动技能（2026-10-10 从 hud.gd 拆出，docs/55 §6）：干员部署卡 + 技能格（静态层缓存 + 每帧层）、
 ## 源石锭框、手动技能首次就绪提示、手动技能瞄准指示（方向 / 落点）。触屏分支原样保留。
+const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）
 const LinkBond = preload("res://scripts/run/link_bond.gd")   # 编队人数旁「羁绊 N」（docs/221 B1）
 const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -65,6 +66,12 @@ func draw(vs: Vector2) -> void:
 	# 编队栏：静态部分（底、立绘、名字、职业 / 精英标签、技能格底与图标、源石锭框）只在内容变了才重画；
 	# 充能遮罩、进度条、边框、倒计时、悬停提示等每帧画（在父画布上，压在静态层之上）
 	var sbr := Vector2(vs.x - 16, vs.y - 16)
+	if HudV2.on():
+		h._layer("squad", null, func():
+			h.v2.squad(sbr)
+			if g.knight.alive or g.knight.submerged:
+				g.knight.draw_hud(g.hud, Vector2(h.v2.squad_origin(sbr).x - 140, sbr.y - 30)))
+		return
 	# 各干员的 skill_hud() / portrait() 每帧只取一次，签名、静态层、每帧层共用（性能 docs/50 §21：原来每帧各取 2–3 次）
 	_fr_items = []
 	_fr_pts = []
@@ -108,6 +115,8 @@ func _frame_sig(br: Vector2) -> Array:
 
 ## 编队区最上沿（源石锭框顶）的 y：触屏冲刺键 / 技能键摆在它上方，不压住「编队 n / m」和源石锭
 func squad_top(vs: Vector2) -> float:
+	if HudV2.on():
+		return h.v2.squad_origin(Vector2(vs.x - 16, vs.y - 16)).y - 8.0
 	return vs.y - 16.0 - card_size().y - SQ_SK - 14.0 - 46.0
 
 

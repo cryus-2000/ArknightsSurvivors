@@ -899,6 +899,8 @@ func _pick_target(vs: Vector2) -> Vector2:
 	for j in g.squad.ops.size():
 		if str(g.squad.ops[j].id) == oid:
 			idx = j
+	if g.hud_view.v2.on():
+		return g.hud_view.v2.card_rect(Vector2(vs.x - 16.0, vs.y - 16.0), idx).get_center()
 	var x: float = vs.x - 16.0 - (n - idx) * HudSquad.SQ_COL_W + (HudSquad.SQ_COL_W - HudSquad.SQ_CARD.x) + HudSquad.SQ_CARD.x / 2.0
 	return Vector2(x, vs.y - 16.0 - g.hud_view.squad.card_size().y * 0.66)
 

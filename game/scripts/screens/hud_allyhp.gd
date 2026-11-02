@@ -15,7 +15,8 @@ const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL
 const A = preload("res://scripts/art.gd")
 const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条（10-29 起；10-31 改头顶条 _draw_m3_overhead）：不依赖指挥模式
 const LinkBond = preload("res://scripts/run/link_bond.gd")   # 羁绊成立的队友名前一颗小菱形（docs/221 B1）
-const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 终结技并进左上的原型（A / C）在生命条下多一层，队友行下移 top_add
+const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")
+const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）   # 终结技并进左上的原型（A / C）在生命条下多一层，队友行下移 top_add
 var g: Game
 var h
 
@@ -110,7 +111,7 @@ func draw(vs: Vector2) -> void:
 			_draw_column(vs)
 		elif s == 4:
 			_draw_under_leader()
-		if s != 1 and not h.phone_quiet():
+		if s != 1 and not h.phone_quiet() and not HudV2.on():   # 编辑式：残血框画在编辑式编队卡上
 			_draw_card_low(vs)
 	_draw_m3_overhead(vs)
 
@@ -262,11 +263,17 @@ const UL_W := 150.0         # 与队长生命条同宽
 func top_shift() -> float:
 	if h.phone_quiet():
 		return 0.0
+	if HudV2.on():
+		return h.v2.mates_h(_mates()) if style() == 4 else 0.0
 	var n: int = _mates().size() if style() == 4 else 0   # Mon3tr 10-31 起改头顶条，不再占行
 	return (n * UL_ROW + 4.0 if n > 0 else 0.0) + HudUltV.top_add(g.touch.active)
 
 
 func _draw_under_leader() -> void:
+	if HudV2.on():
+		if not h.phone_quiet():
+			h.v2.mates(_mates())
+		return
 	if top_shift() <= 0.0:
 		return
 	var ms: Array = _mates()
