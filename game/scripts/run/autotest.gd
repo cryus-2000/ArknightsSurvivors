@@ -358,6 +358,7 @@ func _knight_shots() -> void:
 ## --recframes=<起始秒>,<帧数>（docs/50 §10 顿帧前后对照录像，配 --playclock --fixed-fps 30）：游戏时间过了起始秒后连存 N 帧
 ## rec_<帧>.png 到 --shotdir（--recintro：新手引导问题框打开时也录，docs/219 §6 录片）；--legacyfeel：整局用旧的切步与顿帧规则（g.perf_alt + PlayClock.test_legacy）
 var _grantat_done := false
+var _downat_done := false
 var _rec_t0 := -2.0
 var _rec_left := 0
 var _rec_sfx0 := {}
@@ -1069,6 +1070,15 @@ func step() -> void:
 				_grantat_done = true
 				for rid in a.substr(10).split(":")[1].split(","):
 					g.progression.gain_relic(rid)
+	# --downat=<秒>：到这一秒让第一名队友倒地一次（录片用：倒地 → 复活过渡，docs/224 #14；配 --bal=command/revive_secs=… 缩短倒地；会改之后的对局）
+	if not _downat_done and g.state == g.S.PLAY:
+		for a in Cfg.dev_args():
+			if a.begins_with("--downat=") and g.t >= float(a.substr(9)):
+				_downat_done = true
+				for o in g.squad.ops:
+					if not o.is_leader and o.pos != Vector2.INF:
+						g.squad.op_hurt(o, 1e9)
+						break
 	# --lampat=<秒>:<灯火>：到这一秒把灯火设成这个值一次（截暗处画面用，docs/50 §16 怪物体型的暗处可读性；会改之后的对局）
 	if not _lampat_done and g.state == g.S.PLAY:
 		for a in Cfg.dev_args():
