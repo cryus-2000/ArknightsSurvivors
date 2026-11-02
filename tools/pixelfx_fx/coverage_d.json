@@ -32,5 +32,21 @@
   "status": "已做",
   "new": "fx_wisadel_cannon（pixelfx 同名重画，tests 按名字查）",
   "why": "9 帧 @20，12.8 KB（原 98 KB）；_optical 压阶旧版已删"
+ },
+ "irene|fx_thrust_hit_rose": {
+  "status": "不换",
+  "why": "只在 --perfab 同局轮换的 /b 桶里画（测试用，量普攻新旧帧时差；正常游戏 g.perf_alt 恒为 false）"
+ },
+ "irene|fx_irene_thrust": {
+  "status": "不换",
+  "why": "只在 --perfab 同局轮换的 /b 桶里画（测试用，量普攻新旧帧时差；正常游戏 g.perf_alt 恒为 false）"
+ },
+ "irene|fx_star_hit_rose": {
+  "status": "不换",
+  "why": "只在 --perfab 同局轮换的 /b 桶里画（测试用，量普攻新旧帧时差；正常游戏 g.perf_alt 恒为 false）"
+ },
+ "saria|fx_saria_shield_bash": {
+  "status": "不换",
+  "why": "只在 --perfab 同局轮换的 /b 桶里画（测试用，量普攻新旧帧时差；正常游戏 g.perf_alt 恒为 false）"
  }
 }

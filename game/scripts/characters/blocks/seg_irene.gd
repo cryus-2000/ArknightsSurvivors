@@ -192,7 +192,7 @@ static func _h3_thrust(o, a: Dictionary, ang: float, mult: float, patch: Diction
 		o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.vrng.randf_range(-40, 40), -60), "life": 0.25, "col": _mf_col(lk.get("spark", []), H3_SILVER), "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
-			o.spawn_fx_sprite(str(lk.get("hit", "fx_irene_px_hit")), e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
+			o.spawn_fx_sprite("fx_thrust_hit_rose" if g.perf_alt else str(lk.get("hit", "fx_irene_px_hit")), e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
 	_h3_thrust_fx(o, a, d, L, ang, gust, stage)
 	if stage > 1:   # 第一段的出手音由 data_operator._release 播
 		_h3_sfx(o, "atk", 0.0, 1.0, 0.08)
@@ -212,8 +212,8 @@ static func _h3_thrust_fx(o, a: Dictionary, d: Vector2, L: float, ang: float, gu
 	var side: float = 4.0 if int(ir.tn) % 2 == 0 else -4.0
 	var st: Vector2 = o.pos + Vector2(0, -32) + d * 12.0 + d.orthogonal() * side
 	var tsc: float = g.PX * clampf(L / 128.0, 0.9, 1.1)   # 帧条限幅（再放大颗粒过粗）；判定被范围藏品拉长时下面用程序光束补齐全长
-	var star: String = str(lk.get("star", "fx_irene_px_star"))
-	if not o.spawn_fx_sprite(str(lk.get("beam", "fx_irene_px_thrust")), st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if gust else Color.WHITE):
+	var star: String = "fx_star_hit_rose" if g.perf_alt else str(lk.get("star", "fx_irene_px_star"))   # --perfab 的 /b 桶画旧 Codex 帧条（普攻帧时同局轮换，docs/229 §3）
+	if not o.spawn_fx_sprite("fx_irene_thrust" if g.perf_alt else str(lk.get("beam", "fx_irene_px_thrust")), st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if gust else Color.WHITE):
 		o.fx({"kind": "h3_thrust", "pos": st, "dir": d, "len": L, "w": 9.0 if gust else 7.0, "life": 0.16, "col": gcol if gust else col, "star": star})
 		o.spawn_fx_sprite(star, st + d * (L + 10.0), g.PX * 0.8)
 	elif h3_thrust_w(o, a) > float(a.get("w", 26.0)) * 1.01 or o.stat(&"op_range") > 1.01:   # 163B §3：范围藏品拉长刺击时画面跟判定走

@@ -81,7 +81,8 @@ static func _h4_bash_release(o, a: Dictionary) -> void:
 	_h4_marks_pop(o, hits, _h4_bash_dmg(o))   # 晶簇（docs/202）：被拳击命中的带碎片敌人，碎片爆开
 	var d := Vector2.from_angle(ang)
 	var fk: float = reach / maxf(1.0, float(a.get("r", 115.0)))   # 盾击帧条跟判定半径走（范围藏品放大判定时一起放大，163B §3）
-	if not o.spawn_fx_sprite("fx_saria_px_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
+	var bash_tx: String = "fx_saria_shield_bash" if g.perf_alt else "fx_saria_px_bash"   # --perfab 的 /b 桶画旧帧条（普攻帧时同局轮换，docs/229 §3）
+	if not o.spawn_fx_sprite(bash_tx, o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
 		o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach * 0.8, H4_AMBER)
 		o.fx({"kind": "line", "pos": o.pos + Vector2(0, -12) + d * 14.0, "to": o.pos + Vector2(0, -12) + d * reach * 1.3, "life": 0.15, "col": H4_AMBER, "w": 3.0})
 	_h3_sfx(o, "hit" if not hits.is_empty() else "atk")
