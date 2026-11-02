@@ -4,6 +4,7 @@
 tools/pixelfx_fx/<类>/<名>.js 是本作写的 pixelfx 特效源码；本脚本把它们拷进 pixelfx 库检出（缺省 build/pixelfx，
 不进 git），用库自带的 render.mjs --sheet 导精灵表，再：
   - 以原点为中心对称裁边（游戏按帧中心放置；枪口这类非居中的用 keep_canvas 保留原画布），
+  - 还原 pixelfx 精灵表的预乘色（半透明处 rgb / a，否则 Godot 里 a² 发灰，D 组 11-02 发现），
   - 去掉末尾全空帧，
   - 量化到 ≤ 32 色（带透明，按条目 colors 改），存调色板 PNG，
   - 拼成单行横向帧条写进 game/art/fx/<名>[ @2x].png。
@@ -43,6 +44,16 @@ def install(lib):
                 shutil.copy2(os.path.join(SRC, cat, f), os.path.join(lib, "src", "fx", cat, f))
 
 
+def unpremultiply(im):
+    """pixelfx 的 canvas().paste() 往全透明画布上贴帧时把 rgb 乘了 alpha、alpha 原样保留（预乘色 + 原 alpha）；
+    Godot 按直通 alpha 画，半透明处会变成 a² 发暗发灰。这里还原：a > 0 时 rgb = min(255, rgb * 255 / a)。"""
+    import numpy as np
+    a = np.asarray(im, dtype=np.float32).copy()
+    al = a[..., 3:4]
+    a[..., :3] = np.where(al > 0, np.minimum(255.0, a[..., :3] * 255.0 / np.maximum(al, 1.0) + 0.5), 0.0)
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
 def export(lib, name, spec, tmp, dry):
     fx_id, opts, hires, keep = spec["fx"], spec.get("opts", {}), spec.get("hires", False), spec.get("keep", False)
     out = os.path.join(tmp, name)
@@ -52,7 +63,7 @@ def export(lib, name, spec, tmp, dry):
         sys.exit(r.stderr)
     base = fx_id.split("/")[1]
     meta = json.load(open(os.path.join(out, fx_id, base + ".json")))
-    sheet = Image.open(os.path.join(out, fx_id, base + ".png")).convert("RGBA")
+    sheet = unpremultiply(Image.open(os.path.join(out, fx_id, base + ".png")).convert("RGBA"))
     px = meta["meta"]["pixelfx"]
     frames = [sheet.crop((f["frame"]["x"], f["frame"]["y"], f["frame"]["x"] + f["frame"]["w"], f["frame"]["y"] + f["frame"]["h"])) for f in meta["frames"]]
     alpha = lambda im: im.getchannel("A").point(lambda a: 255 if a > 10 else 0)
