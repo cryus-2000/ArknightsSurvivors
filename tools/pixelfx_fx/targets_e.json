@@ -1,22 +1,24 @@
 {
- "_doc": "组 E 敌方 / Boss（docs/229 §4 §9、docs/236）。地面落点类按每招判定半径 r 导出（R = r / 2 纹素），游戏里固定 Game.PX 画",
+ "_doc": "组 E 敌方 / Boss（docs/229 §4 §9、docs/236）。地面落点类按每招判定半径 r 导出（R = r / 2 纹素），游戏里固定 Game.PX 画；每条 3 个种子变体（docs/229 §2.11）；火星用调用点原有的 vfx.sparks（Boss 色系），不在这里另加 spark",
  "fx_e_px_carmen_smash": {
   "fx": "impacts/ak-e-slam",
   "opts": {
    "R": 35,
-   "boss": 1,
-   "seed": 3
-  }
+   "boss": 1
+  },
+  "seed": 3,
+  "variants": 3
  },
  "fx_e_px_immortal_burst": {
   "fx": "impacts/ak-e-slam",
   "opts": {
    "R": 60,
    "boss": 1,
-   "seed": 8,
    "tail": 0.24,
    "inner": 0
   },
-  "colors": 20
+  "colors": 20,
+  "seed": 8,
+  "variants": 3
  }
 }

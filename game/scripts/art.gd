@@ -1131,9 +1131,13 @@ const V6_FRAMES := {
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
 	# ---- 组 D 止
 	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
-	# 敌方 / Boss 砸地落点（docs/236，tools/pixelfx_fx/impacts/ak-e-slam.js）：按每招判定半径导出、Game.PX 画；_glow 加色层叠画
+	# 敌方 / Boss 砸地落点（docs/236，tools/pixelfx_fx/impacts/ak-e-slam.js）：按每招判定半径导出、Game.PX 画；_glow 加色层叠画；_v1 / _v2 种子变体（docs/229 §2.11）
 	"fx_e_px_carmen_smash": [13, 20.0], "fx_e_px_carmen_smash_glow": [13, 20.0],   # 卡门炮身砸击 r70（R 35），80×54
+	"fx_e_px_carmen_smash_v1": [13, 20.0], "fx_e_px_carmen_smash_v1_glow": [13, 20.0],
+	"fx_e_px_carmen_smash_v2": [13, 20.0], "fx_e_px_carmen_smash_v2_glow": [13, 20.0],
 	"fx_e_px_immortal_burst": [12, 20.0], "fx_e_px_immortal_burst_glow": [12, 20.0],   # 斥亡体迸发 r120（R 60），130×76
+	"fx_e_px_immortal_burst_v1": [12, 20.0], "fx_e_px_immortal_burst_v1_glow": [12, 20.0],
+	"fx_e_px_immortal_burst_v2": [12, 20.0], "fx_e_px_immortal_burst_v2_glow": [12, 20.0],
 	# ---- 组 E 止
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）

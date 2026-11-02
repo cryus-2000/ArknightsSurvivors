@@ -53,21 +53,24 @@ export function create(o) {
   }
   const nB = Rn.int(9, 12), blob = Array.from({ length: nB }, (_, i) => ({ a: (i / nB) * TAU + Rn.range(-0.2, 0.2), r: Rn.range(0.55, 1.3) }));
   const gaps = Array.from({ length: Rn.int(2, 3) }, () => Rn.range(0, TAU));
-  const nL = Math.round(44 * Math.max(0.8, R / 35)), lumps = [];
+  // 尘团沿圈随机步进（步长 0.45–1.7 倍均值，大小按随机游走起伏、偶有大团），避免等距同大小的「拼接感」（docs/229 §2.6，vreview 11-03 报过）
+  const nL = Math.round(40 * Math.max(0.8, R / 35)), lumps = [], step = TAU / nL;
+  let a = Rn.range(0, TAU), sz = Rn.range(3, 5);
   for (let i = 0; i < nL; i++) {
-    const a = (i / nL) * TAU + Rn.range(-0.07, 0.07);
+    a += step * Rn.range(0.45, 1.7);
+    sz = clamp(sz + Rn.range(-1.6, 1.6), 2.2, 6.2);
+    const big = Rn.chance(0.15) ? Rn.range(1.3, 1.6) : 1;
     const gap = gaps.some((g) => Math.abs(wrap(a - g)) < 0.17);
-    const wav = 0.7 + 0.3 * Math.sin(a * 3 + o.seed) * Math.sin(a * 5 + 1.7);
     const near = 0.95 + 0.3 * Math.max(0, Math.sin(a));
-    lumps.push({ a, rj: Rn.range(0.86, 1.0), s: (gap ? 0.4 : 1) * Rn.range(3.2, 5.4) * wav * near, h: (gap ? 0.3 : 1) * Rn.range(3, 9) * wav * near,
-      lag: Rn.range(0, 0.04), drift: Rn.range(0.0, 0.04) });
+    lumps.push({ a, rj: Rn.range(0.78, 1.0), s: (gap ? 0.4 : 1) * sz * big * near, h: (gap ? 0.3 : 1) * Rn.range(2, 10) * big * near,
+      lag: Rn.range(0, 0.05), drift: Rn.range(0.0, 0.04) });
   }
   const rocks = Array.from({ length: 12 }, () => ({ a: Rn.range(0, TAU), d: R * Rn.range(0.2, 0.7), h: 0, vh: Rn.range(80, 130), s: Rn.int(1, 2),
     t0: Rn.range(0, 0.03), dark: Rn.chance(0.5), bounced: false }));
   const after = SHOCKS.map(() => Array.from({ length: 3 }, () => onFloor(Rn.range(0, TAU), R * Rn.range(0.15, 0.6))));
 
-  lights.add(0, -2, R * 0.7, RAMP[3], 0.35, 0.18);
-  lights.add(0, -2, R * 0.3, WHITE, 0.45, 0.06);
+  lights.add(0, -2, R * 0.8, RAMP[3], 0.45, 0.2);
+  lights.add(0, -2, R * 0.45, WHITE, 0.7, 0.1);   // 首帧爆亮的光（加色层 _glow）：游戏尺寸下要读得出来（vreview 11-03 报首帧偏弱）
 
   let t = 0;
   const done = SHOCKS.map(() => false);
@@ -77,8 +80,8 @@ export function create(o) {
       const u = clamp(t / WALL_T);
       if (u > 0 && u < 1)
         for (let k = 0; k < 2; k++) {
-          const a = Rn.range(0, TAU), [x, y] = onFloor(a, R * ease.outQuart(u) * Rn.range(0.85, 1.0));
-          ps.spawn(P.DUST, x, y - 1, Math.cos(a) * Rn.range(10, 26), -Rn.range(8, 22), Rn.range(0.12, 0.18), Rn.chance(0.4) ? DU[3] : DU[2], Rn.range(1.4, 2.4));
+          const a = Rn.range(0, TAU), [x, y] = onFloor(a, R * ease.outQuart(u) * Rn.range(0.75, 0.88));
+          ps.spawn(P.DUST, x, y - 1, Math.cos(a) * Rn.range(4, 12), -Rn.range(8, 22), Rn.range(0.12, 0.18), Rn.chance(0.4) ? DU[3] : DU[2], Rn.range(1.4, 2.4));
         }
       SHOCKS.forEach((ts, i) => {
         if (done[i] || t < ts) return;
@@ -117,26 +120,34 @@ export function create(o) {
         }
       // 2) 爆亮：第 0 帧核心白（只占核心 0.36 × 0.4），第 1 帧降一阶；之后坑心按热度降阶
       if (t < 0.1) {
-        const hero = t < 0.05, rr = R * (hero ? 0.36 : 0.26);
+        const hero = t < 0.05, rr = R * (hero ? 0.46 : 0.34);
         const pts = blob.map((b) => [Math.cos(b.a) * rr * b.r, Math.sin(b.a) * rr * b.r * GY]);
         p.poly(pts, hero ? RAMP[3] : RAMP[2]);
         p.poly(pts.map(([x, y]) => [x * 0.66, y * 0.66]), hero ? RAMP[4] : RAMP[3]);
         p.poly(pts.map(([x, y]) => [x * 0.4, y * 0.4 - 1]), hero ? WHITE : RAMP[4]);
+        if (!hero) p.poly(pts.map(([x, y]) => [x * 0.18, y * 0.18 - 1]), WHITE);   // 第 1 帧仍留一小点白芯，冷却分两步
       } else if (!tail && (H > 0.15 || SK > 0.3)) {
         const h = Math.max(H, SK * 0.5);
         p.ellipse(0, 0, R * 0.2, R * 0.2 * GY, hotCol(h * 0.75));
         if (h > 0.45) p.ellipse(0, -0.5, R * 0.1, R * 0.1 * GY, hotCol(h * 0.9));
       }
       // 3) 尘墙：远侧 → 碎石 → 近侧；余震时抖 1 纹素；余韵段 alpha ≤ TAIL_ALPHA 并沉降
-      const cap = tail ? TAIL_ALPHA * (1 - smooth(MAIN, D - 0.05, t)) : 1, jolt = SK > 0.5 ? -1 : 0, sink = smooth(WALL_T, D, t);
+      const cap = tail ? TAIL_ALPHA * Math.pow(1 - smooth(MAIN, D, t), 1.5) : 1, jolt = SK > 0.5 ? -1 : 0, sink = smooth(WALL_T, D, t);
       const drawLump = (l) => {
         const lu = clamp((t - l.lag) / WALL_T);
         if (lu <= 0) return;
-        const rr = R * (ease.outQuart(lu) * l.rj + l.drift * sink), [x, y0] = onFloor(l.a, rr), y = y0 + jolt;
+        const sz = l.s * (0.7 + 0.3 * lu) * (1 + sink * 0.5);
+        const rr = Math.min(R * (ease.outQuart(lu) * l.rj + l.drift * sink), R - sz * 1.1);   // 尘团外沿钳在判定半径以内（docs/229 §2.8：落点 = 判定半径，不许更大）
+        const [x, y0] = onFloor(l.a, rr), y = y0 + jolt;
         const rise = l.h * Math.sin(Math.min(1, lu * 1.2) * Math.PI * 0.5) * (1 - sink * 0.8);
-        const sz = l.s * (0.7 + 0.3 * lu) * (1 + sink * 0.5), a = cap * (tail ? 1 : 1 - 0.5 * clamp((t - WALL_T) / (MAIN - WALL_T)));
+        const a = cap * (tail ? 1 : 1 - 0.9 * smooth(WALL_T, MAIN, t));   // 主体后半段缓入淡到约一成（4 层叠压后 ≈ 余韵起点），交界不跳暗
         if (a <= 0.03) return;
         const [ix, iy] = onFloor(l.a, rr * 0.72);
+        if (tail) {
+          // 余韵：每团只画一层，单层 ≤ 0.12 × TAIL_ALPHA；随机步进会扎堆，最多叠约 8 层，合成后仍 ≤ TAIL_ALPHA（docs/229 §2.5）
+          p.disc(x, y - rise * 0.5, sz * 1.05, DU[2], 0.12 * a);
+          return;
+        }
         if (o.inner) p.disc(ix, iy + jolt, sz * 0.8, DU[1], 0.35 * a);   // 墙后内尘（大半径可关，省体积）
         p.disc(x, y, sz * 1.1, DU[1], 0.8 * a);
         p.disc(x, y - rise * 0.5, sz, DU[2], 0.85 * a);
