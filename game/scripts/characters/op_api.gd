@@ -6,6 +6,7 @@
 extends RefCounted
 
 const _BalG = preload("res://scripts/core/balance.gd")   # data/balance.json 旋钮（add_cc_growth 读 growth 段）；名字带下划线避免和子类 const Bal 重名
+const _ArtPx = preload("res://scripts/art.gd")   # Art.px_basic：pixelfx 普攻试点的旧帧条回退（docs/231）；带下划线同上
 
 var g                      # Game (Node2D)
 
@@ -418,7 +419,7 @@ func ground_dust(at: Vector2, radius := 22.0, count := 7) -> void:
 
 ## 播放一次性特效帧条（V6_FRAMES 注册的 fx_*）；贴图缺失返回 false，调用方可退回程序特效
 func spawn_fx_sprite(name: String, pos: Vector2, scale: float = -1.0, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
-	return g.vfx.fx_sprite(A.px_basic(g, name), pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col)   # pixelfx 普攻试点可退回旧帧条（docs/231）
+	return g.vfx.fx_sprite(_ArtPx.px_basic(g, name), pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col)   # pixelfx 普攻试点可退回旧帧条（docs/231）
 
 
 ## 旧式整条动画特效（跟随可选）

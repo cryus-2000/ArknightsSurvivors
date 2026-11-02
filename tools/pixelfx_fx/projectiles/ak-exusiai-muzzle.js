@@ -40,8 +40,7 @@ export function create(o) {
             }
           }
         }
-      if (t < 0.035) p.circle(1, 0, 3.2 * (1 - t / 0.035) + 0.8, C[5]);
-      p.glow(5, 0, 9, C[2], 0.3 * k);
+      if (t < 0.035) p.circle(1, 0, 3.2 * (1 - t / 0.035) + 0.8, C[5]);
       ps.draw(p);
     },
   };

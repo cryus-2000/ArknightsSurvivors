@@ -30,6 +30,5 @@ export function draw(p, t, o) {
   p.dot(10, 0, C[3]);
   for (let x = 4; x <= 8; x++) { p.dot(x, -1, C[x >= 6 ? 3 : 2]); p.dot(x, 1, C[x >= 6 ? 3 : 2]); }
   p.dot(5 + f, -2, C[1]);
-  p.dot(6 - f, 2, C[1]);
-  p.glow(8, 0, 5, C[2], 0.3);
+  p.dot(6 - f, 2, C[1]);
 }

@@ -623,9 +623,9 @@
        "速射"
       ],
       "tex": [
-       "proj_exusiai_bullet_t1",
-       "proj_exusiai_bullet_t2",
-       "proj_exusiai_bullet_t3"
+       "proj_exusiai_px_bullet_t1",
+       "proj_exusiai_px_bullet_t2",
+       "proj_exusiai_px_bullet_t3"
       ],
       "full_fx": "fx_exusiai_pierce_gold"
      }

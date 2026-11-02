@@ -89,10 +89,6 @@ export function create(o) {
     draw(p) {
       drawSlash(p, B, t);
       drawSlash(p, A, t);
-      if (t < 0.09) {
-        const [x, y] = onArc(A, A.R - 4, a0 + o.span * ease.outExpo(clamp(t / A.sweep)));
-        p.glow(x, y, 16, C[4], 0.3 * (1 - t / 0.09));
-      }
       ps.draw(p);
     },
   };

@@ -39,8 +39,7 @@ export function create(o) {
         p.poly([[0, -2.2], [2.2, 0], [0, 2.2], [-2.2, 0]], C[5]);
       }
       const r = 3 + 6 * ease.outQuart(clamp(t / 0.12)), ak = 1 - clamp((t - 0.03) / 0.11);
-      if (ak > 0) for (const [a, s] of chips) p.arc(0, 0, r, 1, a, a + s, C[ak > 0.5 ? 3 : 2], ak);
-      p.glow(0, 0, 8, C[2], 0.3 * pop);
+      if (ak > 0) for (const [a, s] of chips) p.arc(0, 0, r, 1, a, a + s, C[ak > 0.5 ? 3 : 2], ak);
       ps.draw(p);
     },
   };

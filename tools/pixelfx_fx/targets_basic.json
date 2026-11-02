@@ -1,7 +1,66 @@
 {
- "_doc": "普攻试点（docs/231）：拉普兰德（近战）/ 能天使（远程）；全部 @2x，32 色调色板",
- "fx_lappland_px_slash": {"fx": "melee/ak-lappland-slash", "hires": true},
- "fx_exusiai_px_atk_muzzle": {"fx": "projectiles/ak-exusiai-muzzle", "hires": true, "keep": true},
- "fx_exusiai_px_atk_hit": {"fx": "impacts/ak-exusiai-hit", "hires": true},
- "proj_exusiai_px_bullet": {"fx": "projectiles/ak-exusiai-bullet", "hires": true, "keep": true}
+ "_doc": "普攻试点（docs/231）：拉普兰德（近战）/ 能天使（远程，含精一层数弹体 t1–t3，色同旧条）；全部 @2x，32 色调色板",
+ "fx_lappland_px_slash": {
+  "fx": "melee/ak-lappland-slash",
+  "hires": true
+ },
+ "fx_exusiai_px_atk_muzzle": {
+  "fx": "projectiles/ak-exusiai-muzzle",
+  "hires": true,
+  "keep": true
+ },
+ "fx_exusiai_px_atk_hit": {
+  "fx": "impacts/ak-exusiai-hit",
+  "hires": true
+ },
+ "proj_exusiai_px_bullet": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "hires": true,
+  "keep": true
+ },
+ "proj_exusiai_px_bullet_t1": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "opts": {
+   "palette": [
+    "#08101c",
+    "#3a4656",
+    "#7c8a99",
+    "#a4b9c7",
+    "#e6eef0",
+    "#ffffff"
+   ]
+  },
+  "hires": true,
+  "keep": true
+ },
+ "proj_exusiai_px_bullet_t2": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "opts": {
+   "palette": [
+    "#2a1c08",
+    "#6e5428",
+    "#a88a4a",
+    "#c7aa69",
+    "#ffeebc",
+    "#ffffff"
+   ]
+  },
+  "hires": true,
+  "keep": true
+ },
+ "proj_exusiai_px_bullet_t3": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "opts": {
+   "palette": [
+    "#2a1a04",
+    "#7a5410",
+    "#b98422",
+    "#cf9b31",
+    "#ffda67",
+    "#ffffff"
+   ]
+  },
+  "hires": true,
+  "keep": true
+ }
 }
