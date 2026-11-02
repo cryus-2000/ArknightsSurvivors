@@ -941,7 +941,7 @@
       "zone_mult": "$s3_aura",
       "fx": [
        {
-        "strip": "fx_skalter_vortex_floor",
+        "strip": "fx_skalter_px_vortex",
         "hold": true,
         "layer": "ground",
         "fit": 146,
@@ -949,10 +949,10 @@
         "max_scale": 8,
         "fade": 0.45,
         "tint": [
-         1.1,
-         0.22,
-         0.36,
-         0.8
+         1.2,
+         1.2,
+         1.2,
+         0.85
         ]
        },
        {
@@ -1000,7 +1000,7 @@
         },
         "layer": "floor",
         "fade": 0.45,
-        "if_tex": "fx_skalter_vortex_floor"
+        "if_tex": "fx_skalter_px_vortex"
        }
       ]
      },

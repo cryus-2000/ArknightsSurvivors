@@ -46,7 +46,7 @@ export function create(o) {
       }
       if (!done && t >= RUN) {
         done = true;
-        lights.add(X1, wob(X1), 34, C[5], 0.7, 0.28);
+        lights.add(X1, wob(X1), 18, C[5], 0.3, 0.24);   // 帧条里只烤小光晕（docs/229 §2.7）
         for (let i = 0; i < 14; i++) {
           const a = Rg.range(-0.9, 0.9), sp = Rg.range(150, 380);
           ps.spawn(P.SPARK, X1, wob(X1), Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.12, 0.32));
@@ -86,7 +86,7 @@ export function create(o) {
         p.glowLine(X0, 0, head, 0, 8, C[4], 0.22 * (1 - cool));
       }
       // 刀头一路带光，末端星芒
-      if (t < RUN + 0.05) p.glow(head, wob(head), 26, C[5], 0.6);
+      if (t < RUN + 0.05) p.glow(head, wob(head), 14, C[5], 0.3);
       const g = t - RUN;
       if (g > 0 && g < 0.2) sparkle(p, X1, wob(X1), 11 * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.2), C[7], C[4], 0.6);
       ps.draw(p, "front");

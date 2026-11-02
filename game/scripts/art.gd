@@ -1117,6 +1117,8 @@ const V6_FRAMES := {
 	"fx_skadi_px_wave": [11, 20.0], "fx_skadi_px_leap": [10, 20.0], "proj_skadi_px_tideblade": [4, 20.0], "fx_skadi_px_tidehit": [5, 20.0], "fx_skadi_px_tiderelease": [7, 20.0],
 	"fx_hoshiguma_px_rose": [5, 24.0], "fx_lappland_px_riposte": [5, 20.0], "proj_lappland_px_sword": [4, 16.0],
 	"fx_texas_px_blade": [6, 20.0], "fx_texas_px_mark": [6, 12.0], "fx_skalter_px_note": [4, 8.0],
+	"fx_skadi_px_splash": [8, 18.0], "fx_hoshiguma_px_block": [5, 20.0], "fx_hoshiguma_px_guard": [6, 10.0], "fx_hoshiguma_px_sand": [4, 8.0], "fx_hoshiguma_px_sawspark": [3, 20.0],
+	"fx_texas_px_dash": [4, 20.0], "fx_texas_px_pin": [4, 12.0], "fx_texas_px_shatter": [4, 18.0], "fx_texas_px_drop": [5, 20.0], "fx_skalter_px_vortex": [8, 10.0],
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# ---- 组 B 止

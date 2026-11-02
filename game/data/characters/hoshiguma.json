@@ -1038,7 +1038,7 @@
       "every": "$sand_tick",
       "fx": [
        {
-        "strip": "fx_hoshiguma_sand",
+        "strip": "fx_hoshiguma_px_sand",
         "layer": "floor",
         "fit": 23,
         "max_scale": 4
@@ -1089,13 +1089,13 @@
       "stand": false,
       "fx": [
        {
-        "strip": "fx_hoshiguma_block",
+        "strip": "fx_hoshiguma_px_block",
         "on_sprite": "shield",
         "off": [
          0,
          -26
         ],
-        "scale": 1.4
+        "scale": 1.0
        }
       ],
       "text": "战意"
@@ -1175,13 +1175,13 @@
     "negate": true,
     "fx": [
      {
-      "strip": "fx_hoshiguma_block",
+      "strip": "fx_hoshiguma_px_block",
       "on_sprite": "shield",
       "off": [
        0,
        -26
       ],
-      "scale": 1.4
+      "scale": 1.0
      }
     ],
     "text": "战术装甲",
@@ -1282,7 +1282,7 @@
        "every": "$sand_tick",
        "fx": [
         {
-         "strip": "fx_hoshiguma_sand",
+         "strip": "fx_hoshiguma_px_sand",
          "layer": "floor",
          "fit": 30
         }
@@ -1318,7 +1318,7 @@
        "every": "$sand_tick",
        "fx": [
         {
-         "strip": "fx_hoshiguma_sand",
+         "strip": "fx_hoshiguma_px_sand",
          "layer": "floor",
          "fit": 30
         }
@@ -1354,10 +1354,10 @@
       "text": "反击架势",
       "fx": [
        {
-        "strip": "fx_hoshiguma_guard_glow",
+        "strip": "fx_hoshiguma_px_guard",
         "layer": "front",
         "on_sprite": "shield",
-        "scale": 0.6,
+        "scale": 1.0,
         "fade": [
          0.1,
          0.3
@@ -1392,7 +1392,7 @@
         "basic"
        ],
        "tex": "proj_hoshiguma_sawshield",
-       "spark": "fx_hoshiguma_saw_spark"
+       "spark": "fx_hoshiguma_px_sawspark"
       }
      ]
     },
@@ -1420,7 +1420,7 @@
         "basic"
        ],
        "tex": "proj_hoshiguma_sawshield",
-       "spark": "fx_hoshiguma_saw_spark"
+       "spark": "fx_hoshiguma_px_sawspark"
       }
      ]
     }

@@ -1,14 +1,90 @@
 {
  "_doc": "A 组 近战 · 斩击（docs/229 §9）：斯卡蒂剩余 / 星熊普攻 / 拉普兰德 / 德克萨斯 / 浊心斯卡蒂",
- "fx_skadi_px_wave": {"fx": "water/ak-skadi-wave"},
- "fx_skadi_px_leap": {"fx": "water/ak-skadi-leap"},
- "proj_skadi_px_tideblade": {"fx": "water/ak-skadi-tideblade", "hires": true},
- "fx_skadi_px_tidehit": {"fx": "water/ak-skadi-tidehit", "hires": true},
- "fx_skadi_px_tiderelease": {"fx": "water/ak-skadi-tiderelease", "hires": true},
- "fx_hoshiguma_px_rose": {"fx": "melee/ak-hoshiguma-rose"},
- "fx_lappland_px_riposte": {"fx": "melee/ak-lappland-riposte"},
- "proj_lappland_px_sword": {"fx": "projectiles/ak-lappland-sword", "hires": true},
- "fx_texas_px_blade": {"fx": "melee/ak-texas-blade", "hires": true, "keep": true},
- "fx_texas_px_mark": {"fx": "melee/ak-texas-mark", "hires": true, "keep": true},
- "fx_skalter_px_note": {"fx": "arcane/ak-skalter-note", "hires": true}
+ "fx_skadi_px_wave": {
+  "fx": "water/ak-skadi-wave"
+ },
+ "fx_skadi_px_leap": {
+  "fx": "water/ak-skadi-leap"
+ },
+ "proj_skadi_px_tideblade": {
+  "fx": "water/ak-skadi-tideblade",
+  "hires": true
+ },
+ "fx_skadi_px_tidehit": {
+  "fx": "water/ak-skadi-tidehit",
+  "hires": true
+ },
+ "fx_skadi_px_tiderelease": {
+  "fx": "water/ak-skadi-tiderelease",
+  "hires": true
+ },
+ "fx_hoshiguma_px_rose": {
+  "fx": "melee/ak-hoshiguma-rose"
+ },
+ "fx_lappland_px_riposte": {
+  "fx": "melee/ak-lappland-riposte"
+ },
+ "proj_lappland_px_sword": {
+  "fx": "projectiles/ak-lappland-sword",
+  "hires": true
+ },
+ "fx_texas_px_blade": {
+  "fx": "melee/ak-texas-blade",
+  "hires": true,
+  "keep": true
+ },
+ "fx_texas_px_mark": {
+  "fx": "melee/ak-texas-mark",
+  "hires": true,
+  "keep": true
+ },
+ "fx_skalter_px_note": {
+  "fx": "arcane/ak-skalter-note",
+  "hires": true
+ },
+ "fx_skadi_px_splash": {
+  "fx": "water/ak-skadi-splash",
+  "keep": true
+ },
+ "fx_hoshiguma_px_block": {
+  "fx": "impacts/ak-hoshiguma-block",
+  "hires": true
+ },
+ "fx_hoshiguma_px_guard": {
+  "fx": "impacts/ak-hoshiguma-guard",
+  "hires": true
+ },
+ "fx_hoshiguma_px_sand": {
+  "fx": "impacts/ak-hoshiguma-sand",
+  "hires": true,
+  "keep": true
+ },
+ "fx_texas_px_dash": {
+  "fx": "melee/ak-texas-dash",
+  "hires": true,
+  "keep": true
+ },
+ "fx_texas_px_pin": {
+  "fx": "melee/ak-texas-pin",
+  "hires": true,
+  "keep": true
+ },
+ "fx_texas_px_shatter": {
+  "fx": "impacts/ak-texas-shatter",
+  "hires": true
+ },
+ "fx_texas_px_drop": {
+  "fx": "melee/ak-texas-drop",
+  "hires": true,
+  "keep": true
+ },
+ "fx_skalter_px_vortex": {
+  "fx": "arcane/ak-skalter-vortex",
+  "keep": true,
+  "colors": 24
+ },
+ "fx_hoshiguma_px_sawspark": {
+  "fx": "impacts/ak-hoshiguma-sawspark",
+  "hires": true
+ }
 }

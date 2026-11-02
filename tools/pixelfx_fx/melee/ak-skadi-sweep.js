@@ -47,7 +47,7 @@ function crescent(p, s, ta, L, W, age) {
   });
   for (let u = 0; u <= span; u += 0.25) {
     const [x, y] = onArc(s, s.R - W * 0.45, ta + dir * u);
-    p.glow(x, y, 6 + W * 0.8, R[n - 4], 0.2 * (1 - age) * (u / span));
+    p.glow(x, y, 3 + W * 0.4, R[n - 4], 0.14 * (1 - age) * (u / span));   // 帧条里只烤小光晕（docs/229 §2.7），大光交给 optical
   }
 }
 
@@ -95,7 +95,7 @@ export function create(o) {
           ps.spawn(P.MOTE, tip[0], tip[1], Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.15, 0.35), C[6 + Rg.int(0, 1)], 0.8);
         }
         for (let i = 0; i < 5; i++) ps.spawn(P.VAPOUR, tip[0] + Rg.range(-4, 4), tip[1] + Rg.range(-4, 4), Rg.range(-20, 20), Rg.range(-20, 20), Rg.range(0.3, 0.5), C[5], Rg.range(3, 5));
-        lights.add(tip[0], tip[1], 30, C[5], 0.55, 0.25);
+        lights.add(tip[0], tip[1], 16, C[5], 0.3, 0.2);
         // 整条弧外缘碎成浪沫：不等距、大小不一
         for (let a = a0 + 0.15; a < a1; a += Rg.range(0.12, 0.3)) {
           const [x, y] = onArc(A, A.R + Rg.range(0, 3), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(20, 70);
@@ -105,12 +105,12 @@ export function create(o) {
         if (heavy) {
           // 跃浪击：正前方水花冠
           const fx = R0 * 0.62;
-          lights.add(fx, 0, 46, C[5], 0.8, 0.3);
+          lights.add(fx, 0, 24, C[5], 0.3, 0.22);
           for (let i = 0; i < 26; i++) {
             const a = Rg.range(-Math.PI, Math.PI), sp = Rg.range(70, 230);
             ps.spawn(P.MOTE, fx, 0, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.2, 0.45), C[5 + Rg.int(0, 2)], Rg.range(0.6, 1));
           }
-          for (let i = 0; i < 9; i++) {
+          for (let i = 0; i < 5; i++) {
             const a = Rg.range(-Math.PI, Math.PI), d = Rg.range(2, 12);
             ps.spawn(P.VAPOUR, fx + Math.cos(a) * d, Math.sin(a) * d, Math.cos(a) * 30, Math.sin(a) * 30, Rg.range(0.35, 0.55), C[5], Rg.range(4, 7));
           }
@@ -126,7 +126,7 @@ export function create(o) {
       // 刀头一路带光
       if (t < 0.3) {
         const [x, y] = onArc(A, A.R - 5, A.a0 + o.span * ease.outExpo(clamp(t / A.sweep)));
-        p.glow(x, y, 42, C[4], 0.45 * (1 - t / 0.3));
+        p.glow(x, y, 18, C[4], 0.28 * (1 - t / 0.3));
       }
       const g = t - A.sweep * 0.6;
       if (g > 0 && g < 0.2) sparkle(p, tip[0], tip[1], (heavy ? 12 : 9) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.2), C[7], C[4], 0.6);

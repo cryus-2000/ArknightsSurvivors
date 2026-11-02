@@ -662,7 +662,7 @@
      "cond": "elite >= 1",
      "fx": [
       {
-       "strip": "fx_texas_pin_sword",
+       "strip": "fx_texas_px_pin",
        "anchor": [
         6,
         22
@@ -675,7 +675,7 @@
        "stay": "$pin_dur"
       },
       {
-       "strip": "fx_texas_pin_shatter",
+       "strip": "fx_texas_px_shatter",
        "off": [
         0,
         -12
@@ -685,7 +685,7 @@
       },
       {
        "strip": "fx_texas_rain_mark",
-       "if_tex": "!fx_texas_pin_sword",
+       "if_tex": "!fx_texas_px_pin",
        "layer": "floor",
        "scale": 0.8
       }
@@ -893,7 +893,7 @@
        "basic",
        "pierce"
       ],
-      "strip": "fx_texas_dash"
+      "strip": "fx_texas_px_dash"
      }
     ]
    }
@@ -1133,8 +1133,8 @@
         "verb": "fx_rain",
         "along": "path",
         "step": "$rain_step",
-        "if_tex": "fx_texas_sword_drop",
-        "strip": "fx_texas_sword_drop",
+        "if_tex": "fx_texas_px_drop",
+        "strip": "fx_texas_px_drop",
         "anchor": [
          6,
          38
@@ -1154,7 +1154,7 @@
         "verb": "fx_rain",
         "along": "path",
         "step": "$rain_step",
-        "if_tex": "!fx_texas_sword_drop",
+        "if_tex": "!fx_texas_px_drop",
         "strip": "fx_texas_px_blade",
         "mark": "fx_texas_px_mark",
         "stagger": "$rain_gap",
@@ -1240,7 +1240,7 @@
        "basic",
        "pierce"
       ],
-      "strip": "fx_texas_dash",
+      "strip": "fx_texas_px_dash",
       "sfx": "atk"
      }
     ]
@@ -1263,7 +1263,7 @@
       "tags": [
        "basic"
       ],
-      "strip": "fx_texas_dash",
+      "strip": "fx_texas_px_dash",
       "sfx": "atk"
      }
     ]

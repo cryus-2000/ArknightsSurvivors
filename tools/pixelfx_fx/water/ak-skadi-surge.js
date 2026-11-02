@@ -30,7 +30,7 @@ export function create(o) {
     spouts.push({ a, h: Rg.range(7, 18) * (Rg.chance(0.2) ? 1.5 : 1), w: Rg.range(2, 4), lean: Rg.range(0.25, 0.55), d: Rg.range(0, 0.07) });
   const crest = (t) => R * (0.18 + 0.8 * ease.outQuart(clamp(t / OUT)) + 0.1 * clamp((t - OUT) / 0.4));   // 到边后仍缓缓外推
   const jag = (a) => 1 + 0.09 * noise(a * 3.1, o.seed) + 0.05 * noise(a * 9.7, o.seed + 5);
-  lights.add(0, 0, 40, C[5], 0.7, 0.3);
+  lights.add(0, 0, 22, C[5], 0.3, 0.25);   // 帧条里只烤小光晕（docs/229 §2.7）
   let t = 0, broke = false;
 
   // 水冠带：外缘白、往里逐级变深，前缘越往后越薄；keep 选远半圈 / 近半圈

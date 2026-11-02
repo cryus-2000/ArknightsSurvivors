@@ -923,7 +923,7 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
+         "name": "fx_skadi_px_splash",
          "scale": 0.9,
          "bottom": true
         },
@@ -1074,8 +1074,8 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
-         "scale": 1.4,
+         "name": "fx_skadi_px_splash",
+         "scale": 1.1,
          "bottom": true
         },
         "along": 0.45,
@@ -1086,7 +1086,7 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
+         "name": "fx_skadi_px_splash",
          "scale": 0.9,
          "bottom": true
         },
@@ -1098,7 +1098,7 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
+         "name": "fx_skadi_px_splash",
          "scale": 0.9,
          "bottom": true
         },
@@ -1257,8 +1257,8 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
-         "scale": 1.4,
+         "name": "fx_skadi_px_splash",
+         "scale": 1.1,
          "bottom": true
         },
         "along": 0.45,
@@ -1269,7 +1269,7 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
+         "name": "fx_skadi_px_splash",
          "scale": 0.9,
          "bottom": true
         },
@@ -1281,7 +1281,7 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
+         "name": "fx_skadi_px_splash",
          "scale": 0.9,
          "bottom": true
         },
@@ -1625,7 +1625,7 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
+         "name": "fx_skadi_px_splash",
          "scale": 0.9,
          "bottom": true
         },
@@ -1836,7 +1836,7 @@
        },
        {
         "sprite": {
-         "name": "fx_splash_blue",
+         "name": "fx_skadi_px_splash",
          "scale": 1.1,
          "bottom": true
         },
