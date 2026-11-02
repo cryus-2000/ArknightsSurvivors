@@ -364,8 +364,8 @@ const ONBOARD_OPTS := [["new", "没玩过"], ["vet", "玩过"], ["off", "关闭"
 
 
 func _set_onboard(m: String) -> void:
-	if m == Cfg.onboard:
-		return
+	if m == Cfg.onboard and (m == "off" or not Cfg.onboard_seen.has("drill")):
+		return   # 再点一次当前的「没玩过 / 玩过」= 下局重看演示局（docs/219 §6）
 	Cfg.onboard = m
 	if m != "off":
 		Cfg.onboard_seen = []   # 重新打开：已出过的卡清掉，下一局重新教
@@ -653,8 +653,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				var orr := Rect2(vx + 16 + oi * 60, rr.position.y + ty0 - 25, 56, 36)
 				ci.draw_rect(orr, UI.CYAN if active else Color("1b252e"))
 				UI.text(ci, font, orr.position + Vector2(0, 25), ONBOARD_OPTS[oi][1], fs_v - 3, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, orr.size.x)
-			if Cfg.onboard == "":
-				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "下局开局时询问", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
+			var onb_note := ""   # 行尾说明（docs/219 §6）：第一次进游戏必须走完；走完后点「没玩过 / 玩过」= 下局重看演示局
+			if not Cfg.onboard_done:
+				onb_note = "第一局必须走完"
+			elif Cfg.onboard == "":
+				onb_note = "下局开局时询问"
+			elif Cfg.onboard != "off" and not Cfg.onboard_seen.has("drill"):
+				onb_note = "下局重看演示局"
+			if onb_note != "":
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), onb_note, 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"uisize", "zoom":
 			var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
 			var dflt: bool = (Cfg.ui_size_pct == 100) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)

@@ -356,7 +356,7 @@ func _knight_shots() -> void:
 
 
 ## --recframes=<起始秒>,<帧数>（docs/50 §10 顿帧前后对照录像，配 --playclock --fixed-fps 30）：游戏时间过了起始秒后连存 N 帧
-## rec_<帧>.png 到 --shotdir；--legacyfeel：整局用旧的切步与顿帧规则（g.perf_alt + PlayClock.test_legacy）
+## rec_<帧>.png 到 --shotdir（--recintro：新手引导问题框打开时也录，docs/219 §6 录片）；--legacyfeel：整局用旧的切步与顿帧规则（g.perf_alt + PlayClock.test_legacy）
 var _rec_t0 := -2.0
 var _rec_left := 0
 var _rec_sfx0 := {}
@@ -415,7 +415,7 @@ func _rec_step() -> void:
 			if a == "--legacyfeel":
 				g.perf_alt = true
 				PlayClockT.test_legacy = true
-	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and (g.state == g.S.PLAY or (g.state == g.S.CHOICE and Cfg.dev_args().has("--recchoice"))) and DisplayServer.get_name() != "headless":
+	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and (g.state == g.S.PLAY or (g.state == g.S.CHOICE and Cfg.dev_args().has("--recchoice")) or (g.state == g.S.INTRO and g.onboard.modal() and Cfg.dev_args().has("--recintro"))) and DisplayServer.get_name() != "headless":
 		if _rec_i == 0 and Cfg.dev_args().has("--sfxtrace"):
 			Sfx.trace_on = true   # --sfxtrace：录屏配音（测试局照样静音）：记下每次真正放出的音效，结束时打印 SFXTRACE，离线混音合进 mp4（tools/exu_sync_rec.py）
 			_rec_f0 = Engine.get_process_frames()

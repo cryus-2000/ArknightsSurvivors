@@ -94,6 +94,7 @@ var title_tour := 0          # 主界面引导（screens/title_tour.gd）：0 �
 var seen_tips: Array = []    # 已弹过的到点小提示 id（tour.gd TIPS；每样只弹一次）
 var onboard := ""            # 新手引导（docs/219）：""（还没问）/ new 没玩过 / vet 玩过 / off 跳过；设置「操作 · 新手引导」可改
 var onboard_seen: Array = [] # 新手引导已出过的卡 id（screens/onboard.gd，每张只出一次）
+var onboard_done := false    # 新手引导的强制部分（演示局）走完过（docs/219 §6）：false = 第一次进游戏，引导不可跳过；随云存档同步（prog.onb，取或）
 const TIP_IDS := ["elite", "boss", "lamp", "levelup"]
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
 # 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。10-26 起新玩家开局为空（新手十连），名册全部存在这里
@@ -539,6 +540,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	title_tour = int(c.get_value("progress", "title_tour", title_tour))
 	onboard = str(c.get_value("progress", "onboard", onboard))
 	onboard_seen = c.get_value("progress", "onboard_seen", onboard_seen)
+	onboard_done = bool(c.get_value("progress", "onboard_done", onboard_seen.has("drill")))   # 旧档：走完过旧演示局的算完成
 	if not c.has_section_key("progress", "seen_tips") and seen_intro:
 		seen_tips = TIP_IDS.duplicate()   # 老存档（已看过旧指南）：到点小提示按「都看过」处理，不再打扰
 	opening_seen = c.get_value("progress", "opening_seen", opening_seen)
@@ -860,6 +862,7 @@ func save() -> void:
 	c.set_value("progress", "title_tour", title_tour)
 	c.set_value("progress", "onboard", onboard)
 	c.set_value("progress", "onboard_seen", onboard_seen)
+	c.set_value("progress", "onboard_done", onboard_done)
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.set_value("roster", "unlocked", roster_unlocked)
@@ -927,7 +930,7 @@ func cloud_body() -> Dictionary:
 	var pr: Dictionary = (cloud_extra.get("prog", {}) as Dictionary).duplicate(true)
 	pr.merge({"diff": int(_real_progress.get("diff_unlocked", diff_unlocked)), "gal": gallery_seen.duplicate(),
 		"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
-		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen,
+		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen, "onb": onboard_done,
 		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
 		"dbest": diff_best.duplicate(true),
 		"meta": _cloud_meta(),
@@ -1035,6 +1038,8 @@ func cloud_apply(body: Dictionary) -> void:
 		seen_intro = p.intro
 	if p.get("open") is bool:
 		opening_seen = p.open
+	if p.get("onb") is bool:
+		onboard_done = onboard_done or p.onb   # 新手引导走完过：任一边走完就算（本机走完不会被旧云档改回去）
 	if d.get("difficulty") is float or d.get("difficulty") is int:
 		difficulty = int(d.difficulty)
 	difficulty = clampi(difficulty, 0, int(_real_progress.get("diff_unlocked", diff_unlocked)))

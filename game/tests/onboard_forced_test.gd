@@ -1,0 +1,104 @@
+extends Node
+## 新手引导强制部分（docs/219 §6，check.py 场景回归 onboard_forced；参数 --onboard=ask 走第一次进游戏的强制版，不读不写存档）。
+## 1. 第一次进游戏：问题框只有「玩过 / 没玩过」、Esc 不选、skip_all 不生效；2. 两条线的演示局步骤：都含招募 / 连携 / 终结技 / 指挥圆盘，按顺序出；
+## 3. 「连携」一步：充满队长技力 + 身边放怪，到点还没放技能就直接触发；4. 存档：onboard_done 往返，旧档走完过旧演示局的算完成；
+## 5. 云存档：prog.onb 取或、旧正文没有就不补；cloud_apply 不把本机的完成改回去；6. 走完之后不再强制（_first_time 读 Cfg.onboard_done）。
+const CloudPack = preload("res://scripts/core/cloud_pack.gd")
+const Game = preload("res://scripts/game.gd")
+
+var failures := 0
+var g
+
+
+func check(ok: bool, what: String) -> void:
+	if not ok:
+		failures += 1
+		push_error("ONBOARD FORCED: " + what)
+		print("FAIL ", what)
+
+
+func _ready() -> void:
+	g = load("res://game.tscn").instantiate()
+	add_child(g)
+	for i in 4:
+		await get_tree().process_frame
+	g.set_process(false)
+	var ob = g.onboard
+	# 1. 第一次进游戏：问题框不给跳过
+	check(ob.forced, "--onboard=ask 按第一次进游戏走（forced）")
+	check(ob.ask_on, "开局弹问题框")
+	var opts: Array = ob._ask_opts()
+	check(opts.size() == 2 and not opts.any(func(o): return str(o[2]) == "off"), "强制时问题框只有玩过 / 没玩过：" + str(opts.map(func(o): return o[0])))
+	var esc := InputEventKey.new()
+	esc.keycode = KEY_ESCAPE
+	esc.pressed = true
+	ob.input(esc)
+	check(ob.ask_on, "Esc 不关问题框、不选跳过")
+	ob._choose(0)   # 玩过 → 快速演示局
+	check(not ob.ask_on and ob.mode == "vet" and ob.drill, "选玩过：走快速演示局（drill_vet）")
+	ob.skip_all()
+	check(ob.mode == "vet" and ob.drill, "强制时 skip_all 不生效")
+	# 2. 两条线的步骤：都含本作特色，按顺序
+	for key in ["drill", "drill_vet"]:
+		var lst: Array = ob.data.get(key, [])
+		for need in ["recruit", "link", "ult", "command"]:
+			check(lst.has(need), "%s 缺 %s" % [key, need])
+		check(lst.back() == "drill_end", key + " 以演示结束收尾")
+	check(ob.data.get("drill", []).has("move") and not ob.data.get("drill_vet", []).has("move"), "没玩过才教移动 / 升级")
+	check(ob.drill_ids() == ["recruit", "link", "ult", "command"], "快速线步骤：" + str(ob.drill_ids()))
+	check(ob._trigger("recruit") and not ob._trigger("link") and not ob._trigger("ult"), "按顺序：先出招募")
+	ob.seen_mem.append("recruit")
+	check(ob._trigger("link") and not ob._trigger("ult"), "招募做完才出连携")
+	# 3. 连携：放怪 + 充满技力；到点直接触发
+	g.state = Game.S.PLAY
+	if g.squad.size() < 2:
+		g.squad.add("skadi")
+	var n0: int = g.enemies.size()
+	ob.cur = ""
+	ob._show("link")
+	check(g.enemies.size() - n0 == ob.LINK_PACK, "连携一步在队长身边放 %d 只怪（实际 %d）" % [ob.LINK_PACK, g.enemies.size() - n0])
+	var ld = g.squad.leader()
+	check(ld != null and ld.sp[0] >= ld.sp_need(0), "连携一步充满队长技力")
+	ob.cur_t = ob.LINK_NUDGE + 0.1
+	ob.update(0.016)
+	check(ob._nudged, "到点还没放技能：直接触发一次连携")
+	# 4. 存档往返与旧档迁移
+	var saved: bool = Cfg.onboard_done
+	var cf := ConfigFile.new()
+	cf.set_value("progress", "onboard_seen", ["drill", "lamp"])
+	Cfg.onboard_done = false
+	Cfg._read_cfg(cf)
+	check(Cfg.onboard_done, "旧档：走完过旧演示局的算完成")
+	var fresh := ConfigFile.new()
+	fresh.set_value("progress", "onboard_seen", ["lamp"])
+	Cfg._read_cfg(fresh)
+	check(not Cfg.onboard_done, "旧档：没走完演示局的仍要强制一次")
+	var explicit := ConfigFile.new()
+	explicit.set_value("progress", "onboard_done", true)
+	Cfg._read_cfg(explicit)
+	check(Cfg.onboard_done, "onboard_done 读入")
+	# 5. 云存档：取或，旧正文不补
+	var a := {"set": {"t": 1, "d": {}}, "prog": {"onb": false}}
+	var b := {"set": {"t": 2, "d": {}}, "prog": {"onb": true}}
+	check(bool(CloudPack.merge(a, b).prog.get("onb", false)), "云端走完 + 本机没走完 → 走完")
+	check(bool(CloudPack.merge(b, a).prog.get("onb", false)), "本机走完 + 云端没走完 → 走完（不被改回）")
+	check(not CloudPack.merge({"set": {"t": 1, "d": {}}, "prog": {}}, {"set": {"t": 2, "d": {}}, "prog": {}}).prog.has("onb"), "旧正文没有 onb 不补")
+	Cfg.onboard_done = true
+	check(Cfg.cloud_body().prog.get("onb") == true, "cloud_body 带 onb")
+	Cfg.onboard_done = true
+	Cfg.cloud_apply({"set": {"t": 0, "d": {}}, "prog": {"onb": false}})
+	check(Cfg.onboard_done, "cloud_apply 不把本机的完成改回去")
+	Cfg.onboard_done = false
+	Cfg.cloud_apply({"set": {"t": 0, "d": {}}, "prog": {"onb": true}})
+	check(Cfg.onboard_done, "cloud_apply 读入云端的完成")
+	# 6. 走完之后不再强制（真人局读 Cfg.onboard_done）
+	var dev0: String = ob.dev
+	ob.dev = ""
+	Cfg.onboard_done = false
+	check(ob._first_time(), "没有完成记录 → 强制")
+	Cfg.onboard_done = true
+	check(not ob._first_time(), "有完成记录 → 不强制")
+	ob.dev = dev0
+	Cfg.onboard_done = saved
+	print("ONBOARD FORCED failures=", failures)
+	get_tree().quit(1 if failures else 0)

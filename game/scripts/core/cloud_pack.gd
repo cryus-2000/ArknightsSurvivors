@@ -4,7 +4,7 @@ extends RefCounted
 ## 存档正文 body（逻辑结构，和 settings.cfg 的字段一一对应，见 settings.gd cloud_body / cloud_apply）：
 ##   {"set": {"t": 设置最后修改的 Unix 秒, "d": {设置键: 值, "touch_layout": 触屏按键布局}},
 ##    "prog": {"diff": 已解锁最高难度档, "gal": 图鉴已见, "rel": 已见藏品, "end": 已达成结局, "shows": 已看演出,
-##             "intro": 看过开局指南, "open": 看过完整开场}}
+##             "intro": 看过开局指南, "open": 看过完整开场, "onb": 新手引导强制部分走完过（docs/219 §6，可缺）}}
 ## 上云格式：body → 排序键的 JSON（非 ASCII 字符转 \uXXXX，字符数 = 字节数）→ 每 CHUNK 字节一片，key sy_d0 … sy_d{n-1}；
 ## 头 sy_h = {"v": 格式版本, "minv": 能读这份存档的最低版本, "t": 上传时刻 Unix 秒, "n": 片数, "len": 总长, "md5": 全文 md5}。
 ## 头和各片在同一次 setCloudStorage 里写。
@@ -181,6 +181,8 @@ static func normalize(b: Dictionary) -> Dictionary:
 	pr["diff"] = int(pr.get("diff", 0))
 	pr["intro"] = bool(pr.get("intro", false))
 	pr["open"] = bool(pr.get("open", false))
+	if pr.has("onb"):
+		pr["onb"] = bool(pr.onb)   # 新手引导走完过（11-02 加，旧正文里没有就不补）
 	if pr.has("opst"):
 		pr["opst"] = (pr.opst as Dictionary).duplicate(true) if pr.opst is Dictionary else {}
 		if int(pr.get("rv", 0)) < 2:
@@ -358,6 +360,8 @@ static func merge(local: Dictionary, cloud: Dictionary) -> Dictionary:
 	p["diff"] = maxi(int(lp.diff), int(cp.diff))
 	p["intro"] = bool(lp.intro) or bool(cp.intro)
 	p["open"] = bool(lp.open) or bool(cp.open)
+	if lp.has("onb") or cp.has("onb"):
+		p["onb"] = bool(lp.get("onb", false)) or bool(cp.get("onb", false))
 	for k in LIST_KEYS:
 		if lp.has(k) or cp.has(k):
 			p[k] = union(lp.get(k, []), cp.get(k, []))
