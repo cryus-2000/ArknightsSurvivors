@@ -32,20 +32,20 @@ export function create(o) {
     const seen = new Set();
     for (let x = tail; x <= head; x += 0.5) {
       const v = (x - tail) / (head - tail), yc = 4 * Math.sin(x * 0.06 + 1.1) + 2 * noise(x * 0.08, o.seed);
-      const w = (1.5 + 4.5 * Math.pow(v, 1.3)) * (0.8 + 0.4 * (0.5 + 0.5 * noise(x * 0.15, o.seed + 3)));
+      const w = (1 + 3 * Math.pow(v, 1.3)) * (0.8 + 0.4 * (0.5 + 0.5 * noise(x * 0.15, o.seed + 3)));
       for (let d = -w; d <= w; d += 0.5) {
         const px = Math.round(x), py = Math.round(yc + d), k = px * 1000 + py;
         if (seen.has(k)) continue;
         seen.add(k);
         const q = Math.abs(d) / w, topLit = d < 0;
-        const ci = clamp(Math.round(2.5 + v * 2.5 + (q > 0.6 && topLit ? 1.5 : 0) + (t < 0.03 ? 2 : 0)), 1, 7);
-        p.blend(px, py, C[ci], q > 0.7 ? 0.75 : 0.6);
+        const ci = clamp(Math.round(2 + v * 2 + (q > 0.6 && topLit ? 1.2 : 0) + (t < 0.03 ? 2 : 0)), 1, 6);   // 水带本体压暗：多条同时绕漩涡时不读成一圈白鳍
+        p.blend(px, py, C[ci], q > 0.7 ? 0.6 : 0.45);
       }
     }
     // 头部卷浪：往上翻的一小钩
-    for (let k = 0; k < 10; k++) {
-      const a = -0.4 - k * 0.3, r = 5 - k * 0.3;
-      p.blend(Math.round(head - 2 + Math.cos(a) * r), Math.round(-3 + Math.sin(a) * r), C[7], 0.9);
+    for (let k = 0; k < 7; k++) {
+      const a = -0.4 - k * 0.35, r = 4 - k * 0.3;
+      p.blend(Math.round(head - 2 + Math.cos(a) * r), Math.round(-3 + Math.sin(a) * r), C[k < 2 ? 7 : 5], 0.8);
     }
   }
 
