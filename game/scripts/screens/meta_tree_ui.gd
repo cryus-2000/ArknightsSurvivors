@@ -9,7 +9,8 @@ extends Control
 ## 像素层（背景、星座连线、星）画进低分辨率 SubViewport（1 格 = 2 设计单位，最近邻放大）；文字、外框、详情卡画在 view（设计单位）里保持清晰。
 ## 三种状态：已塑造 = 亮星（白芯 + 十字星芒 + 青光），两头都亮的星座连线点亮、有光点流动；可塑造 = 黄白星闪烁 + 黄色点环转动；
 ## 余额不够 = 灰星；未解锁 = 暗星。质变节点 = 大亮星（八道星芒 + 伴星成团）。招牌动效：塑造时一道光从上一颗亮星沿这一笔流进新星（0.55 秒）→ 外扩环（0.45 秒）。
-## 操作：方向键 / 手柄十字键按方向找最近的节点；点节点选中、再点 / Enter / 详情卡「塑造」塑造；R 推荐（按推荐顺序把余额点完）；X 两次全部重置（免费退回）；
+## 操作：方向键 / 手柄十字键按方向找最近的节点；点节点选中并展开详情卡（11-02 用户：缺省收起，点到具体节点再自动展开），
+## 再点同一节点 / 点空白 / Z 收起，悬停只高亮；Enter / 详情卡「塑造」塑造；R 推荐（按推荐顺序把余额点完）；X 两次全部重置（免费退回）；
 ## Esc 返回；画布比屏幕大时拖动 / 滚轮（Shift 横向）平移，换选中后镜头跟随。减少动态效果：不生长、不呼吸、无光点流动，镜头直接到位。
 signal closed
 
@@ -81,7 +82,9 @@ var motes: Array = []
 var pxu := 2.0                # 1 像素格 = pxu 设计单位：一格恰好是整数个屏幕像素（720p / 1080p = 2，900p = 2.4），任何分辨率都是整齐的方块
 var rn := 8                   # 普通 / 质变节点半径（像素格）
 var rk := 11
-var card_hide := false        # 详情卡收起（10-27 用户：左下角的卡要能点掉，被挡住的节点才看得见、点得到）：卡外「收起」/ 左下「详情」标签 / Z（手柄 Ⓧ）切换
+var card_hide := false        # 详情卡收起（10-27 用户：左下角的卡要能点掉，被挡住的节点才看得见、点得到）：卡外「收起」/ 左下「详情」标签 / Z（手柄 Ⓧ）切换；
+                              # 11-02 用户：进页收起，点 / 方向键 / 手柄选中节点时自动展开，点空白或再点同一节点收起
+var card_rect := Rect2()      # 展开的详情卡 / 手机底条占的区域（点在卡上不穿透到后面的节点，也不算点空白）
 var fit_all := false          # --metafit（开发截图）：整棵树缩进一屏、不画详情卡，做「原作 | 本作」对照用
 
 static var _re_head: RegEx
@@ -202,7 +205,8 @@ func open() -> void:
 				sel = Vector2i(i, k)
 				found = true
 	reset_armed = false
-	card_hide = true   # D4：手机详情条缺省收起（以前盖住下半屏节点），左下「详情」标签点开；11-01 docs/213 P11 电脑的详情卡也缺省收起
+	card_hide = true   # D4：手机详情条缺省收起（以前盖住下半屏节点），左下「详情」标签点开；11-01 docs/213 P11 电脑的详情卡也缺省收起；
+	                   # 11-02 起选中节点时自动展开（_select）
 	lit_id = ""
 	open_t0 = t
 	follow = true
@@ -344,6 +348,7 @@ func _select(id: String) -> void:
 			if Vector2i(i, k) != sel:
 				sel = Vector2i(i, k)
 				Sfx.play("ui_move", -6.0)
+			card_hide = false   # 选中即展开详情（11-02）
 			reset_armed = false
 			follow = true
 			return
@@ -516,11 +521,16 @@ func _click(p: Vector2) -> void:
 		if (b[0] as Rect2).has_point(p):
 			_act(b[1])
 			return
+	if not card_hide and card_rect.has_point(p):
+		return   # 点在展开的卡上：不穿透
 	var id := _node_at(p)
 	if id == "":
+		if not card_hide:
+			card_hide = true   # 点空白收起
+			Sfx.play("ui_move", -6.0)
 		return
 	if id == _sel_id():
-		_buy(id)
+		_act("card")   # 再点同一节点：展开 / 收起（塑造用卡上的「塑造」或 Enter）
 	else:
 		_select(id)
 
@@ -914,7 +924,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	var pan := _pannable()
 	var hint: String
 	if tch:
-		hint = "点节点选中 · 再点塑造" + (" · 拖动平移" if pan else "")
+		hint = "点节点看详情 · 点空白收起" + (" · 拖动平移" if pan else "")
 	else:
 		hint = Pad.hint("方向键 选择  ·  ENTER 塑造  ·  Z 详情" + ("  ·  拖动 平移" if pan else ""), "十字键 选择  ·  Ⓐ 塑造  ·  Ⓧ 详情", "")
 	UI.text_at(ci, font, Vector2(24, 84), hint, 15 if Cfg.phone_ui() else 12, UI.fa(T_SUB, 0.85))   # D4：手机 12 号只剩 10 像素
@@ -927,6 +937,7 @@ func _draw_card(ci: CanvasItem) -> void:
 	if id == "" or fit_all:
 		return
 	var slide := 1.0 if Cfg.reduce_motion else UI.ease_out(clampf((t - open_t0 - 0.15) / 0.3, 0.0, 1.0))
+	card_rect = Rect2()
 	if card_hide:
 		_draw_card_tab(ci, id)
 		return
@@ -937,6 +948,7 @@ func _draw_card(ci: CanvasItem) -> void:
 	var bh := _card_body(ci, Vector2(0, 0), w, id, false)
 	var h := bh + 62.0
 	var r := Rect2(24.0 - (1.0 - slide) * 60.0, vs.y - 20.0 - h, w, h)
+	card_rect = r
 	var cut := 22.0
 	HS.fill(ci, PackedVector2Array([r.position + Vector2(6, 6), Vector2(r.end.x - cut + 6, r.position.y + 6), Vector2(r.end.x + 6, r.position.y + cut + 6),
 		r.end + Vector2(6, 6), Vector2(r.position.x + 6, r.end.y + 6)]), Color(0, 0, 0, 0.35))
@@ -1075,6 +1087,7 @@ func _draw_sheet(ci: CanvasItem, id: String, slide: float) -> void:
 	var ch: Array = chains[clampi(sel.x, 0, chains.size() - 1)]
 	var g: int = GROUP_OF.get(_pre(id), 0)
 	var r := Rect2(12.0, vs.y - 12.0 - SHEET_H + (1.0 - slide) * 40.0, vs.x - 24.0, SHEET_H)
+	card_rect = r
 	HS.fill(ci, PackedVector2Array([r.position, Vector2(r.end.x - 18.0, r.position.y), Vector2(r.end.x, r.position.y + 18.0), r.end, Vector2(r.position.x, r.end.y)]), HS.LIGHT)
 	ci.draw_rect(Rect2(r.position, Vector2(5, r.size.y)), HS.YEL)
 	var x := r.position.x + 22.0
