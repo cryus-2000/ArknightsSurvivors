@@ -97,7 +97,8 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 	if kind == 2:
 		rev = (o.face < 0.0) != (int(sp.whirl_n) % 2 == 1)
 	var lk: Dictionary = a.get("look", {})
-	if kind == 2 or not o.spawn_fx_sprite(str(lk.get("blood", "fx_specter_saw_blood")) if heavy else str(lk.get("saw", "fx_specter_saw")), o.pos + Vector2(0, -6), r / 40.0, 0.0, rev):
+	var ssc: float = g.PX * r / float(lk.saw_r) if lk.has("saw_r") else r / 40.0   # saw_r：pixelfx 环锯按设计半径 1:1 密度缩放（docs/229 §2.1，C 组 11-02）
+	if kind == 2 or not o.spawn_fx_sprite(str(lk.get("blood", "fx_specter_saw_blood")) if heavy else str(lk.get("saw", "fx_specter_saw")), o.pos + Vector2(0, -6), ssc, 0.0, rev):
 		o.fx({"kind": "h3_saw", "pos": o.pos + Vector2(0, -8), "r": r * (0.9 if kind == 2 else 1.0), "life": 0.3 if heavy else 0.24, "col": H3_RED if heavy else H3_GHOST,
 			"spin": (-1.0 if rev else 1.0) * (26.0 if heavy else 34.0), "tooth": 8.0 if heavy else 6.0, "ang": g.vrng.randf() * TAU})
 	if kind == 1:

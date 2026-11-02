@@ -771,8 +771,9 @@
     "src": "血色潮痕"
    },
    "look": {
-    "saw": "fx_specter_saw",
-    "blood": "fx_specter_saw_blood",
+    "saw": "fx_specter_unchained_px_saw",
+    "blood": "fx_specter_unchained_px_saw_blood",
+    "saw_r": 102,
     "heavy": {
      "cond": "skill_active:2"
     },
@@ -817,8 +818,8 @@
      },
      {
       "sprite": {
-       "name": "fx_circle_ghost",
-       "scale": 1.8
+       "name": "fx_specter_unchained_px_cast",
+       "scale": 1.0
       },
       "at": "self",
       "off": [
@@ -908,8 +909,8 @@
      },
      {
       "sprite": {
-       "name": "fx_circle_ghost",
-       "scale": 1.8
+       "name": "fx_specter_unchained_px_cast",
+       "scale": 1.0
       },
       "at": "self",
       "off": [
@@ -1026,8 +1027,8 @@
      },
      {
       "sprite": {
-       "name": "fx_circle_ghost",
-       "scale": 1.8
+       "name": "fx_specter_unchained_px_cast",
+       "scale": 1.0
       },
       "at": "self",
       "off": [
@@ -1146,10 +1147,10 @@
       "elite_mult": 0.5,
       "fx": [
        {
-        "strip": "fx_specter_inward_ripple",
+        "strip": "fx_specter_unchained_px_ripple",
         "layer": "floor",
-        "fit": 48,
-        "max_scale": 3.4
+        "fit": 80,
+        "max_scale": 2.2
        }
       ]
      }

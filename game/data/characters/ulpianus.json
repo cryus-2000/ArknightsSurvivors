@@ -761,8 +761,8 @@
    "fx": [
     {
      "sprite": {
-      "name": "fx_slash_heavy_steel",
-      "scale_r": 0.04643,
+      "name": "fx_ulpianus_px_slam",
+      "scale_r": 0.0209,
       "rot_ang": true,
       "flip_side": false
      },
@@ -891,8 +891,8 @@
        "fx": [
         {
          "sprite": {
-          "name": "fx_slash_heavy_steel",
-          "scale_r": 0.04643,
+          "name": "fx_ulpianus_px_slam",
+          "scale_r": 0.0209,
           "rot_ang": true,
           "flip_side": false
          },
@@ -1013,8 +1013,8 @@
       "fx": [
        {
         "sprite": {
-         "name": "fx_slash_heavy_steel",
-         "scale_r": 0.04643,
+         "name": "fx_ulpianus_px_slam",
+         "scale_r": 0.0209,
          "rot_ang": true,
          "flip_side": false
         },

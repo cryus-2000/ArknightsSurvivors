@@ -456,7 +456,8 @@ static func _hw_reel_slam(o) -> void:
 			o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else 1.0))
 			if not e.boss:
 				o.apply_kb(e, (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0)))
-	o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
+	if not o.spawn_fx_sprite("fx_ulpianus_px_slam", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 0.0209, dir.angle()):   # pixelfx 锚击（docs/229 C 组）：同 attack.fx 的 scale_r
+		o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
 	_hw_slam_fx(o, c, r, 1.2)
 	o.impact_pause(0.07)
 	_hw_sfx_op(o, "atk", 2.0, 0.85)

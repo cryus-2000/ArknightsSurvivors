@@ -1117,6 +1117,11 @@ const V6_FRAMES := {
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# ---- 组 B 止
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
+	"fx_gladiia_px_slash": [4, 24.0], "fx_mizuki_px_slash": [4, 24.0], "fx_ulpianus_px_slam": [5, 24.0], "fx_kaltsit_px_claw": [4, 24.0],   # 普攻（docs/229 §3）
+	"fx_specter_unchained_px_saw": [5, 24.0], "fx_specter_unchained_px_saw_blood": [5, 24.0],
+	"fx_specter_unchained_px_ripple": [9, 20.0], "fx_specter_unchained_px_cast": [9, 20.0], "fx_kaltsit_px_slam": [10, 20.0], "fx_kaltsit_px_slam_s": [10, 20.0],   # 技能
+	"fx_mizuki_px_sting": [6, 20.0], "fx_mizuki_px_bind": [12, 20.0], "fx_gladiia_px_ram": [9, 20.0],
+	"fx_kaltsit_px_heal": [9, 20.0], "fx_kaltsit_px_melt": [4, 24.0],
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
 	# ---- 组 D 止

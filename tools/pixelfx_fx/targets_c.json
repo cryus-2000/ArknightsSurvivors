@@ -1,0 +1,115 @@
+{
+ "_doc": "C 组深海猎人系（docs/229 §9）：歌蕾蒂娅 / 水月 / 乌尔比安 / 归溟幽灵鲨 / 凯尔希；全部 @2x，32 色调色板",
+ "fx_gladiia_px_slash": {
+  "fx": "melee/ak-gladiia-slash",
+  "hires": true
+ },
+ "fx_mizuki_px_slash": {
+  "fx": "melee/ak-mizuki-slash",
+  "hires": true,
+  "opts": {
+   "palette": [
+    "#06142a",
+    "#0d0e27",
+    "#1e2766",
+    "#284286",
+    "#3d5fd6",
+    "#8f9ae6",
+    "#c9bdf0",
+    "#ffffff"
+   ]
+  }
+ },
+ "fx_ulpianus_px_slam": {
+  "fx": "melee/ak-ulpianus-slam",
+  "hires": true
+ },
+ "fx_kaltsit_px_claw": {
+  "fx": "melee/ak-kaltsit-claw",
+  "hires": true
+ },
+ "fx_specter_unchained_px_saw": {
+  "fx": "melee/ak-specter_unchained-saw",
+  "hires": true
+ },
+ "fx_specter_unchained_px_saw_blood": {
+  "fx": "melee/ak-specter_unchained-saw",
+  "hires": true,
+  "opts": {
+   "seed": 13,
+   "palette": [
+    "#06142a",
+    "#1c0807",
+    "#3f0d0b",
+    "#6e1513",
+    "#a8241f",
+    "#dc6a5e",
+    "#f6d3cb",
+    "#ffffff"
+   ]
+  }
+ },
+ "fx_specter_unchained_px_ripple": {
+  "fx": "water/ak-specter_unchained-ripple"
+ },
+ "fx_specter_unchained_px_cast": {
+  "fx": "water/ak-specter_unchained-cast",
+  "hires": true
+ },
+ "fx_kaltsit_px_slam": {
+  "fx": "impacts/ak-kaltsit-slam",
+  "hires": true
+ },
+ "fx_kaltsit_px_slam_s": {
+  "fx": "impacts/ak-kaltsit-slam",
+  "hires": true,
+  "opts": {
+   "radius": 40,
+   "seed": 9
+  }
+ },
+ "fx_mizuki_px_sting": {
+  "fx": "impacts/ak-mizuki-sting",
+  "hires": true,
+  "opts": {
+   "palette": [
+    "#06142a",
+    "#0d0e27",
+    "#1e2766",
+    "#284286",
+    "#3d5fd6",
+    "#8f9ae6",
+    "#c9bdf0",
+    "#ffffff"
+   ]
+  }
+ },
+ "fx_mizuki_px_bind": {
+  "fx": "status/ak-mizuki-bind",
+  "hires": true,
+  "opts": {
+   "palette": [
+    "#06142a",
+    "#0d0e27",
+    "#1e2766",
+    "#284286",
+    "#3d5fd6",
+    "#8f9ae6",
+    "#c9bdf0",
+    "#ffffff"
+   ]
+  }
+ },
+ "fx_gladiia_px_ram": {
+  "fx": "water/ak-gladiia-ram",
+  "hires": true
+ },
+ "fx_kaltsit_px_heal": {
+  "fx": "holy/ak-kaltsit-heal",
+  "hires": true
+ },
+ "fx_kaltsit_px_melt": {
+  "fx": "melee/ak-kaltsit-melt",
+  "hires": true
+ }
+}

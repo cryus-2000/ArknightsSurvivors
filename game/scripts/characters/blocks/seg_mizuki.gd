@@ -263,7 +263,14 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		slash_col = Color(1.15, 1.15, 1.15)
 	for k in min(hit.size(), 3):
 		o.enemy_hit_fx(hit[k], hit[k].pos - o.pos)
-	if not s3:
+	if not s3 and g.tex.get("fx_mizuki_px_slash") != null:   # pixelfx 伞击（docs/229 C 组）：按设计半径 112 × 0.85 画，密度夹在 1.7–2.2（docs/229 §2.1）
+		var ptint := Color.WHITE
+		if empowered:
+			ptint = Color(1.25, 1.1, 0.8)
+		elif o.s_t[1] > 0.0:
+			ptint = Color(0.85, 1.0, 1.15)
+		o.spawn_fx_sprite("fx_mizuki_px_slash", o.pos, g.PX * clampf(radius / 112.0, 0.85, 1.1), ang, false, false, ptint)
+	elif not s3:
 		o.slash_fx(o.pos, ang, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
 	if empowered and not s3 and not slash_tex.begins_with("fx_umbrella_slash"):
 		o.slash_fx(o.pos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
@@ -802,7 +809,7 @@ static func _e3_sting(o, jb: Dictionary, e: Dictionary) -> void:
 		var sd: float = float(jb.get("stun", 0.3)) * (0.5 if e.elite else 1.0)
 		o.add_cc(e, sd)
 		mz.binds.append({"e": e, "t": sd})
-	if not o.spawn_fx_sprite(str(jb.get("sting_fx", "fx_mizuki_jelly_sting")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
+	if not o.spawn_fx_sprite(str(jb.get("sting_fx", "fx_mizuki_px_sting")), e.pos + Vector2(0, -e.r * 0.5), g.PX) and not o.spawn_fx_sprite("fx_mizuki_jelly_sting", e.pos + Vector2(0, -e.r * 0.5), g.PX):
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": Color(0.9, 0.6, 1.6), "alpha": 0.6})
 
 
@@ -846,7 +853,9 @@ static func _e3_draw_binds(o) -> void:
 	for bd in mz.binds:
 		var e: Dictionary = bd.e
 		var bp: Vector2 = e.pos + Vector2(0, float(e.r) * 0.6)
-		if g.tex.get("fx_mizuki_bind_ring") != null:
+		if g.tex.get("fx_mizuki_px_bind") != null:   # pixelfx 束缚触丝（docs/229 C 组）：按敌人半径 14 设计，密度夹在 1.7–2.3
+			fx_frame(cv, g, "fx_mizuki_px_bind", 12, int(g.t * 20.0) % 12, bp, g.PX * clampf(float(e.r) / 14.0, 0.85, 1.15), Color(1, 1, 1, 0.9))
+		elif g.tex.get("fx_mizuki_bind_ring") != null:
 			fx_frame(cv, g, "fx_mizuki_bind_ring", 6, int(g.t * 10.0) % 6, bp, g.PX * clampf(float(e.r) / 10.0, 1.0, 2.0), Color(1, 1, 1, 0.9))
 		else:
 			cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
