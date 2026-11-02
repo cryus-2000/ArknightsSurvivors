@@ -9,7 +9,7 @@
 档位（compression_level：0 最好、1 最小；libsndfile 把它映射成 Vorbis 质量 1 - level）：
   A：配乐最多 32 kHz / 0.85；语音 24 kHz / 0.85
   B 平衡：配乐最多 24 kHz / 0.85，战斗 pulse / drive / 危险层 1.0；语音同 A
-  C 激进：配乐最多 22.05 kHz / 1.0；语音 22.05 kHz / 0.9
+  C 激进：配乐最多 22.05 kHz / 1.0（8 kHz 以上几乎没内容的曲目再降到 16 kHz，§10）；语音 22.05 kHz / 1.0
   D / E（10-28 试听档，docs/187 §7，只动配乐、语音同 B）：配乐 22.05 / 16 kHz，level 1.1 = Vorbis 质量 -0.1。
     libsndfile 最低只到质量 0，这两档改用 imageio_ffmpeg 自带 ffmpeg 的 libvorbis 编码（global_quality = 质量 × 10 × 118）
 这是有损压缩。网页 PCM 大小取决于 AudioContext 采样率，文件降采样本身只减包体；手机上下文另由 power.js 设为 24 kHz。
@@ -42,6 +42,22 @@ def music_group(name):
     if name.endswith("_danger"):
         return "danger"
     return "other"
+
+
+MUSIC_LP_HZ = 16000        # 11-02：本身几乎没有 8 kHz 以上内容的曲目 / 层，再降到 16 kHz（docs/187 §10）
+MUSIC_LP_HF_MAX = 0.0012   # 8 kHz 以上能量占比上限（-29 dB）；超过的曲目仍用档位采样率
+
+
+def music_rate(x, sr, tier_rate):
+    """档位采样率之外，再按内容定：8 kHz 以上能量 < 0.12% 的曲目降到 16 kHz。D / E 档不用此规则（试听档保持原样）"""
+    if tier_rate <= MUSIC_LP_HZ:
+        return tier_rate
+    m = x if x.ndim == 1 else x.mean(1)
+    X = np.abs(np.fft.rfft(m)) ** 2
+    fr = np.fft.rfftfreq(len(m), 1.0 / sr)
+    if X[fr > MUSIC_LP_HZ / 2].sum() < MUSIC_LP_HF_MAX * max(X.sum(), 1e-12):
+        return MUSIC_LP_HZ
+    return tier_rate
 
 
 def encode(x, sr, level):
@@ -79,6 +95,8 @@ def shrink(gamedir, tier):
         old = os.path.getsize(p)
         x, sr = sf.read(p, dtype="float32")
         sr_out = min(sr, t["music_rate"])
+        if tier == "C":
+            sr_out = min(sr, music_rate(x, sr, sr_out))
         duration = len(x) / sr
         if sr_out != sr:
             from scipy.signal import resample_poly
