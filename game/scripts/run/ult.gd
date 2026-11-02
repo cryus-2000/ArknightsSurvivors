@@ -1043,6 +1043,12 @@ func _cutin(ld, k: String) -> void:
 func strip(name: String, c: Vector2, opt: Dictionary = {}) -> Dictionary:
 	var s := opt.duplicate()
 	s["kind"] = "strip"
+	if name.find("_px_") >= 0:   # pixelfx（连携复用）：挑变体 + 随机镜像 / 小转角 + 实时火星（vfx.px_vary，纯画面）
+		var pv: Array = g.vfx.px_vary(name)
+		g.vfx.px_spark(name, c, Vector2.from_angle(float(s.get("ang", 0.0))) if s.has("ang") else Vector2.ZERO)
+		name = pv[0]
+		s["sy"] = float(s.get("sy", 1.0)) * float(pv[1])
+		s["ang"] = float(s.get("ang", 0.0)) + float(pv[2])
 	s["name"] = name
 	s["c"] = c
 	if not s.has("life"):
@@ -1169,7 +1175,7 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 	g.draw_set_transform(s.c, ang, sv)
 	g.draw_texture_rect_region(t, Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	g.vfx.glow(str(s.name), Transform2D(ang, sv, 0.0, s.c), Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)   # pixelfx 光晕层（连携复用的帧条）
+	g.vfx.px_glow(str(s.name), Transform2D(ang, sv, 0.0, s.c), Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)   # pixelfx 光晕层（连携复用的帧条）
 
 
 ## 地面层（world.gd 在干员地面特效那一步调）：layer = back 的帧条
