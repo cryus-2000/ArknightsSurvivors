@@ -943,8 +943,10 @@ func px_glow(name: String, xf: Transform2D, dst: Rect2, src: Rect2, col: Color) 
 ## 变体：导出脚本按种子出 <名>、<名>_v1、<名>_v2（登记在 V6_FRAMES），开播时随机挑一版；再随机沿自身朝向轴镜像（fy = ±1）、
 ## 转 ±PX_JITTER 弧度。火星：<名> 的登记第 3 项 [颗数, 色阶下标, 速度] 有就在开播点喷一把（sparks，同屏上限照旧）。
 ## 全部用视觉随机数 vrng，同 seed 的 TRACE 不变。返回 [实际帧条名, fy, 角度增量]
+## rigid：只挑变体、不镜像不转角——地面落点 / 地面圈（镜像会把透视远近翻过来、转角会让外沿偏离判定椭圆，E 组 11-03）
+## 和全部敌方帧条 fx_e_px_*（预警与判定一致，docs/229 §4）
 const PX_JITTER := 0.1
-func px_vary(name: String) -> Array:
+func px_vary(name: String, rigid := false) -> Array:
 	if name.find("_px_") < 0:
 		return [name, 1.0, 0.0]
 	var n := 1
@@ -954,6 +956,8 @@ func px_vary(name: String) -> Array:
 	var pick: String = name if k == 0 else "%s_v%d" % [name, k]
 	if g.tex.get(pick) == null:
 		pick = name
+	if rigid or name.begins_with("fx_e_px_"):
+		return [pick, 1.0, 0.0]
 	return [pick, -1.0 if g.vrng.randf() < 0.5 else 1.0, g.vrng.randf_range(-PX_JITTER, PX_JITTER)]
 
 
@@ -991,7 +995,7 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 		return false
 	var fy := 1.0
 	if name.find("_px_") >= 0:   # pixelfx：挑变体 + 随机镜像 / 小转角 + 实时火星（px_vary）
-		var pv: Array = px_vary(name)
+		var pv: Array = px_vary(name, ground)
 		px_spark(name, pos, Vector2.from_angle(ang) if ang != 0.0 else Vector2.ZERO)
 		name = pv[0]
 		fy = pv[1]
