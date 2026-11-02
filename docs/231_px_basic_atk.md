@@ -2,19 +2,19 @@
 
 用户 11-02 定：普攻也可以用 pixelfx 自写专属特效替换（不用库模板），按普攻预算；同日又定「光晕 + 余韵」口径（docs/238）和「整套替换」（docs/237）。本文是试点结果，也是**其余 18 人普攻照做的步骤**（docs/229 §9：18 人普攻归 A–D 各组）。硬数字以 docs/229 §0 / §2.5 / §3 为准，本文只写做法和试点实测。
 
-分支 `claude/elastic-brattain-98b1d9`（基于 integ-1101 c73d2ff86，已合 `claude/fx-lead-prep` 88c92cb8a）。
+分支 `claude/elastic-brattain-98b1d9`（基于 integ-1101 c73d2ff86，已合 `claude/fx-lead-prep` 5b4bf6a77）。
 
 ## 0 结论
 
 | 项 | 拉普兰德（近战） | 能天使（远程） |
 |---|---|---|
 | 换了什么 | 普攻「双刃」刀光 fx_lappland_slash → **fx_lappland_px_slash**（含 twin 第二刀） | 枪口 → **fx_exusiai_px_atk_muzzle**；命中 → **fx_exusiai_px_atk_hit**；弹体 → **proj_exusiai_px_bullet**；精一层数弹体 t1–t3 → **proj_exusiai_px_bullet_t1–t3** |
-| 帧条（@2x，全部另有 `_glow` 条） | 90×180 × 7 帧 @24：主体 4 帧（0.17 s）+ 余韵 3 帧；2 个变体 | 枪口 32×32 × 4 @24（主体 3 + 枪烟 1）；命中 24×18 × 7 @24（主体 4 + 余烬 3）；各 2 个变体。弹体 32×12 × 2 @20 循环 × 4 色（不出变体） |
-| 包体（32 色调色板 PNG，本体 + glow，含变体） | (2.5 + 0.5) × 2 = **6.0 KB**（上限单条 4 / 每人 8） | 枪口 0.6 × 2、命中 0.6 × 2、弹体 0.5 × 4 = **4.4 KB** |
-| 近白像素（白只在核心，上限 12%） | 旧 32.8% → **3.7%** | 枪口 32.5 → 3.9%；命中 21.2 → 0.9%；弹体 20.0 → 6.8% |
-| 帧时（--mobilecap 网页，后期同局轮换） | 见 §4 | 同一局 |
-| 判定 / 玩法 | 不动；同种子 TRACE 见 §3 | 同左 |
-| 对照录像 | `Claude outputs/fx_basic_atk/basic_atk_ab.mp4`（左旧右新，同种子原速 30 帧） | 同一文件后半段 |
+| 帧条（@2x，全部另有 `_glow` 条） | 90×180 × 7 帧 @24：主体 4 帧（0.17 s）+ 余韵 3 帧；2 个变体 | 枪口 32×32 × 4 @24（主体 3 + 枪烟 1）；命中 24×18 × 7 @24（主体 4 + 余烬 3）；各 2 个变体。弹体 40×16 × 2 @20 循环 × 4 色（同技能弹尺寸，不出变体） |
+| 包体（调色板 PNG，本体 + glow，含变体） | 2.97 + 2.96 = **5.9 KB**（上限单条 4 / 每人 8） | 枪口 0.64 × 2、命中 0.63 × 2、弹体 0.48 × 4 = **4.5 KB** |
+| 近白像素（白只在核心，上限 12%） | 旧 32.8% → **3.4–3.5%** | 枪口 32.5 → 3.9%；命中 21.2 → 0–0.9%；弹体 20.0 → 4.0% |
+| 帧时（--mobilecap 网页，后期同局轮换） | **未测成**（§4），组长在全部美术合完后统一测 | 同左 |
+| 判定 / 玩法 | 不动：seed 1 · 240 秒 TRACE 241 行逐行相同 | 同左（加 `--prog=8` 走精一层数弹体） |
+| 对照录像 | `Claude outputs/fx_basic_atk/basic_atk_ab.mp4`（左旧右新，seed 3、原速 30 帧，10.2 MiB；弹体放大前录的，正式对照由组长统一批量录） | 同一文件后半段 |
 
 回退：`--bal=fx/px_basic=0`（balance 写 `fx/px_basic: 0` 同效）整体回旧帧条，不用改数据。
 
@@ -61,20 +61,44 @@
    - 帧时：§4 的命令，P50 / P95 差 ≤ 0.3 ms。
    - `python tools/fx_coverage.py --op <干员>` 普攻行应为已做；只为回退保留的旧名在本组 coverage_<组>.json 登记 `已做` + 理由。
 
-## 3 判定与同种子 TRACE
+## 3 判定、硬数字自检与快检
 
-（待填）
+- **TRACE**：`trace_base.py 1 lappland 240 --here`、`trace_base.py 1 exusiai 240 --here --extra=--prog=8`，基线 c73d2ff8，两局各 241 行逐行相同（BALANCE 行只差画面峰值 / prof）。改动只碰贴图名、画面列表 g.fx 的寿命截断和 vrng，不碰 g.rng。
+- **硬数字**（docs/229 §0 / §3）：
+
+| 帧条 | 尺寸 × 帧 @fps | 色数 | 本体 + glow | 近白 | 半透明 |
+|---|---|---|---|---|---|
+| fx_lappland_px_slash / _v1 | 90×180 / 88×184 × 7 @24（主体 4 + 余韵 3） | 11–12 | 2.97 / 2.96 KB | 3.4 / 3.5% | 余韵残痕 p.blend |
+| fx_exusiai_px_atk_muzzle / _v1 | 32×32 × 4 @24（主体 3 + 枪烟 1，0.17 s） | 11 | 0.64 / 0.63 KB | 3.8 / 3.9% | 枪烟 p.disc |
+| fx_exusiai_px_atk_hit / _v1 | 24×18 / 22×18 × 7 @24（主体 4 + 余烬 3） | 13–14 | 0.63 / 0.64 KB | 0 / 0.9% | 余烬 p.blend |
+| proj_exusiai_px_bullet、_t1–t3 | 40×16 × 2 @20 循环 | 6–7 | 0.48 KB × 4 | 4.0% | — |
+
+  每 1x 像素的世界像素：刀光 scale 1（不按 fit 拉）= 2.0；枪口 / 命中 / 弹体 PX × 0.8 = 1.6；都在 1.6–2.2。导出脚本会去掉末尾空帧，所以帧条最后一帧是余韵最淡的一帧。
+- **快检**：`--auto` 精简全量 167 项只失败 exusiai_blocks（测试写死旧帧条名，也含技能试点的 px 名），改测试后通过；合 5b4bf6a77 后 `--only core` 与 exusiai_blocks 通过。
 
 ## 4 帧时（--mobilecap 网页仿真，同局轮换）
 
-（待填）
+命令（测量提交 = 分支头 + 本地生成的 index.json，不进分支）：
+
+```
+python tools/perf_web.py run --ref <测量提交> --tag pxb_ab --mobile --dpr 2 --timeout 3000 -- --balance --perf --realtime --rtfrom=480 --maxt=600 --nodeath --seed=1 --op=exusiai --squad=lappland,skadi --norecruit --bot=expert --quality=mid --optab=60 --optmask=8388608 --mobilecap
+```
+
+`--optab=60 --optmask=8388608` 每 60 帧在新 / 旧帧条之间轮换（`Game.OPT_PXB`；旧段同时恢复拉普兰德的通用刀光弧），PERF 分 `/new` `/old` 两桶。
+
+**结果：没测成。** 11-03 跑 f3538873d：3000 秒超时，日志只有 `PF W`（逐秒 1–6 帧）和内存行，没有 PERF——网页在 `--rtfrom` 快进段就跑不动，和 docs/206 §4.1、docs/50 记的「未测成」同一症状（Edge 进程树峰值 2.9 GB）。按组长 11-03 口径不再加测，由组长在全部美术合完后统一测。
+
+预期：每次出手 / 命中仍是 1 次本体 + 1 次 glow 贴图绘制（glow 在加色层）；拉普兰德少画一道通用刀光弧；余韵满屏时截掉（`fx/px_tail_cap` 300）。
 
 ## 5 对照与预审
 
-（待填）
+- 录像：`Claude outputs/fx_basic_atk/basic_atk_ab.mp4`，前 16 秒拉普兰德、后 16 秒能天使，左旧右新（旧版 `--bal=fx/px_basic=0`），seed 3、t = 10–26 秒、原速 30 帧。弹体放大是录完之后改的，没进这段；正式对照由组长统一批量录（11-03 口径，组员不再自录）。
+- 观感（本会话判断，待用户看）：拉普兰德从「通用刀光弧（抖动白）+ 小弯月」两层叠在一起，变成一道贴着判定半径的银色刀弧，刀口一线亮，后面一道淡残痕；能天使在这个尺寸下差别小：枪口不再是整块白，命中不再是规整红圈，弹体第一版偏小，已放大到技能弹尺寸。
+- 预审（vreview ult_fx，`--crop right`，Flash low × 3，约 0.02 美元）：报 1 条高「0:31 能天使弹体连成光束」。那一刻她在 S1 冲锋模式，连成线的是青色技能弹 proj_exusiai_bullet_s1（本次没动），左右两侧完全相同。**判断为误报**：和 docs/228 §7.3 记的是同一个旧问题，归 D 组技能批。
 
 ## 6 遗留
 
+- 拉普兰德普攻的远程分支「领主」掷剑 proj_lappland_sword（attack.far）没换：它是 512×128 × 4 帧的掷剑精灵，不是刀光；要不要算普攻、归谁，等组长定。
 - 拉普兰德「回敬」（rage2 节点）的反斩仍用旧 fx_lappland_slash + 兜底 fx_slash_heavy_deep，属成长形态，归 A 组；终结技 ult_moves_c 里的 fx_lappland_slash 归终结技。attack 段里 `if_tex: "!fx_lappland_px_slash"` 的兜底 blade 只在新贴图缺失时画，留着。
 - 能天使连携 link_fx_a 仍用旧 fx_exusiai_muzzle（连携段，归 D 组）。
 - 旧条暂不删：都是 `--bal=fx/px_basic=0` 的回退件，用户定稿后由合并人清点。
