@@ -20,6 +20,7 @@ var g
 var cv                           # 干员绘制合批画布（batch_canvas.gd，性能 9/30）
 var ops: Array = []            # Character 实例，按入队顺序
 var extra_slot := false        # 第 4 位是否已解锁
+var pfx_peak := 0              # 全队干员粒子同屏峰值（--pfxstat 量测，docs/226 §3）
 var side := 1.0                # 编队站位的左右（-1..1），主控转身时约 0.8 秒平滑换边（2026-09-27 跑步审查）
 ## 指挥模式（docs/114）：全队站位。一个键循环 随行 → 突击 → 归队；归队归位完自动回随行（下一次按键进突击）
 enum { GUARD, ROAM, RECALL }
@@ -411,6 +412,13 @@ func update(dt: float) -> void:
 	_tick_rush_buff()
 	if pf:
 		t0 = g.prof_add("sq_ticks", t0)
+	var cap: float = Bal.v("fx/team_pfx_cap", 160.0)   # 全队装饰粒子兜底上限（docs/226 §3）：按在场人数分额度，character.fx 超额跳过装饰件
+	var share: int = int(cap / float(maxi(1, ops.size()))) if cap > 0.0 and g.demo_op == "" else 0
+	var tot := 0
+	for o in ops:
+		o._pfx_share = share
+		tot += o.pfx.size()
+	pfx_peak = maxi(pfx_peak, tot)
 	for o in ops:
 		if o.cmd_down > 0.0:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）

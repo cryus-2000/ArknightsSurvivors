@@ -914,9 +914,9 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
 	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
-	g.draw_set_transform(pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale))
-	g.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.wcv.draw_set_transform(pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale))
+	g.wcv.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
+	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 一次性帧动画特效（命中 / 爆炸）；素材不存在时返回 false，调用方回退到程序特效
@@ -986,7 +986,7 @@ func spr(name: String, frames: int, frame: int, pos: Vector2, scale := Game.PX, 
 		return
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
-	FD.blit(g, tx, FD.src(fw, fh, frames, frame), pos + g.draw_off, Vector2(fw, fh) * scale * sq, anchor, flip, col)   # flip：以锚点为轴水平镜像
+	FD.blit(g.wcv, tx, FD.src(fw, fh, frames, frame), pos + g.draw_off, Vector2(fw, fh) * scale * sq, anchor, flip, col)   # flip：以锚点为轴水平镜像
 
 
 func draw_add_layer() -> void:
@@ -1095,9 +1095,9 @@ func boss_blade(b: Dictionary, pos: Vector2) -> void:
 	var frame := int(g.t * 12.0) % 4
 	# 刃缘与原先约 30px 高的弹幕一致，原图拖尾也一起保留。
 	var scale := 36.0 / size.y
-	g.draw_set_transform(pos + g.draw_off, b.vel.angle(), Vector2.ONE * scale)
-	g.draw_texture_rect_region(tx, Rect2(-size * 0.5, size), Rect2(Vector2(frame * size.x, 0), size))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.wcv.draw_set_transform(pos + g.draw_off, b.vel.angle(), Vector2.ONE * scale)
+	g.wcv.draw_texture_rect_region(tx, Rect2(-size * 0.5, size), Rect2(Vector2(frame * size.x, 0), size))
+	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 # =====================================================================

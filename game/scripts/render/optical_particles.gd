@@ -10,6 +10,7 @@ extends Node
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const Dc = preload("res://scripts/render/declutter.gd")
 
 const DEBRIS_PTS := 40        # 每只怪最多取多少个像素当碎屑
 const DEBRIS_POOL := 20       # 同时在飞的击杀碎屑组数（中画质 10）
@@ -169,8 +170,22 @@ func _one_shot(parent: Node, amount: int, life: float) -> GPUParticles2D:
 	p.texture = px_tex
 	p.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	p.visible = false
+	_meas(p)
 	parent.add_child(p)
 	return p
+
+
+## 分层量测（--clutterdbg，docs/226 §1）：固定种子让各遍颗粒落点逐帧一致，免得 GPU 随机落点被算成「敌方层」噪点；
+## nofriend 时这些命中 / 击杀 / 技能颗粒算友方层，整层透明（代码照跑）
+var _meas_seed := 0
+func _meas(p: GPUParticles2D) -> void:
+	if not Dc.dbg_any():
+		return
+	p.use_fixed_seed = true
+	p.seed = 9001 + _meas_seed
+	_meas_seed += 1
+	if Dc.dbg("nofriend"):
+		p.self_modulate.a = 0.0
 
 
 ## 爆开类的处理材质：速度区间、阻尼、重力、寿命内由亮到灭
@@ -218,6 +233,7 @@ func _ambient(parent: Node, amount: int, life: float, col: Color) -> GPUParticle
 	t.gradient = gr
 	m.color_ramp = t
 	p.process_material = m
+	_meas(p)
 	parent.add_child(p)
 	return p
 
@@ -428,6 +444,7 @@ func _setup_trails() -> void:
 	trails.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	trails.visible = false
 	trails.emitting = false
+	_meas(trails)
 	var m := ParticleProcessMaterial.new()
 	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_POINTS
 	m.direction = Vector3(0, -1, 0)

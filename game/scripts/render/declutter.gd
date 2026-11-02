@@ -114,6 +114,12 @@ static func dbg(key: String) -> bool:
 	return _dbg.has(key)
 
 
+## 开着任何 --clutterdbg 层（分层量测模式，docs/226 §1）：GPU 颗粒改固定种子，各遍落点一致
+static func dbg_any() -> bool:
+	dbg("")
+	return not _dbg.is_empty()
+
+
 ## --clutterab=N：每 N 帧轮换（autotest 每帧调）
 static func ab_step(frame: int) -> void:
 	dbg("")

@@ -363,6 +363,7 @@ var _rec_sfx0 := {}
 var _rec_f0 := 0               # --sfxtrace：第一张录屏帧的渲染帧号
 var _rec_music: Array = []     # --sfxtrace：每张录屏帧的配乐采样 [帧号, 低通截止 Hz, [[曲目文件, 音量 dB, 播放位置秒], …]]（tools/ult_rec.py --sfx 离线混配乐）
 var _rec_i := 0
+var _rec_stride := -1   # --recstride=N（量测）：录像每 N 帧存一张
 ## --breakloop=<周期秒>:<持续秒>（仅测试，录像用）：每过一个周期给所有活着的 Boss 开一次破绽窗口（combat.start_break），看 / 听「打在破绽上」（break_hit）
 var _brk_next := -1.0
 var _brk_period := 0.0
@@ -426,7 +427,16 @@ func _rec_step() -> void:
 				if c is AudioStreamPlayer and c.bus == "Music" and c.playing and c.stream != null:
 					ms.append([c.stream.resource_path, c.volume_db, c.get_playback_position()])
 			_rec_music.append([Engine.get_process_frames(), Sfx.music_lp.cutoff_hz, ms])
-		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%05d.png" % _rec_i)
+		if _rec_stride < 0:
+			_rec_stride = 1
+			for a in Cfg.dev_args():
+				if a.begins_with("--recstride="):
+					_rec_stride = maxi(1, int(a.substr(12)))   # 量测（docs/221 分层像素比较）：每 N 帧存一张，帧号照连续记
+		if _rec_i % _rec_stride == 0:
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%05d.png" % _rec_i)
+			if Cfg.dev_args().has("--recpos"):
+				var lp: Vector2 = g.get_viewport().get_canvas_transform() * g.ppos
+				print("RECPOS %d %.1f %.1f %d" % [_rec_i, lp.x, lp.y, g.get_viewport().get_visible_rect().size.x])   # 队长屏幕坐标（量「队长周围被改色」）
 		_rec_i += 1
 		_rec_left -= 1
 		if _rec_left == 0:
@@ -1201,7 +1211,9 @@ func step() -> void:
 			if perf_dump != null:
 				perf_dump.close()
 				perf_dump = null
-			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
+			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))
+			if g.squad != null and Cfg.dev_args().has("--pfxstat"):   # 全队装饰粒子兜底上限（docs/226 §3）：每人被跳过的装饰件、全队同屏峰值
+				print("PFXCAP ", JSON.stringify({"peak": g.squad.pfx_peak, "skipped": g.squad.ops.map(func(o): return [o.op_key, o.pfx_skipped])}))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
 			print("SPAWNQ ", JSON.stringify(g.spawner.queue_report()))   # 同屏普通怪存活上限的刷怪队列统计（docs/50 §15 B）
 			g.get_tree().quit()
 		return
@@ -1916,7 +1928,9 @@ func _perf_sample() -> void:
 		if _optab > 0:
 			w += "/old" if g.opt_old != 0 else "/new"   # --optab：这一帧（上一帧的模拟与绘制）走的是旧 / 新实现
 		if perf_ab > 0:
-			w += "/b" if g.perf_alt else "/a"   # --perfab：上一帧是在哪个实现下跑的（轮换在采样之后）
+			w += "/b" if g.perf_alt else "/a"
+		if g.world._lr_ab > 0:
+			w += "/ft0" if g.world._ft_force_off else "/ft1"   # --lrab：上一帧敌方顶层 + 队长剪影关 / 开（docs/226 §4）   # --perfab：上一帧是在哪个实现下跑的（轮换在采样之后）
 		if not perf.has(w):
 			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "dc": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0,
 				"sfx0": _sfx_snap(), "fps40": 0}

@@ -133,6 +133,8 @@ var _drawn := false
 
 func setup(game) -> void:
 	g = game
+	if preload("res://scripts/render/declutter.gd").dbg("nofriend"):
+		self_modulate.a = 0.0   # 分层量测 nofriend：颗粒算友方层（docs/226 §1）
 	level = {"high": 2, "mid": 1, "low": 0}.get(Cfg.quality, 2)
 	if level == 1 and Bal.v("render/mid_full_fx", 1.0) > 0.0:
 		level = 2   # 中档颗粒量同高档（render/mid_full_fx，docs/50 §26）：上限 900 / 火星 240（手机再乘固定的 adapt_k）

@@ -16,8 +16,8 @@ static func draw_top(g, e: Dictionary) -> void:
 		# 空心：只有一圈淡紫细边 + 极淡内填，和实心弹（亮芯 + 暗描边）一眼分开
 		var p: Vector2 = f.pos + Vector2(0, -16)
 		var a: float = clampf(float(f.life) / 0.6, 0.0, 1.0) * 0.55
-		g.draw_circle(p, float(f.r), Color(0.78, 0.62, 1.0, a * 0.12))
-		g.draw_arc(p, float(f.r), 0.0, TAU, 14, Color(0.85, 0.72, 1.0, a), 1.5)
+		g.wcv.draw_circle(p, float(f.r), Color(0.78, 0.62, 1.0, a * 0.12))
+		g.wcv.draw_arc(p, float(f.r), 0.0, TAU, 14, Color(0.85, 0.72, 1.0, a), 1.5)
 	# 她的弹都是泡：公共管线画的亮芯 + 暗描边外面再套一层淡紫泡膜和左上高光；停住的花瓣泡膜鼓起、一明一暗（0.5 秒后对准你射出）
 	var blink: bool = int(g.t * 10.0) % 2 == 0
 	var tw = g.world   # 泡膜走无贴图批（world.tb_*），一百颗弹也只提交一次
@@ -49,8 +49,8 @@ static func draw_top(g, e: Dictionary) -> void:
 				inner.append(p2 + (pt - p2) * 0.78)
 			if g.opt_old & g.OPT_PARA:
 				tw.tb_flush()
-				g.draw_colored_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
-				g.draw_colored_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
+				g.wcv.draw_colored_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
+				g.wcv.draw_colored_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
 			else:
 				tw.tb_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
 				tw.tb_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
@@ -73,7 +73,7 @@ static func draw_top(g, e: Dictionary) -> void:
 				continue
 			var a0: float = q * TAU / 18.0
 			var rq: float = o.r * 1.15 + 3.0 * sin(g.t * 11.0 + q * 1.9)
-			g.draw_arc(cpos, rq, a0, a0 + TAU / 22.0, 3, Color(0.7, 0.9, 1.0, 0.55), 1.5)
+			g.wcv.draw_arc(cpos, rq, a0, a0 + TAU / 22.0, 3, Color(0.7, 0.9, 1.0, 0.55), 1.5)
 	# 幻象冲撞（用户 10-28「冲锋只是平移，加动态」）：预告期渐显并上下浮动；最后 0.35 秒向后蓄势（后退 + 压扁）；
 	# 冲刺中沿方向拉长、身后 4 个渐淡残影、本体轻微抖动；地面层另画泡沫通道（draw_ground）
 	var frames: int = A.enemy_frames(str(e.tex), 2)
@@ -124,21 +124,21 @@ static func draw_top(g, e: Dictionary) -> void:
 			top.append(c + Vector2(x, -hgt * yk))
 			bot.append(c + Vector2(x, hgt * yk))
 		var lid := Color(0.2, 0.08, 0.3, 0.75)
-		g.draw_polyline(top, lid, 4.0)
-		g.draw_polyline(bot, lid, 4.0)
-		g.draw_polyline(top, Color(0.85, 0.72, 1.0, 0.9), 1.5)
-		g.draw_polyline(bot, Color(0.85, 0.72, 1.0, 0.9), 1.5)
+		g.wcv.draw_polyline(top, lid, 4.0)
+		g.wcv.draw_polyline(bot, lid, 4.0)
+		g.wcv.draw_polyline(top, Color(0.85, 0.72, 1.0, 0.9), 1.5)
+		g.wcv.draw_polyline(bot, Color(0.85, 0.72, 1.0, 0.9), 1.5)
 		if op > 0.5:
 			var hot: bool = g.t - float(ey.get("fired", -9.0)) < 0.15
 			var to_p: Vector2 = (g.ppos - ey.pos).normalized() * 3.0
-			g.draw_circle(c + to_p, 3.5, Color(1.0, 0.95, 1.0, 0.95) if hot else Color(0.75, 0.55, 1.0, 0.9))
+			g.wcv.draw_circle(c + to_p, 3.5, Color(1.0, 0.95, 1.0, 0.95) if hot else Color(0.75, 0.55, 1.0, 0.9))
 	# 力竭（破绽前 TIRE 秒）：身周一圈泡膜收瘪；破绽中的金环 + 倒计时弧是四只最终 Boss 共用的（render/break_ring）
 	var tire_at: float = float(e.get("pc_tire_at", 0.0))
 	var fp: Vector2 = e.pos + Vector2(0, -10)
 	if tire_at > g.t:
 		var kt: float = 1.0 - (tire_at - g.t) / 0.6
 		var rt: float = lerpf(e.r * 2.4, e.r * 1.1, kt * kt)
-		g.draw_arc(fp, rt, 0.0, TAU, 40, Color(core_col(e).r, core_col(e).g, core_col(e).b, 0.55 * (1.0 - kt) + 0.15), 2.0)
+		g.wcv.draw_arc(fp, rt, 0.0, TAU, 40, Color(core_col(e).r, core_col(e).g, core_col(e).b, 0.55 * (1.0 - kt) + 0.15), 2.0)
 	_tide_tells(g, e)
 	# 换幕起手 0.9 秒：收拢的双环（外 → 内）
 	var dt: float = g.t - float(e.get("pc_gather_t", -99.0))
@@ -146,8 +146,8 @@ static func draw_top(g, e: Dictionary) -> void:
 		var k: float = dt / 0.9
 		var r: float = lerpf(e.r * 4.0, e.r * 1.2, k)
 		var c := Color(0.92, 0.85, 1.0, 0.6 * (1.0 - k))
-		g.draw_arc(e.pos + Vector2(0, -10), r, 0.0, TAU, 48, c, 2.0)
-		g.draw_arc(e.pos + Vector2(0, -10), r * 0.8, 0.0, TAU, 40, Color(c.r, c.g, c.b, c.a * 0.5), 1.5)
+		g.wcv.draw_arc(e.pos + Vector2(0, -10), r, 0.0, TAU, 48, c, 2.0)
+		g.wcv.draw_arc(e.pos + Vector2(0, -10), r * 0.8, 0.0, TAU, 40, Color(c.r, c.g, c.b, c.a * 0.5), 1.5)
 
 
 ## 地面层：幻象冲撞的通道（暗红低填充 + 两侧泡沫边，冲出后淡去）
@@ -176,7 +176,7 @@ static func _emit_tells(g, e: Dictionary) -> void:
 			var r: float = lerpf(e.r * 1.2, e.r * 3.2, k)
 			for q in 16:
 				var a0: float = TAU * q / 16.0 + g.t * 0.8
-				g.draw_arc(e.pos + Vector2(0, -10), r, a0, a0 + TAU / 32.0, 4, Color(c.r, c.g, c.b, 0.25 + 0.5 * k), 2.0)
+				g.wcv.draw_arc(e.pos + Vector2(0, -10), r, a0, a0 + TAU / 32.0, 4, Color(c.r, c.g, c.b, 0.25 + 0.5 * k), 2.0)
 		elif n in AIM_TELLS:
 			var d: Vector2 = (g.ppos - e.pos).normalized()
 			for q in 10:
@@ -207,33 +207,33 @@ static func _tide_tell(g, e: Dictionary, em: Dictionary, k: float) -> void:
 	var blink: float = 0.7 + 0.3 * sin(g.t * 18.0)
 	var a: float = (0.5 + 0.5 * k) * blink
 	var half: float = 0.42
-	g.draw_set_transform(o, 0.0, Vector2(1.0, gy))
+	g.wcv.draw_set_transform(o, 0.0, Vector2(1.0, gy))
 	# 环身：深色底 + 青蓝 + 白芯，缺口处留空
 	var s0: float = aim + half
 	var s1: float = aim + TAU - half
-	g.draw_arc(Vector2.ZERO, r - 10.0, s0, s1, 64, Color(c.r, c.g, c.b, 0.22 * a), 14.0)
-	g.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(0, 0, 0, 0.55 * a), 9.0)
-	g.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(c.r, c.g, c.b, a), 5.0)
-	g.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(1, 1, 1, 0.85 * a), 2.0)
+	g.wcv.draw_arc(Vector2.ZERO, r - 10.0, s0, s1, 64, Color(c.r, c.g, c.b, 0.22 * a), 14.0)
+	g.wcv.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(0, 0, 0, 0.55 * a), 9.0)
+	g.wcv.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(c.r, c.g, c.b, a), 5.0)
+	g.wcv.draw_arc(Vector2.ZERO, r, s0, s1, 64, Color(1, 1, 1, 0.85 * a), 2.0)
 	# 向她收拢的两道细水纹（「潮在涨」）
 	for q in 2:
 		var rq: float = r * (1.0 + 0.35 * (1.0 - fmod(k * 2.0 + q * 0.5, 1.0)))
-		g.draw_arc(Vector2.ZERO, rq, s0, s1, 48, Color(c.r, c.g, c.b, 0.3 * a), 1.5)
+		g.wcv.draw_arc(Vector2.ZERO, rq, s0, s1, 48, Color(c.r, c.g, c.b, 0.3 * a), 1.5)
 	# 第一道缺口：两侧亮标 + 外侧向外的 V（从这里穿）
 	for sd in [-1.0, 1.0]:
 		var ea: Vector2 = Vector2.from_angle(aim + half * sd)
-		g.draw_line(ea * (r - 14.0), ea * (r + 14.0), Color(1, 1, 1, 0.9 * a), 3.0)
+		g.wcv.draw_line(ea * (r - 14.0), ea * (r + 14.0), Color(1, 1, 1, 0.9 * a), 3.0)
 	var dv: Vector2 = Vector2.from_angle(aim)
 	var nv: Vector2 = dv.orthogonal()
 	var tip: Vector2 = dv * (r + 34.0)
-	g.draw_line(tip - dv * 12.0 + nv * 10.0, tip, Color(1, 1, 1, 0.85 * a), 2.5)
-	g.draw_line(tip - dv * 12.0 - nv * 10.0, tip, Color(1, 1, 1, 0.85 * a), 2.5)
+	g.wcv.draw_line(tip - dv * 12.0 + nv * 10.0, tip, Color(1, 1, 1, 0.85 * a), 2.5)
+	g.wcv.draw_line(tip - dv * 12.0 - nv * 10.0, tip, Color(1, 1, 1, 0.85 * a), 2.5)
 	# 后两道缺口：淡标
 	for q in [1, 2]:
 		var ga: float = aim + 1.1 * q * float(em.flip)
 		var gv: Vector2 = Vector2.from_angle(ga)
-		g.draw_line(gv * (r - 8.0), gv * (r + 10.0), Color(c.r, c.g, c.b, 0.55 * a / q), 3.0)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		g.wcv.draw_line(gv * (r - 8.0), gv * (r + 10.0), Color(c.r, c.g, c.b, 0.55 * a / q), 3.0)
+	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 static func _tide_stain(g, e: Dictionary) -> void:
@@ -245,8 +245,8 @@ static func _tide_stain(g, e: Dictionary) -> void:
 		var rr: float = 160.0 + 22.0 * sin(a * 3.0 + g.t * 0.5) + 12.0 * sin(a * 5.0 - g.t * 0.35)
 		pts.append(e.pos + Vector2(cos(a), sin(a) * 0.55) * rr)
 		inner.append(e.pos + Vector2(cos(a), sin(a) * 0.55) * rr * 0.55)
-	g.draw_colored_polygon(pts, Color(0.02, 0.16, 0.22, 0.32))
-	g.draw_colored_polygon(inner, Color(0.04, 0.26, 0.32, 0.22))
+	g.wcv.draw_colored_polygon(pts, Color(0.02, 0.16, 0.22, 0.32))
+	g.wcv.draw_colored_polygon(inner, Color(0.04, 0.26, 0.32, 0.22))
 	for q in 2:
 		var t: float = fmod(g.t * 0.35 + q * 0.5, 1.0)
 		var r: float = lerpf(50.0, 200.0, t)
@@ -254,7 +254,7 @@ static func _tide_stain(g, e: Dictionary) -> void:
 		for i in 33:
 			var a: float = TAU * i / 32.0
 			ring.append(e.pos + Vector2(cos(a), sin(a) * 0.55) * r)
-		g.draw_polyline(ring, Color(0.35, 0.9, 1.0, 0.3 * (1.0 - t)), 1.5)
+		g.wcv.draw_polyline(ring, Color(0.35, 0.9, 1.0, 0.3 * (1.0 - t)), 1.5)
 	for q in 7:
 		var ph: float = fmod(g.t * 0.45 + q * 0.37, 1.0)
 		var bp: Vector2 = e.pos + Vector2(cos(q * 2.4), sin(q * 2.4) * 0.55) * (55.0 + q * 14.0) + Vector2(0, -ph * 26.0)
@@ -272,7 +272,7 @@ static func _rush_lanes(g, e: Dictionary) -> void:
 		var hw: float = 34.0
 		var a: Vector2 = ln.a
 		var b: Vector2 = ln.a + d * 780.0
-		g.draw_colored_polygon(PackedVector2Array([a + n * hw, b + n * hw, b - n * hw, a - n * hw]), Color(0.42, 0.04, 0.1, 0.1 + 0.14 * k))
+		g.wcv.draw_colored_polygon(PackedVector2Array([a + n * hw, b + n * hw, b - n * hw, a - n * hw]), Color(0.42, 0.04, 0.1, 0.1 + 0.14 * k))
 		var cnt: int = int(780.0 / 14.0)
 		for side in [-1.0, 1.0]:
 			for i in cnt:
@@ -293,7 +293,7 @@ static func draw_ground(g, e: Dictionary) -> void:
 	# 二阶段：以她为中心的大片深青压暗地面（越远越淡，三层叠出渐变），「她认真了」
 	if e.phase == 2 and float(e.get("cocoon_t", 0.0)) <= 0.0:
 		for q in 3:
-			g.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.0, 0.05, 0.08, 0.1))
+			g.wcv.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.0, 0.05, 0.08, 0.1))
 		_tide_stain(g, e)
 	_rush_lanes(g, e)
 	_emit_tells(g, e)
@@ -312,7 +312,7 @@ static func draw_ground(g, e: Dictionary) -> void:
 		var ln: float = float(w.len)
 		var a: Vector2 = w.pos
 		var locked: bool = w.t >= float(w.get("track", 0.0))
-		g.draw_colored_polygon(PackedVector2Array([a + n * wid, a + d * ln + n * wid, a + d * ln - n * wid, a - n * wid]),
+		g.wcv.draw_colored_polygon(PackedVector2Array([a + n * wid, a + d * ln + n * wid, a + d * ln - n * wid, a - n * wid]),
 			Color(0.42, 0.04, 0.1, 0.12 + 0.12 * k))
 		var step: float = 13.0
 		var cnt: int = int(ln / step)
@@ -343,7 +343,7 @@ static func _howl_warn(g, w: Dictionary) -> void:
 	var pts := PackedVector2Array([w.pos])
 	for q in 17:
 		pts.append(w.pos + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * q / 16.0) * w.r)
-	g.draw_colored_polygon(pts, Color(0.42, 0.04, 0.1, 0.12 + 0.12 * k))
+	g.wcv.draw_colored_polygon(pts, Color(0.42, 0.04, 0.1, 0.12 + 0.12 * k))
 	var n: int = int(w.r * w.half * 2.0 / 12.0)
 	for i in n + 1:
 		var a: float = w.ang - w.half + w.half * 2.0 * i / maxf(1.0, n)
@@ -368,15 +368,15 @@ static func _hard_film(g, e: Dictionary) -> void:
 	var pts := PackedVector2Array()
 	for k in n + 1:
 		pts.append(o + Vector2.from_angle(rot + TAU * k / n) * r)
-	g.draw_colored_polygon(pts.slice(0, n), Color(c.r, c.g, c.b, 0.14))
-	g.draw_polyline(pts, Color(0, 0, 0, 0.5), 5.0)
-	g.draw_polyline(pts, Color(c.r, c.g, c.b, 0.9), 2.5)
+	g.wcv.draw_colored_polygon(pts.slice(0, n), Color(c.r, c.g, c.b, 0.14))
+	g.wcv.draw_polyline(pts, Color(0, 0, 0, 0.5), 5.0)
+	g.wcv.draw_polyline(pts, Color(c.r, c.g, c.b, 0.9), 2.5)
 	# 棱上闪光：一道亮点绕壳走
 	var sk: float = fmod(g.t * 1.5, 1.0) * n
 	var i0: int = int(sk)
 	var sp: Vector2 = pts[i0].lerp(pts[i0 + 1], sk - i0)
-	g.draw_circle(sp, 3.0, Color(1, 1, 1, 0.9))
+	g.wcv.draw_circle(sp, 3.0, Color(1, 1, 1, 0.9))
 	for k in n:
-		g.draw_line(o + (pts[k] - o) * 0.72, pts[k], Color(1, 1, 1, 0.35), 1.0)
+		g.wcv.draw_line(o + (pts[k] - o) * 0.72, pts[k], Color(1, 1, 1, 0.35), 1.0)
 	var left: float = clampf(1.0 - float(e.get("act_t", 0.0)) / maxf(0.1, float(e.get("act_min", 1.0))), 0.0, 1.0)
-	g.draw_arc(o, r + 9.0, -PI / 2.0, -PI / 2.0 + TAU * left, 40, Color(c.r, c.g, c.b, 0.85), 2.0)
+	g.wcv.draw_arc(o, r + 9.0, -PI / 2.0, -PI / 2.0 + TAU * left, 40, Color(c.r, c.g, c.b, 0.85), 2.0)

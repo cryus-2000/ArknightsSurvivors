@@ -410,6 +410,8 @@ var head_bar_t := 0.0        # 头顶血条显示时长
 var red_flash := 0.0
 var crit_hit := false
 var fx_add: Node2D
+var foe_top: Node2D   # 敌方顶层（docs/226 §1，render/foe_top）：敌弹 / 预警填充与轮廓 / 主控标记画在友方加色层 fx_add 之上，不再被友方特效改色
+var wcv: CanvasItem = self   # 世界绘制当前提交到的画布：平时是 game 自己，敌方顶层那一遍是 foe_top（render/*.gd 一律画到 g.wcv）
 var settings: Control
 var ui_layer: CanvasLayer   # 界面层（HUD / 面板 / 设置）：触屏时整体放大 Cfg.ui_k
 var result_btns: Array = []   # [Rect2, action]
@@ -1033,6 +1035,10 @@ func _ready() -> void:
 	fx_add.material = am
 	fx_add.draw.connect(func(): _timed("draw_fxadd", vfx.draw_add_layer))
 	add_child(fx_add)
+	foe_top = Node2D.new()
+	foe_top.use_parent_material = true   # 与世界同一份角色材质（白色保护 / 受光），画面与原来画在世界画布上一致
+	foe_top.draw.connect(func(): _timed("draw_foetop", world.draw_top))
+	add_child(foe_top)
 
 	# 2.5D 前景视差层（镜头前的虚化海草剪影）
 	fg = Node2D.new()
@@ -1541,6 +1547,7 @@ func _process(delta: float) -> void:
 	if not headless_batch:
 		queue_redraw()
 		fx_add.queue_redraw()
+		foe_top.queue_redraw()   # 排在世界之后：顶层那一遍用本帧世界绘制排好的预警分类 / 视野表
 		fg.queue_redraw()
 		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
 		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）

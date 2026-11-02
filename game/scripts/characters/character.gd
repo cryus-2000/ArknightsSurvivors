@@ -591,9 +591,19 @@ func _elite_show(stage: int) -> void:
 # ---------------------------------------------------------------- 干员特效粒子（docs/25）
 
 ## 加一个粒子：kind / pos / life 必填；col、r、vel、drag、grav、ang、floor（地面层）按 kind 取用
+## 全队装饰粒子兜底上限（docs/226 §3，fx/team_pfx_cap 缺省 160，0 = 关）：每名在场干员分「上限 ÷ 在场人数」的额度，
+## 自己的粒子已到额度时跳过新的纯装饰件（pfx_cappable：光点 / 火花 / 碎片 / 光团 / 线 / 火舌 / 不循环帧条）；判定、预警、状态提示照画，
+## 不降透明度（用户 10-25「队友特效不要降」）。平时每人 16–33 个，只在峰值起作用；只画不改状态（随机数在调用前已抽）
 func fx(f: Dictionary) -> void:
 	f["max"] = f.life
+	if pfx.size() >= _pfx_share and pfx_cappable(f) and _pfx_share > 0:
+		pfx_skipped += 1
+		return
 	pfx.append(f)
+
+
+var _pfx_share := 0   # 本干员当前的装饰粒子额度（0 = 不限）；squad 每帧按在场人数刷新（team_pfx_share）
+var pfx_skipped := 0   # 量测：被兜底上限跳过的装饰件累计
 
 
 func _tick_pfx(dt: float) -> void:
