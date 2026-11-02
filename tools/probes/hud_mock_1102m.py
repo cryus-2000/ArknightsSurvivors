@@ -52,6 +52,18 @@ def make(variant):
             w_ = shadowed(m, x + 9, y + 6, '28', 10, TEXT)
             m.text(x + 12 + w_, y + 5.5, '62%', 7, SUB)
             readouts(m, x, y, x + 72, phone)
+        elif variant == 'D':
+            # 徽记正下方（Q 键牌下面）：一根青色短线 + 小字 LV + 粗体数字，居中
+            cx = x + 30
+            E.hair(m, (cx - 16, y + 70), (cx + 16, y + 70), CYAN, max(1, m.P(1)))
+            E.cap(m, cx - 16, y + 82, 'LV', 6, SUB, 1.0)
+            shadowed(m, cx - 3, y + 83, '28', 12, TEXT)
+            readouts(m, x, y, x + 72, phone)
+        elif variant == 'E':
+            # 灯火那行下面：读数列最后一行「LV 28」，和 HP / LAMP 同一列
+            readouts(m, x, y, x + 72, phone)
+            E.cap(m, x + 72, y + 80, 'LV', 7)
+            shadowed(m, x + 92, y + 81, '28', 11, TEXT)
         else:
             cx = x + 30
             E.cap(m, cx - 13, y + 2, 'LV', 6, SUB, 1.0)
@@ -62,17 +74,21 @@ def make(variant):
 
 
 if __name__ == '__main__':
-    cur = H.DESK_FULL.convert('RGB').crop((0, 0, 420, 170)).resize((840, 340), Image.NEAREST)
+    cur = H.DESK_FULL.convert('RGB').crop((0, 0, 420, 190)).resize((840, 380), Image.NEAREST)
     cells = [('现行', cur)]
-    for v, lab in [('A', 'A 读数列：LV 和 HP 并排'), ('B', 'B 放在顶部经验条：LV 28 · 62%'), ('C', 'C 徽记头顶：无框小字 + 一根线')]:
+    for v, lab in [('A', 'A 读数列：LV 和 HP 并排'), ('C', 'C 徽记头顶：无框小字 + 一根线'), ('D', 'D 徽记下面（Q 键牌下）'), ('E', 'E 灯火那行下面（同一列）')]:
         E.leader = make(v)
+        _st = E.status
+        if v in ('D', 'E'):
+            E.status = lambda m, x, y, phone=False, _f=_st: _f(m, x, y + 12, phone)   # 等级放下面时状态行再让一行
         im = J.frame(False, 0, False, 'R15_lv_%s.png' % v)
-        cells.append((lab, im.convert('RGB').crop((0, 48, 420, 48 + 170)).resize((840, 340), Image.NEAREST)))
-    sheet = Image.new('RGB', (2 * 856, 2 * 390), (12, 14, 18))
+        E.status = _st
+        cells.append((lab, im.convert('RGB').crop((0, 48, 420, 48 + 190)).resize((840, 380), Image.NEAREST)))
+    sheet = Image.new('RGB', (2 * 856, 3 * 430), (12, 14, 18))
     d = ImageDraw.Draw(sheet)
     for i, (lab, c) in enumerate(cells):
-        x, y = (i % 2) * 856, (i // 2) * 390
+        x, y = (i % 2) * 856, (i // 2) * 430
         sheet.paste(c, (x, y + 44))
         d.text((x + 12, y + 22), lab, font=H.FBF(24), fill=(255, 236, 170), anchor='lm')
-    sheet.save(os.path.join(OUT, 'R15_lv_type.png'))
+    sheet.save(os.path.join(OUT, 'R16_lv_below.png'))
     print('ok')
