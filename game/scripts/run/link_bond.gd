@@ -55,6 +55,27 @@ static func formed(ids: Array) -> Array:
 	return out
 
 
+## 局内界面（docs/221 B1）：当前编队成立的羁绊，和参与其中的干员 id 集合。link/bond 关时为空
+static func formed_now(g) -> Array:
+	if not ui_on() or g.squad == null:
+		return []
+	return formed(g.squad.ops.map(func(p): return str(p.id)))
+
+
+static func members(fm: Array) -> Dictionary:
+	var out := {}
+	for b in fm:
+		for m in b.get("ops", b.get("group", [])):
+			out[str(m)] = true
+	return out
+
+
+## 属性面板的一行：「企鹅物流 · 全队攻速 +8% · 合击「急件专送」」
+static func row_text(b: Dictionary) -> String:
+	var bt: String = buff_text(str(b.id)) if buff_on() else ""
+	return "%s%s · 合击「%s」" % [str(b.tag), (" · " + bt) if bt != "" else "", str(b.name)]
+
+
 ## 编队变化（squad._add / remove）：按成立的羁绊重挂全队加成（来源 "bond"）；新成立的闪一次「羁绊成立」+ 轻提示音、记进作战记录。
 ## link/bond_buff 0 时什么都不做（同 seed TRACE 不变）
 static func refresh(g) -> void:

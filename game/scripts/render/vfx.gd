@@ -762,7 +762,7 @@ func show_banner(text: String, prio := -1) -> void:
 	for q in banner_q:
 		if q.text == text:
 			return
-	if (g.banner_t <= 0.0 and _gap_ok(prio)) or prio > banner_prio:
+	if not _intro_hold() and ((g.banner_t <= 0.0 and _gap_ok(prio)) or prio > banner_prio):
 		_banner_now(text, prio)
 		return
 	banner_q.append({"text": text, "prio": prio})
@@ -846,12 +846,17 @@ func _update_banner_queue(dt: float) -> void:
 		g.banner_t -= dt   # 平衡 / 自测模式每渲染帧跑多步模拟：横幅按游戏时间计时，截图里的停留和排队延迟才像真人（game.gd 按真实时间再减一次，影响很小）
 	if g.banner_t > 0.0 and horde_band_on() and banner_prio < 3:
 		g.banner_t += dt   # 大群横幅在场：普通横幅冻结，等大群横幅退场再播完
-	if g.banner_t <= 0.0 and not banner_q.is_empty() and _gap_ok(int(banner_q[0].prio)):
+	if g.banner_t <= 0.0 and not banner_q.is_empty() and _gap_ok(int(banner_q[0].prio)) and not _intro_hold():
 		var q: Dictionary = banner_q.pop_front()
 		_banner_now(q.text, q.prio)
 	for n in notices:
 		n.t -= dt
 	notices = notices.filter(func(n): return n.t > 0.0)
+
+
+## 演出排队（docs/221 H1）：Boss 登场 / 击破卡在场时横幅先排队，卡片收起后再出（以前和登场卡、立绘切入挤在同一秒）
+func _intro_hold() -> bool:
+	return g.boss_intro != null and g.boss_intro.active()
 
 
 func _notice(text: String) -> void:

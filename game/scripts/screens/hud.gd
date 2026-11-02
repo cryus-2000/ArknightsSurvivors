@@ -413,7 +413,11 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var jit := Vector2(sin(g.t * 53.0), cos(g.t * 47.0)) * (2.0 if hw and not streams else 0.0)
 		var line := ("海嗣注意到了你的存在……" if g.t < 240.0 else "海嗣自四方合围而来……") if streams or hunt_w else "大 群 来 袭"
 		if ta > 0.0:
-			UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, line, 38, Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
+			if streams or hunt_w:
+				# 分股合围 / 围猎只是告知（docs/221 H5）：放到横幅那一带、小一号，不压在队长身前的战场正中
+				UI.text(g.hud, g.font, Vector2(0, banners.banner_y(vs) + 10.0), line, 28, Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
+			else:
+				UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, line, 38, Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
 		if hw and hunt_w:
 			# 围猎型（docs/150）：不画圈、不画四周箭头，只在缺口方向屏边画一个朝外的小箭头（突围方向）
 			var gd := Vector2.from_angle(g.horde_gap)

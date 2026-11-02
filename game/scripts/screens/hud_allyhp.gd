@@ -14,6 +14,7 @@ const Game = preload("res://scripts/game.gd")
 const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL
 const A = preload("res://scripts/art.gd")
 const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条（10-29 起；10-31 改头顶条 _draw_m3_overhead）：不依赖指挥模式
+const LinkBond = preload("res://scripts/run/link_bond.gd")   # 羁绊成立的队友名前一颗小菱形（docs/221 B1）
 const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 终结技并进左上的原型（A / C）在生命条下多一层，队友行下移 top_add
 var g: Game
 var h
@@ -160,7 +161,8 @@ func _draw_card_low(vs: Vector2) -> void:
 		var o = g.squad.ops[i]
 		if o.is_leader or not low(o):
 			continue
-		var cr := Rect2(Vector2(br.x - (n - i) * sq.SQ_COL_W + (sq.SQ_COL_W - sq.SQ_CARD.x), br.y - sq.SQ_CARD.y), sq.SQ_CARD)
+		var cs: Vector2 = sq.card_size()   # 手机收起的卡（docs/221 P1）
+		var cr := Rect2(Vector2(br.x - (n - i) * sq.SQ_COL_W + (sq.SQ_COL_W - sq.SQ_CARD.x), br.y - cs.y), cs)
 		var p := pulse()
 		g.hud.draw_rect(cr, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.08 + 0.14 * p))
 		g.hud.draw_rect(cr.grow(1.0), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.6 * p), false, 2.5)
@@ -270,9 +272,12 @@ func _draw_under_leader() -> void:
 	var ms: Array = _mates()
 	var roam: bool = g.squad.stance == g.squad.ROAM
 	var a: float = 1.0 if roam or ms.any(func(o): return o.cmd_down > 0.0 or o.cmd_hp < 0.999) else 0.6
+	var bm: Dictionary = LinkBond.members(LinkBond.formed_now(g))
 	for i in ms.size():
 		var o = ms[i]
 		var y: float = UL_Y + HudUltV.top_add(g.touch.active) + i * UL_ROW
+		if bm.has(str(o.id)):
+			UI.diamond(g.hud, Vector2(UL_X - 10.0, y + 4.5), 3.5, Color(UI.GOLD, a), Color(1.0, 0.9, 0.6, 0.8 * a))   # 和编队里的人成立了羁绊（docs/221 B1）
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)
 		var down: bool = o.cmd_down > 0.0
 		g.hud.draw_rect(Rect2(UL_X - 4.0, y - 1.0, 2.0, 11.0), Color(oc.r, oc.g, oc.b, a))   # 职业色小块（同编队卡底条 / 屏外头像外圈）

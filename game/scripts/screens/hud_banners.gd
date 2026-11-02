@@ -344,7 +344,9 @@ func _spaced_text(vs: Vector2, y: float, s: String, size: int, col: Color, k: fl
 func draw_notices(vs: Vector2) -> void:
 	if g.state != Game.S.PLAY or g.vfx.notices.is_empty():
 		return
-	var y: float = banner_y(vs) + 44.0   # 横幅暗带下方，不和它叠
+	var y: float = lane_y(vs) + 14.0   # 横幅暗带下方，不和它叠
+	if g.ult != null and h.ult.link_tag_on():
+		y += LINK_TAG_H   # 连携 / 羁绊提示占着事件槽：小字排在它下面
 	for n in g.vfx.notices:
 		var a: float = clampf(n.t / 0.6, 0.0, 1.0) * clampf((g.vfx.NOTICE_LIFE - n.t) / 0.2, 0.0, 1.0)
 		var tw: float = minf(g.font.get_string_size(n.text, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x + 22.0, vs.x * 0.4)
@@ -352,6 +354,13 @@ func draw_notices(vs: Vector2) -> void:
 		g.hud.draw_rect(Rect2(16, y - 15, 3, 22), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a))
 		UI.text_fit(g.hud, g.font, Vector2(26, y + 1), n.text, 13, Color(1, 1, 1, 0.9 * a), tw - 14.0)
 		y += 26.0
+
+
+## 左侧事件槽（docs/221 H3）：连携 / 羁绊提示与左侧小字通知共用的一列，从状态标签（最多 2 行）和横幅暗带的下面排起，
+## 不再叠到标签上。返回槽顶 y
+const LINK_TAG_H := 66.0   # 连携提示占的高度（头像 26 半径 + 上下边）
+func lane_y(vs: Vector2) -> float:
+	return maxf(banner_y(vs) + 30.0, h.bars.status_bottom + 12.0)
 
 
 ## 横幅高度：默认屏幕 24% 处；有 Boss 血条时从血条块底部往下让（docs/38：横幅高度从 Boss 块实际底部 +16 起算）
