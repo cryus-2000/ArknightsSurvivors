@@ -5,7 +5,7 @@ tools/pixelfx_fx/<类>/<名>.js 是本作写的 pixelfx 特效源码；本脚本
 不进 git），用库自带的 render.mjs --sheet 导精灵表，再：
   - 以原点为中心对称裁边（游戏按帧中心放置；枪口这类非居中的用 keep_canvas 保留原画布），
   - 去掉末尾全空帧，
-  - 量化到 ≤ 64 色（带透明），
+  - 量化到 ≤ 32 色（带透明，按条目 colors 改），存调色板 PNG，
   - 拼成单行横向帧条写进 game/art/fx/<名>[ @2x].png。
 最后打印 art.gd V6_FRAMES 要登记的 [帧数, fps]。改完记得跑 python tools/asset_index.py。
 
@@ -18,33 +18,33 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "tools", "pixelfx_fx")
 OUT = os.path.join(ROOT, "game", "art", "fx")
 
-EXU = {
-    "s1": ["#0a2240", "#12528a", "#48ccff", "#b8f2ff", "#f0fdff", "#ffffff"],
-    "s2": ["#3a1606", "#b04e10", "#ff9a2e", "#ffdca4", "#fffaec", "#ffffff"],
-    "s3": ["#4a0a14", "#d42a3a", "#ff7a7a", "#ffd0c8", "#fff4ee", "#ffffff"],
-}
-
-# 游戏贴图名 → (特效 id, 选项, 是否 @2x, 是否保留原画布)
-TARGETS = {
-    "fx_skadi_px_sweep": ("melee/ak-skadi-sweep", {}, False, False),
-    "fx_skadi_px_cleave": ("melee/ak-skadi-sweep", {"heavy": 1, "seed": 7}, False, False),
-    "fx_skadi_px_surge": ("water/ak-skadi-surge", {}, False, False),
-    "fx_hoshiguma_px_saw": ("melee/ak-hoshiguma-saw", {}, False, False),
-}
-for k, pal in EXU.items():
-    TARGETS["fx_exusiai_px_muzzle_" + k] = ("projectiles/ak-exu-muzzle", {"palette": pal}, True, True)
-    TARGETS["fx_exusiai_px_hit_" + k] = ("impacts/ak-exu-hit", {"palette": pal}, True, False)
+# 导出目标：tools/pixelfx_fx/targets_*.json（每个并行会话一份，互不改别人的文件，docs/229 §9）。
+# 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）}
+def load_targets():
+    t = {}
+    for f in sorted(os.listdir(SRC)):
+        if f.startswith("targets") and f.endswith(".json"):
+            for name, spec in json.load(open(os.path.join(SRC, f), encoding="utf-8")).items():
+                if name.startswith("_"):
+                    continue
+                if name in t:
+                    sys.exit("导出目标重名：%s（%s）" % (name, f))
+                t[name] = spec
+    return t
 
 
 def install(lib):
+    shutil.copy2(os.path.join(SRC, "house.js"), os.path.join(lib, "src", "fx", "house.js"))   # 公共规范模块：特效里 import "../house.js"
     for cat in os.listdir(SRC):
+        if not os.path.isdir(os.path.join(SRC, cat)):
+            continue
         for f in os.listdir(os.path.join(SRC, cat)):
             if f.endswith(".js"):
                 shutil.copy2(os.path.join(SRC, cat, f), os.path.join(lib, "src", "fx", cat, f))
 
 
 def export(lib, name, spec, tmp, dry):
-    fx_id, opts, hires, keep = spec
+    fx_id, opts, hires, keep = spec["fx"], spec.get("opts", {}), spec.get("hires", False), spec.get("keep", False)
     out = os.path.join(tmp, name)
     r = subprocess.run(["node", "tools/render.mjs", fx_id, "--sheet", "--opts", json.dumps(opts), "--out", out],
                        cwd=lib, capture_output=True, text=True)
@@ -74,7 +74,7 @@ def export(lib, name, spec, tmp, dry):
     strip = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
     for i, f in enumerate(frames):
         strip.paste(f.crop(box), (i * w, 0))
-    q = strip.quantize(colors=64, method=Image.Quantize.FASTOCTREE).convert("RGBA")
+    q = strip.quantize(colors=int(spec.get("colors", 32)), method=Image.Quantize.FASTOCTREE)   # 存调色板 PNG（比转回 RGBA 小约 2.5 倍）
     path = os.path.join(OUT, name + ("@2x" if hires else "") + ".png")
     if not dry:
         q.save(path, optimize=True)
@@ -93,7 +93,7 @@ def main():
     install(a.lib)
     only = set(filter(None, a.only.split(",")))
     with tempfile.TemporaryDirectory() as tmp:
-        for name, spec in TARGETS.items():
+        for name, spec in load_targets().items():
             if not only or name in only:
                 export(a.lib, name, spec, tmp, a.dry)
 

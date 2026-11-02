@@ -68,7 +68,7 @@ node tools/check.mjs status/stunned           # 越界、首尾接缝、随机�
 | 状态 | 眩晕只染色（`world.gd:3070`，Boss 加文字 `:4301`）；狂暴是染色加圆；寒霜 / 冻结 / 束缚是程序绘制（`world.gd:3500–3580`）；灼烧是颗粒加火舌；逻各斯减速有帧条（192×48）；**轻减速没有画面** | 染色 + 程序绘制为主 | 只有一张 | 很小 |
 | 界面转场 | `scene_transition.gd:82` 用 draw_rect 和斜切多边形；`hud.gd:646` 死亡转场 | 程序绘制，加少量着色器 | 无 | 只有一个实例 |
 
-各路线总体积（PNG）：pixfx 1.21 MB；Codex 帧条约 1.80 MB（其中分层帧条 0.29 MB）；寻访 0.53 MB；`art/fx/_optical` 有 1.03 MB 没被代码引用（另案）。
+各路线总体积（PNG）：pixfx 1.21 MB；Codex 帧条约 1.80 MB（其中分层帧条 0.29 MB）；寻访 0.53 MB；`art/fx/_optical` 有 1.03 MB，是 optical 压阶帧条，运行时在用（optical.gd:208 读 `optical_fx/<名>`，11-02 核实更正，见 docs/229 §7）。
 
 ## 3 候选实测
 
@@ -149,7 +149,7 @@ B 只在两种情况下值得：
    - 眩晕：`world.gd:3070` 旁，挂在敌人头顶。
    - 拾取：`_pq_item` 被吸走时。
    - 技能命中：`hit_fx` 的技能分支。
-2. 包体需要先腾出约 25 KB，交给负责网页包体的会话处理。`art/fx/_optical` 那 1.03 MB 未引用的副本如果确认没用，可以先清掉。
+2. 包体需要先腾出约 25 KB，交给负责网页包体的会话处理。（更正：`art/fx/_optical` 运行时在用，不能删，见 docs/229 §7。）
 3. 本机只截图核对；同屏帧时走云端跑一局后期对照（docs/41 §云端）。
 
 对比图：`Claude outputs/pixelfx_eval/01_stun.png`、`02_pickup.png`、`03_zap_hit.png`、`04_crit_hit.png`、`05_hit_spark.png`。上排是现有做法，下排是 pixelfx 导出（按 @2x 世界像素，整体放大 3 倍）。
@@ -223,6 +223,6 @@ B 只在两种情况下值得：
 
 - 源码在 `tools/pixelfx_fx/water/ak-skadi-surge.js`，按地面透视画（sy 0.55，和游戏里的地面圈一致），原点在脚底，水环外沿半径 62 px（1x）。
 - skadi.json 两处 `fx_skadi_surge`（fit 37）改成 `fx_skadi_px_surge`（fit 62），其余参数不变。旧帧条还在，终结技 ult_moves_b 里仍引用它。
-- 包体 +56 KB（64 色），显存 1.0 MB。半透明水幕的渐变比较吃体积，后面要压的话可以改成 15 fps 或 48 色。
+- 包体：起初 +56 KB（64 色，误存成 RGBA）；11-02 改成 32 色调色板 PNG 后是 19 KB，试点 10 张帧条合计 55 KB，导出后 46 KB（docs/229 §2.9）。显存 1.0 MB。半透明水幕的渐变比较吃体积，后面要压的话可以改成 15 fps 或 48 色。
 - 对照：`Claude outputs/pixelfx_eval/skadi_surge.mp4`，左旧右新。用 `--route=skadi:surge` 强制走涌潮分支，同种子；两边刀光都已是新版，只有水环不同。
 - 预审：报「水环由相同弧片拼成、旋转时接缝明显」。水环本身是一整张连续帧条；它指的是 S3 全方向横扫时，同一刀光换角度连续出现。这是 VREVIEW_EVAL 记过的偏差（同一素材换角度复用会被报成拼接），判断为误报，等用户看录像定。
