@@ -31,6 +31,8 @@ const MIN_SHOW := 4.0        # 每张卡至少显示几秒（动作做得快也�
 const GAP := 1.6             # 两张卡之间至少隔几秒
 const DRILL_MIN := 2.5       # 演示局里每张卡至少显示几秒（强制部分 ≤ 90 秒，节奏紧凑）
 const DRILL_GAP := 0.6       # 演示局里两张卡之间隔几秒
+const PACK_N := 10          # 演示局「部署」：从一侧涌来的怪
+const PACK_D := 400.0        # 这群怪离队长多远出现（屏内靠边：看得见涌来、看得见队友过去挡）
 const LINK_PACK := 8         # 演示局「连携」：在队长身边放几只怪
 const LINK_NUDGE := 3.0      # 演示局「连携」：这么久队长还没放出技能就直接触发连携
 const LINK_WAIT := 10.0      # 演示局「连携」：充满队长技力后等这么久还没连携（附近没敌人）就往下走
@@ -46,6 +48,7 @@ var drill := false           # 演示局进行中
 var drill_left := -1.0       # 「演示结束」卡出现后的倒计时（≥ 0 时到 0 进正式局）
 var forced := false          # 第一次进游戏：引导不可跳过（docs/219 §6）
 var _nudged := false
+var pack_dir := Vector2.RIGHT   # 演示局「部署」：怪群从哪一侧来（世界方向）
 var drill_t0 := -1.0         # 演示局开始的局内时刻（强制部分时长）
 
 var cur := ""                # 当前卡
@@ -185,7 +188,7 @@ func force_recruit() -> bool:
 func _drill_end() -> void:
 	_mark("drill")
 	if forced:
-		print("ONBOARD forced_done route=%s t=%.1f" % [mode, g.t - drill_t0])
+		print("ONBOARD forced_done route=%s t=%.1f real=%.1f" % [mode, g.t - drill_t0, now])
 		forced = false
 		if dev == "":
 			Cfg.onboard_done = true   # 强制部分走完：之后照常可跳过（随云存档同步）
@@ -257,6 +260,8 @@ func _queue_ids() -> Array:
 func _trigger(id: String) -> bool:
 	var sq: int = g.squad.size()
 	if drill:
+		if id == "deploy" and g.ult != null and g.ult.phase != "":
+			return false   # 终结技演出完再摆怪群（余波会把它清掉）
 		var lst: Array = _drill_list()   # 按顺序：前面的都做完才出
 		var i: int = lst.find(id)
 		for k in maxi(i, 0):
@@ -302,7 +307,9 @@ func _moot(id: String) -> bool:
 		"link":
 			return drill and (g.squad.size() < 2 or not LinkV2.on())
 		"command":
-			return drill and (g.squad.size() < 2 or not g.squad.cmd_on())
+			return (drill and (g.squad.size() < 2 or not g.squad.cmd_on())) or (not drill and _seen("deploy"))   # 演示局教过部署 / 随行：正式局不再出圆盘卡
+		"deploy", "regroup":
+			return drill and (g.squad.size() < 2 or not g.squad.cmd_on() or not g.pick.proto_on())
 	return false
 
 
@@ -323,11 +330,31 @@ func _done(id: String) -> bool:
 			return int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)) or (cur_t > ACT_SECS and not drill)
 		"link":
 			return _links() > int(ev0.get("links", 0)) or (drill and cur_t > LINK_WAIT)
+		"deploy":
+			return _deployed()
+		"regroup":
+			return int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)) and g.squad.order_kind == "" and g.squad.stance != g.squad.ROAM
 		"ult":
 			return not g.ult.full() or (cur_t > ACT_SECS and not drill)
 		"mire":
 			return _lit_count() > beacons0 or cur_t > 25.0
 	return cur_t >= INFO_SECS
+
+
+## 「部署」做完：部署指令在生效（落点在怪群那一侧），且至少一名队友已经走到驻扎位上（以指令实际生效为准，点了扇区不算）
+func _deployed() -> bool:
+	var sq = g.squad
+	if sq.order_kind != "point" or sq.order_pos == Vector2.INF or (sq.order_pos - g.ppos).dot(pack_dir) <= 40.0:
+		return false
+	for o in sq.ops:
+		if not o.is_leader and o.pos != Vector2.INF and o.cmd_down <= 0.0 and o.pos.distance_to(sq.station_of(o)) <= 48.0:
+			return true
+	return false
+
+
+## 指挥圆盘打开时各扇区依次亮起（command_wheel.draw 读）：演示局「部署」这一步
+func wheel_tour() -> bool:
+	return drill and cur == "deploy"
 
 
 func _links() -> int:
@@ -366,13 +393,21 @@ func _show(id: String) -> void:
 				for k in LINK_PACK:   # 身边放一圈怪：技能和连携都要有目标（演示局怪少，附近常常是空的）
 					var ep: Vector2 = g.map.push_out(g.ppos + Vector2.RIGHT.rotated(TAU * k / LINK_PACK) * 210.0, 12.0)
 					g.enemies.append(g.spawner.new_enemy(g.spawner.pick_type(), ep))
+			"deploy":
+				# 固定场景：一群怪从队长右侧（离得远就换左侧，挑地图里放得下的一边）涌来，提示部署队友阻挡
+				pack_dir = Vector2.RIGHT if g.map.push_out(g.ppos + Vector2.RIGHT * PACK_D, 12.0).distance_to(g.ppos + Vector2.RIGHT * PACK_D) < 40.0 else Vector2.LEFT
+				for k in PACK_N:
+					var ep: Vector2 = g.ppos + pack_dir * (PACK_D + (k % 2) * 40.0) + pack_dir.orthogonal() * (k - (PACK_N - 1) / 2.0) * 34.0
+					g.enemies.append(g.spawner.new_enemy(g.spawner.pick_type(), g.map.push_out(ep, 12.0)))
+				if g.squad.stance == g.squad.ROAM:
+					g.squad.apply_command("guard")   # 从随行开始
 			"ult":
 				g.ult.energy = g.ult.FULL   # 终结技直接充满
 			"drill_end":
 				drill_left = END_SECS
 	Sfx.play("ui_move", -6.0)
 	if dev != "":
-		print("ONBOARD card=%s t=%.1f" % [id, g.t - maxf(drill_t0, 0.0)])   # 录片 / 测试：每张卡出现的局内时刻
+		print("ONBOARD card=%s t=%.1f real=%.1f" % [id, g.t - maxf(drill_t0, 0.0), now])   # 录片 / 测试：每张卡出现的局内时刻
 
 
 func _finish(skipped := false) -> void:
@@ -485,6 +520,25 @@ func _dev_act() -> void:
 		"command":
 			if int(ev.get("wheel", 0)) <= int(ev0.get("wheel", 0)):
 				g.wheel.confirm(1)   # 突击
+		"deploy":
+			# 打开圆盘 → 看完扇区依次亮起 → 选「部署」→ 准星挪到怪群前方 → 确认
+			if g.squad.order_kind == "point":
+				return
+			if not g.wheel.is_open and not g.pick.active and cur_t >= 1.6 and cur_t < 2.0:
+				g.wheel.open()
+			elif g.wheel.is_open and g.wheel.t_open >= g.wheel.TOUR_STEP * (g.wheel.ITEMS.size() + 0.6):
+				g.wheel.confirm(g.wheel.item_index("point"))
+			elif g.pick.active:
+				g.pick._goal = g.hud_ct() * (g.ppos + pack_dir * 220.0) - g.pick._offset()
+				if g.pick.t >= 1.3:
+					g.pick.confirm()
+		"regroup":
+			if int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)):
+				return
+			if not g.wheel.is_open and cur_t >= 1.6 and cur_t < 2.0:
+				g.wheel.open()
+			elif g.wheel.is_open and g.wheel.t_open >= 0.9:
+				g.wheel.confirm(g.wheel.item_index("guard"))
 
 
 # ---------------------------------------------------------------- 问题框

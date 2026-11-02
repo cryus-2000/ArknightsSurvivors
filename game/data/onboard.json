@@ -10,8 +10,8 @@
    ["跳过引导", "之后可在「设置 · 操作」里重新打开", "off"]
   ]
  },
- "drill": ["move", "xp", "recruit", "link", "ult", "command", "drill_end"],
- "drill_vet": ["recruit", "link", "ult", "command", "drill_end"],
+ "drill": ["move", "xp", "recruit", "link", "ult", "deploy", "regroup", "drill_end"],
+ "drill_vet": ["recruit", "link", "ult", "deploy", "regroup", "drill_end"],
  "tips": ["lamp", "merchant", "boss", "squad", "command", "ult", "link", "mire", "nodes"],
  "cards": {
   "move": {"title": "移动", "en": "MOVE", "text": "WASD 移动，攻击会自动打出去。", "touch": "按住左半屏拖动移动，攻击会自动打出去。", "hint": "走动一下"},
@@ -25,6 +25,8 @@
   "squad": {"title": "小队与队长", "en": "SQUAD", "text": "你操控的是队长，队长倒下即探索失败；队友跟着队长自动作战。", "hint": ""},
   "command": {"title": "指挥圆盘", "en": "COMMAND", "text": "按 F 打开指挥圆盘，给队友下令：随行、突击、集火等。", "touch": "点「指挥」键打开圆盘，给队友下令：随行、突击、集火等。", "hint": "下达一次指挥"},
   "link": {"title": "连携与羁绊", "en": "LINK", "text": "队长施放技能时，队友会自动接上一招连携；有羁绊的两人会换成专属合击。", "hint": "等队长施放技能"},
+  "deploy": {"title": "指挥 · 部署", "en": "COMMAND", "text": "一群敌人从侧面涌来。按 F 打开指挥圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。", "touch": "一群敌人从侧面涌来。点「指挥」键打开圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。", "hint": "部署队友挡住敌人"},
+  "regroup": {"title": "指挥 · 随行", "en": "COMMAND", "text": "挡住了。再打开圆盘选「随行」，队友回到队长身边护卫。", "touch": "挡住了。再点「指挥」键选「随行」，队友回到队长身边护卫。", "hint": "改回随行"},
   "mire": {"title": "溟痕与引航灯标", "en": "BEACON", "text": "溟痕会减速并持续造成伤害。站在引航灯标旁将其点燃，可以驱散溟痕。", "hint": "点燃一座引航灯标"},
   "nodes": {"title": "节点卡", "en": "NODES", "text": "中 Boss 倒下后翻节点卡：三张选一张，翻开即生效。", "hint": ""}
  }
