@@ -1,7 +1,7 @@
 // 水月「深蓝之籽」水母蛰刺命中（精一第 3 批 jelly sting，替换 fx_mizuki_jelly_sting）：@2x 帧条，原点 = 命中点（敌人身上半个半径处），游戏按 PX 放（1:1）。
 // 几根长短不一的刺丝从四面不等角地扎进命中点，首帧白闪，随后刺点泛起一团薰衣草色的毒雾、刺丝缩回并散成小点。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Mizuki jelly sting",
@@ -9,12 +9,12 @@ export const meta = {
   tags: ["impact", "sting", "jellyfish", "topdown", "one-shot"],
   size: [56, 56],
   origin: [28, 28],
-  duration: 0.35,
+  duration: 0.5,   // 主体 + 余韵（技能 ≤ 0.6 s）
   loop: false,
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.mizuki],
+    palette: [...OP.mizuki],
     seed: 6,
   },
 };
@@ -26,6 +26,21 @@ export function create(o) {
   for (let a = Rg.range(0, 1); a < TAU - 0.4; a += Rg.range(0.9, 1.8)) th.push({ a, L: Rg.range(12, 22), bend: Rg.range(-4, 4), d: Rg.range(0, 0.03) });
   const STAB = 0.06;
   let t = 0, popped = false;
+
+  // 余韵（docs/229 §2.5）：主体之后留几粒稀疏残光慢慢上浮淡掉，alpha ≤ TAIL_ALPHA；光晕（light 层 → _glow 条）在焦点
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let i = 0; i < 6; i++) { const q = ((Rt) => { const a = Rt.range(0, TAU), r = Rt.range(5, 13); return [Math.cos(a) * r, Math.sin(a) * r]; })(Rt); res.push({ x: q[0], y: q[1], d: Rt.range(0, 0.25 * 0.4), l: Rt.range(0.25 * 0.5, 0.25 * 0.6) }); }
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - 0.2 - r.d) / r.l;
+      if (u < 0 || u >= 1) continue;
+      p.blend(Math.round(r.x), Math.round(r.y - u * 4), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(Math.abs(t - 0.03) / 0.1);
+    if (k > 0) p.glow(0, 0, 12, C[5], 0.9 * k);
+  }
 
   return {
     update(dt) {
@@ -44,6 +59,8 @@ export function create(o) {
       ps.update(dt);
     },
     draw(p) {
+      halo(p);
+      tailFx(p);
       for (const s of th) {
         const u = t - s.d;
         if (u < 0) continue;

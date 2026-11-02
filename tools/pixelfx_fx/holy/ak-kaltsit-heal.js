@@ -1,7 +1,7 @@
 // 凯尔希「治疗」普攻落在队长身上（替换通用 fx_heal_aura_green + 黄色 fx_holy_impact）：@2x 帧条，原点 = 队长脚底，游戏 scale 1.0。
 // 脚下一摊不规整的荧绿微光一闪即收，几粒大小、速度、起点都不同的光点往上浮到胸口高度，胸口处一个偏心的十字缝合闪（横短竖长、右上臂最长）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Kal'tsit mend",
@@ -9,12 +9,12 @@ export const meta = {
   tags: ["holy", "heal", "buff", "topdown", "one-shot"],
   size: [70, 120],
   origin: [35, 76],
-  duration: 0.5,
+  duration: 0.65,   // 主体 + 余韵（技能 ≤ 0.6 s）
   loop: false,
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.kaltsit],
+    palette: [...OP.kaltsit],
     seed: 7,
   },
 };
@@ -50,9 +50,26 @@ export function create(o) {
     p.px(0, cy, C[7]);
   }
 
+  // 余韵（docs/229 §2.5）：主体之后留几粒稀疏残光慢慢上浮淡掉，alpha ≤ TAIL_ALPHA；光晕（light 层 → _glow 条）在焦点
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let i = 0; i < 6; i++) { const q = ((Rt) => [Rt.range(-10, 10), -CHEST + Rt.range(-8, 8)])(Rt); res.push({ x: q[0], y: q[1], d: Rt.range(0, 0.3 * 0.4), l: Rt.range(0.3 * 0.5, 0.3 * 0.6) }); }
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - 0.32 - r.d) / r.l;
+      if (u < 0 || u >= 1) continue;
+      p.blend(Math.round(r.x), Math.round(r.y - u * 3), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(Math.abs(t - 0.14) / 0.1);
+    if (k > 0) p.glow(0, -CHEST, 14, C[5], 0.9 * k);
+  }
+
   return {
     update(dt) { t += dt; ps.update(dt); },
     draw(p) {
+      halo(p);
+      tailFx(p);
       pool(p);
       for (const m of motes) {
         const u = t - m.d;

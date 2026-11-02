@@ -2,7 +2,7 @@
 // 游戏 scale_r 0.01724：判定半径 93 × r_mult 1.25 = 116 时每个 1x 像素 2 世界像素。一道薄而烫的熔红弧：刃口白热、往里冷却成暗血红，刃停处迸出几粒熔渣。
 // 红色避开敌方危险色 0.92–0.98：色相取 0.99–0.03，高光往橙偏（docs/229 §2.2）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
-import { FPS } from "../house.js";
+import { FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Mon3tr melt slash",
@@ -10,12 +10,12 @@ export const meta = {
   tags: ["melee", "slash", "fire", "topdown", "one-shot"],
   size: [120, 140],
   origin: [60, 70],
-  duration: 0.17,
+  duration: 0.30,   // 主体 + 余韵
   loop: false,
   fps: FPS.basic,
   bg: "dark",
   options: {
-    palette: ["#06142a", "#1c0807", "#3f0d0b", "#6e1513", "#a8241f", "#e0553a", "#ffc9b0", "#ffffff"],
+    palette: ["#3b0d0b", "#651612", "#861d19", "#a8241f", "#e0553a", "#ffc9b0", "#ffffff"],   // 设定暗血红 #a8241f × 35 / 60 / 80% 明度（docs/229 §2.2，11-02）
     cx: -36,
     radius: 62,
     span: 1.9,
@@ -47,12 +47,32 @@ export function create(o) {
       if (w < 0.4) return;
       const q = (Rr - r) / w;
       if (q < 0 || q > 1) return;
-      const hot = t < 0.045 ? 1.6 : 0;                    // 第 1 帧整条爆亮（不烤 p.glow：加色光会让 32 色量化出抖动、包体涨 15%）
+      const hot = t < 0.045 ? 0.8 : 0;                    // 首帧只让刃口芯爆白（白只在核心，近白 ≤ 12%）
       const ci = Math.round(q * 5.4 + 0.5 + age * 4.2 - v * 1.2 - hot);
       const c = C[7 - clamp(ci, 0, 6)];
       if (q > 0.5) p.blend(x, y, c, 0.7);   // 刃身往里半透明（shade 的 out.a 是抖动，不用）
       else out.c = c;
     });
+  }
+
+  // 余韵（docs/229 §2.5，普攻 ≤ 0.15 s）：主体收尾后沿弧留几粒稀疏残光，alpha ≤ TAIL_ALPHA，往外飘散淡掉
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let v = Rt.range(0, 0.12); v < 1; v += Rt.range(0.1, 0.22)) res.push({ v, dr: Rt.range(-W * 0.6, 2), d: Rt.range(0, 0.04), out: Rt.range(3, 9) });
+  const TAIL0 = SWEEP + HOLD + TRAIL * 0.6;
+  function tail(p) {
+    for (const r of res) {
+      const u = (t - TAIL0 - r.d) / DUR.basicTail;
+      if (u < 0 || u >= 1) continue;
+      const a = a0 + span * r.v, rr = R + r.dr + r.out * u;
+      p.blend(Math.round(cx + Math.cos(a) * rr), Math.round(Math.sin(a) * rr), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  // 光晕（light 层，导出成 _glow 条在加色层叠画）：跟着刃头，随冷却收
+  function halo(p) {
+    const k = 1 - clamp(t / 0.12);
+    if (k <= 0) return;
+    const a = a0 + span * ease.outExpo(clamp(t / SWEEP));
+    p.glow(cx + Math.cos(a) * (R - 4), Math.sin(a) * (R - 4), 18, C[5], 0.9 * k);
   }
 
   return {
@@ -79,6 +99,8 @@ export function create(o) {
     },
     draw(p) {
       blade(p);
+      halo(p);
+      tail(p);
       ps.draw(p);
     },
   };

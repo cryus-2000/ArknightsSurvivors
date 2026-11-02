@@ -16,7 +16,7 @@ export const meta = {
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.gladiia],
+    palette: [...OP.gladiia],
     mode: "loop",
     height: 120,
     seed: 6,
@@ -56,6 +56,8 @@ export function draw(p, t, o) {
       p.blend(Math.round(x), y, C[q > 0.8 ? 3 : 2], ((0.2 + 0.16 * q) * (1 - fall) + (hot ? 0.4 : 0)) * top);
     }
   }
+  // 光晕（light 层 → _glow 条）：漏斗中段一团柔光，开时亮一下
+  p.glow(0, -Hn * 0.45, 30, C[5], (0.35 + (mode === "open" ? 0.4 * (1 - u) : 0)) * (1 - fall));
   // 后半圈先画（暗），前半圈后画（亮）
   for (const pass of [0, 1]) {
     for (const b of bands(o)) {

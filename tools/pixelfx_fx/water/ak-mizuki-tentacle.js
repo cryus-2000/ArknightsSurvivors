@@ -2,7 +2,7 @@
 // 游戏按 bottom 锚（画布底边）× PX × 0.8–0.9 放（每 1x 像素 1.6–1.8 世界像素）。
 // 地面裂开一圈不规整的暗水，一根半透明的水母触手从里面抽出：根粗梢细、往一侧弯、梢头卷起抽下，首帧梢头白闪，抽完从梢往根缩回地里。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Mizuki tentacle lash",
@@ -10,12 +10,12 @@ export const meta = {
   tags: ["water", "tentacle", "jellyfish", "strike", "one-shot"],
   size: [100, 84],
   origin: [50, 78],
-  duration: 0.42,
+  duration: 0.66,   // 主体 + 余韵（技能 ≤ 0.6 s）
   loop: false,
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.mizuki],
+    palette: [...OP.mizuki],
     height: 62,
     seed: 4,
   },
@@ -67,6 +67,21 @@ export function create(o) {
     }
   }
 
+  // 余韵（docs/229 §2.5）：主体之后留几粒稀疏残光慢慢上浮淡掉，alpha ≤ TAIL_ALPHA；光晕（light 层 → _glow 条）在焦点
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let i = 0; i < 7; i++) { const q = ((Rt) => { const a = Rt.range(0, TAU), r = Rt.range(6, 14); return [Math.cos(a) * r, Math.sin(a) * r * SY]; })(Rt); res.push({ x: q[0], y: q[1], d: Rt.range(0, 0.3 * 0.4), l: Rt.range(0.3 * 0.5, 0.3 * 0.6) }); }
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - 0.34 - r.d) / r.l;
+      if (u < 0 || u >= 1) continue;
+      p.blend(Math.round(r.x), Math.round(r.y - u * 4), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(Math.abs(t - 0.15) / 0.12);
+    if (k > 0) p.glow(8, -40, 18, C[5], 0.9 * k);
+  }
+
   return {
     update(dt) {
       t += dt;
@@ -82,6 +97,8 @@ export function create(o) {
     },
     drawBack(p) { pool(p); },
     draw(p) {
+      halo(p);
+      tailFx(p);
       body(p);
       ps.draw(p);
     },

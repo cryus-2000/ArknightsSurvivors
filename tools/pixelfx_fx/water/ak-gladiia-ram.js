@@ -1,7 +1,7 @@
 // 歌蕾蒂娅落点水爆（S1 拖回落地 / S3 收势 / 精二，替换 fx_gladiia_ram）：@2x 帧条，地面透视 sy 0.55，原点 = 落点地面，游戏 scale 1.0（1:1）。
 // 首帧白闪；中心一股水柱冲起又塌下，地面上几片大小、方向都不等的水舌向外拍开，边缘碎成水珠落回，最后剩一摊退去的水渍。不画同心圈、不等距放射。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Gladiia tide burst",
@@ -9,12 +9,12 @@ export const meta = {
   tags: ["water", "splash", "impact", "floor", "topdown", "one-shot"],
   size: [140, 140],
   origin: [70, 84],
-  duration: 0.5,
+  duration: 0.8,   // 主体 + 余韵（技能 ≤ 0.6 s）
   loop: false,
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.gladiia],
+    palette: [...OP.gladiia],
     radius: 50,
     seed: 2,
   },
@@ -57,6 +57,21 @@ export function create(o) {
     }
   }
 
+  // 余韵（docs/229 §2.5）：主体之后留几粒稀疏残光慢慢上浮淡掉，alpha ≤ TAIL_ALPHA；光晕（light 层 → _glow 条）在焦点
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let i = 0; i < 12; i++) { const q = ((Rt) => { const a = Rt.range(0, TAU), r = R * lobe(a) * Rt.range(0.8, 1.0); return [Math.cos(a) * r, Math.sin(a) * r * SY]; })(Rt); res.push({ x: q[0], y: q[1], d: Rt.range(0, 0.4 * 0.4), l: Rt.range(0.4 * 0.5, 0.4 * 0.6) }); }
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - 0.36 - r.d) / r.l;
+      if (u < 0 || u >= 1) continue;
+      p.blend(Math.round(r.x), Math.round(r.y - u * 3), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(Math.abs(t - 0.02) / 0.15);
+    if (k > 0) p.glow(0, -10, 26, C[5], 0.9 * k);
+  }
+
   return {
     update(dt) {
       t += dt;
@@ -79,6 +94,8 @@ export function create(o) {
       sheet(p, true);
     },
     draw(p) {
+      halo(p);
+      tailFx(p);
       sheet(p, false);
       column(p);
       ps.draw(p);

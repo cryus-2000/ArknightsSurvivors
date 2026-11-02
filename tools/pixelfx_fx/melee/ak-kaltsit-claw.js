@@ -2,7 +2,7 @@
 // 原点 = 爪痕中心（attack.fx along 0.55）。fit [93, 0.85, 1.1]：判定半径 93 时每个 1x 像素 2 世界像素。
 // 三道长短、间距、弯度都不一样的爪痕自左下撕向右上，白热芯冷却成 Mon3tr 荧绿，末端崩出几粒碎片。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Mon3tr rending claw",
@@ -10,12 +10,12 @@ export const meta = {
   tags: ["melee", "claw", "slash", "topdown", "one-shot"],
   size: [150, 130],
   origin: [75, 65],
-  duration: 0.2,
+  duration: 0.32,   // 主体 + 余韵
   loop: false,
   fps: FPS.basic,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.kaltsit],
+    palette: [...OP.kaltsit],
     len: 92,
     seed: 3,
   },
@@ -50,12 +50,29 @@ export function create(o) {
       const w = k.w * taper * (1 - age * 0.5) * (0.85 + 0.3 * noise(s * 9, k.sd));
       for (let d = -w; d <= w; d += 0.5) {
         const q = Math.abs(d) / Math.max(w, 0.5);
-        const hot = t < 0.045 ? 1.6 : 0;
+        const hot = t < 0.045 ? 0.8 : 0;   // 白只在爪痕芯
         const c = C[7 - clamp(Math.round(q * 3.5 + age * 4.5 + (1 - s) * 0.8 - hot), 0, 6)];
         const x = Math.round(cx + nx * d), y = Math.round(cy + ny * d);
         if (q > 0.7) p.blend(x, y, c, 0.7); else p.px(x, y, c);
       }
     }
+  }
+
+  // 余韵（≤ 0.15 s）：爪痕崩完后沿痕留几粒荧绿残光，alpha ≤ TAIL_ALPHA；光晕在每道爪痕中段
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (const k of rakes) for (let v = Rt.range(0, 0.2); v < 1; v += Rt.range(0.18, 0.35)) res.push({ k, v, d: Rt.range(0, 0.04) });
+  function tail(p) {
+    for (const r of res) {
+      const u = (t - LIVE - r.d) / DUR.basicTail;
+      if (u < 0 || u >= 1) continue;
+      const along = (r.v - 0.5) * r.k.L + r.k.sh;
+      p.blend(Math.round(ux * along + nx * r.k.off), Math.round(uy * along + ny * r.k.off - u * 4), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(t / 0.12);
+    if (k <= 0) return;
+    for (const r of rakes) p.glow(ux * r.sh + nx * r.off, uy * r.sh + ny * r.off, 14, C[5], 0.6 * k);
   }
 
   return {
@@ -76,6 +93,8 @@ export function create(o) {
     },
     draw(p) {
       for (const k of rakes) rake(p, k);
+      halo(p);
+      tail(p);
       ps.draw(p);
     },
   };

@@ -3,7 +3,7 @@
 // 一道刃口在 0.1 秒里绕身一整圈：刃头白、身后拖着锯齿刃带，齿的间距和大小都不等；转完刃带从外缘崩成几片碎刃甩出去。只有一圈，不画同心圈。
 // 重击（S2 期间）用同一特效换血红色阶（targets_c.json opts.palette，色相 0.99–0.01，避开敌方危险色 0.92–0.98）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { OP, FPS, REACH } from "../house.js";
+import { OP, FPS, REACH, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Specter spinning saw",
@@ -11,12 +11,12 @@ export const meta = {
   tags: ["melee", "spin", "saw", "topdown", "one-shot"],
   size: [200, 120],
   origin: [100, 60],
-  duration: 0.2,
+  duration: 0.32,   // 主体 + 余韵
   loop: false,
   fps: FPS.basic,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.specter_unchained],
+    palette: [...OP.specter_unchained],
     radius: 102 * REACH.sweep,
     seed: 8,
   },
@@ -57,11 +57,29 @@ export function create(o) {
       const outer = R + wob + toothAt(a) * (1 - v * 0.5);
       if (r > outer || r < R - W * (1 - v * 0.6) + wob) return;
       const q = (outer - r) / (outer - R + W);
-      const hot = t < 0.045 ? 1.6 : 0;
+      const hot = t < 0.045 ? 0.8 : 0;   // 白只在刃头芯（近白 ≤ 12%）
       const c = C[7 - clamp(Math.round(v * 4.5 + q * 2.2 + (1 - fade) * 3 - hot + (y < 0 ? 0.6 : 0)), 0, 6)];   // 远半圈暗一点
       if (v > 0.55) p.blend(x, y, c, 0.75 * fade + 0.15);
       else out.c = c;
     });
+  }
+
+  // 余韵（≤ 0.15 s）：刃带崩散后沿圈留几粒稀疏碎光，alpha ≤ TAIL_ALPHA；光晕跟着刃头
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let a = Rt.range(0, 0.4); a < TAU; a += Rt.range(0.35, 0.9)) res.push({ a, d: Rt.range(0, 0.04), out: Rt.range(2, 8) });
+  function tail(p) {
+    for (const r of res) {
+      const u = (t - SPIN - 0.03 - r.d) / DUR.basicTail;
+      if (u < 0 || u >= 1) continue;
+      const rr = R + r.out * u;
+      p.blend(Math.round(Math.cos(r.a) * rr), Math.round(Math.sin(r.a) * rr * SY), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(t / 0.14);
+    if (k <= 0) return;
+    const a = a0 + TAU * ease.outQuad(clamp(t / SPIN));
+    p.glow(Math.cos(a) * R, Math.sin(a) * R * SY, 16, C[5], 0.9 * k);
   }
 
   return {
@@ -79,6 +97,8 @@ export function create(o) {
     },
     draw(p) {
       band(p);
+      halo(p);
+      tail(p);
       ps.draw(p);
     },
   };

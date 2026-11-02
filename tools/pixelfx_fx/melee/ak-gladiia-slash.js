@@ -2,20 +2,20 @@
 // 原点 = 身前 along 0.5 × 判定半径（160）处；歌蕾蒂娅在原点左边 80 px（cx）。刀弧半径 = 判定半径 × 0.85（docs/229 §2.8），张角 = 判定半角 65° × 2。
 // 和拉普兰德的细双刃不同：一道厚重的戟刃水弧，刃口白、刃身是半透明的深海水体，外缘按噪声卷起浪沫，刀停处甩出一串大小不一的水珠。
 import { Particles, P, Rng, fit, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
-import { OP, FPS, REACH } from "../house.js";
+import { OP, FPS, REACH, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Gladiia tide slash",
   desc: "A heavy halberd arc of deep-sea water: white edge, translucent blue body, a ragged foam lip, and a spray of uneven droplets where the blade stops.",
   tags: ["melee", "slash", "water", "topdown", "one-shot"],
-  size: [136, 272],
-  origin: [68, 136],
-  duration: 0.17,
+  size: [136, 280],
+  origin: [68, 140],
+  duration: 0.30,   // 主体 + 余韵
   loop: false,
   fps: FPS.basic,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.gladiia],
+    palette: [...OP.gladiia],
     cx: -80,
     radius: 160 * REACH.sweep,
     span: 2.27,       // 判定半角 65° × 2
@@ -47,12 +47,32 @@ export function create(o) {
       if (w < 0.4) return;
       const q = (Rr - r) / w;
       if (q < 0 || q > 1) return;
-      const hot = t < 0.045 ? 1.6 : 0;                    // 第 1 帧整条爆亮（不烤 p.glow：加色光会让 32 色量化出抖动、包体涨 15%）
+      const hot = t < 0.045 ? 0.8 : 0;                    // 首帧只让刃口芯爆白（白只在核心，近白 ≤ 12%）
       const ci = Math.round(q * 5.4 + 0.5 + age * 4.2 - v * 1.2 - hot);
       const c = C[7 - clamp(ci, 0, 6)];
       if (q > 0.5) p.blend(x, y, c, 0.7);   // 刃身往里是真半透明水体（shade 的 out.a 是抖动，不用）
       else out.c = c;
     });
+  }
+
+  // 余韵（docs/229 §2.5，普攻 ≤ 0.15 s）：主体收尾后沿弧留几粒稀疏残光，alpha ≤ TAIL_ALPHA，往外飘散淡掉
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let v = Rt.range(0, 0.12); v < 1; v += Rt.range(0.1, 0.22)) res.push({ v, dr: Rt.range(-W * 0.6, 2), d: Rt.range(0, 0.04), out: Rt.range(3, 9) });
+  const TAIL0 = SWEEP + HOLD + TRAIL * 0.6;
+  function tail(p) {
+    for (const r of res) {
+      const u = (t - TAIL0 - r.d) / DUR.basicTail;
+      if (u < 0 || u >= 1) continue;
+      const a = a0 + span * r.v, rr = R + r.dr + r.out * u;
+      p.blend(Math.round(cx + Math.cos(a) * rr), Math.round(Math.sin(a) * rr), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  // 光晕（light 层，导出成 _glow 条在加色层叠画）：跟着刃头，随冷却收
+  function halo(p) {
+    const k = 1 - clamp(t / 0.12);
+    if (k <= 0) return;
+    const a = a0 + span * ease.outExpo(clamp(t / SWEEP));
+    p.glow(cx + Math.cos(a) * (R - 4), Math.sin(a) * (R - 4), 18, C[5], 0.9 * k);
   }
 
   return {
@@ -79,6 +99,8 @@ export function create(o) {
     },
     draw(p) {
       blade(p);
+      halo(p);
+      tail(p);
       ps.draw(p);
     },
   };

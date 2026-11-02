@@ -2,7 +2,7 @@
 // 游戏里 fit = 判定半径 ÷ 2（每个 1x 像素 2 世界像素），帧里裂网外沿 = 判定半径（radius 选项，两档各导一张）。
 // 落点首帧白闪；几道不规整、带分叉的荧绿裂口向外撕开（角度、长度、折点都随机），外沿掀起一圈高矮不一的半透明尘墙，碎块向外抛；不画同心圈。
 import { Particles, Bits, B, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Mon3tr landing slam",
@@ -10,12 +10,12 @@ export const meta = {
   tags: ["impact", "slam", "crack", "floor", "topdown", "one-shot"],
   size: [220, 130],
   origin: [110, 66],
-  duration: 0.5,
+  duration: 0.75,   // 主体 + 余韵（技能 ≤ 0.6 s）
   loop: false,
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.kaltsit],
+    palette: [...OP.kaltsit],
     dust: ["#06142a", "#1a2b33", "#33494d", "#5b7372"],
     radius: 100,
     seed: 4,
@@ -48,7 +48,7 @@ export function create(o) {
     }
     cracks.push({ pts, die, fork, fp, w: Rg.range(1.5, 2.6) * Math.max(0.7, s) });
   }
-  const wallH = (a) => Math.max(0, -2 + 14 * (0.5 + 0.5 * noise(a * 3.7, o.seed + 3))) * (0.6 + 0.4 * s) * (0.75 + 0.5 * (0.5 + 0.5 * noise(a * 11, o.seed + 8)));
+  const wallH = (a) => Math.max(0, -6 + 18 * (0.5 + 0.5 * noise(a * 2.9, o.seed + 3))) * (0.6 + 0.4 * s) * (0.75 + 0.5 * (0.5 + 0.5 * noise(a * 11, o.seed + 8)));
   let t = 0, burst = false;
 
   function crackDraw(p) {
@@ -77,12 +77,27 @@ export function create(o) {
     for (let a = 0; a < TAU; a += step) {
       const sn = Math.sin(a);
       if ((sn < 0) !== far) continue;
-      const rj = rr * (1 + 0.1 * noise(a * 4.1, o.seed + 6)), x = Math.cos(a) * rj, y = sn * rj * SY, h = wallH(a) * rise;   // 尘墙半径和高度都按噪声起伏，有缺口
+      const rj = rr * (1 + 0.2 * noise(a * 1.7, o.seed + 6) + 0.08 * noise(a * 6.3, o.seed + 1)), x = Math.cos(a) * rj, y = sn * rj * SY, h = wallH(a) * rise;   // 外圈轮廓按两层噪声鼓缩、高度有缺口，不读成规整椭圆（组长 11-02）
       for (let d = 0; d <= h; d += 1) {
         const v = d / Math.max(h, 1);
         p.blend(Math.round(x), Math.round(y - d), v > 0.8 ? D[3] : D[2], (0.55 - v * 0.35) * (far ? 0.8 : 1));
       }
     }
+  }
+
+  // 余韵（docs/229 §2.5）：主体之后留几粒稀疏残光慢慢上浮淡掉，alpha ≤ TAIL_ALPHA；光晕（light 层 → _glow 条）在焦点
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let i = 0; i < 12; i++) { const q = ((Rt) => { const a = Rt.range(0, TAU), r = R * Rt.range(0.15, 0.75); return [Math.cos(a) * r, Math.sin(a) * r * SY]; })(Rt); res.push({ x: q[0], y: q[1], d: Rt.range(0, 0.4 * 0.4), l: Rt.range(0.4 * 0.5, 0.4 * 0.6) }); }
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - 0.32 - r.d) / r.l;
+      if (u < 0 || u >= 1) continue;
+      p.blend(Math.round(r.x), Math.round(r.y - u * 3), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(Math.abs(t - 0.0) / 0.16);
+    if (k > 0) p.glow(0, 0, (14 + 22 * s), C[5], 0.9 * k);
   }
 
   return {
@@ -107,6 +122,8 @@ export function create(o) {
       wall(p, true);
     },
     draw(p) {
+      halo(p);
+      tailFx(p);
       crackDraw(p);
       if (t < 0.1) {
         const k = t < 0.05 ? 1 : 0.45, rx = (14 + 12 * s) * k;

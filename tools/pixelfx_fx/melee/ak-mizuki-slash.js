@@ -2,7 +2,7 @@
 // 刀弧半径 = 挥击半径 112 × 0.85，张角 150°（swing_arc）。伞面扫过留下一片半透明的水母伞膜，内侧拖出几缕长短不一的触丝，末尾散成小气泡。
 // 色阶：house.js OP.mizuki（PRTS Spine 取色：外套宝蓝 → 发梢薰衣草 → 白）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
-import { OP, FPS, REACH } from "../house.js";
+import { OP, FPS, REACH, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Mizuki umbrella sweep",
@@ -10,12 +10,12 @@ export const meta = {
   tags: ["melee", "slash", "jellyfish", "topdown", "one-shot"],
   size: [220, 220],
   origin: [110, 110],
-  duration: 0.19,
+  duration: 0.31,   // 主体 + 余韵
   loop: false,
   fps: FPS.basic,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.mizuki],
+    palette: [...OP.mizuki],
     radius: 112 * REACH.sweep,
     span: 2.62,       // 150°
     seed: 2,
@@ -47,7 +47,7 @@ export function create(o) {
       if (w < 0.4) return;
       const q = (Rr - r) / w;
       if (q < 0 || q > 1) return;
-      const hot = t < 0.045 ? 1.6 : 0;
+      const hot = t < 0.045 ? 0.8 : 0;                    // 首帧只让刃口芯爆白（白只在核心，近白 ≤ 12%）
       const ci = Math.round(q * 4.5 + 0.4 + age * 4 - v * 1.1 - hot);
       const c = C[7 - clamp(ci, 0, 6)];
       if (q > 0.4) p.blend(x, y, c, 0.6);               // 伞膜：外缘实、往里真半透明（shade 的 out.a 是抖动，不用）
@@ -67,6 +67,26 @@ export function create(o) {
         p.blend(Math.round(x), Math.round(y), C[clamp(Math.round(7 - d / L * 3 - age * 2), 3, 7)], 0.95 - d / L * 0.5);
       }
     }
+  }
+
+  // 余韵（docs/229 §2.5，普攻 ≤ 0.15 s）：主体收尾后沿弧留几粒稀疏残光，alpha ≤ TAIL_ALPHA，往外飘散淡掉
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let v = Rt.range(0, 0.12); v < 1; v += Rt.range(0.1, 0.22)) res.push({ v, dr: Rt.range(-W * 0.6, 2), d: Rt.range(0, 0.04), out: Rt.range(3, 9) });
+  const TAIL0 = SWEEP + HOLD + TRAIL * 0.6;
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - TAIL0 - r.d) / DUR.basicTail;
+      if (u < 0 || u >= 1) continue;
+      const a = a0 + span * r.v, rr = R + r.dr + r.out * u;
+      p.blend(Math.round(0 + Math.cos(a) * rr), Math.round(Math.sin(a) * rr), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  // 光晕（light 层，导出成 _glow 条在加色层叠画）：跟着刃头，随冷却收
+  function halo(p) {
+    const k = 1 - clamp(t / 0.12);
+    if (k <= 0) return;
+    const a = a0 + span * ease.outExpo(clamp(t / SWEEP));
+    p.glow(0 + Math.cos(a) * (R - 4), Math.sin(a) * (R - 4), 18, C[5], 0.9 * k);
   }
 
   return {
@@ -92,6 +112,8 @@ export function create(o) {
         tendrils(p, head, tail, age);
         rim(p, head, tail, age);
       }
+      halo(p);
+      tailFx(p);
       ps.draw(p);
     },
   };

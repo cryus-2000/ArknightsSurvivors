@@ -15,7 +15,7 @@ export const meta = {
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", "#1c0807", "#3f0d0b", "#6e1513", "#a8241f", "#e0553a", "#ffc9b0", "#ffffff"],
+    palette: ["#3b0d0b", "#651612", "#861d19", "#a8241f", "#e0553a", "#ffc9b0", "#ffffff"],   // 设定暗血红 #a8241f × 35 / 60 / 80% 明度（docs/229 §2.2，11-02）
     variant: 1,
   },
 };

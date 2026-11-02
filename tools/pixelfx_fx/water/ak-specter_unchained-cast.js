@@ -1,7 +1,7 @@
 // 归溟幽灵鲨技能发动（S1–S3 起手，替换通用 fx_circle_ghost × 1.8）：@2x 帧条，原点 = 脚底（skills fx at self off [0,4]，游戏 scale 1.0）。
 // 脚下一闪，几股苍白的水柱高矮不一、各自偏斜地窜起，顶上散成水沫和幽光；地上留一摊不规整的暗水渍慢慢退去。不画圈。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Specter wake",
@@ -9,12 +9,12 @@ export const meta = {
   tags: ["water", "cast", "buff", "topdown", "one-shot"],
   size: [140, 150],
   origin: [70, 100],
-  duration: 0.55,
+  duration: 0.7,   // 主体 + 余韵（技能 ≤ 0.6 s）
   loop: false,
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.specter_unchained],
+    palette: [...OP.specter_unchained],
     seed: 11,
   },
 };
@@ -59,6 +59,21 @@ export function create(o) {
     }
   }
 
+  // 余韵（docs/229 §2.5）：主体之后留几粒稀疏残光慢慢上浮淡掉，alpha ≤ TAIL_ALPHA；光晕（light 层 → _glow 条）在焦点
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let i = 0; i < 10; i++) { const q = ((Rt) => { const a = Rt.range(0, TAU), r = Rt.range(10, 32); return [Math.cos(a) * r, Math.sin(a) * r * SY]; })(Rt); res.push({ x: q[0], y: q[1], d: Rt.range(0, 0.35 * 0.4), l: Rt.range(0.35 * 0.5, 0.35 * 0.6) }); }
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - 0.3 - r.d) / r.l;
+      if (u < 0 || u >= 1) continue;
+      p.blend(Math.round(r.x), Math.round(r.y - u * 4), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(Math.abs(t - 0.02) / 0.14);
+    if (k > 0) p.glow(0, 0, 24, C[5], 0.9 * k);
+  }
+
   return {
     update(dt) {
       t += dt;
@@ -79,6 +94,8 @@ export function create(o) {
       stain(p);
     },
     draw(p) {
+      halo(p);
+      tailFx(p);
       if (t < 0.1) {   // 脚下一闪：压扁的不规整水花，首帧白、第二帧冷却
         const k = t < 0.05 ? 1 : 0.5;
         p.shade(-18, -10, 18, 10, (x, y, out) => {

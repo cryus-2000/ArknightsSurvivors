@@ -1,7 +1,7 @@
 // 乌尔比安 S2 发动（替换通用 fx_shield_amber × 1.4：琥珀色不是他的色、1x 放大到每像素 2.8 世界像素）：@2x，原点 = 身体中心（at self off [0,-20]），游戏 scale 1.0。
 // 脚下海水猛地掀起，在身前合成一道不规整的半透明水幕护墙（前半圈，高度按噪声起伏），首帧白闪；水幕顶端碎成水沫往后落，整片沉回地面。
-import { Particles, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
-import { OP, FPS } from "../house.js";
+import { Particles, P, Rng, fit, clamp, smooth, ease, noise , TAU } from "../../core/index.js";
+import { OP, FPS, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Ulpianus tide guard",
@@ -9,12 +9,12 @@ export const meta = {
   tags: ["water", "shield", "buff", "one-shot"],
   size: [120, 100],
   origin: [60, 50],
-  duration: 0.55,
+  duration: 0.82,   // 主体 + 余韵（技能 ≤ 0.6 s）
   loop: false,
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.ulpianus],
+    palette: [...OP.ulpianus],
     radius: 34,
     seed: 2,
   },
@@ -38,11 +38,26 @@ export function create(o) {
         if (seen.has(key)) continue;
         seen.add(key);
         const v = d / Math.max(h, 1), crest = v > 0.82;
-        const ci = clamp(Math.round((crest ? 6.5 : 3 + v * 2.5) - sink * 2 + (t < 0.03 ? 2 : 0)), 1, 7);
+        const ci = clamp(Math.round((crest ? 6 : 3 + v * 2.5) - sink * 2 + (t < 0.03 ? 2 : 0)), 1, 7);
         p.blend(px, py, C[ci], crest ? 0.9 : 0.5);
       }
     }
   }
+  // 余韵（docs/229 §2.5）：主体之后留几粒稀疏残光慢慢上浮淡掉，alpha ≤ TAIL_ALPHA；光晕（light 层 → _glow 条）在焦点
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let i = 0; i < 10; i++) { const q = ((Rt) => { const a = Rt.range(0.2, Math.PI - 0.2); return [Math.cos(a) * R, FEET + Math.sin(a) * R * SY - Rt.range(0, 6)]; })(Rt); res.push({ x: q[0], y: q[1], d: Rt.range(0, 0.35 * 0.4), l: Rt.range(0.35 * 0.5, 0.35 * 0.6) }); }
+  function tailFx(p) {
+    for (const r of res) {
+      const u = (t - 0.45 - r.d) / r.l;
+      if (u < 0 || u >= 1) continue;
+      p.blend(Math.round(r.x), Math.round(r.y - u * 3), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  function halo(p) {
+    const k = 1 - clamp(Math.abs(t - 0.08) / 0.15);
+    if (k > 0) p.glow(0, FEET - 10, 34, C[5], 0.9 * k);
+  }
+
   return {
     update(dt) {
       t += dt;
@@ -56,6 +71,8 @@ export function create(o) {
       ps.update(dt);
     },
     draw(p) {
+      halo(p);
+      tailFx(p);
       wall(p);
       ps.draw(p);
     },

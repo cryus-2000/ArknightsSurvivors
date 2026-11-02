@@ -14,7 +14,7 @@ export const meta = {
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.mizuki],
+    palette: [...OP.mizuki],
     variant: 1,
   },
 };

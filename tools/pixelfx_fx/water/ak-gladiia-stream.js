@@ -15,7 +15,7 @@ export const meta = {
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.gladiia],
+    palette: [...OP.gladiia],
     mode: "pull",
     seed: 4,
   },
@@ -42,6 +42,7 @@ export function create(o) {
         p.blend(px, py, C[ci], q > 0.7 ? 0.6 : 0.45);
       }
     }
+    p.glow(head - 3, -3, 12, C[5], 0.6 * (1 - smooth(0.15, 0.3, t)));   // 光晕跟着水头
     // 头部卷浪：往上翻的一小钩
     for (let k = 0; k < 7; k++) {
       const a = -0.4 - k * 0.35, r = 4 - k * 0.3;

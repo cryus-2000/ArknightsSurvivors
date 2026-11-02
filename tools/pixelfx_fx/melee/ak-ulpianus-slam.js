@@ -2,7 +2,7 @@
 // 原点 = 锚击圆心（attack.fx along -0.1）。游戏里 scale_r 0.0209：判定半径 89 时每个 1x 像素 1.86 世界像素，帧里判定圆半径 ≈ 96 px。
 // 一道短而厚的铁锚弧从身侧砸到前方，刃口白热、刃背深海铁蓝；落点处地面迸出几道不等长的裂口和碎石，不画圈。
 import { Particles, Bits, B, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
-import { OP, FPS, REACH } from "../house.js";
+import { OP, FPS, REACH, DUR, TAIL_ALPHA } from "../house.js";
 
 export const meta = {
   name: "Ulpianus anchor slam",
@@ -10,12 +10,12 @@ export const meta = {
   tags: ["melee", "slam", "anchor", "topdown", "one-shot"],
   size: [200, 200],
   origin: [100, 100],
-  duration: 0.2,
+  duration: 0.30,   // 主体 + 余韵
   loop: false,
   fps: FPS.basic,
   bg: "dark",
   options: {
-    palette: ["#06142a", ...OP.ulpianus],
+    palette: [...OP.ulpianus],
     cx: -48,                    // 弧心在圆心后方半个判定半径
     radius: 96 * REACH.sweep,   // 判定圆半径 96 px（帧里）× 0.85
     span: 2.2,
@@ -51,7 +51,7 @@ export function create(o) {
       if (w < 0.4) return;
       const q = (Rr - r) / w;
       if (q < 0 || q > 1) return;
-      const hot = t < 0.045 ? 1.6 : 0;
+      const hot = t < 0.045 ? 0.8 : 0;                    // 首帧只让刃口芯爆白（白只在核心，近白 ≤ 12%）
       const c = C[7 - clamp(Math.round(q * 5 + 0.4 + age * 4 - v * 1.3 - hot), 0, 6)];
       if (q > 0.55) p.blend(x, y, c, 0.75);   // 刃背半透明（真半透明，不抖动）
       else out.c = c;
@@ -78,6 +78,26 @@ export function create(o) {
     }
   }
 
+  // 余韵（docs/229 §2.5，普攻 ≤ 0.15 s）：主体收尾后沿弧留几粒稀疏残光，alpha ≤ TAIL_ALPHA，往外飘散淡掉
+  const Rt = new Rng(o.seed + 99), res = [];
+  for (let v = Rt.range(0, 0.12); v < 1; v += Rt.range(0.1, 0.22)) res.push({ v, dr: Rt.range(-W * 0.6, 2), d: Rt.range(0, 0.04), out: Rt.range(3, 9) });
+  const TAIL0 = SWEEP + HOLD + TRAIL * 0.6;
+  function tail(p) {
+    for (const r of res) {
+      const u = (t - TAIL0 - r.d) / DUR.basicTail;
+      if (u < 0 || u >= 1) continue;
+      const a = a0 + span * r.v, rr = R + r.dr + r.out * u;
+      p.blend(Math.round(cx + Math.cos(a) * rr), Math.round(Math.sin(a) * rr), C[5], TAIL_ALPHA * (1 - u));
+    }
+  }
+  // 光晕（light 层，导出成 _glow 条在加色层叠画）：跟着刃头，随冷却收
+  function halo(p) {
+    const k = 1 - clamp(t / 0.12);
+    if (k <= 0) return;
+    const a = a0 + span * ease.outExpo(clamp(t / SWEEP));
+    p.glow(cx + Math.cos(a) * (R - 4), Math.sin(a) * (R - 4), 18, C[5], 0.9 * k);
+  }
+
   return {
     update(dt) {
       t += dt;
@@ -100,6 +120,8 @@ export function create(o) {
       crackDraw(p);
       arc(p);
       bits.draw(p);
+      halo(p);
+      tail(p);
       ps.draw(p);
     },
   };
