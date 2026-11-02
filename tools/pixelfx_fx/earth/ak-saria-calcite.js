@@ -13,7 +13,7 @@ export const meta = {
   loop: false,
   fps: 10,
   bg: "ground",
-  options: { palette: ["#06142a", "#3a2a1c", OP.saria[1], OP.saria[2], OP.saria[3], "#ffe6c0", "#f4f8ff", "#ffffff"], seed: 2 },
+  options: { palette: ["#06142a", "#3a2a1c", OP.saria[1], OP.saria[2], OP.saria[3], "#ffe6c0", "#f4f8ff", "#ffffff"], shape: 0, seed: 2 },
 };
 
 export function draw(p, t, o) {
@@ -21,9 +21,12 @@ export function draw(p, t, o) {
   if (f >= 8) return;
   const C = fit(o.palette, 8), R = new Rng(o.seed);
   const xs = [{ x: R.range(-4, 4), h: R.range(46, 60), w: R.range(15, 19), lean: R.range(-6, 6) }, { x: R.range(-17, -9), h: R.range(20, 38), w: R.range(9, 12), lean: R.range(-9, -2) }, { x: R.range(8, 16), h: R.range(16, 32), w: R.range(8, 11), lean: R.range(2, 8) }];
+  if (+o.shape === 1)   // 第二种：一根粗矮主晶歪向一侧 + 三根细高的错落在另一侧，轮廓和第一种明显不同
+    xs.splice(0, 3, { x: R.range(-10, -6), h: R.range(30, 38), w: R.range(17, 21), lean: R.range(-12, -8) }, { x: R.range(4, 8), h: R.range(44, 56), w: 8, lean: R.range(0, 4) },
+      { x: R.range(11, 15), h: R.range(28, 36), w: 7, lean: R.range(4, 8) }, { x: R.range(-1, 2), h: R.range(18, 24), w: 6, lean: R.range(-2, 2) });
   const grow = f <= 3 ? [0.3, 0.6, 0.88, 1.05][f] : f === 4 ? 1 : [0.75, 0.45, 0.2][f - 5];
   const ramp = f === 0 ? C.slice(1, 8) : C.slice(0, 7);
-  for (const s of [xs[1], xs[2], xs[0]]) {
+  for (const s of (xs.length > 3 ? xs : [xs[1], xs[2], xs[0]])) {
     const h = s.h * grow;
     crystal(p, s.x, 0, h, s.w * (f >= 5 ? 0.8 : 1), s.lean, ramp, { white: f === 0, glint: f === 4 ? 0.55 : f === 3 ? 0.8 : -1 });
   }

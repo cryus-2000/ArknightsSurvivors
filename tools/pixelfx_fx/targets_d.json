@@ -215,7 +215,7 @@
     "#f0fdff",
     "#ffffff"
    ],
-   "len": 26
+   "len": 14
   },
   "hires": true,
   "keep": true
@@ -231,7 +231,7 @@
     "#fffaec",
     "#ffffff"
    ],
-   "len": 20,
+   "len": 12,
    "thick": 0
   },
   "hires": true,
@@ -248,7 +248,7 @@
     "#fff4ee",
     "#ffffff"
    ],
-   "len": 20,
+   "len": 12,
    "thick": 0
   },
   "hires": true,
@@ -265,7 +265,7 @@
     "#fff3cc",
     "#ffffff"
    ],
-   "len": 26
+   "len": 14
   },
   "hires": true,
   "keep": true
@@ -356,7 +356,8 @@
  "fx_saria_px_calcite2": {
   "fx": "earth/ak-saria-calcite",
   "opts": {
-   "seed": 9
+   "seed": 9,
+   "shape": 1
   },
   "hires": true,
   "keep": true
