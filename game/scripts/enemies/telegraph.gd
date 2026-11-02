@@ -492,9 +492,13 @@ func _resolve(w: Dictionary) -> void:
 				_spawn_after(e, w, dv)
 		"smash":
 			# 炮身砸击（卡门第二幕，docs/95 §7.2 D）：落点圈结算（她在起手时已冲到圈边，saint.gd）；金色地裂 + Codex fx_carmen_smash（缺图只有地裂与尘土）
-			g.fx.append({"kind": "gcrack", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.8, 0.35), "enemy": true, "opts": {"n": 8}})
-			if g.vfx.fx_sprite("fx_carmen_smash", w.pos, g.PX * 1.4, 0.0, false, false, Color.WHITE, true):
+			# 11-02 pixelfx 试点（docs/236）：自写砸地帧条（白热爆闪 → 危险色热裂 → 尘墙推到判定半径 → 碎石 / 余震）。按本招 r 70 导出（R 35 纹素 × Game.PX），
+			# 固定 PX 缩放（地面帧条在低分辨率层按 2 的倍数取整，按 r 缩放会对不上判定）；锚点 = 落点
+			# 帧条自带热裂，有图时不再叠金色地裂（金色是我方灯火色系）；缺图照旧地裂
+			if g.vfx.fx_sprite("fx_carmen_smash", w.pos, g.PX, 0.0, false, false, Color.WHITE, true, Vector2(42, 29)):
 				g.fx[g.fx.size() - 1]["enemy"] = true
+			else:
+				g.fx.append({"kind": "gcrack", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.8, 0.35), "enemy": true, "opts": {"n": 8}})
 			g.vfx.sparks(w.pos, Vector2.UP, Color(1.4, 1.1, 0.6), 14, 240.0)
 			Sfx.play("boom", -4.0, 1.1, 0.0)
 			g.vfx.shake_screen(0.6)
@@ -510,7 +514,8 @@ func _resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"erupt":
 			# 迸发（斥亡体，docs/95 §10.2 C）：以自身为心的落点圈结算；Codex fx_immortal_burst 优先，缺图走程序爆点
-			if not g.vfx.fx_sprite("fx_immortal_burst", w.pos, g.PX * w.r / 60.0, 0.0, false, false, Color.WHITE, true):
+			# 11-02 pixelfx 试点（docs/236）：同一份砸地特效按本招 r 120 导出（R 60 纹素、换种子），固定 PX 缩放，尘墙外沿 = 判定半径
+			if not g.vfx.fx_sprite("fx_immortal_burst", w.pos, g.PX, 0.0, false, false, Color.WHITE, true, Vector2(65, 37)):
 				g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
 			g.fx[g.fx.size() - 1]["enemy"] = true
 			g.vfx.sparks(w.pos, Vector2.UP, Color(0.7, 1.0, 1.5), 14, 260.0)

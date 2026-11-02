@@ -1664,6 +1664,10 @@ func _bossmoves_step(spec: String) -> void:
 		return
 	if g.at_frames < 20 or bm_boss.is_empty():
 		return
+	# --shotstep=N 时另外每 N 帧截一张 shot_bmframe_<tag>_<帧>.png（逐招前后对照录像用，docs/236；不给就只截原来的两张）
+	if not headless and g.at_frames % _ba_step() == 0 and Array(Cfg.dev_args()).any(func(x): return str(x).begins_with("--shotstep=")):
+		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bmframe_%s_%05d.png" % [bm_tag.replace("+", "_"), g.at_frames])
+	_ba_perf()
 	var e: Dictionary = bm_boss
 	e.hp = e.maxhp if e.phase == 1 or e.type != "knight_boss" else e.maxhp * 0.5   # 别让它死；骑士二阶段保持重生血量
 	if not bm_mate.is_empty():
@@ -1676,6 +1680,11 @@ func _bossmoves_step(spec: String) -> void:
 		"idle":
 			if bm_i >= bm_list.size():
 				if g.at_frames % 10 == 0:
+					for k in ["a", "b"]:   # --perfab 时同 --bossacts 打帧时（docs/236 逐招帧时）
+						var v: Array = ba_ft[k]
+						if v.size() > 10:
+							v.sort()
+							print("BOSSMOVES PERF %s n=%d p50=%.2f p95=%.2f ms" % [k, v.size(), v[v.size() / 2] / 1000.0, v[int(v.size() * 0.95)] / 1000.0])
 					print("BOSSMOVES END %s shots=%d" % [bm_tag, bm_i])
 					g.get_tree().quit()
 				return
