@@ -1,8 +1,9 @@
 extends Node
-## 伊祖米克连携（docs/170）：每幕两组、每组 ≤4 段、收招破绽、转幕 / 眩晕清队列、灯柱吞弹、拦截通道、同 seed 复现
+## 伊祖米克连携（docs/170）：每幕两组、每组 ≤4 段、收招破绽、转幕 / 眩晕清队列、灯柱不吞弹（开关开时才吞）、拦截通道、同 seed 复现
 var g
 var failures := 0
 const DT := 0.05
+const Bal = preload("res://scripts/core/balance.gd")
 
 func check(ok: bool, label: String) -> void:
 	if not ok:
@@ -182,15 +183,20 @@ func check_patterns() -> void:
 	s.force_move(e, "习得弹", Vector2.RIGHT, 260.0)
 	tick(e, 0.0)
 	check(g.ebullets.size() == s._cn(12), "absorption stacks deform the learned ring (%d)" % g.ebullets.size())   # 每波弹数 × izumik_count_k（docs/201 §7）
-	# 三幕灯柱吞弹
-	e = fresh()
-	e.gates_passed = 2
-	e.lamp_r = 120.0
-	e.lamps = [{"pos": Vector2(200, 0), "lit": true, "prog": 1.0}]
-	s.force_move(e, "回流弹", Vector2.RIGHT, 260.0)
-	for i in int(2.0 / DT): tick(e, 0.0)
-	var inside: Array = g.ebullets.filter(func(b): return b.life > 0.0 and g.combat.ground_d(b.pos, Vector2(200, 0)) < 110.0)
-	check(inside.is_empty(), "lit lamp absorbs bullets")
+	# 三幕灯柱：缺省不吞弹（用户 11-02：灯柱只挡全屏伤害）；boss/izumik_lamp_eat 1 时才吞
+	for eat in [0, 1]:
+		Bal.sec("boss")["izumik_lamp_eat"] = eat
+		Bal.clear_cache()
+		e = fresh()
+		e.gates_passed = 2
+		e.lamp_r = 120.0
+		e.lamps = [{"pos": Vector2(200, 0), "lit": true, "prog": 1.0}]
+		s.force_move(e, "回流弹", Vector2.RIGHT, 260.0)
+		for i in int(2.0 / DT): tick(e, 0.0)
+		var inside: Array = g.ebullets.filter(func(b): return b.life > 0.0 and g.combat.ground_d(b.pos, Vector2(200, 0)) < 110.0)
+		check(inside.is_empty() == (eat == 1), "lit lamp absorbs bullets only with izumik_lamp_eat (eat=%d, inside %d)" % [eat, inside.size()])
+	Bal.sec("boss")["izumik_lamp_eat"] = 0
+	Bal.clear_cache()
 	# 子代共鸣从活子代发出；子代死了这一路不再发
 	e = fresh()
 	var c1: Dictionary = g.spawner.spawn_enemy("offspring", Vector2(-400, 0))

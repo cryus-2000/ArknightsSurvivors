@@ -531,7 +531,7 @@ func _gap_k() -> float:
 
 
 func _finish_card(e: Dictionary) -> void:
-	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)] * Bal.v("boss/izumik_recover_mult", 0.6)
+	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)] * Bal.v("boss/izumik_recover_mult", 0.6) * _rest3(e)
 	_end_card(e)
 	g.combat.start_break(e, rec)
 	e.izu_next = g.t + rec + REST * _gap_k()
@@ -555,7 +555,7 @@ func _rise(e: Dictionary) -> void:
 
 
 func _run_seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
-	e.izu_next = g.t + SEG_GAPS[_act(e)] * _gap_k()
+	e.izu_next = g.t + SEG_GAPS[_act(e)] * _gap_k() * _rest3(e)
 	if seg == "@近身分享":
 		if g.combat.ground_d(g.ppos, e.pos) < 320.0:
 			_share(e, dir, false)
@@ -712,7 +712,7 @@ func _emit_step(e: Dictionary) -> void:
 		if g.t > float(em.until):
 			e[key] = {}
 			if key == "izu_emit" and Bal.v("boss/izumik_overlap", 1.0) <= 0.0:
-				e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)] * _gap_k())
+				e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)] * _gap_k() * _rest3(e))
 
 
 func _emit_once(e: Dictionary, em: Dictionary) -> void:
@@ -750,8 +750,8 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 				_shot(e, e.pos, a, v0, 9.0, 5.0, 0.55, {"izu": "learn", "izu_v0": v0, "izu_ang": a})
 			em.next = float(em.next) + 0.6
 		"回流弹":
-			# 两圈反向卷回的水流，交叉成格子；三幕点亮的灯柱光圈会吞掉它们
-			var cnt: int = 16 if _act(e) >= 2 else _cn(12)   # 三幕每圈 16 颗（三幕不加弹：两圈交叉成格子 + 段多，再密就没有可输出的空档）
+			# 两圈反向卷回的水流，交叉成格子
+			var cnt: int = _c3(e, 16) if _act(e) >= 2 else _cn(12)   # 三幕每圈 16 颗 × boss/izumik_act3_n（三幕不加弹：两圈交叉成格子 + 段多，再密就没有可输出的空档）
 			for i in cnt:
 				var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cnt)
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
@@ -778,7 +778,7 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 			em.next = float(em.next) + 1.0
 		"潮门环":
 			var act: int = _act(e)
-			var cnt: int = _cn(GATE_N[act])
+			var cnt: int = _c3(e, _cn(GATE_N[act]))
 			var slits: int = 2 if act >= 2 else 1
 			var ga: float = a0 + float(em.spin) * n
 			for i in cnt:
@@ -796,6 +796,16 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 ## 相位流条数、螺旋臂数、大孢子数与数据招式不乘（加了会把流间 / 臂间通道挤没）；潮门环缺口角宽按原弹数算
 func _cn(n: int, extra := 1.0) -> int:
 	return maxi(1, int(round(n * Bal.v("boss/izumik_count_k", 1.0) * extra)))
+
+
+## 三幕段间停顿与收招破绽 × boss/izumik_rest3_k（同上，11-02 灯柱不吞弹后给三幕还空档）
+func _rest3(e: Dictionary) -> float:
+	return Bal.v("boss/izumik_rest3_k", 1.0) if _act(e) >= 2 else 1.0
+
+
+## 三幕环形弹（回流弹、潮门环、孢子胀破的小针）每圈弹数 × boss/izumik_act3_n：11-02 灯柱不再吞弹（只挡全屏伤害）后，三幕低压时段从 0.4 掉到 0.3，靠这里把空档还回来
+func _c3(e: Dictionary, n: int) -> int:
+	return maxi(1, int(round(n * Bal.v("boss/izumik_act3_n", 1.0)))) if _act(e) >= 2 else n
 
 
 ## 招式分工（用户 10-29「攻击频率和弹幕再高一点，分配到不同的招式上」，docs/201 §8）：
@@ -832,7 +842,8 @@ func _shot(e: Dictionary, p: Vector2, a: float, spd: float, r: float, life: floa
 
 func _bullet_step(e: Dictionary, dt: float) -> void:
 	var lamps: Array = []
-	if int(e.get("gates_passed", 0)) >= 2:
+	# 灯柱吞弹（boss/izumik_lamp_eat，缺省 0）：用户 11-02 定灯柱只挡全屏震撼 / 分享·全场，平时不挡别的伤害；开关留作对照
+	if int(e.get("gates_passed", 0)) >= 2 and Bal.vi("boss/izumik_lamp_eat", 0) > 0:
 		for l in e.get("lamps", []):
 			if l.lit and not l.get("out", false):
 				lamps.append(l.pos)
@@ -899,7 +910,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 				break
 	e.izu_live = n
 	for p in bursts:
-		var bn: int = _cn(8, _dense("孢子潮"))
+		var bn: int = _c3(e, _cn(8, _dense("孢子潮")))
 		for k in bn:
 			_shot(e, p, TAU * k / float(bn) + 0.2, 125.0, 6.0, 2.4, 0.35, {})
 		_puff(p, 6, COL)
