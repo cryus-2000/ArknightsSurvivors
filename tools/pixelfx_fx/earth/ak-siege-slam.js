@@ -38,7 +38,15 @@ export function create(o) {
     }
   };
   for (let a = Rg.range(0, 1); a < TAU - 0.3; a += Rg.range(0.55, 1.3)) grow(0, 0, a, R0 * Rg.range(0.55, 1.0), big ? 2 : 1.4, 0, 0);
-  const RUN = big ? 0.09 : 0.06;   // 裂纹窜到最远的时间
+  const RUN = big ? 0.09 : 0.06;
+  // 尘浪（11-03 用户嫌圆团烟尘怪）：沿外圈一段段不连续的贴地尘墙，往外推、顶边往外卷，越往后越矮越淡
+  const waves = [];
+  for (let a = Rg.range(0, 0.5); a < TAU - 0.2; ) {
+    const len = Rg.range(0.35, 1.0);
+    waves.push({ a0: a, a1: a + len, h: R0 * Rg.range(0.24, 0.42), r: Rg.range(0.85, 1.05), seed: Rg.range(0, 99), d: Rg.range(0, 0.04) });
+    a += len + Rg.range(0.15, 0.6);
+  }
+  const DUSTC = fit(["#4a3f30", "#6e5e46", "#937e5c", "#bba57c"], 4);   // fit 转成颜色数值（blend 不认十六进制字符串）   // 裂纹窜到最远的时间
   let t = 0, burst = false;
   return {
     update(dt) {
@@ -54,19 +62,14 @@ export function create(o) {
           const a = Rg.range(-Math.PI, 0), sp = Rg.range(90, 220);
           ps.spawn(P.SPARK, 0, -2, Math.cos(a) * sp, Math.sin(a) * sp * 0.7, Rg.range(0.08, 0.2));
         }
-        // 尘墙：沿外圈不连续地隆起，团与团间距随机
-        for (let a = Rg.range(0, 0.6); a < TAU; a += Rg.range(0.35, 0.9)) {
-          const r = R0 * Rg.range(0.55, 0.85), x = Math.cos(a) * r, y = Math.sin(a) * r * SY;
-          ps.spawn(P.DUST, x, y, Math.cos(a) * Rg.range(20, 45), Math.sin(a) * 10 - Rg.range(15, 35), Rg.range(0.45, 0.8), C[2], Rg.range(3, 6) * (big ? 1 : 0.7), Rg.range(0, 0.05));
         }
-      }
       ps.update(dt); bits.update(dt); lights.update(dt);
     },
     drawBack(p) {
       const reach = R0 * 1.05 * ease.outQuart(clamp(t / RUN)), fade = 1 - clamp((t - 0.25) / 0.25);
       if (fade <= 0) {   // 余韵：冷掉的裂网半透明留在地上慢慢淡（alpha ≤ 0.35）
         const k = 0.35 * (1 - clamp((t - 0.5) / 0.38));
-        if (k > 0) for (const s of segs) p.blend((s.x0 + s.x1) / 2, (s.y0 + s.y1) / 2 * SY, C[2], k);
+        if (k > 0) for (const s of segs) { p.blend(s.x0, s.y0 * SY, C[2], k); p.blend((s.x0 + s.x1) / 2, (s.y0 + s.y1) / 2 * SY, C[2], k); }
         return;
       }
       for (const s of segs) {
@@ -84,12 +87,26 @@ export function create(o) {
         const ci = clamp(7 - Math.floor(t / 0.05) * 2, 3, 7), rr = R0 * (0.35 + t * 2);
         for (let y = -rr * SY; y <= rr * SY; y++)
           for (let x = -rr; x <= rr; x++) {
-            const q = Math.hypot(x, y / SY) / rr;
+            const q = Math.hypot(x, y / SY) / (rr * (0.82 + 0.25 * noise(Math.atan2(y / SY, x) * 2.5, o.seed)));
             if (q > 1) continue;
             if (t < 0.03 && q < 0.75) p.px(x, y, C[q < 0.2 ? 7 : q < 0.45 ? 6 : 5]);   // 首帧实心爆亮，白只在芯
             else p.blend(x, y, C[q < 0.4 ? ci : Math.max(2, ci - 2)], (1 - t / 0.15) * (1 - q * 0.6));
           }
         p.glow(0, -2, R0 * 0.6, C[5], 0.3 * (1 - t / 0.15));
+      }
+      for (const w of waves) {
+        const u = clamp((t - w.d) / 0.75);
+        if (u <= 0 || u >= 1) continue;
+        const rr = R0 * w.r * (0.5 + 0.6 * ease.outCubic(clamp(u * 2.2))), al = 0.75 * (1 - u) * (1 - u * 0.6);
+        for (let a = w.a0; a < w.a1; a += 0.022) {
+          const e = (a - w.a0) / (w.a1 - w.a0), env = Math.sin(Math.PI * e);   // 段两头矮
+          const hh = w.h * env * (1 - u * 0.7) * (0.55 + 0.45 * noise(a * 6, w.seed + u * 3));
+          const bx = Math.cos(a) * rr, by = Math.sin(a) * rr * SY, ox = Math.cos(a), oy = Math.sin(a) * SY;
+          for (let k = 0; k < hh; k++) {
+            const q = k / Math.max(1, hh), curl = q * q * hh * 0.5;   // 顶边往外卷
+            p.blend(bx + ox * curl, by + oy * curl - k, DUSTC[q < 0.35 ? 1 : q < 0.8 ? 2 : 3], al * (q < 0.85 ? 1 : 0.6));
+          }
+        }
       }
       bits.draw(p); ps.draw(p); lights.draw(p);
     },

@@ -2,6 +2,7 @@
 // 地面一圈不规整的钙晶裂口（透视椭圆 sy 0.55），晶刺长短、间距都随机，首帧一道暖白光柱爆亮后冷却成琥珀，碎晶屑落地。
 import { Particles, Bits, B, Lights, P, Rng, fit, clamp, ease, TAU, noise, crystal } from "../../core/index.js";
 import { OP } from "../house.js";
+import { prism } from "./ak-saria-lib.js";   // 块状钙晶棱柱（11-03 用户嫌细针晶体怪）
 
 export const meta = {
   name: "Saria calcify",
@@ -13,7 +14,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "ground",
-  options: { palette: [...OP.saria], radius: 44, seed: 11 },
+  options: { palette: ["#3a2a1c", OP.saria[0], OP.saria[1], OP.saria[2], "#ecd2a6", "#f8e4c0", "#fff0d4", "#ffffff"], radius: 44, seed: 11 },
 };
 
 const SY = 0.55;
@@ -27,7 +28,7 @@ export function create(o) {
   const shards = [];
   for (let a = Rg.range(0, 0.5); a < TAU - 0.15; a += Rg.chance(0.35) ? Rg.range(0.12, 0.22) : Rg.range(0.45, 1.1)) {   // 有疏有密：三成挨着长成一簇，其余隔开
     const rr = R0 * Rg.range(0.78, 1.0);
-    shards.push({ a, x: Math.cos(a) * rr, y: Math.sin(a) * rr * SY, h: (Rg.chance(0.3) ? Rg.range(6, 11) : Rg.range(13, 26)) * (Math.sin(a) > 0 ? 1 : 0.75), w: Rg.range(3.5, 8), lean: Rg.range(-0.35, 0.35) + Math.cos(a) * 0.3, d: Rg.range(0, 0.06) });
+    shards.push({ a, x: Math.cos(a) * rr, y: Math.sin(a) * rr * SY, h: (Rg.chance(0.3) ? Rg.range(6, 11) : Rg.range(13, 26)) * (Math.sin(a) > 0 ? 1 : 0.75), w: Rg.range(3.5, 8), lean: Rg.range(-0.35, 0.35) + Math.cos(a) * 0.3, d: Rg.range(0, 0.06), skew: Rg.range(-0.45, 0.45) });
   }
   shards.sort((p, q) => p.y - q.y);
   let t = 0, cracked = false;
@@ -86,6 +87,6 @@ export function create(o) {
     if (fade <= 0) return;
     const hot = clamp(1 - u / 0.25);
     const ramp = hot > 0.4 ? C.slice(1, 8) : C.slice(0, 7);
-    crystal(p, s.x, s.y, s.h * grow * Math.pow(fade, 0.8), s.w * (0.5 + 0.5 * fade), s.lean, ramp, { a: 1, white: hot > 0.9, glint: hot > 0.4 ? 1 - hot : -1 });
+    prism(p, s.x, s.y, s.h * grow * Math.pow(fade, 0.8), s.w * 1.3 * (0.5 + 0.5 * fade), s.lean * 0.6, C, { skew: s.skew, hot: hot > 0.85, glint: hot > 0.4 ? 1 - hot : -1 });
   }
 }

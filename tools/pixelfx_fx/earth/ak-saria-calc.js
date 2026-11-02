@@ -2,6 +2,7 @@
 // 一簇 3–5 根琥珀钙晶，高矮、粗细、倾角都随机，后排暗、前排亮，底部一圈碎晶。
 import { Rng, fit, crystal } from "../../core/index.js";
 import { OP } from "../house.js";
+import { prism } from "./ak-saria-lib.js";   // 块状钙晶棱柱（11-03 用户嫌细针晶体怪）
 
 export const meta = {
   name: "Saria calcite cluster",
@@ -13,7 +14,7 @@ export const meta = {
   loop: false,
   fps: 10,
   bg: "ground",
-  options: { palette: [...OP.saria], seed: 1 },
+  options: { palette: ["#3a2a1c", OP.saria[0], OP.saria[1], OP.saria[2], "#ecd2a6", "#f8e4c0", "#fff0d4", "#ffffff"], seed: 1 },
 };
 
 export function draw(p, t, o) {
@@ -22,6 +23,6 @@ export function draw(p, t, o) {
   const xs = [];
   for (let i = 0; i < n; i++) xs.push({ x: R.range(-22, 22), h: R.range(26, 66), w: R.range(9, 16), lean: R.range(-10, 10), back: R.chance(0.4) });
   xs.sort((a, b) => (a.back === b.back ? b.h - a.h : a.back ? -1 : 1));
-  for (const s of xs) crystal(p, s.x, 0, s.h, s.w, s.lean + s.x * 0.15, s.back ? C.slice(0, 7) : C.slice(1, 8), { glint: s.back ? -1 : R.range(0.3, 0.7) });
+  for (const s of xs) prism(p, s.x, 0, s.h, s.w * 1.2, s.lean * 0.6 + s.x * 0.12, C, { skew: R.range(-0.45, 0.45), glint: s.back ? -1 : R.range(0.3, 0.7) });
   for (let i = 0; i < 9; i++) { const x = R.range(-26, 26); p.px(x, R.range(-2, 1), C[R.int(3, 6)]); }
 }

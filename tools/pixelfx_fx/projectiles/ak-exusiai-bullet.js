@@ -6,8 +6,8 @@ export const meta = {
   name: "Exusiai bullet",
   desc: "A tracer round loop: white-hot head, a tail in the skill's colour that flickers in length and brightness between two frames and breaks into dots at the end.",
   tags: ["projectile", "bullet", "tracer", "loop"],
-  size: [40, 16],
-  origin: [30, 8],
+  size: [56, 20],
+  origin: [42, 10],
   duration: 0.1,
   loop: true,
   fps: 20,
@@ -22,9 +22,11 @@ export function draw(p, t, o) {
     if (u > 0.78 && (Math.floor(-x) % 3 !== (f ? 1 : 0))) continue;   // 尾端断成点
     const ci = clamp(Math.round(3.6 - u * 3 - (f ? 0.4 : 0)), 1, 3);   // 尾巴不到近白，白只在弹头一点
     p.px(x, 0, C[ci]);
-    if (th > 0 && u < 0.45) { p.px(x, -1, C[Math.max(1, ci - 2)]); p.px(x, 1, C[Math.max(1, ci - 2)]); }
+    if (u < 0.7) { p.px(x, -1, C[Math.max(1, ci - 1)]); p.px(x, 1, C[Math.max(1, ci - 1)]); }   // 11-03 用户嫌小：弹身 3 像素粗
+    if (th > 0 && u < 0.35) { p.px(x, -2, C[1]); p.px(x, 2, C[1]); }
   }
-  p.rect(-1, -1, 3, 3, C[3]);
-  p.px(1, 0, C[f ? 4 : 5]);
-  p.glow(0, 0, 5, C[3], 0.2);
+  p.rect(-2, -2, 5, 5, C[2]);
+  p.rect(-1, -1, 4, 3, C[3]);
+  p.px(2, 0, C[f ? 4 : 5]); p.px(1, 0, C[4]);
+  p.glow(0, 0, 7, C[3], 0.25);
 }

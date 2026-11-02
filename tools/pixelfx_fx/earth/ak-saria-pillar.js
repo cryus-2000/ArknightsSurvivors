@@ -2,6 +2,7 @@
 // mode 1 = 碎裂（原点 = 柱身中段，替换 fx_saria_pillar_break）。一根琥珀钙晶柱，侧面带两根小晶；碎裂时首帧爆亮，碎片不等速往外甩、落地。
 import { Bits, B, Particles, P, Rng, fit, clamp, ease, crystal, TAU } from "../../core/index.js";
 import { OP } from "../house.js";
+import { prism } from "./ak-saria-lib.js";   // 块状钙晶棱柱（11-03 用户嫌细针晶体怪）
 
 export const meta = {
   name: "Saria pillar",
@@ -13,7 +14,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "ground",
-  options: { palette: ["#06142a", "#3a2a1c", OP.saria[1], OP.saria[2], OP.saria[3], "#ffe6c0", "#fff0d8", "#ffffff"], mode: 0, seed: 4 },
+  options: { palette: ["#3a2a1c", OP.saria[0], OP.saria[1], OP.saria[2], "#ecd2a6", "#f8e4c0", "#fff0d4", "#ffffff"], mode: 0, seed: 4 },
 };
 
 export function create(o) {
@@ -35,14 +36,14 @@ export function create(o) {
       if (!brk) {
         const g = ease.outBack(clamp((t + 0.02) / 0.2)), hot = t < 0.03;
         if (t >= 0.25) return;
-        for (const s of side) crystal(p, s.x, 0, s.h * g, s.w, s.lean, C.slice(0, 7));
-        crystal(p, 0, 0, 52 * g, 13, R.range(-1, 1), hot ? C.slice(1, 8) : C.slice(0, 6), { glint: hot ? 0.9 : g > 0.9 ? 0.8 : -1 });
+        for (const s of side) prism(p, s.x, 0, s.h * g, s.w * 1.3, s.lean, C, { skew: s.lean > 0 ? -0.4 : 0.4 });
+        prism(p, 0, 0, 50 * g, 16, R.range(-1, 1), C, { skew: 0.3, hot, glint: g > 0.9 && !hot ? 0.8 : -1 });
         if (t < 0.1) for (let i = 0; i < 4; i++) p.px(R.range(-10, 10), R.range(-1, 1), C[R.int(3, 6)]);
         return;
       }
       // 柱身中段（y -30）爆亮：首帧白的不规整晶块，下一帧缩成琥珀
-      if (t < 0.03) { crystal(p, 0, -14, 34, 12, 0, C.slice(1, 8), { glint: 0.5 }); p.glow(0, -30, 18, C[5], 0.35); }
-      else if (t < 0.1) crystal(p, 0, -22, 18, 8, R.range(-3, 3), C.slice(0, 6));
+      if (t < 0.03) { prism(p, 0, -12, 36, 16, 0, C, { skew: 0.3, hot: true }); p.glow(0, -30, 18, C[5], 0.35); }
+      else if (t < 0.1) prism(p, 0, -20, 20, 11, R.range(-3, 3), C, { skew: -0.3 });
       bits.draw(p); ps.draw(p);
     },
   };

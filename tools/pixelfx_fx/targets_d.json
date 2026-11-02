@@ -310,7 +310,8 @@
     "#f0fdff",
     "#ffffff"
    ],
-   "len": 14
+   "len": 20,
+   "thick": 1
   },
   "hires": true,
   "keep": true,
@@ -327,8 +328,8 @@
     "#fffaec",
     "#ffffff"
    ],
-   "len": 12,
-   "thick": 0
+   "len": 18,
+   "thick": 1
   },
   "hires": true,
   "keep": true,
@@ -345,8 +346,8 @@
     "#fff4ee",
     "#ffffff"
    ],
-   "len": 12,
-   "thick": 0
+   "len": 18,
+   "thick": 1
   },
   "hires": true,
   "keep": true,
@@ -363,7 +364,8 @@
     "#ffe9a8",
     "#fff6dc"
    ],
-   "len": 14
+   "len": 20,
+   "thick": 1
   },
   "hires": true,
   "keep": true,

@@ -25,7 +25,7 @@ const EXU_HIT_PAD := 6.0              # 判定半径 = 敌人半径 + 6
 
 ## 弹体帧条的弹头锚点（docs/25 §6，1x 像素；@2x 自动 ×2）
 const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3),
-	"proj_exusiai_px_bullet_s1": Vector2(15, 4), "proj_exusiai_px_bullet_s2": Vector2(15, 4), "proj_exusiai_px_bullet_s3": Vector2(15, 4), "proj_exusiai_px_bullet_power": Vector2(15, 4)}   # 技能 / 倾泻弹体换成 pixelfx（docs/229 §9 D 组，40×16 @2x，弹头在 (30, 8)）
+	"proj_exusiai_px_bullet_s1": Vector2(21, 5), "proj_exusiai_px_bullet_s2": Vector2(21, 5), "proj_exusiai_px_bullet_s3": Vector2(21, 5), "proj_exusiai_px_bullet_power": Vector2(21, 5)}   # 技能 / 倾泻弹体换成 pixelfx（docs/229 §9 D 组，56×20 @2x，弹头在 (42, 10)；11-03 用户嫌小放大）
 
 ## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
 const EXU_FX_KEYS := {"tex": "proj_", "muzzle_fx": "fx_", "hit_fx": "fx_"}
