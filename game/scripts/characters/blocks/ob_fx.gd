@@ -121,7 +121,7 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 	if g.vfx != null and g.vfx._fxc != null:
 		g.vfx._fx_census("SC|%s|%.3f" % [name, sc / ArtS.hires_of(g.tex[name])], false)
 	var loop: bool = f.has("life") and not f.get("once", false)
-	var life: float = float(f.life) if loop else frames / fps
+	var life: float = float(f.life) if loop else frames / fps - ArtS.px_tail_cut(g, name, frames, fps)   # 普攻余韵满屏时砍掉（docs/231）
 	if f.has("stay"):   # 精英化段：一次性帧条播完停在末帧，共 stay 秒（钉剑插在敌人身上）
 		life = maxf(life, float(f.stay))
 	var tint: Color = Color.WHITE

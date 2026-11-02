@@ -419,7 +419,15 @@ func ground_dust(at: Vector2, radius := 22.0, count := 7) -> void:
 
 ## 播放一次性特效帧条（V6_FRAMES 注册的 fx_*）；贴图缺失返回 false，调用方可退回程序特效
 func spawn_fx_sprite(name: String, pos: Vector2, scale: float = -1.0, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
-	return g.vfx.fx_sprite(_ArtPx.px_basic(g, name), pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col)   # pixelfx 普攻试点可退回旧帧条（docs/231）
+	name = _ArtPx.px_basic(g, name)   # pixelfx 普攻试点可退回旧帧条（docs/231）
+	var cut: float = _ArtPx.px_tail_cut(g, name, int(g.V6_FRAMES[name][0]), float(g.V6_FRAMES[name][1])) if g.V6_FRAMES.has(name) else 0.0
+	var n0: int = g.fx.size()
+	if not g.vfx.fx_sprite(name, pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col):
+		return false
+	if cut > 0.0 and g.fx.size() > n0 and g.fx[-1].get("name", "") == name:   # 满屏：普攻余韵砍掉，只播主体帧
+		g.fx[-1].life -= cut
+		g.fx[-1].max -= cut
+	return true
 
 
 ## 旧式整条动画特效（跟随可选）

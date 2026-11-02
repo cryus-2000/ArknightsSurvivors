@@ -827,6 +827,21 @@ static func px_basic(g, name: String) -> String:
 	return PX_BASIC_OLD[name] if _pxb == 0 or (g != null and g.opt_old & 8388608) else name   # 8388608 = Game.OPT_PXB
 
 
+## 普攻帧条的主体帧数（之后是余韵，docs/229 §2.5）。满屏（g.fx 超过 balance fx/px_tail_cap，缺省 300）时只播主体、砍掉余韵：
+## 返回要从寿命里截掉的秒数（不在表里 / 不满屏为 0）。挂在 ob_fx.fx_spawn 与 op_api.spawn_fx_sprite
+const PX_BASIC_BODY := {"fx_lappland_px_slash": 4, "fx_exusiai_px_atk_muzzle": 3, "fx_exusiai_px_atk_hit": 4}
+static var _pxcap := -1
+static func px_tail_cut(g, name: String, frames: int, fps: float) -> float:
+	if not PX_BASIC_BODY.has(name) or g == null:
+		return 0.0
+	if _pxcap < 0:
+		var Bal = load("res://scripts/core/balance.gd")
+		_pxcap = 300 if Bal == null else int(Bal.v("fx/px_tail_cap", 300.0))
+	if g.fx.size() <= _pxcap:
+		return 0.0
+	return maxf(0.0, float(frames - int(PX_BASIC_BODY[name])) / fps)
+
+
 ## 由任意贴图生成白色剪影（受击闪白用）
 ## 降饱和副本（docs/139 §6.6 只给环境去色：地面 / 场景道具；干员、怪物、特效不走这里）：Image.adjust_bcs 原生实现，
 ## CanvasTexture（带法线）只换漫反射、法线照用；bright = 亮度倍率（去色后补亮）；s = 1 且 bright = 1 时原样返回
@@ -1129,15 +1144,17 @@ const V6_FRAMES := {
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
 	# ---- pixelfx 组 A（docs/229 §9）：本组新帧条只加在这行与下面「组 A 止」之间
-	"fx_lappland_px_slash": [4, 24.0],   # 普攻试点（docs/231）：拉普兰德双刃横扫
+	"fx_lappland_px_slash": [7, 24.0], "fx_lappland_px_slash_glow": [7, 24.0],   # 普攻试点（docs/231）：拉普兰德双刃横扫（主体 4 帧 + 余韵 3 帧）
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# ---- 组 B 止
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
-	"fx_exusiai_px_atk_muzzle": [3, 24.0], "fx_exusiai_px_atk_hit": [4, 24.0], "proj_exusiai_px_bullet": [2, 20.0],   # 普攻试点（docs/231）：能天使速射枪口 / 命中 / 弹体
-	"proj_exusiai_px_bullet_t1": [2, 20.0], "proj_exusiai_px_bullet_t2": [2, 20.0], "proj_exusiai_px_bullet_t3": [2, 20.0],   # 普攻试点：精一穿甲连射层数弹体（银 → 浅金 → 金，同旧 t1–t3）
+	"fx_exusiai_px_atk_muzzle": [4, 24.0], "fx_exusiai_px_atk_muzzle_glow": [4, 24.0], "fx_exusiai_px_atk_hit": [7, 24.0], "fx_exusiai_px_atk_hit_glow": [7, 24.0],   # 普攻试点（docs/231）：能天使速射枪口（主体 3 + 枪烟 1）/ 命中（主体 4 + 余烬 3）
+	"proj_exusiai_px_bullet": [2, 20.0], "proj_exusiai_px_bullet_glow": [2, 20.0],   # 普攻试点：弹体
+	"proj_exusiai_px_bullet_t1": [2, 20.0], "proj_exusiai_px_bullet_t1_glow": [2, 20.0], "proj_exusiai_px_bullet_t2": [2, 20.0], "proj_exusiai_px_bullet_t2_glow": [2, 20.0],
+	"proj_exusiai_px_bullet_t3": [2, 20.0], "proj_exusiai_px_bullet_t3_glow": [2, 20.0],   # 普攻试点：精一穿甲连射层数弹体（银 → 浅金 → 金，同旧 t1–t3）
 	# ---- 组 D 止
 	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
 	# ---- 组 E 止
