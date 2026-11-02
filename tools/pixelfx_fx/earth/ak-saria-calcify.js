@@ -47,7 +47,7 @@ export function create(o) {
       if (!cracked && t > 0.12) {
         cracked = true;
         for (const s of shards) if (Rg.chance(0.6))
-          for (let i = 0; i < 2; i++) bits.add({ kind: B.SHARD, x: s.x, y: s.y - s.h * 0.6, vx: Rg.range(-40, 40) + s.x, vy: Rg.range(-90, -40), a: Rg.range(0, 3), va: Rg.range(-12, 12), s: Rg.range(1, 2), c: C[Rg.int(4, 6)], g: 520, life: Rg.range(0.25, 0.4) });
+          for (let i = 0; i < 2; i++) bits.add({ kind: B.SHARD, x: s.x, y: s.y - s.h * 0.6, vx: Rg.range(-40, 40) + s.x, vy: Rg.range(-90, -40), a: Rg.range(0, 3), va: Rg.range(-12, 12), s: Rg.range(1, 2), c: C[Rg.int(4, 6)], g: 0.6, life: Rg.range(0.25, 0.4) });
         for (let i = 0; i < 10; i++) {
           const a = Rg.range(0, TAU), r = R0 * Rg.range(0.5, 1);
           ps.spawn(P.DUST, Math.cos(a) * r, Math.sin(a) * r * SY, Math.cos(a) * 20, Math.sin(a) * 8 - 6, Rg.range(0.25, 0.4), C[2], Rg.range(2, 4));
@@ -55,7 +55,7 @@ export function create(o) {
       }
       for (const s of shards) if (!s.broke && t - s.d > 0.32) {
         s.broke = true;
-        for (let i = 0; i < 2; i++) bits.add({ kind: B.SHARD, x: s.x + Rg.range(-2, 2), y: s.y - s.h * Rg.range(0.3, 0.7), vx: Rg.range(-30, 30), vy: Rg.range(-60, -20), a: Rg.range(0, 3), va: Rg.range(-10, 10), s: Rg.range(1, 1.8), c: C[Rg.int(3, 5)], g: 480, life: Rg.range(0.12, 0.2) });
+        for (let i = 0; i < 2; i++) bits.add({ kind: B.SHARD, x: s.x + Rg.range(-2, 2), y: s.y - s.h * Rg.range(0.3, 0.7), vx: Rg.range(-30, 30), vy: Rg.range(-60, -20), a: Rg.range(0, 3), va: Rg.range(-10, 10), s: Rg.range(1, 1.8), c: C[Rg.int(3, 5)], g: 0.6, life: Rg.range(0.12, 0.2) });
       }
       ps.update(dt); bits.update(dt); lights.update(dt);
     },

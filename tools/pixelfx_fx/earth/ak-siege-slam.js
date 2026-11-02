@@ -48,7 +48,7 @@ export function create(o) {
         const nChunk = big ? 9 : 5;
         for (let i = 0; i < nChunk; i++) {
           const a = Rg.range(0, TAU), sp = Rg.range(40, 110) * (big ? 1 : 0.7);
-          bits.add({ kind: B.CHUNK, x: Rg.range(-4, 4), y: Rg.range(-2, 2), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * SY - Rg.range(60, 140), a: Rg.range(0, 3), va: Rg.range(-14, 14), s: Rg.range(1.2, 2.4), c: C[Rg.int(2, 4)], g: 600, life: Rg.range(0.3, 0.45) });
+          bits.add({ kind: B.CHUNK, ramp: [C[0], C[1], C[2], C[3], C[4]], x: Rg.range(-4, 4), y: Rg.range(-2, 2), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * SY - Rg.range(60, 140), a: Rg.range(0, 3), va: Rg.range(-14, 14), s: Rg.range(1.2, 2.4), c: C[Rg.int(2, 4)], g: 0.6, life: Rg.range(0.3, 0.45) });
         }
         for (let i = 0; i < (big ? 10 : 6); i++) {
           const a = Rg.range(-Math.PI, 0), sp = Rg.range(90, 220);

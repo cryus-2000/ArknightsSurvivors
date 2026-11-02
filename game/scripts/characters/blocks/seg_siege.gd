@@ -101,9 +101,8 @@ static func _h4_hammer_after(o, a: Dictionary, hits: Array, dmg: float) -> void:
 			pts.append(e.pos)
 	for p in pts:
 		o.area_hit(str(cr.get("src", "")), p, r, dmg * float(cr.get("mult", 0.2)))
-		var px: bool = cr.has("fit") and not g.perf_alt   # fit：帧条半径（1x 像素），pixelfx 砸地按判定半径 1:1（docs/229 §9 D 组）；--perfab 的 /b 桶走旧碎石帧条（量净成本）
-		if not o.spawn_fx_sprite(str(cr.get("tex", "fx_siege_pebbles")) if px else "fx_siege_pebbles", p + (Vector2(0, 2) if px else Vector2(0, -6)), r / float(cr.fit) if px else g.PX * clampf(r / 40.0, 0.8, 1.6)):
-			o.spawn_fx_sprite("fx_rock_burst", p, g.PX * 0.6, 0.0, false, false, Color(1.25, 1.05, 0.6))
+		var px: bool = cr.has("fit") and not g.perf_alt   # fit：帧条半径（1x 像素），pixelfx 砸地按判定半径 1:1（docs/229 §9 D 组）；--perfab 的 /b 桶走程序碎石（量净成本）
+		if not px or not o.spawn_fx_sprite(str(cr.get("tex", "fx_siege_px_smash")), p + Vector2(0, 2), r / float(cr.fit)):
 			for k in 5:   # 程序回退：几颗金色石子抛物线落地
 				var an: float = -PI / 2.0 + g.vrng.randf_range(-1.1, 1.1)
 				o.fx({"kind": "spark", "pos": p + Vector2(0, -6), "vel": Vector2.from_angle(an) * g.vrng.randf_range(90.0, 170.0), "life": 0.45, "col": Color(1.6, 1.25, 0.55), "sz": 3.0, "grav": 520.0})
@@ -494,9 +493,7 @@ static func _h4_spikes_tick(o, sg: Dictionary, dt: float) -> void:
 	for sk in due:
 		var b: Dictionary = sk.b
 		var sc: float = g.PX * float(b.get("scale", 1.0))
-		if o.spawn_fx_sprite(str(b.get("tex", "fx_siege_rock_spike")), sk.pos, sc, 0.0, sk.flip, true):
-			continue
-		if o.spawn_fx_sprite("fx_rock_spike", sk.pos, sc * 0.8, 0.0, sk.flip, true, Color(1.35, 1.1, 0.6)):
+		if o.spawn_fx_sprite(str(b.get("tex", "fx_siege_px_spike")), sk.pos, sc, 0.0, sk.flip, true):
 			continue
 		o.fx({"kind": "h4_spike", "pos": sk.pos, "life": 0.4, "h": 24.0 * float(b.get("scale", 1.0))})
 
@@ -583,7 +580,7 @@ static func _h4sg_draw_floor(o) -> void:
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## 精二地裂帧条（breach.tile，Codex fx_siege_fissure_tile 横向平铺）：前 0.08 秒向前裂开，4 帧随寿命推进（裂开 → 发光 → 冷却），整体淡出；缺图返回 false 画程序裂隙
+## 精二地裂帧条（breach.tile，pixelfx fx_siege_px_fissure 横向平铺）：前 0.08 秒向前裂开，4 帧随寿命推进（裂开 → 发光 → 冷却），整体淡出；缺图返回 false 画程序裂隙
 static func _h4_draw_fissure_tex(o, fs: Dictionary) -> bool:
 	var g = o.g
 	var b: Dictionary = fs.get("b", {})

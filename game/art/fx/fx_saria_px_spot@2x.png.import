@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://de6803lh3lqsv"
-path="res://.godot/imported/fx_wisadel_cannon@2x.png-ad3ad7f50f7d6ec30aec011ce0781304.ctex"
+uid="uid://crfijb50yf0yp"
+path="res://.godot/imported/fx_saria_px_spot@2x.png-c64c0bf7561d10dad14fd7c5049970c2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/_optical/fx_wisadel_cannon@2x.png"
-dest_files=["res://.godot/imported/fx_wisadel_cannon@2x.png-ad3ad7f50f7d6ec30aec011ce0781304.ctex"]
+source_file="res://art/fx/fx_saria_px_spot@2x.png"
+dest_files=["res://.godot/imported/fx_saria_px_spot@2x.png-c64c0bf7561d10dad14fd7c5049970c2.ctex"]
 
 [params]
 

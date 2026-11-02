@@ -104,7 +104,7 @@ static func _wspr(o, name: String, pos: Vector2, scale: float, ang := 0.0, flip 
 	var n0: int = g.fx.size()
 	if not g.vfx.fx_sprite(name, pos, scale, ang, flip, false, col, false, Vector2(-1, -1), delay):
 		return false
-	_wstat(o, "boom" if boom else ("soul" if name.begins_with("op_wisadel_soul") or name == "fx_muzzle_flash" else "ring"))
+	_wstat(o, "boom" if boom else ("soul" if name.begins_with("op_wisadel_soul") or name == "fx_wisadel_px_soulmuzzle" else "ring"))
 	if boom and _calm() and g.fx.size() > n0:
 		var sp: float = BalW.v("fx/wd_boom_speed", 1.3)
 		var f: Dictionary = g.fx[g.fx.size() - 1]
@@ -649,7 +649,7 @@ static func _h4_soul_shot(o, a: Dictionary, fc: Dictionary, s: Dictionary, tg: D
 	if fc.get("mark", false):
 		sh["mark_e"] = tg
 	var dir: Vector2 = (tg.pos - from).normalized()
-	_wspr(o, "fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, Color(0.55, 0.3, 0.75))   # 炮口一团暗紫烟（10-21 用户：魂灵之影不要攻击帧，直接出弹）
+	_wspr(o, "fx_wisadel_px_soulmuzzle", from, g.PX, dir.angle())   # 炮口一团暗紫烟（10-21 用户：魂灵之影不要攻击帧，直接出弹；docs/229 §9 D 组 pixelfx）
 	for q in _n(o, 3):
 		_wfx(o, {"kind": "spark", "pos": from, "vel": dir.rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 130), "life": 0.2, "col": Color(0.55, 0.15, 0.35), "sz": 2.0, "drag": 3.0})
 	_h3_sfx(o, "atk", -4.0, 1.25, 0.05)
@@ -1080,13 +1080,13 @@ static func _h4wd_draw_over(o) -> void:
 	# 魂灵之影不在这里画：10-20 用户要求放在干员身后，改由本体后层 ObHw.hw_draw_body(front=false) 画
 
 
-## 魂炮的小炮弹（Codex proj_wisadel_soul_shell，沿飞行方向转）；缺图画小一号的彗星
+## 魂炮的小炮弹（pixelfx proj_wisadel_px_shell，沿飞行方向转）；缺图画小一号的彗星
 static func _h4_draw_shell_tex(o, s: Dictionary, p: Vector2) -> bool:
 	if str(s.get("kind", "")) != "soul":
 		return false
 	var g = o.g
-	if g.tex.get("proj_wisadel_soul_shell") != null:
-		o.draw_spr_rot("proj_wisadel_soul_shell", int(g.t * 20.0) % 2, p, (s.to - s.from).angle(), g.PX)
+	if g.tex.get("proj_wisadel_px_shell") != null:
+		o.draw_spr_rot("proj_wisadel_px_shell", int(g.t * 20.0) % 2, p, (s.to - s.from).angle(), g.PX)
 		return true
 	o.cv.draw_circle(p, 6.0, Color(1.0, 0.1, 0.25, 0.3))
 	o.cv.draw_circle(p, 3.5, Color(0.2, 0.02, 0.08))
@@ -1107,17 +1107,17 @@ static func _h4wd_draw_marks(o) -> void:
 		cv.draw_circle(p, 9.0, Color(0.9, 0.05, 0.1, 0.18))
 		if _h4_draw_gift(o, mk, p):
 			continue
-		if o._fx_strip("fx_wisadel_mark", 2, int(g.t * 4.0 + e.id * 0.5), p):
+		if o._fx_strip("fx_wisadel_px_mark", 2, int(g.t * 4.0 + e.id * 0.5), p):
 			continue
 		_h4_shade_body(o, p, 5.5, 0.85)
 
 
-## 好礼挂的标记：Codex fx_wisadel_gift_mark（比普通标记多一圈礼花状缎带）；缺图画普通标记
+## 好礼挂的标记：pixelfx fx_wisadel_px_gift（比普通标记多几粒绕飘的余烬）；缺图画普通标记
 static func _h4_draw_gift(o, mk: Dictionary, p: Vector2) -> bool:
 	if not mk.get("gift", false):
 		return false
 	var g = o.g
-	return o._fx_strip("fx_wisadel_gift_mark", 6, int(g.t * 10.0 + float(mk.e.id) * 0.5), p)
+	return o._fx_strip("fx_wisadel_px_gift", 6, int(g.t * 10.0 + float(mk.e.id) * 0.5), p)
 
 
 ## 本体后层（ObHw.hw_draw_body front=false）：魂灵之影画在维什戴尔身后（10-20 用户：「魂灵之影的图层要在干员的后面」）；
@@ -1238,7 +1238,7 @@ static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> 
 	var frame: int = o.attack_phase_frame(int(spec.frames), int(spec.fire), o.attack_dur - o.attack_t)
 	var origin: Vector2 = o.sprite_point_at(slot, "muzzles", frame, muzzle, null, false)
 	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(effect.src), float(effect.size), true, 0.0, false, false, "exec", effect.get("mark", null), origin)
-	if not (_calm() and not g.perf_alt and _wspr(o, "fx_wisadel_px_muzzle", origin, g.PX, (target.pos - origin).angle())):
+	if not (_calm() and not o.g.perf_alt and _wspr(o, "fx_wisadel_px_muzzle", origin, o.g.PX, (target.pos - origin).angle())):
 		_wfx(o, {"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
 	_h3_sfx(o, "atk", 2.0)
 	_h4_cannon_after(o, a, target)

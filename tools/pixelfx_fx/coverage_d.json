@@ -1,3 +1,36 @@
 {
-  "_doc": "docs/237 特效覆盖登记（组 d 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py"
+ "_doc": "docs/237 特效覆盖登记（组 d 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py",
+ "exusiai|fx_exusiai_hit": {
+  "status": "不换",
+  "why": "普攻弹体 / 枪口 / 命中归 fx-basic-atk（组长 11-02 定边界），D 组不碰"
+ },
+ "exusiai|fx_exusiai_muzzle": {
+  "status": "不换",
+  "why": "普攻弹体 / 枪口 / 命中归 fx-basic-atk（组长 11-02 定边界），D 组不碰"
+ },
+ "exusiai|proj_exusiai_bullet": {
+  "status": "不换",
+  "why": "普攻弹体 / 枪口 / 命中归 fx-basic-atk（组长 11-02 定边界），D 组不碰"
+ },
+ "exusiai|proj_exusiai_bullet_t1": {
+  "status": "不换",
+  "why": "普攻弹体 / 枪口 / 命中归 fx-basic-atk（组长 11-02 定边界），D 组不碰"
+ },
+ "exusiai|proj_exusiai_bullet_t2": {
+  "status": "不换",
+  "why": "普攻弹体 / 枪口 / 命中归 fx-basic-atk（组长 11-02 定边界），D 组不碰"
+ },
+ "exusiai|proj_exusiai_bullet_t3": {
+  "status": "不换",
+  "why": "普攻弹体 / 枪口 / 命中归 fx-basic-atk（组长 11-02 定边界），D 组不碰"
+ },
+ "wisadel|fx_wisadel_soul": {
+  "status": "不换",
+  "why": "魂灵之影召唤物本体精灵（另有 op_wisadel_soul_native_* 原生动作），人物 / 召唤本体不归 pixelfx（docs/229 范围）"
+ },
+ "wisadel|fx_wisadel_cannon": {
+  "status": "已做",
+  "new": "fx_wisadel_cannon（pixelfx 同名重画，tests 按名字查）",
+  "why": "9 帧 @20，12.8 KB（原 98 KB）；_optical 压阶旧版已删"
+ }
 }

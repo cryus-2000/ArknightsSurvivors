@@ -555,7 +555,7 @@
     "dur": "$calc_dur",
     "elite_mult": 0.5,
     "max": 48,
-    "tex": "fx_saria_amber_spot",
+    "tex": "fx_saria_px_spot",
     "_doc": "精一「钙化拳」：拳击命中的非 Boss 敌人 2 秒内移速 -15%（精英时长减半），身上琥珀斑"
    }
   },

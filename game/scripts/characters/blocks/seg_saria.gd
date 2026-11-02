@@ -81,7 +81,7 @@ static func _h4_bash_release(o, a: Dictionary) -> void:
 	_h4_marks_pop(o, hits, _h4_bash_dmg(o))   # 晶簇（docs/202）：被拳击命中的带碎片敌人，碎片爆开
 	var d := Vector2.from_angle(ang)
 	var fk: float = reach / maxf(1.0, float(a.get("r", 115.0)))   # 盾击帧条跟判定半径走（范围藏品放大判定时一起放大，163B §3）
-	if not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
+	if not o.spawn_fx_sprite("fx_saria_px_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
 		o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach * 0.8, H4_AMBER)
 		o.fx({"kind": "line", "pos": o.pos + Vector2(0, -12) + d * 14.0, "to": o.pos + Vector2(0, -12) + d * reach * 1.3, "life": 0.15, "col": H4_AMBER, "w": 3.0})
 	_h3_sfx(o, "hit" if not hits.is_empty() else "atk")
@@ -163,8 +163,7 @@ static func _h4_pillars_raise(o, pc: Dictionary, c: Vector2) -> void:
 static func _h4_pillars_break(o, cr: Dictionary) -> void:
 	var g = o.g
 	for p in cr.posts:
-		if not o.spawn_fx_sprite("fx_saria_pillar_break", p + Vector2(0, -30), g.PX):
-			o.spawn_fx_sprite("fx_rock_burst", p, g.PX * 0.7, 0.0, false, false, Color(1.3, 1.0, 0.6))
+		if not o.spawn_fx_sprite("fx_saria_px_pillar_break", p, g.PX):   # pixelfx 晶柱碎（docs/229 §9 D 组，原点 = 柱脚）；缺图画程序碎片
 			for q in 4:
 				o.fx({"kind": "shard", "pos": p + Vector2(0, -24), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(70, 140), "life": 0.3, "col": H4_AMBER,
 					"sz": g.vrng.randf_range(2.5, 4.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 260.0})
@@ -391,7 +390,7 @@ static func h4_extra_bodies(o) -> Array:
 	return out
 
 
-## 一根晶柱：拔起帧条播完转站立微光循环（Codex fx_saria_pillar_rise / _idle，底边中点落地）；缺图画程序琥珀晶柱（拔起 0.15 秒，缩放 0 → 1）
+## 一根晶柱：拔起帧条播完转站立微光循环（pixelfx fx_saria_px_pillar_rise / _idle，底边中点落地）；缺图画程序琥珀晶柱（拔起 0.15 秒，缩放 0 → 1）
 static func h4_draw_extra(o, it: Dictionary) -> void:
 	var g = o.g
 	var cv = o.cv
@@ -407,7 +406,7 @@ static func h4_draw_extra(o, it: Dictionary) -> void:
 			_:
 				fr = mini(7, 5 + int(t / SLOT_BREAK * 3.0))
 		var sc: float = g.PX * float(sl.sc) * (-1.0 if sl.flip else 1.0)
-		fx_frame(cv, g, "fx_saria_calcite", 8, fr, sl.pos, absf(sc), Color(1, 1, 1, 1), Vector2(16, 40))
+		fx_frame(cv, g, "fx_saria_px_calcite", 8, fr, sl.pos, absf(sc), Color(1, 1, 1, 1), Vector2(18, 39))
 		return
 	var cr: Dictionary = o.hw.sa.crystals
 	if cr.is_empty():
@@ -416,14 +415,14 @@ static func h4_draw_extra(o, it: Dictionary) -> void:
 	var t: float = float(cr.t)
 	var fade: float = clampf((float(cr.life) - t) / 0.12, 0.0, 1.0)
 	var col := Color(1, 1, 1, fade)
-	var rise_n: int = int(g.V6_FRAMES.get("fx_saria_pillar_rise", [5, 20.0])[0])
-	var rise_fps: float = float(g.V6_FRAMES.get("fx_saria_pillar_rise", [5, 20.0])[1])
-	if g.tex.get("fx_saria_pillar_rise") != null and t < rise_n / rise_fps:
-		fx_frame(cv, g, "fx_saria_pillar_rise", rise_n, int(t * rise_fps), p, g.PX, col, Vector2(8, 32))
+	var rise_n: int = int(g.V6_FRAMES.get("fx_saria_px_pillar_rise", [6, 20.0])[0])
+	var rise_fps: float = float(g.V6_FRAMES.get("fx_saria_px_pillar_rise", [6, 20.0])[1])
+	if g.tex.get("fx_saria_px_pillar_rise") != null and t < rise_n / rise_fps:   # pixelfx 晶柱（docs/229 §9 D 组）：72×72 @2x，柱脚在 (36, 64)
+		fx_frame(cv, g, "fx_saria_px_pillar_rise", rise_n, int(t * rise_fps), p, g.PX, col, Vector2(18, 32))
 		return
-	if g.tex.get("fx_saria_pillar_idle") != null:
-		var idle: Array = g.V6_FRAMES.get("fx_saria_pillar_idle", [4, 6.0])
-		fx_frame(cv, g, "fx_saria_pillar_idle", int(idle[0]), int((t + float(it.k) * 0.13) * float(idle[1])), p, g.PX, col, Vector2(8, 32))
+	if g.tex.get("fx_saria_px_pillar_idle") != null:
+		var idle: Array = g.V6_FRAMES.get("fx_saria_px_pillar_idle", [4, 6.0])
+		fx_frame(cv, g, "fx_saria_px_pillar_idle", int(idle[0]), int((t + float(it.k) * 0.13) * float(idle[1])), p, g.PX, col, Vector2(18, 32))
 		return
 	var grow: float = clampf(t / 0.15, 0.0, 1.0)
 	var h: float = 30.0 * (1.0 - (1.0 - grow) * (1.0 - grow))
@@ -620,7 +619,7 @@ static func _h4_calcite(o, p: Vector2, sc: float, h: float, life: float) -> Dict
 	var g = o.g
 	var sa := _h4sa(o)
 	var ref: Dictionary = {}
-	if o.spawn_fx_sprite("fx_saria_calcite", p, g.PX * sc, 0.0, g.vrng.randf() < 0.5, true):
+	if o.spawn_fx_sprite("fx_saria_px_calcite", p, g.PX * sc, 0.0, g.vrng.randf() < 0.5, true):
 		ref = g.fx.back()
 	else:
 		o.fx({"kind": "h4_crystal", "pos": p, "h": h, "life": life, "col": H4_AMBER, "lean": g.vrng.randf_range(-0.3, 0.3)})
@@ -698,9 +697,9 @@ static func _h4_heal_fx(o, h: float) -> void:
 	for k in 6:
 		o.fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": H4_AMBER, "sz": 2.5})
 	var me: bool = o.is_leader
-	if not me and not o.spawn_fx_sprite("fx_saria_px_heal", g.ppos + Vector2(0, 2), g.PX):   # pixelfx 脚下暖光（docs/229 §9 D 组），1x 1:1
-		o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
-	o.spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -72 if me else -34), g.PX * (0.7 if me else 1.0), 0.0, false, false, Color(1, 1, 1, 0.6 if me else 1.0))
+	if not me:
+		o.spawn_fx_sprite("fx_saria_px_heal", g.ppos + Vector2(0, 2), g.PX)   # pixelfx 脚下暖光（docs/229 §9 D 组），1x 1:1
+	o.spawn_fx_sprite("fx_saria_px_star", g.ppos + Vector2(0, -72 if me else -34), g.PX * (0.8 if me else 1.0), 0.0, false, false, Color(1, 1, 1, 0.6 if me else 1.0))
 
 
 ## 急救 / 药剂散布
@@ -730,7 +729,7 @@ static func h4_saria_heal(o, b: Dictionary) -> void:
 		if o.is_leader:
 			o.fx({"kind": "glow", "pos": g.ppos + Vector2(0, -74), "r": 12.0, "life": 0.35, "col": H4_AMBER, "alpha": 0.6})
 		else:
-			o.spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
+			o.spawn_fx_sprite("fx_saria_px_ward", g.ppos + Vector2(0, -26), g.PX)
 
 
 ## 钙质化的固定晶柱槽（10-29 用户「晶体碰到怪物会碎掉，然后过一会重新生成」）：每个槽 st 0 长出（0.4 秒）→ 1 立着（敌人碰到就碎）→ 2 碎裂（0.3 秒）→ 3 空着等 regrow 秒 → 原位重新长出。
@@ -820,8 +819,7 @@ static func _h4_slots_end(o, sa: Dictionary) -> void:
 	var g = o.g
 	for sl in sa.slots:
 		if int(sl.st) <= 1:
-			if not o.spawn_fx_sprite("fx_saria_pillar_break", (sl.pos as Vector2) + Vector2(0, -30), g.PX):
-				o.spawn_fx_sprite("fx_rock_burst", sl.pos, g.PX * 0.7, 0.0, false, false, Color(1.3, 1.0, 0.6))
+			o.spawn_fx_sprite("fx_saria_px_pillar_break", sl.pos, g.PX)
 	sa.slots = []
 	sa.pillars.clear()
 
@@ -847,9 +845,7 @@ static func h4_calc_start(o, b: Dictionary) -> void:
 	var R: float = float(b.get("r", 180.0))
 	o.fx({"kind": "ring", "pos": g.ppos, "r": R, "r0": 30.0, "life": 0.5, "col": H4_AMBER, "floor": true, "w": 4.0})
 	o.fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": H4_AMBER, "floor": true, "n": 10})
-	if not o.spawn_fx_sprite("fx_saria_px_calcify", g.ppos + Vector2(0, 4), g.PX):   # pixelfx 钙晶裂口 + 光柱（docs/229 §9 D 组），1x 1:1；缺图回退旧的两张放大帧条
-		o.spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
-		o.spawn_fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
+	o.spawn_fx_sprite("fx_saria_px_calcify", g.ppos + Vector2(0, 4), g.PX)   # pixelfx 钙晶裂口 + 光柱（docs/229 §9 D 组），1x 1:1
 	if b.has("banner"):
 		o.show_banner(str(b.banner))
 	g.shake = maxf(g.shake, 3.0)

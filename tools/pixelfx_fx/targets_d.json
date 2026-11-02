@@ -195,5 +195,162 @@
  "fx_exusiai_px_burst": {
   "fx": "explosions/ak-exusiai-burst",
   "hires": true
+ },
+ "fx_exusiai_px_halo": {
+  "fx": "holy/ak-exusiai-halo",
+  "hires": true
+ },
+ "fx_exusiai_px_bless": {
+  "fx": "holy/ak-exusiai-bless",
+  "hires": true
+ },
+ "proj_exusiai_px_bullet_s1": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "opts": {
+   "palette": [
+    "#0a2240",
+    "#12528a",
+    "#48ccff",
+    "#b8f2ff",
+    "#f0fdff",
+    "#ffffff"
+   ],
+   "len": 26
+  },
+  "hires": true,
+  "keep": true
+ },
+ "proj_exusiai_px_bullet_s2": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "opts": {
+   "palette": [
+    "#3a1606",
+    "#b04e10",
+    "#ff9a2e",
+    "#ffdca4",
+    "#fffaec",
+    "#ffffff"
+   ],
+   "len": 20,
+   "thick": 0
+  },
+  "hires": true,
+  "keep": true
+ },
+ "proj_exusiai_px_bullet_s3": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "opts": {
+   "palette": [
+    "#4a0a14",
+    "#d42a3a",
+    "#ff7a7a",
+    "#ffd0c8",
+    "#fff4ee",
+    "#ffffff"
+   ],
+   "len": 20,
+   "thick": 0
+  },
+  "hires": true,
+  "keep": true
+ },
+ "proj_exusiai_px_bullet_power": {
+  "fx": "projectiles/ak-exusiai-bullet",
+  "opts": {
+   "palette": [
+    "#2a1a06",
+    "#7a4c0e",
+    "#d89a2a",
+    "#ffd76a",
+    "#fff3cc",
+    "#ffffff"
+   ],
+   "len": 26
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_saria_px_calcite": {
+  "fx": "earth/ak-saria-calcite",
+  "hires": true,
+  "keep": true
+ },
+ "fx_saria_px_pillar_rise": {
+  "fx": "earth/ak-saria-pillar",
+  "hires": true,
+  "keep": true
+ },
+ "fx_saria_px_pillar_idle": {
+  "fx": "earth/ak-saria-pillar-idle",
+  "hires": true,
+  "keep": true
+ },
+ "fx_saria_px_pillar_break": {
+  "fx": "earth/ak-saria-pillar",
+  "opts": {
+   "mode": 1
+  },
+  "hires": true
+ },
+ "fx_saria_px_bash": {
+  "fx": "impacts/ak-saria-bash",
+  "hires": true
+ },
+ "fx_saria_px_star": {
+  "fx": "holy/ak-saria-ward",
+  "hires": true
+ },
+ "fx_saria_px_ward": {
+  "fx": "holy/ak-saria-ward",
+  "opts": {
+   "mode": 1
+  },
+  "hires": true
+ },
+ "fx_saria_px_spot": {
+  "fx": "status/ak-saria-spot",
+  "hires": true
+ },
+ "fx_siege_px_fissure": {
+  "fx": "earth/ak-siege-fissure",
+  "hires": true,
+  "keep": true
+ },
+ "fx_siege_px_spike": {
+  "fx": "earth/ak-siege-spike",
+  "hires": true,
+  "keep": true
+ },
+ "fx_wisadel_cannon": {
+  "fx": "explosions/ak-wisadel-cannon",
+  "hires": true
+ },
+ "fx_wisadel_px_mark": {
+  "fx": "status/ak-wisadel-mark",
+  "hires": true
+ },
+ "fx_wisadel_px_gift": {
+  "fx": "status/ak-wisadel-gift",
+  "hires": true
+ },
+ "proj_wisadel_px_shell": {
+  "fx": "projectiles/ak-wisadel-shell",
+  "hires": true
+ },
+ "fx_wisadel_px_soulmuzzle": {
+  "fx": "projectiles/ak-wisadel-muzzle",
+  "opts": {
+   "palette": [
+    "#0c0810",
+    "#1e1028",
+    "#3a1a44",
+    "#5a2a5e",
+    "#8a4a8a",
+    "#c89ac0",
+    "#f0e0f0"
+   ],
+   "seed": 9
+  },
+  "hires": true
  }
 }

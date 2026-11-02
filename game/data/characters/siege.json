@@ -512,13 +512,13 @@
     "life": "$crack_life",
     "max": 6,
     "src": "破阵",
-    "tile": "fx_siege_fissure_tile",
+    "tile": "fx_siege_px_fissure",
     "spikes": {
      "cond": "elite >= 2",
      "step": "$spike_step",
      "delay": 0.1,
      "stagger": 0.012,
-     "tex": "fx_siege_rock_spike",
+     "tex": "fx_siege_px_spike",
      "scale": 1.0,
      "_doc": "精二「破阵」补画面：地裂出现 0.1 秒后沿地裂每 36 冒出一根金色岩刺（拔起 → 停 → 缩回）"
     }

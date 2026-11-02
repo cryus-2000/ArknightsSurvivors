@@ -29,7 +29,7 @@ export function create(o) {
       const a = Rg.range(-Math.PI, 0), sp = Rg.range(70, 170);
       ps.spawn(P.SPARK, 0, -6, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.1, 0.22));
     }
-    for (let i = 0; i < 4; i++) bits.add({ kind: B.CHUNK, x: Rg.sign() * Rg.range(3, 6), y: -2, vx: Rg.sign() * Rg.range(60, 110), vy: -Rg.range(80, 150), a: 0, va: Rg.range(-10, 10), s: Rg.range(1, 1.8), c: C[Rg.int(1, 2)], g: 600, life: Rg.range(0.25, 0.4) });
+    for (let i = 0; i < 4; i++) bits.add({ kind: B.CHUNK, ramp: [C[0], C[1], C[2], C[3], C[4]], x: Rg.sign() * Rg.range(3, 6), y: -2, vx: Rg.sign() * Rg.range(35, 65), vy: -Rg.range(80, 150), a: 0, va: Rg.range(-10, 10), s: Rg.range(1, 1.8), c: C[Rg.int(1, 2)], g: 0.6, life: Rg.range(0.25, 0.4) });
     for (let i = 0; i < 5; i++) {
       const a = Rg.range(0, TAU);
       ps.spawn(P.SMOKE, Math.cos(a) * Rg.range(1, 6), -6 + Math.sin(a) * 3, Math.cos(a) * 14, -Rg.range(18, 40), Rg.range(0.25, 0.38), 0, Rg.range(3, 5.5), Rg.range(0.02, 0.08));

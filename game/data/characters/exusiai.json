@@ -490,7 +490,7 @@
      "pierce": "$s1_pierce",
      "src": "冲锋模式",
      "power": true,
-     "tex": "proj_exusiai_bullet_s1",
+     "tex": "proj_exusiai_px_bullet_s1",
      "muzzle_fx": "fx_exusiai_px_muzzle_s1",
      "hit_fx": "fx_exusiai_px_hit_s1"
     }
@@ -511,7 +511,7 @@
      }
     ],
     "attack_patch": {
-     "tex": "proj_exusiai_bullet_s2",
+     "tex": "proj_exusiai_px_bullet_s2",
      "muzzle_fx": "fx_exusiai_px_muzzle_s2",
      "hit_fx": "fx_exusiai_px_hit_s2"
     },
@@ -533,7 +533,7 @@
        "dur": "$s3_pause"
       }
      ],
-     "tex": "proj_exusiai_bullet_s3",
+     "tex": "proj_exusiai_px_bullet_s3",
      "muzzle_fx": "fx_exusiai_px_muzzle_s3",
      "hit_fx": "fx_exusiai_px_hit_s3"
     },
@@ -567,7 +567,7 @@
       "pierce": "$mag_pierce",
       "mult": "$mag_mult",
       "src": "弹匣倾泻",
-      "tex": "proj_exusiai_bullet_power",
+      "tex": "proj_exusiai_px_bullet_power",
       "muzzle_fx": "fx_exusiai_px_muzzle_gold",
       "hit_fx": "fx_exusiai_px_hit_gold"
      }
@@ -640,7 +640,7 @@
        "scope": "others",
        "fx": [
         {
-         "strip": "fx_exusiai_halo",
+         "strip": "fx_exusiai_px_halo",
          "hold": true,
          "at": "members",
          "layer": "over",
@@ -665,7 +665,7 @@
      "scope": "others",
      "fx": [
       {
-       "strip": "fx_exusiai_blessed_flash",
+       "strip": "fx_exusiai_px_bless",
        "at": "mate"
       },
       {
@@ -680,7 +680,7 @@
         ],
         "alpha": 0.75
        },
-       "if_tex": "!fx_exusiai_blessed_flash"
+       "if_tex": "!fx_exusiai_px_bless"
       }
      ]
     }
