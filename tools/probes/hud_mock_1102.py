@@ -242,15 +242,16 @@ def minimap(m: M, x, y, sz):
     m.img(MINIMAP, x, y, sz, sz)
 
 
-def phone_buttons(m: M, cmd='突击'):
+def phone_buttons(m: M, cmd='突击', speed=True):
     """触屏右侧按键列（位置同现状 touch.gd 缺省布局，各方向都不动）"""
     W = m.W
     for (dx, cy, r, lab) in [(80, 106, 18, cmd), (30, 106, 18, 'Ⅱ'), (150, 146, 28, '终结技'), (30, 152, 18, '≡'), (150, 202, 18, '◎'), (82, 202, 24, '冲刺')]:
         cx = W - dx
         m.d.ellipse(m.R(cx - r, cy - r, 2 * r, 2 * r), outline=CYAN, width=max(1, m.P(1.6)), fill=C(0.03, 0.035, 0.045, 0.6))
         m.text(cx, cy + 4, lab, 11 if r < 26 else 12, TEXT, anchor='ms')
-    m.text(W - 30, 64, '1×', 14, TEXT, anchor='ms', bold=True)
-    m.text(W - 30, 78, '倍速', 9, SUB, anchor='ms')
+    if speed:
+        m.text(W - 30, 64, '1×', 14, TEXT, anchor='ms', bold=True)
+        m.text(W - 30, 78, '倍速', 9, SUB, anchor='ms')
 
 
 def relic_strip(m: M, x, y, n_show=4, total=15, align_right=True):
