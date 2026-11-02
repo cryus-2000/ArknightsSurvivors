@@ -365,9 +365,10 @@ static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
 		return
 	o.fx({"kind": "line", "pos": a, "to": c, "w": 5.0, "life": 0.35, "col": Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, 0.6), "floor": true})
 	an.dust = float(an.get("dust", 0.0)) + L
-	if an.dust >= 36.0:
+	if an.dust >= float(an.get("dust_gap", 36.0)):   # 间距 / 翻转 / 大小随机（画面，g.vrng）：预审报等距一串同样的扬尘（docs/229 §2.6）
 		an.dust = 0.0
-		o.spawn_fx_sprite("fx_ulpianus_px_drag", c + Vector2(0, 4), g.PX, seg.angle(), false, true)
+		an.dust_gap = g.vrng.randf_range(24.0, 48.0)
+		o.spawn_fx_sprite("fx_ulpianus_px_drag", c + Vector2(0, 4), g.PX * g.vrng.randf_range(0.85, 1.1), seg.angle(), g.vrng.randf() < 0.5, true)
 
 
 static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:
