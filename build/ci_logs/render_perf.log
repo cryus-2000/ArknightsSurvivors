@@ -5,10 +5,10 @@
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-CIRCLE_US_10000=260874
-CIRCLE_US_10000=241923
-CIRCLE_US_10000=287530
-CIRCLE_US_10000=258730
+CIRCLE_US_10000=198745
+CIRCLE_US_10000=205253
+CIRCLE_US_10000=234111
+CIRCLE_US_10000=194435
 GPU_BEFORE=0
 GPU_ACTIVE=0 SIZE=(1280, 1280)
 GPU_IDLE=0
@@ -17,8 +17,4 @@ RENDER PERF failures=0
 
 
 ## stderr
-WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)
 
