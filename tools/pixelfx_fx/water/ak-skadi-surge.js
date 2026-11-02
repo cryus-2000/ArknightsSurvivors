@@ -24,10 +24,10 @@ const SY = 0.55, OUT = 0.22, BREAK = 0.3;
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), R = o.radius;
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
-  // 水柱：角度不等距、高矮不一、出现早晚不一
+  // 水柱：成簇分布——簇内间距 0.1–0.3 rad、簇间空 0.5–0.95 rad（间距变化远超 ±30%，数量随种子变），高矮 5–20 并偶有高柱，出现早晚不一（docs/229 §2.6）
   const spouts = [];
-  for (let a = Rg.range(0, 0.3); a < TAU; a += Rg.range(0.18, 0.42))
-    spouts.push({ a, h: Rg.range(7, 18) * (Rg.chance(0.2) ? 1.5 : 1), w: Rg.range(2, 4), lean: Rg.range(0.25, 0.55), d: Rg.range(0, 0.07) });
+  for (let a = Rg.range(0, 0.6); a < TAU - 0.15; a += Rg.chance(0.3) ? Rg.range(0.5, 0.95) : Rg.range(0.1, 0.3))
+    spouts.push({ a, h: Rg.range(5, 20) * (Rg.chance(0.2) ? 1.5 : 1), w: Rg.range(1.5, 4.5), lean: Rg.range(0.2, 0.6), d: Rg.range(0, 0.09) });
   const crest = (t) => R * (0.18 + 0.8 * ease.outQuart(clamp(t / OUT)) + 0.1 * clamp((t - OUT) / 0.4));   // 到边后仍缓缓外推
   const jag = (a) => 1 + 0.09 * noise(a * 3.1, o.seed) + 0.05 * noise(a * 9.7, o.seed + 5);
   lights.add(0, 0, 22, C[5], 0.3, 0.25);   // 帧条里只烤小光晕（docs/229 §2.7）
@@ -76,8 +76,8 @@ export function create(o) {
         const rc = crest(t);
         for (const s of spouts) {
           const k = jag(s.a), x = Math.cos(s.a) * rc * k, y = Math.sin(s.a) * rc * k * SY, h = hAt(s.a);
-          for (let i = 0; i < 3; i++) {
-            const out = Rg.range(30, 90);
+          for (let i = 0, nd = Rg.int(1, 4); i < nd; i++) {   // 每柱折断甩出的水珠数不固定
+            const out = Rg.range(25, 100);
             ps.spawn(P.SPARK, x, y - h * Rg.range(0.5, 1), Math.cos(s.a) * out, Math.sin(s.a) * out * SY - Rg.range(40, 120), Rg.range(0.2, 0.38));
           }
           ps.spawn(P.VAPOUR, x, y, Math.cos(s.a) * 18, Math.sin(s.a) * 18 * SY - 4, Rg.range(0.25, 0.4), C[4], Rg.range(2.5, 4.5), Rg.range(0, 0.06));
