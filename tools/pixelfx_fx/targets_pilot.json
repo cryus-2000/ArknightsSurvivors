@@ -1,20 +1,24 @@
 {
  "_doc": "试点组（docs/228 §7–8）：斯卡蒂 / 星熊 / 能天使",
  "fx_skadi_px_sweep": {
-  "fx": "melee/ak-skadi-sweep"
+  "fx": "melee/ak-skadi-sweep",
+  "variants": 1
  },
  "fx_skadi_px_cleave": {
   "fx": "melee/ak-skadi-sweep",
   "opts": {
    "heavy": 1,
    "seed": 7
-  }
+  },
+  "variants": 1
  },
  "fx_skadi_px_surge": {
-  "fx": "water/ak-skadi-surge"
+  "fx": "water/ak-skadi-surge",
+  "variants": 1
  },
  "fx_hoshiguma_px_saw": {
-  "fx": "melee/ak-hoshiguma-saw"
+  "fx": "melee/ak-hoshiguma-saw",
+  "variants": 2
  },
  "fx_exusiai_px_muzzle_s1": {
   "fx": "projectiles/ak-exu-muzzle",

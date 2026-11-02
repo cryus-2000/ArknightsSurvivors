@@ -1123,17 +1123,24 @@ const V6_FRAMES := {
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
 	# ---- pixelfx 组 A（docs/229 §9）：本组新帧条只加在这行与下面「组 A 止」之间
-	"fx_skadi_px_wave": [11, 20.0], "fx_skadi_px_leap": [10, 20.0], "proj_skadi_px_tideblade": [4, 20.0], "fx_skadi_px_tidehit": [5, 20.0], "fx_skadi_px_tiderelease": [7, 20.0],
-	"fx_hoshiguma_px_rose": [5, 24.0], "fx_lappland_px_riposte": [5, 20.0], "proj_lappland_px_sword": [4, 16.0],
-	"fx_texas_px_blade": [6, 20.0], "fx_texas_px_mark": [6, 12.0], "fx_skalter_px_note": [4, 8.0],
-	"fx_skadi_px_splash": [8, 18.0], "fx_hoshiguma_px_block": [5, 20.0], "fx_hoshiguma_px_guard": [6, 10.0], "fx_hoshiguma_px_sand": [4, 8.0], "fx_hoshiguma_px_sawspark": [3, 20.0],
-	"fx_texas_px_dash": [4, 20.0], "fx_texas_px_pin": [4, 12.0], "fx_texas_px_shatter": [4, 18.0], "fx_texas_px_drop": [5, 20.0], "fx_skalter_px_vortex": [8, 10.0],
-	# 光晕层（docs/229 §2.7 / docs/238：导出分层，vfx.glow 在加色层按同一变换叠画）
-	"fx_skadi_px_wave_glow": [11, 20.0], "fx_skadi_px_leap_glow": [10, 20.0], "proj_skadi_px_tideblade_glow": [4, 20.0], "fx_skadi_px_tidehit_glow": [5, 20.0],
-	"fx_skadi_px_tiderelease_glow": [7, 20.0], "fx_hoshiguma_px_rose_glow": [5, 24.0], "fx_lappland_px_riposte_glow": [5, 20.0], "proj_lappland_px_sword_glow": [4, 16.0], "fx_texas_px_blade_glow": [6, 20.0],
-	"fx_skadi_px_splash_glow": [8, 18.0], "fx_hoshiguma_px_block_glow": [5, 20.0], "fx_hoshiguma_px_sawspark_glow": [3, 20.0], "fx_texas_px_dash_glow": [4, 20.0], "fx_texas_px_pin_glow": [4, 12.0],
-	"fx_texas_px_shatter_glow": [4, 18.0], "fx_texas_px_drop_glow": [5, 20.0], "fx_skadi_px_sweep_glow": [11, 20.0], "fx_skadi_px_cleave_glow": [11, 20.0], "fx_skadi_px_surge_glow": [14, 20.0],
-	"fx_hoshiguma_px_saw_glow": [8, 20.0],
+	# 帧条 / 光晕层 / 变体（docs/229 §2.7、§2.11；第 3 项 = 实时火星 [颗, 色阶, 速度]）
+	"fx_skadi_px_wave": [11, 20.0], "fx_skadi_px_wave_glow": [11, 20.0], "fx_skadi_px_leap": [10, 20.0, [9, 6, 180.0]], "fx_skadi_px_leap_glow": [10, 20.0],
+	"proj_skadi_px_tideblade": [4, 20.0], "proj_skadi_px_tideblade_glow": [4, 20.0], "fx_skadi_px_tidehit": [5, 20.0, [5, 5, 160.0]], "fx_skadi_px_tidehit_glow": [5, 20.0],
+	"fx_skadi_px_tidehit_v1": [5, 20.0], "fx_skadi_px_tidehit_v1_glow": [5, 20.0], "fx_skadi_px_tiderelease": [7, 20.0, [6, 5, 170.0]], "fx_skadi_px_tiderelease_glow": [7, 20.0],
+	"fx_hoshiguma_px_rose": [5, 24.0, [3, 5, 150.0]], "fx_hoshiguma_px_rose_glow": [5, 24.0], "fx_hoshiguma_px_rose_v1": [5, 24.0], "fx_hoshiguma_px_rose_v1_glow": [5, 24.0],
+	"fx_lappland_px_riposte": [5, 20.0, [6, 5, 180.0]], "fx_lappland_px_riposte_glow": [5, 20.0], "fx_lappland_px_riposte_v1": [5, 20.0], "fx_lappland_px_riposte_v1_glow": [5, 20.0],
+	"fx_lappland_px_riposte_v2": [5, 20.0], "fx_lappland_px_riposte_v2_glow": [5, 20.0], "proj_lappland_px_sword": [4, 16.0], "proj_lappland_px_sword_glow": [4, 16.0],
+	"fx_texas_px_blade": [6, 20.0], "fx_texas_px_blade_glow": [6, 20.0], "fx_texas_px_mark": [6, 20.0], "fx_skalter_px_note": [4, 8.0],
+	"fx_skadi_px_splash": [8, 18.0], "fx_skadi_px_splash_glow": [8, 18.0], "fx_skadi_px_splash_v1": [8, 18.0], "fx_skadi_px_splash_v1_glow": [8, 18.0],
+	"fx_hoshiguma_px_block": [5, 20.0, [7, 5, 200.0]], "fx_hoshiguma_px_block_glow": [5, 20.0], "fx_hoshiguma_px_block_v1": [5, 20.0], "fx_hoshiguma_px_block_v1_glow": [5, 20.0],
+	"fx_hoshiguma_px_block_v2": [5, 20.0], "fx_hoshiguma_px_block_v2_glow": [5, 20.0], "fx_hoshiguma_px_guard": [6, 10.0], "fx_hoshiguma_px_sand": [4, 8.0],
+	"fx_hoshiguma_px_sand_v1": [4, 8.0], "fx_hoshiguma_px_sand_v2": [4, 8.0], "fx_texas_px_dash": [4, 20.0], "fx_texas_px_dash_glow": [4, 20.0],
+	"fx_texas_px_pin": [4, 12.0, [3, 4, 130.0]], "fx_texas_px_pin_glow": [4, 12.0], "fx_texas_px_pin_v1": [4, 12.0], "fx_texas_px_pin_v1_glow": [4, 12.0],
+	"fx_texas_px_shatter": [4, 18.0, [7, 4, 170.0]], "fx_texas_px_shatter_glow": [4, 18.0], "fx_texas_px_shatter_v1": [4, 18.0], "fx_texas_px_shatter_v1_glow": [4, 18.0],
+	"fx_texas_px_drop": [5, 20.0], "fx_texas_px_drop_glow": [5, 20.0], "fx_skalter_px_vortex": [8, 10.0], "fx_skalter_px_vortex_v1": [8, 10.0],
+	"fx_hoshiguma_px_sawspark": [3, 20.0], "fx_hoshiguma_px_sawspark_glow": [3, 20.0], "fx_hoshiguma_px_sawspark_v1": [3, 20.0], "fx_hoshiguma_px_sawspark_v1_glow": [3, 20.0],
+	"fx_skadi_px_sweep_glow": [11, 20.0], "fx_skadi_px_cleave_glow": [11, 20.0], "fx_skadi_px_surge_glow": [14, 20.0], "fx_hoshiguma_px_saw_glow": [8, 20.0],
+	"fx_hoshiguma_px_saw_v1": [8, 20.0], "fx_hoshiguma_px_saw_v1_glow": [8, 20.0],
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# ---- 组 B 止
