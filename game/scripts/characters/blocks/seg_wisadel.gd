@@ -875,7 +875,8 @@ static func _h4_cannon_sprite(o, c: Vector2, r: float, fill: float) -> float:
 	# 10-26 用户「爆炸半径 78 → 66 之后特效也得跟着变」：原来取整进位（r 66 和 78 都落在 2 档，画面一点没缩，66 的实心边还比判定圈大 12%），
 	# 现在实心边直接 = 判定半径 × fill（小数倍率，帧条本来就支持）；fx/boom_scale_exact = 0 回到旧的取整档（对照用）
 	var sc: float = clampf(want, 1.0, cap) if BalW.v("fx/boom_scale_exact", 1.0) > 0.0 else clampf(ceilf(want - 0.3), 1.0, cap)
-	if not _wspr(o, "fx_wisadel_cannon", c, sc, 0.0, false, Color.WHITE, 0.0, true):
+	var rot: bool = _calm()   # pixelfx 重画后（docs/229 §9 D 组）：每团随机转角 / 镜像，免得同一张爆炸连续出现看出重复；fx/wd_calm = 0 回旧画法
+	if not _wspr(o, "fx_wisadel_cannon", c, sc, g.vrng.randf() * TAU if rot else 0.0, rot and g.vrng.randf() < 0.5, Color.WHITE, 0.0, true):
 		return 0.0
 	var rv: float = sc * H4_BOOM_CORE
 	if want > sc * 1.15:

@@ -8,8 +8,8 @@ export const meta = {
   name: "Wisadel cannon",
   desc: "Wisadel's crimson spinel burst: a small warm-white core, a mottled blast with uneven dark-red crystal spikes that cool and break while black smoke rolls out.",
   tags: ["explosion", "crystal", "one-shot"],
-  size: [240, 240],
-  origin: [120, 120],
+  size: [256, 256],
+  origin: [128, 128],
   duration: 0.45,
   loop: false,
   fps: 20,
@@ -22,7 +22,7 @@ export function create(o) {
   const ps = new Particles({ rng: R, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]] });
   // 晶刺：角度间距随机（0.25–0.8 rad）、长短 0.25–0.55 × 实心半径、粗细不一
   const spikes = [];
-  for (let a = R.range(0, 0.5); a < TAU - 0.2; a += R.chance(0.3) ? R.range(0.12, 0.25) : R.range(0.4, 1.1)) spikes.push({ a: a + R.range(-0.1, 0.1), L: CORE * (R.chance(0.3) ? R.range(0.95, 1.15) : R.range(1.2, 1.55)), w: R.range(4, 13), d: R.range(0, 0.05) });
+  for (let a = R.range(0, 0.5); a < TAU - 0.2; a += R.chance(0.3) ? R.range(0.12, 0.25) : R.range(0.4, 1.1)) spikes.push({ a: a + R.range(-0.1, 0.1), L: CORE * (R.chance(0.35) ? R.range(0.9, 1.1) : R.range(1.15, 1.6)), w: R.range(4, 14), d: R.range(0, 0.05), km: R.range(0.3, 0.7), kink: R.range(-0.8, 0.8), asym: R.range(0.5, 1.2), side: R.chance(0.35) ? R.sign() * R.range(0.4, 0.9) : 0 });
   for (let i = 0; i < 10; i++) { const a = R.range(0, TAU); ps.spawn(P.SPARK, Math.cos(a) * 20, Math.sin(a) * 20, Math.cos(a) * R.range(200, 380), Math.sin(a) * R.range(200, 380), R.range(0.08, 0.18)); }
   for (let i = 0; i < 9; i++) { const a = R.range(0, TAU), d = CORE * R.range(0.4, 0.9); ps.spawn(P.SMOKE, Math.cos(a) * d, Math.sin(a) * d, Math.cos(a) * 40, Math.sin(a) * 40 - 20, R.range(0.22, 0.32), 0, R.range(10, 18), R.range(0.05, 0.12)); }
   const embers = [];
@@ -56,11 +56,14 @@ export function create(o) {
           const L = s.L * ease.outBack(u) * (1 - clamp((t - 0.2) / 0.15) * 0.7), base = rr * 0.7;
           if (L <= base + 2) continue;
           const ca = Math.cos(s.a), sa = Math.sin(s.a), nx = -sa, ny = ca;
-          const tip = [ca * L, sa * L], b0 = [ca * base + nx * s.w, sa * base + ny * s.w], b1 = [ca * base - nx * s.w, sa * base - ny * s.w];
+          // 不规则晶片：底 → 折角（侧偏 kink）→ 尖，两面明暗不同；部分带一根斜出的小晶
+          const m = base + (L - base) * s.km, kx = ca * m + nx * s.kink * s.w, ky = sa * m + ny * s.kink * s.w;
+          const tip = [ca * L + nx * s.kink * s.w * 0.4, sa * L + ny * s.kink * s.w * 0.4], b0 = [ca * base + nx * s.w, sa * base + ny * s.w], b1 = [ca * base - nx * s.w * s.asym, sa * base - ny * s.w * s.asym];
           const lit = clamp(Math.round(5 - cool * 3), 2, 6);
-          p.tri(tip[0], tip[1], b0[0], b0[1], ca * base, sa * base, C[lit]);
-          p.tri(tip[0], tip[1], b1[0], b1[1], ca * base, sa * base, C[Math.max(1, lit - 2)]);
-          p.line(ca * base, sa * base, tip[0], tip[1], C[Math.min(7, lit + 1)]);
+          p.poly([b0, [kx, ky], tip, [ca * base, sa * base]], C[lit]);
+          p.poly([b1, [kx, ky], tip, [ca * base, sa * base]], C[Math.max(1, lit - 2)]);
+          p.line(kx, ky, tip[0], tip[1], C[Math.min(7, lit + 1)]);
+          if (s.side) { const a2 = s.a + s.side, l2 = (L - base) * 0.45; p.tri(kx + Math.cos(a2) * l2, ky + Math.sin(a2) * l2, kx + nx * 2, ky + ny * 2, kx - nx * 2, ky - ny * 2, C[Math.max(1, lit - 1)]); }
         }
       if (t > 0.22 && t < 0.36) for (const [x, y] of embers) if (noise(x, y + t * 30) > -0.2) p.px(x, y, C[t < 0.32 ? 5 : 4]);
       if (t < 0.1) p.glow(0, 0, CORE * 0.8, C[5], 0.25 * (1 - t / 0.1));

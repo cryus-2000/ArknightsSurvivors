@@ -407,7 +407,7 @@ static func h4_draw_extra(o, it: Dictionary) -> void:
 			_:
 				fr = mini(7, 5 + int(t / SLOT_BREAK * 3.0))
 		var sc: float = g.PX * float(sl.sc) * (-1.0 if sl.flip else 1.0)
-		fx_frame(cv, g, "fx_saria_px_calcite", 8, fr, sl.pos, absf(sc), Color(1, 1, 1, 1), Vector2(18, 39))
+		fx_frame(cv, g, "fx_saria_px_calcite2" if int(it.k) % 2 == 1 and g.tex.get("fx_saria_px_calcite2") != null else "fx_saria_px_calcite", 8, fr, sl.pos, absf(sc), Color(1, 1, 1, 1), Vector2(18, 39))
 		return
 	var cr: Dictionary = o.hw.sa.crystals
 	if cr.is_empty():
@@ -620,7 +620,7 @@ static func _h4_calcite(o, p: Vector2, sc: float, h: float, life: float) -> Dict
 	var g = o.g
 	var sa := _h4sa(o)
 	var ref: Dictionary = {}
-	if o.spawn_fx_sprite("fx_saria_px_calcite", p, g.PX * sc, 0.0, g.vrng.randf() < 0.5, true):
+	if o.spawn_fx_sprite("fx_saria_px_calcite2" if g.vrng.randf() < 0.5 else "fx_saria_px_calcite", p, g.PX * sc, 0.0, g.vrng.randf() < 0.5, true):
 		ref = g.fx.back()
 	else:
 		o.fx({"kind": "h4_crystal", "pos": p, "h": h, "life": life, "col": H4_AMBER, "lean": g.vrng.randf_range(-0.3, 0.3)})

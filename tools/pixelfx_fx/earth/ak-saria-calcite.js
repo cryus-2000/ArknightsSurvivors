@@ -20,7 +20,7 @@ export function draw(p, t, o) {
   const f = Math.floor(t * 10 + 1e-6);
   if (f >= 8) return;
   const C = fit(o.palette, 8), R = new Rng(o.seed);
-  const xs = [{ x: 0, h: 58, w: 18, lean: R.range(-4, 4) }, { x: R.range(-16, -10), h: R.range(26, 36), w: 11, lean: R.range(-8, -2) }, { x: R.range(9, 15), h: R.range(20, 30), w: 10, lean: R.range(2, 7) }];
+  const xs = [{ x: R.range(-4, 4), h: R.range(46, 60), w: R.range(15, 19), lean: R.range(-6, 6) }, { x: R.range(-17, -9), h: R.range(20, 38), w: R.range(9, 12), lean: R.range(-9, -2) }, { x: R.range(8, 16), h: R.range(16, 32), w: R.range(8, 11), lean: R.range(2, 8) }];
   const grow = f <= 3 ? [0.3, 0.6, 0.88, 1.05][f] : f === 4 ? 1 : [0.75, 0.45, 0.2][f - 5];
   const ramp = f === 0 ? C.slice(1, 8) : C.slice(0, 7);
   for (const s of [xs[1], xs[2], xs[0]]) {

@@ -352,5 +352,13 @@
    "seed": 9
   },
   "hires": true
+ },
+ "fx_saria_px_calcite2": {
+  "fx": "earth/ak-saria-calcite",
+  "opts": {
+   "seed": 9
+  },
+  "hires": true,
+  "keep": true
  }
 }

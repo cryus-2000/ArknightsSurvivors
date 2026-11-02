@@ -1129,7 +1129,7 @@ const V6_FRAMES := {
 	"fx_irene_px_crescent": [7, 20.0], "fx_irene_px_cannon": [9, 20.0], "fx_irene_px_gun": [3, 20.0],   # 精二裂潮余波 1x / 追斩手炮
 	"fx_wisadel_px_crater": [4, 0.0], "fx_exusiai_px_burst": [11, 24.0],   # 连携：弹坑 4 种变体 / 爆炸剑雨
 	"fx_exusiai_px_halo": [8, 10.0], "fx_exusiai_px_bless": [4, 20.0], "proj_exusiai_px_bullet_s1": [2, 20.0], "proj_exusiai_px_bullet_s2": [2, 20.0], "proj_exusiai_px_bullet_s3": [2, 20.0], "proj_exusiai_px_bullet_power": [2, 20.0],   # 能天使精二 / 技能弹体
-	"fx_saria_px_calcite": [8, 10.0], "fx_saria_px_pillar_rise": [6, 20.0], "fx_saria_px_pillar_idle": [4, 6.0], "fx_saria_px_pillar_break": [6, 20.0],   # 塞雷娅晶柱 / 钙晶 @2x
+	"fx_saria_px_calcite": [8, 10.0], "fx_saria_px_calcite2": [8, 10.0], "fx_saria_px_pillar_rise": [6, 20.0], "fx_saria_px_pillar_idle": [4, 6.0], "fx_saria_px_pillar_break": [6, 20.0],   # 塞雷娅晶柱 / 钙晶 @2x
 	"fx_saria_px_bash": [4, 24.0], "fx_saria_px_star": [7, 20.0], "fx_saria_px_ward": [10, 20.0], "fx_saria_px_spot": [4, 8.0],   # 塞雷娅盾击 / 星光 / 护盾 / 琥珀斑
 	"fx_siege_px_fissure": [4, 10.0], "fx_siege_px_spike": [7, 18.0],   # 推进之王破阵地裂（平铺）/ 岩刺 @2x
 	"fx_wisadel_px_mark": [2, 4.0], "fx_wisadel_px_gift": [6, 10.0], "proj_wisadel_px_shell": [2, 20.0], "fx_wisadel_px_soulmuzzle": [3, 24.0],   # 维什戴尔标记 / 魂炮
