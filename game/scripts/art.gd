@@ -827,6 +827,13 @@ static func px_basic(g, name: String) -> String:
 	return PX_BASIC_OLD[name] if _pxb == 0 or (g != null and g.opt_old & 8388608) else name   # 8388608 = Game.OPT_PXB
 
 
+## 普攻换成 pixelfx 专属刀光帧条的近战干员：不再画通用近战刀光弧（character.arc_targets → vfx.melee_arc），免得两道弧叠在一起；
+## 退回旧帧条（fx/px_basic = 0 或 OPT_PXB 轮换段）时照旧画（docs/231）
+const PX_BASIC_NO_ARC := {"lappland": "fx_lappland_px_slash"}   # 干员 id → 她的 pixelfx 刀光帧条
+static func px_no_arc(g, id: String) -> bool:
+	return PX_BASIC_NO_ARC.has(id) and px_basic(g, PX_BASIC_NO_ARC[id]) == PX_BASIC_NO_ARC[id]
+
+
 ## 普攻帧条的主体帧数（之后是余韵，docs/229 §2.5）。满屏（g.fx 超过 balance fx/px_tail_cap，缺省 300）时只播主体、砍掉余韵：
 ## 返回要从寿命里截掉的秒数（不在表里 / 不满屏为 0）。挂在 ob_fx.fx_spawn 与 op_api.spawn_fx_sprite
 const PX_BASIC_BODY := {"fx_lappland_px_slash": 4, "fx_exusiai_px_atk_muzzle": 3, "fx_exusiai_px_atk_hit": 4}
