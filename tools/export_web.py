@@ -256,6 +256,8 @@ def webp_max(gpath):
 CG_LOSSY_Q = 0.85    # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/187 §8）
 SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 3% 的文件设，QOA 体积按采样数线性下降（docs/187 §8）
 SFX_HF_MAX = 0.03
+SFX_LOW_HZ = 22050   # 11 kHz 以上能量 < 0.3% 的音效再降到 22.05 kHz（11-02，docs/187 §10）
+SFX_LOW_HF_MAX = 0.003
 
 
 def _set_import(path, kv):
@@ -288,14 +290,18 @@ def web_lossy_assets(gpath):
         if not os.path.exists(f + ".import"):
             continue
         x, sr = sf.read(f, always_2d=True)
-        if sr <= SFX_MAX_HZ:
+        if sr <= SFX_LOW_HZ:
             continue
         X = np.abs(np.fft.rfft(x.mean(1))) ** 2
         fr = np.fft.rfftfreq(len(x), 1.0 / sr)
-        if X[fr > SFX_MAX_HZ / 2].sum() < SFX_HF_MAX * max(X.sum(), 1e-12):
+        tot = max(X.sum(), 1e-12)
+        if X[fr > SFX_LOW_HZ / 2].sum() < SFX_LOW_HF_MAX * tot:
+            _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(SFX_LOW_HZ)})
+            n_sfx += 1
+        elif sr > SFX_MAX_HZ and X[fr > SFX_MAX_HZ / 2].sum() < SFX_HF_MAX * tot:
             _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(SFX_MAX_HZ)})
             n_sfx += 1
-    print("[瘦身] 网页近无损：事件插画 %d 张改有损 WebP %.2f；音效 %d 个设 %d Hz 上限" % (n_cg, CG_LOSSY_Q, n_sfx, SFX_MAX_HZ), flush=True)
+    print("[瘦身] 网页近无损：事件插画 %d 张改有损 WebP %.2f；音效 %d 个设采样率上限（%d / %d Hz）" % (n_cg, CG_LOSSY_Q, n_sfx, SFX_LOW_HZ, SFX_MAX_HZ), flush=True)
 
 
 TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守
