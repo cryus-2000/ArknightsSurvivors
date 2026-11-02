@@ -1,0 +1,13 @@
+{
+ "_doc": "镜头 → 录帧目录 + 起始帧（待填：探路后按 PVULT / PVHF / PVLOG 定）。dir 相对本目录；first = 片段第 0 帧对应的 f####.jpg 序号。ult 类镜头让 PVHF（冲击帧第一拍）落在 pv.py 里标的重拍上",
+ "open":   {"dir": "raw/A/rec_open",   "first": 0},
+ "squad":  {"dir": "raw/B/rec_squad",  "first": 0},
+ "wheel":  {"dir": "raw/A/rec_wheel",  "first": 0},
+ "crowd":  {"dir": "raw/A/rec_crowd",  "first": 0},
+ "ult_tx": {"dir": "raw/B/rec_ult_tx", "first": 0},
+ "horde":  {"dir": "raw/B/rec_horde",  "first": 0},
+ "ult_mz": {"dir": "raw/A/rec_ult_mz", "first": 0},
+ "full":   {"dir": "raw/A/rec_full",   "first": 0},
+ "boss1":  {"dir": "raw/C/rec_boss1",  "first": 0},
+ "boss2":  {"dir": "raw/C/rec_boss2",  "first": 0}
+}
