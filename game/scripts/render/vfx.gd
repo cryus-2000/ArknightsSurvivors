@@ -914,9 +914,37 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
 	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
-	g.draw_set_transform(pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale))
+	var sv := Vector2(-scale if flip else scale, scale)
+	g.draw_set_transform(pos + g.draw_off, ang, sv)
 	g.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	glow(name, Transform2D(ang, sv, 0.0, pos + g.draw_off), Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+
+
+# ---------------------------------------------------------------- pixelfx 光晕层（docs/229 §2.7、docs/238，用户 11-02 定）
+## 帧条 <名> 有同名 <名>_glow（tools/pixelfx_export.py 分层导出的 light 层，黑底）时，按本体同一变换 / 源矩形 / 绘制色
+## 在加色层 fx_add 叠画一遍。三处画帧条的入口（这里的 spr_rot、积木 ob_fx.fx_frame、终结技 / 连携 ult._draw_strip）登记，
+## draw_add_layer 统一画完清空。fx_add 在世界层之后重绘，同帧登记同帧画；之后才画的节点晚一帧，光晕看不出差别。纯画面
+const GLOW_Q_MAX := 600
+var _glow_q: Array = []
+var _glow_tex := {}
+
+
+func glow(name: String, xf: Transform2D, dst: Rect2, src: Rect2, col: Color) -> void:
+	if not _glow_tex.has(name):
+		_glow_tex[name] = g.tex.get(name + "_glow") if Game.V6_FRAMES.has(name + "_glow") else null
+	var gt: Texture2D = _glow_tex[name]
+	if gt == null or col.a <= 0.004 or _glow_q.size() >= GLOW_Q_MAX:
+		return
+	_glow_q.append([gt, xf, dst, src, FD.capc(col)])
+
+
+func _draw_glow_q(ci: CanvasItem) -> void:
+	for q in _glow_q:
+		ci.draw_set_transform_matrix(q[1])
+		ci.draw_texture_rect_region(q[0], q[2], q[3], q[4])
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_glow_q.clear()
 
 
 ## 一次性帧动画特效（命中 / 爆炸）；素材不存在时返回 false，调用方回退到程序特效
@@ -996,6 +1024,7 @@ func draw_add_layer() -> void:
 	var loop := int(g.t * 10.0)
 	g.squad.draw_fx_add(g.fx_add, loop)
 	draw_glows(g.fx_add)   # docs/54 柔光（灯标点燃 / 升级 / 晋升 / 拾取 / 精英登场 / 商人）
+	_draw_glow_q(g.fx_add)   # pixelfx 帧条的光晕层（glow）
 	for f in g.fx:
 		if f.kind != "anim":
 			continue
