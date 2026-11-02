@@ -159,6 +159,7 @@
    ]
   },
   "run": {
+   "_doc": "11-03 拖锚奔跑（用户：之前说过拖着锚奔跑）：左手握锚环下方、锚杆朝后下方斜拖、锚爪贴地，锚与锁链压到身后；Spine 步态脚本 tools/spine_run_trial/cfg/ulpianus_run.json，@1x 由 make_op_1x 出（<op>_run.json 只给跑步）；拖地刮痕见 blocks.run_fx",
    "tex": "op_ulpianus_run",
    "frames": 8,
    "fps": 13.333333333333334,
@@ -677,6 +678,26 @@
   "intro": "阿戈尔军事团体“深海猎人”作战指挥官之一。他独行，一如他刚成为深海猎人时那样。"
  },
  "blocks": {
+  "run_fx": {
+   "every": 0.12,
+   "_doc": "11-03 拖锚奔跑：锚爪在身后 28–52 px 刮地（op_ulpianus_run 拖锚条，tools/spine_run_trial/cfg/ulpianus_run.json），跑动时每 0.12 秒在脚下播一次 pixelfx 刮痕（地面层，随跑动方向转）；锚点 (35,10) = 帧里的脚底（1x 单位）",
+   "fx": [
+    {
+     "strip": "fx_ulpianus_px_dragrun",
+     "layer": "floor",
+     "rot": true,
+     "scale": 1.0,
+     "anchor": [
+      35,
+      10
+     ],
+     "off": [
+      0,
+      2
+     ]
+    }
+   ]
+  },
   "_doc": "乌尔比安（docs/61 §17.5）：锚击（身前圆）、必须促成的接触（掷锚钩回 / 落锚砸下）、必须维系的界限（永久）、必须开辟的通路（手动掷锚 + 8 秒加速）、血脉的哺养（叠层）、精二血脉沸腾（蓄势大爆破）；原手写脚本作参照 tests/data_ops/ulpianus_legacy.gd",
   "follow": {
    "leash": "$leash",

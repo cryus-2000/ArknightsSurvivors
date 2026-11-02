@@ -1164,6 +1164,7 @@ const V6_FRAMES := {
 	"fx_gladiia_px_pull_v1_glow": [7, 20.0], "fx_gladiia_px_pull_v2": [7, 20.0], "fx_gladiia_px_pull_v2_glow": [7, 20.0],
 	"fx_gladiia_px_glide": [8, 20.0], "fx_gladiia_px_glide_v1": [8, 20.0], "fx_gladiia_px_glide_v2": [8, 20.0],
 	"fx_mizuki_px_field": [6, 20.0],
+	"fx_ulpianus_px_dragrun": [6, 20.0], "fx_ulpianus_px_dragrun_glow": [6, 20.0], "fx_ulpianus_px_dragrun_v1": [6, 20.0], "fx_ulpianus_px_dragrun_v2": [6, 20.0], "fx_ulpianus_px_dragrun_v2_glow": [6, 20.0],   # 乌尔比安拖锚奔跑的锚爪刮地（blocks.run_fx，11-03）
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
 	# ---- 组 D 止

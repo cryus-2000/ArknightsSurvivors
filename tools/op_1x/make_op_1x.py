@@ -236,7 +236,7 @@ def build_op(op, dry=False):
         scale = sm0 * 0.5 * k
         log.append(f"scale k={k:.3f}")
 
-        def slot_job(kind, mode, times=None, keyed=None, mirror=False, frames=None, dens=1):
+        def slot_job(kind, mode, times=None, keyed=None, mirror=False, frames=None, dens=1, cfg=None):
             sp = spec(sprites, kind)
             if sp is None:
                 return None
@@ -254,7 +254,7 @@ def build_op(op, dry=False):
                 if mode == "move":
                     c["runLegs"] = True
             else:
-                c = dict(base, scaleMul=scale)
+                c = dict(cfg or base, scaleMul=scale)
                 if mode == "move":
                     c["mode"] = "move_attack"
                 if times is not None:
@@ -267,7 +267,13 @@ def build_op(op, dry=False):
         # 跑步
         run = spec(sprites, "run")
         if run and int(run.get("frames", 8)) == 8 and base.get("mode") != "float":
-            done[run["tex"]] = ("run", lambda: slot_job("run", "run"))
+            rc = os.path.join(CFG, op + "_run.json")   # 跑步单独配置（11-03 乌尔比安拖锚奔跑：握锚 / 锚压身后只给跑步，待机 / 普攻仍用 <op>.json）
+            rcfg = None
+            if os.path.exists(rc):
+                with open(rc, encoding="utf-8") as source:
+                    rcfg = json.load(source)
+                rcfg.update(noMouth=True, pixelEyes=base["pixelEyes"], canvas=max(192, rcfg.get("canvas", 128)))
+            done[run["tex"]] = ("run", lambda: slot_job("run", "run", cfg=rcfg))
         # 待机
         if idle and "Idle" in anims:
             n = int(idle.get("frames", 8))

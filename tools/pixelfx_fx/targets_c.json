@@ -302,5 +302,11 @@
   "keep": true,
   "seed": 9,
   "variants": 1
+ },
+ "fx_ulpianus_px_dragrun": {
+  "fx": "impacts/ak-ulpianus-dragrun",
+  "hires": true,
+  "keep": true,
+  "seed": 3
  }
 }
