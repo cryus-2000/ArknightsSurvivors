@@ -832,7 +832,7 @@ func aggro_target(e: Dictionary):
 
 
 ## 队友生命：突击中被近战怪碰到掉血（每人 command/op_inv 秒无敌间隔）；不突击时回血（command/hp_regen_secs 空到满）；
-## 血空倒地 command/revive_secs 秒，到时原地复活；归队集合完毕时倒地的人在队长身边复活。复活给 command/revive_inv 秒无敌
+## 血空倒地 command/revive_secs 秒，到时原地复活（10-23 起倒地的留在倒地点，归队也不带走；复活画面见 _revive_fx）。复活给 command/revive_inv 秒无敌
 func _tick_hp(dt: float) -> void:
 	_tick_low()
 	if stance == ROAM:
@@ -1058,12 +1058,32 @@ func cmd_stats() -> Dictionary:
 func _revive(o, p: Vector2) -> void:
 	if g.get("trace_every") != null and g.trace_every > 0.0:
 		print("CMD t=%.2f revive %s at %.0f,%.0f" % [g.t, o.id, p.x, p.y])
+	_revive_fx(o, p)
 	o.cmd_down = 0.0
 	o.cmd_hp = maxf(o.cmd_hp, Bal.v("command/revive_hp", 0.5))
 	o.cmd_inv = Bal.v("command/revive_inv", 1.0)
 	o.cmd_show = 3.0
 	_bl_ext[o.id] = "revive"
 	o.pos = p
+
+
+## 复活过渡（11-02 用户批 docs/224 #14，纯画面）：倒地姿态原地就地解散（光圈收拢 + 像素碎散淡出 WARP_OUT 秒），
+## 再在复活点淡入（WARP_IN 秒，character.warp_k）——原来是躺着的那一帧直接换成站着的。deploy_exit = 0 时照旧（对照用）
+func _revive_fx(o, p: Vector2) -> void:
+	if exit_mode() == 0 or o.pos == Vector2.INF or g.get("fx") == null or g.demo_op != "":
+		return
+	var st: Dictionary = o.downed_state(o.cmd_down_age)
+	var kind := "death"
+	if st.is_empty():
+		st = o.anim_state()
+		kind = str(st.get("kind", ""))
+	if st.is_empty():
+		return
+	g.fx.append({"kind": "warp_out", "pos": o.pos + Vector2(o.foot_dx(st), 0), "st": st, "foot_off": o.foot_off(st.tex, kind), "col": o.col(), "seed": int(o.slot) * 7 + int(g.t * 10.0) % 97, "life": o.WARP_OUT, "max": o.WARP_OUT})
+	o.ghosts.clear()
+	o.warp_t = 0.0
+	if p.distance_to(o.pos) > 1.0:
+		g.fx.append({"kind": "ring", "pos": p, "r": 34.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 0.95, 1.0)})
 
 
 ## ---- 爆发窗口（10-24 用户定：突击 = 队友出击时攻速和技力回复明显加成 + 第一下冲锋带击退，耐力照旧限时）
