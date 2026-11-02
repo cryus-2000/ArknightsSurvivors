@@ -24,7 +24,7 @@ import soundfile as sf
 TIERS = {
     "A": {"music_rate": 32000, "music": {"default": 0.85}, "voice": (24000, 0.85)},
     "B": {"music_rate": 24000, "music": {"default": 0.85, "battle_pulse": 1.0, "battle_drive": 1.0, "danger": 1.0}, "voice": (24000, 0.85)},
-    "C": {"music_rate": 22050, "music": {"default": 1.0}, "voice": (22050, 0.9)},
+    "C": {"music_rate": 22050, "music": {"default": 1.0}, "voice": (22050, 1.0)},   # 语音 0.9 → 1.0：11-02 第十批网页 44.6 超 44.5 预算，省 0.13 MiB（docs/187 §9）
     "D": {"music_rate": 22050, "music": {"default": 1.1}, "voice": (24000, 0.85)},
     "E": {"music_rate": 16000, "music": {"default": 1.1}, "voice": (24000, 0.85)},
 }
