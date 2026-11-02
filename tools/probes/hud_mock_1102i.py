@@ -63,7 +63,7 @@ def squad(m, x, y, phone=False):
     gap = 6
     W = 4 * cw + 3 * gap
     nh = 15 if not phone else 12
-    E.shade(m, x - 10, y - 10, W + 20, ch + nh + (48 if not phone else 40), 0.36)
+    E.shade(m, x - 10, y - 10, W + 20, ch + nh + (58 if not phone else 46), 0.36)
     # 指挥：小标签 + 四格分段按钮；右边编队 / 羁绊
     E.cap(m, x, y + 6, 'COMMAND' + ('  ·  F' if not phone else ''), 6.5)
     if not phone:
@@ -78,19 +78,21 @@ def squad(m, x, y, phone=False):
         m.rect(cx0, oy, cw, 1.5, H.CLS[cls])                       # 职业色顶线
         if i in (1, 2):
             H.M.diamond(m, cx0 + cw - 5, oy + 6, 2.6, GOLD)            # 羁绊
-        # 生命：窗底一根条（满 = 青，<50% 金，<25% 红）
-        col = (70, 225, 240, 255) if hp > 0.5 else (GOLD if hp > 0.25 else (255, 61, 139, 255))
-        m.rect(cx0, oy + ch - 3.5, cw, 3.5, (0, 0, 0, 200))
-        m.rect(cx0, oy + ch - 3.5, cw * hp, 3.5, col)
-        # 名牌：名字 + 生命数字（队长纸白底）
+        # 名牌：只写名字（队长纸白底）；手机不画名牌文字
         lead = i == 0
         E.plate(m, cx0, oy + ch, cw, nh, E.PAPER if lead else E.INK, 0.95)
         ink = (14, 16, 18, 255) if lead else TEXT
         if not phone:
-            m.text(cx0 + 4, oy + ch + 11, nm[:4], 9, ink, bold=True)
-            m.text(cx0 + cw - 3, oy + ch + 11, str(HPN[i]), 9, ink if lead else col, anchor='rs', bold=True)
-        else:
-            m.text(cx0 + cw / 2, oy + ch + 9.5, str(HPN[i]), 8, ink if lead else col, anchor='ms', bold=True)
+            m.text(cx0 + cw / 2, oy + ch + 11, nm[:4], 9, ink, anchor='ms', bold=True)
+        # 队友生命：卡片下面单独一行（和名牌之间留空），条 + 数字；队长不画（生命在左上）
+        if not lead:
+            col = (70, 225, 240, 255) if hp > 0.5 else (GOLD if hp > 0.25 else (255, 61, 139, 255))
+            hy = oy + ch + nh + 4
+            tw = 0 if phone else 20
+            m.rect(cx0, hy, cw - tw, 4, (255, 255, 255, 40))
+            m.rect(cx0, hy, (cw - tw) * hp, 4, col)
+            if not phone:
+                m.text(cx0 + cw, hy + 5, str(HPN[i]), 8.5, col, anchor='rs', bold=True)
         if lead:
             E.plate(m, cx0, oy - 10, 34, 10, E.INK)
             E.cap(m, cx0 + 3, oy - 2.5, 'LEADER', 5, TEXT, 0.8)
@@ -109,7 +111,7 @@ def desktop():
     E.info(m)
     cw = 80 / 1.5 + 14
     w = 4 * cw + 18
-    squad(m, W - 24 - w, Hh - 24 - (40 + 92 / 1.5 + 15))
+    squad(m, W - 24 - w, Hh - 24 - (40 + 92 / 1.5 + 15 + 10))
     H.minimap(m, 16, Hh - 16 - 130, 130)
     H.key_hints(m)
     return m.done(os.path.join(OUT, 'R9_RL_desktop.png'), '编辑式 · 第九轮（电脑 1920×1080）')
@@ -125,7 +127,7 @@ def phone():
     H.phone_buttons(m, '随行', speed=False, pause=False)
     cw = 40 / 1.25 + 4
     w = 4 * cw + 18
-    squad(m, W - 16 - w, Hh - 12 - (36 + 46 / 1.25 + 12), phone=True)
+    squad(m, W - 16 - w, Hh - 12 - (36 + 46 / 1.25 + 12 + 8), phone=True)
     H.minimap(m, 10, Hh - 10 - 84, 84)
     return m.done(os.path.join(OUT, 'R9_RL_phone.png'), '编辑式 · 第九轮（手机横屏）')
 
@@ -134,13 +136,13 @@ def detail(d):
     """编队区放大：直接从电脑稿裁右下角，最近邻放大 2 倍（真实比例）"""
     im = d.convert('RGB')
     w, h = im.size
-    crop = im.crop((w - 560, h - 300, w, h)).resize((1120, 600), Image.NEAREST)
+    crop = im.crop((w - 560, h - 320, w, h - 20)).resize((1120, 600), Image.NEAREST)
     out = Image.new('RGB', (1120, 600 + 150), (12, 14, 18))
     out.paste(crop, (0, 0))
     dr = ImageDraw.Draw(out)
-    notes = ['指挥模式：四格分段按钮，当前格实心青底；鼠标 / 触屏可直接点格切换（F 仍开圆盘）',
+    notes = ['指挥模式：四格分段按钮，只显示当前模式（切换照旧用 F 圆盘 / 触屏指挥键）',
              '立绘：四人同一个裁切窗口、同一个缩放，脚底对齐；高矮按原作比例，不再各自放大',
-             '队友生命：立绘窗底一根条（青 → 金 → 红）+ 名牌右侧数字；队长名牌纸白',
+             '队友生命：卡片下面单独一行，条 + 数字（青 → 金 → 红）；名牌只写名字；队长不画（生命在左上）',
              '职业：窗顶一根职业色细线；羁绊：右上金菱形']
     for k, t in enumerate(notes):
         dr.text((16, 612 + k * 34), t, font=H.FBF(20), fill=(242, 237, 216))
