@@ -239,9 +239,12 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an: Vector2 = anc * h if anc.x >= 0.0 else Vector2(fw, fh) / 2.0
-	ci.draw_set_transform(pos, ang, Vector2(sc * stretch / h, sc / h))   # stretch：沿朝向拉长（剑气猛冲段，sword_ease.gd）
+	var sv := Vector2(sc * stretch / h, sc / h)
+	ci.draw_set_transform(pos, ang, sv)   # stretch：沿朝向拉长（剑气猛冲段，sword_ease.gd）
 	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if "vfx" in g and g.vfx != null:
+		g.vfx.glow(name, Transform2D(ang, sv, 0.0, pos), Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), ci._dim(col) if ci.has_method("_dim") else col)   # pixelfx 光晕层（vfx.glow）；队友降噪色同本体
 
 
 # ---------------------------------------------------------------- 扩散缓动 / 交叉淡入淡出 / 余波环（docs/61 §5.6，10-13 加；纯画面）

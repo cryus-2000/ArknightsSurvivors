@@ -1165,9 +1165,11 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 		if vw <= o.x:
 			return
 	var ang: float = float(s.get("ang", 0.0)) + float(s.get("spin", 0.0)) * age
-	g.draw_set_transform(s.c, ang, Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0))))
+	var sv := Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0)))
+	g.draw_set_transform(s.c, ang, sv)
 	g.draw_texture_rect_region(t, Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.vfx.glow(str(s.name), Transform2D(ang, sv, 0.0, s.c), Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)   # pixelfx 光晕层（连携复用的帧条）
 
 
 ## 地面层（world.gd 在干员地面特效那一步调）：layer = back 的帧条
