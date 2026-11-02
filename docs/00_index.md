@@ -144,6 +144,7 @@
 | [215_combat_visual_audit_1101](215_combat_visual_audit_1101.md) | 局内战斗画面巡检 11-01 | 已修 8 处，D1 归 C、D4 待用户 | 骑士 5 招预警改冰裂样式；伊祖米克圆形预警、合唱压境、肃清目标格、缺口金线已改；新快检 final_boss_tells 拦「新招退回通用预警」 | 211、170、183、209；render/boss_attack_draw、telegraph_draw |
 | [220_wisadel_fx_calm](220_wisadel_fx_calm.md) | 维什戴尔收特效 11-01 | 已做，待用户看对照 | 齐射只留一团主爆炸、去二次闪光 / 内环、亮度封顶、队友降一档、同屏上限；fx/wd_calm=0 一键回退；后期每秒特效 124 → 57 | 137 §8；seg_wisadel、tools/wisadel_calm_rec.py |
 | [221_late_game_readability_1102](221_late_game_readability_1102.md) | 后期实战画面巡检 11-02 | 清单 + 推荐，待用户批 | 7–10 分钟、4 人满编、Boss + 终结技 + 连携 + 羁绊同框；电脑 / 手机横屏 / 竖屏实录，分层量测（友方占屏、敌弹被友方改色 14–38%、队长周围被盖、界面占屏 11% / 15%）；11 条：敌方层挪顶层、队长剪影、全屏演出排队、左列分槽、羁绊常驻小图标、手机编队卡收起；不降队友特效 | 139 §10–11、130、217 §4、220；Claude outputs/late_audit_1102 |
+| [222_hud_redesign_1102](222_hud_redesign_1102.md) | 局内 HUD 重新设计方向稿 11-02 | 方向稿，待用户选 | 用户「加了指挥模式和倍速后界面乱」：现状 13 块盘点（队友生命三份、右下三行、右上藏品栏）；三个方向 A 四角收拢（推荐）/ B 底部指挥台 / C 终端侧栏，电脑 + 手机效果稿；开局指南卡统一成炭灰面板 + 青条 + 节点标签条 + 菱形步骤点 | 37、219、221；Claude outputs/hud_redesign_1102、tools/probes/hud_mock_1102.py |
 | [201_final_boss_weak_diag](201_final_boss_weak_diag.md) | 最终 Boss「太弱」诊断与加伤 | 记录 | 10-29：最终 Boss 加伤血量不动；弹速 / 弹数 / 节奏旋钮；伊祖米克连携调度改版（izumik-sched） | 170、142b、bosses/*.gd |
 | [199_bal_audit](199_bal_audit.md) | balance 旋钮对账 + Bal.v 缓存 | 记录 | 10-29：代码缺省值与 balance.json 不一致的 170 键（已改 208 读点，运行结果不变）；只在代码里的 366 键清单；`Bal.v` 路径缓存（桌面同局轮换 -0.3 ms / 帧）；`tools/bal_audit.py` | 27、balance.gd、data_lint |
 | [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
