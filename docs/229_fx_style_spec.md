@@ -247,6 +247,13 @@ docs/96 里登记了、但仓库里没有的（mimic_bite、nerve_hit、nest_*�
 | **D 重装 · 远程** | 艾丽妮、塞雷娅、灰烬（siege）、维什戴尔、能天使（普攻 + 技能收尾） | `{irene,saria,siege,wisadel,exusiai}`；`targets_d.json` | 220 KB | 同上 |
 | **E 敌方 / Boss** | §4 的敌方特效：育母、喷吐者、囊海、碎石、预警帧条、精英登场，以及 docs/96 未交付件 | `data/enemies.json` 里 fx 字段（只动 fx 名和 fit）；`game/art/fx/fx_e_px_*`；`tools/pixelfx_fx/**/ak-e-*.js`；`targets_e.json`。**不动** world.gd / telegraph_draw.gd 的判定，只改帧条和调用参数 | 200 KB | 同上 + 预警与判定一致的录像证明 |
 
+**整套替换（用户 11-02 追加，原话「不要只替换一半，让一些打到敌人的特效没有替换」）：**
+- 每位干员会出现在战场上的特效要整套换掉：普攻弹道 / 刀光、命中、技能各段与技能命中、召唤物攻击、天赋触发、精英化 / 成长形态差异、连携（link_fx_*）、状态附着。全量清单见 **docs/237**（`python tools/fx_coverage.py` 自动生成）。
+- **普攻也归各组**：拉普兰德 / 能天使的普攻由 fx-basic-atk 试点（docs/231）；试点定稿后，其余 18 人的普攻由 A–D 各组按试点做法负责。
+- **完成判定**：某位干员只有在 docs/237 里他的全部行（干员段 + 连携段）都是「已做」或「不换（写明理由）」才算完成。终结技主视觉只统一不重做，单列不计。组员报完成时附 `python tools/fx_coverage.py --op <id>` 的输出。
+- 状态登记写各组独占的 `tools/pixelfx_fx/coverage_<组>.json`；新帧条按 `fx_<id>_px_*` 命名的自动算已做；原名重画、或共用件不换，都在登记文件里写。
+- 共用的通用帧条（例如 fx_slash_heavy_deep、fx_rain 这类多人共用件）：在本组干员行里出现就由本组负责换成本人专属的，或登记「不换」并写理由。
+
 **验收标准（每份同样适用）：**
 1. 每个新帧条过 §0 的硬数字：密度 1.6–2.2、32 色、单条 KB 上限、末帧为空、首帧爆亮。
 2. 用 `tools/op_fx_audit_rec.py --tag px_before / px_after` 录同种子原速 30 帧对照，左右并排（hstack），过 vreview：0 条高，或者写明误报理由。
@@ -262,7 +269,7 @@ docs/96 里登记了、但仓库里没有的（mimic_bite、nerve_hit、nest_*�
 2. **art.gd 分组登记块：** 由组长一次性在 `V6_FRAMES` 里留五个注释块（`# pixelfx 组 A` … `# pixelfx 组 E`），块与块之间至少隔 2 行不变的行，各组只往自己的块里加，避免合并冲突。
 3. **`Art.op_ramp(id, i)`**（程序绘制取色阶）：组长加，五份只调用。
 
-（11-02 组长已做 2、3：分支 claude/fx-lead-prep。`V6_FRAMES` 末尾有「组 A … 组 E 止」五对标记行；`Art.OP_RAMP` 与 house.js `OP` 同步，水月暂无条目走环境梯度兜底，C 组核对 PRTS 后提给组长补。）
+（11-02 组长已做 2、3：分支 claude/fx-lead-prep。`V6_FRAMES` 末尾有「组 A … 组 E 止」五对标记行；`Art.OP_RAMP` 与 house.js `OP` 同步，水月 11-02 已补（C 组按 PRTS Spine idle 取色：外套宝蓝 #3d5fd6，发梢薰衣草作高光段）。）
 
 **共用文件规矩：**
 - `tools/pixelfx_fx/house.js`：只有组长改；各组要改色阶，提给组长。
