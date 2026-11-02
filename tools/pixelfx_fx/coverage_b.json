@@ -1,3 +1,21 @@
 {
-  "_doc": "docs/237 特效覆盖登记（组 b 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py"
+  "_doc": "docs/237 特效覆盖登记（组 b 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py",
+  "eyjafjalla|fx_col": {
+    "status": "不换",
+    "why": "不是帧条：子弹字典里的颜色键 fx_col，扫描误认"
+  },
+  "suzuran|fx_col": {
+    "status": "不换",
+    "why": "不是帧条：子弹字典里的颜色键 fx_col，扫描误认"
+  },
+  "eyjafjalla|fx_flam_hit": {
+    "status": "已做",
+    "new": "fx_eyjafjalla_px_hit",
+    "why": "普攻 / 熔岩落地已换；剩 S2 boom_fx[4] 是缺 fx_eyjafjalla_px_ignite 时的兜底（if_tex），正常不播；magma_projectile.gd 不在 B 组文件清单"
+  },
+  "lumen|fx_lumen_beam_hit": {
+    "status": "已做",
+    "new": "fx_lumen_px_hit",
+    "why": "JSON beam.hit 已改 fx_lumen_px_hit；seg_lumen.gd:739 只是 bm.get 的缺省值"
+  }
 }
