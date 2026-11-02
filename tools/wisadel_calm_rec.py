@@ -2,7 +2,8 @@
 """维什戴尔收特效对照（11-01，docs/220）：同 seed，改前（--bal=fx/wd_calm=0）/ 改后各录一段，当队长 / 当队友 × 前期 / 后期；
 原速 30 帧（--realtime），游戏里 --wdfxstat 每秒打印 WDFX 行，这里汇总成「平均每秒新生成数 / 平均同屏层数」。
 出：build/wdcalm/<tag>/<role>_<phase>_<calm>.mp4、stats.json；--pair 时另把改前 | 改后左右拼成 <role>.mp4（前期 + 后期接起来）。
-用法：python tools/wisadel_calm_rec.py [--roles lead,mate] [--phases early,late] [--secs 30] [--mate-lead hoshiguma] [--tag now] [--jobs 4] [--pair] [--crf 28]"""
+用法：python tools/wisadel_calm_rec.py [--roles lead,mate] [--phases early,late] [--secs 30] [--mate-lead hoshiguma] [--tag now] [--jobs 4] [--pair] [--crf 28] [--abkey fx/wd_ring --abvals 1,0]
+--abkey / --abvals：对照的旋钮与改前、改后两个值（缺省 fx/wd_calm 0,1）；--out 把拼好的对照另存一份"""
 import argparse, glob, json, os, re, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -12,6 +13,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--roles", default="lead,mate"); ap.add_argument("--phases", default="early,late"); ap.add_argument("--secs", type=float, default=30.0)
 ap.add_argument("--mate-lead", default="hoshiguma"); ap.add_argument("--tag", default="now"); ap.add_argument("--jobs", type=int, default=4)
 ap.add_argument("--seed", type=int, default=3); ap.add_argument("--pair", action="store_true"); ap.add_argument("--crf", type=int, default=28)
+ap.add_argument("--abkey", default="fx/wd_calm"); ap.add_argument("--abvals", default="0,1"); ap.add_argument("--width", type=int, default=800)
 ap.add_argument("--norec", action="store_true", help="只统计不录像（无头）")
 a = ap.parse_args()
 out = os.path.join(ROOT, "build", "wdcalm", a.tag); os.makedirs(out, exist_ok=True)
@@ -29,7 +31,7 @@ def one(job):
     sq = ["--op=wisadel"] if role == "lead" else ["--op=" + a.mate_lead, "--squad=wisadel"]
     rec = [] if a.norec else ["--realtime", "--rtfrom=%g" % max(0.0, at - 3), "--recframes=%g,%d" % (at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/")]
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy"] + (["--headless"] if a.norec else ["--fixed-fps", "30"]) + ["--",
-            "--balance", "--nodeath", "--seed=%d" % a.seed, "--bot=expert", "--wdfxstat", "--bal=fx/wd_calm=%d" % calm] + sq + ex + rec + ["--maxt=%d" % (at + a.secs + 2)]
+            "--balance", "--nodeath", "--seed=%d" % a.seed, "--bot=expert", "--wdfxstat", "--bal=%s=%s" % (a.abkey, a.abvals.split(",")[calm])] + sq + ex + rec + ["--maxt=%d" % (at + a.secs + 2)]
     o, e, to = GR.run_godot(args, 2400)
     rows = []
     for ln in (o or "").splitlines():
@@ -65,7 +67,7 @@ if a.pair and not a.norec:
         for p in a.phases.split(","):
             seg = os.path.join(out, "%s_%s_pair.mp4" % (r, p))
             f0, f1 = (os.path.join(out, "%s_%s_%d.mp4" % (r, p, c)) for c in (0, 1))
-            fc = "[0:v]scale=800:-2,%s[l];[1:v]scale=800:-2,%s[r];[l][r]hstack=inputs=2[v]" % (lab % ("改前 " + p), lab % ("改后 " + p))
+            fc = "[0:v]scale=%d:-2,%s[l];[1:v]scale=%d:-2,%s[r];[l][r]hstack=inputs=2[v]" % (a.width, lab % ("改前 " + p), a.width, lab % ("改后 " + p))
             subprocess.run([FF, "-y", "-loglevel", "error", "-i", f0, "-i", f1, "-filter_complex", fc, "-map", "[v]", "-r", "30",
                             "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", seg])
             parts.append(seg)

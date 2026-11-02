@@ -21,7 +21,7 @@ A_LOW, A_HIGH, A_MID = 0.12, 0.6, 140      # alpha 阈值（0–1）与中间阶
 LEVELS = 3
 # 掏空成描边的帧（10-23 特效处理 ④：我方原作红保留，但不出现与敌方预警同形的「地面整块红色填充」）：帧条名 → 帧号
 # 维什戴尔炮击：第 0 帧落点红盘标记、第 3 帧地面红色旋涡盘
-HOLLOW = {"fx_wisadel_cannon": [0, 3]}
+HOLLOW = {"fx_wisadel_cannon": [0, 3], "fx_wd_cannon_nr": [0, 3]}
 EDGE_PX = 2   # 描边宽（按 1x 美术像素；@2x 帧条 ×2）
 ENEMY_WORDS = ["acid", "brood", "mother", "spitter", "nest", "skimmer", "pocket", "mire", "corrode", "knight", "tide", "tear", "mimic",
                "slider", "reaper", "founder", "tracer", "fractal", "paranoia", "ishar", "izumik", "path", "saint", "bishop", "archon",
