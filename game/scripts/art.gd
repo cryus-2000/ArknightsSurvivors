@@ -799,16 +799,26 @@ const OP_RAMP := {
 	"wisadel": ["#551412", "#91221f", "#c22d29", "#f23833", "#f77e7a", "#fbc3c2", "#ffffff"],
 }
 const ENV_RAMP := ["#06142a", "#0b2d55", "#134f86", "#1f7fb5", "#3fb4d8", "#8fe3ef", "#d9fbff", "#ffffff"]   # 深海环境梯度（暗 → 亮），未登记干员的兜底
+const DANGER_RAMP := ["#2a0612", "#5c0a26", "#a3143f", "#ff2667", "#ff7aa0", "#ffd0dd", "#ffffff"]   # 敌方危险色阶（id "e"，fx_e_px_*；同 house.js DANGER_RAMP）
 static var _op_ramp_cache := {}
 
 ## 程序绘制取干员色阶：i = 0（最暗）… 6（白），越界取端点；未登记的 id 用环境梯度
 static func op_ramp(id: String, i: int) -> Color:
 	var r: Array = _op_ramp_cache.get(id, [])
 	if r.is_empty():
-		for h in OP_RAMP.get(id, ENV_RAMP):
+		for h in (DANGER_RAMP if id == "e" else OP_RAMP.get(id, ENV_RAMP)):
 			r.append(Color(h))
 		_op_ramp_cache[id] = r
 	return r[clampi(i, 0, r.size() - 1)]
+
+
+## pixelfx 帧条名里的归属：fx_<id>_px_* / proj_<id>_px_* → id（敌方 fx_e_px_* → "e"）；不是 pixelfx 帧条返回 ""
+static func px_owner(name: String) -> String:
+	var k := name.find("_px_")
+	if k < 0:
+		return ""
+	var s := name.substr(0, k)
+	return s.substr(s.find("_") + 1)
 
 
 ## 由任意贴图生成白色剪影（受击闪白用）
