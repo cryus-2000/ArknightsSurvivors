@@ -2,15 +2,15 @@
 
 用户 11-02 定：普攻也可以用 pixelfx 自写专属特效替换（不用库模板），按普攻预算；同日又定「光晕 + 余韵」口径（docs/238）和「整套替换」（docs/237）。本文是试点结果，也是**其余 18 人普攻照做的步骤**（docs/229 §9：18 人普攻归 A–D 各组）。硬数字以 docs/229 §0 / §2.5 / §3 为准，本文只写做法和试点实测。
 
-分支 `claude/elastic-brattain-98b1d9`（基于 integ-1101 c73d2ff86，已合 `claude/fx-lead-prep` 69805afde）。
+分支 `claude/elastic-brattain-98b1d9`（基于 integ-1101 c73d2ff86，已合 `claude/fx-lead-prep` 88c92cb8a）。
 
 ## 0 结论
 
 | 项 | 拉普兰德（近战） | 能天使（远程） |
 |---|---|---|
 | 换了什么 | 普攻「双刃」刀光 fx_lappland_slash → **fx_lappland_px_slash**（含 twin 第二刀） | 枪口 → **fx_exusiai_px_atk_muzzle**；命中 → **fx_exusiai_px_atk_hit**；弹体 → **proj_exusiai_px_bullet**；精一层数弹体 t1–t3 → **proj_exusiai_px_bullet_t1–t3** |
-| 帧条（@2x，全部另有 `_glow` 条） | 88×180 × 7 帧 @24：主体 4 帧（0.17 s）+ 余韵 3 帧 | 枪口 32×32 × 4 @24（主体 3 + 枪烟 1，0.17 s）；命中 22×18 × 7 @24（主体 4 + 余烬 3）；弹体 32×12 × 2 @20 循环 × 4 色 |
-| 包体（32 色调色板 PNG，本体 + glow） | 2.4 + 0.5 = **2.9 KB**（上限单条 4 / 每人 8） | 枪口 0.6、命中 0.6、弹体 0.5 × 4 = **3.2 KB** |
+| 帧条（@2x，全部另有 `_glow` 条） | 90×180 × 7 帧 @24：主体 4 帧（0.17 s）+ 余韵 3 帧；2 个变体 | 枪口 32×32 × 4 @24（主体 3 + 枪烟 1）；命中 24×18 × 7 @24（主体 4 + 余烬 3）；各 2 个变体。弹体 32×12 × 2 @20 循环 × 4 色（不出变体） |
+| 包体（32 色调色板 PNG，本体 + glow，含变体） | (2.5 + 0.5) × 2 = **6.0 KB**（上限单条 4 / 每人 8） | 枪口 0.6 × 2、命中 0.6 × 2、弹体 0.5 × 4 = **4.4 KB** |
 | 近白像素（白只在核心，上限 12%） | 旧 32.8% → **3.7%** | 枪口 32.5 → 3.9%；命中 21.2 → 0.9%；弹体 20.0 → 6.8% |
 | 帧时（--mobilecap 网页，后期同局轮换） | 见 §4 | 同一局 |
 | 判定 / 玩法 | 不动；同种子 TRACE 见 §3 | 同左 |
@@ -43,8 +43,8 @@
    - 余韵 alpha ≤ `TAIL_ALPHA`（0.4）、像素稀疏、方向 / 间距不等（±30% 以上）。
    - 光晕照常写 `p.glow(…, k ≤ 0.3)`：它进 light 层，导出成 `_glow` 条在游戏加色层叠画，不再被量化成暗环（第一版烤进颜色时就是暗环）。
 4. **在库里看效果。** `build/pixelfx` 下 `node tools/check.mjs <类>/<名>`（越界、末帧非空要清掉）、`node tools/render.mjs <类>/<名>` 看接触表，至少改三轮。
-5. **登记导出目标。** 本组 `tools/pixelfx_fx/targets_<组>.json` 加 `"<游戏贴图名>": {"fx": "<类>/<名>", "hires": true, "keep": <枪口 / 弹体 true>}`；同一源码换色用 `"opts": {"palette": [...]}`（例：能天使 t1–t3，见 `targets_basic.json`）。贴图名一律 `fx_<干员>_px_*` / `proj_<干员>_px_*`（fx_coverage 自动算已做），**不要以 fx_slash / fx_claw 开头**（会被 blade_scale 再缩一遍）。
-6. **导出。** `python tools/pixelfx_export.py --lib E:/ArknightsSurvivors/build/pixelfx --only <名,…>`。**必须用 fx-lead-prep 69805afde 及以后的 export.py**（分层出 `<名>` + `<名>_glow`）。打印的每行都要登记；本体 + glow ≤ 4 KB / 条、每人普攻 ≤ 8 KB。近白可以用 docs/231 附的口径自己量（RGB 最小值 ≥ 230 的非空像素占比）。
+5. **登记导出目标。** 本组 `tools/pixelfx_fx/targets_<组>.json` 加 `"<游戏贴图名>": {"fx": "<类>/<名>", "hires": true, "keep": <枪口 / 弹体 true>, "variants": 2}`（普攻 2 个变体，docs/229 §2.11；**弹体这类循环件写 1**：它走 spr_rot，不挑变体；可选 `"spark": [颗 ≤ 4, 色阶下标, 速度]`，本试点没加，帧条里已有火星）；同一源码换色用 `"opts": {"palette": [...]}`（例：能天使 t1–t3，见 `targets_basic.json`）。贴图名一律 `fx_<干员>_px_*` / `proj_<干员>_px_*`（fx_coverage 自动算已做），**不要以 fx_slash / fx_claw 开头**（会被 blade_scale 再缩一遍）。
+6. **导出。** `python tools/pixelfx_export.py --lib E:/ArknightsSurvivors/build/pixelfx --only <名,…>`。**必须用 fx-lead-prep 88c92cb8a 及以后的 export.py**（分层出 `<名>` + `<名>_glow`，并出 `_v1` 变体）。打印的每行都要登记；本体 + glow ≤ 4 KB / 条、**含变体**每人普攻 ≤ 8 KB。近白可以用 docs/231 附的口径自己量（RGB 最小值 ≥ 230 的非空像素占比）。
 7. **登记接入。**
    - `art.gd` V6_FRAMES 本组块里加 `"<名>": [帧数, fps], "<名>_glow": [帧数, fps]`。
    - `godot --headless --path game --import`，新 `.import`（含 `_glow`）的 `process/fix_alpha_border` 改 false。
@@ -53,7 +53,8 @@
 8. **回退、轮换、满屏砍余韵（art.gd 两张表，代码挂点已接好）。**
    - `PX_BASIC_OLD` 加 `"新名": "旧名"`：`Art.px_basic(g, name)` 在 `fx/px_basic = 0` 或 `g.opt_old & Game.OPT_PXB` 时返回旧名。挂点：`ob_fx.fx_spawn`（JSON fx 段的 strip）、`op_api.spawn_fx_sprite`（枪口 / 命中这类 fx_sprite）、能天使 `seg_exusiai` 生成子弹时。别的远程干员的弹体若不走前两处，在生成时同样包一层 `Art.px_basic(g, 名)`。
    - `PX_BASIC_BODY` 加 `"新名": 主体帧数`：`Art.px_tail_cut` 在满屏（`g.fx.size()` > balance `fx/px_tail_cap`，缺省 300）时把寿命截到主体帧，余韵不播（docs/229 §2.5「满屏时只留主体」）。挂点同上两处。
-   - 光晕不用另挂：`vfx.glow` 按实际绘制的贴图名 + `_glow` 查，回退成旧名时自然没有光晕。
+   - 光晕、变体不用另挂：`vfx.px_glow` 按实际绘制的贴图名 + `_glow` 查，`vfx.px_vary` 在开播时挑变体 + 镜像 + 小转角；回退成旧名时都自然不生效。`PX_BASIC_OLD` / `PX_BASIC_BODY` 只写基础名（不写 `_v1`），换名和截断在挑变体之前做。
+   - 近战干员换了专属刀光帧条时，把它加进 `PX_BASIC_NO_ARC`（干员 id → 刀光帧条名）：不再画通用近战刀光弧（`character.arc_targets` → `vfx.melee_arc`），否则两道弧叠在一起（本试点录像里看到的）；回退旧条时照画。
 9. **验证。**
    - 同种子 TRACE：`python tools/trace_base.py 1 <干员> 240 --here`；有精一件的另跑 `--extra=--prog=8`（`--extra` 要写成等号形式）。退出码 0 = TRACE 逐行相同。
    - 对照录像：同种子原速 30 帧（`--fixed-fps 30 … --realtime --recframes`），旧版加 `--bal=fx/px_basic=0`，左旧右新 hstack；过 vreview。

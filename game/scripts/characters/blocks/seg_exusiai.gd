@@ -24,7 +24,7 @@ const EXU_AIM_Y := -10.0              # 瞄准 / 判定点：敌人脚底往上 
 const EXU_HIT_PAD := 6.0              # 判定半径 = 敌人半径 + 6
 
 ## 弹体帧条的弹头锚点（docs/25 §6，1x 像素；@2x 自动 ×2）
-const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_px_bullet": Vector2(12, 3), "proj_exusiai_px_bullet_t1": Vector2(12, 3), "proj_exusiai_px_bullet_t2": Vector2(12, 3), "proj_exusiai_px_bullet_t3": Vector2(12, 3), "proj_exusiai_bullet_power": Vector2(15, 4),
+const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_px_bullet": Vector2(17, 4), "proj_exusiai_px_bullet_t1": Vector2(17, 4), "proj_exusiai_px_bullet_t2": Vector2(17, 4), "proj_exusiai_px_bullet_t3": Vector2(17, 4), "proj_exusiai_bullet_power": Vector2(15, 4),
 	"proj_exusiai_bullet_s1": Vector2(15, 4), "proj_exusiai_bullet_s2": Vector2(12, 3), "proj_exusiai_bullet_s3": Vector2(12, 3)}   # 技能弹药换色帧条（docs/25 §6.1）同源帧条的锚点
 
 ## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套（pixelfx 版，docs/231；旧条经 Art.px_basic 回退）
