@@ -1119,6 +1119,12 @@ var p2 := true                 # 运行时总开关（--vfxab=N 同局轮换测�
 var _k2: Dictionary = {}       # fx 段快照（每帧读的旋钮不走 Bal.v 的字符串拆分）
 var _lamp_prev := -1.0         # 灯火观察（update_visuals 调 watch_lamp）
 var _lamp_ember_acc := 0.0
+var lit_k := 0.0               # 灯火三档（docs/222）：通明（≥ 70）过渡 0..1，world 灯色 / hud 灯火条读
+var dark_k := 0.0              # 暗淡（灯火 < 30，含寂灭）过渡 0..1，world 圈外压暗 / 圈缘抖动 / 心跳读
+var out_k := 0.0               # 寂灭（灯火 0）过渡 0..1，hud 边缘暗红读
+var _lsp_tok := 0.0            # 通明火花令牌桶（每秒 fx/lit_spark_rate 个，最多攒 6 个）
+var _lsp_t := -1.0
+var _hl: bool = DisplayServer.get_name() == "headless"
 var _merchant_acc := 0.0
 var _elite_seen := {}
 var _sight := {}               # docs/54 §7「首次入画」：精英 id → 登场动画起点（g.t）
@@ -1268,12 +1274,32 @@ func levelup_burst_v2(pos: Vector2) -> bool:
 	return true
 
 
+## 灯火通明（docs/222）：打中光中敌人冒 2 粒金色小火花。令牌桶限全场频率，走 sparks 的 fx 总上限与低画质减半；纯画面，只用 vrng
+func lit_spark(e: Dictionary) -> void:
+	if _hl or not p2:
+		return
+	_lsp_tok = minf(6.0, _lsp_tok + maxf(0.0, g.t - _lsp_t) * _kv("lit_spark_rate", 24.0)) if _lsp_t >= 0.0 else 6.0
+	_lsp_t = g.t
+	if _lsp_tok < 1.0:
+		return
+	_lsp_tok -= 1.0
+	var p: Vector2 = e.pos + Vector2(g.vrng.randf_range(-0.4, 0.4) * e.r, -e.r * g.vrng.randf_range(0.3, 0.9))
+	sparks(p, Vector2.UP, Color(1.9, 1.45, 0.55), 2, 110.0)
+
+
 ## ③ 灯火：render/world.update_visuals 每帧调；跌破 30（暗淡）或归零（寂灭）那一刻暗红一压 + 灯里掉余烬；
 ## 灯火 < 30 时常驻每秒 fx/lamp_low_embers 粒余烬从灯里飘出（ambient_ok 才画）
 func watch_lamp(rd: float) -> void:
 	if g.state != g.S.PLAY or g.demo_op != "":
 		_lamp_prev = g.lamp
+		lit_k = 0.0
+		dark_k = 0.0
+		out_k = 0.0
 		return
+	# 三档过渡（docs/222）：进出档 0.6 秒淡入淡出，别一帧跳变
+	lit_k = move_toward(lit_k, 1.0 if g.lamp >= 70.0 else 0.0, rd / 0.6)
+	dark_k = move_toward(dark_k, 1.0 if g.lamp < 30.0 else 0.0, rd / 0.6)
+	out_k = move_toward(out_k, 1.0 if g.lamp <= 0.0 else 0.0, rd / 0.6)
 	if _lamp_prev >= 0.0 and p2:
 		var stage := 0
 		if _lamp_prev > 0.0 and g.lamp <= 0.0:

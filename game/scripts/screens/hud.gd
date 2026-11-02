@@ -483,6 +483,12 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var beat := pow(maxf(0.0, sin(g.t * (5.0 + 5.0 * (1.0 - g.hp / (g.max_hp * 0.3))))), 4.0)
 		edge_glow(vs, Color(0.85, 0.05, 0.12, 0.3 + 0.35 * beat), 110.0)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 110), "生命垂危", 18, Color(1.0, 0.4, 0.45, 0.5 + 0.5 * beat), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+	# 灯火寂灭（docs/222）：全屏边缘暗红慢呼吸压迫 + 提示；out_k 是 vfx.watch_lamp 的 0.6 秒过渡
+	var ok: float = g.vfx.out_k if g.state == Game.S.PLAY else 0.0
+	if ok > 0.0:
+		var br: float = 0.5 + 0.5 * sin(g.t * 2.2)
+		edge_glow(vs, Color(0.35, 0.0, 0.05, ok * (0.38 + 0.14 * br)), 100.0 + 24.0 * br)
+		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 136), "灯火寂灭 —— 寻找灯油或灯标", 18, Color(1.0, 0.45, 0.4, ok * (0.65 + 0.35 * br)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# 头顶血条：受伤后或低血量时显示
 	var pool: float = g.corrode_pool
 	if g.state == Game.S.PLAY and (g.head_bar_t > 0.0 or g.hp < g.max_hp * 0.3 or pool > 0.5):

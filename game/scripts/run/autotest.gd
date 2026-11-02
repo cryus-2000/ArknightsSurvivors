@@ -1086,6 +1086,16 @@ func step() -> void:
 			if a.begins_with("--lampat=") and g.t >= float(a.substr(9).split(":")[0]):
 				_lampat_done = true
 				g.lamp = float(a.substr(9).split(":")[1])
+	# --lamphold=<秒>:<灯火>,<秒>:<灯火>…：从每个秒数起每帧把灯火钉在该值，直到下一段（灯火三档对照录像用，docs/222；会改之后的对局）
+	if g.state == g.S.PLAY:
+		for a in Cfg.dev_args():
+			if a.begins_with("--lamphold="):
+				var hv := -1.0
+				for seg in a.substr(11).split(","):
+					if g.t >= float(seg.split(":")[0]):
+						hv = float(seg.split(":")[1])
+				if hv >= 0.0:
+					g.lamp = hv
 	# --mimicscream=<秒>：到这一秒在主控右侧 70 处刷一只箱形恐鱼并立刻现形尖叫、灯火 / 神经损伤归位（10-28 尖叫圈录像用，会改之后的对局）
 	if not _mimicscream_done and g.state == g.S.PLAY:
 		for a in Cfg.dev_args():

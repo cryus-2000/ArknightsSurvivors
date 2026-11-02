@@ -46,6 +46,11 @@ func kick(to_target: Vector2, px: int, dur: float) -> void:
 	_kick_dur = maxf(0.01, dur)
 	_kick_t = _kick_dur
 var heart_cd := 0.0
+var _dark_on := false          # 灯火暗淡（docs/222）：圈外普通海嗣压暗成暗轮廓；update_visuals 每帧写，draw_enemy 读
+var _dark_c := Vector2.ZERO
+var _dark_r := 0.0
+var _dark_k := 0.0
+const DARK_MOD := Color(0.2, 0.22, 0.3)   # 圈外本体压到的颜色（描边不乘、光学发光眼点在另一层，照常亮）
 var anim_name := ""
 var anim_t := 0.0
 ## 后期画面降噪（EA 1.1，docs/37 §7）：场上特效粒子一多，友方特效整体降透明度、加色发光层变淡、辉光减弱，
@@ -185,6 +190,12 @@ func update_visuals(dt: float) -> void:
 			heart_cd = 0.55 + 0.6 * g.hp / (g.max_hp * 0.3)
 			Sfx.play("heartbeat", -2.0, 1.0, 0.0)
 			Sfx.play("heartbeat_hi", -0.7, 1.0, 0.0)   # 高频层：原心跳 99% 在 120 Hz 以下，手机 / 笔记本外放听不到（音频 10/1）
+	elif g.state == Game.S.PLAY and g.lamp < 30.0 and g.vfx.dark_k > 0.5:
+		# 灯火暗淡（docs/222）：低沉心跳（录音，docs/205 附），比低血心跳慢、轻；低血时让给上面那套
+		heart_cd -= rd
+		if heart_cd <= 0.0:
+			heart_cd = 1.25 if g.lamp > 0.0 else 0.95
+			Sfx.play("lamp_heart", -6.0 if g.lamp > 0.0 else -3.0, 1.0, 0.0)
 	# 镜头震动已整体移除（见 _shake）。干员脚本里还有直接写 g.shake 的（2.5–5，按 10·shake² 就是 ±250 像素），
 	# 在这里统一不用它，图鉴演示 / 精英化演出 / 实战都不再震；shake 变量只留给以后可能的非镜头用途
 	var kick_off := Vector2.ZERO
@@ -197,6 +208,9 @@ func update_visuals(dt: float) -> void:
 	# 灯火光源：可读灯圈（10-24 用户定；旧开关 render/lamp_readable 与闪烁 / 低灯变红的旧灯光 10-29 已删）——
 	# 圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
+	var dk: float = g.vfx.dark_k
+	if dk > 0.0:
+		radius *= 1.0 + dk * 0.025 * (0.6 * sin(g.t * 7.3) + 0.4 * sin(g.t * 13.1 + 1.7))   # 暗淡：灯圈边缘轻微抖动（docs/222，纯画面）
 	if g.state == Game.S.DEAD:
 		radius *= 1.0 - clampf(g.state_age / Game.HudView.DEATH_LAMP_T, 0.0, 1.0)   # 倒下过渡：灯火熄灭（hud.draw_death_transition）
 	var lamp_at: Vector2 = g.ppos
@@ -204,7 +218,11 @@ func update_visuals(dt: float) -> void:
 		lamp_at = g.ult.cam_hold   # 终结技钉住镜头期间灯火圈也停在原地（艾丽妮穿梭斩，用户 10-31「灯火的圈停留在原地，不要跟随人」）
 	g.lamp_light.position = lamp_at + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
-	g.lamp_light.color = Color(1.0, 0.98, 0.94)
+	g.lamp_light.color = Color(1.0, 0.98, 0.94).lerp(Color(1.08, 0.94, 0.74), g.vfx.lit_k)   # 通明（≥ 70）：灯圈暖亮一档（docs/222）
+	_dark_on = dk > 0.01 and g.demo_op == ""
+	_dark_c = lamp_at
+	_dark_r = radius
+	_dark_k = dk
 	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
 	if g.knight_light != null:
 		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"
@@ -2682,6 +2700,12 @@ func draw_enemy(e: Dictionary) -> void:
 		_act_mod = Color.WHITE
 	else:
 		_act_mod = Look.actor_mod(g, e.pos)
+	if _dark_on and not e.elite and not e.boss:
+		# 灯火暗淡（docs/222）：灯圈外的普通海嗣只剩暗轮廓 + 发光眼点；圈缘 25% 半径内渐变。每帧算，不进画法缓存签名
+		var d2: float = e.pos.distance_squared_to(_dark_c)
+		if d2 > _dark_r * _dark_r * 0.81:
+			var f: float = clampf((sqrt(d2) - _dark_r * 0.9) / (_dark_r * 0.3), 0.0, 1.0) * _dark_k
+			_act_mod = _act_mod * Color.WHITE.lerp(DARK_MOD, f)
 	if not dc_on or not _dc_ok(e):
 		_draw_enemy_full(e)
 		return

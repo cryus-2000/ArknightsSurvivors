@@ -434,7 +434,7 @@ func _build() -> void:
 					"locked": met <= 0 and not Cfg.unlock_all, "locked_text": "尚未遇到，遇到后收录。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
-			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火暗淡（< 30）时队长受到的伤害 +5%，海嗣移速与接触伤害 +10%；灯火寂灭（0）时每秒失去 3 点生命。"})
+			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火分三档：通明（≥ 70）照亮范围内敌人受到的伤害 +%d%%，技力回复 +30%%；摇曳（30–70）照亮范围内敌人受到的伤害 +%d%%；暗淡（< 30）队长受到的伤害 +5%%，海嗣移速与接触伤害 +10%%，灯圈外的海嗣难以看清。灯火寂灭（0）时每秒失去 3 点生命。" % [int(round(Bal.v("lamp/lit_bonus_hi", 0.40) * 100.0)), int(round(Bal.v("lamp/lit_bonus", 0.25) * 100.0))]})
 			entries.append({"name": "源石锭", "en": "INGOT", "tag": "货币", "forms": [_anim_n("源石锭", "ingot", 1, 1.0)], "stats": [], "desc": "精英、Boss 与箱形恐鱼会掉落，可在商人处购买藏品与补给。最后一位商人离开后，剩余和之后获得的源石锭会熔铸为全队伤害。"})
 			entries.append({"name": "磁铁", "en": "MAGNET", "tag": "道具", "forms": [_anim_n("磁铁", "pickup_magnet", 1, 1.0)], "stats": [], "desc": "拾取后吸取全场的经验结晶、灯油与源石锭。小怪低概率掉落，精英与 Boss 必掉磁铁或回复药剂。"})
 			entries.append({"name": "回复药剂", "en": "HEAL", "tag": "道具", "forms": [_anim_n("回复药剂", "pickup_heal", 1, 1.0)], "stats": [], "desc": "拾取后立即回复 30% 最大生命。小怪低概率掉落，队长生命低于 70% 时掉率翻倍；精英与 Boss 必掉磁铁或回复药剂。"})

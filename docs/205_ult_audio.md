@@ -339,3 +339,9 @@ A / B / C 是三种通用风格套在 20 人身上，没有跟着招式的节奏
 **11-01 第七轮**：用户看 logos_clock_v2 后「logos 只保留开头的，去掉后面的时钟声音」——保留起手滴答三下 + 时停那一刻的「咔」；爆开前的「咔哒」和之后重新走的滴答删掉，爆开回到原来的爆炸声（不再压尾巴）。候选一 / 二同改，候选一仍是缺省（用户还没选）。
 
 **11-02 定稿**：用户看 logos_clock_v3.mp4 后选候选一（已是缺省，包里就是它）；候选二只留 `--variant 2` 生成代码，不进 assets。
+
+## 附：灯火暗淡心跳（11-02，docs/222）
+
+`game/audio/sfx/lamp_heart.wav`（0.95 秒，「咚—咚」）：灯火 < 30 时 world.gd 每 1.25 秒（寂灭 0.95 秒）播一次，低血心跳在播时让给它。
+素材：Sonniss GDC 2026 Game Audio Bundle，344 Audio - Cinematic Fight Vol. 1「FGHTImpt_4 x Punch, Body 02」第 1 / 2 下身体闷击（包里没有现成心跳）。授权同 docs/113 §20：免版税、可商用、不需署名，不得再分发原文件、不得用于 AI 训练。本轮没有下载新素材。
+处理：`game/tools/gen_sfx_lamp_heart.py`，降调 ×0.55 + 160 Hz 低通作低频体，原调 300–900 Hz 带通作外放层，第二下 0.3 秒后 ×0.7。致谢已并入 `data/credits.json` 的 Sonniss 一句。
