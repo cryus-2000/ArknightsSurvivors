@@ -163,6 +163,7 @@ func _ready() -> void:
 			if a.begins_with("--metasel="):
 				var ps := a.substr(10).split(",")
 				meta_ui.sel = Vector2i(int(ps[0]), int(ps[1]) if ps.size() > 1 else 0)
+				meta_ui.card_hide = false   # 11-02：选中节点即展开详情卡（同点选）；要收起的截图加 --metahide
 		if Cfg.dev_args().has("--metahide"):   # 详情卡收起时的截图（10-27）
 			meta_ui.card_hide = true
 		if Cfg.dev_args().has("--metalit"):   # 解锁演出截图：0.6 秒时塑造选中节点，演出进行到 0.35 秒时截
