@@ -32,13 +32,14 @@ export function create(o) {
       if (pop > 0) {
         for (const [a, l0] of rays) {
           const l = l0 * (0.6 + 0.4 * ease.outBack(clamp(t / 0.03 + 0.3))) * pop, dx = Math.cos(a), dy = Math.sin(a);
-          for (let d = 0; d <= l; d += 0.5) p.px(dx * d, dy * d, d < l * 0.3 ? C[t < 0.04 ? 6 : 5] : d < l * 0.65 ? C[5] : C[t < 0.04 ? 5 : 3]);
+          for (let d = 0; d <= l; d += 0.5) p.px(dx * d, dy * d, d < l * 0.2 ? C[t < 0.04 ? 6 : 4] : d < l * 0.6 ? C[4] : C[3]);
         }
         const r = 3.5 * pop + 1;
-        p.poly([[0, -r], [r * 0.8, 0], [0, r], [-r * 0.8, 0]], t < 0.05 ? C[6] : C[5]);
+        p.poly([[0, -r], [r * 0.8, 0], [0, r], [-r * 0.8, 0]], C[4]);
+        if (t < 0.05) p.px(0, 0, C[6]);   // 白只在核心一点
       }
       const ar = 4 + 9 * ease.outQuart(clamp(t / 0.15)), ak = 1 - clamp((t - 0.03) / 0.15);
-      if (ak > 0) for (const [a0, a1] of arcs) p.arc(0, 0, ar, ak > 0.5 ? 1.5 : 1, a0, a1, C[ak > 0.55 ? 5 : 3]);
+      if (ak > 0) for (const [a0, a1] of arcs) p.arc(0, 0, ar, ak > 0.5 ? 1.5 : 1, a0, a1, C[ak > 0.55 ? 4 : 3]);
       p.glow(0, 0, 9, C[4], 0.28 * pop);
       ps.draw(p);
     },

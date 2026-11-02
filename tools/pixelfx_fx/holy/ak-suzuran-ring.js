@@ -35,7 +35,7 @@ export function create(o) {
       const a = Math.atan2(y / SY, x), q = (r - Math.hypot(x, y / SY) / jag(a)) / Wd;
       if (q < -0.2 || q > 1) return;
       if (noise2(x * 0.25, y * 0.4, S + 3) * 0.5 + 0.5 > k + 0.3) return;
-      const ci = t < 0.04 ? clamp(Math.round(6.6 - q * 1.5), 4, 6) : clamp(Math.round(5.6 - Math.max(0, q) * 2.8 - t / 0.05 * 0.45 - (far ? 0.6 : 0)), 2, 6);
+      const ci = t < 0.04 ? clamp(Math.round(6.2 - q * 3), 3, 6) : clamp(Math.round(5.6 - Math.max(0, q) * 2.8 - t / 0.05 * 0.45 - (far ? 0.6 : 0)), 2, 6);
       p.blend(x, y, C[ci], q > 0.6 ? 0.55 : 0.95);
     });
   }
@@ -50,7 +50,7 @@ export function create(o) {
       const lean = noise(a * 2 + t * 6, S + 9) * 0.35;
       for (let d = 0; d <= h; d += 0.5) {
         const v = d / h;
-        const ci = t < 0.04 ? 6 : clamp(Math.round(3 + (1 - v) * 3 - t / 0.05 * 0.5 - (far ? 1 : 0)), 2, 6);
+        const ci = t < 0.04 ? (v < 0.3 ? 5 : 4) : clamp(Math.round(3 + (1 - v) * 3 - t / 0.05 * 0.5 - (far ? 1 : 0)), 2, 6);
         p.blend(x + lean * d, y - d, C[ci], v > 0.75 ? 0.5 : 0.9);
       }
     }

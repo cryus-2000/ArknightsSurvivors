@@ -25,7 +25,7 @@ export function create(o) {
   // 光屑：位置、速度、出现时刻都随机
   for (let i = 0; i < 14; i++) {
     const a = Rg.range(0, TAU), d = Rg.range(0.2, 0.9) * R;
-    ps.spawn(P.FLAKE, Math.cos(a) * d, Math.sin(a) * d * SY, Rg.range(-8, 8), -Rg.range(30, 90), Rg.range(0.2, 0.4), Rg.pick([C[5], C[6], C[4]]), Rg.range(1, 2), Rg.range(0.02, 0.2));
+    ps.spawn(P.FLAKE, Math.cos(a) * d, Math.sin(a) * d * SY, Rg.range(-8, 8), -Rg.range(30, 90), Rg.range(0.2, 0.4), Rg.pick([C[5], C[4], C[4]]), Rg.range(1, 2), Rg.range(0.02, 0.2));
   }
   for (let i = 0; i < 6; i++) {
     const a = -Math.PI / 2 + Rg.range(-1.2, 1.2), sp = Rg.range(60, 150);
@@ -44,7 +44,7 @@ export function create(o) {
       if (noise2(x * 0.2, y * 0.35, S + 3) * 0.5 + 0.5 > k + 0.3) return;
       // 外沿一道亮边、里面是薄薄一层光（只一圈，不叠第二圈；不按距离分多阶，免得出放射纹）
       const rim = d > 0.78 - 0.1 * noise(a * 5.7, S + 2);
-      const ci = clamp(Math.round((rim ? 5 : 2) - (1 - k) * 2.5), 0, 6);
+      const ci = clamp(Math.round((rim ? 4 : 2) - (1 - k) * 2.5), 0, 6);
       p.blend(x, y, C[ci], (rim ? 0.9 : 0.35) * Math.min(1, k * 1.4));
     });
   }
@@ -61,7 +61,7 @@ export function create(o) {
         const q = Math.abs(x) / w;
         if (q > 1) continue;
         // 冷却：每 0.05 s 降一阶，边先暗、芯最后
-        const ci = t < 0.04 ? clamp(Math.round(6.8 - q * 1.6), 4, 6) : clamp(Math.round(6.4 - (t - 0.1) / 0.05 * 0.55 - q * 2.8), 1, 4);
+        const ci = t < 0.04 ? clamp(Math.round(6.2 - q * 3.4), 3, 6) : clamp(Math.round(6.4 - (t - 0.1) / 0.05 * 0.55 - q * 2.8), 1, 4);
         p.blend(x, y, C[ci], q > 0.75 ? 0.55 : 0.95);
       }
     }

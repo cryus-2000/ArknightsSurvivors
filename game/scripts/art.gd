@@ -1121,6 +1121,12 @@ const V6_FRAMES := {
 	"fx_logos_px_hit": [5, 24.0], "fx_logos_px_ring": [9, 20.0], "fx_logos_px_pillar": [12, 20.0],
 	"fx_lumen_px_hit": [5, 24.0], "fx_lumen_px_pillar": [12, 20.0],
 	"fx_suzuran_px_pillar": [11, 20.0], "fx_suzuran_px_pillar_s": [11, 20.0], "fx_suzuran_px_ring": [10, 20.0],
+	# 分层光晕（docs/229 §2.7，加色叠画，帧数 / fps 同本体）
+	"fx_eyjafjalla_px_hit_glow": [5, 24.0], "fx_eyjafjalla_px_ignite_glow": [12, 20.0], "fx_eyjafjalla_px_splash_glow": [8, 20.0], "fx_eyjafjalla_px_pool_glow": [8, 10.0],
+	"fx_angelina_px_pull_glow": [8, 20.0],
+	"fx_logos_px_hit_glow": [5, 24.0], "fx_logos_px_ring_glow": [9, 20.0], "fx_logos_px_pillar_glow": [12, 20.0],
+	"fx_lumen_px_hit_glow": [5, 24.0], "fx_lumen_px_pillar_glow": [12, 20.0],
+	"fx_suzuran_px_pillar_glow": [11, 20.0], "fx_suzuran_px_pillar_s_glow": [11, 20.0], "fx_suzuran_px_ring_glow": [10, 20.0],
 	# ---- 组 B 止
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止

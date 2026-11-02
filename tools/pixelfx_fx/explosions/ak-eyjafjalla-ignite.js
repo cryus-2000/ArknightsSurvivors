@@ -72,7 +72,7 @@ export function create(o) {
           const [u, l] = fire(x, y);
           if (u > 1) return;
           // 冷却：每 0.05 s 降一阶，外缘先暗；芯晚 0.1 s
-          const h = t < 0.04 ? 6.7 - u * 1.3 : 6.4 - step * 0.75 - u * 2.6 + (l.d === 0 ? 1 : 0);   // 首帧整团爆亮
+          const h = t < 0.04 ? 6.5 - u * 3 : 6.4 - step * 0.75 - u * 2.6 + (l.d === 0 ? 1 : 0);   // 首帧整团爆亮
           if (dis > 0 && noise2(x * 0.12, y * 0.12, S + 40) * 0.5 + 0.5 < dis * 1.15) return;
           const ci = clamp(Math.round(h), 0, 6);
           // 冷到暗阶的是烟：真半透明

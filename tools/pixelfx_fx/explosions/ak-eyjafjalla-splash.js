@@ -37,7 +37,7 @@ export function create(o) {
       if (noise2(x * 0.3, y * 0.5, S + 9) * 0.5 + 0.5 > k + 0.25) return;
       // 冷却时留几道发亮的熔岩纹（噪声，不规整）
       const vein = Math.max(0, noise2(x * 0.22 + 3, y * 0.4, S + 5)) * 2.2;
-      const ci = t < 0.04 ? clamp(Math.round(6.8 - d * 1.4), 5, 6) : clamp(Math.round(5.6 - t / 0.05 * 0.9 - d * 2 + vein), 1, 6);
+      const ci = t < 0.04 ? clamp(Math.round(6.4 - d * 2.6), 4, 6) : clamp(Math.round(5.6 - t / 0.05 * 0.9 - d * 2 + vein), 1, 6);
       p.blend(x, y, C[ci], ci <= 2 ? 0.7 : 1);
     });
   }

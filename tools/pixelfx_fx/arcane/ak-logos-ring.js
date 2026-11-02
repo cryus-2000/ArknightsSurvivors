@@ -38,7 +38,7 @@ export function create(o) {
           // 墨面：只在外沿一带有墨（内圈留空，像墨洇开），墨点按噪声鼓起
           const blob = noise2(x * 0.15, y * 0.28, S + 7);
           if (!rim && d < 0.45 + 0.25 * blob) return;
-          const ci = t < 0.04 ? (rim ? 6 : 5) : rim ? clamp(Math.round(5 - t / 0.05 * 0.7), 1, 5) : clamp(Math.round(1 + Math.max(0, blob) * 1.5 - t / 0.2), 0, 2);
+          const ci = t < 0.04 ? (rim ? 5 : 4) : rim ? clamp(Math.round(5 - t / 0.05 * 0.7), 1, 5) : clamp(Math.round(1 + Math.max(0, blob) * 1.5 - t / 0.2), 0, 2);
           p.blend(x, y, C[ci], rim ? 1 : 0.8);
         });
       ps.draw(p);

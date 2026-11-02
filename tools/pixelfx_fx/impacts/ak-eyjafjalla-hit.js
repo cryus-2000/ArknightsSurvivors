@@ -41,13 +41,13 @@ export function create(o) {
           // 中段被「掏空」：爆开后中间变成透出的暗洞（不画同心圈，洞的边也按噪声）
           const hole = clamp((t - 0.05) / 0.1) * (0.75 + 0.2 * noise(a * 3.3, S + 9));
           if (u < hole) return;
-          const ci = clamp(Math.round(6 - step - u * 2.2), 1, 6);
+          const ci = clamp(Math.round(5.4 - step - u * 2.2), 1, 5);
           // 收尾：按噪声溶解（不是棋盘格），剩下的真半透明
           if (noise2(x * 0.45, y * 0.45, S + 21) * 0.5 + 0.5 > fade + 0.15) return;
           p.blend(x, y, C[ci], fade > 0.6 ? 1 : 0.55 + 0.45 * fade);
         });
       }
-      if (t < 0.045) p.disc(0, 0, 6, C[6], 1);
+      if (t < 0.045) p.disc(0, 0, 3, C[6], 1);   // 白只在核心
       p.glow(0, 0, 12, C[4], 0.28 * (1 - clamp(t / 0.12)));
       ps.draw(p);
     },

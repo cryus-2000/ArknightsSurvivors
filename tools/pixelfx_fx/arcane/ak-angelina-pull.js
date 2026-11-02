@@ -43,8 +43,8 @@ export function create(o) {
       if (t < 0.04)
         for (let a = 0; a < TAU; a += 0.6 / R) {
           const r = R * (1 + 0.06 * noise(a * 4.3, S) + 0.04 * noise(a * 11, S + 2));
-          p.px(Math.cos(a) * r, Math.sin(a) * r * SY, C[6]);
-          p.px(Math.cos(a) * (r - 1.5), Math.sin(a) * (r - 1.5) * SY, C[5]);
+          p.px(Math.cos(a) * r, Math.sin(a) * r * SY, C[5]);
+          p.px(Math.cos(a) * (r - 1.5), Math.sin(a) * (r - 1.5) * SY, C[3]);
         }
       // 弧线沿螺旋往里卷：u 0 → 1 收到中心
       for (const s of arcs) {
@@ -54,7 +54,7 @@ export function create(o) {
         for (let k = 0; k <= 1; k += 0.6 / Math.max(8, r * L)) {
           const a = s.a + rot + k * L, rr = r * (1 + 0.15 * k);
           // 头亮尾暗，越靠中心越亮
-          const ci = clamp(Math.round(3 + u * 2.5 - k * 2.5), 1, 5);
+          const ci = clamp(Math.round(2.5 + u * 2 - k * 2.5), 1, 4);
           p.px(Math.cos(a) * rr, Math.sin(a) * rr * SY, C[ci]);
           if (k < 0.5) p.px(Math.cos(a) * (rr - 1.2), Math.sin(a) * (rr - 1.2) * SY, C[Math.max(1, ci - 1)]);   // 弧头加粗一像素
         }

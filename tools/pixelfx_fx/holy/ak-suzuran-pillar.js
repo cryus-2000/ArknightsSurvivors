@@ -50,7 +50,7 @@ export function create(o) {
           const q = Math.abs(x - cx) / w;
           if (q > 1) continue;
           if (lift < 0 && y > lift - 6 && noise2(x * 0.4, y * 0.4, S + 8) > (y - lift + 6) / 6 - 1) continue;   // 收走的断口按噪声，不是平切
-          const ci = t < 0.04 ? clamp(Math.round(6.8 - q * 1.8), 4, 6) : clamp(Math.round(6.2 - (t - 0.04) / 0.05 * 0.6 - q * 2.6 - v * 0.8), 1, 5);
+          const ci = t < 0.04 ? clamp(Math.round(6.3 - q * 3), 3, 6) : clamp(Math.round(6.2 - (t - 0.04) / 0.05 * 0.6 - q * 2.6 - v * 0.8), 1, 5);
           p.blend(x, y, C[ci], q > 0.7 ? 0.6 : 0.95);
         }
       }

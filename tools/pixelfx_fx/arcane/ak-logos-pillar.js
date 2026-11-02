@@ -60,7 +60,7 @@ export function create(o) {
           if (q > 1) continue;
           if (y < fray + 8 && noise2(x * 0.5, y * 0.5, S + 8) * 0.5 + 0.5 > (y - fray) / 8) continue;   // 散开的断口按噪声
           const edge = q > 0.72;
-          const ci = t < 0.04 ? clamp(Math.round(6.6 - q * 1.6), 4, 6) : edge ? clamp(Math.round(5.2 - t / 0.05 * 0.45 - v * 0.6), 2, 5) : clamp(Math.round(1.6 - t / 0.2 + (1 - q) * 0.6), 0, 2);
+          const ci = t < 0.04 ? clamp(Math.round(6.3 - q * 3), 3, 6) : edge ? clamp(Math.round(5.2 - t / 0.05 * 0.45 - v * 0.6), 2, 5) : clamp(Math.round(1.6 - t / 0.2 + (1 - q) * 0.6), 0, 2);
           p.blend(x, y, C[ci], edge ? 0.95 : 0.85);
         }
       }
