@@ -4,7 +4,8 @@
 2. 就绪提示音 ult_ready（能量充满那一刻一次，ult/ready_cue）：比超必杀那声轻、短、柔，一听就分得开
 （逻各斯时停加时钟的 LC1 / LC2 候选已被第五轮「世界」时停声取代，见 gen_sfx_ult_seg_1030.py logos 与 docs/205 §4.10）
 运行：python game/tools/gen_sfx_ult_cue_1101.py            → 候选进 build/ult_sfx/CUE/
-      python game/tools/gen_sfx_ult_cue_1101.py --apply    → ult_super_1..6 / ult_ready 写进 game/audio/sfx/
+      python game/tools/gen_sfx_ult_cue_1101.py --apply    → 选定的 ult_super_<--variant>（缺省 1）/ ult_ready 写进 game/audio/sfx/
+   11-02 用户定用 ①：包里只放 ult_super_1，② – ⑥ 只出候选（不进 assets）；要换版就 --apply --variant N 并把 ult/super_cue 设 N
 """
 import argparse, os, runpy, shutil
 import numpy as np
@@ -89,12 +90,16 @@ def ready_cue():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--variant", type=int, default=1, help="--apply 时写进游戏的超必杀提示音版本（1–6）；其余版本只出候选")
     a = ap.parse_args()
     cand = os.path.join(ROOT, "build", "ult_sfx")
     RMS.update({"super": -10.0, "ready": -17.0})
     dst = SFX if a.apply else os.path.join(cand, "CUE")
     os.makedirs(dst, exist_ok=True)
-    for k, x in {**super_cues(), "ult_ready": ready_cue()}.items():
+    cues = super_cues()
+    if a.apply:
+        cues = {k: x for k, x in cues.items() if k == "ult_super_%d" % a.variant}
+    for k, x in {**cues, "ult_ready": ready_cue()}.items():
         print(k, "%.2f" % write(os.path.join(dst, k + ".wav"), np.asarray(x, dtype=np.float64), "super" if "super" in k else "ready"))
 
 
