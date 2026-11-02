@@ -817,7 +817,9 @@ static func op_ramp(id: String, i: int) -> Color:
 ## --optab 同局轮换时 g.opt_old 带 Game.OPT_PXB 位的那段也走旧帧条，量新帧条的净帧时（正常游戏恒为 0）。纯画面，不进结算
 const PX_BASIC_OLD := {"fx_lappland_px_slash": "fx_lappland_slash", "fx_exusiai_px_atk_muzzle": "fx_exusiai_muzzle",
 	"fx_exusiai_px_atk_hit": "fx_exusiai_hit", "proj_exusiai_px_bullet": "proj_exusiai_bullet",
-	"proj_exusiai_px_bullet_t1": "proj_exusiai_bullet_t1", "proj_exusiai_px_bullet_t2": "proj_exusiai_bullet_t2", "proj_exusiai_px_bullet_t3": "proj_exusiai_bullet_t3"}
+	"proj_exusiai_px_bullet_t1": "proj_exusiai_bullet_t1", "proj_exusiai_px_bullet_t2": "proj_exusiai_bullet_t2", "proj_exusiai_px_bullet_t3": "proj_exusiai_bullet_t3",
+	# 组 B 普攻（逻各斯普攻按用户 11-03 定不换，不在表里）
+	"fx_eyjafjalla_px_hit": "fx_flam_hit", "proj_eyjafjalla_px_lavaball": "proj_lavaball", "fx_angelina_px_pull": "fx_angelina_pull", "fx_angelina_px_halt": "fx_angelina_halt", "fx_lumen_px_hit": "fx_holy_impact_lantern", "proj_lumen_px_bolt": "proj_lumen_bolt", "proj_suzuran_px_foxfire": "proj_foxfire", "proj_suzuran_px_bigfox": "proj_suzuran_bigfox", "fx_suzuran_px_gather": "fx_suzuran_foxfire_gather"}
 static var _pxb := -1
 static func px_basic(g, name: String) -> String:
 	if not PX_BASIC_OLD.has(name):
@@ -1171,24 +1173,14 @@ const V6_FRAMES := {
 	"fx_eyjafjalla_px_splash_v1": [8, 20.0], "fx_eyjafjalla_px_splash_v1_glow": [8, 20.0], "fx_eyjafjalla_px_splash_v2": [8, 20.0], "fx_eyjafjalla_px_splash_v2_glow": [8, 20.0],
 	"fx_eyjafjalla_px_pool": [8, 10.0], "fx_eyjafjalla_px_pool_glow": [8, 10.0], "fx_eyjafjalla_px_pool_v1": [8, 10.0], "fx_eyjafjalla_px_pool_v1_glow": [8, 10.0],
 	"fx_eyjafjalla_px_pool_v2": [8, 10.0], "fx_eyjafjalla_px_pool_v2_glow": [8, 10.0], "fx_eyjafjalla_px_melt": [7, 10.0], "proj_eyjafjalla_px_lavaball": [4, 12.0],
-	"proj_eyjafjalla_px_lavaball_glow": [4, 12.0], "proj_eyjafjalla_px_ignite": [5, 14.0], "proj_eyjafjalla_px_ignite_glow": [5, 14.0], "fx_eyjafjalla_px_lk_rock": [2, 20.0],
-	"fx_eyjafjalla_px_lk_fork1": [1, 20.0], "fx_eyjafjalla_px_lk_fork2": [1, 20.0], "fx_eyjafjalla_px_lk_fork3": [1, 20.0], "fx_eyjafjalla_px_lk_fork4": [1, 20.0],
+	"proj_eyjafjalla_px_lavaball_glow": [4, 12.0], "proj_eyjafjalla_px_ignite": [5, 14.0], "proj_eyjafjalla_px_ignite_glow": [5, 14.0],
 	"fx_angelina_px_pull": [8, 20.0], "fx_angelina_px_pull_glow": [8, 20.0], "fx_angelina_px_pull_v1": [8, 20.0], "fx_angelina_px_pull_v1_glow": [8, 20.0],
-	"fx_angelina_px_pull_v2": [8, 20.0], "fx_angelina_px_pull_v2_glow": [8, 20.0], "fx_angelina_px_well_open": [7, 20.0, [6, 4, 140.0]], "fx_angelina_px_well_open_v1": [7, 20.0],
-	"fx_angelina_px_well": [12, 10.0], "fx_angelina_px_well_v1": [12, 10.0], "fx_angelina_px_well_front": [12, 10.0], "fx_angelina_px_well_front_glow": [12, 10.0],
-	"fx_angelina_px_well_front_v1": [12, 10.0], "fx_angelina_px_well_front_v1_glow": [12, 10.0], "fx_angelina_px_well_close": [4, 20.0, [6, 5, 150.0]], "fx_angelina_px_well_close_v1": [4, 20.0],
-	"fx_angelina_px_halt": [5, 24.0], "fx_angelina_px_halt_v1": [5, 24.0], "fx_angelina_px_float_dust": [6, 10.0], "fx_angelina_px_float_dust_v1": [6, 10.0],
-	"fx_angelina_px_lk_core": [1, 20.0], "fx_angelina_px_lk_core_glow": [1, 20.0], "fx_angelina_px_lk_crater": [1, 20.0],
-	"fx_logos_px_hit": [5, 24.0, [3, 4, 150.0]], "fx_logos_px_hit_glow": [5, 24.0], "fx_logos_px_hit_v1": [5, 24.0], "fx_logos_px_hit_v1_glow": [5, 24.0],
+	"fx_angelina_px_well_open": [7, 20.0, [6, 4, 140.0]], "fx_angelina_px_well_open_v1": [7, 20.0], "fx_angelina_px_well": [12, 10.0], "fx_angelina_px_well_v1": [12, 10.0],
+	"fx_angelina_px_well_front": [12, 10.0], "fx_angelina_px_well_front_glow": [12, 10.0], "fx_angelina_px_well_front_v1": [12, 10.0], "fx_angelina_px_well_front_v1_glow": [12, 10.0],
+	"fx_angelina_px_well_close": [4, 20.0, [6, 5, 150.0]], "fx_angelina_px_well_close_v1": [4, 20.0], "fx_angelina_px_halt": [5, 24.0], "fx_angelina_px_halt_v1": [5, 24.0],
+	"fx_angelina_px_float_dust": [6, 10.0], "fx_angelina_px_float_dust_v1": [6, 10.0],
 	"fx_logos_px_ring": [9, 20.0, [5, 4, 140.0]], "fx_logos_px_ring_glow": [9, 20.0], "fx_logos_px_pillar": [12, 20.0, [6, 4, 160.0]], "fx_logos_px_pillar_glow": [12, 20.0],
 	"fx_logos_px_fan_open": [10, 20.0], "fx_logos_px_fan_open_glow": [10, 20.0], "fx_logos_px_fan": [6, 10.0], "fx_logos_px_fan_close": [6, 20.0],
-	"proj_logos_px_ink": [4, 16.0], "proj_logos_px_ink_glow": [4, 16.0], "proj_logos_px_ink_a": [4, 16.0], "proj_logos_px_ink_a_glow": [4, 16.0],
-	"proj_logos_px_ink_b": [4, 16.0], "proj_logos_px_ink_b_glow": [4, 16.0], "fx_logos_px_lk_ring": [1, 20.0], "fx_logos_px_glyph": [6, 18.0],
-	"fx_logos_px_glyph_glow": [6, 18.0], "fx_logos_px_glyph_v1": [6, 18.0], "fx_logos_px_glyph_v1_glow": [6, 18.0], "fx_logos_px_glyphs": [16, 16.0],
-	"fx_logos_px_script": [4, 12.0], "fx_logos_px_rune_1": [4, 8.0], "fx_logos_px_rune_2": [4, 8.0], "fx_logos_px_rune_3": [4, 8.0],
-	"fx_logos_px_ribbon": [8, 8.0], "fx_logos_px_slow": [4, 12.0], "fx_logos_px_aura_back": [6, 10.0], "fx_logos_px_aura_front": [6, 10.0],
-	"fx_logos_px_aura": [6, 10.0], "fx_logos_px_chain_tile": [6, 12.0], "fx_logos_px_chain_pulse": [4, 20.0], "fx_logos_px_chain_anchor": [6, 12.0],
-	"fx_logos_px_s1_chain": [4, 12.0], "fx_logos_px_s1_link": [4, 12.0],
 	"fx_lumen_px_hit": [5, 24.0, [3, 5, 160.0]], "fx_lumen_px_hit_glow": [5, 24.0], "fx_lumen_px_hit_v1": [5, 24.0], "fx_lumen_px_hit_v1_glow": [5, 24.0],
 	"fx_lumen_px_pillar": [12, 20.0, [6, 5, 160.0]], "fx_lumen_px_pillar_glow": [12, 20.0], "fx_lumen_px_pillar_v1": [12, 20.0], "fx_lumen_px_pillar_v1_glow": [12, 20.0],
 	"fx_lumen_px_pillar_v2": [12, 20.0], "fx_lumen_px_pillar_v2_glow": [12, 20.0], "fx_lumen_px_heal": [8, 20.0, [4, 5, 120.0]], "fx_lumen_px_heal_v1": [8, 20.0],
@@ -1200,8 +1192,7 @@ const V6_FRAMES := {
 	"fx_suzuran_px_ring_v2": [10, 20.0], "fx_suzuran_px_ring_v2_glow": [10, 20.0], "fx_suzuran_px_seal": [6, 10.0], "fx_suzuran_px_gather": [6, 24.0, [4, 5, 140.0]],
 	"fx_suzuran_px_gather_glow": [6, 24.0], "fx_suzuran_px_gather_v1": [6, 24.0], "fx_suzuran_px_gather_v1_glow": [6, 24.0], "fx_suzuran_px_wisp": [4, 8.0],
 	"fx_suzuran_px_trail": [5, 5.0], "proj_suzuran_px_foxfire": [6, 12.0], "proj_suzuran_px_foxfire_glow": [6, 12.0], "proj_suzuran_px_bigfox": [4, 10.0],
-	"proj_suzuran_px_bigfox_glow": [4, 10.0], "fx_suzuran_px_lk_fox1": [1, 20.0], "fx_suzuran_px_lk_fox1_glow": [1, 20.0], "fx_suzuran_px_lk_fox2": [1, 20.0],
-	"fx_suzuran_px_lk_fox2_glow": [1, 20.0], "fx_suzuran_px_lk_fox3": [1, 20.0], "fx_suzuran_px_lk_fox3_glow": [1, 20.0], "fx_suzuran_px_tails": [4, 4.0],
+	"proj_suzuran_px_bigfox_glow": [4, 10.0],
 	# ---- 组 B 止
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止

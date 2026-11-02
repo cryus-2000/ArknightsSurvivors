@@ -105,7 +105,7 @@
   },
   "lumen|fx_lumen_unit": {
     "status": "不换",
-    "why": "发光单元是召唤物本体精灵，不归 pixelfx"
+    "why": "不换：发光单元是召唤物本体精灵（组长 11-03 认可，待用户最终确认）"
   },
   "suzuran|fx_suzuran_seal": {
     "status": "已做",
@@ -131,59 +131,136 @@
     "status": "不换",
     "why": "不是贴图：JSON 里弹体数量上限键 proj_max，扫描误认"
   },
+  "logos|proj_logos_ink": {
+    "status": "不换",
+    "why": "不换：逻各斯普攻按原作校准过（用户 11-03 定）"
+  },
+  "logos|proj_logos_ink_a": {
+    "status": "不换",
+    "why": "不换：逻各斯普攻按原作校准过（用户 11-03 定）"
+  },
+  "logos|proj_logos_ink_b": {
+    "status": "不换",
+    "why": "不换：逻各斯普攻按原作校准过（用户 11-03 定）"
+  },
+  "logos|fx_ink_hit": {
+    "status": "不换",
+    "why": "不换：逻各斯普攻按原作校准过（用户 11-03 定）"
+  },
+  "logos|fx_logos_glyph": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_glyphs": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_script": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_soul_rune_1": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_soul_rune_2": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_soul_rune_3": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_s3_ribbon": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_s3_slow": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_s3_back": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_s3_front": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_s3_orbit": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_chain_tile": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_chain_pulse": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_chain_anchor": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_s1_chain": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "logos|fx_logos_s1_link": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）"
+  },
+  "eyjafjalla|fx_logos_s1_link": {
+    "status": "不换",
+    "why": "不换：逻各斯符文 / 字形 / 咒文锁链维持原作（用户 11-03 定）（逻各斯 S1 链的代码在 seg_eyjafjalla 里）"
+  },
   "eyjafjalla|fx_ey_rock": {
-    "status": "已做",
-    "new": "fx_eyjafjalla_px_lk_rock",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "eyjafjalla|fx_ey_fork1": {
-    "status": "已做",
-    "new": "fx_eyjafjalla_px_lk_fork1",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "eyjafjalla|fx_ey_fork2": {
-    "status": "已做",
-    "new": "fx_eyjafjalla_px_lk_fork2",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "eyjafjalla|fx_ey_fork3": {
-    "status": "已做",
-    "new": "fx_eyjafjalla_px_lk_fork3",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "eyjafjalla|fx_ey_fork4": {
-    "status": "已做",
-    "new": "fx_eyjafjalla_px_lk_fork4",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "angelina|fx_an_core": {
-    "status": "已做",
-    "new": "fx_angelina_px_lk_core",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "angelina|fx_an_crater": {
-    "status": "已做",
-    "new": "fx_angelina_px_lk_crater",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "logos|fx_lk_lo_ring": {
-    "status": "已做",
-    "new": "fx_logos_px_lk_ring",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "suzuran|fx_lk_sz_fox1": {
-    "status": "已做",
-    "new": "fx_suzuran_px_lk_fox1",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "suzuran|fx_lk_sz_fox2": {
-    "status": "已做",
-    "new": "fx_suzuran_px_lk_fox2",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
   },
   "suzuran|fx_lk_sz_fox3": {
-    "status": "已做",
-    "new": "fx_suzuran_px_lk_fox3",
-    "why": "连携段（link_fx_b.gd 常量）换本人专属 pixelfx 静帧；终结技仍用原 pixfx 件（只统一不重做）"
+    "status": "不换",
+    "why": "不换：连携复用终结技同族 pixfx 大图、代码驱动（终结技主视觉只统一不重做；组长 11-03 认可，待用户最终确认）"
+  },
+  "suzuran|fx_suzuran_ninetails": {
+    "status": "不换",
+    "why": "不换：九尾虚影是设定剪影（组长 11-03 认可，待用户最终确认）"
   }
 }

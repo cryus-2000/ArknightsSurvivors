@@ -479,7 +479,7 @@
       },
       "tails": {
         "cond": "elite >= 2",
-        "tex": "fx_suzuran_px_tails",
+        "tex": "fx_suzuran_ninetails",
         "alpha": 0.45
       },
       "slow": {"value": "$fox_slow", "dur": "$fox_slow_dur", "_doc": "狐火命中轻减速（用户 10-29 方案 B：辅助开局自保）：同一目标只刷新不叠层，Boss 不吃（enemies.lite_slow）"},

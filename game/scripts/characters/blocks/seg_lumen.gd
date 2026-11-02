@@ -518,7 +518,7 @@ static func _h3lm_draw_over(o) -> void:
 	var lm: Dictionary = o.hw.lm
 	var a: Dictionary = o.B.get("attack", {})
 	var bt: Dictionary = a.get("bolt", {})
-	var tn: String = str(bt.get("tex", "proj_lumen_px_bolt"))
+	var tn: String = ArtS.px_basic(g, str(bt.get("tex", "proj_lumen_px_bolt")))   # pixelfx 普攻可退回旧条（docs/231）
 	for b in lm.bolts:
 		var big: bool = b.get("big", false)
 		if g.tex.get(tn) != null:

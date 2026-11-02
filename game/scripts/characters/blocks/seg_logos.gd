@@ -272,7 +272,7 @@ static func hw_execute(o, b: Dictionary) -> bool:
 				apply_status(o, q2, s)
 			var la: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 			var lb: Vector2 = q2.pos + Vector2(0, -q2.r * 0.5)
-			if g.tex.get("fx_logos_px_s1_link") != null:
+			if g.tex.get("fx_logos_s1_link") != null:
 				o.fx({"kind": "s1link", "pos": la, "to": lb, "life": 0.3})
 			else:
 				o.fx({"kind": "line", "pos": la, "to": lb, "life": 0.2, "col": HW_INK, "w": 2.0})
@@ -331,7 +331,7 @@ static func _hw3_lock(o, dt: float) -> void:
 		o.deal_damage(lk.e, hw_atk(o) * float(b.get("mult", 0.5)) * ramp * o.skill_power())
 		o.add_cc(lk.e, -INF, float(b.get("slow", 0.6)) * ramp)
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
-		if g.tex.get("fx_logos_px_s1_chain") == null:
+		if g.tex.get("fx_logos_s1_chain") == null:
 			o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
 		o.fx({"kind": "glow", "pos": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
 
@@ -444,7 +444,7 @@ static func _hw3_fan(o, dt: float) -> void:
 		var shown := 0
 		var shots := 0
 		if _s3_extra_on(g):   # 出手瞬间他身前一闪（施法符文）
-			o.spawn_fx_sprite("fx_logos_px_glyph", o.pos + Vector2.from_angle(float(h.fan_ang)) * 24.0 + Vector2(0, -22), g.PX * 0.9, 0.0, false)
+			o.spawn_fx_sprite("fx_logos_glyph", o.pos + Vector2.from_angle(float(h.fan_ang)) * 24.0 + Vector2(0, -22), g.PX * 0.9, 0.0, false)
 		for j in o.query_ids(o.pos, r + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or not hw_in_fan(o, e.pos):
@@ -456,7 +456,7 @@ static func _hw3_fan(o, dt: float) -> void:
 					apply_status(o, e, s)
 			if shown < 3:
 				shown += 1
-				o.spawn_fx_sprite("fx_logos_px_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
+				o.spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
 			if shots < S3_SHOT_MAX and _s3_extra_on(g):   # 出手轨迹（10-29）：S3 没有普攻动作帧，让每次出手看得见 他 → 目标
 				shots += 1
 				var sl: Array = h.get("s3_shots", [])
@@ -602,12 +602,12 @@ const RIB_INNER := [Vector2(120, 20), Vector2(180, -45), Vector2(235, 55), Vecto
 
 static func _hw_draw_ribbons(o, fa: float, k: float, fade: float, grow: float) -> void:
 	var g = o.g
-	var tx: Texture2D = g.tex.get("fx_logos_px_ribbon")
-	if tx == null or not g.V6_FRAMES.has("fx_logos_px_ribbon"):
+	var tx: Texture2D = g.tex.get("fx_logos_s3_ribbon")
+	if tx == null or not g.V6_FRAMES.has("fx_logos_s3_ribbon"):
 		return
 	o._cv_flush()
-	var frames: int = g.V6_FRAMES["fx_logos_px_ribbon"][0]
-	var fps: float = g.V6_FRAMES["fx_logos_px_ribbon"][1]
+	var frames: int = g.V6_FRAMES["fx_logos_s3_ribbon"][0]
+	var fps: float = g.V6_FRAMES["fx_logos_s3_ribbon"][1]
 	var fw: float = tx.get_width() / frames
 	var fh: float = tx.get_height()
 	var hi: float = ArtS.hires_of(tx)
@@ -615,13 +615,12 @@ static func _hw_draw_ribbons(o, fa: float, k: float, fade: float, grow: float) -
 	var al: float = fade * grow
 	var n := 0
 	var spots: Array = []   # [本地位置 @2x, 亮?, 序号]
-	for d in range(-44, 45, 8):   # 10-29 减重：弧上条数 23 → 12；11-03 角度 / 半径按序号抖开（docs/229 §2.6 不等距）
-		var jd: float = float(d) + 2.6 * sin(float(n) * 12.9898)
-		spots.append([Vector2.from_angle(deg_to_rad(jd)) * FAN_REF_R * (0.93 + 0.07 * sin(float(n) * 7.233)), n % 2 == 0, n])
+	for d in range(-44, 45, 8):   # 10-29 减重：弧上条数 23 → 12
+		spots.append([Vector2.from_angle(deg_to_rad(d)) * FAN_REF_R, n % 2 == 0, n])
 		n += 1
 	for sgn in [-1.0, 1.0]:
 		for rr in range(64, 289, 64):   # 两侧边 8 → 4 条
-			spots.append([Vector2.from_angle(deg_to_rad(50.0 * sgn)) * (float(rr) + 18.0 * sin(float(n) * 4.13)), n % 2 == 0, n])
+			spots.append([Vector2.from_angle(deg_to_rad(50.0 * sgn)) * float(rr), n % 2 == 0, n])
 			n += 1
 	var base: Vector2 = o.pos + g.draw_off
 	var rot := Transform2D(fa, Vector2.ZERO)
@@ -649,12 +648,12 @@ static func _hw_draw_shots(o) -> void:
 	if sl.is_empty():
 		return
 	var g = o.g
-	var tx: Texture2D = g.tex.get("fx_logos_px_ribbon")
+	var tx: Texture2D = g.tex.get("fx_logos_s3_ribbon")
 	var keep: Array = []
 	var from: Vector2 = o.pos + Vector2.from_angle(float(h.fan_ang)) * 20.0 + Vector2(0, -20)
-	if tx != null and g.V6_FRAMES.has("fx_logos_px_ribbon"):
+	if tx != null and g.V6_FRAMES.has("fx_logos_s3_ribbon"):
 		o._cv_flush()
-	var frames: int = g.V6_FRAMES["fx_logos_px_ribbon"][0] if tx != null and g.V6_FRAMES.has("fx_logos_px_ribbon") else 1
+	var frames: int = g.V6_FRAMES["fx_logos_s3_ribbon"][0] if tx != null and g.V6_FRAMES.has("fx_logos_s3_ribbon") else 1
 	for sh in sl:
 		var k: float = (g.t - float(sh.t0)) / S3_SHOT_DUR
 		if k >= 1.0:
@@ -662,7 +661,7 @@ static func _hw_draw_shots(o) -> void:
 				o.fx({"kind": "glow", "pos": sh.to, "r": 12.0, "life": 0.2, "col": HW_INK, "alpha": 0.5})   # 命中点墨光（小，淡出）
 			continue
 		keep.append(sh)
-		if tx == null or frames <= 1 and not g.V6_FRAMES.has("fx_logos_px_ribbon"):
+		if tx == null or frames <= 1 and not g.V6_FRAMES.has("fx_logos_s3_ribbon"):
 			continue
 		var fw: float = tx.get_width() / frames
 		var fh: float = tx.get_height()
@@ -684,15 +683,15 @@ static func _hw_draw_shots(o) -> void:
 ## 被「延异视阈」减速的敌弹打标记（fx_logos_s3_slow 48×48 @2x，中心镂空，只标实际被减速、仍在扇形内的弹，最多 40 个）
 static func _hw_draw_slow_marks(o, b: Dictionary, fa: float) -> void:
 	var g = o.g
-	var tx: Texture2D = g.tex.get("fx_logos_px_slow")
-	if tx == null or not g.V6_FRAMES.has("fx_logos_px_slow"):
+	var tx: Texture2D = g.tex.get("fx_logos_s3_slow")
+	if tx == null or not g.V6_FRAMES.has("fx_logos_s3_slow"):
 		return
-	var frames: int = g.V6_FRAMES["fx_logos_px_slow"][0]
+	var frames: int = g.V6_FRAMES["fx_logos_s3_slow"][0]
 	var fw: float = tx.get_width() / frames
 	var fh: float = tx.get_height()
 	var hi: float = ArtS.hires_of(tx)
 	var s: float = g.PX / hi
-	var fr: int = int(g.t * float(g.V6_FRAMES["fx_logos_px_slow"][1])) % frames
+	var fr: int = int(g.t * float(g.V6_FRAMES["fx_logos_s3_slow"][1])) % frames
 	o._cv_flush()
 	var n := 0
 	for bl in g.ebullets:
@@ -757,7 +756,7 @@ static func hw_draw_logos_over(o) -> void:
 		for i in range(1, hh.size()):
 			var k: float = float(i) / float(hh.size())
 			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + (trail_alpha - 0.08) * k), 1.0 + (trail_width - 1.0) * k)
-		var rtx: Texture2D = ArtS.tex("fx_logos_px_glyphs")
+		var rtx: Texture2D = ArtS.tex("fx_logos_glyphs")
 		if name != "" and g.tex.get(name) != null:
 			o.draw_spr_rot(name, int(bo.age * float(bo.b.flight_visual.fps)) % 4, draw_pos, pose[1], g.PX)
 		elif rtx != null:
@@ -767,10 +766,10 @@ static func hw_draw_logos_over(o) -> void:
 			cv.draw_set_transform(draw_pos + g.draw_off, sin(bo.age * 5.0 + bo.ph) * 0.35, Vector2(sc, sc))
 			cv.draw_texture_rect_region(rtx, Rect2(-Vector2(fh, fh) / 2.0, Vector2(fh, fh)), Rect2(fh * (int(bo.rune) % rn), 0, fh, fh), Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		elif g.tex.get("fx_logos_px_glyph") != null:
-			o.draw_spr_rot("fx_logos_px_glyph", 5, draw_pos, sin(bo.age * 5.0 + bo.ph) * 0.35, g.PX * 13.0 / 24.0, Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
-		elif g.tex.get("proj_logos_px_ink") != null and hh.size() >= 2:
-			o.draw_spr_rot("proj_logos_px_ink", int(g.t * 12.0) % 4, draw_pos, pose[1], g.PX)
+		elif g.tex.get("fx_logos_glyph") != null:
+			o.draw_spr_rot("fx_logos_glyph", 5, draw_pos, sin(bo.age * 5.0 + bo.ph) * 0.35, g.PX * 13.0 / 24.0, Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
+		elif g.tex.get("proj_logos_ink") != null and hh.size() >= 2:
+			o.draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, draw_pos, pose[1], g.PX)
 		else:
 			cv.draw_circle(draw_pos, 10.0, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.35))
 			cv.draw_circle(draw_pos, 5.5, Color(HW_INK.r * 1.4, HW_INK.g * 1.4, HW_INK.b * 1.6))
@@ -793,12 +792,12 @@ static func hw_draw_logos_over(o) -> void:
 	if lk is Dictionary and not lk.is_empty() and float(lk.t) > 0.0 and lk.e != null and not lk.e.dead:
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
 		var to: Vector2 = lk.e.pos + Vector2(0, -lk.e.r * 0.5)
-		if g.tex.get("fx_logos_px_s1_chain") != null:
+		if g.tex.get("fx_logos_s1_chain") != null:
 			var train := hw_s1_train_pose(lk, tip, to)
 			if not train.is_empty():
-				_hw_draw_tiled(o, "fx_logos_px_s1_chain", train[0], train[1], g.PX, train[3], 0, Color.WHITE, -1, true, train[2])
-		elif g.tex.get("fx_logos_px_script") != null:
-			_hw_draw_tiled(o, "fx_logos_px_script", tip, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
+				_hw_draw_tiled(o, "fx_logos_s1_chain", train[0], train[1], g.PX, train[3], 0, Color.WHITE, -1, true, train[2])
+		elif g.tex.get("fx_logos_script") != null:
+			_hw_draw_tiled(o, "fx_logos_script", tip, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
 		var p: Vector2 = lk.e.pos + Vector2(0, -lk.e.r - 14)
 		var kk: float = 0.5 + 0.5 * sin(g.t * 8.0)
 		cv.draw_arc(p, 6.0 + 2.0 * kk, 0.0, TAU, 12, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.9), 1.5)
@@ -879,7 +878,7 @@ static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, off
 	if L < 2.0:
 		return
 	var fr: int = (int(g.t * float(g.V6_FRAMES[tn][1])) + frame_off) % frames if fixed < 0 else fixed % frames   # fixed：停在这一帧（锁链松 / 绷直）
-	var variation: float = 1.5 if tn == "fx_logos_px_s1_chain" and bend != 0.0 else 0.0
+	var variation: float = 1.5 if tn == "fx_logos_s1_chain" and bend != 0.0 else 0.0
 	cv.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
 	var x: float = -fposmod(offset, seg)
 	while x < L:

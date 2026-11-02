@@ -13,7 +13,7 @@ static func draw_fireball(o, p: Vector2, direction: Vector2, size: float, age: f
 	var dim: float = o.g.world.fx_dim
 	if not material_on(o):
 		o.cv.draw_circle(p, 8.0 * size, Color(HOT, dim * 0.15))
-	var bt := "proj_eyjafjalla_px_lavaball"   # pixelfx 弹体 @2x（docs/231，组 B）
+	var bt := A.px_basic(o.g, "proj_eyjafjalla_px_lavaball")   # pixelfx 弹体 @2x（docs/231，组 B；可退回旧条）
 	if o.g.tex.get(bt) != null and o.g.V6_FRAMES.has(bt):
 		var spec: Array = o.g.V6_FRAMES[bt]
 		o.draw_spr_rot(bt, int(age * float(spec[1])) % int(spec[0]), p, direction.angle(), o.g.PX * size * (0.78 if material_on(o) else 1.0), Color(1, 1, 1, dim))

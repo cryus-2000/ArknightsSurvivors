@@ -146,7 +146,7 @@ static func hs_plant(u, pos: Vector2, side: Vector2) -> void:
 
 
 # ================================================================ 铃兰：4 团狐火（狐首形火团，绕身转一圈再追敌；她的终结技是忍冬一斩，技能是九尾 / 光域，这里是小狐火）
-const SZ_FOX := ["fx_suzuran_px_lk_fox1", "fx_suzuran_px_lk_fox2", "fx_suzuran_px_lk_fox3"]   # 11-03 B 组换本人专属 pixelfx 静帧（docs/229 §9）
+const SZ_FOX := ["fx_lk_sz_fox1", "fx_lk_sz_fox2", "fx_lk_sz_fox3"]
 
 
 ## 每帧每团：q = 当前位置，dv = 运动方向（转圈时为切线）；j = 第几团
@@ -166,7 +166,7 @@ static func sz_pop(u, p: Vector2) -> void:
 
 
 # ================================================================ 逻各斯：黑金咒文环（区域上空转一圈，消弹处留黑金碎屑）
-const LO_RING := "fx_logos_px_lk_ring"   # 11-03 B 组换本人专属 pixelfx 静帧
+const LO_RING := "fx_lk_lo_ring"
 
 
 static func lo_ring(u, c: Vector2, R: float, t: float) -> bool:
@@ -257,8 +257,8 @@ static func lu_motes(u, c: Vector2, r: float, t: float) -> bool:
 # 全部复用 ult-fx-power 已有的 pixfx 贴图（终结技同族元素，缩小一档、颜色不变），不另出图；只画画面。
 
 # ---------------- 艾雅法拉：熔岩块高抛砸地（熔岩块 fx_ey_rock 2 种、落点 fx_ey_fork 分叉熔缝冷却 + 碎岩 + 粒子）
-const EY_ROCK := "fx_eyjafjalla_px_lk_rock"   # 11-03 B 组换本人专属 pixelfx 静帧（终结技仍用 fx_ey_rock）
-const EY_FORKS := ["fx_eyjafjalla_px_lk_fork1", "fx_eyjafjalla_px_lk_fork2", "fx_eyjafjalla_px_lk_fork3", "fx_eyjafjalla_px_lk_fork4"]
+const EY_ROCK := "fx_ey_rock"
+const EY_FORKS := ["fx_ey_fork1", "fx_ey_fork2", "fx_ey_fork3", "fx_ey_fork4"]
 
 
 static func ey_rock(u, a: Dictionary, pos: Vector2, k: float, R: float) -> bool:
@@ -304,8 +304,8 @@ static func gl_land(u, c: Vector2, r: float) -> bool:
 
 
 # ---------------- 安洁莉娜：三颗小重力核心绕区域收拢（终结技核心 fx_an_core 缩小）→ 落定砸坑 fx_an_crater + 紫粒子
-const AN_CORE := "fx_angelina_px_lk_core"   # 11-03 B 组换本人专属 pixelfx 静帧（终结技仍用 fx_an_core / fx_an_crater）
-const AN_CRATER := "fx_angelina_px_lk_crater"
+const AN_CORE := "fx_an_core"
+const AN_CRATER := "fx_an_crater"
 
 
 static func an_core(u, sp: Vector2, k: float, j: int) -> bool:

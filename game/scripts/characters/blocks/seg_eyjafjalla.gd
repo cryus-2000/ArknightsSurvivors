@@ -629,8 +629,8 @@ static func hw_draw_shells(o) -> void:
 		if big != "" and g.tex.get(big) != null:
 			cv.draw_circle(bl.pos, float(lk.get("glow2", 26.0)) * fl, Color(1.6, 0.5, 0.1, 0.25))
 			o.draw_spr_rot(big, int(g.t * 14.0) % int(g.V6_FRAMES.get(big, [5])[0]), bl.pos - bl.vel.normalized() * float(lk.get("back", 14.0)), bl.vel.angle(), g.PX * float(lk.get("big_scale", 1.5)) * (0.65 if big.contains("_px_") else 1.0))   # pixelfx @2x 弹体同 S2 改版 0.65（守密度，docs/229 组 B）
-		elif g.tex.get(str(lk.get("tex", "proj_eyjafjalla_px_lavaball"))) != null:
-			var tn: String = str(lk.get("tex", "proj_eyjafjalla_px_lavaball"))
+		elif g.tex.get(ArtS.px_basic(g, str(lk.get("tex", "proj_eyjafjalla_px_lavaball")))) != null:
+			var tn: String = ArtS.px_basic(g, str(lk.get("tex", "proj_eyjafjalla_px_lavaball")))   # pixelfx 普攻可退回旧条（docs/231）
 			o.draw_spr_rot(tn, int(g.t * 12.0 + bl.pos.x * 0.05) % int(g.V6_FRAMES.get(tn, [6])[0]), bl.pos, bl.vel.angle(), g.PX * float(lk.get("scale", 1.1)) * sz)
 		else:
 			cv.draw_circle(bl.pos, 7.5 * fl * sz, Color(2.2, 0.9, 0.25, 0.9))
@@ -738,7 +738,7 @@ static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			return _F().hw4_draw_pfx(o, f, a)
 		"s1link":   # 逻各斯湮灭余伤传递：黑色咒文链从起点铺向目标
 			var grow: float = minf(1.0, (1.0 - a) / 0.3)
-			_F()._hw_draw_tiled(o, "fx_logos_px_s1_link", f.pos, f.pos.lerp(f.to, grow), o.g.PX * 0.8, 0.0)
+			_F()._hw_draw_tiled(o, "fx_logos_s1_link", f.pos, f.pos.lerp(f.to, grow), o.g.PX * 0.8, 0.0)
 			return true
 		"lava_spout":   # 熔岩块喷起的一小股喷射（10-14）：底宽上尖的火柱，很快缩回
 			var hk: float = sin(a * PI * 0.5)
