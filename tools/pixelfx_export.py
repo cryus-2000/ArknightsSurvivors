@@ -21,7 +21,8 @@ SRC = os.path.join(ROOT, "tools", "pixelfx_fx")
 OUT = os.path.join(ROOT, "game", "art", "fx")
 
 # 导出目标：tools/pixelfx_fx/targets_*.json（每个并行会话一份，互不改别人的文件，docs/229 §9）。
-# 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）}
+# 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）,
+#   "variants": 种子变体数（缺省 3，普攻 2）, "seed": 首个种子（缺省 1）, "spark": [颗数, 色阶下标 0–6, 速度]（开播时实时喷火星，可省）}
 def load_targets():
     t = {}
     for f in sorted(os.listdir(SRC)):
@@ -50,12 +51,23 @@ GLOW_K = 0.5        # 光晕强度缺省（docs/229 §2.7，house.js GLOW.k）�
 GLOW_MIN = 8        # light 层最亮通道低于这个就不出 _glow 条
 
 
+VARIANTS = 3       # 每条缺省出几个种子变体（docs/229 §2.11）；普攻目标写 "variants": 2
+
+
 def export(lib, name, spec, tmp, dry):
+    """一个目标出 variants 个种子变体：<名>、<名>_v1、<名>_v2（种子 = seed + 序号）；spark: [颗数, 色阶下标, 速度] 写进 <名> 的登记第 3 项"""
+    seed0 = int(spec.get("seed", spec.get("opts", {}).get("seed", 1)))   # opts 里的 seed 会盖掉 --seed，挪出来当首个种子
+    for v in range(max(1, int(spec.get("variants", VARIANTS)))):
+        export_one(lib, name if v == 0 else "%s_v%d" % (name, v), spec, tmp, dry, seed0 + v, spec.get("spark") if v == 0 else None)
+
+
+def export_one(lib, name, spec, tmp, dry, seed, spark):
     fx_id, hires, keep = spec["fx"], spec.get("hires", False), spec.get("keep", False)
     opts = dict(spec.get("opts", {}))
+    opts.pop("seed", None)
     opts.setdefault("light", GLOW_K)
     out = os.path.join(tmp, name)
-    cmd = ["node", "tools/ak_layers.mjs", fx_id, "--opts", json.dumps(opts), "--out", out]
+    cmd = ["node", "tools/ak_layers.mjs", fx_id, "--opts", json.dumps(opts), "--out", out, "--seed", str(seed)]
     if spec.get("fps"):
         cmd += ["--fps", str(spec["fps"])]
     r = subprocess.run(cmd, cwd=lib, capture_output=True, text=True)
@@ -100,7 +112,8 @@ def export(lib, name, spec, tmp, dry):
         if not dry:
             q.save(path, optimize=True)
         size = os.path.getsize(path) if not dry else 0
-        lines.append('"%s%s": [%d, %.1f],   # %dx%d × %d 帧，%.1f KB，显存 %.0f KB' % (name, layer, n, px["fps"], w, h, n, size / 1024, w * n * h * 4 / 1024))
+        extra = (", [%d, %d, %.1f]" % (int(spark[0]), int(spark[1]), float(spark[2]))) if spark and not layer else ""
+        lines.append('"%s%s": [%d, %.1f%s],   # %dx%d × %d 帧，%.1f KB，显存 %.0f KB' % (name, layer, n, px["fps"], extra, w, h, n, size / 1024, w * n * h * 4 / 1024))
     for ln in lines:
         print(ln)
 

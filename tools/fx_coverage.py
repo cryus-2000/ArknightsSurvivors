@@ -195,16 +195,44 @@ def build():
 	return ov, ops, link, ult, common, enemy, dyns
 
 
+_V6 = None
+
+
+def v6():
+	"""art.gd V6_FRAMES：名字 → (帧数, fps, 火星参数或 None)"""
+	global _V6
+	if _V6 is None:
+		src = open(os.path.join(G, "scripts", "art.gd"), encoding="utf-8").read()
+		m = re.search(r"const V6_FRAMES := \{(.*?)\n\}", src, re.S)
+		_V6 = {}
+		for nm, fr, fps, sp in re.findall(r'"([a-z0-9_/]+)":\s*\[(\d+),\s*([\d.]+)(?:,\s*\[([^\]]*)\])?\]', m.group(1) if m else ""):
+			_V6[nm] = (int(fr), float(fps), sp or None)
+	return _V6
+
+
+def px_cols(name):
+	"""变体数 / 火星参数两列（docs/229 §2.11）：只看已做的 pixelfx 帧条"""
+	if not name or "_px_" not in name:
+		return "", ""
+	t = v6()
+	n = 1
+	while "%s_v%d" % (name, n) in t:
+		n += 1
+	sp = t.get(name, (0, 0, None))[2]
+	return str(n), ("[%s]" % sp if sp else "—")
+
+
 def rows_md(t, ov, group_of, filt=None):
-	lines = ["| 归属 | 组 | 特效名 | 出现在 | 状态 | 新名 / 理由 | 位置（前 4 处） |", "|---|---|---|---|---|---|---|"]
+	lines = ["| 归属 | 组 | 特效名 | 出现在 | 状态 | 新名 / 理由 | 变体数 | 火星 [颗, 阶, 速] | 位置（前 4 处） |", "|---|---|---|---|---|---|---|---|---|"]
 	cnt = {"已做": 0, "不换": 0, "未做": 0}
 	for (owner, name), r in sorted(t.rows.items()):
 		if filt and owner != filt:
 			continue
 		st, new, why = status(owner, name, ov)
 		cnt[st if st in cnt else "未做"] += 1
-		lines.append("| %s | %s | `%s` | %s | %s | %s | %s |" % (owner, group_of(owner), name, "、".join(sorted(r["cats"])),
-			st, (("`%s`" % new) if new and new != name else "") + ((" " + why) if why else ""), "<br>".join(r["locs"])))
+		nv, sp = px_cols(new if st == "已做" else "")
+		lines.append("| %s | %s | `%s` | %s | %s | %s | %s | %s | %s |" % (owner, group_of(owner), name, "、".join(sorted(r["cats"])),
+			st, (("`%s`" % new) if new and new != name else "") + ((" " + why) if why else ""), nv, sp, "<br>".join(r["locs"])))
 	return lines, cnt
 
 
