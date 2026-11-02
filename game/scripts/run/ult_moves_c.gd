@@ -461,15 +461,23 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		u.shape({"kind": "band", "a": org + fw * 20.0, "b": org + fw * 220.0, "w": 70.0, "col": Color(1.0, 0.95, 0.85), "fill": 0.55, "life": 0.08})
 		u.shape({"kind": "band", "a": org + fw * 20.0, "b": org + fw * 300.0, "w": 26.0, "col": Color(1.0, 0.85, 0.55), "fill": 0.8, "life": 0.1})
 	# ① 先裂地：中间一道主漏斗 + 两侧两道小一点的，铺满前方扇形
-	for m in 3:
+	# 11-02 扇形加宽到半角 106°（ult/sa_half 1.85）：只拉宽三道会横向拉出条纹 → 半角 > 1.2 时铺五道，每道的拉宽倍数和 60° 时同一量级
+	var nf: int = 3 if half <= 1.2 else 5
+	for m in nf:
 		var side: float = 0.0 if m == 0 else (half * 0.6 * (1.0 if m == 1 else -1.0))
-		var wk: float = maxf(1.0, half / 0.62)   # 扇形开宽（范围统一 60°）后漏斗跟着变宽，三道仍铺满前方
-		var fn: String = SA_FUNNELS[(m + int(PF.h(vs) * 2.0)) % SA_FUNNELS.size()]   # 中间和两侧换不同的漏斗（预审报三道一样）
+		if nf == 5 and m > 0:
+			side = half * ([0.0, 0.4, -0.52, 0.88, -0.8][m] + (PF.h(vs + 11.0 + m) - 0.5) * 0.1)   # 不对称、不等距（预审报五道等距排开）
+		var wk: float = maxf(1.0, half / 0.62 * 3.0 / float(nf))   # 扇形开宽（范围统一 60°）后漏斗跟着变宽，仍铺满前方
+		var rk: int = m if nf == 3 else [2, 1, 3, 0, 4][m]   # 五道按从左到右的位置排序，相邻两道必换贴图、翻面交替（预审报同侧两道一样）
+		var fn: String = SA_FUNNELS[(rk + int(PF.h(vs) * 2.0)) % SA_FUNNELS.size()]   # 中间和两侧换不同的漏斗（预审报三道一样）
 		var ft: Texture2D = u._strip_tex(fn)
-		var k: float = R * (1.0 if m == 0 else (0.78 if m == 1 else 0.66)) / PF.tex_w(u, fn)
-		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * 0.1, "o": Vector2(0.0, ft.get_height() * 0.5),
-			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * wk * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
-			"rev": (0.12 if v3 else 0.14 + 0.05 * m) * ks, "rev0": 0.1, "delay": ([0.0, 0.02, 0.03] if v3 else [0.0, 0.05, 0.09])[m] * ks, "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})   # v3：两侧漏斗和中间一样快撕开（用户 10-31「最旁边的出现太慢」）
+		var k: float = R * ((1.0 if m == 0 else (0.78 if m == 1 else 0.66)) if nf == 3 else [1.0, 0.84, 0.76, 0.7, 0.64][m]) / PF.tex_w(u, fn)
+		var flip: float = (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0) if nf == 3 else (1.0 if (rk + int(PF.h(vs + 1.0) * 2.0)) % 2 == 0 else -1.0)
+		if nf == 5:   # 五道：长短 / 宽窄再各错开一点
+			k *= 0.85 + 0.3 * PF.h(vs + 3.0 + m)
+		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * (0.1 if nf == 3 else 0.2), "o": Vector2(0.0, ft.get_height() * 0.5),
+			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * wk * (1.0 if nf == 3 else 0.85 + 0.3 * PF.h(vs + 5.0 + m)) * flip,
+			"rev": (0.12 if v3 else 0.14 + 0.05 * mini(m, 2)) * ks, "rev0": 0.1, "delay": (([0.0, 0.02, 0.03] if v3 else [0.0, 0.05, 0.09])[m] if nf == 3 else [0.0, 0.03, 0.05, 0.09, 0.07][m]) * ks, "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})   # v3：两侧漏斗和中间一样快撕开（用户 10-31「最旁边的出现太慢」）
 	if v3:   # 冲击帧（用户 10-31）：出拳那一下，拳影 + 三道漏斗印子进剪影（往前张开的一把扇）
 		PF.hf_since(u, n0)
 		PF.hf_on(u, a)
@@ -2155,7 +2163,7 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 	if a.get("fwd", false):   # 朝前版：横斩横在扇形中段、垂直于朝向
 		c = Vector2(a.org) + Vector2(a.d) * R * 0.45
 		ang = Vector2(a.d).orthogonal().angle() + (PF.h(vs + 1.0) - 0.5) * 0.24
-		R = R * sin(float(a.half)) * 0.5
+		R = R * sin(minf(float(a.half), PI * 0.5)) * 0.5   # 半角超过 90° 后 sin 回落，横斩按 90° 封顶（11-02 扩大范围）
 	var dv := Vector2.from_angle(ang)
 	var n0: int = u.shapes.size()
 	_la_cut(u, c + dv.orthogonal() * 14.0, ang, R * 2.3, vs + 101.0, 0.45, Color(LA_ICE, 0.55), 1.3, true)   # 一整道（两段拼会成海鸥翅膀形）
