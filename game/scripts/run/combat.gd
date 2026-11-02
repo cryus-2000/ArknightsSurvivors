@@ -1067,11 +1067,14 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	var bh = g.bai.boss(e.type)   # Boss 行为脚本（受击钩子 block_damage / absorb_damage / on_damaged / on_lethal，docs/101 B1c）；不是 Boss 为 null
 	if bh != null and bh.block_damage(e):
 		return
-	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
+	# 灯火照亮：光中的敌人受到的伤害 +25%，灯火通明（≥ 70）时 +40%（docs/222；流明光弹的「照亮」e.lit 同样视为在灯光内）
 	if e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0:
+		var lb: float = Bal.v("lamp/lit_bonus_hi", 0.40) if g.lamp >= 70.0 else Bal.v("lamp/lit_bonus", 0.25)
 		if g.bot != null and e.get("lit", 0.0) > 0.0 and e.pos.distance_squared_to(g.ppos) >= g.lamp_r() * g.lamp_r():
-			g.telemetry.sus_seg().lit += dmg * 0.25   # docs/88 遥测：只因「照亮」多打的伤害（只在 --balance 下记）
-		dmg *= 1.25
+			g.telemetry.sus_seg().lit += dmg * lb   # docs/88 遥测：只因「照亮」多打的伤害（只在 --balance 下记）
+		dmg *= 1.0 + lb
+		if g.lamp >= 70.0:
+			g.vfx.lit_spark(e)   # 通明档金色小火花（纯画面）
 	if bh != null and bh.absorb_damage(e, dmg):
 		return
 	# 过卡点后的 0.8 秒无敌 / 阶段护盾：伤害全部挡掉，不飘「无效」（docs/38 §1.3）

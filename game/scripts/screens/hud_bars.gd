@@ -33,7 +33,7 @@ func top_left_sig(vs: Vector2) -> Array:
 	var rt: float = float(p.recall_hud_t) if p != null and "recall_hud_t" in p else -INF
 	var rec: bool = g.t - rt >= 0.0 and g.t - rt <= 1.5
 	var low: bool = g.hp / g.max_hp < 0.3
-	var anim: bool = g.hud_lv_flash > 0.0 or g.hp_shake > 0.0 or low or g.lamp < 30.0 or g.corrode_pool > 0.0 or rec
+	var anim: bool = g.hud_lv_flash > 0.0 or g.hp_shake > 0.0 or low or g.lamp < 30.0 or g.vfx.lit_k > 0.0 and g.vfx.lit_k < 1.0 or g.corrode_pool > 0.0 or rec
 	return [vs, g.level, int(g.hp), int(g.max_hp), g.shield, g.shield_max, int(g.lamp), int(g.lamp_cap), g.nerve > 1.0, g.corrode_pool > 0.5, rt,
 		h.qpx(150.0 * g.hp / g.max_hp), h.qpx(150.0 * g.hp_trail / g.max_hp), h.qpx(1.2 * g.lamp),
 		h.qpx(1.5 * g.nerve), g.t if anim else 0.0]
@@ -70,7 +70,8 @@ func draw_top_left(vs: Vector2) -> void:
 	# 灯火：30 / 70 两道刻度
 	var lx := hx + 172.0
 	var lamp_low := g.lamp < 30.0
-	var lc := UI.GOLD if not lamp_low else UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(g.t * 8.0))
+	# 三档颜色（docs/222）：通明亮金（随 vfx.lit_k 过渡）、摇曳原金色、暗淡暗红慢闪（寂灭同色、闪得快些）
+	var lc := UI.GOLD.lerp(Color(1.0, 0.9, 0.5), g.vfx.lit_k) if not lamp_low else Color(0.55, 0.08, 0.1).lerp(Color(0.95, 0.3, 0.25), 0.5 + 0.5 * sin(g.t * (5.0 if g.lamp <= 0.0 else 2.4)))
 	UI.tab(g.hud, g.font, Vector2(lx, o.y), "灯火", UI.TAB_LAMP if not lamp_low else UI.RED)
 	var lps := "%d" % int(g.lamp)
 	UI.ctext(g.hud, g.font, Vector2(lx, o.y + 40), lps, 21, lc if lamp_low else UI.TEXT)
@@ -156,9 +157,9 @@ func draw_lamp_strip(vs: Vector2) -> void:
 		st_en = "DARK"
 		st_col = Color(1, 0.5, 0.5)
 	elif g.lamp >= 70.0:
-		st_txt = "灯火通明 · 技力回复 +30% · 拾取 +20%"
+		st_txt = "灯火通明 · 照亮范围内敌人受伤 +%d%% · 技力回复 +30%% · 拾取 +20%%" % int(round(Bal.v("lamp/lit_bonus_hi", 0.40) * 100.0))
 	else:
-		st_txt = "灯火摇曳 · 照亮范围内敌人受伤 +25%"
+		st_txt = "灯火摇曳 · 照亮范围内敌人受伤 +%d%%" % int(round(Bal.v("lamp/lit_bonus", 0.25) * 100.0))
 		st_en = "LIT"
 		st_col = Color(1.0, 0.85, 0.6)
 	if h.panel_over_top():

@@ -360,7 +360,10 @@
   "mire_spawn_iv": 0.4, "mire_spawn_near": 0.4,
   "mire_hint_cd": 10,
   "_mire_ward_grace": "docs/155：刚出现的溟痕这么多秒内不受灯火退散影响（原来新拖痕半径 8 一出现就被收掉）",
-  "mire_ward_grace": 3
+  "mire_ward_grace": 3,
+  "_lit_bonus": "灯火三档（docs/222，11-02 用户批）：光中敌人受到的伤害加成。lit_bonus 灯火 < 70（原写死 0.25），lit_bonus_hi 通明 ≥ 70",
+  "lit_bonus": 0.25,
+  "lit_bonus_hi": 0.40
  },
  "xp": {
   "_doc": "升级所需经验：first 为 Lv1→2；基础 a + b·L + c·L²，Lv12前不变，Lv12→30平滑增至late_mult倍，延长后半程成长",
@@ -972,6 +975,8 @@
   "levelup_flash": 0.25,
   "lamp_embers": 10,
   "lamp_low_embers": 2.0,
+  "_lit_spark_rate": "灯火通明（docs/222）打中光中敌人冒金色小火花：全场每秒最多这么多次（每次 2 粒，低画质减半，走 fx 总上限）",
+  "lit_spark_rate": 24,
   "mire_motes": 3,
   "merchant_motes": 1.5
  },

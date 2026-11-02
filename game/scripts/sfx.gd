@@ -3,7 +3,7 @@ extends Node
 
 const NAMES := ["op_siege_s1_soft", "op_texas_s2_soft", "heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
 	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
-	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "enemy_nerve", "mire_clear", "enemy_acid", "enemy_elite", "crit_tick", "break_open", "break_hit", "lamp_empty", "heartbeat_hi", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
+	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "enemy_nerve", "mire_clear", "enemy_acid", "enemy_elite", "crit_tick", "break_open", "break_hit", "lamp_empty", "heartbeat_hi", "lamp_heart", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
 	"cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count", "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword", "ishar_land_break", "paranoia_land_break", "bishop_panic",
 	"ulp_charge_loop", "ulp_release", "atk_gate", "beacon_fizzle", "kill_big", "kill_shell", "hurt_heavy",
 	"boss_archon", "boss_bishop", "boss_carmen", "boss_iberia", "boss_immortal", "boss_ishar", "boss_izumik", "boss_knight_boss", "boss_paranoia", "boss_path", "cue_beam_hit", "cue_beam_start", "cue_charge_hit", "cue_charge_start", "cue_global_hit", "cue_global_start", "cue_land_hit", "cue_land_start", "cue_melee_hit", "cue_melee_start", "cue_phase_start"]
@@ -1223,7 +1223,7 @@ const PRIO_NAME := {
 	"cocoon_revive": 5, "izu_lamp_lit": 5, "izu_absorb": 5, "stake_hit": 5, "stake_shatter": 4, "carmen_sword": 5, "ishar_land_break": 5, "paranoia_land_break": 5, "bishop_panic": 5, "knight_frost": 4,
 	"nerve_burst": 4, "apop_pause": 4, "apop_resume": 4, "hurt": 4, "dodge": 4, "levelup": 4, "relic": 4, "heartbeat": 4, "ulp_release": 4,
 	"atk_gate": 4, "ui_move": 4, "ui_ok": 4, "start": 4, "skill": 3, "hurt_heavy": 4, "kill_big": 3, "kill_shell": 3,
-	"beacon_tick": 3, "beacon_lit": 3, "beacon_end": 3, "beacon_fizzle": 3, "mire_clear": 3, "crit_tick": 3, "break_hit": 3, "break_open": 5, "lamp_empty": 4, "heartbeat_hi": 4,
+	"beacon_tick": 3, "beacon_lit": 3, "beacon_end": 3, "beacon_fizzle": 3, "mire_clear": 3, "crit_tick": 3, "break_hit": 3, "break_open": 5, "lamp_empty": 4, "heartbeat_hi": 4, "lamp_heart": 4,
 	"pickup": 1, "kill": 1, "hit": 1,
 	# Repeated gunfire yields to telegraphs and can be attenuated in a dense mix.
 	"op_exusiai_atk": 2, "op_exusiai_atk_b": 2, "op_exusiai_atk_c": 2, "op_exusiai_hit": 1,
