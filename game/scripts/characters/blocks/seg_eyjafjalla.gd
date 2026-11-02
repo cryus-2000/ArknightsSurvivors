@@ -695,9 +695,9 @@ static func hw_draw_pools(o) -> void:
 				var a2: float = clampf(l.t / 0.3, 0.0, 1.0) * clampf((l.dur - l.t) / 0.12, 0.0, 1.0)
 				if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
 					var spec: Array = g.V6_FRAMES[tn]
-					# 同一循环条连排几个池时按位置错开相位、一半左右镜像（docs/229 §2.6：同一子图不许同相位等距并排）
+					# 同一循环条连排几个池时按位置错开相位、一半左右镜像、大小 0.82–1.0（docs/229 §2.6；缩小不放大，守密度 ≥ 1.6）
 					var ph: int = int(absf(l.pos.x * 0.37 + l.pos.y * 0.61))
-					fx_frame(cv, g, tn, int(spec[0]), int((l.dur - l.t) * float(spec[1])) + ph, l.pos, l.r / float(b.get("fit", 22.0)), Color(1, 1, 1, a2 * float(b.get("alpha", 1.0))), Vector2(-1, -1), 0.0, -1.0 if ph % 2 == 1 else 1.0)
+					fx_frame(cv, g, tn, int(spec[0]), int((l.dur - l.t) * float(spec[1])) + ph, l.pos, l.r / float(b.get("fit", 22.0)) * (0.82 + 0.06 * float(ph % 4)), Color(1, 1, 1, a2 * float(b.get("alpha", 1.0))), Vector2(-1, -1), 0.0, -1.0 if ph % 2 == 1 else 1.0)
 				else:
 					cv.draw_set_transform(l.pos, 0.0, Vector2(1.0, 0.55))
 					cv.draw_circle(Vector2.ZERO, l.r, Color(0.7, 0.15, 0.03, 0.35 * a2))
