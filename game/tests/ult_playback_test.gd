@@ -84,7 +84,13 @@ func _ready() -> void:
 	# 2. 按 Q，按住 10 帧（瞄准时移动输入挪落点），松开放出；全程按着移动键、中途按冲刺、攒 2 次升级
 	g.hp = g.max_hp
 	g.ult.energy = g.ult.FULL
+	var cult_on: bool = g.ult.cult_on()
+	if not cult_on:
+		g.ult.cells = g.ult.CELLS   # 连携终结技关着（ult/cult_on 0，用户 11-02）：协同格就算满了，Q 也只放普通终结技
 	ok(g.ult.press_q(), "%s 能量满按 Q 进入终结技" % op)
+	if not cult_on:
+		ok(g.ult.kind == "ult", "%s 连携终结技关着：协同满按 Q 仍是普通终结技（%s）" % [op, g.ult.kind])
+		g.ult.cells = 0
 	var start: Vector2 = g.ppos
 	var t0: float = g.t
 	var hp0: float = g.hp

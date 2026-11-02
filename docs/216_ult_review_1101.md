@@ -235,4 +235,11 @@
 - 测试：`ult_playback` 加两条——演出期间全队起手次数为 0（关掉开关时队长会起手 1–2 次，断言有效）；回到战斗 0.5 秒内恢复出手（本人不普攻的凯尔希跳过）。测试编队只有队长一人，队友 / 召唤物靠上面的录像音效记录核对。`character.act_n` 起手计数（每次 `_start_action` +1）只给测试数。另：`ult_playback --op=texas` 的「无位移招式原地不动」在开关关着时也失败（偏离 580），是旧问题，快检只跑 irene 没暴露。
 - 对照 `Claude outputs/ult_review_1101/ult_mute_atk.mp4`（5.6 MiB，德克萨斯 + 塞雷娅 / 能天使，改前 / 改后各 6 秒）。预审报冲击帧发白（用户定了保留）和剑雨中心连成一片（改前改后同一处，德克萨斯原有画面），判断为误报。ult_playback 17/0、ult_aim 41/0、data_lint 通过。
 
+**连携终结技关掉（11-02，用户「先关掉，先不用补回来」，`ult/cult_on` 缺省 0；1 = 完整恢复）**
+
+- 改法：`ult.gd cult_on()`；关着时 `press_q` 永远走普通终结技（`can_cult()` 恒假）、连携 / 连携命中不再攒协同格（`cells` 保持 0）、机器人「协同差 ≤ 2 格最多等 30 秒」（`bot_cult_wait`）跳过。连携本身（出手、+能量 `e_combo`）照旧。`cult_*` / `cells` / `cell_gap` 数值、`ult_moves.start_cult` 等代码都保留，`--bal=ult/cult_on=1` 即回到 10-29 起的行为（`tools/ult_rec.py` 的 cult 片段已带上）。
+- 界面：玩家看得到「连携终结技 / 协同格」的地方只有终结技 HUD——`hud_ult._n()` 关着时返回 0、`_up()` 恒假，所以三套 HUD（`hud_ult` 旧版能量条 / 触屏键协同弧、`hud_ult_v` A′ 菱形 / B′ 徽记环菱形 / C′ 方格）都不画协同格、标题只写「终结技」、不出金色升级态；`--ulthud=demo` 的连携终结技切入条也停。图鉴（`ult_text.json`）、选人页技能行、操作说明（`title.gd`）、新手指南（`onboard.json` / `onboard_demos.gd`）、设置页本来就没提连携终结技 / 协同格，不用改。A 的 `claude/onboard-forced-1102`（203039a2c）指南「连携与羁绊」一步只讲队友接招 / 羁绊合击，没提连携终结技或协同格，合入时不用处理。
+- 不调任何数值补偿（用户「先不用补回来」）。影响见下面云端配对，只报不调。
+- 测试：`ult_playback` 加一条「关着时协同满按 Q 仍是普通终结技」。
+
 回归（云端 Linux，Godot 4.7.2）：单项 data_lint、ult_playback 15/0、ult_aim 41/0、card_desc、touch_layout 全过；`tools/check.py --changed origin/ci/b0343aca1`（改了 balance.json / game.gd，升级为分支全量）164 项通过、失败 0，625 秒。网页包没重新导出：这次只删音频（源文件 228 KiB）、脚本 / 数据只加了几百字节，包只会变小。

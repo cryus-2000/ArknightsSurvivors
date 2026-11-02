@@ -61,9 +61,9 @@ func _q() -> Array:
 	return _demo_q
 
 
-## 协同格数（balance ult/cells）
+## 协同格数（balance ult/cells）；连携终结技关着（ult/cult_on 0）时 0 = 协同格不画、不出「连携终结技」字样
 func _n() -> int:
-	return int(g.ult.CELLS)
+	return int(g.ult.CELLS) if g.ult.cult_on() else 0
 
 
 func _cells() -> int:
@@ -71,12 +71,12 @@ func _cells() -> int:
 
 
 func _up() -> bool:
-	return g.ult.full() and _cells() >= _n()
+	return g.ult.cult_on() and g.ult.full() and _cells() >= _n()
 
 
 func _demo_tick() -> void:
 	var now: float = UM.now()
-	if now - _demo_t < 5.0:
+	if now - _demo_t < 5.0 or not g.ult.cult_on():
 		return
 	_demo_t = now
 	var i := 0

@@ -15,7 +15,7 @@ CLIPS = {
     "skalter": ("skalter", "skadi,gladiia", []),
     "kaltsit": ("kaltsit", "hoshiguma,lumen", []),
     "ulpianus": ("ulpianus", "gladiia,specter_unchained", []),
-    "cult": ("texas", "exusiai,lappland", ["--bal=ult/test_cells=7"]),
+    "cult": ("texas", "exusiai,lappland", ["--bal=ult/test_cells=7", "--bal=ult/cult_on=1"]),   # 连携终结技 11-02 起缺省关（ult/cult_on）
     "combo": ("texas", "exusiai,siege", ["--bot=master", "--bal=ult/test_fill_at=-1"], 90.0),
     "link1": ("texas", "exusiai,lappland", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=0"], 60.0),   # 技能连携样片①：德克萨斯剑雨 + 能天使 → 爆炸剑雨
     "link2": ("lappland", "texas,saria", ["--bal=combo/skill_link=1", "--bal=ult/test_fill_at=-1", "--bal=ult/test_skill_at=62", "--bal=ult/test_skill_idx=1"], 60.0),   # 样片②：拉普兰德狼魂剑气 + 德克萨斯 → 十字斩

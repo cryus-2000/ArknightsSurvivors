@@ -225,7 +225,7 @@ func combo_landed(o, pos: Vector2, n_hit: int, gathered := 0) -> void:
 	if g.t - _combo_e_t >= Bal.v("ult/e_combo_gap", 12.0):
 		_combo_e_t = g.t
 		_gain(Bal.v("ult/e_combo", 2.0), "combo")
-	if cells < CELLS and g.t - _cell_t >= Bal.v("ult/cell_gap", 40.0):
+	if cult_on() and cells < CELLS and g.t - _cell_t >= Bal.v("ult/cell_gap", 40.0):
 		_cell_t = g.t
 		cells += 1
 
@@ -237,7 +237,7 @@ func link_landed(o) -> void:
 	if g.t - _combo_e_t >= Bal.v("ult/e_combo_gap", 12.0):
 		_combo_e_t = g.t
 		_gain(Bal.v("ult/e_combo", 2.0), "combo")
-	if cells < CELLS and g.t - _cell_t >= Bal.v("ult/cell_gap", 40.0):
+	if cult_on() and cells < CELLS and g.t - _cell_t >= Bal.v("ult/cell_gap", 40.0):
 		_cell_t = g.t
 		cells += 1
 
@@ -265,8 +265,14 @@ func _ready_tick() -> void:
 	_rdy_was = f
 
 
+## 连携终结技总开关（用户 11-02「先关掉，先不用补回来」，ult/cult_on 缺省 0）：关着时 Q 永远放普通终结技、协同格不攒也不画（HUD _n() = 0）、
+## 机器人不等协同；连携本身（出手、+能量）照旧。代码与数据保留，设 1 完整恢复
+func cult_on() -> bool:
+	return Bal.v("ult/cult_on", 0.0) > 0.0
+
+
 func can_cult() -> bool:
-	return energy >= FULL and cells >= CELLS
+	return cult_on() and energy >= FULL and cells >= CELLS
 
 
 # ================================================================ 每帧
@@ -364,7 +370,7 @@ func press_q() -> bool:
 	if ld == null or ld.pos == Vector2.INF or ld.cmd_down > 0.0:
 		return false
 	q_held = true
-	_begin(ld, "cult" if cells >= CELLS else "ult")
+	_begin(ld, "cult" if can_cult() else "ult")
 	return true
 
 
@@ -637,7 +643,7 @@ func _auto_cast() -> void:
 	var fb_live: bool = g.final_boss != null and not g.final_boss.dead
 	if g.t >= Bal.v("ult/bot_hold_from", 570.0) and not fb_live and g.t < 600.0:
 		return   # 9:30 之后留给最终 Boss 进场
-	if cells >= CELLS - 2 and cells < CELLS and full_since >= 0.0 and g.t - full_since < Bal.v("ult/bot_cult_wait", 30.0) and g.hp > 0.3 * g.max_hp:
+	if cult_on() and cells >= CELLS - 2 and cells < CELLS and full_since >= 0.0 and g.t - full_since < Bal.v("ult/bot_cult_wait", 30.0) and g.hp > 0.3 * g.max_hp:
 		return   # 协同差 ≤ 2 格：最多等 30 秒凑连携终结技
 	var n := 0
 	var elite_core := false
