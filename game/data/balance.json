@@ -1106,7 +1106,9 @@
   "minion": 2.0, "edge": 0.8, "elite": 0.75, "boss": 0.28, "final": 0.06, "minion_hpk": 1.5, "elite_floor": 0.1, "build_cap": 1.3,
   "cult_minion": 1.0, "cult_elite": 0.5, "cult_boss": 0.1, "cult_final": 0.08,
   "lit_t": 2.5, "auto_delay": 0.6, "combo_cd_mult": 0.75,
-  "bot_n": 40, "bot_hold_from": 570.0, "bot_cult_wait": 30.0
+  "bot_n": 40, "bot_hold_from": 570.0, "bot_cult_wait": 30.0,
+  "_cult_on_doc": "连携终结技总开关（用户 11-02「先关掉，先不用补回来」）：0 = 关（Q 永远放普通终结技、协同格不攒不画、bot_cult_wait 跳过；连携本身与 +能量照旧），1 = 恢复 10-29 起的连携终结技与协同格（cult_* / cells / cell_gap 原值都还在）",
+  "cult_on": 0
  },
  "build": {
   "_doc": "构筑可读性原型（docs/119 §4.3 / §4.4 / §4.5，run/build_affinity.gd）：affinity_ui = 卡面说明行（招募 / 换人 / 藏品 / 商品卡）；force_recruit_match = 强制招募画面保底一名与已有藏品有实际互动的候选；merchant_preview = 第一位商人生成时定货架并保证一件基础 / 稀有联动藏品、HUD 预告商品与差额。三个都是 0 时同 seed TRACE 与改前相同；后两个开着会改变发牌与抽货时机",
