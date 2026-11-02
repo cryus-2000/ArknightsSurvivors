@@ -2919,6 +2919,9 @@ func draw_body() -> void:
 		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
 	if arriving() and arrive_t < ARRIVE_WAIT:
 		return   # 换人入场：还在屏幕外等
+	var wk: float = warp_k()
+	if wk <= 0.0:
+		return   # 瞬回 / 掉队归位：原地还在解散，落点先不画
 	if cmd_down > 0.0:
 		_draw_downed(st)
 		return
@@ -2933,7 +2936,22 @@ func draw_body() -> void:
 		if k >= 1.0:
 			return
 		mod = Color(1.0 + 0.5 * k, 1.0 + 0.8 * k, 1.0 + 0.9 * k, 1.0 - k)
+	if wk < 1.0:
+		mod = Color(mod.r + 0.6 * (1.0 - wk), mod.g + 0.7 * (1.0 - wk), mod.b + 0.8 * (1.0 - wk), mod.a * wk)   # 淡入：先泛青白再回本色
 	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+
+
+## 就地解散后在落点淡入（squad.blink_fx，11-02 取代向上跳出屏幕）：warp_t 由 world.update_visuals 推进，< 0 = 不在瞬回。纯画面
+const WARP_OUT := 0.3   # 原地解散（光圈收拢 + 像素碎散淡出）
+const WARP_IN := 0.25   # 落点淡入
+var warp_t := -1.0
+
+
+## 本体的显示比例：0 = 还在原地解散（不画），0–1 = 落点淡入中，1 = 正常
+func warp_k() -> float:
+	if warp_t < 0.0:
+		return 1.0
+	return clampf((warp_t - WARP_OUT) / WARP_IN, 0.0, 1.0)
 
 
 ## 换人入队（10-22 用户定）：等被换下的队友跳出屏幕（ARRIVE_WAIT 秒）后从屏幕上方落到编队位，纯画面（玩法照常从入队起算）。

@@ -529,7 +529,7 @@ func _dev_act() -> void:
 			elif g.wheel.is_open and g.wheel.t_open >= g.wheel.TOUR_STEP * (g.wheel.ITEMS.size() + 0.6):
 				g.wheel.confirm(g.wheel.item_index("point"))
 			elif g.pick.active:
-				g.pick._goal = g.hud_ct() * (g.ppos + pack_dir * 220.0) - g.pick._offset()
+				g.pick._goal = g.hud_ct() * (g.ppos + pack_dir * float(_dev_arg("--onboarddeploy=", "220"))) - g.pick._offset()   # --onboarddeploy=<距离>：录片用，部署点放远一点（撤回时触发瞬回）
 				if g.pick.t >= 1.3:
 					g.pick.confirm()
 		"regroup":

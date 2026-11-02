@@ -226,6 +226,8 @@ func update_visuals(dt: float) -> void:
 		nfx += o.pfx.size()
 		if o.arrive_t >= 0.0:
 			o.arrive_t = -1.0 if not o.arriving() else o.arrive_t + dt   # 换人入场的下落计时（character.arrive_dy）
+		if o.warp_t >= 0.0:
+			o.warp_t = -1.0 if o.warp_t > o.WARP_OUT + o.WARP_IN else o.warp_t + dt   # 瞬回的落点淡入计时（character.warp_k）
 	var want: float = 0.0 if g.demo_op != "" else clampf((nfx - Dc.p("crowd_from")) / Dc.p("crowd_span"), 0.0, 1.0)
 	crowd = move_toward(crowd, want, rd * (3.0 if want > crowd else 0.8))
 	var ne := 0
@@ -1334,7 +1336,20 @@ func _draw_fx() -> void:
 				bulfx.beam_px(f, LaserDraw._unit(f.get("col", Color.WHITE)), LaserDraw._base_w(f) * 0.5)   # Boss 光束颗粒（docs/206 §3）
 			continue
 		match f.kind:
-			"leave_jump":   # 队友离队 / 换人：原地一蹲后向上跳出屏幕（squad._leave_fx，10-22）
+			"warp_out":   # 队友就地解散（squad._leave_fx，11-02 取代向上跳出屏幕）：脚下光圈收拢 + 身体泛青白、像素碎散淡出
+				var wt: float = (f.max - f.life) / f.max
+				var wc: Color = f.col
+				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, ground_y()))
+				g.draw_arc(Vector2.ZERO, lerpf(30.0, 4.0, wt) * g.PX * 0.5, 0.0, TAU, 32, Color(wc.r * 1.3, wc.g * 1.3, wc.b * 1.3, 0.85 * (1.0 - wt)), 2.0)
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				draw_sprite_at(f.pos, f.st.flip, Color(1.0 + 0.6 * wt, 1.0 + 0.7 * wt, 1.0 + 0.8 * wt, 1.0 - wt), f.st.frame, f.st.tex, f.st.hf, f.foot_off)
+				for q in 16:   # 像素碎散：身体范围里 16 个 2 像素格，向外 / 略向上散开淡出（按 seed 定位，不抽随机数）
+					var h: int = (int(f.seed) * 131 + q * 977) & 1023
+					var base := Vector2(float(h % 21) - 10.0, -float((h >> 3) % 34) - 4.0) * g.PX * 0.5
+					var drift := Vector2(base.x * 0.9, -6.0 - float(q % 5) * 2.0) * g.PX * 0.5 * wt
+					var pp: Vector2 = ((f.pos + base * 2.0 + drift) / g.PX).floor() * g.PX
+					g.draw_rect(Rect2(pp, Vector2(g.PX, g.PX)), Color(wc.r * 1.4, wc.g * 1.4, wc.b * 1.4, (1.0 - wt) * (0.6 + 0.4 * float(q % 2))))
+			"leave_jump":   # 旧：原地一蹲后向上跳出屏幕（squad/deploy_exit = 0 对照用，10-22）
 				var jt: float = (f.max - f.life) / f.max
 				var jy: float = 2.0 * g.PX if jt < 0.12 else -pow((jt - 0.12) / 0.88, 1.6) * (view_rect(0.0).size.y + 80.0 * g.PX)
 				draw_sprite_at(f.pos + Vector2(0, jy), f.st.flip, Color.WHITE, f.st.frame, f.st.tex, f.st.hf, f.foot_off)
