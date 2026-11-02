@@ -31,7 +31,7 @@ func update_lobs(dt: float) -> void:
 				_brood_land(l)
 			else:
 				# 落点帧条（enemies.json land_fx，docs/96 §1.4 喷吐者 fx_spitter_land，地面层、原点 (20,17)）：有图就不画程序爆圈 / 石屑火花；溟痕照旧由下面接管
-				var landed: bool = str(l.get("land_fx", "")) != "" and g.vfx.fx_sprite(l.land_fx, l.to, Game.PX, 0.0, false, false, Color.WHITE, true, Vector2(20, 17))
+				var landed: bool = str(l.get("land_fx", "")) != "" and g.vfx.fx_sprite(l.land_fx, l.to, Game.PX, 0.0, false, false, Color.WHITE, true)   # 组 E pixelfx 帧条以落点为中心（docs/236）
 				if not landed:
 					g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
 				# 最终 Boss 禁生成区域按溟痕最大半径检查，区域外照常留痕。
@@ -57,11 +57,12 @@ func _brood_land(l: Dictionary) -> void:
 	var hp: Vector2 = g.map.push_out(l.to, 10.0) if can_hatch else l.to   # 孵化点（避开景物），落地帧条对齐到它
 	var hatch := 0.0
 	# Codex enemy_fx_1：fx_brood_land 24×24，末帧含 e_brood f0（1x 嵌入偏移 (3,4)）→ 原点 (12,24) 正好是拟嗣脚底锚点，播完移交本体
-	if g.vfx.fx_sprite("fx_brood_land", hp, Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 24)):
-		var spec: Array = Game.V6_FRAMES["fx_brood_land"]
+	# 组 E pixelfx（docs/236）：fx_e_px_brood_land 以孵化点为中心的粘液破开（不再把 e_brood 首帧嵌进末帧），播完拟嗣本体出现
+	if g.vfx.fx_sprite("fx_e_px_brood_land", hp, Game.PX, 0.0):
+		var spec: Array = Game.V6_FRAMES["fx_e_px_brood_land"]
 		hatch = float(spec[0]) / float(spec[1])
 	else:
-		g.vfx.fx_sprite("fx_acid_splash", l.to + Vector2(0, 6), Game.PX, 0.0, false, true)
+		g.vfx.fx_sprite("fx_e_px_acid_splash", l.to, Game.PX, 0.0)
 	g.fx.append({"kind": "ring", "pos": l.to, "r": l.r, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.3, 0.72)})   # 敌方洋红（docs/48）
 	g.vfx.sparks(l.to, Vector2.ZERO, Color(0.9, 1.6, 0.5), 8, 160.0)   # 酸绿粘液
 	Sfx.play("mire_splat", -10.0, 1.1, 0.1)
@@ -260,7 +261,7 @@ func update_ebullets(dt: float) -> void:
 		var hd: float = hit_c(b).distance_to(g.ppos + Vector2(0, -14))
 		var hitp: bool = not rock and hd < hit_r(b)   # 判定点：敌弹只按弹芯判定
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
-			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
+			g.vfx.fx_sprite("fx_e_px_acid_splash", b.pos, Game.PX, 0.0)   # 酸团落地 / 命中溅开（组 E pixelfx，以落点为中心，docs/236）
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and (not b.get("boss", false) or g.mires.size() < 48) and _boss_mire_ok(b) and (b.get("boss", false) or not g.combat.mire_blocked(b.pos + Vector2(0, 10), float(b.get("mire_r", 52.0)))):
 			var bm: bool = b.get("boss", false)
 			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）

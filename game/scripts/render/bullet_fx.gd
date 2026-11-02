@@ -33,10 +33,10 @@ const GHOST_MAX := 220       # 同屏消失残影上限（超了新的直接不�
 const CLUSTER := 40.0        # 同帧出现按 40 世界像素格聚成一簇
 const EB_LIFT := Vector2(0, -16)   # 敌弹画在脚下 16 像素上方（同 world._ebp）
 const BossBeam = preload("res://scripts/render/boss_beam.gd")
-const POP := "fx_px_bpop"    # 8 帧 × 3 行，1 纹素 = 2 世界像素
+const POP := "fx_e_px_bpop"    # 8 帧 × 3 行，1 纹素 = 2 世界像素（组 E pixelfx 灰阶、按弹色着色，tools/pixelfx_fx/foe/fixed_e.py，docs/236）
 const POP_T := 0.45
 const POP_MAX := 400
-const TRAIL := "fx_px_btrail"   # 4 帧循环，弹头在帧的右端中心
+const TRAIL := "fx_e_px_btrail"   # 4 帧循环，弹头在帧的右端中心（组 E pixelfx，同上）
 const GROUND := ["fx_px_burst1", "fx_px_burst2"]   # 8 帧 / 0.9 秒，帧 360 纹素见方（颗粒最远约 180 纹素）
 const GROUND_T := 0.9
 const GROUND_MAX := 24

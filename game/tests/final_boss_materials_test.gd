@@ -10,7 +10,7 @@ func _ready():
 	var g := {"world":r,"combat":{"GROUND_Y":.62}}
 	var errors := 0
 	var art = preload("res://scripts/art.gd")
-	for name in ["prop_knight_frost_stake","prop_knight_frost_stake_rise","prop_knight_frost_stake_break","fx_knight_crystal_rise","fx_knight_crystal_hold","fx_knight_crystal_break","fx_knight_ice_crest","proj_knight_ice","fx_knight_ice_hit"]:
+	for name in ["prop_knight_frost_stake","prop_knight_frost_stake_rise","prop_knight_frost_stake_break","fx_e_px_knight_crystal_rise","fx_e_px_knight_crystal_hold","fx_e_px_knight_crystal_break","fx_e_px_knight_ice_crest","proj_e_px_knight_ice","fx_e_px_knight_ice_hit"]:
 		var texture = art.tex(name)
 		if texture==null or texture.get_width()%int(art.V6_FRAMES[name][0])!=0:
 			printerr("FAIL imported ice strip ",name)

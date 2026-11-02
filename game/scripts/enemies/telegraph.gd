@@ -319,7 +319,7 @@ func _resolve(w: Dictionary) -> void:
 			for i in 8:
 				var pos: Vector2 = w.pos + dv * w.len * (float(i) + 0.5) / 8.0
 				g.fx.append({"kind": "frost_step", "pos": pos, "r": 13.0, "life": 0.9, "max": 0.9, "enemy": true})
-			g.vfx.fx_sprite("fx_knight_impact", w.pos + dv * w.len, g.PX * 1.2)
+			g.vfx.fx_sprite("fx_e_px_knight_impact", w.pos + dv * w.len, g.PX)   # 组 E pixelfx（docs/236）：冰痕尽头的碎冰迸溅
 			g.vfx.sparks(w.pos + dv * w.len, dv, c, 10, 180.0)
 			e.hunt_angle = w.ang
 			e.hunt_follow_at = g.t + 0.25
@@ -337,7 +337,7 @@ func _resolve(w: Dictionary) -> void:
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.4, "max": 0.4, "col": c, "enemy": true})
 				g.fx.append({"kind": "ring", "pos": sw.pos, "r": sw.r * 2.2, "life": 0.4, "max": 0.4, "col": c, "enemy": true})
 				Sfx.play("tentacle", -4.0, 0.7)
-			g.vfx.fx_sprite("fx_water_splash", w.pos + dv * w.len, g.PX * 1.2)
+			g.vfx.fx_sprite("fx_e_px_water_splash", w.pos + dv * w.len, g.PX)   # 组 E pixelfx（docs/236）
 			Sfx.play("tentacle", -8.0, 1.1)
 			warn_damage(w)
 		"ishar_echo":
@@ -345,7 +345,7 @@ func _resolve(w: Dictionary) -> void:
 				pass   # 10-31：统一光束由 render/ishar_tell_draw 画（ishar_combos._fade_fx）
 			elif not _kp(w, w.pos, w.pos + dv * w.len):
 				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": KP_LIFE, "max": KP_LIFE, "col": c, "enemy": true})
-			g.vfx.fx_sprite("fx_water_splash", w.pos, g.PX * 1.0)
+			g.vfx.fx_sprite("fx_e_px_water_splash", w.pos, g.PX)   # 组 E pixelfx（docs/236）
 			Sfx.play("tentacle", -8.0, 1.25)
 			warn_damage(w)
 		"extra_volley":
@@ -392,22 +392,24 @@ func _resolve(w: Dictionary) -> void:
 			g.vfx.shake_screen(0.3)
 		"spin_ring":
 			# 长枪回旋（docs/95 §4.2 D）：静止缺口环一次性判定——主控在 r 内且不在缺口弧里才中（hits_leader 的 circle 分支排除缺口）；
-			# 环刀光按环切 8 段排布，缺口段不画
-			for k in 8:
-				var ka: float = w.ang + TAU * k / 8.0
-				if in_gap(w, ka):
-					continue
-				var kp: Vector2 = w.pos + Vector2(cos(ka), sin(ka) * g.combat.GROUND_Y) * w.r * 0.8
-				if not g.vfx.fx_sprite("fx_slash_heavy_steel", kp, g.PX * 1.2, ka + PI * 0.5):
-					g.fx.append({"kind": "bslash", "pos": w.pos, "ang": ka, "half": 0.35, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
+			# 组 E pixelfx（docs/236）：原来 8 把刀光按 45° 等距排成时钟（违反 docs/229 §2.6），改成一道整圈扫弧，扫弧中线对着缺口的反方向、
+			# 两端停在缺口两侧（fx_e_px_path_spin 按 r70 × 0.85、半角 π − 0.7 导出）；缺图照旧程序刀光
+			if g.vfx.fx_sprite("fx_e_px_path_spin", w.pos, g.PX, w.ang + PI):
 				g.fx[g.fx.size() - 1]["enemy"] = true
+			else:
+				for k in 8:
+					var ka: float = w.ang + TAU * k / 8.0
+					if in_gap(w, ka):
+						continue
+					g.fx.append({"kind": "bslash", "pos": w.pos, "ang": ka, "half": 0.35, "r": w.r, "life": 0.3, "max": 0.3, "col": c, "enemy": true})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.35, "max": 0.35, "col": c, "enemy": true})
 			Sfx.play("swing", 0.0, 0.5)
 			g.vfx.shake_screen(0.6)
 			warn_damage(w)
 		"lob":
 			# 轰击（docs/95 §6.2 C，第 2 批用）：固定落点圈结算 + 1.5 秒火光（纯画面）；耗弹由放招方按 ammo_cost 处理
-			if not g.vfx.fx_sprite("fx_saint_shell_burst", w.pos, g.PX * 1.5, 0.0):
+			# 组 E pixelfx（docs/236）：按落点圈 r 选帧条（r80 轰击 / r38 伊比利亚三连），固定 Game.PX，外沿 = 判定半径
+			if not g.vfx.fx_sprite("fx_e_px_saint_shell_burst" if w.r >= 60.0 else "fx_e_px_saint_shell_burst_s", w.pos, g.PX, 0.0):
 				g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r * 0.8, "life": 1.5, "max": 1.5, "col": Color(c.r * 1.2, c.g * 0.8, c.b * 0.5), "enemy": true})
 			g.vfx.sparks(w.pos, Vector2.UP, Color(1.6, 1.0, 0.5), 16, 280.0)
@@ -448,7 +450,7 @@ func _resolve(w: Dictionary) -> void:
 			g.vfx.stop(0.05, "boss_slam")
 		"burst":
 			# 叠影每圈结算（docs/95 §1.2 C）：Codex fx_paranoia_stack（泡影从地面涌起破裂）优先，缺图走程序爆点；每圈一声「啵」按序号逐次升调
-			if not (e.type == "paranoia" and g.vfx.fx_sprite("fx_paranoia_stack", w.pos, g.PX * 1.4, 0.0)):
+			if not (e.type == "paranoia" and g.vfx.fx_sprite("fx_e_px_paranoia_stack", w.pos, g.PX, 0.0)):   # 组 E pixelfx（docs/236，r45）
 				g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": Color(0.7, 0.35, 1.0)})
 			g.fx[g.fx.size() - 1]["enemy"] = true
 			g.vfx.sparks(w.pos, Vector2.ZERO, Color(1.2, 0.6, 1.8), 12, 240.0)
@@ -473,7 +475,7 @@ func _resolve(w: Dictionary) -> void:
 			if e.type == "paranoia":
 				# 凝视命中端的紫白爆点（Codex fx_paranoia_gaze_hit；缺图只有光束）：画在主控被打到的位置，没打到画在线端
 				var hp: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos + Vector2(0, -14), w.pos, b2) if hits_leader(w) else b2
-				if g.vfx.fx_sprite("fx_paranoia_gaze_hit", hp, g.PX * 1.3, 0.0):
+				if g.vfx.fx_sprite("fx_e_px_paranoia_gaze_hit", hp, g.PX, 0.0):   # 组 E pixelfx（docs/236）
 					g.fx[g.fx.size() - 1]["enemy"] = true
 			Sfx.play("skill", -2.0, 0.5)
 			g.vfx.shake_screen(0.7)
@@ -481,8 +483,14 @@ func _resolve(w: Dictionary) -> void:
 		"sweep":
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 			# 扇形内的喷涌特效（Codex 第 1 批：泡影呼号 fx_paranoia_howl、伊祖米克分享 fx_izumik_share；左中原点朝右，程序按扇形旋转、按 r 缩放；缺图只有刀光）
-			var cone_fx: String = str(w.get("cone_fx", "fx_paranoia_howl" if w.get("howl", false) else ("fx_izumik_share" if w.get("arts", false) else "")))
-			if cone_fx != "" and g.vfx.fx_sprite(cone_fx, w.pos + dv * w.r * 0.5, g.PX * clampf(w.r / 160.0, 0.8, 2.2), w.ang):
+			# 组 E pixelfx（docs/236）：喷涌帧条按扇形尺寸导出、原点 = 扇心、固定 Game.PX（原来按 r 连续缩放、画在半径中点，会被 int_scale 取整对不上扇形）
+			var cone_fx: String = str(w.get("cone_fx", ""))
+			if cone_fx == "":
+				if w.get("howl", false):
+					cone_fx = "fx_e_px_paranoia_howl"
+				elif w.get("arts", false):
+					cone_fx = "fx_e_px_izumik_share_s" if w.r < 250.0 else ("fx_e_px_izumik_share_n" if float(w.get("half", 1.0)) < 0.6 else "fx_e_px_izumik_share")
+			if cone_fx != "" and g.vfx.fx_sprite(cone_fx, w.pos, g.PX, w.ang):
 				g.fx[g.fx.size() - 1]["enemy"] = true
 			g.vfx.sparks(w.pos + dv * w.r * 0.6, dv, Color(0.8, 1.4, 1.4), 12, 260.0)
 			Sfx.play("swing", -2.0, 0.55)
@@ -582,8 +590,8 @@ func _resolve(w: Dictionary) -> void:
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.25, "max": 0.25, "col": c})
 			if w.get("thrust", false) and g.vfx.fx_sprite("fx_knight_thrust", w.pos + dv * w.r * 0.55, g.PX * 1.3, w.ang):
 				g.fx[g.fx.size() - 1]["enemy"] = true   # 连刺第 3 段前刺的枪尖寒光（Codex fx_knight_thrust；缺图只有刀光）
-			if w.get("mirror", false) and g.vfx.fx_sprite("fx_ishar_maw_red", w.pos + dv * w.r * 0.5, g.PX * 1.2, w.ang):
-				g.fx[g.fx.size() - 1]["enemy"] = true   # 伊莎玛拉濒死强化第 2 段的红色牙光（Codex fx_ishar_maw_red）
+			if w.get("mirror", false) and g.vfx.fx_sprite("fx_e_px_ishar_maw", w.pos, g.PX, w.ang):
+				g.fx[g.fx.size() - 1]["enemy"] = true   # 伊莎玛拉濒死强化第 2 段的牙光（组 E pixelfx fx_e_px_ishar_maw：撕咬 r190 × 0.85、半角 0.85，原点 = 扇心，docs/236）
 			g.vfx.sparks(w.pos + dv * w.r * 0.65, dv, c, 6, 150.0)
 			Sfx.play("swing", -6.0, 0.9)
 			warn_damage(w)

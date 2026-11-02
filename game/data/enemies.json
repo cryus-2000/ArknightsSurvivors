@@ -18,7 +18,7 @@
    "ecol": [0.85, 0.9, 0.85]
   },
   "slider": {
-   "dash_fx": "fx_slider_dash",
+   "dash_fx": "fx_e_px_slider_dash",
    "name": "底海滑动者",
    "hp": 12.0,
    "hp_late": 1.5,
@@ -41,8 +41,8 @@
   },
   "stone": {
    "entrench_phys_taken": 0.55,
-   "hit_fx": "fx_rock_hit",
-   "hit_fx_origin": [10, 10],
+   "hit_fx": "fx_e_px_rock_hit",
+   "hit_fx_origin": [-1, -1],
    "name": "固海凿石者",
    "hp": 26.0,
    "spd": 46.0,
@@ -69,7 +69,7 @@
    "ecol": [0.7, 0.7, 0.75]
   },
   "offspring": {
-   "shot_tex": "proj_offspring_spore",
+   "shot_tex": "proj_e_px_offspring_spore",
    "apop_hit": 20.0,
    "name": "伊祖米克的子代",
    "hp": 70.0,
@@ -135,9 +135,10 @@
    "corrode": 0.45,
    "draw_scale": 1.0,
    "atk_anim": true,
-   "lob_tex": "proj_spitter_acid",
-   "land_fx": "fx_spitter_land",
-   "hit_fx": "fx_corrode_hit_acid",
+   "lob_tex": "proj_e_px_spitter_acid",
+   "land_fx": "fx_e_px_spitter_land",
+   "hit_fx": "fx_e_px_corrode_hit_acid",
+   "hit_fx_origin": [-1, -1],
    "desc": "朝队长预判位置抛射酸液，落地前显示预警；命中附加侵蚀，落点留下溟痕。另会使用「酸沫扇吐」进行预警攻击。",
    "extra": {
     "name": "酸沫扇吐",
@@ -153,7 +154,7 @@
    "ecol": [0.6, 1.0, 0.65]
   },
   "runner": {
-   "blast_fx": "fx_runner_blast",
+   "blast_fx": "fx_e_px_runner_blast",
    "name": "壳海狂奔者",
    "hp": 9.0,
    "hp_late": 2.0,
@@ -179,8 +180,8 @@
    "desc": "贴地疾跑的小个体，冲到身边后鼓胀约 0.6 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
   },
   "floater": {
-   "hit_fx": "fx_nerve_hit",
-   "hit_fx_origin": [10, 10],
+   "hit_fx": "fx_e_px_nerve_hit",
+   "hit_fx_origin": [-1, -1],
    "shot_mire": true,
    "shot_mire_r": 30.0,
    "shot_mire_life": 5.0,
@@ -215,8 +216,8 @@
    }
   },
   "reaper": {
-   "atk_fx": "fx_reaper_scythe",
-   "atk_fx_origin": [4, 20],
+   "atk_fx": "fx_e_px_reaper_scythe",
+   "atk_fx_origin": [-1, -1],
    "reap_mult": 1.0,
    "wound_hit": 1,
    "name": "钵海收割者",
@@ -299,9 +300,9 @@
   },
   "tracer": {
    "enrage_phys_taken": 0.65,
-   "atk_fx": "fx_tracer_thrust",
-   "atk_fx_enraged": "fx_tracer_thrust_enraged",
-   "atk_fx_origin": [0, 10],
+   "atk_fx": "fx_e_px_tracer_thrust",
+   "atk_fx_enraged": "fx_e_px_tracer_thrust_enraged",
+   "atk_fx_origin": [-1, -1],
    "wound_hit": 1,
    "name": "深溟引痕者",
    "hp": 204.0,
@@ -344,8 +345,8 @@
    "stop_immune": true,
    "aura_arts_mult": 0.2,
    "aura_tick": 0.5,
-   "atk_fx": "fx_nest_sweep",
-   "atk_fx_origin": [36, 24],
+   "atk_fx": "fx_e_px_nest_sweep",
+   "atk_fx_origin": [-1, -1],
    "root_hit": 0.8,
    "name": "深溟巢涌者",
    "hp": 255.0,
@@ -426,8 +427,8 @@
    "burst": true,
    "burst_r": 160.0,
    "burst_fuse": 1.1,
-   "burst_fx": "fx_pocket_burst",
-   "puddle_fx": "fx_pocket_puddle",
+   "burst_fx": "fx_e_px_pocket_burst",
+   "puddle_fx": "fx_e_px_pocket_puddle",
    "elite_after": 0,
    "atk_anim": true,
    "extra": {
@@ -460,13 +461,14 @@
    "corrode": 0.5,
    "hover": true,
    "shot_n": 3,
-   "shot_tex": "proj_skimmer_corrode",
-   "muzzle_fx": "fx_skimmer_muzzle",
+   "shot_tex": "proj_e_px_skimmer_corrode",
+   "muzzle_fx": "fx_e_px_skimmer_muzzle",
    "muzzle_off": [
     13,
     -6
    ],
-   "hit_fx": "fx_corrode_hit",
+   "hit_fx": "fx_e_px_corrode_hit",
+   "hit_fx_origin": [-1, -1],
    "elite_after": 120,
    "extra": {
     "name": "掠海贯射",
@@ -523,8 +525,8 @@
    "stun_immune": true,
    "cold_immune": true,
    "seal_immune": true,
-   "atk_fx": "fx_mimic_bite",
-   "atk_fx_origin": [8, 16],
+   "atk_fx": "fx_e_px_mimic_bite",
+   "atk_fx_origin": [-1, -1],
    "name": "箱形恐鱼",
    "hp": 45.0,
    "spd": 88.0,
@@ -589,7 +591,8 @@
      "life": 2.2,
      "mult": 0.624,
      "cd": 10,
-     "fx": "fx_path_correct_ring"
+     "fx": "fx_e_px_path_correct_ring",
+     "fx_scale": 1.0
     }
    ],
    "intro": {
@@ -691,7 +694,8 @@
      "track": 0.3,
      "mult": 0.624,
      "cd": 7,
-     "fx": "fx_saint_scatter"
+     "fx": "fx_e_px_saint_scatter",
+     "fx_scale": 1.0
     },
     {
      "name": "清膛",
@@ -709,7 +713,8 @@
      "dur": 0.9,
      "life": 1.8,
      "mult": 0.468,
-     "fx": "fx_saint_clear_ring"
+     "fx": "fx_e_px_iberia_clear_ring",
+     "fx_scale": 1.0
     }
    ],
    "intro": {
@@ -758,12 +763,8 @@
      "dur": 1.0,
      "mult": 0.702,
      "cd": 12,
-     "fx": "fx_saint_clear_ring",
-     "fx_col": [
-      1.25,
-      1.05,
-      0.55
-     ]
+     "fx": "fx_e_px_carmen_clear_ring",
+     "fx_scale": 1.0
     }
    ],
    "intro": {
@@ -818,7 +819,8 @@
      "track": 0.3,
      "cone_dmg": 0.702,
      "cd": 8,
-     "fx": "fx_bishop_wave",
+     "fx": "fx_e_px_bishop_wave",
+     "fx_scale": 1.0,
      "mult": 0.624
     }
    ],

@@ -4,6 +4,7 @@ const DEEP := Color(0.025, 0.09, 0.14)
 const SEA := Color(0.08, 0.36, 0.42)
 const LIT := Color(0.28, 0.65, 0.68)
 const FOAM := Color(0.78, 0.95, 0.89)
+const A = preload("res://scripts/art.gd")   # 帧条登记（组 E 冰棱弹按登记帧数取帧，docs/236）
 
 static func draw(g, w: Dictionary, alpha: float) -> bool:
 	var age: float = float(w.get("age", float(w.get("max", 0.0)) - float(w.get("life", 0.0))))
@@ -99,17 +100,17 @@ static func _ice(r, w: Dictionary, age: float, alpha: float) -> void:
 			_grain(r,q,_c(Color(.55,.83,.9),alpha*.7))
 
 static func _crystal(g, p: Vector2, age: float, scale: float, alpha: float, remaining := INF) -> void:
-	if not g is Dictionary and g.world._lazy_tex("fx_knight_crystal_rise") != null:
+	if not g is Dictionary and g.world._lazy_tex("fx_e_px_knight_crystal_rise") != null:   # 组 E pixelfx 冰晶簇（docs/236，帧窗口同原 Codex 条）
 		g.world.tb_flush()
-		var name := "fx_knight_crystal_hold"
+		var name := "fx_e_px_knight_crystal_hold"
 		var count := 3
 		var frame := int(age*8)%3
 		if remaining<.30:
-			name="fx_knight_crystal_break"
+			name="fx_e_px_knight_crystal_break"
 			count=10
 			frame=clampi(int((.30-remaining)/.30*10),0,9)
 		elif age<.23:
-			name="fx_knight_crystal_rise"
+			name="fx_e_px_knight_crystal_rise"
 			count=7
 			frame=clampi(int(age/.23*7),0,6)
 		g.world._lazy_tex(name)
@@ -231,15 +232,16 @@ static func _ice_thrust(r, w: Dictionary, age: float, alpha: float) -> void:
 		_grain(r,p-d*(age*20),_c(LIT,alpha*.65))
 
 static func _ice_projectile(g,w: Dictionary,age: float,alpha: float) -> bool:
-	if g is Dictionary or g.world._lazy_tex("proj_knight_ice")==null: return false
+	if g is Dictionary or g.world._lazy_tex("proj_e_px_knight_ice")==null: return false
 	g.world.tb_flush()
 	var d := Vector2.from_angle(w.ang)
-	# The 30px painted projectile occupies the same 90px moving damage segment.
-	g.vfx.spr_rot("proj_knight_ice",int(age*18)%10,w.pos+d*w.len*.5,w.ang,3.0,Color(1,1,1,alpha),Vector2(20,16))
+	# 组 E pixelfx 冰棱弹（docs/236）：44 纹素 × Game.PX = 88 世界像素 ≈ 90 像素判定段，居中；原 Codex 条按 3 倍放大（密度超 2.2）已换掉
+	var spec: Array = A.V6_FRAMES["proj_e_px_knight_ice"]
+	g.vfx.spr_rot("proj_e_px_knight_ice",int(age*float(spec[1]))%int(spec[0]),w.pos+d*w.len*.5,w.ang,g.PX,Color(1,1,1,alpha))
 	return true
 
 static func _ice_wave_sprites(g,w: Dictionary,age: float,alpha: float) -> void:
-	if g is Dictionary or g.world._lazy_tex("fx_knight_ice_crest")==null: return
+	if g is Dictionary or g.world._lazy_tex("fx_e_px_knight_ice_crest")==null: return
 	g.world.tb_flush()
 	var gy: float = g.combat.GROUND_Y
 	var count: int = clampi(int(TAU*w.r/65),6,32)
@@ -248,7 +250,7 @@ static func _ice_wave_sprites(g,w: Dictionary,age: float,alpha: float) -> void:
 		var direction := Vector2(cos(angle),sin(angle)*gy)
 		if w.has("gap_ang") and absf(angle_difference(direction.angle(),w.gap_ang))<w.gap_half+.10: continue
 		var p: Vector2 = w.pos+direction*(w.r-18)
-		g.vfx.spr("fx_knight_ice_crest",11,2+int(age*14+i%3)%5,p.snapped(Vector2.ONE),1.0,false,Color(1,1,1,alpha*.85),Vector2(.5,.94))
+		g.vfx.spr("fx_e_px_knight_ice_crest",11,2+int(age*14+i%3)%5,p.snapped(Vector2.ONE),1.0,false,Color(1,1,1,alpha*.85),Vector2(.5,.94))
 
 static func _ice_lance(g, w: Dictionary, age: float, alpha: float) -> void:
 	var r = g.world
@@ -420,7 +422,7 @@ static func _ice_wall(g, w: Dictionary, age: float, alpha: float) -> void:
 		_poly(g.world,[a-n*w.wid*.5,b-n*w.wid*.5,b+up,a+up],_c(Color(.25,.40,.47),alpha*fade))
 		_poly(g.world,[a+up,b+up,b+n*w.wid*.5,a+n*w.wid*.5],_c(Color(.37,.54,.60),alpha*fade))
 		_band(g.world,a+up,b+up,1,1,_c(Color(.63,.75,.76),alpha*fade))
-	if not g is Dictionary and g.world._lazy_tex("fx_knight_ice_wall")!=null:
+	if not g is Dictionary and g.world._lazy_tex("fx_e_px_knight_ice_wall")!=null:
 		g.world.tb_flush()
 		var frame: int=clampi(10+int(age/.22*8),10,17) if age<.22 else 17+int(age*8)%3
 		if remaining<.30: frame=clampi(23+int((.30-remaining)/.30*13),23,35)
@@ -432,7 +434,7 @@ static func _ice_wall(g, w: Dictionary, age: float, alpha: float) -> void:
 			roots.append(p+n*w.wid*.32)
 		roots.sort_custom(func(a:Vector2,b:Vector2):return a.y<b.y)
 		for p in roots:
-			g.vfx.spr("fx_knight_ice_wall",36,frame,p.snapped(Vector2.ONE),1.0,false,Color(.78,.86,.88,alpha),Vector2(.5,60.0/64))
+			g.vfx.spr("fx_e_px_knight_ice_wall",36,frame,p.snapped(Vector2.ONE),1.0,false,Color(1,1,1,alpha),Vector2(.5,60.0/64))   # 组 E pixelfx（docs/236）：帧窗口同原条；不再叠冷色 tint（帧条本身是 Boss 色阶）
 
 static func _blade(r, w: Dictionary, age: float, alpha: float) -> void:
 	if age>0.0 and not w.has("formation"):
@@ -643,9 +645,9 @@ static func _stake_seed(g,w:Dictionary,age:float,alpha:float) -> void:
 		var p:Vector2=w.pos.lerp(w.target,t)+Vector2(0,-42*(1-t)-sin(t*PI)*95)
 		var velocity:Vector2=w.target-w.pos+Vector2(0,42-cos(t*PI)*PI*95)
 		_band(r,p-velocity.normalized()*48,p,3,1,_c(Color(.55,.72,.77),alpha*.7))
-		if not g is Dictionary and r._lazy_tex("proj_knight_spear")!=null:
+		if not g is Dictionary and r._lazy_tex("proj_e_px_knight_spear")!=null:
 			r.tb_flush()
-			g.vfx.spr_rot("proj_knight_spear",int(age*12)%2,p.snapped(Vector2.ONE),velocity.angle(),g.PX,Color(.8,.9,1,alpha))
+			g.vfx.spr_rot("proj_e_px_knight_spear",int(age*12)%2,p.snapped(Vector2.ONE),velocity.angle(),g.PX,Color(1,1,1,alpha))   # 组 E pixelfx 长枪（2 帧，docs/236）
 		# Ice edging keeps the narrow dark source lance readable over the arena.
 		var d:Vector2=velocity.normalized()
 		var n:Vector2=d.orthogonal()

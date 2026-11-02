@@ -242,7 +242,7 @@ func setup_preview_phase2(e: Dictionary) -> void:
 	e.stakes = []
 	_tint2(e, STAGE_TINT[3])
 	e.kn_reborn_pos = e.pos
-	g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0)
+	g.vfx.fx_sprite("fx_e_px_knight_rebirth", e.pos, g.PX, 0.0)   # 组 E pixelfx（docs/236）：地面冰浪 R40
 
 
 func demo_moves(e: Dictionary) -> Array:
@@ -475,7 +475,7 @@ func stake_cast_step(e: Dictionary, dir: Vector2, ready: bool) -> bool:
 				ends.append(stake.pos)
 				cast.end_at=maxf(cast.end_at,float(stake.born)+.25)
 			g.fx.append({"kind":"final_impact","skin":"stake_roots","pos":cast.target,"ends":ends,"life":1.25,"max":1.25,"enemy":true,"owner":e})
-			g.vfx.fx_sprite("fx_knight_ice_hit",cast.target,g.PX,0.0)
+			g.vfx.fx_sprite("fx_e_px_knight_ice_hit",cast.target,g.PX,0.0)
 			Sfx.play("stake_shatter",-12.0,.8,0.0)
 		if cast.stage=="rise" and g.t>=cast.end_at:
 			e.erase("stake_cast")
@@ -567,7 +567,7 @@ func on_lethal(e: Dictionary) -> bool:
 	e["tint2"] = STAGE_TINT[3]   # 重生常驻黑冰着色（docs/95 §4.2 → docs/169 分阶段风格；render/world 乘色，不改帧条）
 	e.kn_reborn_pos = e.pos   # 重生点：场地画放射状裂冰
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
-	if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
+	if not g.vfx.fx_sprite("fx_e_px_knight_rebirth", e.pos, g.PX, 0.0):   # 组 E pixelfx（docs/236）
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
 	g.vfx.show_banner("冲锋形态：引它撞上场边就会眩晕")
 	Sfx.play("roar", 0.0, 0.9, 0.0)

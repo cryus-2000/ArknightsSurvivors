@@ -183,30 +183,30 @@ func run_checks() -> void:
 	g.bai._update_warns(2.0)
 	check(is_equal_approx(g.hp, hp_before) and g.ebullets.is_empty(), "dead secondary owner cannot deal damage")
 	# docs/96 第 3 批挂点（Codex 未交）：帧条名经 enemies.json 传到出招 / 弹体 / 抛射物；有图时自爆与冲刺水痕放帧条
-	# （借第 1 批已有的 fx_corrode_hit 代替还没交的 fx_runner_blast / fx_slider_dash，测完还原数据）
+	# （组 E pixelfx 已交 fx_e_px_runner_blast / fx_e_px_slider_dash，docs/236；开播时会随机挑 _v1 / _v2 变体，所以按前缀比）
 	g.invuln = 100.0
 	var keep_blast = D.ENEMIES["runner"].get("blast_fx")
-	D.ENEMIES["runner"]["blast_fx"] = "fx_corrode_hit"
+	D.ENEMIES["runner"]["blast_fx"] = "fx_e_px_runner_blast"
 	var ru: Dictionary = g.spawner.new_enemy("runner", Vector2.ZERO)
 	ru.blast_w = 0.01
 	g.fx.clear()
 	g.eai.pattern(ru, Vector2.RIGHT, 300.0, 0.05, ru.spd)
-	check(ru.dead and g.fx.any(func(f): return f.get("name", "") == "fx_corrode_hit") and not g.fx.any(func(f): return f.kind == "explode"), "runner blast_fx replaces the program explosion")
+	check(ru.dead and g.fx.any(func(f): return str(f.get("name", "")).begins_with("fx_e_px_runner_blast")) and not g.fx.any(func(f): return f.kind == "explode"), "runner blast_fx replaces the program explosion")
 	D.ENEMIES["runner"]["blast_fx"] = keep_blast
 	var keep_dash = D.ENEMIES["slider"].get("dash_fx")
-	D.ENEMIES["slider"]["dash_fx"] = "fx_corrode_hit"
+	D.ENEMIES["slider"]["dash_fx"] = "fx_e_px_slider_dash"
 	var sl: Dictionary = g.spawner.new_enemy("slider", Vector2.ZERO)
 	sl.dash_t = 0.3
 	sl.dash_dir = Vector2.LEFT
 	g.fx.clear()
 	g.eai.pattern(sl, Vector2.RIGHT, 300.0, 0.05, sl.spd)
-	check(g.fx.any(func(f): return f.kind == "gsprite" and f.get("name", "") == "fx_corrode_hit"), "slider dash leaves a ground-layer dash_fx trail")
+	check(g.fx.any(func(f): return f.kind == "gsprite" and str(f.get("name", "")).begins_with("fx_e_px_slider_dash")), "slider dash leaves a ground-layer dash_fx trail")
 	D.ENEMIES["slider"]["dash_fx"] = keep_dash
 	var os_e: Dictionary = g.spawner.new_enemy("offspring", Vector2.ZERO)
 	os_e.nova_w = 0.01
 	g.ebullets.clear()
 	g.eai.pattern(os_e, Vector2.RIGHT, 300.0, 0.05, os_e.spd)
-	check(not g.ebullets.is_empty() and g.ebullets.all(func(b): return str(b.get("tex", "")) == "proj_offspring_spore"), "offspring nova carries shot_tex")
+	check(not g.ebullets.is_empty() and g.ebullets.all(func(b): return str(b.get("tex", "")) == "proj_e_px_offspring_spore"), "offspring nova carries shot_tex")
 	g.ebullets.clear()
 	var mi: Dictionary = g.spawner.new_enemy("mimic", Vector2.ZERO)
 	mi.age = 5.0
@@ -235,7 +235,7 @@ func run_checks() -> void:
 	check(g.nerve_aura_t <= 0.0, "mimic scream does not reach outside its radius")
 	g.t = float(mi.scream_t1) + 0.01
 	g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.05, mi.spd)
-	check(g.warns.any(func(w): return w.get("act", "") == "bite" and str(w.get("atk_fx", "")) == "fx_mimic_bite"), "mimic bite carries atk_fx")
+	check(g.warns.any(func(w): return w.get("act", "") == "bite" and str(w.get("atk_fx", "")) == "fx_e_px_mimic_bite"), "mimic bite carries atk_fx")
 	# 连咬（docs/145 §4 B）：第一口结算时补第二口，单独预警、伤害 × bite2_mult
 	var b1: Dictionary = g.warns.filter(func(w): return w.get("act", "") == "bite")[0]
 	g.warns.clear()
@@ -248,7 +248,7 @@ func run_checks() -> void:
 	var st_e: Dictionary = g.spawner.new_enemy("stone", Vector2.ZERO)
 	g.lobs.clear()
 	g.eai.lob(st_e)
-	check(not g.lobs.is_empty() and str(g.lobs[g.lobs.size() - 1].get("hit_fx", "")) == "fx_rock_hit" and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[0]) == 10.0 and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[1]) == 10.0, "stone lob carries hit_fx and its origin")
+	check(not g.lobs.is_empty() and str(g.lobs[g.lobs.size() - 1].get("hit_fx", "")) == "fx_e_px_rock_hit" and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[0]) == -1.0 and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[1]) == -1.0, "stone lob carries hit_fx and its origin")
 	g.lobs.clear()
 	# 大群分批出发（docs/158，10-26 iPhone 实机「有些怪物身上冒着红光卡在原地」）：出发延迟走 depart_t，等待结束后普通怪照常追队长；
 	# 原来借用收割者的 wake_t，只有收割者会倒计时，其他怪永远站在原地

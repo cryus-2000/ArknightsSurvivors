@@ -1,6 +1,43 @@
 {
   "_doc": "docs/237 特效覆盖登记（组 e 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py",
-  "boss_patterns|fx_col": {"status": "不换", "why": "不是贴图：enemies.json 出招的 fx 着色字段（boss_patterns.gd:225），扫描误抓"},
-  "boss_patterns|fx_scale": {"status": "不换", "why": "不是贴图：enemies.json 出招的 fx 缩放字段（boss_patterns.gd:227），扫描误抓"},
-  "bullet_fx|fx_col": {"status": "不换", "why": "不是贴图：弹体字典的颜色字段（bullet_fx.gd:192），扫描误抓"}
+  "boss_patterns|fx_col": {
+    "status": "不换",
+    "why": "不是贴图：enemies.json 出招的 fx 着色字段（boss_patterns.gd:225），扫描误抓"
+  },
+  "boss_patterns|fx_scale": {
+    "status": "不换",
+    "why": "不是贴图：enemies.json 出招的 fx 缩放字段（boss_patterns.gd:227），扫描误抓"
+  },
+  "bullet_fx|fx_col": {
+    "status": "不换",
+    "why": "不是贴图：弹体字典的颜色字段（bullet_fx.gd:192），扫描误抓"
+  },
+  "bullet_fx|fx_px_burst1": {
+    "status": "不换",
+    "why": "公共击杀件（Boss 圆形结算 / 击杀爆点的预烘颗粒），非敌方攻击；美术组长 11-03 定不在组 E 本轮范围"
+  },
+  "bullet_fx|fx_px_burst2": {
+    "status": "不换",
+    "why": "同 fx_px_burst1：公共击杀件，组长 11-03 定不换"
+  },
+  "telegraph|fx_archon_breath": {
+    "status": "不换",
+    "why": "死分支：蔑死体吐息的预警带 kp（Kanpelle 激光），telegraph._kp() 恒为真，这段帧条调用永远走不到；吐息画面由 fx_kp_archon_* 负责（§6 动态拼名）"
+  },
+  "telegraph|fx_ishar_line_muzzle": {
+    "status": "不换",
+    "why": "死分支：只在 render/ishar_laser = 0 时画，缺省 1（统一光束由 ishar_tell_draw 画）"
+  },
+  "telegraph|fx_knight_frost_burst": {
+    "status": "不换",
+    "why": "死分支：没有任何招式创建 act = frost 的预警（骑士寒冷改走 _enemy_act_fx），这段永远不执行"
+  },
+  "telegraph|fx_knight_thrust": {
+    "status": "不换",
+    "why": "死分支：w.thrust 从不设置，连刺第 3 段的枪尖帧条永远不画"
+  },
+  "telegraph|fx_path_fractal_rise": {
+    "status": "不换",
+    "why": "死分支：spawn_after 在任何数据里都没设，塑路者分形升起这段永远不执行"
+  }
 }

@@ -7,12 +7,12 @@
 
 ## 0 结论先看
 
-- **试点 2 项已按组 E 规范接进游戏**：卡门「炮身砸击」→ `fx_e_px_carmen_smash`，斥亡体「迸发」→ `fx_e_px_immortal_burst`（源 `tools/pixelfx_fx/impacts/ak-e-slam.js`，目标 `targets_e.json`）。判定、伤害、预警一行不动（§3）。
-- **覆盖率 5 / 59（8%）**：2 项已做 + 3 项扫描误抓（变量名，登记「不换」）。其余 54 项的去向见 §1.4。
-- **包体**：每条 3 个种子变体（docs/229 §2.11），调色板 PNG 合计 57.3 KB（本体 + glow 单条 7.3–12.5 KB，均 ≤ 14 KB），导入后 .ctex 48.5 KB；组 E 额度 200 KB 已用 29%。
-- **验收硬数字全过**：尘墙外沿 69 / 119 世界像素（判定 70 / 120，不超）、近白 ≤ 0.5%、余韵 alpha ≤ 0.41（个别像素量化取整）、末帧最大 alpha ≤ 0.07、20 fps、主体 0.4 s。vreview 结果见 §3.4。
-- **待组长定**：px_vary 对地面圈类帧条的随机纵向镜像和 ±0.1 弧度转角（§3.4 末）。
-- **前 8 名**（§1.3）不变，排序口径不变。
+- **11-03 整套替换完成（§4）**：docs/237 §5 全部 62 行（59 项 + 新增的分尺寸帧条）覆盖率 **62 / 62（100%）**：52 行换成 pixelfx 自写的 `fx_e_px_*` / `proj_e_px_*`，10 行登记「不换」并写理由（5 个死分支、3 个扫描误抓的变量名、2 个公共击杀件，见 §4.4）。
+- **两个缺图 bug 已修**：浮海飘航者神经弹、固海凿石者碎石弹的 `hit_fx` 现在有图（`fx_e_px_nerve_hit` / `fx_e_px_rock_hit`），命中不再空白（§4.3）。
+- **包体**：236 个 PNG（含 _glow 与变体）合计 **334 KB**，导入后 .ctex **272 KB**；单条（本体 + glow）全部 ≤ 14 KB（最大 11.3 KB）。
+- **硬数字自检全过**（`python tools/pixelfx_fx/foe/audit_e.py`，§4.5）；判定、伤害、预警一行不动。
+- 帧时按 docs/229 §9 免测；对照录像按组长「统一录」不自录，录制参数见 §5。
+- 11-02 试点（卡门砸击、斥亡体迸发）与前 8 名盘点见 §1–§3，口径不变。
 
 ## 1 盘点
 
@@ -198,9 +198,85 @@ python tools/pixelfx_export.py --lib <主仓库>/build/pixelfx --only fx_e_px_ca
 
 **待组长定（vfx.gd 不归本组改）**：88c92cb8a 的 `px_vary` 会对 `fx_e_px_*` 随机做 fy = -1（沿朝向轴镜像）和 ±0.1 弧度转角。对俯视地面落点类：镜像后尘墙往下长、远近透视颠倒；转角让外沿偏离判定椭圆（r 120 约 5 像素）。已发消息请组长给地面帧条（`ground = true`）免掉镜像 / 转角，或在 V6_FRAMES 第 3 项加「不变形」标记。本次录像里两种情况都会随机出现。
 
-## 4 后续
+## 4 整套替换（11-03）
 
-- 下一批按 §1.4「缺图槽位」第一批：轰击落点 `fx_saint_shell_burst`、狂奔者自爆 `fx_runner_blast`、碎石 / 神经弹命中（顺带修无画面 bug，要动 bullet_fx，提给组长）。
-- docs/229 §4 前 3（育母落点、喷吐落点、囊海破膜）属「已有旧帧条」，整套替换时一起做。
-- 弹体与 `fx_px_*` 是否在替换范围，等组长定（§1.4 末行）。
-- docs/226 的敌方顶层合入后，可以考虑把爆亮第 0 帧挪到顶层，保证不被我方特效盖住；现在落点帧条画在地面层（预警 / 单位之下），不会盖住预警。
+组长 11-03 定：做满 docs/237 §5；敌方弹体 4 项、Boss 弹迸散 / 拖尾（`fx_px_bpop` / `fx_px_btrail`）归组 E；`fx_px_burst1/2` 是公共击杀件，登记不换；对照录像最后统一录。
+地面免镜像 / 转角由组长在 660d61d22 改好（`fx_e_px_*` 与地面帧条只挑变体）。
+
+### 4.1 公共写法（`tools/pixelfx_fx/**/ak-e-*.js`）
+
+| 源 | 写法 | 用在 |
+|---|---|---|
+| `impacts/ak-e-slam.js` | 砸地：爆亮 → 热裂 → 尘墙推到判定半径 → 碎石 / 余震；`cracks / rocks / core = 0` 时只留一道尘浪（环形脉冲） | 卡门砸击、斥亡体迸发、轰击落点（r80 / r38）、狂奔者自爆、出环 / 订正环（伊比利亚 / 卡门 / 塑路者）、骑士重生 |
+| `impacts/ak-e-hit.js` | 命中 / 小溅射：不规则热团 + 四种材质（shard 碎片、goo 液滴落地成渍、nerve 短分叉电弧、grit 碎石 + 尘）；`dir` 定向、`half` 前后分层、`ramp: grey` 给代码着色 | 各类 hit_fx、酸溅、落点、出手口、凝视命中、碎冰迸溅、水花、泡影叠影、Boss 弹迸散 |
+| `impacts/ak-e-sac.js` | 同 hit 的 goo，只换画布（囊海破膜要锚点 0.7 高、前后两层） | 囊海破膜 |
+| `melee/ak-e-swipe.js` | 扇形挥击（月牙铺满再从尾部收回）/ 咬合 / 直线突刺 / 扇形喷涌 | 收割者镰肢、巢涌横扫、箱形咬合、引痕突刺（含狂暴）、滑动者冲刺、伊莎玛拉撕咬、长枪回旋、散射、潮汐波、分享、呼号 |
+| `projectiles/ak-e-proj.js` | 弹体循环（孢子 / 侵蚀弹 / 酸团 / 冰棱 / 拖尾），首尾无缝 | 子代孢子、漂移体侵蚀弹、喷吐者酸团、骑士冰棱弹 / 长枪、Boss 弹拖尾 |
+| `impacts/ak-e-ice.js` | 骑士冰材质：晶簇 / 冰浪冠 / 冰墙 × 升起 / 持续（循环）/ 碎裂 | 骑士终局冰晶、冰浪、冰墙 |
+
+色：普通敌方 `DANGER_RAMP`，Boss 招式 Boss 色 #ff6726 的同构 7 阶（`BOSS_RAMP`），代码着色件用中性灰阶。**骑士终局的冰也按规范改成 Boss 色阶**（原来是冷白冰蓝），这是看得见的风格变化，统一录像时请重点看。
+
+### 4.2 导出
+
+```bash
+python tools/pixelfx_fx/foe/export_e.py     # targets_e.json → tools/pixelfx_export.py → 重写 art.gd 组 E 块 → asset_index → audit_e 自检
+python tools/pixelfx_fx/foe/fixed_e.py      # 代码写死帧数 / 网格 / 画布的件（Boss 弹迸散 / 拖尾、囊海破膜、骑士冰材质）
+```
+
+- 每招按最终尺寸导出、固定 `Game.PX` 画（普通 / 地面帧条都会被 `vfx.int_scale` 取整成 2 的倍数，连续缩放对不上判定）；锚点 = 帧中心（导出以原点对称裁边）。
+- 通过 `fx_sprite` 播的件各 3 个种子变体（滑动者冲刺 2 个）；弹体、Boss 弹迸散 / 拖尾、囊海、冰材质由代码直接取帧，只出 1 个（迸散的 3 个种子拼成网格的 3 行）。
+- 火星没写进登记第 3 项：调用点原本就有 `vfx.sparks`，只把颜色改成 Boss / 危险色系。
+
+### 4.3 调用点改动（只改帧条名和调用参数，判定不动）
+
+- `enemies.json`：hit_fx / atk_fx / blast_fx / dash_fx / land_fx / burst_fx / puddle_fx / muzzle_fx / shot_tex / lob_tex / patterns.fx 换新名；`*_origin` 改 [-1, -1]（帧中心）；出招 fx 加 `fx_scale: 1.0`；去掉卡门出环的金色 `fx_col`。
+- `telegraph.gd`：碎冰迸溅、水花、轰击（按 r 选大 / 小）、叠影、凝视命中、喷涌（按 r / 半角选，原点 = 扇心）、伊莎玛拉撕咬（原点 = 扇心）换新名、固定 PX；**长枪回旋**原来 8 把刀光按 45° 等距排成时钟（违反 §2.6），改成一道绕开缺口的整圈扫弧，缺图照旧程序刀光。
+- `shot_pool.gd`：落点 / 酸溅 / 拟嗣落地以落点为中心（去掉旧条的偏心锚点和 bottom）。拟嗣落地不再把 e_brood 首帧嵌进末帧，帧条播完拟嗣本体直接出现。
+- `enemy_ai.gd`（育母出手）、`knight_boss.gd`（重生、桩落点碎冰）、`final_attacks.gd`（冰刺尖端，不再 1.3 倍放大）、`bullet_fx.gd`（`POP` / `TRAIL` 常量）、`final_boss_materials.gd`（冰材质换名；冰棱弹由 3 倍放大改 Game.PX、按登记帧数取帧；冰墙去掉冷色 tint）、`tests/final_boss_materials_test.gd`（检查名单换新名）。
+- **缺图 bug**：`bullet_fx._die` 只要弹带 hit_fx 就跳过公共命中画面；现在两种弹的 hit_fx 都有图，命中不再空白。`_die` 本身「图缺也跳过」的写法没改（bullet_fx 的公共逻辑，留给组长决定要不要加缺图回落）。
+- **没改的同名调用**（不在 §5 名单里、属组长 / 公共文件）：world.gd 骑士 `_enemy_act_fx` 与 vfx.gd `BOSS_STYLE` 仍用 `fx_knight_impact` / `fx_water_splash`；world.gd `spear_fly` 仍用 `proj_knight_spear`。需要的话可以照 §4.3 换成 `fx_e_px_*`。
+
+### 4.4 登记「不换」的 10 行（`tools/pixelfx_fx/coverage_e.json`）
+
+| 行 | 理由 |
+|---|---|
+| `boss_patterns|fx_col`、`boss_patterns|fx_scale`、`bullet_fx|fx_col` | 变量名被扫描误抓，不是贴图 |
+| `bullet_fx|fx_px_burst1/2` | 公共击杀件，组长 11-03 定不在本轮 |
+| `telegraph|fx_archon_breath` | 死分支：蔑死体吐息带 kp，`_kp()` 恒真，帧条永远不画（吐息由 `fx_kp_archon_*` 画） |
+| `telegraph|fx_ishar_line_muzzle` | 死分支：只在 `render/ishar_laser = 0` 时画，缺省 1 |
+| `telegraph|fx_knight_frost_burst` | 死分支：没有招式建 act = frost 的预警 |
+| `telegraph|fx_knight_thrust` | 死分支：`w.thrust` 从不设 |
+| `telegraph|fx_path_fractal_rise` | 死分支：`spawn_after` 无数据 |
+
+### 4.5 硬数字自检
+
+`python tools/pixelfx_fx/foe/audit_e.py`：逐条（含变体）查体积（本体 + glow ≤ 14 KB）、调色板实用色数（≤ 32）、近白（≤ 12%）、余韵段最大 alpha（≤ 0.4，量化取整允许 0.41）、末帧、水平外沿。11-03 结果：**超标 0 条**；最大单条 11.3 KB（斥亡体迸发 _v2）；近白最高 9.2%（伊祖米克三叶扇 _v1，细流束占比高）；地面落点外沿均 ≤ 判定。
+固定格式件（fixed_e.py）另计 13.5 KB，帧数 / 画布与代码一致（迸散 8 × 3、拖尾 4、囊海 6、晶簇 7 / 3 / 10、冰浪冠 11、冰墙 36）。
+棋盘格：所有带 alpha 的点改用真半透明（`p.blend` / `p.disc`），没有抖动淡出。
+
+## 5 统一录制参数（给组长批量录）
+
+逐招 Boss（`python tools/pixelfx_fx/foe/rec_moves.py <spec>:<招>,<招> …`；`--bossmoves=<spec> --bossonly=<招> --shotstep=1`、seed 1、`--fixed-fps 30`）：
+
+| 帧条 | spec | 招式名（demo_moves 里的原名） |
+|---|---|---|
+| carmen_smash、carmen_clear_ring | `carmen2`（砸击只在第二幕） | 炮身砸击、环射 |
+| saint_shell_burst（r80）/ _s（r38）、iberia_clear_ring、saint_scatter | `iberia` | 轰击、三连曲射、清膛、散射 |
+| immortal_burst | `immortal` | 迸发 |
+| path_correct_ring、path_spin | `path` | 订正、长枪回旋 |
+| paranoia_stack、paranoia_gaze_hit、paranoia_howl | `paranoia` | 叠影、凝视、呼号 |
+| izumik_share（r300 半角 1.0）/ _n（三叶扇）/ _s（r200） | `izumik`（三叶扇要 `izumik2` 第三幕） | 分享 |
+| ishar_maw | `ishar2`（濒死强化第 2 段才出镜像牙光） | 撕咬 |
+| bishop_wave、water_splash | `bishop` / `bishop+archon` | 接潮扇浪、潮汐柱 |
+| knight_impact、knight_rebirth、knight_ice_hit、冰晶 / 冰浪 / 冰墙 / 冰棱弹 / 长枪 | `knight_boss` / `knight_boss2` | 冰线、掷枪、长枪连刺、冲锋（重生在一阶段半血入潮时） |
+
+普通怪（`python tools/probes/enemy_animation_capture.py --ids <id,…>`，录真实 AI 前 5 秒）：runner、slider、reaper、tracer（狂暴另录）、nest、mimic、floater、stone、spitter、mother、skimmer、pocket、offspring。
+
+预警 = 判定的对照图：`python tools/pixelfx_fx/foe/warn_proof.py <输出目录> <tag> …`（读 rec_moves 的改前 / 改后截图）。
+
+## 6 后续
+
+- `bullet_fx._die` 缺图时也跳过公共命中的写法，建议组长加缺图回落（§4.3）。
+- world.gd / vfx.gd 里同名旧条（骑士冲锋 / 咬 / 寒冷、Boss 签名、spear_fly）要不要也换，等组长定（§4.3 末）。
+- 骑士终局冰改为 Boss 色阶是规范要求，但和原「冰」的识别有冲突，统一录像后请用户看。
+- docs/226 的敌方顶层合入后，可以考虑把爆亮第 0 帧挪到顶层，保证不被我方特效盖住。

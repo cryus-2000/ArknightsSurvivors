@@ -307,7 +307,7 @@ func _pop(h: Dictionary) -> void:
 		tail.max=0.38
 		g.fx.append(tail)
 	if h.get("skin", "") in ["ice_thrust", "ice_javelin"] and not g is Dictionary:
-		g.vfx.fx_sprite("fx_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX*(1.3 if h.skin=="ice_javelin" else 1.0),h.ang)
+		g.vfx.fx_sprite("fx_e_px_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX,h.ang)   # 组 E pixelfx（docs/236）：按 Game.PX 画，不再 1.3 倍放大（密度 ≤ 2.2）
 		if h.skin == "ice_javelin":
 			Sfx.play_at("knight_frost", h.pos+Vector2.from_angle(h.ang)*h.len, -14.0, 1.35, 0.1)   # 冰枪碎裂（纯音频）
 	if h.get("skin", "") != "bubble":

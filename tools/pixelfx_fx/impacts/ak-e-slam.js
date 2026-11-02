@@ -21,7 +21,7 @@ export const meta = {
   loop: false,
   fps: FPS.enemy,
   bg: "ground",
-  options: { R: 35, boss: 0, tail: 0.32, inner: 1, seed: 3 },
+  options: { R: 35, boss: 0, tail: 0.32, inner: 1, cracks: 1, rocks: 1, core: 1, seed: 3 },   // cracks / rocks / core = 0 关掉对应部分（环形脉冲只留尘浪）
 };
 
 const GY = 0.55;            // 地面纵向压缩，和游戏 ground_y 一致
@@ -58,19 +58,19 @@ export function create(o) {
   let a = Rn.range(0, TAU), sz = Rn.range(3, 5);
   for (let i = 0; i < nL; i++) {
     a += step * Rn.range(0.45, 1.7);
-    sz = clamp(sz + Rn.range(-1.6, 1.6), 2.2, 6.2);
+    sz = clamp(sz + Rn.range(-1.6, 1.6), 2.2, 6.2) * Math.min(1, Math.max(0.55, R / 35));   // 小半径尘团跟着缩
     const big = Rn.chance(0.15) ? Rn.range(1.3, 1.6) : 1;
     const gap = gaps.some((g) => Math.abs(wrap(a - g)) < 0.17);
     const near = 0.95 + 0.3 * Math.max(0, Math.sin(a));
-    lumps.push({ a, rj: Rn.range(0.78, 1.0), s: (gap ? 0.4 : 1) * sz * big * near, h: (gap ? 0.3 : 1) * Rn.range(2, 10) * big * near,
+    lumps.push({ a, rj: Rn.range(0.78, 1.0), s: (gap ? 0.4 : 1) * sz * big * near, h: (gap ? 0.3 : 1) * Rn.range(2, 10) * big * near * Math.min(1, Math.max(0.55, R / 35)),
       lag: Rn.range(0, 0.05), drift: Rn.range(0.0, 0.04) });
   }
   const rocks = Array.from({ length: 12 }, () => ({ a: Rn.range(0, TAU), d: R * Rn.range(0.2, 0.7), h: 0, vh: Rn.range(80, 130), s: Rn.int(1, 2),
     t0: Rn.range(0, 0.03), dark: Rn.chance(0.5), bounced: false }));
   const after = SHOCKS.map(() => Array.from({ length: 3 }, () => onFloor(Rn.range(0, TAU), R * Rn.range(0.15, 0.6))));
 
-  lights.add(0, -2, R * 0.8, RAMP[3], 0.45, 0.2);
-  lights.add(0, -2, R * 0.45, WHITE, 0.7, 0.1);   // 首帧爆亮的光（加色层 _glow）：游戏尺寸下要读得出来（vreview 11-03 报首帧偏弱）
+  if (o.core) lights.add(0, -2, R * 0.8, RAMP[3], 0.45, 0.2);   // 关坑心（环形脉冲）时不要中心光团
+  if (o.core) lights.add(0, -2, R * 0.45, WHITE, 0.7, 0.1);   // 首帧爆亮的光（加色层 _glow）：游戏尺寸下要读得出来（vreview 11-03 报首帧偏弱）
 
   let t = 0;
   const done = SHOCKS.map(() => false);
@@ -107,7 +107,7 @@ export function create(o) {
       if (t >= D) return;
       const H = heat(t), SK = shockK(t), tail = t >= MAIN;
       // 1) 热裂：主体内画（0.04 秒长满、冷却、余震回红），余韵不画（beam 的半透明是抖动的，余韵只留真半透明的尘）
-      if (!tail)
+      if (!tail && o.cracks)
         for (const c of cracks) {
           const g = ease.outCubic(clamp((t - c.t0) / 0.04 + (c.t0 === 0 ? 0.6 : 0)));
           if (g <= 0) continue;
@@ -119,7 +119,9 @@ export function create(o) {
           }
         }
       // 2) 爆亮：第 0 帧核心白（只占核心 0.36 × 0.4），第 1 帧降一阶；之后坑心按热度降阶
-      if (t < 0.1) {
+      if (!o.core) {
+        // 不画坑心与爆亮
+      } else if (t < 0.1) {
         const hero = t < 0.05, rr = R * (hero ? 0.46 : 0.34);
         const pts = blob.map((b) => [Math.cos(b.a) * rr * b.r, Math.sin(b.a) * rr * b.r * GY]);
         p.poly(pts, hero ? RAMP[3] : RAMP[2]);
@@ -144,8 +146,8 @@ export function create(o) {
         if (a <= 0.03) return;
         const [ix, iy] = onFloor(l.a, rr * 0.72);
         if (tail) {
-          // 余韵：每团只画一层，单层 ≤ 0.12 × TAIL_ALPHA；随机步进会扎堆，最多叠约 8 层，合成后仍 ≤ TAIL_ALPHA（docs/229 §2.5）
-          p.disc(x, y - rise * 0.5, sz * 1.05, DU[2], 0.12 * a);
+          // 余韵：每团只画一层，单层 ≤ 0.1 × TAIL_ALPHA；随机步进会扎堆，最多叠约 8 层，合成后仍 ≤ TAIL_ALPHA（docs/229 §2.5）
+          p.disc(x, y - rise * 0.5, sz * 1.05, DU[2], 0.1 * a);
           return;
         }
         if (o.inner) p.disc(ix, iy + jolt, sz * 0.8, DU[1], 0.35 * a);   // 墙后内尘（大半径可关，省体积）
@@ -154,11 +156,11 @@ export function create(o) {
         p.disc(x - sz * 0.25, y - rise - sz * 0.2, sz * 0.7, t < 0.15 ? DU[4] : DU[3], 0.75 * a);
       };
       lumps.filter((l) => Math.sin(l.a) < 0).forEach(drawLump);
-      if (!tail)
+      if (!tail && o.rocks)
         for (const r of rocks) {
           if (t < r.t0) continue;
           const [x, y] = onFloor(r.a, Math.min(r.d, R * 0.95));
-          if (r.h > 1) p.dot(x, y, DU[0], 0.6);
+          if (r.h > 1) p.blend(x, y, DU[0], 0.6);
           p.rect(x - r.s / 2, y - r.h - r.s / 2, r.s + 0.5, r.s + 0.5, r.dark ? DU[1] : DU[3]);
           if (t < 0.08) p.dot(x, y - r.h - r.s / 2, RAMP[4]);
         }

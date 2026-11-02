@@ -1,5 +1,5 @@
 {
- "_doc": "组 E 敌方 / Boss（docs/229 §4 §9、docs/236）。地面落点类按每招判定半径 r 导出（R = r / 2 纹素），游戏里固定 Game.PX 画；每条 3 个种子变体（docs/229 §2.11）；火星用调用点原有的 vfx.sparks（Boss 色系），不在这里另加 spark",
+ "_doc": "组 E 敌方 / Boss（docs/229 §4 §9、docs/236）。按每招判定尺寸导出（R = 世界像素 / 2 纹素），游戏里固定 Game.PX 画；每条 3 个种子变体（docs/229 §2.11），直接 spr / 网格读帧的写 variants 1；火星用调用点原有的 vfx.sparks，不另加 spark",
  "fx_e_px_carmen_smash": {
   "fx": "impacts/ak-e-slam",
   "opts": {
@@ -17,8 +17,414 @@
    "tail": 0.24,
    "inner": 0
   },
-  "colors": 20,
   "seed": 8,
-  "variants": 3
+  "variants": 3,
+  "colors": 20
+ },
+ "fx_e_px_saint_shell_burst": {
+  "fx": "impacts/ak-e-slam",
+  "opts": {
+   "R": 40,
+   "boss": 1,
+   "tail": 0.24,
+   "inner": 0
+  },
+  "seed": 11
+ },
+ "fx_e_px_saint_shell_burst_s": {
+  "fx": "impacts/ak-e-slam",
+  "opts": {
+   "R": 19,
+   "boss": 1,
+   "tail": 0.2
+  },
+  "seed": 14
+ },
+ "fx_e_px_iberia_clear_ring": {
+  "fx": "impacts/ak-e-slam",
+  "opts": {
+   "cracks": 0,
+   "rocks": 0,
+   "core": 0,
+   "inner": 0,
+   "tail": 0.16,
+   "boss": 1,
+   "R": 35
+  },
+  "seed": 21
+ },
+ "fx_e_px_carmen_clear_ring": {
+  "fx": "impacts/ak-e-slam",
+  "opts": {
+   "cracks": 0,
+   "rocks": 0,
+   "core": 0,
+   "inner": 0,
+   "tail": 0.16,
+   "boss": 1,
+   "R": 30
+  },
+  "seed": 24
+ },
+ "fx_e_px_path_correct_ring": {
+  "fx": "impacts/ak-e-slam",
+  "opts": {
+   "cracks": 0,
+   "rocks": 0,
+   "core": 0,
+   "inner": 0,
+   "tail": 0.16,
+   "boss": 1,
+   "R": 45
+  },
+  "seed": 27
+ },
+ "fx_e_px_knight_rebirth": {
+  "fx": "impacts/ak-e-slam",
+  "opts": {
+   "R": 40,
+   "boss": 1,
+   "cracks": 0,
+   "rocks": 0,
+   "inner": 0,
+   "tail": 0.2
+  },
+  "seed": 31
+ },
+ "fx_e_px_runner_blast": {
+  "fx": "impacts/ak-e-slam",
+  "opts": {
+   "R": 45,
+   "tail": 0.2,
+   "inner": 0
+  },
+  "seed": 34
+ },
+ "fx_e_px_paranoia_stack": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 22,
+   "kind": "goo",
+   "boss": 1,
+   "n": 11
+  },
+  "seed": 37
+ },
+ "fx_e_px_saint_scatter": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "spray",
+   "R": 40,
+   "half": 0.5,
+   "boss": 1
+  },
+  "seed": 41
+ },
+ "fx_e_px_bishop_wave": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "spray",
+   "R": 110,
+   "half": 0.9,
+   "boss": 1
+  },
+  "seed": 44,
+  "colors": 24
+ },
+ "fx_e_px_izumik_share": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "spray",
+   "R": 142,
+   "half": 1.0,
+   "boss": 1
+  },
+  "seed": 47,
+  "colors": 24
+ },
+ "fx_e_px_izumik_share_n": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "spray",
+   "R": 142,
+   "half": 0.35,
+   "boss": 1
+  },
+  "seed": 50
+ },
+ "fx_e_px_izumik_share_s": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "spray",
+   "R": 95,
+   "half": 0.5,
+   "boss": 1
+  },
+  "seed": 53
+ },
+ "fx_e_px_paranoia_howl": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "spray",
+   "R": 104,
+   "half": 0.8,
+   "boss": 1
+  },
+  "seed": 56,
+  "colors": 24
+ },
+ "fx_e_px_ishar_maw": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "bite",
+   "R": 80,
+   "half": 0.85,
+   "boss": 1
+  },
+  "seed": 59
+ },
+ "fx_e_px_path_spin": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "arc",
+   "R": 30,
+   "half": 2.44,
+   "boss": 1
+  },
+  "seed": 62
+ },
+ "fx_e_px_mimic_bite": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "bite",
+   "R": 32,
+   "half": 0.9
+  },
+  "seed": 65
+ },
+ "fx_e_px_reaper_scythe": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "arc",
+   "R": 62,
+   "half": 0.9
+  },
+  "seed": 68
+ },
+ "fx_e_px_tracer_thrust": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "line",
+   "R": 145,
+   "w": 6
+  },
+  "seed": 71
+ },
+ "fx_e_px_tracer_thrust_enraged": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "line",
+   "R": 145,
+   "w": 8
+  },
+  "seed": 74
+ },
+ "fx_e_px_nest_sweep": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "arc",
+   "R": 66,
+   "half": 3.0
+  },
+  "seed": 77
+ },
+ "fx_e_px_slider_dash": {
+  "fx": "melee/ak-e-swipe",
+  "opts": {
+   "shape": "line",
+   "R": 14,
+   "w": 4,
+   "tail": 0.05
+  },
+  "seed": 80,
+  "variants": 2
+ },
+ "fx_e_px_paranoia_gaze_hit": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 14,
+   "kind": "nerve",
+   "boss": 1
+  },
+  "seed": 83
+ },
+ "fx_e_px_knight_impact": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 20,
+   "kind": "grit",
+   "boss": 1
+  },
+  "seed": 86
+ },
+ "fx_e_px_knight_ice_hit": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 14,
+   "kind": "shard",
+   "boss": 1
+  },
+  "seed": 89,
+  "fps": 24
+ },
+ "fx_e_px_water_splash": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 16,
+   "kind": "goo",
+   "boss": 1,
+   "n": 9
+  },
+  "seed": 92
+ },
+ "fx_e_px_nerve_hit": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 10,
+   "kind": "nerve"
+  },
+  "seed": 95
+ },
+ "fx_e_px_rock_hit": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 12,
+   "kind": "grit"
+  },
+  "seed": 98
+ },
+ "fx_e_px_corrode_hit": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 12,
+   "kind": "goo"
+  },
+  "seed": 101
+ },
+ "fx_e_px_corrode_hit_acid": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 14,
+   "kind": "goo",
+   "n": 9
+  },
+  "seed": 104
+ },
+ "fx_e_px_acid_splash": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 10,
+   "kind": "goo",
+   "n": 6
+  },
+  "seed": 107
+ },
+ "fx_e_px_spitter_land": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 23,
+   "kind": "goo",
+   "n": 10,
+   "tail": 0.3
+  },
+  "seed": 110
+ },
+ "fx_e_px_brood_land": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 15,
+   "kind": "goo",
+   "n": 8,
+   "tail": 0.13
+  },
+  "seed": 113
+ },
+ "fx_e_px_pocket_puddle": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 20,
+   "kind": "goo",
+   "n": 10,
+   "tail": 0.3
+  },
+  "seed": 116
+ },
+ "fx_e_px_mother_throw": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 10,
+   "kind": "shard",
+   "dir": 1,
+   "n": 5
+  },
+  "seed": 119
+ },
+ "fx_e_px_skimmer_muzzle": {
+  "fx": "impacts/ak-e-hit",
+  "opts": {
+   "R": 8,
+   "kind": "shard",
+   "dir": 1,
+   "n": 4
+  },
+  "seed": 122
+ },
+ "proj_e_px_offspring_spore": {
+  "fx": "projectiles/ak-e-proj",
+  "opts": {
+   "R": 5,
+   "kind": "spore"
+  },
+  "seed": 125,
+  "variants": 1
+ },
+ "proj_e_px_skimmer_corrode": {
+  "fx": "projectiles/ak-e-proj",
+  "opts": {
+   "R": 5,
+   "kind": "orb"
+  },
+  "seed": 128,
+  "variants": 1
+ },
+ "proj_e_px_spitter_acid": {
+  "fx": "projectiles/ak-e-proj",
+  "opts": {
+   "R": 6,
+   "kind": "glob"
+  },
+  "seed": 131,
+  "variants": 1
+ },
+ "proj_e_px_knight_ice": {
+  "fx": "projectiles/ak-e-proj",
+  "opts": {
+   "R": 22,
+   "kind": "shard",
+   "boss": 1
+  },
+  "seed": 134,
+  "variants": 1
+ },
+ "proj_e_px_knight_spear": {
+  "fx": "projectiles/ak-e-proj",
+  "opts": {
+   "R": 20,
+   "kind": "shard",
+   "boss": 1
+  },
+  "seed": 137,
+  "variants": 1,
+  "fps": 10
  }
 }

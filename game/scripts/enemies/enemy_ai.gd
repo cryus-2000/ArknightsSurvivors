@@ -478,7 +478,7 @@ func lob(e: Dictionary) -> void:
 		# 出手特效 fx_mother_throw（docs/96 §1.1，Codex enemy_fx_1：原点 (6,12) 对齐口器，装在 e_mother_attack 的 (29,12)，
 		# 本体 34×32 脚底锚点 → 相对 e.pos (+12,-20) 美术像素；朝队长一侧、朝左镜像；缺图时无）
 		var face: float = 1.0 if g.ppos.x >= e.pos.x else -1.0
-		g.vfx.fx_sprite("fx_mother_throw", e.pos + Vector2(face * 12.0, -20.0) * g.PX, g.PX, 0.0, face < 0.0, false, Color.WHITE, false, Vector2(6, 12))
+		g.vfx.fx_sprite("fx_e_px_mother_throw", e.pos + Vector2(face * 12.0, -20.0) * g.PX, g.PX, 0.0, face < 0.0)   # 组 E pixelfx：帧条原点 = 口器（docs/236）
 		return
 	var to: Vector2 = g.ppos + Vector2(g.rng_enemy.randf_range(-30, 30), g.rng_enemy.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
 	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": d.get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
