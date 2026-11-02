@@ -153,3 +153,51 @@ B 只在两种情况下值得：
 3. 本机只截图核对；同屏帧时走云端跑一局后期对照（docs/41 §云端）。
 
 对比图：`Claude outputs/pixelfx_eval/01_stun.png`、`02_pickup.png`、`03_zap_hit.png`、`04_crit_hit.png`、`05_hit_spark.png`。上排是现有做法，下排是 pixelfx 导出（按 @2x 世界像素，整体放大 3 倍）。
+
+## 7 干员技能特效试点（11-02，用户定：星熊 / 能天使 / 斯卡蒂）
+
+用户的判断是「主要可以换干员技能特效」。按 §5 的口径，**不直接用库里现成的特效**，而是参照库里的写法给每个人写一份专属版，导出成帧条接进游戏。普攻不换。
+
+### 7.1 换了什么
+
+| 干员 | 原来 | 新版（pixelfx 源码） | 帧条 | 包体（64 色） | 显存 |
+|---|---|---|---|---|---|
+| 斯卡蒂 S1 迅捷打击 / 精一 | fx_slash_heavy_deep：28×34 × 5 帧小弧，放大约 6 倍，另叠一层镜像回光 | `melee/ak-skadi-sweep`：俯视 200° 大剑横扫，不规整的水口，首帧爆亮后冷却到深海蓝，甩出浪沫和水珠 | fx_skadi_px_sweep 194×196 × 11 帧 @20 | 33 KB | 1.6 MB |
+| 斯卡蒂 S2 跃浪击 | 同上 | 同一特效加 `heavy: 1`：刀身更厚，正前方掀起水花冠 | fx_skadi_px_cleave 198×200 × 11 帧 | 45 KB | 1.7 MB |
+| 星熊 S3 力之锯 | fx_hoshiguma_demon_slash：平涂红条 + 棋盘格 | `melee/ak-hoshiguma-saw`：直线撕裂斩，白热斩线逐级冷却成红，刃口是不等距的单向锯齿，火星和碎屑向两侧喷，地面留一道刀痕 | fx_hoshiguma_px_saw 176×88 × 8 帧 @20 | 14 KB | 0.5 MB |
+| 能天使 S1–S3 | fx_exusiai_muzzle_s* / hit_s*：3 帧色块 | `projectiles/ak-exu-muzzle`：长短不一的焰舌加前导火星；`impacts/ak-exu-hit`：偏心十字闪、前方断弧、火星。三个技能各沿用原来的代表色 | 6 张，40×32 × 4 / 42×24 × 5（@2x） | 共 5 KB | 共 0.1 MB |
+
+- **合计约 +98 KB**（PNG）。网页导出时 Godot 会重新无损编码，实际可能到 1.5–2 倍。网页包体在合入前要先腾出空间，见 §0。
+- 旧帧条都还在。fx_slash_heavy_deep 拉普兰德仍在用；星熊、能天使的旧条现在没人用，但很小，没删。
+- **回退**：
+  - 斯卡蒂：把 skadi.json 里的 blade 改回 `fx_slash_heavy_deep / fit 28 / k 1.2 / along 0.5`，并加回 mirror 那层。
+  - 星熊：hoshiguma.json 的 strip 改回 `fx_hoshiguma_demon_slash / fit 32`。
+  - 能天使：exusiai.json 去掉名字里的 `px_`。
+  - 也可以直接 revert 这次提交。
+
+### 7.2 做法（以后铺开照这个走）
+
+1. **写源码。** 放在 `tools/pixelfx_fx/<类>/<名>.js`，进 git，名字以 `ak-` 开头。按 pixelfx 的 AUTHORING 规范写（对象由 `create(o)` 返回、用带种子的随机数、结束时画面为空），在 build/pixelfx 下用 render.mjs / check.mjs 看效果，至少改三轮。
+2. **导出。** 跑 `python tools/pixelfx_export.py [--only 名字]`。它会拷源码进库、导精灵表、以原点为中心对称裁边（枪口用 keep_canvas 保留原画布）、去掉末尾空帧、量化到 64 色、拼成单行帧条写进 game/art/fx，最后打印 art.gd 要登记的 `[帧数, fps]`。
+3. **登记接入。**
+   - 在 art.gd 的 V6_FRAMES 里登记，再跑 `python tools/asset_index.py`。
+   - 跑 `godot --headless --import`，并把新 .import 里的 `fix_alpha_border` 改成 false，和兄弟文件一致。
+   - 在干员 JSON 里换贴图名。
+4. **尺度换算。**
+   - 刀光（blade）：缩放 = r × k ÷ fit，单位是每个 1x 像素占几个世界像素。帧以斯卡蒂为中心（along 0），帧里刀弧半径 74 px，所以 fit = 74、k = 1，刀弧正好落在伤害半径上。另外 tint 要给白色，否则会被缺省色染蓝。
+   - 直线斩：缩放 = 半长 ÷ fit。帧里斩线长 110 px，所以 fit = 55。
+   - 贴图名**不要以 `fx_slash` / `fx_claw` 开头**，否则会被 blade_scale 再缩一遍。
+5. **出对照。** 用 `tools/op_fx_audit_rec.py --tag px_before / px_after` 录同种子原速 30 帧，用 ffmpeg 把前后两段左右并排（hstack）。
+
+### 7.3 对照和预审
+
+- 录像在 `Claude outputs/pixelfx_eval/{skadi,hoshiguma,exusiai}.mp4`：左边旧版，右边 pixelfx 版，同种子、原速、30 帧、各 20 秒。
+- 预审（vreview ult_fx，Flash low × 3，共约 0.07 美元）：
+  - **第一轮报了两处真问题，已改。** 斯卡蒂的水口原来用周期正弦，看起来像等距切片，改成了噪声；星熊的锯齿原来等距，并且 0.65 s 的余迹在连续出手时连成一片，改成不等距齿、总时长 0.45 s。
+  - **第二轮仍判「先改」，判断为误报。** 斯卡蒂那条指的是 S2 现有的浪墙帧条 fx_skadi_wave（三块同样的浪叠在一起），左边旧版里同样有，不是这次改的。星熊那条是锯齿造型本身，「力之锯」的锯齿是有意为之，间距已经随机。
+  - **能天使报「子弹连成光束」。** 这是弹体贴图和射速造成的，这次没动弹体，属于旧问题，另案处理。
+- **观感（本会话判断，待用户看）：**
+  - 斯卡蒂：刀弧从 6 倍放大的小图变成按原尺寸画的完整弧，塑料感基本消失。但体量明显比以前大，S3 期间每刀都是满半径的大弧，如果嫌吵，可以把 k 降到 0.85，或者缩短拖尾。
+  - 星熊：从平涂红条变成有热度层次、有火星的撕裂斩。
+  - 能天使：在 16–24 世界像素这个尺寸下差别不大，算是小幅加分。也印证了 §3.1：pixelfx 的长处在中大型特效。
+- **帧时没有单独测。** 每次出手仍是 1 次贴图绘制，和原来一样；贴图更大，只多一点填充率开销。
