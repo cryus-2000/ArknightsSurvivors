@@ -19,8 +19,12 @@ OP = "wisadel"
 N = 8
 # 开炮段：Skill_3_Loop 里炮口抬起后坐、再压回的那一下（--probe 量出来的时间）；8 帧对齐 skill_s3_attack 的 fire 3
 ATK_TIMES = [0.2, 0.32, 0.45, 0.625, 0.75, 1.0, 1.25, 1.4]
-RUN_EXTRA = {"mode": "run", "sample": None, "params": {"armAmp": 2, "holdAmp": 1, "stride": 1.4},
-             "gaitLiftPx": [None, None, None, None, 12, 14, 6, 3]}
+# 第二版（11-03 整合会话：移动时仍看着像蹲射）：架炮上半身 + 小步幅在 1 倍像素下和蹲射分不出。照 S2 跑动第二版：
+# 步幅 ×1.8、离地抬高，四件浮游武器随身体上抬 6 像素 / 后收 2 像素，腿露在炮下面；跑动开炮同样加大步幅
+RUN_EXTRA = {"mode": "run", "sample": None, "params": {"armAmp": 2, "holdAmp": 1, "stride": 1.8},
+             "gaitLiftPx": [None, None, None, None, 16, 18, 8, 4],
+             "carry": {k: [-2, 6, 0] for k in ("C_Weapon_A_01", "C_Weapon_B_01", "C_Weapon_C_01", "C_Weapon_D_01")}}
+MOVE_ATK_EXTRA = {"params": {"stride": 1.6}, "gaitLiftPx": [None, None, None, None, 14, 16, 7, 3]}
 
 
 def base_cfg(sprites):
@@ -63,7 +67,7 @@ def main():
         "op_wisadel_skill_s3_run": ("skill_s3_loop", dict(base, scaleMul=scale, base={"anim": "Skill_3_Idle", "t": 0}, **{k: v for k, v in RUN_EXTRA.items() if k != "params"},
                                                           params=dict(base.get("params", {}), **RUN_EXTRA["params"]))),
         "op_wisadel_move_skill_s3_attack": ("skill_s3_attack", dict(base, scaleMul=scale, mode="move_attack", sample={"anim": "Skill_3_Loop", "times": atk_t},
-                                                                    params=dict(base.get("params", {}), stride=1.2))),
+                                                                    gaitLiftPx=MOVE_ATK_EXTRA["gaitLiftPx"], params=dict(base.get("params", {}), **MOVE_ATK_EXTRA["params"]))),
     }
     for tex, (ref, c) in jobs.items():
         if a.only and tex not in a.only.split(","):
