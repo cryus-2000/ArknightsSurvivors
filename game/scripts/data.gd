@@ -193,8 +193,11 @@ static func dmod_for_tier(tide: int) -> Dictionary:
 ## 修正表 → 选难度页的说明行
 static func dmod_lines(m: Dictionary) -> Array:
 	var out: Array = []
+	var sea := dmod_for_legacy(0)   # 海面本身带的倍率（11-03 起 standard/enemy_hp 1.08，docs/216 §10）不算「额外规则」，跟海面相同就不写
 	for row in DMOD_TEXT:
 		var v := float(m.get(row[0], DMOD_DEFAULT[row[0]]))
+		if row[2] in ["up", "down"] and absf(v - float(sea.get(row[0], DMOD_DEFAULT[row[0]]))) < 0.0001:
+			continue
 		match row[2]:
 			"up":
 				if v > 1.0001:
