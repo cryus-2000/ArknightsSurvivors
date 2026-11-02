@@ -147,6 +147,7 @@
 | [229_fx_style_spec](229_fx_style_spec.md) | 特效美术统一规范 11-02 | 初稿，待用户 / 美术组组长定 | 密度每 1x 像素 1.6–2.2 世界像素（>2.2 违规）；干员 7 阶色阶（house.js）、敌方危险色 #ff2667；普攻 ≤0.2 s / 技能 0.3–0.6 s；32 色调色板 PNG，单条普攻 ≤3 KB / 技能 ≤20 KB / 敌方 ≤12 KB；禁止规整放射与同心圈；冲击帧只给终结技；五份并行分工与文件边界 | 228、87、96、226；tools/pixelfx_fx/house.js、targets_*.json |
 | [237_fx_coverage](237_fx_coverage.md) | 特效全量覆盖表 11-02 | 自动生成（tools/fx_coverage.py） | 20 名干员 + 连携 + 终结技 + 公共 + 敌方的全部特效引用，标归属组、状态（已做 / 不换 / 未做）；干员整套替换的完成判定 | 229 §9；tools/pixelfx_fx/coverage_*.json |
 | [238_pixelfx_style_match](238_pixelfx_style_match.md) | 本作 pixelfx 特效与原作风格对照 11-02 | 用户已定（光晕 + 余韵改、细像素不改），已落地 229 | 手法对，四处压没了 pixelfx 味道：光晕被 32 色量化吃掉、像素块大一倍（PX 2）、余韵被时长截掉、近白过多 / 暗部描黑；修正建议改 229 §0/§2.1/§2.2/§2.4/§2.5/§2.7 与 house.js，分层导出 light 灰度条加色叠画 | 228、229；Claude outputs/pixelfx_eval/style_match.png |
+| [239_pixelfx_pause](239_pixelfx_pause.md) | pixelfx 特效替换本轮总结与暂停 11-03 | 暂停（用户「特效先都不换了」） | 做了什么（各组分支 / 提交）、为什么暂停（更细更暗更稀、硬数字压冲击力、验收缺「不比旧版差」、铺得太快）、重启先改的规范 | 228、229、231、236、237、238；tools/pixelfx_compare_sheet.py |
 | [201_final_boss_weak_diag](201_final_boss_weak_diag.md) | 最终 Boss「太弱」诊断与加伤 | 记录 | 10-29：最终 Boss 加伤血量不动；弹速 / 弹数 / 节奏旋钮；伊祖米克连携调度改版（izumik-sched） | 170、142b、bosses/*.gd |
 | [199_bal_audit](199_bal_audit.md) | balance 旋钮对账 + Bal.v 缓存 | 记录 | 10-29：代码缺省值与 balance.json 不一致的 170 键（已改 208 读点，运行结果不变）；只在代码里的 366 键清单；`Bal.v` 路径缓存（桌面同局轮换 -0.3 ms / 帧）；`tools/bal_audit.py` | 27、balance.gd、data_lint |
 | [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
