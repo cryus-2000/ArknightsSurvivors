@@ -18,7 +18,7 @@ def clean_badge():
     """B′ 徽记去掉 LV 框：框所在区域换成无界面底图，补一段外环"""
     full = H.DESK_FULL.copy()
     bg = H.DESK_BG
-    box = (20, 4, 110, 45)
+    box = (8, 4, 112, 45)
     full.paste(bg.crop(box), box[:2])
     d = ImageDraw.Draw(full)
     d.arc((19, 23, 103, 107), 200, 340, fill=(52, 62, 72, 255), width=1)
