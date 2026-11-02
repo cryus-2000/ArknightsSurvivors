@@ -26,6 +26,7 @@ export const OP = {
   irene: ["#413552", "#7c567b", "#b778a4", "#f299cc", "#f7bdde", "#fbe0f0", "#ffffff"],
   kaltsit: ["#284f40", "#498a55", "#6ac46a", "#8cff80", "#b4ffac", "#dcffd9", "#ffffff"],
   lappland: ["#3b475c", "#707a8e", "#a6adc0", "#dbe0f2", "#e8ebf7", "#f4f6fb", "#ffffff"],
+  mizuki: ["#0d0e27", "#1e2766", "#284286", "#3d5fd6", "#8f9ae6", "#c9bdf0", "#ffffff"],
   logos: ["#28355f", "#495694", "#6a78ca", "#8c99ff", "#b4bdff", "#dce0ff", "#ffffff"],
   lumen: ["#28455f", "#497694", "#6aa8ca", "#8cd9ff", "#b4e6ff", "#dcf4ff", "#ffffff"],
   saria: ["#443d38", "#826646", "#c18f53", "#ffb861", "#ffd198", "#ffead0", "#ffffff"],
