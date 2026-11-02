@@ -649,7 +649,7 @@ static func _h4_draw_tails(o, tl: Dictionary) -> void:
 	var g = o.g
 	var cv = o.cv
 	var root: Vector2 = o.pos + Vector2(-4.0 * o.face, -28)
-	if o._fx_strip(str(tl.get("tex", "fx_suzuran_ninetails")), 4, int(g.t * 4.0), root, Vector2(0.5, 46.0 / 48.0), 0.0, Color(1, 1, 1, float(tl.get("alpha", 0.45))), o.face < 0.0):
+	if o._fx_strip(str(tl.get("tex", "fx_suzuran_px_tails")), 4, int(g.t * 4.0), root, Vector2(0.5, 46.0 / 48.0), 0.0, Color(1, 1, 1, float(tl.get("alpha", 0.45))), o.face < 0.0):
 		return
 	var center: float = -PI / 2.0 - 0.25 * o.face
 	for k in 9:
