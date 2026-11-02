@@ -1,6 +1,7 @@
 extends RefCounted
 ## 界面 · HUD 右下编队栏与手动技能（2026-10-10 从 hud.gd 拆出，docs/55 §6）：干员部署卡 + 技能格（静态层缓存 + 每帧层）、
 ## 源石锭框、手动技能首次就绪提示、手动技能瞄准指示（方向 / 落点）。触屏分支原样保留。
+const LinkBond = preload("res://scripts/run/link_bond.gd")   # 编队人数旁「羁绊 N」（docs/221 B1）
 const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -22,6 +23,40 @@ func _init(hud) -> void:
 const SQ_COL_W := 94.0
 const SQ_CARD := Vector2(84, 96)
 const SQ_SK := 24.0
+## 手机编队卡收起（docs/221 P1，用户 11-02 批）：触屏手机上卡片缺省收成 52 高（只留头像 + 名字），技能格行随卡下移，
+## 让出右下战场；点一下编队区展开成整卡 OPEN_SECS 秒，再点或到时自动收回。ui/phone_squad_compact 0 = 照旧整卡。
+## 触屏按键布局（touch_layout.SQUAD_TOP_UP）仍按整卡高度留位，展开时不会压到按键
+const SQ_CARD_C := Vector2(84, 52)
+const OPEN_SECS := 5.0
+var _open_until := -1.0
+
+
+func compact_on() -> bool:
+	return Cfg.phone_ui() and g.touch.active and Bal.vi("ui/phone_squad_compact", 1) > 0
+
+
+func compact() -> bool:
+	return compact_on() and g.t >= _open_until
+
+
+func card_size() -> Vector2:
+	return SQ_CARD_C if compact() else SQ_CARD
+
+
+## 触屏点在编队区（touch.gd 调，p 为界面坐标）：展开 / 收回；不是收起模式或没点中返回 false
+func tap(p: Vector2) -> bool:
+	if not compact_on() or g.squad.size() <= 0:
+		return false
+	var vs: Vector2 = g.hud.size
+	var br := Vector2(vs.x - 16, vs.y - 16)
+	var n: int = g.squad.size()
+	var ch: float = card_size().y
+	var r := Rect2(Vector2(br.x - n * SQ_COL_W, br.y - ch - SQ_SK - 18.0), Vector2(n * SQ_COL_W + 8.0, ch + SQ_SK + 34.0))
+	if not r.has_point(p):
+		return false
+	_open_until = g.t + OPEN_SECS if compact() else -1.0
+	Sfx.play("ui_move", -8.0)
+	return true
 
 
 ## 右下：编队栏（静态层签名变了才重画 + 每帧层）；原 _draw_body「右下」段
@@ -47,9 +82,9 @@ func _frame_sig(br: Vector2) -> Array:
 	var n: int = g.squad.size()
 	var anim: bool = g.knight.alive or g.knight.submerged
 	var apop: bool = g.get("apop_t") != null and float(g.apop_t) > 0.0
-	var sig: Array = [br, n, g.touch.active, apop, Pad.hint("Q/E", "Ⓐ/Ⓨ")]
+	var sig: Array = [br, n, g.touch.active, apop, Pad.hint("Q/E", "Ⓐ/Ⓨ"), compact()]
 	var mp := g.hud.get_local_mouse_position()
-	var sk_y: float = br.y - SQ_CARD.y - SQ_SK - 14.0
+	var sk_y: float = br.y - card_size().y - SQ_SK - 14.0
 	for i in n:
 		var o = g.squad.ops[i]
 		var x: float = br.x - (n - i) * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
@@ -73,7 +108,7 @@ func _frame_sig(br: Vector2) -> Array:
 
 ## 编队区最上沿（源石锭框顶）的 y：触屏冲刺键 / 技能键摆在它上方，不压住「编队 n / m」和源石锭
 func squad_top(vs: Vector2) -> float:
-	return vs.y - 16.0 - SQ_CARD.y - SQ_SK - 14.0 - 46.0
+	return vs.y - 16.0 - card_size().y - SQ_SK - 14.0 - 46.0
 
 
 ## 本帧各干员的 skill_hud() / portrait()（draw 开头取一次；为空时各处当场取，即 OPT_HUDSQ 旧写法）
@@ -90,7 +125,7 @@ func _pt_of(i: int) -> Dictionary:
 
 ## 编队栏静态层的签名：这些变了才重画静态层
 func _squad_sig(br: Vector2) -> Array:
-	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots, g.panel.visible]
+	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots, g.panel.visible, compact()]
 	for i in g.squad.ops.size():
 		var o = g.squad.ops[i]
 		var pt: Dictionary = _pt_of(i)
@@ -115,7 +150,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	var fg := Tris.new()
 	var texq: Array = []   # 贴图：[贴图, 目标矩形(, 源矩形, 调制色)]，合批时从 HUD 图标图集取（h.icons_draw）
 	var txt: Array[Callable] = []
-	var card_y: float = br.y - SQ_CARD.y
+	var card_y: float = br.y - card_size().y
 	var sk_y: float = card_y - SQ_SK - 14.0
 	# 源石锭费用框（明日方舟部署费用的位置与样子）+ 编队人数
 	var dp := Rect2(Vector2(br.x - 116, sk_y - 46), Vector2(116, 34))   # 顶 = squad_top()
@@ -126,6 +161,9 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 		bg.rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
 		texq.append([g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14))])
 	var cnt := "编队 %d / %d" % [n, g.squad.cap()]
+	var nb: int = LinkBond.formed_now(g).size()
+	if nb > 0:
+		cnt += "  ·  羁绊 %d" % nb   # 成立几条羁绊（docs/221 B1）；明细在属性面板
 	if S and dp_on:
 		txt.append(func():
 			UI.ctext(g.hud, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
@@ -135,7 +173,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	for i in n:
 		var o = g.squad.ops[i]
 		var x: float = br.x - (n - i) * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
-		var cr := Rect2(Vector2(x, card_y), SQ_CARD)
+		var cr := Rect2(Vector2(x, card_y), card_size())
 		var ocol: Color = o.col()
 		var act: bool = o.skill_active()
 		# ---- 立绘卡：上亮下暗的底 + 待机帧上半身（48 帧放大 2 倍、96 高清帧原样，都画成 96 像素）
@@ -155,8 +193,9 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 			if fh / hi > 48.0:
 				var ft = o.sprite_spec("idle").get("foot", o.def.get("sprites", {}).get("foot", [0, fh / hi - 2.0]))
 				bot = minf(fh, (float(ft[1]) + 2.0) * hi)
-			var dst_h := minf(bot * ks - 8.0, cr.size.y - 8.0)
-			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, bot - dst_h / ks, minf(cr.size.x / ks, fw), dst_h / ks)
+			var full_h := minf(bot * ks - 8.0, SQ_CARD.y - 8.0)   # 整卡时露出的身体高度（从脚底往上）
+			var dst_h := minf(full_h, cr.size.y - 8.0)   # 收起的卡只取其中最上面一截（头部），不是脚
+			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, bot - full_h / ks, minf(cr.size.x / ks, fw), dst_h / ks)
 			var dst := Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h))
 			texq.append([at, dst, src, Color.WHITE])
 		if S or (g.opt_old & Game.OPT_HUDSQ):   # 名字 / 职业 / 精英标签只在静态层画
@@ -284,8 +323,8 @@ func _card_hp(o, cr: Rect2, fg, txt: Array[Callable]) -> void:
 		fg.rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(0.55, 0.57, 0.6))
 		var left := str(v[2])
 		txt.append(func():
-			UI.text(g.hud, g.font, Vector2(cr.position.x, cr.position.y + 40), "倒地", 13, UI.RED, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
-			UI.ctext(g.hud, g.font, Vector2(cr.position.x, cr.position.y + 66), left, 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x))
+			UI.text(g.hud, g.font, Vector2(cr.position.x, cr.position.y + cr.size.y * 0.42), "倒地", 13, UI.RED, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
+			UI.ctext(g.hud, g.font, Vector2(cr.position.x, cr.position.y + cr.size.y * 0.69), left, 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x))
 		return
 	var hc: Color = UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED)
 	fg.rect(Rect2(r.position, Vector2(float(v[1]), r.size.y)), Color(hc.r, hc.g, hc.b, a))

@@ -568,13 +568,19 @@ func status_items() -> Array:
 	return items
 
 
-func draw_status(vs: Vector2, items: Array) -> void:
-	if items.is_empty():
-		return
+## 状态标签片排版：[[标签片, 位置], …]；顺带记下最后一行的下沿（status_bottom，左侧事件槽从它下面排）。
+## 桌面最多 2 行（docs/221 H3：以前会长到 3 行、行尾被切掉），放不下的收成「+N」（全部在属性面板里看）
+const STATUS_FS := 12   # 手机局内经 UI.fs 放大到约 14（docs/37 下限之上）
+const STATUS_ROWS := 2
+var status_bottom := 0.0
+func status_layout(vs: Vector2, items: Array) -> Array:
 	var ph: bool = Cfg.phone_ui()
-	var x := 18.0
+	var x0 := 18.0
 	var y: float = (80.0 if ph and g.lamp > 0.0 else 104.0) + h.allyhp.top_shift()   # 手机：灯火行不常驻，胶囊上移补位；队友血条在队长血条下时下移
-	var fs := 12   # 手机局内经 UI.fs 放大到约 14（docs/37 下限之上）
+	status_bottom = y
+	if items.is_empty():
+		return []
+	var fs := STATUS_FS
 	# 换行宽度（§1.15）：min(360, Boss 细血条左边 − 8)，有 Boss 血条时不钻到血条下面
 	var wrap_x := 360.0
 	if not boss_bars().is_empty():
@@ -583,19 +589,47 @@ func draw_status(vs: Vector2, items: Array) -> void:
 	if ph and items.size() > 3:
 		var more: int = items.size() - 2
 		items = items.slice(0, 2) + [["+%d" % more, Color(0.8, 0.84, 0.88), -1.0]]
+	var cw_of := func(s: String) -> float: return g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs)).x + 16.0   # 与 UI.chip 的宽度算法一致
+	var out: Array = []
+	var x := x0
+	var row := 0
+	for i in items.size():
+		var it: Array = items[i]
+		var cw: float = cw_of.call(it[0])
+		if x + cw > wrap_x and x > x0:
+			if row + 1 >= STATUS_ROWS:
+				# 最后一行放不下了：把这一枚和后面的收成「+N」，必要时再让出前一枚的位置
+				var more := items.size() - i
+				var mw: float = cw_of.call("+%d" % (more + 1))
+				while not out.is_empty() and x + mw > wrap_x and (out[-1][1] as Vector2).y == y:
+					x = (out[-1][1] as Vector2).x
+					out.pop_back()
+					more += 1
+				out.append([["+%d" % more, Color(0.8, 0.84, 0.88), -1.0], Vector2(x, y)])
+				break
+			x = x0
+			y += fs + 14.0
+			row += 1
+		out.append([it, Vector2(x, y)])
+		x += g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, UI._ks(g.hud, fs)).x + 16.0 + 6.0   # 同 _chip_b 的实画宽度
+	status_bottom = y + UI.fs(fs) + 10.0
+	return out
+
+
+func draw_status(vs: Vector2, items: Array) -> void:
+	var lay: Array = status_layout(vs, items)
+	if lay.is_empty():
+		return
+	var fs := STATUS_FS
 	# 合批（docs/50 §13）：标签片的底 / 色条 / 进度细条一批，字（同字体同字号）一批；各片互不重叠，字画在最后与原来相同
 	var tb := TriBatch.new()
 	var tx: Array = []
-	for it in items:
-		var cw: float = g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs)).x + 16.0   # 与 UI.chip 的宽度算法一致
-		if x + cw > wrap_x and x > 18.0:
-			x = 18.0
-			y += fs + 14.0
-		var w: float
-		w = _chip_b(tb, tx, Vector2(x, y), it[0], it[1], UI._ks(g.hud, fs))
+	for e in lay:
+		var it: Array = e[0]
+		var p: Vector2 = e[1]
+		var w: float = _chip_b(tb, tx, p, it[0], it[1], UI._ks(g.hud, fs))
 		if it[2] >= 0.0:
-			tb.rect(Rect2(x, y + fs + 8.0, w * it[2], 2), it[1])
-		x += w + 6.0
+			tb.rect(Rect2(p.x, p.y + fs + 8.0, w * it[2], 2), it[1])
 	tb.flush(g.hud)
 	for f in tx:
 		f.call()

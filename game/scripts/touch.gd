@@ -119,6 +119,9 @@ func handle(event: InputEvent) -> bool:
 				_do(hit_b[1])
 				flash[hit_b[1]] = 0.2
 				return true
+			# 手机编队卡收起（docs/221 P1）：点编队区展开 / 收回
+			if g.state == g.S.PLAY and g.hud_view.squad.tap(p):
+				return true
 			# 属性面板：点图标 = 看效果（不消费，触摸模拟的鼠标移过去，悬停提示照常出）；点别处关闭
 			if g.state == g.S.STATS:
 				for c in g.stats_cells:

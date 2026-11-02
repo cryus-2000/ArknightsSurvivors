@@ -5,6 +5,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
+const LinkBond = preload("res://scripts/run/link_bond.gd")   # 「羁绊」一节（docs/221 B1）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -206,6 +207,15 @@ func draw(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(ax2 + 36, y + 14), "%s  Lv.%d" % [D.WEAPONS[wid].name, g.weapons[wid]], fs_sub, D.WEAPONS[wid].col)
 		ax2 += 150
 	y += 36
+	# 羁绊（docs/221 B1）：当前编队成立的每条一行——羁绊名 · 常驻加成 · 合击名
+	var fm: Array = LinkBond.formed_now(g)
+	if not fm.is_empty():
+		UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "羁绊", fs_sub, UI.SUB)
+		for b in fm:
+			UI.diamond(g.hud, Vector2(b2.position.x + 96, y + 8), 3.5, UI.GOLD)
+			UI.text_fit(g.hud, g.font, Vector2(b2.position.x + 106, y + 12), LinkBond.row_text(b), fs_min + 1, UI.TEXT, b2.end.x - b2.position.x - 122, 10)
+			y += 20
+		y += 6
 	UI.rule(g.hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
 	y += 8
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "成长", fs_sub, UI.SUB)
@@ -463,6 +473,15 @@ func _phone_squad(b2: Rect2) -> void:
 			g.hud.draw_texture_rect(wt, Rect2(Vector2(ax3, y - 8), Vector2(34, 34)), false)
 		UI.text(g.hud, g.font, Vector2(ax3 + 40, y + 14), "%s  Lv.%d" % [D.WEAPONS[wid].name, g.weapons[wid]], 18, D.WEAPONS[wid].col)
 		ax3 += 210
+	# 羁绊（docs/221 B1）
+	var fm: Array = LinkBond.formed_now(g)
+	if not fm.is_empty():
+		y += 40
+		UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "羁绊", 18, UI.SUB)
+		for b in fm:
+			UI.diamond(g.hud, Vector2(b2.position.x + 96, y + 6), 4.5, UI.GOLD)
+			UI.text_fit(g.hud, g.font, Vector2(b2.position.x + 110, y + 12), LinkBond.row_text(b), 16, UI.TEXT, b2.end.x - b2.position.x - 126, 12)
+			y += 28
 
 
 ## 手机第五页：成长 + 藏品两块图标格（格子取全部放得下的最大尺寸，62 → 34），点图标看效果（stats_cells）

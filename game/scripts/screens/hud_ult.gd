@@ -420,6 +420,8 @@ func _op_by_id(oid: String):
 const CUT_IN := 0.14    # 滑入（界面秒）
 const CUT_OUT := 0.16   # 滑出
 const CUT_SLANT := 30.0
+const CUT_HOLD_MAX := 2.5   # 演出排队最多等几秒（界面秒）
+var _cut_last := 0.0
 
 
 func draw_cutins(vs: Vector2) -> void:
@@ -434,13 +436,26 @@ func draw_cutins(vs: Vector2) -> void:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(fcol, 0.26 * (1.0 - ft / 0.22) * (0.5 if _boss_on() else 1.0)))   # 闪光：干员色偏暖、封顶不发白（10-30 美术口径）
 	_draw_link_tag(vs)
 	var cs: Array = g.ult.cutins
+	var now: float = UM.now()
+	var fdt: float = clampf(now - _cut_last, 0.0, 0.1)
+	_cut_last = now
 	if cs.is_empty():
 		return
-	var now: float = UM.now()
-	var dim: float = 0.7 if _boss_on() else 1.0
+	# 演出排队（docs/221 H1）：Boss 登场卡在场时，还没滑进来的条带整体往后挪（保持连携终结技的阶梯间隔），
+	# 卡片收起后再切入；累计等了 CUT_HOLD_MAX 还没轮到的就不出了（终结技本身照放，只排画面）
+	if g.boss_intro.active():
+		for ci in cs:
+			if now - float(ci.t0) < CUT_IN:
+				ci.t0 = float(ci.t0) + fdt
+				ci["held"] = float(ci.get("held", 0.0)) + fdt
+				if float(ci.held) > CUT_HOLD_MAX:
+					ci.dur = -1.0
+	var boss: bool = _boss_on()
+	var dim: float = 0.7 if boss else 1.0
 	var rm: bool = Cfg.reduce_motion
-	var W: float = vs.x / 3.0
-	var H: float = clampf(vs.y * 0.15, 72.0, 112.0)
+	# Boss 在场用窄版（docs/221 H2，用户 11-02 批）：宽 × ult/cutin_boss_w、高 × ult/cutin_boss_h，少挡左右两侧的弹幕
+	var W: float = vs.x / 3.0 * (Bal.v("ult/cutin_boss_w", 0.6) if boss else 1.0)
+	var H: float = clampf(vs.y * 0.15, 72.0, 112.0) * (Bal.v("ult/cutin_boss_h", 0.8) if boss else 1.0)
 	var step: float = H * 0.72
 	var y0: float = vs.y * 0.26
 	var ld = g.squad.leader()
@@ -543,18 +558,42 @@ func _strip_art(o, e: float, sg: float, sx: float, y: float, hh: float, box: Rec
 
 ## 连携轻量演出的标识（link/flash，用户 10-31）：左侧闪出接手队友的小头像 + 连携名，0.08 秒淡入、link/tag_t（0.6）秒淡出；
 ## 防疲劳（只打聚光）的那几次不出；不做斜带切入。Boss 战透明度 × 0.7
+## 演出排队（docs/221 H1）：Boss 登场卡在场时连携提示先不出，卡片收起后再闪。只挪界面上的起点（_tag_rt），
+## 不动 ult.lf_rt（它还管压暗 / 慢放）
+var _tag_src := -99.0
+var _tag_rt := -99.0
+func _tag_t() -> float:
+	var u = g.ult
+	if float(u.lf_rt) != _tag_src:
+		_tag_src = float(u.lf_rt)
+		_tag_rt = _tag_src
+	var now: float = UM.now()
+	if g.boss_intro.active() and now - _tag_rt < 0.1:
+		_tag_rt = now
+		return -1.0
+	return now - _tag_rt
+
+
+func link_tag_on() -> bool:
+	var u = g.ult
+	if not u.lf_on() or not u.lf_full or u.lf_op == null:
+		return false
+	var t: float = _tag_t()
+	return t >= 0.0 and t <= Bal.v("link/tag_t", 0.6)
+
+
 func _draw_link_tag(vs: Vector2) -> void:
 	var u = g.ult
 	if not u.lf_on() or not u.lf_full or u.lf_op == null:
 		return
-	var t: float = UM.now() - float(u.lf_rt)
+	var t: float = _tag_t()
 	var T: float = Bal.v("link/tag_t", 0.6)
 	if t < 0.0 or t > T:
 		return
 	var a: float = minf(1.0, t / 0.08) * (1.0 if t < T - 0.2 else (T - t) / 0.2) * (0.7 if _boss_on() else 1.0)
 	var col: Color = u._col(u.lf_op)
 	var sx: float = 0.0 if Cfg.reduce_motion else -18.0 * pow(1.0 - minf(1.0, t / 0.12), 2.0)   # 从左边滑进来一点
-	var c := Vector2(48.0 + sx, vs.y * 0.24)
+	var c := Vector2(48.0 + sx, h.banners.lane_y(vs) + 30.0)   # 左侧事件槽（docs/221 H3），在状态标签与横幅之下
 	var r := 26.0
 	var tb := Tris.new()
 	tb.poly(PackedVector2Array([c + Vector2(-r - 8.0, -r - 4.0), c + Vector2(r + 210.0, -r - 4.0), c + Vector2(r + 190.0, r + 4.0), c + Vector2(-r - 8.0, r + 4.0)]),
