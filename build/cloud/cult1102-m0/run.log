@@ -1,0 +1,9 @@
+usage: balance_run.py [-h]
+                      [--preset {solo,squads,batch2,batch2solo,b2fix,b2fix3,b2fix2,pairs,starts,lanes4,opcmp,share,gap,gapleaders,skalter_mate,hoshiguma_mate,angelina_mate,texas_mate,exusiai_mate}]
+                      [--op OP] [--squad SQUAD] [--seeds SEEDS]
+                      [--seed0 SEED0] [--diff DIFF] [--jobs JOBS]
+                      [--timeout TIMEOUT] [--tag TAG] [--extra EXTRA]
+                      [--bot {afk,bad,normal,expert,master}] [--bots BOTS]
+                      [--lanes LANES] [--game GAME] [--keep KEEP] [--nocache]
+                      [--placebos PLACEBOS] [--dt DT] [--out OUT]
+balance_run.py: error: unrecognized arguments: --tide=0 --bal=ult/cult_on=1
