@@ -268,11 +268,44 @@
      "anim": "skill_s3"
     },
     "loop": "skill_s3_loop",
+    "run": "skill_s3_run",
     "attack": "skill_s3_attack",
     "end": {
      "anim": "skill_s3_end"
     }
    }
+  },
+  "skill_s3_run": {
+   "tex": "op_wisadel_skill_s3_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ],
+   "_doc": "11-03 S3 跑动（用户「三技能也加」）：原作 Skill_3_Idle 首帧架炮上半身 + 跑步步态腿，逐部件 1 倍像素化（tools/op_1x/make_wisadel_s3_run.py），与跑步条共用相位；帧格 / 脚底同 skill_s3_loop。静止时仍播原作蹲射循环"
+  },
+  "move_skill_s3_attack": {
+   "tex": "op_wisadel_move_skill_s3_attack",
+   "frames": 8,
+   "fps": 19.2,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 3,
+   "fire_time": 0.20833333333333334,
+   "frame_durations": [
+    0.06944444444444445,
+    0.06944444444444445,
+    0.06944444444444445,
+    0.04166666666666666,
+    0.041666666666666685,
+    0.041666666666666685,
+    0.04166666666666663,
+    0.041666666666666685
+   ],
+   "_doc": "11-03 S3 跑动开炮：S3 期间移动时 skill_s3_attack 换成本条（引擎 _move_swap，同 10-24 塞雷娅跑动拳击）；原作 Skill_3_Loop 开炮后坐段逐帧姿势 + 跑步腿（make_wisadel_s3_run.py），帧数 / 出手帧 / 逐帧时长 / 帧格同 skill_s3_attack，炮口出点仍按 tip 不变"
   },
   "skill_s3_attack": {
    "tex": "op_wisadel_skill_s3_attack",
@@ -1307,6 +1340,8 @@
   "skill_s3_attack",
   "skill_s3_end",
   "skill_s3_loop",
+  "skill_s3_run",
+  "move_skill_s3_attack",
   "s2_start",
   "s2_idle",
   "s2_run",
