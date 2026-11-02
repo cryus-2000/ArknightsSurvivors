@@ -8,14 +8,19 @@ extends RefCounted
 ## 3. 正式局（两条线共用）：灯火 / 商人 / Boss / 小队与队长 / 指挥圆盘 / 终结技 / 连携 / 溟痕与引航灯标 / 节点卡，第一次碰到时弹提示卡。
 ## 每张卡只出一次（Cfg.onboard_seen）。卡片不暂停、不拦输入（只拦「跳过」按钮），只在 PLAY 状态显示。演示图鉴：暂停菜单「演示」，←/→ 翻全部卡。
 ## 只在真人对局生效（机器人 / 自动测试 / 演练 / 练习 / 图鉴演示不进，同 seed 不变）。
+## 强制（docs/219 §6，11-02 用户「第一把开局的指南设置成不能跳过」）：本机和云存档都没有完成记录（Cfg.onboard_done）时，两条线都走演示局
+##   （没玩过 drill / 玩过 drill_vet：小队、连携、终结技、指挥圆盘），问题框不给「跳过引导」、Esc 不选、卡上没有「跳过」；
+##   演示局最长 onboard/drill_max 秒。暂停菜单照常可用，中途退出不算完成，下次进来从头。走完记 onboard_done（随云存档同步），之后照常可跳过。
 ## 测试 / 录片：--onboard=new|vet|ask|view（自动测试局里也走引导，不读不写存档；ask = 先弹问题框，2.4 秒后自动选「没玩过」；
-##   测试里演示局结束时直接退出，不重开）、--onboarddemo=<卡 id>（进局即出该卡，常驻不收起）。文案在 data/onboard.json，演示画法在 screens/onboard_demos.gd。
+##   测试里演示局结束时直接退出，不重开；new / vet / ask 按第一次进游戏的强制版走，加 --onboardfree 走可跳过版；
+##   强制版里机器人不会用圆盘、按 Q，到点由这里代按）、--onboarddemo=<卡 id>（进局即出该卡，常驻不收起）。文案在 data/onboard.json，演示画法在 screens/onboard_demos.gd。
 
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Demos = preload("res://scripts/screens/onboard_demos.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const LinkV2 = preload("res://scripts/run/link_v2.gd")
 
 const INFO_SECS := 9.0       # 看完自动收起的卡（hint 为空）停留秒数
 const MOVE_NEED := 450.0     # 「移动」做完：累计移动像素
@@ -24,6 +29,13 @@ const END_SECS := 2.5        # 演示局「演示结束」卡停留几秒后进�
 const ACT_SECS := 40.0       # 特有系统的动作卡（指挥 / 终结技）等这么久没做也收起，不挡后面的卡
 const MIN_SHOW := 4.0        # 每张卡至少显示几秒（动作做得快也让人看完一句话；期间做完的动作照算）
 const GAP := 1.6             # 两张卡之间至少隔几秒
+const DRILL_MIN := 2.5       # 演示局里每张卡至少显示几秒（强制部分 ≤ 90 秒，节奏紧凑）
+const DRILL_GAP := 0.6       # 演示局里两张卡之间隔几秒
+const PACK_N := 10          # 演示局「部署」：从一侧涌来的怪
+const PACK_D := 400.0        # 这群怪离队长多远出现（屏内靠边：看得见涌来、看得见队友过去挡）
+const LINK_PACK := 8         # 演示局「连携」：在队长身边放几只怪
+const LINK_NUDGE := 3.0      # 演示局「连携」：这么久队长还没放出技能就直接触发连携
+const LINK_WAIT := 10.0      # 演示局「连携」：充满队长技力后等这么久还没连携（附近没敌人）就往下走
 const MATE_FALLBACK := ["saria", "exusiai", "texas", "silverash", "ptilopsis"]
 
 var g: Game
@@ -34,6 +46,10 @@ var demo_id := ""            # --onboarddemo=<id>
 var seen_mem: Array = []     # 测试模式下的「已出过」（不进存档）
 var drill := false           # 演示局进行中
 var drill_left := -1.0       # 「演示结束」卡出现后的倒计时（≥ 0 时到 0 进正式局）
+var forced := false          # 第一次进游戏：引导不可跳过（docs/219 §6）
+var _nudged := false
+var pack_dir := Vector2.RIGHT   # 演示局「部署」：怪群从哪一侧来（世界方向）
+var drill_t0 := -1.0         # 演示局开始的局内时刻（强制部分时长）
 
 var cur := ""                # 当前卡
 var cur_t := 0.0             # 当前卡在 PLAY 状态下已显示的秒数
@@ -77,6 +93,13 @@ func _init(game: Game) -> void:
 			demo_id = a.substr(14)
 
 
+func _dev_arg(key: String, def: String) -> String:
+	for a in Cfg.dev_args():
+		if a.begins_with(key):
+			return a.substr(key.length())
+	return def
+
+
 # ---------------------------------------------------------------- 开局
 
 ## 只在真人对局里引导（测试开关 --onboard 例外）
@@ -95,6 +118,14 @@ func begin() -> bool:
 		_show(demo_id)
 		return true
 	var m: String = dev if dev != "" else str(Cfg.onboard)
+	forced = _first_time()
+	if forced:
+		if dev == "":
+			m = ""   # 没走完过：不管设置里选了什么，从问题框重新开始
+			for id in all_ids() + ["drill", "drill_end"]:   # 上次中途退出：演示局从头走
+				Cfg.onboard_seen.erase(id)
+		elif m not in ["new", "vet"]:
+			m = "ask"
 	if m == "view":
 		open_viewer()   # --onboard=view：直接打开演示图鉴（截图用；--onboardview=<序号> 定在第几张）
 		for a in Cfg.dev_args():
@@ -108,6 +139,13 @@ func begin() -> bool:
 	return true
 
 
+## 第一次进游戏（本机和云存档都没有完成记录）：引导强制走完
+func _first_time() -> bool:
+	if dev != "":
+		return dev in ["new", "vet", "ask"] and not Cfg.dev_args().has("--onboardfree")
+	return not Cfg.onboard_done
+
+
 func _setup(m: String) -> void:
 	mode = m if m in ["new", "vet"] else ""
 	if dev == "":
@@ -117,12 +155,13 @@ func _setup(m: String) -> void:
 				if not Cfg.seen_tips.has(id):
 					Cfg.seen_tips.append(id)
 		Cfg.save()
-	if mode == "new" and not _seen("drill"):
-		_drill_on()
+	if mode != "" and not _seen("drill"):
+		_drill_on()   # 玩过 / 没玩过都走演示局（玩过 = 快速版 drill_vet）
 
 
 func _drill_on() -> void:
 	drill = true
+	drill_t0 = g.t
 	g.stats.add(&"enemy_dmg", "mult", Bal.v("onboard/enemy_dmg", 0.5), "onboard")
 	g.sync_stats()
 
@@ -148,6 +187,12 @@ func force_recruit() -> bool:
 ## 演示局结束：记下看过，重开进正式局（测试里直接退出）
 func _drill_end() -> void:
 	_mark("drill")
+	if forced:
+		print("ONBOARD forced_done route=%s t=%.1f real=%.1f" % [mode, g.t - drill_t0, now])
+		forced = false
+		if dev == "":
+			Cfg.onboard_done = true   # 强制部分走完：之后照常可跳过（随云存档同步）
+			Cfg.save()
 	_drill_off()
 	cur = ""
 	drill_left = -1.0
@@ -187,14 +232,19 @@ func text_of(id: String, touch: bool) -> String:
 	return str(c.get("touch", c.get("text", ""))) if touch else str(c.get("text", ""))
 
 
+## 本局演示局的步骤（玩过 = 快速版 drill_vet）
+func _drill_list() -> Array:
+	return (data.get("drill_vet", []) as Array) if mode == "vet" else (data.get("drill", []) as Array)
+
+
 ## 演示局的步骤（不含「演示结束」）
 func drill_ids() -> Array:
-	return (data.get("drill", []) as Array).filter(func(x): return x != "drill_end")
+	return _drill_list().filter(func(x): return x != "drill_end")
 
 
 ## 演示图鉴列出的卡：演示局步骤 + 正式局提示卡（去重，不含「演示结束」）
 func all_ids() -> Array:
-	var out: Array = drill_ids()
+	var out: Array = (data.get("drill", []) as Array).filter(func(x): return x != "drill_end")
 	for id in data.get("tips", []):
 		if not out.has(id):
 			out.append(id)
@@ -203,25 +253,21 @@ func all_ids() -> Array:
 
 ## 当前该轮询的卡：演示局只走演示步骤，正式局走提示卡
 func _queue_ids() -> Array:
-	return (data.get("drill", []) as Array) if drill else (data.get("tips", []) as Array)
+	return _drill_list() if drill else (data.get("tips", []) as Array)
 
 
 ## 卡能否出现（触发条件）
 func _trigger(id: String) -> bool:
 	var sq: int = g.squad.size()
 	if drill:
-		match id:
-			"move":
-				return true
-			"xp":
-				return _seen("move")
-			"recruit":
-				return _seen("xp")
-			"ult":
-				return _seen("recruit")
-			"drill_end":
-				return _seen("ult")
-		return false
+		if id == "deploy" and g.ult != null and g.ult.phase != "":
+			return false   # 终结技演出完再摆怪群（余波会把它清掉）
+		var lst: Array = _drill_list()   # 按顺序：前面的都做完才出
+		var i: int = lst.find(id)
+		for k in maxi(i, 0):
+			if not _seen(str(lst[k])):
+				return false
+		return i >= 0
 	match id:
 		"lamp":
 			return g.lamp < 75.0 and g.t > 5.0
@@ -258,6 +304,12 @@ func _moot(id: String) -> bool:
 			return drill and g.progression.recruit_cards().is_empty() and g.squad.size() < 2
 		"ult":
 			return drill and g.ult == null
+		"link":
+			return drill and (g.squad.size() < 2 or not LinkV2.on())
+		"command":
+			return (drill and (g.squad.size() < 2 or not g.squad.cmd_on())) or (not drill and _seen("deploy"))   # 演示局教过部署 / 随行：正式局不再出圆盘卡
+		"deploy", "regroup":
+			return drill and (g.squad.size() < 2 or not g.squad.cmd_on() or not g.pick.proto_on())
 	return false
 
 
@@ -275,12 +327,38 @@ func _done(id: String) -> bool:
 		"merchant":
 			return g.merchant.is_empty() or g.state == Game.S.SHOP
 		"command":
-			return int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)) or cur_t > ACT_SECS
+			return int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)) or (cur_t > ACT_SECS and not drill)
+		"link":
+			return _links() > int(ev0.get("links", 0)) or (drill and cur_t > LINK_WAIT)
+		"deploy":
+			return _deployed()
+		"regroup":
+			return int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)) and g.squad.order_kind == "" and g.squad.stance != g.squad.ROAM
 		"ult":
 			return not g.ult.full() or (cur_t > ACT_SECS and not drill)
 		"mire":
 			return _lit_count() > beacons0 or cur_t > 25.0
 	return cur_t >= INFO_SECS
+
+
+## 「部署」做完：部署指令在生效（落点在怪群那一侧），且至少一名队友已经走到驻扎位上（以指令实际生效为准，点了扇区不算）
+func _deployed() -> bool:
+	var sq = g.squad
+	if sq.order_kind != "point" or sq.order_pos == Vector2.INF or (sq.order_pos - g.ppos).dot(pack_dir) <= 40.0:
+		return false
+	for o in sq.ops:
+		if not o.is_leader and o.pos != Vector2.INF and o.cmd_down <= 0.0 and o.pos.distance_to(sq.station_of(o)) <= 48.0:
+			return true
+	return false
+
+
+## 指挥圆盘打开时各扇区依次亮起（command_wheel.draw 读）：演示局「部署」这一步
+func wheel_tour() -> bool:
+	return drill and cur == "deploy"
+
+
+func _links() -> int:
+	return int(g.ult.stats.get("v2_links", 0)) if g.ult != null else 0
 
 
 func _lit_count() -> int:
@@ -296,6 +374,7 @@ func _show(id: String) -> void:
 	cur_t = 0.0
 	lv0 = g.level
 	ev0 = ev.duplicate()
+	ev0["links"] = _links()
 	beacons0 = _lit_count()
 	if drill and demo_id == "":
 		match id:
@@ -307,11 +386,28 @@ func _show(id: String) -> void:
 					g.pickups.drop(g.ppos + dir * (XP_DIST + k * 12.0), "xp", need / 5.0)
 			"recruit":
 				g.pending_levelups += 1   # 下一次升级面板按保底招募画面弹（force_recruit）
+			"link":
+				var ld = g.squad.leader()
+				if ld != null:
+					ld.fill_sp()   # 队长技力充满：自动放技能，队友接连携（羁绊搭档在队时换专属合击）
+				for k in LINK_PACK:   # 身边放一圈怪：技能和连携都要有目标（演示局怪少，附近常常是空的）
+					var ep: Vector2 = g.map.push_out(g.ppos + Vector2.RIGHT.rotated(TAU * k / LINK_PACK) * 210.0, 12.0)
+					g.enemies.append(g.spawner.new_enemy(g.spawner.pick_type(), ep))
+			"deploy":
+				# 固定场景：一群怪从队长右侧（离得远就换左侧，挑地图里放得下的一边）涌来，提示部署队友阻挡
+				pack_dir = Vector2.RIGHT if g.map.push_out(g.ppos + Vector2.RIGHT * PACK_D, 12.0).distance_to(g.ppos + Vector2.RIGHT * PACK_D) < 40.0 else Vector2.LEFT
+				for k in PACK_N:
+					var ep: Vector2 = g.ppos + pack_dir * (PACK_D + (k % 2) * 40.0) + pack_dir.orthogonal() * (k - (PACK_N - 1) / 2.0) * 34.0
+					g.enemies.append(g.spawner.new_enemy(g.spawner.pick_type(), g.map.push_out(ep, 12.0)))
+				if g.squad.stance == g.squad.ROAM:
+					g.squad.apply_command("guard")   # 从随行开始
 			"ult":
 				g.ult.energy = g.ult.FULL   # 终结技直接充满
 			"drill_end":
 				drill_left = END_SECS
 	Sfx.play("ui_move", -6.0)
+	if dev != "":
+		print("ONBOARD card=%s t=%.1f real=%.1f" % [id, g.t - maxf(drill_t0, 0.0), now])   # 录片 / 测试：每张卡出现的局内时刻
 
 
 func _finish(skipped := false) -> void:
@@ -321,12 +417,14 @@ func _finish(skipped := false) -> void:
 	out_id = cur
 	out_t = 0.0 if not skipped else 0.5
 	cur = ""
-	gap_t = GAP
+	gap_t = DRILL_GAP if drill else GAP
 	if not skipped:
 		Sfx.play("ui_ok", -6.0)
 
 
 func skip_all() -> void:
+	if forced:
+		return   # 第一次进游戏：不可跳过
 	if cur != "":
 		_finish(true)
 	mode = ""
@@ -347,7 +445,7 @@ func update(dt: float) -> void:
 				_ask_shot = true
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/onb_ask.png")   # 录片：问题框截图
 			if ask_t >= 2.4:
-				_choose(1)
+				_choose(int(_dev_arg("--onboardpick=", "1")))   # 录片：--onboardpick=<序号> 选哪一项（缺省第 2 项）
 		return
 	if view_on:
 		view_t += dt
@@ -381,13 +479,20 @@ func update(dt: float) -> void:
 		if drill_left <= 0.0:
 			_drill_end()
 		return
-	if drill and g.t >= Bal.v("onboard/drill_max", 150.0) and cur != "drill_end":
+	if drill and g.t - drill_t0 >= Bal.v("onboard/drill_max", 90.0) and cur != "drill_end":
 		cur = ""
 		_show("drill_end")   # 演示局拖太久：直接结束
 		return
 	if cur != "":
 		cur_t += dt
-		if cur_t >= MIN_SHOW and _done(cur):
+		if forced and dev != "":
+			_dev_act()
+		if drill and cur == "link" and cur_t >= LINK_NUDGE and not _nudged and _links() <= int(ev0.get("links", 0)):
+			_nudged = true   # 有的队长技能是蓄在下一次普攻里的（水月）或要等目标：到点按「队长放了技能」触发一次连携
+			var ld = g.squad.leader()
+			if ld != null and g.ult != null:
+				g.ult.on_skill(ld, 0)
+		if cur_t >= (DRILL_MIN if drill else MIN_SHOW) and _done(cur):
 			_finish()
 		return
 	if gap_t > 0.0:
@@ -404,7 +509,45 @@ func update(dt: float) -> void:
 			return
 
 
+## 录片 / 自动测试的强制版：机器人不会用圆盘、按 Q，到点代按（真人局不走这里）
+func _dev_act() -> void:
+	if cur_t < 1.6:
+		return
+	match cur:
+		"ult":
+			if g.ult.full() and g.ult.phase == "" and g.ult.press_q():
+				g.ult.release_q()
+		"command":
+			if int(ev.get("wheel", 0)) <= int(ev0.get("wheel", 0)):
+				g.wheel.confirm(1)   # 突击
+		"deploy":
+			# 打开圆盘 → 看完扇区依次亮起 → 选「部署」→ 准星挪到怪群前方 → 确认
+			if g.squad.order_kind == "point":
+				return
+			if not g.wheel.is_open and not g.pick.active and cur_t >= 1.6 and cur_t < 2.0:
+				g.wheel.open()
+			elif g.wheel.is_open and g.wheel.t_open >= g.wheel.TOUR_STEP * (g.wheel.ITEMS.size() + 0.6):
+				g.wheel.confirm(g.wheel.item_index("point"))
+			elif g.pick.active:
+				g.pick._goal = g.hud_ct() * (g.ppos + pack_dir * float(_dev_arg("--onboarddeploy=", "220"))) - g.pick._offset()   # --onboarddeploy=<距离>：录片用，部署点放远一点（撤回时触发瞬回）
+				if g.pick.t >= 1.3:
+					g.pick.confirm()
+		"regroup":
+			if int(ev.get("wheel", 0)) > int(ev0.get("wheel", 0)):
+				return
+			if not g.wheel.is_open and cur_t >= 1.6 and cur_t < 2.0:
+				g.wheel.open()
+			elif g.wheel.is_open and g.wheel.t_open >= 0.9:
+				g.wheel.confirm(g.wheel.item_index("guard"))
+
+
 # ---------------------------------------------------------------- 问题框
+
+## 问题框的选项（强制时不给「跳过引导」）
+func _ask_opts() -> Array:
+	var opts: Array = data.get("ask", {}).get("opts", [])
+	return opts.filter(func(o): return str(o[2]) != "off") if forced else opts
+
 
 func modal() -> bool:
 	return ask_on or view_on
@@ -419,7 +562,7 @@ func _open_ask() -> void:
 
 
 func _choose(i: int) -> void:
-	var opts: Array = data.get("ask", {}).get("opts", [])
+	var opts: Array = _ask_opts()
 	if i < 0 or i >= opts.size():
 		return
 	var m: String = str(opts[i][2])
@@ -480,17 +623,18 @@ func input(event: InputEvent) -> bool:
 		if event is InputEventKey and event.pressed and not event.echo:
 			match Pad.kc(event):
 				KEY_UP, KEY_W:
-					ask_sel = (ask_sel + 2) % 3
+					ask_sel = posmod(ask_sel - 1, _ask_opts().size())
 					Sfx.play("ui_move")
 				KEY_DOWN, KEY_S, KEY_TAB:
-					ask_sel = (ask_sel + 1) % 3
+					ask_sel = posmod(ask_sel + 1, _ask_opts().size())
 					Sfx.play("ui_move")
 				KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 					_choose(ask_sel)
 				KEY_1, KEY_2, KEY_3:
 					_choose(Pad.kc(event) - KEY_1)
 				KEY_ESCAPE:
-					_choose(2)
+					if not forced:
+						_choose(2)   # 跳过引导（第一次进游戏时 Esc 不选）
 			return true
 		if press:
 			for i in ask_rects.size():
@@ -520,7 +664,7 @@ func input(event: InputEvent) -> bool:
 							_view_close()
 					return true
 		return event is InputEventMouseButton or event is InputEventScreenTouch
-	if press and skip_rect.has_area() and skip_rect.has_point(mp):
+	if press and skip_rect.has_area() and skip_rect.has_point(mp) and not (forced and drill):
 		if drill:
 			_drill_end()   # 演示局：直接进正式局
 		else:
@@ -623,7 +767,9 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 		else:
 			var left: float = clampf(drill_left / END_SECS, 0.0, 1.0) if id == "drill_end" else clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
 			hud.draw_rect(Rect2(Vector2(tp.x, hy + 6.0), Vector2(tx_w * left, 2.0)), Color(1, 1, 1, 0.3 * a))
-		# 跳过（只跳这一张）
+		# 跳过（只跳这一张）；第一次进游戏的演示局不给
+		if forced and drill:
+			return pr
 		var skip_s: String = "跳过演示" if drill else "跳过"
 		var sw: float = (58.0 if touch else 46.0) + (28.0 if drill else 0.0)
 		var sh: float = 30.0 if touch else 22.0
@@ -653,7 +799,7 @@ func _draw_ask(vs: Vector2) -> void:
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	var ask: Dictionary = data.get("ask", {})
-	var opts: Array = ask.get("opts", [])
+	var opts: Array = _ask_opts()
 	var e: float = Demos._e(clampf(ask_t / 0.3, 0.0, 1.0))
 	var touch: bool = g.touch != null and g.touch.active
 	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.72 * e))

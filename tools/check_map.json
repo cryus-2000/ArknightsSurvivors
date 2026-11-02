@@ -88,6 +88,7 @@
     "meta_mech",
     "roster",
     "tour",
+    "onboard_forced",
     "save_migrate",
     "medals",
     "cloud_save",

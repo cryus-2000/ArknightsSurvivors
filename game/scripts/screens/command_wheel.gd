@@ -44,6 +44,7 @@ static func _items() -> Array:
 var ANG: Array = [-135.0, -45.0, 45.0, 135.0] if ITEMS.size() == 4 else ([-150.0, -90.0, -30.0, 45.0, 135.0] if ITEMS.size() == 5 else [-150.0, -90.0, -30.0, 30.0, 90.0, 150.0])
 var HALF: Array = [45.0, 45.0, 45.0, 45.0] if ITEMS.size() == 4 else ([30.0, 30.0, 30.0, 45.0, 45.0] if ITEMS.size() == 5 else [30.0, 30.0, 30.0, 30.0, 30.0, 30.0])
 const TAP := 0.25          # 轻点 / 按住的分界（真实秒）
+const TOUR_STEP := 0.8     # 新手引导：打开后各扇区依次亮起，每项停留的真实秒数（docs/219 §6.5）
 const DEAD := 30.0         # 按住模式：鼠标 / 摇杆离起点多远才算选中（像素 / 摇杆 0.5 比例见 _pad_vec）
 const R_IN := 70.0
 const R_OUT := 196.0
@@ -408,6 +409,14 @@ func draw_demo(c: Vector2, k: float, t: float, hov: int, st: float, out := 0.0) 
 	UI.fk = fk0
 
 
+## 新手引导演示局「部署」（onboard.wheel_tour）：玩家还没悬停时，各扇区依次亮起并在下方显示说明，转完一圈停在「部署」上提示该选哪个
+func _tour_hover() -> int:
+	if g.get("onboard") == null or not g.onboard.wheel_tour():
+		return -1
+	var i: int = int(t_open / TOUR_STEP)
+	return i if i < ITEMS.size() else item_index("point")
+
+
 ## 圆盘项的下标（演示用）：没有该项返回 -1
 func item_index(id: String) -> int:
 	for i in ITEMS.size():
@@ -418,7 +427,7 @@ func item_index(id: String) -> int:
 
 func draw(vs: Vector2) -> void:
 	if is_open:
-		_draw_ef(vs, hover, 0.0)
+		_draw_ef(vs, hover if hover >= 0 else _tour_hover(), 0.0)
 	elif _out_t >= 0.0 and _out_t < OUT_T and not Cfg.reduce_motion and g.state == g.S.PLAY:
 		_draw_ef(vs, _out_i, _out_t / OUT_T)
 

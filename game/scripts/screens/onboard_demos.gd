@@ -17,7 +17,7 @@ const C_DEPLOY := Color(0.36, 0.78, 1.0)
 
 ## 每张卡一轮的秒数
 const LOOP := {"move": 4.0, "xp": 4.8, "lamp": 5.2, "recruit": 5.0, "merchant": 5.0, "boss": 4.4, "squad": 4.0,
-	"command": 8.0, "drill_end": 4.0, "ult": 4.4, "link": 4.2, "mire": 5.2, "nodes": 4.0}
+	"command": 8.0, "deploy": 8.0, "regroup": 8.0, "drill_end": 4.0, "ult": 4.4, "link": 4.2, "mire": 5.2, "nodes": 4.0}
 
 
 static func draw(ci: CanvasItem, id: String, r: Rect2, t: float, ctx: Dictionary) -> void:
@@ -39,8 +39,8 @@ static func draw(ci: CanvasItem, id: String, r: Rect2, t: float, ctx: Dictionary
 			_boss(ci, r, tl, ctx)
 		"squad", "drill_end":
 			_squad(ci, r, tl, ctx)
-		"command":
-			_command(ci, r, tl, ctx)
+		"command", "deploy", "regroup":
+			_command(ci, r, tl, ctx)   # 演示局「部署」「随行」两步沿用圆盘演示
 		"ult":
 			_ult(ci, r, tl, ctx)
 		"link":

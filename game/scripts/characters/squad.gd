@@ -180,8 +180,16 @@ func remove(cid: String) -> void:
 		g.rfx.refresh_squad()
 
 
-## 队友离队 / 换人（10-22 用户定）：定格当前帧原地起跳，向上跳出屏幕（纯画面 g.fx kind "leave_jump"，world._draw_fx 画）
+## 队友离队 / 换人、瞬回、掉队归位的退场（纯画面 g.fx，world._draw_fx 画）；LEAVE_JUMP = 旧的向上跳出屏幕时长（deploy_exit = 0）
 const LEAVE_JUMP := 0.5
+
+## 退场画面（11-02 用户「部署最后的小人退场要不要去掉，突兀的飞上天显得很奇怪」）：squad/deploy_exit
+##   1（缺省）= 就地解散：脚下光圈收拢 + 身体像素碎散淡出 WARP_OUT 秒（world.gd 的 g.fx kind "warp_out"）；
+##   2 = 部署结束 / 撤回时不瞬回，直接跑回队长身边（_recall_blink 不挪位置；离队 / 换人 / 掉队归位仍就地解散）；0 = 旧的原地一蹲向上跳出屏幕（leave_jump，对照用）
+## 纯画面（2 档除外：不瞬回会改队友位置）
+static func exit_mode() -> int:
+	return Bal.vi("squad/deploy_exit", 1)
+
 
 func _leave_fx(o) -> void:
 	if o.pos == Vector2.INF or g.get("fx") == null or g.demo_op != "":
@@ -189,7 +197,12 @@ func _leave_fx(o) -> void:
 	var st: Dictionary = o.anim_state()
 	if st.is_empty():
 		return
-	g.fx.append({"kind": "leave_jump", "pos": o.pos + Vector2(o.foot_dx(st), 0), "st": st, "foot_off": o.foot_off(st.tex, st.get("kind", "")), "life": LEAVE_JUMP, "max": LEAVE_JUMP})
+	var at: Vector2 = o.pos + Vector2(o.foot_dx(st), 0)
+	var fo: float = o.foot_off(st.tex, st.get("kind", ""))
+	if exit_mode() == 0:
+		g.fx.append({"kind": "leave_jump", "pos": at, "st": st, "foot_off": fo, "life": LEAVE_JUMP, "max": LEAVE_JUMP})
+		return
+	g.fx.append({"kind": "warp_out", "pos": at, "st": st, "foot_off": fo, "col": o.col(), "seed": int(o.slot) * 7 + int(g.t * 10.0) % 97, "life": o.WARP_OUT, "max": o.WARP_OUT})
 
 
 var _hold_size := false   # replace 中途：人数先减后加，不重算入队加成（人数不变，台阶不变）
@@ -223,7 +236,7 @@ func _replace(old_id: String, new_id: String, route: String):
 	ops.insert(mini(idx, ops.size()), op)
 	assign_slots()
 	op.pos = g.ppos + _slot_offset(op.slot)
-	op.arrive_t = 0.0   # 等被换下的跳出屏幕后从上方落下（纯画面，character.arrive_dy）
+	op.arrive_t = 0.0   # 等被换下的就地解散后从上方落下（纯画面，character.arrive_dy）
 	op.play_entry(op.ARRIVE_WAIT + op.ARRIVE_FALL)   # 着地接入场条
 	var sq0: int = g.show_queue.size()
 	if route != "":
@@ -971,15 +984,19 @@ func _recall_blink() -> void:
 		o.roam_tgt = null
 		if o.pos.distance_to(dst) <= lim:
 			continue
+		if exit_mode() == 2:
+			continue   # 备选：不瞬回，按归队姿态直接跑回队长身边
 		_bl_ext[o.id] = "recall_blink"
 		blink_fx(o, dst)
 		o.pos = dst
 
 
-## 瞬移的出现 / 消失特效（归队瞬回、超出 leash 的掉队归位共用）：原地放退场闪光，落点一圈光；清残影免得拖一道线
+## 瞬移的出现 / 消失特效（归队瞬回、超出 leash 的掉队归位共用）：原地就地解散（_leave_fx），等解散完在落点淡入、落点一圈光；清残影免得拖一道线
 func blink_fx(o, dst: Vector2) -> void:
 	_leave_fx(o)
 	o.ghosts.clear()
+	if exit_mode() != 0 and g.demo_op == "":
+		o.warp_t = 0.0   # 本体先不画，WARP_OUT 秒后在落点淡入（character.warp_k）
 	if g.get("fx") != null:
 		g.fx.append({"kind": "ring", "pos": dst, "r": 34.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 0.95, 1.0)})
 
