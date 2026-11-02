@@ -1,0 +1,3 @@
+{
+  "_doc": "docs/237 特效覆盖登记（组 c 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py"
+}
