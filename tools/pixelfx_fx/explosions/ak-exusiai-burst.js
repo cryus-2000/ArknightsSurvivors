@@ -48,7 +48,7 @@ export function create(o) {
             const ci = clamp(Math.round(4 + f * 4 - u * 5.5), 1, 7);
             p.blend(x, y, C[ci], (1 - u * u) * Math.min(1, f * 4));
           }
-        if (t < 0.045) p.circle(0, 0, R0 * 0.35, C[7]);
+        if (t < 0.03) p.circle(0, 0, R0 * 0.35, C[7]);
         p.glow(0, 0, R0, C[5], 0.3 * (1 - u));
       }
       ps.draw(p, "front");

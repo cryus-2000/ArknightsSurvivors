@@ -33,16 +33,16 @@ export function create(o) {
     update(dt) { t += dt; bits.update(dt); ps.update(dt); },
     draw(p) {
       if (!brk) {
-        const g = ease.outBack(clamp((t + 0.02) / 0.2)), hot = t < 0.05;
+        const g = ease.outBack(clamp((t + 0.02) / 0.2)), hot = t < 0.03;
         if (t >= 0.25) return;
         for (const s of side) crystal(p, s.x, 0, s.h * g, s.w, s.lean, C.slice(0, 7));
-        crystal(p, 0, 0, 52 * g, 13, R.range(-1, 1), hot ? C.slice(1, 8) : C.slice(0, 7), { white: hot, glint: g > 0.9 ? 0.8 : -1 });
+        crystal(p, 0, 0, 52 * g, 13, R.range(-1, 1), hot ? C.slice(1, 8) : C.slice(0, 6), { white: hot, glint: g > 0.9 ? 0.8 : -1 });
         if (t < 0.1) for (let i = 0; i < 4; i++) p.px(R.range(-10, 10), R.range(-1, 1), C[R.int(3, 6)]);
         return;
       }
       // 柱身中段（y -30）爆亮：首帧白的不规整晶块，下一帧缩成琥珀
-      if (t < 0.05) { crystal(p, 0, -14, 34, 12, 0, C.slice(1, 8), { white: true }); p.glow(0, -30, 18, C[5], 0.35); }
-      else if (t < 0.1) crystal(p, 0, -22, 18, 8, R.range(-3, 3), C.slice(0, 7));
+      if (t < 0.03) { crystal(p, 0, -14, 34, 12, 0, C.slice(1, 8), { white: true }); p.glow(0, -30, 18, C[5], 0.35); }
+      else if (t < 0.1) crystal(p, 0, -22, 18, 8, R.range(-3, 3), C.slice(0, 6));
       bits.draw(p); ps.draw(p);
     },
   };

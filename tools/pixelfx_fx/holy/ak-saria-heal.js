@@ -37,7 +37,7 @@ export function create(o) {
         for (let x = -R0 - 3; x <= R0 + 3; x++) {
           const a = Math.atan2(y / SY, x), d = Math.hypot(x, y / SY), edge = rr * (0.9 + 0.14 * noise(a * 3 + 1, o.seed)) + 1.2 * noise(a * 13, o.seed + 5);
           if (d > edge) continue;
-          const q = d / edge, ci = clamp(Math.round(7 - k * 5 - q * 2 + (t < 0.05 ? 2 : 0)), 3, 7);
+          const q = d / edge, ci = clamp(Math.round(6 - k * 5 - q * 2 + (t < 0.03 ? 3 : 0)), 3, 7);
           p.blend(x, y, C[ci], (q > 0.82 ? 0.85 : 0.3 * (1 - q * 0.5)) * (1 - k));
         }
     },

@@ -48,7 +48,7 @@ export function create(o) {
               const u = d / L, w = (1 - u) * (a === 0 ? 2.4 : 1.2) * k;
               for (let s = -w; s <= w; s += 0.5) p.px(d * Math.cos(a) - s * Math.sin(a), d * Math.sin(a) + s * Math.cos(a), C[clamp(Math.round(7 - u * 3 - Math.abs(s) - (1 - k) * 3), 2, 7)]);
             }
-          if (t < 0.04) p.circle(1, 0, 1.6, C[7]);
+          if (t < 0.03) p.circle(1, 0, 1.6, C[7]);
         }
         ps.draw(p);
         return;
@@ -59,7 +59,7 @@ export function create(o) {
         const rr = 4 + 8 * ease.outQuart(clamp(u * 2));
         // 几团大小不一、偏心的火球叠成不规整的爆点；首帧白芯
         for (const [dx, dy, s] of blobs) p.disc(dx * rr, -6 + dy * rr, rr * s, (d) => C[clamp(Math.round(7 - d * 2.5 - u * 4.5), 2, 7)], (d) => (1 - u) * (0.95 - d * 0.55));
-        if (t < 0.05) p.circle(0, -6, 3, C[7]);
+        if (t < 0.03) p.circle(0, -6, 3, C[7]);
         p.glow(0, -6, 16, C[5], 0.3 * (1 - u));
       }
       bits.draw(p); ps.draw(p, "front"); lights.draw(p);

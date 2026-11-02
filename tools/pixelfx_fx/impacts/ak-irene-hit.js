@@ -35,9 +35,9 @@ export function create(o) {
         for (const [dx, dy, l] of arms)
           for (let d = 0; d <= l * s; d += 0.5) {
             const u = d / (l * s);
-            p.px(dx * d, dy * d, C[t < 0.04 ? (u < 0.5 ? 7 : 6) : u < 0.3 ? 6 : u < 0.65 ? 5 : 3]);
+            p.px(dx * d, dy * d, C[t < 0.03 ? (u < 0.5 ? 7 : 6) : u < 0.3 ? 6 : u < 0.65 ? 5 : 3]);
           }
-        p.poly([[0, -1.6], [1.8, 0], [0, 1.6], [-1.6, 0]], C[t < 0.05 ? 7 : 5]);
+        p.poly([[0, -1.6], [1.8, 0], [0, 1.6], [-1.6, 0]], C[t < 0.03 ? 7 : 5]);
       }
       if (!star) {
         const r = 3 + 8 * ease.outQuart(clamp(t / 0.12)), ak = 1 - clamp((t - 0.03) / 0.12);

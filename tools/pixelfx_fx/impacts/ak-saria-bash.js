@@ -30,7 +30,7 @@ export function create(o) {
         for (let y = -22; y <= 22; y++) {
           const v = y / 22, rim = x0 + 8 * (1 - v * v) + 1.5 * noise(y * 0.35, o.seed), w = (5 + 4 * (1 - Math.abs(v))) * k;
           for (let x = rim - w; x <= rim; x++) {
-            const q = (rim - x) / Math.max(w, 1), ci = t < 0.04 ? (q < 0.5 ? 7 : 6) : clamp(Math.round(7 - q * 3 - (1 - k) * 4), 1, 7);
+            const q = (rim - x) / Math.max(w, 1), ci = t < 0.03 ? (q < 0.5 ? 7 : 6) : clamp(Math.round(7 - q * 3 - (1 - k) * 4), 1, 7);
             if (q < 0.85 || noise(x * 0.5, y * 0.5) > 0) p.px(x, y, C[ci]);
           }
         }

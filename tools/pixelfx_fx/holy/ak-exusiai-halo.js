@@ -21,9 +21,9 @@ export function draw(p, t, o) {
   const C = fit(o.palette, 6), flash = +o.mode === 1;
   if (flash) {
     if (t >= 0.2) return;
-    const k = 1 - t / 0.2, s = t < 0.05 ? 1 : k;
+    const k = 1 - t / 0.2, s = t < 0.03 ? 1 : k;
     // 环整圈一亮 + 不对称四芒
-    for (let a = 0; a < TAU; a += 0.04) p.px(Math.cos(a) * RX * (1 + 0.15 * (1 - k)), Math.sin(a) * RY - 6, C[t < 0.05 ? 5 : a > Math.PI ? 3 : 4]);
+    for (let a = 0; a < TAU; a += 0.04) p.px(Math.cos(a) * RX * (1 + 0.15 * (1 - k)), Math.sin(a) * RY - 6, C[t < 0.03 ? 5 : a > Math.PI ? 3 : 4]);
     for (const [dx, dy, l] of [[0, -1, 9], [0, 1, 4], [1, 0, 6], [-1, 0, 5]])
       for (let d = 0; d <= l * s; d++) p.px(dx * d, dy * d - 6, C[d < l * s * 0.4 ? 5 : 3]);
     p.glow(0, -6, 10, C[3], 0.3 * k);

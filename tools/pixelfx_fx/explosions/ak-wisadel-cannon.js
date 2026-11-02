@@ -14,7 +14,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#0c0608", "#24080c", OP.wisadel[0], OP.wisadel[1], OP.wisadel[2], "#ff5a3a", "#ffb08a", "#fff0e0"], core: 74, seed: 8 },
+  options: { palette: ["#0c0606", "#240a08", "#3e1814", "#7c2a24", OP.wisadel[2], "#ff5a3a", "#ffb08a", "#fff0e0"], core: 74, seed: 8 },
 };
 
 export function create(o) {

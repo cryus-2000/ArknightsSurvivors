@@ -23,7 +23,7 @@ export function draw(p, t, o) {
     if (t >= 0.35) return;
     const k = 1 - t / 0.35, s = ease.outBack(clamp(t / 0.06 + 0.3)) * k;
     for (const [dx, dy, l] of [[0, -1, 14], [0, 1, 9], [1, 0, 11], [-1, 0, 8]])
-      for (let d = 0; d <= l * s; d++) p.px(dx * d, dy * d, C[t < 0.05 ? 7 : d < l * s * 0.3 ? 6 : d < l * s * 0.7 ? 5 : 4]);
+      for (let d = 0; d <= l * s; d++) p.px(dx * d, dy * d, C[t < 0.03 ? 7 : d < l * s * 0.3 ? 6 : d < l * s * 0.7 ? 5 : 4]);
     p.rect(-1, -1, 3, 3, C[t < 0.1 ? 7 : 5]);
     for (let i = 0; i < 3; i++) { const x = R.range(-6, 6), y = 4 + t * R.range(40, 70); if (t > 0.05) p.blend(x, y, C[5], k); }
     p.glow(0, 0, 12, C[5], 0.3 * k);
@@ -37,7 +37,7 @@ export function draw(p, t, o) {
     const rr = r * (1 - open * 0.8);
     if (rr < 1) continue;
     const pts = []; for (let j = 0; j < 6; j++) pts.push([x + Math.cos(j * TAU / 6 + a) * rr, y + Math.sin(j * TAU / 6 + a) * rr * 0.9]);
-    const ci = t < 0.15 && close > 0.95 ? 7 : clamp(Math.round(5 - open * 3), 2, 6);
+    const ci = t < 0.03 ? 7 : clamp(Math.round(5 - open * 3), 2, 5);
     p.poly(pts, C[Math.max(1, ci - 1)]);
     p.polyline([...pts, pts[0]], C[ci]);
   }

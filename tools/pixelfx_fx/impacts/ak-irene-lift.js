@@ -36,7 +36,7 @@ export function create(o) {
         const a = a0 + span * u, w = 0.6 + 3.2 * Math.pow(u, 1.5) * (1 - tail * 0.5);
         const rr = R + 1.2 * noise(a * 5, o.seed);
         for (let d = 0; d < w; d += 0.5) {
-          const q = d / Math.max(w, 0.5), ci = t < 0.05 ? 7 : clamp(Math.round(7 - q * 3 - age * 4 - (1 - u) * 1.5), 1, 7);
+          const q = d / Math.max(w, 0.5), ci = t < 0.03 ? 7 : clamp(Math.round(7 - q * 3 - age * 4 - (1 - u) * 1.5), 1, 7);
           p.px(Math.cos(a) * (rr - d), Math.sin(a) * (rr - d) * 1.1, C[ci]);
         }
       }

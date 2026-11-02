@@ -37,7 +37,7 @@ export function create(o) {
       const k = 1 - clamp(t / 0.16);
       if (head > tail) {
         for (let x = tail; x <= head; x += 0.5) {
-          const u = (x - x0) / L, hot = t < 0.045;
+          const u = (x - x0) / L, hot = t < 0.03;
           const w = (0.6 + 1.6 * u) * (0.5 + 0.5 * k);   // 往前变粗
           const ci = hot ? 7 : clamp(Math.round(7 - (1 - u) * 3 - (1 - k) * 3), 2, 7);
           p.px(x, 0, C[ci]);
