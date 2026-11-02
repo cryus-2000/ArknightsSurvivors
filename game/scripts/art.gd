@@ -1136,7 +1136,7 @@ const V6_FRAMES := {
 	"fx_hoshiguma_px_block_v2": [5, 20.0], "fx_hoshiguma_px_block_v2_glow": [5, 20.0], "fx_hoshiguma_px_guard": [6, 10.0], "fx_hoshiguma_px_sand": [4, 8.0],
 	"fx_hoshiguma_px_sand_v1": [4, 8.0], "fx_hoshiguma_px_sand_v2": [4, 8.0], "fx_texas_px_dash": [4, 20.0], "fx_texas_px_dash_glow": [4, 20.0],
 	"fx_texas_px_pin": [4, 12.0, [3, 4, 130.0]], "fx_texas_px_pin_glow": [4, 12.0], "fx_texas_px_pin_v1": [4, 12.0], "fx_texas_px_pin_v1_glow": [4, 12.0],
-	"fx_texas_px_shatter": [4, 18.0, [7, 4, 170.0]], "fx_texas_px_shatter_glow": [4, 18.0], "fx_texas_px_shatter_v1": [4, 18.0], "fx_texas_px_shatter_v1_glow": [4, 18.0],
+	"fx_texas_px_shatter": [4, 18.0, [4, 4, 170.0]], "fx_texas_px_shatter_glow": [4, 18.0], "fx_texas_px_shatter_v1": [4, 18.0], "fx_texas_px_shatter_v1_glow": [4, 18.0],
 	"fx_texas_px_drop": [5, 20.0], "fx_texas_px_drop_glow": [5, 20.0], "fx_skalter_px_vortex": [8, 10.0], "fx_skalter_px_vortex_v1": [8, 10.0],
 	"fx_hoshiguma_px_sawspark": [3, 20.0], "fx_hoshiguma_px_sawspark_glow": [3, 20.0], "fx_hoshiguma_px_sawspark_v1": [3, 20.0], "fx_hoshiguma_px_sawspark_v1_glow": [3, 20.0],
 	"fx_skadi_px_sweep_glow": [11, 20.0], "fx_skadi_px_cleave_glow": [11, 20.0], "fx_skadi_px_surge_glow": [14, 20.0], "fx_hoshiguma_px_saw_glow": [8, 20.0],
