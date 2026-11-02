@@ -1,12 +1,199 @@
 {
  "_doc": "D 组（docs/229 §9）：艾丽妮 / 塞雷娅 / 推进之王 / 维什戴尔 / 能天使",
- "fx_irene_px_cleave": {"fx": "melee/ak-irene-cleave"},
- "fx_saria_px_calcify": {"fx": "earth/ak-saria-calcify"},
- "fx_saria_px_heal": {"fx": "holy/ak-saria-heal"},
- "fx_siege_px_slam": {"fx": "earth/ak-siege-slam"},
- "fx_siege_px_smash": {"fx": "earth/ak-siege-slam", "opts": {"radius": 29, "seed": 23}},
- "fx_wisadel_px_muzzle": {"fx": "projectiles/ak-wisadel-muzzle", "hires": true},
- "fx_exusiai_px_muzzle_gold": {"fx": "projectiles/ak-exu-muzzle", "opts": {"palette": ["#2a1a06", "#7a4c0e", "#d89a2a", "#ffd76a", "#fff3cc", "#ffffff"]}, "hires": true, "keep": true},
- "fx_exusiai_px_hit_gold": {"fx": "impacts/ak-exu-hit", "opts": {"palette": ["#2a1a06", "#7a4c0e", "#d89a2a", "#ffd76a", "#fff3cc", "#ffffff"]}, "hires": true},
- "fx_exusiai_px_pierce": {"fx": "impacts/ak-exusiai-pierce", "hires": true}
+ "fx_irene_px_cleave": {
+  "fx": "melee/ak-irene-cleave"
+ },
+ "fx_saria_px_calcify": {
+  "fx": "earth/ak-saria-calcify"
+ },
+ "fx_saria_px_heal": {
+  "fx": "holy/ak-saria-heal"
+ },
+ "fx_siege_px_slam": {
+  "fx": "earth/ak-siege-slam"
+ },
+ "fx_siege_px_smash": {
+  "fx": "earth/ak-siege-slam",
+  "opts": {
+   "radius": 29,
+   "seed": 23
+  }
+ },
+ "fx_wisadel_px_muzzle": {
+  "fx": "projectiles/ak-wisadel-muzzle",
+  "hires": true
+ },
+ "fx_exusiai_px_muzzle_gold": {
+  "fx": "projectiles/ak-exu-muzzle",
+  "opts": {
+   "palette": [
+    "#2a1a06",
+    "#7a4c0e",
+    "#d89a2a",
+    "#ffd76a",
+    "#fff3cc",
+    "#ffffff"
+   ]
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_exusiai_px_hit_gold": {
+  "fx": "impacts/ak-exu-hit",
+  "opts": {
+   "palette": [
+    "#2a1a06",
+    "#7a4c0e",
+    "#d89a2a",
+    "#ffd76a",
+    "#fff3cc",
+    "#ffffff"
+   ]
+  },
+  "hires": true
+ },
+ "fx_exusiai_px_pierce": {
+  "fx": "impacts/ak-exusiai-pierce",
+  "hires": true
+ },
+ "fx_irene_px_thrust": {
+  "fx": "melee/ak-irene-thrust",
+  "hires": true
+ },
+ "fx_irene_px_hit": {
+  "fx": "impacts/ak-irene-hit",
+  "hires": true
+ },
+ "fx_irene_px_star": {
+  "fx": "impacts/ak-irene-hit",
+  "opts": {
+   "star": 1,
+   "seed": 2
+  },
+  "hires": true
+ },
+ "fx_irene_px_lift": {
+  "fx": "impacts/ak-irene-lift",
+  "hires": true
+ },
+ "fx_irene_px_crescent": {
+  "fx": "melee/ak-irene-cleave",
+  "opts": {
+   "radius": 64,
+   "span": 1.6,
+   "seed": 9,
+   "palette": [
+    "#06142a",
+    "#1b2c44",
+    "#3a5878",
+    "#6f9ec0",
+    "#a9d4ea",
+    "#d6f2ff",
+    "#f2fbff",
+    "#ffffff"
+   ]
+  }
+ },
+ "fx_irene_px_cannon": {
+  "fx": "explosions/ak-irene-cannon"
+ },
+ "fx_irene_px_gun": {
+  "fx": "explosions/ak-irene-cannon",
+  "opts": {
+   "mode": 1
+  },
+  "hires": true
+ },
+ "fx_irene_px_lamp1": {
+  "fx": "holy/ak-irene-lamp",
+  "opts": {
+   "seed": 1
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_saria_px_calc1": {
+  "fx": "earth/ak-saria-calc",
+  "opts": {
+   "seed": 4
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_siege_px_crater1": {
+  "fx": "earth/ak-siege-crater",
+  "opts": {
+   "seed": 7
+  },
+  "hires": true
+ },
+ "fx_irene_px_lamp2": {
+  "fx": "holy/ak-irene-lamp",
+  "opts": {
+   "seed": 2
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_saria_px_calc2": {
+  "fx": "earth/ak-saria-calc",
+  "opts": {
+   "seed": 5
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_siege_px_crater2": {
+  "fx": "earth/ak-siege-crater",
+  "opts": {
+   "seed": 8
+  },
+  "hires": true
+ },
+ "fx_irene_px_lamp3": {
+  "fx": "holy/ak-irene-lamp",
+  "opts": {
+   "seed": 3
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_saria_px_calc3": {
+  "fx": "earth/ak-saria-calc",
+  "opts": {
+   "seed": 6
+  },
+  "hires": true,
+  "keep": true
+ },
+ "fx_siege_px_crater3": {
+  "fx": "earth/ak-siege-crater",
+  "opts": {
+   "seed": 9
+  },
+  "hires": true
+ },
+ "fx_wisadel_px_crater": {
+  "fx": "earth/ak-siege-crater",
+  "opts": {
+   "kind": 1,
+   "variants": 4,
+   "radius": 44,
+   "seed": 11,
+   "palette": [
+    "#0a0606",
+    "#1e0e0c",
+    "#3a1a14",
+    "#5a2a1e",
+    "#8a2a1e",
+    "#ff6a3a",
+    "#ffc08a"
+   ]
+  },
+  "hires": true
+ },
+ "fx_exusiai_px_burst": {
+  "fx": "explosions/ak-exusiai-burst",
+  "hires": true
+ }
 }

@@ -1125,6 +1125,9 @@ const V6_FRAMES := {
 	"fx_siege_px_slam": [10, 20.0], "fx_siege_px_smash": [10, 20.0],   # 1x 104x80 / 66x46 x 10
 	"fx_wisadel_px_muzzle": [3, 24.0],   # @2x 34x16 x 3
 	"fx_exusiai_px_muzzle_gold": [4, 30.0], "fx_exusiai_px_hit_gold": [5, 25.0], "fx_exusiai_px_pierce": [4, 24.0],   # @2x
+	"fx_irene_px_thrust": [4, 24.0], "fx_irene_px_hit": [4, 24.0], "fx_irene_px_star": [3, 24.0], "fx_irene_px_lift": [8, 20.0],   # @2x 普攻 / 精一
+	"fx_irene_px_crescent": [7, 20.0], "fx_irene_px_cannon": [9, 20.0], "fx_irene_px_gun": [3, 20.0],   # 精二裂潮余波 1x / 追斩手炮
+	"fx_wisadel_px_crater": [4, 0.0], "fx_exusiai_px_burst": [11, 24.0],   # 连携：弹坑 4 种变体 / 爆炸剑雨
 	# ---- 组 D 止
 	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
 	# ---- 组 E 止

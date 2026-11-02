@@ -59,8 +59,8 @@ static func exusiai_shot(u, fp: Vector2, tp: Vector2, i: int) -> void:
 	var t: Texture2D = u._strip_tex(nm)
 	u.strip(nm, fp, {"ang": d.angle(), "o": Vector2(t.get_width(), t.get_height() * 0.5), "sx": 90.0 / PF.tex_w(u, nm), "sy": 0.8, "v": d * L / 0.12, "life": 0.12,
 		"col": Color(col.r * 1.1, col.g * 1.1, col.b * 1.1)})
-	if u.fx_ready("fx_exusiai_muzzle"):
-		u.strip("fx_exusiai_muzzle", fp, {"ang": d.angle(), "sc": 1.4})
+	if u.fx_ready("fx_exusiai_px_muzzle_gold"):
+		u.strip("fx_exusiai_px_muzzle_gold", fp, {"ang": d.angle(), "sc": 1.4})
 	PF.particles(u, tp, 30, "ult_burst_s", [col], 0.1, float(i) * 3.1 + tp.x, 40.0)
 
 

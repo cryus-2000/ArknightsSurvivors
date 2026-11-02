@@ -79,7 +79,7 @@ static func sp_cut(u, fp: Vector2, tp: Vector2) -> bool:
 
 
 # ================================================================ 推进之王：冲阵 + 尾锤（灰金尘、砸坑；她的终结技是跃空砸落的大裂网，这里是地面冲锋 + 一个坑）
-const SG_CRATER := ["fx_lk_sg_crater1", "fx_lk_sg_crater2", "fx_lk_sg_crater3"]
+const SG_CRATER := ["fx_siege_px_crater1", "fx_siege_px_crater2", "fx_siege_px_crater3"]
 const SG_ROCK := "fx_ul_rock"
 
 
@@ -180,7 +180,7 @@ static func lo_ring(u, c: Vector2, R: float, t: float) -> bool:
 
 
 # ================================================================ 艾丽妮：提灯一照（提灯贴图举在她身前、光扫过区域）→ 补一刺（细冷白刺线）
-const IR_LAMP := ["fx_lk_ir_lamp1", "fx_lk_ir_lamp2", "fx_lk_ir_lamp3"]
+const IR_LAMP := ["fx_irene_px_lamp1", "fx_irene_px_lamp2", "fx_irene_px_lamp3"]
 
 
 static func ir_lamp(u, p, c: Vector2, r: float) -> bool:
@@ -203,7 +203,7 @@ static func ir_lamp(u, p, c: Vector2, r: float) -> bool:
 
 
 # ================================================================ 塞雷娅：钙质护盾 + 区域钙化（地面冒出 3 种钙晶簇，散布 / 镜像 / 大小按哈希）
-const SA_CALC := ["fx_lk_sa_calc1", "fx_lk_sa_calc2", "fx_lk_sa_calc3"]
+const SA_CALC := ["fx_saria_px_calc1", "fx_saria_px_calc2", "fx_saria_px_calc3"]
 
 
 static func sa_ground(u, c: Vector2, r: float) -> bool:
@@ -329,7 +329,7 @@ static func an_land(u, c: Vector2, r: float) -> bool:
 
 
 # ---------------- 维什戴尔：好礼——暗红残影 0.35 秒后炸开（终结技弹坑 fx_ws_crater 4 种 + 红粒子，缩到半径 60）
-const WS_CRATER := "fx_ws_crater"
+const WS_CRATER := "fx_wisadel_px_crater"
 
 
 static func wd_blast(u, gp: Vector2, j: int) -> bool:

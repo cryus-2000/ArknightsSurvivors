@@ -594,7 +594,7 @@
        "cd": "$pick_cd",
        "fx": [
         {
-         "strip": "fx_irene_lift_arc",
+         "strip": "fx_irene_px_lift",
          "off": [
           0,
           -18
@@ -622,9 +622,9 @@
     "_doc": "精二追诉：刺中浮空 / 被控住的敌人时追加一发手炮（手炮一发的 60%，每 0.4 秒至多一次）"
    },
    "look": {
-    "beam": "fx_irene_thrust",
-    "hit": "fx_thrust_hit_rose",
-    "star": "fx_star_hit_rose",
+    "beam": "fx_irene_px_thrust",
+    "hit": "fx_irene_px_hit",
+    "star": "fx_irene_px_star",
     "col": [
      0.95,
      0.6,
@@ -661,7 +661,10 @@
         "h": 30
        }
       ],
-      "look": "crescent"
+      "look": "crescent",
+      "strip": "fx_irene_px_crescent",
+      "fit": 64,
+      "k": 0.85
      }
     ],
     "volley": {

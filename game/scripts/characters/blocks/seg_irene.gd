@@ -192,7 +192,7 @@ static func _h3_thrust(o, a: Dictionary, ang: float, mult: float, patch: Diction
 		o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.vrng.randf_range(-40, 40), -60), "life": 0.25, "col": _mf_col(lk.get("spark", []), H3_SILVER), "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
-			o.spawn_fx_sprite(str(lk.get("hit", "fx_thrust_hit_rose")), e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
+			o.spawn_fx_sprite(str(lk.get("hit", "fx_irene_px_hit")), e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
 	_h3_thrust_fx(o, a, d, L, ang, gust, stage)
 	if stage > 1:   # 第一段的出手音由 data_operator._release 播
 		_h3_sfx(o, "atk", 0.0, 1.0, 0.08)
@@ -201,7 +201,7 @@ static func _h3_thrust(o, a: Dictionary, ang: float, mult: float, patch: Diction
 	return first
 
 
-## 刺击光束（同手写：帧条 fx_irene_thrust，缺图退回程序光束 + 剑尖星芒；更长的部分程序叠出；第三段剑尖金光）
+## 刺击光束（pixelfx 帧条 fx_irene_px_thrust，缺图退回程序光束 + 剑尖星芒；更长的部分程序叠出；第三段剑尖金光）
 static func _h3_thrust_fx(o, a: Dictionary, d: Vector2, L: float, ang: float, gust: bool, stage: int) -> void:
 	var g = o.g
 	var ir: Dictionary = o.hw.ir
@@ -212,8 +212,8 @@ static func _h3_thrust_fx(o, a: Dictionary, d: Vector2, L: float, ang: float, gu
 	var side: float = 4.0 if int(ir.tn) % 2 == 0 else -4.0
 	var st: Vector2 = o.pos + Vector2(0, -32) + d * 12.0 + d.orthogonal() * side
 	var tsc: float = g.PX * clampf(L / 128.0, 0.9, 1.1)   # 帧条限幅（再放大颗粒过粗）；判定被范围藏品拉长时下面用程序光束补齐全长
-	var star: String = str(lk.get("star", "fx_star_hit_rose"))
-	if not o.spawn_fx_sprite(str(lk.get("beam", "fx_irene_thrust")), st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if gust else Color.WHITE):
+	var star: String = str(lk.get("star", "fx_irene_px_star"))
+	if not o.spawn_fx_sprite(str(lk.get("beam", "fx_irene_px_thrust")), st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if gust else Color.WHITE):
 		o.fx({"kind": "h3_thrust", "pos": st, "dir": d, "len": L, "w": 9.0 if gust else 7.0, "life": 0.16, "col": gcol if gust else col, "star": star})
 		o.spawn_fx_sprite(star, st + d * (L + 10.0), g.PX * 0.8)
 	elif h3_thrust_w(o, a) > float(a.get("w", 26.0)) * 1.01 or o.stat(&"op_range") > 1.01:   # 163B §3：范围藏品拉长刺击时画面跟判定走
@@ -256,9 +256,9 @@ static func _h3_cannon(o, cb: Dictionary, c: Vector2, dmg: float) -> void:
 	var g = o.g
 	o.area_hit(str(cb.get("src", "")), c, float(cb.get("r", 40.0)), dmg, 0.0, 0.0)
 	var muzzle: Vector2 = o.pos + Vector2(12.0 * o.face, -30)
-	o.spawn_fx_sprite(str(cb.get("muzzle", "fx_muzzle_flash")), muzzle, g.PX * 0.7)
+	o.spawn_fx_sprite(str(cb.get("muzzle", "fx_irene_px_gun")), muzzle, g.PX, 0.0 if o.face > 0.0 else PI)   # pixelfx 枪口 / 落点小爆（docs/229 §9 D 组，按 1:1 密度）
 	o.fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0, "laser": true})
-	if not o.spawn_fx_sprite(str(cb.get("burst", "fx_cannon_burst")), c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
+	if not o.spawn_fx_sprite(str(cb.get("burst", "fx_irene_px_cannon")), c + Vector2(0, 2), g.PX):
 		o.fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 18.0, "life": 0.2, "col": H3_LAMP, "alpha": 0.6})
 	o.fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 6.0, "life": 0.25, "col": H3_LAMP, "floor": true})
 	_h3_sfx(o, "big", -4.0, 1.0, 0.1)
@@ -387,7 +387,7 @@ static func _h3_cleave_fx(o, b: Dictionary, ang: float, r: float) -> void:
 			if second:
 				_h3_sfx(o, "atk", 2.0, 0.9)
 			return
-	if not o.spawn_fx_sprite(str(b.get("strip", "fx_slash_heavy_rose")), o.pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * (0.2 if second else 0.32), r * 1.0 / 28.0, ang, second, false, tint):
+	if not o.spawn_fx_sprite(str(b.get("strip", "")), o.pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * (0.2 if second else 0.32), r * 1.0 / 28.0, ang, second, false, tint):
 		o.slash_fx(o.pos + Vector2(0, -14), ang, 0.8, r, H3_SILVER if second else H3_PINK, "slash", 0.25)
 	_h3_vsparks(o, o.pos + Vector2.from_angle(ang) * r * 0.5, H3_SILVER, 10, 200.0, 0.4, 2.5, 200.0)
 	if second:
@@ -517,7 +517,7 @@ static func _e3_ir_tick(o, ir: Dictionary, dt: float) -> void:
 		n += 1
 		var cb: Dictionary = b.duplicate()
 		if not cb.has("muzzle"):
-			cb["muzzle"] = "fx_irene_gun_burst"
+			cb["muzzle"] = "fx_irene_px_gun"
 		_h3_cannon(o, cb, e.pos, hw_mul(o.base(str(b.get("atk_key", "atk")), 0.0), b.get("mult", 1.0)) * o._dmg_bonus())
 
 
@@ -543,7 +543,8 @@ static func e3_ir_anim(o, st: Dictionary) -> Dictionary:
 static func _e3_crescent_fx(o, b: Dictionary, ang: float, r: float) -> void:
 	var g = o.g
 	var dir := Vector2.from_angle(ang)
-	if not o.spawn_fx_sprite(str(b.get("strip", "fx_irene_crescent_wide")), o.pos + Vector2(0, -14) + dir * r * 0.5, r / 58.0, ang, false, false, Color.WHITE):
+	var fit_ok: bool = b.has("fit")   # pixelfx 裂潮余波（docs/229 §9 D 组）：帧条原点 = 艾丽妮，缩放 = r × k ÷ fit
+	if not o.spawn_fx_sprite(str(b.get("strip", "fx_irene_px_crescent")), o.pos + Vector2(0, -14) + (Vector2.ZERO if fit_ok else dir * r * 0.5), r * float(b.get("k", 0.85)) / float(b.get("fit", 64.0)) if fit_ok else r / 58.0, ang, false, false, Color.WHITE):
 		o.slash_fx(o.pos + Vector2(0, -14), ang, float(b.get("half", 0.785)), r, Color(0.7, 0.95, 1.1), "slash", 0.26)
 	_h3_vsparks(o, o.pos + dir * r * 0.55, Color(0.8, 0.95, 1.1), 8, 200.0, 0.35, 2.5, 160.0)
 	_h3_sfx(o, "atk", 3.0, 0.9)

@@ -172,7 +172,7 @@ static func _step_boom(u, a: Dictionary) -> bool:
 			var c: Vector2 = pts[i]
 			u.shape({"kind": "circle", "c": c, "r": 34.0, "col": cp, "fill": 0.9, "life": 0.1})
 			u.shape({"kind": "ring", "c": c, "r": 52.0, "r1": 16.0, "w": 4.0, "col": co.lerp(Color.WHITE, 0.3), "life": 0.2})
-			u.strip("fx_ult_exusiai_burst_front", c, {"o": Vector2(64, 64), "sc": 1.2})
+			u.strip("fx_exusiai_px_burst", c, {"o": Vector2(50, 38), "sc": 1.0})
 			for e in u.in_circle(c, 46.0):
 				p.log_hit(_src(p, "爆炸剑雨"), ["连携"])
 				p.deal_damage(e, _dmg(p, Bal.v("ult/link_boom_mult", 0.8), e))
