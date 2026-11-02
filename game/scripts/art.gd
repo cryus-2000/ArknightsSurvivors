@@ -1125,18 +1125,27 @@ const V6_FRAMES := {
 	# ---- pixelfx 组 A（docs/229 §9）：本组新帧条只加在这行与下面「组 A 止」之间
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
-	# 术师 · 法术（源码 tools/pixelfx_fx/**/ak-{eyjafjalla,angelina,logos,lumen,suzuran}-*.js，导出目标 targets_b.json；全部 @2x）
-	"fx_eyjafjalla_px_hit": [5, 24.0], "fx_eyjafjalla_px_ignite": [12, 20.0], "fx_eyjafjalla_px_splash": [8, 20.0], "fx_eyjafjalla_px_pool": [8, 10.0],
-	"fx_angelina_px_pull": [8, 20.0],
-	"fx_logos_px_hit": [5, 24.0], "fx_logos_px_ring": [9, 20.0], "fx_logos_px_pillar": [12, 20.0],
-	"fx_lumen_px_hit": [5, 24.0], "fx_lumen_px_pillar": [12, 20.0],
-	"fx_suzuran_px_pillar": [11, 20.0], "fx_suzuran_px_pillar_s": [11, 20.0], "fx_suzuran_px_ring": [10, 20.0],
-	# 分层光晕（docs/229 §2.7，加色叠画，帧数 / fps 同本体）
-	"fx_eyjafjalla_px_hit_glow": [5, 24.0], "fx_eyjafjalla_px_ignite_glow": [12, 20.0], "fx_eyjafjalla_px_splash_glow": [8, 20.0], "fx_eyjafjalla_px_pool_glow": [8, 10.0],
-	"fx_angelina_px_pull_glow": [8, 20.0],
-	"fx_logos_px_hit_glow": [5, 24.0], "fx_logos_px_ring_glow": [9, 20.0], "fx_logos_px_pillar_glow": [12, 20.0],
-	"fx_lumen_px_hit_glow": [5, 24.0], "fx_lumen_px_pillar_glow": [12, 20.0],
-	"fx_suzuran_px_pillar_glow": [11, 20.0], "fx_suzuran_px_pillar_s_glow": [11, 20.0], "fx_suzuran_px_ring_glow": [10, 20.0],
+	# 术师 · 法术（源码 tools/pixelfx_fx/**/ak-{eyjafjalla,angelina,logos,lumen,suzuran}-*.js，导出目标 targets_b.json；由导出输出生成：本体 / _v1 / _v2 变体 + _glow，第 3 项为火星，docs/229 §2.11）
+	"fx_eyjafjalla_px_hit": [5, 24.0, [3, 5, 160.0]], "fx_eyjafjalla_px_hit_glow": [5, 24.0], "fx_eyjafjalla_px_hit_v1": [5, 24.0], "fx_eyjafjalla_px_hit_v1_glow": [5, 24.0],
+	"fx_eyjafjalla_px_ignite": [12, 20.0, [12, 5, 210.0]], "fx_eyjafjalla_px_ignite_glow": [12, 20.0], "fx_eyjafjalla_px_ignite_v1": [12, 20.0], "fx_eyjafjalla_px_ignite_v1_glow": [12, 20.0],
+	"fx_eyjafjalla_px_ignite_v2": [13, 20.0], "fx_eyjafjalla_px_ignite_v2_glow": [13, 20.0], "fx_eyjafjalla_px_splash": [8, 20.0, [5, 4, 150.0]], "fx_eyjafjalla_px_splash_glow": [8, 20.0],
+	"fx_eyjafjalla_px_splash_v1": [8, 20.0], "fx_eyjafjalla_px_splash_v1_glow": [8, 20.0], "fx_eyjafjalla_px_splash_v2": [8, 20.0], "fx_eyjafjalla_px_splash_v2_glow": [8, 20.0],
+	"fx_eyjafjalla_px_pool": [8, 10.0], "fx_eyjafjalla_px_pool_glow": [8, 10.0], "fx_eyjafjalla_px_pool_v1": [8, 10.0], "fx_eyjafjalla_px_pool_v1_glow": [8, 10.0],
+	"fx_eyjafjalla_px_pool_v2": [8, 10.0], "fx_eyjafjalla_px_pool_v2_glow": [8, 10.0],
+	"fx_angelina_px_pull": [8, 20.0], "fx_angelina_px_pull_glow": [8, 20.0], "fx_angelina_px_pull_v1": [8, 20.0], "fx_angelina_px_pull_v1_glow": [8, 20.0],
+	"fx_angelina_px_pull_v2": [8, 20.0], "fx_angelina_px_pull_v2_glow": [8, 20.0],
+	"fx_logos_px_hit": [5, 24.0, [3, 4, 150.0]], "fx_logos_px_hit_glow": [5, 24.0], "fx_logos_px_hit_v1": [5, 24.0], "fx_logos_px_hit_v1_glow": [5, 24.0],
+	"fx_logos_px_ring": [9, 20.0, [5, 4, 140.0]], "fx_logos_px_ring_glow": [9, 20.0], "fx_logos_px_ring_v1": [9, 20.0], "fx_logos_px_ring_v1_glow": [9, 20.0],
+	"fx_logos_px_ring_v2": [9, 20.0], "fx_logos_px_ring_v2_glow": [9, 20.0], "fx_logos_px_pillar": [12, 20.0, [6, 4, 160.0]], "fx_logos_px_pillar_glow": [12, 20.0],
+	"fx_logos_px_pillar_v1": [12, 20.0], "fx_logos_px_pillar_v1_glow": [12, 20.0], "fx_logos_px_pillar_v2": [12, 20.0], "fx_logos_px_pillar_v2_glow": [12, 20.0],
+	"fx_lumen_px_hit": [5, 24.0, [3, 5, 160.0]], "fx_lumen_px_hit_glow": [5, 24.0], "fx_lumen_px_hit_v1": [5, 24.0], "fx_lumen_px_hit_v1_glow": [5, 24.0],
+	"fx_lumen_px_pillar": [12, 20.0, [6, 5, 160.0]], "fx_lumen_px_pillar_glow": [12, 20.0], "fx_lumen_px_pillar_v1": [12, 20.0], "fx_lumen_px_pillar_v1_glow": [12, 20.0],
+	"fx_lumen_px_pillar_v2": [12, 20.0], "fx_lumen_px_pillar_v2_glow": [12, 20.0],
+	"fx_suzuran_px_pillar": [11, 20.0, [6, 5, 150.0]], "fx_suzuran_px_pillar_glow": [11, 20.0], "fx_suzuran_px_pillar_v1": [11, 20.0], "fx_suzuran_px_pillar_v1_glow": [11, 20.0],
+	"fx_suzuran_px_pillar_v2": [11, 20.0], "fx_suzuran_px_pillar_v2_glow": [11, 20.0], "fx_suzuran_px_pillar_s": [11, 20.0, [3, 5, 120.0]], "fx_suzuran_px_pillar_s_glow": [11, 20.0],
+	"fx_suzuran_px_pillar_s_v1": [11, 20.0], "fx_suzuran_px_pillar_s_v1_glow": [11, 20.0], "fx_suzuran_px_pillar_s_v2": [11, 20.0], "fx_suzuran_px_pillar_s_v2_glow": [11, 20.0],
+	"fx_suzuran_px_ring": [10, 20.0, [8, 5, 160.0]], "fx_suzuran_px_ring_glow": [10, 20.0], "fx_suzuran_px_ring_v1": [10, 20.0], "fx_suzuran_px_ring_v1_glow": [10, 20.0],
+	"fx_suzuran_px_ring_v2": [10, 20.0], "fx_suzuran_px_ring_v2_glow": [10, 20.0],
 	# ---- 组 B 止
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止
