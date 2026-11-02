@@ -5,11 +5,11 @@
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-CASE enemy=true aim=(0.0, 0.0) touch=false -> events=0 aim_seen=(0.0, 0.0) dmg_r=48 dmg_l=0
-CASE enemy=true aim=(-1.0, 0.0) touch=false -> events=0 aim_seen=(0.0, 0.0) dmg_r=0 dmg_l=48
+CASE enemy=true aim=(0.0, 0.0) touch=false -> events=0 aim_seen=(0.0, 0.0) dmg_r=54 dmg_l=0
+CASE enemy=true aim=(-1.0, 0.0) touch=false -> events=0 aim_seen=(0.0, 0.0) dmg_r=0 dmg_l=54
 CASE enemy=false aim=(1.0, 0.0) touch=false -> events=0 aim_seen=(0.0, 0.0) dmg_r=0 dmg_l=0
-CASE enemy=true aim=(-1.0, 0.0) touch=true -> events=0 aim_seen=(0.0, 0.0) dmg_r=0 dmg_l=48
-CASE enemy=true aim=(0.0, 0.0) touch=false -> events=0 aim_seen=(0.0, 0.0) dmg_r=32 dmg_l=0
+CASE enemy=true aim=(-1.0, 0.0) touch=true -> events=0 aim_seen=(0.0, 0.0) dmg_r=0 dmg_l=54
+CASE enemy=true aim=(0.0, 0.0) touch=false -> events=0 aim_seen=(0.0, 0.0) dmg_r=36 dmg_l=0
 6 checks, 0 failed
 HOLD AIM kaltsit failures=0
 ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
