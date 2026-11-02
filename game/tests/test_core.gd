@@ -227,7 +227,7 @@ func test_db_and_profile() -> void:
 	ok(c.db.get_relic("169").effects[0].get("if", {}).has("target_hp_below"), "藏品 169 处决门槛 target_hp_below 存在")
 	# docs/57：第二批原语的数据契约——带参数的规则 / 触发必须在数据里给齐参数（relic_fx.gd 不写死数值）
 	var rule_keys := {"hp_dmg": ["max"], "low_hp_haste": ["max", "at"], "far_dmg": ["max", "at"], "zone": ["r", "every"], "sp_pulse": ["every", "pct"],
-		"medkit": ["n", "at", "heal"], "unhurt_light": ["t", "amount"], "per_relic": ["stat", "per"], "squad_scale": ["stat", "per", "count"]}
+		"medkit": ["n", "at", "heal"], "unhurt_light": ["t", "amount"], "lamp_floor": ["below", "per_sec"], "elite_light": ["elite", "boss"], "beacon_guide": ["every", "need", "lamp"], "per_relic": ["stat", "per"], "squad_scale": ["stat", "per", "count"]}
 	var do_keys := {"refund": ["class", "pct"], "stack_stat": ["stat", "per", "max"], "invuln": ["dur"], "stun_near": ["min_pct", "r", "dur"],
 		"damage_all": ["cd", "dmg"], "random_relic": ["n"], "levels": ["n"], "heal_flat": ["amount"]}
 	var new_n := 0
