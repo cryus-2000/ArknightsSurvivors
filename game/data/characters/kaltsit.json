@@ -2847,8 +2847,8 @@
        "fit": 20
       },
       {
-       "strip": "fx_mon3tr_claw",
-       "scale": 0.45,
+       "strip": "fx_kaltsit_px_claw",
+       "scale": 0.8,
        "off": [
         0,
         -10
@@ -2911,10 +2911,10 @@
            ]
           },
           {
-           "strip": "fx_mon3tr_claw",
+           "strip": "fx_kaltsit_px_claw",
            "n": 2,
            "spread": 0.35,
-           "scale": 0.45,
+           "scale": 0.8,
            "off": [
             0,
             -10
@@ -3082,10 +3082,10 @@
           ]
          },
          {
-          "strip": "fx_mon3tr_claw",
+          "strip": "fx_kaltsit_px_claw",
           "n": 2,
           "spread": 0.35,
-          "scale": 0.45,
+          "scale": 0.8,
           "off": [
            0,
            -10

@@ -6,19 +6,7 @@
  },
  "fx_mizuki_px_slash": {
   "fx": "melee/ak-mizuki-slash",
-  "hires": true,
-  "opts": {
-   "palette": [
-    "#06142a",
-    "#0d0e27",
-    "#1e2766",
-    "#284286",
-    "#3d5fd6",
-    "#8f9ae6",
-    "#c9bdf0",
-    "#ffffff"
-   ]
-  }
+  "hires": true
  },
  "fx_ulpianus_px_slam": {
   "fx": "melee/ak-ulpianus-slam",
@@ -70,35 +58,11 @@
  },
  "fx_mizuki_px_sting": {
   "fx": "impacts/ak-mizuki-sting",
-  "hires": true,
-  "opts": {
-   "palette": [
-    "#06142a",
-    "#0d0e27",
-    "#1e2766",
-    "#284286",
-    "#3d5fd6",
-    "#8f9ae6",
-    "#c9bdf0",
-    "#ffffff"
-   ]
-  }
+  "hires": true
  },
  "fx_mizuki_px_bind": {
   "fx": "status/ak-mizuki-bind",
-  "hires": true,
-  "opts": {
-   "palette": [
-    "#06142a",
-    "#0d0e27",
-    "#1e2766",
-    "#284286",
-    "#3d5fd6",
-    "#8f9ae6",
-    "#c9bdf0",
-    "#ffffff"
-   ]
-  }
+  "hires": true
  },
  "fx_gladiia_px_ram": {
   "fx": "water/ak-gladiia-ram",
@@ -111,5 +75,121 @@
  "fx_kaltsit_px_melt": {
   "fx": "melee/ak-kaltsit-melt",
   "hires": true
+ },
+ "fx_mizuki_px_tentacle": {
+  "fx": "water/ak-mizuki-tentacle",
+  "hires": true,
+  "keep": true
+ },
+ "fx_specter_unchained_px_lkslash1": {
+  "fx": "melee/ak-specter_unchained-lkslash",
+  "hires": true,
+  "opts": {
+   "variant": 1
+  }
+ },
+ "fx_mizuki_px_lkten1": {
+  "fx": "water/ak-mizuki-lkten",
+  "hires": true,
+  "keep": true,
+  "opts": {
+   "variant": 1
+  }
+ },
+ "fx_specter_unchained_px_lkslash2": {
+  "fx": "melee/ak-specter_unchained-lkslash",
+  "hires": true,
+  "opts": {
+   "variant": 2
+  }
+ },
+ "fx_mizuki_px_lkten2": {
+  "fx": "water/ak-mizuki-lkten",
+  "hires": true,
+  "keep": true,
+  "opts": {
+   "variant": 2
+  }
+ },
+ "fx_specter_unchained_px_lkslash3": {
+  "fx": "melee/ak-specter_unchained-lkslash",
+  "hires": true,
+  "opts": {
+   "variant": 3
+  }
+ },
+ "fx_mizuki_px_lkten3": {
+  "fx": "water/ak-mizuki-lkten",
+  "hires": true,
+  "keep": true,
+  "opts": {
+   "variant": 3
+  }
+ },
+ "fx_specter_unchained_px_doll_appear": {
+  "fx": "water/ak-specter_unchained-doll",
+  "hires": true,
+  "opts": {
+   "mode": "appear"
+  }
+ },
+ "fx_specter_unchained_px_doll_burst": {
+  "fx": "water/ak-specter_unchained-doll",
+  "hires": true,
+  "opts": {
+   "mode": "burst"
+  }
+ },
+ "fx_ulpianus_px_drag": {
+  "fx": "impacts/ak-ulpianus-drag",
+  "hires": true,
+  "keep": true
+ },
+ "fx_ulpianus_px_guard": {
+  "fx": "holy/ak-ulpianus-guard",
+  "hires": true
+ },
+ "fx_gladiia_px_tornado_open": {
+  "fx": "water/ak-gladiia-tornado",
+  "hires": true,
+  "keep": true,
+  "opts": {
+   "mode": "open"
+  }
+ },
+ "fx_gladiia_px_tornado_loop": {
+  "fx": "water/ak-gladiia-tornado",
+  "hires": true,
+  "keep": true,
+  "opts": {
+   "mode": "loop"
+  }
+ },
+ "fx_gladiia_px_tornado_close": {
+  "fx": "water/ak-gladiia-tornado",
+  "hires": true,
+  "keep": true,
+  "opts": {
+   "mode": "close"
+  }
+ },
+ "fx_gladiia_px_pull": {
+  "fx": "water/ak-gladiia-stream",
+  "hires": true,
+  "opts": {
+   "mode": "pull"
+  }
+ },
+ "fx_gladiia_px_glide": {
+  "fx": "water/ak-gladiia-stream",
+  "hires": true,
+  "opts": {
+   "mode": "glide"
+  }
+ },
+ "fx_mizuki_px_field": {
+  "fx": "water/ak-mizuki-field",
+  "hires": true,
+  "keep": true
  }
 }

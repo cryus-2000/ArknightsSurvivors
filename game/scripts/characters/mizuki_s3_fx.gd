@@ -25,4 +25,4 @@ static func draw(o, front: bool) -> void:
 	if not front and v.pulse > 0.0:
 		# Entire field reacts to one release, regardless of enemy positions/count.
 		var radius: float = float(o.hw.mz.s3_fx_radius)
-		o.draw_spr("fx_mizuki_s3_field", 6, v.frame, o.pos, radius * 2.0 / 228.0 * 0.8, false, Color(1,1,1,0.8), Vector2(0.5,0.75))
+		o.draw_spr("fx_mizuki_px_field", 6, v.frame, o.pos, radius * 2.0 / 228.0 * 0.75, false, Color(1,1,1,0.8), Vector2(0.5,0.75))   # pixelfx C 组（docs/229）：旧 fx_mizuki_s3_field，0.8 → 0.75 让密度 ≤ 2.2

@@ -853,8 +853,8 @@
      },
      {
       "sprite": {
-       "name": "fx_shield_amber",
-       "scale": 1.4,
+       "name": "fx_ulpianus_px_guard",
+       "scale": 1.0,
        "tint": [
         0.7,
         0.9,
@@ -1339,11 +1339,11 @@
       ],
       "dust_fx": [
        {
-        "strip": "fx_ulpianus_drag_dust",
+        "strip": "fx_ulpianus_px_drag",
         "layer": "floor",
         "off": [
          0,
-         4
+         15
         ]
        }
       ],
@@ -1476,11 +1476,11 @@
       ],
       "dust_fx": [
        {
-        "strip": "fx_ulpianus_drag_dust",
+        "strip": "fx_ulpianus_px_drag",
         "layer": "floor",
         "off": [
          0,
-         4
+         15
         ]
        }
       ],

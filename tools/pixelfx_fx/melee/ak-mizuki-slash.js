@@ -1,8 +1,8 @@
 // 水月「伞击」普攻（docs/229 §3 普攻档）：@2x 密度，正右为出手方向，游戏里按瞄准方向旋转；原点 = 水月本人（seg_mizuki 在 o.pos 放）。
 // 刀弧半径 = 挥击半径 112 × 0.85，张角 150°（swing_arc）。伞面扫过留下一片半透明的水母伞膜，内侧拖出几缕长短不一的触丝，末尾散成小气泡。
-// 色阶：PRTS 立绘（外套宝蓝 → 发梢薰衣草 → 白），house.js 补 OP.mizuki 前由 targets_c.json 的 opts.palette 传入。
+// 色阶：house.js OP.mizuki（PRTS Spine 取色：外套宝蓝 → 发梢薰衣草 → 白）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
-import { FPS, REACH } from "../house.js";
+import { OP, FPS, REACH } from "../house.js";
 
 export const meta = {
   name: "Mizuki umbrella sweep",
@@ -15,7 +15,7 @@ export const meta = {
   fps: FPS.basic,
   bg: "dark",
   options: {
-    palette: ["#06142a", "#0d0e27", "#1e2766", "#284286", "#3d5fd6", "#8f9ae6", "#c9bdf0", "#ffffff"],
+    palette: ["#06142a", ...OP.mizuki],
     radius: 112 * REACH.sweep,
     span: 2.62,       // 150°
     seed: 2,

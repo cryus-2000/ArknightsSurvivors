@@ -1,7 +1,7 @@
 // 水月「深蓝之籽」水母蛰刺命中（精一第 3 批 jelly sting，替换 fx_mizuki_jelly_sting）：@2x 帧条，原点 = 命中点（敌人身上半个半径处），游戏按 PX 放（1:1）。
 // 几根长短不一的刺丝从四面不等角地扎进命中点，首帧白闪，随后刺点泛起一团薰衣草色的毒雾、刺丝缩回并散成小点。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { FPS } from "../house.js";
+import { OP, FPS } from "../house.js";
 
 export const meta = {
   name: "Mizuki jelly sting",
@@ -14,7 +14,7 @@ export const meta = {
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", "#0d0e27", "#1e2766", "#284286", "#3d5fd6", "#8f9ae6", "#c9bdf0", "#ffffff"],
+    palette: ["#06142a", ...OP.mizuki],
     seed: 6,
   },
 };

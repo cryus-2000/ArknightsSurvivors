@@ -451,7 +451,7 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 					continue
 				o.log_hit(str(au.get("src", "")), au.get("tags", []))
 				o.deal_damage(e, float(au.get("dps", 10.0)) * o._dmg_bonus())
-			if not o.spawn_fx_sprite("fx_circle_ghost", dp2 + Vector2(0, 4), g.PX * (r / 40.0)):
+			if not o.spawn_fx_sprite("fx_specter_unchained_px_ripple", dp2 + Vector2(0, 4), r / 80.0) and not o.spawn_fx_sprite("fx_circle_ghost", dp2 + Vector2(0, 4), g.PX * (r / 40.0)):   # pixelfx 卷入暗潮（1x 帧条外沿 80 px：每 1x 像素 = r ÷ 80 世界像素）
 				o.fx({"kind": "ring", "pos": dp2, "r": r, "r0": r * 0.6, "life": 0.5, "col": H3_GHOST, "floor": true, "alpha": 0.5, "keep": true})
 	if float(sp.doll_t) <= 0.0:
 		sp.elegy_t = 0.0
@@ -782,7 +782,7 @@ static func _e3_flash_draw(o) -> void:
 	var mid := p + Vector2(0, -16.0 * g.PX)
 	if t < ap:
 		var k: float = t / ap
-		var nm: String = str(b.get("appear_fx", "fx_specter_doll_appear"))
+		var nm: String = str(b.get("appear_fx", "fx_specter_unchained_px_doll_appear"))   # pixelfx C 组（5 帧，同旧条）
 		_e3_doll_phase(o, "doll_appear", p, f.rev, k)
 		if g.tex.get(nm) != null:
 			fx_frame(cv, g, nm, 5, mini(int(k * 5.0), 4), mid, g.PX, Color.WHITE)
@@ -800,7 +800,7 @@ static func _e3_flash_draw(o) -> void:
 			_e3_doll_body(o, p, f.rev, Color(0.92, 0.96, 1.1), int(ksp * 4.0))
 		return
 	var kb: float = clampf((t - ap - sw) / bu, 0.0, 1.0)
-	var nb: String = str(b.get("burst_fx", "fx_specter_doll_burst"))
+	var nb: String = str(b.get("burst_fx", "fx_specter_unchained_px_doll_burst"))   # pixelfx C 组（6 帧，同旧条；旧条末段棋盘格淡出）
 	_e3_doll_phase(o, "doll_vanish", p, f.rev, kb)
 	if g.tex.get(nb) != null:
 		fx_frame(cv, g, nb, 6, mini(int(kb * 6.0), 5), mid, g.PX, Color.WHITE)

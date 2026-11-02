@@ -38,7 +38,7 @@ static func lp_scar(u, a: Dictionary, sp: Vector2, ep: Vector2) -> void:
 
 
 # ================================================================ 归溟幽灵鲨：暗红替身冲斩（她的终结技是弹射撕裂 + 巨锯，这里是一道直线替身斩）
-const SP_SLASH := ["fx_lk_sp_slash1", "fx_lk_sp_slash2", "fx_lk_sp_slash3"]
+const SP_SLASH := ["fx_specter_unchained_px_lkslash1", "fx_specter_unchained_px_lkslash2", "fx_specter_unchained_px_lkslash3"]   # pixelfx C 组（docs/229）：旧 fx_lk_sp_slash1–3
 
 
 ## 替身冲刺中每帧：她本人帧条的暗红剪影 + 拖影
@@ -222,7 +222,7 @@ static func sa_ground(u, c: Vector2, r: float) -> bool:
 
 
 # ================================================================ 水月：区域里 6 名敌人脚下钻出小触手（3 种，按序号挑 / 镜像）
-const MZ_TEN := ["fx_lk_mz_ten1", "fx_lk_mz_ten2", "fx_lk_mz_ten3"]
+const MZ_TEN := ["fx_mizuki_px_lkten1", "fx_mizuki_px_lkten2", "fx_mizuki_px_lkten3"]   # pixelfx C 组（docs/229）：旧 fx_lk_mz_ten1–3
 
 
 static func mz_tentacles(u, ts: Array) -> bool:

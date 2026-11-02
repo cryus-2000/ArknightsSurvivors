@@ -934,31 +934,31 @@
       "cap": 1,
       "fx": [
        {
-        "strip": "fx_gladiia_tornado_open",
-        "scale": 1.2,
+        "strip": "fx_gladiia_px_tornado_open",
+        "scale": 1.0,
         "off": [
          0,
          4
         ],
         "once": true,
-        "if_tex": "fx_gladiia_tornado_open",
+        "if_tex": "fx_gladiia_px_tornado_open",
         "anchor": [
-         32,
-         58
+         29,
+         70
         ]
        },
        {
-        "strip": "fx_gladiia_tornado_loop",
-        "scale": 1.2,
+        "strip": "fx_gladiia_px_tornado_loop",
+        "scale": 1.0,
         "off": [
          0,
          4
         ],
         "delay": 0.3,
-        "if_tex": "fx_gladiia_tornado_loop",
+        "if_tex": "fx_gladiia_px_tornado_loop",
         "anchor": [
-         32,
-         58
+         29,
+         70
         ],
         "no_fade": true
        },
@@ -1010,7 +1010,7 @@
         "elite_mult": "$pull_elite",
         "fx": [
          {
-          "strip": "fx_gladiia_pull",
+          "strip": "fx_gladiia_px_pull",
           "n": 4,
           "spread": 0.8,
           "inward": true,
@@ -1027,21 +1027,21 @@
        "skill": 2,
        "fx": [
         {
-         "strip": "fx_gladiia_tornado_close",
-         "scale": 1.2,
+         "strip": "fx_gladiia_px_tornado_close",
+         "scale": 1.0,
          "off": [
           0,
           4
          ],
          "once": true,
-         "if_tex": "fx_gladiia_tornado_close",
+         "if_tex": "fx_gladiia_px_tornado_close",
          "anchor": [
-          32,
-          58
+          29,
+          70
          ]
         },
         {
-         "strip": "fx_gladiia_pull",
+         "strip": "fx_gladiia_px_pull",
          "n": 6,
          "spread": 0.9,
          "scale": 0.9,
@@ -1116,7 +1116,7 @@
       "elite_mult": "$pull_elite",
       "fx": [
        {
-        "strip": "fx_gladiia_pull",
+        "strip": "fx_gladiia_px_pull",
         "n": 4,
         "spread": 0.8,
         "scale": 0.9,
@@ -1385,12 +1385,8 @@
    "_doc": "水滑行（Codex fx_gladiia_water_glide，4 帧 10 fps，ground 层，原点 (32,44) 对齐脚底）：跑动时每 0.14 秒在脚下播一份，朝左时转 180°",
    "fx": [
     {
-     "strip": "fx_gladiia_water_glide",
+     "strip": "fx_gladiia_px_glide",
      "layer": "floor",
-     "anchor": [
-      32,
-      44
-     ],
      "rot": true,
      "scale": 1.0,
      "off": [

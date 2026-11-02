@@ -1,7 +1,7 @@
 // 水月「束缚」（被水母蛰中的敌人脚下，替换 fx_mizuki_bind_ring）：@2x 循环帧条，地面透视，原点 = 敌人脚下；按敌人半径 14 设计（seg_mizuki 按 r ÷ 14 在 0.85–1.15 内缩放）。
 // 三缕长短不一的触丝绕着脚下盘旋，各自起伏、粗细不同，转一整圈正好一个循环；不是一圈点线。
 import { Rng, fit, clamp, TAU } from "../../core/index.js";
-import { FPS } from "../house.js";
+import { OP, FPS } from "../house.js";
 
 export const meta = {
   name: "Mizuki bind",
@@ -14,7 +14,7 @@ export const meta = {
   fps: FPS.skill,
   bg: "dark",
   options: {
-    palette: ["#06142a", "#0d0e27", "#1e2766", "#284286", "#3d5fd6", "#8f9ae6", "#c9bdf0", "#ffffff"],
+    palette: ["#06142a", ...OP.mizuki],
     radius: 19,
     seed: 3,
   },

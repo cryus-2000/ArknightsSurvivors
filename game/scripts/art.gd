@@ -1122,7 +1122,14 @@ const V6_FRAMES := {
 	"fx_specter_unchained_px_saw": [5, 24.0], "fx_specter_unchained_px_saw_blood": [5, 24.0],
 	"fx_specter_unchained_px_ripple": [9, 20.0], "fx_specter_unchained_px_cast": [9, 20.0], "fx_kaltsit_px_slam": [10, 20.0], "fx_kaltsit_px_slam_s": [10, 20.0],   # 技能
 	"fx_mizuki_px_sting": [6, 20.0], "fx_mizuki_px_bind": [12, 20.0], "fx_gladiia_px_ram": [9, 20.0],
-	"fx_kaltsit_px_heal": [9, 20.0], "fx_kaltsit_px_melt": [4, 24.0],
+	"fx_kaltsit_px_heal": [9, 20.0], "fx_kaltsit_px_melt": [4, 24.0], "fx_mizuki_px_tentacle": [8, 20.0],
+	"fx_mizuki_px_lkten1": [1, 0.0], "fx_mizuki_px_lkten2": [1, 0.0], "fx_mizuki_px_lkten3": [1, 0.0],   # 连携单帧（link_fx_b MZ_TEN / SP_SLASH）
+	"fx_specter_unchained_px_lkslash1": [1, 0.0], "fx_specter_unchained_px_lkslash2": [1, 0.0], "fx_specter_unchained_px_lkslash3": [1, 0.0],
+	"fx_specter_unchained_px_doll_appear": [5, 20.0], "fx_specter_unchained_px_doll_burst": [6, 20.0],
+	"fx_ulpianus_px_drag": [6, 20.0], "fx_ulpianus_px_guard": [10, 20.0],
+	"fx_gladiia_px_tornado_open": [6, 20.0], "fx_gladiia_px_tornado_loop": [10, 20.0], "fx_gladiia_px_tornado_close": [8, 20.0],
+	"fx_gladiia_px_pull": [7, 20.0], "fx_gladiia_px_glide": [8, 20.0],
+	"fx_mizuki_px_field": [6, 20.0],
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
 	# ---- 组 D 止

@@ -324,7 +324,7 @@ static func _hw_anchor_bite(o) -> void:
 			UlpCharge.launch(o, o.pos, to, dir)
 			# 起冲照明：模板有颗粒簇灯就在起点挂一盏，否则扬一团拖拽尘（光学观感把帧条登记成动态灯）；颗粒版沿途不再扬尘（每团一盏灯，一次冲锋 6–9 团会占满 12 灯预算）
 			if not UlpCharge.lamp(o, o.pos + Vector2(0, -8), 80.0, 0.16):
-				o.spawn_fx_sprite("fx_ulpianus_drag_dust", o.pos + Vector2(0, 4), g.PX, dir.angle(), false, true)
+				o.spawn_fx_sprite("fx_ulpianus_px_drag", o.pos + Vector2(0, 4), g.PX, dir.angle(), false, true)
 		return
 	# 钩不到 / 钩到 Boss / 没写 path_w：锚在落点原地砸下（10-22 用户：S1 去掉顺锁链弹射）
 	an.land = to
@@ -367,7 +367,7 @@ static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
 	an.dust = float(an.get("dust", 0.0)) + L
 	if an.dust >= 36.0:
 		an.dust = 0.0
-		o.spawn_fx_sprite("fx_ulpianus_drag_dust", c + Vector2(0, 4), g.PX, seg.angle(), false, true)
+		o.spawn_fx_sprite("fx_ulpianus_px_drag", c + Vector2(0, 4), g.PX, seg.angle(), false, true)
 
 
 static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:

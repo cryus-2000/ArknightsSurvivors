@@ -1,3 +1,133 @@
 {
-  "_doc": "docs/237 特效覆盖登记（组 c 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py"
+  "_doc": "docs/237 特效覆盖登记（组 c 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py",
+  "mizuki|fx_umbrella_slash": {
+    "status": "已做",
+    "new": "fx_mizuki_px_slash",
+    "why": "旧名只留作缺贴图时的兜底，正常不画"
+  },
+  "mizuki|fx_mizuki_bind_ring": {
+    "status": "已做",
+    "new": "fx_mizuki_px_bind",
+    "why": "旧名只留作缺贴图时的兜底，正常不画"
+  },
+  "mizuki|fx_mizuki_jelly_sting": {
+    "status": "已做",
+    "new": "fx_mizuki_px_sting",
+    "why": "旧名只留作缺贴图时的兜底，正常不画"
+  },
+  "ulpianus|fx_slash_heavy_steel": {
+    "status": "已做",
+    "new": "fx_ulpianus_px_slam",
+    "why": "旧名只留作缺贴图时的兜底，正常不画"
+  },
+  "specter_unchained|fx_specter_saw": {
+    "status": "已做",
+    "new": "fx_specter_unchained_px_saw",
+    "why": "旧名只留作缺贴图时的兜底，正常不画"
+  },
+  "specter_unchained|fx_specter_saw_blood": {
+    "status": "已做",
+    "new": "fx_specter_unchained_px_saw_blood",
+    "why": "旧名只留作缺贴图时的兜底，正常不画"
+  },
+  "specter_unchained|fx_circle_ghost": {
+    "status": "已做",
+    "new": "fx_specter_unchained_px_ripple",
+    "why": "旧名只留作缺贴图时的兜底，正常不画"
+  },
+  "kaltsit|fx_circle_steel": {
+    "status": "已做",
+    "new": "fx_kaltsit_px_slam",
+    "why": "if_tex 兜底：有 fx_kaltsit_px_slam 时不画"
+  },
+  "kaltsit|fx_holy_impact": {
+    "status": "已做",
+    "new": "fx_kaltsit_px_heal",
+    "why": "if_tex 兜底：有 fx_kaltsit_px_heal 时不画"
+  },
+  "gladiia|fx_gl_pool1": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "gladiia|fx_gl_pool2": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "gladiia|fx_gl_pool3": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "gladiia|fx_gl_vortex": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "ulpianus|fx_ul_crack_fork": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "ulpianus|fx_ul_crack_fork2": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "ulpianus|fx_ul_crack_fork3": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "ulpianus|fx_ul_crack_fork4": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "ulpianus|fx_ul_rock": {
+    "status": "不换",
+    "why": "pixfx 大贴图 + 代码驱动（docs/199），帧里每像素 = 1 世界像素、已是 docs/229 §1 的合规路线，不改成帧条"
+  },
+  "ulpianus|fx_ult_ulpianus_anchor_front": {
+    "status": "不换",
+    "why": "终结技主视觉大贴图（铁锚本体）在连携里复用；终结技主视觉按 docs/229 只统一不重做"
+  },
+  "gladiia|proj_gladiia_hook": {
+    "status": "不换",
+    "why": "钩锚头 + 锚链，实体道具精灵（不是特效）：按本体精灵口径由 Codex 管，和 PRTS 立绘道具一致（docs/87 §4.3）"
+  },
+  "ulpianus|proj_ulpianus_anchor": {
+    "status": "不换",
+    "why": "飞出的铁锚，实体道具精灵（不是特效）：按本体精灵口径由 Codex 管，和 PRTS 立绘道具一致（docs/87 §4.3）"
+  },
+  "ulpianus|fx_ulpianus_chain_tile": {
+    "status": "不换",
+    "why": "锚链平铺段，实体道具精灵（不是特效）：按本体精灵口径由 Codex 管，和 PRTS 立绘道具一致（docs/87 §4.3）"
+  },
+  "kaltsit|fx_mon3tr_blade": {
+    "status": "不换",
+    "why": "Mon3tr 臂刃侧挂件，跟召唤物本体一起画，实体道具精灵（不是特效）：按本体精灵口径由 Codex 管，和 PRTS 立绘道具一致（docs/87 §4.3）"
+  },
+  "gladiia|fx_splash_blue": {
+    "status": "不换",
+    "why": "公共共用件（多名干员 + 公共段都在用），1x 46×40 按 PX 0.9–1.1 画、密度 1.8–2.2 合规；单独给一人换会让同屏两套水花，整批换归公共件"
+  },
+  "ulpianus|fx_splash_blue": {
+    "status": "不换",
+    "why": "公共共用件（多名干员 + 公共段都在用），1x 46×40 按 PX 0.9–1.1 画、密度 1.8–2.2 合规；单独给一人换会让同屏两套水花，整批换归公共件"
+  },
+  "specter_unchained|fx_water_splash": {
+    "status": "不换",
+    "why": "公共共用水花（终结技与多名干员共用），整批换归公共件"
+  },
+  "mizuki|fx_tentacle_strike": {
+    "status": "已做",
+    "new": "fx_mizuki_px_tentacle",
+    "why": "旧帧条只在 fx_mizuki_px_tentacle 缺贴图时的程序兜底里用"
+  },
+  "mizuki|fx_mizuki_jelly": {
+    "status": "不换",
+    "why": "环绕身边待命的水母本体（水月放出的召唤水母，游动 / 飞掷的是生物形体不是特效），按本体精灵口径由 Codex 管，和 PRTS 立绘一致（docs/87 §4.3）"
+  },
+  "mizuki|fx_mizuki_jelly_dart": {
+    "status": "不换",
+    "why": "离身游猎 / 掷出的水母本体（水月放出的召唤水母，游动 / 飞掷的是生物形体不是特效），按本体精灵口径由 Codex 管，和 PRTS 立绘一致（docs/87 §4.3）"
+  },
+  "kaltsit|fx_kaltsit_shell": {
+    "status": "不换",
+    "why": "S1 结构加固的护壳形体（持续存在、半透明蜂巢壳，不是一次性特效）；Codex @2x 按 1:1 画，密度 2.0、无棋盘格、色在 OP.kaltsit 荧绿内，合规"
+  }
 }
