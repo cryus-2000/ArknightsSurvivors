@@ -159,6 +159,7 @@
    ]
   },
   "run": {
+   "_doc": "11-03 拖锚奔跑（用户：之前说过拖着锚奔跑）：左手握锚环下方、锚杆朝后下方斜拖、锚爪贴地，锚与锁链压到身后；Spine 步态脚本 tools/spine_run_trial/cfg/ulpianus_run.json，@1x 由 make_op_1x 出（<op>_run.json 只给跑步）",
    "tex": "op_ulpianus_run",
    "frames": 8,
    "fps": 13.333333333333334,
