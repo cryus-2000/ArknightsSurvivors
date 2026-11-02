@@ -151,7 +151,16 @@ func roll(first := false) -> void:
 	for it in g.shop_items:
 		ingot_desc(it)
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
-	g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": price("oil"), "sold": false})
+	g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": oil_desc(), "price": price("oil"), "sold": false})
+
+
+## 商人灯油：灯火 +50 × 灯油效果（夜阳草，docs/240）
+func oil_amount() -> float:
+	return 50.0 * g.oil_mult
+
+
+func oil_desc() -> String:
+	return "灯火 +%d" % int(round(oil_amount()))
 
 
 ## ---- 第一位商人预告（docs/119 §4.5）：生成时就定下首轮货架与价格（到店不再抽），HUD 指示写出联动商品、价格、持有源石锭与差额。
@@ -240,11 +249,13 @@ func buy(i: int) -> void:
 			g.combat.heal(g.max_hp * 0.4, "商店")
 		"oil":
 			var l0: float = g.lamp
-			g.lamp = min(g.lamp_cap, g.lamp + 50.0)
+			g.lamp = min(g.lamp_cap, g.lamp + oil_amount())
 			g.telemetry.lamp_note("商人", g.lamp - l0)
 	for item in g.shop_items:
 		if not item.sold:
 			item.price = g.rfx.db.price(item.id, relic_mult()) if item.kind == "relic" else price(item.kind)
+			if item.kind == "oil":
+				item.desc = oil_desc()   # 刚买了夜阳草：灯油卡面跟着变
 			ingot_desc(item)
 	# 预告的商品售出即撤销（docs/119 §4.5）；预告价格由 preview_item 从货架现价读，这里不用改
 	if not trader and not g.merchant.is_empty() and g.merchant.has("preview") and str(g.merchant.preview) == str(it.id):

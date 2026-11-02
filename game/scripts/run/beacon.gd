@@ -35,6 +35,11 @@ func _k(key: String, d: float) -> float:
 	return Bal.v("beacon/" + key, d)
 
 
+## 指路鳞（藏品 32，docs/240）：出现间隔 / 点亮所需时间倍率、点亮额外灯火；没持有时返回缺省（随机数消耗与改前相同）
+func _guide(key: String, d: float) -> float:
+	return float(g.rfx.rule_args("beacon_guide").get(key, d))
+
+
 func update(dt: float) -> void:
 	charging = null
 	guide = null
@@ -47,10 +52,10 @@ func update(dt: float) -> void:
 		var first: float = float(g.map.mire_cfg().get("first_at", 100.0))
 		if g.t < first:
 			return
-		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0))
+		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0)) * _guide("every", 1.0)
 	# 刷新：场上最多 1 座未点燃；Boss 在场时照样刷（协调人 9/29：Boss 战正是溟痕最多、最需要安全区的时候）
 	if g.t >= next_at:
-		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0))
+		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0)) * _guide("every", 1.0)
 		if not g.beacons.any(func(b): return not b.lit):
 			_spawn()
 	_sweep_hold()
@@ -162,7 +167,7 @@ func _spawn() -> void:
 				best_n = n
 				p = q
 	p = g.spawner.safe_event_pos(p, 110.0)
-	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
+	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5) * _guide("need", 1.0), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
 		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0,
 		"min_d": INF, "hold_s": 0.0, "guide_r": _sk("guide_r"), "guide_life": _k("guide_life", 45.0),   # min_d / hold_s 遥测；guide_* 给画面画引路圈（docs/56）
 		"in_s": 0.0, "maxp": 0.0})   # in_s / maxp 遥测（docs/56）
@@ -199,11 +204,12 @@ func _light(b: Dictionary) -> void:
 	if cleared > 0:
 		Sfx.play("mire_clear", -10.2, 1.0, 0.0)   # 清掉溟痕：溶解嘶声，叠在点亮光爆下（tools/gen_sfx_events.py）
 	var l0: float = g.lamp
-	g.lamp = minf(g.lamp_cap, g.lamp + _k("lamp", 5.0))
+	var add: float = _k("lamp", 5.0) + _guide("lamp", 0.0)
+	g.lamp = minf(g.lamp_cap, g.lamp + add)
 	g.telemetry.lamp_note("灯标", g.lamp - l0)
 	clear_nerve(b.pos, _k("r", 70.0))
 	# 点燃光爆（爆闪、扩到 clear_r 的光环、放射光、火花）由界面与美术画（lit 由 false 变 true 那一帧），这里只留飘字
-	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(_k("lamp", 5.0)), UI.GOLD, 16)
+	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(add), UI.GOLD, 16)
 	Sfx.play("beacon_lit", 1.4, 1.0, 0.0)   # 点燃光爆
 	# 点燃遥测：in_s / min_d / hold_s 同 expire
 	_log("lit cleared=%d in_s=%.1f min_d=%.0f hold_s=%.1f via=%s" % [cleared, float(b.get("in_s", 0.0)),

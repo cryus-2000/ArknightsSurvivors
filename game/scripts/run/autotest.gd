@@ -22,6 +22,7 @@ var _lampat_done := false  # --lampat 只生效一次
 var zone_out_since := -1.0   # 普通机器人：本次出圈的开始时间（-1 = 在圈内）
 var want_dash := false       # 普通机器人：这一帧要冲刺（出圈回圈用；game.gd 在记下移动方向后执行）
 var shop_visits := 0
+var shop_hold := false   # --shopids：截卡面前机器人不买（docs/240）
 var lv_marks := {}
 var bosstest := false
 var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧号（之后 90 帧退出）
@@ -851,7 +852,7 @@ func step() -> void:
 	if Cfg.dev_args().has("--gallery"):
 		g.demo_sys.gallery_step()
 		return
-	if g.state == g.S.SHOP:
+	if g.state == g.S.SHOP and not shop_hold:
 		var lane_i: int = g.bot.shop_pick() if g.bot != null else -1
 		if lane_i >= 0:
 			g.shop_sys.buy(lane_i)
@@ -1399,6 +1400,18 @@ func step() -> void:
 		if g.at_frames == 400:
 			g.merchant = {"pos": g.ppos, "life": 60.0, "near": false}
 			g.shop_sys.open()
+			shop_hold = Array(Cfg.dev_args()).any(func(x): return str(x).begins_with("--shopids="))
+		if g.at_frames == 401:
+			for a in Cfg.dev_args():
+				if a.begins_with("--shopids="):   # 指定商店藏品格（截卡面对照用，docs/240）：--shopids=205,30,31
+					var keep: Array = g.shop_items.filter(func(it): return it.kind != "relic")
+					g.shop_items.clear()
+					for id in a.substr(10).split(","):
+						g.shop_items.append({"kind": "relic", "id": id, "name": g.rfx.display_name(id), "desc": g.rfx.display_desc(id), "full": g.rfx.display_desc(id, true), "price": g.rfx.db.price(id, g.shop_sys.relic_mult()), "sold": false})
+					g.shop_items.append_array(keep)
+					for it in g.shop_items:
+						g.shop_sys.ingot_desc(it)
+					g.shop_ui.build(true)
 		if g.at_frames == 440 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_shop.png")
 			g.get_tree().quit()

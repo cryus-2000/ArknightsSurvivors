@@ -499,37 +499,44 @@
   "30": {
    "effects": [
     {
-     "type": "on_gain",
-     "do": "light",
+     "type": "rule",
+     "rule": "lamp_floor",
      "args": {
-      "amount": 10
+      "below": 40,
+      "per_sec": 0.5
      }
     }
    ],
+   "desc": "灯火低于 40 时，每秒回复 0.5 点灯火，回到 40 为止",
    "rarity": "基础"
   },
   "31": {
    "effects": [
     {
-     "type": "on_gain",
-     "do": "light",
+     "type": "rule",
+     "rule": "elite_light",
      "args": {
-      "amount": 15
+      "elite": 4,
+      "boss": 15
      }
     }
    ],
+   "desc": "击败精英敌人时灯火 +4，击败 Boss 时灯火 +15",
    "rarity": "基础"
   },
   "32": {
    "effects": [
     {
-     "type": "on_gain",
-     "do": "light",
+     "type": "rule",
+     "rule": "beacon_guide",
      "args": {
-      "amount": 30
+      "every": 0.7,
+      "need": 0.6,
+      "lamp": 15
      }
     }
    ],
+   "desc": "引航灯标出现间隔 -30%，点亮所需时间 -40%；点亮时灯火额外 +15",
    "rarity": "稀有"
   },
   "33": {
@@ -3695,14 +3702,13 @@
   "205": {
    "effects": [
     {
-     "type": "on_gain",
-     "do": "light",
-     "args": {
-      "amount": 5
-     }
+     "type": "stat",
+     "stat": "oil_gain",
+     "op": "add",
+     "value": 0.25
     }
    ],
-   "desc": "灯火 +5",
+   "desc": "灯油回复的灯火 +25%（拾取的灯油与商人出售的灯油）",
    "rarity": "基础",
    "new": true
   },

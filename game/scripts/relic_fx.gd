@@ -177,6 +177,11 @@ func take_choice_extra() -> int:
 
 
 ## 带参数的规则：返回第一件持有该规则的藏品的 args（没有则空字典）。每次伤害 / 每帧都会查，按规则名缓存，获得藏品时清
+## 公开给别的系统读规则参数（指路鳞 → beacon.gd）；没持有返回 {}
+func rule_args(name: String) -> Dictionary:
+	return _rule_args(name) if rule(name) > 0 else {}
+
+
 func _rule_args(name: String) -> Dictionary:
 	if _rule_cache.has(name):
 		return _rule_cache[name]
@@ -738,6 +743,14 @@ func tick(dt: float) -> void:
 			no_hurt_t = 0.0
 			g.lamp = minf(g.lamp_cap, g.lamp + float(ta.get("amount", 6.0)))
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +%d" % int(ta.get("amount", 6.0)), Color(0.5, 0.8, 1.0), 15)
+	# 夜阳花（docs/240）：灯火低于 below 时每秒回复 per_sec，回到 below 为止——只托住暗淡，不往通明推
+	if rule("lamp_floor") > 0:
+		var fa: Dictionary = _rule_args("lamp_floor")
+		var below: float = float(fa.get("below", 40.0))
+		if g.lamp < below:
+			var lf0: float = g.lamp
+			g.lamp = minf(below, g.lamp + float(fa.get("per_sec", 0.5)) * dt)
+			g.telemetry.lamp_note("藏品", g.lamp - lf0)
 	calm_t += dt
 	stun_all_cd -= dt
 	hurt_sp_cd -= dt
@@ -1434,6 +1447,15 @@ func on_kill(e: Dictionary, h: Dictionary = {}) -> void:
 			if g.hp > 0.0:
 				g.combat.heal(g.max_hp * Bal.v("relic/killheal_pct", 0.02), "击杀回复")
 				g.vfx.add_text(g.ppos + Vector2(0, -84), "+%s%%" % _pct_s(Bal.v("relic/killheal_pct", 0.02)), Color(0.55, 1.0, 0.6), 13)
+	# 聚火源石虫（docs/240）：击败精英 / Boss 时灯火 +elite / +boss（宝箱、友方不算）
+	if rule("elite_light") > 0 and (e.get("elite", false) or e.get("boss", false)) and not e.get("chest", false) and not e.get("friendly", false):
+		var la: Dictionary = _rule_args("elite_light")
+		var ladd: float = float(la.get("boss", 15.0)) if e.get("boss", false) else float(la.get("elite", 4.0))
+		var le0: float = g.lamp
+		g.lamp = minf(g.lamp_cap, g.lamp + ladd)
+		g.telemetry.lamp_note("藏品", g.lamp - le0)
+		if g.lamp > le0:
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "聚火源石虫 · 灯火 +%d" % int(ladd), Color(1.0, 0.8, 0.45), 15)
 	# docs/57 P25：击杀回技力（积攒之手，按出手干员的职业）
 	for t in _triggers("EnemyKilled"):
 		var a: Dictionary = t[1].get("args", {})
