@@ -918,7 +918,7 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	g.draw_set_transform(pos + g.draw_off, ang, sv)
 	g.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	glow(name, Transform2D(ang, sv, 0.0, pos + g.draw_off), Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	px_glow(name, Transform2D(ang, sv, 0.0, pos + g.draw_off), Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
 
 
 # ---------------------------------------------------------------- pixelfx 光晕层（docs/229 §2.7、docs/238，用户 11-02 定）
@@ -930,7 +930,7 @@ var _glow_q: Array = []
 var _glow_tex := {}
 
 
-func glow(name: String, xf: Transform2D, dst: Rect2, src: Rect2, col: Color) -> void:
+func px_glow(name: String, xf: Transform2D, dst: Rect2, src: Rect2, col: Color) -> void:
 	if not _glow_tex.has(name):
 		_glow_tex[name] = g.tex.get(name + "_glow") if Game.V6_FRAMES.has(name + "_glow") else null
 	var gt: Texture2D = _glow_tex[name]

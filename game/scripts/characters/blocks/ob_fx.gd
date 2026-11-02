@@ -244,7 +244,7 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if "vfx" in g and g.vfx != null:
-		g.vfx.glow(name, Transform2D(ang, sv, 0.0, pos), Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), ci._dim(col) if ci.has_method("_dim") else col)   # pixelfx 光晕层（vfx.glow）；队友降噪色同本体
+		g.vfx.px_glow(name, Transform2D(ang, sv, 0.0, pos), Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), ci._dim(col) if ci.has_method("_dim") else col)   # pixelfx 光晕层（vfx.glow）；队友降噪色同本体
 
 
 # ---------------------------------------------------------------- 扩散缓动 / 交叉淡入淡出 / 余波环（docs/61 §5.6，10-13 加；纯画面）
