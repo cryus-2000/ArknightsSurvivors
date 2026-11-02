@@ -42,8 +42,9 @@ func update_lobs(dt: float) -> void:
 				Sfx.play("boom", -14.0, 1.6, 0.1)
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 0.75), l, false, false, ["远程", "法术"], "bullet")
-				if str(l.get("hit_fx", "")) != "":
-					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(l.get("hit_org", [12, 19])[0]), float(l.get("hit_org", [12, 19])[1])))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
+				var lhit: bool = str(l.get("hit_fx", "")) != "" and g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(l.get("hit_org", [12, 19])[0]), float(l.get("hit_org", [12, 19])[1])))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
+				if not lhit:
+					g.vfx.sparks(g.ppos + Vector2(0, -8), Vector2.ZERO, Color(0.8, 0.72, 0.6), 6, 150.0)   # 命中帧条缺图（固海凿石者 fx_rock_hit，docs/236 §1.1）：程序碎屑兜底，不再空白
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 

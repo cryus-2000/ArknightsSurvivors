@@ -179,8 +179,8 @@
    "desc": "贴地疾跑的小个体，冲到身边后鼓胀约 0.6 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
   },
   "floater": {
-   "hit_fx": "fx_nerve_hit",
-   "hit_fx_origin": [10, 10],
+   "hit_fx": "fx_arcane_hit",
+   "hit_fx_origin": [-1, -1],
    "shot_mire": true,
    "shot_mire_r": 30.0,
    "shot_mire_life": 5.0,

@@ -232,8 +232,9 @@ func _die(b: Dictionary, pk: String, enemy: bool, abrupt_own: bool, col: Color) 
 	var st: String = str(b.get("src_type", ""))
 	if st != "" and hooks.has(st) and bool(hooks[st].call(b, reason, p)):
 		return
-	if reason in ["hit", "expire"] and (str(b.get("hit_fx", "")) != "" or str(b.get("kind", "")) == "acid"):
-		return   # 专属命中帧条 / 酸团溅开已经是消失画面
+	var hfx: String = str(b.get("hit_fx", ""))
+	if reason in ["hit", "expire"] and ((hfx != "" and g.tex.get(hfx) != null) or str(b.get("kind", "")) == "acid"):
+		return   # 专属命中帧条 / 酸团溅开已经是消失画面；帧条缺图时照常画通用消失（docs/236 §1.1 神经弹 / 碎石弹命中空白）
 	var c: Color = _col(b, enemy, col)
 	var r: float = _r(b)
 	stat_why[reason] = int(stat_why.get(reason, 0)) + 1
