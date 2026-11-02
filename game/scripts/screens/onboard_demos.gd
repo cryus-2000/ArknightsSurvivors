@@ -5,6 +5,10 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
 const OpFigure = preload("res://scripts/screens/op_figure.gd")
+const A = preload("res://scripts/art.gd")
+const MOB_TEX := ["e_slider", "e_bone", "e_stone"]     # 演示里的小怪：局内真实精灵（11-03 用户「不要用紫球占位」），按位置轮换
+const BOSS_TEX := ["e_path", "e_carmen", "e_iberia"]   # 演示里的 Boss：第一个有贴图的
+static var _g = null                                     # 当前对局（draw 时设，blob / boss 取贴图用）
 
 const C_BG := Color(0.035, 0.055, 0.07)
 const C_GRID := Color(0.4, 0.75, 0.8, 0.06)
@@ -21,6 +25,7 @@ const LOOP := {"move": 4.0, "xp": 4.8, "lamp": 5.2, "recruit": 5.0, "merchant": 
 
 
 static func draw(ci: CanvasItem, id: String, r: Rect2, t: float, ctx: Dictionary) -> void:
+	_g = ctx.get("g")
 	var tl: float = fmod(t, float(LOOP.get(id, 4.0)))
 	ci.draw_rect(r, C_BG)
 	_grid(ci, r)
@@ -98,8 +103,32 @@ static func fig(ci: CanvasItem, idle: Dictionary, foot: Vector2, r: Rect2, t: fl
 	OpFigure.draw(ci, idle, Rect2(foot - Vector2(h * 0.7, h), Vector2(h * 1.4, h)), fr, Color(1, 1, 1, a), -1.0, r)
 
 
+## 局内真实敌人精灵（贴图名 name）：脚底在 foot，可见高度约 hpx，按帧条循环；受击 flash 泛白。没有贴图返回 false
+static func espr(ci: CanvasItem, name: String, foot: Vector2, hpx: float, t: float, a := 1.0, flash := 0.0, flip := false) -> bool:
+	if _g == null or a <= 0.01:
+		return false
+	var tx: Texture2D = _g.world._lazy_tex(name) if _g.get("world") != null else _g.tex.get(name)
+	if tx == null:
+		return false
+	var frames: int = A.enemy_frames(name, 2)
+	var fr: int = int(t * A.enemy_loop_fps(name, 6.0)) % maxi(1, frames)
+	var sz := Vector2(float(tx.get_width()) / frames, tx.get_height())
+	var anc: Vector2 = A.enemy_pixel_anchor(name, Vector2(0.5, 0.95))
+	var vis: float = float(A.enemy_pixel_spec(name).get("visible_height", sz.y / A.hires_of(tx))) * A.hires_of(tx)
+	var sc: float = hpx / maxf(8.0, vis)
+	ci.draw_circle(foot, hpx * 0.22, Color(0, 0, 0, 0.3 * a))
+	ci.draw_set_transform(foot.round(), 0.0, Vector2(-sc if flip else sc, sc))
+	ci.draw_texture_rect_region(tx, Rect2(-sz * anc, sz), Rect2(Vector2(sz.x * fr, 0), sz), Color(1.0 + flash, 1.0 + flash, 1.0 + flash, a))
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true
+
+
+## 小怪：局内真实精灵（按位置轮换几种常见小怪）；没有贴图才画旧的紫球
 static func blob(ci: CanvasItem, p: Vector2, s: float, a := 1.0, flash := 0.0) -> void:
 	if a <= 0.01:
+		return
+	var mi: int = absi(int(p.x * 0.37 + p.y * 0.61)) % MOB_TEX.size()
+	if espr(ci, MOB_TEX[mi], p + Vector2(0, s * 0.8), s * 2.4, float(Time.get_ticks_msec()) / 1000.0 + mi * 0.3, a, flash, p.x > 0.0 and mi % 2 == 1):
 		return
 	ci.draw_circle(p + Vector2(0, s * 0.55), s * 0.8, Color(0, 0, 0, 0.3 * a))
 	ci.draw_circle(p, s, _ca(C_ENEMY.lerp(Color.WHITE, flash), a))
@@ -380,16 +409,26 @@ static func _boss(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
 	var lp: Vector2 = c0.lerp(P(r, 0.13, 0.7), dash)
 	var bp := P(r, 0.8, 0.36)
 	var bs: float = r.size.y * 0.14
-	blob(ci, bp, bs, 1.0, 0.0)
-	for i in 3:
-		var a: float = -PI / 2.0 + (i - 1) * 0.5
-		ci.draw_colored_polygon(PackedVector2Array([bp + Vector2.from_angle(a - 0.15) * bs * 0.8, bp + Vector2.from_angle(a) * bs * 1.45, bp + Vector2.from_angle(a + 0.15) * bs * 0.8]), UI.RED)
+	var drawn := false
+	for bn in BOSS_TEX:   # 局内真实 Boss 精灵
+		if espr(ci, bn, P(r, 0.72, 0.6), r.size.y * 0.46, t, 1.0, 0.0, true):   # 收在演示窗里（不出框）
+			drawn = true
+			break
+	if not drawn:
+		blob(ci, bp, bs, 1.0, 0.0)
+	# 预警圈：同局内敌方圆形预警的读法——暗红底 + 外圈细线 + 由内向外填满的进度，满了爆开
 	var grow: float = ph(t, 0.3, 1.9)
-	var rad: float = r.size.y * 0.26 * _e(grow)
+	var R0: float = r.size.y * 0.26
 	var boom: float = ph(t, 2.0, 2.4)
 	if grow > 0.0 and boom < 1.0:
-		ci.draw_circle(c0, rad, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.12 + 0.1 * grow) if boom <= 0.0 else Color(1, 0.9, 0.9, 0.6 * (1.0 - boom)))
-		ci.draw_arc(c0, r.size.y * 0.26, 0.0, TAU, 40, _ca(UI.RED, 0.8 * (1.0 - boom)), 1.5)
+		ci.draw_set_transform(c0, 0.0, Vector2(1.0, 0.62))
+		if boom <= 0.0:
+			ci.draw_circle(Vector2.ZERO, R0, Color(UI.RED.r * 0.5, UI.RED.g * 0.2, UI.RED.b * 0.3, 0.32))
+			ci.draw_circle(Vector2.ZERO, R0 * _e(grow), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.28))
+			ci.draw_arc(Vector2.ZERO, R0, 0.0, TAU, 40, _ca(UI.RED, 0.9), 1.5)
+		else:
+			ci.draw_circle(Vector2.ZERO, R0 * (1.0 + 0.15 * boom), Color(1, 0.85, 0.9, 0.55 * (1.0 - boom)))
+		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	light(ci, lp, r.size.y * 0.34, 1.0)
 	if dash > 0.0 and dash < 1.0:
 		for k in 3:

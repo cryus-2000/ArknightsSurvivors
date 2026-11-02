@@ -227,9 +227,14 @@ func card(id: String) -> Dictionary:
 	return data.get("cards", {}).get(id, {})
 
 
+## 卡片正文按输入方式取：触屏 touch、手柄 pad（11-03：键名按输入方式显示），都没写就用键鼠的 text
 func text_of(id: String, touch: bool) -> String:
 	var c := card(id)
-	return str(c.get("touch", c.get("text", ""))) if touch else str(c.get("text", ""))
+	if touch:
+		return str(c.get("touch", c.get("text", "")))
+	if Pad.using and c.has("pad"):
+		return str(c.pad)
+	return str(c.get("text", ""))
 
 
 ## 本局演示局的步骤（玩过 = 快速版 drill_vet）
@@ -691,7 +696,8 @@ func _ctx() -> Dictionary:
 	return {"g": g, "font": g.font, "touch": g.touch != null and g.touch.active, "lead": g.panel_ui.op_idle(lead_id), "mates": mates}
 
 
-## 局内提示卡（hud 每帧调）：桌面左上（生命 / 灯火条下方），触屏顶部居中；做完打勾后滑出
+## 局内提示卡（hud 每帧调）：紧凑编辑式（11-03 用户「占地太大了」）——屏宽 ≤ 约 30%、高约原来一半；
+## 电脑放右侧中部（不挡战场中心、避开右上藏品与右下编队），手机放左上生命 / 灯火条下方（右侧是触屏按键）；做完打勾后滑出
 func draw(vs: Vector2) -> void:
 	skip_rect = Rect2()
 	if ask_on or view_on or g.state != Game.S.PLAY:
@@ -714,76 +720,106 @@ func draw(vs: Vector2) -> void:
 	if a <= 0.01:
 		return
 	var touch: bool = g.touch != null and g.touch.active
-	var w: float = minf(vs.x - 24.0, 540.0 if touch else 500.0)
-	var pos := Vector2(16.0, 72.0) if touch else Vector2(16.0, 112.0)   # 触屏也放左上（生命 / 灯火条下方）：顶部居中会盖住屏幕中央的队长
-	pos.x -= slide * 50.0
+	var w: float = clampf(vs.x * (0.32 if touch else 0.3), 300.0, 420.0 if touch else 390.0)
+	var pos := Vector2(16.0, 72.0) if touch else Vector2(vs.x - w - 16.0, roundf(vs.y * 0.32))
+	pos.x += slide * (-40.0 if touch else 40.0)
 	_card(vs, id, Rect2(pos, Vector2(w, 0.0)), now, a, done_k, cur != "", touch, false)
 
 
-## 一张卡：左演示、右文字（窄屏上下排）。big = 演示图鉴里的大卡。返回卡片矩形
+const PAPER := Color(0.914, 0.906, 0.882)   # 纸白 #E9E7E1（docs/222 §13 的 UI.PAPER；HUD 编辑式合入后改用令牌）
+const ORANGE := Color(0.941, 0.502, 0.188)  # 橙 #F08030（只用于步骤指示与做完条件标记，docs/222 §10）
+const INK := Color(0.07, 0.075, 0.085)      # 纸白上的墨色字
+
+
+## 一张卡（docs/222 §10 编辑式，11-03 重做）：左边暗色演示窗（真实精灵的循环小演示），右边纸白面板——
+## 小号字距大写标签（TUTORIAL / NEW）+ 粗体标题 + 标题下一根墨线 + 一句话 + 橙色小方块起头的做完条件；演示局右上一排橙色步骤点（当前带圈）。
+## 去掉金边。big = 演示图鉴里的大卡（同一版式放大）。返回卡片矩形
 func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: float, live: bool, touch: bool, big: bool) -> Rect2:
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	var c := card(id)
+	var k: float = 1.7 if big else 1.0
 	var w: float = frame.size.x
-	var stacked: bool = w < 440.0
-	var pad: float = 14.0 if not big else 22.0
-	var dw: float = (w - pad * 2.0) if stacked else (w * 0.44)
-	var dh: float = dw * 0.6
-	var tx_w: float = (w - pad * 2.0) if stacked else (w - dw - pad * 3.0)
-	var fsz: int = 15 if not big else 18
+	var pad: float = 10.0 * k
+	var dh: float = 84.0 * k
+	var dw: float = minf(roundf(dh * 1.35), w * 0.4)
+	var tx_w: float = w - dw - pad * 2.0
+	var fsz: int = int(round((13.0 if touch else 12.0) * k))
+	var tsz: int = int(round(17.0 * k))
 	var lines: PackedStringArray = UI.wrap_lines(font, text_of(id, touch), fsz, tx_w)
-	var lh: float = font.get_height(UI.fs(fsz)) + 3.0
-	var text_h: float = 52.0 + lines.size() * lh + 30.0
-	var h: float = (pad + dh + 10.0 + text_h) if stacked else maxf(dh + pad * 2.0, text_h + pad)
-	var pr := Rect2(frame.position, Vector2(w, h))
-	var gold := Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a)
-	UI.panel(hud, pr, Color(UI.BG2.r, UI.BG2.g, UI.BG2.b, 0.95 * a), Color(1, 1, 1, 0.16 * a), 10.0, gold)
-	hud.draw_rect(Rect2(pr.position + Vector2(0, 10), Vector2(4, h - 20)), gold)
-	var dr := Rect2(pr.position + Vector2(pad, pad), Vector2(dw, dh))
-	if a > 0.6:
-		Demos.draw(hud, id, dr, t, _ctx())
-	var tp: Vector2 = (dr.position + Vector2(0, dh + 12.0)) if stacked else Vector2(dr.end.x + pad, pr.position.y + pad - 2.0)
-	var basic: Array = drill_ids()
-	var en: String = ("TUTORIAL  %d / %d" % [basic.find(id) + 1, basic.size()]) if (drill and basic.has(id) and not big) else (("TUTORIAL  ·  %s" % c.get("en", "")) if id == "drill_end" else ("NEW  ·  %s" % c.get("en", "")))
-	UI.en(hud, font, tp + Vector2(0, 14), en, 10, gold, 2.5)
-	UI.text(hud, font, tp + Vector2(0, 40), str(c.get("title", "")), 20 if not big else 24, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
-	var asc: float = font.get_ascent(UI.fs(fsz))
-	for i in lines.size():
-		hud.draw_string(font, Vector2(tp.x, tp.y + 52.0 + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, a))
-	# 做完条件 / 进度
-	var hy: float = tp.y + 52.0 + lines.size() * lh + 10.0
+	var lh: float = font.get_height(UI.fs(fsz)) + 2.0
+	var th: float = font.get_height(UI.fs(tsz))
 	var hint: String = str(c.get("hint", ""))
+	var text_h: float = pad + 10.0 * k + th + 7.0 * k + lines.size() * lh + (lh + 4.0 * k if hint != "" else 6.0 * k) + pad * 0.6
+	if live and not big and drill and not forced and drill_ids().has(id):
+		text_h += (26.0 if touch else 18.0) + 4.0   # 重看演示局：右下「跳过演示」占一行（右上是步骤点）
+	var h: float = maxf(dh, text_h)
+	var pr := Rect2(frame.position, Vector2(w, h))
+	var ink := Color(INK.r, INK.g, INK.b, a)
+	# 左：演示窗（暗底，真实精灵）
+	var dr := Rect2(pr.position, Vector2(dw, h))
+	hud.draw_rect(dr, Color(0.03, 0.04, 0.05, 0.94 * a))
+	if a > 0.6:
+		Demos.draw(hud, id, dr.grow(-1.0), t, _ctx())
+	# 右：纸白面板
+	var pp := Rect2(Vector2(dr.end.x, pr.position.y), Vector2(w - dw, h))
+	hud.draw_rect(pp, Color(PAPER.r, PAPER.g, PAPER.b, 0.97 * a))
+	var x0: float = pp.position.x + pad
+	var y0: float = pp.position.y + pad
+	var basic: Array = drill_ids()
+	var step_i: int = basic.find(id) if drill and not big else -1
+	var lab: String = "TUTORIAL" if step_i >= 0 or id == "drill_end" else "NEW"
+	UI.en(hud, font, Vector2(x0, y0 + 7.0 * k), lab, int(round(8.0 * k)), Color(INK.r, INK.g, INK.b, 0.62 * a), 2.6)
+	if step_i >= 0:   # 演示局步骤：橙色细线 + 圆点，做过的实心、当前带圈
+		var n: int = basic.size()
+		var gap: float = 9.0 * k
+		var dx: float = pp.end.x - pad - (n - 1) * gap
+		var dy: float = y0 + 4.0 * k
+		hud.draw_line(Vector2(dx, dy), Vector2(dx + (n - 1) * gap, dy), Color(ORANGE.r, ORANGE.g, ORANGE.b, 0.8 * a), 1.0)
+		for q in n:
+			var dp := Vector2(dx + q * gap, dy)
+			hud.draw_circle(dp, 2.0 * k, Color(ORANGE.r, ORANGE.g, ORANGE.b, a) if q <= step_i else Color(PAPER.r, PAPER.g, PAPER.b, a))
+			if q > step_i:
+				hud.draw_arc(dp, 2.0 * k, 0.0, TAU, 10, Color(ORANGE.r, ORANGE.g, ORANGE.b, a), 1.0)
+			if q == step_i:
+				hud.draw_arc(dp, 4.2 * k, 0.0, TAU, 14, Color(ORANGE.r, ORANGE.g, ORANGE.b, a), 1.2)
+	var ty: float = y0 + 10.0 * k + font.get_ascent(UI.fs(tsz))
+	var title: String = str(c.get("title", ""))
+	UI.text(hud, font, Vector2(x0, ty), title, tsz, ink)
+	var tw: float = minf(tx_w, font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tsz)).x + 6.0 * k)
+	hud.draw_rect(Rect2(Vector2(x0, ty + 5.0 * k), Vector2(maxf(tw, 40.0 * k), 1.5)), ink)
+	var by: float = ty + 7.0 * k + font.get_ascent(UI.fs(fsz)) + 2.0
+	for i in lines.size():
+		UI.text(hud, font, Vector2(x0, by + i * lh), lines[i], fsz, Color(INK.r, INK.g, INK.b, 0.86 * a))
+	var hy: float = by + lines.size() * lh
 	if live and not big:
 		if hint != "":
-			var pulse: float = 0.6 + 0.4 * sin(t * 5.0)
-			hud.draw_circle(Vector2(tp.x + 4.0, hy + 7.0), 3.5, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, pulse * a))
-			UI.text(hud, font, Vector2(tp.x + 14.0, hy + 13.0), hint, 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
+			var pulse: float = 0.75 + 0.25 * sin(t * 5.0)
+			hud.draw_rect(Rect2(Vector2(x0, hy - 6.0 * k), Vector2(6.0 * k, 6.0 * k)), Color(ORANGE.r, ORANGE.g, ORANGE.b, pulse * a))
+			UI.text(hud, font, Vector2(x0 + 11.0 * k, hy + 1.0), hint, fsz, ink)
 			if id == "move":
-				var bw: float = minf(120.0, tx_w - 110.0)
-				var br := Rect2(Vector2(tp.x + tx_w - bw, hy + 4.0), Vector2(bw, 5.0))
-				hud.draw_rect(br, Color(1, 1, 1, 0.12 * a))
-				hud.draw_rect(Rect2(br.position, Vector2(br.size.x * clampf(moved / MOVE_NEED, 0.0, 1.0), br.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
+				var bw: float = minf(70.0 * k, tx_w * 0.3)
+				var br := Rect2(Vector2(pp.end.x - pad - bw, hy - 4.0 * k), Vector2(bw, 2.0))
+				hud.draw_rect(br, Color(INK.r, INK.g, INK.b, 0.15 * a))
+				hud.draw_rect(Rect2(br.position, Vector2(br.size.x * clampf(moved / MOVE_NEED, 0.0, 1.0), br.size.y)), Color(ORANGE.r, ORANGE.g, ORANGE.b, a))
 		else:
 			var left: float = clampf(drill_left / END_SECS, 0.0, 1.0) if id == "drill_end" else clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
-			hud.draw_rect(Rect2(Vector2(tp.x, hy + 6.0), Vector2(tx_w * left, 2.0)), Color(1, 1, 1, 0.3 * a))
-		# 跳过（只跳这一张）；第一次进游戏的演示局不给
-		if forced and drill:
-			return pr
-		var skip_s: String = "跳过演示" if drill else "跳过"
-		var sw: float = (58.0 if touch else 46.0) + (28.0 if drill else 0.0)
-		var sh: float = 30.0 if touch else 22.0
-		skip_rect = Rect2(Vector2(pr.end.x - sw - 10.0, pr.position.y + 8.0), Vector2(sw, sh))
-		hud.draw_rect(skip_rect, Color(0.03, 0.04, 0.05, 0.8 * a))
-		hud.draw_rect(skip_rect, Color(1, 1, 1, 0.3 * a), false, 1.0)
-		var stw: float = font.get_string_size(skip_s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x
-		hud.draw_string(font, skip_rect.get_center() + Vector2(-stw / 2.0, UI.fs(12) * 0.36), skip_s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, a))
-	# 做完：打勾
+			hud.draw_rect(Rect2(Vector2(x0, pp.end.y - 4.0), Vector2(tx_w * left, 1.5)), Color(INK.r, INK.g, INK.b, 0.35 * a))
+		# 跳过（只跳这一张）；第一次进游戏的演示局不给。放在纸白面板右下，不和步骤点抢位置
+		if not (forced and drill):
+			var skip_s: String = "跳过演示" if drill else "跳过"
+			var ssz: int = 11 if not touch else 13
+			var sw: float = font.get_string_size(skip_s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(ssz)).x + (14.0 if not touch else 20.0)
+			var sh: float = 18.0 if not touch else 26.0
+			skip_rect = Rect2(Vector2(pp.end.x - sw - 6.0, pp.end.y - sh - 6.0), Vector2(sw, sh)) if step_i >= 0 else Rect2(Vector2(pp.end.x - sw - 6.0, pp.position.y + 6.0), Vector2(sw, sh))
+			hud.draw_rect(skip_rect, Color(INK.r, INK.g, INK.b, 0.55 * a), false, 1.0)
+			UI.text(hud, font, Vector2(skip_rect.position.x, skip_rect.get_center().y + UI.fs(ssz) * 0.36), skip_s, ssz, Color(INK.r, INK.g, INK.b, 0.8 * a), HORIZONTAL_ALIGNMENT_CENTER, skip_rect.size.x)
+	# 做完：橙色圆里一个墨色勾（纸白面板右上）
 	if done_k > 0.0:
-		var cc: Vector2 = pr.position + Vector2(pr.size.x - 30.0, 26.0)
-		var k: float = Demos._e(done_k)
-		hud.draw_circle(cc, 13.0 * k, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
-		hud.draw_polyline(PackedVector2Array([cc + Vector2(-6, 0) * k, cc + Vector2(-1.5, 5) * k, cc + Vector2(7, -5) * k]), Color(0.04, 0.07, 0.09, a), 2.5)
+		var cc: Vector2 = Vector2(pp.end.x - 16.0 * k, pp.position.y + 16.0 * k)
+		var kk: float = Demos._e(done_k)
+		hud.draw_circle(cc, 10.0 * kk * k, Color(ORANGE.r, ORANGE.g, ORANGE.b, a))
+		hud.draw_polyline(PackedVector2Array([cc + Vector2(-5, 0) * kk * k, cc + Vector2(-1.2, 4) * kk * k, cc + Vector2(5.5, -4) * kk * k]), Color(PAPER.r, PAPER.g, PAPER.b, a), 2.0)
 	return pr
 
 
