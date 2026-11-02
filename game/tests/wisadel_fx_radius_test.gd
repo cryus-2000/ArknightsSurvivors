@@ -18,7 +18,7 @@ func ok(v: bool, what: String) -> void:
 
 
 func sprites() -> Array:
-	return g.fx.filter(func(f): return f.get("name", "") == "fx_wisadel_cannon")
+	return g.fx.filter(func(f): return f.get("name", "") in ["fx_wisadel_cannon", "fx_wd_cannon_nr"])   # fx_wd_cannon_nr：fx/wd_ring = 0 的去蓝紫环帧条（docs/220 §5）
 
 
 func solid(r: float, light: bool) -> float:

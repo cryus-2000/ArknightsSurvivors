@@ -144,7 +144,7 @@ static func _wstat_tick(o, wd: Dictionary) -> void:
 		lv[c] = int(lv.get(c, 0)) + 1
 	for f in g.fx:
 		var nm: String = str(f.get("name", ""))
-		if nm.begins_with("fx_wisadel_cannon"):
+		if nm.begins_with("fx_wisadel_cannon") or nm == WD_BOOM_NR:
 			lv["boom"] = int(lv.get("boom", 0)) + 1
 		elif nm.begins_with("op_wisadel_soul"):
 			lv["soul"] = int(lv.get("soul", 0)) + 1
@@ -861,6 +861,15 @@ static func _h4_dup_puff(o, c: Vector2) -> void:
 			"life": 0.25, "col": H4_EMBER, "sz": 2.0, "drag": 3.0, "grav": 120.0})
 
 
+## 炮击爆炸用哪条帧条（11-02 用户「蓝紫色圆环是不是也可以不用了」，docs/220 §5）：fx/wd_ring = 0（缺省）用去蓝紫环的 fx_wd_cannon_nr
+## （同尺寸 / 同帧数 / 同帧率，只差第 2 帧那圈蓝紫描边和蓝紫填充），1 或 fx/wd_calm = 0 回原帧条；缺图也回原帧条
+const WD_BOOM_NR := "fx_wd_cannon_nr"
+static func _h4_boom_name(o) -> String:
+	if _wc("wd_ring", 0.0, 1.0) <= 0.0 and o.g.tex.get(WD_BOOM_NR) != null:
+		return WD_BOOM_NR
+	return "fx_wisadel_cannon"
+
+
 ## 炮击帧条按爆炸半径放大（10-24 范围改版，docs/137 §8）。fx_wisadel_cannon 最亮那帧的实心部分（不透明像素 90 分位）离中心约 37 美术像素，
 ## 尖刺到 59：倍率 = 判定半径 × fill ÷ 37（实心边落在判定圈上、尖刺伸出圈外），小数部分 > 0.3 就进位（宁大勿小），取整（像素块整齐）
 ## 并受 vfx.FX_SCALE_MAX 封顶。一团盖不住时（S3 巨炮）改「连环爆」：外圈补 n 团同像素尺度的帧条，实心边到判定圈、几乎同时炸开
@@ -874,7 +883,8 @@ static func _h4_cannon_sprite(o, c: Vector2, r: float, fill: float) -> float:
 	# 10-26 用户「爆炸半径 78 → 66 之后特效也得跟着变」：原来取整进位（r 66 和 78 都落在 2 档，画面一点没缩，66 的实心边还比判定圈大 12%），
 	# 现在实心边直接 = 判定半径 × fill（小数倍率，帧条本来就支持）；fx/boom_scale_exact = 0 回到旧的取整档（对照用）
 	var sc: float = clampf(want, 1.0, cap) if BalW.v("fx/boom_scale_exact", 1.0) > 0.0 else clampf(ceilf(want - 0.3), 1.0, cap)
-	if not _wspr(o, "fx_wisadel_cannon", c, sc, 0.0, false, Color.WHITE, 0.0, true):
+	var bn: String = _h4_boom_name(o)
+	if not _wspr(o, bn, c, sc, 0.0, false, Color.WHITE, 0.0, true):
 		return 0.0
 	var rv: float = sc * H4_BOOM_CORE
 	if want > sc * 1.15:
@@ -887,7 +897,7 @@ static func _h4_cannon_sprite(o, c: Vector2, r: float, fill: float) -> float:
 		var a0: float = g.vrng.randf() * TAU
 		for i in n:
 			var p: Vector2 = c + Vector2.from_angle(a0 + TAU * i / n) * d
-			_wspr(o, "fx_wisadel_cannon", p, ss, 0.0, i % 2 == 1, Color(1, 1, 1, 0.85), 0.02 + 0.02 * i, true)
+			_wspr(o, bn, p, ss, 0.0, i % 2 == 1, Color(1, 1, 1, 0.85), 0.02 + 0.02 * i, true)
 		_wfx(o, {"kind": "ring", "pos": c, "r": r, "r0": r * 0.5, "life": 0.4, "col": H4_RED, "w": 2.0, "floor": true, "alpha": 0.6})
 	return minf(r, rv)
 

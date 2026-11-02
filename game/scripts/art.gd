@@ -979,6 +979,7 @@ const V6_FRAMES := {
 	"fx_knight_crystal_rise": [7, 28.0], "fx_knight_crystal_hold": [3, 8.0], "fx_knight_crystal_break": [10, 32.0],
 	"fx_knight_ice_crest": [11, 30.0], "proj_knight_ice": [10, 18.0], "fx_knight_ice_hit": [12, 24.0],
 	"fx_wisadel_cannon": [4, 12.0],
+	"fx_wd_cannon_nr": [4, 12.0],   # 维什戴尔普攻炮击去蓝紫环（fx_wd_cannon 再把残留的蓝紫填充压成暗烟色；fx/wd_ring = 0 时用，docs/220 §5）
 	"fx_mon3tr_claw": [4, 16.0], "fx_mon3tr_melt_slash": [4, 16.0],
 	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0],
 	"fx_fire_explode": [6, 15.0], "fx_missile_explode": [6, 15.0], "fx_bullet_hit": [3, 24.0],

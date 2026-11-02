@@ -26,7 +26,7 @@ func _process(_dt: float) -> void:
 				OB.h4_impact_fx(op, g.ppos + Vector2(150, 0), 80.0, variant == 0)
 			else:
 				OB.h4_burst_fx(op, g.ppos + Vector2(150, 0), 110.0, variant == 2)
-			var sprites: Array = g.fx.filter(func(f): return f.get("name", "") == "fx_wisadel_cannon")
+			var sprites: Array = g.fx.filter(func(f): return f.get("name", "") in ["fx_wisadel_cannon", "fx_wd_cannon_nr"])   # fx_wd_cannon_nr：fx/wd_ring = 0 的去蓝紫环帧条（docs/220 §5）
 			check(sprites.size() == 1, "basic/skill cannon uses one animation: %d" % variant)
 			if not sprites.is_empty():
 				check(sprites[0].scale <= 3.2, "cannon respects shared visual size cap")
@@ -39,11 +39,14 @@ func _process(_dt: float) -> void:
 					get_viewport().get_texture().get_image().save_png("../build/wisadel_cannon_%d.png" % fr)
 		# Missing art keeps the legacy fallback alive rather than dropping impact FX.
 		var saved = g.tex["fx_wisadel_cannon"]
+		var saved_nr = g.tex.get("fx_wd_cannon_nr")
 		g.tex["fx_wisadel_cannon"] = null
+		g.tex["fx_wd_cannon_nr"] = null
 		g.fx.clear()
 		OB.h4_burst_fx(op, g.ppos, 100.0)
 		check(not op.pfx.is_empty(), "missing texture procedural fallback")
 		g.tex["fx_wisadel_cannon"] = saved
+		g.tex["fx_wd_cannon_nr"] = saved_nr
 	print("WISADEL CANNON failures=", failures)
 	op = null
 	g.queue_free()
