@@ -1,22 +1,26 @@
 {
- "_doc": "普攻试点（docs/231）：拉普兰德（近战）/ 能天使（远程，含精一层数弹体 t1–t3，色同旧条）；全部 @2x，32 色调色板",
+ "_doc": "普攻试点（docs/231）：拉普兰德（近战）/ 能天使（远程，含精一层数弹体 t1–t3，色同旧条）；@2x、32 色、分层 _glow；刀光 / 枪口 / 命中 2 个变体（docs/229 §2.11），弹体是循环件、走 spr_rot 不挑变体，只出 1 个",
  "fx_lappland_px_slash": {
   "fx": "melee/ak-lappland-slash",
-  "hires": true
+  "hires": true,
+  "variants": 2
  },
  "fx_exusiai_px_atk_muzzle": {
   "fx": "projectiles/ak-exusiai-muzzle",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 2
  },
  "fx_exusiai_px_atk_hit": {
   "fx": "impacts/ak-exusiai-hit",
-  "hires": true
+  "hires": true,
+  "variants": 2
  },
  "proj_exusiai_px_bullet": {
   "fx": "projectiles/ak-exusiai-bullet",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "proj_exusiai_px_bullet_t1": {
   "fx": "projectiles/ak-exusiai-bullet",
@@ -31,7 +35,8 @@
    ]
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "proj_exusiai_px_bullet_t2": {
   "fx": "projectiles/ak-exusiai-bullet",
@@ -46,7 +51,8 @@
    ]
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "proj_exusiai_px_bullet_t3": {
   "fx": "projectiles/ak-exusiai-bullet",
@@ -61,6 +67,7 @@
    ]
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  }
 }

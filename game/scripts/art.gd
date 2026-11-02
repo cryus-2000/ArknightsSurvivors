@@ -800,13 +800,14 @@ const OP_RAMP := {
 	"wisadel": ["#551412", "#91221f", "#c22d29", "#f23833", "#f77e7a", "#fbc3c2", "#ffffff"],
 }
 const ENV_RAMP := ["#06142a", "#0b2d55", "#134f86", "#1f7fb5", "#3fb4d8", "#8fe3ef", "#d9fbff", "#ffffff"]   # 深海环境梯度（暗 → 亮），未登记干员的兜底
+const DANGER_RAMP := ["#2a0612", "#5c0a26", "#a3143f", "#ff2667", "#ff7aa0", "#ffd0dd", "#ffffff"]   # 敌方危险色阶（id "e"，fx_e_px_*；同 house.js DANGER_RAMP）
 static var _op_ramp_cache := {}
 
 ## 程序绘制取干员色阶：i = 0（最暗）… 6（白），越界取端点；未登记的 id 用环境梯度
 static func op_ramp(id: String, i: int) -> Color:
 	var r: Array = _op_ramp_cache.get(id, [])
 	if r.is_empty():
-		for h in OP_RAMP.get(id, ENV_RAMP):
+		for h in (DANGER_RAMP if id == "e" else OP_RAMP.get(id, ENV_RAMP)):
 			r.append(Color(h))
 		_op_ramp_cache[id] = r
 	return r[clampi(i, 0, r.size() - 1)]
@@ -847,6 +848,15 @@ static func px_tail_cut(g, name: String, frames: int, fps: float) -> float:
 	if g.fx.size() <= _pxcap:
 		return 0.0
 	return maxf(0.0, float(frames - int(PX_BASIC_BODY[name])) / fps)
+
+
+## pixelfx 帧条名里的归属：fx_<id>_px_* / proj_<id>_px_* → id（敌方 fx_e_px_* → "e"）；不是 pixelfx 帧条返回 ""
+static func px_owner(name: String) -> String:
+	var k := name.find("_px_")
+	if k < 0:
+		return ""
+	var s := name.substr(0, k)
+	return s.substr(s.find("_") + 1)
 
 
 ## 由任意贴图生成白色剪影（受击闪白用）
@@ -1151,14 +1161,15 @@ const V6_FRAMES := {
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
 	# ---- pixelfx 组 A（docs/229 §9）：本组新帧条只加在这行与下面「组 A 止」之间
-	"fx_lappland_px_slash": [7, 24.0], "fx_lappland_px_slash_glow": [7, 24.0],   # 普攻试点（docs/231）：拉普兰德双刃横扫（主体 4 帧 + 余韵 3 帧）
+	"fx_lappland_px_slash": [7, 24.0], "fx_lappland_px_slash_glow": [7, 24.0], "fx_lappland_px_slash_v1": [7, 24.0], "fx_lappland_px_slash_v1_glow": [7, 24.0],   # 普攻试点（docs/231）：拉普兰德双刃横扫（主体 4 帧 + 余韵 3 帧，2 个变体）
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# ---- 组 B 止
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
-	"fx_exusiai_px_atk_muzzle": [4, 24.0], "fx_exusiai_px_atk_muzzle_glow": [4, 24.0], "fx_exusiai_px_atk_hit": [7, 24.0], "fx_exusiai_px_atk_hit_glow": [7, 24.0],   # 普攻试点（docs/231）：能天使速射枪口（主体 3 + 枪烟 1）/ 命中（主体 4 + 余烬 3）
+	"fx_exusiai_px_atk_muzzle": [4, 24.0], "fx_exusiai_px_atk_muzzle_glow": [4, 24.0], "fx_exusiai_px_atk_muzzle_v1": [4, 24.0], "fx_exusiai_px_atk_muzzle_v1_glow": [4, 24.0],   # 普攻试点（docs/231）：能天使速射枪口（主体 3 + 枪烟 1，2 个变体）
+	"fx_exusiai_px_atk_hit": [7, 24.0], "fx_exusiai_px_atk_hit_glow": [7, 24.0], "fx_exusiai_px_atk_hit_v1": [7, 24.0], "fx_exusiai_px_atk_hit_v1_glow": [7, 24.0],   # 普攻试点：命中（主体 4 + 余烬 3，2 个变体）
 	"proj_exusiai_px_bullet": [2, 20.0], "proj_exusiai_px_bullet_glow": [2, 20.0],   # 普攻试点：弹体
 	"proj_exusiai_px_bullet_t1": [2, 20.0], "proj_exusiai_px_bullet_t1_glow": [2, 20.0], "proj_exusiai_px_bullet_t2": [2, 20.0], "proj_exusiai_px_bullet_t2_glow": [2, 20.0],
 	"proj_exusiai_px_bullet_t3": [2, 20.0], "proj_exusiai_px_bullet_t3_glow": [2, 20.0],   # 普攻试点：精一穿甲连射层数弹体（银 → 浅金 → 金，同旧 t1–t3）

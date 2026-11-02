@@ -905,7 +905,7 @@ func hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 
 
 ## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
-func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
+func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false, fy := 1.0) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null:
 		return
@@ -914,7 +914,7 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
 	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
-	var sv := Vector2(-scale if flip else scale, scale)
+	var sv := Vector2(-scale if flip else scale, scale * fy)   # fy：pixelfx 变体沿自身朝向轴镜像（px_vary）
 	g.draw_set_transform(pos + g.draw_off, ang, sv)
 	g.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -937,6 +937,32 @@ func px_glow(name: String, xf: Transform2D, dst: Rect2, src: Rect2, col: Color) 
 	if gt == null or col.a <= 0.004 or _glow_q.size() >= GLOW_Q_MAX:
 		return
 	_glow_q.append([gt, xf, dst, src, FD.capc(col)])
+
+
+## pixelfx 变体 / 随机镜像 / 实时火星（docs/229 §2.11，用户 11-02）：只对 fx_<id>_px_* / proj_<id>_px_* 生效，其余帧条原样。
+## 变体：导出脚本按种子出 <名>、<名>_v1、<名>_v2（登记在 V6_FRAMES），开播时随机挑一版；再随机沿自身朝向轴镜像（fy = ±1）、
+## 转 ±PX_JITTER 弧度。火星：<名> 的登记第 3 项 [颗数, 色阶下标, 速度] 有就在开播点喷一把（sparks，同屏上限照旧）。
+## 全部用视觉随机数 vrng，同 seed 的 TRACE 不变。返回 [实际帧条名, fy, 角度增量]
+const PX_JITTER := 0.1
+func px_vary(name: String) -> Array:
+	if name.find("_px_") < 0:
+		return [name, 1.0, 0.0]
+	var n := 1
+	while Game.V6_FRAMES.has("%s_v%d" % [name, n]):
+		n += 1
+	var k: int = g.vrng.randi_range(0, n - 1) if n > 1 else 0
+	var pick: String = name if k == 0 else "%s_v%d" % [name, k]
+	if g.tex.get(pick) == null:
+		pick = name
+	return [pick, -1.0 if g.vrng.randf() < 0.5 else 1.0, g.vrng.randf_range(-PX_JITTER, PX_JITTER)]
+
+
+func px_spark(name: String, pos: Vector2, dir := Vector2.ZERO) -> void:
+	var spec: Array = Game.V6_FRAMES.get(name, [])
+	if spec.size() < 3 or not (spec[2] is Array) or spec[2].size() < 3:
+		return
+	var sp: Array = spec[2]
+	sparks(pos, dir, A.op_ramp(A.px_owner(name), int(sp[1])), int(sp[0]), float(sp[2]))
 
 
 func _draw_glow_q(ci: CanvasItem) -> void:
@@ -963,6 +989,13 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 		_fx_census(name, ground)
 	if g.tex.get(name) == null:
 		return false
+	var fy := 1.0
+	if name.find("_px_") >= 0:   # pixelfx：挑变体 + 随机镜像 / 小转角 + 实时火星（px_vary）
+		var pv: Array = px_vary(name)
+		px_spark(name, pos, Vector2.from_angle(ang) if ang != 0.0 else Vector2.ZERO)
+		name = pv[0]
+		fy = pv[1]
+		ang += pv[2]
 	if name.begins_with("fx_slash") or name.begins_with("fx_claw"):
 		scale = blade_scale(scale)
 	scale = minf(scale, FX_SCALE_MAX)
@@ -973,6 +1006,8 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	if _fxc != null:
 		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
+	if fy < 0.0:
+		f["fy"] = fy
 	if spawn_lead:
 		f["lead"] = true
 	if delay > 0.0:

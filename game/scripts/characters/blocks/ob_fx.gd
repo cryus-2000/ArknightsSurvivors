@@ -170,11 +170,26 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 				var d: float = sqrt(g.vrng.randf()) * spread
 				q += Vector2(cos(a) * d, sin(a) * d * 0.55)   # 地面椭圆（同区域画法 y × 0.55）
 			var angle: float = (c + off - q).angle() if f.get("inward", false) else rot
-			var px := {"kind": "strip", "name": name, "pos": q, "life": life, "sc": sc, "col": tint, "ang": angle, "anc": anc, "no_fade": bool(f.get("no_fade", false)),
-				"fr": frames, "fps": fps, "loop": loop, "ph": g.vrng.randi_range(0, frames - 1) if loop else 0,
+			var vname := name
+			var vfy := 1.0
+			var vfr := frames
+			var vlife := life
+			if name.find("_px_") >= 0 and g.vfx != null:   # pixelfx：挑变体 + 随机镜像 / 小转角 + 实时火星（vfx.px_vary，纯画面）
+				var pv: Array = g.vfx.px_vary(name)
+				g.vfx.px_spark(name, q, Vector2.from_angle(angle) if f.get("rot", false) else Vector2.ZERO)
+				vname = pv[0]
+				vfy = pv[1]
+				angle += pv[2]
+				vfr = maxi(1, int(g.V6_FRAMES.get(vname, spec)[0]))
+				if not loop and not f.has("stay"):
+					vlife = vfr / fps
+			var px := {"kind": "strip", "name": vname, "pos": q, "life": vlife, "sc": sc, "col": tint, "ang": angle, "anc": anc, "no_fade": bool(f.get("no_fade", false)),
+				"fr": vfr, "fps": fps, "loop": loop, "ph": g.vrng.randi_range(0, vfr - 1) if loop else 0,
 				"floor": layer == "floor", "add": layer == "add", "fit": fit > 0.0}
+			if vfy < 0.0:
+				px["vfy"] = vfy
 			if dly > 0.0:
-				px["life"] = life + dly
+				px["life"] = vlife + dly
 				px["dly"] = dly
 			if rise != 0.0:
 				px["vel"] = Vector2(0, -rise)
@@ -227,11 +242,11 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 	if not f.loop:
 		a *= _mat_handoff(g, f, el, frames, fr)
 	var sc: float = float(f.sc) if f.get("fit", false) or not ("vfx" in g) or g.vfx == null else g.vfx.int_scale(float(f.sc))   # 低分辨率层整数格（docs/138 §10）；按半径拟合的不取整
-	fx_frame(ci, g, str(f.name), frames, fr, f.pos, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
+	fx_frame(ci, g, str(f.name), frames, fr, f.pos, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang), 1.0, float(f.get("vfy", 1.0)))
 
 
 ## 帧条的第 fr 帧：sc = 每个 1x 美术像素的世界像素数；anc = 1x 帧内锚点（(-1,-1) = 帧中心），@2x 贴图自动换算（docs/25 §6 的 ×A.hires 规则）
-static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc: float, col: Color, anc := Vector2(-1, -1), ang := 0.0, stretch := 1.0) -> void:
+static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc: float, col: Color, anc := Vector2(-1, -1), ang := 0.0, stretch := 1.0, fy := 1.0) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null or col.a <= 0.0:
 		return
@@ -239,7 +254,7 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an: Vector2 = anc * h if anc.x >= 0.0 else Vector2(fw, fh) / 2.0
-	var sv := Vector2(sc * stretch / h, sc / h)
+	var sv := Vector2(sc * stretch / h, sc * fy / h)   # fy：pixelfx 变体沿朝向轴镜像（vfx.px_vary）
 	ci.draw_set_transform(pos, ang, sv)   # stretch：沿朝向拉长（剑气猛冲段，sword_ease.gd）
 	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

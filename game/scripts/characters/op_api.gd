@@ -424,7 +424,7 @@ func spawn_fx_sprite(name: String, pos: Vector2, scale: float = -1.0, ang := 0.0
 	var n0: int = g.fx.size()
 	if not g.vfx.fx_sprite(name, pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col):
 		return false
-	if cut > 0.0 and g.fx.size() > n0 and g.fx[-1].get("name", "") == name:   # 满屏：普攻余韵砍掉，只播主体帧
+	if cut > 0.0 and g.fx.size() > n0 and str(g.fx[-1].get("name", "")).begins_with(name):   # 变体 <名>_v1 也算（vfx.px_vary）   # 满屏：普攻余韵砍掉，只播主体帧
 		g.fx[-1].life -= cut
 		g.fx[-1].max -= cut
 	return true
