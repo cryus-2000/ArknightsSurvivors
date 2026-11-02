@@ -76,7 +76,8 @@ def akd(name, t0=0.0, dur=None, rate=1.0, fout=0.05):
 LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16.0, "pop": -17.0, "crack": -14.0, "pull": -16.0, "boom": -9.0, "slam": -9.0, "surge": -9.0, "final": -9.0, "burst": -9.0, "slam_1": -9.0, "smash": -8.0, "sizzle": -17.0, "bomb": -18.0, "steam": -17.0, "crash": -9.0, "final": -9.0, "rupt": -10.0, "glyph": -19.0, "slash": -16.0, "seal": -12.0, "air": -13.0, "wave": -13.0, "smash2": -12.0, "rock": -16.0, "zip": -15.0, "warn": -13.0}   # 画面单元槽（docs/205 §4.2），按槽名前缀
 
 
-LV_SLOT = {"boom_1": -15.0, "boom_hit": -15.0}   # 艾丽妮连环爆（11-01 夜定稿时的响度）；星熊 boom 是高潮，走 LV 的 -9
+LV_SLOT = {"boom_1": -15.0, "boom_hit": -15.0}
+LV_OP = {("logos", "cast"): -12.0, ("logos", "charge"): -9.0}   # 逻各斯时停（docs/205 §4.10）；起手秒针要压过同时开口的台词（11-01 第六轮）   # 艾丽妮连环爆（11-01 夜定稿时的响度）；星熊 boom 是高潮，走 LV 的 -9
 
 
 def level(slot, x):
@@ -376,31 +377,83 @@ def suzuran():
         "rupt": rupt,
     }
 
+ZW_BELL = "Ivo Vicic - Church Bells/04 Church Bells, Near Distance, In Church Tower-3 Different Bell 02.wav"   # 2.80 秒处一记大钟（锣的金属体）
+ZW_DROP = "344 Audio - Bass Drops & Downers Vol. 1/DSGNBass_Bass Drop & Downer Fast 16_344 Audio_Bass Drops & Downers.wav"   # 0.13 秒瞬态 + 音高快速下坠
+ZW_TONE = "344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Tone Downer (Reverb)_344 Audio_Bass Drops and Downers Vol 3.wav"   # 长音下坠 + 混响尾
+ZW_SHIM = "Epic Stock Media - Anime Game/DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav"   # 碎钹般的亮尾
+ZW_SWEEP = "Cinematic Sound Design - Ultra Transitions & Impacts/Woosh Sweep Slide Infographics Basic.wav"
+ZW_CLK = "344 Audio - Antique Clocks/CLOCKTick_You're Running Late _344 Audio_Antique Clocks.wav"   # 座钟（11-01 第四轮 LC2）：0.755 起每 0.75 秒一下
+ZW_LATCH = "Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav"
+ZW_CLANK = "Epic Stock Media - HD Game Materials/METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01_ESM_HDGM.wav"
+ZW_HUM = "Jake Fielding - Fridge Hums Vol.2/MACHAppl_Deep Fridge Hum, Buzz, Electric Tone, Deep_Jake Fielding_Fridge Hums Pt2.wav"
+ZW_CAST_T = 1.8   # 放出（cast）到爆开那一声（impact，收尾加强吸气之后）实测 54 帧 = 1.8 秒（cue_lg 录像 SFXTRACE 218 → 272）
+
+
+def _zw_tick(t0, gain=1.0, rate=1.0, dur=0.16):
+    return hp(lib(ZW_CLK, t0 - 0.006, dur, rate, fout=0.06), 250) * gain
+
+
+def _zw_verb(x, sec, wet, cut, seed):
+    """长混响尾巴（空间被压扁后的回响）：衰减噪声冲激卷积，种子固定"""
+    from scipy.signal import fftconvolve
+    n = int(sec * SR)
+    ir = lp(np.random.default_rng(seed).standard_normal(n), cut) * np.exp(-np.linspace(0.0, 6.9, n))
+    ir /= np.sqrt(np.sum(ir ** 2)) + 1e-9
+    return pad(x, fftconvolve(x, ir) * wet)
+
+
+ZW_CLK_A = "344 Audio - Antique Clocks/CLOCKTick_Crooked Antique Clock_344 Audio_Antique Clocks.wav"   # 歪钟（偏重那版垫一层，滴答更厚）
+ZW_A_ON = {0.755: 2.06, 1.5: 3.055, 2.255: 7.035, 3.005: 8.06, 3.755: 9.055}   # 座钟第 n 下 → 歪钟里对应用哪一下（起点实测）
+
+
 def logos(v=1):
-    """docs/205 §4.8（11-01 定稿 ① 录音；画面 v4「咒文 → 真空压缩爆炸」）：提示音 sf 不放（ult_audio.json sf_off，用户 11-01「开头的声音要去掉」）
-    → 时间停住 cast（用户 11-01「时停低鸣保留，可以参考那种 JoJo 里时间停止的声音」）：先倒吸进去的一口（空间被抽走）→ 凝住那一下低沉的「咚——」+ 钟摆停住 → 空荡的低鸣垫底
-    → 每只敌人头上浮现咒文 glyph_1..3（fx strip fx_lo_glyph1–4，节流 0.16 秒、很轻）= 能量流高音一闪
-    → 咒印一起压缩、整片爆开 impact（冲击帧同帧，全招最响）= 时间恢复的反向释放（气流往外冲）+ 电光低鸣冲击降调 + 原作黑洞 + 预告片低频。
-    ① 倒吸 = 预告片轰鸣倒放；凝住 = 电影号角低音（降调、闷）+ 一记老座钟摆声降调；垫底 = 魔法低鸣。释放 = 长风呼啸
-    ② 倒吸 = 碎屑呼啸倒放 + 暗黑号角渐强倒放；凝住 = 魔法低鸣深降调 + 工业空腔嗡鸣（真空感）+ 座钟三下越来越慢、越来越低直到停；释放 = 碎屑呼啸往外推"""
-    if v == 2:
-        suck = pad(rev(sn("debris", 0.1, 0.8, fout=0.05))[-int(0.6 * SR):], rev(lp(sn("tbraam", 1.8, 0.8, 0.8, fout=0.05), 2500))[-int(0.6 * SR):] * 0.8)   # 倒放取尾段：越吸越紧、到凝住那一刻最满
-        hold = pad(lp(sn("drone", 8.0, 1.2, 0.6, fout=0.5), 900), lp(sn("indamb", 8.0, 1.2, 0.8, fout=0.5), 1500) * 0.6)
-        ticks = pad(at(lp(sn("clock", 0.95, 0.18, 0.8, fout=0.08), 4000) * 0.7, 0.0), at(lp(sn("clock", 0.95, 0.18, 0.7, fout=0.08), 3500) * 0.5, 0.24),
-                    at(lp(sn("clock", 0.95, 0.18, 0.6, fout=0.08), 3000) * 0.35, 0.56))
-        cast = pad(suck, at(pad(hold, ticks), 0.55))
-        release = sn("debris", 0.1, 0.9, 1.1, fout=0.4)
+    """docs/205 §4.10（11-01 第五轮，用户「要 JoJo『世界』时停那种声音」；只按特征用录音重做，不扒原片）：
+    开始（charge，确认释放后的 0.5 秒起手里响）= 倒放的大钟 + 碎钹亮尾往里吸，越来越响 →
+    放出 cast（时停那一刻）= 沉重闷「嗡——咚」：低音瞬态音高往下坠 + 预告片低频 + 大钟降调 + 长音下坠，长混响尾巴；同时配乐低通压到很小、别的音效压低（ult.gd world_hush）
+    → 停住：完全没有滴答（静止感），只留极低的电器嗡鸣 → 结束（cast 末尾，对准爆开）= 反向扫频「呼——」往上提（低音下坠倒放 = 音高回正）
+    → 爆开 impact：世界的声音从低通里弹回来（ult.gd _fin_release），真空压缩爆炸。
+    时钟是主角（11-01 第六轮，用户「logos 的是不是还没有时钟的声音」）：起手 0.5 秒里秒针「滴、答、滴」三下越走越紧、在前景（吸气垫在下面）；
+    时停那一刻同帧一记清楚的机械卡死「咔」（高通，和嗡——咚叠着也能单独听出来）；停住期间无滴答；
+    爆开就是原来的爆炸（第七轮用户「只保留开头的」，爆开前咔哒和之后重新走的滴答删掉）。
+    每只敌人头上咒文 glyph_1..3 照旧（很轻）。提示音 sf 不放（sf_off）。
+    v=1 偏重：大钟降到 0.7、预告片低频压底、混响 1.8 秒；v=2 偏清脆：大钟原调、碎钹亮尾多、混响 1.4 秒、滴答原调更亮"""
+    heavy = v != 2
+    r = 0.85 if heavy else 1.0
+    n05 = int(0.5 * SR)
+    bell = lib(ZW_BELL, 2.80, 1.0, 0.7 if heavy else 1.0, fin=0.002, fout=0.05)
+    shim = hp(lib(ZW_SHIM, 0.13, 0.9, 0.8 if heavy else 1.0, fout=0.1), 1500)
+    charge = pad(lp(rev(bell), 5000 if heavy else 9000)[-n05:], rev(shim)[-n05:] * (0.45 if heavy else 0.9))
+    charge = charge * np.linspace(0.15, 1.0, len(charge)) ** 1.5 * 0.35   # 越吸越响，到时停那一刻最满；垫在秒针下面
+    tr = 0.85 if heavy else 1.0
+    tk = lambda t0, g, d=0.14: _zw_tick(t0, g, tr, d) if not heavy else pad(_zw_tick(t0, g, tr, d), lp(lib(ZW_CLK_A, ZW_A_ON[t0] - 0.006, d, 0.9, fout=0.05), 6000) * g * 0.5)
+    # 秒针「滴、答、滴」越走越紧：0.03 / 0.21 / 0.36（间隔 0.18 → 0.15），前景
+    charge = pad(charge, at(tk(0.755, 1.0), 0.03), at(tk(1.5, 0.9), 0.21), at(tk(2.255, 1.0), 0.36))
+    drop = lib(ZW_DROP, 0.11, 1.6, r, fout=0.6)
+    tone = lib(ZW_TONE, 0.6, 2.0, r, fout=0.8)
+    low = lp(sn("b214", 0.25, 1.4, fout=0.6), 600)
+    ring = lp(lib(ZW_BELL, 2.80, 1.4, 0.5 if heavy else 0.75, fout=0.6), 1800 if heavy else 4500)
+    boom = pad(drop, low, ring * 0.45, tone * 0.4) if heavy else pad(drop * 0.7, ring * 0.7, tone * 0.5, low * 0.45)
+    boom = _zw_verb(boom, 1.8 if heavy else 1.4, 0.45 if heavy else 0.35, 2500 if heavy else 5000, 11 if heavy else 12)
+    tb = np.arange(len(boom)) / SR
+    boom = boom * np.where(tb < 0.08, 1.0, np.exp(-(tb - 0.08) / (0.32 if heavy else 0.26)))   # 「咚」之后指数衰减：混响尾巴拖着，约 1 秒收到近乎无声
+    boom = fadeio(boom[:int(1.1 * SR)], 0.002, 0.3)
+    # 时停那一刻的机械卡死「咔」：深闩扣 + 钟锤一记 + 铁件敲击，1 kHz 以下切掉（嗡——咚在低频，咔在中高频，叠着能单独听出来）
+    stop = hp(pad(lib(ZW_LATCH, 0.0, 0.38, 0.8 if heavy else 1.0, fout=0.15), _zw_tick(3.005, 0.9, 0.75 if heavy else 0.9, 0.3), lib(ZW_CLANK, 0.12, 0.34, 0.85 if heavy else 1.0, fout=0.2) * 0.6), 1000)
+    hum = lp(lib(ZW_HUM, 20.0, 1.3, fout=0.3), 160) * (0.14 if heavy else 0.1)
+    if heavy:
+        riser = pad(rev(lib(ZW_DROP, 0.11, 0.8, 0.85, fout=0.05))[-int(0.45 * SR):], rev(sn("debris", 0.1, 0.6, fout=0.05))[-int(0.45 * SR):] * 0.5)
     else:
-        suck = rev(lp(sn("b214", 0.25, 1.0, fout=0.05), 1500))[-int(0.5 * SR):]
-        hold = pad(lp(sn("braam", 0.3, 1.0, 0.7, fout=0.5), 1200), lp(sn("drone", 8.0, 1.0, 0.8, fout=0.5), 2000) * 0.4, lp(sn("clock", 0.95, 0.2, 0.6, fout=0.1), 3000) * 0.8)
-        cast = pad(suck, at(hold, 0.48))
-        release = sn("wind", 0.05, 0.8, 1.1, fout=0.35)
+        riser = pad(rev(lib(ZW_DROP, 0.11, 0.6, 1.1, fout=0.05))[-int(0.4 * SR):], rev(shim)[-int(0.4 * SR):] * 0.6, rev(lib(ZW_SWEEP, 0.03, 0.4, fout=0.05)) * 0.5)
+    riser = riser * np.linspace(0.2, 1.0, len(riser)) ** 2
+    cast = pad(boom, at(stop * 2.4, 0.0), at(hum, 0.45), at(riser * 0.6, ZW_CAST_T - len(riser) / SR))
+    release = sn("wind", 0.05, 0.8, 1.1, fout=0.35) if heavy else sn("debris", 0.1, 0.9, 1.1, fout=0.4)
+    blast = pad(sn("elec", 0.0, 0.9, 0.6, fout=0.4), akd("p_skill_darkholespell.wav", 0.0, 1.2, 0.85, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9, release * 0.5)
     return {
         "sf": None,
-        "cast": fadeio(fit(cast, 1.3), 0.01, 0.35),   # 时停到爆开约 1.2 秒，不拖进爆开
-        **{"glyph_%d" % (i + 1): hp(sn("astral", 0.3, 0.3, r, fout=0.15), 800) for i, r in enumerate([1.5, 1.62, 1.75])},
-        "impact": pad(sn("elec", 0.0, 0.9, 0.6, fout=0.4), akd("p_skill_darkholespell.wav", 0.0, 1.2, 0.85, fout=0.5) * 0.6, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9,
-                      release * 0.5),
+        "charge": fadeio(charge, 0.01, 0.01),
+        "cast": cast,
+        **{"glyph_%d" % (i + 1): hp(sn("astral", 0.3, 0.3, rr, fout=0.15), 800) for i, rr in enumerate([1.5, 1.62, 1.75])},
+        "impact": blast,   # 爆开就是原来的爆炸声（11-01 第七轮用户「只保留开头的时钟」：爆开前咔哒 / 之后重新走的滴答删掉）
     }
 
 
@@ -550,7 +603,7 @@ def main():
                         os.remove(old + ".import")
         info = []
         for slot, x in d.items():
-            RMS[slot] = level(slot, np.asarray(x))
+            RMS[slot] = LV_OP.get((op, slot), level(slot, np.asarray(x)))
             info.append("%s %.2f" % (slot, write(os.path.join(dst_dir, "ult_%s_%s.wav" % (op, slot)), np.asarray(x, dtype=np.float64), slot)))
         print(op, " / ".join(info))
 

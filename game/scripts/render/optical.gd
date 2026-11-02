@@ -393,7 +393,7 @@ func _lo_step() -> void:
 	lo_vp.canvas_transform = Transform2D(Vector2(0.5, 0), Vector2(0, 0.5), lo_off)
 	var rp: Vector2 = xf.origin - lo_off * cellw
 	lo_rect.position = (rp * sx).round() / sx
-	lo_rect.size = Vector2(lsz) * cellw
+	lo_rect.size = Vector2(lo_vp.size) * cellw   # 按画布实际尺寸贴（推镜期间画布比需要的大：原来按 lsz 贴会把大画布压进小矩形，推镜被抵消、右边露黑，11-01 终结技起手推镜查出）
 	op_node.queue_redraw()
 
 
@@ -627,6 +627,8 @@ func _process(_dt: float) -> void:
 	if g.post != null:
 		mat.set_shader_parameter("hurt", g.post.hurt)
 		mat.set_shader_parameter("desat", g.post.desat)
+		mat.set_shader_parameter("wave", g.post.wave)
+		mat.set_shader_parameter("wave_desat", g.post.wave_desat)
 		mat.set_shader_parameter("zone_amt", g.post.zone_amt)
 		mat.set_shader_parameter("zone_c", g.post.zone_c)
 		mat.set_shader_parameter("zone_r", g.post.zone_r)

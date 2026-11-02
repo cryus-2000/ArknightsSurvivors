@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://3jkkimes2lyi"
-path="res://.godot/imported/ult_super_2.wav-21ab9b2cad59042b8a267d790ec2e162.sample"
+uid="uid://sfxor72jvkgg"
+path="res://.godot/imported/ult_super_5.wav-153ba9c36f0067e6add7c814829b1a96.sample"
 
 [deps]
 
-source_file="res://audio/sfx/ult_super_2.wav"
-dest_files=["res://.godot/imported/ult_super_2.wav-21ab9b2cad59042b8a267d790ec2e162.sample"]
+source_file="res://audio/sfx/ult_super_5.wav"
+dest_files=["res://.godot/imported/ult_super_5.wav-153ba9c36f0067e6add7c814829b1a96.sample"]
 
 [params]
 

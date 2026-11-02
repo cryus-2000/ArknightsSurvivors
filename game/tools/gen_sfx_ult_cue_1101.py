@@ -2,10 +2,10 @@
 1. 超必杀提示音 ult_super_<n>（按 Q 进入超必杀暂停那一刻，20 人共用，叠在各人 sf 前面；ult/super_cue 选哪一版，0 = 不放）：
    格斗游戏超必杀那种短促、亮的「锵」——不用 MUGEN / 卡普空 / SNK 的音效，只按特征从录音里叠
 2. 就绪提示音 ult_ready（能量充满那一刻一次，ult/ready_cue）：比超必杀那声轻、短、柔，一听就分得开
-3. 逻各斯时停加时钟（用户「秒针滴答几下，然后『咔』一声停住，停住期间很低的嗡鸣，解除时钟声再走起来」）：
-   候选 LC1 = 现在的 ① 低鸣 + 时钟、LC2 = ② 低鸣 + 时钟，输出整套 ult_logos_* 到 <主仓库>/build/ult_sfx/LC1|LC2（tools/ult_sfx_review.py --sets 重混对照）
-运行：python game/tools/gen_sfx_ult_cue_1101.py            → 候选进 build/ult_sfx/CUE/、LC1/、LC2/
-      python game/tools/gen_sfx_ult_cue_1101.py --apply    → ult_super_1..3 / ult_ready 写进 game/audio/sfx/（逻各斯候选不写，选定后再改 gen_sfx_ult_seg_1030.py）
+（逻各斯时停加时钟的 LC1 / LC2 候选已被第五轮「世界」时停声取代，见 gen_sfx_ult_seg_1030.py logos 与 docs/205 §4.10）
+运行：python game/tools/gen_sfx_ult_cue_1101.py            → 候选进 build/ult_sfx/CUE/
+      python game/tools/gen_sfx_ult_cue_1101.py --apply    → 选定的 ult_super_<--variant>（缺省 5）/ ult_ready 写进 game/audio/sfx/
+   11-02 用户定用 ⑤：包里只放 ult_super_5，①–④ / ⑥ 只出候选（不进 assets）；要换版就 --apply --variant N 并把 ult/super_cue 设 N
 """
 import argparse, os, runpy, shutil
 import numpy as np
@@ -27,6 +27,14 @@ BOOM = "Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_V
 SPELL = "Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms/MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav"
 TING = "Cinematic Sound Design - UI Interaction Elements/Ting Coins.wav"
 KALIMBA = "CB_Sounddesign - Applicable Sounds - Organic UI and Building Games SFX/UIMisc_Kalimba 3 Up_CB Sounddesign_APPlicable Sounds.wav"
+MBOX = "Sonic Bat - Music Boxes/SBmb_Music Box B 028.wav"   # 八音盒一音：基频 1326 Hz、泛音 2653 / 3980
+RING = "David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav"   # 0.42 秒处金属共振，3.4 kHz 一层
+XBELL = "344 Audio - Christmas Vol. 1/MAGMisc_Magic Christmas Bells 2_344 Audio_Christmas.wav"   # 2.21 秒一串小铃：7–14 kHz 闪烁
+WIND = "344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav"   # 0.1 秒处一记风冲
+GLASSY = "Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav"   # 晶体般的短「闪」，0.44 秒、重心 5.9 kHz
+ARP = "Cinematic Sound Design - System & UI Feedback Elements/Interface Arp Reveal Down Long.wav"   # 极高的电子琶音闪光（重心 12 kHz）
+PING = "Cinematic Sound Design - System & UI Feedback Elements/Interface Sci-Fi Ping Down.wav"   # 科幻下行 ping，倒放 = 往上扬的能量扫
+SWEEP = "Cinematic Sound Design - Ultra Transitions & Impacts/Woosh Sweep Slide Infographics Basic.wav"
 TICK_A = [2.06, 3.055, 7.035, 8.06, 9.055, 10.06]   # 歪钟里响亮的几下（起点，onset 实测）
 TICK_B = [0.755, 1.5, 2.255, 3.005, 3.755, 4.5]      # 座钟：偶数 = 滴、奇数 = 答
 
@@ -39,7 +47,11 @@ def tick(src, t0, gain=1.0, rate=1.0, dur=0.16):
 def super_cues():
     """① 剑鸣「锵」：出鞘 shwing（Freesound IENBA「Dagger」CC0）+ 亮闪碎光（ESM 动漫 power up 头 0.35 秒）+ 一记很短的低频顿
     ② 金属撞击亮鸣：铁件敲击（ESM 金属材质）升调 + 前面 0.1 秒碎光倒吸 + 特招斩击层（ESM 塔防 special move）
-    ③ 和弦冲击：电影冲击和弦（CSD Rapid Chord）截头 0.45 秒 + 出鞘 shwing 高频层"""
+    ③ 和弦冲击：电影冲击和弦（CSD Rapid Chord）截头 0.45 秒 + 出鞘 shwing 高频层
+    ④ 电子游戏「叮——」（11-01 用户要 MUGEN 同款，原文件是卡普空的不能用）：高亮金属单音 + 闪烁尾，0.42 秒，没有低频冲击
+    ⑤ / ⑥（11-02 用户「要更通用」：20 人共用，剑鸣 / 金属只贴近战，术师 / 医疗 / 狙击不搭）——不带武器属性、无金属无铃：
+    ⑤ 气流往里一吸（风冲倒放 0.16 秒）+ 一记晶体般明亮的「闪」（玻璃质感 UI 闪 + 极高电子琶音闪光），像闪光弹 / 能量瞬间点亮，0.42 秒
+    ⑥ 很短的低频「咚」（预告片 boom 低通截 0.18 秒）+ 往上扬的能量光扫（科幻 ping 倒放 + 扫频 woosh 升调），屏幕闪光的声音化，0.48 秒"""
     shwing = fsd(611310, 0.42, 0.4, fout=0.15)
     flash = hp(lib(SHIM, 0.13, 0.4, fout=0.2), 2500)
     thump = lp(lib(BOOM, 0.25, 0.3, fout=0.15), 400)
@@ -49,7 +61,24 @@ def super_cues():
     c2 = pad(pre * 0.5, at(pad(clank, hp(lib(SLICE, 0.4, 0.4, 1.1, fout=0.2), 1500) * 0.5, thump * 0.4), 0.09))
     chord = lib(CHORD, 0.84, 0.45, 1.06, fout=0.2)   # 起点对到和弦最响（0.86）前一点，按下即响
     c3 = pad(chord, hp(shwing, 3000) * 0.5)
-    return {"ult_super_1": c1, "ult_super_2": c2, "ult_super_3": c3}
+    # ④ 电子游戏「叮——」：八音盒一音升八度（基频约 2.65 kHz，泛音 5.3 / 8 kHz）+ 剑鸣共振尾里 3.4 kHz 那层 + 圣诞铃 7–14 kHz 闪烁尾，1.2 kHz 以下切掉
+    ding = lib(MBOX, 0.03, 0.9, 2.0, fin=0.001, fout=0.2)
+    ring = hp(lib(RING, 0.40, 0.6, 1.0, fin=0.002, fout=0.25), 2200)
+    sparkle = hp(lib(XBELL, 2.19, 0.5, 1.0, fin=0.002, fout=0.25), 5000)
+    c4 = hp(pad(ding * 1.3, ring * 0.7, at(sparkle * 0.12, 0.01)), 1200)
+    c4 = c4[:int(0.42 * SR)] * np.exp(-np.arange(min(len(c4), int(0.42 * SR))) / SR / 0.16)
+    # ⑤ 吸 → 闪：风冲倒放垫在前 0.16 秒越吸越紧，0.16 秒处玻璃闪 + 琶音闪光同时点亮，600 Hz 以下切掉（没有低频冲击）
+    suck = rev(hp(lib(WIND, 0.06, 0.3, 1.1, fout=0.03), 700))[-int(0.16 * SR):]
+    suck = suck * np.linspace(0.1, 1.0, len(suck)) ** 2
+    flash5 = pad(hp(lib(GLASSY, 0.0, 0.3, 1.0, fin=0.001, fout=0.15), 1800), hp(lib(ARP, 0.05, 0.26, 1.0, fin=0.002, fout=0.15), 4000) * 0.35)
+    c5 = hp(pad(suck * 0.5, at(flash5, 0.16)), 600)[:int(0.42 * SR)]
+    c5 = fadeio(c5, 0.002, 0.08)
+    # ⑥ 咚 → 上扬：低频咚当头，科幻 ping 倒放从下往上扬到 0.42 秒，扫频 woosh 升调叠一层空气感
+    dong = lp(lib(BOOM, 0.25, 0.18, 1.0, fin=0.001, fout=0.1), 260)
+    rise = rev(lib(PING, 0.0, 0.4, 1.0, fin=0.004, fout=0.004))
+    swp = hp(lib(SWEEP, 0.02, 0.4, 1.25, fout=0.15), 2000)
+    c6 = fadeio(pad(dong * 0.6, at(hp(rise, 500) * 1.5, 0.04), at(swp * 0.45, 0.08))[:int(0.48 * SR)], 0.001, 0.05)
+    return {"ult_super_1": c1, "ult_super_2": c2, "ult_super_3": c3, "ult_super_4": c4, "ult_super_5": c5, "ult_super_6": c6}
 
 
 # ---------------------------------------------------------------- 2. 就绪提示音
@@ -58,56 +87,20 @@ def ready_cue():
     return pad(lib(KALIMBA, 0.0, 0.5, fout=0.2), at(hp(lib(TING, 0.09, 0.35, 1.2, fout=0.2), 2500) * 0.3, 0.12))
 
 
-# ---------------------------------------------------------------- 3. 逻各斯时停 + 时钟
-def logos_clock(v):
-    """cast（时停起点，0.48 秒凝住，到爆开约 1.1 秒）：前 0.45 秒秒针三下（越走越紧）→ 0.46「咔」停住（深闩扣 + 钟锤一记闷响 + 金属余震）
-    → 停住期间原来的 ① / ② 低鸣 + 一层很低的电器嗡鸣（冰箱压缩机，200 Hz 低通）；原来低鸣里的钟声删掉（换成这套）
-    impact（爆开 = 时间恢复）：原来的爆开 + 0.55 秒起时钟重新走（滴、答、滴，渐弱）
-    v=1：歪钟（重、闷）+ ① 号角低鸣；v=2：座钟（清脆滴答）+ ② 空腔嗡鸣"""
-    seg = S["logos"](v) if v == 2 else S["logos"]()
-    src, ts = (CLK_A, TICK_A) if v == 1 else (CLK_B, TICK_B)
-    ticks = pad(at(tick(src, ts[0], 0.55), 0.0), at(tick(src, ts[1], 0.7), 0.17), at(tick(src, ts[2], 0.85), 0.31))
-    stop = pad(lp(lib(LATCH, 0.0, 0.38, 0.8, fout=0.15), 6000), tick(src, ts[3], 0.9, 0.7, 0.3) * 0.8, hp(lib(CLANK, 0.12, 0.34, 0.75, fout=0.25), 400) * 0.35)
-    hum = lp(lib(HUM, 20.0, 1.0, fout=0.4), 200)
-    if v == 1:
-        suck = rev(lp(sn("b214", 0.25, 1.0, fout=0.05), 1500))[-int(0.5 * SR):]
-        hold = pad(lp(sn("braam", 0.3, 1.0, 0.7, fout=0.5), 1200), lp(sn("drone", 8.0, 1.0, 0.8, fout=0.5), 2000) * 0.4)
-    else:
-        suck = pad(rev(sn("debris", 0.1, 0.8, fout=0.05))[-int(0.6 * SR):], rev(lp(sn("tbraam", 1.8, 0.8, 0.8, fout=0.05), 2500))[-int(0.6 * SR):] * 0.8)
-        hold = pad(lp(sn("drone", 8.0, 1.2, 0.6, fout=0.5), 900), lp(sn("indamb", 8.0, 1.2, 0.8, fout=0.5), 1500) * 0.6)
-    cast = pad(suck * 0.8, ticks * 0.9, at(stop, 0.46), at(pad(hold, hum * 0.7), 0.48))
-    resume = pad(at(tick(src, ts[4], 0.6), 0.0), at(tick(src, ts[5], 0.45), 0.36 if v == 1 else 0.3), at(tick(src, ts[0], 0.3), 0.72 if v == 1 else 0.6))
-    d = dict(seg)
-    d["cast"] = fadeio(fit(cast, 1.3), 0.01, 0.35)
-    duck = np.ones(len(seg["impact"]))   # 爆开的尾巴 0.45 秒起压低，让时钟重新走起来听得见（压 12 dB）
-    i0, i1 = int(0.45 * SR), int(0.65 * SR)
-    duck[i0:i1] = np.linspace(1.0, 0.25, i1 - i0)
-    duck[i1:] = 0.25
-    d["impact"] = pad(seg["impact"] * duck, at(resume * 3.0, 0.55))
-    return d
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--variant", type=int, default=5, help="--apply 时写进游戏的超必杀提示音版本（1–6）；其余版本只出候选")
     a = ap.parse_args()
     cand = os.path.join(ROOT, "build", "ult_sfx")
     RMS.update({"super": -10.0, "ready": -17.0})
     dst = SFX if a.apply else os.path.join(cand, "CUE")
     os.makedirs(dst, exist_ok=True)
-    for k, x in {**super_cues(), "ult_ready": ready_cue()}.items():
+    cues = super_cues()
+    if a.apply:
+        cues = {k: x for k, x in cues.items() if k == "ult_super_%d" % a.variant}
+    for k, x in {**cues, "ult_ready": ready_cue()}.items():
         print(k, "%.2f" % write(os.path.join(dst, k + ".wav"), np.asarray(x, dtype=np.float64), "super" if "super" in k else "ready"))
-    for v in (1, 2):
-        od = os.path.join(cand, "LC%d" % v)
-        shutil.rmtree(od, ignore_errors=True)
-        os.makedirs(od)
-        info = []
-        for slot, x in logos_clock(v).items():
-            if x is None:
-                continue
-            RMS[slot] = S["level"](slot, np.asarray(x))
-            info.append("%s %.2f" % (slot, write(os.path.join(od, "ult_logos_%s.wav" % slot), np.asarray(x, dtype=np.float64), slot)))
-        print("LC%d" % v, " / ".join(info))
 
 
 if __name__ == "__main__":

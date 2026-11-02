@@ -519,14 +519,18 @@ static func _ex_start(u, o) -> Dictionary:
 	var c: Vector2 = o.pos
 	elites.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
 	normals.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
-	var ne: int = int(Bal.v("ult/ex_elite_shots", 7.0))
-	var cap: int = int(Bal.v("ult/ex_cap", 60.0))
+	# 演出时长统一（段表 dur，docs/216 §7 v2）：射速节拍不变、扫射时长缩短，总发数 / 每名精英的发数按比例减，
+	# 每名精英合计份额不变（每发 1/ne）；普通目标多于剩余发数时本来就一发分几颗（_ex_land），覆盖面照旧
+	var dur0: float = Bal.v("ult/ex_dur", 2.5)
+	var dur: float = clampf(u.seg("exusiai", "dur", dur0), 0.5, dur0)
+	var kd: float = dur / maxf(0.01, dur0)
+	var ne: int = maxi(2, roundi(Bal.v("ult/ex_elite_shots", 7.0) * kd))
+	var cap: int = maxi(12 + ne, roundi(Bal.v("ult/ex_cap", 60.0) * kd))
 	var eq: Array = []
 	for e in elites:
 		for k in ne:
 			if eq.size() < cap - 12:   # 至少留 12 发给普通目标
 				eq.append(e)
-	var dur: float = Bal.v("ult/ex_dur", 2.5)
 	# 锁定标记（fx_ult_exusiai_lock_orbit 放大 1.5 倍、调成红金 + 程序菱形框 + 金环）：精英 / Boss 先、再按距离挑普通目标，至多 ult/ex_lock_fx（24）个
 	var locks: Array = []
 	var lk_cap: int = int(Bal.v("ult/ex_lock_fx", 24.0))
@@ -951,7 +955,7 @@ static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 	var fs: float = 1.0 if float(u.g.facing) >= 0.0 else -1.0
 	var foot := Vector2(-56.0 * fs, -4.0)
 	var soff: Vector2 = foot + Vector2(8.0 * fs, -99.0)
-	var T: float = Bal.v("ult/sk_sweep", 3.4)
+	var T: float = u.seg("skalter", "sweep", Bal.v("ult/sk_sweep", 3.4))   # 段表 sweep：吐息追烧时长（docs/216 §7 v2，只裁追烧的重复段，转速 / 节奏不变）
 	var ch: float = Bal.v("ult/sk_charge", 0.35)
 	var life: float = ch + float(laps) * T + 0.8
 	var sf: Dictionary = u.strip("fx_ult_skalter_seaborn_front", o.pos + foot, {"o": Vector2(160, 316), "f": 0, "sx": fs, "life": life})

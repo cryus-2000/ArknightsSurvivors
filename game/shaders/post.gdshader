@@ -15,7 +15,9 @@ uniform float toe = 1.0;            // 暗部伽马（>1 压暗部），只作�
 uniform float pivot = 0.35;
 uniform float sat = 0.0;            // 饱和度增量（0.1 = +10%，按鲜艳度：灰的多加、已饱和 / 高光少加）
 uniform float hurt = 0.0;           // 0..1 受伤红边
-uniform float desat = 0.0;          // 0..1 去色（最终 Boss 击破演出）
+uniform float desat = 0.0;
+uniform vec4 wave = vec4(0.5, 0.5, -1.0, 0.0);
+uniform float wave_desat = 0.6;          // 0..1 去色（最终 Boss 击破演出）
 uniform float time = 0.0;
 // 失色区（10-25 拉普兰德 S3「噤声」，ob_summon._mark_draw 写）：屏幕 uv 椭圆（x 按宽高比校正、y 按 zone_ratio 压扁）内去色；
 // zone_hole = 施放者本人（uv 中心 + 半径）保留颜色
@@ -29,6 +31,16 @@ uniform sampler2D zone_mask : filter_nearest, repeat_disable;
 
 vec3 sample_rgb(vec2 uv) {
 	return texture(screen_tex, uv).rgb;
+}
+
+// 反色 / 去色波（逻各斯时停，ult/lg_invert_wave）：圆心 wave.xy（屏幕 uv）、半径 wave.z（屏高为单位）的一圈反色环往外扩，环内去色
+vec3 wave_fx(vec3 c, vec2 uv, vec2 px) {
+	float asp = px.y / px.x;
+	float d = length(vec2((uv.x - wave.x) * asp, uv.y - wave.y));
+	float band = 1.0 - smoothstep(0.0, 0.07, abs(d - wave.z));
+	float inside = 1.0 - smoothstep(wave.z - 0.03, wave.z, d);
+	c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))), inside * wave_desat);
+	return mix(c, clamp(vec3(1.0) - c, 0.0, 1.0), band * 0.85 * wave.w);
 }
 
 void fragment() {
@@ -93,6 +105,9 @@ void fragment() {
 	}
 	if (desat > 0.001) {
 		col = mix(col, vec3(dot(col, vec3(0.299, 0.587, 0.114))), desat);
+	}
+	if (wave.z > 0.0) {
+		col = wave_fx(col, uv, SCREEN_PIXEL_SIZE);
 	}
 	if (zone_amt > 0.001 && zone_r > 0.0001) {
 		float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;

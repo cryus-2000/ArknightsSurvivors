@@ -283,8 +283,9 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var nc: int = 14 if rt == "shatter" else int(Bal.v("ult/sa_cracks", 10.0))
 	var c: Vector2 = o.pos
 	var ch: float = Bal.v("ult/sa_charge", 0.2)
-	var tr: float = Bal.v("ult/sa_travel", 0.25)
-	var cspd: float = R / Bal.v("ult/sa_crack_t", 0.3)   # 裂纹往外长的速度
+	var ks: float = clampf(u.seg("saria", "spread", 1.0), 0.2, 1.0)   # 裂地蔓延时间倍率（docs/216 §7，出拳 / 顿帧不乘）
+	var tr: float = Bal.v("ult/sa_travel", 0.25) * ks
+	var cspd: float = R / (Bal.v("ult/sa_crack_t", 0.3) * ks)   # 裂纹往外长的速度
 	# 裂纹：每道是一条折线（节长 75，侧向按序号摆 ±18，不抽随机数）；第 1 / 3 / 5 节的端点是爆点
 	var cracks: Array = []
 	var booms: Array = []
@@ -322,7 +323,7 @@ static func _sa_start(u, o, d: Vector2) -> Dictionary:
 	var v2: bool = _sa_v2(u)
 	if v2:   # 举拳那一下脚下一大片压暗
 		u.shape({"kind": "circle", "c": c, "r": R * 1.05, "col": Color(0.0, 0.0, 0.01), "fill": 0.45, "life": ch + 0.03, "layer": "back"})
-	return {"v2": v2, "fa": d.angle(), "cone": cone, "half": half, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
+	return {"v2": v2, "ks": ks, "fa": d.angle(), "cone": cone, "half": half, "org": c, "R": R, "ch": ch, "tr": tr, "cspd": cspd, "wf": 1.0 - cf, "cf": cf, "cracks": cracks, "booms": booms,
 		"rc": R * Bal.v("ult/sa_core", 0.872), "wseg": {}, "cseg": {}, "punched": false, "punched2": false, "heal": rt == "syringe", "end_t": ch + maxf(tr, R / cspd + 0.06) + 0.12, "healed": false}
 
 
@@ -449,6 +450,7 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 	var fa: float = float(a.get("fa", 0.0)) + (PF.h(vs) - 0.5) * 0.08
 	var fw := Vector2.from_angle(fa)
 	var half: float = float(a.get("half", 0.55))
+	var ks: float = float(a.get("ks", 1.0))   # 裂地蔓延时间倍率：撕开 / 拳风 / 烟尘 / 隆起的延迟都乘它
 	u.g.vfx.stop(Bal.v("ult/sa_hitstop", 0.2), "ult", true)
 	u.light(org + fw * R * 0.4, R * 0.7, Color(1.0, 0.92, 0.75), 0.4)
 	u.debris(org + fw * 60.0, Color(0.85, 0.8, 0.7), 3)
@@ -467,7 +469,7 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 		var k: float = R * (1.0 if m == 0 else (0.78 if m == 1 else 0.66)) / PF.tex_w(u, fn)
 		u.strip(fn, org - Vector2.from_angle(fa + side) * 10.0, {"layer": "back", "ang": fa + side + (PF.h(vs + m) - 0.5) * 0.1, "o": Vector2(0.0, ft.get_height() * 0.5),
 			"sx": k, "sy": k * (1.5 if m == 0 else 1.15) * wk * (1.0 if PF.h(vs + 1.0 + m) < 0.5 else -1.0),
-			"rev": 0.12 if v3 else 0.14 + 0.05 * m, "rev0": 0.1, "delay": ([0.0, 0.02, 0.03] if v3 else [0.0, 0.05, 0.09])[m], "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})   # v3：两侧漏斗和中间一样快撕开（用户 10-31「最旁边的出现太慢」）
+			"rev": (0.12 if v3 else 0.14 + 0.05 * m) * ks, "rev0": 0.1, "delay": ([0.0, 0.02, 0.03] if v3 else [0.0, 0.05, 0.09])[m] * ks, "life": 2.6, "fade": 0.8, "col": Color(1.0, 0.96, 0.9), "col1": Color(0.55, 0.5, 0.46), "cold": 0.6})   # v3：两侧漏斗和中间一样快撕开（用户 10-31「最旁边的出现太慢」）
 	if v3:   # 冲击帧（用户 10-31）：出拳那一下，拳影 + 三道漏斗印子进剪影（往前张开的一把扇）
 		PF.hf_since(u, n0)
 		PF.hf_on(u, a)
@@ -476,23 +478,23 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 	var ka: float = R * 0.8 / PF.tex_w(u, SA_AIR)
 	for m in 2:
 		u.strip(SA_AIR, org + fw * (20.0 + 30.0 * m), {"ang": fa + (0.08 if m == 1 else 0.0), "o": Vector2(0.0, at.get_height() * 0.5),
-			"sc": ka * 0.45, "sc1": ka * (1.0 - 0.25 * m), "scd": 0.14, "delay": 0.16 + 0.05 * m, "life": 0.3, "fade": 0.18,
+			"sc": ka * 0.45, "sc1": ka * (1.0 - 0.25 * m), "scd": 0.14 * ks, "delay": (0.16 + 0.05 * m) * ks, "life": 0.3, "fade": 0.18,
 			"col": Color(1.0, 1.0, 1.0, 0.65 - 0.25 * m), "sy": -1.0 if m == 1 else 1.0})
 	var spd: float = R / tr
 	for q in 12:
 		var dv := Vector2.from_angle(fa + (PF.h(q * 5.1 + vs) - 0.5) * 2.0 * half)
 		var r0: float = 30.0 + 80.0 * PF.h(q * 3.0 + vs)
 		u.shape({"kind": "line", "a": org + dv * r0, "b": org + dv * (r0 + 60.0 + 110.0 * PF.h(q + 7.0 + vs)), "w": 4.0 if q % 3 == 0 else 2.5,
-			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(q + 11.0)), "delay": 0.16 + 0.03 * PF.h(q + 13.0 + vs), "v": dv * spd * (0.9 + 0.4 * PF.h(q + 17.0))})
+			"col": Color(0.95, 0.95, 0.9), "life": tr * (0.6 + 0.4 * PF.h(q + 11.0)), "delay": (0.16 + 0.03 * PF.h(q + 13.0 + vs)) * ks, "v": dv * spd * (0.9 + 0.4 * PF.h(q + 17.0))})
 	if v3:   # 拳风卷起的逐帧烟尘：前方扇形里五团、由近到远依次冒、往前推（代替灰点粒子）
 		for q in 5:
 			var hq: float = PF.h(vs * 3.0 + q)
 			var dq := Vector2.from_angle(fa + (float(q) / 4.0 - 0.5) * 1.6 * half + (hq - 0.5) * 0.2)
-			PF.dust(u, org + dq * R * (0.3 + 0.35 * hq), 200.0 + 80.0 * hq, 0.16 + 0.04 * q, vs + q, dq * (90.0 + 60.0 * hq), Color(1.0, 0.95, 0.88))
+			PF.dust(u, org + dq * R * (0.3 + 0.35 * hq), 200.0 + 80.0 * hq, (0.16 + 0.04 * q) * ks, vs + q, dq * (90.0 + 60.0 * hq), Color(1.0, 0.95, 0.88))
 	else:
-		PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.16, vs, R * 0.35)
+		PF.particles(u, org + fw * R * 0.35, 160, "ult_burst_s", [Color(1.0, 0.95, 0.85)], 0.16 * ks, vs, R * 0.35)
 	a["vs"] = vs
-	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18, R * 0.55, 1], [float(a.t) + 0.36, R * 0.8, 2], [float(a.t) + 0.54, R * 1.0, 3]]
+	a["beats"] = [[float(a.t) + 0.0, R * 0.3, 0], [float(a.t) + 0.18 * ks, R * 0.55, 1], [float(a.t) + 0.36 * ks, R * 0.8, 2], [float(a.t) + 0.54 * ks, R * 1.0, 3]]
 	if a.get("cone", false):
 		a["beat_fan"] = [fa, half]
 	PF.aftershock(u, org + fw * R * 0.4, R * 0.6, 3.0 + vs, 0.84, 10)
@@ -683,7 +685,8 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 	var v4: bool = _lo_circ() and Bal.v("ult/lo_fx_v4", 1.0) > 0.0 and u.fx_ready(LO_GLYPH[0])   # 用户 10-31「咒文慢慢出现 → 一起真空压缩爆炸」
 	if v4:
 		tm = Bal.v("ult/lo_mark_v4", 1.2)   # 咒文慢慢浮现：结算推迟到 1.2 秒（份额不变）
-		u.hush(tm + 0.5)   # 配乐压成寂静（时空暂停感）
+		u.world_hush(tm + 0.5)   # 时停：配乐低通压成寂静、别的音效一起压低（用户 11-01「JoJo『世界』时停」，docs/205 §4.10），爆开时弹回
+		u.invert_wave(o.pos)   # 以她为中心扩散的反色 / 去色波（ult/lg_invert_wave）
 	var col: Color = u._col(o)
 	var p0: Vector2 = _w(org, d, -bk, -hw)
 	var p1: Vector2 = _w(org, d, L, -hw)

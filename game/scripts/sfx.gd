@@ -143,6 +143,8 @@ var music_lp: AudioEffectLowPassFilter
 var cut_target := 20000.0
 var vol_target := -4.0
 var music_muted := false
+var world_duck_db := 0.0       # 时停（逻各斯终结技）期间别的音效一起压低多少 dB；ult.gd 每帧写，0 = 不压
+var world_duck_keep := ""      # 不压的音效名前缀（时停自己的声音）
 
 
 ## 自动测试 / 截图 / 平衡批跑（任何 `--xxx` 命令行用户参数）一律静音：开发者在跑测试时还要工作
@@ -1373,6 +1375,8 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		vol -= 6.0
 		sfx_stat.ducked += 1
 		_by(name, 4)
+	if world_duck_db < 0.0 and (world_duck_keep == "" or not name.begins_with(world_duck_keep)):
+		vol += world_duck_db   # 时停：世界的声音一起沉下去
 	p.stream = streams[name]
 	p.volume_db = vol
 	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)

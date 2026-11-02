@@ -390,6 +390,8 @@ func _begin(ld, k: String) -> void:
 	caster = ld
 	serial += 1
 	_cut_pending = false
+	_wu_did = false
+	_tail_end = -1.0
 	_tk = tk_of(str(ld.id)) if k == "ult" else 1.0
 	if _dur_arg():
 		_dur = {"id": str(ld.id), "t0": UM.now(), "last": UM.now(), "frozen": 0.0, "slow": 0.0}
@@ -487,13 +489,26 @@ func _tick_ult(dt: float) -> void:
 		if sx != null:
 			sx.voice_lock(0.5)   # 招式没放完，别的干员不开口（结束后再静 0.5 秒）
 			sx.op_skill_mute(0.25)   # 招式放出期间干员技能音效不出声（落地回技力当场放出的技能，10-31 用户）
+		if _tail_end >= 0.0:   # 余韵段（段表 post）：招式已收尾，不再步进，烟尘 / 碎屑照常消散，到点才算演出结束
+			if g.t >= _tail_end:
+				_cast_done()
+			return
 		var done: bool = Moves.step_cult(self, act, dt) if kind == "cult" else Moves.step(self, act, dt)
 		if done:
-			# 招式在标冲击帧的同一帧收尾（归溟幽灵鲨最后一圈巨锯落地即结束）：act 清空后冲击帧来不及画，留个尾巴把两拍画完（11-01 终结技审查）
-			_hf_tail = {"hf": true, "hf_cols": act.get("hf_cols", [])} if kind == "ult" and act.get("hf", false) and not act.get("hf_done", false) else {}
-			phase = ""
-			act = {}
-			_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
+			var post: float = seg(str(caster.id), "post", 0.0) if kind == "ult" else 0.0
+			if post > 0.0:
+				_tail_end = g.t + post
+				return
+			_cast_done()
+
+
+func _cast_done() -> void:
+	_tail_end = -1.0
+	# 招式在标冲击帧的同一帧收尾（归溟幽灵鲨最后一圈巨锯落地即结束）：act 清空后冲击帧来不及画，留个尾巴把两拍画完（11-01 终结技审查）
+	_hf_tail = {"hf": true, "hf_cols": act.get("hf_cols", [])} if kind == "ult" and act.get("hf", false) and not act.get("hf_done", false) else {}
+	phase = ""
+	act = {}
+	_mute_mates("")   # 最后一下伤害 / 演出收尾：队友恢复说话
 
 
 var v2_waves: Array = []    # 连携 v2 余波（link_v2.spread_start / tick_waves，link/v2_spread）
@@ -520,6 +535,7 @@ func _cast() -> void:
 
 func _cast_go() -> void:
 	phase = "cast"
+	_tail_end = -1.0
 	_ult_at = aim if aim_kind == "point" else (caster.pos + aim_dir * 300.0 if aim_kind == "dir" else caster.pos)
 	_cast_t = g.t
 	ev.ult_t = g.t
@@ -1243,12 +1259,16 @@ func cam_punch() -> float:
 		return ip
 	if phase == "aim":
 		return Bal.v("ult/cam_aim", 1.08)
-	if phase == "windup":   # 起手慢放：往干员身上微推（镜头本来就以队长为中心），先快后慢
-		return lerpf(Bal.v("ult/cam_aim", 1.08), _wu_cam(), 1.0 - pow(1.0 - _wu_k(), 2.0))
+	if phase == "windup":   # 起手慢放：镜头以队长为中心，缓入曲线推到 ult/windup_zoom（用户 11-01「慢动作用镜头拉近来体现」）
+		var wk: float = _wu_k()
+		return lerpf(Bal.v("ult/cam_aim", 1.08), _wu_cam(), wk * wk * (2.0 - wk))
 	var age: float = g.t - _cast_t
 	if age < 0.0 or age > 1.0:
 		return 1.0
-	var hi: float = maxf(Bal.v("ult/cam_cast", 1.12), _wu_cam() if _wu_did else 0.0)   # 接着起手推到的位置往回拉，不跳
+	if _wu_did:   # 出招瞬间 ult/windup_back（0.12）秒快速拉回原景别，配合冲击感
+		var bt: float = maxf(0.01, Bal.v("ult/windup_back", 0.12))
+		return lerpf(_wu_cam(), 1.0, smoothstep(0.0, 1.0, age / bt)) if age < bt else 1.0
+	var hi: float = Bal.v("ult/cam_cast", 1.12)
 	return hi if age < 0.6 else lerpf(hi, 1.0, (age - 0.6) / 0.4)
 
 
@@ -1630,6 +1650,52 @@ func hush(sec: float) -> void:
 	hush_until = maxf(hush_until, UM.now() + sec)
 
 
+## 时停（逻各斯「世界」时停声，用户 11-01，docs/205 §4.10）：配乐低通压到很小（hush）之外，别的音效也一起压低 ult/lg_sfx_duck_db（-18）dB，
+## 时停自己的 ult_<干员>_* 不压；爆开那一刻（_fin_release）随配乐一起弹回来
+var world_hush_until := -99.0
+
+
+func world_hush(sec: float) -> void:
+	hush(sec)
+	world_hush_until = maxf(world_hush_until, UM.now() + sec)
+
+
+func _world_hush_tick() -> void:
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx == null or not ("world_duck_db" in sfx):
+		return
+	var on: bool = UM.now() < world_hush_until and caster != null
+	sfx.world_duck_db = Bal.v("ult/lg_sfx_duck_db", -18.0) if on else 0.0
+	sfx.world_duck_keep = ("ult_%s_" % str(caster.id)) if on else ""
+
+
+## 时停开始那一刻的反色 / 去色波（ult/lg_invert_wave 缺省 1）：以施放者为中心一圈反色环往外扩 ult/lg_wave_t（0.6）真实秒扫过全屏，
+## 环扫过的地方去色（接招式自己的慢慢褪色）；后处理着色器 post / optical 的 wave 参数画。减少动态效果时只去色不反色
+var _wave_rt := -99.0
+var _wave_pos := Vector2.ZERO
+
+
+func invert_wave(p: Vector2) -> void:
+	if Bal.v("ult/lg_invert_wave", 1.0) <= 0.0 or not _sf_visual():
+		return
+	_wave_rt = UM.now()
+	_wave_pos = p
+
+
+func _wave_tick() -> void:
+	if g.post == null or not ("wave" in g.post):
+		return
+	var k: float = (UM.now() - _wave_rt) / maxf(0.05, Bal.v("ult/lg_wave_t", 0.6))
+	if k < 0.0 or k >= 1.0:
+		g.post.wave = Vector4(0.5, 0.5, -1.0, 0.0)
+		return
+	var vs: Vector2 = g.get_viewport().get_visible_rect().size
+	var sp: Vector2 = g.hud_ct() * _wave_pos
+	var e: float = 1.0 - pow(1.0 - k, 1.3)   # 接近匀速、末段略收（看得清环一路扫过去）
+	g.post.wave = Vector4(sp.x / maxf(1.0, vs.x), sp.y / maxf(1.0, vs.y), 0.02 + 1.9 * e, (1.0 - smoothstep(0.7, 1.0, k)) * (0.0 if Cfg.reduce_motion else 1.0))
+	g.post.wave_desat = 0.6
+
+
 func link_slow() -> void:
 	_link_rt = UM.now()
 
@@ -1698,8 +1764,10 @@ func impact(pos: Vector2) -> void:
 	if _fin_on():
 		_fin_pending = true   # 收尾加强：先「吸气」（压暗 + 声音收一下），fx_tick 到点再爆（_fin_release）
 		hush(_fin_in() + 0.05)
+		world_hush_until = minf(world_hush_until, UM.now() + _fin_in())
 	else:
 		_ua("impact")
+		world_hush_until = UM.now()
 	var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sx != null and sx.trace_on:   # 录屏对时间线：第一下掉血（impact）那一刻
 		sx.trace.append([Engine.get_process_frames(), "ultev:IMPACT", 0.0, 1.0])
@@ -1723,7 +1791,7 @@ func _imp_age() -> float:
 ## 冲击慢放的倍率（真实时间轴）：顿帧期间由 hitstop 接管，这里从顿帧结束起算
 func _imp_scale() -> float:
 	var t: float = _imp_age() - _imp_fr()
-	var st: float = Bal.v("ult/imp_slow_t", 0.45)
+	var st: float = _imp_st()
 	var et: float = Bal.v("ult/imp_ease", 0.35)
 	var lo: float = Bal.v("ult/imp_slow", 0.25)
 	if t < 0.0 or t >= st + et:
@@ -1737,7 +1805,7 @@ func _imp_scale() -> float:
 func _imp_punch() -> float:
 	var t: float = _imp_age()
 	var fr: float = _imp_fr()
-	var st: float = Bal.v("ult/imp_slow_t", 0.45)
+	var st: float = _imp_st()
 	var et: float = Bal.v("ult/imp_ease", 0.35)
 	var hi: float = Bal.v("ult/imp_cam", 1.15)
 	if t < 0.0 or t > fr + st + et + 0.3:
@@ -1755,11 +1823,13 @@ func _imp_punch() -> float:
 func fx_tick() -> void:
 	_sf_tick()
 	_wu_tick()
+	_world_hush_tick()
+	_wave_tick()
 	_dur_tick()
 	if _fin_pending and _imp_age() >= _fin_in():
 		_fin_pending = false
 		_fin_release()
-	if not _imp_boom and _imp_age() >= _imp_fr() + Bal.v("ult/imp_slow_t", 0.45):
+	if not _imp_boom and _imp_age() >= _imp_fr() + _imp_st():
 		_imp_boom = true
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 		var bm: Array = _aud(str(caster.id) if caster != null else "").get("boom", ["boom", 2.0, 0.8])
@@ -2034,8 +2104,8 @@ func sf_sound(ld) -> void:
 		return
 	var oid := str(ld.id)
 	# 超必杀提示音（用户 11-01「格斗游戏超必杀那种感觉：短促、亮、『锵』一下，配画面一暗」，docs/205 §4.9）：20 人共用 ult_super_<n>，
-	# 叠在各人 sf 前面；ult/super_cue 选版（1–3，0 = 不放）。逻各斯的 sf 关着也照放
-	var sn: int = Bal.vi("ult/super_cue", 1)
+	# 叠在各人 sf 前面；ult/super_cue 选版（0 = 不放）。11-02 用户定 ⑤（吸气 + 晶体亮闪），包里只有 ult_super_5，别的版本要先用生成器 --apply --variant N 写进来。逻各斯的 sf 关着也照放
+	var sn: int = Bal.vi("ult/super_cue", 5)
 	if sn > 0 and ResourceLoader.exists("res://audio/sfx/ult_super_%d.wav" % sn):
 		sfx.ensure(["ult_super_%d" % sn])
 		sfx.play("ult_super_%d" % sn, Bal.v("ult/super_cue_db", 0.0), 1.0, 0.0)
@@ -2301,7 +2371,16 @@ func _fin_on() -> bool:
 
 
 func _imp_fr() -> float:
-	return Bal.v("ult/finish_hitstop", 0.25) if _fin_on() else Bal.v("ult/imp_freeze", 0.1)
+	return (Bal.v("ult/finish_hitstop", 0.25) if _fin_on() else Bal.v("ult/imp_freeze", 0.1)) + _imp_seg("imp_fr")
+
+
+## 冲击慢放时长（真实秒）：ult/imp_slow_t + 段表 imp_slow（docs/216 §7 v3：偏短的招式拉长冲击那一刻的慢放，出手动作不动）
+func _imp_st() -> float:
+	return Bal.v("ult/imp_slow_t", 0.45) + _imp_seg("imp_slow")
+
+
+func _imp_seg(key: String) -> float:
+	return maxf(0.0, seg(str(caster.id), key, 0.0)) if caster != null else 0.0
 
 
 func _fin_in() -> float:
@@ -2325,6 +2404,7 @@ func _draw_inhale(w) -> void:
 func _fin_release() -> void:
 	_ua("impact")
 	hush_until = UM.now()   # 配乐随「爆」回来
+	world_hush_until = UM.now()   # 时停压下去的音效一起弹回来
 	if act.get("soft", false):
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -2345,9 +2425,35 @@ func _fin_release() -> void:
 ## 每人一个演出时间系数：招式步进（_tick_ult）和这次终结技的图形 / 帧条寿命（_tick_shapes）一起乘它，整条画面时间线同比伸缩，
 ## 只在出招阶段（phase cast）伸缩，瞄准和招式结束后的余韵照原速；伤害份额与判定形状不变（落点时刻跟着同比缩放）；
 ## 超必杀暂停、顿帧、冲击帧、冲击慢放按真实时间走，不受影响。
-## 系数按 tools/ult_dur.py 量的「按下 → 招式结束」对齐到中位数（TK 表，balance ult/tk_<干员> 可覆盖）
-const TK := {"angelina": 1.10, "exusiai": 1.94, "eyjafjalla": 2.01, "gladiia": 0.69, "hoshiguma": 1.50, "irene": 1.26, "kaltsit": 0.83, "lappland": 1.36, "logos": 0.91, "lumen": 1.43, "mizuki": 0.70, "saria": 0.50, "siege": 1.09, "skadi": 0.88, "skalter": 2.50, "specter_unchained": 1.55, "suzuran": 0.75, "texas": 0.88, "ulpianus": 0.75, "wisadel": 0.71}
+## 系数按 tools/ult_dur.py 量的「按下 → 招式结束」对齐到中位数（TK 表，balance ult/tk_<干员> 可覆盖）。
+## 11-02 用户看速度对照：「终结技直接加速或者减速会打乱原来的节奏」——动作一律原速，TK 只做 0.9–1.1 的微调；
+## 窗口放宽到「按下 → 结束」3–4.5 秒后，原速落在窗口外 / 贴边的 7 人走下面的段表 SEG（偏长删重复段，偏短拉长冲击慢放 + 余韵）
+const TK := {"lumen": 1.03, "specter_unchained": 1.06}
 var _tk := 1.0
+
+
+## 段表（docs/216 §7 v3）：不打乱动作的段来补 / 削时长，目标「按下 → 招式结束」3–4.5 秒；balance ult/seg_<干员>_<段> 可覆盖，ult/dur_unify 0 = 全部回原样。
+## 偏短的（用户 11-02：出手要「一下子打出去」，别拖慢出手）：imp_fr = 冲击那一下的顿帧多停多久（真实秒）、imp_slow = 冲击慢放多放多久（真实秒，×ult/imp_slow 0.25；
+## 两项只在看得见的局里有），post = 招式收尾后留多久余韵（游戏秒，不再步进，冲击波 / 碎屑 / 烟尘 / 光效照常消散，队长仍锁着）；
+## 其余是各招自己的段：浊心斯卡蒂 sweep = 吐息追烧时长（原 3.4）；艾雅法拉 lava_t / lava_n = 熔岩地面持续 / 跳数（原 2.2 / 5，合计份额不变）；
+## 能天使 dur = 扫射时长（原 2.5；射速节拍不变，总发数 / 每名精英发数按比例减，份额与覆盖面不变）；
+## 塞雷娅 spread = 裂地从出手点蔓延出去的时间倍率（11-02 用户「裂地的速度要更快一点」：漏斗撕开 / 拳风 / 隆起 / 裂纹爆点都乘它，出拳和顿帧原速）
+const SEG := {
+	"skalter": {"sweep": 1.4},
+	"eyjafjalla": {"lava_t": 1.0, "lava_n": 3.0},
+	"exusiai": {"dur": 1.7},
+	"saria": {"imp_fr": 0.05, "imp_slow": 0.35, "post": 0.4, "spread": 0.6},
+	"mizuki": {"imp_slow": 0.15, "post": 0.15},
+	"gladiia": {"imp_slow": 0.15, "post": 0.15},
+	"wisadel": {"imp_slow": 0.1, "post": 0.1},
+}
+var _tail_end := -1.0   # 余韵段结束的游戏时间（< 0 = 不在余韵里）
+
+
+func seg(id: String, key: String, base: float) -> float:
+	if Bal.v("ult/dur_unify", 1.0) <= 0.0 or kind != "ult":
+		return base
+	return Bal.v("ult/seg_%s_%s" % [id, key], float(SEG.get(id, {}).get(key, base)))
 
 
 func tk_of(id: String) -> float:
@@ -2360,7 +2466,8 @@ func tk_of(id: String) -> float:
 ## 和立绘切入合在一起，不加停住时间：确认释放后 ult/windup_t（0.5，同切入）真实秒里世界保持慢速 ult/windup_s（0.3）——按游戏时间计
 ## （windup_t × windup_s = 0.15 游戏秒；慢放生效时正好 0.5 真实秒，逐帧推进的测试里也会按时结束），
 ## 干员本人把技能帧条出手帧之前那段（起手 / 蓄力）拉长慢放到出手前一刻（没有 skill 帧条用 attack；都没有出手帧就定住待机帧——20 人目前都有），
-## 镜头往干员身上推约 5%（ult/windup_cam_k 1.05，接在瞄准 1.08 之上）、蓄力粒子往身上收、脚下光圈收紧；到点恢复原速、正式出招（_cast_go）。
+## 镜头以干员为中心缓入推到 ult/windup_zoom（1.3，可调 1.15–1.4）+ 上下细黑边（draw_bars）、蓄力粒子往身上收、脚下光圈收紧；
+## 到点恢复原速、正式出招（_cast_go），出招 0.12 秒快速拉回原景别、黑边一起收（11-01 用户第二轮：原来只在 1.08 上推 5% 看不出来）。
 ## 只在看得见的局（玩家局 / --realtime / --playclock）里走；机器人批跑确认即出招，同 seed TRACE 不变。连携终结技不走。纯画面：伤害与判定不动
 var _wu_t0 := -99.0   # 起手开始的游戏时间
 var _wu_anim := ""
@@ -2376,19 +2483,49 @@ func _wu_t() -> float:
 	return maxf(0.05, Bal.v("ult/windup_t", 0.5))
 
 
+func _wu_s() -> float:
+	return clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)
+
+
+
 ## 起手进度 0..1（游戏时间）
 func _wu_k() -> float:
-	return clampf((g.t - _wu_t0) / (_wu_t() * clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)), 0.0, 1.0)
+	return clampf((g.t - _wu_t0) / (_wu_t() * _wu_s()), 0.0, 1.0)
 
 
 func _wu_cam() -> float:
-	return Bal.v("ult/cam_aim", 1.08) * Bal.v("ult/windup_cam_k", 1.05)
+	return clampf(Bal.v("ult/windup_zoom", 1.3), 1.0, 1.6)
+
+
+## 起手的上下细黑边（letterbox，ult/windup_bars 0.06 屏高；0 = 不画）：起手头 0.12 秒滑入，出招 ult/windup_back 秒内随拉镜收掉。
+## 画在 HUD 最底层（hud.gd under 块），血条等 HUD 与立绘切入条都在它上面
+func bars_k() -> float:
+	if not _wu_did or Bal.v("ult/windup_bars", 0.06) <= 0.0:
+		return 0.0
+	if phase == "windup":
+		return smoothstep(0.0, 1.0, clampf((g.t - _wu_t0) / (0.12 * clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)), 0.0, 1.0))
+	var age: float = g.t - _cast_t
+	if phase == "cast" and age >= 0.0:
+		return 1.0 - smoothstep(0.0, 1.0, age / maxf(0.01, Bal.v("ult/windup_back", 0.12)))
+	return 0.0
+
+
+func draw_bars(ci: CanvasItem, vs: Vector2) -> void:
+	var k: float = bars_k()
+	if k <= 0.0:
+		return
+	var h: float = vs.y * Bal.v("ult/windup_bars", 0.06) * k
+	ci.draw_rect(Rect2(0, 0, vs.x, h), Color(0, 0, 0, 0.92))
+	ci.draw_rect(Rect2(0, vs.y - h, vs.x, h), Color(0, 0, 0, 0.92))
 
 
 func _wu_start() -> void:
 	phase = "windup"
 	_wu_t0 = g.t
 	_wu_did = true
+	cam_hold_until = -99.0   # 起手推镜以队长为中心（别被上一招钉住的镜头带偏）
+	if _aud(str(caster.id)).get("hush_windup", false):
+		world_hush(_wu_t() + 0.1)   # 逻各斯：起手里秒针「滴、答、滴」要在前景，别的音效和配乐从这时就沉下去（招式开始后由她自己的 world_hush 接上）
 	_wu_anim = ""
 	_wu_pre = 0.0
 	for k in ["skill", "attack"]:
