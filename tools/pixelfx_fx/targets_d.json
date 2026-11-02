@@ -1,27 +1,48 @@
 {
  "_doc": "D 组（docs/229 §9）：艾丽妮 / 塞雷娅 / 推进之王 / 维什戴尔 / 能天使",
  "fx_irene_px_cleave": {
-  "fx": "melee/ak-irene-cleave"
+  "fx": "melee/ak-irene-cleave",
+  "spark": [
+   6,
+   5,
+   180
+  ]
  },
  "fx_saria_px_calcify": {
-  "fx": "earth/ak-saria-calcify"
+  "fx": "earth/ak-saria-calcify",
+  "spark": [
+   8,
+   5,
+   150
+  ]
  },
  "fx_saria_px_heal": {
   "fx": "holy/ak-saria-heal"
  },
  "fx_siege_px_slam": {
-  "fx": "earth/ak-siege-slam"
+  "fx": "earth/ak-siege-slam",
+  "spark": [
+   12,
+   5,
+   200
+  ]
  },
  "fx_siege_px_smash": {
   "fx": "earth/ak-siege-slam",
   "opts": {
    "radius": 29,
    "seed": 23
-  }
+  },
+  "spark": [
+   8,
+   5,
+   180
+  ]
  },
  "fx_wisadel_px_muzzle": {
   "fx": "projectiles/ak-wisadel-muzzle",
-  "hires": true
+  "hires": true,
+  "variants": 2
  },
  "fx_exusiai_px_muzzle_gold": {
   "fx": "projectiles/ak-exu-muzzle",
@@ -50,7 +71,12 @@
     "#fff6dc"
    ]
   },
-  "hires": true
+  "hires": true,
+  "spark": [
+   5,
+   4,
+   180
+  ]
  },
  "fx_exusiai_px_pierce": {
   "fx": "impacts/ak-exusiai-pierce",
@@ -64,15 +90,27 @@
     "#ffe9a8",
     "#fff6dc"
    ]
-  }
+  },
+  "spark": [
+   6,
+   4,
+   200
+  ]
  },
  "fx_irene_px_thrust": {
   "fx": "melee/ak-irene-thrust",
-  "hires": true
+  "hires": true,
+  "variants": 2
  },
  "fx_irene_px_hit": {
   "fx": "impacts/ak-irene-hit",
-  "hires": true
+  "hires": true,
+  "variants": 2,
+  "spark": [
+   4,
+   5,
+   160
+  ]
  },
  "fx_irene_px_star": {
   "fx": "impacts/ak-irene-hit",
@@ -80,7 +118,8 @@
    "star": 1,
    "seed": 2
   },
-  "hires": true
+  "hires": true,
+  "variants": 2
  },
  "fx_irene_px_lift": {
   "fx": "impacts/ak-irene-lift",
@@ -102,10 +141,20 @@
     "#dceffa",
     "#ffffff"
    ]
-  }
+  },
+  "spark": [
+   6,
+   5,
+   180
+  ]
  },
  "fx_irene_px_cannon": {
-  "fx": "explosions/ak-irene-cannon"
+  "fx": "explosions/ak-irene-cannon",
+  "spark": [
+   8,
+   4,
+   170
+  ]
  },
  "fx_irene_px_gun": {
   "fx": "explosions/ak-irene-cannon",
@@ -120,7 +169,8 @@
    "seed": 1
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_saria_px_calc1": {
   "fx": "earth/ak-saria-calc",
@@ -128,14 +178,16 @@
    "seed": 4
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_siege_px_crater1": {
   "fx": "earth/ak-siege-crater",
   "opts": {
    "seed": 7
   },
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_irene_px_lamp2": {
   "fx": "holy/ak-irene-lamp",
@@ -143,7 +195,8 @@
    "seed": 2
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_saria_px_calc2": {
   "fx": "earth/ak-saria-calc",
@@ -151,14 +204,16 @@
    "seed": 5
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_siege_px_crater2": {
   "fx": "earth/ak-siege-crater",
   "opts": {
    "seed": 8
   },
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_irene_px_lamp3": {
   "fx": "holy/ak-irene-lamp",
@@ -166,7 +221,8 @@
    "seed": 3
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_saria_px_calc3": {
   "fx": "earth/ak-saria-calc",
@@ -174,14 +230,16 @@
    "seed": 6
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_siege_px_crater3": {
   "fx": "earth/ak-siege-crater",
   "opts": {
    "seed": 9
   },
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_wisadel_px_crater": {
   "fx": "earth/ak-siege-crater",
@@ -200,11 +258,17 @@
     "#ffc08a"
    ]
   },
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_exusiai_px_burst": {
   "fx": "explosions/ak-exusiai-burst",
-  "hires": true
+  "hires": true,
+  "spark": [
+   10,
+   4,
+   200
+  ]
  },
  "fx_exusiai_px_halo": {
   "fx": "holy/ak-exusiai-halo",
@@ -218,7 +282,8 @@
     "#ffe9a8",
     "#fff6dc"
    ]
-  }
+  },
+  "variants": 1
  },
  "fx_exusiai_px_bless": {
   "fx": "holy/ak-exusiai-bless",
@@ -248,7 +313,8 @@
    "len": 14
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "proj_exusiai_px_bullet_s2": {
   "fx": "projectiles/ak-exusiai-bullet",
@@ -265,7 +331,8 @@
    "thick": 0
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "proj_exusiai_px_bullet_s3": {
   "fx": "projectiles/ak-exusiai-bullet",
@@ -282,7 +349,8 @@
    "thick": 0
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "proj_exusiai_px_bullet_power": {
   "fx": "projectiles/ak-exusiai-bullet",
@@ -298,33 +366,48 @@
    "len": 14
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_saria_px_calcite": {
   "fx": "earth/ak-saria-calcite",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_saria_px_pillar_rise": {
   "fx": "earth/ak-saria-pillar",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_saria_px_pillar_idle": {
   "fx": "earth/ak-saria-pillar-idle",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_saria_px_pillar_break": {
   "fx": "earth/ak-saria-pillar",
   "opts": {
    "mode": 1
   },
-  "hires": true
+  "hires": true,
+  "spark": [
+   6,
+   5,
+   160
+  ]
  },
  "fx_saria_px_bash": {
   "fx": "impacts/ak-saria-bash",
-  "hires": true
+  "hires": true,
+  "variants": 2,
+  "spark": [
+   4,
+   5,
+   150
+  ]
  },
  "fx_saria_px_star": {
   "fx": "holy/ak-saria-ward",
@@ -339,33 +422,44 @@
  },
  "fx_saria_px_spot": {
   "fx": "status/ak-saria-spot",
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_siege_px_fissure": {
   "fx": "earth/ak-siege-fissure",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  },
  "fx_siege_px_spike": {
   "fx": "earth/ak-siege-spike",
   "hires": true,
-  "keep": true
+  "keep": true,
+  "spark": [
+   4,
+   4,
+   140
+  ]
  },
  "fx_wisadel_cannon": {
   "fx": "explosions/ak-wisadel-cannon",
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_wisadel_px_mark": {
   "fx": "status/ak-wisadel-mark",
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_wisadel_px_gift": {
   "fx": "status/ak-wisadel-gift",
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "proj_wisadel_px_shell": {
   "fx": "projectiles/ak-wisadel-shell",
-  "hires": true
+  "hires": true,
+  "variants": 1
  },
  "fx_wisadel_px_soulmuzzle": {
   "fx": "projectiles/ak-wisadel-muzzle",
@@ -390,6 +484,7 @@
    "shape": 1
   },
   "hires": true,
-  "keep": true
+  "keep": true,
+  "variants": 1
  }
 }
