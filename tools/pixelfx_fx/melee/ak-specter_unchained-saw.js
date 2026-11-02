@@ -58,7 +58,7 @@ export function create(o) {
       if (r > outer || r < R - W * (1 - v * 0.6) + wob) return;
       const q = (outer - r) / (outer - R + W);
       const hot = t < 0.045 ? 0.8 : 0;   // 白只在刃头芯（近白 ≤ 12%）
-      const c = C[7 - clamp(Math.round(v * 4.5 + q * 2.2 + (1 - fade) * 3 - hot + (y < 0 ? 0.6 : 0)), 0, 6)];   // 远半圈暗一点
+      const c = C[7 - clamp(Math.round(v * 4.5 + q * 2.2 + 0.7 + (1 - fade) * 3 - hot + (y < 0 ? 0.6 : 0)), 0, 6)];   // 远半圈暗一点
       if (v > 0.55) p.blend(x, y, c, 0.75 * fade + 0.15);
       else out.c = c;
     });
