@@ -3,13 +3,13 @@
 左旧右新并排，1:1 像素裁 640×360（不缩放，像素不糊；裁框中心可按 tag 偏移到招式落点），H.264 30 帧，无音轨。
 另存每段最亮一帧的并排 PNG（_peak_<tag>.png）给预审 / 汇报看细节。
 
-    python tools/pixelfx_foe/compare_video.py <输出.mp4> carmen immortal:120,-40
+    python tools/pixelfx_fx/foe/compare_video.py <输出.mp4> carmen immortal:120,-40
     （tag 后面 :dx,dy 是裁框中心相对画面中心的偏移，屏幕像素）
 """
 import os, shutil, subprocess, sys, tempfile
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 OUT = os.path.join(ROOT, "build", "foe_fx")
 CW, CH, FPS = 640, 360, 30
 

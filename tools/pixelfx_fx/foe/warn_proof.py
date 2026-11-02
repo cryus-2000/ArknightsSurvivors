@@ -3,13 +3,13 @@
 新旧画面开始分叉的那一帧 = 结算帧（落点特效第 0 帧）。每次结算取三张：结算前一帧（预警圈画满，判定半径就是它）、
 结算后 +6 帧（0.2 秒，尘墙推满）、两张 50% 叠合，以结算帧差异中心（落点）为心裁 460×300、放大 2 倍（最近邻），横排存 PNG。
 
-    python tools/pixelfx_foe/warn_proof.py <输出目录> carmen2 immortal
+    python tools/pixelfx_fx/foe/warn_proof.py <输出目录> carmen2 immortal
 """
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 REC = os.path.join(ROOT, "build", "foe_fx")
 LAG = 6
 HW, HH = 230, 150   # 裁框半宽 / 半高（屏幕像素，够装 r120 的尘墙）

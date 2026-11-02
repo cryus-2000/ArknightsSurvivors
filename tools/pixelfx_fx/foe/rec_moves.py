@@ -3,11 +3,11 @@
 改前用 build/_fx_before/game（git worktree add --detach build/_fx_before <提交>，拷导入缓存），改后用本工作树 game。
 截图进 build/foe_fx/<before|after>/<tag>/，之后 compare_video.py 拼片。走 godot_runner（副屏 / 屏幕外、静音、全机并发上限）。
 
-    python tools/pixelfx_foe/rec_moves.py carmen:炮身砸击,炮身砸击 immortal:迸发,迸发
+    python tools/pixelfx_fx/foe/rec_moves.py carmen:炮身砸击,炮身砸击 immortal:迸发,迸发
 """
 import os, shutil, sys
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as gr
 

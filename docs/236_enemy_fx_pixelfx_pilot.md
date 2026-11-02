@@ -176,7 +176,7 @@ python tools/pixelfx_export.py --lib <主仓库>/build/pixelfx --only fx_e_px_ca
 
 ### 3.4 对照录像与预警 = 判定
 
-录制：`python tools/pixelfx_foe/rec_moves.py carmen2:炮身砸击,炮身砸击 immortal:迸发,迸发`（`--bossmoves`、seed 1、`--fixed-fps 30` 每帧截图，原速；卡门要 `carmen2` 才放得出砸击）。
+录制：`python tools/pixelfx_fx/foe/rec_moves.py carmen2:炮身砸击,炮身砸击 immortal:迸发,迸发`（`--bossmoves`、seed 1、`--fixed-fps 30` 每帧截图，原速；卡门要 `carmen2` 才放得出砸击）。
 改前 = c73d2ff86 独立检出（build/_fx_before，只多了同一份 autotest 截图开关），改后 = 本分支。两局 BOSSMOVES 日志行逐行相同。
 
 | 产物（`Claude outputs/fx_enemy_pilot/`） | 内容 |
