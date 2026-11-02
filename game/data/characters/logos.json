@@ -916,8 +916,8 @@
       },
       {
        "sprite": {
-        "name": "fx_ink_hit",
-        "scale": 0.9
+        "name": "fx_logos_px_hit",
+        "scale": 1.0
        },
        "if_tex": "!fx_logos_glyph"
       },
@@ -1024,11 +1024,11 @@
       "fx": [
        {
         "sprite": {
-         "name": "fx_circle_ink",
+         "name": "fx_logos_px_ring",
          "fit": [
-          14,
-          1.2,
-          2.6
+          26,
+          0.8,
+          1.1
          ]
         },
         "off": [
@@ -1055,11 +1055,11 @@
       "jump_fx": [
        {
         "sprite": {
-         "name": "fx_circle_ink",
+         "name": "fx_logos_px_ring",
          "fit": [
-          14,
-          1.2,
-          2.6
+          26,
+          0.8,
+          1.1
          ]
         },
         "off": [
@@ -1111,9 +1111,8 @@
      },
      {
       "sprite": {
-       "name": "fx_holy_pillar_ink",
-       "scale": 1.3,
-       "bottom": true
+       "name": "fx_logos_px_pillar",
+       "scale": 1.0
       },
       "at": "self",
       "off": [

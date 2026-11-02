@@ -340,7 +340,7 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 			sz.pillar_t = 0.9
 			var a2: float = g.vrng.randf() * TAU
 			var rr2: float = g.vrng.randf_range(0.3, 0.9) * h4_fox_r(o, fl)
-			o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
+			o.spawn_fx_sprite("fx_suzuran_px_pillar_s", o.pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 1.1)   # pixelfx 狐火柱（docs/229 组 B）：原点在脚底、帧中心对齐，不再 bottom 锚定
 		# 光域生效时主控缓慢回复（原作：范围内友军回复）
 		sz.heal_acc = float(sz.heal_acc) + dt
 		if float(sz.heal_acc) >= 1.0:
@@ -564,12 +564,13 @@ static func h4_fox_cast(o, b: Dictionary) -> void:
 	var rr: float = h4_fox_r(o, fl)
 	o.fx({"kind": "ring", "pos": o.pos, "r": rr, "r0": 10.0, "life": 0.6, "col": H4_FOX, "floor": true})
 	g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": H4_FOX, "op_spoke": true})
-	# 圣光光柱：中心一根 + 光域边缘六根小的
-	o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(0, 4), g.PX * (1.4 if haze else 1.0), 0.0, false, true)
+	# 圣光光柱：中心一根 + 光域边缘六根小的（docs/229 §2.6：角度、大小、出现早晚都随机，不等距排）
+	o.spawn_fx_sprite("fx_suzuran_px_pillar", o.pos + Vector2(0, 4), g.PX * (1.05 if haze else 0.8))
 	for k in 6:
-		var a3: float = k * TAU / 6.0 + g.t * 0.8
-		o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(4, 4) + Vector2(cos(a3) * rr, sin(a3) * rr * 0.55), g.PX * 0.6, 0.0, false, true)
-	o.spawn_fx_sprite("fx_circle_gold", o.pos + Vector2(0, 4), g.PX * 2.2)
+		var a3: float = k * TAU / 6.0 + g.t * 0.8 + g.vrng.randf_range(-0.4, 0.4)
+		var r3: float = rr * g.vrng.randf_range(0.8, 1.0)
+		g.vfx.fx_sprite("fx_suzuran_px_pillar_s", o.pos + Vector2(4, 4) + Vector2(cos(a3) * r3, sin(a3) * r3 * 0.55), g.PX * g.vrng.randf_range(0.82, 1.05), 0.0, false, false, Color.WHITE, false, Vector2(-1, -1), g.vrng.randf_range(0.0, 0.12))
+	o.spawn_fx_sprite("fx_suzuran_px_ring", o.pos + Vector2(0, 4), g.PX * 1.1)
 
 
 # ---------------------------------------------------------------- 铃兰：画面

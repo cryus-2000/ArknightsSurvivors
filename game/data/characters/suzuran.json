@@ -569,8 +569,8 @@
           },
           {
             "sprite": {
-              "name": "fx_circle_gold",
-              "scale": 1.6
+              "name": "fx_suzuran_px_ring",
+              "scale": 0.8
             },
             "at": "self",
             "off": [

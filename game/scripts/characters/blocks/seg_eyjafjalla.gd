@@ -467,7 +467,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 				for k in (6 if l.sz >= 1.0 else 3):
 					o.fx({"kind": "mote", "pos": l.to, "vel": Vector2(g.vrng.randf_range(-80, 80), g.vrng.randf_range(-140, -50)), "life": 0.4, "col": HW_LAVA, "sz": 2.0, "grav": 320.0})
 				if l.sz >= 1.0:
-					o.spawn_fx_sprite("fx_flam_hit", l.to + Vector2(0, -6), g.PX * clampf(l.r / 60.0, 0.6, 1.1))
+					o.spawn_fx_sprite("fx_eyjafjalla_px_hit", l.to + Vector2(0, -6), g.PX * clampf(l.r / 55.0, 0.8, 1.1))   # @2x：倍率 0.8–1.1 = 每 1x 像素 1.6–2.2 世界像素（docs/229 §2.1）
 		h.lobs = h.lobs.filter(func(l): return l.t < l.dur)
 	if not h.shells.is_empty():
 		for q in h.shells:

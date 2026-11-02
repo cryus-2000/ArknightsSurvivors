@@ -672,11 +672,11 @@
     },
     {
      "sprite": {
-      "name": "fx_flam_hit",
+      "name": "fx_eyjafjalla_px_hit",
       "fit": [
-       60,
+       55,
        0.8,
-       1.5
+       1.1
       ]
      },
      "off": [
@@ -720,7 +720,7 @@
       "burst": true,
       "heavy": 1.6,
       "spot": 0.4,
-      "land": "fx_eyja_lava_splash",
+      "land": "fx_eyjafjalla_px_splash",
       "land_scale": 0.85,
       "_doc": "10-20 重量返修：固定岩壳、慢转和短拖焰，视觉拱高 ×1.15，连续起落并提前转入下坠；落地热量压向地面，保持原飞行时长和命中",
       "weighted": true
@@ -761,7 +761,7 @@
     "tex": "proj_eyja_lava_lob",
     "boom_fx": [
      {
-      "strip": "fx_eyja_lava_splash",
+      "strip": "fx_eyjafjalla_px_splash",
       "off": [
        0,
        -6
@@ -809,7 +809,7 @@
        "r",
        "r0"
       ],
-      "if_tex": "!fx_eyja_lava_splash"
+      "if_tex": "!fx_eyjafjalla_px_splash"
      }
     ],
     "pool": [
@@ -870,8 +870,8 @@
         "burst": true,
         "heavy": 1.8,
         "spot": 0.5,
-        "land": "fx_eyja_lava_splash",
-        "land_scale": 1.2,
+        "land": "fx_eyjafjalla_px_splash",
+        "land_scale": 1.05,
         "weighted": true
        },
        "shell": true,
@@ -1051,18 +1051,18 @@
        },
        {
         "sprite": {
-         "name": "fx_eyja_ignite_boom",
-         "scale_r": 0.0338
+         "name": "fx_eyjafjalla_px_ignite",
+         "scale_r": 0.0227
         },
         "off": [
          0,
          -10
         ],
-        "if_tex": "fx_eyja_ignite_boom"
+        "if_tex": "fx_eyjafjalla_px_ignite"
        },
        {
         "pause": 0.05,
-        "if_tex": "fx_eyja_ignite_boom"
+        "if_tex": "fx_eyjafjalla_px_ignite"
        },
        {
         "sprite": {
@@ -1077,7 +1077,7 @@
          0,
          -8
         ],
-        "if_tex": "!fx_eyja_ignite_boom"
+        "if_tex": "!fx_eyjafjalla_px_ignite"
        }
       ],
       "on_explode": [
@@ -1102,7 +1102,7 @@
          "burst": true,
          "heavy": 1.6,
          "spot": 0.45,
-         "land": "fx_eyja_lava_splash",
+         "land": "fx_eyjafjalla_px_splash",
          "land_scale": 1.0,
          "weighted": true
         },
@@ -1155,7 +1155,7 @@
          "burst": true,
          "heavy": 1.6,
          "spot": 0.45,
-         "land": "fx_eyja_lava_splash",
+         "land": "fx_eyjafjalla_px_splash",
          "land_scale": 1.0,
          "weighted": true
         },
@@ -1290,8 +1290,8 @@
         "burst": false,
         "heavy": 1.8,
         "spot": 0.5,
-        "land": "fx_eyja_lava_splash",
-        "land_scale": 1.2,
+        "land": "fx_eyjafjalla_px_splash",
+        "land_scale": 1.05,
         "weighted": true
        },
        "shell": true,

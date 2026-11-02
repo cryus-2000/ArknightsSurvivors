@@ -643,7 +643,7 @@
     "src": "灯塔光柱",
     "tile": "fx_lumen_beam",
     "flare": "fx_lumen_beam_flare",
-    "hit": "fx_lumen_beam_hit",
+    "hit": "fx_lumen_px_hit",
     "_doc": "精二灯塔光柱（取代强化光弹）：流明与发光单元每射满 8 发，接下来 8 发变为直线短光柱（长 200、宽 10，穿透一线并照亮，×1.4，每发回复队长 0.425%）"
    }
   },
@@ -691,20 +691,8 @@
     "fx": [
      {
       "sprite": {
-       "name": "fx_holy_pillar_amber",
-       "scale": 1.1,
-       "bottom": true
-      },
-      "at": "leader",
-      "off": [
-       0,
-       4
-      ]
-     },
-     {
-      "sprite": {
-       "name": "fx_circle_amber",
-       "scale": 1.8
+       "name": "fx_lumen_px_pillar",
+       "scale": 0.8
       },
       "at": "leader",
       "off": [
@@ -794,9 +782,8 @@
      },
      {
       "sprite": {
-       "name": "fx_holy_pillar_amber",
-       "scale": 1.6,
-       "bottom": true
+       "name": "fx_lumen_px_pillar",
+       "scale": 1.0
       },
       "at": "leader",
       "off": [

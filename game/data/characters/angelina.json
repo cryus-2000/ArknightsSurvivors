@@ -586,7 +586,7 @@
      "elite_mult": "$pull_elite",
      "fx": [
       {
-       "strip": "fx_angelina_pull",
+       "strip": "fx_angelina_px_pull",
        "fit": 30,
        "layer": "floor"
       }
@@ -646,7 +646,7 @@
        ]
       },
       {
-       "strip": "fx_angelina_pull",
+       "strip": "fx_angelina_px_pull",
        "if_tex": "!fx_angelina_well_back",
        "layer": "floor",
        "fit": 30
@@ -662,7 +662,7 @@
        "elite_mult": "$pull_elite",
        "fx": [
         {
-         "strip": "fx_angelina_pull",
+         "strip": "fx_angelina_px_pull",
          "fit": 30,
          "layer": "floor",
          "tint": [

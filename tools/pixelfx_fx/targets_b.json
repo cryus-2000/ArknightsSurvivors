@@ -1,0 +1,15 @@
+{
+ "_doc": "B 组 术师 · 法术（docs/229 §9）：艾雅法拉 / 安洁莉娜 / 逻各斯 / 流明 / 铃兰；除 S2 点燃爆燃为 1x（半径 75–94 太大，@2x 超单张显存 2 MB）外全部 @2x（1 贴图像素 = 1 世界像素）",
+ "fx_eyjafjalla_px_hit": {"fx": "impacts/ak-eyjafjalla-hit", "hires": true},
+ "fx_eyjafjalla_px_ignite": {"fx": "explosions/ak-eyjafjalla-ignite", "opts": {"radius": 44}},
+ "fx_eyjafjalla_px_splash": {"fx": "explosions/ak-eyjafjalla-splash", "hires": true},
+ "fx_angelina_px_pull": {"fx": "arcane/ak-angelina-pull", "hires": true},
+ "fx_logos_px_hit": {"fx": "impacts/ak-logos-hit", "hires": true},
+ "fx_logos_px_ring": {"fx": "arcane/ak-logos-ring", "hires": true},
+ "fx_logos_px_pillar": {"fx": "arcane/ak-logos-pillar", "hires": true},
+ "fx_lumen_px_hit": {"fx": "impacts/ak-lumen-hit", "hires": true},
+ "fx_lumen_px_pillar": {"fx": "holy/ak-lumen-pillar", "hires": true},
+ "fx_suzuran_px_pillar": {"fx": "holy/ak-suzuran-pillar", "hires": true},
+ "fx_suzuran_px_pillar_s": {"fx": "holy/ak-suzuran-pillar", "opts": {"height": 64, "seed": 12}, "hires": true},
+ "fx_suzuran_px_ring": {"fx": "holy/ak-suzuran-ring", "hires": true}
+}

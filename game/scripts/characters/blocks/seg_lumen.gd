@@ -48,11 +48,11 @@ static func _h3_mend(o, h: float, size: int, sub: String) -> Vector2:
 	var m3: Array = M3.heal_pick_mate(g)
 	if not m3.is_empty():
 		M3.heal_from_mate(o, m3[0], m3[1], h, H3_WARM)
-		o.spawn_fx_sprite("fx_holy_impact_lantern", m3[1].pos + Vector2(0, -34), g.PX * 0.9)
+		o.spawn_fx_sprite("fx_lumen_px_hit", m3[1].pos + Vector2(0, -34), g.PX)
 		return m3[1].pos
 	o.heal_leader(h, o.display_name(), sub)
 	o.float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), H3_WARM, size)
-	o.spawn_fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
+	o.spawn_fx_sprite("fx_lumen_px_hit", g.ppos + Vector2(0, -34), g.PX)
 	if not o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
 		o.fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.4, "col": H3_WARM, "floor": true, "keep": true})
 	return g.ppos
@@ -182,7 +182,7 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 				b.pierce = int(b.pierce) - 1   # 贯穿卡 / 穿甲弹：穿过去继续飞（已命中的不再打）
 			else:
 				b.life = 0.0
-			if not o.spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
+			if not o.spawn_fx_sprite("fx_lumen_px_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9):   # pixelfx @2x 命中（docs/229 §3），倍率 ≥ 0.8
 				o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": H3_WARM, "alpha": 0.6})
 			_h3_vsparks(o, e.pos + Vector2(0, -e.r * 0.5), H3_WARM, 4, 120.0, 0.3, 2.0)
 			break
@@ -693,7 +693,7 @@ static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
 	var b: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
 	o.fx({"kind": "line", "pos": a, "to": b, "life": 0.12, "col": Color(1.6, 1.45, 1.0), "w": 1.0, "laser": true})
 	if not o.spawn_fx_sprite(str(rf.get("hit", "fx_lumen_refract_hit")), b, g.PX):
-		o.spawn_fx_sprite("fx_holy_impact_lantern", b, g.PX * 0.5)
+		o.spawn_fx_sprite("fx_lumen_px_hit", b, g.PX * 0.8)
 
 
 ## 一发（流明本人 / 发光单元）：光柱攒满时这一发变光柱，返回 true（不再射光弹）；否则计数
