@@ -319,6 +319,13 @@ func playing() -> bool:
 	return phase != "" and Bal.vi("ult/playback", 1) > 0 and g.t - _play_t0 < Bal.v("ult/play_max", 6.0)
 
 
+## 终结技期间不普攻（用户 11-02「放必杀技的时候是不是不要普攻比较合理」，ult/mute_atk 缺省 1，docs/216 §9）：按 Q 起（瞄准 / 起手 / 出招 / 余韵）到演出结束，
+## 队长、队友、召唤物都不起新的普攻 / 技能出手；已飞出的弹、召唤物移动、持续效果照走，普攻冷却和技力照常计（演出完下一帧照常出手，不丢）。
+## 和 playing() 一样全局生效（看得见的局和批跑同口径，是玩法改动不是纯画面）
+func mute_atk() -> bool:
+	return playing() and Bal.v("ult/mute_atk", 1.0) > 0.0
+
+
 func _clear() -> void:
 	for a in combo_acts:
 		if a.get("p") != null:

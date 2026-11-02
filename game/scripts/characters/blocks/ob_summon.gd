@@ -255,6 +255,11 @@ static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: floa
 
 
 ## 每帧（data_operator.update 在能天使段之后调）：护盾计时、封印标记清理、召唤物到期 / 移动 / 出手 / 诱饵
+## 终结技期间召唤物不起新的出手（ult/mute_atk，ult.gd mute_atk）：照常移动 / 受击，已起手的照打完
+static func _muted(o) -> bool:
+	return o.g.ult != null and o.g.ult.mute_atk()
+
+
 static func sm_tick(o, dt: float) -> void:
 	if o.sm.is_empty():
 		return
@@ -369,7 +374,7 @@ static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float
 	# 出手
 	s.cd = float(s.cd) - dt
 	s.anim = maxf(0.0, float(s.anim) - dt)
-	if a.is_empty() or s.cd > 0.0:
+	if a.is_empty() or s.cd > 0.0 or _muted(o):
 		return
 	var t2 = tg
 	if t2 == null:
@@ -1576,7 +1581,7 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 			if float(s.fire) < 0.0:
 				s.fire = -1.0
 				_mf_strike(o, s, kd)
-	elif tg != null and not a.is_empty() and float(s.cd) <= 0.0 and s.pos.distance_to(tg.pos) < float(tg.r) + mf_reach(o, a, mods):
+	elif tg != null and not a.is_empty() and float(s.cd) <= 0.0 and not _muted(o) and s.pos.distance_to(tg.pos) < float(tg.r) + mf_reach(o, a, mods):
 		s.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 		if absf(tg.pos.x - s.pos.x) > 2.0:
 			_mf_face(o, s, signf(tg.pos.x - s.pos.x))

@@ -553,7 +553,7 @@ static func _h4_souls_tick(o, wd: Dictionary, a: Dictionary, dt: float) -> void:
 			"idle":
 				s.p = s.p.lerp(home, minf(1.0, dt * 6.0))
 				s.cd -= dt
-				if s.cd <= 0.0:
+				if s.cd <= 0.0 and not (g.ult != null and g.ult.mute_atk()):   # 终结技期间魂不出击（ult/mute_atk）
 					var tg: Dictionary = _h4_soul_target(o, sb)
 					if tg.is_empty():
 						s.cd = 0.3

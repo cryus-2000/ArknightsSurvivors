@@ -52,6 +52,7 @@ var attack_dur := 0.25
 var attack_fire_at := 0.0
 var attack_phased := false
 var fire_t := -1.0         # 出手帧倒计时（start_attack / start_skill 后到点调用 _release / _release_skill）
+var act_n := 0   # 起手次数（攻击 / 技能，_start_action 每次 +1；ult_playback 测试数终结技期间有没有新起手）
 var act_kind := "attack"   # 当前动作的逻辑类型：attack（出手调 _release）/ skill（出手调 _release_skill）
 var act_anim := "attack"   # 当前动作实际播放的帧条（通常同 act_kind；技能可借用别的帧条，见 skill_anim）
 # ---- 动画：贴图槽来自 def.sprites（idle / run / attack / hurt / death），帧数 = 宽 / 高
@@ -1462,6 +1463,7 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 		_set_face(signf(aim.x - pos.x))
 	if not (seq_locked() and kind == "attack"):
 		_sq_interrupt()
+	act_n += 1
 	act_kind = kind
 	attack_phased = false
 	act_anim = anim if anim != "" and (anim_tex(anim) != null or sprite_spec(anim).has("frames")) else kind
