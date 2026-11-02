@@ -215,6 +215,7 @@ static func op_1x_on() -> bool:
 		var Bal = load("res://scripts/core/balance.gd")
 		_op1x = 1 if Bal == null or Bal.v("render/op_1x", 1.0) > 0.0 else 0
 	return _op1x == 1
+
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
 const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser", "portraits/"]
 
@@ -812,6 +813,43 @@ static func op_ramp(id: String, i: int) -> Color:
 	return r[clampi(i, 0, r.size() - 1)]
 
 
+## pixelfx 普攻试点（docs/231）：新帧条 → 被它替换的旧帧条。balance fx/px_basic = 0（--bal=fx/px_basic=0）整体退回旧帧条；
+## --optab 同局轮换时 g.opt_old 带 Game.OPT_PXB 位的那段也走旧帧条，量新帧条的净帧时（正常游戏恒为 0）。纯画面，不进结算
+const PX_BASIC_OLD := {"fx_lappland_px_slash": "fx_lappland_slash", "fx_exusiai_px_atk_muzzle": "fx_exusiai_muzzle",
+	"fx_exusiai_px_atk_hit": "fx_exusiai_hit", "proj_exusiai_px_bullet": "proj_exusiai_bullet",
+	"proj_exusiai_px_bullet_t1": "proj_exusiai_bullet_t1", "proj_exusiai_px_bullet_t2": "proj_exusiai_bullet_t2", "proj_exusiai_px_bullet_t3": "proj_exusiai_bullet_t3"}
+static var _pxb := -1
+static func px_basic(g, name: String) -> String:
+	if not PX_BASIC_OLD.has(name):
+		return name
+	if _pxb < 0:
+		var Bal = load("res://scripts/core/balance.gd")
+		_pxb = 1 if Bal == null or Bal.v("fx/px_basic", 1.0) > 0.0 else 0
+	return PX_BASIC_OLD[name] if _pxb == 0 or (g != null and g.opt_old & 8388608) else name   # 8388608 = Game.OPT_PXB
+
+
+## 普攻换成 pixelfx 专属刀光帧条的近战干员：不再画通用近战刀光弧（character.arc_targets → vfx.melee_arc），免得两道弧叠在一起；
+## 退回旧帧条（fx/px_basic = 0 或 OPT_PXB 轮换段）时照旧画（docs/231）
+const PX_BASIC_NO_ARC := {"lappland": "fx_lappland_px_slash"}   # 干员 id → 她的 pixelfx 刀光帧条
+static func px_no_arc(g, id: String) -> bool:
+	return PX_BASIC_NO_ARC.has(id) and px_basic(g, PX_BASIC_NO_ARC[id]) == PX_BASIC_NO_ARC[id]
+
+
+## 普攻帧条的主体帧数（之后是余韵，docs/229 §2.5）。满屏（g.fx 超过 balance fx/px_tail_cap，缺省 300）时只播主体、砍掉余韵：
+## 返回要从寿命里截掉的秒数（不在表里 / 不满屏为 0）。挂在 ob_fx.fx_spawn 与 op_api.spawn_fx_sprite
+const PX_BASIC_BODY := {"fx_lappland_px_slash": 4, "fx_exusiai_px_atk_muzzle": 3, "fx_exusiai_px_atk_hit": 4}
+static var _pxcap := -1
+static func px_tail_cut(g, name: String, frames: int, fps: float) -> float:
+	if not PX_BASIC_BODY.has(name) or g == null:
+		return 0.0
+	if _pxcap < 0:
+		var Bal = load("res://scripts/core/balance.gd")
+		_pxcap = 300 if Bal == null else int(Bal.v("fx/px_tail_cap", 300.0))
+	if g.fx.size() <= _pxcap:
+		return 0.0
+	return maxf(0.0, float(frames - int(PX_BASIC_BODY[name])) / fps)
+
+
 ## pixelfx 帧条名里的归属：fx_<id>_px_* / proj_<id>_px_* → id（敌方 fx_e_px_* → "e"）；不是 pixelfx 帧条返回 ""
 static func px_owner(name: String) -> String:
 	var k := name.find("_px_")
@@ -1123,6 +1161,7 @@ const V6_FRAMES := {
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
 	# ---- pixelfx 组 A（docs/229 §9）：本组新帧条只加在这行与下面「组 A 止」之间
+	"fx_lappland_px_slash": [7, 24.0], "fx_lappland_px_slash_glow": [7, 24.0], "fx_lappland_px_slash_v1": [7, 24.0], "fx_lappland_px_slash_v1_glow": [7, 24.0],   # 普攻试点（docs/231）：拉普兰德双刃横扫（主体 4 帧 + 余韵 3 帧，2 个变体）
 	# ---- 组 A 止
 	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
 	# 术师 · 法术（源码 tools/pixelfx_fx/**/ak-{eyjafjalla,angelina,logos,lumen,suzuran}-*.js，导出目标 targets_b.json；由导出输出生成：本体 / _v1 / _v2 变体 + _glow，第 3 项为火星，docs/229 §2.11）
@@ -1167,6 +1206,11 @@ const V6_FRAMES := {
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
+	"fx_exusiai_px_atk_muzzle": [4, 24.0], "fx_exusiai_px_atk_muzzle_glow": [4, 24.0], "fx_exusiai_px_atk_muzzle_v1": [4, 24.0], "fx_exusiai_px_atk_muzzle_v1_glow": [4, 24.0],   # 普攻试点（docs/231）：能天使速射枪口（主体 3 + 枪烟 1，2 个变体）
+	"fx_exusiai_px_atk_hit": [7, 24.0], "fx_exusiai_px_atk_hit_glow": [7, 24.0], "fx_exusiai_px_atk_hit_v1": [7, 24.0], "fx_exusiai_px_atk_hit_v1_glow": [7, 24.0],   # 普攻试点：命中（主体 4 + 余烬 3，2 个变体）
+	"proj_exusiai_px_bullet": [2, 20.0], "proj_exusiai_px_bullet_glow": [2, 20.0],   # 普攻试点：弹体
+	"proj_exusiai_px_bullet_t1": [2, 20.0], "proj_exusiai_px_bullet_t1_glow": [2, 20.0], "proj_exusiai_px_bullet_t2": [2, 20.0], "proj_exusiai_px_bullet_t2_glow": [2, 20.0],
+	"proj_exusiai_px_bullet_t3": [2, 20.0], "proj_exusiai_px_bullet_t3_glow": [2, 20.0],   # 普攻试点：精一穿甲连射层数弹体（银 → 浅金 → 金，同旧 t1–t3）
 	# ---- 组 D 止
 	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
 	# ---- 组 E 止

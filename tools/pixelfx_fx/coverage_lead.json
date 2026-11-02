@@ -1,3 +1,8 @@
 {
-  "_doc": "docs/237 特效覆盖登记（组 lead 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py"
+ "_doc": "docs/237 特效覆盖登记（组 lead 独占）：键 \"干员|特效名\"，值 {\"status\": \"已做\" 或 \"不换\", \"new\": 新名, \"why\": 理由}。改完跑 python tools/fx_coverage.py",
+ "exusiai|proj_exusiai_bullet": {
+  "status": "已做",
+  "new": "proj_exusiai_px_bullet",
+  "why": "普攻试点 docs/231：数据与代码缺省已换新条；seg_exusiai 锚点表留旧名只为 --bal=fx/px_basic=0 回退"
+ }
 }

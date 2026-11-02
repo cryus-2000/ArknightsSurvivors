@@ -474,7 +474,9 @@
    "kb": "$kb",
    "mult": 1.0,
    "src": "速射",
-   "tex": "proj_exusiai_bullet",
+   "tex": "proj_exusiai_px_bullet",
+   "muzzle_fx": "fx_exusiai_px_atk_muzzle",
+   "hit_fx": "fx_exusiai_px_atk_hit",
    "muzzle": [
     30,
     -35
@@ -621,9 +623,9 @@
        "速射"
       ],
       "tex": [
-       "proj_exusiai_bullet_t1",
-       "proj_exusiai_bullet_t2",
-       "proj_exusiai_bullet_t3"
+       "proj_exusiai_px_bullet_t1",
+       "proj_exusiai_px_bullet_t2",
+       "proj_exusiai_px_bullet_t3"
       ],
       "full_fx": "fx_exusiai_pierce_gold"
      }

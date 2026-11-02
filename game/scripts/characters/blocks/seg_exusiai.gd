@@ -24,10 +24,10 @@ const EXU_AIM_Y := -10.0              # 瞄准 / 判定点：敌人脚底往上 
 const EXU_HIT_PAD := 6.0              # 判定半径 = 敌人半径 + 6
 
 ## 弹体帧条的弹头锚点（docs/25 §6，1x 像素；@2x 自动 ×2）
-const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_bullet_power": Vector2(15, 4),
+const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_px_bullet": Vector2(17, 4), "proj_exusiai_px_bullet_t1": Vector2(17, 4), "proj_exusiai_px_bullet_t2": Vector2(17, 4), "proj_exusiai_px_bullet_t3": Vector2(17, 4), "proj_exusiai_bullet_power": Vector2(15, 4),
 	"proj_exusiai_bullet_s1": Vector2(15, 4), "proj_exusiai_bullet_s2": Vector2(12, 3), "proj_exusiai_bullet_s3": Vector2(12, 3)}   # 技能弹药换色帧条（docs/25 §6.1）同源帧条的锚点
 
-## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
+## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套（pixelfx 版，docs/231；旧条经 Art.px_basic 回退）
 const EXU_FX_KEYS := {"tex": "proj_", "muzzle_fx": "fx_", "hit_fx": "fx_"}
 
 const EXU_ART = preload("res://scripts/art.gd")
@@ -255,7 +255,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 	var sp: float = deg_to_rad(float(p.get("spread_deg", 0.0)))
 	var speed: float = maxf(60.0, float(p.get("speed", 520.0)))
 	var ap: Array = _exu_ammo_patch(o) if main else [-1, {}]
-	var mfx: String = str(p.get("muzzle_fx", "fx_exusiai_muzzle"))
+	var mfx: String = str(p.get("muzzle_fx", "fx_exusiai_px_atk_muzzle"))
 	var ammo_round := false   # 这一轮用的是冲锋模式的强力弹（只看第一发，同枪口焰）
 	var esc_kb := 0.0         # docs/202 护航射击：被围时子弹额外击退
 	var trb: Dictionary = {}  # docs/202 曳光弹：verb.tracer 积木（每 every 发一枚）
@@ -296,10 +296,10 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			st["tr_n"] = int(st.get("tr_n", 0)) + 1
 			if int(st.tr_n) % maxi(1, int(trb.every)) == 0:
 				tr_b = trb
-				btex = "proj_exusiai_bullet_t3"   # 曳光弹：金色弹体
+				btex = "proj_exusiai_px_bullet_t3"   # 曳光弹：金色弹体（pixelfx 普攻试点，docs/231；Art.px_basic 可退回旧条）
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
-				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
+				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": EXU_ART.px_basic(o.g, btex), "hfx": str(q.get("hit_fx", "fx_exusiai_px_atk_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
 	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
 	if not fan:
 		# 枪声跟出弹同一帧：每一轮射击一声（连射的后几轮、掩护射击补射也各一声；原来整个普攻出手只在 _release_body 末尾响一声，技能连射靠发动时的预混音频）。
@@ -390,7 +390,7 @@ static func _exu_bullets(o, dt: float) -> void:
 			if not e.dead and not bu.get("tr", {}).is_empty():   # 曳光弹命中：标记
 				_exu_mark(o, e, bu.tr)
 			o._sfx_op("hit")
-			o.spawn_fx_sprite(str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
+			o.spawn_fx_sprite(str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_px_atk_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
 			if bu.ric and not ric.is_empty() and g.rng_op.randf() < float(ric.get("chance", 0.0)):
 				var nx = _exu_next(o, e, float(ric.get("r", 120.0)))
 				if nx != null:
@@ -398,7 +398,7 @@ static func _exu_bullets(o, dt: float) -> void:
 					var spd: float = bu.v.length()
 					spawn.append({"p": from, "v": (nx.pos + Vector2(0, EXU_AIM_Y) - from).normalized() * spd, "life": float(ric.get("r", 120.0)) * 1.4 / spd,
 						"dmg": bu.dmg * float(ric.get("mult", 0.5)), "src": str(ric.get("src", "")), "tags": [], "pierce": 0, "hit": {e.id: true},
-						"tex": bu.tex, "hfx": bu.get("hfx", "fx_exusiai_hit"), "on_hit": [], "ric": false})
+						"tex": bu.tex, "hfx": bu.get("hfx", "fx_exusiai_px_atk_hit"), "on_hit": [], "ric": false})
 			if bu.pierce > 0:
 				bu.pierce -= 1
 			else:
