@@ -775,6 +775,41 @@ static func normal_stats() -> String:
 	return "normals=%s sync_names=%s" % [str(_nm_stats), str(_nm_sync_names)]
 
 
+## 干员特效色阶（docs/229 §2.2）：7 阶，暗 → 设定色 → 白。与 tools/pixelfx_fx/house.js 的 OP 同步，改色阶走美术组组长（两处一起改）
+const OP_RAMP := {
+	"angelina": ["#312f5c", "#5c4a8e", "#8765c0", "#b280f2", "#cdacf7", "#e8d9fb", "#ffffff"],
+	"exusiai": ["#412232", "#7c303b", "#b73e44", "#f24c4c", "#f78b8b", "#fbc9c9", "#ffffff"],
+	"eyjafjalla": ["#442f2c", "#824a2e", "#c16531", "#ff8033", "#ffac7a", "#ffd9c2", "#ffffff"],
+	"gladiia": ["#182f51", "#294a78", "#3a65a0", "#4c80c7", "#8bacdb", "#c9d9ee", "#ffffff"],
+	"hoshiguma": ["#413f32", "#7c6a3b", "#b79444", "#f2bf4c", "#f7d58b", "#fbecc9", "#ffffff"],
+	"irene": ["#413552", "#7c567b", "#b778a4", "#f299cc", "#f7bdde", "#fbe0f0", "#ffffff"],
+	"kaltsit": ["#284f40", "#498a55", "#6ac46a", "#8cff80", "#b4ffac", "#dcffd9", "#ffffff"],
+	"lappland": ["#3b475c", "#707a8e", "#a6adc0", "#dbe0f2", "#e8ebf7", "#f4f6fb", "#ffffff"],
+	"logos": ["#28355f", "#495694", "#6a78ca", "#8c99ff", "#b4bdff", "#dce0ff", "#ffffff"],
+	"lumen": ["#28455f", "#497694", "#6aa8ca", "#8cd9ff", "#b4e6ff", "#dcf4ff", "#ffffff"],
+	"saria": ["#443d38", "#826646", "#c18f53", "#ffb861", "#ffd198", "#ffead0", "#ffffff"],
+	"siege": ["#444136", "#826e42", "#c19a4d", "#ffc759", "#ffdb93", "#ffeecd", "#ffffff"],
+	"skadi": ["#1b325c", "#30508e", "#446ec0", "#598cf2", "#93b4f7", "#cddcfb", "#ffffff"],
+	"skalter": ["#3b1f36", "#702a42", "#a4354d", "#d94059", "#e68393", "#f4c6cd", "#ffffff"],
+	"specter_unchained": ["#34455c", "#62768e", "#91a8c0", "#bfd9f2", "#d5e6f7", "#ecf4fb", "#ffffff"],
+	"suzuran": ["#44433c", "#82724e", "#c1a261", "#ffd173", "#ffe1a4", "#fff1d5", "#ffffff"],
+	"texas": ["#44322c", "#82502e", "#c16e31", "#ff8c33", "#ffb47a", "#ffdcc2", "#ffffff"],
+	"ulpianus": ["#213c5c", "#3c638e", "#588ac0", "#73b2f2", "#a4cdf7", "#d5e8fb", "#ffffff"],
+	"wisadel": ["#411d2c", "#7c262e", "#b72f31", "#f23833", "#f77e7a", "#fbc3c2", "#ffffff"],
+}
+const ENV_RAMP := ["#06142a", "#0b2d55", "#134f86", "#1f7fb5", "#3fb4d8", "#8fe3ef", "#d9fbff", "#ffffff"]   # 深海环境梯度（暗 → 亮），未登记干员的兜底
+static var _op_ramp_cache := {}
+
+## 程序绘制取干员色阶：i = 0（最暗）… 6（白），越界取端点；未登记的 id 用环境梯度
+static func op_ramp(id: String, i: int) -> Color:
+	var r: Array = _op_ramp_cache.get(id, [])
+	if r.is_empty():
+		for h in OP_RAMP.get(id, ENV_RAMP):
+			r.append(Color(h))
+		_op_ramp_cache[id] = r
+	return r[clampi(i, 0, r.size() - 1)]
+
+
 ## 由任意贴图生成白色剪影（受击闪白用）
 ## 降饱和副本（docs/139 §6.6 只给环境去色：地面 / 场景道具；干员、怪物、特效不走这里）：Image.adjust_bcs 原生实现，
 ## CanvasTexture（带法线）只换漫反射、法线照用；bright = 亮度倍率（去色后补亮）；s = 1 且 bright = 1 时原样返回
@@ -1077,6 +1112,16 @@ const V6_FRAMES := {
 	"fx_skadi_px_sweep": [11, 20.0], "fx_skadi_px_cleave": [11, 20.0], "fx_skadi_px_surge": [14, 20.0], "fx_hoshiguma_px_saw": [8, 20.0],
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
+	# ---- pixelfx 组 A（docs/229 §9）：本组新帧条只加在这行与下面「组 A 止」之间
+	# ---- 组 A 止
+	# ---- pixelfx 组 B（docs/229 §9）：本组新帧条只加在这行与下面「组 B 止」之间
+	# ---- 组 B 止
+	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
+	# ---- 组 C 止
+	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
+	# ---- 组 D 止
+	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
+	# ---- 组 E 止
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
 	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],
