@@ -1,6 +1,6 @@
 # 自然流程 · 高手
 # 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=2 --op=angelina --bot=expert --maxt=150 --dccheck
-# 用时 20 秒；结束时全机 Godot 3 个
+# 用时 24 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

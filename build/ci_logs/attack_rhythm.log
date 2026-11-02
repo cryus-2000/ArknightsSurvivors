@@ -1,11 +1,11 @@
 # attack_rhythm
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/attack_rhythm_test.tscn -- --regression --seed=1 --balance --seed=1 --op=mizuki
-# 用时 12 秒；结束时全机 Godot 3 个
+# 用时 14 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-ATTACK RHYTHM 2786 checks, 0 failed
+ATTACK RHYTHM 2774 checks, 0 failed
 ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
 
