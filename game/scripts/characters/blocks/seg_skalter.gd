@@ -335,6 +335,20 @@ const SK_DOM := Color(0.95, 0.22, 0.38)   # 领域粒子：立绘深红（json c
 const SK_IN_MAX := 36
 
 
+## 11-02 用户定（docs/229 §2.2）：保留设定红、靠明暗与敌方危险色 #ff2667 区分——本人的领域粒子 / 歌声改用 Art.OP_RAMP.skalter
+## 的暗血红（中段 v ≈ 0.6）+ 白色高光，不出亮洋红；旋钮 fx/skalter_dark = 0 回旧的亮红（召唤物伊莎玛拉的海嗣青不受影响）
+static func sk_dark() -> bool:
+	return MfBal.v("fx/skalter_dark", 1.0) > 0.0
+
+
+## 偏红（r 明显高于 g、b）的颜色才换成暗色阶：i = 色阶档（4 = 设定红，5 = 浅高光，6 = 白）
+static func sk_dark_col(c: Color, i: int) -> Color:
+	if not sk_dark() or c.r < c.g * 1.4 or c.r < c.b * 1.2:
+		return c
+	var r: Color = ArtS.op_ramp("skalter", i)
+	return Color(r.r, r.g, r.b, c.a)
+
+
 static func _sk_h(i: int, s: float) -> float:
 	return fposmod(sin(float(i) * 12.9898 + s * 78.233) * 43758.5453, 1.0)
 
@@ -368,6 +382,9 @@ static func sk_draw_domain(o, c: Vector2, zr: float, cc: Color, on: bool, seed: 
 	# 饱和的本色（不吃 lamp 的偏暖 / 偏紫，偏色会把深红洗成灰白）：本人 = 立绘深红，召唤物 = 海嗣青；高光粒子再亮一档
 	var base := cc
 	var hi := Color(minf(cc.r * 1.35, 1.5), minf(cc.g * 1.35, 1.5), minf(cc.b * 1.35, 1.5))
+	if sk_dark() and cc.r > cc.g * 1.4:   # 暗色阶：暗血红打底、浅粉白做高光（sk_dark）
+		base = sk_dark_col(cc, 4)
+		hi = sk_dark_col(cc, 5)
 	for i in ne:   # 边界：沿圈流动（单双号反向、速度略不同），半径微微起伏
 		var h1 := _sk_h(i, seed)
 		var h2 := _sk_h(i + 101, seed)
@@ -418,7 +435,8 @@ static func sk_song_draw(o, f: Dictionary, a: float) -> bool:
 	var u: float = 1.0 - a   # 0 → 1
 	var dst: Vector2 = f.pos
 	var src: Vector2 = f.get("to", dst + Vector2(-40, 0))
-	var c: Color = f.get("col", o.col())
+	var c0: Color = f.get("col", o.col())
+	var c: Color = sk_dark_col(c0, 4)   # 声波线：暗血红；音符另取浅高光（sk_dark）
 	var sd: float = float(f.get("seed", 0.0))
 	var d: Vector2 = dst - src
 	var L: float = d.length()
@@ -452,7 +470,7 @@ static func sk_song_draw(o, f: Dictionary, a: float) -> bool:
 		for m in n:
 			var sx: float = (m - 0.5 * (n - 1)) * 9.0 + sin(k * 5.0 + sd + m) * 3.0
 			var q := (dst + Vector2(sx, -6.0 - 22.0 * k - 5.0 * m)).round()
-			var nc := Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.75 * (1.0 - k * k))
+			var nc := Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.75 * (1.0 - k * k)) if c == c0 else sk_dark_col(Color(c0.r, c0.g, c0.b, 0.75 * (1.0 - k * k)), 5)
 			cv.draw_rect(Rect2(q, Vector2(4, 3)), nc)                     # 符头
 			cv.draw_rect(Rect2(q + Vector2(3, -8), Vector2(1, 9)), nc)    # 符干
 			cv.draw_rect(Rect2(q + Vector2(4, -8), Vector2(2, 1)), nc)    # 符尾

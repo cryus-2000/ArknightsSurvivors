@@ -925,8 +925,8 @@
      },
      {
       "verb": "fx_rain",
-      "strip": "fx_texas_blade",
-      "mark": "fx_texas_rain_mark",
+      "strip": "fx_texas_px_blade",
+      "mark": "fx_texas_px_mark",
       "r": "$s1_r",
       "center": "self",
       "density": 4.0,
@@ -936,7 +936,7 @@
       "fall_t": 0.1,
       "fall_frames": 2,
       "mark_frames": 3,
-      "scale": 0.467,
+      "scale": 0.934,
       "streak": 2
      }
     ],
@@ -1045,8 +1045,8 @@
      },
      {
       "verb": "fx_rain",
-      "strip": "fx_texas_blade",
-      "mark": "fx_texas_rain_mark",
+      "strip": "fx_texas_px_blade",
+      "mark": "fx_texas_px_mark",
       "r": "$s1_r",
       "center": "self",
       "density": 2.0,
@@ -1056,7 +1056,7 @@
       "fall_t": 0.1,
       "fall_frames": 2,
       "mark_frames": 3,
-      "scale": 0.4,
+      "scale": 0.8,
       "streak": 1,
       "alpha": 0.75,
       "scorch": 0.0
@@ -1155,8 +1155,8 @@
         "along": "path",
         "step": "$rain_step",
         "if_tex": "!fx_texas_sword_drop",
-        "strip": "fx_texas_blade",
-        "mark": "fx_texas_rain_mark",
+        "strip": "fx_texas_px_blade",
+        "mark": "fx_texas_px_mark",
         "stagger": "$rain_gap",
         "fall": 70,
         "fall_t": "$rain_fall",
@@ -1165,7 +1165,7 @@
         "stick": 0.3,
         "scorch": 0.0,
         "streak": 1,
-        "scale": 0.4,
+        "scale": 0.8,
         "tilt": 3
        }
       ],
@@ -1200,8 +1200,8 @@
       },
       {
        "verb": "fx_rain",
-       "strip": "fx_texas_blade",
-       "mark": "fx_texas_rain_mark",
+       "strip": "fx_texas_px_blade",
+       "mark": "fx_texas_px_mark",
        "r": "$s1_r",
        "center": "self",
        "density": 2.0,
@@ -1211,7 +1211,7 @@
        "fall_t": 0.1,
        "fall_frames": 2,
        "mark_frames": 3,
-       "scale": 0.4,
+       "scale": 0.8,
        "streak": 1,
        "alpha": 0.75,
        "scorch": 0.0

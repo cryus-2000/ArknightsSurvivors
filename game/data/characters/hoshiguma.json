@@ -997,11 +997,11 @@
    "slash": true,
    "fx": [
     {
-     "strip": "fx_hoshiguma_slash_rose",
+     "strip": "fx_hoshiguma_px_rose",
      "cond": "buff:stance",
      "rot": true,
      "along": 0.5,
-     "fit": 34,
+     "fit": 47,
      "off": [
       0,
       -18

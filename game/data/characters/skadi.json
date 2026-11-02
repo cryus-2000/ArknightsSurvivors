@@ -1340,7 +1340,8 @@
       "kb": "$wave_kb",
       "along": 0.45,
       "src": "跃浪",
-      "tex": "fx_skadi_wave",
+      "tex": "fx_skadi_px_wave",
+      "tex_one": true,
       "anchor": [
        32,
        30
@@ -1664,11 +1665,11 @@
         -6
        ],
        "src": "潮刃",
-       "proj": "proj_skadi_surge_blade",
+       "proj": "proj_skadi_px_tideblade",
        "hit_fx": [
         {
-         "strip": "fx_skadi_surge_hit",
-         "if_tex": "fx_skadi_surge_hit"
+         "strip": "fx_skadi_px_tidehit",
+         "if_tex": "fx_skadi_px_tidehit"
         },
         {
          "pfx": {
@@ -1682,12 +1683,12 @@
           ],
           "alpha": 0.6
          },
-         "if_tex": "!fx_skadi_surge_hit"
+         "if_tex": "!fx_skadi_px_tidehit"
         }
        ],
        "release_fx": [
         {
-         "strip": "fx_skadi_surge_release",
+         "strip": "fx_skadi_px_tiderelease",
          "rot": true,
          "along": 0.5,
          "off": [
@@ -1728,11 +1729,11 @@
         -6
        ],
        "src": "潮刃",
-       "proj": "proj_skadi_surge_blade",
+       "proj": "proj_skadi_px_tideblade",
        "hit_fx": [
         {
-         "strip": "fx_skadi_surge_hit",
-         "if_tex": "fx_skadi_surge_hit"
+         "strip": "fx_skadi_px_tidehit",
+         "if_tex": "fx_skadi_px_tidehit"
         },
         {
          "pfx": {
@@ -1746,12 +1747,12 @@
           ],
           "alpha": 0.6
          },
-         "if_tex": "!fx_skadi_surge_hit"
+         "if_tex": "!fx_skadi_px_tidehit"
         }
        ],
        "release_fx": [
         {
-         "strip": "fx_skadi_surge_release",
+         "strip": "fx_skadi_px_tiderelease",
          "rot": true,
          "along": 0.5,
          "off": [
@@ -1824,7 +1825,7 @@
         }
        },
        {
-        "strip": "fx_skadi_leap_splash",
+        "strip": "fx_skadi_px_leap",
         "layer": "floor",
         "along": 0.6,
         "off": [

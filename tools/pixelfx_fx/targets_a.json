@@ -1,0 +1,14 @@
+{
+ "_doc": "A 组 近战 · 斩击（docs/229 §9）：斯卡蒂剩余 / 星熊普攻 / 拉普兰德 / 德克萨斯 / 浊心斯卡蒂",
+ "fx_skadi_px_wave": {"fx": "water/ak-skadi-wave"},
+ "fx_skadi_px_leap": {"fx": "water/ak-skadi-leap"},
+ "proj_skadi_px_tideblade": {"fx": "water/ak-skadi-tideblade", "hires": true},
+ "fx_skadi_px_tidehit": {"fx": "water/ak-skadi-tidehit", "hires": true},
+ "fx_skadi_px_tiderelease": {"fx": "water/ak-skadi-tiderelease", "hires": true},
+ "fx_hoshiguma_px_rose": {"fx": "melee/ak-hoshiguma-rose"},
+ "fx_lappland_px_riposte": {"fx": "melee/ak-lappland-riposte"},
+ "proj_lappland_px_sword": {"fx": "projectiles/ak-lappland-sword", "hires": true},
+ "fx_texas_px_blade": {"fx": "melee/ak-texas-blade", "hires": true, "keep": true},
+ "fx_texas_px_mark": {"fx": "melee/ak-texas-mark", "hires": true, "keep": true},
+ "fx_skalter_px_note": {"fx": "arcane/ak-skalter-note", "hires": true}
+}

@@ -125,7 +125,8 @@ static func _hw_waves(o, dt: float) -> void:
 	h.waves = h.waves.filter(func(w): return w.dist < w.max)
 
 
-## 地面层（data_operator.draw_entities_floor）：浪墙。有帧条（tex，朝右、底部锚点 anchor）时沿浪墙排三朵浪，帧按推进进度走完；缺图画程序浪墙
+## 地面层（data_operator.draw_entities_floor）：浪墙。tex_one：整幅一张帧条按方向旋转（帧条按宽 140 画，宽度不同时等比缩放）；
+## 否则有帧条（tex，朝右、底部锚点 anchor）时沿浪墙排三朵浪，帧按推进进度走完；缺图画程序浪墙
 static func hw_draw_waves(o, front := false) -> void:
 	if not hw_on(o) or o.hw.waves.is_empty():
 		return
@@ -161,6 +162,10 @@ static func hw_draw_waves(o, front := false) -> void:
 			continue
 		var tn: String = str(b.get("tex", ""))
 		var tx: Texture2D = ArtS.tex(tn) if tn != "" else null
+		if tx != null and g.V6_FRAMES.has(tn) and b.get("tex_one", false):   # docs/229 §7：整幅一张俯视浪墙（朝右、帧中心 = 浪墙中心），按推进方向旋转，帧号跟推进进度走
+			var nf1: int = int(g.V6_FRAMES[tn][0])
+			fx_frame(cv, g, tn, nf1, clampi(int(w.dist / w.max * nf1), 0, nf1 - 1), w.pos, g.PX * float(b.w) / 140.0, Color.WHITE, Vector2(-1, -1), w.dir.angle())
+			continue
 		if tx != null and g.V6_FRAMES.has(tn):
 			var nf: int = int(g.V6_FRAMES[tn][0])
 			var av = b.get("anchor", [32, 30])
