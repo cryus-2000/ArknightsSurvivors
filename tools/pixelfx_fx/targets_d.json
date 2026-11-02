@@ -1,0 +1,12 @@
+{
+ "_doc": "D 组（docs/229 §9）：艾丽妮 / 塞雷娅 / 推进之王 / 维什戴尔 / 能天使",
+ "fx_irene_px_cleave": {"fx": "melee/ak-irene-cleave"},
+ "fx_saria_px_calcify": {"fx": "earth/ak-saria-calcify"},
+ "fx_saria_px_heal": {"fx": "holy/ak-saria-heal"},
+ "fx_siege_px_slam": {"fx": "earth/ak-siege-slam"},
+ "fx_siege_px_smash": {"fx": "earth/ak-siege-slam", "opts": {"radius": 29, "seed": 23}},
+ "fx_wisadel_px_muzzle": {"fx": "projectiles/ak-wisadel-muzzle", "hires": true},
+ "fx_exusiai_px_muzzle_gold": {"fx": "projectiles/ak-exu-muzzle", "opts": {"palette": ["#2a1a06", "#7a4c0e", "#d89a2a", "#ffd76a", "#fff3cc", "#ffffff"]}, "hires": true, "keep": true},
+ "fx_exusiai_px_hit_gold": {"fx": "impacts/ak-exu-hit", "opts": {"palette": ["#2a1a06", "#7a4c0e", "#d89a2a", "#ffd76a", "#fff3cc", "#ffffff"]}, "hires": true},
+ "fx_exusiai_px_pierce": {"fx": "impacts/ak-exusiai-pierce", "hires": true}
+}

@@ -1119,6 +1119,11 @@ const V6_FRAMES := {
 	# ---- pixelfx 组 C（docs/229 §9）：本组新帧条只加在这行与下面「组 C 止」之间
 	# ---- 组 C 止
 	# ---- pixelfx 组 D（docs/229 §9）：本组新帧条只加在这行与下面「组 D 止」之间
+	"fx_irene_px_cleave": [6, 20.0],   # 190x172 x 6, 4 KB
+	"fx_saria_px_calcify": [12, 20.0], "fx_saria_px_heal": [9, 20.0],   # 1x 94x140 x 12 / 40x44 x 9
+	"fx_siege_px_slam": [10, 20.0], "fx_siege_px_smash": [10, 20.0],   # 1x 104x80 / 66x46 x 10
+	"fx_wisadel_px_muzzle": [3, 24.0],   # @2x 34x16 x 3
+	"fx_exusiai_px_muzzle_gold": [4, 30.0], "fx_exusiai_px_hit_gold": [5, 25.0], "fx_exusiai_px_pierce": [4, 24.0],   # @2x
 	# ---- 组 D 止
 	# ---- pixelfx 组 E（docs/229 §9）：本组新帧条只加在这行与下面「组 E 止」之间
 	# ---- 组 E 止

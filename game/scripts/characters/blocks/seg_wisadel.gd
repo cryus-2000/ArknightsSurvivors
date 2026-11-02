@@ -390,7 +390,8 @@ static func _h4_fire(o, a: Dictionary, to: Vector2, base_dmg: float, src: String
 		return s
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
 	var dir := (to - from).normalized()
-	_wfx(o, {"kind": "h4_muzzle", "pos": from, "dir": dir, "life": 0.07, "col": H4_RED, "sz": 30.0 * size})
+	if not (_calm() and not g.perf_alt and _wspr(o, "fx_wisadel_px_muzzle", from, g.PX, dir.angle())):   # pixelfx 炮口（docs/229 §9 D 组，@2x 1:1，比程序锥形焰小一档）；fx/wd_calm = 0 回旧画法
+		_wfx(o, {"kind": "h4_muzzle", "pos": from, "dir": dir, "life": 0.07, "col": H4_RED, "sz": 30.0 * size})
 	if _wc("wd_muzzle_glow", 0.0, 1.0) > 0.0:   # 炮口小光团：收特效时不画（锥形炮口焰保留）
 		_wfx(o, {"kind": "glow", "pos": from, "r": 9.0 * size, "life": 0.06, "col": Color(2.0, 1.1, 0.8), "alpha": 0.8})
 	for k in _n(o, 3):
@@ -1237,7 +1238,8 @@ static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> 
 	var frame: int = o.attack_phase_frame(int(spec.frames), int(spec.fire), o.attack_dur - o.attack_t)
 	var origin: Vector2 = o.sprite_point_at(slot, "muzzles", frame, muzzle, null, false)
 	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(effect.src), float(effect.size), true, 0.0, false, false, "exec", effect.get("mark", null), origin)
-	_wfx(o, {"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
+	if not (_calm() and not g.perf_alt and _wspr(o, "fx_wisadel_px_muzzle", origin, g.PX, (target.pos - origin).angle())):
+		_wfx(o, {"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
 	_h3_sfx(o, "atk", 2.0)
 	_h4_cannon_after(o, a, target)
 	if muzzle == 0:

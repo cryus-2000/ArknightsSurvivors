@@ -529,7 +529,8 @@
     "mult": "$crush_mult",
     "cap": "$crush_cap",
     "src": "粉碎",
-    "tex": "fx_siege_pebbles",
+    "tex": "fx_siege_px_smash",
+    "fit": 29,
     "_doc": "精一「粉碎」：锤击击倒的敌人处迸出碎石，半径 50 内锤击 20% 伤害，每一锤至多 2 处"
    }
   },

@@ -778,7 +778,10 @@
         "h": 34
        }
       ],
-      "look": "rose_heavy"
+      "look": "rose_heavy",
+      "strip": "fx_irene_px_cleave",
+      "fit": 84,
+      "k": 0.85
      },
      {
       "verb": "followup",
@@ -811,6 +814,9 @@
          }
         ],
         "look": "rose_heavy",
+        "strip": "fx_irene_px_cleave",
+        "fit": 84,
+        "k": 0.85,
         "post": "$tide2_mult",
         "second": true
        }

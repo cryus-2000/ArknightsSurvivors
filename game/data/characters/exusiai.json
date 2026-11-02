@@ -568,8 +568,8 @@
       "mult": "$mag_mult",
       "src": "弹匣倾泻",
       "tex": "proj_exusiai_bullet_power",
-      "muzzle_fx": "fx_exusiai_muzzle_gold",
-      "hit_fx": "fx_exusiai_hit_gold"
+      "muzzle_fx": "fx_exusiai_px_muzzle_gold",
+      "hit_fx": "fx_exusiai_px_hit_gold"
      }
     ]
    }
@@ -625,7 +625,7 @@
        "proj_exusiai_bullet_t2",
        "proj_exusiai_bullet_t3"
       ],
-      "full_fx": "fx_exusiai_pierce_gold"
+      "full_fx": "fx_exusiai_px_pierce"
      }
     ]
    },

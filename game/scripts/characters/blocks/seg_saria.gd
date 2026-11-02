@@ -698,7 +698,7 @@ static func _h4_heal_fx(o, h: float) -> void:
 	for k in 6:
 		o.fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": H4_AMBER, "sz": 2.5})
 	var me: bool = o.is_leader
-	if not me:
+	if not me and not o.spawn_fx_sprite("fx_saria_px_heal", g.ppos + Vector2(0, 2), g.PX):   # pixelfx 脚下暖光（docs/229 §9 D 组），1x 1:1
 		o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
 	o.spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -72 if me else -34), g.PX * (0.7 if me else 1.0), 0.0, false, false, Color(1, 1, 1, 0.6 if me else 1.0))
 
@@ -847,8 +847,9 @@ static func h4_calc_start(o, b: Dictionary) -> void:
 	var R: float = float(b.get("r", 180.0))
 	o.fx({"kind": "ring", "pos": g.ppos, "r": R, "r0": 30.0, "life": 0.5, "col": H4_AMBER, "floor": true, "w": 4.0})
 	o.fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": H4_AMBER, "floor": true, "n": 10})
-	o.spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
-	o.spawn_fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
+	if not o.spawn_fx_sprite("fx_saria_px_calcify", g.ppos + Vector2(0, 4), g.PX):   # pixelfx 钙晶裂口 + 光柱（docs/229 §9 D 组），1x 1:1；缺图回退旧的两张放大帧条
+		o.spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
+		o.spawn_fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
 	if b.has("banner"):
 		o.show_banner(str(b.banner))
 	g.shake = maxf(g.shake, 3.0)

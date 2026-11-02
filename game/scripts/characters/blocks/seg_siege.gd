@@ -65,8 +65,9 @@ static func _h4_hammer_release(o, a: Dictionary) -> void:
 	if heavy:
 		# 碎颅的每一锤：落点一次小型砸地（闪光 + 冲击环 + 不规则地裂 + 火星）
 		o.fx({"kind": "glow", "pos": land + Vector2(0, -4), "r": 24.0, "life": 0.14, "col": Color(2.0, 1.5, 0.8), "alpha": 0.8})
-		o.fx({"kind": "ring", "pos": land + Vector2(0, 6), "r": 58.0, "r0": 8.0, "life": 0.3, "col": H4_FLAME, "floor": true, "w": 3.0})
-		o.fx({"kind": "crack", "pos": land + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": H4_FLAME, "floor": true, "n": 6})
+		if g.perf_alt or not o.spawn_fx_sprite("fx_siege_px_smash", land + Vector2(0, 6), g.PX):   # pixelfx 砸地裂网（docs/229 §9 D 组，半径 29 美术像素 = 原冲击环 58）；缺图画程序环 + 地裂
+			o.fx({"kind": "ring", "pos": land + Vector2(0, 6), "r": 58.0, "r0": 8.0, "life": 0.3, "col": H4_FLAME, "floor": true, "w": 3.0})
+			o.fx({"kind": "crack", "pos": land + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": H4_FLAME, "floor": true, "n": 6})
 		_h3_vsparks(o, land, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
 		o.impact_pause(0.04)
 	hw_record(o, dmg, ang, reach, land)
@@ -100,7 +101,8 @@ static func _h4_hammer_after(o, a: Dictionary, hits: Array, dmg: float) -> void:
 			pts.append(e.pos)
 	for p in pts:
 		o.area_hit(str(cr.get("src", "")), p, r, dmg * float(cr.get("mult", 0.2)))
-		if not o.spawn_fx_sprite(str(cr.get("tex", "fx_siege_pebbles")), p + Vector2(0, -6), g.PX * clampf(r / 40.0, 0.8, 1.6)):
+		var px: bool = cr.has("fit") and not g.perf_alt   # fit：帧条半径（1x 像素），pixelfx 砸地按判定半径 1:1（docs/229 §9 D 组）；--perfab 的 /b 桶走旧碎石帧条（量净成本）
+		if not o.spawn_fx_sprite(str(cr.get("tex", "fx_siege_pebbles")) if px else "fx_siege_pebbles", p + (Vector2(0, 2) if px else Vector2(0, -6)), r / float(cr.fit) if px else g.PX * clampf(r / 40.0, 0.8, 1.6)):
 			o.spawn_fx_sprite("fx_rock_burst", p, g.PX * 0.6, 0.0, false, false, Color(1.25, 1.05, 0.6))
 			for k in 5:   # 程序回退：几颗金色石子抛物线落地
 				var an: float = -PI / 2.0 + g.vrng.randf_range(-1.1, 1.1)
@@ -309,9 +311,10 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	var pw: float = o.skill_power() if b.get("power", true) else 1.0   # power: false = 不吃技能强度（响应动作的补锤）
 	var hits: Array = o.area_hit(str(b.get("src", "")), pos, r, o.base("atk", 0.0) * float(b.get("mult", 2.2)) * o._dmg_bonus() * pw * sm, float(b.get("kb", 220.0)), float(b.get("stun", 0.6)))
 	o.fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
-	o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
-	o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
-	o.fx({"kind": "h4_pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
+	if g.perf_alt or not o.spawn_fx_sprite("fx_siege_px_slam", pos + Vector2(0, 2), r / 55.0):   # pixelfx 落地裂网 + 尘墙（docs/229 §9 D 组）：帧条半径 55 美术像素，按判定半径缩放；缺图画程序环 + 地裂 + 光柱
+		o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
+		o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
+		o.fx({"kind": "h4_pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
 	# 10-14 用户「推进之王二技能打中地面的火焰效果删除，只保留裂地效果」：去掉落地火圈与一圈火焰（fx_fire_aura / fx_flames / 程序 h4_blaze），
 	# 留裂地（crack）、冲击环、光柱、火星与扬尘；纯画面
 	o.ground_dust(pos, r * 0.6, 10)

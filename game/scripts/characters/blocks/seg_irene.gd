@@ -381,6 +381,12 @@ static func h3_cleave(o, b: Dictionary, at: Vector2) -> Array:
 static func _h3_cleave_fx(o, b: Dictionary, ang: float, r: float) -> void:
 	var second: bool = b.get("second", false)
 	var tint: Color = Color(1.1, 1.15, 1.35) if second else Color.WHITE
+	if b.has("fit"):   # pixelfx 刀光（docs/229 §9 D 组）：帧条原点 = 艾丽妮，刀弧半径 fit 美术像素，缩放 = r × k ÷ fit；第二斩上下镜像（转 180° + 水平翻）偏银白
+		if o.spawn_fx_sprite(str(b.strip), o.pos + Vector2(0, -14), r * float(b.get("k", 0.85)) / float(b.fit), ang + (PI if second else 0.0), second, false, Color(0.92, 0.96, 1.12) if second else Color.WHITE):
+			_h3_vsparks(o, o.pos + Vector2.from_angle(ang) * r * 0.5, H3_SILVER, 6, 200.0, 0.4, 2.5, 200.0)
+			if second:
+				_h3_sfx(o, "atk", 2.0, 0.9)
+			return
 	if not o.spawn_fx_sprite(str(b.get("strip", "fx_slash_heavy_rose")), o.pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * (0.2 if second else 0.32), r * 1.0 / 28.0, ang, second, false, tint):
 		o.slash_fx(o.pos + Vector2(0, -14), ang, 0.8, r, H3_SILVER if second else H3_PINK, "slash", 0.25)
 	_h3_vsparks(o, o.pos + Vector2.from_angle(ang) * r * 0.5, H3_SILVER, 10, 200.0, 0.4, 2.5, 200.0)
