@@ -585,31 +585,36 @@ func draw_top() -> void:
 
 
 ## 队长被友方特效盖住时的剪影（docs/226 §2，render/lead_sil 缺省 1）：敌方顶层这一遍里、预警填充之后、敌弹之前，
-## 把队长本体再画一遍并描 1 格暖白边（白色剪影错开上下左右各 2 世界像素）。只在「被盖」时出现：
-## 队长周围 lead_sil_r 内友方特效的覆盖分（世界帧条按缩放计面积、干员粒子各计 1）过 lead_sil_s0 起渐显、lead_sil_s1 全显，升降各约 0.15 秒。
+## 把队长本体不透明地再画一遍并描 1 格深色半透明边（剪影错开上下左右各 2 世界像素；11-03 前是暖白边 + 半透明本体，整个人发白）。只在「被盖」时出现：
+## 覆盖分（见 _leader_cover）过 lead_sil_s0 起描边渐显、lead_sil_s1 全显，升降各约 0.15 秒；seed 13 开局约 4% 的时间、10 分钟后约 18% 的时间在画。
 ## 不读像素、只画不改状态；手机同样生效
 var _sil_a := 0.0
 var _sil_score := 0.0
+## 覆盖分只算「真盖在身上」的大件（11-03 修：原来火花 / 气场光点 / 队长自己的标记环都计分，开局就常亮）：
+## 世界帧条半径 ≥ lead_sil_min_r（18）且圆盘压到身体（中心距 < 半径 × 0.8 + 14）才计，按半径 / 24 计 0.75–4 分；
+## 干员粒子只计非装饰件（pfx_cappable 之外，如技能帧条），每个 0.5
+const SIL_SKIP := {"spark": true, "mote": true, "shard": true, "line": true, "flame": true, "lead_mark": true, "marc": true}
 func _leader_cover() -> float:
-	var R: float = Bal.v("render/lead_sil_r", 56.0)
 	var c: Vector2 = g.ppos + Vector2(0, -20)
-	var r2: float = R * R
+	var min_r: float = Bal.v("render/lead_sil_min_r", 18.0)
 	var sc := 0.0
 	for f in g.fx:
 		var fp = f.get("pos")   # 先按距离筛（后期 g.fx 上百条，种类判断放后面）
-		if not (fp is Vector2) or (fp as Vector2).distance_squared_to(c) > r2 * 4.0:
+		if not (fp is Vector2) or (fp as Vector2).distance_squared_to(c) > 40000.0:
 			continue
-		if f.get("enemy", false) or FOE_KINDS.has(f.kind) or AMB_KINDS.has(f.kind) or f.get("delay", 0.0) > f.max - f.life:
+		if SIL_SKIP.has(f.kind) or f.get("enemy", false) or FOE_KINDS.has(f.kind) or AMB_KINDS.has(f.kind) or f.get("delay", 0.0) > f.max - f.life:
 			continue
-		var fr: float = maxf(8.0, float(f.get("r", 0.0)) + float(f.get("scale", 0.0)) * 12.0)
-		if (fp as Vector2).distance_to(c) < R + fr:
-			sc += clampf(fr / 24.0, 0.5, 4.0)
+		var fr: float = float(f.get("r", 0.0)) + float(f.get("scale", 0.0)) * 12.0
+		if fr < min_r or (fp as Vector2).distance_to(c) >= fr * 0.8 + 14.0:
+			continue
+		var w: float = clampf(fr / 24.0, 0.75, 4.0)
+		sc += w
 	if g.squad != null:
 		for o in g.squad.ops:
 			for f in o.pfx:
 				var pp = f.get("pos")
-				if not f.get("floor", false) and pp is Vector2 and (pp as Vector2).distance_squared_to(c) <= r2:
-					sc += 0.35
+				if pp is Vector2 and (pp as Vector2).distance_squared_to(c) <= 900.0 and not f.get("floor", false) and not o.pfx_cappable(f):
+					sc += 0.5
 	return sc
 
 
@@ -634,11 +639,12 @@ func _draw_leader_sil() -> void:
 	var p: Vector2 = o.pos + Vector2(o.foot_dx(st), 0) + Vector2(0, o.arrive_dy())
 	var fo: float = o.foot_off(st.tex, st.get("kind", ""))
 	var wt: Texture2D = A.white_of(st.tex)
-	var ec: Color = Color(1.0, 0.9, 0.72, 0.9 * _sil_a)   # 暖白描边
+	# 11-03 修（用户截图「人物身上冒光」）：原来暖白描边 0.9 + 本体按 _sil_a 半透明重画，白剪影从半透明本体里透出来，整个人发白。
+	# 现在描边改深色半透明、只描边随 _sil_a 渐显；本体一旦出现就不透明重画（只是把盖在身上的友方特效压到下面，本体与原画同一帧同一色）
+	var ec: Color = Color(0.02, 0.03, 0.07, Bal.v("render/lead_sil_edge_a", 0.6) * _sil_a)
 	for d in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2)]:
 		draw_sprite_at(p + d, st.flip, ec, st.frame, wt, st.hf, fo)
-	var mod: Color = g.sprite.modulate
-	draw_sprite_at(p, st.flip, Color(mod.r, mod.g, mod.b, mod.a * _sil_a), st.frame, st.tex, st.hf, fo)
+	draw_sprite_at(p, st.flip, g.sprite.modulate, st.frame, st.tex, st.hf, fo)
 
 
 ## 预警分类 → Boss 招式预警填充（render/telegraph_draw；敌方顶层开着时挪到 draw_top）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
