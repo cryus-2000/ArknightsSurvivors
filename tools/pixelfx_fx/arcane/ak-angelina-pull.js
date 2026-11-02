@@ -1,4 +1,4 @@
-// 安洁莉娜「引力」收束（docs/229 技能档，地面层）：@2x，画布与旧 fx_angelina_pull 同为 128×64（同 fit 30 不改缩放），原点 = 中心，透视 sy 0.5。
+// 安洁莉娜「引力」收束（docs/229 技能档，地面层）：@2x，原点 = 中心，透视 sy 0.5；半径 95 = 1 世界像素 / 贴图像素时的牵引半径 pull_r 100（JSON fit 50，积木换算 r / fit / 2）。
 // 首帧外沿一道不规整的紫圈爆亮，随即碎成长短不一的弧线，沿螺旋往中心卷（角度、半径、速度都随机，不等距），
 // 越近越亮；卷到中心挤成一个小亮点，再散成几粒光尘。不画同心圈。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
@@ -8,13 +8,13 @@ export const meta = {
   name: "Angelina pull",
   desc: "A ragged violet ring flares on the floor, breaks into arcs of uneven length that spiral in, brightening as they close, and squeeze into a spark.",
   tags: ["arcane", "gravity", "pull", "floor", "one-shot"],
-  size: [128, 64],
-  origin: [64, 32],
+  size: [218, 112],
+  origin: [109, 56],
   duration: 0.4,
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: OP.angelina, radius: 54, seed: 7 },
+  options: { palette: OP.angelina, radius: 95, seed: 7 },
 };
 
 const SY = 0.5;

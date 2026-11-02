@@ -1,16 +1,266 @@
 {
  "_doc": "B 组 术师 · 法术（docs/229 §9）：艾雅法拉 / 安洁莉娜 / 逻各斯 / 流明 / 铃兰。除 S2 点燃爆燃为 1x（半径 75–94，@2x 超单张显存 2 MB）外全部 @2x；普攻 variants 2，其余缺省 3（§2.11）；spark = [颗数, 色阶下标, 速度]",
- "fx_eyjafjalla_px_hit": {"fx": "impacts/ak-eyjafjalla-hit", "hires": true, "variants": 2, "seed": 5, "spark": [3, 5, 160]},
- "fx_eyjafjalla_px_ignite": {"fx": "explosions/ak-eyjafjalla-ignite", "opts": {"radius": 44}, "seed": 11, "spark": [12, 5, 210]},
- "fx_eyjafjalla_px_splash": {"fx": "explosions/ak-eyjafjalla-splash", "hires": true, "seed": 8, "spark": [5, 4, 150]},
- "fx_eyjafjalla_px_pool": {"fx": "fire/ak-eyjafjalla-pool", "hires": true, "seed": 13},
- "fx_angelina_px_pull": {"fx": "arcane/ak-angelina-pull", "hires": true, "seed": 7},
- "fx_logos_px_hit": {"fx": "impacts/ak-logos-hit", "hires": true, "variants": 2, "seed": 2, "spark": [3, 4, 150]},
- "fx_logos_px_ring": {"fx": "arcane/ak-logos-ring", "hires": true, "seed": 5, "spark": [5, 4, 140]},
- "fx_logos_px_pillar": {"fx": "arcane/ak-logos-pillar", "hires": true, "seed": 3, "spark": [6, 4, 160]},
- "fx_lumen_px_hit": {"fx": "impacts/ak-lumen-hit", "hires": true, "variants": 2, "seed": 3, "spark": [3, 5, 160]},
- "fx_lumen_px_pillar": {"fx": "holy/ak-lumen-pillar", "hires": true, "seed": 6, "spark": [6, 5, 160]},
- "fx_suzuran_px_pillar": {"fx": "holy/ak-suzuran-pillar", "hires": true, "seed": 4, "spark": [6, 5, 150]},
- "fx_suzuran_px_pillar_s": {"fx": "holy/ak-suzuran-pillar", "opts": {"height": 64}, "hires": true, "seed": 12, "spark": [3, 5, 120]},
- "fx_suzuran_px_ring": {"fx": "holy/ak-suzuran-ring", "hires": true, "seed": 9, "spark": [8, 5, 160]}
+ "fx_eyjafjalla_px_hit": {
+ "fx": "impacts/ak-eyjafjalla-hit",
+ "hires": true,
+ "variants": 2,
+ "seed": 5,
+ "spark": [
+3,
+5,
+160
+]
+},
+ "fx_eyjafjalla_px_ignite": {
+ "fx": "explosions/ak-eyjafjalla-ignite",
+ "opts": {
+ "radius": 44
+},
+ "seed": 11,
+ "spark": [
+12,
+5,
+210
+],
+ "variants": 2
+},
+ "fx_eyjafjalla_px_splash": {
+ "fx": "explosions/ak-eyjafjalla-splash",
+ "hires": true,
+ "seed": 8,
+ "spark": [
+5,
+4,
+150
+],
+ "variants": 2
+},
+ "fx_eyjafjalla_px_pool": {
+ "fx": "fire/ak-eyjafjalla-pool",
+ "hires": true,
+ "seed": 13
+},
+ "fx_angelina_px_pull": {
+ "fx": "arcane/ak-angelina-pull",
+ "hires": true,
+ "seed": 7
+},
+ "fx_logos_px_hit": {
+ "fx": "impacts/ak-logos-hit",
+ "hires": true,
+ "variants": 2,
+ "seed": 2,
+ "spark": [
+3,
+4,
+150
+]
+},
+ "fx_logos_px_ring": {
+ "fx": "arcane/ak-logos-ring",
+ "hires": true,
+ "seed": 5,
+ "spark": [
+5,
+4,
+140
+],
+ "variants": 2
+},
+ "fx_logos_px_pillar": {
+ "fx": "arcane/ak-logos-pillar",
+ "hires": true,
+ "seed": 3,
+ "spark": [
+6,
+4,
+160
+],
+ "variants": 2
+},
+ "fx_lumen_px_hit": {
+ "fx": "impacts/ak-lumen-hit",
+ "hires": true,
+ "variants": 2,
+ "seed": 3,
+ "spark": [
+3,
+5,
+160
+]
+},
+ "fx_lumen_px_pillar": {
+ "fx": "holy/ak-lumen-pillar",
+ "hires": true,
+ "seed": 6,
+ "spark": [
+6,
+5,
+160
+],
+ "variants": 2
+},
+ "fx_suzuran_px_pillar": {
+ "fx": "holy/ak-suzuran-pillar",
+ "hires": true,
+ "seed": 4,
+ "spark": [
+6,
+5,
+150
+],
+ "variants": 2
+},
+ "fx_suzuran_px_pillar_s": {
+ "fx": "holy/ak-suzuran-pillar",
+ "opts": {
+ "height": 64
+},
+ "hires": true,
+ "seed": 12,
+ "spark": [
+3,
+5,
+120
+]
+},
+ "fx_suzuran_px_ring": {
+ "fx": "holy/ak-suzuran-ring",
+ "hires": true,
+ "seed": 9,
+ "spark": [
+8,
+5,
+160
+],
+ "variants": 2
+},
+ "fx_logos_px_fan_open": {
+ "fx": "arcane/ak-logos-fan-open",
+ "keep": true,
+ "variants": 1,
+ "seed": 3,
+ "colors": 24
+},
+ "fx_logos_px_fan": {
+ "fx": "arcane/ak-logos-fan",
+ "keep": true,
+ "variants": 1,
+ "seed": 3,
+ "colors": 24
+},
+ "fx_logos_px_fan_close": {
+ "fx": "arcane/ak-logos-fan-close",
+ "keep": true,
+ "variants": 1,
+ "seed": 3,
+ "colors": 24
+},
+ "fx_angelina_px_well_open": {
+ "fx": "arcane/ak-angelina-well-open",
+ "hires": true,
+ "variants": 2,
+ "seed": 7,
+ "spark": [
+6,
+4,
+140
+]
+},
+ "fx_angelina_px_well": {
+ "fx": "arcane/ak-angelina-well",
+ "hires": true,
+ "variants": 2,
+ "seed": 7
+},
+ "fx_angelina_px_well_front": {
+ "fx": "arcane/ak-angelina-well-front",
+ "hires": true,
+ "keep": true,
+ "variants": 2,
+ "seed": 7
+},
+ "fx_angelina_px_well_close": {
+ "fx": "arcane/ak-angelina-well-close",
+ "hires": true,
+ "variants": 2,
+ "seed": 7,
+ "spark": [
+6,
+5,
+150
+]
+},
+ "fx_angelina_px_halt": {
+ "fx": "arcane/ak-angelina-halt",
+ "hires": true,
+ "variants": 2,
+ "seed": 4
+},
+ "fx_angelina_px_float_dust": {
+ "fx": "arcane/ak-angelina-float-dust",
+ "hires": true,
+ "keep": true,
+ "variants": 2,
+ "seed": 4
+},
+ "fx_lumen_px_heal": {
+ "fx": "holy/ak-lumen-heal",
+ "hires": true,
+ "variants": 2,
+ "seed": 5,
+ "spark": [
+4,
+5,
+120
+]
+},
+ "fx_lumen_px_beam": {
+ "fx": "holy/ak-lumen-beam",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 2,
+ "spark": [
+4,
+4,
+160
+]
+},
+ "fx_eyjafjalla_px_melt": {
+ "fx": "fire/ak-eyjafjalla-melt",
+ "hires": true,
+ "variants": 1,
+ "seed": 3
+},
+ "fx_suzuran_px_seal": {
+ "fx": "holy/ak-suzuran-seal",
+ "hires": true,
+ "variants": 1,
+ "seed": 6
+},
+ "fx_suzuran_px_gather": {
+ "fx": "holy/ak-suzuran-gather",
+ "hires": true,
+ "variants": 2,
+ "seed": 2,
+ "spark": [
+4,
+5,
+140
+]
+},
+ "fx_suzuran_px_wisp": {
+ "fx": "holy/ak-suzuran-wisp",
+ "hires": true,
+ "keep": true,
+ "variants": 1,
+ "seed": 1
+},
+ "fx_suzuran_px_trail": {
+ "fx": "holy/ak-suzuran-trail",
+ "hires": true,
+ "variants": 1,
+ "seed": 3
+}
 }

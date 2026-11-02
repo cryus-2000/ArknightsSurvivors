@@ -467,7 +467,7 @@
           "step": 22,
           "cap": 4,
           "src": "狐火拖尾",
-          "tex": "fx_suzuran_bigfox_trail",
+          "tex": "fx_suzuran_px_trail",
           "_doc": "精二「九尾祈愿」补强：大狐火飞过的路径留狐火 1 秒，每 0.3 秒灼伤后来踏入路径的敌人（狐火 15%；这团大狐火已贯穿的不再烧）"
         }
       },
@@ -488,7 +488,7 @@
         "value": "$brand_value",
         "dur": "$brand_dur",
         "max": 24,
-        "tex": "fx_suzuran_seal",
+        "tex": "fx_suzuran_px_seal",
         "_doc": "精一「狐火灼印」：狐火（含大狐火）命中的敌人 2 秒内受到的伤害 +8%（同名取最高），脚下金色小印"
       }
     },

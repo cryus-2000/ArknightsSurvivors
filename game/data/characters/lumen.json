@@ -612,7 +612,7 @@
      "r": "$refract_r",
      "mult": "$refract_mult",
      "src": "折光",
-     "hit": "fx_lumen_refract_hit",
+     "hit": "fx_lumen_px_hit",
      "_doc": "精一折光：光弹命中已被照亮的敌人时，折向 120 内最近的未照亮敌人（25%，照亮它）；每发只折一次"
     }
    },
@@ -641,8 +641,8 @@
     "heal": "$charge_heal",
     "heal_sub": "长明",
     "src": "灯塔光柱",
-    "tile": "fx_lumen_beam",
-    "flare": "fx_lumen_beam_flare",
+    "tile": "fx_lumen_px_beam",
+    "flare": "fx_lumen_px_hit",
     "hit": "fx_lumen_px_hit",
     "_doc": "精二灯塔光柱（取代强化光弹）：流明与发光单元每射满 8 发，接下来 8 发变为直线短光柱（长 200、宽 10，穿透一线并照亮，×1.4，每发回复队长 0.425%）"
    }

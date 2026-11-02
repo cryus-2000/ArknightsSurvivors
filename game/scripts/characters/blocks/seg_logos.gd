@@ -556,12 +556,12 @@ static func hw_draw_fan(o) -> void:
 		cv.draw_circle(o.pos + Vector2.from_angle(fa - half + half * 2.0 * t) * r, 2.5, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.7 * fade))
 
 
-## 咒域整片扇形素材（docs/192）：fx_logos_s3_fan_ground（循环）/ _open（起手 0.5 秒）/ _close（收尾 0.5 秒），三条同画布（1x 180×264，原点 (4,132)，
+## 咒域整片扇形素材（docs/192；11-03 换 pixelfx，docs/229 组 B）：fx_logos_px_fan（循环）/ _open（起手 0.45 秒）/ _close（收尾 0.3 秒），三条同画布（1x 180×272，原点 (4,136)，
 ## 画的是参考半径 170 美术像素 = 340 世界像素、100° 的扇形，朝右），按 r / 340 等比缩放、绕原点转到咒域朝向。ground 没图就整体回退程序画法（返回 false）；
 ## open / close 缺图时只用 ground。起手 / 收尾期间 ground 淡入 / 淡出，不与 open / close 叠成双层
 const FAN_REF_R := 340.0
 const FAN_OPEN_T := 0.5
-const FAN_CLOSE_T := 0.375   # fan_close 6 帧 / 16 fps
+const FAN_CLOSE_T := 0.3   # fx_logos_px_fan_close 6 帧 / 20 fps（pixelfx 1x，docs/229 组 B；原 Codex fan_close 0.375）
 ## 旋钮 fx/logos_s3_extra（缺省 1；0 = 关掉出手轨迹 / 施法闪）。积木脚本不直接引用自动加载
 static func _s3_extra_on(g) -> bool:
 	var b = g.get_node_or_null("/root/Bal")
@@ -573,18 +573,18 @@ const SLOW_MARK_MAX := 40   # 被减速弹幕标记同屏上限（docs/192）
 
 static func _hw_fan_sheets(o, b: Dictionary, fn: Dictionary, fa: float, r: float, fade: float) -> bool:
 	var g = o.g
-	if g.tex.get("fx_logos_s3_fan_ground") == null or not g.V6_FRAMES.has("fx_logos_s3_fan_ground"):
+	if g.tex.get("fx_logos_px_fan") == null or not g.V6_FRAMES.has("fx_logos_px_fan"):
 		return false
 	var elapsed: float = float(b.get("dur", 12.0)) - float(fn.t)
 	var left: float = float(fn.t)
-	var tn := "fx_logos_s3_fan_ground"
+	var tn := "fx_logos_px_fan"
 	var frame := -1
 	var a := 1.0
-	if elapsed < FAN_OPEN_T and g.tex.get("fx_logos_s3_fan_open") != null:
-		tn = "fx_logos_s3_fan_open"
+	if elapsed < FAN_OPEN_T and g.tex.get("fx_logos_px_fan_open") != null:
+		tn = "fx_logos_px_fan_open"
 		frame = mini(int(elapsed / FAN_OPEN_T * g.V6_FRAMES[tn][0]), g.V6_FRAMES[tn][0] - 1)
-	elif left < FAN_CLOSE_T and g.tex.get("fx_logos_s3_fan_close") != null:
-		tn = "fx_logos_s3_fan_close"
+	elif left < FAN_CLOSE_T and g.tex.get("fx_logos_px_fan_close") != null:
+		tn = "fx_logos_px_fan_close"
 		frame = mini(int((1.0 - left / FAN_CLOSE_T) * g.V6_FRAMES[tn][0]), g.V6_FRAMES[tn][0] - 1)
 	else:
 		# ground 用本技能局部时钟、open 结束后从 f0 起（open f7 = ground f0 = close f0，无缝）
@@ -615,12 +615,13 @@ static func _hw_draw_ribbons(o, fa: float, k: float, fade: float, grow: float) -
 	var al: float = fade * grow
 	var n := 0
 	var spots: Array = []   # [本地位置 @2x, 亮?, 序号]
-	for d in range(-44, 45, 8):   # 10-29 减重：弧上条数 23 → 12
-		spots.append([Vector2.from_angle(deg_to_rad(d)) * FAN_REF_R, n % 2 == 0, n])
+	for d in range(-44, 45, 8):   # 10-29 减重：弧上条数 23 → 12；11-03 角度 / 半径按序号抖开（docs/229 §2.6 不等距）
+		var jd: float = float(d) + 2.6 * sin(float(n) * 12.9898)
+		spots.append([Vector2.from_angle(deg_to_rad(jd)) * FAN_REF_R * (0.93 + 0.07 * sin(float(n) * 7.233)), n % 2 == 0, n])
 		n += 1
 	for sgn in [-1.0, 1.0]:
 		for rr in range(64, 289, 64):   # 两侧边 8 → 4 条
-			spots.append([Vector2.from_angle(deg_to_rad(50.0 * sgn)) * float(rr), n % 2 == 0, n])
+			spots.append([Vector2.from_angle(deg_to_rad(50.0 * sgn)) * (float(rr) + 18.0 * sin(float(n) * 4.13)), n % 2 == 0, n])
 			n += 1
 	var base: Vector2 = o.pos + g.draw_off
 	var rot := Transform2D(fa, Vector2.ZERO)
@@ -1148,7 +1149,7 @@ static func hw_draw_melt(o) -> void:
 			var fr: int = mini(int(el * fps), nf / 2)
 			if left < 0.3:
 				fr = clampi(nf - 1 - int(left / 0.3 * (nf - 1 - nf / 2)), nf / 2, nf - 1)
-			fx_frame(o.cv, g, tn, nf, fr, e.pos + Vector2(0, float(e.r) * 0.6), g.PX * clampf(float(e.r) / 10.0, 1.0, 2.2), Color(1, 1, 1, 0.9))
+			fx_frame(o.cv, g, tn, nf, fr, e.pos + Vector2(0, float(e.r) * 0.6), g.PX * (clampf(float(e.r) / 14.0, 0.8, 1.1) if tn.contains("_px_") else clampf(float(e.r) / 10.0, 1.0, 2.2)), Color(1, 1, 1, 0.9))   # pixelfx @2x 守每 1x 像素 1.6–2.2（docs/229 组 B）
 		else:
 			o.cv.draw_set_transform(e.pos + Vector2(0, float(e.r) * 0.6), 0.0, Vector2(1.0, 0.45))
 			for q in 3:

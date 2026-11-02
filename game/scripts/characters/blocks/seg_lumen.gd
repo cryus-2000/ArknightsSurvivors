@@ -53,7 +53,7 @@ static func _h3_mend(o, h: float, size: int, sub: String) -> Vector2:
 	o.heal_leader(h, o.display_name(), sub)
 	o.float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), H3_WARM, size)
 	o.spawn_fx_sprite("fx_lumen_px_hit", g.ppos + Vector2(0, -34), g.PX)
-	if not o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
+	if not o.spawn_fx_sprite("fx_lumen_px_heal", g.ppos + Vector2(0, 2), g.PX):   # pixelfx @2x 原点在脚底（docs/229 组 B；原 1x 放大 2.4 倍的 fx_heal_aura_amber）
 		o.fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.4, "col": H3_WARM, "floor": true, "keep": true})
 	return g.ppos
 
@@ -752,6 +752,10 @@ static func _e3_draw_beam(o, f: Dictionary, a: float) -> void:
 	var p0: Vector2 = f.pos
 	var p1: Vector2 = p0 + (f.dir as Vector2) * float(f.len)
 	var tn: String = str(f.get("tile", "fx_lumen_beam"))
+	if g.tex.get(tn) != null and g.V6_FRAMES.has(tn) and tn.contains("_px_"):   # pixelfx 整条光束（docs/229 组 B）：长 200 @2x、原点 (4,12)，按实际长度缩放画一次，不再沿线平铺
+		var nf: int = int(g.V6_FRAMES[tn][0])
+		o.draw_spr_rot(tn, mini(int((1.0 - a) * nf), nf - 1), p0, (f.dir as Vector2).angle(), g.PX * float(f.len) / 200.0, Color.WHITE, Vector2(4, 12))
+		return
 	if g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
 		var nfr: int = int(g.V6_FRAMES[tn][0])
 		_hw_draw_tiled(o, tn, p0, p1, g.PX, 0.0, 0, Color(1, 1, 1, clampf(a * 1.4, 0.0, 1.0)), mini(int((1.0 - a) * nfr), nfr - 1))

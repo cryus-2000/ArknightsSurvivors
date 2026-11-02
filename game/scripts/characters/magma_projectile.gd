@@ -46,11 +46,15 @@ static func impact(o, p: Vector2, radius: float, size: float) -> void:
 		for k in 10:
 			gr.push("lava", p + Vector2(0, -4), Vector2.from_angle(-PI * 0.5 + (float(k) / 9.0 - 0.5) * 2.4), HOT)
 		gr.light(p, clampf(radius, 30.0, 70.0), HOT, 0.12)
-	if material_on(o) and o._fx_tex("fx_eyja_lava_splash") != null:
+	if o._fx_tex("fx_eyjafjalla_px_splash") != null:   # pixelfx @2x（docs/229 组 B）：倍率 1 = 每 1x 像素 2 世界像素；画面半径 26 < 落点伤害半径
+		o.spawn_fx_sprite("fx_eyjafjalla_px_splash", p + Vector2(0, -4), o.g.PX * clampf(sqrt(size), 0.8, 1.1))
+	elif material_on(o) and o._fx_tex("fx_eyja_lava_splash") != null:
 		o.spawn_fx_sprite("fx_eyja_lava_splash", p + Vector2(0, -4), o.g.PX * 0.6 * sqrt(size))
 	o.fx({"kind": "lava_spot", "mass": true, "pos": p, "r": clampf(radius * 0.42, 14.0, 32.0) * sqrt(size), "life": 0.4, "floor": true})
 
 static func fireball_impact(o, p: Vector2, radius: float, size: float) -> void:
+	if o.spawn_fx_sprite("fx_eyjafjalla_px_hit", p + Vector2(0, -5), o.g.PX * clampf(0.9 * sqrt(size), 0.8, 1.1)):   # pixelfx 普攻命中（docs/229 组 B）
+		return
 	if material_on(o) and o._fx_tex("fx_flam_hit") != null:
 		if o.spawn_fx_sprite("fx_flam_hit", p + Vector2(0, -5), o.g.PX * 0.65 * sqrt(size)):
 			return
@@ -63,7 +67,8 @@ static func ignite_hit(o, p: Vector2, radius: float, size: float) -> void:
 	if material_on(o):
 		r = clampf(radius * 0.55, 18.0, 56.0) * sqrt(size)   # S2 改版（docs/138 §14）：爆炸画面跟伤害范围走（原来封顶 40，伤害半径约 94）
 	var material := false
-	if material_on(o):
+	var px: bool = o._fx_tex("fx_eyjafjalla_px_ignite") != null and o.g.V6_FRAMES.has("fx_eyjafjalla_px_ignite")   # pixelfx 爆燃（docs/229 组 B）：自带火星 / 焦痕，不再补程序火星
+	if material_on(o) and not px:
 		var name := "fx_eyja_ignite_hit" if o._fx_tex("fx_eyja_ignite_hit") != null else "fx_eyja_ignite_boom"
 		var tx: Texture2D = o._fx_tex(name)
 		if tx != null and o.g.V6_FRAMES.has(name):
@@ -76,11 +81,11 @@ static func ignite_hit(o, p: Vector2, radius: float, size: float) -> void:
 			if material:
 				o.g.fx.append({"kind": "grain_light", "name": name, "pos": p, "scale": r * 1.3 / (fw / density), "life": 0.24, "max": 0.24})
 	var sparks := []
-	for i in (0 if material else 10):
+	for i in (0 if material or px else 10):
 		var ang: float = -PI * 0.5 + (float(i) / 10.0 - 0.5) * PI * 1.7 + o.g.vrng.randf_range(-0.15, 0.15)
 		sparks.append([Vector2.from_angle(ang), o.g.vrng.randf_range(0.7, 1.25)])
 	o.fx({"kind": "ignite_scorch", "pos": p, "r": r, "life": 1.1, "floor": true, "material": material})
-	o.fx({"kind": "ignite_hit", "pos": p, "r": r, "life": 0.42, "sparks": sparks, "material": material})
+	o.fx({"kind": "ignite_hit", "pos": p, "r": r, "life": 0.6 if px else 0.42, "sparks": sparks, "material": material, "px": px})
 
 static func draw_ignite_hit(o, f: Dictionary) -> void:
 	var age: float = float(f.max) - float(f.life)
@@ -89,6 +94,10 @@ static func draw_ignite_hit(o, f: Dictionary) -> void:
 	var r: float = float(f.r)
 	var p: Vector2 = f.pos
 	var flash: float = maxf(0.0, 1.0 - age / 0.07) * dim
+	if f.get("px", false):   # pixelfx 爆燃：1x 帧条半径 44 = 88 世界像素；按伤害半径（r / 0.55）取倍率 0.8–1.1（每 1x 像素 1.6–2.2 世界像素）
+		var pspec: Array = o.g.V6_FRAMES["fx_eyjafjalla_px_ignite"]
+		o.draw_spr_rot("fx_eyjafjalla_px_ignite", mini(int(age * float(pspec[1])), int(pspec[0]) - 1), p, 0.0, o.g.PX * clampf(r / 0.55 / 88.0, 0.8, 1.1), Color(1, 1, 1, dim))
+		return
 	if flash > 0.0:
 		if f.get("material", false):
 			_poly(o, [Vector2(-3, 0), Vector2(0, -4), Vector2(3, 0), Vector2(0, 2)], p + Vector2(0, -6), 0.0, Vector2.ONE * r / 12.0, Color(1.0, 0.8, 0.35, flash * 0.65))
@@ -161,16 +170,18 @@ static func draw_pool(o, l: Dictionary) -> void:
 	if material_on(o):
 		var age: float = float(l.dur) - float(l.t)
 		for i in 8:
-			var a: float = float(i) * TAU / 8.0
+			var a: float = float(i) * TAU / 8.0 + 0.35 * sin(float(i) * 2.7)   # 11-03 不等距（docs/229 §2.6）
 			var q: Vector2 = l.pos + Vector2(cos(a) * float(l.r) * 0.55, sin(a) * float(l.r) * 0.22)
 			var phase: float = fposmod(age * 1.5 + float(i) * 0.37, 1.0)
 			var heat: Color = HOT if phase < 0.35 else Color(0.42, 0.1, 0.035)
 			o.cv.draw_rect(Rect2(_snap(q), Vector2(2, 2)), Color(heat, fade))
-	var texture := "fx_eyja_lava_pool"
+	var texture := "fx_eyjafjalla_px_pool" if o.g.tex.get("fx_eyjafjalla_px_pool") != null else "fx_eyja_lava_pool"
 	if o.g.tex.get(texture) != null and o.g.V6_FRAMES.has(texture):
 		var spec: Array = o.g.V6_FRAMES[texture]
-		var frame: int = int((float(l.dur) - float(l.t)) * float(spec[1])) % int(spec[0])
-		o.draw_spr_rot(texture, frame, l.pos, 0.0, minf(float(l.r) / 26.0, 3.2), Color(1, 1, 1, fade * (0.5 if material_on(o) else 0.75)))
+		var ph: int = int(absf(l.pos.x * 0.37 + l.pos.y * 0.61))   # pixelfx 熔池（docs/229 组 B）：连排时按位置错相位、半数镜像、大小 0.82–1.0（只缩不放，守密度）
+		var frame: int = (int((float(l.dur) - float(l.t)) * float(spec[1])) + ph) % int(spec[0])
+		var px: bool = texture.contains("_px_")
+		o.draw_spr_rot(texture, frame, l.pos, 0.0, minf(float(l.r) / 26.0, 3.2) * ((0.82 + 0.06 * float(ph % 4)) if px else 1.0), Color(1, 1, 1, fade * (0.85 if px else (0.5 if material_on(o) else 0.75))), Vector2(-1, -1), px and ph % 2 == 1)
 		return
 	var pulse: float = 0.45 + 0.05 * sin((float(l.dur) - float(l.t)) * 3.0)
 	_poly(o, [Vector2(-6, 0), Vector2(-2, -2), Vector2(4, -4), Vector2(6, 0), Vector2(2, 2), Vector2(-4, 2)], l.pos, 0.0, scale, Color(HOT, fade * pulse))

@@ -107,7 +107,7 @@ static func _h4_fox_start(o, a: Dictionary) -> void:
 	sz.merging = _h4_next_merge(o, a) and not _h4_patch_pending(o)
 	o.start_attack(ts[0].pos, 0.5, 0.25, "", o.cd)
 	if sz.merging:
-		o.spawn_fx_sprite("fx_suzuran_foxfire_gather", _h4_tip(o, a), o.g.PX * 0.9)   # 三团狐火汇聚（原作：三团狐火合而为一再射出）
+		o.spawn_fx_sprite("fx_suzuran_px_gather", _h4_tip(o, a), o.g.PX * 0.9)   # 三团狐火汇聚（原作：三团狐火合而为一再射出）
 
 
 static func _h4_fox_release(o, a: Dictionary) -> void:
@@ -600,8 +600,7 @@ static func _h4sz_draw_auras(o) -> void:
 	var r: float = h4_fox_r(o, fl)
 	var on: bool = _h4_warm(o, fl) or float(sz.haze_t) > 0.0
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	feather_ring(cv, r, H4_FOX, 0.6 if on else 0.35, g.t)   # 10-29：不填充，改内羽边 + 光点
-	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, (0.45 if on else 0.25) + 0.06 * sin(g.t * 3.0)), 2.0)
+	_h4_field_ring(cv, r, 0.6 if on else 0.35, g.t)   # 11-03：换掉共用 feather_ring 的三道等距同心弧（docs/229 §2.6，组 B）
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var hr: Dictionary = _h4_hearth(o, fl)
 	if not hr.is_empty():
@@ -613,9 +612,36 @@ static func _h4sz_draw_auras(o) -> void:
 			_h4_flame(o, hp, 15.0, 1.0)
 		return
 	var n: int = 9 if float(sz.haze_t) > 0.0 else 6
-	for k in n:
-		var an2: float = g.t * 0.8 + k * TAU / n
-		_h4_flame(o, o.pos + Vector2(4, 4) + Vector2(cos(an2) * r, sin(an2) * r * 0.55), 9.0 if on else 6.0, 0.9 if on else 0.6)
+	for k in n:   # 11-03：角度、半径、绕行快慢、大小按序号错开（原等距同速，docs/229 §2.6）
+		var an2: float = g.t * (0.65 + 0.3 * fmod(k * 0.618, 1.0)) + k * TAU / n + 0.45 * sin(k * 2.3)
+		var r2: float = r * (0.92 + 0.08 * sin(k * 1.7 + g.t * 0.5))
+		_h4_flame(o, o.pos + Vector2(4, 4) + Vector2(cos(an2) * r2, sin(an2) * r2 * 0.55), (9.0 if on else 6.0) * (0.8 + 0.35 * fmod(k * 0.381, 1.0)), 0.9 if on else 0.6)
+
+
+## 光域外沿（11-03，docs/229 组 B）：一道按不可公度正弦叠出来的起伏单圈（2 世界像素宽，本人色阶第 4 阶），
+## 外加几段长短、半径、亮度都不一样的余烬弧和几颗光点（不等距、不同速）；只一圈，不画同心圈。在光域椭圆变换（sy 0.55）里画。
+static func _h4_field_ring(cv, r: float, a: float, t: float) -> void:
+	if a <= 0.01 or r <= 4.0:
+		return
+	var c3: Color = ArtS.op_ramp("suzuran", 3)
+	var c4: Color = ArtS.op_ramp("suzuran", 4)
+	var c2: Color = ArtS.op_ramp("suzuran", 2)
+	var pts := PackedVector2Array()
+	var n := 56
+	for i in n + 1:
+		var an: float = TAU * i / n
+		var k: float = 1.0 + 0.035 * sin(an * 3.0 + t * 0.7) + 0.022 * sin(an * 7.0 - t * 1.1 + 1.3) + 0.012 * sin(an * 13.0 + t * 1.9)
+		pts.append(Vector2.from_angle(an) * r * k)
+	cv.draw_polyline(pts, Color(c3.r, c3.g, c3.b, a * 0.75 + 0.06 * sin(t * 3.0)), 2.0)
+	for j in 5:   # 余烬弧：起角 / 长度 / 半径 / 亮度按序号错开，慢慢绕
+		var a0: float = j * 1.37 + t * (0.12 + 0.05 * j) * (1.0 if j % 2 == 0 else -1.0)
+		var rr: float = r * (0.78 + 0.13 * fmod(j * 0.618, 1.0))
+		cv.draw_arc(Vector2.ZERO, rr, a0, a0 + 0.35 + 0.3 * fmod(j * 0.37, 1.0), 8, Color(c2.r, c2.g, c2.b, a * (0.25 + 0.15 * sin(t * 1.3 + j))), 2.0)
+	for i in 8:   # 光点
+		var ang: float = i * 2.39996 + t * 0.18 * (1.0 if i % 2 == 0 else -0.7)
+		var rad: float = r * (0.3 + 0.62 * fmod(i * 0.381, 1.0))
+		var tw: float = 0.5 + 0.5 * sin(t * (1.3 + 0.2 * i) + i * 2.3)
+		cv.draw_rect(Rect2(Vector2.from_angle(ang) * rad - Vector2(1, 1), Vector2(2, 2)), Color(c4.r, c4.g, c4.b, a * 0.6 * tw))
 
 
 ## 九尾虚影：Codex 帧条（tex，底部根点放在腰后，alpha），缺图画九条程序尾巴
@@ -667,15 +693,15 @@ static func _h4sz_draw_over(o) -> void:
 	elif float(sz.haze_t) <= 0.0 and _h4_next_merge(o, a):
 		conv = clampf(1.0 - o.cd / 0.45, 0.0, 1.0)
 	var c: Vector2 = _h4_tip(o, a)
-	for k in n:
-		var an: float = g.t * 1.6 + k * TAU / n
-		var p: Vector2 = o.pos + Vector2(cos(an) * 40.0, -22.0 + sin(an) * 13.0 + sin(g.t * 3.0 + k) * 2.0)
+	for k in n:   # 11-03：绕行角度、半径按序号错开（原等距，docs/229 §2.6）
+		var an: float = g.t * 1.6 + k * TAU / n + 0.35 * sin(k * 2.1)
+		var p: Vector2 = o.pos + Vector2(cos(an) * (40.0 + 5.0 * sin(k * 1.3)), -22.0 + sin(an) * 13.0 + sin(g.t * 3.0 + k) * 2.0)
 		if k < 3 and conv > 0.0:
 			if conv > 0.85:
 				continue
 			p = p.lerp(c, conv * conv)
 		cv.draw_circle(p + Vector2(0, -5), 9.0, Color(1.6, 1.1, 0.4, 0.35))
-		if o._fx_strip("fx_suzuran_wisp", 4, int(g.t * 8.0) + k, p + Vector2(0, -8)):
+		if o._fx_strip("fx_suzuran_px_wisp", 4, int(g.t * 8.0) + k, p + Vector2(0, -8)):
 			continue
 		_h4_flame(o, p, 13.0, 1.0)
 		cv.draw_circle(p + Vector2(0, -4), 2.5, Color(2.6, 2.4, 1.8, 0.95))
@@ -743,7 +769,7 @@ static func _h4sz_draw_floor_e(o) -> void:
 		var al: float = clampf(float(s2.t) / 0.3, 0.0, 1.0) * clampf((float(s2.max) - float(s2.t)) / 0.12, 0.0, 1.0)
 		var bp: Vector2 = e.pos + Vector2(0, float(e.r) * 0.7)
 		if has_tex:
-			fx_frame(cv, g, tn, int(g.V6_FRAMES[tn][0]), int(g.t * float(g.V6_FRAMES[tn][1]) + float(e.id) * 0.37), bp, g.PX * clampf(float(e.r) / 10.0, 0.9, 1.8), Color(1, 1, 1, al))
+			fx_frame(cv, g, tn, int(g.V6_FRAMES[tn][0]), int(g.t * float(g.V6_FRAMES[tn][1]) + float(e.id) * 0.37), bp, g.PX * (clampf(float(e.r) / 14.0, 0.8, 1.1) if tn.contains("_px_") else clampf(float(e.r) / 10.0, 0.9, 1.8)), Color(1, 1, 1, al))   # pixelfx @2x 守密度（docs/229 组 B）
 		else:
 			cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.5))
 			cv.draw_arc(Vector2.ZERO, float(e.r) * 0.8 + 4.0, 0.0, TAU, 20, Color(2.0, 1.6, 0.8, 0.75 * al), 1.5)

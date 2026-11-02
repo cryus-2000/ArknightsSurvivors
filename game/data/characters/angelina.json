@@ -559,7 +559,7 @@
      "cond": "elite >= 1",
      "fx": [
       {
-       "strip": "fx_angelina_halt",
+       "strip": "fx_angelina_px_halt",
        "layer": "floor",
        "off": [
         0,
@@ -587,7 +587,7 @@
      "fx": [
       {
        "strip": "fx_angelina_px_pull",
-       "fit": 30,
+       "fit": 50,
        "layer": "floor"
       }
      ],
@@ -611,34 +611,34 @@
      "_doc": "失重井（docs/91 §1）：每 well_every 秒拉向井心、井心托起（刷新到井消失）、井内失重 / 悬浮的敌人受伤（三技能期间减半）",
      "fx": [
       {
-       "strip": "fx_angelina_well_open",
+       "strip": "fx_angelina_px_well_open",
        "layer": "floor",
-       "fit": 48,
+       "fit": 30,
        "once": true
       },
       {
-       "strip": "fx_angelina_well_back",
+       "strip": "fx_angelina_px_well",
        "layer": "floor",
-       "fit": 48
+       "fit": 30
       },
       {
-       "strip": "fx_angelina_well_front",
+       "strip": "fx_angelina_px_well_front",
        "anchor": [
         24,
         36
        ],
-       "fit": 48
+       "fit": 30
       },
       {
-       "strip": "fx_angelina_well_close",
+       "strip": "fx_angelina_px_well_close",
        "layer": "floor",
-       "fit": 48,
+       "fit": 30,
        "once": true,
        "delay": "$well_dur-0.25"
       },
       {
        "strip": "proj_angelina_orb",
-       "if_tex": "!fx_angelina_well_front",
+       "if_tex": "!fx_angelina_px_well_front",
        "scale": 1.4,
        "off": [
         0,
@@ -647,9 +647,9 @@
       },
       {
        "strip": "fx_angelina_px_pull",
-       "if_tex": "!fx_angelina_well_back",
+       "if_tex": "!fx_angelina_px_well",
        "layer": "floor",
-       "fit": 30
+       "fit": 50
       }
      ],
      "do": [
@@ -663,7 +663,7 @@
        "fx": [
         {
          "strip": "fx_angelina_px_pull",
-         "fit": 30,
+         "fit": 50,
          "layer": "floor",
          "tint": [
           1.0,
@@ -681,7 +681,7 @@
          "h": 22,
          "fx": [
           {
-           "strip": "fx_angelina_float_dust",
+           "strip": "fx_angelina_px_float_dust",
            "life": "$well_every",
            "off": [
             0,
