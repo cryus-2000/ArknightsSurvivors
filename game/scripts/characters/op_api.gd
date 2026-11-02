@@ -418,7 +418,7 @@ func ground_dust(at: Vector2, radius := 22.0, count := 7) -> void:
 
 ## 播放一次性特效帧条（V6_FRAMES 注册的 fx_*）；贴图缺失返回 false，调用方可退回程序特效
 func spawn_fx_sprite(name: String, pos: Vector2, scale: float = -1.0, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
-	return g.vfx.fx_sprite(name, pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col)
+	return g.vfx.fx_sprite(A.px_basic(g, name), pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col)   # pixelfx 普攻试点可退回旧帧条（docs/231）
 
 
 ## 旧式整条动画特效（跟随可选）

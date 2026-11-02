@@ -1,0 +1,7 @@
+{
+ "_doc": "普攻试点（docs/231）：拉普兰德（近战）/ 能天使（远程）；全部 @2x，32 色调色板",
+ "fx_lappland_px_slash": {"fx": "melee/ak-lappland-slash", "hires": true},
+ "fx_exusiai_px_atk_muzzle": {"fx": "projectiles/ak-exusiai-muzzle", "hires": true, "keep": true},
+ "fx_exusiai_px_atk_hit": {"fx": "impacts/ak-exusiai-hit", "hires": true},
+ "proj_exusiai_px_bullet": {"fx": "projectiles/ak-exusiai-bullet", "hires": true, "keep": true}
+}

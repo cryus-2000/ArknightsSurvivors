@@ -572,7 +572,7 @@
    ],
    "fx": [
     {
-     "strip": "fx_lappland_slash",
+     "strip": "fx_lappland_px_slash",
      "rot": true,
      "along": 0.5,
      "scale": 1.0,
@@ -580,7 +580,7 @@
       0,
       -10
      ],
-     "if_tex": "fx_lappland_slash"
+     "if_tex": "fx_lappland_px_slash"
     },
     {
      "blade": {
@@ -601,7 +601,7 @@
       "life": 0.2,
       "half": 1.3
      },
-     "if_tex": "!fx_lappland_slash"
+     "if_tex": "!fx_lappland_px_slash"
     }
    ],
    "combo": [
@@ -641,7 +641,7 @@
        ],
        "fx": [
         {
-         "strip": "fx_lappland_slash",
+         "strip": "fx_lappland_px_slash",
          "rot": true,
          "along": 0.5,
          "scale": 0.9,
@@ -649,7 +649,7 @@
           0,
           -10
          ],
-         "if_tex": "fx_lappland_slash"
+         "if_tex": "fx_lappland_px_slash"
         },
         {
          "blade": {
@@ -671,7 +671,7 @@
           "half": 1.3,
           "mirror": true
          },
-         "if_tex": "!fx_lappland_slash"
+         "if_tex": "!fx_lappland_px_slash"
         }
        ]
       }

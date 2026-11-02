@@ -24,7 +24,7 @@ const EXU_AIM_Y := -10.0              # 瞄准 / 判定点：敌人脚底往上 
 const EXU_HIT_PAD := 6.0              # 判定半径 = 敌人半径 + 6
 
 ## 弹体帧条的弹头锚点（docs/25 §6，1x 像素；@2x 自动 ×2）
-const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_bullet_power": Vector2(15, 4),
+const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_px_bullet": Vector2(12, 3), "proj_exusiai_bullet_power": Vector2(15, 4),
 	"proj_exusiai_bullet_s1": Vector2(15, 4), "proj_exusiai_bullet_s2": Vector2(12, 3), "proj_exusiai_bullet_s3": Vector2(12, 3)}   # 技能弹药换色帧条（docs/25 §6.1）同源帧条的锚点
 
 ## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
@@ -299,7 +299,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 				btex = "proj_exusiai_bullet_t3"   # 曳光弹：金色弹体
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
-				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
+				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": EXU_ART.px_basic(o.g, btex), "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
 	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
 	if not fan:
 		# 枪声跟出弹同一帧：每一轮射击一声（连射的后几轮、掩护射击补射也各一声；原来整个普攻出手只在 _release_body 末尾响一声，技能连射靠发动时的预混音频）。

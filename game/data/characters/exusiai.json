@@ -474,7 +474,9 @@
    "kb": "$kb",
    "mult": 1.0,
    "src": "速射",
-   "tex": "proj_exusiai_bullet",
+   "tex": "proj_exusiai_px_bullet",
+   "muzzle_fx": "fx_exusiai_px_atk_muzzle",
+   "hit_fx": "fx_exusiai_px_atk_hit",
    "muzzle": [
     30,
     -35

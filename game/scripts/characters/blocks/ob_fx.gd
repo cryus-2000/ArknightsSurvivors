@@ -93,7 +93,7 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 
 static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: float) -> void:
 	var g = o.g
-	var name: String = str(f.get("strip", ""))
+	var name: String = ArtS.px_basic(g, str(f.get("strip", "")))   # pixelfx 普攻试点：可退回旧帧条（docs/231）
 	if g != null and g.vfx != null and g.vfx._fxc != null:   # --fxcensus：@ob = 干员数据特效，L = 循环件 / 扩散件（不粒子化）
 		g.vfx._fx_census(name + ("@obL" if (f.has("life") and not f.get("once", false)) or str(f.get("ease", "")) != "" else "@ob"), false)
 	if g == null or g.tex.get(name) == null or not g.V6_FRAMES.has(name) or o.pfx.size() > 220:

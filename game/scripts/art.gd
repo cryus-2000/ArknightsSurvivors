@@ -215,6 +215,20 @@ static func op_1x_on() -> bool:
 		var Bal = load("res://scripts/core/balance.gd")
 		_op1x = 1 if Bal == null or Bal.v("render/op_1x", 1.0) > 0.0 else 0
 	return _op1x == 1
+
+
+## pixelfx 普攻试点（docs/231）：新帧条 → 被它替换的旧帧条。balance fx/px_basic = 0（--bal=fx/px_basic=0）整体退回旧帧条；
+## --optab 同局轮换时 g.opt_old 带 Game.OPT_PXB 位的那段也走旧帧条，量新帧条的净帧时（正常游戏恒为 0）。纯画面，不进结算
+const PX_BASIC_OLD := {"fx_lappland_px_slash": "fx_lappland_slash", "fx_exusiai_px_atk_muzzle": "fx_exusiai_muzzle",
+	"fx_exusiai_px_atk_hit": "fx_exusiai_hit", "proj_exusiai_px_bullet": "proj_exusiai_bullet"}
+static var _pxb := -1
+static func px_basic(g, name: String) -> String:
+	if not PX_BASIC_OLD.has(name):
+		return name
+	if _pxb < 0:
+		var Bal = load("res://scripts/core/balance.gd")
+		_pxb = 1 if Bal == null or Bal.v("fx/px_basic", 1.0) > 0.0 else 0
+	return PX_BASIC_OLD[name] if _pxb == 0 or (g != null and g.opt_old & 8388608) else name   # 8388608 = Game.OPT_PXB
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
 const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser", "portraits/"]
 
@@ -1123,4 +1137,6 @@ const V6_FRAMES := {
 	"e_saint_death": [8, 3.4], "e_skimmer_death": [8, 8.0], "e_slider_death": [6, 3.6], "e_spitter_death": [6, 4.7],
 	"e_stone_death": [6, 6.0], "e_tear_death": [6, 7.5], "e_tracer_death": [6, 6.0],
 	# <<< enemy_redraw
+	# pixelfx 普攻试点（docs/231）：拉普兰德双刃横扫、能天使速射枪口 / 命中 / 弹体，源码 tools/pixelfx_fx/targets_basic.json
+	"fx_lappland_px_slash": [4, 24.0], "fx_exusiai_px_atk_muzzle": [3, 24.0], "fx_exusiai_px_atk_hit": [4, 24.0], "proj_exusiai_px_bullet": [2, 20.0],
 }
