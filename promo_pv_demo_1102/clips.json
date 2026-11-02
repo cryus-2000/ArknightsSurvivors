@@ -1,13 +1,68 @@
 {
- "_doc": "镜头 → 录帧目录 + 起始帧（待填：探路后按 PVULT / PVHF / PVLOG 定）。dir 相对本目录；first = 片段第 0 帧对应的 f####.jpg 序号。ult 类镜头让 PVHF（冲击帧第一拍）落在 pv.py 里标的重拍上",
- "open":   {"dir": "raw/A/rec_open",   "first": 0},
- "squad":  {"dir": "raw/B/rec_squad",  "first": 0},
- "wheel":  {"dir": "raw/A/rec_wheel",  "first": 0},
- "crowd":  {"dir": "raw/A/rec_crowd",  "first": 0},
- "ult_tx": {"dir": "raw/B/rec_ult_tx", "first": 0},
- "horde":  {"dir": "raw/B/rec_horde",  "first": 0},
- "ult_mz": {"dir": "raw/A/rec_ult_mz", "first": 0},
- "full":   {"dir": "raw/A/rec_full",   "first": 0},
- "boss1":  {"dir": "raw/C/rec_boss1",  "first": 0},
- "boss2":  {"dir": "raw/C/rec_boss2",  "first": 0}
+ "_doc": "镜头 → 录帧目录 + 起始帧。终结技镜头：冲击帧第一拍（hf.py 亮度检测）落在 pv.py 标的重拍上（open 片中 1.644 秒 = 片段第 49 帧；ult_tx / ult_mz 片段第 49 帧）",
+ "open": {
+  "dir": "raw/A/rec_06_ult_mizuki_t267.0",
+  "first": 75,
+  "_": "A 4:27 水月终结技，灯火 57 偏暗，冲击帧 124",
+  "ramp": [
+   46,
+   124,
+   49
+  ]
+ },
+ "squad": {
+  "dir": "raw/B/rec_01_win_t038.0",
+  "first": 30,
+  "_": "B 0:39 德克萨斯队长小队"
+ },
+ "wheel": {
+  "dir": "raw/A/rec_02_win_t072.0",
+  "first": 80,
+  "_": "A 1:15 指挥圆盘下令突击"
+ },
+ "crowd": {
+  "dir": "raw/A/rec_13_horde_t462.0",
+  "first": 40,
+  "_": "A 7:42 大群来袭，屏内 70"
+ },
+ "ult_tx": {
+  "dir": "raw/B/rec_03_ult_texas_t119.3",
+  "first": 73,
+  "_": "B 2:01 德克萨斯终结技，冲击帧 122",
+  "ramp": [
+   52,
+   122,
+   49
+  ]
+ },
+ "horde": {
+  "dir": "raw/B/rec_08_horde_t390.3",
+  "first": 60,
+  "_": "B 6:31 大群，屏内 113"
+ },
+ "ult_mz": {
+  "dir": "raw/A/rec_15_ult_mizuki_t562.8",
+  "first": 75,
+  "_": "A 9:25 水月终结技，屏内 67，冲击帧 124",
+  "ramp": [
+   52,
+   124,
+   49
+  ]
+ },
+ "full": {
+  "dir": "raw/B/rec_09_win_t430.0",
+  "first": 20,
+  "_": "B 7:11 屏内 116"
+ },
+ "boss1": {
+  "dir": "raw/B/rec_12_boss_t621.1",
+  "first": 30,
+  "_": "B 10:22 伊祖米克弹幕（屏内敌弹 104）"
+ },
+ "boss2": {
+  "dir": "raw/A/rec_17_boss_t647.8",
+  "first": 30,
+  "_": "A 10:49 伊莎玛拉环形弹幕（屏内敌弹 116）"
+ }
 }

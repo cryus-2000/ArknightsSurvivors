@@ -8,11 +8,12 @@ RUNS={
  "B": ["--seed=2","--op=texas","--squad=mizuki,saria","--forceending=resolve"],
  "C": ["--seed=3","--op=mizuki","--squad=texas,saria","--forceending=standard"],
 }
+WINS={"A":"38-46,72-80,290-295,430-435","B":"38-46,290-295,430-435","C":"38-46,290-295,430-435"}
 def launch(name, extra, maxt):
     gr.ensure_imported(WT+"/game")
     out=os.path.join(HERE,"raw",name).replace(os.sep,"/"); os.makedirs(out,exist_ok=True)
     args=[gr.find_godot(),"--path",WT+"/game","--audio-driver","Dummy","--fixed-fps","30","--resolution","1920x1080",
-          "-s",HERE.replace(os.sep,"/")+"/pv_mon.gd","--","--balance","--realtime","--nodeath","--bot=master","--diff=4"]+RUNS[name[0]]+["--pv_out="+out,"--pv_maxt=%s"%maxt]+extra
+          "-s",HERE.replace(os.sep,"/")+"/pv_mon.gd","--","--balance","--realtime","--nodeath","--bot=master","--diff=4"]+RUNS[name[0]]+["--pv_out="+out,"--pv_maxt=%s"%maxt,"--pv_win="+WINS[name[0]]]+extra
     t0=time.time(); o,e,to=gr.run_godot(args, 7200)
     open(os.path.join(out,"run.log"),"w",encoding="utf-8").write(" ".join(args)+"\n\n"+o+"\n----\n"+e)
     print(name,"wall %ds"%(time.time()-t0),"timeout" if to else "", gr.script_errors(o,e)[:3], flush=True)

@@ -46,7 +46,12 @@ def clip_frame(name, k):
     if d not in _cache:
         _cache[d] = sorted(glob.glob(os.path.join(d, "f*.jpg")))
     fs = _cache[d]
-    i = min(len(fs) - 1, max(0, int(c["first"]) + k))
+    if "ramp" in c:   # 变速：[起, 冲击帧, 片中冲击帧]：片中 0→冲击帧 快放 起→冲击帧，之后原速
+        a, hf, dh = c["ramp"]
+        src = a + k * (hf - a) / dh if k < dh else hf + (k - dh)
+    else:
+        src = int(c["first"]) + k
+    i = min(len(fs) - 1, max(0, int(round(src))))
     return Image.open(fs[i]).convert("RGB")
 
 

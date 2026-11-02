@@ -3,3 +3,5 @@ full.wav
 preview.png
 __pycache__/
 music.wav
+segs_*.png
+raw_*.txt

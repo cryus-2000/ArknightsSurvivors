@@ -25,19 +25,19 @@
 
 | # | 片中秒 | 时长 | 画面 | 来源局（`run.py`） | 转场 |
 |---|---|---|---|---|---|
-| 1 | 0.00 | 3.29 | `open` 灯火小圈被包围 → 水月终结技立绘切入 + 冲击帧（PVHF 帧对准 1.644） | A | 黑场 8 帧淡入 |
+| 1 | 0.00 | 3.29 | `open` A 4:27 水月终结技：起手前 → 超必杀定格 → 立绘切入（1.5 倍快放），冲击帧对准 1.644 重拍；灯火 58 偏暗 | A rec_06 | 黑场 8 帧淡入 |
 | 2 | 3.29 | 1.64 | 卡「带上你的小队」（黑底青斜带，八分音符逐字砸出，标签 SQUAD） | — | 反色 1 帧 |
 | 3 | 4.93 | 2.47 | 登场卡：德克萨斯（像素待机帧 ×7）+「德克萨斯」+ 空心 TEXAS +「先锋 · 尖兵」（texas.json），无台词 | — | 末 6 帧斜切条 |
-| 4 | 7.40 | 4.11 | `squad` 德克萨斯队长小队作战，露 HUD | B | 斜切条扫走 |
-| 5 | 11.51 | 3.29 | `wheel` 指挥圆盘下令「突击」（`--wheelplan=open@75,sel@0.35:1,ok@1.3`） | A | 闪白 + 推镜 |
+| 4 | 7.40 | 4.11 | `squad` B 0:39 德克萨斯队长 + 水月 / 塞雷娅小队，露 HUD | B rec_01 | 斜切条扫走 |
+| 5 | 11.51 | 3.29 | `wheel` A 1:15 指挥圆盘打开 → 选「突击」→ 确认 | A rec_02 | 闪白 + 推镜 |
 | 6 | 14.80 | 1.64 | 卡「灯火之外，皆是敌人」（莱茵白底黑字，十六分音符逐字，青色菱形线框） | — | 反色 1 帧 |
-| 7 | 16.44 | 3.29 | `crowd` 中期人群 | A | 菱形从中心张开 |
-| 8 | 19.73 | 3.29 | `ult_tx` 德克萨斯终结技（冲击帧对 21.37） | B | 闪白 + 推镜 |
-| 9 | 23.02 | 2.47 | `horde` 大群来袭 | B | 同上 |
-| 10 | 25.48 | 3.29 | `ult_mz` 水月终结技（后期，冲击帧对 27.13） | A | 同上 |
-| 11 | 28.77 | 0.82 | `full` 满屏 | A | 同上 |
-| 12 | 29.59 | 3.29 | `boss1` Boss 弹幕 | C（或 A / B 里弹幕最多的） | 反色 2 帧 + 闪白（drop） |
-| 13 | 32.88 | 3.29 | `boss2` Boss 弹幕另一角度 | 同上 | 闪白 |
+| 7 | 16.44 | 3.29 | `crowd` A 7:42「海嗣自四方合围而来」，屏内 70 | A rec_13 | 菱形从中心张开 |
+| 8 | 19.73 | 3.29 | `ult_tx` B 2:01 德克萨斯终结技（1.4 倍快放到冲击帧，冲击帧对 21.37） | B rec_03 | 闪白 + 推镜 |
+| 9 | 23.02 | 2.47 | `horde` B 6:31 大群，屏内 113 | B rec_08 | 同上 |
+| 10 | 25.48 | 3.29 | `ult_mz` A 9:25 水月终结技（屏内 67 → 清场，冲击帧对 27.13） | A rec_15 | 同上 |
+| 11 | 28.77 | 0.82 | `full` B 7:11 屏内 116 | B rec_09 | 同上 |
+| 12 | 29.59 | 3.29 | `boss1` B 10:22 伊祖米克弹幕链（屏内敌弹 104） | B rec_12 | 反色 2 帧 + 闪白（drop） |
+| 13 | 32.88 | 3.29 | `boss2` A 10:49 伊莎玛拉环形弹幕（屏内敌弹 116） | A rec_17 | 闪白 |
 | 14 | 36.17 | 0.82 | 黑（静默） | — | 硬切 |
 | 15 | 36.99 | 6.41 | 标题卡：像素字「方舟幸存者」砸出（闪白）→ ARKNIGHTS SURVIVORS → 第 2 小节「免费试玩 · itch / B站」→ 第 3 小节「非官方同人作品，与鹰角网络无关」→ 淡出 | — | 闪白 4 帧 |
 
@@ -45,27 +45,27 @@
 字体 `game/fonts/ui.ttf`；标题像素字沿用 `tools/promo_cover.py pixel_text`；配色 UI.CYAN #36e2dc / UI.PURPLE / 白，标签用莱茵白底黑字。
 卡片效果预览：`cards_preview.png`。
 
+## 已知毛病（小样，不追求完美）
+
+- 机器人局屏内敌人最多约 116，没到真正「满屏」（正片可用更高难度 / 更久的局）。
+- 开场冲击帧后紧接机器人升级（「LEVEL UP!」字样，升级面板只闪几帧）；后期水月终结技后清场，后半段偏空。
+- 实机全露 HUD，HUD 改版后要重录。
+
 ## 文件
 
 - `music.py` 拼配乐 → `music.wav`（不入库，随时重新生成）；`ana.py` / `bars.py` 拍点与段落分析。
-- `pv_mon.gd` 录帧监视（`--pv_rec=名@起始秒@时长秒` 存 jpg；打印 `PVULT`（终结技起手：时刻、帧、施放者）、`PVHF`（冲击帧第一拍）、`PVLOG`（每 0.5 秒：灯火、屏内敌人 ne、屏内敌弹 eb、Boss、圆盘））。
-- `run.py <名> <maxt> [--pv_rec=…]`：局 A / B / C 的参数在 RUNS 里（`--balance --realtime --nodeath --bot=master --diff=4 --fixed-fps 30`，同 seed 逐帧复现）；产出 `raw/<名>/run.log`。
+- `pv_mon.gd` 一遍录：边跑边存候选片段 jpg（固定窗口 `--pv_win`、终结技起手带 60 帧预录、大群横幅、最终 Boss 敌弹 ≥ 25、后期 ≥ 150 敌），日志实时写 `raw/<局>/pv.log`（PVSEG / PVULT / PVLOG）。`segs.py` 列段 + 缩略拼图，`hf.py` 按亮度找冲击帧，`frames.py` 出关键帧拼图。
+- `run.py <局> <maxt>`：局 A / B / C 的参数在 RUNS 里（`--balance --realtime --nodeath --bot=master --diff=4 --fixed-fps 30`，同 seed 逐帧复现）；产出 `raw/<名>/run.log`。
   - A：seed 1 · 水月 + 德克萨斯 / 斯卡蒂 · `--forceending=deep`（伊莎玛拉）· 75 秒圆盘下令突击
   - B：seed 2 · 德克萨斯 + 水月 / 塞雷娅 · `--forceending=resolve`（伊祖米克）
   - C：seed 3 · 水月 + 德克萨斯 / 塞雷娅 · `--forceending=standard`（泡影）
 - `fx.py` 排版 / 转场元素，`cards.py` 四张卡，`pv.py` 拼片 + 编码（`python pv.py --preview 1,5,20` 出预览拼图；`python pv.py out/pv_demo_1102.mp4` 出片）。
-- `clips.json` 镜头 → 录帧目录 + 起始帧（待填）。
+- `clips.json` 镜头 → 录帧目录 + 起始帧（`ramp` = 变速到冲击帧）。
 
-## 接着做（步骤）
+## 复现
 
-1. 探路：`python run.py As 680` / `Bs` / `Cs`（三局可并行，约 15–20 分钟实时），看 `raw/<名>s/run.log` 里的 PVULT / PVHF / PVLOG。
-2. 选时刻：A 第一次水月终结技（PVHF）做 `open`；A 75 秒 `wheel`；A 中期 ne 60–100 段 `crowd`；A 后期 ne 最高的一次水月 PVHF 做 `ult_mz`、ne ≥150 做 `full`；B 40–60 秒 `squad`、德克萨斯 PVHF 做 `ult_tx`、大群（ne 峰）做 `horde`；最终 Boss 在场且 eb 最高的两段做 `boss1/2`（三局里挑弹幕最好看的）。
-3. 录帧：同参数重跑，每个镜头 `--pv_rec=<镜头>@<起始秒>@<时长+1>`，`--pv_maxt` 取最后一个镜头结束 +2 秒；目录名用 `A` / `B` / `C`（clips.json 的 dir）。
-4. 填 `clips.json` 的 first：ult 类镜头让 PVHF 帧（rec 起点后 (PVHF.t − 起始秒)×30 帧）落在表中重拍帧。
-5. `python pv.py --preview …` 看拼图 → `python pv.py out/pv_demo_1102.mp4`（crf 21，43 秒预计 15–25 MiB，超了把 crf 调到 23）→ 关键帧拼图 `out/pv_demo_1102_frames.png`（每镜中间一帧）。
+`python run.py A 680` / `B 680`（可并行，各约 25 分钟实时）→ `python segs.py A B` 挑段 → 填 clips.json → `python music.py` → `python pv.py "<输出>.mp4"` → `python frames.py "<输出>_frames.png"`。
 
-## 状态（11-02 17:45 本机交接给云端）
+## 状态（11-02 本机完成）
 
-- 完成：选曲、拍点、配乐拼接（music.wav）、四张卡、合成 / 转场脚本、录帧监视脚本。
-- 未完成：探路（本机三局跑到约 18 分钟时用户要关机，结果未出）、录帧、clips.json、成片、拼图。
-- 云端注意：Godot 要能开窗口渲染（`--realtime` 录帧取视口贴图）；无 GPU / 无显示时可试 `xvfb-run` + `--rendering-driver opengl3`；若完全不能渲染，把卡点写在下面并等本机。
+- 成片：主仓库 `Claude outputs/pv_demo_1102.mp4`、关键帧拼图 `Claude outputs/pv_demo_1102_frames.png`。C 局（泡影）跑了没用上。
