@@ -30,23 +30,18 @@ def mates_hp(m, x, y, phone=False):
 
 def squad_cards_only(m, x, y, mode, phone=False):
     """编队区：四格指挥 + 全身立绘 + 名牌（不再画生命）"""
-    k = 1.0 if not phone else 0.5
+    k = 1.0 if not phone else 0.75     # 手机立绘框放大 1.5 倍（docs/222 §15.1，用户「人物的框有点小」）
     cw = 80 * k / m.s + (14 if not phone else 4)
     ch = 92 * k / m.s
     gap = 6
     W = 4 * cw + 3 * gap
     nh = 15 if not phone else 6
-    if not phone:
-        E.shade(m, x - 10, y - 10, W + 20, ch + nh + 50, 0.36)
-        E.cap(m, x, y + 6, 'COMMAND  ·  F', 6.5)
-        E.cap(m, x + W, y + 6, 'SQUAD 4/4', 6.5, anchor='r')
-        E.cap(m, x + W - E.cap(m, -999, -999, 'SQUAD 4/4', 6.5) - 12, y + 6, 'BOND 2', 6.5, GOLD, anchor='r')
-        Q.segmented(m, x, y + 10, W, mode, ['随行', '突击', '部署', '集火'], phone)
-        oy = y + 40
-    else:
-        # 手机（docs/222 §15）：当前模式已写在指挥键上，不再重复四格；只留四张立绘
-        E.shade(m, x - 8, y - 6, W + 16, ch + nh + 14, 0.32)
-        oy = y
+    E.shade(m, x - 10, y - 10, W + 20, ch + nh + 50, 0.36)
+    E.cap(m, x, y + 6, 'COMMAND' + ('  ·  F' if not phone else ''), 6.5)
+    E.cap(m, x + W, y + 6, 'SQUAD 4/4', 6.5, anchor='r')
+    E.cap(m, x + W - E.cap(m, -999, -999, 'SQUAD 4/4', 6.5) - 12, y + 6, 'BOND 2', 6.5, GOLD, anchor='r')
+    Q.segmented(m, x, y + 10, W, mode, ['随行', '突击', '部署', '集火'], phone)
+    oy = y + (40 if not phone else 36)
     for i, (nm, cls, hp) in enumerate(OPS):
         cx0 = x + i * (cw + gap)
         m.rect(cx0, oy, cw, ch, (10, 12, 14, 205))
@@ -58,7 +53,7 @@ def squad_cards_only(m, x, y, mode, phone=False):
         E.plate(m, cx0, oy + ch, cw, nh, E.PAPER if lead else E.INK, 0.95)
         if not phone:
             m.text(cx0 + cw / 2, oy + ch + 11, nm[:4], 9, (14, 16, 18, 255) if lead else TEXT, anchor='ms', bold=True)
-        if lead and not phone:
+        if lead:
             E.plate(m, cx0, oy - 10, 34, 10, E.INK)
             E.cap(m, cx0 + 3, oy - 2.5, 'LEADER', 5, TEXT, 0.8)
 
@@ -80,8 +75,8 @@ def frame(phone, mode, show_mates, name):
     E.info(m, phone=phone)
     if phone:
         H.phone_buttons(m, ['随行', '突击', '部署', '集火'][mode], speed=False, pause=False)
-        cw = 40 / 1.25 + 4
-        squad_cards_only(m, W - 16 - (4 * cw + 18), Hh - 12 - (46 / 1.25 + 6), mode, phone=True)
+        cw = 60 / 1.25 + 4
+        squad_cards_only(m, W - 16 - (4 * cw + 18), Hh - 12 - (36 + 69 / 1.25 + 6), mode, phone=True)
         H.minimap(m, 10, Hh - 10 - 84, 84)
     else:
         cw = 80 / 1.5 + 14
