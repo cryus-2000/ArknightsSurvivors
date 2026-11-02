@@ -1,0 +1,159 @@
+{
+ "id": "ulpianus",
+ "src": "ulpianus.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "乌尔比安",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Face"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm3",
+   "F_L_Forearm",
+   "F_L_Hand_A"
+  ],
+  "R": [
+   "F_R_Arm3",
+   "F_R_Forearm",
+   "F_R_Hand_A"
+  ]
+ },
+ "hold": "L",
+ "params": {
+  "lean": 12,
+  "armAmp": 24,
+  "elbow": 50,
+  "bob": 0.6,
+  "weaponSway": 2,
+  "weaponLean": 0.3,
+  "holdAmp": 4,
+  "holdElbowAmp": 3,
+  "stride": 1.15,
+  "lift": 1.1
+ },
+ "_doc": "11-03 拖锚奔跑（用户经协调人：「之前不是说拖着锚奔跑吗」）。原跑步条锚竖在身后、锚环朝上（同待机），读成扛锚 / 拄杖。这里左手（身后）握锚环下方，锚杆朝后下方斜拖（world -67°），锚爪贴地（最低点 ≈ 脚底线）；锚与锁链整体压到身后（order），右手正常摆臂；前倾 12、步幅 1.15、衣摆随步。只给跑步用（make_op_1x <op>_run.json）",
+ "weapon": "C_Weapon_B",
+ "holdPose": {
+  "upper": -95.0,
+  "fore": -10.0,
+  "weapon": -67,
+  "grip": [
+   18.0,
+   50.0
+  ]
+ },
+ "order": [
+  [
+   "C_Chain",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_R_Aa2",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_B2",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_A2",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_B",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_C",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_Stick",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_R_Aa",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_L_A",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_L_A2",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_L_Aa",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_L_Ba",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_R_Ba",
+   "F_Tail"
+  ],
+  [
+   "C_Chain4",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_L_B",
+   "F_Tail"
+  ],
+  [
+   "C_Weapon_M",
+   "F_Tail"
+  ],
+  [
+   "C_Chain_Line_A",
+   "F_Tail"
+  ],
+  [
+   "C_Chain_Line_A3",
+   "F_Tail"
+  ],
+  [
+   "C_Chain_Line_C",
+   "F_Tail"
+  ],
+  [
+   "C_Chain_Line_A2",
+   "F_Tail"
+  ],
+  [
+   "C_Chain_Line_A4",
+   "F_Tail"
+  ]
+ ],
+ "secondary": [
+  {
+   "match": "^(F_Coat_Back|F_L_Coat_ExB_B|F_L_Coat_ExB|F_L_Coat_ExA|F_R_Coat_C)$",
+   "amp": 3,
+   "drag": 6,
+   "gravity": 0.5
+  },
+  {
+   "match": "^(F_L_Ribbon_[AB]|F_Tie|F_Bowknot_[ABC])$",
+   "amp": 3,
+   "drag": 4
+  }
+ ]
+}
