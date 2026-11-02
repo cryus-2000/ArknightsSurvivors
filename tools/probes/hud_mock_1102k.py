@@ -90,6 +90,8 @@ def phone_buttons(m, cmd='突击', speed=False, pause=False):
     # 真机手机界面按 1170×540 逻辑像素 1:1 画；效果稿画布是 ×1.25 的设计单位，所以位置 / 半径按屏幕像素算再除回去
     lay = layout(m.W * m.s, m.H * m.s)
     for k, (c, r) in lay.items():
+        if k == 'info':
+            continue   # 属性并到右上（docs/222 §15）
         button(m, k, (c[0] / m.s, c[1] / m.s), r / m.s, {'mode': cmd})
 
 
@@ -117,6 +119,7 @@ def states():
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    J.frame(True, 1, True, 'R12_phone_buttons.png')
+    J.frame(True, 1, True, 'R13_phone.png')
+    J.frame(False, 1, True, 'R13_desktop.png')
     states()
     print('ok')

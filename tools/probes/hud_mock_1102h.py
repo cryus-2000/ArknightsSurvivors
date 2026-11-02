@@ -118,16 +118,18 @@ def status(m, x, y, phone=False):
 def top_bar(m, y0=10, compact=False):
     W = m.W
     cx = W / 2
-    shade(m, cx - 170, y0 - 4, 340, 48 if compact else 96, 0.26)
-    cap(m, cx - 20, y0 + 14, 'KILLS', 7, anchor='r')
-    big(m, cx - 20, y0 + 42, '1910', 26, anchor='rs')
-    hair(m, (cx, y0 + 8), (cx, y0 + 42), LINE)
-    cap(m, cx + 20, y0 + 14, 'TIME', 7)
-    big(m, cx + 20, y0 + 42, '10:35', 26)
+    bs = 20 if compact else 26          # 手机数字小一号（docs/222 §15：以前压到 Boss 行）
+    nb = y0 + (36 if compact else 42)   # 数字基线
+    shade(m, cx - 170, y0 - 4, 340, 66 if compact else 96, 0.26)
+    cap(m, cx - 20, y0 + 12, 'KILLS', 7, anchor='r')
+    big(m, cx - 20, nb, '1910', bs, anchor='rs')
+    hair(m, (cx, y0 + 6), (cx, nb), LINE)
+    cap(m, cx + 20, y0 + 12, 'TIME', 7)
+    big(m, cx + 20, nb, '10:35', bs)
     if not compact:
         m.text(cx, y0 + 60, '深蓝之树', 11, SUB, anchor='ms')
         cap(m, cx, y0 + 72, 'BLUE TREE  ·  THREAT VI', 6, (150, 160, 170, 255), anchor='m')
-    by = y0 + (90 if not compact else 52)
+    by = y0 + (90 if not compact else 60)
     bw = 520 if not compact else 300
     # Boss：小黑签 TARGET + 名字 + 一根紫细线
     plate(m, cx - bw / 2, by - 13, 44, 12)
@@ -140,15 +142,17 @@ def top_bar(m, y0=10, compact=False):
 def info(m, phone=False):
     W = m.W
     # 藏品：大数字 + 小标签，最近几件在右边一排，没有框
-    x = W - 16 - 96 - (44 if phone else 132)
+    n_btn = 3 if phone else 2              # 手机：属性并到右上（docs/222 §15）
+    x = W - 16 - 44 * n_btn - 8 - (44 if phone else 132)
     cap(m, x, 24, 'RELICS', 7)
     big(m, x, 52, '15', 26)
     if not phone:
         for k in range(3):
             m.img(RELIC[k], x + 42 + k * 30, 30, 24, 24)
     # 暂停 / 倍速：深色名牌 + 细边；倍速 ≠ 1 时换成纸白（反白）提醒「现在是快进」
-    for i, (lab, s_, on) in enumerate([('PAUSE', 'II', False), ('SPEED', '×1.0', False)]):
-        px = W - 16 - 84 + i * 44
+    btns = [('INFO', '≡', False), ('PAUSE', 'II', False), ('SPEED', '×1.0', False)] if phone else [('PAUSE', 'II', False), ('SPEED', '×1.0', False)]
+    for i, (lab, s_, on) in enumerate(btns):
+        px = W - 16 - 44 * n_btn + 4 + i * 44
         cap(m, px, 24, lab, 6)
         plate(m, px, 30, 40, 24, PAPER if on else (12, 14, 16, 255), 0.9)
         m.rect(px, 30, 40, 24, None, outline=(255, 255, 255, 60))
