@@ -262,7 +262,7 @@ docs/96 里登记了、但仓库里没有的（mimic_bite、nerve_hit、nest_*�
 2. **art.gd 分组登记块：** 由组长一次性在 `V6_FRAMES` 里留五个注释块（`# pixelfx 组 A` … `# pixelfx 组 E`），块与块之间至少隔 2 行不变的行，各组只往自己的块里加，避免合并冲突。
 3. **`Art.op_ramp(id, i)`**（程序绘制取色阶）：组长加，五份只调用。
 
-（11-02 组长已做 2、3：分支 claude/fx-lead-prep。`V6_FRAMES` 末尾有「组 A … 组 E 止」五对标记行；`Art.OP_RAMP` 与 house.js `OP` 同步，水月暂无条目走环境梯度兜底，C 组核对 PRTS 后提给组长补。）
+（11-02 组长已做 2、3：分支 claude/fx-lead-prep。`V6_FRAMES` 末尾有「组 A … 组 E 止」五对标记行；`Art.OP_RAMP` 与 house.js `OP` 同步，水月 11-02 已补（C 组按 PRTS Spine idle 取色：外套宝蓝 #3d5fd6，发梢薰衣草作高光段）。）
 
 **共用文件规矩：**
 - `tools/pixelfx_fx/house.js`：只有组长改；各组要改色阶，提给组长。
