@@ -701,7 +701,7 @@
       -6
      ],
      "src": "远掷",
-     "proj": "proj_lappland_px_sword",
+     "proj": "proj_lappland_sword",
      "proj_hold": 1,
      "proj_front": true,
      "max_hits": 1,
@@ -735,7 +735,7 @@
       -6
      ],
      "src": "远掷",
-     "proj": "proj_lappland_px_sword",
+     "proj": "proj_lappland_sword",
      "proj_hold": 1,
      "proj_front": true,
      "max_hits": 1,
@@ -767,7 +767,7 @@
       -6
      ],
      "src": "远掷",
-     "proj": "proj_lappland_px_sword",
+     "proj": "proj_lappland_sword",
      "proj_hold": 1,
      "proj_front": true,
      "max_hits": 1,
@@ -799,7 +799,7 @@
       -6
      ],
      "src": "远掷",
-     "proj": "proj_lappland_px_sword",
+     "proj": "proj_lappland_sword",
      "proj_hold": 1,
      "proj_front": true,
      "max_hits": 1,
