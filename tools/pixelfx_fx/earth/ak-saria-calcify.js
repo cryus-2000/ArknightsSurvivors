@@ -25,9 +25,9 @@ export function create(o) {
   lights.add(0, -16, 44, C[5], 0.5, 0.3);
   // 晶刺：沿椭圆不等距
   const shards = [];
-  for (let a = Rg.range(0, 0.5); a < TAU - 0.15; a += Rg.range(0.32, 0.75)) {
+  for (let a = Rg.range(0, 0.5); a < TAU - 0.15; a += Rg.chance(0.35) ? Rg.range(0.12, 0.22) : Rg.range(0.45, 1.1)) {   // 有疏有密：三成挨着长成一簇，其余隔开
     const rr = R0 * Rg.range(0.78, 1.0);
-    shards.push({ a, x: Math.cos(a) * rr, y: Math.sin(a) * rr * SY, h: Rg.range(10, 22) * (Math.sin(a) > 0 ? 1 : 0.75), w: Rg.range(4, 7), lean: Rg.range(-0.35, 0.35) + Math.cos(a) * 0.3, d: Rg.range(0, 0.06) });
+    shards.push({ a, x: Math.cos(a) * rr, y: Math.sin(a) * rr * SY, h: (Rg.chance(0.3) ? Rg.range(6, 11) : Rg.range(13, 26)) * (Math.sin(a) > 0 ? 1 : 0.75), w: Rg.range(3.5, 8), lean: Rg.range(-0.35, 0.35) + Math.cos(a) * 0.3, d: Rg.range(0, 0.06) });
   }
   shards.sort((p, q) => p.y - q.y);
   let t = 0, cracked = false;
