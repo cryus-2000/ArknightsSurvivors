@@ -12,6 +12,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")
 const A = preload("res://scripts/art.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：归溟幽灵鲨 / 水月钻洞与小触手（docs/199 §7.9）
+const SU = preload("res://scripts/run/ult_fx_specter.gd")   # 归溟幽灵鲨弹射撕裂的 pixelfx 放开版画法（fx/px_unleashed）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -1595,7 +1596,9 @@ static func _su_start(u, o) -> Dictionary:
 	var col: Color = u._col(o)
 	var steel: Color = col.lerp(Color.WHITE, 0.25)
 	var a := {"dur": dur, "tick": 0, "n": int(Bal.v("ult/su_ticks", 12.0)), "beast": rt == "beast", "elegy": rt == "elegy", "teeth": [], "fx": [], "spin": 0.0}
-	if FC.sp_bounce(u):   # 弹射撕裂（ult/sp_bounce，用户 10-30 新设计）：红黑剪影在敌人间弹射 + 收尾巨锯
+	if SU.on(u):   # pixelfx 放开版（fx/px_unleashed）：同一套弹射撕裂编排，换画风
+		SU.sb_start(u, a, o, o.pos)
+	elif FC.sp_bounce(u):   # 弹射撕裂（ult/sp_bounce，用户 10-30 新设计）：红黑剪影在敌人间弹射 + 收尾巨锯
 		FC.sb_start(u, a, o, o.pos)
 	elif FC.sp_v2(u):   # 巨锯 v2：一张整圈锯贴图（ult/sp_saw_v2）
 		FC.sp_start(u, a, o.pos)
@@ -1681,13 +1684,13 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 					FC.sp_hit(u, a, e.pos, int(a.tick), nb)
 					continue
 				if a.has("sb"):
-					FC.sb_hit(a, e.pos)
+					(SU if a.has("sbu") else FC).sb_hit(a, e.pos)
 					continue
 				var tg: Vector2 = (e.pos - c).orthogonal().normalized()
 				u.shape({"kind": "dots", "c": e.pos, "r": 18.0, "n": 5, "col": Color(0.85, 0.15, 0.2), "life": 0.25, "v": tg * 380.0})
 				u.shape({"kind": "line", "a": e.pos, "b": e.pos + tg * 30.0, "w": 2.0, "col": Color(1.0, 0.9, 0.7), "life": 0.15, "v": tg * 600.0})
 		if a.has("sb"):
-			FC.sb_tick(u, a, c, full_r, int(a.tick), n)
+			(SU if a.has("sbu") else FC).sb_tick(u, a, c, full_r, int(a.tick), n)
 		elif a.has("sp_saws"):
 			FC.sp_tick(u, a, c, full_r, int(a.tick))
 		else:
