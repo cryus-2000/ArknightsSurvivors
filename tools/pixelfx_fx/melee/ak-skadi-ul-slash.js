@@ -80,7 +80,7 @@ export function create(o) {
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[6], C[5]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = full ? TAU * 1.04 : o.span, a0 = full ? -Math.PI : -span / 2, a1 = a0 + span;
   const SW = full ? 0.13 : heavy ? 0.09 : 0.07;
-  const W = (heavy ? 30 : full ? 22 : 18) * (fine ? 0.62 : 1) * [0.8, 1.08, 1.2][el];   // E1 刀身加厚一档、E2 再厚一档（11-04：精英加码作用在主形本身）
+  const W = (heavy ? 30 : full ? 22 : 18) * (fine ? 0.62 : 1) * [0.8, 1.0, 1.2][el];   // E1 刀身加厚一档（×1.25）、E2 再厚一档（11-04：精英加码作用在主形本身）
   // 斯卡蒂的剑本身是暗红色：E1 起刀身后拖一道暗红残刃（深、低饱和，离敌方危险色 #ff2667 远）
   const RED = fit(["#1e070c", "#2c0b12", "#3d0e17", "#52131e", "#6a1622", "#8a1f2d"], 6);
   const RB = { seed: o.seed + 77, R: R0 * 0.82, W: W * 0.62, ramp: RED, GK, edge: false };   // 贴着刀身内侧
@@ -88,6 +88,17 @@ export function create(o) {
   const E = { seed: o.seed + 9, R: R0 * 0.72, W: W * 0.4, ramp: C.slice(0, 7), GK, edge: false };
   let t = 0.02, passed = 0, landed = false, crashed = false;
   const tip = onArc(A, A.R - A.W * 0.3, a1);
+  // 光贴着弧刃走（11-04 总组长：刃根 / 中心 / S3 段上的圆形柔光团都压掉）：沿一段弧铺一串小光，连成弧形光带、不单独成圆
+  const bands = [];
+  const band = (S, aS, aL, rad, col, k, life) => bands.push({ S, aS, aL, rad, col, k, life, t0: t });
+  function bandDraw(p, S, aS, aL, rad, col, k) {
+    if (k <= 0.005) return;
+    const dir = Math.sign(aL) || 1, L = Math.abs(aL), st = Math.max(0.05, rad * 0.5 / S.R);
+    for (let v = 0; v <= L; v += st) {
+      const w = Math.sin(Math.PI * v / L), [x, y] = onArc(S, S.R - S.W * 0.45, aS + dir * v);
+      p.glow(x, y, rad * (0.55 + 0.45 * w), col, k * w * 0.5);
+    }
+  }
   const arcOn = mv !== "s1";   // S1 不画单月牙，主形是连斩
 
   // ---- S1：快速连斩。2–3 道大剑斩弧，正反手交替、中心角 / 弧长 / 半径各不同，前后间隔约 0.05 s
@@ -214,9 +225,8 @@ export function create(o) {
       }
       if (!landed && t >= SW) {
         landed = true;
-        if (!full) lights.add(0, 0, R0 * 1.2, C[5], 0.15 * GK, 0.35);
-        else for (const sg of segs) { const [lx, ly] = onArc(A, A.R * sg.rk, sg.c); lights.add(lx, ly, R0 * 0.5, C[5], 0.18 * GK, 0.35); }   // S3：光跟着各段浪身，不在中心铺一盏圆光
-        if (arcOn) lights.add(tip[0], tip[1], 46, C[6], 0.9 * GK, 0.3);
+        if (!full) band(A, a0, span, 16, C[5], 0.5 * GK, 0.35);
+        else for (const sg of segs) band({ ...A, R: A.R * sg.rk }, sg.c - sg.h, 2 * sg.h, 14, C[5], 0.5 * GK, 0.35);   // S3：光跟着各段浪身走
         if (arcOn) for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2) / PM) {   // 余韵：外缘碎成浪沫与水雾（S3 只在各段浪身上，缺口里不放）
           if (full && !inSeg(a)) continue;
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
@@ -240,7 +250,7 @@ export function create(o) {
       }
       if (mv === "s2" && !crashed && t >= SW + 0.26) {   // 水幕拍落：沿前缘碎成不规则飞溅
         crashed = true;
-        lights.add(R0 * 0.9, 0, 56, C[6], 0.7 * GK, 0.3);
+        band({ ...A, R: R0 * 1.05 }, -S2A, 2 * S2A, 18, C[6], 0.8 * GK, 0.3);
         for (let a = -S2A + Rg.range(0, 0.08); a < S2A; a += Rg.range(0.05, 0.16)) {
           const h = curtain(a, 1);
           if (h < 4) continue;
@@ -419,11 +429,13 @@ export function create(o) {
         }
       }
       if (deco && arcOn && t < 0.32) {
-        const [x, y] = full ? onArc(A, A.R * 0.9, segs[0].c) : onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));   // S3：光只跟主浪，背后不亮
-        p.glow(x, y, 60 * (el === 0 ? 0.6 : 1), C[5], 0.6 * GK * (1 - t / 0.32));
+        const kk = 0.9 * GK * (1 - t / 0.32);   // 刀光扫过的那段弧上铺光（不再是刃尖一盏大圆光）
+        if (full) bandDraw(p, { ...A, R: A.R * segs[0].rk }, segs[0].c - segs[0].h, 2 * segs[0].h, 16, C[5], kk);   // S3：光只跟主浪，背后不亮
+        else { const e = span * ease.outExpo(clamp(t / SW)); bandDraw(p, A, a0 + Math.max(0, e - span * 0.5), Math.min(e, span * 0.5), 16, C[5], kk); }
       }
       const g = t - SW * 0.6;
-      if (deco && arcOn && el >= 1 && !full && g > 0 && g < 0.26) sparkle(p, tip[0], tip[1], (heavy ? 16 : 12) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
+      if (false) sparkle(p, tip[0], tip[1], (heavy ? 16 : 12) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
+      if (deco) for (const b of bands) { const u = (t - b.t0) / b.life; if (u < 1) bandDraw(p, b.S, b.aS, b.aL, b.rad, b.col, b.k * (1 - u) * (1 - u)); }
       if (deco) {
         lights.draw(p);   // 光先画、颗粒后画（反预乘后光更亮，盖在颗粒上会把水珠火星淹掉，11-03）
         ps.draw(p, "front");
