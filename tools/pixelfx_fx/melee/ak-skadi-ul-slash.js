@@ -56,7 +56,7 @@ function crescent(p, s, ta, L, W, age, hot, core, deco) {
       return;
     }
     let ci = q < 0.2 && age < 0.5 ? 0 : Math.round(q * (n - 1) * 0.75 + age * 2.8 - v * 1.1 + 0.3 - hot);
-    if (s.streak && ci > 0) ci += Math.round(1.3 * noise(r * 1.15, s.seed + 101));   // 纤维拖尾纹理：沿弧方向的细纹（借原作普攻刀光 trail_46 的竖纹）
+    if (s.streak && ci > 0) ci -= Math.max(0, Math.round(1.3 * noise(r * 1.15, s.seed + 101)));   // 纤维拖尾纹理：沿弧方向的亮细纹（借原作普攻刀光 trail_46 的竖纹；只提亮不压暗）
     out.c = R[n - 1 - clamp(ci, s.minI || 0, n - 1)];
     out.a = q > 0.8 ? 0.7 : 1;   // 刀身内沿半透明
   });
@@ -92,9 +92,9 @@ export function create(o) {
     for (let i = 0; i < n; i++) {
       // 每刀弧心各自偏一点（前后 / 左右），半径不同：几道弧互相交叉，不叠成一道、也不排成同心圈；外缘不出判定半径
       const oa = Rg.range(-Math.PI, Math.PI), od = R0 * Rg.range(0.06, 0.2), ox = Math.cos(oa) * od, oy = Math.sin(oa) * od;
-      const R = (R0 - od) * [Rg.range(0.9, 1.0), Rg.range(0.66, 0.76), Rg.range(0.8, 0.88)][i], sp = Rg.range(1.1, 1.6) * (i ? 0.92 : 1);
+      const R = (R0 - od) * [Rg.range(0.9, 1.0), Rg.range(0.66, 0.76), Rg.range(0.8, 0.88)][i], sp = (Rg.range(1.1, 1.6) + (el === 0 ? 0.35 : 0)) * (i ? 0.92 : 1);   // E0 只有两刀，每刀长一点
       sls.push({ c: cs[i], sp, dir, t0: i * 0.05 + Rg.range(0, 0.012), last: i === n - 1,
-        S: { seed: o.seed + 13 * i, R, W: W * Rg.range(0.72, 0.9), ramp: C, GK, edge: fine, streak: true, ox, oy },
+        S: { seed: o.seed + 13 * i, R, W: W * [1.3, 1.2, 1.15][el] * Rg.range(1.0, 1.1), ramp: C, GK, edge: fine, streak: true, ox, oy },   // 每刀比同档普攻粗一点（弧短，宽度补回醒目度；E0 也要和普攻一样醒目）
         ghosts: el === 0 ? [] : el === 1 ? [Rg.range(0.2, 0.28)] : [Rg.range(0.16, 0.22), Rg.range(0.36, 0.46)],   // 剑身残影落后的角度（不等距；E0 不画）
         clumps: [] });
       dir = -dir;
@@ -217,21 +217,37 @@ export function create(o) {
       if (mv === "s1") for (const sl of sls) {   // 连斩：斩弧 + 剑身残影 + 成团水花
         const u = t - sl.t0;
         if (u < 0) continue;
-        const ta0 = sl.c - sl.dir * sl.sp / 2, head = ease.outExpo(clamp(u / SWS)), trail = 0.22 * (0.6 + 0.4 * DL);
+        const ta0 = sl.c - sl.dir * sl.sp / 2, head = ease.outExpo(clamp(u / SWS)), trail = 0.3 * (0.7 + 0.3 * DL);
         const tail = smooth(SWS + 0.03, SWS + 0.03 + trail, u), age = clamp(u / (SWS + 0.03 + trail));
-        const hot = u < 0.05 ? (sl === sls[0] ? HOT : 1.0) : 0;   // 只有第一刀白热（三刀连着白会过「持续白」）
-        if (tail < 1) crescent(p, sl.S, ta0 + sl.dir * sl.sp * tail, sl.dir * sl.sp * (head - tail), sl.S.W * (1 - tail * 0.5), age, hot, core, deco);
+        const hot = u < 0.05 ? (sl === sls[0] ? Math.max(HOT, 1.2) : Math.max(1.0, HOT * 0.6)) : 0;   // 第一刀白热最强（不低于普攻），后两刀弱一些（三刀连着全白会过「持续白」）
+        if (tail < 1) crescent(p, sl.S, ta0 + sl.dir * sl.sp * tail, sl.dir * sl.sp * (head - tail), sl.S.W * (1 - tail * 0.5), age * 0.85, hot, core, deco);
         if (core && u < SWS + 0.07) for (let gi = 0; gi < sl.ghosts.length; gi++) {   // 剑身残影：挥砍头后面一两把淡淡的大剑轮廓
           const ga = slHead(sl, u) - sl.dir * sl.ghosts[gi], k = (1 - clamp(u / (SWS + 0.07))) * (gi ? 0.45 : 0.75);
           if (Math.abs(ga - ta0) > sl.sp || k <= 0.02) continue;
-          const cx = Math.cos(ga), cy = Math.sin(ga), nx = -cy, ny = cx, ox = sl.S.ox, oy = sl.S.oy, r0 = sl.S.R * 0.32, r1 = sl.S.R * 0.98;
-          for (let s2 = -6; s2 <= 6; s2 += 0.6) p.disc(ox + cx * r0 + nx * s2, oy + cy * r0 + ny * s2, 1, C[6], k);   // 护手横杠
-          for (let r = r0 + 1.5; r < r1; r += 0.7) {   // 剑身：两条亮边 + 淡芯，剑尖收拢（只画外半截，不从圆心拉线）
-            const v = (r - r0) / (r1 - r0), w = 3.6 * (1 - Math.pow(v, 3)) + 0.4;
-            p.disc(ox + cx * r + nx * w, oy + cy * r + ny * w, 0.6, C[6], k);
-            p.disc(ox + cx * r - nx * w, oy + cy * r - ny * w, 0.6, C[6], k);
-            if (w > 1.2) p.disc(ox + cx * r, oy + cy * r, w - 0.6, C[4], k * 0.6);
-          }
+          // 大剑剪影：剑柄 → 护手 → 宽剑身 → 收尖剑尖；1 格亮描边 + 半透明淡填充；剑身顺挥剑方向往后斜一点（拖在挥砍头后面）
+          const hx = sl.S.ox + Math.cos(ga) * sl.S.R * 0.28, hy = sl.S.oy + Math.sin(ga) * sl.S.R * 0.28;   // 握把处
+          const ba = ga - sl.dir * 0.22, ux = Math.cos(ba), uy = Math.sin(ba), vx = -uy, vy = ux;
+          const L = sl.S.R * 0.7, GR = 7, BW = 4.2, GRIP = 9;   // 剑尖落在判定半径以内
+          const shape = (al, ac) => {   // 剑的局部坐标（al 沿剑、ac 横向）→ 0 外 / 1 填充 / 2 描边
+            const aa = Math.abs(ac);
+            let hw;
+            if (al < -GRIP - 2 || al > L) return 0;
+            if (al < -GRIP) hw = 2.2;                                   // 剑首
+            else if (al < 0) hw = 1.3;                                  // 剑柄
+            else if (al < 2.2) hw = GR;                                 // 护手
+            else if (al < L * 0.82) hw = BW;                            // 剑身
+            else hw = BW * (L - al) / (L * 0.18);                       // 收尖
+            if (aa > hw) return 0;
+            const edge = aa > hw - 1.1 || al < -GRIP - 0.9 || (al > 0 && al < 2.2 && (al < 0.9 || al > 1.3)) || al > L - 1.5;
+            return edge ? 2 : 1;
+          };
+          const ex = L + 2, bb = [hx - ux * (GRIP + 3), hy - uy * (GRIP + 3), hx + ux * ex, hy + uy * ex];
+          const pad = GR + 2;
+          p.each(Math.min(bb[0], bb[2]) - pad, Math.min(bb[1], bb[3]) - pad, Math.max(bb[0], bb[2]) + pad, Math.max(bb[1], bb[3]) + pad, (x, y, sx, sy) => {   // 真半透明（blendPx），不用抖动（抖动会碎成点阵）
+            const dx = x - hx, dy = y - hy, al = dx * ux + dy * uy, ac = dx * vx + dy * vy, m = shape(al, ac);
+            if (!m) return;
+            p.blendPx(sx, sy, m === 2 ? C[6] : (al > 2.2 && Math.abs(ac) < 0.8 ? C[5] : C[3]), (m === 2 ? 0.85 : 0.4) * k);   // 剑身中脊亮一阶
+          });
         }
         if (core && sl === sls[0] && u < 0.04) {   // 起手剑身一闪（借原作 trail_08 的细长闪光）
           const cx = Math.cos(ta0), cy = Math.sin(ta0);
