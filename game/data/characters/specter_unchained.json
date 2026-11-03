@@ -785,6 +785,10 @@
     "dur": "$s1_dur",
     "fx": [
      {
+      "px": "fx_specter_ul_cast1",
+      "at": "self"
+     },
+     {
       "text": {
        "s": "生存的技巧",
        "col": [
@@ -893,6 +897,10 @@
    {
     "dur": "$s2_dur",
     "fx": [
+     {
+      "px": "fx_specter_ul_cast2",
+      "at": "self"
+     },
      {
       "banner": "生存的渴望：队长暂不会倒下"
      },
@@ -1016,6 +1024,10 @@
    {
     "dur": "$s3_dur",
     "fx": [
+     {
+      "px": "fx_specter_ul_cast3",
+      "at": "self"
+     },
      {
       "banner": "生存的重压"
      },

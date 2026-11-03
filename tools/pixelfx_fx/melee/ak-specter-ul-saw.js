@@ -8,6 +8,7 @@
 //   E2：卷刃水带变成撕裂的宽水带，绕锯盘旋并往上卷起（原作 S3 的蓝水带盘旋），锯头白热齿光。
 //   s3：锯身变厚、血红刃口、重齿、慢转 0.9 圈 + 宽水带 + 地面短撕痕（血红冷却成暗红）。
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
+import { OP } from "../house.js";
 
 // 真半透明着色（blendPx）：p.shade 的 out.a < 1 会抖成棋盘点，这里一律走 blendPx
 const shadeB = (p, x0, y0, x1, y1, fn) => {
@@ -27,8 +28,8 @@ export const meta = {
   bg: "dark",
   options: {
     steel: ["#0b1222", "#1a2740", "#33476a", "#5d7396", "#93a8c4", "#cfdbe9", "#ffffff"],
-    navy: ["#060d1f", "#0f2550", "#183f86", "#2a62b8", "#5b8fd6", "#a9c6ee", "#eef5ff"],
-    blood: ["#100204", "#2a0508", "#4e0a10", "#7a1018", "#a01c22", "#c84a44", "#f0c8c0"],   // 暗血红（色相 355–0°、中段 v≈0.63，和危险色 #ff2667 的亮品红拉开）
+    navy: OP.specter_unchained,   // 海军蓝七阶取 house.js（PRTS 饰「蓝披带」#152E57，组长 11-04 批）
+    blood: ["#100403", "#2a0906", "#4a1108", "#741a0c", "#962614", "#b4482c", "#e0b8a8"],   // 暗血红（组长 C 11-04：色相压到 ≥ 8°、明度降一档，和危险色 #ff2667 拉开）
     spark: ["#ffffff", "#ffd8b8", "#ff8a4a", "#e2502a"],
     ember: ["#160605", "#3e0e08", "#7a1e0c", "#b8361a", "#e45a2a", "#ffa47a", "#fff0e6"],   // 方案甲：照原作普攻的红橙火星锯（色相 8–18°，避开危险色 342° 与结晶淡金）
     tone: "steel",    // steel = 冷钢蓝（方案乙）/ ember = 红橙火星（方案甲）
@@ -259,32 +260,32 @@ export function create(o) {
       const tot = TURN * ease.outCubic(clamp(t / SPIN));
       while (passed < tot && passed < TURN) {
         const a = a0 + dir * TAU * passed, [x, y] = at(a, BR + 1), tx = -Math.sin(a) * dir, ty = Math.cos(a) * dir * SY;
-        if (Rg.chance(0.75 * PM)) {
+        if (Rg.chance(0.36 * PM)) {   // 组长 C：数量砍半，只沿切线、贴着锯缘
           const sp = Rg.range(120, 260);
-          ps.spawn(P.SPARK, x, y, (tx * 0.85 + Math.cos(a) * 0.35) * sp, (ty * 0.85 + Math.sin(a) * 0.35 * SY) * sp - Rg.range(10, 50), Rg.range(0.12, 0.3) * (0.6 + 0.4 * DL));
+          ps.spawn(P.SPARK, x, y, tx * sp, ty * sp - Rg.range(10, 40), Rg.range(0.1, 0.24) * (0.6 + 0.4 * DL));   // 只沿锯刃切向（docs/242 §14.7：不往外甩）
         }
-        if (deco && Rg.chance(0.35 * PM)) ps.spawn(P.MOTE, x, y, tx * Rg.range(30, 90), ty * Rg.range(30, 90) - 15, Rg.range(0.25, 0.5) * DL, (s3 ? BL : NV)[5], Rg.range(0.6, 1.1));
+        if (deco && Rg.chance(0.15 * PM)) ps.spawn(P.MOTE, x, y, tx * Rg.range(20, 50), ty * Rg.range(20, 50) - 8, Rg.range(0.2, 0.4) * DL, (s3 ? BL : NV)[5], Rg.range(0.6, 1.0));
         passed += Rg.range(0.02, 0.07) / (s3 ? 1.2 : 1);
       }
       if (CREST && !crested && t >= 0.32) {   // 浪尖拍下：顺外翻方向碎成飞沫（装饰）
         crested = true;
         const rb = ribs[0], aE = rb.b0 + dir * rb.span * TAU * 0.85, [bx, by] = at(aE, R * 0.95);
-        for (let i = 0; i < 12; i++) ps.spawn(i % 3 ? P.MOTE : P.STAR, bx + Rg.range(-4, 4), by - Rg.range(0, 8), Math.cos(aE) * Rg.range(30, 90), Math.sin(aE) * SY * Rg.range(30, 90) - Rg.range(10, 50), Rg.range(0.25, 0.5) * DL, NV[5 + Rg.int(0, 1)], Rg.range(0.7, 1.2));
+        for (let i = 0; i < 8; i++) ps.spawn(i % 3 ? P.MOTE : P.STAR, bx + Rg.range(-5, 5), by - Rg.range(0, 10), Rg.range(-6, 6), -Rg.range(10, 30), Rg.range(0.25, 0.5) * DL, NV[5 + Rg.int(0, 1)], Rg.range(0.7, 1.2));   // 浪尖拍下的白沫原地往上散（§14.7 不往外甩）
       }
       if (WALL && !crested && t >= 0.3) {   // 浪墙塌下：浪顶甩出白沫（步长随机）
         crested = true;
         for (let f = Rg.range(0, 0.05); f < 1; f += Rg.range(0.03, 0.08)) {
           if (Math.abs(f - WALL.gap) < 0.05) continue;
           const a = WALL.b0 + dir * WALL.span * TAU * f, [x, y] = at(a, wallR(f));
-          ps.spawn(Rg.chance(0.7) ? P.MOTE : P.STAR, x, y - wallH(f, 1) * 0.8, Math.cos(a) * Rg.range(10, 40) - Math.sin(a) * dir * 40, -Rg.range(20, 60), Rg.range(0.35, 0.7) * DL, NV[5 + Rg.int(0, 1)], Rg.range(0.7, 1.3));
+          ps.spawn(Rg.chance(0.7) ? P.MOTE : P.STAR, x, y - wallH(f, 1) * 0.8, Rg.range(-6, 6), -Rg.range(15, 40), Rg.range(0.35, 0.7) * DL, NV[5 + Rg.int(0, 1)], Rg.range(0.7, 1.3));   // 浪顶白沫往上散（§14.7 不往外甩）
         }
       }
       if (!landed && t >= SPIN) {
         landed = true;
-        lights.add(0, 0, R * 1.2, (s3 ? BL : ST)[4], 0.12 * GK, 0.3);
-        if (deco) for (let a = Rg.range(0, 0.3); a < TAU; a += Rg.range(0.2, 0.55) / PM) {   // 余韵：锯痕外缘散成水雾 / 碎光
-          const [x, y] = at(a, R + Rg.range(-2, 3));
-          ps.spawn(P.MOTE, x, y, Math.cos(a) * Rg.range(10, 40), Math.sin(a) * SY * Rg.range(10, 40) - Rg.range(4, 16), Rg.range(0.3, 0.6) * DL, NV[4 + Rg.int(0, 1)], Rg.range(0.6, 1.0), Rg.range(0, 0.06));   // 不用 VAPOUR（软圆团读成孤立圆点）
+        const hE = headAng(SPIN);
+        if (deco) for (let u = Rg.range(0, 0.15); u < TAU * 0.5; u += Rg.range(0.45, 1.0) / PM) {   // 余韵：只在锯头后半圈拖影上散几点碎光（组长 C：不绕满一圈）
+          const a = hE - dir * u, [x, y] = at(a, BR + Rg.range(-2, 2));
+          ps.spawn(P.MOTE, x, y, 0, -Rg.range(6, 18), Rg.range(0.3, 0.6) * DL, NV[4 + Rg.int(0, 1)], Rg.range(0.6, 1.0), Rg.range(0, 0.06));   // 原地往上飘（不用 VAPOUR 软圆团；不往外甩，§14.7）
           if (el >= 1 && Rg.chance(0.35)) ps.spawn(P.STAR, x, y - Rg.range(0, 6), 0, -8, Rg.range(0.3, 0.6) * DL, (s3 ? BL : NV)[6], Rg.range(0.8, 1.4), Rg.range(0.03, 0.3) * DL);
         }
       }
@@ -302,9 +303,12 @@ export function create(o) {
       if (core) wall(p, t, "near");
       if (core) crest(p, t);
       if (core && s1) flameDraw(p, t);
-      if (deco && t < SPIN + 0.1) {   // 锯头光晕
-        const [x, y] = at(headAng(t), BR);
-        p.glow(x, y, (s3 ? 30 : 20) * (el === 0 && !s3 ? 0.6 : 1), (s3 ? BL[5] : s2 ? NV[4] : ST[5]), 0.5 * GK * (1 - clamp((t - SPIN) / 0.1)));   // S2 冷钢的亮端近白，光晕改用海军蓝（避免连续白）
+      if (deco && t < SPIN + 0.1) {   // 锯头光：顺锯缘拉长的一段（沿弧几个小光点），不画一团圆光（组长 C 11-04）
+        const hA = headAng(t), k = 0.35 * GK * (1 - clamp((t - SPIN) / 0.1));
+        for (let i = 0; i < 6; i++) {
+          const [x, y] = at(hA - dir * i * 0.07, BR - 1);
+          p.glow(x, y, (s3 ? 7 : 5) * (1 - i / 7), s3 ? BL[5] : s2 ? NV[4] : ST[5], k * (1 - i / 6));
+        }
       }
       if (deco) {
         lights.draw(p);

@@ -28,7 +28,7 @@ export const meta = {
   bg: "dark",
   options: {
     steel: ["#16181d", "#2c3038", "#4a505b", "#767d88", "#a9a19b", "#d4d0cc", "#ffffff"],
-    blood: ["#100204", "#2a0508", "#4e0a10", "#7a1018", "#a01c22", "#c84a44", "#f0c8c0"],
+    blood: ["#100403", "#2a0906", "#4a1108", "#741a0c", "#962614", "#b4482c", "#e0b8a8"],
     spark: ["#ffffff", "#ffd8b8", "#ff8a4a", "#e2502a"],
     sy: 0.55,
     move: "minisaw",
@@ -111,7 +111,6 @@ export function create(o) {
       if (!fired) {
         fired = true;
         if (mv === "minisaw" || mv === "bigsaw") {
-          lights.add(0, 0, R * 0.9, BL[4], big ? 0.45 : 0.3, big ? 0.3 : 0.15);
         } else if (mv === "cut") {
           for (let x = Rg.range(-105, -97); x < 105; x += Rg.range(5, 14)) {   // 切口两侧往两边喷碎屑 / 火星（步长随机）
             const s = Rg.chance(0.5) ? 1 : -1, sp = Rg.range(80, 220);
@@ -152,7 +151,6 @@ export function create(o) {
         if (t < 0.12) line(p, t, 212, 6, 0.5);
         else { const tx = p.tx, ty = p.ty; p.place(tx, ty - split); line(p, t, 212, 3.4, 1); p.place(tx, ty + split); line(p, t, 212, 3.4, 1); p.place(tx, ty); }
       }
-      if (deco && (mv === "minisaw" || big) && t < 0.18) p.glow(0, 0, R * 0.8, BL[4], (big ? 0.5 : 0.35) * (1 - t / 0.18));
       if (deco) {
         lights.draw(p);
         ps.draw(p, "front");

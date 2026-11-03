@@ -11,6 +11,7 @@
 //   tide   成长 血色潮痕：地上一摊不规整的深海水痕（边在判定半径上、断续），内部细纹往里流，原点 = 圆心
 //   quake  成长 锯鸣·共振 震地：不规则分叉裂口 + 碎石尘（不画冲击环），原点 = 圆心
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
+import { OP } from "../house.js";
 
 const shadeB = (p, x0, y0, x1, y1, fn) => {
   const o = { c: 0, a: 1 };
@@ -28,9 +29,9 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    navy: ["#060d1f", "#0f2550", "#183f86", "#2a62b8", "#5b8fd6", "#a9c6ee", "#eef5ff"],
+    navy: OP.specter_unchained,   // 海军蓝七阶取 house.js（PRTS 饰「蓝披带」#152E57，组长 11-04 批）
     tide: ["#04121a", "#0a2430", "#123a48", "#1c5464", "#2f7486", "#5d9aa8", "#a6ccd4"],   // 潮痕：低饱和深海青（10-14 用户：别和敌方红色预警重合）
-    blood: ["#100204", "#2a0508", "#4e0a10", "#7a1018", "#a01c22", "#c84a44", "#f0c8c0"],
+    blood: ["#100403", "#2a0906", "#4a1108", "#741a0c", "#962614", "#b4482c", "#e0b8a8"],
     ember: ["#160605", "#3e0e08", "#7a1e0c", "#b8361a", "#e45a2a", "#ffa47a", "#fff0e6"],
     radius: 80,
     sy: 0.55,
@@ -106,10 +107,9 @@ export function create(o) {
           ps.spawn(P.MOTE, x, y, -x * 3, -(y + 16) * 3, Rg.range(0.25, 0.35), NV[5 + Rg.int(0, 1)], Rg.range(0.8, 1.3), Rg.range(0, 0.1));
         }
         if (mv === "quake") {
-          lights.add(0, 0, R * 0.6, BL[4], 0.4, 0.25);
           for (let i = 0; i < 22; i++) {
             const a = Rg.range(0, TAU), r = Rg.range(0.2, 0.9) * R, x = Math.cos(a) * r, y = Math.sin(a) * r * SY;
-            ps.spawn(i % 2 ? P.GRIT : P.SPARK, x, y, Math.cos(a) * Rg.range(30, 90), -Rg.range(40, 120), Rg.range(0.3, 0.6), i % 2 ? NV[2] : 0, Rg.range(0.8, 1.4), Rg.range(0, 0.08));
+            ps.spawn(i % 2 ? P.GRIT : P.SPARK, x, y, Rg.range(-10, 10), -Rg.range(40, 110), Rg.range(0.3, 0.6), i % 2 ? NV[2] : 0, Rg.range(0.8, 1.4), Rg.range(0, 0.08));   // 碎石从裂口往上蹦（§14.7 不往外甩）
           }
         }
       }

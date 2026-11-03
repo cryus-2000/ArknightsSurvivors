@@ -5,6 +5,7 @@
 //   S3 skill_03_start_01 / 02：重锤落地（锤体 Cone 网格）+ 蓝水带。
 // move：s1 / s2 / s3；elite 0–2（S1 三档、S2 精一起、S3 只有精二）。E1 加一道水带，E2 水带变宽 + 白沫。
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
+import { OP } from "../house.js";
 
 // 真半透明着色（blendPx）：p.shade 的 out.a < 1 会抖成棋盘点，这里一律走 blendPx
 const shadeB = (p, x0, y0, x1, y1, fn) => {
@@ -23,8 +24,8 @@ export const meta = {
   fps: 24,
   bg: "dark",
   options: {
-    navy: ["#060d1f", "#0f2550", "#183f86", "#2a62b8", "#5b8fd6", "#a9c6ee", "#eef5ff"],
-    blood: ["#100204", "#2a0508", "#4e0a10", "#7a1018", "#a01c22", "#c84a44", "#f0c8c0"],   // 暗血红（色相 355–0°、中段 v≈0.63，和危险色 #ff2667 的亮品红拉开）
+    navy: OP.specter_unchained,   // 海军蓝七阶取 house.js（PRTS 饰「蓝披带」#152E57，组长 11-04 批）
+    blood: ["#100403", "#2a0906", "#4a1108", "#741a0c", "#962614", "#b4482c", "#e0b8a8"],   // 暗血红（组长 C 11-04：色相压到 ≥ 8°、明度降一档，和危险色 #ff2667 拉开）
     ember: ["#160605", "#3e0e08", "#7a1e0c", "#b8361a", "#e45a2a", "#ffa47a", "#fff0e6"],
     steel: ["#16181d", "#2c3038", "#4a505b", "#767d88", "#a9a19b", "#d4d0cc", "#ffffff"],
     sy: 0.55,
@@ -86,16 +87,12 @@ export function create(o) {
       if (!fired && t >= (mv === "s3" ? 0.12 : 0.04)) {
         fired = true;
         if (mv === "s1") {
-          lights.add(0, -20, 34, NV[5], 0.5 * GK, 0.3);
           if (el >= 1) for (let i = 0, n = Math.round(12 * PM); i < n; i++) ps.spawn(P.EMBER, Rg.range(-10, 10), Rg.range(-6, 0), Rg.range(-12, 12), Rg.range(-70, -30), Rg.range(0.4, 0.8), EM[4 + Rg.int(0, 2)], 1, Rg.range(0, 0.25));   // 灯火焰：红橙余烬往上飘
         } else if (mv === "s2") {
-          lights.add(0, -2, 20, BL[4], 0.6 * GK, 0.5);
           for (let i = 0, n = Math.round(10 * PM); i < n; i++) ps.spawn(P.MOTE, Rg.range(-12, 12), Rg.range(-40, -4), Rg.range(-8, 8), Rg.range(-30, -10), Rg.range(0.4, 0.7), NV[5 + Rg.int(0, 1)], Rg.range(0.6, 1.1), Rg.range(0, 0.3));
         } else {
-          lights.add(14, 0, 40, BL[4], 0.7, 0.35);
-          for (let i = 0; i < 26; i++) {   // 砸地：火星与碎屑贴地往两侧溅（不成圈）
-            const s = Rg.chance(0.5) ? 1 : -1, sp = Rg.range(60, 200);
-            ps.spawn(i % 3 ? P.SPARK : P.GRIT, 14 + Rg.range(-4, 4), Rg.range(-2, 2), s * sp, -Rg.range(20, 110), Rg.range(0.2, 0.45), i % 3 ? 0 : STL[3 + Rg.int(0, 2)], Rg.range(0.7, 1.2));
+          for (let i = 0; i < 14; i++) {   // 砸地：火星与碎屑从锯口往上蹦（§14.7 不往外甩）
+            ps.spawn(i % 3 ? P.SPARK : P.GRIT, 14 + Rg.range(-8, 8), Rg.range(-2, 2), Rg.range(-15, 15), -Rg.range(40, 110), Rg.range(0.2, 0.4), i % 3 ? 0 : STL[3 + Rg.int(0, 2)], Rg.range(0.7, 1.2));
           }
         }
       }
