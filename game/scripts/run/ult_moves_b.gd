@@ -1758,18 +1758,14 @@ static func _mz_ul(u) -> bool:
 	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready(u.g.vfx.px_ul_tex(MZ_UL_JELLY, 1, false))
 
 
-## 先装饰（× px_deco_k）后核心各放一条，返回 [装饰（可能为空字典）, 核心]。过渡版（组长 C 11-04）：样板的 u.px_strip 上了以后换成它、删掉这份
-static func _mizuki_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> Array:
-	var cn: String = u.g.vfx.px_ul_tex(base, 1, false, "core", 2)
-	var dn: String = u.g.vfx.px_ul_tex(base, 1, false, "deco", 2)
-	var dk: float = u.g.vfx.px_deco_k()
-	var ds := {}
-	if dn != "" and dk > 0.0 and u.fx_ready(dn):
-		var od := opt.duplicate()
-		od["col"] = Color(1, 1, 1, dk * float(opt.get("col", Color.WHITE).a))
-		od.erase("hf")
-		ds = u.strip(dn, c, od)
-	return [ds, u.strip(cn, c, opt)]
+## 用公共 u.px_strip（§14.15）先装饰后核心放一条，再从 u.shapes 末尾取回两条的字典（水母每帧要挪位置 / 缩放 / 透明度）：返回 [装饰（可能为空字典）, 核心]；没播返回 []
+static func _mz_ul_pair(u, base: String, c: Vector2, opt: Dictionary) -> Array:
+	if not u.px_strip(base, c, opt):
+		return []
+	var n: int = u.shapes.size()
+	var cs: Dictionary = u.shapes[n - 1]
+	var ds: Dictionary = u.shapes[n - 2] if n >= 2 and str(u.shapes[n - 2].get("name", "")).find("_deco") >= 0 else {}
+	return [ds, cs]
 
 
 static func _mz_ul_start(u, a: Dictionary, c: Vector2, a0: float, span: float, R: float) -> void:
@@ -1784,7 +1780,9 @@ static func _mz_ul_start(u, a: Dictionary, c: Vector2, a0: float, span: float, R
 		var p: Vector2 = c + Vector2.from_angle(ang) * R * (0.3 + 0.55 * PF.h(vs + i * 9.1))
 		var sc: float = 0.85 + 0.35 * PF.h(vs + i * 2.2)
 		var fs: float = -1.0 if PF.h(vs + i * 6.6) < 0.5 else 1.0
-		var pr: Array = _mizuki_ul_strip(u, MZ_UL_JELLY, p + Vector2(0, 40), {"sc": sc, "sx": fs, "loop": true, "life": 4.0, "col": Color(1, 1, 1, 0.0), "fps": 20.0 * (0.85 + 0.3 * hh)})
+		var pr: Array = _mz_ul_pair(u, MZ_UL_JELLY, p + Vector2(0, 40), {"sc": sc, "sx": fs, "loop": true, "life": 4.0, "col": Color(1, 1, 1, 0.0), "fps": 20.0 * (0.85 + 0.3 * hh)})
+		if pr.is_empty():
+			continue
 		a.jl.append({"s": pr[1], "d": pr[0], "p": p, "ph": hh * TAU, "d0": 0.04 * i + 0.1 * hh, "fs": fs, "sc": sc})
 		PF.particles(u, p + Vector2(0, 30), 20, "ult_burst_s", [FC.MZ_INK], 0.04 * i, vs + i, 50.0)   # 从地里冒出的暗色颗粒
 	a["jl_c1"] = float(a.T0) + float(a.T) + 0.12
@@ -1837,7 +1835,7 @@ static func _mz_ul_burst(u, a: Dictionary, t: float) -> void:
 		for d in [j.d, s]:
 			if not (d as Dictionary).is_empty():
 				d.max = float(d.age)
-		_mizuki_ul_strip(u, MZ_UL_BURST, p, {"sc": sc, "sx": float(j.fs), "hf": true})
+		u.px_strip(MZ_UL_BURST, p, {"sc": sc, "sx": float(j.fs), "hf": true})
 		u.light(p, 120.0, Color(0.42, 0.4, 0.75), 0.25)
 	a.jl_dim.max = 0.0   # 压暗一下撤掉：暗 → 亮的反差就是冲击
 	u.g.vfx.stop(Bal.v("ult/mz_burst_stop", 0.16), "ult", true)

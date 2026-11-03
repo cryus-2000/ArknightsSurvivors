@@ -370,9 +370,7 @@ static func h3_cast_push(o, b: Dictionary) -> void:
 	o.screen_shake(0.8 if big else 0.5)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = _mf_col(b.get("col", []), Color(0.45, 0.8, 1.0))
-	if _mz_ul(o):   # 放开版：开技 = 细碎暗地 + 触须钻出（S2 四五根 / S3 七根放射），不画往外扩散的光环（用户 11-04 §14.7）；注册表 cast 挂点在 px_halo 关时不播，所以在这里自己播
-		_mz_ul_play(o, "fx_mizuki_ul_s3cast" if big else "fx_mizuki_ul_s2cast", o.pos, g.PX, 0.0, false)
-	elif not big:
+	if not big and not _mz_ul(o):   # 放开版：开技画面走注册表 cast（halo_ok，细碎暗地 + 触须钻出），不画往外扩散的光环（§14.7）
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
 		g.fx.append({"kind": "rays", "pos": o.pos, "life": 0.6, "max": 0.6, "col": c, "op_spoke": true})
@@ -390,9 +388,8 @@ static func h3_kill_heal(o, b: Dictionary) -> void:
 	var got: float = min(float(b.get("pct", 0.01)) * float(o.kill_w), float(mz.budget))   # 按击杀权重（docs/50 §16.8），仍受每秒预算约束
 	mz.budget = float(mz.budget) - got
 	o.heal_leader(g.max_hp * got, o.display_name())
-	if got > 0.0 and _mz_ul(o) and g.ppos != Vector2.INF and g.t - float(mz.get("ul_heal_t", -99.0)) >= 1.0:   # 放开版：队长脚下淡紫白水珠浮起（1 秒内合并，§11.2 #4；注册表 heal 挂点在 px_halo 关时不播，这里自己播），不定格
-		mz["ul_heal_t"] = g.t
-		_mz_ul_play(o, "fx_mizuki_ul_heal", g.ppos, g.PX, 0.0, false)
+	if got > 0.0:
+		g.vfx.px_ul_heal(o)   # 放开版：队长脚下淡紫白水珠浮起（注册表 heal，halo_ok；1 秒内合并，不定格；开关关掉时不播）
 
 
 ## 触手本体的染色：look.deep（常态）/ look.deep_rej（排异后）× bright

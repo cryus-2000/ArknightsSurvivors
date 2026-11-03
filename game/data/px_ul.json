@@ -58,10 +58,28 @@
 		}
 	},
 	"mizuki": {
-		"_doc": "水月：伞击是 umbrella 自定义形状，不走 shapes 接管；伞击 / 唤醒 / 触手追击由 seg_mizuki._mz_ul_* 直接播（fx_mizuki_ul_umb / awaken / tent），定格按精英档写在代码里（E2 0.05 / 0.075，E0–E1 0.03 / 0.05）；S2 / S3 起手与击杀回复由 seg_mizuki 自己播（注册表 cast / heal 挂点在 fx/px_halo = 0 时不播，§14.7）",
+		"_doc": "水月：伞击是 umbrella 自定义形状，不走 shapes 接管；伞击 / 唤醒 / 触手追击由 seg_mizuki._mz_ul_* 直接播（fx_mizuki_ul_umb / awaken / tent），定格按精英档写在代码里（E2 0.05 / 0.075，E0–E1 0.03 / 0.05）；S2 / S3 起手（细碎暗地 + 触须钻出）与击杀回复（水珠浮起）都不外扩，写 halo_ok（§14.7 逐条豁免）",
 		"pause": [
 			0.05,
 			0.075
-		]
+		],
+		"cast": {
+			"1": {
+				"base": "fx_mizuki_ul_s2cast",
+				"y": 0,
+				"halo_ok": true
+			},
+			"2": {
+				"base": "fx_mizuki_ul_s3cast",
+				"y": 0,
+				"halo_ok": true
+			}
+		},
+		"heal": {
+			"base": "fx_mizuki_ul_heal",
+			"y": 0,
+			"sc": 1.0,
+			"halo_ok": true
+		}
 	}
 }
