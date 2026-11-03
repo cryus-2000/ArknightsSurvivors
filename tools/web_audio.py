@@ -9,7 +9,7 @@
 档位（compression_level：0 最好、1 最小；libsndfile 把它映射成 Vorbis 质量 1 - level）：
   A：配乐最多 32 kHz / 0.85；语音 24 kHz / 0.85
   B 平衡：配乐最多 24 kHz / 0.85，战斗 pulse / drive / 危险层 1.0；语音同 A
-  C 激进：配乐最多 22.05 kHz / 1.0（8 kHz 以上几乎没内容的曲目再降到 16 kHz，§10）；语音 22.05 kHz / 1.0
+  C 激进：配乐最多 22.05 kHz / 1.1（质量 −0.1，走 ffmpeg；高频多的 pulse 层与最终 Boss 二阶段 p2 仍 1.0，11-03 docs/187 §11）（8 kHz 以上几乎没内容的曲目再降到 16 kHz，§10）；语音 22.05 kHz / 1.0
   D / E（10-28 试听档，docs/187 §7，只动配乐、语音同 B）：配乐 22.05 / 16 kHz，level 1.1 = Vorbis 质量 -0.1。
     libsndfile 最低只到质量 0，这两档改用 imageio_ffmpeg 自带 ffmpeg 的 libvorbis 编码（global_quality = 质量 × 10 × 118）
 这是有损压缩。网页 PCM 大小取决于 AudioContext 采样率，文件降采样本身只减包体；手机上下文另由 power.js 设为 24 kHz。
@@ -24,7 +24,7 @@ import soundfile as sf
 TIERS = {
     "A": {"music_rate": 32000, "music": {"default": 0.85}, "voice": (24000, 0.85)},
     "B": {"music_rate": 24000, "music": {"default": 0.85, "battle_pulse": 1.0, "battle_drive": 1.0, "danger": 1.0}, "voice": (24000, 0.85)},
-    "C": {"music_rate": 22050, "music": {"default": 1.0}, "voice": (22050, 1.0)},   # 语音 0.9 → 1.0：11-02 第十批网页 44.6 超 44.5 预算，省 0.13 MiB（docs/187 §9）
+    "C": {"music_rate": 22050, "music": {"default": 1.1, "battle_pulse": 1.0, "final_p2": 1.0}, "voice": (22050, 1.0)},   # 语音 0.9 → 1.0：11-02 第十批网页 44.6 超 44.5 预算，省 0.13 MiB（docs/187 §9）
     "D": {"music_rate": 22050, "music": {"default": 1.1}, "voice": (24000, 0.85)},
     "E": {"music_rate": 16000, "music": {"default": 1.1}, "voice": (24000, 0.85)},
 }
@@ -33,6 +33,8 @@ TIERS = {
 def music_group(name):
     if name.startswith("suno_"):   # Suno 分层配乐（docs/164）：suno_battle1_pulse 等按去掉前缀的名字分组
         name = name[5:]
+    if name.startswith("final") and name.endswith("_p2"):
+        return "final_p2"
     if name.startswith("battle") and name.endswith("_base"):
         return "battle_base"
     if name.startswith("battle") and name.endswith("_pulse"):
