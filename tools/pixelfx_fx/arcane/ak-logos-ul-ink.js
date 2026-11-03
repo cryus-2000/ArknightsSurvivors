@@ -48,7 +48,7 @@ export function create(o) {
   const core = o.layer !== "deco", deco = o.layer !== "core", ACC = hex(o.accent);
   const DL = [0.5, 0.75, 1][el] * (quick ? 0.5 : 1), GK = [0.25, 0.42, 0.6][el], PM = [0.6, 0.85, 1.15][el];
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[6], C[5]], haze: C[2] }), lights = new Lights();
-  const isS1 = mv.startsWith("s1"), isHit = mv === "atk_hit" || mv === "s1_tick";
+  const isS1 = mv.startsWith("s1"), isS2 = mv.startsWith("s2"), isHit = mv === "atk_hit" || mv === "s1_tick" || mv === "s2_hit" || mv === "s2_exec" || mv === "s3_hit" || mv === "ult_burst", isS3 = mv.startsWith("s3"), isBolt = mv === "atk_bolt" || mv === "s3_bolt", isStart = mv === "atk_start" || mv === "s2_cast";
   let t = 0;
 
   // ---- 四芒星：四臂长短不等（不规整），首帧白，之后臂身转深蓝、再转近黑；dark = 原作 AB 暗星
@@ -106,19 +106,19 @@ export function create(o) {
   }
 
   // ---------------- 命中（普攻 hit_01 / S1 hitloop）
-  const S1R = isS1 ? 1.15 : 1;
+  const S1R = isS1 ? 1.15 : mv === "s2_exec" ? 1.3 : mv === "s3_hit" ? 1.35 : mv === "ult_burst" ? 2.2 : 1;
   const SL = [Rg.range(17, 22), Rg.range(13, 17), Rg.range(10, 14), Rg.range(9, 12)].map((v) => v * [0.65, 0.72, 0.85][el] * S1R);   // 四臂：横长竖短（原作 star_06 / 164）
   const thorns = [];
-  for (let i = 0, n = isS1 ? 2 : Rg.int(3, 4) + (el >= 1 ? 1 : 0); i < n; i++)   // S1 每跳尖刺少而短（原作 hitloop cici 4 根小刺），主形让给放射细光 + 碎字符
+  for (let i = 0, n = mv === "s2_exec" ? 0 : isS1 ? 2 : mv === "s3_hit" ? Rg.int(6, 7) : mv === "ult_burst" ? 8 : Rg.int(3, 4) + (el >= 1 ? 1 : 0); i < n; i++)   // S1 每跳尖刺少而短（原作 hitloop cici 4 根小刺），主形让给放射细光 + 碎字符
     thorns.push({ a: Rg.range(0, TAU), len: Rg.range(13, 21) * (isS1 ? 0.6 : 1), w: Rg.range(2.2, 3.2), d: Rg.range(0.02, 0.06), s: Rg.range(0, 1) });
   const shards = [];
-  const nSh = isS1 ? [6, 10, 14][el] : [2, 7, 10][el];   // S1 每跳碎字符一直是主角（原作 hitloop zflizi 10–15 片）
+  const nSh = mv === "ult_burst" ? 22 : mv === "s3_hit" ? 14 : mv === "s2_exec" ? 3 : isS1 ? [6, 10, 14][el] : [2, 7, 10][el];   // S1 每跳碎字符一直是主角（原作 hitloop zflizi 10–15 片）
   for (let i = 0; i < nSh; i++) {
     const a = isS1 ? Rg.range(0, TAU) : Rg.range(-1.3, 1.3) + (Rg.chance(0.3) ? Math.PI : 0), sp = Rg.range(35, 95);
     shards.push({ g: Rg.int(0, GLY.length - 1), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.7 - Rg.range(5, 25), d: Rg.range(0.02, 0.1), life: Rg.range(0.35, 0.7) * DL + 0.15 });
   }
   const feathers = [];
-  if (el >= 2) for (let i = 0, n = Rg.int(2, 3); i < n; i++) {
+  if (el >= 2 && mv !== "s3_cast") for (let i = 0, n = Rg.int(2, 3); i < n; i++) {
     const a = (i % 2 ? Math.PI : 0) + Rg.range(-0.5, 0.5);
     feathers.push({ x: Rg.range(-4, 4), y: Rg.range(4, 10), a, bend: Rg.range(-0.6, 0.6), L: Rg.range(26, 36), arc: Rg.range(-7, 7), w: Rg.range(1.8, 2.6), barb: Rg.int(3, 5), barbEvery: Rg.int(5, 8), barbOff: Rg.int(0, 4), s: Rg.int(1, 999), d: Rg.range(0.03, 0.08) });
   }
@@ -126,14 +126,29 @@ export function create(o) {
   const rays = [];
   if (isS1) for (let i = 0, n = Rg.int(6, 8); i < n; i++) rays.push({ a: Rg.range(0, TAU), L: Rg.range(10, 24), d: Rg.range(0, 0.03) });
   const swirl = [];
-  if (isS1) for (let i = 0, n = Rg.int(2, 3); i < n; i++) swirl.push({ a0: Rg.range(0, TAU), sp: Rg.range(1.2, 2.0), r: Rg.range(11, 17), w: Rg.range(2, 3.5) });
+  if (isS1 || mv === "s2_exec" || mv === "ult_burst") for (let i = 0, n = Rg.int(2, 3); i < n; i++) swirl.push({ a0: Rg.range(0, TAU), sp: Rg.range(1.2, 2.0), r: Rg.range(11, 17) * (mv === "ult_burst" ? 2 : 1), w: Rg.range(2, 3.5) * (mv === "ult_burst" ? 1.6 : 1) });
   const band = { a: Rg.range(-0.35, 0.35), r: Rg.range(15, 19), d: 0.05 };   // E1+ S1：绕目标的一段字符带（原作 hit_03 / buff_03 字环的意思，半圈不闭合）
 
+  // S2「殁亡」= 原作 skill1：技能期间命中多一圈字符环（原作 hit_01 ring_01 (2)/(3)：logos_zifu 网格环，白 → 褐 → 深蓝，转成本作白 → 灰蓝 → 深蓝），
+  // 处决 = 原作 hit_03：竖立的白色符文柱（fuwen，3–4 根，位置 / 高低 / 先后都随机）+ 往下落的白色细光（lizi）+ 暗旋涡（wenli），不出尖刺
+  const ring = { a0: Rg.range(0, TAU), span: Rg.range(3.8, 4.6), r: mv === "s2_exec" ? 18 : 20 };   // 技能期间命中的字符环比普攻大一圈，一眼和普攻分开（§12.1）
+  const pillars = [];
+  if (mv === "s2_exec" || mv === "ult_burst") {
+    let x = Rg.range(-15, -11) * (mv === "ult_burst" ? 2 : 1);
+    for (let i = 0, n = mv === "ult_burst" ? 5 : el >= 2 ? 3 : 2; i < n; i++) { pillars.push({ x: Math.round(x), h: Rg.int(6, 9), tilt: (i % 2 ? 1 : -1) * Rg.range(0.25, 0.5), d: Rg.range(0.02, 0.1), g0: Rg.int(0, 8) }); x += Rg.range(9, 14) * (mv === "ult_burst" ? 1.4 : 1); }   // 原作 fuwen：斜立的长条符文，互相交叉
+  }
+  const falls = [];
+  if (mv === "s2_exec") for (let i = 0; i < 6 + 2 * el; i++) falls.push({ x: Rg.range(-14, 14), y0: Rg.range(-34, -16), L: Rg.range(5, 12), sp: Rg.range(90, 170), d: Rg.range(0, 0.06) });
   // ---------------- 普攻起手：笔尖白弧 + 暗弧挥过，收笔处一颗四芒星（原作 attack_start_01 / 03）
   const swing = { a0: Rg.range(-1.1, -0.9), span: Rg.range(2.9, 3.2), R: Rg.range(13, 15), cx: -9, cy: 8 };   // 原作挥笔弧：从头右上绕到身体左下（笔尖在右手）
   // ---------------- 弹体：白色菱形笔尖 + 深色墨尾 + 蓝色细芯线（原作 logos_zidan + trail_ds / zs / xian）
   const BOLT_T = 0.25;
 
+  const castSwirl = [], castShards = [];
+  if (mv === "s3_cast") {
+    for (let i = 0; i < 3; i++) castSwirl.push({ a0: Rg.range(0, TAU), sp: Rg.range(1.4, 2.2), r: Rg.range(16, 24), w: Rg.range(1, 2) });
+    for (let i = 0; i < 10; i++) { const a = Rg.range(0, TAU), sp = Rg.range(40, 90); castShards.push({ g: Rg.int(0, GLY.length - 1), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.7 - 15, d: Rg.range(0, 0.06), life: Rg.range(0.25, 0.4) }); }
+  }
   let burst = false;
   return {
     update(dt) {
@@ -173,8 +188,15 @@ export function create(o) {
           p.disc(Math.cos(a) * rr, Math.sin(a) * rr * 0.6, w.w * Math.sin(Math.PI * s2 / w.sp), C[1], 0.45 * k);
         }
       }
-      if (mv === "atk_bolt") p.glowLine(-26, 0, 0, 0, 6, C[3], 0.25), p.glow(0, 0, 7, C[6], 0.35);
-      if (mv === "atk_start") { const k = smooth(0.12, 0.16, t) * (1 - smooth(0.2, 0.45, t)); if (k > 0) p.glow(0, 0, [8, 10, 13][el], C[5], GK * k); }
+      for (const fl of falls) {   // 处决：往下落的白色细光（装饰层）
+        const u = t - fl.d;
+        if (u <= 0 || u > 0.3) continue;
+        const y = fl.y0 + fl.sp * u, a = 1 - u / 0.3;
+        for (let i = 0; i < fl.L; i++) p.dot(fl.x, y - i, C[i < 2 ? 7 : 5], a * (1 - i / fl.L));
+      }
+      if (isBolt) p.glowLine(isS3 ? -40 : -26, 0, 0, 0, isS3 ? 9 : 6, C[3], 0.25), p.glow(0, 0, isS3 ? 10 : 7, C[6], 0.35);
+      if (mv === "s3_cast") { const b = t - 0.45, k = b < 0 ? 0.25 * clamp(t / 0.45) : 1 - smooth(0, 0.35, b); if (k > 0) p.glow(0, 0, 22, b < 0 ? C[2] : C[6], (b < 0 ? 0.4 : 0.6) * k); }
+      if (isStart) { const k = smooth(0.12, 0.16, t) * (1 - smooth(0.2, 0.45, t)); if (k > 0) p.glow(0, 0, [8, 10, 13][el], C[5], GK * k); }
       ps.draw(p, "back");
     },
     draw(p) {
@@ -204,6 +226,26 @@ export function create(o) {
           if (v > 0.6 && ((Math.round(u * 40) + s.g) % 3 === 0)) continue;   // 消失前闪烁
           glyph(p, s.g, x - 1, y - 2, v < 0.5 ? C[7] : C[6]);
         }
+        // 3b) S2：字符环（四分之三圈，不闭合），白 → 灰蓝 → 深蓝后碎掉
+        if (isS2) {
+          const u = t - 0.02, k = ease.outCubic(clamp(u / 0.08)), f = smooth(0.3 * DL + 0.1, 0.55 * DL + 0.2, u);
+          if (u > 0 && f < 1) for (let i = 0, n = Math.round(ring.span * ring.r / 5); i < n; i++) {
+            const a = ring.a0 + (i / n) * ring.span * k, ci = u < 0.08 ? 7 : u < 0.2 ? 5 : 3;
+            if (noise2(i, u * 14, 21) < f * 2 - 1) continue;
+            glyph(p, (i * 5 + 2) % GLY.length, Math.round(Math.cos(a) * ring.r * (1 + 0.15 * k)) - 1, Math.round(Math.sin(a) * ring.r * 0.42 * (1 + 0.15 * k)) + 2, el >= 2 && i % 3 === 1 ? ACC : C[ci]);
+          }
+        }
+        // 3c) 处决：符文柱从脚下往上写出，停一会儿转暗、碎散
+        for (const pl of pillars) {
+          const u = t - pl.d;
+          if (u <= 0) continue;
+          const k = ease.outCubic(clamp(u / 0.15)), f = smooth(0.35 * DL + 0.15, 0.6 * DL + 0.3, u), n = Math.ceil(pl.h * k);
+          for (let j = 0; j < n; j++) {
+            if (noise2(pl.x + j * 3, u * 12, 33) < f * 2 - 1) continue;
+            const ci = u < 0.1 ? 7 : u < 0.3 ? 6 : 4;
+            glyph(p, (pl.g0 + j * 4) % GLY.length, Math.round(pl.x + Math.sin(pl.tilt) * (j + 1) * 5) - 1, Math.round(10 - Math.cos(pl.tilt) * (j + 1) * 5), el >= 2 && j === n - 1 ? ACC : C[ci]);
+          }
+        }
         // 4) S1 E1+：绕目标半圈白色字符带（不闭合）
         if (isS1 && el >= 1) {
           const u = t - band.d;
@@ -226,19 +268,54 @@ export function create(o) {
           if (fd < 1) feather(p, f, k, fd);
         }
       }
-      if (core && mv === "atk_bolt") {
-        // 墨尾：深色宽尾（近黑）→ 中段深蓝，中间一条蓝色细芯线，弹头白色菱形笔尖
-        for (let x = -30; x <= 0; x++) {
-          const v = (x + 30) / 30, w = 0.5 + v * 2.6 + noise(x * 0.4 + t * 40, 3) * 0.6;
+      if (core && isBolt) {
+        // 墨尾：深色宽尾（近黑）→ 中段深蓝，中间一条蓝色细芯线，弹头白色菱形笔尖；S3（原作 skill3_trail：粗墨蛇 + 蓝色碎字符斑）更长更粗
+        const BL = isS3 ? 44 : 30, BW = isS3 ? 5.5 : 2.6;
+        for (let x = -BL; x <= 0; x++) {
+          const v = (x + BL) / BL, w = 0.5 + v * BW + noise(x * 0.4 + t * 40, 3) * (isS3 ? 1.1 : 0.6);
           for (let y = -w; y <= w; y += 0.5) {
             if (v < 0.35 && noise2(x * 0.5 + t * 30, y, 5) < 0.1 - v) continue;   // 尾梢散成墨絮
-            p.px(x, y, C[Math.abs(y) > w - 0.6 ? 2 : v > 0.6 ? 1 : 0]);
+            let ci = Math.abs(y) > w - 0.6 ? 2 : v > 0.6 ? 1 : 0;
+            if (isS3 && v > 0.2 && noise2(x * 0.7 - t * 50, y * 0.9, 13) > 0.62) ci = noise2(x, y, 4) > 0 ? 5 : 4;   // 墨身里的蓝色碎字符斑
+            p.px(x, y, C[ci]);
           }
           if (v > 0.45) p.px(x, Math.round(noise(x * 0.3 + t * 20, 9) * 0.6), C[v > 0.85 ? 5 : 3]);   // 芯线（只在前半段亮）
         }
-        for (const [dx, dy, c] of [[0, 0, 7], [1, 0, 7], [2, 0, 7], [3, 0, 6], [-1, 0, 7], [0, -1, 7], [0, 1, 7], [1, -1, 6], [1, 1, 6], [-2, 0, 6], [-1, -1, 5], [-1, 1, 5], [4, 0, 5]]) p.px(dx, dy, C[c]);
+        const HK = isS3 ? 1.6 : 1;
+        for (const [dx, dy, c] of [[0, 0, 7], [1, 0, 7], [2, 0, 7], [3, 0, 6], [-1, 0, 7], [0, -1, 7], [0, 1, 7], [1, -1, 6], [1, 1, 6], [-2, 0, 6], [-1, -1, 5], [-1, 1, 5], [4, 0, 5]]) {
+          p.px(Math.round(dx * HK), Math.round(dy * HK), C[c]);
+          if (isS3) p.px(Math.round(dx * HK) + 1, Math.round(dy * HK), C[c]);
+        }
       }
-      if (core && mv === "atk_start") {
+      if (core && mv === "s3_cast") {
+        // 原作 skill3_start_02：暗色旋涡往笔尖收（0–0.45 s），收满后白色四芒星爆亮 + 碎字符；两手各一小圈字符环（start_01_L / R）
+        const u = t;
+        for (const w of castSwirl) {
+          const k = clamp(u / 0.45), rr = w.r * (1 - 0.85 * k);
+          if (k >= 1) continue;
+          for (let s2 = 0; s2 <= w.sp; s2 += 0.06) {
+            const a = w.a0 + u * 6 + s2, x = Math.cos(a) * rr, y = Math.sin(a) * rr * 0.7;
+            p.px(x, y, C[s2 > w.sp - 0.2 ? 4 : 1]);
+            if (w.w > 1.5) p.px(x + 0.5, y + 0.5, C[1]);
+          }
+        }
+        for (const hd of [-1, 1]) {
+          const k = smooth(0.05, 0.2, u) * (1 - smooth(0.45, 0.6, u));
+          if (k <= 0) continue;
+          for (let i = 0; i < 7; i++) {
+            const a = (i / 7) * Math.PI * 2 * k + u * 3 * hd;
+            glyph(p, (i * 3 + (hd > 0 ? 1 : 4)) % GLY.length, Math.round(-10 + hd * 4 + Math.cos(a) * 7) - 1, Math.round(10 + Math.sin(a) * 3) - 2, C[i % 3 ? 6 : 7]);
+          }
+        }
+        const b = u - 0.45;
+        if (b >= 0 && b < 0.4) star(p, 0, 0, [16, 13, 11, 9], b < 0.05 ? 0.6 + 0.4 * (b / 0.05) : 1 - smooth(0.12, 0.4, b) * 0.5, b > 0.1);
+        if (b >= 0) for (const s3s of castShards) {
+          const v = b - s3s.d;
+          if (v <= 0 || v > s3s.life) continue;
+          glyph(p, s3s.g, Math.round(s3s.vx * v) - 1, Math.round(s3s.vy * v + 20 * v * v) - 2, v < s3s.life * 0.5 ? C[7] : C[5]);
+        }
+      }
+      if (core && isStart) {
         // 挥笔：外圈白弧 + 内侧暗弧（原作 dg：robrta_slash 白 + wisdel 暗），0.05 s 扫过、0.25 s 溶掉；收笔处四芒星
         const head = ease.outExpo(clamp(t / 0.07)), tail = smooth(0.1, 0.32, t);
         if (head > 0.15) for (let s = tail; s <= head; s += 0.008) {
@@ -250,7 +327,7 @@ export function create(o) {
           }
         }
         // E1+：胸前浮起一段白色字符带（原作 attack_start_02 字环）：碎字符沿前半圈椭圆排开、逐个写出，E2 每隔一个紫
-        if (el >= 1) {
+        if (el >= 1 || mv === "s2_cast") {
           const u = t - 0.06, f = smooth(0.24, 0.42, u);
           if (u > 0 && f < 1) for (let i = 0, n = 9; i < n; i++) {
             if (i / n > ease.outCubic(clamp(u / 0.12)) || noise2(i, u * 12, 9) < f * 2 - 1) continue;
@@ -259,7 +336,7 @@ export function create(o) {
           }
         }
         const u = t - 0.14;
-        if (u > 0 && u < 0.42) star(p, 0, 0, [9, 7, 6, 5].map((v) => v * [0.9, 1, 1.15][el]), u < 0.05 ? 0.6 + 0.4 * ease.outCubic(u / 0.05) : 1 - smooth(0.15, 0.42, u) * 0.6, u > 0.1);
+        if (u > 0 && u < 0.42) star(p, 0, 0, [9, 7, 6, 5].map((v) => v * [0.9, 1, 1.15][el] * (mv === "s2_cast" ? 1.35 : 1)), u < 0.05 ? 0.6 + 0.4 * ease.outCubic(u / 0.05) : 1 - smooth(0.15, 0.42, u) * 0.6, u > 0.1);
       }
       if (deco) {
         lights.draw(p);

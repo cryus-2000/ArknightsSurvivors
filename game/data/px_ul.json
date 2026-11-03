@@ -56,5 +56,28 @@
 				"y": 0
 			}
 		}
+	},
+	"logos": {
+		"_doc": "逻各斯（docs/242 v2，照原作 logos.ab 还原）：弹道类，不走 shapes 接管；seg_logos._lg_ul_fx 按开关换起手 / 弹体 / 命中 / S1 每跳帧条，定格秒数见 seg_logos.LG_UL_PAUSE；cast：S2 殁亡开启 = 挥笔弧 + 字符带 + 四芒星（原作 skill1_start_01），S3 延异视阈开启 = 暗涡收拢后爆亮（原作 skill3_start_01/02），都在笔尖（身前 20、上 36）；S3 原起手光柱 / 放射光在 logos.json 里加了 cond !px_ul",
+		"pause": [
+			0.05,
+			0.075
+		],
+		"cast": {
+			"1": {
+				"base": "fx_logos_ul_s2cast",
+				"at": "front",
+				"front": 20,
+				"y": -36,
+				"flip": true
+			},
+			"2": {
+				"base": "fx_logos_ul_s3cast",
+				"at": "front",
+				"front": 20,
+				"y": -36,
+				"flip": true
+			}
+		}
 	}
 }

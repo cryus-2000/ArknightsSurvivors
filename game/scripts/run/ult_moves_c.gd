@@ -678,6 +678,15 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 ## 用户 10-31「方形面积和边缘那一圈咒文都很奇怪」（开关 ult/lo_circ 缺省 1；0 = 原长方形咒域）：
 ## 判定与画面改成她面前一个圆（圆心在瞄准方向 ult/lo_off 处、半径 ult/lo_cr，按 ult_bench --area 定到标准面积 950 千平方像素 ±15%，docs/199 §5.10）；
 ## 不画边框 / 咒文带 / 分隔线；圆里一层淡墨、边缘几团墨渍；「删去」的墨线改成横贯圆的弦。处决 / 安魂 / 清弹 / 转喻 / 墓志铭照旧，只是改按圆判
+## pixelfx 放开版（docs/242，开关 fx/px_unleashed）：咒域地面换原作 skill3_range 圆环墨域（fx_logos_ul_ultfield，烤制半径 110 美术像素 = 220 世界像素，按 cr / 220 缩放），
+## 爆开换原作 skill3_hit_01 放大的大爆（fx_logos_ul_ultburst）+ 咒印处命中；先装饰（× fx/px_deco_k）后核心；判定 / 时序 / 随机数不动
+const LO_UL_R := 220.0
+
+
+static func _lo_ul(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_logos_ul_ultburst")
+
+
 static func _lo_circ() -> bool:
 	return Bal.v("ult/lo_circ", 1.0) > 0.0
 
@@ -723,6 +732,8 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 		_lo_ink_area(u, cc, cr, tm, vs)
 	if v4:
 		u.shape({"kind": "nop", "c": org, "desat": 0.55, "din": 0.4, "dout": 0.6, "life": tm + 0.7})   # 慢慢褪色 = 时间停住
+		if _lo_ul(u):   # 放开版：原作 skill3_range 圆环墨域铺在咒域里（循环到爆开后 0.4 秒）
+			_sa_ul_strip(u, "fx_logos_ul_ultfield", cc, {"sc": cr / LO_UL_R, "loop": true, "life": tm + 0.4, "fps": 15.0})
 	# 咒域：矩形描边 + 底色 + 两条长边的咒文条（fx_logos_script 拼接）+ 横向分隔线
 	if not circ:
 		u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_INK, "fill": 0.16, "life": tm + 0.1})
@@ -998,7 +1009,8 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 		if i < 30:
 			u.grain("mote_in", p, Vector2.ZERO, LO_VIO, 3)
 			PF.particles(u, p, 60, "ult_burst_s", [LO_VIO, Color(0.85, 0.8, 1.0)], 0.1, float(a.vs) + i * 3.0, 55.0)
-			u.shape({"kind": "ring", "c": p, "r": 46.0, "r1": 6.0, "w": 3.0, "col": Color(0.5, 0.42, 0.85), "life": 0.3, "delay": 0.1})
+			if not _lo_ul(u):
+				u.shape({"kind": "ring", "c": p, "r": 46.0, "r1": 6.0, "w": 3.0, "col": Color(0.5, 0.42, 0.85), "life": 0.3, "delay": 0.1})
 			if i % 3 == 0:   # 余韵：慢慢飘落的暗紫余烬
 				PF.particles(u, p, 40, "ult_ember", [Color(0.42, 0.36, 0.7)], 0.25, float(a.vs) + i * 5.0, 45.0)
 		i += 1
@@ -1010,9 +1022,18 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 	# 真空压缩：一道细环从圆边猛收到圆心（0.1 秒）→ 爆开一道碎裂细冲击波推回圆边、冷成暗紫；粒子减半、去掉近白
 	var cc: Vector2 = Vector2(a.cc)
 	var cr: float = float(a.cr)
-	u.shape({"kind": "ring", "c": cc, "r": 10.0, "r1": cr, "w": 3.0, "col": Color(0.78, 0.7, 1.0), "life": 0.1, "solid": true})
-	u.shape({"kind": "ring", "c": cc, "r": cr * 1.02, "r1": 30.0, "w": 10.0, "col": Color(0.74, 0.62, 1.0), "life": 0.5, "delay": 0.1})
-	u.shape({"kind": "ring", "c": cc, "r": cr * 0.75, "r1": 20.0, "w": 4.0, "col": Color(0.45, 0.36, 0.78), "life": 0.6, "delay": 0.17})
+	if _lo_ul(u):   # 放开版：圆心一记大爆（原作 skill3_hit_01 的白星转暗星 + 白刺 + 碎字符 + 斜立符文条，放大），咒印处（至多 8 个）各一记命中
+		_sa_ul_strip(u, "fx_logos_ul_ultburst", cc, {"sc": 1.6})
+		var ui := 0
+		for mk in a.marks:
+			if ui >= 8:
+				break
+			_sa_ul_strip(u, "fx_logos_ul_s3hit", mk.s.c, {"sc": 1.0, "delay": 0.04 * ui})
+			ui += 1
+	else:
+		u.shape({"kind": "ring", "c": cc, "r": 10.0, "r1": cr, "w": 3.0, "col": Color(0.78, 0.7, 1.0), "life": 0.1, "solid": true})
+		u.shape({"kind": "ring", "c": cc, "r": cr * 1.02, "r1": 30.0, "w": 10.0, "col": Color(0.74, 0.62, 1.0), "life": 0.5, "delay": 0.1})
+		u.shape({"kind": "ring", "c": cc, "r": cr * 0.75, "r1": 20.0, "w": 4.0, "col": Color(0.45, 0.36, 0.78), "life": 0.6, "delay": 0.17})
 	PF.particles(u, cc, 260, "ult_burst", [LO_VIO, LO_VIO.darkened(0.35)], 0.1, float(a.vs) + 50.0, cr * 0.8)
 	var j := 0
 	for mk in a.marks:

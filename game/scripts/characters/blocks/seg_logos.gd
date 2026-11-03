@@ -7,6 +7,43 @@ const HW_INK := Color(0.55, 0.6, 1.0)
 
 const HW_PALE := Color(0.85, 0.9, 1.0)
 
+## pixelfx 放开版（docs/242；开关 fx/px_unleashed，注册表 px_ul.json logos）：v2 照原作 logos.ab 还原（Claude outputs/logos_ref/，用户 11-04 批）——
+## 普攻起手 fx_logos_ul_start（笔尖，朝左翻）/ 弹体 fx_logos_ul_bolt（替换 flight_visual 与程序拖尾）/ 命中 fx_logos_ul_hit（顺弹道方向，替换咒文命中贴图与小墨点）/
+## S1 每跳与锁定 fx_logos_ul_s1（目标身上，从笔尖指向目标；替换锁定墨圈与每跳光团）。先装饰（× px_deco_k）后核心；队长命中定格走 impact_pause（共享限频）；
+## 纯画面：随机只用 g.vrng，伤害 / 状态 / 音效条目照旧
+const LG_UL_PAUSE := [[0.03, 0.05], [0.03, 0.05], [0.05, 0.075]]   # 精英档 → [普攻, 技能] 命中定格秒数（docs/242 §10）
+
+
+static func _lg_ul(o) -> bool:
+	return str(o.id) == "logos" and px_ul_on(o)
+
+
+## 播一张放开版帧条：先装饰后核心；variants ≥ 2 时只有队长随机挑种子变体（队友用 _tm）。缺图返回 false
+static func _lg_ul_fx(o, base: String, p: Vector2, ang: float, sc: float, flip := false, variants := 2) -> bool:
+	var g = o.g
+	var el: int = g.vfx.px_ul_el(o)
+	var vv: int = 1 + int(g.vrng.randf() * variants) if o.is_leader and variants >= 2 else 1
+	var nm: String = g.vfx.px_ul_tex(base, vv, not o.is_leader, "core", el)
+	if g.tex.get(nm) == null:
+		return false
+	var dn: String = g.vfx.px_ul_tex(base, vv, not o.is_leader, "deco", el)
+	var dk: float = g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, p, sc, ang, flip, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(nm, p, sc, ang, flip)
+	return true
+
+
+## 放开版命中定格：只给队长，按精英档取普攻 / 技能秒数（共享限频，批跑不消耗）
+static func _lg_ul_pause(o, skill: bool) -> void:
+	if o.is_leader:
+		o.impact_pause(float(LG_UL_PAUSE[clampi(o.g.vfx.px_ul_el(o), 0, 2)][1 if skill else 0]))
+
+
+## fx 列表里只留含 keys 之一的条目（放开版接管画面时保留音效 / 文字）
+static func _lg_keep(fx: Array, keys: Array) -> Array:
+	return fx.filter(func(x): return x is Dictionary and keys.any(func(k): return x.has(k)))
+
 ## 咒文笔画（同手写 logos RUNES：单位坐标 -1..1，每条 = 起点 → 终点）
 const HW_RUNES := [
 	[[Vector2(0, -1), Vector2(0, 1)], [Vector2(-0.7, -0.5), Vector2(0.7, -0.5)], [Vector2(0, 1), Vector2(-0.45, 0.7)]],
@@ -138,7 +175,8 @@ static func _hw3_bolts(o, dt: float) -> void:
 						if int(q.get("variant", -1)) >= 0:
 							bolt.visual = {"variant": q.variant, "start": hand, "span": maxf(1.0, hand.distance_to(bolt.to)), "u": 0.0, "hist": [hand]}
 						h.bolts.append(bolt)
-						o.fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": HW_PALE, "alpha": 0.7})
+						if not (_lg_ul(o) and _lg_ul_fx(o, "fx_logos_ul_start", hand, 0.0, g.PX, float(o.face) < 0.0)):   # 放开版：笔尖挥笔弧 + 四芒星（原作 attack_start）
+							o.fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": HW_PALE, "alpha": 0.7})
 		h.word_q = h.word_q.filter(func(q): return q.t > 0.0)
 	if h.bolts.is_empty():
 		return
@@ -162,6 +200,8 @@ static func _hw3_bolts(o, dt: float) -> void:
 				var near2: Array = o.nearest_enemies(1, 60.0, bo.to)
 				tgt = near2[0] if not near2.is_empty() else {}
 			if not tgt.is_empty():
+				var hs: Array = bo.get("visual", {}).get("hist", bo.hist)
+				h["ul_ang"] = (hs[-1] - hs[-2]).angle() if hs.size() >= 2 else (tgt.pos - o.pos).angle()   # 放开版命中帧条顺弹道方向（纯画面）
 				hw_bolt_hit(o, tgt, bo.dmg, bo.src, bo.b)
 			continue
 		bo.pos += d.normalized().rotated(sin(bo.age * 7.0 + bo.ph) * 0.45) * step
@@ -230,7 +270,13 @@ static func hw_shape_hit(o, b: Dictionary) -> void:
 	for s in b.get("on_hit", _EA):
 		apply_status(o, e, s)
 	if b.has("fx"):
-		fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e])
+		var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
+		var hb: String = "fx_logos_ul_s2hit" if cond_true(o, "skill_active:1") else "fx_logos_ul_hit"   # 殁亡（永久）期间换带字符环的命中（原作 skill1_hit_01）
+		if _lg_ul(o) and _lg_ul_fx(o, hb, hp, float(h.get("ul_ang", (e.pos - o.pos).angle())), g.PX):   # 放开版命中（原作 attack_hit_01）：只留音效条目
+			fx_play(o, _lg_keep(b.fx, ["sfx"]), hp, float(e.r), [e])
+			_lg_ul_pause(o, hb != "fx_logos_ul_hit")
+		else:
+			fx_play(o, b.fx, hp, float(e.r), [e])
 	var sp = b.get("splash", null)
 	if sp is Dictionary:
 		var ar: float = float(sp.get("r", 30.0))
@@ -259,7 +305,11 @@ static func hw_execute(o, b: Dictionary) -> bool:
 	o.log_hit(str(b.get("src", "")), b.get("tags", []))
 	o.deal_damage(e, e.hp + 1.0)
 	if b.has("fx"):
-		fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e])
+		var xp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
+		if _lg_ul(o) and _lg_ul_fx(o, "fx_logos_ul_s2exec", xp, 0.0, g.PX, false, 1):   # 放开版处决（原作 skill1_hit_03：斜立符文条）：只留文字 / 音效
+			fx_play(o, _lg_keep(b.fx, ["text", "sfx"]), xp, float(e.r), [e])
+		else:
+			fx_play(o, b.fx, xp, float(e.r), [e])
 	o._exec_list(b.get("on_exec", []), e.pos)
 	if over > 0.0:
 		var pool: Array = o.nearest_enemies(int(b.get("pool", 6)), hw_range(o), o.pos)
@@ -303,7 +353,12 @@ static func hw_lock_start(o, b: Dictionary) -> void:
 	if i >= 0:
 		o.s_dur[i] = float(b.dur)
 	if b.has("fx"):
-		fx_play(o, b.fx, best.pos, float(best.r), [best])
+		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
+		var bp: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
+		if _lg_ul(o) and _lg_ul_fx(o, "fx_logos_ul_s1", bp, (bp - tip).angle(), g.PX * 1.3):   # 放开版锁定：大一号的每跳帧条取代脚下墨圈，只留文字 / 音效
+			fx_play(o, _lg_keep(b.fx, ["text", "sfx"]), best.pos, float(best.r), [best])
+		else:
+			fx_play(o, b.fx, best.pos, float(best.r), [best])
 
 
 static func _hw3_lock(o, dt: float) -> void:
@@ -333,7 +388,11 @@ static func _hw3_lock(o, dt: float) -> void:
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
 		if g.tex.get("fx_logos_s1_chain") == null:
 			o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
-		o.fx({"kind": "glow", "pos": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
+		var ep: Vector2 = lk.e.pos + Vector2(0, -lk.e.r * 0.5)
+		if _lg_ul(o) and _lg_ul_fx(o, "fx_logos_ul_s1", ep, (ep - tip).angle(), g.PX):   # 放开版每跳（原作 S2 hitloop）：取代程序光团
+			_lg_ul_pause(o, true)
+		else:
+			o.fx({"kind": "glow", "pos": ep, "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
 
 
 static func _hw_lock_jump(o, lk: Dictionary) -> void:
@@ -456,7 +515,9 @@ static func _hw3_fan(o, dt: float) -> void:
 					apply_status(o, e, s)
 			if shown < 3:
 				shown += 1
-				o.spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
+				var sp3: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
+				if not (_lg_ul(o) and _lg_ul_fx(o, "fx_logos_ul_s3hit", sp3, (sp3 - o.pos).angle(), g.PX * 0.8, false, 1)):   # 放开版：原作 skill3_hit_01（每 tick 至多 3 处）
+					o.spawn_fx_sprite("fx_logos_glyph", sp3, g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
 			if shots < S3_SHOT_MAX and _s3_extra_on(g):   # 出手轨迹（10-29）：S3 没有普攻动作帧，让每次出手看得见 他 → 目标
 				shots += 1
 				var sl: Array = h.get("s3_shots", [])
@@ -541,6 +602,8 @@ static func hw_draw_fan(o) -> void:
 	var fa: float = float(h.fan_ang)
 	var fade: float = clampf(float(fn.t) / 0.5, 0.0, 1.0)
 	_hw_draw_shots(o)
+	if _lg_ul(o) and _hw_fan_ul(o, b, fn, fa, r, fade):
+		return
 	if _hw_fan_sheets(o, b, fn, fa, r, fade):
 		return   # 咒域素材到位（docs/192）：整片扇形由帧条画，程序填充 / 边线不再画
 	var pts := PackedVector2Array([o.pos])
@@ -554,6 +617,30 @@ static func hw_draw_fan(o) -> void:
 	for q in 6:
 		var t: float = fmod(g.t * 0.35 + q / 6.0, 1.0)
 		cv.draw_circle(o.pos + Vector2.from_angle(fa - half + half * 2.0 * t) * r, 2.5, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.7 * fade))
+
+
+## 放开版咒域地面（原作 skill3_range_01：暗色墨地 + 蓝色外缘 + 暗紫内带 + 四角暗星 + 白色字符条；fx_logos_ul_s3field 12 帧循环，烤制半径 150 美术像素 = 300 世界像素）：
+## 先装饰后核心，按扇形朝向转、按当前半径 / 300 缩放；开启 0.3 秒由小长到位并淡入，收尾跟 fade 淡出；被减速敌弹的标记照旧
+const FAN_UL_R := 300.0
+
+
+static func _hw_fan_ul(o, b: Dictionary, fn: Dictionary, fa: float, r: float, fade: float) -> bool:
+	var g = o.g
+	var nm: String = g.vfx.px_ul_tex("fx_logos_ul_s3field", 1, false, "core")
+	if g.tex.get(nm) == null:
+		return false
+	var elapsed: float = float(b.get("dur", 12.0)) - float(fn.t)
+	var grow: float = clampf(elapsed / 0.3, 0.0, 1.0)
+	var sc: float = r / FAN_UL_R * g.PX * (0.6 + 0.4 * grow)
+	var fr: Array = g.V6_FRAMES.get(nm, [12, 15.0])
+	var dn: String = g.vfx.px_ul_tex("fx_logos_ul_s3field", 1, false, "deco")
+	var dk: float = g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		var dfr: Array = g.V6_FRAMES.get(dn, fr)
+		o.draw_spr_rot(dn, int(elapsed * float(dfr[1])) % int(dfr[0]), o.pos, fa, sc, Color(1, 1, 1, dk * fade * grow))
+	o.draw_spr_rot(nm, int(elapsed * float(fr[1])) % int(fr[0]), o.pos, fa, sc, Color(1, 1, 1, fade * grow))
+	_hw_draw_slow_marks(o, b, fa)
+	return true
 
 
 ## 咒域整片扇形素材（docs/192）：fx_logos_s3_fan_ground（循环）/ _open（起手 0.5 秒）/ _close（收尾 0.5 秒），三条同画布（1x 180×264，原点 (4,132)，
@@ -651,6 +738,25 @@ static func _hw_draw_shots(o) -> void:
 	var tx: Texture2D = g.tex.get("fx_logos_s3_ribbon")
 	var keep: Array = []
 	var from: Vector2 = o.pos + Vector2.from_angle(float(h.fan_ang)) * 20.0 + Vector2(0, -20)
+	var ub: String = g.vfx.px_ul_tex("fx_logos_ul_s3bolt", 1, false, "core") if _lg_ul(o) else ""   # 放开版：原作 skill3_trail 粗墨弹（墨尾烤在帧条里，只画弹头一张）
+	if ub != "" and g.tex.get(ub) != null:
+		var ubd: String = g.vfx.px_ul_tex("fx_logos_ul_s3bolt", 1, false, "deco")
+		var ufr: Array = g.V6_FRAMES.get(ub, [19, 20.0])
+		for sh in sl:
+			var k: float = (g.t - float(sh.t0)) / S3_SHOT_DUR
+			if k >= 1.0:
+				continue
+			keep.append(sh)
+			var ez: float = 1.0 - pow(1.0 - k, 2.0)
+			var dirv: Vector2 = (sh.to - from).normalized()
+			var pt: Vector2 = from.lerp(sh.to, ez) + dirv.orthogonal() * sin(k * PI) * 16.0 * float(sh.side)
+			var ang: float = (dirv + dirv.orthogonal() * cos(k * PI) * 0.35 * float(sh.side)).angle()
+			var uf: int = int((g.t - float(sh.t0)) * float(ufr[1]) + float(sh.side) * 5.0) % int(ufr[0])
+			if ubd != "" and g.vfx.px_deco_k(o) > 0.0:
+				o.draw_spr_rot(ubd, uf, pt, ang, g.PX * 0.8, Color(1, 1, 1, g.vfx.px_deco_k(o)))
+			o.draw_spr_rot(ub, uf, pt, ang, g.PX * 0.8)
+		h["s3_shots"] = keep
+		return
 	if tx != null and g.V6_FRAMES.has("fx_logos_s3_ribbon"):
 		o._cv_flush()
 	var frames: int = g.V6_FRAMES["fx_logos_s3_ribbon"][0] if tx != null and g.V6_FRAMES.has("fx_logos_s3_ribbon") else 1
@@ -745,11 +851,21 @@ static func hw_draw_logos_over(o) -> void:
 	var g = o.g
 	var cv = o.cv
 	var h: Dictionary = o.hw
+	var ul: bool = _lg_ul(o)
+	var ulb: String = g.vfx.px_ul_tex("fx_logos_ul_bolt", 1, false, "core") if ul else ""
 	for bo in h.bolts:
 		var visual: Dictionary = bo.get("visual", {})
 		var hh: Array = visual.get("hist", bo.hist)
 		var pose := hw_bolt_pose(bo)
 		var draw_pos: Vector2 = pose[0]
+		if ulb != "" and g.tex.get(ulb) != null:   # 放开版弹体（原作 attack_trail：白色笔尖 + 深色墨尾，尾巴烤在帧条里，不再画程序拖尾）；先装饰后核心
+			var bfr: Array = g.V6_FRAMES.get(ulb, [19, 20.0])
+			var bf: int = int(bo.age * float(bfr[1]) + float(bo.ph) * 3.0) % int(bfr[0])
+			var bdn: String = g.vfx.px_ul_tex("fx_logos_ul_bolt", 1, false, "deco")
+			if bdn != "" and g.vfx.px_deco_k(o) > 0.0:
+				o.draw_spr_rot(bdn, bf, draw_pos, pose[1], g.PX, Color(1, 1, 1, g.vfx.px_deco_k(o)))
+			o.draw_spr_rot(ulb, bf, draw_pos, pose[1], g.PX)
+			continue
 		var name: String = str(bo.b.flight_visual.variants[int(visual.variant)]) if not visual.is_empty() else ""
 		var trail_alpha: float = float(bo.b.flight_visual.get("trail_alpha", 0.28)) if not visual.is_empty() else 0.28
 		var trail_width: float = float(bo.b.flight_visual.get("trail_width", 3.5)) if not visual.is_empty() else 3.5
