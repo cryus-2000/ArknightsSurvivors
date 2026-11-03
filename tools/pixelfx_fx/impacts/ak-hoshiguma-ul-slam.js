@@ -93,7 +93,7 @@ export function create(o) {
         p.line(Math.cos(a) * r0, Math.sin(a) * r0 * SY - 6, Math.cos(a) * r1, Math.sin(a) * r1 * SY - 6, C[5], 0.8);
       }
       if (u < 0) return;
-      const fade = 1 - smooth(0.12, 0.2 + TAIL * 0.5, u), ck = 1 - smooth(0.15, 0.15 + TAIL, u);
+      const ck = 1 - smooth(0.15, 0.15 + TAIL, u);
       // —— 核心：裂网主缝（判定内）先白热后冷成暗金，分叉只在装饰层
       if (ck > 0) for (const segs of cracks) for (const [x0, y0, x1, y1, dep] of segs) {
         if (dep > 0 ? !deco : !core) continue;
@@ -104,12 +104,7 @@ export function create(o) {
         p.line(x0, y0, ex, ey, C[ci - (dep > 0 ? 1 : 0)], ck * (dep > 0 ? 0.75 : 1));
         if (dep === 0 && u < 0.35) p.line(x0, y0 + 1, ex, ey + 1, C[clamp(ci - 2, 1, 6)], ck * 0.6);   // 主缝两像素宽
       }
-      // —— 核心：判定边缘一道断续的震裂线（只一道）
-      if (core && fade > 0) for (let a = 0; a < Math.PI * 2; a += 0.6 / R) {
-        if (noise(a * 4.3, o.seed + 8) < -0.2) continue;
-        const r = R * (1 + 0.03 * noise(a * 9, o.seed + 2));
-        p.blend(Math.cos(a) * r, Math.sin(a) * r * SY, C[u < 0.1 ? 5 : 3], 0.7 * fade * (1 - smooth(0.05, 0.3, u)));
-      }
+      // （判定边缘那一整圈断续震裂线 11-04 删掉：录像里读成一圈光环，用户 11-04 光环一律不做；范围由裂网主缝长短交代）
       // —— 核心：落点白热（第 1 帧）+ E2 般若盾形印（倒三角，白热后转翠绿）
       if (core && u < 0.12) {   // 盾沿砸痕：一道横向的锯齿白热切口（盾下沿砸进地面），不是圆盘（§12.3）
         const k = 1 - u / 0.12, hw = 12 + 10 * (1 - k);

@@ -371,9 +371,13 @@ static func gm_draw(o) -> void:
 		var c: Vector2 = e.pos + Vector2(0, 6)
 		var w: float = float(e.r) * 0.9 + 6.0
 		var pts := PackedVector2Array([c + Vector2(-w, -w * 0.5), c + Vector2(w, -w * 0.5), c + Vector2(w * 0.8, w * 0.4), c + Vector2(0, w), c + Vector2(-w * 0.8, w * 0.4)])
-		cv.draw_colored_polygon(pts, Color(1.0, 0.82, 0.35, 0.42 * a))
-		cv.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1.0, 0.9, 0.5, 1.0 * a), 2.0)
-	if float(o.gm.get("force_until", 0.0)) > o.g.t and o.g.ppos != Vector2.INF:
+		if pul:   # 放开版：盾印改黑钢面 + 暗红边（金色撞经验结晶暖金，README §4）
+			cv.draw_colored_polygon(pts, Color(0.16, 0.18, 0.21, 0.55 * a))
+			cv.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(0.62, 0.16, 0.12, 0.9 * a), 2.0)
+		else:
+			cv.draw_colored_polygon(pts, Color(1.0, 0.82, 0.35, 0.42 * a))
+			cv.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1.0, 0.9, 0.5, 1.0 * a), 2.0)
+	if not pul and float(o.gm.get("force_until", 0.0)) > o.g.t and o.g.ppos != Vector2.INF:   # 放开版不画这圈金环（金色 + 圆环，README §4）
 		var k: float = 0.8 * o.ring_flash("force")   # 10-31 TA H1：武装那一瞬亮一下，不常驻
 		cv.draw_set_transform(o.g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, k), 3.0)
