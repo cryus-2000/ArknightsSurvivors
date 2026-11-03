@@ -1120,6 +1120,7 @@ const V6_FRAMES := {
 	"fx_kaltsit_ul_ultblast": [19, 20.0], "fx_kaltsit_ul_ultblast_lo": [14, 15.0], "fx_kaltsit_ul_ultblast_deco": [19, 20.0], "fx_kaltsit_ul_ultblast_deco_lo": [14, 15.0], "fx_kaltsit_ul_ultpop": [9, 20.0],
 	"fx_kaltsit_ul_ultpop_lo": [7, 15.0], "fx_kaltsit_ul_ultpop_deco": [9, 20.0], "fx_kaltsit_ul_ultpop_deco_lo": [7, 15.0], "fx_kaltsit_ul_m3back": [17, 20.0], "fx_kaltsit_ul_m3back_lo": [13, 15.0],
 	"fx_kaltsit_ul_m3back_deco": [17, 20.0], "fx_kaltsit_ul_m3back_deco_lo": [13, 15.0],
+	"fx_kaltsit_ul_m3aura": [20, 20.0], "fx_kaltsit_ul_m3aura_lo": [15, 15.0], "fx_kaltsit_ul_m3aura_deco": [20, 20.0], "fx_kaltsit_ul_m3aura_deco_lo": [15, 15.0], "fx_kaltsit_ul_shell": [4, 6.0], "fx_kaltsit_ul_blade": [2, 4.0],
 	# 塞雷娅放开版（docs/242：盾击含 _tm、治疗、钙质化晶簇三段、终结技砸地；两层 + 低档）
 	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_bash_deco": [14, 20.0], "fx_saria_ul_bash_deco_lo": [10, 15.0],
 	"fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_grow_lo": [7, 15.0], "fx_saria_ul_calc_grow_deco": [9, 20.0], "fx_saria_ul_calc_grow_deco_lo": [7, 15.0],

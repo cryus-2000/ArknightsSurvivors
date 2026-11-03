@@ -378,5 +378,29 @@
   "layers": true,
   "move": "ult",
   "lo": true
+ },
+ "fx_kaltsit_ul_m3aura": {
+  "fx": "holy/ak-kaltsit-ul-aura",
+  "opts": {
+   "move": "melt"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_kaltsit_ul_shell": {
+  "fx": "holy/ak-kaltsit-ul-shell",
+  "opts": {},
+  "colors": 256,
+  "move": "skill",
+  "keep": true
+ },
+ "fx_kaltsit_ul_blade": {
+  "fx": "holy/ak-kaltsit-ul-blade",
+  "opts": {},
+  "colors": 256,
+  "move": "skill",
+  "keep": true
  }
 }

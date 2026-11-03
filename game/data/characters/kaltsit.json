@@ -1134,7 +1134,29 @@
        ],
        "j": 0
       },
-      "cond": "elite >= 2 && !skill_active:2"
+      "cond": "elite >= 2 && !skill_active:2 && !px_ul"
+     },
+     {
+      "side": {
+       "strip": "fx_kaltsit_ul_blade",
+       "frames": 2,
+       "fps": 4,
+       "anchor": [
+        8,
+        12
+       ],
+       "dx": 42,
+       "body_y": -45,
+       "y": -12,
+       "bob": 1.0,
+       "col": [
+        1.0,
+        1.0,
+        1.0
+       ],
+       "j": 0
+      },
+      "cond": "elite >= 2 && !skill_active:2 && px_ul"
      },
      {
       "side": {
@@ -1156,7 +1178,29 @@
        ],
        "j": 1
       },
-      "cond": "elite >= 2 && !skill_active:2 && node:twin_claw"
+      "cond": "elite >= 2 && !skill_active:2 && node:twin_claw && !px_ul"
+     },
+     {
+      "side": {
+       "strip": "fx_kaltsit_ul_blade",
+       "frames": 2,
+       "fps": 4,
+       "anchor": [
+        8,
+        12
+       ],
+       "dx": 42,
+       "body_y": -45,
+       "y": -12,
+       "bob": 1.0,
+       "col": [
+        1.0,
+        1.0,
+        1.0
+       ],
+       "j": 1
+      },
+      "cond": "elite >= 2 && !skill_active:2 && node:twin_claw && px_ul"
      },
      {
       "side": {

@@ -915,7 +915,13 @@ static func _impact(u, a: Dictionary) -> void:
 			hits = _area(p, tp, 130.0, 1.5, 220.0)
 			p.heal_leader(g.max_hp * Bal.v("ult/kaltsit_heal", 0.08), "连携")
 			g.nerve = 0.0
-			_ring(u, tp, 130.0, c, 0.4)
+			if Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_kaltsit_ul_claw"):   # pixelfx 放开版（claude/pixelfx-ul-kaltsit）：落点一记骨爪（朝队长背向，即推开方向）+ 队长脚下治疗落点；不画外扩圈（用户 11-04）
+				var LFB = preload("res://scripts/run/link_fx_b.gd")
+				var dv: Vector2 = (tp - g.ppos).normalized() if tp.distance_squared_to(g.ppos) > 1.0 else Vector2.RIGHT
+				LFB._ka_ul(u, "fx_kaltsit_ul_claw", tp + Vector2(0, -10), {"ang": dv.angle(), "sc": 130.0 / 109.0})
+				LFB._ka_ul(u, "fx_kaltsit_ul_heal", g.ppos, {})
+			else:
+				_ring(u, tp, 130.0, c, 0.4)
 			support = true
 		"lumen":   # 光弹清除神经损伤，灯火 +10；队长身边照亮
 			var had: bool = g.nerve > 0.0

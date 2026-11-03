@@ -357,6 +357,11 @@ static func wd_ghost(u, pos: Vector2) -> bool:   # 死者原地留暗红残影�
 
 # ---------------- 凯尔希：Mon3tr 落到队长前方挡一下——落地碎裂 + 绿色粒子 + 推开（她的终结技是红色爆，这里用本人青绿）
 static func ka_block(u, mp: Vector2, sd: Vector2) -> bool:
+	if preload("res://scripts/core/balance.gd").vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_kaltsit_ul_claw"):   # pixelfx 放开版（docs/242，claude/pixelfx-ul-kaltsit）：骨白外壳片聚到 Mon3tr 身上挡格 + 一记朝推开方向的骨爪；只改画面
+		_ka_ul(u, "fx_kaltsit_ul_m3back", mp, {})
+		_ka_ul(u, "fx_kaltsit_ul_claw", mp + Vector2(0, -10), {"ang": sd.angle(), "sc": 1.1})
+		u.shake(2.0, 0.1)
+		return true
 	if not LFX.on() or not u.fx_ready(PF.BURST_S):
 		return false
 	var vs: float = LFX.vseed(u, mp)
@@ -371,3 +376,14 @@ static func ka_block(u, mp: Vector2, sd: Vector2) -> bool:
 	u.grain("bfx_dust", mp + Vector2(0, 8), -sd.orthogonal(), Color(0.32, 0.3, 0.28), 6)
 	u.light(mp, 150.0, Color(0.35, 0.85, 0.6), 0.4)
 	return true
+
+
+## 凯尔希放开版帧条：先装饰（× fx/px_deco_k）后核心，名字走 vfx.px_ul_tex（网页取低档）
+static func _ka_ul(u, base: String, c: Vector2, opt: Dictionary) -> void:
+	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		u.strip(d, c, od)
+	u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
