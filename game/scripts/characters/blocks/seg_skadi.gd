@@ -217,43 +217,61 @@ static func hw_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
 		o.fx({"kind": "whirl", "pos": o.pos, "r": float(ctx.get("r", 0.0)), "life": float(f.whirl.get("life", 0.32)), "a0": o.g.vrng.randf() * TAU, "dir": float(o.face)})
 
 
-## pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，balance fx/px_unleashed，缺省 0）：斯卡蒂的大剑类判定（普攻 / 连段「大剑」、
-## 迅捷打击·γ型、跃浪击）结算后，这一下的画面整个换成 pixelfx 帧条（fx_skadi_ul_*，源码 tools/pixelfx_fx），旧 fx 条目和通用近战刀光不画；
-## 队长命中时走 impact_pause 共享顿帧（纯画面：批跑不消耗顿帧、只用 g.vrng，伤害 / TRACE 不变）。返回 true = 已接管，ob_core 不再播 b.fx
-const PX_UL_SRC := {"大剑": "fx_skadi_ul_slash", "迅捷打击·γ型": "fx_skadi_ul_sweep", "跃浪击": "fx_skadi_ul_cleave"}
-
-
+## pixelfx 放开版接管（docs/242，balance fx/px_unleashed，缺省 0；漏项 #25）：ob_core 的 circle / cone 判定结算后调这里，按 o.id 查注册表
+## data/px_ul.json（vfx.px_ul_reg），src 登记过的这一下画面整个换成 fx_<人>_ul_* 帧条（源码 tools/pixelfx_fx），招式本体 fx 条目和通用近战刀光不画；
+## 先画装饰（透明度 × px_deco_k）后画核心；队长命中时走 impact_pause 共享顿帧（纯画面：批跑不消耗顿帧、只用 g.vrng，伤害 / TRACE 不变）。
+## c = 圆形判定的圆心（cone 传 INF，按脚底 + 方向画）。返回 true = 已接管，ob_core 只再播 relic: / node: 附加条目
 static func px_ul_on(o) -> bool:
-	return str(o.id) == "skadi" and float(BalS.v("fx/px_unleashed", 0.0)) > 0.0
+	return not o.g.vfx.px_ul_reg(str(o.id)).is_empty()
 
 
-static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float) -> bool:
-	if not px_ul_on(o):
+static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c := Vector2.INF) -> bool:
+	var reg: Dictionary = o.g.vfx.px_ul_reg(str(o.id))
+	if reg.is_empty():
 		return false
 	var src: String = str(b.get("src", ""))
-	if not PX_UL_SRC.has(src):
+	var ent = reg.get("shapes", _ED).get(src)
+	if not (ent is Dictionary):
 		return false
-	var nm: String = PX_UL_SRC[src]
+	var skill: bool = ent.get("skill", false)
 	var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
 	var a: float = ang
-	if half >= 3.1:
-		nm = "fx_skadi_ul_spin"   # 涌潮悲歌期间的全方向横扫：整圈随机转个角度（画面随机数 vrng，判定不动）
+	var use: Dictionary = ent
+	if half >= 3.1 and reg.get("full") is Dictionary:
+		use = reg.full   # 全方向横扫（斯卡蒂涌潮悲歌）：整圈随机转个角度（画面随机数 vrng，判定不动）
 		a = ang + o.g.vrng.randf() * TAU
-	# 取名统一走 vfx.px_ul_tex（docs/242 §6）：队长普攻 / 全方向两个种子变体随机挑；队友版余韵约减半、亮度不降；网页一律低档 _lo
-	var vv: int = 2 if o.is_leader and (nm == "fx_skadi_ul_spin" or nm == "fx_skadi_ul_slash") and o.g.vrng.randf() < 0.5 else 1
-	var dn: String = o.g.vfx.px_ul_tex(nm, vv, not o.is_leader, "deco")
-	nm = o.g.vfx.px_ul_tex(nm, vv, not o.is_leader, "core")
+	var base: String = str(use.base)
+	var nv: int = int(use.get("variants", 1))
+	var vv: int = 1 + int(o.g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1   # 只有队长挑种子变体；队友版 _tm 余韵约减半、亮度不降
+	var dn: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "deco", int(o.elite))
+	var nm: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "core", int(o.elite))
 	if o.g.tex.get(nm) == null:
 		return false
-	var skill: bool = src != "大剑"
-	# 分层（docs/242 §8）：先装饰（透明度 × fx/px_deco_k），后核心；实时火星归装饰，颗数也乘系数
-	var dk: float = o.g.vfx.px_deco_k()
-	if dn != "" and dk > 0.0:
-		_hw_blade(o, {"strip": dn, "fit": 80.0, "k": 1.0, "along": 0.0, "y": -10.0, "tint": [1.0, 1.0, 1.0, dk], "mirror": "face"}, r, a)
-	_hw_blade(o, {"strip": nm, "fit": 80.0, "k": 1.0, "along": 0.0, "y": -10.0, "tint": [1.0, 1.0, 1.0, 1.0], "mirror": "face",
-		"motes": {"n": int(round((14 if skill else 8) * dk)), "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.5}}, r, a)
-	if not hits.is_empty() and o.is_leader:
-		o.impact_pause(0.075 if skill else 0.05)   # 命中定格只给队长（用户 11-03 定：队友不定格；共享限频，纯画面）
+	var dw: Dictionary = reg.get("draw", _ED)
+	var dk: float = o.g.vfx.px_deco_k(o)
+	var mo: Dictionary = reg.get("motes", _ED)
+	var bl := {"fit": float(dw.get("fit", 80.0)), "k": float(dw.get("k", 1.0)), "along": float(dw.get("along", 0.0)), "y": float(dw.get("y", -10.0)), "mirror": dw.get("mirror", "face")}
+	if c != Vector2.INF:   # 圆形判定：画在圆心，不随出手方向转
+		var sc: float = r * float(bl.k) / float(bl.fit)
+		if dn != "" and dk > 0.0:
+			o.spawn_fx_sprite(dn, c + Vector2(0, float(bl.y)), sc, 0.0, false, false, Color(1, 1, 1, dk))
+		o.spawn_fx_sprite(nm, c + Vector2(0, float(bl.y)), sc, 0.0, false, false, Color.WHITE)
+	else:
+		if dn != "" and dk > 0.0:
+			var bd: Dictionary = bl.duplicate()
+			bd["strip"] = dn
+			bd["tint"] = [1.0, 1.0, 1.0, dk]
+			_hw_blade(o, bd, r, a)
+		bl["strip"] = nm
+		bl["tint"] = [1.0, 1.0, 1.0, 1.0]
+		if not mo.is_empty():
+			var m2: Dictionary = mo.duplicate()
+			m2["n"] = int(round(float(mo.get("n_skill" if skill else "n", 0)) * dk))
+			bl["motes"] = m2
+		_hw_blade(o, bl, r, a)
+	var pz: Array = reg.get("pause", _EA)
+	if not hits.is_empty() and o.is_leader and pz.size() >= 2:
+		o.impact_pause(float(pz[1] if skill else pz[0]))   # 命中定格只给队长（用户 11-03 定：队友不定格；共享限频，纯画面）
 	return true
 
 

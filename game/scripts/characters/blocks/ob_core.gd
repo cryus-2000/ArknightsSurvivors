@@ -331,7 +331,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	var max_n: int = int(b.get("max_n", 0))   # 0 = 不设上限
 	var hits: Array = []
 	var fx_c := Vector2.INF   # 画面帧条（docs/61 §5.6）的位置 / 半径 / 角度
-	var px_took := false   # pixelfx 不加限制试验接管了这一下的画面（seg_skadi.px_ul_shape）
+	var px_took := false   # pixelfx 放开版接管了这一下的招式本体画面（注册表 data/px_ul.json，seg_skadi.px_ul_shape）
 	var fx_r := 0.0
 	var fx_a := 0.0
 	match str(b.shape):
@@ -355,6 +355,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
 			if b.get("ring", true):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）
 				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
+			px_took = _F().px_ul_shape(o, b, hits, fx_a, r, c)   # pixelfx 放开版（注册表登记了这一段才接管；只改画面）
 			fx_c = c
 			fx_r = r
 			_F().hw_record(o, dmg, fx_a, r, c)   # 手写迁移段：记下这一下（basis prev / 普攻的 attack）
@@ -379,7 +380,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				o.impact_pause(float(b.pause))
 			if b.get("ring", true):
 				o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
-			px_took = _F().px_ul_shape(o, b, hits, ang, r2)   # pixelfx 不加限制试验（斯卡蒂，fx/px_unleashed）：这一下画面已接管，不再播 b.fx（只改画面）
+			px_took = _F().px_ul_shape(o, b, hits, ang, r2)   # pixelfx 放开版（注册表登记了这一段才接管；只改画面）
 			fx_c = o.pos
 			fx_r = r2
 			fx_a = ang
@@ -397,9 +398,21 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			hs.sort_custom(func(a, c): return a.pos.distance_squared_to(o.pos) < c.pos.distance_squared_to(o.pos) if a.pos.distance_squared_to(o.pos) != c.pos.distance_squared_to(o.pos) else int(a.id) < int(c.id))
 		for i in hs.size():
 			apply_status(o, hs[i], s, Vector2.INF, -1.0, 0.0, i)
-	if b.has("fx") and fx_c != Vector2.INF and not px_took:
-		_F().fx_play(o, b.fx, fx_c, fx_r, hits, fx_a)
+	if b.has("fx") and fx_c != Vector2.INF:
+		_F().fx_play(o, px_keep(b.fx) if px_took else b.fx, fx_c, fx_r, hits, fx_a)
 	return hits
+
+
+## pixelfx 放开版接管后还要播的 fx 条目（漏项 #20）：只换招式本体，cond 写 relic: / node:（藏品、成长节点挂的附加效果，docs/163）的照常播
+static func px_keep(entries) -> Array:
+	var out: Array = []
+	if entries is Array:
+		for f in entries:
+			if f is Dictionary:
+				var cd = f.get("cond", "")
+				if cd is String and (cd.begins_with("relic:") or cd.begins_with("node:")):
+					out.append(f)
+	return out
 
 
 ## 命中 / 力场里的状态（st.*，第三批合并时与安洁莉娜段的 status_one 统一）：stun / slow 精英时长减半、Boss 缺省不受（与原 apply_status 逐字节相同）。

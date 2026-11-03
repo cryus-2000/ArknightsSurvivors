@@ -1292,6 +1292,24 @@ func _bfx_grains(f: Dictionary) -> void:
 				gr.push("bfx_flash", pa.lerp(pb, u2), nrm * (1.0 if g.vrng.randf() < 0.5 else -1.0), c, u2 * 0.04)   # 激光类收尾 ≤ 0.25 秒（用户 10-26）
 
 
+## 一条 "sprite" 特效（vfx.fx_sprite）：按已播时间取帧；fdim = 拥挤降透明（放开版核心层传 1.0）
+func _draw_fx_sprite(f: Dictionary, fdim: float) -> void:
+	var spec: Array = Game.V6_FRAMES[f.name]
+	var el: float = f.max - f.life - float(f.get("delay", 0.0))   # delay：延后开播（vfx.fx_sprite）
+	if el < 0.0:
+		return
+	var fr := mini(int(el * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
+	var scol: Color = f.get("col", Color.WHITE)
+	scol.a *= fdim
+	if lead_lv > 0 and f.get("lead", false):
+		scol = lead_col(scol)   # 队长放的帧条特效：提亮 / 暖色（docs/139 §11）
+	if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
+		return   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
+	g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+	if f.get("ring", 0.0) > 0.0 and fr == 0:
+		g.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
+
+
 func _draw_fx() -> void:
 	if not _dbg_foe and not _dbg_foefx:
 		FinalAttackDraw.draw(g, true)
@@ -1304,6 +1322,7 @@ func _draw_fx() -> void:
 			if f.kind == "spark" and not f.get("enemy", false):
 				ns += 1
 		skip_sparks = maxi(0, ns - spark_left)
+	var px_late: Array = []   # pixelfx 放开版核心层：所有特效（含装饰层）画完再画（漏项 #12 两遍画）
 	for f in g.fx:
 		if f.life <= 0.0 or f.get("ground", false):
 			continue   # ground：地面层敌方特效（奠基者地裂）已在 _draw_ground_foe_fx 画过；到期还没被 _cleanup 回收的特效不画：最终 Boss 击破的慢动作（victory_flow）走 g.vfx.update 但不跑 game._update/_cleanup，
@@ -1695,21 +1714,10 @@ func _draw_fx() -> void:
 				g.vfx.spr("tentacle", 5, fr, f.pos + Vector2(-50, 20), Game.PX * 2.6, true, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 				g.vfx.spr("tentacle", 5, fr, f.pos + Vector2(48, 22), Game.PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 			"sprite":
-				var spec: Array = Game.V6_FRAMES[f.name]
-				var el: float = f.max - f.life - float(f.get("delay", 0.0))   # delay：延后开播（vfx.fx_sprite）
-				if el < 0.0:
+				if g.vfx.px_ul_core(f.name):   # 放开版核心层不受拥挤降透明，压到最后一遍画（docs/242 §8；开关关掉时同原来）
+					px_late.append(f)
 					continue
-				var fr := mini(int(el * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
-				var scol: Color = f.get("col", Color.WHITE)
-				if not g.vfx.px_ul_core(f.name):   # 放开版核心层不受拥挤降透明（docs/242 §8；开关关掉时同原来）
-					scol.a *= fdim
-				if lead_lv > 0 and f.get("lead", false):
-					scol = lead_col(scol)   # 队长放的帧条特效：提亮 / 暖色（docs/139 §11）
-				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
-					continue   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
-				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
-				if f.get("ring", 0.0) > 0.0 and fr == 0:
-					g.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
+				_draw_fx_sprite(f, fdim)
 			"impact":
 				# 唤醒命中：十字闪光
 				var k := 1.0 - a
@@ -1838,6 +1846,8 @@ func _draw_fx() -> void:
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
 				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for f in px_late:
+		_draw_fx_sprite(f, 1.0)
 	tb_flush()   # gcrack 等写进 tb 批的特效在这里一次提交
 
 

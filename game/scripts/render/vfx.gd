@@ -137,44 +137,80 @@ var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（�
 
 
 ## 近战刀光（character.arc_targets 调）：同一干员同一模拟时刻同一判定只画一道；粗细亮度先按轻档，命中后由 hit_react 升档
-## pixelfx 放开版取名（docs/242 §6）：网页版（OS.has_feature("web")）或桌面开关 fx/px_ul_lo = 1 时一律用低档 <base>_lo（缺图回退 base），
-## 忽略变体与队友版；其余按全档：队友 <base>_tm、变体 <base><variant>（variant ≥ 2），缺的版本回退 base。各人 seg / ult 统一调这里。
-## layer = "core" / "deco"（docs/242 §8）：装饰层名 = 核心名 + _deco（在 _lo 之前）；装饰层缺图返回 ""。画的时候先装饰（乘 px_deco_k）后核心
+## pixelfx 放开版取名（docs/242 §6 / §10，漏项 #17 #31）：名字 = <base>[_e<档>][<变体>][_tm][_deco][_lo]。
+## 缺图时依次回退：去变体 → 去 _tm → 降档（e2 → e1 → e0）→ 不带档位后缀的版本；装饰层退到底都没有返回 ""（不画），核心层退到底返回 base。
+## 网页版或桌面开关 fx/px_ul_lo = 1 时用低档 _lo：只出 E2（#31），忽略变体与队友版，缺 _lo 回退全档。各人 seg / ult 统一调这里，不写本地版本
 func px_ul_lo() -> bool:
 	return OS.has_feature("web") or Bal.vi("fx/px_ul_lo", 0) > 0
 
 
-func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core") -> String:
-	var n: String = base
-	if not px_ul_lo():
-		if teammate and g.tex.get(base + "_tm") != null:
-			n = base + "_tm"
-		elif variant >= 2 and g.tex.get(base + str(variant)) != null:
-			n = base + str(variant)
-	var deco: bool = layer == "deco"
-	var full: String = n + ("_deco" if deco else "") + ("_lo" if px_ul_lo() else "")
-	if g.tex.get(full) != null:
-		return full
-	if deco:   # 装饰层缺图：不画（返回空串，调用方跳过）
-		return ""
-	return base + "_lo" if px_ul_lo() and g.tex.get(base + "_lo") != null else base
+var _px_ul_cache := {}
 
 
-## 放开版核心帧条（docs/242 §8，开关 fx/px_unleashed 打开时）：名字含 _ul_ 且不是 _deco。拥挤降透明（world.fx_dim、队友 / 队长 declutter）不压核心，只压装饰
+func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core", elite := 2) -> String:
+	var lo: bool = px_ul_lo()
+	var key: String = "%s|%d|%d|%s|%d|%d" % [base, variant, int(teammate), layer, elite, int(lo)]
+	var hit = _px_ul_cache.get(key)
+	if hit != null:
+		return hit
+	var tail: String = ("_deco" if layer == "deco" else "") + ("_lo" if lo else "")
+	var subs: Array = [""]
+	if not lo:
+		var vs: String = str(variant) if variant >= 2 else ""
+		var ts: String = "_tm" if teammate else ""
+		subs = [vs + ts, ts, ""]
+	var els: Array = ["_e2", ""] if lo else []
+	if not lo:
+		for e in range(clampi(elite, 0, 2), -1, -1):
+			els.append("_e%d" % e)
+		els.append("")
+	var out: String = ""
+	for es in els:
+		for ss in subs:
+			if g.tex.get(base + es + ss + tail) != null:
+				out = base + es + ss + tail
+				break
+		if out != "":
+			break
+	if out == "" and layer != "deco":
+		out = base + "_lo" if lo and g.tex.get(base + "_lo") != null else base
+	_px_ul_cache[key] = out
+	return out
+
+
+## 放开版核心帧条（docs/242 §8，开关 fx/px_unleashed 打开时）：名字含 _ul_ 且不是 _deco。拥挤降透明（world.fx_dim、队友 / 队长 declutter）不压核心，只压装饰；
+## world 两遍画：核心层压到所有特效之后画（漏项 #12）
 func px_ul_core(name: String) -> bool:
 	return name.find("_ul_") >= 0 and name.find("_deco") < 0 and Bal.vi("fx/px_unleashed", 0) > 0
 
 
-## 装饰层系数（docs/242 §8，balance fx/px_deco_k，缺省 1.0）：装饰层的透明度和实时火星数都乘它；0 = 只画核心。
-## 现在只有这一个总开关，按拥挤程度动态削装饰的预算以后接在这里
-func px_deco_k() -> float:
+## 装饰层系数（docs/242 §8，漏项 #13 / #30）：总开关 fx/px_deco_k（缺省 1.0）× 拥挤系数 × 队友系数。装饰层的透明度和实时火星数都乘它；0 = 只画核心；核心层永远不乘。
+## 拥挤系数以后由 world.dcrowd 映射，现在恒 1；队友系数固定 1（用户：队友透明度不降，区分靠 _tm 帧条）。o = 放特效的干员，可为 null
+func px_deco_k(_o = null) -> float:
 	return clampf(Bal.v("fx/px_deco_k", 1.0), 0.0, 1.0)
+
+
+## 放开版注册表（data/px_ul.json，漏项 #25）：干员 id → 接管哪些判定段、帧条名和画法；ob_core 按 o.id 查这里分发（seg_skadi.px_ul_shape）。
+## 开关 fx/px_unleashed 关掉时一律返回 {}
+static var _px_ul_reg = null
+
+
+func px_ul_reg(id: String) -> Dictionary:
+	if Bal.vi("fx/px_unleashed", 0) <= 0:
+		return {}
+	if _px_ul_reg == null:
+		_px_ul_reg = {}
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/px_ul.json")) if FileAccess.file_exists("res://data/px_ul.json") else null
+		if parsed is Dictionary:
+			_px_ul_reg = parsed
+	var r = _px_ul_reg.get(id)
+	return r if r is Dictionary else {}
 
 
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
 	if tier_off or g.fx.size() > 420:
 		return
-	if str(o.id) == "skadi" and Bal.vi("fx/px_unleashed", 0) > 0:   # pixelfx 不加限制试验：斯卡蒂的刀光由 fx_skadi_ul_* 帧条画（seg_skadi.px_ul_shape）
+	if px_ul_reg(str(o.id)).get("no_arc", false):   # pixelfx 放开版：注册表写了 no_arc 的干员，刀光由 fx_<人>_ul_* 帧条画（seg_skadi.px_ul_shape）
 		return
 	var key: String = str(o.id)
 	var prev = _open_arcs.get(key)
