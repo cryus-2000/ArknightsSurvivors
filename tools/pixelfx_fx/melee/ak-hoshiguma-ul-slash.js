@@ -73,7 +73,7 @@ export function create(o) {
       }
       // 核心：刀弧（判定半径内），刀头厚、刀尾细；首帧白热，第 2 帧余热，之后回钢色并淡出
       if (core && a1 - a0 > 0.03) {
-        const hot = t < 0.045 ? 2 : t < 0.09 ? 1 : 0, W = 5.5 * [1, 1.25, 1.5][el] * (1 - 0.4 * tail);   // §8：E1 ×1.25、E2 ×1.5 加厚
+        const hot = t < 0.045 ? 2 : t < 0.09 ? 1 : 0, W = 5.5 * [1.35, 1.7, 2.0][el] * (1 - 0.4 * tail);   // §8：E1 ×1.25、E2 ×1.5 加厚（组长 11-04：E0 整体再厚一档）
         for (let y = -R - 2.5; y <= R + 2.5; y++)
           for (let x = -4.5; x <= R + 2.5; x++) {
             const ang = Math.atan2(y, x);
@@ -82,7 +82,7 @@ export function create(o) {
             const rim = R + 0.9 * noise(ang * 13, o.seed) + 0.5 * noise(ang * 29, o.seed + 3);
             const w = W * Math.pow(Math.sin(Math.PI * Math.min(1, v * 0.6 + 0.1)), 1.1) + 0.5, q = (rim - Math.hypot(x, y)) / w;
             if (q < 0 || q > 1) continue;
-            let c = C[clamp(Math.round(4.5 + hot - q * 3 - cool * 1.8 - (1 - v) * 1.2), 1, 6)];
+            let c = C[clamp(Math.round(4.5 + hot - q * 3 - cool * (el ? 1.8 : 1.1) - (1 - v) * 1.2), 2, 6)];   // E0 冷却慢一档、最暗不低于 C[2]（组长 11-04：E0 暗灰几乎看不见）
             if (el >= 1 && q < 0.16 && t > 0.04) c = E[clamp(Math.round(3.4 - cool * 1.5), 1, 4)];   // E1：外缘暗红细边（反击架势）
             if (el >= 2 && q > 0.55 && t > 0.04) c = J[clamp(Math.round(3.6 - cool * 1.6 - (q - 0.55) * 2), 1, 4)];   // E2：内侧翠绿（般若）
             p.blend(x, y, c, q > 0.8 ? 0.7 : 1);

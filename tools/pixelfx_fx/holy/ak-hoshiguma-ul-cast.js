@@ -47,9 +47,9 @@ export function create(o) {
     const hot = t < 0.06 || (el >= 1 && t >= 0.15 && t < 0.2), jade = kind === 3 || el >= 2;   // E1 起多一拍：盾印再压一下二次白热
     if (k < 0.2) return;   // 不用半透明淡出（低透明度会抖成网点）：按 k 逐阶压暗、最后一帧收掉
     const dk = k > 0.7 ? 0 : k > 0.45 ? 1 : 2;
-    const fill = hot ? C[5] : jade ? J[clamp(2 - dk, 1, 2)] : C[clamp(3 - dk, 1, 3)];
+    const fill = hot ? C[t < 0.06 ? 4 : 3] : jade ? J[clamp(2 - dk, 1, 2)] : C[clamp(3 - dk, 1, 3)];   // 组长 11-04：白热只留在边上，盾面压到中钢，不再整面纯白盖住干员
     p.poly(pts, fill, 1);
-    const edge = hot ? C[6] : el >= 1 ? E[clamp(4 - dk, 2, 4)] : jade ? J[4 - dk] : C[5 - dk];
+    const edge = hot ? (el >= 1 ? J[4] : C[6]) : el >= 1 ? E[clamp(4 - dk, 2, 4)] : jade ? J[4 - dk] : C[5 - dk];   // E1 / E2 爆亮时青绿描边
     for (let i = 0; i < 3; i++) p.line(pts[i][0], pts[i][1], pts[(i + 1) % 3][0], pts[(i + 1) % 3][1], edge, 1);
     if (!hot && dk < 2 && el < 2) p.line(pts[0][0] * 0.5, pts[0][1] + 2, pts[1][0] * 0.5, pts[1][1] + 2, jade ? J[4 - dk] : C[5 - dk], 1);   // 盾面一道受光横棱
     if (el >= 2 && !hot) {   // E2 质变（§8）：盾印里再嵌一枚实心小盾（双层般若盾），亮青绿

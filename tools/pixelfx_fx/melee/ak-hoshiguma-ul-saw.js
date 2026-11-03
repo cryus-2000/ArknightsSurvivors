@@ -85,7 +85,7 @@ export function create(o) {
         const hot = t < 0.05 || (el >= 1 && t >= 0.15 && t < 0.2) ? 2 : t < 0.1 ? 1 : 0;   // E1 起多一拍：0.15 s 锯身二次白热（锯齿再咬一口）
         for (let x = 0; x <= head; x++) {
           const v = x / L, tip = clamp((head - x) / 8);                       // 刀头渐尖
-          const th = (1.2 + 2.6 * Math.sin(Math.PI * Math.min(1, v * 0.9 + 0.05))) * tip * (1 - 0.45 * cool) * [1, 1.25, 1.5][el];   // §8：E1 ×1.25、E2 ×1.5
+          const th = (1.2 + 2.6 * Math.sin(Math.PI * Math.min(1, v * 0.9 + 0.05))) * tip * (1 - 0.45 * cool) * [1.35, 1.7, 2.0][el];   // §8：E1 ×1.25、E2 ×1.5（组长 11-04：E0 只有 1 px，整体再厚一档）
           const yc = 0.8 * noise(x * 0.3, o.seed + 2);
           for (let y = -th; y <= th; y++) {
             const q = Math.abs(y) / Math.max(th, 0.6);
