@@ -232,7 +232,7 @@ export function create(o) {
           if (full && !inSeg(a)) continue;
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
           // 11-04 总组长：弧刃外圈一串圆形水雾颗粒属孤立圆（§12.3），去掉 —— ps_spawn_removed(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
-          if (el >= 1 && Rg.chance(0.5)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2) * SZ, Rg.range(0.05, 0.4) * LQ);
+          if (false) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2) * SZ, Rg.range(0.05, 0.4) * LQ);   // （去掉）余韵星点：11-04 总组长
           if (SPRAY && Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
         }
         if (arcOn && !full) {

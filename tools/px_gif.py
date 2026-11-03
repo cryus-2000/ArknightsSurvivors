@@ -290,6 +290,7 @@ def main():
     for name in sorted(mv):
         is_proj, is_land, is_status, is_loop = name.startswith("proj:"), name in land_mv, name in status_mv, name in loop_mv
         is_front = name in front_mv
+        is_muzzle = "muzzle" in name   # 枪口类：帧条朝右（aim 朝向），摆在干员枪口（身前、约半身高），不画在脚底 / 背后（总组长 11-04：能天使）
         cells = []
         for el in (0, 1, 2):
             base = pick(mv[name], el)
@@ -360,7 +361,7 @@ def main():
                             for s in (hd, hc):
                                 put(s, front, t - FLIGHT, ex, ey - fh // 2)
                         return
-                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_ + int(reach * 0.6), oy_) if is_front else (ox_, oy_)
+                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_ + int(reach * 0.6), oy_) if is_front else (ox_ + 9 * K, oy_ - int((body.height if body else 32) * K * 0.5)) if is_muzzle else (ox_, oy_)
                     for s in (deco, core):
                         put(s, front, t, ax, ay)
                 layer(False)   # 地面层
