@@ -130,7 +130,7 @@ def names():
 
 
 def font(sz):
-    for p in (os.path.join(ROOT, "game", "fonts", "ui.ttf"), os.path.join(ROOT, "game", "fonts", "ui_fallback.otf"), "C:/Windows/Fonts/msyh.ttc"):
+    for p in ("C:/Windows/Fonts/msyh.ttc", os.path.join(ROOT, "game", "fonts", "ui.ttf"), os.path.join(ROOT, "game", "fonts", "ui_fallback.otf")):   # 雅黑优先：游戏 UI 字体缺「殁」「阈」等字，标签会出方框
         if os.path.exists(p):
             return ImageFont.truetype(p, sz)
 

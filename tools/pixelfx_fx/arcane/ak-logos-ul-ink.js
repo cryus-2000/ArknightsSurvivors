@@ -140,7 +140,7 @@ export function create(o) {
   const falls = [];
   if (mv === "s2_exec") for (let i = 0; i < 6 + 2 * el; i++) falls.push({ x: Rg.range(-14, 14), y0: Rg.range(-34, -16), L: Rg.range(5, 12), sp: Rg.range(90, 170), d: Rg.range(0, 0.06) });
   // ---------------- 普攻起手：笔尖白弧 + 暗弧挥过，收笔处一颗四芒星（原作 attack_start_01 / 03）
-  const swing = { a0: Rg.range(-1.1, -0.9), span: Rg.range(2.9, 3.2), R: Rg.range(13, 15), cx: -9, cy: 8 };   // 原作挥笔弧：从头右上绕到身体左下（笔尖在右手）
+  const swing = { a0: Rg.range(-1.3, -1.1), span: Rg.range(1.5, 1.8), R: Rg.range(14, 16), cx: -9, cy: 8 };   // 原作挥笔弧：从头右上往身前左下挥一道月牙（11-04 录像里整圈 3 rad 读成人物身边的白圈，§12.3，收到 1.5–1.8 rad）
   // ---------------- 弹体：白色菱形笔尖 + 深色墨尾 + 蓝色细芯线（原作 logos_zidan + trail_ds / zs / xian）
   const BOLT_T = 0.25;
 
@@ -319,7 +319,7 @@ export function create(o) {
         // 挥笔：外圈白弧 + 内侧暗弧（原作 dg：robrta_slash 白 + wisdel 暗），0.05 s 扫过、0.25 s 溶掉；收笔处四芒星
         const head = ease.outExpo(clamp(t / 0.07)), tail = smooth(0.1, 0.32, t);
         if (head > 0.15) for (let s = tail; s <= head; s += 0.008) {
-          const a = swing.a0 - swing.span * s, w = 2.0 * Math.sin(Math.PI * clamp((s - tail) / Math.max(head - tail, 0.01)));
+          const a = swing.a0 - swing.span * s, w = 1.8 * Math.pow(Math.sin(Math.PI * clamp((s - tail) / Math.max(head - tail, 0.01))), 1.5);   // 两头收尖成月牙
           for (let q = -w; q <= w; q += 0.5) {
             const r = swing.R + q, inner = q < -w * 0.3;
             if (noise2(s * 30, q * 3, 2) < tail * 2 - 1) continue;
