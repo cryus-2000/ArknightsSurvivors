@@ -325,6 +325,15 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 			continue
 		if _F()._mf_fx_check(f, q, ctx, owner):   # 召唤物扩展段的程序条目（pfx / sprite / sparks / ghost …）
 			continue
+		if f.has("px"):   # pixelfx 放开版条目（ob_fx.px_fx_spawn，docs/242 §14.2）
+			if not (f.px is String) or not str(f.px).begins_with("fx_") or str(f.px).find("_ul_") < 0:
+				errs.append(q + ".px 必须是放开版帧条基名（fx_<人>_ul_*）")
+			for k in f:
+				if not k in PX_FX_KEYS:
+					errs.append("%s.%s：px 条目不认识的字段（只能是 %s）" % [q, k, " / ".join(PX_FX_KEYS)])
+			if f.has("at") and not str(f.at) in ["center", "self", "leader", "zone", "hits"]:
+				errs.append(q + ".at：px 条目只能是 center / self / leader / zone / hits")
+			continue
 		for k in f:
 			if not k in FX_KEYS:
 				errs.append("%s.%s：fx 条目不认识的字段（只能是 %s）" % [q, k, " / ".join(FX_KEYS)])

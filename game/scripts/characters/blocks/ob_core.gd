@@ -118,6 +118,22 @@ static func _operand(s: String, base: Dictionary) -> Array:
 
 
 ## 条件串 → {neg, k, a, op, v}；错误时返回 {"err": 说明}
+## 圆形 / 锥形判定的缺省地面环画不画（纯画面）：ring 缺省 true；布尔照旧；字符串 = 条件串（同 fx 条目 cond，例 "!px_ul"：放开版打开时不画，组长 11-04，docs/242 §14.3）
+static var _ring_cond := {}
+
+
+static func ring_on(o, b: Dictionary) -> bool:
+	if o.g.vfx != null and o.g.vfx.px_halo_off():   # 发散光环关掉（用户 11-04，fx/px_halo）
+		return false
+	var v = b.get("ring", true)
+	if v is bool:
+		return v
+	var k: String = "%s|%s" % [str(o.id), str(v)]
+	if not _ring_cond.has(k):
+		_ring_cond[k] = parse_cond(str(v), o.def.get("base", {}) if o.get("def") is Dictionary else {})
+	return cond_true(o, _ring_cond[k])
+
+
 static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 	var c := {"neg": false, "k": "", "a": "", "op": "", "v": 0.0}
 	s = s.strip_edges()
@@ -358,7 +374,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				hits = _F().e5_area(o, b, c, r, dmg)
 			else:
 				hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
-			if b.get("ring", true):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）
+			if ring_on(o, b):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）；写条件串时按条件（"!px_ul"）
 				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
 			px_took = _F().px_ul_shape(o, b, hits, fx_a, r, c)   # pixelfx 放开版（注册表登记了这一段才接管；只改画面）
 			fx_c = c
@@ -383,7 +399,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			hits = o.melee_hit(src, org, ang, half, r2, dmg, kb, stun, tags, max_n)
 			if not hits.is_empty() and b.has("pause"):   # 命中顿帧（秒，纯画面，走 vfx.impact_pause 总闸；星熊 10-29）
 				o.impact_pause(float(b.pause))
-			if b.get("ring", true):
+			if ring_on(o, b):
 				o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
 			px_took = _F().px_ul_shape(o, b, hits, ang, r2)   # pixelfx 放开版（注册表登记了这一段才接管；只改画面）
 			fx_c = o.pos
@@ -408,14 +424,20 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	return hits
 
 
-## pixelfx 放开版接管后还要播的 fx 条目（漏项 #20）：只换招式本体，cond 写 relic: / node:（藏品、成长节点挂的附加效果，docs/163）的照常播
+## pixelfx 放开版接管后还要播的 fx 条目（漏项 #20）：只换招式本体，照常播的有三类：cond 写 relic: / node:（藏品、成长节点挂的附加效果，docs/163）、
+## 放开版 px 条目（docs/242 §14.2）、只放声音的条目（只有 sfx，没有 strip / pfx / gfx / blade / vortex，拉普兰德 11-04：噤声叠满、狼之舞的 sfx big）
+const PX_KEEP_VIS := ["strip", "pfx", "gfx", "blade", "vortex", "aura_ring", "outline", "sprite", "sparks", "ghost"]
+
+
 static func px_keep(entries) -> Array:
 	var out: Array = []
 	if entries is Array:
 		for f in entries:
 			if f is Dictionary:
 				var cd = f.get("cond", "")
-				if cd is String and (cd.begins_with("relic:") or cd.begins_with("node:")):
+				if (cd is String and (cd.begins_with("relic:") or cd.begins_with("node:"))) or f.has("px"):
+					out.append(f)
+				elif f.has("sfx") and not PX_KEEP_VIS.any(func(k): return f.has(k)):
 					out.append(f)
 	return out
 

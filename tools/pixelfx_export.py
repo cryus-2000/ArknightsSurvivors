@@ -10,7 +10,7 @@ tools/pixelfx_fx/<类>/<名>.js 是本作写的 pixelfx 特效源码；本脚本
   - 量化到 ≤ 32 色（带透明，按条目 colors 改），存调色板 PNG，
   - 写进 game/art/fx/<名>[ @2x].png。
 导出前查：自动图案检查（docs/242 §9.3）、必出矩阵（漏项 #31）、每人显存（全档 ≤ 48 MB、低档 ≤ 12 MB，按盘上该人全部 _ul_ 帧条合计，漏项 #1）；
-任一项不过整批不写盘。最后打印 art.gd V6_FRAMES 要登记的 [帧数, fps]。改完记得跑 python tools/asset_index.py。
+任一项不过整批不写盘。每次运行顺带由 house.js OP 生成 game/data/op_ramps.json（§11.1 #12）。最后打印 art.gd V6_FRAMES 要登记的 [帧数, fps]。改完记得跑 python tools/asset_index.py。
 
 用法：python tools/pixelfx_export.py [--lib build/pixelfx] [--only 名字,...] [--dry]
 """
@@ -24,6 +24,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "tools", "pixelfx_fx")
 OUT = os.path.join(ROOT, "game", "art", "fx")
 FRAMES_JSON = os.path.join(ROOT, "game", "data", "px_frames.json")
+RAMPS_JSON = os.path.join(ROOT, "game", "data", "op_ramps.json")   # house.js OP 的 GDScript 侧副本（docs/242 §11.1 #12：色阶只有一个来源，这份由本脚本生成，不手改）
 VRAM_FULL_MB, VRAM_LO_MB = 48.0, 12.0   # 每人显存上限（解码后 RGBA8，漏项 #1）
 MAX_W = 4096   # 打包帧条一行最宽（手机 WebGL 贴图边长上限）
 
@@ -48,6 +49,23 @@ def load_targets():
                     sys.exit("导出目标重名：%s（%s）" % (name, f))
                 t[name] = spec
     return t
+
+
+def write_op_ramps(dry):
+    """house.js 的 OP（干员 7 阶色阶）→ game/data/op_ramps.json；返回干员数"""
+    src = open(os.path.join(SRC, "house.js"), encoding="utf-8").read()
+    m = re.search(r"export const OP = \{(.*?)\n\};", src, re.S)
+    if not m:
+        sys.exit("house.js 里找不到 export const OP")
+    ramps = {k: re.findall(r'"(#[0-9a-fA-F]{6})"', v) for k, v in re.findall(r"^\s*(\w+):\s*\[([^\]]*)\]", m.group(1), re.M)}
+    bad = [k for k, v in ramps.items() if len(v) != 7]
+    if bad:
+        sys.exit("house.js OP 色阶不是 7 阶：" + "、".join(bad))
+    if not dry:
+        with open(RAMPS_JSON, "w", encoding="utf-8", newline="\n") as f:
+            f.write('{\n\t"_doc": "tools/pixelfx_export.py 由 tools/pixelfx_fx/house.js OP 生成，不手改（docs/242 §11.1 #12）",\n' +
+                    ",\n".join('\t"%s": %s' % (k, json.dumps(ramps[k])) for k in sorted(ramps)) + "\n}\n")
+    return len(ramps)
 
 
 def install(lib):
@@ -244,6 +262,7 @@ def main():
     if not os.path.exists(os.path.join(a.lib, "tools", "render.mjs")):
         sys.exit("找不到 pixelfx 库：先 git clone https://github.com/patch-gg/pixelfx " + a.lib)
     install(a.lib)
+    print("op_ramps.json：%d 名干员色阶" % write_op_ramps(a.dry))
     only = set(filter(None, a.only.split(",")))
     targets = load_targets()
     bad = []
@@ -304,6 +323,10 @@ def main():
     if not a.dry:
         with open(FRAMES_JSON, "w", encoding="utf-8", newline="\n") as f:
             f.write("{\n" + ",\n".join('\t"%s": %s' % (k, json.dumps(ft[k], separators=(",", ":"))) for k in sorted(ft)) + "\n}\n")
+        if pend:   # 同名重导时 .import 已在、godot_runner.ensure_imported 只补缺不查内容，不导入就还是旧贴图（11-03 斯卡蒂改色踩过）
+            import godot_runner as GR
+            GR.run_godot([GR.find_godot(), "--headless", "--path", os.path.join(ROOT, "game"), "--import"], 900)
+            print("已重新导入 game/（--import）")
 
 
 if __name__ == "__main__":
