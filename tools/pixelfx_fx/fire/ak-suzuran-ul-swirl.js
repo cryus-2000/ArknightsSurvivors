@@ -3,6 +3,7 @@
 // 带子两头收尖、边缘噪声抖；偶尔从带上甩出一颗火星往上飘。layer=back 只画身后半圈，layer=front 只画身前半圈（游戏里分别画在立绘下 / 上）。
 import { fit, clamp, TAU } from "../../core/index.js";
 import { noiseFor, hotFirst, ember, looped } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran foxfire swirl unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", side: "both", seed: 6 },
+  options: { palette: OP.suzuran, layer: "all", side: "both", seed: 6 },
 };
 
 const D = meta.duration, NL = noiseFor(D);

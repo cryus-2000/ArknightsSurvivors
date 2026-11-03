@@ -3,6 +3,7 @@
 // 头后鬃毛是几条长短不一的火舌，最长的一条是狐尾；白热只在吻部芯里。外形用噪声边，不画正圆。
 import { fit, clamp, TAU } from "../../core/index.js";
 import { noiseFor, pnoise, hotFirst, flameBlade, ember, looped, LAYERS, BACK_LAYERS, BIG_LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran great foxfire unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", seed: 9 },
+  options: { palette: OP.suzuran, layer: "all", seed: 9 },
 };
 
 const D = meta.duration, NL = noiseFor(D);

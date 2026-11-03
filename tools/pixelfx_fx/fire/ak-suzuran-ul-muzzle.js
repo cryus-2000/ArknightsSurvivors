@@ -3,6 +3,7 @@
 // 全是噪声边，不画圆盘。big = 三火归一（E2 每次普攻）：三团小火从三个方向收进杖头再爆亮一次。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
 import { noiseFor, pnoise, hotFirst, flameBlade, ember, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran staff ignition unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", big: 0, quick: 0, seed: 2 },
+  options: { palette: OP.suzuran, layer: "all", big: 0, quick: 0, seed: 2 },
 };
 
 const NL = noiseFor(0);

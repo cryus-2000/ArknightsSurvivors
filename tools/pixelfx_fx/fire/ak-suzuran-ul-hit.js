@@ -4,6 +4,7 @@
 //   E0 三条短火舌；E1 加一缕「狐尾」火（顺来向甩出、末端上卷的长火舌，对应精一狐火灼印「打中留下印记」）；E2 两缕狐尾 + 首帧白热十字闪、余韵更长。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
 import { noiseFor, pnoise, hotFirst, flameTongue, flameBlade, ember, spark, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran foxfire hit unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", elite: 2, quick: 0, seed: 5 },
+  options: { palette: OP.suzuran, layer: "all", elite: 2, quick: 0, seed: 5 },
 };
 
 const NL = noiseFor(0);

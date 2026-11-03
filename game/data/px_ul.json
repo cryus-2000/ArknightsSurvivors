@@ -58,19 +58,6 @@
 		}
 	},
 	"suzuran": {
-		"cast": {
-			"1": {
-				"base": "fx_suzuran_ul_gather",
-				"at": "front",
-				"front": 22,
-				"y": -6
-			},
-			"2": {
-				"base": "fx_suzuran_ul_gather_big",
-				"at": "front",
-				"front": 22,
-				"y": -6
-			}
-		}
+		"_doc": "铃兰放开版画面全在 seg_suzuran（_h4_px*）里画；这一条只用来让 vfx.px_ul_reg 认出铃兰已接入（起手不走 cast：§14.7 下注册表 cast 挂点不播）"
 	}
 }

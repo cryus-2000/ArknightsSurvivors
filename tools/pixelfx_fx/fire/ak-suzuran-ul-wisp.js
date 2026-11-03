@@ -3,6 +3,7 @@
 // 一条主火舌 + 一条矮的副火舌，根部一点白热，偶尔掉一颗火星；不画底圆。ground=1 时根部压扁贴地、副火舌更矮。
 import { fit, TAU } from "../../core/index.js";
 import { noiseFor, hotFirst, flameTongue, ember, looped, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran small foxfire unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 15,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", ground: 0, seed: 7 },
+  options: { palette: OP.suzuran, layer: "all", ground: 0, seed: 7 },
 };
 
 const D = meta.duration, NL = noiseFor(D);

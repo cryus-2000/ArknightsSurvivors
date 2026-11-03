@@ -562,8 +562,17 @@ static func h4_fox_cast(o, b: Dictionary) -> void:
 		o.show_banner(str(b.banner))
 	var fl: Dictionary = _h4_live(o, "verb.foxlight")
 	var rr: float = h4_fox_r(o, fl)
-	if _h4_px(o):   # pixelfx 放开版：暖光 / 狐火渺然起手走注册表 cast（vfx.px_ul_cast，聚拢帧条），外扩环 / 光芒 / 光柱 / 金圈不画（用户 11-04 否决外扩光环）
+	if _h4_px(o):   # pixelfx 放开版：起手 = 身前狐火聚拢（暖光三团 ×2.4 / 迷雾五团），外扩环 / 光芒 / 光柱 / 金圈不画（用户 11-04 否决外扩光环；注册表 cast 挂点在 §14.7 下不播，这里自己播）
 		sz["px_t0"] = g.t
+		if o.pos != Vector2.INF:
+			var base: String = "fx_suzuran_ul_gather_big" if haze else "fx_suzuran_ul_gather"
+			var cp: Vector2 = o.pos + Vector2(0, -6) + Vector2.from_angle(o.facing_angle()) * 22.0
+			var el: int = g.vfx.px_ul_el(o)
+			var dn: String = g.vfx.px_ul_tex(base, 1, not o.is_leader, "deco", el)
+			var dk: float = g.vfx.px_deco_k(o)
+			if dn != "" and dk > 0.0:
+				g.vfx.fx_sprite(dn, cp, g.PX, 0.0, false, false, Color(1, 1, 1, dk))
+			g.vfx.fx_sprite(g.vfx.px_ul_tex(base, 1, not o.is_leader, "core", el), cp, g.PX)
 		return
 	o.fx({"kind": "ring", "pos": o.pos, "r": rr, "r0": 10.0, "life": 0.6, "col": H4_FOX, "floor": true})
 	g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": H4_FOX, "op_spoke": true})

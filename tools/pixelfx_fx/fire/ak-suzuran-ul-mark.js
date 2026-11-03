@@ -3,6 +3,7 @@
 // 中间立一簇小狐火；转半圈正好两条互换，循环无缝。游戏按 e.r ÷ 12（0.8–2.0）缩放。
 import { fit, TAU } from "../../core/index.js";
 import { noiseFor, hotFirst, flameTongue, ember, looped, LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran foxfire mark unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 15,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", seed: 3 },
+  options: { palette: OP.suzuran, layer: "all", seed: 3 },
 };
 
 const D = meta.duration, NL = noiseFor(D), RX = 11, PY = 0.5;

@@ -3,6 +3,7 @@
 // 精英档（docs/242 §10）：E0 一条火舌尾；E1 尾巴分成两缕（狐尾）；E2 两缕更长、尾端卷起，甩出的火星更多。
 import { fit, mix, clamp, WHITE, TAU } from "../../core/index.js";
 import { noiseFor, pnoise, hotFirst, flameBlade, ember, looped, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran foxfire unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", elite: 2, big: 0, seed: 3 },
+  options: { palette: OP.suzuran, layer: "all", elite: 2, big: 0, seed: 3 },
 };
 
 const D = meta.duration, NL = noiseFor(D);

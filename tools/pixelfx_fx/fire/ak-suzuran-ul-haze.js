@@ -4,6 +4,7 @@
 // 精英档（docs/242 §10）：E0 三条火带短一截、细一档、不冒火舌（两条会二重对称，被放射检查拦）；E1 三条、每条一条火舌；E2 三条、每条两条火舌、火星多一些。
 import { fit, clamp, TAU } from "../../core/index.js";
 import { noiseFor, hotFirst, flameTongue, ember, looped, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran foxfire haze swirl unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: true,
   fps: 12,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", elite: 2, seed: 8 },
+  options: { palette: OP.suzuran, layer: "all", elite: 2, seed: 8 },
 };
 
 const D = meta.duration, NL = noiseFor(D), R = 92, PY = 0.55;

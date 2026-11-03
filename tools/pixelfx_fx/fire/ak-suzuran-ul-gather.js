@@ -4,6 +4,7 @@
 // k = 火舌放大倍数：S2 用 2.4（火舌约 2 倍身高，组长 B 审 11-04：原 1 倍实战里等于没放），S3 用 1。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
 import { noiseFor, pnoise, hotFirst, flameBlade, flameTongue, ember, LAYERS, BACK_LAYERS, BIG_LAYERS } from "./_lib.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
   name: "Suzuran foxfire gathering unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"], layer: "all", n: 3, k: 1, seed: 4 },
+  options: { palette: OP.suzuran, layer: "all", n: 3, k: 1, seed: 4 },
 };
 
 const NL = noiseFor(0), TM = 0.38;   // TM：收齐、爆开的时刻
