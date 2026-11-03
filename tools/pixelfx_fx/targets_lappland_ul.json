@@ -392,5 +392,246 @@
    "src": "终结技单元：剑气帘由 ult_moves_c._la_px_wave 按判定扇形（balance ult/la_back / la_half / la_fr）铺开；巨型 X 半长 200（1x）≈ 扇形中段半宽 × 0.85，在 _la_px_x 里算"
   },
   "lo": true
+ },
+ "fx_lappland_ul_far_e0": {
+  "fx": "projectiles/ak-lappland-ul-far",
+  "opts": {
+   "elite": 0,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/4"
+   },
+   "src": "lappland.json base：blade_w 刀波判定宽（世界像素）÷ 2 ÷ PX 2 = 半宽（1x）"
+  },
+  "keep": true
+ },
+ "fx_lappland_ul_far_e1": {
+  "fx": "projectiles/ak-lappland-ul-far",
+  "opts": {
+   "elite": 1,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/4"
+   },
+   "src": "lappland.json base：blade_w 刀波判定宽（世界像素）÷ 2 ÷ PX 2 = 半宽（1x）"
+  },
+  "keep": true
+ },
+ "fx_lappland_ul_far_e2": {
+  "fx": "projectiles/ak-lappland-ul-far",
+  "opts": {
+   "elite": 2,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/4"
+   },
+   "src": "lappland.json base：blade_w 刀波判定宽（世界像素）÷ 2 ÷ PX 2 = 半宽（1x）"
+  },
+  "keep": true
+ },
+ "fx_lappland_ul_far_e2_tm": {
+  "fx": "projectiles/ak-lappland-ul-far",
+  "opts": {
+   "elite": 2,
+   "seed": 11,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/4"
+   },
+   "src": "lappland.json base：blade_w 刀波判定宽（世界像素）÷ 2 ÷ PX 2 = 半宽（1x）"
+  },
+  "keep": true
+ },
+ "fx_lappland_ul_farhit": {
+  "fx": "impacts/ak-lappland-ul-farhit",
+  "opts": {
+   "elite": 2,
+   "seed": 21
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "lo": true
+ },
+ "fx_lappland_ul_farhit_tm": {
+  "fx": "impacts/ak-lappland-ul-farhit",
+  "opts": {
+   "elite": 2,
+   "seed": 21,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝"
+ },
+ "fx_lappland_ul_aura1": {
+  "fx": "holy/ak-lappland-ul-aura1",
+  "opts": {
+   "seed": 31
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "check_sy": 0.55
+ },
+ "fx_lappland_ul_aura1_tm": {
+  "fx": "holy/ak-lappland-ul-aura1",
+  "opts": {
+   "seed": 31,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝"
+ },
+ "fx_lappland_ul_aura2": {
+  "fx": "holy/ak-lappland-ul-aura2",
+  "opts": {
+   "seed": 41
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝"
+ },
+ "fx_lappland_ul_aura2_tm": {
+  "fx": "holy/ak-lappland-ul-aura2",
+  "opts": {
+   "seed": 41,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝"
+ },
+ "fx_lappland_ul_dance_e1": {
+  "fx": "melee/ak-lappland-ul-dance",
+  "opts": {
+   "elite": 1,
+   "seed": 51
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "dance_r/2"
+   },
+   "src": "lappland.json base：dance_r 狼之舞判定半径（世界像素）÷ PX 2"
+  },
+  "check_sy": 0.55
+ },
+ "fx_lappland_ul_dance_e2": {
+  "fx": "melee/ak-lappland-ul-dance",
+  "opts": {
+   "elite": 2,
+   "seed": 51
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "dance_r/2"
+   },
+   "src": "lappland.json base：dance_r 狼之舞判定半径（世界像素）÷ PX 2"
+  },
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_lappland_ul_dance_e2_tm": {
+  "fx": "melee/ak-lappland-ul-dance",
+  "opts": {
+   "elite": 2,
+   "seed": 51,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "dance_r/2"
+   },
+   "src": "lappland.json base：dance_r 狼之舞判定半径（世界像素）÷ PX 2"
+  },
+  "check_sy": 0.55
+ },
+ "fx_lappland_ul_bark": {
+  "fx": "melee/ak-lappland-ul-bark",
+  "opts": {
+   "seed": 61
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "bark_r/2"
+   },
+   "src": "lappland.json base：bark_r 断喝判定半径（世界像素）÷ PX 2"
+  },
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_lappland_ul_bark_tm": {
+  "fx": "melee/ak-lappland-ul-bark",
+  "opts": {
+   "seed": 61,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "bark_r/2"
+   },
+   "src": "lappland.json base：bark_r 断喝判定半径（世界像素）÷ PX 2"
+  },
+  "check_sy": 0.55
  }
 }

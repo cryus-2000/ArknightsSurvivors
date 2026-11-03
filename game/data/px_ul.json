@@ -58,7 +58,7 @@
 		}
 	},
 	"lappland": {
-		"_doc": "拉普兰德（docs/242，claude/pixelfx-ul-lappland）：普攻双刃（src 双刃，含 twin 第二刀）、S3 噤声叠满十字斩（circle，画在目标上，fit = s3_cut_r ÷ PX）、S2 狼魂剑气（waves）、S1 日晷（cast 0，脚底）。双生刃 / 远掷 / 领主远处剑气、狼之舞旋身斩仍是原画面（另案）。终结技在 ult_moves_c._la_px_*",
+		"_doc": "拉普兰德（docs/242，claude/pixelfx-ul-lappland）：普攻双刃（src 双刃，含 twin 第二刀）、S3 噤声叠满十字斩（circle，画在目标上，fit = s3_cut_r ÷ PX）、S2 狼魂剑气（waves）、S1 日晷（cast 0，脚底）。双生刃 / 远掷 / 领主远处剑气、狼之舞旋身斩仍是原画面（另案）。终结技在 ult_moves_c._la_px_*；11-03 第二轮（用户：所有美术换新版）：精一狼之舞 circle → fx_lappland_ul_dance（只出 E1 / E2，fit = dance_r ÷ PX），节点断喝 circle → fx_lappland_ul_bark（不分档，fit = bark_r ÷ PX），断喝·传染 / 日晷·反斩 / 回敬 在 seg_lappland 里借这几张",
 		"shapes": {
 			"双刃": {
 				"base": "fx_lappland_ul_slash",
@@ -72,6 +72,24 @@
 					"k": 1.0,
 					"y": -10.0,
 					"mirror": false
+				}
+			},
+			"狼之舞": {
+				"base": "fx_lappland_ul_dance",
+				"skill": true,
+				"draw": {
+					"fit": 60.0,
+					"k": 1.0,
+					"y": 0.0
+				}
+			},
+			"断喝": {
+				"base": "fx_lappland_ul_bark",
+				"skill": true,
+				"draw": {
+					"fit": 75.0,
+					"k": 1.0,
+					"y": 0.0
 				}
 			}
 		},

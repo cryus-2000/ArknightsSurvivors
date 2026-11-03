@@ -5,6 +5,20 @@
 extends "res://scripts/characters/blocks/seg_skalter.gd"
 
 const LL_COL := Color(0.72, 0.6, 1.0)
+const LL_PX_COL := Color(0.86, 0.9, 0.96)   # pixelfx 放开版打开时的点缀色（冷灰白，原作色阶；紫只给旧画面）
+
+
+## pixelfx 放开版（docs/242，用户 11-03「拉普兰德所有美术换新版」）：注册表里的帧条按脚底 / 目标点播一张（先装饰后核心），只改画面
+static func _ll_px_strip(o, base: String, at: Vector2, sc: float, rot := 0.0) -> void:
+	var el: int = o.g.vfx.px_ul_el(o)
+	var nm: String = o.g.vfx.px_ul_tex(base, 1, not o.is_leader, "core", el)
+	if o.g.tex.get(nm) == null:
+		return
+	var dn: String = o.g.vfx.px_ul_tex(base, 1, not o.is_leader, "deco", el)
+	var dk: float = o.g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, at, sc, rot, false, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(nm, at, sc, rot, false, false, Color.WHITE)
 
 
 ## data_operator._ext_exec 转来（EXEC_SEG 登记在第 0 段）：本文件的四个瞬时积木
@@ -43,7 +57,8 @@ static func ll_wave_post(o, w: Dictionary, b: Dictionary, tl: Dictionary) -> voi
 	if b.has("homing") and not tl.is_empty():
 		w["hm"] = float(b.homing)
 		w["tg"] = tl
-		o.fx({"kind": "ring", "pos": tl.pos, "r": float(tl.r) + 14.0, "r0": float(tl.r) + 30.0, "life": 0.4, "col": LL_COL, "floor": true, "w": 2.0, "alpha": 0.8})
+		if not px_ul_on(o):   # 放开版：不画锁定圈（正圆，§12.3），追踪靠弹体自己转向看出来
+			o.fx({"kind": "ring", "pos": tl.pos, "r": float(tl.r) + 14.0, "r0": float(tl.r) + 30.0, "life": 0.4, "col": LL_COL, "floor": true, "w": 2.0, "alpha": 0.8})
 	if b.get("big", false):
 		w["big"] = true
 	elif b.get("sword", false) and h.get("ll_dial", false):
@@ -72,11 +87,15 @@ static func ll_wave_tick(o, w: Dictionary, dt: float) -> void:
 				w.dir = w.dir.rotated(st)
 				if w.has("ez"):
 					w.p0 = w.pos - w.dir * float(w.dist)   # 非线性路径：从当前位置接着沿新方向走
-		o.fx({"kind": "mote", "pos": w.pos + Vector2(g.vrng.randf_range(-3, 3), -16.0 + g.vrng.randf_range(-3, 3)), "vel": Vector2.ZERO, "life": 0.3, "col": LL_COL, "sz": 1.8})
+		if not px_ul_on(o):   # 放开版：每帧一粒紫点太密（用户「画面不能脏」），弹体帧条自带拖丝
+			o.fx({"kind": "mote", "pos": w.pos + Vector2(g.vrng.randf_range(-3, 3), -16.0 + g.vrng.randf_range(-3, 3)), "vel": Vector2.ZERO, "life": 0.3, "col": LL_COL, "sz": 1.8})
 	if w.get("big", false):
+		var px: bool = px_ul_on(o)
+		if px and g.vrng.randf() > 0.35:   # 放开版：大剑气两侧亮屑稀一些、冷灰白
+			return
 		var nrm: Vector2 = w.dir.orthogonal()
 		for sgn in [-1.0, 1.0]:
-			o.fx({"kind": "mote", "pos": w.pos + nrm * sgn * float(w.w) * 0.5 + Vector2(0, -16), "vel": w.dir * 30.0, "life": 0.32, "col": LL_COL, "sz": 2.2})
+			o.fx({"kind": "mote", "pos": w.pos + nrm * sgn * float(w.w) * 0.5 + Vector2(0, -16), "vel": w.dir * 30.0, "life": 0.32, "col": LL_PX_COL if px else LL_COL, "sz": 2.0 if px else 2.2})
 
 
 # ---------------------------------------------------------------- 节点 4B 日晷·反斩
@@ -84,6 +103,10 @@ static func ll_wave_tick(o, w: Dictionary, dt: float) -> void:
 static func _ll_dial_arm(o) -> void:
 	var h := hw_st(o)
 	h["ll_dial"] = true
+	if px_ul_on(o):   # 放开版：待命用 S1「日晷」起手那张（晷针 + 断续环），节点名本来就是日晷
+		_ll_px_strip(o, "fx_lappland_ul_s1", o.pos, o.g.PX * 0.8)
+		o.float_text(o.pos + Vector2(0, -70), "反斩", LL_PX_COL, 14)
+		return
 	o.fx({"kind": "ring", "pos": o.pos, "r": 46.0, "r0": 12.0, "life": 0.4, "col": LL_COL, "floor": true, "w": 3.0, "alpha": 0.9})
 	o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -26), "r": 26.0, "life": 0.4, "col": LL_COL, "alpha": 0.5})
 	o.float_text(o.pos + Vector2(0, -70), "反斩", LL_COL, 14)
@@ -119,9 +142,12 @@ static func _ll_riposte(o, b: Dictionary) -> void:
 	var dmg: float = hw_basis(o, "atk") * float(b.get("mult", 1.5))
 	var org: Vector2 = o.pos + Vector2(0, -10)
 	var hits: Array = o.melee_hit(str(b.get("src", "回敬")), org, ang, half, r, dmg, float(b.get("kb", 0.0)), 0.0, ["follow_up", "area"])
-	fx_play(o, b.get("slash_fx", []), org, r, hits, ang)
-	o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -26), "r": 22.0, "life": 0.3, "col": LL_COL, "alpha": 0.5})
-	o.float_text(o.pos + Vector2(0, -70), "回敬", LL_COL, 14)
+	if px_ul_on(o) and px_ul_shape(o, {"src": "双刃", "half": half}, hits, ang, r):   # 放开版：回敬借普攻双刃那套帧条（判定不动）
+		o.float_text(o.pos + Vector2(0, -70), "回敬", LL_PX_COL, 14)
+	else:
+		fx_play(o, b.get("slash_fx", []), org, r, hits, ang)
+		o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -26), "r": 22.0, "life": 0.3, "col": LL_COL, "alpha": 0.5})
+		o.float_text(o.pos + Vector2(0, -70), "回敬", LL_COL, 14)
 	o._sfx_op("atk")
 
 
@@ -133,8 +159,12 @@ static func _ll_seal_spread(o, b: Dictionary) -> void:
 	if e.is_empty() or float(e.get("seal_t", 0.0)) <= g.t or str(e.get("seal_by", "")) != str(o.id):
 		return
 	var r: float = float(b.get("r", 120.0))
-	o.fx({"kind": "ring", "pos": e.pos, "r": r, "r0": r * 0.2, "life": 0.45, "col": LL_COL, "floor": true, "w": 3.0, "alpha": 0.85})
-	o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -8), "r": 18.0, "life": 0.3, "col": LL_COL, "alpha": 0.5})
+	var px: bool = px_ul_on(o)
+	if px:   # 放开版：传染用断喝那张（径向声纹 + 封印纹），帧条烤的半径 = bark_r ÷ PX
+		_ll_px_strip(o, "fx_lappland_ul_bark", e.pos, r / (o.base("bark_r", 150.0) / float(o.g.PX)))
+	else:
+		o.fx({"kind": "ring", "pos": e.pos, "r": r, "r0": r * 0.2, "life": 0.45, "col": LL_COL, "floor": true, "w": 3.0, "alpha": 0.85})
+		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -8), "r": 18.0, "life": 0.3, "col": LL_COL, "alpha": 0.5})
 	var cand: Array = []
 	for j in o.query_ids(e.pos, r + 40.0):
 		var t: Dictionary = g.enemies[j]
@@ -145,4 +175,4 @@ static func _ll_seal_spread(o, b: Dictionary) -> void:
 	var s := {"st": "seal", "dur": float(b.get("dur", 2.0)), "elite_mult": 0.5, "boss": false, "look": "cross"}
 	for t in sel:
 		apply_status(o, t, s, t.pos)
-		o.fx({"kind": "line", "pos": e.pos + Vector2(0, -12), "to": t.pos + Vector2(0, -12), "life": 0.25, "col": LL_COL, "w": 1.5})
+		o.fx({"kind": "line", "pos": e.pos + Vector2(0, -12), "to": t.pos + Vector2(0, -12), "life": 0.25, "col": LL_PX_COL if px else LL_COL, "w": 1.0 if px else 1.5})
