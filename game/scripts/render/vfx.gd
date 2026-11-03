@@ -137,6 +137,22 @@ var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（�
 
 
 ## 近战刀光（character.arc_targets 调）：同一干员同一模拟时刻同一判定只画一道；粗细亮度先按轻档，命中后由 hit_react 升档
+## pixelfx 放开版取名（docs/242 §6）：网页版（OS.has_feature("web")）或桌面开关 fx/px_ul_lo = 1 时一律用低档 <base>_lo（缺图回退 base），
+## 忽略变体与队友版；其余按全档：队友 <base>_tm、变体 <base><variant>（variant ≥ 2），缺的版本回退 base。各人 seg / ult 统一调这里
+func px_ul_lo() -> bool:
+	return OS.has_feature("web") or Bal.vi("fx/px_ul_lo", 0) > 0
+
+
+func px_ul_tex(base: String, variant: int, teammate: bool) -> String:
+	if px_ul_lo():
+		return base + "_lo" if g.tex.get(base + "_lo") != null else base
+	if teammate and g.tex.get(base + "_tm") != null:
+		return base + "_tm"
+	if variant >= 2 and g.tex.get(base + str(variant)) != null:
+		return base + str(variant)
+	return base
+
+
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
 	if tier_off or g.fx.size() > 420:
 		return

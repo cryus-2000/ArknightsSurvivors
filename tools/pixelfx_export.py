@@ -19,7 +19,8 @@ SRC = os.path.join(ROOT, "tools", "pixelfx_fx")
 OUT = os.path.join(ROOT, "game", "art", "fx")
 
 # 导出目标：tools/pixelfx_fx/targets_*.json（每个并行会话一份，互不改别人的文件，docs/229 §9）。
-# 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）}
+# 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）,
+#        "lo": 另出网页低档 <名>_lo（15 fps 按时间就近抽帧，同画布 / 原点；只给队长版第一个种子，docs/242 §6）}
 def load_targets():
     t = {}
     for f in sorted(os.listdir(SRC)):
@@ -74,6 +75,18 @@ def export(lib, name, spec, tmp, dry):
     strip = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
     for i, f in enumerate(frames):
         strip.paste(f.crop(box), (i * w, 0))
+    if spec.get("lo"):   # 网页低档（docs/242 §6）：同画布 / 原点，按 15 fps 按时间就近抽帧，余韵时长不变
+        fps0 = float(px["fps"])
+        m = max(1, round(len(frames) * 15.0 / fps0))
+        lo = [frames[min(len(frames) - 1, round(i * fps0 / 15.0))] for i in range(m)]
+        ls = Image.new("RGBA", (w * m, h), (0, 0, 0, 0))
+        for i, f in enumerate(lo):
+            ls.paste(f.crop(box), (i * w, 0))
+        lq = ls.quantize(colors=int(spec.get("colors", 32)), method=Image.Quantize.FASTOCTREE)
+        lpath = os.path.join(OUT, name + "_lo" + ("@2x" if hires else "") + ".png")
+        if not dry:
+            lq.save(lpath, optimize=True)
+        print('"%s_lo": [%d, 15.0],   # 网页低档 %.1f KB' % (name, m, (os.path.getsize(lpath) if not dry else 0) / 1024))
     q = strip.quantize(colors=int(spec.get("colors", 32)), method=Image.Quantize.FASTOCTREE)   # 存调色板 PNG（比转回 RGBA 小约 2.5 倍）
     path = os.path.join(OUT, name + ("@2x" if hires else "") + ".png")
     if not dry:

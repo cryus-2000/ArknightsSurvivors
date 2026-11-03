@@ -239,10 +239,9 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float) -> 
 	if half >= 3.1:
 		nm = "fx_skadi_ul_spin"   # 涌潮悲歌期间的全方向横扫：整圈随机转个角度（画面随机数 vrng，判定不动）
 		a = ang + o.g.vrng.randf() * TAU
-	if o.is_leader and (nm == "fx_skadi_ul_spin" or nm == "fx_skadi_ul_slash") and o.g.vrng.randf() < 0.5 and o.g.tex.get(nm + "2") != null:
-		nm += "2"   # 两个种子变体随机挑，连续出手不是同一张
-	if not o.is_leader and o.g.tex.get(nm + "_tm") != null:
-		nm += "_tm"   # 队友版：余韵约减半、亮度不降（用户 11-03 定：队友余韵比队长略短，透明度不降）
+	# 取名统一走 vfx.px_ul_tex（docs/242 §6）：队长普攻 / 全方向两个种子变体随机挑；队友版余韵约减半、亮度不降；网页一律低档 _lo
+	var vv: int = 2 if o.is_leader and (nm == "fx_skadi_ul_spin" or nm == "fx_skadi_ul_slash") and o.g.vrng.randf() < 0.5 else 1
+	nm = o.g.vfx.px_ul_tex(nm, vv, not o.is_leader)
 	if o.g.tex.get(nm) == null:
 		return false
 	var skill: bool = src != "大剑"

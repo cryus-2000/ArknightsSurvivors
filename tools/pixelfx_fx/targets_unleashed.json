@@ -5,7 +5,8 @@
   "opts": {
    "span": 2.8
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_skadi_ul_sweep": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -13,7 +14,8 @@
    "span": 3.5,
    "seed": 5
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_skadi_ul_spin": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -21,7 +23,8 @@
    "span": 6.3,
    "seed": 8
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_skadi_ul_cleave": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -30,7 +33,8 @@
    "heavy": 1,
    "seed": 7
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_skadi_ul_geyser1": {
   "fx": "water/ak-skadi-ul-geyser",
@@ -38,7 +42,8 @@
    "seed": 3
   },
   "colors": 256,
-  "keep": true
+  "keep": true,
+  "lo": true
  },
  "fx_skadi_ul_geyser2": {
   "fx": "water/ak-skadi-ul-geyser",
