@@ -23,14 +23,14 @@ SQUAD = ["mizuki", "siege", "wisadel", "kaltsit"]
 DEF_DIR = os.path.join(tempfile.gettempdir(), "dash_body_tell_1104")
 
 
-def rec(style, base):
+def rec(style, base, t0=T0, secs=SECS):
     d = os.path.join(base, "s%d" % style)
     os.makedirs(d, exist_ok=True)
     for f in os.listdir(d):
         os.remove(os.path.join(d, f))
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--resolution", "1920x1080", "--",
             "--balance", "--seed=13", "--op=" + SQUAD[0], "--squad=" + ",".join(SQUAD[1:]), "--bot=expert", "--nodeath",
-            "--realtime", "--playclock", "--rtfrom=%g" % (T0 - 3.0), "--recframes=%g,%d" % (T0, SECS * FPS),
+            "--realtime", "--playclock", "--rtfrom=%g" % (t0 - 3.0), "--recframes=%g,%d" % (t0, secs * FPS),
             "--shotdir=" + d.replace(os.sep, "/"), "--bal=render/dash_tell_style=%d" % style]
     out, err, to = GR.run_godot(args, 7200)
     open(os.path.join(d, "stdout.txt"), "w", encoding="utf-8").write(out[-20000:] + "\n----\n" + err[-5000:])
@@ -54,25 +54,30 @@ def video(base, dst, mb):
     except OSError:
         font = None
     W, H = 960, 540
-    for crf in (24, 27, 30, 33):
-        p = subprocess.Popen([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W * 2 + 8, H),
-                              "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "slow", "-crf", str(crf), "-movflags", "+faststart", "-an", dst],
-                             stdin=subprocess.PIPE)
-        for fa, fb in pairs:
-            fr = Image.new("RGB", (W * 2 + 8, H), (10, 12, 18))
-            fr.paste(Image.open(fa).convert("RGB").resize((W, H), Image.NEAREST), (0, 0))
-            fr.paste(Image.open(fb).convert("RGB").resize((W, H), Image.NEAREST), (W + 8, 0))
-            d = ImageDraw.Draw(fr)
-            for x, s in ((8, "style 2 现状：威胁者短箭"), (W + 16, "style 3：只靠身体预警")):
-                d.rectangle((x - 4, 4, x + 270, 34), fill=(0, 0, 0))
-                d.text((x, 6), s, fill=(255, 230, 150), font=font)
-            p.stdin.write(fr.tobytes())
-        p.stdin.close()
-        p.wait()
-        size = os.path.getsize(dst) / 1048576.0
-        print("crf %d：%.1f MiB，%d 帧" % (crf, size, len(pairs)))
-        if size <= mb:
-            return
+    # 满屏噪点画面很难压：2 分钟 1928×540 双画面 x264 crf 33 仍 29.4 MiB、x265 crf 34 仍 25.9 MiB（11-04 实测）。
+    # 改成先拼出无损中间文件，再 x264 两遍编码按体积卡到 mb × 0.94
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    mid = os.path.join(base, "_mid_lossless.mkv")
+    p = subprocess.Popen([ff, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W * 2 + 8, H), "-r", str(FPS), "-i", "-",
+                          "-c:v", "libx264", "-qp", "0", "-preset", "ultrafast", "-pix_fmt", "yuv444p", mid], stdin=subprocess.PIPE)
+    for fa, fb in pairs:
+        fr = Image.new("RGB", (W * 2 + 8, H), (10, 12, 18))
+        fr.paste(Image.open(fa).convert("RGB").resize((W, H), Image.NEAREST), (0, 0))
+        fr.paste(Image.open(fb).convert("RGB").resize((W, H), Image.NEAREST), (W + 8, 0))
+        d = ImageDraw.Draw(fr)
+        for x, s in ((8, "style 2 现状：威胁者短箭"), (W + 16, "style 3：只靠身体预警")):
+            d.rectangle((x - 4, 4, x + 270, 34), fill=(0, 0, 0))
+            d.text((x, 6), s, fill=(255, 230, 150), font=font)
+        p.stdin.write(fr.tobytes())
+    p.stdin.close()
+    p.wait()
+    kbps = int(mb * 0.94 * 8 * 1024 * 1024 / (len(pairs) / FPS) / 1000)
+    log = os.path.join(base, "_x264pass")
+    for ps in (1, 2):
+        subprocess.run([ff, "-y", "-loglevel", "error", "-i", mid, "-c:v", "libx264", "-preset", "slow", "-b:v", "%dk" % kbps, "-pass", str(ps), "-passlogfile", log,
+                        "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an"] + (["-f", "mp4", "NUL" if os.name == "nt" else "/dev/null"] if ps == 1 else [dst]), check=True)
+    os.remove(mid)
+    print("两遍 %d kbps：%.1f MiB，%d 帧" % (kbps, os.path.getsize(dst) / 1048576.0, len(pairs)))
 
 
 def closeup(base, dst):
@@ -82,12 +87,15 @@ def closeup(base, dst):
     for i in range(0, len(pairs), 3):
         a = np.asarray(Image.open(pairs[i][0]).convert("RGB")).astype(np.int16)
         b = np.asarray(Image.open(pairs[i][1]).convert("RGB")).astype(np.int16)
-        m = np.abs(a - b).max(axis=2) > 50
+        # 两局 GPU 粒子落点每次不同，全图差异找不到；只找「style 2 有洋红短箭、style 3 同位置没有」的像素（Boss / 精英的线两边都有，抵消掉）
+        mag = lambda c: (c[:, :, 0] > 170) & (c[:, :, 1] < 120) & (c[:, :, 2] > 80) & (c[:, :, 2] < 230)
+        m = mag(a) & ~mag(b)
         m[:90] = False   # 顶部 HUD
+        m[-160:] = False   # 底部 HUD
         ys, xs = np.nonzero(m)
-        if 60 < xs.size < 6000 and np.ptp(xs) < 220 and np.ptp(ys) < 220:   # 一处集中的差异 = 一只蓄力中的小怪
+        if 25 < xs.size < 900 and np.ptp(xs) < 140 and np.ptp(ys) < 140:   # 一处集中、短箭量级 = 一只蓄力中的小怪（更大的是 Boss 混战里的洋红特效）
             hits.append((xs.size, i, int(np.median(xs)), int(np.median(ys))))
-    hits.sort(reverse=True)
+    hits.sort(key=lambda h: abs(h[0] - 300))   # 越接近一根短箭的像素量越靠前
     pick, used = [], []
     for h in hits:
         if all(abs(h[1] - u) > 45 for u in used):
@@ -99,7 +107,7 @@ def closeup(base, dst):
         font = ImageFont.truetype("C:/Windows/Fonts/msyh.ttc", 16)
     except OSError:
         font = None
-    CW, CH, Z, K = 200, 140, 3, 8
+    CW, CH, Z, K = 360, 240, 2, 8
     rows = []
     for _, i, cx, cy in pick:
         x0, y0 = max(0, cx - CW // 2), max(0, cy - CH // 2)
@@ -131,9 +139,11 @@ def main():
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=DEF_DIR)
     ap.add_argument("--mb", type=float, default=25.0)
+    ap.add_argument("--t0", type=float, default=T0)   # 近景用：另录一段早期干净画面（如 --t0 150 --secs 30 --dir <另一个目录>）
+    ap.add_argument("--secs", type=int, default=SECS)
     a = ap.parse_args()
     if a.cmd == "rec":
-        rec(int(a.arg), a.dir)
+        rec(int(a.arg), a.dir, a.t0, a.secs)
     elif a.cmd == "video":
         video(a.dir, a.arg, a.mb)
     elif a.cmd == "closeup":
