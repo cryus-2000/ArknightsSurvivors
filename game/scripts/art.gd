@@ -1132,9 +1132,21 @@ const V6_FRAMES := {
 	"fx_exusiai_ul_muzzle_s2_tm": [3, 24.0], "fx_exusiai_ul_muzzle_s2_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_s2_tm": [6, 24.0], "fx_exusiai_ul_hit_s2_tm_deco": [6, 24.0],
 	"fx_exusiai_ul_muzzle_s3_tm": [3, 24.0], "fx_exusiai_ul_muzzle_s3_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_s3_tm": [6, 24.0], "fx_exusiai_ul_hit_s3_tm_deco": [6, 24.0],
 	"fx_exusiai_ul_muzzle_gold_tm": [3, 24.0], "fx_exusiai_ul_muzzle_gold_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_gold_tm": [6, 24.0], "fx_exusiai_ul_hit_gold_tm_deco": [6, 24.0],
-	# 星熊放开版（docs/242，claude/pixelfx-ul-hoshiguma）：S3 力之锯 E0 / E1 / E2（#28 先过用户关）
+	# 星熊放开版（docs/242，claude/pixelfx-ul-hoshiguma）：普攻 / S1 / S2 / S3 分 E0–E2 档（S2 精一、S3 精二起），终结技不分档；core + _deco、E2 变体 2 + 队友 _tm、网页 _lo
 	"fx_hoshiguma_ul_saw_e2": [14, 20.0], "fx_hoshiguma_ul_saw_e2_lo": [10, 15.0], "fx_hoshiguma_ul_saw_e2_deco": [14, 20.0], "fx_hoshiguma_ul_saw_e2_deco_lo": [10, 15.0],
 	"fx_hoshiguma_ul_saw_e1": [9, 20.0], "fx_hoshiguma_ul_saw_e1_deco": [9, 20.0], "fx_hoshiguma_ul_saw_e0": [8, 20.0], "fx_hoshiguma_ul_saw_e0_deco": [8, 20.0],
+	"fx_hoshiguma_ul_slash_e0": [7, 24.0], "fx_hoshiguma_ul_slash_e0_deco": [7, 24.0], "fx_hoshiguma_ul_slash_e1": [7, 24.0], "fx_hoshiguma_ul_slash_e1_deco": [7, 24.0],
+	"fx_hoshiguma_ul_slash_e2": [11, 24.0], "fx_hoshiguma_ul_slash_e2_lo": [7, 15.0], "fx_hoshiguma_ul_slash_e2_deco": [11, 24.0], "fx_hoshiguma_ul_slash_e22": [11, 24.0],
+	"fx_hoshiguma_ul_slash_e22_deco": [11, 24.0], "fx_hoshiguma_ul_slash_e2_tm": [8, 24.0], "fx_hoshiguma_ul_slash_e2_tm_deco": [8, 24.0], "fx_hoshiguma_ul_slam_e0": [10, 20.0],
+	"fx_hoshiguma_ul_slam_e0_deco": [10, 20.0], "fx_hoshiguma_ul_slam_e1": [13, 20.0], "fx_hoshiguma_ul_slam_e1_deco": [13, 20.0], "fx_hoshiguma_ul_slam_e2": [16, 20.0],
+	"fx_hoshiguma_ul_slam_e2_lo": [12, 15.0], "fx_hoshiguma_ul_slam_e2_deco": [16, 20.0], "fx_hoshiguma_ul_slam_e2_deco_lo": [12, 15.0], "fx_hoshiguma_ul_slam_e22": [16, 20.0],
+	"fx_hoshiguma_ul_slam_e22_deco": [16, 20.0], "fx_hoshiguma_ul_slam_e2_tm": [11, 20.0], "fx_hoshiguma_ul_slam_e2_tm_deco": [11, 20.0], "fx_hoshiguma_ul_thorn_e1": [9, 20.0],
+	"fx_hoshiguma_ul_thorn_e1_deco": [9, 20.0], "fx_hoshiguma_ul_thorn_e2": [10, 20.0], "fx_hoshiguma_ul_thorn_e2_lo": [8, 15.0], "fx_hoshiguma_ul_thorn_e2_deco": [10, 20.0],
+	"fx_hoshiguma_ul_thorn_e2_deco_lo": [8, 15.0], "fx_hoshiguma_ul_thorn_e22": [12, 20.0], "fx_hoshiguma_ul_thorn_e22_deco": [12, 20.0], "fx_hoshiguma_ul_thorn_e2_tm": [9, 20.0],
+	"fx_hoshiguma_ul_thorn_e2_tm_deco": [9, 20.0], "fx_hoshiguma_ul_saw_e22": [14, 20.0], "fx_hoshiguma_ul_saw_e22_deco": [14, 20.0], "fx_hoshiguma_ul_saw_e2_tm": [12, 20.0],
+	"fx_hoshiguma_ul_saw_e2_tm_deco": [12, 20.0], "fx_hoshiguma_ul_ultslam": [16, 20.0], "fx_hoshiguma_ul_ultslam_lo": [12, 15.0], "fx_hoshiguma_ul_ultslam_deco": [16, 20.0],
+	"fx_hoshiguma_ul_ultslam_deco_lo": [12, 15.0], "fx_hoshiguma_ul_ultguard": [24, 20.0], "fx_hoshiguma_ul_ultguard_lo": [18, 15.0], "fx_hoshiguma_ul_ultguard_deco": [24, 20.0],
+	"fx_hoshiguma_ul_ultguard_deco_lo": [18, 15.0],
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
 	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],

@@ -1059,7 +1059,11 @@ static func _ho_start(u, o) -> Dictionary:
 	var col: Color = u._col(o)
 	o.play_vis_anim("attack")
 	o.screen_shake(0.6)
-	u.strip("fx_hoshiguma_block", c + Vector2(0, -14), {"sc": 3.0, "life": 0.3})
+	var pul: bool = _ho_ul(u)
+	if pul:   # pixelfx 放开版（docs/242，开关 fx/px_unleashed）：盾砸地 = fx_hoshiguma_ul_ultslam（裂网 / 鬼火 / 碎晶，内圈 = 盾阵 110）
+		_ho_ul_strip(u, "fx_hoshiguma_ul_ultslam", c + Vector2(0, 2), {"sc": u.g.PX})
+	else:
+		u.strip("fx_hoshiguma_block", c + Vector2(0, -14), {"sc": 3.0, "life": 0.3})
 	_hex(u, c, 110.0, 0.0, col, 5.0, hold + 0.1)
 	_hex(u, c, 70.0, PI / 6.0, col.lerp(Color.WHITE, 0.4), 3.0, hold + 0.1)
 	_ring(u, c, pr, 120.0, Color(col, 0.6), 0.35, 3.0)
@@ -1093,7 +1097,7 @@ static func _ho_start(u, o) -> Dictionary:
 			PF.particles(u, c, 100, "ult_burst_s", [Color(0.85, 0.82, 0.76)], 0.0, vs0, 140.0)
 	return {"v2": hv2, "c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
 		"rf": 0.78 if rt == "ember" else Bal.v("ult/ho_boom", 0.9), "wall": rt == "wall", "ember": rt == "ember", "et": 0, "eseg": [{}, {}, {}],
-		"glow": u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold})}
+		"glow": _ho_ul_strip(u, "fx_hoshiguma_ul_ultguard", c + Vector2(0, -16), {"sc": u.g.PX, "loop": true, "life": hold}) if pul else u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold})}
 
 
 static func _ho_step(u, a: Dictionary, o) -> bool:
@@ -1134,6 +1138,8 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 		o.play_vis_anim("attack")
 		o.screen_shake(1.0)
 		u.shapes.erase(a.glow)
+		if a.glow.has("deco"):
+			u.shapes.erase(a.glow.deco)
 		if a.v2:   # 反震：顿帧 + 石尘冲击环（fx_hs_ring）推到 R + 灰白粒子迸开 + 四拍往外震（节奏同乌尔比安四圈）
 			u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
 			var vs2: float = PF.vseed(u, c) + 50.0
@@ -1189,6 +1195,26 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 ## 反震顿帧 + 石尘冲击环（fx_hs_ring）+ 粒子 + 四拍隆起；盾阵六边形照旧（形状一眼是盾阵）。灰黑断裂，不用凯尔希的红缝
 static func _ho_v3() -> bool:   # 打击感（10-31，pixfx §6.6）：反震冲击帧 + 逐帧烟尘；0 = 10-30 版
 	return Bal.v("ult/ho_fx_v3", 1.0) > 0.0
+
+
+## 放开版（docs/242）：开关开、帧条在时用 fx_hoshiguma_ul_*；先画装饰（透明度 × px_deco_k）后画核心，取名走 vfx.px_ul_tex（终结技不分档）
+static func _ho_ul(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_hoshiguma_ul_ultslam")
+
+
+static func _ho_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> Dictionary:
+	var nm: String = u.g.vfx.px_ul_tex(base, 1, false)
+	var dn: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	var dd: Dictionary = {}
+	if dn != "" and u.fx_ready(dn) and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		dd = u.strip(dn, c, od)
+	var s: Dictionary = u.strip(nm, c, opt)
+	if not dd.is_empty():
+		s["deco"] = dd
+	return s
 
 
 static func _ho_v2(u) -> bool:

@@ -19,7 +19,7 @@ export const meta = {
   bg: "dark",
   options: {
     palette: ["#121418", "#262a31", "#434a55", "#6d7684", "#a3acb8", "#d9dee6", "#ffffff"],
-    ember: ["#2a0a08", "#5e1410", "#9c2418", "#d8452a", "#ffa070"],
+    ember: ["#2a0a08", "#5e1410", "#9c2418", "#d8452a", "#ff7050"],
     jade: ["#081814", "#18584c", "#258a77", "#58c4ab", "#b4f0e2"],
     radius: 47,       // = draw fit：判定半径 94 / 2
     span: 2.44,       // 2 × half_deg（judge）

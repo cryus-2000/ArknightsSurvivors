@@ -14,7 +14,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#55431b", "#91732e", "#c2993d", "#f2bf4c", "#f7d58b", "#fbecc9", "#ffffff"],
+    palette: ["#121418", "#262a31", "#434a55", "#6d7684", "#a3acb8", "#d9dee6", "#ffffff"],   // §12.6：不用金（经验结晶暖金），钢色 = PRTS 黑钢盾
     jade: ["#081814", "#18584c", "#258a77", "#58c4ab", "#b4f0e2"],
     layer: "all",
     seed: 2,

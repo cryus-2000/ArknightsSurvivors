@@ -113,7 +113,9 @@ static func exec_line(o, b: Dictionary) -> Array:
 		for e in hits:
 			apply_status(o, e, s)
 	# 画面：通用 fx（docs/61 §5.6）以线段中点为中心、半长为半径、斩击方向为角度（rot: true 随方向转）；没有 fx 或缺图时画一道程序线
-	if fx_any_tex(o, b.get("fx", [])):
+	if px_ul_line(o, b, hits, ang, L):
+		pass   # pixelfx 放开版接管（data/px_ul.json lines，开关 fx/px_unleashed；只改画面）
+	elif fx_any_tex(o, b.get("fx", [])):
 		fx_play(o, b.fx, o.pos + d * L * 0.5, L * 0.5, hits, ang)
 	else:
 		var fy := Vector2(0, -12.0)
@@ -390,7 +392,39 @@ static func _hh(x: float) -> float:
 	return fposmod(sin(x * 12.9898 + 78.233) * 43758.5453, 1.0)
 
 
+## pixelfx 放开版（docs/242，开关 fx/px_unleashed；data/px_ul.json 的 lines[src]）：直线斩整条换成 fx_<人>_ul_* 帧条。帧条原点 = 星熊、斩线朝右、长 len（1x），
+## 缩放 = 判定长 L ÷ (2 × len)（PX 2 时正好 1:1），核心层走 vfx.int_scale 吸附整数格；先画装饰（× px_deco_k）后画核心；队长命中走 impact_pause 总闸。
+## 变体只给队长、队友用 _tm；精英档按 o.elite（vfx.px_ul_tex 缺档回退）。只用 g.vrng，伤害 / 判定 / TRACE 不动
+static func px_ul_line(o, b: Dictionary, hits: Array, ang: float, L: float) -> bool:
+	var g = o.g
+	var reg: Dictionary = g.vfx.px_ul_reg(str(o.id))
+	var ent = reg.get("lines", _ED).get(str(b.get("src", ""))) if not reg.is_empty() else null
+	if not (ent is Dictionary) or o.pos == Vector2.INF:
+		return false
+	var base: String = str(ent.base)
+	var nv: int = int(ent.get("variants", 1))
+	var vv: int = 1 + int(g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1
+	var nm: String = g.vfx.px_ul_tex(base, vv, not o.is_leader, "core", int(o.elite))
+	if g.tex.get(nm) == null:
+		return false
+	var dn: String = g.vfx.px_ul_tex(base, vv, not o.is_leader, "deco", int(o.elite))
+	var sc: float = L / (2.0 * float(ent.get("len", 110.0))) * g.PX
+	var at: Vector2 = o.pos + Vector2(0, float(ent.get("y", -12.0)))
+	var flip: bool = g.vrng.randf() < 0.5   # 锯齿朝哪侧随机（沿斩线翻，画面随机数）
+	var dk: float = g.vfx.px_deco_k(o)
+	var ra: float = ang + (PI if flip else 0.0)   # 水平翻 + 转半圈 = 沿斩线上下翻，方向不变
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, at, sc, ra, flip, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(nm, at, g.vfx.int_scale(sc), ra, flip, false, Color.WHITE)
+	var pz: Array = reg.get("pause", _EA)
+	if not hits.is_empty() and o.is_leader and pz.size() >= 2:
+		o.impact_pause(float(pz[1]))   # 命中定格只给队长（docs/242 §3）
+	return true
+
+
 static func s1_slash_fx(o, b: Dictionary) -> void:
+	if o.g.vfx.px_ul_reg(str(o.id)).get("shapes", _ED).has("举盾反击"):
+		return   # pixelfx 放开版接管了 S1 落点（seg_skadi.px_ul_shape 画 fx_hoshiguma_ul_slam_*），旧 pixfx 弧光 / 裂网不再叠画
 	var u = o.g.ult
 	if u == null or not u.fx_ready(HS_ARCS[0]):
 		return

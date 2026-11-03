@@ -11,5 +11,17 @@
 		"motes": {"n": 12, "n_skill": 20, "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.6},
 		"pause": [0.05, 0.075],
 		"no_arc": true
+	},
+	"hoshiguma": {
+		"shapes": {
+			"盾斧斩": {"base": "fx_hoshiguma_ul_slash", "variants": 2, "draw": {"fit": 47.0}},
+			"举盾反击": {"base": "fx_hoshiguma_ul_slam", "variants": 2, "skill": true, "draw": {"fit": 75.0, "y": 2.0}},
+			"热砂": {"base": "fx_hoshiguma_ul_thorn", "variants": 2, "skill": true, "draw": {"fit": 40.0, "y": 2.0}}
+		},
+		"lines": {"力之锯": {"base": "fx_hoshiguma_ul_saw", "variants": 2, "len": 110.0, "y": -12.0}},
+		"draw": {"fit": 47.0, "k": 1.0, "along": 0.0, "y": -10.0, "mirror": "face"},
+		"motes": {"n": 6, "n_skill": 14, "col": [0.82, 0.88, 0.95], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.45},
+		"pause": [0.05, 0.075],
+		"no_arc": true
 	}
 }
