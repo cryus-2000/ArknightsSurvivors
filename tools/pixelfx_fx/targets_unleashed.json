@@ -1,0 +1,63 @@
+{
+ "_doc": "pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，开关 fx/px_unleashed）：不设近白 / 色数 / 体积上限（256 色）",
+ "fx_skadi_ul_slash": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 2.8
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_sweep": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.5,
+   "seed": 5
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_spin": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 6.3,
+   "seed": 8
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_cleave": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.8,
+   "heavy": 1,
+   "seed": 7
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_geyser1": {
+  "fx": "water/ak-skadi-ul-geyser",
+  "opts": {
+   "seed": 3
+  },
+  "colors": 256,
+  "keep": true
+ },
+ "fx_skadi_ul_geyser2": {
+  "fx": "water/ak-skadi-ul-geyser",
+  "opts": {
+   "seed": 11,
+   "height": 130,
+   "width": 26
+  },
+  "colors": 256,
+  "keep": true
+ },
+ "fx_skadi_ul_geyser3": {
+  "fx": "water/ak-skadi-ul-geyser",
+  "opts": {
+   "seed": 19,
+   "height": 170,
+   "width": 34
+  },
+  "colors": 256,
+  "keep": true
+ }
+}

@@ -491,8 +491,8 @@
      "src": "冲锋模式",
      "power": true,
      "tex": "proj_exusiai_bullet_s1",
-     "muzzle_fx": "fx_exusiai_px_muzzle_s1",
-     "hit_fx": "fx_exusiai_px_hit_s1"
+     "muzzle_fx": "fx_exusiai_muzzle_s1",
+     "hit_fx": "fx_exusiai_hit_s1"
     }
    },
    {
@@ -512,8 +512,8 @@
     ],
     "attack_patch": {
      "tex": "proj_exusiai_bullet_s2",
-     "muzzle_fx": "fx_exusiai_px_muzzle_s2",
-     "hit_fx": "fx_exusiai_px_hit_s2"
+     "muzzle_fx": "fx_exusiai_muzzle_s2",
+     "hit_fx": "fx_exusiai_hit_s2"
     },
     "need_enemy": "$range"
    },
@@ -534,8 +534,8 @@
       }
      ],
      "tex": "proj_exusiai_bullet_s3",
-     "muzzle_fx": "fx_exusiai_px_muzzle_s3",
-     "hit_fx": "fx_exusiai_px_hit_s3"
+     "muzzle_fx": "fx_exusiai_muzzle_s3",
+     "hit_fx": "fx_exusiai_hit_s3"
     },
     "need_enemy": "$range"
    }

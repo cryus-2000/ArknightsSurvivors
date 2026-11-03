@@ -218,6 +218,8 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			a.sseg[int(e.id)] = true
 			_hit(u, a, o, e, Bal.v("ult/sd_slash", 0.3), {"src": "下劈", "edge": e.pos.distance_to(sc) > 210.0 * (1.0 - _edge_w())})
 		u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color(0.78, 0.86, 0.94) if _sd_v2(u) else Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3 if not _sd_v2(u) else 0.2})
+		if _sd_ul(u) and u.fx_ready("fx_skadi_ul_cleave"):
+			u.strip("fx_skadi_ul_cleave", o0, {"ang": d.angle(), "sc": 1.35, "sy": 1.0 if PF.h(PF.vseed(u, o0)) < 0.5 else -1.0})
 		if _sd_v5(u):
 			u.g.vfx.stop(Bal.v("ult/sd_cut_stop", 0.06), "ult", true)   # 劈下那一下顿住
 			PF.particles(u, o0 + d * 120.0, 300, "ult_burst", [col, col.darkened(0.3)], 0.0, PF.vseed(u, o0), 220.0)
@@ -356,6 +358,14 @@ static func _sd_v2(u) -> bool:
 ## → 浪推到尽头紧接水爆（浪体在前方炸开成水柱 + 水雾 + 飞溅水珠，先亮后散，地面留湿痕）。水爆 = fx_sd_blast1–4（按 vseed 挑变体 / 镜像 / 错开），
 ## 水珠 / 水雾 = PF.particles 预烘焙粒子帧条着水色；浪推到 ult/sd_blast_x（480，屏内）就炸、浪面收掉，判定照旧推到 L（1500）
 const SD_BLAST := ["fx_sd_blast1", "fx_sd_blast2", "fx_sd_blast3", "fx_sd_blast4"]
+## pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，balance fx/px_unleashed 缺省 0）：水柱换成逐帧水柱帧条（三个种子变体），
+## 劈下那一刻叠一道 pixelfx 重劈；判定 / 时序 / 随机数不动（挑变体用 PF.pick 的 vseed）
+const SD_UL := ["fx_skadi_ul_geyser1", "fx_skadi_ul_geyser2", "fx_skadi_ul_geyser3"]
+const SD_UL_FOOT := Vector2(90.0, 200.0)   # 水柱帧（180×240，保留原画布）里脚底的位置
+
+
+static func _sd_ul(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready(SD_UL[0])
 
 
 ## ---- 斯卡蒂「劈开浪潮」（docs/199 §7.13，开关 ult/sd_fx_v4 缺省 1；0 = §7.12 推浪 + 水爆版）。用户 10-30：「我要那种劈开浪潮的感觉」
@@ -529,11 +539,14 @@ static func _sd_clen(a: Dictionary) -> float:
 ## 一处水柱（水爆贴图从小鼓到位、白亮冷成水蓝）+ 水珠；w1 世界宽，dl 延迟
 static func _sd_spout(u, p: Vector2, w1: float, dl: float, sd: float, col: Color, mist := false) -> void:
 	var foam: Color = col.lerp(Color.WHITE, 0.6)
-	var nm := PF.pick(u, SD_BLAST, sd * 0.29)
-	var t: Texture2D = u._strip_tex(nm)
-	var tw: float = PF.tex_w(u, nm)
-	u.strip(nm, p, {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.95), "sc": w1 * 0.4 / tw, "sc1": w1 / tw, "scd": 0.22, "sx": -1.0 if PF.h(sd * 7.0) < 0.5 else 1.0,
-		"life": 0.8, "fade": 0.45, "delay": dl, "col": Color(0.96, 0.99, 1.03), "col1": Color(col.r * 0.85, col.g * 0.9, col.b, 0.9), "cold": 0.25})   # 起始压暗、快冷（预审报合拢水柱发白）
+	if _sd_ul(u):
+		u.strip(PF.pick(u, SD_UL, sd * 0.29), p, {"o": SD_UL_FOOT, "sc": clampf(w1 / 150.0, 0.8, 1.7), "sx": -1.0 if PF.h(sd * 7.0) < 0.5 else 1.0, "delay": dl})
+	else:
+		var nm := PF.pick(u, SD_BLAST, sd * 0.29)
+		var t: Texture2D = u._strip_tex(nm)
+		var tw: float = PF.tex_w(u, nm)
+		u.strip(nm, p, {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.95), "sc": w1 * 0.4 / tw, "sc1": w1 / tw, "scd": 0.22, "sx": -1.0 if PF.h(sd * 7.0) < 0.5 else 1.0,
+			"life": 0.8, "fade": 0.45, "delay": dl, "col": Color(0.96, 0.99, 1.03), "col1": Color(col.r * 0.85, col.g * 0.9, col.b, 0.9), "cold": 0.25})   # 起始压暗、快冷（预审报合拢水柱发白）
 	PF.particles(u, p - Vector2(0, 30.0), 100, "ult_burst_s", [foam, col], dl + 0.02, sd, w1 * 0.6)
 	if mist:
 		PF.particles(u, p - Vector2(0, 50.0), 100, "ult_ember", [Color(foam, 0.7)], dl + 0.12, sd + 5.0, w1 * 0.5)
@@ -669,13 +682,16 @@ static func _sd_blast_v3(u, c0: Vector2, d: Vector2, n: Vector2, hw: float, fp: 
 		var hh: float = PF.h(vs + i * 2.7)
 		var lat: float = -hw * 0.85 + hw * 1.7 * (i + 0.2 + 0.6 * hh) / m if m > 1 else 0.0
 		var p: Vector2 = fp + n * lat + d * (20.0 + 50.0 * PF.h(hh * 9.0))
-		var nm := PF.pick(u, SD_BLAST, vs * 0.29 + i * 1.7)
-		var t: Texture2D = u._strip_tex(nm)
-		var tw: float = PF.tex_w(u, nm)
 		var w1: float = (180.0 + 80.0 * PF.h(hh * 5.0)) * (hw * 2.0 / 920.0 if m < 5 else 1.0)
 		var dl: float = 0.05 * PF.h(hh * 3.0) + 0.03 * i
-		u.strip(nm, p, {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.95), "sc": w1 * 0.45 / tw, "sc1": w1 / tw, "scd": 0.28, "sx": -1.0 if PF.h(hh * 7.0) < 0.5 else 1.0,
-			"life": 0.95, "fade": 0.55, "delay": dl, "col": Color(1.12, 1.12, 1.16), "col1": Color(col.r * 0.9, col.g * 0.95, col.b, 0.9), "cold": 0.4})
+		if _sd_ul(u):
+			u.strip(PF.pick(u, SD_UL, vs * 0.29 + i * 1.7), p, {"o": SD_UL_FOOT, "sc": clampf(w1 / 140.0, 0.9, 1.8), "sx": -1.0 if PF.h(hh * 7.0) < 0.5 else 1.0, "delay": dl})
+		else:
+			var nm := PF.pick(u, SD_BLAST, vs * 0.29 + i * 1.7)
+			var t: Texture2D = u._strip_tex(nm)
+			var tw: float = PF.tex_w(u, nm)
+			u.strip(nm, p, {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.95), "sc": w1 * 0.45 / tw, "sc1": w1 / tw, "scd": 0.28, "sx": -1.0 if PF.h(hh * 7.0) < 0.5 else 1.0,
+				"life": 0.95, "fade": 0.55, "delay": dl, "col": Color(1.12, 1.12, 1.16), "col1": Color(col.r * 0.9, col.g * 0.95, col.b, 0.9), "cold": 0.4})
 		PF.particles(u, p - Vector2(0, 40.0), 200, "ult_burst_s" if i % 2 == 1 else "ult_burst", [col.lerp(foam, 0.4), col.darkened(0.2)], dl + 0.02, vs + i * 3.0, 130.0 if i % 2 == 1 else 190.0)   # 压暗（白色大团糊成一片）
 		if i % 2 == 0:
 			PF.particles(u, p - Vector2(0, 60.0), 100, "ult_ember", [Color(col.lerp(foam, 0.5), 0.45)], dl + 0.15, vs + i * 5.0, 100.0)   # 水雾：慢、上飘

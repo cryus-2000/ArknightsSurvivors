@@ -1151,8 +1151,8 @@
        ],
        "fx": [
         {
-         "strip": "fx_hoshiguma_px_saw",
-         "fit": 55,
+         "strip": "fx_hoshiguma_demon_slash",
+         "fit": 32,
          "rot": true,
          "off": [
           0,

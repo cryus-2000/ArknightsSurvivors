@@ -2,6 +2,7 @@
 extends "res://scripts/characters/blocks/seg_exusiai.gd"
 
 const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # 剑气非线性速度（10-27）
+const BalS = preload("res://scripts/core/balance.gd")   # pixelfx 不加限制试验的开关 fx/px_unleashed（块脚本里不直接用 Bal 单例）
 
 
 # ---------------------------------------------------------------- shape.wave（斯卡蒂「跃浪」：重斩落点掀起一道向前推进的浪墙）
@@ -214,6 +215,36 @@ static func hw_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
 	elif f.has("whirl"):   # 锁链带锚甩一整圈（以本干员为心）
 		o.ground_dust(o.pos, 48.0, 12)
 		o.fx({"kind": "whirl", "pos": o.pos, "r": float(ctx.get("r", 0.0)), "life": float(f.whirl.get("life", 0.32)), "a0": o.g.vrng.randf() * TAU, "dir": float(o.face)})
+
+
+## pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，balance fx/px_unleashed，缺省 0）：斯卡蒂的大剑类判定（普攻 / 连段「大剑」、
+## 迅捷打击·γ型、跃浪击）结算后，这一下的画面整个换成 pixelfx 帧条（fx_skadi_ul_*，源码 tools/pixelfx_fx），旧 fx 条目和通用近战刀光不画；
+## 命中时走 impact_pause 共享顿帧（纯画面：批跑不消耗顿帧、只用 g.vrng，伤害 / TRACE 不变）。返回 true = 已接管，ob_core 不再播 b.fx
+const PX_UL_SRC := {"大剑": "fx_skadi_ul_slash", "迅捷打击·γ型": "fx_skadi_ul_sweep", "跃浪击": "fx_skadi_ul_cleave"}
+
+
+static func px_ul_on(o) -> bool:
+	return str(o.id) == "skadi" and float(BalS.v("fx/px_unleashed", 0.0)) > 0.0
+
+
+static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float) -> bool:
+	if not px_ul_on(o):
+		return false
+	var src: String = str(b.get("src", ""))
+	if not PX_UL_SRC.has(src):
+		return false
+	var nm: String = PX_UL_SRC[src]
+	var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
+	if half >= 3.1:
+		nm = "fx_skadi_ul_spin"   # 涌潮悲歌期间的全方向横扫
+	if o.g.tex.get(nm) == null:
+		return false
+	var skill: bool = src != "大剑"
+	_hw_blade(o, {"strip": nm, "fit": 80.0, "k": 1.0, "along": 0.0, "y": -10.0, "tint": [1.0, 1.0, 1.0, 1.0], "mirror": "face",
+		"motes": {"n": 14 if skill else 8, "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.5}}, r, ang)
+	if not hits.is_empty():
+		o.impact_pause(0.075 if skill else 0.05)   # 命中定格（共享限频，纯画面）
+	return true
 
 
 ## 刀光（手写 skadi._slash 的通用版）：strip 帧条，缩放 = r × k ÷ fit（每 1x 像素的世界像素），位置 = 脚底 + (0, y) + 方向 × r × along；

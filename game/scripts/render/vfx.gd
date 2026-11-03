@@ -140,6 +140,8 @@ var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（�
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
 	if tier_off or g.fx.size() > 420:
 		return
+	if str(o.id) == "skadi" and Bal.vi("fx/px_unleashed", 0) > 0:   # pixelfx 不加限制试验：斯卡蒂的刀光由 fx_skadi_ul_* 帧条画（seg_skadi.px_ul_shape）
+		return
 	var key: String = str(o.id)
 	var prev = _open_arcs.get(key)
 	if prev != null and float(prev.t) == g.t and (prev.org as Vector2).distance_to(origin) < 1.0 and absf(float(prev.r) - radius) < 0.5 and absf(float(prev.half) - half) < 0.01 and absf(angle_difference(float(prev.ang), ang)) < 0.01:
