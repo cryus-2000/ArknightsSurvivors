@@ -412,5 +412,95 @@
   "lo": true,
   "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
   "move": "ult"
+ },
+ "fx_hoshiguma_ul_cast1_e0": {
+  "fx": "holy/ak-hoshiguma-ul-cast",
+  "opts": {
+   "kind": 1,
+   "elite": 0,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "move": "skill",
+  "check_sy": 0.55,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "_note": "技能起手（px_ul.json cast，docs/242 §12.1）；队友回退到队长版"
+ },
+ "fx_hoshiguma_ul_cast1_e1": {
+  "fx": "holy/ak-hoshiguma-ul-cast",
+  "opts": {
+   "kind": 1,
+   "elite": 1,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "move": "skill",
+  "check_sy": 0.55,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "_note": "技能起手（px_ul.json cast，docs/242 §12.1）；队友回退到队长版"
+ },
+ "fx_hoshiguma_ul_cast1_e2": {
+  "fx": "holy/ak-hoshiguma-ul-cast",
+  "opts": {
+   "kind": 1,
+   "elite": 2,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "_note": "技能起手（px_ul.json cast，docs/242 §12.1）；队友回退到队长版"
+ },
+ "fx_hoshiguma_ul_cast2_e1": {
+  "fx": "holy/ak-hoshiguma-ul-cast",
+  "opts": {
+   "kind": 2,
+   "elite": 1,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "move": "skill",
+  "check_sy": 0.55,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "_note": "技能起手（px_ul.json cast，docs/242 §12.1）；队友回退到队长版"
+ },
+ "fx_hoshiguma_ul_cast2_e2": {
+  "fx": "holy/ak-hoshiguma-ul-cast",
+  "opts": {
+   "kind": 2,
+   "elite": 2,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "_note": "技能起手（px_ul.json cast，docs/242 §12.1）；队友回退到队长版"
+ },
+ "fx_hoshiguma_ul_cast3_e2": {
+  "fx": "holy/ak-hoshiguma-ul-cast",
+  "opts": {
+   "kind": 3,
+   "elite": 2,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "_note": "技能起手（px_ul.json cast，docs/242 §12.1）；队友回退到队长版"
  }
 }

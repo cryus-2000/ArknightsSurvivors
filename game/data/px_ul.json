@@ -22,6 +22,7 @@
 		"draw": {"fit": 47.0, "k": 1.0, "along": 0.0, "y": -10.0, "mirror": "face"},
 		"motes": {"n": 6, "n_skill": 14, "col": [0.82, 0.88, 0.95], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.45},
 		"pause": [0.05, 0.075],
+		"cast": {"0": {"base": "fx_hoshiguma_ul_cast1", "y": 0.0}, "1": {"base": "fx_hoshiguma_ul_cast2", "y": 0.0}, "2": {"base": "fx_hoshiguma_ul_cast3", "y": 0.0}},
 		"no_arc": true
 	}
 }
