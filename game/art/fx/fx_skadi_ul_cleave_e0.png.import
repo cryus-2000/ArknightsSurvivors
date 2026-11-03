@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://tctq8v50qaav"
-path="res://.godot/imported/fx_skadi_ul_slash2_deco.png-9f8f67b30f704c8d12691aa573f0fee9.ctex"
+uid="uid://uu1cw1k2gsne"
+path="res://.godot/imported/fx_skadi_ul_cleave_e0.png-6debe508e886ee36bdc9f8ce9008c00e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_skadi_ul_slash2_deco.png"
-dest_files=["res://.godot/imported/fx_skadi_ul_slash2_deco.png-9f8f67b30f704c8d12691aa573f0fee9.ctex"]
+source_file="res://art/fx/fx_skadi_ul_cleave_e0.png"
+dest_files=["res://.godot/imported/fx_skadi_ul_cleave_e0.png-6debe508e886ee36bdc9f8ce9008c00e.ctex"]
 
 [params]
 

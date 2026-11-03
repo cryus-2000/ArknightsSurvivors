@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://h4xbgoukx4ca"
-path="res://.godot/imported/fx_skadi_ul_spin2.png-eef3669186e73eb7245df84d9c5d1373.ctex"
+uid="uid://1d5to5t620s3"
+path="res://.godot/imported/fx_skadi_ul_sweep_e1.png-15ec2fa4ee50f59cba7cb8651aa2ddc2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_skadi_ul_spin2.png"
-dest_files=["res://.godot/imported/fx_skadi_ul_spin2.png-eef3669186e73eb7245df84d9c5d1373.ctex"]
+source_file="res://art/fx/fx_skadi_ul_sweep_e1.png"
+dest_files=["res://.godot/imported/fx_skadi_ul_sweep_e1.png-15ec2fa4ee50f59cba7cb8651aa2ddc2.ctex"]
 
 [params]
 

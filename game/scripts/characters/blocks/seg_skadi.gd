@@ -243,8 +243,9 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	var base: String = str(use.base)
 	var nv: int = int(use.get("variants", 1))
 	var vv: int = 1 + int(o.g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1   # 只有队长挑种子变体；队友版 _tm 余韵约减半、亮度不降
-	var dn: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "deco", int(o.elite))
-	var nm: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "core", int(o.elite))
+	var el: int = o.g.vfx.px_ul_el(o)
+	var dn: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "deco", el)
+	var nm: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "core", el)
 	if o.g.tex.get(nm) == null:
 		return false
 	var dw: Dictionary = reg.get("draw", _ED)

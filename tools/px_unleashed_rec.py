@@ -48,7 +48,7 @@ def live(a, op, squad, out):
 
 
 def showcase(a, op, mode, mate, out):
-    flag = {"full": [], "lo": ["--lo"], "deco0": ["--deco0"]}[mode]
+    flag = {"full": [], "lo": ["--lo"], "deco0": ["--deco0"], "elite": ["--elites", "0,1,2"]}[mode]   # elite：每招 E0 → E1 → E2 依次（docs/242 §10）
     secs = [] if mode == "full" else ["--secs", "5"]
     r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "px_showcase_rec.py"), op, "--mate", mate, "--seed", str(a.seed), "--out", out, "--tmp", a.tmp] + secs + flag,
                        capture_output=True, text=True, encoding="utf-8", errors="replace")

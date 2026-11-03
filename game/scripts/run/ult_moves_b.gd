@@ -360,7 +360,7 @@ static func _sd_v2(u) -> bool:
 const SD_BLAST := ["fx_sd_blast1", "fx_sd_blast2", "fx_sd_blast3", "fx_sd_blast4"]
 ## pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，balance fx/px_unleashed 缺省 0）：水柱换成逐帧水柱帧条（三个种子变体），
 ## 劈下那一刻叠一道 pixelfx 重劈；判定 / 时序 / 随机数不动（挑变体用 PF.pick 的 vseed）
-const SD_UL := ["fx_skadi_ul_geyser1", "fx_skadi_ul_geyser2", "fx_skadi_ul_geyser3"]
+const SD_UL := ["fx_skadi_ul_geyser1", "fx_skadi_ul_geyser2"]   # 11-03 v3：两个种子（第三个让给 E0 / E1 帧条的显存）
 const SD_UL_FOOT := Vector2(90.0, 200.0)   # 水柱帧（180×240，保留原画布）里脚底的位置
 
 

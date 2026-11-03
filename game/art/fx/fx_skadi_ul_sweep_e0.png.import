@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dr21km3xkxb8w"
-path="res://.godot/imported/fx_skadi_ul_geyser3.png-50c37c097d98f3c2586dafc81992e88a.ctex"
+uid="uid://denbnelma7yoc"
+path="res://.godot/imported/fx_skadi_ul_sweep_e0.png-e53c434e76ed5297c24f62f3365471a8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/fx_skadi_ul_geyser3.png"
-dest_files=["res://.godot/imported/fx_skadi_ul_geyser3.png-50c37c097d98f3c2586dafc81992e88a.ctex"]
+source_file="res://art/fx/fx_skadi_ul_sweep_e0.png"
+dest_files=["res://.godot/imported/fx_skadi_ul_sweep_e0.png-e53c434e76ed5297c24f62f3365471a8.ctex"]
 
 [params]
 

@@ -202,7 +202,7 @@ func px_ul_cast(o, i: int) -> void:
 	if not (c is Dictionary) or o.pos == Vector2.INF:
 		return
 	var base: String = str(c.get("base", ""))
-	var el: int = int(o.get("elite")) if o.get("elite") != null else 2
+	var el: int = px_ul_el(o)
 	var tm: bool = not o.is_leader
 	var p: Vector2 = o.pos + Vector2(0, float(c.get("y", -10.0)))
 	if str(c.get("at", "self")) == "front":
@@ -216,6 +216,14 @@ func px_ul_cast(o, i: int) -> void:
 	var cn: String = px_ul_tex(base, 1, tm, "core", el)
 	if g.tex.get(cn) != null:
 		fx_sprite(cn, p, sc, 0.0, fl)
+
+
+## 放开版帧条按哪个精英档取（docs/242 §10）：balance fx/px_ul_elite ≥ 0 时一律用它（展示段录像），否则用干员当前精英化
+func px_ul_el(o) -> int:
+	var ov: int = Bal.vi("fx/px_ul_elite", -1)
+	if ov >= 0:
+		return ov
+	return int(o.get("elite")) if o.get("elite") != null else 2
 
 
 func px_ul_reg(id: String) -> Dictionary:
