@@ -602,3 +602,6 @@ python tools/px_prerecord.py <干员> [--sha <要录的提交前缀>]
 依次：① 打印 HEAD / 分支，和 `--sha` 对得上；② 重建贴图索引 + `godot --import`；③ `px_ul_lint <干员>` 0 条；④ 无头跑图鉴演示（普攻 / S1 / S2 / S3 / 终结技，精二），这名干员加载的放开版帧条数、演示里取用过的放开版帧条数任一为 0 判 FAIL，触发兜底（通用刀光弧、终结技公共烟尘 / 碎石 / 粒子、静默去色）判 FAIL 并列出；⑤ 截一帧存 `Claude outputs/pixelfx_prerecord/<干员>_<sha>.png`；⑥ 打印 `PRERECORD PASS / FAIL`，退出码 0 / 1。
 - `tools/px_demo_rec.py` 开录前强制调用（FAIL 拒绝录；`--sha` 透传）。`tools/px_trace_ab.py` 复用第 ② 步。
 - 统计来自 `vfx.px_stats`（px_ul_tex 取用、兜底路径计数），图鉴演示结束时 `tests/px_demo_rec` 打印 `PXSTATS`。
+
+### 14.25 圆形判定的帧条朝向 `aim`（组长 11-04「去匀圆」）
+圆形判定被注册表接管时帧条画在圆心，缺省不转（或 `spin` 随机转）。形状条目写 `"aim": "nearest"` = 帧条正右对准离圆心最近的敌人（没有敌人时用朝向），`"aim": "facing"` = 对准干员朝向；再写 `"flip": true` 时朝左会转半圈并翻转，帧条不上下颠倒。主浪 / 主斩要冲着目标时用。

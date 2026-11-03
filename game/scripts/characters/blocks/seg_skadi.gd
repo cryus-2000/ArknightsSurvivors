@@ -463,9 +463,19 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	if c != Vector2.INF:   # 圆形判定：画在圆心，不随出手方向转（形状条目 spin = 整圈随机转角，画面随机 vrng：德克萨斯骤雨连斩 4 下各不相同）
 		var sc: float = r * float(bl.k) / float(bl.fit)
 		var rot: float = o.g.vrng.randf() * TAU if ent.get("spin", false) else 0.0
+		var cfl := false
+		match str(ent.get("aim", "")):   # aim（组长 11-04「去匀圆」）：帧条正右对准最近的敌人（nearest）/ 干员朝向（facing）；flip: true 时朝左转半圈并翻转（上下不颠倒）
+			"nearest":
+				var ne: Array = o.nearest_raw(1, maxf(r * 3.0, 400.0), c)
+				rot = (ne[0].pos - c).angle() if not ne.is_empty() and ne[0].pos != c else o.facing_angle()
+			"facing":
+				rot = o.facing_angle()
+		if ent.get("flip", false) and ent.has("aim") and cos(rot) < 0.0:
+			rot += PI
+			cfl = true
 		if dn != "" and dk > 0.0:
-			o.spawn_fx_sprite(dn, c + Vector2(0, float(bl.y)), sc, rot, false, false, Color(1, 1, 1, dk))
-		o.spawn_fx_sprite(nm, c + Vector2(0, float(bl.y)), sc, rot, false, false, Color.WHITE)
+			o.spawn_fx_sprite(dn, c + Vector2(0, float(bl.y)), sc, rot, cfl, false, Color(1, 1, 1, dk))
+		o.spawn_fx_sprite(nm, c + Vector2(0, float(bl.y)), sc, rot, cfl, false, Color.WHITE)
 	else:
 		if dn != "" and dk > 0.0:
 			var bd: Dictionary = bl.duplicate()
