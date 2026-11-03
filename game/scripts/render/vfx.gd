@@ -202,7 +202,7 @@ func px_ul_cast(o, i: int) -> void:
 	if not (c is Dictionary) or o.pos == Vector2.INF:
 		return
 	var base: String = str(c.get("base", ""))
-	var el: int = int(o.get("elite")) if o.get("elite") != null else 2
+	var el: int = px_ul_el(o)
 	var tm: bool = not o.is_leader
 	var p: Vector2 = o.pos + Vector2(0, float(c.get("y", -10.0)))
 	if str(c.get("at", "self")) == "front":
@@ -216,6 +216,48 @@ func px_ul_cast(o, i: int) -> void:
 	var cn: String = px_ul_tex(base, 1, tm, "core", el)
 	if g.tex.get(cn) != null:
 		fx_sprite(cn, p, sc, 0.0, fl)
+	var al = c.get("ally")
+	if al is Dictionary and g.get("squad") != null and g.squad != null:   # 对友方生效的技能（docs/242 §11 #4）：每个在场队员脚下再播一张，按受益者取队长版 / _tm，精英档跟施放者
+		for m in g.squad.ops:
+			if m == null or m.pos == Vector2.INF or (m == o and not al.get("self", false)):
+				continue
+			_px_ul_at(str(al.get("base", "")), m.pos + Vector2(0, float(al.get("y", 0.0))), Game.PX * float(al.get("sc", 1.0)), not m.is_leader, el, dk)
+
+
+## 在 p 处先装饰（× dk）后核心播一张放开版帧条（px_ul_cast / px_ul_heal 共用）
+func _px_ul_at(base: String, p: Vector2, sc: float, tm: bool, el: int, dk: float) -> void:
+	if base == "":
+		return
+	var dn: String = px_ul_tex(base, 1, tm, "deco", el)
+	if dn != "" and dk > 0.0:
+		fx_sprite(dn, p, sc, 0.0, false, false, Color(1, 1, 1, dk))
+	var cn: String = px_ul_tex(base, 1, tm, "core", el)
+	if g.tex.get(cn) != null:
+		fx_sprite(cn, p, sc)
+
+
+## 放开版治疗落点（docs/242 §11.2 #4）：注册表 "heal": {base, y, sc}；该干员的 heal 动词实际回血时在被治疗者（全队共用血量 = 队长）脚下播一次；
+## 同一干员 1 秒内只播一次（合并），不定格
+var _px_heal_t := {}
+
+
+func px_ul_heal(o) -> void:
+	var h = px_ul_reg(str(o.id)).get("heal")
+	if not (h is Dictionary) or g.ppos == Vector2.INF:
+		return
+	var k: String = str(o.id)
+	if g.t - float(_px_heal_t.get(k, -99.0)) < 1.0:
+		return
+	_px_heal_t[k] = g.t
+	_px_ul_at(str(h.get("base", "")), g.ppos + Vector2(0, float(h.get("y", 0.0))), Game.PX * float(h.get("sc", 1.0)), false, px_ul_el(o), px_deco_k(o))
+
+
+## 放开版帧条按哪个精英档取（docs/242 §10）：balance fx/px_ul_elite ≥ 0 时一律用它（展示段录像），否则用干员当前精英化
+func px_ul_el(o) -> int:
+	var ov: int = Bal.vi("fx/px_ul_elite", -1)
+	if ov >= 0:
+		return ov
+	return int(o.get("elite")) if o.get("elite") != null else 2
 
 
 func px_ul_reg(id: String) -> Dictionary:

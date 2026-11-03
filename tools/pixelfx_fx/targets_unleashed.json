@@ -1,9 +1,10 @@
 {
- "_doc": "pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，开关 fx/px_unleashed）：不设近白 / 色数 / 体积上限（256 色）",
+ "_doc": "pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，开关 fx/px_unleashed）：不设近白 / 色数 / 体积上限（256 色）；11-03 v3：刀光 move = basic / s1 / s2 / s3，E0 / E1 单种子（_e0 / _e1），E2 = 不带档位后缀；起手 fx_skadi_ul_charge（S1 / S2）/ charge_big（S3）",
  "fx_skadi_ul_slash": {
   "fx": "melee/ak-skadi-ul-slash",
   "opts": {
-   "span": 2.8
+   "span": 2.8,
+   "move": "basic"
   },
   "colors": 256,
   "lo": true,
@@ -17,11 +18,50 @@
   },
   "move": "basic"
  },
+ "fx_skadi_ul_slash_e0": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 2.8,
+   "move": "basic",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*half"
+   },
+   "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
+  },
+  "move": "basic",
+  "deco_step": 2
+ },
+ "fx_skadi_ul_slash_e1": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 2.8,
+   "move": "basic",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*half"
+   },
+   "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
+  },
+  "move": "basic",
+  "deco_step": 2
+ },
  "fx_skadi_ul_sweep": {
   "fx": "melee/ak-skadi-ul-slash",
   "opts": {
    "span": 3.5,
-   "seed": 5
+   "seed": 5,
+   "move": "s1"
   },
   "colors": 256,
   "lo": true,
@@ -35,11 +75,52 @@
   },
   "move": "skill"
  },
+ "fx_skadi_ul_sweep_e0": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.5,
+   "seed": 5,
+   "move": "s1",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*s1_half"
+   },
+   "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
+  },
+  "move": "skill",
+  "deco_step": 2
+ },
+ "fx_skadi_ul_sweep_e1": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.5,
+   "seed": 5,
+   "move": "s1",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*s1_half"
+   },
+   "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
+  },
+  "move": "skill",
+  "deco_step": 2
+ },
  "fx_skadi_ul_spin": {
   "fx": "melee/ak-skadi-ul-slash",
   "opts": {
    "span": 6.3,
-   "seed": 8
+   "seed": 8,
+   "move": "s3"
   },
   "colors": 256,
   "lo": true,
@@ -51,14 +132,56 @@
    },
    "src": "skadi.json blocks 涌潮悲歌期间 half = 3.14159265（全方向）"
   },
-  "move": "skill"
+  "move": "skill",
+  "deco_lo_step": 2
+ },
+ "fx_skadi_ul_spin_e0": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 6.3,
+   "seed": 8,
+   "move": "s3",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*pi"
+   },
+   "src": "skadi.json blocks 涌潮悲歌期间 half = 3.14159265（全方向）"
+  },
+  "move": "skill",
+  "deco_step": 2
+ },
+ "fx_skadi_ul_spin_e1": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 6.3,
+   "seed": 8,
+   "move": "s3",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*pi"
+   },
+   "src": "skadi.json blocks 涌潮悲歌期间 half = 3.14159265（全方向）"
+  },
+  "move": "skill",
+  "deco_step": 2
  },
  "fx_skadi_ul_cleave": {
   "fx": "melee/ak-skadi-ul-slash",
   "opts": {
    "span": 3.8,
    "heavy": 1,
-   "seed": 7
+   "seed": 7,
+   "move": "s2"
   },
   "colors": 256,
   "lo": true,
@@ -71,6 +194,48 @@
    "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
   },
   "move": "skill"
+ },
+ "fx_skadi_ul_cleave_e0": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.8,
+   "heavy": 1,
+   "seed": 7,
+   "move": "s2",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*s2_half"
+   },
+   "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
+  },
+  "move": "skill",
+  "deco_step": 2
+ },
+ "fx_skadi_ul_cleave_e1": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.8,
+   "heavy": 1,
+   "seed": 7,
+   "move": "s2",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "skadi",
+   "opts": {
+    "span": "2*s2_half"
+   },
+   "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
+  },
+  "move": "skill",
+  "deco_step": 2
  },
  "fx_skadi_ul_geyser1": {
   "fx": "water/ak-skadi-ul-geyser",
@@ -93,56 +258,12 @@
   "layers": true,
   "move": "ult"
  },
- "fx_skadi_ul_geyser3": {
-  "fx": "water/ak-skadi-ul-geyser",
-  "opts": {
-   "seed": 19,
-   "height": 170,
-   "width": 34
-  },
-  "colors": 256,
-  "layers": true,
-  "move": "ult"
- },
- "fx_skadi_ul_slash2": {
-  "fx": "melee/ak-skadi-ul-slash",
-  "opts": {
-   "span": 2.8,
-   "seed": 21
-  },
-  "colors": 256,
-  "layers": true,
-  "judge": {
-   "op": "skadi",
-   "opts": {
-    "span": "2*half"
-   },
-   "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
-  },
-  "move": "basic"
- },
- "fx_skadi_ul_spin2": {
-  "fx": "melee/ak-skadi-ul-slash",
-  "opts": {
-   "span": 6.3,
-   "seed": 33
-  },
-  "colors": 256,
-  "layers": true,
-  "judge": {
-   "op": "skadi",
-   "opts": {
-    "span": "2*pi"
-   },
-   "src": "skadi.json blocks 涌潮悲歌期间 half = 3.14159265（全方向）"
-  },
-  "move": "skill"
- },
  "fx_skadi_ul_slash_tm": {
   "fx": "melee/ak-skadi-ul-slash",
   "opts": {
    "span": 2.8,
-   "quick": 1
+   "quick": 1,
+   "move": "basic"
   },
   "colors": 256,
   "layers": true,
@@ -160,7 +281,8 @@
   "opts": {
    "span": 3.5,
    "seed": 5,
-   "quick": 1
+   "quick": 1,
+   "move": "s1"
   },
   "colors": 256,
   "layers": true,
@@ -178,7 +300,8 @@
   "opts": {
    "span": 6.3,
    "seed": 8,
-   "quick": 1
+   "quick": 1,
+   "move": "s3"
   },
   "colors": 256,
   "layers": true,
@@ -189,7 +312,8 @@
    },
    "src": "skadi.json blocks 涌潮悲歌期间 half = 3.14159265（全方向）"
   },
-  "move": "skill"
+  "move": "skill",
+  "deco_step": 2
  },
  "fx_skadi_ul_cleave_tm": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -197,7 +321,8 @@
    "span": 3.8,
    "heavy": 1,
    "seed": 7,
-   "quick": 1
+   "quick": 1,
+   "move": "s2"
   },
   "colors": 256,
   "layers": true,
@@ -208,6 +333,28 @@
    },
    "src": "skadi.json base（普攻 half / S1 s1_half / S2 s2_half）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_skadi.px_ul_shape）"
   },
+  "move": "skill"
+ },
+ "fx_skadi_ul_charge": {
+  "fx": "water/ak-skadi-ul-charge",
+  "opts": {
+   "accent": 1,
+   "seed": 4
+  },
+  "colors": 256,
+  "lo": true,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_skadi_ul_charge_big": {
+  "fx": "water/ak-skadi-ul-charge",
+  "opts": {
+   "accent": 3,
+   "seed": 6
+  },
+  "colors": 256,
+  "lo": true,
+  "layers": true,
   "move": "skill"
  }
 }

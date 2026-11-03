@@ -139,6 +139,9 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 	if s == "response_on":   # 响应动作总开关开着（balance.json response.on，docs/118）
 		c.k = "response_on"
 		return c
+	if s == "px_ul":   # pixelfx 放开版开关开着（balance fx/px_unleashed > 0）：只用在画面条目上（"!px_ul" = 放开版打开时不播旧画面），别用在判定上（会让 TRACE 随开关变）
+		c.k = "px_ul"
+		return c
 	if s == "in_zone:leader":
 		c.k = "in_zone"
 		return c
@@ -257,6 +260,8 @@ static func cond_true(o, c) -> bool:
 			r = _cmp(preload("res://scripts/characters/blocks/responses.gd").idle(o), c.op, c.v)
 		"response_on":
 			r = preload("res://scripts/characters/blocks/responses.gd").on()
+		"px_ul":
+			r = float(preload("res://scripts/core/balance.gd").v("fx/px_unleashed", 0.0)) > 0.0
 		"faction":
 			r = _cmp(float(count_others(o, "faction:" + str(c.a))), c.op, c.v)
 		"class":
