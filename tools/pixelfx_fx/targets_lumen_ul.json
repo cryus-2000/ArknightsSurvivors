@@ -1,0 +1,8 @@
+{
+ "_doc": "流明放开版（docs/242）。发光单元不换（§4）。S1 沐雨 = fx_lumen_ul_drizzle（原作 lumen_skill_01：细雨 + 水面 + 十字星）；E0 / E1 / E2 同一源码按 elite 出；颜色 = PRTS 挑染 #4285AD 钢蓝 + 我方灯火橙（palette_src build/prts_ref/_colors/lumen.png）",
+ "fx_lumen_ul_drizzle": {"fx": "water/ak-lumen-ul-drizzle", "opts": {"elite": 2, "seed": 3}, "colors": 256, "lo": true, "layers": true, "move": "skill", "check_sy": 0.5, "palette_src": "build/prts_ref/_colors/lumen.png 挑染 #4285AD"},
+ "fx_lumen_ul_drizzle2": {"fx": "water/ak-lumen-ul-drizzle", "opts": {"elite": 2, "seed": 8}, "colors": 256, "layers": true, "move": "skill", "check_sy": 0.5},
+ "fx_lumen_ul_drizzle_tm": {"fx": "water/ak-lumen-ul-drizzle", "opts": {"elite": 2, "seed": 3, "quick": 1}, "colors": 256, "layers": true, "move": "skill", "check_sy": 0.5},
+ "fx_lumen_ul_drizzle_e0": {"fx": "water/ak-lumen-ul-drizzle", "opts": {"elite": 0, "seed": 3}, "colors": 256, "layers": true, "move": "skill", "check_sy": 0.5},
+ "fx_lumen_ul_drizzle_e1": {"fx": "water/ak-lumen-ul-drizzle", "opts": {"elite": 1, "seed": 3}, "colors": 256, "layers": true, "move": "skill", "check_sy": 0.5}
+}
