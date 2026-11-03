@@ -12,9 +12,9 @@
 "--sptest"
 ],
 "own": "a0c5456e12ec8635b41b09d6c92da0fcd491066e6636a524e52bdbb90484be0e",
-"other": "15d4592114aadd306419da33a7569f5ab3a6fdbeef0b0cce9d83d04609553f8b",
-"commit": "a055a6bd",
-"time": "2026-11-03 03:51:28",
+"other": "4ea2f8f498762d9048afb7d64bea5d7d2b99320d22ee91d7ef8a0b281f1ce5ca",
+"commit": "3e1fddb7",
+"time": "2026-11-03 06:15:10",
 "trace": [
 "TRACE t=0.00 lv=1 k=0 hp=140.40 n=0 rng=-174589854303943223/902404325571654243/1231418626397784201/5159219129543269846/-7141095578072418168 pos=0.00,0.00 h=0.000 sq=1822885904 lamp=10000 nd=4197670970 rl=0",
 "TRACE t=1.06 lv=1 k=0 hp=140.40 n=0 rng=-174589854303943223/902404325571654243/1231418626397784201/5159219129543269846/-7141095578072418168 pos=174.24,0.00 h=0.000 sq=1412490646 lamp=10000 nd=4197670970 rl=0",
@@ -275,6 +275,12 @@
 "dashes": 0,
 "dmg": {},
 "drone": 0,
+"duck": {
+"fled": 0,
+"kill_t": [],
+"killed": 0,
+"spawned": 0
+},
 "elite_stage": 1,
 "elites": 0,
 "ending": "standard",
@@ -470,7 +476,9 @@
 "e_kill": 10.2,
 "e_out": 8.9,
 "first_full": -1.0,
+"full_times": [],
 "hit_n": 0,
+"idle_full_s": 0.0,
 "link_by": {
 "wisadel": 1
 },
