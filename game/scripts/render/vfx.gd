@@ -539,6 +539,8 @@ var _boss_sum: Array = []   # [{e, dmg, t, weak}]，按 is_same 找（字典内�
 func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool, h := {}) -> void:
 	if not Cfg.dmg_numbers or g.texts.size() >= 80:
 		return
+	if dmg < 0.5 and not e.boss:
+		return   # 护盾吸收 / 减免后不到 0.5 的命中不飘「0」「弱点 0」（11-04 协调人看图报；Boss 走合并累计不受影响）
 	var jit := Vector2(g.vrng.randf_range(-6, 6), 0)
 	if Bal.vi("render/mate_numbers", 0) > 0 and not h.is_empty() and not is_lead_hit(h) and not e.boss:
 		if crit:
