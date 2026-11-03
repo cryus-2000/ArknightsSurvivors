@@ -985,7 +985,8 @@ func _release_skill() -> void:
 	SegTexas.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
 	if not hw.is_empty() and perm_on[i]:
 		_restat()   # 手写迁移段：永久技能出手当下就改属性（同手写，不等下一帧）
-	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
+	if not g.vfx.px_halo_off():   # 技能开启脚下扩散环；放开版发散光环关掉时不画（用户 11-04，fx/px_halo）
+		fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 	if sb.has("fx"):
 		ObFx.fx_play(self, sb.fx, zone_c(), _zone_r_now())
 
@@ -1144,6 +1145,32 @@ func draw_body() -> void:
 func _draw_body_fx(front: bool) -> void:
 	for u in _fxb:
 		ObVortex.fx_body(cv, self, _fxb[u], front)
+	_draw_px_aura(front)
+
+
+## pixelfx 放开版技能常驻（docs/242 §14.9，拉普兰德 11-04）：注册表 "aura": {"<技能序号>": {base, y, sc, back}}，技能开着时在本人身上循环播（先装饰 × px_deco_k 后核心；
+## 队友取 _tm、精英档按 px_ul_el；back = true 画在本体后面，缺省前面）。开关 fx/px_unleashed 关掉时注册表为空；只改画面
+func _draw_px_aura(front: bool) -> void:
+	if pos == Vector2.INF:
+		return
+	var au = g.vfx.px_ul_reg(str(id)).get("aura")
+	if not (au is Dictionary):
+		return
+	for k in au:
+		var e = au[k]
+		if not (e is Dictionary) or bool(e.get("back", false)) == front or not skill_on(int(k)):
+			continue
+		var el: int = g.vfx.px_ul_el(self)
+		var tm: bool = not is_leader
+		var p: Vector2 = pos + Vector2(0, float(e.get("y", 0.0)))
+		var sc: float = g.PX * float(e.get("sc", 1.0))
+		var dk: float = g.vfx.px_deco_k(self)
+		for ly in ["deco", "core"]:
+			var nm: String = g.vfx.px_ul_tex(str(e.get("base", "")), 1, tm, ly, el)
+			if nm == "" or g.tex.get(nm) == null or not g.V6_FRAMES.has(nm) or (ly == "deco" and dk <= 0.0):
+				continue
+			var spec: Array = g.V6_FRAMES[nm]
+			ObFx.fx_frame(cv, g, nm, int(spec[0]), int(float(g.t) * float(spec[1])), p, sc, Color(1, 1, 1, dk if ly == "deco" else 1.0))
 
 
 ## 程序漩涡（docs/61 §5.6 vortex）：floor 层在 draw_auras（人物下面）、add 层在 draw_fx_add；进出淡入淡出按条目 fade（缺省 0.5 秒淡入、FX_VORTEX_FADE 秒淡出）

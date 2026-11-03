@@ -972,7 +972,8 @@ func _advance(choice: String) -> void:
 		refresh_stats()
 		# 升级瞬间：职业色光柱 + 一圈光点，告诉玩家「她变强了」
 		if pos != Vector2.INF:
-			fx({"kind": "ring", "pos": pos, "r": 46.0, "r0": 6.0, "life": 0.45, "col": col(), "floor": true, "w": 3.0, "keep": true})
+			if not g.vfx.px_halo_off():   # 放开版发散光环关掉时不画（用户 11-04，fx/px_halo）
+				fx({"kind": "ring", "pos": pos, "r": 46.0, "r0": 6.0, "life": 0.45, "col": col(), "floor": true, "w": 3.0, "keep": true})
 			fx_sparks(pos + Vector2(0, -24), col().lerp(Color.WHITE, 0.4), 12, 180.0, 0.5, 3.0, -120.0)
 	if n.has("banner"):
 		show_banner(n.banner % display_name() if "%s" in n.banner else n.banner)
