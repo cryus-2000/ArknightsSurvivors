@@ -108,6 +108,6 @@ func _process(_dt: float) -> void:
 	duck.update(0.0)
 	check(duck.alive().is_empty() and duck.log.spawned == 2, "duck/on = 0 spawns nothing")
 	sec["on"] = 1
-	check(is_equal_approx(Bal.v("relic/elite_drop_chance", 0), 0.15), "elite drop chance compensated to 0.15")
+	check(is_equal_approx(Bal.v("relic/elite_drop_chance", 0), 0.2), "elite drop chance compensated to 0.2 (docs/216 §11.4)")
 	print("DUCK LORD checks=%d failures=%d" % [checks, failures])
 	get_tree().quit.call_deferred(failures)

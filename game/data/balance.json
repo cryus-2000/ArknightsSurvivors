@@ -426,7 +426,7 @@
   "new_pool": 1,
   "visible_growth": 1,
   "_visible_growth": "可见成长藏品（docs/163）：1 = 7 件改造版（散射 / 连发 / 剑气 / 增幅 / 增殖）；0 = 退回改造前的纯数值版（relic_effects.json 的 legacy / legacy_desc），只供对照",
-  "elite_drop_chance": 0.15,
+  "elite_drop_chance": 0.2,
   "elite_drop_from": 120,
   "mid1_shift": 35,
   "big_extra": 1,
@@ -437,7 +437,7 @@
   "chest_rare": 1,
   "wish_rare": 2,
   "_compensate": "大时刻补偿（docs/191）：big_extra = Boss / 精英小队宝箱的三选一多几个选项；chest_extra = 精英 / Boss / 小队宝箱都多几个；chest_rare 1 = 这三类宝箱按稀有 / 核心加权（同得偿所愿）；wish_rare = 稀有加权倍数下限（0 = 按 waves.json cross_deck.wish_rare）。只改张数与排序，不多取随机数；0 = 关",
-  "_pacing": "藏品节奏（docs/191，用户 10-28「藏品出的太快太勤」）：elite_drop_chance 0.3 → 0.15；elite_drop_from 秒前精英不掉宝箱（0 = 关）；mid1_shift 途中一（cross_deck.mid 第一窗 80–110 秒）整体后移秒数。改前 0.3 / 0 / 0。10-29 临时缺省（甲 T1，docs/193，难度未校准）：elite_drop_chance 0.25（11-03 鸭爵补偿降到 0.15，见 duck 段）、shop/relic_step 0.3、core_gate_late 180（升华 / 核心 3:00 后可出）；等终结技 / 连携落地后统一校准",
+  "_pacing": "藏品节奏（docs/191，用户 10-28「藏品出的太快太勤」）：elite_drop_chance 0.3 → 0.15；elite_drop_from 秒前精英不掉宝箱（0 = 关）；mid1_shift 途中一（cross_deck.mid 第一窗 80–110 秒）整体后移秒数。改前 0.3 / 0 / 0。10-29 临时缺省（甲 T1，docs/193，难度未校准）：elite_drop_chance 0.25（11-03 鸭爵补偿降到 0.15，11-04 第十四批回调到 0.2，见 duck 段与 docs/216 §11.4）、shop/relic_step 0.3、core_gate_late 180（升华 / 核心 3:00 后可出）；等终结技 / 连携落地后统一校准",
   "lane_weight": 1.3,
   "lane_weight_cap": 2.0,
   "shield_weight": 4.0,
@@ -876,7 +876,7 @@
   "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]
  },
  "duck": {
-  "_doc": "鸭爵（稀有敌人，用户 11-03 批，docs/216 §11，run/duck_lord.gd）：on 1 = 开；每局两次，t1_lo–t1_hi、t2_lo–t2_hi 秒内各出现一次（对局种子定），在画面半宽 / 半高 × spawn_edge 处；spd 基础移速（队长 150、普通怪 46–72），每次被攻击加 hit_spd、持续 hit_t 秒，最多叠 hit_stack 段、总速封顶 spd_max（11-04 第二轮：高于队长走路 150、低于冲刺追速约 217 = 走路 + 冷却一到就冲刺，要冲刺才追得上；spd 105 → 130、hit_spd 14 → 25、spd_max 140 → 190、burst_spd 150 → 260、burst_t 0.45 → 0.5）；draw_scale 画面放大倍数（判定不变）；hit_gap 秒内的多次命中只算一段；每次受击另有爆发冲刺：瞬间 +burst_spd，burst_t 秒内二次缓出回落到档位（不受 spd_max 限，约多跑 20 像素；11-04 用户「被攻击后快速逃跑看不出来」，hit_spd 10 → 14）；flee_t 秒没打倒就溜走（不掉落）。生命 = enemies.json duck.hp × 普通怪时间曲线 × hp_mult。打倒必掉 1 件藏品（chest，来源 duck，同精英宝箱：core_gate、稀有加权）+ ingots 个源石锭。补偿：relic/elite_drop_chance 0.25 → 0.15。",
+  "_doc": "鸭爵（稀有敌人，用户 11-03 批，docs/216 §11，run/duck_lord.gd）：on 1 = 开；每局两次，t1_lo–t1_hi、t2_lo–t2_hi 秒内各出现一次（对局种子定），在画面半宽 / 半高 × spawn_edge 处；spd 基础移速（队长 150、普通怪 46–72），每次被攻击加 hit_spd、持续 hit_t 秒，最多叠 hit_stack 段、总速封顶 spd_max（11-04 第二轮：高于队长走路 150、低于冲刺追速约 217 = 走路 + 冷却一到就冲刺，要冲刺才追得上；spd 105 → 130、hit_spd 14 → 25、spd_max 140 → 190、burst_spd 150 → 260、burst_t 0.45 → 0.5）；draw_scale 画面放大倍数（判定不变）；hit_gap 秒内的多次命中只算一段；每次受击另有爆发冲刺：瞬间 +burst_spd，burst_t 秒内二次缓出回落到档位（不受 spd_max 限，约多跑 20 像素；11-04 用户「被攻击后快速逃跑看不出来」，hit_spd 10 → 14）；flee_t 秒没打倒就溜走（不掉落）。生命 = enemies.json duck.hp × 普通怪时间曲线 × hp_mult。打倒必掉 1 件藏品（chest，来源 duck，同精英宝箱：core_gate、稀有加权）+ ingots 个源石锭。补偿：relic/elite_drop_chance 0.25 → 0.15（11-04 第十四批配对 m18 低出窗口 2 点后回调到 0.2，docs/216 §11.4）。",
   "on": 1,
   "t1_lo": 180, "t1_hi": 360, "t2_lo": 480, "t2_hi": 720,
   "spawn_edge": 0.85,
