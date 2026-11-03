@@ -59,5 +59,57 @@
   },
   "colors": 256,
   "keep": true
+ },
+ "fx_skadi_ul_slash2": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 2.8,
+   "seed": 21
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_spin2": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 6.3,
+   "seed": 33
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_slash_tm": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 2.8,
+   "quick": 1
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_sweep_tm": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.5,
+   "seed": 5,
+   "quick": 1
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_spin_tm": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 6.3,
+   "seed": 8,
+   "quick": 1
+  },
+  "colors": 256
+ },
+ "fx_skadi_ul_cleave_tm": {
+  "fx": "melee/ak-skadi-ul-slash",
+  "opts": {
+   "span": 3.8,
+   "heavy": 1,
+   "seed": 7,
+   "quick": 1
+  },
+  "colors": 256
  }
 }

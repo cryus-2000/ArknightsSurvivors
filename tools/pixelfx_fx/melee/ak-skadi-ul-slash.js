@@ -20,6 +20,7 @@ export const meta = {
     radius: 80,
     span: 3.5,
     heavy: 0,
+    quick: 0,         // 1 = 余韵短（涌潮悲歌期间连续出手，长余韵会叠成一整个水泡）
     seed: 3,
   },
 };
@@ -52,7 +53,7 @@ function crescent(p, s, ta, L, W, age, hot) {
 }
 
 export function create(o) {
-  const C = fit(o.palette, 8), Rg = new Rng(o.seed), heavy = +o.heavy > 0, full = o.span > 6;
+  const C = fit(o.palette, 8), Rg = new Rng(o.seed), heavy = +o.heavy > 0, full = o.span > 6, quick = +o.quick > 0, LQ = quick ? 0.5 : 1;
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = full ? TAU * 1.04 : o.span, a0 = full ? -Math.PI : -span / 2, a1 = a0 + span;
   const SW = full ? 0.13 : heavy ? 0.09 : 0.07, W = heavy ? 30 : full ? 18 : 22;
@@ -81,18 +82,18 @@ export function create(o) {
         }
         if (Rg.chance(0.5)) ps.spawn(P.SPARK, x, y, nx * Rg.range(100, 240), ny * Rg.range(100, 240) - 60, Rg.range(0.3, 0.6));
         if (Rg.chance(0.3)) ps.spawn(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
-        passed += full ? 0.025 : 0.035;
+        passed += (full ? 0.025 : 0.035) * Rg.range(0.4, 1.8);   // 步长随机：等距撒会排成一圈等距放射纹
       }
       if (!landed && t >= SW) {
         landed = true;
         lights.add(0, 0, R0 * 1.2, C[5], 0.6, 0.35);
         lights.add(tip[0], tip[1], 46, C[6], 0.9, 0.3);
         // 余韵：整条弧外缘碎成浪沫与水雾，慢慢沉下去
-        for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2)) {
+        for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2) / (quick ? 0.5 : 1)) {
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
-          ps.spawn(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85), C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
-          if (Rg.chance(0.35)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7), C[6 + Rg.int(0, 1)], Rg.range(1, 2), Rg.range(0.05, 0.4));   // 余韵里一闪一闪的水光
-          if (Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7));
+          ps.spawn(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
+          if (Rg.chance(0.35)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2), Rg.range(0.05, 0.4) * LQ);   // 余韵里一闪一闪的水光
+          if (Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
         }
         if (!full) {
           const ta = Math.atan2(Math.cos(a1), -Math.sin(a1));
@@ -122,7 +123,7 @@ export function create(o) {
     },
     draw(p) {
       if (!full) drawArc(p, E, 0.025, 0.04, 0.3);   // 全方向时不画内弧（两道同心圈是被否的形状）
-      drawArc(p, A, 0, 0.07, 0.4);
+      drawArc(p, A, 0, quick ? 0.04 : 0.07, quick ? 0.22 : 0.4);
       if (t < 0.32) {
         const [x, y] = onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));
         p.glow(x, y, 60, C[5], 0.6 * (1 - t / 0.32));

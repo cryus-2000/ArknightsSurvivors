@@ -1078,8 +1078,9 @@ const V6_FRAMES := {
 	"fx_exusiai_px_muzzle_s1": [4, 30.0], "fx_exusiai_px_muzzle_s2": [4, 30.0], "fx_exusiai_px_muzzle_s3": [4, 30.0],
 	"fx_exusiai_px_hit_s1": [5, 25.0], "fx_exusiai_px_hit_s2": [5, 25.0], "fx_exusiai_px_hit_s3": [5, 25.0],
 	# pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，开关 fx/px_unleashed，seg_skadi.px_ul_shape / ult_moves_b SD_UL）
-	"fx_skadi_ul_slash": [17, 20.0], "fx_skadi_ul_sweep": [17, 20.0], "fx_skadi_ul_spin": [20, 20.0], "fx_skadi_ul_cleave": [18, 20.0],
+	"fx_skadi_ul_slash": [17, 20.0], "fx_skadi_ul_slash2": [20, 20.0], "fx_skadi_ul_spin2": [19, 20.0], "fx_skadi_ul_sweep": [17, 20.0], "fx_skadi_ul_spin": [20, 20.0], "fx_skadi_ul_cleave": [22, 20.0],
 	"fx_skadi_ul_geyser1": [26, 20.0], "fx_skadi_ul_geyser2": [26, 20.0], "fx_skadi_ul_geyser3": [26, 20.0],
+	"fx_skadi_ul_slash_tm": [11, 20.0], "fx_skadi_ul_sweep_tm": [12, 20.0], "fx_skadi_ul_spin_tm": [13, 20.0], "fx_skadi_ul_cleave_tm": [18, 20.0],   # 队友版（余韵短）
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
 	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],

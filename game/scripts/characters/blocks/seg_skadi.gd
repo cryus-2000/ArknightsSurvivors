@@ -219,7 +219,7 @@ static func hw_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
 
 ## pixelfx 不加限制试验（claude/pixelfx-unleashed-skadi，balance fx/px_unleashed，缺省 0）：斯卡蒂的大剑类判定（普攻 / 连段「大剑」、
 ## 迅捷打击·γ型、跃浪击）结算后，这一下的画面整个换成 pixelfx 帧条（fx_skadi_ul_*，源码 tools/pixelfx_fx），旧 fx 条目和通用近战刀光不画；
-## 命中时走 impact_pause 共享顿帧（纯画面：批跑不消耗顿帧、只用 g.vrng，伤害 / TRACE 不变）。返回 true = 已接管，ob_core 不再播 b.fx
+## 队长命中时走 impact_pause 共享顿帧（纯画面：批跑不消耗顿帧、只用 g.vrng，伤害 / TRACE 不变）。返回 true = 已接管，ob_core 不再播 b.fx
 const PX_UL_SRC := {"大剑": "fx_skadi_ul_slash", "迅捷打击·γ型": "fx_skadi_ul_sweep", "跃浪击": "fx_skadi_ul_cleave"}
 
 
@@ -235,15 +235,21 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float) -> 
 		return false
 	var nm: String = PX_UL_SRC[src]
 	var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
+	var a: float = ang
 	if half >= 3.1:
-		nm = "fx_skadi_ul_spin"   # 涌潮悲歌期间的全方向横扫
+		nm = "fx_skadi_ul_spin"   # 涌潮悲歌期间的全方向横扫：整圈随机转个角度（画面随机数 vrng，判定不动）
+		a = ang + o.g.vrng.randf() * TAU
+	if o.is_leader and (nm == "fx_skadi_ul_spin" or nm == "fx_skadi_ul_slash") and o.g.vrng.randf() < 0.5 and o.g.tex.get(nm + "2") != null:
+		nm += "2"   # 两个种子变体随机挑，连续出手不是同一张
+	if not o.is_leader and o.g.tex.get(nm + "_tm") != null:
+		nm += "_tm"   # 队友版：余韵约减半、亮度不降（用户 11-03 定：队友余韵比队长略短，透明度不降）
 	if o.g.tex.get(nm) == null:
 		return false
 	var skill: bool = src != "大剑"
 	_hw_blade(o, {"strip": nm, "fit": 80.0, "k": 1.0, "along": 0.0, "y": -10.0, "tint": [1.0, 1.0, 1.0, 1.0], "mirror": "face",
-		"motes": {"n": 14 if skill else 8, "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.5}}, r, ang)
-	if not hits.is_empty():
-		o.impact_pause(0.075 if skill else 0.05)   # 命中定格（共享限频，纯画面）
+		"motes": {"n": 14 if skill else 8, "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.5}}, r, a)
+	if not hits.is_empty() and o.is_leader:
+		o.impact_pause(0.075 if skill else 0.05)   # 命中定格只给队长（用户 11-03 定：队友不定格；共享限频，纯画面）
 	return true
 
 
