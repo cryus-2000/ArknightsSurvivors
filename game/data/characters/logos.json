@@ -1092,7 +1092,8 @@
     "fx": [
      {
       "banner": "殁亡：攻击范围与攻击永久提升，处决残血"
-     }
+     },
+     {"px": "fx_logos_ul_s2cast", "at": "self", "off": [20, -36], "face_x": true}
     ],
     "do": []
    },
@@ -1109,6 +1110,7 @@
      {
       "banner": "延异视阈"
      },
+     {"px": "fx_logos_ul_s3cast", "at": "self", "off": [20, -36], "face_x": true},
      {
       "sprite": {
        "name": "fx_holy_pillar_ink",
