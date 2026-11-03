@@ -470,6 +470,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 干员 JSON 任何积木的 fx 列表里可以写 `{"px": "fx_<人>_ul_<名>", "at", "off", "fit" / "scale", "rot", "face_x", "skill", "variants", "cond", "every"}`：
 - 帧条名走 `vfx.px_ul_tex`（种子变体只给队长、队友 `_tm`、精英档、缺图回退都同 §11.1 第 5 条），先画装饰层（× px_deco_k）再画核心层。
 - `at` 只能是 center / self / leader / zone / hits；`skill` = 有命中时队长定格取注册表 `pause` 的技能档。
+- `ground: true` = 贴地画面（optical 不自动补火星 / 颗粒，例：安洁莉娜失重井）。
 - `rot`：`true` 或 `"vel"` = 随出手 / 飞行方向转（帧条正右对准方向）；`"face"` = 不转、朝左时水平翻（标记类）；缺省不转。
 - 旧画面条目写 `"cond": "!px_ul"` 关掉。形状被注册表接管时，`px` 条目照常播（`ob_core.px_keep`）。
 
@@ -503,7 +504,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 
 ### 14.10 弹体命中跳过通用画面 `px_hit`
 `weapons.bullet_hit`：弹体字典带 `"px_hit": true`、带 `"op": <干员 id>`，且这名干员在注册表里有条目（开关打开）时，跳过通用命中画面（法术团爆炸 / 爆炸贴图 / 火花、法术弹 `fx_arcane_hit` / 环 / 火花、普通弹 `fx_bullet_hit` / 火花），命中画面由本人的放开版帧条画。伤害、控制、音效照旧。铃兰先用。
-命中帧条写注册表 `"bullet": {"hit": {base, y, sc}}`（命中处先装饰后核心）；弹体本身用 `remap` 换（例 `"proj_arcane": "fx_suzuran_ul_fox"`，§14.14）。
+命中帧条写注册表 `"bullet": {"hit": {base, y, sc, variants, flip}}`（命中处先装饰后核心；`variants` 队长随机取种子变体，`flip: true` 弹体朝左飞时左右翻）；弹体本身用 `remap` 换（例 `"proj_arcane": "fx_suzuran_ul_fox"`，§14.14）。
 
 ### 14.11 召唤物接管（格式照凯尔希 11-04 提案）
 注册表 `"summons": {"<召唤物 kind>": {…}}`（kind 同干员 JSON 里召唤物的 kind，例 `mon3tr`）：

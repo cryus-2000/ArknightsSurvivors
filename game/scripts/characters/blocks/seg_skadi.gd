@@ -639,8 +639,8 @@ static func _hw_shape_params(b: Dictionary, p: String, ctx: Dictionary, tag: Str
 		errs.append(p + ".dir 只能是 back（本次普攻的反方向）/ face / target")
 	if b.has("dir") and tag != "shape.cone":
 		errs.append(p + ".dir 只用于 shape.cone")
-	if b.has("ring") and not (b.ring is bool):
-		errs.append(p + ".ring 只能是 true / false")
+	if b.has("ring") and not (b.ring is bool or (b.ring is String and not parse_cond(b.ring, ctx.base).has("err"))):
+		errs.append(p + ".ring 只能是 true / false 或条件串（例 \"!px_ul\"，docs/242 §14.3）")
 	if b.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.anim))):
 		errs.append("%s.anim「%s」不是 sprites 里的帧条键" % [p, str(b.anim)])
 	if b.has("turn") and not (b.turn is bool):

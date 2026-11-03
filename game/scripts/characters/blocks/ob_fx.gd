@@ -14,7 +14,7 @@ const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max
 	"hold", "fade", "no_fade", "inward", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
 	"delay", "stay", "once", "face_x", "flash", "along", "play", "on_sprite"]   # on_sprite（10-15）：锚到本干员当前帧的定位点（character.sprite_point，星熊盾心），这一帧没有就退回原锚点 / 贴身层不画；play：精英化第 5 批段（扩散缓动的帧号按 fps 播）；精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
 
-const PX_FX_KEYS := ["px", "cond", "at", "off", "fit", "scale", "rot", "face_x", "skill", "variants", "every"]   # pixelfx 放开版条目（px_fx_spawn，docs/242 §14.2）
+const PX_FX_KEYS := ["px", "cond", "at", "off", "fit", "scale", "rot", "face_x", "skill", "variants", "every", "ground"]   # pixelfx 放开版条目（px_fx_spawn，docs/242 §14.2）
 
 ## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
 const FX_LAYERS := ["floor", "over", "add", "behind", "front", "ground"]
@@ -148,9 +148,10 @@ static func px_fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang
 	for p in pts:
 		if p == Vector2.INF:
 			continue
+		var gd: bool = f.get("ground", false)   # ground: true = 贴地画面（gsprite，optical 不自动补火星；安洁莉娜失重井）
 		if dn != "" and dk > 0.0:
-			g.vfx.fx_sprite(dn, p + off, sc, rot, fl, false, Color(1, 1, 1, dk))
-		g.vfx.fx_sprite(cn, p + off, sc, rot, fl)
+			g.vfx.fx_sprite(dn, p + off, sc, rot, fl, false, Color(1, 1, 1, dk), gd)
+		g.vfx.fx_sprite(cn, p + off, sc, rot, fl, false, Color.WHITE, gd)
 	var pz = reg.get("pause", [])
 	if not hits.is_empty() and o.is_leader and pz is Array and pz.size() >= 2:
 		o.impact_pause(float(pz[1] if f.get("skill", false) else pz[0]))
