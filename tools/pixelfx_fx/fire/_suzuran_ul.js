@@ -47,8 +47,9 @@ export function foxClump(p, x, y, r, o) {
     const inTip = tipV * 0.85 > bodyV;
     if (o.acc && inTip && tf > 0.6) return ACC[v > 0.32 ? 0 : v > 0.14 ? 1 : 2];   // E2 火梢淡紫
     const cd = Math.hypot(dx / (r * 0.55), (dy - r * 0.18) / (r * 0.62));   // 内芯偏下
-    let i = cd < 0.55 ? 0 : cd < 0.95 ? 1 : v > 0.32 ? 2 : v > 0.14 ? 3 : 4;
-    if (inTip && tf > 0.55) i = Math.max(i, v > 0.25 ? 3 : 4);
+    // 总组长 11-04：中间阶偏淡黄、实机里像结晶暖金 → 淡黄白只留在最亮的芯（H[0] 白 / H[1] #ffdca6），火身中段用 #ffb257 / #ff8426，外沿 #c2561a
+    let i = cd < 0.42 ? 0 : cd < 0.7 ? 1 : v > 0.3 ? 3 : v > 0.12 ? 4 : 5;
+    if (inTip && tf > 0.5) i = Math.max(i, v > 0.25 ? 4 : 5);
     i = Math.min(H.length - 1, i + Math.round((1 - heat) * 3.2));
     return H[i];
   });

@@ -681,11 +681,7 @@ const H4_PX_EDGE := [[0.0, 0.94], [0.95, 1.0], [1.7, 0.9], [2.65, 0.97], [3.35, 
 static func _h4_px_haze(o, sz: Dictionary, r: float) -> void:
 	var g = o.g
 	var al: float = _h4_px_fade(o, sz)
-	_h4_px_loop(o, "fx_suzuran_ul_haze", o.pos + Vector2(0, 4), r / 184.0, 0.0, al)
-	for k in H4_PX_EDGE.size():
-		var an: float = float(H4_PX_EDGE[k][0]) + g.t * 0.3
-		var rr: float = r * float(H4_PX_EDGE[k][1])
-		_h4_px_loop(o, "fx_suzuran_ul_edge", o.pos + Vector2(4, 4) + Vector2(cos(an) * rr, sin(an) * rr * 0.55), 1.0, k * 0.41, al)
+	_h4_px_loop(o, "fx_suzuran_ul_haze", o.pos + Vector2(0, 4), r / 184.0, 0.0, al)   # 总组长 11-04：迷雾期间只画三团大火的旋流，边上一圈小火苗不画（偏碎）
 	_h4_px_loop(o, "fx_suzuran_ul_swirlb", o.pos + Vector2(0, -2), 1.0, 0.0, al)
 
 

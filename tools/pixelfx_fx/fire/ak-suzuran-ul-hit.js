@@ -1,7 +1,7 @@
 // 铃兰狐火命中（pixelfx 放开版，docs/242）：1x，原点 = 命中点，狐火从左边来。
 // 爆点噪声边白热（顺来向拉长）、定帧两帧 → 几团圆胖的狐火从命中点往前上方跳起、闪动、冷却变小 → 两三颗有重量的碎火落地弹一下。
 // 用户 11-04：不画长弯火舌（读成触手），一律短胖火团；光照在地上、不画圆光团。
-// 分档：E0 两团；E1 ×1.25、三团、爆点两连亮；E2 质变：五团扇形展开（= 狐尾），×1.5，火梢淡紫，余韵更长。
+// 分档：E0 两团；E1 ×1.25、三团、爆点两连亮；E2 质变：三团大火扇开（每团 ≥ E0 单团 1.5 倍，总组长 11-04：五团打在敌群上是一大堆小火球），火梢淡紫，余韵更长。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
 import { pnoise, hotFirst, ember, sparkAt, floorLight } from "./_lib.js";
 import { SCALE, foxClump } from "./_suzuran_ul.js";
@@ -27,8 +27,8 @@ export function create(o) {
   const Rg = new (class { constructor(s) { this.s = s; } next() { this.s = (this.s * 1103515245 + 12345) % 2147483648; return this.s / 2147483648; } range(a, b) { return a + (b - a) * this.next(); } })(S * 7919 + 13);
   const D = [0.4, 0.5, 0.6][el] * (LQ < 1 ? 0.75 : 1);
   // 火团：[往前上方的角度, 跳起距离, 半径, 起跳延迟]；E2 五团扇形
-  const angs = el === 0 ? [-1.25, -0.6] : el === 1 ? [-1.4, -0.85, -0.3] : [-1.55, -1.15, -0.78, -0.42, -0.08];
-  const balls = angs.map((a, i) => ({ a: a + Rg.range(-0.08, 0.08), d: Rg.range(10, 15) * K * (el === 2 && (i === 1 || i === 3) ? 1.15 : 1), r: Rg.range(3.4, 4.4) * K * (i === Math.floor(angs.length / 2) ? 1.15 : 1), d0: Rg.range(0, 0.04) + 0.012 * i }));
+  const angs = el === 0 ? [-1.25, -0.6] : el === 1 ? [-1.4, -0.85, -0.3] : [-1.45, -0.85, -0.25];
+  const balls = angs.map((a, i) => ({ a: a + Rg.range(-0.08, 0.08), d: Rg.range(10, 15) * K, r: Rg.range(3.4, 4.4) * K * (i === Math.floor(angs.length / 2) ? 1.15 : 1), d0: Rg.range(0, 0.04) + 0.012 * i }));
   const embers = [];
   const ne = LQ < 1 ? 1 : [2, 2, 3][el];
   for (let i = 0; i < ne; i++) {
