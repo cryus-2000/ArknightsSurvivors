@@ -791,8 +791,7 @@
     "fx": [
      {
       "px": "fx_ulpianus_ul_cast1",
-      "at": "self",
-      "_doc": "pixelfx 放开版起手（§14.2；注册表 cast 在 §14.7 下不画）"
+      "at": "self"
      }
     ],
     "do": [
@@ -882,8 +881,7 @@
      },
      {
       "px": "fx_ulpianus_ul_cast2",
-      "at": "self",
-      "_doc": "pixelfx 放开版起手（§14.2；注册表 cast 在 §14.7 下不画）"
+      "at": "self"
      }
     ],
     "do": [
@@ -937,8 +935,7 @@
     "fx": [
      {
       "px": "fx_ulpianus_ul_cast3",
-      "at": "self",
-      "_doc": "pixelfx 放开版起手（§14.2；注册表 cast 在 §14.7 下不画）"
+      "at": "self"
      }
     ],
     "active_timer": "haste",
@@ -1304,6 +1301,7 @@
       "mult": "$whirl_mult",
       "kb": "$whirl_kb",
       "src": "锁链回旋",
+      "px_ul": false,
       "ring": false,
       "fx": [
        {
@@ -1383,7 +1381,6 @@
       "dust_fx": [
        {
         "cond": "!px_ul",
-        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_dust",
         "strip": "fx_ulpianus_drag_dust",
         "layer": "floor",
         "off": [
@@ -1544,7 +1541,6 @@
       "dust_fx": [
        {
         "cond": "!px_ul",
-        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_dust",
         "strip": "fx_ulpianus_drag_dust",
         "layer": "floor",
         "off": [
