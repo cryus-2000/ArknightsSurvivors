@@ -5,9 +5,9 @@
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-PANEL GRACE grace=0.80 contact_2s=28.5 hp_left=25.5/101.2
+PANEL GRACE grace=0.80 contact_2s=28.5 hp_left=55.8/101.2
 EVENT MAXHP TEST: 0 failures
-ERROR: 10 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 6 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
 
 ## stderr
@@ -17,9 +17,9 @@ ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builti
        [0] make_actor_mat (res://scripts/render/look.gd:286)
        [1] _ready (res://scripts/game.gd:1085)
        [2] _ready (res://tests/event_maxhp_test.gd:24)
-WARNING: 165 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 158 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 21 resources still in use at exit (run with --verbose for details).
+ERROR: 24 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)
 ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
    at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

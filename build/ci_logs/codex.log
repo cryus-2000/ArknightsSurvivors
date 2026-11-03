@@ -37,9 +37,9 @@ ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builti
        [3] _draw_demo (res://scripts/gallery.gd:1468)
        [4] _draw_stage (res://scripts/gallery.gd:1337)
        [5] _draw_back (res://scripts/gallery.gd:1543)
-WARNING: 75 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 79 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 17 resources still in use at exit (run with --verbose for details).
+ERROR: 18 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)
 ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
    at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

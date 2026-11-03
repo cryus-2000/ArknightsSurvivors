@@ -38,9 +38,9 @@ WARNING: event panel had no options, rebuilt with leave only: madness
          [0] recover_panel (res://scripts/endings.gd:641)
          [1] check_event_panel (res://scripts/screens/choice_panel.gd:456)
          [2] _process (res://tests/event_trade_test.gd:341)
-WARNING: 46 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 47 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 19 resources still in use at exit (run with --verbose for details).
+ERROR: 21 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)
 ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
    at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

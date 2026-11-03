@@ -1,6 +1,6 @@
 # blocks_eq_kaltsit_seed1
 # 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=1 --op=kaltsit --bot=expert --maxt=45 --trace=1 --sptest
-# 用时 11 秒；结束时全机 Godot 3 个
+# 用时 11 秒；结束时全机 Godot 4 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
@@ -58,7 +58,7 @@ BALANCE {"allies":0,"armor_cf":{"m0":{"a2":0.0,"a4":0.0,"a8":0.0,"all":5.8822168
 SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hard":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"merge_spawns":0,"merged":0,"owed_end":0,"pending_end":0,"q_peak":0,"queued":0,"spawned":51,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
 CMD t=45.47 stance=1
 CMD t=45.47 order=clear
-ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
 
 ## stderr
@@ -67,9 +67,9 @@ ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builti
    GDScript backtrace (most recent call first):
        [0] make_actor_mat (res://scripts/render/look.gd:286)
        [1] _ready (res://scripts/game.gd:1085)
-WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 47 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 20 resources still in use at exit (run with --verbose for details).
+ERROR: 21 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)
 ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
    at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

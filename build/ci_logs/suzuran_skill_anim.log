@@ -87,9 +87,9 @@ ERROR: 干员 suzuran 的 sprites.skills.s1 要有 anim、hold 或 start
        [1] validate_operator (res://scripts/characters/character.gd:141)
        [2] test_validate (res://tests/suzuran_skill_anim_test.gd:87)
        [3] _process (res://tests/suzuran_skill_anim_test.gd:29)
-WARNING: 76 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 77 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 46 resources still in use at exit (run with --verbose for details).
+ERROR: 48 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)
 ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
    at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

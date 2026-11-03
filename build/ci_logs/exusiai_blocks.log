@@ -1,13 +1,13 @@
 # exusiai_blocks
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/exusiai_blocks_test.tscn -- --regression --seed=1 --balance --op=exusiai
-# 用时 9 秒；结束时全机 Godot 3 个
+# 用时 8 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 85 checks, 0 failed
 EXUSIAI BLOCKS failures=0
-ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
 
 ## stderr
@@ -143,9 +143,9 @@ ERROR: 干员 exusiai 的 blocks.attack.hit_fx 应是帧条名（fx_…，小写
        [3] validate_operator (res://scripts/characters/character.gd:141)
        [4] test_validate (res://tests/exusiai_blocks_test.gd:99)
        [5] _process (res://tests/exusiai_blocks_test.gd:29)
-WARNING: 48 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 47 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 20 resources still in use at exit (run with --verbose for details).
+ERROR: 21 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)
 ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
    at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
