@@ -1,6 +1,6 @@
 # 冒烟 · specter_unchained
 # 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=1 --op=specter_unchained --squad=suzuran,angelina --bot=expert --maxt=90 --relics=all --maxprog --sptest --bosstimes=20,45,70 --forceboss=0 --dccheck
-# 用时 24 秒；结束时全机 Godot 3 个
+# 用时 27 秒；结束时全机 Godot 4 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
@@ -13,11 +13,6 @@ ERROR: 22 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextu
 
 
 ## stderr
-ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
-   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
-   GDScript backtrace (most recent call first):
-       [0] make_actor_mat (res://scripts/render/look.gd:286)
-       [1] _ready (res://scripts/game.gd:1087)
 WARNING: 116 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
 ERROR: 53 resources still in use at exit (run with --verbose for details).

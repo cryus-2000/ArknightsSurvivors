@@ -18,12 +18,6 @@ ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextur
 
 
 ## stderr
-ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
-   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
-   GDScript backtrace (most recent call first):
-       [0] make_actor_mat (res://scripts/render/look.gd:286)
-       [1] _ready (res://scripts/game.gd:1087)
-       [2] _ready (res://tests/knight_combo_test.gd:11)
 WARNING: 41 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
 ERROR: 18 resources still in use at exit (run with --verbose for details).
