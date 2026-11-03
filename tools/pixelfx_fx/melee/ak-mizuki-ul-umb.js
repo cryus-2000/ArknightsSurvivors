@@ -39,7 +39,7 @@ export function create(o) {
   const s1 = mv === "s1", s3 = mv === "s3";
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[5]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = s3 ? TAU * 0.98 : o.span, a0 = -span / 2, a1 = span / 2, SW = s1 ? 0.08 : 0.07;
-  const M = { seed: o.seed, R: R0, W: (s3 ? 9 : s1 ? 15 : 13) * [0.8, 1, 1.15][el], ramp: C, GK, scal: [2.4, 3.6, 4.2][el], lav: el >= 2 ? hex(MZ.lav) : 0 };   // 伞缘小褶随档加深；精二外缘断续淡紫
+  const M = { seed: o.seed, R: R0, W: (s3 ? 9 : s1 ? 6 : 13) * [0.8, 1, 1.15][el], ramp: C, GK, scal: [2.4, 3.6, 4.2][el], lav: el >= 2 ? hex(MZ.lav) : 0 };   // 伞缘小褶随档加深；精二外缘断续淡紫
   const LAV = hex(MZ.lav);
   let t = 0.02, passed = 0, landed = false;
 
@@ -100,8 +100,8 @@ export function create(o) {
       while (passed < head && passed < 1) {   // 沿缘甩水珠：步长随机（不等距放射）
         const a = a0 + span * passed, x = Math.cos(a) * (R0 - Rg.range(0, 4)), y = Math.sin(a) * (R0 - Rg.range(0, 4));
         const tx = -Math.sin(a), ty = Math.cos(a), nx = Math.cos(a), ny = Math.sin(a);
-        for (let k = 0, m = Math.round((s1 ? 3 : 2) * PM + Rg.range(-0.4, 0.4)); k < m; k++) {
-          const sp = Rg.range(70, 220), j = Rg.range(-0.45, 0.45), cj = Math.cos(j), sj = Math.sin(j), vx = tx * 0.6 + nx * 0.9, vy = ty * 0.6 + ny * 0.9;   // 方向再抖一点（不排成放射纹，§9.3）
+        for (let k = 0, m = Math.round((s1 ? 1.5 : 1) * PM + Rg.range(-0.45, 0.45)); k < m; k++) {   // 数量砍半（组长 C v1 #4）
+          const sp = Rg.range(70, 220), j = Rg.range(-0.45, 0.45), cj = Math.cos(j), sj = Math.sin(j), vx = tx * 0.95 + nx * 0.35, vy = ty * 0.95 + ny * 0.35;   // 顺挥击方向甩（组长 C v1 #4）   // 方向再抖一点（不排成放射纹，§9.3）
           ps.spawn(P.MOTE, x, y, (vx * cj - vy * sj) * sp, (vx * sj + vy * cj) * sp, Rg.range(0.22, 0.5) * (0.6 + 0.4 * DL), C[5 + Rg.int(0, 1)], Rg.range(0.6, 1.0));
         }
         if (deco && Rg.chance(0.15)) ps.spawn(P.VAPOUR, x + nx * 4, y + ny * 4, nx * 35 + tx * 20, ny * 35 + ty * 20, Rg.range(0.2, 0.35) * DL, C[3], Rg.range(1.2, 2));   // 水雾小而少（大了成孤立圆斑，§12.3）
@@ -127,6 +127,18 @@ export function create(o) {
     },
     drawBack(p) {
       if (deco) ps.draw(p, "back");
+      if (deco && s1 && t < 0.75) {   // 唤醒起手：脚下到身前铺开一片细碎的紫暗地面（原作 skill_01_start 的 ground_ab / kirara 暗底；稀疏散点，不铺实块）
+        const k = smooth(0, 0.08, t) * (1 - smooth(0.4, 0.75, t)), G = R0 * 0.95, dk = hex("#1c1648"), dv = hex("#2e2470");
+        if (k > 0) p.shade(-G * 0.45, -G, G, G, (x, y, out) => {
+          const r = Math.hypot(x * 0.8 + G * 0.1, y), a = Math.atan2(y, x);
+          const lim = G * (0.55 + 0.25 * noise(a * 2.2, o.seed + 71) + 0.12 * noise(a * 7, o.seed + 73)) * (0.6 + 0.4 * smooth(0, 0.2, t));
+          if (r > lim) return;
+          const n = noise(x * 0.18, y * 0.18 + o.seed) + 0.5 * noise(x * 0.5 + 7, y * 0.5 - 3);
+          const h = ((x * 73856093) ^ (y * 19349663)) & 7;   // 位置哈希：细碎散点
+          if (n < 0.15 || h > 2 + Math.round(2 * k)) return;
+          out.c = n > 0.6 ? dv : dk; out.a = 0.55 * k * (1 - r / lim * 0.5);
+        });
+      }
       if (core && tens.length && t < 0.5) {   // 触手根部：地面一小片暗洞（压扁、外缘噪声，不是圆）
         for (const tn of tens) {
           const k = smooth(0, 0.04, t - tn.t0) * (1 - smooth(0.3, 0.5, t)), [bx, by] = tn.base, L = 6 + tn.w0;
