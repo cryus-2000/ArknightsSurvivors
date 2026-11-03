@@ -617,9 +617,14 @@ python tools/px_prerecord.py <干员> [--sha <要录的提交前缀>]
 
 ### 14.26 统一 GIF 自查 `tools/px_gif.py`（协调人 11-04：用户录像前先看 GIF）
 ```
-python tools/px_gif.py <干员> [--only 招,…] [--scale 3]
+python tools/px_gif.py <干员> [--only 招,…] [--scale 3] [--prefix fx_x_ul_] [--land 招,…] [--loop 招,…]
 ```
 - 每招一个 GIF：E0 / E1 / E2 三格并排，统一 3 倍（1x 美术像素 × 3，人物 / 怪 / 帧条同一倍率），速度按 V6_FRAMES 的 fps。
-- 每格：游戏地面色底、干员待机首帧、3 只普通怪、一颗敌弹 #33ceff、一颗经验结晶，用来看大小和撞色。
-- 叠层：地面层（名字含 floor / ground 的帧条）→ 本体 → 前景层，每条先 `_deco` 后核心；一次性特效播完停 0.5 秒再循环，名字含 aura / loop / hold / orbit / shell 的无缝循环。
-- 读的是已导出进 `game/art/fx/` 的帧条（打包表 px_frames.json 取帧和原点），所以先导出、跑 asset_index。输出 `Claude outputs/pixelfx_gif/<干员>/<招>.gif` 和总览 `<干员>_index.png`。招名 = 帧条名去掉 `fx_<干员>_ul_`、档位、变体、`_tm` / `_deco` / `_lo`。
+- **按实战摆**（用户 11-04「特效要打在怪身上」）：干员在左，3 只普通怪在攻击方向、射程以内，加一颗敌弹 #33ceff 和一颗经验结晶看撞色。
+  - 近战 / 自身类：帧条原点在干员脚底；落点 / 命中类（注册表 `hit` / `bullet` / `debride` / `mark_zone` / `proj` 键下）：原点在怪脚下；敌人身上附件（`status` 键下）：挂在怪头顶；
+  - 弹体（`proj_<x>_ul_*`）：从干员直线飞到怪（0.3 秒），到了接注册表 `bullet.hit` 的命中帧条；
+  - 命中那一刻怪闪白一帧、往后退几像素（只在 GIF 里画，游戏不改）。
+- 叠层：地面层（名字含 floor / ground）→ 本体 → 前景层，每条先 `_deco` 后核心。
+- **循环**：帧条源码 `meta.loop` 为 true（按 `targets_*.json` 找源码），或注册表 `aura` / `side` / `hook` / `sp_mote` / `mark_zone` / `status` / `hold` 键下，按无缝循环播（不停顿，等宽帧条按脚底对齐）；也可 `--loop`。其余一次性的播完停 0.5 秒再循环。不再按名字猜。
+- 收全部已导出的 `<前缀>*` 和 `proj_<x>_ul_*` 帧条（不限注册表）；前缀缺省从注册表读（归溟 `specter_unchained` → `fx_specter_ul_`）。输出 `Claude outputs/pixelfx_gif/<干员>/<招>.gif`（弹体 `proj_<招>.gif`）和总览 `<干员>_index.png`（每招 E2 格画面最满的一帧）。
+- 读的是已导出进 `game/art/fx/` 的帧条，所以先导出、跑 asset_index。

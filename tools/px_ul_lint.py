@@ -28,7 +28,24 @@ def shapes(node, out, path=()):
     return out
 
 
+def seg_src():
+    """game/scripts/characters/blocks/seg_*.gd 里写死的 src 字面量：\"src\": \"…\" / src = \"…\" / _src(…, \"…\")"""
+    out = set()
+    import glob, re
+    for f in glob.glob(os.path.join(ROOT, "game", "scripts", "characters", "blocks", "seg_*.gd")):
+        t = open(f, encoding="utf-8").read()
+        out.update(re.findall(r'"src"\s*:\s*"([^"]+)"', t))
+        out.update(re.findall(r'\bsrc\b[^=\n]*=\s*"([^"]+)"', t))
+        out.update(re.findall(r'(?:melee_hit|area_hit|log_hit|make_hit)\(\s*"([^"]+)"', t))
+    return out
+
+
+SEG_SRC = set()
+
+
 def main():
+    global SEG_SRC
+    SEG_SRC = seg_src()
     reg = json.load(open(REG, encoding="utf-8"))
     only = set(filter(None, (sys.argv[1] if len(sys.argv) > 1 else "").split(",")))
     warn = 0
@@ -49,6 +66,7 @@ def main():
         for k, n in sorted(miss.items()):
             print("警告 %s：判定段「%s」（%d 处）没在注册表 shapes 登记，放开版下没有刀光画面（登记它，或形状块写 \"px_ul\": false，或注册表写 \"arc\": true 恢复通用弧）" % (op, k, n))
             warn += 1
+        seen |= SEG_SRC   # seg_*.gd 里写死的 src 字面量（例 seg_hoshiguma 的「热砂沸腾」）也算有（组长 11-04）
         for k in sorted(set(sh) - seen):
             print("警告 %s：注册表 shapes 登记了「%s」，干员 JSON 里没有这个 src / px_key" % (op, k))
             warn += 1

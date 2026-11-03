@@ -172,7 +172,7 @@ export function create(o) {
           if (SPRAY) ps.spawn(P.MOTE, x, y, (tx * 0.6 + nx * 0.9) * sp, (ty * 0.6 + ny * 0.9) * sp, Rg.range(0.25, 0.55) * (0.6 + 0.4 * DL), C[6 + Rg.int(0, 1)], Rg.range(0.8, 1.4) * SZ);
         }
         if (SPRAY && Rg.chance(0.7 * PM)) ps.spawn(P.SPARK, x, y, nx * Rg.range(100, 260), ny * Rg.range(100, 260) - 60, Rg.range(0.3, 0.65));
-        if (deco && Rg.chance(0.3) && (!full || inSeg(a))) ps.spawn(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
+        // 11-04 总组长：弧刃外圈一串圆形水雾颗粒属孤立圆（§12.3），去掉 —— if (deco && Rg.chance(0.3) && (!full || inSeg(a))) ps_spawn_removed(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
         passed += (full ? 0.025 : 0.035) * Rg.range(0.4, 1.8) / (fine ? 1.4 : 1);   // 步长随机：等距撒会排成等距放射纹
       }
       if (mv === "s1") for (const sl of sls) {   // 连斩甩水：挥砍途中沿外缘顺挥剑方向甩；挥到底炸出成团水花
@@ -203,7 +203,7 @@ export function create(o) {
         if (arcOn) for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2) / PM) {   // 余韵：外缘碎成浪沫与水雾（S3 只在各段浪身上，缺口里不放）
           if (full && !inSeg(a)) continue;
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
-          ps.spawn(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
+          // 11-04 总组长：弧刃外圈一串圆形水雾颗粒属孤立圆（§12.3），去掉 —— ps_spawn_removed(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
           if (el >= 1 && Rg.chance(0.5)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2) * SZ, Rg.range(0.05, 0.4) * LQ);
           if (SPRAY && Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
         }
