@@ -749,7 +749,13 @@ static func _h3sp_draw_over(o) -> void:
 	if (o.s_t[1] > 0.0 or o.s_t[2] > 0.0) and a.get("look", _ED).get("eye", false):
 		var p: Vector2 = o.pos + Vector2(4.0 * o.face, -38)
 		var c2: Color = H3_RED if o.s_t[2] > 0.0 else H3_GHOST
-		cv.draw_circle(p, 2.5 + sin(g.t * 24.0), Color(c2.r * 2.0, c2.g * 1.6, c2.b * 1.6, 0.9))
+		if _sp_ul_on(o):   # 放开版：眼中寒光改成一个细十字闪（不画小圆点）；S2 海军蓝白、S3 暗血红
+			var ce: Color = Color(1.6, 0.35, 0.3, 0.95) if o.s_t[2] > 0.0 else Color(1.2, 1.4, 1.8, 0.95)
+			var L: float = 3.0 + 1.5 * absf(sin(g.t * 9.0))
+			cv.draw_line(p - Vector2(L, 0), p + Vector2(L, 0), ce, 1.0)
+			cv.draw_line(p - Vector2(0, L * 0.6), p + Vector2(0, L * 0.6), ce, 1.0)
+		else:
+			cv.draw_circle(p, 2.5 + sin(g.t * 24.0), Color(c2.r * 2.0, c2.g * 1.6, c2.b * 1.6, 0.9))
 
 
 ## 锯环（程序）：半径 0→r 快速张开，锯齿斜切、按 spin 旋转；地面透视压扁
