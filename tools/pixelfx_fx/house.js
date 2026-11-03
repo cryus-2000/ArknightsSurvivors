@@ -23,7 +23,9 @@ export const OP = {
   eyjafjalla: ["#1a0705", "#4a110a", "#8f1d0d", "#d2330f", "#f6561a", "#ff8a3d", "#fff0e0"],   // 11-04 组长 C 审定
   gladiia: ["#182f51", "#294a78", "#3a65a0", "#4c80c7", "#8bacdb", "#c9d9ee", "#ffffff"],
   hoshiguma: ["#413f32", "#7c6a3b", "#b79444", "#f2bf4c", "#f7d58b", "#fbecc9", "#ffffff"],
-  irene: ["#413552", "#7c567b", "#b778a4", "#f299cc", "#f7bdde", "#fbe0f0", "#ffffff"],
+  irene: ["#1c212d", "#363e50", "#5d6880", "#929db4", "#c6cede", "#e9eef8", "#ffffff"],   // 11-04 组长 C 审定
+  irene_rose: ["#24141b", "#45202d", "#6e3043", "#9a4a5e", "#c47b8c", "#e6b2bb", "#fbe6e8"],   // 11-04 组长 C：只用于细线
+  irene_gold: ["#16110a", "#2e2312", "#4e3b1e", "#735a30", "#9a7a43", "#bd9a5a", "#dcc38c"],   // 11-04 组长 C：只用前 5 阶（后两阶近结晶暖金）
   kaltsit: ["#1f3510", "#365c1a", "#548a22", "#7fb92e", "#b5e25a", "#e6f9a8", "#ffffff"],   // 11-04 组长 C 审定：黄绿（色相约 85°）
   kaltsit_melt: ["#2e0806", "#560c0a", "#84120e", "#b01c16", "#d8443a", "#f6d8d4", "#ffffff"],   // 11-04 组长 C 审定：熔毁红（色相 2–8°，明度压低）
   lappland: ["#3b475c", "#707a8e", "#a6adc0", "#dbe0f2", "#e8ebf7", "#f4f6fb", "#ffffff"],
