@@ -31,7 +31,7 @@ export const OP = {
   saria: ["#443d38", "#826646", "#c18f53", "#ffb861", "#ffd198", "#ffead0", "#ffffff"],
   siege: ["#444136", "#826e42", "#c19a4d", "#ffc759", "#ffdb93", "#ffeecd", "#ffffff"],
   skadi: ["#1b325c", "#30508e", "#446ec0", "#598cf2", "#93b4f7", "#cddcfb", "#ffffff"],
-  skalter: ["#3b1f36", "#702a42", "#a4354d", "#d94059", "#e68393", "#f4c6cd", "#ffffff"],
+  skalter: ["#3a0d1b", "#5e1424", "#86202d", "#a8323c", "#d2878d", "#f2d8da", "#ffffff"],   // 11-03 美术组 C：PRTS 主服 #B83139 压暗的酒红（build/prts_ref/_colors/skalter.png），中段 v≈0.66、色相 0.99–0.01，避开敌方危险色区 0.92–0.98
   specter_unchained: ["#34455c", "#62768e", "#91a8c0", "#bfd9f2", "#d5e6f7", "#ecf4fb", "#ffffff"],
   suzuran: ["#44433c", "#82724e", "#c1a261", "#ffd173", "#ffe1a4", "#fff1d5", "#ffffff"],
   texas: ["#44322c", "#82502e", "#c16e31", "#ff8c33", "#ffb47a", "#ffdcc2", "#ffffff"],
