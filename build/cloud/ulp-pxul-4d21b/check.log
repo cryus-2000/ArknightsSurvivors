@@ -1,0 +1,27 @@
+快检：本次最多 8 个 Godot 并行（全机上限 8，开始时全机已有 0 个）；日志 /work/repo/build/check/quick_1103_120555
+按改动选项（--changed，基线 main @ ?）：0 个改动文件
+    选中：组 无；干员 无；场景回归 0 项
+    对照旧 --auto 计划：full（1 个文件；旧口径基线 main）
+    注意：分级只用于改的过程中；合入 main 的全量在协调人 / 云端 CI 跑
+通过 数据 JSON 解析  game/data 全部可解析
+通过 美术帧条 art_lint  21 人：未豁免 FAIL 0、已豁免 69、WARN 77；豁免可删：拉普兰德 · 非正面、拉普兰德 · 待机呼吸、维什戴尔 · 朝向、维什戴尔 · 非正面（明细 python tools/art_lint.py）  [37 秒]
+通过 发行包瘦身 release_slim  审阅图 0 张（0.00 MB）不进包，未误伤运行时引用；字体子集 ui.ttf 1.64 → 0.92 MB，serif.ttf 1.67 → 0.96 MB（明细 python tools/release_slim.py --report）  [9 秒]
+通过 干员文字数值 op_text_check  20 名干员：占位 / 字面数字不一致 0 条，字面数字对得上 base / blocks（需人工看）34 条（明细 python tools/op_text_check.py --report）
+通过 积木单播表 ob_tag  9 个执行器、69 个 tag 无重叠，EXEC_SEG 一致（13 / 7 / 3 / 2 / 2 / 3 / 16 / 15 / 8）
+通过 Enemy art delivery  0 registered actions; 0 pending acceptance items (not integration approved)
+通过 素材命名与目录 asset_lint  ERROR 0、WARN 170、INFO 141（D1 114、N3 4、N4 27、N5 22、N6 3）（明细 python tools/asset_lint.py）  [8 秒]
+失败 贴图索引 asset_index  game/art/index.json 2310 个名字  [1 秒]
+      磁盘有、索引没有 132 个（例 fx_ulpianus_ul_after, fx_ulpianus_ul_after_deco, fx_ulpianus_ul_bite）：跑 python tools/asset_index.py
+通过 数据契约 data_lint  balance.json 无字面读点的键 295 个（提示）  [1 秒]
+通过 图引用 graph_lint  无硬命中
+通过 说明对账 text_reconcile  8 类、589 个数字，已解释 523（89%）；待核基线 66 条
+通过 检查映射 check_map  140 个场景回归全部归组
+通过 敌人控制直写 cc_lint  246 个脚本：击退累加只在 apply_kb；干员代码不直写敌人 stun / slow / air  [1 秒]
+
+耗时前 10（秒，不含排队）：美术帧条 art_lint 37；发行包瘦身 release_slim 9；素材命名与目录 asset_lint 8；贴图索引 asset_index 1；数据契约 data_lint 1；敌人控制直写 cc_lint 1
+
+快检失败：13 项，失败 1 项（已知红 0 项另计），耗时 37 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 0（不用缓存加 --nocache）
+
+失败项：
+  · 贴图索引 asset_index — game/art/index.json 2310 个名字
+    日志：（无）
