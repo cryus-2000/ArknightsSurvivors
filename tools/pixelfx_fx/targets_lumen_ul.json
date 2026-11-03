@@ -18,7 +18,8 @@
    },
    "src": "lumen.json base.rain_r（S1 光雨范围，世界像素；/2 = 1x 美术像素）"
   },
-  "palette_src": "build/prts_ref/_colors/lumen.png 挑染 #4285AD"
+  "palette_src": "build/prts_ref/_colors/lumen.png 挑染 #4285AD",
+  "deco_lo_step": 2
  },
  "fx_lumen_ul_drizzle2": {
   "fx": "water/ak-lumen-ul-drizzle",
@@ -289,5 +290,182 @@
   "layers": true,
   "move": "skill",
   "check_sy": 0.5
+ },
+ "fx_lumen_ul_lamp": {
+  "fx": "water/ak-lumen-ul-lamp",
+  "opts": {
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_lumen_ul_lamp_tm": {
+  "fx": "water/ak-lumen-ul-lamp",
+  "opts": {
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_lumen_ul_tower": {
+  "fx": "water/ak-lumen-ul-tower",
+  "opts": {
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "check_sy": 0.5,
+  "judge": {
+   "op": "lumen",
+   "opts": {
+    "r": "s3_r/2"
+   },
+   "src": "lumen.json base.s3_r（灯塔光圈半径，世界像素；/2 = 1x）"
+  },
+  "check_note": "循环光圈：5 段弧绕圈转 1/5 一圈循环",
+  "deco_lo_step": 2
+ },
+ "fx_lumen_ul_burst": {
+  "fx": "water/ak-lumen-ul-burst",
+  "opts": {
+   "seed": 8
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "check_sy": 0.5,
+  "judge": {
+   "op": "lumen",
+   "opts": {
+    "r": "s3_r/2"
+   },
+   "src": "lumen.json base.s3_r（光爆 area_hit 半径 = 灯塔光圈 r）"
+  },
+  "deco_lo_step": 2
+ },
+ "fx_lumen_ul_rain": {
+  "fx": "water/ak-lumen-ul-rain",
+  "opts": {
+   "seed": 6
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "check_sy": 0.5,
+  "judge": {
+   "op": "lumen",
+   "opts": {
+    "r": "rain_r/2"
+   },
+   "src": "lumen.json base.rain_r（光雨半径，世界像素；/2 = 1x）"
+  },
+  "deco_lo_step": 2
+ },
+ "fx_lumen_ul_sweep": {
+  "fx": "projectiles/ak-lumen-ul-sweep",
+  "opts": {
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "judge": {
+   "op": "lumen",
+   "opts": {
+    "len": "beam_len/2"
+   },
+   "src": "lumen.json base.beam_len（灯塔守望光束长，世界像素；/2 = 1x）"
+  }
+ },
+ "fx_lumen_ul_pulse": {
+  "fx": "water/ak-lumen-ul-pulse",
+  "opts": {
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "check_sy": 0.5,
+  "judge": {
+   "op": "lumen",
+   "opts": {
+    "r": "watch2_r/2"
+   },
+   "src": "lumen.json base.watch2_r（回光脉冲半径，世界像素；/2 = 1x）"
+  }
+ },
+ "fx_lumen_ul_pulse2": {
+  "fx": "water/ak-lumen-ul-pulse",
+  "opts": {
+   "seed": 12
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.5,
+  "judge": {
+   "op": "lumen",
+   "opts": {
+    "r": "watch2_r/2"
+   },
+   "src": "同上"
+  }
+ },
+ "fx_lumen_ul_ult_beacon": {
+  "fx": "water/ak-lumen-ul-ult-beacon",
+  "opts": {
+   "seed": 2,
+   "warm": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true
+ },
+ "fx_lumen_ul_ult_zone": {
+  "fx": "water/ak-lumen-ul-ult-zone",
+  "opts": {
+   "seed": 9,
+   "r": 251
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true,
+  "check_sy": 0.5,
+  "check_note": "判定半径 = balance ult/lu_r 502（ult_moves_c._lu_start，世界像素；/2 = 1x 251）"
+ },
+ "fx_lumen_ul_ult_sweep": {
+  "fx": "projectiles/ak-lumen-ul-sweep",
+  "opts": {
+   "seed": 7,
+   "len": 251
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true,
+  "check_note": "光束长 = 光圈半径 ult/lu_r 502 / 2（ult_moves_c._lu_step sector r = R）"
+ },
+ "fx_lumen_ul_ult_hold": {
+  "fx": "water/ak-lumen-ul-ult-hold",
+  "opts": {
+   "seed": 2,
+   "warm": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true
  }
 }

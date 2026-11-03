@@ -600,13 +600,21 @@ static func _inq(u, a: Dictionary, t: float) -> bool:
 			lu.play_vis_anim("skill")
 		u.g.lamp = minf(float(u.g.lamp_cap), float(u.g.lamp) + Bal.v("ult/link_lumen_lamp", 10.0))
 		u.g.nerve = 0.0
-		u.light(c, r + 40.0, Color(1.0, 0.9, 0.7), 0.8)   # 预审 11-02：3 秒实心光罩叠起来发白 → 只留 1.2 秒淡底 + 一圈灯色边（增伤仍是 3 秒）
-		u.shape({"kind": "circle", "c": c, "r": r, "col": Color(1.0, 0.86, 0.6), "fill": 0.07, "layer": "back", "life": 1.2})
-		u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.9, "w": 3.0, "col": cl, "life": 1.0})
+		if Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_lumen_ul_pulse"):   # pixelfx 放开版（流明会话）：流明这一半换成判定半径上几段弧原地闪 + 区域里 1.2 秒斜细雨（钢蓝，不铺光罩、不画收缩环）
+			for nm in [u.g.vfx.px_ul_tex("fx_lumen_ul_pulse", 1, false, "deco", 2), u.g.vfx.px_ul_tex("fx_lumen_ul_pulse", 1, false, "core", 2)]:
+				if nm != "":
+					u.strip(nm, c, {"sc": r / 120.0})
+			for nm in [u.g.vfx.px_ul_tex("fx_lumen_ul_rain", 1, false, "deco", 2), u.g.vfx.px_ul_tex("fx_lumen_ul_rain", 1, false, "core", 2)]:
+				if nm != "":
+					u.strip(nm, c, {"sc": r / 140.0, "loop": true, "life": 1.2})
+		else:
+			u.light(c, r + 40.0, Color(1.0, 0.9, 0.7), 0.8)   # 预审 11-02：3 秒实心光罩叠起来发白 → 只留 1.2 秒淡底 + 一圈灯色边（增伤仍是 3 秒）
+			u.shape({"kind": "circle", "c": c, "r": r, "col": Color(1.0, 0.86, 0.6), "fill": 0.07, "layer": "back", "life": 1.2})
+			u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.9, "w": 3.0, "col": cl, "life": 1.0})
 		for e in u.in_circle(c, r):
 			e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), u.g.t + 3.0)
 			e["frag_v"] = maxf(float(e.get("frag_v", 0.0)), 0.15)
-	if t < 0.6 and int(t * 30.0) % 2 == 0:
+	if t < 0.6 and int(t * 30.0) % 2 == 0 and not (Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_lumen_ul_pulse")):
 		u.grain("mote_up", c + Vector2.from_angle(t * 11.0) * r * fposmod(t * 3.7, 1.0), Vector2.UP, cl, 2)
 	if t >= 0.3 and _ok(ir) and _once(a, "dash"):
 		var tp: Vector2 = _tp(u, a)

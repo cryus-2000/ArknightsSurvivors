@@ -209,6 +209,8 @@ static func h3_tower_start(o, b: Dictionary) -> void:
 	lm.tower_b = b
 	var i := _h3_tower_i(o)
 	lm.tower_t = o.s_t[i] if i >= 0 else 0.0   # 同技能剩余（各自每帧 -dt；这份不夹 0，同手写 tower_t）
+	if _px_ul_lm(o):   # pixelfx 放开版 S3 开启：灯高处四芒灯光 + 弧形水流（原作 lumen_skill_03_start_02 / buff_02）
+		_px_ul_fx(o, "fx_lumen_ul_lamp", o.g.ppos, o.g.PX)
 
 
 ## 灯塔在场：带 verb.tower 的技能剩余 > 0
@@ -248,7 +250,7 @@ static func _h3_tower_tick(o, lm: Dictionary, dt: float) -> void:
 				o.heal_leader(g.max_hp * float(b.get("heal", 0.015)) * _h3_heal_mult(o), o.display_name(), str(b.get("sub", "")))
 				_h3_heal_lamp(o)
 	lm.mote_t = float(lm.mote_t) - dt
-	if float(lm.mote_t) <= 0.0:
+	if float(lm.mote_t) <= 0.0 and not _px_ul_lm(o):   # 放开版：光点由光圈帧条画
 		lm.mote_t = 0.06
 		var ma: float = g.vrng.randf() * TAU
 		var mr: float = g.vrng.randf() * r
@@ -266,6 +268,13 @@ static func _h3_light_burst(o, lm: Dictionary, b: Dictionary) -> void:
 	if bu.get("power", false):
 		dmg *= o.skill_power()
 	o.area_hit(str(bu.get("src", "")), tp, r, dmg, float(bu.get("kb", 160.0)), float(bu.get("stun", 0.6)))
+	if _px_ul_lm(o):   # pixelfx 放开版光爆：大四芒爆光 + 竖直白光柱 + 判定半径上 5 段弧原地闪（不外扩，用户 11-04）；帧条烤 s3_r，按当前 r 缩放
+		_px_ul_fx(o, "fx_lumen_ul_burst", tp, g.PX * r / o.base("s3_r", 220.0))
+		o.float_text(tp + Vector2(0, -90), str(bu.get("src", "")), H3_PALE, 18)
+		g.shake = maxf(g.shake, 4.0)
+		_h3_sfx(o, "big")
+		lm.tower_pos = Vector2.INF
+		return
 	# 10-29：取消「日炎」大火球（fx_sunburst，用户定）；爆发只留地面环 / 光线 / 火花
 	for i in 3:
 		o.fx({"kind": "ring", "pos": tp, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": H3_WARM, "floor": true, "w": 4.0 - i})
@@ -403,7 +412,8 @@ static func _h3_rain_tick(o, lm: Dictionary, dt: float) -> void:
 		e["lit"] = maxf(e.get("lit", 0.0), 1.0)
 		o.log_hit(str(b.get("src", "")))
 		o.deal_damage(e, o.base(str(b.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * float(b.get("mult", 0.15)) * o.skill_power())
-		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 7.0, "life": 0.2, "col": H3_WARM, "alpha": 0.5})
+		if not _px_ul_lm(o):   # 放开版：雨中命中不另画暖色圆光
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 7.0, "life": 0.2, "col": H3_WARM, "alpha": 0.5})
 
 
 static func _h3_beam_block(o) -> Dictionary:
@@ -460,7 +470,8 @@ static func _h3_beam_tick(o, lm: Dictionary, dt: float) -> void:
 		e["lit"] = 3.0
 		o.log_hit(str(bb.get("src", "")))
 		o.deal_damage(e, o.base(str(bb.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * float(bb.get("mult", 0.4)) * o.skill_power())
-		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.2, "col": H3_WARM, "alpha": 0.6})
+		if not _px_ul_lm(o):   # 放开版：光束扫到不另画暖色圆光
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.2, "col": H3_WARM, "alpha": 0.6})
 
 
 ## 天赋：灯火 ≥ lamp 时自身技力额外充能（同手写，在出手判定之前）
@@ -543,6 +554,17 @@ static func _h3lm_draw_auras(o) -> void:
 	var g = o.g
 	var cv = o.cv
 	var r: float = float(o.hw.lm.tower_b.get("r", 220.0))
+	if _px_ul_lm(o):   # pixelfx 放开版灯塔光圈：无硬边地面光 + 判定半径上 5 段转动的涟漪弧 + 细雨（循环帧条，烤 s3_r，按当前 r 缩放）
+		var tp: Vector2 = o.hw.lm.tower_pos
+		var sc: float = g.PX * r / o.base("s3_r", 220.0)
+		var nm: String = g.vfx.px_ul_tex("fx_lumen_ul_tower", 1, false, "core", 2)
+		var fr: int = int(g.t * 15.0)
+		var dn: String = g.vfx.px_ul_tex("fx_lumen_ul_tower", 1, false, "deco", 2)
+		var dk: float = g.vfx.px_deco_k(o)
+		if dn != "" and dk > 0.0:
+			o.draw_spr_rot(dn, fr, tp, 0.0, sc, Color(1, 1, 1, dk))
+		o.draw_spr_rot(nm, fr, tp, 0.0, sc)
+		return
 	cv.draw_set_transform((o.hw.lm.tower_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	feather_ring(cv, r, H3_WARM, 0.5, g.t)   # 10-29：不填充，改内羽边 + 光点
 	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(H3_WARM.r, H3_WARM.g, H3_WARM.b, 0.35 + 0.1 * sin(g.t * 4.0)), 2.5)
@@ -578,6 +600,17 @@ static func _h3lm_draw_over(o) -> void:
 			cv.draw_circle(b.pos, 6.0 if big else 4.0, Color(2.0, 1.8, 1.2))
 	_h3lm_draw_units(o)
 	_h3lm_draw_rain(o)
+	if px_ul:   # pixelfx 放开版灯塔守望光束：钢蓝细长光扇（循环帧条，烤 beam_len，按方向的透视长度缩放）
+		var bb := _h3_beam_block(o)
+		if _h3_beam_on(o, bb):
+			var d: Vector2 = _h3_beam_dir(o, bb)
+			var fade: float = clampf((float(lm.tower_t) if _h3_tower_on(o) else float(lm.beam_t)) / 0.5, 0.0, 1.0)
+			var sc: float = g.PX * d.length() * float(bb.get("len", 260.0)) / o.base("beam_len", 260.0)
+			var fr: int = int(g.t * 15.0)
+			var dn: String = g.vfx.px_ul_tex("fx_lumen_ul_sweep", 1, false, "deco", 2)
+			if dn != "" and dk > 0.0:
+				o.draw_spr_rot(dn, fr, _h3_beam_origin(o), d.angle(), sc, Color(1, 1, 1, dk * fade))
+			o.draw_spr_rot(g.vfx.px_ul_tex("fx_lumen_ul_sweep", 1, false, "core", 2), fr, _h3_beam_origin(o), d.angle(), sc, Color(1, 1, 1, fade))
 
 
 static func _h3lm_draw_units(o) -> void:
@@ -624,6 +657,15 @@ static func _h3lm_draw_rain(o) -> void:
 	var b: Dictionary = lm.rain_b
 	var r: float = float(b.get("r", 140.0))
 	var fade: float = clampf(float(lm.rain_t) / 0.4, 0.0, 1.0) * clampf((float(b.get("dur", 3.0)) - float(lm.rain_t)) / 0.3, 0.0, 1.0)
+	if _px_ul_lm(o):   # pixelfx 放开版光雨：斜细雨 + 落点小涟漪 + 无硬边地面光（循环帧条，烤 rain_r，按当前 r 缩放；不画边线圈）
+		var sc: float = g.PX * r / o.base("rain_r", 140.0)
+		var fr: int = int(g.t * 15.0)
+		var dn: String = g.vfx.px_ul_tex("fx_lumen_ul_rain", 1, false, "deco", 2)
+		var dk: float = g.vfx.px_deco_k(o)
+		if dn != "" and dk > 0.0:
+			o.draw_spr_rot(dn, fr, g.ppos, 0.0, sc, Color(1, 1, 1, dk * fade))
+		o.draw_spr_rot(g.vfx.px_ul_tex("fx_lumen_ul_rain", 1, false, "core", 2), fr, g.ppos, 0.0, sc, Color(1, 1, 1, fade))
+		return
 	var rf: float = o.ring_flash("rain")   # 10-31 TA H1：内外两道边只在开雨那一瞬，之后靠落下的光雨读范围
 	if rf > 0.0:
 		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
@@ -652,6 +694,8 @@ static func h3_draw_add(o, ci) -> void:
 	var g = o.g
 	var lm: Dictionary = o.hw.lm
 	var a: Dictionary = o.B.get("attack", {})
+	if _px_ul_lm(o):   # pixelfx 放开版：提灯手光 / 灯塔灯光 / 光弹 / 光束的暖色加色圆光与光扇全不画（光弹光晕在装饰层帧条里，光束在 _h3lm_draw_over 画帧条）
+		return
 	if float(lm.hand_glow) > 0.0:
 		var hk: float = sin(float(lm.hand_glow) / 0.3 * PI)
 		var hp: Vector2 = _h3_lamp_hand(o, a)

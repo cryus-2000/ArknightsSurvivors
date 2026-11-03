@@ -796,6 +796,7 @@
       "banner": "灯火不灭"
      },
      {
+      "cond": "!px_ul",
       "sprite": {
        "name": "fx_holy_pillar_amber",
        "scale": 1.6,
@@ -808,6 +809,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "pfx": {
        "kind": "ring",
        "r": 220.0,
