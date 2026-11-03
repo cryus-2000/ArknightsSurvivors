@@ -20,10 +20,12 @@ export const LOOT = "#fff1bf";         // 掉落 optical_col_loot
 export const OP = {
   angelina: ["#312f5c", "#5c4a8e", "#8765c0", "#b280f2", "#cdacf7", "#e8d9fb", "#ffffff"],
   exusiai: ["#412232", "#7c303b", "#b73e44", "#f24c4c", "#f78b8b", "#fbc9c9", "#ffffff"],
-  eyjafjalla: ["#442f2c", "#824a2e", "#c16531", "#ff8033", "#ffac7a", "#ffd9c2", "#ffffff"],
+  eyjafjalla: ["#1a0705", "#4a110a", "#8f1d0d", "#d2330f", "#f6561a", "#ff8a3d", "#fff0e0"],   // 11-04 组长 C 审定
   gladiia: ["#182f51", "#294a78", "#3a65a0", "#4c80c7", "#8bacdb", "#c9d9ee", "#ffffff"],
   hoshiguma: ["#413f32", "#7c6a3b", "#b79444", "#f2bf4c", "#f7d58b", "#fbecc9", "#ffffff"],
-  irene: ["#413552", "#7c567b", "#b778a4", "#f299cc", "#f7bdde", "#fbe0f0", "#ffffff"],
+  irene: ["#1c212d", "#363e50", "#5d6880", "#929db4", "#c6cede", "#e9eef8", "#ffffff"],   // 11-04 组长 C 审定
+  irene_rose: ["#24141b", "#45202d", "#6e3043", "#9a4a5e", "#c47b8c", "#e6b2bb", "#fbe6e8"],   // 11-04 组长 C：只用于细线
+  irene_gold: ["#16110a", "#2e2312", "#4e3b1e", "#735a30", "#9a7a43", "#bd9a5a", "#dcc38c"],   // 11-04 组长 C：只用前 5 阶（后两阶近结晶暖金）
   kaltsit: ["#1f3510", "#365c1a", "#548a22", "#7fb92e", "#b5e25a", "#e6f9a8", "#ffffff"],   // 11-04 组长 C 审定：黄绿（色相约 85°）
   kaltsit_melt: ["#2e0806", "#560c0a", "#84120e", "#b01c16", "#d8443a", "#f6d8d4", "#ffffff"],   // 11-04 组长 C 审定：熔毁红（色相 2–8°，明度压低）
   lappland: ["#3b475c", "#707a8e", "#a6adc0", "#dbe0f2", "#e8ebf7", "#f4f6fb", "#ffffff"],
@@ -38,7 +40,9 @@ export const OP = {
   specter_unchained: ["#060d1f", "#0f2550", "#183f86", "#2a62b8", "#5b8fd6", "#a9c6ee", "#eef5ff"],   // 11-04 组长
   suzuran: ["#3a1a10", "#7a3414", "#c2561a", "#ff8426", "#ffb257", "#ffdca6", "#ffffff"],   // 11-04 组长：暖橙（用户定）
   texas: ["#44322c", "#82502e", "#c16e31", "#ff8c33", "#ffb47a", "#ffdcc2", "#ffffff"],
-  ulpianus: ["#213c5c", "#3c638e", "#588ac0", "#73b2f2", "#a4cdf7", "#d5e8fb", "#ffffff"],
+  ulpianus: ["#0c1235", "#1b2a66", "#2c4397", "#4463c8", "#7b93e6", "#c0cbf6", "#ffffff"],   // 11-04 组长 C 审定
+  ulpianus_blood: ["#1c0710", "#33101c", "#4d1626", "#6b1e33"],   // 11-04 组长 C：血纹暗段（4 阶）
+  ulpianus_dust: ["#131528", "#212842", "#323c5e", "#4a5781", "#6b7ba6", "#9eabcf"],   // 11-04 组长 C：尘（6 阶）
   wisadel: ["#1a0b0f", "#3d1216", "#6e1a1d", "#bc2c2c", "#d9604a", "#f0b8a4", "#fff6f0"]   // 11-04 美术组长：PRTS 主服 #BC2C2C（build/prts_ref/_colors/wisadel.png）；原中段 #f23833 与危险色 #ff2667 色相 / 亮度太近，压暗、高光往暖白
 };
 
