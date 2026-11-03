@@ -436,6 +436,7 @@ python tools/ref_fx/rebuild_prefab.py skadi skadi_attack_01_start,skadi_attack_0
 python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   # 弹道类：拖尾沿向右 2.5 单位、0.5 秒的路径画
 ```
 
+- prefab 根节点在包里关着（m_IsActive = 0）时照样回放。
 - 干员 id 用本作的（skalter = 浊心斯卡蒂，specter_unchained = 归溟幽灵鲨，表在 `tools/ref_fx/arkab.py` 的 OPS）。prefab 名按原作技能编号，和我方编号可能不一致，先查 docs/31。
 - 逗号隔开的多个 prefab 从 0 秒起叠在同一处（起手 + 刀光 + 命中）。地面类 prefab 自动按地面透视压扁（`--ground on/off` 可强制）。
 - 输出到 `<主仓库>/Claude outputs/<干员>_ref/`：原速 mp4、慢放 mp4、均匀 8 帧关键帧拼图、prefab 层级 dump（json，查粒子寿命 / 尺寸 / 颜色渐变 / 着色器）。
@@ -476,7 +477,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 圆形 / 锥形判定的 `ring` 除了 true / false，还可以写条件串，例 `"ring": "!px_ul"`：开关关时照画（和 main 一致），放开版打开时不画。
 
 ### 14.4 形状换主形 `alt`
-注册表 `shapes[src]` 加 `"alt": [{"cond": "<条件串>", "base": "…", "skill": bool}]`，按顺序取第一条成立的，换掉 `base`（和 `skill`）。例：乌尔比安 S2 生效后锚击换形，`"cond": "skill_active:1"`。
+注册表 `shapes[src]` 加 `"alt": [{"cond": "<条件串>", "base": "…", "skill": bool, "draw": {…}}]`，按顺序取第一条成立的，换掉 `base`（和 `skill`），`draw` 逐字段覆盖画法（例 fit）。例：乌尔比安 S2 生效后锚击换形，`"cond": "skill_active:1"`。
 
 ### 14.5 接管后照常播的条目
 形状被接管时，fx 列表里照常播：`cond` 为 `relic:` / `node:` 的附加条目、`px` 条目、只放声音的条目（只有 `sfx`，没有 strip / pfx / gfx / blade 等画面字段）。
@@ -549,6 +550,8 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 | 铃兰 弹体命中 | 弹体字典 | `"px_hit": true`（§14.10） |
 | 浊心 等 增益 / 治疗标识 | `cast` / `ally` / `heal` | 不外扩的加 `"halo_ok": true`（§14.7） |
 
+色阶：`house.js` 的 `OP` 里，干员主色阶必须 7 阶；`<人>_<名>` 的副色阶（`kaltsit_melt`、`ulpianus_blood`、`ulpianus_dust`、`skalter_sea` …）阶数不限，导出脚本照样生成进 `op_ramps.json`。
+
 ### 14.17 往返弹体 `px`（星熊般若回旋，ob_elite.el_draw_over）
 干员 JSON 的 `shape.boomerang` 块写 `"px": "<放开版基名>"`：放开版打开时取 core / deco 两层，先画 deco（× px_deco_k）；缺图回退 `tex`。`tex` 本身也走 `remap`。
 
@@ -573,3 +576,11 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 | 8 | 推进之王 万兽之王拖尘 | `"status": {"<名>": {base, at: "foot", key: "<被推开的敌人字段>", time: true}}`；号令波 rays 在 seg_siege 本人段，本人加 `!px_ul` |
 | 9 | 推进之王 技力光点 | `"sp_mote": base`（§14.19） |
 | 10 | 召唤物 / 精英化段 / 标识 | `summons`、`lunge` / `leap`、`remap`（§14.11、§14.14） |
+
+### 14.21 开关前后 TRACE 配对 `tools/px_trace_ab.py`（11-04 统一，各人别再自写）
+```
+python tools/px_trace_ab.py <干员> [--squad a,b] [--cases late,ult] [--jobs 4] [--out 结果.json]
+```
+- 同一份代码，fx/px_unleashed 0 / 1 各跑两局：后期局 seed 13、560 秒；终结技局 seed 7、240 秒（`--maxprog --sptest`，第 20 秒充满终结技）。都带 `--nodeath`。
+- TRACE 行必须逐行相同；BALANCE 汇总行去掉纯画面统计（同屏峰值 `peak` / `peak_min`、性能计数 `prof` / `fx_peak` / `draw`）后也要相同。全过打印 `PX_TRACE_AB PASS`、退出码 0。
+- **放云端例行任务跑**（总组长 11-04：本机只留录像和单次快检）。例行任务的指令写：检出本人分支 → `bash tools/cloud/setup_linux.sh` → `python3 tools/px_trace_ab.py <干员> --out cloud-results/px_trace_ab_<干员>.json` → 把结果推回 `cloud-results/`。交付时报 PASS 行和结果文件。
