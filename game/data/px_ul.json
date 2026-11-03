@@ -1,5 +1,5 @@
 {
-	"_doc": "pixelfx 放开版注册表（docs/242，漏项 #25）：干员 id → 接管的判定段（按形状条目的 src）、帧条名与画法。开关 fx/px_unleashed 关掉时不读。ob_core 的 circle / cone 形状结算后按 o.id 查这里（seg_skadi.px_ul_shape）；接管后只跳过 b.fx 里的招式本体，cond 为 relic: / node: 的附加条目照常播（#20）。字段：shapes[src] = {base 帧条名（不带后缀）, variants 队长随机变体数（缺省 1）, skill 技能（定格用 pause[1]、火星用 n_skill）}；full = 全方向（half ≥ 3.1）时换用的 {base, variants}，整圈随机转角；draw = 画法 {fit 帧条烤制时的基础半径（1x 像素）, k, along, y, mirror（face = 朝左翻）}；motes = 实时火星（装饰层，颗数 × px_deco_k）；pause = [普攻, 技能] 命中定格秒数，只给队长、走 impact_pause 总闸；no_arc = 不画通用近战刀光。取名一律走 vfx.px_ul_tex(base, 变体, 队友, 层, 精英档)。",
+	"_doc": "pixelfx 放开版注册表（docs/242，漏项 #25）：干员 id → 接管的判定段（按形状条目的 src）、帧条名与画法。开关 fx/px_unleashed 关掉时不读。ob_core 的 circle / cone 形状结算后按 o.id 查这里（seg_skadi.px_ul_shape）；接管后只跳过 b.fx 里的招式本体，cond 为 relic: / node: 的附加条目照常播（#20）。字段：shapes[src] = {base 帧条名（不带后缀）, variants 队长随机变体数（缺省 1）, skill 技能（定格用 pause[1]、火星用 n_skill）, draw 可选：只覆盖这一段的画法字段（半径差得多时各用各的 fit）}；full = 全方向（half ≥ 3.1）时换用的 {base, variants}，整圈随机转角；draw = 画法 {fit 帧条烤制时的基础半径（1x 像素）, k, along, y, mirror（face = 朝左翻）}；motes = 实时火星（装饰层，颗数 × px_deco_k）；pause = [普攻, 技能] 命中定格秒数，只给队长、走 impact_pause 总闸；no_arc = 不画通用近战刀光。取名一律走 vfx.px_ul_tex(base, 变体, 队友, 层, 精英档)。",
 	"skadi": {
 		"shapes": {
 			"大剑": {"base": "fx_skadi_ul_slash", "variants": 2},

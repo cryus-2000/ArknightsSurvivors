@@ -248,6 +248,9 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	if o.g.tex.get(nm) == null:
 		return false
 	var dw: Dictionary = reg.get("draw", _ED)
+	if ent.has("draw"):   # 形状条目自带 draw（各形状半径差得多时各用各的 fit）：逐字段覆盖干员级 draw
+		dw = dw.duplicate()
+		dw.merge(ent.draw, true)
 	var dk: float = o.g.vfx.px_deco_k(o)
 	var mo: Dictionary = reg.get("motes", _ED)
 	var bl := {"fit": float(dw.get("fit", 80.0)), "k": float(dw.get("k", 1.0)), "along": float(dw.get("along", 0.0)), "y": float(dw.get("y", -10.0)), "mirror": dw.get("mirror", "face")}
