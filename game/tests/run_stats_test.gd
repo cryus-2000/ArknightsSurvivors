@@ -193,6 +193,20 @@ func test_real() -> void:
 	line.run.erase("rs")
 	var old: Dictionary = RunStats.model(RunStats.from_log(line, game.RL))
 	ok(bool(old.log) and absf(float(old.total) - float(live.total)) <= float(osum.size()), "对局记录：旧格式（只有 op_stats）还原的全队伤害 ≈ 当场")
+	# 胜局记录（11-05 bug 排查）：胜利演出里写盘时 state 还没到 WIN，rs.result 曾恒为 dead、带击倒者；对局记录点开胜局显示「探索终止」
+	game.victory.recorded = true
+	var wraw: Dictionary = RunStats.snapshot(game)
+	game.victory.recorded = false
+	ok(str(wraw.result) == "win" and (wraw.killer as Dictionary).is_empty(), "胜局：胜利演出中存的原始数据记为 win、无击倒者（%s）" % wraw.result)
+	var bad: Dictionary = tm.rs_compact()
+	bad.result = "dead"
+	bad.killer = {"name": "x", "type": "stone"}
+	bad.ending = "standard"
+	bad.ending_name = ""
+	var wl: Dictionary = JSON.parse_string(JSON.stringify({"meta": {"result": "win", "start_op": "mizuki"}, "run": {"rs": bad, "op_stats": osum}}))
+	var wb: Dictionary = RunStats.from_log(wl, game.RL)
+	ok(str(wb.result) == "win" and (wb.killer as Dictionary).is_empty() and str(wb.ending_name) != "" and str(wb.final_boss.get("type", "")) != "",
+		"对局记录：11-05 前的胜局（rs.result = dead）按 meta 还原为胜局、补结局名与最终 Boss")
 	var ls := 0.0
 	for v in tm.lamp_s:
 		ls += float(v)

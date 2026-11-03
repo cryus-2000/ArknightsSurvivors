@@ -20,7 +20,8 @@ const LAMP_NAMES := ["通明", "摇曳", "暗淡", "寂灭"]
 static func snapshot(g) -> Dictionary:
 	var tm = g.telemetry
 	var t_end: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
-	var won: bool = g.state == g.S.WIN
+	# 胜局的本地记录在胜利演出里写（victory_flow.record_win → telemetry.on_state，此时 state 还没到 WIN），按 victory.recorded 一起算
+	var won: bool = g.state == g.S.WIN or (g.get("victory") != null and bool(g.victory.recorded) and not g.trial.active)
 	var ops: Array = []
 	for j in tm.joins:
 		ops.append(j.duplicate())
@@ -417,6 +418,16 @@ static func from_log(line: Dictionary, rl: Dictionary) -> Dictionary:
 		raw["quit"] = str(meta.get("result", "")) == "quit"
 		if raw.quit:
 			raw.killer = {}
+		if str(meta.get("result", "")) == "win" and str(raw.get("result", "")) != "win":
+			# 11-05 前的胜局：rs 是胜利演出里存的，result 记成了 dead、带着击倒者、没有结局名 / 最终 Boss；按 meta 补回
+			raw.result = "win"
+			raw.killer = {}
+			var ed: Dictionary = D.ENDINGS.get(str(raw.get("ending", "")), {})
+			if str(raw.get("ending_name", "")) == "":
+				raw.ending_name = str(ed.get("name", ""))
+			if (raw.get("final_boss", {}) as Dictionary).is_empty():
+				var bt := str(ed.get("boss", ""))
+				raw.final_boss = {"type": bt, "name": str(D.ENEMIES.get(bt, {}).get("name", bt)).replace("\"", "")}
 		return raw
 	var bot: Dictionary = run.get("bot", {})
 	var won: bool = str(meta.get("result", "")) == "win"
