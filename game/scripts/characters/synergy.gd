@@ -10,6 +10,7 @@
 extends RefCounted
 
 const BalS = preload("res://scripts/core/balance.gd")
+const SegPx = preload("res://scripts/characters/blocks/seg_skadi.gd")
 const PATH := "res://data/synergy.json"
 static var _data: Dictionary = {}
 
@@ -23,6 +24,10 @@ static func data() -> Dictionary:
 
 static func on() -> bool:
 	return BalS.vi("synergy/on", 1) > 0
+
+
+static func _px(p, dr: Dictionary) -> bool:
+	return dr.has("px_src") and SegPx.px_ul_on(p)
 
 
 static func _col(a, k := 1.0) -> Color:
@@ -346,7 +351,7 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 		p.syn_mv = {"from": p0, "to": stop, "t": 0.0, "dur": float(dr.dur)}
 		p.cmd_inv = maxf(p.cmd_inv, float(dr.dur) + 0.4)
 		p._set_face(1.0 if dir.x >= 0.0 else -1.0, true)
-		var c: Color = _col(dr.col)
+		var c: Color = _col(dr.px_col) if dr.has("px_col") and _px(p, dr) else _col(dr.col)   # pixelfx 放开版：冲刺拖光用 px_col（纯画面）
 		g.fx.append({"kind": "tracer", "a": p0 + Vector2(0, -20), "b": stop + Vector2(0, -20), "life": float(dr.dur) + 0.14, "max": float(dr.dur) + 0.14, "col": c, "wid": 8.0})
 		if dr.get("strip", "") != "" and g.V6_FRAMES.has(str(dr.strip)):
 			var fr: Array = g.V6_FRAMES[str(dr.strip)]
@@ -378,17 +383,21 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 				a.phase = 2
 				a.t_phase = a.age
 				return false
-		p.melee_hit(_src(p, a.pr, dr), stop, ang, half, rr, _dmg(p, float(dr.mult)), float(dr.kb), float(dr.get("stun", 0.0)), ["连携"], 0)
-		p.slash_fx(stop, ang, minf(half, 1.5), rr * 0.9, c, "slash", 0.26)
-		if dr.get("cross", false):   # 两人刀光交叉：施放者的刀光从另一个角度也落在目标处（只有画面，伤害只算搭档这一击）
+		var hits: Array = p.melee_hit(_src(p, a.pr, dr), stop, ang, half, rr, _dmg(p, float(dr.mult)), float(dr.kb), float(dr.get("stun", 0.0)), ["连携"], 0)
+		# pixelfx 放开版：dir 写 px_src = 搭档 px_ul.json 里登记的近战形状名，这一击画搭档自己的新版刀光帧条，不画通用刀光 / 外扩环 / 火星（纯画面）
+		var px_took: bool = _px(p, dr) and SegPx.px_ul_shape(p, {"src": str(dr.px_src), "half": minf(half, 1.5)}, hits, ang, rr * 0.9)
+		if not px_took:
+			p.slash_fx(stop, ang, minf(half, 1.5), rr * 0.9, c, "slash", 0.26)
+		if dr.get("cross", false) and not (a.from != null and SegPx.px_ul_on(a.from)):   # 施放者已换新版：不再画通用暖金交叉刀光   # 两人刀光交叉：施放者的刀光从另一个角度也落在目标处（只有画面，伤害只算搭档这一击）
 			var cf = a.from
 			p.slash_fx(tp, ang + 1.25, 1.1, rr * 0.85, Color(1.0, 0.85, 0.5), "slash", 0.26)
 			if cf != null and cf.pos != Vector2.INF:
 				cf.play_vis_anim("attack")
 		if dr.get("chain", false):   # 锚链：从搭档到目标一道细光
 			g.fx.append({"kind": "beam", "a": stop + Vector2(0, -20), "b": tp + Vector2(0, -12), "life": 0.3, "max": 0.3, "col": c, "w": 2.5})
-		g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
-		p.sparks(tp, a.dir, c, 6, 160.0)
+		if not px_took:
+			g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
+			p.sparks(tp, a.dir, c, 6, 160.0)
 		if not p.acting():
 			p.play_vis_anim("attack")
 		p.screen_shake(0.12)
