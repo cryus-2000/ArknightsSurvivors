@@ -5,18 +5,12 @@
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-204 checks, 0 failed
+206 checks, 0 failed
 RUN STATS failures=0
 ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
 
 ## stderr
-ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing.
-   at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)
-   GDScript backtrace (most recent call first):
-       [0] make_actor_mat (res://scripts/render/look.gd:286)
-       [1] _ready (res://scripts/game.gd:1087)
-       [2] _ready (res://tests/run_stats_test.gd:23)
 WARNING: 49 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
 ERROR: 22 resources still in use at exit (run with --verbose for details).
