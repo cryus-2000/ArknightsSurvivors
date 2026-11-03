@@ -30,6 +30,8 @@ const LV := Vector2(42.0, 42.0)
 
 var _was_full := false
 var _full_rt := -9.0   # 能量刚满的时刻（界面时钟）：扫光 / 扩散圈 0.45 秒
+var _remind_rt := -9.0   # 满了没放的重复提醒时刻（界面时钟，g.ult.remind_t 变化时记）：同一套闪光再来一遍
+var _last_remind := -1.0
 
 
 func _init(hud_ult) -> void:
@@ -77,7 +79,7 @@ func _ecol() -> Color:
 func _flash_k() -> float:
 	if _rm():
 		return 0.0
-	var t: float = UM.now() - _full_rt
+	var t: float = UM.now() - _fx_rt()
 	return clampf(1.0 - t / 0.45, 0.0, 1.0) if t >= 0.0 else 0.0
 
 
@@ -86,6 +88,15 @@ func _track_full() -> void:
 	if f and not _was_full:
 		_full_rt = UM.now()
 	_was_full = f
+	if g.ult.remind_t != _last_remind:
+		_last_remind = g.ult.remind_t
+		if g.ult.remind_t >= 0.0 and f:
+			_remind_rt = UM.now()
+
+
+## 闪光 / 扩散圈 / 按键牌弹出的起点：刚满或重复提醒，取较近的一次
+func _fx_rt() -> float:
+	return maxf(_full_rt, _remind_rt)
 
 
 func _key(action: String) -> String:
@@ -190,8 +201,8 @@ func _draw_b(phone := false) -> void:
 	var tb := Tris.new()
 	var txt: Array[Callable] = []
 	if full and ready_cue():   # 就绪后徽记呼吸光（代表色光晕垫在底下）
-		tb.circle(c, B_R + 15.0, Color(ec.r, ec.g, ec.b, 0.06 + 0.1 * pu), 32)
-		tb.circle(c, B_R + 10.0, Color(ec.r, ec.g, ec.b, 0.08 + 0.12 * pu), 32)
+		tb.circle(c, B_R + 20.0, Color(ec.r, ec.g, ec.b, 0.16 + 0.22 * pu), 32)   # 11-04 加强：满了一直呼吸、更亮一圈（截图验过暗底上看得见）
+		tb.circle(c, B_R + 12.0, Color(ec.r, ec.g, ec.b, 0.22 + 0.26 * pu), 32)
 	tb.circle(c, B_R + 2.0, DARK, 32)
 	tb.flush(g.hud)
 	var fl: float = _flash_b()
@@ -236,7 +247,7 @@ func _draw_b(phone := false) -> void:
 		var kw: float = UI.cwidth(g.font, key, ks) + 12.0
 		var kp: Vector2 = c + Vector2(-kw / 2.0, B_R + 0.0)
 		if full and ready_cue():
-			var pop: float = 0.0 if _rm() else 6.0 * (1.0 - clampf((UM.now() - _full_rt) / 0.25, 0.0, 1.0))
+			var pop: float = 0.0 if _rm() else 6.0 * (1.0 - clampf((UM.now() - _fx_rt()) / 0.25, 0.0, 1.0))
 			kp.y += 2.0 - pop
 			g.hud.draw_rect(Rect2(kp - Vector2(2, 2), Vector2(kw + 4.0, ks + 11.0)), Color(0.02, 0.03, 0.05, 0.9))
 		UI.keycap(g.hud, g.font, kp, key, kc, ks)
@@ -256,7 +267,7 @@ func _draw_b(phone := false) -> void:
 func _flash_b() -> float:
 	if _rm():
 		return 0.0
-	var t: float = UM.now() - _full_rt
+	var t: float = UM.now() - _fx_rt()
 	if t < 0.0 or t > 0.8:
 		return 0.0
 	return maxf(0.0, sin(t / 0.8 * TAU * 2.0)) * (1.0 - t / 0.8)
@@ -266,6 +277,8 @@ func _flash_b() -> float:
 const READY_T := 1.8
 
 func _draw_ready_toast(vs: Vector2) -> void:
+	if Bal.v("ui/ult_ready_toast", 0.0) <= 0.0:
+		return   # 11-04 协调人：提醒改成徽记持续发光 + 重复提醒，不弹文字（设 1 恢复）
 	var t: float = UM.now() - _full_rt
 	if t < 0.0 or t > READY_T or not g.ult.full():
 		return
@@ -491,6 +504,11 @@ func _draw_touch_v2(vs: Vector2) -> void:
 	var ek: float = _ek()
 	var fg := Tris.new()
 	if full:
+		if ready_cue():   # 11-04：手机上满了同样一直呼吸发光，重复提醒时再扩一圈
+			fg.circle(c, r + 14.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.08 + 0.14 * _pulse()), 40)
+			var fk2: float = _flash_k()
+			if fk2 > 0.0:
+				fg.arc(c, r + 6.0 + 18.0 * (1.0 - fk2), 0.0, TAU, 3.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.85 * fk2), 40)
 		fg.circle(c, r, UI.PAPER, 40)
 		fg.arc(c, r + 4.0, 0.0, TAU, 1.0, Color(UI.PAPER.r, UI.PAPER.g, UI.PAPER.b, 0.35 + 0.3 * _pulse()), 40)
 		if ready_cue():
@@ -528,7 +546,7 @@ static func ready_cue() -> bool:
 func _burst_ring(tb: Tris, c: Vector2, r: float, ec: Color) -> void:
 	if not ready_cue():
 		return
-	var t: float = UM.now() - _full_rt
+	var t: float = UM.now() - _fx_rt()
 	if t < 0.0 or t > BURST_RDY:
 		return
 	var k: float = t / BURST_RDY
@@ -545,7 +563,7 @@ func _burst_ring(tb: Tris, c: Vector2, r: float, ec: Color) -> void:
 func _draw_edge(vs: Vector2) -> void:
 	if not ready_cue() or not g.ult.full():
 		return
-	var t: float = UM.now() - _full_rt
+	var t: float = UM.now() - _fx_rt()
 	if t < 0.0 or t > EDGE_T:
 		return
 	var a: float = clampf(t / 0.06, 0.0, 1.0) * pow(1.0 - t / EDGE_T, 1.5) * (0.22 if _rm() else 0.4)

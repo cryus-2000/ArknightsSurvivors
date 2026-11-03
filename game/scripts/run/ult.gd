@@ -128,7 +128,7 @@ var cutins: Array = []      # 立绘切入条带（HUD 画）：{"id", "name", "
 
 # ---- 统计（批跑汇总 / ult_bench）
 var stats := {"ult": 0, "cult": 0, "combo": 0, "combo_auto": 0, "combo_e": 0, "combo_up": 0, "lit": 0, "miss": 0,
-	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "link_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0,
+	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "link_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0, "full_times": [], "idle_full_s": 0.0,
 	"v2_links": 0, "link_t": []}
 
 
@@ -164,6 +164,7 @@ func _gain(v: float, src: String) -> void:
 	stats["e_" + src] += v
 	if energy >= FULL:
 		full_since = g.t
+		stats.full_times.append(snappedf(g.t, 0.1))   # 每次充满的时刻（runs.jsonl，11-04 查「后半局没再放」）
 		if stats.first_full < 0.0:
 			stats.first_full = g.t
 
@@ -249,10 +250,26 @@ func full() -> bool:
 ## 就绪提醒的声音（用户 11-01「终结技就绪提醒做得更明显」，ult/ready_cue 缺省 1；画面在 hud_ult_v）：能量充满那一刻只响一次——
 ## 轻提示音 ult_ready（比超必杀那声轻、短、柔）+ 队长就绪台词（data/ult_audio.json 的 ready_voice，语音页 picks 里选；没填就不放）
 var _rdy_was := false
+## 满了没放的重复提醒（11-04 用户「只注意到了两次提醒」）：满 ult/remind_first 秒后再提醒一次（徽记闪 + 就绪音，不出字），之后每 ult/remind_every 秒重复。
+## remind_t = 上一次重复提醒的游戏时刻（HUD 读它触发闪光）
+var remind_t := -1.0
+var _remind_n := 0
 
 
-func _ready_tick() -> void:
+func _ready_tick(dt := 0.0) -> void:
 	var f := full()
+	if f and phase == "":
+		stats.idle_full_s += dt   # 满了但没放的总秒数（runs.jsonl）
+		var first: float = Bal.v("ult/remind_first", 10.0)
+		if first > 0.0 and full_since >= 0.0 and g.t >= full_since + first + Bal.v("ult/remind_every", 20.0) * _remind_n:
+			_remind_n += 1
+			remind_t = g.t
+			var rsfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+			if rsfx != null:
+				rsfx.ensure(["ult_ready"])
+				rsfx.play("ult_ready", Bal.v("ult/ready_cue_db", 0.0) + Bal.v("ult/remind_db", -3.0), 1.0, 0.0)
+	elif not f:
+		_remind_n = 0
 	if f and not _rdy_was and phase == "" and Bal.v("ult/ready_cue", 1.0) > 0.0:
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 		var ld = g.squad.leader()
@@ -298,7 +315,7 @@ func tick(dt: float) -> void:
 		_refill_t = g.t
 		energy = FULL
 		full_since = g.t
-	_ready_tick()
+	_ready_tick(dt)
 	_tick_buffs()
 	var tk: float = _tk if phase == "cast" else 1.0   # 只在出招阶段伸缩：瞄准（1.5 秒上限）和招式结束后的余韵照原速
 	_tick_shapes(dt * tk)
@@ -2074,7 +2091,8 @@ func report() -> Dictionary:
 func _report() -> Dictionary:
 	return {"ult": stats.ult, "cult": stats.cult, "combo": stats.combo, "combo_auto": stats.combo_auto, "combo_up": stats.combo_up,
 		"lit": stats.lit, "lit_by": stats.lit_by, "link_by": stats.link_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
-		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1), "hit_n": int(stats.get("hit_n", 0))}
+		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1), "hit_n": int(stats.get("hit_n", 0)),
+		"full_times": stats.get("full_times", []), "idle_full_s": snappedf(float(stats.get("idle_full_s", 0.0)), 0.1)}
 
 # ================================================================ 超必杀暂停（用户 10-30「终结技还不够明显，借鉴 MUGEN / 格斗游戏超必杀，先试试看」）
 ## 开关 ult/superflash（缺省 1，0 = 现行起手）。按下 Q 的瞬间：
