@@ -1,17 +1,18 @@
 // 铃兰身上的狐火回旋（S2 / S3 期间常驻，pixelfx 放开版，docs/242）：1x，原点 = 脚底中心，循环。
-// 原作 lisa_skill_02_buff：两道光带绕身体交叉回旋。本作：两条细火带沿螺旋绕身上升，转到身后变暗一档、在身前最亮，
-// 带子两头收尖、边缘噪声抖；偶尔从带上甩出一颗火星往上飘。layer=back 只画身后半圈，layer=front 只画身前半圈（游戏里分别画在立绘下 / 上）。
-import { fit, clamp, TAU } from "../../core/index.js";
-import { noiseFor, hotFirst, ember, looped } from "./_lib.js";
-import { SCALE, ACC, tongueTip, bladeTip } from "./_suzuran_ul.js";   // 分档体量 + E2 淡紫灵光（组长 B 11-04）
-import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
+// 原作 lisa_skill_02_buff：两道光带绕身体交叉回旋。用户 11-04：火带长条读成触手 → 改成几团圆胖的小狐火绕身打转、一边转一边往上走，
+// 转到身后变暗一档、在身前最亮，各自闪动；不连成带。side=back 只画身后半圈，side=front 只画身前半圈（游戏里分别画在立绘下 / 上）。
+// 分档：E0 ×0.8 / E1 ×1 两团；E2 ×1.2 质变：四团、高低错开成两层，火梢淡紫。
+import { fit, TAU } from "../../core/index.js";
+import { hotFirst, ember, looped } from "./_lib.js";
+import { SCALE, foxClump } from "./_suzuran_ul.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定）
 
 export const meta = {
   name: "Suzuran foxfire swirl unleashed",
-  desc: "Two thin ribbons of foxfire spiralling up around the body, dimmer behind and brightest in front, tapering at both ends, with an ember flicked off now and then.",
+  desc: "A few plump foxfire balls circling the body and climbing as they go, dimmer behind and brightest in front, each flickering.",
   tags: ["fire", "aura", "buff", "foxfire", "loop"],
-  size: [56, 56],
-  origin: [28, 48],
+  size: [56, 60],
+  origin: [28, 52],
   duration: 1.0,
   loop: true,
   fps: 20,
@@ -19,42 +20,33 @@ export const meta = {
   options: { palette: OP.suzuran, layer: "all", elite: 2, side: "both", seed: 6 },
 };
 
-const D = meta.duration, NL = noiseFor(D);
+const D = meta.duration;
 
 export function draw(p, t, o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, ph = t / D;
-  const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
   const front = o.side !== "back", back = o.side !== "front";
-  const el = +o.elite, K = SCALE[el], RX = 14 * K, RY = 5 * K;   // 分档：E2 多一条火带（两带 → 三带）、带梢淡紫
-  // 两条：[起始相位, 起点高, 升高, 跨角, 半宽]
-  const ribbons = [[0, 0, 26 * K, 1.08 * TAU, 2.1 * K], [0.5, -3, 24 * K, 1.04 * TAU, 1.7 * K]];
-  if (el === 2) ribbons.push([0.25, -6, 22 * K, 0.96 * TAU, 1.5 * K]);   // 11-04 §0「不碎」：火带加厚成实心带，不像细线   // 每条绕身体完整一圈多（组长 B 11-04：原来太细、不成圈）
+  const el = +o.elite, K = SCALE[el], RX = 14 * K, RY = 5 * K;
+  // 每团：[相位, 起始高度, 一圈升高, 半径]；一个循环转一圈、升到顶再回到底（接缝处在身后最暗时）
+  const balls = el === 2 ? [[0, 4, 18, 3.4], [0.5, 4, 18, 3.2], [0.25, 18, 12, 2.8], [0.75, 18, 12, 2.7]] : [[0, 4, 18, 3.4], [0.5, 4, 18, 3.2]];
+  const C = { H, t, fps: meta.fps };
   if (core) {
-    ribbons.forEach(([p0, y0, rise, span, w], i) => {
-      const a0 = (ph + p0) * TAU;
-      for (let s = 0; s <= 1; s += 0.004) {
-        const a = a0 + s * span, dep = Math.sin(a), isFront = dep > 0;
-        if ((isFront && !front) || (!isFront && !back)) continue;
-        const x = Math.cos(a) * RX, y = y0 - s * rise + dep * RY;
-        const taper = Math.sin(Math.PI * s) ** 0.7, half = w * taper + 0.35 * N(9, S + i, s * 6);
-        if (half < 0.35) continue;
-        const hot = taper * (isFront ? 1 : 0.6);
-        for (let q = -half; q <= half; q += 0.5) {
-          const e = Math.abs(q) / Math.max(0.5, half);
-          // 亮芯拉长、整体提一档（组长 B 11-04：S2 精一实际镜头下火带几乎看不出）
-          const c = e > 0.7 ? H[isFront ? 4 : 6] : hot > (el === 2 ? 0.92 : 0.45) ? H[isFront ? 0 : 2] : hot > 0.45 ? H[isFront ? 1 : 3] : hot > 0.2 ? H[isFront ? 2 : 4] : H[isFront ? 3 : 5];
-          p.px(x, y + q, el === 2 && s > 0.9 ? ACC[e > 0.6 ? 2 : 1] : c);
-        }
-      }
-    });
+    const list = balls.map(([p0, y0, rise, r0], i) => {
+      const u = (ph + p0) % 1, a = u * TAU, dep = Math.sin(a);
+      return { x: Math.cos(a) * RX, y: -(y0 + rise * u) * K + dep * RY, dep, r: r0 * K * (0.85 + 0.15 * dep), i, u };
+    }).sort((a, b) => a.dep - b.dep);
+    for (const b of list) {
+      if ((b.dep > 0 && !front) || (b.dep <= 0 && !back)) continue;
+      const fade = Math.min(1, Math.min(b.u, 1 - b.u) * 8);   // 升到顶 / 回到底时缩小，接缝不跳
+      foxClump(p, b.x, b.y, b.r * (0.4 + 0.6 * fade), { ...C, seed: S + b.i * 9, tips: b.r > 3 ? 3 : 2, heat: b.dep > 0 ? 1 : 0.6, up: 1.1, acc: el === 2 });
+    }
   }
   if (deco) {
-    if (front) p.glow(0, -16, 16, F[5], 0.12);
+    if (front) p.glow(0, -16 * K, 14 * K, F[5], 0.1);
     looped(t, D, 2, S + 90, (r) => ({ a: r.range(0, TAU), y: -r.range(4, 26), vy: -r.range(10, 24), life: r.range(0.3, 0.6), ph: r.range(0, TAU) }), (q, age) => {
       const dep = Math.sin(q.a);
       if ((dep > 0 && !front) || (dep <= 0 && !back)) return;
-      ember(p, Math.cos(q.a) * RX, q.y + dep * RY + q.vy * age, 1 - age / q.life, 1, [H[0], H[2], H[4], H[6]], q.ph + age * 24);
+      ember(p, Math.cos(q.a) * RX, q.y * K + dep * RY + q.vy * age, 1 - age / q.life, 1, [H[0], H[2], H[4], H[6]], q.ph + age * 24);
     });
   }
 }

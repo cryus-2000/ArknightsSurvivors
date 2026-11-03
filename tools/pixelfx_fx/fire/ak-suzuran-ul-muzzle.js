@@ -1,15 +1,15 @@
 // 铃兰杖头起火（pixelfx 放开版，docs/242）：1x，原点 = 杖头，狐火朝右射出。
-// 原作 lisa_attack_01_start：杖头火团 + 一道朝前的光芒 + 星点。本作：首帧白热的偏心火苗（往前最长）→ 两三条小火舌往前上方舔出就塌 → 一两颗有重量的碎火往下落（11-04 §0：不撒点）；
-// 全是噪声边，不画圆盘。big = 三火归一（E2 每次普攻）：三团小火从三个方向收进杖头再爆亮一次。
-// 分档（非 big）：E0 ×0.8 两条火舌；E1 ×1、爆点两连亮；E2 ×1.2、三条火舌、舌梢淡紫。
+// 首帧白热的偏心火苗（往前最长、噪声边、定帧一两帧）→ 一团圆胖的狐火在杖头跳起、闪动、往上飘着缩小 → 一两颗碎火往下落。
+// 用户 11-04：不画长弯火舌，一律短胖火团。big = 三火归一（E2 每次普攻）：三团小狐火从三个方向收进杖头再爆亮一次。
+// 分档（非 big）：E0 ×0.8 一团；E1 ×1、爆点两连亮；E2 ×1.2、三团扇开、火梢淡紫。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
-import { noiseFor, pnoise, hotFirst, flameBlade, ember, sparkAt, LAYERS, BACK_LAYERS } from "./_lib.js";
-import { SCALE, ACC, tongueTip, bladeTip } from "./_suzuran_ul.js";   // 分档体量 + E2 淡紫灵光（组长 B 11-04）
-import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
+import { pnoise, hotFirst, ember, sparkAt } from "./_lib.js";
+import { SCALE, foxClump } from "./_suzuran_ul.js";
+import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定）
 
 export const meta = {
   name: "Suzuran staff ignition unleashed",
-  desc: "Foxfire kindling at the staff tip: a lopsided white-hot flare leaning forward, a few small tongues licking ahead and collapsing, sparks.",
+  desc: "Foxfire kindling at the staff tip: a lopsided white-hot flare leaning forward, then a plump flickering foxfire ball leaping up and shrinking, an ember falling.",
   tags: ["fire", "muzzle", "cast", "foxfire", "one-shot"],
   size: [56, 48],
   origin: [20, 26],
@@ -20,23 +20,29 @@ export const meta = {
   options: { palette: OP.suzuran, layer: "all", elite: 2, big: 0, quick: 0, seed: 2 },
 };
 
-const NL = noiseFor(0);
-
 export function draw(p, t, o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, big = +o.big > 0, LQ = +o.quick > 0 ? 0.5 : 1, el = big ? 2 : +o.elite, K = big ? 1 : SCALE[el];
-  const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
   const T0 = big ? 0.12 : 0;   // big：前 0.12 s 三团收进来
   const u = clamp((t - T0) / (meta.duration - T0)), pop1 = t - T0 < 0.045 ? 1 : 1 - clamp((t - T0 - 0.045) / 0.06);   // 定帧：头一两帧满白热
   const pop2 = !big && el >= 1 && t - T0 > 0.11 && t - T0 < 0.17 ? 0.7 * (1 - clamp((t - T0 - 0.11) / 0.06)) : 0, pop = Math.max(pop1, pop2);   // E1 / E2 第二下
+  const C = { H, t, fps: meta.fps };
   if (core) {
     if (big && t < T0 + 0.02) {
       const k = ease.inQuad(clamp(t / T0));
       for (const [a, i] of [[2.2, 0], [-2.4, 1], [0.9, 2]]) {
-        const r = 16 * (1 - k), x = Math.cos(a) * r, y = Math.sin(a) * r * 0.7;
-        flameBlade(p, x, y, -Math.cos(a) * 0.3, -1, 6 + 3 * k, 2.2, 0, N, S * 3 + i, H, LAYERS, 0.4, 0.8);
+        const r = 16 * (1 - k);
+        foxClump(p, Math.cos(a) * r, Math.sin(a) * r * 0.7, 3 + 1.2 * k, { ...C, seed: S * 3 + i, tips: 2, up: 1 });
       }
     }
+    // 火团：杖头跳起、往前上方飘、缩小冷却（E2 / big 三团扇开）
+    const balls = big ? [[-0.9, 9, 5.2], [-0.35, 12, 4.4], [0.25, 9, 3.8]] : el === 2 ? [[-1.0, 8 * K, 3.6 * K], [-0.4, 10 * K, 4.2 * K], [0.2, 8 * K, 3.2 * K]] : [[-0.45, 9 * K, 4.2 * K]];
+    balls.forEach(([a, d, r0], i) => {
+      const v = clamp((t - T0 - 0.02 - 0.012 * i) / (meta.duration - T0)), g = ease.outCubic(clamp(v / 0.4));
+      if (v <= 0 || v >= 1) return;
+      const rr = r0 * (0.6 + 0.4 * ease.outCubic(clamp(v / 0.2))) * (1 - 0.6 * ease.inQuad(clamp((v - 0.4) / 0.6)));
+      foxClump(p, 2 + Math.cos(a) * d * g, Math.sin(a) * d * g - 3 * v, rr, { ...C, seed: S * 9 + i, tips: rr > 3 ? 3 : 2, heat: 1 - 0.7 * v, up: 1.1, lean: 0.25, acc: el === 2 && !big });
+    });
     if (t >= T0 && pop > 0) {
       const R = (big ? 5.5 : 4 * K) * (0.65 + 0.35 * pop) * (pop2 > pop1 ? 0.75 : 1);
       p.shade(-R * 1.3, -R * 1.3, R * 2.6, R * 1.3, (x, y) => {
@@ -46,14 +52,6 @@ export function draw(p, t, o) {
         return pop > 0.5 ? (h > 0.45 ? H[0] : H[2]) : h > 0.4 ? H[1] : H[3];
       });
     }
-    // 小火舌：往前上方舔出就塌
-    const licks = big ? [[-0.35, 13], [0.05, 17], [0.45, 11]] : el === 2 ? [[-0.45, 10 * K], [0.05, 13 * K], [0.5, 9 * K]] : [[-0.4, 10 * K], [0.1, 13 * K]];
-    licks.forEach(([a, len], i) => {
-      const v = clamp((t - T0 - 0.01 * i) / (meta.duration - T0)), g = ease.outCubic(clamp(v / 0.3)) * (1 - ease.inQuad(clamp((v - 0.3) / 0.7)));
-      const bw = 2 * K * (0.5 + 0.5 * g), bd = -2 + N(3, S + i) * 2, LY = v < 0.45 ? LAYERS : BACK_LAYERS;
-      if (g > 0.06) flameBlade(p, 1, 0, Math.cos(a), Math.sin(a) - 0.25, len * g, bw, bd, N, S * 9 + i, H, LY, 0.35, 1.0);
-      if (g > 0.3 && el === 2 && !big) bladeTip(p, 1, 0, Math.cos(a), Math.sin(a) - 0.25, len * g, bw, bd, N, S * 9 + i, LY, 0.35, 1.0);
-    });
   }
   if (deco && t >= T0) {
     p.glow(3, 0, big ? 10 : 7, F[6], (big ? 0.3 : 0.2) * (1 - u) * (1 - u));

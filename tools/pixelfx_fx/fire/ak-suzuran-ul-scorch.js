@@ -3,7 +3,7 @@
 // 偶尔窜起一条很矮的火苗；颜色压在暖橙的暗半段，和队友脚下的狐火印记（亮、带小火苗）分开。游戏按 e.r ÷ 12（0.8–2.0）缩放。
 import { fit, TAU } from "../../core/index.js";
 import { noiseFor, pnoise, hotFirst, flameTongue, LAYERS } from "./_lib.js";
-import { SCALE, ACC, tongueTip, bladeTip } from "./_suzuran_ul.js";   // 分档体量 + E2 淡紫灵光（组长 B 11-04）
+import { SCALE, foxClump } from "./_suzuran_ul.js";   // 分档体量 + E2 淡紫灵光（组长 B 11-04）
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定）
 
 export const meta = {
@@ -42,11 +42,8 @@ export function draw(p, t, o) {
     }
     // 偶尔一条很矮的火苗（一个循环里窜一次）
     const u = (ph * 1 + 0.3) % 1, g = u < 0.35 ? Math.sin(Math.PI * u / 0.35) : 0;
-    if (g > 0.1) flameTongue(p, 2, 0, 6 * K * g, 1.4 * K, 1, N, S * 3, H, LAYERS, 0.3, 0.6);
-    if (g > 0.1 && el === 2) {
-      flameTongue(p, -3, 0.5, 4.5 * K * g, 1.2 * K, -1, N, S * 3 + 1, H, LAYERS, 0.3, 0.6);
-      if (g > 0.3) tongueTip(p, 2, 0, 6 * K * g, 1.4 * K, 1, N, S * 3, LAYERS, 0.3, 0.6), tongueTip(p, -3, 0.5, 4.5 * K * g, 1.2 * K, -1, N, S * 3 + 1, LAYERS, 0.3, 0.6);
-    }
+    if (g > 0.1) foxClump(p, 2, -2 * K * g, 2.4 * K * g, { H, t, fps: meta.fps, seed: S * 3, tips: 2, heat: 0.6 + 0.4 * g, sq: 0.8, acc: el === 2 });   // 一团很矮的小狐火（用户 11-04：短胖火团）
+    if (g > 0.1 && el === 2) foxClump(p, -3, -1.6 * K * g, 1.9 * K * g, { H, t, fps: meta.fps, seed: S * 3 + 1, tips: 2, heat: 0.6 + 0.4 * g, sq: 0.8, acc: true });
   }
   if (deco) p.glow(0, 0, 8, F[5], 0.1 + 0.06 * Math.sin(TAU * ph * 2));
 }
