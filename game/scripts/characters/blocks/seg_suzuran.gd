@@ -106,7 +106,7 @@ static func _h4_fox_start(o, a: Dictionary) -> void:
 	o.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 	sz.merging = _h4_next_merge(o, a) and not _h4_patch_pending(o)
 	o.start_attack(ts[0].pos, 0.5, 0.25, "", o.cd)
-	if sz.merging:
+	if sz.merging and not _h4_px(o):   # 放开版：汇聚由 _h4sz_draw_over 杖头小狐火画
 		o.spawn_fx_sprite("fx_suzuran_foxfire_gather", _h4_tip(o, a), o.g.PX * 0.9)   # 三团狐火汇聚（原作：三团狐火合而为一再射出）
 
 
@@ -150,11 +150,19 @@ static func _h4_fox_release(o, a: Dictionary) -> void:
 		var d: Vector2 = (tg.pos - o.pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
 		var b := {"kind": "arcane", "pos": from, "vel": d * float(a.get("speed", 330.0)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o._dmg_bonus() * (o.vs_elite() if tg.elite or tg.boss else 1.0),
 			"life": float(a.get("life", 1.6)), "r": float(a.get("bullet_r", 7.0)), "aoe": float(a.get("aoe", 26.0)), "home": tg, "turn": float(a.get("turn", 7.0)), "src": str(a.get("src", "")), "op": o.id, "fx_col": H4_FOX, "hidden": true, "etrail": 0.0}
+		if _h4_px(o):   # 放开版（§14.10）：命中画面由本人帧条画（_h4_px_hits），weapons 跳过通用环 / 火花
+			b["px_hit"] = true
+			if sz.get("px_b", []).size() < 64:
+				sz["px_b"] = sz.get("px_b", []) + [b]
 		g.bullets.append(b)
 		if not sl.is_empty():
 			sz.sealed.append(b)   # 画地为牢：命中由 game 结算，这里记住弹体，下一帧看它是否撞上了敌人
 		_h4_fox_track(o, a, b)   # 精英化第 4 批（狐火灼印）的挂点；迁移时没有
-	o.fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": H4_FOX, "alpha": 0.5})
+	if _h4_px(o):   # 放开版：杖头起火 muzzle（不画圆光团）
+		if n > 0:
+			_h4_px_once(o, "fx_suzuran_ul_muzzle", from, (ts[0].pos - from).angle())
+	else:
+		o.fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": H4_FOX, "alpha": 0.5})
 	_h3_sfx(o, "atk")
 
 
@@ -318,7 +326,10 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 		b.etrail = b.get("etrail", 0.0) - dt
 		if b.etrail <= 0.0:
 			b.etrail = 0.05
-			o.fx({"kind": "flame", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.08 + Vector2(0, -14), "life": 0.25, "col": H4_FOX, "sz": 7.0})
+			if not _h4_px(o):   # 放开版：弹体帧条自带火星，不另甩火苗
+				o.fx({"kind": "flame", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.08 + Vector2(0, -14), "life": 0.25, "col": H4_FOX, "sz": 7.0})
+	if not sz.get("px_b", []).is_empty():
+		_h4_px_hits(o, sz)
 	_h4_bigfox_tick(o, sz, a, dt)
 	_h4_seals_tick(o, sz, a, dt)
 	_h4_brand_tick(o, sz, a, dt)   # 精英化第 4 批（狐火灼印 / 狐火拖尾）的挂点；迁移时没有
@@ -628,6 +639,24 @@ static func _h4_px_loop(o, base: String, p: Vector2, sc: float, ph: float, al: f
 		fx_frame(o.cv, g, nm, int(fr[0]), int((g.t + ph) * float(fr[1])), p, g.PX * sc, Color(1, 1, 1, al * (dk if layer == "deco" else 1.0)))
 
 
+## 放开版狐火命中：px_b 里的弹体 life 被 game 结算置 0 = 命中（< 0 = 飞满寿命没打中），在命中点放 hit 帧条（精英档 / 队友 _tm / 种子变体 2 走 px_ul_tex）；只改画面
+static func _h4_px_hits(o, sz: Dictionary) -> void:
+	var keep: Array = []
+	for b in sz.px_b:
+		if float(b.life) > 0.0:
+			keep.append(b)
+		elif float(b.life) == 0.0:
+			var g = o.g
+			var vv: int = 1 + int(g.vrng.randf() * 2.0) if o.is_leader else 1
+			var el: int = g.vfx.px_ul_el(o)
+			var fl: bool = b.vel.x < 0.0
+			var dn: String = g.vfx.px_ul_tex("fx_suzuran_ul_hit", vv, not o.is_leader, "deco", el)
+			if dn != "" and g.vfx.px_deco_k(o) > 0.0:
+				g.vfx.fx_sprite(dn, b.pos, g.PX, 0.0, fl, false, Color(1, 1, 1, g.vfx.px_deco_k(o)))
+			g.vfx.fx_sprite(g.vfx.px_ul_tex("fx_suzuran_ul_hit", vv, not o.is_leader, "core", el), b.pos, g.PX, 0.0, fl)
+	sz.px_b = keep
+
+
 ## 放开版一次性帧条：先装饰（× px_deco_k）后核心，ang = 朝向（帧条正右为前），flip = 左右翻
 static func _h4_px_once(o, base: String, p: Vector2, ang := 0.0, flip := false) -> void:
 	var g = o.g
@@ -832,6 +861,12 @@ static func _h4sz_draw_over(o) -> void:
 			cv.draw_circle(f.pos, 9.0, Color(2.4, 2.0, 1.2))
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("op", "") != o.id or b.kind != "arcane":
+			continue
+		if _h4_px(o):   # 放开版：狐火弹体 fox（E0 一条火舌尾 / E1 多一缕狐尾 / E2 两缕），随速度转向，不画圆光团
+			for layer in ["deco", "core"]:
+				var fn: String = g.vfx.px_ul_tex("fx_suzuran_ul_fox", 1, not o.is_leader, layer, g.vfx.px_ul_el(o))
+				if fn != "" and g.V6_FRAMES.has(fn) and (layer == "core" or g.vfx.px_deco_k(o) > 0.0):
+					fx_frame(cv, g, fn, int(g.V6_FRAMES[fn][0]), int(g.t * float(g.V6_FRAMES[fn][1]) + b.pos.x * 0.05), b.pos, g.PX, Color(1, 1, 1, g.vfx.px_deco_k(o) if layer == "deco" else 1.0), Vector2(-1, -1), b.vel.angle())
 			continue
 		cv.draw_circle(b.pos, 10.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
 		if g.tex.get("proj_foxfire") != null:

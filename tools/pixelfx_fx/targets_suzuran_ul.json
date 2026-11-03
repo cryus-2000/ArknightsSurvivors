@@ -15,5 +15,13 @@
  "fx_suzuran_ul_trail2": {"fx": "fire/ak-suzuran-ul-trail", "opts": {"seed": 8}, "colors": 256, "layers": true, "move": "basic"},
  "fx_suzuran_ul_bigfox": {"fx": "fire/ak-suzuran-ul-bigfox", "opts": {"seed": 9}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
  "fx_suzuran_ul_muzzle_big": {"fx": "fire/ak-suzuran-ul-muzzle", "opts": {"big": 1, "seed": 2}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
- "fx_suzuran_ul_hit": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 5}, "colors": 256, "lo": true, "layers": true, "move": "basic"}
+ "fx_suzuran_ul_hit": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 5}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_fox": {"fx": "fire/ak-suzuran-ul-fox", "opts": {"elite": 2, "seed": 3}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_fox_e1": {"fx": "fire/ak-suzuran-ul-fox", "opts": {"elite": 1, "seed": 3}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_fox_e0": {"fx": "fire/ak-suzuran-ul-fox", "opts": {"elite": 0, "seed": 3}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_muzzle": {"fx": "fire/ak-suzuran-ul-muzzle", "opts": {"big": 0, "seed": 2}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_hit2": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 11}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_hit_tm": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 5, "quick": 1}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_hit_e1": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 1, "seed": 5}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_hit_e0": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 0, "seed": 5}, "colors": 256, "layers": true, "move": "basic"}
 }
