@@ -63,7 +63,7 @@ export function create(o) {
       t += dt;
       if (!hit && t >= HIT) {
         hit = true;
-        lights.add(0, 0, 50, C[5], 0.6, 0.25);
+        lights.add(0, -2, 14, C[5], 0.5, 0.14);   // 小光：大圆光在游戏里读成一个半透明圆盘（§12.3），光改沿裂缝走
         if (deco) {
           for (let i = 0; i < [14, 20, 28][el]; i++) {   // 碎石 / 火星：往外上方抛，落回（俯视里往外飞、往下坠）
             const a = Rg.range(0, Math.PI * 2), sp = Rg.range(60, 200);
@@ -117,8 +117,8 @@ export function create(o) {
         for (let i = 0; i < 3; i++) p.line(V[i][0], V[i][1] * SY - 3, V[(i + 1) % 3][0], V[(i + 1) % 3][1] * SY - 3, u < 0.06 ? C[6] : J[clamp(Math.round(4 - u * 8), 2, 4)], k);
       }
       if (deco) {
-        const gk = [0.3, 0.4, 0.55][el] * (1 - smooth(0.02, 0.15 + TAIL * 0.3, u));
-        if (gk > 0.01) p.glow(0, -2, R * 0.6, C[4], gk);
+        const gk = [0.18, 0.24, 0.32][el] * (1 - smooth(0.02, 0.15 + TAIL * 0.3, u));   // 光晕沿主缝走（不画圆心大光盘，§12.3）
+        if (gk > 0.01) for (const segs of cracks) { const q = segs[0]; if (q) p.glow((q[0] + q[2]) / 2, (q[1] + q[3]) / 2, 7, C[4], gk); }
         // E2 鬼火：从主缝末端窜起
         for (const f of flames) {
           const v0 = u - f.d;

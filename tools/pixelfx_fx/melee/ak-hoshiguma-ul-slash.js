@@ -44,7 +44,7 @@ export function create(o) {
       t += dt;
       if (!fired && t > SW * 0.6) {
         fired = true;
-        lights.add(Math.cos(half) * R, Math.sin(half) * R, 16, C[5], 0.35, 0.12);
+        lights.add(Math.cos(half) * R, Math.sin(half) * R, 10, C[5], 0.35, 0.12);
         if (deco) {
           const n = [4, 6, 8][el];   // 普攻克制：火星少
           for (let i = 0; i < n; i++) {

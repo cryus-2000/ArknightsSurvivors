@@ -59,7 +59,7 @@ export function create(o) {
       t += dt;
       if (!burst && t >= RUN * 0.5) {
         burst = true;
-        lights.add(L * 0.7, 0, 30, C[5], 0.55 * GK / 0.5, 0.2);
+        lights.add(L * 0.7, 0, 14, C[5], 0.45 * GK / 0.5, 0.16);
         if (deco) {
           // 火星：两侧甩出，角度集中在法线 ±0.8、略往前（出手方向），速度 / 寿命随机
           const n = [10, 16, 26][el];
@@ -82,7 +82,7 @@ export function create(o) {
               const x = Rg.range(L * 0.5, L), a = Rg.range(-1.3, 1.3), sp = Rg.range(90, 230);
               ps.spawn(P.MOTE, x, Rg.range(-HW, HW) * 0.4, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.25, 0.45), C[4 + Rg.int(0, 1)], Rg.range(0.8, 1.4));
             }
-            for (let i = 0; i < 6; i++) ps.spawn(P.VAPOUR, Rg.range(10, L), Rg.range(-HW, HW), Rg.range(-10, 30), Rg.range(-20, 20), Rg.range(0.4, 0.6), C[3], Rg.range(4, 8), Rg.range(0, 0.1));
+            for (let i = 0; i < 6; i++) ps.spawn(P.VAPOUR, Rg.range(10, L), Rg.range(-HW, HW), Rg.range(-10, 30), Rg.range(-20, 20), Rg.range(0.4, 0.6), C[3], Rg.range(2, 4), Rg.range(0, 0.1));
           }
         }
       }

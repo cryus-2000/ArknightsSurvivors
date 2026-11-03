@@ -37,7 +37,7 @@ export function draw(p, t, o) {
           p.blend(x0 + sway + e, by - d, J[clamp(Math.round(4 - v * 2.8 - Math.abs(e) * 0.6), 1, 4)], (0.8 - v * 0.5) * life);
       }
     }
-    p.glow(0, -4, 34, C[3], 0.22 + 0.06 * Math.sin(ph * TAU));
+    for (const [x, y] of V) p.glow(x, y, 8, C[4], 0.14 + 0.05 * Math.sin(ph * TAU));   // 光只挂在盾角，不画整面圆光（§12.3）
   }
   if (core) {
     const L = V.map((v, i) => Math.hypot(V[(i + 1) % 3][0] - v[0], V[(i + 1) % 3][1] - v[1])), tot = L[0] + L[1] + L[2];

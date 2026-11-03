@@ -82,7 +82,7 @@ export function create(o) {
         }
       }
       if (core && fade > 0 && (kind === 1 || kind === 3)) sigil(p, fade, kind === 1 ? -10 : 0);
-      if (deco) { p.glow(0, -6, 26, kind === 3 ? J[3] : C[4], 0.25 * fade); ps.draw(p); }
+      if (deco) ps.draw(p);   // 不画脚下大光盘（游戏里读成圆形气泡，§12.3）
     },
   };
 }
