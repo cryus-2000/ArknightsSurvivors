@@ -1050,7 +1050,7 @@ static func _ho_start(u, o) -> Dictionary:
 	var R: float = Bal.v("ult/ho_r", 502.0)
 	var pr: float = Bal.v("ult/ho_pull_r", 438.0)
 	var hold: float = Bal.v("ult/ho_hold", 1.5)
-	var col: Color = u._col(o)
+	var col: Color = HO_STEEL if _ho_ul(u) else u._col(o)   # 放开版：盾阵线改钢色（星熊主题金撞经验结晶暖金，README §4）
 	o.play_vis_anim("attack")
 	o.screen_shake(0.6)
 	var pul: bool = _ho_ul(u)
@@ -1101,7 +1101,7 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 	var c: Vector2 = a.c
 	var R: float = a.R
 	var hold: float = a.hold
-	var col: Color = u._col(o)
+	var col: Color = HO_STEEL if _ho_ul(u) else u._col(o)
 	var rc: float = a.rc
 	if t < hold:
 		g.invuln = maxf(g.invuln, 0.2)   # 挡的期间队长无敌
@@ -1200,6 +1200,9 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 
 ## 星熊 v2（ult/ho_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：盾砸地顿帧 + 盾下地面碎裂整张（fx_hs_crack），格挡每跳裂开一圈；
 ## 反震顿帧 + 石尘冲击环（fx_hs_ring）+ 粒子 + 四拍隆起；盾阵六边形照旧（形状一眼是盾阵）。灰黑断裂，不用凯尔希的红缝
+const HO_STEEL := Color(0.72, 0.78, 0.86)   # 放开版盾阵线色（PRTS 黑钢盾的高光钢灰）
+
+
 static func _ho_v3() -> bool:   # 打击感（10-31，pixfx §6.6）：反震冲击帧 + 逐帧烟尘；0 = 10-30 版
 	return Bal.v("ult/ho_fx_v3", 1.0) > 0.0
 

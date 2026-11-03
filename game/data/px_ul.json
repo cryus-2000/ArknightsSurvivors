@@ -66,6 +66,30 @@
 					"fit": 47.0
 				}
 			},
+			"般若之重": {
+				"base": "fx_hoshiguma_ul_slam",
+				"variants": 2,
+				"draw": {
+					"fit": 75.0,
+					"y": 2.0
+				}
+			},
+			"盾墙反震": {
+				"base": "fx_hoshiguma_ul_slam",
+				"variants": 2,
+				"draw": {
+					"fit": 75.0,
+					"y": 2.0
+				}
+			},
+			"热砂沸腾": {
+				"base": "fx_hoshiguma_ul_thorn",
+				"variants": 2,
+				"draw": {
+					"fit": 40.0,
+					"y": 2.0
+				}
+			},
 			"举盾反击": {
 				"base": "fx_hoshiguma_ul_slam",
 				"variants": 2,
