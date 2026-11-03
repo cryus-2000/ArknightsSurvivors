@@ -470,6 +470,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 干员 JSON 任何积木的 fx 列表里可以写 `{"px": "fx_<人>_ul_<名>", "at", "off", "fit" / "scale", "rot", "face_x", "skill", "variants", "cond", "every"}`：
 - 帧条名走 `vfx.px_ul_tex`（种子变体只给队长、队友 `_tm`、精英档、缺图回退都同 §11.1 第 5 条），先画装饰层（× px_deco_k）再画核心层。
 - `at` 只能是 center / self / leader / zone / hits；`skill` = 有命中时队长定格取注册表 `pause` 的技能档。
+- `ground: true` = 贴地画面（optical 不自动补火星 / 颗粒，例：安洁莉娜失重井）。
 - `rot`：`true` 或 `"vel"` = 随出手 / 飞行方向转（帧条正右对准方向）；`"face"` = 不转、朝左时水平翻（标记类）；缺省不转。
 - 旧画面条目写 `"cond": "!px_ul"` 关掉。形状被注册表接管时，`px` 条目照常播（`ob_core.px_keep`）。
 
@@ -503,7 +504,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 
 ### 14.10 弹体命中跳过通用画面 `px_hit`
 `weapons.bullet_hit`：弹体字典带 `"px_hit": true`、带 `"op": <干员 id>`，且这名干员在注册表里有条目（开关打开）时，跳过通用命中画面（法术团爆炸 / 爆炸贴图 / 火花、法术弹 `fx_arcane_hit` / 环 / 火花、普通弹 `fx_bullet_hit` / 火花），命中画面由本人的放开版帧条画。伤害、控制、音效照旧。铃兰先用。
-命中帧条写注册表 `"bullet": {"hit": {base, y, sc}}`（命中处先装饰后核心）；弹体本身用 `remap` 换（例 `"proj_arcane": "fx_suzuran_ul_fox"`，§14.14）。
+命中帧条写注册表 `"bullet": {"hit": {base, y, sc, variants, flip}}`（命中处先装饰后核心；`variants` 队长随机取种子变体，`flip: true` 弹体朝左飞时左右翻）；弹体本身用 `remap` 换（例 `"proj_arcane": "fx_suzuran_ul_fox"`，§14.14）。
 
 ### 14.11 召唤物接管（格式照凯尔希 11-04 提案）
 注册表 `"summons": {"<召唤物 kind>": {…}}`（kind 同干员 JSON 里召唤物的 kind，例 `mon3tr`）：
@@ -584,3 +585,7 @@ python tools/px_trace_ab.py <干员> [--squad a,b] [--cases late,ult] [--jobs 4]
 - 同一份代码，fx/px_unleashed 0 / 1 各跑两局：后期局 seed 13、560 秒；终结技局 seed 7、240 秒（`--maxprog --sptest`，第 20 秒充满终结技）。都带 `--nodeath`。
 - TRACE 行必须逐行相同；BALANCE 汇总行去掉纯画面统计（同屏峰值 `peak` / `peak_min`、性能计数 `prof` / `fx_peak` / `draw`）后也要相同。全过打印 `PX_TRACE_AB PASS`、退出码 0。
 - **放云端例行任务跑**（总组长 11-04：本机只留录像和单次快检）。例行任务的指令写：检出本人分支 → `bash tools/cloud/setup_linux.sh` → `python3 tools/px_trace_ab.py <干员> --out cloud-results/px_trace_ab_<干员>.json` → 把结果推回 `cloud-results/`。交付时报 PASS 行和结果文件。
+
+### 14.22 通用刀光弧兜底与注册表检查（组长 11-04）
+- 放开版下，注册表里有条目的干员**缺省不画通用刀光弧**（vfx.melee_arc）。原来没登记的判定段会画一道主题色粗弧，星熊的暖金和结晶撞色（§12.6）。要恢复通用弧，注册表写 `"arc": true`；`no_arc` 照旧。
+- `python tools/px_ul_lint.py [干员,…]`：列出注册表里有条目的干员，干员 JSON 里没在 `shapes` 登记（按 `px_key`，没有再按 `src`）、也没写 `"px_ul": false` 的圆形 / 锥形判定段（这些段放开版下没有刀光画面），以及注册表登记了但 JSON 里找不到的 src。交付前跑一遍，警告要么登记、要么写明不需要。

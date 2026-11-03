@@ -64,6 +64,7 @@ var mate_on := false              # render/mate_layer 开着（缺省关）：�
 var ol_mul := 1.0                 # 普通怪描边透明度系数（随 ecrowd 降到 declutter ol_floor；原来写死 0.4）
 var _lamp_rim := false              # 朝灯边缘亮线原型（balance render/rim > 0 且白色保护材质在）：敌人本体绘制的 alpha 取负作标记，actor_light.gdshader 认
 var flash_a := 0.9                # 普通怪受击白闪透明度（随 ecrowd 从 0.9 降到 declutter flash_a）
+var hf_k := 1.0                    # pixelfx 放开版整身受击白闪系数（balance fx/px_hitflash_k，放开版关掉时恒 1；组长 11-04 提案）
 var gem_qa := 0.7                 # 远处安静结晶的透明度（declutter gem_quiet_a 随拥挤度插值；缺省 0.7 = 不变）
 var tell_fill := 1.0              # 预警填充透明度系数（declutter tell_fill_k；只压填充，轮廓不动）
 var tell_edge := 1.0              # 预警轮廓线宽系数（declutter tell_edge_k；深色描边 + 白芯一起加粗）
@@ -266,6 +267,8 @@ func update_visuals(dt: float) -> void:
 	var fg: float = Bal.v("fx/flash_group", 6.0)
 	if nfl > fg:
 		flash_a *= maxf(Bal.v("fx/flash_group_floor", 0.35), fg / float(nfl))
+	hf_k = clampf(Bal.v("fx/px_hitflash_k", 1.0), 0.0, 1.0) if Bal.vi("fx/px_unleashed", 0) > 0 else 1.0   # 只压整身白闪；命中三档 / 暴击金火花 / 弱点着色不动
+	flash_a *= hf_k
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	elite_rim = clampf(Bal.v("render/elite_rim", 0.55), 0.0, 1.0)
 	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
@@ -2745,17 +2748,17 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 			var rf := Rect2(-size * anc, size)
 			g.draw_texture_rect_region(ra[0], rf, src, _rimc(c[11] * _act_mod))
 			if rw != null:
-				g.draw_texture_rect_region(rw[0], rf, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
+				g.draw_texture_rect_region(rw[0], rf, src, Color(1, 1, 1, 0.9 * hf_k if e.elite else flash_a) * _act_mod)
 			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		else:
 			var rn := Rect2((p - size * anc).round(), size)
 			g.draw_texture_rect_region(ra[0], rn, src, _rimc(c[11] * _act_mod))
 			if rw != null:
-				g.draw_texture_rect_region(rw[0], rn, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
+				g.draw_texture_rect_region(rw[0], rn, src, Color(1, 1, 1, 0.9 * hf_k if e.elite else flash_a) * _act_mod)
 	else:
 		_espr(body, frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
 		if e.flash > 0.0:
-			_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
+			_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 * hf_k if e.elite else flash_a), anc, Vector2.ONE)
 	if g.optical_on and _rec == null:
 		_glow_pts(body, frames, bpos + g.draw_off, sc, flip, anc, e, frame)
 	if _rec == null and e.affix != "":
@@ -3246,7 +3249,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e, frame)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
-		var hit_a: float = g.vfx.boss_flash_alpha(e, Bal.v("fx/flash_boss", 0.5)) if e.boss else (0.9 if e.elite else flash_a)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）、限频淡出（docs/137）
+		var hit_a: float = g.vfx.boss_flash_alpha(e, Bal.v("fx/flash_boss", 0.5)) * hf_k if e.boss else (0.9 * hf_k if e.elite else flash_a)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）、限频淡出（docs/137）
 		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, hit_a), anc, sq)
 	elif e.boss and _rec == null and g.tex.has(name + "_white"):
 		# Boss 登场：先是白剪影、0.15–0.7 秒亮成本体（screens/boss_intro.gd；Boss 不进画法缓存，docs/50 §9.9）
