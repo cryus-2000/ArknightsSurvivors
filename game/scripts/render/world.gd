@@ -738,7 +738,7 @@ func _draw_pickups_fast() -> void:
 	var vr: Rect2 = view_rect(40.0)
 	gem_qa = lerpf(0.7, Dc.p("gem_quiet_a"), dcrowd)
 	var n_all: int = g.gems.size()
-	var crowd_gems: bool = n_all > GEM_MERGE_N
+	var crowd_gems: bool = n_all > Bal.vi("render/gem_merge_n", GEM_MERGE_N)
 	var many: bool = n_all > 60
 	var pp: Vector2 = g.ppos
 	var tgt: Vector2 = pp + Vector2(0, -12)
@@ -785,6 +785,17 @@ func _draw_pickups_fast() -> void:
 		glow_b0 = Color(pu.r * 1.6, pu.g * 1.6, pu.b * 1.6, 0.2)
 		glow_b1 = Color(pu.r * 2.0, pu.g * 2.0, pu.b * 2.0, 0.26)
 	const NEAR2 := 170.0 * 170.0
+	# 结晶两档亮度（11-04 用户「结晶得发光，和地面要有足够的区分度和对比色」）：
+	# 静止（没被吸起、离队长超过 render/gem_near_r）——常亮，只画一圈紧贴结晶的小光晕（不铺大片光雾），十字闪光只偶尔闪
+	# （render/gem_spark_rest 闪的比例）；靠近队长或被吸起——照旧两圈光晕 + 闪光，颜色再亮一档（render/gem_near_k）。
+	# 不再按「远处安静」压暗。render/gem_rest = 0 回到旧画法
+	var rest_on: bool = Bal.vi("render/gem_rest", 1) > 0
+	var near_r: float = Bal.v("render/gem_near_r", 110.0)
+	var near2: float = near_r * near_r
+	var near_k: float = Bal.v("render/gem_near_k", 1.15)
+	var spark_rest: float = Bal.v("render/gem_spark_rest", 0.12)
+	if rest_on:
+		many = false   # 不再走「远处安静」的压暗
 	for g_item in g.gems:
 		var pos: Vector2 = g_item.pos
 		if not vr.has_point(pos):
@@ -802,6 +813,7 @@ func _draw_pickups_fast() -> void:
 			if gz > 1.0:
 				_pq_air_shadow(pos, gz)
 			var quiet: bool = many and far
+			var rest: bool = rest_on and not mag and gz <= 1.0 and pos.distance_squared_to(pp) > near2
 			var tw: float = 0.75 + 0.25 * sin(tw_t + g_item.seed)
 			var gp: Vector2 = pos + Vector2(0, (sin(bob_t + pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
 			if mag:
@@ -810,20 +822,24 @@ func _draw_pickups_fast() -> void:
 				var tl: float = 10.0 + 24.0 * minf(1.0, g_item.mag_t * 2.0)
 				_gt_line(gp, gp + dv * tl * GEM_VIS, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), (5.0 if big else 3.0) * GEM_VIS)
 				_gt_line(gp, gp + dv * tl * 0.6 * GEM_VIS, Color(2.5, 2.5, 2.5, 0.7), 1.5 * GEM_VIS)
-			if not quiet:
+			if rest:
+				_gt_circle(gp, (7.0 if big else 5.0) * GEM_VIS, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)   # 静止：一圈紧贴的小光晕
+			elif not quiet:
 				_gt_circle(gp, (13.0 if big else 9.0) * tw * GEM_VIS, glow_b0 if big else glow_s0, _gt_fan14, _gt_c42)
 				_gt_circle(gp, (7.0 if big else 4.5) * tw * GEM_VIS, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)
 			_gt_circle(gp + Vector2(0, 1), (6.5 if big else 4.5) * GEM_VIS, dark, _gt_fan10, _gt_c30)
 			var gcol: Color = quiet_col if quiet else (lit_b if big else lit_s)
 			if mag and lit_m.r >= 0.0:
 				gcol = lit_m.lerp(lit_b, 0.35) if big else lit_m
+			elif rest_on and not rest:
+				gcol = Color(gcol.r * near_k, gcol.g * near_k, gcol.b * near_k, gcol.a)   # 靠近队长：再亮一档
 			if big:
 				big_p.append(gp)
 				big_c.append(gcol)
 			else:
 				small_p.append(gp)
 				small_c.append(gcol)
-			if not quiet:
+			if not quiet and (not rest or fposmod(g_item.seed * 0.618, 1.0) < spark_rest):
 				spark.append([gp, (2.0 + 1.5 * tw) * GEM_VIS, tw])
 			continue
 		# 落地的源石锭 / 灯油（不吸的时候数量可能上百）：先收集，循环后按贴图连续画（同 vfx.spr 的算式；画在结晶光晕批之前，同旧写法的前后关系）
@@ -863,7 +879,7 @@ func _draw_pickups_fast() -> void:
 			mp_s.append(cp)
 	var qc := PackedColorArray()
 	qc.resize(maxi(mp_s.size(), mp_b.size()))
-	qc.fill(quiet_col)
+	qc.fill(lit_s if rest_on else quiet_col)
 	_gem_sprites("gem_small", Game.PX, mp_s, qc)
 	_gem_sprites("gem_big", Game.PX, mp_b, qc)
 
@@ -995,6 +1011,10 @@ const GEM_TINT := [
 	# 6 亮紫带白芯：色相约 0.76；敌弹已改青蓝，紫让出来了；危险色是洋红偏红（0.95），紫偏蓝一侧
 	[Color(0.83, 0.6, 1.21), Color(0.74, 0.43, 1.21), Color(1.3, 1.1, 1.5), Color(0.7, 0.55, 0.85),
 		Color(0.8, 0.5, 1.0), Color(0.7, 0.35, 1.0), Color(1.75, 1.6, 1.8)],
+	# 7 暖金尖晶（11-04 用户「结晶得发光，和地面要有足够的区分度和对比色」）：配淡金白尖晶贴图，贴图自带色阶，调色只轻微提亮；
+	# 地面深蓝 / 青绿，结晶走暖色（淡金到琥珀），亮面近白，光晕暖金——和青色敌弹、薄荷色地面晶石拉开
+	[Color(1.08, 1.04, 0.96), Color(1.16, 1.08, 0.9), Color(1.4, 1.32, 1.12), Color(0.95, 0.9, 0.8),
+		Color(1.0, 0.8, 0.42), Color(1.0, 0.7, 0.28), Color(1.7, 1.55, 1.2)],
 ]
 
 func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray, core := Color(-1, 0, 0)) -> void:
@@ -1015,7 +1035,7 @@ func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedCol
 	for i in ps.size():
 		var dst := Rect2(((ps[i] - half) / Game.PX).round() * Game.PX, size)
 		g.wcv.draw_texture_rect_region(tx, dst, src, cs[i])
-		if etx != null:
+		if etx != null and not (core.r >= 0.0 and core.a <= 0.0):   # core 全透明 = 不进发光层（静止结晶）
 			g.glow_tex_next.append([etx, dst, src, cs[i] if core.r < 0.0 else core])
 
 
@@ -4147,7 +4167,7 @@ func spear_fly_fx(b: Dictionary) -> void:
 
 const ENTITY_MARGIN := 180.0   # 大体型 Boss / 精英贴图从脚底往上长，外扩够画出半身
 const TELL_MARGIN := 420.0
-const GEM_MERGE_N := 120        # 场上结晶超过这个数才合并远处的小结晶
+const GEM_MERGE_N := 50         # 场上结晶超过这个数才合并远处的小结晶（11-04 Codex 量后期同屏 111 颗，120 → 50；只合画面，拾取 / 经验不变；balance render/gem_merge_n 可改）
 const GEM_CELL := 26.0
 
 
