@@ -69,8 +69,25 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 			continue
 		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
+		if fx_halo_cut(o, f):   # 放开版发散光环关掉时：数据里的圆环条目不播（总组长 11-04：铃兰 S1 起手白细圆环）
+			continue
 		if fx_on_spawn(o, f):
 			fx_spawn(o, f, c, r, hits, ang)
+
+
+## 放开版发散光环关掉（vfx.px_halo_off：fx/px_unleashed > 0 且 fx/px_halo = 0）时要拦下的数据 fx 条目：程序圆环（pfx kind ring）、
+## 圆形 / 环形贴图（fx_circle_* / fx_ring_*）。条目写 "halo_ok": true（作者保证不外扩、组长审过）的照播。纯画面，不碰判定 / 随机数
+static func fx_halo_cut(o, f: Dictionary) -> bool:
+	if f.get("halo_ok", false) or o.g.vfx == null or not o.g.vfx.px_halo_off():
+		return false
+	var pf = f.get("pfx")
+	if pf is Dictionary and str(pf.get("kind", "")) == "ring":
+		return true
+	var sp = f.get("sprite")
+	if sp is Dictionary:
+		var nm: String = str(sp.get("name", ""))
+		return nm.begins_with("fx_circle_") or nm.begins_with("fx_ring_")
+	return false
 
 
 ## 常驻积木上带 every 的条目：ts 是这块积木各条目的画面计时（秒，按条目下标），返回新的计时。积木生效的第一帧就播一次
@@ -97,7 +114,7 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 			elif fx_on_spawn(o, f):
 				if _F().mf_is(f):
 					_F().mf_fx_spawn(o, f, {"c": c, "r": r})
-				else:
+				elif not fx_halo_cut(o, f):   # 周期条目里的圆环同样拦（放开版发散光环关掉时）
 					fx_spawn(o, f, c, r, [], 0.0)
 	return ts
 
