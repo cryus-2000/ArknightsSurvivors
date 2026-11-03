@@ -1,5 +1,6 @@
 // 拉普兰德 S2「狼魂」法术剑气（docs/242 放开版，代表招式）：俯视，原点 = 剑气出手点（拉普兰德身前 off），正右为飞行方向，游戏里按瞄准方向旋转。
-// 原作 S2 的弹体是一颗多面晶体狼首（build/ark_ref/lappland/langtou_02.png，只作参照、不描进帧条），本作写成「晶体狼首 + 窄长剑气」：
+// 原作 S2 的弹体是一颗侧面朝前、张口咆哮的低多边形灰白狼首，双耳竖起、脑后鬃毛碎成细长菱形晶片（build/ark_ref/lappland/langtou_02.png、suikuai.png，
+// 只作参照、不描进帧条）。本作照这个外形写成「低多边形狼首 + 窄长剑气」：
 //   - 形状读判定（docs/242 §9.1）：半宽 hw = blade_w ÷ 2 ÷ PX，飞行距离 dist = blade_dist ÷ PX（lappland.json base，targets 里 judge 传入），
 //     核心层不超出 hw；用户 11-03「纵深感拉远一点，半角有点太大」：剑气是窄长的一根，不是扇形。
 //   - 起手信号：出手点先有几道细光从四周收拢、一道竖向亮缝（和普攻月牙完全不同的主形）。
@@ -13,7 +14,7 @@ import { jitterSteps, jitterAngles } from "../house.js";
 
 export const meta = {
   name: "Lappland wolf-spirit blade",
-  desc: "A faceted crystal wolf head streaks forward on a narrow blade trail, gathering light first; seals at elite 1, twin crossed blades at elite 2; it shatters into drifting shards.",
+  desc: "A low-poly grey wolf head, jaws open, streaks forward on a narrow blade trail, gathering light first; seals at elite 1, twin crossed blades at elite 2; it shatters into drifting shards.",
   tags: ["projectile", "blade", "wolf", "crystal", "topdown", "one-shot"],
   size: [200, 80],
   origin: [20, 40],
@@ -22,7 +23,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#241a44", "#43357a", "#6d5db2", "#a198e0", "#cdc6f4", "#ebe7ff", "#ffffff"],
+    palette: ["#2b3036", "#52565a", "#868c8e", "#a9aeb3", "#c9ced3", "#e6eaee", "#ffffff"],   // 取自原作 langtou_02.png 亮度分位（冷灰白），不用紫：避开侵蚀 / 溟痕紫（docs/242 §12.6）
     hw: 12.5,         // 判定半宽（1x 像素），由 targets judge 覆盖
     dist: 100,        // 飞行距离（1x 像素），由 targets judge 覆盖
     elite: 2,
@@ -32,20 +33,31 @@ export const meta = {
   },
 };
 
-// 狼首外形（局部坐标，鼻尖朝 +x）：窄长，高度按 hw 缩放（最高不超过判定半宽）。点序 = 外轮廓
-// 鼻尖 → 额 → 耳尖 → 脑后鬃毛（长短不一的三簇）→ 腮 → 下颌；嘴缝另画暗线
-const HEAD = [[18, -0.6], [12, -2.6], [6, -4.2], [1.5, -4.4], [-1, -5.4], [-10.5, -11.5], [-7, -5.6], [-11, -5.4],
-  [-15.5, -8], [-15, -4.2], [-21, -3.6], [-16, -0.6], [-20, 2.6], [-14, 3.2], [-12.5, 6.2], [-6, 5.8], [-1.5, 4.6], [7, 3.6], [13.5, 2]];
+
+
+// 狼首外形（局部坐标，鼻尖朝 +x、侧面）：上颌 → 额 → 双耳 → 脑后三簇鬃毛（长短不一）→ 腮 → 下颌张开 → 嘴角 → 上颌下沿。
+// 嘴是轮廓上的缺口（张口咆哮），高度按判定半宽缩放（耳尖 12 × HS ≤ hw）
+const HEAD = [[14, -1.5], [8, -3.5], [3, -5], [0.5, -6], [-1.5, -14], [-5, -6.5], [-7.5, -12.5], [-9.5, -6], [-12, -7.5], [-17, -5.5], [-13, -2.5],
+  [-19, 0], [-13, 2], [-16, 6], [-8, 6.5], [-3, 9], [5, 11], [12, 10.5], [6, 7.5], [-0.5, 3], [13, 1.2]];
+const inPoly = (pts, x, y) => {
+  let c = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+};
 
 export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), el = clamp(Math.round(+o.elite), 0, 2), quick = +o.quick > 0;
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const hw = +o.hw, dist = +o.dist, HS = Math.min(1, hw / 12);   // 狼首竖向缩放：耳尖 12 × HS ≤ hw
+  const hw = +o.hw, dist = +o.dist, HS = Math.min(1, hw / 14);   // 狼首竖向缩放：耳尖 14 × HS ≤ hw
   const T0 = 0.07, TF = 0.36, T1 = T0 + TF;                       // 起手 / 飞行时长（≈ 判定速度：dist ÷ (blade_spd ÷ PX) = 0.4 s）
   const DL = [0.25, 0.4, 0.62][el] * (quick ? 0.5 : 1), GK = [0.25, 0.4, 0.55][el];
-  const head = HEAD.map(([x, y]) => [x * (el >= 2 ? 1.12 : 1), y * HS]);
+  const head = HEAD.map(([x, y]) => [x * (el >= 2 ? 1.1 : 1), y * HS]);
   // 晶面：从中心 (1, 0) 扇出的三角，每面一个随机明暗偏移（晶体感）
-  const facets = head.map((p, i) => [p, head[(i + 1) % head.length], Rg.range(-1.2, 1.2)]);
+  // 低多边形晶面：头内撒一把随机种子点，每个像素归最近的种子（Voronoi），每面一个明暗偏移
+  const seeds = Array.from({ length: 14 }, () => [Rg.range(-17, 12), Rg.range(-12, 10) * HS, Rg.range(-1.2, 1.2)]);
   const sealRot = () => [Rg.range(2.6, 4), Rg.range(-0.5, 0.5)];
   const gather = jitterAngles(Rg, 5, 0, Math.PI * 2, 0.45).map((a) => [a, Rg.range(9, 16)]);
   // 剑气走过的路径上：晶片脱落位置（随机步长）、封印符位置（E1+）
@@ -57,8 +69,8 @@ export function create(o) {
   let t = 0;
 
   const hx = () => dist * ease.outQuad(clamp((t - T0) / TF));     // 狼首位置
-  const shard = (p, x, y, r, s, c, a) => {   // 一片不规整的三角晶片
-    const pts = [[s, 0], [-s * 0.6, s * 0.7], [-s * 0.4, -s * 0.8]].map(([px, py]) => [x + px * Math.cos(r) - py * Math.sin(r), y + px * Math.sin(r) + py * Math.cos(r)]);
+  const shard = (p, x, y, r, s, c, a) => {   // 一片细长菱形晶片（原作 suikuai：长约宽的 2.5 倍）
+    const pts = [[s * 1.4, 0], [0, s * 0.5], [-s * 1.2, 0], [0, -s * 0.55]].map(([px, py]) => [x + px * Math.cos(r) - py * Math.sin(r), y + px * Math.sin(r) + py * Math.cos(r)]);
     if (a > 0.3) p.poly(pts, a > 0.65 ? c : C[2]);   // 实心晶片，淡出靠降阶（不用抖动半透明）
   };
   const seal = (p, x, y, s, c, r = 0) => {   // 封印纹：一长一短的歪十字（不对称，每枚大小、歪角不同）
@@ -109,20 +121,22 @@ export function create(o) {
       // ---- 狼首（核心）：晶面明暗 + 上沿亮边 + 眼缝；飞完之后碎开
       if (core && t >= T0 && t < T1 + 0.05) {
         const brk = clamp((t - T1) / 0.05);   // 0 完整 → 1 碎散（碎片交给下面的终点晶片）
-        for (const [a, b, sh] of facets) {
-          const mx = (a[0] + b[0] + 1) / 3, my = (a[1] + b[1]) / 3;
-          const ox = mx * brk * 0.6, oy = my * brk * 0.9;
-          const lit = -my / 4 + mx / 25 + sh;                     // 上沿受光、晶面明暗跳一阶
-          const ci = clamp(Math.round(3.4 + lit + hot * 1.6), 1, 6);
-          p.poly([[x + 1 + ox, oy], [x + a[0] + ox, a[1] + oy], [x + b[0] + ox, b[1] + oy]], C[ci]);
-        }
-        if (brk < 0.4) p.poly([[x + 3, 0.7 * HS], [x + 19, -0.5 * HS], [x + 16, 3.2 * HS]], C[0]);   // 张开的嘴：一道暗色楔口
-        if (brk < 0.5) for (let i = 0; i < 6; i++) {   // 上沿 1 格亮边：鼻尖到耳尖
+        const B = 20 * HS + 2;
+        p.shade(x - 21, -B, x + 15, B, (px, py, out) => {
+          const lx = (px - x) / (1 + brk * 0.5), ly = py / (1 + brk * 0.5);   // 碎开时整体往外胀
+          if (!inPoly(head, lx, ly)) return;
+          let best = 1e9, sd = seeds[0];
+          for (const q of seeds) { const d = (q[0] - lx) ** 2 + (q[1] - ly) ** 2; if (d < best) { best = d; sd = q; } }
+          if (brk > 0 && ((sd[2] * 7) % 1 + 1) % 1 < brk) return;           // 碎开：晶面一块块掉
+          const lit = -sd[1] / 4.5 + sd[0] / 30 + sd[2];                    // 上沿受光、晶面明暗跳一阶
+          out.c = C[clamp(Math.round(3.3 + lit + hot * 1.6), 1, 6)];
+        });
+        if (brk < 0.5) for (let i = 0; i < 3; i++) {   // 上沿 1 格亮边：鼻尖到额（耳朵靠晶面明暗）
           const a = head[i], b = head[i + 1];
           p.line(x + a[0], a[1], x + b[0], b[1], C[hot ? 6 : 5]);
         }
-        if (brk < 0.3) p.dot(x + 4, -1.6 * HS, el >= 2 ? C[6] : C[5]);      // 眼缝（E2 白热）
-        if (el >= 1 && brk < 0.3) seal(p, x + 1, -1.8 * HS, 2.2, C[6]);    // E1+ 额前封印纹
+        if (brk < 0.3) p.dot(x + 4, -2.6 * HS, el >= 2 ? C[6] : C[5]);      // 眼缝（E2 白热）
+        if (el >= 1 && brk < 0.3) seal(p, x - 1, -3.2 * HS, 2.2, C[6]);    // E1+ 额前封印纹
       }
       // ---- E1+ 封印符：剑气走过处一串断续歪十字，亮一下后变暗淡出；终点烙一个大的
       if (el >= 1) for (const s of seals) {
