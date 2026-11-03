@@ -5,6 +5,7 @@ const PlayClock = preload("res://scripts/run/play_clock.gd")
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
+const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
@@ -18,6 +19,11 @@ func _init(hud) -> void:
 ## 暂停 / 倍速键的点击区域（g.pause_btn / g.speed_btn）：hud 登记时每帧算，与 draw_right_top / draw_speed_button 画的位置相同
 ## （顶部块缓存时不重画，点击区域不能靠绘制时写）
 func update_buttons(vs: Vector2) -> void:
+	if HudV2.on():
+		var P: Dictionary = h.v2.plates(vs)
+		g.pause_btn = P.pause if not g.touch.active and g.state == Game.S.PLAY else Rect2()
+		g.speed_btn = P.speed if g.state == Game.S.PLAY and not g.touch.active else Rect2()
+		return
 	g.pause_btn = Rect2(vs.x - 56, 12, 40, 40) if not g.touch.active and g.state == Game.S.PLAY else Rect2()
 	g.speed_btn = _speed_rect(vs) if g.state == Game.S.PLAY and not g.touch.active else Rect2()
 
@@ -27,6 +33,9 @@ func top_hover(vs: Vector2) -> Array:
 	if g.touch.active or g.state != Game.S.PLAY:
 		return [false, false]
 	var mp := g.hud.get_local_mouse_position()
+	if HudV2.on():
+		var P: Dictionary = h.v2.plates(vs)
+		return [(P.pause as Rect2).has_point(mp), (P.speed as Rect2).has_point(mp), g.tray_cells.any(func(c): return (c[0] as Rect2).has_point(mp))]
 	return [Rect2(vs.x - 56, 12, 40, 40).has_point(mp), _speed_rect(vs).has_point(mp)]
 
 
@@ -36,6 +45,8 @@ func _speed_rect(vs: Vector2) -> Rect2:
 
 ## 藏品栏缓存块（hud 的 relics）登记：藏品 / 等级 / 悬停格变了才重画（原在 draw_right_top 里登记）
 func register_tray(vs: Vector2) -> void:
+	if HudV2.on():
+		return   # 编辑式：藏品收成右上一条（hud_v2.right_top，在顶部块里画）
 	var trp := Vector2(vs.x - 80.0, 12)
 	var hov := -1
 	var mouse := g.hud.get_local_mouse_position()
@@ -50,6 +61,11 @@ func register_tray(vs: Vector2) -> void:
 ## 注意：暂停按钮画在 hud_bars.draw_top_center 开的合批段里（h._hb），本函数负责 h.batch_end；两块在 hud._draw_body 里必须相邻
 func draw_right_top(vs: Vector2) -> void:
 	# 右上：暂停按钮（鼠标可点；触屏有自己的按钮）+ 收藏品栏 + 当前结局走向
+	if HudV2.on():
+		h.batch_end()
+		h.v2.right_top(vs)
+		update_buttons(vs)
+		return
 	var tray_x := vs.x - 80.0
 	g.pause_btn = Rect2()
 	if not g.touch.active:

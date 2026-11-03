@@ -17,6 +17,7 @@ const HudSquad = preload("res://scripts/screens/hud_squad.gd")
 const HudBanners = preload("res://scripts/screens/hud_banners.gd")
 const HudAllyHp = preload("res://scripts/screens/hud_allyhp.gd")   # 队友血条原型（docs/114 §19）
 const HudIcons = preload("res://scripts/screens/hud_icons.gd")
+const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 局内 HUD 编辑式（docs/222，ui/hud_v2）
 const HudUlt = preload("res://scripts/screens/hud_ult.gd")   # 终结技 / 连携技 HUD 与立绘切入（docs/198；g.ult 为 null 时不调）
 const TextQ = preload("res://scripts/screens/hud_textq.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
@@ -27,6 +28,7 @@ var squad: HudSquad
 var banners: HudBanners
 var allyhp: HudAllyHp
 var ult: HudUlt
+var v2: HudV2
 
 
 func _init(game: Game) -> void:
@@ -37,6 +39,7 @@ func _init(game: Game) -> void:
 	banners = HudBanners.new(self)
 	allyhp = HudAllyHp.new(self)
 	ult = HudUlt.new(self)
+	v2 = HudV2.new(self)
 
 
 ## HUD 合批段：段内 UI 助手的色块进 Tris 批、文字延后，batch_end 时先一次提交色块再画字（段内各块互不重叠才能这样用）
@@ -835,7 +838,7 @@ func blocks_click(mp: Vector2) -> bool:
 			return true
 	if mp.y < 104.0 and (mp.x < 400.0 or mp.x > vs.x - 260.0 or absf(mp.x - vs.x * 0.5) < 190.0):
 		return true
-	var sw: float = maxf(maxi(1, g.squad.size()) * HudSquad.SQ_COL_W, 250.0) + 16.0
+	var sw: float = (v2.squad_size(g.squad.size()).x + 36.0) if HudV2.on() else maxf(maxi(1, g.squad.size()) * HudSquad.SQ_COL_W, 250.0) + 16.0
 	if mp.x > vs.x - sw and mp.y > squad.squad_top(vs) - 44.0:
 		return true
 	var rad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap

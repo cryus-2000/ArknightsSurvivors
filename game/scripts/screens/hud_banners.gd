@@ -521,8 +521,8 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), oc)
 		if hs >= 1 and g.squad.hp_on():
 			h.allyhp.edge_ring(o, edge)
-	if g.touch.active:
-		return   # 触屏：模式写在「指挥」键上（touch.gd）
+	if g.touch.active or h.v2.on():
+		return   # 触屏：模式写在「指挥」键上（touch.gd）；编辑式：写在编队块的四格里（hud_v2.squad）
 	var y: float = h.squad.squad_top(vs) - 38.0
 	var key: String = Pad.GLYPH.LB if Pad.using else "F"
 	var x: float = vs.x - 16.0

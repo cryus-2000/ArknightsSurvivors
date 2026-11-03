@@ -8,7 +8,8 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
-const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 终结技并进左上的原型开关（ui/hud_ult_v）
+const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")
+const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）   # 终结技并进左上的原型开关（ui/hud_ult_v）
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
@@ -47,6 +48,9 @@ func draw_top_left(vs: Vector2) -> void:
 	var lf := g.hud_lv_flash
 	var bc := UI.CYAN.lerp(UI.GOLD, lf)
 	var lc0 := o + Vector2(26, 30)
+	if HudV2.on() and HudUltV.ver() == 2:
+		h.v2.top_left()   # 编辑式（docs/222）：等级在 B′ 徽记上（不改），这里只画读数
+		return
 	h.batch_begin()   # 左上面板：色块一批、字最后（性能 9/30）
 	if HudUltV.ver() != 2:   # B′ 徽记环（ui/hud_ult_v 2，10-31 缺省）：等级圆换成队长头像 + 能量环 + 等级牌（hud_ult_v.gd），触屏也是
 		UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, 0.0, bc, lf > 0.2)   # 只显示等级数字；经验进度在屏幕最上沿的通栏细条（draw_xp_top，10-28 用户）
@@ -144,6 +148,8 @@ func draw_xp_top(vs: Vector2) -> void:
 
 ## 灯火状态标签条（左上面板下方）
 func draw_lamp_strip(vs: Vector2) -> void:
+	if HudV2.on():
+		return   # 编辑式：灯火档并进状态行最前面（hud_v2.lamp_item）
 	var o := Vector2(16, 12)
 	var st_txt := ""
 	var st_en := "LIGHT"
@@ -182,7 +188,8 @@ func top_sig(vs: Vector2) -> Array:
 	if g.threat < D.THREAT.size() - 1:
 		tfrac = clampf((g.t - D.THREAT[g.threat].t) / (D.THREAT[g.threat + 1].t - D.THREAT[g.threat].t), 0.0, 1.0)
 	return [vs, h.panel_over_top(), int(display_time), g.kills, g.threat, h.qpx(140.0 * tfrac), g.trial.active, g.tier, g.touch.active, g.state,
-		h.relics.top_hover(vs), PlayClock.current_label(), g.ending, Cfg.endings_cleared.size(), g.endg.cur, g.relics.size()]
+		h.relics.top_hover(vs), PlayClock.current_label(), g.ending, Cfg.endings_cleared.size(), g.endg.cur, g.relics.size(),
+		g.ingots if HudV2.on() else 0, g.relics.slice(-3) if HudV2.on() else []]
 
 
 ## 顶部中央：击杀 / 时间 / 楼层 / 威胁进度（原 _draw_body「顶部中央」段）。
@@ -197,6 +204,9 @@ func draw_top_center(vs: Vector2) -> void:
 	h.batch_begin()   # 顶部中央 + 右上暂停键：色块一批、字最后（性能 9/30）
 	if h.panel_over_top():
 		return   # 触屏选卡时面板标题占这里；合批段照常由 draw_right_top 收
+	if HudV2.on():
+		h.v2.top_center(vs)
+		return
 	UI.fade_band(g.hud, Rect2(cx0 - 160, 8, 320, 40), Color(0.03, 0.035, 0.045, 0.8), 56.0)
 	var ks := str(g.kills)
 	var kw := UI.cwidth(g.font, ks, 23)
@@ -494,7 +504,7 @@ func draw_status_bar(vs: Vector2) -> void:
 
 ## 状态条缓存块（hud 的 status）的签名：本帧的标签片列表（文字 / 颜色 / 进度条长度按 1/8 像素量化）+ 换行宽度
 func status_sig(vs: Vector2, items: Array) -> Array:
-	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active, h.allyhp.top_shift()]
+	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active, h.allyhp.top_shift(), h.v2.lamp_item()[0] if HudV2.on() else ""]
 	for it in items:
 		sig.append([it[0], it[1], h.qpx(100.0 * float(it[2])) if float(it[2]) >= 0.0 else -1])
 	return sig
@@ -618,6 +628,9 @@ func status_layout(vs: Vector2, items: Array) -> Array:
 
 
 func draw_status(vs: Vector2, items: Array) -> void:
+	if HudV2.on():
+		status_bottom = h.v2.status(vs, items, 84.0 + h.allyhp.top_shift())
+		return
 	var lay: Array = status_layout(vs, items)
 	if lay.is_empty():
 		return
