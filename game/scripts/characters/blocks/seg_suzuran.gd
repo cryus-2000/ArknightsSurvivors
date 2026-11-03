@@ -562,6 +562,9 @@ static func h4_fox_cast(o, b: Dictionary) -> void:
 		o.show_banner(str(b.banner))
 	var fl: Dictionary = _h4_live(o, "verb.foxlight")
 	var rr: float = h4_fox_r(o, fl)
+	if _h4_px(o):   # pixelfx 放开版：暖光 / 狐火渺然起手走注册表 cast（vfx.px_ul_cast，聚拢帧条），外扩环 / 光芒 / 光柱 / 金圈不画（用户 11-04 否决外扩光环）
+		sz["px_t0"] = g.t
+		return
 	o.fx({"kind": "ring", "pos": o.pos, "r": rr, "r0": 10.0, "life": 0.6, "col": H4_FOX, "floor": true})
 	g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": H4_FOX, "op_spoke": true})
 	# 圣光光柱：中心一根 + 光域边缘六根小的
@@ -583,6 +586,47 @@ static func _h4_flame(o, p: Vector2, h: float, a: float) -> void:
 
 
 ## 区域层：九尾虚影（画在人物之下）、光域椭圆 + 边缘绕行的狐火（围炉时变大带热光）
+## pixelfx 放开版（docs/242，balance fx/px_unleashed；只改画面）：注册表 data/px_ul.json 有 suzuran 才走帧条
+static func _h4_px(o) -> bool:
+	return not o.g.vfx.px_ul_reg(str(o.id)).is_empty()
+
+
+## 淡入 0.35 秒（px_t0 = 起手时刻，只给画面用）；狐火渺然收尾淡出 0.4 秒，暖光常驻不淡出
+static func _h4_px_fade(o, sz: Dictionary) -> float:
+	var a: float = clampf((o.g.t - float(sz.get("px_t0", -99.0))) / 0.35, 0.0, 1.0)
+	return a * clampf(float(sz.haze_t) / 0.4, 0.0, 1.0) if float(sz.haze_t) > 0.0 else a
+
+
+## 在 p 处画一张循环帧条（先装饰 × px_deco_k 后核心；按精英档 / 队友 / 网页低档取名），ph = 相位偏移（秒）
+static func _h4_px_loop(o, base: String, p: Vector2, sc: float, ph: float, al: float) -> void:
+	if al <= 0.0:
+		return
+	var g = o.g
+	var el: int = g.vfx.px_ul_el(o)
+	var dk: float = g.vfx.px_deco_k(o)
+	for layer in ["deco", "core"]:
+		var nm: String = g.vfx.px_ul_tex(base, 1, not o.is_leader, layer, el)
+		if nm == "" or not g.V6_FRAMES.has(nm) or (layer == "deco" and dk <= 0.0):
+			continue
+		var fr: Array = g.V6_FRAMES[nm]
+		fx_frame(o.cv, g, nm, int(fr[0]), int((g.t + ph) * float(fr[1])), p, g.PX * sc, Color(1, 1, 1, al * (dk if layer == "deco" else 1.0)))
+
+
+## 狐火渺然光域：地面旋流（按光域半径缩放，单位半径 92 美术像素 = 184 世界像素）+ 边上 7 簇贴地小狐火（角度 / 半径不均匀、各自错相位明暗闪烁）+ 身后半圈火带
+const H4_PX_EDGE := [[0.0, 0.94], [0.95, 1.0], [1.7, 0.9], [2.65, 0.97], [3.35, 0.88], [4.3, 1.0], [5.25, 0.92]]
+
+
+static func _h4_px_haze(o, sz: Dictionary, r: float) -> void:
+	var g = o.g
+	var al: float = _h4_px_fade(o, sz)
+	_h4_px_loop(o, "fx_suzuran_ul_haze", o.pos + Vector2(0, 4), r / 184.0, 0.0, al)
+	for k in H4_PX_EDGE.size():
+		var an: float = float(H4_PX_EDGE[k][0]) + g.t * 0.3
+		var rr: float = r * float(H4_PX_EDGE[k][1])
+		_h4_px_loop(o, "fx_suzuran_ul_edge", o.pos + Vector2(4, 4) + Vector2(cos(an) * rr, sin(an) * rr * 0.55), 1.0, k * 0.41, al)
+	_h4_px_loop(o, "fx_suzuran_ul_swirlb", o.pos + Vector2(0, -2), 1.0, 0.0, al)
+
+
 static func _h4sz_draw_auras(o) -> void:
 	if o.pos == Vector2.INF:
 		return
@@ -598,6 +642,18 @@ static func _h4sz_draw_auras(o) -> void:
 	var sz: Dictionary = o.hw.sz
 	var r: float = h4_fox_r(o, fl)
 	var on: bool = _h4_warm(o, fl) or float(sz.haze_t) > 0.0
+	if on and _h4_px(o):   # 放开版：暖光 / 迷雾期间不画羽边椭圆和绕行小火（组长 B 11-04：四周散狐火说不清在标谁），受益队友脚下画印记（_h4sz_draw_floor）
+		if float(sz.haze_t) > 0.0:
+			_h4_px_haze(o, sz, r)
+			return
+		_h4_px_loop(o, "fx_suzuran_ul_swirlb", o.pos + Vector2(0, -2), 1.0, 0.0, _h4_px_fade(o, sz))
+		var hr2: Dictionary = _h4_hearth(o, fl)
+		if not hr2.is_empty():   # 围炉的边缘狐火是伤害提示，放开版暂留旧画法（清单未换项）
+			var hn2: int = int(hr2.get("n", 6))
+			for k in hn2:
+				var an3: float = g.t * 0.8 + k * TAU / hn2
+				_h4_flame(o, o.pos + Vector2(4, 4) + Vector2(cos(an3) * r, sin(an3) * r * 0.55), 15.0, 1.0)
+		return
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	feather_ring(cv, r, H4_FOX, 0.6 if on else 0.35, g.t)   # 10-29：不填充，改内羽边 + 光点
 	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, (0.45 if on else 0.25) + 0.06 * sin(g.t * 3.0)), 2.0)
@@ -666,6 +722,8 @@ static func _h4sz_draw_over(o) -> void:
 	elif float(sz.haze_t) <= 0.0 and _h4_next_merge(o, a):
 		conv = clampf(1.0 - o.cd / 0.45, 0.0, 1.0)
 	var c: Vector2 = _h4_tip(o, a)
+	if _h4_px(o) and (float(sz.haze_t) > 0.0 or _h4_warm(o, _h4_live(o, "verb.foxlight"))):
+		_h4_px_loop(o, "fx_suzuran_ul_swirlf", o.pos + Vector2(0, -2), 1.0, 0.0, _h4_px_fade(o, sz))
 	for k in n:
 		var an: float = g.t * 1.6 + k * TAU / n
 		var p: Vector2 = o.pos + Vector2(cos(an) * 40.0, -22.0 + sin(an) * 13.0 + sin(g.t * 3.0 + k) * 2.0)
@@ -725,6 +783,24 @@ static func _h4sz_draw_floor(o) -> void:
 			cv.draw_line(Vector2.from_angle(qa) * rr * 0.68, Vector2.from_angle(qa) * rr, Color(2.2, 1.8, 1.0, 0.8 * al), 1.5)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_h4sz_draw_floor_e(o)   # 精英化第 4 批（灼印 / 拖尾）
+	_h4_px_marks(o)
+
+
+## 放开版：暖光 / 狐火渺然期间，受攻击加成的其他干员脚下一枚狐火印记（docs/242 §11.2 #6 附件口径，不画环；组长 B 11-04 定）
+static func _h4_px_marks(o) -> void:
+	if not _h4_px(o) or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var sz: Dictionary = o.hw.sz
+	if not (float(sz.haze_t) > 0.0 or _h4_warm(o, _h4_live(o, "verb.foxlight"))):
+		return
+	var al: float = _h4_px_fade(o, sz)
+	var k := 0
+	for m in g.squad.ops:
+		if m == null or m == o or m.pos == Vector2.INF:
+			continue
+		_h4_px_loop(o, "fx_suzuran_ul_mark", m.pos + Vector2(0, 2), 1.0, k * 0.37, al)
+		k += 1
 
 
 ## 灼印：被狐火打中的敌人脚下一枚金色小印（Codex fx_suzuran_seal 循环，最后 0.3 秒淡出；缺图画程序小金环）

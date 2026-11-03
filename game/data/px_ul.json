@@ -56,5 +56,21 @@
 				"y": 0
 			}
 		}
+	},
+	"suzuran": {
+		"cast": {
+			"1": {
+				"base": "fx_suzuran_ul_gather",
+				"at": "front",
+				"front": 22,
+				"y": -6
+			},
+			"2": {
+				"base": "fx_suzuran_ul_gather_big",
+				"at": "front",
+				"front": 22,
+				"y": -6
+			}
+		}
 	}
 }

@@ -25,8 +25,9 @@ export function draw(p, t, o) {
   const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, n = Math.max(1, +o.n | 0), big = n > 3, K = Math.max(1, +o.k || 1), KW = 1 + (K - 1) * 0.55;
   const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
   const pos = (i, tt) => {   // 第 i 团在 tt 时的位置：半径收拢、角度越转越快（压扁成透视椭圆）
-    const k = ease.inQuad(clamp(tt / TM)), a0 = i * TAU / n + 0.6, a = a0 + 2.6 * k;
-    const r = (big ? 34 : 28) * (1 - k);
+    const J = [0, 0.42, -0.31, 0.55, -0.18][i % 5], JR = [1, 0.82, 1.12, 0.9, 1.05][i % 5];   // 不等角、不等半径（等距放射会被图案检查拦，也显得机械）
+    const k = ease.inQuad(clamp(tt / TM)), a0 = (i + J) * TAU / n + 0.6, a = a0 + 2.6 * k;
+    const r = (big ? 34 : 28) * JR * (1 - k);
     return [Math.cos(a) * r, Math.sin(a) * r * 0.55 - 6 * (1 - k)];
   };
   if (core && t < TM) {
