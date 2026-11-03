@@ -424,7 +424,12 @@ static func h4_draw_extra(o, it: Dictionary) -> void:
 			var ff: int = mini(nf - 1, int(maxf(0.0, t) / SLOT_GROW * nf)) if int(sl.st) == 0 else int(t * fps + float(it.k) * 7.0) % nf
 			if dn != "" and g.vfx.px_deco_k() > 0.0:   # 先装饰后核心（docs/242 §8）
 				fx_frame(cv, g, dn, nf, ff, sl.pos, g.PX * float(sl.sc), Color(1, 1, 1, g.vfx.px_deco_k()))
+			var am = cv.get("amul")   # 核心层不受队友 / 队长降噪系数影响（docs/242 §8）
+			if am != null:
+				cv.amul = 1.0
 			fx_frame(cv, g, nm, nf, ff, sl.pos, g.PX * float(sl.sc), Color(1, 1, 1, 1))
+			if am != null:
+				cv.amul = am
 			return
 		var fr: int
 		match int(sl.st):

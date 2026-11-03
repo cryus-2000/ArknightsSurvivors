@@ -1701,7 +1701,8 @@ func _draw_fx() -> void:
 					continue
 				var fr := mini(int(el * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
-				scol.a *= fdim
+				if not g.vfx.px_ul_core(f.name):   # 放开版核心层不受拥挤降透明（docs/242 §8；开关关掉时同原来）
+					scol.a *= fdim
 				if lead_lv > 0 and f.get("lead", false):
 					scol = lead_col(scol)   # 队长放的帧条特效：提亮 / 暖色（docs/139 §11）
 				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):

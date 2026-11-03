@@ -2575,7 +2575,8 @@ func _draw_windup(w) -> void:
 		var p: Vector2 = (c + Vector2(cos(t) * r, sin(t) * r * 0.38)).snapped(Vector2(3, 3))
 		w.tb_quad(p, p + Vector2(3, 0), p + Vector2(3, 3), p + Vector2(0, 3), Color(col.r, col.g, col.b, a))
 	# 蓄力粒子：22 颗从 70–150 外往身上收（各自错开起点与速度，按 serial 定，不抽随机数），越近越亮越小
-	if not Cfg.reduce_motion:
+	var dk: float = g.vfx.px_deco_k() if Bal.vi("fx/px_unleashed", 0) > 0 else 1.0   # 放开版：蓄力粒子归装饰层，乘 fx/px_deco_k（docs/242 §8；开关关掉时同原来）
+	if not Cfg.reduce_motion and dk > 0.0:
 		var cw: Color = col.lerp(Color.WHITE, 0.45)
 		for i in 22:
 			var h1: float = fposmod(sin(float(i) * 12.9898 + float(serial) * 78.233) * 43758.5453, 1.0)
@@ -2587,5 +2588,5 @@ func _draw_windup(w) -> void:
 			var d: float = lerpf(70.0 + 80.0 * h2, 6.0, k * k)
 			var p: Vector2 = (body + Vector2.from_angle(ang) * Vector2(d, d * 0.7)).snapped(Vector2(3, 3))
 			var sz: float = 6.0 if k < 0.6 else 3.0
-			w.tb_quad(p, p + Vector2(sz, 0), p + Vector2(sz, sz), p + Vector2(0, sz), Color(cw.r, cw.g, cw.b, 0.4 + 0.5 * k))
+			w.tb_quad(p, p + Vector2(sz, 0), p + Vector2(sz, sz), p + Vector2(0, sz), Color(cw.r, cw.g, cw.b, (0.4 + 0.5 * k) * dk))
 	w.tb_flush()

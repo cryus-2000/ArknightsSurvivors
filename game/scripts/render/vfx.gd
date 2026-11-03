@@ -160,6 +160,11 @@ func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core") -> S
 	return base + "_lo" if px_ul_lo() and g.tex.get(base + "_lo") != null else base
 
 
+## 放开版核心帧条（docs/242 §8，开关 fx/px_unleashed 打开时）：名字含 _ul_ 且不是 _deco。拥挤降透明（world.fx_dim、队友 / 队长 declutter）不压核心，只压装饰
+func px_ul_core(name: String) -> bool:
+	return name.find("_ul_") >= 0 and name.find("_deco") < 0 and Bal.vi("fx/px_unleashed", 0) > 0
+
+
 ## 装饰层系数（docs/242 §8，balance fx/px_deco_k，缺省 1.0）：装饰层的透明度和实时火星数都乘它；0 = 只画核心。
 ## 现在只有这一个总开关，按拥挤程度动态削装饰的预算以后接在这里
 func px_deco_k() -> float:
