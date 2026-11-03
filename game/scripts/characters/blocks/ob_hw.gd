@@ -1335,7 +1335,8 @@ static func h4_draw_over(o) -> void:
 static func _h4e_draw_over(o) -> void:
 	var g = o.g
 	var cv = o.cv
-	if o.hw.has("sz") and not o.hw.sz.trails.is_empty():
+	# 铃兰本人段：pixelfx 放开版（注册表有 suzuran）下旧拖尾不画，改由 seg_suzuran._h4_px_trails 画路火（只动画面；组长 B 11-04 裁定本人段可改）
+	if o.hw.has("sz") and not o.hw.sz.trails.is_empty() and g.vfx.px_ul_reg("suzuran").is_empty():
 		var tr: Dictionary = o.B.get("attack", _ED).get("merge", {}).get("trail", {})
 		var tn: String = str(tr.get("tex", "fx_suzuran_bigfox_trail"))
 		var life: float = float(tr.get("life", 1.0))
