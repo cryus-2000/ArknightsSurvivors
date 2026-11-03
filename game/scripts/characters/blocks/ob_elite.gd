@@ -339,7 +339,7 @@ static func el_dash_step(o, s: Dictionary, kd: Dictionary, mods: Dictionary, dt:
 	hist.append([float(d.t), s.pos, float(d.h_now), _mf_frame(o, s, kd, str(d.k), float(d.t)), float(s.face), _mf_col(s.pcur.get("tint", []), EL_GREEN)])
 	if hist.size() > 12:
 		hist.pop_front()
-	if d.k == "leap" and k > 0.0 and k < 1.0 and s.pos.distance_to(prev) > 0.5:   # 跃回：空中拉一道绿色弧形拖尾（逐段淡出）
+	if d.k == "leap" and k > 0.0 and k < 1.0 and s.pos.distance_to(prev) > 0.5 and _F().px_ul_sm(o, str(s.kind), "leap") == null:   # 跃回：空中拉一道绿色弧形拖尾（逐段淡出）；放开版接管跃回时不画
 		o.fx({"kind": "line", "pos": prev + Vector2(0, -ph - 52.0), "to": s.pos + Vector2(0, -float(d.h_now) - 52.0), "w": 2.0, "life": 0.18, "col": Color(EL_GREEN.r, EL_GREEN.g, EL_GREEN.b, 0.45)})
 	if not d.done and float(d.t) >= float(d.t0) + float(d.dur):
 		d.done = true
@@ -369,7 +369,11 @@ static func _el_land(o, s: Dictionary, kd: Dictionary, mods: Dictionary, d: Dict
 			if not "summon" in tags:
 				tags.append("summon")
 			var hits: Array = o.area_hit(str(s.pcur.get("src", a.get("src", ""))), s.pos, r, dmg, 0.0, 0.0, tags)
-			if lg.has("fx"):
+			var pxl = _F().px_ul_sm(o, str(s.kind), "lunge")   # pixelfx 放开版扑击落地接管（docs/242 §14.11）
+			if pxl is Dictionary and _F().px_ul_sm_draw(o, pxl, s.pos, (d.to - d.from).angle(), r):
+				if lg.has("fx"):
+					fx_play(o, px_keep(lg.fx), s.pos, r, hits)
+			elif lg.has("fx"):
 				fx_play(o, lg.fx, s.pos, r, hits)
 			else:
 				if not o.g.vfx.px_halo_off():   # 放开版发散光环关掉时不画（用户 11-04，fx/px_halo）
@@ -380,8 +384,10 @@ static func _el_land(o, s: Dictionary, kd: Dictionary, mods: Dictionary, d: Dict
 				s.flip_t = g.t
 			o._exec_list(ld.get("then", []), s.pos)
 			var b: Dictionary = ld.get("b", {})
+			var pxp = _F().px_ul_sm(o, str(s.kind), "leap")   # pixelfx 放开版跃回落地接管（docs/242 §14.11）
+			var px_l: bool = pxp is Dictionary and _F().px_ul_sm_draw(o, pxp, s.pos, 0.0 if float(s.face) >= 0.0 else PI, float(pxp.get("r", 100.0)))
 			if b.has("fx"):
-				fx_play(o, b.fx, s.pos, 100.0)
+				fx_play(o, px_keep(b.fx) if px_l else b.fx, s.pos, 100.0)
 
 
 ## 扑击：目标在 min_d（+ 目标半径）外、冷却好了 → 扑到目标身前；返回 true = 已起扑
@@ -495,10 +501,18 @@ static func el_draw_over(o) -> void:
 		var d: Array = _el_boom_d(bm)
 		var p: Vector2 = o.pos + bm.dir * float(d[0]) + Vector2(0, -22)
 		var b: Dictionary = bm.b
-		var tn: String = str(b.get("tex", ""))
+		var tn: String = g.vfx.px_remap(o, str(b.get("tex", "")))   # 放开版按名替换（docs/242 §14.14）
+		var pdn: String = ""
+		if b.has("px") and g.vfx.px_ul_reg(str(o.id)).size() > 0:   # 放开版往返弹体（docs/242 §14.17，星熊般若回旋）：b.px = 放开版基名，先画装饰层（× px_deco_k）；缺图回退 tex
+			var pcn: String = g.vfx.px_ul_tex(str(b.px), 1, not o.is_leader, "core", g.vfx.px_ul_el(o))
+			if g.tex.get(pcn) != null and g.V6_FRAMES.has(pcn):
+				tn = pcn
+				pdn = g.vfx.px_ul_tex(str(b.px), 1, not o.is_leader, "deco", g.vfx.px_ul_el(o))
 		var tx = g.tex.get(tn) if tn != "" else null
 		if tx != null and g.V6_FRAMES.has(tn):
 			var spec: Array = g.V6_FRAMES[tn]
+			if pdn != "" and g.tex.get(pdn) != null and g.V6_FRAMES.has(pdn) and g.vfx.px_deco_k(o) > 0.0:
+				fx_frame(o.cv, g, pdn, int(g.V6_FRAMES[pdn][0]), int(float(bm.t) * float(g.V6_FRAMES[pdn][1])), p, g.PX * float(b.get("scale", 1.0)), Color(1, 1, 1, g.vfx.px_deco_k(o)), Vector2(-1, -1), 0.0)
 			fx_frame(o.cv, g, tn, int(spec[0]), int(float(bm.t) * float(spec[1])), p, g.PX * float(b.get("scale", 1.0)), Color.WHITE, Vector2(-1, -1), 0.0)
 		else:   # 程序圆盾：翠绿盾面 + 外圈 + 4 道锯齿，转着飞
 			var R: float = 13.0

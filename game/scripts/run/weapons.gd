@@ -106,6 +106,12 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 		return   # 友方不拦弹、不消耗穿透/弹跳，也不触发附带控制。
 	var h: Dictionary = g.combat.make_hit(b.src, b.get("tags", [])) if b.has("src") else g.combat.make_hit("法术援护" if b.kind in ["fire", "arcane"] else "援护")
 	var px_hit: bool = b.get("px_hit", false) and g.vfx.px_ul_reg(str(b.get("op", ""))).size() > 0   # pixelfx 放开版（docs/242 §14.10）：弹体带 px_hit 时命中画面由干员自己的放开版帧条画，这里跳过通用爆炸 / 环 / 火花（只改画面）
+	if px_hit:
+		var bh = g.vfx.px_ul_reg(str(b.op)).get("bullet", {}).get("hit")   # 注册表 bullet.hit {base, y, sc}：命中处放一张（先装饰后核心）
+		if bh is Dictionary and str(bh.get("base", "")) != "":
+			var bo = g.squad.get_op(str(b.op)) if g.get("squad") != null and g.squad != null else null
+			g.vfx._px_ul_at(str(bh.base), (e.pos if b.kind != "fire" else b.pos) + Vector2(0, float(bh.get("y", 0.0))), Game.PX * float(bh.get("sc", 1.0)),
+				bo != null and not bo.is_leader, g.vfx.px_ul_el(bo) if bo != null else 2, g.vfx.px_deco_k(bo))
 	match b.kind:
 		"fire":
 			# 法术团：爆炸
