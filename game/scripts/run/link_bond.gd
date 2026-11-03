@@ -449,6 +449,9 @@ static func _lesson(u, a: Dictionary, t: float) -> bool:
 	return t >= 0.95
 
 
+const SU = preload("res://scripts/run/ult_fx_specter.gd")   # 归溟幽灵鲨 pixelfx 放开版横切件（只用在引潮夺命她那一斩）
+
+
 ## B4 引潮夺命（歌蕾蒂娅 × 归溟幽灵鲨）：钩索把区域外最近 6 名敌人拖进中心；0.3 秒后幽灵鲨冲进中心横斩
 static func _tide(u, a: Dictionary, t: float) -> bool:
 	var gl = _who(a, "gladiia")
@@ -485,8 +488,11 @@ static func _tide(u, a: Dictionary, t: float) -> bool:
 	if t >= 0.45 and _once(a, "cut"):
 		var d2: Vector2 = a.get("sd", Vector2.RIGHT)
 		var nv: Vector2 = d2.orthogonal()
-		u.shape({"kind": "band", "a": c - nv * 120.0, "b": c + nv * 120.0, "w": 60.0, "col": cs, "fill": 0.75, "life": 0.18})
-		u.shape({"kind": "blade", "a": c - nv * 130.0, "b": c + nv * 130.0, "w": 7.0, "col": Color(1.0, 0.86, 0.84), "glow": cs, "grow": 0.03, "life": 0.5})
+		if SU.on(u):   # pixelfx 放开版：归溟幽灵鲨这一斩换成她终结技同一套横切件
+			SU.ln_cut(u, c - nv * 130.0, c + nv * 130.0)
+		else:
+			u.shape({"kind": "band", "a": c - nv * 120.0, "b": c + nv * 120.0, "w": 60.0, "col": cs, "fill": 0.75, "life": 0.18})
+			u.shape({"kind": "blade", "a": c - nv * 130.0, "b": c + nv * 130.0, "w": 7.0, "col": Color(1.0, 0.86, 0.84), "glow": cs, "grow": 0.03, "life": 0.5})
 		u.grain("fluid", c, Vector2.UP, Color(0.5, 0.05, 0.08), 10)
 		if _ok(sp):
 			for e in u.in_circle(c, 110.0):

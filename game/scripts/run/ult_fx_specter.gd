@@ -166,3 +166,34 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 			Vector2.from_angle(TAU * (q + hq) / 4.0) * 60.0, Color(0.55, 0.45, 0.45) if q % 2 == 0 else Color(0.3, 0.22, 0.22))
 	PF.aftershock(u, ctr, r1, vs + 3.0, 0.3, 10, Color(0.9, 0.8, 0.8))
 	u.shake(3.0, 0.15)
+
+
+# ================================================================ 连携「替身斩」（skill_link l_specter → link_fx_b.sp_ghost / sp_cut）、羁绊「引潮夺命」她那一斩
+## 同终结技横切的画法：替身冲刺途中拖一道弹射血线，斩出时一道横切 + 地上切痕 + 两处撕痕；替身剪影仍是她本人帧条染暗红
+
+## 替身冲刺中每帧：本人帧条的暗红剪影（3 层渐淡）+ 身后一道短血线
+static func ln_ghost(u, p, q: Vector2, d: Vector2) -> bool:
+	var pr: Dictionary = p.portrait()
+	var tn: String = str(pr.get("tex", ""))
+	var tx: Texture2D = u._strip_tex(tn) if tn != "" else null
+	if tx != null:
+		var fw: float = tx.get_width() / float(maxi(1, int(pr.get("frames", 1))))
+		for k in 3:
+			u.strip(tn, q - d * 18.0 * k, {"uw": fw, "o": Vector2(fw * 0.5, tx.get_height() * 0.8), "sx": -1.0 if d.x < 0.0 else 1.0, "life": 0.08,
+				"col": Color(0.42, 0.04, 0.07, [0.9, 0.45, 0.2][k])})
+	_line(u, DASH, DASH_L, q - d * 60.0, d.angle(), 60.0, {"life": 0.1})
+	return true
+
+
+## 斩出：横切（一帧伸满 → 血红 → 上下错开）+ 地上切痕 + 两处撕痕
+static func ln_cut(u, fp: Vector2, tp: Vector2) -> bool:
+	var ang: float = (tp - fp).angle()
+	var L: float = maxf(40.0, fp.distance_to(tp))
+	var vs: float = PF.vseed(u, tp)
+	_line(u, CUT, CUT_L, fp, ang, L, {"sy": 1.0})
+	_line(u, SCAR, SCAR_L, fp, ang, L, {"layer": "back", "sy": 1.0, "life": 1.6, "fade": 0.8})
+	for k in 2:
+		var pp: Vector2 = fp.lerp(tp, 0.3 + 0.4 * k + 0.1 * PF.h(vs + k))
+		var ta: float = ang + PI * 0.5 + (PF.h(vs + k * 2.3) - 0.5) * 1.2
+		_line(u, TEAR, TEAR_L, pp - Vector2.from_angle(ta) * 30.0, ta, 60.0, {"layer": "back", "delay": 0.03 * k})
+	return true

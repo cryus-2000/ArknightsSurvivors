@@ -39,10 +39,13 @@ static func lp_scar(u, a: Dictionary, sp: Vector2, ep: Vector2) -> void:
 
 # ================================================================ 归溟幽灵鲨：暗红替身冲斩（她的终结技是弹射撕裂 + 巨锯，这里是一道直线替身斩）
 const SP_SLASH := ["fx_lk_sp_slash1", "fx_lk_sp_slash2", "fx_lk_sp_slash3"]
+const SU = preload("res://scripts/run/ult_fx_specter.gd")   # pixelfx 放开版（fx/px_unleashed）：替身斩换成终结技同一套横切件
 
 
 ## 替身冲刺中每帧：她本人帧条的暗红剪影 + 拖影
 static func sp_ghost(u, p, q: Vector2, d: Vector2) -> bool:
+	if SU.on(u):
+		return SU.ln_ghost(u, p, q, d)
 	if not LFX.on() or not u.fx_ready(SP_SLASH[0]):
 		return false
 	var pr: Dictionary = p.portrait()
@@ -59,6 +62,8 @@ static func sp_ghost(u, p, q: Vector2, d: Vector2) -> bool:
 
 ## 斩出：一道撕裂斩痕（血红 → 暗红冷却，留在地面）+ 血红火花
 static func sp_cut(u, fp: Vector2, tp: Vector2) -> bool:
+	if SU.on(u):
+		return SU.ln_cut(u, fp, tp)
 	if not LFX.on() or not u.fx_ready(SP_SLASH[0]):
 		return false
 	var vs: float = LFX.vseed(u, tp)
