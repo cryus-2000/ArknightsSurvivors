@@ -511,6 +511,8 @@ func spend_sp(i: int) -> void:
 		perm[i] = true
 		sp[i] = sp_need(i)
 	g.rfx.on_skill_start(self, i)
+	if g.get("vfx") != null:
+		g.vfx.px_ul_cast(self, i)   # pixelfx 放开版技能起手（注册表 cast；开关 fx/px_unleashed 关掉时不播，docs/242 §12.1）
 	if g.get("telemetry") != null:
 		g.telemetry.on_cast(id)   # 作战记录：技能发动次数（docs/77）
 	if g.get("squad") != null and g.squad != null:
