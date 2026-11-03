@@ -576,3 +576,11 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 | 8 | 推进之王 万兽之王拖尘 | `"status": {"<名>": {base, at: "foot", key: "<被推开的敌人字段>", time: true}}`；号令波 rays 在 seg_siege 本人段，本人加 `!px_ul` |
 | 9 | 推进之王 技力光点 | `"sp_mote": base`（§14.19） |
 | 10 | 召唤物 / 精英化段 / 标识 | `summons`、`lunge` / `leap`、`remap`（§14.11、§14.14） |
+
+### 14.21 开关前后 TRACE 配对 `tools/px_trace_ab.py`（11-04 统一，各人别再自写）
+```
+python tools/px_trace_ab.py <干员> [--squad a,b] [--cases late,ult] [--jobs 4] [--out 结果.json]
+```
+- 同一份代码，fx/px_unleashed 0 / 1 各跑两局：后期局 seed 13、560 秒；终结技局 seed 7、240 秒（`--maxprog --sptest`，第 20 秒充满终结技）。都带 `--nodeath`。
+- TRACE 行必须逐行相同；BALANCE 汇总行去掉纯画面统计（同屏峰值 `peak` / `peak_min`、性能计数 `prof` / `fx_peak` / `draw`）后也要相同。全过打印 `PX_TRACE_AB PASS`、退出码 0。
+- **放云端例行任务跑**（总组长 11-04：本机只留录像和单次快检）。例行任务的指令写：检出本人分支 → `bash tools/cloud/setup_linux.sh` → `python3 tools/px_trace_ab.py <干员> --out cloud-results/px_trace_ab_<干员>.json` → 把结果推回 `cloud-results/`。交付时报 PASS 行和结果文件。
