@@ -15,7 +15,8 @@
 			}
 		},
 		"full": {
-			"base": "fx_skadi_ul_spin"
+			"base": "fx_skadi_ul_spin",
+			"aim": "facing"
 		},
 		"draw": {
 			"fit": 80.0,

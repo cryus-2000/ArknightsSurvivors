@@ -2452,11 +2452,25 @@ func _fin_release() -> void:
 	var col: Color = _col(caster) if caster != null else Color.WHITE
 	var sd: float = float(serial) * 7.31 + _imp_pos.x * 0.013 + _imp_pos.y * 0.007
 	var grey := Color(0.56, 0.54, 0.51)
-	PF.particles(self, _imp_pos, 260, "ult_burst", [col.lerp(grey, 0.5), col.darkened(0.45)], 0.0, sd, 220.0)
-	PF.aftershock(self, _imp_pos, 170.0, sd, 0.05, 8, col.lerp(grey, 0.65))
-	for q in 3:   # 烟尘三团：大小 / 延迟 / 漂移错开
-		var dq := Vector2.from_angle(TAU * (q + PF.h(sd + q)) / 3.0)
-		PF.dust(self, _imp_pos + dq * (40.0 + 50.0 * PF.h(sd + q * 2.0)), 150.0 + 90.0 * PF.h(sd + q * 3.0), 0.03 * q, sd + q, dq * 30.0, grey)
+	# pixelfx 放开版（docs/242 §14.23，组长 11-04）：注册表 finish {burst, rock, dust}：false = 不画，写基名 = 换成放开版帧条（u.px_strip 画在冲击点），没写的项照旧；
+	# 没登记 finish 的干员保持现状。冲击帧 / 震屏 / 顿帧照旧归公共
+	var fin = g.vfx.px_ul_reg(str(caster.id) if caster != null else "").get("finish")
+	var fd: Dictionary = fin if fin is Dictionary else {}
+	for part in ["burst", "rock", "dust"]:
+		var fv = fd.get(part, true)
+		if fv is String and fv != "":
+			px_strip(str(fv), _imp_pos, {"elite": g.vfx.px_ul_el(caster) if caster != null else 2})
+		elif fv is bool and fv:
+			if part == "burst":
+				PF.particles(self, _imp_pos, 260, "ult_burst", [col.lerp(grey, 0.5), col.darkened(0.45)], 0.0, sd, 220.0)
+			elif part == "rock":
+				PF.aftershock(self, _imp_pos, 170.0, sd, 0.05, 8, col.lerp(grey, 0.65))
+			else:
+				for q in 3:   # 烟尘三团：大小 / 延迟 / 漂移错开
+					var dq := Vector2.from_angle(TAU * (q + PF.h(sd + q)) / 3.0)
+					PF.dust(self, _imp_pos + dq * (40.0 + 50.0 * PF.h(sd + q * 2.0)), 150.0 + 90.0 * PF.h(sd + q * 3.0), 0.03 * q, sd + q, dq * 30.0, grey)
+			if caster != null and not g.vfx.px_ul_reg(str(caster.id)).is_empty():
+				g.vfx.px_stat("fallback:ult_" + part, str(caster.id))   # 录像门禁：放开版下还在画公共灰褐烟尘 / 碎石 / 粒子
 
 
 # ---------------------------------------------------------------- 演出时长统一（用户 11-01「20 人演出时长统一」，docs/216 §6；开关 ult/dur_unify 缺省 1，0 = 各招原速）

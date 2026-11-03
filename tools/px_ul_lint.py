@@ -10,17 +10,21 @@ import json, os, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REG = os.path.join(ROOT, "game", "data", "px_ul.json")
 CH = os.path.join(ROOT, "game", "data", "characters")
+for _s in (sys.stdout, sys.stderr):   # GBK 控制台打印中文 / ✗ 会 UnicodeEncodeError（拉普兰德 11-04）
+    if hasattr(_s, "reconfigure"):
+        _s.reconfigure(encoding="utf-8", errors="replace")
 
 
-def shapes(node, out):
+def shapes(node, out, path=()):
+    """圆形 / 锥形判定段；召唤物的攻击（…summons.<kind>.attack）走注册表 summons 接管，不算（组长 11-04：凯尔希 Mon3tr 误报）"""
     if isinstance(node, dict):
-        if node.get("shape") in ("circle", "cone") and node.get("src"):
+        if node.get("shape") in ("circle", "cone") and node.get("src") and not (len(path) >= 3 and path[-1] == "attack" and path[-3] == "summons"):
             out.append(node)
-        for v in node.values():
-            shapes(v, out)
+        for k, v in node.items():
+            shapes(v, out, path + (k,))
     elif isinstance(node, list):
         for v in node:
-            shapes(v, out)
+            shapes(v, out, path)
     return out
 
 

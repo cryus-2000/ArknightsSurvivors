@@ -337,7 +337,16 @@
 13. **原作参照的来源和用法（审查 #29）：**
     - 色阶：以 `build/prts_ref/_colors` 为准；prts_ref 里没有这名干员时，才用 `build/ark_ref`。
     - 轮廓：优先用 `build/ark_ref` 里该技能的原作特效贴图来描 §9.2 的 1 位参照图，其次用 prts_ref 的 Spine。
-    - **一律只作参照。** `tools/pixelfx_fx/ref/` 只放自己描的 1 位轮廓；原作贴图，以及从原作贴图直接二值化出来的图，都不进 git，也不进包。交付时附参照来源路径。
+    - **原始素材只作参照。** 原始解包文件、原作贴图、网格、prefab（以及 `tools/ref_fx` 还原出的视频和拼图）只放 `build/`（拼图可放 `Claude outputs/`），不进 git，也不进包。`tools/pixelfx_fx/ref/` 放自己描的 1 位轮廓。
+    - **派生帧条允许进游戏和 git（用户 11-04 确认）。** 从原作特效派生、经过像素化处理的帧条——`tools/ref_fx/rebuild_prefab.py` 还原后降采样、套本人 OP 色阶、量化、手修——可以和自绘帧条一样导出进 `game/art/fx/`、提交、进包。交付时附派生来源（干员 / prefab 名）和参照来源路径。
+    - **否决项照常适用：** 派生帧条同样要过 §12 验收硬标准、§14.7 发散光环取消、§9.3 图案检查和色阶 / 危险色要求，不因为「原作就是这样」豁免。
+
+### 11.1b 全员风格口径（用户 11-04 批）
+
+1. **主形用 pixelfx。** 一招一个实心主形，节奏是「蓄势 → 定帧爆亮 → 余韵」。
+2. **质感走 Noita。** 发光会照亮地面，碎屑有重量，余烬慢慢熄灭。这类元素要少，要有物理感。
+3. **原作只作参考。** 取轮廓、颜色和含义，不要求逐帧还原；像素化原作（§11.1 第 13 条）作为可选手段保留。
+4. **不能碎。** 同一招同时出现的元素不超过 2–3 种；满屏细线、细点的直接否决。
 
 ### 11.2 可以边做边定（按审查建议执行）
 
@@ -451,7 +460,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 
 **还原是近似的：** 形状模块除球形外按锥近似，子发射器、噪声、力场、碰撞不模拟，MeshRenderer 不读动画曲线（固定淡入淡出），拖尾 / 连线要给 `--path` / `--line` 才画。和原作录像对不上时以原作录像为准。
 
-**不进 git、不进包：** 原作贴图、网格、还原出的视频和拼图都只放 `build/` 和 `Claude outputs/`；`tools/ref_fx/` 下只有脚本。
+**不进 git、不进包：** 原作贴图、网格、还原出的视频和拼图都只放 `build/` 和 `Claude outputs/`；`tools/ref_fx/` 下只有脚本。由还原结果像素化派生的帧条可以进游戏和 git，见 §11.1 第 13 条。
 
 ## 14 公共挂点补充（美术组长 11-04 批，样板分支维护）
 
@@ -583,9 +592,36 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 python tools/px_trace_ab.py <干员> [--squad a,b] [--cases late,ult] [--jobs 4] [--out 结果.json]
 ```
 - 同一份代码，fx/px_unleashed 0 / 1 各跑两局：后期局 seed 13、560 秒；终结技局 seed 7、240 秒（`--maxprog --sptest`，第 20 秒充满终结技）。都带 `--nodeath`。
+- 开跑前自动核对贴图索引 `game/art/index.json`（不一致就重建）、确认导入缓存，并打印「放开版帧条已加载 N 张」；N = 0 直接 FAIL（帧条没进索引时开关 1 的画面分支根本走不到，「一致」是假的）。**各分支导出 / 接入新帧条后一定要跑 `python tools/asset_index.py` 并把 index.json 一起提交**（快检 asset_index 项会拦不一致）。
 - TRACE 行必须逐行相同；BALANCE 汇总行去掉纯画面统计（同屏峰值 `peak` / `peak_min`、性能计数 `prof` / `fx_peak` / `draw`）后也要相同。全过打印 `PX_TRACE_AB PASS`、退出码 0。
 - **放云端例行任务跑**（总组长 11-04：本机只留录像和单次快检）。例行任务的指令写：检出本人分支 → `bash tools/cloud/setup_linux.sh` → `python3 tools/px_trace_ab.py <干员> --out cloud-results/px_trace_ab_<干员>.json` → 把结果推回 `cloud-results/`。交付时报 PASS 行和结果文件。
 
 ### 14.22 通用刀光弧兜底与注册表检查（组长 11-04）
 - 放开版下，注册表里有条目的干员**缺省不画通用刀光弧**（vfx.melee_arc）。原来没登记的判定段会画一道主题色粗弧，星熊的暖金和结晶撞色（§12.6）。要恢复通用弧，注册表写 `"arc": true`；`no_arc` 照旧。
 - `python tools/px_ul_lint.py [干员,…]`：列出注册表里有条目的干员，干员 JSON 里没在 `shapes` 登记（按 `px_key`，没有再按 `src`）、也没写 `"px_ul": false` 的圆形 / 锥形判定段（这些段放开版下没有刀光画面），以及注册表登记了但 JSON 里找不到的 src。交付前跑一遍，警告要么登记、要么写明不需要。
+
+### 14.23 终结技收尾 `finish` 和静默圈 `mark_zone`（拉普兰德探针，影响全员）
+- **`finish`**：ult.gd `_fin_release`（冲击那一下）原来给每个干员放三团灰褐烟尘、碎石、ult_burst 粒子，放开版画面上成一团棕色色块。注册表 `"finish": {"dust": …, "rock": …, "burst": …}`：`false` = 不画，写基名 = 换成放开版帧条（`u.px_strip` 画在冲击点），没写的项照旧。没登记 `finish` 的干员保持现状。冲击帧、震屏、顿帧仍归公共。
+- **`mark_zone`**：`verb.mark` 带 `ring_r` 的静默圈（post.gdshader 圈内去色 + 边线）。注册表 `"mark_zone": false` = 去色区和边线都不画；写基名 = 不去色、用帧条画边（帧条按半径 80 / 1x 烤，循环）。另外放开版下 `fx/px_halo = 0` 时，开场往外扩的波前一律不画。
+
+### 14.24 开录前门禁 `tools/px_prerecord.py`（用户批流程改造，协调人 11-04）
+```
+python tools/px_prerecord.py <干员> [--sha <要录的提交前缀>]
+```
+依次：① 打印 HEAD / 分支，和 `--sha` 对得上；② 重建贴图索引 + `godot --import`；③ `px_ul_lint <干员>` 0 条；④ 无头跑图鉴演示（普攻 / S1 / S2 / S3 / 终结技，精二），这名干员加载的放开版帧条数、演示里取用过的放开版帧条数任一为 0 判 FAIL，触发兜底（通用刀光弧、终结技公共烟尘 / 碎石 / 粒子、静默去色）判 FAIL 并列出；⑤ 截一帧存 `Claude outputs/pixelfx_prerecord/<干员>_<sha>.png`；⑥ 打印 `PRERECORD PASS / FAIL`，退出码 0 / 1。
+- `tools/px_demo_rec.py` 开录前强制调用（FAIL 拒绝录；`--sha` 透传）。`tools/px_trace_ab.py` 复用第 ② 步。
+- 统计来自 `vfx.px_stats`（px_ul_tex 取用、兜底路径计数），图鉴演示结束时 `tests/px_demo_rec` 打印 `PXSTATS`。
+
+### 14.25 圆形判定的帧条朝向 `aim`（组长 11-04「去匀圆」）
+圆形判定被注册表接管时帧条画在圆心，缺省不转（或 `spin` 随机转）。形状条目写 `"aim": "nearest"` = 帧条正右对准离圆心最近的敌人（没有敌人时用朝向），`"aim": "facing"` = 对准干员朝向；再写 `"flip": true` 时朝左会转半圈并翻转，帧条不上下颠倒。主浪 / 主斩要冲着目标时用。
+
+### 14.26 统一 GIF 自查 `tools/px_gif.py`（协调人 11-04：用户录像前先看 GIF）
+```
+python tools/px_gif.py <干员> [--only 招,…] [--scale 3]
+```
+- 每招一个 GIF：E0 / E1 / E2 三格并排，统一 3 倍（1x 美术像素 × 3，人物 / 怪 / 帧条同一倍率），速度按 V6_FRAMES 的 fps。
+- 每格：游戏地面色底、干员待机首帧、3 只普通怪、一颗敌弹 #33ceff、一颗经验结晶，用来看大小和撞色。
+- 叠层：地面层（名字含 floor / ground 的帧条）→ 本体 → 前景层，每条先 `_deco` 后核心；一次性特效播完停 0.5 秒再循环，名字含 aura / loop / hold / orbit / shell 的无缝循环。
+- 读的是已导出进 `game/art/fx/` 的帧条（打包表 px_frames.json 取帧和原点），所以先导出、跑 asset_index。输出 `Claude outputs/pixelfx_gif/<干员>/<招>.gif` 和总览 `<干员>_index.png`。招名 = 帧条名去掉前缀、档位、变体、`_tm` / `_deco` / `_lo`。
+- 帧条前缀缺省从注册表自动读（例：归溟幽灵鲨 id 是 `specter_unchained`、前缀是 `fx_specter_ul_`），`--prefix` 可强制。
+- 落点类招：注册表里 `hit` / `status` / `bullet` / `debride` / `mark_zone` / `proj` 键下的帧条，原点放在第一只怪脚下，格子里标「实际出现在落点」；其他招用 `--land 招,…` 指定。
