@@ -195,8 +195,13 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		_h3_sfx(o, "atk", 3.0)
 	if hit.size() > 0:
 		_h3_sfx(o, "hit", 8.0 if empowered else 4.0, 0.85 if empowered else 1.0)
-		o.impact_pause(0.09 if empowered else 0.03)
-		for k in min(hit.size(), 6):
+		if _mz_ul(o):
+			if o.is_leader:   # 放开版命中定格只给队长，按精英档（docs/242 §3 / §10）
+				var el: int = g.vfx.px_ul_el(o)
+				o.impact_pause((0.075 if el >= 2 else 0.05) if (empowered or s3) else (0.05 if el >= 2 else 0.03))
+		else:
+			o.impact_pause(0.09 if empowered else 0.03)
+		for k in (0 if _mz_ul(o) else min(hit.size(), 6)):
 			var he: Dictionary = hit[k]
 			o.sparks(he.pos, he.pos - o.pos, H3_GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
 	# 触手追击
@@ -263,6 +268,11 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		slash_col = Color(1.15, 1.15, 1.15)
 	for k in min(hit.size(), 3):
 		o.enemy_hit_fx(hit[k], hit[k].pos - o.pos)
+	if not s3 and _mz_ul_swing(o, "fx_mizuki_ul_awaken" if empowered else "fx_mizuki_ul_umb", ang, radius, empowered):
+		return
+	if s3 and _mz_ul_play(o, "fx_mizuki_ul_mirage", o.pos + Vector2(0, -10), g.vfx.int_scale(radius / MZ_UL_FIT), g.vrng.randf() * TAU, false, 2):   # 镜花水月：整圈伞缘 + 五六根触手往四周甩砸，整圈随机转角
+		mz.s3_fx = 0.0   # 旧的场地脉冲帧条不再画
+		return
 	if not s3:
 		o.slash_fx(o.pos, ang, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
 	if empowered and not s3 and not slash_tex.begins_with("fx_umbrella_slash"):
@@ -292,6 +302,11 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		mz.stakes.append({"pos": p, "t": float(sk.get("life", 1.5)), "tick": float(sk.get("every", 0.5)), "dmg": dmg * float(sk.get("mult", 0.4)), "flip": g.vrng.randf() < 0.5, "b": sk})
 	if h3_full_circle(o, a):
 		return   # S3 的触手从整片范围同时出现，命中效果不重复逐敌生成。
+	if _mz_ul_play(o, "fx_mizuki_ul_tent", p + Vector2(0, 6), g.PX, 0.0, o.pos.x > p.x, 2):   # 放开版：一根触手从敌人背后钻出抽下（精一卷钩 / 精二荧光斑烤在帧条里）
+		var sfx0: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+		if sfx0 != null:
+			sfx0.play("tentacle", -4.0)
+		return
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
 	if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX * 0.8, 0.0, g.vrng.randf() < 0.5, true, Color(1,1,1,0.8)):
 		var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
@@ -682,7 +697,8 @@ static func _e3_pull(o, a: Dictionary, target: Dictionary) -> bool:
 	if not (pl is Dictionary) or target.dead or not cond_true(o, pl.get("cond", _ED)):
 		return false
 	if displace_one(o, target, o.pos, pl):
-		o.spawn_fx_sprite(str(pl.get("fx", "fx_mizuki_tentacle_curl")), target.pos + Vector2(0, -target.r * 0.5), o.g.PX * 0.8, 0.0, target.pos.x > o.pos.x)
+		if not _mz_ul(o):   # 放开版的卷钩烤在触手帧条 E1+ 里
+			o.spawn_fx_sprite(str(pl.get("fx", "fx_mizuki_tentacle_curl")), target.pos + Vector2(0, -target.r * 0.5), o.g.PX * 0.8, 0.0, target.pos.x > o.pos.x)
 		return true
 	return false
 
@@ -852,3 +868,47 @@ static func _e3_draw_binds(o) -> void:
 			cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
 			cv.draw_arc(Vector2.ZERO, float(e.r) + 4.0, 0.0, TAU, 20, Color(0.9, 0.65, 1.5, 0.8), 2.0)
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---- pixelfx 放开版（docs/242，balance fx/px_unleashed，缺省 0；只改画面：判定 / 伤害 / g.rng 不动，画面随机只用 g.vrng）
+## 注册表 data/px_ul.json 有 mizuki 条目且开关打开
+static func _mz_ul(o) -> bool:
+	return not o.g.vfx.px_ul_reg("mizuki").is_empty()
+
+
+## 在 at 处先装饰（× px_deco_k）后核心播一张放开版帧条；队长随机挑种子变体，队友用 _tm；缺图返回 false
+static func _mz_ul_play(o, base: String, at: Vector2, sc: float, rot: float, flip: bool, variants := 1) -> bool:
+	if not _mz_ul(o):
+		return false
+	var g = o.g
+	var vv: int = 1 + int(g.vrng.randf() * variants) if o.is_leader and variants >= 2 else 1
+	var el: int = g.vfx.px_ul_el(o)
+	var nm: String = g.vfx.px_ul_tex(base, vv, not o.is_leader, "core", el)
+	if g.tex.get(nm) == null:
+		return false
+	var dn: String = g.vfx.px_ul_tex(base, vv, not o.is_leader, "deco", el)
+	var dk: float = g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, at, sc, rot, flip, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(nm, at, sc, rot, flip, false, Color.WHITE)
+	return true
+
+
+## 伞击 / 唤醒：帧条烤制时弧半径 80（1x），缩放 = 当前判定半径 ÷ 80（核心吸附整数格，§11.1 #8）；朝左时转半圈再翻（伞缘上下不倒）；
+## 实时水珠（装饰层）普攻 8 / 技能 14 颗 × px_deco_k，沿出手方向甩
+const MZ_UL_FIT := 80.0
+const MZ_UL_MOTE := Color(0.72, 0.68, 1.15)
+
+
+static func _mz_ul_swing(o, base: String, ang: float, radius: float, skill: bool) -> bool:
+	var g = o.g
+	var mirror: bool = float(o.face) < 0.0
+	var sc: float = g.vfx.int_scale(radius / MZ_UL_FIT)
+	if not _mz_ul_play(o, base, o.pos + Vector2(0, -10), sc, ang + (PI if mirror else 0.0), mirror, 2):
+		return false
+	var dir := Vector2.from_angle(ang)
+	var sp: Vector2 = o.pos + Vector2(0, -10) + dir * radius * 0.7
+	for k in int(round((14.0 if skill else 8.0) * g.vfx.px_deco_k(o))):
+		o.fx({"kind": "mote", "pos": sp + Vector2(g.vrng.randf_range(-14, 14), g.vrng.randf_range(-10, 10)), "vel": Vector2.from_angle(ang + g.vrng.randf_range(-0.9, 0.9)) * g.vrng.randf_range(40, 120) + Vector2(0, -50),
+			"life": 0.5, "col": MZ_UL_MOTE, "sz": 2.0, "grav": 200.0})
+	return true

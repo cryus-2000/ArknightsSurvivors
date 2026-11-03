@@ -1,0 +1,292 @@
+{
+ "_doc": "水月 pixelfx 放开版导出目标（claude/pixelfx-ul-mizuki-claude，docs/242）：伞击 umb（move basic）/ 唤醒 awaken（move s1）/ 触手追击 tent；E2 = 不带档位后缀，E0 / E1 单种子；色阶 = mizuki-lib.js MZ（PRTS 立绘宝蓝 → 淡紫，用户 11-04 触手也用立绘蓝紫）",
+ "fx_mizuki_ul_umb": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "basic"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "lo": true,
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  }
+ },
+ "fx_mizuki_ul_umb2": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "basic",
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  }
+ },
+ "fx_mizuki_ul_umb_tm": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "basic",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  }
+ },
+ "fx_mizuki_ul_umb_e0": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "basic",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  },
+  "deco_step": 2
+ },
+ "fx_mizuki_ul_umb_e1": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "basic",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  },
+  "deco_step": 2
+ },
+ "fx_mizuki_ul_awaken": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s1"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "lo": true,
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  }
+ },
+ "fx_mizuki_ul_awaken2": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s1",
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  }
+ },
+ "fx_mizuki_ul_awaken_tm": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s1",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  }
+ },
+ "fx_mizuki_ul_awaken_e0": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s1",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  },
+  "deco_step": 2
+ },
+ "fx_mizuki_ul_awaken_e1": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s1",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {
+    "span": "2*half_base*pi/180"
+   },
+   "src": "mizuki.json base.half_base（75°，伞击半角；唤醒同角、半径 × s1_radius 由运行时缩放）；弧半径 = 运行时 fit 80 ↔ 判定半径 × 1.0（seg_mizuki._h3_umbrella 放开版分支）"
+  },
+  "deco_step": 2
+ },
+ "fx_mizuki_ul_tent": {
+  "fx": "water/ak-mizuki-ul-tent",
+  "opts": {
+   "move": "chase"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "lo": true
+ },
+ "fx_mizuki_ul_tent2": {
+  "fx": "water/ak-mizuki-ul-tent",
+  "opts": {
+   "move": "chase",
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ"
+ },
+ "fx_mizuki_ul_tent_tm": {
+  "fx": "water/ak-mizuki-ul-tent",
+  "opts": {
+   "move": "chase",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ"
+ },
+ "fx_mizuki_ul_tent_e0": {
+  "fx": "water/ak-mizuki-ul-tent",
+  "opts": {
+   "move": "chase",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "deco_step": 2
+ },
+ "fx_mizuki_ul_tent_e1": {
+  "fx": "water/ak-mizuki-ul-tent",
+  "opts": {
+   "move": "chase",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "deco_step": 2
+ },
+ "fx_mizuki_ul_mirage": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s3"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S3 镜花水月全方向（seg_mizuki h3_full_circle：half = PI），半径 = swing_radius × s3_radius，运行时按 fit 80 缩放；精二解锁只做 E2（§12.2）"
+  },
+  "lo": true
+ },
+ "fx_mizuki_ul_mirage2": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s3",
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S3 镜花水月全方向（seg_mizuki h3_full_circle：half = PI），半径 = swing_radius × s3_radius，运行时按 fit 80 缩放；精二解锁只做 E2（§12.2）"
+  }
+ },
+ "fx_mizuki_ul_mirage_tm": {
+  "fx": "melee/ak-mizuki-ul-umb",
+  "opts": {
+   "move": "s3",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S3 镜花水月全方向（seg_mizuki h3_full_circle：half = PI），半径 = swing_radius × s3_radius，运行时按 fit 80 缩放；精二解锁只做 E2（§12.2）"
+  }
+ }
+}

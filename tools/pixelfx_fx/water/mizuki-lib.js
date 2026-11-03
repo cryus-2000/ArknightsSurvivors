@@ -1,6 +1,6 @@
 // 水月 pixelfx 放开版公用画法（claude/pixelfx-ul-mizuki-claude）：色阶、触手、伞沿膜冠。只给 ak-mizuki-ul-*.js 用，不是独立特效。
-// 色阶依据：PRTS 立绘主色宝蓝 / 藏青 + 伞的淡紫白（build/prts_ref/mizuki）；原作触手青绿身 + 紫红尖（build/ark_ref/mizuki/mizuki_04 / 08 / 10）。
-// 敌弹 #33ceff 色相 0.55：亮部一律偏紫（宝蓝 0.63–0.70、淡紫 0.72），青绿只用在暗的触手身上（明度 ≤ 0.5）。紫红尖压暗、偏紫，和危险色 #ff2667 拉开。
+// 色阶依据：PRTS 立绘主色宝蓝 / 藏青 + 伞的淡紫白（build/prts_ref/mizuki）。触手按用户 11-04 改成和立绘一致的宝蓝 → 淡紫（不照原作青绿身紫红尖）。
+// 敌弹 #33ceff 色相 0.55：亮部一律偏紫（宝蓝 0.63–0.68、淡紫 0.70–0.74）；暗部是藏青，不带红，和危险色 #ff2667（0.95）拉开。
 import { clamp, noise, hex, smooth } from "../../core/index.js";
 
 export const MZ = {
@@ -8,10 +8,10 @@ export const MZ = {
   blue: ["#070a22", "#111a52", "#1e2f8f", "#3150c8", "#5a7cf0", "#9aa8ff", "#dcdcff", "#ffffff"],
   lav: "#c4a6ff",        // 淡紫重点（精二）
   ink: "#080a18",        // 触手描边
-  tent: ["#0c2630", "#14404a", "#1d5a63", "#2a7478"],   // 触手身（暗青绿，暗 → 亮）
-  tip: ["#4a2160", "#73358a", "#a35bbd"],               // 触手尖（暗紫红）
-  suck: "#c8bcff",       // 吸盘
-  bio: "#9fb4ff",        // 精二荧光斑
+  tent: ["#161c52", "#24348a", "#3854c2", "#5a76e6"],   // 触手身（藏青 → 宝蓝，暗 → 亮）
+  tip: ["#5a52c4", "#8a7cee", "#bcaaff"],               // 触手尖（淡紫）
+  suck: "#e2dcff",       // 吸盘
+  bio: "#d2bcff",        // 精二荧光斑（淡紫）
 };
 
 // 二次贝塞尔
@@ -28,7 +28,9 @@ export function bez(a, c, b, u, c2) {
  */
 export function tentacle(p, a, c, b, from, to, s, core, deco) {
   if (to - from < 0.02) return;
-  const N = 90, tc = s.tent ? s.tent.map(hex) : MZ.tent.map(hex), tp = MZ.tip.map(hex), ink = hex(MZ.ink), suck = hex(MZ.suck), bio = hex(MZ.bio), white = hex("#ffffff");
+  let N = 0;
+  { let L = 0, q = bez(a, c, b, from, s.c2); for (let i = 1; i <= 16; i++) { const r = bez(a, c, b, from + (to - from) * i / 16, s.c2); L += Math.hypot(r[0] - q[0], r[1] - q[1]); q = r; } N = Math.max(60, Math.ceil(L * 3)); }   // 采样按弧长：每格 3 个，拉长段不漏行（漏行会透出底下的暗洞成横纹）
+  const tc = s.tent ? s.tent.map(hex) : MZ.tent.map(hex), tp = MZ.tip.map(hex), ink = hex(MZ.ink), suck = hex(MZ.suck), bio = hex(MZ.bio), white = hex("#ffffff");
   const pts = [];
   for (let i = 0; i <= N; i++) {
     const u = from + (to - from) * i / N;
@@ -48,8 +50,9 @@ export function tentacle(p, a, c, b, from, to, s, core, deco) {
     const L = Math.hypot(nx, ny) || 1;
     return [x, y, u, nx / L, ny / L, Math.max(0.6, s.w0 * Math.pow(1 - u, 1.15) * (1 + 0.12 * noise(u * 9, s.seed)))];
   });
-  if (core) for (const [x, y, u, nx, ny, w] of geo)   // 第一遍：描边（整条先画，身体再盖上去，交界不出竖纹）
+  if (core && s.pass !== "body") for (const [x, y, u, nx, ny, w] of geo)   // 第一遍：描边（整条先画，身体再盖上去，交界不出竖纹）；pass = ink / body 时只画一遍（多根触手先全描边再全画身，互相压不出条纹）
     for (let d = -w - 1; d <= w + 1; d += 0.5) p.px(x + nx * d, y + ny * d, ink);
+  if (s.pass === "ink") return;
   for (let i = 0; i < geo.length; i++) {
     const [x, y, u, nx, ny, w] = geo[i];
     if (s.dis > 0 && noise(u * 14, s.seed + 5) * 0.5 + 0.5 < s.dis * 1.1 - 0.05) continue;   // 溶解：一节节断开散掉
@@ -64,9 +67,9 @@ export function tentacle(p, a, c, b, from, to, s, core, deco) {
       p.px(px, py, col);
     }
     // 吸盘：下侧不等距的小亮点
-    if (core && w > 1.4 && u < 0.85 && noise(u * 31, s.seed + 11) > 0.1 && i % 2 === 0) { p.px(x - nx * (w - 0.6), y - ny * (w - 0.6), suck); if (w > 3) p.px(x - nx * (w - 1.6), y - ny * (w - 1.6), tc[3]); }
+    if (core && w > 1.4 && u < 0.85 && noise(u * 31, s.seed + 11) > 0.1 && i % 6 === 0) { p.px(x - nx * (w - 0.6), y - ny * (w - 0.6), suck); if (w > 3) p.px(x - nx * (w - 1.6), y - ny * (w - 1.6), tc[3]); }
     // 精二荧光斑（核心一格亮点 + 装饰光晕）
-    if (s.el >= 2 && u > 0.15 && u < 0.8 && noise(u * 11, s.seed + 23) > 0.45 && i % 3 === 0) {
+    if (s.el >= 2 && u > 0.15 && u < 0.8 && noise(u * 11, s.seed + 23) > 0.45 && i % 9 === 0) {
       if (core) p.px(x + nx * w * 0.3, y + ny * w * 0.3, bio);
       if (deco) p.glow(x, y, 6, bio, 0.22 * (s.glowK ?? 1));
     }
@@ -91,8 +94,8 @@ export function membrane(p, s, ang0, span, age, hot, core, deco, ox = 0, oy = 0)
     const w = s.W * Math.pow(Math.sin(Math.PI * Math.pow(v, 1.8)), 0.55);
     if (w < 0.4 || r > Rr + 0.5 || r < Rr - w) return;
     const q = (Rr - r) / w;
-    if (Rr - r < 1.1 && age < 0.75) {   // 外缘 1 格亮线
-      out.c = R[hot > 0.5 ? n - 1 : n - 2];
+    if (Rr - r < 1.1 && age < 0.75) {   // 外缘 1 格亮线（精二：断续几段淡紫）
+      out.c = s.lav && noise(ang * 6, s.seed + 31) > 0.15 && hot < 1 ? s.lav : R[hot > 0.5 ? n - 1 : n - 2];
       return;
     }
     const ci = Math.round(q * (n - 2) * 0.8 + age * 3 - hot * 2 + 0.5);

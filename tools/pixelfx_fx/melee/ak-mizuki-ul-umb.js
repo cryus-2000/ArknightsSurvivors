@@ -36,18 +36,18 @@ export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), quick = +o.quick > 0, mv = o.move || "basic";
   const el = clamp(Math.round(+o.elite), 0, 2), core = o.layer !== "deco", deco = o.layer !== "core";
   const DL = [0.45, 0.75, 1][el] * (quick ? 0.5 : 1), GK = [0.45, 0.8, 1][el], PM = [0.6, 0.85, 1][el], HOT = [0.6, 1.4, 2.6][el];
-  const s1 = mv === "s1";
+  const s1 = mv === "s1", s3 = mv === "s3";
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[5]], haze: C[4] }), lights = new Lights();
-  const R0 = o.radius, span = o.span, a0 = -span / 2, a1 = span / 2, SW = s1 ? 0.08 : 0.07;
-  const M = { seed: o.seed, R: R0, W: (s1 ? 15 : 13) * [0.85, 1, 1.1][el], ramp: C, GK, scal: 3.6 };   // 伞缘小褶 3–4 格，读得出水母伞缘
+  const R0 = o.radius, span = s3 ? TAU * 0.98 : o.span, a0 = -span / 2, a1 = span / 2, SW = s1 ? 0.08 : 0.07;
+  const M = { seed: o.seed, R: R0, W: (s3 ? 9 : s1 ? 15 : 13) * [0.8, 1, 1.15][el], ramp: C, GK, scal: [2.4, 3.6, 4.2][el], lav: el >= 2 ? hex(MZ.lav) : 0 };   // 伞缘小褶随档加深；精二外缘断续淡紫
   const LAV = hex(MZ.lav);
   let t = 0.02, passed = 0, landed = false;
 
   // basic E1+：伞缘垂下的丝须（不等距，3–5 根），E2 加荧光籽
   const ths = [];
-  if (!s1 && el >= 1) for (let u = Rg.range(0.06, 0.16); u < 0.94; u += Rg.range(0.11, 0.2)) {
+  if (!s1 && !s3 && el >= 1) for (let u = Rg.range(0.06, 0.16); u < 0.94; u += Rg.range(0.11, 0.2)) {
     const a = a0 + span * u, x = Math.cos(a) * (R0 - 2), y = Math.sin(a) * (R0 - 2), d = Rg.range(-0.6, 0.6);
-    ths.push({ x, y, dx: Math.cos(a + Math.PI + d) * 0.5 + 0.2, dy: Math.sin(a + Math.PI + d) * 0.5 + 0.8, len: Rg.range(16, 26) * [1, 1, 1.2][el], ph: Rg.range(0, TAU),
+    ths.push({ x, y, dx: Math.cos(a + Math.PI + d) * 0.5 + 0.2, dy: Math.sin(a + Math.PI + d) * 0.5 + 0.8, len: Rg.range(16, 26) * [1, 1, 1.3][el], ph: Rg.range(0, TAU),
       t0: SW * u, t1: (0.32 + 0.28 * DL) + Rg.range(-0.05, 0.05) });
   }
   // s1：触手（E0 1 / E1 2 / E2 3），根在身后两侧地里，砸在弧上不等距的几处
@@ -60,6 +60,15 @@ export function create(o) {
       const tr = R0 * Rg.range(0.78, 0.95);
       tens.push({ base: [Math.cos(ba) * bd, Math.sin(ba) * bd], hit: [Math.cos(ha) * tr, Math.sin(ha) * tr], ha, side, w0: Rg.range(4.6, 5.4) * [0.9, 1, 1.1][el], wig: Rg.range(0.5, 1) * (Rg.chance(0.5) ? 1 : -1),
         t0: i * 0.025 + Rg.range(0, 0.012), up: R0 * Rg.range(0.7, 0.9), seed: o.seed + 17 * i, curl: el >= 1 && i === n - 1 ? 1 : 0, slammed: false });
+    }
+  }
+  if (s3) {   // 镜花水月（精二才有，只做 E2）：身边五六根触手往四周甩砸，角度抖动、远近不一（不等距放射，§1）
+    const n = Rg.int(5, 6), ang0 = Rg.range(0, TAU);
+    for (let i = 0; i < n; i++) {
+      const ha = ang0 + (i + Rg.range(-0.3, 0.3)) * TAU / n, side = Rg.chance(0.5) ? 1 : -1, bd = R0 * Rg.range(0.3, 0.42), tr = R0 * Rg.range(0.78, 0.96);
+      const ba = ha + side * Rg.range(0.5, 0.9);   // 根在同一方向偏一侧、离身一段（不挤在脚下）
+      tens.push({ base: [Math.cos(ba) * bd, Math.sin(ba) * bd], hit: [Math.cos(ha) * tr, Math.sin(ha) * tr], ha, side, w0: Rg.range(4.4, 5.4), wig: Rg.range(0.5, 1) * (Rg.chance(0.5) ? 1 : -1),
+        t0: Rg.range(0, 0.07), up: R0 * Rg.range(0.5, 0.7), seed: o.seed + 17 * i, curl: Rg.chance(0.35) ? 1 : 0, slammed: false });
     }
   }
   const TE = 0.05, TS = 0.05;   // 触手钻出 / 甩砸时长
@@ -92,8 +101,8 @@ export function create(o) {
         const a = a0 + span * passed, x = Math.cos(a) * (R0 - Rg.range(0, 4)), y = Math.sin(a) * (R0 - Rg.range(0, 4));
         const tx = -Math.sin(a), ty = Math.cos(a), nx = Math.cos(a), ny = Math.sin(a);
         for (let k = 0, m = Math.round((s1 ? 3 : 2) * PM + Rg.range(-0.4, 0.4)); k < m; k++) {
-          const sp = Rg.range(70, 220);
-          ps.spawn(P.MOTE, x, y, (tx * 0.6 + nx * 0.9) * sp, (ty * 0.6 + ny * 0.9) * sp, Rg.range(0.22, 0.5) * (0.6 + 0.4 * DL), C[5 + Rg.int(0, 1)], Rg.range(0.6, 1.0));
+          const sp = Rg.range(70, 220), j = Rg.range(-0.45, 0.45), cj = Math.cos(j), sj = Math.sin(j), vx = tx * 0.6 + nx * 0.9, vy = ty * 0.6 + ny * 0.9;   // 方向再抖一点（不排成放射纹，§9.3）
+          ps.spawn(P.MOTE, x, y, (vx * cj - vy * sj) * sp, (vx * sj + vy * cj) * sp, Rg.range(0.22, 0.5) * (0.6 + 0.4 * DL), C[5 + Rg.int(0, 1)], Rg.range(0.6, 1.0));
         }
         if (deco && Rg.chance(0.15)) ps.spawn(P.VAPOUR, x + nx * 4, y + ny * 4, nx * 35 + tx * 20, ny * 35 + ty * 20, Rg.range(0.2, 0.35) * DL, C[3], Rg.range(1.2, 2));   // 水雾小而少（大了成孤立圆斑，§12.3）
         passed += 0.04 * Rg.range(0.4, 1.8);
@@ -118,7 +127,7 @@ export function create(o) {
     },
     drawBack(p) {
       if (deco) ps.draw(p, "back");
-      if (core && s1 && t < 0.5) {   // 触手根部：地面一小片暗洞（压扁、外缘噪声，不是圆）
+      if (core && tens.length && t < 0.5) {   // 触手根部：地面一小片暗洞（压扁、外缘噪声，不是圆）
         for (const tn of tens) {
           const k = smooth(0, 0.04, t - tn.t0) * (1 - smooth(0.3, 0.5, t)), [bx, by] = tn.base, L = 6 + tn.w0;
           if (k <= 0) continue;
@@ -143,17 +152,17 @@ export function create(o) {
         const k = 1 - smooth(th.t1 - 0.15, th.t1, t), x = th.x + th.dx * th.len, y = th.y + th.dy * th.len - (t - th.t0) * 8;
         if (k > 0.1) { p.px(x, y, LAV); p.px(x + 1, y, LAV); p.px(x, y - 1, C[7]); p.px(x + 1, y + 1, C[6]); if (deco) p.glow(x, y, 7, LAV, 0.35 * k); }
       }
-      // 触手
-      for (const tn of tens) {
+      // 触手：先全部描边、再全部画身（几根交叠处不出条纹）
+      for (const pass of ["ink", "body"]) for (const tn of tens) {
         const u = t - tn.t0;
         if (u < 0) continue;
         const [b, c, tip, , , c2] = tentPose(tn, u);
         const end = TE + TS, hold = 0.12 * (0.6 + 0.4 * DL), out = 0.28 * (0.5 + 0.5 * DL);
         const back = ease.inCubic(smooth(end + hold, end + hold + out, u));   // 收尾：从尖往根缩回地里（不碎成块）
-        if (back >= 0.97) continue;
+        if (back >= 0.8) continue;   // 缩到只剩根部一截就收掉（不留方块残桩）
         const hot = u > end && u < end + 0.05 ? HOT * 0.5 : 0;
-        tentacle(p, b, c, tip, 0, 1 - back, { c2, w0: tn.w0, seed: tn.seed, el, hot, dis: 0, curl: tn.curl * smooth(end, end + 0.08, u) * (1 - back), cs: tn.side, glowK: GK }, core, deco);
-        if (core && el >= 2 && u > end && u < end + 0.2) {   // E2 落点淡紫重点：沿冲击方向拉长的不规整水冠
+        tentacle(p, b, c, tip, 0, 1 - back, { c2, w0: tn.w0, seed: tn.seed, el, hot, dis: 0, curl: tn.curl * smooth(end, end + 0.08, u) * (1 - back), cs: tn.side, glowK: GK, pass }, core, deco && pass === "body");
+        if (pass === "body" && core && el >= 2 && u > end && u < end + 0.2) {   // E2 落点淡紫重点：沿冲击方向拉长的不规整水冠
           const [hx, hy] = tn.hit, L = Math.hypot(hx, hy) || 1, k = 1 - smooth(end + 0.06, end + 0.2, u), nx = hx / L, ny = hy / L;
           for (let a = -1.1; a <= 1.1; a += 0.09) {
             const len = (5 + 7 * Math.max(0, noise(a * 3, tn.seed + 61))) * k * (1 - Math.abs(a) / 1.3);

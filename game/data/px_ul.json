@@ -56,5 +56,12 @@
 				"y": 0
 			}
 		}
+	},
+	"mizuki": {
+		"_doc": "水月：伞击是 umbrella 自定义形状，不走 shapes 接管；伞击 / 唤醒 / 触手追击由 seg_mizuki._mz_ul_* 直接播（fx_mizuki_ul_umb / awaken / tent），定格按精英档写在代码里（E2 0.05 / 0.075，E0–E1 0.03 / 0.05）",
+		"pause": [
+			0.05,
+			0.075
+		]
 	}
 }
