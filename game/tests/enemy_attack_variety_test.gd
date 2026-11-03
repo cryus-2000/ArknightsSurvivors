@@ -23,7 +23,7 @@ func run_checks() -> void:
 	check(g.warns.is_empty(), "starter bones save their secondary attack for later threat stages")
 	for kind in D.ENEMIES:
 		var row: Dictionary = D.ENEMIES[kind]
-		if row.get("role", "") != "boss" and kind != "tear":
+		if row.get("role", "") != "boss" and kind != "tear" and kind != "duck":   # 鸭爵不攻击（原作同，docs/216 §11）
 			check(row.has("extra") or row.has("pattern") or row.get("burst", false), kind + " has an active attack beyond contact")
 	for kind in ["reaper", "founder", "tracer", "nest"]:
 		var row: Dictionary = D.ENEMIES[kind]

@@ -689,11 +689,14 @@ func draw_minimap(vs: Vector2) -> void:
 			continue
 		var p: Vector2 = (e.pos - g.ppos) * k
 		if p.length() > lim:
-			if e.boss:
+			if e.boss or e.type == "duck":
 				p = p.limit_length(lim)
 			else:
 				continue
-		if e.get("friendly", false):
+		if e.type == "duck":
+			var dp := 0.5 + 0.5 * sin(g.t * 8.0)   # 鸭爵（docs/216 §11）：金白色闪点，出了声呐范围贴边
+			tb.circle(c + p, 3.5 + 1.5 * dp, Color(1.0, 0.9, 0.55).lerp(Color.WHITE, dp * 0.5), 12)
+		elif e.get("friendly", false):
 			tb.diamond(c + p, 5.0, UI.CYAN)
 		elif e.boss:
 			var bp := 0.5 + 0.5 * sin(g.t * 6.0)

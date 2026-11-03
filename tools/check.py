@@ -1065,6 +1065,7 @@ SCENE_REGRESSIONS = {
     "doctor_run": ("博士八帧跑步与混合画布切换", "doctor_run_test", r"DOCTOR RUN failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "relic_reclassification": ("藏品效果分类与稀有度", "relic_reclassification", r"RELIC_RECLASSIFICATION_OK", []),
     "enemy_status": ("敌人寒冷与侵蚀", "enemy_status_test", r"ENEMY STATUS TEST: 0 failures", []),
+    "duck_lord": ("鸭爵：出现窗口、受击加速封顶、溜走不掉落、打倒必掉藏品（docs/216 §11）", "duck_lord_test", r"DUCK LORD checks=\d+ failures=0", []),
     "enemy_attack_variety": ("普通怪精英二招与Boss三招", "enemy_attack_variety_test", r"ENEMY ATTACK VARIETY failures=0", []),
     "reaper_rush": ("钵海收割者受伤狂奔与神经波纹", "reaper_rush_test", r"PASS: reaper rush", []),
     "public_gallery": ("对外图鉴初始与发现解锁", "public_gallery_test", r"PUBLIC GALLERY failures=0", []),

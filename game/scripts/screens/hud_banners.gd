@@ -100,6 +100,30 @@ func _preview_line(at: Vector2, vs: Vector2) -> void:
 	UI.text(g.hud, g.font, Vector2(x, y), pv, 13, Color(1.0, 0.9, 0.6), HORIZONTAL_ALIGNMENT_CENTER, w, 3)
 
 
+## 鸭爵屏外指示（docs/216 §11，用户 11-03：只要箭头，不弹横幅）：跑出画面时屏幕边缘一枚金色箭头指向它，脉动；画面内不画
+const DUCK_PTR_COL := Color(1.0, 0.86, 0.4)
+
+func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
+	if g.state != Game.S.PLAY:
+		return
+	var e: Dictionary = g.duck.alive()
+	if e.is_empty():
+		return
+	var sp: Vector2 = ct * e.pos
+	if Rect2(Vector2(24, 24), vs - Vector2(48, 48)).has_point(sp):
+		return
+	var c := vs / 2.0
+	var d := (sp - c).normalized()
+	var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 40) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 40) / maxf(absf(d.y), 0.01)))
+	var pulse := 0.5 + 0.5 * sin(g.t * 8.0)
+	var tip: Vector2 = edge + d * (16.0 + 5.0 * pulse)
+	var base: Vector2 = edge - d * 10.0
+	var sd := d.orthogonal() * 14.0
+	var notch: Vector2 = edge - d * 2.0
+	g.hud.draw_colored_polygon(PackedVector2Array([tip + d * 3.0, base + sd * 1.25 - d * 2.0, notch - d * 2.0, base - sd * 1.25 - d * 2.0]), Color(0.05, 0.04, 0.02, 0.7))
+	g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, notch, base - sd]), DUCK_PTR_COL.lerp(Color.WHITE, 0.35 * pulse))
+
+
 ## Boss 屏外指示（docs/48 P1：Boss 在屏幕外登场，商人有指示，Boss 没有）：
 ## 屏幕边缘一个洋红红圈（比商人 / 祭坛大一号、双圈、脉动），里面是 Boss 常态帧头像，外侧箭头指向 Boss，旁边写名字和距离
 const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)

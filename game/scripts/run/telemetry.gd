@@ -763,6 +763,7 @@ func record(marks = null) -> Dictionary:
 		"low_levelups": g.progression.low_levelups, "heal_offer_low": g.progression.heal_offer_low,
 		"relic_offer": g.dbg_relic_offer, "relic_take": g.dbg_relic_take, "relic_out": g.relic_out, "prof": g.prof, "kills": g.kills,
 		"elites": g.elites_killed, "relics": g.relics.size(), "ingots": g.ingots, "maxhp": g.max_hp,
+		"duck": g.duck.log.duplicate(true),   # 鸭爵（docs/216 §11）：出现 / 打倒 / 溜走次数、打倒用时
 		# 源石锭熔铸（docs/74）：t 开始时刻（-1 = 没触发）、left 当时剩余、pool 总熔铸、pct 全队伤害加成
 		"fuse": {"t": g.rfx.fuse_t, "left": g.rfx.fuse_left, "pool": g.rfx.fuse_pool, "pct": snappedf(g.rfx.fuse_pct(), 0.001)},
 		"bosses": g.bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]),

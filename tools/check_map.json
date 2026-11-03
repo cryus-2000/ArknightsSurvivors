@@ -30,6 +30,7 @@
   "enemy": {
    "scenes": [
     "enemy_status",
+    "duck_lord",
     "enemy_attack_variety",
     "enemy_identity",
     "enemy_prepare",
