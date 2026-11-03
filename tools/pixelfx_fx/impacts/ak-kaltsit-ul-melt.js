@@ -6,7 +6,7 @@
 //   → 拉长红火星 + 余烬慢慢落（装饰）。
 // move：ult（终结技爆心，最大）/ pop（终结技外两圈散落的小爆，无地面裂纹以外的东西）/ end（S3 结束，r = melt_r）/ rebuild（S1 重构与三连爆的后两拍，小一号、晶片少）/ down（Mon3tr 倒地爆）/ debride（清创：敌人身上爆开，最小）
 import { Particles, Lights, Bits, B, P, Rng, fit, clamp, smooth, ease, noise, noise2, hex, TAU } from "../../core/index.js";
-import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿；熔毁红待样板把 OP.kaltsit_melt 换成组长 C 批的压暗版后改用，暂留本地 red
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿、OP.kaltsit_melt 熔毁红
 
 // 实色：painter.put 在 a < 1 时按 Bayer 点阵抖动（棋盘格脏点，§12 画面不能脏）；本作一律 a ≥ 0.5 画实、< 0.5 不画，淡出靠色阶变暗
 function solid(p) {
@@ -27,7 +27,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    red: ["#120403", "#2e0806", "#560c0a", "#84120e", "#b01c16", "#d8443a", "#f6d8d4", "#ffffff"],
+    red: OP.kaltsit_melt,
     radius: 65,      // 判定半径（1x 像素）：judge 传 melt_r / 2
     sy: 0.55,        // 地面透视压扁
     move: "end",
@@ -127,7 +127,7 @@ export function create(o) {
           if (d > edge) return;
           const q = d / edge, n2 = 0.5 + 0.5 * noise2(x * 0.19 + 31, y * 0.21 - 17, o.seed + 7);   // 二维噪声蚀洞（一维相加会出横竖条纹）
           if (n2 < hole * 1.05 - q * 0.25) return;
-          out.c = u < 0.08 ? C[7] : C[clamp(Math.round(7 - q * 3.2 - u * 3.5), 2, 7)];
+          out.c = u < 0.08 ? (q < 0.4 ? C[7] : C[5]) : C[clamp(Math.round(5.6 - q * 3 - u * 3.5), 2, 6)];   // 组长 C v2：爆团压一档，中心别是整块饱和红 / 白
         });
       }
       // 晶芯：首帧白热菱形晶核，0.03 s 起崩开；晶片往外迸
@@ -142,7 +142,7 @@ export function create(o) {
           if (u < 0 || u > sh.life) continue;
           const d = sh.sp * (1 - Math.exp(-u * 6)) / 6, k = u / sh.life;
           const x = Math.cos(sh.a) * d, y = CY + Math.sin(sh.a) * d * 0.75;
-          const col = u < 0.04 ? C[7] : C[clamp(Math.round(6 - k * 4), 2, 6)];
+          const col = u < 0.04 ? C[6] : C[clamp(Math.round(5 - k * 3.5), 2, 5)];
           p.poly(shardPoly(x, y, sh.L * (1 - k * 0.4), sh.W * (1 - k * 0.3), sh.rot + sh.spin * u), col, 1);
         }
       }

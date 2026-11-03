@@ -7,7 +7,7 @@
 //   E2 爪痕变成骨白芯 + 黄边、多第四道、甩出骨屑（对应精二前后爪 / 骨刃）。熔毁只在精二，只出 E2。
 // 爪痕彼此不等长、不等距、弧心各偏，避免等距并排（§9.3）；不画孤立圆，光晕沿爪痕走（glowLine）。
 import { Particles, Lights, Bits, B, P, Rng, fit, clamp, smooth, ease, noise, hex, TAU } from "../../core/index.js";
-import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿；熔毁红待样板把 OP.kaltsit_melt 换成组长 C 批的压暗版后改用，暂留本地 red
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿、OP.kaltsit_melt 熔毁红
 
 // 实色：painter.put 在 a < 1 时按 Bayer 点阵抖动（棋盘格脏点，§12 画面不能脏）；本作一律 a ≥ 0.5 画实、< 0.5 不画，淡出靠色阶变暗
 function solid(p) {
@@ -29,8 +29,7 @@ export const meta = {
   bg: "dark",
   options: {
     palette: OP.kaltsit,
-    // 熔毁红 OP.kaltsit_melt（组长 C 11-04 批：白芯 + 压暗的绯红，色相 2–8°、中段明度压低；和敌方危险色 #ff2667（色相 343°、高亮偏粉）、结晶暖金拉开，不要橙 / 黄）
-    red: ["#120403", "#2e0806", "#560c0a", "#84120e", "#b01c16", "#d8443a", "#f6d8d4", "#ffffff"],
+    red: OP.kaltsit_melt,   // 熔毁红（组长 C 11-04 审定：白芯 + 压暗绯红，色相 2–8°）
     bone: "#f3efd8",    // E2 骨白芯
     radius: 54,         // 判定半径（1x 像素）：由 targets judge 传 (m_reach + pad) / 2
     half: 1.3,          // 判定半角（弧度）：judge 传 m_arc
@@ -61,6 +60,14 @@ function claw(p, k, s, head, tail, hot, age) {
     const d = Math.abs(r - s.r - jag);
     if (d > w * 0.5 + 0.35) return;
     const q = d / Math.max(0.5, w * 0.5);   // 0 = 爪痕中线
+    if (s.melt) {   // 熔毁弧（组长 C v2）：弧身 #84120e / #b01c16，#d8443a 只做 1 格外缘，白芯只在弧长中间 1/3；首帧中段白热
+      const mid = u > 0.33 && u < 0.66, M = s.M;
+      if (q > 0.72 || d > w * 0.5 - 0.6) { out.c = age > 0.6 ? M[3] : M[4]; return; }
+      if (mid && q < 0.42 && (hot > 1 || age < 0.45)) { out.c = hot > 1 || age < 0.2 ? M[6] : M[5]; return; }
+      out.c = (q < 0.45 ? M[3] : M[2]);
+      if (age > 0.6) out.c = q < 0.45 ? M[2] : M[1];
+      return;
+    }
     if (hot > 1) { out.c = C[n - 1]; return; }   // 首帧白热
     if (s.core && q < 0.45 && age < 0.55) { out.c = s.core; return; }   // E2 骨白芯 / 熔毁白芯
     const ci = Math.round((n - 2) - q * 2.2 - age * 3.2 - (1 - v) * 1.2 + hot);
@@ -86,7 +93,25 @@ export function create(o) {
   //   中点 M、走向 β（普攻 ≈ 正前、各道微张成耙；熔毁两组 ±0.3 rad 交叉）、弯曲半径 rc（大 = 直），侧向位置不等距
   const lat = [], NL = n;
   for (let i = 0; i < NL; i++) lat.push((i - (NL - 1) / 2) / Math.max(1, NL - 1));
-  for (let i = 0; i < n; i++) {
+  const circ3 = (ax, ay, bx, by, cx, cy) => {   // 过三点的圆：圆心与半径
+    const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+    const ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d;
+    const uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d;
+    return [ux, uy, Math.hypot(ax - ux, ay - uy)];
+  };
+  // 熔毁（组长 C v2）：3 道错开的长弧，从 Mon3tr 身侧起、弯着扫过身前目标，弧长 ≥ 判定半径 × 1.5；前两道同向平行，只有最后一道反向交叉
+  if (s3) for (let i = 0; i < 3; i++) {
+    const rev = i === 2, sv = rev ? -sg : sg, sh = i === 1 ? -0.16 : i === 0 ? 0.0 : 0.05;
+    const A = [R0 * (-0.05 + 0.08 * i), sv * R0 * (0.74 + sh)], B = [R0 * (0.9 - 0.04 * i), -sv * R0 * (0.4 - sh * 0.5)];
+    const Mx = R0 * (0.62 + Rg.range(-0.03, 0.03)), My = sv * R0 * (0.22 + sh) + Rg.range(-1, 1);
+    const [cx, cy, rc] = circ3(A[0], A[1], Mx, My, B[0], B[1]);
+    const a0 = Math.atan2(A[1] - cy, A[0] - cx), aM = Math.atan2(My - cy, Mx - cx), a1 = Math.atan2(B[1] - cy, B[0] - cx);
+    let sp = a1 - a0; while (sp > Math.PI) sp -= TAU; while (sp < -Math.PI) sp += TAU;
+    let sm = aM - a0; while (sm > Math.PI) sm -= TAU; while (sm < -Math.PI) sm += TAU;
+    if (Math.sign(sm) !== Math.sign(sp)) sp = sp - Math.sign(sp) * TAU;
+    marks.push({ seed: o.seed * 7 + i * 13, cx, cy, r: rc, a0, len: sp, w: Rg.range(3.6, 4.4) * (i === 0 ? 1.15 : 1), C, melt: true, M: o.red.map(hex), t0: [0, 0.035, 0.1][i] + Rg.range(0, 0.01) });
+  }
+  for (let i = 0; i < (s3 ? 0 : n); i++) {
     const rev = s3 ? i % 2 === 1 : el >= 2 && i === n - 1;
     // 熔毁（组长 C 11-04：3–4 道长弧扫过，跨度至少判定半径）：每道从 Mon3tr 身前划到判定边缘，明显弯；两道一组正反交叉，交点落在命中处
     const yl = s3 ? R0 * [-0.3, 0.16, 0.32, -0.12][i] * sg + R0 * Rg.range(-0.04, 0.04) : R0 * Math.sin(H) * 0.82 * (lat[i] + Rg.range(-0.1, 0.1)) * sg;
@@ -105,7 +130,7 @@ export function create(o) {
     });
   }
   const SW = s3 ? 0.07 : 0.055, HOLD = s3 ? 0.06 : 0.03, FADE = s3 ? 0.22 : [0.12, 0.16, 0.2][el];
-  const T_HIT = SW * 0.8;   // 命中时刻（爪尖到判定外缘附近）
+  const T_HIT = s3 ? 0.11 : SW * 0.8;   // 命中时刻（爪尖到判定外缘附近；熔毁等第三道交叉划到）
   const hx = R0 * (s3 ? 0.6 : 0.72), hy = 0;   // 命中处（判定扇区中段，正前方）
 
   // ---- 甩出物（装饰）：沿出爪切向甩出的火星 / 碎屑；E2 骨屑；熔毁红碎片 + 横向红闪
@@ -165,17 +190,13 @@ export function create(o) {
       if (s3) {
         const u = t - T_HIT;
         if (u >= 0 && u < 0.3) {
-          const k = 1 - u / 0.3, L = R0 * 0.46 * (0.7 + 0.5 * ease.outQuart(clamp(u / 0.08)));
+          const k = 1 - u / 0.3, L = 8 * (0.7 + 0.5 * ease.outQuart(clamp(u / 0.08)));
           if (core) for (let j = 0; j < 4; j++) {   // 四角星（不等长两轴）
             const a = starA + j * Math.PI / 2, Lj = L * (j % 2 ? 0.62 : 1);
             const ex = hx + Math.cos(a) * Lj, ey = Math.sin(a) * Lj;
-            p.poly([[hx + Math.cos(a + 1.3) * 3, Math.sin(a + 1.3) * 3], [ex, ey], [hx + Math.cos(a - 1.3) * 3, Math.sin(a - 1.3) * 3]], u < 0.05 ? C[7] : C[clamp(Math.round(6 - u * 14), 3, 7)], 1);
+            p.poly([[hx + Math.cos(a + 1.3) * 2, Math.sin(a + 1.3) * 2], [ex, ey], [hx + Math.cos(a - 1.3) * 2, Math.sin(a - 1.3) * 2]], u < 0.05 ? RD[7] : u < 0.12 ? RD[5] : RD[4], 1);
           }
-          if (deco) {
-            const fl = R0 * (0.35 + 0.6 * ease.outCubic(clamp(u / 0.1)));   // 横向红闪（原作 cross_3 / 4 拉长；只闪 0.15 s）
-            if (u < 0.15) p.glowLine(hx - fl * 0.5, 0, hx + fl * 0.5, 0, 3, C[6], 0.5 * (1 - u / 0.15));
-            p.glowLine(hx - R0 * 0.25, 0, hx + R0 * 0.25, 0, 8, C[4], 0.25 * k * k);
-          }
+          // 组长 C v2：去掉中心红光团与横闪（孤立 / 半透明糊团）
         }
       }
       if (deco) {

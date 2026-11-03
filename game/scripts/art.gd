@@ -1107,7 +1107,7 @@ const V6_FRAMES := {
 	"fx_kaltsit_ul_claw_e0": [6, 24.0], "fx_kaltsit_ul_claw_e0_deco": [3, 12.0], "fx_kaltsit_ul_claw_e1": [9, 24.0], "fx_kaltsit_ul_claw_e1_deco": [9, 24.0], "fx_kaltsit_ul_claw": [13, 24.0],
 	"fx_kaltsit_ul_claw_lo": [8, 15.0], "fx_kaltsit_ul_claw_deco": [13, 24.0], "fx_kaltsit_ul_claw2": [13, 24.0], "fx_kaltsit_ul_claw2_deco": [13, 24.0], "fx_kaltsit_ul_claw_tm": [10, 24.0],
 	"fx_kaltsit_ul_claw_tm_deco": [10, 24.0], "fx_kaltsit_ul_clawm": [11, 24.0], "fx_kaltsit_ul_clawm_lo": [7, 15.0], "fx_kaltsit_ul_clawm_deco": [11, 24.0], "fx_kaltsit_ul_clawm_deco_lo": [7, 15.0],
-	"fx_kaltsit_ul_clawm2": [11, 24.0], "fx_kaltsit_ul_clawm2_deco": [11, 24.0], "fx_kaltsit_ul_clawm_tm": [10, 24.0], "fx_kaltsit_ul_clawm_tm_deco": [10, 24.0], "fx_kaltsit_ul_melt": [19, 20.0],
+	"fx_kaltsit_ul_clawm2": [11, 24.0], "fx_kaltsit_ul_clawm2_deco": [11, 24.0], "fx_kaltsit_ul_clawm_tm": [11, 24.0], "fx_kaltsit_ul_clawm_tm_deco": [11, 24.0], "fx_kaltsit_ul_melt": [19, 20.0],
 	"fx_kaltsit_ul_melt_lo": [14, 15.0], "fx_kaltsit_ul_melt_deco": [19, 20.0], "fx_kaltsit_ul_melt_deco_lo": [14, 15.0], "fx_kaltsit_ul_melt2": [19, 20.0], "fx_kaltsit_ul_melt2_deco": [19, 20.0],
 	"fx_kaltsit_ul_melt_tm": [11, 20.0], "fx_kaltsit_ul_melt_tm_deco": [11, 20.0], "fx_kaltsit_ul_rebuild": [17, 20.0], "fx_kaltsit_ul_rebuild_lo": [13, 15.0], "fx_kaltsit_ul_rebuild_deco": [17, 20.0],
 	"fx_kaltsit_ul_rebuild_deco_lo": [13, 15.0], "fx_kaltsit_ul_rebuild_tm": [10, 20.0], "fx_kaltsit_ul_rebuild_tm_deco": [10, 20.0], "fx_kaltsit_ul_debride": [12, 20.0], "fx_kaltsit_ul_debride_lo": [9, 15.0],

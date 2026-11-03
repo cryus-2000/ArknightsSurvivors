@@ -58,7 +58,7 @@
 		}
 	},
 	"kaltsit": {
-		"_doc": "凯尔希 + Mon3tr（claude/pixelfx-ul-kaltsit-claude-f7a041）：熔毁爆（S3 结束 / 重构三连爆 / 倒地，同 src，按实际半径缩放）、精二回防落地。治疗落点 / 技能起手改用 kaltsit.json 的 fx px 条目（§14.2；注册表 cast / heal 在 fx/px_halo = 0 时不画）。Mon3tr 爪击等召唤物挂点（§14 之后）",
+		"_doc": "凯尔希 + Mon3tr（claude/pixelfx-ul-kaltsit-claude-f7a041）：熔毁爆（Mon3tr · 熔毁；px_key rebuild = S1 重构三连爆、down = 精二倒地爆）、精二回防落地；召唤物 Mon3tr 爪击 / S3 熔毁爪 / S3 常驻（summons，§14.11）；清创（debride）。治疗落点 / 技能起手 / 精一扑击用 kaltsit.json 的 fx px 条目（§14.2）",
 		"shapes": {
 			"Mon3tr · 熔毁": {
 				"base": "fx_kaltsit_ul_melt",
@@ -77,7 +77,54 @@
 					"fit": 54.5,
 					"y": -10.0
 				}
+			},
+			"rebuild": {
+				"base": "fx_kaltsit_ul_rebuild",
+				"skill": true,
+				"draw": {
+					"fit": 35.0,
+					"y": 0.0
+				}
+			},
+			"down": {
+				"base": "fx_kaltsit_ul_rebuild",
+				"skill": true,
+				"draw": {
+					"fit": 35.0,
+					"y": 0.0
+				}
 			}
+		},
+		"summons": {
+			"mon3tr": {
+				"base": "fx_kaltsit_ul_claw",
+				"variants": 2,
+				"draw": {
+					"fit": 54.5,
+					"k": 1.0,
+					"y": 0.0
+				},
+				"skill": {
+					"2": {
+						"base": "fx_kaltsit_ul_clawm",
+						"variants": 2
+					}
+				},
+				"aura": {
+					"2": {
+						"base": "fx_kaltsit_ul_m3aura",
+						"y": 0,
+						"sc": 1.0
+					}
+				}
+			}
+		},
+		"debride": {
+			"base": "fx_kaltsit_ul_debride",
+			"sc": 1.0
+		},
+		"remap": {
+			"fx_kaltsit_shell": "fx_kaltsit_ul_shell"
 		}
 	}
 }

@@ -753,6 +753,7 @@
       "kb": 160,
       "stun": "$rebuild_stun",
       "src": "Mon3tr · 熔毁",
+      "px_key": "down",
       "ring": false,
       "fx": [
        {
@@ -1061,7 +1062,7 @@
         0.05
        ]
       },
-      "cond": "skill_active:2"
+      "cond": "skill_active:2 && !px_ul"
      },
      {
       "pfx": {
@@ -1085,7 +1086,7 @@
        26,
        -4
       ],
-      "cond": "skill_active:2"
+      "cond": "skill_active:2 && !px_ul"
      },
      {
       "pfx": {
@@ -1112,7 +1113,7 @@
        50,
        -10
       ],
-      "cond": "skill_active:2"
+      "cond": "skill_active:2 && !px_ul"
      },
      {
       "side": {
@@ -1214,7 +1215,7 @@
        "y": -12,
        "j": 0
       },
-      "cond": "elite >= 2 && skill_active:2"
+      "cond": "elite >= 2 && skill_active:2 && !px_ul"
      },
      {
       "side": {
@@ -1228,7 +1229,7 @@
        "y": -12,
        "j": 1
       },
-      "cond": "elite >= 2 && skill_active:2 && node:twin_claw"
+      "cond": "elite >= 2 && skill_active:2 && node:twin_claw && !px_ul"
      }
     ]
    }
@@ -2517,6 +2518,7 @@
        "kb": 160,
        "stun": "$rebuild_stun",
        "src": "Mon3tr · 熔毁",
+       "px_key": "rebuild",
        "ring": false,
        "fx": [
         {
@@ -2648,6 +2650,7 @@
        "kb": 160,
        "stun": "$rebuild_stun",
        "src": "Mon3tr · 熔毁",
+       "px_key": "rebuild",
        "ring": false,
        "fx": [
         {
@@ -2779,6 +2782,7 @@
        "kb": 160,
        "stun": "$rebuild_stun",
        "src": "Mon3tr · 熔毁",
+       "px_key": "rebuild",
        "ring": false,
        "fx": [
         {
