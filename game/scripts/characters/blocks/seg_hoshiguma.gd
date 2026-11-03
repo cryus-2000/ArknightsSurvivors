@@ -268,7 +268,8 @@ static func gm_block_mark(o, b: Dictionary) -> void:
 		var dur: float = float(b.dur) * k
 		o.g.enemies_sys.lite_slow(e, float(b.slow) * k, dur)
 		blk[int(e.id)] = {"e": e, "t": o.g.t + dur}
-		o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 16.0, "r0": float(e.r), "life": 0.3, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 2.5, "alpha": 0.9})
+		if Bal.vi("fx/px_unleashed", 0) <= 0:   # 放开版：外扩环一律不做（用户 11-04），只留脚下盾印
+			o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 16.0, "r0": float(e.r), "life": 0.3, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 2.5, "alpha": 0.9})
 	gm["blk"] = blk
 
 
@@ -296,8 +297,9 @@ static func gm_force_block(o, b: Dictionary) -> void:
 		return
 	gm["force_until"] = o.g.t + float(b.dur)
 	gm["force_cd"] = o.g.t + float(b.cd)
-	o.fx({"kind": "ring", "pos": o.g.ppos, "r": 44.0, "r0": 12.0, "life": 0.35, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 3.0, "alpha": 0.9})
-	o.fx({"kind": "ring", "pos": o.pos, "r": float(b.get("ring_r", 90.0)), "r0": 20.0, "life": 0.45, "col": Color(1.0, 0.8, 0.3), "floor": true, "w": 6.0, "alpha": 0.95})   # 盾面压地的冲击环
+	if Bal.vi("fx/px_unleashed", 0) <= 0:   # 放开版：两道外扩环不做（用户 11-04），留压地扬尘
+		o.fx({"kind": "ring", "pos": o.g.ppos, "r": 44.0, "r0": 12.0, "life": 0.35, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 3.0, "alpha": 0.9})
+		o.fx({"kind": "ring", "pos": o.pos, "r": float(b.get("ring_r", 90.0)), "r0": 20.0, "life": 0.45, "col": Color(1.0, 0.8, 0.3), "floor": true, "w": 6.0, "alpha": 0.95})   # 盾面压地的冲击环
 	o.ground_dust(o.pos, float(b.get("ring_r", 90.0)) * 0.6, 10)
 	o.float_text(o.g.ppos + Vector2(0, -100), "般若之重", Color(1.0, 0.85, 0.4), 14)
 
@@ -336,7 +338,8 @@ static func gm_boil_sand(o, b: Dictionary) -> void:
 		o._exec_list(scaled, f.pos)
 		if float(b.get("spark_mult", 0.0)) > 0.0:
 			o._exec_list([{"_tag": "shape.circle", "shape": "circle", "center": "target", "r": float(b.spark_r), "mult": float(b.spark_mult), "src": "热砂沸腾", "tags": ["skill"], "power": true}], f.pos)
-		o.fx({"kind": "ring", "pos": f.pos, "r": float(b.spark_r), "r0": 8.0, "life": 0.35, "col": Color(1.0, 0.45, 0.2), "floor": true, "w": 4.0, "alpha": 0.95})
+		if Bal.vi("fx/px_unleashed", 0) <= 0:   # 放开版：外扩环不做（用户 11-04），留火星
+			o.fx({"kind": "ring", "pos": f.pos, "r": float(b.spark_r), "r0": 8.0, "life": 0.35, "col": Color(1.0, 0.45, 0.2), "floor": true, "w": 4.0, "alpha": 0.95})
 		for k in 8:
 			var a: float = TAU * float(k) / 8.0 + 0.2
 			o.sparks(f.pos, Vector2.from_angle(a), Color(1.0, 0.6, 0.25), 2, 120.0)

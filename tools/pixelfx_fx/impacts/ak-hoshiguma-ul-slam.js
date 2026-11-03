@@ -70,9 +70,9 @@ export function create(o) {
             ps.spawn(i % 3 ? P.SPARK : P.GRIT, Math.cos(a) * 8, Math.sin(a) * 8 * SY, Math.cos(a) * sp, Math.sin(a) * sp * SY - Rg.range(40, 140), Rg.range(0.25, 0.5) * (0.6 + TAIL), i % 3 ? 0 : D[3 + Rg.int(0, 1)], 1);
           }
           if (el >= 1) {
-            for (const a of jitterAngles(Rg, Rg.int(16, 22), 0, Math.PI * 2, 0.45)) {   // 隆起尘墙：判定边缘不等距的小尘团往外推（小而多，连成一圈被掀起的地皮，不是孤立圆团 §12.3）
+            for (const a of jitterAngles(Rg, Rg.int(16, 22), 0, Math.PI * 2, 0.45)) {   // 隆起尘墙：判定边缘不等距的小尘团原地掀起、往上冒（小而多，不是孤立圆团 §12.3；不往外推：用户 11-04 外扩环一律不做）
               const r = R * Rg.range(0.8, 1.05);
-              ps.spawn(P.DUST, Math.cos(a) * r, Math.sin(a) * r * SY, Math.cos(a) * Rg.range(15, 40), Math.sin(a) * Rg.range(15, 40) * SY - Rg.range(10, 30), Rg.range(0.3, 0.5) * (0.5 + TAIL), D[1 + Rg.int(0, 2)], Rg.range(1.4, 3.2), Rg.range(0, 0.06));
+              ps.spawn(P.DUST, Math.cos(a) * r, Math.sin(a) * r * SY, Rg.range(-5, 5), -Rg.range(12, 32), Rg.range(0.3, 0.5) * (0.5 + TAIL), D[1 + Rg.int(0, 2)], Rg.range(1.4, 3.2), Rg.range(0, 0.06));
               if (Rg.chance(0.6)) ps.spawn(P.GRIT, Math.cos(a) * r, Math.sin(a) * r * SY, Math.cos(a) * Rg.range(30, 80), -Rg.range(60, 140), Rg.range(0.3, 0.5), D[3], 1, Rg.range(0, 0.04));
             }
             for (let i = 0; i < 10; i++) { const a = Rg.range(0, Math.PI * 2), sp = Rg.range(50, 130); ems.spawn(P.SPARK, Math.cos(a) * R * 0.4, Math.sin(a) * R * 0.4 * SY, Math.cos(a) * sp, Math.sin(a) * sp * SY - 60, Rg.range(0.25, 0.45) * (0.5 + TAIL), 0, 1, Rg.range(0, 0.05)); }

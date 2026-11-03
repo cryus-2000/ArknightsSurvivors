@@ -1,5 +1,5 @@
 // 星熊终结技「般若」放开版：盾砸地（盾阵 110 = 游戏 _hex 内圈，ult_moves_c._ho_start），俯视地面透视 sy 0.55，原点 = 星熊脚下。
-// 和 S1 拉开（§12.1）：S1 是落点往外的放射裂网；终结技是整片地面沿「盾阵」六边形断开——一圈锯齿六边形断口从盾下撑开到盾阵边，
+// 和 S1 拉开（§12.1）：S1 是落点往外的放射裂网；终结技是整片地面沿「盾阵」六边形断开——盾阵边上一圈锯齿六边形断口从六个角原地裂开，
 // 断口上不等距地掀起石板（板顶被青绿照亮），板缝里窜起高鬼火，持续到举盾硬挡开始；中间是倒三角盾印（白热后转翠绿）。
 // 终结技不分档，按 E2 全量。六边形只画一道（与游戏 _hex 两道线叠在同一位置，不另加同心圈）；断口带缺口、边缘噪声起伏。
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
@@ -55,7 +55,7 @@ export function create(o) {
               const a = Math.atan2(s.y / SY, s.x) + Rg.range(-0.4, 0.4), sp = Rg.range(40, 120);
               ps.spawn(i ? P.SPARK : P.GRIT, s.x, s.y, Math.cos(a) * sp, Math.sin(a) * sp * SY - Rg.range(60, 150), Rg.range(0.3, 0.6), i ? 0 : D[3 + Rg.int(0, 1)], 1, s.d);
             }
-            if (Rg.chance(0.5)) ps.spawn(P.DUST, s.x, s.y, s.x * 0.5, s.y * 0.5 - Rg.range(5, 20), Rg.range(0.5, 0.9), D[1 + Rg.int(0, 2)], Rg.range(1.6, 3.4), s.d + 0.03);
+            if (Rg.chance(0.5)) ps.spawn(P.DUST, s.x, s.y, Rg.range(-4, 4), -Rg.range(8, 22), Rg.range(0.5, 0.9), D[1 + Rg.int(0, 2)], Rg.range(1.6, 3.4), s.d + 0.03);
           }
           for (let i = 0; i < 14; i++) {   // 青绿碎晶往上飘
             const a = Rg.range(0, Math.PI * 2), r = R * Rg.range(0.3, 0.95);
@@ -71,10 +71,13 @@ export function create(o) {
       if (core && u < 0) for (let y = -26; y < -6; y += 0.5) p.blend(0.4 * noise(y * 0.5, o.seed), y, C[4], 0.5 + (y + 26) / 40);
       if (u < 0) return;
       const ck = 1 - smooth(0.2, 0.2 + TAIL, u), open = ease.outExpo(clamp(u / 0.1));
-      // —— 核心：六边形断口（只一道），从盾下撑到盾阵边；带缺口、法向噪声起伏；首帧白热 → 余热 → 翠绿 → 暗绿
+      // —— 核心：六边形断口（只一道），就在盾阵边上原地裂开：从六个角沿边往两头裂，不从中间往外扩（用户 11-04：外扩环一律不做）；
+      //    带缺口、法向噪声起伏；首帧白热 → 余热 → 翠绿 → 暗绿
       if (core && ck > 0) {
-        const r = R * (0.3 + 0.7 * open), ci = u < 0.05 ? 6 : u < 0.1 ? 5 : 0;
+        const r = R, ci = u < 0.05 ? 6 : u < 0.1 ? 5 : 0;
         for (let s = 0; s < 6; s += 0.4 / r) {
+          const f = s - Math.floor(s);
+          if (Math.min(f, 1 - f) > 0.5 * open) continue;
           if (noise(s * 3.1, o.seed + 4) < -0.32) continue;
           const [x, y] = hexAt(s, r), k = Math.floor(s) % 6, nx = (V[k][0] + V[(k + 1) % 6][0]) / 2, ny = (V[k][1] + V[(k + 1) % 6][1]) / 2;
           const j = 1.4 * noise(s * 9, o.seed + 2);
@@ -107,7 +110,7 @@ export function create(o) {
       }
       if (deco) {
         const gk = 0.3 * (1 - smooth(0.05, 0.4, u));   // 光只挂在六个角上（断口最亮的地方），不画中心圆光（§12.3）
-        if (gk > 0.01) for (const [x, y] of V) p.glow(x * R * open, y * R * open * SY, 7, J[3], gk);
+        if (gk > 0.01) for (const [x, y] of V) p.glow(x * R, y * R * SY, 7, J[3], gk);
         for (const f of flames) {   // 鬼火：从板缝窜起，比 S1 高、持续到挡的开头
           const v0 = u - f.d;
           if (v0 < 0) continue;

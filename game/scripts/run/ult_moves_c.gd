@@ -1088,7 +1088,7 @@ static func _ho_start(u, o) -> Dictionary:
 		u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.35, "sc1": 0.55, "scd": 0.1, "ang": PF.h(vs0) * TAU, "sx": -1.0 if PF.h(vs0 + 1.0) < 0.5 else 1.0,
 			"life": hold + 1.4, "fade": 0.6, "col": Color(1.1, 1.08, 1.05), "col1": Color(0.6, 0.58, 0.56), "cold": hold + 0.6})
 		PF.heave(u, c, 120.0, vs0 + 3.0)
-		if _ho_v3():   # 打击感（pixfx §6.6）：盾下四团逐帧烟尘往外推，代替灰点粒子
+		if _ho_v3() and not pul:   # 打击感（pixfx §6.6）：盾下四团逐帧烟尘往外推，代替灰点粒子（放开版不做外推，用户 11-04）
 			for q in 4:
 				var hq: float = PF.h(vs0 * 3.0 + q)
 				var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 4.0)
@@ -1120,7 +1120,9 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			a.tick = i + 1
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.tseg[i], e, 0.02, {"src": "格挡", "pre": true, "edge": e.pos.distance_to(c) > rc})
-			if a.v2:   # 裂纹扩大：每跳地面碎裂再撑大一圈 + 一下震 + 碎石（v2 不画程序线段裂纹）
+			if a.v2 and _ho_ul(u):   # 放开版：每跳只震一下，不再一圈圈撑大裂纹 / 往外隆起（外扩环不做，用户 11-04）
+				u.shake(2.0 + i, 0.12)
+			elif a.v2:   # 裂纹扩大：每跳地面碎裂再撑大一圈 + 一下震 + 碎石（v2 不画程序线段裂纹）
 				var vs1: float = PF.vseed(u, c) + i
 				u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.55 + 0.12 * i, "sc1": 0.6 + 0.12 * (i + 1), "scd": 0.08, "ang": PF.h(vs1) * TAU,
 					"life": hold - t + 1.2, "fade": 0.6, "col": Color(0.95, 0.9, 0.88, 0.8), "col1": Color(0.55, 0.52, 0.5, 0.8), "cold": 0.5})
@@ -1143,8 +1145,9 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 		if a.v2:   # 反震：顿帧 + 石尘冲击环（fx_hs_ring）推到 R + 灰白粒子迸开 + 四拍往外震（节奏同乌尔比安四圈）
 			u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
 			var vs2: float = PF.vseed(u, c) + 50.0
-			var rs: Dictionary = PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
-			if _ho_v3():   # 冲击帧：反震那一下，石尘环 + 盾下碎裂进剪影；外圈八团逐帧烟尘往外推
+			var pul: bool = _ho_ul(u)   # 放开版：石尘冲击环、外圈烟尘外推、四拍外震都是往外扩散的环，一律不做（用户 11-04）；留顿帧、粒子、原地余震碎石
+			var rs: Dictionary = {} if pul else PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
+			if _ho_v3() and not pul:   # 冲击帧：反震那一下，石尘环 + 盾下碎裂进剪影；外圈八团逐帧烟尘往外推
 				a["hf"] = true
 				u.act["hf"] = true
 				rs["hf"] = true   # 只给石尘环；盾下碎裂是整张圆盘，进剪影会成一大块实心圆
@@ -1154,7 +1157,8 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 					PF.dust(u, c + dq * R * (0.55 + 0.25 * hq), 200.0 + 80.0 * hq, 0.05 + 0.03 * (q % 3), vs2 + q, dq * (70.0 + 50.0 * hq))
 			PF.particles(u, c, 300, "ult_burst", [Color(0.95, 0.9, 0.85), Color(1.0, 0.55, 0.45)], 0.0, vs2, R * 0.8)
 			a["vs"] = vs2
-			a["beats"] = [[t, R * 0.3, 0], [t + 0.18, R * 0.55, 1], [t + 0.36, R * 0.8, 2], [t + 0.54, R, 3]]
+			if not pul:
+				a["beats"] = [[t, R * 0.3, 0], [t + 0.18, R * 0.55, 1], [t + 0.36, R * 0.8, 2], [t + 0.54, R, 3]]
 			PF.aftershock(u, c, R, vs2 + 9.0, 0.84, 10)
 		else:
 			u.shape({"kind": "circle", "c": c, "r": R, "col": COL_RED.lerp(col, 0.5), "fill": 0.3, "life": 0.22})
@@ -1168,8 +1172,9 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 	var T: float = 0.14
 	if el <= T + 0.1:   # 反震：两层六边形从盾前扩到 R（逐帧描，形状一眼是盾阵）
 		var r: float = lerpf(110.0, R, clampf(el / T, 0.0, 1.0))
-		_hex(u, c, r, 0.0, col.lerp(Color.WHITE, 0.4), 10.0, 0.06)
-		_hex(u, c, r * 0.8, PI / 6.0, COL_RED.lerp(col, 0.4), 6.0, 0.06)
+		var hr: float = R if a.v2 and _ho_ul(u) else r   # 放开版：六边形就在 R 处原地亮，不从盾前往外扩（用户 11-04）；判定照旧随 r 推开
+		_hex(u, c, hr, 0.0, col.lerp(Color.WHITE, 0.4), 10.0, 0.06)
+		_hex(u, c, hr * 0.8, PI / 6.0, COL_RED.lerp(col, 0.4), 6.0, 0.06)
 		for e in u.in_circle(c, r + 20.0):
 			if a.rseg.has(int(e.id)):
 				continue
