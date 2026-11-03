@@ -49,7 +49,7 @@ function crescent(p, s, ta, L, W, age, hot, core, deco) {
   });
   if (deco) for (let u = 0; u <= span; u += 0.18) {   // 刀身光晕归装饰层
     const [x, y] = onArc(s, s.R - W * 0.4, ta + dir * u);
-    p.glow(x, y, (s.full ? 10 : 12) + W, R[n - 3], (s.full ? 0.28 : 0.36) * (1 - age) * (u / span) + (s.full ? 0.04 : 0.12) * hot);   // 光晕加强补回拆层后的亮度；全方向整圈不加（加了光晕会被读成第二道环）
+    p.glow(x, y, 10 + W, R[n - 3], 0.28 * (1 - age) * (u / span) + 0.04 * hot);   // 回到 v1 强度：反预乘后光已够亮，再加强会把水珠火星淹掉（11-03）
   }
 }
 
@@ -57,7 +57,7 @@ export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), heavy = +o.heavy > 0, full = o.span > 6, quick = +o.quick > 0, LQ = quick ? 0.5 : 1;
   // 分层（docs/242 §8）：core = 刀弧 / 第 1 帧白热 / 爆点；deco = 光晕、甩出物、余韵。quick（队友版）只缩装饰的余韵，核心与队长版一样
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
+  const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[7], C[6], C[5]], haze: C[4] }), lights = new Lights();   // 火星偏亮两阶（颗粒感，11-03）
   const R0 = o.radius, span = full ? TAU * 1.04 : o.span, a0 = full ? -Math.PI : -span / 2, a1 = a0 + span;
   const SW = full ? 0.13 : heavy ? 0.09 : 0.07, W = heavy ? 30 : full ? 18 : 22;
   const A = { seed: o.seed, R: R0, W, ramp: C, full };
@@ -79,28 +79,28 @@ export function create(o) {
       while (passed < head && passed < 1) {
         const a = a0 + span * passed, [x, y] = onArc(A, A.R - Rg.range(0, A.W * 0.5), a);
         const tx = -Math.sin(a), ty = Math.cos(a), nx = Math.cos(a), ny = Math.sin(a);
-        for (let k = 0; k < (heavy ? 3 : 2); k++) {
+        for (let k = 0; k < (heavy ? 4 : 3); k++) {   // 颗粒感（v2 补回，11-03）：每步多甩一颗
           const sp = Rg.range(80, 260);
-          ps.spawn(P.MOTE, x, y, (tx * 0.6 + nx * 0.9) * sp, (ty * 0.6 + ny * 0.9) * sp, Rg.range(0.25, 0.55), C[5 + Rg.int(0, 2)], Rg.range(0.7, 1.3));
+          ps.spawn(P.MOTE, x, y, (tx * 0.6 + nx * 0.9) * sp, (ty * 0.6 + ny * 0.9) * sp, Rg.range(0.25, 0.55), C[6 + Rg.int(0, 1)], Rg.range(0.8, 1.4));
         }
-        if (Rg.chance(0.5)) ps.spawn(P.SPARK, x, y, nx * Rg.range(100, 240), ny * Rg.range(100, 240) - 60, Rg.range(0.3, 0.6));
+        if (Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * Rg.range(100, 260), ny * Rg.range(100, 260) - 60, Rg.range(0.3, 0.65));
         if (Rg.chance(0.3)) ps.spawn(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
         passed += (full ? 0.025 : 0.035) * Rg.range(0.4, 1.8);   // 步长随机：等距撒会排成一圈等距放射纹
       }
       if (!landed && t >= SW) {
         landed = true;
-        lights.add(0, 0, R0 * 1.2, C[5], 0.6, 0.35);
+        lights.add(0, 0, R0 * 1.2, C[5], 0.15, 0.35);   // 圆心大光：反预乘后变亮，量化出色带像同心圈，压到 1/4（11-03）
         lights.add(tip[0], tip[1], 46, C[6], 0.9, 0.3);
         // 余韵：整条弧外缘碎成浪沫与水雾，慢慢沉下去
         for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2) / (quick ? 0.5 : 1)) {
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
           ps.spawn(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
-          if (Rg.chance(0.35)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2), Rg.range(0.05, 0.4) * LQ);   // 余韵里一闪一闪的水光
+          if (Rg.chance(0.5)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2), Rg.range(0.05, 0.4) * LQ);   // 余韵里一闪一闪的水光
           if (Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
         }
         if (!full) {
           const ta = Math.atan2(Math.cos(a1), -Math.sin(a1));
-          for (let i = 0; i < 18; i++) {
+          for (let i = 0; i < 24; i++) {
             const a = ta + Rg.range(-0.8, 0.8), sp = Rg.range(120, 320);
             ps.spawn(P.SPARK, tip[0], tip[1], Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.2, 0.45));
           }
@@ -129,7 +129,7 @@ export function create(o) {
       drawArc(p, A, 0, 0.07, 0.4);
       if (deco && t < 0.32) {
         const [x, y] = onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));
-        p.glow(x, y, 66, C[5], 0.8 * (1 - t / 0.32));
+        p.glow(x, y, 60, C[5], 0.6 * (1 - t / 0.32));
       }
       const g = t - SW * 0.6;
       if (deco && !full && g > 0 && g < 0.26) sparkle(p, tip[0], tip[1], (heavy ? 18 : 14) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
@@ -138,8 +138,8 @@ export function create(o) {
         p.disc(R0 * 0.6, 0, 16 * k + 5, C[7], 0.9 * k);
       }
       if (deco) {
+        lights.draw(p);   // 光先画、颗粒后画：反预乘后光更亮，盖在颗粒上会把水珠 / 火星淹掉（v2 颗粒感弱的主因，11-03）
         ps.draw(p, "front");
-        lights.draw(p);
       }
     },
   };
