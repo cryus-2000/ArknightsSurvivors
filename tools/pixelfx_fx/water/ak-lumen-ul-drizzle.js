@@ -30,7 +30,7 @@ export function create(o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const C = fit(o.palette, 7), E = o.elite, R = o.r, Rg = new Rng(o.seed + 17 * E);
   const tail = (E === 0 ? 0.6 : E === 1 ? 0.8 : 1.0) * (o.quick ? 0.6 : 1);   // 余韵：E0 短、E2 长；队友版再减
-  const T_OPEN = 0.16, T_HOLD = 0.35 + 0.35 * tail, T_END = T_HOLD + 0.25;      // 法阵：推开 → 停 → 淡出
+  const T_OPEN = 0.16, T_HOLD = 0.35 + 0.35 * tail, T_END = T_HOLD + 0.25;      // 法阵：原地亮起 → 停 → 淡出（不外扩，用户 11-04）
   const ps = new Particles({ rng: Rg, ground: () => 1e9 });
   const wind = 0.22, nRain = E === 0 ? 12 : E === 1 ? 16 : 22;
   const rain = [];
@@ -53,6 +53,16 @@ export function create(o) {
   // 法阵里沿边流动的颗粒（装饰）：贴着边线内侧，角度随机、慢慢走
   const grains = [];
   for (let i = 0, n = 16 + 6 * E; i < n; i++) grains.push({ a: Rg.range(0, TAU), k: Rg.range(0.8, 0.97), w: Rg.range(0.5, 1.1) * (Rg.next() < 0.5 ? 1 : -1), b: Rg.next() });
+  // 法阵边（组长 B 11-04）：判定半径上 4–6 段涟漪弧，段间留缺口；每段由几滴落在边上的雨串起来——落点先亮一个小涟漪，
+  // 弧线从落点沿圈往两边长（角向生长，不往外扩），亮度沿圈用 noise 起伏
+  const segs = [], nSeg = Rg.int(4, 6), a0 = Rg.range(0, TAU);
+  for (let i = 0; i < nSeg; i++) {
+    const w = TAU / nSeg, c = a0 + (i + 0.5 + Rg.range(-0.18, 0.18)) * w, half = w * Rg.range(0.26, 0.36);
+    const drops = [];
+    for (let k = 0, n = Rg.int(2, 3); k < n; k++) drops.push({ a: c + Rg.range(-0.8, 0.8) * half, t: 0.05 + Rg.range(0, 0.16) });
+    drops.sort((u, v) => u.t - v.t);
+    segs.push({ c, half, drops, t0: drops[0].t });
+  }
   // 上飘的光点（装饰，少量）
   for (let i = 0, n = 3 + 2 * E; i < n; i++) {
     const a = Rg.range(0, TAU), r = Rg.range(0.1, 0.7) * R;
@@ -65,23 +75,37 @@ export function create(o) {
     update(dt) { t += dt; ps.update(dt); },
     drawBack(p) {
       if (!deco || t < 0.04) return;
-      const rr = R * (0.3 + 0.7 * open()), a = fadeA();
-      // 水面光：贴着边线内侧的一圈淡光（越近边越亮），中心空着，不是实心圆盘
+      const rr = R * 0.95, a = fadeA() * open();
+      // 水面光斑：法阵里一片没有硬边的淡光（中间略亮、往外渐隐，外缘用 noise 打散），不画线圈、不外扩
       for (let y = -rr * SY; y <= rr * SY; y += 1)
         for (let x = -rr; x <= rr; x += 1) {
-          const q = Math.hypot(x / rr, y / (rr * SY));
-          if (q < 1 && q > 0.55) p.blend(x, y, C[3], a * (E === 0 ? 0.14 : 0.2) * smooth(0.55, 0.97, q) * (0.75 + 0.25 * noise(Math.atan2(y, x) * 2 + t * 2, o.seed)));
+          const q = Math.hypot(x / rr, y / (rr * SY)) * (0.88 + 0.24 * noise(Math.atan2(y, x) * 1.7, o.seed + 2));
+          if (q < 1) p.blend(x, y, C[3], a * (E === 0 ? 0.1 : 0.14) * (1 - q * q));
         }
     },
     draw(p) {
-      const op = open(), fa = fadeA(), rr = R * (0.3 + 0.7 * op);
-      if (core && t >= 0.04 && fa > 0) {
-        // ---- 法阵边线：一道细线，亮度沿边用 noise 起伏（不断成等距碎段），推开时首帧白
-        const hot = t < T_OPEN;
-        for (let an = 0; an < TAU; an += 0.5 / rr) {
-          const n = noise(an * 2.2 + t * 3, o.seed + 7), x = Math.cos(an) * rr, y = Math.sin(an) * rr * SY;
-          const c = hot ? C[6] : n > 0.62 ? C[6] : n > 0.3 ? C[5] : C[4];
-          p.dot(x, y, c, fa * (n > 0.18 ? 1 : 0.55));
+      const fa = fadeA(), rr = R;
+      if (core && fa > 0) {
+        for (const sg of segs) {
+          // 落点小涟漪：落在边上那一刻亮一个扁的小弧（前半圈），不长大，0.25 s 淡掉
+          for (const d of sg.drops) {
+            const u = (t - d.t) / 0.25;
+            if (u < 0 || u > 1) continue;
+            const x0 = Math.cos(d.a) * rr, y0 = Math.sin(d.a) * rr * SY;
+            for (let an = 0.2; an < Math.PI - 0.2; an += 0.3) p.dot(x0 + Math.cos(an) * 4, y0 + Math.sin(an) * 2, u < 0.15 ? C[6] : C[5], 1 - u);
+          }
+          // 弧段：从每个已落下的雨点沿圈往两边长，合起来覆盖这一段（±half），亮度沿圈起伏
+          if (t < sg.t0) continue;
+          const lo = sg.c - sg.half, hi = sg.c + sg.half;
+          for (let an = lo; an <= hi; an += 0.5 / rr) {
+            let reach = 0;
+            for (const d of sg.drops) if (t > d.t) reach = Math.max(reach, 1 - Math.abs(an - d.a) / (sg.half * 1.6 * ease.outCubic(clamp((t - d.t) / 0.18)) + 1e-3));
+            if (reach <= 0) continue;
+            const edge = Math.min(an - lo, hi - an) / sg.half, n = noise(an * 3.1 + t * 2.5, o.seed + 7);
+            const k = fa * Math.min(1, reach * 2) * smooth(0, 0.35, edge);
+            const fresh = sg.drops.some((d) => t - d.t < 0.06 && Math.abs(an - d.a) < 0.12);
+            p.dot(Math.cos(an) * rr, Math.sin(an) * rr * SY, fresh ? C[6] : n > 0.6 ? C[6] : n > 0.3 ? C[5] : C[4], k * (n > 0.2 ? 1 : 0.6));
+          }
         }
       }
       if (core) {
@@ -134,7 +158,7 @@ export function create(o) {
           const ca = Math.cos(r.a), sa = Math.sin(r.a), L2 = R * 1.05, head = -L2 + 2 * L2 * ease.outCubic(clamp(a / 0.3)), fade = 1 - smooth(0.75, 1, a);
           for (let s = -L2; s <= head; s += 0.5) {
             const q = Math.abs(s) / L2, x = -sa * r.off + ca * s, y = (ca * r.off + sa * s) * SY - 8;
-            p.dot(x, y, q < 0.6 ? C[6] : C[5], fade * (1 - 0.7 * q * q));
+            p.dot(x, y, q < 0.6 && (a < 0.3 || q < 0.15) ? C[6] : C[5], fade * (1 - 0.7 * q * q));   // 白芯只在扫过那几帧，停住后降到钢蓝高光
             p.dot(x - sa * 0.8, y + 1, C[5], fade * (1 - q) * 0.8);
           }
         }
@@ -144,7 +168,7 @@ export function create(o) {
         if (t >= 0.04 && fa > 0)
           for (const g of grains) {
             const an = g.a + t * g.w, k = g.k * rr, tw = 0.5 + 0.5 * Math.sin(t * 9 + g.b * 20);
-            p.dot(Math.cos(an) * k, Math.sin(an) * k * SY, tw > 0.7 ? C[6] : C[5], fa * (0.45 + 0.55 * tw));
+            p.dot(Math.cos(an) * k, Math.sin(an) * k * SY, tw > 0.7 ? C[6] : C[5], fa * smooth(0.12, 0.3, t) * (0.45 + 0.55 * tw));   // 弧段长出来以后再浮现，开头不出散点
           }
         ps.draw(p, "front");
         for (const g of glints) {
