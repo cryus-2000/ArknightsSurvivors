@@ -157,6 +157,8 @@ def one(seg):
     return seg, fdir, got, tr, mus
 
 
+# 先导入一遍：重导出的帧条（同名改内容）不会在运行时自动重导，不导就录到旧图（11-04 实际踩过）；Godot 只重导 md5 变了的，很快
+GR.run_godot([GR.find_godot(), "--headless", "--path", os.path.join(ROOT, "game"), "--import"], 900)
 segs = [(mv, int(e)) for part in a.segs.split("/") for mv, es in [part.split(":")] for e in es.split(",")]
 os.makedirs(a.tmp, exist_ok=True)
 with ThreadPoolExecutor(a.jobs) as ex:

@@ -345,8 +345,9 @@ static func gm_boil_sand(o, b: Dictionary) -> void:
 ## 画面（draw_entities_floor 末尾调）：被阻挡的敌人脚下一枚金色盾形小印；般若之重武装时队长脚下一圈金环；热砂外缘一圈橙色椭圆（带「沸腾」时更亮）
 static func gm_draw(o) -> void:
 	var cv = o.cv
+	var pul: bool = Bal.vi("fx/px_unleashed", 0) > 0   # 放开版：热砂每跳的荆棘帧条自带边缘，不再叠这圈橙色椭圆（S2 期间同屏好几块，叠起来脏）
 	for f in o.fields:
-		if not f.get("sand", false):
+		if pul or not f.get("sand", false):
 			continue
 		var fa: float = clampf((float(f.n) * float(f.every) - float(f.t)) / 0.4, 0.0, 1.0)
 		var sf: float = o.ring_flash("sand%d" % int(f.pos.x * 7.0 + f.pos.y))   # 10-31 TA H1：外缘椭圆只在铺开那一瞬

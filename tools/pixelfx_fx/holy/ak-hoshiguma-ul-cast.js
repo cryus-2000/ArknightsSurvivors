@@ -1,5 +1,6 @@
 // 星熊技能起手提示（docs/242 §12.1；px_ul.json cast，技能开启那一刻在脚下播）：原点 = 星熊脚底，俯视 sy 0.55，0.5 s。
-// kind：1 = S1 战意（盾面钢色印 + 几道往盾心聚拢的短亮线）；2 = S2 荆棘（脚边一圈高矮不一、间距不等的钢刺扎出又缩回）；
+// kind：1 = S1 战意（盾面钢色印 + 几道往盾心聚拢的短亮线）；2 = S2 荆棘（照原作 hsguma_skill_02_buff：脚下长出一圈转 45° 的暗红荆棘菱环、倒刺朝外，
+//       E1 只长两条边、E2 四边合拢带断口；外加一圈高矮不一的钢刺扎出又缩回）；
 //       3 = S3 力之锯（脚下一圈青绿鬼火窜起，盾形印由白转翠绿）。精英档：E1 起印边带暗红细线（反击架势），E2 起印 / 刺尖转翠绿（般若）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
 import { jitterAngles } from "../house.js";
@@ -10,7 +11,7 @@ export const meta = {
   tags: ["holy", "cast", "one-shot"],
   size: [112, 96],
   origin: [56, 66],
-  duration: 0.55,
+  duration: 0.9,
   loop: false,
   fps: 20,
   bg: "dark",
@@ -33,6 +34,12 @@ export function create(o) {
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[5], C[4], C[3], C[2]] });
   const thorns = jitterAngles(Rg, Rg.int(8, 11), 0, Math.PI * 2, 0.45).map((a) => ({ a, r: Rg.range(22, 34), h: Rg.range(7, 16), w: Rg.range(1.2, 2.4), d: Rg.range(0, 0.08), lean: Rg.range(0.15, 0.5) }));
   const flames = jitterAngles(Rg, Rg.int(7, 10), 0, Math.PI * 2, 0.45).map((a) => ({ a, r: Rg.range(14, 30), h: Rg.range(8, 20), d: Rg.range(0, 0.12), ph: Rg.range(0, 6) }));
+  const DR = 34, DV = [[DR, 0], [0, DR * SY], [-DR, 0], [0, -DR * SY]], e1 = Rg.int(0, 3);
+  const vines = kind === 2 ? [0, 1, 2, 3].filter((k) => el >= 2 || k === e1 || k === (e1 + 1) % 4).map((k) => {
+    const [x0, y0] = DV[k], [x1, y1] = DV[(k + 1) % 4], L = Math.hypot(x1 - x0, y1 - y0);
+    const barbs = []; for (let v = Rg.range(0.05, 0.15); v < 0.95; v += Rg.range(0.09, 0.2)) barbs.push([v, Rg.chance(0.75) ? 1 : -1, Rg.range(2, 4.5)]);
+    return { x0, y0, x1, y1, nx: (y1 - y0) / L, ny: -(x1 - x0) / L, bend: Rg.range(-0.06, 0.1) * L, d: k * 0.04 + Rg.range(0, 0.03), barbs, gap: Rg.range(0.2, 0.8), gw: Rg.range(0.05, 0.1) };
+  }) : [];
   let t = 0, fired = false;
   const sigil = (p, k, y0) => {   // 般若倒三角印：白热 → 钢色（E2 / S3 转翠绿），E1 起外缘暗红
     for (let i = 0; i < 3; i++) {
@@ -72,6 +79,24 @@ export function create(o) {
           }
         }
       }
+      if (kind === 2 && core) for (const vn of vines) {   // 暗红荆棘菱环：沿边长出 → 停 → 淡出（比钢刺留得久，0.8 s）
+        const u = t - vn.d, g = clamp(u / 0.12), k = 1 - smooth(0.45, 0.8, u);
+        if (u < 0 || k <= 0) continue;
+        const Pt = (v) => { const w = 1 - v, b = 4 * v * w * vn.bend; return [vn.x0 + (vn.x1 - vn.x0) * v + vn.nx * b, vn.y0 + (vn.y1 - vn.y0) * v + vn.ny * b * SY]; };
+        const hot = u < 0.06 ? 4 : u < 0.14 ? 3 : 2;
+        for (let v = 0; v <= g; v += 0.01) {
+          if (Math.abs(v - vn.gap) < vn.gw) continue;
+          const [x, y] = Pt(v), wob = 0.7 * noise(v * 9 + vn.gap * 7, o.seed + 13);
+          p.blend(x, y + wob, E[hot], k);
+          p.blend(x, y + wob + 1, E[clamp(hot - 2, 1, 4)], 0.8 * k);
+        }
+        for (const [bv, sd, bl] of vn.barbs) {
+          if (bv > g || Math.abs(bv - vn.gap) < vn.gw) continue;
+          const [x0, y0] = Pt(bv), [x1, y1] = Pt(Math.min(1, bv + 0.02)), tx = x1 - x0, ty = y1 - y0, tl = Math.hypot(tx, ty) || 1;
+          p.line(x0, y0, x0 + (ty / tl * sd + tx / tl * 0.5) * bl, y0 + (-tx / tl * sd + ty / tl * 0.5) * bl * 0.8 - 0.5, el >= 2 && bv > 0.6 ? J[3] : E[clamp(hot, 2, 3)], 0.9 * k);
+        }
+      }
+      if (kind === 2 && deco && el >= 2) for (const vn of vines) { const u = t - vn.d; if (u > 0) p.glow((vn.x0 + vn.x1) / 2, (vn.y0 + vn.y1) / 2, 7, E[3], 0.14 * (1 - smooth(0.3, 0.7, u))); }   // 光沿藤走
       if (kind === 3 && deco) for (const f of flames) {   // 脚下一圈青绿鬼火窜起
         const u = t - f.d, life = clamp(u / 0.06) * (1 - smooth(0.15, 0.45, u)), H = f.h * life;
         if (u < 0 || H < 1) continue;
