@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """pixelfx 放开版展示段录像（docs/242 §5）：一名干员的普攻、S1、S2、S3、终结技、队友版按顺序各录一小段再拼成一条，只录新版。
 
-原速 30 帧（--realtime --playclock --fixed-fps 30），1920×1080，原色；开关 fx/px_unleashed = 1（--lo 再加 fx/px_ul_lo = 1 录网页低档）。
+原速 30 帧（--realtime --playclock --fixed-fps 30），1920×1080，原色，带声音（--sfxtrace 离线混音效 / 语音 / 配乐，tools/rec_audio.py；测试局本身静音）；开关 fx/px_unleashed = 1（--lo 再加 fx/px_ul_lo = 1 录网页低档）。
 技能用 ult/test_skill_*（每 2.5 秒把队长第 N 个技能充满），终结技用 ult/test_fill_at + 刷怪（同 tools/ult_rec.py），队友版让别人当队长、本人进编队。
 用法：python tools/px_showcase_rec.py <干员> [--mate 队长] [--seed 13] [--at 40] [--secs 7] [--lo] [--deco0] [--out 目录] [--tmp 目录]
 """
 import argparse, glob, os, shutil, subprocess, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import godot_runner as GR
+import rec_audio as RA
 import imageio_ffmpeg
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -23,6 +24,7 @@ ap.add_argument("--deco0", action="store_true", help="装饰层关掉（fx/px_de
 ap.add_argument("--elites", default="", help="逗号分隔的精英档（例 0,1,2）：每招按这几档依次各录一段（balance fx/px_ul_elite，只换画面），队友版只录一次；docs/242 §10")
 ap.add_argument("--tmp", default=tempfile.gettempdir())
 ap.add_argument("--out", default="")
+ap.add_argument("--mute", action="store_true", help="不配声音")
 a = ap.parse_args()
 out = a.out or os.path.join(ROOT, "build", "px_showcase")
 os.makedirs(out, exist_ok=True)
@@ -51,10 +53,19 @@ def rec(tag, leader, squad, extra):
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--resolution", "1920x1080", "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
             "--balance", "--realtime", "--playclock", "--rtfrom=%g" % max(0.0, at - 3), "--nodeath", "--seed=%d" % a.seed, "--op=" + leader, "--bot=expert",
             "--recframes=%g,%d" % (at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (at + a.secs + 10),
-            "--bal=fx/px_unleashed=1"] + (["--bal=fx/px_ul_lo=1"] if a.lo else []) + (["--bal=fx/px_deco_k=0"] if a.deco0 else []) + (["--squad=" + squad] if squad else []) + extra
+            "--bal=fx/px_unleashed=1"] + (["--bal=fx/px_ul_lo=1"] if a.lo else []) + (["--bal=fx/px_deco_k=0"] if a.deco0 else []) + (["--squad=" + squad] if squad else []) + extra + ([] if a.mute else ["--sfxtrace"])
     o, e, to = GR.run_godot(args, 1800)
     n = len(glob.glob(os.path.join(fdir, "rec_*.png")))
-    print(tag, "frames", n, "errors", GR.script_errors(o, e)[:3], "timeout" if to else "", flush=True)
+    snd = ""
+    if not a.mute and n:
+        tr, mus = RA.parse(o)
+        if tr is None:
+            snd = "声音：没拿到 SFXTRACE"
+        else:
+            y, has_mus = RA.mix_audio(tr, mus or {}, n + 6)   # + 6 帧 = 段尾黑场
+            RA.write_wav(os.path.join(fdir, "mix.wav"), y[: int((n + 6) / 30.0 * RA.SR)])
+            snd = "声音：" + RA.summary(tr, has_mus)
+    print(tag, "frames", n, "errors", GR.script_errors(o, e)[:3], "timeout" if to else "", snd, flush=True)
     return fdir if n else None
 
 
@@ -66,16 +77,18 @@ for t, d in dirs:
     if not d:
         continue
     seg = os.path.join(a.tmp, "pxsc_%s_%s.mp4" % (a.op, t))
-    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(d, "rec_%05d.png"), "-vf", "tpad=stop=6:stop_mode=add:color=black",
-                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p", seg], check=True)
+    wav = os.path.join(d, "mix.wav")
+    au = ["-i", wav] if os.path.exists(wav) else ["-f", "lavfi", "-i", "anullsrc=r=%d:cl=mono" % RA.SR]   # 没声音的段垫静音，拼接时每段都有音轨
+    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(d, "rec_%05d.png")] + ([] if a.mute else au) + ["-vf", "tpad=stop=6:stop_mode=add:color=black",
+                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p"] + ([] if a.mute else ["-c:a", "aac", "-b:a", "192k", "-shortest"]) + [seg], check=True)
     parts.append(seg)
     shutil.rmtree(d, ignore_errors=True)
 open(lst, "w").write("".join("file '%s'\n" % p.replace("\\", "/") for p in parts))
 total = len(parts) * (a.secs + 0.2)
-kbps = int(25.0 * 0.92 * 8 * 1024 / max(total, 1.0))
+kbps = int(25.0 * 0.92 * 8 * 1024 / max(total, 1.0)) - (0 if a.mute else 160)   # 音轨 160k 从码率里扣
 mp4 = os.path.join(out, "%s_showcase%s%s%s.mp4" % (a.op, "_elite" if a.elites else "", "_lo" if a.lo else "", "_deco0" if a.deco0 else ""))
 subprocess.run([FF, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c:v", "libx264", "-preset", "slow", "-b:v", "%dk" % kbps,
-                "-maxrate", "%dk" % int(kbps * 1.3), "-bufsize", "%dk" % (kbps * 2), "-pix_fmt", "yuv420p", "-r", "30", mp4], check=True)
+                "-maxrate", "%dk" % int(kbps * 1.3), "-bufsize", "%dk" % (kbps * 2), "-pix_fmt", "yuv420p", "-r", "30"] + ([] if a.mute else ["-c:a", "aac", "-b:a", "160k"]) + [mp4], check=True)
 for p in parts:
     os.remove(p)
 print("showcase", mp4, "%.1f MiB" % (os.path.getsize(mp4) / 1048576), "段：" + " / ".join(t for t, d in dirs if d))
