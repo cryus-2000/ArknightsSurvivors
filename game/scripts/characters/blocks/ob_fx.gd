@@ -2,6 +2,8 @@
 extends "res://scripts/characters/blocks/ob_check.gd"
 
 
+const BalFx = preload("res://scripts/core/balance.gd")
+
 # ================================================================ 画面帧条 fx（docs/61 §5.6，10-11 加；纯画面，追加式）
 ## 任何积木（以及 blocks.skills[i] 本身）可以带 "fx": [条目…]，把 game.gd V6_FRAMES 里登记的帧条挂到出手 / 技能发动 / 常驻光环上。
 ## 不写 fx 的干员画法与原来逐像素相同；fx 只往干员自己的 pfx 里加粒子、散布只用 g.vrng，不碰 g.rng / 玩法状态（同 seed TRACE / BALANCE 不变）。
@@ -11,6 +13,8 @@ extends "res://scripts/characters/blocks/ob_check.gd"
 const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
 	"hold", "fade", "no_fade", "inward", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
 	"delay", "stay", "once", "face_x", "flash", "along", "play", "on_sprite"]   # on_sprite（10-15）：锚到本干员当前帧的定位点（character.sprite_point，星熊盾心），这一帧没有就退回原锚点 / 贴身层不画；play：精英化第 5 批段（扩散缓动的帧号按 fps 播）；精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
+
+const PX_FX_KEYS := ["px", "cond", "at", "off", "fit", "scale", "rot", "face_x", "skill", "variants", "every"]   # pixelfx 放开版条目（px_fx_spawn，docs/242 §14.2）
 
 ## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
 const FX_LAYERS := ["floor", "over", "add", "behind", "front", "ground"]
@@ -59,6 +63,10 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 			if float(f.get("every", 0.0)) <= 0.0 and fx_on(o, f):
 				_F().mf_fx_spawn(o, f, {"c": c, "r": r, "hits": hits, "ang": ang})
 			continue
+		if f is Dictionary and f.has("px"):   # pixelfx 放开版条目（docs/242 §14.2）
+			if float(f.get("every", 0.0)) <= 0.0 and fx_on(o, f):
+				px_fx_spawn(o, f, c, r, hits, ang)
+			continue
 		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
 		if fx_on_spawn(o, f):
@@ -83,12 +91,68 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 		ts[i] = float(ts[i]) + dt
 		if ts[i] >= ev:
 			ts[i] = 0.0 if ts[i] == INF else fmod(ts[i], ev)
-			if fx_on_spawn(o, f):
+			if f.has("px"):
+				if fx_on(o, f):
+					px_fx_spawn(o, f, c, r, [], 0.0)
+			elif fx_on_spawn(o, f):
 				if _F().mf_is(f):
 					_F().mf_fx_spawn(o, f, {"c": c, "r": r})
 				else:
 					fx_spawn(o, f, c, r, [], 0.0)
 	return ts
+
+
+## pixelfx 放开版条目（docs/242 §14.2，组长 11-04）：{"px": base, at, off, fit / scale, rot, face_x, skill}，开关 fx/px_unleashed 打开才播（旧条目配 cond "!px_ul" 关掉）。
+## 帧条名走 vfx.px_ul_tex（种子变体只给队长、队友 _tm、精英档按 px_ul_el，缺图同样回退），先装饰（× px_deco_k）后核心。
+## at 同普通条目（center / self / leader / zone / hits）；缩放 = scale × PX，fit > 0 时改为 scale × r ÷ fit；rot = 随出手方向转；
+## skill = 命中定格取注册表 pause 的技能档（只给队长、有命中时，共享总闸限频）。纯画面：散布只用 g.vrng
+static func px_fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: float) -> void:
+	var g = o.g
+	if g == null or g.vfx == null or o.pos == Vector2.INF or BalFx.vi("fx/px_unleashed", 0) <= 0:
+		return
+	var base: String = str(f.px)
+	var reg: Dictionary = g.vfx.px_ul_reg(str(o.id))
+	var nv: int = int(f.get("variants", 1))
+	var vv: int = 1 + int(g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1
+	var el: int = g.vfx.px_ul_el(o)
+	var tm: bool = not o.is_leader
+	var cn: String = g.vfx.px_ul_tex(base, vv, tm, "core", el)
+	if g.tex.get(cn) == null:
+		return
+	var dn: String = g.vfx.px_ul_tex(base, vv, tm, "deco", el)
+	var pts: Array = []
+	match str(f.get("at", "center")):
+		"self":
+			pts.append(o.pos)
+		"leader":
+			pts.append(o.lead_pos())
+		"zone":
+			pts.append(o.zone_c() if o.has_method("zone_c") else c)
+		"hits":
+			for e in hits:
+				pts.append(e.pos + Vector2(0, -float(e.r) * 0.5))
+		_:
+			pts.append(c)
+	var off := Vector2.ZERO
+	var ov = f.get("off", [])
+	if ov is Array and ov.size() == 2:
+		off = Vector2(float(ov[0]), float(ov[1]))
+	if f.get("face_x", false):
+		off.x *= float(o.face)
+	var fit: float = float(f.get("fit", 0.0))
+	var sc: float = float(f.get("scale", 1.0)) * (r / fit if fit > 0.0 and r > 0.0 else g.PX)
+	var rot: float = ang if f.get("rot", false) else 0.0
+	var fl: bool = not f.get("rot", false) and f.get("face_x", false) and float(o.face) < 0.0
+	var dk: float = g.vfx.px_deco_k(o)
+	for p in pts:
+		if p == Vector2.INF:
+			continue
+		if dn != "" and dk > 0.0:
+			g.vfx.fx_sprite(dn, p + off, sc, rot, fl, false, Color(1, 1, 1, dk))
+		g.vfx.fx_sprite(cn, p + off, sc, rot, fl)
+	var pz = reg.get("pause", [])
+	if not hits.is_empty() and o.is_leader and pz is Array and pz.size() >= 2:
+		o.impact_pause(float(pz[1] if f.get("skill", false) else pz[0]))
 
 
 static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: float) -> void:

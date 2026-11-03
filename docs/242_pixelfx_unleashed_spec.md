@@ -423,3 +423,77 @@
 - 设定色以原作为准（PRTS / ark_ref，§11.1 第 12、13 条）。
 - 同时不能和这三种颜色混淆：敌方危险色 #ff2667、敌方青色子弹 #33ceff、经验结晶的暖金（淡金到琥珀）。
 - **交付附一张实战截图自查：** 后期满编，这名干员的特效和敌弹、结晶同屏，要分得清。
+
+## 13 原作特效还原工具（用户 11-03 新要求）
+
+用户：各干员的攻击特效都要拿解包得到的原作数据当参考。§11.1 第 13 条只说了「描轮廓用 ark_ref 贴图」，这里补上动态部分：直接读原作 prefab，还原出招式的形状、节奏、颜色和混合方式。
+
+**工具：** `tools/ref_fx/rebuild_prefab.py`（原型是逻各斯会话的 `Claude outputs/logos_ref/scripts`，已收成公共工具，只由样板分支维护）。
+
+```
+python tools/ref_fx/rebuild_prefab.py skadi --list --grep attack            # 列出特效包里的 prefab
+python tools/ref_fx/rebuild_prefab.py skadi skadi_attack_01_start,skadi_attack_01_hit --dur 1.2
+python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   # 弹道类：拖尾沿向右 2.5 单位、0.5 秒的路径画
+```
+
+- 干员 id 用本作的（skalter = 浊心斯卡蒂，specter_unchained = 归溟幽灵鲨，表在 `tools/ref_fx/arkab.py` 的 OPS）。prefab 名按原作技能编号，和我方编号可能不一致，先查 docs/31。
+- 逗号隔开的多个 prefab 从 0 秒起叠在同一处（起手 + 刀光 + 命中）。地面类 prefab 自动按地面透视压扁（`--ground on/off` 可强制）。
+- 输出到 `<主仓库>/Claude outputs/<干员>_ref/`：原速 mp4、慢放 mp4、均匀 8 帧关键帧拼图、prefab 层级 dump（json，查粒子寿命 / 尺寸 / 颜色渐变 / 着色器）。
+- 读客户端 `D:/Hypergryph Launcher/games/Arknights/Arknights_Data`（只读，环境变量 ARK_DATA 可改）。第一次运行建依赖包索引（只读包头，约 6 分钟，存 `build/ark_ref/_cab_idx.json`，各工作树共用；客户端更新后加 `--reindex`）。贴图先用 `build/ark_ref/<干员>/` 已导出的，没有再导到 `build/ark_ref/<干员>/_tex/`。
+- 用系统 python 运行（UnityPy 1.25.4、lz4、numpy、Pillow、imageio-ffmpeg 都已装）。
+
+**怎么用到放开版里：**
+
+1. 开工前先还原这一招对应的原作 prefab，看关键帧拼图和慢放：主形（刀光 / 爆点 / 弹体的轮廓走向）、节奏（起手到命中几帧、余韵多长）、颜色（材质着色 + 粒子渐变）、加色还是透明混合。
+2. pixelfx 版要对得上原作的主形和节奏，在此基础上按 §12 加强（精英分档、装饰层、像素化）。颜色仍以 §11.1 第 12 条的 OP 色阶为准，原作颜色只用来判断「亮部 / 暗部 / 重点色」该落在色阶哪一段。
+3. 交付时附原作还原的关键帧拼图路径（§11.1 第 6 条的对照图旁边放一列原作），写明用了哪几个 prefab。
+
+**还原是近似的：** 形状模块除球形外按锥近似，子发射器、噪声、力场、碰撞不模拟，MeshRenderer 不读动画曲线（固定淡入淡出），拖尾 / 连线要给 `--path` / `--line` 才画。和原作录像对不上时以原作录像为准。
+
+**不进 git、不进包：** 原作贴图、网格、还原出的视频和拼图都只放 `build/` 和 `Claude outputs/`；`tools/ref_fx/` 下只有脚本。
+
+## 14 公共挂点补充（美术组长 11-04 批，样板分支维护）
+
+各干员会话只写 `data/px_ul.json` 和自己干员 JSON 里的数据，不改这些代码；要新挂点先报美术组长，由样板分支加。全部只改画面，开关 fx/px_unleashed 关掉时不生效，TRACE 不变。
+
+### 14.1 连携接管（`vfx.px_ul_link`）
+注册表加 `"link": {"dash": {…}, "hit": {…}}`，挂在**出手的搭档**（连携里位移、出手的那个人）名下；某条连携要单独换，写 `"link": {"<synergy.json 里的连携 id>": {"dash": …, "hit": …}}`。
+- `dash`：冲出那一下，替换冲刺拖线和旧的 `strip`。`hit`：落点一击，替换刀光、落点环和火花。
+- 条目 `{base, at, y, sc, fit, rot}`：`at` = `"to"`（缺省，画在落点 / 目标）/ `"from"`（起点 / 搭档站位）/ `"mid"`；缩放 = PX × sc，写了 `fit` 时再 × 距离（或判定半径）÷ fit；`rot` 缺省 true，随方向转。
+- 现在覆盖 `dash_strike` 和 `dash_cast`（集群狩猎、控场 → 收割同一套）；`volley` / `hook` 要用时再报。
+
+### 14.2 fx 条目 `px`（`ob_fx.px_fx_spawn`）
+干员 JSON 任何积木的 fx 列表里可以写 `{"px": "fx_<人>_ul_<名>", "at", "off", "fit" / "scale", "rot", "face_x", "skill", "variants", "cond", "every"}`：
+- 帧条名走 `vfx.px_ul_tex`（种子变体只给队长、队友 `_tm`、精英档、缺图回退都同 §11.1 第 5 条），先画装饰层（× px_deco_k）再画核心层。
+- `at` 只能是 center / self / leader / zone / hits；`skill` = 有命中时队长定格取注册表 `pause` 的技能档。
+- 旧画面条目写 `"cond": "!px_ul"` 关掉。形状被注册表接管时，`px` 条目照常播（`ob_core.px_keep`）。
+
+### 14.3 缺省地面环跟开关（`ob_core.ring_on`）
+圆形 / 锥形判定的 `ring` 除了 true / false，还可以写条件串，例 `"ring": "!px_ul"`：开关关时照画（和 main 一致），放开版打开时不画。
+
+### 14.4 形状换主形 `alt`
+注册表 `shapes[src]` 加 `"alt": [{"cond": "<条件串>", "base": "…", "skill": bool}]`，按顺序取第一条成立的，换掉 `base`（和 `skill`）。例：乌尔比安 S2 生效后锚击换形，`"cond": "skill_active:1"`。
+
+### 14.5 接管后照常播的条目
+形状被接管时，fx 列表里照常播：`cond` 为 `relic:` / `node:` 的附加条目、`px` 条目、只放声音的条目（只有 `sfx`，没有 strip / pfx / gfx / blade 等画面字段）。
+
+### 14.6 图鉴演示录像 `tools/px_demo_rec.py`
+`python tools/px_demo_rec.py <干员> [--segs basic:0,1,2/s1:0,1,2/s2:1,2/s3:2/ult:2]`：按图鉴干员详情页的技能演示，每招 E0 → E1 → E2 各录一段，左上角标招式和档位，带声，拼成一个 mp4（取景同图鉴：舞台框 × `--k`）。每段可写第三段秒数（`s1:0,1,2:8`），`--start` 改起录时刻。
+
+### 14.7 发散光环取消（用户 11-04，通用规则）
+用户：「一些发散性的光环特效是不是可以取消」「斯卡蒂洒水出去的特效是不是可以取消」。
+- **公共代码：** balance `fx/px_halo`，缺省 0。放开版打开时，下面这些都不画：形状缺省地面环、技能开启脚下扩散环、升级光环、连携落点环、精英化段缺省环、注册表的起手 `cast` / 增益 `ally` / 治疗 `heal` 挂点。设成 1 恢复。放开版关掉时不受影响（同 main）。
+- **各干员自己的帧条和 seg 代码：** 往外扩散的环、光圈、光晕圈（含脚下增益环、命中扩散圈）一律去掉，不靠开关；往外甩的水珠 / 火星 / 碎屑也去掉（斯卡蒂源码加了 `spray` 选项，缺省 0）。招式本体的主形（例：斯卡蒂 S3 浪墙）不算光环，保留。
+- 这一条优先于 §12.1 里「起手信号」的例子：起手要靠身形、蓄势、地面预兆表达，不用扩散环。
+
+### 14.8 刀波 `waves`（原型拉普兰德，11-04 收进样板）
+注册表 `"waves": {"<src>": {…}}`，三种写法可以组合，三项都没有（或缺图）时不接管：
+- `base` `{base, variants, y, dist}`：整段飞行烤进帧条，原点 = 出手点，开播时沿方向放一次画完全程；判定飞行距离被成长改长时按 `dist` 比例拉。
+- `proj` `{base}`：弹体式（单体命中 / 追踪的远掷、双生刃）——弹体帧条换成放开版，keep 等宽 4 帧，飞行停第 1 帧、消散放 2–3 帧（同 `proj_hold`），先画装饰层。
+- `hit` `{base, y, sc}`：刀波每命中一名敌人，在它身上放一张命中帧条（不另定格）。
+
+### 14.9 技能期间身上常驻 `aura`
+注册表 `"aura": {"<技能序号>": {base, y, sc, back}}`：技能开着时在本人身上循环播（先装饰后核心，队友取 `_tm`）；`back: true` 画在本体后面。注意 §14.7：不能是往外扩散的光环。
+
+### 14.10 弹体命中跳过通用画面 `px_hit`
+`weapons.bullet_hit`：弹体字典带 `"px_hit": true`、带 `"op": <干员 id>`，且这名干员在注册表里有条目（开关打开）时，跳过通用命中画面（法术团爆炸 / 爆炸贴图 / 火花、法术弹 `fx_arcane_hit` / 环 / 火花、普通弹 `fx_bullet_hit` / 火花），命中画面由本人的放开版帧条画。伤害、控制、音效照旧。铃兰先用。

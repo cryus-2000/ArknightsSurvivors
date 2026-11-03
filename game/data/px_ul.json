@@ -25,8 +25,8 @@
 			"mirror": "face"
 		},
 		"motes": {
-			"n": 12,
-			"n_skill": 20,
+			"n": 0,
+			"n_skill": 0,
 			"col": [
 				0.75,
 				0.95,
