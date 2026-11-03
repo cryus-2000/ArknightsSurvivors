@@ -1104,7 +1104,7 @@ const V6_FRAMES := {
 	"fx_skadi_ul_slash_deco": [21, 20.0], "fx_skadi_ul_sweep_deco": [19, 20.0], "fx_skadi_ul_spin_deco": [20, 20.0], "fx_skadi_ul_cleave_deco": [21, 20.0], "fx_skadi_ul_geyser1_deco": [26, 20.0], "fx_skadi_ul_geyser2_deco": [27, 20.0], "fx_skadi_ul_geyser3_deco": [26, 20.0], "fx_skadi_ul_slash2_deco": [20, 20.0], "fx_skadi_ul_spin2_deco": [22, 20.0], "fx_skadi_ul_slash_tm_deco": [13, 20.0], "fx_skadi_ul_sweep_tm_deco": [12, 20.0], "fx_skadi_ul_spin_tm_deco": [13, 20.0], "fx_skadi_ul_cleave_tm_deco": [18, 20.0],
 	"fx_skadi_ul_sweep_deco_lo": [14, 15.0], "fx_skadi_ul_spin_deco_lo": [15, 15.0], "fx_skadi_ul_cleave_deco_lo": [16, 15.0], "fx_skadi_ul_geyser1_deco_lo": [20, 15.0],   # 装饰层网页低档（普攻不出，docs/242 §11）
 	# 拉普兰德放开版（docs/242：代表招式 S2 狼魂剑气 E0 / E1 / E2，两层；等用户过对照图再接入与铺开）
-	"fx_lappland_ul_s2_e0": [15, 20.0], "fx_lappland_ul_s2_e0_deco": [15, 20.0], "fx_lappland_ul_s2_e1": [18, 20.0], "fx_lappland_ul_s2_e1_deco": [18, 20.0], "fx_lappland_ul_s2_e2": [22, 20.0], "fx_lappland_ul_s2_e2_deco": [22, 20.0],
+	"fx_lappland_ul_s2_e0": [16, 20.0], "fx_lappland_ul_s2_e0_deco": [16, 20.0], "fx_lappland_ul_s2_e1": [19, 20.0], "fx_lappland_ul_s2_e1_deco": [19, 20.0], "fx_lappland_ul_s2_e2": [21, 20.0], "fx_lappland_ul_s2_e2_deco": [21, 20.0],
 	# 塞雷娅放开版（docs/242：盾击含 _tm、治疗、钙质化晶簇三段、终结技砸地；两层 + 低档）
 	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_bash_deco": [14, 20.0], "fx_saria_ul_bash_deco_lo": [10, 15.0],
 	"fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_grow_lo": [7, 15.0], "fx_saria_ul_calc_grow_deco": [9, 20.0], "fx_saria_ul_calc_grow_deco_lo": [7, 15.0],

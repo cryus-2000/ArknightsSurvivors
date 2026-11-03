@@ -6,10 +6,12 @@
 //   - 起手信号：出手点先有几道细光从四周收拢、一道竖向亮缝（和普攻月牙完全不同的主形）。
 //   - elite（docs/242 §10，docs/91 / lappland.json progression）：
 //       E0 克制：单颗狼首 + 剑痕，余韵短、光小；
-//       E1 加「精神摧毁」封印（精一天赋）：狼首额前一枚封印纹，剑气走过处留一串断续封印符，终点烙一个歪十字；
-//       E2「双生刃」（精二）：狼首两侧各伸出一柄细长剑刃、在身后交叉成 X，狼首芯白热，终点碎成更多晶片 —— 一眼和 E1 不同的外形。
+//       E1 加「精神摧毁」封印（精一天赋）：狼首身后拖两层残影，剑气走过处留一串大封印符，终点烙一个大歪十字；
+//       E2「双生刃」（精二）：整只晶体狼（头颈、躯干、前后腿、尾）奔出来，两柄长刃在身上交叉成 X，亮芯带原作狼首贴图里的淡蓝高光，
+//          终点碎成更多晶片 —— 和 E1 不是一个外形。
+//   11-03 用户「像哥斯拉」：狼的辨识点放在尖长吻部 + 两只竖起的尖三角耳；额到吻一条直斜线；鬃毛往后拖成流线；晶面少而大，剪影优先。
 // 分层（docs/242 §8）：core = 狼首、剑刃、剑痕两条边线、起手亮缝、封印纹；deco = 光晕、晶片、雾、余韵闪点。
-import { Rng, fit, clamp, ease, noise } from "../../core/index.js";
+import { Rng, fit, hex, clamp, ease, noise } from "../../core/index.js";
 import { jitterSteps, jitterAngles } from "../house.js";
 
 export const meta = {
@@ -35,10 +37,13 @@ export const meta = {
 
 
 
-// 狼首外形（局部坐标，鼻尖朝 +x、侧面）：上颌 → 额 → 双耳 → 脑后三簇鬃毛（长短不一）→ 腮 → 下颌张开 → 嘴角 → 上颌下沿。
-// 嘴是轮廓上的缺口（张口咆哮），高度按判定半宽缩放（耳尖 12 × HS ≤ hw）
-const HEAD = [[14, -1.5], [8, -3.5], [3, -5], [0.5, -6], [-1.5, -14], [-5, -6.5], [-7.5, -12.5], [-9.5, -6], [-12, -7.5], [-17, -5.5], [-13, -2.5],
-  [-19, 0], [-13, 2], [-16, 6], [-8, 6.5], [-3, 9], [5, 11], [12, 10.5], [6, 7.5], [-0.5, 3], [13, 1.2]];
+// 狼首（局部坐标，鼻尖朝 +x、侧面）：吻尖 → 额（直斜线）→ 前耳（高尖三角）→ 后耳 → 脑后 → 三缕往后拖的鬃毛 → 腮 → 下巴 → 张口缺口 → 上颌下沿。
+// 高度按判定半宽缩放（耳尖 13 × HS ≤ hw）
+const HEAD = [[16, -1], [10, -3.2], [4, -5.4], [2, -6], [-0.5, -13], [-3.5, -6.6], [-6, -12], [-8.5, -6.2], [-12, -5.2], [-21, -3.6], [-15, -1.6],
+  [-24, 0.4], [-15, 2.2], [-20, 4.6], [-10, 5.2], [-3, 6.6], [8, 6.2], [13, 4.6], [9, 3.2], [2, 2], [14, 1]];
+// E2 躯干（接在狼首后面）：颈背 → 背 → 臀 → 两缕尾 → 后腿往后蹬 → 腹 → 前腿往前伸到下巴下面
+const BODY = [[-6, -6], [-16, -5.4], [-26, -4.6], [-32, -4], [-45, -7], [-37, -2.2], [-50, -0.8], [-35, 0.8], [-32, 3], [-41, 8], [-52, 11.2],
+  [-50, 12.6], [-38, 10.6], [-27, 5.6], [-17, 5.8], [-9, 6.2], [0, 9.4], [11, 12], [12.5, 10.6], [2.5, 7], [-4, 5]];
 const inPoly = (pts, x, y) => {
   let c = false;
   for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
@@ -51,18 +56,20 @@ const inPoly = (pts, x, y) => {
 export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), el = clamp(Math.round(+o.elite), 0, 2), quick = +o.quick > 0;
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const hw = +o.hw, dist = +o.dist, HS = Math.min(1, hw / 14);   // 狼首竖向缩放：耳尖 14 × HS ≤ hw
+  const hw = +o.hw, dist = +o.dist, HS = Math.min(1, hw / 13);   // 竖向缩放：耳尖 13 × HS ≤ hw
   const T0 = 0.07, TF = 0.36, T1 = T0 + TF;                       // 起手 / 飞行时长（≈ 判定速度：dist ÷ (blade_spd ÷ PX) = 0.4 s）
   const DL = [0.25, 0.4, 0.62][el] * (quick ? 0.5 : 1), GK = [0.25, 0.4, 0.55][el];
-  const head = HEAD.map(([x, y]) => [x * (el >= 2 ? 1.1 : 1), y * HS]);
-  // 晶面：从中心 (1, 0) 扇出的三角，每面一个随机明暗偏移（晶体感）
-  // 低多边形晶面：头内撒一把随机种子点，每个像素归最近的种子（Voronoi），每面一个明暗偏移
-  const seeds = Array.from({ length: 14 }, () => [Rg.range(-17, 12), Rg.range(-12, 10) * HS, Rg.range(-1.2, 1.2)]);
-  const sealRot = () => [Rg.range(2.6, 4), Rg.range(-0.5, 0.5)];
+  const head = HEAD.map(([x, y]) => [x, y * HS]), body = BODY.map(([x, y]) => [x, y * HS]);
+  const polys = el >= 2 ? [head, body] : [head];
+  // 低多边形晶面：撒少量种子点、每个像素归最近的种子（Voronoi），面少而大；每面一个明暗偏移
+  const seeds = Array.from({ length: 6 }, () => [Rg.range(-18, 14), Rg.range(-10, 6) * HS, Rg.range(-1, 1)])
+    .concat(el >= 2 ? Array.from({ length: 6 }, () => [Rg.range(-46, -8), Rg.range(-6, 11) * HS, Rg.range(-1, 1)]) : []);
+  const BLUE = hex("#d6ebf6");   // 淡蓝高光：原作 langtou_02 亮部色相约 0.56（极淡的冷蓝），只给 E2 的亮芯和眼
+  const sealRot = () => [Rg.range(4, 5.5), Rg.range(-0.5, 0.5)];
   const gather = jitterAngles(Rg, 5, 0, Math.PI * 2, 0.45).map((a) => [a, Rg.range(9, 16)]);
   // 剑气走过的路径上：晶片脱落位置（随机步长）、封印符位置（E1+）
   const chips = jitterSteps(Rg, dist, 5, 13).map((x) => ({ x, y: Rg.range(-hw * 0.6, hw * 0.6), vx: Rg.range(-10, 25), vy: Rg.range(-22, 22), r: Rg.range(0, 6.28), s: Rg.range(1, 2.2), t0: T0 + (x / dist) * TF, life: Rg.range(0.3, 0.6) * (0.6 + DL) }));
-  const seals = el >= 1 ? jitterSteps(Rg, dist - 10, 14, 26).map((x) => ({ x: x + 6, y: Rg.range(-2.5, 2.5), sz: sealRot(), t0: T0 + (x / dist) * TF })) : [];
+  const seals = el >= 1 ? jitterSteps(Rg, dist - 10, 18, 30).map((x) => ({ x: x + 6, y: Rg.range(-2, 2), sz: sealRot(), t0: T0 + (x / dist) * TF })) : [];
   const burst = Array.from({ length: [7, 10, 16][el] }, () => ({ a: Rg.range(-1.1, 1.1) + (Rg.chance(0.25) ? Math.PI : 0), sp: Rg.range(30, 110), r: Rg.range(0, 6.28), s: Rg.range(1.2, 3), life: Rg.range(0.25, 0.55) * (0.6 + DL) }));
   const flick = jitterSteps(Rg, dist, 7, 18).map((x) => ({ x, y: Rg.range(-hw, hw), ph: Rg.range(0, 6.28), t0: T1 + Rg.range(0, 0.15) }));
   const mist = jitterSteps(Rg, dist, 12, 26).map((x) => [x, Rg.range(-hw * 0.5, hw * 0.5), Rg.range(8, 18)]);
@@ -96,7 +103,7 @@ export function create(o) {
       // ---- 剑痕：从出手点到狼首后方的两条细边线（核心），中间半透明填充（装饰），收尾时从后往前收
       if (t >= T0 && t < T1 + DL * 0.6) {
         const back = Math.max(0, dist * clamp((t - T0 - 0.12) / (TF + DL * 0.5)));   // 尾端追上来
-        const front = Math.max(back, x - 13);
+        const front = Math.max(back, x - (el >= 2 ? 44 : 18));
         for (let px = back; px < front; px += 1) {
           const u = (px - back) / Math.max(1, front - back);           // 0 尾 → 1 头
           const wv = hw * 0.55 * Math.pow(u, 0.7) * (1 + 0.15 * noise(px * 0.21, o.seed));
@@ -108,35 +115,42 @@ export function create(o) {
           if (deco) for (let y = -wv + 1; y < wv; y += 1) p.blend(px, y, C[3], 0.22 * u * (1 - Math.abs(y) / (wv + 1)));
         }
       }
-      // ---- E2 双生刃：狼首两侧伸出两柄细长刃，在身后交叉成 X（核心）
+      // ---- E2 双生刃：两柄长刃从狼的前胸伸到身后，在躯干上交叉成 X（核心，画在狼下面，两端露出来）
       if (core && el >= 2 && fly) {
-        const L = Math.min(44, x + 2);   // 刃从狼首两腮伸出，在身后约 L/2 处交叉，刃尖落在判定半宽内
+        const L = Math.min(62, x + 6);
         for (const sg of [-1, 1]) {
-          const x0 = x + 2, y0 = sg * hw * 0.7, x1 = x - L, y1 = -sg * hw * 0.95;
+          const x0 = x + 6, y0 = sg * hw * 0.92, x1 = x - L, y1 = -sg * hw;
           p.line(x0, y0, x1, y1, C[hot ? 6 : 5]);
-          p.line(x0 - 1, y0 - sg, x1 + 3, y1 + sg * 0.6, C[4]);   // 刃身第二格（2 格宽、外亮内暗）
-          p.dot(x0 + 1, y0, C[6]);                                  // 刃根亮点
+          p.line(x0 - 1, y0 - sg, x1 + 2, y1 + sg, C[4]);   // 刃身第二格（2 格宽、外亮内暗）
+          p.dot(x0 + 1, y0, hot ? C[6] : BLUE);              // 刃尖亮点
         }
       }
-      // ---- 狼首（核心）：晶面明暗 + 上沿亮边 + 眼缝；飞完之后碎开
+      // ---- E1 残影：狼首身后一层平涂剪影（核心层，降三阶），不看说明也能看出「多了一截」
+      if (core && el === 1 && fly) for (const [d, ci] of [[17, 1]]) {
+        const gx = x - d;
+        if (gx < 4) continue;
+        p.shade(gx - 25, -14, gx + 17, 14, (px, py, out) => { if (px >= -2 && inPoly(head, px - gx, py)) out.c = C[ci]; });
+      }
+      // ---- 狼（核心）：晶面明暗 + 上沿亮边 + 眼；从出手点的亮缝里钻出来（出手点后面不画），飞完之后一块块碎开
       if (core && t >= T0 && t < T1 + 0.05) {
         const brk = clamp((t - T1) / 0.05);   // 0 完整 → 1 碎散（碎片交给下面的终点晶片）
-        const B = 20 * HS + 2;
-        p.shade(x - 21, -B, x + 15, B, (px, py, out) => {
+        p.shade(x - 50, -14, x + 18, 14, (px, py, out) => {
+          if (px < -2) return;
           const lx = (px - x) / (1 + brk * 0.5), ly = py / (1 + brk * 0.5);   // 碎开时整体往外胀
-          if (!inPoly(head, lx, ly)) return;
+          if (!polys.some((pl) => inPoly(pl, lx, ly))) return;
           let best = 1e9, sd = seeds[0];
           for (const q of seeds) { const d = (q[0] - lx) ** 2 + (q[1] - ly) ** 2; if (d < best) { best = d; sd = q; } }
           if (brk > 0 && ((sd[2] * 7) % 1 + 1) % 1 < brk) return;           // 碎开：晶面一块块掉
-          const lit = -sd[1] / 4.5 + sd[0] / 30 + sd[2];                    // 上沿受光、晶面明暗跳一阶
-          out.c = C[clamp(Math.round(3.3 + lit + hot * 1.6), 1, 6)];
+          const lit = -sd[1] / 4.5 + sd[0] / 40 + sd[2];                    // 上沿受光、晶面明暗跳一阶
+          const ci = clamp(Math.round(3.1 + lit + hot * 2 + (lx < -10 ? 0.6 : 0)), 1, hot ? 6 : 4);   // 平时晶面封顶第 4 阶（近白只给白热帧和亮边），躯干提半阶
+          out.c = el >= 2 && ci >= 4 && !hot && sd[2] > 0.4 ? BLUE : C[ci];   // E2：最亮的几面带原作的淡蓝
         });
-        if (brk < 0.5) for (let i = 0; i < 3; i++) {   // 上沿 1 格亮边：鼻尖到额（耳朵靠晶面明暗）
-          const a = head[i], b = head[i + 1];
-          p.line(x + a[0], a[1], x + b[0], b[1], C[hot ? 6 : 5]);
+        if (brk < 0.5) for (const [i, j] of [[0, 1], [1, 2], [2, 3], [3, 4], [5, 6]]) {   // 上沿 1 格亮边：吻 → 额 → 两只耳尖（轮廓优先）
+          const a = head[i], b = head[j];
+          if (x + Math.min(a[0], b[0]) >= -2) p.line(x + a[0], a[1], x + b[0], b[1], C[hot ? 6 : 5]);
         }
-        if (brk < 0.3) p.dot(x + 4, -2.6 * HS, el >= 2 ? C[6] : C[5]);      // 眼缝（E2 白热）
-        if (el >= 1 && brk < 0.3) seal(p, x - 1, -3.2 * HS, 2.2, C[6]);    // E1+ 额前封印纹
+        if (brk < 0.3) p.dot(x + 6, -3.4 * HS, el >= 2 ? BLUE : C[6]);      // 眼
+        if (el >= 1 && brk < 0.3) seal(p, x - 4, -1 * HS, 2.6, C[6]);      // E1+ 额后封印纹
       }
       // ---- E1+ 封印符：剑气走过处一串断续歪十字，亮一下后变暗淡出；终点烙一个大的
       if (el >= 1) for (const s of seals) {
