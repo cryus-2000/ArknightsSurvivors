@@ -48,3 +48,35 @@ export const HERO_FRAMES = 1;          // 爆亮只占 1 帧（最多 2 帧）
 
 // ---- 体量（docs/229 §2.7）：刀光弧半径 / 伤害半径
 export const REACH = { sweep: 0.85, line: 1.0, ring: 1.0, hitMax: 1.5 };
+
+// ---- 参照轮廓（docs/242 §9.2）：有原作形象的招式，外形由 tools/pixelfx_fx/ref/<人>_<招式>.png（1 位黑白，黑 = 形体内部）定死。
+// 导出脚本把它读成 o.ref = { w, h, ox, oy, rows }（rows：每行一个字符串，"#" = 内部），代码只在轮廓内部做光流、碎裂、闪烁、生长。
+// refMask(o) 返回 { inside(x, y), edge(x, y), w, h, ox, oy }，坐标是特效局部坐标（原点 = 参照图里标的原点）。
+export function refMask(o, scale = 1) {
+  const r = o.ref;
+  if (!r) return null;
+  const at = (x, y) => {
+    const px = Math.floor(x / scale + r.ox), py = Math.floor(y / scale + r.oy);
+    return py >= 0 && py < r.h && px >= 0 && px < r.w && r.rows[py][px] === "#";
+  };
+  return {
+    w: r.w * scale, h: r.h * scale, ox: r.ox * scale, oy: r.oy * scale,
+    inside: at,
+    edge: (x, y) => at(x, y) && (!at(x - scale, y) || !at(x + scale, y) || !at(x, y - scale) || !at(x, y + scale)),
+  };
+}
+
+// ---- 不规则工具（docs/242 §9.3：公共模块只给不规则的，不给等距阵列）
+// 随机步长：在 [lo, hi] 里走，返回一串累加位置，直到 total
+export function jitterSteps(rng, total, lo, hi) {
+  const out = [];
+  for (let x = rng.range(0, lo); x < total; x += rng.range(lo, hi)) out.push(x);
+  return out;
+}
+// 抖动角度：n 个角度大致铺满 [a0, a1)，每个在等分位置上随机偏移 ± jit（0..0.5，按格宽比例）
+export function jitterAngles(rng, n, a0, a1, jit = 0.4) {
+  const w = (a1 - a0) / n, out = [];
+  for (let i = 0; i < n; i++) out.push(a0 + (i + 0.5 + rng.range(-jit, jit)) * w);
+  return out;
+}
+

@@ -69,7 +69,7 @@ export function create(o) {
     const u = t - t0;
     if (u < 0) return;
     const head = ease.outExpo(clamp(u / SW)), tail = smooth(SW + hold, SW + hold + trail, u), age = clamp(u / (SW + hold + trail));
-    const hot = u < SW ? 1.6 : u < SW + 0.06 ? 0.6 : 0;   // 第 1 帧爆亮，第 2 帧余热（整条白会盖住人物）
+    const HW = Math.min(SW, 0.06), hot = u < HW ? 1.6 : u < HW + 0.05 ? 0.5 : 0;   // 第 1 帧爆亮、第 2 帧余热；不连白 3 帧（docs/242 §9.3 持续白）
     if (tail < 1) crescent(p, s, a0 + span * tail, span * (head - tail), s.W * (1 - tail * 0.5), age, hot, core, deco);
   }
   return {

@@ -11,8 +11,10 @@ tools/pixelfx_fx/<类>/<名>.js 是本作写的 pixelfx 特效源码；本脚本
 
 用法：python tools/pixelfx_export.py [--lib build/pixelfx] [--only 名字,...] [--dry]
 """
-import argparse, json, os, shutil, subprocess, sys, tempfile
+import argparse, json, os, re, shutil, subprocess, sys, tempfile
 from PIL import Image
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import pixelfx_check as PC
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "tools", "pixelfx_fx")
@@ -21,7 +23,10 @@ OUT = os.path.join(ROOT, "game", "art", "fx")
 # 导出目标：tools/pixelfx_fx/targets_*.json（每个并行会话一份，互不改别人的文件，docs/229 §9）。
 # 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）,
 #        "lo": 另出网页低档 <名>_lo（15 fps 按时间就近抽帧，同画布 / 原点；只给队长版第一个种子，docs/242 §6）,
-#        "layers": 分核心 / 装饰两层，出 <名> 和 <名>_deco（特效源码要认 o.layer = "core" / "deco"，docs/242 §8）}
+#        "layers": 分核心 / 装饰两层，出 <名> 和 <名>_deco（特效源码要认 o.layer = "core" / "deco"，docs/242 §8）,
+#        "judge": 判定数据 {"op", "opts": {选项: 表达式（取 base）}, "src"}（docs/242 §9.1）, "check_sy": 地面透视压扁（0.55）,
+#        "check_skip" / "check_note": 自动图案检查放行项与理由（docs/242 §9.3）,
+#        "ref": 参照轮廓 tools/pixelfx_fx/ref/<人>_<招式>.png（docs/242 §9.2）}
 def load_targets():
     t = {}
     for f in sorted(os.listdir(SRC)):
@@ -68,8 +73,31 @@ def save_strip(frames, box, path, colors, dry):
     return os.path.getsize(path) if not dry else 0
 
 
+def judge_opts(spec):
+    """判定数据（docs/242 §9.1）：{"judge": {"op": 干员 id, "opts": {选项: 表达式}, "src": 出处说明}}，表达式里的名字取干员 JSON 的 base，
+    例 {"span": "2*half"}。gd 里写死的常量没法读的，直接写数字并在 src 里注明文件和行号"""
+    j = spec.get("judge")
+    if not j:
+        return {}
+    base = json.load(open(os.path.join(ROOT, "game", "data", "characters", j["op"] + ".json"), encoding="utf-8"))["base"]
+    out = {}
+    for k, ex in j.get("opts", {}).items():
+        if isinstance(ex, (int, float)):
+            out[k] = ex
+            continue
+        expr = re.sub(r"[A-Za-z_][A-Za-z0-9_]*", lambda m: repr(float(base[m.group(0)])) if m.group(0) in base else m.group(0), ex)
+        out[k] = float(eval(expr, {"__builtins__": {}}, {"pi": 3.141592653589793}))
+    return out
+
+
 def export(lib, name, spec, tmp, dry):
-    fx_id, opts, hires, keep = spec["fx"], spec.get("opts", {}), spec.get("hires", False), spec.get("keep", False)
+    fx_id, opts, hires, keep = spec["fx"], dict(spec.get("opts", {}), **judge_opts(spec)), spec.get("hires", False), spec.get("keep", False)
+    if spec.get("ref"):   # 参照轮廓（docs/242 §9.2）：1 位黑白 PNG（黑 = 内部）+ 同名 .json {"origin": [x, y]}，读成 o.ref 给源码的 refMask()
+        rp = os.path.join(ROOT, spec["ref"])
+        im = Image.open(rp).convert("L")
+        org = json.load(open(os.path.splitext(rp)[0] + ".json", encoding="utf-8"))["origin"]
+        rows = ["".join("#" if im.getpixel((x, y)) < 128 else "." for x in range(im.width)) for y in range(im.height)]
+        opts["ref"] = {"w": im.width, "h": im.height, "ox": org[0], "oy": org[1], "rows": rows}
     colors = int(spec.get("colors", 32))
     # 分层（docs/242 §8）：同一特效按 layer = core / deco 各渲一遍（同种子、同模拟，只是画的图元不同），两层共用裁边框和帧数，逐帧对齐
     layers = [("", dict(opts, layer="core")), ("_deco", dict(opts, layer="deco"))] if spec.get("layers") else [("", opts)]
@@ -97,6 +125,18 @@ def export(lib, name, spec, tmp, dry):
         box = (ox - hw, oy - hh, ox + hw, oy + hh)
     w, h = box[2] - box[0], box[3] - box[1]
     hx = "@2x" if hires else ""
+    # 自动图案检查（docs/242 §9.3）：放射 / 同心圈 / 等距并排 / 持续白，任一层超标就不产出；误报用 check_skip + check_note 放行
+    org = (px["pivot"][0] - box[0], px["pivot"][1] - box[1])
+    bad = []
+    for suf, fr in sets:
+        for key, b, note in PC.check_frames([f.crop(box) for f in fr], org, float(spec.get("check_sy", 1.0)), tuple(spec.get("check_skip", ()))):
+            if b:
+                bad.append("%s%s %s：%s" % (name, suf, key, note))
+    if bad:
+        print("!! 图案检查超标，不产出：" + "；".join(bad))
+        return
+    if spec.get("check_skip"):
+        print("   （放行 %s：%s）" % (",".join(spec["check_skip"]), spec.get("check_note", "未写理由")))
     for suf, fr in sets:
         size = save_strip(fr, box, os.path.join(OUT, name + suf + hx + ".png"), colors, dry)
         print('"%s%s": [%d, %.1f],   # %dx%d × %d 帧，%.1f KB，显存 %.0f KB' % (name, suf, n, px["fps"], w, h, n, size / 1024, w * n * h * 4 / 1024))

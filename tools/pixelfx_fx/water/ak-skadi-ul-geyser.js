@@ -48,14 +48,14 @@ export function create(o) {
       if (head - tail < 1) continue;
       const left = Math.cos(j.a) < -0.05;
       if (far !== left) continue;                                  // 左半边的算远层（暗一阶）
-      const hot = u < UP * 0.5 ? 2 : 0;
+      const hot = u < 0.04 ? 2 : 0;   // 只首帧白热（docs/242 §9.3 持续白）
       for (let d = tail; d <= head; d += 0.5) {
         const v = d / j.L, a = j.a + j.bend * v * v;
         const x = Math.cos(a) * d, y = Math.sin(a) * d, half = Math.max(0.5, j.w * (1 - 0.85 * v));
         const nx = -Math.sin(a), ny = Math.cos(a);
         for (let s2 = -half; s2 <= half; s2 += 0.5) {
           const q = s2 / half;                                      // -1 左缘（受光）
-          const ci = clamp(Math.round(3.4 + v * 3.2 - q * 0.9 - (far ? 1 : 0) + hot), 1, 7);
+          const ci = clamp(Math.round(3.4 + v * 2.6 - q * 0.9 - (far ? 1 : 0) + hot), 1, 7);   // 尖端到 6 阶为止，白只留首帧
           p.px(x + nx * s2, y + ny * s2, C[ci]);
         }
       }
