@@ -179,12 +179,12 @@ export function create(o) {
         const dk = smooth(0.05, 0.12, t) * (1 - smooth(0.25, 0.25 + 0.4 * DL, t));
         if (dk > 0) p.glow(0, 0, [10, 14, 18][el] * S1R, C[0], 0.5 * dk);   // 暗晕（AB 黑）
       }
-      for (const w of swirl) {   // 暗色旋涡残段（装饰层，AB 深蓝黑）
+      for (const w of swirl) {   // 暗色旋涡残段（装饰层，AB 深蓝黑；半径固定只转不外扩，用户 11-04）
         const k = smooth(0.03, 0.12, t) * (1 - smooth(0.2, 0.2 + 0.35 * DL, t));
         if (k <= 0) continue;
         const rot = t * 3;
         for (let s2 = 0; s2 <= w.sp; s2 += 0.05) {
-          const a = w.a0 + rot + s2, rr = w.r * (0.8 + 0.4 * smooth(0, 0.3, t)) + noise(a * 3, 4) * 2;
+          const a = w.a0 + rot + s2, rr = w.r + noise(a * 3, 4) * 2;
           p.disc(Math.cos(a) * rr, Math.sin(a) * rr * 0.6, w.w * Math.sin(Math.PI * s2 / w.sp), C[1], 0.45 * k);
         }
       }
@@ -226,13 +226,13 @@ export function create(o) {
           if (v > 0.6 && ((Math.round(u * 40) + s.g) % 3 === 0)) continue;   // 消失前闪烁
           glyph(p, s.g, x - 1, y - 2, v < 0.5 ? C[7] : C[6]);
         }
-        // 3b) S2：字符环（四分之三圈，不闭合），白 → 灰蓝 → 深蓝后碎掉
+        // 3b) S2：字符环（四分之三圈，不闭合，原地写出不外扩：用户 11-04 否决往外扩散的光环），白 → 灰蓝 → 深蓝后碎掉
         if (isS2) {
           const u = t - 0.02, k = ease.outCubic(clamp(u / 0.08)), f = smooth(0.3 * DL + 0.1, 0.55 * DL + 0.2, u);
           if (u > 0 && f < 1) for (let i = 0, n = Math.round(ring.span * ring.r / 5); i < n; i++) {
             const a = ring.a0 + (i / n) * ring.span * k, ci = u < 0.08 ? 7 : u < 0.2 ? 5 : 3;
             if (noise2(i, u * 14, 21) < f * 2 - 1) continue;
-            glyph(p, (i * 5 + 2) % GLY.length, Math.round(Math.cos(a) * ring.r * (1 + 0.15 * k)) - 1, Math.round(Math.sin(a) * ring.r * 0.42 * (1 + 0.15 * k)) + 2, el >= 2 && i % 3 === 1 ? ACC : C[ci]);
+            glyph(p, (i * 5 + 2) % GLY.length, Math.round(Math.cos(a) * ring.r) - 1, Math.round(Math.sin(a) * ring.r * 0.42) + 2, el >= 2 && i % 3 === 1 ? ACC : C[ci]);
           }
         }
         // 3c) 处决：符文柱从脚下往上写出，停一会儿转暗、碎散

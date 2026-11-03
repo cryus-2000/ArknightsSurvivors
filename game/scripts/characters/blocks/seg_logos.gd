@@ -620,7 +620,7 @@ static func hw_draw_fan(o) -> void:
 
 
 ## 放开版咒域地面（原作 skill3_range_01：暗色墨地 + 蓝色外缘 + 暗紫内带 + 四角暗星 + 白色字符条；fx_logos_ul_s3field 12 帧循环，烤制半径 150 美术像素 = 300 世界像素）：
-## 先装饰后核心，按扇形朝向转、按当前半径 / 300 缩放；开启 0.3 秒由小长到位并淡入，收尾跟 fade 淡出；被减速敌弹的标记照旧
+## 先装饰后核心，按扇形朝向转、按当前半径 / 300 缩放；开启 0.3 秒原地淡入，收尾跟 fade 淡出；被减速敌弹的标记照旧
 const FAN_UL_R := 300.0
 
 
@@ -631,7 +631,7 @@ static func _hw_fan_ul(o, b: Dictionary, fn: Dictionary, fa: float, r: float, fa
 		return false
 	var elapsed: float = float(b.get("dur", 12.0)) - float(fn.t)
 	var grow: float = clampf(elapsed / 0.3, 0.0, 1.0)
-	var sc: float = r / FAN_UL_R * g.PX * (0.6 + 0.4 * grow)
+	var sc: float = r / FAN_UL_R * g.PX   # 原地淡入不外扩（用户 11-04 否决往外扩散的光环）
 	var fr: Array = g.V6_FRAMES.get(nm, [12, 15.0])
 	var dn: String = g.vfx.px_ul_tex("fx_logos_ul_s3field", 1, false, "deco")
 	var dk: float = g.vfx.px_deco_k(o)
