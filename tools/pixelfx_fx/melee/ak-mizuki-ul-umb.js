@@ -101,7 +101,8 @@ export function create(o) {
         const a = a0 + span * passed, x = Math.cos(a) * (R0 - Rg.range(0, 4)), y = Math.sin(a) * (R0 - Rg.range(0, 4));
         const tx = -Math.sin(a), ty = Math.cos(a), nx = Math.cos(a), ny = Math.sin(a);
         for (let k = 0, m = Math.round((s1 ? 1.5 : 1) * PM + Rg.range(-0.45, 0.45)); k < m; k++) {   // 数量砍半（组长 C v1 #4）
-          const sp = Rg.range(70, 220), j = Rg.range(-0.45, 0.45), cj = Math.cos(j), sj = Math.sin(j), vx = tx * 0.95 + nx * 0.35, vy = ty * 0.95 + ny * 0.35;   // 顺挥击方向甩（组长 C v1 #4）   // 方向再抖一点（不排成放射纹，§9.3）
+          const sp = Rg.range(70, 220), j = Rg.range(-0.45, 0.45) * (s3 ? 2.4 : 1),   // 整圈时方向抖得更开（不成放射纹，§9.3）
+             cj = Math.cos(j), sj = Math.sin(j), vx = tx * 0.95 + nx * 0.35, vy = ty * 0.95 + ny * 0.35;   // 顺挥击方向甩（组长 C v1 #4）   // 方向再抖一点（不排成放射纹，§9.3）
           ps.spawn(P.MOTE, x, y, (vx * cj - vy * sj) * sp, (vx * sj + vy * cj) * sp, Rg.range(0.22, 0.5) * (0.6 + 0.4 * DL), C[5 + Rg.int(0, 1)], Rg.range(0.6, 1.0));
         }
         if (deco && Rg.chance(0.15)) ps.spawn(P.VAPOUR, x + nx * 4, y + ny * 4, nx * 35 + tx * 20, ny * 35 + ty * 20, Rg.range(0.2, 0.35) * DL, C[3], Rg.range(1.2, 2));   // 水雾小而少（大了成孤立圆斑，§12.3）
