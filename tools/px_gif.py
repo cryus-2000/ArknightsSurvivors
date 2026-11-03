@@ -242,8 +242,11 @@ def main():
                         if im is not None:
                             ext = max(ext, ox, oy, im.width - ox, im.height - oy)
         R = min(int(ext * K) + 40, 420)
-        CW, CH = int(2.4 * R), 2 * R + 30
-        ox_, oy_ = int(CW * 0.2), CH // 2 + 40   # 干员脚底
+        CW = int(2.4 * R)
+        LH = max(56, CW // 6)   # 顶部档位标题带：大号「E0 / E1 / E2」，三格缩到手机宽也看得清（总组长 11-04）
+        CH = 2 * R + 30 + LH
+        ftb = ImageFont.truetype(FONT, LH - 10) if os.path.exists(FONT) else ft
+        ox_, oy_ = int(CW * 0.2), (CH + LH) // 2 + 40   # 干员脚底
         reach = int(min(max(ext * K * 0.8, 130), CW - ox_ - 60))
         foes = [(ox_ + reach, oy_), (ox_ + reach + 34, oy_ - 46), (ox_ + reach + 14, oy_ + 48)]
         # 命中时刻：近战 = 帧条外沿第一次够到怪的那一帧；落点 / 附件 = 0；弹体 = 飞到的时刻
@@ -315,7 +318,9 @@ def main():
                     cell.alpha_composite(g2, (int(ox_ + reach * 0.45), int(oy_ + 0.42 * R)))
                 layer(True)   # 前景层
                 tag = "　落点（敌人处）" if is_land else "　敌人头顶" if is_status else "　弹体" if is_proj else ""
-                d.text((6, 4), "E%d%s%s%s" % (el, "" if own else "（同 E2）", tag, "　循环" if is_loop else ""), font=ft, fill=(230, 236, 245, 255))
+                d.rectangle((0, 0, CW, LH), fill=(10, 16, 28, 255))
+                d.text((10, 2), "E%d" % el, font=ftb, fill=((150, 160, 175), (120, 200, 255), (255, 214, 102))[el] + (255,))
+                d.text((10 + int(LH * 1.5), LH // 2 - 9), "%s%s%s" % ("" if own else "（同 E2）", tag.strip("　"), "　循环" if is_loop else ""), font=ft, fill=(200, 210, 225, 255))
                 row.paste(cell.convert("RGB"), (ci * CW, 0))
             imgs.append(row)
         fn = name.replace("proj:", "proj_")
@@ -323,10 +328,10 @@ def main():
         imgs[0].save(gif, save_all=True, append_images=imgs[1:], duration=int(1000 / FPS_OUT), loop=0, optimize=False, disposal=1)
 
         def busy(im):   # 总览取 E2 格里画面最满的一帧
-            c = im.crop((2 * CW, 30, 3 * CW, CH)).convert("RGB").resize((CW // 4, (CH - 30) // 4))
+            c = im.crop((2 * CW, LH, 3 * CW, CH)).convert("RGB").resize((CW // 4, (CH - LH) // 4))
             return sum(1 for px in c.getdata() if abs(px[0] - GROUND[0]) + abs(px[1] - GROUND[1]) + abs(px[2] - GROUND[2]) > 40)
         mid = max(imgs[: max(1, int(len(imgs) * 0.8))][::2], key=busy)
-        thumbs.append((fn, mid.crop((2 * CW, 0, 3 * CW, CH))))
+        thumbs.append((fn, mid.crop((2 * CW, LH, 3 * CW, CH))))
         print("%s：%d 帧（%.2f 秒%s）→ %s" % (fn, nfr, total, "，循环" if is_loop else "", gif))
     tw, cols = 300, 3
     rows_n = (len(thumbs) + cols - 1) // cols
