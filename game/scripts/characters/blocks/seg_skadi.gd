@@ -429,10 +429,12 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 		return false
 	var skill: bool = ent.get("skill", false)
 	var alt_base: String = ""
-	for al in ent.get("alt", _EA):   # alt（组长 11-04，docs/242 §14.4）：[{cond, base, skill}]，第一条成立的换主形（例：乌尔比安 S2 生效后锚击换形 "skill_active:1"）
+	var alt_draw = null
+	for al in ent.get("alt", _EA):   # alt（组长 11-04，docs/242 §14.4）：[{cond, base, skill, draw}]，第一条成立的换主形（例：乌尔比安 S2 生效后锚击换形 "skill_active:1"），draw 逐字段覆盖画法
 		if al is Dictionary and cond_true(o, _px_alt_cond(o, str(al.get("cond", "")))):
 			alt_base = str(al.get("base", ""))
 			skill = al.get("skill", skill)
+			alt_draw = al.get("draw")
 			break
 	var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
 	var a: float = ang
@@ -452,6 +454,9 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	if ent.has("draw"):   # 形状条目自带 draw（各形状半径差得多时各用各的 fit）：逐字段覆盖干员级 draw
 		dw = dw.duplicate()
 		dw.merge(ent.draw, true)
+	if alt_draw is Dictionary:   # alt 换主形时再按它的 draw 逐字段覆盖
+		dw = dw.duplicate()
+		dw.merge(alt_draw, true)
 	var dk: float = o.g.vfx.px_deco_k(o)
 	var mo: Dictionary = reg.get("motes", _ED)
 	var bl := {"fit": float(dw.get("fit", 80.0)), "k": float(dw.get("k", 1.0)), "along": float(dw.get("along", 0.0)), "y": float(dw.get("y", -10.0)), "mirror": dw.get("mirror", "face")}
