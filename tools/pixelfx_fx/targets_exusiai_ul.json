@@ -1,0 +1,191 @@
+{
+ "_doc": "能天使放开版（docs/242，开关 fx/px_unleashed）：曳光弹 / 枪口焰 / 命中，基础 + S1–S3 四套色；弹体导出后挪到 art/fx/proj",
+ "proj_exusiai_ul_bullet": {
+  "fx": "projectiles/ak-exu-ul-bullet",
+  "opts": {
+   "palette": [
+    "#3a0a10",
+    "#7c1622",
+    "#c4283a",
+    "#f24d4d",
+    "#ff9a8a",
+    "#ffd8cc",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_muzzle": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#3a0a10",
+    "#7c1622",
+    "#c4283a",
+    "#f24d4d",
+    "#ff9a8a",
+    "#ffd8cc",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_hit": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#3a0a10",
+    "#7c1622",
+    "#c4283a",
+    "#f24d4d",
+    "#ff9a8a",
+    "#ffd8cc",
+    "#ffffff"
+   ]
+  },
+  "colors": 256
+ },
+ "proj_exusiai_ul_bullet_s1": {
+  "fx": "projectiles/ak-exu-ul-bullet",
+  "opts": {
+   "palette": [
+    "#061a30",
+    "#0d3c66",
+    "#12528a",
+    "#48ccff",
+    "#9fe6ff",
+    "#e0faff",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_muzzle_s1": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#061a30",
+    "#0d3c66",
+    "#12528a",
+    "#48ccff",
+    "#9fe6ff",
+    "#e0faff",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_hit_s1": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#061a30",
+    "#0d3c66",
+    "#12528a",
+    "#48ccff",
+    "#9fe6ff",
+    "#e0faff",
+    "#ffffff"
+   ]
+  },
+  "colors": 256
+ },
+ "proj_exusiai_ul_bullet_s2": {
+  "fx": "projectiles/ak-exu-ul-bullet",
+  "opts": {
+   "palette": [
+    "#2a1004",
+    "#6e2c08",
+    "#b04e10",
+    "#ff9a2e",
+    "#ffc278",
+    "#ffe9c8",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_muzzle_s2": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#2a1004",
+    "#6e2c08",
+    "#b04e10",
+    "#ff9a2e",
+    "#ffc278",
+    "#ffe9c8",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_hit_s2": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#2a1004",
+    "#6e2c08",
+    "#b04e10",
+    "#ff9a2e",
+    "#ffc278",
+    "#ffe9c8",
+    "#ffffff"
+   ]
+  },
+  "colors": 256
+ },
+ "proj_exusiai_ul_bullet_s3": {
+  "fx": "projectiles/ak-exu-ul-bullet",
+  "opts": {
+   "palette": [
+    "#3a0812",
+    "#8a1a2a",
+    "#d42a3a",
+    "#ff7a7a",
+    "#ffb4ac",
+    "#ffe6e0",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_muzzle_s3": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#3a0812",
+    "#8a1a2a",
+    "#d42a3a",
+    "#ff7a7a",
+    "#ffb4ac",
+    "#ffe6e0",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256
+ },
+ "fx_exusiai_ul_hit_s3": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#3a0812",
+    "#8a1a2a",
+    "#d42a3a",
+    "#ff7a7a",
+    "#ffb4ac",
+    "#ffe6e0",
+    "#ffffff"
+   ]
+  },
+  "colors": 256
+ }
+}

@@ -27,6 +27,20 @@ const EXU_HIT_PAD := 6.0              # 判定半径 = 敌人半径 + 6
 const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_bullet_power": Vector2(15, 4),
 	"proj_exusiai_bullet_s1": Vector2(15, 4), "proj_exusiai_bullet_s2": Vector2(12, 3), "proj_exusiai_bullet_s3": Vector2(12, 3)}   # 技能弹药换色帧条（docs/25 §6.1）同源帧条的锚点
 
+## pixelfx 放开版（docs/242，balance fx/px_unleashed 缺省 0）：弹体 / 枪口焰 / 命中换 *_exusiai_ul_*（有图才换，金色 / 曳光弹等没有放开版的照旧）。
+## 放开版弹体是 1x 帧条（4 帧），弹头在 (44, 10)；枪口焰原点在帧里 (8, 22)、帧中心在原点前 24 px
+const BalE = preload("res://scripts/core/balance.gd")
+const EXU_UL_HEAD := Vector2(44, 10)
+const EXU_UL_MUZZLE_AHEAD := 24.0
+
+
+static func _exu_ul(g, n: String) -> String:
+	if n.find("exusiai_") < 0 or n.find("_ul_") >= 0 or float(BalE.v("fx/px_unleashed", 0.0)) <= 0.0:
+		return n
+	var u := n.replace("exusiai_", "exusiai_ul_")
+	return u if g.tex.get(u) != null else n
+
+
 ## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
 const EXU_FX_KEYS := {"tex": "proj_", "muzzle_fx": "fx_", "hit_fx": "fx_"}
 
@@ -300,7 +314,11 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
 				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
-	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
+	var mu: String = _exu_ul(g, mfx)
+	if mu != mfx:   # pixelfx 放开版枪口焰：帧中心在枪口前 24 px（1x）
+		o.spawn_fx_sprite(mu, mz + d0 * EXU_UL_MUZZLE_AHEAD * g.PX * 0.8, g.PX * 0.8, d0.angle())
+	else:
+		o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
 	if not fan:
 		# 枪声跟出弹同一帧：每一轮射击一声（连射的后几轮、掩护射击补射也各一声；原来整个普攻出手只在 _release_body 末尾响一声，技能连射靠发动时的预混音频）。
 		# 弹匣倾泻（fan）那一下有自己的 big 音。冲锋模式强力弹低一点更沉，过载连射（burst > 1）每轮略轻免得糊
@@ -390,7 +408,14 @@ static func _exu_bullets(o, dt: float) -> void:
 			if not e.dead and not bu.get("tr", {}).is_empty():   # 曳光弹命中：标记
 				_exu_mark(o, e, bu.tr)
 			o._sfx_op("hit")
-			o.spawn_fx_sprite(str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
+			var hn: String = str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit"))
+			var hu: String = _exu_ul(g, hn)
+			if hu != hn:   # pixelfx 放开版：顺着弹道方向；只有队长命中才定格（共享限频，纯画面）
+				o.spawn_fx_sprite(hu, e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.9, bu.v.angle())
+				if o.is_leader:
+					o.impact_pause(0.03)
+			else:
+				o.spawn_fx_sprite(hn, e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
 			if bu.ric and not ric.is_empty() and g.rng_op.randf() < float(ric.get("chance", 0.0)):
 				var nx = _exu_next(o, e, float(ric.get("r", 120.0)))
 				if nx != null:
@@ -482,9 +507,11 @@ static func exu_draw(o) -> void:
 	var bfx = g.world.bulfx
 	bfx.observe("exu:" + str(o.id), o.ext.bul, "p", false, true, Color(1.0, 0.82, 0.5))   # 子弹出现 / 到期画面（命中有 fx_exusiai_hit，不叠）
 	for bu in o.ext.bul:
-		var tn: String = str(bu.tex)
+		var tn: String = _exu_ul(g, str(bu.tex))
 		var tx = g.tex.get(tn) if tn != "" else null
-		if tx != null:
+		if tx != null and tn.find("_ul_") >= 0:   # pixelfx 放开版曳光弹（4 帧，弹头锚点 EXU_UL_HEAD）
+			o.draw_spr_rot(tn, int(g.t * 20.0 + float(bu.get("dmg", 0.0))) % 4, bu.p, bu.v.angle(), g.PX * 0.85 * bfx.k(bu), Color.WHITE, EXU_UL_HEAD * EXU_ART.hires_of(tx))
+		elif tx != null:
 			var an: Vector2 = EXU_TEX_ANCHOR[tn] * EXU_ART.hires_of(tx) if EXU_TEX_ANCHOR.has(tn) else Vector2(-1, -1)
 			o.draw_spr_rot(tn, fr, bu.p, bu.v.angle(), g.PX * bfx.k(bu), Color.WHITE, an)
 		else:

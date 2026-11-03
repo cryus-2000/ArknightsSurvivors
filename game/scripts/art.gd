@@ -1081,6 +1081,12 @@ const V6_FRAMES := {
 	"fx_skadi_ul_slash": [17, 20.0], "fx_skadi_ul_slash2": [20, 20.0], "fx_skadi_ul_spin2": [19, 20.0], "fx_skadi_ul_sweep": [17, 20.0], "fx_skadi_ul_spin": [20, 20.0], "fx_skadi_ul_cleave": [22, 20.0],
 	"fx_skadi_ul_geyser1": [26, 20.0], "fx_skadi_ul_geyser2": [26, 20.0], "fx_skadi_ul_geyser3": [26, 20.0],
 	"fx_skadi_ul_slash_tm": [11, 20.0], "fx_skadi_ul_sweep_tm": [12, 20.0], "fx_skadi_ul_spin_tm": [13, 20.0], "fx_skadi_ul_cleave_tm": [18, 20.0],   # 队友版（余韵短）
+	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_idle": [32, 20.0], "fx_saria_ul_calc_break": [12, 20.0],   # 塞雷娅放开版
+	# 能天使放开版
+	"proj_exusiai_ul_bullet": [4, 20.0], "fx_exusiai_ul_muzzle": [4, 24.0], "fx_exusiai_ul_hit": [6, 24.0],
+	"proj_exusiai_ul_bullet_s1": [4, 20.0], "fx_exusiai_ul_muzzle_s1": [4, 24.0], "fx_exusiai_ul_hit_s1": [6, 24.0],
+	"proj_exusiai_ul_bullet_s2": [4, 20.0], "fx_exusiai_ul_muzzle_s2": [4, 24.0], "fx_exusiai_ul_hit_s2": [6, 24.0],
+	"proj_exusiai_ul_bullet_s3": [4, 20.0], "fx_exusiai_ul_muzzle_s3": [4, 24.0], "fx_exusiai_ul_hit_s3": [6, 24.0],
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
 	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],

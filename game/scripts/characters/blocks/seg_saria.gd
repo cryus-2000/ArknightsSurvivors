@@ -81,7 +81,12 @@ static func _h4_bash_release(o, a: Dictionary) -> void:
 	_h4_marks_pop(o, hits, _h4_bash_dmg(o))   # 晶簇（docs/202）：被拳击命中的带碎片敌人，碎片爆开
 	var d := Vector2.from_angle(ang)
 	var fk: float = reach / maxf(1.0, float(a.get("r", 115.0)))   # 盾击帧条跟判定半径走（范围藏品放大判定时一起放大，163B §3）
-	if not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
+	if _px_ul_sa(o) and g.tex.get("fx_saria_ul_bash") != null:   # pixelfx 放开版（docs/242）：帧里冲击波推到 62 px（1x）= 判定半径
+		o.spawn_fx_sprite("fx_saria_ul_bash", o.pos + Vector2(0, -12), reach / 62.0, ang)
+		o.sparks(o.pos + Vector2(0, -12) + d * reach * 0.5, d, H4_AMBER, 6, 240.0)
+		if not hits.is_empty() and o.is_leader:
+			o.impact_pause(0.05)   # 命中定格只给队长（纯画面，共享限频）
+	elif not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
 		o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach * 0.8, H4_AMBER)
 		o.fx({"kind": "line", "pos": o.pos + Vector2(0, -12) + d * 14.0, "to": o.pos + Vector2(0, -12) + d * reach * 1.3, "life": 0.15, "col": H4_AMBER, "w": 3.0})
 	_h3_sfx(o, "hit" if not hits.is_empty() else "atk")
@@ -392,12 +397,25 @@ static func h4_extra_bodies(o) -> Array:
 
 
 ## 一根晶柱：拔起帧条播完转站立微光循环（Codex fx_saria_pillar_rise / _idle，底边中点落地）；缺图画程序琥珀晶柱（拔起 0.15 秒，缩放 0 → 1）
+## pixelfx 放开版开关（docs/242，balance fx/px_unleashed，缺省 0）：塞雷娅盾击 / 琥珀晶簇换 fx_saria_ul_*；只改画面
+static func _px_ul_sa(o) -> bool:
+	return float(BalW.v("fx/px_unleashed", 0.0)) > 0.0
+
+
 static func h4_draw_extra(o, it: Dictionary) -> void:
 	var g = o.g
 	var cv = o.cv
 	if str(it.h4) == "calc":
 		var sl: Dictionary = o.hw.sa.slots[int(it.k)]
 		var t: float = float(sl.t)
+		if _px_ul_sa(o) and g.tex.get("fx_saria_ul_calc_idle") != null:   # pixelfx 放开版：长出 / 常驻（光扫过的循环）；碎裂在 _h4_slot_break 里单独放完整一段
+			if int(sl.st) >= 2:
+				return
+			var nm: String = "fx_saria_ul_calc_grow" if int(sl.st) == 0 else "fx_saria_ul_calc_idle"
+			var nf: int = int(g.V6_FRAMES.get(nm, [1, 20.0])[0])
+			var ff: int = mini(nf - 1, int(maxf(0.0, t) / SLOT_GROW * nf)) if int(sl.st) == 0 else int(t * 20.0 + float(it.k) * 7.0) % nf
+			fx_frame(cv, g, nm, nf, ff, sl.pos, g.PX * float(sl.sc), Color(1, 1, 1, 1))
+			return
 		var fr: int
 		match int(sl.st):
 			0:
@@ -776,6 +794,8 @@ static func _h4_slot_break(o, sl: Dictionary, cb: Dictionary) -> void:
 		if stun > 0.0:
 			o.add_cc(e, stun * m)
 	o.fx({"kind": "glow", "pos": p + Vector2(0, -18), "r": 14.0, "life": 0.2, "col": Color(1.8, 1.4, 0.8), "alpha": 0.7})
+	if _px_ul_sa(o):
+		o.spawn_fx_sprite("fx_saria_ul_calc_break", p, g.PX * float(sl.sc))   # pixelfx 放开版：裂开爆亮、碎片翻滚（0.6 s，比碎裂状态长）
 	for q in 5:
 		o.fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(70, 150), "life": 0.3, "col": H4_AMBER,
 			"sz": g.vrng.randf_range(2.5, 4.5), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 260.0})
