@@ -891,12 +891,15 @@ static func _impact(u, a: Dictionary) -> void:
 		"logos":   # 咒文扩散，处决至多 6 名低于 30% 的普通敌人
 			var low: Array = _low_minions(u, 0.3)
 			low.sort_custom(func(x, y): return x.pos.distance_squared_to(tp) < y.pos.distance_squared_to(tp))
+			var lul: bool = u.px_strip("fx_logos_ul_seal", tp, {"sc": 3.0})   # 放开版（docs/242）
 			for e in low.slice(0, int(Bal.v("ult/logos_n", 6.0))):
-				_beam(u, tp + Vector2(0, -10), e.pos + Vector2(0, -8), c, 0.25, 2.0)
+				if not (lul and u.px_strip("fx_logos_ul_s2exec", e.pos + Vector2(0, -float(e.r) * 0.5), {"sc": 2.0, "delay": 0.06})):
+					_beam(u, tp + Vector2(0, -10), e.pos + Vector2(0, -8), c, 0.25, 2.0)
 				p.log_hit(_src(p), ["连携"])
 				p.deal_damage(e, maxf(_dmg(p, 1.2), float(e.hp) * 4.0 + 50.0))
 				hits.append(e)
-			u.shape({"kind": "ring", "c": tp, "r": 240.0, "r1": 30.0, "w": 3.0, "col": c, "life": 0.45})
+			if not lul:
+				u.shape({"kind": "ring", "c": tp, "r": 240.0, "r1": 30.0, "w": 3.0, "col": c, "life": 0.45})
 		"mizuki":   # 触手追击附近低于一半的敌人，束缚 1 秒
 			var cand: Array = []
 			for e in u.in_circle(p.pos, 400.0):

@@ -752,5 +752,210 @@
   "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
   "lo": true,
   "deco_lo_step": 2
+ },
+ "fx_logos_ul_link": {
+  "fx": "arcane/ak-logos-ul-mark",
+  "opts": {
+   "move": "link",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_link_e1": {
+  "fx": "arcane/ak-logos-ul-mark",
+  "opts": {
+   "move": "link",
+   "elite": 1
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": false
+ },
+ "fx_logos_ul_inkpop": {
+  "fx": "arcane/ak-logos-ul-mark",
+  "opts": {
+   "move": "inkpop"
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_seal": {
+  "fx": "arcane/ak-logos-ul-mark",
+  "opts": {
+   "move": "seal"
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_epitaph": {
+  "fx": "arcane/ak-logos-ul-mark",
+  "opts": {
+   "move": "epitaph",
+   "size": 1
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_epitaphs": {
+  "fx": "arcane/ak-logos-ul-mark",
+  "opts": {
+   "move": "epitaph",
+   "size": 0.55
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_resonate": {
+  "fx": "arcane/ak-logos-ul-mark",
+  "opts": {
+   "move": "resonate"
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_lock": {
+  "fx": "arcane/ak-logos-ul-markloop",
+  "opts": {
+   "move": "lock",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_lock_e1": {
+  "fx": "arcane/ak-logos-ul-markloop",
+  "opts": {
+   "move": "lock",
+   "elite": 1
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": false
+ },
+ "fx_logos_ul_slow": {
+  "fx": "arcane/ak-logos-ul-markloop",
+  "opts": {
+   "move": "slow"
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_rune": {
+  "fx": "arcane/ak-logos-ul-markloop",
+  "opts": {
+   "move": "rune",
+   "elite": 1
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
  }
 }

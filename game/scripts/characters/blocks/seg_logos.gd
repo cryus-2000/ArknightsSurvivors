@@ -34,6 +34,34 @@ static func _lg_ul_fx(o, base: String, p: Vector2, ang: float, sc: float, flip :
 	return true
 
 
+## 放开版跳转线（ak-logos-ul-mark link：烤制长 64 美术像素，原点 = 起点）：按 a → b 摆，粗细限 0.8–1.6 倍 PX；太长时落笔对准 b、从 b 往回画一截
+static func _lg_ul_link(o, a: Vector2, b: Vector2) -> bool:
+	var d: float = a.distance_to(b)
+	if d < 4.0:
+		return false
+	var g = o.g
+	var sc: float = clampf(d / 64.0, g.PX * 0.8, g.PX * 1.6)
+	var st: Vector2 = b - (b - a).normalized() * 64.0 * sc
+	return _lg_ul_fx(o, "fx_logos_ul_link", st, (b - a).angle(), sc, false, 1)
+
+
+## 放开版循环小件（ak-logos-ul-markloop：锁定标记 / 减速弹 / 铭文牌）：按 g.t 取帧，先装饰后核心；缺图返回 false
+static func _lg_ul_loop(o, base: String, p: Vector2, ang: float, sc: float, al := 1.0) -> bool:
+	var g = o.g
+	var el: int = g.vfx.px_ul_el(o)
+	var nm: String = g.vfx.px_ul_tex(base, 1, false, "core", el)
+	if g.tex.get(nm) == null:
+		return false
+	var fr: Array = g.V6_FRAMES.get(nm, [12, 15.0])
+	var f: int = int(g.t * float(fr[1])) % int(fr[0])
+	var dn: String = g.vfx.px_ul_tex(base, 1, false, "deco", el)
+	var dk: float = g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.draw_spr_rot(dn, f, p, ang, sc, Color(1, 1, 1, dk * al))
+	o.draw_spr_rot(nm, f, p, ang, sc, Color(1, 1, 1, al))
+	return true
+
+
 ## 放开版命中定格：只给队长，按精英档取普攻 / 技能秒数（共享限频，批跑不消耗）
 static func _lg_ul_pause(o, skill: bool) -> void:
 	if o.is_leader:
@@ -322,7 +350,9 @@ static func hw_execute(o, b: Dictionary) -> bool:
 				apply_status(o, q2, s)
 			var la: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 			var lb: Vector2 = q2.pos + Vector2(0, -q2.r * 0.5)
-			if g.tex.get("fx_logos_s1_link") != null:
+			if _lg_ul(o) and _lg_ul_link(o, la, lb):   # 放开版：实心墨笔跳转线（落笔处小四芒星）
+				pass
+			elif g.tex.get("fx_logos_s1_link") != null:
 				o.fx({"kind": "s1link", "pos": la, "to": lb, "life": 0.3})
 			else:
 				o.fx({"kind": "line", "pos": la, "to": lb, "life": 0.2, "col": HW_INK, "w": 2.0})
@@ -413,10 +443,13 @@ static func _hw_lock_jump(o, lk: Dictionary) -> void:
 		return
 	lk.e = best
 	var to: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
-	var mid: Vector2 = (from + to) * 0.5 + Vector2(0, -24)
-	o.fx({"kind": "line", "pos": from + Vector2(0, -8), "to": mid, "life": 0.3, "col": HW_PALE, "w": 2.5})
-	o.fx({"kind": "line", "pos": mid, "to": to, "life": 0.3, "col": HW_PALE, "w": 2.5})
-	o.fx({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "r0": 4.0, "life": 0.35, "col": HW_INK, "floor": true})
+	if _lg_ul(o) and _lg_ul_link(o, from + Vector2(0, -8), to):   # 放开版：跳转线 + 新目标身上一记每跳（不画脚下收缩圈）
+		_lg_ul_fx(o, "fx_logos_ul_s1", to, (to - from).angle(), g.PX)
+	else:
+		var mid: Vector2 = (from + to) * 0.5 + Vector2(0, -24)
+		o.fx({"kind": "line", "pos": from + Vector2(0, -8), "to": mid, "life": 0.3, "col": HW_PALE, "w": 2.5})
+		o.fx({"kind": "line", "pos": mid, "to": to, "life": 0.3, "col": HW_PALE, "w": 2.5})
+		o.fx({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "r0": 4.0, "life": 0.35, "col": HW_INK, "floor": true})
 	var b: Dictionary = lk.b
 	if b.has("jump_fx"):
 		fx_play(o, b.jump_fx, best.pos, float(best.r), [best])
@@ -529,8 +562,10 @@ static func _hw3_fan(o, dt: float) -> void:
 	if float(fn.t) <= 0.0:
 		var gone: PackedVector2Array = g.shots.cancel_in(in_fan)
 		var n: int = gone.size()
+		var ul3: bool = _lg_ul(o)
 		for bp in gone:
-			o.fx({"kind": "glow", "pos": bp, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.6})
+			if not (ul3 and _lg_ul_fx(o, "fx_logos_ul_inkpop", bp, 0.0, g.PX, false, 1)):   # 放开版：每颗弹一记消弹墨爆
+				o.fx({"kind": "glow", "pos": bp, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.6})
 		if n > 0:
 			o.float_text(o.pos + Vector2(0, -70), "消除弹幕 ×%d" % n, HW_INK, 15)
 
@@ -570,8 +605,9 @@ static func hw_draw_rune_floor(o) -> void:
 	if not o.hw.has("pools"):
 		return
 	var cv = o.cv
+	var ul6: bool = _lg_ul(o) and o.g.tex.get(o.g.vfx.px_ul_tex("fx_logos_ul_rune", 1, false, "core", o.g.vfx.px_ul_el(o))) != null
 	for l in o.hw.pools:
-		if str(l.b.get("look", "")) != "rune":
+		if str(l.b.get("look", "")) != "rune" or ul6:   # 放开版：不画地面书写圈（字符牌自带脚下墨影）
 			continue
 		if l.b.get("burst", false):
 			var k: float = 1.0 - l.t / maxf(0.01, l.dur)
@@ -789,6 +825,17 @@ static func _hw_draw_shots(o) -> void:
 ## 被「延异视阈」减速的敌弹打标记（fx_logos_s3_slow 48×48 @2x，中心镂空，只标实际被减速、仍在扇形内的弹，最多 40 个）
 static func _hw_draw_slow_marks(o, b: Dictionary, fa: float) -> void:
 	var g = o.g
+	if _lg_ul(o) and g.tex.get(g.vfx.px_ul_tex("fx_logos_ul_slow", 1, false, "core", g.vfx.px_ul_el(o))) != null:   # 放开版：弹身后一滴拖长的墨（顺飞行方向）
+		var m := 0
+		for bl in g.ebullets:
+			if bl.life <= 0.0 or not bl.get("acuity", false) or not hw_in_fan(o, bl.pos):
+				continue
+			var vv: Vector2 = bl.get("vel", Vector2.ZERO)
+			_lg_ul_loop(o, "fx_logos_ul_slow", bl.pos, vv.angle() if vv.length_squared() > 1.0 else 0.0, g.PX)
+			m += 1
+			if m >= SLOW_MARK_MAX:
+				break
+		return
 	var tx: Texture2D = g.tex.get("fx_logos_s3_slow")
 	if tx == null or not g.V6_FRAMES.has("fx_logos_s3_slow"):
 		return
@@ -894,6 +941,11 @@ static func hw_draw_logos_over(o) -> void:
 		for l in h.pools:
 			if str(l.b.get("look", "")) != "rune":
 				continue
+			if _lg_ul(o):   # 放开版：浮着的实心字符牌（铭文；墓志铭待爆时大一号、越临近越亮），爆开由 fx 列表里的 epitaph 帧条接
+				var big: bool = l.b.get("burst", false)
+				var al6: float = clampf(l.t / 0.3, 0.0, 1.0) if not big else 0.6 + 0.4 * (1.0 - l.t / maxf(0.01, l.dur))
+				if _lg_ul_loop(o, "fx_logos_ul_rune", l.pos + Vector2(0, -8), 0.0, g.PX * (1.5 if big else 1.0), al6):
+					continue
 			if l.b.get("burst", false):
 				var k2: float = 1.0 - l.t / maxf(0.01, l.dur)
 				var c: Vector2 = l.pos + Vector2(0, -26)
@@ -915,10 +967,11 @@ static func hw_draw_logos_over(o) -> void:
 		elif g.tex.get("fx_logos_script") != null:
 			_hw_draw_tiled(o, "fx_logos_script", tip, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
 		var p: Vector2 = lk.e.pos + Vector2(0, -lk.e.r - 14)
-		var kk: float = 0.5 + 0.5 * sin(g.t * 8.0)
-		cv.draw_arc(p, 6.0 + 2.0 * kk, 0.0, TAU, 12, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.9), 1.5)
-		cv.draw_line(p + Vector2(-9, 0), p + Vector2(-4, 0), HW_PALE, 1.5)
-		cv.draw_line(p + Vector2(4, 0), p + Vector2(9, 0), HW_PALE, 1.5)
+		if not (_lg_ul(o) and _lg_ul_loop(o, "fx_logos_ul_lock", p, 0.0, g.PX)):   # 放开版：实心倒三角咒印（不画细圈）
+			var kk: float = 0.5 + 0.5 * sin(g.t * 8.0)
+			cv.draw_arc(p, 6.0 + 2.0 * kk, 0.0, TAU, 12, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.9), 1.5)
+			cv.draw_line(p + Vector2(-9, 0), p + Vector2(-4, 0), HW_PALE, 1.5)
+			cv.draw_line(p + Vector2(4, 0), p + Vector2(9, 0), HW_PALE, 1.5)
 	var fn = h.get("fan", {})
 	if fn is Dictionary and not fn.is_empty() and float(fn.t) > 0.0:
 		var q: Vector2 = o.pos + Vector2(0, -80)

@@ -839,13 +839,16 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				var R2: float = r + 40.0
 				var gone: PackedVector2Array = u.g.shots.cancel_in(func(q: Vector2) -> bool: return q.distance_to(c) <= R2)
+				var lul: bool = u.px_strip("fx_logos_ul_seal", c, {"sc": clampf(r / 40.0, 2.0, 3.5)})   # 放开版（docs/242）：菱形大咒印砸下
+				a["lul"] = lul
 				for q in gone:
-					u.shape({"kind": "rock", "c": q, "r": 6.0, "col": cl, "glow": Color(0.15, 0.12, 0.05), "seed": q.x, "hold": false, "life": 0.3})
+					if not (lul and u.px_strip("fx_logos_ul_inkpop", q, {"sc": 2.0})):
+						u.shape({"kind": "rock", "c": q, "r": 6.0, "col": cl, "glow": Color(0.15, 0.12, 0.05), "seed": q.x, "hold": false, "life": 0.3})
 				for e in u.in_circle(c, r):
 					u.g.enemies_sys.lite_slow(e, 0.5, 1.0)
 				u.light(c, r + 40.0, cl, 0.6)
 			if t < 0.8:
-				if not LFB.lo_ring(u, c, r + 20.0, t):
+				if not a.get("lul", false) and not LFB.lo_ring(u, c, r + 20.0, t):   # 放开版不画咒文环
 					for j in 8:
 						var gp: Vector2 = c + Vector2.from_angle(TAU * j / 8.0 + t * 1.5) * (r + 20.0)
 						u.shape({"kind": "rock", "c": gp, "r": 8.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0 + j, "rot": PI * 0.25, "life": 0.04})

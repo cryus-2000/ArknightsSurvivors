@@ -803,6 +803,12 @@
        "look": "rune",
        "fx": [
         {
+         "px": "fx_logos_ul_epitaph",
+         "fit": 35.0,
+         "_doc": "放开版墓志铭爆开（ak-logos-ul-mark epitaph：墨摊爆亮 + 三根斜立符文条），按 r / 35 缩放；旧画面条目 cond !px_ul"
+        },
+        {
+         "cond": "!px_ul",
          "pfx": {
           "kind": "ring",
           "r": 1.0,
@@ -821,6 +827,7 @@
          ]
         },
         {
+         "cond": "!px_ul",
          "pfx": {
           "kind": "ring",
           "r": 0.7,
@@ -839,6 +846,7 @@
          ]
         },
         {
+         "cond": "!px_ul",
          "pfx": {
           "kind": "glow",
           "r": 34.0,
@@ -856,6 +864,7 @@
          ]
         },
         {
+         "cond": "!px_ul",
          "sprite": {
           "name": "fx_logos_glyph",
           "scale": 1.4
@@ -866,6 +875,7 @@
          ]
         },
         {
+         "cond": "!px_ul",
          "sparks": {
           "n": 10,
           "spd": 200.0,

@@ -61,13 +61,15 @@ export function create(o) {
     }
   }
   // 不规则实心墨（不是圆）：半径 R、扁 sy，边缘噪声起伏；rim 0..1 = 白边亮度；cuts = 镂空字符位置
-  function blot(p, cx, cy, R, sy, seed, rim, fade) {
+  function blot(p, cx, cy, R, sy, seed, rim, fade, fillA = 1) {   // fillA < 1：墨体半透明（只留墨边实色）
     const B = Math.ceil(R * 1.25);
     for (let y = -Math.ceil(B * sy); y <= Math.ceil(B * sy); y++) for (let x = -B; x <= B; x++) {
       const a = Math.atan2(y / sy, x), d = Math.hypot(x, y / sy), rr = R * (0.82 + 0.3 * noise(a * 2.3 + seed, seed)) * (1 - fade);   // 收尾：整摊从边往里收干（不用噪声溶解，碎点脏）
       if (d > rr) continue;
       const edge = d > rr - (R < 9 ? 0.8 : 1.4);
-      p.px(cx + x, cy + y, edge ? C[rim > 0.6 ? 7 : rim > 0.25 ? 5 : 3] : C[d > rr * 0.6 ? 1 : 0]);
+      if (edge) p.px(cx + x, cy + y, C[rim > 0.6 ? 7 : rim > 0.25 ? 5 : 3]);
+      else if (fillA < 1) p.blend(cx + x, cy + y, C[d > rr * 0.6 ? 1 : 0], fillA);
+      else p.px(cx + x, cy + y, C[d > rr * 0.6 ? 1 : 0]);
     }
   }
 
@@ -165,7 +167,7 @@ export function create(o) {
       if (core && mv === "resonate") {
         // 满尺寸墨潮：0–0.06 s 白边爆亮，之后边冷却成蓝、0.45 s 后溶掉；墨潮里字符镂空依次闪白
         const f = smooth(0.45, 0.85, t);
-        if (f < 1) blot(p, 0, 0, 72, 0.45, 23, t < 0.06 ? 1 : t < 0.15 ? 0.4 : 0, f);
+        if (f < 1) blot(p, 0, 0, 72, 0.45, 23, t < 0.06 ? 1 : t < 0.15 ? 0.4 : 0, f, 0.4);   // 墨体 40% 半透明，不盖住圈内敌人 / 敌弹（组长 B 11-04）
         for (const c of cuts) {
           const u = t - c.d;
           if (u <= 0 || u > 0.35 || f > 0.3) continue;

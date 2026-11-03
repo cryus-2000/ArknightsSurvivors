@@ -59,14 +59,14 @@
 		}
 	},
 	"logos": {
-		"_doc": "逻各斯（docs/242 v2，照原作 logos.ab 还原）：弹道类，不走 shapes 接管；seg_logos._lg_ul_fx 按开关换起手 / 弹体 / 命中 / S1 每跳帧条，定格秒数见 seg_logos.LG_UL_PAUSE；S2 / S3 开启帧条（fx_logos_ul_s2cast / s3cast）写成 logos.json 技能 fx 的 px 条目（§14.2；注册表 cast 随 fx/px_halo 关掉，§14.7）；S3 原起手光柱 / 放射光在 logos.json 里加了 cond !px_ul；shapes：墓志铭·连锁（epitaph2 击杀处小咒文，半径 50）借 S2 处决的斜立符文条（fit 25 → PX）；转喻·共振（metonymy2 自身圆形，src 提喻，半径 155）借 S3 命中墨爆（fit 77.5 → PX），都不画环，专属帧条待换",
+		"_doc": "逻各斯（docs/242 v2，照原作 logos.ab 还原）：弹道类，不走 shapes 接管；seg_logos._lg_ul_fx 按开关换起手 / 弹体 / 命中 / S1 每跳帧条，定格秒数见 seg_logos.LG_UL_PAUSE；S2 / S3 开启帧条（fx_logos_ul_s2cast / s3cast）写成 logos.json 技能 fx 的 px 条目（§14.2；注册表 cast 随 fx/px_halo 关掉，§14.7）；S3 原起手光柱 / 放射光在 logos.json 里加了 cond !px_ul；shapes：墓志铭·连锁（epitaph2 击杀处小咒文，半径 50）用专属帧条 fx_logos_ul_epitaphs（小号墓志铭：墨摊 + 斜立符文条，fit 25 → PX）；转喻·共振（metonymy2 自身圆形，src 提喻，半径 155）用 fx_logos_ul_resonate（满尺寸半透明墨潮、只留墨边实色，fit 77.5 → PX），都不画环（11-04 换专属）",
 		"pause": [
 			0.05,
 			0.075
 		],
 		"shapes": {
 			"墓志铭": {
-				"base": "fx_logos_ul_s2exec",
+				"base": "fx_logos_ul_epitaphs",
 				"skill": true,
 				"draw": {
 					"fit": 25.0,
@@ -74,11 +74,11 @@
 				}
 			},
 			"提喻": {
-				"base": "fx_logos_ul_s3hit",
+				"base": "fx_logos_ul_resonate",
 				"skill": true,
 				"draw": {
 					"fit": 77.5,
-					"y": -10.0
+					"y": 0.0
 				}
 			}
 		}
