@@ -116,6 +116,8 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			var nm: String = str(f.get("name", ""))
 			if nm == "" or nm == "fx_death_dissolve" or g.tex.get(nm) == null:
 				continue
+			if nm.contains("_ul_"):   # pixelfx 放开版帧条不自动挂光（docs/242 §11.2 #11：光全在装饰层里）；放开版帧条高，按高度算的光半径到 170，读成脚下一块半透明圆盘（§12.3）
+				continue
 			var life: float = clampf(float(f.life) / maxf(0.001, float(f.max)), 0.0, 1.0)
 			if not _fxsz.has(nm):
 				_fxsz[nm] = g.tex[nm].get_height() / A.hires_of(g.tex[nm])
