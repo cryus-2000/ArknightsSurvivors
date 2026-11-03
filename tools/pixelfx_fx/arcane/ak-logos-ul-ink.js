@@ -156,7 +156,7 @@ export function create(o) {
       if (!burst && t >= 0.0 && isHit) {
         burst = true;
         if (deco) {
-          lights.add(0, 0, [12, 16, 22][el] * S1R, C[6], GK * 1.6, 0.12 + 0.06 * el);
+          lights.add(0, 0, 7 * S1R, C[6], GK * 1.2, 0.08);   // 命中点光：小而短、不随档变大（大圆光读成孤立圆，组长 B 11-04）
           for (let i = 0, n = Math.round(12 * PM); i < n; i++) {   // 墨点：顺弹道方向喷（原作 lizi_ab，黑 → 深蓝）
             const a = isS1 ? Rg.range(0, TAU) : Rg.range(-0.5, 0.5), sp = Rg.range(60, 200);
             ps.spawn(P.STREAK, 0, 0, Math.cos(a) * sp, Math.sin(a) * sp * 0.8, Rg.range(0.15, 0.35) * DL + 0.05, C[i % 3 ? 1 : 3], Rg.range(0.7, 1.1));
@@ -175,7 +175,7 @@ export function create(o) {
       if (!deco) return;
       if (isHit) {
         const k = 1 - smooth(0.02, 0.2 + 0.15 * DL, t);
-        if (k > 0) p.glow(0, 0, [12, 16, 22][el] * S1R, C[5], GK * k);
+        if (k > 0 && !isS1) { const L = [10, 12, 14][el] * S1R; p.glowLine(-L, 0, L, 0, 3, C[5], GK * k); p.glowLine(0, -L * 0.7, 0, L * 0.7, 3, C[5], GK * k * 0.8); }   // 十字星芒自带的短光（不用圆晕：E1 / E2 正圆光晕随档变大读成孤立圆，组长 B 11-04）
         const dk = smooth(0.05, 0.12, t) * (1 - smooth(0.25, 0.25 + 0.4 * DL, t));
         if (dk > 0) p.glow(0, 0, [10, 14, 18][el] * S1R, C[0], 0.5 * dk);   // 暗晕（AB 黑）
       }
