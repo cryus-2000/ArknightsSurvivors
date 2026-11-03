@@ -56,5 +56,18 @@
 				"y": 0
 			}
 		}
+	},
+	"lumen": {
+		"_doc": "流明（claude/pixelfx-ul-lumen）：普攻 / 治疗 / S1 / 光柱在 seg_lumen 里直接画（自定形状 lantern，不走 shapes）；这里只登记 S2「沛霖」开启：施放者和每个在场队员脚下各落一道水柱",
+		"cast": {
+			"1": {
+				"base": "fx_lumen_ul_downpour",
+				"y": 0,
+				"ally": {
+					"base": "fx_lumen_ul_downpour",
+					"y": 0
+				}
+			}
+		}
 	}
 }

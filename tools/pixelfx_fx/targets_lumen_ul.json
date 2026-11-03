@@ -191,5 +191,103 @@
    },
    "src": "lumen.json base.pillar_len / pillar_w（attack.beam len / w，世界像素；/2 = 1x）"
   }
+ },
+ "fx_lumen_ul_mend": {
+  "fx": "water/ak-lumen-ul-mend",
+  "opts": {
+   "elite": 2,
+   "seed": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_lumen_ul_mend2": {
+  "fx": "water/ak-lumen-ul-mend",
+  "opts": {
+   "elite": 2,
+   "seed": 7
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_lumen_ul_mend_tm": {
+  "fx": "water/ak-lumen-ul-mend",
+  "opts": {
+   "elite": 2,
+   "seed": 2,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_lumen_ul_mend_e0": {
+  "fx": "water/ak-lumen-ul-mend",
+  "opts": {
+   "elite": 0,
+   "seed": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_lumen_ul_mend_e1": {
+  "fx": "water/ak-lumen-ul-mend",
+  "opts": {
+   "elite": 1,
+   "seed": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_lumen_ul_downpour": {
+  "fx": "water/ak-lumen-ul-downpour",
+  "opts": {
+   "elite": 2,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "check_sy": 0.5
+ },
+ "fx_lumen_ul_downpour2": {
+  "fx": "water/ak-lumen-ul-downpour",
+  "opts": {
+   "elite": 2,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.5
+ },
+ "fx_lumen_ul_downpour_tm": {
+  "fx": "water/ak-lumen-ul-downpour",
+  "opts": {
+   "elite": 2,
+   "seed": 5,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.5
+ },
+ "fx_lumen_ul_downpour_e1": {
+  "fx": "water/ak-lumen-ul-downpour",
+  "opts": {
+   "elite": 1,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.5
  }
 }

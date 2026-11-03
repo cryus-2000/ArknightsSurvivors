@@ -41,17 +41,25 @@ static func _h3_heal_lamp(o) -> void:
 
 
 ## 治疗队长（同手写 _heal_doctor：满血也结算）；10-31 起这一拍可能改给 Mon3tr（m3_hp.heal_pick_mate，规则同凯尔希），返回落点
-static func _h3_mend(o, h: float, size: int, sub: String) -> Vector2:
+static func _h3_mend(o, h: float, size: int, sub: String, skill := false) -> Vector2:
 	var g = o.g
 	if h <= 0.0:
 		return g.ppos
+	var px_ul: bool = _px_ul_lm(o)   # pixelfx 放开版「荧光」落点：一缕水流绕身螺旋上去（原作 lumen_buff_01_hit）；S1 由沐雨法阵画，不再叠
 	var m3: Array = M3.heal_pick_mate(g)
 	if not m3.is_empty():
 		M3.heal_from_mate(o, m3[0], m3[1], h, H3_WARM)
-		o.spawn_fx_sprite("fx_holy_impact_lantern", m3[1].pos + Vector2(0, -34), g.PX * 0.9)
+		if px_ul:
+			_px_ul_fx(o, "fx_lumen_ul_mend", m3[1].pos, g.PX, 0.0, 1 + int(g.vrng.randi() % 2))
+		else:
+			o.spawn_fx_sprite("fx_holy_impact_lantern", m3[1].pos + Vector2(0, -34), g.PX * 0.9)
 		return m3[1].pos
 	o.heal_leader(h, o.display_name(), sub)
 	o.float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), H3_WARM, size)
+	if px_ul:
+		if not skill:
+			_px_ul_fx(o, "fx_lumen_ul_mend", g.ppos, g.PX, 0.0, 1 + int(g.vrng.randi() % 2))
+		return g.ppos
 	o.spawn_fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
 	if not o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
 		o.fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.4, "col": H3_WARM, "floor": true, "keep": true})
@@ -125,7 +133,7 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		for m in hb.get("lamp_adds", _EA):   # 响应动作（docs/118 §4.2）：cond 成立时这次回复 / 驱散另给灯火 + add
 			if cond_true(o, m.get("cond", _ED)):
 				g.lamp = minf(g.lamp_cap, g.lamp + float(m.get("add", 0.0)))
-		g.fx.append({"kind": "beam", "a": hand, "b": mend_at + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": H3_WARM, "w": 2.5})
+		g.fx.append({"kind": "beam", "a": hand, "b": mend_at + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": Color(0.6, 0.82, 1.0) if _px_ul_lm(o) else H3_WARM, "w": 1.5 if _px_ul_lm(o) else 2.5})   # 放开版：提灯到落点的细光改钢蓝，不用暖色
 	lm.hand_glow = 0.18
 	var rr: float = _h3_bolt_range(o, a)
 	var ts: Array = ((o.aim_targets(1, rr, o.pos) if lm.armed else []) if o.held_aim() else o.los_targets(1, rr, o.pos))
@@ -487,7 +495,7 @@ static func h3_mend(o, b: Dictionary) -> void:
 	var h: float = g.max_hp * float(b.get("pct", 0.05)) * _h3_heal_mult(o)
 	if b.get("power", false):
 		h *= o.skill_power()
-	_h3_mend(o, h, int(b.get("text", 18)), str(b.get("sub", "")))
+	_h3_mend(o, h, int(b.get("text", 18)), str(b.get("sub", "")), true)
 	if _px_ul_lm(o):   # pixelfx 放开版 S1「沐雨」（docs/242）：队长脚下水面法阵 + 细雨，先装饰后核心；旧画面在 lumen.json 用 "!px_ul" 关掉。只改画面
 		var el: int = g.vfx.px_ul_el(o)
 		var tm: bool = not o.is_leader
