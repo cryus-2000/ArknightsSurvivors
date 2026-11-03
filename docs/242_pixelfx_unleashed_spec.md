@@ -504,7 +504,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 
 ### 14.10 弹体命中跳过通用画面 `px_hit`
 `weapons.bullet_hit`：弹体字典带 `"px_hit": true`、带 `"op": <干员 id>`，且这名干员在注册表里有条目（开关打开）时，跳过通用命中画面（法术团爆炸 / 爆炸贴图 / 火花、法术弹 `fx_arcane_hit` / 环 / 火花、普通弹 `fx_bullet_hit` / 火花），命中画面由本人的放开版帧条画。伤害、控制、音效照旧。铃兰先用。
-命中帧条写注册表 `"bullet": {"hit": {base, y, sc}}`（命中处先装饰后核心）；弹体本身用 `remap` 换（例 `"proj_arcane": "fx_suzuran_ul_fox"`，§14.14）。
+命中帧条写注册表 `"bullet": {"hit": {base, y, sc, variants, flip}}`（命中处先装饰后核心；`variants` 队长随机取种子变体，`flip: true` 弹体朝左飞时左右翻）；弹体本身用 `remap` 换（例 `"proj_arcane": "fx_suzuran_ul_fox"`，§14.14）。
 
 ### 14.11 召唤物接管（格式照凯尔希 11-04 提案）
 注册表 `"summons": {"<召唤物 kind>": {…}}`（kind 同干员 JSON 里召唤物的 kind，例 `mon3tr`）：
