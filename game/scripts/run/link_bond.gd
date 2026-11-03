@@ -6,6 +6,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const Link = preload("res://scripts/run/skill_link.gd")
+const LFA = preload("res://scripts/run/link_fx_a.gd")   # 乌尔比安锚链的放开版画法（ulpianus_fly / pin / hold，开关 fx/px_unleashed）
 
 const HUNT_MAX := 3
 const DIM := Color(0.5, 0.53, 0.56)   # 羁绊未成立（搭档不在队）的灰显色
@@ -405,6 +406,9 @@ static func _lesson(u, a: Dictionary, t: float) -> bool:
 		tp = tg.pos
 	if t < 0.18:
 		var q: Vector2 = Vector2(a.fp).lerp(tp, t / 0.18)
+		if LFA._ulpx(u):   # pixelfx 放开版：锚 + 新锁链 + 水尾（同连携「掷锚」）
+			LFA.ulpianus_fly(u, a.fp, q, t / 0.18)
+			return false
 		u.shape({"kind": "line", "a": a.fp, "b": q, "w": 3.0, "col": cu.darkened(0.2), "life": 0.04})
 		u.shape({"kind": "rock", "c": q, "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cu, "seed": 8.0, "life": 0.04})
 		return false
@@ -414,13 +418,19 @@ static func _lesson(u, a: Dictionary, t: float) -> bool:
 			if not tg.boss:
 				up.add_cc(tg, 0.6 if tg.elite else 1.2)
 		a["pull"] = u.in_circle(tp, 180.0).filter(func(e): return e != tg and not e.boss and not e.elite)
-		u.debris(tp, cu, 2)
-		u.light(tp, 150.0, cu, 0.4)
+		if LFA._ulpx(u):
+			LFA.ulpianus_pin(u, tp)
+		else:
+			u.debris(tp, cu, 2)
+			u.light(tp, 150.0, cu, 0.4)
 		_sfx(u)
 	if t < 0.53:
-		if _ok(up):
-			u.shape({"kind": "line", "a": up.pos + Vector2(0, -20), "b": tp, "w": 2.0, "col": cu.darkened(0.2), "life": 0.04})
-		u.shape({"kind": "rock", "c": tp + Vector2(0, -6), "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cu, "seed": 8.0, "life": 0.04})
+		if LFA._ulpx(u):
+			LFA.ulpianus_hold(u, (up.pos if _ok(up) else Vector2(a.fp)) + Vector2(0, -20), tp)
+		else:
+			if _ok(up):
+				u.shape({"kind": "line", "a": up.pos + Vector2(0, -20), "b": tp, "w": 2.0, "col": cu.darkened(0.2), "life": 0.04})
+			u.shape({"kind": "rock", "c": tp + Vector2(0, -6), "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cu, "seed": 8.0, "life": 0.04})
 		for e in a.pull:
 			if not e.dead and _ok(up):
 				up.nudge(e, (tp - e.pos) * 0.12)
@@ -526,16 +536,22 @@ static func _vortex(u, a: Dictionary, t: float) -> bool:
 			var q: Vector2 = (c + Vector2(0, -260)).lerp(c, (t - 0.4) / 0.2)
 			if _once(a, "upa"):
 				up.play_vis_anim("skill")
-			u.shape({"kind": "line", "a": up.pos + Vector2(0, -20), "b": q, "w": 2.0, "col": cu.darkened(0.2), "life": 0.04})
-			u.shape({"kind": "rock", "c": q, "r": 18.0, "col": Color(0.12, 0.2, 0.22), "glow": cu, "seed": 8.0, "life": 0.04})
+			if LFA._ulpx(u):   # pixelfx 放开版：锚从高处带着锁链砸下
+				LFA.ulpianus_fly(u, up.pos + Vector2(0, -20), q, (t - 0.4) / 0.2)
+			else:
+				u.shape({"kind": "line", "a": up.pos + Vector2(0, -20), "b": q, "w": 2.0, "col": cu.darkened(0.2), "life": 0.04})
+				u.shape({"kind": "rock", "c": q, "r": 18.0, "col": Color(0.12, 0.2, 0.22), "glow": cu, "seed": 8.0, "life": 0.04})
 		return false
 	if _once(a, "slam"):
 		if _ok(up):
 			for e in u.in_circle(c, 130.0):
 				_hit(up, e, "漩涡钉锚", 1.6)
 				Link._cc(up, e, 0.5)
-		u.shape({"kind": "ring", "c": c, "r": 130.0, "r1": 24.0, "w": 9.0, "col": cu, "life": 0.4})
-		u.shape({"kind": "rock", "c": c + Vector2(0, -6), "r": 18.0, "col": Color(0.12, 0.2, 0.22), "glow": cu, "seed": 8.0, "life": 0.5})
+		if LFA._ulpx(u):   # pixelfx 放开版：锚砸进漩涡眼（深沟 + 裂网），不画圆环
+			LFA.ulpianus_pin(u, c)
+		else:
+			u.shape({"kind": "ring", "c": c, "r": 130.0, "r1": 24.0, "w": 9.0, "col": cu, "life": 0.4})
+			u.shape({"kind": "rock", "c": c + Vector2(0, -6), "r": 18.0, "col": Color(0.12, 0.2, 0.22), "glow": cu, "seed": 8.0, "life": 0.5})
 		u.grain("water", c, Vector2.UP, Color(0.35, 0.6, 0.8), 20)
 		u.debris(c, cu, 3)
 		Link._merge_flash(u, c, cg.lerp(Color.WHITE, 0.4), cu, 46.0)

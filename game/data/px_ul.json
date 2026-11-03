@@ -56,5 +56,56 @@
 				"y": 0
 			}
 		}
+	},
+	"ulpianus": {
+		"shapes": {
+			"锚击": {
+				"base": "fx_ulpianus_ul_slam",
+				"variants": 2
+			},
+			"钩与锚": {
+				"base": "fx_ulpianus_ul_slam",
+				"variants": 2
+			},
+			"撼地": {
+				"base": "fx_ulpianus_ul_quake",
+				"variants": 2,
+				"draw": {
+					"fit": 90.0
+				}
+			},
+			"定点爆破": {
+				"base": "fx_ulpianus_ul_blast2",
+				"draw": {
+					"fit": 50.0
+				}
+			}
+		},
+		"draw": {
+			"fit": 44.5,
+			"k": 1.0,
+			"along": 0.0,
+			"y": 0.0,
+			"mirror": false
+		},
+		"pause": [
+			0.05,
+			0.075
+		],
+		"no_arc": true,
+		"cast": {
+			"0": {
+				"base": "fx_ulpianus_ul_cast1",
+				"y": 0
+			},
+			"1": {
+				"base": "fx_ulpianus_ul_cast2",
+				"y": 0
+			},
+			"2": {
+				"base": "fx_ulpianus_ul_cast3",
+				"y": 0
+			}
+		}
 	}
 }

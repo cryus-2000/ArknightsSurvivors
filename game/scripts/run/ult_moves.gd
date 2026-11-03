@@ -1873,7 +1873,10 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 	if not a.thrown:
 		a.thrown = true
 		_ul_anchor(u, a, c, (c - p0).angle())   # 锚扎在落点，等他冲过来
-		_ring(u, c, 90.0, 20.0, COL_STEEL, 0.25, 5.0)
+		if _ulpx(u):   # pixelfx 放开版：锚咬地（裂口 + 土 + 水刃），不画钢色圆环
+			_ulp_strip(u, "fx_ulpianus_ul_bite", c, {"sc": 90.0 / 24.0 / u.g.PX})
+		else:
+			_ring(u, c, 90.0, 20.0, COL_STEEL, 0.25, 5.0)
 		if Bal.v("ult/ul_crack_v2", 1.0) > 0.0 and u.fx_ready(UL_CRACK):
 			_ul_pre(u, a, c)
 		if a.drag:   # 不容挣脱：锚落地瞬间把半径 560 内的敌人往落点拖 120
@@ -1895,8 +1898,12 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, Bal.v("ult/ul_path", 0.2), {"src": "锁链", "stun": 0.8 if a.rift else 0.0, "pre": true})   # pre：冲击帧留给第一圈裂地
 			if a.rift and not e.boss:
 				g.enemies_sys.add_cc(e, 0.8, -INF, "airborne")
-		u.shape({"kind": "band", "a": p0, "b": p, "w": hw, "col": COL_STEEL, "fill": 0.07, "life": 0.1})
-		if _ul_v3() and k > 0.3 and int(t * 60.0) % 2 == 0:   # 冲锋拖影（smear）：身后一条拉长的淡带，代替补间（pixfx §6.6）
+		if _ulpx(u):   # pixelfx 放开版：冲锋身后贴地一片深海水尾（代替钢色带 + 拖影带）
+			if p.distance_to(p0) > 8.0:
+				_ulp_strip(u, "fx_ulpianus_ul_zip", p, {"ang": (c - p0).angle(), "sc": 1.6, "life": 0.05, "f": int(t * 12.0) % 6})
+		else:
+			u.shape({"kind": "band", "a": p0, "b": p, "w": hw, "col": COL_STEEL, "fill": 0.07, "life": 0.1})
+		if not _ulpx(u) and _ul_v3() and k > 0.3 and int(t * 60.0) % 2 == 0:   # 冲锋拖影（smear）：身后一条拉长的淡带，代替补间（pixfx §6.6）
 			u.shape({"kind": "band", "a": p.lerp(p0, 0.35), "b": p, "w": 46.0, "col": Color(0.75, 0.9, 1.0), "fill": 0.35, "life": 0.06})
 		_ul_chain(u, a, o.pos, c, (c - p0).angle())
 		if k >= 1.0 and not a.landed:
@@ -1931,12 +1938,18 @@ static func _ul_step(u, a: Dictionary, o) -> bool:
 				op["kb"] = (e.pos - lc).normalized() * _kb_v(Bal.v("ult/ul_kb", 200.0))
 			_hit(u, a, o, e, 1.0 if (e.elite or e.boss or e.get("part", false)) else float(a.fs[i]), op)
 		var col: Color = COL_STEEL.lerp(Color(1.0, 0.55, 0.3), 0.25 * i)
-		_ring(u, lc, r, maxf(30.0, r0), col, 0.35, 8.0 + 2.0 * i)
+		if not _ulpx(u):   # 放开版不画四道同心实心圈（docs/242 §1 禁止两道以上同心圈）
+			_ring(u, lc, r, maxf(30.0, r0), col, 0.35, 8.0 + 2.0 * i)
 		# 裂地：v2 = pixgen 整条裂缝沿圈接成一圈 + 掀起地块 / 尘土（_ul_crack_v2）；0 = fx_ult_ulpianus_crack_back 弧状拼接段（地面层）
 		if Bal.v("ult/ul_crack_v2", 1.0) > 0.0 and u.fx_ready(UL_CRACK):
 			_ul_crack_v2(u, a, lc, i, r, r0)
 		else:
 			_arc(u, "fx_ult_ulpianus_crack_back", lc, r, {"layer": "back", "fps": 14.0, "life": 0.7, "a0": 0.21 * i})
+		if _ulpx(u):   # pixelfx 放开版：第一圈落点大爆进冲击帧剪影；每圈几处喷发点按哈希错开角度 / 半径 / 先后（不等距），代替沿圈等距水柱
+			_ul_px_ring(u, a, lc, i, r, r0)
+			o.screen_shake(0.35 + 0.15 * i)
+			a.ring = i + 1
+			continue
 		# 沿圈撒喷发单元（fx_ult_ulpianus_burst_front，底部中心；喷 0–3 / 落 4–7）
 		var nb: int = clampi(roundi(TAU * r / 140.0), 5, int(Bal.v("ult/ul_burst_fx", 14.0)))
 		var bsc: float = 0.6 + 0.07 * i   # 水柱是竖着的高度，外圈也压在 0.8 以内，免得顶上一圈高出伤害区太多
@@ -2095,7 +2108,43 @@ static func _ul_chain(u, a: Dictionary, from: Vector2, tip: Vector2, dir_ang: fl
 	var p: Vector2 = from + Vector2(0, -20)
 	if (b - p).dot(Vector2.from_angle(dir_ang)) < 8.0:
 		return
+	if _ulpx(u):   # pixelfx 放开版：新链节帧条（大一号，配巨锚）
+		a.chain = u.tiles_line("fx_ulpianus_ul_chain", p, b, {"f": int(float(a.t) * 12.0) % 2, "life": 0.3, "sc": 1.5})
+		return
 	a.chain = u.tiles_line("fx_ult_ulpianus_chain_front", p, b, {"f": int(float(a.t) * 12.0) % 2, "life": 0.3})
+
+
+## pixelfx 放开版（docs/242，开关 fx/px_unleashed）：帧条导入了才换
+static func _ulpx(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_ulpianus_ul_land")
+
+
+## 放开版帧条：先装饰（× fx/px_deco_k）后核心，终结技不分档（按 E2 全量）
+static func _ulp_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
+	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		od.erase("hf")
+		u.strip(d, c, od)
+	u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
+
+
+## 放开版每一圈：i = 0 落点大爆（fx_ulpianus_ul_land，进冲击帧剪影）；每圈 2 + i 处喷发（fx_ulpianus_ul_erupt / erupt2），角度 / 离心 / 先后 / 大小都按哈希错开
+static func _ul_px_ring(u, a: Dictionary, lc: Vector2, i: int, r: float, r0: float) -> void:
+	var vs: float = float(a.get("vs", 0.0))
+	if i == 0:
+		_ulp_strip(u, "fx_ulpianus_ul_land", lc, {"sc": r * 0.95 / 70.0 / u.g.PX, "hf": true})
+	var n: int = 2 + i
+	var a0: float = TAU * _ulh(vs + 61.0 + i * 3.0)
+	for q in n:
+		var h1: float = _ulh(q * 7.3 + i * 13.1 + vs)
+		var h2: float = _ulh(q * 3.7 + i * 5.9 + vs + 11.0)
+		var ang: float = a0 + TAU * (float(q) + (h1 - 0.5) * 0.8) / n
+		var rr: float = lerpf(maxf(r0, r * 0.55), r, 0.55 + 0.45 * h2)
+		var p: Vector2 = lc + Vector2(cos(ang) * rr, sin(ang) * rr * 0.55)
+		_ulp_strip(u, "fx_ulpianus_ul_erupt" if h1 < 0.5 else "fx_ulpianus_ul_erupt2", p, {"sc": 0.9 + 0.5 * h2, "delay": 0.05 * _ulh(q + i * 2.0 + vs), "ang": 0.0})
 
 
 # ================================================================ 连携终结技通用版（§7.3）

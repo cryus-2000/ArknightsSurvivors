@@ -684,6 +684,8 @@
   },
   "hit_fx": [
    {
+    "cond": "!px_ul",
+    "_doc": "pixelfx 放开版打开时不画这团小圆光（命中由 fx_ulpianus_ul_* 帧条画，docs/242 §12.3）",
     "pfx": {
      "kind": "glow",
      "r": 9.0,
@@ -843,6 +845,8 @@
       "banner": "必须维系的界限：攻击与范围永久提升"
      },
      {
+      "cond": "!px_ul",
+      "_doc": "pixelfx 放开版打开时由注册表 cast 1（fx_ulpianus_ul_cast2）画起手",
       "pfx": {
        "kind": "ulp_wave",
        "r": 90.0,
@@ -852,6 +856,8 @@
       "at": "self"
      },
      {
+      "cond": "!px_ul",
+      "_doc": "pixelfx 放开版打开时由注册表 cast 1（fx_ulpianus_ul_cast2）画起手",
       "sprite": {
        "name": "fx_shield_amber",
        "scale": 1.4,
@@ -1172,6 +1178,8 @@
       "row": "血脉层数",
       "fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_blood（一缕暗酒红沿身体往上卷，代替胸口圆光）",
         "pfx": {
          "kind": "glow",
          "r": 16.0,
@@ -1188,6 +1196,16 @@
          0,
          -24
         ]
+       },
+       {
+        "strip": "fx_ulpianus_ul_blood_deco",
+        "at": "self",
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_blood",
+        "at": "self",
+        "cond": "px_ul"
        }
       ]
      }
@@ -1279,6 +1297,8 @@
         "whirl": {}
        },
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版打开时换成 fx_ulpianus_ul_whirl（水幕弧 + 甩水）",
         "pfx": {
          "kind": "ulp_wave",
          "r": 1.0,
@@ -1289,6 +1309,16 @@
         "r_scale": [
          "r"
         ]
+       },
+       {
+        "strip": "fx_ulpianus_ul_whirl_deco",
+        "fit": 65.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_whirl",
+        "fit": 65.0,
+        "cond": "px_ul"
        }
       ]
      }
@@ -1331,24 +1361,50 @@
       "chain": "fx_ulpianus_chain_tile",
       "impact_fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_throw",
         "slam": {
          "k": 1.1,
          "r_mult": 1.0
         }
+       },
+       {
+        "strip": "fx_ulpianus_ul_throw_deco",
+        "fit": 45.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_throw",
+        "fit": 45.0,
+        "cond": "px_ul"
        }
       ],
       "dust_fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_dust",
         "strip": "fx_ulpianus_drag_dust",
         "layer": "floor",
         "off": [
          0,
          4
         ]
+       },
+       {
+        "strip": "fx_ulpianus_ul_dust_deco",
+        "fit": 12.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_dust",
+        "fit": 12.0,
+        "cond": "px_ul"
        }
       ],
       "arrive_fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_after",
         "pfx": {
          "kind": "ulp_wave",
          "r": 46.0,
@@ -1362,6 +1418,16 @@
          "db": 2.0,
          "pitch": 0.85
         }
+       },
+       {
+        "strip": "fx_ulpianus_ul_after_deco",
+        "fit": 25.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_after",
+        "fit": 25.0,
+        "cond": "px_ul"
        }
       ]
      }
@@ -1384,6 +1450,8 @@
       "dir": "pull",
       "fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版打开时换成 fx_ulpianus_ul_pull（外圈拖痕往落点收）",
         "pfx": {
          "kind": "ulp_wave",
          "r": 1.0,
@@ -1395,6 +1463,16 @@
         "r_scale": [
          "r"
         ]
+       },
+       {
+        "strip": "fx_ulpianus_ul_pull_deco",
+        "fit": 64.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_pull",
+        "fit": 64.0,
+        "cond": "px_ul"
        }
       ]
      }
@@ -1468,24 +1546,50 @@
       "chain": "fx_ulpianus_chain_tile",
       "impact_fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_throw",
         "slam": {
          "k": 1.1,
          "r_mult": 1.0
         }
+       },
+       {
+        "strip": "fx_ulpianus_ul_throw_deco",
+        "fit": 45.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_throw",
+        "fit": 45.0,
+        "cond": "px_ul"
        }
       ],
       "dust_fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_dust",
         "strip": "fx_ulpianus_drag_dust",
         "layer": "floor",
         "off": [
          0,
          4
         ]
+       },
+       {
+        "strip": "fx_ulpianus_ul_dust_deco",
+        "fit": 12.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_dust",
+        "fit": 12.0,
+        "cond": "px_ul"
        }
       ],
       "arrive_fx": [
        {
+        "cond": "!px_ul",
+        "_doc": "pixelfx 放开版换 fx_ulpianus_ul_after",
         "pfx": {
          "kind": "ulp_wave",
          "r": 46.0,
@@ -1499,6 +1603,16 @@
          "db": 2.0,
          "pitch": 0.85
         }
+       },
+       {
+        "strip": "fx_ulpianus_ul_after_deco",
+        "fit": 25.0,
+        "cond": "px_ul"
+       },
+       {
+        "strip": "fx_ulpianus_ul_after",
+        "fit": 25.0,
+        "cond": "px_ul"
        }
       ],
       "at": "leader"

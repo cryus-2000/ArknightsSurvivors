@@ -32,6 +32,8 @@ static func grains(o):
 
 
 static func on(o) -> bool:
+	if not o.g.vfx.px_ul_reg(str(o.id)).is_empty():   # pixelfx 放开版打开时不出这套程序颗粒（冲锋水尾 / 落地由 fx_ulpianus_ul_* 帧条画，seg_ulpianus._ul_*）
+		return false
 	return grains(o) != null
 
 

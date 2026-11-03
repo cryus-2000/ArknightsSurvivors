@@ -83,12 +83,18 @@ static func skalter_song(u, c: Vector2, r: float, t: float, a: Dictionary) -> vo
 ## 飞行：锚贴图（fx_ult_ulpianus_anchor_front 定帧）转着飞 + 身后一段锁链（链节贴图沿线铺）；钉下：小裂网 + 地块隆起 + 逐帧烟尘；拖拽期间锁链绷着
 static func ulpianus_fly(u, fp: Vector2, q: Vector2, k: float) -> void:
 	var d: Vector2 = (q - fp).normalized() if q != fp else Vector2.RIGHT
+	if _ulpx(u):   # pixelfx 放开版：锚身后拖深海水尾
+		_ulp_strip(u, "fx_ulpianus_ul_wake", q, {"ang": d.angle(), "life": 0.04, "f": int(k * 8.0) % 6})
 	u.strip("fx_ult_ulpianus_anchor_front", q, {"f": int(k * 8.0) % 4, "ang": d.angle() + k * 9.0, "sc": 0.9, "life": 0.04})
 	if fp.distance_to(q) > 20.0:
-		u.tiles_line("fx_ulpianus_chain_tile", fp, q, {"life": 0.04, "sc": 0.8})
+		u.tiles_line("fx_ulpianus_ul_chain" if _ulpx(u) else "fx_ulpianus_chain_tile", fp, q, {"life": 0.04, "sc": 1.0 if _ulpx(u) else 0.8})
 
 
 static func ulpianus_pin(u, tp: Vector2) -> void:
+	if _ulpx(u):   # pixelfx 放开版：锚钉进地里的深沟 + 裂网 + 血纹（fx_ulpianus_ul_throw，半径 130 的画面）
+		_ulp_strip(u, "fx_ulpianus_ul_throw", tp, {"sc": 130.0 / 45.0 / u.g.PX})
+		u.light(tp, 110.0, UL_TEAL, 0.2)
+		return
 	var vs: float = LFX.vseed(u, tp)
 	PF.crack_net(u, UL_FORKS, tp, 130.0, 6, PF.h(vs) * TAU, vs, 0.15, Color(0.85, 1.0, 1.0), Color(0.3, 0.38, 0.42), 14.0)
 	PF.heave(u, tp, 60.0, vs, 0.0, Color.WHITE, 60.0)
@@ -98,7 +104,22 @@ static func ulpianus_pin(u, tp: Vector2) -> void:
 
 static func ulpianus_hold(u, from: Vector2, tp: Vector2) -> void:
 	u.strip("fx_ult_ulpianus_anchor_front", tp + Vector2(0, -6), {"f": 0, "ang": (tp - from).angle(), "sc": 0.9, "life": 0.04})
-	u.tiles_line("fx_ulpianus_chain_tile", from, tp, {"life": 0.04, "sc": 0.8})
+	u.tiles_line("fx_ulpianus_ul_chain" if _ulpx(u) else "fx_ulpianus_chain_tile", from, tp, {"life": 0.04, "sc": 1.0 if _ulpx(u) else 0.8})
+
+
+## 乌尔比安 pixelfx 放开版（docs/242，开关 fx/px_unleashed；帧条导入了才换）：先装饰（× fx/px_deco_k）后核心
+static func _ulpx(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_ulpianus_ul_throw")
+
+
+static func _ulp_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
+	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		u.strip(d, c, od)
+	u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
 
 
 # ---------------------------------------------------------------- 斯卡蒂：拖刃冲锋

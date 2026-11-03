@@ -297,10 +297,13 @@ static func _hw_anchor_bite(o) -> void:
 	var to: Vector2 = an.to
 	var dir: Vector2 = (to - o.pos).normalized() if to.distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
 	var big: bool = b.get("big", false)
-	o.impact_pause(0.07 if big else 0.05)
-	o.fx({"kind": "ulp_wave", "pos": to, "r": 48.0 if big else 36.0, "life": 0.36, "floor": true})
-	UlpImpact.splash(o, to, 0.8)
-	for i in 6:
+	if _ul_px(o):   # pixelfx 放开版：锚咬地（小裂口 + 土 + 水刃，纯画面）
+		_ul_play(o, "fx_ulpianus_ul_bite", to, 48.0 if big else 36.0, 24.0, true, true)
+	else:
+		o.impact_pause(0.07 if big else 0.05)
+		o.fx({"kind": "ulp_wave", "pos": to, "r": 48.0 if big else 36.0, "life": 0.36, "floor": true})
+		UlpImpact.splash(o, to, 0.8)
+	for i in (0 if _ul_px(o) else 6):
 		var a: float = dir.angle() + g.vrng.randf_range(-0.9, 0.9)
 		o.fx({"kind": "spark", "pos": to + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.vrng.randf_range(160, 300), "life": 0.22, "col": HW_CHAIN, "sz": 2.5})
 	if str(b.get("mode", "zip")) == "reel" and _hw_start_reel(o, to, dir):
@@ -392,7 +395,8 @@ static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:
 		var side: float = (1.0 if i % 2 == 1 else -1.0) * ceilf(i / 2.0)
 		var spot: Vector2 = front + dir * (e.r * 0.5) + dir.orthogonal() * side * 16.0 + dir * absf(side) * 6.0
 		h.hooked.append({"e": e, "from": e.pos, "to": spot})
-		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.18, "col": HW_EDGE, "alpha": 0.7})
+		if not _ul_px(o):
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.18, "col": HW_EDGE, "alpha": 0.7})
 	if h.hooked.is_empty():
 		return false
 	an.phase = "reel"
@@ -420,14 +424,18 @@ static func _hw_reel_arrive(o) -> void:
 		o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25)
 		if b.get("pull_cc", false):
 			_hw_pull_cc(o, e)
-		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
+		if not _ul_px(o):
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
 		var lh = b.get("leash", null)
 		if lh is Dictionary and hw_face_ok(o, lh.get("cond", true)):
 			_hw_leash_add(o, lh, e)
 	o.impact_pause(0.05)
-	o.fx({"kind": "ulp_wave", "pos": c, "r": 34.0, "life": 0.2, "pull": true, "floor": true})
-	for i in 5:
-		o.fx({"kind": "spark", "pos": c + Vector2(0, -30), "vel": Vector2.from_angle(i * TAU / 5.0) * 60.0, "life": 0.3, "col": Color(1.4, 1.4, 0.8), "sz": 2.0})
+	if _ul_px(o):   # pixelfx 放开版：拽到面前那一下只落一小团尘（重砸紧跟着来；去掉等距五颗火星，docs/242 §1 禁止项）
+		_ul_play(o, "fx_ulpianus_ul_bite", c, 34.0, 24.0, true, false)
+	else:
+		o.fx({"kind": "ulp_wave", "pos": c, "r": 34.0, "life": 0.2, "pull": true, "floor": true})
+		for i in 5:
+			o.fx({"kind": "spark", "pos": c + Vector2(0, -30), "vel": Vector2.from_angle(i * TAU / 5.0) * 60.0, "life": 0.3, "col": Color(1.4, 1.4, 0.8), "sz": 2.0})
 	an.phase = "hold"
 	an.t = 0.0
 	an.dur = float(b.get("hold", 0.14))
@@ -456,9 +464,13 @@ static func _hw_reel_slam(o) -> void:
 			o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else 1.0))
 			if not e.boss:
 				o.apply_kb(e, (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0)))
-	o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
-	_hw_slam_fx(o, c, r, 1.2)
-	o.impact_pause(0.07)
+	if _ul_px(o):   # pixelfx 放开版：拽回后重砸（水冠 + 裂地，纯画面）
+		o.ground_dust(c, minf(r * 0.25, 24.0), 5)
+		_ul_play(o, "fx_ulpianus_ul_reel", c, r, 45.0, true, true)
+	else:
+		o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
+		_hw_slam_fx(o, c, r, 1.2)
+		o.impact_pause(0.07)
 	_hw_sfx_op(o, "atk", 2.0, 0.85)
 	h.hooked.clear()
 
@@ -476,6 +488,7 @@ static func _hw_zip_land(o) -> void:
 	var se: float = float(b.get("stun_elite", 0.5))
 	var kb_boss: bool = b.get("kb_boss", false)
 	var charge: bool = b.has("path_w") and UlpCharge.on(o)
+	var px: bool = _ul_px(o)
 	var heavy := 0
 	for j in o.query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
@@ -491,10 +504,14 @@ static func _hw_zip_land(o) -> void:
 			if kb_boss or not e.boss:
 				o.apply_kb(e, (e.pos - c).normalized() * float(b.get("land_kb", 50.0)))
 	var big: bool = b.get("big", false)
-	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
+	if px:   # pixelfx 放开版：S3 落地大爆 / S1 锚原地砸下（纯画面；判定、击退、眩晕同上）
+		o.ground_dust(c, minf(r * 0.25, 24.0), 5)
+		_ul_play(o, "fx_ulpianus_ul_land" if big else "fx_ulpianus_ul_reel", c, r, 70.0 if big else 45.0, true, true)
+	else:
+		_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
 	if charge:
 		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/143）
-	if b.has("path_w"):
+	if b.has("path_w") and not px:
 		UlpCharge.burst(o, c, r)   # 冲锋终点：大范围冲击环推到判定半径 r（低画质也画环，颗粒在 on 时）（docs/143 §8）
 	h.prev_dmg = dmg
 	h.prev_c = c
@@ -502,7 +519,8 @@ static func _hw_zip_land(o) -> void:
 	o._exec_list(b.get("then", []), c)
 	if b.has("land_fx"):
 		fx_play(o, b.land_fx, c, r)
-	o.impact_pause(0.1 if big else 0.06)
+	if not px:
+		o.impact_pause(0.1 if big else 0.06)
 	if big:
 		_hw_sfx_op(o, "big", 0.0, 1.0)
 	else:
@@ -562,7 +580,8 @@ static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		o.fx({"kind": "chain", "pos": c + Vector2(0, -12), "to": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3})
-		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": HW_STEEL, "alpha": 0.6})
+		if not _ul_px(o):
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": HW_STEEL, "alpha": 0.6})
 		if e.dead or e.boss:
 			continue
 		var dist: float = maxf(0.0, e.pos.distance_to(c) - 24.0)
@@ -595,6 +614,13 @@ static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		_hw_launch(o, e, float(rf.get("air", 0.8)), float(rf.get("h", 30.0)), after)
+	if _ul_px(o):   # pixelfx 放开版：沿通路一串裂地落点（间距、转角、大小都随机，g.vrng；不等距并排）
+		var s: float = g.vrng.randf_range(0.0, 20.0)
+		while s < L:
+			var q: Vector2 = a + d * s + d.orthogonal() * g.vrng.randf_range(-w * 0.15, w * 0.15)
+			_ul_play(o, "fx_ulpianus_ul_after" if g.vrng.randf() < 0.6 else "fx_ulpianus_ul_bite", q, w * g.vrng.randf_range(0.42, 0.62), 25.0, true, false, d.angle() + g.vrng.randf_range(-0.6, 0.6))
+			s += g.vrng.randf_range(30.0, 54.0)
+		return
 	o.fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.vrng.randf() * 100.0})
 	for k in 5:
 		var p: Vector2 = a.lerp(b, (k + 0.5) / 5.0)
@@ -648,6 +674,12 @@ static func _hw_aftershock(o, ctx: Dictionary, e: Dictionary) -> void:
 			continue
 		o.log_hit(src)
 		o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
+	if _ul_px(o):   # pixelfx 放开版：小落点裂地；上一处落点连一段锁链（代替等距弧水环 + 火星 + 光线）
+		_ul_play(o, "fx_ulpianus_ul_after", p, r, 25.0, true, false, g.vrng.randf() * TAU)
+		if ctx.last != Vector2.INF:
+			o.fx({"kind": "chain", "pos": ctx.last + Vector2(0, -6), "to": p + Vector2(0, -6), "life": 0.3})
+		ctx.last = p
+		return
 	o.fx({"kind": "ulp_wave", "pos": p, "r": r, "life": 0.3, "floor": true})
 	_hw_sparks(o, p + Vector2(0, -4), HW_EDGE, 4, 150.0, 0.3, 2.5, 240.0)
 	if ctx.last != Vector2.INF:
@@ -705,7 +737,8 @@ static func _hw_draw_leashes(o) -> void:
 		var al: float = clampf(float(l.t) / 0.4, 0.0, 1.0)
 		var taut: bool = e.pos.distance_to(o.pos) >= float(l.r) * o.stat(&"op_range") - 3.0
 		_hw_draw_chain(o, hand, e.pos + Vector2(0, -float(e.r) * 0.5), al if taut else al * 0.7, not taut)
-		o.cv.draw_arc(e.pos + Vector2(0, 3), float(e.r) + 3.0, 0.0, TAU, 14, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.7 * al), 1.5)
+		if not _ul_px(o):   # 放开版不画套在敌人身上的细圆环（孤立圆形，docs/242 §12.3），拴住靠锁链本身
+			o.cv.draw_arc(e.pos + Vector2(0, 3), float(e.r) + 3.0, 0.0, TAU, 14, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.7 * al), 1.5)
 
 
 ## 每帧（hw_tick 开头转来）：计时 → 锚 → 掀飞（手写 update 的先后）
@@ -830,6 +863,8 @@ static func _hw_slam_fx(o, c: Vector2, r: float, k: float) -> void:
 
 static func _hw_draw_chain(o, a: Vector2, b: Vector2, al: float, thin := false) -> void:
 	var cv = o.cv
+	if _ul_px(o) and _ul_chain(o, a, b, al, thin):
+		return
 	if thin:
 		cv.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 2.0)
 		cv.draw_line(a, b, Color(0.58, 0.65, 0.68, 0.95 * al), 1.0)
@@ -911,7 +946,11 @@ static func hw_draw_tether(o) -> void:
 		var tr: Array = an.trail
 		var mv_d: Vector2 = ((an.land as Vector2) - (an.start as Vector2)).normalized()
 		var gz: bool = UlpCharge.on(o)
-		if gz:
+		if _ul_px(o):   # pixelfx 放开版：本体身后贴地拖一片深海水体（帧条循环），不画残影和三道实线
+			if o.pos.distance_to(an.start) > 8.0:
+				_ul_strip_loop(o, "fx_ulpianus_ul_zip", o.pos + Vector2(0, -2), mv_d.angle(), 1.0)
+			gz = true
+		elif gz:
 			# 颗粒版（docs/143）：残影只留上一帧一张、压暗不发光——4 张 HW_EDGE（分量 > 1）残影经发光层连成一大团白，读作「粘腻」；运动感交给水体颗粒
 			if tr.size() > 1:
 				o.draw_body_at(tr[1], o.face < 0.0, Color(0.45, 0.62, 0.85, 0.22))
@@ -922,7 +961,9 @@ static func hw_draw_tether(o) -> void:
 			var off: Vector2 = mv_d.orthogonal() * (s - 1) * 10.0 + Vector2(0, -20)
 			cv.draw_line(o.pos - mv_d * 16.0 + off, o.pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
 	_hw_draw_chain(o, hand, p, 1.0)
-	if throwing:
+	if throwing and _ul_px(o):   # pixelfx 放开版：锚身后一条深海水尾（帧条循环），代替残影锚和三道速度线
+		_ul_strip_loop(o, "fx_ulpianus_ul_wake", p, d.angle(), 1.0)
+	elif throwing:
 		var tr2: Array = an.trail
 		for i in range(tr2.size() - 1, 0, -1):
 			_hw_draw_anchor(o, tr2[i], d, 0.3 * (1.0 - float(i) / tr2.size()))
@@ -960,7 +1001,8 @@ static func hw4_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			var u2: float = 1.0 - a
 			var tip: Vector2 = (f.pos as Vector2).lerp(f.to, minf(1.0, u2 / 0.4)) if u2 < 0.4 else (f.to as Vector2).lerp(f.pos, (u2 - 0.4) / 0.6)
 			_hw_draw_chain(o, f.pos, tip, 1.0)
-			cv.draw_circle(tip, 4.0, Color(HW_EDGE.r * 1.5, HW_EDGE.g * 1.5, HW_EDGE.b * 1.5, 0.9))
+			if not _ul_px(o):
+				cv.draw_circle(tip, 4.0, Color(HW_EDGE.r * 1.5, HW_EDGE.g * 1.5, HW_EDGE.b * 1.5, 0.9))
 			return true
 		"rift":
 			var A: Vector2 = f.pos
@@ -1011,13 +1053,24 @@ static func hw_draw_outline(o, f: Dictionary) -> void:
 static func hw_draw_look(o, layer: String) -> void:
 	if o.pos == Vector2.INF:
 		return
+	var px: bool = _ul_px(o)
+	if px and layer == "auras" and float(o.hw.get("timers", {}).get("haste", 0.0)) > 0.0:   # pixelfx 放开版：「开辟」加速期间脚下往后甩水流
+		_ul_strip_loop(o, "fx_ulpianus_ul_haste", o.pos + Vector2(0, 2), 0.0 if o.face >= 0.0 else PI, 1.0)
 	for f in o.B.get("look", _EA):
 		if not (f is Dictionary) or not fx_on(o, f):
 			continue
 		if layer == "body" and f.has("outline"):
-			hw_draw_outline(o, f)
+			if px:   # 放开版：血纹轮廓压成暗酒红（和危险色 #ff2667 拉开）
+				var f2: Dictionary = f.duplicate(true)
+				f2.outline["col"] = [0.64, 0.21, 0.31]
+				hw_draw_outline(o, f2)
+			else:
+				hw_draw_outline(o, f)
 		elif layer == "auras" and f.has("aura_ring"):
-			_hw_ring_one(o, f, 1.0)
+			if px:   # 放开版：脚下的细红圆环（孤立圆形，docs/242 §12.3）换成贴地游走的血雾
+				_ul_strip_loop(o, "fx_ulpianus_ul_vein", o.pos + Vector2(0, 3), 0.0, 1.0)
+			else:
+				_hw_ring_one(o, f, 1.0)
 
 
 static func _hw_ring_one(o, f: Dictionary, al: float) -> void:
@@ -1332,7 +1385,12 @@ static func hw_draw_hooks(o) -> void:
 				p = hand.lerp(hk.to, clampf(float(hk.t) / maxf(float(hk.dur), .001), 0.0, 1.0)) + Vector2(0, -6)
 		var tile: String = str(b.get("chain", ""))
 		var taut: bool = str(hk.phase) != "fly"
-		if tile != "" and g.tex.get(tile) != null:
+		if _ul_px(o):   # pixelfx 放开版：新链节帧条；飞行时锚身后拖水尾
+			var shk: Vector2 = Vector2(0, sin(float(g.t) * 60.0) * 2.0) if str(hk.phase) == "taut" else Vector2.ZERO
+			_ul_chain(o, hand, p + shk, 1.0, false)
+			if str(hk.phase) == "fly":
+				_ul_strip_loop(o, "fx_ulpianus_ul_wake", p, ((hk.to as Vector2) - (hk.from as Vector2)).angle(), 1.0)
+		elif tile != "" and g.tex.get(tile) != null:
 			var shake: Vector2 = Vector2(0, sin(float(g.t) * 60.0) * 2.0) if str(hk.phase) == "taut" else Vector2.ZERO
 			_hw_draw_tiled(o, tile, hand, p + shake, g.PX, 0.0, 0, Color.WHITE, 1 if taut else 0)
 		else:
@@ -1364,3 +1422,62 @@ static func hw_native_signals(o, out: Dictionary) -> void:
 		if str(f.get("kind", "")) == "whirl":
 			out["whirl"] = 1.0 - float(f.life) / float(f.max)
 			break
+
+
+## ---------------------------------------------------------------- pixelfx 放开版（docs/242，开关 fx/px_unleashed；只改画面，判定 / 随机数不动）
+## 开关打开且注册表 data/px_ul.json 有乌尔比安这一条时为真
+static func _ul_px(o) -> bool:
+	return str(o.id) == "ulpianus" and not o.g.vfx.px_ul_reg("ulpianus").is_empty()   # 钩索 / 锚链这组函数歌蕾蒂娅也走，只认乌尔比安
+
+
+## 在 c 播一张放开版一次性帧条：先装饰（× px_deco_k）后核心；缩放 = r ÷ fit（帧条烤制时的基础半径，1x 像素）；队长命中时走共享定格
+static func _ul_play(o, base: String, c: Vector2, r: float, fit: float, skill: bool, hit: bool, ang := 0.0) -> void:
+	var vx = o.g.vfx
+	var el: int = vx.px_ul_el(o)
+	var tm: bool = not o.is_leader
+	var sc: float = r / fit
+	var dk: float = vx.px_deco_k(o)
+	var dn: String = vx.px_ul_tex(base, 1, tm, "deco", el)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, c, sc, ang, false, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(vx.px_ul_tex(base, 1, tm, "core", el), c, sc, ang)
+	var pz: Array = vx.px_ul_reg(str(o.id)).get("pause", [])
+	if hit and o.is_leader and pz.size() >= 2:
+		o.impact_pause(float(pz[1] if skill else pz[0]))
+
+
+## 循环帧条贴在 p（按 g.t 取帧，draw 回调里调）：先装饰后核心
+static func _ul_strip_loop(o, base: String, p: Vector2, ang: float, al: float) -> void:
+	var g = o.g
+	var vx = g.vfx
+	var el: int = vx.px_ul_el(o)
+	for layer in ["deco", "core"]:
+		var nm: String = vx.px_ul_tex(base, 1, not o.is_leader, layer, el)
+		if nm == "" or not g.V6_FRAMES.has(nm):
+			continue
+		var spec: Array = g.V6_FRAMES[nm]
+		var f: int = int(g.t * float(spec[1])) % maxi(1, int(spec[0]))
+		var a: float = al * (vx.px_deco_k(o) if layer == "deco" else 1.0)
+		if a > 0.0:
+			o.draw_spr_rot(nm, f, p, ang, g.PX, Color(1, 1, 1, a))
+
+
+## 锁链：沿 a → b 逐段铺链节帧条（fx_ulpianus_ul_chain，一段两节，等宽帧；绷直时第 1 帧高光）；thin = 细链（拴链）缩一半。缺图返回 false
+static func _ul_chain(o, a: Vector2, b: Vector2, al: float, thin: bool) -> bool:
+	var g = o.g
+	var nm: String = g.vfx.px_ul_tex("fx_ulpianus_ul_chain", 1, false)
+	if g.tex.get(nm) == null or not g.V6_FRAMES.has(nm):
+		return false
+	var L: float = a.distance_to(b)
+	if L < 2.0:
+		return true
+	var sc: float = g.PX * (0.5 if thin else 1.0)
+	var step: float = 12.0 * sc
+	var n: int = clampi(int(ceil(L / step)), 1, 60)
+	var ang: float = (b - a).angle()
+	var glint: int = int(g.t * 12.0) % 2
+	for i in n:
+		var q: Vector2 = a.lerp(b, (float(i) + 0.5) / n)
+		o.draw_spr_rot(nm, glint if (i + int(g.t * 8.0)) % 5 == 0 else 0, q, ang, sc, Color(1, 1, 1, al))
+	return true
+

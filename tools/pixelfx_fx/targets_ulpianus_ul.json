@@ -1,0 +1,669 @@
+{
+ "_doc": "乌尔比安 pixelfx 放开版（docs/242，开关 fx/px_unleashed）：锚砸地面 ak-ulpianus-ul-impact（move slam / quake / land …）、锁链与水尾 ak-ulpianus-ul-chain。E2 = 不带档位后缀；E0 / E1 单种子；S3 只出 E2（精二才解锁）",
+ "fx_ulpianus_ul_slam": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "slam",
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "ulpianus.json base.reach（锚击判定半径，世界像素 ÷ PX 2）；运行时 fit 44.5 ↔ 判定半径 × 1.0（data/px_ul.json ulpianus.shapes 锚击）"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_slam2": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "slam",
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "ulpianus.json base.reach（锚击判定半径，世界像素 ÷ PX 2）；运行时 fit 44.5 ↔ 判定半径 × 1.0（data/px_ul.json ulpianus.shapes 锚击）"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_slam_tm": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "slam",
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "ulpianus.json base.reach（锚击判定半径，世界像素 ÷ PX 2）；运行时 fit 44.5 ↔ 判定半径 × 1.0（data/px_ul.json ulpianus.shapes 锚击）"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_slam_e0": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "slam",
+   "seed": 3,
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "ulpianus.json base.reach（锚击判定半径，世界像素 ÷ PX 2）；运行时 fit 44.5 ↔ 判定半径 × 1.0（data/px_ul.json ulpianus.shapes 锚击）"
+  },
+  "move": "basic",
+  "check_sy": 0.55,
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_slam_e1": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "slam",
+   "seed": 3,
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "ulpianus.json base.reach（锚击判定半径，世界像素 ÷ PX 2）；运行时 fit 44.5 ↔ 判定半径 × 1.0（data/px_ul.json ulpianus.shapes 锚击）"
+  },
+  "move": "basic",
+  "check_sy": 0.55,
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_quake": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "quake",
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "quake_r_e2/2"
+   },
+   "src": "ulpianus.json base.quake_r_e2（撼地精二半径 180）；E0 / E1 半径 quake_r 150 运行时按 r ÷ fit 90 缩放"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_quake2": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "quake",
+   "seed": 17
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "quake_r_e2/2"
+   },
+   "src": "ulpianus.json base.quake_r_e2（撼地精二半径 180）；E0 / E1 半径 quake_r 150 运行时按 r ÷ fit 90 缩放"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_quake_tm": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "quake",
+   "seed": 5,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "quake_r_e2/2"
+   },
+   "src": "ulpianus.json base.quake_r_e2（撼地精二半径 180）；E0 / E1 半径 quake_r 150 运行时按 r ÷ fit 90 缩放"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_quake_e0": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "quake",
+   "seed": 5,
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "quake_r_e2/2"
+   },
+   "src": "ulpianus.json base.quake_r_e2（撼地精二半径 180）；E0 / E1 半径 quake_r 150 运行时按 r ÷ fit 90 缩放"
+  },
+  "move": "basic",
+  "check_sy": 0.55,
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_quake_e1": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "quake",
+   "seed": 5,
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "quake_r_e2/2"
+   },
+   "src": "ulpianus.json base.quake_r_e2（撼地精二半径 180）；E0 / E1 半径 quake_r 150 运行时按 r ÷ fit 90 缩放"
+  },
+  "move": "basic",
+  "check_sy": 0.55,
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_land": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "land",
+   "seed": 7
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "s3_r/2"
+   },
+   "src": "ulpianus.json base.s3_r（必须开辟的通路落地半径 140）；seg_ulpianus 按 r ÷ 70 缩放"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_land_tm": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "land",
+   "seed": 7,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "s3_r/2"
+   },
+   "src": "ulpianus.json base.s3_r（必须开辟的通路落地半径 140）；seg_ulpianus 按 r ÷ 70 缩放"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_chain": {
+  "fx": "projectiles/ak-ulpianus-ul-chain",
+  "opts": {
+   "move": "chain"
+  },
+  "colors": 256,
+  "keep": true,
+  "move": "skill"
+ },
+ "fx_ulpianus_ul_wake": {
+  "fx": "projectiles/ak-ulpianus-ul-chain",
+  "opts": {
+   "move": "trail"
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill"
+ },
+ "fx_ulpianus_ul_zip": {
+  "fx": "projectiles/ak-ulpianus-ul-chain",
+  "opts": {
+   "move": "zip"
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill"
+ },
+ "fx_ulpianus_ul_reel": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "reel",
+   "seed": 9
+  },
+  "colors": 256,
+  "layers": true,
+  "check_sy": 0.55,
+  "move": "skill",
+  "lo": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "ulpianus.json base.s1_r（必须促成的接触重砸半径 90）；seg_ulpianus._hw_reel_slam / _hw_zip_land 按 r ÷ 45 缩放"
+  }
+ },
+ "fx_ulpianus_ul_reel_tm": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "reel",
+   "seed": 9,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "check_sy": 0.55,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "ulpianus.json base.s1_r（必须促成的接触重砸半径 90）；seg_ulpianus._hw_reel_slam / _hw_zip_land 按 r ÷ 45 缩放"
+  }
+ },
+ "fx_ulpianus_ul_reel_e0": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "reel",
+   "seed": 21,
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "check_sy": 0.55,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "ulpianus.json base.s1_r（必须促成的接触重砸半径 90）；seg_ulpianus._hw_reel_slam / _hw_zip_land 按 r ÷ 45 缩放"
+  },
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_reel_e1": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "reel",
+   "seed": 9,
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "check_sy": 0.55,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "ulpianus.json base.s1_r（必须促成的接触重砸半径 90）；seg_ulpianus._hw_reel_slam / _hw_zip_land 按 r ÷ 45 缩放"
+  },
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_bite": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "after",
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "check_sy": 0.55,
+  "move": "skill",
+  "lo": true,
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": 24
+   },
+   "src": "seg_ulpianus._hw_anchor_bite 锚咬地画面半径 36 / 48（gd 写死，画面专用、不是判定）；按 r ÷ 24 缩放"
+  }
+ },
+ "fx_ulpianus_ul_bite_e0": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "after",
+   "seed": 13,
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "check_sy": 0.55,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": 24
+   },
+   "src": "seg_ulpianus._hw_anchor_bite 锚咬地画面半径 36 / 48（gd 写死，画面专用、不是判定）；按 r ÷ 24 缩放"
+  }
+ },
+ "fx_ulpianus_ul_cast1": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast1"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_ulpianus_ul_cast1_tm": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast1",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_ulpianus_ul_cast1_e0": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast1",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_cast1_e1": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast1",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_cast2": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast2"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_ulpianus_ul_cast2_tm": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast2",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_ulpianus_ul_cast2_e1": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast2",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_cast3": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast3"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_ulpianus_ul_cast3_tm": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast3",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_ulpianus_ul_whirl": {
+  "fx": "impacts/ak-ulpianus-ul-sweep",
+  "opts": {
+   "move": "whirl"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "whirl_r/2"
+   },
+   "src": "ulpianus.json base.whirl_r（锁链回旋半径 130）；数据条目 fit 65"
+  },
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_pull": {
+  "fx": "impacts/ak-ulpianus-ul-sweep",
+  "opts": {
+   "move": "pull"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach*pull_r/2",
+    "inner": "reach/2"
+   },
+   "src": "ulpianus.json base.reach × pull_r（收链外圈 127）/ reach（内沿 = 锚击判定边）；数据条目 fit 64"
+  },
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_blast2": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "blast2",
+   "seed": 19
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "blast2_r/2"
+   },
+   "src": "ulpianus.json base.blast2_r（定点爆破半径 100）；注册表 shapes 定点爆破 fit 50"
+  },
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_ulpianus_ul_blast2_e0": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "blast2",
+   "seed": 19,
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "blast2_r/2"
+   },
+   "src": "ulpianus.json base.blast2_r（定点爆破半径 100）；注册表 shapes 定点爆破 fit 50"
+  },
+  "check_sy": 0.55,
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_after": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "after",
+   "seed": 23
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "after_r/2"
+   },
+   "src": "ulpianus.json base.after_r（通路余震半径 50）；seg_ulpianus._hw_aftershock 按 r ÷ 25 缩放"
+  },
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_throw": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "throw",
+   "seed": 29
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "throw_r/2"
+   },
+   "src": "ulpianus.json base.throw_r（精二掷锚落地半径 90）；数据条目 fit 45"
+  },
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_ulpianus_ul_throw_e0": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "throw",
+   "seed": 29,
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "throw_r/2"
+   },
+   "src": "ulpianus.json base.throw_r（精二掷锚落地半径 90）；数据条目 fit 45"
+  },
+  "check_sy": 0.55,
+  "deco_step": 2
+ },
+ "fx_ulpianus_ul_dust": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "dust",
+   "seed": 31,
+   "radius": 12
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_erupt": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "erupt",
+   "seed": 37,
+   "radius": 40
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_ulpianus_ul_erupt2": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "erupt",
+   "seed": 41,
+   "radius": 40
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_vein": {
+  "fx": "status/ak-ulpianus-ul-aura",
+  "opts": {
+   "move": "vein"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_ulpianus_ul_haste": {
+  "fx": "status/ak-ulpianus-ul-aura",
+  "opts": {
+   "move": "haste"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_ulpianus_ul_blood": {
+  "fx": "status/ak-ulpianus-ul-aura",
+  "opts": {
+   "move": "blood"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ }
+}
