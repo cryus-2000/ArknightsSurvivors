@@ -1,62 +1,5 @@
 {
- "_doc": "拉普兰德放开版（docs/242）：代表招式 S2 狼魂剑气，E0 / E1 / E2；色阶按原作狼首贴图实际颜色（冷灰白，源码 options.palette），待 pixelfx-eval 并入 house.js OP.lappland；原作对照表见 Claude outputs/pixelfx_ul_lappland/original_moves.md",
- "fx_lappland_ul_s2_e0": {
-  "fx": "projectiles/ak-lappland-ul-s2",
-  "opts": {
-   "elite": 0,
-   "seed": 3
-  },
-  "colors": 256,
-  "layers": true,
-  "judge": {
-   "op": "lappland",
-   "opts": {
-    "hw": "blade_w/2/2",
-    "dist": "blade_dist/2"
-   },
-   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
-  },
-  "move": "skill",
-  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（亮度分位，冷灰白，饱和度约 0.07）"
- },
- "fx_lappland_ul_s2_e1": {
-  "fx": "projectiles/ak-lappland-ul-s2",
-  "opts": {
-   "elite": 1,
-   "seed": 3
-  },
-  "colors": 256,
-  "layers": true,
-  "judge": {
-   "op": "lappland",
-   "opts": {
-    "hw": "blade_w/2/2",
-    "dist": "blade_dist/2"
-   },
-   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
-  },
-  "move": "skill",
-  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（亮度分位，冷灰白，饱和度约 0.07）"
- },
- "fx_lappland_ul_s2_e2": {
-  "fx": "projectiles/ak-lappland-ul-s2",
-  "opts": {
-   "elite": 2,
-   "seed": 3
-  },
-  "colors": 256,
-  "layers": true,
-  "judge": {
-   "op": "lappland",
-   "opts": {
-    "hw": "blade_w/2/2",
-    "dist": "blade_dist/2"
-   },
-   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
-  },
-  "move": "skill",
-  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（亮度分位，冷灰白，饱和度约 0.07）"
- },
+ "_doc": "拉普兰德放开版（docs/242）：普攻双刃 / S1 日晷 / S2 狼魂剑气 / S3 噤声，各 E0–E2（E2 加变体 2、队友版 _tm、网页低档 _lo）；终结技剑气单元 ultcut（+变体 2）与巨型刃 ultblade（不分档）。色阶按原作狼首贴图实际颜色（冷灰白，源码 options.palette），待 pixelfx-eval 并入 house.js OP.lappland；原作对照表 Claude outputs/pixelfx_ul_lappland/original_moves.md",
  "fx_lappland_ul_slash_e0": {
   "fx": "melee/ak-lappland-ul-slash",
   "opts": {
@@ -65,6 +8,8 @@
   },
   "colors": 256,
   "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
   "judge": {
    "op": "lappland",
    "opts": {
@@ -72,9 +17,7 @@
     "span": "2*half"
    },
    "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
-  },
-  "move": "basic",
-  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（同 S2）"
+  }
  },
  "fx_lappland_ul_slash_e1": {
   "fx": "melee/ak-lappland-ul-slash",
@@ -84,6 +27,8 @@
   },
   "colors": 256,
   "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
   "judge": {
    "op": "lappland",
    "opts": {
@@ -91,9 +36,7 @@
     "span": "2*half"
    },
    "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
-  },
-  "move": "basic",
-  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（同 S2）"
+  }
  },
  "fx_lappland_ul_slash_e2": {
   "fx": "melee/ak-lappland-ul-slash",
@@ -103,6 +46,8 @@
   },
   "colors": 256,
   "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
   "judge": {
    "op": "lappland",
    "opts": {
@@ -111,8 +56,46 @@
    },
    "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
   },
+  "lo": true
+ },
+ "fx_lappland_ul_slash_e22": {
+  "fx": "melee/ak-lappland-ul-slash",
+  "opts": {
+   "elite": 2,
+   "seed": 5
+  },
+  "colors": 256,
+  "layers": true,
   "move": "basic",
-  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（同 S2）"
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half"
+   },
+   "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
+  }
+ },
+ "fx_lappland_ul_slash_e2_tm": {
+  "fx": "melee/ak-lappland-ul-slash",
+  "opts": {
+   "elite": 2,
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half"
+   },
+   "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
+  }
  },
  "fx_lappland_ul_s1_e0": {
   "fx": "holy/ak-lappland-ul-s1",
@@ -123,13 +106,13 @@
   "colors": 256,
   "layers": true,
   "move": "skill",
-  "check_sy": 0.55,
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
   "judge": {
    "op": "lappland",
    "opts": {},
    "src": "S1 日晷是自身增益（skills[0] dur permanent），没有判定范围；环半径 ring 24（1x）= 她站位一圈，写在源码 options"
   },
-  "palette_src": "同 S2"
+  "check_sy": 0.55
  },
  "fx_lappland_ul_s1_e1": {
   "fx": "holy/ak-lappland-ul-s1",
@@ -140,13 +123,13 @@
   "colors": 256,
   "layers": true,
   "move": "skill",
-  "check_sy": 0.55,
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
   "judge": {
    "op": "lappland",
    "opts": {},
    "src": "S1 日晷是自身增益（skills[0] dur permanent），没有判定范围；环半径 ring 24（1x）= 她站位一圈，写在源码 options"
   },
-  "palette_src": "同 S2"
+  "check_sy": 0.55
  },
  "fx_lappland_ul_s1_e2": {
   "fx": "holy/ak-lappland-ul-s1",
@@ -157,12 +140,257 @@
   "colors": 256,
   "layers": true,
   "move": "skill",
-  "check_sy": 0.55,
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
   "judge": {
    "op": "lappland",
    "opts": {},
    "src": "S1 日晷是自身增益（skills[0] dur permanent），没有判定范围；环半径 ring 24（1x）= 她站位一圈，写在源码 options"
   },
-  "palette_src": "同 S2"
+  "lo": true,
+  "check_sy": 0.55
+ },
+ "fx_lappland_ul_s1_e2_tm": {
+  "fx": "holy/ak-lappland-ul-s1",
+  "opts": {
+   "elite": 2,
+   "seed": 4,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {},
+   "src": "S1 日晷是自身增益（skills[0] dur permanent），没有判定范围；环半径 ring 24（1x）= 她站位一圈，写在源码 options"
+  },
+  "check_sy": 0.55
+ },
+ "fx_lappland_ul_s2_e0": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 0,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  }
+ },
+ "fx_lappland_ul_s2_e1": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 1,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  }
+ },
+ "fx_lappland_ul_s2_e2": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 2,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  },
+  "lo": true
+ },
+ "fx_lappland_ul_s2_e22": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 2,
+   "seed": 7
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  }
+ },
+ "fx_lappland_ul_s2_e2_tm": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 2,
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  }
+ },
+ "fx_lappland_ul_s3_e0": {
+  "fx": "melee/ak-lappland-ul-s3",
+  "opts": {
+   "elite": 0,
+   "seed": 6
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "s3_cut_r/2"
+   },
+   "src": "lappland.json base s3_cut_r（S3 叠满十字斩 shape.circle r，世界像素）÷ PX 2"
+  },
+  "check_sy": 0.8
+ },
+ "fx_lappland_ul_s3_e1": {
+  "fx": "melee/ak-lappland-ul-s3",
+  "opts": {
+   "elite": 1,
+   "seed": 6
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "s3_cut_r/2"
+   },
+   "src": "lappland.json base s3_cut_r（S3 叠满十字斩 shape.circle r，世界像素）÷ PX 2"
+  },
+  "check_sy": 0.8
+ },
+ "fx_lappland_ul_s3_e2": {
+  "fx": "melee/ak-lappland-ul-s3",
+  "opts": {
+   "elite": 2,
+   "seed": 6
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "s3_cut_r/2"
+   },
+   "src": "lappland.json base s3_cut_r（S3 叠满十字斩 shape.circle r，世界像素）÷ PX 2"
+  },
+  "lo": true,
+  "check_sy": 0.8
+ },
+ "fx_lappland_ul_s3_e2_tm": {
+  "fx": "melee/ak-lappland-ul-s3",
+  "opts": {
+   "elite": 2,
+   "seed": 6,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "r": "s3_cut_r/2"
+   },
+   "src": "lappland.json base s3_cut_r（S3 叠满十字斩 shape.circle r，世界像素）÷ PX 2"
+  },
+  "check_sy": 0.8
+ },
+ "fx_lappland_ul_ultcut": {
+  "fx": "melee/ak-lappland-ul-ultcut",
+  "opts": {
+   "len": 35,
+   "seed": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {},
+   "src": "终结技单元：剑气帘由 ult_moves_c._la_px_wave 按判定扇形（balance ult/la_back / la_half / la_fr）铺开；巨型 X 半长 200（1x）≈ 扇形中段半宽 × 0.85，在 _la_px_x 里算"
+  },
+  "lo": true
+ },
+ "fx_lappland_ul_ultcut2": {
+  "fx": "melee/ak-lappland-ul-ultcut",
+  "opts": {
+   "len": 35,
+   "seed": 9
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {},
+   "src": "终结技单元：剑气帘由 ult_moves_c._la_px_wave 按判定扇形（balance ult/la_back / la_half / la_fr）铺开；巨型 X 半长 200（1x）≈ 扇形中段半宽 × 0.85，在 _la_px_x 里算"
+  }
+ },
+ "fx_lappland_ul_ultblade": {
+  "fx": "melee/ak-lappland-ul-ultcut",
+  "opts": {
+   "len": 200,
+   "heavy": 1,
+   "seed": 4
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（冷灰白）+ 亮部冷蓝",
+  "judge": {
+   "op": "lappland",
+   "opts": {},
+   "src": "终结技单元：剑气帘由 ult_moves_c._la_px_wave 按判定扇形（balance ult/la_back / la_half / la_fr）铺开；巨型 X 半长 200（1x）≈ 扇形中段半宽 × 0.85，在 _la_px_x 里算"
+  },
+  "lo": true
  }
 }

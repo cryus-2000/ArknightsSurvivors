@@ -1967,6 +1967,9 @@ static func _la_wave(u, a: Dictionary, o, i: int) -> void:
 	var nb: int = 12
 	var a0: float = (PI / nb) * float(i % 2) + 0.13 * i
 	var last_bark: bool = a.bark and i == int(a.n) - 1
+	if _la_px(u, a):   # pixelfx 放开版（docs/242，草图第三版）：有序剑气帘 + 收尾巨型双生刃 X；判定 / 时序 / 随机数不动
+		_la_px_wave(u, a, o, i)
+		return
 	if a.get("v3", false):   # 乱砍版：剑气由 _la_frenzy 按时刻撒，这里只播动作，末圈落横斩（不画脚底旋刃：会压在她身上）
 		_la_wave_v3(u, a, o, i, c, R)
 		return
@@ -1999,7 +2002,7 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 	var fly: float = a.fly
 	var R: float = a.R
 	var rc: float = a.rc
-	if a.get("v3", false):
+	if a.get("v3", false) and not _la_px(u, a):   # 放开版不撒乱砍剑气（用户 11-03：保留现在一圈一圈推进的有序节奏）
 		_la_frenzy(u, a, t)
 	while int(a.fired) < n and t >= gap * int(a.fired):
 		_la_wave(u, a, o, int(a.fired))
@@ -2226,6 +2229,69 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() and not r2 else null   # 第二轮：硬写的通用 boom 去掉（和 ult_audio 的 air 叠成两声）
 		if sfx != null:
 			sfx.play("boom", -2.0, 1.3)
+
+
+## ---- pixelfx 放开版（docs/242，开关 fx/px_unleashed；草图 tools/pixelfx_fx/ref/lappland_ult*.png 第三版，用户 11-03 通过）：
+## 剑气 · 有序推进 → 巨型 X。每一圈（判定时序不变，一波一拍）在扇形里由近到远铺一道剑气帘：同一角度的平行长剑气（帧条 fx_lappland_ul_ultcut / ultcut2），
+## 帘内长短、间距、出手先后轻微随机（PF.h，按招式种子），波与波左斜 / 右斜交替；末圈先有几道短剑气往中段收拢，再落一长一短两柄巨型刃（fx_lappland_ul_ultblade）交成 X，
+## 交点 = 原收尾横斩的位置（扇形中段）。保留：每圈轻震、末圈顿帧 + 冲击帧（用户定的终结技专属）+ 冷光。终结技不分精英档；先装饰（× px_deco_k）后核心
+static func _la_px(u, a: Dictionary) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and a.get("fwd", false) and u.fx_ready("fx_lappland_ul_ultcut")
+
+
+static func _la_px_strip(u, base: String, v: int, c: Vector2, opt: Dictionary) -> void:
+	var d: String = u.g.vfx.px_ul_tex(base, v, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		u.strip(d, c, od)
+	u.strip(u.g.vfx.px_ul_tex(base, v, false), c, opt)
+
+
+static func _la_px_wave(u, a: Dictionary, o, i: int) -> void:
+	var n: int = a.n
+	var org: Vector2 = a.org
+	var dv: Vector2 = a.d
+	var tg: Vector2 = dv.orthogonal()
+	var R: float = a.R
+	var half: float = a.half
+	var vs: float = float(a.vs) + i * 7.0
+	o.play_vis_anim("attack")
+	u.shake(3.0, 0.12)
+	# 剑气帘：离顶点 rc 处横贯扇形，帘内同一角度（左斜 / 右斜按波交替），沿帘随机步长铺开
+	var rc: float = R * lerpf(0.22, 0.73, float(i) / maxf(1.0, n - 1.0))
+	var hw: float = rc * sin(half) * 0.92
+	var slant: float = 0.5 if i % 2 == 0 else -0.5
+	var ang: float = tg.angle() + slant
+	var s: float = -hw
+	var k := 0
+	while s <= hw:
+		var hq: float = PF.h(vs + k * 1.91)
+		var p: Vector2 = org + dv * (rc + (hq - 0.5) * 24.0) + tg * s
+		var sc: float = (0.85 + 0.3 * PF.h(vs + k * 2.73)) * (1.0 + 0.12 * i)
+		_la_px_strip(u, "fx_lappland_ul_ultcut", 2 if PF.h(vs + k * 3.3) < 0.5 else 1, p, {"ang": ang, "sc": sc, "delay": 0.06 * (s + hw) / (2.0 * hw) + 0.02 * hq})
+		s += 46.0 * (0.85 + 0.35 * PF.h(vs + k * 4.7))
+		k += 1
+	if i != n - 1:
+		return
+	# 收尾：几道短剑气往中段收拢，然后两柄巨型刃交成 X（一长一短），顿帧 + 冲击帧
+	var c: Vector2 = org + dv * R * 0.45
+	var n0: int = u.shapes.size()
+	for q in 6:
+		var aq: float = TAU * (q + PF.h(vs + q * 5.1) * 0.6) / 6.0
+		var pq: Vector2 = c + Vector2.from_angle(aq) * (140.0 + 120.0 * PF.h(vs + q * 6.3))
+		_la_px_strip(u, "fx_lappland_ul_ultcut", 1, pq, {"ang": (c - pq).angle(), "sc": 0.7, "delay": 0.1 + 0.03 * PF.h(vs + q)})
+	var arm: float = R * sin(half) * 0.5 * 1.1   # 半长 ≈ 原收尾横斩的一半长（R × sin(半角) × 0.5 × 2.2 ÷ 2）
+	for sg in [1.0, -1.0]:
+		var L: float = arm * (1.0 if sg > 0.0 else 0.85)
+		_la_px_strip(u, "fx_lappland_ul_ultblade", 1, c, {"ang": tg.angle() + sg * 0.42, "sc": L / (200.0 * u.g.PX), "delay": 0.22})
+	u.g.vfx.stop(Bal.v("ult/la_hitstop", 0.1), "ult", true)
+	if Bal.v("ult/la_final_hf", 1.0) > 0.0:
+		PF.hf_since(u, n0)
+		PF.hf_on(u, a)
+	u.light(c, R * 0.6, LA_ICE, 0.2)
+	u.shake(3.0, 0.12)
 
 
 static func _la_v2(u) -> bool:

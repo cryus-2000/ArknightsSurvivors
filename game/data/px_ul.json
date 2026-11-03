@@ -1,5 +1,5 @@
 {
-	"_doc": "pixelfx 放开版注册表（docs/242，漏项 #25）：干员 id → 接管的判定段（按形状条目的 src）、帧条名与画法。开关 fx/px_unleashed 关掉时不读。ob_core 的 circle / cone 形状结算后按 o.id 查这里（seg_skadi.px_ul_shape）；接管后只跳过 b.fx 里的招式本体，cond 为 relic: / node: 的附加条目照常播（#20）。字段：shapes[src] = {base 帧条名（不带后缀）, variants 队长随机变体数（缺省 1）, skill 技能（定格用 pause[1]、火星用 n_skill）, draw 可选：只覆盖这一段的画法字段（半径差得多时各用各的 fit）}；full = 全方向（half ≥ 3.1）时换用的 {base, variants}，整圈随机转角；draw = 画法 {fit 帧条烤制时的基础半径（1x 像素）, k, along, y, mirror（face = 朝左翻）}；motes = 实时火星（装饰层，颗数 × px_deco_k）；pause = [普攻, 技能] 命中定格秒数，只给队长、走 impact_pause 总闸；no_arc = 不画通用近战刀光；cast = 技能起手 {\"0\"–\"2\"（技能序号）: {base 帧条名, at self / front, y, front, sc, flip}}，技能开启那一刻在 character.spend_sp 里播（vfx.px_ul_cast），先装饰后核心。取名一律走 vfx.px_ul_tex(base, 变体, 队友, 层, 精英档)。",
+	"_doc": "pixelfx 放开版注册表（docs/242，漏项 #25）：干员 id → 接管的判定段（按形状条目的 src）、帧条名与画法。开关 fx/px_unleashed 关掉时不读。ob_core 的 circle / cone 形状结算后按 o.id 查这里（seg_skadi.px_ul_shape）；接管后只跳过 b.fx 里的招式本体，cond 为 relic: / node: 的附加条目照常播（#20）。字段：shapes[src] = {base 帧条名（不带后缀）, variants 队长随机变体数（缺省 1）, skill 技能（定格用 pause[1]、火星用 n_skill）, draw 可选：只覆盖这一段的画法字段（半径差得多时各用各的 fit）}；full = 全方向（half ≥ 3.1）时换用的 {base, variants}，整圈随机转角；draw = 画法 {fit 帧条烤制时的基础半径（1x 像素）, k, along, y, mirror（face = 朝左翻）}；motes = 实时火星（装饰层，颗数 × px_deco_k）；pause = [普攻, 技能] 命中定格秒数，只给队长、走 impact_pause 总闸；no_arc = 不画通用近战刀光；cast = 技能起手 {\"0\"–\"2\"（技能序号）: {base 帧条名, at self / front, y, front, sc, flip}}，技能开启那一刻在 character.spend_sp 里播（vfx.px_ul_cast），先装饰后核心。取名一律走 vfx.px_ul_tex(base, 变体, 队友, 层, 精英档)。；waves = 刀波（shape.wave，seg_skadi.px_ul_wave）{src: {base, variants, y, dist 帧条烤的飞行距离（世界像素）}}：飞行烤进帧条、开播时在出手点整条放出，接管后不画弹体。",
 	"skadi": {
 		"shapes": {
 			"大剑": {
@@ -53,6 +53,64 @@
 			},
 			"2": {
 				"base": "fx_skadi_ul_charge_big",
+				"y": 0
+			}
+		}
+	},
+	"lappland": {
+		"_doc": "拉普兰德（docs/242，claude/pixelfx-ul-lappland）：普攻双刃（src 双刃，含 twin 第二刀）、S3 噤声叠满十字斩（circle，画在目标上，fit = s3_cut_r ÷ PX）、S2 狼魂剑气（waves）、S1 日晷（cast 0，脚底）。双生刃 / 远掷 / 领主远处剑气、狼之舞旋身斩仍是原画面（另案）。终结技在 ult_moves_c._la_px_*",
+		"shapes": {
+			"双刃": {
+				"base": "fx_lappland_ul_slash",
+				"variants": 2
+			},
+			"噤声": {
+				"base": "fx_lappland_ul_s3",
+				"skill": true,
+				"draw": {
+					"fit": 20.0,
+					"k": 1.0,
+					"y": -10.0,
+					"mirror": false
+				}
+			}
+		},
+		"waves": {
+			"狼魂": {
+				"base": "fx_lappland_ul_s2",
+				"variants": 2,
+				"y": 0.0,
+				"dist": 200.0
+			}
+		},
+		"draw": {
+			"fit": 50.0,
+			"k": 1.0,
+			"along": 0.0,
+			"y": -10.0,
+			"mirror": "face"
+		},
+		"motes": {
+			"n": 8,
+			"n_skill": 14,
+			"col": [
+				0.85,
+				0.93,
+				1.0
+			],
+			"along": 0.9,
+			"y": -10.0,
+			"sz": 2.0,
+			"life": 0.5
+		},
+		"pause": [
+			0.05,
+			0.075
+		],
+		"no_arc": true,
+		"cast": {
+			"0": {
+				"base": "fx_lappland_ul_s1",
 				"y": 0
 			}
 		}

@@ -43,6 +43,7 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 				h.waves.pop_front()
 			h.waves.append(_wave_ease({"b": b, "pos": from0, "dir": d2, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg,
 				"hit": shared if b.get("fan_once", false) else {}, "drop": 0.0}, o, b))
+			px_ul_wave(o, b, h.waves[h.waves.size() - 1], from0, d2)
 			if b.has("ll"):   # docs/202 拉普兰德成长节点（追猎 / 日晷·反斩）：seg_lappland
 				_F().ll_wave_post(o, h.waves[h.waves.size() - 1], b, ll_tgt)
 		return
@@ -51,6 +52,30 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 	if h.waves.size() >= int(b.get("cap", HW_WAVE_MAX)):
 		h.waves.pop_front()
 	h.waves.append(_wave_ease({"b": b, "pos": from, "dir": dir, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg, "hit": {}, "drop": 0.0}, o, b))
+
+
+## pixelfx 放开版刀波（docs/242，注册表 data/px_ul.json 的 "waves": {src: {base, variants, y}}，拉普兰德 S2 狼魂剑气）：
+## 帧条把整段飞行（判定的飞行距离 dist）烤进去、原点 = 出手点，所以开播时在出手点沿方向放一次就画完全程；标 w.px 后 hw_draw_waves 不再画弹体。
+## 开关 fx/px_unleashed 关掉时注册表为空、不接管。先装饰（× px_deco_k）后核心；只改画面，判定照旧走 w
+static func px_ul_wave(o, b: Dictionary, w: Dictionary, from: Vector2, d: Vector2) -> void:
+	var ent = o.g.vfx.px_ul_reg(str(o.id)).get("waves", _ED).get(str(b.get("src", "")))
+	if not (ent is Dictionary):
+		return
+	var base: String = str(ent.base)
+	var nv: int = int(ent.get("variants", 1))
+	var vv: int = 1 + int(o.g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1
+	var el: int = o.g.vfx.px_ul_el(o)
+	var cn: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "core", el)
+	if o.g.tex.get(cn) == null:
+		return
+	w["px"] = true
+	var p: Vector2 = from + Vector2(0, float(ent.get("y", 0.0)))
+	var sc: float = o.g.PX * float(w.max) / float(ent.get("dist", w.max))   # 帧条烤的是判定飞行距离；距离被成长改长时按比例拉
+	var dn: String = o.g.vfx.px_ul_tex(base, vv, not o.is_leader, "deco", el)
+	var dk: float = o.g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, p, sc, d.angle(), false, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(cn, p, sc, d.angle())
 
 
 ## 剑气非线性速度（sword_ease.gd）：弹体式刀波（有 proj）缺省开，浪墙写了 "ease" 才开；ez 为空 = 改前匀速
@@ -116,7 +141,7 @@ static func _hw_waves(o, dt: float) -> void:
 			var l: float = g.vrng.randf_range(-0.5, 0.5) * w.w
 			var mc: Color = _mf_col(b.get("foam", []), Color(0.8, 0.95, 1.0))
 			o.fx({"kind": "mote", "pos": w.pos + nrm * l + Vector2(0, -18), "vel": w.dir * 120.0 + Vector2(0, g.vrng.randf_range(-120, -60)), "life": 0.4, "col": mc, "sz": 2.0, "grav": 320.0})
-		if w.dist >= w.max and b.has("proj_hold") and g.tex.get(str(b.proj)) != null:
+		if w.dist >= w.max and b.has("proj_hold") and g.tex.get(str(b.proj)) != null and not w.get("px", false):
 			var spec: Array = g.V6_FRAMES[str(b.proj)]
 			# 消散只进粒子表，不延长碰撞寿命。
 			o.fx({"kind": "strip", "name": str(b.proj), "pos": w.pos + Vector2(0, -16),
@@ -135,6 +160,8 @@ static func hw_draw_waves(o, front := false) -> void:
 	for w in o.hw.waves:
 		var b: Dictionary = w.b
 		if bool(b.get("proj_front", false)) != front: continue
+		if w.get("px", false):   # pixelfx 放开版接管了这道刀波的画面（px_ul_wave：飞行烤进帧条，开播时整条放出），这里不再画弹体
+			continue
 		if b.has("proj"):   # 精英化第 2 批段：弹体式（潮刃）——旋转的弹体帧条，缺图画程序新月
 			var pn: String = str(b.proj)
 			var pa: float = 1.0 if b.has("proj_hold") else clampf((w.max - w.dist) / 40.0, 0.0, 1.0)
