@@ -985,9 +985,16 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
+	var src := Rect2(fw * (frame % frames), 0, fw, fh)
+	var pk: Array = A.px_frame(name, frame % frames)   # pixelfx 打包帧条：按表取帧、按原点放
+	if not pk.is_empty():
+		if float(pk[2]) <= 0.0:
+			return
+		src = Rect2(float(pk[0]), float(pk[1]), float(pk[2]), float(pk[3]))
+		an = Vector2(float(pk[4]), float(pk[5]))
 	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
 	g.draw_set_transform(pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale))
-	g.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
+	g.draw_texture_rect_region(tx, Rect2(-an, src.size), src, FD.capc(col))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

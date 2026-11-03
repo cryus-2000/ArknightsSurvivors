@@ -3,15 +3,19 @@
 
 tools/pixelfx_fx/<类>/<名>.js 是本作写的 pixelfx 特效源码；本脚本把它们拷进 pixelfx 库检出（缺省 build/pixelfx，
 不进 git），用库自带的 render.mjs --sheet 导精灵表，再：
-  - 以原点为中心对称裁边（游戏按帧中心放置；枪口这类非居中的用 keep_canvas 保留原画布），
+  - 还原预乘色（库往透明画布上贴帧时 rgb 乘了 alpha、alpha 原样保留，Godot 直通 alpha 下半透明处 a² 发灰；组长 724b05688，漏项 #23），
+  - 逐帧按非空包围盒紧裁、横向打包（漏项 #1；一行满 4096 px 换行，手机 WebGL 贴图上限）：每帧 [x, y, 宽, 高, 原点 x, 原点 y] 写进 game/data/px_frames.json，
+    游戏按表取帧、按 pixelfx 原点放置（vfx.spr_rot / ob_fx.fx_frame / ult._draw_strip）；"keep" 条目保留原画布、等宽帧（代码里自带锚点的弹体 / 枪口），
   - 去掉末尾全空帧，
   - 量化到 ≤ 32 色（带透明，按条目 colors 改），存调色板 PNG，
-  - 拼成单行横向帧条写进 game/art/fx/<名>[ @2x].png。
-最后打印 art.gd V6_FRAMES 要登记的 [帧数, fps]。改完记得跑 python tools/asset_index.py。
+  - 写进 game/art/fx/<名>[ @2x].png。
+导出前查：自动图案检查（docs/242 §9.3）、必出矩阵（漏项 #31）、每人显存（全档 ≤ 48 MB、低档 ≤ 12 MB，按盘上该人全部 _ul_ 帧条合计，漏项 #1）；
+任一项不过整批不写盘。最后打印 art.gd V6_FRAMES 要登记的 [帧数, fps]。改完记得跑 python tools/asset_index.py。
 
 用法：python tools/pixelfx_export.py [--lib build/pixelfx] [--only 名字,...] [--dry]
 """
-import argparse, json, os, re, shutil, subprocess, sys, tempfile
+import argparse, glob, json, os, re, shutil, subprocess, sys, tempfile
+import numpy as np
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pixelfx_check as PC
@@ -19,6 +23,9 @@ import pixelfx_check as PC
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "tools", "pixelfx_fx")
 OUT = os.path.join(ROOT, "game", "art", "fx")
+FRAMES_JSON = os.path.join(ROOT, "game", "data", "px_frames.json")
+VRAM_FULL_MB, VRAM_LO_MB = 48.0, 12.0   # 每人显存上限（解码后 RGBA8，漏项 #1）
+MAX_W = 4096   # 打包帧条一行最宽（手机 WebGL 贴图边长上限）
 
 # 导出目标：tools/pixelfx_fx/targets_*.json（每个并行会话一份，互不改别人的文件，docs/229 §9）。
 # 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）,
@@ -26,7 +33,9 @@ OUT = os.path.join(ROOT, "game", "art", "fx")
 #        "layers": 分核心 / 装饰两层，出 <名> 和 <名>_deco（特效源码要认 o.layer = "core" / "deco"，docs/242 §8）,
 #        "judge": 判定数据 {"op", "opts": {选项: 表达式（取 base）}, "src"}（docs/242 §9.1）, "check_sy": 地面透视压扁（0.55）,
 #        "check_skip" / "check_note": 自动图案检查放行项与理由（docs/242 §9.3）,
-#        "ref": 参照轮廓 tools/pixelfx_fx/ref/<人>_<招式>.png（docs/242 §9.2）}
+#        "ref": 参照轮廓 tools/pixelfx_fx/ref/<人>_<招式>.png（docs/242 §9.2）,
+#        "move": "basic" / "skill" / "ult"（普攻不出 deco_lo，漏项 #31；缺省 skill）}
+# 名字：<base>[_e0|_e1|_e2][变体 2…][_tm]；必出矩阵见 matrix_check
 def load_targets():
     t = {}
     for f in sorted(os.listdir(SRC)):
@@ -58,19 +67,85 @@ def render(lib, fx_id, opts, out):
         sys.exit(r.stderr)
     base = fx_id.split("/")[1]
     meta = json.load(open(os.path.join(out, fx_id, base + ".json")))
-    sheet = Image.open(os.path.join(out, fx_id, base + ".png")).convert("RGBA")
+    sheet = unpremultiply(Image.open(os.path.join(out, fx_id, base + ".png")).convert("RGBA"))
     frames = [sheet.crop((f["frame"]["x"], f["frame"]["y"], f["frame"]["x"] + f["frame"]["w"], f["frame"]["y"] + f["frame"]["h"])) for f in meta["frames"]]
     return frames, meta["meta"]["pixelfx"]
 
 
-def save_strip(frames, box, path, colors, dry):
-    w, h = box[2] - box[0], box[3] - box[1]
-    strip = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
-    for i, f in enumerate(frames):
-        strip.paste(f.crop(box), (i * w, 0))
+def unpremultiply(im):
+    """a > 0 时 rgb = min(255, rgb * 255 / a)（组长 724b05688 的 unpremultiply）"""
+    a = np.asarray(im, dtype=np.float32).copy()
+    al = a[..., 3:4]
+    a[..., :3] = np.where(al > 0, np.minimum(255.0, a[..., :3] * 255.0 / np.maximum(al, 1.0) + 0.5), 0.0)
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
+def _alpha(im):
+    return im.getchannel("A").point(lambda a: 255 if a > 10 else 0)
+
+
+def build_strip(frames, box, pivot):
+    """box = None：逐帧紧裁打包（行宽 ≤ MAX_W），返回 (图, 帧表 [[x, y, w, h, ax, ay]…])；否则按 box 等宽切（keep），帧表 None"""
+    if box is not None:
+        w, h = box[2] - box[0], box[3] - box[1]
+        strip = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
+        for i, f in enumerate(frames):
+            strip.paste(f.crop(box), (i * w, 0))
+        return strip, None
+    bbs = [_alpha(f).getbbox() for f in frames]
+    H = max([b[3] - b[1] for b in bbs if b] or [1])
+    ws = [b[2] - b[0] if b else 0 for b in bbs]
+    rows = -(-sum(ws) // MAX_W)   # 要几行；各行按平均宽度折，避免最后一行大半空着
+    lim = min(MAX_W, max(max(ws), -(-sum(ws) // max(1, rows))))
+    pos, x, y, W = [], 0, 0, 1
+    for w in ws:
+        if x + w > lim and x > 0:
+            x, y = 0, y + H
+        pos.append((x, y))
+        x += w
+        W = max(W, x)
+    strip = Image.new("RGBA", (W, y + H), (0, 0, 0, 0))
+    tab = []
+    for f, b, (x, y) in zip(frames, bbs, pos):
+        if not b:
+            tab.append([x, y, 0, 0, 0, 0])
+            continue
+        strip.paste(f.crop(b), (x, y))
+        tab.append([x, y, b[2] - b[0], b[3] - b[1], pivot[0] - b[0], pivot[1] - b[1]])
+    return strip, tab
+
+
+def save_strip(strip, path, colors, dry):
     if not dry:
         strip.quantize(colors=colors, method=Image.Quantize.FASTOCTREE).save(path, optimize=True)   # 调色板 PNG（比 RGBA 小约 2.5 倍）
     return os.path.getsize(path) if not dry else 0
+
+
+def person(name):
+    m = re.match(r"^(?:fx|proj)_([a-z0-9]+)_ul_", name)
+    return m.group(1) if m else ""
+
+
+def vram_mb(w, h):
+    return w * h * 4 / 2 ** 20
+
+
+def matrix_check(name, spec, targets):
+    """必出矩阵（漏项 #31）：全档 E2（或不带档位）出 core + deco + 变体 2 + _tm；E1 / E0 只出 core + deco 的单种子，不出 _tm、变体、低档；
+    网页低档只给 E2 的队长单种子（不出 _tm / 变体的 _lo），普攻不出 deco_lo。返回违规说明，空 = 合格"""
+    m = re.search(r"_e([012])(?=\d?(_tm)?$)", name)
+    el = int(m.group(1)) if m else 2
+    tm = name.endswith("_tm")
+    core = name[:-3] if tm else name
+    var = bool(re.search(r"[2-9]$", core)) and core[:-1] in targets   # 变体 = 末位数字 ≥ 2 且去掉它的名字也是导出目标（_s2 这类技能号不算）
+    bad = []
+    if el < 2 and (tm or var):
+        bad.append("E%d 只出单种子核心 + 装饰，不出 _tm / 变体（队友回退 E2 的 _tm）" % el)
+    if spec.get("lo") and (el < 2 or tm or var):
+        bad.append("网页低档只给 E2 队长单种子")
+    if spec.get("move", "skill") not in ("basic", "skill", "ult"):
+        bad.append("move 只能是 basic / skill / ult")
+    return bad
 
 
 def judge_opts(spec):
@@ -111,41 +186,41 @@ def export(lib, name, spec, tmp, dry):
         n -= 1
     sets = [(suf, fr[:n]) for suf, fr in sets]
     fw, fh = px["frameSize"]
-    if keep:
-        box = (0, 0, fw, fh)
-    else:
-        ox, oy = px["pivot"]
-        x0, y0, x1, y1 = fw, fh, 0, 0
-        for _, fr in sets:
-            for f in fr:
-                bb = alpha(f).getbbox()
-                if bb:
-                    x0, y0, x1, y1 = min(x0, bb[0]), min(y0, bb[1]), max(x1, bb[2]), max(y1, bb[3])
-        hw, hh = max(ox - x0, x1 - ox), max(oy - y0, y1 - oy)   # 以原点为中心对称
-        box = (ox - hw, oy - hh, ox + hw, oy + hh)
-    w, h = box[2] - box[0], box[3] - box[1]
+    piv = tuple(px["pivot"])
+    box = (0, 0, fw, fh) if keep else None
     hx = "@2x" if hires else ""
-    # 自动图案检查（docs/242 §9.3）：放射 / 同心圈 / 等距并排 / 持续白，任一层超标就不产出；误报用 check_skip + check_note 放行
-    org = (px["pivot"][0] - box[0], px["pivot"][1] - box[1])
+    # 自动图案检查（docs/242 §9.3）：放射 / 同心圈 / 等距并排 / 持续白，任一层超标就不产出；误报用 check_skip + check_note 放行。按原画布、原点查
     bad = []
     for suf, fr in sets:
-        for key, b, note in PC.check_frames([f.crop(box) for f in fr], org, float(spec.get("check_sy", 1.0)), tuple(spec.get("check_skip", ()))):
+        for key, b, note in PC.check_frames(fr, piv, float(spec.get("check_sy", 1.0)), tuple(spec.get("check_skip", ()))):
             if b:
                 bad.append("%s%s %s：%s" % (name, suf, key, note))
     if bad:
         print("!! 图案检查超标，不产出：" + "；".join(bad))
-        return
+        return None
     if spec.get("check_skip"):
         print("   （放行 %s：%s）" % (",".join(spec["check_skip"]), spec.get("check_note", "未写理由")))
+    outs = []   # (贴图名, 图, 帧表, 帧数, fps)
     for suf, fr in sets:
-        size = save_strip(fr, box, os.path.join(OUT, name + suf + hx + ".png"), colors, dry)
-        print('"%s%s": [%d, %.1f],   # %dx%d × %d 帧，%.1f KB，显存 %.0f KB' % (name, suf, n, px["fps"], w, h, n, size / 1024, w * n * h * 4 / 1024))
-        if spec.get("lo"):   # 网页低档（docs/242 §6）：同画布 / 原点，按 15 fps 按时间就近抽帧，余韵时长不变；deco 同样出 _lo
+        st, tab = build_strip(fr, box, piv)
+        outs.append((name + suf, st, tab, n, float(px["fps"])))
+        if spec.get("lo") and not (suf == "_deco" and spec.get("move", "skill") == "basic"):   # 网页低档（docs/242 §6）：15 fps 按时间就近抽帧，余韵时长不变；普攻不出 deco_lo（#31）
             fps0 = float(px["fps"])
             m = max(1, round(n * 15.0 / fps0))
             lo = [fr[min(n - 1, round(i * fps0 / 15.0))] for i in range(m)]
-            ls = save_strip(lo, box, os.path.join(OUT, name + suf + "_lo" + hx + ".png"), colors, dry)
-            print('"%s%s_lo": [%d, 15.0],   # 网页低档 %.1f KB' % (name, suf, m, ls / 1024))
+            st, tab = build_strip(lo, box, piv)
+            outs.append((name + suf + "_lo", st, tab, m, 15.0))
+    return [(nm, st, tab, k, fps, hx, colors) for nm, st, tab, k, fps in outs]
+
+
+def disk_vram():
+    """盘上每个 _ul_ 帧条的显存（MB），按贴图名（不带 @2x）"""
+    out = {}
+    for p in glob.glob(os.path.join(OUT, "*_ul_*.png")):
+        nm = os.path.basename(p)[:-4].replace("@2x", "")
+        with Image.open(p) as im:
+            out[nm] = vram_mb(*im.size)
+    return out
 
 
 def main():
@@ -158,10 +233,55 @@ def main():
         sys.exit("找不到 pixelfx 库：先 git clone https://github.com/patch-gg/pixelfx " + a.lib)
     install(a.lib)
     only = set(filter(None, a.only.split(",")))
+    targets = load_targets()
+    bad = []
+    for name, spec in targets.items():
+        if not only or name in only:
+            bad += ["%s：%s" % (name, x) for x in matrix_check(name, spec, targets)]
+    if bad:
+        sys.exit("!! 超出必出矩阵，整批不写盘：\n  " + "\n  ".join(bad))
+    pend = []
     with tempfile.TemporaryDirectory() as tmp:
-        for name, spec in load_targets().items():
+        for name, spec in targets.items():
             if not only or name in only:
-                export(a.lib, name, spec, tmp, a.dry)
+                r = export(a.lib, name, spec, tmp, a.dry)
+                if r is None:
+                    sys.exit("!! 图案检查没过，整批不写盘")
+                pend += r
+    # 每人显存（漏项 #1）：盘上其余帧条 + 这批新帧条，全档 / 低档分开合计
+    tot = {}
+    new = {nm: vram_mb(*st.size) for nm, st, *_ in pend}
+    done = {nm for nm in targets if not only or nm in only}
+    disk = disk_vram()
+    stale = [nm for nm in disk if nm not in new and any(nm == t + sf for t in done for sf in ("", "_deco", "_lo", "_deco_lo"))]   # 这批目标不再出的旧图（例：普攻的 deco_lo）：删掉
+    for nm, mb in [kv for kv in disk.items() if kv[0] not in new and kv[0] not in stale] + list(new.items()):   # 这批要覆盖的旧图不算
+        k = (person(nm), nm.endswith("_lo"))
+        tot[k] = tot.get(k, 0.0) + mb
+    over = []
+    for (who, lo), mb in sorted(tot.items()):
+        cap = VRAM_LO_MB if lo else VRAM_FULL_MB
+        print("显存 %-10s %s %6.1f MB / %.0f" % (who, "低档" if lo else "全档", mb, cap))
+        if who and mb > cap:
+            over.append("%s %s %.1f MB > %.0f" % (who, "低档" if lo else "全档", mb, cap))
+    if over:
+        sys.exit("!! 显存超标，整批不写盘：" + "；".join(over))
+    ft = json.load(open(FRAMES_JSON, encoding="utf-8")) if os.path.exists(FRAMES_JSON) else {}
+    for nm in stale:
+        print("删掉不再出的旧图 %s（记得从 art.gd V6_FRAMES 删掉这一行）" % nm)
+        ft.pop(nm, None)
+        if not a.dry:
+            for p in glob.glob(os.path.join(OUT, nm + ".png*")) + glob.glob(os.path.join(OUT, nm + "@2x.png*")):
+                os.remove(p)
+    for nm, st, tab, k, fps, hx, colors in pend:
+        size = save_strip(st, os.path.join(OUT, nm + hx + ".png"), colors, a.dry)
+        if tab is None:
+            ft.pop(nm, None)
+        else:
+            ft[nm] = tab
+        print('"%s": [%d, %.1f],   # %dx%d，%.1f KB，显存 %.2f MB%s' % (nm, k, fps, st.size[0], st.size[1], size / 1024, vram_mb(*st.size), "" if tab is None else "（打包）"))
+    if not a.dry:
+        with open(FRAMES_JSON, "w", encoding="utf-8", newline="\n") as f:
+            f.write("{\n" + ",\n".join('\t"%s": %s' % (k, json.dumps(ft[k], separators=(",", ":"))) for k in sorted(ft)) + "\n}\n")
 
 
 if __name__ == "__main__":

@@ -239,8 +239,15 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an: Vector2 = anc * h if anc.x >= 0.0 else Vector2(fw, fh) / 2.0
+	var src := Rect2(fw * (fr % frames), 0, fw, fh)
+	var pk: Array = ArtS.px_frame(name, fr % frames)   # pixelfx 打包帧条：按表取帧、按原点放
+	if not pk.is_empty():
+		if float(pk[2]) <= 0.0:
+			return
+		src = Rect2(float(pk[0]), float(pk[1]), float(pk[2]), float(pk[3]))
+		an = Vector2(float(pk[4]), float(pk[5]))
 	ci.draw_set_transform(pos, ang, Vector2(sc * stretch / h, sc / h))   # stretch：沿朝向拉长（剑气猛冲段，sword_ease.gd）
-	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	ci.draw_texture_rect_region(tx, Rect2(-an, src.size), src, col)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

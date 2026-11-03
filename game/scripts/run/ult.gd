@@ -1166,7 +1166,12 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 			return
 	var ang: float = float(s.get("ang", 0.0)) + float(s.get("spin", 0.0)) * age
 	g.draw_set_transform(s.c, ang, Vector2(k * float(s.get("sx", 1.0)), k * float(s.get("sy", 1.0))))
-	g.draw_texture_rect_region(t, Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)
+	var pk: Array = A.px_frame(str(s.name), f)   # pixelfx 打包帧条：按表取帧、按原点放（opt 里的 o / ux / rev 不用）
+	if not pk.is_empty():
+		if float(pk[2]) > 0.0:
+			g.draw_texture_rect_region(t, Rect2(-Vector2(float(pk[4]), float(pk[5])), Vector2(float(pk[2]), float(pk[3]))), Rect2(float(pk[0]), float(pk[1]), float(pk[2]), float(pk[3])), col)
+	else:
+		g.draw_texture_rect_region(t, Rect2(-o, Vector2(vw, fh)), Rect2(f * fw + ux, 0.0, vw, fh), col)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

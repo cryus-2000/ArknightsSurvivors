@@ -461,6 +461,24 @@ static func hires(name: String) -> float:
 	return float(_hires.get(name, 1.0))
 
 
+## pixelfx 打包帧条（tools/pixelfx_export.py 逐帧紧裁横排，漏项 #1）：data/px_frames.json 名字 → 每帧 [x, y, 宽, 高, 原点 x, 原点 y]（贴图像素）。
+## 没登记的帧条返回 []（等宽切、按帧中心或调用方锚点放）；登记了的按表取帧、按 pixelfx 原点放，调用方给的锚点不用
+static var _px_frames = null
+
+
+static func px_frame(name: String, fr: int) -> Array:
+	if _px_frames == null:
+		_px_frames = {}
+		if FileAccess.file_exists("res://data/px_frames.json"):
+			var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/px_frames.json"))
+			if parsed is Dictionary:
+				_px_frames = parsed
+	var t = _px_frames.get(name)
+	if not (t is Array) or (t as Array).is_empty():
+		return []
+	return t[clampi(fr, 0, t.size() - 1)]
+
+
 static func hires_of(t: Texture2D) -> float:
 	if t == null:
 		return 1.0
@@ -1083,7 +1101,6 @@ const V6_FRAMES := {
 	"fx_skadi_ul_slash_tm": [11, 20.0], "fx_skadi_ul_sweep_tm": [12, 20.0], "fx_skadi_ul_spin_tm": [13, 20.0], "fx_skadi_ul_cleave_tm": [18, 20.0],   # 队友版（余韵短）
 	"fx_skadi_ul_slash_lo": [13, 15.0], "fx_skadi_ul_sweep_lo": [13, 15.0], "fx_skadi_ul_spin_lo": [15, 15.0], "fx_skadi_ul_cleave_lo": [16, 15.0], "fx_skadi_ul_geyser1_lo": [20, 15.0],   # 网页低档（docs/242 §6）
 	# 斯卡蒂装饰层（docs/242 §8，与核心逐帧对齐）
-	"fx_skadi_ul_slash_deco": [17, 20.0], "fx_skadi_ul_slash2_deco": [20, 20.0], "fx_skadi_ul_spin2_deco": [19, 20.0], "fx_skadi_ul_sweep_deco": [17, 20.0], "fx_skadi_ul_spin_deco": [20, 20.0], "fx_skadi_ul_cleave_deco": [22, 20.0], "fx_skadi_ul_geyser1_deco": [26, 20.0], "fx_skadi_ul_geyser2_deco": [26, 20.0], "fx_skadi_ul_geyser3_deco": [26, 20.0], "fx_skadi_ul_slash_tm_deco": [11, 20.0], "fx_skadi_ul_sweep_tm_deco": [12, 20.0], "fx_skadi_ul_spin_tm_deco": [13, 20.0], "fx_skadi_ul_cleave_tm_deco": [18, 20.0], "fx_skadi_ul_slash_deco_lo": [13, 15.0], "fx_skadi_ul_sweep_deco_lo": [13, 15.0], "fx_skadi_ul_spin_deco_lo": [15, 15.0], "fx_skadi_ul_cleave_deco_lo": [16, 15.0], "fx_skadi_ul_geyser1_deco_lo": [20, 15.0],
 	# 塞雷娅放开版（docs/242：盾击含 _tm、治疗、钙质化晶簇三段、终结技砸地；两层 + 低档）
 	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_bash_deco": [14, 20.0], "fx_saria_ul_bash_deco_lo": [10, 15.0],
 	"fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_grow_lo": [7, 15.0], "fx_saria_ul_calc_grow_deco": [9, 20.0], "fx_saria_ul_calc_grow_deco_lo": [7, 15.0],
