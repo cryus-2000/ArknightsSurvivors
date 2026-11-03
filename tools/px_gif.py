@@ -184,22 +184,6 @@ def shape_centers(op, reg_shapes):
     return out
 
 
-def seg_land(op, pre):
-    """seg_*.gd 里 _<id>_ul_fx(…) 调用放的帧条：命中写在 seg 里的落点类（逻各斯，组长 B 11-04）"""
-    import glob
-    out = set()
-    for f in glob.glob(os.path.join(ROOT, "game", "scripts", "characters", "blocks", "seg_*.gd")):
-        for line in open(f, encoding="utf-8"):
-            if not re.search(r"_ul_fx\(", line):
-                continue
-            for lit in re.findall(r'"([^"]+)"', line):
-                if lit.startswith(pre):
-                    out.add(lit)
-                elif re.fullmatch(r"[a-z0-9_]+", lit) and ("_%s_" % op in line or op in os.path.basename(f)):
-                    out.add(pre + lit)
-    return out
-
-
 def pick(d, el):
     """和 vfx.px_ul_tex 同一查找顺序（基名 = E2）：精二 _e2 → 基名 → _e1 → _e0；精一 / 精零 本档 → 更低档 → 基名；
     单档帧条（例 fx_siege_ul_crush_e1）取不到时退回现有任一档（总组长 11-04：原来取 base 得 None 就崩）"""
@@ -267,10 +251,14 @@ def main():
     hit_of = lambda d, S: any(n in S or any(n.startswith(b) for b in S) for n in d.values())
     regj = json.load(open(os.path.join(ROOT, "game", "data", "px_ul.json"), encoding="utf-8")).get(a.op, {})
     cen = shape_centers(a.op, regj.get("shapes"))
-    land_b = set(land_b) | {b for b, c in cen.items() if c == "target"} | seg_land(a.op, pre)
+    # 显式清单（组长 B 11-04：按 seg 字面量猜落点在逻各斯身上误判 4 处，改由注册表写明）：px_ul.json <干员>.gif = {"land": [...], "self": [...]}，
+    # 元素是帧条基名（fx_… / proj_…）或招名；self 优先于 land 和 center 推断
+    gif = regj.get("gif", {}) if isinstance(regj.get("gif"), dict) else {}
+    g_land, g_self = set(gif.get("land", [])), set(gif.get("self", []))
+    land_b = set(land_b) | {b for b, c in cen.items() if c == "target"} | {x for x in g_land if x.startswith(("fx_", "proj_"))}
     front_b = {b for b, c in cen.items() if c == "front"}
-    self_b = {b for b, c in cen.items() if c in ("self", "leader")}
-    land_mv = set(filter(None, a.land.split(","))) | {m for m, d in mv.items() if hit_of(d, land_b) and not hit_of(d, self_b)}
+    self_b = {b for b, c in cen.items() if c in ("self", "leader")} | {x for x in g_self if x.startswith(("fx_", "proj_"))}
+    land_mv = (set(filter(None, a.land.split(","))) | {m for m in g_land if m in mv} | {m for m, d in mv.items() if hit_of(d, land_b) and not hit_of(d, self_b)}) - {m for m in g_self if m in mv}
     front_mv = {m for m, d in mv.items() if hit_of(d, front_b)} - land_mv   # center: front = 砸在身前（朝敌人）
     status_mv = {m for m, d in mv.items() if hit_of(d, status_b)}
     loop_mv = set(filter(None, a.loop.split(","))) | {m for m, d in mv.items() if hit_of(d, loop_b) or any(sl.get(n, False) for n in d.values())}
@@ -290,6 +278,7 @@ def main():
     for name in sorted(mv):
         is_proj, is_land, is_status, is_loop = name.startswith("proj:"), name in land_mv, name in status_mv, name in loop_mv
         is_front = name in front_mv
+        is_muzzle = "muzzle" in name   # 枪口类：帧条朝右（aim 朝向），摆在干员枪口（身前、约半身高），不画在脚底 / 背后（总组长 11-04：能天使）
         cells = []
         for el in (0, 1, 2):
             base = pick(mv[name], el)
@@ -360,7 +349,7 @@ def main():
                             for s in (hd, hc):
                                 put(s, front, t - FLIGHT, ex, ey - fh // 2)
                         return
-                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_ + int(reach * 0.6), oy_) if is_front else (ox_, oy_)
+                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_ + int(reach * 0.6), oy_) if is_front else (ox_ + 9 * K, oy_ - int((body.height if body else 32) * K * 0.5)) if is_muzzle else (ox_, oy_)
                     for s in (deco, core):
                         put(s, front, t, ax, ay)
                 layer(False)   # 地面层
