@@ -41,6 +41,14 @@ static func _exu_ul(g, n: String) -> String:
 	return g.vfx.px_ul_tex(u, 1, false) if g.tex.get(u) != null else n   # 网页 / fx/px_ul_lo 时取低档 _lo（docs/242 §6）
 
 
+## 装饰层名（docs/242 §8）：核心名同 _exu_ul，没有放开版或缺装饰图时返回 ""
+static func _exu_ul_deco(g, n: String) -> String:
+	if n.find("exusiai_") < 0 or n.find("_ul_") >= 0 or float(BalE.v("fx/px_unleashed", 0.0)) <= 0.0:
+		return ""
+	var u := n.replace("exusiai_", "exusiai_ul_")
+	return g.vfx.px_ul_tex(u, 1, false, "deco") if g.tex.get(u) != null else ""
+
+
 ## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
 const EXU_FX_KEYS := {"tex": "proj_", "muzzle_fx": "fx_", "hit_fx": "fx_"}
 
@@ -315,7 +323,10 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
 				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
 	var mu: String = _exu_ul(g, mfx)
-	if mu != mfx:   # pixelfx 放开版枪口焰：帧中心在枪口前 24 px（1x）
+	if mu != mfx:   # pixelfx 放开版枪口焰：帧中心在枪口前 24 px（1x）；先装饰后核心
+		var md: String = _exu_ul_deco(g, mfx)
+		if md != "" and g.vfx.px_deco_k() > 0.0:
+			o.spawn_fx_sprite(md, mz + d0 * EXU_UL_MUZZLE_AHEAD * g.PX * 0.8, g.PX * 0.8, d0.angle(), false, false, Color(1, 1, 1, g.vfx.px_deco_k()))
 		o.spawn_fx_sprite(mu, mz + d0 * EXU_UL_MUZZLE_AHEAD * g.PX * 0.8, g.PX * 0.8, d0.angle())
 	else:
 		o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
@@ -410,7 +421,10 @@ static func _exu_bullets(o, dt: float) -> void:
 			o._sfx_op("hit")
 			var hn: String = str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit"))
 			var hu: String = _exu_ul(g, hn)
-			if hu != hn:   # pixelfx 放开版：顺着弹道方向；只有队长命中才定格（共享限频，纯画面）
+			if hu != hn:   # pixelfx 放开版：顺着弹道方向；先装饰后核心；只有队长命中才定格（共享限频，纯画面）
+				var hd: String = _exu_ul_deco(g, hn)
+				if hd != "" and g.vfx.px_deco_k() > 0.0:
+					o.spawn_fx_sprite(hd, e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.9, bu.v.angle(), false, false, Color(1, 1, 1, g.vfx.px_deco_k()))
 				o.spawn_fx_sprite(hu, e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.9, bu.v.angle())
 				if o.is_leader:
 					o.impact_pause(0.03)
@@ -511,7 +525,11 @@ static func exu_draw(o) -> void:
 		var tx = g.tex.get(tn) if tn != "" else null
 		if tx != null and tn.find("_ul_") >= 0:   # pixelfx 放开版曳光弹（4 帧，弹头锚点 EXU_UL_HEAD）
 			var bfr: Array = g.V6_FRAMES.get(tn, [4, 20.0])
-			o.draw_spr_rot(tn, int(g.t * float(bfr[1]) + float(bu.get("dmg", 0.0))) % int(bfr[0]), bu.p, bu.v.angle(), g.PX * 0.85 * bfx.k(bu), Color.WHITE, EXU_UL_HEAD * EXU_ART.hires_of(tx))
+			var bf: int = int(g.t * float(bfr[1]) + float(bu.get("dmg", 0.0))) % int(bfr[0])
+			var bd: String = _exu_ul_deco(g, str(bu.tex))
+			if bd != "" and g.vfx.px_deco_k() > 0.0:   # 先装饰（光晕）后核心（弹体），docs/242 §8
+				o.draw_spr_rot(bd, bf, bu.p, bu.v.angle(), g.PX * 0.85 * bfx.k(bu), Color(1, 1, 1, g.vfx.px_deco_k()), EXU_UL_HEAD * EXU_ART.hires_of(tx))
+			o.draw_spr_rot(tn, bf, bu.p, bu.v.angle(), g.PX * 0.85 * bfx.k(bu), Color.WHITE, EXU_UL_HEAD * EXU_ART.hires_of(tx))
 		elif tx != null:
 			var an: Vector2 = EXU_TEX_ANCHOR[tn] * EXU_ART.hires_of(tx) if EXU_TEX_ANCHOR.has(tn) else Vector2(-1, -1)
 			o.draw_spr_rot(tn, fr, bu.p, bu.v.angle(), g.PX * bfx.k(bu), Color.WHITE, an)

@@ -12,10 +12,11 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#3a0a10", "#7c1622", "#c4283a", "#f24d4d", "#ff9a8a", "#ffd8cc", "#ffffff"], seed: 2 },
+  options: { palette: ["#3a0a10", "#7c1622", "#c4283a", "#f24d4d", "#ff9a8a", "#ffd8cc", "#ffffff"], layer: "all", seed: 2 },
 };
 
 export function create(o) {
+  const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
   lights.add(6, 0, 26, C[5], 0.9, 0.15);
   const tongues = [0, -0.3, 0.34, -0.66, 0.6, -1.1, 1.05].map((a, i) => ({ a: a + Rg.range(-0.08, 0.08), L: (i === 0 ? Rg.range(30, 36) : i < 3 ? Rg.range(14, 20) : Rg.range(6, 11)), w: i === 0 ? 4.5 : i < 3 ? 2.6 : 1.6 }));
@@ -29,7 +30,7 @@ export function create(o) {
     update(dt) { t += dt; ps.update(dt); lights.update(dt); },
     draw(p) {
       const k = 1 - clamp(t / 0.11), grow = ease.outExpo(clamp(t / 0.03));
-      if (k > 0)
+      if (core && k > 0)
         for (const g of tongues) {
           const L = g.L * (0.6 + 0.4 * grow) * (0.55 + 0.45 * k), ca = Math.cos(g.a), sa = Math.sin(g.a);
           for (let d = 0; d <= L; d += 0.5) {
@@ -40,10 +41,12 @@ export function create(o) {
             }
           }
         }
-      if (t < 0.05) p.disc(2, 0, 4 * (1 - t / 0.05) + 1.5, C[6], 1);
-      p.glow(8, 0, 20, C[4], 0.6 * k);
-      ps.draw(p);
-      lights.draw(p);
+      if (core && t < 0.05) p.disc(2, 0, 4 * (1 - t / 0.05) + 1.5, C[6], 1);
+      if (deco) {
+        p.glow(8, 0, 20, C[4], 0.6 * k);
+        ps.draw(p);
+        lights.draw(p);
+      }
     },
   };
 }

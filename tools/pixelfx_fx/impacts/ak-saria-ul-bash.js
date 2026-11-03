@@ -14,7 +14,7 @@ export const meta = {
   bg: "dark",
   options: {
     palette: ["#241004", "#52260a", "#8e4510", "#cc7418", "#f2aa3c", "#ffd77e", "#fff2cf", "#ffffff"],
-    reach: 62,
+    layer: "all", reach: 62,
     seed: 6,
   },
 };
@@ -23,6 +23,7 @@ const PUSH = 0.12, SPAN = 1.25;
 
 export function create(o) {
   const C = fit(o.palette, 8), R = o.palette, Rg = new Rng(o.seed), L = o.reach;
+  const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
   const bits = new Bits({ ground: () => 1e9 });
   lights.add(10, 0, 50, C[6], 1.0, 0.25);
@@ -42,11 +43,11 @@ export function create(o) {
   let t = 0;
   return {
     update(dt) { t += dt; ps.update(dt); bits.update(dt); lights.update(dt); },
-    drawBack(p) { ps.draw(p, "back"); },
+    drawBack(p) { if (deco) ps.draw(p, "back"); },
     draw(p) {
       // 冲击波：半径从 12 推到 L，厚度中间最厚；第 1 帧白热，之后外缘白、里面逐级变深，推完散掉
       const r = 12 + (L - 12) * ease.outQuart(clamp(t / PUSH)), fade = 1 - smooth(PUSH, 0.42, t), W = 22 * (1 - 0.5 * clamp(t / 0.4));
-      if (fade > 0) p.shade(0, -L - 6, L + 8, L + 6, (x, y, out) => {
+      if (core && fade > 0) p.shade(0, -L - 6, L + 8, L + 6, (x, y, out) => {
         const a = Math.atan2(y, x);
         if (Math.abs(a) > SPAN / 2) return;
         const v = Math.abs(a) / (SPAN / 2), jag = 3 * noise(a * 7 + t * 4, o.seed);
@@ -56,16 +57,18 @@ export function create(o) {
         const hot = t < 0.05 ? 3 : t < 0.1 ? 1 : 0;
         out.c = C[clamp(Math.round(7 - q * 4.5 - (1 - fade) * 3 - v * 1.5 + hot), 1, 7)];
       });
-      p.glow(r * 0.7, 0, 30 + r * 0.3, C[5], 0.45 * fade);
+      if (deco) p.glow(r * 0.7, 0, 30 + r * 0.3, C[5], 0.45 * fade);
       // 盾面爆亮
       if (t < 0.1) {
         const k = 1 - t / 0.1;
-        p.disc(10, 0, 12 * k + 4, C[7], 0.9);
-        sparkle(p, 14, 0, 18 * k, C[7], C[5], 0.8);
+        if (core) p.disc(10, 0, 12 * k + 4, C[7], 0.9);
+        if (deco) sparkle(p, 14, 0, 18 * k, C[7], C[5], 0.8);
       }
-      bits.draw(p);
-      ps.draw(p, "front");
-      lights.draw(p);
+      if (deco) {
+        bits.draw(p);
+        ps.draw(p, "front");
+        lights.draw(p);
+      }
     },
   };
 }

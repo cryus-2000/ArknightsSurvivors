@@ -15,7 +15,7 @@ export const meta = {
   bg: "dark",
   options: {
     palette: ["#241004", "#52260a", "#8e4510", "#cc7418", "#f2aa3c", "#ffd77e", "#fff2cf", "#ffffff"],
-    phase: "grow",
+    layer: "all", phase: "grow",
     seed: 4,
   },
 };
@@ -24,6 +24,7 @@ const DUR = { grow: 0.4, idle: 1.6, break: 0.6 };
 
 export function create(o) {
   const C = fit(o.palette, 8), R = o.palette, Rg = new Rng(o.seed), phase = o.phase;
+  const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）
   const ps = new Particles({ rng: Rg, ground: () => 2, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
   const bits = new Bits({ ground: () => 2 });
   // 晶体：中间高、两边矮，往外倾；位置 / 高矮 / 粗细 / 先后都不一样（不等距）
@@ -71,13 +72,13 @@ export function create(o) {
       lights.update(dt);
     },
     drawBack(p) {
-      ps.draw(p, "back");
+      if (deco) ps.draw(p, "back");
     },
     draw(p) {
       // 脚下一片琥珀色的微光
       const glowK = phase === "break" ? 1 - smooth(0.05, 0.4, t) : 1;
-      p.glow(0, -8, 34, C[4], 0.28 * glowK);
-      if (phase !== "break" || t < 0.05) {
+      if (deco) p.glow(0, -8, 34, C[4], 0.28 * glowK);
+      if (core && (phase !== "break" || t < 0.05)) {
         const crack = phase === "break" ? 1 : 0;
         for (const c of cr) {
           let k = 1;
@@ -88,15 +89,17 @@ export function create(o) {
           crystal(p, c.x, c.base, h, c.w, c.lean * k, R, { glint, white: (phase === "grow" && t - c.d < 0.05 && t - c.d > 0) || crack > 0 });
         }
       }
-      if (phase === "grow" && t < 0.1) p.disc(0, -2, 8 * (1 - t / 0.1) + 3, C[7], 0.8);
-      if (phase === "break" && t < 0.12) p.disc(0, -14, 16 * (1 - t / 0.12) + 5, C[7], 0.85);
-      if (phase === "idle") {
+      if (core && phase === "grow" && t < 0.1) p.disc(0, -2, 8 * (1 - t / 0.1) + 3, C[7], 0.8);
+      if (core && phase === "break" && t < 0.12) p.disc(0, -14, 16 * (1 - t / 0.12) + 5, C[7], 0.85);
+      if (deco && phase === "idle") {
         const c = cr[Math.floor((t / dur) * cr.length) % cr.length], g = (t * cr.length / dur) % 1;
         if (g < 0.35) sparkle(p, c.x + c.lean * 0.9, c.base - c.h * 0.92, 6 * Math.sin((g / 0.35) * Math.PI), C[7], C[5], 0.6);
       }
-      bits.draw(p);
-      ps.draw(p, "front");
-      lights.draw(p);
+      if (deco) {
+        bits.draw(p);
+        ps.draw(p, "front");
+        lights.draw(p);
+      }
     },
   };
 }

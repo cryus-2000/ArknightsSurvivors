@@ -3,21 +3,25 @@
  "fx_saria_ul_bash": {
   "fx": "impacts/ak-saria-ul-bash",
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_saria_ul_calc_grow": {
   "fx": "nature/ak-saria-ul-calcite-grow",
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_saria_ul_calc_idle": {
   "fx": "nature/ak-saria-ul-calcite-idle",
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_saria_ul_calc_break": {
   "fx": "nature/ak-saria-ul-calcite-break",
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  }
 }
