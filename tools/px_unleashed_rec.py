@@ -4,7 +4,7 @@
 每名干员依次录：
   - 展示段（tools/px_showcase_rec.py：普攻 / S1 / S2 / S3 / 终结技 / 队友版拼一条），按 --modes 录全档 full、网页低档 lo、只剩核心 deco0；
   - 实战段：本人当队长，同种子从 --at 起录 --secs 秒，只录新版（docs/242 §5）。
-原速 30 帧（--realtime --fixed-fps 30），--playclock 让命中定格照玩家局生效（批跑 / TRACE 不受影响），1920×1080，原色，静音。
+原速 30 帧（--realtime --fixed-fps 30），--playclock 让命中定格照玩家局生效（批跑 / TRACE 不受影响），1920×1080，原色，带声音（--sfxtrace 离线混音效 / 语音 / 配乐，tools/rec_audio.py；测试局本身静音，--mute 不配）。
 输出 <out>/<干员>/：showcase.mp4、showcase_lo.mp4、showcase_deco0.mp4、live.mp4；某段失败重录一次，再失败记进 <out>/rec_log.txt 接着录下一段。
 帧先存到 --tmp（1080p 每帧约 2–3 MB），编码完删掉。一次只开一个 Godot（别和别的会话抢机器）。
 用法：python tools/px_unleashed_rec.py skadi,saria,exusiai [--modes full,lo,deco0] [--live-secs 60] [--at 420] [--seed 13]
@@ -13,6 +13,7 @@
 import argparse, glob, os, shutil, subprocess, sys, tempfile, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import godot_runner as GR
+import rec_audio as RA
 import imageio_ffmpeg
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -20,11 +21,12 @@ FF = imageio_ffmpeg.get_ffmpeg_exe()
 FILL = ["suzuran", "hoshiguma", "texas", "saria", "exusiai", "skadi"]   # 实战段编队凑满 3 人用
 
 
-def enc(fdir, mp4, secs, max_mib=25.0):
-    """按时长定码率，保证不超过 max_mib（留 8% 余量）"""
-    kbps = int(max_mib * 0.92 * 8 * 1024 / secs)
-    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(fdir, "rec_%05d.png"), "-c:v", "libx264", "-preset", "slow",
-                    "-b:v", "%dk" % kbps, "-maxrate", "%dk" % int(kbps * 1.3), "-bufsize", "%dk" % (kbps * 2), "-pix_fmt", "yuv420p", mp4], check=True)
+def enc(fdir, mp4, secs, max_mib=25.0, wav=None):
+    """按时长定码率，保证不超过 max_mib（留 8% 余量；有音轨时扣 160k）"""
+    kbps = int(max_mib * 0.92 * 8 * 1024 / secs) - (160 if wav else 0)
+    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(fdir, "rec_%05d.png")] + (["-i", wav] if wav else []) + ["-c:v", "libx264", "-preset", "slow",
+                    "-b:v", "%dk" % kbps, "-maxrate", "%dk" % int(kbps * 1.3), "-bufsize", "%dk" % (kbps * 2), "-pix_fmt", "yuv420p"] +
+                   (["-c:a", "aac", "-b:a", "160k", "-shortest"] if wav else []) + [mp4], check=True)
 
 
 def live(a, op, squad, out):
@@ -34,7 +36,7 @@ def live(a, op, squad, out):
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--resolution", "1920x1080", "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
             "--balance", "--realtime", "--playclock", "--rtfrom=%g" % max(0.0, a.at - 3), "--nodeath", "--seed=%d" % a.seed, "--op=" + op, "--squad=" + squad,
             "--bot=expert", "--recframes=%g,%d" % (a.at, int(a.live_secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"),
-            "--maxt=%d" % (a.at + a.live_secs + 10), "--bal=fx/px_unleashed=1"] + a.extra.split()
+            "--maxt=%d" % (a.at + a.live_secs + 10), "--bal=fx/px_unleashed=1"] + a.extra.split() + ([] if a.mute else ["--sfxtrace"])
     o, e, to = GR.run_godot(args, 3600)
     n = len(glob.glob(os.path.join(fdir, "rec_*.png")))
     err = GR.script_errors(o, e)[:3]
@@ -42,15 +44,25 @@ def live(a, op, squad, out):
         shutil.rmtree(fdir, ignore_errors=True)
         raise RuntimeError("实战段只录到 %d 帧 %s%s" % (n, err, " 超时" if to else ""))
     mp4 = os.path.join(out, "live.mp4")
-    enc(fdir, mp4, a.live_secs)
+    wav, snd = None, ""
+    if not a.mute:
+        tr, mus = RA.parse(o)
+        if tr is None:
+            snd = " 声音：没拿到 SFXTRACE"
+        else:
+            y, has_mus = RA.mix_audio(tr, mus or {}, n)
+            wav = os.path.join(fdir, "mix.wav")
+            RA.write_wav(wav, y)
+            snd = " 声音：" + RA.summary(tr, has_mus)
+    enc(fdir, mp4, a.live_secs, wav=wav)
     shutil.rmtree(fdir, ignore_errors=True)
-    return "live %d 帧 %.1f MiB %s" % (n, os.path.getsize(mp4) / 1048576, err or "")
+    return "live %d 帧 %.1f MiB %s%s" % (n, os.path.getsize(mp4) / 1048576, err or "", snd)
 
 
 def showcase(a, op, mode, mate, out):
     flag = {"full": [], "lo": ["--lo"], "deco0": ["--deco0"], "elite": ["--elites", "0,1,2"]}[mode]   # elite：每招 E0 → E1 → E2 依次（docs/242 §10）
     secs = [] if mode == "full" else ["--secs", "5"]
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "px_showcase_rec.py"), op, "--mate", mate, "--seed", str(a.seed), "--out", out, "--tmp", a.tmp] + secs + flag,
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "px_showcase_rec.py"), op, "--mate", mate, "--seed", str(a.seed), "--out", out, "--tmp", a.tmp] + secs + flag + (["--mute"] if a.mute else []),
                        capture_output=True, text=True, encoding="utf-8", errors="replace")
     src = os.path.join(out, "%s_showcase%s.mp4" % (op, "" if mode == "full" else "_" + mode))
     if r.returncode or not os.path.exists(src):
@@ -70,6 +82,7 @@ def main():
     ap.add_argument("--squad", default="", help="实战段编队（缺省用这批里的其他人，不够用 suzuran 等补满 3 人）")
     ap.add_argument("--extra", default="", help="实战段额外命令行参数（以 -- 开头时写成 --extra=\"--maxprog\"）")
     ap.add_argument("--skip-live", action="store_true")
+    ap.add_argument("--mute", action="store_true", help="不配声音")
     ap.add_argument("--skip-showcase", action="store_true")
     ap.add_argument("--tmp", default=tempfile.gettempdir())
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "px_unleashed"))
