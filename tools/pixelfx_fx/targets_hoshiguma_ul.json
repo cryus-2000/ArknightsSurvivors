@@ -1,5 +1,5 @@
 {
- "_doc": "星熊放开版（docs/242，claude/pixelfx-ul-hoshiguma）。#28：先只做 S3 力之锯，E0 / E1 / E2 三档对照过用户后再做其余招式",
+ "_doc": "星熊放开版（docs/242，claude/pixelfx-ul-hoshiguma）：普攻 / S1 / S2 / S3 分 E0–E2 档（S2 精一、S3 精二才解锁，只出可达档），终结技不分档；E2 出变体 2 + 队友 _tm",
  "fx_hoshiguma_ul_saw_e2": {
   "fx": "melee/ak-hoshiguma-ul-saw",
   "opts": {
@@ -59,5 +59,358 @@
   },
   "palette_src": "色阶：PRTS 发色 #58C4AB（build/prts_ref/_colors/hoshiguma.png）+ 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01.png、hsguma_03.png）",
   "move": "skill"
+ },
+ "fx_hoshiguma_ul_slash_e0": {
+  "fx": "melee/ak-hoshiguma-ul-slash",
+  "opts": {
+   "elite": 0,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half_deg*pi/180"
+   },
+   "src": "hoshiguma.json base reach 94 / half_deg 70（普攻 cone 盾斧斩）；draw fit = radius"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "basic"
+ },
+ "fx_hoshiguma_ul_slash_e1": {
+  "fx": "melee/ak-hoshiguma-ul-slash",
+  "opts": {
+   "elite": 1,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half_deg*pi/180"
+   },
+   "src": "hoshiguma.json base reach 94 / half_deg 70（普攻 cone 盾斧斩）；draw fit = radius"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "basic"
+ },
+ "fx_hoshiguma_ul_slash_e2": {
+  "fx": "melee/ak-hoshiguma-ul-slash",
+  "opts": {
+   "elite": 2,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half_deg*pi/180"
+   },
+   "src": "hoshiguma.json base reach 94 / half_deg 70（普攻 cone 盾斧斩）；draw fit = radius"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "basic"
+ },
+ "fx_hoshiguma_ul_slash_e22": {
+  "fx": "melee/ak-hoshiguma-ul-slash",
+  "opts": {
+   "elite": 2,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half_deg*pi/180"
+   },
+   "src": "hoshiguma.json base reach 94 / half_deg 70（普攻 cone 盾斧斩）；draw fit = radius"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "basic"
+ },
+ "fx_hoshiguma_ul_slash_e2_tm": {
+  "fx": "melee/ak-hoshiguma-ul-slash",
+  "opts": {
+   "elite": 2,
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half_deg*pi/180"
+   },
+   "src": "hoshiguma.json base reach 94 / half_deg 70（普攻 cone 盾斧斩）；draw fit = radius"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "basic"
+ },
+ "fx_hoshiguma_ul_slam_e0": {
+  "fx": "impacts/ak-hoshiguma-ul-slam",
+  "opts": {
+   "elite": 0,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "hoshiguma.json base s1_r 150（S1 战意 circle center self）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_slam_e1": {
+  "fx": "impacts/ak-hoshiguma-ul-slam",
+  "opts": {
+   "elite": 1,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "hoshiguma.json base s1_r 150（S1 战意 circle center self）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_slam_e2": {
+  "fx": "impacts/ak-hoshiguma-ul-slam",
+  "opts": {
+   "elite": 2,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "hoshiguma.json base s1_r 150（S1 战意 circle center self）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_slam_e22": {
+  "fx": "impacts/ak-hoshiguma-ul-slam",
+  "opts": {
+   "elite": 2,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "hoshiguma.json base s1_r 150（S1 战意 circle center self）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_slam_e2_tm": {
+  "fx": "impacts/ak-hoshiguma-ul-slam",
+  "opts": {
+   "elite": 2,
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "s1_r/2"
+   },
+   "src": "hoshiguma.json base s1_r 150（S1 战意 circle center self）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_thorn_e1": {
+  "fx": "nature/ak-hoshiguma-ul-thorn",
+  "opts": {
+   "elite": 1,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "sand_r/2"
+   },
+   "src": "hoshiguma.json base sand_r 80（S2 荆棘 trait field → circle 热砂每跳）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_thorn_e2": {
+  "fx": "nature/ak-hoshiguma-ul-thorn",
+  "opts": {
+   "elite": 2,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "sand_r/2"
+   },
+   "src": "hoshiguma.json base sand_r 80（S2 荆棘 trait field → circle 热砂每跳）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_thorn_e22": {
+  "fx": "nature/ak-hoshiguma-ul-thorn",
+  "opts": {
+   "elite": 2,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "sand_r/2"
+   },
+   "src": "hoshiguma.json base sand_r 80（S2 荆棘 trait field → circle 热砂每跳）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_thorn_e2_tm": {
+  "fx": "nature/ak-hoshiguma-ul-thorn",
+  "opts": {
+   "elite": 2,
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": "sand_r/2"
+   },
+   "src": "hoshiguma.json base sand_r 80（S2 荆棘 trait field → circle 热砂每跳）"
+  },
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_hoshiguma_ul_saw_e22": {
+  "fx": "melee/ak-hoshiguma-ul-saw",
+  "opts": {
+   "elite": 2,
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "len": "s3_len/2",
+    "w": "s3_w/2"
+   },
+   "src": "hoshiguma.json base s3_len 220 / s3_w 50（S3 力之锯 swap_attack shape.line）；1x 像素 = 世界 / 2"
+  },
+  "palette_src": "色阶：PRTS 发色 #58C4AB（build/prts_ref/_colors/hoshiguma.png）+ 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01.png、hsguma_03.png）",
+  "move": "skill"
+ },
+ "fx_hoshiguma_ul_saw_e2_tm": {
+  "fx": "melee/ak-hoshiguma-ul-saw",
+  "opts": {
+   "elite": 2,
+   "seed": 3,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "len": "s3_len/2",
+    "w": "s3_w/2"
+   },
+   "src": "hoshiguma.json base s3_len 220 / s3_w 50（S3 力之锯 swap_attack shape.line）；1x 像素 = 世界 / 2"
+  },
+  "palette_src": "色阶：PRTS 发色 #58C4AB（build/prts_ref/_colors/hoshiguma.png）+ 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01.png、hsguma_03.png）",
+  "move": "skill"
+ },
+ "fx_hoshiguma_ul_ultslam": {
+  "fx": "impacts/ak-hoshiguma-ul-slam",
+  "opts": {
+   "elite": 2,
+   "seed": 21,
+   "radius": 55
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "ult",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "radius": 55
+   },
+   "src": "run/ult_moves_c.gd _ho_start：盾阵六边形内圈 110 世界像素（写死常量）→ 1x 半径 55"
+  }
+ },
+ "fx_hoshiguma_ul_ultguard": {
+  "fx": "holy/ak-hoshiguma-ul-guard",
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "palette_src": "色阶：S3 / 般若元素青绿 = PRTS 发色 #58C4AB + 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01、03）；S1 / S2 金 = house.js OP.hoshiguma；普攻钢色 = PRTS 盾 #272727 / #1E1E1E 提亮；暗红 = docs/91 §4 精一「反击架势」",
+  "move": "ult"
  }
 }
