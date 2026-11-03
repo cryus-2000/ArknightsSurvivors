@@ -242,7 +242,10 @@ def main():
             imgs.append(row)
         gif = os.path.join(out_dir, "%s.gif" % name)
         imgs[0].save(gif, save_all=True, append_images=imgs[1:], duration=int(1000 / FPS_OUT), loop=0, optimize=False, disposal=1)
-        mid = imgs[min(len(imgs) - 1, int(len(imgs) * 0.3))]
+        def busy(im):   # 总览取 E2 格里画面最满的一帧（不取固定时刻，免得落在收尾）
+            c = im.crop((2 * CW, 30, 3 * CW, CH)).convert("RGB")
+            return sum(1 for px in c.getdata() if abs(px[0] - GROUND[0]) + abs(px[1] - GROUND[1]) + abs(px[2] - GROUND[2]) > 40)
+        mid = max(imgs[: max(1, int(len(imgs) * 0.8))][::2], key=busy)
         thumbs.append((name, mid.crop((2 * CW, 0, 3 * CW, CH))))
         print("%s：%d 帧（%.2f 秒%s）→ %s" % (name, nfr, total, "，循环" if loop else "", gif))
     tw = 260
