@@ -72,7 +72,7 @@ func _process(_dt: float) -> void:
 		game.t += 0.25
 		duck.on_hit(e)
 	check(duck.tier_speed(e) <= Bal.v("duck/spd_max", 0) + 0.01, "tier speed capped")
-	check(Bal.v("duck/spd_max", 999) < game.speed, "cap below leader speed (catchable)")
+	check(Bal.v("duck/spd_max", 999) < duck.chase_speed() and duck.chase_speed() > game.speed, "cap below walk + dash chase speed (catchable with dash)")
 	game.t += Bal.v("duck/hit_t", 2.0) + 0.1
 	check(is_equal_approx(duck.speed(e), base), "boost expires")
 	# 时限到溜走：不掉落、不计击杀

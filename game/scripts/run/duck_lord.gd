@@ -11,7 +11,8 @@ const A = preload("res://scripts/art.gd")
 const Look = preload("res://scripts/render/look.gd")
 const DUST_COL := Color(0.62, 0.58, 0.5, 0.85)
 const RUN_FRAMES := 6          # e_duck_run@2x 帧数（pixgen 出图 + tools/imagegen/duck_run_cut.py）
-const RUN_PER_PX := 0.085      # 跑步帧相位：每跑 1 像素前进的帧数
+const RUN_PER_PX := 0.075      # 跑步帧相位：每跑 1 像素前进的帧数（130 速度约 10 帧 / 秒）
+const RUN_FPS_MAX := 26.0      # 爆发冲刺时帧率封顶，免得腿糊成一片
 const SWEAT_COL := Color(0.55, 0.85, 1.0)
 const MARK_COL := Color(1.0, 0.92, 0.35)
 var g: Game
@@ -63,7 +64,7 @@ func spawn() -> Dictionary:
 	e.pos = g.map.push_out(p, e.r)
 	e.hp *= Bal.v("duck/hp_mult", 1.0)
 	e.maxhp = e.hp
-	e.spd = Bal.v("duck/spd", 105.0)
+	e.spd = Bal.v("duck/spd", 130.0)
 	e["duck_t0"] = g.t
 	e["duck_hits"] = []     # 每段加速的到期时刻（受击时追加，过期剔除）
 	e["duck_last_hit"] = -INF
@@ -81,20 +82,20 @@ func spawn() -> Dictionary:
 	return e
 
 
-## 档位速度：基础 + 每段加速 × 段数，封顶 duck/spd_max（低于队长基础移速，追得上）
+## 档位速度：基础 + 每段加速 × 段数，封顶 duck/spd_max（高于队长走路、低于冲刺追速 chase_speed：要冲刺才追得上）
 func tier_speed(e: Dictionary) -> float:
 	var n: int = 0
 	for t in e.duck_hits:
 		if float(t) > g.t:
 			n += 1
-	return minf(Bal.v("duck/spd", 105.0) + Bal.v("duck/hit_spd", 14.0) * n, Bal.v("duck/spd_max", 140.0))
+	return minf(Bal.v("duck/spd", 130.0) + Bal.v("duck/hit_spd", 25.0) * n, Bal.v("duck/spd_max", 190.0))
 
 
 ## 爆发冲刺余量（用户 11-04「被攻击后快速逃跑看不出来」）：受击瞬间 +duck/burst_spd，duck/burst_t 秒内按二次缓出回落到档位速度。
-## 爆发段不受 spd_max 限制，但很短（缺省 0.45 秒、多跑约 20 像素），整体仍追得上
+## 爆发段不受 spd_max 限制，但很短（缺省 0.5 秒、多跑约 45 像素），整体仍是冲刺追得上
 func burst(e: Dictionary) -> float:
-	var k: float = 1.0 - (g.t - float(e.duck_burst)) / maxf(0.01, Bal.v("duck/burst_t", 0.45))
-	return Bal.v("duck/burst_spd", 150.0) * k * k if k > 0.0 else 0.0
+	var k: float = 1.0 - (g.t - float(e.duck_burst)) / maxf(0.01, Bal.v("duck/burst_t", 0.5))
+	return Bal.v("duck/burst_spd", 260.0) * k * k if k > 0.0 else 0.0
 
 
 ## 当前移速 = 档位 + 爆发
@@ -104,8 +105,8 @@ func speed(e: Dictionary) -> float:
 
 ## 0–1：画面「有多快」（档位 + 爆发），驱动帧率、尘土、速度线
 func fastness(e: Dictionary) -> float:
-	var base: float = Bal.v("duck/spd", 105.0)
-	return clampf((speed(e) - base) / maxf(1.0, Bal.v("duck/spd_max", 140.0) - base), 0.0, 1.5)
+	var base: float = Bal.v("duck/spd", 130.0)
+	return clampf((speed(e) - base) / maxf(1.0, Bal.v("duck/spd_max", 190.0) - base), 0.0, 1.5)
 
 
 ## 受击（combat._damage 过了无敌判定后调）：加一段加速；同一 duck/hit_gap 秒内的多次命中只算一段（范围持续伤害不会一帧叠满）
@@ -150,8 +151,16 @@ func step(e: Dictionary, dt: float) -> void:
 	if absf(e.pos.x - old.x) > 0.01:
 		e.fx = signf(e.pos.x - old.x)
 	e.duck_last_dir = (e.pos - old).normalized() if e.pos.distance_squared_to(old) > 0.0001 else Vector2(e.fx, 0.0)
-	# 跑步帧相位：每像素 RUN_PER_PX 帧，帧率跟着当前速度走（105 ≈ 9 帧 / 秒，爆发时 20+）
-	e.duck_anim = fmod(float(e.duck_anim) + sp * dt * RUN_PER_PX, float(RUN_FRAMES))
+	# 跑步帧相位：每像素 RUN_PER_PX 帧，帧率跟着当前速度走（130 ≈ 10 帧 / 秒，封顶 RUN_FPS_MAX）
+	var a0: float = float(e.duck_anim)
+	e.duck_anim = fmod(a0 + minf(sp * RUN_PER_PX, RUN_FPS_MAX) * dt, float(RUN_FRAMES))
+	# 每一步（一圈两步：帧 0、3 落脚）脚下往后踢一小团尘土（纯画面）
+	if int(a0 / 3.0) != int(float(e.duck_anim) / 3.0) and g.fx.size() < 390:
+		var kb: Vector2 = -e.duck_last_dir
+		for i in 5:
+			g.fx.append({"kind": "spark", "pos": e.pos + Vector2(-e.fx * 6.0, e.r * 0.8) + Vector2(g.vrng.randf_range(-3, 3), g.vrng.randf_range(-2, 2)),
+				"vel": kb.rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(40, 110) + Vector2(0, -g.vrng.randf_range(20, 60)),
+				"sz": 4.0 if g.vrng.randf() < 0.5 else 2.0, "life": 0.35, "max": 0.35, "col": DUST_COL})
 	# 尘土（纯画面，g.vrng）：脚下往后扬，加速时更密、更大
 	e.duck_dust -= dt * lerpf(1.0, 4.0, minf(fast, 1.5) / 1.5)
 	if e.duck_dust <= 0.0 and g.fx.size() < 400:
@@ -205,8 +214,23 @@ func on_kill(e: Dictionary) -> void:
 	Sfx.play("relic", -4.0, 1.2)
 
 
+## 「冲刺追得上」的口径：队长走路 + 冷却一到就冲刺的平均速度（每 dash_cd 秒多走 dash_dist − 冲刺 0.18 秒里本来能走的距离）。
+## 缺省 150 + (107 − 27) / 1.2 ≈ 217；duck/spd_max 要低于它（11-04 用户：平时走路追不上没关系，冲刺能追上就行）
+func chase_speed() -> float:
+	return g.speed + maxf(0.0, g.dash_dist() - g.speed * 0.18) / maxf(0.3, g.dash_cd_full())
+
+
+## 机器人用冲刺追：在追、离它超过 bot/duck_dash_r、冲刺好了 → 朝它冲（core/bot.move 先问这个）
+func bot_dash(p: Vector2) -> Vector2:
+	var d: Vector2 = chase_dir(p)
+	if d == Vector2.ZERO or not g.dash_ready() or g.dash_t > 0.0:
+		return Vector2.ZERO
+	var e: Dictionary = alive()
+	return d if e.pos.distance_to(p) > Bal.v("bot/duck_dash_r", 140.0) else Vector2.ZERO
+
+
 ## 机器人追鸭爵（core/bot.gd 高手 / master、autotest 普通）：在 bot/duck_r 内、生命 > bot/duck_hp、
-## 且「追得到」（它档位速度低于队长移速，或已在 bot/duck_reach 内、干员打得到）时返回朝它的方向，否则 ZERO
+## 且「追得到」（它档位速度低于冲刺追速 chase_speed，或已在 bot/duck_reach 内、干员打得到）时返回朝它的方向，否则 ZERO
 func chase_dir(p: Vector2) -> Vector2:
 	var e: Dictionary = alive()
 	if e.is_empty() or g.hp <= g.max_hp * Bal.v("bot/duck_hp", 0.4):
@@ -214,7 +238,7 @@ func chase_dir(p: Vector2) -> Vector2:
 	var d: float = e.pos.distance_to(p)
 	if d > Bal.v("bot/duck_r", 650.0):
 		return Vector2.ZERO
-	if tier_speed(e) >= g.speed and d > Bal.v("bot/duck_reach", 220.0):   # 爆发冲刺很短，按档位判断追不追得上
+	if tier_speed(e) >= chase_speed() and d > Bal.v("bot/duck_reach", 220.0):   # 爆发冲刺很短，按档位判断；走路追不上的靠冲刺（bot_dash）
 		return Vector2.ZERO
 	return (e.pos - p).normalized()
 
@@ -248,18 +272,18 @@ func draw(e: Dictionary, ci: CanvasItem) -> void:
 	if tx == null:
 		return
 	var fast: float = fastness(e)
-	var pk: float = Game.PX / A.hires_of(tx) * float(e.get("sc", 1.0))
+	var pk: float = Game.PX / A.hires_of(tx) * float(e.get("sc", 1.0)) * Bal.v("duck/draw_scale", 1.25)   # 画大一点（判定 e.r 不变）
 	var fw: float = tx.get_width() / float(nf)
 	var fh: float = tx.get_height()
 	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX) + g.draw_off
 	var flip: bool = e.fx < 0.0
 	var sgn: float = -1.0 if flip else 1.0
 	# 每步一颠（一圈 6 帧两步）、按速度前倾
-	var bob: float = -absf(sin(PI * float(e.duck_anim) / 3.0)) * lerpf(2.0, 4.0, minf(fast, 1.0)) if moving else 0.0
-	var lean: float = (0.05 + 0.12 * minf(fast, 1.2)) * sgn if moving else 0.0
+	var bob: float = -absf(sin(PI * float(e.duck_anim) / 3.0)) * lerpf(4.0, 8.0, minf(fast, 1.0)) if moving else 0.0
+	var lean: float = (0.12 + 0.18 * minf(fast, 1.2)) * sgn if moving else 0.0
 	# 影子
 	ci.draw_set_transform(foot.round(), 0.0, Vector2(1.0, 0.35))
-	ci.draw_circle(Vector2.ZERO, e.r * 1.1, Color(0, 0, 0, 0.28))
+	ci.draw_circle(Vector2.ZERO, e.r * 1.1 * Bal.v("duck/draw_scale", 1.25) * (1.0 + bob * 0.02), Color(0, 0, 0, 0.28))
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 速度线（身后三道，越快越长越实）
 	if moving and fast > 0.15:
@@ -281,7 +305,7 @@ func draw(e: Dictionary, ci: CanvasItem) -> void:
 	var head: Vector2 = foot + Vector2(sgn * fw * pk * 0.12, -fh * pk + bob)
 	# 受击后：惊叹号（弹出再缩回）+ 两滴汗往后甩
 	var since: float = g.t - float(e.duck_burst)
-	var life: float = Bal.v("duck/burst_t", 0.45) * 2.0
+	var life: float = Bal.v("duck/burst_t", 0.5) * 2.0
 	if since >= 0.0 and since < life:
 		var u: float = since / life
 		var pop: float = 1.0 + 0.6 * maxf(0.0, 1.0 - since / 0.12)

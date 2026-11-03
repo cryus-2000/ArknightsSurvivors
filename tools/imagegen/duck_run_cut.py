@@ -14,7 +14,7 @@ import pixgen as P
 
 ROOT = os.path.dirname(os.path.dirname(HERE))
 STATIC = os.path.join(ROOT, "game", "art", "enemies", "duck", "e_duck@2x.png")
-FW, FH = 64, 56   # 帧宽高（跑步步幅比站立宽，宽 64）
+FW, FH = 64, 56   # 帧宽高缺省（跑步步幅比站立宽，宽 64）；--fw 改宽
 
 
 def comps_keep(m, frac=0.04):
@@ -48,12 +48,16 @@ def comps_keep(m, frac=0.04):
 
 
 def main():
+    global FW
     ap = argparse.ArgumentParser()
     ap.add_argument("src")
     ap.add_argument("--grid", default="3x2")
     ap.add_argument("--order", default="")
+    ap.add_argument("--fw", type=int, default=FW)
+    ap.add_argument("--preview", default="run_strip_6x.png")
     ap.add_argument("--out", default=os.path.join(ROOT, "game", "art", "enemies", "duck", "e_duck_run@2x.png"))
     a = ap.parse_args()
+    FW = a.fw
     gx, gy = [int(v) for v in a.grid.split("x")]
     im, fg = P._cutout(a.src)
     H, W = fg.shape
@@ -122,7 +126,7 @@ def main():
     prev = Image.new("RGBA", (FW * len(frames) * 6 + 6 * FW * 2, FH * 6), (40, 44, 52, 255))
     prev.alpha_composite(Image.fromarray(strip).resize((FW * len(frames) * 6, FH * 6), Image.NEAREST))
     prev.alpha_composite(Image.open(STATIC).convert("RGBA").resize((56 * 6, 56 * 6), Image.NEAREST), (FW * len(frames) * 6 + 30, 0))
-    prev.save(os.path.join(ROOT, "build", "duck_ref", "run_strip_6x.png"))
+    prev.save(os.path.join(ROOT, "build", "duck_ref", a.preview))
     gif = [Image.alpha_composite(Image.new("RGBA", (FW, FH), (40, 44, 52, 255)), Image.fromarray(f)).resize((FW * 6, FH * 6), Image.NEAREST) for f in frames]
     gif[0].save(os.path.join(ROOT, "build", "duck_ref", "run_cycle.gif"), save_all=True, append_images=gif[1:], duration=90, loop=0)
     print("帧", len(frames), "块", round(blk, 2), "身高", target_h, "→", a.out)

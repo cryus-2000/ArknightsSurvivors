@@ -64,6 +64,11 @@ func _init(game, p: String, seed_v: int) -> void:
 func move(dt: float) -> Vector2:
 	if profile != "afk" and g.get("squad") != null:
 		g.squad.bot_point(dt)   # 指点：Boss 在场集火、被包围时肃清最密的一块（10-30，command/bot_point）
+	if profile in ["normal", "expert", "master"]:
+		var dd: Vector2 = g.duck.bot_dash(g.ppos)
+		if dd != Vector2.ZERO:
+			g.autotest_sys.want_dash = true   # 鸭爵跑得比走路快：冲刺好了就朝它冲（docs/216 §11.3）
+			return dd
 	match profile:
 		"afk":
 			return Vector2.ZERO
