@@ -118,9 +118,10 @@ export function create(o) {
     mk(Rg.range(-0.08, 0.08), Rg.range(0.62, 0.75), Rg.range(0.92, 1.0), Rg.range(1.9, 2.2), Rg.range(0.4, 0.5), 0);   // 主浪
     const nl = Rg.chance(0.5) ? 1 : 2, nr = 3 - nl;   // 一侧 1 段、另一侧 2 段
     let a = Rg.range(0.95, 1.25);
-    for (let q = 0; q < nl; q++) { const h = Rg.range(0.2, 0.36); mk(a + h, h, Rg.range(0.7, 0.92), Rg.range(0.55, 1.0), Rg.range(0.1, 0.24), Rg.range(0.03, 0.11)); a += 2 * h + Rg.range(0.25, 0.5); }
+    // 侧浪约主浪一半（总组长 11-04：原来只剩几块白三角像碎点）：带浪身、浪尖和碎沫，长度 / 时间仍错开
+    for (let q = 0; q < nl; q++) { const h = Rg.range(0.3, 0.42); mk(a + h, h, Rg.range(0.74, 0.92), Rg.range(0.95, 1.15), Rg.range(0.14, 0.26), Rg.range(0.03, 0.11)); a += 2 * h + Rg.range(0.25, 0.45); }
     a = -Rg.range(0.8, 1.1);
-    for (let q = 0; q < nr; q++) { const h = Rg.range(0.18, 0.34); mk(a - h, h, Rg.range(0.66, 0.9), Rg.range(0.5, 0.95), Rg.range(0.08, 0.22), Rg.range(0.04, 0.12)); a -= 2 * h + Rg.range(0.3, 0.55); }
+    for (let q = 0; q < nr; q++) { const h = Rg.range(0.26, 0.38); mk(a - h, h, Rg.range(0.7, 0.9), Rg.range(0.9, 1.1), Rg.range(0.12, 0.24), Rg.range(0.04, 0.12)); a -= 2 * h + Rg.range(0.28, 0.5); }
     if (mv === "s3" && el >= 2) for (const sg of segs) if (sg.hk > 1.5) pillars.push({ a: sg.c + Rg.range(-0.3, 0.3) * sg.h, H: Rg.range(36, 54), d: sg.d + Rg.range(0.02, 0.06) });
   }
   const inSeg = (a) => segs.some((sg) => Math.abs(Math.atan2(Math.sin(a - sg.c), Math.cos(a - sg.c))) < sg.h);
@@ -256,9 +257,9 @@ export function create(o) {
         if (u < 0) continue;
         const sp = sg.h * 2, head = ease.outExpo(clamp(u / SW)), tail = smooth(SW + 0.07, SW + 0.07 + 0.4 * (0.6 + 0.4 * DL), u), age = clamp(u / (SW + 0.07 + 0.4 * (0.6 + 0.4 * DL)));
         const pr = 1 + sg.push * ease.outCubic(clamp(u / 0.35));   // 每段各自往外拍出去（推进距离不同），不停在同一圈上
-        const S = { seed: sg.seed, R: A.R * sg.rk * pr, W: A.W * (0.7 + 0.5 * sg.hk), ramp: C, GK, edge: fine };
+        const S = { seed: sg.seed, R: A.R * sg.rk * pr, W: A.W * (0.85 + 0.45 * sg.hk), ramp: C, GK, edge: fine, minI: sg.hk < 1.5 ? 1 : 0 };   // 侧浪不出纯白（minI：免得只剩白色小三角）
         const ta = sg.c - sg.dir * sg.h;
-        if (tail < 1) crescent(p, S, ta + sg.dir * sp * tail, sg.dir * sp * (head - tail), S.W * (1 - tail * 0.5), age, u < 0.06 ? HOT : 0, core, deco);
+        if (tail < 1) crescent(p, S, ta + sg.dir * sp * tail, sg.dir * sp * (head - tail), S.W * (1 - tail * 0.5), age, u < 0.06 && sg.hk >= 1.5 ? HOT : 0, core, deco);   // 白热只给主浪
         if (core) waveFront(p, sg.c, sg.h * 0.9, A.R * sg.rk * 0.75 * pr, R0 * 0.36 * sg.hk * [0.75, 1, 1.2][el], u - SW * 0.5, sg.seed, el >= 2);   // 浪从这段斩痕里往外拍出去再碎开
       }
       if (core && mv === "basic" && el >= 1 && t > SW * 0.7) waveFront(p, 0, span * (el >= 2 ? 0.36 : 0.26), A.R * 0.55, R0 * (el >= 2 ? 0.42 : 0.28), t - SW * 0.7, o.seed + 300, el >= 2);   // 普攻 E1+：浪从斩痕里往前涌、卷起再碎开（E2 更大、浪头海绿）
