@@ -77,6 +77,7 @@ def unpremultiply(im):
     a = np.asarray(im, dtype=np.float32).copy()
     al = a[..., 3:4]
     a[..., :3] = np.where(al > 0, np.minimum(255.0, a[..., :3] * 255.0 / np.maximum(al, 1.0) + 0.5), 0.0)
+    a[..., 3:4] = np.where(al > 10, al, 0.0)   # alpha ≤ 10 清零：紧裁按 alpha > 10 取包围盒，反预乘后这些像素变亮，留着会在裁边处露出一条硬边（11-03）
     return Image.fromarray(a.astype(np.uint8), "RGBA")
 
 
@@ -85,7 +86,7 @@ def _alpha(im):
 
 
 def build_strip(frames, box, pivot):
-    """box = None：逐帧紧裁打包（行宽 ≤ MAX_W），返回 (图, 帧表 [[x, y, w, h, ax, ay]…])；否则按 box 等宽切（keep），帧表 None"""
+    """box = None：逐帧紧裁、按高度分层打包（行宽 ≤ MAX_W），返回 (图, 帧表 [[x, y, w, h, ax, ay]…])；否则按 box 等宽切（keep），帧表 None"""
     if box is not None:
         w, h = box[2] - box[0], box[3] - box[1]
         strip = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
@@ -93,20 +94,27 @@ def build_strip(frames, box, pivot):
             strip.paste(f.crop(box), (i * w, 0))
         return strip, None
     bbs = [_alpha(f).getbbox() for f in frames]
-    H = max([b[3] - b[1] for b in bbs if b] or [1])
-    ws = [b[2] - b[0] if b else 0 for b in bbs]
-    rows = -(-sum(ws) // MAX_W)   # 要几行；各行按平均宽度折，避免最后一行大半空着
-    lim = min(MAX_W, max(max(ws), -(-sum(ws) // max(1, rows))))
-    pos, x, y, W = [], 0, 0, 1
-    for w in ws:
-        if x + w > lim and x > 0:
-            x, y = 0, y + H
-        pos.append((x, y))
-        x += w
-        W = max(W, x)
-    strip = Image.new("RGBA", (W, y + H), (0, 0, 0, 0))
+    sz = [(b[2] - b[0], b[3] - b[1]) if b else (0, 0) for b in bbs]
+    order = sorted(range(len(sz)), key=lambda i: -sz[i][1])   # 分层打包：按高度从高到低，每行高度 = 这行第一帧的高（省掉等高行的空白）
+
+    def shelf(lim):
+        pos, x, y, rh, W = {}, 0, 0, 0, 1
+        for i in order:
+            w, h = sz[i]
+            if x + w > lim and x > 0:
+                x, y, rh = 0, y + rh, 0
+            pos[i] = (x, y)
+            x += w
+            rh = max(rh, h)
+            W = max(W, x)
+        return W * max(1, y + rh), W, max(1, y + rh), pos
+    mw = max([w for w, _ in sz] or [1])
+    best = min((shelf(lim) for lim in range(max(1, mw), MAX_W + 1, 32)), key=lambda r: r[0])   # 行宽在 [最宽一帧, 4096] 里挑面积最小的
+    _, W, H, pos = best
+    strip = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     tab = []
-    for f, b, (x, y) in zip(frames, bbs, pos):
+    for i, (f, b) in enumerate(zip(frames, bbs)):
+        x, y = pos[i]
         if not b:
             tab.append([x, y, 0, 0, 0, 0])
             continue
@@ -279,6 +287,14 @@ def main():
         else:
             ft[nm] = tab
         print('"%s": [%d, %.1f],   # %dx%d，%.1f KB，显存 %.2f MB%s' % (nm, k, fps, st.size[0], st.size[1], size / 1024, vram_mb(*st.size), "" if tab is None else "（打包）"))
+    art = open(os.path.join(ROOT, "game", "scripts", "art.gd"), encoding="utf-8").read()
+    miss = []
+    for nm, st, tab, k, *_ in pend:   # 没登记 V6_FRAMES 的帧条游戏不加载（px_ul_tex 当缺图），装饰层会整层不画（11-03 斯卡蒂 v2 踩过）
+        m = re.search(r'"%s": \[(\d+),' % re.escape(nm), art)
+        if not m or int(m.group(1)) != k:
+            miss.append("%s（应为 %d 帧%s）" % (nm, k, "，现登记 " + m.group(1) if m else "，没登记"))
+    if miss:
+        print("!! art.gd V6_FRAMES 要改：" + "；".join(miss))
     if not a.dry:
         with open(FRAMES_JSON, "w", encoding="utf-8", newline="\n") as f:
             f.write("{\n" + ",\n".join('\t"%s": %s' % (k, json.dumps(ft[k], separators=(",", ":"))) for k in sorted(ft)) + "\n}\n")

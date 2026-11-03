@@ -26,7 +26,7 @@ const SY = 0.5, UP = 0.16, HOLD = 0.22, FALL = 0.55;
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), H = o.height, W = o.width;
   const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）：core = 水刺 + 出水白闪；deco = 水面、水珠水雾、光
-  const ps = new Particles({ rng: Rg, ground: () => 0, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
+  const ps = new Particles({ rng: Rg, ground: () => 0, sparks: [C[7], C[7], C[6], C[5]], haze: C[4] }), lights = new Lights();   // 水珠偏亮两阶（颗粒感，11-03）
   lights.add(0, -10, 70, C[6], 1.0, 0.3);
   const lean = Rg.range(-0.12, 0.12);
   let t = 0, crowned = false, fell = false, spray = 0;
@@ -67,8 +67,8 @@ export function create(o) {
       const h = top();
       // 柱身边缘一路往外甩水
       spray += dt;
-      while (spray > 0.012 && t < UP + HOLD) {
-        spray -= 0.012;
+      while (spray > 0.009 && t < UP + HOLD) {   // 颗粒感（v2 补回，11-03）：甩水密一些
+        spray -= 0.009;
         const j = jets[Rg.int(0, jets.length - 1)], d = j.L * Rg.range(0.3, 1) * (h / H);
         ps.spawn(P.SPARK, Math.cos(j.a) * d, Math.sin(j.a) * d, Math.cos(j.a) * Rg.range(40, 140) + Rg.range(-40, 40), Math.sin(j.a) * Rg.range(40, 140), Rg.range(0.3, 0.7));
       }
@@ -77,8 +77,8 @@ export function create(o) {
         lights.add(0, -H * 0.5, 60, C[6], 0.8, 0.35);
         for (const j of jets) {
           const x = Math.cos(j.a) * j.L, y = Math.sin(j.a) * j.L;
-          for (let i = 0; i < 5; i++) {
-            const a = j.a + Rg.range(-0.6, 0.6), sp = Rg.range(60, 200);
+          for (let i = 0, m = Rg.int(5, 7); i < m; i++) {   // 每股颗数也随机（等量会在角度直方图上出放射尖峰）
+            const a = j.a + Rg.range(-0.85, 0.85), sp = Rg.range(60, 210);
             ps.spawn(i % 3 ? P.SPARK : P.MOTE, x, y, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.45, 0.9), C[5 + Rg.int(0, 2)], Rg.range(0.8, 1.3));
           }
           if (Rg.chance(0.5)) ps.spawn(P.VAPOUR, x, y, Math.cos(j.a) * 20, Math.sin(j.a) * 20, Rg.range(0.5, 0.9), C[5], Rg.range(4, 8));
@@ -109,8 +109,8 @@ export function create(o) {
       if (core) jetsDraw(p, false);
       if (core && t < 0.07) p.disc(0, -4, 14 * (1 - t / 0.07) + 6, C[7], 0.95);
       if (deco) {
+        lights.draw(p);   // 光先画、颗粒后画（同刀光，11-03）
         ps.draw(p, "front");
-        lights.draw(p);
       }
     },
   };
