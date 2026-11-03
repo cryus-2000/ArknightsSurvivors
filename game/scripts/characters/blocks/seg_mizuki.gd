@@ -387,6 +387,8 @@ static func h3_kill_heal(o, b: Dictionary) -> void:
 	var got: float = min(float(b.get("pct", 0.01)) * float(o.kill_w), float(mz.budget))   # 按击杀权重（docs/50 §16.8），仍受每秒预算约束
 	mz.budget = float(mz.budget) - got
 	o.heal_leader(g.max_hp * got, o.display_name())
+	if got > 0.0:
+		g.vfx.px_ul_heal(o)   # pixelfx 放开版：队长脚下淡紫白水珠浮起（注册表 heal，1 秒内合并；开关关掉时不播）
 
 
 ## 触手本体的染色：look.deep（常态）/ look.deep_rej（排异后）× bright

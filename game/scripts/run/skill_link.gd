@@ -690,7 +690,18 @@ static func _step16(u, a: Dictionary) -> bool:
 					_hit16(p, e, "小触手", 0.5)
 					_cc(p, e, 1.0)
 					u.grain("water", e.pos, Vector2.UP, cl, 3)
-				a["mzv2"] = LFB.mz_tentacles(u, a.ts)
+				var vx = u.g.vfx
+				var tn: String = vx.px_ul_tex("fx_mizuki_ul_tent", 1, not p.is_leader, "core", vx.px_ul_el(p)) if Bal.vi("fx/px_unleashed", 0) > 0 else ""
+				if tn != "" and u.fx_ready(tn):   # 水月 pixelfx 放开版：每名敌人脚下钻出一根触手抽下（同普攻触手追击帧条，画面随机只用 vrng）
+					var td: String = vx.px_ul_tex("fx_mizuki_ul_tent", 1, not p.is_leader, "deco", vx.px_ul_el(p))
+					for e in a.ts:
+						var fl: bool = p.pos.x > e.pos.x
+						if td != "" and vx.px_deco_k(p) > 0.0:
+							vx.fx_sprite(td, e.pos + Vector2(0, 6), u.g.PX, 0.0, fl, false, Color(1, 1, 1, vx.px_deco_k(p)))
+						vx.fx_sprite(tn, e.pos + Vector2(0, 6), u.g.PX, 0.0, fl)
+					a["mzv2"] = true
+				else:
+					a["mzv2"] = LFB.mz_tentacles(u, a.ts)
 			if t < 1.0 and a.get("mzv2", false):
 				if once.call("lt"):
 					u.light(c, 150.0, cl, 0.6)

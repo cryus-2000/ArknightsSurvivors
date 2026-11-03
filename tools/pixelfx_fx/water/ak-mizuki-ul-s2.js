@@ -99,6 +99,16 @@ export function create(o) {
           }
         }
       }
+      if (mv === "heal") {   // 反移情击杀回复（落在队长脚下，§11.2 #4）：几滴淡紫白水珠从脚边地里浮起、到腰高碎成光点（核心 = 水珠，装饰 = 光点）；不画圈、不定格
+        for (let i = 0; i < 4; i++) {
+          const x0 = [-9, -3, 4, 10][i] + 2 * noise(i * 2.3, o.seed + 31), d0 = i * 0.06 + 0.04 * noise(i * 4.1, o.seed + 33), u = t - d0;
+          if (u < 0 || u > 0.5) continue;
+          const y = 2 - 34 * ease.outCubic(clamp(u / 0.45)), k = 1 - smooth(0.32, 0.5, u);
+          if (core && k > 0.1) { p.px(x0, y, hex("#ffffff")); p.px(x0, y + 1, LAV); p.px(x0 + 1, y + 1, C[6]); p.px(x0, y + 2, C[5]); }
+          if (deco && u > 0.3 && u < 0.34) for (let q = 0; q < 3; q++) ps.spawn(P.STAR, x0, y, Rg.range(-14, 14), -Rg.range(6, 20), 0.4, q ? MZ.lav : C[7], 0.8);
+        }
+        if (deco && t < 0.3) p.glow(0, -2, 18, LAV, 0.25 * (1 - t / 0.3));
+      }
       if (mv === "bind") for (const pass of ["ink", "body"]) {   // 敌人脚下：一根小触须从地里钻出、绕过脚踝收紧（开口弧，不是闭合圈）
         const ph = TAU * t / LOOP, sq = 1 + 0.08 * Math.sin(ph);
         const b = [-9 * sq, 2], tip = [8 * sq, 1 + Math.sin(ph + 1) * 1.5];

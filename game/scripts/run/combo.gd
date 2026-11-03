@@ -904,8 +904,16 @@ static func _impact(u, a: Dictionary) -> void:
 					cand.append(e)
 			var pp: Vector2 = p.pos
 			cand.sort_custom(func(x, y): return x.pos.distance_squared_to(pp) < y.pos.distance_squared_to(pp))
+			var vx = u.g.vfx
+			var tn: String = vx.px_ul_tex("fx_mizuki_ul_tent", 1, not p.is_leader, "core", vx.px_ul_el(p)) if Bal.vi("fx/px_unleashed", 0) > 0 else ""
 			for e in cand.slice(0, 8):
-				_beam(u, pp + Vector2(0, -16), e.pos + Vector2(0, -6), c, 0.3, 3.0)
+				if tn != "" and u.fx_ready(tn):   # 水月 pixelfx 放开版：敌人脚下钻出触手抽下（同普攻触手追击帧条），不再画连线
+					var td: String = vx.px_ul_tex("fx_mizuki_ul_tent", 1, not p.is_leader, "deco", vx.px_ul_el(p))
+					if td != "" and vx.px_deco_k(p) > 0.0:
+						vx.fx_sprite(td, e.pos + Vector2(0, 6), u.g.PX, 0.0, pp.x > e.pos.x, false, Color(1, 1, 1, vx.px_deco_k(p)))
+					vx.fx_sprite(tn, e.pos + Vector2(0, 6), u.g.PX, 0.0, pp.x > e.pos.x)
+				else:
+					_beam(u, pp + Vector2(0, -16), e.pos + Vector2(0, -6), c, 0.3, 3.0)
 				_hit1(p, e, 1.2)
 				if not e.dead and not e.boss:
 					p.add_cc(e, 1.0 * (0.5 if e.elite else 1.0))

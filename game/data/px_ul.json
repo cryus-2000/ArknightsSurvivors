@@ -72,6 +72,11 @@
 				"base": "fx_mizuki_ul_s3cast",
 				"y": 0
 			}
+		},
+		"heal": {
+			"base": "fx_mizuki_ul_heal",
+			"y": 0,
+			"sc": 1.0
 		}
 	}
 }

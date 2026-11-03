@@ -558,5 +558,21 @@
    "opts": {},
    "src": "终结技水母群（ult_moves_b._mz_ul_*，摆位照 ult_fx_c.mz_jelly_start：横扫扇区 ult/mz_r × 0.3–0.85）；终结技不分档"
   }
+ },
+ "fx_mizuki_ul_heal": {
+  "fx": "water/ak-mizuki-ul-s2",
+  "opts": {
+   "move": "heal"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "天赋反移情击杀回复：vfx.px_ul_heal 在队长脚下播，同一干员 1 秒内合并；精一解锁，E1 / E2 同一张（不分档）"
+  }
  }
 }
