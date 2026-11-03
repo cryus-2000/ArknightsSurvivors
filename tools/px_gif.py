@@ -278,7 +278,10 @@ def main():
     for name in sorted(mv):
         is_proj, is_land, is_status, is_loop = name.startswith("proj:"), name in land_mv, name in status_mv, name in loop_mv
         is_front = name in front_mv
-        is_muzzle = "muzzle" in name   # 枪口类：帧条朝右（aim 朝向），摆在干员枪口（身前、约半身高），不画在脚底 / 背后（总组长 11-04：能天使）
+        is_muzzle = "muzzle" in name
+        if is_muzzle and body:   # 枪口位置：按待机首帧的实际身形（去掉透明边）取身前 0.3 身宽、半身高
+            bb = body.getchannel("A").getbbox() or (0, 0, body.width, body.height)
+            gun = ((bb[0] + bb[2]) / 2 + 0.3 * (bb[2] - bb[0]) - body.width / 2, 4 / K - (body.height - (bb[1] + bb[3]) / 2))   # 枪口类：帧条朝右（aim 朝向），摆在干员枪口（身前、约半身高），不画在脚底 / 背后（总组长 11-04：能天使）
         cells = []
         for el in (0, 1, 2):
             base = pick(mv[name], el)
@@ -329,13 +332,23 @@ def main():
                 ex, ey = foes[0][0] + int(kb), foes[0][1]
                 fh = foe.height * K if foe else 60
 
+                root = {}
+
                 def put(s, front, tt, ax, ay):
                     if not (s and s.ok) or (("floor" in s.name or "ground" in s.name) != (not front)):
                         return
                     f = s.at(tt)
                     if f and f[0] is not None:
                         im = f[0].resize((f[0].width * K, f[0].height * K), Image.NEAREST)
-                        cell.alpha_composite(im, (ax - f[1] * K, ay - f[2] * K))
+                        if is_muzzle:   # 锚点 = 帧条根部（第一帧不透明区左缘、竖直居中），不用帧条原点（11-04 总组长：原来火舌横穿过脸）
+                            if s.name not in root:
+                                fb = next((g[0] for g in s.frames if g[0] is not None and g[0].getbbox()), None)
+                                b0 = fb.getchannel("A").getbbox() if fb else (0, 0, 0, 0)
+                                root[s.name] = (b0[0], (b0[1] + b0[3]) / 2)
+                            rx, ry = root[s.name]
+                            cell.alpha_composite(im, (int(ax - rx * K), int(ay - ry * K)))
+                        else:
+                            cell.alpha_composite(im, (ax - f[1] * K, ay - f[2] * K))
 
                 def layer(front):
                     if is_proj:
@@ -349,7 +362,7 @@ def main():
                             for s in (hd, hc):
                                 put(s, front, t - FLIGHT, ex, ey - fh // 2)
                         return
-                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_ + int(reach * 0.6), oy_) if is_front else (ox_ + 9 * K, oy_ - int((body.height if body else 32) * K * 0.5)) if is_muzzle else (ox_, oy_)
+                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_ + int(reach * 0.6), oy_) if is_front else (int(ox_ + gun[0] * K), int(oy_ + gun[1] * K)) if is_muzzle and body else (ox_, oy_)
                     for s in (deco, core):
                         put(s, front, t, ax, ay)
                 layer(False)   # 地面层
