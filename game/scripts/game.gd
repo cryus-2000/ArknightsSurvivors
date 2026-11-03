@@ -1460,6 +1460,8 @@ func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	onboard.update(delta)   # 新手引导（screens/onboard.gd）：真实帧间隔
+	if not is_inside_tree():
+		return   # 演示局结束等处当帧换场景：已离树就不再跑这一帧（11-04 教程结束闪退）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）

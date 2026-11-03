@@ -1192,6 +1192,22 @@ SCENE_REGRESSIONS = {
 }
 
 
+def check_onboard_reload(godot):
+    """首局强制教程走完 → 像真人一样重开场景进正式局 → 再跑 30 秒（11-04 教程结束闪退：之前的引导测试演示局一结束就退出，没走过重开这条路）"""
+    name = "新手引导结束重开场景（docs/219 §6）：强制教程（玩过线）走完后重开场景进正式局，再跑 30 秒无报错"
+    out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "--",
+                              "--balance", "--realtime", "--seed=3", "--op=mizuki", "--bot=master", "--nodeath",
+                              "--onboard=ask", "--onboardpick=0", "--onboardreload", "--maxt=30"], 300, "onboard_reload")
+    errs = GR.script_errors(out, err)
+    i_done = out.find("ONBOARD forced_done")
+    i_rel = out.find("ONBOARD reloaded")
+    i_bal = out.find("\nBALANCE ", max(i_rel, 0))
+    ok = not to and not errs and 0 <= i_done < i_rel < i_bal
+    detail = "超时" if to else ("教程走完、重开、正式局跑满 30 秒" if ok else
+                                 "没走完教程" if i_done < 0 else "没有重开" if i_rel < 0 else "重开后没跑满" if i_bal < 0 else "有报错")
+    return {"name": name, "ok": ok, "detail": detail, "errors": errs[:5], "log": log}
+
+
 def check_scene(godot, key):
     name, scene, success, extra = SCENE_REGRESSIONS[key]
     if scene.endswith(".gd"):   # SceneTree 脚本式测试：godot --script res://tests/<名>.gd
@@ -1309,7 +1325,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1441,6 +1457,8 @@ def main():
             jobs.append(lambda: check_native_eq(godot))
         if a.only in (None, "blocks_eq") and not branch_full:
             jobs.append(lambda: check_blocks_eq(godot))
+        if a.only in (None, "onboard_reload"):
+            jobs.append(lambda: check_onboard_reload(godot))
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
                 jobs.append(lambda key=key: check_scene(godot, key))

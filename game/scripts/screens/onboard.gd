@@ -50,6 +50,7 @@ var forced := false          # 第一次进游戏：引导不可跳过（docs/21
 var _nudged := false
 var pack_dir := Vector2.RIGHT   # 演示局「部署」：怪群从哪一侧来（世界方向）
 var drill_t0 := -1.0         # 演示局开始的局内时刻（强制部分时长）
+static var _reloaded := false   # --onboardreload：演示局结束后已重开过场景
 
 var cur := ""                # 当前卡
 var cur_t := 0.0             # 当前卡在 PLAY 状态下已显示的秒数
@@ -91,6 +92,9 @@ func _init(game: Game) -> void:
 			dev = a.substr(10)
 		elif a.begins_with("--onboarddemo="):
 			demo_id = a.substr(14)
+	if _reloaded:
+		dev = ""   # --onboardreload：演示局结束重开后按走完处理，进正式局
+		print("ONBOARD reloaded")
 
 
 func _dev_arg(key: String, def: String) -> String:
@@ -197,9 +201,13 @@ func _drill_end() -> void:
 	cur = ""
 	drill_left = -1.0
 	if dev != "":
-		g.get_tree().quit()
-		return
-	g.get_tree().reload_current_scene()
+		if not Cfg.dev_args().has("--onboardreload"):
+			g.get_tree().quit()
+			return
+		_reloaded = true   # 测试：像真人一样重开场景进正式局（11-04 教程结束闪退，之前测试一律直接退出、没走过这条路）
+	# 延到帧末再重开：当场重开时旧场景立即离树，这一帧剩下的 squad / world / 音乐更新拿不到视口（get_viewport 为空），
+	# 对内包里就是「教程结束以后闪退」（11-04 用户实测 a055a6bd6）
+	g.get_tree().reload_current_scene.call_deferred()
 
 
 func _seen(id: String) -> bool:
