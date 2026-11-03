@@ -10,6 +10,7 @@
 extends RefCounted
 
 const BalS = preload("res://scripts/core/balance.gd")
+const SegPx = preload("res://scripts/characters/blocks/seg_skadi.gd")   # pixelfx 放开版形状接管（px_ul_shape，连携落点一击复用搭档已登记的形状）
 const PATH := "res://data/synergy.json"
 static var _data: Dictionary = {}
 
@@ -23,6 +24,32 @@ static func data() -> Dictionary:
 
 static func on() -> bool:
 	return BalS.vi("synergy/on", 1) > 0
+
+
+## pixelfx 放开版连携（docs/242 §14.1）：落点一击按顺序找 注册表 link[连携 id].hit / link.hit（{shape} = 复用搭档已登记的形状，或 {base …} 画一张），
+## 再兼容 synergy.json 这一条 dir 上的 px_src（= shape，拉普兰德 be7c87106 写法）。返回 true = 已画
+static func _px_hit(p, dr: Dictionary, lid: String, stop: Vector2, tp: Vector2, ang: float, half: float, rr: float, hits: Array) -> bool:
+	var g = p.g
+	if not SegPx.px_ul_on(p):
+		return false
+	var lk = g.vfx.px_ul_reg(str(p.id)).get("link", {})
+	var e = lk.get(lid).get("hit") if lk.get(lid) is Dictionary else null
+	if not (e is Dictionary):
+		e = lk.get("hit")
+	var shp: String = str(e.get("shape", "")) if e is Dictionary else str(dr.get("px_src", ""))
+	if shp != "":
+		return SegPx.px_ul_shape(p, {"src": shp, "half": minf(half, 1.5)}, hits, ang, rr * 0.9)
+	return g.vfx.px_ul_link(p, "hit", stop, tp, rr, lid)
+
+
+## 连携画面颜色：放开版打开时取 link[id].col / link.col / dir 的 px_col（拉普兰德写法），否则 dir.col
+static func _px_col(p, dr: Dictionary, lid: String) -> Color:
+	if SegPx.px_ul_on(p):
+		var lk = p.g.vfx.px_ul_reg(str(p.id)).get("link", {})
+		var cv = lk.get(lid).get("col") if lk.get(lid) is Dictionary and lk.get(lid).has("col") else lk.get("col", dr.get("px_col"))
+		if cv is Array and cv.size() >= 3:
+			return _col(cv)
+	return _col(dr.col)
 
 
 static func _col(a, k := 1.0) -> Color:
@@ -346,12 +373,13 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 		p.syn_mv = {"from": p0, "to": stop, "t": 0.0, "dur": float(dr.dur)}
 		p.cmd_inv = maxf(p.cmd_inv, float(dr.dur) + 0.4)
 		p._set_face(1.0 if dir.x >= 0.0 else -1.0, true)
-		var c: Color = _col(dr.col)
+		var c: Color = _px_col(p, dr, str(a.pr.get("id", "")))
 		if not g.vfx.px_ul_link(p, "dash", p0, stop, p0.distance_to(stop), str(a.pr.get("id", ""))):   # pixelfx 放开版接管冲刺画面（注册表 link.dash，只改画面）
 			g.fx.append({"kind": "tracer", "a": p0 + Vector2(0, -20), "b": stop + Vector2(0, -20), "life": float(dr.dur) + 0.14, "max": float(dr.dur) + 0.14, "col": c, "wid": 8.0})
-		if dr.get("strip", "") != "" and g.V6_FRAMES.has(str(dr.strip)) and g.vfx.px_ul_reg(str(p.id)).get("link") == null:
-			var fr: Array = g.V6_FRAMES[str(dr.strip)]
-			p.fx({"kind": "tx_strip", "strip": str(dr.strip), "frames": int(fr[0]), "fps": float(fr[1]), "pos": stop, "ang": dir.angle(), "sx": p0.distance_to(stop) / 128.0,
+		var dsn: String = g.vfx.px_remap(p, str(dr.get("strip", "")))   # 放开版按名替换（docs/242 §14.14）
+		if dsn != "" and g.V6_FRAMES.has(dsn) and g.vfx.px_ul_reg(str(p.id)).get("link") == null:
+			var fr: Array = g.V6_FRAMES[dsn]
+			p.fx({"kind": "tx_strip", "strip": dsn, "frames": int(fr[0]), "fps": float(fr[1]), "pos": stop, "ang": dir.angle(), "sx": p0.distance_to(stop) / 128.0,
 				"anchor": Vector2(63.0 / 64.0, 0.5), "life": float(fr[0]) / float(fr[1]) + float(dr.dur) * 0.5, "delay": float(dr.dur) * 0.5})
 		a.phase = 1
 		a.t_phase = a.age
@@ -362,7 +390,7 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 		var stop: Vector2 = a.stop
 		var tp: Vector2 = _tpos(a)
 		var ang: float = (tp - stop).angle()
-		var c: Color = _col(dr.col)
+		var c: Color = _px_col(p, dr, str(a.pr.get("id", "")))
 		var half: float = float(dr.half)
 		var rr: float = float(dr.r)
 		if str(dr.kind) == "dash_cast" and not p.is_leader:
@@ -380,13 +408,17 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 				a.phase = 2
 				a.t_phase = a.age
 				return false
-		p.melee_hit(_src(p, a.pr, dr), stop, ang, half, rr, _dmg(p, float(dr.mult)), float(dr.kb), float(dr.get("stun", 0.0)), ["连携"], 0)
-		var px_hit: bool = g.vfx.px_ul_link(p, "hit", stop, tp, rr, str(a.pr.get("id", "")))   # pixelfx 放开版接管落点一击（注册表 link.hit）：刀光 / 落点环 / 火花不画，只改画面
+		var hits: Array = p.melee_hit(_src(p, a.pr, dr), stop, ang, half, rr, _dmg(p, float(dr.mult)), float(dr.kb), float(dr.get("stun", 0.0)), ["连携"], 0)
+		var px_hit: bool = _px_hit(p, dr, str(a.pr.get("id", "")), stop, tp, ang, half, rr, hits)   # pixelfx 放开版接管落点一击：刀光 / 落点环 / 火花不画，只改画面
 		if not px_hit:
 			p.slash_fx(stop, ang, minf(half, 1.5), rr * 0.9, c, "slash", 0.26)
 		if dr.get("cross", false):   # 两人刀光交叉：施放者的刀光从另一个角度也落在目标处（只有画面，伤害只算搭档这一击）
 			var cf = a.from
-			p.slash_fx(tp, ang + 1.25, 1.1, rr * 0.85, Color(1.0, 0.85, 0.5), "slash", 0.26)
+			if cf != null and SegPx.px_ul_on(cf):   # 施放者已换放开版：画施放者注册表 link.cross（可按连携 id 覆盖），没登记就不画（暖金和结晶撞色，组长 11-04 / 拉普兰德 be7c87106）
+				var xa: float = ang + 1.25
+				g.vfx.px_ul_link(cf, "cross", tp - Vector2.from_angle(xa) * rr * 0.85, tp, rr * 0.85, str(a.pr.get("id", "")))
+			else:
+				p.slash_fx(tp, ang + 1.25, 1.1, rr * 0.85, Color(1.0, 0.85, 0.5), "slash", 0.26)
 			if cf != null and cf.pos != Vector2.INF:
 				cf.play_vis_anim("attack")
 		if dr.get("chain", false):   # 锚链：从搭档到目标一道细光

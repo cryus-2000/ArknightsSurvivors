@@ -104,7 +104,7 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 
 ## pixelfx 放开版条目（docs/242 §14.2，组长 11-04）：{"px": base, at, off, fit / scale, rot, face_x, skill}，开关 fx/px_unleashed 打开才播（旧条目配 cond "!px_ul" 关掉）。
 ## 帧条名走 vfx.px_ul_tex（种子变体只给队长、队友 _tm、精英档按 px_ul_el，缺图同样回退），先装饰（× px_deco_k）后核心。
-## at 同普通条目（center / self / leader / zone / hits）；缩放 = scale × PX，fit > 0 时改为 scale × r ÷ fit；rot = 随出手方向转；
+## at 同普通条目（center / self / leader / zone / hits）；缩放 = scale × PX，fit > 0 时改为 scale × r ÷ fit；rot：true / "vel" 随出手方向转，"face" 朝左时水平翻；
 ## skill = 命中定格取注册表 pause 的技能档（只给队长、有命中时，共享总闸限频）。纯画面：散布只用 g.vrng
 static func px_fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: float) -> void:
 	var g = o.g
@@ -141,8 +141,9 @@ static func px_fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang
 		off.x *= float(o.face)
 	var fit: float = float(f.get("fit", 0.0))
 	var sc: float = float(f.get("scale", 1.0)) * (r / fit if fit > 0.0 and r > 0.0 else g.PX)
-	var rot: float = ang if f.get("rot", false) else 0.0
-	var fl: bool = not f.get("rot", false) and f.get("face_x", false) and float(o.face) < 0.0
+	var rv = f.get("rot", false)   # true / "vel" = 随出手（飞行）方向转；"face" = 不转、朝左时水平翻（组长 11-04 第 15 项）
+	var rot: float = ang if (rv is bool and rv) or str(rv) == "vel" else 0.0
+	var fl: bool = (str(rv) == "face" or (rv is bool and not rv and f.get("face_x", false))) and float(o.face) < 0.0
 	var dk: float = g.vfx.px_deco_k(o)
 	for p in pts:
 		if p == Vector2.INF:
@@ -158,6 +159,8 @@ static func px_fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang
 static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: float) -> void:
 	var g = o.g
 	var name: String = str(f.get("strip", ""))
+	if g != null and g.vfx != null:
+		name = g.vfx.px_remap(o, name)   # 放开版按名替换（docs/242 §14.14）
 	if g != null and g.vfx != null and g.vfx._fxc != null:   # --fxcensus：@ob = 干员数据特效，L = 循环件 / 扩散件（不粒子化）
 		g.vfx._fx_census(name + ("@obL" if (f.has("life") and not f.get("once", false)) or str(f.get("ease", "")) != "" else "@ob"), false)
 	if g == null or g.tex.get(name) == null or not g.V6_FRAMES.has(name) or o.pfx.size() > 220:
@@ -588,7 +591,7 @@ static func fx_hold_strips(ci, o, e: Dictionary, layer: String, c_zone: Vector2,
 	for f in e.b.fx:
 		if not (f is Dictionary) or not _hold(f) or str(f.get("layer", "floor")) != layer or not fx_on(o, f):
 			continue
-		var name: String = str(f.get("strip", ""))
+		var name: String = g.vfx.px_remap(o, str(f.get("strip", "")))   # 放开版按名替换（docs/242 §14.14）
 		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
 			continue
 		var spec: Array = g.V6_FRAMES[name]
@@ -642,7 +645,11 @@ static func fx_has_body(entries) -> bool:
 static func fx_any_tex(o, entries) -> bool:
 	if entries is Array:
 		for f in entries:
-			if f is Dictionary and o.g.tex.get(str(f.get("strip", ""))) != null and fx_on(o, f):
+			if not (f is Dictionary) or not fx_on(o, f):
+				continue
+			if o.g.tex.get(str(f.get("strip", ""))) != null:
+				return true
+			if f.has("px") and BalFx.vi("fx/px_unleashed", 0) > 0:   # 放开版 px 条目也算有帧条（组长 11-04：旧条目 !px_ul 关掉后不该退回画程序椭圆）
 				return true
 	return false
 

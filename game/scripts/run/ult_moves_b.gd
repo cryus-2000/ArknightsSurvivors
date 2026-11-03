@@ -364,21 +364,11 @@ const SD_UL := ["fx_skadi_ul_geyser1", "fx_skadi_ul_geyser2"]   # 11-03 v3：两
 const SD_UL_FOOT := Vector2(90.0, 200.0)   # 水柱帧（180×240，保留原画布）里脚底的位置
 
 
-## 装饰层名（docs/242 §8）：核心名 + _deco（在 _lo 之前）；缺图返回 ""
-static func _sd_ul_deco(u, core: String) -> String:
-	var d: String = core.trim_suffix("_lo") + "_deco" + ("_lo" if core.ends_with("_lo") else "")
-	return d if u.fx_ready(d) else ""
-
-
-## 先装饰（透明度 × fx/px_deco_k）后核心
-static func _sd_ul_strip2(u, core: String, c: Vector2, opt: Dictionary) -> void:
-	var d: String = _sd_ul_deco(u, core)
-	var dk: float = u.g.vfx.px_deco_k()
-	if d != "" and dk > 0.0:
-		var od := opt.duplicate()
-		od["col"] = Color(1, 1, 1, dk)
-		u.strip(d, c, od)
-	u.strip(core, c, opt)
+## 先装饰（透明度 × fx/px_deco_k）后核心；装饰层名 = 核心名 + _deco（在 _lo 之前）
+static func _sd_ul_strip2(u, core: String, c: Vector2, opt: Dictionary) -> void:   # 改走公共 u.px_strip（11-04）
+	var o2 := opt.duplicate()
+	o2["resolved"] = true
+	u.px_strip(core, c, o2)
 
 
 static func _sd_ul_pick(u, x: float) -> String:   # 网页低档只有 geyser1_lo（docs/242 §6）
