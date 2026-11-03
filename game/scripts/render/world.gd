@@ -3266,12 +3266,27 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		anc = Vector2(0.5, 1.0)
 		bpos = e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
 	# 冲刺蓄力的身体表现（docs/139 §7.4，render/dash_tell_style ≥ 1）：往冲刺反方向缩 render/dash_pull 美术像素、按蓄力进度渐变到危险色（不闪）
-	if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and not e.boss and Bal.vi("render/dash_tell_style", 2) >= 1:
+	if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and not e.boss and Bal.vi("render/dash_tell_style", 3) >= 1:
 		var dwk: float = clampf(1.0 - e.dash_w / float(e.get("dash_w0", D.ENEMIES.get(e.type, {}).get("dash_wind", 0.5))), 0.0, 1.0)
-		bpos -= (e.dash_dir as Vector2) * Bal.v("render/dash_pull", 3.0) * Game.PX * dwk
+		var body_only: bool = Bal.vi("render/dash_tell_style", 3) >= 3 and not e.elite   # style 3：普通小怪不画线，只靠身体（docs/139 §7.6，参照土豆兄弟）
+		var pull_k: float = dwk
+		if body_only:
+			# 停顿：前 render/dash_hold（0.6）段蓄力就缩到位，之后定住不动、不播走路帧——只改姿态，AI 蓄力时长不变
+			pull_k = ease(clampf(dwk / Bal.v("render/dash_hold", 0.6), 0.0, 1.0), 0.4)
+			if name.ends_with("_move"):
+				name = name.trim_suffix("_move")
+				frames = A.enemy_frames(name, 2)
+			frame = 0
+			# 轻微抖动：定住后按蓄力进度加到 render/dash_shake 世界像素；用 g.t 与 id 算，不抽随机数（TRACE 不变）
+			var sk: float = Bal.v("render/dash_shake", 2.0) * clampf((dwk - 0.4) / 0.6, 0.0, 1.0)
+			if sk > 0.0:
+				bpos += Vector2(roundf(sin(g.t * 71.0 + e.id * 1.7)), roundf(sin(g.t * 59.0 + e.id * 2.9))) * sk
+		bpos -= (e.dash_dir as Vector2) * Bal.v("render/dash_pull", 3.0) * Game.PX * pull_k
 		var dfl: float = dwk * Bal.v("render/dash_flash", 0.6)   # 随蓄力进度平滑变色，不闪（10-24 Boss 频闪教训）
 		var dc: Color = g.optical.col_danger if g.optical_on else ENEMY_TELL
 		col = col.lerp(Color(dc.r * 1.6, dc.g * 1.6, dc.b * 1.6, col.a), clampf(dfl, 0.0, 1.0))
+		if body_only and float(e.dash_w) <= Bal.v("render/dash_white_t", 0.1):
+			col = Color(2.6, 2.6, 2.6, col.a)   # 起冲前最后 render/dash_white_t 秒整体闪白一次（只这一段，不频闪）
 	var k: float = clamp(e.squash / 0.14, 0.0, 1.0)
 	var sq := Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
 	# Boss 攻击姿态：蓄力时后仰变亮，出手瞬间前倾拉伸；有 _attack 帧条时改用帧条
@@ -3504,7 +3519,12 @@ func draw_enemy_tells() -> void:
 		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and Bal.v("render/dash_tell", 1.0) > 0.0:   # render/dash_tell 0 = 不画（docs/139 §7 量测用）
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
-			match Bal.vi("render/dash_tell_style", 2):
+			var dts: int = Bal.vi("render/dash_tell_style", 3)
+			if dts >= 3:
+				dts = 2 if (e.elite or e.boss) else -1   # style 3：精英 / Boss 照旧画 style 2 的短箭，普通小怪不画（只靠身体预警）
+			match dts:
+				-1:
+					pass
 				1:
 					_dash_chevrons(e, wk, not e.get("tell_dim", false))
 				2:
