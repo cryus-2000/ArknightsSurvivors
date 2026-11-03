@@ -476,6 +476,9 @@ static func _h3mz_draw_jellies(o) -> void:
 		var p: Vector2 = o.pos + Vector2(cos(ang) * 34.0, -34.0 + sin(ang) * 12.0 + sin(ph * 1.7) * 3.0)
 		if _e3_draw_jelly(o, k):   # 精英化第 3 批：离身游猎中的水母
 			continue
+		if _mz_ul(o) and g.tex.get("fx_mizuki_ul_seedidle") != null:   # 放开版：身后小水母（伞盖一张一缩、丝须飘），不画外圈光团
+			_mz_ul_loop(o, "fx_mizuki_ul_seedidle", p + Vector2(0, 2), g.PX, float(k) * 0.27)
+			continue
 		if glow:
 			cv.draw_circle(p, 13.0, Color(0.9, 0.6, 1.6, 0.16))
 		if o._fx_strip("fx_mizuki_jelly", 4, int(g.t * 6.0) + k * 3, p + Vector2(0, 6)):
@@ -823,7 +826,9 @@ static func _e3_sting(o, jb: Dictionary, e: Dictionary) -> void:
 		var sd: float = float(jb.get("stun", 0.3)) * (0.5 if e.elite else 1.0)
 		o.add_cc(e, sd)
 		mz.binds.append({"e": e, "t": sd})
-	if not o.spawn_fx_sprite(str(jb.get("sting_fx", "fx_mizuki_jelly_sting")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
+	if _mz_ul_play(o, "fx_mizuki_ul_seed", e.pos + Vector2(0, -e.r * 0.5) - (e.pos - o.pos).normalized() * 8.0, g.PX, (e.pos - o.pos).angle(), false):   # 放开版：丝须往前一甩缠上
+		pass
+	elif not o.spawn_fx_sprite(str(jb.get("sting_fx", "fx_mizuki_jelly_sting")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": Color(0.9, 0.6, 1.6), "alpha": 0.6})
 
 
@@ -851,6 +856,9 @@ static func _e3_draw_jelly(o, k: int) -> bool:
 	var p: Vector2 = j.p
 	var v: Vector2 = j.v
 	var ang: float = v.angle() if v.length() > 1.0 else 0.0
+	if _mz_ul(o) and g.tex.get("fx_mizuki_ul_seeddart") != null:   # 放开版：伞盖压扁前冲、丝须拖直（拖尾线不另画）
+		_mz_ul_loop(o, "fx_mizuki_ul_seeddart", p, g.PX, float(k) * 0.13, 1.0, ang)
+		return true
 	cv.draw_line(p - v.normalized() * 14.0, p, Color(0.9, 0.65, 1.5, 0.45), 2.0)
 	if g.tex.get("fx_mizuki_jelly_dart") != null:
 		fx_frame(cv, g, "fx_mizuki_jelly_dart", 6, int(g.t * 14.0 + k * 2) % 6, p, g.PX, Color.WHITE, Vector2(-1, -1), ang)
@@ -920,7 +928,7 @@ static func _mz_ul_swing(o, base: String, ang: float, radius: float, skill: bool
 
 
 ## 循环帧条（持续标识 / 敌人状态附件）：按 g.t 取帧，先装饰（× px_deco_k × a）后核心（× a）；ph = 相位偏移秒（多个敌人错开）
-static func _mz_ul_loop(o, base: String, pos: Vector2, sc: float, ph := 0.0, a := 1.0) -> void:
+static func _mz_ul_loop(o, base: String, pos: Vector2, sc: float, ph := 0.0, a := 1.0, ang := 0.0) -> void:
 	var g = o.g
 	var el: int = g.vfx.px_ul_el(o)
 	var dn: String = g.vfx.px_ul_tex(base, 1, not o.is_leader, "deco", el)
@@ -930,7 +938,7 @@ static func _mz_ul_loop(o, base: String, pos: Vector2, sc: float, ph := 0.0, a :
 		if fi.is_empty() or g.tex.get(nm) == null:
 			continue
 		var n: int = int(fi[0])
-		fx_frame(o.cv, g, nm, n, int((g.t + ph) * float(fi[1])) % n, pos, sc, Color(1, 1, 1, dk if nm == dn else a))
+		fx_frame(o.cv, g, nm, n, int((g.t + ph) * float(fi[1])) % n, pos, sc, Color(1, 1, 1, dk if nm == dn else a), Vector2(-1, -1), ang)
 
 
 ## 被触手 / 深蓝之籽束缚的敌人脚下：小触须缠绕（敌人状态附件 §11.2 #6：尺寸 e.r ÷ 12 夹 0.8–2.0，同屏至多 30 个、取离水月最近的）

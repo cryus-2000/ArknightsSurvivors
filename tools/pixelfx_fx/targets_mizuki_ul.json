@@ -430,5 +430,62 @@
    "opts": {},
    "src": "同上"
   }
+ },
+ "fx_mizuki_ul_seedidle": {
+  "fx": "water/ak-mizuki-ul-seedidle",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "召唤物（§11.2 #5）精二深蓝之籽：只在精二出现，不分档；无判定形状，PX 原尺寸"
+  },
+  "lo": true
+ },
+ "fx_mizuki_ul_seeddart": {
+  "fx": "water/ak-mizuki-ul-seeddart",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "召唤物（§11.2 #5）精二深蓝之籽：只在精二出现，不分档；无判定形状，PX 原尺寸"
+  },
+  "lo": true
+ },
+ "fx_mizuki_ul_seed": {
+  "fx": "water/ak-mizuki-ul-seed",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "召唤物（§11.2 #5）精二深蓝之籽：只在精二出现，不分档；无判定形状，PX 原尺寸"
+  },
+  "lo": true
+ },
+ "fx_mizuki_ul_seed_tm": {
+  "fx": "water/ak-mizuki-ul-seed",
+  "opts": {
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "召唤物（§11.2 #5）精二深蓝之籽：只在精二出现，不分档；无判定形状，PX 原尺寸"
+  }
  }
 }

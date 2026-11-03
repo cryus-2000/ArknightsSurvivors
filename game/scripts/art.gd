@@ -1111,11 +1111,13 @@ const V6_FRAMES := {
 	"fx_mizuki_ul_mirage_tm": [13, 20.0], "fx_mizuki_ul_mirage_tm_deco": [13, 20.0], "fx_mizuki_ul_s2aura": [24, 20.0], "fx_mizuki_ul_s2aura_deco": [24, 20.0], "fx_mizuki_ul_s2aura_deco_lo": [18, 15.0], "fx_mizuki_ul_s2aura_e1": [24, 20.0],
 	"fx_mizuki_ul_s2aura_e1_deco": [24, 20.0], "fx_mizuki_ul_s2aura_lo": [18, 15.0], "fx_mizuki_ul_s2cast": [21, 20.0], "fx_mizuki_ul_s2cast_deco": [21, 20.0], "fx_mizuki_ul_s2cast_deco_lo": [16, 15.0], "fx_mizuki_ul_s2cast_e1": [18, 20.0],
 	"fx_mizuki_ul_s2cast_e1_deco": [18, 20.0], "fx_mizuki_ul_s2cast_lo": [16, 15.0], "fx_mizuki_ul_s2cast_tm": [17, 20.0], "fx_mizuki_ul_s2cast_tm_deco": [17, 20.0], "fx_mizuki_ul_s3cast": [20, 20.0], "fx_mizuki_ul_s3cast_deco": [20, 20.0],
-	"fx_mizuki_ul_s3cast_deco_lo": [15, 15.0], "fx_mizuki_ul_s3cast_lo": [15, 15.0], "fx_mizuki_ul_s3cast_tm": [17, 20.0], "fx_mizuki_ul_s3cast_tm_deco": [17, 20.0], "fx_mizuki_ul_tent": [13, 20.0], "fx_mizuki_ul_tent2": [13, 20.0],
-	"fx_mizuki_ul_tent2_deco": [13, 20.0], "fx_mizuki_ul_tent_deco": [13, 20.0], "fx_mizuki_ul_tent_e0": [10, 20.0], "fx_mizuki_ul_tent_e0_deco": [5, 10.0], "fx_mizuki_ul_tent_e1": [11, 20.0], "fx_mizuki_ul_tent_e1_deco": [6, 10.0],
-	"fx_mizuki_ul_tent_lo": [10, 15.0], "fx_mizuki_ul_tent_tm": [11, 20.0], "fx_mizuki_ul_tent_tm_deco": [11, 20.0], "fx_mizuki_ul_umb": [16, 20.0], "fx_mizuki_ul_umb2": [16, 20.0], "fx_mizuki_ul_umb2_deco": [16, 20.0],
-	"fx_mizuki_ul_umb_deco": [16, 20.0], "fx_mizuki_ul_umb_e0": [8, 20.0], "fx_mizuki_ul_umb_e0_deco": [4, 10.0], "fx_mizuki_ul_umb_e1": [11, 20.0], "fx_mizuki_ul_umb_e1_deco": [6, 10.0], "fx_mizuki_ul_umb_lo": [12, 15.0],
-	"fx_mizuki_ul_umb_tm": [11, 20.0], "fx_mizuki_ul_umb_tm_deco": [11, 20.0],
+	"fx_mizuki_ul_s3cast_deco_lo": [15, 15.0], "fx_mizuki_ul_s3cast_lo": [15, 15.0], "fx_mizuki_ul_s3cast_tm": [17, 20.0], "fx_mizuki_ul_s3cast_tm_deco": [17, 20.0], "fx_mizuki_ul_seed": [9, 20.0], "fx_mizuki_ul_seed_deco": [9, 20.0],
+	"fx_mizuki_ul_seed_deco_lo": [7, 15.0], "fx_mizuki_ul_seed_lo": [7, 15.0], "fx_mizuki_ul_seed_tm": [6, 20.0], "fx_mizuki_ul_seed_tm_deco": [6, 20.0], "fx_mizuki_ul_seeddart": [8, 20.0], "fx_mizuki_ul_seeddart_deco": [8, 20.0],
+	"fx_mizuki_ul_seeddart_deco_lo": [6, 15.0], "fx_mizuki_ul_seeddart_lo": [6, 15.0], "fx_mizuki_ul_seedidle": [16, 20.0], "fx_mizuki_ul_seedidle_deco": [16, 20.0], "fx_mizuki_ul_seedidle_deco_lo": [12, 15.0], "fx_mizuki_ul_seedidle_lo": [12, 15.0],
+	"fx_mizuki_ul_tent": [13, 20.0], "fx_mizuki_ul_tent2": [13, 20.0], "fx_mizuki_ul_tent2_deco": [13, 20.0], "fx_mizuki_ul_tent_deco": [13, 20.0], "fx_mizuki_ul_tent_e0": [10, 20.0], "fx_mizuki_ul_tent_e0_deco": [5, 10.0],
+	"fx_mizuki_ul_tent_e1": [11, 20.0], "fx_mizuki_ul_tent_e1_deco": [6, 10.0], "fx_mizuki_ul_tent_lo": [10, 15.0], "fx_mizuki_ul_tent_tm": [11, 20.0], "fx_mizuki_ul_tent_tm_deco": [11, 20.0], "fx_mizuki_ul_umb": [16, 20.0],
+	"fx_mizuki_ul_umb2": [16, 20.0], "fx_mizuki_ul_umb2_deco": [16, 20.0], "fx_mizuki_ul_umb_deco": [16, 20.0], "fx_mizuki_ul_umb_e0": [8, 20.0], "fx_mizuki_ul_umb_e0_deco": [4, 10.0], "fx_mizuki_ul_umb_e1": [11, 20.0],
+	"fx_mizuki_ul_umb_e1_deco": [6, 10.0], "fx_mizuki_ul_umb_lo": [12, 15.0], "fx_mizuki_ul_umb_tm": [11, 20.0], "fx_mizuki_ul_umb_tm_deco": [11, 20.0],
 	# 水月放开版 END
 	# 塞雷娅放开版（docs/242：盾击含 _tm、治疗、钙质化晶簇三段、终结技砸地；两层 + 低档）
 	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_bash_deco": [14, 20.0], "fx_saria_ul_bash_deco_lo": [10, 15.0],
