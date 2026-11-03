@@ -368,7 +368,7 @@ static func h3_cast_push(o, b: Dictionary) -> void:
 	o.screen_shake(0.8 if big else 0.5)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = _mf_col(b.get("col", []), Color(0.45, 0.8, 1.0))
-	if not big:
+	if not big and not _mz_ul(o):   # 放开版：开技画面走注册表 cast（fx_mizuki_ul_s2cast / s3cast），不画往外扩散的光环（用户 11-04）
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
 		g.fx.append({"kind": "rays", "pos": o.pos, "life": 0.6, "max": 0.6, "col": c, "op_spoke": true})
@@ -412,7 +412,10 @@ static func _h3mz_draw_floor(o) -> void:
 	for f in g.fx:
 		if f.kind == "tentacle":
 			_h3_draw_tentacle(o, f)
-	_e3_draw_binds(o)
+	if _mz_ul(o):
+		_mz_ul_draw_binds(o)
+	else:
+		_e3_draw_binds(o)
 	_g202_mz_draw(o)
 	for s in mz.stakes:
 		var a: float = clampf(s.t / 0.4, 0.0, 1.0)
@@ -429,7 +432,9 @@ static func _h3mz_draw_floor(o) -> void:
 			cv.draw_arc(Vector2.ZERO, lr, TAU * q / 32.0 + g.t * 0.1, TAU * (q + 1) / 32.0 + g.t * 0.1, 3, Color(1.6, 1.3, 0.8, 0.22), 1.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	MizukiS3Fx.draw(o, false)
-	if o.s_t[1] > 0.0:
+	if o.s_t[1] > 0.0 and _mz_ul(o):   # 放开版 S2 持续：身后两条触手（循环帧条），收尾 1 秒淡出
+		_mz_ul_loop(o, "fx_mizuki_ul_s2aura", o.pos + Vector2(0, 2), g.PX, 0.0, clampf(o.s_t[1] / 1.0, 0.0, 1.0))
+	elif o.s_t[1] > 0.0:
 		var fade2 := clampf(o.s_t[1] / 1.0, 0.0, 1.0)
 		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
 		cv.draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 40, Color(0.6, 1.1, 1.8, 0.6 * fade2), 2.0)
@@ -491,7 +496,7 @@ static func _h3mz_draw_over(o) -> void:
 	var g = o.g
 	var cv = o.cv
 	_h3mz_draw_jellies(o)
-	if o.s_t[1] > 0.0:
+	if o.s_t[1] > 0.0 and not _mz_ul(o):   # 放开版：身侧菱形不画；被控敌人的缠绕标识在 _mz_ul_draw_binds
 		var fade2 := clampf(o.s_t[1] / 1.0, 0.0, 1.0)
 		for q in 10:
 			var an = g.t * 2.6 + q * TAU / 10.0
@@ -511,7 +516,7 @@ static func _h3mz_draw_over(o) -> void:
 static func _h3mz_draw_auras(o) -> void:
 	var g = o.g
 	var cv = o.cv
-	if o.s_t[1] > 0.0:
+	if o.s_t[1] > 0.0 and not _mz_ul(o):
 		cv.draw_arc(o.pos + Vector2(0, -10), 30.0 + sin(g.t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
 
 
@@ -912,3 +917,45 @@ static func _mz_ul_swing(o, base: String, ang: float, radius: float, skill: bool
 		o.fx({"kind": "mote", "pos": sp + Vector2(g.vrng.randf_range(-14, 14), g.vrng.randf_range(-10, 10)), "vel": Vector2.from_angle(ang + g.vrng.randf_range(-0.9, 0.9)) * g.vrng.randf_range(40, 120) + Vector2(0, -50),
 			"life": 0.5, "col": MZ_UL_MOTE, "sz": 2.0, "grav": 200.0})
 	return true
+
+
+## 循环帧条（持续标识 / 敌人状态附件）：按 g.t 取帧，先装饰（× px_deco_k × a）后核心（× a）；ph = 相位偏移秒（多个敌人错开）
+static func _mz_ul_loop(o, base: String, pos: Vector2, sc: float, ph := 0.0, a := 1.0) -> void:
+	var g = o.g
+	var el: int = g.vfx.px_ul_el(o)
+	var dn: String = g.vfx.px_ul_tex(base, 1, not o.is_leader, "deco", el)
+	var dk: float = g.vfx.px_deco_k(o) * a
+	for nm in ([dn] if dn != "" and dk > 0.0 else []) + [g.vfx.px_ul_tex(base, 1, not o.is_leader, "core", el)]:
+		var fi: Array = ArtS.V6_FRAMES.get(nm, [])
+		if fi.is_empty() or g.tex.get(nm) == null:
+			continue
+		var n: int = int(fi[0])
+		fx_frame(o.cv, g, nm, n, int((g.t + ph) * float(fi[1])) % n, pos, sc, Color(1, 1, 1, dk if nm == dn else a))
+
+
+## 被触手 / 深蓝之籽束缚的敌人脚下：小触须缠绕（敌人状态附件 §11.2 #6：尺寸 e.r ÷ 12 夹 0.8–2.0，同屏至多 30 个、取离水月最近的）
+## 来源：深蓝之籽束缚表（mz.binds）+ S2 期间 320 内被控的敌人（原来画三颗菱形的那些）
+const MZ_UL_BIND_MAX := 30
+
+
+static func _mz_ul_draw_binds(o) -> void:
+	var g = o.g
+	var mz: Dictionary = o.hw.mz
+	var es: Array = []
+	var seen := {}
+	for bd in mz.get("binds", _EA):
+		es.append(bd.e)
+		seen[int(bd.e.id)] = true
+	if o.s_t[1] > 0.0:
+		for j in o.query_ids(o.pos, 320.0):
+			var e: Dictionary = g.enemies[j]
+			if not e.dead and e.stun >= 0.15 and not seen.has(int(e.id)):
+				es.append(e)
+	if es.size() > MZ_UL_BIND_MAX:
+		var op: Vector2 = o.pos
+		es.sort_custom(func(x, y): return x.pos.distance_squared_to(op) < y.pos.distance_squared_to(op))
+		es = es.slice(0, MZ_UL_BIND_MAX)
+	for e in es:
+		if e.dead:
+			continue
+		_mz_ul_loop(o, "fx_mizuki_ul_bind", e.pos + Vector2(0, float(e.r) * 0.6), g.vfx.int_scale(g.PX * clampf(float(e.r) / 12.0, 0.8, 2.0)), float(int(e.id) % 7) * 0.11)

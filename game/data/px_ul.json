@@ -62,6 +62,16 @@
 		"pause": [
 			0.05,
 			0.075
-		]
+		],
+		"cast": {
+			"1": {
+				"base": "fx_mizuki_ul_s2cast",
+				"y": 0
+			},
+			"2": {
+				"base": "fx_mizuki_ul_s3cast",
+				"y": 0
+			}
+		}
 	}
 }

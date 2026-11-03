@@ -288,5 +288,147 @@
    "opts": {},
    "src": "S3 镜花水月全方向（seg_mizuki h3_full_circle：half = PI），半径 = swing_radius × s3_radius，运行时按 fit 80 缩放；精二解锁只做 E2（§12.2）"
   }
+ },
+ "fx_mizuki_ul_s2cast": {
+  "fx": "water/ak-mizuki-ul-s2",
+  "opts": {
+   "move": "cast"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "lo": true,
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S2 精一解锁：只做 E1 / E2（§12.2）；无判定形状（开技 / 持续 / 束缚标识），按 PX 原尺寸画"
+  }
+ },
+ "fx_mizuki_ul_s2cast_tm": {
+  "fx": "water/ak-mizuki-ul-s2",
+  "opts": {
+   "move": "cast",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S2 精一解锁：只做 E1 / E2（§12.2）；无判定形状（开技 / 持续 / 束缚标识），按 PX 原尺寸画"
+  }
+ },
+ "fx_mizuki_ul_s2cast_e1": {
+  "fx": "water/ak-mizuki-ul-s2",
+  "opts": {
+   "move": "cast",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S2 精一解锁：只做 E1 / E2（§12.2）；无判定形状（开技 / 持续 / 束缚标识），按 PX 原尺寸画"
+  }
+ },
+ "fx_mizuki_ul_s3cast": {
+  "fx": "water/ak-mizuki-ul-s2",
+  "opts": {
+   "move": "cast",
+   "big": 1,
+   "seed": 21
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "lo": true,
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S3 精二解锁只做 E2；原作 skill_03_start 九根触手放射"
+  }
+ },
+ "fx_mizuki_ul_s3cast_tm": {
+  "fx": "water/ak-mizuki-ul-s2",
+  "opts": {
+   "move": "cast",
+   "big": 1,
+   "seed": 21,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "同上，队友版"
+  }
+ },
+ "fx_mizuki_ul_s2aura": {
+  "fx": "water/ak-mizuki-ul-s2aura",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "lo": true,
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S2 精一解锁：只做 E1 / E2（§12.2）；无判定形状（开技 / 持续 / 束缚标识），按 PX 原尺寸画；循环 1.2 秒"
+  }
+ },
+ "fx_mizuki_ul_s2aura_e1": {
+  "fx": "water/ak-mizuki-ul-s2aura",
+  "opts": {
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S2 精一解锁：只做 E1 / E2（§12.2）；无判定形状（开技 / 持续 / 束缚标识），按 PX 原尺寸画"
+  }
+ },
+ "fx_mizuki_ul_bind": {
+  "fx": "water/ak-mizuki-ul-s2bind",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "lo": true,
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "敌人状态附件（§11.2 #6）：被触手束缚 / 眩晕的敌人脚下，尺寸 e.r / 12 夹 0.8–2.0；全归装饰意义上的附件但保留 core 方便关 deco 时仍可见；循环 0.8 秒"
+  }
+ },
+ "fx_mizuki_ul_bind_e1": {
+  "fx": "water/ak-mizuki-ul-s2bind",
+  "opts": {
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "同上"
+  }
  }
 }
