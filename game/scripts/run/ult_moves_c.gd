@@ -276,14 +276,8 @@ static func _sa_ul(u) -> bool:
 	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_saria_ul_slam")
 
 
-static func _sa_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
-	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
-	var dk: float = u.g.vfx.px_deco_k()
-	if d != "" and dk > 0.0:
-		var od := opt.duplicate()
-		od["col"] = Color(1, 1, 1, dk)
-		u.strip(d, c, od)
-	u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
+static func _sa_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:   # 改走公共 u.px_strip（11-04）
+	u.px_strip(base, c, opt)
 
 
 static func _sa_cone() -> bool:

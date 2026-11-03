@@ -1330,7 +1330,11 @@ static func hw_draw_hooks(o) -> void:
 			hand = _hw_hand(o)
 			if hk.phase == "fly":
 				p = hand.lerp(hk.to, clampf(float(hk.t) / maxf(float(hk.dur), .001), 0.0, 1.0)) + Vector2(0, -6)
+		var pxh = g.vfx.px_ul_reg(str(o.id)).get("hook")   # pixelfx 放开版钩索（docs/242 §14.13，注册表 hook {head, chain}）：名字走 px_ul_tex，缺图照旧
+		var el: int = g.vfx.px_ul_el(o) if pxh is Dictionary else 2
 		var tile: String = str(b.get("chain", ""))
+		if pxh is Dictionary and str(pxh.get("chain", "")) != "" and g.tex.get(g.vfx.px_ul_tex(str(pxh.chain), 1, not o.is_leader, "core", el)) != null:
+			tile = g.vfx.px_ul_tex(str(pxh.chain), 1, not o.is_leader, "core", el)
 		var taut: bool = str(hk.phase) != "fly"
 		if tile != "" and g.tex.get(tile) != null:
 			var shake: Vector2 = Vector2(0, sin(float(g.t) * 60.0) * 2.0) if str(hk.phase) == "taut" else Vector2.ZERO
@@ -1342,6 +1346,8 @@ static func hw_draw_hooks(o) -> void:
 				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7, bool(b.get("thin_chain", false)))
 		var dirv: Vector2 = ((hk.to as Vector2) - (hk.from as Vector2)).normalized()
 		var head: String = str(b.get("head", ""))   # 歌蕾蒂娅（docs/123 §6）：细长倒钩贴图代替程序锚头；缺图退回程序锚
+		if pxh is Dictionary and str(pxh.get("head", "")) != "" and g.V6_FRAMES.has(g.vfx.px_ul_tex(str(pxh.head), 1, not o.is_leader, "core", el)):
+			head = g.vfx.px_ul_tex(str(pxh.head), 1, not o.is_leader, "core", el)   # 3 帧：飞行 / 绷紧 / 拖回（keep 等宽）
 		if head != "" and g.tex.get(head) != null and g.V6_FRAMES.has(head):
 			var hf: int = 0 if str(hk.phase) == "fly" else (1 if str(hk.phase) == "taut" else 2)
 			o.draw_spr_rot(head, hf, p, (-dirv if str(hk.phase) == "drag" else dirv).angle(), g.PX, Color.WHITE)
