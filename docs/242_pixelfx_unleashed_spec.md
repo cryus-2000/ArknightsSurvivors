@@ -614,3 +614,12 @@ python tools/px_prerecord.py <干员> [--sha <要录的提交前缀>]
 
 ### 14.25 圆形判定的帧条朝向 `aim`（组长 11-04「去匀圆」）
 圆形判定被注册表接管时帧条画在圆心，缺省不转（或 `spin` 随机转）。形状条目写 `"aim": "nearest"` = 帧条正右对准离圆心最近的敌人（没有敌人时用朝向），`"aim": "facing"` = 对准干员朝向；再写 `"flip": true` 时朝左会转半圈并翻转，帧条不上下颠倒。主浪 / 主斩要冲着目标时用。
+
+### 14.26 统一 GIF 自查 `tools/px_gif.py`（协调人 11-04：用户录像前先看 GIF）
+```
+python tools/px_gif.py <干员> [--only 招,…] [--scale 3]
+```
+- 每招一个 GIF：E0 / E1 / E2 三格并排，统一 3 倍（1x 美术像素 × 3，人物 / 怪 / 帧条同一倍率），速度按 V6_FRAMES 的 fps。
+- 每格：游戏地面色底、干员待机首帧、3 只普通怪、一颗敌弹 #33ceff、一颗经验结晶，用来看大小和撞色。
+- 叠层：地面层（名字含 floor / ground 的帧条）→ 本体 → 前景层，每条先 `_deco` 后核心；一次性特效播完停 0.5 秒再循环，名字含 aura / loop / hold / orbit / shell 的无缝循环。
+- 读的是已导出进 `game/art/fx/` 的帧条（打包表 px_frames.json 取帧和原点），所以先导出、跑 asset_index。输出 `Claude outputs/pixelfx_gif/<干员>/<招>.gif` 和总览 `<干员>_index.png`。招名 = 帧条名去掉 `fx_<干员>_ul_`、档位、变体、`_tm` / `_deco` / `_lo`。
