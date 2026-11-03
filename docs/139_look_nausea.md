@@ -378,6 +378,21 @@ godot --path game -- --bal=render/nausea_safe=1
 Boss 弹洋红确认：`build/look_nausea/boss_bullets_check.png`（`--bosstest` 卡门 / 伪人 / 伊比利亚；左上卡门弹幕为洋红，杂兵弹青蓝）。
 **用户 10-24 定方案 2，已成缺省**（`balance.json` render `dash_tell_style` 2）。回退：0。
 
+### 7.6 普通小怪只靠身体预警（style 3，11-04 已成缺省）
+
+用户 11-04 批（参照土豆兄弟：小怪冲刺不画线，看怪本身就知道要冲）。`render/dash_tell_style` 新增 **3**，**缺省改 3**，回退改 2：
+
+- **普通小怪**（`not e.elite`，现在是滑动者）：不画线、不画箭头，只靠身体预警，比 1 / 2 的身体表现加强三样：
+  - **停顿**：蓄力前 `render/dash_hold`（0.6）段就缩到位（往冲刺反方向 `dash_pull` 3 美术像素），之后定住不动、不播走路帧——只改画面姿态，AI 蓄力时长 `dash_wind` 不变；
+  - **轻微抖动**：定住后按蓄力进度加到 `render/dash_shake`（2 世界像素），用 `g.t` 和 id 算正弦取整，不抽随机数；
+  - **闪白一次**：起冲前最后 `render/dash_white_t`（0.1 秒）整体闪白，只这一段，不频闪。
+  - 渐变到危险色（`dash_flash`）照旧。
+- **精英**（骑士精英）和 **所有 Boss**：预警线照旧（按 style 2 画威胁者短箭）。
+- 只改画面：伤害判定、蓄力时长、随机数都不动；同 seed TRACE 与改前逐行一致（§7.6 末）。
+
+代码：`render/world.gd`（身体：`_draw_enemy_full` 冲刺蓄力段；线：`draw_enemy_tells` 的 `dash_tell_style` 分支）。冲刺蓄力本来就在敌人绘制缓存的排除名单里（`_dc_ok` 的 `dash_w > 0`），不用改签名。
+录像：`python tools/probes/dash_body_tell_rec.py rec 2|3`、`video`、`closeup`（seed 13、满编、7:00 起 120 秒、1920×1080 原速，左 style 2 右 style 3；近景按两段画面差异自动找蓄力中的小怪）。
+
 ## 8. 怪物攻击特效审查：哪些圈环可以取消 / 重做（10-25）
 
 协调人转用户：「再去审查一下还有哪些怪物的攻击特效是可以取消 / 重做的，比如说那种圆圈之类的」。原则：会打到人的攻击必须读得清、躲得开；纯装饰、和别的提示重复、或者在动 / 在闪 / 在转却不携带信息的，才动。
