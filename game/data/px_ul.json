@@ -58,6 +58,18 @@
 		}
 	},
 	"suzuran": {
-		"_doc": "铃兰放开版画面全在 seg_suzuran（_h4_px*）里画；这一条只用来让 vfx.px_ul_reg 认出铃兰已接入（起手不走 cast：§14.7 下注册表 cast 挂点不播）"
+		"_doc": "铃兰放开版：命中 bullet.hit、减速 status.slow 走注册表；其余画面在 seg_suzuran（_h4_px*）里画（起手不走 cast：§14.7 下注册表 cast 挂点不播）",
+		"bullet": {
+			"hit": {
+				"base": "fx_suzuran_ul_hit",
+				"y": -6
+			}
+		},
+		"status": {
+			"slow": {
+				"base": "fx_suzuran_ul_slow",
+				"at": "foot"
+			}
+		}
 	}
 }

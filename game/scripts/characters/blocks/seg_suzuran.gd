@@ -150,10 +150,8 @@ static func _h4_fox_release(o, a: Dictionary) -> void:
 		var d: Vector2 = (tg.pos - o.pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
 		var b := {"kind": "arcane", "pos": from, "vel": d * float(a.get("speed", 330.0)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o._dmg_bonus() * (o.vs_elite() if tg.elite or tg.boss else 1.0),
 			"life": float(a.get("life", 1.6)), "r": float(a.get("bullet_r", 7.0)), "aoe": float(a.get("aoe", 26.0)), "home": tg, "turn": float(a.get("turn", 7.0)), "src": str(a.get("src", "")), "op": o.id, "fx_col": H4_FOX, "hidden": true, "etrail": 0.0}
-		if _h4_px(o):   # 放开版（§14.10）：命中画面由本人帧条画（_h4_px_hits），weapons 跳过通用环 / 火花
+		if _h4_px(o):   # 放开版（§14.10 / §14.20）：命中画面走注册表 bullet.hit（px_ul.json），weapons 跳过通用环 / 火花
 			b["px_hit"] = true
-			if sz.get("px_b", []).size() < 64:
-				sz["px_b"] = sz.get("px_b", []) + [b]
 		g.bullets.append(b)
 		if not sl.is_empty():
 			sz.sealed.append(b)   # 画地为牢：命中由 game 结算，这里记住弹体，下一帧看它是否撞上了敌人
@@ -328,8 +326,6 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 			b.etrail = 0.05
 			if not _h4_px(o):   # 放开版：弹体帧条自带火星，不另甩火苗
 				o.fx({"kind": "flame", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.08 + Vector2(0, -14), "life": 0.25, "col": H4_FOX, "sz": 7.0})
-	if not sz.get("px_b", []).is_empty():
-		_h4_px_hits(o, sz)
 	_h4_bigfox_tick(o, sz, a, dt)
 	_h4_seals_tick(o, sz, a, dt)
 	_h4_brand_tick(o, sz, a, dt)   # 精英化第 4 批（狐火灼印 / 狐火拖尾）的挂点；迁移时没有
@@ -637,24 +633,6 @@ static func _h4_px_loop(o, base: String, p: Vector2, sc: float, ph: float, al: f
 			continue
 		var fr: Array = g.V6_FRAMES[nm]
 		fx_frame(o.cv, g, nm, int(fr[0]), int((g.t + ph) * float(fr[1])), p, g.PX * sc, Color(1, 1, 1, al * (dk if layer == "deco" else 1.0)))
-
-
-## 放开版狐火命中：px_b 里的弹体 life 被 game 结算置 0 = 命中（< 0 = 飞满寿命没打中），在命中点放 hit 帧条（精英档 / 队友 _tm / 种子变体 2 走 px_ul_tex）；只改画面
-static func _h4_px_hits(o, sz: Dictionary) -> void:
-	var keep: Array = []
-	for b in sz.px_b:
-		if float(b.life) > 0.0:
-			keep.append(b)
-		elif float(b.life) == 0.0:
-			var g = o.g
-			var vv: int = 1 + int(g.vrng.randf() * 2.0) if o.is_leader else 1
-			var el: int = g.vfx.px_ul_el(o)
-			var fl: bool = b.vel.x < 0.0
-			var dn: String = g.vfx.px_ul_tex("fx_suzuran_ul_hit", vv, not o.is_leader, "deco", el)
-			if dn != "" and g.vfx.px_deco_k(o) > 0.0:
-				g.vfx.fx_sprite(dn, b.pos, g.PX, 0.0, fl, false, Color(1, 1, 1, g.vfx.px_deco_k(o)))
-			g.vfx.fx_sprite(g.vfx.px_ul_tex("fx_suzuran_ul_hit", vv, not o.is_leader, "core", el), b.pos, g.PX, 0.0, fl)
-	sz.px_b = keep
 
 
 ## 放开版一次性帧条：先装饰（× px_deco_k）后核心，ang = 朝向（帧条正右为前），flip = 左右翻
