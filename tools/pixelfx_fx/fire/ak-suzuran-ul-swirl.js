@@ -26,7 +26,7 @@ export function draw(p, t, o) {
   const front = o.side !== "back", back = o.side !== "front";
   const RX = 14, RY = 5;
   // 两条：[起始相位, 起点高, 升高, 跨角, 半宽]
-  const ribbons = [[0, 0, 24, 0.9 * TAU, 0.9], [0.5, -4, 20, 0.8 * TAU, 0.7]];
+  const ribbons = [[0, 0, 26, 1.08 * TAU, 1.4], [0.5, -3, 24, 1.04 * TAU, 1.15]];   // 每条绕身体完整一圈多（组长 B 11-04：原来太细、不成圈）
   if (core) {
     ribbons.forEach(([p0, y0, rise, span, w], i) => {
       const a0 = (ph + p0) * TAU;

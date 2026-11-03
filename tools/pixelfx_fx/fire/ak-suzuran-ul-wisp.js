@@ -10,7 +10,7 @@ export const meta = {
   tags: ["fire", "wisp", "foxfire", "loop"],
   size: [28, 36],
   origin: [14, 30],
-  duration: 0.6,
+  duration: 1.2,
   loop: true,
   fps: 15,
   bg: "dark",
@@ -23,13 +23,15 @@ export function draw(p, t, o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, gr = +o.ground > 0;
   const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
+  // 明暗闪烁：一个循环里亮起一次再暗下去（暗时矮一截、换冷一档的层），一圈里各簇错相位，免得读成匀速散点（组长 B 11-04）
+  const br = 0.5 + 0.5 * Math.cos(TAU * t / D), lay = br > 0.45 ? LAYERS : BACK_LAYERS, hk = 0.7 + 0.3 * br;
   if (core) {
-    flameTongue(p, 2, 0, (gr ? 5 : 6) + 1.2 * N(4, S + 1), 1.6, 2 + N(3, S + 2), N, S * 3 + 1, H, BACK_LAYERS, 0.3, 0.8);
-    flameTongue(p, -0.5, 0, (gr ? 10 : 13) + 2 * N(5, S), gr ? 2.6 : 2.4, N(2, S + 3) * 2.5, N, S * 3, H, LAYERS, 0.4, 1.1);
+    flameTongue(p, 2, 0, ((gr ? 5 : 6) + 1.2 * N(4, S + 1)) * hk, 1.6, 2 + N(3, S + 2), N, S * 3 + 1, H, BACK_LAYERS, 0.3, 0.8);
+    flameTongue(p, -0.5, 0, ((gr ? 10 : 13) + 2 * N(5, S)) * hk, gr ? 2.6 : 2.4, N(2, S + 3) * 2.5, N, S * 3, H, lay, 0.4, 1.1);
   }
   if (deco) {
-    p.glow(0, -4, 7, F[6], 0.2);
-    looped(t, D, 2, S + 50, (r) => ({ x: r.range(-2, 2), vy: -r.range(14, 26), vx: r.range(-5, 5), life: r.range(0.25, 0.45), ph: r.range(0, TAU) }), (q, age) => {
+    p.glow(0, -4, 7, F[6], 0.08 + 0.16 * br);
+    looped(t, D, 3, S + 50, (r) => ({ x: r.range(-2, 2), vy: -r.range(14, 26), vx: r.range(-5, 5), life: r.range(0.25, 0.45), ph: r.range(0, TAU) }), (q, age) => {
       ember(p, q.x + q.vx * age, -10 + q.vy * age, 1 - age / q.life, 1, [H[0], H[2], H[4], H[6]], q.ph + age * 26);
     });
   }
