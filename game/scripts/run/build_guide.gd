@@ -228,9 +228,9 @@ func relic_pool_ids(for_shop := false) -> Array:
 	return weighted.map(func(x): return x[1])
 
 
-## 开宝箱前（docs/191 大时刻补偿）：relic/chest_rare 1 = 精英 / Boss / 精英小队宝箱按稀有 / 核心加权（同得偿所愿）
+## 开宝箱前（docs/191 大时刻补偿）：relic/chest_rare 1 = 精英 / Boss / 精英小队 / 鸭爵宝箱按稀有 / 核心加权（同得偿所愿）
 func chest_open(csrc: String) -> void:
-	if csrc in ["elite", "boss", "squad"] and Bal.v("relic/chest_rare", 1.0) > 0.0:
+	if csrc in ["elite", "boss", "squad", "duck"] and Bal.v("relic/chest_rare", 1.0) > 0.0:
 		g.endg.wish_rare = true
 
 
@@ -239,7 +239,7 @@ func chest_extra(csrc: String) -> int:
 	var extra := 0
 	if csrc == "boss" or csrc == "squad":
 		extra += Bal.vi("relic/big_extra", 1)
-	if csrc in ["elite", "boss", "squad"]:
+	if csrc in ["elite", "boss", "squad", "duck"]:
 		extra += Bal.vi("relic/chest_extra", 0)
 	return extra
 

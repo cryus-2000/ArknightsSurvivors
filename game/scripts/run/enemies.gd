@@ -337,6 +337,9 @@ func update(dt: float) -> void:
 		if e.get("friendly", false) or e.get("ishar_p1", false):
 			g.ishar.step_ally(e, dt)
 			continue
+		if e.type == "duck":
+			g.duck.step(e, dt)   # 鸭爵：自己跑，不走敌对 AI / 接触 / 远距回收（run/duck_lord.gd）
+			continue
 		if e.get("haste", 0.0) > 0.0:
 			e.haste -= dt
 		if e.get("aura_weak", 0.0) > 0.0:

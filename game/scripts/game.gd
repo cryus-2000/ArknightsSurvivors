@@ -58,6 +58,7 @@ const Beacon = preload("res://scripts/run/beacon.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
+const DuckLord = preload("res://scripts/run/duck_lord.gd")
 const BossTrial = preload("res://scripts/run/boss_trial.gd")
 const BossBench = preload("res://scripts/run/boss_bench.gd")
 const VictoryFlow = preload("res://scripts/run/victory_flow.gd")
@@ -96,6 +97,7 @@ const TILE := 32.0              # 地砖在世界中的尺寸
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 
 var ishar = IsharEncounter.new(self)
+var duck = DuckLord.new(self)   # 鸭爵（稀有敌人，docs/216 §11）
 var trial = BossTrial.new(self)
 var bench = BossBench.new(self)   # Boss 单场测试台（--benchsnap 录制 / --bossbench 开打，docs/170；只在 --balance）
 var victory = VictoryFlow.new(self)
@@ -2070,6 +2072,7 @@ func _update(dt: float) -> void:
 		demo_sys.step(dt)
 	elif not trial.active and not sandbox:
 		spawner.update(dt)
+		duck.update(dt)
 	_pm("spawn")
 	enemies_sys.build_grid()
 	_pm("grid")

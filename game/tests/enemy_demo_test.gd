@@ -93,6 +93,8 @@ func _ready() -> void:
 	check(g.enemy_demo.cycle_period() == 35.0 and not g.enemy_demo.subject.friendly, "fixed hostile view uses 18 second cycle")
 	# Real AI updates for every gallery enemy, including scripted death / summons / both boss phases.
 	for id in D.ENEMIES:
+		if id == "duck":
+			continue   # 鸭爵不进图鉴（role rare），只在对局里由 run/duck_lord.gd 生成
 		g.demo_enemy = id
 		g.enemy_demo.configure(2 if id in ["ishar", "paranoia", "izumik", "knight_boss"] else 0)
 		var seen_action := false

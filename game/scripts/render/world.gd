@@ -2712,6 +2712,9 @@ var _no_flash: bool = Look.dbg("noflash") != ""
 var _act_mod := Color.WHITE   # 当前这只敌人的受光封顶缩放（Look.actor_mod；_espr 乘在本体 / 白闪上，描边不乘）
 
 func draw_enemy(e: Dictionary) -> void:
+	if e.type == "duck":
+		g.duck.draw(e, g.wcv)   # 鸭爵：静态图 + 代码跑动（run/duck_lord.gd）
+		return
 	if _am_mode == 3:
 		_act_mod = Look.actor_mod_lut(e.pos)
 	elif _am_mode == 2:

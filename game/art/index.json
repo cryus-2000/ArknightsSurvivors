@@ -81,6 +81,8 @@
 "e_carmen_move": "res://art/enemies/carmen/e_carmen_move.png",
 "e_carmen_slash@2x": "res://art/enemies/carmen/e_carmen_slash@2x.png",
 "e_carmen_spin@2x": "res://art/enemies/carmen/e_carmen_spin@2x.png",
+"e_duck@2x": "res://art/enemies/duck/e_duck@2x.png",
+"e_duck_run@2x": "res://art/enemies/duck/e_duck_run@2x.png",
 "e_floater@2x": "res://art/enemies/floater/e_floater@2x.png",
 "e_floater_attack@2x": "res://art/enemies/floater/e_floater_attack@2x.png",
 "e_floater_attack_emit@2x": "res://art/enemies/floater/e_floater_attack_emit@2x.png",

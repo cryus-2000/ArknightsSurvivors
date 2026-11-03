@@ -1784,8 +1784,8 @@ func bot_move() -> Vector2:
 	var nearest_p := g.ppos
 	for j in g.enemies_sys.query(g.ppos, 220.0):
 		var e: Dictionary = g.enemies[j]
-		if e.dead:
-			continue
+		if e.dead or e.type == "duck":
+			continue   # 鸭爵不攻击，不躲
 		var d: Vector2 = g.ppos - e.pos
 		var l := d.length()
 		if l < nearest_d:
@@ -1870,6 +1870,9 @@ func bot_move() -> Vector2:
 		if not b.lit and g.hp > g.max_hp * 0.45 and b.pos.distance_to(g.ppos) < 700.0:
 			pull = (b.pos - g.ppos).normalized() * 0.9 if b.pos.distance_to(g.ppos) > 40.0 else Vector2.ZERO
 			break
+	var dk: Vector2 = g.duck.chase_dir(g.ppos)
+	if dk != Vector2.ZERO:
+		pull = dk   # 鸭爵：追得到就优先追（docs/216 §11）
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:
 		pull = (nearest_p - g.ppos).normalized() * 0.5
 	var mv := push * 2.2 + pull

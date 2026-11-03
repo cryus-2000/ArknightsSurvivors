@@ -208,9 +208,20 @@ def cmd_run(a):
     base = ""
     if not on_origin(sha):
         base = git("merge-base", sha, "origin/main").stdout.strip()
+        # 沿第一父链找最近一个已在 origin 上的祖先当基准（虚拟机只浅拉基准 1 层；用和 main 的分叉点时 bundle 的前置提交会落在浅拉范围外，11-04）
+        for up in git("rev-list", "--first-parent", "--max-count=60", sha).stdout.split()[1:]:
+            if on_origin(up):
+                base = up
+                break
         tmp = tempfile.mkdtemp()
         bnd = os.path.join(tmp, "repo.bundle")
-        git("bundle", "create", bnd, sha, "^" + base)
+        # 裸提交号做不了 bundle（git「Refusing to create empty bundle」，11-04 鸭爵批跑踩到）：临时建一个指向它的引用再打包，虚拟机照旧按提交号取
+        tref = "refs/batch-bundle/" + re.sub(r"[^A-Za-z0-9._-]+", "-", a.tag)
+        git("update-ref", tref, sha)
+        try:
+            git("bundle", "create", bnd, tref, "^" + base)
+        finally:
+            git("update-ref", "-d", tref)
         print("提交 %s 不在 origin 上：上传 bundle（基于 %s，%.1f MB）" % (sha[:10], base[:10], os.path.getsize(bnd) / 1e6))
         gc("storage", "cp", bnd, gs + "/repo.bundle", "-q")
     t0 = time.time()

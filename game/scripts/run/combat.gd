@@ -1176,6 +1176,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if _pf:
 		_pt = g.prof_add("dm_boss", _pt)
 	g.rfx.on_hit(e, h, dmg)
+	if e.type == "duck":
+		g.duck.on_hit(e)   # 鸭爵：受击加速一段（run/duck_lord.gd）
 	if _pf:
 		_pt = g.prof_add("dm_rfx_on_hit", _pt)
 	e.hp -= dmg
@@ -1431,6 +1433,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.pickups.drop(e.pos, "heal", 1.0)
 			g.pickups.item_log.heal_mob += 1
 	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
+	if e.type == "duck":
+		g.duck.on_kill(e)   # 鸭爵：必掉藏品 + 源石锭（duck/ingots）
 	if e.elite:
 		ing = max(ing, g.rng_drop.randi_range(3, 5))
 		if elite_drops_relic():

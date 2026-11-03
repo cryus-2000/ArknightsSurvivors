@@ -64,6 +64,11 @@ func _init(game, p: String, seed_v: int) -> void:
 func move(dt: float) -> Vector2:
 	if profile != "afk" and g.get("squad") != null:
 		g.squad.bot_point(dt)   # 指点：Boss 在场集火、被包围时肃清最密的一块（10-30，command/bot_point）
+	if profile in ["normal", "expert", "master"]:
+		var dd: Vector2 = g.duck.bot_dash(g.ppos)
+		if dd != Vector2.ZERO:
+			g.autotest_sys.want_dash = true   # 鸭爵跑得比走路快：冲刺好了就朝它冲（docs/216 §11.3）
+			return dd
 	match profile:
 		"afk":
 			return Vector2.ZERO
@@ -273,6 +278,10 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 		if w < best_w:
 			best_w = w
 			best_v = (gm.pos - p).normalized()
+	var dk: Vector2 = g.duck.chase_dir(p)
+	if dk != Vector2.ZERO:
+		beacon_hold = Vector2.INF
+		return dk   # 鸭爵（docs/216 §11）：追得到就优先追（掉藏品），排在补给箱 / 灯标 / 商人之前
 	for e in g.enemies:
 		if e.get("chest", false) and not e.dead and e.pos.distance_to(p) < 450.0:
 			return (e.pos - p).normalized()
@@ -509,6 +518,10 @@ func _move_master(_dt: float) -> Vector2:
 	var gap_dir := _master_gap(p, near)
 	if gap_dir != Vector2.ZERO:
 		goal = gap_dir if goal == Vector2.ZERO else (goal * 0.4 + gap_dir).normalized()
+		beacon_hold = Vector2.INF
+	var dk: Vector2 = g.duck.chase_dir(p)
+	if dk != Vector2.ZERO:
+		goal = dk   # 鸭爵（docs/216 §11）：追得到就优先追，压过 Boss 站位与找空隙（同高手 _expert_goal）
 		beacon_hold = Vector2.INF
 	# 经验 / 灯油 / 回复：候选点附近的掉落物加分（真人会顺路吸经验，不会只追最近的一颗）
 	var gems := PackedVector2Array()

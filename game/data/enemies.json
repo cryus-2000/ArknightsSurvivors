@@ -1094,6 +1094,12 @@
     "line": "曾经同行的猎潮骑士。"
    },
    "portrait_crop": [30, 10, 64, 64]
+  },
+  "duck": {
+   "name": "鸭爵", "hp": 160.0, "spd": 105.0, "dmg": 0.0, "r": 14.0, "xp": 8.0, "tex": "e_duck", "anchor": "foot",
+   "ai": "melee", "role": "rare", "ingots": 0, "no_contact": true, "no_spawn": true, "draw_full": true,
+   "desc": "哥伦比亚著名投资人、企业家，“鸭之力”大师。不攻击；一出现就逃跑，受到攻击后越跑越快；30 秒内没被击倒就会溜走。击倒必得 1 件藏品与少量源石锭。",
+   "ecol": [1.0, 0.92, 0.75]
   }
  }
 }
