@@ -351,7 +351,7 @@ func right_top(vs: Vector2) -> void:
 const CARD := Vector2(55.0, 68.0)   # 立绘窗（@2x 待机帧裁 79×102 → 设计单位 ×2/3）
 const NAME_H := 11.0
 const GAP := 6.0
-const SEG_H := 18.0
+const SEG_H := 22.0   # 11-04 18 → 22：四格字号 10 → 13（用户「看不清指挥模式」）
 
 func squad_size(n: int) -> Vector2:
 	return Vector2(maxf(4, n) * (CARD.x + GAP) - GAP, 12.0 + SEG_H + 8.0 + CARD.y + NAME_H)
@@ -404,12 +404,16 @@ func squad(br: Vector2) -> void:
 		var cw: float = sr.size.x / 4.0
 		for k in 4:
 			var cr := Rect2(sr.position + Vector2(k * cw, 0), Vector2(cw, SEG_H))
+			# 11-04 用户「看不清指挥模式」：当前格青底 + 白框 + 左侧三角标记、字加大；其余三格字用正文色（原来是暗灰 SUB）
 			if k == cur:
 				g.hud.draw_rect(cr, UI.CYAN)
+				g.hud.draw_rect(cr.grow(1.0), Color(1, 1, 1, 0.9), false, 1.5)
+				var ty: float = cr.get_center().y
+				g.hud.draw_colored_polygon(PackedVector2Array([Vector2(cr.position.x + 5, ty - 4), Vector2(cr.position.x + 10, ty), Vector2(cr.position.x + 5, ty + 4)]), Color(0.055, 0.063, 0.07))
 			elif k > 0 and k != cur + 1:
-				g.hud.draw_rect(Rect2(cr.position.x, cr.position.y + 4, 1, SEG_H - 8), Color(1, 1, 1, 0.2))
-			var c: Color = Color(0.055, 0.063, 0.07) if k == cur else UI.SUB
-			g.hud.draw_string(g.font, Vector2(cr.position.x, cr.position.y + SEG_H - 5), SEG_NAMES[k], HORIZONTAL_ALIGNMENT_CENTER, cw, UI._ks(g.hud, 10), c)
+				g.hud.draw_rect(Rect2(cr.position.x, cr.position.y + 4, 1, SEG_H - 8), Color(1, 1, 1, 0.28))
+			var c: Color = Color(0.055, 0.063, 0.07) if k == cur else Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, 0.82)
+			g.hud.draw_string(g.font, Vector2(cr.position.x, cr.position.y + SEG_H - 6), SEG_NAMES[k], HORIZONTAL_ALIGNMENT_CENTER, cw, UI._ks(g.hud, 13), c)
 		# 突击耐力（全队共用）：分段下沿一根细线
 		var sqd = g.squad
 		if sqd.stamina_on():

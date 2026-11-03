@@ -495,6 +495,23 @@ func _draw_leave(k: float) -> void:
 
 ## HUD：援护栏右侧的骑士格（不占 3 个援护位）
 ## 已入潮（submerged）：格子不删，整格变灰，标「已入潮」——结局二仍按「骑士在」判定
+## HUD 圆头像的源矩形：行走帧条第 0 帧里非空像素的包围盒（帧数按 enemy_redraw / enemy_pixels 登记，缺省 2）；只算一次
+var _hud_rect := Rect2()
+func _hud_src(at: Texture2D) -> Rect2:
+	if _hud_rect.has_area():
+		return _hud_rect
+	var n: int = maxi(1, A.enemy_frames("e_knight_walk", int(A.enemy_pixel_spec("e_knight_walk").get("frames", 2))))
+	var fw: int = at.get_width() / n
+	_hud_rect = Rect2(0, 0, fw, at.get_height())
+	var base: Texture2D = at.diffuse_texture if at is CanvasTexture else at   # 法线光照下是 CanvasTexture，取漫反射图读像素
+	var img: Image = base.get_image() if base != null else null
+	if img != null:
+		var used: Rect2i = img.get_region(Rect2i(0, 0, fw, img.get_height())).get_used_rect()
+		if used.has_area():
+			_hud_rect = Rect2(used)
+	return _hud_rect
+
+
 func draw_hud(hud: CanvasItem, c: Vector2) -> void:
 	if not alive and not submerged:
 		return
@@ -504,12 +521,11 @@ func draw_hud(hud: CanvasItem, c: Vector2) -> void:
 	UI.ring(hud, c, 21.0, 1.0 if submerged else clampf(hp / maxhp, 0.0, 1.0), acol, false, submerged)
 	var at: Texture2D = g.tex.get("e_knight_walk")
 	if at != null:
-		var fw := at.get_width() / 2
-		var rect: Array = A.enemy_pixel_spec("e_knight_walk").get("visible_rect", [0, 0, fw, at.get_height()])
-		var src := Rect2(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3]))
-		var ks: float = 34.0 / src.size.y
+		# 只取第 0 帧的非空包围盒，按宽高都放进圈内（直径 34）、居中（11-04：原来写死 2 帧，6 帧条会把前 3 帧一起塞进来、只按高缩放而横向出框）
+		var src: Rect2 = _hud_src(at)
+		var ks: float = 34.0 / maxf(src.size.x, src.size.y)
 		var mod := Color(0.4, 0.42, 0.46, 0.75) if submerged else Color.WHITE
-		hud.draw_texture_rect_region(at, Rect2(c + Vector2(-src.size.x * ks / 2.0, 16 - src.size.y * ks), src.size * ks), src, mod)
+		hud.draw_texture_rect_region(at, Rect2((c - src.size * ks / 2.0).round(), src.size * ks), src, mod)
 	UI.text(hud, font, c + Vector2(-30, 36), "骑士", 11, grey if submerged else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
 	if submerged:
 		UI.text(hud, font, c + Vector2(-30, -40), "已入潮", 10, grey, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
