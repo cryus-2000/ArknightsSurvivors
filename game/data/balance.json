@@ -876,11 +876,11 @@
   "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]
  },
  "duck": {
-  "_doc": "鸭爵（稀有敌人，用户 11-03 批，docs/216 §11，run/duck_lord.gd）：on 1 = 开；每局两次，t1_lo–t1_hi、t2_lo–t2_hi 秒内各出现一次（对局种子定），在画面半宽 / 半高 × spawn_edge 处；spd 基础移速（队长 150、普通怪 46–72），每次被攻击加 hit_spd、持续 hit_t 秒，最多叠 hit_stack 段、总速封顶 spd_max（低于队长，追得上）；hit_gap 秒内的多次命中只算一段；flee_t 秒没打倒就溜走（不掉落）。生命 = enemies.json duck.hp × 普通怪时间曲线 × hp_mult。打倒必掉 1 件藏品（chest，来源 duck，同精英宝箱：core_gate、稀有加权）+ ingots 个源石锭。补偿：relic/elite_drop_chance 0.25 → 0.15。",
+  "_doc": "鸭爵（稀有敌人，用户 11-03 批，docs/216 §11，run/duck_lord.gd）：on 1 = 开；每局两次，t1_lo–t1_hi、t2_lo–t2_hi 秒内各出现一次（对局种子定），在画面半宽 / 半高 × spawn_edge 处；spd 基础移速（队长 150、普通怪 46–72），每次被攻击加 hit_spd、持续 hit_t 秒，最多叠 hit_stack 段、总速封顶 spd_max（低于队长，追得上）；hit_gap 秒内的多次命中只算一段；每次受击另有爆发冲刺：瞬间 +burst_spd，burst_t 秒内二次缓出回落到档位（不受 spd_max 限，约多跑 20 像素；11-04 用户「被攻击后快速逃跑看不出来」，hit_spd 10 → 14）；flee_t 秒没打倒就溜走（不掉落）。生命 = enemies.json duck.hp × 普通怪时间曲线 × hp_mult。打倒必掉 1 件藏品（chest，来源 duck，同精英宝箱：core_gate、稀有加权）+ ingots 个源石锭。补偿：relic/elite_drop_chance 0.25 → 0.15。",
   "on": 1,
   "t1_lo": 180, "t1_hi": 360, "t2_lo": 480, "t2_hi": 720,
   "spawn_edge": 0.85,
-  "spd": 105, "hit_spd": 10, "hit_t": 2.0, "hit_stack": 4, "spd_max": 140, "hit_gap": 0.2,
+  "spd": 105, "hit_spd": 14, "hit_t": 2.0, "hit_stack": 4, "spd_max": 140, "hit_gap": 0.2, "burst_spd": 150, "burst_t": 0.45,
   "flee_t": 30,
   "hp_mult": 1.0,
   "ingots": 6

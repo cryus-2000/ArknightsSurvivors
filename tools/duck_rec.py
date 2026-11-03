@@ -18,6 +18,10 @@ ap.add_argument("--at", type=float, default=200.0)
 ap.add_argument("--bot", default="expert")
 ap.add_argument("--crf", type=int, default=20)
 ap.add_argument("--secs", type=float, default=32.0)
+ap.add_argument("--res", default="1920x1080", help="游戏窗口分辨率；近镜头用 960x540 再整数倍放大到 1920×1080（像素不糊）")
+ap.add_argument("--viewh", type=int, default=0, help="近镜头：render/view_h_desk 覆盖（缺省 1080 = 正常镜头；560 ≈ 拉近 1.9 倍）")
+ap.add_argument("--extra", default="", help="透传给游戏的额外参数（空格分隔），如 --bal=duck/hp_mult=3 拉长演示")
+ap.add_argument("--zoom", type=int, default=0, help="战斗画面缩放 %%（--camzoom，近镜头用；0 = 缺省）")
 a = ap.parse_args()
 
 OUT = os.path.join(GR.common_root(), "Claude outputs", "duck_lord_1104")
@@ -28,10 +32,10 @@ os.makedirs(fdir)
 os.makedirs(OUT, exist_ok=True)
 GR.ensure_imported(os.path.join(ROOT, "game"))
 t0 = a.at - 1.0
-args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--resolution", "1920x1080", "--",
+args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--resolution", a.res, "--",
         "--balance", "--realtime", "--nodeath", "--seed=%d" % a.seed, "--bot=" + a.bot, "--duckat=%g" % a.at,
         "--rtfrom=%g" % (t0 - 3), "--recframes=%g,%d" % (t0, int(a.secs * FPS)), "--shotdir=" + fdir.replace(os.sep, "/"),
-        "--sfxtrace", "--maxt=%d" % (t0 + a.secs + 3)]
+        "--sfxtrace", "--maxt=%d" % (t0 + a.secs + 3)] + (["--camzoom=%d" % a.zoom] if a.zoom else []) + (["--bal=render/view_h_desk=%d" % a.viewh] if a.viewh else []) + a.extra.split()
 out, err, to = GR.run_godot(args, 3000)
 open(os.path.join(WORK, "run.log"), "w", encoding="utf-8").write(out + "\n----\n" + err)
 errs = GR.script_errors(out, err)
@@ -62,7 +66,7 @@ final = os.path.join(OUT, "鸭爵实战.mp4")
 crf = a.crf
 while True:
     subprocess.run([ff, "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", os.path.join(fdir, "rec_%05d.png"), "-i", wav, "-frames:v", str(n),
-                    "-c:v", "libx264", "-crf", str(crf), "-preset", "slow", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-shortest", final], check=True)
+                    "-vf", "scale=1920:1080:flags=neighbor", "-c:v", "libx264", "-crf", str(crf), "-preset", "slow", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-shortest", final], check=True)
     mb = os.path.getsize(final) / 1048576.0
     if mb <= 25.0 or crf >= 32:
         break

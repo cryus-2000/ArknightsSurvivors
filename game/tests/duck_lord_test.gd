@@ -59,13 +59,19 @@ func _process(_dt: float) -> void:
 	var base: float = duck.speed(e)
 	check(is_equal_approx(base, Bal.v("duck/spd", 0)), "base speed")
 	game.combat.damage(e, 0.01, game.combat.make_hit("援护"))
-	check(duck.speed(e) > base, "hit speeds up")
+	check(duck.speed(e) > duck.tier_speed(e) + 100.0 and duck.tier_speed(e) > base, "hit: burst dash on top of a higher tier")
+	var t_hit: float = game.t
+	game.t += Bal.v("duck/burst_t", 0.45) * 0.5
+	var mid: float = duck.burst(e)
+	game.t = t_hit + Bal.v("duck/burst_t", 0.45) + 0.01
+	check(mid > 0.0 and mid < Bal.v("duck/burst_spd", 0) and duck.burst(e) == 0.0, "burst decays back to tier")
+	game.t = t_hit
 	game.combat.damage(e, 0.01, game.combat.make_hit("援护"))
 	check(e.duck_hits.size() == 1, "hits within hit_gap count once")
 	for i in 12:
 		game.t += 0.25
 		duck.on_hit(e)
-	check(duck.speed(e) <= Bal.v("duck/spd_max", 0) + 0.01, "speed capped")
+	check(duck.tier_speed(e) <= Bal.v("duck/spd_max", 0) + 0.01, "tier speed capped")
 	check(Bal.v("duck/spd_max", 999) < game.speed, "cap below leader speed (catchable)")
 	game.t += Bal.v("duck/hit_t", 2.0) + 0.1
 	check(is_equal_approx(duck.speed(e), base), "boost expires")
