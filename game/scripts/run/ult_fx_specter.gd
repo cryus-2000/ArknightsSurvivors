@@ -1,7 +1,7 @@
 ## 归溟幽灵鲨终结技「弹射撕裂」pixelfx 放开版画法（docs/242；开关 fx/px_unleashed，缺图退回 ult_fx_c.sb_*）。
 ## 设计不动（用户 10-30 / 10-31 定稿）：红黑剪影在敌人间弹射、每处落一把小锯 → 最后一圈前大锯从上方压下 → 落地磨地 → 猛地横切过整片敌群 → 锯收小飞回。
 ## 只换画风：小锯 / 弹射血线 / 撕痕 / 巨锯 / 横切 / 切痕换成 pixelfx 帧条（tools/pixelfx_fx/impacts/ak-specter-ul-ult.js，先装饰后核心），
-## 不再用铃兰斩痕染色、pixgen 整圈锯和 ult_burst 粒子；地面裂网 / 隆起 / 烟尘 / 余震沿用 pixfx 公共冲击件（用户 10-30 认可的裂地做法）。
+## 各件统一走 u.px_strip（docs/242 §14.15：先装饰 × px_deco_k 后核心）；不再用铃兰斩痕染色、pixgen 整圈锯和 ult_burst 粒子；地面裂网 / 隆起 / 烟尘 / 余震沿用 pixfx 公共冲击件（用户 10-30 认可的裂地做法）。
 ## 时序、伤害、判定留在 ult_moves_b._su_* 不动；散布按 PF.h 哈希，不抽模拟随机数。
 extends RefCounted
 
@@ -28,25 +28,11 @@ static func on(u) -> bool:
 	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready(MINI) and u.fx_ready(BIG)
 
 
-## 先装饰（透明度 × fx/px_deco_k）后核心；终结技不分档（E2）。过渡写法（同 ult_moves._ex_ul_strip），样板出 u.px_strip 后换掉删除
-static func _specter_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
-	var vf = u.g.vfx
-	var dn: String = vf.px_ul_tex(base, 1, false, "deco", 2)
-	var dk: float = vf.px_deco_k()
-	if dn != "" and dk > 0.0:
-		var od := opt.duplicate()
-		var cc: Color = opt.get("col", Color.WHITE)
-		od["col"] = Color(cc.r, cc.g, cc.b, cc.a * dk)
-		od.erase("hf")
-		u.strip(dn, c, od)
-	u.strip(vf.px_ul_tex(base, 1, false, "core", 2), c, opt)
-
-
 ## 线状件：p0 → p0 + 方向 × L，原点在帧条中点，按长度拉伸
 static func _line(u, base: String, base_l: float, p0: Vector2, ang: float, L: float, opt: Dictionary) -> void:
 	var o2 := {"ang": ang, "sx": L / base_l}
 	o2.merge(opt)
-	_specter_ul_strip(u, base, p0 + Vector2.from_angle(ang) * L * 0.5, o2)
+	u.px_strip(base, p0 + Vector2.from_angle(ang) * L * 0.5, o2)
 
 
 static func sb_start(u, a: Dictionary, o, c: Vector2) -> void:
@@ -100,7 +86,7 @@ static func sb_tick(u, a: Dictionary, c: Vector2, R: float, tick: int, n: int) -
 		var tl: float = 70.0 + 60.0 * PF.h(vs + k * 4.4)
 		_line(u, TEAR, TEAR_L, p - Vector2.from_angle(ta) * tl * 0.5, ta, tl, {"layer": "back", "delay": dl + 0.02, "sy": 1.0 + 0.4 * PF.h(vs + k)})
 		var sr: float = 80.0 + 24.0 * PF.h(vs + k * 6.1)   # 弹到这里锯一下（用户 10-31「闪出去弹射的时候也要带锯子」「小圆锯画大一点」）
-		_specter_ul_strip(u, MINI, p + Vector2(0, -6), {"sc": sr / MINI_R, "delay": dl, "sx": -1.0 if PF.h(vs + k * 2.2) < 0.5 else 1.0})
+		u.px_strip(MINI, p + Vector2(0, -6), {"sc": sr / MINI_R, "delay": dl, "sx": -1.0 if PF.h(vs + k * 2.2) < 0.5 else 1.0})
 		cur = p
 	a.sb_cur = cur
 	if tick == n - 1:
@@ -122,7 +108,7 @@ static func sb_warn(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> void:
 	var T := 0.25
 	u.strip(u.g.vfx.px_ul_tex(BIG, 1, false, "core", 2), ctr + Vector2(0, 6), {"layer": "back", "sc": r1 * 0.4 / BIG_R, "sc1": r1 * 1.05 / BIG_R, "scd": T, "life": T + 0.04,
 		"col": Color(0.0, 0.0, 0.02, 0.55), "fps": 40.0})   # 锯影压在地上
-	_specter_ul_strip(u, BIG, ctr + Vector2(0, -170), {"sc": r1 * 1.25 / BIG_R, "sc1": r1 * 1.02 / BIG_R, "scd": T, "v": Vector2(0, 170.0 / T), "life": T,
+	u.px_strip(BIG, ctr + Vector2(0, -170), {"sc": r1 * 1.25 / BIG_R, "sc1": r1 * 1.02 / BIG_R, "scd": T, "v": Vector2(0, 170.0 / T), "life": T,
 		"col": Color(0.85, 0.8, 0.82, 0.8), "fps": 40.0})   # 大锯从上方压下来
 	u.light(ctr, r1, Color(0.4, 0.05, 0.08), T)
 
@@ -131,14 +117,14 @@ static func sb_warn(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> void:
 static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> void:
 	var ctr: Vector2 = a.get("sb_ctr", c)
 	var r1: float = R * 0.75
-	_specter_ul_strip(u, BIG, ctr, {"sc": r1 / BIG_R, "hf": true})   # 巨锯落地：首帧白热 → 狂转磨地 0.85 秒
+	u.px_strip(BIG, ctr, {"sc": r1 / BIG_R, "hf": true})   # 巨锯落地：首帧白热 → 狂转磨地 0.85 秒
 	var vs: float = float(a.sb_vs) + 55.0
 	var ca: float = PF.h(vs + 77.0) * PI - PI * 0.5
 	var cd: Vector2 = Vector2.from_angle(ca)
 	var CL: float = R * 2.1
 	var cp0: Vector2 = ctr - cd * CL * 0.5
 	var T_CUT := 0.6
-	_specter_ul_strip(u, MINI, ctr, {"sc": r1 * 0.9 / MINI_R, "delay": T_CUT - 0.06, "life": 0.08, "v": cd * CL * 0.5 / 0.08})   # 锯冲出去
+	u.px_strip(MINI, ctr, {"sc": r1 * 0.9 / MINI_R, "delay": T_CUT - 0.06, "life": 0.08, "v": cd * CL * 0.5 / 0.08})   # 锯冲出去
 	_line(u, CUT, CUT_L, cp0, ca, CL, {"delay": T_CUT, "sy": 1.6})   # 横切：一帧伸满 → 血红 → 上下错开
 	_line(u, SCAR, SCAR_L, cp0, ca, CL, {"layer": "back", "delay": T_CUT, "sy": 1.4, "life": 2.2, "fade": 1.0})   # 深切痕慢慢冷却
 	u.stop_later(T_CUT, Bal.v("ult/sb_cut_stop", 0.12))
@@ -149,7 +135,7 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 		var side: float = 1.0 if q % 2 == 0 else -1.0
 		PF.rock(u, pq, nv * side * (140.0 + 120.0 * hq), 150.0 + 100.0 * hq, hq, 0.34, T_CUT, Color(0.95, 0.75, 0.75))
 	PF.dust(u, ctr, R * 0.9, T_CUT + 0.03, vs + 13.0, Vector2.ZERO, Color(0.4, 0.28, 0.28))
-	_specter_ul_strip(u, MINI, ctr + cd * CL * 0.5, {"sc": r1 * 0.8 / MINI_R, "delay": T_CUT + 0.14, "life": 0.3, "sc1": r1 * 0.16 / MINI_R, "scd": 0.3,
+	u.px_strip(MINI, ctr + cd * CL * 0.5, {"sc": r1 * 0.8 / MINI_R, "delay": T_CUT + 0.14, "life": 0.3, "sc1": r1 * 0.16 / MINI_R, "scd": 0.3,
 		"v": (c - (ctr + cd * CL * 0.5)) / 0.3})   # 飞回她手里
 	u.g.vfx.stop(Bal.v("ult/sb_hitstop", 0.16), "ult", true)
 	u.light(ctr, r1, Color(0.55, 0.08, 0.1), 0.25)
