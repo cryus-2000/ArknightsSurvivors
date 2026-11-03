@@ -37,7 +37,7 @@ export function create(o) {
   const R = o.radius, el = +o.elite, LQ = +o.quick > 0 ? 0.5 : 1;
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const TAIL = [0.5, 0.65, 0.85][el] * LQ;   // 组长 11-04 实机：余韵再长一档
-  const CR = R * 0.46 * [1, 1.25, 1.5][el];   // 组长 11-04 实机：太小太细 → 基础坑再大一档   // 坑半径（判定的三分之一，范围靠主缝交代）；§8 分档：E1 ×1.25、E2 ×1.5
+  const CR = R * 0.55 * [1, 1.25, 1.5][el];   // 组长 11-04 实机：太小太细 → 基础坑再大一档   // 坑半径（判定的三分之一，范围靠主缝交代）；§8 分档：E1 ×1.25、E2 ×1.5
   // 坑沿：极坐标不规整半径
   // E2 质变（§8）：坑形从不规整圆变成倒三角盾印坑（般若盾），三角外接半径 1.15 CR
   const T3 = 2 * Math.PI / 3, tri = (a) => 1.15 * 0.5 / Math.cos(((((a - Math.PI / 2) % T3) + T3) % T3) - T3 / 2);
@@ -83,7 +83,7 @@ export function create(o) {
         if (el >= 2 && k === "crack") return J[clamp(Math.round(4 - u * 3), 2, 4)];
         if (el >= 2 && k === "rim") return J[clamp(Math.round(4 - u * 2.5), 2, 4)];   // E2 专属点缀：坑沿青绿（般若）
         if (el >= 1 && k === "rim") return E[clamp(Math.round(4 - u * 5), 1, 3)];
-        return C[clamp(Math.round(4 - u * 8), 2, 4)];
+        return C[clamp(Math.round(4.5 - u * 5), 3, 4)];   // 组长 11-04 重录：E0 冷却后别沉成暗钢（实机看不见）
       };
       if (core && ck > 0) {
         // 主缝：先于坑铺开（0.08 s 长满），两像素宽
@@ -94,7 +94,7 @@ export function create(o) {
           const [x0, y0] = pts[i], x1 = x0 + (pts[i + 1][0] - x0) * g, y1 = y0 + (pts[i + 1][1] - y0) * g;
           const c = heat("crack");
           p.line(x0, y0, x1, y1, c, 1);
-          for (let w = 1; w < 3 + el - (i > 0 ? 1 : 0); w++) p.line(x0, y0 - w, x1, y1 - w, c, 1);   // 主缝 3 / 4 / 5 像素（远段少一像素）：组长 11-04 实机要 3–4 px
+          for (let w = 1; w < 4 + el - (i > 0 ? 1 : 0); w++) p.line(x0, y0 - w, x1, y1 - w, c, 1);   // 主缝 3 / 4 / 5 像素（远段少一像素）：组长 11-04 实机要 3–4 px
           p.line(x0, y0 + 1, x1, y1 + 1, C[1], 0.9);   // 缝的暗面
         }
         // 坑：实心不规整椭圆，坑底暗、近沿（下半）受光；第 1 帧整坑白热

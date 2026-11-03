@@ -1058,9 +1058,10 @@ static func _ho_start(u, o) -> Dictionary:
 		_ho_ul_strip(u, "fx_hoshiguma_ul_ultslam", c + Vector2(0, 2), {"sc": u.g.PX})
 	else:
 		u.strip("fx_hoshiguma_block", c + Vector2(0, -14), {"sc": 3.0, "life": 0.3})
-	_hex(u, c, 110.0, 0.0, col, 5.0, hold + 0.1)
-	_hex(u, c, 70.0, PI / 6.0, col.lerp(Color.WHITE, 0.4), 3.0, hold + 0.1)
-	_ring(u, c, pr, 120.0, Color(col, 0.6), 0.35, 3.0)
+	if not pul:   # 放开版：盾前两层六边形细线框、吸怪半径的点状圈（组长 11-04 重录：末尾往外扩的点状虚线圆）都不画
+		_hex(u, c, 110.0, 0.0, col, 5.0, hold + 0.1)
+		_hex(u, c, 70.0, PI / 6.0, col.lerp(Color.WHITE, 0.4), 3.0, hold + 0.1)
+		_ring(u, c, pr, 120.0, Color(col, 0.6), 0.35, 3.0)
 	# 吸怪：半径 pr 内小怪吸到盾前（距她 ~100），精英吸近一截
 	var n := 0
 	for e in u.in_circle(c, pr):
@@ -1072,7 +1073,7 @@ static func _ho_start(u, o) -> Dictionary:
 			continue
 		var pull: float = maxf(0.0, dist - 100.0) if _minion(e) else maxf(0.0, dist - 150.0)
 		g.enemies_sys.apply_kb(e, dv / dist * _kb_v(pull))
-		if n < 36 and pull > 60.0:
+		if n < 36 and pull > 60.0 and not pul:   # 放开版不画吸怪细线
 			n += 1
 			u.shape({"kind": "line", "a": e.pos, "b": e.pos + dv / dist * minf(pull, 120.0), "w": 2.0, "col": col.lerp(Color.WHITE, 0.3), "life": 0.2, "v": dv / dist * 500.0})
 	var hv2: bool = _ho_v2(u)
@@ -1144,12 +1145,11 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			var vs2: float = PF.vseed(u, c) + 50.0
 			var pul: bool = _ho_ul(u)   # 放开版：石尘冲击环、外圈烟尘外推、四拍外震都是往外扩散的环，一律不做（用户 11-04）；留顿帧、粒子、原地余震碎石
 			var rs: Dictionary = {} if pul else PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
-			if pul:   # 放开版反震本体：盾阵边（R 处六边形）一圈地面原地掀起——每边 3 段 fx_hoshiguma_ul_burstslab（石板 + 鬼火 + 碎石往上蹦），两种变体交错、起落略错开
-				for q in 18:
-					var k: int = q / 3
-					var f: float = (float(q % 3) + 0.5 + (PF.h(vs2 + q * 1.7) - 0.5) * 0.5) / 3.0
-					var hp: Vector2 = c + Vector2.from_angle(TAU * k / 6.0).lerp(Vector2.from_angle(TAU * (k + 1) / 6.0), f) * R
-					u.px_strip("fx_hoshiguma_ul_burstslab", hp, {"variant": 1 + q % 2, "sc": u.g.PX, "delay": 0.04 * float(q % 4)})
+			if pul:   # 放开版反震本体：盾阵边（R 处）只掀 4 处地面（组长 11-04 重录：18 段等距碎石读成装饰撒点）——角度按哈希错开、大小 0.8–1.4 拉开，两种变体
+				for q in 4:
+					var hq: float = PF.h(vs2 * 2.0 + q * 3.1)
+					var hp: Vector2 = c + Vector2.from_angle(TAU * (float(q) + 0.15 + 0.7 * hq) / 4.0) * R * (0.92 + 0.1 * PF.h(vs2 + q))
+					u.px_strip("fx_hoshiguma_ul_burstslab", hp, {"variant": 1 + q % 2, "sc": u.g.PX * (0.8 + 0.6 * PF.h(vs2 * 5.0 + q)), "delay": 0.05 * float(q % 3)})
 			if _ho_v3() and not pul:   # 冲击帧：反震那一下，石尘环 + 盾下碎裂进剪影；外圈八团逐帧烟尘往外推
 				a["hf"] = true
 				u.act["hf"] = true
@@ -1163,7 +1163,7 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			a["vs"] = vs2
 			if not pul:
 				a["beats"] = [[t, R * 0.3, 0], [t + 0.18, R * 0.55, 1], [t + 0.36, R * 0.8, 2], [t + 0.54, R, 3]]
-			PF.aftershock(u, c, R, vs2 + 9.0, 0.84, 10)
+			PF.aftershock(u, c, R, vs2 + 9.0, 0.84, 4 if pul else 10)   # 放开版余震碎石减到 4 块（组长 11-04 重录）
 		else:
 			u.shape({"kind": "circle", "c": c, "r": R, "col": COL_RED.lerp(col, 0.5), "fill": 0.3, "life": 0.22})
 			_ring(u, c, R, 80.0, col.lerp(Color.WHITE, 0.3), 0.45, 14.0)
