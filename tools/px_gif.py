@@ -155,6 +155,45 @@ def reg_info(op):
     return (pres[0] if pres else "fx_%s_ul_" % op), land, status, loop, (bh.get("base") if isinstance(bh, dict) else None)
 
 
+def shape_centers(op, reg_shapes):
+    """注册表 shapes 登记的帧条 → 判定段的 center（self / leader / target / front …，取自干员 JSON 的圆形 / 锥形段；总组长 11-04：
+    乌尔比安锚击 / 撼地、歌蕾蒂娅落点类原来一律画在干员脚底）"""
+    p = os.path.join(ROOT, "game", "data", "characters", op + ".json")
+    cen = {}
+
+    def walk(n):
+        if isinstance(n, dict):
+            if n.get("shape") in ("circle", "cone") and n.get("src"):
+                cen.setdefault(str(n.get("px_key", n["src"])), str(n.get("center", "self")))
+            for v in n.values():
+                walk(v)
+        elif isinstance(n, list):
+            for v in n:
+                walk(v)
+    if os.path.exists(p):
+        walk(json.load(open(p, encoding="utf-8")))
+    out = {}
+    for k, e in (reg_shapes or {}).items():
+        c = cen.get(k)
+        if c is None or not isinstance(e, dict):
+            continue
+        for kk, v in e.items():   # base / alt / alt_base …：所有帧条名都按这一段的 center 摆
+            for b in (v if isinstance(v, list) else [v]):
+                if isinstance(b, str) and b.startswith("fx_"):
+                    out[b] = c
+    return out
+
+
+def pick(d, el):
+    """和 vfx.px_ul_tex 同一查找顺序（基名 = E2）：精二 _e2 → 基名 → _e1 → _e0；精一 / 精零 本档 → 更低档 → 基名；
+    单档帧条（例 fx_siege_ul_crush_e1）取不到时退回现有任一档（总组长 11-04：原来取 base 得 None 就崩）"""
+    order = [2, 1, 0] if el >= 2 else list(range(el, -1, -1)) + [2]
+    for e in order:
+        if d.get(e):
+            return d[e]
+    return next(iter(d.values()))
+
+
 def moves(idx, pres):
     """招 → {精英档: 帧条名}；E2 优先取 <招>_e2，没有就取不带档位的 <招>；弹体招名前加 proj:"""
     out = {}
@@ -210,7 +249,17 @@ def main():
     if not mv:
         sys.exit("没有找到 %s* / %s* 帧条（先导出并跑 tools/asset_index.py；前缀不对用 --prefix）" % tuple(pres))
     hit_of = lambda d, S: any(n in S or any(n.startswith(b) for b in S) for n in d.values())
-    land_mv = set(filter(None, a.land.split(","))) | {m for m, d in mv.items() if hit_of(d, land_b)}
+    regj = json.load(open(os.path.join(ROOT, "game", "data", "px_ul.json"), encoding="utf-8")).get(a.op, {})
+    cen = shape_centers(a.op, regj.get("shapes"))
+    # 显式清单（组长 B 11-04：按 seg 字面量猜落点在逻各斯身上误判 4 处，改由注册表写明）：px_ul.json <干员>.gif = {"land": [...], "self": [...]}，
+    # 元素是帧条基名（fx_… / proj_…）或招名；self 优先于 land 和 center 推断
+    gif = regj.get("gif", {}) if isinstance(regj.get("gif"), dict) else {}
+    g_land, g_self = set(gif.get("land", [])), set(gif.get("self", []))
+    land_b = set(land_b) | {b for b, c in cen.items() if c == "target"} | {x for x in g_land if x.startswith(("fx_", "proj_"))}
+    front_b = {b for b, c in cen.items() if c == "front"}
+    self_b = {b for b, c in cen.items() if c in ("self", "leader")} | {x for x in g_self if x.startswith(("fx_", "proj_"))}
+    land_mv = (set(filter(None, a.land.split(","))) | {m for m in g_land if m in mv} | {m for m, d in mv.items() if hit_of(d, land_b) and not hit_of(d, self_b)}) - {m for m in g_self if m in mv}
+    front_mv = {m for m, d in mv.items() if hit_of(d, front_b)} - land_mv   # center: front = 砸在身前（朝敌人）
     status_mv = {m for m, d in mv.items() if hit_of(d, status_b)}
     loop_mv = set(filter(None, a.loop.split(","))) | {m for m, d in mv.items() if hit_of(d, loop_b) or any(sl.get(n, False) for n in d.values())}
     print("帧条前缀 %s；落点类 %s；附件类 %s；循环类 %s" % (pre, "、".join(sorted(land_mv)) or "无", "、".join(sorted(status_mv)) or "无", "、".join(sorted(loop_mv)) or "无"))
@@ -228,9 +277,14 @@ def main():
     thumbs = []
     for name in sorted(mv):
         is_proj, is_land, is_status, is_loop = name.startswith("proj:"), name in land_mv, name in status_mv, name in loop_mv
+        is_front = name in front_mv
+        is_muzzle = "muzzle" in name
+        if is_muzzle and body:   # 枪口位置：按待机首帧的实际身形（去掉透明边）取身前 0.3 身宽、半身高
+            bb = body.getchannel("A").getbbox() or (0, 0, body.width, body.height)
+            gun = ((bb[0] + bb[2]) / 2 + 0.3 * (bb[2] - bb[0]) - body.width / 2, 4 / K - (body.height - (bb[1] + bb[3]) / 2))   # 枪口类：帧条朝右（aim 朝向），摆在干员枪口（身前、约半身高），不画在脚底 / 背后（总组长 11-04：能天使）
         cells = []
         for el in (0, 1, 2):
-            base = mv[name].get(el) or mv[name].get(2)
+            base = pick(mv[name], el)
             core = Strip(base, idx, v6, packed, is_loop)
             deco = Strip(base + "_deco", idx, v6, packed, is_loop)
             cells.append((el, core, deco if deco.ok else None, mv[name].get(el) is not None))
@@ -278,13 +332,23 @@ def main():
                 ex, ey = foes[0][0] + int(kb), foes[0][1]
                 fh = foe.height * K if foe else 60
 
+                root = {}
+
                 def put(s, front, tt, ax, ay):
                     if not (s and s.ok) or (("floor" in s.name or "ground" in s.name) != (not front)):
                         return
                     f = s.at(tt)
                     if f and f[0] is not None:
                         im = f[0].resize((f[0].width * K, f[0].height * K), Image.NEAREST)
-                        cell.alpha_composite(im, (ax - f[1] * K, ay - f[2] * K))
+                        if is_muzzle:   # 锚点 = 帧条根部（第一帧不透明区左缘、竖直居中），不用帧条原点（11-04 总组长：原来火舌横穿过脸）
+                            if s.name not in root:
+                                fb = next((g[0] for g in s.frames if g[0] is not None and g[0].getbbox()), None)
+                                b0 = fb.getchannel("A").getbbox() if fb else (0, 0, 0, 0)
+                                root[s.name] = (b0[0], (b0[1] + b0[3]) / 2)
+                            rx, ry = root[s.name]
+                            cell.alpha_composite(im, (int(ax - rx * K), int(ay - ry * K)))
+                        else:
+                            cell.alpha_composite(im, (ax - f[1] * K, ay - f[2] * K))
 
                 def layer(front):
                     if is_proj:
@@ -298,7 +362,7 @@ def main():
                             for s in (hd, hc):
                                 put(s, front, t - FLIGHT, ex, ey - fh // 2)
                         return
-                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_, oy_)
+                    ax, ay = (ex, ey - fh - 6) if is_status else (ex, ey) if is_land else (ox_ + int(reach * 0.6), oy_) if is_front else (int(ox_ + gun[0] * K), int(oy_ + gun[1] * K)) if is_muzzle and body else (ox_, oy_)
                     for s in (deco, core):
                         put(s, front, t, ax, ay)
                 layer(False)   # 地面层
@@ -317,7 +381,7 @@ def main():
                     g2 = gem.resize((gem.width * K, gem.height * K), Image.NEAREST)
                     cell.alpha_composite(g2, (int(ox_ + reach * 0.45), int(oy_ + 0.42 * R)))
                 layer(True)   # 前景层
-                tag = "　落点（敌人处）" if is_land else "　敌人头顶" if is_status else "　弹体" if is_proj else ""
+                tag = "　落点（敌人处）" if is_land else "　身前" if is_front else "　敌人头顶" if is_status else "　弹体" if is_proj else ""
                 d.rectangle((0, 0, CW, LH), fill=(10, 16, 28, 255))
                 d.text((10, 2), "E%d" % el, font=ftb, fill=((150, 160, 175), (120, 200, 255), (255, 214, 102))[el] + (255,))
                 d.text((10 + int(LH * 1.5), LH // 2 - 9), "%s%s%s" % ("" if own else "（同 E2）", tag.strip("　"), "　循环" if is_loop else ""), font=ft, fill=(200, 210, 225, 255))

@@ -57,12 +57,12 @@ function crescent(p, s, ta, L, W, age, hot, core, deco) {
       out.a = 1;
       return;
     }
-    let ci = q < 0.2 && age < 0.5 ? 0 : Math.round(q * (n - 1) * 0.75 + age * 2.8 - v * 1.1 + 0.3 - hot);
+    let ci = q < 0.2 && age < 0.5 ? 0 : Math.round(q * (n - 1) * (s.qk || 0.75) + age * 2.8 - v * 1.1 + 0.3 - hot);
     if (s.streak && ci > 0) ci -= Math.max(0, Math.round(1.3 * noise(r * 1.15, s.seed + 101)));   // 纤维拖尾纹理：沿弧方向的亮细纹（借原作普攻刀光 trail_46 的竖纹；只提亮不压暗）
     out.c = R[n - 1 - clamp(ci, s.minI || 0, n - 1)];
     out.a = q > 0.8 ? 0.7 : 1;   // 刀身内沿半透明
   });
-  if (deco) for (let u = 0; u <= span; u += 0.18) {   // 刀身光晕归装饰层
+  if (false) for (let u = 0; u <= span; u += 0.18) {   // （去掉）刀身光晕：一串柔边圆光，11-04 总组长硬否决
     const [x, y] = onArc(s, s.R - W * 0.4, ta + dir * u);
     p.glow(x, y, 10 + W, R[n - 3], (0.28 * (1 - age) * (u / span) + 0.04 * hot) * s.GK);
   }
@@ -80,19 +80,20 @@ export function create(o) {
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[6], C[5]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = full ? TAU * 1.04 : o.span, a0 = full ? -Math.PI : -span / 2, a1 = a0 + span;
   const SW = full ? 0.13 : heavy ? 0.09 : 0.07;
-  const W = (heavy ? 30 : full ? 22 : 18) * (fine ? 0.62 : 1) * [0.8, 1.0, 1.2][el];   // E1 刀身加厚一档（×1.25）、E2 再厚一档（11-04：精英加码作用在主形本身）
+  const W = (heavy ? 30 : full ? 22 : 18) * (fine ? 0.62 : 1) * [1.25, 1.55, 1.85][el];   // 11-04 总组长：E0 原来只有约 2 px，加厚一档；E1 再一档（×1.25）、E2 ×1.5、E2 再厚一档（11-04：精英加码作用在主形本身）
   // 斯卡蒂的剑本身是暗红色：E1 起刀身后拖一道暗红残刃（深、低饱和，离敌方危险色 #ff2667 远）
   const RED = fit(["#1e070c", "#2c0b12", "#3d0e17", "#52131e", "#6a1622", "#8a1f2d"], 6);
   const RB = { seed: o.seed + 77, R: R0 * 0.82, W: W * 0.62, ramp: RED, GK, edge: false };   // 贴着刀身内侧
-  const A = { seed: o.seed, R: R0, W, ramp: C, GK, edge: fine };
+  const QK = 0.45;   // 刀身亮部占比：原 0.75 时内侧一大半落到暗阶、在地面上看不见，刀身只剩 2 px（11-04 总组长）
+  const A = { seed: o.seed, R: R0, W, ramp: C, GK, edge: fine, qk: QK };
   const E = { seed: o.seed + 9, R: R0 * 0.72, W: W * 0.4, ramp: C.slice(0, 7), GK, edge: false };
   let t = 0.02, passed = 0, landed = false, crashed = false;
   const tip = onArc(A, A.R - A.W * 0.3, a1);
   // 光贴着弧刃走（11-04 总组长：刃根 / 中心 / S3 段上的圆形柔光团都压掉）：沿一段弧铺一串小光，连成弧形光带、不单独成圆
-  const bands = [];
+  const bands = [], NOGLOW = true;   // 11-04 总组长第二轮：沿弧光带在刀根 / S1 身侧仍读成柔边圆团，斯卡蒂整族不画柔光
   const band = (S, aS, aL, rad, col, k, life) => bands.push({ S, aS, aL, rad, col, k, life, t0: t });
   function bandDraw(p, S, aS, aL, rad, col, k) {
-    if (k <= 0.005) return;
+    if (NOGLOW || k <= 0.005) return;
     const dir = Math.sign(aL) || 1, L = Math.abs(aL), st = Math.max(0.05, rad * 0.5 / S.R);
     for (let v = 0; v <= L; v += st) {
       const w = Math.sin(Math.PI * v / L), [x, y] = onArc(S, S.R - S.W * 0.45, aS + dir * v);
@@ -111,7 +112,7 @@ export function create(o) {
       const oa = Rg.range(-Math.PI, Math.PI), od = R0 * Rg.range(0.06, 0.2), ox = Math.cos(oa) * od, oy = Math.sin(oa) * od;
       const R = (R0 - od) * [Rg.range(0.9, 1.0), Rg.range(0.66, 0.76), Rg.range(0.8, 0.88)][i], sp = (Rg.range(1.1, 1.6) + (el === 0 ? 0.35 : 0)) * (i ? 0.92 : 1);   // E0 只有两刀，每刀长一点
       sls.push({ c: cs[i], sp, dir, t0: i * 0.05 + Rg.range(0, 0.012), last: i === n - 1,
-        S: { seed: o.seed + 13 * i, R, W: W * [1.3, 1.2, 1.15][el] * Rg.range(1.0, 1.1), ramp: C, GK, edge: fine, streak: true, ox, oy },   // 每刀比同档普攻粗一点（弧短，宽度补回醒目度；E0 也要和普攻一样醒目）
+        S: { seed: o.seed + 13 * i, R, W: W * [1.3, 1.2, 1.15][el] * Rg.range(1.0, 1.1), ramp: C, GK, edge: fine, streak: true, ox, oy, qk: 0.6 },   // 连斩三刀连着白，亮部占比收一点（QK 0.45 时过「连续近白」）   // 每刀比同档普攻粗一点（弧短，宽度补回醒目度；E0 也要和普攻一样醒目）
         ghosts: el === 0 ? [] : el === 1 ? [Rg.range(0.2, 0.28)] : [Rg.range(0.16, 0.22), Rg.range(0.36, 0.46)],   // 剑身残影落后的角度（不等距；E0 不画）
         clumps: [] });
       dir = -dir;
@@ -170,14 +171,14 @@ export function create(o) {
   // E2 深海暗色裂口：沿斩痕（半径 Rc、从 aS 起长 aL）裂开一道锯齿暗缝，0.05 秒裂满，之后原地慢慢合拢（宽度收到 0）
   function rift(p, Rc, aS, aL, u, sd, ox = 0, oy = 0) {
     if (u < 0) return;
-    const open = ease.outCubic(clamp(u / 0.05)), w0 = 2.4 * (1 - smooth(0.08, 0.8, u));
+    const open = ease.outCubic(clamp(u / 0.05)), w0 = 3.6 * (1 - smooth(0.15, 0.85, u));   // 11-04 总组长：原来 1–2 px 看不出，口宽 ≥ 4 px 实心
     if (w0 < 0.35) return;
     const dir = Math.sign(aL), L = Math.abs(aL) * open;
     for (let v = 0.08; v < L - 0.04; v += 0.45 / Rc) {
       const a = aS + dir * v, k = Math.sin(Math.PI * v / Math.abs(aL));
-      const jr = Rc + 2.2 * noise(v * 9, sd) + 1.2 * noise(v * 23, sd + 5), w = w0 * (0.4 + 0.6 * k);
+      const jr = Rc + 2.2 * noise(v * 9, sd) + 1.2 * noise(v * 23, sd + 5), w = w0 * (0.55 + 0.45 * k) * (1 + 0.35 * noise(v * 17, sd + 9));   // 锯齿：口宽沿缝起伏
       const cx = Math.cos(a), cy = Math.sin(a);
-      for (let d = -w; d <= w; d += 0.6) p.px(ox + cx * (jr + d), oy + cy * (jr + d), Math.abs(d) > w - 0.7 ? C[2] : C[0]);
+      for (let d = -w - 1; d <= w + 1; d += 0.5) p.px(ox + cx * (jr + d), oy + cy * (jr + d), Math.abs(d) > w ? C[3] : C[0]);   // 1 格描边（C[3]，C[2] 在地面上看不见）
     }
   }
   function spray(x, y, nx, ny, n, sp, life) {
@@ -231,7 +232,7 @@ export function create(o) {
           if (full && !inSeg(a)) continue;
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
           // 11-04 总组长：弧刃外圈一串圆形水雾颗粒属孤立圆（§12.3），去掉 —— ps_spawn_removed(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
-          if (el >= 1 && Rg.chance(0.5)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2) * SZ, Rg.range(0.05, 0.4) * LQ);
+          if (false) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2) * SZ, Rg.range(0.05, 0.4) * LQ);   // （去掉）余韵星点：11-04 总组长
           if (SPRAY && Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
         }
         if (arcOn && !full) {
@@ -299,7 +300,9 @@ export function create(o) {
         const tail = smooth(SWS + 0.03, SWS + 0.03 + trail, u), age = clamp(u / (SWS + 0.03 + trail));
         const hot = u < 0.05 ? (sl === sls[0] ? Math.max(HOT, 1.2) : Math.max(1.0, HOT * 0.6)) : (el >= 2 && sl.last && u > SWS + 0.03 && u < SWS + 0.08 ? HOT : 0);   // E2 最后一刀命中多一帧爆亮   // 第一刀白热最强（不低于普攻），后两刀弱一些（三刀连着全白会过「持续白」）
         if (tail < 1) crescent(p, sl.S, ta0 + sl.dir * sl.sp * tail, sl.dir * sl.sp * (head - tail), sl.S.W * (1 - tail * 0.5), age * 0.85, hot, core, deco);
-        if (core && u < SWS + 0.07) for (let gi = 0; gi < sl.ghosts.length; gi++) {   // 剑身残影：挥砍头后面一两把淡淡的大剑轮廓
+        if (el >= 1 && tail < 1) { const RS = { ...sl.S, seed: sl.S.seed + 77, R: sl.S.R * 0.82, W: sl.S.W * 0.62, ramp: RED, edge: false, streak: false }, hd2 = ease.outExpo(clamp((u - 0.03) / SWS)), tl2 = smooth(SWS + 0.06, SWS + 0.06 + trail, u);
+          if (hd2 > tl2) crescent(p, RS, ta0 + sl.dir * sl.sp * tl2, sl.dir * sl.sp * (hd2 - tl2), RS.W * (1 - tl2 * 0.5), age * 0.85, 0, core, false); }   // E1+ 每刀一整道实心暗红残刃（11-04 总组长：原来剑影是几道半透明细线）
+        if (false) for (let gi = 0; gi < sl.ghosts.length; gi++) {   // （去掉）剑身残影：挥砍头后面一两把淡淡的大剑轮廓
           const ga = slHead(sl, u) - sl.dir * sl.ghosts[gi], k = (1 - clamp(u / (SWS + 0.07))) * (gi ? 0.45 : 0.75);
           if (Math.abs(ga - ta0) > sl.sp || k <= 0.02) continue;
           // 大剑剪影：剑柄 → 护手 → 宽剑身 → 收尖剑尖；1 格亮描边 + 半透明淡填充；剑身顺挥剑方向往后斜一点（拖在挥砍头后面）
@@ -331,7 +334,7 @@ export function create(o) {
           const cx = Math.cos(ta0), cy = Math.sin(ta0);
           for (let r = sl.S.R * 0.5; r < sl.S.R; r += 0.6) p.px(sl.S.ox + cx * r, sl.S.oy + cy * r, C[7]);
         }
-        if (core) for (const cl of sl.clumps) {   // 成团水花（借原作 water_08 的卷曲水团）：挥到底处炸出几团，慢慢散
+        if (false) for (const cl of sl.clumps) {   // （去掉）成团水花：圆片团，11-04 总组长硬否决   // 成团水花（借原作 water_08 的卷曲水团）：挥到底处炸出几团，慢慢散
           const v = t - cl.t0;
           if (v < 0 || v > 0.22 * (0.6 + 0.4 * DL)) continue;
           const k = 1 - v / (0.22 * (0.6 + 0.4 * DL));
