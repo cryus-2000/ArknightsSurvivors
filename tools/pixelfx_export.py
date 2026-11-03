@@ -140,7 +140,7 @@ def matrix_check(name, spec, targets):
     var = bool(re.search(r"[2-9]$", core)) and core[:-1] in targets   # 变体 = 末位数字 ≥ 2 且去掉它的名字也是导出目标（_s2 这类技能号不算）
     bad = []
     if el < 2 and (tm or var):
-        bad.append("E%d 只出单种子核心 + 装饰，不出 _tm / 变体（队友回退 E2 的 _tm）" % el)
+        bad.append("E%d 只出单种子核心 + 装饰，不出 _tm / 变体（队友用本档队长版）" % el)
     if spec.get("lo") and (el < 2 or tm or var):
         bad.append("网页低档只给 E2 队长单种子")
     if spec.get("move", "skill") not in ("basic", "skill", "ult"):
