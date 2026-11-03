@@ -80,17 +80,19 @@ export function create(o) {
         const u = t - vn.d, g = clamp(u / 0.12), k = 1 - smooth(0.45, 0.8, u);
         if (u < 0 || k <= 0) continue;
         const Pt = (v) => { const w = 1 - v, b = 4 * v * w * vn.bend; return [vn.x0 + (vn.x1 - vn.x0) * v + vn.nx * b, vn.y0 + (vn.y1 - vn.y0) * v + vn.ny * b * SY]; };
-        const hot = u < 0.06 ? 4 : u < 0.14 ? 3 : 2;
+        const hot = u < 0.06 ? 4 : 3;
         for (let v = 0; v <= g; v += 0.01) {
           if (Math.abs(v - vn.gap) < vn.gw) continue;
           const [x, y] = Pt(v), wob = 0.7 * noise(v * 9 + vn.gap * 7, o.seed + 13);
-          p.blend(x, y + wob, E[hot], k);
-          p.blend(x, y + wob + 1, E[clamp(hot - 2, 1, 4)], 0.8 * k);
+          // 组长 11-04：3 像素暗红实线（离危险色 #ff2667 远：只用 E[1]–E[2] 深红，亮头一帧 E[3]），不再 1–2 像素细线
+          p.blend(x, y + wob - 1, E[clamp(hot - 1, 1, 3)], k);
+          p.blend(x, y + wob, E[clamp(hot - 1, 1, 3)], k);
+          p.blend(x, y + wob + 1, E[1], k);
         }
         for (const [bv, sd, bl] of vn.barbs) {
           if (bv > g || Math.abs(bv - vn.gap) < vn.gw) continue;
           const [x0, y0] = Pt(bv), [x1, y1] = Pt(Math.min(1, bv + 0.02)), tx = x1 - x0, ty = y1 - y0, tl = Math.hypot(tx, ty) || 1;
-          p.line(x0, y0, x0 + (ty / tl * sd + tx / tl * 0.5) * bl, y0 + (-tx / tl * sd + ty / tl * 0.5) * bl * 0.8 - 0.5, el >= 2 && bv > 0.6 ? J[3] : E[clamp(hot, 2, 3)], 0.9 * k);
+          { const bx = x0 + (ty / tl * sd + tx / tl * 0.5) * bl, by = y0 + (-tx / tl * sd + ty / tl * 0.5) * bl * 0.8 - 0.5; p.line(x0, y0, bx, by, el >= 2 && bv > 0.6 ? J[3] : E[2], k); p.line(x0 + 1, y0, bx + 0.5, by, E[1], k); }   // 倒刺两像素
         }
       }
       if (kind === 2 && deco && el >= 2) for (const vn of vines) { const u = t - vn.d; if (u > 0) p.glow((vn.x0 + vn.x1) / 2, (vn.y0 + vn.y1) / 2, 7, E[3], 0.14 * (1 - smooth(0.3, 0.7, u))); }   // 光沿藤走

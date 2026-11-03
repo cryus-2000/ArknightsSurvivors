@@ -41,7 +41,14 @@ export function draw(p, t, o) {
           p.blend(x0 + sway + e, by - d, J[clamp(Math.round(4 - v * 2.8 - Math.abs(e) * 0.6), 1, 4)], (0.8 - v * 0.5) * life);
       }
     }
-    for (const [x, y] of V) p.glow(x, y, 8, C[4], 0.14 + 0.05 * Math.sin(ph * TAU));   // 光只挂在盾角，不画整面圆光（§12.3）
+  }
+  if (core && !st) {   // 组长 11-04：盾面实心半透明（钢色，逐像素真半透明，不用 poly 抖网点），外框加粗、亮一档
+    const [A, B, Cc] = V, den = (B[1] - Cc[1]) * (A[0] - Cc[0]) + (Cc[0] - B[0]) * (A[1] - Cc[1]);
+    for (let y = Math.min(A[1], B[1]); y <= Cc[1]; y += 1) for (let x = Math.min(A[0], Cc[0]); x <= Math.max(B[0], Cc[0]); x += 1) {
+      const l1 = ((B[1] - Cc[1]) * (x - Cc[0]) + (Cc[0] - B[0]) * (y - Cc[1])) / den, l2 = ((Cc[1] - A[1]) * (x - Cc[0]) + (A[0] - Cc[0]) * (y - Cc[1])) / den;
+      if (l1 < 0 || l2 < 0 || l1 + l2 > 1) continue;
+      p.blend(x, y, C[y < A[1] + 4 ? 3 : 2], 0.3 + 0.04 * Math.sin(ph * TAU));
+    }
   }
   if (core) {
     const L = V.map((v, i) => Math.hypot(V[(i + 1) % 3][0] - v[0], V[(i + 1) % 3][1] - v[1])), tot = L[0] + L[1] + L[2];
@@ -55,7 +62,7 @@ export function draw(p, t, o) {
         for (const h of heads) dm = Math.min(dm, (h - (acc + s) + tot) % tot);
         const ci = dm < 3 ? 6 : dm < 10 ? 5 : dm < 22 ? 4 : 3;
         if (st) p.blend(x, y, ci >= 6 ? C[5] : E[ci - 1], dm < 22 ? 0.95 : 0.6);   // 架势：暗红细线，亮点头偏白
-        else p.blend(x, y, C[ci], dm < 22 ? 1 : 0.75);
+        else { const cb = C[Math.min(6, ci + 1)]; p.blend(x, y, cb, 1); p.blend(x, y + 1, cb, 1); p.blend(x, y + 2, C[ci - 1], 1); }   // 外框 3 像素：两行亮 + 一行暗边
       }
       acc += L[i];
     }
