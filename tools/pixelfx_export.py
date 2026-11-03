@@ -58,9 +58,9 @@ def write_op_ramps(dry):
     if not m:
         sys.exit("house.js 里找不到 export const OP")
     ramps = {k: re.findall(r'"(#[0-9a-fA-F]{6})"', v) for k, v in re.findall(r"^\s*(\w+):\s*\[([^\]]*)\]", m.group(1), re.M)}
-    bad = [k for k, v in ramps.items() if len(v) != 7]
+    bad = [k for k, v in ramps.items() if (len(v) != 7 if ("_" not in k or k == "specter_unchained") else len(v) < 2)]   # 干员主色阶 7 阶；<人>_<名> 的副色阶（熔毁 / 血纹 / 尘…）阶数不限
     if bad:
-        sys.exit("house.js OP 色阶不是 7 阶：" + "、".join(bad))
+        sys.exit("house.js OP 色阶阶数不对（干员主色阶须 7 阶）：" + "、".join(bad))
     if not dry:
         with open(RAMPS_JSON, "w", encoding="utf-8", newline="\n") as f:
             f.write('{\n\t"_doc": "tools/pixelfx_export.py 由 tools/pixelfx_fx/house.js OP 生成，不手改（docs/242 §11.1 #12）",\n' +
