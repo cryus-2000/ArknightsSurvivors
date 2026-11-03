@@ -24,34 +24,25 @@ export const meta = {
 const V = [[-14, -12], [14, -12], [1, 14]];
 
 export function draw(p, t, o) {
+  // 11-04 §0：一个实心主形 = 盾面本身（实心倒三角钢板）——挨打那一下整面白热、受击点一道擦痕，然后逐阶冷成钢灰收掉；
+  // 不用半透明淡出（会抖成网点），不画外扩、不甩火星；暗红只在盾下沿一道（反击架势），不另撒点。
   const C = fit(o.palette, 7), E = fit(o.ember, 5), core = o.layer !== "deco", deco = o.layer !== "core";
-  const u = t / meta.duration, fade = 1 - clamp((u - 0.45) / 0.55);
-  // 盾沿：从上沿中点（受击点）沿周长往两边亮，亮头过后留钢灰余辉
-  const L = V.map((v, i) => Math.hypot(V[(i + 1) % 3][0] - v[0], V[(i + 1) % 3][1] - v[1])), tot = L[0] + L[1] + L[2];
-  const head = ease.outQuart(clamp(u / 0.5)) * tot * 0.5;   // 两头各走半圈
+  const u = t / meta.duration;
+  if (u > 0.85) return;
+  const st = u < 0.15 ? 0 : u < 0.4 ? 1 : u < 0.65 ? 2 : 3;   // 白热 → 亮钢 → 钢 → 暗钢
+  const sc = 0.92 + 0.08 * ease.outBack(clamp(u / 0.15));   // 挨打那一下盾面往里一缩再回位
+  const P3 = V.map(([x, y]) => [x * sc, y * sc]);
   if (core) {
-    let acc = 0;
-    for (let i = 0; i < 3; i++) {
-      const [x0, y0] = V[i], [x1, y1] = V[(i + 1) % 3];
-      for (let s = 0; s <= L[i]; s += 0.5) {
-        const pos = acc + s, d = Math.min(Math.abs(pos - L[0] / 2), tot - Math.abs(pos - L[0] / 2));   // 离受击点（上沿中点）的周长距离
-        if (d > head) continue;
-        const k = head - d, ci = k < 2 ? 6 : k < 6 ? 5 : 4;
-        const x = x0 + (x1 - x0) * s / L[i], y = y0 + (y1 - y0) * s / L[i] + 0.5 * noise(pos * 0.4, o.seed);
-        p.blend(x, y, C[clamp(ci - (u > 0.6 ? 1 : 0), 3, 6)], fade);
-      }
-      acc += L[i];
-    }
-    if (u < 0.45) {   // 盾面擦痕：一道短横的白热切口，往右拖一点
-      const k = 1 - u / 0.45, hw = 5 + 4 * (1 - k);
-      for (let x = -hw; x <= hw; x += 0.5) {
-        const v = Math.abs(x) / hw;
-        p.blend(x + 1, -3 + 0.8 * noise(x * 0.5, o.seed + 3), C[v < 0.5 && u < 0.2 ? 6 : 5], k * (1 - v * 0.6));
-      }
+    p.poly(P3, [C[5], C[3], C[2], C[1]][st], 1);
+    const rim = [C[6], C[5], C[4], C[3]][st];
+    for (let i = 0; i < 2; i++) p.line(P3[i][0], P3[i][1], P3[(i + 1) % 3][0], P3[(i + 1) % 3][1], i === 0 ? rim : [C[6], C[4], C[3], C[2]][st], 1);
+    p.line(P3[2][0], P3[2][1], P3[0][0], P3[0][1], [C[6], C[4], C[3], C[2]][st], 1);
+    if (st < 3) {   // 受击点擦痕：盾面一道短横白热切口
+      const hw = 4 + 2 * st;
+      for (let x = -hw; x <= hw; x += 0.5) p.blend(x + 1, -4 + 0.8 * noise(x * 0.5, o.seed + 3), [C[6], C[6], C[5]][st], 1 - Math.abs(x) / hw * 0.5);
     }
   }
-  if (deco && u < 0.7) for (const [x, y] of [V[0], V[1]]) {   // 两上角蹭出的暗红：角上 2–3 像素的小块，不画光
-    const k = 1 - u / 0.7;
-    for (let dy = 0; dy < 2; dy++) for (let dx = -1; dx <= 1; dx++) p.blend(x + dx, y + dy, E[dy ? 2 : 3], 0.8 * k);
+  if (deco && st >= 1 && st <= 2) {   // 盾下两条斜沿上一线暗红余热（贴边、不出形）
+    for (const [a, b] of [[1, 2], [2, 0]]) p.line(P3[a][0] * 0.96, P3[a][1] * 0.96 + 0.5, P3[b][0] * 0.96, P3[b][1] * 0.96 + 0.5, E[st === 1 ? 3 : 2], 1);
   }
 }

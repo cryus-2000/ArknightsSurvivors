@@ -1,7 +1,7 @@
 // 星熊技能起手提示（docs/242 §12.1；px_ul.json cast，技能开启那一刻在脚下播）：原点 = 星熊脚底，俯视 sy 0.55，0.5 s。
-// kind：1 = S1 战意（盾面钢色印 + 几道往盾心聚拢的短亮线）；2 = S2 荆棘（照原作 hsguma_skill_02_buff：脚下长出一圈转 45° 的暗红荆棘菱环、倒刺朝外，
+// kind：1 = S1 战意（实心钢色盾印从上压下、白热后冷却）；2 = S2 荆棘（照原作 hsguma_skill_02_buff：脚下长出一圈转 45° 的暗红荆棘菱环、倒刺朝外，
 //       E1 只长两条边、E2 四边合拢带断口；外加一圈高矮不一的钢刺扎出又缩回）；
-//       3 = S3 力之锯（脚下一圈青绿鬼火窜起，盾形印由白转翠绿）。精英档：E1 起印边带暗红细线（反击架势），E2 起印 / 刺尖转翠绿（般若）。
+//       3 = S3 力之锯（脚下一圈青绿鬼火窜起，实心盾形印由白转翠绿）。精英档：E1 起印边带暗红细线（反击架势），E2 起印 / 刺尖转翠绿（般若）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
 import { jitterAngles } from "../house.js";
 
@@ -41,32 +41,29 @@ export function create(o) {
     return { x0, y0, x1, y1, nx: (y1 - y0) / L, ny: -(x1 - x0) / L, bend: Rg.range(-0.06, 0.1) * L, d: k * 0.04 + Rg.range(0, 0.03), barbs, gap: Rg.range(0.2, 0.8), gw: Rg.range(0.05, 0.1) };
   }) : [];
   let t = 0, fired = false;
-  const sigil = (p, k, y0) => {   // 般若倒三角印：白热 → 钢色（E2 / S3 转翠绿），E1 起外缘暗红
-    for (let i = 0; i < 3; i++) {
-      const [x0, ya] = V[i], [x1, yb] = V[(i + 1) % 3];
-      const c = t < 0.06 ? C[6] : (kind === 3 || el >= 2) ? J[clamp(Math.round(4 - t * 5), 2, 4)] : C[clamp(Math.round(5 - t * 6), 2, 5)];
-      p.line(x0, ya * SY + y0, x1, yb * SY + y0, c, k);
-      if (el >= 1) p.line(x0 * 1.12, ya * SY * 1.12 + y0, x1 * 1.12, yb * SY * 1.12 + y0, E[3], 0.7 * k);
-    }
+  const sigil = (p, k, y0) => {   // 般若倒三角盾印（11-04 §0：实心主形）：落下压实 → 白热 → 冷成钢色（E2 / S3 转翠绿），E1 起印沿暗红
+    const s = 0.75 + 0.25 * ease.outBack(clamp(t / 0.1)), dy = -6 * (1 - clamp(t / 0.08));   // 盾印从上方压下、略放大到位
+    const pts = V.map(([x, y]) => [x * s, y * s * SY + y0 + dy]);
+    const hot = t < 0.06, jade = kind === 3 || el >= 2;
+    if (k < 0.2) return;   // 不用半透明淡出（低透明度会抖成网点）：按 k 逐阶压暗、最后一帧收掉
+    const dk = k > 0.7 ? 0 : k > 0.45 ? 1 : 2;
+    const fill = hot ? C[5] : jade ? J[clamp(2 - dk, 1, 2)] : C[clamp(3 - dk, 1, 3)];
+    p.poly(pts, fill, 1);
+    const edge = hot ? C[6] : el >= 1 ? E[clamp(4 - dk, 2, 4)] : jade ? J[4 - dk] : C[5 - dk];
+    for (let i = 0; i < 3; i++) p.line(pts[i][0], pts[i][1], pts[(i + 1) % 3][0], pts[(i + 1) % 3][1], edge, 1);
+    if (!hot && dk < 2) p.line(pts[0][0] * 0.5, pts[0][1] + 2, pts[1][0] * 0.5, pts[1][1] + 2, jade ? J[4 - dk] : C[5 - dk], 1);   // 盾面一道受光横棱
   };
   return {
     update(dt) {
       t += dt;
       if (!fired) {
         fired = true;
-        if (deco) for (let i = 0; i < 8; i++) { const a = Rg.range(0, Math.PI * 2), sp = Rg.range(40, 110); ps.spawn(P.SPARK, Math.cos(a) * 10, Math.sin(a) * 6, Math.cos(a) * 12, -sp,   /* 原地往上冒，不往外甩（用户 11-04）*/ Rg.range(0.12, 0.25), 0, 1, Rg.range(0, 0.06)); }
+        // （起手火星 11-04 删：§0 同屏元素 ≤ 3）
       }
       ps.update(dt);
     },
     draw(p) {
-      const fade = 1 - smooth(0.25, 0.5, t);
-      if (kind === 1 && core) {   // 往盾心聚拢的短亮线（蓄势），长短 / 角度不等
-        const g = clamp(t / 0.15);
-        for (const a of [0.4, 1.3, 2.1, 3.3, 4.5, 5.4]) {
-          const r0 = 34 * (1 - g * 0.6) + 4 * Math.sin(a * 2.7), r1 = r0 * 0.55;
-          if (t < 0.2) p.line(Math.cos(a) * r0, Math.sin(a) * r0 * SY - 10, Math.cos(a) * r1, Math.sin(a) * r1 * SY - 10, C[5], 0.85);
-        }
-      }
+      const fade = 1 - smooth(0.3, 0.6, t);
       if (kind === 2 && core) for (const s of thorns) {   // 一圈钢刺：扎出 → 停 → 缩回
         const u = t + 0.03 - s.d, up = ease.outBack(clamp(u / 0.07)) * (1 - smooth(0.2, 0.4, u)), H = s.h * up;
         if (u < 0 || H < 1) continue;

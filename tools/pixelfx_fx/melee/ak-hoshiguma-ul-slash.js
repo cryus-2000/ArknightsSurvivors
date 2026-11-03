@@ -51,17 +51,7 @@ export function create(o) {
       if (!fired && t > SW * 0.6) {
         fired = true;
         lights.add(Math.cos(half) * R, Math.sin(half) * R, 10, C[5], 0.35, 0.12);
-        if (deco) {
-          const n = [4, 6, 8][el];   // 普攻克制：火星少
-          for (let i = 0; i < n; i++) {
-            const a = Rg.range(-half, half), tg = a + Math.PI / 2, sp = Rg.range(60, 150);
-            ps.spawn(P.SPARK, Math.cos(a) * R, Math.sin(a) * R, Math.cos(tg) * sp * 0.6, Math.sin(tg) * sp * 0.6,   /* 只顺刀走向擦出，不往外甩（用户 11-04）*/ Rg.range(0.08, 0.18) * (0.6 + TAIL), 0, 1);
-          }
-          if (el >= 1) for (let i = 0; i < 4; i++) {   // 刃头碎钢屑
-            const a = half + Rg.range(-0.3, 0.2), sp = Rg.range(50, 120), dir = a + Math.PI / 2 + Rg.range(-0.5, 0.5);
-            ps.spawn(P.MOTE, Math.cos(a) * R, Math.sin(a) * R, Math.cos(dir) * sp, Math.sin(dir) * sp, Rg.range(0.15, 0.3), C[3 + Rg.int(0, 1)], Rg.range(0.7, 1.1));
-          }
-        }
+        // 11-04 §0：火星 / 钢屑删（同屏 ≤ 3 种：刀弧主形、E2 残影、照地）
       }
       ps.update(dt); lights.update(dt);
     },
@@ -75,30 +65,8 @@ export function create(o) {
           const v = (a + half) / o.span;
           p.blend(Math.cos(a) * (R - 5), Math.sin(a) * (R - 5), J[2], 0.35 * gk * v);
         }
-        for (const m of motes) {
-          const u = t - m.d;
-          if (u < 0 || u > m.life || m.a > a1) continue;
-          const k = 1 - u / m.life, rr = m.r + u * 18;
-          p.blend(Math.cos(m.a) * rr, Math.sin(m.a) * rr, J[3 + (k > 0.6 ? 1 : 0)], 0.9 * k);
-        }
       }
-      if (deco) {   // 原作回旋流纹：弧内侧几道刷开的细纹，跟在刀头后面、比刀身先淡
-        const sk = 0.35 * (1 - smooth(0.06, 0.1 + TAIL * 0.4, t));
-        if (sk > 0.02) for (const s of streaks) {
-          const b0 = -half + o.span * s.v0, b1 = Math.min(a1 - s.lag * 8, -half + o.span * s.v1);
-          for (let a = Math.max(b0, a0); a < b1; a += 0.6 / s.r) {
-            const v = (a - b0) / Math.max(b1 - b0, 0.01), rr = s.r + 0.6 * noise(a * 11, o.seed + s.r);
-            p.blend(Math.cos(a) * rr, Math.sin(a) * rr, el >= 2 ? J[2 + (v > 0.7 ? 1 : 0)] : C[3 + (v > 0.7 ? 1 : 0)], sk * (0.4 + 0.6 * v));
-          }
-        }
-        for (const s of shards) {   // 原作小三角碎片：沿切向 + 往外甩、自转
-          const u = t - s.d;
-          if (u < 0 || u > s.life) continue;
-          const k = 1 - u / s.life, dir = s.a + Math.PI / 2 * 0.6 + s.dv, cx = Math.cos(s.a) * R + Math.cos(dir) * s.sp * u, cy = Math.sin(s.a) * R + Math.sin(dir) * s.sp * u, r0 = s.rot + s.spin * u;
-          const V = [0, 2.3, 4.2].map((q, i) => [cx + Math.cos(r0 + q) * s.s * (i ? 0.7 : 1.2), cy + Math.sin(r0 + q) * s.s * (i ? 0.7 : 1.2)]);
-          const cc = el >= 2 ? J[k > 0.5 ? 4 : 3] : C[k > 0.5 ? 5 : 4];
-          for (let i = 0; i < 3; i++) p.line(V[i][0], V[i][1], V[(i + 1) % 3][0], V[(i + 1) % 3][1], cc, k);
-        }
+      if (deco) {   // （回旋细纹 / 往外甩的小三角碎片 11-04 删：§0 不碎、不往外甩）
         const gk = (el >= 2 ? 0.3 : 0.2) * (1 - smooth(0.03, 0.12 + TAIL * 0.3, t));
         if (gk > 0.01) for (let a = a0; a < a1; a += 0.25) p.glow(Math.cos(a) * (R - 3), Math.sin(a) * (R - 3), 9, el >= 2 ? J[3] : C[4], gk);
         ps.draw(p, "back");

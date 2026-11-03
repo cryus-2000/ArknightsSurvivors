@@ -1,17 +1,16 @@
 // 星熊 S1「战意」放开版：举盾重砸（圆形判定 s1_r，圆心 = 星熊），俯视地面透视 sy 0.55，原点 = 星熊脚下。
-// 半径 = fit（1x，= s1_r / 2），运行时按判定半径缩放；核心层画落点白热 + 判定边缘一圈断续的震裂线（只一道，非同心圈），装饰层放其余。
-// 和普攻拉开：普攻是一道薄刀弧，S1 是整片地面被砸开——爆亮更大、裂网、碎石、隆起尘墙、轻震（游戏侧 3 px 0.12 s）。
-// 蓄势：第 0 帧盾面先收一下光（往里聚的短亮线），第 1 帧砸下爆亮（帧条内，判定时刻在第 1 帧）。
-// 精英档（docs/242 §10，docs/91 §4）：
-//   E0 落点爆亮 + 不规整分叉裂网 + 碎石，余韵 0.3 s；
-//   E1 + 判定边缘隆起的尘墙（不等距尘团）+ 暗红余烬（精一「反击架势」）；余韵 0.45 s；
-//   E2 + 裂缝里窜出的青绿鬼火 + 般若盾形白热印（倒三角）+ 青绿碎晶，余韵 0.65 s（精二「般若」）。
-import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, noise } from "../../core/index.js";
-import { jitterSteps, jitterAngles } from "../house.js";
+// 半径 = fit（1x，= s1_r / 2），运行时按判定半径缩放。
+// 11-04 §0 重做：一招一个实心主形 = 砸坑（不规整的实心坑面 + 4–6 道两像素粗的主缝伸到判定边，不分叉），
+// 节奏 蓄势（盾沿压低的一道横亮条）→ 第 1 帧整坑白热 → 冷成钢灰 / 档位色；同屏只 2 种元素：坑 + 主缝、几块会落会弹的石块。
+// 不画圆心光盘、不画外扩环、不往外甩（用户 11-04）。
+// 精英档（docs/242 §10，docs/91 §4）：E0 坑 + 石块，余韵 0.35 s；E1 坑沿冷成暗红余热（精一「反击架势」），余韵 0.5 s；
+//   E2 主缝冷成青绿并透光、坑底透出青绿缝根（精二「般若」），余韵 0.7 s。
+import { Bits, B, Rng, fit, clamp, smooth, noise } from "../../core/index.js";
+import { jitterAngles } from "../house.js";
 
 export const meta = {
   name: "Hoshiguma battle-will shield slam unleashed",
-  desc: "Shield slam into the ground: gather glint, white-hot impact, forking cracks and rocks; tiers add a dust wall and red embers, then teal ghost flames and a shield sigil.",
+  desc: "Shield slam: the shield rim presses down, the ground caves into one white-hot crater with a few thick cracks, stone chunks hop and settle; tiers cool the rim to red heat, then let teal light seep from the cracks.",
   tags: ["impact", "slam", "ground", "one-shot"],
   size: [232, 150],
   origin: [116, 78],
@@ -20,8 +19,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#081814", "#0f2e28", "#18584c", "#258a77", "#58c4ab", "#b4f0e2", "#ffffff"],   // §12.6：不用金（经验结晶暖金），青绿 = 般若 / 原作 S3
-    dust: ["#14110d", "#2c261d", "#4a4032", "#6e604b", "#958468"],
+    palette: ["#0b0d10", "#1b1f25", "#323840", "#59626e", "#98a2ae", "#dce2e8", "#ffffff"],   // 钢 / 石（PRTS 黑钢盾提亮）；§12.6 不用金
     ember: ["#2a0a08", "#5e1410", "#9c2418", "#d8452a", "#ff7050"],
     jade: ["#081814", "#18584c", "#258a77", "#58c4ab", "#b4f0e2"],
     radius: 75,
@@ -35,105 +33,89 @@ export const meta = {
 const SY = 0.55, HIT = 0.05;
 
 export function create(o) {
-  const C = fit(o.palette, 7), D = fit(o.dust, 5), E = fit(o.ember, 5), J = fit(o.jade, 5), Rg = new Rng(o.seed);
+  const C = fit(o.palette, 7), E = fit(o.ember, 5), J = fit(o.jade, 5), Rg = new Rng(o.seed);
   const R = o.radius, el = +o.elite, LQ = +o.quick > 0 ? 0.5 : 1;
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const TAIL = [0.3, 0.45, 0.65][el] * LQ;
-  const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
-  const ems = new Particles({ rng: Rg, ground: () => 1e9, sparks: [E[4], E[3], E[2], E[1]] });
-  // 裂网：主缝 5–8 条，角度抖动、长短不一，每条 2–4 段、带 0–2 个分叉
-  const cracks = jitterAngles(Rg, Rg.int(5, 8), 0, Math.PI * 2, 0.45).map((a0) => {
-    const segs = [];
-    const walk = (x, y, a, len, depth) => {
-      let px = x, py = y;
-      for (let k = 0, n = Rg.int(2, 4); k < n && len > 4; k++) {
-        const l = Rg.range(0.25, 0.45) * len, nx = px + Math.cos(a) * l, ny = py + Math.sin(a) * l * SY;
-        segs.push([px, py, nx, ny, depth]);
-        if (depth < 2 && Rg.chance(0.4)) walk(nx, ny, a + Rg.range(0.5, 1.1) * (Rg.chance(0.5) ? -1 : 1), len * 0.45, depth + 1);
-        px = nx; py = ny; a += Rg.range(-0.45, 0.45); len -= l;
-      }
-    };
-    walk(Math.cos(a0) * 6, Math.sin(a0) * 6 * SY, a0, R * Rg.range(0.7, 1.15), 0);
-    return segs;
+  const TAIL = [0.35, 0.5, 0.7][el] * LQ;
+  const CR = R * 0.34;   // 坑半径（判定的三分之一，范围靠主缝交代）
+  // 坑沿：极坐标不规整半径
+  const rim = (a) => CR * (0.82 + 0.22 * noise(Math.cos(a) * 1.3 + 3, Math.sin(a) * 1.3 + o.seed));
+  // 主缝：4–6 条，从坑沿出发，2–3 段折线，宽 2 像素，长短不一，不分叉
+  const cracks = jitterAngles(Rg, Rg.int(4, 6), 0, Math.PI * 2, 0.35).map((a0) => {
+    const pts = [[Math.cos(a0) * rim(a0) * 0.9, Math.sin(a0) * rim(a0) * 0.9 * SY]];
+    let a = a0, r = rim(a0) * 0.9;
+    const end = R * Rg.range(0.75, 1.0);
+    for (let k = 0, n = Rg.int(2, 3); k < n; k++) {
+      r += (end - rim(a0)) / n;
+      a += Rg.range(-0.22, 0.22);
+      pts.push([Math.cos(a) * r, Math.sin(a) * r * SY]);
+    }
+    return pts;
   });
-  const flames = el >= 2 ? cracks.flatMap((s) => s.filter((q) => q[4] === 0 && Rg.chance(0.5)).map((q) => ({ x: q[2], y: q[3], h: Rg.range(8, 18), d: Rg.range(0.04, 0.16), ph: Rg.range(0, 6), lean: Rg.range(-0.5, 0.5) }))) : [];
-  let t = 0, hit = false;
+  const STONE = ["#0b0d10", "#262b32", "#4a525c", "#7c8692", "#b8c0ca"];
+  const chunks = [];   // 石块：各自有落地线（俯视：落回起跳的那一行）
+  if (deco) for (const a of jitterAngles(Rg, [4, 5, 5][el], 0, Math.PI * 2, 0.4)) {
+    const r = CR * Rg.range(0.5, 1.1), x = Math.cos(a) * r, y = Math.sin(a) * r * SY;
+    const bits = new Bits({ ground: () => y });
+    bits.add({ kind: B.CHUNK, x, y: y - 0.1, vx: Math.cos(a) * Rg.range(4, 12), vy: -Rg.range(90, 150), a: Rg.range(0, 6), va: Rg.range(-9, 9), s: Rg.range(2.6, 3.6), ramp: STONE, bounce: 0.35, life: 0.2 + TAIL * 0.6 + Rg.range(0, 0.1) });
+    chunks.push(bits);
+  }
+  let t = 0;
   return {
     update(dt) {
       t += dt;
-      if (!hit && t >= HIT) {
-        hit = true;
-        lights.add(0, -2, 14, C[5], 0.5, 0.14);   // 小光：大圆光在游戏里读成一个半透明圆盘（§12.3），光改沿裂缝走
-        if (deco) {
-          for (let i = 0; i < [14, 20, 28][el]; i++) {   // 碎石 / 火星：原地往上蹦、落回（不往外甩，用户 11-04）
-            const a = Rg.range(0, Math.PI * 2), sp = Rg.range(60, 200);
-            ps.spawn(i % 3 ? P.SPARK : P.GRIT, Math.cos(a) * 8, Math.sin(a) * 8 * SY, Math.cos(a) * sp * 0.12, -Rg.range(40, 140) - sp * 0.3, Rg.range(0.25, 0.5) * (0.6 + TAIL), i % 3 ? 0 : D[3 + Rg.int(0, 1)], 1);
-          }
-          if (el >= 1) {
-            for (const a of jitterAngles(Rg, Rg.int(16, 22), 0, Math.PI * 2, 0.45)) {   // 隆起尘墙：判定边缘不等距的小尘团原地掀起、往上冒（小而多，不是孤立圆团 §12.3；不往外推：用户 11-04 外扩环一律不做）
-              const r = R * Rg.range(0.8, 1.05);
-              ps.spawn(P.DUST, Math.cos(a) * r, Math.sin(a) * r * SY, Rg.range(-5, 5), -Rg.range(12, 32), Rg.range(0.3, 0.5) * (0.5 + TAIL), D[1 + Rg.int(0, 2)], Rg.range(1.4, 3.2), Rg.range(0, 0.06));
-              if (Rg.chance(0.6)) ps.spawn(P.GRIT, Math.cos(a) * r, Math.sin(a) * r * SY, Rg.range(-12, 12), -Rg.range(60, 140), Rg.range(0.3, 0.5), D[3], 1, Rg.range(0, 0.04));
-            }
-            for (let i = 0; i < 10; i++) { const a = Rg.range(0, Math.PI * 2), sp = Rg.range(50, 130); ems.spawn(P.SPARK, Math.cos(a) * R * 0.4, Math.sin(a) * R * 0.4 * SY, Math.cos(a) * sp * 0.12, -60 - sp * 0.3, Rg.range(0.25, 0.45) * (0.5 + TAIL), 0, 1, Rg.range(0, 0.05)); }
-          }
-          if (el >= 2) for (let i = 0; i < 10; i++) {   // 青绿碎晶
-            const a = Rg.range(0, Math.PI * 2), sp = Rg.range(80, 220);
-            ps.spawn(P.MOTE, Math.cos(a) * R * 0.3, Math.sin(a) * R * 0.3 * SY - 4, Math.cos(a) * sp * 0.1, -Rg.range(40, 120), Rg.range(0.3, 0.5), J[3 + Rg.int(0, 1)], Rg.range(0.9, 1.5));
-          }
-        }
-      }
-      ps.update(dt); ems.update(dt); lights.update(dt);
+      if (t >= HIT) for (const b of chunks) b.update(dt);
     },
     draw(p) {
       const u = t - HIT;
-      // —— 蓄势（第 0 帧）：几道往落点聚拢的短亮线（盾面收光），长短 / 角度不等
-      if (core && u < 0) for (const a of [0.3, 1.4, 2.2, 3.5, 4.4, 5.6]) {
-        const r0 = R * (0.35 + 0.15 * Math.sin(a * 3.1)), r1 = r0 * 0.45;
-        p.line(Math.cos(a) * r0, Math.sin(a) * r0 * SY - 6, Math.cos(a) * r1, Math.sin(a) * r1 * SY - 6, C[5], 0.8);
+      // —— 蓄势（第 0 帧）：盾下沿压低，一道横向的钢白亮条
+      if (u < 0) {
+        if (core) for (let x = -10; x <= 10; x += 0.5) p.blend(x, -5, C[5], 0.9 - Math.abs(x) / 14);
+        return;
       }
-      if (u < 0) return;
-      const ck = 1 - smooth(0.15, 0.15 + TAIL, u);
-      // —— 核心：裂网主缝（判定内）先白热后冷成暗金，分叉只在装饰层
-      if (ck > 0) for (const segs of cracks) for (const [x0, y0, x1, y1, dep] of segs) {
-        if (dep > 0 ? !deco : !core) continue;
-        const grow = clamp(u / 0.08 - Math.hypot(x0, y0 / SY) / R * 0.6);
-        if (grow <= 0) continue;
-        const ex = x0 + (x1 - x0) * grow, ey = y0 + (y1 - y0) * grow;
-        const ci = u < 0.05 ? 6 : u < 0.1 ? 5 : clamp(Math.round(4 - u * 6), 1, 4);
-        p.line(x0, y0, ex, ey, C[ci - (dep > 0 ? 1 : 0)], ck * (dep > 0 ? 0.75 : 1));
-        if (dep === 0 && u < 0.35) p.line(x0, y0 + 1, ex, ey + 1, C[clamp(ci - 2, 1, 6)], ck * 0.6);   // 主缝两像素宽
-      }
-      // （判定边缘那一整圈断续震裂线 11-04 删掉：录像里读成一圈光环，用户 11-04 光环一律不做；范围由裂网主缝长短交代）
-      // —— 核心：落点白热（第 1 帧）+ E2 般若盾形印（倒三角，白热后转翠绿）
-      if (core && u < 0.12) {   // 盾沿砸痕：一道横向的锯齿白热切口（盾下沿砸进地面），不是圆盘（§12.3）
-        const k = 1 - u / 0.12, hw = 12 + 10 * (1 - k);
-        for (let x = -hw; x <= hw; x += 0.5) {
-          const v = Math.abs(x) / hw, th = (1.6 - 1.2 * v) * (0.6 + 0.4 * (0.5 + 0.5 * noise(x * 0.7, o.seed + 11)));
-          const yc = 1.2 * noise(x * 0.35, o.seed + 12);
-          for (let e = -th; e <= th; e += 0.5) p.blend(x, yc + e, C[u < 0.05 && v < 0.6 ? 6 : 5], 0.95 * k * (1 - v * 0.5));
+      const ck = 1 - smooth(0.12, 0.12 + TAIL, u);
+      // 温度：0 → 1 冷却；坑与主缝同一套颜色（一个主形）
+      const heat = (k) => {
+        if (u < 0.05) return C[6];
+        if (u < 0.1) return C[5];
+        if (el >= 2 && k === "crack") return J[clamp(Math.round(4 - u * 3), 2, 4)];
+        if (el >= 1 && k === "rim") return E[clamp(Math.round(4 - u * 5), 1, 3)];
+        return C[clamp(Math.round(4 - u * 8), 2, 4)];
+      };
+      if (core && ck > 0) {
+        // 主缝：先于坑铺开（0.08 s 长满），两像素宽
+        const grow = clamp(u / 0.08) * (1 - smooth(0.12, 0.12 + TAIL * 0.9, u));   // 长满 → 从缝尖往坑里收（不靠半透明淡出，免得读成虚线）
+        for (const pts of cracks) for (let i = 0; i + 1 < pts.length; i++) {
+          const g = clamp(grow * (pts.length - 1) - i);
+          if (g <= 0) continue;
+          const [x0, y0] = pts[i], x1 = x0 + (pts[i + 1][0] - x0) * g, y1 = y0 + (pts[i + 1][1] - y0) * g;
+          const c = heat("crack");
+          p.line(x0, y0, x1, y1, c, 1);
+          if (i === 0) p.line(x0, y0 - 1, x1, y1 - 1, c, 1);   // 近坑一段两像素宽（远端一像素）
+          p.line(x0, y0 + 1, x1, y1 + 1, C[1], 0.9);   // 缝的暗面
         }
-      }
-      if (core && el >= 2 && u < 0.35) {
-        const k = 1 - u / 0.35, V = [[-14, -9], [14, -9], [1, 13]];
-        for (let i = 0; i < 3; i++) p.line(V[i][0], V[i][1] * SY - 3, V[(i + 1) % 3][0], V[(i + 1) % 3][1] * SY - 3, u < 0.06 ? C[6] : J[clamp(Math.round(4 - u * 8), 2, 4)], k);
+        // 坑：实心不规整椭圆，坑底暗、近沿（下半）受光；第 1 帧整坑白热
+        const sink = Math.min(1, u / 0.04);
+        for (let y = -CR * SY - 1; y <= CR * SY + 1; y += 0.5) for (let x = -CR - 1; x <= CR + 1; x += 0.5) {
+          const a = Math.atan2(y / SY, x), d = Math.hypot(x, y / SY) / rim(a);
+          if (d > 1) continue;
+          let c, al = ck;
+          if (u < 0.05) c = d > 0.75 ? C[5] : C[6];
+          else if (d > 0.82) c = y > 0 ? heat("rim") : C[2];   // 坑沿：近沿亮、远沿暗
+          else { c = C[d < 0.5 ? 0 : 1]; al = ck * (0.75 + 0.25 * sink); }
+          p.blend(x, y, c, al);
+        }
+        // E2：坑底透出一线青绿（缝的根）
+        if (el >= 2 && u >= 0.05) for (const pts of cracks) {
+          const [x1, y1] = pts[0];
+          p.line(x1 * 0.4, y1 * 0.4, x1, y1, J[clamp(Math.round(4 - u * 3), 2, 4)], ck * 0.8);
+        }
       }
       if (deco) {
-        const gk = [0.18, 0.24, 0.32][el] * (1 - smooth(0.02, 0.15 + TAIL * 0.3, u));   // 光晕沿主缝走（不画圆心大光盘，§12.3）
-        if (gk > 0.01) for (const segs of cracks) { const q = segs[0]; if (q) p.glow((q[0] + q[2]) / 2, (q[1] + q[3]) / 2, 7, C[4], gk); }
-        // E2 鬼火：从主缝末端窜起
-        for (const f of flames) {
-          const v0 = u - f.d;
-          if (v0 < 0) continue;
-          const life = clamp(v0 / 0.06) * (1 - smooth(0.1, 0.1 + TAIL * 0.8, v0)), H = f.h * life;
-          if (H < 1) continue;
-          for (let d = 0; d < H; d += 0.5) {
-            const v = d / H, sway = 2 * noise(f.ph + d * 0.2 + v0 * 9, o.seed + 5) * v + f.lean * d;
-            for (let e = -(1.4 - 1.1 * v); e <= 1.4 - 1.1 * v; e += 0.7)
-              p.blend(f.x + sway + e, f.y - d, J[clamp(Math.round(4 - v * 2.6 - Math.abs(e) * 0.6), 1, 4)], (0.85 - v * 0.5) * life);
-          }
-        }
-        ems.draw(p); ps.draw(p); lights.draw(p);
+        // 照地：只沿主缝贴一层淡光（不画圆心光盘 §12.3）
+        const gk = 0.22 * (1 - smooth(0.02, 0.1 + TAIL * 0.4, u));
+        if (gk > 0.01) for (const pts of cracks) p.glowLine(pts[0][0], pts[0][1], pts[1][0], pts[1][1], 4, el >= 2 ? J[3] : C[4], gk);
+        for (const b of chunks) b.draw(p);
       }
     },
   };

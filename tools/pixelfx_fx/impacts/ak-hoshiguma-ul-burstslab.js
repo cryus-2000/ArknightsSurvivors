@@ -37,10 +37,8 @@ export function create(o) {
       t += dt;
       if (!fired) {
         fired = true;
-        if (deco) for (const s of slabs) for (let i = 0, n = Rg.int(1, 3); i < n; i++)   // 碎石 / 火星：原地往上蹦（不往外甩）
-          ps.spawn(i ? P.SPARK : P.GRIT, s.x + Rg.range(-3, 3), 0, Rg.range(-12, 12), -Rg.range(60, 140), Rg.range(0.3, 0.55), i ? 0 : D[3 + Rg.int(0, 1)], 1, s.d);
+        // 11-04 §0：碎石 / 火星删（同屏 ≤ 3 种：断口、石板、鬼火）
       }
-      ps.update(dt);
     },
     draw(p) {
       const ck = 1 - smooth(0.25, 0.6, t);
@@ -76,7 +74,6 @@ export function create(o) {
               p.blend(f.x + sway + e, -d, J[clamp(Math.round(4 - v * 2.6 - Math.abs(e) * 0.6), 1, 4)], (0.85 - v * 0.5) * life);
           }
         }
-        ps.draw(p);
       }
     },
   };

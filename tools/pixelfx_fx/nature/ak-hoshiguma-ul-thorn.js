@@ -50,21 +50,18 @@ export function create(o) {
       t += dt;
       if (!fired) {
         fired = true;
-        if (deco && el >= 1) for (const s of spikes) if (Rg.chance(0.6)) ps.spawn(P.SPARK, s.x, s.y - s.h * 0.6, Rg.range(-12, 12), -Rg.range(60, 140), Rg.range(0.12, 0.25), 0, 1, s.d);
-        if (deco && el >= 2) for (let i = 0; i < 6; i++) ems.spawn(P.EMBER, Rg.range(-R, R) * 0.7, Rg.range(-R, R) * 0.7 * SY, Rg.range(-10, 10), -Rg.range(20, 50), Rg.range(0.3, 0.5), E[3], 1, Rg.range(0, 0.1));
+        // 11-04 §0：火星 / 余烬点删
       }
-      ps.update(dt); ems.update(dt);
     },
     draw(p) {
-      // —— 装饰：热砂（根部一摊，边缘按噪声起伏，发红后暗下去，真半透明）
-      if (deco) {
-        const k = ease.outQuart(clamp((t + 0.03) / 0.06)) * (1 - smooth(0.1, 0.25 + TAIL, t));
-        if (k > 0.02) for (let y = -R * SY - 2; y <= R * SY + 2; y++) for (let x = -R - 2; x <= R + 2; x++) {
-          const a = Math.atan2(y / SY, x), r = Math.hypot(x, y / SY) / (1 + 0.3 * noise(a * 3, o.seed));
-          if (r > R) continue;
-          const n = 0.5 + 0.5 * noise2(x * 0.16, y * 0.3, o.seed + 2);
-          if (n < 0.52) continue;   // 只留斑驳的几片热砂（不铺成一整块圆盘，§12.3）
-          p.blend(x, y, S[clamp(Math.round(1 + n * 2.5 - r / R * 1.2 + (t < 0.08 ? 1 : 0)), 0, 4)], 0.4 * k * (1 - r / R * 0.6));
+      // —— 装饰：热砂（11-04 §0 改）：每根刺脚下一块实心的灼红沙斑（不规整椭圆），先亮后逐阶暗下，不用斑驳噪点（读成脏）
+      if (deco) for (const s of spikes) {
+        const u = t + 0.03 - s.d, k = 1 - smooth(0.12, 0.3 + TAIL * 0.5, u);   // 与刺同时收（刺走了沙斑不单留，免得读成孤立圆点）
+        if (u < 0 || k < 0.2) continue;
+        const ci = u < 0.06 ? 3 : k > 0.6 ? 2 : 1, rx = 3 + s.w * 1.6, ry = rx * 0.5;
+        for (let y = -ry; y <= ry; y += 0.5) for (let x = -rx; x <= rx; x += 0.5) {
+          const d = Math.hypot(x / rx, y / ry) * (1 + 0.15 * noise(x * 0.6 + s.x, y + o.seed));
+          if (d <= 1) p.blend(s.x + x, s.y + y, S[d > 0.7 ? ci - 1 : ci], 1);
         }
       }
       // —— 核心：尖刺（扎出 → 停 → 缩回），首帧尖端白热；E2 尖端翠绿
@@ -82,7 +79,6 @@ export function create(o) {
           }
         }
       }
-      if (deco) { ems.draw(p); ps.draw(p); }
     },
   };
 }
