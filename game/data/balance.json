@@ -843,6 +843,10 @@
   "cd_card": 0.88,
   "dist_card": 0.12
  },
+ "combat": {
+  "_doc": "统一地形阻挡规则（协调人 11-04，用户确认前做成开关，docs/241）：terrain_block_rule 0 = 旧口径（terrain 段：我方直线弹、非 Boss 敌方直线弹挡，Boss 弹 / 追踪弹 / 剑气等不挡）；1 = 飞行物敌我一律挡（另加 Boss 直线弹、敌我追踪弹、剑气 / 水刃 / 咒文弹 / 成长散射与剑气），范围类（地面预警、冲击波、裂地、全屏、近战扇形、抛物落点）敌我一律不挡；预警类弹幕（no_rock）、终结技 / 连携照旧不挡。伊祖米克灯柱只挡全屏伤害那条单独保留",
+  "terrain_block_rule": 0
+ },
  "terrain": {
   "_doc": "地形阻挡（10-13 用户批准；world/map.gd point_blocked / segment_blocked，开局读一次）：1 = 开、0 = 关。block_bullets 我方直线弹（艾雅法拉熔岩弹、能天使弹道含跳弹、流明光弹、塞雷娅针剂 / 碎晶、铃兰大狐火）撞景物底座即消失；block_enemy_bullets 敌方直线弹（非 Boss；追踪弹、预警类弹幕不挡）；block_boss_bullets Boss 直线弹（缺省不挡）；aim_los 上述直线弹干员自动选目标时先选视线内的，全被挡才退回最近目标；dash_stop 冲刺撞底座即停（这一帧被推出超过 dash_stop_px 像素算撞上，无敌照常走完）。范围、地面法阵、激光、抛物线落点、近战、追踪弹一律不挡",
   "block_bullets": 1,

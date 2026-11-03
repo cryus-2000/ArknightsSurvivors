@@ -165,6 +165,9 @@ static func _hw3_bolts(o, dt: float) -> void:
 				hw_bolt_hit(o, tgt, bo.dmg, bo.src, bo.b)
 			continue
 		bo.pos += d.normalized().rotated(sin(bo.age * 7.0 + bo.ph) * 0.45) * step
+		if o.g.map.fly_blocked(bo, bo.pos + Vector2(0, 12.0)):   # 统一规则：咒文弹（追踪）撞岩即散（docs/241）
+			bo.life = -1.0
+			continue
 		bo.hist.append(bo.pos)
 		if bo.hist.size() > 6:
 			bo.hist.pop_front()

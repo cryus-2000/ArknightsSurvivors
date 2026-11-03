@@ -265,6 +265,9 @@ static func _g202_blades_tick(o, sp: Dictionary, dt: float) -> void:
 		var step: float = minf(float(bl.left), 720.0 * dt)
 		bl.pos = (bl.pos as Vector2) + (bl.dir as Vector2) * step
 		bl.left = float(bl.left) - step
+		if g.map.fly_blocked(bl, bl.pos):   # 统一规则：水刃撞岩即散（docs/241）
+			bl.left = 0.0
+			continue
 		bl.trail.append(bl.pos)
 		if bl.trail.size() > 6:
 			bl.trail.pop_front()

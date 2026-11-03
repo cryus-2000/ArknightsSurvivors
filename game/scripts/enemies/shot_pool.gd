@@ -254,7 +254,7 @@ func update_ebullets(dt: float) -> void:
 			g.beacon_sys.eat_fx(b.pos)
 			continue
 		# 地形阻挡：敌方直线弹撞景物底座即消失（酸弹溅开 / 神经弹留溟痕照常走 life <= 0 分支）；追踪弹与预警类弹幕（no_rock）不挡，Boss 弹看 terrain/block_boss_bullets
-		var rock: bool = g.map.tb_ebul and not b.get("home", false) and (g.map.tb_boss or not b.get("boss", false)) and not b.has("no_rock") and g.map.bullet_blocked(b, b.pos, true)
+		var rock: bool = g.map.tb_ebul and (g.map.tb_home or not b.get("home", false)) and (g.map.tb_boss or not b.get("boss", false)) and not b.has("no_rock") and g.map.bullet_blocked(b, b.pos, true)
 		if rock:
 			b.life = 0.0
 			b["_die"] = "rock"

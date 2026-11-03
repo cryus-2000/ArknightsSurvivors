@@ -436,6 +436,12 @@ var tb_boss := false        # Boss 直线弹（缺省不挡：Boss 弹幕按预�
 var tb_aim := true          # 自动瞄准优先视线内目标
 var tb_dash := true         # 冲刺撞停
 var tb_dash_px := 3.0       # 冲刺这一帧被推出超过此像素算撞上
+## 统一规则（combat/terrain_block_rule，docs/241；0 = 旧口径、1 = 飞行物敌我一律挡、范围类敌我一律不挡）：
+## 1 时另外挡 Boss 直线弹（tb_boss）、敌我追踪弹（tb_home）和原来不查的我方飞行物（tb_fly：剑气 / 水刃 / 咒文弹 / 成长散射）；
+## 预警类弹幕（no_rock）、抛物 / 定时落点、终结技 / 连携照旧不挡（例外表见 docs/241）
+var tb_rule := 0
+var tb_home := false        # 追踪弹（敌方 home、我方 g.bullets 带 home 键）
+var tb_fly := false         # 我方飞行物（原来不查的那批）
 var tb_log := {"bul": 0, "ebul": 0, "dash": 0}   # 遥测（只记录）：本局挡下的我方 / 敌方直线弹、撞停的冲刺次数（telemetry.record 的 terrain）
 
 
@@ -458,6 +464,16 @@ func _po_setup() -> void:
 	tb_aim = Bal.v("terrain/aim_los", 1.0) > 0.0
 	tb_dash = Bal.v("terrain/dash_stop", 1.0) > 0.0
 	tb_dash_px = Bal.v("terrain/dash_stop_px", 3.0)
+	tb_rule = Bal.vi("combat/terrain_block_rule", 0)
+	tb_home = tb_rule == 1
+	tb_fly = tb_rule == 1 and tb_bul
+	if tb_rule == 1:
+		tb_boss = tb_ebul
+
+
+## 统一规则下我方原来不查的飞行物撞岩（tb_fly 关时恒 false，不碰弹体字典、不抽随机数）
+func fly_blocked(b: Dictionary, p: Vector2) -> bool:
+	return tb_fly and bullet_blocked(b, p)
 
 
 ## 原生核心（docs/101 §4.7）要的景物推出参数：[有没有会挡的景物, 格子边长, 最大半轴 rx, ry]

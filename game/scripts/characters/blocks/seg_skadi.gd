@@ -88,6 +88,9 @@ static func _hw_waves(o, dt: float) -> void:
 			w.pos += w.dir * step
 			w.dist += step
 			hc = w.pos
+		if (w.has("ll") or b.has("proj")) and g.map.fly_blocked(w, w.pos):   # 统一规则：剑气 / 弹体式潮刃撞岩即散（浪墙是范围，不挡；docs/241）
+			w.dist = w.max
+			continue
 		var nrm: Vector2 = w.dir.orthogonal()
 		for j in o.query_ids(hc, w.w * 0.5 + 40.0 + (hl - depth)):
 			var e: Dictionary = g.enemies[j]

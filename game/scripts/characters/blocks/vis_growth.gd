@@ -385,6 +385,9 @@ static func tick(o, dt: float) -> void:
 			b.life -= dt
 			if b.life <= 0.0:
 				continue
+			if g.map.fly_blocked(b, b.p):   # 统一规则：散射 / 连发弹撞岩即散（docs/241）
+				b.life = 0.0
+				continue
 			for j in o.query_ids(b.p, 32.0):
 				var e: Dictionary = g.enemies[j]
 				if e.dead or b.hit.has(e.id) or e.pos.distance_to(b.p) > float(e.r) + 8.0:
@@ -410,6 +413,9 @@ static func tick(o, dt: float) -> void:
 				q.p += q.v * dt
 				qa = q.p
 			if q.life <= 0.0:
+				continue
+			if g.map.fly_blocked(q, q.p):   # 统一规则：剑气撞岩即散（docs/241）
+				q.life = 0.0
 				continue
 			if str(q.get("style", "")) == "saw" and quality() != "low" and g.vrng.randf() < 0.3:   # 圆锯边缘甩火花（画面，g.vrng）
 				var dn2: Vector2 = q.v.normalized()
