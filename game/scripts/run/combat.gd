@@ -1191,21 +1191,25 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.boss and tough_on(e):
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
-	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff
+	# 偏执泡影的幻影（生命 1e9 的替身，伤害全被吸收）不记输出：按「当前生命 %」结算的藏品打在它身上一次就是几千万，
+	# 作战记录的全队伤害 / 最高单次 / relic_out 被撑爆（11-05 bug 排查）。终结技能量照旧（玩法不变）
+	var eff_st: float = 0.0 if e.has("decoy_of") else eff
+	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff_st
 	if g.ult != null:
 		g.ult.on_dmg(eff, h)   # 终结技能量：输出来源（docs/198 §2.1）
 	if e.boss and g.bench.live:
 		g.bench.boss_hit(e, eff)   # Boss 单场测试台：破绽期输出占比（docs/170）
 	if _pf:
 		_pt = g.prof_add("dm_misc", _pt)
-	g.telemetry.on_dmg(e, eff, dmg, h)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
+	if not e.has("decoy_of"):
+		g.telemetry.on_dmg(e, eff, dmg, h)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
 	if _pf:
 		_pt = g.prof_add("dm_telemetry", _pt)
 	if h.origin == "relic":
-		g.relic_out += eff
-	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff
+		g.relic_out += eff_st
+	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff_st
 	for tg in h.tags:
-		g.dmg_tag_out[tg] = g.dmg_tag_out.get(tg, 0.0) + eff
+		g.dmg_tag_out[tg] = g.dmg_tag_out.get(tg, 0.0) + eff_st
 	if e.hits == 0:
 		e["h0"] = g.t   # 首次受击时刻（遥测 kill_hits 的实际 TTK，docs/116 §6）
 	e.hits += 1

@@ -32,6 +32,7 @@ func _ready() -> void:
 	check_rush()
 	check_rest_break()
 	check_mire()
+	check_decoy_stats()
 	print("PARANOIA COMBOS failures=", failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -320,3 +321,25 @@ func check_tide_ring() -> void:
 	var rings: Array = g.shocks.filter(func(sh): return str(sh.get("src_type", "")) == "paranoia")
 	check(rings.size() == 3, "tide ring emits three rings (got %d)" % rings.size())
 	check(rings.all(func(sh): return (sh.gaps as Array).size() == 1 and float(sh.gap_half) > 0.3), "each ring has one gap")
+
+
+## 幻影（生命 1e9 的替身）挨打不记输出（11-05 bug 排查：按当前生命 % 结算的藏品打在幻影上一次几千万，作战记录全队伤害被撑爆）；
+## 对照：同样一下打在普通敌人身上照常记
+func check_decoy_stats() -> void:
+	var e := fresh(3)
+	var o: Dictionary = g.bai.boss("paranoia")._decoy_make(e, 0)
+	var sum := func() -> float:
+		var s := 0.0
+		for k in g.dmg_out:
+			s += float(g.dmg_out[k])
+		return s
+	var before: float = sum.call()
+	var rel0: float = g.relic_out
+	var best0: float = float(g.telemetry.best_hit.get("v", 0.0))
+	g.combat.damage(o, o.hp * 0.03, g.combat.make_hit("真实"))
+	check(o.hp < 1.0e9, "decoy still absorbs the hit")
+	check(absf(float(sum.call()) - before) < 0.001 and absf(g.relic_out - rel0) < 0.001, "decoy hit not counted in dmg_out / relic_out")
+	check(float(g.telemetry.best_hit.get("v", 0.0)) <= best0 + 0.001, "decoy hit not counted as best hit")
+	var n: Dictionary = g.spawner.spawn_enemy("bone", Vector2(60, 0))
+	g.combat.damage(n, 5.0, g.combat.make_hit("真实"))
+	check(float(sum.call()) > before, "control: hit on a normal enemy is counted")
