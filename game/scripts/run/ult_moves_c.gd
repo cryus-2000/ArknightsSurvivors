@@ -270,6 +270,22 @@ static func _launch(u, a: Dictionary, e: Dictionary, dur: float, h: float) -> vo
 ##   举拳 ult/sa_charge（0.2 秒，琥珀光往拳头收）→ 砸地：轻震 + 拳风冲击环 ult/sa_travel（0.25 秒）扩到 R，波前扫过的敌人吃 1 − 裂地份额、往外击飞 ult/sa_kb（360）；
 ##   同时脚下裂开 ult/sa_cracks（10）道放射裂纹（琥珀色折线往外延伸），裂纹上每隔一节接连爆开（半径 80，每人一次 ult/sa_crack 20%）。
 ## 路线：碎晶 → 裂纹 14 道、裂地 30%（冲击环降到 70%）；急救针剂 → 结束时队长回复 6% 最大生命。附带护盾一层照旧
+## pixelfx 放开版（docs/242，开关 fx/px_unleashed）：砸地叠一张琥珀裂网砸地（fx_saria_ul_slam），裂纹爆点叠晶簇碎裂（fx_saria_ul_calc_break）；
+## 先装饰（× fx/px_deco_k）后核心；判定 / 时序 / 随机数不动
+static func _sa_ul(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_saria_ul_slam")
+
+
+static func _sa_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
+	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		u.strip(d, c, od)
+	u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
+
+
 static func _sa_cone() -> bool:
 	return Bal.v("ult/sa_cone", 1.0) > 0.0
 
@@ -341,6 +357,8 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 		a.punched = true
 		o.play_vis_anim("attack")
 		u.shake(Bal.v("ult/sa_shake", 8.0), 0.35)
+		if _sa_ul(u):
+			_sa_ul_strip(u, "fx_saria_ul_slam", org, {"sc": 1.2})
 		# 砸地：落点白闪 + 拳风冲击环（白芯 + 两道琥珀，生长段 = 冲击环走到 R 的时间）+ 往外飞的拳风速度线
 		u.shape({"kind": "circle", "c": org, "r": 110.0, "col": COL_AMBER.lerp(Color.WHITE, 0.25 if a.get("v2", false) else 0.45), "fill": 0.7 if a.get("v2", false) else 0.95, "life": 0.07 if a.get("v2", false) else 0.1})   # v2 压白闪（预审 1/3 报发白）
 		u.shape({"kind": "ellipse", "c": org + Vector2(0, 8), "rx": 150.0, "ry": 70.0, "col": COL_ROCK.darkened(0.45), "fill": 0.6, "life": 1.2, "layer": "back"})   # 砸出的浅坑
@@ -413,6 +431,8 @@ static func _sa_step(u, a: Dictionary, o) -> bool:
 			u.shape({"kind": "circle", "c": p, "r": 54.0, "col": COL_AMBER.lerp(Color.WHITE, 0.2), "fill": 0.7, "life": 0.14})
 			_ring(u, p, 92.0, 16.0, COL_AMBER.lerp(Color.WHITE, 0.3), 0.26, 6.0)
 			u.strip("fx_saria_pillar_break", p + Vector2(0, -16), {"sc": 1.4})
+		if _sa_ul(u):
+			_sa_ul_strip(u, "fx_saria_ul_calc_break", p, {"sc": 1.1})
 		var bi: int = a.booms.find(b)
 		u.grain("sh_shard", p, Vector2.UP, Color(0.7, 0.68, 0.64) if a.v2 else COL_AMBER, 5)
 		u.grain("bfx_dust", p, Vector2.UP, COL_ROCK, 3)

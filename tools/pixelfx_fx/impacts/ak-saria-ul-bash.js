@@ -14,7 +14,7 @@ export const meta = {
   bg: "dark",
   options: {
     palette: ["#241004", "#52260a", "#8e4510", "#cc7418", "#f2aa3c", "#ffd77e", "#fff2cf", "#ffffff"],
-    layer: "all", reach: 62,
+    quick: 0, layer: "all", reach: 62,
     seed: 6,
   },
 };
@@ -24,6 +24,7 @@ const PUSH = 0.12, SPAN = 1.25;
 export function create(o) {
   const C = fit(o.palette, 8), R = o.palette, Rg = new Rng(o.seed), L = o.reach;
   const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）
+  const LQ = +o.quick > 0 ? 0.5 : 1;   // 队友版（_tm）：装饰的余韵减半，核心不变
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
   const bits = new Bits({ ground: () => 1e9 });
   lights.add(10, 0, 50, C[6], 1.0, 0.25);
@@ -34,11 +35,11 @@ export function create(o) {
   for (let i = 0; i < 10; i++) {
     const a = Rg.range(-0.6, 0.6), sp = Rg.range(90, 220);
     bits.add({ kind: B.SHARD, x: 16, y: Rg.range(-8, 8), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, a: Rg.range(0, 6.28), va: Rg.range(-16, 16), s: Rg.range(2.5, 4.5),
-      c: hex(R[Rg.int(3, 6)]), g: 0, drag: 2.2, bounce: 0, life: Rg.range(0.35, 0.6) });
+      c: hex(R[Rg.int(3, 6)]), ramp: R.slice(1, 7), g: 0, drag: 2.2, bounce: 0, life: Rg.range(0.35, 0.6) });
   }
   for (let i = 0; i < 9; i++) {
     const a = Rg.range(-0.9, 0.9), d = Rg.range(10, 30);
-    ps.spawn(P.DUST, Math.cos(a) * d + 8, Math.sin(a) * d, Math.cos(a) * Rg.range(30, 70), Math.sin(a) * Rg.range(30, 70), Rg.range(0.45, 0.7), C[2], Rg.range(4, 8), Rg.range(0.02, 0.08));
+    ps.spawn(P.DUST, Math.cos(a) * d + 8, Math.sin(a) * d, Math.cos(a) * Rg.range(30, 70), Math.sin(a) * Rg.range(30, 70), Rg.range(0.45, 0.7) * LQ, C[2], Rg.range(4, 8), Rg.range(0.02, 0.08));
   }
   let t = 0;
   return {

@@ -12,19 +12,20 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#3a0a10", "#7c1622", "#c4283a", "#f24d4d", "#ff9a8a", "#ffd8cc", "#ffffff"], layer: "all", seed: 2 },
+  options: { palette: ["#3a0a10", "#7c1622", "#c4283a", "#f24d4d", "#ff9a8a", "#ffd8cc", "#ffffff"], layer: "all", quick: 0, seed: 2 },
 };
 
 export function create(o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）
+  const LQ = +o.quick > 0 ? 0.5 : 1;   // 队友版（_tm）：装饰的余韵减半
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
   lights.add(6, 0, 26, C[5], 0.9, 0.15);
   const tongues = [0, -0.3, 0.34, -0.66, 0.6, -1.1, 1.05].map((a, i) => ({ a: a + Rg.range(-0.08, 0.08), L: (i === 0 ? Rg.range(30, 36) : i < 3 ? Rg.range(14, 20) : Rg.range(6, 11)), w: i === 0 ? 4.5 : i < 3 ? 2.6 : 1.6 }));
   for (let i = 0; i < 8; i++) {
     const a = Rg.range(-0.35, 0.35), sp = Rg.range(260, 460);
-    ps.spawn(P.SPARK, 4, 0, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.05, 0.14));
+    ps.spawn(P.SPARK, 4, 0, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.05, 0.14) * LQ);
   }
-  ps.spawn(P.VAPOUR, 10, 0, 70, Rg.range(-10, 10), 0.16, C[4], 3.5);
+  ps.spawn(P.VAPOUR, 10, 0, 70, Rg.range(-10, 10), 0.16 * LQ, C[4], 3.5);
   let t = 0;
   return {
     update(dt) { t += dt; ps.update(dt); lights.update(dt); },

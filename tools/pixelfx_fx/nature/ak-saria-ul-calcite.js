@@ -58,7 +58,7 @@ export function create(o) {
           for (let i = 0; i < n; i++) {
             const y = c.base - c.h * Rg.range(0.1, 0.9), a = Math.atan2(y + 10, c.x || 0.1) + Rg.range(-0.6, 0.6), sp = Rg.range(60, 180);
             bits.add({ kind: B.SHARD, x: c.x + c.lean * 0.5, y, vx: Math.cos(a) * sp + c.x * 2, vy: -Math.abs(Math.sin(a) * sp) - 40, a: Rg.range(0, TAU), va: Rg.range(-14, 14),
-              s: Rg.range(2, 4.5), c: hex(R[Rg.int(3, 6)]), g: 1, drag: 0.6, bounce: 0.3, life: Rg.range(0.4, 0.55) });
+              s: Rg.range(2, 4.5), c: hex(R[Rg.int(3, 6)]), ramp: R.slice(1, 7), g: 1, drag: 0.6, bounce: 0.3, life: Rg.range(0.4, 0.55) });
           }
         }
         for (let i = 0; i < 24; i++) {

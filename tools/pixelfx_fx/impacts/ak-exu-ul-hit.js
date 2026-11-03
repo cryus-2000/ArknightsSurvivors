@@ -12,16 +12,17 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: ["#3a0a10", "#7c1622", "#c4283a", "#f24d4d", "#ff9a8a", "#ffd8cc", "#ffffff"], layer: "all", seed: 4 },
+  options: { palette: ["#3a0a10", "#7c1622", "#c4283a", "#f24d4d", "#ff9a8a", "#ffd8cc", "#ffffff"], layer: "all", quick: 0, seed: 4 },
 };
 
 export function create(o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）
+  const LQ = +o.quick > 0 ? 0.5 : 1;   // 队友版（_tm）：装饰的余韵减半
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
   lights.add(0, 0, 22, C[5], 0.9, 0.18);
   for (let i = 0; i < 12; i++) {
     const a = Rg.range(-1.0, 1.0) * (i % 3 ? 0.7 : 1.3), sp = Rg.range(110, 300);
-    ps.spawn(P.SPARK, 0, 0, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.08, 0.24));
+    ps.spawn(P.SPARK, 0, 0, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.08, 0.24) * LQ);
   }
   const arcs = [];
   for (let a = -1.2 + Rg.range(0, 0.2); a < 1.1; a += Rg.range(0.45, 0.8)) arcs.push([a, a + Rg.range(0.15, 0.4), Rg.range(0.85, 1.15)]);

@@ -1,5 +1,5 @@
 {
- "_doc": "能天使放开版（docs/242，开关 fx/px_unleashed）：曳光弹 / 枪口焰 / 命中，基础 + S1–S3 四套色；弹体导出后挪到 art/fx/proj",
+ "_doc": "能天使放开版（docs/242）：弹体 / 枪口焰 / 命中，基础 + S1–S3 + 金色（天赋强力弹、终结技），枪口 / 命中带 _tm；全部两层 + 低档；弹体导出后挪到 art/fx/proj",
  "proj_exusiai_ul_bullet": {
   "fx": "projectiles/ak-exu-ul-bullet",
   "opts": {
@@ -210,6 +210,234 @@
   },
   "colors": 256,
   "lo": true,
+  "layers": true
+ },
+ "proj_exusiai_ul_bullet_power": {
+  "fx": "projectiles/ak-exu-ul-bullet",
+  "opts": {
+   "palette": [
+    "#3a2406",
+    "#7a4c0c",
+    "#c08a1e",
+    "#ffd86a",
+    "#ffe9a6",
+    "#fffbe6",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256,
+  "lo": true,
+  "layers": true
+ },
+ "fx_exusiai_ul_muzzle_gold": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#3a2406",
+    "#7a4c0c",
+    "#c08a1e",
+    "#ffd86a",
+    "#ffe9a6",
+    "#fffbe6",
+    "#ffffff"
+   ]
+  },
+  "keep": true,
+  "colors": 256,
+  "lo": true,
+  "layers": true
+ },
+ "fx_exusiai_ul_hit_gold": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#3a2406",
+    "#7a4c0c",
+    "#c08a1e",
+    "#ffd86a",
+    "#ffe9a6",
+    "#fffbe6",
+    "#ffffff"
+   ]
+  },
+  "colors": 256,
+  "lo": true,
+  "layers": true
+ },
+ "fx_exusiai_ul_muzzle_tm": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#3a0a10",
+    "#7c1622",
+    "#c4283a",
+    "#f24d4d",
+    "#ff9a8a",
+    "#ffd8cc",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "keep": true,
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_hit_tm": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#3a0a10",
+    "#7c1622",
+    "#c4283a",
+    "#f24d4d",
+    "#ff9a8a",
+    "#ffd8cc",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_muzzle_s1_tm": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#061a30",
+    "#0d3c66",
+    "#12528a",
+    "#48ccff",
+    "#9fe6ff",
+    "#e0faff",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "keep": true,
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_hit_s1_tm": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#061a30",
+    "#0d3c66",
+    "#12528a",
+    "#48ccff",
+    "#9fe6ff",
+    "#e0faff",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_muzzle_s2_tm": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#2a1004",
+    "#6e2c08",
+    "#b04e10",
+    "#ff9a2e",
+    "#ffc278",
+    "#ffe9c8",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "keep": true,
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_hit_s2_tm": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#2a1004",
+    "#6e2c08",
+    "#b04e10",
+    "#ff9a2e",
+    "#ffc278",
+    "#ffe9c8",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_muzzle_s3_tm": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#3a0812",
+    "#8a1a2a",
+    "#d42a3a",
+    "#ff7a7a",
+    "#ffb4ac",
+    "#ffe6e0",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "keep": true,
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_hit_s3_tm": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#3a0812",
+    "#8a1a2a",
+    "#d42a3a",
+    "#ff7a7a",
+    "#ffb4ac",
+    "#ffe6e0",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_muzzle_gold_tm": {
+  "fx": "projectiles/ak-exu-ul-muzzle",
+  "opts": {
+   "palette": [
+    "#3a2406",
+    "#7a4c0c",
+    "#c08a1e",
+    "#ffd86a",
+    "#ffe9a6",
+    "#fffbe6",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "keep": true,
+  "colors": 256,
+  "layers": true
+ },
+ "fx_exusiai_ul_hit_gold_tm": {
+  "fx": "impacts/ak-exu-ul-hit",
+  "opts": {
+   "palette": [
+    "#3a2406",
+    "#7a4c0c",
+    "#c08a1e",
+    "#ffd86a",
+    "#ffe9a6",
+    "#fffbe6",
+    "#ffffff"
+   ],
+   "quick": 1
+  },
+  "colors": 256,
   "layers": true
  }
 }

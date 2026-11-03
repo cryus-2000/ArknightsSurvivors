@@ -723,6 +723,12 @@ static func _h4_shatter_orb(o, sa: Dictionary, ob: Dictionary, shb: Dictionary, 
 static func _h4_heal_fx(o, h: float) -> void:
 	var g = o.g
 	o.float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), H4_AMBER, 16)
+	if _px_ul_sa(o) and g.tex.get("fx_saria_ul_heal") != null:   # pixelfx 放开版治疗：先装饰后核心（docs/242 §8）
+		var hd: String = g.vfx.px_ul_tex("fx_saria_ul_heal", 1, false, "deco")
+		if hd != "" and g.vfx.px_deco_k() > 0.0:
+			o.spawn_fx_sprite(hd, g.ppos, g.PX, 0.0, false, false, Color(1, 1, 1, g.vfx.px_deco_k()))
+		o.spawn_fx_sprite(g.vfx.px_ul_tex("fx_saria_ul_heal", 1, false), g.ppos, g.PX)
+		return
 	for k in 6:
 		o.fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": H4_AMBER, "sz": 2.5})
 	var me: bool = o.is_leader

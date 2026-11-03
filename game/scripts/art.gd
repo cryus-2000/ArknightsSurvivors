@@ -1084,19 +1084,35 @@ const V6_FRAMES := {
 	"fx_skadi_ul_slash_lo": [13, 15.0], "fx_skadi_ul_sweep_lo": [13, 15.0], "fx_skadi_ul_spin_lo": [15, 15.0], "fx_skadi_ul_cleave_lo": [16, 15.0], "fx_skadi_ul_geyser1_lo": [20, 15.0],   # 网页低档（docs/242 §6）
 	# 斯卡蒂装饰层（docs/242 §8，与核心逐帧对齐）
 	"fx_skadi_ul_slash_deco": [17, 20.0], "fx_skadi_ul_slash2_deco": [20, 20.0], "fx_skadi_ul_spin2_deco": [19, 20.0], "fx_skadi_ul_sweep_deco": [17, 20.0], "fx_skadi_ul_spin_deco": [20, 20.0], "fx_skadi_ul_cleave_deco": [22, 20.0], "fx_skadi_ul_geyser1_deco": [26, 20.0], "fx_skadi_ul_geyser2_deco": [26, 20.0], "fx_skadi_ul_geyser3_deco": [26, 20.0], "fx_skadi_ul_slash_tm_deco": [11, 20.0], "fx_skadi_ul_sweep_tm_deco": [12, 20.0], "fx_skadi_ul_spin_tm_deco": [13, 20.0], "fx_skadi_ul_cleave_tm_deco": [18, 20.0], "fx_skadi_ul_slash_deco_lo": [13, 15.0], "fx_skadi_ul_sweep_deco_lo": [13, 15.0], "fx_skadi_ul_spin_deco_lo": [15, 15.0], "fx_skadi_ul_cleave_deco_lo": [16, 15.0], "fx_skadi_ul_geyser1_deco_lo": [20, 15.0],
-	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_idle": [32, 20.0], "fx_saria_ul_calc_break": [12, 20.0],   # 塞雷娅放开版
-	"fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_calc_grow_lo": [7, 15.0], "fx_saria_ul_calc_idle_lo": [24, 15.0], "fx_saria_ul_calc_break_lo": [9, 15.0],   # 网页低档
-	# 塞雷娅 / 能天使装饰层（docs/242 §8）
-	"proj_exusiai_ul_bullet_deco": [4, 20.0], "proj_exusiai_ul_bullet_deco_lo": [3, 15.0], "fx_exusiai_ul_muzzle_deco": [4, 24.0], "fx_exusiai_ul_muzzle_deco_lo": [2, 15.0], "fx_exusiai_ul_hit_deco": [6, 24.0], "fx_exusiai_ul_hit_deco_lo": [4, 15.0], "proj_exusiai_ul_bullet_s1_deco": [4, 20.0], "proj_exusiai_ul_bullet_s1_deco_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s1_deco": [4, 24.0], "fx_exusiai_ul_muzzle_s1_deco_lo": [2, 15.0], "fx_exusiai_ul_hit_s1_deco": [6, 24.0], "fx_exusiai_ul_hit_s1_deco_lo": [4, 15.0], "proj_exusiai_ul_bullet_s2_deco": [4, 20.0], "proj_exusiai_ul_bullet_s2_deco_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s2_deco": [4, 24.0], "fx_exusiai_ul_muzzle_s2_deco_lo": [2, 15.0], "fx_exusiai_ul_hit_s2_deco": [6, 24.0], "fx_exusiai_ul_hit_s2_deco_lo": [4, 15.0], "proj_exusiai_ul_bullet_s3_deco": [4, 20.0], "proj_exusiai_ul_bullet_s3_deco_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s3_deco": [4, 24.0], "fx_exusiai_ul_muzzle_s3_deco_lo": [2, 15.0], "fx_exusiai_ul_hit_s3_deco": [6, 24.0], "fx_exusiai_ul_hit_s3_deco_lo": [4, 15.0], "fx_saria_ul_bash_deco": [14, 20.0], "fx_saria_ul_bash_deco_lo": [10, 15.0], "fx_saria_ul_calc_grow_deco": [9, 20.0], "fx_saria_ul_calc_grow_deco_lo": [7, 15.0], "fx_saria_ul_calc_idle_deco": [32, 20.0], "fx_saria_ul_calc_idle_deco_lo": [24, 15.0], "fx_saria_ul_calc_break_deco": [12, 20.0], "fx_saria_ul_calc_break_deco_lo": [9, 15.0],
-	# 能天使放开版
-	"proj_exusiai_ul_bullet_lo": [3, 15.0], "fx_exusiai_ul_muzzle_lo": [2, 15.0], "fx_exusiai_ul_hit_lo": [4, 15.0],
-	"proj_exusiai_ul_bullet_s1_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s1_lo": [2, 15.0], "fx_exusiai_ul_hit_s1_lo": [4, 15.0],
-	"proj_exusiai_ul_bullet_s2_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s2_lo": [2, 15.0], "fx_exusiai_ul_hit_s2_lo": [4, 15.0],
-	"proj_exusiai_ul_bullet_s3_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s3_lo": [2, 15.0], "fx_exusiai_ul_hit_s3_lo": [4, 15.0],
-	"proj_exusiai_ul_bullet": [4, 20.0], "fx_exusiai_ul_muzzle": [4, 24.0], "fx_exusiai_ul_hit": [6, 24.0],
-	"proj_exusiai_ul_bullet_s1": [4, 20.0], "fx_exusiai_ul_muzzle_s1": [4, 24.0], "fx_exusiai_ul_hit_s1": [6, 24.0],
-	"proj_exusiai_ul_bullet_s2": [4, 20.0], "fx_exusiai_ul_muzzle_s2": [4, 24.0], "fx_exusiai_ul_hit_s2": [6, 24.0],
-	"proj_exusiai_ul_bullet_s3": [4, 20.0], "fx_exusiai_ul_muzzle_s3": [4, 24.0], "fx_exusiai_ul_hit_s3": [6, 24.0],
+	# 塞雷娅放开版（docs/242：盾击含 _tm、治疗、钙质化晶簇三段、终结技砸地；两层 + 低档）
+	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_bash_deco": [14, 20.0], "fx_saria_ul_bash_deco_lo": [10, 15.0],
+	"fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_grow_lo": [7, 15.0], "fx_saria_ul_calc_grow_deco": [9, 20.0], "fx_saria_ul_calc_grow_deco_lo": [7, 15.0],
+	"fx_saria_ul_calc_idle": [32, 20.0], "fx_saria_ul_calc_idle_lo": [24, 15.0], "fx_saria_ul_calc_idle_deco": [32, 20.0], "fx_saria_ul_calc_idle_deco_lo": [24, 15.0],
+	"fx_saria_ul_calc_break": [12, 20.0], "fx_saria_ul_calc_break_lo": [9, 15.0], "fx_saria_ul_calc_break_deco": [12, 20.0], "fx_saria_ul_calc_break_deco_lo": [9, 15.0],
+	"fx_saria_ul_bash_tm": [11, 20.0], "fx_saria_ul_bash_tm_deco": [11, 20.0], "fx_saria_ul_heal": [21, 20.0], "fx_saria_ul_heal_lo": [16, 15.0],
+	"fx_saria_ul_heal_deco": [21, 20.0], "fx_saria_ul_heal_deco_lo": [16, 15.0], "fx_saria_ul_slam": [23, 20.0], "fx_saria_ul_slam_lo": [17, 15.0],
+	"fx_saria_ul_slam_deco": [23, 20.0], "fx_saria_ul_slam_deco_lo": [17, 15.0],
+	# 能天使放开版（弹体 / 枪口 / 命中，基础 + S1–S3 + 金色；枪口命中带 _tm；两层 + 低档）
+	"proj_exusiai_ul_bullet": [4, 20.0], "proj_exusiai_ul_bullet_lo": [3, 15.0], "proj_exusiai_ul_bullet_deco": [4, 20.0], "proj_exusiai_ul_bullet_deco_lo": [3, 15.0],
+	"fx_exusiai_ul_muzzle": [4, 24.0], "fx_exusiai_ul_muzzle_lo": [2, 15.0], "fx_exusiai_ul_muzzle_deco": [4, 24.0], "fx_exusiai_ul_muzzle_deco_lo": [2, 15.0],
+	"fx_exusiai_ul_hit": [6, 24.0], "fx_exusiai_ul_hit_lo": [4, 15.0], "fx_exusiai_ul_hit_deco": [6, 24.0], "fx_exusiai_ul_hit_deco_lo": [4, 15.0],
+	"proj_exusiai_ul_bullet_s1": [4, 20.0], "proj_exusiai_ul_bullet_s1_lo": [3, 15.0], "proj_exusiai_ul_bullet_s1_deco": [4, 20.0], "proj_exusiai_ul_bullet_s1_deco_lo": [3, 15.0],
+	"fx_exusiai_ul_muzzle_s1": [4, 24.0], "fx_exusiai_ul_muzzle_s1_lo": [2, 15.0], "fx_exusiai_ul_muzzle_s1_deco": [4, 24.0], "fx_exusiai_ul_muzzle_s1_deco_lo": [2, 15.0],
+	"fx_exusiai_ul_hit_s1": [6, 24.0], "fx_exusiai_ul_hit_s1_lo": [4, 15.0], "fx_exusiai_ul_hit_s1_deco": [6, 24.0], "fx_exusiai_ul_hit_s1_deco_lo": [4, 15.0],
+	"proj_exusiai_ul_bullet_s2": [4, 20.0], "proj_exusiai_ul_bullet_s2_lo": [3, 15.0], "proj_exusiai_ul_bullet_s2_deco": [4, 20.0], "proj_exusiai_ul_bullet_s2_deco_lo": [3, 15.0],
+	"fx_exusiai_ul_muzzle_s2": [4, 24.0], "fx_exusiai_ul_muzzle_s2_lo": [2, 15.0], "fx_exusiai_ul_muzzle_s2_deco": [4, 24.0], "fx_exusiai_ul_muzzle_s2_deco_lo": [2, 15.0],
+	"fx_exusiai_ul_hit_s2": [6, 24.0], "fx_exusiai_ul_hit_s2_lo": [4, 15.0], "fx_exusiai_ul_hit_s2_deco": [6, 24.0], "fx_exusiai_ul_hit_s2_deco_lo": [4, 15.0],
+	"proj_exusiai_ul_bullet_s3": [4, 20.0], "proj_exusiai_ul_bullet_s3_lo": [3, 15.0], "proj_exusiai_ul_bullet_s3_deco": [4, 20.0], "proj_exusiai_ul_bullet_s3_deco_lo": [3, 15.0],
+	"fx_exusiai_ul_muzzle_s3": [4, 24.0], "fx_exusiai_ul_muzzle_s3_lo": [2, 15.0], "fx_exusiai_ul_muzzle_s3_deco": [4, 24.0], "fx_exusiai_ul_muzzle_s3_deco_lo": [2, 15.0],
+	"fx_exusiai_ul_hit_s3": [6, 24.0], "fx_exusiai_ul_hit_s3_lo": [4, 15.0], "fx_exusiai_ul_hit_s3_deco": [6, 24.0], "fx_exusiai_ul_hit_s3_deco_lo": [4, 15.0],
+	"proj_exusiai_ul_bullet_power": [4, 20.0], "proj_exusiai_ul_bullet_power_lo": [3, 15.0], "proj_exusiai_ul_bullet_power_deco": [4, 20.0], "proj_exusiai_ul_bullet_power_deco_lo": [3, 15.0],
+	"fx_exusiai_ul_muzzle_gold": [4, 24.0], "fx_exusiai_ul_muzzle_gold_lo": [2, 15.0], "fx_exusiai_ul_muzzle_gold_deco": [4, 24.0], "fx_exusiai_ul_muzzle_gold_deco_lo": [2, 15.0],
+	"fx_exusiai_ul_hit_gold": [6, 24.0], "fx_exusiai_ul_hit_gold_lo": [4, 15.0], "fx_exusiai_ul_hit_gold_deco": [6, 24.0], "fx_exusiai_ul_hit_gold_deco_lo": [4, 15.0],
+	"fx_exusiai_ul_muzzle_tm": [3, 24.0], "fx_exusiai_ul_muzzle_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_tm": [6, 24.0], "fx_exusiai_ul_hit_tm_deco": [6, 24.0],
+	"fx_exusiai_ul_muzzle_s1_tm": [3, 24.0], "fx_exusiai_ul_muzzle_s1_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_s1_tm": [6, 24.0], "fx_exusiai_ul_hit_s1_tm_deco": [6, 24.0],
+	"fx_exusiai_ul_muzzle_s2_tm": [3, 24.0], "fx_exusiai_ul_muzzle_s2_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_s2_tm": [6, 24.0], "fx_exusiai_ul_hit_s2_tm_deco": [6, 24.0],
+	"fx_exusiai_ul_muzzle_s3_tm": [3, 24.0], "fx_exusiai_ul_muzzle_s3_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_s3_tm": [6, 24.0], "fx_exusiai_ul_hit_s3_tm_deco": [6, 24.0],
+	"fx_exusiai_ul_muzzle_gold_tm": [3, 24.0], "fx_exusiai_ul_muzzle_gold_tm_deco": [3, 24.0], "fx_exusiai_ul_hit_gold_tm": [6, 24.0], "fx_exusiai_ul_hit_gold_tm_deco": [6, 24.0],
 	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
 	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
 	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],

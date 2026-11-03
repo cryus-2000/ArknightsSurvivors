@@ -643,6 +643,7 @@ static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 		bt.pop_front()
 	if bt.size() >= int(Bal.v("ult/ex_burst_fx", 48.0)):
 		return
+	_ex_ul_strip(u, "fx_exusiai_ul_hit_gold", p, {"ang": TAU * PF.h(p.x * 0.013 + p.y * 0.007), "sc": 1.3 * sc})
 	bt.append(t)
 	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc * 1.5})
 	u.shape({"kind": "circle", "c": p, "r": 46.0 * sc, "col": EX_GOLD, "fill": 0.4 if _ex_v3() else 0.7, "life": 0.1})
@@ -797,12 +798,26 @@ static func _ex_land(u, a: Dictionary, o, b: Dictionary) -> void:
 
 
 ## 开枪：枪口短火舌 + 火光闪一下，射出一颗子弹（两把枪交替）
+## pixelfx 放开版（docs/242，开关 fx/px_unleashed）：终结技每发的枪口焰 / 爆点叠金色放开版帧条（先装饰 × fx/px_deco_k 后核心）；判定 / 时序不动
+static func _ex_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
+	if Bal.vi("fx/px_unleashed", 0) <= 0 or not u.fx_ready(base):
+		return
+	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		u.strip(d, c, od)
+	u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
+
+
 static func _ex_shoot(u, a: Dictionary, o, dest: Vector2, tg, info: Dictionary) -> void:
 	var k: int = int(a.fired) % 2
 	var mz: Vector2 = o.pos + EX_MZ[k]
 	var d: Vector2 = (dest - mz).normalized() if dest.distance_to(mz) > 1.0 else Vector2.RIGHT
 	u.shape({"kind": "blade", "a": mz - d * 4.0, "b": mz + d * 30.0, "w": 8.0, "col": EX_GOLD.lerp(Color.WHITE, 0.3), "glow": EX_RED, "life": 0.05})
 	u.grain("bul_spawn", mz + d * 14.0, d, EX_GOLD, 2)
+	_ex_ul_strip(u, "fx_exusiai_ul_muzzle_gold", mz + d * 24.0 * u.g.PX * 0.8, {"ang": d.angle(), "sc": 0.8})   # 帧中心在枪口前 24 px（1x）
 	var mf: Dictionary = a.mzf[k]
 	mf.r = 30.0
 	if _ex_v3():   # 火药烟（每把枪每 3 发一小团逐帧烟尘）+ 弹壳（每 2 发往外侧后方抛一枚黄铜壳，带重力落地）

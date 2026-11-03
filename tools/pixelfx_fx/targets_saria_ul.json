@@ -1,5 +1,5 @@
 {
- "_doc": "塞雷娅放开版（docs/242，开关 fx/px_unleashed）：盾击 + 钙质化琥珀晶簇（长出 / 常驻 / 碎裂）",
+ "_doc": "塞雷娅放开版（docs/242）：盾击（含 _tm）、S1/S2 治疗、S3 钙质化晶簇（长出 / 常驻 / 碎裂）、终结技砸地；全部两层 + 低档",
  "fx_saria_ul_bash": {
   "fx": "impacts/ak-saria-ul-bash",
   "colors": 256,
@@ -23,5 +23,25 @@
   "colors": 256,
   "lo": true,
   "layers": true
+ },
+ "fx_saria_ul_bash_tm": {
+  "fx": "impacts/ak-saria-ul-bash",
+  "opts": {
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true
+ },
+ "fx_saria_ul_heal": {
+  "fx": "holy/ak-saria-ul-heal",
+  "colors": 256,
+  "layers": true,
+  "lo": true
+ },
+ "fx_saria_ul_slam": {
+  "fx": "impacts/ak-saria-ul-slam",
+  "colors": 256,
+  "layers": true,
+  "lo": true
  }
 }

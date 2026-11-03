@@ -34,19 +34,19 @@ const EXU_UL_HEAD := Vector2(44, 10)
 const EXU_UL_MUZZLE_AHEAD := 24.0
 
 
-static func _exu_ul(g, n: String) -> String:
+static func _exu_ul(g, n: String, tm := false) -> String:
 	if n.find("exusiai_") < 0 or n.find("_ul_") >= 0 or float(BalE.v("fx/px_unleashed", 0.0)) <= 0.0:
 		return n
 	var u := n.replace("exusiai_", "exusiai_ul_")
-	return g.vfx.px_ul_tex(u, 1, false) if g.tex.get(u) != null else n   # 网页 / fx/px_ul_lo 时取低档 _lo（docs/242 §6）
+	return g.vfx.px_ul_tex(u, 1, tm) if g.tex.get(u) != null else n   # tm = 队友版 _tm；网页 / fx/px_ul_lo 时取低档 _lo（docs/242 §6）
 
 
 ## 装饰层名（docs/242 §8）：核心名同 _exu_ul，没有放开版或缺装饰图时返回 ""
-static func _exu_ul_deco(g, n: String) -> String:
+static func _exu_ul_deco(g, n: String, tm := false) -> String:
 	if n.find("exusiai_") < 0 or n.find("_ul_") >= 0 or float(BalE.v("fx/px_unleashed", 0.0)) <= 0.0:
 		return ""
 	var u := n.replace("exusiai_", "exusiai_ul_")
-	return g.vfx.px_ul_tex(u, 1, false, "deco") if g.tex.get(u) != null else ""
+	return g.vfx.px_ul_tex(u, 1, tm, "deco") if g.tex.get(u) != null else ""
 
 
 ## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
@@ -322,9 +322,9 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
 				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
-	var mu: String = _exu_ul(g, mfx)
+	var mu: String = _exu_ul(g, mfx, not o.is_leader)
 	if mu != mfx:   # pixelfx 放开版枪口焰：帧中心在枪口前 24 px（1x）；先装饰后核心
-		var md: String = _exu_ul_deco(g, mfx)
+		var md: String = _exu_ul_deco(g, mfx, not o.is_leader)
 		if md != "" and g.vfx.px_deco_k() > 0.0:
 			o.spawn_fx_sprite(md, mz + d0 * EXU_UL_MUZZLE_AHEAD * g.PX * 0.8, g.PX * 0.8, d0.angle(), false, false, Color(1, 1, 1, g.vfx.px_deco_k()))
 		o.spawn_fx_sprite(mu, mz + d0 * EXU_UL_MUZZLE_AHEAD * g.PX * 0.8, g.PX * 0.8, d0.angle())
@@ -420,9 +420,9 @@ static func _exu_bullets(o, dt: float) -> void:
 				_exu_mark(o, e, bu.tr)
 			o._sfx_op("hit")
 			var hn: String = str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit"))
-			var hu: String = _exu_ul(g, hn)
+			var hu: String = _exu_ul(g, hn, not o.is_leader)
 			if hu != hn:   # pixelfx 放开版：顺着弹道方向；先装饰后核心；只有队长命中才定格（共享限频，纯画面）
-				var hd: String = _exu_ul_deco(g, hn)
+				var hd: String = _exu_ul_deco(g, hn, not o.is_leader)
 				if hd != "" and g.vfx.px_deco_k() > 0.0:
 					o.spawn_fx_sprite(hd, e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.9, bu.v.angle(), false, false, Color(1, 1, 1, g.vfx.px_deco_k()))
 				o.spawn_fx_sprite(hu, e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.9, bu.v.angle())
