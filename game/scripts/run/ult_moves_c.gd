@@ -1109,7 +1109,8 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			if not e.boss:
 				g.enemies_sys.set_aggro(e, c)
 		var k: float = t / hold
-		a.glow.col = Color.WHITE.lerp(COL_RED, k)
+		if not _ho_ul(u):   # 放开版：盾形帧条不染红（组长 11-04 实机：染成粉红撞 #ff2667）
+			a.glow.col = Color.WHITE.lerp(COL_RED, k)
 		while int(a.tick) < 5 and t >= 0.3 * (int(a.tick) + 1) - 0.01:
 			var i: int = int(a.tick)
 			a.tick = i + 1
@@ -1127,7 +1128,8 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 				var ang: float = j * 2.39996 + i * 0.7
 				var dv := Vector2.from_angle(ang)
 				u.shape({"kind": "line", "a": c + dv * 60.0, "b": c + dv * (90.0 + 40.0 * i), "w": 3.0, "col": col.lerp(COL_RED, k), "life": hold - t + 0.15})
-			_hex(u, c, 110.0, 0.0, col.lerp(COL_RED, k), 6.0, 0.12)
+			if not _ho_ul(u):   # 放开版不画盾阵六边形细线框（组长 11-04 实机：粉红细线框占满视口，只有线没体量）；范围由 R 处 burstslab 掀板交代
+				_hex(u, c, 110.0, 0.0, col.lerp(COL_RED, k), 6.0, 0.12)
 			o.sparks(c + Vector2(0, -16), Vector2.UP, COL_RED.lerp(col, 0.5), 6, 260.0)
 		return false
 	if float(a.boom) < 0.0:
@@ -1175,8 +1177,9 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 	if el <= T + 0.1:   # 反震：两层六边形从盾前扩到 R（逐帧描，形状一眼是盾阵）
 		var r: float = lerpf(110.0, R, clampf(el / T, 0.0, 1.0))
 		var hr: float = R if a.v2 and _ho_ul(u) else r   # 放开版：六边形就在 R 处原地亮，不从盾前往外扩（用户 11-04）；判定照旧随 r 推开
-		_hex(u, c, hr, 0.0, col.lerp(Color.WHITE, 0.4), 10.0, 0.06)
-		_hex(u, c, hr * 0.8, PI / 6.0, COL_RED.lerp(col, 0.4), 6.0, 0.06)
+		if not _ho_ul(u):   # 放开版不画两层六边形线框（同上）
+			_hex(u, c, hr, 0.0, col.lerp(Color.WHITE, 0.4), 10.0, 0.06)
+			_hex(u, c, hr * 0.8, PI / 6.0, COL_RED.lerp(col, 0.4), 6.0, 0.06)
 		for e in u.in_circle(c, r + 20.0):
 			if a.rseg.has(int(e.id)):
 				continue
@@ -1190,8 +1193,9 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 		while int(a.et) < 3 and el >= 0.6 * (int(a.et) + 1):
 			var i: int = int(a.et)
 			a.et = i + 1
-			u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.5, 0.2), "fill": 0.12, "life": 0.6})
-			u.shape({"kind": "dots", "c": c, "r": R * 0.95, "n": 30, "col": Color(1.0, 0.6, 0.25), "life": 0.6})
+			if not _ho_ul(u):   # 放开版不画热砂余烬的整圆底 + 点状虚线圈（组长 11-04 实机：读成往外扩的虚线圆）
+				u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.5, 0.2), "fill": 0.12, "life": 0.6})
+				u.shape({"kind": "dots", "c": c, "r": R * 0.95, "n": 30, "col": Color(1.0, 0.6, 0.25), "life": 0.6})
 			for e in u.in_circle(c, R):
 				_once(u, a, o, a.eseg[i], e, 0.04, {"src": "热砂", "edge": e.pos.distance_to(c) > rc})
 		return int(a.et) >= 3

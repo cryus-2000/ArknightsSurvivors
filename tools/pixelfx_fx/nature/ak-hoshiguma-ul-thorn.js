@@ -40,7 +40,7 @@ export function create(o) {
   // 尖刺：角度抖动、离心远近不一、高矮 6–18、底宽 1.5–3、倾角往外 0.1–0.5，出现早晚不一
   const spikes = jitterAngles(Rg, Rg.int(4, 6), 0, Math.PI * 2, 0.5).map((a) => {
     const r = R * Math.sqrt(Rg.range(0.08, 0.85));
-    return { x: Math.cos(a) * r, y: Math.sin(a) * r * SY, a, h: Rg.range(6, 18) * (Rg.chance(0.2) ? 1.4 : 1), w: Rg.range(1.5, 3), lean: Rg.range(0.1, 0.5), d: Rg.range(0, 0.06) };
+    return { x: Math.cos(a) * r, y: Math.sin(a) * r * SY, a, h: Rg.range(8, 22) * (Rg.chance(0.2) ? 1.4 : 1), w: Rg.range(2.6, 4.2),   /* 组长 11-04 实机：太细 → 刺加粗到 3–4 px、加高一档 */ lean: Rg.range(0.1, 0.5), d: Rg.range(0, 0.06) };
   });
   // §8 分档（本招只有 E1 / E2）：E2 质变——每根单刺变成一簇三刺（主刺 ×1.5 + 两侧斜出的副刺），刺尖专属翠绿
   if (el >= 2) for (const s0 of spikes.splice(0)) {
