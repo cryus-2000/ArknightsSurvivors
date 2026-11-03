@@ -158,7 +158,7 @@ static func _h4_fox_release(o, a: Dictionary) -> void:
 		_h4_fox_track(o, a, b)   # 精英化第 4 批（狐火灼印）的挂点；迁移时没有
 	if _h4_px(o):   # 放开版：杖头起火 muzzle（不画圆光团）
 		if n > 0:
-			_h4_px_once(o, "fx_suzuran_ul_muzzle", from, (ts[0].pos - from).angle())
+			_h4_px_once(o, "fx_suzuran_ul_muzzle_big" if volley else "fx_suzuran_ul_muzzle", from, (ts[0].pos - from).angle())   # 全力以赴连发用大起火
 	else:
 		o.fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": H4_FOX, "alpha": 0.5})
 	_h3_sfx(o, "atk")
@@ -344,14 +344,16 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 			sz.mote_t = 0.05 if float(sz.haze_t) <= 0.0 else 0.03
 			var an: float = g.vrng.randf() * TAU
 			var rr: float = g.vrng.randf() * h4_fox_r(o, fl)
-			o.fx({"kind": "mote", "pos": o.pos + Vector2(cos(an) * rr, sin(an) * rr * 0.55), "vel": Vector2(0, -40), "life": 0.7, "col": H4_FOX, "sz": 1.8})
+			if not _h4_px(o):   # 放开版：光域不另飘光点（地面旋流 / 边缘狐火自带火星）
+				o.fx({"kind": "mote", "pos": o.pos + Vector2(cos(an) * rr, sin(an) * rr * 0.55), "vel": Vector2(0, -40), "life": 0.7, "col": H4_FOX, "sz": 1.8})
 		# 迷雾期间：光域里不时落下一根小光柱
 		sz.pillar_t = float(sz.pillar_t) - dt
 		if float(sz.haze_t) > 0.0 and float(sz.pillar_t) <= 0.0:
 			sz.pillar_t = 0.9
 			var a2: float = g.vrng.randf() * TAU
 			var rr2: float = g.vrng.randf_range(0.3, 0.9) * h4_fox_r(o, fl)
-			o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
+			if not _h4_px(o):   # 放开版：迷雾期间不落光柱
+				o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
 		# 光域生效时主控缓慢回复（原作：范围内友军回复）
 		sz.heal_acc = float(sz.heal_acc) + dt
 		if float(sz.heal_acc) >= 1.0:
@@ -359,6 +361,7 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 			if g.hp < g.max_hp:
 				var hv: Array = fl.get("heal", [0.005, 0.01])
 				o.heal_leader(g.max_hp * (float(hv[1]) if float(sz.haze_t) > 0.0 else float(hv[0])), str(fl.get("src", o.display_name())))
+				g.vfx.px_ul_heal(o)   # 放开版治疗（注册表 heal，halo_ok；开关关掉时注册表为空、不播；纯画面）
 		if was_haze and float(sz.haze_t) <= 0.0:
 			# 迷雾刚结束：回到暖光（永久）或清除加成
 			if warm:
@@ -806,6 +809,8 @@ static func _h4sz_draw_over(o) -> void:
 			continue
 		_h4_flame(o, p, 13.0, 1.0)
 		cv.draw_circle(p + Vector2(0, -4), 2.5, Color(2.6, 2.4, 1.8, 0.95))
+	if _h4_px(o) and _h4_patch_pending(o) and float(sz.haze_t) <= 0.0:   # 放开版：全力以赴待发 = 杖头一团放大的小狐火（下一次普攻多发）
+		_h4_px_loop(o, "fx_suzuran_ul_wisp", c + Vector2(0, 2), 1.6, 0.0, 1.0)
 	if conv > 0.5 and _h4_px(o):   # 放开版：三火归一汇聚 = 杖头一簇小狐火随收拢长大（不画圆光团）
 		_h4_px_loop(o, "fx_suzuran_ul_wisp", c + Vector2(0, 2), lerpf(1.0, 1.8, (conv - 0.5) * 2.0), 0.0, conv)
 	elif conv > 0.5:
