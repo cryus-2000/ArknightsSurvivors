@@ -143,7 +143,8 @@ export function create(o) {
           let c = edge ? C[hot ? 7 : 4] : inner ? C[hot ? 6 : 3] : C[d < S * 0.55 ? 0 : 1];
           if (d < S * 0.42 && (y === -2 || y === 2) && BAND[y < 0 ? 0 : 2][(x + 40) % BAND[0].length] === "#" && BAND[1][(x + 40) % BAND[0].length] === "#") c = C[hot ? 7 : 6];   // 中间两行横向字符纹（不拼成可读字母）
           if (d < 3) c = C[hot ? 7 : 5];   // 印心一点
-          p.px(x, y - 8, c);
+          if (c === C[0] || c === C[1]) p.blend(x, y - 8, c, 0.4);   // 印身暗色填充 40% 半透明，砸下那一下不盖住怪（组长 B 11-04）；外缘 / 内框 / 字符纹实色
+          else p.px(x, y - 8, c);
         }
       }
       if (core && mv === "epitaph") {
