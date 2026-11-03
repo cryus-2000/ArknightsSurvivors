@@ -53,17 +53,16 @@ float lamp_a(vec2 rel) {
 	return 0.0;
 }
 
-// 朝灯边：返回 0..1 的亮线强度
-float rim_k(sampler2D tex, vec2 uv, vec2 px, vec2 rel) {
+// 朝灯边：沿灯的方向往外 rim_px 个贴图像素的 UV 偏移（离灯不到 1 像素返回 0）。
+// 贴图在 fragment() 里直接采样：内置 TEXTURE 当函数参数传，Compatibility 渲染器的着色器编译报 custom_samplers 错（11-05 bug 排查）
+vec2 rim_step(vec2 uv, vec2 px, vec2 rel) {
 	float d = length(rel);
 	if (d < 1.0) {
-		return 0.0;
+		return vec2(0.0);
 	}
 	vec2 dir = -rel / d;   // 从像素指向灯
 	vec2 sgn = vec2(sign(dFdx(uv.x)), sign(dFdy(uv.y)));
-	vec2 step_uv = vec2(dir.x * sgn.x, dir.y * sgn.y) * px * rim_px;
-	float a_out = texture(tex, uv + step_uv).a;
-	return 1.0 - smoothstep(0.2, 0.6, a_out);
+	return vec2(dir.x * sgn.x, dir.y * sgn.y) * px * rim_px;
 }
 
 float knee_scale(float mx) {
@@ -80,7 +79,11 @@ void fragment() {
 		if (t0.a > 0.5) {
 			vec2 rel = wpos - lamp_pos;
 			float la = clamp(lamp_a(rel), 0.0, 1.0);
-			float k = rim_k(TEXTURE, UV, TEXTURE_PIXEL_SIZE, rel) * max(la, rim_floor) * rim;
+			vec2 su = rim_step(UV, TEXTURE_PIXEL_SIZE, rel);
+			float k = 0.0;
+			if (su != vec2(0.0)) {
+				k = (1.0 - smoothstep(0.2, 0.6, texture(TEXTURE, UV + su).a)) * max(la, rim_floor) * rim;
+			}
 			if (k > 0.0) {
 				vec3 rc = mix(vec3(1.0), lamp_col, 0.6);
 				COLOR.rgb = mix(COLOR.rgb, max(COLOR.rgb, rc * 0.95), clamp(k, 0.0, 1.0));

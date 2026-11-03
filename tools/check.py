@@ -204,6 +204,21 @@ def check_static():
     return {"name": "数据 JSON 解析", "ok": not bad, "detail": "game/data 全部可解析" if not bad else "%d 个文件解析失败" % len(bad), "errors": bad[:5]}
 
 
+def check_shader_lint():
+    """不开 Godot：.gdshader 里不许把内置贴图（TEXTURE / SCREEN_TEXTURE / NORMAL_TEXTURE）当自定义函数的参数传——
+    Compatibility 渲染器编译报 custom_samplers 错（11-05 bug 排查：actor_light 朝灯亮线 rim_k）"""
+    builtin_ok = {"texture", "textureLod", "texelFetch", "textureSize", "textureGrad", "textureProj", "textureProjLod", "textureQueryLod", "textureQueryLevels"}
+    call = re.compile(r"\b(\w+)\s*\(([^()]*)\)")
+    bad = []
+    for p in glob.glob(os.path.join(GAME, "**", "*.gdshader"), recursive=True):
+        for i, line in enumerate(open(p, encoding="utf-8"), 1):
+            for m in call.finditer(line.split("//")[0]):
+                args = [x.strip() for x in m.group(2).split(",")]
+                if m.group(1) not in builtin_ok and any(x in ("TEXTURE", "SCREEN_TEXTURE", "NORMAL_TEXTURE") for x in args):
+                    bad.append("%s:%d %s(...)" % (os.path.relpath(p, ROOT), i, m.group(1)))
+    return {"name": "着色器 shader_lint", "ok": not bad, "detail": "内置贴图没有当函数参数传" if not bad else "%d 处把内置贴图当函数参数" % len(bad), "errors": bad[:8]}
+
+
 def check_art_lint():
     """不开 Godot：tools/art_lint.py 查 art/incoming 的干员帧条（docs/87）。只有未豁免的 FAIL 算失败；
     豁免表 art_lint.WAIVERS（已开返修单未交付的项，交付合入后删条目）；WARN 不算失败。
@@ -1326,7 +1341,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1392,6 +1407,8 @@ def main():
         jobs.append(check_data_lint)   # 不开 Godot，约 1 秒；--auto 也跑（改数据表最容易静默出错的几类）
     if a.only in (None, "graph_lint"):
         jobs.append(check_graph_lint)   # 不开 Godot，<1 秒；--auto 也跑（改成长线 / 路线 / 事件 / 引用键 / 图标最容易静默断链）
+    if a.only in (None, "shader_lint"):
+        jobs.append(check_shader_lint)   # 不开 Godot，<1 秒；--auto 也跑
     if a.only in (None, "text_reconcile"):
         jobs.append(check_text_reconcile)
     if a.only in (None, "check_map"):
