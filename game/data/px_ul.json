@@ -58,21 +58,7 @@
 		}
 	},
 	"lumen": {
-		"_doc": "流明（claude/pixelfx-ul-lumen）：普攻 / 治疗 / S1 / S3 / 光柱 / 光雨 / 守望光束在 seg_lumen 里直接画（自定形状 lantern，不走 shapes）；这里登记 S2「沛霖」开启（施放者和每个在场队员脚下各落一道水柱）和成长「灯塔守望·回光」圆形脉冲（src 灯塔光束，fit = watch2_r / 2 的 1x 半径）",
-		"cast": {
-			"1": {
-				"base": "fx_lumen_ul_downpour",
-				"y": 0,
-				"ally": {
-					"base": "fx_lumen_ul_downpour",
-					"y": 0
-				}
-			},
-			"0": {
-				"base": "fx_lumen_ul_mend",
-				"y": 0
-			}
-		},
+		"_doc": "流明（claude/pixelfx-ul-lumen）：普攻 / 治疗 / S1 / S3 / 光柱 / 光雨 / 守望光束在 seg_lumen 里直接画（自定形状 lantern，不走 shapes）；S2「沛霖」开启用 lumen.json 的 fx 条目 px（队长头顶一道水柱，§14.2）；这里只登记成长「灯塔守望·回光」圆形脉冲（src 灯塔光束，fit = watch2_r / 2 的 1x 半径）",
 		"shapes": {
 			"灯塔光束": {
 				"base": "fx_lumen_ul_pulse",

@@ -4,6 +4,7 @@
 // 水流甩下成组的水珠。不画圆光、不画外扩环。只有 E2（精二解锁）。
 // 分层：core = 四芒灯光、水流弧；deco = 灯光外的淡光、水珠、上飘光点。只用钢蓝 7 阶。
 import { Particles, P, Rng, fit, clamp, smooth, ease, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen lantern undying start unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", quick: 0, seed: 3 },
+  options: { palette: OP.lumen, layer: "all", quick: 0, seed: 3 },
 };
 
 export function create(o) {
@@ -25,10 +26,7 @@ export function create(o) {
   const arcs = [];
   for (let i = 0; i < 3; i++) arcs.push({ a0: Rg.range(0, TAU), sw: Rg.range(2.2, 3.4) * (i % 2 ? 1 : -1), rx: Rg.range(16, 26), h: Rg.range(50, 80), d: i * 0.06 + Rg.range(0, 0.04) });
   const ps = new Particles({ rng: Rg, ground: () => 1e9 });
-  for (let g = 0; g < 3; g++) {
-    const a = Rg.range(0, TAU), x = Math.cos(a) * 20, y = -Rg.range(20, 50);
-    for (let k = 0; k < Rg.int(2, 3); k++) ps.spawn(P.FLAKE, x + k, y, Math.cos(a) * 30, -20 + k * 6, Rg.range(0.3, 0.45) * q + 0.1, C[5], 1, 0.15 + g * 0.05);
-  }
+  // 甩下的水珠去掉（§14.7），只留往上飘的光点
   for (let i = 0; i < 5; i++) ps.spawn(P.MOTE, Rg.range(-20, 20), Rg.range(-30, 0), 0, Rg.range(-30, -15), Rg.range(0.5, 0.8) * q, C[5], 0.6, 0.25 + Rg.range(0, 0.3));
   let t = 0;
   const arcPt = (a, u) => { const an = a.a0 + a.sw * u; return [Math.cos(an) * a.rx * (1 - 0.3 * u), -u * a.h + Math.sin(an) * a.rx * 0.35, Math.sin(an)]; };

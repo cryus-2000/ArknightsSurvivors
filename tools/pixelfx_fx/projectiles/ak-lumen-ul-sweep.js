@@ -3,6 +3,7 @@
 // 一道从出光处往外张开的细长光扇：中线是 1–2 像素的白芯细线，两侧各一条钢蓝细边，扇内只有极淡的光和几颗往外漂的光尘；
 // 末端不收成圆，用 noise 打散淡出。只用钢蓝 7 阶（旧版暖黄光扇作废）。分层：core = 白芯线、两条边；deco = 扇内淡光、光尘。
 import { Rng, fit, clamp, noise } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen lighthouse sweep unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 15,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", len: 130, seed: 5 },
+  options: { palette: OP.lumen, layer: "all", len: 130, seed: 5 },
 };
 
 export function draw(p, t, o) {

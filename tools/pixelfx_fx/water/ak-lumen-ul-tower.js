@@ -3,6 +3,7 @@
 // 地面：一片没有硬边的淡光（装饰层）；边：判定半径上 5 段断开的涟漪弧，绕圈慢慢转、亮度沿圈起伏（核心层，§11.2 #4 范围回复画在判定半径上）；
 // 区内零星落几丝细雨、落点亮一下（核心层），光点慢慢往上飘（装饰层）。不画整圈线、不外扩。只有 E2。只用钢蓝 7 阶。
 import { Rng, fit, clamp, smooth, noise, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen lighthouse zone unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 15,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", r: 110, seed: 4 },
+  options: { palette: OP.lumen, layer: "all", r: 110, seed: 4 },
 };
 
 const SY = 0.5;

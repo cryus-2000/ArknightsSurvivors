@@ -4,6 +4,7 @@
 // 分档（docs/242 §10，docs/91 流明）：E0 短尾；E1 弹头前缘多一颗一闪一闪的四芒小星（折光）；E2 尾巴更长，尾端掉下两颗水珠（长明）。
 // 分层（docs/242 §8）：core = 弹头、细尾、四芒星、水珠；deco = 弹头光晕、尾部淡雾。颜色只用钢蓝 7 阶。
 import { fit, clamp, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen bolt unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: true,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", elite: 2 },
+  options: { palette: OP.lumen, layer: "all", elite: 2 },
 };
 
 export function draw(p, t, o) {

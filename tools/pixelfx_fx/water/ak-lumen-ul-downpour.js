@@ -4,7 +4,7 @@
 // 落点甩出几组水珠，一两颗十字星浮起。不画外扩光环（用户 11-04）。S2 精一才解锁，只出 E1 / E2：
 // E2 水柱里多一道白芯细光（灯塔），水冠更高。分层：core = 水柱、水冠、十字星、白芯；deco = 水柱外的淡光、水珠、雾点。只用钢蓝 7 阶。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { jitterAngles } from "../house.js";
+import { OP, jitterAngles } from "../house.js";
 
 export const meta = {
   name: "Lumen downpour unleashed",
@@ -16,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", elite: 2, quick: 0, seed: 5 },
+  options: { palette: OP.lumen, layer: "all", elite: 2, quick: 0, seed: 5 },
 };
 
 const SY = 0.5;
@@ -28,11 +28,7 @@ export function create(o) {
   const H = 150, W = E === 2 ? 5 : 4, T_LAND = 0.12;
   const crown = jitterAngles(Rg, E === 2 ? 11 : 9, 0, TAU, 0.4).map((a, i) => ({ a, h: (9 + 13 * noise(i * 1.9, o.seed)) * (E === 2 ? 1.3 : 1), r: 9 + 6 * noise(i * 2.7, o.seed + 1) }));
   const ps = new Particles({ rng: Rg, ground: () => 1e9 });
-  for (let g = 0; g < 4; g++) {   // 水珠成组甩出：每组 2–3 颗连着
-    const a = Rg.range(0, TAU), v = Rg.range(40, 70);
-    for (let k = 0, n = Rg.int(2, 3); k < n; k++)
-      ps.spawn(P.FLAKE, Math.cos(a) * 6, Math.sin(a) * 3 - 2, Math.cos(a) * v * (1 - k * 0.15), Math.sin(a) * v * SY - 60 + k * 8, Rg.range(0.3, 0.45) * tail + 0.1, C[5 - (k > 0 ? 1 : 0)], 1, T_LAND + k * 0.02);
-  }
+  // 成组甩出的水珠去掉（用户 11-04，§14.7）
   const glints = [{ x: Rg.range(-10, 10), d: 0.3 }].concat(E === 2 ? [{ x: Rg.range(-12, 12), d: 0.45 }] : []);
   let t = 0;
   return {

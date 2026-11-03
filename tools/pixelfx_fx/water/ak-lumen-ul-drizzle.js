@@ -1,12 +1,13 @@
 // 流明 S1「沐雨」（pixelfx 放开版，docs/242；开关 fx/px_unleashed）：原点 = 队长脚底。
 // 照原作 lumen_skill_01（目标脚下铺开一圈水面法阵 → 细雨落进法阵 → 白蓝十字星浮起）：
 // 脚下法阵从中心推开，边缘是一道细亮线（判定半径 r = 光雨范围 rain_r，1x 像素 = rain_r / 2），边内贴着一层沿边流动的颗粒；
-// 斜细雨落进法阵，落点溅起 2–4 颗连着的水珠（顺着离心方向）；十字星浮起，同一时间最多 3 颗。
+// 斜细雨落进法阵（只落不甩，§14.7）；十字星浮起，同一时间最多 3 颗。
 // 分档（docs/242 §10，对应 docs/91 流明）：E0 法阵 + 细雨 + 十字星；E1 加「折光」——一到两道斜光贯穿法阵，停 0.25 s（精一折光）；
 // E2 加「灯塔」——一道细窄的钢蓝白光柱从上方照进法阵中心（精二灯塔光柱），雨更密、法阵停得更久。
-// 分层（docs/242 §8）：core = 法阵边线、雨丝、落点水珠、十字星、折光、光柱；deco = 法阵内的流动颗粒、边内光、上飘光点。
+// 分层（docs/242 §8）：core = 法阵边线、雨丝、十字星、折光、光柱；deco = 法阵内的流动颗粒、边内光、上飘光点。
 // 颜色（组长 11-04）：只用 PRTS 挑染 #4285AD 钢蓝 7 阶，高光段 #c4e0f2 → #ffffff，不留暖色（避开经验结晶暖金）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen drizzle unleashed",
@@ -19,7 +20,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"],
+    palette: OP.lumen,
     layer: "all", elite: 2, quick: 0, seed: 3, r: 70,
   },
 };
@@ -128,17 +129,6 @@ export function create(o) {
           const yh = d.y - d.h * (1 - u), xh = d.x - wind * d.h * (1 - u);
           for (let s = 0; s <= d.len; s += 0.5)
             p.dot(xh - wind * s, yh - s, s < 1.5 ? C[6] : s < d.len * 0.5 ? C[5] : C[4], s < d.len * 0.5 ? 1 : 1.3 - s / d.len);
-        }
-        // ---- 落点水珠：一半的雨滴溅起 2–4 颗连着的水珠，顺着离心方向甩出一小段弧
-        for (const d of rain) {
-          if (!d.sp) continue;
-          const u = (t - d.t - d.fall) / 0.2;
-          if (u < 0 || u > 1) continue;
-          const ux = Math.cos(d.a), uy = Math.sin(d.a) * SY, n = 2 + ((d.len * 7) | 0) % 3;
-          for (let k = 0; k < n; k++) {
-            const s = (1.5 + k * 1.2) * (0.6 + u * 1.4), hh = (4 - k) * Math.sin(u * Math.PI);
-            p.dot(d.x + ux * s, d.y + uy * s - hh, k === 0 ? C[6] : C[5], 1 - u * u);
-          }
         }
         // ---- 十字星（原作 shizi）：细十字，浮起、长一下再缩没
         for (const g of glints) {

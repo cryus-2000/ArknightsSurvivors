@@ -4,6 +4,7 @@
 // 这张只到点亮后 0.3 s；之后的 2 秒稳住由循环小帧条 ak-lumen-ul-ult-hold（白芯 + 钢蓝边轻微呼吸、灯光缓慢明暗）接上，熄灭靠游戏里淡出（省显存）。
 // warm = 1 时灯芯一点用我方灯火橙（等组长 / 用户定，缺省 0 = 全钢蓝）。分层：core = 光柱、灯光；deco = 光柱外淡光、往上飘的光点。
 import { Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen ultimate beacon unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 15,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], lamp: ["#a8471a", "#ff9640", "#ffc48a"], warm: 0, seed: 2, layer: "all" },
+  options: { palette: OP.lumen, lamp: ["#a8471a", "#ff9640", "#ffc48a"], warm: 0, seed: 2, layer: "all" },
 };
 
 export function create(o, hold = false) {

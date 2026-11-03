@@ -4,6 +4,7 @@
 // 沿光柱零星挂几颗被照亮的水点。原作参照：S3 trail_02 的直线光（颜色按钢蓝色阶，不照搬原作暖橙）。
 // 分层：core = 光柱、白芯、四芒星；deco = 光柱外的淡光、水点。只有 E2。
 import { Rng, fit, clamp, smooth, noise } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen lighthouse pillar unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", len: 100, w: 5, seed: 6 },
+  options: { palette: OP.lumen, layer: "all", len: 100, w: 5, seed: 6 },
 };
 
 export function create(o) {

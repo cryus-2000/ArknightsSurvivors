@@ -3,7 +3,7 @@
 // 用户 11-04 否外扩光环：不做「一圈往外推的环」，改成判定半径上 4–5 段弧原地亮一下再熄，弧上各挂一颗被照亮的小十字；中心一下竖直细光。
 // 每秒都会放，要克制：0.35 s 收完。只用钢蓝 7 阶。分层：core = 边弧、十字、竖光；deco = 弧上的淡光。
 import { Rng, fit, clamp, smooth, noise, TAU } from "../../core/index.js";
-import { jitterAngles } from "../house.js";
+import { OP, jitterAngles } from "../house.js";
 
 export const meta = {
   name: "Lumen lighthouse pulse unleashed",
@@ -15,7 +15,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", r: 60, seed: 3 },
+  options: { palette: OP.lumen, layer: "all", r: 60, seed: 3 },
 };
 
 const SY = 0.5;

@@ -3,6 +3,7 @@
 // 一片斜细雨持续落在判定圈里，落点亮一个扁的小涟漪（不长大）；地面一片无硬边的淡光；不画边线圈（范围靠雨读）。
 // 和 S3 光圈的区别：没有转动的边弧，雨更密、更斜。只用钢蓝 7 阶。分层：core = 雨丝、落点；deco = 地面淡光、水雾点。
 import { Rng, fit, noise, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen light rain unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 15,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", r: 70, seed: 6 },
+  options: { palette: OP.lumen, layer: "all", r: 70, seed: 6 },
 };
 
 const SY = 0.5, WIND = 0.3;

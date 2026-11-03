@@ -5,7 +5,7 @@
 // 分档：E0 水花 + 1 颗十字星；E1 加一道斜穿水花的折光细线（精一折光）；E2 加一截从命中点竖直往上照的细光（精二灯塔），十字星 2 颗、水珠多一些。
 // 分层：core = 水刺、十字星、折光线、竖光；deco = 光晕、落下的水珠、闪烁。颜色只用钢蓝 7 阶。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { jitterAngles } from "../house.js";
+import { OP, jitterAngles } from "../house.js";
 
 export const meta = {
   name: "Lumen bolt hit unleashed",
@@ -17,7 +17,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", elite: 2, quick: 0, seed: 4, scale: 1 },
+  options: { palette: OP.lumen, layer: "all", elite: 2, quick: 0, seed: 4, scale: 1 },
 };
 
 export function create(o) {
@@ -33,9 +33,7 @@ export function create(o) {
   for (let i = 0, m = E === 2 ? 2 : 1; i < m; i++) glints.push({ x: Rg.range(-6, 8) * K, d: 0.08 + i * 0.1, v: Rg.range(30, 46), s: Rg.range(2.5, 3.5) });
   const refr = { a: Rg.range(-0.7, -0.35) * (Rg.next() < 0.5 ? 1 : -1), L: 16 * K };
   const ps = new Particles({ rng: Rg, ground: () => 1e9 });
-  for (const s of spikes)
-    if (Rg.next() < (E === 0 ? 0.35 : 0.55))
-      ps.spawn(P.FLAKE, Math.cos(s.a) * s.L * 0.8, Math.sin(s.a) * s.L * 0.8, Math.cos(s.a) * 22, Math.sin(s.a) * 22 - 25, Rg.range(0.25, 0.4) * (0.6 + 0.4 * tail), C[5], 1, 0.1);
+  // 往外甩的水珠去掉（用户 11-04，§14.7）：水刺缩回、尖端下垂就收
   let t = 0;
   return {
     update(dt) { t += dt; ps.update(dt); ps.list.forEach((q) => (q.vy += 160 * dt)); },

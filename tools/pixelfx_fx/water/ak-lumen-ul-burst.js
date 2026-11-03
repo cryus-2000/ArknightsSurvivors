@@ -4,7 +4,7 @@
 // 中心水冠溅起，成组的水珠往外甩到圈边附近；3 颗十字星浮起。不画外扩光环（用户 11-04）、不画实心圆。只有 E2。
 // 分层：core = 爆光、光柱、边弧、水冠、十字星；deco = 中心淡光、水珠。只用钢蓝 7 阶。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { jitterAngles } from "../house.js";
+import { OP, jitterAngles } from "../house.js";
 
 export const meta = {
   name: "Lumen lantern burst unleashed",
@@ -16,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", r: 110, seed: 8 },
+  options: { palette: OP.lumen, layer: "all", r: 110, seed: 8 },
 };
 
 const SY = 0.5;
@@ -27,11 +27,7 @@ export function create(o) {
   const segs = jitterAngles(Rg, 5, 0, TAU, 0.3).map((c) => ({ c, half: Rg.range(0.24, 0.38), s: Rg.next() * 9 }));
   const crown = jitterAngles(Rg, 12, 0, TAU, 0.4).map((a, i) => ({ a, h: 8 + 12 * noise(i * 1.3, o.seed), r: 8 + 5 * noise(i * 2.1, o.seed + 2) }));
   const ps = new Particles({ rng: Rg, ground: () => 1e9 });
-  for (let g = 0; g < 7; g++) {
-    const a = Rg.range(0, TAU), v = Rg.range(110, 170);
-    for (let k = 0, n = Rg.int(2, 4); k < n; k++)
-      ps.spawn(P.FLAKE, Math.cos(a) * 8, Math.sin(a) * 4 - 4, Math.cos(a) * v * (1 - 0.12 * k), Math.sin(a) * v * SY - 50 + 6 * k, Rg.range(0.35, 0.5), C[5 - (k > 1 ? 1 : 0)], 1, 0.04 + 0.015 * k);
-  }
+  // 往外甩到圈边的水珠去掉（用户 11-04，§14.7）
   const glints = [0, 1, 2].map((i) => ({ x: Rg.range(-30, 30), y: Rg.range(-8, 8), d: 0.15 + i * 0.1, v: Rg.range(25, 40) }));
   let t = 0;
   return {

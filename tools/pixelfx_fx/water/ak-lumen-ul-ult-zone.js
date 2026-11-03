@@ -3,6 +3,7 @@
 // 判定半径上 6 段断开的涟漪弧、亮度沿圈起伏（单帧，游戏里随时间调透明度呼吸）；圈里的细雨用光雨帧条铺；不铺实心光盘。
 // 只用钢蓝 7 阶。分层：core = 边弧、雨丝、落点；deco = 往上飘的光点（没有地面淡光，省显存）。
 import { Rng, fit, noise, smooth, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen ultimate zone unleashed",
@@ -14,7 +15,7 @@ export const meta = {
   loop: true,
   fps: 10,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", r: 251, seed: 9 },
+  options: { palette: OP.lumen, layer: "all", r: 251, seed: 9 },
 };
 
 const SY = 0.5;

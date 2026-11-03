@@ -749,6 +749,10 @@
       "banner": "沛霖：照亮范围永久扩大"
      },
      {
+      "px": "fx_lumen_ul_downpour",
+      "at": "leader"
+     },
+     {
       "cond": "!px_ul",
       "pfx": {
        "kind": "ring",

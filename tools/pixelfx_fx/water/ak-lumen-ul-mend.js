@@ -4,6 +4,7 @@
 // 分档：E0 一缕水流；E1 顶端多一道斜着闪过的折光短线；E2 水流顶端接一截竖直的细光（灯塔），十字星 2 颗。
 // 分层：core = 水流、十字星、折光、竖光；deco = 水流头的光、落下的小水点。颜色只用钢蓝 7 阶，不用红 / 品红（§11.2 #4）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 第 12 条）
 
 export const meta = {
   name: "Lumen mend unleashed",
@@ -15,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"], layer: "all", elite: 2, quick: 0, seed: 2 },
+  options: { palette: OP.lumen, layer: "all", elite: 2, quick: 0, seed: 2 },
 };
 
 export function create(o) {
