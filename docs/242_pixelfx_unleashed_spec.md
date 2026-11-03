@@ -585,3 +585,7 @@ python tools/px_trace_ab.py <干员> [--squad a,b] [--cases late,ult] [--jobs 4]
 - 同一份代码，fx/px_unleashed 0 / 1 各跑两局：后期局 seed 13、560 秒；终结技局 seed 7、240 秒（`--maxprog --sptest`，第 20 秒充满终结技）。都带 `--nodeath`。
 - TRACE 行必须逐行相同；BALANCE 汇总行去掉纯画面统计（同屏峰值 `peak` / `peak_min`、性能计数 `prof` / `fx_peak` / `draw`）后也要相同。全过打印 `PX_TRACE_AB PASS`、退出码 0。
 - **放云端例行任务跑**（总组长 11-04：本机只留录像和单次快检）。例行任务的指令写：检出本人分支 → `bash tools/cloud/setup_linux.sh` → `python3 tools/px_trace_ab.py <干员> --out cloud-results/px_trace_ab_<干员>.json` → 把结果推回 `cloud-results/`。交付时报 PASS 行和结果文件。
+
+### 14.22 通用刀光弧兜底与注册表检查（组长 11-04）
+- 放开版下，注册表里有条目的干员**缺省不画通用刀光弧**（vfx.melee_arc）。原来没登记的判定段会画一道主题色粗弧，星熊的暖金和结晶撞色（§12.6）。要恢复通用弧，注册表写 `"arc": true`；`no_arc` 照旧。
+- `python tools/px_ul_lint.py [干员,…]`：列出注册表里有条目的干员，干员 JSON 里没在 `shapes` 登记（按 `px_key`，没有再按 `src`）、也没写 `"px_ul": false` 的圆形 / 锥形判定段（这些段放开版下没有刀光画面），以及注册表登记了但 JSON 里找不到的 src。交付前跑一遍，警告要么登记、要么写明不需要。
