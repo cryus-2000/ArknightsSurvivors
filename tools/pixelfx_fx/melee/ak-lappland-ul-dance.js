@@ -9,7 +9,7 @@ import { jitterSteps } from "../house.js";
 
 export const meta = {
   name: "Lappland wolf dance spin",
-  desc: "A crescent blade spirals once and a bit around her feet in ground perspective, growing out to the hit radius, flinging tangent sparks, then two seal marks burn on the circle; elite 2 adds a second blade half a turn apart.",
+  desc: "A crescent blade sweeps once and a bit around her feet in ground perspective along the hit radius, flinging tangent sparks, then two seal marks burn on the circle; elite 2 adds a second blade half a turn apart.",
   tags: ["melee", "slash", "spin", "topdown", "one-shot"],
   size: [150, 100],
   origin: [75, 52],
@@ -38,7 +38,7 @@ export function create(o) {
   const seals = [Rg.range(0, TAU), Rg.range(0, TAU)].map((a) => ({ a }));
   let t = 0;
   const P = (a, r) => [Math.cos(a) * r, Math.sin(a) * r * SY];
-  const rad = (u) => R * (0.55 + 0.45 * ease.outQuad(clamp(u)));
+  const rad = (u) => R * (0.88 + 0.12 * ease.outQuad(clamp(u)));   // 11-04 否决外扩：半径几乎贴着判定圆，不再从里往外螺旋放大
   return {
     update(dt) { t += dt; },
     draw(p) {
