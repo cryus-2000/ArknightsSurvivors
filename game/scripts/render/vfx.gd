@@ -351,7 +351,8 @@ func px_ul_reg(id: String) -> Dictionary:
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
 	if tier_off or g.fx.size() > 420:
 		return
-	if px_ul_reg(str(o.id)).get("no_arc", false):   # pixelfx 放开版：注册表写了 no_arc 的干员，刀光由 fx_<人>_ul_* 帧条画（seg_skadi.px_ul_shape）
+	var pr: Dictionary = px_ul_reg(str(o.id))
+	if pr.get("no_arc", false) or (not pr.is_empty() and not pr.get("arc", false)):   # pixelfx 放开版：注册表里有这名干员时缺省不画通用刀光弧（没登记的判定段原来画一道主题色粗弧，星熊的暖金撞结晶，组长 11-04）；写 "arc": true 才照画；没登记的段用 tools/px_ul_lint.py 查
 		return
 	var key: String = str(o.id)
 	var prev = _open_arcs.get(key)
