@@ -58,27 +58,83 @@ export function create(o) {
   const SPIN = s3 ? 0.24 : 0.16;                   // 锯头转完的时长
   const TURN = s3 ? 0.9 : 1.12;                                      // 锯头转过的圈数
   const a0 = Rg.range(0, TAU);
-  const W = R * (s3 ? 0.34 : [0.24, 0.27, 0.3][el]);   // 拖影宽（锯头后的扇形运动模糊）                          // 锯痕宽（1x 像素）
+  const BR = s3 ? R * 0.46 : R;                                     // 锯痕半径（S3 红锯在中心，外圈是浪墙）
+  const W = BR * (s3 ? 0.42 : [0.24, 0.27, 0.3][el]);   // 拖影宽（锯头后的扇形运动模糊）
   const RAMP = s3 ? BL : ST;
   // 锯齿：不等距（jitter 步长）、大小不一、沿切向斜
   const teeth = [];
-  for (let u = Rg.range(0, 0.1); u < 1; u += Rg.range(0.05, 0.11) * (s3 ? 1.3 : 1)) teeth.push({ u, h: Rg.range(0.7, 1.3) * (s3 ? 8 : 5), w: Rg.range(0.06, 0.1) });
+  for (let u = Rg.range(0, 0.1); u < 1; u += Rg.range(0.05, 0.11) * (s3 ? 1.3 : 1)) teeth.push({ u, h: Rg.range(0.7, 1.3) * (s3 ? 6 : 5), w: Rg.range(0.06, 0.1) });
   const at = (a, r) => [Math.cos(a) * r, Math.sin(a) * r * SY];      // 地面椭圆上的点
   const depth = (a) => 0.5 + 0.5 * Math.sin(a);                      // 近（下半）亮、远（上半）暗
   const headAng = (t) => a0 + dir * TAU * TURN * ease.outCubic(clamp(t / SPIN));
   // 水带（E1 细、E2 / s3 宽且上卷）：螺旋从外圈 rOut 收到 R，绕 span 圈；lift = 往上卷的高度
   const ribs = [];
-  if (el >= 1 || s3 || s2) ribs.push({
+  if (el >= 1 || s2) ribs.push({
     span: s3 ? 0.95 : el === 1 ? 0.62 : 0.8, rOut: R * 0.98, rIn: R * (s3 ? 0.5 : el === 1 ? 0.62 : 0.55), w: s3 ? 6 : el === 1 ? 3.4 : 4.8,   // 核心不出判定：从刃口往里卷
     lift: s3 ? R * 0.26 : s2 ? R * 0.3 : el === 1 ? 0 : R * 0.22, b0: a0 - dir * Rg.range(0.6, 1.0), seed: o.seed + 21, t0: s3 ? 0.03 : 0.04, dur: s3 ? 0.3 : 0.24,
   });
-  if (s2) ribs.push(Object.assign({}, ribs[0], { b0: ribs[0].b0 + Math.PI + Rg.range(-0.4, 0.4), seed: o.seed + 27, w: ribs[0].w * 0.85, t0: 0.07, rIn: R * 0.48 }));   // S2：第二道水带从对面缠进来（原作 skill_02 蓝水带缠身）
+  if (s2 && ribs.length) ribs.push(Object.assign({}, ribs[0], { b0: ribs[0].b0 + Math.PI + Rg.range(-0.4, 0.4), seed: o.seed + 27, w: ribs[0].w * 0.85, t0: 0.07, rIn: R * 0.48 }));   // S2：第二道水带从对面缠进来（原作 skill_02 蓝水带缠身）
   // S1「生存的技巧」：沿锯痕窜起的火舌（灯火越暗越拼命），位置不等距
   const flames = [];
   if (s1) for (let u = Rg.range(0, 0.06); u < 0.95; u += Rg.range(0.07, 0.15)) flames.push({ u, h: Rg.range(14, 26) * [0.75, 0.9, 1.1][el], w: Rg.range(2.4, 3.6), s: Rg.range(0, 99) });
   const scars = [];   // s3 地面撕痕：短而不规整，方向沿切线 ± 抖动
   if (s3) for (let a = Rg.range(0, 1); a < TAU - 0.3; a += Rg.range(0.8, 1.6)) scars.push({ a, L: Rg.range(10, 20), r: R * Rg.range(0.82, 1.02), tw: Rg.range(-0.5, 0.5) });
-  let t = 0, passed = 0, landed = false;
+  // S3 浪墙（组长审片 11-04：照原作一整圈海军蓝浪墙把人包住）：沿螺旋从 0.72R 推进到 R，立起粗浪身，浪顶细亮线 + 断续白沫，开一道缺口；
+  // 近侧（下半）画在红锯前面、远侧画在后面；不画外扩环——量级靠浪身体量和高度
+  const WALL = s3 ? { span: 1.0, b0: a0 + dir * Rg.range(0.3, 0.8), gap: Rg.range(0.5, 0.62), seed: o.seed + 51 } : null;
+  const wallR = (f) => R * (0.6 + 0.4 * ease.outCubic(f));
+  const wallH = (f, k) => R * (0.12 + 0.3 * Math.sin(Math.PI * Math.min(1, f * 1.1))) * k * (0.7 + 0.45 * noise(f * 7, o.seed + 53) + 0.2 * noise(f * 19, o.seed + 57));
+  // E2 浪尖（审片：E2 只是水带变宽不够）：卷刃水带的头立起成一道浪尖，往外卷翻、浪唇白沫，拍下时碎成飞沫
+  const CREST = !s3 && !s2 && !s1 && el >= 2 && ribs.length ? { seed: o.seed + 61 } : null;
+  let t = 0, passed = 0, landed = false, crested = false;
+
+  function wall(p, t, side) {
+    if (!WALL) return;
+    const grow = ease.outCubic(clamp(t / 0.26)), gone = smooth(0.34, 0.72 * (0.6 + 0.4 * DL), t), rise = ease.outBack(clamp(t / 0.14)), fall = 1 - smooth(0.4, 0.75, t);
+    if (grow - gone < 0.01) return;
+    const N = Math.ceil(WALL.span * TAU * R / 0.45);
+    for (let i = 0; i <= N; i++) {
+      const f = i / N;
+      if (f > grow || f < gone || Math.abs(f - WALL.gap) < 0.045) continue;   // 缺口
+      const a = WALL.b0 + dir * WALL.span * TAU * f, sn = Math.sin(a);
+      if ((side === "near") !== (sn > 0)) continue;
+      const r = wallR(f), [gx, gy] = at(a, r), dk = depth(a);
+      const head = clamp((grow - f) / 0.08), tail = clamp((f - gone) / 0.12);
+      const H = wallH(f, rise * fall) * Math.min(1, head * 1.5 + 0.3) * Math.min(1, tail * 1.5 + 0.2);
+      if (H < 1) continue;
+      const lean = dir * 0.25 * H;   // 浪顶顺推进方向前倾
+      const tx = -Math.sin(a), ty = Math.cos(a) * SY;
+      for (let d = 0; d < H; d += 0.5) {
+        const v = d / H, x = gx + tx * lean * v * v, y = gy - d + ty * lean * v * v;
+        const top = d > H - 1.2, foam = top && noise(f * 23, WALL.seed) > -0.15;
+        const streak = noise(f * 41 + v * 2, WALL.seed + 3) + 0.5 * noise(f * 97, WALL.seed + 5);   // 竖向水纹（浪身不是平涂）
+        const ci = foam ? 6 : top ? 5 : clamp(Math.round(0.6 + 2.2 * v + 0.9 * dk + 1.1 * streak), 1, 4);
+        p.blendPx(p.cellX(x, y), p.cellY(x, y), NV[ci], v < 0.15 ? 0.75 : 0.95);
+      }
+    }
+  }
+
+  function crest(p, t) {   // E2 浪尖：在卷刃水带的头部立起、往外卷翻
+    if (!CREST) return;
+    const rb = ribs[0], aE = rb.b0 + dir * rb.span * TAU * 0.85, [bx, by] = at(aE, R * 0.92);
+    const u = t - 0.1, rise = ease.outCubic(clamp(u / 0.1)), brk = smooth(0.1, 0.22, u), k = 1 - smooth(0.2, 0.34, u);
+    if (u < 0 || k <= 0.02) return;
+    const H = R * 0.6 * rise, ox = Math.cos(aE), oy = Math.sin(aE) * SY, ol = Math.hypot(ox, oy) || 1;
+    const dx = ox / ol, dy = oy / ol;   // 往外
+    for (let s = 0; s <= 1; s += 0.012) {
+      // 浪身：从地面立起，到顶往外卷（唇 = s > 0.7 往外再往下）
+      const up = H * Math.sin(Math.PI / 2 * Math.min(1, s / 0.75));
+      const curl = s > 0.7 ? (s - 0.7) / 0.3 : 0;
+      const x = bx + dx * (H * 0.35 * s + H * 0.45 * curl + 6 * brk), y = by + dy * H * 0.35 * s - up + H * 0.5 * curl * curl * (0.6 + brk);
+      const w = (5.6 * (1 - s * 0.75) + 0.7) * k;
+      for (let d = -w; d <= w; d += 0.5) {
+        const e = Math.abs(d) / w, lip = s > 0.82 && d > w - 1.2;
+        const ci = lip ? 6 : clamp(Math.round(1.8 + 2.6 * s + (1 - e)), 1, 5);
+        p.blendPx(p.cellX(x - dy * d, y + dx * d), p.cellY(x - dy * d, y + dx * d), NV[ci], (e > 0.8 ? 0.55 : 0.92) * k);
+      }
+    }
+  }
+
 
   function band(p, t) {   // 锯痕：锯头扫过的那段刃迹（头亮尾暗），首帧白热；随时间从尾部收掉
     const head = clamp(t / SPIN), tailK = smooth(SPIN * 0.4, SPIN + 0.22 * (0.6 + 0.4 * DL), t);
@@ -86,7 +142,7 @@ export function create(o) {
     const tl = Math.max(tot - VIS, tot * tailK);
     if (tot - tl < 0.02) return;
     const hot = t < 0.045 ? HOT : t < 0.09 ? 0.4 : 0;
-    const B = R + W + 4;
+    const B = BR + W + 4;
     shadeB(p, -B, -B * SY - 2, B, B * SY + 2, (x, y, out) => {
       const yy = y / SY, r = Math.hypot(x, yy), ang = Math.atan2(yy, x);
       let u = (dir * (ang - a0)) % TAU;
@@ -98,7 +154,7 @@ export function create(o) {
       const v = (s - tl) / Math.max(0.01, tot - tl);                // 0 尾 → 1 头
       const jag = 1.2 * noise(ang * 9, o.seed) + 0.7 * noise(ang * 23, o.seed + 5);
       const w = W * (0.3 + 0.7 * Math.pow(v, 0.9)) + jag * 0.6;
-      const q = (R + 0.5 - r) / Math.max(0.6, w);                    // 0 外缘 → 1 内缘
+      const q = (BR + 0.5 - r) / Math.max(0.6, w);                   // 0 外缘 → 1 内缘
       if (q < -0.15 || q > 1) return;
       const fib0 = noise(r * 0.32, o.seed + 41) + 0.3 * noise(s * 1.5, o.seed + 43);
       if (q > 0.35 && fib0 < -0.35 + 0.6 * q) return;                // 内侧碎成一条条纤维（不铺实色块）
@@ -120,7 +176,7 @@ export function create(o) {
       if (fade < 0.08) continue;
       const h = th.h * (0.6 + 0.4 * fade), dk = depth(a);
       // 三角齿：底在刃线上（宽 th.w rad），尖沿切向前倾、往外 h
-      const [bx0, by0] = at(a, R), [bx1, by1] = at(a - dir * th.w, R), [tx, ty] = at(a + dir * th.w * 0.8, R + h);
+      const [bx0, by0] = at(a, BR), [bx1, by1] = at(a - dir * th.w, BR), [tx, ty] = at(a + dir * th.w * 0.8, BR + h);
       const hot = t < 0.05 && th.u < 0.3;
       const steps = Math.ceil(h * 1.6) + 2;
       for (let i = 0; i <= steps; i++) {
@@ -202,13 +258,26 @@ export function create(o) {
       // 锯头甩火星：沿切向往外，步长随机（不等距）
       const tot = TURN * ease.outCubic(clamp(t / SPIN));
       while (passed < tot && passed < TURN) {
-        const a = a0 + dir * TAU * passed, [x, y] = at(a, R + 1), tx = -Math.sin(a) * dir, ty = Math.cos(a) * dir * SY;
+        const a = a0 + dir * TAU * passed, [x, y] = at(a, BR + 1), tx = -Math.sin(a) * dir, ty = Math.cos(a) * dir * SY;
         if (Rg.chance(0.75 * PM)) {
           const sp = Rg.range(120, 260);
           ps.spawn(P.SPARK, x, y, (tx * 0.85 + Math.cos(a) * 0.35) * sp, (ty * 0.85 + Math.sin(a) * 0.35 * SY) * sp - Rg.range(10, 50), Rg.range(0.12, 0.3) * (0.6 + 0.4 * DL));
         }
         if (deco && Rg.chance(0.35 * PM)) ps.spawn(P.MOTE, x, y, tx * Rg.range(30, 90), ty * Rg.range(30, 90) - 15, Rg.range(0.25, 0.5) * DL, (s3 ? BL : NV)[5], Rg.range(0.6, 1.1));
         passed += Rg.range(0.02, 0.07) / (s3 ? 1.2 : 1);
+      }
+      if (CREST && !crested && t >= 0.32) {   // 浪尖拍下：顺外翻方向碎成飞沫（装饰）
+        crested = true;
+        const rb = ribs[0], aE = rb.b0 + dir * rb.span * TAU * 0.85, [bx, by] = at(aE, R * 0.95);
+        for (let i = 0; i < 12; i++) ps.spawn(i % 3 ? P.MOTE : P.STAR, bx + Rg.range(-4, 4), by - Rg.range(0, 8), Math.cos(aE) * Rg.range(30, 90), Math.sin(aE) * SY * Rg.range(30, 90) - Rg.range(10, 50), Rg.range(0.25, 0.5) * DL, NV[5 + Rg.int(0, 1)], Rg.range(0.7, 1.2));
+      }
+      if (WALL && !crested && t >= 0.3) {   // 浪墙塌下：浪顶甩出白沫（步长随机）
+        crested = true;
+        for (let f = Rg.range(0, 0.05); f < 1; f += Rg.range(0.03, 0.08)) {
+          if (Math.abs(f - WALL.gap) < 0.05) continue;
+          const a = WALL.b0 + dir * WALL.span * TAU * f, [x, y] = at(a, wallR(f));
+          ps.spawn(Rg.chance(0.7) ? P.MOTE : P.STAR, x, y - wallH(f, 1) * 0.8, Math.cos(a) * Rg.range(10, 40) - Math.sin(a) * dir * 40, -Rg.range(20, 60), Rg.range(0.35, 0.7) * DL, NV[5 + Rg.int(0, 1)], Rg.range(0.7, 1.3));
+        }
       }
       if (!landed && t >= SPIN) {
         landed = true;
@@ -223,16 +292,18 @@ export function create(o) {
       lights.update(dt);
     },
     drawBack(p) {
-      if (core && s3) scarDraw(p, t);
       if (deco) ps.draw(p, "back");
     },
     draw(p) {
+      if (core) wall(p, t, "far");
       if (core) for (const rb of ribs) ribbon(p, t, rb);
       if (core) band(p, t);
       if (core) toothPts(p, t);
+      if (core) wall(p, t, "near");
+      if (core) crest(p, t);
       if (core && s1) flameDraw(p, t);
       if (deco && t < SPIN + 0.1) {   // 锯头光晕
-        const [x, y] = at(headAng(t), R);
+        const [x, y] = at(headAng(t), BR);
         p.glow(x, y, (s3 ? 30 : 20) * (el === 0 && !s3 ? 0.6 : 1), (s3 ? BL[5] : s2 ? NV[4] : ST[5]), 0.5 * GK * (1 - clamp((t - SPIN) / 0.1)));   // S2 冷钢的亮端近白，光晕改用海军蓝（避免连续白）
       }
       if (deco) {
