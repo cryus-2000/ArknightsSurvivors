@@ -1,9 +1,9 @@
 // 铃兰狐火命中（pixelfx 放开版，docs/242）：1x，原点 = 命中点，狐火从左边来。
 // 原作 lisa_attack_01_hit：白闪 → 火团 → 星点散开。本作：首帧噪声边白热爆点（顺来向拉长，不是正圆）→ 火舌从命中点往上、往前舔起，
-// 逐级冷却 → 火星往前上方迸、慢慢飘散。精英档（docs/242 §10，docs/91）：
+// 逐级冷却 → 两三颗有重量的碎火往前抛、落地弹一下、慢慢熄（11-04 §0：爆点定帧 2 帧再塌；不画十字细线、不画圆光团，光照在地上）。精英档（docs/242 §10，docs/91）：
 //   E0 三条短火舌；E1 加一缕「狐尾」火（顺来向甩出、末端上卷的长火舌，对应精一狐火灼印「打中留下印记」）；E2 两缕狐尾 + 首帧白热十字闪、余韵更长。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
-import { noiseFor, pnoise, hotFirst, flameTongue, flameBlade, ember, spark, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { noiseFor, pnoise, hotFirst, flameTongue, flameBlade, ember, sparkAt, floorLight, LAYERS, BACK_LAYERS } from "./_lib.js";
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
@@ -34,17 +34,17 @@ export function create(o) {
   // 狐尾：顺来向（往右）甩出、末端往上卷（bend 为负 = 往上）
   const tails = el === 0 ? [] : el === 1 ? [[0, 0.85, -0.52, 30, -10]] : [[0, 0.85, -0.52, 34, -12], [1, 0.97, -0.24, 26, -8]];
   const embers = [];
-  const ne = [5, 7, 10][el];
+  const ne = LQ < 1 ? 1 : [2, 2, 3][el];
   for (let i = 0; i < ne; i++) {
-    const a = -Rg.range(0.1, 1.4), sp = Rg.range(30, 110);
-    embers.push({ vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: Rg.range(0.25, 0.5) * D / 0.6 * LQ + 0.1, s: Rg.next() < 0.25 ? 2 : 1, ph: Rg.range(0, TAU), sk: Rg.next() < 0.35 });
+    const a = -(0.5 + 0.35 * i + Rg.range(0, 0.2)), sp = Rg.range(55, 85);
+    embers.push({ vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: D * Rg.range(0.8, 0.95), ph: Rg.range(0, TAU) });
   }
   let t = 0;
   return {
     update(dt) { t += dt; },
     draw(p) {
       const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
-      const u = clamp(t / D), pop = 1 - clamp(t / 0.085);
+      const u = clamp(t / D), pop = t < 0.045 ? 1 : 1 - clamp((t - 0.045) / 0.07);   // 定帧：头两帧满白热不动
       if (core) {
         // 爆点：首帧满白热，噪声边、往前（来向的反方向）拉长
         if (pop > 0) {
@@ -55,7 +55,6 @@ export function create(o) {
             const h = 1 - d / rim;
             return pop > 0.5 ? (h > 0.5 ? H[0] : h > 0.25 ? H[1] : H[3]) : h > 0.5 ? H[1] : H[3];
           });
-          if (el === 2 && pop > 0.4) for (const [dx, dy, l] of [[1, 0, 18], [-1, 0, 6], [0, -1, 11], [0, 1, 5]]) for (let d = 0; d <= l * pop; d += 0.5) p.px(dx * d, dy * d, d < l * 0.4 ? H[0] : H[2]);
         }
         // 火舌：长起来再塌，后半程换冷一档的层
         for (const [x, h, w, sx, d0] of tongues) {
@@ -69,12 +68,14 @@ export function create(o) {
         });
       }
       if (deco) {
-        p.glow(2, -4, 12 + el * 3, F[6], (0.22 + 0.08 * el) * (1 - u) * (1 - u) + 0.15 * pop);
+        // 光照在命中点下方的地面上（命中点离脚底约 6），爆点时最亮
+        floorLight(p, 4, 6, 16 + el * 3, 4.5, F[6], (0.3 + 0.08 * el) * (1 - u) + 0.25 * pop);
+        if (pop > 0) p.glow(2, -1, 7 + el, F[7], 0.3 * pop);
         for (const q of embers) {
-          const age = t - 0.02;
+          const age = t - 0.04;
           if (age < 0 || age > q.life) continue;
-          const k = 1 - age / q.life, x = q.vx * age, y = q.vy * age - 10 * age * age;
-          q.sk && age < q.life * 0.5 ? spark(p, x, y, q.vx, q.vy, k, [H[0], H[2], H[4], H[6]]) : ember(p, x, y, k, q.s, [H[0], H[2], H[4], H[6]], q.ph + age * 26);
+          const [x, y] = sparkAt(2, -2, q.vx, q.vy, age, 6, 320, 2.2);
+          ember(p, x, y, 1 - age / q.life, 1, [H[0], H[2], H[4], H[6]], q.ph + age * 26);
         }
       }
     },

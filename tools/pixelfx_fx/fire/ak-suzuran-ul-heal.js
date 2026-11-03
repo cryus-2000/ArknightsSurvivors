@@ -1,7 +1,7 @@
 // 铃兰治疗（暖光 / 狐火渺然期间每秒回复队长，注册表 heal，docs/242 §11.2 #4；halo_ok：不外扩）：1x，原点 = 队长脚底，一次性。
 // 不画环、不画十字：脚边两三缕很小的暖橙火苗往上舔一下就收，几颗余烬沿身侧慢慢往上飘、渐暗；一秒内合并播一次，画面要轻。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
-import { noiseFor, hotFirst, flameTongue, ember, LAYERS } from "./_lib.js";
+import { noiseFor, hotFirst, flameTongue, ember, floorLight, LAYERS } from "./_lib.js";
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定）
 
 export const meta = {
@@ -30,11 +30,11 @@ export function draw(p, t, o) {
     }
   }
   if (deco) {
-    for (let i = 0; i < 5; i++) {
-      const x = [-10, 9, -5, 12, 3][i], d0 = 0.05 * i, age = t - d0, life = 0.6 + 0.05 * i;
+    for (let i = 0; i < 3; i++) {
+      const x = [-10, 9, -5][i], d0 = 0.05 * i, age = t - d0, life = 0.6 + 0.05 * i;
       if (age < 0 || age > life) continue;
-      ember(p, x + 2 * Math.sin(age * 6 + i), -4 - 30 * age, 1 - age / life, i === 1 ? 2 : 1, [H[0], H[2], H[4], H[6]], i * 1.7 + age * 20);
+      ember(p, x + 2 * Math.sin(age * 6 + i), -4 - 30 * age, 1 - age / life, 1, [H[0], H[2], H[4], H[6]], i * 1.7 + age * 20);
     }
-    p.glow(0, -10, 10, F[5], 0.12 * (1 - u));
+    floorLight(p, 0, 0, 16, 5, F[5], 0.3 * (1 - u));   // 光铺在队长脚下，不画圆光团（11-04 §0）
   }
 }

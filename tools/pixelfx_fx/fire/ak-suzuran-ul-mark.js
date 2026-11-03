@@ -2,7 +2,7 @@
 // 原作 lisa_skill_02：每个受影响目标身上一圈绿环。本作不画环：两条贴地的「狐尾」小火卷（粗头细尾的逗号形）绕脚底慢转半圈，
 // 中间立一簇小狐火；转半圈正好两条互换，循环无缝。游戏按 e.r ÷ 12（0.8–2.0）缩放。
 import { fit, TAU } from "../../core/index.js";
-import { noiseFor, hotFirst, flameTongue, ember, looped, LAYERS } from "./_lib.js";
+import { noiseFor, hotFirst, flameTongue, ember, looped, floorLight, LAYERS } from "./_lib.js";
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
@@ -44,7 +44,7 @@ export function draw(p, t, o) {
     curls(true);
   }
   if (deco) {
-    p.glow(0, -2, 9, F[6], 0.16);
+    floorLight(p, 0, 0, 12, 4, F[6], 0.3);
     looped(t, D, 2, S + 20, (r) => ({ x: r.range(-6, 6), vy: -r.range(10, 18), life: r.range(0.35, 0.6), ph: r.range(0, TAU) }), (q, age) => {
       ember(p, q.x, -4 + q.vy * age, 1 - age / q.life, 1, [H[0], H[2], H[4], H[6]], q.ph + age * 22);
     });

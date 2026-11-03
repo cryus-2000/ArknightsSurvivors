@@ -46,7 +46,7 @@ export function draw(p, t, o) {
     p.glow(0, 0, 8 + el, F[6], 0.32);
     p.glow(-L * 0.45, 0, 10, F[5], 0.14);
     // 沿途甩下的火星：往后、略往上飘，随机步长（循环无缝）
-    looped(t, D, [5, 7, 10][el], S + 200, (r) => ({ x: -r.range(3, L * 0.8), y: r.range(-2.5, 2.5), vx: -r.range(20, 45), vy: -r.range(4, 18), life: r.range(0.18, 0.36), s: r.chance(0.2) ? 2 : 1, ph: r.range(0, TAU) }), (q, age) => {
+    looped(t, D, [2, 3, 4][el], S + 200, (r) => ({ x: -r.range(3, L * 0.8), y: r.range(-2.5, 2.5), vx: -r.range(20, 45), vy: -r.range(4, 18), life: r.range(0.18, 0.36), s: 1, ph: r.range(0, TAU) }), (q, age) => {
       const k = 1 - age / q.life;
       ember(p, q.x + q.vx * age, q.y + q.vy * age, k, q.s, [H[0], H[2], H[4], H[6]], q.ph + age * 30);
     });

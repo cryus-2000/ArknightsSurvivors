@@ -1,8 +1,8 @@
 // 铃兰杖头起火（pixelfx 放开版，docs/242）：1x，原点 = 杖头，狐火朝右射出。
-// 原作 lisa_attack_01_start：杖头火团 + 一道朝前的光芒 + 星点。本作：首帧白热的偏心火苗（往前最长）→ 两三条小火舌往前上方舔出就塌 → 几颗火星；
+// 原作 lisa_attack_01_start：杖头火团 + 一道朝前的光芒 + 星点。本作：首帧白热的偏心火苗（往前最长）→ 两三条小火舌往前上方舔出就塌 → 一两颗有重量的碎火往下落（11-04 §0：不撒点）；
 // 全是噪声边，不画圆盘。big = 三火归一（E2 每次普攻）：三团小火从三个方向收进杖头再爆亮一次。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
-import { noiseFor, pnoise, hotFirst, flameBlade, ember, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { noiseFor, pnoise, hotFirst, flameBlade, ember, sparkAt, LAYERS, BACK_LAYERS } from "./_lib.js";
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
@@ -25,7 +25,7 @@ export function draw(p, t, o) {
   const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, big = +o.big > 0, LQ = +o.quick > 0 ? 0.5 : 1;
   const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
   const T0 = big ? 0.12 : 0;   // big：前 0.12 s 三团收进来
-  const u = clamp((t - T0) / (meta.duration - T0)), pop = 1 - clamp((t - T0) / 0.08);
+  const u = clamp((t - T0) / (meta.duration - T0)), pop = t - T0 < 0.045 ? 1 : 1 - clamp((t - T0 - 0.045) / 0.06);   // 定帧：头一两帧满白热
   if (core) {
     if (big && t < T0 + 0.02) {
       const k = ease.inQuad(clamp(t / T0));
@@ -51,13 +51,13 @@ export function draw(p, t, o) {
     });
   }
   if (deco && t >= T0) {
-    p.glow(3, 0, big ? 14 : 10, F[6], (big ? 0.38 : 0.26) * (1 - u) * (1 - u));
-    const n = big ? 7 : 4;
+    p.glow(3, 0, big ? 10 : 7, F[6], (big ? 0.3 : 0.2) * (1 - u) * (1 - u));
+    const n = LQ < 1 ? 0 : big ? 2 : 1;
     for (let i = 0; i < n; i++) {
-      const r = { s: (S * 131 + i * 977) % 1000 / 1000, s2: (S * 71 + i * 613) % 1000 / 1000 };
-      const a = -0.9 + 1.6 * r.s, sp = 40 + 70 * r.s2, age = t - T0, life = (0.14 + 0.16 * r.s2) * LQ + 0.06;
-      if (age > life) continue;
-      ember(p, Math.cos(a) * sp * age, Math.sin(a) * sp * age - 8 * age, 1 - age / life, r.s > 0.7 ? 2 : 1, [H[0], H[2], H[4], H[6]], i * 2.1 + age * 30);
+      const a = [-0.5, 0.2][i], sp = 60 + 20 * i, age = t - T0 - 0.03;
+      if (age < 0) continue;
+      const [x, y] = sparkAt(3, 0, Math.cos(a) * sp, Math.sin(a) * sp, age, 20, 360, 2.2);
+      ember(p, x, y, 1 - u, 1, [H[0], H[2], H[4], H[6]], i * 2.1 + age * 30);
     }
   }
 }

@@ -2,7 +2,7 @@
 // 旧版每 22 像素放一张同样的小火苗帧条，连起来是一串等距相同的火苗（录像预审报拼接感）。本作每处是一段贴地的余烬带 + 两三条高矮不一的矮火舌，
 // 先窜起、再塌成余烬、最后只剩几点暗红；seed 不同的几种轮着用，游戏里再按点序错开相位、左右翻转、缩放 0.85–1.15，连起来像一条烧过的路。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
-import { noiseFor, pnoise, hotFirst, flameTongue, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { noiseFor, pnoise, hotFirst, flameTongue, floorLight, LAYERS, BACK_LAYERS } from "./_lib.js";
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定）
 
 export const meta = {
@@ -42,5 +42,5 @@ export function draw(p, t, o) {
       if (g > 0.06) flameTongue(p, x, 0, h * g, 1.6 * (0.5 + 0.5 * g), (rr(40 + i) - 0.5) * 4, N, S * 7 + i, H, v < 0.4 ? LAYERS : BACK_LAYERS, 0.35, 0.9);
     }
   }
-  if (deco) p.glow(0, -2, 10, F[5], 0.16 * (1 - u) * (1 - u));
+  if (deco) floorLight(p, 0, 0, 12, 4, F[5], 0.3 * (1 - u) * (1 - u));
 }

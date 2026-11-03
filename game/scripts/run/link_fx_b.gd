@@ -151,6 +151,9 @@ const SZ_FOX := ["fx_lk_sz_fox1", "fx_lk_sz_fox2", "fx_lk_sz_fox3"]
 
 ## 每帧每团：q = 当前位置，dv = 运动方向（转圈时为切线）；j = 第几团
 static func sz_fox(u, q: Vector2, dv: Vector2, j: int) -> bool:
+	# pixelfx 放开版（docs/242，fx/px_unleashed）：换成本人普攻的暖橙狐火弹体（精二档），随运动方向转；帧号按游戏时间推进，各团错开。只改画面
+	if u.px_strip("fx_suzuran_ul_fox", q, {"ang": dv.angle(), "sc": 1.25, "f": (int(u.g.t * 20.0) + j * 3) % 8, "life": 0.05}):   # 弹体帧条 8 帧 20 fps（art.gd V6_FRAMES）
+		return true
 	if not LFX.on() or not u.fx_ready(SZ_FOX[0]):
 		return false
 	var name: String = SZ_FOX[j % 3]
@@ -161,6 +164,9 @@ static func sz_fox(u, q: Vector2, dv: Vector2, j: int) -> bool:
 
 ## 命中：一小团狐火粒子 + 短灯
 static func sz_pop(u, p: Vector2) -> void:
+	if u.px_strip("fx_suzuran_ul_hit", p + Vector2(0, 6), {"variant": 2}):   # 放开版：本人普攻命中（不撒粒子）
+		u.light(p, 80.0, Color(0.9, 0.6, 0.25), 0.18)
+		return
 	u.grain("fire", p, Vector2.UP, Color(1.0, 0.7, 0.3), 5)
 	u.light(p, 80.0, Color(0.9, 0.6, 0.25), 0.18)
 

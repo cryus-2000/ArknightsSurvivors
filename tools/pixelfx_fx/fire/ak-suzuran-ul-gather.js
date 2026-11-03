@@ -1,9 +1,9 @@
 // 铃兰狐火聚拢（S2「儿时的舞乐」/ S3「狐火渺然」出手，pixelfx 放开版，docs/242）：1x，原点 = 聚拢点（杖头前方）。
 // 原作 lisa_skill_02_start：三团狐火在身侧聚起 → 收拢 → 合一爆闪。本作：几团小狐火绕着聚拢点打旋收进来（各自拖一条短火尾），
-// 收齐的一刻爆成一簇往上窜的火舌（噪声边，不画圆盘、不放外扩光环），再落几颗火星。n = 3（S2）/ 5（S3）。
+// 收齐的一刻爆成一簇往上窜的火舌（噪声边，不画圆盘、不放外扩光环；爆点定帧 2 帧），再抛两三颗有重量的碎火落地弹一下（11-04 §0：光照在地上，不画圆光团）。n = 3（S2）/ 5（S3）。
 // k = 火舌放大倍数：S2 用 2.4（火舌约 2 倍身高，组长 B 审 11-04：原 1 倍实战里等于没放），S3 用 1。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
-import { noiseFor, pnoise, hotFirst, flameBlade, flameTongue, ember, LAYERS, BACK_LAYERS, BIG_LAYERS } from "./_lib.js";
+import { noiseFor, pnoise, hotFirst, flameBlade, flameTongue, ember, sparkAt, floorLight, LAYERS, BACK_LAYERS, BIG_LAYERS } from "./_lib.js";
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
@@ -42,7 +42,7 @@ export function draw(p, t, o) {
   }
   const v = t - TM;
   if (core && v >= 0) {
-    const pop = 1 - clamp(v / 0.09);
+    const pop = v < 0.08 ? 1 : 1 - clamp((v - 0.08) / 0.08);   // 定帧：收齐后满白热停两帧
     if (pop > 0) {
       const R = (big ? 9 : 7.5) * KW * (0.6 + 0.4 * pop);
       p.shade(-R * 1.3, -R * 1.8, R * 2.6, R * 2.4, (x, y) => {
@@ -60,16 +60,18 @@ export function draw(p, t, o) {
     });
   }
   if (deco) {
-    if (t < TM) for (let i = 0; i < n; i++) { const [x, y] = pos(i, t); p.glow(x, y - 3, 7, F[6], 0.22); }
+    if (t < TM) floorLight(p, 0, 3, (big ? 30 : 24), 6, F[6], 0.12 + 0.2 * clamp(t / TM));   // 蓄势：脚下地面渐亮
     if (v >= 0) {
       const u = clamp(v / (meta.duration - TM));
-      p.glow(0, -6 * K, (big ? 18 : 14) * KW, F[6], 0.34 * (1 - u) * (1 - u));
-      const ne = Math.round((big ? 9 : 6) * KW);
+      const pop = v < 0.08 ? 1 : 1 - clamp((v - 0.08) / 0.08);
+      floorLight(p, 0, 3, (big ? 34 : 28) * KW, 7, F[6], 0.45 * (1 - u) + 0.2 * pop);
+      if (pop > 0) p.glow(0, -2, 8 * KW, F[7], 0.3 * pop);
+      const ne = big ? 3 : 2;
       for (let i = 0; i < ne; i++) {
-        const r1 = (S * 131 + i * 977) % 1000 / 1000, r2 = (S * 71 + i * 613) % 1000 / 1000;
-        const a = -Math.PI / 2 + (r1 - 0.5) * 2.4, sp = (40 + 60 * r2) * KW, life = 0.22 + 0.2 * r2;
-        if (v > life) continue;
-        ember(p, Math.cos(a) * sp * v, Math.sin(a) * sp * v + 60 * v * v, 1 - v / life, r1 > 0.75 ? 2 : 1, [H[0], H[2], H[4], H[6]], i * 2.3 + v * 30);
+        const a = -Math.PI / 2 + [-0.7, 0.6, -0.2][i], sp = (70 + 15 * i) * KW, age = v - 0.06;
+        if (age < 0) continue;
+        const [x, y] = sparkAt(0, -8, Math.cos(a) * sp, Math.sin(a) * sp, age, 3, 320, 2.2);
+        ember(p, x, y, 1 - u, 1, [H[0], H[2], H[4], H[6]], i * 2.3 + v * 30);
       }
     }
   }

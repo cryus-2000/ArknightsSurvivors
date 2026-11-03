@@ -408,6 +408,16 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 const SZ_FORKS := ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"]
 
 
+## 放开版关 / 缺帧条时的旧爆点（10-31 / 11-01 定稿）：600 颗冷白粒子 + 一帧冷白圆 + 零星狐火红余烬 + 往一侧推的烟尘
+static func _sz_rupt_old(u, p: Vector2, k: int, big: float, dl: float, vs: float, nv: Vector2) -> void:
+	PF.particles(u, p, 600, "ult_burst", [Color(0.66, 0.7, 0.78), Color(0.5, 0.54, 0.6)], dl, vs + k * 5.0, 170.0 * big)   # 第二轮录像里 85 太小、看着像火星 → 加大到 170、两层；颜色压一档（粒子着色 ×1.35，冷白原色会成纯白团）
+	u.shape({"kind": "circle", "c": p, "r": 34.0 * big, "col": Color(0.86, 0.89, 0.94), "fill": 0.85, "life": 0.05, "delay": dl})   # 每处爆亮一帧（≤ 0.9），随后粒子冷成钢灰
+	if k % 3 == 2:
+		PF.particles(u, p, 20, "ult_ember", [SZ_RED.darkened(0.45)], dl + 0.06, vs + k * 5.0 + 2.0, 50.0 * big)   # 狐火红只留零星几缕（红点团像血珠）
+	var sgn: float = 1.0 if PF.h(vs + k * 1.9) < 0.5 else -1.0
+	PF.dust(u, p + nv * sgn * 14.0, 90.0 * big, dl + 0.03, vs + 60.0 + k, nv * sgn * 70.0, Color(0.46, 0.48, 0.53))
+
+
 static func _sz_rupt_chain(u, a0: Vector2, b0: Vector2, dv: Vector2, nv: Vector2, SL: float, TB: float, vs: float) -> void:
 	var N := 7
 	for k in N:
@@ -415,12 +425,11 @@ static func _sz_rupt_chain(u, a0: Vector2, b0: Vector2, dv: Vector2, nv: Vector2
 		var p: Vector2 = a0.lerp(b0, clampf((k + 0.1 + 0.8 * hh) / float(N), 0.0, 1.0)) + nv * (PF.h(vs + k * 5.3) - 0.5) * 16.0
 		var dl: float = TB + 0.045 * k + 0.02 * PF.h(vs + k * 2.9)
 		var big: float = (1.0 if k < N - 1 else 1.6) * (0.65 + 0.7 * hh)
-		PF.particles(u, p, 600, "ult_burst", [Color(0.66, 0.7, 0.78), Color(0.5, 0.54, 0.6)], dl, vs + k * 5.0, 170.0 * big)   # 第二轮录像里 85 太小、看着像火星 → 加大到 170、两层；颜色压一档（粒子着色 ×1.35，冷白原色会成纯白团）
-		u.shape({"kind": "circle", "c": p, "r": 34.0 * big, "col": Color(0.86, 0.89, 0.94), "fill": 0.85, "life": 0.05, "delay": dl})   # 每处爆亮一帧（≤ 0.9），随后粒子冷成钢灰
-		if k % 3 == 2:
-			PF.particles(u, p, 20, "ult_ember", [SZ_RED.darkened(0.45)], dl + 0.06, vs + k * 5.0 + 2.0, 50.0 * big)   # 狐火红只留零星几缕（红点团像血珠）
+		# pixelfx 放开版（docs/242 §14.15，11-04 §0）：每处换成一个实心冷白爆块帧条（定帧两帧 → 冷成钢灰塌成烟、两块碎屑落地），
+		# 不再铺 600 颗粒子 + 一帧冷白圆 + 红余烬 + 烟尘；细裂缝照旧。只改画面
+		if not u.px_strip("fx_suzuran_ul_rupt", p, {"ang": dv.angle(), "sc": 0.8 + 0.5 * big, "delay": dl}):
+			_sz_rupt_old(u, p, k, big, dl, vs, nv)
 		var sgn: float = 1.0 if PF.h(vs + k * 1.9) < 0.5 else -1.0
-		PF.dust(u, p + nv * sgn * 14.0, 90.0 * big, dl + 0.03, vs + 60.0 + k, nv * sgn * 70.0, Color(0.46, 0.48, 0.53))
 		if k % 2 == 0 or k == N - 1:   # 刀口两侧崩出的细裂缝（斜着岔出去、长短不一）
 			var fa: Array = [(nv * sgn).angle() + (PF.h(vs + k) - 0.5) * 1.1]
 			if k == N - 1:

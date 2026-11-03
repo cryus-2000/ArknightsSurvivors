@@ -947,7 +947,12 @@ static func _impact(u, a: Dictionary) -> void:
 			for e in p.nearest_enemies(6, 220.0, tp):
 				if not _live(e):
 					continue
-				_tracer(u, p.pos + Vector2(0, -20), e.pos, c, 0.22, 5.0)
+				# pixelfx 放开版（docs/242）：程序细线换成一团暖橙大狐火顺着去向一闪 + 命中处本人普攻命中帧条；只改画面
+				var fa: Vector2 = p.pos + Vector2(0, -20)
+				if not u.px_strip("fx_suzuran_ul_bigfox", fa.lerp(e.pos + Vector2(0, -12), 0.6), {"ang": (e.pos - fa).angle(), "life": 0.16, "fade": 0.1}):
+					_tracer(u, fa, e.pos, c, 0.22, 5.0)
+				else:
+					u.px_strip("fx_suzuran_ul_hit", e.pos + Vector2(0, -6), {"delay": 0.1, "variant": 1 + (hits.size() % 2), "sx": -1.0 if e.pos.x < fa.x else 1.0})
 				_hit1(p, e, 1.0)
 				if not e.dead:
 					g.enemies_sys.lite_slow(e, Bal.v("ult/suzu_slow", 0.3), 2.0)

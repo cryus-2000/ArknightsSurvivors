@@ -2,7 +2,7 @@
 // 旧版是金色双椭圆环 + 四根转辐。本作不画环：脚下三簇不等角的贴地小狐火（像三根钉住影子的火桩），各自错相位明暗闪烁；
 // 按 e.r = 12 画（离脚底 10.5 美术像素、透视 0.5），游戏按 e.r ÷ 12 缩放。组长 B 11-04 过审的「定身三簇」。
 import { fit, TAU } from "../../core/index.js";
-import { noiseFor, hotFirst, flameTongue, ember, LAYERS, BACK_LAYERS } from "./_lib.js";
+import { noiseFor, hotFirst, flameTongue, ember, floorLight, LAYERS, BACK_LAYERS } from "./_lib.js";
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定）
 
 export const meta = {
@@ -34,7 +34,7 @@ export function draw(p, t, o) {
       flameTongue(p, x, y, (8 + 2 * N(5, S + i)) * hk, 2.0, N(2, S + 3 + i) * 2, N, S * 3 + i * 5, H, br > 0.45 ? LAYERS : BACK_LAYERS, 0.35, 0.9);
     }
     if (deco) {
-      p.glow(x, y - 3, 6, F[6], 0.06 + 0.12 * br);
+      floorLight(p, x, y, 7, 3, F[6], 0.12 + 0.2 * br);
       const u = (t / D * 2 + i * 0.41) % 1;
       ember(p, x, y - 7 - 8 * u, 1 - u, 1, [H[0], H[2], H[4], H[6]], i * 2.1 + t * 20);
     }

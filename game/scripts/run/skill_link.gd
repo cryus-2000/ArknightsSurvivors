@@ -880,7 +880,8 @@ static func _step16(u, a: Dictionary) -> bool:
 					var dv: Vector2 = (q - orb).normalized() if t >= T1 and q != orb else Vector2.from_angle(TAU * (j / 4.0 + minf(t, T1) / T1) + PI / 2.0)
 					if not LFB.sz_fox(u, q, dv, j):
 						u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
-					u.grain("fire", q, Vector2.UP, cl, 1)
+					if Bal.vi("fx/px_unleashed", 0) <= 0 or not u.fx_ready("fx_suzuran_ul_fox"):   # 放开版：弹体帧条自带火尾，不再每帧撒火粒子
+						u.grain("fire", q, Vector2.UP, cl, 1)
 			return t >= T1 + T2 + 0.45
 		# ---------------------------------------------------------------- 聚拢
 		"l_angelina":   # 引力环：三枚紫色碎片绕区域外圈转一圈、往里收，把区域外 180 内的敌人一路带进来；落定 0.5 倍 + 减速

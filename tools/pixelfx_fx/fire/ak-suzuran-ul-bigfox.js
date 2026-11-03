@@ -44,9 +44,10 @@ export function draw(p, t, o) {
     });
   }
   if (deco) {
-    p.glow(2, 0, 18, F[6], 0.3);
-    p.glow(-22, 0, 20, F[5], 0.18);
-    looped(t, D, 16, S + 300, (r) => ({ x: -r.range(6, 44), y: r.range(-7, 7), vx: -r.range(25, 60), vy: -r.range(6, 26), life: r.range(0.2, 0.45), s: r.chance(0.3) ? 2 : 1, ph: r.range(0, TAU) }), (q, age) => {
+    p.glow(2, 0, 11, F[6], 0.26);   // 11-04 §0：头上光团收小，不成孤立圆
+    p.glow(-22, 0, 14, F[5], 0.12);
+    // 余烬：只留几颗，从火尾掉下来慢慢熄（11-04 §0：不撒星点）
+    looped(t, D, 5, S + 300, (r) => ({ x: -r.range(14, 40), y: r.range(-4, 5), vx: -r.range(20, 40), vy: r.range(4, 14), life: r.range(0.3, 0.5), s: 1, ph: r.range(0, TAU) }), (q, age) => {
       ember(p, q.x + q.vx * age, q.y + q.vy * age, 1 - age / q.life, q.s, [H[0], H[2], H[4], H[6]], q.ph + age * 28);
     });
   }

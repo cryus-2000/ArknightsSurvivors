@@ -27,7 +27,7 @@ export function draw(p, t, o) {
   const front = o.side !== "back", back = o.side !== "front";
   const RX = 14, RY = 5;
   // 两条：[起始相位, 起点高, 升高, 跨角, 半宽]
-  const ribbons = [[0, 0, 26, 1.08 * TAU, 1.4], [0.5, -3, 24, 1.04 * TAU, 1.15]];   // 每条绕身体完整一圈多（组长 B 11-04：原来太细、不成圈）
+  const ribbons = [[0, 0, 26, 1.08 * TAU, 2.1], [0.5, -3, 24, 1.04 * TAU, 1.7]];   // 11-04 §0「不碎」：火带加厚成实心带，不像细线   // 每条绕身体完整一圈多（组长 B 11-04：原来太细、不成圈）
   if (core) {
     ribbons.forEach(([p0, y0, rise, span, w], i) => {
       const a0 = (ph + p0) * TAU;
@@ -49,7 +49,7 @@ export function draw(p, t, o) {
   }
   if (deco) {
     if (front) p.glow(0, -16, 16, F[5], 0.12);
-    looped(t, D, 4, S + 90, (r) => ({ a: r.range(0, TAU), y: -r.range(4, 26), vy: -r.range(10, 24), life: r.range(0.3, 0.6), ph: r.range(0, TAU) }), (q, age) => {
+    looped(t, D, 2, S + 90, (r) => ({ a: r.range(0, TAU), y: -r.range(4, 26), vy: -r.range(10, 24), life: r.range(0.3, 0.6), ph: r.range(0, TAU) }), (q, age) => {
       const dep = Math.sin(q.a);
       if ((dep > 0 && !front) || (dep <= 0 && !back)) return;
       ember(p, Math.cos(q.a) * RX, q.y + dep * RY + q.vy * age, 1 - age / q.life, 1, [H[0], H[2], H[4], H[6]], q.ph + age * 24);
