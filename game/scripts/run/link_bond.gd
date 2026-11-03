@@ -667,6 +667,8 @@ static func _hunt(u, a: Dictionary, t: float) -> bool:
 				m.play_vis_anim("skill")
 				u.team_buff("link:skalter", 3.0, [[&"dmg", "mult", Bal.v("ult/link_skalter_atk", 1.2)]], a.pos, float(a.r))
 				u.light(a.pos, float(a.r), _col(u, m), 0.5)
+				if u.px_strip("fx_ulpianus_ul_hunt_song", m.pos, {}):   # pixelfx 放开版：歌声起处脚下一圈水焰（代替等距一圈碎石，docs/242 §1 / §14.7）
+					continue
 				for j in 8:
 					u.shape({"kind": "rock", "c": Vector2(a.pos) + Vector2.from_angle(TAU * j / 8.0) * float(a.r), "r": 6.0, "col": _col(u, m), "glow": Color(1.0, 0.8, 0.8), "seed": float(j), "life": 1.2})
 			continue
@@ -675,9 +677,13 @@ static func _hunt(u, a: Dictionary, t: float) -> bool:
 			a["fp%d" % k] = m.pos
 			Link._dash(m, tp - d * 30.0, 0.14)
 		if t >= t0 and t < t0 + 0.14 and a.has("fp%d" % k):
-			u.shape({"kind": "line", "a": a["fp%d" % k], "b": m.pos, "w": 4.0, "col": _col(u, m), "life": 0.12})
+			var fp: Vector2 = a["fp%d" % k]
+			if not (m.pos.distance_to(fp) > 8.0 and u.px_strip("fx_ulpianus_ul_zip", m.pos, {"ang": (m.pos - fp).angle(), "life": 0.05, "f": int(t * 12.0) % 6})):   # pixelfx 放开版：冲锋水尾
+				u.shape({"kind": "line", "a": a["fp%d" % k], "b": m.pos, "w": 4.0, "col": _col(u, m), "life": 0.12})
 		if t >= t0 + 0.14 and _once(a, "h%d" % k):
-			u.shape({"kind": "ring", "c": tp, "r": 70.0, "r1": 16.0, "w": 5.0, "col": _col(u, m), "life": 0.25})
+			var fh: Vector2 = a.get("fp%d" % k, m.pos)
+			if not u.px_strip("fx_ulpianus_ul_hunt", tp, {"ang": (tp - fh).angle() if tp != fh else 0.0, "sc": 70.0 / 35.0 / u.g.PX}):   # pixelfx 放开版：沿扑来方向一道贴地水刃，几名猎人叠成交错爪痕（不画圆环）
+				u.shape({"kind": "ring", "c": tp, "r": 70.0, "r1": 16.0, "w": 5.0, "col": _col(u, m), "life": 0.25})
 			for e in u.in_circle(tp, 70.0):
 				_hit(m, e, "群猎", 1.1)
 			_sfx(u, "hit", -5.0, 1.1 + 0.1 * k)
@@ -686,6 +692,7 @@ static func _hunt(u, a: Dictionary, t: float) -> bool:
 		_go(u, ld, tp, 0.0, _col(u, ld))
 		for e in u.in_band(ld.pos, tp, 30.0):
 			_hit(ld, e, "群猎", 1.0)
-		u.debris(tp, _col(u, ld), 2)
-		Link._merge_flash(u, tp, _col(u, ld).lerp(Color.WHITE, 0.4), _col(u, mates[0]), 44.0)
+		if not u.px_strip("fx_ulpianus_ul_erupt", tp, {"sc": 1.3}):   # pixelfx 放开版：收尾一处裂地喷发（代替合击闪光圈）
+			u.debris(tp, _col(u, ld), 2)
+			Link._merge_flash(u, tp, _col(u, ld).lerp(Color.WHITE, 0.4), _col(u, mates[0]), 44.0)
 	return t >= 1.0

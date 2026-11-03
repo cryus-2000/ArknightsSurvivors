@@ -11,10 +11,11 @@
 //   after  成长「通路余震」：小落点，几条短裂 + 一团尘
 //   reel   S1 拽回后重砸：裂地 + 水冠往上翻（原作 skill_01_range_02 的水花）
 //   erupt  终结技沿裂圈的喷发点：两三条短裂 + 水刺 + 碎石 + 尘（代替旧版沿圈等距摆的水柱），位置由代码按哈希错开
+//   hunt   羁绊「群猎」每名猎人扑到目标那一下：一道贴地横掠的水刃（沿 +x，代码按猎人随机转角）+ 两三条短裂，不画圆环（多名猎人先后落下，转角不同，叠成不规则的交错爪痕）
 //   dust   精二「掷锚」拖人时脚下扬的一小团尘（无裂、无闪）
 //   throw  精二「掷锚」落地：锚咬地的深沟（沿掷出方向 +x）+ 裂网 + 血纹
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { jitterAngles } from "../house.js";
+import { jitterAngles, OP } from "../house.js";
 
 export const meta = {
   name: "Ulpianus anchor impact unleashed",
@@ -27,9 +28,9 @@ export const meta = {
   fps: 24,
   bg: "dark",
   options: {
-    palette: ["#070a1f", "#121a45", "#1e2d73", "#2f47a3", "#4a68cf", "#7f97ea", "#c3cef7", "#ffffff"],   // 深海靛蓝（原作 #415aff / #589eff 一路，压低饱和，和敌弹青 #33ceff 拉开约 30°）
-    dust: ["#131528", "#212842", "#323c5e", "#4a5781", "#6b7ba6", "#9eabcf"],                               // 尘 / 碎石：偏靛的钢灰（锚链色，压进深海色调）
-    blood: ["#1c0710", "#33101c", "#4d1626", "#6b1e33"],                                                  // E2 血纹：深暗绯红（明度 ≤ 0.55，组长 C 11-04；和危险色 #ff2667 拉开），只在裂缝里、1 格宽
+    palette: OP.ulpianus,   // 色阶只认 house.js（§11.1 #12）
+    dust: OP.ulpianus_dust,   // 色阶只认 house.js（§11.1 #12）
+    blood: OP.ulpianus_blood,   // 色阶只认 house.js（§11.1 #12）
     radius: 45,
     move: "slam",
     elite: 2,
@@ -46,7 +47,7 @@ export function create(o) {
   const C = fit(o.palette, 8), D = fit(o.dust, 6), BL = fit(o.blood, 4), Rg = new Rng(o.seed), mv = o.move || "slam", quick = +o.quick > 0;
   const el = clamp(Math.round(+o.elite), 0, 2), R = +o.radius;
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const erupt = mv === "erupt", big = mv === "land", quake = mv === "quake" || mv === "dust", small = mv === "after", dustOnly = mv === "dust";
+  const hunt = mv === "hunt", erupt = mv === "erupt", big = mv === "land", quake = mv === "quake" || mv === "dust", small = mv === "after", dustOnly = mv === "dust";
   // 分档：DL 余韵、GK 光晕、PM 颗粒量
   const DL = (big ? 1 : [0.5, 0.75, 1][el]) * (quick ? 0.55 : 1), GK = big ? 1 : [0.45, 0.75, 1][el], PM = big ? 1.2 : [0.55, 0.8, 1][el];
   const blood = (el >= 2 || mv === "throw") && !quake ? 1 : quake && el >= 2 && !dustOnly ? 0.6 : 0;
@@ -58,7 +59,7 @@ export function create(o) {
 
   // ---- 裂网：几条主裂从中心不规整地往外走（随机游走 + 噪声转角），沿途随机分叉；角度不等距
   const cracks = [];
-  const nMain = dustOnly ? 0 : quake ? 3 + el : small || erupt ? 3 : big ? 9 : mv === "blast2" ? 4 : [4, 6, 7][el];
+  const nMain = dustOnly ? 0 : quake ? 3 + el : small || erupt || hunt ? 3 : big ? 9 : mv === "blast2" ? 4 : [4, 6, 7][el];
   const reachK = big ? 1.0 : 0.92;
   const walk = (x, y, a, L, w, d0, depth) => {
     const pts = [[x, y, d0]];
@@ -103,7 +104,7 @@ export function create(o) {
   const ridges = [];
   {
     const onEnds = quake || mv === "slam" || mv === "s2";   // 尘墙挂在主裂缝末端（组长 C 11-04：普攻碎石别绕成一圈）
-    const n = dustOnly || big || onEnds ? 0 : erupt ? 2 : small ? 2 : [3, 4, 5][el];
+    const n = dustOnly || big || onEnds || hunt ? 0 : erupt ? 2 : small ? 2 : [3, 4, 5][el];
     let kEnd = quake ? 99 : [2, 2, 3][el];
     if (onEnds) for (const c of cracks) {   // 撼地：尘墙只隆在主裂缝末端，一小段
       if (c.depth || kEnd-- <= 0) continue;
@@ -133,7 +134,11 @@ export function create(o) {
   // ---- 水刃：命中一刻从落点刺出几道细长水刃（借原作 attack_hit_01 / skill_03_range_01 的尖刺星芒），角度不等距、长短不一、偏向上方，2–4 帧就收
   const shards = [];
   {
-    const n = quake || dustOnly ? 0 : small ? 2 : big ? 5 : mv === "throw" ? 4 : [3, 4, 5][el] + (mv === "s2" || mv === "reel" ? 1 : 0);
+    if (hunt) {   // 群猎：两道贴着 +x 方向的长水刃（一前一后），不放射
+      shards.push({ a: Rg.range(-0.12, 0.12), L: R * 1.1, w: 2.4, d0: 0 });
+      shards.push({ a: Math.PI + Rg.range(-0.12, 0.12), L: R * 0.8, w: 2.0, d0: 0.02 });
+    }
+    const n = quake || dustOnly || hunt ? 0 : small ? 2 : big ? 5 : mv === "throw" ? 4 : [3, 4, 5][el] + (mv === "s2" || mv === "reel" ? 1 : 0);
     for (const a of jitterAngles(Rg, n, -Math.PI, Math.PI, 0.48)) {
       const up = a < 0 ? 1 : 0.55;   // 朝上的长、贴地的短（俯视里朝上 = 立起来）
       shards.push({ a, L: R * Rg.range(0.55, 1.05) * up * (big ? 0.55 : 1), w: Rg.range(1.6, 2.8), d0: Rg.range(0, 0.03) });

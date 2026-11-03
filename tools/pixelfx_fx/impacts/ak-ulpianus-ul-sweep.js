@@ -4,7 +4,7 @@
 //          任一帧只看到一段弧（不是整圈）；锚本体和锁链由原生动作画
 //   pull   精一「收链」（以锚击落点为心，外圈 = reach × pull_r）：外圈的地面被往里拖——几道不等距的拖痕从外圈往判定边收拢，尘往里卷
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { jitterAngles } from "../house.js";
+import { jitterAngles, OP } from "../house.js";
 
 export const meta = {
   name: "Ulpianus chain sweep unleashed",
@@ -17,8 +17,8 @@ export const meta = {
   fps: 24,
   bg: "dark",
   options: {
-    palette: ["#070a1f", "#121a45", "#1e2d73", "#2f47a3", "#4a68cf", "#7f97ea", "#c3cef7", "#ffffff"],
-    dust: ["#131528", "#212842", "#323c5e", "#4a5781", "#6b7ba6", "#9eabcf"],
+    palette: OP.ulpianus,   // 色阶只认 house.js（§11.1 #12）
+    dust: OP.ulpianus_dust,   // 色阶只认 house.js（§11.1 #12）
     radius: 65,
     inner: 45,
     move: "whirl",

@@ -61,7 +61,16 @@
 		"shapes": {
 			"锚击": {
 				"base": "fx_ulpianus_ul_slam",
-				"variants": 2
+				"variants": 2,
+				"alt": [
+					{
+						"cond": "skill_active:1",
+						"base": "fx_ulpianus_ul_slam_s2",
+						"draw": {
+							"fit": 68.25
+						}
+					}
+				]
 			},
 			"钩与锚": {
 				"base": "fx_ulpianus_ul_slam",

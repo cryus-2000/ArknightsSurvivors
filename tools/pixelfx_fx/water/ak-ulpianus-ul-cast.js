@@ -5,7 +5,7 @@
 //   cast2  S2「必须维系的界限」：脚下一圈不规整的水焰往上蹿（高矮不一、有断口，不是整圈），身上一团靛光；E2 焰尖带暗酒红
 //   cast3  S3「必须开辟的通路」：脚下先压暗，水从四周往脚下收（预兆），再一记爆亮 + 矮水焰
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
-import { jitterAngles } from "../house.js";
+import { jitterAngles, OP } from "../house.js";
 
 export const meta = {
   name: "Ulpianus skill cast unleashed",
@@ -18,8 +18,8 @@ export const meta = {
   fps: 24,
   bg: "dark",
   options: {
-    palette: ["#070a1f", "#121a45", "#1e2d73", "#2f47a3", "#4a68cf", "#7f97ea", "#c3cef7", "#ffffff"],
-    blood: ["#1c0710", "#33101c", "#4d1626", "#6b1e33"],
+    palette: OP.ulpianus,   // 色阶只认 house.js（§11.1 #12）
+    blood: OP.ulpianus_blood,   // 色阶只认 house.js（§11.1 #12）
     move: "cast2",
     elite: 2,
     quick: 0,

@@ -5,6 +5,7 @@
 //   trail  锚飞行水尾（循环）：锚身后 2–3 股起伏的水带（noise，不是正弦），近锚处白、往后变深变碎，散出水泡
 //   zip    S3 冲锋水尾（循环）：本体身后贴地的一片水体，比 trail 宽、两侧分水
 import { Rng, fit, clamp, smooth, noise } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const meta = {
   name: "Ulpianus chain and anchor wake unleashed",
@@ -17,8 +18,8 @@ export const meta = {
   fps: 12,
   bg: "dark",
   options: {
-    palette: ["#070a1f", "#121a45", "#1e2d73", "#2f47a3", "#4a68cf", "#7f97ea", "#c3cef7", "#ffffff"],
-    steel: ["#0d0f17", "#22283a", "#3d465c", "#626d86", "#98a3ba", "#d6dce8"],
+    palette: OP.ulpianus,   // 色阶只认 house.js（§11.1 #12）
+    steel: OP.ulpianus_dust,   // 色阶只认 house.js（§11.1 #12）
     move: "trail",
     elite: 2,
     layer: "all",

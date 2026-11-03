@@ -4,6 +4,7 @@
 //   haste  S3 之后的「开辟」加速（循环）：脚下往后甩的几缕深海水流 + 小水泡（不画圈）
 //   blood  天赋「血脉的哺养」叠一层（一次性）：一缕暗酒红从脚下沿身体往上卷、到胸口一闪散开（代替胸口那团圆光）
 import { Rng, fit, clamp, smooth, noise, TAU } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const meta = {
   name: "Ulpianus status marks unleashed",
@@ -16,8 +17,8 @@ export const meta = {
   fps: 12,
   bg: "dark",
   options: {
-    palette: ["#070a1f", "#121a45", "#1e2d73", "#2f47a3", "#4a68cf", "#7f97ea", "#c3cef7", "#ffffff"],
-    blood: ["#1c0710", "#33101c", "#4d1626", "#6b1e33", "#8a2a40"],
+    palette: OP.ulpianus,   // 色阶只认 house.js（§11.1 #12）
+    blood: OP.ulpianus_blood,   // 色阶只认 house.js（§11.1 #12）
     move: "vein",
     layer: "all",
     seed: 3,

@@ -741,5 +741,31 @@
   },
   "check_sy": 0.55,
   "deco_step": 2
+ },
+ "fx_ulpianus_ul_hunt": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "hunt",
+   "seed": 53,
+   "radius": 35
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "lo": true,
+  "_src": "link_bond._hunt 落点判定半径 70（gd 写死，link_bond.gd _hunt）"
+ },
+ "fx_ulpianus_ul_hunt_song": {
+  "fx": "water/ak-ulpianus-ul-cast",
+  "opts": {
+   "move": "cast2",
+   "elite": 1,
+   "seed": 59
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
  }
 }
