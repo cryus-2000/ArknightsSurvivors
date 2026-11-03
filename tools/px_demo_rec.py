@@ -25,6 +25,8 @@ ap.add_argument("--out", default="")
 ap.add_argument("--tmp", default=os.path.join(ROOT, "build", "px_demo_rec"))
 ap.add_argument("--extra", default="")
 ap.add_argument("--start", type=float, default=1.0, help="演示开始后第几秒起录（德克萨斯版）")
+ap.add_argument("--sha", default="", help="门禁核对的提交前缀（录哪一版）")
+ap.add_argument("--no-gate", action="store_true", help="跳过开录门禁（只给样板自测用，交付录像不许用）")
 a = ap.parse_args()
 a.tmp = os.path.abspath(a.tmp)   # Godot 按 game/ 解析相对路径
 MODE = {"basic": 3, "s1": 0, "s2": 1, "s3": 2, "ult": 4}
@@ -65,6 +67,10 @@ def one(seg):
     return seg, fdir, got, tr, mus
 
 
+if not a.no_gate:   # 开录前门禁（tools/px_prerecord.py，协调人 11-04）：FAIL 就不录
+    gr = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "px_prerecord.py"), a.op] + (["--sha", a.sha] if a.sha else []), cwd=ROOT)
+    if gr.returncode:
+        sys.exit("录像门禁 PRERECORD FAIL，拒绝录（看上面的 ✗ 项）")
 segs = []   # 每段 = 招式:精英档列表[:秒数]（秒数缺省按 SECS；德克萨斯版的每段自定时长）
 for part in filter(None, a.segs.split("/")):
     q = part.split(":")

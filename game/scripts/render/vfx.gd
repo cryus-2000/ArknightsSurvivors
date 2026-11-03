@@ -152,6 +152,8 @@ func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core", elit
 	var key: String = "%s|%d|%d|%s|%d|%d" % [base, variant, int(teammate), layer, elite, int(lo)]
 	var hit = _px_ul_cache.get(key)
 	if hit != null:
+		if hit != "" and hit.find("_ul_") >= 0:
+			px_stats["used:" + hit] = int(px_stats.get("used:" + hit, 0)) + 1
 		return hit
 	var tail: String = ("_deco" if layer == "deco" else "") + ("_lo" if lo else "")
 	var subs: Array = [""]
@@ -175,6 +177,8 @@ func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core", elit
 	if out == "" and layer != "deco":
 		out = base + "_lo" if lo and g.tex.get(base + "_lo") != null else base
 	_px_ul_cache[key] = out
+	if out != "" and out.find("_ul_") >= 0 and g.tex.get(out) != null:
+		px_stats["used:" + out] = int(px_stats.get("used:" + out, 0)) + 1
 	return out
 
 
@@ -328,6 +332,16 @@ func px_remap_id(id: String, name: String, teammate := false, elite := 2) -> Str
 	return _remap_c[k]
 
 
+## 录像门禁统计（tools/px_prerecord.py，docs/242 §14.24）：px_ul_tex 取到的放开版帧条（used:<名>）与兜底路径（fallback:<种类>）计数，
+## 图鉴演示结束时 tests/px_demo_rec 打印 PXSTATS。只计数，不影响画面
+var px_stats := {}
+
+
+func px_stat(key: String, who := "") -> void:
+	var k: String = key + ("@" + who if who != "" else "")
+	px_stats[k] = int(px_stats.get(k, 0)) + 1
+
+
 ## 放开版帧条按哪个精英档取（docs/242 §10）：balance fx/px_ul_elite ≥ 0 时一律用它（展示段录像），否则用干员当前精英化
 func px_ul_el(o) -> int:
 	var ov: int = Bal.vi("fx/px_ul_elite", -1)
@@ -362,6 +376,8 @@ func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> vo
 	var mx: float = maxf(c.r, maxf(c.g, c.b))
 	if mx > 1.0:
 		c = Color(c.r / mx, c.g / mx, c.b / mx)
+	if not pr.is_empty():
+		px_stat("fallback:melee_arc", key)   # 录像门禁：放开版下还在画通用刀光弧（注册表 arc: true）
 	# 跟着挥刀走（10-24 用户「近战刀光跟着挥刀的动作走」）：时长 = 这名干员出手帧之后剩余动作的六成（夹在 fx/melee_arc_life 与 0.22 秒之间），
 	# 刀光从挥刀起点一侧扫到另一侧；起点取屏幕上更高的那一端（自上而下劈），全圆（旋身斩）按朝向转一圈
 	var life: float = clampf((float(o.attack_dur) - float(o.attack_fire_at)) * 0.6, Bal.v("fx/melee_arc_life", 0.12), 0.22)

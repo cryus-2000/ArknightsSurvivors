@@ -590,3 +590,15 @@ python tools/px_trace_ab.py <干员> [--squad a,b] [--cases late,ult] [--jobs 4]
 ### 14.22 通用刀光弧兜底与注册表检查（组长 11-04）
 - 放开版下，注册表里有条目的干员**缺省不画通用刀光弧**（vfx.melee_arc）。原来没登记的判定段会画一道主题色粗弧，星熊的暖金和结晶撞色（§12.6）。要恢复通用弧，注册表写 `"arc": true`；`no_arc` 照旧。
 - `python tools/px_ul_lint.py [干员,…]`：列出注册表里有条目的干员，干员 JSON 里没在 `shapes` 登记（按 `px_key`，没有再按 `src`）、也没写 `"px_ul": false` 的圆形 / 锥形判定段（这些段放开版下没有刀光画面），以及注册表登记了但 JSON 里找不到的 src。交付前跑一遍，警告要么登记、要么写明不需要。
+
+### 14.23 终结技收尾 `finish` 和静默圈 `mark_zone`（拉普兰德探针，影响全员）
+- **`finish`**：ult.gd `_fin_release`（冲击那一下）原来给每个干员放三团灰褐烟尘、碎石、ult_burst 粒子，放开版画面上成一团棕色色块。注册表 `"finish": {"dust": …, "rock": …, "burst": …}`：`false` = 不画，写基名 = 换成放开版帧条（`u.px_strip` 画在冲击点），没写的项照旧。没登记 `finish` 的干员保持现状。冲击帧、震屏、顿帧仍归公共。
+- **`mark_zone`**：`verb.mark` 带 `ring_r` 的静默圈（post.gdshader 圈内去色 + 边线）。注册表 `"mark_zone": false` = 去色区和边线都不画；写基名 = 不去色、用帧条画边（帧条按半径 80 / 1x 烤，循环）。另外放开版下 `fx/px_halo = 0` 时，开场往外扩的波前一律不画。
+
+### 14.24 开录前门禁 `tools/px_prerecord.py`（用户批流程改造，协调人 11-04）
+```
+python tools/px_prerecord.py <干员> [--sha <要录的提交前缀>]
+```
+依次：① 打印 HEAD / 分支，和 `--sha` 对得上；② 重建贴图索引 + `godot --import`；③ `px_ul_lint <干员>` 0 条；④ 无头跑图鉴演示（普攻 / S1 / S2 / S3 / 终结技，精二），这名干员加载的放开版帧条数、演示里取用过的放开版帧条数任一为 0 判 FAIL，触发兜底（通用刀光弧、终结技公共烟尘 / 碎石 / 粒子、静默去色）判 FAIL 并列出；⑤ 截一帧存 `Claude outputs/pixelfx_prerecord/<干员>_<sha>.png`；⑥ 打印 `PRERECORD PASS / FAIL`，退出码 0 / 1。
+- `tools/px_demo_rec.py` 开录前强制调用（FAIL 拒绝录；`--sha` 透传）。`tools/px_trace_ab.py` 复用第 ② 步。
+- 统计来自 `vfx.px_stats`（px_ul_tex 取用、兜底路径计数），图鉴演示结束时 `tests/px_demo_rec` 打印 `PXSTATS`。
