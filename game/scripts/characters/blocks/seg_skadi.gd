@@ -282,6 +282,137 @@ static func _px_alt_cond(o, s: String) -> Dictionary:
 	return _px_alt_c[k]
 
 
+## 召唤物接管（docs/242 §14.11，格式照凯尔希 11-04 提案）：注册表 "summons": {"<召唤物 kind>": {攻击字段…, "aura": {…}, "lunge": {…}, "leap": {…}}}；
+## part = "" 取攻击（条目本身），否则取子条目
+static func px_ul_sm(o, kind: String, part: String):
+	var sm = o.g.vfx.px_ul_reg(str(o.id)).get("summons", _ED).get(kind)
+	if not (sm is Dictionary):
+		return null
+	return sm if part == "" else sm.get(part)
+
+
+## 召唤物的一下（攻击 / 扑击落地 / 跃回落地共用）：ent {base, variants, draw {fit, k, y, along}, skill {"<技能序号>": {base, variants} 或 base}, rot, mirror}，
+## 技能开着时换 skill 里那条（凯尔希 S3 熔毁爪）；缩放 = r × k ÷ fit（写了 fit）或 PX × sc；位置 = p + (0, y) + 方向 × r × along；
+## rot（缺省 true）= 帧条正右对准方向（原点 = 判定原点）；mirror: true 时朝左再转半圈并翻转（上下不颠倒的帧条用）。先装饰后核心，不定格。返回 true = 已画
+static func px_ul_sm_draw(o, ent: Dictionary, p: Vector2, ang: float, r: float) -> bool:
+	var g = o.g
+	var use: Dictionary = ent
+	var sk = ent.get("skill")
+	if sk is Dictionary:
+		for k in sk:
+			if o.skill_on(int(k)):
+				use = sk[k] if sk[k] is Dictionary else {"base": str(sk[k])}
+				break
+	var base: String = str(use.get("base", ""))
+	var nv: int = int(use.get("variants", 1))
+	var vv: int = 1 + int(g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1
+	var el: int = g.vfx.px_ul_el(o)
+	var tm: bool = not o.is_leader
+	var cn: String = g.vfx.px_ul_tex(base, vv, tm, "core", el)
+	if base == "" or g.tex.get(cn) == null:
+		return false
+	var dw: Dictionary = ent.get("draw", ent)
+	var fit: float = float(dw.get("fit", 0.0))
+	var sc: float = r * float(dw.get("k", 1.0)) / fit if fit > 0.0 and r > 0.0 else g.PX * float(dw.get("sc", 1.0))
+	var at: Vector2 = p + Vector2(0, float(dw.get("y", 0.0))) + Vector2.from_angle(ang) * r * float(dw.get("along", 0.0))
+	var mirror: bool = ent.get("mirror", false) and cos(ang) < 0.0
+	var sa: float = (ang + (PI if mirror else 0.0)) if ent.get("rot", true) else 0.0
+	var fl: bool = mirror
+	var dn: String = g.vfx.px_ul_tex(base, vv, tm, "deco", el)
+	var dk: float = g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, at, sc, sa, fl, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(cn, at, sc, sa, fl)
+	return true
+
+
+## 召唤物技能常驻（注册表 summon[kind].aura = {"<技能序号>": {base, y, sc, back}}）：技能开着时在召唤物身上循环播；mf_draw 在本体前后各调一次
+static func px_ul_sm_aura(o, s: Dictionary, hov: float, front: bool) -> void:
+	var au = px_ul_sm(o, str(s.kind), "aura")
+	if not (au is Dictionary):
+		return
+	var g = o.g
+	for k in au:
+		var e = au[k]
+		if not (e is Dictionary) or bool(e.get("back", false)) == front or not o.skill_on(int(k)):
+			continue
+		var p: Vector2 = s.pos + Vector2(0, hov + float(e.get("y", 0.0)))
+		var dk: float = g.vfx.px_deco_k(o)
+		for ly in ["deco", "core"]:
+			var nm: String = g.vfx.px_ul_tex(str(e.get("base", "")), 1, not o.is_leader, ly, g.vfx.px_ul_el(o))
+			if nm == "" or g.tex.get(nm) == null or not g.V6_FRAMES.has(nm) or (ly == "deco" and dk <= 0.0):
+				continue
+			var spec: Array = g.V6_FRAMES[nm]
+			fx_frame(o.cv, g, nm, int(spec[0]), int(float(g.t) * float(spec[1])), p, g.PX * float(e.get("sc", 1.0)), Color(1, 1, 1, dk if ly == "deco" else 1.0))
+
+
+## 敌人身上的常驻状态附件（docs/242 §14.18，§11.2 #6）：注册表 "status": {"<状态>": {base, stack: [b1, b2, …], at: head / foot / side, y, sc}}；
+## 状态：seal（本人施加的封印）/ mark（本人 verb.mark 的层数，stack 按层数取）/ slow / stun / 其他写 key（敌人字段 > 0，time: true 时 > 当前时刻）。
+## 尺寸 = e.r ÷ 12 夹 0.8–2.0（× sc）；同屏最多 30 个（离队长近的优先）；全部算装饰层（透明度 × px_deco_k）。返回本人接管了的状态名（旧画法据此跳过）
+const PX_STATUS_MAX := 30
+
+
+static func px_ul_status_draw(o) -> Dictionary:
+	var st = o.g.vfx.px_ul_reg(str(o.id)).get("status")
+	if not (st is Dictionary) or st.is_empty() or o.pos == Vector2.INF:
+		return {}
+	var g = o.g
+	var dk: float = g.vfx.px_deco_k(o)
+	var cov := {}
+	for k in st:
+		cov[k] = true
+	if dk <= 0.0:
+		return cov
+	var marks: Dictionary = o.sm.get("marks", {}) if o.get("sm") is Dictionary else {}
+	var cand: Array = []
+	for e in g.enemies:
+		if e.dead or e.get("friendly", false):
+			continue
+		for k in st:
+			var ent = st[k]
+			if not (ent is Dictionary):
+				continue
+			var n: int = 0
+			match str(k):
+				"seal":
+					n = 1 if float(e.get("seal_t", 0.0)) > g.t and str(e.get("seal_by", "")) == str(o.id) else 0
+				"mark":
+					n = int(marks[int(e.id)].n) if marks.has(int(e.id)) else 0
+				"slow":
+					n = 1 if float(e.get("slow", 0.0)) > 0.0 else 0
+				"stun":
+					n = 1 if float(e.get("stun", 0.0)) > 0.0 else 0
+				_:
+					var kk: String = str(ent.get("key", ""))
+					n = 1 if kk != "" and float(e.get(kk, 0.0)) > (g.t if ent.get("time", false) else 0.0) else 0
+			if n > 0:
+				cand.append([e.pos.distance_squared_to(g.ppos), e, ent, n])
+	if cand.size() > PX_STATUS_MAX:
+		cand.sort_custom(func(a, b): return a[0] < b[0])
+		cand.resize(PX_STATUS_MAX)
+	var tm: bool = not o.is_leader
+	var el: int = g.vfx.px_ul_el(o)
+	for c in cand:
+		var e: Dictionary = c[1]
+		var ent: Dictionary = c[2]
+		var stk = ent.get("stack")
+		var base: String = str(stk[clampi(int(c[3]) - 1, 0, stk.size() - 1)]) if stk is Array and not stk.is_empty() else str(ent.get("base", ""))
+		var nm: String = g.vfx.px_ul_tex(base, 1, tm, "core", el)
+		if g.tex.get(nm) == null or not g.V6_FRAMES.has(nm):
+			continue
+		var er: float = float(e.r)
+		var p: Vector2 = e.pos + Vector2(0, float(ent.get("y", 0.0)))
+		match str(ent.get("at", "head")):
+			"head":
+				p += Vector2(0, -er * 2.0 - 12.0)
+			"side":
+				p += Vector2(er + 6.0, -er)
+		var spec: Array = g.V6_FRAMES[nm]
+		var sc: float = g.vfx.int_scale(clampf(er / 12.0, 0.8, 2.0) * g.PX * float(ent.get("sc", 1.0)))
+		fx_frame(o.cv, g, nm, int(spec[0]), int(float(g.t) * float(spec[1])), p, sc, Color(1, 1, 1, dk))
+	return cov
+
+
 static func px_ul_on(o) -> bool:
 	return not o.g.vfx.px_ul_reg(str(o.id)).is_empty()
 
@@ -292,16 +423,18 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	var reg: Dictionary = o.g.vfx.px_ul_reg(str(o.id))
 	if reg.is_empty():
 		return false
-	var src: String = str(b.get("src", ""))
+	var src: String = str(b.get("px_key", b.get("src", "")))   # px_key（docs/242 §14.12）：同一个 src 的几段要换不同帧条时，形状块写自己的区分键
 	var ent = reg.get("shapes", _ED).get(src)
 	if not (ent is Dictionary):
 		return false
 	var skill: bool = ent.get("skill", false)
 	var alt_base: String = ""
-	for al in ent.get("alt", _EA):   # alt（组长 11-04，docs/242 §14.4）：[{cond, base, skill}]，第一条成立的换主形（例：乌尔比安 S2 生效后锚击换形 "skill_active:1"）
+	var alt_draw = null
+	for al in ent.get("alt", _EA):   # alt（组长 11-04，docs/242 §14.4）：[{cond, base, skill, draw}]，第一条成立的换主形（例：乌尔比安 S2 生效后锚击换形 "skill_active:1"），draw 逐字段覆盖画法
 		if al is Dictionary and cond_true(o, _px_alt_cond(o, str(al.get("cond", "")))):
 			alt_base = str(al.get("base", ""))
 			skill = al.get("skill", skill)
+			alt_draw = al.get("draw")
 			break
 	var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
 	var a: float = ang
@@ -321,6 +454,9 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	if ent.has("draw"):   # 形状条目自带 draw（各形状半径差得多时各用各的 fit）：逐字段覆盖干员级 draw
 		dw = dw.duplicate()
 		dw.merge(ent.draw, true)
+	if alt_draw is Dictionary:   # alt 换主形时再按它的 draw 逐字段覆盖
+		dw = dw.duplicate()
+		dw.merge(alt_draw, true)
 	var dk: float = o.g.vfx.px_deco_k(o)
 	var mo: Dictionary = reg.get("motes", _ED)
 	var bl := {"fit": float(dw.get("fit", 80.0)), "k": float(dw.get("k", 1.0)), "along": float(dw.get("along", 0.0)), "y": float(dw.get("y", -10.0)), "mirror": dw.get("mirror", "face")}

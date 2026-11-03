@@ -1151,6 +1151,8 @@ func _draw_bullets() -> void:
 		var vk: float = bulfx.k(b)   # 出现动画缩放（render/bullet_fx.gd）
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
+		if ptex != "" and b.has("op"):
+			ptex = g.vfx.px_remap_id(str(b.op), ptex, str(b.op) != lid)   # 放开版按名替换（docs/242 §14.14）
 		if ptex != "" and g.tex.get(ptex) != null:
 			var pspec: Array = Game.V6_FRAMES[ptex]
 			var pfr: int = (int(g.t * pspec[1] + b.pos.x * 0.01) % int(pspec[0])) if pspec[1] > 0.0 else 0
