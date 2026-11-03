@@ -1,0 +1,186 @@
+runs: 160 jobs: 8
+done mizuki_t10_s101                            34.0s ANOM
+done mizuki_t5_s102                             44.9s ANOM
+done mizuki_t0_s102                             63.7s ANOM
+done mizuki_t5_s104_meta18                      69.7s ANOM
+done wisadel_t5_s101                            34.0s ANOM
+done wisadel_t5_s102                            46.3s ANOM
+done wisadel_t10_s101                           36.3s ANOM
+done mizuki_t0_s101                            134.5s ANOM
+done mizuki_t0_s103_nodeath                    137.9s ANOM
+done mizuki_t5_s101                            142.8s ANOM
+done mizuki_t10_s102                           149.8s ANOM
+done wisadel_t10_s102                           37.3s ANOM
+done wisadel_t0_s101                           121.2s ANOM
+done wisadel_t0_s102                           112.7s ANOM
+done eyjafjalla_t10_s102                        22.3s ANOM
+done eyjafjalla_t5_s102                         28.0s ANOM
+done wisadel_t5_s104_meta18                     52.9s ANOM
+done eyjafjalla_t10_s101                        32.6s ANOM
+done eyjafjalla_t5_s101                         41.8s ANOM
+done eyjafjalla_t0_s101                         64.0s ANOM
+done kaltsit_t0_s102                            49.3s ANOM
+done kaltsit_t5_s101                            51.8s ANOM
+done eyjafjalla_t0_s102                        101.0s ANOM
+done kaltsit_t5_s102                            53.3s ANOM
+done wisadel_t0_s103_nodeath                   123.6s ANOM
+done eyjafjalla_t5_s104_meta18                  78.2s ANOM
+done kaltsit_t10_s101                           36.4s ANOM
+done kaltsit_t10_s102                           34.2s ANOM
+done kaltsit_t5_s104_meta18                     37.9s ANOM
+done saria_t0_s102                              40.0s ANOM
+done kaltsit_t0_s101                           121.6s ANOM
+done eyjafjalla_t0_s103_nodeath                132.1s ANOM
+done saria_t5_s102                              43.1s ANOM
+done saria_t5_s101                              72.2s ANOM
+done saria_t10_s101                             56.0s ANOM
+done saria_t10_s102                             56.3s ANOM
+done saria_t0_s101                             111.2s ANOM
+done siege_t5_s101                              23.2s ANOM
+done siege_t0_s102                              31.3s ANOM
+done siege_t5_s102                              31.6s ANOM
+done kaltsit_t0_s103_nodeath                   147.7s ANOM
+done siege_t10_s101                             24.7s ANOM
+done siege_t10_s102                             36.9s ANOM
+done siege_t5_s104_meta18                       46.3s ANOM
+done saria_t5_s104_meta18                      123.6s ANOM
+done siege_t0_s101                             117.4s ANOM
+done saria_t0_s103_nodeath                     134.6s ANOM
+done skadi_t0_s102                              52.1s ANOM
+done skadi_t5_s102                              34.0s ANOM
+done skadi_t10_s102                             30.9s ANOM
+done skadi_t10_s101                             35.5s ANOM
+done skadi_t0_s101                             101.6s ANOM
+done siege_t0_s103_nodeath                     132.7s ANOM
+done skadi_t5_s101                             110.2s ANOM
+done suzuran_t0_s102                            63.4s ANOM
+done suzuran_t10_s101                           31.8s ANOM
+done suzuran_t0_s101                            79.5s ANOM
+done suzuran_t10_s102                           33.6s ANOM
+done skadi_t0_s103_nodeath                     113.4s ANOM
+done skadi_t5_s104_meta18                      114.8s ANOM
+done suzuran_t5_s104_meta18                     35.5s ANOM
+done suzuran_t5_s101                           114.7s ANOM
+done ulpianus_t10_s101                          36.2s ANOM
+done ulpianus_t5_s101                           62.4s ANOM
+done ulpianus_t10_s102                          39.6s ANOM
+done suzuran_t5_s102                           135.5s ANOM
+done ulpianus_t5_s104_meta18                    39.9s ANOM
+done suzuran_t0_s103_nodeath                   134.0s ANOM
+done ulpianus_t0_s101                          120.4s ANOM
+done irene_t0_s101                              42.4s ANOM
+done ulpianus_t0_s102                          123.7s ANOM
+done ulpianus_t5_s102                          117.8s ANOM
+done irene_t10_s102                             22.4s ANOM
+done irene_t5_s102                              30.0s ANOM
+done irene_t5_s101                              55.0s ANOM
+done ulpianus_t0_s103_nodeath                  115.5s ANOM
+done irene_t10_s101                             61.9s ANOM
+done irene_t0_s102                             109.7s ANOM
+done specter_unchained_t0_s102                  46.4s ANOM
+done specter_unchained_t10_s101                 23.3s ANOM
+done specter_unchained_t10_s102                 26.0s ANOM
+done specter_unchained_t0_s101                 112.8s ANOM
+done irene_t5_s104_meta18                      140.2s ANOM
+done irene_t0_s103_nodeath                     144.4s ANOM
+done logos_t0_s101                              62.2s ANOM
+done specter_unchained_t5_s101                 114.2s ANOM
+done specter_unchained_t5_s102                 117.4s ANOM
+done logos_t10_s101                             34.7s ANOM
+done logos_t10_s102                             36.5s ANOM
+done specter_unchained_t0_s103_nodeath         122.4s ANOM
+done logos_t5_s101                              47.7s ANOM
+done specter_unchained_t5_s104_meta18          114.5s ANOM
+done logos_t5_s102                              50.2s ANOM
+done logos_t0_s102                              68.4s ANOM
+done lumen_t5_s102                              26.2s ANOM
+done lumen_t0_s101                              39.1s ANOM
+done logos_t5_s104_meta18                       48.8s ANOM
+done lumen_t10_s102                             38.8s ANOM
+done lumen_t10_s101                             48.5s ANOM
+done lumen_t0_s102                              57.4s ANOM
+done lumen_t5_s101                              65.8s ANOM
+done lumen_t5_s104_meta18                       51.8s ANOM
+done skalter_t5_s102                            35.8s ANOM
+done skalter_t10_s101                           26.5s ANOM
+done skalter_t5_s101                            38.7s ANOM
+done skalter_t0_s101                            49.9s ANOM
+done logos_t0_s103_nodeath                     128.6s ANOM
+done skalter_t10_s102                           43.4s ANOM
+done hoshiguma_t0_s101                          44.6s ANOM
+done skalter_t5_s104_meta18                     48.9s ANOM
+done lumen_t0_s103_nodeath                     128.1s ANOM
+done hoshiguma_t5_s102                          39.4s ANOM
+done hoshiguma_t10_s101                         37.6s ANOM
+done hoshiguma_t5_s101                          68.0s ANOM
+done hoshiguma_t10_s102                         38.9s ANOM
+done skalter_t0_s102                           154.5s ANOM
+done angelina_t0_s102                           31.7s ANOM
+done hoshiguma_t0_s102                         115.7s ANOM
+done hoshiguma_t5_s104_meta18                   45.2s ANOM
+done angelina_t0_s101                           56.1s ANOM
+done skalter_t0_s103_nodeath                   147.4s ANOM
+done angelina_t10_s102                          30.3s ANOM
+done angelina_t10_s101                          38.3s ANOM
+done angelina_t5_s104_meta18                    31.0s ANOM
+done angelina_t5_s102                           70.7s ANOM
+done texas_t0_s102                              34.5s ANOM
+done texas_t5_s101                              40.7s ANOM
+done texas_t0_s101                              50.4s ANOM
+done hoshiguma_t0_s103_nodeath                 139.1s ANOM
+done texas_t5_s102                              33.1s ANOM
+done angelina_t5_s101                          120.4s ANOM
+done texas_t10_s102                             32.0s ANOM
+done texas_t10_s101                             39.2s ANOM
+done exusiai_t5_s101                            49.3s ANOM
+done texas_t5_s104_meta18                       67.1s ANOM
+done exusiai_t5_s102                            52.5s ANOM
+done angelina_t0_s103_nodeath                  144.7s ANOM
+done exusiai_t10_s102                           22.6s ANOM
+done exusiai_t10_s101                           64.2s ANOM
+done lappland_t5_s101                           30.9s ANOM
+done exusiai_t5_s104_meta18                     58.6s ANOM
+done exusiai_t0_s101                           123.5s ANOM
+done texas_t0_s103_nodeath                     132.7s ANOM
+done exusiai_t0_s102                           141.0s ANOM
+done lappland_t10_s101                          56.2s ANOM
+done lappland_t10_s102                          56.5s ANOM
+done lappland_t5_s104_meta18                    52.6s ANOM
+done exusiai_t0_s103_nodeath                   133.0s ANOM
+done lappland_t0_s101                          130.4s ANOM
+done lappland_t0_s102                          126.9s ANOM
+done gladiia_t0_s102                            36.0s ANOM
+done gladiia_t0_s101                            38.1s ANOM
+done gladiia_t5_s102                            29.6s ANOM
+done gladiia_t5_s101                            35.0s ANOM
+done gladiia_t10_s101                           34.7s ANOM
+done gladiia_t10_s102                           28.4s ANOM
+done lappland_t5_s102                          130.0s ANOM
+done lappland_t0_s103_nodeath                  121.6s ANOM
+done gladiia_t5_s104_meta18                     35.4s ANOM
+done gladiia_t0_s103_nodeath                    89.6s ANOM
+# bug sweep  160 runs  1466s
+
+## no BALANCE / timeout / nan
+
+
+## messages (runs / total / example)
+
+- 160 runs / 160 x  [mizuki_t0_s101]  `ERROR: 3 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.`
+- 160 runs / 160 x  [mizuki_t0_s101]  `ERROR: Condition "!actions.custom_samplers.has(function->arguments[j].tex_builtin)" is true. Continuing. | at: _dump_node_code (servers/rendering/shader_compiler.cpp:1329)`
+- 160 runs / 160 x  [mizuki_t0_s101]  `GDScript backtrace (most recent call first):`
+- 160 runs / 160 x  [mizuki_t0_s101]  `WARNING: 52 ObjectDB instances were leaked at exit (run with `--verbose` for details). | at: cleanup (core/object/object.cpp:2536)`
+- 160 runs / 160 x  [mizuki_t0_s101]  `ERROR: 24 resources still in use at exit (run with --verbose for details). | at: clear (core/io/resource.cpp:822)`
+- 160 runs / 160 x  [mizuki_t0_s101]  `ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE | at: ~PagedAllocator (./core/templates/paged_allocator.h:170)`
+
+## per run
+
+- mizuki_t0_s101 wall=134.5 {"allies": 2, "boss_hp": 0.353878038161082, "crates": 14, "dashes": 4, "drone": 0, "elite_stage": 2, "elites": 8, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 0, "kills": 1463, "lamp": 100, "low_levelups": 1, "lv": 24, "maxhp": 153.5625, "meta": 0, "recall_backstop": 0, "recall_n": 195, "relic_out": 9980.94844014994, "relics": 4, "t": 780, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 8825.4, "xp_ground": 0.0, "xp_magnet": 855.0, "xp_recall": 5365.5, "xp_total": 8825.4, "xp_walk": 2604.9}
+- mizuki_t0_s102 wall=63.7 {"allies": 2, "boss_hp": -0.00275684289313697, "crates": 5, "dashes": 1, "drone": 0, "elite_stage": 2, "elites": 7, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 44, "kills": 991, "lamp": 23, "low_levelups": 0, "lv": 19, "maxhp": 109.6875, "meta": 0, "recall_backstop": 0, "recall_n": 29, "relic_out": 22750.7750438529, "relics": 7, "t": 378, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 4220.1, "xp_ground": 270.0, "xp_magnet": 925.0, "xp_recall": 308.3, "xp_total": 4435.8, "xp_walk": 2716.8}
+- mizuki_t5_s101 wall=142.8 {"allies": 2, "boss_hp": 0.392349580641355, "crates": 14, "dashes": 6, "drone": 0, "elite_stage": 2, "elites": 19, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 0, "kills": 1704, "lamp": 100, "low_levelups": 0, "lv": 26, "maxhp": 118.4625, "meta": 0, "recall_backstop": 0, "recall_n": 190, "relic_out": 173690.656644583, "relics": 12, "t": 780, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 10408.3, "xp_ground": 0.0, "xp_magnet": 1514.6, "xp_recall": 4571.1, "xp_total": 10408.3, "xp_walk": 4322.6}
+- mizuki_t5_s102 wall=44.9 {"allies": 2, "boss_hp": 0.935700416589993, "crates": 4, "dashes": 0, "drone": 0, "elite_stage": 2, "elites": 4, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 31, "kills": 520, "lamp": 0, "low_levelups": 0, "lv": 13, "maxhp": 131.625, "meta": 0, "recall_backstop": 0, "recall_n": 56, "relic_out": 0.0, "relics": 2, "t": 258, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 1866.3, "xp_ground": 205.4, "xp_magnet": 124.2, "xp_recall": 710.0, "xp_total": 1660.8, "xp_walk": 826.7}
+- mizuki_t10_s101 wall=34.0 {"allies": 2, "boss_hp": -1.0, "crates": 3, "dashes": 0, "drone": 0, "elite_stage": 1, "elites": 4, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 37, "kills": 399, "lamp": 0, "low_levelups": 0, "lv": 11, "maxhp": 131.625, "meta": 0, "recall_backstop": 0, "recall_n": 14, "relic_out": 0.0, "relics": 2, "t": 190, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 1237.5, "xp_ground": 195.5, "xp_magnet": 215.8, "xp_recall": 121.7, "xp_total": 1042.0, "xp_walk": 704.5}
+- mizuki_t10_s102 wall=149.8 {"allies": 2, "boss_hp": 0.463743278004634, "crates": 13, "dashes": 16, "drone": 0, "elite_stage": 2, "elites": 10, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 0, "kills": 1486, "lamp": 100, "low_levelups": 0, "lv": 24, "maxhp": 118.4625, "meta": 0, "recall_backstop": 0, "recall_n": 190, "relic_out": 252045490.608827, "relics": 8, "t": 780, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 8439.1, "xp_ground": 0.0, "xp_magnet": 800.4, "xp_recall": 4384.9, "xp_total": 8562.6, "xp_walk": 3253.8}
+- mizuki_t0_s103_nodeath wall=137.9 {"allies": 2, "boss_hp": 0.0799630318536755, "crates": 16, "dashes": 14, "drone": 0, "elite_stage": 2, "elites": 16, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 0, "kills": 1806, "lamp": 100, "low_levelups": 0, "lv": 27, "maxhp": 131.625, "meta": 0, "recall_backstop": 0, "recall_n": 162, "relic_out": 30049.0522344135, "relics": 14, "t": 780, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 11756.5, "xp_ground": 0.0, "xp_magnet": 2223.0, "xp_recall": 4417.2, "xp_total": 11756.5, "xp_walk": 5116.3}
+- mizuki_t5_s104_meta18 wall=69.7 {"allies": 2, "boss_hp": 0.994427535543693, "crates": 9, "dashes": 0, "drone": 0, "elite_stage": 2, "elites": 3, "ending": "standard", "floor_hits": 0, "heal_offer": 0, "heal_offer_low": 0, "heal_pick": 0, "ingots": 24, "kills": 855, "lamp": 0, "low_levelups": 2, "lv": 18, "maxhp": 131.625, "meta": 18, "recall_backstop": 0, "recall_n": 65, "relic_out": 0.0, "relics": 4, "t": 426, "tel": "full", "win": false, "xp_backstop": 0.0, "xp_dropped": 3690.1, "xp_ground": 318.9, "xp_magnet": 1110.3, "xp_recall": 865.3, "xp_total": 3371.3, "xp_walk": 1395.6}
+- wisadel_t0_s101 wall=121.2 {"allies": 2, "boss_hp": -0.00312640843064854, "crates": 13, "dashes": 3, "drone": 0, "elite_stage": 2, "elites": 22, "ending": "standard", "floor_hits": 0, "heal_off
