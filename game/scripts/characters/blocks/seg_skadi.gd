@@ -226,6 +226,8 @@ static func px_ul_on(o) -> bool:
 
 
 static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c := Vector2.INF) -> bool:
+	if b.get("px_ul", true) == false:   # 形状块写 "px_ul": false = 不接管这一下（同 src 同圆心同拍的重复判定，例：浊心斯卡蒂 trait「领唱」与普攻「声浪」；纯画面）
+		return false
 	var reg: Dictionary = o.g.vfx.px_ul_reg(str(o.id))
 	if reg.is_empty():
 		return false
