@@ -12,5 +12,8 @@
  "fx_suzuran_ul_wisp": {"fx": "fire/ak-suzuran-ul-wisp", "opts": {"seed": 7}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
  "fx_suzuran_ul_scorch": {"fx": "fire/ak-suzuran-ul-scorch", "opts": {"seed": 5}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
  "fx_suzuran_ul_trail": {"fx": "fire/ak-suzuran-ul-trail", "opts": {"seed": 3}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
- "fx_suzuran_ul_trail2": {"fx": "fire/ak-suzuran-ul-trail", "opts": {"seed": 8}, "colors": 256, "layers": true, "move": "basic"}
+ "fx_suzuran_ul_trail2": {"fx": "fire/ak-suzuran-ul-trail", "opts": {"seed": 8}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_bigfox": {"fx": "fire/ak-suzuran-ul-bigfox", "opts": {"seed": 9}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_muzzle_big": {"fx": "fire/ak-suzuran-ul-muzzle", "opts": {"big": 1, "seed": 2}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_hit": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 5}, "colors": 256, "lo": true, "layers": true, "move": "basic"}
 }

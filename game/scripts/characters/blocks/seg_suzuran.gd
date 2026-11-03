@@ -300,9 +300,11 @@ static func _h4_fire_big(o, a: Dictionary, from: Vector2, tg: Dictionary) -> voi
 	var d: Vector2 = (tg.pos + Vector2(0, -8) - from).normalized()
 	_h4sz(o).bigfox.append({"pos": from, "vel": d * float(mg.get("spd", 340.0)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * float(mg.get("mult", 2.2)) * o._dmg_bonus(),
 		"life": float(mg.get("life", 1.3)), "r": float(mg.get("r", 14.0)), "hit": {}, "trail": 0.0})
+	if _h4_px(o):   # 放开版：三火归一的出手 = 杖头爆火 muzzle_big（不画圆光团 / 扩散环，§14.7）
+		_h4_px_once(o, "fx_suzuran_ul_muzzle_big", from, d.angle())
+		return
 	o.fx({"kind": "glow", "pos": from, "r": 24.0, "life": 0.22, "col": H4_FOX, "alpha": 0.7})
-	if not _h4_px(o):   # 放开版：扩散环不画（§14.7）
-		o.fx({"kind": "ring", "pos": from, "r": 30.0, "r0": 6.0, "life": 0.25, "col": H4_FOX, "w": 2.0})
+	o.fx({"kind": "ring", "pos": from, "r": 30.0, "r0": 6.0, "life": 0.25, "col": H4_FOX, "w": 2.0})
 
 
 static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
@@ -398,7 +400,9 @@ static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 			o.deal_damage(e, f.dmg * (o.vs_elite() if e.elite or e.boss else 1.0))
 			if not e.dead:
 				o.add_cc(e, -INF, 1.0, "stop")
-			if not _h4_px(o):   # 放开版：扩散环和往外甩的火星不画（§14.7）
+			if _h4_px(o):   # 放开版：贯穿命中 = 狐火命中 E2 帧条（火舌朝上，只按飞行方向左右翻；不画扩散环和外甩火星，§14.7）
+				_h4_px_once(o, "fx_suzuran_ul_hit", e.pos + Vector2(0, -float(e.r) * 0.5), 0.0, f.vel.x < 0.0)
+			else:
 				o.fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": H4_FOX, "w": 2.5})
 				_h3_vsparks(o, e.pos, H4_FOX, 4, 180.0, 0.3, 2.5)
 			_h4_fox_hit(o, a, e)   # 精英化第 4 批（狐火灼印）的挂点
@@ -624,6 +628,17 @@ static func _h4_px_loop(o, base: String, p: Vector2, sc: float, ph: float, al: f
 		fx_frame(o.cv, g, nm, int(fr[0]), int((g.t + ph) * float(fr[1])), p, g.PX * sc, Color(1, 1, 1, al * (dk if layer == "deco" else 1.0)))
 
 
+## 放开版一次性帧条：先装饰（× px_deco_k）后核心，ang = 朝向（帧条正右为前），flip = 左右翻
+static func _h4_px_once(o, base: String, p: Vector2, ang := 0.0, flip := false) -> void:
+	var g = o.g
+	var el: int = g.vfx.px_ul_el(o)
+	var dk: float = g.vfx.px_deco_k(o)
+	var dn: String = g.vfx.px_ul_tex(base, 1, not o.is_leader, "deco", el)
+	if dn != "" and dk > 0.0:
+		g.vfx.fx_sprite(dn, p, g.PX, ang, flip, false, Color(1, 1, 1, dk))
+	g.vfx.fx_sprite(g.vfx.px_ul_tex(base, 1, not o.is_leader, "core", el), p, g.PX, ang, flip)
+
+
 ## 精二狐火拖尾（放开版）：每处路火按剩余寿命取帧（一次性帧条 trail / trail2 按点序轮换），点序决定翻转与 0.85–1.15 缩放，连起来不成等距相同的一串
 static func _h4_px_trails(o, sz: Dictionary) -> void:
 	if sz.trails.is_empty():
@@ -784,7 +799,9 @@ static func _h4sz_draw_over(o) -> void:
 			continue
 		_h4_flame(o, p, 13.0, 1.0)
 		cv.draw_circle(p + Vector2(0, -4), 2.5, Color(2.6, 2.4, 1.8, 0.95))
-	if conv > 0.5:
+	if conv > 0.5 and _h4_px(o):   # 放开版：三火归一汇聚 = 杖头一簇小狐火随收拢长大（不画圆光团）
+		_h4_px_loop(o, "fx_suzuran_ul_wisp", c + Vector2(0, 2), lerpf(1.0, 1.8, (conv - 0.5) * 2.0), 0.0, conv)
+	elif conv > 0.5:
 		var hh: float = lerpf(10.0, 22.0, (conv - 0.5) * 2.0)
 		cv.draw_circle(c + Vector2(0, -hh * 0.4), hh * 0.7, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.3 * conv))
 		_h4_flame(o, c, hh, conv)
@@ -799,6 +816,12 @@ static func _h4sz_draw_over(o) -> void:
 		_h4_flame(o, fp, 15.0, fa)
 		cv.draw_circle(fp + Vector2(0, -3), 2.5, Color(2.6, 2.4, 1.8, 0.9 * fa))
 	for f in sz.bigfox:
+		if _h4_px(o):   # 放开版：大狐火 = 狐首形火 bigfox 帧条（不画圆光团）
+			for layer in ["deco", "core"]:
+				var bn: String = g.vfx.px_ul_tex("fx_suzuran_ul_bigfox", 1, not o.is_leader, layer, g.vfx.px_ul_el(o))
+				if bn != "" and g.V6_FRAMES.has(bn) and (layer == "core" or g.vfx.px_deco_k(o) > 0.0):
+					fx_frame(cv, g, bn, int(g.V6_FRAMES[bn][0]), int(g.t * float(g.V6_FRAMES[bn][1])), f.pos, g.PX, Color(1, 1, 1, g.vfx.px_deco_k(o) if layer == "deco" else 1.0), Vector2(-1, -1), f.vel.angle())
+			continue
 		cv.draw_circle(f.pos, 24.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
 		cv.draw_circle(f.pos, 14.0, Color(2.0, 1.6, 0.8, 0.45))
 		if o._fx_strip("proj_suzuran_bigfox", 4, int(g.t * 10.0), f.pos, Vector2(0.5, 0.5), f.vel.angle()):
