@@ -2,7 +2,7 @@
 // span 选弧长：2.8（普攻 160°）/ 3.5（迅捷打击 200°）/ 6.28（涌潮悲歌全方向）；heavy = 跃浪击。
 // v3（11-03 用户定）：
 //   变细用 A（PX 2 不变）：刀身薄、颗粒小而多、外缘 1 格亮线（白只在白热窗口里）。
-//   move 各有主形：basic 单月牙（克制）/ s1 多段斩痕 + 朝前疾流（不画月牙）/ s2 斩击弧上立起水幕、往前卷倒拍落成飞溅 + 拉长积水（不是圆）/ s3 全方向 + 浪墙。
+//   move 各有主形：basic 单月牙（克制）/ s1 快速连斩：2–3 道正反手交替的大剑斩弧（间隔约 0.05 s，带纤维拖尾纹理、剑身残影、成团水花；11-03 用户嫌斩痕版抽象）/ s2 斩击弧上立起水幕、往前卷倒拍落成飞溅 + 拉长积水（不是圆）/ s3 全方向 + 浪墙。
 //   elite 拉开到不看 HUD 能分：E0 只有主形；E1 加内弧回声 + 浪尖白沫带；E2 再加二次浪峰（海绿色重点）+ 潮刃（docs/91 精二「涌潮」），S3 加水柱、S2 浪体更大。
 // The crescent / echo / trace recipe is adapted from Sprite Fusion's open-source slash
 // (https://www.spritefusion.com/pixel-art-vfx/slash), MIT License, Copyright (c) 2026 Hugo Duprez.
@@ -10,7 +10,7 @@ import { Particles, Lights, P, Rng, fit, sparkle, clamp, smooth, ease, TAU, nois
 
 export const meta = {
   name: "Skadi slash unleashed",
-  desc: "Top-down greatsword strikes: a lean deep-sea crescent for basics, staggered cuts and forward jets, a rising water curtain that topples and splashes, a broken wave wall all around.",
+  desc: "Top-down greatsword strikes: a lean deep-sea crescent for basics, a fast two-to-three-swing combo with blade afterimages, a rising water curtain that topples and splashes, a broken wave wall all around.",
   tags: ["melee", "slash", "greatsword", "water", "topdown", "one-shot"],
   size: [260, 260],
   origin: [130, 130],
@@ -33,13 +33,13 @@ export const meta = {
   },
 };
 
-const onArc = (s, r, a) => [Math.cos(a) * r, Math.sin(a) * r];
+const onArc = (s, r, a) => [(s.ox || 0) + Math.cos(a) * r, (s.oy || 0) + Math.sin(a) * r];   // ox / oy：弧心偏移（S1 连斩每刀不同）
 
 function crescent(p, s, ta, L, W, age, hot, core, deco) {
   if (Math.abs(L) < 0.02 || W < 0.3) return;
-  const R = s.ramp, n = R.length, dir = Math.sign(L), span = Math.abs(L), B = s.R + 4;
-  if (core) p.shade(-B, -B, B, B, (x, y, out) => {
-    const r = Math.hypot(x, y), ang = Math.atan2(y, x);
+  const R = s.ramp, n = R.length, dir = Math.sign(L), span = Math.abs(L), B = s.R + 4, ox = s.ox || 0, oy = s.oy || 0;
+  if (core) p.shade(ox - B, oy - B, ox + B, oy + B, (x, y, out) => {
+    const r = Math.hypot(x - ox, y - oy), ang = Math.atan2(y - oy, x - ox);
     const jag = 2.6 * noise(ang * 8, s.seed) + 1.4 * noise(ang * 21, s.seed + 7);
     const Rr = s.R + jag * (0.5 + age * 1.5);
     if (r > Rr + 0.5 || r < s.R - W - 2) return;
@@ -55,30 +55,14 @@ function crescent(p, s, ta, L, W, age, hot, core, deco) {
       out.a = 1;
       return;
     }
-    const ci = q < 0.2 && age < 0.5 ? 0 : Math.round(q * (n - 1) * 0.75 + age * 2.8 - v * 1.1 + 0.3 - hot);
+    let ci = q < 0.2 && age < 0.5 ? 0 : Math.round(q * (n - 1) * 0.75 + age * 2.8 - v * 1.1 + 0.3 - hot);
+    if (s.streak && ci > 0) ci += Math.round(1.3 * noise(r * 1.15, s.seed + 101));   // 纤维拖尾纹理：沿弧方向的细纹（借原作普攻刀光 trail_46 的竖纹）
     out.c = R[n - 1 - clamp(ci, s.minI || 0, n - 1)];
     out.a = q > 0.8 ? 0.7 : 1;   // 刀身内沿半透明
   });
   if (deco) for (let u = 0; u <= span; u += 0.18) {   // 刀身光晕归装饰层
     const [x, y] = onArc(s, s.R - W * 0.4, ta + dir * u);
     p.glow(x, y, 10 + W, R[n - 3], (0.28 * (1 - age) * (u / span) + 0.04 * hot) * s.GK);
-  }
-}
-
-// 细长斩痕（S1 多段斩）：两端尖、中间宽的透镜形，从 a 端划到 b 端，头亮尾暗
-function cut(p, C, c, t) {
-  const u = t - c.t0;
-  if (u < 0 || u > c.life) return;
-  const head = ease.outExpo(clamp(u / 0.05)), tail = smooth(0.06, c.life, u);
-  const dx = c.x1 - c.x0, dy = c.y1 - c.y0, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
-  for (let d = tail * L; d < head * L; d += 0.5) {
-    const v = d / L, w = c.w * Math.pow(Math.sin(Math.PI * v), 0.6) * (1 - 0.6 * tail);
-    const x = c.x0 + dx * v, y = c.y0 + dy * v;
-    for (let s = -w; s <= w; s += 0.5) {
-      const q = Math.abs(s) / Math.max(0.5, w);
-      const ci = u < 0.05 && q < 0.35 ? 7 : clamp(Math.round(6.4 - q * 2.6 - u * 7 + (1 - v) * 0.6), 2, 6);
-      p.px(x + nx * s, y + ny * s, C[ci]);
-    }
   }
 }
 
@@ -98,24 +82,26 @@ export function create(o) {
   const E = { seed: o.seed + 9, R: R0 * 0.72, W: W * 0.4, ramp: C.slice(0, 7), GK, edge: false };
   let t = 0.02, passed = 0, landed = false, crashed = false;
   const tip = onArc(A, A.R - A.W * 0.3, a1);
-  const arcOn = mv !== "s1";   // S1 不画月牙，主形是斩痕
+  const arcOn = mv !== "s1";   // S1 不画单月牙，主形是连斩
 
-  // ---- S1：多段斩痕（时间、角度、长短都错开）+ 朝前疾流
-  const cuts = [], jets = [];
+  // ---- S1：快速连斩。2–3 道大剑斩弧，正反手交替、中心角 / 弧长 / 半径各不同，前后间隔约 0.05 s
+  const sls = [];
   if (mv === "s1") {
-    const n = el === 0 ? 2 : 3;
+    const sg = Rg.chance(0.5) ? 1 : -1, n = el === 0 ? 2 : 3, cs = [Rg.range(-0.15, 0.15), Rg.range(0.6, 0.85) * sg, -Rg.range(0.55, 0.8) * sg];   // 三刀分别落在正前、左前、右前
+    let dir = Rg.chance(0.5) ? 1 : -1;
     for (let i = 0; i < n; i++) {
-      const phi = Rg.range(-0.75, 0.75), rr = R0 * Rg.range(0.42, 0.78), hl = Math.sqrt(R0 * R0 - rr * rr) * Rg.range(0.88, 0.98);
-      const cx = Math.cos(phi) * rr, cy = Math.sin(phi) * rr, tx = -Math.sin(phi), ty = Math.cos(phi), sk = Rg.range(-0.35, 0.35);
-      const s1 = Rg.chance(0.5) ? 1 : -1;
-      cuts.push({ x0: cx - (tx + sk * Math.cos(phi)) * hl * s1, y0: cy - (ty + sk * Math.sin(phi)) * hl * s1, x1: cx + (tx + sk * Math.cos(phi)) * hl * s1, y1: cy + (ty + sk * Math.sin(phi)) * hl * s1,
-        w: W * Rg.range(0.75, 1.0), t0: i * 0.06 + Rg.range(0, 0.025), life: 0.28 * (0.6 + 0.4 * DL) });
-    }
-    for (let i = 0, m = el === 0 ? 2 : el === 1 ? 3 : 5; i < m; i++) {
-      const y = Rg.range(-0.55, 0.55) * R0, x = Rg.range(0.15, 0.4) * R0;
-      jets.push({ x, y, a: Rg.range(-0.12, 0.12) + y / R0 * 0.25, L: R0 * Rg.range(0.45, 0.85) * (el === 2 ? 1.15 : 1), w: Rg.range(1, 1.8), t0: Rg.range(0.03, 0.16) });
+      // 每刀弧心各自偏一点（前后 / 左右），半径不同：几道弧互相交叉，不叠成一道、也不排成同心圈；外缘不出判定半径
+      const oa = Rg.range(-Math.PI, Math.PI), od = R0 * Rg.range(0.06, 0.2), ox = Math.cos(oa) * od, oy = Math.sin(oa) * od;
+      const R = (R0 - od) * [Rg.range(0.9, 1.0), Rg.range(0.66, 0.76), Rg.range(0.8, 0.88)][i], sp = Rg.range(1.1, 1.6) * (i ? 0.92 : 1);
+      sls.push({ c: cs[i], sp, dir, t0: i * 0.05 + Rg.range(0, 0.012), last: i === n - 1,
+        S: { seed: o.seed + 13 * i, R, W: W * Rg.range(0.72, 0.9), ramp: C, GK, edge: fine, streak: true, ox, oy },
+        ghosts: el === 0 ? [] : el === 1 ? [Rg.range(0.2, 0.28)] : [Rg.range(0.16, 0.22), Rg.range(0.36, 0.46)],   // 剑身残影落后的角度（不等距；E0 不画）
+        clumps: [] });
+      dir = -dir;
     }
   }
+  const SWS = 0.05;   // 连斩每刀的挥砍时长（比普攻快）
+  const slHead = (sl, u) => sl.c - sl.dir * sl.sp / 2 + sl.dir * sl.sp * ease.outExpo(clamp(u / SWS));
   // ---- S2：斩击弧上立起的水幕（各列高度起伏），往前卷倒拍落
   const S2H = R0 * [0.55, 0.7, 0.9][el], S2A = [0.5, 0.65, 0.85][el];
   const curtain = (a, k) => S2H * k * (0.55 + 0.45 * noise(a * 4, o.seed + 61) + 0.2 * noise(a * 11, o.seed + 67)) * Math.pow(Math.cos(clamp(a / S2A, -1, 1) * Math.PI / 2), 0.7);
@@ -153,10 +139,25 @@ export function create(o) {
         if (deco && Rg.chance(0.3)) ps.spawn(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
         passed += (full ? 0.025 : 0.035) * Rg.range(0.4, 1.8) / (fine ? 1.4 : 1);   // 步长随机：等距撒会排成等距放射纹
       }
-      if (mv === "s1") for (const c of cuts) if (!c.sp && t >= c.t0 + 0.04) {   // 每道斩痕划完沿刀路甩水
-        c.sp = true;
-        const L = Math.hypot(c.x1 - c.x0, c.y1 - c.y0), nx = -(c.y1 - c.y0) / L, ny = (c.x1 - c.x0) / L;
-        for (let v = Rg.range(0.1, 0.2); v < 0.9; v += Rg.range(0.1, 0.25)) spray(c.x0 + (c.x1 - c.x0) * v, c.y0 + (c.y1 - c.y0) * v, nx * (Rg.chance(0.5) ? 1 : -1), ny, Math.round(2 * PM), 160, 0.45 * LQ);
+      if (mv === "s1") for (const sl of sls) {   // 连斩甩水：挥砍途中沿外缘顺挥剑方向甩；挥到底炸出成团水花
+        const u = t - sl.t0;
+        if (u < 0) continue;
+        if (u < SWS + dt) {
+          const a = slHead(sl, u), tx = -Math.sin(a) * sl.dir, ty = Math.cos(a) * sl.dir, [x, y] = onArc(sl.S, sl.S.R + Rg.range(-2, 2), a);
+          for (let k = 0, m = Math.round(2 * PM); k < m; k++) {   // 三刀叠起来颗粒很密，每刀每帧少甩一点（颗粒光晕叠多了会过「持续白」）
+            const v = Rg.range(120, 280);
+            ps.spawn(k % 4 ? P.MOTE : P.SPARK, x, y, (tx * 0.85 + Math.cos(a) * 0.5) * v, (ty * 0.85 + Math.sin(a) * 0.5) * v, Rg.range(0.25, 0.5) * (0.6 + 0.4 * DL), C[Rg.chance(0.25) ? 7 : 6], Rg.range(0.7, 1.2) * SZ);   // 冰蓝为主、纯白少（连斩颗粒密，纯白多了过「持续白」）
+          }
+        }
+        if (!sl.done && u >= SWS) {
+          sl.done = true;
+          const ae = sl.c + sl.dir * sl.sp / 2;
+          for (let i = 0, m = el === 0 ? 2 : 3; i < m; i++) {
+            const a = ae - sl.dir * Rg.range(0, 0.5), [x, y] = onArc(sl.S, sl.S.R + Rg.range(0, 5), a), b = [];
+            for (let j = 0, q = Rg.int(3, 6); j < q; j++) b.push([Rg.range(-4, 4), Rg.range(-4, 4), Rg.range(1, 2.4) * SZ / 0.6 * 0.8, Rg.chance(0.3) ? 1 : 0]);
+            sl.clumps.push({ x, y, vx: (-Math.sin(a) * sl.dir * 0.7 + Math.cos(a) * 0.4) * 60, vy: (Math.cos(a) * sl.dir * 0.7 + Math.sin(a) * 0.4) * 60, t0: t, b });
+          }
+        }
       }
       if (!landed && t >= SW) {
         landed = true;
@@ -213,22 +214,49 @@ export function create(o) {
     draw(p) {
       if (arcOn && el >= 1 && !full) drawArc(p, E, 0.025, 0.04 * DL, 0.3 * DL);   // E1+ 内弧回声（全方向不画：两道同心圈是被否的形状）
       if (arcOn) drawArc(p, A, 0, 0.07, 0.4 * (0.6 + 0.4 * DL));
-      if (core && mv === "s1") {
-        for (const c of cuts) cut(p, C, c, t);
-      }
-      if (deco && mv === "s1") for (const c of cuts) {   // 斩痕光晕（装饰层）
-        const u = t - c.t0;
-        if (u < 0 || u > c.life) continue;
-        for (let v = 0.15; v < 0.9; v += 0.15) p.glow(c.x0 + (c.x1 - c.x0) * v, c.y0 + (c.y1 - c.y0) * v, 12 + c.w, C[5], 0.3 * GK * (1 - u / c.life));
-      }
-      if (core && mv === "s1") {
-        for (const j of jets) {   // 疾流：朝前射出、头亮尾暗的细水线
-          const u = t - j.t0;
-          if (u < 0 || u > 0.3) continue;
-          const L = j.L * ease.outExpo(clamp(u / 0.07)), tl = j.L * smooth(0.06, 0.3, u), dx = Math.cos(j.a), dy = Math.sin(j.a);
-          for (let d = tl; d < L; d += 0.5) {
-            const v = d / j.L;
-            for (let w = -j.w / 2; w <= j.w / 2; w += 0.5) p.px(j.x + dx * d - dy * w, j.y + dy * d + dx * w, C[clamp(Math.round(6.5 - (1 - v) * 2.5 - u * 6), 3, 6)]);
+      if (mv === "s1") for (const sl of sls) {   // 连斩：斩弧 + 剑身残影 + 成团水花
+        const u = t - sl.t0;
+        if (u < 0) continue;
+        const ta0 = sl.c - sl.dir * sl.sp / 2, head = ease.outExpo(clamp(u / SWS)), trail = 0.22 * (0.6 + 0.4 * DL);
+        const tail = smooth(SWS + 0.03, SWS + 0.03 + trail, u), age = clamp(u / (SWS + 0.03 + trail));
+        const hot = u < 0.05 ? (sl === sls[0] ? HOT : 1.0) : 0;   // 只有第一刀白热（三刀连着白会过「持续白」）
+        if (tail < 1) crescent(p, sl.S, ta0 + sl.dir * sl.sp * tail, sl.dir * sl.sp * (head - tail), sl.S.W * (1 - tail * 0.5), age, hot, core, deco);
+        if (core && u < SWS + 0.07) for (let gi = 0; gi < sl.ghosts.length; gi++) {   // 剑身残影：挥砍头后面一两把淡淡的大剑轮廓
+          const ga = slHead(sl, u) - sl.dir * sl.ghosts[gi], k = (1 - clamp(u / (SWS + 0.07))) * (gi ? 0.45 : 0.75);
+          if (Math.abs(ga - ta0) > sl.sp || k <= 0.02) continue;
+          const cx = Math.cos(ga), cy = Math.sin(ga), nx = -cy, ny = cx, ox = sl.S.ox, oy = sl.S.oy, r0 = sl.S.R * 0.32, r1 = sl.S.R * 0.98;
+          for (let s2 = -6; s2 <= 6; s2 += 0.6) p.disc(ox + cx * r0 + nx * s2, oy + cy * r0 + ny * s2, 1, C[6], k);   // 护手横杠
+          for (let r = r0 + 1.5; r < r1; r += 0.7) {   // 剑身：两条亮边 + 淡芯，剑尖收拢（只画外半截，不从圆心拉线）
+            const v = (r - r0) / (r1 - r0), w = 3.6 * (1 - Math.pow(v, 3)) + 0.4;
+            p.disc(ox + cx * r + nx * w, oy + cy * r + ny * w, 0.6, C[6], k);
+            p.disc(ox + cx * r - nx * w, oy + cy * r - ny * w, 0.6, C[6], k);
+            if (w > 1.2) p.disc(ox + cx * r, oy + cy * r, w - 0.6, C[4], k * 0.6);
+          }
+        }
+        if (core && sl === sls[0] && u < 0.04) {   // 起手剑身一闪（借原作 trail_08 的细长闪光）
+          const cx = Math.cos(ta0), cy = Math.sin(ta0);
+          for (let r = sl.S.R * 0.5; r < sl.S.R; r += 0.6) p.px(sl.S.ox + cx * r, sl.S.oy + cy * r, C[7]);
+        }
+        if (core) for (const cl of sl.clumps) {   // 成团水花（借原作 water_08 的卷曲水团）：挥到底处炸出几团，慢慢散
+          const v = t - cl.t0;
+          if (v < 0 || v > 0.22 * (0.6 + 0.4 * DL)) continue;
+          const k = 1 - v / (0.22 * (0.6 + 0.4 * DL));
+          for (const b of cl.b) p.disc(cl.x + b[0] + cl.vx * v, cl.y + b[1] + cl.vy * v, b[2] * (0.5 + 0.5 * k), b[3] && el >= 2 ? ACC : C[b[3] ? 7 : 6], 0.95 * k);
+        }
+        if (core && el >= 2 && sl.last && u > SWS) {   // E2 潮刃：最后一刀甩出一道薄新月往外飞（docs/91 精二「涌潮」）
+          const w = u - SWS, d = 64 * ease.outCubic(clamp(w / 0.3)), k = 1 - smooth(0.12, 0.32, w);
+          if (k > 0) {
+            const TB = { seed: o.seed + 31, R: sl.S.R + d, W: Math.max(2, sl.S.W * 0.5) * k, ramp: C, GK, edge: false, minI: 1, ox: sl.S.ox, oy: sl.S.oy };
+            crescent(p, TB, sl.c - sl.dir * sl.sp * 0.3, sl.dir * sl.sp * 0.6, TB.W, 0.15 + 0.5 * (1 - k), 0, true, false);
+          }
+        }
+        if (core && el >= 1 && u > SWS * 0.8 && u < 0.4) {   // E1+ 每刀外缘白沫（断续）
+          const k = 1 - smooth(0.15, 0.4, u);
+          for (let a = 0; a < sl.sp * head; a += 0.6 / sl.S.R) {
+            const n = noise(a * 8, sl.S.seed + 51) + 0.5 * noise(a * 21, sl.S.seed + 53);
+            if (n < 0) continue;
+            const th = (0.8 + 1.4 * clamp(n)) * k, aa = ta0 + sl.dir * a;
+            for (let d = 0; d < th; d += 0.6) p.px(sl.S.ox + Math.cos(aa) * (sl.S.R + 1 + d), sl.S.oy + Math.sin(aa) * (sl.S.R + 1 + d), C[6]);
           }
         }
       }
