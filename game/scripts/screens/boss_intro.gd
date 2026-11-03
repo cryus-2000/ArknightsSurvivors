@@ -340,7 +340,7 @@ func _draw_top() -> void:
 			fh = int(crop.size.y)
 			src = Rect2(crop.position, crop.size)
 		else:
-			fw = ptx.get_width() / 2
+			fw = ptx.get_width() / maxi(1, A.enemy_frames(str(card.portrait), 2))   # 第 0 帧：帧数按 enemy_redraw 登记（原来写死 2 帧，6 帧条会取到前 3 帧）
 			fh = ptx.get_height()
 			src = Rect2(0, 0, fw, fh)
 		var sc: float = minf(84.0 / float(fh), 84.0 / float(fw))
