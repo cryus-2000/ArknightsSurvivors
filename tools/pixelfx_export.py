@@ -20,7 +20,8 @@ OUT = os.path.join(ROOT, "game", "art", "fx")
 
 # 导出目标：tools/pixelfx_fx/targets_*.json（每个并行会话一份，互不改别人的文件，docs/229 §9）。
 # 每条：游戏贴图名 → {"fx": 特效 id, "opts": 选项, "hires": 是否 @2x, "keep": 是否保留原画布（枪口这类原点不居中）, "colors": 色数（缺省 32）,
-#        "lo": 另出网页低档 <名>_lo（15 fps 按时间就近抽帧，同画布 / 原点；只给队长版第一个种子，docs/242 §6）}
+#        "lo": 另出网页低档 <名>_lo（15 fps 按时间就近抽帧，同画布 / 原点；只给队长版第一个种子，docs/242 §6）,
+#        "layers": 分核心 / 装饰两层，出 <名> 和 <名>_deco（特效源码要认 o.layer = "core" / "deco"，docs/242 §8）}
 def load_targets():
     t = {}
     for f in sorted(os.listdir(SRC)):
@@ -44,9 +45,8 @@ def install(lib):
                 shutil.copy2(os.path.join(SRC, cat, f), os.path.join(lib, "src", "fx", cat, f))
 
 
-def export(lib, name, spec, tmp, dry):
-    fx_id, opts, hires, keep = spec["fx"], spec.get("opts", {}), spec.get("hires", False), spec.get("keep", False)
-    out = os.path.join(tmp, name)
+def render(lib, fx_id, opts, out):
+    """用库的 render.mjs --sheet 渲一遍，返回 (逐帧 RGBA 列表, pixelfx 元数据)"""
     r = subprocess.run(["node", "tools/render.mjs", fx_id, "--sheet", "--opts", json.dumps(opts), "--out", out],
                        cwd=lib, capture_output=True, text=True)
     if r.returncode:
@@ -54,45 +54,58 @@ def export(lib, name, spec, tmp, dry):
     base = fx_id.split("/")[1]
     meta = json.load(open(os.path.join(out, fx_id, base + ".json")))
     sheet = Image.open(os.path.join(out, fx_id, base + ".png")).convert("RGBA")
-    px = meta["meta"]["pixelfx"]
     frames = [sheet.crop((f["frame"]["x"], f["frame"]["y"], f["frame"]["x"] + f["frame"]["w"], f["frame"]["y"] + f["frame"]["h"])) for f in meta["frames"]]
+    return frames, meta["meta"]["pixelfx"]
+
+
+def save_strip(frames, box, path, colors, dry):
+    w, h = box[2] - box[0], box[3] - box[1]
+    strip = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
+    for i, f in enumerate(frames):
+        strip.paste(f.crop(box), (i * w, 0))
+    if not dry:
+        strip.quantize(colors=colors, method=Image.Quantize.FASTOCTREE).save(path, optimize=True)   # 调色板 PNG（比 RGBA 小约 2.5 倍）
+    return os.path.getsize(path) if not dry else 0
+
+
+def export(lib, name, spec, tmp, dry):
+    fx_id, opts, hires, keep = spec["fx"], spec.get("opts", {}), spec.get("hires", False), spec.get("keep", False)
+    colors = int(spec.get("colors", 32))
+    # 分层（docs/242 §8）：同一特效按 layer = core / deco 各渲一遍（同种子、同模拟，只是画的图元不同），两层共用裁边框和帧数，逐帧对齐
+    layers = [("", dict(opts, layer="core")), ("_deco", dict(opts, layer="deco"))] if spec.get("layers") else [("", opts)]
+    sets = []
+    for suf, o in layers:
+        fr, px = render(lib, fx_id, o, os.path.join(tmp, name + suf))
+        sets.append((suf, fr))
     alpha = lambda im: im.getchannel("A").point(lambda a: 255 if a > 10 else 0)
-    while frames and alpha(frames[-1]).getbbox() is None:
-        frames.pop()
+    n = max(len(fr) for _, fr in sets)
+    while n > 1 and all(alpha(fr[n - 1]).getbbox() is None for _, fr in sets):   # 末尾全空帧（两层都空才去）
+        n -= 1
+    sets = [(suf, fr[:n]) for suf, fr in sets]
     fw, fh = px["frameSize"]
     if keep:
         box = (0, 0, fw, fh)
     else:
         ox, oy = px["pivot"]
         x0, y0, x1, y1 = fw, fh, 0, 0
-        for f in frames:
-            b = alpha(f).getbbox()
-            if b:
-                x0, y0, x1, y1 = min(x0, b[0]), min(y0, b[1]), max(x1, b[2]), max(y1, b[3])
+        for _, fr in sets:
+            for f in fr:
+                bb = alpha(f).getbbox()
+                if bb:
+                    x0, y0, x1, y1 = min(x0, bb[0]), min(y0, bb[1]), max(x1, bb[2]), max(y1, bb[3])
         hw, hh = max(ox - x0, x1 - ox), max(oy - y0, y1 - oy)   # 以原点为中心对称
         box = (ox - hw, oy - hh, ox + hw, oy + hh)
     w, h = box[2] - box[0], box[3] - box[1]
-    strip = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
-    for i, f in enumerate(frames):
-        strip.paste(f.crop(box), (i * w, 0))
-    if spec.get("lo"):   # 网页低档（docs/242 §6）：同画布 / 原点，按 15 fps 按时间就近抽帧，余韵时长不变
-        fps0 = float(px["fps"])
-        m = max(1, round(len(frames) * 15.0 / fps0))
-        lo = [frames[min(len(frames) - 1, round(i * fps0 / 15.0))] for i in range(m)]
-        ls = Image.new("RGBA", (w * m, h), (0, 0, 0, 0))
-        for i, f in enumerate(lo):
-            ls.paste(f.crop(box), (i * w, 0))
-        lq = ls.quantize(colors=int(spec.get("colors", 32)), method=Image.Quantize.FASTOCTREE)
-        lpath = os.path.join(OUT, name + "_lo" + ("@2x" if hires else "") + ".png")
-        if not dry:
-            lq.save(lpath, optimize=True)
-        print('"%s_lo": [%d, 15.0],   # 网页低档 %.1f KB' % (name, m, (os.path.getsize(lpath) if not dry else 0) / 1024))
-    q = strip.quantize(colors=int(spec.get("colors", 32)), method=Image.Quantize.FASTOCTREE)   # 存调色板 PNG（比转回 RGBA 小约 2.5 倍）
-    path = os.path.join(OUT, name + ("@2x" if hires else "") + ".png")
-    if not dry:
-        q.save(path, optimize=True)
-    size = os.path.getsize(path) if not dry else 0
-    print('"%s": [%d, %.1f],   # %dx%d × %d 帧，%.1f KB，显存 %.0f KB' % (name, len(frames), px["fps"], w, h, len(frames), size / 1024, w * len(frames) * h * 4 / 1024))
+    hx = "@2x" if hires else ""
+    for suf, fr in sets:
+        size = save_strip(fr, box, os.path.join(OUT, name + suf + hx + ".png"), colors, dry)
+        print('"%s%s": [%d, %.1f],   # %dx%d × %d 帧，%.1f KB，显存 %.0f KB' % (name, suf, n, px["fps"], w, h, n, size / 1024, w * n * h * 4 / 1024))
+        if spec.get("lo"):   # 网页低档（docs/242 §6）：同画布 / 原点，按 15 fps 按时间就近抽帧，余韵时长不变；deco 同样出 _lo
+            fps0 = float(px["fps"])
+            m = max(1, round(n * 15.0 / fps0))
+            lo = [fr[min(n - 1, round(i * fps0 / 15.0))] for i in range(m)]
+            ls = save_strip(lo, box, os.path.join(OUT, name + suf + "_lo" + hx + ".png"), colors, dry)
+            print('"%s%s_lo": [%d, 15.0],   # 网页低档 %.1f KB' % (name, suf, m, ls / 1024))
 
 
 def main():

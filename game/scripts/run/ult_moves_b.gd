@@ -219,7 +219,7 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			_hit(u, a, o, e, Bal.v("ult/sd_slash", 0.3), {"src": "下劈", "edge": e.pos.distance_to(sc) > 210.0 * (1.0 - _edge_w())})
 		u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color(0.78, 0.86, 0.94) if _sd_v2(u) else Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3 if not _sd_v2(u) else 0.2})
 		if _sd_ul(u) and u.fx_ready("fx_skadi_ul_cleave"):
-			u.strip(u.g.vfx.px_ul_tex("fx_skadi_ul_cleave", 1, false), o0, {"ang": d.angle(), "sc": 1.35, "sy": 1.0 if PF.h(PF.vseed(u, o0)) < 0.5 else -1.0})
+			_sd_ul_strip2(u, u.g.vfx.px_ul_tex("fx_skadi_ul_cleave", 1, false), o0, {"ang": d.angle(), "sc": 1.35, "sy": 1.0 if PF.h(PF.vseed(u, o0)) < 0.5 else -1.0})
 		if _sd_v5(u):
 			u.g.vfx.stop(Bal.v("ult/sd_cut_stop", 0.06), "ult", true)   # 劈下那一下顿住
 			PF.particles(u, o0 + d * 120.0, 300, "ult_burst", [col, col.darkened(0.3)], 0.0, PF.vseed(u, o0), 220.0)
@@ -362,6 +362,23 @@ const SD_BLAST := ["fx_sd_blast1", "fx_sd_blast2", "fx_sd_blast3", "fx_sd_blast4
 ## 劈下那一刻叠一道 pixelfx 重劈；判定 / 时序 / 随机数不动（挑变体用 PF.pick 的 vseed）
 const SD_UL := ["fx_skadi_ul_geyser1", "fx_skadi_ul_geyser2", "fx_skadi_ul_geyser3"]
 const SD_UL_FOOT := Vector2(90.0, 200.0)   # 水柱帧（180×240，保留原画布）里脚底的位置
+
+
+## 装饰层名（docs/242 §8）：核心名 + _deco（在 _lo 之前）；缺图返回 ""
+static func _sd_ul_deco(u, core: String) -> String:
+	var d: String = core.trim_suffix("_lo") + "_deco" + ("_lo" if core.ends_with("_lo") else "")
+	return d if u.fx_ready(d) else ""
+
+
+## 先装饰（透明度 × fx/px_deco_k）后核心
+static func _sd_ul_strip2(u, core: String, c: Vector2, opt: Dictionary) -> void:
+	var d: String = _sd_ul_deco(u, core)
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		u.strip(d, c, od)
+	u.strip(core, c, opt)
 
 
 static func _sd_ul_pick(u, x: float) -> String:   # 网页低档只有 geyser1_lo（docs/242 §6）
@@ -544,7 +561,7 @@ static func _sd_clen(a: Dictionary) -> float:
 static func _sd_spout(u, p: Vector2, w1: float, dl: float, sd: float, col: Color, mist := false) -> void:
 	var foam: Color = col.lerp(Color.WHITE, 0.6)
 	if _sd_ul(u):
-		u.strip(_sd_ul_pick(u, sd * 0.29), p, {"o": SD_UL_FOOT, "sc": clampf(w1 / 150.0, 0.8, 1.7), "sx": -1.0 if PF.h(sd * 7.0) < 0.5 else 1.0, "delay": dl})
+		_sd_ul_strip2(u, _sd_ul_pick(u, sd * 0.29), p, {"o": SD_UL_FOOT, "sc": clampf(w1 / 150.0, 0.8, 1.7), "sx": -1.0 if PF.h(sd * 7.0) < 0.5 else 1.0, "delay": dl})
 	else:
 		var nm := PF.pick(u, SD_BLAST, sd * 0.29)
 		var t: Texture2D = u._strip_tex(nm)
@@ -689,7 +706,7 @@ static func _sd_blast_v3(u, c0: Vector2, d: Vector2, n: Vector2, hw: float, fp: 
 		var w1: float = (180.0 + 80.0 * PF.h(hh * 5.0)) * (hw * 2.0 / 920.0 if m < 5 else 1.0)
 		var dl: float = 0.05 * PF.h(hh * 3.0) + 0.03 * i
 		if _sd_ul(u):
-			u.strip(_sd_ul_pick(u, vs * 0.29 + i * 1.7), p, {"o": SD_UL_FOOT, "sc": clampf(w1 / 140.0, 0.9, 1.8), "sx": -1.0 if PF.h(hh * 7.0) < 0.5 else 1.0, "delay": dl})
+			_sd_ul_strip2(u, _sd_ul_pick(u, vs * 0.29 + i * 1.7), p, {"o": SD_UL_FOOT, "sc": clampf(w1 / 140.0, 0.9, 1.8), "sx": -1.0 if PF.h(hh * 7.0) < 0.5 else 1.0, "delay": dl})
 		else:
 			var nm := PF.pick(u, SD_BLAST, vs * 0.29 + i * 1.7)
 			var t: Texture2D = u._strip_tex(nm)

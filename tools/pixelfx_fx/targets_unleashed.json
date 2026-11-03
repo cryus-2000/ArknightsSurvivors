@@ -6,7 +6,8 @@
    "span": 2.8
   },
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_skadi_ul_sweep": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -15,7 +16,8 @@
    "seed": 5
   },
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_skadi_ul_spin": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -24,7 +26,8 @@
    "seed": 8
   },
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_skadi_ul_cleave": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -34,7 +37,8 @@
    "seed": 7
   },
   "colors": 256,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_skadi_ul_geyser1": {
   "fx": "water/ak-skadi-ul-geyser",
@@ -43,7 +47,8 @@
   },
   "colors": 256,
   "keep": true,
-  "lo": true
+  "lo": true,
+  "layers": true
  },
  "fx_skadi_ul_geyser2": {
   "fx": "water/ak-skadi-ul-geyser",
@@ -53,7 +58,8 @@
    "width": 26
   },
   "colors": 256,
-  "keep": true
+  "keep": true,
+  "layers": true
  },
  "fx_skadi_ul_geyser3": {
   "fx": "water/ak-skadi-ul-geyser",
@@ -63,7 +69,8 @@
    "width": 34
   },
   "colors": 256,
-  "keep": true
+  "keep": true,
+  "layers": true
  },
  "fx_skadi_ul_slash2": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -71,7 +78,8 @@
    "span": 2.8,
    "seed": 21
   },
-  "colors": 256
+  "colors": 256,
+  "layers": true
  },
  "fx_skadi_ul_spin2": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -79,7 +87,8 @@
    "span": 6.3,
    "seed": 33
   },
-  "colors": 256
+  "colors": 256,
+  "layers": true
  },
  "fx_skadi_ul_slash_tm": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -87,7 +96,8 @@
    "span": 2.8,
    "quick": 1
   },
-  "colors": 256
+  "colors": 256,
+  "layers": true
  },
  "fx_skadi_ul_sweep_tm": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -96,7 +106,8 @@
    "seed": 5,
    "quick": 1
   },
-  "colors": 256
+  "colors": 256,
+  "layers": true
  },
  "fx_skadi_ul_spin_tm": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -105,7 +116,8 @@
    "seed": 8,
    "quick": 1
   },
-  "colors": 256
+  "colors": 256,
+  "layers": true
  },
  "fx_skadi_ul_cleave_tm": {
   "fx": "melee/ak-skadi-ul-slash",
@@ -115,6 +127,7 @@
    "seed": 7,
    "quick": 1
   },
-  "colors": 256
+  "colors": 256,
+  "layers": true
  }
 }

@@ -21,16 +21,17 @@ export const meta = {
     span: 3.5,
     heavy: 0,
     quick: 0,         // 1 = 余韵短（涌潮悲歌期间连续出手，长余韵会叠成一整个水泡）
+    layer: "all",   // core / deco / all（分层导出时由 pixelfx_export.py 传）
     seed: 3,
   },
 };
 
 const onArc = (s, r, a) => [Math.cos(a) * r, Math.sin(a) * r];
 
-function crescent(p, s, ta, L, W, age, hot) {
+function crescent(p, s, ta, L, W, age, hot, core, deco) {
   if (Math.abs(L) < 0.02 || W < 0.3) return;
   const R = s.ramp, n = R.length, dir = Math.sign(L), span = Math.abs(L), B = s.R + 4;
-  p.shade(-B, -B, B, B, (x, y, out) => {
+  if (core) p.shade(-B, -B, B, B, (x, y, out) => {
     const r = Math.hypot(x, y), ang = Math.atan2(y, x);
     const jag = 2.6 * noise(ang * 8, s.seed) + 1.4 * noise(ang * 21, s.seed + 7);
     const Rr = s.R + jag * (0.5 + age * 1.5);
@@ -46,7 +47,7 @@ function crescent(p, s, ta, L, W, age, hot) {
     out.c = R[n - 1 - clamp(ci, 0, n - 1)];
     out.a = q > 0.8 ? 0.7 : 1;   // 刀身内沿半透明（真透明，不抖动）
   });
-  for (let u = 0; u <= span; u += 0.18) {
+  if (deco) for (let u = 0; u <= span; u += 0.18) {   // 刀身光晕归装饰层
     const [x, y] = onArc(s, s.R - W * 0.4, ta + dir * u);
     p.glow(x, y, 10 + W, R[n - 3], 0.28 * (1 - age) * (u / span) + 0.08 * hot);
   }
@@ -54,6 +55,8 @@ function crescent(p, s, ta, L, W, age, hot) {
 
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), heavy = +o.heavy > 0, full = o.span > 6, quick = +o.quick > 0, LQ = quick ? 0.5 : 1;
+  // 分层（docs/242 §8）：core = 刀弧 / 第 1 帧白热 / 爆点；deco = 光晕、甩出物、余韵。quick（队友版）只缩装饰的余韵，核心与队长版一样
+  const core = o.layer !== "deco", deco = o.layer !== "core";
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = full ? TAU * 1.04 : o.span, a0 = full ? -Math.PI : -span / 2, a1 = a0 + span;
   const SW = full ? 0.13 : heavy ? 0.09 : 0.07, W = heavy ? 30 : full ? 18 : 22;
@@ -67,7 +70,7 @@ export function create(o) {
     if (u < 0) return;
     const head = ease.outExpo(clamp(u / SW)), tail = smooth(SW + hold, SW + hold + trail, u), age = clamp(u / (SW + hold + trail));
     const hot = u < SW ? 1.6 : u < SW + 0.06 ? 0.6 : 0;   // 第 1 帧爆亮，第 2 帧余热（整条白会盖住人物）
-    if (tail < 1) crescent(p, s, a0 + span * tail, span * (head - tail), s.W * (1 - tail * 0.5), age, hot);
+    if (tail < 1) crescent(p, s, a0 + span * tail, span * (head - tail), s.W * (1 - tail * 0.5), age, hot, core, deco);
   }
   return {
     update(dt) {
@@ -119,23 +122,25 @@ export function create(o) {
       lights.update(dt);
     },
     drawBack(p) {
-      ps.draw(p, "back");
+      if (deco) ps.draw(p, "back");
     },
     draw(p) {
       if (!full) drawArc(p, E, 0.025, 0.04, 0.3);   // 全方向时不画内弧（两道同心圈是被否的形状）
-      drawArc(p, A, 0, quick ? 0.04 : 0.07, quick ? 0.22 : 0.4);
-      if (t < 0.32) {
+      drawArc(p, A, 0, 0.07, 0.4);
+      if (deco && t < 0.32) {
         const [x, y] = onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));
         p.glow(x, y, 60, C[5], 0.6 * (1 - t / 0.32));
       }
       const g = t - SW * 0.6;
-      if (!full && g > 0 && g < 0.26) sparkle(p, tip[0], tip[1], (heavy ? 18 : 14) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
-      if (heavy && t > SW && t < SW + 0.14) {
+      if (deco && !full && g > 0 && g < 0.26) sparkle(p, tip[0], tip[1], (heavy ? 18 : 14) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
+      if (core && heavy && t > SW && t < SW + 0.14) {
         const k = 1 - (t - SW) / 0.14;
         p.disc(R0 * 0.6, 0, 16 * k + 5, C[7], 0.9 * k);
       }
-      ps.draw(p, "front");
-      lights.draw(p);
+      if (deco) {
+        ps.draw(p, "front");
+        lights.draw(p);
+      }
     },
   };
 }

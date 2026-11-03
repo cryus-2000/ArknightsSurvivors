@@ -138,19 +138,32 @@ var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（�
 
 ## 近战刀光（character.arc_targets 调）：同一干员同一模拟时刻同一判定只画一道；粗细亮度先按轻档，命中后由 hit_react 升档
 ## pixelfx 放开版取名（docs/242 §6）：网页版（OS.has_feature("web")）或桌面开关 fx/px_ul_lo = 1 时一律用低档 <base>_lo（缺图回退 base），
-## 忽略变体与队友版；其余按全档：队友 <base>_tm、变体 <base><variant>（variant ≥ 2），缺的版本回退 base。各人 seg / ult 统一调这里
+## 忽略变体与队友版；其余按全档：队友 <base>_tm、变体 <base><variant>（variant ≥ 2），缺的版本回退 base。各人 seg / ult 统一调这里。
+## layer = "core" / "deco"（docs/242 §8）：装饰层名 = 核心名 + _deco（在 _lo 之前）；装饰层缺图返回 ""。画的时候先装饰（乘 px_deco_k）后核心
 func px_ul_lo() -> bool:
 	return OS.has_feature("web") or Bal.vi("fx/px_ul_lo", 0) > 0
 
 
-func px_ul_tex(base: String, variant: int, teammate: bool) -> String:
-	if px_ul_lo():
-		return base + "_lo" if g.tex.get(base + "_lo") != null else base
-	if teammate and g.tex.get(base + "_tm") != null:
-		return base + "_tm"
-	if variant >= 2 and g.tex.get(base + str(variant)) != null:
-		return base + str(variant)
-	return base
+func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core") -> String:
+	var n: String = base
+	if not px_ul_lo():
+		if teammate and g.tex.get(base + "_tm") != null:
+			n = base + "_tm"
+		elif variant >= 2 and g.tex.get(base + str(variant)) != null:
+			n = base + str(variant)
+	var deco: bool = layer == "deco"
+	var full: String = n + ("_deco" if deco else "") + ("_lo" if px_ul_lo() else "")
+	if g.tex.get(full) != null:
+		return full
+	if deco:   # 装饰层缺图：不画（返回空串，调用方跳过）
+		return ""
+	return base + "_lo" if px_ul_lo() and g.tex.get(base + "_lo") != null else base
+
+
+## 装饰层系数（docs/242 §8，balance fx/px_deco_k，缺省 1.0）：装饰层的透明度和实时火星数都乘它；0 = 只画核心。
+## 现在只有这一个总开关，按拥挤程度动态削装饰的预算以后接在这里
+func px_deco_k() -> float:
+	return clampf(Bal.v("fx/px_deco_k", 1.0), 0.0, 1.0)
 
 
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:

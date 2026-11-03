@@ -16,6 +16,7 @@ export const meta = {
     palette: ["#040c1c", "#08224a", "#0f4280", "#1a6cb4", "#34a8dc", "#7fe0f4", "#d4fbff", "#ffffff"],
     height: 150,
     width: 30,
+    layer: "all",   // core / deco / all
     seed: 3,
   },
 };
@@ -24,6 +25,7 @@ const SY = 0.5, UP = 0.16, HOLD = 0.22, FALL = 0.55;
 
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), H = o.height, W = o.width;
+  const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）：core = 水刺 + 出水白闪；deco = 水面、水珠水雾、光
   const ps = new Particles({ rng: Rg, ground: () => 0, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
   lights.add(0, -10, 70, C[6], 1.0, 0.3);
   const lean = Rg.range(-0.12, 0.12);
@@ -97,17 +99,19 @@ export function create(o) {
     drawBack(p) {
       // 脚下水面：暗色不规整的一摊，先涌起后慢慢退
       const k = smooth(0, 0.08, t) * (1 - smooth(0.7, 1.35, t));
-      if (k > 0) {
+      if (deco && k > 0) {
         p.disc(0, 0, W * 1.2, C[1], 0.3 * k);   // 水面：真半透明
       }
-      jetsDraw(p, true);
-      ps.draw(p, "back");
+      if (core) jetsDraw(p, true);
+      if (deco) ps.draw(p, "back");
     },
     draw(p) {
-      jetsDraw(p, false);
-      if (t < 0.07) p.disc(0, -4, 14 * (1 - t / 0.07) + 6, C[7], 0.95);
-      ps.draw(p, "front");
-      lights.draw(p);
+      if (core) jetsDraw(p, false);
+      if (core && t < 0.07) p.disc(0, -4, 14 * (1 - t / 0.07) + 6, C[7], 0.95);
+      if (deco) {
+        ps.draw(p, "front");
+        lights.draw(p);
+      }
     },
   };
 }

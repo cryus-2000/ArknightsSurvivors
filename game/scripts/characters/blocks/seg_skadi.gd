@@ -241,12 +241,17 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float) -> 
 		a = ang + o.g.vrng.randf() * TAU
 	# 取名统一走 vfx.px_ul_tex（docs/242 §6）：队长普攻 / 全方向两个种子变体随机挑；队友版余韵约减半、亮度不降；网页一律低档 _lo
 	var vv: int = 2 if o.is_leader and (nm == "fx_skadi_ul_spin" or nm == "fx_skadi_ul_slash") and o.g.vrng.randf() < 0.5 else 1
-	nm = o.g.vfx.px_ul_tex(nm, vv, not o.is_leader)
+	var dn: String = o.g.vfx.px_ul_tex(nm, vv, not o.is_leader, "deco")
+	nm = o.g.vfx.px_ul_tex(nm, vv, not o.is_leader, "core")
 	if o.g.tex.get(nm) == null:
 		return false
 	var skill: bool = src != "大剑"
+	# 分层（docs/242 §8）：先装饰（透明度 × fx/px_deco_k），后核心；实时火星归装饰，颗数也乘系数
+	var dk: float = o.g.vfx.px_deco_k()
+	if dn != "" and dk > 0.0:
+		_hw_blade(o, {"strip": dn, "fit": 80.0, "k": 1.0, "along": 0.0, "y": -10.0, "tint": [1.0, 1.0, 1.0, dk], "mirror": "face"}, r, a)
 	_hw_blade(o, {"strip": nm, "fit": 80.0, "k": 1.0, "along": 0.0, "y": -10.0, "tint": [1.0, 1.0, 1.0, 1.0], "mirror": "face",
-		"motes": {"n": 14 if skill else 8, "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.5}}, r, a)
+		"motes": {"n": int(round((14 if skill else 8) * dk)), "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.5}}, r, a)
 	if not hits.is_empty() and o.is_leader:
 		o.impact_pause(0.075 if skill else 0.05)   # 命中定格只给队长（用户 11-03 定：队友不定格；共享限频，纯画面）
 	return true

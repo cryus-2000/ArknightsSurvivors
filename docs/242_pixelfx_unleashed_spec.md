@@ -124,8 +124,58 @@
 | 源码 | `tools/pixelfx_fx/<类>/ak-<人>-ul-<招式>.js`（类：melee / water / impacts / projectiles …）。一个招式一个文件，用选项出变体（span、heavy、quick、seed） |
 | 导出目标 | `tools/pixelfx_fx/targets_<人>_ul.json`，每人一份。格式同 `targets_unleashed.json`：`{"fx": id, "opts": {...}, "colors": 256, "hires": false, "keep": false}`。用 `python tools/pixelfx_export.py --only <名>` 导出 |
 | 帧条命名 | `game/art/fx/fx_<人>_ul_<招式>[2][_tm].png`：`2` = 第二个种子变体，`_tm` = 队友版。1x 帧条不带 @2x；原点不在中心的（枪口、水柱）用 `keep: true` 保留原画布，并在代码里给原点 |
-| _glow 层 | 两种做法任选其一，同一人内统一：<br>① **烤进单张**（斯卡蒂做法）：光晕按 256 色直接进 color 帧条，不出 _glow。<br>② **分层**：组长分支 `claude/fx-lead-prep` 的 `tools/pixelfx_fx/ak_layers.mjs` + 分层版 `pixelfx_export.py` 出 `<名>.png`（color）和 `<名>_glow.png`（light，黑底），游戏里 `vfx.px_glow` 按同名 _glow 条用加色叠画。两张都要登记。该分支合入 main 之前，只有 ① 能直接接入 |
+| _glow 层 | 两种做法任选其一，同一人内统一：<br>~~① 烤进单张：光晕直接进 color 帧条~~ **已作废（11-03，见 §8）**：光晕归装饰层，不再烤进核心帧条。<br>② **分层**：组长分支 `claude/fx-lead-prep` 的 `tools/pixelfx_fx/ak_layers.mjs` + 分层版 `pixelfx_export.py` 出 `<名>.png`（color）和 `<名>_glow.png`（light，黑底），游戏里 `vfx.px_glow` 按同名 _glow 条用加色叠画。两张都要登记。该分支合入 main 之前，只有 ① 能直接接入 |
 | 登记 | `game/scripts/art.gd` 的 `V6_FRAMES` 加 `"<名>": [帧数, fps]`（导出脚本会打印）；跑 `python tools/asset_index.py` 更新 `game/art/index.json`；`godot --headless --path game --import` 生成 .import 后，把 `process/fix_alpha_border` 改成 false |
 | 开关 | balance.json 只有一个 `fx/px_unleashed`，不要按人另开 |
 | Codex 交付（docs/106 §6） | 从 main 开 `codex/pixelfx-ul-<人>`，一人一个分支、不混；只改该人的 seg_<人>.gd、ult_moves 里该人的段、自己的 ak-<人>-ul-*.js / targets / 帧条；`.gd.uid` 随脚本同一提交；不提交 `.godot/`、`build/`；不合 main、不 force-push。交付 = 分支 + 提交号 + 改动说明 + TRACE 开关前后一致的结论 + 新旧对照录像路径，由协调人合入 |
 | 共用文件 | `ob_core.gd` 的接管点、`vfx.gd`、`art.gd` 的 `V6_FRAMES`、`index.json` 会撞车：<br>- `V6_FRAMES` 每人一行，写在 `# pixelfx 放开版` 注释块下，按人分开。<br>- `index.json` 不提交，由合并人重新生成。<br>- ob_core / vfx 的改动由组长统一做 |
+
+## 8 核心层 / 装饰层拆分（用户 11-03 批）
+
+以下照抄协调人规则 `Claude outputs/pixelfx_layer_rule_1103.md`，内容不改：
+
+> 用户 11-03 批：每个招式拆成「核心」和「装饰」两层，以后队友和拥挤时可以只削装饰，核心不动、透明度不降。本文件先生效，docs/242 会补一节照抄。**取代 docs/242 §7 的「_glow 烤进单张（做法 ①）」**：光晕不再烤进核心帧条。
+
+### 1 两层分别放什么
+
+| 层 | 内容 | 任何情况下 |
+|---|---|---|
+| 核心 `core` | 弹体、刀身 / 刀弧、命中的主要形状、第 1 帧白热芯、攻击范围的**边缘** | 必须完整保留 |
+| 装饰 `deco` | 大光晕、烤进帧条的甩出物（水珠 / 火星 / 碎屑）、余韵（水雾、闪烁光点、残影）、范围的**内部填充** | 可以被削弱或关掉 |
+
+判断标准：把装饰层整层关掉，玩家仍能看清**谁在打、打向哪、打到哪**，就算拆对了。实时火星（motes）和屏幕震动也归装饰。
+
+### 2 命名
+
+在 docs/242 原有命名之后、`_lo` 之前加 `_deco`：
+
+- 核心：`fx_<人>_ul_<招式>[2][_tm][_lo].png`（与原来相同，内容改为只放核心）
+- 装饰：`fx_<人>_ul_<招式>[2][_tm]_deco[_lo].png`
+
+两层的画布、原点、帧数和 fps 必须完全一致，逐帧对齐。`V6_FRAMES` 两条各写一行。
+
+### 3 导出
+
+- 在 pixelfx 源码里按图层出：核心图元画在一层，装饰图元画在另一层。
+- targets 条目加 `"layers": true`，导出脚本一次出 core 和 deco 两张。
+- 256 色、`lo` 抽帧的规则照旧，deco 同样出 `_lo`。
+
+### 4 游戏里怎么画
+
+- 取名统一走 `vfx.px_ul_tex(base, variant, teammate, layer)`，`layer` 取 `"core"` 或 `"deco"`。样板分支会补这个参数；在它补上之前，可以先写成本地同签名函数。
+- 先画装饰，再画核心，核心永远在装饰上面。
+- 装饰层乘一个系数：开关 `fx/px_deco_k`（缺省 1.0）。现阶段只用这一个总开关，按拥挤程度动态削装饰的预算系统以后另做，接口先留好。
+- 队友用 `_tm` 版：核心和队长版一样，装饰的余韵减半。透明度不降（用户定）。
+- 网页低档：core_lo 和 deco_lo 都带上。网页包超预算时，先去掉普攻的 deco_lo。
+
+### 5 验收补充
+
+- 展示段里，每个招式另外用 `--bal=fx/px_deco_k=0` 放一次，确认关掉装饰后仍能看清攻击方向和命中位置。
+- 包体按 core + deco 合计计算，每人全档 ≤ 550 KB 不变。
+
+**样板实测（斯卡蒂，拆层前 → 拆层后）：**
+- 全档：532 KB → 核心 150 + 装饰 452 = 602 KB，涨 13%，超出 550 KB 预算。
+- 低档：167 KB → 核心 45 + 装饰 141 = 186 KB，涨 11%。
+
+两层分开量化、分开存，所以总体积略涨。
+
