@@ -49,5 +49,21 @@
  "fx_suzuran_ul_slow_e1": {"fx": "fire/ak-suzuran-ul-slow", "opts": {"seed": 4, "elite": 1}, "colors": 256, "layers": true, "move": "skill"},
  "fx_suzuran_ul_slow_e0": {"fx": "fire/ak-suzuran-ul-slow", "opts": {"seed": 4, "elite": 0}, "colors": 256, "layers": true, "move": "skill"},
  "fx_suzuran_ul_scorch_e1": {"fx": "fire/ak-suzuran-ul-scorch", "opts": {"seed": 5, "elite": 1}, "colors": 256, "layers": true, "move": "basic"},
- "fx_suzuran_ul_scorch_e0": {"fx": "fire/ak-suzuran-ul-scorch", "opts": {"seed": 5, "elite": 0}, "colors": 256, "layers": true, "move": "basic"}
+ "fx_suzuran_ul_scorch_e0": {"fx": "fire/ak-suzuran-ul-scorch", "opts": {"seed": 5, "elite": 0}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_gather_e2": {"fx": "fire/ak-suzuran-ul-gather", "opts": {"n": 3, "k": 2.4, "seed": 4}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_mark_e2": {"fx": "fire/ak-suzuran-ul-mark", "opts": {}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_haze_e2": {"fx": "fire/ak-suzuran-ul-haze", "opts": {"elite": 2}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_edge_e2": {"fx": "fire/ak-suzuran-ul-wisp", "opts": {"ground": 1, "seed": 7}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_swirlb_e2": {"fx": "fire/ak-suzuran-ul-swirl", "opts": {"side": "back"}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_swirlf_e2": {"fx": "fire/ak-suzuran-ul-swirl", "opts": {"side": "front"}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_wisp_e2": {"fx": "fire/ak-suzuran-ul-wisp", "opts": {"seed": 7}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_scorch_e2": {"fx": "fire/ak-suzuran-ul-scorch", "opts": {"seed": 5}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_hit_e2": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 5}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_fox_e2": {"fx": "fire/ak-suzuran-ul-fox", "opts": {"elite": 2, "seed": 3}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_muzzle_e2": {"fx": "fire/ak-suzuran-ul-muzzle", "opts": {"big": 0, "seed": 2}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_slow_e2": {"fx": "fire/ak-suzuran-ul-slow", "opts": {"seed": 4}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_pin_e2": {"fx": "fire/ak-suzuran-ul-pin", "opts": {"seed": 7}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_heal_e2": {"fx": "fire/ak-suzuran-ul-heal", "opts": {"seed": 6}, "colors": 256, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_hit_e22": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 11}, "colors": 256, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_hit_e2_tm": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 5, "quick": 1}, "colors": 256, "layers": true, "move": "basic"}
 }
