@@ -80,11 +80,25 @@ export function create(o) {
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[6], C[5]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = full ? TAU * 1.04 : o.span, a0 = full ? -Math.PI : -span / 2, a1 = a0 + span;
   const SW = full ? 0.13 : heavy ? 0.09 : 0.07;
-  const W = (heavy ? 30 : full ? 22 : 18) * (fine ? 0.62 : 1) * [0.8, 1, 1.12][el];
+  const W = (heavy ? 30 : full ? 22 : 18) * (fine ? 0.62 : 1) * [0.8, 1.0, 1.2][el];   // E1 刀身加厚一档（×1.25）、E2 再厚一档（11-04：精英加码作用在主形本身）
+  // 斯卡蒂的剑本身是暗红色：E1 起刀身后拖一道暗红残刃（深、低饱和，离敌方危险色 #ff2667 远）
+  const RED = fit(["#1e070c", "#2c0b12", "#3d0e17", "#52131e", "#6a1622", "#8a1f2d"], 6);
+  const RB = { seed: o.seed + 77, R: R0 * 0.82, W: W * 0.62, ramp: RED, GK, edge: false };   // 贴着刀身内侧
   const A = { seed: o.seed, R: R0, W, ramp: C, GK, edge: fine };
   const E = { seed: o.seed + 9, R: R0 * 0.72, W: W * 0.4, ramp: C.slice(0, 7), GK, edge: false };
   let t = 0.02, passed = 0, landed = false, crashed = false;
   const tip = onArc(A, A.R - A.W * 0.3, a1);
+  // 光贴着弧刃走（11-04 总组长：刃根 / 中心 / S3 段上的圆形柔光团都压掉）：沿一段弧铺一串小光，连成弧形光带、不单独成圆
+  const bands = [];
+  const band = (S, aS, aL, rad, col, k, life) => bands.push({ S, aS, aL, rad, col, k, life, t0: t });
+  function bandDraw(p, S, aS, aL, rad, col, k) {
+    if (k <= 0.005) return;
+    const dir = Math.sign(aL) || 1, L = Math.abs(aL), st = Math.max(0.05, rad * 0.5 / S.R);
+    for (let v = 0; v <= L; v += st) {
+      const w = Math.sin(Math.PI * v / L), [x, y] = onArc(S, S.R - S.W * 0.45, aS + dir * v);
+      p.glow(x, y, rad * (0.55 + 0.45 * w), col, k * w * 0.5);
+    }
+  }
   const arcOn = mv !== "s1";   // S1 不画单月牙，主形是连斩
 
   // ---- S1：快速连斩。2–3 道大剑斩弧，正反手交替、中心角 / 弧长 / 半径各不同，前后间隔约 0.05 s
@@ -149,8 +163,22 @@ export function create(o) {
     const u = t - t0;
     if (u < 0) return;
     const head = ease.outExpo(clamp(u / SW)), tail = smooth(SW + hold, SW + hold + trail, u), age = clamp(u / (SW + hold + trail));
-    const hot = u < (full ? 0.06 : 0.09) ? HOT : u < 0.13 ? 0.3 : 0;   // 白热 1–2 帧、第 3 帧起回落（docs/242 §9.3；全方向整圈面积大，只白 1 帧）
+    let hot = u < (full ? 0.06 : 0.09) ? HOT : u < 0.13 ? 0.3 : 0;   // 白热 1–2 帧、第 3 帧起回落（docs/242 §9.3；全方向整圈面积大，只白 1 帧）
+    if (el >= 2 && s === A && !full && u > SW + 0.05 && u < SW + 0.1) hot = HOT;   // E2：命中时多一帧定帧爆亮
     if (tail < 1) crescent(p, s, a0 + span * tail, span * (head - tail), s.W * (1 - tail * 0.5), age, hot, core, deco);
+  }
+  // E2 深海暗色裂口：沿斩痕（半径 Rc、从 aS 起长 aL）裂开一道锯齿暗缝，0.05 秒裂满，之后原地慢慢合拢（宽度收到 0）
+  function rift(p, Rc, aS, aL, u, sd, ox = 0, oy = 0) {
+    if (u < 0) return;
+    const open = ease.outCubic(clamp(u / 0.05)), w0 = 2.4 * (1 - smooth(0.08, 0.8, u));
+    if (w0 < 0.35) return;
+    const dir = Math.sign(aL), L = Math.abs(aL) * open;
+    for (let v = 0.08; v < L - 0.04; v += 0.45 / Rc) {
+      const a = aS + dir * v, k = Math.sin(Math.PI * v / Math.abs(aL));
+      const jr = Rc + 2.2 * noise(v * 9, sd) + 1.2 * noise(v * 23, sd + 5), w = w0 * (0.4 + 0.6 * k);
+      const cx = Math.cos(a), cy = Math.sin(a);
+      for (let d = -w; d <= w; d += 0.6) p.px(ox + cx * (jr + d), oy + cy * (jr + d), Math.abs(d) > w - 0.7 ? C[2] : C[0]);
+    }
   }
   function spray(x, y, nx, ny, n, sp, life) {
     if (!SPRAY) return;   // 11-04 用户：「斯卡蒂洒水出去的特效是不是可以取消」
@@ -197,9 +225,8 @@ export function create(o) {
       }
       if (!landed && t >= SW) {
         landed = true;
-        if (!full) lights.add(0, 0, R0 * 1.2, C[5], 0.15 * GK, 0.35);
-        else for (const sg of segs) { const [lx, ly] = onArc(A, A.R * sg.rk, sg.c); lights.add(lx, ly, R0 * 0.5, C[5], 0.18 * GK, 0.35); }   // S3：光跟着各段浪身，不在中心铺一盏圆光
-        if (arcOn) lights.add(tip[0], tip[1], 46, C[6], 0.9 * GK, 0.3);
+        if (!full) band(A, a0, span, 16, C[5], 0.5 * GK, 0.35);
+        else for (const sg of segs) band({ ...A, R: A.R * sg.rk }, sg.c - sg.h, 2 * sg.h, 14, C[5], 0.5 * GK, 0.35);   // S3：光跟着各段浪身走
         if (arcOn) for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2) / PM) {   // 余韵：外缘碎成浪沫与水雾（S3 只在各段浪身上，缺口里不放）
           if (full && !inSeg(a)) continue;
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
@@ -223,7 +250,7 @@ export function create(o) {
       }
       if (mv === "s2" && !crashed && t >= SW + 0.26) {   // 水幕拍落：沿前缘碎成不规则飞溅
         crashed = true;
-        lights.add(R0 * 0.9, 0, 56, C[6], 0.7 * GK, 0.3);
+        band({ ...A, R: R0 * 1.05 }, -S2A, 2 * S2A, 18, C[6], 0.8 * GK, 0.3);
         for (let a = -S2A + Rg.range(0, 0.08); a < S2A; a += Rg.range(0.05, 0.16)) {
           const h = curtain(a, 1);
           if (h < 4) continue;
@@ -252,6 +279,8 @@ export function create(o) {
     draw(p) {
       if (arcOn && el >= 1 && mv === "s2") drawArc(p, E, 0.025, 0.04 * DL, 0.3 * DL);   // S2 内弧回声（普攻 / S3 不画：同心弧读成圈，11-04）
       if (arcOn && !full) drawArc(p, A, 0, 0.07, 0.4 * (0.6 + 0.4 * DL));
+      if (arcOn && !full && el >= 1 && mv !== "s2") drawArc(p, RB, 0.035, 0.05, 0.3 * (0.6 + 0.4 * DL));   // E1+ 暗红残刃：比刀身慢半拍、贴着内侧
+      if (core && arcOn && !full && el >= 2 && mv !== "s2") rift(p, A.R - A.W * 0.45, a0 + span * 0.08, span * 0.84, t - SW - 0.04, o.seed + 401);   // E2 深海暗色裂口
       if (full) for (const sg of segs) {   // S3：一段段浪身弧刃（各自半径 / 起手先后不同、正反向交替），不连成整圈
         const u = t - sg.d;
         if (u < 0) continue;
@@ -262,13 +291,13 @@ export function create(o) {
         if (tail < 1) crescent(p, S, ta + sg.dir * sp * tail, sg.dir * sp * (head - tail), S.W * (1 - tail * 0.5), age, u < 0.06 && sg.hk >= 1.5 ? HOT : 0, core, deco);   // 白热只给主浪
         if (core) waveFront(p, sg.c, sg.h * 0.9, A.R * sg.rk * 0.75 * pr, R0 * 0.36 * sg.hk * [0.75, 1, 1.2][el], u - SW * 0.5, sg.seed, el >= 2);   // 浪从这段斩痕里往外拍出去再碎开
       }
-      if (core && mv === "basic" && el >= 1 && t > SW * 0.7) waveFront(p, 0, span * (el >= 2 ? 0.36 : 0.26), A.R * 0.55, R0 * (el >= 2 ? 0.42 : 0.28), t - SW * 0.7, o.seed + 300, el >= 2);   // 普攻 E1+：浪从斩痕里往前涌、卷起再碎开（E2 更大、浪头海绿）
+      if (false) waveFront(p, 0, span * (el >= 2 ? 0.36 : 0.26), A.R * 0.55, R0 * (el >= 2 ? 0.42 : 0.28), t - SW * 0.7, o.seed + 300, el >= 2);   // 普攻 E1+：浪从斩痕里往前涌、卷起再碎开（E2 更大、浪头海绿）
       if (mv === "s1") for (const sl of sls) {   // 连斩：斩弧 + 剑身残影 + 成团水花
         const u = t - sl.t0;
         if (u < 0) continue;
         const ta0 = sl.c - sl.dir * sl.sp / 2, head = ease.outExpo(clamp(u / SWS)), trail = 0.3 * (0.7 + 0.3 * DL);
         const tail = smooth(SWS + 0.03, SWS + 0.03 + trail, u), age = clamp(u / (SWS + 0.03 + trail));
-        const hot = u < 0.05 ? (sl === sls[0] ? Math.max(HOT, 1.2) : Math.max(1.0, HOT * 0.6)) : 0;   // 第一刀白热最强（不低于普攻），后两刀弱一些（三刀连着全白会过「持续白」）
+        const hot = u < 0.05 ? (sl === sls[0] ? Math.max(HOT, 1.2) : Math.max(1.0, HOT * 0.6)) : (el >= 2 && sl.last && u > SWS + 0.03 && u < SWS + 0.08 ? HOT : 0);   // E2 最后一刀命中多一帧爆亮   // 第一刀白热最强（不低于普攻），后两刀弱一些（三刀连着全白会过「持续白」）
         if (tail < 1) crescent(p, sl.S, ta0 + sl.dir * sl.sp * tail, sl.dir * sl.sp * (head - tail), sl.S.W * (1 - tail * 0.5), age * 0.85, hot, core, deco);
         if (core && u < SWS + 0.07) for (let gi = 0; gi < sl.ghosts.length; gi++) {   // 剑身残影：挥砍头后面一两把淡淡的大剑轮廓
           const ga = slHead(sl, u) - sl.dir * sl.ghosts[gi], k = (1 - clamp(u / (SWS + 0.07))) * (gi ? 0.45 : 0.75);
@@ -295,7 +324,7 @@ export function create(o) {
           p.each(Math.min(bb[0], bb[2]) - pad, Math.min(bb[1], bb[3]) - pad, Math.max(bb[0], bb[2]) + pad, Math.max(bb[1], bb[3]) + pad, (x, y, sx, sy) => {   // 真半透明（blendPx），不用抖动（抖动会碎成点阵）
             const dx = x - hx, dy = y - hy, al = dx * ux + dy * uy, ac = dx * vx + dy * vy, m = shape(al, ac);
             if (!m) return;
-            p.blendPx(sx, sy, m === 2 ? C[6] : (al > 2.2 && Math.abs(ac) < 0.8 ? C[5] : C[3]), (m === 2 ? 0.85 : 0.4) * k);   // 剑身中脊亮一阶
+            p.blendPx(sx, sy, m === 2 ? RED[5] : (al > 2.2 && Math.abs(ac) < 0.8 ? RED[4] : RED[2]), (m === 2 ? 0.9 : 0.55) * k);   // 剑影 = 暗红残刃（她的剑本身是暗红色，11-04）   // 剑身中脊亮一阶
           });
         }
         if (core && sl === sls[0] && u < 0.04) {   // 起手剑身一闪（借原作 trail_08 的细长闪光）
@@ -308,15 +337,16 @@ export function create(o) {
           const k = 1 - v / (0.22 * (0.6 + 0.4 * DL));
           for (const b of cl.b) p.disc(cl.x + b[0] + cl.vx * v, cl.y + b[1] + cl.vy * v, b[2] * (0.5 + 0.5 * k), b[3] && el >= 2 ? ACC : C[b[3] ? 7 : 6], 0.95 * k);
         }
-        if (core && el >= 2 && sl.last && u > SWS) {   // E2 潮刃：最后一刀甩出一道薄新月往外飞（docs/91 精二「涌潮」）
+        if (core && el >= 2 && sl.last) rift(p, sl.S.R - sl.S.W * 0.45, sl.c - sl.dir * sl.sp * 0.42, sl.dir * sl.sp * 0.84, u - SWS - 0.03, sl.S.seed + 401, sl.S.ox, sl.S.oy);   // E2 最后一刀：深海暗色裂口
+        if (false) {   // （去掉）E2 潮刃外飞新月——改为裂口
           const w = u - SWS, d = 64 * ease.outCubic(clamp(w / 0.3)), k = 1 - smooth(0.12, 0.32, w);
           if (k > 0) {
             const TB = { seed: o.seed + 31, R: sl.S.R + d, W: Math.max(2, sl.S.W * 0.5) * k, ramp: C, GK, edge: false, minI: 1, ox: sl.S.ox, oy: sl.S.oy };
             crescent(p, TB, sl.c - sl.dir * sl.sp * 0.3, sl.dir * sl.sp * 0.6, TB.W, 0.15 + 0.5 * (1 - k), 0, true, false);
           }
         }
-        if (core && el >= 1 && sl.last && u > SWS) waveFront(p, sl.c, sl.sp * (el >= 2 ? 0.4 : 0.3), sl.S.R * 0.55, R0 * (el >= 2 ? 0.4 : 0.28), u - SWS, sl.S.seed + 300, el >= 2);   // E1+ 最后一刀后浪从斩痕里往前涌（11-04）
-        if (core && el >= 1 && u > SWS * 0.8 && u < 0.4) {   // E1+ 每刀外缘白沫（断续）
+        if (false) waveFront(p, sl.c, sl.sp * (el >= 2 ? 0.4 : 0.3), sl.S.R * 0.55, R0 * (el >= 2 ? 0.4 : 0.28), u - SWS, sl.S.seed + 300, el >= 2);   // E1+ 最后一刀后浪从斩痕里往前涌（11-04）
+        if (false) {   // （去掉）E1+ 每刀外缘白沫——11-04 用户：E1 / E2 不要浪花
           const k = 1 - smooth(0.15, 0.4, u);
           for (let a = 0; a < sl.sp * head; a += 0.6 / sl.S.R) {
             const n = noise(a * 8, sl.S.seed + 51) + 0.5 * noise(a * 21, sl.S.seed + 53);
@@ -369,7 +399,7 @@ export function create(o) {
           }
         }
       }
-      if (core && el >= 1 && arcOn && !full && t > SW * 0.8 && t < 0.45 + 0.15 * el) {   // E1+ 浪尖白沫带：沿外缘断断续续
+      if (core && el >= 1 && arcOn && !full && mv === "s2" && t > SW * 0.8 && t < 0.45 + 0.15 * el) {   // E1+ 浪尖白沫带：只给 S2（普攻 / S1 不要浪花，11-04 用户）
         const k = 1 - smooth(0.22, 0.45 + 0.15 * el, t);
         for (let a = a0; a < a1; a += 0.5 / A.R) {
           const n = noise((a - a0) * 7, o.seed + 51) + 0.5 * noise((a - a0) * 19, o.seed + 53);
@@ -399,11 +429,13 @@ export function create(o) {
         }
       }
       if (deco && arcOn && t < 0.32) {
-        const [x, y] = full ? onArc(A, A.R * 0.9, segs[0].c) : onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));   // S3：光只跟主浪，背后不亮
-        p.glow(x, y, 60 * (el === 0 ? 0.6 : 1), C[5], 0.6 * GK * (1 - t / 0.32));
+        const kk = 0.9 * GK * (1 - t / 0.32);   // 刀光扫过的那段弧上铺光（不再是刃尖一盏大圆光）
+        if (full) bandDraw(p, { ...A, R: A.R * segs[0].rk }, segs[0].c - segs[0].h, 2 * segs[0].h, 16, C[5], kk);   // S3：光只跟主浪，背后不亮
+        else { const e = span * ease.outExpo(clamp(t / SW)); bandDraw(p, A, a0 + Math.max(0, e - span * 0.5), Math.min(e, span * 0.5), 16, C[5], kk); }
       }
       const g = t - SW * 0.6;
-      if (deco && arcOn && el >= 1 && !full && g > 0 && g < 0.26) sparkle(p, tip[0], tip[1], (heavy ? 16 : 12) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
+      if (false) sparkle(p, tip[0], tip[1], (heavy ? 16 : 12) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
+      if (deco) for (const b of bands) { const u = (t - b.t0) / b.life; if (u < 1) bandDraw(p, b.S, b.aS, b.aL, b.rad, b.col, b.k * (1 - u) * (1 - u)); }
       if (deco) {
         lights.draw(p);   // 光先画、颗粒后画（反预乘后光更亮，盖在颗粒上会把水珠火星淹掉，11-03）
         ps.draw(p, "front");

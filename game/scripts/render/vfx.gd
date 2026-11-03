@@ -163,9 +163,14 @@ func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core", elit
 		subs = [vs + ts, ts, ""]
 	var els: Array = ["_e2", ""] if lo else []
 	if not lo:
-		for e in range(clampi(elite, 0, 2), -1, -1):
-			els.append("_e%d" % e)
-		els.append("")
+		# 基名就是 E2（docs/242 §10.2）：精二 _e2 → 基名 → _e1 → _e0；精一 / 精零 本档 → 更低档 → 基名
+		# （原来精二按 _e2 → _e1 → _e0 → 基名查，基名是 E2 又另有 _e1 时精二拿到 _e1，铃兰 / 斯卡蒂 11-04）
+		if elite >= 2:
+			els = ["_e2", "", "_e1", "_e0"]
+		else:
+			for e in range(maxi(elite, 0), -1, -1):
+				els.append("_e%d" % e)
+			els.append("")
 	var out: String = ""
 	for es in els:
 		for ss in subs:
