@@ -1,6 +1,6 @@
 # op_dummy
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/op_dummy_test.tscn -- --regression --seed=1 --balance --bot=afk --nodeath --op=hoshiguma --squad=wisadel --dummy_op=wisadel --dummy_role=mate --dummy_scene=horde --dummy_stage=2 --dummy_secs=5 --dummy_warm=2 --dummy_check
-# 用时 11 秒；结束时全机 Godot 3 个
+# 用时 11 秒；结束时全机 Godot 4 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
