@@ -665,5 +665,81 @@
   "layers": true,
   "move": "skill",
   "lo": true
+ },
+ "fx_ulpianus_ul_slam_s2": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "s2",
+   "seed": 43
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach_skill*s2_reach/2"
+   },
+   "src": "ulpianus.json base.reach_skill × s2_reach（必须维系的界限生效后锚击半径 136.5）；注册表 alt draw fit 68.25"
+  },
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_ulpianus_ul_slam_s22": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "s2",
+   "seed": 47
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach_skill*s2_reach/2"
+   },
+   "src": "ulpianus.json base.reach_skill × s2_reach（必须维系的界限生效后锚击半径 136.5）；注册表 alt draw fit 68.25"
+  },
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_slam_s2_tm": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "s2",
+   "seed": 43,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach_skill*s2_reach/2"
+   },
+   "src": "ulpianus.json base.reach_skill × s2_reach（必须维系的界限生效后锚击半径 136.5）；注册表 alt draw fit 68.25"
+  },
+  "check_sy": 0.55
+ },
+ "fx_ulpianus_ul_slam_s2_e1": {
+  "fx": "impacts/ak-ulpianus-ul-impact",
+  "opts": {
+   "move": "s2",
+   "seed": 43,
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "ulpianus",
+   "opts": {
+    "radius": "reach_skill*s2_reach/2"
+   },
+   "src": "ulpianus.json base.reach_skill × s2_reach（必须维系的界限生效后锚击半径 136.5）；注册表 alt draw fit 68.25"
+  },
+  "check_sy": 0.55,
+  "deco_step": 2
  }
 }

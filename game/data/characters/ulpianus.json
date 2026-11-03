@@ -788,6 +788,13 @@
    {
     "dur": 0,
     "aim": "tether",
+    "fx": [
+     {
+      "px": "fx_ulpianus_ul_cast1",
+      "at": "self",
+      "_doc": "pixelfx 放开版起手（§14.2；注册表 cast 在 §14.7 下不画）"
+     }
+    ],
     "do": [
      {
       "verb": "tether",
@@ -872,6 +879,11 @@
        0,
        -20
       ]
+     },
+     {
+      "px": "fx_ulpianus_ul_cast2",
+      "at": "self",
+      "_doc": "pixelfx 放开版起手（§14.2；注册表 cast 在 §14.7 下不画）"
      }
     ],
     "do": [
@@ -922,6 +934,13 @@
    {
     "dur": 0,
     "aim": "tether",
+    "fx": [
+     {
+      "px": "fx_ulpianus_ul_cast3",
+      "at": "self",
+      "_doc": "pixelfx 放开版起手（§14.2；注册表 cast 在 §14.7 下不画）"
+     }
+    ],
     "active_timer": "haste",
     "do": [
      {
@@ -1198,14 +1217,8 @@
         ]
        },
        {
-        "strip": "fx_ulpianus_ul_blood_deco",
-        "at": "self",
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_blood",
-        "at": "self",
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_blood",
+        "at": "self"
        }
       ]
      }
@@ -1311,14 +1324,8 @@
         ]
        },
        {
-        "strip": "fx_ulpianus_ul_whirl_deco",
-        "fit": 65.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_whirl",
-        "fit": 65.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_whirl",
+        "fit": 65.0
        }
       ]
      }
@@ -1369,14 +1376,8 @@
         }
        },
        {
-        "strip": "fx_ulpianus_ul_throw_deco",
-        "fit": 45.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_throw",
-        "fit": 45.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_throw",
+        "fit": 45.0
        }
       ],
       "dust_fx": [
@@ -1391,14 +1392,8 @@
         ]
        },
        {
-        "strip": "fx_ulpianus_ul_dust_deco",
-        "fit": 12.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_dust",
-        "fit": 12.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_dust",
+        "fit": 12.0
        }
       ],
       "arrive_fx": [
@@ -1420,14 +1415,8 @@
         }
        },
        {
-        "strip": "fx_ulpianus_ul_after_deco",
-        "fit": 25.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_after",
-        "fit": 25.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_after",
+        "fit": 25.0
        }
       ]
      }
@@ -1465,14 +1454,8 @@
         ]
        },
        {
-        "strip": "fx_ulpianus_ul_pull_deco",
-        "fit": 64.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_pull",
-        "fit": 64.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_pull",
+        "fit": 64.0
        }
       ]
      }
@@ -1554,14 +1537,8 @@
         }
        },
        {
-        "strip": "fx_ulpianus_ul_throw_deco",
-        "fit": 45.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_throw",
-        "fit": 45.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_throw",
+        "fit": 45.0
        }
       ],
       "dust_fx": [
@@ -1576,14 +1553,8 @@
         ]
        },
        {
-        "strip": "fx_ulpianus_ul_dust_deco",
-        "fit": 12.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_dust",
-        "fit": 12.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_dust",
+        "fit": 12.0
        }
       ],
       "arrive_fx": [
@@ -1605,14 +1576,8 @@
         }
        },
        {
-        "strip": "fx_ulpianus_ul_after_deco",
-        "fit": 25.0,
-        "cond": "px_ul"
-       },
-       {
-        "strip": "fx_ulpianus_ul_after",
-        "fit": 25.0,
-        "cond": "px_ul"
+        "px": "fx_ulpianus_ul_after",
+        "fit": 25.0
        }
       ],
       "at": "leader"

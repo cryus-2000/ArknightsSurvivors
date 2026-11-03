@@ -23,6 +23,7 @@ export const meta = {
     inner: 45,
     move: "whirl",
     quick: 0,
+    spray: 0,          // 1 = 画往外甩的水珠 / 火星 / 碎石（docs/242 §14.7 用户 11-04 取消，缺省 0；尘 / 水雾保留）
     layer: "all",
     seed: 3,
   },
@@ -34,6 +35,7 @@ export function create(o) {
   const C = fit(o.palette, 8), D = fit(o.dust, 6), Rg = new Rng(o.seed), mv = o.move || "whirl", R = +o.radius, Ri = +o.inner, quick = +o.quick > 0;
   const core = o.layer !== "deco", deco = o.layer !== "core", DL = quick ? 0.55 : 1;
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[6], C[5]], haze: C[4] });
+  if (!(+o.spray > 0)) { const sp0 = ps.spawn.bind(ps); ps.spawn = (k, ...a) => (k === P.DUST || k === P.VAPOUR || k === P.SMOKE ? sp0(k, ...a) : null); }   // §14.7：甩出物不画
   const sp = (a, r) => [Math.cos(a) * r, Math.sin(a) * r * SY];
   const a0 = Rg.range(-Math.PI, Math.PI), SPIN = 0.3, TAIL = 2.0;
   const head = (t) => a0 + TAU * 1.02 * ease.outCubic(clamp(t / SPIN));

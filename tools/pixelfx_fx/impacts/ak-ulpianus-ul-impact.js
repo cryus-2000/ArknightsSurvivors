@@ -34,6 +34,7 @@ export const meta = {
     move: "slam",
     elite: 2,
     quick: 0,
+    spray: 0,          // 1 = 画往外甩的水珠 / 火星 / 碎石（docs/242 §14.7 用户 11-04 取消，缺省 0；尘 / 水雾保留）
     layer: "all",
     seed: 3,
   },
@@ -50,6 +51,7 @@ export function create(o) {
   const DL = (big ? 1 : [0.5, 0.75, 1][el]) * (quick ? 0.55 : 1), GK = big ? 1 : [0.45, 0.75, 1][el], PM = big ? 1.2 : [0.55, 0.8, 1][el];
   const blood = (el >= 2 || mv === "throw") && !quake ? 1 : quake && el >= 2 && !dustOnly ? 0.6 : 0;
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[6], C[5]], haze: C[4] }), lights = new Lights();
+  if (!(+o.spray > 0)) { const sp0 = ps.spawn.bind(ps); ps.spawn = (k, ...a) => (k === P.DUST || k === P.VAPOUR || k === P.SMOKE ? sp0(k, ...a) : null); }   // §14.7：甩出物不画
   const T_DARK = quake ? 0 : 0.04;          // 压暗一帧，再爆亮
   const T_FLASH = T_DARK + (big ? 0.05 : 0.04);
   const GROW = big ? 0.12 : quake ? 0.2 : 0.08;
@@ -146,6 +148,16 @@ export function create(o) {
   // S3 浪身弧片：几段弧形水墙从裂网外围立起，往外拍倒碎成水花（每段只占一小段角度，合起来不到半圈）
   const curtains = [];
   if (big) for (const a of jitterAngles(Rg, 4, -Math.PI, Math.PI, 0.45)) curtains.push({ a, len: Rg.range(0.45, 0.8), r: R * Rg.range(0.6, 0.85), H: Rg.range(18, 28), d0: Rg.range(0.06, 0.12), s: Rg.int(0, 999) });
+  // 翘起的地块（E1+ / S3 / 掷锚的可见元素，代替往外飞的碎石，§14.7）：挂在裂缝中段，被顶起两三格再落回、不飞走
+  const slabs = [];
+  if ((el >= 1 || big || mv === "throw") && !quake && !small && !dustOnly) {
+    const pool = [];
+    for (const c of cracks) if (!c.depth) for (const q of c.pts) if (q[2] > R * 0.3 && q[2] < R * 0.85) pool.push(q);
+    for (let k = 0, n = big ? 9 : mv === "throw" ? 4 : [0, 3, 4][el]; k < n && pool.length; k++) {
+      const q = pool.splice(Rg.int(0, pool.length - 1), 1)[0];
+      slabs.push({ x: q[0], y: q[1], w: Rg.range(3, 5.5) * (big ? 1.3 : 1), h: Rg.range(2, 3.5), up: Rg.range(2, 4.5) * (big ? 1.4 : 1), d0: 0.03 + q[2] / R * 0.06, tilt: Rg.range(-0.5, 0.5), s: Rg.int(0, 999) });
+    }
+  }
   let t = 0, flashed = false, shook = false, shook2 = false;
   const aft = el >= 2 && !quake && !small ? (big ? [0.3, 0.52] : [0.3]) : big ? [0.32] : [];
   const sp = (x, y) => [x, y * SY];   // 地面坐标 → 屏幕
@@ -292,6 +304,18 @@ export function create(o) {
             const col = top ? D[lit ? 5 : 4] : D[clamp(Math.round(1 + 2.5 * d / h + (lit ? 1 : 0)), 1, 4)];
             for (let s2 = 0; s2 < cw; s2 += 0.7) p.px(x + s2 - cw / 2, y - d, col);
           }
+        }
+      }
+      if (core) for (const sb of slabs) {   // 地块：不规则的一小块地面，顶面亮、侧面暗，被顶起后落回原处
+        const u = t - T_DARK - sb.d0;
+        if (u < 0 || u > 0.55 * DL + 0.2) continue;
+        const lift = sb.up * Math.sin(Math.PI * clamp(u / 0.22)) * (u < 0.22 ? 1 : 0), fade = 1 - smooth(0.35 * DL + 0.1, 0.55 * DL + 0.2, u);
+        const [cx, cy] = sp(sb.x, sb.y);
+        for (let i = -sb.w / 2; i <= sb.w / 2; i += 0.6) for (let j = 0; j <= sb.h; j += 0.6) {
+          const e = (Math.abs(i) / (sb.w / 2)) ** 2 + 0.6 * noise(i * 0.8 + j, sb.s);
+          if (e > 1) continue;
+          const top = j > sb.h - 1.2, x = cx + i, y = cy - lift - j + i * sb.tilt * 0.3;
+          p.blend(x, y, top ? D[5] : j < 1 ? D[1] : D[3], fade);
         }
       }
       // 水刺：从裂缝里冲起，尖端白、根部深，到顶后碎落
