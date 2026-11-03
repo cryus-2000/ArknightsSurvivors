@@ -1,0 +1,29 @@
+{
+ "op": "skadi",
+ "squad": "mizuki",
+ "cases": {
+  "late": {
+   "seed": 13,
+   "secs": 560,
+   "trace_lines": [
+    561,
+    561
+   ],
+   "trace_same": true,
+   "first_diff": null,
+   "balance_diff": []
+  },
+  "ult": {
+   "seed": 7,
+   "secs": 240,
+   "trace_lines": [
+    241,
+    241
+   ],
+   "trace_same": true,
+   "first_diff": null,
+   "balance_diff": []
+  }
+ },
+ "pass": true
+}
