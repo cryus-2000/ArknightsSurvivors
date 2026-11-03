@@ -1,0 +1,4 @@
+late seed 13 560s：TRACE 561 / 561 行 逐行一致；BALANCE（去掉画面统计）一致
+ult seed 7 240s：TRACE 241 / 241 行 逐行一致；BALANCE（去掉画面统计）一致
+PX_TRACE_AB PASS
+check rc=1
