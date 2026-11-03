@@ -423,3 +423,31 @@
 - 设定色以原作为准（PRTS / ark_ref，§11.1 第 12、13 条）。
 - 同时不能和这三种颜色混淆：敌方危险色 #ff2667、敌方青色子弹 #33ceff、经验结晶的暖金（淡金到琥珀）。
 - **交付附一张实战截图自查：** 后期满编，这名干员的特效和敌弹、结晶同屏，要分得清。
+
+## 13 原作特效还原工具（用户 11-03 新要求）
+
+用户：各干员的攻击特效都要拿解包得到的原作数据当参考。§11.1 第 13 条只说了「描轮廓用 ark_ref 贴图」，这里补上动态部分：直接读原作 prefab，还原出招式的形状、节奏、颜色和混合方式。
+
+**工具：** `tools/ref_fx/rebuild_prefab.py`（原型是逻各斯会话的 `Claude outputs/logos_ref/scripts`，已收成公共工具，只由样板分支维护）。
+
+```
+python tools/ref_fx/rebuild_prefab.py skadi --list --grep attack            # 列出特效包里的 prefab
+python tools/ref_fx/rebuild_prefab.py skadi skadi_attack_01_start,skadi_attack_01_hit --dur 1.2
+python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   # 弹道类：拖尾沿向右 2.5 单位、0.5 秒的路径画
+```
+
+- 干员 id 用本作的（skalter = 浊心斯卡蒂，specter_unchained = 归溟幽灵鲨，表在 `tools/ref_fx/arkab.py` 的 OPS）。prefab 名按原作技能编号，和我方编号可能不一致，先查 docs/31。
+- 逗号隔开的多个 prefab 从 0 秒起叠在同一处（起手 + 刀光 + 命中）。地面类 prefab 自动按地面透视压扁（`--ground on/off` 可强制）。
+- 输出到 `<主仓库>/Claude outputs/<干员>_ref/`：原速 mp4、慢放 mp4、均匀 8 帧关键帧拼图、prefab 层级 dump（json，查粒子寿命 / 尺寸 / 颜色渐变 / 着色器）。
+- 读客户端 `D:/Hypergryph Launcher/games/Arknights/Arknights_Data`（只读，环境变量 ARK_DATA 可改）。第一次运行建依赖包索引（只读包头，约 6 分钟，存 `build/ark_ref/_cab_idx.json`，各工作树共用；客户端更新后加 `--reindex`）。贴图先用 `build/ark_ref/<干员>/` 已导出的，没有再导到 `build/ark_ref/<干员>/_tex/`。
+- 用系统 python 运行（UnityPy 1.25.4、lz4、numpy、Pillow、imageio-ffmpeg 都已装）。
+
+**怎么用到放开版里：**
+
+1. 开工前先还原这一招对应的原作 prefab，看关键帧拼图和慢放：主形（刀光 / 爆点 / 弹体的轮廓走向）、节奏（起手到命中几帧、余韵多长）、颜色（材质着色 + 粒子渐变）、加色还是透明混合。
+2. pixelfx 版要对得上原作的主形和节奏，在此基础上按 §12 加强（精英分档、装饰层、像素化）。颜色仍以 §11.1 第 12 条的 OP 色阶为准，原作颜色只用来判断「亮部 / 暗部 / 重点色」该落在色阶哪一段。
+3. 交付时附原作还原的关键帧拼图路径（§11.1 第 6 条的对照图旁边放一列原作），写明用了哪几个 prefab。
+
+**还原是近似的：** 形状模块除球形外按锥近似，子发射器、噪声、力场、碰撞不模拟，MeshRenderer 不读动画曲线（固定淡入淡出），拖尾 / 连线要给 `--path` / `--line` 才画。和原作录像对不上时以原作录像为准。
+
+**不进 git、不进包：** 原作贴图、网格、还原出的视频和拼图都只放 `build/` 和 `Claude outputs/`；`tools/ref_fx/` 下只有脚本。
