@@ -372,7 +372,8 @@ static func _el_land(o, s: Dictionary, kd: Dictionary, mods: Dictionary, d: Dict
 			if lg.has("fx"):
 				fx_play(o, lg.fx, s.pos, r, hits)
 			else:
-				o.fx({"kind": "ring", "pos": s.pos, "r": r, "r0": r * 0.4, "life": 0.25, "col": EL_GREEN, "floor": true, "w": 2.0, "alpha": 0.7})
+				if not o.g.vfx.px_halo_off():   # 放开版发散光环关掉时不画（用户 11-04，fx/px_halo）
+					o.fx({"kind": "ring", "pos": s.pos, "r": r, "r0": r * 0.4, "life": 0.25, "col": EL_GREEN, "floor": true, "w": 2.0, "alpha": 0.7})
 		"leap":
 			if ld.has("face_x") and absf(float(ld.face_x) - s.pos.x) > 2.0:   # 落地面朝敌群（背对队长）
 				s.face = signf(float(ld.face_x) - s.pos.x)

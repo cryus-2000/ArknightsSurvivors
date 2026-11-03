@@ -7,6 +7,7 @@
 // The crescent / echo / trace recipe is adapted from Sprite Fusion's open-source slash
 // (https://www.spritefusion.com/pixel-art-vfx/slash), MIT License, Copyright (c) 2026 Hugo Duprez.
 import { Particles, Lights, P, Rng, fit, sparkle, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const meta = {
   name: "Skadi slash unleashed",
@@ -19,7 +20,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#040c1c", "#08224a", "#0f4280", "#1a6cb4", "#34a8dc", "#7fe0f4", "#d4fbff", "#ffffff"],
+    palette: ["#0b1529", ...OP.skadi],   // 11-03 §12.6：改用 house.js OP.skadi 7 阶（原水青 #34a8dc / #7fe0f4 和敌方青弹 #33ceff 色差仅 15–18），最暗一阶为压暗底色
     accent: "#5ff0cc",   // E2 专属颜色重点（海绿，和敌方红 / 品红危险色分开）
     radius: 80,
     span: 3.5,
@@ -28,6 +29,7 @@ export const meta = {
     move: "basic",    // basic / s1 / s2 / s3
     elite: 2,         // 0 / 1 / 2
     fine: 1,          // 变细 A（缺省开）
+    spray: 0,         // 往外甩的水珠 / 火星（1 = 甩；11-04 用户取消「洒水出去」，缺省 0；水雾 VAPOUR、浪沫 STAR、成团水花不受影响）
     layer: "all",     // core / deco / all（分层导出时由 pixelfx_export.py 传）
     seed: 3,
   },
@@ -69,6 +71,7 @@ function crescent(p, s, ta, L, W, age, hot, core, deco) {
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), heavy = +o.heavy > 0, full = o.span > 6, quick = +o.quick > 0;
   const el = clamp(Math.round(+o.elite), 0, 2), mv = o.move || "basic", fine = +o.fine > 0, ACC = o.accent;
+  const SPRAY = +o.spray > 0;
   // 分档（docs/242 §10）：DL 装饰余韵、GK 光晕、PM 颗粒量、HOT 白热；队友版余韵再减半
   const DL = [0.45, 0.75, 1][el] * (quick ? 0.5 : 1), GK = [0.5, 0.8, 1][el], PM = [0.55, 0.8, 1][el] * (fine ? 1.5 : 1), HOT = [0.8, 1.8, 3.0][el];
   const LQ = DL, SZ = fine ? 0.6 : 1;
@@ -118,6 +121,7 @@ export function create(o) {
     if (tail < 1) crescent(p, s, a0 + span * tail, span * (head - tail), s.W * (1 - tail * 0.5), age, hot, core, deco);
   }
   function spray(x, y, nx, ny, n, sp, life) {
+    if (!SPRAY) return;   // 11-04 用户：「斯卡蒂洒水出去的特效是不是可以取消」
     for (let k = 0; k < n; k++) {
       const v = sp * Rg.range(0.5, 1.2), a = Math.atan2(ny, nx) + Rg.range(-0.6, 0.6);
       ps.spawn(k % 3 ? P.MOTE : P.SPARK, x, y, Math.cos(a) * v, Math.sin(a) * v - Rg.range(20, 70), life * Rg.range(0.6, 1.1), C[6 + Rg.int(0, 1)], Rg.range(0.7, 1.3) * SZ);
@@ -133,9 +137,9 @@ export function create(o) {
         const nm = Math.round((heavy ? 4 : 3) * PM + Rg.range(-0.4, 0.4));
         for (let k = 0; k < nm; k++) {
           const sp = Rg.range(80, 260);
-          ps.spawn(P.MOTE, x, y, (tx * 0.6 + nx * 0.9) * sp, (ty * 0.6 + ny * 0.9) * sp, Rg.range(0.25, 0.55) * (0.6 + 0.4 * DL), C[6 + Rg.int(0, 1)], Rg.range(0.8, 1.4) * SZ);
+          if (SPRAY) ps.spawn(P.MOTE, x, y, (tx * 0.6 + nx * 0.9) * sp, (ty * 0.6 + ny * 0.9) * sp, Rg.range(0.25, 0.55) * (0.6 + 0.4 * DL), C[6 + Rg.int(0, 1)], Rg.range(0.8, 1.4) * SZ);
         }
-        if (Rg.chance(0.7 * PM)) ps.spawn(P.SPARK, x, y, nx * Rg.range(100, 260), ny * Rg.range(100, 260) - 60, Rg.range(0.3, 0.65));
+        if (SPRAY && Rg.chance(0.7 * PM)) ps.spawn(P.SPARK, x, y, nx * Rg.range(100, 260), ny * Rg.range(100, 260) - 60, Rg.range(0.3, 0.65));
         if (deco && Rg.chance(0.3)) ps.spawn(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
         passed += (full ? 0.025 : 0.035) * Rg.range(0.4, 1.8) / (fine ? 1.4 : 1);   // 步长随机：等距撒会排成等距放射纹
       }
@@ -146,7 +150,7 @@ export function create(o) {
           const a = slHead(sl, u), tx = -Math.sin(a) * sl.dir, ty = Math.cos(a) * sl.dir, [x, y] = onArc(sl.S, sl.S.R + Rg.range(-2, 2), a);
           for (let k = 0, m = Math.round(2 * PM); k < m; k++) {   // 三刀叠起来颗粒很密，每刀每帧少甩一点（颗粒光晕叠多了会过「持续白」）
             const v = Rg.range(120, 280);
-            ps.spawn(k % 4 ? P.MOTE : P.SPARK, x, y, (tx * 0.85 + Math.cos(a) * 0.5) * v, (ty * 0.85 + Math.sin(a) * 0.5) * v, Rg.range(0.25, 0.5) * (0.6 + 0.4 * DL), C[Rg.chance(0.25) ? 7 : 6], Rg.range(0.7, 1.2) * SZ);   // 冰蓝为主、纯白少（连斩颗粒密，纯白多了过「持续白」）
+            if (SPRAY) ps.spawn(k % 4 ? P.MOTE : P.SPARK, x, y, (tx * 0.85 + Math.cos(a) * 0.5) * v, (ty * 0.85 + Math.sin(a) * 0.5) * v, Rg.range(0.25, 0.5) * (0.6 + 0.4 * DL), C[Rg.chance(0.25) ? 7 : 6], Rg.range(0.7, 1.2) * SZ);   // 冰蓝为主、纯白少（连斩颗粒密，纯白多了过「持续白」）
           }
         }
         if (!sl.done && u >= SWS) {
@@ -167,20 +171,20 @@ export function create(o) {
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
           ps.spawn(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
           if (el >= 1 && Rg.chance(0.5)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2) * SZ, Rg.range(0.05, 0.4) * LQ);
-          if (Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
+          if (SPRAY && Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
         }
         if (arcOn && !full) {
           const ta = Math.atan2(Math.cos(a1), -Math.sin(a1));
           for (let i = 0, m = Math.round(20 * PM); i < m; i++) {
             const a = ta + Rg.range(-0.8, 0.8), sp = Rg.range(120, 320);
-            ps.spawn(P.SPARK, tip[0], tip[1], Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.2, 0.45));
+            if (SPRAY) ps.spawn(P.SPARK, tip[0], tip[1], Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.2, 0.45));
           }
         }
         if (mv === "s3") for (let a = Rg.range(0, 0.2); a < TAU; a += Rg.range(0.05, 0.22)) {   // 浪墙顶甩出白沫
           const h = wallH(a);
           if (h < 9 || !Rg.chance(0.6)) continue;
           const [x, y] = onArc(A, A.R + h, a);
-          ps.spawn(P.MOTE, x, y, Math.cos(a) * Rg.range(30, 90), Math.sin(a) * Rg.range(30, 90) - 30, Rg.range(0.4, 0.75) * LQ, C[6], Rg.range(0.9, 1.6) * SZ);
+          if (SPRAY) ps.spawn(P.MOTE, x, y, Math.cos(a) * Rg.range(30, 90), Math.sin(a) * Rg.range(30, 90) - 30, Rg.range(0.4, 0.75) * LQ, C[6], Rg.range(0.9, 1.6) * SZ);
         }
       }
       if (mv === "s2" && !crashed && t >= SW + 0.26) {   // 水幕拍落：沿前缘碎成不规则飞溅
