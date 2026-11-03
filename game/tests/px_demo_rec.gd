@@ -76,9 +76,14 @@ func _process(_dt: float) -> void:
 			print("SFXTRACE " + JSON.stringify({"frame0": f0, "trace": Sfx.trace}))
 			print("MUSTRACE " + JSON.stringify({"buses": {}, "frames": mus}))
 		var ld: Array = []   # 录像门禁（tools/px_prerecord.py）：这名干员实际加载的放开版帧条 + 演示期间取用 / 兜底计数
+		var pres: Array = game.vfx.px_ul_prefixes(rec_op) if game.get("vfx") != null else ["fx_%s_ul_" % rec_op]   # 前缀按注册表取（归溟 id ≠ 前缀，11-04）
 		if game.get("tex") is Dictionary:
 			for k in game.tex:
-				if str(k).find("_ul_") >= 0 and str(k).find(rec_op) >= 0 and game.tex[k] != null:
-					ld.append(str(k))
-		print("PXSTATS " + JSON.stringify({"op": rec_op, "loaded": ld.size(), "stats": game.vfx.px_stats if game.get("vfx") != null else {}}))
+				if game.tex[k] == null:
+					continue
+				for pre in pres:
+					if str(k).begins_with(pre):
+						ld.append(str(k))
+						break
+		print("PXSTATS " + JSON.stringify({"op": rec_op, "prefixes": pres, "loaded": ld.size(), "stats": game.vfx.px_stats if game.get("vfx") != null else {}}))
 		get_tree().quit()

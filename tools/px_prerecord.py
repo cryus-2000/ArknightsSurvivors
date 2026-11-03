@@ -39,6 +39,25 @@ def prep_assets(log=print):
     return len(idx)
 
 
+def prefixes(op):
+    """这名干员的放开版帧条前缀：注册表 data/px_ul.json 里出现过的 fx_<x>_ul_ / proj_<x>_ul_（id 和前缀不一定一样：归溟 specter_unchained → fx_specter_ul_，
+    总组长 11-04）；注册表没有这名干员时退回 fx_<id>_ul_ / proj_<id>_ul_。和 vfx.px_ul_prefixes 同一规则"""
+    p = os.path.join(ROOT, "game", "data", "px_ul.json")
+    reg = json.load(open(p, encoding="utf-8")).get(op, {}) if os.path.exists(p) else {}
+    out, stack = [], [reg]
+    while stack:
+        n = stack.pop()
+        if isinstance(n, dict):
+            stack.extend(n.values())
+        elif isinstance(n, list):
+            stack.extend(n)
+        elif isinstance(n, str) and n.find("_ul_") > 0 and n.startswith(("fx_", "proj_")):
+            pre = n[:n.index("_ul_") + 4]
+            if pre not in out:
+                out.append(pre)
+    return out or ["fx_%s_ul_" % op, "proj_%s_ul_" % op]
+
+
 def git(*a):
     return subprocess.run(["git"] + list(a), cwd=ROOT, capture_output=True, text=True).stdout.strip()
 
@@ -84,7 +103,7 @@ def main():
             fails.append("图鉴演示 %s 脚本错误：%s" % (MODES.get(m, m), "；".join(errs)))
         loaded = max(loaded, int(st.get("loaded", 0)))
         for k, v in st.get("stats", {}).items():
-            if k.startswith("used:") and a.op in k:
+            if k.startswith("used:") and k[5:].startswith(tuple(prefixes(a.op))):
                 used[k[5:]] = used.get(k[5:], 0) + int(v)
             elif k.startswith("fallback:") and k.endswith("@" + a.op):
                 fb["%s（%s）" % (k[9:].split("@")[0], MODES.get(m, m))] = int(v)

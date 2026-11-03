@@ -367,6 +367,26 @@ func px_ul_reg(id: String) -> Dictionary:
 	return r if r is Dictionary else {}
 
 
+## 这名干员的放开版帧条前缀（fx_<x>_ul_ / proj_<x>_ul_），从注册表里出现过的帧条名取；干员 id 和前缀不一定一样
+## （归溟 id = specter_unchained、前缀 = fx_specter_ul_，总组长 11-04：录像门禁拿 id 当子串匹配永远是 0）。注册表没有这名干员时退回 fx_<id>_ul_ / proj_<id>_ul_
+func px_ul_prefixes(id: String) -> Array:
+	var out: Array = []
+	var stack: Array = [px_ul_reg(id)]
+	while not stack.is_empty():
+		var n = stack.pop_back()
+		if n is Dictionary:
+			stack.append_array(n.values())
+		elif n is Array:
+			stack.append_array(n)
+		elif n is String and n.find("_ul_") > 0 and (n.begins_with("fx_") or n.begins_with("proj_")):
+			var pre: String = n.substr(0, n.find("_ul_") + 4)
+			if not pre in out:
+				out.append(pre)
+	if out.is_empty():
+		out = ["fx_%s_ul_" % id, "proj_%s_ul_" % id]
+	return out
+
+
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
 	if tier_off or g.fx.size() > 420:
 		return
