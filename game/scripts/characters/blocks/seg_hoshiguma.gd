@@ -301,6 +301,8 @@ static func gm_force_block(o, b: Dictionary) -> void:
 	if BalH.vi("fx/px_unleashed", 0) <= 0:   # 放开版：两道外扩环不做（用户 11-04），留压地扬尘
 		o.fx({"kind": "ring", "pos": o.g.ppos, "r": 44.0, "r0": 12.0, "life": 0.35, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 3.0, "alpha": 0.9})
 		o.fx({"kind": "ring", "pos": o.pos, "r": float(b.get("ring_r", 90.0)), "r0": 20.0, "life": 0.45, "col": Color(1.0, 0.8, 0.3), "floor": true, "w": 6.0, "alpha": 0.95})   # 盾面压地的冲击环
+	if BalH.vi("fx/px_unleashed", 0) > 0 and o.g.ppos != Vector2.INF:   # 放开版：队长脚下压一枚钢色盾印（同 S1 起手印，原地，不外扩）
+		_px_spawn(o, "fx_hoshiguma_ul_cast1", o.g.ppos, o.g.PX)
 	o.ground_dust(o.pos, float(b.get("ring_r", 90.0)) * 0.6, 10)
 	o.float_text(o.g.ppos + Vector2(0, -100), "般若之重", Color(1.0, 0.85, 0.4), 14)
 
@@ -339,11 +341,25 @@ static func gm_boil_sand(o, b: Dictionary) -> void:
 		o._exec_list(scaled, f.pos)
 		if float(b.get("spark_mult", 0.0)) > 0.0:
 			o._exec_list([{"_tag": "shape.circle", "shape": "circle", "center": "target", "r": float(b.spark_r), "mult": float(b.spark_mult), "src": "热砂沸腾", "tags": ["skill"], "power": true}], f.pos)
-		if BalH.vi("fx/px_unleashed", 0) <= 0:   # 放开版：外扩环不做（用户 11-04），留火星
+		if BalH.vi("fx/px_unleashed", 0) > 0:   # 放开版：热砂原地扎一丛荆棘（热砂每跳那张，按溅射半径缩放），不画外扩环（用户 11-04）
+			_px_spawn(o, "fx_hoshiguma_ul_thorn", f.pos + Vector2(0, 2), float(b.spark_r) / 40.0)
+		else:
 			o.fx({"kind": "ring", "pos": f.pos, "r": float(b.spark_r), "r0": 8.0, "life": 0.35, "col": Color(1.0, 0.45, 0.2), "floor": true, "w": 4.0, "alpha": 0.95})
-		for k in 8:
-			var a: float = TAU * float(k) / 8.0 + 0.2
-			o.sparks(f.pos, Vector2.from_angle(a), Color(1.0, 0.6, 0.25), 2, 120.0)
+			for k in 8:   # 放开版不往外甩火星（用户 11-04）
+				var a: float = TAU * float(k) / 8.0 + 0.2
+				o.sparks(f.pos, Vector2.from_angle(a), Color(1.0, 0.6, 0.25), 2, 120.0)
+
+
+## 放开版帧条播一张（先装饰后核心；名字走 vfx.px_ul_tex：队友 _tm、精英档、缺图回退）。纯画面
+static func _px_spawn(o, base: String, p: Vector2, sc: float) -> void:
+	var g = o.g
+	var tm: bool = not o.is_leader
+	var dn: String = g.vfx.px_ul_tex(base, 1, tm, "deco", int(o.elite))
+	if dn != "" and g.tex.get(dn) != null and g.vfx.px_deco_k() > 0.0:
+		o.spawn_fx_sprite(dn, p, sc, 0.0, false, false, Color(1, 1, 1, g.vfx.px_deco_k()))
+	var cn: String = g.vfx.px_ul_tex(base, 1, tm, "core", int(o.elite))
+	if cn != "" and g.tex.get(cn) != null:
+		o.spawn_fx_sprite(cn, p, sc)
 
 
 ## 画面（draw_entities_floor 末尾调）：被阻挡的敌人脚下一枚金色盾形小印；般若之重武装时队长脚下一圈金环；热砂外缘一圈橙色椭圆（带「沸腾」时更亮）

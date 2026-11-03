@@ -120,17 +120,24 @@
 		"cast": {
 			"0": {
 				"base": "fx_hoshiguma_ul_cast1",
-				"y": 0.0
+				"y": 0.0,
+				"halo_ok": true
 			},
 			"1": {
 				"base": "fx_hoshiguma_ul_cast2",
-				"y": 0.0
+				"y": 0.0,
+				"halo_ok": true
 			},
 			"2": {
 				"base": "fx_hoshiguma_ul_cast3",
-				"y": 0.0
+				"y": 0.0,
+				"halo_ok": true
 			}
 		},
-		"no_arc": true
+		"no_arc": true,
+		"remap": {
+			"fx_hoshiguma_guard_glow": "fx_hoshiguma_ul_stance",
+			"fx_hoshiguma_block": "fx_hoshiguma_ul_block"
+		}
 	}
 }

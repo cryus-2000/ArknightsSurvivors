@@ -16,17 +16,21 @@ export const meta = {
   options: {
     palette: ["#121418", "#262a31", "#434a55", "#6d7684", "#a3acb8", "#d9dee6", "#ffffff"],   // §12.6：不用金（经验结晶暖金），钢色 = PRTS 黑钢盾
     jade: ["#081814", "#18584c", "#258a77", "#58c4ab", "#b4f0e2"],
+    ember: ["#2a0a08", "#5e1410", "#9c2418", "#d8452a", "#ff7050"],
+    stance: 0,
+    k: 1,   // 1 = 精一「反击架势」盾面细红光（remap fx_hoshiguma_guard_glow）：盾沿暗红细线 + 红白亮点，不窜鬼火、角上不挂光
     layer: "all",
     seed: 2,
   },
 };
 
-const V = [[-30, -26], [30, -26], [2, 30]];
+const V0 = [[-30, -26], [30, -26], [2, 30]];
 const FL = [[-24, 0.13, 0.9], [-15, 0.61, 1.2], [-7, 0.37, 0.8], [1, 0.82, 1.4], [9, 0.05, 1.0], [18, 0.49, 0.7], [26, 0.71, 1.1]];   // [x, 相位, 高倍]：x 间距不等
 
 export function draw(p, t, o) {
-  const C = fit(o.palette, 7), J = fit(o.jade, 5), ph = t / meta.duration, core = o.layer !== "deco", deco = o.layer !== "core";
-  if (deco) {
+  const C = fit(o.palette, 7), J = fit(o.jade, 5), E = fit(o.ember, 5), ph = t / meta.duration, core = o.layer !== "deco", deco = o.layer !== "core";
+  const st = +o.stance > 0, V = V0.map(([x, y]) => [x * +o.k, y * +o.k]);   // k：盾形大小（架势条贴在立绘盾面上，约 0.45）
+  if (deco && !st) {
     for (const [x0, q, hk] of FL) {   // 鬼火：每束一个循环周期内窜起又熄灭（相位错开）
       const u = (ph + q) % 1, life = Math.sin(Math.PI * u), H = (12 + 10 * hk) * life;
       if (H < 2) continue;
@@ -50,7 +54,8 @@ export function draw(p, t, o) {
         let dm = 1e9;
         for (const h of heads) dm = Math.min(dm, (h - (acc + s) + tot) % tot);
         const ci = dm < 3 ? 6 : dm < 10 ? 5 : dm < 22 ? 4 : 3;
-        p.blend(x, y, C[ci], dm < 22 ? 1 : 0.75);
+        if (st) p.blend(x, y, ci >= 6 ? C[5] : E[ci - 1], dm < 22 ? 0.95 : 0.6);   // 架势：暗红细线，亮点头偏白
+        else p.blend(x, y, C[ci], dm < 22 ? 1 : 0.75);
       }
       acc += L[i];
     }

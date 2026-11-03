@@ -53,7 +53,7 @@ export function create(o) {
           for (const s of slabs) {   // 板下迸出的碎石 + 火星
             for (let i = 0, n = Rg.int(1, 3); i < n; i++) {
               const a = Math.atan2(s.y / SY, s.x) + Rg.range(-0.4, 0.4), sp = Rg.range(40, 120);
-              ps.spawn(i ? P.SPARK : P.GRIT, s.x, s.y, Math.cos(a) * sp, Math.sin(a) * sp * SY - Rg.range(60, 150), Rg.range(0.3, 0.6), i ? 0 : D[3 + Rg.int(0, 1)], 1, s.d);
+              ps.spawn(i ? P.SPARK : P.GRIT, s.x, s.y, Math.cos(a) * sp * 0.12, -Rg.range(60, 150), Rg.range(0.3, 0.6), i ? 0 : D[3 + Rg.int(0, 1)], 1, s.d);
             }
             if (Rg.chance(0.5)) ps.spawn(P.DUST, s.x, s.y, Rg.range(-4, 4), -Rg.range(8, 22), Rg.range(0.5, 0.9), D[1 + Rg.int(0, 2)], Rg.range(1.6, 3.4), s.d + 0.03);
           }

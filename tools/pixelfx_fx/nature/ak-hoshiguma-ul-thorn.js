@@ -50,7 +50,7 @@ export function create(o) {
       t += dt;
       if (!fired) {
         fired = true;
-        if (deco && el >= 1) for (const s of spikes) if (Rg.chance(0.6)) ps.spawn(P.SPARK, s.x, s.y - s.h * 0.6, Math.cos(s.a) * Rg.range(30, 90), -Rg.range(60, 140), Rg.range(0.12, 0.25), 0, 1, s.d);
+        if (deco && el >= 1) for (const s of spikes) if (Rg.chance(0.6)) ps.spawn(P.SPARK, s.x, s.y - s.h * 0.6, Rg.range(-12, 12), -Rg.range(60, 140), Rg.range(0.12, 0.25), 0, 1, s.d);
         if (deco && el >= 2) for (let i = 0; i < 6; i++) ems.spawn(P.EMBER, Rg.range(-R, R) * 0.7, Rg.range(-R, R) * 0.7 * SY, Rg.range(-10, 10), -Rg.range(20, 50), Rg.range(0.3, 0.5), E[3], 1, Rg.range(0, 0.1));
       }
       ps.update(dt); ems.update(dt);

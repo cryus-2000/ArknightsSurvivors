@@ -1076,13 +1076,14 @@ static func _ho_start(u, o) -> Dictionary:
 			n += 1
 			u.shape({"kind": "line", "a": e.pos, "b": e.pos + dv / dist * minf(pull, 120.0), "w": 2.0, "col": col.lerp(Color.WHITE, 0.3), "life": 0.2, "v": dv / dist * 500.0})
 	var hv2: bool = _ho_v2(u)
-	if hv2:   # 盾砸地：顿帧 + 盾下地面碎裂（fx_hs_crack 整张，压出来）+ 碎石掀起 + 灰尘粒子
+	if hv2:   # 盾砸地：顿帧（放开版也留）；下面是盾下地面碎裂（fx_hs_crack 整张，压出来）+ 碎石掀起 + 灰尘粒子
 		u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
+	if hv2 and not pul:   # 放开版：盾下碎裂 / 隆起 / 烟尘由 fx_hoshiguma_ul_ultslam 一张画完，旧 pixfx 不再叠
 		var vs0: float = PF.vseed(u, c)
 		u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.35, "sc1": 0.55, "scd": 0.1, "ang": PF.h(vs0) * TAU, "sx": -1.0 if PF.h(vs0 + 1.0) < 0.5 else 1.0,
 			"life": hold + 1.4, "fade": 0.6, "col": Color(1.1, 1.08, 1.05), "col1": Color(0.6, 0.58, 0.56), "cold": hold + 0.6})
 		PF.heave(u, c, 120.0, vs0 + 3.0)
-		if _ho_v3() and not pul:   # 打击感（pixfx §6.6）：盾下四团逐帧烟尘往外推，代替灰点粒子（放开版不做外推，用户 11-04）
+		if _ho_v3():   # 打击感（pixfx §6.6）：盾下四团逐帧烟尘往外推，代替灰点粒子
 			for q in 4:
 				var hq: float = PF.h(vs0 * 3.0 + q)
 				var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 4.0)
@@ -1141,6 +1142,12 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			var vs2: float = PF.vseed(u, c) + 50.0
 			var pul: bool = _ho_ul(u)   # 放开版：石尘冲击环、外圈烟尘外推、四拍外震都是往外扩散的环，一律不做（用户 11-04）；留顿帧、粒子、原地余震碎石
 			var rs: Dictionary = {} if pul else PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
+			if pul:   # 放开版反震本体：盾阵边（R 处六边形）一圈地面原地掀起——每边 3 段 fx_hoshiguma_ul_burstslab（石板 + 鬼火 + 碎石往上蹦），两种变体交错、起落略错开
+				for q in 18:
+					var k: int = q / 3
+					var f: float = (float(q % 3) + 0.5 + (PF.h(vs2 + q * 1.7) - 0.5) * 0.5) / 3.0
+					var hp: Vector2 = c + Vector2.from_angle(TAU * k / 6.0).lerp(Vector2.from_angle(TAU * (k + 1) / 6.0), f) * R
+					u.px_strip("fx_hoshiguma_ul_burstslab", hp, {"variant": 1 + q % 2, "sc": u.g.PX, "delay": 0.04 * float(q % 4)})
 			if _ho_v3() and not pul:   # 冲击帧：反震那一下，石尘环 + 盾下碎裂进剪影；外圈八团逐帧烟尘往外推
 				a["hf"] = true
 				u.act["hf"] = true
@@ -1149,7 +1156,8 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 					var hq: float = PF.h(vs2 * 3.0 + q)
 					var dq := Vector2.from_angle(TAU * (q + hq * 0.7) / 8.0)
 					PF.dust(u, c + dq * R * (0.55 + 0.25 * hq), 200.0 + 80.0 * hq, 0.05 + 0.03 * (q % 3), vs2 + q, dq * (70.0 + 50.0 * hq))
-			PF.particles(u, c, 300, "ult_burst", [Color(0.95, 0.9, 0.85), Color(1.0, 0.55, 0.45)], 0.0, vs2, R * 0.8)
+			if not pul:   # 放开版不往外迸粒子（用户 11-04：往外甩的碎屑 / 火星去掉）
+				PF.particles(u, c, 300, "ult_burst", [Color(0.95, 0.9, 0.85), Color(1.0, 0.55, 0.45)], 0.0, vs2, R * 0.8)
 			a["vs"] = vs2
 			if not pul:
 				a["beats"] = [[t, R * 0.3, 0], [t + 0.18, R * 0.55, 1], [t + 0.36, R * 0.8, 2], [t + 0.54, R, 3]]

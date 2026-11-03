@@ -1414,6 +1414,7 @@
         "basic"
        ],
        "tex": "proj_hoshiguma_sawshield",
+       "px": "proj_hoshiguma_ul_sawshield",
        "spark": "fx_hoshiguma_saw_spark"
       }
      ]
@@ -1442,6 +1443,7 @@
         "basic"
        ],
        "tex": "proj_hoshiguma_sawshield",
+       "px": "proj_hoshiguma_ul_sawshield",
        "spark": "fx_hoshiguma_saw_spark"
       }
      ]

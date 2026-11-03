@@ -492,20 +492,28 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				a["shield0"] = int(u.g.shield)
 				u.g.shield = int(u.g.shield) + 1
 			var side2: Vector2 = a.side
+			var hpx: bool = a.get("hpx", false)
 			if t >= 0.1 and not a.done.has("beat"):
 				a.done["beat"] = true
 				_beat(u)
-				if LFX.on() and u.fx_ready(LFB.HS_SHIELD):
+				# 放开版（docs/242 §14.15）：琥珀盾换成星熊举盾帧条（黑钢倒三角盾沿 + 青绿鬼火，同终结技硬挡），琥珀撞结晶暖金
+				hpx = u.px_strip("fx_hoshiguma_ul_ultguard", lp + side2 * 46.0 + Vector2(0, -16), {"sc": u.g.PX * 0.75, "loop": true, "life": 1.5, "fade": 0.5})
+				a["hpx"] = hpx
+				if hpx:
+					pass
+				elif LFX.on() and u.fx_ready(LFB.HS_SHIELD):
 					LFB.hs_plant(u, lp + side2 * 46.0, side2)
 				else:
 					u.grain("sh_glint", lp + side2 * 46.0, side2, AMBER, 8)
 					u.light(lp + side2 * 46.0, 140.0, AMBER, 0.6)
 				for e in a.taunt:
 					if not e.dead:
-						u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -38), "w": 3.0, "col": AMBER, "life": 1.0})
+						u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -38), "w": 3.0, "col": Color(0.85, 0.88, 0.92) if hpx else AMBER, "life": 1.0})
 			if t < 1.5:
 				var fa: float = 1.0 if t < 1.0 else 1.0 - (t - 1.0) / 0.5
-				if t < 0.1 or not LFB.hs_shield(u, lp + side2 * 46.0, side2, fa, t):
+				if hpx or (t < 0.1 and Bal.vi("fx/px_unleashed", 0) > 0):   # 放开版：瞬移那 0.1 秒不画琥珀盾
+					pass
+				elif t < 0.1 or not LFB.hs_shield(u, lp + side2 * 46.0, side2, fa, t):
 					u.shape({"kind": "sector", "c": lp + side2 * 46.0, "r": 60.0, "a": side2.angle(), "half": 0.9, "col": AMBER, "fill": 0.5 * fa, "life": 0.04})
 					u.shape({"kind": "line", "a": lp + side2 * 46.0 + side2.orthogonal() * 42.0, "b": lp + side2 * 46.0 - side2.orthogonal() * 42.0, "w": 5.0, "col": Color(AMBER, fa), "life": 0.04})
 				if t < 1.0:

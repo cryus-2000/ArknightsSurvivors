@@ -55,7 +55,7 @@ export function create(o) {
           const n = [4, 6, 8][el];   // 普攻克制：火星少
           for (let i = 0; i < n; i++) {
             const a = Rg.range(-half, half), tg = a + Math.PI / 2, sp = Rg.range(60, 150);
-            ps.spawn(P.SPARK, Math.cos(a) * R, Math.sin(a) * R, Math.cos(tg) * sp * 0.6 + Math.cos(a) * sp * 0.5, Math.sin(tg) * sp * 0.6 + Math.sin(a) * sp * 0.5, Rg.range(0.08, 0.18) * (0.6 + TAIL), 0, 1);
+            ps.spawn(P.SPARK, Math.cos(a) * R, Math.sin(a) * R, Math.cos(tg) * sp * 0.6, Math.sin(tg) * sp * 0.6,   /* 只顺刀走向擦出，不往外甩（用户 11-04）*/ Rg.range(0.08, 0.18) * (0.6 + TAIL), 0, 1);
           }
           if (el >= 1) for (let i = 0; i < 4; i++) {   // 刃头碎钢屑
             const a = half + Rg.range(-0.3, 0.2), sp = Rg.range(50, 120), dir = a + Math.PI / 2 + Rg.range(-0.5, 0.5);

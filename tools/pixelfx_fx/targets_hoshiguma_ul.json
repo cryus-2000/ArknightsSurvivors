@@ -509,5 +509,47 @@
   "lo": true,
   "palette_src": "钢色 = PRTS 黑钢盾 #272727 / #1E1E1E 一带；般若纹暗红 = house.js OP.hoshiguma 暗红；齿根青绿 = PRTS 瞳色 #58C4AB（精二般若，docs/91 §4）",
   "move": "basic"
+ },
+ "fx_hoshiguma_ul_block": {
+  "fx": "holy/ak-hoshiguma-ul-block",
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "palette_src": "钢色 = PRTS 黑钢盾 #272727 / #1E1E1E 一带；角上暗红 = house.js OP.hoshiguma 暗红（般若）",
+  "move": "skill"
+ },
+ "fx_hoshiguma_ul_stance": {
+  "fx": "holy/ak-hoshiguma-ul-guard",
+  "opts": {
+   "stance": 1,
+   "k": 0.45
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "palette_src": "暗红 = docs/91 §4 精一「反击架势」盾面细红光；亮头钢白 = PRTS 黑钢盾高光",
+  "move": "skill"
+ },
+ "fx_hoshiguma_ul_burstslab": {
+  "fx": "impacts/ak-hoshiguma-ul-burstslab",
+  "opts": {
+   "seed": 31
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "palette_src": "钢色 = PRTS 黑钢盾；板顶 / 鬼火青绿 = PRTS 瞳色 #58C4AB（同盾砸地 ultslam）",
+  "move": "ult"
+ },
+ "fx_hoshiguma_ul_burstslab2": {
+  "fx": "impacts/ak-hoshiguma-ul-burstslab",
+  "opts": {
+   "seed": 37
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "palette_src": "钢色 = PRTS 黑钢盾；板顶 / 鬼火青绿 = PRTS 瞳色 #58C4AB（同盾砸地 ultslam）",
+  "move": "ult"
  }
 }

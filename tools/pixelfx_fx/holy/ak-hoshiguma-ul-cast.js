@@ -54,7 +54,7 @@ export function create(o) {
       t += dt;
       if (!fired) {
         fired = true;
-        if (deco) for (let i = 0; i < 8; i++) { const a = Rg.range(0, Math.PI * 2), sp = Rg.range(40, 110); ps.spawn(P.SPARK, Math.cos(a) * 10, Math.sin(a) * 6, Math.cos(a) * sp, Math.sin(a) * sp * SY - 50, Rg.range(0.12, 0.25), 0, 1, Rg.range(0, 0.06)); }
+        if (deco) for (let i = 0; i < 8; i++) { const a = Rg.range(0, Math.PI * 2), sp = Rg.range(40, 110); ps.spawn(P.SPARK, Math.cos(a) * 10, Math.sin(a) * 6, Math.cos(a) * 12, -sp,   /* 原地往上冒，不往外甩（用户 11-04）*/ Rg.range(0.12, 0.25), 0, 1, Rg.range(0, 0.06)); }
       }
       ps.update(dt);
     },
