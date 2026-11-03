@@ -241,7 +241,8 @@ static func _h4_attach_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 		o.log_hit(src)
 		o.deal_damage(e3, dmg * (o.vs_elite() if e3.elite or e3.boss else 1.0))
 		o.fx({"kind": "flame", "pos": e3.pos + Vector2(0, 4), "vel": Vector2(0, -30), "life": 0.3, "col": H4_FOX, "sz": 9.0})
-	o.fx({"kind": "ring", "pos": sz.att[0].e.pos, "r": r, "r0": r * 0.6, "life": 0.25, "col": H4_FOX, "floor": true, "w": 1.5, "alpha": 0.5})
+	if not _h4_px(o):   # 放开版：扩散环不画（§14.7）
+		o.fx({"kind": "ring", "pos": sz.att[0].e.pos, "r": r, "r0": r * 0.6, "life": 0.25, "col": H4_FOX, "floor": true, "w": 1.5, "alpha": 0.5})
 	# 传火：每团附着体至多传一次，传给 r 内最近的一名未被附着的敌人
 	for s2 in passes:
 		if not sz.att.has(s2) or s2.e.dead:
@@ -300,7 +301,8 @@ static func _h4_fire_big(o, a: Dictionary, from: Vector2, tg: Dictionary) -> voi
 	_h4sz(o).bigfox.append({"pos": from, "vel": d * float(mg.get("spd", 340.0)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * float(mg.get("mult", 2.2)) * o._dmg_bonus(),
 		"life": float(mg.get("life", 1.3)), "r": float(mg.get("r", 14.0)), "hit": {}, "trail": 0.0})
 	o.fx({"kind": "glow", "pos": from, "r": 24.0, "life": 0.22, "col": H4_FOX, "alpha": 0.7})
-	o.fx({"kind": "ring", "pos": from, "r": 30.0, "r0": 6.0, "life": 0.25, "col": H4_FOX, "w": 2.0})
+	if not _h4_px(o):   # 放开版：扩散环不画（§14.7）
+		o.fx({"kind": "ring", "pos": from, "r": 30.0, "r0": 6.0, "life": 0.25, "col": H4_FOX, "w": 2.0})
 
 
 static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
@@ -396,8 +398,9 @@ static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 			o.deal_damage(e, f.dmg * (o.vs_elite() if e.elite or e.boss else 1.0))
 			if not e.dead:
 				o.add_cc(e, -INF, 1.0, "stop")
-			o.fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": H4_FOX, "w": 2.5})
-			_h3_vsparks(o, e.pos, H4_FOX, 4, 180.0, 0.3, 2.5)
+			if not _h4_px(o):   # 放开版：扩散环和往外甩的火星不画（§14.7）
+				o.fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": H4_FOX, "w": 2.5})
+				_h3_vsparks(o, e.pos, H4_FOX, 4, 180.0, 0.3, 2.5)
 			_h4_fox_hit(o, a, e)   # 精英化第 4 批（狐火灼印）的挂点
 	sz.bigfox = sz.bigfox.filter(func(f): return f.life > 0.0)
 
