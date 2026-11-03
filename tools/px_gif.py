@@ -9,7 +9,8 @@
 输出：<主仓库>/Claude outputs/pixelfx_gif/<干员>/<招>.gif，和总览 <干员>_index.png（每招 E2 中段一帧）。
 
 用法：python tools/px_gif.py <干员> [--only 招,…] [--scale 3] [--out 目录]
-招 = 帧条名去掉 fx_<干员>_ul_ 前缀和 _e0 / _e1 / _e2、变体数字、_tm / _deco / _lo 后缀。
+招 = 帧条名去掉前缀（缺省从注册表读，--prefix 可改）和 _e0 / _e1 / _e2、变体数字、_tm / _deco / _lo 后缀。
+落点类招（注册表里 hit / status / bullet / debride / mark_zone / proj 键下的帧条，或 --land 指定）原点放在第一只怪脚下，格子里标「实际出现在落点」。
 """
 import argparse, json, os, re, sys
 from PIL import Image, ImageDraw, ImageFont
@@ -103,9 +104,34 @@ def first_frame(idx, name, square=True):
     return im
 
 
-def moves(op, idx):
+LAND_KEYS = ("hit", "debride", "status", "bullet", "mark_zone", "proj")   # 注册表里这些键下的帧条在敌人 / 落点处播
+
+
+def reg_info(op):
+    """从注册表 data/px_ul.json 读：帧条前缀（fx_<x>_ul_，归溟幽灵鲨 id 是 specter_unchained、前缀是 fx_specter_ul_）和落点类帧条基名"""
+    p = os.path.join(ROOT, "game", "data", "px_ul.json")
+    reg = json.load(open(p, encoding="utf-8")).get(op, {}) if os.path.exists(p) else {}
+    bases, land = [], set()
+
+    def walk(n, under_land):
+        if isinstance(n, dict):
+            for k, v in n.items():
+                walk(v, under_land or k in LAND_KEYS)
+        elif isinstance(n, list):
+            for v in n:
+                walk(v, under_land)
+        elif isinstance(n, str) and "_ul_" in n and n.startswith(("fx_", "proj_")):
+            bases.append(n)
+            if under_land:
+                land.add(n)
+    walk(reg, False)
+    pres = sorted({b[:b.index("_ul_") + 4] for b in bases}, key=lambda x: -sum(1 for b in bases if b.startswith(x)))
+    return (pres[0] if pres else "fx_%s_ul_" % op), land
+
+
+def moves(op, idx, pre=None):
     """招 → {精英档: 帧条名}；E2 优先取 <招>_e2，没有就取不带档位的 <招>"""
-    pre = "fx_%s_ul_" % op
+    pre = pre or "fx_%s_ul_" % op
     out = {}
     for k in idx:
         if not k.startswith(pre) or "@" in k:
@@ -129,6 +155,8 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--scale", type=int, default=3)
     ap.add_argument("--out", default="")
+    ap.add_argument("--prefix", default="", help="帧条前缀（缺省从注册表自动读，例 fx_specter_ul_）")
+    ap.add_argument("--land", default="", help="逗号分隔的招名：按落点（敌人处）放；缺省按注册表里 hit / status / bullet / debride 等键自动认")
     a = ap.parse_args()
     K = a.scale
     idx, v6 = index(), v6_frames()
@@ -136,12 +164,16 @@ def main():
     packed = json.load(open(pk_path, encoding="utf-8")) if os.path.exists(pk_path) else {}
     out_dir = a.out or os.path.join(GR.common_root(), "Claude outputs", "pixelfx_gif", a.op)
     os.makedirs(out_dir, exist_ok=True)
-    mv = moves(a.op, idx)
+    pre, land_b = reg_info(a.op)
+    pre = a.prefix or pre
+    mv = moves(a.op, idx, pre)
+    land_mv = set(filter(None, a.land.split(","))) | {m for m, d in mv.items() if any(n in land_b or any(n.startswith(b) for b in land_b) for n in d.values())}
+    print("帧条前缀 %s；落点类招 %s" % (pre, "、".join(sorted(land_mv)) or "无"))
     only = set(filter(None, a.only.split(",")))
     if only:
         mv = {k: v for k, v in mv.items() if k in only}
     if not mv:
-        sys.exit("没有找到 fx_%s_ul_* 帧条（先导出并跑 tools/asset_index.py）" % a.op)
+        sys.exit("没有找到 %s* 帧条（先导出并跑 tools/asset_index.py；前缀不对用 --prefix）" % pre)
     body = first_frame(idx, "op_%s_idle@2x" % a.op) or first_frame(idx, "op_%s_idle@1x" % a.op)
     foe = first_frame(idx, "e_runner@2x")
     gem = first_frame(idx, "gem_small", square=False)
@@ -165,6 +197,8 @@ def main():
         CW, CH = 2 * R, 2 * R + 26
         fx_ = CW // 2 - int(R * 0.25)   # 干员脚底（帧条原点）
         fy_ = CH // 2 + 30
+        is_land = name in land_mv
+        lx, ly = (int(fx_ + 0.62 * R), int(fy_ - 0.18 * R)) if is_land else (fx_, fy_)   # 落点类：原点放在第一只怪脚下
         loop = any(c[2] and c[2].ok and c[2].loop for c in cells)
         T = max(max((c[2].dur() if c[2] and c[2].ok else 0.0), (c[3].dur() if c[3] else 0.0)) for c in cells)
         total = T if loop else T + HOLD
@@ -185,7 +219,7 @@ def main():
                     f = s.at(t)
                     if f and f[0] is not None:
                         im = f[0].resize((f[0].width * K, f[0].height * K), Image.NEAREST)
-                        cell.alpha_composite(im, (fx_ - f[1] * K, fy_ - f[2] * K))
+                        cell.alpha_composite(im, (lx - f[1] * K, ly - f[2] * K))
                 for s in (deco, core):
                     put(s, False)   # 地面层
                 if body:
@@ -203,7 +237,7 @@ def main():
                     cell.alpha_composite(g2, (int(fx_ - 0.35 * R), int(fy_ + 0.25 * R)))
                 for s in (deco, core):
                     put(s, True)   # 前景层
-                d.text((6, 4), "E%d%s" % (el, "" if own else "（同 E2）"), font=ft, fill=(230, 236, 245, 255))
+                d.text((6, 4), "E%d%s%s" % (el, "" if own else "（同 E2）", "　实际出现在落点（敌人处）" if is_land else ""), font=ft, fill=(230, 236, 245, 255))
                 row.paste(cell.convert("RGB"), (ci * CW, 0))
             imgs.append(row)
         gif = os.path.join(out_dir, "%s.gif" % name)

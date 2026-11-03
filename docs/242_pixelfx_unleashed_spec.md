@@ -622,4 +622,6 @@ python tools/px_gif.py <干员> [--only 招,…] [--scale 3]
 - 每招一个 GIF：E0 / E1 / E2 三格并排，统一 3 倍（1x 美术像素 × 3，人物 / 怪 / 帧条同一倍率），速度按 V6_FRAMES 的 fps。
 - 每格：游戏地面色底、干员待机首帧、3 只普通怪、一颗敌弹 #33ceff、一颗经验结晶，用来看大小和撞色。
 - 叠层：地面层（名字含 floor / ground 的帧条）→ 本体 → 前景层，每条先 `_deco` 后核心；一次性特效播完停 0.5 秒再循环，名字含 aura / loop / hold / orbit / shell 的无缝循环。
-- 读的是已导出进 `game/art/fx/` 的帧条（打包表 px_frames.json 取帧和原点），所以先导出、跑 asset_index。输出 `Claude outputs/pixelfx_gif/<干员>/<招>.gif` 和总览 `<干员>_index.png`。招名 = 帧条名去掉 `fx_<干员>_ul_`、档位、变体、`_tm` / `_deco` / `_lo`。
+- 读的是已导出进 `game/art/fx/` 的帧条（打包表 px_frames.json 取帧和原点），所以先导出、跑 asset_index。输出 `Claude outputs/pixelfx_gif/<干员>/<招>.gif` 和总览 `<干员>_index.png`。招名 = 帧条名去掉前缀、档位、变体、`_tm` / `_deco` / `_lo`。
+- 帧条前缀缺省从注册表自动读（例：归溟幽灵鲨 id 是 `specter_unchained`、前缀是 `fx_specter_ul_`），`--prefix` 可强制。
+- 落点类招：注册表里 `hit` / `status` / `bullet` / `debride` / `mark_zone` / `proj` 键下的帧条，原点放在第一只怪脚下，格子里标「实际出现在落点」；其他招用 `--land 招,…` 指定。
