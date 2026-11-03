@@ -687,6 +687,17 @@
             "tags": [
               "skill"
             ],
+            "fx": [
+              {
+                "px": "fx_suzuran_ul_muzzle_big",
+                "at": "self",
+                "off": [0, -10]
+              },
+              {
+                "px": "fx_suzuran_ul_hit",
+                "at": "hits"
+              }
+            ],
             "on_hit": [
               {
                 "st": "slow",

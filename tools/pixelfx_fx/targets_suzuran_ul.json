@@ -24,5 +24,6 @@
  "fx_suzuran_ul_hit_tm": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 2, "seed": 5, "quick": 1}, "colors": 256, "layers": true, "move": "basic"},
  "fx_suzuran_ul_hit_e1": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 1, "seed": 5}, "colors": 256, "layers": true, "move": "basic"},
  "fx_suzuran_ul_hit_e0": {"fx": "fire/ak-suzuran-ul-hit", "opts": {"elite": 0, "seed": 5}, "colors": 256, "layers": true, "move": "basic"},
- "fx_suzuran_ul_slow": {"fx": "fire/ak-suzuran-ul-slow", "opts": {"seed": 4}, "colors": 256, "lo": true, "layers": true, "move": "skill"}
+ "fx_suzuran_ul_slow": {"fx": "fire/ak-suzuran-ul-slow", "opts": {"seed": 4}, "colors": 256, "lo": true, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_pin": {"fx": "fire/ak-suzuran-ul-pin", "opts": {"seed": 7}, "colors": 256, "lo": true, "layers": true, "move": "skill"}
 }
