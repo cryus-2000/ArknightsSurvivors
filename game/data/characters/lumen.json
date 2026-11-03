@@ -690,6 +690,7 @@
     ],
     "fx": [
      {
+      "cond": "!px_ul",
       "sprite": {
        "name": "fx_holy_pillar_amber",
        "scale": 1.1,
@@ -702,6 +703,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "sprite": {
        "name": "fx_circle_amber",
        "scale": 1.8

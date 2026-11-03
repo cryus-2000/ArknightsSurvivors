@@ -1115,6 +1115,8 @@ const V6_FRAMES := {
 	"proj_exusiai_ul_bullet": [4, 20.0], "proj_exusiai_ul_bullet_lo": [3, 15.0], "proj_exusiai_ul_bullet_deco": [4, 20.0], "proj_exusiai_ul_bullet_deco_lo": [3, 15.0],
 	"fx_exusiai_ul_muzzle": [4, 24.0], "fx_exusiai_ul_muzzle_lo": [2, 15.0], "fx_exusiai_ul_muzzle_deco": [4, 24.0], "fx_exusiai_ul_muzzle_deco_lo": [2, 15.0],
 	"fx_exusiai_ul_hit": [6, 24.0], "fx_exusiai_ul_hit_lo": [4, 15.0], "fx_exusiai_ul_hit_deco": [6, 24.0], "fx_exusiai_ul_hit_deco_lo": [4, 15.0],
+	# 流明（claude/pixelfx-ul-lumen，开关 fx/px_unleashed，seg_lumen._px_ul_lm）
+	"fx_lumen_ul_drizzle": [24, 20.0], "fx_lumen_ul_drizzle_lo": [18, 15.0], "fx_lumen_ul_drizzle_deco": [24, 20.0], "fx_lumen_ul_drizzle_deco_lo": [18, 15.0], "fx_lumen_ul_drizzle2": [24, 20.0], "fx_lumen_ul_drizzle2_deco": [24, 20.0], "fx_lumen_ul_drizzle_tm": [22, 20.0], "fx_lumen_ul_drizzle_tm_deco": [22, 20.0], "fx_lumen_ul_drizzle_e0": [18, 20.0], "fx_lumen_ul_drizzle_e0_deco": [18, 20.0], "fx_lumen_ul_drizzle_e1": [22, 20.0], "fx_lumen_ul_drizzle_e1_deco": [22, 20.0],
 	"proj_exusiai_ul_bullet_s1": [4, 20.0], "proj_exusiai_ul_bullet_s1_lo": [3, 15.0], "proj_exusiai_ul_bullet_s1_deco": [4, 20.0], "proj_exusiai_ul_bullet_s1_deco_lo": [3, 15.0],
 	"fx_exusiai_ul_muzzle_s1": [4, 24.0], "fx_exusiai_ul_muzzle_s1_lo": [2, 15.0], "fx_exusiai_ul_muzzle_s1_deco": [4, 24.0], "fx_exusiai_ul_muzzle_s1_deco_lo": [2, 15.0],
 	"fx_exusiai_ul_hit_s1": [6, 24.0], "fx_exusiai_ul_hit_s1_lo": [4, 15.0], "fx_exusiai_ul_hit_s1_deco": [6, 24.0], "fx_exusiai_ul_hit_s1_deco_lo": [4, 15.0],

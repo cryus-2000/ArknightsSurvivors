@@ -485,6 +485,20 @@ static func h3_mend(o, b: Dictionary) -> void:
 	if b.get("power", false):
 		h *= o.skill_power()
 	_h3_mend(o, h, int(b.get("text", 18)), str(b.get("sub", "")))
+	if _px_ul_lm(o):   # pixelfx 放开版 S1「沐雨」（docs/242）：队长脚下水面法阵 + 细雨，先装饰后核心；旧画面在 lumen.json 用 "!px_ul" 关掉。只改画面
+		var el: int = g.vfx.px_ul_el(o)
+		var tm: bool = not o.is_leader
+		var vi: int = 1 + int(g.vrng.randi() % 2) if not tm else 1   # 队长版两个种子变体随机挑（g.vrng）
+		var dn: String = g.vfx.px_ul_tex("fx_lumen_ul_drizzle", vi, tm, "deco", el)
+		var dk: float = g.vfx.px_deco_k(o)
+		if dn != "" and dk > 0.0:
+			o.spawn_fx_sprite(dn, g.ppos, g.PX, 0.0, false, false, Color(1, 1, 1, dk))
+		o.spawn_fx_sprite(g.vfx.px_ul_tex("fx_lumen_ul_drizzle", vi, tm, "core", el), g.ppos, g.PX)
+
+
+## pixelfx 放开版开关（docs/242，balance fx/px_unleashed，缺省 0）：流明各招式换 fx_lumen_ul_*；发光单元不换（§4）
+static func _px_ul_lm(o) -> bool:
+	return float(preload("res://scripts/core/balance.gd").v("fx/px_unleashed", 0.0)) > 0.0 and o.g.tex.get("fx_lumen_ul_drizzle") != null
 
 
 static func h3_purge(o, b: Dictionary) -> void:

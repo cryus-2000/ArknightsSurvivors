@@ -1,27 +1,26 @@
 // 流明 S1「沐雨」（pixelfx 放开版，docs/242；开关 fx/px_unleashed）：原点 = 队长脚底。
-// 照原作 lumen_skill_01（细雨落下 → 脚下水面荡开 → 白蓝十字星浮起、气泡上飘）：
-// 一阵斜细雨落在队长身上 → 每滴落地溅一个小水花 → 脚下一道带缺口的透视水纹荡开 → 几颗细十字星从水面浮起闪灭。
-// 分档（docs/242 §10，对应 docs/91 流明）：E0 细雨 + 水纹 + 十字星；E1 加「折光」——雨幕里斜着闪过两三道细光（精一折光）；
-// E2 加「灯塔」——一道细窄的灯火光柱从上方照下来，落点溅起几颗灯火色火星（精二灯塔光柱），雨更密、余韵更长。
-// 分层（docs/242 §8）：core = 雨丝、落点水花、主水纹、十字星、折光细线、光柱；deco = 光晕、水雾、气泡、甩出的水珠、灯火火星、闪烁。
-// 颜色：雨 = 流明挑染钢蓝（PRTS #4285AD 往白），比敌弹青 #33ceff 暗、偏蓝、低饱和；灯火 = 我方灯火橙（optical_col_lamp h .075），
-// 不用淡金（经验结晶 h .13 s .25）。
+// 照原作 lumen_skill_01（目标脚下铺开一圈水面法阵 → 细雨落进法阵 → 白蓝十字星浮起）：
+// 脚下法阵从中心推开，边缘是一道细亮线（判定半径 r = 光雨范围 rain_r，1x 像素 = rain_r / 2），边内贴着一层沿边流动的颗粒；
+// 斜细雨落进法阵，落点溅起 2–4 颗连着的水珠（顺着离心方向）；十字星浮起，同一时间最多 3 颗。
+// 分档（docs/242 §10，对应 docs/91 流明）：E0 法阵 + 细雨 + 十字星；E1 加「折光」——一到两道斜光贯穿法阵，停 0.25 s（精一折光）；
+// E2 加「灯塔」——一道细窄的钢蓝白光柱从上方照进法阵中心（精二灯塔光柱），雨更密、法阵停得更久。
+// 分层（docs/242 §8）：core = 法阵边线、雨丝、落点水珠、十字星、折光、光柱；deco = 法阵内的流动颗粒、边内光、上飘光点。
+// 颜色（组长 11-04）：只用 PRTS 挑染 #4285AD 钢蓝 7 阶，高光段 #c4e0f2 → #ffffff，不留暖色（避开经验结晶暖金）。
 import { Particles, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
 
 export const meta = {
   name: "Lumen drizzle unleashed",
-  desc: "A slanted drizzle falls on the leader: each drop splashes, a broken ripple spreads at the feet and thin glints rise from the water.",
+  desc: "A water sigil spreads under the leader, a slanted drizzle falls into it and thin glints rise from the surface.",
   tags: ["water", "heal", "rain", "one-shot"],
-  size: [136, 168],
-  origin: [68, 148],
-  duration: 1.05,
+  size: [176, 200],
+  origin: [88, 160],
+  duration: 1.15,
   loop: false,
   fps: 20,
   bg: "dark",
   options: {
     palette: ["#121a2a", "#1d3150", "#2a5282", "#4285ad", "#7fb2d6", "#c4e0f2", "#ffffff"],
-    lamp: ["#4a200c", "#a8471a", "#ff9640", "#ffc48a", "#fff0e0"],
-    layer: "all", elite: 2, quick: 0, seed: 3,
+    layer: "all", elite: 2, quick: 0, seed: 3, r: 70,
   },
 };
 
@@ -29,136 +28,130 @@ const SY = 0.5;   // 地面透视压扁
 
 export function create(o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const C = fit(o.palette, 7), L = fit(o.lamp, 5), E = o.elite, Rg = new Rng(o.seed + 17 * E);
-  const tail = (E === 0 ? 0.55 : E === 1 ? 0.75 : 1.0) * (o.quick ? 0.6 : 1);   // 余韵：E0 短、E2 长；队友版再减
-  const ps = new Particles({ rng: Rg, ground: () => 1e9, haze: C[3] });
-  // 雨丝：同一个风向（斜 ~12°），落点在脚下一块不规则的椭圆里；出现先后、长短、落点都随机
-  const wind = 0.22, nRain = E === 0 ? 16 : E === 1 ? 22 : 30, RX = E === 2 ? 40 : 32;
+  const C = fit(o.palette, 7), E = o.elite, R = o.r, Rg = new Rng(o.seed + 17 * E);
+  const tail = (E === 0 ? 0.6 : E === 1 ? 0.8 : 1.0) * (o.quick ? 0.6 : 1);   // 余韵：E0 短、E2 长；队友版再减
+  const T_OPEN = 0.16, T_HOLD = 0.35 + 0.35 * tail, T_END = T_HOLD + 0.25;      // 法阵：推开 → 停 → 淡出
+  const ps = new Particles({ rng: Rg, ground: () => 1e9 });
+  const wind = 0.22, nRain = E === 0 ? 12 : E === 1 ? 16 : 22;
   const rain = [];
   for (let i = 0; i < nRain; i++) {
-    const a = Rg.range(0, TAU), r = Math.sqrt(Rg.next()) * RX * (0.8 + 0.4 * noise(a * 2, o.seed));
-    rain.push({ x: Math.cos(a) * r, y: Math.sin(a) * r * SY, t: Rg.range(0, E === 2 ? 0.32 : 0.24), len: Rg.range(10, 18), fall: Rg.range(0.11, 0.16), h: Rg.range(90, 130) });
+    const a = Rg.range(0, TAU), r = Math.sqrt(Rg.range(0.04, 1)) * R * 0.86;
+    rain.push({ a, x: Math.cos(a) * r, y: Math.sin(a) * r * SY, t: 0.04 + Rg.range(0, E === 2 ? 0.34 : 0.26), len: Rg.range(10, 18), fall: Rg.range(0.11, 0.16), h: Rg.range(100, 140), sp: Rg.next() < 0.5 });
   }
-  // 十字星：从水面浮起
+  // 十字星：错开出现，同一时间最多 3 颗
   const glints = [];
-  for (let i = 0, n = E === 0 ? 3 : E === 1 ? 4 : 5; i < n; i++)
-    glints.push({ x: Rg.range(-22, 22), y: Rg.range(-4, 4), v: Rg.range(28, 52), d: 0.16 + Rg.range(0, 0.3), s: Rg.range(2, 3.6), life: Rg.range(0.35, 0.55) * (0.8 + 0.3 * tail) });
-  // 折光（E1+）：雨幕里斜着闪过的细光线，角度和位置都不等
-  const refr = [];
-  if (E >= 1) for (let i = 0, n = E === 1 ? 2 : 3; i < n; i++)
-    refr.push({ x: Rg.range(-26, 26), y: Rg.range(-90, -36), a: Rg.range(-1.1, -0.5) * (i % 2 ? 1 : -1), len: Rg.range(30, 46), t: 0.1 + i * 0.07 + Rg.range(0, 0.06) });
-  // 落点水花甩出的水珠 + 气泡（装饰）
-  for (const d of rain) {
-    const tl = d.t + d.fall;
-    for (let k = 0, n = Rg.int(1, 3); k < n; k++)
-      ps.spawn(P.FLAKE, d.x, d.y - 1, Rg.range(-30, 30), Rg.range(-60, -25), Rg.range(0.18, 0.32), C[4 + Rg.int(0, 2)], 1, tl);
+  for (let i = 0, n = E === 0 ? 3 : E === 1 ? 4 : 5; i < n; i++) {
+    const a = Rg.range(0, TAU), r = Rg.range(0.15, 0.6) * R;
+    glints.push({ x: Math.cos(a) * r, y: Math.sin(a) * r * SY, v: Rg.range(26, 46), d: 0.18 + i * 0.13 + Rg.range(0, 0.05), s: Rg.range(2.4, 3.8), life: 0.36 });
   }
-  for (let i = 0, n = E === 0 ? 5 : 9; i < n; i++)
-    ps.spawn(P.MOTE, Rg.range(-24, 24), Rg.range(-6, 4), Rg.range(-6, 6), Rg.range(-40, -18), Rg.range(0.4, 0.75) * tail + 0.1, C[4], 0.6, 0.2 + Rg.range(0, 0.3));
-  if (E === 2) for (let i = 0; i < 7; i++)   // 灯火火星：光柱落点往上飘，个数少、走向不等
-    ps.spawn(P.EMBER, Rg.range(-6, 6), Rg.range(-4, 0), Rg.range(-26, 26), Rg.range(-70, -30), Rg.range(0.35, 0.6), L[3], Rg.range(1, 1.8), 0.1 + Rg.range(0, 0.12));
-  ps.sparks = [L[4], L[3], L[2], L[1]];
+  // 折光（E1+）：贯穿法阵的斜光，E1 两道、E2 一道（E2 另有光柱），方向不等
+  const refr = [];
+  if (E >= 1) for (let i = 0, n = E === 1 ? 2 : 1; i < n; i++) {
+    const a = Rg.range(0.35, 0.7) * (i % 2 ? -1 : 1);
+    refr.push({ a, off: Rg.range(-0.25, 0.25) * R, t: 0.2 + i * 0.12 });
+  }
+  // 法阵里沿边流动的颗粒（装饰）：贴着边线内侧，角度随机、慢慢走
+  const grains = [];
+  for (let i = 0, n = 16 + 6 * E; i < n; i++) grains.push({ a: Rg.range(0, TAU), k: Rg.range(0.8, 0.97), w: Rg.range(0.5, 1.1) * (Rg.next() < 0.5 ? 1 : -1), b: Rg.next() });
+  // 上飘的光点（装饰，少量）
+  for (let i = 0, n = 3 + 2 * E; i < n; i++) {
+    const a = Rg.range(0, TAU), r = Rg.range(0.1, 0.7) * R;
+    ps.spawn(P.MOTE, Math.cos(a) * r, Math.sin(a) * r * SY, Rg.range(-4, 4), Rg.range(-36, -18), Rg.range(0.4, 0.7) * tail + 0.15, C[5], 0.6, 0.22 + Rg.range(0, 0.3));
+  }
   let t = 0;
-  // 主水纹：一道透视椭圆，外缘用 noise 断开成几段（不是整环，不出同心圈）
-  const ripple = (p, R, w, cHi, cLo, a, seed) => {
-    for (let an = 0; an < TAU; an += 0.6 / Math.max(R, 4)) {
-      const n = noise(an * 2.3 + seed, seed);
-      if (n < 0.32) continue;
-      const rr = R * (0.94 + 0.12 * noise(an * 5, seed + 3));
-      for (let k = 0; k < w; k += 0.5) {
-        const x = Math.cos(an) * (rr - k), y = Math.sin(an) * (rr - k) * SY;
-        p.dot(x, y, k < 1 ? cHi : cLo, a * (n > 0.6 ? 1 : 0.6));
-      }
-    }
-  };
+  const open = () => ease.outCubic(clamp((t - 0.04) / (T_OPEN - 0.04)));
+  const fadeA = () => 1 - smooth(T_HOLD, T_END, t);
   return {
     update(dt) { t += dt; ps.update(dt); },
     drawBack(p) {
-      if (!deco) return;
-      const k = E === 0 ? 0.2 : E === 1 ? 0.28 : 0.4;
-      const gk = k * (1 - smooth(0.15, 0.4 + 0.5 * tail, t)), gr = 30 + 8 * E;
-      if (gk > 0.01)   // 脚下水面的光：透视压扁的椭圆，外缘用 noise 打散，不是圆盘
-        for (let y = -gr * SY; y <= gr * SY; y += 1)
-          for (let x = -gr; x <= gr; x += 1) {
-            const q = Math.hypot(x / gr, y / (gr * SY)) * (0.9 + 0.2 * noise(Math.atan2(y, x) * 1.6, o.seed + 5));
-            if (q < 1) p.blend(x, y, C[3], gk * 0.8 * (1 - q) * (1 - q));
-          }
-      ps.draw(p, "back");
+      if (!deco || t < 0.04) return;
+      const rr = R * (0.3 + 0.7 * open()), a = fadeA();
+      // 水面光：贴着边线内侧的一圈淡光（越近边越亮），中心空着，不是实心圆盘
+      for (let y = -rr * SY; y <= rr * SY; y += 1)
+        for (let x = -rr; x <= rr; x += 1) {
+          const q = Math.hypot(x / rr, y / (rr * SY));
+          if (q < 1 && q > 0.55) p.blend(x, y, C[3], a * (E === 0 ? 0.14 : 0.2) * smooth(0.55, 0.97, q) * (0.75 + 0.25 * noise(Math.atan2(y, x) * 2 + t * 2, o.seed)));
+        }
     },
     draw(p) {
-      // ---- 光柱（E2）：上方照下来的一道细窄灯光，0.05 s 落地，停一下往中间收；白芯 + 灯火橙边
-      if (E === 2 && core) {
-        const up = ease.outCubic(clamp(t / 0.07)), fold = smooth(0.12, 0.32, t), H = 140 * up, W = 2.8 * (1 - fold);
-        if (W > 0.3)
-          for (let y = 0; y <= H; y += 1) {
-            const v = y / 140, w = W * (0.35 + 0.65 * v), a = clamp(v * 1.6) * (1 - 0.6 * fold);   // 上端淡入，落点最亮
-            for (let x = -w; x <= w; x += 0.5) {
-              const q = Math.abs(x) / Math.max(w, 0.5);
-              p.blend(x, -140 + y, q < 0.5 ? L[4] : L[3], clamp(a * (q < 0.5 ? 1.2 : 0.75)));
-            }
-          }
+      const op = open(), fa = fadeA(), rr = R * (0.3 + 0.7 * op);
+      if (core && t >= 0.04 && fa > 0) {
+        // ---- 法阵边线：一道细线，亮度沿边用 noise 起伏（不断成等距碎段），推开时首帧白
+        const hot = t < T_OPEN;
+        for (let an = 0; an < TAU; an += 0.5 / rr) {
+          const n = noise(an * 2.2 + t * 3, o.seed + 7), x = Math.cos(an) * rr, y = Math.sin(an) * rr * SY;
+          const c = hot ? C[6] : n > 0.62 ? C[6] : n > 0.3 ? C[5] : C[4];
+          p.dot(x, y, c, fa * (n > 0.18 ? 1 : 0.55));
+        }
       }
       if (core) {
-        // ---- 雨丝：1 像素细线，尾巴暗、头亮；落地后消失
+        // ---- 光柱（E2）：上方照进法阵中心的一道细窄光，白芯 + 钢蓝高光边，上端淡入
+        if (E === 2) {
+          const up = ease.outCubic(clamp(t / 0.07)), fold = smooth(0.14, 0.36, t), H = 150 * up, W = 2.6 * (1 - fold);
+          if (W > 0.3)
+            for (let y = 0; y <= H; y += 1) {
+              const v = y / 150, w = W * (0.35 + 0.65 * v), a = clamp(v * 1.6) * (1 - 0.5 * fold);
+              for (let x = -w; x <= w; x += 0.5) {
+                const q = Math.abs(x) / Math.max(w, 0.5);
+                p.blend(x, -150 + y, q < 0.5 && t < 0.1 ? C[6] : q < 0.5 ? C[5] : C[4], clamp(a * (q < 0.5 ? 1.2 : 0.8)));   // 白芯只留前 2 帧，之后降一档
+              }
+            }
+        }
+        // ---- 雨丝：1 像素细线，头亮尾暗；落地即消失
         for (const d of rain) {
           const u = (t - d.t) / d.fall;
           if (u < 0 || u > 1) continue;
           const yh = d.y - d.h * (1 - u), xh = d.x - wind * d.h * (1 - u);
-          for (let s = 0; s <= d.len; s += 0.5) {
-            const c = s < 1.5 ? C[6] : s < d.len * 0.5 ? C[5] : C[4];
-            p.dot(xh - wind * s, yh - s, c, s < d.len * 0.5 ? 1 : 1.3 - s / d.len);
-          }
+          for (let s = 0; s <= d.len; s += 0.5)
+            p.dot(xh - wind * s, yh - s, s < 1.5 ? C[6] : s < d.len * 0.5 ? C[5] : C[4], s < d.len * 0.5 ? 1 : 1.3 - s / d.len);
         }
-        // ---- 落点水花：一个小冠（2–3 根短刺往上翘）+ 一小段弧，0.15 s
+        // ---- 落点水珠：一半的雨滴溅起 2–4 颗连着的水珠，顺着离心方向甩出一小段弧
         for (const d of rain) {
-          const u = (t - d.t - d.fall) / 0.16;
+          if (!d.sp) continue;
+          const u = (t - d.t - d.fall) / 0.2;
           if (u < 0 || u > 1) continue;
-          const hh = 3 * Math.sin(u * Math.PI), r = 2 + u * 4;
-          p.dot(d.x - 1.5, d.y - hh, C[6], 1 - u); p.dot(d.x + 1.5, d.y - hh * 0.8, C[5], 1 - u);
-          for (let an = 0.3; an < Math.PI - 0.3; an += 0.35) p.dot(d.x + Math.cos(an) * r, d.y + Math.sin(an) * r * SY, u < 0.4 ? C[5] : C[4], 1 - u);
-        }
-        // ---- 主水纹：第一批雨落地时荡开，首帧白
-        const t0 = 0.14, u = (t - t0) / (0.5 + 0.25 * tail);
-        if (u > 0 && u < 1) {
-          const R = 6 + (RX + 6 - 6) * ease.outCubic(u), hot = u < 0.08;
-          ripple(p, R, 2.5, hot ? C[6] : C[5], C[4], 1 - u * u, o.seed + E);
-        }
-        if (t >= 0.13 && t < 0.18) {   // 首帧白热：脚下一记不规则的水冠，不是圆盘
-          for (let an = 0; an < TAU; an += 0.22) {
-            const n = noise(an * 3, o.seed + 9), r = 4 + 6 * n;
-            p.dot(Math.cos(an) * r, Math.sin(an) * r * SY - n * 5, C[6]);
+          const ux = Math.cos(d.a), uy = Math.sin(d.a) * SY, n = 2 + ((d.len * 7) | 0) % 3;
+          for (let k = 0; k < n; k++) {
+            const s = (1.5 + k * 1.2) * (0.6 + u * 1.4), hh = (4 - k) * Math.sin(u * Math.PI);
+            p.dot(d.x + ux * s, d.y + uy * s - hh, k === 0 ? C[6] : C[5], 1 - u * u);
           }
         }
         // ---- 十字星（原作 shizi）：细十字，浮起、长一下再缩没
         for (const g of glints) {
           const a = t - g.d;
           if (a <= 0 || a > g.life) continue;
-          const k = Math.sin((a / g.life) * Math.PI), x = g.x, y = g.y - a * g.v, n = Math.round(g.s * k);
+          const k = Math.sin((a / g.life) * Math.PI), x = g.x, y = g.y - 6 - a * g.v, n = Math.round(g.s * k);
           p.px(x, y, C[6]);
           for (let d = 1; d <= n; d++) {
             const c = d <= 1 ? C[6] : C[5];
             p.px(x + d, y, c); p.px(x - d, y, c); p.px(x, y + d, c); p.px(x, y - d, c);
           }
         }
-        // ---- 折光（E1+）：一闪而过的细光线，中段白、两头钢蓝
+        // ---- 折光（E1+）：斜光贯穿法阵，从一头扫到另一头再停住，2 像素宽白芯 + 钢蓝边，共 0.3 s
         for (const r of refr) {
-          const a = (t - r.t) / 0.18;
+          const a = (t - r.t) / 0.3;
           if (a < 0 || a > 1) continue;
-          const ca = Math.cos(r.a), sa = Math.sin(r.a), L2 = r.len * (0.4 + 0.6 * ease.outCubic(a));
-          for (let s = -L2 / 2; s <= L2 / 2; s += 0.5) {
-            const q = Math.abs(s) / (L2 / 2);
-            p.dot(r.x + ca * s, r.y + sa * s, q < 0.4 ? C[6] : C[5], (1 - a * a) * (1 - 0.6 * q));
-            if (q < 0.25) p.dot(r.x + ca * s - sa, r.y + sa * s + ca, C[5], (1 - a) * 0.6);
+          const ca = Math.cos(r.a), sa = Math.sin(r.a), L2 = R * 1.05, head = -L2 + 2 * L2 * ease.outCubic(clamp(a / 0.3)), fade = 1 - smooth(0.75, 1, a);
+          for (let s = -L2; s <= head; s += 0.5) {
+            const q = Math.abs(s) / L2, x = -sa * r.off + ca * s, y = (ca * r.off + sa * s) * SY - 8;
+            p.dot(x, y, q < 0.6 ? C[6] : C[5], fade * (1 - 0.7 * q * q));
+            p.dot(x - sa * 0.8, y + 1, C[5], fade * (1 - q) * 0.8);
           }
         }
       }
       if (deco) {
+        // 法阵内沿边流动的颗粒
+        if (t >= 0.04 && fa > 0)
+          for (const g of grains) {
+            const an = g.a + t * g.w, k = g.k * rr, tw = 0.5 + 0.5 * Math.sin(t * 9 + g.b * 20);
+            p.dot(Math.cos(an) * k, Math.sin(an) * k * SY, tw > 0.7 ? C[6] : C[5], fa * (0.45 + 0.55 * tw));
+          }
         ps.draw(p, "front");
-        for (const g of glints) {   // 十字星出现时一小团光
+        for (const g of glints) {
           const a = t - g.d;
-          if (a > 0 && a < g.life) p.glow(g.x, g.y - a * g.v, 5, C[4], 0.35 * Math.sin((a / g.life) * Math.PI));
+          if (a > 0 && a < g.life) p.glow(g.x, g.y - 6 - a * g.v, 4, C[4], 0.3 * Math.sin((a / g.life) * Math.PI));
         }
-        if (E === 2 && t < 0.3) p.glowLine(0, -70, 0, 0, 6, L[2], 0.2 * (1 - smooth(0.1, 0.3, t)));
+        if (E === 2 && t < 0.3) p.glowLine(0, -70, 0, 0, 5, C[4], 0.22 * (1 - smooth(0.1, 0.3, t)));
       }
     },
   };
