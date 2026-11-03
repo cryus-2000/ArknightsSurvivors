@@ -111,7 +111,14 @@ export function create(o) {
         p.blend(Math.cos(a) * r, Math.sin(a) * r * SY, C[u < 0.1 ? 5 : 3], 0.7 * fade * (1 - smooth(0.05, 0.3, u)));
       }
       // —— 核心：落点白热（第 1 帧）+ E2 般若盾形印（倒三角，白热后转翠绿）
-      if (core && u < 0.12) { const k = 1 - u / 0.12; p.disc(0, -2, 9 + 14 * (1 - k), C[u < 0.05 ? 6 : 5], 0.9 * k); }
+      if (core && u < 0.12) {   // 盾沿砸痕：一道横向的锯齿白热切口（盾下沿砸进地面），不是圆盘（§12.3）
+        const k = 1 - u / 0.12, hw = 12 + 10 * (1 - k);
+        for (let x = -hw; x <= hw; x += 0.5) {
+          const v = Math.abs(x) / hw, th = (1.6 - 1.2 * v) * (0.6 + 0.4 * (0.5 + 0.5 * noise(x * 0.7, o.seed + 11)));
+          const yc = 1.2 * noise(x * 0.35, o.seed + 12);
+          for (let e = -th; e <= th; e += 0.5) p.blend(x, yc + e, C[u < 0.05 && v < 0.6 ? 6 : 5], 0.95 * k * (1 - v * 0.5));
+        }
+      }
       if (core && el >= 2 && u < 0.35) {
         const k = 1 - u / 0.35, V = [[-14, -9], [14, -9], [1, 13]];
         for (let i = 0; i < 3; i++) p.line(V[i][0], V[i][1] * SY - 3, V[(i + 1) % 3][0], V[(i + 1) % 3][1] * SY - 3, u < 0.06 ? C[6] : J[clamp(Math.round(4 - u * 8), 2, 4)], k);

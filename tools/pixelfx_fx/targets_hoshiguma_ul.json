@@ -385,9 +385,8 @@
   "move": "skill"
  },
  "fx_hoshiguma_ul_ultslam": {
-  "fx": "impacts/ak-hoshiguma-ul-slam",
+  "fx": "impacts/ak-hoshiguma-ul-ultslam",
   "opts": {
-   "elite": 2,
    "seed": 21,
    "radius": 55
   },

@@ -2,7 +2,7 @@
 // 弧半径 = fit（1x），运行时按判定半径缩放 → 刀弧落在判定半径 × 1.0；span 从 hoshiguma.json half_deg 读。普攻保持克制：薄刀身、短余韵、少甩出物。
 // 精英档（docs/242 §10，docs/91 §4）：
 //   E0 钢色刀弧 + 少量火星，余韵约 0.25 s；
-//   E1 + 刀弧外缘一道暗红（精一「反击架势」：格挡后刀光转暗红；这里常驻为细边，示意架势已解锁）+ 刃头碎钢屑；余韵约 0.35 s；
+//   E1 + 刀弧外缘一道暗红（精一「反击架势」：格挡后刀光转暗红；这里常驻为细边，示意架势已解锁）+ 内侧一道往回撩的暗红反手斩 + 刃头碎钢屑；余韵约 0.35 s；
 //   E2 刀身内侧转翠绿（精二「般若」翠绿盾锯）+ 沿弧不等距的青绿鬼火星 + 刀尾残影，余韵约 0.45 s（普攻不顶到 0.6）。
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
 import { jitterSteps } from "../house.js";
@@ -97,6 +97,18 @@ export function create(o) {
             if (el >= 2 && q > 0.55 && t > 0.04) c = J[clamp(Math.round(3.6 - cool * 1.6 - (q - 0.55) * 2), 1, 4)];   // E2：内侧翠绿（般若）
             p.blend(x, y, c, q > 0.8 ? 0.7 : 1);
           }
+      }
+      // 核心：E1 起「反击架势」反手斩——主刀弧走完后，内侧一道暗红细弧从刀头往回撩（反向、只扫 55%），E0 没有
+      if (core && el >= 1) {
+        const bt = t - SW - 0.01, bh = ease.outExpo(clamp(bt / 0.06)), bk = 1 - smooth(0.06, 0.12 + TAIL * 0.4, bt);
+        if (bt > 0 && bk > 0) {
+          const b0 = half - o.span * 0.55 * bh, rb = R - 8;
+          for (let a = b0; a <= half - 0.04; a += 0.012) {
+            const v = (half - a) / (o.span * 0.55), th = 1.6 * Math.sin(Math.PI * clamp(v * 0.9 + 0.05)) + 0.3;
+            const rr = rb + 0.8 * noise(a * 17, o.seed + 9);
+            for (let e = 0; e <= th; e += 0.5) p.blend(Math.cos(a) * (rr - e), Math.sin(a) * (rr - e), E[clamp(Math.round(4 - e * 0.8 - (bt > 0.05 ? 1 : 0)), 1, 4)], bk);
+          }
+        }
       }
       if (deco) { ps.draw(p, "front"); lights.draw(p); }
     },
