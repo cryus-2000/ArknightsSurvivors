@@ -133,7 +133,8 @@ def adapters(bal):
     for m in md:
         yield "蚀刻章", "medal#%s" % m["key"], "medals.json:%s.desc" % m["key"], m.get("desc", ""), leaves(m, bal) + [float(len(md) - 1)], 1.0
     for eid, e in load("enemies.json")["enemies"].items():
-        yield "敌人说明", "enemy#" + eid, "enemies.json:%s.desc" % eid, e.get("desc", ""), leaves(e, bal), 1.0
+        sec = bal.d.get(eid, {})   # balance.json 里与敌人同名的段（如 duck：flee_t 等写在说明里的参数）
+        yield "敌人说明", "enemy#" + eid, "enemies.json:%s.desc" % eid, e.get("desc", ""), leaves(e, bal) + (leaves(sec, bal) if isinstance(sec, dict) else []), 1.0
     pool_bal = leaves(bal.d, bal)
     for pi, pg in enumerate(load("guide.json").get("pages", [])):
         for key in ("lines", "more"):
