@@ -1,0 +1,6 @@
+贴图索引已重建（原来：磁盘有、索引没有 88 个（例 fx_hoshiguma_ul_block, fx_hoshiguma_ul_block_deco, fx_hoshiguma_ul_block_deco_lo）：跑 python tools/asset_index.py）
+贴图索引 2266 个名字；已 --import
+放开版帧条已加载 88 张（索引里名字含 _ul_ 与 hoshiguma）
+late seed 13 560s：TRACE 561 / 561 行 逐行一致；BALANCE（去掉画面统计）一致
+ult seed 7 240s：TRACE 241 / 241 行 逐行一致；BALANCE（去掉画面统计）一致
+PX_TRACE_AB PASS
