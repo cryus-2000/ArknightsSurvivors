@@ -66,7 +66,9 @@
 		"bullet": {
 			"hit": {
 				"base": "fx_suzuran_ul_hit",
-				"y": -6
+				"y": -6,
+				"variants": 2,
+				"flip": true
 			}
 		},
 		"status": {
