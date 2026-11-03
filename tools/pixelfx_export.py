@@ -34,7 +34,8 @@ MAX_W = 4096   # 打包帧条一行最宽（手机 WebGL 贴图边长上限）
 #        "judge": 判定数据 {"op", "opts": {选项: 表达式（取 base）}, "src"}（docs/242 §9.1）, "check_sy": 地面透视压扁（0.55）,
 #        "check_skip" / "check_note": 自动图案检查放行项与理由（docs/242 §9.3）,
 #        "ref": 参照轮廓 tools/pixelfx_fx/ref/<人>_<招式>.png（docs/242 §9.2）,
-#        "move": "basic" / "skill" / "ult"（普攻不出 deco_lo，漏项 #31；缺省 skill）}
+#        "move": "basic" / "skill" / "ult"（普攻不出 deco_lo，漏项 #31；缺省 skill）,
+#        "deco_step" / "deco_lo_step": 装饰层（全档 / 网页低档）隔 N 帧取一帧、帧率除以 N（省显存；核心层不受影响）}
 # 名字：<base>[_e0|_e1|_e2][变体 2…][_tm]；必出矩阵见 matrix_check
 def load_targets():
     t = {}
@@ -210,14 +211,17 @@ def export(lib, name, spec, tmp, dry):
         print("   （放行 %s：%s）" % (",".join(spec["check_skip"]), spec.get("check_note", "未写理由")))
     outs = []   # (贴图名, 图, 帧表, 帧数, fps)
     for suf, fr in sets:
-        st, tab = build_strip(fr, box, piv)
-        outs.append((name + suf, st, tab, n, float(px["fps"])))
+        ds = int(spec.get("deco_step", 1)) if suf == "_deco" else 1   # deco_step：装饰层隔帧（帧率减半，柔光 / 颗粒看不出），省显存；核心层不抽
+        frs = fr[::ds]
+        st, tab = build_strip(frs, box, piv)
+        outs.append((name + suf, st, tab, len(frs), float(px["fps"]) / ds))
         if spec.get("lo") and not (suf == "_deco" and spec.get("move", "skill") == "basic"):   # 网页低档（docs/242 §6）：15 fps 按时间就近抽帧，余韵时长不变；普攻不出 deco_lo（#31）
             fps0 = float(px["fps"])
-            m = max(1, round(n * 15.0 / fps0))
-            lo = [fr[min(n - 1, round(i * fps0 / 15.0))] for i in range(m)]
+            lfps = 15.0 / (int(spec.get("deco_lo_step", 1)) if suf == "_deco" else 1)   # deco_lo_step：网页低档装饰层再降帧率
+            m = max(1, round(n * lfps / fps0))
+            lo = [fr[min(n - 1, round(i * fps0 / lfps))] for i in range(m)]
             st, tab = build_strip(lo, box, piv)
-            outs.append((name + suf + "_lo", st, tab, m, 15.0))
+            outs.append((name + suf + "_lo", st, tab, m, lfps))
     return [(nm, st, tab, k, fps, hx, colors) for nm, st, tab, k, fps in outs]
 
 
@@ -272,6 +276,8 @@ def main():
         if who and mb > cap:
             over.append("%s %s %.1f MB > %.0f" % (who, "低档" if lo else "全档", mb, cap))
     if over:
+        for nm, mb in sorted(new.items(), key=lambda kv: -kv[1]):   # 这批各条帧条的显存，方便挑着削
+            print("   %-40s %6.2f MB" % (nm, mb))
         sys.exit("!! 显存超标，整批不写盘：" + "；".join(over))
     ft = json.load(open(FRAMES_JSON, encoding="utf-8")) if os.path.exists(FRAMES_JSON) else {}
     for nm in stale:

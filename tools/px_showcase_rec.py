@@ -20,6 +20,7 @@ ap.add_argument("--at", type=float, default=40.0)
 ap.add_argument("--secs", type=float, default=7.0)
 ap.add_argument("--lo", action="store_true")
 ap.add_argument("--deco0", action="store_true", help="装饰层关掉（fx/px_deco_k = 0），验收「只剩核心也看得清」，docs/242 §8")
+ap.add_argument("--elites", default="", help="逗号分隔的精英档（例 0,1,2）：每招按这几档依次各录一段（balance fx/px_ul_elite，只换画面），队友版只录一次；docs/242 §10")
 ap.add_argument("--tmp", default=tempfile.gettempdir())
 ap.add_argument("--out", default="")
 a = ap.parse_args()
@@ -36,6 +37,11 @@ SEGS = [   # (标签, 队长, 编队, 额外参数)
     ("ult", a.op, "", ["--maxprog", "--bal=ult/bot_n=1", "--bal=ult/test_fill_at=%g" % (at + 1.5), "--bal=ult/test_swarm_at=%g" % (at + 0.3), "--bal=ult/test_swarm_every=6"]),
     ("teammate", mate, a.op, ["--maxprog", "--sptest"]),
 ]
+
+
+if a.elites:   # 每招 E0 → E1 → E2 依次一段（队友版只录一次，按真实精英档）
+    els = [int(x) for x in a.elites.split(",") if x != ""]
+    SEGS = [(t + "_e%d" % e, l, s, x + ["--bal=fx/px_ul_elite=%d" % e]) for t, l, s, x in SEGS if t != "teammate" for e in els] + [g for g in SEGS if g[0] == "teammate"]
 
 
 def rec(tag, leader, squad, extra):
@@ -67,7 +73,7 @@ for t, d in dirs:
 open(lst, "w").write("".join("file '%s'\n" % p.replace("\\", "/") for p in parts))
 total = len(parts) * (a.secs + 0.2)
 kbps = int(25.0 * 0.92 * 8 * 1024 / max(total, 1.0))
-mp4 = os.path.join(out, "%s_showcase%s%s.mp4" % (a.op, "_lo" if a.lo else "", "_deco0" if a.deco0 else ""))
+mp4 = os.path.join(out, "%s_showcase%s%s%s.mp4" % (a.op, "_elite" if a.elites else "", "_lo" if a.lo else "", "_deco0" if a.deco0 else ""))
 subprocess.run([FF, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c:v", "libx264", "-preset", "slow", "-b:v", "%dk" % kbps,
                 "-maxrate", "%dk" % int(kbps * 1.3), "-bufsize", "%dk" % (kbps * 2), "-pix_fmt", "yuv420p", "-r", "30", mp4], check=True)
 for p in parts:

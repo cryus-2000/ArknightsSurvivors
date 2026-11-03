@@ -195,6 +195,37 @@ func px_deco_k(_o = null) -> float:
 static var _px_ul_reg = null
 
 
+## 放开版技能起手（docs/242 §12.1）：character.spend_sp（技能开启的统一入口）调。注册表 "cast": {"技能序号 0–2": {base, at, y, sc, flip}}：
+## at = "self"（缺省，脚底 + (0, y)）/ "front"（身前 front 像素，沿朝向）；sc = 缩放（× PX，缺省 1）；flip = true 时朝左翻。先装饰（× px_deco_k）后核心；开关关掉时注册表为空、不播
+func px_ul_cast(o, i: int) -> void:
+	var c = px_ul_reg(str(o.id)).get("cast", {}).get(str(i))
+	if not (c is Dictionary) or o.pos == Vector2.INF:
+		return
+	var base: String = str(c.get("base", ""))
+	var el: int = px_ul_el(o)
+	var tm: bool = not o.is_leader
+	var p: Vector2 = o.pos + Vector2(0, float(c.get("y", -10.0)))
+	if str(c.get("at", "self")) == "front":
+		p += Vector2.from_angle(o.facing_angle()) * float(c.get("front", 24.0))
+	var sc: float = Game.PX * float(c.get("sc", 1.0))
+	var fl: bool = c.get("flip", false) and float(o.face) < 0.0
+	var dn: String = px_ul_tex(base, 1, tm, "deco", el)
+	var dk: float = px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		fx_sprite(dn, p, sc, 0.0, fl, false, Color(1, 1, 1, dk))
+	var cn: String = px_ul_tex(base, 1, tm, "core", el)
+	if g.tex.get(cn) != null:
+		fx_sprite(cn, p, sc, 0.0, fl)
+
+
+## 放开版帧条按哪个精英档取（docs/242 §10）：balance fx/px_ul_elite ≥ 0 时一律用它（展示段录像），否则用干员当前精英化
+func px_ul_el(o) -> int:
+	var ov: int = Bal.vi("fx/px_ul_elite", -1)
+	if ov >= 0:
+		return ov
+	return int(o.get("elite")) if o.get("elite") != null else 2
+
+
 func px_ul_reg(id: String) -> Dictionary:
 	if Bal.vi("fx/px_unleashed", 0) <= 0:
 		return {}

@@ -1,15 +1,60 @@
 {
-	"_doc": "pixelfx 放开版注册表（docs/242，漏项 #25）：干员 id → 接管的判定段（按形状条目的 src）、帧条名与画法。开关 fx/px_unleashed 关掉时不读。ob_core 的 circle / cone 形状结算后按 o.id 查这里（seg_skadi.px_ul_shape）；接管后只跳过 b.fx 里的招式本体，cond 为 relic: / node: 的附加条目照常播（#20）。字段：shapes[src] = {base 帧条名（不带后缀）, variants 队长随机变体数（缺省 1）, skill 技能（定格用 pause[1]、火星用 n_skill）, draw 可选：只覆盖这一段的画法字段（半径差得多时各用各的 fit）}；full = 全方向（half ≥ 3.1）时换用的 {base, variants}，整圈随机转角；draw = 画法 {fit 帧条烤制时的基础半径（1x 像素）, k, along, y, mirror（face = 朝左翻）}；motes = 实时火星（装饰层，颗数 × px_deco_k）；pause = [普攻, 技能] 命中定格秒数，只给队长、走 impact_pause 总闸；no_arc = 不画通用近战刀光。取名一律走 vfx.px_ul_tex(base, 变体, 队友, 层, 精英档)。",
+	"_doc": "pixelfx 放开版注册表（docs/242，漏项 #25）：干员 id → 接管的判定段（按形状条目的 src）、帧条名与画法。开关 fx/px_unleashed 关掉时不读。ob_core 的 circle / cone 形状结算后按 o.id 查这里（seg_skadi.px_ul_shape）；接管后只跳过 b.fx 里的招式本体，cond 为 relic: / node: 的附加条目照常播（#20）。字段：shapes[src] = {base 帧条名（不带后缀）, variants 队长随机变体数（缺省 1）, skill 技能（定格用 pause[1]、火星用 n_skill）, draw 可选：只覆盖这一段的画法字段（半径差得多时各用各的 fit）}；full = 全方向（half ≥ 3.1）时换用的 {base, variants}，整圈随机转角；draw = 画法 {fit 帧条烤制时的基础半径（1x 像素）, k, along, y, mirror（face = 朝左翻）}；motes = 实时火星（装饰层，颗数 × px_deco_k）；pause = [普攻, 技能] 命中定格秒数，只给队长、走 impact_pause 总闸；no_arc = 不画通用近战刀光；cast = 技能起手 {\"0\"–\"2\"（技能序号）: {base 帧条名, at self / front, y, front, sc, flip}}，技能开启那一刻在 character.spend_sp 里播（vfx.px_ul_cast），先装饰后核心。取名一律走 vfx.px_ul_tex(base, 变体, 队友, 层, 精英档)。",
 	"skadi": {
 		"shapes": {
-			"大剑": {"base": "fx_skadi_ul_slash", "variants": 2},
-			"迅捷打击·γ型": {"base": "fx_skadi_ul_sweep", "skill": true},
-			"跃浪击": {"base": "fx_skadi_ul_cleave", "skill": true}
+			"大剑": {
+				"base": "fx_skadi_ul_slash"
+			},
+			"迅捷打击·γ型": {
+				"base": "fx_skadi_ul_sweep",
+				"skill": true
+			},
+			"跃浪击": {
+				"base": "fx_skadi_ul_cleave",
+				"skill": true
+			}
 		},
-		"full": {"base": "fx_skadi_ul_spin", "variants": 2},
-		"draw": {"fit": 80.0, "k": 1.0, "along": 0.0, "y": -10.0, "mirror": "face"},
-		"motes": {"n": 12, "n_skill": 20, "col": [0.75, 0.95, 1.0], "along": 0.85, "y": -10.0, "sz": 2.0, "life": 0.6},
-		"pause": [0.05, 0.075],
-		"no_arc": true
+		"full": {
+			"base": "fx_skadi_ul_spin"
+		},
+		"draw": {
+			"fit": 80.0,
+			"k": 1.0,
+			"along": 0.0,
+			"y": -10.0,
+			"mirror": "face"
+		},
+		"motes": {
+			"n": 12,
+			"n_skill": 20,
+			"col": [
+				0.75,
+				0.95,
+				1.0
+			],
+			"along": 0.85,
+			"y": -10.0,
+			"sz": 2.0,
+			"life": 0.6
+		},
+		"pause": [
+			0.05,
+			0.075
+		],
+		"no_arc": true,
+		"cast": {
+			"0": {
+				"base": "fx_skadi_ul_charge",
+				"y": 0
+			},
+			"1": {
+				"base": "fx_skadi_ul_charge",
+				"y": 0
+			},
+			"2": {
+				"base": "fx_skadi_ul_charge_big",
+				"y": 0
+			}
+		}
 	}
 }
