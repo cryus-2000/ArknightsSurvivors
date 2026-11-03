@@ -1,0 +1,63 @@
+{
+ "_doc": "星熊放开版（docs/242，claude/pixelfx-ul-hoshiguma）。#28：先只做 S3 力之锯，E0 / E1 / E2 三档对照过用户后再做其余招式",
+ "fx_hoshiguma_ul_saw_e2": {
+  "fx": "melee/ak-hoshiguma-ul-saw",
+  "opts": {
+   "elite": 2,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "len": "s3_len/2",
+    "w": "s3_w/2"
+   },
+   "src": "hoshiguma.json base s3_len 220 / s3_w 50（S3 力之锯 swap_attack shape.line）；1x 像素 = 世界 / 2"
+  },
+  "palette_src": "色阶：PRTS 发色 #58C4AB（build/prts_ref/_colors/hoshiguma.png）+ 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01.png、hsguma_03.png）",
+  "move": "skill"
+ },
+ "fx_hoshiguma_ul_saw_e1": {
+  "fx": "melee/ak-hoshiguma-ul-saw",
+  "opts": {
+   "elite": 1,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "len": "s3_len/2",
+    "w": "s3_w/2"
+   },
+   "src": "hoshiguma.json base s3_len 220 / s3_w 50（S3 力之锯 swap_attack shape.line）；1x 像素 = 世界 / 2"
+  },
+  "palette_src": "色阶：PRTS 发色 #58C4AB（build/prts_ref/_colors/hoshiguma.png）+ 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01.png、hsguma_03.png）",
+  "move": "skill"
+ },
+ "fx_hoshiguma_ul_saw_e0": {
+  "fx": "melee/ak-hoshiguma-ul-saw",
+  "opts": {
+   "elite": 0,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": false,
+  "judge": {
+   "op": "hoshiguma",
+   "opts": {
+    "len": "s3_len/2",
+    "w": "s3_w/2"
+   },
+   "src": "hoshiguma.json base s3_len 220 / s3_w 50（S3 力之锯 swap_attack shape.line）；1x 像素 = 世界 / 2"
+  },
+  "palette_src": "色阶：PRTS 发色 #58C4AB（build/prts_ref/_colors/hoshiguma.png）+ 原作 S3 buff 青绿鬼火（build/ark_ref/hoshiguma/hsguma_01.png、hsguma_03.png）",
+  "move": "skill"
+ }
+}
