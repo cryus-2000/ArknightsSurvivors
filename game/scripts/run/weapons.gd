@@ -105,6 +105,13 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	if e.get("friendly", false):
 		return   # 友方不拦弹、不消耗穿透/弹跳，也不触发附带控制。
 	var h: Dictionary = g.combat.make_hit(b.src, b.get("tags", [])) if b.has("src") else g.combat.make_hit("法术援护" if b.kind in ["fire", "arcane"] else "援护")
+	var px_hit: bool = b.get("px_hit", false) and g.vfx.px_ul_reg(str(b.get("op", ""))).size() > 0   # pixelfx 放开版（docs/242 §14.10）：弹体带 px_hit 时命中画面由干员自己的放开版帧条画，这里跳过通用爆炸 / 环 / 火花（只改画面）
+	if px_hit:
+		var bh = g.vfx.px_ul_reg(str(b.op)).get("bullet", {}).get("hit")   # 注册表 bullet.hit {base, y, sc}：命中处放一张（先装饰后核心）
+		if bh is Dictionary and str(bh.get("base", "")) != "":
+			var bo = g.squad.get_op(str(b.op)) if g.get("squad") != null and g.squad != null else null
+			g.vfx._px_ul_at(str(bh.base), (e.pos if b.kind != "fire" else b.pos) + Vector2(0, float(bh.get("y", 0.0))), Game.PX * float(bh.get("sc", 1.0)),
+				bo != null and not bo.is_leader, g.vfx.px_ul_el(bo) if bo != null else 2, g.vfx.px_deco_k(bo))
 	match b.kind:
 		"fire":
 			# 法术团：爆炸
@@ -115,7 +122,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					if b.get("slow", false):
 						g.enemies_sys.add_cc(o, -INF, 1.2)
 			# Weighted magma supplies its own landing effect through bullet_exploded.
-			if not b.get("hw_b", {}).get("look", {}).get("weighted", false):
+			if not px_hit and not b.get("hw_b", {}).get("look", {}).get("weighted", false):
 				var fc: Color = b.get("fx_col", Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4))
 				var ename := "fx_fire_explode" if b.kind == "fire" else "fx_missile_explode"
 				if not b.has("fx_col") and g.vfx.fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
@@ -143,14 +150,15 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					var o: Dictionary = g.enemies[k]
 					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 						g.combat.damage(o, b.dmg, h)
-			if b.has("fx_col") or not g.vfx.fx_sprite("fx_arcane_hit", e.pos):
-				g.fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
-			g.vfx.sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
+			if not px_hit:
+				if b.has("fx_col") or not g.vfx.fx_sprite("fx_arcane_hit", e.pos):
+					g.fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
+				g.vfx.sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
 			if b.has("op"):
 				Sfx.op(b.op, "hit")   # 铃兰狐火
 			b.life = 0.0
 		_:
 			g.combat.damage(e, b.dmg, h)
-			if not g.vfx.fx_sprite("fx_bullet_hit", b.pos, g.PX, b.vel.angle()):
+			if not px_hit and not g.vfx.fx_sprite("fx_bullet_hit", b.pos, g.PX, b.vel.angle()):
 				g.vfx.sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
 			b.life = 0.0
