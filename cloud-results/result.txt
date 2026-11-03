@@ -1,0 +1,6 @@
+贴图索引已重建（原来：磁盘有、索引没有 62 个（例 fx_logos_ul_epitaph, fx_logos_ul_epitaph_deco, fx_logos_ul_epitaph_deco_lo）：跑 python tools/asset_index.py）
+贴图索引 2331 个名字；已 --import
+放开版帧条已加载 153 张（索引里名字含 _ul_ 与 logos）
+late seed 13 560s：TRACE 561 / 561 行 逐行一致；BALANCE（去掉画面统计）一致
+ult seed 7 240s：TRACE 241 / 241 行 逐行一致；BALANCE（去掉画面统计）一致
+PX_TRACE_AB PASS
