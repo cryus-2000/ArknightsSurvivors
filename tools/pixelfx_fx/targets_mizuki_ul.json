@@ -487,5 +487,76 @@
    "opts": {},
    "src": "召唤物（§11.2 #5）精二深蓝之籽：只在精二出现，不分档；无判定形状，PX 原尺寸"
   }
+ },
+ "fx_mizuki_ul_charge": {
+  "fx": "water/ak-mizuki-ul-charge",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S1 唤醒已充能标识（ammo[0] > 0），循环；E0 起就有，按档：E2 荧光斑"
+  },
+  "lo": true
+ },
+ "fx_mizuki_ul_charge_e1": {
+  "fx": "water/ak-mizuki-ul-charge",
+  "opts": {
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "同上"
+  }
+ },
+ "fx_mizuki_ul_s3aura": {
+  "fx": "water/ak-mizuki-ul-s3aura",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "S3 镜花水月持续标识，循环；精二解锁只做 E2"
+  },
+  "lo": true
+ },
+ "fx_mizuki_ul_ujelly": {
+  "fx": "water/ak-mizuki-ul-ujellyf",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true,
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "终结技水母群（ult_moves_b._mz_ul_*，摆位照 ult_fx_c.mz_jelly_start：横扫扇区 ult/mz_r × 0.3–0.85）；终结技不分档"
+  }
+ },
+ "fx_mizuki_ul_ujburst": {
+  "fx": "water/ak-mizuki-ul-ujelly",
+  "opts": {},
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true,
+  "palette_src": "PRTS 立绘 build/prts_ref/mizuki（主色宝蓝 / 藏青 + 伞淡紫白），house.js 暂无 OP.mizuki，色阶写在 water/mizuki-lib.js MZ",
+  "judge": {
+   "op": "mizuki",
+   "opts": {},
+   "src": "终结技水母群（ult_moves_b._mz_ul_*，摆位照 ult_fx_c.mz_jelly_start：横扫扇区 ult/mz_r × 0.3–0.85）；终结技不分档"
+  }
  }
 }

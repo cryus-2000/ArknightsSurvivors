@@ -1725,7 +1725,9 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 		"attach": rt == "bind", "bound": [], "trail_t": 0.0, "fx": [], "chain": [], "no_ring": true, "heal": 0.0}
 	if v2:
 		FC.mz_start(u, a, base)
-	if jelly:
+	if jelly and _mz_ul(u):   # pixelfx 放开版：水母换 fx_mizuki_ul_ujelly，炸开换 ujburst，不画外扩冲击环
+		_mz_ul_start(u, a, o.pos, float(a.a0), float(a.span), R)
+	elif jelly:
 		FC.mz_jelly_start(u, a, o.pos, float(a.a0), float(a.span), R)
 	for i in 28:   # 触手：28 节圆，由粗到细
 		var w: float = lerpf(60.0, 10.0, float(i) / 27.0)
@@ -1752,6 +1754,104 @@ static func _mz_start(u, o, d: Vector2) -> Dictionary:
 ## 每段按切线转角、按段长拉伸，粗细跟贴图本身（根部粗、尖端卷曲）
 const MZ_TENT := "fx_mz_tent"
 const MZ_SEGS := 20   # 段越多弯处接缝越小（预审报 10 段拼接感明显）
+
+
+## ---- 水月 pixelfx 放开版（docs/242，balance fx/px_unleashed 缺省 0）：水母群「一起炸开」设计不变（10-31 定稿），只换画风：
+## 水母 = fx_mizuki_ul_ujelly（伞盖一张一缩 + 褶边口腕 + 荧光斑，循环），炸开 = fx_mizuki_ul_ujburst（鼓胀白热一帧 → 伞片 / 水珠迸开、丝须断开下坠、光点上飘）。
+## 摆位 / 缓升 / 炸前压缩的节奏照 FC.mz_jelly_*；不画炸前往里收的压力环、炸开的碎裂冲击环和群心大冲击波（用户 11-04：往外发散的光环一律不要）；
+## 冲击帧剪影里是水母（核心帧条 hf）。判定 / 时序 / 伤害 / g.rng 都不动
+const MZ_UL_JELLY := "fx_mizuki_ul_ujelly"
+const MZ_UL_BURST := "fx_mizuki_ul_ujburst"
+
+
+static func _mz_ul(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready(u.g.vfx.px_ul_tex(MZ_UL_JELLY, 1, false))
+
+
+## 先装饰（× px_deco_k）后核心各放一条，返回 [装饰（可能为空字典）, 核心]
+static func _mz_ul_pair(u, base: String, c: Vector2, opt: Dictionary) -> Array:
+	var cn: String = u.g.vfx.px_ul_tex(base, 1, false, "core", 2)
+	var dn: String = u.g.vfx.px_ul_tex(base, 1, false, "deco", 2)
+	var dk: float = u.g.vfx.px_deco_k()
+	var ds := {}
+	if dn != "" and dk > 0.0 and u.fx_ready(dn):
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk * float(opt.get("col", Color.WHITE).a))
+		od.erase("hf")
+		ds = u.strip(dn, c, od)
+	return [ds, u.strip(cn, c, opt)]
+
+
+static func _mz_ul_start(u, a: Dictionary, c: Vector2, a0: float, span: float, R: float) -> void:
+	var vs: float = PF.vseed(u, c)
+	a["jl"] = []
+	a["jl_ul"] = true
+	a["jl_vs"] = vs
+	a["jl_rib"] = []
+	for i in FC.MZ_JN:
+		var hh: float = PF.h(vs + i * 4.7)
+		var ang: float = a0 + span * (float(i) + 0.2 + 0.6 * hh) / FC.MZ_JN
+		var p: Vector2 = c + Vector2.from_angle(ang) * R * (0.3 + 0.55 * PF.h(vs + i * 9.1))
+		var sc: float = 0.85 + 0.35 * PF.h(vs + i * 2.2)
+		var fs: float = -1.0 if PF.h(vs + i * 6.6) < 0.5 else 1.0
+		var pr: Array = _mz_ul_pair(u, MZ_UL_JELLY, p + Vector2(0, 40), {"sc": sc, "sx": fs, "loop": true, "life": 4.0, "col": Color(1, 1, 1, 0.0), "fps": 20.0 * (0.85 + 0.3 * hh)})
+		a.jl.append({"s": pr[1], "d": pr[0], "p": p, "ph": hh * TAU, "d0": 0.04 * i + 0.1 * hh, "fs": fs, "sc": sc})
+		PF.particles(u, p + Vector2(0, 30), 20, "ult_burst_s", [FC.MZ_INK], 0.04 * i, vs + i, 50.0)   # 从地里冒出的暗色颗粒
+	a["jl_c1"] = float(a.T0) + float(a.T) + 0.12
+	a["jl_dim"] = {"kind": "circle", "c": c, "r": 2600.0, "col": Color(0.0, 0.01, 0.03), "fill": 0.0, "hold": true, "life": 9.0}   # 炸前全屏渐暗（蓄力反差，同 FC）
+	u.shape(a.jl_dim)
+	for j in a.jl:   # 水母画在压暗层上面
+		for k in ["d", "s"]:
+			if not (j[k] as Dictionary).is_empty():
+				u.shapes.erase(j[k])
+				u.shapes.append(j[k])
+
+
+## 每帧：缓升 + 上下漂 + 一张一缩（帧条自带）；炸前 0.45 秒各自缩小变亮、全屏渐暗
+static func _mz_ul_step(u, a: Dictionary, t: float) -> void:
+	if float(a.get("jl_burst", -1.0)) >= 0.0:
+		return
+	var kp: float = clampf((t - (float(a.jl_c1) - 0.45)) / 0.45, 0.0, 1.0)
+	var kq: float = kp * kp
+	a.jl_dim.fill = 0.5 * kq
+	a.jl_dim.age = 0.0
+	for j in a.jl:
+		var s: Dictionary = j.s
+		if s.age >= s.max:
+			continue
+		var k: float = clampf((t - float(j.d0)) / 0.55, 0.0, 1.0)
+		var ke: float = 1.0 - (1.0 - k) * (1.0 - k)
+		var ph: float = float(j.ph)
+		var cc: Vector2 = Vector2(j.p) + Vector2(0, 40.0 * (1.0 - ke) + 5.0 * sin(t * 2.2 + ph))
+		var b: float = 1.0 + 0.5 * kq
+		for d in [j.d, s]:
+			if (d as Dictionary).is_empty():
+				continue
+			d.c = cc
+			d.sc = float(j.sc) * lerpf(1.0, 0.55, kq)
+			d.age = fmod(float(d.age), 3.0)   # 循环帧条一直活着，直到炸开
+		s.col = Color(b, b, b, ke)
+		if not (j.d as Dictionary).is_empty():
+			j.d.col = Color(1, 1, 1, ke * u.g.vfx.px_deco_k())
+		if int(t * 60.0) % 9 == int(ph * 3.0) % 9:
+			u.grain("mote_up", cc, Vector2.UP, Color(0.72, 0.66, 1.0), 1)
+
+
+## 一起炸开：每只原地换成炸开帧条（核心进冲击帧剪影）+ 一盏短灯；顿帧 / 震屏同 FC，冲击环不画
+static func _mz_ul_burst(u, a: Dictionary, t: float) -> void:
+	a["jl_burst"] = t
+	for j in a.jl:
+		var s: Dictionary = j.s
+		var p: Vector2 = s.c
+		var sc: float = float(s.sc) * 1.25
+		for d in [j.d, s]:
+			if not (d as Dictionary).is_empty():
+				d.max = float(d.age)
+		_mz_ul_pair(u, MZ_UL_BURST, p, {"sc": sc, "sx": float(j.fs), "hf": true})
+		u.light(p, 120.0, Color(0.42, 0.4, 0.75), 0.25)
+	a.jl_dim.max = 0.0   # 压暗一下撤掉：暗 → 亮的反差就是冲击
+	u.g.vfx.stop(Bal.v("ult/mz_burst_stop", 0.16), "ult", true)
+	u.shake(3.0, 0.15)
 
 
 static func _mz_v2(u) -> bool:
@@ -1808,7 +1908,9 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 	var col: Color = u._col(o)
 	var a0: float = a.a0
 	var span: float = a.span
-	if a.has("jl"):
+	if a.has("jl_ul"):
+		_mz_ul_step(u, a, t)
+	elif a.has("jl"):
 		FC.mz_jelly_step(u, a, t)
 	if t < T0 + T + 0.12:
 		var reach: float
@@ -1863,7 +1965,10 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 		if jelly:
 			a["hf"] = true   # 冲击帧：水母一起炸开（用户 10-31）
 			u.act["hf"] = true
-			FC.mz_jelly_burst(u, a, c, t)
+			if a.has("jl_ul"):
+				_mz_ul_burst(u, a, t)
+			else:
+				FC.mz_jelly_burst(u, a, c, t)
 		elif not v2:
 			u.strip("fx_mizuki_tentacle_mass", a.base, {"sc": 1.6, "o": Vector2(96, 90)})
 		# 小触手：从扫过区域与他身边 300 内，抓生命最低的漏网（每根 20%，束缚 1.5 秒）
