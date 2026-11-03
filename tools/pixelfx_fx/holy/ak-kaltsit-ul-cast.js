@@ -6,6 +6,7 @@
 //   ult（终结技蓄力：红晶刺分几拨从大范围收向 Mon3tr 身上，tin 秒内收完，不闪）/ m3（终结技 8 秒后 Mon3tr 重构：骨白外壳片从四周聚回它身上，结尾黄绿十字一闪）
 // 精英档只影响装饰量（起手是信号，主形不分档）。
 import { Particles, Rng, fit, clamp, smooth, ease, noise, hex, TAU, P } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿；熔毁红待样板把 OP.kaltsit_melt 换成组长 C 批的压暗版后改用，暂留本地 red
 
 // 实色：painter.put 在 a < 1 时按 Bayer 点阵抖动（棋盘格脏点）；本作 a ≥ 0.5 画实、< 0.5 不画，淡出靠色阶
 function solid(p) {
@@ -26,7 +27,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#0d1708", "#1f3510", "#365c1a", "#548a22", "#7fb92e", "#b5e25a", "#e6f9a8", "#ffffff"],
+    palette: OP.kaltsit,
     red: ["#120403", "#2e0806", "#560c0a", "#84120e", "#b01c16", "#d8443a", "#f6d8d4", "#ffffff"],
     bone: "#f3efd8",
     move: "s1",

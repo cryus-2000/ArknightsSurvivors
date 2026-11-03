@@ -1262,6 +1262,7 @@
       }
      ],
      "fx": [
+      {"px": "fx_kaltsit_ul_heal", "at": "leader", "cond": "px_ul"},
       {
        "cond": "!px_ul",
        "pfx": {
@@ -1626,6 +1627,7 @@
     "no_gate": true,
     "aim": "summon:mon3tr",
     "fx": [
+     {"px": "fx_kaltsit_ul_cast1", "at": "self", "cond": "px_ul"},
      {
       "cond": "!px_ul",
       "pfx": {
@@ -1666,6 +1668,7 @@
        }
       ],
       "fx": [
+       {"px": "fx_kaltsit_ul_shellheal", "at": "leader", "cond": "px_ul"},
        {
         "cond": "!px_ul",
         "pfx": {
@@ -1771,6 +1774,7 @@
     "dur": "permanent",
     "aim": "summon:mon3tr",
     "fx": [
+     {"px": "fx_kaltsit_ul_cast2", "at": "self", "cond": "px_ul"},
      {
       "cond": "!px_ul",
       "gfx": {
@@ -1859,6 +1863,7 @@
      0.12
     ],
     "fx": [
+     {"px": "fx_kaltsit_ul_cast3", "at": "self", "cond": "px_ul"},
      {
       "cond": "!px_ul",
       "gfx": {
@@ -1987,6 +1992,7 @@
       },
       "fx": [
        {
+        "cond": "!px_ul",
         "pfx": {
          "kind": "ring",
          "r": 40,
@@ -2900,12 +2906,15 @@
      "mult": "$lunge_mult",
      "r": "$lunge_r",
      "fx": [
+      {"px": "fx_kaltsit_ul_claw", "face_x": true, "cond": "px_ul"},
       {
+       "cond": "!px_ul",
        "strip": "fx_mon3tr_slam_ring",
        "layer": "floor",
        "fit": 32
       },
       {
+       "cond": "!px_ul",
        "strip": "fx_mon3tr_claw",
        "scale": 0.45,
        "off": [

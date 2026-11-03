@@ -7,6 +7,7 @@
 //   E2 爪痕变成骨白芯 + 黄边、多第四道、甩出骨屑（对应精二前后爪 / 骨刃）。熔毁只在精二，只出 E2。
 // 爪痕彼此不等长、不等距、弧心各偏，避免等距并排（§9.3）；不画孤立圆，光晕沿爪痕走（glowLine）。
 import { Particles, Lights, Bits, B, P, Rng, fit, clamp, smooth, ease, noise, hex, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿；熔毁红待样板把 OP.kaltsit_melt 换成组长 C 批的压暗版后改用，暂留本地 red
 
 // 实色：painter.put 在 a < 1 时按 Bayer 点阵抖动（棋盘格脏点，§12 画面不能脏）；本作一律 a ≥ 0.5 画实、< 0.5 不画，淡出靠色阶变暗
 function solid(p) {
@@ -27,8 +28,7 @@ export const meta = {
   fps: 24,
   bg: "dark",
   options: {
-    // 黄绿（PRTS 主服 #BEC67D / 耳内 #E0E06C 与原作 Mon3tr 爪痕 #fffa61 → #82ff7d 之间取，色相约 85°：离敌弹青 #33ceff 远、比结晶暖金偏绿）
-    palette: ["#0d1708", "#1f3510", "#365c1a", "#548a22", "#7fb92e", "#b5e25a", "#e6f9a8", "#ffffff"],
+    palette: OP.kaltsit,
     // 熔毁红 OP.kaltsit_melt（组长 C 11-04 批：白芯 + 压暗的绯红，色相 2–8°、中段明度压低；和敌方危险色 #ff2667（色相 343°、高亮偏粉）、结晶暖金拉开，不要橙 / 黄）
     red: ["#120403", "#2e0806", "#560c0a", "#84120e", "#b01c16", "#d8443a", "#f6d8d4", "#ffffff"],
     bone: "#f3efd8",    // E2 骨白芯
@@ -37,6 +37,7 @@ export const meta = {
     move: "basic",      // basic / s3
     elite: 2,
     quick: 0,           // 1 = 队友版余韵减半（Mon3tr 跟召唤者，仍按队长 / 队友区分）
+    spray: 0,           // 往外甩的火星 / 骨屑（1 = 甩；11-04 用户：往外甩的一律去掉，§14.7）
     layer: "all",
     seed: 4,
   },
@@ -108,7 +109,7 @@ export function create(o) {
   const hx = R0 * (s3 ? 0.6 : 0.72), hy = 0;   // 命中处（判定扇区中段，正前方）
 
   // ---- 甩出物（装饰）：沿出爪切向甩出的火星 / 碎屑；E2 骨屑；熔毁红碎片 + 横向红闪
-  if (deco) {
+  if (deco && +o.spray > 0) {
     const nsp = Math.round((s3 ? 16 : [5, 8, 11][el]));
     for (let i = 0; i < nsp; i++) {
       const m = marks[Rg.int(0, n - 1)], u = Rg.range(0.35, 0.95), a = m.a0 + m.len * u, tang = a + Math.sign(m.len) * Math.PI / 2;

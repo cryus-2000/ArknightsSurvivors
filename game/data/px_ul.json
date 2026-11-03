@@ -58,7 +58,7 @@
 		}
 	},
 	"kaltsit": {
-		"_doc": "凯尔希 + Mon3tr（claude/pixelfx-ul-kaltsit-claude-f7a041）：熔毁爆（S3 结束 / 重构三连爆 / 倒地，同 src，按实际半径缩放）、精二回防落地；技能起手 cast；治疗落点 heal。Mon3tr 爪击走 ob_summon，等召唤物接管点（已报组长）",
+		"_doc": "凯尔希 + Mon3tr（claude/pixelfx-ul-kaltsit-claude-f7a041）：熔毁爆（S3 结束 / 重构三连爆 / 倒地，同 src，按实际半径缩放）、精二回防落地。治疗落点 / 技能起手改用 kaltsit.json 的 fx px 条目（§14.2；注册表 cast / heal 在 fx/px_halo = 0 时不画）。Mon3tr 爪击等召唤物挂点（§14 之后）",
 		"shapes": {
 			"Mon3tr · 熔毁": {
 				"base": "fx_kaltsit_ul_melt",
@@ -78,24 +78,6 @@
 					"y": -10.0
 				}
 			}
-		},
-		"cast": {
-			"0": {
-				"base": "fx_kaltsit_ul_cast1",
-				"y": 0
-			},
-			"1": {
-				"base": "fx_kaltsit_ul_cast2",
-				"y": 0
-			},
-			"2": {
-				"base": "fx_kaltsit_ul_cast3",
-				"y": 0
-			}
-		},
-		"heal": {
-			"base": "fx_kaltsit_ul_heal",
-			"y": 0
 		}
 	}
 }

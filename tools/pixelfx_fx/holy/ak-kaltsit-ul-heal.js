@@ -5,6 +5,7 @@
 // move：heal（普攻治疗）/ s1（结构加固：治疗 + 骨白外壳片在身周合拢）/ regen（结构加固·再生：同 heal，多一层往上收的光点）。
 // 精英档：E0 两道竖光；E1 三道 + 十字小标飘升（精一治疗量提升）；E2 四道、竖光顶端带骨白芯、十字更大（精二治疗总倍率）。
 import { Particles, Rng, fit, clamp, smooth, ease, noise, hex, TAU, P } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿；熔毁红待样板把 OP.kaltsit_melt 换成组长 C 批的压暗版后改用，暂留本地 red
 
 // 实色：painter.put 在 a < 1 时按 Bayer 点阵抖动（棋盘格脏点，§12 画面不能脏）；本作一律 a ≥ 0.5 画实、< 0.5 不画，淡出靠色阶变暗
 function solid(p) {
@@ -25,7 +26,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#0d1708", "#1f3510", "#365c1a", "#548a22", "#7fb92e", "#b5e25a", "#e6f9a8", "#ffffff"],
+    palette: OP.kaltsit,
     bone: "#f3efd8",
     move: "heal",
     elite: 2,

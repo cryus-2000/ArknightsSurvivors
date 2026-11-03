@@ -5,6 +5,7 @@
 //       shell（节点「结构加固」队长身上 3 秒外壳：几片骨白外壳片围着身体缓慢起伏、边上一格黄绿；原点 = 脚底；等宽 4 帧，游戏里 6 fps 循环）
 //       blade（精二身侧骨刃：一片骨白弯刃轻微上下浮动；2 帧，游戏里 4 fps）
 import { Rng, fit, clamp, noise, hex, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿；熔毁红待样板把 OP.kaltsit_melt 换成组长 C 批的压暗版后改用，暂留本地 red
 
 function solid(p) {   // 实色：a < 0.5 不画、否则画实（pixelfx 半透明是 Bayer 点阵抖动，§12 画面不能脏）
   if (p._solid) return;
@@ -24,7 +25,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#0d1708", "#1f3510", "#365c1a", "#548a22", "#7fb92e", "#b5e25a", "#e6f9a8", "#ffffff"],
+    palette: OP.kaltsit,
     red: ["#120403", "#2e0806", "#560c0a", "#84120e", "#b01c16", "#d8443a", "#f6d8d4", "#ffffff"],
     bone: "#f3efd8",
     move: "melt",

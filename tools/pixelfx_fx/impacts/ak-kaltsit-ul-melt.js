@@ -6,6 +6,7 @@
 //   → 拉长红火星 + 余烬慢慢落（装饰）。
 // move：ult（终结技爆心，最大）/ pop（终结技外两圈散落的小爆，无地面裂纹以外的东西）/ end（S3 结束，r = melt_r）/ rebuild（S1 重构与三连爆的后两拍，小一号、晶片少）/ down（Mon3tr 倒地爆）/ debride（清创：敌人身上爆开，最小）
 import { Particles, Lights, Bits, B, P, Rng, fit, clamp, smooth, ease, noise, noise2, hex, TAU } from "../../core/index.js";
+import { OP } from "../house.js";   // 色阶唯一来源（§11.1 #12）：OP.kaltsit 黄绿；熔毁红待样板把 OP.kaltsit_melt 换成组长 C 批的压暗版后改用，暂留本地 red
 
 // 实色：painter.put 在 a < 1 时按 Bayer 点阵抖动（棋盘格脏点，§12 画面不能脏）；本作一律 a ≥ 0.5 画实、< 0.5 不画，淡出靠色阶变暗
 function solid(p) {
