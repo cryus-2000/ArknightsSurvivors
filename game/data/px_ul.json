@@ -12,6 +12,22 @@
 			"跃浪击": {
 				"base": "fx_skadi_ul_cleave",
 				"skill": true
+			},
+			"反手斩": {
+				"base": "fx_skadi_ul_slash",
+				"flip": true
+			},
+			"破浪下劈": {
+				"base": "fx_skadi_ul_cleave",
+				"skill": true
+			},
+			"涌潮": {
+				"base": "fx_skadi_ul_spin",
+				"skill": true
+			},
+			"跃浪": {
+				"base": "fx_skadi_ul_spin",
+				"skill": true
 			}
 		},
 		"full": {

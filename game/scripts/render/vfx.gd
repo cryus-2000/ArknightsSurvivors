@@ -163,9 +163,14 @@ func px_ul_tex(base: String, variant: int, teammate: bool, layer := "core", elit
 		subs = [vs + ts, ts, ""]
 	var els: Array = ["_e2", ""] if lo else []
 	if not lo:
-		for e in range(clampi(elite, 0, 2), -1, -1):
-			els.append("_e%d" % e)
-		els.append("")
+		# 基名就是 E2（docs/242 §10.2）：精二 _e2 → 基名 → _e1 → _e0；精一 / 精零 本档 → 更低档 → 基名
+		# （原来精二按 _e2 → _e1 → _e0 → 基名查，基名是 E2 又另有 _e1 时精二拿到 _e1，铃兰 / 斯卡蒂 11-04）
+		if elite >= 2:
+			els = ["_e2", "", "_e1", "_e0"]
+		else:
+			for e in range(maxi(elite, 0), -1, -1):
+				els.append("_e%d" % e)
+			els.append("")
 	var out: String = ""
 	for es in els:
 		for ss in subs:
@@ -360,6 +365,26 @@ func px_ul_reg(id: String) -> Dictionary:
 			_px_ul_reg = parsed
 	var r = _px_ul_reg.get(id)
 	return r if r is Dictionary else {}
+
+
+## 这名干员的放开版帧条前缀（fx_<x>_ul_ / proj_<x>_ul_），从注册表里出现过的帧条名取；干员 id 和前缀不一定一样
+## （归溟 id = specter_unchained、前缀 = fx_specter_ul_，总组长 11-04：录像门禁拿 id 当子串匹配永远是 0）。注册表没有这名干员时退回 fx_<id>_ul_ / proj_<id>_ul_
+func px_ul_prefixes(id: String) -> Array:
+	var out: Array = []
+	var stack: Array = [px_ul_reg(id)]
+	while not stack.is_empty():
+		var n = stack.pop_back()
+		if n is Dictionary:
+			stack.append_array(n.values())
+		elif n is Array:
+			stack.append_array(n)
+		elif n is String and n.find("_ul_") > 0 and (n.begins_with("fx_") or n.begins_with("proj_")):
+			var pre: String = n.substr(0, n.find("_ul_") + 4)
+			if not pre in out:
+				out.append(pre)
+	if out.is_empty():
+		out = ["fx_%s_ul_" % id, "proj_%s_ul_" % id]
+	return out
 
 
 func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:

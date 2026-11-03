@@ -628,3 +628,5 @@ python tools/px_gif.py <干员> [--only 招,…] [--scale 3] [--prefix fx_x_ul_]
 - **循环**：帧条源码 `meta.loop` 为 true（按 `targets_*.json` 找源码），或注册表 `aura` / `side` / `hook` / `sp_mote` / `mark_zone` / `status` / `hold` 键下，按无缝循环播（不停顿，等宽帧条按脚底对齐）；也可 `--loop`。其余一次性的播完停 0.5 秒再循环。不再按名字猜。
 - 收全部已导出的 `<前缀>*` 和 `proj_<x>_ul_*` 帧条（不限注册表）；前缀缺省从注册表读（归溟 `specter_unchained` → `fx_specter_ul_`）。输出 `Claude outputs/pixelfx_gif/<干员>/<招>.gif`（弹体 `proj_<招>.gif`）和总览 `<干员>_index.png`（每招 E2 格画面最满的一帧）。
 - 读的是已导出进 `game/art/fx/` 的帧条，所以先导出、跑 asset_index。
+- 摆位补充（总组长 11-04）：注册表 `shapes` 登记的帧条按干员 JSON 判定段的 `center` 摆（`target` 怪脚下、`front` 身前、`self` / `leader` 脚下）；枪口类（名字含 `muzzle`）朝右摆在枪口（身前半身高）；推不出来的写显式清单 `px_ul.json` → `<干员>.gif = {"land": [...], "self": [...]}`（帧条基名或招名，`self` 优先），比 `--land` 稳（逻各斯 hand 处起手、变量里的帧条名、终结技在 ult_moves_c.gd 都只能这样写）。
+- 每格顶部大号「E0 / E1 / E2」（灰 / 蓝 / 金）；取档顺序和 `vfx.px_ul_tex` 一致（精二 `_e2` → 基名 → `_e1` → `_e0`，精一 / 精零 本档 → 更低档 → 基名），单档帧条退回现有任一档。

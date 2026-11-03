@@ -23,6 +23,7 @@ export const OP = {
   eyjafjalla: ["#1a0705", "#4a110a", "#8f1d0d", "#d2330f", "#f6561a", "#ff8a3d", "#fff0e0"],   // 11-04 组长 C 审定
   gladiia: ["#182f51", "#294a78", "#3a65a0", "#4c80c7", "#8bacdb", "#c9d9ee", "#ffffff"],
   gladiia_tide: ["#141c29", "#243246", "#3b4c64", "#5c7090", "#8798b3", "#b4c0d2", "#dbe2ec", "#f6f8fb"],   // 11-04 总组长：歌蕾蒂娅 S3 龙卷风冷白灰蓝 8 阶（用户已过，原在 ak-gladiia-ul-s3wall.js TIDE）
+  gladiia_abyss: ["#2a2350", "#4a3f8c", "#7a6cc8", "#b3a8ee"],   // 11-04 总组长：歌蕾蒂娅深渊紫 4 阶（原暂放在 ak-gladiia-ul-hook.js）
   hoshiguma: ["#413f32", "#7c6a3b", "#b79444", "#f2bf4c", "#f7d58b", "#fbecc9", "#ffffff"],
   irene: ["#1c212d", "#363e50", "#5d6880", "#929db4", "#c6cede", "#e9eef8", "#ffffff"],   // 11-04 组长 C 审定
   irene_rose: ["#24141b", "#45202d", "#6e3043", "#9a4a5e", "#c47b8c", "#e6b2bb", "#fbe6e8"],   // 11-04 组长 C：只用于细线
