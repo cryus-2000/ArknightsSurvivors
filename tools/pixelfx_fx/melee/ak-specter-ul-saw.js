@@ -9,6 +9,12 @@
 //   s3：锯身变厚、血红刃口、重齿、慢转 0.9 圈 + 宽水带 + 地面短撕痕（血红冷却成暗红）。
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
 
+// 真半透明着色（blendPx）：p.shade 的 out.a < 1 会抖成棋盘点，这里一律走 blendPx
+const shadeB = (p, x0, y0, x1, y1, fn) => {
+  const o = { c: 0, a: 1 };
+  p.each(x0, y0, x1, y1, (x, y, sx, sy) => { o.c = 0; o.a = 1; const c = fn(x, y, o) || o.c; if (c && o.a > 0) p.blendPx(sx, sy, c, Math.min(1, o.a)); });
+};
+
 export const meta = {
   name: "Specter saw ring unleashed",
   desc: "A ground-level 360-degree saw sweep: a steel cutting trace with uneven teeth at the head, navy water ribbons curling in, and a blood-red heavy saw for the pressure skill.",
@@ -22,7 +28,7 @@ export const meta = {
   options: {
     steel: ["#0b1222", "#1a2740", "#33476a", "#5d7396", "#93a8c4", "#cfdbe9", "#ffffff"],
     navy: ["#060d1f", "#0f2550", "#183f86", "#2a62b8", "#5b8fd6", "#a9c6ee", "#eef5ff"],
-    blood: ["#140405", "#330a08", "#5e120c", "#8c1a12", "#b8301e", "#de7458", "#ffe8dc"],
+    blood: ["#100204", "#2a0508", "#4e0a10", "#7a1018", "#a01c22", "#c84a44", "#f0c8c0"],   // 暗血红（色相 355–0°、中段 v≈0.63，和危险色 #ff2667 的亮品红拉开）
     spark: ["#ffffff", "#ffd8b8", "#ff8a4a", "#e2502a"],
     ember: ["#160605", "#3e0e08", "#7a1e0c", "#b8361a", "#e45a2a", "#ffa47a", "#fff0e6"],   // 方案甲：照原作普攻的红橙火星锯（色相 8–18°，避开危险色 342° 与结晶淡金）
     tone: "steel",    // steel = 冷钢蓝（方案乙）/ ember = 红橙火星（方案甲）
@@ -37,7 +43,9 @@ export const meta = {
 };
 
 export function create(o) {
-  const ST = fit(o.tone === "ember" ? o.ember : o.steel, 7), NV = fit(o.navy, 7), BL = fit(o.blood, 7), SPK = fit(o.spark, 4);
+  const s1 = o.move === "s1", s2 = o.move === "s2";
+  // S2「生存的渴望」换冷钢（和普攻红橙一眼分开）
+  const ST = fit(o.tone === "ember" && !s2 ? o.ember : o.steel, 7), NV = fit(o.navy, 7), BL = fit(o.blood, 7), SPK = fit(o.spark, 4);
   const Rg = new Rng(o.seed), el = clamp(Math.round(+o.elite), 0, 2), s3 = o.move === "s3", quick = +o.quick > 0;
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const R = +o.radius, SY = +o.sy;
@@ -59,10 +67,15 @@ export function create(o) {
   const depth = (a) => 0.5 + 0.5 * Math.sin(a);                      // 近（下半）亮、远（上半）暗
   const headAng = (t) => a0 + dir * TAU * TURN * ease.outCubic(clamp(t / SPIN));
   // 水带（E1 细、E2 / s3 宽且上卷）：螺旋从外圈 rOut 收到 R，绕 span 圈；lift = 往上卷的高度
-  const rib = el >= 1 || s3 ? {
+  const ribs = [];
+  if (el >= 1 || s3 || s2) ribs.push({
     span: s3 ? 0.95 : el === 1 ? 0.62 : 0.8, rOut: R * 0.98, rIn: R * (s3 ? 0.5 : el === 1 ? 0.62 : 0.55), w: s3 ? 6 : el === 1 ? 3.4 : 4.8,   // 核心不出判定：从刃口往里卷
-    lift: s3 ? R * 0.26 : el === 1 ? 0 : R * 0.22, b0: a0 - dir * Rg.range(0.6, 1.0), seed: o.seed + 21, t0: s3 ? 0.03 : 0.04, dur: s3 ? 0.3 : 0.24,
-  } : null;
+    lift: s3 ? R * 0.26 : s2 ? R * 0.3 : el === 1 ? 0 : R * 0.22, b0: a0 - dir * Rg.range(0.6, 1.0), seed: o.seed + 21, t0: s3 ? 0.03 : 0.04, dur: s3 ? 0.3 : 0.24,
+  });
+  if (s2) ribs.push(Object.assign({}, ribs[0], { b0: ribs[0].b0 + Math.PI + Rg.range(-0.4, 0.4), seed: o.seed + 27, w: ribs[0].w * 0.85, t0: 0.07, rIn: R * 0.48 }));   // S2：第二道水带从对面缠进来（原作 skill_02 蓝水带缠身）
+  // S1「生存的技巧」：沿锯痕窜起的火舌（灯火越暗越拼命），位置不等距
+  const flames = [];
+  if (s1) for (let u = Rg.range(0, 0.06); u < 0.95; u += Rg.range(0.07, 0.15)) flames.push({ u, h: Rg.range(14, 26) * [0.75, 0.9, 1.1][el], w: Rg.range(2.4, 3.6), s: Rg.range(0, 99) });
   const scars = [];   // s3 地面撕痕：短而不规整，方向沿切线 ± 抖动
   if (s3) for (let a = Rg.range(0, 1); a < TAU - 0.3; a += Rg.range(0.8, 1.6)) scars.push({ a, L: Rg.range(10, 20), r: R * Rg.range(0.82, 1.02), tw: Rg.range(-0.5, 0.5) });
   let t = 0, passed = 0, landed = false;
@@ -74,7 +87,7 @@ export function create(o) {
     if (tot - tl < 0.02) return;
     const hot = t < 0.045 ? HOT : t < 0.09 ? 0.4 : 0;
     const B = R + W + 4;
-    p.shade(-B, -B * SY - 2, B, B * SY + 2, (x, y, out) => {
+    shadeB(p, -B, -B * SY - 2, B, B * SY + 2, (x, y, out) => {
       const yy = y / SY, r = Math.hypot(x, yy), ang = Math.atan2(yy, x);
       let u = (dir * (ang - a0)) % TAU;
       if (u < 0) u += TAU;
@@ -122,8 +135,24 @@ export function create(o) {
     }
   }
 
-  function ribbon(p, t) {   // 水带：沿螺旋从外往里收（E1 平铺地面、E2 / s3 往上卷），边缘撕裂（noise），浪尖白沫
-    if (!rib) return;
+  function flameDraw(p, t) {   // S1 火舌：锯痕外缘往上窜，底亮梢暗，随锯痕一起收
+    const k0 = 1 - smooth(SPIN, SPIN + 0.3 * (0.6 + 0.4 * DL), t), span = Math.min(TAU * 0.55, TAU * TURN * ease.outCubic(clamp(t / SPIN)));
+    if (k0 <= 0.02) return;
+    const hA = headAng(t);
+    for (const fl of flames) {
+      const a = hA - dir * fl.u * span, k = k0 * (1 - fl.u * 0.7);
+      const H = fl.h * k * (0.7 + 0.3 * noise(t * 18 + fl.s, o.seed + 71));
+      if (H < 1.5) continue;
+      const [bx, by] = at(a, R - 1), sway = 1.5 * noise(t * 9 + fl.s, o.seed + 73);
+      for (let d = 0; d < H; d += 0.5) {
+        const f = d / H, hw = fl.w * Math.pow(1 - f, 0.7);
+        const ci = clamp(Math.round(5.4 - 3 * f + (t < 0.06 ? 1 : 0)), 2, 6);
+        for (let w = -hw; w <= hw; w += 0.55) p.blendPx(p.cellX(bx + w + sway * f, by - d), p.cellY(bx + w + sway * f, by - d), ST[ci], (f > 0.75 ? 0.55 : 0.9) * Math.min(1, k * 1.5));
+      }
+    }
+  }
+
+  function ribbon(p, t, rib) {   // 水带：沿螺旋从外往里收（E1 平铺地面、E2 / s3 往上卷），边缘撕裂（noise），浪尖白沫
     const u = t - rib.t0;
     if (u < 0) return;
     const grow = ease.outCubic(clamp(u / rib.dur)), gone = smooth(rib.dur * 0.6, rib.dur + 0.32 * (0.5 + 0.5 * DL), u);
@@ -198,13 +227,13 @@ export function create(o) {
       if (deco) ps.draw(p, "back");
     },
     draw(p) {
-      const behindRib = core && rib;
-      if (behindRib) ribbon(p, t);
+      if (core) for (const rb of ribs) ribbon(p, t, rb);
       if (core) band(p, t);
       if (core) toothPts(p, t);
+      if (core && s1) flameDraw(p, t);
       if (deco && t < SPIN + 0.1) {   // 锯头光晕
         const [x, y] = at(headAng(t), R);
-        p.glow(x, y, (s3 ? 30 : 20) * (el === 0 && !s3 ? 0.6 : 1), (s3 ? BL : ST)[5], 0.5 * GK * (1 - clamp((t - SPIN) / 0.1)));
+        p.glow(x, y, (s3 ? 30 : 20) * (el === 0 && !s3 ? 0.6 : 1), (s3 ? BL[5] : s2 ? NV[4] : ST[5]), 0.5 * GK * (1 - clamp((t - SPIN) / 0.1)));   // S2 冷钢的亮端近白，光晕改用海军蓝（避免连续白）
       }
       if (deco) {
         lights.draw(p);

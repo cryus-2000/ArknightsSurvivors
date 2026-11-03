@@ -56,5 +56,51 @@
 				"y": 0
 			}
 		}
+	},
+	"specter_unchained": {
+		"_doc": "归溟幽灵鲨（claude/pixelfx-ul-specter）：saw = 环斩（seg_specter._sp_ul_spin 自己读，不走 ob_core 接管）：basic 普攻红橙火星锯 / s1 S1 火舌 / s2 S2 冷钢双水带 / heavy S3 暗血红重锯（按当前开着的技能选）；fit = 烤制半径（1x 像素，= 判定半径 ÷ PX），缩放 = 当前判定半径 ÷ fit；pause = [E0/E1 普攻, E0/E1 技能, E2 普攻, E2 技能]；cast = 技能起手（旧的起手圈 / 光芒 / 火星在 JSON 里 cond !px_ul 关掉）",
+		"saw": {
+			"y": -10.0,
+			"basic": {
+				"base": "fx_specter_ul_saw",
+				"variants": 2,
+				"fit": 51.0
+			},
+			"s1": {
+				"base": "fx_specter_ul_sk1",
+				"variants": 2,
+				"fit": 51.0
+			},
+			"s2": {
+				"base": "fx_specter_ul_sk2",
+				"variants": 2,
+				"fit": 51.0
+			},
+			"heavy": {
+				"base": "fx_specter_ul_heavy",
+				"variants": 2,
+				"fit": 76.5
+			},
+			"pause": [
+				0.03,
+				0.05,
+				0.05,
+				0.075
+			]
+		},
+		"cast": {
+			"0": {
+				"base": "fx_specter_ul_cast1",
+				"y": 0
+			},
+			"1": {
+				"base": "fx_specter_ul_cast2",
+				"y": 0
+			},
+			"2": {
+				"base": "fx_specter_ul_cast3",
+				"y": 0
+			}
+		}
 	}
 }

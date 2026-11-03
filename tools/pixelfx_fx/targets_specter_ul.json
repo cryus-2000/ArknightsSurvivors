@@ -1,0 +1,387 @@
+{
+ "_doc": "归溟幽灵鲨 pixelfx 放开版（Claude 重做，11-04 用户定普攻甲 = 照原作红橙火星锯；S3 暗血红重锯 + 海军蓝水带）。人名前缀 specter（导出脚本按 fx_<人>_ul_ 认人，不能带下划线）。E2 = 不带档位后缀；E0 / E1 单种子；起手 cast1–3 按技能解锁档出（S1 三档、S2 精一起、S3 只有精二）；sk1 / sk2 = S1 / S2 开着时的环斩形态（S1 红橙锯 + 火舌；S2 冷钢锯 + 双水带）",
+ "fx_specter_ul_saw": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember"
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "basic",
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_specter_ul_saw2": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "seed": 7
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_saw_tm": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_saw_e0": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_saw_e1": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "basic",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_heavy": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "move": "s3",
+   "seed": 11
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach*s3_reach/2"
+   },
+   "src": "specter_unchained.json base.reach × s3_reach（r_mults skill_active:2，÷ PX 2）；运行时 fit 76.5"
+  },
+  "move": "skill",
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_specter_ul_heavy2": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "move": "s3",
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach*s3_reach/2"
+   },
+   "src": "specter_unchained.json base.reach × s3_reach（r_mults skill_active:2，÷ PX 2）；运行时 fit 76.5"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_heavy_tm": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "move": "s3",
+   "seed": 11,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach*s3_reach/2"
+   },
+   "src": "specter_unchained.json base.reach × s3_reach（r_mults skill_active:2，÷ PX 2）；运行时 fit 76.5"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_cast1": {
+  "fx": "water/ak-specter-ul-cast",
+  "opts": {
+   "move": "s1"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_specter_ul_cast1_e0": {
+  "fx": "water/ak-specter-ul-cast",
+  "opts": {
+   "move": "s1",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_specter_ul_cast1_e1": {
+  "fx": "water/ak-specter-ul-cast",
+  "opts": {
+   "move": "s1",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_specter_ul_cast2": {
+  "fx": "water/ak-specter-ul-cast",
+  "opts": {
+   "move": "s2"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_specter_ul_cast2_e1": {
+  "fx": "water/ak-specter-ul-cast",
+  "opts": {
+   "move": "s2",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_specter_ul_cast3": {
+  "fx": "water/ak-specter-ul-cast",
+  "opts": {
+   "move": "s3"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_specter_ul_sk1": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s1",
+   "seed": 17
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_specter_ul_sk12": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s1",
+   "seed": 19
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_sk1_tm": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s1",
+   "seed": 17,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_sk1_e0": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s1",
+   "seed": 17,
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_sk1_e1": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s1",
+   "seed": 17,
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_sk2": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s2",
+   "seed": 23
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55,
+  "lo": true
+ },
+ "fx_specter_ul_sk22": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s2",
+   "seed": 29
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_sk2_tm": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s2",
+   "seed": 23,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_sk2_e1": {
+  "fx": "melee/ak-specter-ul-saw",
+  "opts": {
+   "tone": "ember",
+   "move": "s2",
+   "seed": 23,
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "specter_unchained.json base.reach（÷ PX 2）；运行时 fit 51 ↔ 判定半径 × 1.0（seg_specter._h3_spin，r = h3_saw_r）"
+  },
+  "move": "skill",
+  "check_sy": 0.55
+ }
+}

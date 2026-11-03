@@ -801,6 +801,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "pfx": {
        "kind": "ring",
        "r": 120.0,
@@ -816,6 +817,7 @@
       "at": "self"
      },
      {
+      "cond": "!px_ul",
       "sprite": {
        "name": "fx_circle_ghost",
        "scale": 1.8
@@ -827,6 +829,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "gfx": {
        "kind": "rays",
        "life": 0.5,
@@ -843,6 +846,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "pfx": {
        "kind": "ring",
        "r": 30.0,
@@ -864,6 +868,7 @@
       "face_x": true
      },
      {
+      "cond": "!px_ul",
       "sparks": {
        "n": 8,
        "spd": 200,
@@ -892,6 +897,7 @@
       "banner": "生存的渴望：队长暂不会倒下"
      },
      {
+      "cond": "!px_ul",
       "pfx": {
        "kind": "ring",
        "r": 120.0,
@@ -907,6 +913,7 @@
       "at": "self"
      },
      {
+      "cond": "!px_ul",
       "sprite": {
        "name": "fx_circle_ghost",
        "scale": 1.8
@@ -918,6 +925,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "gfx": {
        "kind": "rays",
        "life": 0.5,
@@ -934,6 +942,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "pfx": {
        "kind": "ring",
        "r": 30.0,
@@ -955,6 +964,7 @@
       "face_x": true
      },
      {
+      "cond": "!px_ul",
       "sparks": {
        "n": 8,
        "spd": 200,
@@ -1010,6 +1020,7 @@
       "banner": "生存的重压"
      },
      {
+      "cond": "!px_ul",
       "pfx": {
        "kind": "ring",
        "r": 120.0,
@@ -1025,6 +1036,7 @@
       "at": "self"
      },
      {
+      "cond": "!px_ul",
       "sprite": {
        "name": "fx_circle_ghost",
        "scale": 1.8
@@ -1036,6 +1048,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "gfx": {
        "kind": "rays",
        "life": 0.5,
@@ -1052,6 +1065,7 @@
       ]
      },
      {
+      "cond": "!px_ul",
       "pfx": {
        "kind": "ring",
        "r": 30.0,
@@ -1073,6 +1087,7 @@
       "face_x": true
      },
      {
+      "cond": "!px_ul",
       "sparks": {
        "n": 8,
        "spd": 200,

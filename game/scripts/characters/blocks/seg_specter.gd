@@ -84,6 +84,8 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 	var src: String = str(a.get("src", ""))
 	var kb: float = float(a.get("kb", 70.0))
 	var cm: float = IrVg.crowd_mult(o, hits, a.get("tags", []))   # 老近卫军之锋 #56：一圈命中 ≥ 3 名
+	var ur: Dictionary = o.g.vfx.px_ul_reg(str(o.id))   # pixelfx 放开版（开关 fx/px_unleashed 关掉时为空，画面同旧版）
+	var ul: bool = not ur.is_empty() and ur.has("saw")
 	for e in hits:
 		var d: float = dmg * cm
 		if low_on and e.hp < e.maxhp * float(lh.get("below", 0.5)):
@@ -92,10 +94,17 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 		o.deal_damage(e, d)
 		if not e.dead and not e.boss and kind == 0:
 			o.apply_kb(e, (e.pos - o.pos).normalized() * kb)
-		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.15, "col": H3_RED if heavy else H3_GHOST, "alpha": 0.5})
+		if not ul:
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.15, "col": H3_RED if heavy else H3_GHOST, "alpha": 0.5})
 	var rev: bool = (o.face < 0.0) != (kind == 1)
 	if kind == 2:
 		rev = (o.face < 0.0) != (int(sp.whirl_n) % 2 == 1)
+	if ul:
+		_sp_ul_spin(o, ur, hits, heavy, kind, r, rev)
+		if kind == 1:
+			_h3_sfx(o, "atk", -4.0, 1.15, 0.06)
+		_g202_spin_hits(o, a, sp, hits, kind)
+		return
 	var lk: Dictionary = a.get("look", {})
 	if kind == 2 or not o.spawn_fx_sprite(str(lk.get("blood", "fx_specter_saw_blood")) if heavy else str(lk.get("saw", "fx_specter_saw")), o.pos + Vector2(0, -6), r / 40.0, 0.0, rev):
 		o.fx({"kind": "h3_saw", "pos": o.pos + Vector2(0, -8), "r": r * (0.9 if kind == 2 else 1.0), "life": 0.3 if heavy else 0.24, "col": H3_RED if heavy else H3_GHOST,
@@ -114,6 +123,36 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 	if kind == 1:
 		_h3_sfx(o, "atk", -4.0, 1.15, 0.06)
 	_g202_spin_hits(o, a, sp, hits, kind)
+
+
+## pixelfx 放开版环斩（docs/242；注册表 px_ul.json specter_unchained.saw）：普攻红橙火星锯 / S1 火舌 / S2 冷钢双水带 / S3 暗血红重锯帧条，先装饰后核心，
+## 缩放 = 当前判定半径 ÷ 烤制半径 fit（范围藏品、S3 范围 ×1.5 跟着变）；反向第二圈、旋锯段用队友版 _tm（余韵短，连续出手不叠成一团）；
+## 命中火星换成锯刃火星色；定格只给队长（E0 / E1 轻一档）。纯画面：随机只用 g.vrng
+static func _sp_ul_spin(o, ur: Dictionary, hits: Array, heavy: bool, kind: int, r: float, rev: bool) -> void:
+	var g = o.g
+	var form: String = "heavy" if heavy else ("s2" if o.s_t[1] > 0.0 else ("s1" if o.s_t[0] > 0.0 else "basic"))   # 技能开着时换形态：S1 火舌 / S2 冷钢双水带 / S3 重锯（docs/242 §12.1 技能和普攻一眼分开）
+	var cf: Dictionary = ur.saw.get(form, ur.saw.get("basic", {}))
+	var base: String = str(cf.get("base", ""))
+	var el: int = g.vfx.px_ul_el(o)
+	var tm: bool = not o.is_leader or kind != 0
+	var nv: int = int(cf.get("variants", 1))
+	var vv: int = 1 + int(g.vrng.randf() * nv) if not tm and nv >= 2 else 1
+	var p: Vector2 = o.pos + Vector2(0, float(ur.saw.get("y", -10.0)))
+	var sc: float = r / float(cf.get("fit", 51.0))
+	var dk: float = g.vfx.px_deco_k(o)
+	var dn: String = g.vfx.px_ul_tex(base, vv, tm, "deco", el)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, p, sc, 0.0, rev, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(g.vfx.px_ul_tex(base, vv, tm, "core", el), p, sc, 0.0, rev)
+	var sc_col: Color = Color(1.5, 0.45, 0.4) if heavy else (Color(1.2, 1.35, 1.6) if form == "s2" else Color(1.6, 0.85, 0.5))
+	for e in hits:   # 命中火星：沿锯刃切向甩出（装饰，颗数 × 装饰系数）
+		var ea: float = (e.pos - o.pos).angle() + PI / 2.0 * (-1.0 if rev else 1.0)
+		for k in int(round((3 if kind == 0 else 1) * dk)):
+			o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": Vector2.from_angle(ea + g.vrng.randf_range(-0.35, 0.35)) * g.vrng.randf_range(160, 300),
+				"life": 0.2, "col": sc_col, "sz": 1.5, "drag": 3.0})
+	var pz: Array = ur.saw.get("pause", [])   # [E0/E1 普攻, E0/E1 技能, E2 普攻, E2 技能]
+	if not hits.is_empty() and o.is_leader and kind == 0 and pz.size() >= 4:
+		o.impact_pause(float(pz[(2 if el >= 2 else 0) + (0 if form == "basic" else 1)]))
 
 
 static func _h3_heavy(o, a: Dictionary) -> bool:
@@ -474,7 +513,8 @@ static func _h3sp_tick(o, sp: Dictionary, dt: float) -> bool:
 	_h3_rings_tick(o, sp, dt)
 	var g = o.g
 	if o.s_t[0] > 0.0 and not h3_away(o) and g.vrng.randf() < dt * 14.0 and o.B.get("attack", _ED).get("look", {}).get("flame", false):
-		o.fx({"kind": "mote", "pos": o.pos + Vector2(g.vrng.randf_range(-16, 16), g.vrng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
+		var ulf: bool = not g.vfx.px_ul_reg(str(o.id)).is_empty()   # 放开版：余烬改红橙（原来的品红红接近敌方危险色）
+		o.fx({"kind": "mote", "pos": o.pos + Vector2(g.vrng.randf_range(-16, 16), g.vrng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.6, 0.6, 0.3) if ulf else Color(1.0, 0.2, 0.25), "sz": 1.5 if ulf else 2.0})
 	_h3_spins_tick(o, sp, dt)
 	_e3_flash_tick(o, sp, dt)   # 精英化第 3 批：替身闪现
 	return h3_away(o) or float(sp.fall_t) > 0.0
@@ -613,7 +653,8 @@ static func _h3sp_draw_auras(o) -> void:
 	var a: Dictionary = o.B.get("attack", {})
 	var lk: Dictionary = a.get("look", {})
 	var away: bool = h3_away(o)
-	if o.pos != Vector2.INF and not away and o.s_t[0] > 0.0 and lk.get("flame", false):
+	var ul: bool = not g.vfx.px_ul_reg(str(o.id)).is_empty()   # 放开版：身上的红圆气焰（孤立圆形）和技能期间整圈锯环线不画，技能状态由各自的环斩形态帧条表现
+	if o.pos != Vector2.INF and not away and o.s_t[0] > 0.0 and lk.get("flame", false) and not ul:
 		var hk: float = 0.5 + 0.5 * sin(g.t * 9.0)
 		cv.draw_circle(o.pos + Vector2(0, -22), 22.0 + 3.0 * hk, Color(1.0, 0.1, 0.15, 0.16))
 		for q in 7:
@@ -621,7 +662,7 @@ static func _h3sp_draw_auras(o) -> void:
 			var bp: Vector2 = o.pos + Vector2(cos(an) * 16.0, -6.0 + sin(an) * 7.0)
 			var hh: float = 14.0 + 6.0 * sin(g.t * 13.0 + q * 2.1)
 			cv.draw_colored_polygon(PackedVector2Array([bp + Vector2(-4, 0), bp + Vector2(sin(g.t * 20.0 + q) * 2.0, -hh), bp + Vector2(4, 0)]), Color(1.5, 0.2, 0.25, 0.55))
-	if o.pos != Vector2.INF and not away and _h3_any_skill(o):
+	if o.pos != Vector2.INF and not away and _h3_any_skill(o) and not ul:
 		var c: Color = H3_RED if _h3_heavy(o, a) else H3_GHOST
 		cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, h3_saw_r(o, a), 0.0, TAU, 36, Color(c.r, c.g, c.b, 0.25 + 0.1 * sin(g.t * 6.0)), 2.0)
