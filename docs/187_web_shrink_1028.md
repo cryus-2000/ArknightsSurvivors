@@ -148,3 +148,14 @@ integ-1101 第二轮（c264e9828）导出的网页包 44.6 MiB，超出 44.5 MiB
 未做：配乐整体 16 kHz（再省 3.6 MiB，等于 E 档式发闷）、单声道化（侧/中 −2 到 −15 dB，立体声内容真实存在）、语音再降（只剩 1.3 MiB）。
 对照试听：8 段配乐（最亮 15 秒窗口，前 = 22.05 kHz，后 = 16 kHz）与 6 个音效（前 32 kHz，后 22.05 kHz）在 `build/fx_audio_room/`（工作树内，未提交）。
 检查：`tools/test_web_audio.py` 5 例通过，`data_lint` 0 失败；`test_web_boot.cjs` 本机无窗口 Edge 对改前 / 改后两份网页包都在等待启动完成时超时（240 秒），与本改动无关的环境问题，未能完成浏览器冒烟。
+
+## 11. 配乐再压一档（11-03，给 pixelfx 放开版特效腾空间；用户同意网页音乐略降音质）
+
+C 档配乐由压缩级 1.0（Vorbis 质量 0）改为 1.1（质量 −0.1，走 imageio_ffmpeg 的 libvorbis，即 §7 的 D 档编码器，采样率仍按 §10 的内容规则 22.05 / 16 kHz）。
+高频多、最容易出「沙沙」声的层仍用 1.0：battle*_pulse 三层、最终 Boss 二阶段 `final*_p2` 五首。其余 15 首配乐用 −0.1。
+
+- 体积：配乐 19.75 → **16.56 MiB（省 3.19）**；`claude/integ-1104` 255b6ac3c 本机重导网页目录 **40.1 MiB**，Toy zip 41.77 MB。仓库源文件与桌面包不动。
+- 为什么敢用 −0.1：§7 的 D 档问题是镲片 / 军鼓尾音「沙沙」与立体声变窄。逐曲测（改前 C / −0.05 / −0.1）：5–11 kHz 频段能量（越接近原曲越好）−0.1 反而更近原曲（噪声底更低，如 battle1_base 原曲 0.43%，C 0.81，−0.1 0.70）；侧 / 中声道能量比 −0.1 比 C 再窄 0.3–0.6 dB（battle1_drive 原曲 −1.8 dB，C −3.3，−0.1 −4.0），仍是明确立体声。高频重的 pulse / p2 层这两项差距最大，所以留在 1.0。
+- 试听对照（前 = 旧 C，后 = 新；各 15 秒）：`build/fx_audio_room/web_music_{suno_battle1_base,title,suno_battle2_drive,suno_boss_full}_{C_old,new}.wav`（工作树内，未提交）。
+- 检查：`test_web_audio.py` 5 例通过、`data_lint` 0 失败；Godot 无头导入 / 导出无报错，网页包在无窗口 Edge（swiftshader）里启动到标题、云存档初始化，无脚本错误。`test_web_boot.cjs` 本机仍超时（缺 `--use-angle=swiftshader` 参数，非本改动）；无声卡的无头环境没有验证实际出声，试听以上述 wav 为准。
+- 回退：把 C 档配乐的 `"default": 1.1` 改回 1.0。
