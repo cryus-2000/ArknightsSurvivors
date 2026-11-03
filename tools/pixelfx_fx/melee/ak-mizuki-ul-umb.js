@@ -27,6 +27,7 @@ export const meta = {
     move: "basic",    // basic / s1
     elite: 2,
     quick: 0,         // 1 = 队友版（余韵减半）
+    spray: 0,
     layer: "all",
     seed: 3,
   },
@@ -36,7 +37,7 @@ export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), quick = +o.quick > 0, mv = o.move || "basic";
   const el = clamp(Math.round(+o.elite), 0, 2), core = o.layer !== "deco", deco = o.layer !== "core";
   const DL = [0.45, 0.75, 1][el] * (quick ? 0.5 : 1), GK = [0.45, 0.8, 1][el], PM = [0.6, 0.85, 1][el], HOT = [0.6, 1.4, 2.6][el];
-  const s1 = mv === "s1", s3 = mv === "s3";
+  const s1 = mv === "s1", s3 = mv === "s3", SPRAY = +o.spray > 0;  // spray：往外甩的水珠 / 火星（用户 11-04 §14.7：缺省 0 不画；水雾、上飘光点、招式主体保留）
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[5]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = s3 ? TAU * 0.98 : o.span, a0 = -span / 2, a1 = span / 2, SW = s1 ? 0.08 : 0.07;
   const M = { seed: o.seed, R: R0, W: (s3 ? 9 : s1 ? 6 : 13) * [0.8, 1, 1.15][el], ramp: C, GK, scal: [2.4, 3.6, 4.2][el], lav: el >= 2 ? hex(MZ.lav) : 0 };   // 伞缘小褶随档加深；精二外缘断续淡紫
@@ -87,6 +88,7 @@ export function create(o) {
     return [b, ctrl, tip, 0, 1, c2];
   }
   function splash(x, y, nx, ny, n, sp, life, acc) {   // 落点水冠：顺冲击方向张开的不规整一簇
+    if (!SPRAY) return;
     for (let k = 0; k < n; k++) {
       const v = sp * Rg.range(0.45, 1.2), a = Math.atan2(ny, nx) + Rg.range(-0.9, 0.9);
       ps.spawn(k % 3 ? P.MOTE : P.SPARK, x, y, Math.cos(a) * v, Math.sin(a) * v - Rg.range(30, 90), life * Rg.range(0.6, 1.1), acc && k % 4 === 0 ? MZ.lav : C[5 + Rg.int(0, 2)], Rg.range(0.6, 1.1));
@@ -100,7 +102,7 @@ export function create(o) {
       while (passed < head && passed < 1) {   // 沿缘甩水珠：步长随机（不等距放射）
         const a = a0 + span * passed, x = Math.cos(a) * (R0 - Rg.range(0, 4)), y = Math.sin(a) * (R0 - Rg.range(0, 4));
         const tx = -Math.sin(a), ty = Math.cos(a), nx = Math.cos(a), ny = Math.sin(a);
-        for (let k = 0, m = Math.round((s1 ? 1.5 : 1) * PM + Rg.range(-0.45, 0.45)); k < m; k++) {   // 数量砍半（组长 C v1 #4）
+        for (let k = 0, m = SPRAY ? Math.round((s1 ? 1.5 : 1) * PM + Rg.range(-0.45, 0.45)) : 0; k < m; k++) {   // 数量砍半（组长 C v1 #4）
           const sp = Rg.range(70, 220), j = Rg.range(-0.45, 0.45) * (s3 ? 2.4 : 1),   // 整圈时方向抖得更开（不成放射纹，§9.3）
              cj = Math.cos(j), sj = Math.sin(j), vx = tx * 0.95 + nx * 0.35, vy = ty * 0.95 + ny * 0.35;   // 顺挥击方向甩（组长 C v1 #4）   // 方向再抖一点（不排成放射纹，§9.3）
           ps.spawn(P.MOTE, x, y, (vx * cj - vy * sj) * sp, (vx * sj + vy * cj) * sp, Rg.range(0.22, 0.5) * (0.6 + 0.4 * DL), C[5 + Rg.int(0, 1)], Rg.range(0.6, 1.0));
@@ -113,7 +115,7 @@ export function create(o) {
         if (deco) lights.add(Math.cos(a1) * R0 * 0.8, Math.sin(a1) * R0 * 0.8, 40, C[5], 0.7 * GK, 0.3);
         for (let a = a0 + 0.08; a < a1; a += Rg.range(0.1, 0.24) / PM) {   // 余韵：缘上碎成水雾 / 荧光籽
           const x = Math.cos(a) * (R0 + Rg.range(-2, 4)), y = Math.sin(a) * (R0 + Rg.range(-2, 4)), nx = Math.cos(a), ny = Math.sin(a);
-          if (deco && Rg.chance(0.6)) ps.spawn(P.MOTE, x, y, nx * Rg.range(10, 40), ny * Rg.range(10, 40) - 10, Rg.range(0.3, 0.6) * DL, C[4 + Rg.int(0, 1)], Rg.range(0.5, 0.8), Rg.range(0, 0.08));
+          if (deco && SPRAY && Rg.chance(0.6)) ps.spawn(P.MOTE, x, y, nx * Rg.range(10, 40), ny * Rg.range(10, 40) - 10, Rg.range(0.3, 0.6) * DL, C[4 + Rg.int(0, 1)], Rg.range(0.5, 0.8), Rg.range(0, 0.08));
           if (el >= 2 && Rg.chance(0.35)) ps.spawn(P.STAR, x, y, nx * 6, ny * 6 - Rg.range(12, 26), Rg.range(0.4, 0.75) * DL, Rg.chance(0.5) ? MZ.lav : C[6], Rg.range(0.8, 1.4), Rg.range(0.03, 0.2));
         }
       }

@@ -16,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: MZ.blue, quick: 0, move: "sting", layer: "all", seed: 4 },
+  options: { palette: MZ.blue, quick: 0, move: "sting", spray: 0, layer: "all", seed: 4 },   // spray：蜇到时外甩的小水花（§14.7 缺省 0）
 };
 
 export function create(o) {
@@ -55,7 +55,7 @@ export function create(o) {
       t += dt;
       if (mv === "sting" && !hit && t >= 0.08) {
         hit = true;
-        for (let k = 0; k < 9; k++) {
+        for (let k = 0; k < (+o.spray > 0 ? 9 : 0); k++) {
           const a = Rg.range(-0.9, 0.9), v = Rg.range(40, 110);
           ps.spawn(k % 3 ? P.MOTE : P.SPARK, 10, 0, Math.cos(a) * v, Math.sin(a) * v - 20, Rg.range(0.2, 0.4) * (quick ? 0.6 : 1), k % 3 === 0 ? MZ.lav : C[6], 0.8);
         }

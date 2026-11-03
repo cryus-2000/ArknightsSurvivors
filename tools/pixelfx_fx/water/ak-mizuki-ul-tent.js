@@ -16,7 +16,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: MZ.blue, elite: 2, quick: 0, move: "chase", layer: "all", seed: 5 },
+  options: { palette: MZ.blue, elite: 2, quick: 0, move: "chase", spray: 0, layer: "all", seed: 5 },   // spray：落点外甩水花（§14.7 缺省 0）
 };
 
 export function create(o) {
@@ -49,7 +49,7 @@ export function create(o) {
       t += dt;
       if (!slammed && t >= TE + TS) {
         slammed = true;
-        for (let k = 0, n = [6, 9, 12][el]; k < n; k++) {   // 落点水花：往上往两侧，不成圈
+        for (let k = 0, n = +o.spray > 0 ? [6, 9, 12][el] : 0; k < n; k++) {   // 落点水花：往上往两侧，不成圈
           const a = -Math.PI / 2 + Rg.range(-1.3, 1.3), v = Rg.range(50, 150);
           ps.spawn(k % 3 ? P.MOTE : P.SPARK, hit[0], hit[1], Math.cos(a) * v, Math.sin(a) * v, Rg.range(0.25, 0.5) * (0.6 + 0.4 * DL), el >= 2 && k % 3 === 0 ? MZ.lav : C[5 + Rg.int(0, 2)], Rg.range(0.6, 1.0));
         }

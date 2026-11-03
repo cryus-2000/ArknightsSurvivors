@@ -15,7 +15,7 @@ export const meta = {
   loop: false,
   fps: 20,
   bg: "dark",
-  options: { palette: MZ.blue, move: "burst", layer: "all", seed: 6 },
+  options: { palette: MZ.blue, move: "burst", spray: 0, layer: "all", seed: 6 },   // spray：炸开时外甩的水珠（§14.7 缺省 0；伞片碎块是炸开的主体，保留）
 };
 
 export function create(o) {
@@ -72,7 +72,7 @@ export function create(o) {
           const a = -Math.PI + Rg.range(0, Math.PI) + Rg.range(-0.25, 0.25), r = Rg.range(0.3, 1) * RX, v = Rg.range(60, 170);
           shards.push({ x: Math.cos(a) * r, y: Math.sin(a) * r * RY / RX, vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.8 - Rg.range(0, 40), s: Rg.range(1.5, 3.2), c: Rg.int(1, 4), rot: Rg.range(0, TAU) });
         }
-        for (let k = 0; k < 40; k++) {   // 水珠
+        for (let k = 0; k < (+o.spray > 0 ? 40 : 0); k++) {   // 水珠
           const a = Rg.range(0, TAU), v = Rg.range(50, 220);
           ps.spawn(k % 4 ? P.MOTE : P.SPARK, Math.cos(a) * 6, Math.sin(a) * 4 - 6, Math.cos(a) * v, Math.sin(a) * v * 0.8 - 30, Rg.range(0.35, 0.8), k % 3 === 0 ? MZ.lav : C[5 + Rg.int(0, 2)], Rg.range(0.7, 1.3));
         }
