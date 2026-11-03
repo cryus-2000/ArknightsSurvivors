@@ -605,6 +605,7 @@ func _process(_dt: float) -> void:
 		mat.set_shader_parameter("lamp_r", 1.0)
 	mat.set_shader_parameter("pool_dark", Bal.v("render/optical_pool_dark", 1.0))
 	mat.set_shader_parameter("glow", Bal.v("render/optical_glow", 0.9))
+	mat.set_shader_parameter("clarity_bloom", Bal.v("render/clarity_bloom", 0.0) > 0.0)
 	mat.set_shader_parameter("glow_budget", Bal.v("render/optical_glow_budget", 0.06) if fx1 else 99.0)
 	mat.set_shader_parameter("steps", Bal.v("render/optical_steps", 3.0) if fx1 else 0.0)
 	mat.set_shader_parameter("local_budget", Bal.v("render/optical_local_budget", 0.5) if fx1 else 99.0)

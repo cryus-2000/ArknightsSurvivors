@@ -34,6 +34,7 @@ uniform float steps = 0.0;              // 0 = 平滑（旧）；3 = 三阶硬�
 uniform float local_budget = 0.5;
 uniform float local_r = 240.0;
 uniform float glow_budget = 0.06;      // 全屏发光总量预算（屏幕平均发光度）：超出按比例压辉光与亮部（多个大招叠加不过曝，10-23 特效处理 ②）
+uniform bool clarity_bloom = false;    // 只约束光晕，不用全屏亮度预算改写角色 / 敌弹本色
 uniform float lut_on = 1.0;
 uniform float vignette = 0.12;
 uniform float hurt = 0.0;
@@ -105,7 +106,9 @@ void fragment() {
 	}
 	tot /= 12.0;
 	float over = clamp(glow_budget / max(tot, 0.0001), 0.35, 1.0);
-	base *= 1.0 - em * (1.0 - over) * 0.45;   // 超预算时亮部按比例压暗（最多约 30%）
+	if (!clarity_bloom) {
+		base *= 1.0 - em * (1.0 - over) * 0.45;
+	}
 	// ② 光池
 	vec2 pc = p;   // 光照 / 辉光取样位置：开阶梯时吸附到美术像素格中心（硬边环落在 2 px 格上）
 	if (steps > 0.5) {
@@ -150,8 +153,9 @@ void fragment() {
 	vec3 m5 = textureLod(screen_mip, guv, 5.0).rgb;
 	g += m2 * emissive(m2) * 0.30;
 	g += m3 * emissive(m3) * 0.30;
-	g += m4 * emissive(m4 * 1.15) * 0.25;
-	g += m5 * emissive(m5 * 1.3) * 0.25;
+	// 保留贴身的亮芯，减少 1/16、1/32 屏幕模糊的覆盖；不改友方图层透明度。
+	g += m4 * emissive(m4 * 1.15) * (clarity_bloom ? 0.10 : 0.25);
+	g += m5 * emissive(m5 * 1.3) * (clarity_bloom ? 0.06 : 0.25);
 	g *= glow * over;
 	// 局部预算：队长周围 local_r 内的发光度超过 local_budget 时按比例压（辉光与亮部都压）
 	float loc_d = length(pc - lamp_px) / max(local_r, 1.0);

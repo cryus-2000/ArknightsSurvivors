@@ -5,6 +5,7 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -231,6 +232,11 @@ func _warm_glyphs() -> void:
 		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
 	for sz in range(16, 30):
 		UI.text(ci, fnt, far, "Lv.0123456789", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
+	# 文字避让版（render/clarity_text）：LEVEL UP! int(18 × pop)（描边 4）、Lv.n int(11 × pop)（描边 3），pop 0.9–1.2
+	for sz in range(16, 22):
+		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
+	for sz in range(9, 14):
+		UI.text(ci, fnt, far, "Lv.0123456789", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 	# 左上等级数字（hud_bars.draw_top_left）：int(20 × (1 + 0.3 × 闪光))
 	for sz in range(20, 27):
 		UI.ctext(ci, fnt, far, "0123456789", sz, Color.WHITE)
@@ -366,6 +372,7 @@ func _draw_body() -> void:
 ## 头顶小血条（演示 / 演出时不画）。挪到底层子画布里画，藏品栏、编队栏缓存层才能照原来的层次压在它们上面（docs/50 §9.10）
 func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	draw_elite_marks(ct)
+	var readable: bool = Bal.v("render/clarity_text", 1.0) > 0.0 and g.demo_op == ""
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
 	var dn: Array = []   # 合批时先收集，_dmg_numbers 分层画（docs/50 §13）
 	for f in (g.texts if ((g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "") and not _dbg_nonum else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）；--clutterdbg=nonum 量测
@@ -375,8 +382,13 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 			a *= 0.3
 		var sp: Vector2 = ct * f.pos
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
+		if readable and _damage_label(str(f.text)):
+			pop = 1.0 + 0.15 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		var sz := _qs(int(f.size * pop))
 		dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
+	if readable:
+		dn = _clear_damage_text(dn, ct, vs)
+	clarity_text_drawn = dn.size()
 	if not dn.is_empty():
 		_dmg_numbers(dn)
 
@@ -385,14 +397,21 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	# 升级字样：弹出放大 -> 轻微上浮 -> 淡出
 	if g.lvup_show > 0.0 and g.state == Game.S.PLAY and (g.ult == null or not g.ult.show_busy()):
 		var age := 1.3 - g.lvup_show
-		var pop := 1.0 + 0.6 * clampf(1.0 - age / 0.15, 0.0, 1.0)
+		var pop := 1.0 + (0.2 if readable else 0.6) * clampf(1.0 - age / 0.15, 0.0, 1.0)
 		if age > 0.15 and age < 0.3:
 			pop = 1.0 - 0.1 * sin((age - 0.15) / 0.15 * PI)
 		var la := clampf(g.lvup_show / 0.35, 0.0, 1.0)
-		var lp: Vector2 = ct * (g.ppos + Vector2(0, -92 - age * 14.0))
 		var gold := Color(1.0, 0.86, 0.42, la)
-		UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(int(30 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
-		UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(int(18 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+		if readable:
+			# 文字避让（用户 11-03 保留 LEVEL UP!，只缩小）：字号约 60%、弹出 1.2，整组放在队长保护框（与伤害数字避让同一个框，头顶 60）上方，不压身体
+			var top: Vector2 = ct * (g.ppos + Vector2(0, -60 - age * 14.0))
+			var lv_y: float = top.y - 16.0   # 保护框按身体量，耳朵 / 发饰会高出框顶几像素，再留 16
+			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y - 11.0 * pop - 3.0), "LEVEL UP!", _qs(int(18 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y), "Lv.%d" % g.level, _qs(int(11 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 3)
+		else:
+			var lp: Vector2 = ct * (g.ppos + Vector2(0, -92 - age * 14.0))
+			UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(int(30 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
+			UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(int(18 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
 
 	if g.flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, g.flash * 0.5))
@@ -505,6 +524,59 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 ## 飘字分层（docs/50 §13）：每个飘字是「4 像素描边 + 本体」两次画、字号还随弹出变，原来每个字至少两次绘制调用。
 ## 按原顺序给每个字分层：比它早、又和它外接框重叠的字里层号最大的那个 + 1。同层的字互不重叠，层内先画全部描边、再画全部本体，
 ## 同字号连着画；层按顺序画。所以重叠的两个字前后关系和原来一样，不重叠的谁先谁后都一样（画面不变）
+var clarity_text_drawn := 0
+
+
+## 仅筛选绘制列表：伤害、飘字池、合并数值和随机数消耗均不动。
+## 治疗 / 受伤 / 状态词不进入伤害预算；最新的正伤害优先，字框不能盖住队长或彼此。
+static func _damage_label(text: String) -> bool:
+	for prefix in ["弱点 ", "破绽 "]:
+		if text.begins_with(prefix):
+			text = text.substr(prefix.length())
+	return text.is_valid_int() and not text.begins_with("+") and int(text) > 0
+
+
+func _clear_damage_text(dn: Array, ct: Transform2D, vs: Vector2) -> Array:
+	var body := Rect2(ct * (g.ppos + Vector2(-22, -60)), Vector2(44, 68) * ct.get_scale())
+	return clear_damage_text(dn, body, vs, g.font, g.hud, Bal.vi("render/clarity_num_cap", 12))
+
+
+static func clear_damage_text(dn: Array, body: Rect2, vs: Vector2, font: Font, ci: CanvasItem, cap: int) -> Array:
+	var out: Array = []
+	var occupied: Array[Rect2] = []
+	var count := 0
+	for i in range(dn.size() - 1, -1, -1):
+		var it: Array = dn[i].duplicate()
+		if not _damage_label(str(it[1])):
+			out.push_front(it)
+			continue
+		if count >= cap:
+			continue
+		var sz: int = UI._ks(ci, it[2])
+		var w: float = font.get_string_size(str(it[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+		var ah := Vector2(font.get_ascent(sz), font.get_height(sz))
+		var p: Vector2 = it[0]
+		var box := Rect2(p.x + (120.0 - w) * 0.5 - 5, p.y - ah.x - 5, w + 10, ah.y + 10)
+		if box.intersects(body):
+			var shift: float = body.position.y - 6.0 - box.end.y
+			box.position.y += shift
+			p.y += shift
+		if not Rect2(Vector2.ZERO, vs).encloses(box):
+			continue
+		var overlaps := false
+		for other in occupied:
+			if box.intersects(other):
+				overlaps = true
+				break
+		if overlaps:
+			continue
+		it[0] = p
+		occupied.append(box)
+		out.push_front(it)
+		count += 1
+	return out
+
+
 func _dmg_numbers(dn: Array) -> void:
 	var n: int = dn.size()
 	var ci: CanvasItem = g.hud

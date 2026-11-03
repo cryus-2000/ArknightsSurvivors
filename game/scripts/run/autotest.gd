@@ -440,6 +440,8 @@ func _rec_step() -> void:
 			if Cfg.dev_args().has("--recpos"):
 				var lp: Vector2 = g.get_viewport().get_canvas_transform() * g.ppos
 				print("RECPOS %d %.1f %.1f %d" % [_rec_i, lp.x, lp.y, g.get_viewport().get_visible_rect().size.x])   # 队长屏幕坐标（量「队长周围被改色」）
+			if Cfg.dev_args().has("--clutterlog") and _rec_i % 30 == 0:
+				_clutter_log()   # 同步录屏统计；只读状态，不增加截图
 		_rec_i += 1
 		_rec_left -= 1
 		if _rec_left == 0:
@@ -2199,6 +2201,7 @@ func _clutter_log() -> void:
 		"fx": g.fx.size(), "fx_friend": fx_friend, "fx_foe": fx_foe, "fx_kinds": kinds, "ops": ops,
 		"bullets": g.bullets.size(), "ebullets": g.ebullets.size(), "ebullets_on": eb_on, "lobs": g.lobs.size(), "shocks": g.shocks.size(),
 		"warns_full": wfull, "warns_dim": wdim, "dash_full": dash_full, "dash_dim": dash_dim, "texts": g.texts.size(),
+		"texts_drawn": g.hud_view.clarity_text_drawn,
 		"gems_on": gems_on, "mires": g.mires.size(), "snow": g.map.snow.size(),
 		"crowd": snappedf(g.world.crowd, 0.001), "ecrowd": snappedf(g.world.ecrowd, 0.001), "dcrowd": snappedf(g.world.dcrowd, 0.001),
 		"fx_dim": snappedf(g.world.fx_dim, 0.001), "declutter": Dc.level(), "leader_scr": [lp.x, lp.y], "lamp": g.lamp,
