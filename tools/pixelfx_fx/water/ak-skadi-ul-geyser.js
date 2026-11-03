@@ -1,6 +1,7 @@
 // 斯卡蒂终结技「斩浪」水柱（不加限制版，开关 fx/px_unleashed）：原点 = 水柱脚底（地面），往上喷。
 // 地面一记爆亮 → 白热水柱拔起（柱身不规整、往上变细、边缘甩水）→ 顶端炸成水冠 → 水珠抛物线落回、脚下一圈不规整水花、水雾慢慢散。
 import { Particles, Lights, P, Rng, fit, clamp, smooth, ease, noise, TAU } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const meta = {
   name: "Skadi geyser unleashed",
@@ -13,11 +14,12 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#040c1c", "#08224a", "#0f4280", "#1a6cb4", "#34a8dc", "#7fe0f4", "#d4fbff", "#ffffff"],
+    palette: ["#0b1529", ...OP.skadi],   // 11-03 §12.6：改用 house.js OP.skadi 7 阶（原水青 #34a8dc / #7fe0f4 和敌方青弹 #33ceff 色差仅 15–18），最暗一阶为压暗底色
     height: 150,
     width: 30,
     layer: "all",   // core / deco / all
     seed: 3,
+    spray: 0,       // 往外甩的水珠（1 = 甩；11-04 用户取消「洒水出去」）
   },
 };
 
@@ -25,6 +27,7 @@ const SY = 0.5, UP = 0.16, HOLD = 0.22, FALL = 0.55;
 
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), H = o.height, W = o.width;
+  const SPRAY = +o.spray > 0;
   const core = o.layer !== "deco", deco = o.layer !== "core";   // 分层（docs/242 §8）：core = 水刺 + 出水白闪；deco = 水面、水珠水雾、光
   const ps = new Particles({ rng: Rg, ground: () => 0, sparks: [C[7], C[7], C[6], C[5]], haze: C[4] }), lights = new Lights();   // 水珠偏亮两阶（颗粒感，11-03）
   lights.add(0, -10, 70, C[6], 1.0, 0.3);
@@ -70,7 +73,7 @@ export function create(o) {
       while (spray > 0.009 && t < UP + HOLD) {   // 颗粒感（v2 补回，11-03）：甩水密一些
         spray -= 0.009;
         const j = jets[Rg.int(0, jets.length - 1)], d = j.L * Rg.range(0.3, 1) * (h / H);
-        ps.spawn(P.SPARK, Math.cos(j.a) * d, Math.sin(j.a) * d, Math.cos(j.a) * Rg.range(40, 140) + Rg.range(-40, 40), Math.sin(j.a) * Rg.range(40, 140), Rg.range(0.3, 0.7));
+        if (SPRAY) ps.spawn(P.SPARK, Math.cos(j.a) * d, Math.sin(j.a) * d, Math.cos(j.a) * Rg.range(40, 140) + Rg.range(-40, 40), Math.sin(j.a) * Rg.range(40, 140), Rg.range(0.3, 0.7));
       }
       if (!crowned && t >= UP) {
         crowned = true;
@@ -79,7 +82,7 @@ export function create(o) {
           const x = Math.cos(j.a) * j.L, y = Math.sin(j.a) * j.L;
           for (let i = 0, m = Rg.int(5, 7); i < m; i++) {   // 每股颗数也随机（等量会在角度直方图上出放射尖峰）
             const a = j.a + Rg.range(-0.85, 0.85), sp = Rg.range(60, 210);
-            ps.spawn(i % 3 ? P.SPARK : P.MOTE, x, y, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.45, 0.9), C[5 + Rg.int(0, 2)], Rg.range(0.8, 1.3));
+            if (SPRAY) ps.spawn(i % 3 ? P.SPARK : P.MOTE, x, y, Math.cos(a) * sp, Math.sin(a) * sp, Rg.range(0.45, 0.9), C[5 + Rg.int(0, 2)], Rg.range(0.8, 1.3));
           }
           if (Rg.chance(0.5)) ps.spawn(P.VAPOUR, x, y, Math.cos(j.a) * 20, Math.sin(j.a) * 20, Rg.range(0.5, 0.9), C[5], Rg.range(4, 8));
         }
@@ -89,7 +92,7 @@ export function create(o) {
         // 落回：脚下一圈不规整水花（角度不等距）+ 贴地水雾
         for (let a = Rg.range(0, 0.4); a < TAU; a += Rg.range(0.2, 0.55)) {
           const r = W * Rg.range(0.7, 1.4), sp = Rg.range(50, 160);
-          ps.spawn(P.SPARK, Math.cos(a) * r, Math.sin(a) * r * SY, Math.cos(a) * sp, Math.sin(a) * sp * SY - Rg.range(60, 180), Rg.range(0.3, 0.6));
+          if (SPRAY) ps.spawn(P.SPARK, Math.cos(a) * r, Math.sin(a) * r * SY, Math.cos(a) * sp, Math.sin(a) * sp * SY - Rg.range(60, 180), Rg.range(0.3, 0.6));
           ps.spawn(P.VAPOUR, Math.cos(a) * r, Math.sin(a) * r * SY - 3, Math.cos(a) * 30, Math.sin(a) * 12, Rg.range(0.6, 1.0), C[4], Rg.range(5, 9), Rg.range(0, 0.1));
         }
       }

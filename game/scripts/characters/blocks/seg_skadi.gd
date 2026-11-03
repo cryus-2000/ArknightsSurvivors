@@ -43,6 +43,7 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 				h.waves.pop_front()
 			h.waves.append(_wave_ease({"b": b, "pos": from0, "dir": d2, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg,
 				"hit": shared if b.get("fan_once", false) else {}, "drop": 0.0}, o, b))
+			px_ul_wave(o, b, h.waves[h.waves.size() - 1], from0, d2)
 			if b.has("ll"):   # docs/202 拉普兰德成长节点（追猎 / 日晷·反斩）：seg_lappland
 				_F().ll_wave_post(o, h.waves[h.waves.size() - 1], b, ll_tgt)
 		return
@@ -51,6 +52,44 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 	if h.waves.size() >= int(b.get("cap", HW_WAVE_MAX)):
 		h.waves.pop_front()
 	h.waves.append(_wave_ease({"b": b, "pos": from, "dir": dir, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg, "hit": {}, "drop": 0.0}, o, b))
+	px_ul_wave(o, b, h.waves[h.waves.size() - 1], from, dir)
+
+
+## pixelfx 放开版刀波（docs/242 §14.8，注册表 data/px_ul.json 的 "waves": {src: {…}}；原型拉普兰德 S2 狼魂剑气，11-04 收进样板）。三种写法可以组合：
+##   base {base, variants, y, dist}：整段飞行（判定的飞行距离 dist）烤进帧条、原点 = 出手点，开播时沿方向放一次画完全程（成长把距离改长时按比例拉）；
+##   proj {base}：弹体式（单体命中 / 追踪的远掷、双生刃）——弹体帧条换成放开版（keep 等宽 4 帧，飞行停第 1 帧、消散放 2–3 帧，同 proj_hold 口径），先画装饰层；
+##   hit {base, y, sc}：刀波每命中一名敌人在它身上放一张命中帧条（不另定格）。
+## 三项都缺（或缺图）时不接管。开关 fx/px_unleashed 关掉时注册表为空。只改画面，判定照旧走 w
+static func px_ul_wave(o, b: Dictionary, w: Dictionary, from: Vector2, d: Vector2) -> void:
+	var ent = o.g.vfx.px_ul_reg(str(o.id)).get("waves", _ED).get(str(b.get("src", "")))
+	if not (ent is Dictionary):
+		return
+	var vx = o.g.vfx
+	var el: int = vx.px_ul_el(o)
+	var tm: bool = not o.is_leader
+	var nv: int = int(ent.get("variants", 1))
+	var vv: int = 1 + int(o.g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1
+	var pj = ent.get("proj")
+	if pj is Dictionary and o.g.tex.get(vx.px_ul_tex(str(pj.get("base", "")), 1, tm, "core", el)) != null:
+		w["pxp"] = vx.px_ul_tex(str(pj.base), 1, tm, "core", el)
+		w["pxpd"] = vx.px_ul_tex(str(pj.base), 1, tm, "deco", el)
+	var ht = ent.get("hit")
+	if ht is Dictionary and str(ht.get("base", "")) != "":
+		w["pxh"] = ht
+	if not ent.has("base"):
+		return
+	var base: String = str(ent.base)
+	var cn: String = vx.px_ul_tex(base, vv, tm, "core", el)
+	if o.g.tex.get(cn) == null:
+		return
+	w["px"] = true
+	var p: Vector2 = from + Vector2(0, float(ent.get("y", 0.0)))
+	var sc: float = o.g.PX * float(w.max) / float(ent.get("dist", w.max))
+	var dn: String = vx.px_ul_tex(base, vv, tm, "deco", el)
+	var dk: float = vx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, p, sc, d.angle(), false, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(cn, p, sc, d.angle())
 
 
 ## 剑气非线性速度（sword_ease.gd）：弹体式刀波（有 proj）缺省开，浪墙写了 "ease" 才开；ez 为空 = 改前匀速
@@ -105,6 +144,9 @@ static func _hw_waves(o, dt: float) -> void:
 			o.deal_damage(e, w.dmg * pm)
 			if not e.dead and not e.boss:
 				o.apply_kb(e, w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0))
+			if w.has("pxh"):   # pixelfx 放开版刀波命中帧条（px_ul_wave）
+				var ph: Dictionary = w.pxh
+				g.vfx._px_ul_at(str(ph.base), e.pos + Vector2(0, float(ph.get("y", -float(e.r) * 0.5))), g.PX * float(ph.get("sc", 1.0)), not o.is_leader, g.vfx.px_ul_el(o), g.vfx.px_deco_k(o))
 			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
 				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
 			if b.has("max_hits") and w.hit.size() >= o.atk_pierce(int(b.max_hits)):   # 10-23 用户定：远程普攻取消穿透——命中 max_hits 名即消失（缺省不限）；贯穿卡 / 穿甲弹加在上面
@@ -116,13 +158,15 @@ static func _hw_waves(o, dt: float) -> void:
 			var l: float = g.vrng.randf_range(-0.5, 0.5) * w.w
 			var mc: Color = _mf_col(b.get("foam", []), Color(0.8, 0.95, 1.0))
 			o.fx({"kind": "mote", "pos": w.pos + nrm * l + Vector2(0, -18), "vel": w.dir * 120.0 + Vector2(0, g.vrng.randf_range(-120, -60)), "life": 0.4, "col": mc, "sz": 2.0, "grav": 320.0})
-		if w.dist >= w.max and b.has("proj_hold") and g.tex.get(str(b.proj)) != null:
-			var spec: Array = g.V6_FRAMES[str(b.proj)]
-			# 消散只进粒子表，不延长碰撞寿命。
-			o.fx({"kind": "strip", "name": str(b.proj), "pos": w.pos + Vector2(0, -16),
-				"life": 2.0 / float(spec[1]), "fr": int(spec[0]), "first_frame": 2, "fps": float(spec[1]),
-				"loop": false, "ph": 0, "sc": g.PX * float(b.get("proj_scale", 1.0)), "col": Color.WHITE,
-				"anc": Vector2(-1, -1), "ang": w.dir.angle(), "floor": not b.get("proj_front", false)})
+		var pjn: String = str(w.get("pxp", b.get("proj", "")))   # 放开版弹体（px_ul_wave proj）替换 b.proj
+		if w.dist >= w.max and b.has("proj_hold") and g.tex.get(pjn) != null and g.V6_FRAMES.has(pjn) and not w.get("px", false):
+			# 消散只进粒子表，不延长碰撞寿命。放开版先放装饰层
+			for pl in ([str(w.pxpd), pjn] if w.has("pxp") and str(w.get("pxpd", "")) != "" and g.V6_FRAMES.has(str(w.pxpd)) and g.vfx.px_deco_k(o) > 0.0 else [pjn]):
+				var spec: Array = g.V6_FRAMES[pl]
+				o.fx({"kind": "strip", "name": pl, "pos": w.pos + Vector2(0, -16),
+					"life": 2.0 / float(spec[1]), "fr": int(spec[0]), "first_frame": 2, "fps": float(spec[1]),
+					"loop": false, "ph": 0, "sc": g.PX * float(b.get("proj_scale", 1.0)), "col": Color(1, 1, 1, g.vfx.px_deco_k(o)) if pl != pjn else Color.WHITE,
+					"anc": Vector2(-1, -1), "ang": w.dir.angle(), "floor": not b.get("proj_front", false)})
 	h.waves = h.waves.filter(func(w): return w.dist < w.max)
 
 
@@ -135,8 +179,11 @@ static func hw_draw_waves(o, front := false) -> void:
 	for w in o.hw.waves:
 		var b: Dictionary = w.b
 		if bool(b.get("proj_front", false)) != front: continue
+		if w.get("px", false):   # pixelfx 放开版接管了这道刀波的画面（px_ul_wave：飞行烤进帧条，开播时整条放出），这里不再画弹体
+			continue
 		if b.has("proj"):   # 精英化第 2 批段：弹体式（潮刃）——旋转的弹体帧条，缺图画程序新月
-			var pn: String = str(b.proj)
+			var pn: String = str(w.get("pxp", b.proj))   # 放开版弹体（px_ul_wave proj）
+			var pdn: String = str(w.get("pxpd", "")) if w.has("pxp") and g.vfx.px_deco_k(o) > 0.0 else ""
 			var pa: float = 1.0 if b.has("proj_hold") else clampf((w.max - w.dist) / 40.0, 0.0, 1.0)
 			var pp: Vector2 = w.pos + Vector2(0, -16)
 			if g.tex.get(pn) != null and g.V6_FRAMES.has(pn):
@@ -154,8 +201,12 @@ static func hw_draw_waves(o, front := false) -> void:
 					for gi in range(int(w.ez.ghost), 0, -1):
 						if f > 0.05:
 							fx_frame(cv, g, pn, int(spec[0]), frame, pp - w.dir * gap * gi, psc, Color(br, br, br, pa * f * 0.38 / gi), Vector2(-1, -1), w.dir.angle(), 1.0 + float(w.ez.stretch) * f)
+					if pdn != "" and g.tex.get(pdn) != null and g.V6_FRAMES.has(pdn):
+						fx_frame(cv, g, pdn, int(g.V6_FRAMES[pdn][0]), frame, pp, psc, Color(br, br, br, pa * g.vfx.px_deco_k(o)), Vector2(-1, -1), w.dir.angle(), 1.0 + float(w.ez.stretch) * f - 0.12 * (1.0 - fa) / 0.45)
 					fx_frame(cv, g, pn, int(spec[0]), frame, pp, psc, Color(br, br, br, pa), Vector2(-1, -1), w.dir.angle(), 1.0 + float(w.ez.stretch) * f - 0.12 * (1.0 - fa) / 0.45)
 				else:
+					if pdn != "" and g.tex.get(pdn) != null and g.V6_FRAMES.has(pdn):
+						fx_frame(cv, g, pdn, int(g.V6_FRAMES[pdn][0]), frame, pp, psc, Color(1, 1, 1, pa * g.vfx.px_deco_k(o)), Vector2(-1, -1), w.dir.angle())
 					fx_frame(cv, g, pn, int(spec[0]), frame, pp, psc, Color(1, 1, 1, pa), Vector2(-1, -1), w.dir.angle())
 			else:
 				cv.draw_arc(pp - w.dir * 10.0, w.w * 0.5, w.dir.angle() - 1.0, w.dir.angle() + 1.0, 12, Color(0.6, 0.85, 1.3, 0.9 * pa), 4.0)
@@ -221,6 +272,16 @@ static func hw_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
 ## data/px_ul.json（vfx.px_ul_reg），src 登记过的这一下画面整个换成 fx_<人>_ul_* 帧条（源码 tools/pixelfx_fx），招式本体 fx 条目和通用近战刀光不画；
 ## 先画装饰（透明度 × px_deco_k）后画核心；队长命中时走 impact_pause 共享顿帧（纯画面：批跑不消耗顿帧、只用 g.vrng，伤害 / TRACE 不变）。
 ## c = 圆形判定的圆心（cone 传 INF，按脚底 + 方向画）。返回 true = 已接管，ob_core 只再播 relic: / node: 附加条目
+static var _px_alt_c := {}
+
+
+static func _px_alt_cond(o, s: String) -> Dictionary:
+	var k: String = "%s|%s" % [str(o.id), s]
+	if not _px_alt_c.has(k):
+		_px_alt_c[k] = parse_cond(s, o.def.get("base", {}) if o.get("def") is Dictionary else {}) if s != "" else {}
+	return _px_alt_c[k]
+
+
 static func px_ul_on(o) -> bool:
 	return not o.g.vfx.px_ul_reg(str(o.id)).is_empty()
 
@@ -236,13 +297,19 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	if not (ent is Dictionary):
 		return false
 	var skill: bool = ent.get("skill", false)
+	var alt_base: String = ""
+	for al in ent.get("alt", _EA):   # alt（组长 11-04，docs/242 §14.4）：[{cond, base, skill}]，第一条成立的换主形（例：乌尔比安 S2 生效后锚击换形 "skill_active:1"）
+		if al is Dictionary and cond_true(o, _px_alt_cond(o, str(al.get("cond", "")))):
+			alt_base = str(al.get("base", ""))
+			skill = al.get("skill", skill)
+			break
 	var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
 	var a: float = ang
 	var use: Dictionary = ent
 	if half >= 3.1 and reg.get("full") is Dictionary:
 		use = reg.full   # 全方向横扫（斯卡蒂涌潮悲歌）：整圈随机转个角度（画面随机数 vrng，判定不动）
 		a = ang + o.g.vrng.randf() * TAU
-	var base: String = str(use.base)
+	var base: String = alt_base if alt_base != "" else str(use.base)
 	var nv: int = int(use.get("variants", 1))
 	var vv: int = 1 + int(o.g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1   # 只有队长挑种子变体；队友版 _tm 余韵约减半、亮度不降
 	var el: int = o.g.vfx.px_ul_el(o)

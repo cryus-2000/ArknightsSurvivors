@@ -34,6 +34,8 @@ func _ready() -> void:
 			start = float(a.substr(12))
 		elif a.begins_with("--rec_n="):
 			n = int(a.substr(8))
+		elif a.begins_with("--rec_secs="):   # 德克萨斯版写法：按秒
+			n = int(float(a.substr(11)) * 30.0)
 		elif a.begins_with("--rec_w="):
 			w = int(a.substr(8))
 		elif a.begins_with("--rec_h="):

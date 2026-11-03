@@ -1,6 +1,7 @@
 // 斯卡蒂放技能的起手信号（11-03 用户「放了技能等于没放」）：脚下 / 剑身周围的水汽和水珠往剑上聚拢（不等距、不等速），聚满一闪，0.18 秒内结束。
 // 原点 = 斯卡蒂脚底，聚拢点在身前上方（剑身）。俯视；装饰层 = 水汽和光，核心层 = 聚拢的水珠与那一闪。
 import { Particles, Lights, P, Rng, fit, clamp, smooth, TAU } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const meta = {
   name: "Skadi skill charge",
@@ -13,7 +14,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#040c1c", "#08224a", "#0f4280", "#1a6cb4", "#34a8dc", "#7fe0f4", "#d4fbff", "#ffffff"],
+    palette: ["#0b1529", ...OP.skadi],   // 11-03 §12.6：改用 house.js OP.skadi 7 阶（原水青 #34a8dc / #7fe0f4 和敌方青弹 #33ceff 色差仅 15–18），最暗一阶为压暗底色
     accent: 0,       // 0 / 1 / 2 / 3 = 普攻（不用）/ S1 / S2 / S3：S3 聚得更多更远
     layer: "all",
     seed: 4,
