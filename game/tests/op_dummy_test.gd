@@ -56,6 +56,9 @@ var alive_sum := 0.0
 var alive_n := 0
 
 
+var route_pre := ""   # 本地对照用：预置节点 4 的路线（docs/202 验证）
+
+
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--dummy_op="):
@@ -72,6 +75,8 @@ func _ready() -> void:
 			warm = float(a.substr(13))
 		elif a == "--dummy_check":
 			check = true
+		elif a.begins_with("--dummy_route="):
+			route_pre = a.substr(14)
 	hrng.seed = 20261012
 	game = load("res://game.tscn").instantiate()
 	add_child(game)
@@ -122,6 +127,8 @@ func _setup() -> void:
 	# 推进到目标精英阶段（全队同阶段；精英化节点有选项时取第一个，同图鉴演出）
 	for o in game.squad.ops:
 		var guard := 0
+		if route_pre != "" and o.id == op_id:
+			o.route = route_pre
 		while o.prog < STAGE_PROG[stage] and not o.next_node().is_empty() and guard < 12:
 			guard += 1
 			var n: Dictionary = o.next_node()

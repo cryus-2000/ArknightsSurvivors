@@ -52,7 +52,7 @@ def run_one(godot, op, stage, scene, role, secs, warm, timeout):
     if role == "mate":
         args.append("--squad=" + op)
     args += ["--dummy_op=" + op, "--dummy_role=" + role, "--dummy_scene=" + scene, "--dummy_stage=%d" % stage,
-             "--dummy_secs=%g" % secs, "--dummy_warm=%g" % warm] + ["--bal=" + b for b in BAL]
+             "--dummy_secs=%g" % secs, "--dummy_warm=%g" % warm] + ["--bal=" + b for b in BAL] + (["--dummy_route=" + os.environ["DUMMY_ROUTE"]] if os.environ.get("DUMMY_ROUTE") else [])
     t0 = time.time()
     out, err, to = GR.run_godot(args, timeout)
     errs = GR.script_errors(out, err)
