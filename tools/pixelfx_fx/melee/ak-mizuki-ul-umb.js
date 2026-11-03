@@ -112,7 +112,6 @@ export function create(o) {
       }
       if (!landed && t >= SW) {
         landed = true;
-        if (deco) lights.add(Math.cos(a1) * R0 * 0.8, Math.sin(a1) * R0 * 0.8, 40, C[5], 0.7 * GK, 0.3);
         for (let a = a0 + 0.08; a < a1; a += Rg.range(0.1, 0.24) / PM) {   // 余韵：缘上碎成水雾 / 荧光籽
           const x = Math.cos(a) * (R0 + Rg.range(-2, 4)), y = Math.sin(a) * (R0 + Rg.range(-2, 4)), nx = Math.cos(a), ny = Math.sin(a);
           if (deco && SPRAY && Rg.chance(0.6)) ps.spawn(P.MOTE, x, y, nx * Rg.range(10, 40), ny * Rg.range(10, 40) - 10, Rg.range(0.3, 0.6) * DL, C[4 + Rg.int(0, 1)], Rg.range(0.5, 0.8), Rg.range(0, 0.08));
@@ -188,7 +187,8 @@ export function create(o) {
       }
       if (deco && t < 0.3) {
         const a = a0 + span * ease.outExpo(clamp(t / SW));
-        p.glow(Math.cos(a) * (R0 - 5), Math.sin(a) * (R0 - 5), (s1 ? 60 : 44) * [0.6, 0.85, 1][el], C[5], 0.55 * GK * (1 - t / 0.3));
+        const a2 = a - (a1 > a0 ? 1 : -1) * 0.35;   // 挥砍头沿刀光拉长的一段短光（组长 C v3 ①：不用伞尖的圆形柔光）
+        p.glowLine(Math.cos(a2) * (R0 - 4), Math.sin(a2) * (R0 - 4), Math.cos(a) * (R0 - 4), Math.sin(a) * (R0 - 4), (s1 ? 9 : 7) * [0.7, 0.85, 1][el], C[5], 0.5 * GK * (1 - t / 0.3));
       }
       if (deco) {
         lights.draw(p);

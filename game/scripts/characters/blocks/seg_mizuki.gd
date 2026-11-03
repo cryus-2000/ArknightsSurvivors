@@ -252,7 +252,8 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	if empowered and hit.size() > 0 and bu is Dictionary:
 		var ip: Vector2 = hit[0].pos
 		# 10-24 用户「水月一技能造成的这些黄色的圆形可以去掉」：命中处的金色十字光团（impact）不画了；r70 金环本来就被 render/hit_rings 关着
-		g.fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": H3_GOLD, "op_hit": true})
+		if not _mz_ul(o):   # 放开版不画外扩金环（§14.7；金色也和经验结晶撞色）
+			g.fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": H3_GOLD, "op_hit": true})
 		g.flash = maxf(g.flash, 0.12)
 		for k in mini(hit.size(), int(bu.get("n", 3))):
 			mz.delayed.append({"at": float(bu.get("gap", 0.06)) * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * float(bu.get("mult", 0.6)), "r": float(bu.get("r", 80.0)), "b": bu})
@@ -369,7 +370,9 @@ static func h3_cast_push(o, b: Dictionary) -> void:
 	o.screen_shake(0.8 if big else 0.5)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = _mf_col(b.get("col", []), Color(0.45, 0.8, 1.0))
-	if not big and not _mz_ul(o):   # 放开版：开技画面走注册表 cast（fx_mizuki_ul_s2cast / s3cast），不画往外扩散的光环（用户 11-04）
+	if _mz_ul(o):   # 放开版：开技 = 细碎暗地 + 触须钻出（S2 四五根 / S3 七根放射），不画往外扩散的光环（用户 11-04 §14.7）；注册表 cast 挂点在 px_halo 关时不播，所以在这里自己播
+		_mz_ul_play(o, "fx_mizuki_ul_s3cast" if big else "fx_mizuki_ul_s2cast", o.pos, g.PX, 0.0, false)
+	elif not big:
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
 		g.fx.append({"kind": "rays", "pos": o.pos, "life": 0.6, "max": 0.6, "col": c, "op_spoke": true})
@@ -387,8 +390,9 @@ static func h3_kill_heal(o, b: Dictionary) -> void:
 	var got: float = min(float(b.get("pct", 0.01)) * float(o.kill_w), float(mz.budget))   # 按击杀权重（docs/50 §16.8），仍受每秒预算约束
 	mz.budget = float(mz.budget) - got
 	o.heal_leader(g.max_hp * got, o.display_name())
-	if got > 0.0:
-		g.vfx.px_ul_heal(o)   # pixelfx 放开版：队长脚下淡紫白水珠浮起（注册表 heal，1 秒内合并；开关关掉时不播）
+	if got > 0.0 and _mz_ul(o) and g.ppos != Vector2.INF and g.t - float(mz.get("ul_heal_t", -99.0)) >= 1.0:   # 放开版：队长脚下淡紫白水珠浮起（1 秒内合并，§11.2 #4；注册表 heal 挂点在 px_halo 关时不播，这里自己播），不定格
+		mz["ul_heal_t"] = g.t
+		_mz_ul_play(o, "fx_mizuki_ul_heal", g.ppos, g.PX, 0.0, false)
 
 
 ## 触手本体的染色：look.deep（常态）/ look.deep_rej（排异后）× bright
@@ -926,24 +930,15 @@ static func _mz_ul_play(o, base: String, at: Vector2, sc: float, rot: float, fli
 	return true
 
 
-## 伞击 / 唤醒：帧条烤制时弧半径 80（1x），缩放 = 当前判定半径 ÷ 80（核心吸附整数格，§11.1 #8）；朝左时转半圈再翻（伞缘上下不倒）；
-## 实时水珠（装饰层）普攻 8 / 技能 14 颗 × px_deco_k，沿出手方向甩
+## 伞击 / 唤醒：帧条烤制时弧半径 80（1x），缩放 = 当前判定半径 ÷ 80（核心吸附整数格，§11.1 #8）；朝左时转半圈再翻（伞缘上下不倒）。
+## 实时火星不加（用户 11-04 §14.7：往外甩的水珠 / 火星去掉）
 const MZ_UL_FIT := 80.0
-const MZ_UL_MOTE := Color(0.72, 0.68, 1.15)
 
 
-static func _mz_ul_swing(o, base: String, ang: float, radius: float, skill: bool) -> bool:
+static func _mz_ul_swing(o, base: String, ang: float, radius: float, _skill: bool) -> bool:
 	var g = o.g
 	var mirror: bool = float(o.face) < 0.0
-	var sc: float = g.vfx.int_scale(radius / MZ_UL_FIT)
-	if not _mz_ul_play(o, base, o.pos + Vector2(0, -10), sc, ang + (PI if mirror else 0.0), mirror, 2):
-		return false
-	var dir := Vector2.from_angle(ang)
-	var sp: Vector2 = o.pos + Vector2(0, -10) + dir * radius * 0.7
-	for k in int(round((14.0 if skill else 8.0) * g.vfx.px_deco_k(o))):
-		o.fx({"kind": "mote", "pos": sp + Vector2(g.vrng.randf_range(-14, 14), g.vrng.randf_range(-10, 10)), "vel": Vector2.from_angle(ang + g.vrng.randf_range(-0.9, 0.9)) * g.vrng.randf_range(40, 120) + Vector2(0, -50),
-			"life": 0.5, "col": MZ_UL_MOTE, "sz": 2.0, "grav": 200.0})
-	return true
+	return _mz_ul_play(o, base, o.pos + Vector2(0, -10), g.vfx.int_scale(radius / MZ_UL_FIT), ang + (PI if mirror else 0.0), mirror, 2)
 
 
 ## 循环帧条（持续标识 / 敌人状态附件）：按 g.t 取帧，先装饰（× px_deco_k × a）后核心（× a）；ph = 相位偏移秒（多个敌人错开）

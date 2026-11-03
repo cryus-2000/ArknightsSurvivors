@@ -2,10 +2,10 @@
 // 色阶依据：PRTS 立绘主色宝蓝 / 藏青 + 伞的淡紫白（build/prts_ref/mizuki）。触手按用户 11-04 改成和立绘一致的宝蓝 → 淡紫（不照原作青绿身紫红尖）。
 // 敌弹 #33ceff 色相 0.55：亮部一律偏紫（宝蓝 0.63–0.68、淡紫 0.70–0.74）；暗部是藏青，不带红，和危险色 #ff2667（0.95）拉开。
 import { clamp, noise, hex, smooth } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const MZ = {
-  // 7 阶 + 白：藏青 → 宝蓝 → 长春花蓝 → 淡紫白
-  blue: ["#070a22", "#111a52", "#1e2f8f", "#3150c8", "#5a7cf0", "#9aa8ff", "#dcdcff", "#ffffff"],
+  blue: OP.mizuki,       // 色阶唯一来源 house.js OP.mizuki（§11.1 #12，组长 11-04 批：藏青 → 宝蓝 → 长春花蓝 → 白）
   lav: "#c4a6ff",        // 淡紫重点（精二）
   ink: "#080a18",        // 触手描边
   tent: ["#161c52", "#24348a", "#3854c2", "#5a76e6"],   // 触手身（藏青 → 宝蓝，暗 → 亮）
