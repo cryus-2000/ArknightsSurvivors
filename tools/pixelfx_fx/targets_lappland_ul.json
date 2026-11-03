@@ -1,0 +1,60 @@
+{
+ "_doc": "拉普兰德放开版（docs/242）：代表招式 S2 狼魂剑气，E0 / E1 / E2；色阶暂由 opts.palette 给（狼魂 status_col [0.7, 0.6, 1.0] + ark_ref 原作晶体狼首的冷白），待 pixelfx-eval 并入 house.js OP.lappland",
+ "fx_lappland_ul_s2_e0": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 0,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  },
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png（灰度晶体狼首，原作按狼魂色着色）+ lappland.json skills[1].status_col"
+ },
+ "fx_lappland_ul_s2_e1": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 1,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  },
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png（灰度晶体狼首，原作按狼魂色着色）+ lappland.json skills[1].status_col"
+ },
+ "fx_lappland_ul_s2_e2": {
+  "fx": "projectiles/ak-lappland-ul-s2",
+  "opts": {
+   "elite": 2,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "hw": "blade_w/2/2",
+    "dist": "blade_dist/2"
+   },
+   "src": "lappland.json base：blade_w 剑气判定宽（世界像素）÷ 2 = 半宽、÷ PX 2 = 1x；blade_dist 飞行距离 ÷ PX；trait 狼魂 shape.wave 的 w / dist"
+  },
+  "move": "skill",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png（灰度晶体狼首，原作按狼魂色着色）+ lappland.json skills[1].status_col"
+ }
+}
