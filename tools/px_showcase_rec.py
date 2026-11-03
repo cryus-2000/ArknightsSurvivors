@@ -3,7 +3,7 @@
 
 原速 30 帧（--realtime --playclock --fixed-fps 30），1920×1080，原色；开关 fx/px_unleashed = 1（--lo 再加 fx/px_ul_lo = 1 录网页低档）。
 技能用 ult/test_skill_*（每 2.5 秒把队长第 N 个技能充满），终结技用 ult/test_fill_at + 刷怪（同 tools/ult_rec.py），队友版让别人当队长、本人进编队。
-用法：python tools/px_showcase_rec.py <干员> [--mate 队长] [--seed 13] [--at 40] [--secs 7] [--lo] [--out 目录] [--tmp 目录]
+用法：python tools/px_showcase_rec.py <干员> [--mate 队长] [--seed 13] [--at 40] [--secs 7] [--lo] [--deco0] [--out 目录] [--tmp 目录]
 """
 import argparse, glob, os, shutil, subprocess, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -19,6 +19,7 @@ ap.add_argument("--seed", type=int, default=13)
 ap.add_argument("--at", type=float, default=40.0)
 ap.add_argument("--secs", type=float, default=7.0)
 ap.add_argument("--lo", action="store_true")
+ap.add_argument("--deco0", action="store_true", help="装饰层关掉（fx/px_deco_k = 0），验收「只剩核心也看得清」，docs/242 §8")
 ap.add_argument("--tmp", default=tempfile.gettempdir())
 ap.add_argument("--out", default="")
 a = ap.parse_args()
@@ -44,7 +45,7 @@ def rec(tag, leader, squad, extra):
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--resolution", "1920x1080", "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
             "--balance", "--realtime", "--playclock", "--rtfrom=%g" % max(0.0, at - 3), "--nodeath", "--seed=%d" % a.seed, "--op=" + leader, "--bot=expert",
             "--recframes=%g,%d" % (at, int(a.secs * 30)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (at + a.secs + 10),
-            "--bal=fx/px_unleashed=1"] + (["--bal=fx/px_ul_lo=1"] if a.lo else []) + (["--squad=" + squad] if squad else []) + extra
+            "--bal=fx/px_unleashed=1"] + (["--bal=fx/px_ul_lo=1"] if a.lo else []) + (["--bal=fx/px_deco_k=0"] if a.deco0 else []) + (["--squad=" + squad] if squad else []) + extra
     o, e, to = GR.run_godot(args, 1800)
     n = len(glob.glob(os.path.join(fdir, "rec_*.png")))
     print(tag, "frames", n, "errors", GR.script_errors(o, e)[:3], "timeout" if to else "", flush=True)
@@ -66,7 +67,7 @@ for t, d in dirs:
 open(lst, "w").write("".join("file '%s'\n" % p.replace("\\", "/") for p in parts))
 total = len(parts) * (a.secs + 0.2)
 kbps = int(25.0 * 0.92 * 8 * 1024 / max(total, 1.0))
-mp4 = os.path.join(out, "%s_showcase%s.mp4" % (a.op, "_lo" if a.lo else ""))
+mp4 = os.path.join(out, "%s_showcase%s%s.mp4" % (a.op, "_lo" if a.lo else "", "_deco0" if a.deco0 else ""))
 subprocess.run([FF, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c:v", "libx264", "-preset", "slow", "-b:v", "%dk" % kbps,
                 "-maxrate", "%dk" % int(kbps * 1.3), "-bufsize", "%dk" % (kbps * 2), "-pix_fmt", "yuv420p", "-r", "30", mp4], check=True)
 for p in parts:
