@@ -3,6 +3,7 @@
 // 带子两头收尖、边缘噪声抖；偶尔从带上甩出一颗火星往上飘。layer=back 只画身后半圈，layer=front 只画身前半圈（游戏里分别画在立绘下 / 上）。
 import { fit, clamp, TAU } from "../../core/index.js";
 import { noiseFor, hotFirst, ember, looped } from "./_lib.js";
+import { SCALE, ACC, tongueTip, bladeTip } from "./_suzuran_ul.js";   // 分档体量 + E2 淡紫灵光（组长 B 11-04）
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
@@ -15,7 +16,7 @@ export const meta = {
   loop: true,
   fps: 20,
   bg: "dark",
-  options: { palette: OP.suzuran, layer: "all", side: "both", seed: 6 },
+  options: { palette: OP.suzuran, layer: "all", elite: 2, side: "both", seed: 6 },
 };
 
 const D = meta.duration, NL = noiseFor(D);
@@ -25,9 +26,10 @@ export function draw(p, t, o) {
   const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, ph = t / D;
   const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
   const front = o.side !== "back", back = o.side !== "front";
-  const RX = 14, RY = 5;
+  const el = +o.elite, K = SCALE[el], RX = 14 * K, RY = 5 * K;   // 分档：E2 多一条火带（两带 → 三带）、带梢淡紫
   // 两条：[起始相位, 起点高, 升高, 跨角, 半宽]
-  const ribbons = [[0, 0, 26, 1.08 * TAU, 2.1], [0.5, -3, 24, 1.04 * TAU, 1.7]];   // 11-04 §0「不碎」：火带加厚成实心带，不像细线   // 每条绕身体完整一圈多（组长 B 11-04：原来太细、不成圈）
+  const ribbons = [[0, 0, 26 * K, 1.08 * TAU, 2.1 * K], [0.5, -3, 24 * K, 1.04 * TAU, 1.7 * K]];
+  if (el === 2) ribbons.push([0.25, -6, 22 * K, 0.96 * TAU, 1.5 * K]);   // 11-04 §0「不碎」：火带加厚成实心带，不像细线   // 每条绕身体完整一圈多（组长 B 11-04：原来太细、不成圈）
   if (core) {
     ribbons.forEach(([p0, y0, rise, span, w], i) => {
       const a0 = (ph + p0) * TAU;
@@ -41,8 +43,8 @@ export function draw(p, t, o) {
         for (let q = -half; q <= half; q += 0.5) {
           const e = Math.abs(q) / Math.max(0.5, half);
           // 亮芯拉长、整体提一档（组长 B 11-04：S2 精一实际镜头下火带几乎看不出）
-          const c = e > 0.7 ? H[isFront ? 4 : 6] : hot > 0.45 ? H[isFront ? 0 : 2] : hot > 0.2 ? H[isFront ? 2 : 4] : H[isFront ? 3 : 5];
-          p.px(x, y + q, c);
+          const c = e > 0.7 ? H[isFront ? 4 : 6] : hot > (el === 2 ? 0.92 : 0.45) ? H[isFront ? 0 : 2] : hot > 0.45 ? H[isFront ? 1 : 3] : hot > 0.2 ? H[isFront ? 2 : 4] : H[isFront ? 3 : 5];
+          p.px(x, y + q, el === 2 && s > 0.9 ? ACC[e > 0.6 ? 2 : 1] : c);
         }
       }
     });

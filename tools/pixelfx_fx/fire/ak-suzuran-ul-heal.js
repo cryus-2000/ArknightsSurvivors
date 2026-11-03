@@ -2,6 +2,7 @@
 // 不画环、不画十字：脚边两三缕很小的暖橙火苗往上舔一下就收，几颗余烬沿身侧慢慢往上飘、渐暗；一秒内合并播一次，画面要轻。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
 import { noiseFor, hotFirst, flameTongue, ember, floorLight, LAYERS } from "./_lib.js";
+import { SCALE, ACC, tongueTip, bladeTip } from "./_suzuran_ul.js";   // 分档体量 + E2 淡紫灵光（组长 B 11-04）
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定）
 
 export const meta = {
@@ -14,19 +15,22 @@ export const meta = {
   loop: false,
   fps: 15,
   bg: "dark",
-  options: { palette: OP.suzuran, layer: "all", seed: 6 },
+  options: { palette: OP.suzuran, layer: "all", elite: 2, seed: 6 },
 };
 
 const NL = noiseFor(0);
 
 export function draw(p, t, o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, u = clamp(t / meta.duration);
+  const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, u = clamp(t / meta.duration), el = +o.elite, K = SCALE[el];   // 分档：E2 中间多一条高火舌、舌梢淡紫
   const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
   if (core) {
-    for (const [x, h, d0, i] of [[-8, 7, 0, 0], [7, 9, 0.06, 1], [-1, 5, 0.12, 2]]) {
+    const T = [[-8, 7, 0, 0], [7, 9, 0.06, 1], [-1, 5, 0.12, 2]];
+    if (el === 2) T.push([1.5, 13, 0.03, 3]);
+    for (const [x, h, d0, i] of T) {
       const v = clamp((t - d0) / 0.5), g = ease.outCubic(clamp(v / 0.3)) * (1 - ease.inQuad(clamp((v - 0.35) / 0.65)));
-      if (g > 0.06) flameTongue(p, x, 0, h * g, 1.5 * (0.5 + 0.5 * g), 0, N, S * 5 + i, H, LAYERS, 0.3, 0.7);
+      if (g > 0.06) flameTongue(p, x * K, 0, h * K * g, 1.5 * K * (0.5 + 0.5 * g), 0, N, S * 5 + i, H, LAYERS, 0.3, 0.7);
+      if (g > 0.3 && el === 2) tongueTip(p, x * K, 0, h * K * g, 1.5 * K * (0.5 + 0.5 * g), 0, N, S * 5 + i, LAYERS, 0.3, 0.7);
     }
   }
   if (deco) {

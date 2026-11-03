@@ -4,6 +4,7 @@
 // k = 火舌放大倍数：S2 用 2.4（火舌约 2 倍身高，组长 B 审 11-04：原 1 倍实战里等于没放），S3 用 1。
 import { fit, clamp, ease, TAU } from "../../core/index.js";
 import { noiseFor, pnoise, hotFirst, flameBlade, flameTongue, ember, sparkAt, floorLight, LAYERS, BACK_LAYERS, BIG_LAYERS } from "./_lib.js";
+import { SCALE, ACC, tongueTip, bladeTip } from "./_suzuran_ul.js";   // 分档体量 + E2 淡紫灵光（组长 B 11-04）
 import { OP } from "../house.js";   // 暖橙 7 阶（用户 11-04 定，样板 843736ef8）
 
 export const meta = {
@@ -16,14 +17,14 @@ export const meta = {
   loop: false,
   fps: 24,
   bg: "dark",
-  options: { palette: OP.suzuran, layer: "all", n: 3, k: 1, seed: 4 },
+  options: { palette: OP.suzuran, layer: "all", elite: 2, n: 3, k: 1, seed: 4 },
 };
 
 const NL = noiseFor(0), TM = 0.38;   // TM：收齐、爆开的时刻
 
 export function draw(p, t, o) {
   const core = o.layer !== "deco", deco = o.layer !== "core";
-  const F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, n = Math.max(1, +o.n | 0), big = n > 3, K = Math.max(1, +o.k || 1), KW = 1 + (K - 1) * 0.55;
+  const el = +o.elite, F = fit(o.palette, 9), H = hotFirst(F), S = +o.seed, n = Math.max(1, +o.n | 0), big = n > 3, K = Math.max(1, +o.k || 1) * SCALE[el], KW = (1 + (Math.max(1, +o.k || 1) - 1) * 0.55) * SCALE[el];   // 分档：E2 爆开的火舌外侧多两条、舌梢淡紫
   const N = (rate, seed = 0, off = 0) => NL(t, rate, seed, off);
   const pos = (i, tt) => {   // 第 i 团在 tt 时的位置：半径收拢、角度越转越快（压扁成透视椭圆）
     const J = [0, 0.42, -0.31, 0.55, -0.18][i % 5], JR = [1, 0.82, 1.12, 0.9, 1.05][i % 5];   // 不等角、不等半径（等距放射会被图案检查拦，也显得机械）
@@ -54,9 +55,12 @@ export function draw(p, t, o) {
     }
     // 爆开后的一簇火舌：往上窜，长起来再塌
     const tongues = big ? [[-8, 18, 2.0, -5], [-2, 27, 2.6, 1], [5, 22, 2.3, 5], [11, 12, 1.7, 7]] : [[-5, 15, 1.9, -4], [1, 23, 2.4, 2], [7, 13, 1.7, 5]];
+    if (el === 2) tongues.push([big ? -14 : -11, 10, 1.6, -7], [big ? 16 : 12, 9, 1.5, 8]);
     tongues.forEach(([x, h, w, sx], i) => {
       const u = clamp((v - 0.015 * i) / (meta.duration - TM)), g = ease.outCubic(clamp(u / 0.28)) * (1 - ease.inQuad(clamp((u - 0.3) / 0.7)));
-      if (g > 0.05) flameTongue(p, x * KW, 3, h * K * g, w * KW * (0.55 + 0.45 * g), sx * K, N, S * 11 + i, H, u < 0.4 ? BIG_LAYERS : BACK_LAYERS, 0.5, 1.3);
+      const LY = u < 0.4 ? BIG_LAYERS : BACK_LAYERS;
+      if (g > 0.05) flameTongue(p, x * KW, 3, h * K * g, w * KW * (0.55 + 0.45 * g), sx * K, N, S * 11 + i, H, LY, 0.5, 1.3);
+      if (g > 0.3 && el === 2) tongueTip(p, x * KW, 3, h * K * g, w * KW * (0.55 + 0.45 * g), sx * K, N, S * 11 + i, LY, 0.5, 1.3, 0.72);
     });
   }
   if (deco) {
