@@ -1,0 +1,11 @@
+贴图索引 2264 个名字；已 --import
+放开版帧条已加载 86 张（索引里名字含 _ul_ 与 suzuran）
+late seed 13 560s：TRACE 561 / 561 行 逐行一致；BALANCE（去掉画面统计）一致
+ult seed 7 240s：TRACE 241 / 241 行 逐行一致；BALANCE（去掉画面统计）一致
+Traceback (most recent call last):
+  File "/work/repo/tools/px_trace_ab.py", line 119, in <module>
+    main()
+  File "/work/repo/tools/px_trace_ab.py", line 113, in main
+    json.dump(report, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: 'build/cloud/sz-pxab-3f7a16dba'
