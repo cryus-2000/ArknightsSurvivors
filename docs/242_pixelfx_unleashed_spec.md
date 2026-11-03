@@ -583,6 +583,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 python tools/px_trace_ab.py <干员> [--squad a,b] [--cases late,ult] [--jobs 4] [--out 结果.json]
 ```
 - 同一份代码，fx/px_unleashed 0 / 1 各跑两局：后期局 seed 13、560 秒；终结技局 seed 7、240 秒（`--maxprog --sptest`，第 20 秒充满终结技）。都带 `--nodeath`。
+- 开跑前自动核对贴图索引 `game/art/index.json`（不一致就重建）、确认导入缓存，并打印「放开版帧条已加载 N 张」；N = 0 直接 FAIL（帧条没进索引时开关 1 的画面分支根本走不到，「一致」是假的）。**各分支导出 / 接入新帧条后一定要跑 `python tools/asset_index.py` 并把 index.json 一起提交**（快检 asset_index 项会拦不一致）。
 - TRACE 行必须逐行相同；BALANCE 汇总行去掉纯画面统计（同屏峰值 `peak` / `peak_min`、性能计数 `prof` / `fx_peak` / `draw`）后也要相同。全过打印 `PX_TRACE_AB PASS`、退出码 0。
 - **放云端例行任务跑**（总组长 11-04：本机只留录像和单次快检）。例行任务的指令写：检出本人分支 → `bash tools/cloud/setup_linux.sh` → `python3 tools/px_trace_ab.py <干员> --out cloud-results/px_trace_ab_<干员>.json` → 把结果推回 `cloud-results/`。交付时报 PASS 行和结果文件。
 
