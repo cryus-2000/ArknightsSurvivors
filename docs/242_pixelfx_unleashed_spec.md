@@ -470,6 +470,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 干员 JSON 任何积木的 fx 列表里可以写 `{"px": "fx_<人>_ul_<名>", "at", "off", "fit" / "scale", "rot", "face_x", "skill", "variants", "cond", "every"}`：
 - 帧条名走 `vfx.px_ul_tex`（种子变体只给队长、队友 `_tm`、精英档、缺图回退都同 §11.1 第 5 条），先画装饰层（× px_deco_k）再画核心层。
 - `at` 只能是 center / self / leader / zone / hits；`skill` = 有命中时队长定格取注册表 `pause` 的技能档。
+- `ground: true` = 贴地画面（optical 不自动补火星 / 颗粒，例：安洁莉娜失重井）。
 - `rot`：`true` 或 `"vel"` = 随出手 / 飞行方向转（帧条正右对准方向）；`"face"` = 不转、朝左时水平翻（标记类）；缺省不转。
 - 旧画面条目写 `"cond": "!px_ul"` 关掉。形状被注册表接管时，`px` 条目照常播（`ob_core.px_keep`）。
 
