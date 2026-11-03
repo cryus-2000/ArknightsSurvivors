@@ -15,6 +15,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, TOOLS)
+for _s in (sys.stdout, sys.stderr):   # GBK 控制台打印中文 / ✗ 会 UnicodeEncodeError（拉普兰德 11-04）
+    if hasattr(_s, "reconfigure"):
+        _s.reconfigure(encoding="utf-8", errors="replace")
 import trace_base as TB
 import asset_index as AI
 import godot_runner as GR

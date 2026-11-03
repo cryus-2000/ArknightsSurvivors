@@ -10,6 +10,9 @@ import json, os, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REG = os.path.join(ROOT, "game", "data", "px_ul.json")
 CH = os.path.join(ROOT, "game", "data", "characters")
+for _s in (sys.stdout, sys.stderr):   # GBK 控制台打印中文 / ✗ 会 UnicodeEncodeError（拉普兰德 11-04）
+    if hasattr(_s, "reconfigure"):
+        _s.reconfigure(encoding="utf-8", errors="replace")
 
 
 def shapes(node, out, path=()):
