@@ -127,7 +127,9 @@
 |---|---|
 | 源码 | `tools/pixelfx_fx/<类>/ak-<人>-ul-<招式>.js`（类：melee / water / impacts / projectiles …）。一个招式一个文件，用选项出变体（span、heavy、quick、seed） |
 | 导出目标 | `tools/pixelfx_fx/targets_<人>_ul.json`，每人一份。格式同 `targets_unleashed.json`：`{"fx": id, "opts": {...}, "colors": 256, "hires": false, "keep": false}`。用 `python tools/pixelfx_export.py --only <名>` 导出 |
-| 帧条命名 | `game/art/fx/fx_<人>_ul_<招式>[2][_tm].png`：`2` = 第二个种子变体，`_tm` = 队友版。1x 帧条不带 @2x；原点不在中心的（枪口、水柱）用 `keep: true` 保留原画布，并在代码里给原点 |
+| 帧条命名 | `game/art/fx/fx_<人>_ul_<招式>[2][_tm].png`：`2` = 第二个种子变体，`_tm` = 队友版。1x 帧条不带 @2x。导出脚本缺省逐帧紧裁、横向打包（一行 ≤ 4096 px），游戏按 `game/data/px_frames.json` 取帧、按 pixelfx 原点放，代码里不用给原点；只有代码自带锚点的（能天使弹体 / 枪口）用 `keep: true` 保留原画布、等宽帧 |
+| 帧表 `px_frames.json` | 导出脚本自动写，每张打包帧条一行 `[x, y, 宽, 高, 原点 x, 原点 y]`，不手改。合并冲突时以重新导出的结果为准：取任一边，再对冲突涉及的人重跑一次 `pixelfx_export.py --only …` 覆盖 |
+| 接入 | 在 `game/data/px_ul.json` 按干员 id 登记接管的判定段和画法（格式见文件里的 `_doc`，照斯卡蒂那条填）；取名一律走 `vfx.px_ul_tex(base, variant, teammate, layer, elite)` |
 | _glow 层 | 两种做法任选其一，同一人内统一：<br>~~① 烤进单张：光晕直接进 color 帧条~~ **已作废（11-03，见 §8）**：光晕归装饰层，不再烤进核心帧条。<br>~~② 分层：~~ **已作废（11-03 定稿，§11.1 第 2 条）**：光晕只进 `_deco`，用反预乘后的直通 alpha，不做 `_glow`。原写法：组长分支 `claude/fx-lead-prep` 的 `tools/pixelfx_fx/ak_layers.mjs` + 分层版 `pixelfx_export.py` 出 `<名>.png`（color）和 `<名>_glow.png`（light，黑底），游戏里 `vfx.px_glow` 按同名 _glow 条用加色叠画。两张都要登记。该分支合入 main 之前，只有 ① 能直接接入 |
 | 登记 | `game/scripts/art.gd` 的 `V6_FRAMES` 加 `"<名>": [帧数, fps]`（导出脚本会打印）；跑 `python tools/asset_index.py` 更新 `game/art/index.json`；`godot --headless --path game --import` 生成 .import 后，把 `process/fix_alpha_border` 改成 false |
 | 开关 | balance.json 只有一个 `fx/px_unleashed`，不要按人另开 |
@@ -297,7 +299,7 @@
 
    - 网页低档只出 E2 一档，E0 / E1 在网页上回退到 E2。
    - 普攻不出 `deco_lo`。
-   - 低档帧数 ≤ 12，画布 ≤ 192 px。
+   - ~~低档帧数 ≤ 12，画布 ≤ 192 px~~（协调人 11-03：这两条原本是为控显存，改以导出脚本的显存检查为准）。
    - 只加载本局编队里干员的帧条，局终释放。
    - 帧画布按非空包围盒裁到最小（非对称裁，原点偏移写进代码）。
    - 腾网页空间：配乐继续压，目标约 3 MB，另派会话做；音频压缩 claude/magical-noyce-a16fe5 先合。
