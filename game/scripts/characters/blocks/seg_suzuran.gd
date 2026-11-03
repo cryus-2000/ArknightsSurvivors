@@ -397,7 +397,7 @@ static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 			f.life = 0.0
 			continue
 		f.trail -= dt
-		if f.trail <= 0.0:
+		if f.trail <= 0.0 and not _h4_px(o):   # 放开版：大狐火帧条自带身后火团，不再每 0.03 秒甩一团程序火（总组长 11-04：弹道上一串等距小火球）
 			f.trail = 0.03
 			o.fx({"kind": "flame", "pos": f.pos - f.vel.normalized() * 10.0 + Vector2(g.vrng.randf_range(-4, 4), g.vrng.randf_range(-4, 4)), "vel": -f.vel * 0.12 + Vector2(0, -20), "life": 0.3, "col": H4_FOX, "sz": 11.0})
 		_h4_bigfox_path(o, sz, a, f)   # 精英化第 4 批（狐火拖尾）的挂点
@@ -410,8 +410,9 @@ static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 			o.deal_damage(e, f.dmg * (o.vs_elite() if e.elite or e.boss else 1.0))
 			if not e.dead:
 				o.add_cc(e, -INF, 1.0, "stop")
-			if _h4_px(o):   # 放开版：贯穿命中 = 狐火命中 E2 帧条（火舌朝上，只按飞行方向左右翻；不画扩散环和外甩火星，§14.7）
-				_h4_px_once(o, "fx_suzuran_ul_hit", e.pos + Vector2(0, -float(e.r) * 0.5), 0.0, f.vel.x < 0.0)
+			if _h4_px(o):   # 放开版：贯穿命中 = 狐火命中 E2 帧条（只按飞行方向左右翻；不画扩散环和外甩火星，§14.7）
+				if f.hit.size() == 1:   # 总组长 11-04：鱼群一密每个受击目标各一份就堆成一大片 → 只给这团大狐火打中的第一个目标播三团大火，后面贯穿的不播
+					_h4_px_once(o, "fx_suzuran_ul_hit", e.pos + Vector2(0, -float(e.r) * 0.5), 0.0, f.vel.x < 0.0)
 			else:
 				o.fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": H4_FOX, "w": 2.5})
 				_h3_vsparks(o, e.pos, H4_FOX, 4, 180.0, 0.3, 2.5)
@@ -431,11 +432,12 @@ static func _h4_bigfox_path(o, sz: Dictionary, a: Dictionary, f: Dictionary) -> 
 		f["tg"] = {"pts": [], "tick": float(tr.get("every", 0.3)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * float(tr.get("mult", 0.15)) * o._dmg_bonus(), "b": tr, "fhit": f.hit}
 		f["tl"] = f.pos
 		sz.trails.append(f.tg)
-		f.tg.pts.append({"pos": f.pos, "t": float(tr.get("life", 1.0))})
+		f.tg.pts.append({"pos": f.pos, "t": float(tr.get("life", 1.0)), "n": 0})
 		return
 	if f.pos.distance_to(f.tl) >= float(tr.get("step", 22.0)) and f.tg.pts.size() < 48:
 		f.tl = f.pos
-		f.tg.pts.append({"pos": f.pos, "t": float(tr.get("life", 1.0))})
+		f.tg["cnt"] = int(f.tg.get("cnt", 0)) + 1
+		f.tg.pts.append({"pos": f.pos, "t": float(tr.get("life", 1.0)), "n": f.tg.cnt})   # n 只给放开版挑画哪几处
 
 
 static func _h4_fox_hit(o, a: Dictionary, e: Dictionary) -> void:
@@ -661,6 +663,8 @@ static func _h4_px_trails(o, sz: Dictionary) -> void:
 	for tg in sz.trails:
 		var i := 0
 		for q in tg.pts:
+			if int(q.get("n", 0)) % 5 != 2:   # 总组长 11-04：路火只隔 5 处画一处（一条弹道 2–3 处；判定仍是每个点）
+				continue
 			var u: float = clampf(1.0 - float(q.t) / life, 0.0, 0.999)
 			var vv: int = 2 if i % 2 == 1 else 1
 			var sc: float = g.PX * (0.85 + 0.3 * fposmod(float(i) * 0.618, 1.0))
