@@ -1039,8 +1039,8 @@ static func _step16(u, a: Dictionary) -> bool:
 				u.g.lamp = minf(float(u.g.lamp_cap), float(u.g.lamp) + Bal.v("ult/link_lumen_lamp", 10.0))
 				u.g.nerve = 0.0
 				if _lu_ul(u):   # pixelfx 放开版（流明会话）：队长头顶落一道水柱 + 区域里 1.2 秒斜细雨（钢蓝，不画等距光点圈）
-					_lu_ul_strip(u, u.g.vfx.px_ul_tex("fx_lumen_ul_downpour", 1, false, "core", 2), lp4, {"sc": 1.0})
-					_lu_ul_strip(u, u.g.vfx.px_ul_tex("fx_lumen_ul_rain", 1, false, "core", 2), c, {"sc": r / 140.0, "loop": true, "life": 1.2})
+					u.px_strip("fx_lumen_ul_downpour", lp4, {"sc": 1.0})
+					u.px_strip("fx_lumen_ul_rain", c, {"sc": r / 140.0, "loop": true, "life": 1.2})
 				else:
 					u.light(lp4, 160.0, cl, 0.6)
 					u.grain("mote_up", lp4, Vector2.UP, cl, 10)
@@ -1087,13 +1087,3 @@ static func _step16(u, a: Dictionary) -> bool:
 static func _lu_ul(u) -> bool:
 	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_lumen_ul_rain")
 
-
-## 先装饰（× px_deco_k）后核心；core = 已取好的核心名
-static func _lu_ul_strip(u, core: String, c: Vector2, opt: Dictionary) -> void:
-	var d: String = core.trim_suffix("_lo") + "_deco" + ("_lo" if core.ends_with("_lo") else "")
-	var dk: float = u.g.vfx.px_deco_k()
-	if u.fx_ready(d) and dk > 0.0:
-		var od := opt.duplicate()
-		od["col"] = Color(1, 1, 1, dk)
-		u.strip(d, c, od)
-	u.strip(core, c, opt)

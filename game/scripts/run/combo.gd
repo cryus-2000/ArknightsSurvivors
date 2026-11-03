@@ -926,12 +926,8 @@ static func _impact(u, a: Dictionary) -> void:
 				if not e.dead:
 					e["lit"] = maxf(float(e.get("lit", 0.0)), 3.0)
 			if Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_lumen_ul_pulse"):   # pixelfx 放开版（流明会话）：判定半径 150 上几段弧原地闪 + 队长头顶落一道水柱；不画实心光盘
-				for nm in [u.g.vfx.px_ul_tex("fx_lumen_ul_pulse", 1, false, "deco", 2), u.g.vfx.px_ul_tex("fx_lumen_ul_pulse", 1, false, "core", 2)]:
-					if nm != "":
-						u.strip(nm, tp, {"sc": 150.0 / 120.0})
-				for nm in [u.g.vfx.px_ul_tex("fx_lumen_ul_downpour", 1, false, "deco", 2), u.g.vfx.px_ul_tex("fx_lumen_ul_downpour", 1, false, "core", 2)]:
-					if nm != "":
-						u.strip(nm, g.ppos, {"sc": 1.0})
+				u.px_strip("fx_lumen_ul_pulse", tp, {"sc": 150.0 / 120.0})
+				u.px_strip("fx_lumen_ul_downpour", g.ppos, {"sc": 1.0})
 			else:
 				u.shape({"kind": "circle", "c": tp, "r": 150.0, "col": c.lerp(Color.WHITE, 0.5), "fill": 0.2, "life": 0.4})
 			support = true

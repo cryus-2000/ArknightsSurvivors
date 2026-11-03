@@ -2257,7 +2257,7 @@ static func _lu_start(u, o) -> Dictionary:
 	var v2: bool = (not v3) and FC.lu_v2(u)   # 光柱 v2（ult-fx-c2 pixgen 光面）只在 v3 暖光关掉时用：流明以 ult-fx-power v3 为准（用户 10-31 确认的 13 人之一）
 	var px: bool = _lu_ul(u)
 	if px:   # pixelfx 放开版（流明会话，docs/242）：脚下冲起细光 → 灯塔点亮四芒灯光 → 光柱亮 2 秒 → 收（fx_lumen_ul_ult_beacon，时序对齐 lu_rise / lu_dur）
-		_lu_ul_strip(u, "fx_lumen_ul_ult_beacon", c, {"sc": 1.0})
+		u.px_strip("fx_lumen_ul_ult_beacon", c, {"sc": 1.0})
 	elif not v2:
 		# 光柱：外层干员色、内芯白；脚下灯塔点亮（fx_beacon_ignite）
 		u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -H), "w": 86.0, "col": col, "fill": 0.45, "life": dur + 0.3})
@@ -2288,17 +2288,6 @@ static func _lu_ul(u) -> bool:
 	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_lumen_ul_ult_beacon")
 
 
-## 先装饰（× px_deco_k）后核心；名字走 vfx.px_ul_tex（网页取低档）
-static func _lu_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
-	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco", 2)
-	var dk: float = u.g.vfx.px_deco_k()
-	if d != "" and dk > 0.0:
-		var od := opt.duplicate()
-		od["col"] = Color(1, 1, 1, dk * float(opt.get("col", Color.WHITE).a))
-		u.strip(d, c, od)
-	u.strip(u.g.vfx.px_ul_tex(base, 1, false, "core", 2), c, opt)
-
-
 static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	var t: float = a.t
 	var c: Vector2 = a.c
@@ -2316,12 +2305,12 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		o.play_vis_anim("attack")
 		o.screen_shake(0.6)
 		if a.has("px"):   # 放开版：光圈原地亮起（判定半径上 6 段弧，不外扩、不铺实心光盘），圈里错开铺几块斜细雨；光柱接上稳住段循环，最后 0.3 s 淡出
-			_lu_ul_strip(u, "fx_lumen_ul_ult_hold", c, {"sc": 1.0, "loop": true, "delay": 0.28, "life": float(a.dur) + 0.3, "fade": 0.35})
-			_lu_ul_strip(u, "fx_lumen_ul_ult_zone", c, {"sc": R / 502.0, "loop": true, "life": float(a.dur) + 0.3})
+			u.px_strip("fx_lumen_ul_ult_hold", c, {"sc": 1.0, "loop": true, "delay": 0.28, "life": float(a.dur) + 0.3, "fade": 0.35})
+			u.px_strip("fx_lumen_ul_ult_zone", c, {"sc": R / 502.0, "loop": true, "life": float(a.dur) + 0.3})
 			for q in 6:
 				var vs: float = PF.h(float(q) * 0.37 + c.x * 0.013)
 				var pq: Vector2 = c + Vector2.from_angle(vs * TAU + q * 1.1) * Vector2(1.0, 0.5) * R * (0.25 + 0.55 * PF.h(vs * 7.0))
-				_lu_ul_strip(u, "fx_lumen_ul_rain", pq, {"sc": 1.0, "loop": true, "life": float(a.dur) + 0.2})
+				u.px_strip("fx_lumen_ul_rain", pq, {"sc": 1.0, "loop": true, "life": float(a.dur) + 0.2})
 		elif a.has("v2"):
 			FC.lu_boom(u, a, c, R)
 		else:
@@ -2362,7 +2351,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		for s in 2:
 			var ba: float = float(a.rot) + PI * s
 			if a.has("px"):   # 放开版：钢蓝细长光扇（帧条长 = 光圈半径），每帧按当前角度画一张
-				_lu_ul_strip(u, "fx_lumen_ul_ult_sweep", c, {"sc": R / 502.0, "ang": ba, "life": 0.05, "col": Color(1, 1, 1, (0.9 if a.watch else 0.6) * fade + 0.1)})
+				u.px_strip("fx_lumen_ul_ult_sweep", c, {"sc": R / 502.0, "ang": ba, "life": 0.05, "col": Color(1, 1, 1, (0.9 if a.watch else 0.6) * fade + 0.1)})
 			elif not (a.has("v2") and u.fx_ready(FC.LU_SHAFT)):   # 光束贴图缺时仍画扇形
 				u.shape({"kind": "sector", "c": c, "r": R, "a": ba, "half": 0.07, "col": lc, "fill": (0.45 if a.watch else 0.22) * fade + 0.05, "life": 0.05})
 			if a.watch:
