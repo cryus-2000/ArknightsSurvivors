@@ -460,12 +460,16 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 注册表加 `"link": {"dash": {…}, "hit": {…}}`，挂在**出手的搭档**（连携里位移、出手的那个人）名下；某条连携要单独换，写 `"link": {"<synergy.json 里的连携 id>": {"dash": …, "hit": …}}`。
 - `dash`：冲出那一下，替换冲刺拖线和旧的 `strip`。`hit`：落点一击，替换刀光、落点环和火花。
 - 条目 `{base, at, y, sc, fit, rot}`：`at` = `"to"`（缺省，画在落点 / 目标）/ `"from"`（起点 / 搭档站位）/ `"mid"`；缩放 = PX × sc，写了 `fit` 时再 × 距离（或判定半径）÷ fit；`rot` 缺省 true，随方向转。
+- `hit` 也可以写 `{"shape": "<自己已登记的形状 src>"}`：落点一击复用自己的放开版刀光（px_ul_shape）；synergy.json 这一条 dir 上的 `px_src`（拉普兰德写法）等价。
+- `cross` `{base, fit, …}`：`cross: true` 的连携里**施放者**那道交叉刀光，写在施放者的 `link` 里；施放者有注册表但没写 `cross` 时不画（旧暖金刀光和结晶撞色）。
+- `col` `[r, g, b]`（或 synergy.json 的 `px_col`）：放开版下冲刺拖光 / 落点画面的颜色。
 - 现在覆盖 `dash_strike` 和 `dash_cast`（集群狩猎、控场 → 收割同一套）；`volley` / `hook` 要用时再报。
 
 ### 14.2 fx 条目 `px`（`ob_fx.px_fx_spawn`）
 干员 JSON 任何积木的 fx 列表里可以写 `{"px": "fx_<人>_ul_<名>", "at", "off", "fit" / "scale", "rot", "face_x", "skill", "variants", "cond", "every"}`：
 - 帧条名走 `vfx.px_ul_tex`（种子变体只给队长、队友 `_tm`、精英档、缺图回退都同 §11.1 第 5 条），先画装饰层（× px_deco_k）再画核心层。
 - `at` 只能是 center / self / leader / zone / hits；`skill` = 有命中时队长定格取注册表 `pause` 的技能档。
+- `rot`：`true` 或 `"vel"` = 随出手 / 飞行方向转（帧条正右对准方向）；`"face"` = 不转、朝左时水平翻（标记类）；缺省不转。
 - 旧画面条目写 `"cond": "!px_ul"` 关掉。形状被注册表接管时，`px` 条目照常播（`ob_core.px_keep`）。
 
 ### 14.3 缺省地面环跟开关（`ob_core.ring_on`）
@@ -485,6 +489,7 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 - **公共代码：** balance `fx/px_halo`，缺省 0。放开版打开时，下面这些都不画：形状缺省地面环、技能开启脚下扩散环、升级光环、连携落点环、精英化段缺省环、注册表的起手 `cast` / 增益 `ally` / 治疗 `heal` 挂点。设成 1 恢复。放开版关掉时不受影响（同 main）。
 - **各干员自己的帧条和 seg 代码：** 往外扩散的环、光圈、光晕圈（含脚下增益环、命中扩散圈）一律去掉，不靠开关；往外甩的水珠 / 火星 / 碎屑也去掉（斯卡蒂源码加了 `spray` 选项，缺省 0）。招式本体的主形（例：斯卡蒂 S3 浪墙）不算光环，保留。
 - 这一条优先于 §12.1 里「起手信号」的例子：起手要靠身形、蓄势、地面预兆表达，不用扩散环。
+- **逐条豁免 `halo_ok`（组长 11-04）：** 注册表的 `cast` / `cast.ally` / `heal` 条目写 `"halo_ok": true` 时，`fx/px_halo = 0` 也照常播（例：浊心缠身的螺旋光带）。作者保证它不外扩，组长审片把关。`px_halo` 只继续拦公共缺省环和没标豁免的条目。
 
 ### 14.8 刀波 `waves`（原型拉普兰德，11-04 收进样板）
 注册表 `"waves": {"<src>": {…}}`，三种写法可以组合，三项都没有（或缺图）时不接管：
@@ -494,3 +499,77 @@ python tools/ref_fx/rebuild_prefab.py exusiai <弹体 prefab> --path 2.5,0.5   #
 
 ### 14.9 技能期间身上常驻 `aura`
 注册表 `"aura": {"<技能序号>": {base, y, sc, back}}`：技能开着时在本人身上循环播（先装饰后核心，队友取 `_tm`）；`back: true` 画在本体后面。注意 §14.7：不能是往外扩散的光环。
+
+### 14.10 弹体命中跳过通用画面 `px_hit`
+`weapons.bullet_hit`：弹体字典带 `"px_hit": true`、带 `"op": <干员 id>`，且这名干员在注册表里有条目（开关打开）时，跳过通用命中画面（法术团爆炸 / 爆炸贴图 / 火花、法术弹 `fx_arcane_hit` / 环 / 火花、普通弹 `fx_bullet_hit` / 火花），命中画面由本人的放开版帧条画。伤害、控制、音效照旧。铃兰先用。
+命中帧条写注册表 `"bullet": {"hit": {base, y, sc}}`（命中处先装饰后核心）；弹体本身用 `remap` 换（例 `"proj_arcane": "fx_suzuran_ul_fox"`，§14.14）。
+
+### 14.11 召唤物接管（格式照凯尔希 11-04 提案）
+注册表 `"summons": {"<召唤物 kind>": {…}}`（kind 同干员 JSON 里召唤物的 kind，例 `mon3tr`）：
+- 条目本身 = 攻击：`{base, variants, draw: {fit, k, y, along}, skill: {"<技能序号>": {base, variants}}, rot, mirror}`。召唤物每次攻击画一张（帧条原点 = 判定原点、正右 = 出爪方向，`rot` 缺省 true 随方向转；第二爪偏 0.18 弧度交叉）；技能开着时换 `skill` 里那条；缩放 = 攻击半径 × k ÷ fit。画了以后攻击的 fx 只再播 §14.5 那几类。召唤物不定格。
+- `aura` `{"<技能序号>": {base, y, sc, back}}`：技能开着时在召唤物身上循环播，`back` 画在本体后。注意 §14.7。
+- `lunge` / `leap`（字段同攻击，leap 另有 `r`）：精英化段扑击落地 / 跃回落地画一张，替换缺省环和跃回拖线。
+- 侧挂（召唤物 fx 的 `side` 条目）写 `"px": "<放开版基名>"`，或在 `remap` 里登记它的 `strip` 名（§14.14）。帧条要 keep 等宽导出。
+- 清创爆开（凯尔希）：注册表 `"debride": {base, sc}`，敌人脚下按 清创半径 ÷ 35 缩放，替换旧环 / 光 / 火星。
+
+### 14.12 同一个 src 的区分键 `px_key`
+注册表 `shapes` 按形状块的 `src` 查；同一个 src 有几段要换不同帧条时，在干员 JSON 的形状块上写 `"px_key": "<自定键>"`，注册表 `shapes` 用这个键。只影响画面查表，判定、伤害记账仍用 `src`。
+
+### 14.13 钩索头和锁链 `hook`（歌蕾蒂娅 / 乌尔比安共用 seg_ulpianus.hw_draw_hooks）
+注册表 `"hook": {"head": base, "chain": base}`：`head` 换掉 b.head（3 帧 keep：飞行 / 绷紧 / 拖回），`chain` 换掉 b.chain（沿用平铺画法）。名字走 px_ul_tex，缺图照旧。
+
+### 14.14 通用按名替换 `remap`（协调人 11-04：各干员只填 json）
+注册表 `"remap": {"<旧帧条 / 贴图名>": "<放开版基名>", …}`。这名干员在下面这些地方画旧名时，一律换成放开版（px_ul_tex 取名：队友 `_tm`、精英档、缺图回退；放开版缺图时照旧）：
+- `spawn_fx_sprite`（各 seg 里直接播的帧条：格挡闪、增益闪、命中闪……）
+- 干员 JSON 的 fx 条目 `strip`（含常驻 hold、贴身 behind / front、绕身 orbit）
+- 召唤物侧挂 `side.strip`
+- 弹体贴图：`PROJ_TEX`（arrow / fire / arcane）和能天使 `tex`（层数弹体 t1 / t2 / t3 各登记一条）
+- 连携 synergy.json 的 `strip`
+
+只换**核心层**；要装饰层，用 ob_fx `px` 条目（§14.2）配旧条目 `"cond": "!px_ul"`。程序画的东西（ring / mote / line / 敌人身上的程序印记）没有名字可换：本人 seg 里用 `"cond": "!px_ul"` 关掉旧的，再加 `px` 条目；写在本人 seg 代码里的程序画法由本人会话改（调 `g.vfx.px_ul_tex` / `o.spawn_fx_sprite`）。
+
+### 14.15 终结技公共帧条 `u.px_strip(base, c, opt)`（§11.1 #10）
+`ult.gd`：开关打开且帧条在才播；先装饰层（× px_deco_k）后核心。`opt` 可写 `variant` / `teammate` / `elite` / `resolved`（true = base 已是取好的核心名），其余字段（ang / sc / life / col …）照 `u.strip`。返回 true = 播了。`ult_moves._ex_ul_strip`、`ult_moves_c._sa_ul_strip`、`ult_moves_b._sd_ul_strip2` 已改成调它；各人本人段直接用 `u.px_strip`。
+
+### 14.16 A 组各项 json 对照（组长 11-04 总单）
+| 干员 · 项 | 写在哪 | 怎么写 |
+|---|---|---|
+| 星熊 1 精一架势盾光 | 注册表 `remap` | `"remap": {"fx_hoshiguma_guard_glow": "fx_hoshiguma_ul_guard"}`（条件不变：仍由原条目的 elite / 架势条件控制）；要两层就在原条目旁加 `px` 条目、原条目写 `"cond": "!px_ul && …"` |
+| 星熊 2 天赋格挡闪 | `remap` | `"fx_hoshiguma_block": "fx_hoshiguma_ul_block"`（格挡事件原来播什么就换什么，不需要新事件类） |
+| 星熊 3 般若回旋盾锯 | `remap` | 弹体名登记 `"proj_hoshiguma_sawshield": "…"`；拖尾 / 旋光若是程序画，本人 seg 里换 |
+| 星熊 4–6 阻挡印 / 般若压地环 / 热砂火星 | 本人 seg / JSON | 程序画法：旧条目 `"cond": "!px_ul"`，加 `{"px": "fx_hoshiguma_ul_…", "at": "hits"/"self"}`；压地环不能外扩（§14.7） |
+| 星熊 7 终结技 / 连携掩护 | 本人段 | `u.px_strip`（§14.15）；连携 `link`（§14.1） |
+| 能天使 8 blessed_flash / pierce_gold | `remap` | 两个旧名各登记一条 |
+| 能天使 9 层数弹体 | `remap` | `"proj_exusiai_bullet_t1": "…_t1"`、`_t2`、`_t3` 各一条 |
+| 塞雷娅 10 针剂弹体 / 回流光点 | `remap` / 本人 seg | 弹体旧名登记；光点是程序 mote：旧条目 `!px_ul` + `px` 条目 |
+| 拉普兰德 11 封印灰叉 / 观察叠层 | 本人 JSON | 若是 fx 条目的 strip：`remap`；若是程序画（seal_look cross / verb.mark 圈）：旧条目 `!px_ul` + `px` 条目（`at: "hits"`）。盖不住的位置报组长 |
+| 德克萨斯 12 连携 dash_strike | 注册表 `link` | `"link": {"dash": {base, at: "mid"}, "hit": {base, fit}}`；或 `"hit": {"shape": "<已登记的形状 src>"}` 复用自己的刀光；拉普兰德写在 synergy.json 的 `px_src` / `px_col` 仍认 |
+| 凯尔希 召唤物 / 清创 / 区分键 | `summons` / `debride` / 形状块 `px_key` | 见 §14.11、§14.12 |
+| 歌蕾蒂娅 / 乌尔比安 钩索 | `hook` | 见 §14.13 |
+| 铃兰 弹体命中 | 弹体字典 | `"px_hit": true`（§14.10） |
+| 浊心 等 增益 / 治疗标识 | `cast` / `ally` / `heal` | 不外扩的加 `"halo_ok": true`（§14.7） |
+
+### 14.17 往返弹体 `px`（星熊般若回旋，ob_elite.el_draw_over）
+干员 JSON 的 `shape.boomerang` 块写 `"px": "<放开版基名>"`：放开版打开时取 core / deco 两层，先画 deco（× px_deco_k）；缺图回退 `tex`。`tex` 本身也走 `remap`。
+
+### 14.18 敌人身上的常驻状态附件 `status`（§11.2 #6）
+注册表 `"status": {"<状态>": {base, stack: [b1, b2, …], at, y, sc, key, time}}`：
+- 状态：`seal`（本人施加的封印，接管后旧灰叉不画）、`mark`（本人 verb.mark 层数，`stack` 按层数取帧条，接管后旧层数圈不画）、`slow`、`stun`；其他状态写 `key`（敌人字典里的字段名，> 0 算有；`time: true` 时 > 当前时刻算有）。
+- `at`：`head`（缺省，头顶上方）/ `foot` / `side`；尺寸 = e.r ÷ 12 夹在 0.8–2.0 再 × `sc`；同屏最多 30 个（离队长近的优先）；全部算装饰层（透明度 × px_deco_k）。帧条循环播放。
+
+### 14.19 技力光点 `sp_mote`（推进之王 seg_siege h4_spmote）
+注册表 `"sp_mote": "<放开版基名>"`：飞向队友的技力光点换成循环帧条，细尾照画。维什戴尔自己的那份在 seg_wisadel 本人段，照这个写法改。
+
+### 14.20 组长 B 各项 json 对照（11-04 汇总）
+| # | 干员 · 项 | 怎么写 |
+|---|---|---|
+| 1 | 歌蕾蒂娅 / 乌尔比安 钩索 | `"hook": {"head", "chain"}`（§14.13） |
+| 2 | 浊心 增益 / 治疗 | `cast` / `ally` / `heal` 加 `"halo_ok": true`（§14.7） |
+| 3 | 铃兰 普攻弹体 / 命中 | 弹体字典 `"px_hit": true`；`"bullet": {"hit": {…}}`；弹体 `remap`（§14.10） |
+| 4 | 铃兰 减速标识 | `"status": {"slow": {base, at: "foot"}}`（§14.18） |
+| 5 | 维什戴尔 combo 追击 | combo.gd 的维什戴尔段是本人段：本人用 `u.px_strip` / `g.vfx.px_ul_tex` 改；用到公共函数缺口再报 |
+| 6 | 维什戴尔 link_fx_b / skill_link 多段 | 同上，本人段自己接；单段用 `link.hit` |
+| 7 | 浊心 成长回声（全员成长节点） | 成长节点挂的 fx 条目：带 `cond: "node:<id>"` 的 `px` 条目（§14.2，接管后照常播）；同 src 要换不同帧条用 `px_key`（§14.12）；旧帧条名用 `remap` |
+| 8 | 推进之王 万兽之王拖尘 | `"status": {"<名>": {base, at: "foot", key: "<被推开的敌人字段>", time: true}}`；号令波 rays 在 seg_siege 本人段，本人加 `!px_ul` |
+| 9 | 推进之王 技力光点 | `"sp_mote": base`（§14.19） |
+| 10 | 召唤物 / 精英化段 / 标识 | `summons`、`lunge` / `leap`、`remap`（§14.11、§14.14） |

@@ -252,7 +252,7 @@ static func fx_body(ci, o, e: Dictionary, front: bool) -> void:
 	for f in entries:
 		if not (f is Dictionary) or str(f.get("layer", "")) != ("front" if front else "behind") or not fx_on(o, f):
 			continue
-		var name: String = str(f.get("strip", ""))
+		var name: String = g.vfx.px_remap(o, str(f.get("strip", "")))   # 放开版按名替换（docs/242 §14.14）
 		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
 			continue
 		var spec: Array = g.V6_FRAMES[name]
@@ -283,7 +283,7 @@ static func fx_orbit(ci, o, b: Dictionary, pts: Array, dim: float) -> bool:
 	for f in b.get("fx", _EA):
 		if not (f is Dictionary) or str(f.get("at", "")) != "orbit" or not fx_on(o, f):
 			continue
-		var name: String = str(f.get("strip", ""))
+		var name: String = g.vfx.px_remap(o, str(f.get("strip", "")))   # 放开版按名替换（docs/242 §14.14）
 		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
 			continue
 		var spec: Array = g.V6_FRAMES[name]

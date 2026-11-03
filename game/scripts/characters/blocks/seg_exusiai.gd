@@ -307,6 +307,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			var off: float = sp * float((rep + 1) / 2) * (1.0 if rep % 2 == 1 else -1.0)
 			var to: Vector2 = e.pos + Vector2(0, EXU_AIM_Y) - mz
 			dir = (to.normalized() if to.length() > 1.0 else d0).rotated(off)
+		btex = o.g.vfx.px_remap(o, btex)   # 放开版按名替换（docs/242 §14.14：层数弹体 t1 / t2 / t3 各自登记）
 		var dmg: float = o.base(str(q.get("atk_key", "atk")), 0.0) * float(q.get("mult", 1.0)) * float(o.loc.dmg) * o._dmg_bonus()
 		if q.get("power", false):
 			dmg *= o.skill_power()

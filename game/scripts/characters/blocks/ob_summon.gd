@@ -497,6 +497,10 @@ static func sm_debride(o, hits: Array) -> void:
 		var dmg: float = sm_dmg(o, {"atk_key": "m_atk", "mult": o.base("clear_mult", 0.4), "power": true})
 		o.area_hit("Mon3tr · 清创", e.pos, r, dmg, 0.0, 0.0, ["summon"])
 		var c2: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.4)
+		var pxd = o.g.vfx.px_ul_reg(str(o.id)).get("debride")   # pixelfx 放开版清创爆开（docs/242 §14.11，注册表 debride {base, sc}，敌人脚下按 r ÷ 35 缩放）：画了就跳过旧环 / 光 / 火星
+		if pxd is Dictionary and g.tex.get(g.vfx.px_ul_tex(str(pxd.get("base", "")), 1, not o.is_leader, "core", g.vfx.px_ul_el(o))) != null:
+			g.vfx._px_ul_at(str(pxd.base), e.pos, r / 35.0 * float(pxd.get("sc", 1.0)), not o.is_leader, g.vfx.px_ul_el(o), g.vfx.px_deco_k(o))
+			continue
 		o.fx({"kind": "ring", "pos": e.pos, "r": r, "r0": 10.0, "life": 0.3, "col": Color(1.6, 0.15, 0.12), "floor": true, "keep": true, "w": 3.0})
 		o.fx({"kind": "glow", "pos": c2, "r": r * 0.6, "life": 0.22, "col": Color(2.0, 0.3, 0.15), "alpha": 0.6})
 		for k in 8:
@@ -740,14 +744,14 @@ static func _mark_draw(o) -> void:
 
 
 ## 技能上层（data_operator._draw_skill_over）：本干员施加的封印标记（头顶旋转的锁环 + 脚下紫环）、主控护盾（泡壳 + 头顶护盾条）
-static func sm_draw_over(o) -> void:
+static func sm_draw_over(o, px_cov: Dictionary = {}) -> void:   # px_cov：放开版状态附件已接管的状态（seg_skadi.px_ul_status_draw），这里不画旧的
 	if o.sm.is_empty():
 		return
 	var g = o.g
 	var cv = o.cv
-	if o.sm.has("mark_b"):
+	if o.sm.has("mark_b") and not px_cov.has("mark"):
 		_mark_draw(o)
-	for id in o.sm.seal:
+	for id in ([] if px_cov.has("seal") else o.sm.seal):
 		var e: Dictionary = o.sm.seal[id]
 		if e.dead or not sealed(e, g.t) or str(e.get("seal_by", "")) != o.id:
 			continue
@@ -1636,8 +1640,10 @@ static func _mf_claw(o, s: Dictionary, kd: Dictionary, mult: float, second: bool
 			sm_debride(o, hits)   # docs/202 清创：爪击累积
 		if i > 0 and hits.is_empty():
 			continue   # 身后一击没打到时不画（刀光会正好盖在本干员和主控身上，docs/45 #6）
+		var pxa = _F().px_ul_sm(o, str(s.kind), "")   # pixelfx 放开版召唤物攻击接管（docs/242 §14.11，注册表 summons[kind]）：画了就只再播 px_keep 留下的条目
+		var px_took: bool = pxa is Dictionary and _F().px_ul_sm_draw(o, pxa, fo, ang + (0.18 if second else 0.0), reach + float(a.get("pad", 0.0)))   # 第二爪略偏一点交叉
 		if a.has("fx"):
-			for f in a.fx:
+			for f in (px_keep(a.fx) if px_took else a.fx):
 				if f is Dictionary and fx_on(o, f) and not (second and f.get("first_only", false)):
 					if mf_is(f):
 						mf_fx_spawn(o, f, {"c": fo, "r": reach, "hits": hits, "ang": ang, "sd": sd, "reach": reach, "half": half, "second": second, "swing": float(s.swing), "s": s})
@@ -1777,7 +1783,9 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	var col := Color.WHITE
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
+	_F().px_ul_sm_aura(o, s, hov, false)   # pixelfx 放开版召唤物技能常驻（本体后）
 	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	_F().px_ul_sm_aura(o, s, hov, true)   # （本体前）
 	if s.has("m3"):
 		s["draw_top"] = [fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g), hov]   # 头顶血条找头顶（hud_allyhp._m3_head，10-31）
 	for f in fl:
@@ -1792,10 +1800,13 @@ static func _mf_side(o, s: Dictionary, sd: Dictionary, hov: float) -> void:
 	var j: int = int(sd.get("j", 0))
 	var body: Vector2 = s.pos + Vector2(0, hov + float(sd.get("body_y", -26.0)))
 	var sides: Array = [float(s.face), -float(s.face)]
-	var tx: Texture2D = ArtS.tex(str(sd.strip)) if sd.has("strip") else null
+	var tx: Texture2D = ArtS.tex(g.vfx.px_remap(o, str(sd.strip))) if sd.has("strip") else null   # px_remap：放开版按名替换（docs/242 §14.14；等宽帧条）
+	var pxn: String = g.vfx.px_ul_tex(str(sd.px), 1, not o.is_leader, "core", g.vfx.px_ul_el(o)) if sd.has("px") and g.vfx.px_ul_reg(str(o.id)).size() > 0 else ""   # pixelfx 放开版侧挂（docs/242 §14.11）：side.px = 放开版基名（keep 等宽帧条），帧数 / fps 取 V6_FRAMES
+	if pxn != "" and g.tex.get(pxn) != null and g.V6_FRAMES.has(pxn):
+		tx = g.tex[pxn]
 	if tx != null:
-		var frames: int = maxi(1, int(sd.get("frames", 1)))
-		var bf: int = int(g.t * float(sd.get("fps", 4))) % frames
+		var frames: int = maxi(1, int(g.V6_FRAMES[pxn][0] if tx == g.tex.get(pxn) else sd.get("frames", 1)))
+		var bf: int = int(g.t * float(g.V6_FRAMES[pxn][1] if tx == g.tex.get(pxn) else sd.get("fps", 4))) % frames
 		var av = sd.get("anchor", [])
 		var anc: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2.ZERO
 		for q in sides:

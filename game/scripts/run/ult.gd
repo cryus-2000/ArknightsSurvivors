@@ -1110,6 +1110,39 @@ var _stex := {}
 
 
 ## 素材到了没有（帧条 PNG 在 game/art/fx/ 里）：招式里「有帧条就画帧条、没有就画程序占位」用（docs/199 待合入清单）；只影响画面
+## pixelfx 放开版终结技帧条（docs/242 §11.1 #10，各人 ult_moves_* 本人段统一调）：开关 fx/px_unleashed 打开且帧条在才播；先装饰层（透明度 × px_deco_k）后核心。
+## opt：variant（种子变体，缺省 1）/ teammate（队友版 _tm，缺省 false）/ elite（精英档，缺省 2）/ resolved（true = base 已是取好的核心层名，装饰层按 <名>_deco[_lo] 找），
+## 其余字段原样交给 strip（ang / sc / life / col …）。返回 true = 播了
+const PX_STRIP_OPT := ["variant", "teammate", "elite", "resolved"]
+
+
+func px_strip(base: String, c: Vector2, opt: Dictionary = {}) -> bool:
+	if Bal.vi("fx/px_unleashed", 0) <= 0:
+		return false
+	var so := opt.duplicate()
+	for k in PX_STRIP_OPT:
+		so.erase(k)
+	var core: String = base
+	var d: String = ""
+	if opt.get("resolved", false):
+		d = base.trim_suffix("_lo") + "_deco" + ("_lo" if base.ends_with("_lo") else "")
+	else:
+		var vv: int = int(opt.get("variant", 1))
+		var tm: bool = opt.get("teammate", false)
+		var el: int = int(opt.get("elite", 2))
+		core = g.vfx.px_ul_tex(base, vv, tm, "core", el)
+		d = g.vfx.px_ul_tex(base, vv, tm, "deco", el)
+	if not fx_ready(core):
+		return false
+	var dk: float = g.vfx.px_deco_k()
+	if d != "" and dk > 0.0 and fx_ready(d):
+		var od := so.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		strip(d, c, od)
+	strip(core, c, so)
+	return true
+
+
 func fx_ready(name: String) -> bool:
 	return _strip_tex(name) != null
 
