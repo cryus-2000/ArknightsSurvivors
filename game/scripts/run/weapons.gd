@@ -110,8 +110,17 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 		var bh = g.vfx.px_ul_reg(str(b.op)).get("bullet", {}).get("hit")   # 注册表 bullet.hit {base, y, sc}：命中处放一张（先装饰后核心）
 		if bh is Dictionary and str(bh.get("base", "")) != "":
 			var bo = g.squad.get_op(str(b.op)) if g.get("squad") != null and g.squad != null else null
-			g.vfx._px_ul_at(str(bh.base), (e.pos if b.kind != "fire" else b.pos) + Vector2(0, float(bh.get("y", 0.0))), Game.PX * float(bh.get("sc", 1.0)),
-				bo != null and not bo.is_leader, g.vfx.px_ul_el(bo) if bo != null else 2, g.vfx.px_deco_k(bo))
+			var tm: bool = bo != null and not bo.is_leader
+			var nv: int = int(bh.get("variants", 1))   # variants：队长随机取种子变体；flip：弹体朝左飞时左右翻（铃兰 hit2，组长 11-04）
+			var vv: int = 1 + int(g.vrng.randf() * nv) if not tm and nv >= 2 else 1
+			var hel: int = g.vfx.px_ul_el(bo) if bo != null else 2
+			var hp: Vector2 = (e.pos if b.kind != "fire" else b.pos) + Vector2(0, float(bh.get("y", 0.0)))
+			var hfl: bool = bh.get("flip", false) and b.vel.x < 0.0
+			var hsc: float = Game.PX * float(bh.get("sc", 1.0))
+			var hdn: String = g.vfx.px_ul_tex(str(bh.base), vv, tm, "deco", hel)
+			if hdn != "" and g.vfx.px_deco_k(bo) > 0.0:
+				g.vfx.fx_sprite(hdn, hp, hsc, 0.0, hfl, false, Color(1, 1, 1, g.vfx.px_deco_k(bo)))
+			g.vfx.fx_sprite(g.vfx.px_ul_tex(str(bh.base), vv, tm, "core", hel), hp, hsc, 0.0, hfl)
 	match b.kind:
 		"fire":
 			# 法术团：爆炸
