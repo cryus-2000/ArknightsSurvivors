@@ -799,16 +799,9 @@ static func _ex_land(u, a: Dictionary, o, b: Dictionary) -> void:
 
 ## 开枪：枪口短火舌 + 火光闪一下，射出一颗子弹（两把枪交替）
 ## pixelfx 放开版（docs/242，开关 fx/px_unleashed）：终结技每发的枪口焰 / 爆点叠金色放开版帧条（先装饰 × fx/px_deco_k 后核心）；判定 / 时序不动
-static func _ex_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:
-	if Bal.vi("fx/px_unleashed", 0) <= 0 or not u.fx_ready(base):
-		return
-	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
-	var dk: float = u.g.vfx.px_deco_k()
-	if d != "" and dk > 0.0:
-		var od := opt.duplicate()
-		od["col"] = Color(1, 1, 1, dk)
-		u.strip(d, c, od)
-	u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
+static func _ex_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> void:   # 改走公共 u.px_strip（11-04）
+	if u.fx_ready(base):
+		u.px_strip(base, c, opt)
 
 
 static func _ex_shoot(u, a: Dictionary, o, dest: Vector2, tg, info: Dictionary) -> void:

@@ -660,8 +660,14 @@ static func _h4sg_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			var p: Vector2 = f.start.lerp(to, k) + Vector2(0, -sin(k * PI) * 30.0) + f.start.direction_to(to).orthogonal() * sin(k * PI) * f.bend
 			var tail: Vector2 = f.start.lerp(to, maxf(0.0, k - 0.12)) + Vector2(0, -sin(maxf(0.0, k - 0.12) * PI) * 30.0)
 			var c: Color = f.col
+			var spm = o.g.vfx.px_ul_reg(str(o.id)).get("sp_mote")   # pixelfx 放开版技力光点（docs/242 §14.19，注册表 sp_mote = 基名）：光点换帧条（循环），细尾照画
+			var spn: String = o.g.vfx.px_ul_tex(str(spm), 1, not o.is_leader, "core", o.g.vfx.px_ul_el(o)) if spm is String else ""
 			cv.draw_line(tail, p, Color(c.r, c.g, c.b, 0.5), 2.0)
-			cv.draw_circle(p, 3.0, Color(2.2, 1.8, 0.9))
+			if spn != "" and o.g.tex.get(spn) != null and o.g.V6_FRAMES.has(spn):
+				var ss: Array = o.g.V6_FRAMES[spn]
+				fx_frame(cv, o.g, spn, int(ss[0]), int(float(o.g.t) * float(ss[1])), p, o.g.PX, Color.WHITE)
+			else:
+				cv.draw_circle(p, 3.0, Color(2.2, 1.8, 0.9))
 			return true
 		"h4_cross":
 			var L := 10.0 + 14.0 * (1.0 - a)
