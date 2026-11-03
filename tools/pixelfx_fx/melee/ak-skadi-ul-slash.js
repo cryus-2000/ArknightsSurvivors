@@ -113,15 +113,15 @@ export function create(o) {
   const pillars = [];
   // 11-04 用户「太像画圆圈」：S3 不再画一整圈，改成几段不等长、高低起伏的浪身，朝各自方向拍出去，中间留缺口
   const segs = [];
-  if (full) {
-    let a = Rg.range(-0.4, 0.4);
-    const end = a + TAU - 0.35;
-    while (a < end - 0.5) {
-      const len = Math.min(end - a, segs.length % 2 ? Rg.range(0.5, 0.85) : Rg.range(1.0, 1.6));   // 长短交替，不等分
-      segs.push({ c: a + len / 2, h: len / 2, rk: Rg.range(0.66, 1.04), hk: Rg.range(0.5, 1.3), d: Rg.range(0, 0.09), dir: Rg.chance(0.5) ? 1 : -1, push: Rg.range(0.12, 0.32), seed: o.seed + 200 + segs.length * 7 });
-      a += len + Rg.range(0.45, 0.95);
-    }
-    if (mv === "s3" && el >= 2) for (const sg of segs) if (sg.hk > 0.85) pillars.push({ a: sg.c + Rg.range(-0.3, 0.3) * sg.h, H: Rg.range(36, 54), d: sg.d + Rg.range(0.02, 0.06) });
+  if (full) {   // 总组长 11-04 审：朝向方向（帧条正右）一段主浪，体量约两倍、推得最远；两侧各 1–2 段小浪，长度 / 半径 / 出现时间错开、不按 90° 对称；背后留空（只有碎沫）
+    const mk = (c, h, rk, hk, push, d) => segs.push({ c, h, rk, hk, push, d, dir: Rg.chance(0.5) ? 1 : -1, seed: o.seed + 200 + segs.length * 7 });
+    mk(Rg.range(-0.08, 0.08), Rg.range(0.62, 0.75), Rg.range(0.92, 1.0), Rg.range(1.9, 2.2), Rg.range(0.4, 0.5), 0);   // 主浪
+    const nl = Rg.chance(0.5) ? 1 : 2, nr = 3 - nl;   // 一侧 1 段、另一侧 2 段
+    let a = Rg.range(0.95, 1.25);
+    for (let q = 0; q < nl; q++) { const h = Rg.range(0.2, 0.36); mk(a + h, h, Rg.range(0.7, 0.92), Rg.range(0.55, 1.0), Rg.range(0.1, 0.24), Rg.range(0.03, 0.11)); a += 2 * h + Rg.range(0.25, 0.5); }
+    a = -Rg.range(0.8, 1.1);
+    for (let q = 0; q < nr; q++) { const h = Rg.range(0.18, 0.34); mk(a - h, h, Rg.range(0.66, 0.9), Rg.range(0.5, 0.95), Rg.range(0.08, 0.22), Rg.range(0.04, 0.12)); a -= 2 * h + Rg.range(0.3, 0.55); }
+    if (mv === "s3" && el >= 2) for (const sg of segs) if (sg.hk > 1.5) pillars.push({ a: sg.c + Rg.range(-0.3, 0.3) * sg.h, H: Rg.range(36, 54), d: sg.d + Rg.range(0.02, 0.06) });
   }
   const inSeg = (a) => segs.some((sg) => Math.abs(Math.atan2(Math.sin(a - sg.c), Math.cos(a - sg.c))) < sg.h);
   // 浪舌：从斩痕里涌起、沿方向往前推进、浪头往上卷再碎开（S2 水幕的通用版；c = 中心角，hA = 半张角，H = 浪高，u = 起涌后秒数）
@@ -134,7 +134,7 @@ export function create(o) {
       const [bx, by] = onArc(A, Rb, c + a);
       const dir = c + a * 0.55, cx = Math.cos(dir), cy = Math.sin(dir);
       const jagL = 1 + 0.18 * noise(a * 23, sd + 89) + 0.1 * noise(a * 51, sd + 97);
-      const Lm = R0 * 0.5 * (0.35 + 0.65 * env) * jagL, L = Lm * rise, up = H * 0.45 * env;
+      const Lm = R0 * 0.5 * (0.35 + 0.65 * env) * jagL * clamp(H / (R0 * 0.36), 0.7, 1.6), L = Lm * rise, up = H * 0.45 * env;   // 浪越大推得越远（S3 主浪）
       for (let d = Lm * fall; d < L; d += 0.6) {
         const v = d / Lm, back = curl * Math.pow(v, 4) * up * 0.6, lift = up * Math.sin(Math.PI * 0.5 * v) * (0.4 + 0.6 * curl);
         const x = bx + cx * (d - back), y = by + cy * (d - back) - lift;
@@ -398,7 +398,7 @@ export function create(o) {
         }
       }
       if (deco && arcOn && t < 0.32) {
-        const [x, y] = onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));
+        const [x, y] = full ? onArc(A, A.R * 0.9, segs[0].c) : onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));   // S3：光只跟主浪，背后不亮
         p.glow(x, y, 60 * (el === 0 ? 0.6 : 1), C[5], 0.6 * GK * (1 - t / 0.32));
       }
       const g = t - SW * 0.6;

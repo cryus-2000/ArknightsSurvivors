@@ -440,8 +440,15 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	var a: float = ang
 	var use: Dictionary = ent
 	if half >= 3.1 and reg.get("full") is Dictionary:
-		use = reg.full   # 全方向横扫（斯卡蒂涌潮悲歌）：整圈随机转个角度（画面随机数 vrng，判定不动）
-		a = ang + o.g.vrng.randf() * TAU
+		use = reg.full   # 全方向横扫（斯卡蒂涌潮悲歌）：整圈随机转个角度（画面随机数 vrng，判定不动）；full.aim = facing / nearest 时帧条正右对准朝向 / 最近敌人（斯卡蒂 v4 S3 主浪，§14.25）
+		match str(use.get("aim", "")):
+			"facing":
+				a = o.facing_angle()
+			"nearest":
+				var ne: Array = o.nearest_raw(1, maxf(r * 3.0, 400.0), o.pos)
+				a = (ne[0].pos - o.pos).angle() if not ne.is_empty() else o.facing_angle()
+			_:
+				a = ang + o.g.vrng.randf() * TAU
 	var base: String = alt_base if alt_base != "" else str(use.base)
 	var nv: int = int(use.get("variants", 1))
 	var vv: int = 1 + int(o.g.vrng.randf() * nv) if o.is_leader and nv >= 2 else 1   # 只有队长挑种子变体；队友版 _tm 余韵约减半、亮度不降
