@@ -2,6 +2,8 @@
 """pixelfx 放开版开关前后同种子 TRACE 配对（docs/242 §14.21）：同一份代码，fx/px_unleashed 0 / 1 各跑两局，逐行比 TRACE。
 
 两局：后期局 seed 13、560 秒；终结技局 seed 7、240 秒（--maxprog --sptest，第 20 秒充满终结技）。都带 --nodeath。
+开跑前（组长 11-04：索引没跟上时新帧条一张都加载不到，「一致」是假的）：核对 game/art/index.json 与磁盘，不一致就重建（tools/asset_index.py），
+再 godot --import（px_prerecord.prep_assets），然后数这名干员在索引里的放开版帧条（名字含 _ul_ 且含干员 id），打印「放开版帧条已加载 N 张」，N = 0 直接判 FAIL。
 比对：TRACE 行必须逐行相同；BALANCE 汇总行去掉纯画面统计（同屏特效 / 飘字峰值 peak / peak_min、性能计数 prof / fx_peak / draw）后也要相同。
 原型：星熊会话 build/trace_ab_hs.py（11-04 收成公共工具）。本机机器紧时请放云端例行任务跑（docs/36 §7、docs/41）。
 
@@ -13,7 +15,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, TOOLS)
+for _s in (sys.stdout, sys.stderr):   # GBK 控制台打印中文 / ✗ 会 UnicodeEncodeError（拉普兰德 11-04）
+    if hasattr(_s, "reconfigure"):
+        _s.reconfigure(encoding="utf-8", errors="replace")
 import trace_base as TB
+import asset_index as AI
+import godot_runner as GR
+import px_prerecord as PR
 
 GAME = os.path.join(os.path.dirname(TOOLS), "game")
 CASES = {
@@ -59,6 +67,13 @@ def main():
     ap.add_argument("--out", default="")
     a = ap.parse_args()
     sq = ["--squad=" + a.squad] if a.squad else []
+    PR.prep_assets()   # 重建贴图索引 + godot --import（同录像门禁 px_prerecord 第 2 步）
+    idx = json.load(open(AI.INDEX, encoding="utf-8"))
+    n_ul = len([k for k in idx if "_ul_" in k and a.op in k and "@2x" not in k])
+    print("放开版帧条已加载 %d 张（索引里名字含 _ul_ 与 %s）" % (n_ul, a.op))
+    if n_ul == 0:
+        print("PX_TRACE_AB FAIL（这名干员没有放开版帧条进索引，开关 1 的画面分支走不到，比对没有意义）")
+        sys.exit(1)
     jobs = [(c, sw) for c in a.cases.split(",") if c in CASES for sw in (0, 1)]
 
     def run(j):
@@ -70,7 +85,7 @@ def main():
     with ThreadPoolExecutor(max(1, a.jobs)) as ex:
         res = {j: (lines, err) for j, lines, err in ex.map(run, jobs)}
     ok = True
-    report = {"op": a.op, "squad": a.squad, "cases": {}}
+    report = {"op": a.op, "squad": a.squad, "ul_strips": n_ul, "cases": {}}
     for c in a.cases.split(","):
         if c not in CASES:
             continue

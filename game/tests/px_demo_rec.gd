@@ -13,6 +13,7 @@ var start := 1.0
 var n := 180
 var f0 := 0
 var mus: Array = []
+var rec_op := ""
 
 
 func _ready() -> void:
@@ -46,6 +47,7 @@ func _ready() -> void:
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	vp.handle_input_locally = false
 	add_child(vp)
+	rec_op = op
 	game = load("res://game.tscn").instantiate()
 	game.demo_op = op
 	game.demo_sys.configure(stage, mode)
@@ -73,4 +75,10 @@ func _process(_dt: float) -> void:
 		if Sfx.trace_on:
 			print("SFXTRACE " + JSON.stringify({"frame0": f0, "trace": Sfx.trace}))
 			print("MUSTRACE " + JSON.stringify({"buses": {}, "frames": mus}))
+		var ld: Array = []   # 录像门禁（tools/px_prerecord.py）：这名干员实际加载的放开版帧条 + 演示期间取用 / 兜底计数
+		if game.get("tex") is Dictionary:
+			for k in game.tex:
+				if str(k).find("_ul_") >= 0 and str(k).find(rec_op) >= 0 and game.tex[k] != null:
+					ld.append(str(k))
+		print("PXSTATS " + JSON.stringify({"op": rec_op, "loaded": ld.size(), "stats": game.vfx.px_stats if game.get("vfx") != null else {}}))
 		get_tree().quit()

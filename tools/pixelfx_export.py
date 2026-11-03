@@ -10,7 +10,7 @@ tools/pixelfx_fx/<类>/<名>.js 是本作写的 pixelfx 特效源码；本脚本
   - 量化到 ≤ 32 色（带透明，按条目 colors 改），存调色板 PNG，
   - 写进 game/art/fx/<名>[ @2x].png。
 导出前查：自动图案检查（docs/242 §9.3）、必出矩阵（漏项 #31）、每人显存（全档 ≤ 48 MB、低档 ≤ 12 MB，按盘上该人全部 _ul_ 帧条合计，漏项 #1）；
-任一项不过整批不写盘。每次运行顺带由 house.js OP 生成 game/data/op_ramps.json（§11.1 #12）。最后打印 art.gd V6_FRAMES 要登记的 [帧数, fps]。改完记得跑 python tools/asset_index.py。
+任一项不过整批不写盘。每次运行顺带由 house.js OP 生成 game/data/op_ramps.json（§11.1 #12）。最后打印 art.gd V6_FRAMES 要登记的 [帧数, fps]。写盘后自动 --import 并重建 game/art/index.json（要一起提交）。
 
 用法：python tools/pixelfx_export.py [--lib build/pixelfx] [--only 名字,...] [--dry]
 """
@@ -327,6 +327,11 @@ def main():
             import godot_runner as GR
             GR.run_godot([GR.find_godot(), "--headless", "--path", os.path.join(ROOT, "game"), "--import"], 900)
             print("已重新导入 game/（--import）")
+            import asset_index as AI   # 新帧条进运行时贴图索引（没进索引游戏加载不到，TRACE 比对也是假的；组长 11-04）：index.json 记得一起提交
+            idx, _ = AI.build()
+            with open(AI.INDEX, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(AI.dump(idx))
+            print("已重建 game/art/index.json（%d 个名字，记得一起提交）" % len(idx))
 
 
 if __name__ == "__main__":

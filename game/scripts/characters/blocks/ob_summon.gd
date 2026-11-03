@@ -676,8 +676,12 @@ static func _mark_draw(o) -> void:
 	var post = g.get("post")
 	var cfg = g.get_node_or_null("/root/Cfg")   # 积木脚本不直接引用自动加载（契约测试里编译不到）
 	var low_q: bool = cfg != null and str(cfg.get("quality")) == "low"
+	var mz = g.vfx.px_ul_reg(str(o.id)).get("mark_zone", true)   # pixelfx 放开版静默圈（docs/242 §14.23）：false = 去色区和边线都不画；写基名 = 不去色、用帧条画边；没写照旧
+	var mz_px: bool = not (mz is bool and mz)
 	if post != null and post.get("zone_amt") != null:
-		if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF and not low_q:
+		if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF and not low_q and not mz_px:
+			if not g.vfx.px_ul_reg(str(o.id)).is_empty():
+				g.vfx.px_stat("fallback:mark_zone", str(o.id))   # 录像门禁：放开版下还在用静默去色区
 			var vp = g.get_viewport()
 			var xf: Transform2D = vp.get_canvas_transform()
 			var vs: Vector2 = vp.get_visible_rect().size
@@ -690,11 +694,16 @@ static func _mark_draw(o) -> void:
 			post.refresh_zone_guards(g)
 		else:
 			post.zone_amt = 0.0
-	if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF:
+	if mz is String and mz != "" and rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF:
+		var mzn: String = g.vfx.px_ul_tex(str(mz), 1, not o.is_leader, "core", g.vfx.px_ul_el(o))
+		if g.tex.get(mzn) != null and g.V6_FRAMES.has(mzn):
+			var ms: Array = g.V6_FRAMES[mzn]
+			fx_frame(cv, g, mzn, int(ms[0]), int(float(g.t) * float(ms[1])), o.pos, r_now / 80.0 * g.PX, Color(1, 1, 1, k_amt))   # 帧条按半径 80（1x）烤
+	elif rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF and not mz_px:
 		var pa: float = (0.22 + 0.06 * sin(g.t * 4.0)) * k_amt
 		cv.draw_set_transform(o.pos, 0.0, Vector2(1.0, MARK_RATIO))
 		cv.draw_arc(Vector2.ZERO, r_now, 0.0, TAU, 56, Color(MARK_COL.r, MARK_COL.g, MARK_COL.b, pa), 1.5)
-		if k_open < 1.0:   # 开场扩散的波前
+		if k_open < 1.0 and not g.vfx.px_halo_off():   # 开场扩散的波前（放开版发散光环关掉时不画，§14.7）
 			cv.draw_arc(Vector2.ZERO, r_now, 0.0, TAU, 56, Color(1, 1, 1, 0.8 * (1.0 - k_open)), 5.0 * (1.0 - k_open) + 1.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if on and o.sm.has("marks"):

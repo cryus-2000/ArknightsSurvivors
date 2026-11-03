@@ -2,7 +2,7 @@
 // span 选弧长：2.8（普攻 160°）/ 3.5（迅捷打击 200°）/ 6.28（涌潮悲歌全方向）；heavy = 跃浪击。
 // v3（11-03 用户定）：
 //   变细用 A（PX 2 不变）：刀身薄、颗粒小而多、外缘 1 格亮线（白只在白热窗口里）。
-//   move 各有主形：basic 单月牙（克制）/ s1 快速连斩：2–3 道正反手交替的大剑斩弧（间隔约 0.05 s，带纤维拖尾纹理、剑身残影、成团水花；11-03 用户嫌斩痕版抽象）/ s2 斩击弧上立起水幕、往前卷倒拍落成飞溅 + 拉长积水（不是圆）/ s3 全方向 + 浪墙。
+//   move 各有主形：basic 单月牙（克制）/ s1 快速连斩：2–3 道正反手交替的大剑斩弧（间隔约 0.05 s，带纤维拖尾纹理、剑身残影、成团水花；11-03 用户嫌斩痕版抽象）/ s2 斩击弧上立起水幕、往前卷倒拍落成飞溅 + 拉长积水（不是圆）/ s3 全方向：几段不等长、高低起伏的浪身朝各自方向拍出去、中间留缺口（11-04 用户「太像画圆圈」，不再画整圈）；普攻 E1+ / S1 最后一刀改为浪从斩痕里往前涌（不再画同心回声弧 / 外飞新月）。
 //   elite 拉开到不看 HUD 能分：E0 只有主形；E1 加内弧回声 + 浪尖白沫带；E2 再加二次浪峰（海绿色重点）+ 潮刃（docs/91 精二「涌潮」），S3 加水柱、S2 浪体更大。
 // The crescent / echo / trace recipe is adapted from Sprite Fusion's open-source slash
 // (https://www.spritefusion.com/pixel-art-vfx/slash), MIT License, Copyright (c) 2026 Hugo Duprez.
@@ -90,7 +90,7 @@ export function create(o) {
   // ---- S1：快速连斩。2–3 道大剑斩弧，正反手交替、中心角 / 弧长 / 半径各不同，前后间隔约 0.05 s
   const sls = [];
   if (mv === "s1") {
-    const sg = Rg.chance(0.5) ? 1 : -1, n = el === 0 ? 2 : 3, cs = [Rg.range(-0.15, 0.15), Rg.range(0.6, 0.85) * sg, -Rg.range(0.55, 0.8) * sg];   // 三刀分别落在正前、左前、右前
+    const sg = Rg.chance(0.5) ? 1 : -1, n = el === 0 ? 2 : 3, cs = [Rg.range(-0.1, 0.1), Rg.range(0.25, 0.42) * sg, -Rg.range(0.22, 0.4) * sg];   // 三刀都落在正前方扇区（11-04 用户「太像画圆圈」：不再左右铺开绕身）
     let dir = Rg.chance(0.5) ? 1 : -1;
     for (let i = 0; i < n; i++) {
       // 每刀弧心各自偏一点（前后 / 左右），半径不同：几道弧互相交叉，不叠成一道、也不排成同心圈；外缘不出判定半径
@@ -111,7 +111,39 @@ export function create(o) {
   // ---- S3：浪墙高度（连续起伏、有断口）；E2 几根水柱
   const wallH = (a) => Math.max(0, 16 * [0.75, 1, 1.25][el] * (0.45 + 0.7 * noise(a * 2.3, o.seed + 41) + 0.35 * noise(a * 6.1, o.seed + 43)));
   const pillars = [];
-  if (mv === "s3" && el >= 2) for (let a = Rg.range(0, 1.2); a < TAU - 0.4; a += Rg.range(1.1, 2.0)) pillars.push({ a, H: Rg.range(36, 54), d: Rg.range(0.02, 0.08) });
+  // 11-04 用户「太像画圆圈」：S3 不再画一整圈，改成几段不等长、高低起伏的浪身，朝各自方向拍出去，中间留缺口
+  const segs = [];
+  if (full) {   // 总组长 11-04 审：朝向方向（帧条正右）一段主浪，体量约两倍、推得最远；两侧各 1–2 段小浪，长度 / 半径 / 出现时间错开、不按 90° 对称；背后留空（只有碎沫）
+    const mk = (c, h, rk, hk, push, d) => segs.push({ c, h, rk, hk, push, d, dir: Rg.chance(0.5) ? 1 : -1, seed: o.seed + 200 + segs.length * 7 });
+    mk(Rg.range(-0.08, 0.08), Rg.range(0.62, 0.75), Rg.range(0.92, 1.0), Rg.range(1.9, 2.2), Rg.range(0.4, 0.5), 0);   // 主浪
+    const nl = Rg.chance(0.5) ? 1 : 2, nr = 3 - nl;   // 一侧 1 段、另一侧 2 段
+    let a = Rg.range(0.95, 1.25);
+    // 侧浪约主浪一半（总组长 11-04：原来只剩几块白三角像碎点）：带浪身、浪尖和碎沫，长度 / 时间仍错开
+    for (let q = 0; q < nl; q++) { const h = Rg.range(0.3, 0.42); mk(a + h, h, Rg.range(0.74, 0.92), Rg.range(0.95, 1.15), Rg.range(0.14, 0.26), Rg.range(0.03, 0.11)); a += 2 * h + Rg.range(0.25, 0.45); }
+    a = -Rg.range(0.8, 1.1);
+    for (let q = 0; q < nr; q++) { const h = Rg.range(0.26, 0.38); mk(a - h, h, Rg.range(0.7, 0.9), Rg.range(0.9, 1.1), Rg.range(0.12, 0.24), Rg.range(0.04, 0.12)); a -= 2 * h + Rg.range(0.28, 0.5); }
+    if (mv === "s3" && el >= 2) for (const sg of segs) if (sg.hk > 1.5) pillars.push({ a: sg.c + Rg.range(-0.3, 0.3) * sg.h, H: Rg.range(36, 54), d: sg.d + Rg.range(0.02, 0.06) });
+  }
+  const inSeg = (a) => segs.some((sg) => Math.abs(Math.atan2(Math.sin(a - sg.c), Math.cos(a - sg.c))) < sg.h);
+  // 浪舌：从斩痕里涌起、沿方向往前推进、浪头往上卷再碎开（S2 水幕的通用版；c = 中心角，hA = 半张角，H = 浪高，u = 起涌后秒数）
+  function waveFront(p, c, hA, Rb, H, u, sd, crest) {
+    const rise = ease.outCubic(clamp(u / 0.16)), fall = smooth(0.2, 0.34, u), curl = smooth(0.06, 0.24, u);
+    if (rise <= 0.02 || fall >= 0.98) return;
+    for (let a = -hA; a <= hA; a += 0.4 / Rb) {
+      const env = (0.55 + 0.45 * noise(a * 4, sd + 61) + 0.2 * noise(a * 11, sd + 67)) * Math.pow(Math.cos(clamp(a / hA, -1, 1) * Math.PI / 2), 0.7);
+      if (env < 0.08) continue;
+      const [bx, by] = onArc(A, Rb, c + a);
+      const dir = c + a * 0.55, cx = Math.cos(dir), cy = Math.sin(dir);
+      const jagL = 1 + 0.18 * noise(a * 23, sd + 89) + 0.1 * noise(a * 51, sd + 97);
+      const Lm = R0 * 0.5 * (0.35 + 0.65 * env) * jagL * clamp(H / (R0 * 0.36), 0.7, 1.6), L = Lm * rise, up = H * 0.45 * env;   // 浪越大推得越远（S3 主浪）
+      for (let d = Lm * fall; d < L; d += 0.6) {
+        const v = d / Lm, back = curl * Math.pow(v, 4) * up * 0.6, lift = up * Math.sin(Math.PI * 0.5 * v) * (0.4 + 0.6 * curl);
+        const x = bx + cx * (d - back), y = by + cy * (d - back) - lift;
+        const tipz = d > L - 2.2, n = noise(a * 9 + v * 6, sd + 87) + 0.6 * noise(a * 31 + v * 17, sd + 93);
+        p.px(x, y, tipz ? (crest ? ACC : C[6]) : C[clamp(Math.round(2.6 + 2.6 * v + 1.6 * n), 2, 6)]);
+      }
+    }
+  }
 
   function drawArc(p, s, t0, hold, trail) {
     const u = t - t0;
@@ -140,7 +172,7 @@ export function create(o) {
           if (SPRAY) ps.spawn(P.MOTE, x, y, (tx * 0.6 + nx * 0.9) * sp, (ty * 0.6 + ny * 0.9) * sp, Rg.range(0.25, 0.55) * (0.6 + 0.4 * DL), C[6 + Rg.int(0, 1)], Rg.range(0.8, 1.4) * SZ);
         }
         if (SPRAY && Rg.chance(0.7 * PM)) ps.spawn(P.SPARK, x, y, nx * Rg.range(100, 260), ny * Rg.range(100, 260) - 60, Rg.range(0.3, 0.65));
-        if (deco && Rg.chance(0.3)) ps.spawn(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
+        // 11-04 总组长：弧刃外圈一串圆形水雾颗粒属孤立圆（§12.3），去掉 —— if (deco && Rg.chance(0.3) && (!full || inSeg(a))) ps_spawn_removed(P.VAPOUR, x + nx * 5, y + ny * 5, nx * 40 + tx * 25, ny * 40 + ty * 25, Rg.range(0.25, 0.45), C[5], Rg.range(2, 4));
         passed += (full ? 0.025 : 0.035) * Rg.range(0.4, 1.8) / (fine ? 1.4 : 1);   // 步长随机：等距撒会排成等距放射纹
       }
       if (mv === "s1") for (const sl of sls) {   // 连斩甩水：挥砍途中沿外缘顺挥剑方向甩；挥到底炸出成团水花
@@ -165,11 +197,13 @@ export function create(o) {
       }
       if (!landed && t >= SW) {
         landed = true;
-        lights.add(0, 0, R0 * 1.2, C[5], 0.15 * GK, 0.35);
+        if (!full) lights.add(0, 0, R0 * 1.2, C[5], 0.15 * GK, 0.35);
+        else for (const sg of segs) { const [lx, ly] = onArc(A, A.R * sg.rk, sg.c); lights.add(lx, ly, R0 * 0.5, C[5], 0.18 * GK, 0.35); }   // S3：光跟着各段浪身，不在中心铺一盏圆光
         if (arcOn) lights.add(tip[0], tip[1], 46, C[6], 0.9 * GK, 0.3);
-        if (arcOn) for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2) / PM) {   // 余韵：外缘碎成浪沫与水雾
+        if (arcOn) for (let a = a0 + 0.1; a < a1; a += Rg.range(0.08, 0.2) / PM) {   // 余韵：外缘碎成浪沫与水雾（S3 只在各段浪身上，缺口里不放）
+          if (full && !inSeg(a)) continue;
           const [x, y] = onArc(A, A.R + Rg.range(-2, 5), a), nx = Math.cos(a), ny = Math.sin(a), sp = Rg.range(15, 60);
-          ps.spawn(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
+          // 11-04 总组长：弧刃外圈一串圆形水雾颗粒属孤立圆（§12.3），去掉 —— ps_spawn_removed(P.VAPOUR, x, y, nx * sp, ny * sp, Rg.range(0.5, 0.85) * LQ, C[4 + Rg.int(0, 1)], Rg.range(2.5, 5.5), Rg.range(0, 0.08));
           if (el >= 1 && Rg.chance(0.5)) ps.spawn(P.STAR, x + Rg.range(-4, 4), y + Rg.range(-4, 4), nx * 6, ny * 6 - 4, Rg.range(0.35, 0.7) * LQ, C[6 + Rg.int(0, 1)], Rg.range(1, 2) * SZ, Rg.range(0.05, 0.4) * LQ);
           if (SPRAY && Rg.chance(0.7)) ps.spawn(P.SPARK, x, y, nx * sp * 3, ny * sp * 3 - Rg.range(40, 140), Rg.range(0.35, 0.7) * LQ);
         }
@@ -216,8 +250,19 @@ export function create(o) {
       }
     },
     draw(p) {
-      if (arcOn && el >= 1 && !full) drawArc(p, E, 0.025, 0.04 * DL, 0.3 * DL);   // E1+ 内弧回声（全方向不画：两道同心圈是被否的形状）
-      if (arcOn) drawArc(p, A, 0, 0.07, 0.4 * (0.6 + 0.4 * DL));
+      if (arcOn && el >= 1 && mv === "s2") drawArc(p, E, 0.025, 0.04 * DL, 0.3 * DL);   // S2 内弧回声（普攻 / S3 不画：同心弧读成圈，11-04）
+      if (arcOn && !full) drawArc(p, A, 0, 0.07, 0.4 * (0.6 + 0.4 * DL));
+      if (full) for (const sg of segs) {   // S3：一段段浪身弧刃（各自半径 / 起手先后不同、正反向交替），不连成整圈
+        const u = t - sg.d;
+        if (u < 0) continue;
+        const sp = sg.h * 2, head = ease.outExpo(clamp(u / SW)), tail = smooth(SW + 0.07, SW + 0.07 + 0.4 * (0.6 + 0.4 * DL), u), age = clamp(u / (SW + 0.07 + 0.4 * (0.6 + 0.4 * DL)));
+        const pr = 1 + sg.push * ease.outCubic(clamp(u / 0.35));   // 每段各自往外拍出去（推进距离不同），不停在同一圈上
+        const S = { seed: sg.seed, R: A.R * sg.rk * pr, W: A.W * (0.85 + 0.45 * sg.hk), ramp: C, GK, edge: fine, minI: sg.hk < 1.5 ? 1 : 0 };   // 侧浪不出纯白（minI：免得只剩白色小三角）
+        const ta = sg.c - sg.dir * sg.h;
+        if (tail < 1) crescent(p, S, ta + sg.dir * sp * tail, sg.dir * sp * (head - tail), S.W * (1 - tail * 0.5), age, u < 0.06 && sg.hk >= 1.5 ? HOT : 0, core, deco);   // 白热只给主浪
+        if (core) waveFront(p, sg.c, sg.h * 0.9, A.R * sg.rk * 0.75 * pr, R0 * 0.36 * sg.hk * [0.75, 1, 1.2][el], u - SW * 0.5, sg.seed, el >= 2);   // 浪从这段斩痕里往外拍出去再碎开
+      }
+      if (core && mv === "basic" && el >= 1 && t > SW * 0.7) waveFront(p, 0, span * (el >= 2 ? 0.36 : 0.26), A.R * 0.55, R0 * (el >= 2 ? 0.42 : 0.28), t - SW * 0.7, o.seed + 300, el >= 2);   // 普攻 E1+：浪从斩痕里往前涌、卷起再碎开（E2 更大、浪头海绿）
       if (mv === "s1") for (const sl of sls) {   // 连斩：斩弧 + 剑身残影 + 成团水花
         const u = t - sl.t0;
         if (u < 0) continue;
@@ -270,6 +315,7 @@ export function create(o) {
             crescent(p, TB, sl.c - sl.dir * sl.sp * 0.3, sl.dir * sl.sp * 0.6, TB.W, 0.15 + 0.5 * (1 - k), 0, true, false);
           }
         }
+        if (core && el >= 1 && sl.last && u > SWS) waveFront(p, sl.c, sl.sp * (el >= 2 ? 0.4 : 0.3), sl.S.R * 0.55, R0 * (el >= 2 ? 0.4 : 0.28), u - SWS, sl.S.seed + 300, el >= 2);   // E1+ 最后一刀后浪从斩痕里往前涌（11-04）
         if (core && el >= 1 && u > SWS * 0.8 && u < 0.4) {   // E1+ 每刀外缘白沫（断续）
           const k = 1 - smooth(0.15, 0.4, u);
           for (let a = 0; a < sl.sp * head; a += 0.6 / sl.S.R) {
@@ -303,7 +349,7 @@ export function create(o) {
           }
         }
       }
-      if (core && mv === "s3") {   // 浪墙：外缘立起一圈深色浪身（高度连续起伏、有断口）
+      if (core && mv === "s3" && !full) {   // （旧）浪墙：外缘立起一圈深色浪身；11-04 起 S3 走上面的段状浪身，这里只在非全方向时画
         const k = smooth(0.02, SW + 0.04, t) * (1 - smooth(0.32, 0.62, t));
         if (k > 0) for (let a = 0; a < TAU; a += 0.55 / (A.R + 10)) {
           const hh = wallH(a) * k;
@@ -316,14 +362,14 @@ export function create(o) {
         for (const pl of pillars) {   // E2 水柱：浪墙上几处冲起的水柱（屏幕上朝上）
           const u = t - SW - pl.d;
           if (u < 0 || u > 0.4) continue;
-          const H = pl.H * ease.outCubic(clamp(u / 0.12)) * (1 - smooth(0.22, 0.4, u)), [bx, by] = onArc(A, A.R + wallH(pl.a) * 0.6, pl.a);
+          const H = pl.H * ease.outCubic(clamp(u / 0.12)) * (1 - smooth(0.22, 0.4, u)), [bx, by] = onArc(A, A.R * 0.95, pl.a);
           for (let d = 0; d < H; d += 0.6) {
             const w = 3.6 * (1 - d / Math.max(1, H) * 0.7);
             for (let s = -w; s <= w; s += 0.6) p.px(bx + s, by - d, d > H - 2 ? ACC : C[clamp(Math.round(3 + 3 * d / Math.max(1, H) - Math.abs(s) / w), 2, 6)]);
           }
         }
       }
-      if (core && el >= 1 && arcOn && t > SW * 0.8 && t < 0.45 + 0.15 * el) {   // E1+ 浪尖白沫带：沿外缘断断续续
+      if (core && el >= 1 && arcOn && !full && t > SW * 0.8 && t < 0.45 + 0.15 * el) {   // E1+ 浪尖白沫带：沿外缘断断续续
         const k = 1 - smooth(0.22, 0.45 + 0.15 * el, t);
         for (let a = a0; a < a1; a += 0.5 / A.R) {
           const n = noise((a - a0) * 7, o.seed + 51) + 0.5 * noise((a - a0) * 19, o.seed + 53);
@@ -335,7 +381,7 @@ export function create(o) {
           }
         }
       }
-      if (core && el >= 2 && arcOn && !full && t > SW * 0.5) {   // E2 二次浪峰：外缘后面再涌起一道海绿色浪峰，比主弧短、慢半拍
+      if (core && el >= 2 && arcOn && !full && mv === "s2" && t > SW * 0.5) {   // E2 二次浪峰（只给 S2；普攻改浪舌，11-04）：外缘后面再涌起一道海绿色浪峰，比主弧短、慢半拍
         const u = t - SW * 0.5, k = smooth(0, 0.08, u) * (1 - smooth(0.2, 0.4, u));
         if (k > 0.02) for (let a = a0 + span * 0.25; a < a1 - span * 0.08; a += 0.5 / A.R) {
           const v = (a - a0 - span * 0.25) / (span * 0.67), h = (4 + 8 * Math.sin(Math.PI * v)) * k * (0.7 + 0.5 * noise(a * 6, o.seed + 91));
@@ -345,7 +391,7 @@ export function create(o) {
           }
         }
       }
-      if (core && el >= 2 && arcOn && !full && t > SW) {   // E2 潮刃：一道薄新月从弧上脱出、往外飞（docs/91 精二「涌潮」）
+      if (core && el >= 2 && arcOn && !full && mv === "s2" && t > SW) {   // E2 潮刃：一道薄新月从弧上脱出、往外飞（docs/91 精二「涌潮」；普攻不再飞同心新月，11-04）
         const u = t - SW, d = 70 * ease.outCubic(clamp(u / 0.3)), k = 1 - smooth(0.12, 0.32, u);
         if (k > 0) {
           const TB = { seed: o.seed + 31, R: A.R + d, W: Math.max(2, W * 0.4) * k, ramp: C, GK, edge: false, minI: 1 };
@@ -353,7 +399,7 @@ export function create(o) {
         }
       }
       if (deco && arcOn && t < 0.32) {
-        const [x, y] = onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));
+        const [x, y] = full ? onArc(A, A.R * 0.9, segs[0].c) : onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));   // S3：光只跟主浪，背后不亮
         p.glow(x, y, 60 * (el === 0 ? 0.6 : 1), C[5], 0.6 * GK * (1 - t / 0.32));
       }
       const g = t - SW * 0.6;
