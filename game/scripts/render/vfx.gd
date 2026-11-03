@@ -198,6 +198,8 @@ static var _px_ul_reg = null
 ## 放开版技能起手（docs/242 §12.1）：character.spend_sp（技能开启的统一入口）调。注册表 "cast": {"技能序号 0–2": {base, at, y, sc, flip}}：
 ## at = "self"（缺省，脚底 + (0, y)）/ "front"（身前 front 像素，沿朝向）；sc = 缩放（× PX，缺省 1）；flip = true 时朝左翻。先装饰（× px_deco_k）后核心；开关关掉时注册表为空、不播
 func px_ul_cast(o, i: int) -> void:
+	if px_halo_off():
+		return
 	var c = px_ul_reg(str(o.id)).get("cast", {}).get(str(i))
 	if not (c is Dictionary) or o.pos == Vector2.INF:
 		return
@@ -243,13 +245,53 @@ var _px_heal_t := {}
 
 func px_ul_heal(o) -> void:
 	var h = px_ul_reg(str(o.id)).get("heal")
-	if not (h is Dictionary) or g.ppos == Vector2.INF:
+	if not (h is Dictionary) or g.ppos == Vector2.INF or px_halo_off():
 		return
 	var k: String = str(o.id)
 	if g.t - float(_px_heal_t.get(k, -99.0)) < 1.0:
 		return
 	_px_heal_t[k] = g.t
 	_px_ul_at(str(h.get("base", "")), g.ppos + Vector2(0, float(h.get("y", 0.0))), Game.PX * float(h.get("sc", 1.0)), false, px_ul_el(o), px_deco_k(o))
+
+
+## 放开版连携接管（docs/242 §14.1，组长 11-04）：注册表 "link": {"dash": {…}, "hit": {…}}，可按连携 id 单独覆盖："link": {"<连携 id>": {"dash": …, "hit": …}}。
+## part = "dash"（冲出那一下：a = 起点，b = 落点）/ "hit"（落点一击：a = 搭档站位，b = 目标）；r = 冲刺距离 / 判定半径。
+## 条目 {base, at, y, sc, fit, rot}：at = "to"（缺省，画在 b）/ "from"（a）/ "mid"；缩放 = PX × sc，fit > 0 时再 × r ÷ fit（world 画时吸附整数格）；
+## rot 缺省 true = 随 a→b 方向转，false = 不转、朝左时翻。先装饰（× px_deco_k）后核心，不定格。返回 true = 已画，调用方跳过旧画面（只改画面）
+func px_ul_link(o, part: String, a: Vector2, b: Vector2, r: float, link_id := "") -> bool:
+	var lk = px_ul_reg(str(o.id)).get("link")
+	if not (lk is Dictionary):
+		return false
+	var e = lk.get(link_id).get(part) if link_id != "" and lk.get(link_id) is Dictionary else null
+	if not (e is Dictionary):
+		e = lk.get(part)
+	if not (e is Dictionary):
+		return false
+	var base: String = str(e.get("base", ""))
+	var el: int = px_ul_el(o)
+	var tm: bool = not o.is_leader
+	var cn: String = px_ul_tex(base, 1, tm, "core", el)
+	if base == "" or g.tex.get(cn) == null:
+		return false
+	var at: String = str(e.get("at", "to"))
+	var p: Vector2 = (a if at == "from" else (a + b) * 0.5 if at == "mid" else b) + Vector2(0, float(e.get("y", 0.0)))
+	var ang: float = (b - a).angle() if a != b else 0.0
+	var sc: float = Game.PX * float(e.get("sc", 1.0))
+	if float(e.get("fit", 0.0)) > 0.0:
+		sc *= r / float(e.fit)
+	var rot: bool = e.get("rot", true)
+	var fl: bool = not rot and cos(ang) < 0.0
+	var dn: String = px_ul_tex(base, 1, tm, "deco", el)
+	var dk: float = px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		fx_sprite(dn, p, sc, ang if rot else 0.0, fl, false, Color(1, 1, 1, dk))
+	fx_sprite(cn, p, sc, ang if rot else 0.0, fl)
+	return true
+
+
+## 发散光环关掉了没有（用户 11-04，docs/242 §14.7）：放开版打开且 balance fx/px_halo = 0（缺省）时 true，公共代码里的发散环 / 起手 / 增益 / 治疗挂点都不画
+func px_halo_off() -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and Bal.vi("fx/px_halo", 0) <= 0
 
 
 ## 放开版帧条按哪个精英档取（docs/242 §10）：balance fx/px_ul_elite ≥ 0 时一律用它（展示段录像），否则用干员当前精英化

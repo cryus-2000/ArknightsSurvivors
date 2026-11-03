@@ -347,8 +347,9 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 		p.cmd_inv = maxf(p.cmd_inv, float(dr.dur) + 0.4)
 		p._set_face(1.0 if dir.x >= 0.0 else -1.0, true)
 		var c: Color = _col(dr.col)
-		g.fx.append({"kind": "tracer", "a": p0 + Vector2(0, -20), "b": stop + Vector2(0, -20), "life": float(dr.dur) + 0.14, "max": float(dr.dur) + 0.14, "col": c, "wid": 8.0})
-		if dr.get("strip", "") != "" and g.V6_FRAMES.has(str(dr.strip)):
+		if not g.vfx.px_ul_link(p, "dash", p0, stop, p0.distance_to(stop), str(a.pr.get("id", ""))):   # pixelfx 放开版接管冲刺画面（注册表 link.dash，只改画面）
+			g.fx.append({"kind": "tracer", "a": p0 + Vector2(0, -20), "b": stop + Vector2(0, -20), "life": float(dr.dur) + 0.14, "max": float(dr.dur) + 0.14, "col": c, "wid": 8.0})
+		if dr.get("strip", "") != "" and g.V6_FRAMES.has(str(dr.strip)) and g.vfx.px_ul_reg(str(p.id)).get("link") == null:
 			var fr: Array = g.V6_FRAMES[str(dr.strip)]
 			p.fx({"kind": "tx_strip", "strip": str(dr.strip), "frames": int(fr[0]), "fps": float(fr[1]), "pos": stop, "ang": dir.angle(), "sx": p0.distance_to(stop) / 128.0,
 				"anchor": Vector2(63.0 / 64.0, 0.5), "life": float(fr[0]) / float(fr[1]) + float(dr.dur) * 0.5, "delay": float(dr.dur) * 0.5})
@@ -374,12 +375,15 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 				p.syn_mv = {}
 				p.start_skill(p.ObSummon.mf_skill_aim(p, idx), idx)
 				p.face_to(ang)
-				g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
+				if not g.vfx.px_halo_off():   # 放开版发散光环关掉时不画（用户 11-04，fx/px_halo）
+					g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
 				a.phase = 2
 				a.t_phase = a.age
 				return false
 		p.melee_hit(_src(p, a.pr, dr), stop, ang, half, rr, _dmg(p, float(dr.mult)), float(dr.kb), float(dr.get("stun", 0.0)), ["连携"], 0)
-		p.slash_fx(stop, ang, minf(half, 1.5), rr * 0.9, c, "slash", 0.26)
+		var px_hit: bool = g.vfx.px_ul_link(p, "hit", stop, tp, rr, str(a.pr.get("id", "")))   # pixelfx 放开版接管落点一击（注册表 link.hit）：刀光 / 落点环 / 火花不画，只改画面
+		if not px_hit:
+			p.slash_fx(stop, ang, minf(half, 1.5), rr * 0.9, c, "slash", 0.26)
 		if dr.get("cross", false):   # 两人刀光交叉：施放者的刀光从另一个角度也落在目标处（只有画面，伤害只算搭档这一击）
 			var cf = a.from
 			p.slash_fx(tp, ang + 1.25, 1.1, rr * 0.85, Color(1.0, 0.85, 0.5), "slash", 0.26)
@@ -387,8 +391,10 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 				cf.play_vis_anim("attack")
 		if dr.get("chain", false):   # 锚链：从搭档到目标一道细光
 			g.fx.append({"kind": "beam", "a": stop + Vector2(0, -20), "b": tp + Vector2(0, -12), "life": 0.3, "max": 0.3, "col": c, "w": 2.5})
-		g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
-		p.sparks(tp, a.dir, c, 6, 160.0)
+		if not px_hit:
+			if not g.vfx.px_halo_off():   # 放开版发散光环关掉时不画（用户 11-04，fx/px_halo）
+				g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
+			p.sparks(tp, a.dir, c, 6, 160.0)
 		if not p.acting():
 			p.play_vis_anim("attack")
 		p.screen_shake(0.12)
