@@ -102,9 +102,11 @@ export function create(o) {
   // 离散土脊：4–6 段，各段角度长度 / 离心距离 / 高度都不同，合起来只盖住一圈的三分之一左右（读起来是被砸开翻起的土，不是一道环）
   const ridges = [];
   {
-    const n = dustOnly || quake || big ? 0 : erupt ? 2 : small ? 2 : [3, 4, 5][el];
-    if (quake) for (const c of cracks) {   // 撼地：尘墙只隆在主裂缝末端，一小段
-      if (c.depth) continue;
+    const onEnds = quake || mv === "slam" || mv === "s2";   // 尘墙挂在主裂缝末端（组长 C 11-04：普攻碎石别绕成一圈）
+    const n = dustOnly || big || onEnds ? 0 : erupt ? 2 : small ? 2 : [3, 4, 5][el];
+    let kEnd = quake ? 99 : [2, 2, 3][el];
+    if (onEnds) for (const c of cracks) {   // 撼地：尘墙只隆在主裂缝末端，一小段
+      if (c.depth || kEnd-- <= 0) continue;
       const e = c.pts[c.pts.length - 1], d = Math.hypot(e[0], e[1]);
       ridges.push({ a: Math.atan2(e[1], e[0]), len: Rg.range(10, 16) / Math.max(10, d), d: d / R, h: Rg.range(0.7, 1.1), skew: Rg.range(-0.5, 0.5) });
     }
@@ -163,7 +165,7 @@ export function create(o) {
   const sp = (x, y) => [x, y * SY];   // 地面坐标 → 屏幕
 
   const crackCol = (heat, d, depth) => {   // heat 1 = 白热 → 0 = 冷却成暗裂
-    const i = Math.round(1 + heat * 6 - depth * 0.6 - d / R * 0.8);
+    const i = Math.round(1 + heat * 6 - depth * 0.6 - d / R * 0.8) + (quake ? 1 : 0);   // 撼地裂缝芯亮一档（组长 C：游戏镜头下要读得出）
     return C[clamp(i, 1, 7)];
   };
   const lineB = (p, x0, y0, x1, y1, c, a) => {   // 真半透明细线（p.line 的 a < 1 会抖成点阵）
@@ -329,7 +331,7 @@ export function create(o) {
           const w = (j.w * Math.pow(1 - v, 1.1) + 0.4) * (0.75 + 0.4 * nz);   // 收尖、边缘起伏
           for (let s = -w; s <= w; s += 0.6) {
             const e = Math.abs(s) > w - 0.7;
-            p.px(j.x + s + j.lean * d, j.y - d, d > H - 2 ? C[7] : e ? C[clamp(Math.round(4 + 2 * v), 4, 6)] : C[clamp(Math.round(2 + 3.5 * v + nz), 2, 6)]);
+            p.px(j.x + s + j.lean * d, j.y - d, d > H - 2 ? (u < 0.2 || !big ? C[7] : C[6]) : e ? C[clamp(Math.round(4 + 2 * v), 4, 6)] : C[clamp(Math.round(2 + 3.5 * v + nz), 2, 6)]);
           }
         }
       }
@@ -352,7 +354,7 @@ export function create(o) {
           const [bx, by] = sp(ox * cu.r, oy * cu.r);
           for (let d = base; d < H; d += 0.6) {
             const v = d / Math.max(1, H), push = lean * v * v * 10;
-            p.px(bx + ox * push, by + oy * push * SY - d, d > H - 1.6 ? C[7] : C[clamp(Math.round(2 + 4 * v + 0.8 * noise(d * 0.4 + a * 5, cu.s + 3)), 2, 6)]);
+            p.px(bx + ox * push, by + oy * push * SY - d, d > H - 1.6 ? (u < 0.28 ? C[7] : C[5]) : C[clamp(Math.round(2 + 4 * v + 0.8 * noise(d * 0.4 + a * 5, cu.s + 3)), 2, 6)]);
           }
         }
       }

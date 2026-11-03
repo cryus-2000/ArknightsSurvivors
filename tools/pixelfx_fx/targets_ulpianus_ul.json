@@ -4,7 +4,7 @@
   "fx": "impacts/ak-ulpianus-ul-impact",
   "opts": {
    "move": "slam",
-   "seed": 3
+   "seed": 19
   },
   "colors": 256,
   "layers": true,
@@ -41,7 +41,7 @@
   "fx": "impacts/ak-ulpianus-ul-impact",
   "opts": {
    "move": "slam",
-   "seed": 3,
+   "seed": 19,
    "quick": 1
   },
   "colors": 256,
@@ -60,7 +60,7 @@
   "fx": "impacts/ak-ulpianus-ul-impact",
   "opts": {
    "move": "slam",
-   "seed": 3,
+   "seed": 19,
    "elite": 0
   },
   "colors": 256,
@@ -80,7 +80,7 @@
   "fx": "impacts/ak-ulpianus-ul-impact",
   "opts": {
    "move": "slam",
-   "seed": 3,
+   "seed": 19,
    "elite": 1
   },
   "colors": 256,
