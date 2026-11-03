@@ -38,7 +38,7 @@ static func _exu_ul(g, n: String) -> String:
 	if n.find("exusiai_") < 0 or n.find("_ul_") >= 0 or float(BalE.v("fx/px_unleashed", 0.0)) <= 0.0:
 		return n
 	var u := n.replace("exusiai_", "exusiai_ul_")
-	return u if g.tex.get(u) != null else n
+	return g.vfx.px_ul_tex(u, 1, false) if g.tex.get(u) != null else n   # 网页 / fx/px_ul_lo 时取低档 _lo（docs/242 §6）
 
 
 ## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
@@ -510,7 +510,8 @@ static func exu_draw(o) -> void:
 		var tn: String = _exu_ul(g, str(bu.tex))
 		var tx = g.tex.get(tn) if tn != "" else null
 		if tx != null and tn.find("_ul_") >= 0:   # pixelfx 放开版曳光弹（4 帧，弹头锚点 EXU_UL_HEAD）
-			o.draw_spr_rot(tn, int(g.t * 20.0 + float(bu.get("dmg", 0.0))) % 4, bu.p, bu.v.angle(), g.PX * 0.85 * bfx.k(bu), Color.WHITE, EXU_UL_HEAD * EXU_ART.hires_of(tx))
+			var bfr: Array = g.V6_FRAMES.get(tn, [4, 20.0])
+			o.draw_spr_rot(tn, int(g.t * float(bfr[1]) + float(bu.get("dmg", 0.0))) % int(bfr[0]), bu.p, bu.v.angle(), g.PX * 0.85 * bfx.k(bu), Color.WHITE, EXU_UL_HEAD * EXU_ART.hires_of(tx))
 		elif tx != null:
 			var an: Vector2 = EXU_TEX_ANCHOR[tn] * EXU_ART.hires_of(tx) if EXU_TEX_ANCHOR.has(tn) else Vector2(-1, -1)
 			o.draw_spr_rot(tn, fr, bu.p, bu.v.angle(), g.PX * bfx.k(bu), Color.WHITE, an)

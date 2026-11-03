@@ -1083,7 +1083,12 @@ const V6_FRAMES := {
 	"fx_skadi_ul_slash_tm": [11, 20.0], "fx_skadi_ul_sweep_tm": [12, 20.0], "fx_skadi_ul_spin_tm": [13, 20.0], "fx_skadi_ul_cleave_tm": [18, 20.0],   # 队友版（余韵短）
 	"fx_skadi_ul_slash_lo": [13, 15.0], "fx_skadi_ul_sweep_lo": [13, 15.0], "fx_skadi_ul_spin_lo": [15, 15.0], "fx_skadi_ul_cleave_lo": [16, 15.0], "fx_skadi_ul_geyser1_lo": [20, 15.0],   # 网页低档（docs/242 §6）
 	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_idle": [32, 20.0], "fx_saria_ul_calc_break": [12, 20.0],   # 塞雷娅放开版
+	"fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_calc_grow_lo": [7, 15.0], "fx_saria_ul_calc_idle_lo": [24, 15.0], "fx_saria_ul_calc_break_lo": [9, 15.0],   # 网页低档
 	# 能天使放开版
+	"proj_exusiai_ul_bullet_lo": [3, 15.0], "fx_exusiai_ul_muzzle_lo": [2, 15.0], "fx_exusiai_ul_hit_lo": [4, 15.0],
+	"proj_exusiai_ul_bullet_s1_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s1_lo": [2, 15.0], "fx_exusiai_ul_hit_s1_lo": [4, 15.0],
+	"proj_exusiai_ul_bullet_s2_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s2_lo": [2, 15.0], "fx_exusiai_ul_hit_s2_lo": [4, 15.0],
+	"proj_exusiai_ul_bullet_s3_lo": [3, 15.0], "fx_exusiai_ul_muzzle_s3_lo": [2, 15.0], "fx_exusiai_ul_hit_s3_lo": [4, 15.0],
 	"proj_exusiai_ul_bullet": [4, 20.0], "fx_exusiai_ul_muzzle": [4, 24.0], "fx_exusiai_ul_hit": [6, 24.0],
 	"proj_exusiai_ul_bullet_s1": [4, 20.0], "fx_exusiai_ul_muzzle_s1": [4, 24.0], "fx_exusiai_ul_hit_s1": [6, 24.0],
 	"proj_exusiai_ul_bullet_s2": [4, 20.0], "fx_exusiai_ul_muzzle_s2": [4, 24.0], "fx_exusiai_ul_hit_s2": [6, 24.0],

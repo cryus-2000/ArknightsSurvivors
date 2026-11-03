@@ -14,7 +14,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_muzzle": {
   "fx": "projectiles/ak-exu-ul-muzzle",
@@ -30,7 +31,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_hit": {
   "fx": "impacts/ak-exu-ul-hit",
@@ -45,7 +47,8 @@
     "#ffffff"
    ]
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "proj_exusiai_ul_bullet_s1": {
   "fx": "projectiles/ak-exu-ul-bullet",
@@ -61,7 +64,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_muzzle_s1": {
   "fx": "projectiles/ak-exu-ul-muzzle",
@@ -77,7 +81,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_hit_s1": {
   "fx": "impacts/ak-exu-ul-hit",
@@ -92,7 +97,8 @@
     "#ffffff"
    ]
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "proj_exusiai_ul_bullet_s2": {
   "fx": "projectiles/ak-exu-ul-bullet",
@@ -108,7 +114,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_muzzle_s2": {
   "fx": "projectiles/ak-exu-ul-muzzle",
@@ -124,7 +131,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_hit_s2": {
   "fx": "impacts/ak-exu-ul-hit",
@@ -139,7 +147,8 @@
     "#ffffff"
    ]
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "proj_exusiai_ul_bullet_s3": {
   "fx": "projectiles/ak-exu-ul-bullet",
@@ -155,7 +164,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_muzzle_s3": {
   "fx": "projectiles/ak-exu-ul-muzzle",
@@ -171,7 +181,8 @@
    ]
   },
   "keep": true,
-  "colors": 256
+  "colors": 256,
+  "lo": true
  },
  "fx_exusiai_ul_hit_s3": {
   "fx": "impacts/ak-exu-ul-hit",
@@ -186,6 +197,7 @@
     "#ffffff"
    ]
   },
-  "colors": 256
+  "colors": 256,
+  "lo": true
  }
 }

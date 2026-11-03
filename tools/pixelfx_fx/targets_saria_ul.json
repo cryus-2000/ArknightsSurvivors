@@ -1,7 +1,23 @@
 {
  "_doc": "塞雷娅放开版（docs/242，开关 fx/px_unleashed）：盾击 + 钙质化琥珀晶簇（长出 / 常驻 / 碎裂）",
- "fx_saria_ul_bash": {"fx": "impacts/ak-saria-ul-bash", "colors": 256},
- "fx_saria_ul_calc_grow": {"fx": "nature/ak-saria-ul-calcite-grow", "colors": 256},
- "fx_saria_ul_calc_idle": {"fx": "nature/ak-saria-ul-calcite-idle", "colors": 256},
- "fx_saria_ul_calc_break": {"fx": "nature/ak-saria-ul-calcite-break", "colors": 256}
+ "fx_saria_ul_bash": {
+  "fx": "impacts/ak-saria-ul-bash",
+  "colors": 256,
+  "lo": true
+ },
+ "fx_saria_ul_calc_grow": {
+  "fx": "nature/ak-saria-ul-calcite-grow",
+  "colors": 256,
+  "lo": true
+ },
+ "fx_saria_ul_calc_idle": {
+  "fx": "nature/ak-saria-ul-calcite-idle",
+  "colors": 256,
+  "lo": true
+ },
+ "fx_saria_ul_calc_break": {
+  "fx": "nature/ak-saria-ul-calcite-break",
+  "colors": 256,
+  "lo": true
+ }
 }
