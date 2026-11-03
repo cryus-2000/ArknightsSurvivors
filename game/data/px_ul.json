@@ -76,6 +76,12 @@
 	},
 	"suzuran": {
 		"_doc": "铃兰放开版：命中 bullet.hit、减速 status.slow 走注册表；其余画面在 seg_suzuran（_h4_px*）里画（起手不走 cast：§14.7 下注册表 cast 挂点不播）",
+		"finish": {
+			"_doc": "终结技收尾（§14.23）：忍冬一刀自带刀痕连环爆裂（fx_suzuran_ul_rupt）+ 细裂缝 + 刀口，公共烟尘 / 碎石 / 粒子都不画",
+			"dust": false,
+			"rock": false,
+			"burst": false
+		},
 		"heal": {
 			"base": "fx_suzuran_ul_heal",
 			"halo_ok": true
