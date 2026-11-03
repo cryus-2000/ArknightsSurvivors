@@ -19,6 +19,25 @@
   "palette_src": "build/ark_ref/logos/logos_cb_01.png, lib_trail_trail_208.png（原作 cici / lizi 渐变色）",
   "lo": true
  },
+ "fx_logos_ul_hit_e2": {
+  "fx": "arcane/ak-logos-ul-ink",
+  "opts": {
+   "move": "atk_hit",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "logos.json base aoe 36（命中溅射半径）：尖刺 13–21 美术像素 ≈ 26–42 世界像素，落在溅射圈 ×1.0 左右；起手 / 弹体 / S1 每跳无判定形状（单体），尺寸照原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos/logos_cb_01.png, lib_trail_trail_208.png（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
  "fx_logos_ul_hit2": {
   "fx": "arcane/ak-logos-ul-ink",
   "opts": {
@@ -112,6 +131,25 @@
   "palette_src": "build/ark_ref/logos/logos_cb_01.png, lib_trail_trail_208.png（原作 cici / lizi 渐变色）",
   "lo": true
  },
+ "fx_logos_ul_start_e2": {
+  "fx": "arcane/ak-logos-ul-ink",
+  "opts": {
+   "move": "atk_start",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "logos.json base aoe 36（命中溅射半径）：尖刺 13–21 美术像素 ≈ 26–42 世界像素，落在溅射圈 ×1.0 左右；起手 / 弹体 / S1 每跳无判定形状（单体），尺寸照原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos/logos_cb_01.png, lib_trail_trail_208.png（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
  "fx_logos_ul_start2": {
   "fx": "arcane/ak-logos-ul-ink",
   "opts": {
@@ -187,6 +225,25 @@
   "palette_src": "build/ark_ref/logos/logos_cb_01.png, lib_trail_trail_208.png（原作 cici / lizi 渐变色）"
  },
  "fx_logos_ul_s1": {
+  "fx": "arcane/ak-logos-ul-ink",
+  "opts": {
+   "move": "s1_tick",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "logos.json base aoe 36（命中溅射半径）：尖刺 13–21 美术像素 ≈ 26–42 世界像素，落在溅射圈 ×1.0 左右；起手 / 弹体 / S1 每跳无判定形状（单体），尺寸照原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos/logos_cb_01.png, lib_trail_trail_208.png（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_s1_e2": {
   "fx": "arcane/ak-logos-ul-ink",
   "opts": {
    "move": "s1_tick",
@@ -317,6 +374,25 @@
   "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
   "lo": true
  },
+ "fx_logos_ul_s2hit_e2": {
+  "fx": "arcane/ak-logos-ul-ink",
+  "opts": {
+   "move": "s2_hit",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
  "fx_logos_ul_s2hit_tm": {
   "fx": "arcane/ak-logos-ul-ink",
   "opts": {
@@ -373,6 +449,25 @@
   "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
   "lo": true
  },
+ "fx_logos_ul_s2exec_e2": {
+  "fx": "arcane/ak-logos-ul-ink",
+  "opts": {
+   "move": "s2_exec",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
  "fx_logos_ul_s2exec_tm": {
   "fx": "arcane/ak-logos-ul-ink",
   "opts": {
@@ -411,6 +506,25 @@
   "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）"
  },
  "fx_logos_ul_s2cast": {
+  "fx": "arcane/ak-logos-ul-ink",
+  "opts": {
+   "move": "s2_cast",
+   "elite": 2
+  },
+  "colors": 256,
+  "hires": false,
+  "keep": false,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "logos",
+   "opts": {},
+   "src": "单体 / 原作还原同比例（Claude outputs/logos_ref/）"
+  },
+  "palette_src": "build/ark_ref/logos（原作 cici / lizi 渐变色）",
+  "lo": true
+ },
+ "fx_logos_ul_s2cast_e2": {
   "fx": "arcane/ak-logos-ul-ink",
   "opts": {
    "move": "s2_cast",
