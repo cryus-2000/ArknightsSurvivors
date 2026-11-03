@@ -38,6 +38,12 @@ export function create(o) {
   const SW = 0.07;                                  // 刀头扫过整条弧的时间
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[6], C[5], C[4], C[3]] }), lights = new Lights();
   const motes = el >= 2 ? jitterSteps(Rg, o.span, 0.12, 0.42).map((u) => ({ a: -half + u, r: R + Rg.range(-6, 3), d: Rg.range(0.03, 0.12), life: Rg.range(0.15, 0.35) * (0.5 + TAIL) })) : [];
+  // 原作参照（11-03 还原 hsguma_attack_01）：回旋斩弧内有一层刷开的流纹（huixuan），命中甩出几片小三角碎片。这里照形不照色（原作蓝青太靠近敌弹青 #33ceff）
+  const streaks = [0, 1].slice(0, [1, 2, 2][el]).map((i) => { const v0 = Rg.range(0.08, 0.45) + i * 0.2; return { r: R - Rg.range(6, 9) - i * Rg.range(4, 7), v0, v1: Math.min(0.97, v0 + Rg.range(0.25, 0.45)), lag: Rg.range(0.0, 0.03) }; });   // 一两道、错开、长短不一（多道等长平行会读成同心弧）
+  const shards = Array.from({ length: [3, 4, 6][el] }, () => {
+    const a = -half + o.span * Rg.range(0.25, 1.0);
+    return { a, sp: Rg.range(40, 90), dv: Rg.range(-0.5, 0.5), rot: Rg.range(0, 6.28), spin: Rg.range(-14, 14), s: Rg.range(1.6, 2.8), d: SW * ((a + half) / o.span), life: Rg.range(0.18, 0.3) * (0.7 + TAIL) };
+  });
   let t = 0, fired = false;
   return {
     update(dt) {
@@ -76,7 +82,23 @@ export function create(o) {
           p.blend(Math.cos(m.a) * rr, Math.sin(m.a) * rr, J[3 + (k > 0.6 ? 1 : 0)], 0.9 * k);
         }
       }
-      if (deco) {
+      if (deco) {   // 原作回旋流纹：弧内侧几道刷开的细纹，跟在刀头后面、比刀身先淡
+        const sk = 0.35 * (1 - smooth(0.06, 0.1 + TAIL * 0.4, t));
+        if (sk > 0.02) for (const s of streaks) {
+          const b0 = -half + o.span * s.v0, b1 = Math.min(a1 - s.lag * 8, -half + o.span * s.v1);
+          for (let a = Math.max(b0, a0); a < b1; a += 0.6 / s.r) {
+            const v = (a - b0) / Math.max(b1 - b0, 0.01), rr = s.r + 0.6 * noise(a * 11, o.seed + s.r);
+            p.blend(Math.cos(a) * rr, Math.sin(a) * rr, el >= 2 ? J[2 + (v > 0.7 ? 1 : 0)] : C[3 + (v > 0.7 ? 1 : 0)], sk * (0.4 + 0.6 * v));
+          }
+        }
+        for (const s of shards) {   // 原作小三角碎片：沿切向 + 往外甩、自转
+          const u = t - s.d;
+          if (u < 0 || u > s.life) continue;
+          const k = 1 - u / s.life, dir = s.a + Math.PI / 2 * 0.6 + s.dv, cx = Math.cos(s.a) * R + Math.cos(dir) * s.sp * u, cy = Math.sin(s.a) * R + Math.sin(dir) * s.sp * u, r0 = s.rot + s.spin * u;
+          const V = [0, 2.3, 4.2].map((q, i) => [cx + Math.cos(r0 + q) * s.s * (i ? 0.7 : 1.2), cy + Math.sin(r0 + q) * s.s * (i ? 0.7 : 1.2)]);
+          const cc = el >= 2 ? J[k > 0.5 ? 4 : 3] : C[k > 0.5 ? 5 : 4];
+          for (let i = 0; i < 3; i++) p.line(V[i][0], V[i][1], V[(i + 1) % 3][0], V[(i + 1) % 3][1], cc, k);
+        }
         const gk = (el >= 2 ? 0.3 : 0.2) * (1 - smooth(0.03, 0.12 + TAIL * 0.3, t));
         if (gk > 0.01) for (let a = a0; a < a1; a += 0.25) p.glow(Math.cos(a) * (R - 3), Math.sin(a) * (R - 3), 9, el >= 2 ? J[3] : C[4], gk);
         ps.draw(p, "back");
