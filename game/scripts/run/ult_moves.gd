@@ -1548,6 +1548,13 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 				dv = -dv
 			g.enemies_sys.apply_kb(e, dv * _kb_v(90.0))
 		var hy: Vector2 = Vector2(0, -40.0 - 80.0 * sin(k * PI)) if _ka_alive(a) else Vector2.ZERO
+		if _ka_ul(u):   # 放开版：不画青绿拖尾（青绿近敌弹青），只留 Mon3tr 本体的残影；落点只压暗一片地面，不画预警圈线（用户 11-04：不要光环）
+			if not a.has("zone"):
+				a["zone"] = _ka_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": KA_UL_ZONE, "fill": 0.0, "life": 9.0, "layer": "back"})
+			a.zone.fill = 0.12 * k
+			a.zone.age = 0.0
+			a.prev = p
+			return false
 		u.shape({"kind": "line", "a": Vector2(a.prev) + Vector2(0, -40.0), "b": p + hy, "w": 9.0, "col": KA_COL, "life": 0.22})
 		if not _ka_alive(a):
 			u.shape({"kind": "circle", "c": p, "r": 20.0, "col": KA_COL, "fill": 0.9, "life": 0.05})
@@ -1565,6 +1572,17 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 	if t < t1:   # 落地蓄力：不伤害；地面预警越来越亮、光往落点收、Mon3tr 身上聚能
 		var kw: float = (t - cd) / wind
 		var core: Vector2 = (a.m3.pos if _ka_alive(a) else c) + Vector2(0, -38.0)
+		if _ka_ul(u):   # 放开版蓄力：红晶刺沿弯路收向 Mon3tr（fx_kaltsit_ul_ultcharge，往里收、不画光环），地面越压越暗、震屏渐强
+			if not a.get("charged", false):
+				a["charged"] = true
+				_ka_ul_strip(u, "fx_kaltsit_ul_ultcharge", a.m3.pos if _ka_alive(a) else c, {"life": t1 - t})
+				u.grain("bfx_dust", c, Vector2.UP, Color(0.75, 0.8, 0.8), 10)
+				u.shake(3.0, 0.15)
+			if a.has("zone"):
+				a.zone.fill = 0.12 + 0.4 * kw
+				a.zone.age = 0.0
+			u.shake(1.0 + 3.0 * kw, 0.12)
+			return false
 		if not a.get("charged", false):
 			a["charged"] = true
 			# 落地：一圈尘、轻震，熔毁蓄力帧条（fx_ult_kaltsit_melt_front charge 0–2）铺满蓄力时长
@@ -1608,13 +1626,20 @@ static func _ka_step(u, a: Dictionary, o) -> bool:
 		var r0: float = 0.0 if i == 0 else float(rs[i - 1])
 		if i == 0:
 			_ka_blast(u, a, o)
+		elif _ka_ul(u):
+			_ka_ul_pops(u, c, r0, float(rs[i]), i)
 		var opt := {"src": "熔毁", "big": 1.0}
 		if i == 0:
 			opt["stun"] = Bal.v("ult/ka_stun", 1.0)
 		_hit_circle(u, a, o, c, float(rs[i]), float(a.fs[i]), a.segs[i], opt, R)
 		var col: Color = KA_HOT.lerp(Color.WHITE, 0.5 - 0.2 * i)
-		_ring(u, c, float(rs[i]), maxf(30.0, r0), col, 0.35, 10.0 - 2.0 * i)
-		if a.get("v2", false):   # v2：不再画同心炽热实线 + 弧段裂纹；沿圈地块隆起，最外圈尘土墙外推 + 余震
+		if _ka_ul(u):
+			pass   # 放开版：不画外扩冲击环 / 尘圈 / 地块（用户 11-04：往外发散的光环一律不要），外两圈由 _ka_ul_pops 散落小爆
+		elif true:
+			_ring(u, c, float(rs[i]), maxf(30.0, r0), col, 0.35, 10.0 - 2.0 * i)
+		if _ka_ul(u):
+			pass
+		elif a.get("v2", false):   # v2：不再画同心炽热实线 + 弧段裂纹；沿圈地块隆起，最外圈尘土墙外推 + 余震
 			_ka_ring_v2(u, c, float(rs[i]), i, R)
 		else:
 			# 每圈：沿圈一道连续的炽热实线（程序画，整圈不断）+ 一圈掀起的地块；裂纹帧条（fx_ult_kaltsit_crack_back，地面层）只作点缀
@@ -1678,6 +1703,19 @@ static func _ka_blast(u, a: Dictionary, o) -> void:
 	if _ka_alive(a):
 		o.ObSummon._sm_end(o, a.m3, "leave")   # Mon3tr 炸开用掉：8 秒内不在场（不执行 on_expire）
 		o.set_meta("ult_m3_back", u.g.t + 9.0)   # 兜底：动作被中途清掉时，下次任何人放终结技会补回 Mon3tr
+	if _ka_ul(u) and a.has("zone"):   # 放开版：压暗的地面在爆点撤掉
+		u.shapes.erase(a.zone)
+		a.fx.erase(a.zone)
+		a.erase("zone")
+	if _ka_ul(u):   # 放开版爆心：fx_kaltsit_ul_ultblast（白热晶芯 → 红热团块碎成红晶片和红火星 + 地面红裂纹；纯红粒子、无烟、无外扩环），进冲击帧剪影 + 顿帧
+		var n1: int = u.shapes.size()
+		_ka_ul_strip(u, "fx_kaltsit_ul_ultblast", c, {"sc": float(a.rs[0]) / 226.0})
+		if Bal.v("ult/ka_fx_v3", 1.0) > 0.0:
+			PF.hf_since(u, n1)
+			PF.hf_on(u, a)
+			u.g.vfx.stop(Bal.v("ult/ka_hitstop", 0.12), "ult", true)
+		u.shake(9.0, 0.4)
+		return
 	if a.get("v2", false):
 		var n0: int = u.shapes.size()
 		_ka_blast_v2(u, c, core, R)
@@ -1757,6 +1795,37 @@ static func _ka_chunks(u, c: Vector2, r: float, n: int, seed0: int) -> void:
 	u.grain("bfx_dust", c, Vector2.UP, Color(0.7, 0.72, 0.72), 3)
 
 
+## ---------------- pixelfx 放开版（docs/242，开关 fx/px_unleashed；claude/pixelfx-ul-kaltsit）：蓄力 / 爆心 / 外圈小爆 / 重构换成本人帧条，判定 / 时序 / 随机数不动（画面位置只用 PF.h(vseed)）
+const KA_UL_ZONE := Color(0.16, 0.02, 0.02)
+
+
+static func _ka_ul(u) -> bool:
+	return Bal.vi("fx/px_unleashed", 0) > 0 and u.fx_ready("fx_kaltsit_ul_ultblast")
+
+
+## 先装饰（透明度 × fx/px_deco_k）后核心；名字走 vfx.px_ul_tex（网页 / fx/px_ul_lo 取低档）
+static func _ka_ul_strip(u, base: String, c: Vector2, opt: Dictionary) -> Dictionary:
+	var d: String = u.g.vfx.px_ul_tex(base, 1, false, "deco")
+	var dk: float = u.g.vfx.px_deco_k()
+	if d != "" and dk > 0.0:
+		var od := opt.duplicate()
+		od["col"] = Color(1, 1, 1, dk)
+		u.strip(d, c, od)
+	return u.strip(u.g.vfx.px_ul_tex(base, 1, false), c, opt)
+
+
+## 外两圈：在 r0..r1 的环带里不等角、不等距地散落几团小红爆（fx_kaltsit_ul_ultpop，烤制半径 60 世界像素），各自错开 0–0.12 秒
+static func _ka_ul_pops(u, c: Vector2, r0: float, r1: float, i: int) -> void:
+	var vs: float = PF.vseed(u, c) + float(i) * 13.7
+	var n: int = 5 + 2 * i
+	var a0: float = PF.h(vs) * TAU
+	for m in n:
+		var hq: float = PF.h(vs + float(m) * 2.31)
+		var ang: float = a0 + TAU * (float(m) + (hq - 0.5) * 0.7) / float(n)
+		var rr: float = lerpf(maxf(r0, 40.0) + 20.0, r1 - 20.0, PF.h(vs + float(m) * 5.7))
+		_ka_ul_strip(u, "fx_kaltsit_ul_ultpop", c + Vector2(cos(ang), sin(ang) * 0.55) * rr, {"delay": 0.12 * PF.h(vs + float(m) * 9.1), "sc": 0.8 + 0.5 * hq})
+
+
 ## Mon3tr 重构（heal = 队长回复 8% 最大生命）
 static func _m3_back(u, o, heal: bool) -> void:
 	if o.has_meta("ult_m3_back"):
@@ -1771,7 +1840,10 @@ static func _m3_back(u, o, heal: bool) -> void:
 	o.ObSummon.sm_spawn(o, {"kind": "mon3tr", "at": "rest"}, Vector2.INF)
 	var m3 = _ka_m3(o)
 	if m3 != null:   # 重构（fx_ult_kaltsit_rebuild_orbit，底部中心 = 脚底，12 帧 0.75 秒）：只是结构线特效，本体就是这只真 Mon3tr；_m3_watch 让它跟着走
-		o.set_meta("ult_m3_fx", u.strip("fx_ult_kaltsit_rebuild_orbit", m3.pos, {"o": Vector2(128, 253)}))
+		if _ka_ul(u):   # 放开版：骨白外壳片从四周聚回它身上，结尾黄绿十字一闪（fx_kaltsit_ul_m3back，往里收）
+			o.set_meta("ult_m3_fx", _ka_ul_strip(u, "fx_kaltsit_ul_m3back", m3.pos, {}))
+		else:
+			o.set_meta("ult_m3_fx", u.strip("fx_ult_kaltsit_rebuild_orbit", m3.pos, {"o": Vector2(128, 253)}))
 	if heal:
 		u.g.combat.heal(u.g.max_hp * Bal.v("ult/ka_heal", 0.08), "终结技", "kaltsit")
 

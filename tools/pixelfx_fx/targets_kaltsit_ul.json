@@ -1,0 +1,382 @@
+{
+ "_doc": "凯尔希 + Mon3tr pixelfx 放开版（claude/pixelfx-ul-kaltsit-claude-f7a041，开关 fx/px_unleashed）。原作参照 build/ark_ref/kaltsit + build/ark_ref/mon3tr（monstr.ab），还原见 Claude outputs/pixelfx_ul_kaltsit/ref/。色阶：源码里本地黄绿 7 阶 + 熔毁红 7 阶，待样板改 house.js OP.kaltsit（已报组长）。11-04 用户：爪痕顺攻击方向、不要外扩光环、画面不能脏。",
+ "fx_kaltsit_ul_claw_e0": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "basic",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  },
+  "deco_step": 2
+ },
+ "fx_kaltsit_ul_claw_e1": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "basic",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  }
+ },
+ "fx_kaltsit_ul_claw": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "basic",
+   "elite": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "lo": true,
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  }
+ },
+ "fx_kaltsit_ul_claw2": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "basic",
+   "elite": 2,
+   "seed": 9
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  }
+ },
+ "fx_kaltsit_ul_claw_tm": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "basic",
+   "elite": 2,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  }
+ },
+ "fx_kaltsit_ul_clawm": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "s3"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  }
+ },
+ "fx_kaltsit_ul_clawm2": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "s3",
+   "seed": 9
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  }
+ },
+ "fx_kaltsit_ul_clawm_tm": {
+  "fx": "melee/ak-kaltsit-ul-claw",
+  "opts": {
+   "move": "s3",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "(m_reach+16)/2",
+    "half": "m_arc"
+   },
+   "src": "kaltsit.json base m_reach / m_arc；+16 = summons.mon3tr.attack.pad（kaltsit.json），/2 = 1 美术像素 2 世界像素；运行时按当前 reach 缩放（精一 ×1.2、S2 ×1.3）"
+  }
+ },
+ "fx_kaltsit_ul_melt": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "end"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "melt_r/2"
+   },
+   "src": "kaltsit.json base melt_r（trait/2 r_abs）"
+  },
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_melt2": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "end",
+   "seed": 9
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "melt_r/2"
+   },
+   "src": "同上"
+  },
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_melt_tm": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "end",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "melt_r/2"
+   },
+   "src": "同上"
+  },
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_rebuild": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "rebuild"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "rebuild_r/2"
+   },
+   "src": "kaltsit.json base rebuild_r（melt_triple 3–5、on_down；运行时按实际 r 缩放）"
+  },
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_rebuild_tm": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "rebuild",
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "rebuild_r/2"
+   },
+   "src": "同上"
+  },
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_debride": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "debride"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true,
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": "clear_r/2"
+   },
+   "src": "kaltsit.json base clear_r（ob_summon.sm_debride）"
+  },
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_heal_e0": {
+  "fx": "holy/ak-kaltsit-ul-heal",
+  "opts": {
+   "move": "heal",
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_kaltsit_ul_heal_e1": {
+  "fx": "holy/ak-kaltsit-ul-heal",
+  "opts": {
+   "move": "heal",
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill"
+ },
+ "fx_kaltsit_ul_heal": {
+  "fx": "holy/ak-kaltsit-ul-heal",
+  "opts": {
+   "move": "heal",
+   "elite": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_kaltsit_ul_shellheal": {
+  "fx": "holy/ak-kaltsit-ul-heal",
+  "opts": {
+   "move": "s1",
+   "elite": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_kaltsit_ul_cast1": {
+  "fx": "holy/ak-kaltsit-ul-cast",
+  "opts": {
+   "move": "s1"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_kaltsit_ul_cast2": {
+  "fx": "holy/ak-kaltsit-ul-cast",
+  "opts": {
+   "move": "s2"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_kaltsit_ul_cast3": {
+  "fx": "holy/ak-kaltsit-ul-cast",
+  "opts": {
+   "move": "s3"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "lo": true
+ },
+ "fx_kaltsit_ul_ultcharge": {
+  "fx": "holy/ak-kaltsit-ul-cast",
+  "opts": {
+   "move": "ult",
+   "tin": 0.6
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true
+ },
+ "fx_kaltsit_ul_ultblast": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "ult"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true,
+  "judge": {
+   "op": "kaltsit",
+   "opts": {
+    "radius": 113
+   },
+   "src": "ult_moves.gd _ka_start：rs[0] = 180 × ult/ka_r 580 / 460 = 227 世界像素 → 113（1x）"
+  },
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_ultpop": {
+  "fx": "impacts/ak-kaltsit-ul-melt",
+  "opts": {
+   "move": "pop",
+   "radius": 30
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true,
+  "check_sy": 0.55
+ },
+ "fx_kaltsit_ul_m3back": {
+  "fx": "holy/ak-kaltsit-ul-cast",
+  "opts": {
+   "move": "m3"
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "ult",
+  "lo": true
+ }
+}

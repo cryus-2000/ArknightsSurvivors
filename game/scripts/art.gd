@@ -1103,6 +1103,23 @@ const V6_FRAMES := {
 	# 斯卡蒂装饰层（docs/242 §8，与核心逐帧对齐；打包帧条的取帧表在 data/px_frames.json）
 	"fx_skadi_ul_slash_deco": [18, 20.0], "fx_skadi_ul_slash_e0_deco": [6, 10.0], "fx_skadi_ul_slash_e1_deco": [8, 10.0], "fx_skadi_ul_sweep_deco": [13, 20.0], "fx_skadi_ul_sweep_e0_deco": [5, 10.0], "fx_skadi_ul_sweep_e1_deco": [6, 10.0], "fx_skadi_ul_spin_deco": [20, 20.0], "fx_skadi_ul_spin_e0_deco": [7, 10.0], "fx_skadi_ul_spin_e1_deco": [8, 10.0], "fx_skadi_ul_cleave_deco": [23, 20.0], "fx_skadi_ul_cleave_e0_deco": [11, 10.0], "fx_skadi_ul_cleave_e1_deco": [12, 10.0], "fx_skadi_ul_geyser1_deco": [26, 20.0], "fx_skadi_ul_geyser2_deco": [27, 20.0], "fx_skadi_ul_slash_tm_deco": [15, 20.0], "fx_skadi_ul_sweep_tm_deco": [11, 20.0], "fx_skadi_ul_spin_tm_deco": [8, 10.0], "fx_skadi_ul_cleave_tm_deco": [23, 20.0], "fx_skadi_ul_charge_deco": [7, 20.0], "fx_skadi_ul_charge_big_deco": [7, 20.0],
 	"fx_skadi_ul_sweep_deco_lo": [10, 15.0], "fx_skadi_ul_spin_deco_lo": [8, 7.5], "fx_skadi_ul_cleave_deco_lo": [17, 15.0], "fx_skadi_ul_geyser1_deco_lo": [20, 15.0], "fx_skadi_ul_charge_deco_lo": [5, 15.0], "fx_skadi_ul_charge_big_deco_lo": [5, 15.0],   # 装饰层网页低档（普攻不出，docs/242 §11）
+	# 凯尔希 + Mon3tr 放开版（claude/pixelfx-ul-kaltsit-claude-f7a041，docs/242：Mon3tr 爪击 / 熔毁爪 / 熔毁爆 / 重构 / 清创 / 治疗 / 起手 / 终结技；两层 + 低档）
+	"fx_kaltsit_ul_claw_e0": [6, 24.0], "fx_kaltsit_ul_claw_e0_deco": [3, 12.0], "fx_kaltsit_ul_claw_e1": [11, 24.0], "fx_kaltsit_ul_claw_e1_deco": [11, 24.0], "fx_kaltsit_ul_claw": [13, 24.0],
+	"fx_kaltsit_ul_claw_lo": [8, 15.0], "fx_kaltsit_ul_claw_deco": [13, 24.0], "fx_kaltsit_ul_claw2": [13, 24.0], "fx_kaltsit_ul_claw2_deco": [13, 24.0], "fx_kaltsit_ul_claw_tm": [10, 24.0],
+	"fx_kaltsit_ul_claw_tm_deco": [10, 24.0], "fx_kaltsit_ul_clawm": [13, 24.0], "fx_kaltsit_ul_clawm_lo": [8, 15.0], "fx_kaltsit_ul_clawm_deco": [13, 24.0], "fx_kaltsit_ul_clawm_deco_lo": [8, 15.0],
+	"fx_kaltsit_ul_clawm2": [15, 24.0], "fx_kaltsit_ul_clawm2_deco": [15, 24.0], "fx_kaltsit_ul_clawm_tm": [10, 24.0], "fx_kaltsit_ul_clawm_tm_deco": [10, 24.0], "fx_kaltsit_ul_melt": [19, 20.0],
+	"fx_kaltsit_ul_melt_lo": [14, 15.0], "fx_kaltsit_ul_melt_deco": [19, 20.0], "fx_kaltsit_ul_melt_deco_lo": [14, 15.0], "fx_kaltsit_ul_melt2": [19, 20.0], "fx_kaltsit_ul_melt2_deco": [19, 20.0],
+	"fx_kaltsit_ul_melt_tm": [11, 20.0], "fx_kaltsit_ul_melt_tm_deco": [11, 20.0], "fx_kaltsit_ul_rebuild": [17, 20.0], "fx_kaltsit_ul_rebuild_lo": [13, 15.0], "fx_kaltsit_ul_rebuild_deco": [17, 20.0],
+	"fx_kaltsit_ul_rebuild_deco_lo": [13, 15.0], "fx_kaltsit_ul_rebuild_tm": [10, 20.0], "fx_kaltsit_ul_rebuild_tm_deco": [10, 20.0], "fx_kaltsit_ul_debride": [12, 20.0], "fx_kaltsit_ul_debride_lo": [9, 15.0],
+	"fx_kaltsit_ul_debride_deco": [12, 20.0], "fx_kaltsit_ul_debride_deco_lo": [9, 15.0], "fx_kaltsit_ul_heal_e0": [10, 20.0], "fx_kaltsit_ul_heal_e0_deco": [10, 20.0], "fx_kaltsit_ul_heal_e1": [13, 20.0],
+	"fx_kaltsit_ul_heal_e1_deco": [13, 20.0], "fx_kaltsit_ul_heal": [16, 20.0], "fx_kaltsit_ul_heal_lo": [12, 15.0], "fx_kaltsit_ul_heal_deco": [16, 20.0], "fx_kaltsit_ul_heal_deco_lo": [12, 15.0],
+	"fx_kaltsit_ul_shellheal": [16, 20.0], "fx_kaltsit_ul_shellheal_lo": [12, 15.0], "fx_kaltsit_ul_shellheal_deco": [16, 20.0], "fx_kaltsit_ul_shellheal_deco_lo": [12, 15.0], "fx_kaltsit_ul_cast1": [15, 20.0],
+	"fx_kaltsit_ul_cast1_lo": [11, 15.0], "fx_kaltsit_ul_cast1_deco": [15, 20.0], "fx_kaltsit_ul_cast1_deco_lo": [11, 15.0], "fx_kaltsit_ul_cast2": [15, 20.0], "fx_kaltsit_ul_cast2_lo": [11, 15.0],
+	"fx_kaltsit_ul_cast2_deco": [15, 20.0], "fx_kaltsit_ul_cast2_deco_lo": [11, 15.0], "fx_kaltsit_ul_cast3": [16, 20.0], "fx_kaltsit_ul_cast3_lo": [12, 15.0], "fx_kaltsit_ul_cast3_deco": [16, 20.0],
+	"fx_kaltsit_ul_cast3_deco_lo": [12, 15.0], "fx_kaltsit_ul_ultcharge": [17, 20.0], "fx_kaltsit_ul_ultcharge_lo": [13, 15.0], "fx_kaltsit_ul_ultcharge_deco": [17, 20.0], "fx_kaltsit_ul_ultcharge_deco_lo": [13, 15.0],
+	"fx_kaltsit_ul_ultblast": [19, 20.0], "fx_kaltsit_ul_ultblast_lo": [14, 15.0], "fx_kaltsit_ul_ultblast_deco": [19, 20.0], "fx_kaltsit_ul_ultblast_deco_lo": [14, 15.0], "fx_kaltsit_ul_ultpop": [9, 20.0],
+	"fx_kaltsit_ul_ultpop_lo": [7, 15.0], "fx_kaltsit_ul_ultpop_deco": [9, 20.0], "fx_kaltsit_ul_ultpop_deco_lo": [7, 15.0], "fx_kaltsit_ul_m3back": [17, 20.0], "fx_kaltsit_ul_m3back_lo": [13, 15.0],
+	"fx_kaltsit_ul_m3back_deco": [17, 20.0], "fx_kaltsit_ul_m3back_deco_lo": [13, 15.0],
 	# 塞雷娅放开版（docs/242：盾击含 _tm、治疗、钙质化晶簇三段、终结技砸地；两层 + 低档）
 	"fx_saria_ul_bash": [14, 20.0], "fx_saria_ul_bash_lo": [10, 15.0], "fx_saria_ul_bash_deco": [14, 20.0], "fx_saria_ul_bash_deco_lo": [10, 15.0],
 	"fx_saria_ul_calc_grow": [9, 20.0], "fx_saria_ul_calc_grow_lo": [7, 15.0], "fx_saria_ul_calc_grow_deco": [9, 20.0], "fx_saria_ul_calc_grow_deco_lo": [7, 15.0],
