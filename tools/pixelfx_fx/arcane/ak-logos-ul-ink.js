@@ -47,7 +47,8 @@ const BAND = ["#.#.##.#..###.#.#.##..#.##.#", "###.#..##.#.#.##..#.#.#..###", "#
 export function create(o) {
   const C = fit(o.palette, 8), Rg = new Rng(o.seed), el = clamp(Math.round(+o.elite), 0, 2), quick = +o.quick > 0, mv = o.move || "atk_hit";
   const core = o.layer !== "deco", deco = o.layer !== "core", ACC = hex(o.accent);
-  const DL = [0.5, 0.75, 1][el] * (quick ? 0.5 : 1), GK = [0.25, 0.42, 0.6][el], PM = [0.6, 0.85, 1.15][el];
+  const TS = [1, 1.25, 1.5][el], TW = [1, 1.3, 1.45][el];   // 分档：主形体量 / 粗细（组长 B 11-04 硬标准：只加在主形上）
+  const DL = [0.5, 0.7, 1.15][el] * (quick ? 0.5 : 1), GK = [0.25, 0.42, 0.6][el], PM = [0.6, 0.85, 1.15][el];
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[6], C[5]], haze: C[2] }), lights = new Lights();
   const isS1 = mv.startsWith("s1"), isS2 = mv.startsWith("s2"), isHit = mv === "atk_hit" || mv === "s1_tick" || mv === "s2_hit" || mv === "s2_exec" || mv === "s3_hit" || mv === "ult_burst", isS3 = mv.startsWith("s3"), isBolt = mv === "atk_bolt" || mv === "s3_bolt", isStart = mv === "atk_start" || mv === "s2_cast";
   let t = 0;
@@ -55,8 +56,22 @@ export function create(o) {
   // ---- 四芒星（一招的实心主形，§0.1）：四臂长短不等、根部宽梢尖的实心三角；hot 2 = 定帧爆亮（全白、略大），1 = 冷却中（浅蓝），0 = 原作 AB 暗星（近黑身 + 蓝描边）
   function star(p, x, y, L, k, dark, hot = 1) {
     const arms = [[1, 0, L[0]], [-1, 0, L[1]], [0, -1, L[2]], [0, 1, L[3]]];
+    if (el >= 2) {   // E2 质变：四芒星 → 八芒星，斜臂短一截、用 E2 专属紫（先画，被正臂压在下面）
+      for (const [ang, len] of [[-0.62, L[0] * 0.85], [-2.3, L[1] * 0.6], [0.95, L[1] * 0.45], [2.55, L[0] * 0.7]]) {   // 斜臂不等角、不等长（规整八芒星过不了放射检查，也显得机械）
+        const dx = Math.cos(ang), dy = Math.sin(ang);
+        const n = Math.round(len * k), W = Math.max(1.6, len * 0.2) * TW;
+        for (let i = 0; i <= n; i++) {
+          const v = i / Math.max(n, 1), hw = W * Math.pow(1 - v, 1.3);
+          for (let q = -Math.ceil(hw); q <= Math.ceil(hw); q++) {
+            if (Math.abs(q) > hw + 0.35) continue;
+            const edge = Math.abs(q) > hw - 0.8 || v > 0.85;
+            p.px(Math.round(x + dx * i - dy * q), Math.round(y + dy * i + dx * q), dark ? (edge ? ACC : C[1]) : hot >= 2 && !edge ? C[7] : ACC);
+          }
+        }
+      }
+    }
     for (const [dx, dy, len] of arms) {
-      const n = Math.round(len * k), W = Math.max(1.5, len * 0.17) * (hot >= 2 ? 1.2 : 1);
+      const n = Math.round(len * k), W = Math.max(1.5, len * 0.17) * (hot >= 2 ? 1.2 : 1) * TW;
       for (let i = 0; i <= n; i++) {
         const v = i / Math.max(n, 1), hw = W * Math.pow(1 - v, 1.3);
         for (let q = -Math.ceil(hw); q <= Math.ceil(hw); q++) {
@@ -131,22 +146,22 @@ export function create(o) {
 
   // ---------------- 命中（普攻 hit_01 / S1 hitloop）
   const S1R = isS1 ? 1.15 : mv === "s2_exec" ? 1.3 : mv === "s3_hit" ? 1.35 : mv === "ult_burst" ? 2.2 : 1;
-  const SL = [Rg.range(17, 22), Rg.range(13, 17), Rg.range(10, 14), Rg.range(9, 12)].map((v) => v * [0.65, 0.72, 0.85][el] * S1R);   // 四臂：横长竖短（原作 star_06 / 164）
+  const SL = [Rg.range(17, 22), Rg.range(13, 17), Rg.range(10, 14), Rg.range(9, 12)].map((v) => v * 0.78 * TS * S1R);   // 四臂：横长竖短（原作 star_06 / 164）
   // §0.4 不碎：一招同时 ≤3 种元素。主形 = 实心四芒星；第二种 = 尖刺（普攻 E0–E1 / S3）或墨羽（普攻 E2 质变）或字符带 / 符文条（S1 / S2 / 终结技）；
   // 第三种 = 有重量的字符碎块（落地弹一下、慢慢冷却熄灭，§0.2）。放射细光、淡星点、旋涡细段、下落细光都删了（满屏细线细点）
   const isAtk = mv === "atk_hit";
   const thorns = [];
-  for (let i = 0, n = isAtk && el < 2 ? Rg.int(3, 4) : mv === "s3_hit" ? 4 : 0; i < n; i++)
-    thorns.push({ a: Rg.range(0, TAU), len: Rg.range(14, 21), w: Rg.range(2.6, 3.4), d: Rg.range(0.02, 0.05), s: Rg.range(0, 1) });
+  for (let i = 0, n = isAtk ? Rg.int(2, 3) : mv === "s3_hit" ? 3 : 0; i < n; i++)   // 尖刺是陪衬：比主形短、按档同比放大
+    thorns.push({ a: Rg.range(0, TAU), len: Rg.range(9, 13) * TS * S1R, w: Rg.range(2.2, 2.8) * TW, d: Rg.range(0.02, 0.05), s: Rg.range(0, 1) });
   const GY = mv === "ult_burst" ? 22 : isS1 ? 12 : 10;   // 地面（命中点 = 目标身体中心，往下约半个身高是脚底）
   const chunks = [];   // 字符碎块：贴着命中点小幅弹起、落地、弹一次、躺着冷却（不往外甩，§14.7）
-  const nCh = !isHit ? 0 : mv === "ult_burst" ? 7 : mv === "s3_hit" || mv === "s2_exec" ? 4 : [1, 3, 4][el];
+  const nCh = !isHit ? 0 : mv === "ult_burst" ? 7 : mv === "s3_hit" || mv === "s2_exec" ? 4 : [2, 3, 3][el];
   for (let i = 0; i < nCh; i++) {
     const side = i % 2 ? 1 : -1;
     chunks.push({ g: Rg.int(0, GLY.length - 1), x: Rg.range(-3, 3), y: Rg.range(-4, 2), vx: side * Rg.range(12, 32) * (mv === "ult_burst" ? 1.8 : 1), vy: -Rg.range(40, 85), d: Rg.range(0.03, 0.09), rest: 0, cool: Rg.range(0.35, 0.55) });
   }
   const feathers = [];
-  if (el >= 2 && isAtk) for (let i = 0, n = Rg.int(2, 3); i < n; i++) {
+  if (false) for (let i = 0, n = Rg.int(2, 3); i < n; i++) {   // 普攻 E2 墨羽：分档新规只加在主形上，停用
     const a = (i % 2 ? Math.PI : 0) + Rg.range(-0.5, 0.5);
     feathers.push({ x: Rg.range(-4, 4), y: Rg.range(4, 10), a, bend: Rg.range(-0.6, 0.6), L: Rg.range(26, 36), arc: Rg.range(-7, 7), w: Rg.range(1.8, 2.6), barb: Rg.int(3, 5), barbEvery: Rg.int(5, 8), barbOff: Rg.int(0, 4), s: Rg.int(1, 999), d: Rg.range(0.03, 0.08) });
   }
@@ -212,10 +227,10 @@ export function create(o) {
       if (core && isHit) {
         // 1) 四芒星：0–0.05 s 白，之后暗星（原作 glow_star_add → glow_star_ab）
         // 节奏（§0.1）：接触即定帧爆亮（0–0.05 s 全白、略大）→ 冷却成浅蓝（0.05–0.1 s）→ 暗星余韵慢慢缩淡
-        const hot = t < 0.05 ? 2 : t < 0.1 ? 1 : 0, dark = hot === 0;
+        const hot = t < 0.05 || (el >= 1 && t >= 0.1 && t < 0.13) ? 2 : t < (el >= 1 ? 0.17 : 0.1) ? 1 : 0, dark = hot === 0;   // E1 / E2 二连爆亮（多一拍）
         const fade = smooth(0.2, 0.25 + 0.4 * DL, t);
         const SLd = SL.map((v, i) => v * (i < 2 ? 1.5 : 1.25));   // 暗星比白星大（原作 glow_star_ab 1.14 × 1.3）
-        if (fade < 1) star(p, 0, 0, hot === 2 ? SL.map((v) => v * 1.12) : dark ? SLd : SL, dark ? (1 + 0.08 * el) * (1 - fade * 0.45) : 1, dark, hot);
+        if (fade < 1) star(p, 0, 0, hot === 2 ? SL.map((v) => v * 1.12) : dark ? SLd : SL, dark ? 1 - fade * 0.45 : 1, dark, hot);
         // 2) 白色锯齿尖刺（原作 cici：白 → 蓝 → 深蓝，0.3–0.4 s）
         for (const th of thorns) {
           const u = t - th.d;
@@ -228,21 +243,21 @@ export function create(o) {
           if (t < c.d) continue;
           const cl = c.rest > 0 ? c.rest / c.cool : 0;
           if (cl >= 1) continue;
-          const ci = cl < 0.25 && mv !== "ult_burst" ? 7 : cl < 0.55 ? 6 : cl < 0.8 ? 5 : 4;
+          const ci = cl < 0.55 ? 6 : cl < 0.8 ? 5 : 4;
           if (cl > 0.8 && ((Math.round(t * 30) + c.g) % 3 === 0)) continue;   // 熄灭前闪两下
           glyph(p, c.g, Math.round(c.x) - 1, Math.round(c.y) - (GLY[c.g].length - 1), el >= 2 && c.g % 3 === 1 && cl < 0.55 ? ACC : C[ci]);
         }
         // 3b) S2：实心字符带（四分之三圈椭圆、不闭合、原地写出不外扩，用户 11-04），白 → 灰蓝 → 深蓝后溶掉；E2 镂空透紫
         if (isS2 && mv !== "s2_exec") {
           const u = t - 0.02, k = ease.outCubic(clamp(u / 0.08)), f = smooth(0.3 * DL + 0.1, 0.55 * DL + 0.2, u);
-          if (u > 0 && f < 1) glyphBand(p, 0, 2, ring.r, ring.r * 0.42, ring.a0, ring.a0 + ring.span, 3.2, C[u < 0.08 ? 7 : u < 0.2 ? 5 : 3], el >= 2 ? ACC : C[1], k, f, 3);
+          if (u > 0 && f < 1) glyphBand(p, 0, 2, ring.r, ring.r * 0.42, ring.a0, ring.a0 + ring.span, 3.2, C[u < 0.2 ? 6 : 4], el >= 2 ? ACC : C[1], k, f, 3);
         }
         // 3c) 处决 / 终结技：斜立的实心符文条（原作 fuwen）从脚下往上写出，条身白、字符镂空，停一会儿转暗溶掉
         for (const pl of pillars) {
           const u = t - pl.d;
           if (u <= 0) continue;
           const k = ease.outCubic(clamp(u / 0.15)), f = smooth(0.35 * DL + 0.15, 0.6 * DL + 0.3, u), H = pl.h * 5 * k;
-          const col = C[u < 0.05 ? 7 : u < 0.3 ? 6 : 4], cut = el >= 2 ? ACC : C[1], sx = Math.sin(pl.tilt), cy = Math.cos(pl.tilt);
+          const col = C[u < 0.3 ? 6 : 4], cut = el >= 2 ? ACC : C[1], sx = Math.sin(pl.tilt), cy = Math.cos(pl.tilt);
           for (let j = 0; j < H; j++) for (let q = -2; q <= 2; q++) {
             if (noise2(pl.x + j * 0.4, q + u * 12, 33) < f * 2 - 1) continue;
             const hw = j > H - 3 ? 1 : 2;   // 梢头收窄
@@ -252,12 +267,12 @@ export function create(o) {
           }
         }
         // 4) S1 E1+：一条直的实心字符带从逻各斯那侧穿过目标（原作 hitloop 的横向白色字符线；弯成弧会读成月牙，§12.1）
-        if (isS1 && el >= 1) {
+        if (isS1) {   // 三档都有，粗细 / 长度按档
           const u = t - band.d;
           if (u > 0 && u < 0.5 * DL + 0.2) {
-            const k = ease.outExpo(clamp(u / 0.08)), f = smooth(0.25 * DL + 0.1, 0.5 * DL + 0.2, u), x0 = -30, x1 = 8, xe = x0 + (x1 - x0) * k;
+            const k = ease.outExpo(clamp(u / 0.08)), f = smooth(0.25 * DL + 0.1, 0.5 * DL + 0.2, u), x0 = Math.round(-24 * TS), x1 = Math.round(6 * TS), xe = x0 + (x1 - x0) * k;
             for (let x = x0; x <= xe; x++) {
-              const v = (x - x0) / (x1 - x0), hw = v < 0.15 ? 1 : 2, ci = (x - x0 + 40) % BAND[0].length;
+              const v = (x - x0) / (x1 - x0), hw = v < 0.15 ? 1 : el >= 1 ? 2 : 1, ci = (x - x0 + 40) % BAND[0].length;
               for (let q = -hw; q <= hw - 1; q++) {
                 if (f > 0 && noise2(x * 0.4, q + u * 10, 7) < f * 2 - 1) continue;
                 const cut = q === 0 && hw === 2 && BAND[0][ci] === "#" && BAND[1][ci] === "#";
@@ -305,7 +320,7 @@ export function create(o) {
             p.px(x, y, C[d > rr - 1.2 ? 4 : d > rr * 0.55 ? 1 : 0]);
           }
         }
-        if (b >= 0 && b < 0.4) { const hot = b < 0.05 ? 2 : b < 0.1 ? 1 : 0; star(p, 0, 0, [16, 13, 11, 9].map((v) => v * (hot === 2 ? 1.12 : 1)), hot ? 1 : 1 - smooth(0.12, 0.4, b) * 0.5, !hot, hot); }
+        if (b >= 0 && b < 0.4) { const hot = b < 0.05 ? 2 : b < 0.1 ? 1 : 0; star(p, 0, 0, [16, 13, 11, 9].map((v) => v * (hot === 2 ? 1.12 : 1) * 0.8), hot ? 1 : 1 - smooth(0.12, 0.4, b) * 0.5, !hot, hot); }
         for (const c of chunks) {
           if (t < c.d) continue;
           const cl = c.rest > 0 ? c.rest / c.cool : 0;
@@ -316,12 +331,16 @@ export function create(o) {
       if (core && isStart) {
         // 挥笔：外圈白弧 + 内侧暗弧（原作 dg：robrta_slash 白 + wisdel 暗），0.05 s 扫过、0.25 s 溶掉；收笔处四芒星
         const head = ease.outExpo(clamp(t / 0.07)), tail = smooth(0.1, 0.32, t);
-        if (head > 0.15) for (let s = tail; s <= head; s += 0.008) {
-          const a = swing.a0 - swing.span * s, w = 1.8 * Math.pow(Math.sin(Math.PI * clamp((s - tail) / Math.max(head - tail, 0.01))), 1.5);   // 两头收尖成月牙
-          for (let q = -w; q <= w; q += 0.5) {
-            const r = swing.R + q, inner = q < -w * 0.3;
-            if (noise2(s * 30, q * 3, 2) < tail * 2 - 1) continue;
-            p.px(swing.cx + Math.cos(a) * r, swing.cy + Math.sin(a) * r, C[inner ? 1 : q > w - 0.7 ? 7 : 6]);
+        // 分档：E1 弧更粗更大；E2 质变成双笔（第二笔同向、在内侧错开、晚 0.04 s，外缘 E2 专属紫；反向两笔会合成头顶拱圈，§12.3）
+        for (const [sg, dl, sx] of el >= 2 ? [[1, 0, 0], [-1, 0.04, 3]] : [[1, 0, 0]]) {
+          const hd = ease.outExpo(clamp((t - dl) / 0.07)), tl = smooth(0.1 + dl, 0.32 + dl, t), R = swing.R * Math.sqrt(TS) * (sg < 0 ? 0.68 : 1);
+          if (hd > 0.15) for (let s = tl; s <= hd; s += 0.008) {
+            const a = swing.a0 + (sg < 0 ? 0.35 : 0) - swing.span * s, w = 1.8 * TW * Math.pow(Math.sin(Math.PI * clamp((s - tl) / Math.max(hd - tl, 0.01))), 1.5);   // 两头收尖
+            for (let q = -w; q <= w; q += 0.5) {
+              const r = R + q, inner = q < -w * 0.3;
+              if (noise2(s * 30, q * 3, 2 + sx) < tl * 2 - 1) continue;
+              p.px(swing.cx + sx + Math.cos(a) * r, swing.cy + sx + Math.sin(a) * r, inner ? C[1] : q > w - 0.7 ? (sg < 0 ? ACC : C[7]) : C[6]);
+            }
           }
         }
         // E1+：胸前浮起一段白色字符带（原作 attack_start_02 字环）：碎字符沿前半圈椭圆排开、逐个写出，E2 每隔一个紫
@@ -330,7 +349,7 @@ export function create(o) {
           if (u > 0 && f < 1) glyphBand(p, swing.cx, swing.cy - 2, 12, 4, Math.PI * 0.05, Math.PI * 0.95, 2.6, C[7], el >= 2 ? ACC : C[2], ease.outCubic(clamp(u / 0.12)), f, 5);   // 实心字符带、镂空字符（不再一颗颗散点，§0.4）
         }
         const u = t - 0.14;
-        if (u > 0 && u < 0.42) star(p, 0, 0, [9, 7, 6, 5].map((v) => v * [0.9, 1, 1.15][el] * (mv === "s2_cast" ? 1.35 : 1)), u < 0.05 ? 0.6 + 0.4 * ease.outCubic(u / 0.05) : 1 - smooth(0.15, 0.42, u) * 0.6, u > 0.1);
+        if (u > 0 && u < 0.42) star(p, 0, 0, [9, 7, 6, 5].map((v) => v * TS * (mv === "s2_cast" ? 1.35 : 1)), u < 0.05 ? 0.6 + 0.4 * ease.outCubic(u / 0.05) : 1 - smooth(0.15, 0.42, u) * 0.6, u > 0.1);
       }
       if (deco) {
         lights.draw(p);
