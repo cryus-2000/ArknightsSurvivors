@@ -54,7 +54,8 @@ func update(_dt: float) -> void:
 
 ## 位置：以队长为中心、画面半宽 / 半高 × duck/spawn_edge 的矩形边上（画面内靠边一圈），缩圈时收进圈内
 func spawn() -> Dictionary:
-	var half: Vector2 = g.view_size() * 0.5 * Bal.v("duck/spawn_edge", 0.85)
+	# 按名义镜头倍率换算，不读 g.view_size()（实时缩放按真实时间走，同 seed 出生点会随机器快慢变、整局伤害分叉；11-05 bug 排查，同 spawner._view_half_diag）
+	var half: Vector2 = g.get_viewport_rect().size / maxf(0.01, Cfg.battle_zoom()) * 0.5 * Bal.v("duck/spawn_edge", 0.85)
 	var d := Vector2.from_angle(rng.randf() * TAU)
 	var k: float = minf(half.x / maxf(absf(d.x), 0.001), half.y / maxf(absf(d.y), 0.001))
 	var p: Vector2 = g.spawner.safe_event_pos(g.ppos + d * k, 110.0)
