@@ -1885,7 +1885,7 @@ func _draw_skill_over() -> void:
 	_draw_shots()      # 安洁莉娜段：重力弹
 	SegExusiai.exu_draw(self)  # 能天使段：弹体
 	VisGrowth.draw(self)       # 可见成长：额外弹 / 剑气
-	ObSummon.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
+	ObSummon.sm_draw_over(self, ObFx.px_ul_status_draw(self))   # 召唤 / 封印段：封印标记、护盾；放开版状态附件先画（docs/242 §14.18），接管了的旧标记不画
 	ObSummon.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
 	ObElite.el_draw_over(self)    # 精英化段：往返弹体
 	if not hw.is_empty():

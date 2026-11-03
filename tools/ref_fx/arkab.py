@@ -266,7 +266,12 @@ def dump_prefabs(env, names):
             if tr is not None:
                 node["kids"].append(walk(go_obj.assets_file.objects[tr.read_typetree()["m_GameObject"]["m_PathID"]]))
         return node
-    return {g.m_Name: walk(o) for o, g in _roots(env, names)}
+    out = {}
+    for o, g in _roots(env, names):
+        r = walk(o)
+        r["active"] = True   # 根节点在包里常是关着的（运行时由技能脚本 SetActive），关着照样回放，否则整棵跳过出空画面（组长 C 11-04）
+        out[g.m_Name] = r
+    return out
 
 
 def mesh_name(prefab, path):
