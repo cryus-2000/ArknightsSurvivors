@@ -4,6 +4,7 @@
 // 原点 = 逻各斯脚底（圆形咒域 = 圆心），正右 = 扇形朝向；判定是正圆，帧条不压扁（sy 选项留给原作对照）。循环帧（游戏里按扇形朝向旋转、按当前半径 / R 缩放，开 / 收由代码淡入淡出）。
 // 判定形状：半角 deg / 2、半径 R（judge：s3_fan_deg、range × s3_fan_r；外缘弧和两条边是核心层，内部填充与光归装饰层）。
 import { Rng, fit, hex, clamp, smooth, noise, noise2, TAU } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const meta = {
   name: "Logos acuity field",
@@ -16,7 +17,7 @@ export const meta = {
   fps: 15,   // 15 fps × 0.8 s 循环 = 12 帧（网页低档同帧数，不因抽帧变多；显存，docs/242 §11.1）
   bg: "dark",
   options: {
-    palette: ["#07081a", "#11143a", "#1f2560", "#33407f", "#5b67a8", "#9aa3d6", "#dfe3f7", "#ffffff"],
+    palette: ["#07081a", ...OP.logos],   // house.js OP.logos（§14）
     accent: "#a487ff",
     deg: 100,
     R: 150,

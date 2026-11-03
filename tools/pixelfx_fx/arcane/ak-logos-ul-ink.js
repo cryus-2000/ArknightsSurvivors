@@ -6,6 +6,7 @@
 //       s1_tick（原点 = 目标身体中心，正右 = 从逻各斯指向目标）/ s1_lock（原点 = 目标脚底）。
 // 分档（docs/91）：E0 原作基础形；E1「剜魂」加白色字符（碎字符 / 一段字符带）；E2「连缀」质变：深蓝墨羽从命中处甩开 + 暗星更大、紫色重点。
 import { Particles, Lights, P, Rng, fit, hex, clamp, smooth, ease, noise, noise2, TAU } from "../../core/index.js";
+import { OP } from "../house.js";
 
 export const meta = {
   name: "Logos ink unleashed",
@@ -18,7 +19,7 @@ export const meta = {
   fps: 20,
   bg: "dark",
   options: {
-    palette: ["#07081a", "#11143a", "#1f2560", "#33407f", "#5b67a8", "#9aa3d6", "#dfe3f7", "#ffffff"],   // 原作偏灰的蓝（cici #6472a6、lizi #56629b），不用高饱和
+    palette: ["#07081a", ...OP.logos],   // house.js OP.logos 7 阶（§14，组长 B 11-04），最暗一阶为压暗底色
     accent: "#a487ff",
     move: "atk_hit",
     elite: 2,
@@ -124,7 +125,8 @@ export function create(o) {
   }
   // S1：放射细光（原作 star_79_2 多芒星；角度 / 长短 / 先后都随机，不等距）+ 暗色旋涡残段（原作 flow_203 网格，两三段不闭合）
   const rays = [];
-  if (isS1) for (let i = 0, n = Rg.int(6, 8); i < n; i++) rays.push({ a: Rg.range(0, TAU), L: Rg.range(10, 24), d: Rg.range(0, 0.03) });
+  const rayA = Rg.range(0, TAU);   // S1 放射细光偏向一侧成簇（不绕整圈，避开规整放射 §9.3）
+  if (isS1) for (let i = 0, n = Rg.int(4, 5); i < n; i++) rays.push({ a: rayA + Rg.range(-1.5, 1.5), L: Rg.range(10, 24), d: Rg.range(0, 0.03) });
   const swirl = [];
   if (isS1 || mv === "s2_exec" || mv === "ult_burst") for (let i = 0, n = Rg.int(2, 3); i < n; i++) swirl.push({ a0: Rg.range(0, TAU), sp: Rg.range(1.2, 2.0), r: Rg.range(11, 17) * (mv === "ult_burst" ? 2 : 1), w: Rg.range(2, 3.5) * (mv === "ult_burst" ? 1.6 : 1) });
   const band = { a: Rg.range(-0.35, 0.35), r: Rg.range(15, 19), d: 0.05 };   // E1+ S1：绕目标的一段字符带（原作 hit_03 / buff_03 字环的意思，半圈不闭合）
@@ -157,10 +159,6 @@ export function create(o) {
         burst = true;
         if (deco) {
           lights.add(0, 0, 7 * S1R, C[6], GK * 1.2, 0.08);   // 命中点光：小而短、不随档变大（大圆光读成孤立圆，组长 B 11-04）
-          for (let i = 0, n = Math.round(12 * PM); i < n; i++) {   // 墨点：顺弹道方向喷（原作 lizi_ab，黑 → 深蓝）
-            const a = isS1 ? Rg.range(0, TAU) : Rg.range(-0.5, 0.5), sp = Rg.range(60, 200);
-            ps.spawn(P.STREAK, 0, 0, Math.cos(a) * sp, Math.sin(a) * sp * 0.8, Rg.range(0.15, 0.35) * DL + 0.05, C[i % 3 ? 1 : 3], Rg.range(0.7, 1.1));
-          }
           for (let i = 0, n = Math.round([3, 5, 7][el] * (isS1 ? 1.3 : 1)); i < n; i++) {   // 淡星点（原作 xxlizi；改冷白，避开结晶暖金）
             const a = Rg.range(0, TAU), r = Rg.range(6, 22);
             ps.spawn(P.STAR, Math.cos(a) * r, Math.sin(a) * r * 0.7, Rg.range(-6, 6), Rg.range(-14, -2), Rg.range(0.3, 0.7) * DL + 0.1, i % 2 ? C[6] : C[7], Rg.range(0.8, 1.2), 0.15 + Rg.range(0, 0.15));
@@ -222,7 +220,7 @@ export function create(o) {
         for (const s of shards) {
           const u = t - s.d;
           if (u <= 0 || u > s.life) continue;
-          const v = u / s.life, x = s.vx * u * (1 - v * 0.4), y = s.vy * u + 30 * u * u;
+          const v = u / s.life, x = s.vx * 0.14, y = s.vy * 0.14 + 6 * v;   // 原地浮现、微沉后闪灭，不往外飞（§14.7）
           if (v > 0.6 && ((Math.round(u * 40) + s.g) % 3 === 0)) continue;   // 消失前闪烁
           glyph(p, s.g, x - 1, y - 2, v < 0.5 ? C[7] : C[6]);
         }
@@ -312,7 +310,7 @@ export function create(o) {
         if (b >= 0) for (const s3s of castShards) {
           const v = b - s3s.d;
           if (v <= 0 || v > s3s.life) continue;
-          glyph(p, s3s.g, Math.round(s3s.vx * v) - 1, Math.round(s3s.vy * v + 20 * v * v) - 2, v < s3s.life * 0.5 ? C[7] : C[5]);
+          glyph(p, s3s.g, Math.round(s3s.vx * 0.25) - 1, Math.round(s3s.vy * 0.25 + 10 * v) - 2, v < s3s.life * 0.5 ? C[7] : C[5]);
         }
       }
       if (core && isStart) {
