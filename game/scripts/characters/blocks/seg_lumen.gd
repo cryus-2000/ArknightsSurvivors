@@ -182,9 +182,12 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 				b.pierce = int(b.pierce) - 1   # 贯穿卡 / 穿甲弹：穿过去继续飞（已命中的不再打）
 			else:
 				b.life = 0.0
-			if not o.spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
-				o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": H3_WARM, "alpha": 0.6})
-			_h3_vsparks(o, e.pos + Vector2(0, -e.r * 0.5), H3_WARM, 4, 120.0, 0.3, 2.0)
+			if _px_ul_lm(o):   # pixelfx 放开版光弹命中：尖刺水花 + 十字星（原作 lumen_attack_01_hit），顺弹道方向；队长版两变体（g.vrng）
+				_px_ul_fx(o, "fx_lumen_ul_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX, b.vel.angle(), 1 + int(g.vrng.randi() % 2))
+			else:
+				if not o.spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
+					o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": H3_WARM, "alpha": 0.6})
+				_h3_vsparks(o, e.pos + Vector2(0, -e.r * 0.5), H3_WARM, 4, 120.0, 0.3, 2.0)
 			break
 	lm.bolts = lm.bolts.filter(func(b): return b.life > 0.0)
 
@@ -501,6 +504,18 @@ static func _px_ul_lm(o) -> bool:
 	return float(preload("res://scripts/core/balance.gd").v("fx/px_unleashed", 0.0)) > 0.0 and o.g.tex.get("fx_lumen_ul_drizzle") != null
 
 
+## 放开版一次性帧条：先装饰（× px_deco_k）后核心；vi = 变体（队友版一律 1），精英档跟流明本人
+static func _px_ul_fx(o, base: String, pos: Vector2, sc: float, ang := 0.0, vi := 1) -> void:
+	var g = o.g
+	var el: int = g.vfx.px_ul_el(o)
+	var tm: bool = not o.is_leader
+	var dn: String = g.vfx.px_ul_tex(base, 1 if tm else vi, tm, "deco", el)
+	var dk: float = g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, pos, sc, ang, false, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(g.vfx.px_ul_tex(base, 1 if tm else vi, tm, "core", el), pos, sc, ang)
+
+
 static func h3_purge(o, b: Dictionary) -> void:
 	var g = o.g
 	var lm := _h3lm(o)
@@ -533,8 +548,18 @@ static func _h3lm_draw_over(o) -> void:
 	var a: Dictionary = o.B.get("attack", {})
 	var bt: Dictionary = a.get("bolt", {})
 	var tn: String = str(bt.get("tex", "proj_lumen_bolt"))
+	var px_ul: bool = _px_ul_lm(o)
+	var bn: String = g.vfx.px_ul_tex("proj_lumen_ul_bolt", 1, not o.is_leader, "core", g.vfx.px_ul_el(o)) if px_ul else ""
+	var bd: String = g.vfx.px_ul_tex("proj_lumen_ul_bolt", 1, not o.is_leader, "deco", g.vfx.px_ul_el(o)) if px_ul else ""
+	var dk: float = g.vfx.px_deco_k(o) if px_ul else 0.0
 	for b in lm.bolts:
 		var big: bool = b.get("big", false)
+		if px_ul and g.tex.get(bn) != null:   # pixelfx 放开版光弹：雨滴形弹头 + 钢蓝细尾（原作 lumen_attack_01_trail），先装饰后核心
+			var fr: int = int(g.t * 20.0 + b.pos.x * 0.05) % 4
+			if bd != "" and dk > 0.0:
+				o.draw_spr_rot(bd, fr, b.pos, b.vel.angle(), g.PX, Color(1, 1, 1, dk))
+			o.draw_spr_rot(bn, fr, b.pos, b.vel.angle(), g.PX)
+			continue
 		if g.tex.get(tn) != null:
 			if big:
 				cv.draw_line(b.pos - b.vel.normalized() * 22.0, b.pos, Color(2.0, 1.6, 0.9, 0.55), 6.0)
@@ -705,6 +730,10 @@ static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
 	best["lit"] = float(bt.get("lit", 3.0))
 	var a: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 	var b: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
+	if _px_ul_lm(o):   # pixelfx 放开版折光：钢蓝白细线 + 落点精一水花（不用暖色）
+		o.fx({"kind": "line", "pos": a, "to": b, "life": 0.14, "col": Color(0.85, 0.95, 1.1), "w": 1.0, "laser": true})
+		o.spawn_fx_sprite(g.vfx.px_ul_tex("fx_lumen_ul_hit", 1, true, "core", 1), b, g.PX * 0.8, (b - a).angle())
+		return
 	o.fx({"kind": "line", "pos": a, "to": b, "life": 0.12, "col": Color(1.6, 1.45, 1.0), "w": 1.0, "laser": true})
 	if not o.spawn_fx_sprite(str(rf.get("hit", "fx_lumen_refract_hit")), b, g.PX):
 		o.spawn_fx_sprite("fx_holy_impact_lantern", b, g.PX * 0.5)
@@ -723,8 +752,9 @@ static func _e3_beam_shot(o, lm: Dictionary, from: Vector2, to_pt: Vector2, dmg:
 	if int(lm.charge_n) >= int(bm.get("need", 8)):
 		lm.charge_n = 0
 		lm.empowered = int(bm.get("shots", 8))
-		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, -94), "r": 22.0, "r0": 4.0, "life": 0.4, "col": H3_WARM, "keep": true})
-		_h3_vsparks(o, o.pos + Vector2(0, -94), H3_WARM, 8, 120.0, 0.4, 2.0)
+		if not _px_ul_lm(o):   # 放开版不画外扩光环（用户 11-04），攒满提示交给出光处的四芒星
+			o.fx({"kind": "ring", "pos": o.pos + Vector2(0, -94), "r": 22.0, "r0": 4.0, "life": 0.4, "col": H3_WARM, "keep": true})
+			_h3_vsparks(o, o.pos + Vector2(0, -94), H3_WARM, 8, 120.0, 0.4, 2.0)
 	return false
 
 
@@ -750,10 +780,16 @@ static func _e3_beam_fire(o, bm: Dictionary, from: Vector2, d: Vector2, dmg: flo
 		o.log_hit(src)
 		o.deal_damage(e, bd)
 		e["lit"] = 3.0
-		if not o.spawn_fx_sprite(str(bm.get("hit", "fx_lumen_beam_hit")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
+		if _px_ul_lm(o):
+			_px_ul_fx(o, "fx_lumen_ul_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.8, d.angle())
+		elif not o.spawn_fx_sprite(str(bm.get("hit", "fx_lumen_beam_hit")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
 			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.18, "col": Color(1.6, 1.5, 1.2), "alpha": 0.7})
 	if g.hp < g.max_hp and float(bm.get("heal", 0.0)) > 0.0:
 		o.heal_leader(g.max_hp * float(bm.heal), o.display_name(), str(bm.get("heal_sub", "")))
+	if _px_ul_lm(o):   # pixelfx 放开版灯塔光柱：整条一下子出现、往中线收、从出光端熄（帧条烤 pillar_len，按当前长度缩放）
+		_px_ul_fx(o, "fx_lumen_ul_pillar", from, g.PX * L / float(bm.get("len", 200.0)), d.angle())
+		_h3_sfx(o, "atk", 2.0, 1.25, 0.05)
+		return
 	o.fx({"kind": "h3_beam", "pos": from, "dir": d, "len": L, "w": W, "life": 0.2, "tile": str(bm.get("tile", "fx_lumen_beam"))})
 	if not o.spawn_fx_sprite(str(bm.get("flare", "fx_lumen_beam_flare")), from, g.PX):
 		o.fx({"kind": "glow", "pos": from, "r": 14.0, "life": 0.2, "col": Color(1.6, 1.4, 0.9), "alpha": 0.7})

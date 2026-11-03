@@ -92,5 +92,104 @@
    },
    "src": "lumen.json base.rain_r（S1 光雨范围，世界像素；/2 = 1x 美术像素）"
   }
+ },
+ "proj_lumen_ul_bolt": {
+  "fx": "projectiles/ak-lumen-ul-bolt",
+  "opts": {
+   "elite": 2
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "basic",
+  "check_note": "循环弹体，原作 lumen_attack_01_trail"
+ },
+ "proj_lumen_ul_bolt_e0": {
+  "fx": "projectiles/ak-lumen-ul-bolt",
+  "opts": {
+   "elite": 0
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic"
+ },
+ "proj_lumen_ul_bolt_e1": {
+  "fx": "projectiles/ak-lumen-ul-bolt",
+  "opts": {
+   "elite": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic"
+ },
+ "fx_lumen_ul_hit": {
+  "fx": "impacts/ak-lumen-ul-hit",
+  "opts": {
+   "elite": 2,
+   "seed": 4
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "basic"
+ },
+ "fx_lumen_ul_hit2": {
+  "fx": "impacts/ak-lumen-ul-hit",
+  "opts": {
+   "elite": 2,
+   "seed": 9
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic"
+ },
+ "fx_lumen_ul_hit_tm": {
+  "fx": "impacts/ak-lumen-ul-hit",
+  "opts": {
+   "elite": 2,
+   "seed": 4,
+   "quick": 1
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic"
+ },
+ "fx_lumen_ul_hit_e0": {
+  "fx": "impacts/ak-lumen-ul-hit",
+  "opts": {
+   "elite": 0,
+   "seed": 4
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic"
+ },
+ "fx_lumen_ul_hit_e1": {
+  "fx": "impacts/ak-lumen-ul-hit",
+  "opts": {
+   "elite": 1,
+   "seed": 4
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "basic"
+ },
+ "fx_lumen_ul_pillar": {
+  "fx": "projectiles/ak-lumen-ul-pillar",
+  "opts": {
+   "seed": 6
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "basic",
+  "judge": {
+   "op": "lumen",
+   "opts": {
+    "len": "pillar_len/2",
+    "w": "pillar_w/2"
+   },
+   "src": "lumen.json base.pillar_len / pillar_w（attack.beam len / w，世界像素；/2 = 1x）"
+  }
  }
 }
