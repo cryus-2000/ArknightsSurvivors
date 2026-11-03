@@ -253,6 +253,8 @@ static func px_ul_on(o) -> bool:
 
 
 static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c := Vector2.INF) -> bool:
+	if b.get("px_ul", true) == false:   # 形状块写 "px_ul": false = 不接管这一下（同 src 同圆心同拍的重复判定，例：浊心斯卡蒂 trait「领唱」与普攻「声浪」；纯画面）
+		return false
 	var reg: Dictionary = o.g.vfx.px_ul_reg(str(o.id))
 	if reg.is_empty():
 		return false
@@ -282,11 +284,12 @@ static func px_ul_shape(o, b: Dictionary, hits: Array, ang: float, r: float, c :
 	var dk: float = o.g.vfx.px_deco_k(o)
 	var mo: Dictionary = reg.get("motes", _ED)
 	var bl := {"fit": float(dw.get("fit", 80.0)), "k": float(dw.get("k", 1.0)), "along": float(dw.get("along", 0.0)), "y": float(dw.get("y", -10.0)), "mirror": dw.get("mirror", "face")}
-	if c != Vector2.INF:   # 圆形判定：画在圆心，不随出手方向转
+	if c != Vector2.INF:   # 圆形判定：画在圆心，不随出手方向转（形状条目 spin = 整圈随机转角，画面随机 vrng：德克萨斯骤雨连斩 4 下各不相同）
 		var sc: float = r * float(bl.k) / float(bl.fit)
+		var rot: float = o.g.vrng.randf() * TAU if ent.get("spin", false) else 0.0
 		if dn != "" and dk > 0.0:
-			o.spawn_fx_sprite(dn, c + Vector2(0, float(bl.y)), sc, 0.0, false, false, Color(1, 1, 1, dk))
-		o.spawn_fx_sprite(nm, c + Vector2(0, float(bl.y)), sc, 0.0, false, false, Color.WHITE)
+			o.spawn_fx_sprite(dn, c + Vector2(0, float(bl.y)), sc, rot, false, false, Color(1, 1, 1, dk))
+		o.spawn_fx_sprite(nm, c + Vector2(0, float(bl.y)), sc, rot, false, false, Color.WHITE)
 	else:
 		if dn != "" and dk > 0.0:
 			var bd: Dictionary = bl.duplicate()
