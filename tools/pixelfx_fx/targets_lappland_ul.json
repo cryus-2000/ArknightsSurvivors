@@ -56,5 +56,113 @@
   },
   "move": "skill",
   "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（亮度分位，冷灰白，饱和度约 0.07）"
+ },
+ "fx_lappland_ul_slash_e0": {
+  "fx": "melee/ak-lappland-ul-slash",
+  "opts": {
+   "elite": 0,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half"
+   },
+   "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
+  },
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（同 S2）"
+ },
+ "fx_lappland_ul_slash_e1": {
+  "fx": "melee/ak-lappland-ul-slash",
+  "opts": {
+   "elite": 1,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half"
+   },
+   "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
+  },
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（同 S2）"
+ },
+ "fx_lappland_ul_slash_e2": {
+  "fx": "melee/ak-lappland-ul-slash",
+  "opts": {
+   "elite": 2,
+   "seed": 3
+  },
+  "colors": 256,
+  "layers": true,
+  "judge": {
+   "op": "lappland",
+   "opts": {
+    "radius": "reach/2",
+    "span": "2*half"
+   },
+   "src": "lappland.json base：reach 普攻半径（世界像素）÷ PX 2；half 普攻半角；blocks.attack shape cone r $reach / half $half"
+  },
+  "move": "basic",
+  "palette_src": "build/ark_ref/lappland/langtou_02.png、suikuai.png 实际像素（同 S2）"
+ },
+ "fx_lappland_ul_s1_e0": {
+  "fx": "holy/ak-lappland-ul-s1",
+  "opts": {
+   "elite": 0,
+   "seed": 4
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "lappland",
+   "opts": {},
+   "src": "S1 日晷是自身增益（skills[0] dur permanent），没有判定范围；环半径 ring 24（1x）= 她站位一圈，写在源码 options"
+  },
+  "palette_src": "同 S2"
+ },
+ "fx_lappland_ul_s1_e1": {
+  "fx": "holy/ak-lappland-ul-s1",
+  "opts": {
+   "elite": 1,
+   "seed": 4
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "lappland",
+   "opts": {},
+   "src": "S1 日晷是自身增益（skills[0] dur permanent），没有判定范围；环半径 ring 24（1x）= 她站位一圈，写在源码 options"
+  },
+  "palette_src": "同 S2"
+ },
+ "fx_lappland_ul_s1_e2": {
+  "fx": "holy/ak-lappland-ul-s1",
+  "opts": {
+   "elite": 2,
+   "seed": 4
+  },
+  "colors": 256,
+  "layers": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "lappland",
+   "opts": {},
+   "src": "S1 日晷是自身增益（skills[0] dur permanent），没有判定范围；环半径 ring 24（1x）= 她站位一圈，写在源码 options"
+  },
+  "palette_src": "同 S2"
  }
 }
