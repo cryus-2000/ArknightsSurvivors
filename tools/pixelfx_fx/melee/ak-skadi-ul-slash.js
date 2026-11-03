@@ -49,7 +49,7 @@ function crescent(p, s, ta, L, W, age, hot, core, deco) {
   });
   if (deco) for (let u = 0; u <= span; u += 0.18) {   // 刀身光晕归装饰层
     const [x, y] = onArc(s, s.R - W * 0.4, ta + dir * u);
-    p.glow(x, y, 10 + W, R[n - 3], 0.28 * (1 - age) * (u / span) + 0.08 * hot);
+    p.glow(x, y, (s.full ? 10 : 12) + W, R[n - 3], (s.full ? 0.28 : 0.36) * (1 - age) * (u / span) + (s.full ? 0.04 : 0.12) * hot);   // 光晕加强补回拆层后的亮度；全方向整圈不加（加了光晕会被读成第二道环）
   }
 }
 
@@ -60,7 +60,7 @@ export function create(o) {
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5], C[4]], haze: C[4] }), lights = new Lights();
   const R0 = o.radius, span = full ? TAU * 1.04 : o.span, a0 = full ? -Math.PI : -span / 2, a1 = a0 + span;
   const SW = full ? 0.13 : heavy ? 0.09 : 0.07, W = heavy ? 30 : full ? 18 : 22;
-  const A = { seed: o.seed, R: R0, W, ramp: C };
+  const A = { seed: o.seed, R: R0, W, ramp: C, full };
   const E = { seed: o.seed + 9, R: R0 * 0.72, W: W * 0.4, ramp: C.slice(0, 7) };
   let t = 0.02, passed = 0, landed = false;
   const tip = onArc(A, A.R - A.W * 0.3, a1);
@@ -69,7 +69,7 @@ export function create(o) {
     const u = t - t0;
     if (u < 0) return;
     const head = ease.outExpo(clamp(u / SW)), tail = smooth(SW + hold, SW + hold + trail, u), age = clamp(u / (SW + hold + trail));
-    const HW = Math.min(SW, 0.06), hot = u < HW ? 1.6 : u < HW + 0.05 ? 0.5 : 0;   // 第 1 帧爆亮、第 2 帧余热；不连白 3 帧（docs/242 §9.3 持续白）
+    const hot = u < 0.09 ? 3.0 : u < 0.13 ? 0.3 : 0;   // 前 2 帧（20 fps）白热、第 3 帧起回落：保住 12:22 版的冲击力，又不连白 3 帧（docs/242 §9.3）
     if (tail < 1) crescent(p, s, a0 + span * tail, span * (head - tail), s.W * (1 - tail * 0.5), age, hot, core, deco);
   }
   return {
@@ -129,7 +129,7 @@ export function create(o) {
       drawArc(p, A, 0, 0.07, 0.4);
       if (deco && t < 0.32) {
         const [x, y] = onArc(A, A.R - 6, a0 + span * ease.outExpo(clamp(t / SW)));
-        p.glow(x, y, 60, C[5], 0.6 * (1 - t / 0.32));
+        p.glow(x, y, 66, C[5], 0.8 * (1 - t / 0.32));
       }
       const g = t - SW * 0.6;
       if (deco && !full && g > 0 && g < 0.26) sparkle(p, tip[0], tip[1], (heavy ? 18 : 14) * ease.outBack(Math.min(1, g / 0.05)) * (1 - g / 0.26), C[7], C[5], 0.8);
