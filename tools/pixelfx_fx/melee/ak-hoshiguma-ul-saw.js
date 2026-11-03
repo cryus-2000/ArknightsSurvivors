@@ -41,6 +41,7 @@ export function create(o) {
   const GK = [0.22, 0.32, 0.5][el];                  // 光晕系数
   const RUN = 0.06;                                  // 斩线从脚下撕到头的时间
   const lights = new Lights();
+  const ST = ["#6d7684", "#a3acb8", "#d9dee6"].map((h) => fit([h], 1)[0]);   // E2 齿尖亮钢（PRTS 黑钢盾提亮）
   // 锯齿：单侧（上沿），间距 2–13、高 1.5–7（偶有 1.5 倍大齿），都随机
   const teeth = jitterSteps(Rg, L - 6, 2, 13).map((x) => ({ x: x + 4, h: Rg.range(1.5, 7) * (0.5 + 0.5 * (x / L)) * (Rg.chance(0.15) ? 1.5 : 1), lean: Rg.range(0.2, 1.1) }));
   // 鬼火舌（E2）：沿斩线不等距，两侧都有，长短 / 出现早晚随机
@@ -81,10 +82,10 @@ export function create(o) {
       }
       // —— 核心：斩线（判定内）：中脊 + 单侧锯齿 + 判定边缘细线；首帧白热，第 2 帧余热降一档，之后回到色阶中段并淡出
       if (core && fade > 0) {
-        const hot = t < 0.05 ? 2 : t < 0.1 ? 1 : 0;
+        const hot = t < 0.05 || (el >= 1 && t >= 0.15 && t < 0.2) ? 2 : t < 0.1 ? 1 : 0;   // E1 起多一拍：0.15 s 锯身二次白热（锯齿再咬一口）
         for (let x = 0; x <= head; x++) {
           const v = x / L, tip = clamp((head - x) / 8);                       // 刀头渐尖
-          const th = (1.2 + 2.6 * Math.sin(Math.PI * Math.min(1, v * 0.9 + 0.05))) * tip * (1 - 0.45 * cool);
+          const th = (1.2 + 2.6 * Math.sin(Math.PI * Math.min(1, v * 0.9 + 0.05))) * tip * (1 - 0.45 * cool) * [1, 1.25, 1.5][el];   // §8：E1 ×1.25、E2 ×1.5
           const yc = 0.8 * noise(x * 0.3, o.seed + 2);
           for (let y = -th; y <= th; y++) {
             const q = Math.abs(y) / Math.max(th, 0.6);
@@ -93,14 +94,16 @@ export function create(o) {
             p.blend(x, yc + y, red ? E[clamp(Math.round(4 - cool * 2), 2, 4)] : C[ci], fade * (q > 0.75 ? 0.75 : 1));
           }
         }
-        for (const s of teeth) {                                                // 锯齿：上沿，三角，向后倾
+        const TK = [1, 1.25, 1.5][el], sides = el >= 2 ? [-1, 1] : [-1];   // E2 质变（§8）：单侧锯齿 → 双面锯（下沿也长齿；本招色阶已是青绿，E2 专属点缀改用黑钢盾的亮钢齿尖）
+        for (const sd of sides) for (const s of teeth) {                        // 锯齿：三角，向后倾
           if (s.x > head) continue;
-          const h = s.h * (1 - 0.3 * cool);
+          const h = s.h * (1 - 0.3 * cool) * TK * (sd > 0 ? 0.8 : 1), base = 2.6 * TK;
           for (let d = 0; d < h; d += 0.5) {
-            const v = d / h, x = s.x - d * s.lean;
+            const v = d / h, x = s.x - d * s.lean + (sd > 0 ? 3 : 0);
             const ci = clamp(Math.round(4 + hot - v * 1.5 - cool * 2), 1, 6);
-            p.blend(x, -(2.6 + d), C[ci], fade);
-            if (v < 0.5) p.blend(x + 1, -(2.6 + d), C[clamp(ci - 1, 1, 6)], fade * 0.8);
+            const c = el >= 2 && v > 0.55 && !hot ? ST[clamp(Math.round(2 - cool * 1.5), 0, 2)] : C[ci];
+            p.blend(x, sd * (base + d), c, fade);
+            if (v < 0.5) p.blend(x + 1, sd * (base + d), C[clamp(ci - 1, 1, 6)], fade * 0.8);
           }
         }
         if (t < 0.1) p.disc(head - 2, 0, 3.5 - t * 20, C[6], 0.9);            // 刀头白热芯（首帧）

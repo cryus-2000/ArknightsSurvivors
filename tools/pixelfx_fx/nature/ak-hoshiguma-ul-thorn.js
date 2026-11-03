@@ -42,6 +42,11 @@ export function create(o) {
     const r = R * Math.sqrt(Rg.range(0.08, 0.85));
     return { x: Math.cos(a) * r, y: Math.sin(a) * r * SY, a, h: Rg.range(6, 18) * (Rg.chance(0.2) ? 1.4 : 1), w: Rg.range(1.5, 3), lean: Rg.range(0.1, 0.5), d: Rg.range(0, 0.06) };
   });
+  // §8 分档（本招只有 E1 / E2）：E2 质变——每根单刺变成一簇三刺（主刺 ×1.5 + 两侧斜出的副刺），刺尖专属翠绿
+  if (el >= 2) for (const s0 of spikes.splice(0)) {
+    spikes.push({ ...s0, h: s0.h * 1.5, w: s0.w * 1.4 });
+    for (const sd of [-1, 1]) spikes.push({ ...s0, x: s0.x + sd * Rg.range(2.5, 4), y: s0.y + Rg.range(0.5, 1.5), h: s0.h * Rg.range(0.6, 0.8), w: s0.w * 0.9, lean: s0.lean + sd * Rg.range(0.3, 0.5), a: sd > 0 ? 0 : Math.PI, d: s0.d + Rg.range(0.02, 0.05) });
+  }
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [S[4], S[3], S[2], S[1]] });
   const ems = new Particles({ rng: Rg, ground: () => 1e9, sparks: [E[4], E[3], E[2], E[1]] });
   let t = 0, fired = false;

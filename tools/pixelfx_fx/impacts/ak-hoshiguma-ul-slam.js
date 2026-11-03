@@ -37,9 +37,11 @@ export function create(o) {
   const R = o.radius, el = +o.elite, LQ = +o.quick > 0 ? 0.5 : 1;
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const TAIL = [0.35, 0.5, 0.7][el] * LQ;
-  const CR = R * 0.34;   // 坑半径（判定的三分之一，范围靠主缝交代）
+  const CR = R * 0.34 * [1, 1.25, 1.5][el];   // 坑半径（判定的三分之一，范围靠主缝交代）；§8 分档：E1 ×1.25、E2 ×1.5
   // 坑沿：极坐标不规整半径
-  const rim = (a) => CR * (0.82 + 0.22 * noise(Math.cos(a) * 1.3 + 3, Math.sin(a) * 1.3 + o.seed));
+  // E2 质变（§8）：坑形从不规整圆变成倒三角盾印坑（般若盾），三角外接半径 1.15 CR
+  const T3 = 2 * Math.PI / 3, tri = (a) => 1.15 * 0.5 / Math.cos(((((a - Math.PI / 2) % T3) + T3) % T3) - T3 / 2);
+  const rim = (a) => CR * (el >= 2 ? tri(a) * (0.94 + 0.08 * noise(Math.cos(a) * 1.3 + 3, Math.sin(a) * 1.3 + o.seed)) : 0.82 + 0.22 * noise(Math.cos(a) * 1.3 + 3, Math.sin(a) * 1.3 + o.seed));
   // 主缝：4–6 条，从坑沿出发，2–3 段折线，宽 2 像素，长短不一，不分叉
   const cracks = jitterAngles(Rg, Rg.int(4, 6), 0, Math.PI * 2, 0.35).map((a0) => {
     const pts = [[Math.cos(a0) * rim(a0) * 0.9, Math.sin(a0) * rim(a0) * 0.9 * SY]];
@@ -77,8 +79,9 @@ export function create(o) {
       // 温度：0 → 1 冷却；坑与主缝同一套颜色（一个主形）
       const heat = (k) => {
         if (u < 0.05) return C[6];
-        if (u < 0.1) return C[5];
+        if (u < 0.1 || (el >= 1 && u >= 0.15 && u < 0.2)) return C[5];   // E1 起多一拍：0.15 s 二次爆亮（盾再压一下）
         if (el >= 2 && k === "crack") return J[clamp(Math.round(4 - u * 3), 2, 4)];
+        if (el >= 2 && k === "rim") return J[clamp(Math.round(4 - u * 2.5), 2, 4)];   // E2 专属点缀：坑沿青绿（般若）
         if (el >= 1 && k === "rim") return E[clamp(Math.round(4 - u * 5), 1, 3)];
         return C[clamp(Math.round(4 - u * 8), 2, 4)];
       };
@@ -91,16 +94,18 @@ export function create(o) {
           const [x0, y0] = pts[i], x1 = x0 + (pts[i + 1][0] - x0) * g, y1 = y0 + (pts[i + 1][1] - y0) * g;
           const c = heat("crack");
           p.line(x0, y0, x1, y1, c, 1);
-          if (i === 0) p.line(x0, y0 - 1, x1, y1 - 1, c, 1);   // 近坑一段两像素宽（远端一像素）
+          if (i === 0 || el >= 1) p.line(x0, y0 - 1, x1, y1 - 1, c, 1);   // 近坑一段两像素宽（E1 起整条两像素）
+          if (i === 0 && el >= 2) p.line(x0, y0 - 2, x1, y1 - 2, c, 1);   // E2 近坑三像素
           p.line(x0, y0 + 1, x1, y1 + 1, C[1], 0.9);   // 缝的暗面
         }
         // 坑：实心不规整椭圆，坑底暗、近沿（下半）受光；第 1 帧整坑白热
         const sink = Math.min(1, u / 0.04);
-        for (let y = -CR * SY - 1; y <= CR * SY + 1; y += 0.5) for (let x = -CR - 1; x <= CR + 1; x += 0.5) {
+        for (let y = -CR * 1.2 * SY - 1; y <= CR * 1.2 * SY + 1; y += 0.5) for (let x = -CR * 1.2 - 1; x <= CR * 1.2 + 1; x += 0.5) {
           const a = Math.atan2(y / SY, x), d = Math.hypot(x, y / SY) / rim(a);
           if (d > 1) continue;
           let c, al = ck;
           if (u < 0.05) c = d > 0.75 ? C[5] : C[6];
+          else if (el >= 1 && u >= 0.15 && u < 0.2) c = d > 0.6 ? C[5] : C[3];   // 二次爆亮
           else if (d > 0.82) c = y > 0 ? heat("rim") : C[2];   // 坑沿：近沿亮、远沿暗
           else { c = C[d < 0.5 ? 0 : 1]; al = ck * (0.75 + 0.25 * sink); }
           p.blend(x, y, c, al);

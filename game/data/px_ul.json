@@ -160,6 +160,7 @@
 			}
 		},
 		"no_arc": true,
+		"finish": {"dust": false, "rock": false, "burst": false},
 		"remap": {
 			"fx_hoshiguma_guard_glow": "fx_hoshiguma_ul_stance",
 			"fx_hoshiguma_block": "fx_hoshiguma_ul_block"

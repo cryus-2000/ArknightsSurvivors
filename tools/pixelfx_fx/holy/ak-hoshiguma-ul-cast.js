@@ -42,16 +42,20 @@ export function create(o) {
   }) : [];
   let t = 0, fired = false;
   const sigil = (p, k, y0) => {   // 般若倒三角盾印（11-04 §0：实心主形）：落下压实 → 白热 → 冷成钢色（E2 / S3 转翠绿），E1 起印沿暗红
-    const s = 0.75 + 0.25 * ease.outBack(clamp(t / 0.1)), dy = -6 * (1 - clamp(t / 0.08));   // 盾印从上方压下、略放大到位
+    const s = (0.75 + 0.25 * ease.outBack(clamp(t / 0.1))) * [1, 1.25, 1.5][el], dy = -6 * (1 - clamp(t / 0.08));   // §8：E1 ×1.25、E2 ×1.5   // 盾印从上方压下、略放大到位
     const pts = V.map(([x, y]) => [x * s, y * s * SY + y0 + dy]);
-    const hot = t < 0.06, jade = kind === 3 || el >= 2;
+    const hot = t < 0.06 || (el >= 1 && t >= 0.15 && t < 0.2), jade = kind === 3 || el >= 2;   // E1 起多一拍：盾印再压一下二次白热
     if (k < 0.2) return;   // 不用半透明淡出（低透明度会抖成网点）：按 k 逐阶压暗、最后一帧收掉
     const dk = k > 0.7 ? 0 : k > 0.45 ? 1 : 2;
     const fill = hot ? C[5] : jade ? J[clamp(2 - dk, 1, 2)] : C[clamp(3 - dk, 1, 3)];
     p.poly(pts, fill, 1);
     const edge = hot ? C[6] : el >= 1 ? E[clamp(4 - dk, 2, 4)] : jade ? J[4 - dk] : C[5 - dk];
     for (let i = 0; i < 3; i++) p.line(pts[i][0], pts[i][1], pts[(i + 1) % 3][0], pts[(i + 1) % 3][1], edge, 1);
-    if (!hot && dk < 2) p.line(pts[0][0] * 0.5, pts[0][1] + 2, pts[1][0] * 0.5, pts[1][1] + 2, jade ? J[4 - dk] : C[5 - dk], 1);   // 盾面一道受光横棱
+    if (!hot && dk < 2 && el < 2) p.line(pts[0][0] * 0.5, pts[0][1] + 2, pts[1][0] * 0.5, pts[1][1] + 2, jade ? J[4 - dk] : C[5 - dk], 1);   // 盾面一道受光横棱
+    if (el >= 2 && !hot) {   // E2 质变（§8）：盾印里再嵌一枚实心小盾（双层般若盾），亮青绿
+      const cx = (pts[0][0] + pts[1][0] + pts[2][0]) / 3, cy = (pts[0][1] + pts[1][1] + pts[2][1]) / 3, inn = pts.map(([x, y]) => [cx + (x - cx) * 0.45, cy + (y - cy) * 0.45]);
+      p.poly(inn, J[4 - dk], 1);
+    }
   };
   return {
     update(dt) {

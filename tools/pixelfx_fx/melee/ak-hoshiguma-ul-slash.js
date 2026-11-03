@@ -73,7 +73,7 @@ export function create(o) {
       }
       // 核心：刀弧（判定半径内），刀头厚、刀尾细；首帧白热，第 2 帧余热，之后回钢色并淡出
       if (core && a1 - a0 > 0.03) {
-        const hot = t < 0.045 ? 2 : t < 0.09 ? 1 : 0, W = 5.5 * (1 - 0.4 * tail);
+        const hot = t < 0.045 ? 2 : t < 0.09 ? 1 : 0, W = 5.5 * [1, 1.25, 1.5][el] * (1 - 0.4 * tail);   // §8：E1 ×1.25、E2 ×1.5 加厚
         for (let y = -R - 2.5; y <= R + 2.5; y++)
           for (let x = -4.5; x <= R + 2.5; x++) {
             const ang = Math.atan2(y, x);
@@ -92,11 +92,12 @@ export function create(o) {
       if (core && el >= 1) {
         const bt = t - SW - 0.01, bh = ease.outExpo(clamp(bt / 0.06)), bk = 1 - smooth(0.06, 0.12 + TAIL * 0.4, bt);
         if (bt > 0 && bk > 0) {
-          const b0 = half - o.span * 0.55 * bh, rb = R - 8;
+          // E2 质变（§8）：反手斩变成整条翠绿第二刃（单刀 → 双刃新月），扫满全弧、厚 0.8 主刃，专属青绿
+          const q2 = el >= 2, SPN = q2 ? 1.0 : 0.55, b0 = half - o.span * SPN * bh, rb = q2 ? R - 5.5 * 1.5 - 4 : R - 8;
           for (let a = b0; a <= half - 0.04; a += 0.012) {
-            const v = (half - a) / (o.span * 0.55), th = 1.6 * Math.sin(Math.PI * clamp(v * 0.9 + 0.05)) + 0.3;
+            const v = (half - a) / (o.span * SPN), th = (q2 ? 5.5 * 1.2 : 1.6) * Math.sin(Math.PI * clamp(v * 0.9 + 0.05)) + 0.3;
             const rr = rb + 0.8 * noise(a * 17, o.seed + 9);
-            for (let e = 0; e <= th; e += 0.5) p.blend(Math.cos(a) * (rr - e), Math.sin(a) * (rr - e), E[clamp(Math.round(4 - e * 0.8 - (bt > 0.05 ? 1 : 0)), 1, 4)], bk);
+            for (let e = 0; e <= th; e += 0.5) p.blend(Math.cos(a) * (rr - e), Math.sin(a) * (rr - e), q2 ? (bt < 0.03 ? C[6] : J[clamp(Math.round(4 - e / th * 2 - (bt > 0.08 ? 1 : 0)), 1, 4)]) : E[clamp(Math.round(4 - e * 0.8 - (bt > 0.05 ? 1 : 0)), 1, 4)], bk);
           }
         }
       }
