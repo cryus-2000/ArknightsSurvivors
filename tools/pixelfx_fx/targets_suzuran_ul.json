@@ -1,5 +1,5 @@
 {
- "_doc": "铃兰放开版（docs/242，开关 fx/px_unleashed）：暖橙狐火一套色（用户 11-04 定，色阶写在各源码 options.palette）。S2「儿时的舞乐」：起手聚拢（三团、火舌 ×2.4 约 2 倍身高）、受增益队友脚下狐火印记 mark；S3「狐火渺然」：起手聚拢（五团）、地面旋流（E0 两条 / E1 三条 / E2 三条 + 火舌，按光域半径缩放：单位半径 92 美术像素）、光域边上贴地小狐火、身上火带回旋（身后 / 身前两张）。普攻 / S2 等组长审和公共挂点（weapons.gd px_hit）到了再加",
+ "_doc": "铃兰放开版（附件：wisp 身边待发 / 狐火点点附着，scorch 精一灼印，edge 兼作画地为牢定身三簇与平时光域边，trail / trail2 精二狐火拖尾路火）（docs/242，开关 fx/px_unleashed）：暖橙狐火一套色（用户 11-04 定，色阶写在各源码 options.palette）。S2「儿时的舞乐」：起手聚拢（三团、火舌 ×2.4 约 2 倍身高）、受增益队友脚下狐火印记 mark；S3「狐火渺然」：起手聚拢（五团）、地面旋流（E0 两条 / E1 三条 / E2 三条 + 火舌，按光域半径缩放：单位半径 92 美术像素）、光域边上贴地小狐火、身上火带回旋（身后 / 身前两张）。普攻 / S2 等组长审和公共挂点（weapons.gd px_hit）到了再加",
  "fx_suzuran_ul_gather": {"fx": "fire/ak-suzuran-ul-gather", "opts": {"n": 3, "k": 2.4, "seed": 4}, "colors": 256, "lo": true, "layers": true, "move": "skill"},
  "fx_suzuran_ul_mark": {"fx": "fire/ak-suzuran-ul-mark", "opts": {}, "colors": 256, "lo": true, "layers": true, "move": "skill"},
  "fx_suzuran_ul_gather_big": {"fx": "fire/ak-suzuran-ul-gather", "opts": {"n": 5, "k": 1, "seed": 4}, "colors": 256, "lo": true, "layers": true, "move": "skill"},
@@ -8,5 +8,9 @@
  "fx_suzuran_ul_haze_e0": {"fx": "fire/ak-suzuran-ul-haze", "opts": {"elite": 0}, "colors": 256, "layers": true, "move": "skill"},
  "fx_suzuran_ul_edge": {"fx": "fire/ak-suzuran-ul-wisp", "opts": {"ground": 1, "seed": 7}, "colors": 256, "lo": true, "layers": true, "move": "skill"},
  "fx_suzuran_ul_swirlb": {"fx": "fire/ak-suzuran-ul-swirl", "opts": {"side": "back"}, "colors": 256, "lo": true, "layers": true, "move": "skill"},
- "fx_suzuran_ul_swirlf": {"fx": "fire/ak-suzuran-ul-swirl", "opts": {"side": "front"}, "colors": 256, "lo": true, "layers": true, "move": "skill"}
+ "fx_suzuran_ul_swirlf": {"fx": "fire/ak-suzuran-ul-swirl", "opts": {"side": "front"}, "colors": 256, "lo": true, "layers": true, "move": "skill"},
+ "fx_suzuran_ul_wisp": {"fx": "fire/ak-suzuran-ul-wisp", "opts": {"seed": 7}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_scorch": {"fx": "fire/ak-suzuran-ul-scorch", "opts": {"seed": 5}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_trail": {"fx": "fire/ak-suzuran-ul-trail", "opts": {"seed": 3}, "colors": 256, "lo": true, "layers": true, "move": "basic"},
+ "fx_suzuran_ul_trail2": {"fx": "fire/ak-suzuran-ul-trail", "opts": {"seed": 8}, "colors": 256, "layers": true, "move": "basic"}
 }

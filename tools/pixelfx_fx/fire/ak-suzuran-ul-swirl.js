@@ -40,7 +40,8 @@ export function draw(p, t, o) {
         const hot = taper * (isFront ? 1 : 0.6);
         for (let q = -half; q <= half; q += 0.5) {
           const e = Math.abs(q) / Math.max(0.5, half);
-          const c = e > 0.7 ? H[isFront ? 5 : 7] : hot > 0.75 ? H[isFront ? 1 : 3] : hot > 0.4 ? H[isFront ? 3 : 5] : H[isFront ? 4 : 6];
+          // 亮芯拉长、整体提一档（组长 B 11-04：S2 精一实际镜头下火带几乎看不出）
+          const c = e > 0.7 ? H[isFront ? 4 : 6] : hot > 0.45 ? H[isFront ? 0 : 2] : hot > 0.2 ? H[isFront ? 2 : 4] : H[isFront ? 3 : 5];
           p.px(x, y + q, c);
         }
       }

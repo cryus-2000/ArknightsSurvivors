@@ -624,6 +624,31 @@ static func _h4_px_loop(o, base: String, p: Vector2, sc: float, ph: float, al: f
 		fx_frame(o.cv, g, nm, int(fr[0]), int((g.t + ph) * float(fr[1])), p, g.PX * sc, Color(1, 1, 1, al * (dk if layer == "deco" else 1.0)))
 
 
+## 精二狐火拖尾（放开版）：每处路火按剩余寿命取帧（一次性帧条 trail / trail2 按点序轮换），点序决定翻转与 0.85–1.15 缩放，连起来不成等距相同的一串
+static func _h4_px_trails(o, sz: Dictionary) -> void:
+	if sz.trails.is_empty():
+		return
+	var g = o.g
+	var tr: Dictionary = o.B.get("attack", {}).get("merge", {}).get("trail", {})
+	var life: float = maxf(0.05, float(tr.get("life", 1.0)) if not (tr.get("life") is String) else 1.0)
+	var el: int = g.vfx.px_ul_el(o)
+	var dk: float = g.vfx.px_deco_k(o)
+	for tg in sz.trails:
+		var i := 0
+		for q in tg.pts:
+			var u: float = clampf(1.0 - float(q.t) / life, 0.0, 0.999)
+			var vv: int = 2 if i % 2 == 1 else 1
+			var sc: float = g.PX * (0.85 + 0.3 * fposmod(float(i) * 0.618, 1.0))
+			var fl: float = -1.0 if i % 3 == 1 else 1.0
+			for layer in ["deco", "core"]:
+				var nm: String = g.vfx.px_ul_tex("fx_suzuran_ul_trail", vv, false, layer, el)
+				if nm == "" or not g.V6_FRAMES.has(nm) or (layer == "deco" and dk <= 0.0):
+					continue
+				var nf: int = int(g.V6_FRAMES[nm][0])
+				fx_frame(o.cv, g, nm, nf, int(u * nf), q.pos + Vector2(0, 2), sc, Color(1, 1, 1, dk if layer == "deco" else 1.0), Vector2(-1, -1), 0.0, fl)
+			i += 1
+
+
 ## 狐火渺然光域：地面旋流（按光域半径缩放，单位半径 92 美术像素 = 184 世界像素）+ 边上 7 簇贴地小狐火（角度 / 半径不均匀、各自错相位明暗闪烁）+ 身后半圈火带
 const H4_PX_EDGE := [[0.0, 0.94], [0.95, 1.0], [1.7, 0.9], [2.65, 0.97], [3.35, 0.88], [4.3, 1.0], [5.25, 0.92]]
 
@@ -665,6 +690,12 @@ static func _h4sz_draw_auras(o) -> void:
 			for k in hn2:
 				var an3: float = g.t * 0.8 + k * TAU / hn2
 				_h4_flame(o, o.pos + Vector2(4, 4) + Vector2(cos(an3) * r, sin(an3) * r * 0.55), 15.0, 1.0)
+		return
+	if _h4_px(o):   # 放开版：平时光域不画羽边椭圆，边上 6 簇暗一档的贴地小狐火（角度 / 半径不均匀，错相位）
+		for k in 6:
+			var an4: float = float(H4_PX_EDGE[k][0]) + g.t * 0.3
+			var rr4: float = r * float(H4_PX_EDGE[k][1])
+			_h4_px_loop(o, "fx_suzuran_ul_edge", o.pos + Vector2(4, 4) + Vector2(cos(an4) * rr4, sin(an4) * rr4 * 0.55), 0.85, k * 0.41, 0.55)
 		return
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	feather_ring(cv, r, H4_FOX, 0.6 if on else 0.35, g.t)   # 10-29：不填充，改内羽边 + 光点
@@ -734,6 +765,8 @@ static func _h4sz_draw_over(o) -> void:
 	elif float(sz.haze_t) <= 0.0 and _h4_next_merge(o, a):
 		conv = clampf(1.0 - o.cd / 0.45, 0.0, 1.0)
 	var c: Vector2 = _h4_tip(o, a)
+	if _h4_px(o):
+		_h4_px_trails(o, sz)
 	if _h4_px(o) and (float(sz.haze_t) > 0.0 or _h4_warm(o, _h4_live(o, "verb.foxlight"))):
 		_h4_px_loop(o, "fx_suzuran_ul_swirlf", o.pos + Vector2(0, -2), 1.0, 0.0, _h4_px_fade(o, sz))
 	for k in n:
@@ -743,6 +776,9 @@ static func _h4sz_draw_over(o) -> void:
 			if conv > 0.85:
 				continue
 			p = p.lerp(c, conv * conv)
+		if _h4_px(o):   # 放开版：待发狐火 = 小狐火 wisp（不画底圆光团）
+			_h4_px_loop(o, "fx_suzuran_ul_wisp", p + Vector2(0, 2), 1.0, k * 0.21, 1.0)
+			continue
 		cv.draw_circle(p + Vector2(0, -5), 9.0, Color(1.6, 1.1, 0.4, 0.35))
 		if o._fx_strip("fx_suzuran_wisp", 4, int(g.t * 8.0) + k, p + Vector2(0, -8)):
 			continue
@@ -756,6 +792,9 @@ static func _h4sz_draw_over(o) -> void:
 		var ee: Dictionary = s2.e
 		var fp: Vector2 = ee.pos + Vector2(0, -float(ee.r) * 1.2 + sin(g.t * 9.0 + float(ee.id)) * 1.5)
 		var fa: float = clampf(float(s2.t) / 0.3, 0.0, 1.0)
+		if _h4_px(o):   # 放开版：狐火点点 = 头顶一簇小狐火（不画光圈 / 白点）
+			_h4_px_loop(o, "fx_suzuran_ul_wisp", fp + Vector2(0, 3), 1.0, float(ee.id) * 0.13, fa)
+			continue
 		cv.draw_circle(fp + Vector2(0, -4), 11.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.28 * fa))
 		_h4_flame(o, fp, 15.0, fa)
 		cv.draw_circle(fp + Vector2(0, -3), 2.5, Color(2.6, 2.4, 1.8, 0.9 * fa))
@@ -786,6 +825,11 @@ static func _h4sz_draw_floor(o) -> void:
 		var e: Dictionary = s2.e
 		var al: float = clampf(s2.t / 0.15, 0.0, 1.0)
 		var rr: float = e.r + 10.0
+		if _h4_px(o):   # 放开版：画地为牢 = 脚下三簇不等角贴地小狐火（不画双环 / 辐条；组长 B 11-04 过）
+			for q in 3:
+				var qa: float = [0.3, 2.4, 4.3][q]
+				_h4_px_loop(o, "fx_suzuran_ul_edge", e.pos + Vector2(0, 4) + Vector2(cos(qa) * (e.r + 9.0), sin(qa) * (e.r + 9.0) * 0.5), 1.0, q * 0.33 + float(e.id) * 0.1, al)
+			continue
 		cv.draw_set_transform(e.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
 		pass
 		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 28, Color(2.0, 1.6, 0.8, 0.85 * al), 2.0)
@@ -829,6 +873,9 @@ static func _h4sz_draw_floor_e(o) -> void:
 		var e: Dictionary = s2.e
 		var al: float = clampf(float(s2.t) / 0.3, 0.0, 1.0) * clampf((float(s2.max) - float(s2.t)) / 0.12, 0.0, 1.0)
 		var bp: Vector2 = e.pos + Vector2(0, float(e.r) * 0.7)
+		if _h4_px(o):   # 放开版：灼印 = 贴地焦痕（§11.2 #6：e.r ÷ 12 夹 0.8–2.0）
+			_h4_px_loop(o, "fx_suzuran_ul_scorch", bp, clampf(float(e.r) / 12.0, 0.8, 2.0), float(e.id) * 0.37, al)
+			continue
 		if has_tex:
 			fx_frame(cv, g, tn, int(g.V6_FRAMES[tn][0]), int(g.t * float(g.V6_FRAMES[tn][1]) + float(e.id) * 0.37), bp, g.PX * clampf(float(e.r) / 10.0, 0.9, 1.8), Color(1, 1, 1, al))
 		else:
