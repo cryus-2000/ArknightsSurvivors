@@ -232,7 +232,8 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 				order.append(e)
 		for i in mini(hn, order.size()):
 			_h3_tentacle(o, a, order[i], tdmg, tstun)
-		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": radius, "r0": radius * 0.4, "life": 0.35, "col": Color(0.85, 0.55, 1.5), "floor": true, "w": 2.5, "alpha": 0.8})
+		if not _mz_ul(o):   # 放开版不画外扩紫环（每个目标各有一根触手）
+			o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": radius, "r0": radius * 0.4, "life": 0.35, "col": Color(0.85, 0.55, 1.5), "floor": true, "w": 2.5, "alpha": 0.8})
 	else:
 		for i in min(n, alive.size()):
 			_h3_tentacle(o, a, alive[i], tdmg, tstun)
@@ -431,7 +432,12 @@ static func _h3mz_draw_floor(o) -> void:
 		if q % 2 == 0:
 			cv.draw_arc(Vector2.ZERO, lr, TAU * q / 32.0 + g.t * 0.1, TAU * (q + 1) / 32.0 + g.t * 0.1, 3, Color(1.6, 1.3, 0.8, 0.22), 1.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	MizukiS3Fx.draw(o, false)
+	if _mz_ul(o):   # 放开版 S3 持续：脚下几道横向水波纹慢慢流（循环帧条），取代旧的水片横条
+		var s3f: float = float(MizukiS3Fx.state(o.s_t[2], o.s_dur[2], 0.0).fade)
+		if s3f > 0.0:
+			_mz_ul_loop(o, "fx_mizuki_ul_s3aura", o.pos + Vector2(0, 8), g.PX, 0.0, s3f)
+	else:
+		MizukiS3Fx.draw(o, false)
 	if o.s_t[1] > 0.0 and _mz_ul(o):   # 放开版 S2 持续：身后两条触手（循环帧条），收尾 1 秒淡出
 		_mz_ul_loop(o, "fx_mizuki_ul_s2aura", o.pos + Vector2(0, 2), g.PX, 0.0, clampf(o.s_t[1] / 1.0, 0.0, 1.0))
 	elif o.s_t[1] > 0.0:
@@ -440,7 +446,9 @@ static func _h3mz_draw_floor(o) -> void:
 		cv.draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 40, Color(0.6, 1.1, 1.8, 0.6 * fade2), 2.0)
 		cv.draw_arc(Vector2.ZERO, 66.0, g.t * 3.0, g.t * 3.0 + PI, 24, Color(0.6, 1.1, 1.8, 0.4 * fade2), 3.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if o.ammo[0] > 0:
+	if o.ammo[0] > 0 and _mz_ul(o):   # 放开版唤醒已充能：脚边两截小触手尖探出地面（取代脚下金环：金色和经验结晶撞色，也不要外扩环）
+		_mz_ul_loop(o, "fx_mizuki_ul_charge", o.pos + Vector2(0, 4), g.PX)
+	elif o.ammo[0] > 0:
 		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
 		cv.draw_arc(Vector2.ZERO, 34.0 + 3.0 * sin(g.t * 8.0), 0.0, TAU, 32, Color(2.0, 1.5, 0.6, 0.7), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -608,7 +616,8 @@ static func _g202_repeat(o, tb: Dictionary, target: Dictionary, dmg: float) -> v
 			o.log_hit(str(tb.get("src", "")))
 			o.deal_damage(target, dmg * float(rp.mult))
 		_g202_add_cling(mz, target, dur, dur, false, false)
-		o.fx({"kind": "ring", "pos": target.pos + Vector2(0, 4), "r": target.r + 18.0, "r0": target.r + 4.0, "life": 0.35, "col": h3_deep_col(o, 1.8), "floor": true, "w": 3.0, "alpha": 0.9})
+		if not _mz_ul(o):   # 放开版：缠绕由脚下小触须标识表现，不画外扩环
+			o.fx({"kind": "ring", "pos": target.pos + Vector2(0, 4), "r": target.r + 18.0, "r0": target.r + 4.0, "life": 0.35, "col": h3_deep_col(o, 1.8), "floor": true, "w": 3.0, "alpha": 0.9})
 	else:
 		mz.rep[id] = g.t
 		if mz.rep.size() > 48:
@@ -657,6 +666,8 @@ static func _g202_smash_take(o, e: Dictionary, sm: Dictionary) -> float:
 			mz.cling.remove_at(i)
 			var g = o.g
 			var p: Vector2 = e.pos
+			if _mz_ul_play(o, "fx_mizuki_ul_tent", p + Vector2(0, 6), g.PX, 0.0, o.pos.x > p.x, 2):   # 放开版：触手从脚下钻出抽一下
+				return float(sm.get("mult", 1.5))
 			g.fx.append({"kind": "rift", "pos": p, "r": 30.0, "life": 0.3, "max": 0.3})
 			if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX * 0.9, 0.0, g.vrng.randf() < 0.5, true, Color(1, 1, 1, 0.9)):
 				g.fx.append({"kind": "tentacle", "pos": p, "life": 0.4, "max": 0.4, "flip": g.vrng.randf() < 0.5})
@@ -680,13 +691,17 @@ static func _g202_mz_draw(o) -> void:
 		var live: bool = float(c.t) > 0.0
 		var col: Color = Color(0.9, 0.6, 1.6) if c.smash else h3_deep_col(o, 1.8)
 		var al: float = (0.9 if live else 0.55) * clampf(float(c.mark) / 0.3, 0.0, 1.0)
-		var fp: Vector2 = e.pos + Vector2(0, float(e.r) * 0.6)
-		cv.draw_set_transform(fp, 0.0, Vector2(1.0, 0.45))
-		var r0: float = float(e.r) + 5.0
-		var an: float = g.t * 3.0 + float(e.id)
-		cv.draw_arc(Vector2.ZERO, r0, an, an + TAU * 0.78, 18, Color(col.r, col.g, col.b, al), 2.5)
-		cv.draw_arc(Vector2.ZERO, r0 + 4.0, -an, -an + TAU * 0.6, 16, Color(col.r, col.g, col.b, al * 0.7), 1.5)
-		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var ul: bool = _mz_ul(o)
+		if ul:   # 放开版：脚下的缠绕标识在 _mz_ul_draw_binds 里统一画；连线换成描边触须（藏青描边 + 宝蓝 / 重斩期间淡紫）
+			col = Color(0.75, 0.66, 1.0) if c.smash else Color(0.35, 0.46, 0.9)
+		else:
+			var fp: Vector2 = e.pos + Vector2(0, float(e.r) * 0.6)
+			cv.draw_set_transform(fp, 0.0, Vector2(1.0, 0.45))
+			var r0: float = float(e.r) + 5.0
+			var an: float = g.t * 3.0 + float(e.id)
+			cv.draw_arc(Vector2.ZERO, r0, an, an + TAU * 0.78, 18, Color(col.r, col.g, col.b, al), 2.5)
+			cv.draw_arc(Vector2.ZERO, r0 + 4.0, -an, -an + TAU * 0.6, 16, Color(col.r, col.g, col.b, al * 0.7), 1.5)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		if c.carry and live and o.pos != Vector2.INF:
 			var a0: Vector2 = o.pos + Vector2(0, -10)
 			var a1: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.4)
@@ -695,7 +710,9 @@ static func _g202_mz_draw(o) -> void:
 			for s in 7:
 				var u: float = float(s) / 6.0
 				pts.append(a0.lerp(a1, u) + nrm * sin(u * PI * 2.0 + g.t * 9.0) * 5.0 * sin(u * PI))
-			cv.draw_polyline(pts, Color(col.r, col.g, col.b, al * 0.8), 2.0)
+			if ul:
+				cv.draw_polyline(pts, Color(0.03, 0.04, 0.09, al), 4.0)
+			cv.draw_polyline(pts, Color(col.r, col.g, col.b, al * (1.0 if ul else 0.8)), 2.0)
 
 
 # ---------------------------------------------------------------- 水月：拖拽 / 深蓝之籽
@@ -951,7 +968,9 @@ static func _mz_ul_draw_binds(o) -> void:
 	var mz: Dictionary = o.hw.mz
 	var es: Array = []
 	var seen := {}
-	for bd in mz.get("binds", _EA):
+	for bd in mz.get("binds", _EA) + mz.get("cling", _EA):   # 深蓝之籽束缚 + 病理性依恋 / 强迫性重复缠住的
+		if seen.has(int(bd.e.id)):
+			continue
 		es.append(bd.e)
 		seen[int(bd.e.id)] = true
 	if o.s_t[1] > 0.0:

@@ -26,7 +26,7 @@ export function create(o) {
   const ps = new Particles({ rng: Rg, ground: () => 1e9, sparks: [C[7], C[6], C[5]], haze: C[4] }), lights = new Lights();
   const LAV = hex(MZ.lav), INKV = "#241a52";
   let t = 0.02, flashed = false;
-  const LOOP = mv === "aura" ? 1.2 : mv === "bind" ? 0.8 : 0;
+  const LOOP = mv === "aura" || mv === "s3aura" ? 1.2 : mv === "bind" ? 0.8 : mv === "charge" ? 1.0 : 0;
 
   // cast：触须（E1 4 根 / E2 5 根），角度抖动、远近不一
   const ten = [];
@@ -82,6 +82,22 @@ export function create(o) {
         const ph = TAU * t / LOOP + a.ph, sw = Math.sin(ph) * 6, cu = 0.5 + 0.5 * Math.sin(ph + 1.3);
         const b = a.b, tip = [b[0] + a.s * (14 + sw), b[1] - a.up + Math.cos(ph) * 3];
         tentacle(p, b, [b[0] + a.s * 2, b[1] - a.up * 0.45], tip, 0, 1, { c2: [b[0] + a.s * (4 - sw * 0.6), b[1] - a.up * 0.85], w0: a.w0, seed: a.seed, el, hot: 0, dis: 0, curl: 0.6 + 0.4 * cu, cs: a.s, glowK: GK * (0.6 + 0.4 * Math.sin(ph * 2) ** 2), pass }, core, deco && pass === "body");
+      }
+      if (mv === "charge") for (const pass of ["ink", "body"]) for (const c of [{ b: [-9, 3], s: -1, ph: 0 }, { b: [10, 2], s: 1, ph: 2.4 }]) {   // S1 唤醒已充能：脚边两截小触手尖探出地面、轻轻摆（取代脚下金环：金色和经验结晶撞色）
+        const ph = TAU * t / LOOP + c.ph, h = 13 + 2 * Math.sin(ph);
+        tentacle(p, c.b, [c.b[0], c.b[1] - h * 0.5], [c.b[0] + c.s * (4 + 2 * Math.sin(ph + 1)), c.b[1] - h], 0, 1, { c2: [c.b[0] + c.s * 3, c.b[1] - h * 0.85], w0: 2.4, seed: o.seed + c.s, el, hot: 0, dis: 0, curl: 0.55, cs: c.s, glowK: GK, pass }, core, deco && pass === "body");
+      }
+      if (mv === "s3aura" && core) {   // S3 持续：脚下几道横向水波纹慢慢流（原作 skill_03_buff 的 flow 水纹）；每道断成几段、长短不一，外缘不描圈
+        const ph = TAU * t / LOOP, G = 40, md = hex("#3a4fb4"), hi = hex("#9aa8ff");
+        for (let k = 0; k < 6; k++) {
+          const y0 = -15 + k * 6 + 1.5 * noise(k * 3.1, o.seed + 4), half = G * Math.sqrt(Math.max(0, 1 - (y0 / 18) ** 2)) * (0.75 + 0.2 * noise(k * 1.7, o.seed + 5));
+          for (let x = -half; x <= half; x += 0.6) {
+            const seg = noise(x * 0.09 + Math.sin(ph) * 1.6 * (k % 2 ? 1 : -1) + k * 5, o.seed + 6);   // 断成几段，段随相位来回流（按 sin 相位，循环首尾相接）
+            if (seg < -0.05) continue;
+            const y = y0 + 1.6 * noise(x * 0.07 + Math.cos(ph) * 0.8 + k, o.seed + 7);
+            p.px(x, y, seg > 0.45 && Math.abs(x) < half * 0.7 ? hi : md);
+          }
+        }
       }
       if (mv === "bind") for (const pass of ["ink", "body"]) {   // 敌人脚下：一根小触须从地里钻出、绕过脚踝收紧（开口弧，不是闭合圈）
         const ph = TAU * t / LOOP, sq = 1 + 0.08 * Math.sin(ph);
