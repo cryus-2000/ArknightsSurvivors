@@ -1,5 +1,5 @@
 {
- "_doc": "归溟幽灵鲨 pixelfx 放开版（Claude 重做，11-04 用户定普攻甲 = 照原作红橙火星锯；S3 暗血红重锯 + 海军蓝水带）。人名前缀 specter（导出脚本按 fx_<人>_ul_ 认人，不能带下划线）。E2 = 不带档位后缀；E0 / E1 单种子；起手 cast1–3 按技能解锁档出（S1 三档、S2 精一起、S3 只有精二）；sk1 / sk2 = S1 / S2 开着时的环斩形态（S1 红橙锯 + 火舌；S2 冷钢锯 + 双水带）；终结技件 umini / ubig / udash / utear / ucut / uscar（编排 game/scripts/run/ult_fx_specter.gd）",
+ "_doc": "归溟幽灵鲨 pixelfx 放开版（Claude 重做，11-04 用户定普攻甲 = 照原作红橙火星锯；S3 暗血红重锯 + 海军蓝水带）。人名前缀 specter（导出脚本按 fx_<人>_ul_ 认人，不能带下划线）。E2 = 不带档位后缀；E0 / E1 单种子；起手 cast1–3 按技能解锁档出（S1 三档、S2 精一起、S3 只有精二）；sk1 / sk2 = S1 / S2 开着时的环斩形态（S1 红橙锯 + 火舌；S2 冷钢锯 + 双水带）；终结技件 umini / ubig / udash / utear / ucut / uscar（编排 game/scripts/run/ult_fx_specter.gd）；其余件 curl / fall / back / aura / pulse / appear / burst / tide / quake（精一卷刃、替身、成长节点，ak-specter-ul-misc.js）",
  "fx_specter_ul_saw": {
   "fx": "melee/ak-specter-ul-saw",
   "opts": {
@@ -455,5 +455,157 @@
   "lo": true,
   "move": "ult",
   "check_sy": 0.55
+ },
+ "fx_specter_ul_curl": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "curl",
+   "life": 0.45,
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "curl_r/2"
+   },
+   "src": "base.curl_r（精一卷刃外圈 160，÷ PX）"
+  }
+ },
+ "fx_specter_ul_fall": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "fall",
+   "life": 0.6,
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_back": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "back",
+   "life": 0.4,
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_aura": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "aura",
+   "life": 1.0,
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "doll_r/2"
+   },
+   "src": "base.doll_r（替身光环 168，÷ PX；seg_specter.h3_doll_r）"
+  }
+ },
+ "fx_specter_ul_pulse": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "pulse",
+   "life": 0.4,
+   "seed": 16
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "flash_r/2"
+   },
+   "src": "base.flash_r（替身闪现脉冲 140，÷ PX）"
+  }
+ },
+ "fx_specter_ul_appear": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "appear",
+   "life": 0.3,
+   "seed": 19
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_burst": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "burst",
+   "life": 0.35,
+   "seed": 16
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55
+ },
+ "fx_specter_ul_tide": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "tide",
+   "life": 1.5,
+   "seed": 13
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "reach/2"
+   },
+   "src": "base.reach（血色潮痕圈 = 环斩半径，÷ PX；ring_dur 1.5）"
+  }
+ },
+ "fx_specter_ul_quake": {
+  "fx": "water/ak-specter-ul-misc",
+  "opts": {
+   "move": "quake",
+   "life": 0.7,
+   "seed": 16
+  },
+  "colors": 256,
+  "layers": true,
+  "lo": true,
+  "move": "skill",
+  "check_sy": 0.55,
+  "judge": {
+   "op": "specter_unchained",
+   "opts": {
+    "radius": "res_quake_r/2"
+   },
+   "src": "base.res_quake_r（锯鸣·共振震地 160，÷ PX）"
+  }
  }
 }

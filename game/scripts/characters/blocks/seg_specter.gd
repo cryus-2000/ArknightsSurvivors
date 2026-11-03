@@ -48,6 +48,8 @@ static func _h3_saw_release(o, a: Dictionary) -> void:
 		m *= v
 	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * m * (o.skill_power() if (str(a.get("power", "")) == "active" and _h3_any_skill(o)) else 1.0)
 	hw_record(o, dmg, 0.0, h3_saw_r(o, a), o.pos)   # basis attack = 这一圈主环斩的伤害（替身闪现按它取百分比）
+	if _sp_ul_on(o) and o.g.vfx.px_ul_el(o) >= 1 and float(o.base("curl_r", 0.0)) > 0.0:   # 放开版：精一卷刃——外圈水纹往里卷（旧帧条 fx_specter_inward_ripple 在 JSON 里 cond !px_ul）
+		_sp_ul_fx(o, "fx_specter_ul_curl", o.pos + Vector2(0, -6), float(o.base("curl_r", 0.0)) * o.stat(&"op_range"), 80.0)
 	var hm: Dictionary = _h4_sub(o, a.get("saw_hum", null))   # docs/202 锯鸣：攒满后这一圈环斩变为旋锯
 	if not hm.is_empty() and int(sp.hum) >= int(hm.get("max", 12)) and float(sp.whirl_t) <= 0.0 and int(sp.whirl_n) <= 0:
 		_g202_start_whirl(o, a, sp, hm, dmg)
@@ -63,6 +65,7 @@ static func _h3_saw_release(o, a: Dictionary) -> void:
 		if sp.rings.size() >= int(tr.get("max", 6)):
 			sp.rings.pop_front()
 		sp.rings.append({"pos": o.pos, "r": h3_saw_r(o, a), "t": float(tr.get("dur", 1.5)), "tick": float(tr.get("tick", 0.5)), "dmg": dmg * float(tr.get("mult", 0.2)), "b": tr})
+		_sp_ul_fx(o, "fx_specter_ul_tide", o.pos + Vector2(0, 4), h3_saw_r(o, a), 51.0)   # 放开版：潮痕帧条（地面层的程序圈不画）
 	var wh = a.get("whirl", null)
 	if wh is Dictionary and cond_true(o, wh.get("cond", _ED)):
 		var tk: float = float(wh.get("tick", 0.15))
@@ -155,6 +158,28 @@ static func _sp_ul_spin(o, ur: Dictionary, hits: Array, heavy: bool, kind: int, 
 		o.impact_pause(float(pz[(2 if el >= 2 else 0) + (0 if form == "basic" else 1)]))
 
 
+## 放开版其余件（卷刃 / 替身 / 成长节点）：先装饰后核心播一张；缩放 = 当前半径 ÷ 烤制半径（fit = 0 → PX）。开关关掉或缺图返回 false，调用方画旧画面
+static func _sp_ul_fx(o, base: String, p: Vector2, r := 0.0, fit := 0.0) -> bool:
+	var g = o.g
+	if g.vfx.px_ul_reg(str(o.id)).is_empty():
+		return false
+	var tm: bool = not o.is_leader
+	var cn: String = g.vfx.px_ul_tex(base, 1, tm, "core", 2)
+	if g.tex.get(cn) == null:
+		return false
+	var sc: float = r / fit if fit > 0.0 and r > 0.0 else g.PX
+	var dn: String = g.vfx.px_ul_tex(base, 1, tm, "deco", 2)
+	var dk: float = g.vfx.px_deco_k(o)
+	if dn != "" and dk > 0.0:
+		o.spawn_fx_sprite(dn, p, sc, 0.0, false, false, Color(1, 1, 1, dk))
+	o.spawn_fx_sprite(cn, p, sc)
+	return true
+
+
+static func _sp_ul_on(o) -> bool:
+	return not o.g.vfx.px_ul_reg(str(o.id)).is_empty()
+
+
 static func _h3_heavy(o, a: Dictionary) -> bool:
 	var hv = a.get("look", _ED).get("heavy", null)
 	return hv is Dictionary and cond_true(o, hv.get("cond", _ED))
@@ -204,7 +229,8 @@ static func _h3_rings_tick(o, sp: Dictionary, dt: float) -> void:
 					continue
 				o.log_hit(str(rg.b.get("src", "")), rg.b.get("tags", []))
 				o.deal_damage(e, rg.dmg)
-			_h3_vsparks(o, rg.pos + Vector2(0, 2), Color(1.1, 0.3, 0.4), 3, 60.0, 0.35, 2.0, 0.0, true)
+			var ulr: bool = _sp_ul_on(o)   # 放开版：潮痕跳伤的火星改深海青（原来的品红红接近危险色）
+			_h3_vsparks(o, rg.pos + Vector2(0, 2), Color(0.45, 0.8, 0.85) if ulr else Color(1.1, 0.3, 0.4), 3, 60.0, 0.35, 1.5 if ulr else 2.0, 0.0, true)
 	sp.rings = sp.rings.filter(func(rg): return rg.t > 0.0)
 
 
@@ -239,7 +265,8 @@ static func h3_saw_echo(o, _b: Dictionary) -> void:
 	var a: Dictionary = o.B.get("attack", {})
 	var g = o.g
 	_h3_spin(o, a, _g202_sd(o, a), 0)
-	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": h3_saw_r(o, a), "r0": 20.0, "life": 0.3, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 3.0, "alpha": 0.9})
+	if not _sp_ul_on(o):   # 放开版：往外扩的环不画（用户 11-04），追加的这一圈由环斩帧条表现
+		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": h3_saw_r(o, a), "r0": 20.0, "life": 0.3, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 3.0, "alpha": 0.9})
 
 
 ## 锯鸣：这一圈变旋锯（第一段立刻打出）
@@ -336,9 +363,10 @@ static func _g202_whirl_end(o, a: Dictionary, sp: Dictionary) -> void:
 		o.deal_damage(e, d)
 		if not e.dead:
 			displace_one(o, e, o.pos, {"dir": "push", "dist": float(rs.get("push", 60.0)), "elite_mult": 0.5})
-	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r, "r0": r * 0.25, "life": 0.45, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 4.0, "alpha": 0.95})
-	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r * 0.7, "r0": r * 0.1, "life": 0.35, "col": H3_GHOST, "floor": true, "w": 2.5, "alpha": 0.8})
-	o.fx({"kind": "crack", "pos": o.pos + Vector2(0, 4), "r": r * 0.8, "life": 0.6, "col": H3_RED, "floor": true, "n": 8})
+	if not _sp_ul_fx(o, "fx_specter_ul_quake", o.pos + Vector2(0, 4), r, 80.0):   # 放开版：不规则裂口 + 碎石（不画外扩冲击环）
+		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r, "r0": r * 0.25, "life": 0.45, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 4.0, "alpha": 0.95})
+		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r * 0.7, "r0": r * 0.1, "life": 0.35, "col": H3_GHOST, "floor": true, "w": 2.5, "alpha": 0.8})
+		o.fx({"kind": "crack", "pos": o.pos + Vector2(0, 4), "r": r * 0.8, "life": 0.6, "col": H3_RED, "floor": true, "n": 8})
 	o.impact_pause(0.05)
 	o.screen_shake(0.6)
 	_h3_sfx(o, "quake", 0.0, 1.0, 0.1)
@@ -353,6 +381,13 @@ static func _g202_draw_hum(o, sp: Dictionary, a: Dictionary) -> void:
 	var cv = o.cv
 	var mx: int = int(hm.get("max", 12))
 	var full: bool = int(sp.hum) >= mx
+	if _sp_ul_on(o):   # 放开版：脚下一段红橙弧随攒数变长（不画等距一圈点，docs/242 §1），攒满时变亮、轻微脉动
+		var k: float = float(sp.hum) / float(mx)
+		var a0: float = PI * 0.5 - PI * k
+		cv.draw_set_transform(o.pos + Vector2(0, 6), 0.0, Vector2(1.0, 0.5))
+		cv.draw_arc(Vector2.ZERO, 30.0, a0, a0 + TAU * k, maxi(4, int(40.0 * k)), Color(1.7, 0.75, 0.4, 0.95) if full else Color(1.2, 0.5, 0.3, 0.75), 2.0 + (sin(g.t * 12.0) if full else 0.0))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	cv.draw_set_transform(o.pos + Vector2(0, 6), 0.0, Vector2(1.0, 0.5))
 	var rr: float = 30.0 + (3.0 * sin(g.t * 10.0) if full else 0.0)
 	for q in mx:
@@ -365,11 +400,18 @@ static func _g202_draw_hum(o, sp: Dictionary, a: Dictionary) -> void:
 
 static func _g202_draw_blades(o, sp: Dictionary) -> void:
 	var cv = o.cv
+	var ul: bool = _sp_ul_on(o)
 	for bl in sp.blades:
 		var d: Vector2 = bl.dir
 		var n: Vector2 = d.orthogonal()
 		var p: Vector2 = bl.pos
 		var tr: Array = bl.trail
+		if ul:   # 放开版：海军蓝细拖尾 + 薄新月水刃（刃口近白、身海军蓝）
+			for k in range(1, tr.size()):
+				cv.draw_line(tr[k - 1], tr[k], Color(0.25, 0.45, 0.85, 0.1 + 0.09 * k), 1.5)
+			cv.draw_colored_polygon(PackedVector2Array([p + d * 12.0, p + n * 8.0 - d * 2.0, p + d * 3.0, p - n * 8.0 - d * 2.0]), Color(0.3, 0.55, 1.0, 0.9))
+			cv.draw_colored_polygon(PackedVector2Array([p + d * 12.0, p + n * 6.0, p + d * 8.0, p - n * 6.0]), Color(1.3, 1.45, 1.7, 0.95))
+			continue
 		for k in range(1, tr.size()):
 			cv.draw_line(tr[k - 1], tr[k], Color(0.6, 0.85, 1.2, 0.12 + 0.1 * k), 3.0)
 		cv.draw_colored_polygon(PackedVector2Array([p + d * 14.0, p + n * 9.0 - d * 4.0, p - d * 2.0, p - n * 9.0 - d * 4.0]), Color(0.8, 1.0, 1.4, 0.95))
@@ -430,8 +472,9 @@ static func _h3_fall(o, sp: Dictionary) -> void:
 	sp.doll_at = 0.0
 	o.melee_tgt = null
 	o.float_text(o.pos + Vector2(0, -60), str(b.get("text", "替身")), H3_GHOST, 15)
-	o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -24), "r": 30.0, "life": 0.5, "col": H3_GHOST, "alpha": 0.6})
-	_h3_vsparks(o, o.pos + Vector2(0, -20), H3_GHOST, 10, 120.0, 0.5, 2.5)
+	if not _sp_ul_fx(o, "fx_specter_ul_fall", o.pos):   # 放开版：身上水带往上散 + 碎沫
+		o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -24), "r": 30.0, "life": 0.5, "col": H3_GHOST, "alpha": 0.6})
+		_h3_vsparks(o, o.pos + Vector2(0, -20), H3_GHOST, 10, 120.0, 0.5, 2.5)
 
 
 ## 替身光环半径（画面圈与判定同用这里；10-29 用户「替身范围太小」：json doll_r 120 → 168）
@@ -489,15 +532,18 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 					continue
 				o.log_hit(str(au.get("src", "")), au.get("tags", []))
 				o.deal_damage(e, float(au.get("dps", 10.0)) * o._dmg_bonus())
-			if not o.spawn_fx_sprite("fx_circle_ghost", dp2 + Vector2(0, 4), g.PX * (r / 40.0)):
+			if _sp_ul_fx(o, "fx_specter_ul_aura", dp2 + Vector2(0, 4), r, 84.0):   # 放开版：判定半径上一圈断续海水边、水纹往里流（不外扩）
+				pass
+			elif not o.spawn_fx_sprite("fx_circle_ghost", dp2 + Vector2(0, 4), g.PX * (r / 40.0)):
 				o.fx({"kind": "ring", "pos": dp2, "r": r, "r0": r * 0.6, "life": 0.5, "col": H3_GHOST, "floor": true, "alpha": 0.5, "keep": true})
 	if float(sp.doll_t) <= 0.0:
 		sp.elegy_t = 0.0
 		o.pos = sp.doll_pos
 		sp.doll_pos = Vector2.INF
 		o.float_text(o.pos + Vector2(0, -60), str(b.get("back_text", "归队")), H3_GHOST, 14)
-		o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -24), "r": 24.0, "life": 0.4, "col": H3_GHOST, "alpha": 0.5})
-		if o.is_leader:   # 队长：操控回到本体，回归要看得出来——替身碎成光尘、地面一圈冷光环
+		if not _sp_ul_fx(o, "fx_specter_ul_back", o.pos):   # 放开版：四周水沫往身上收（不画外扩冷光环）
+			o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -24), "r": 24.0, "life": 0.4, "col": H3_GHOST, "alpha": 0.5})
+		if o.is_leader and not _sp_ul_on(o):   # 队长：操控回到本体，回归要看得出来——替身碎成光尘、地面一圈冷光环
 			o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 2), "r": 70.0, "r0": 12.0, "life": 0.5, "col": H3_GHOST, "floor": true, "w": 3.0, "alpha": 0.8})
 			_h3_vsparks(o, o.pos + Vector2(0, -24), H3_GHOST, 16, 160.0, 0.6, 2.5)
 
@@ -630,6 +676,8 @@ const H3SP_TIDE_EDGE := Color(0.3, 0.56, 0.62)
 const H3SP_TIDE_RIPPLE := Color(0.4, 0.66, 0.7)
 
 static func _h3sp_draw_floor(o) -> void:
+	if _sp_ul_on(o):   # 放开版：潮痕由 fx_specter_ul_tide 帧条画
+		return
 	var cv = o.cv
 	var sp: Dictionary = o.hw.sp
 	for rg in sp.rings:
@@ -669,7 +717,7 @@ static func _h3sp_draw_auras(o) -> void:
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if o.pos != Vector2.INF and not away:
 		_g202_draw_hum(o, sp, a)
-	if float(sp.doll_t) > 0.0 and sp.doll_pos != Vector2.INF and not sp.sub.is_empty():
+	if float(sp.doll_t) > 0.0 and sp.doll_pos != Vector2.INF and not sp.sub.is_empty() and not ul:   # 放开版：常驻光环圈不画，每拍由 fx_specter_ul_aura 表现
 		var au: Dictionary = sp.sub.get("doll_aura", {})
 		if not au.is_empty() and cond_true(o, au.get("cond", _ED)):
 			cv.draw_set_transform((sp.doll_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
@@ -686,7 +734,7 @@ static func _h3sp_draw_over(o) -> void:
 	var sp: Dictionary = o.hw.sp
 	var a: Dictionary = o.B.get("attack", {})
 	_g202_draw_blades(o, sp)
-	if float(sp.whirl_t) > 0.0:
+	if float(sp.whirl_t) > 0.0 and not _sp_ul_on(o):   # 放开版：旋锯每段由 _tm 环斩帧条表现，不画程序锯弧
 		var r: float = h3_saw_r(o, a) * 0.92 * float(sp.whirl_rk)
 		var fade: float = clampf(float(sp.whirl_t) / 0.2, 0.0, 1.0)
 		var heavy: bool = _h3_heavy(o, a) or g.lamp < 30.0 or bool(sp.hum_on)
@@ -777,7 +825,9 @@ static func h3_doll_flash(o, b: Dictionary) -> void:
 	var rev: bool = near[0].pos.x < c.x if not near.is_empty() else o.face < 0.0   # 替身朝最近的敌人（10-21：不再左右镜像旋身）
 	sp["flash"] = {"pos": c, "t": 0.0, "dmg": dmg, "hit": false, "b": b, "rev": rev}
 	var g = o.g
-	if not o.spawn_fx_sprite("fx_water_splash", c + Vector2(0, 4), g.PX, 0.0, false, true):
+	if _sp_ul_fx(o, "fx_specter_ul_appear", c):   # 放开版：地面水带往上绕成一柱
+		pass
+	elif not o.spawn_fx_sprite("fx_water_splash", c + Vector2(0, 4), g.PX, 0.0, false, true):
 		o.fx({"kind": "ring", "pos": c, "r": 26.0, "r0": 4.0, "life": 0.3, "col": H3_COLD, "floor": true, "w": 2.0})
 
 
@@ -800,9 +850,13 @@ static func _e3_flash_tick(o, sp: Dictionary, dt: float) -> void:
 		var c: Vector2 = f.pos
 		for e in o.area_hit(str(b.get("src", "")), c, r, float(f.dmg), 0.0, 0.0, b.get("tags", []), int(b.get("max_n", 0))):
 			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 8.0, "life": 0.15, "col": H3_COLD, "alpha": 0.5})
-		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * (0.15 + 0.12 * k), "life": 0.36, "col": H3_COLD, "floor": true, "w": 3.0, "alpha": 0.95})   # 法术脉冲外扩（同浊心声浪的地面环）
-		o.fx({"kind": "ring", "pos": c, "r": r * 0.6, "r0": r * 0.08, "life": 0.28, "col": H3_GHOST, "floor": true, "w": 2.0, "alpha": 0.8})
+		if not _sp_ul_fx(o, "fx_specter_ul_pulse", c + Vector2(0, 2), r, 70.0):   # 放开版：绕替身一圈往里收的水旋（不画外扩环）
+			o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * (0.15 + 0.12 * k), "life": 0.36, "col": H3_COLD, "floor": true, "w": 3.0, "alpha": 0.95})   # 法术脉冲外扩（同浊心声浪的地面环）
+			o.fx({"kind": "ring", "pos": c, "r": r * 0.6, "r0": r * 0.08, "life": 0.28, "col": H3_GHOST, "floor": true, "w": 2.0, "alpha": 0.8})
 		_h3_sfx(o, "atk", -3.0, 1.2 + 0.08 * k, 0.06)
+	if not f.get("bu", false) and float(f.t) >= ap + sw:
+		f["bu"] = true
+		_sp_ul_fx(o, "fx_specter_ul_burst", f.pos)   # 放开版：碎成水带往上散（旧泡沫帧条不画）
 	if float(f.t) >= ap + sw + float(b.get("burst", 0.3)):
 		sp.flash = {}
 
@@ -824,7 +878,7 @@ static func _e3_flash_draw(o) -> void:
 		var k: float = t / ap
 		var nm: String = str(b.get("appear_fx", "fx_specter_doll_appear"))
 		_e3_doll_phase(o, "doll_appear", p, f.rev, k)
-		if g.tex.get(nm) != null:
+		if g.tex.get(nm) != null and not _sp_ul_on(o):
 			fx_frame(cv, g, nm, 5, mini(int(k * 5.0), 4), mid, g.PX, Color.WHITE)
 		elif o.anim_tex("doll_appear") == null:
 			_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, k), 0)
@@ -842,7 +896,7 @@ static func _e3_flash_draw(o) -> void:
 	var kb: float = clampf((t - ap - sw) / bu, 0.0, 1.0)
 	var nb: String = str(b.get("burst_fx", "fx_specter_doll_burst"))
 	_e3_doll_phase(o, "doll_vanish", p, f.rev, kb)
-	if g.tex.get(nb) != null:
+	if g.tex.get(nb) != null and not _sp_ul_on(o):
 		fx_frame(cv, g, nb, 6, mini(int(kb * 6.0), 5), mid, g.PX, Color.WHITE)
 	elif o.anim_tex("doll_vanish") == null:
 		_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, 1.0 - kb), 0)

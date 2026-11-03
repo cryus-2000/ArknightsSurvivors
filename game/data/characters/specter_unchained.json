@@ -1161,6 +1161,7 @@
       "elite_mult": 0.5,
       "fx": [
        {
+        "cond": "!px_ul",
         "strip": "fx_specter_inward_ripple",
         "layer": "floor",
         "fit": 48,
@@ -1253,6 +1254,7 @@
       "src": "锯刃",
       "fx": [
        {
+        "cond": "!px_ul",
         "pfx": {
          "kind": "ring",
          "r": 1.0,
