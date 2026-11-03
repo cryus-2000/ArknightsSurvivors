@@ -33,7 +33,7 @@ const SY = 0.55;
 export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), el = clamp(Math.round(+o.elite), 0, 2), quick = +o.quick > 0;
   const core = o.layer !== "deco", deco = o.layer !== "core", BLUE = hex("#d6ebf6");
-  const RR = +o.ring, DL = [0.3, 0.45, 0.65][el] * (quick ? 0.5 : 1), GK = [0.25, 0.35, 0.5][el];
+  const RR = +o.ring, DL = [0.3, 0.45, 0.65][el] * (quick ? 0.5 : 1), GK = [0.4, 0.5, 0.65][el];
   const T0 = 0.08, TR = 0.2;   // 晷针立起 / 环描完
   // 环的缺口：噪声决定哪里断（不规则），E1 的封印纹放在几个缺口中心
   const gapAt = (a) => noise(a * 3.1, o.seed) > 0.05;   // 缺口占一小半：读成几段断开的弧，不是一个完整的圈
@@ -66,7 +66,7 @@ export function create(o) {
         }
         p.line(-3, -4, 4, -4, C[hot ? 6 : 4]);   // 护手
       }
-      if (deco && gh > 1) p.glow(0, -gh * 0.6, 8 + 2 * el, C[3], GK * (hot ? 1.5 : 1));
+      if (deco && gh > 1) { p.glow(0, -gh * 0.6, (hot ? 14 : 10) + 2 * el, hot ? C[5] : C[4], GK * (hot ? 1.8 : 1.1)); p.glow(0, -gh, 6, BLUE, GK * 0.8); }   // 11-03 用户「太素」：出手加强白热光晕、剑尖淡蓝
       // ---- 环：从正上方顺时针描出来，只一道、断续；描完后外缘一格亮、逐渐变暗
       const draw = clamp((t - T0 * 0.6) / TR), fade = clamp((t - T0 - TR - 0.15) / (0.3 + DL));
       if (core && draw > 0 && fade < 1) {
@@ -100,19 +100,19 @@ export function create(o) {
         if (u < 0 || u > tr.life) continue;
         const [x, y] = E(tr.a), k = 1 - u / tr.life, yy = y - tr.vy * u, xx = x + tr.dx * u;
         const s = tr.s;
-        if (k > 0.2) p.poly([[xx, yy - s], [xx + s * 0.8, yy + s * 0.6], [xx - s * 0.8, yy + s * 0.6]], C[k > 0.6 ? 5 : 3]);
+        if (k > 0.2) p.poly([[xx, yy - s], [xx + s * 0.8, yy + s * 0.6], [xx - s * 0.8, yy + s * 0.6]], k > 0.6 ? C[5] : BLUE);
       }
       // ---- 装饰：环内淡光（地面，压扁）+ 余韵微尘闪烁
       if (deco && draw > 0 && fade < 1) for (let a = 0; a < TAU; a += 0.7) {
         const [x, y] = E(a, RR * 0.6);
-        p.glow(x, y, 7, C[2], 0.18 * (1 - fade) * draw);
+        p.glow(x, y, 8, BLUE, 0.22 * (1 - fade) * draw);   // 环内淡蓝冷光
       }
       if (deco) for (const d of dust) {
         const u = t - d.t0;
         if (u < 0 || u > DL) continue;
         const k = (1 - u / DL) * (0.5 + 0.5 * Math.sin(d.ph + u * 30));
         const [x, y] = E(d.a, d.r);
-        if (k > 0.2) p.blend(x, y - u * 10, C[k > 0.6 ? 5 : 4], Math.min(1, k));
+        if (k > 0.2) p.blend(x, y - u * 10, k > 0.6 ? C[5] : BLUE, Math.min(1, k));
       }
     },
   };

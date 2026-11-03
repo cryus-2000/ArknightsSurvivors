@@ -5,7 +5,8 @@
 //   E0 一道细月牙（只有主刃）；E1 双刃（第二道反向月牙）+ 刀口崩出几枚小封印纹（精一「精神摧毁」）；
 //   E2 双刃 + 两道细剑气从刀弧上交叉射出（精二「双生刃」每次横扫附带两道交叉剑气）。
 // 分层：core = 刀弧、刀口亮线、封印纹、交叉剑气；deco = 光晕、碎光、余韵残痕。
-import { Rng, fit, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
+// 11-03 用户「放大看像一道淡铅笔线，太素」：出刀两帧刀身白热、光晕加大，余韵带淡蓝冷光（原作 langtou_02 亮部色相约 0.56）。
+import { Rng, fit, hex, clamp, smooth, ease, TAU, noise } from "../../core/index.js";
 import { jitterSteps } from "../house.js";
 
 export const meta = {
@@ -32,7 +33,7 @@ export const meta = {
 const onArc = (r, a) => [Math.cos(a) * r, Math.sin(a) * r];
 
 // 细月牙：前缘最厚（W）、两头收尖；外缘一格亮线（只在头两帧白），往里降阶；外缘按噪声崩口
-function crescent(p, s, ta, L, W, age, hot, core) {
+function crescent(p, s, ta, L, W, age, hot, core, BLUE) {
   if (!core || Math.abs(L) < 0.03 || W < 0.3) return;
   const R = s.C, dir = Math.sign(L), span = Math.abs(L), B = s.R + 3;
   p.shade(-B, -B, B, B, (x, y, out) => {
@@ -46,7 +47,7 @@ function crescent(p, s, ta, L, W, age, hot, core) {
     if (w < 0.45) return;
     const q = (Rr - r) / w;
     if (q < 0 || q > 1) return;
-    out.c = q < 0.3 ? R[hot ? 6 : 5] : R[clamp(Math.round(4 - q * 2 - age * 2), 1, 4)];
+    out.c = hot ? (q < 0.65 ? R[6] : R[5]) : q < 0.45 ? BLUE : R[clamp(Math.round(4 - q * 2 - age * 2), 1, 4)];   // 出刀那一帧整条刀身白热，之后外缘淡蓝、往里降阶（不连白）
   });
 }
 
@@ -54,14 +55,15 @@ export function create(o) {
   const C = fit(o.palette, 7), Rg = new Rng(o.seed), el = clamp(Math.round(+o.elite), 0, 2), quick = +o.quick > 0;
   const core = o.layer !== "deco", deco = o.layer !== "core";
   const R0 = +o.radius, span = +o.span, a0 = -span / 2;
-  const DL = [0.25, 0.4, 0.6][el] * (quick ? 0.5 : 1), GK = [0.2, 0.3, 0.45][el];
+  const DL = [0.25, 0.4, 0.6][el] * (quick ? 0.5 : 1), GK = [0.35, 0.45, 0.6][el], BLUE = hex("#cfe6f3");
   // 主刃自上而下、第二刃（E1+）自下而上，稍内、稍晚、更细
-  const A = { R: R0, C, seed: o.seed, a0, dir: 1, W: 4, t0: 0, sw: 0.06, hold: 0.03, tr: 0.09, trace: true };
+  const A = { R: R0, C, seed: o.seed, a0, dir: 1, W: 5, t0: 0, sw: 0.06, hold: 0.03, tr: 0.09, trace: true };
   const B = { R: R0 * 0.84, C, seed: o.seed + 9, a0: a0 + span * 0.85, dir: -1, W: 2.6, t0: 0.05, sw: 0.06, hold: 0.02, tr: 0.08, trace: false };   // 第二刃不留残痕：两道同心残痕是禁止的同心圈
   const blades = el >= 1 ? [A, B] : [A];
   const chips = jitterSteps(Rg, span, 0.18, 0.42).map((u) => ({ a: a0 + u, sp: Rg.range(30, 80), life: Rg.range(0.15, 0.3) * (0.7 + DL) }));
   const seals = el >= 1 ? jitterSteps(Rg, span * 0.8, 0.5, 0.9).map((u) => ({ a: a0 + span * 0.1 + u, s: Rg.range(2.2, 3.2), r: Rg.range(-0.6, 0.6), d: Rg.range(4, 9) })) : [];
   const glints = el >= 2 ? [[0.25, -1], [-0.25, 1]].map(([da, sg]) => ({ a: da + Rg.range(-0.05, 0.05), sg })) : [];
+  const glowAt = jitterSteps(Rg, 0.95, 0.04, 0.09).map((k) => k + 0.05);   // 密而小，连成一条光带（不读成一颗颗圆斑）
   const trace = jitterSteps(Rg, span, 0.1, 0.24).map((u) => [u, Rg.range(0.06, 0.14)]);
   let t = 0;
   const seal = (p, x, y, s, c, r) => {
@@ -76,20 +78,22 @@ export function create(o) {
         const u = t - s.t0;
         if (u < 0) continue;
         const head = ease.outExpo(clamp(u / s.sw)), tail = smooth(s.sw + s.hold, s.sw + s.hold + s.tr, u);
-        const age = clamp(u / (s.sw + s.hold + s.tr)), hot = u < 0.06;
+        const age = clamp(u / (s.sw + s.hold + s.tr)), hot = u < 0.06;   // 每柄刀第一张有刀身的帧白热（u = 0 那帧还没刀）
         const ta = s.a0 + s.dir * span * tail, L = s.dir * span * (head - tail);
-        if (tail < 1) crescent(p, s, ta, L, s.W * (1 - tail * 0.5), age, hot, core);
-        if (deco && tail < 1) for (let k = 0.1; k < 1; k += 0.22) {   // 光晕沿刀弧（不是一个圆）
+        if (tail < 1) crescent(p, s, ta, L, s.W * (1 - tail * 0.5), age, hot, core, BLUE);
+        if (deco && tail < 1) for (const k of glowAt) {   // 光晕沿刀弧（不是一个圆；位置随机，不等距）
           const [x, y] = onArc(s.R - 2, ta + L * k);
-          p.glow(x, y, 6, C[3], GK * (1 - age) * k);
+          p.glow(x, y, hot ? 8 : 6, hot ? C[5] : C[4], GK * 0.45 * (1 - age) * (0.4 + 0.6 * k) * (hot ? 1.4 : 1));
         }
         // 余韵：刀走过处一道断续细残痕，alpha ≤ 0.4，分段长短不一
-        const tr = 0.4 * (1 - clamp((u - s.sw) / (s.tr + DL)));
+        const tr = 0.6 * (1 - clamp((u - s.sw) / (s.tr + DL)));   // 放开版不设 0.4 上限（docs/242 §1）
+        if (deco && s.trace && tr > 0.05 && u > s.sw) for (const k of glowAt) { const [x, y] = onArc(s.R - 1, s.a0 + s.dir * span * k); p.glow(x, y, 5, BLUE, tr * 0.18); }
         if (deco && s.trace && tr > 0.02) for (const [u0, len] of trace) {
           if (u0 > span * Math.min(1, head)) continue;
           for (let k = u0; k < u0 + len; k += 0.6 / s.R) {
             const [x, y] = onArc(s.R - 1, s.a0 + s.dir * k);
-            p.blend(x, y, C[3], tr);
+            p.blend(x, y, BLUE, tr);   // 余韵残痕：淡蓝冷光
+            if (Math.floor(k * 37) % 3 === 0) p.blend(x, y - 1, BLUE, tr * 0.5);
           }
         }
       }
@@ -111,7 +115,7 @@ export function create(o) {
       if (el >= 2) {
         const u = t - 0.06;
         if (u >= 0 && u < 0.26) {
-          const d = R0 * 1.05 + 150 * u, L = 13 * (1 - u / 0.26) + 4, c = C[u < 0.06 ? 6 : u < 0.15 ? 5 : 4];
+          const d = R0 * 1.05 + 150 * u, L = 13 * (1 - u / 0.26) + 4, c = u < 0.1 ? C[5] : u < 0.18 ? BLUE : C[4];
           for (const g of glints) {
             const ax = 1, ay = 0;                                                 // X 的中心在出手方向上
             const cx = ax * d, cy = ay * d, rot = g.sg * 0.55;                   // 两道各斜 ±0.55 弧度，交在中心
