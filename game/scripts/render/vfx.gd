@@ -198,10 +198,13 @@ static var _px_ul_reg = null
 ## 放开版技能起手（docs/242 §12.1）：character.spend_sp（技能开启的统一入口）调。注册表 "cast": {"技能序号 0–2": {base, at, y, sc, flip}}：
 ## at = "self"（缺省，脚底 + (0, y)）/ "front"（身前 front 像素，沿朝向）；sc = 缩放（× PX，缺省 1）；flip = true 时朝左翻。先装饰（× px_deco_k）后核心；开关关掉时注册表为空、不播
 func px_ul_cast(o, i: int) -> void:
-	if px_halo_off():
-		return
 	var c = px_ul_reg(str(o.id)).get("cast", {}).get(str(i))
 	if not (c is Dictionary) or o.pos == Vector2.INF:
+		return
+	var al = c.get("ally")
+	if px_halo_off() and not c.get("halo_ok", false):   # 发散光环关掉：条目没写 halo_ok（作者保证不外扩、组长审过）就不播起手；ally 自己再看
+		if al is Dictionary and al.get("halo_ok", false):
+			_px_ul_ally(o, al)
 		return
 	var base: String = str(c.get("base", ""))
 	var el: int = px_ul_el(o)
@@ -218,12 +221,20 @@ func px_ul_cast(o, i: int) -> void:
 	var cn: String = px_ul_tex(base, 1, tm, "core", el)
 	if g.tex.get(cn) != null:
 		fx_sprite(cn, p, sc, 0.0, fl)
-	var al = c.get("ally")
-	if al is Dictionary and g.get("squad") != null and g.squad != null:   # 对友方生效的技能（docs/242 §11 #4）：每个在场队员脚下再播一张，按受益者取队长版 / _tm，精英档跟施放者
-		for m in g.squad.ops:
-			if m == null or m.pos == Vector2.INF or (m == o and not al.get("self", false)):
-				continue
-			_px_ul_at(str(al.get("base", "")), m.pos + Vector2(0, float(al.get("y", 0.0))), Game.PX * float(al.get("sc", 1.0)), not m.is_leader, el, dk)
+	if al is Dictionary and (not px_halo_off() or al.get("halo_ok", false)):
+		_px_ul_ally(o, al)
+
+
+## 对友方生效的技能（docs/242 §11 #4）：每个在场队员脚下再播一张，按受益者取队长版 / _tm，精英档跟施放者
+func _px_ul_ally(o, al: Dictionary) -> void:
+	if g.get("squad") == null or g.squad == null:
+		return
+	var el: int = px_ul_el(o)
+	var dk: float = px_deco_k(o)
+	for m in g.squad.ops:
+		if m == null or m.pos == Vector2.INF or (m == o and not al.get("self", false)):
+			continue
+		_px_ul_at(str(al.get("base", "")), m.pos + Vector2(0, float(al.get("y", 0.0))), Game.PX * float(al.get("sc", 1.0)), not m.is_leader, el, dk)
 
 
 ## 在 p 处先装饰（× dk）后核心播一张放开版帧条（px_ul_cast / px_ul_heal 共用）
@@ -245,7 +256,7 @@ var _px_heal_t := {}
 
 func px_ul_heal(o) -> void:
 	var h = px_ul_reg(str(o.id)).get("heal")
-	if not (h is Dictionary) or g.ppos == Vector2.INF or px_halo_off():
+	if not (h is Dictionary) or g.ppos == Vector2.INF or (px_halo_off() and not h.get("halo_ok", false)):
 		return
 	var k: String = str(o.id)
 	if g.t - float(_px_heal_t.get(k, -99.0)) < 1.0:
@@ -292,6 +303,29 @@ func px_ul_link(o, part: String, a: Vector2, b: Vector2, r: float, link_id := ""
 ## 发散光环关掉了没有（用户 11-04，docs/242 §14.7）：放开版打开且 balance fx/px_halo = 0（缺省）时 true，公共代码里的发散环 / 起手 / 增益 / 治疗挂点都不画
 func px_halo_off() -> bool:
 	return Bal.vi("fx/px_unleashed", 0) > 0 and Bal.vi("fx/px_halo", 0) <= 0
+
+
+## 通用按名替换（docs/242 §14.14，协调人 11-04「各干员只填 json」）：注册表 "remap": {"<旧帧条 / 贴图名>": "<放开版基名>"}，
+## 这名干员画旧名的地方（spawn_fx_sprite、fx 条目、常驻 / 贴身条目、召唤物侧挂、弹体贴图、钩索）一律换成放开版（px_ul_tex 取名：队友 _tm、精英档、缺图回退；
+## 只换核心层，要两层用 ob_fx px 条目）。没登记、开关关掉、或放开版缺图时原样返回旧名
+var _remap_c := {}
+
+
+func px_remap(o, name: String) -> String:
+	if o == null or name == "":
+		return name
+	return px_remap_id(str(o.id), name, not o.is_leader, px_ul_el(o))
+
+
+func px_remap_id(id: String, name: String, teammate := false, elite := 2) -> String:
+	var rm = px_ul_reg(id).get("remap")
+	if not (rm is Dictionary) or not rm.has(name):
+		return name
+	var k: String = "%s|%s|%d|%d" % [id, name, int(teammate), elite]
+	if not _remap_c.has(k):
+		var nm: String = px_ul_tex(str(rm[name]), 1, teammate, "core", elite)
+		_remap_c[k] = nm if g.tex.get(nm) != null else name
+	return _remap_c[k]
 
 
 ## 放开版帧条按哪个精英档取（docs/242 §10）：balance fx/px_ul_elite ≥ 0 时一律用它（展示段录像），否则用干员当前精英化
