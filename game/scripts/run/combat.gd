@@ -953,7 +953,7 @@ func gate_clamp(e: Dictionary, dmg: float) -> float:
 		if e.hp > lh and e.hp - dmg <= lh and e.act_t < e.act_min:
 			dmg = e.hp - lh
 			e.gate_hold = true
-			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+			g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
 		return dmg
 	var line: float = e.maxhp * float(gates[0])
 	if e.hp > line and e.hp - dmg <= line:
@@ -962,7 +962,7 @@ func gate_clamp(e: Dictionary, dmg: float) -> float:
 			gate_pass(e)   # 这一击照样结算（截在刻度上），之后 0.8 秒不受伤
 		else:
 			e.gate_hold = true
-			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+			g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
 	return dmg
 
 
@@ -1016,7 +1016,7 @@ func start_break(e: Dictionary, t: float) -> void:
 	e.brk_len = e.break_t   # 破绽总长（render/break_ring 倒计时弧用）
 	if final_break_quiet(e):
 		return
-	g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "破绽", UI.GOLD, 20)
+	g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "破绽", UI.GOLD, 20)
 
 
 ## 最终 Boss 破绽不写字（用户 10-28；中期 Boss 照旧，玩家在那里学会破绽）：boss/break_text_final 0 = 不写（缺省），1 = 恢复。

@@ -390,8 +390,8 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		if readable and _damage_label(str(f.text)):
 			pop = 1.0 + 0.15 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
-		var sz := _qs(maxi(ft_min, int(round(f.size * pop * ft_k))))   # 局内飘字缩放 render/float_text_k（11-05 缩约 30%），手机上不低于 float_text_min
-		dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
+		var sz := _qs(int(f.size * pop)) if f.get("keep", false) else _qs(maxi(ft_min, int(round(f.size * pop * ft_k))))   # 局内飘字缩放 render/float_text_k（11-05 缩约 30%），手机上不低于 float_text_min
+		dn.append([sp - Vector2(FT_BOX * 0.5, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
 	if readable:
 		dn = _clear_damage_text(dn, ct, vs)
 	clarity_text_drawn = dn.size()
@@ -562,7 +562,7 @@ static func clear_damage_text(dn: Array, body: Rect2, vs: Vector2, font: Font, c
 		var w: float = font.get_string_size(str(it[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 		var ah := Vector2(font.get_ascent(sz), font.get_height(sz))
 		var p: Vector2 = it[0]
-		var box := Rect2(p.x + (120.0 - w) * 0.5 - 5, p.y - ah.x - 5, w + 10, ah.y + 10)
+		var box := Rect2(p.x + (FT_BOX - w) * 0.5 - 5, p.y - ah.x - 5, w + 10, ah.y + 10)
 		if box.intersects(body):
 			var shift: float = body.position.y - 6.0 - box.end.y
 			box.position.y += shift
@@ -583,6 +583,8 @@ static func clear_damage_text(dn: Array, body: Rect2, vs: Vector2, font: Font, c
 	return out
 
 
+## 飘字居中框宽：原来 120，长的 Boss 招式提示（「假死 · 8 秒内击倒另一体」）会被裁掉半截；放宽到 360，居中位置不变（11-05）
+const FT_BOX := 360.0
 func _dmg_numbers(dn: Array) -> void:
 	var n: int = dn.size()
 	var ci: CanvasItem = g.hud
@@ -610,7 +612,7 @@ func _dmg_numbers(dn: Array) -> void:
 			wc[it[1]] = w
 		var ah: Vector2 = _numh[ks]
 		var p: Vector2 = it[0]
-		var bb := Rect2(p.x + (120.0 - w) * 0.5 - 6.0, p.y - ah.x - 6.0, w + 12.0, ah.y + 12.0)
+		var bb := Rect2(p.x + (FT_BOX - w) * 0.5 - 6.0, p.y - ah.x - 6.0, w + 12.0, ah.y + 12.0)
 		var L := 0
 		for j in i:
 			if lay[j] >= L and (bbs[j] as Rect2).intersects(bb):
@@ -636,11 +638,11 @@ func _dmg_numbers(dn: Array) -> void:
 		for k in order[L]:
 			var ks: int = k % 1024
 			for it in grp[k]:
-				ci.draw_string_outline(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, 120, ks, 4, Color(0, 0, 0, it[3].a * 0.8))
+				ci.draw_string_outline(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, 4, Color(0, 0, 0, it[3].a * 0.8))
 		for k in order[L]:
 			var ks: int = k % 1024
 			for it in grp[k]:
-				ci.draw_string(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, 120, ks, it[3])
+				ci.draw_string(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, it[3])
 
 
 var _numw := {}   # 字号 -> {字串: 宽}（飘字外接框用；数字常重复，省掉重复量字）

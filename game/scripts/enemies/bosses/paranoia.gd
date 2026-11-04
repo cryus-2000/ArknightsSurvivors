@@ -194,7 +194,7 @@ func _drop_step(e: Dictionary) -> void:
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
 		combos().interrupt(e)   # 打落打断连段
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(0.45, 0.95, 1.0), "enemy": true})
-		g.vfx.add_text(e.pos + Vector2(0, -70), "坠地", Color(0.45, 0.95, 1.0), 20)
+		g.vfx.add_alert(e.pos + Vector2(0, -70), "坠地", Color(0.45, 0.95, 1.0), 20)
 		g.vfx.shake_screen(0.6)
 		Sfx.play("shell_break", -6.0, 1.3, 0.0)
 	elif not _aura_off(e) and e.get("cocoon_t", 0.0) <= 0.0 and _dash_through(e):
@@ -203,7 +203,7 @@ func _drop_step(e: Dictionary) -> void:
 		e.aura_off_max = t2
 		combos().interrupt(e)   # 打散光环打断连段
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": float(e.get("burden_r", 300.0)), "life": 0.6, "max": 0.6, "col": Color(0.45, 0.95, 1.0), "enemy": true})
-		g.vfx.add_text(e.pos + Vector2(0, -70), "光环散开", Color(0.45, 0.95, 1.0), 18)
+		g.vfx.add_alert(e.pos + Vector2(0, -70), "光环散开", Color(0.45, 0.95, 1.0), 18)
 		Sfx.play("shell_break", -6.0, 1.1, 0.0)
 
 
@@ -291,7 +291,7 @@ func _decoy_pop(e: Dictionary, sl: Dictionary, dashed: bool) -> void:
 	if dashed:
 		g.combat.enemy_hit(e.dmg * 0.3, {"boss": true, "src_type": e.type}, false, true, ["近战", "法术"], "boss_" + e.type)
 		g.combat.slow_leader("paranoia_decoy", 1.0, 0.7)
-		g.vfx.add_text(o.pos + Vector2(0, -50), "幻影", Color(0.85, 0.7, 1.0), 16)
+		g.vfx.add_alert(o.pos + Vector2(0, -50), "幻影", Color(0.85, 0.7, 1.0), 16)
 		Sfx.play("shell_break", -8.0, 1.6, 0.0)
 
 
@@ -391,10 +391,10 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 3.0, "life": 0.6, "max": 0.6, "col": Color(0.85, 0.45, 1.0), "enemy": true})
 	if broken:
 		brk(e, Bal.v("boss/paranoia_hatch_break", 5.0))
-		g.vfx.add_text(e.pos + Vector2(0, -70), "破茧！", Color(1.0, 0.85, 0.4), 22)
+		g.vfx.add_alert(e.pos + Vector2(0, -70), "破茧！", Color(1.0, 0.85, 0.4), 22)
 	else:
 		e.gaze_bonus = int(e.get("gaze_bonus", 0)) + 1
-		g.vfx.add_text(e.pos + Vector2(0, -70), "蜕变 —— 凝视 +1", Color(0.9, 0.4, 1.0), 20)
+		g.vfx.add_alert(e.pos + Vector2(0, -70), "蜕变 —— 凝视 +1", Color(0.9, 0.4, 1.0), 20)
 	Sfx.play("shell_break" if broken else "cocoon_revive", 2.0 if broken else -5.2, 1.0, 0.0)   # 破茧 / 超时蜕变
 
 
@@ -439,4 +439,4 @@ func on_kill(e: Dictionary) -> void:
 func on_gate(e: Dictionary) -> void:
 	if e.gates.is_empty() and e.phase == 1 and Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0:
 		_paranoia_p2(e)
-		g.vfx.add_text(e.pos + Vector2(0, -70), "坠落", Color(0.9, 0.4, 1.0), 20)
+		g.vfx.add_alert(e.pos + Vector2(0, -70), "坠落", Color(0.9, 0.4, 1.0), 20)

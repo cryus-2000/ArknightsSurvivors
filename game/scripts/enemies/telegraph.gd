@@ -562,7 +562,7 @@ func _resolve(w: Dictionary) -> void:
 				for l in e.get("lamps", []):
 					if l.lit and g.combat.ground_d(g.ppos, l.pos) < float(e.get("lamp_r", 120.0)):
 						g.fx.append({"kind": "ring", "pos": l.pos, "r": float(e.get("lamp_r", 120.0)), "life": 0.6, "max": 0.6, "col": Color(0.5, 0.6, 0.8), "enemy": true})
-						g.vfx.add_text(l.pos + Vector2(0, -40), "灯柱熄灭", Color(0.7, 0.75, 0.9), 15)
+						g.vfx.add_alert(l.pos + Vector2(0, -40), "灯柱熄灭", Color(0.7, 0.75, 0.9), 15)
 						l.out = true
 						l.lit = false
 						break

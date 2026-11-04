@@ -156,7 +156,7 @@ func retreat_mid_bosses() -> void:
 		b.dead = true
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, b))
 		g.fx.append({"kind": "ring", "pos": b.pos, "r": b.r * 2.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.7, 0.9)})
-		g.vfx.add_text(b.pos + Vector2(0, -b.r - 30.0), "%s 撤离" % b.name, Color(0.75, 0.8, 0.95), 16)
+		g.vfx.add_alert(b.pos + Vector2(0, -b.r - 30.0), "%s 撤离" % b.name, Color(0.75, 0.8, 0.95), 16)
 
 
 ## 最终 Boss 登场：冻结场地并净化禁生成圆区内的溟痕；圈外溟痕长期保留。
@@ -1297,7 +1297,7 @@ func reveal_mimic(e: Dictionary) -> void:
 	if D.ENEMIES["mimic"].has("scream_r"):
 		g.eai.start_scream(e, D.ENEMIES["mimic"])   # 现形尖叫（docs/145 §4 A）
 	g.vfx.show_banner("箱形恐鱼！")
-	g.vfx.add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
+	g.vfx.add_alert(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
 	Sfx.play("roar", -2.0, 1.3)
 	g.vfx.shake_screen(0.6)
 	g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 14, 260.0)

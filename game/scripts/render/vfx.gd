@@ -677,6 +677,15 @@ func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 		g.texts.pop_front()
 
 
+## Boss / 精英 / 敌人招式名与警示类飘字（11-05 用户「boss招式提醒不变」）：同 add_text，但不跟着局内飘字缩放（render/float_text_k），保持原字号
+func add_alert(pos: Vector2, text: String, col: Color, size := 14) -> void:
+	var n: int = g.texts.size()
+	var last = g.texts[n - 1] if n > 0 else null
+	add_text(pos, text, col, size)
+	if not g.texts.is_empty() and not is_same(g.texts[g.texts.size() - 1], last):
+		g.texts[g.texts.size() - 1]["keep"] = true
+
+
 ## 可合并的数字飘字：["前缀", "数字"]（纯数字前缀为空；「弱点 94」「破绽 382」按前缀分开合并），其余返回 []
 func _num_parts(text: String) -> Array:
 	if text.is_valid_int():

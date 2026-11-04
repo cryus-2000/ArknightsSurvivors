@@ -378,7 +378,7 @@ func _paths_step(e: Dictionary, dt: float, p2: bool) -> void:
 							continue
 					o.dead = true
 					e.hp = minf(e.maxhp, e.hp + e.maxhp * Bal.v("boss/path_return_heal", 0.03))
-					g.vfx.add_text(e.pos + Vector2(0, -60), "订正 · 回流", STEEL, 14)
+					g.vfx.add_alert(e.pos + Vector2(0, -60), "订正 · 回流", STEEL, 14)
 					g.fx.append({"kind": "reflow", "a": res[0], "b": e.pos, "life": 0.5, "max": 0.5, "enemy": true})
 				else:
 					o.dead = true
@@ -432,7 +432,7 @@ func _cut(e: Dictionary, p: Dictionary, i: int, p2: bool) -> void:
 		o.part = true
 		g.enemies_sys.part_add(o)
 	g.fx.append({"kind": "ring", "pos": p.pts[i], "r": 30.0, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.85, 0.4), "enemy": true})
-	g.vfx.add_text(p.pts[i] + Vector2(0, -30), "截断", Color(1.0, 0.85, 0.4), 16)
+	g.vfx.add_alert(p.pts[i] + Vector2(0, -30), "截断", Color(1.0, 0.85, 0.4), 16)
 	Sfx.play("stake_hit", -8.0, 1.4, 0.0)
 	if p2:
 		_correct_at(e, p.pts[i])
@@ -448,7 +448,7 @@ func _stack(e: Dictionary) -> void:
 		e.dmg0 = e.dmg
 	e.path_stack = n + 1
 	e.dmg = float(e.dmg0) * (1.0 + 0.1 * e.path_stack)
-	g.vfx.add_text(e.pos + Vector2(0, -60), "探到生路 · 强化 %d" % e.path_stack, Color(1.0, 0.45, 0.35), 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -60), "探到生路 · 强化 %d" % e.path_stack, Color(1.0, 0.45, 0.35), 16)
 	Sfx.play("roar", -10.0, 1.4, 0.0)
 
 
@@ -457,7 +457,7 @@ func _lost(e: Dictionary) -> void:
 	_clear_paths(e)
 	e.lost = true
 	g.combat.start_break(e, Bal.v("boss/path_lost", 3.0))
-	g.vfx.add_text(e.pos + Vector2(0, -70), "迷路！", Color(1.0, 0.85, 0.4), 22)
+	g.vfx.add_alert(e.pos + Vector2(0, -70), "迷路！", Color(1.0, 0.85, 0.4), 22)
 	Sfx.play("boom", -6.0, 1.3, 0.0)
 	e.path_next = g.t + Bal.v("boss/path_lost", 3.0) + 0.5
 

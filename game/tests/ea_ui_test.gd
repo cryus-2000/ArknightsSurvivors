@@ -74,6 +74,12 @@ func run() -> void:
 	# 终结技开着（ult/on，缺省）时手动技能按自动放、Q 归终结技：队长也不提示「按 Q」（11-05 清旧说明）；关着时照旧提示
 	var q_hint: bool = game.ult == null
 	check(("按 Q" in game.panel_ui.option_description(option)) == q_hint, "leader growth hints Q only without ult")
+	# 11-05「boss招式提醒不变」：招式 / 警示飘字（add_alert）标 keep、不跟 render/float_text_k 缩放；普通飘字（add_text）照旧缩放
+	game.texts.clear()
+	game.vfx.add_alert(Vector2(0, -400), "假死 · 测试", Color.WHITE, 16)
+	game.vfx.add_text(Vector2(0, 400), "测试状态", Color.WHITE, 14)
+	check(game.texts.size() == 2 and bool(game.texts[0].get("keep", false)) and not bool(game.texts[1].get("keep", false)), "boss alert floaters keep size, ordinary floaters scale")
+	game.texts.clear()
 	check(("按 Q" in game.show_screen.skill_item(op, 2).desc) == q_hint, "leader elite show hints Q only without ult")
 	op.is_leader = false
 	check(not "按 Q" in game.panel_ui.option_description(option), "ally growth never asks Q")
