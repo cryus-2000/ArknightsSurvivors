@@ -17,16 +17,21 @@ func _process(_dt: float) -> void:
 	if captured or game.t < 480.0:
 		return
 	captured = true
-	game.set_process(false)
-	game.set_physics_process(false)
+	game.process_mode = Node.PROCESS_MODE_DISABLED
 	Engine.time_scale = 0.0
 	_capture.call_deferred()
 
 func shot(name: String) -> void:
 	for i in 4:
-		game.queue_redraw()
+		redraw(game)
 		await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(out.path_join(name + ".png"))
+
+func redraw(node: Node) -> void:
+	if node is CanvasItem:
+		node.queue_redraw()
+	for child in node.get_children():
+		redraw(child)
 
 func _capture() -> void:
 	var r: Dictionary = Bal.sec("render")
