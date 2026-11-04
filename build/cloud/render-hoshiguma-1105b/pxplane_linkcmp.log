@@ -1,0 +1,5 @@
+('link1_s11_120', 150, [], False)
+('link0_s11_120', 150, [], False)
+('link2_s11_120', 150, [], False)
+连携事件 [('cover', '30.360'), ('cover', '99.726')]
+缺帧 {0: '/work/repo/build/pxplane_hoshiguma/link0_s11_120_frames/rec_-2682.png', 2: '/work/repo/build/pxplane_hoshiguma/link2_s11_120_frames/rec_-2682.png', 1: '/work/repo/build/pxplane_hoshiguma/link1_s11_120_frames/rec_-2682.png'}

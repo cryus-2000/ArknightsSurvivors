@@ -1,0 +1,25 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2404 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py trace --op hoshiguma --lead texas --seed 11 --maxt 300 --pxs 0,1,2 --extra "--bal=growth/late_shape=1 --elite2 --sptest"
+   rc=0  515 秒
+('trace0_s11', 301, [], False)
+('trace1_s11', 301, [], False)
+('trace2_s11', 301, [], False)
+trace0_s11 vs trace1_s11：TRACE 301 / 301 行，逐行一致
+trace0_s11 vs trace2_s11：TRACE 301 / 301 行，逐行一致
+== pxplane_shots.py rec --op hoshiguma --lead texas --seed 11 --from 480 --secs 20 --crf 26 --extra "--bal=growth/late_shape=1"
+   rc=2  0 秒
+                        [--extra EXTRA] [--pxs PXS] [--op {hoshiguma,skadi}]
+                        [--crf CRF] [--lead LEAD] [--reuse]
+                        [--force_k FORCE_K]
+                        {demo,rec,trace,diff,fps,linkcmp}
+pxplane_shots.py: error: argument --extra: expected one argument
+== pxplane_shots.py linkcmp --op hoshiguma --lead texas --seed 11 --from 120 --secs 30 --extra "--bal=growth/late_shape=1 --elite2 --sptest"
+   rc=1  949 秒
+('link1_s11_120', 150, [], False)
+('link0_s11_120', 150, [], False)
+('link2_s11_120', 150, [], False)
+连携事件 [('cover', '30.360'), ('cover', '99.726')]
+缺帧 {0: '/work/repo/build/pxplane_hoshiguma/link0_s11_120_frames/rec_-2682.png', 2: '/work/repo/build/pxplane_hoshiguma/link2_s11_120_frames/rec_-2682.png', 1: '/work/repo/build/pxplane_hoshiguma/link1_s11_120_frames/rec_-2682.png'}
+media：0 个文件，4.0K
