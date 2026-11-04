@@ -7,6 +7,7 @@ const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/247 V4 伤害档标记
 const UI = preload("res://scripts/ui.gd")
 const Tactics = preload("res://scripts/characters/tactics.gd")   # 战术姿态 v2（command/v2，docs/209 §1）
 
@@ -438,8 +439,10 @@ func update(dt: float) -> void:
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		g.vfx.spawn_lead = o.is_leader   # 这段里生成的帧条特效记为队长的（docs/139 §11 突出队长；纯画面标记）
+		g.vfx.spawn_tier = 2 if LateRead2.on("light_share") and o.skill_active() else 1   # docs/247 V4：技能期间的帧条记重击档（纯画面标记）
 		o.update(dt)
 		g.vfx.spawn_lead = false
+		g.vfx.spawn_tier = 1
 		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos

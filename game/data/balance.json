@@ -1025,6 +1025,10 @@
   "demo_zoom": 0.68
  },
  "render": {
+  "_late_read2_doc": "后期可读性第二批（docs/247，用户 11-05 批 V4 / V9 / V10，render/late_read2.gd），三个独立开关缺省 0 = 关、只改画面：light_share 1 = 特效照地光按我方 / 敌方分账，总盏数仍 optical_dl_max，我方保底 light_share_ally（份额比例，0.5 = 12 盏里 6 盏），份额内终结技 > 重击（技能期间帧条 / 三档命中）> 普攻；二 / 三档命中挂 0.12 秒照地光（半径 light_share_hit_r）；队长周围局部光预算对份额内的灯最多压到 light_share_floor 倍；三档命中迸溅不吃 optical_local_bursts。ground_ring_edge 1 = 巢穴光环 / 灯标 / 伊祖米克灯柱光圈 / 遥乡 / 旗帜地圈只画边 + 呼吸（ring_breath_t 周期秒、ring_breath_lo 最暗倍率），填充封顶 ring_fill_max；敌方危险区与预警不在内。crowd_env_dim 1 = 怪群密集时地面 / 溟痕本体 / 环境颗粒压暗 crowd_env_k（满拥挤时的比例），拥挤度按活敌数 crowd_env_from 起、再加 crowd_env_span 只到顶；我方特效 / 小队 / 敌人 / 敌弹 / 预警 / 掉落不压",
+  "light_share": 0, "light_share_ally": 0.5, "light_share_hit_r": 64, "light_share_floor": 0.7,
+  "ground_ring_edge": 0, "ring_fill_max": 0.04, "ring_breath_t": 1.6, "ring_breath_lo": 0.6,
+  "crowd_env_dim": 0, "crowd_env_k": 0.18, "crowd_env_from": 60, "crowd_env_span": 90,
   "warn_v2": 0,
   "_warn_v2_doc": "普通怪预警双线边界：0 保留原画法；1 暗衬+稳定红边、内部计时扫线、内部恒为零填充（重叠不加浓），方向尖角收在原范围内，最后0.3秒提亮加粗、不闪烁。精英/Boss/精英小队/必须冲刺/缺口环/无伤害预告不变；不改变判定和计时。",
   "warn_v2_final": 0.3,

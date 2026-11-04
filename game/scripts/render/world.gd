@@ -13,6 +13,7 @@ const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # 后期可读性第二批（docs/247：light_share / ground_ring_edge / crowd_env_dim）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
@@ -86,13 +87,17 @@ var _dbg_warn: bool = Dc.dbg("nowarn")
 var _dbg_tell: bool = Dc.dbg("notell")
 var _dbg_foefx: bool = Dc.dbg("nofoefx")
 var _dbg_shock: bool = Dc.dbg("noshock")
-var _dbg_aura: bool = Dc.dbg("noaura")
+var _dbg_aura: bool = Dc.dbg("noaura") or Dc.dbg("noring")   # noring（docs/247 V9 量测）= 巢穴光环 + 灯标 / 灯柱 / 遥乡 / 旗帜地圈
 var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
 var _gc_sink = null   # GroundCrack.TbSink（_init 里建）
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
+## docs/247 V10（render/crowd_env_dim，缺省 0 = 关）：怪群密集时环境（地面 / 溟痕 / 环境颗粒）压暗的系数，1 = 不压。
+## env_crowd 同 ecrowd 的口径（活着的敌人数，平滑同速），起止点单设 crowd_env_from / crowd_env_span；开关关时恒 1
+var env_crowd := 0.0
+var env_dim := 1.0
 ## 精英冷色描边（界面与美术 10-15，协调人「精英冷色标识在局内暗处的可读性」）：Codex 10-14 把四只精英的帧条亮边改回冷色后，
 ## 照亮圈外（灯火 2）只看帧条分不出精英和普通怪（截图 build/shots/elite_rim/），全靠 HUD 头顶 ▼。这里只给精英画一圈
 ## 颜色 > 1 的冷青描边（抵消环境暗色，同 Boss 轮廓光的做法），不受「Boss 轮廓光」开关影响；普通怪仍不画（docs/50 §12 A）。
@@ -255,6 +260,7 @@ func update_visuals(dt: float) -> void:
 			ne += 1
 	var ewant: float = 0.0 if g.demo_op != "" else clampf((ne - 90.0) / 120.0, 0.0, 1.0)
 	ecrowd = move_toward(ecrowd, ewant, rd * 0.8)
+	_env_dim_step(ne, rd)
 	# 后期降噪预设（render/declutter，render/declutter.gd）：敌人多也算拥挤（crowd_mix，缺省 0 = 只看特效数）
 	dcrowd = maxf(crowd, ecrowd * Dc.p("crowd_mix"))
 	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
@@ -296,6 +302,19 @@ func update_visuals(dt: float) -> void:
 	if g.post != null and "crowd" in g.post:
 		g.post.crowd = dcrowd
 		g.post.bloom_cut = Dc.p("bloom_cut")
+
+
+## docs/247 V10：怪群密集时压暗环境。系数 = 1 − crowd_env_k（缺省 0.18）× env_crowd，env_crowd 按活敌数 crowd_env_from → +crowd_env_span 线性到 1、
+## 平滑同 ecrowd；只给地面（draw_world 地面之后一层黑纱）、溟痕本体（map.draw_mire）、环境颗粒（光学孢子 / 溟痕光尘 / 浮游雪）用。
+## 我方特效、小队、敌人、敌弹、预警、掉落都在黑纱之上或不读它。图鉴演示不压。只读状态
+func _env_dim_step(ne: int, rd: float) -> void:
+	if not LateRead2.on("crowd_env_dim") or g.demo_op != "":
+		env_crowd = 0.0
+		env_dim = 1.0
+		return
+	var w: float = clampf((float(ne) - LateRead2.k("crowd_env_from", 60.0)) / maxf(1.0, LateRead2.k("crowd_env_span", 90.0)), 0.0, 1.0)
+	env_crowd = move_toward(env_crowd, w, rd * 0.8)
+	env_dim = 1.0 - clampf(LateRead2.k("crowd_env_k", 0.18), 0.0, 0.5) * env_crowd
 
 
 ## 表现事件步骤（docs/101 B3，10-15）：game._process 末尾每帧调一次（有头时在本帧绘制之前），无头批跑也照常走。
@@ -416,6 +435,8 @@ func draw_world() -> void:
 		if gv > 0.002:
 			var gm: Color = g.map.ground_mean()
 			g.wcv.draw_rect(view_rect(8.0), Color(gm.r, gm.g, gm.b, gv))
+		if env_dim < 0.999:
+			g.wcv.draw_rect(view_rect(8.0), Color(0.0, 0.0, 0.0, 1.0 - env_dim))   # docs/247 V10：地面 / 地形道具压暗（终结技地面层、干员地面特效、溟痕之后的一切都在这层之上）
 	if g.ult != null:
 		g.ult.draw_world_back(self)   # 终结技地面层帧条（刀痕残痕 / 领域 / 裂纹 / 海嗣水纹）
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
@@ -3705,13 +3726,23 @@ func draw_nest_auras() -> void:
 		if not view_rect(ar + 20.0).has_point(e.pos):
 			continue   # 屏外不画（性能 9/30：原来全场每只都画）
 		var lite: bool = Bal.v("render/nest_aura_lite", 0.0) > 0.0   # docs/139 §8：只留一层淡底 + 不转的虚线边界
+		var ac := Color(0.9, 0.5, 1.6)
+		if LateRead2.on("ground_ring_edge"):
+			# docs/247 V9：只画边 + 呼吸，填充一层 ≤ 0.04；脉冲（aura_pulse_t 0.15 秒）时边加亮，代替原来贴图整片加亮
+			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, LateRead2.fill_a(0.03)), 1.0, 32)
+			var pk: bool = g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15
+			var ea9: float = 0.85 if pk else 0.6 * LateRead2.edge_breath(g.t, float(e.id) * 0.13)
+			var rot9: float = g.t * 0.4 + e.id
+			for q in 18:
+				var a9: float = rot9 + q * TAU / 18.0
+				tb_arc(e.pos, ar, a9, a9 + TAU / 36.0, 2.0, Color(ac.r, ac.g, ac.b, ea9), 3)
+			continue
 		var aura_tex := _lazy_tex("fx_nest_aura_big") if not lite else null
 		if aura_tex != null:
 			var fw: float = aura_tex.get_width() / 4.0
 			var frame := int(g.t * 10.0) % 4
 			g.wcv.draw_texture_rect_region(aura_tex, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(frame * fw, 0, fw, aura_tex.get_height()), Color(1, 1, 1, 0.5 if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15 else 0.35))
 		# 柔光底 / 内收涟漪 / 转动虚线外圈都进无贴图批，函数末尾一次提交（原来每只约 24 次绘制调用）
-		var ac := Color(0.9, 0.5, 1.6)
 		if lite:
 			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, 0.05), 1.0, 32)
 			for q in 18:
@@ -4034,7 +4065,7 @@ func _izu_lamps(e: Dictionary) -> void:
 		var pulse: float = 0.5 + 0.5 * sin(g.t * (10.0 if waving else 3.0))
 		g.wcv.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
 		if lit:
-			g.wcv.draw_circle(Vector2.ZERO, lr, Color(1.0, 0.8, 0.4, (0.12 + 0.08 * pulse) if waving else 0.08))
+			g.wcv.draw_circle(Vector2.ZERO, lr, Color(1.0, 0.8, 0.4, LateRead2.fill_a((0.12 + 0.08 * pulse) if waving else 0.08)))   # docs/247 V9：填充封顶 0.04（地波蓄力时边本来就加粗脉动）
 			g.wcv.draw_arc(Vector2.ZERO, lr, 0.0, TAU, 56, Color(1.8, 1.4, 0.6, 0.6 + 0.35 * pulse if waving else 0.55), 3.0 if waving else 2.0)
 		else:
 			g.wcv.draw_arc(Vector2.ZERO, 40.0, 0.0, TAU, 32, Color(1.0, 0.8, 0.45, 0.35), 1.5)
@@ -4116,26 +4147,32 @@ func draw_beacons() -> void:
 		var r: float = float(b.get("r", 70.0))
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 3.0)
 		g.wcv.draw_set_transform(pos, 0.0, Vector2(1.0, ground_y()))
+		var br9: float = LateRead2.edge_breath(g.t, pos.x * 0.003)   # docs/247 V9：开时填充封顶 0.04、边呼吸；关时 = 1
 		if not lit:
-			g.wcv.draw_circle(Vector2.ZERO, r, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.07 + 0.05 * pulse))
+			g.wcv.draw_circle(Vector2.ZERO, r, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, LateRead2.fill_a(0.07 + 0.05 * pulse)))
 			for q in 20:
 				var a0: float = g.t * 0.3 + q * TAU / 20.0
-				tb_arc(pos, r, a0, a0 + TAU / 40.0, 2.0, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55), 3, ground_y())   # 虚线进批（原来 20 段各一次调用）
+				tb_arc(pos, r, a0, a0 + TAU / 40.0, 2.0, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55 * br9), 3, ground_y())   # 虚线进批（原来 20 段各一次调用）
 			# 引路圈（docs/56 a，beacon/guide_r > 0 才有）：guide_r 处一圈很淡的同款虚线，寿命过 guide_life 即消失
 			var gr: float = float(b.get("guide_r", 0.0))
 			if gr > 0.0 and float(b.get("age", 0.0)) <= float(b.get("guide_life", 45.0)):
 				for q in 28:
 					var a2: float = -g.t * 0.2 + q * TAU / 28.0
-					tb_arc(pos, gr, a2, a2 + TAU / 56.0, 1.5, Color(BEACON_COL.r * 1.3, BEACON_COL.g * 1.3, BEACON_COL.b * 1.3, 0.16 + 0.04 * pulse), 3, ground_y())
+					tb_arc(pos, gr, a2, a2 + TAU / 56.0, 1.5, Color(BEACON_COL.r * 1.3, BEACON_COL.g * 1.3, BEACON_COL.b * 1.3, (0.16 + 0.04 * pulse) * LateRead2.ring_vis()), 3, ground_y())
 		else:
 			var left: float = float(b.get("safe_end", 0.0)) - g.t
 			if left > 0.0:
 				var cr: float = float(b.get("clear_r", 260.0))
-				g.wcv.draw_circle(Vector2.ZERO, cr, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.05))
+				g.wcv.draw_circle(Vector2.ZERO, cr, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, LateRead2.fill_a(0.05) * (0.5 if LateRead2.on("ground_ring_edge") else 1.0)))
 				for q in 36:
 					var a1: float = -g.t * 0.1 + q * TAU / 36.0
-					tb_arc(pos, cr, a1, a1 + TAU / 72.0, 2.0, Color(BEACON_COL.r * 1.4, BEACON_COL.g * 1.4, BEACON_COL.b * 1.4, 0.45 if left > 5.0 else 0.45 * absf(sin(g.t * 8.0))), 3, ground_y())
-			g.wcv.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, 0.16 + 0.06 * pulse))
+					tb_arc(pos, cr, a1, a1 + TAU / 72.0, 2.0, Color(BEACON_COL.r * 1.4, BEACON_COL.g * 1.4, BEACON_COL.b * 1.4, (0.45 if left > 5.0 else 0.45 * absf(sin(g.t * 8.0))) * LateRead2.ring_vis()), 3, ground_y())
+			if LateRead2.on("ground_ring_edge"):
+				# V9：灯标脚下的亮盘改成一圈亮边 + 极淡底（亮盘在暗场里是整片发光的半透明几何）
+				g.wcv.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, LateRead2.fill_a(0.16)))
+				g.wcv.draw_arc(Vector2.ZERO, 46.0, 0.0, TAU, 40, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, 0.55 * br9), 2.0)
+			else:
+				g.wcv.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, (0.16 + 0.06 * pulse) * LateRead2.ring_vis()))
 		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		tb_flush()
 		# 点燃进度（暖色环；读 prog / need，离开光圈时进度缓慢回退也看得到）

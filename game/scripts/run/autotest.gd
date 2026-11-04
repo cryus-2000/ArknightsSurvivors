@@ -2206,6 +2206,7 @@ func _clutter_log() -> void:
 		"warns_full": wfull, "warns_dim": wdim, "dash_full": dash_full, "dash_dim": dash_dim, "texts": g.texts.size(),
 		"texts_drawn": g.hud_view.clarity_text_drawn,
 		"gems_on": gems_on, "mires": g.mires.size(), "snow": g.map.snow.size(),
+		"env_dim": snappedf(g.world.env_dim, 0.001), "env_crowd": snappedf(g.world.env_crowd, 0.001), "dl": g.optical.dl_stat.duplicate() if g.optical != null else {},   # docs/247：环境压暗系数、照地光分账
 		"crowd": snappedf(g.world.crowd, 0.001), "ecrowd": snappedf(g.world.ecrowd, 0.001), "dcrowd": snappedf(g.world.dcrowd, 0.001),
 		"fx_dim": snappedf(g.world.fx_dim, 0.001), "declutter": Dc.level(), "leader_scr": [lp.x, lp.y], "lamp": g.lamp,
 		"lamp_r": g.lamp_light.texture_scale * 64.0}

@@ -7,6 +7,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const D = preload("res://scripts/data.gd")
 const A = preload("res://scripts/art.gd")
 const FD = preload("res://scripts/render/frame_dst.gd")
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/247 V4 照地光分账（render/light_share）
 
 var g
 var rect: ColorRect
@@ -106,7 +107,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 				var mp: Vector2 = (mo.pos + f.get("off", Vector2.ZERO)) if mo != null and mo.pos != Vector2.INF else f.pos
 				if not vr.has_point(mp):
 					continue
-				cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col])
+				cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col, 0, 2 if int(f.tier) >= 2 else 1])
 				continue
 			if kd != "sprite" and kd != "anim" and kd != "grain_light":
 				continue
@@ -121,7 +122,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 				_fxsz[nm] = g.tex[nm].get_height() / A.hires_of(g.tex[nm])
 			var r: float = clampf(float(_fxsz[nm]) * float(f.get("scale", g.PX)) * 0.9, 32.0, 170.0)
 			var inten: float = life * (0.6 + r / 170.0)
-			cand.append([inten, p, r, particles.fx_color(nm)])
+			cand.append([inten, p, r, particles.fx_color(nm), 1 if (f.get("enemy", false) or nm.begins_with("fx_boss") or nm.begins_with("fx_enemy")) else 0, int(f.get("lt", 1))])
 		var nb := 0
 		for b in g.bullets:
 			if nb >= 60:
@@ -129,7 +130,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			if b.life <= 0.0 or b.get("hidden", false) or not vr.has_point(b.pos):
 				continue
 			nb += 1
-			cand.append([0.7, b.pos, 84.0, particles._bullet_col(b)])
+			cand.append([0.7, b.pos, 84.0, particles._bullet_col(b), 0, 1])
 		var ne := 0
 		for b in g.ebullets:
 			if ne >= 40:
@@ -137,12 +138,15 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			if b.life <= 0.0 or not vr.has_point(b.pos):
 				continue
 			ne += 1
-			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, eb_col(b)])
+			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, eb_col(b), 1, 0])
 		if grains != null:
 			for L in grains.lights:   # 颗粒簇登记的灯（fx_grains.light）
 				if vr.has_point(L[0]):
-					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2]])
-		if cand.size() > nmax:
+					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2], 0, 1])
+		var share: bool = LateRead2.on("light_share")
+		if share:
+			cand = _share_pick(cand, nmax, vr)
+		elif cand.size() > nmax:
 			cand = _top_n(cand, nmax)
 		# 局部预算（防油腻 ②）：队长 render/optical_local_r（120）内入选的光强度总和封顶 render/optical_local_light（1.6），超出按比例压
 		var lr: float = Bal.v("render/optical_local_r", 120.0)
@@ -152,9 +156,14 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 				lsum += float(cand[i][0])
 		var lcap: float = Bal.v("render/optical_local_light", 1.6)
 		if lsum > lcap:
+			# V4（light_share）：我方份额内的灯压到不低于 light_share_floor（缺省 0.7）倍——近战干员后期总在队长身边命中，原来正好被这道局部预算压暗
+			var fl: float = LateRead2.k("light_share_floor", 0.7) if share else 0.0
 			for i in mini(nmax, cand.size()):
 				if (cand[i][1] as Vector2).distance_to(g.ppos) < lr:
-					cand[i][0] = float(cand[i][0]) * lcap / lsum
+					var kk: float = lcap / lsum
+					if share and cand[i].size() > 6 and cand[i][6] is bool and cand[i][6]:
+						kk = maxf(kk, fl)
+					cand[i][0] = float(cand[i][0]) * kk
 	_dl_pos.resize(DL_MAX)
 	_dl_col.resize(DL_MAX)
 	var n: int = mini(nmax, cand.size())
@@ -169,9 +178,114 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 		else:
 			_dl_pos[i] = Vector4(0, 0, 1, 0)
 			_dl_col[i] = Vector4.ZERO
+	_dl_stat(cand, n)
 	mat.set_shader_parameter("dl_n", n)
 	mat.set_shader_parameter("dl_pos", _dl_pos)
 	mat.set_shader_parameter("dl_col", _dl_col)
+
+
+## ---------------- docs/247 V4：照地光按我方 / 敌方分账（render/light_share，缺省 0 = 关） ----------------
+## 候选格式 [强度, 位置, 半径, 颜色, 阵营 0 我方 / 1 敌方, 伤害档 0 无 / 1 普攻 / 2 重击 / 3 终结技]（入选后补第 7 位「我方份额」）。
+## 总盏数仍是 optical_dl_max（GPU 开销不变）：
+##   ① 我方保底 = round(nmax × light_share_ally)（缺省 0.5 → 12 盏里 6 盏）；
+##   ② 份额内先给外部来源（share_source 登记的，每个来源至多 quota 盏，按自己的强度取），再按「档 × 10 + 强度」取我方候选——终结技 > 重击 > 普攻；
+##   ③ 剩下的盏数照旧在所有没入选的候选（我方 + 敌方）里按强度取。我方候选少时，空出的保底盏数自然让给敌方 / 其余。
+## 外部来源（通用接口，「我方份额内再分配」）：share_source(名字, Callable(vr: Rect2, n: int) -> Array 候选, quota)，
+##   候选同上格式（前 4 位必填，阵营 / 档缺省按我方普攻）；fx_recipe 合并时把 FxRecipe.lights_for 登记成 "recipe"、quota = fx/recipe_dl（见 docs/247 §5）
+var share_sources := {}   # 名字 → [Callable, quota]
+var hit_lights: Array = []   # 三档命中（vfx._tier_fx）登记的短命照地光：[pos, r, col, t0, life, tier]；只在 light_share 开时登记
+const HIT_LIGHT_MAX := 24
+var dl_stat := {"n": 0, "ally": 0, "foe": 0, "hit": 0, "ult": 0, "heavy": 0, "ext": 0, "cand_ally": 0, "cand_foe": 0}   # 量测（--clutterlog 写进 shot_*.json）
+
+
+func share_source(name: String, fn: Callable, quota: int) -> void:
+	if fn.is_valid() and quota > 0:
+		share_sources[name] = [fn, quota]
+	else:
+		share_sources.erase(name)
+
+
+## vfx._tier_fx 调：二 / 三档命中在命中点挂一盏 0.12 秒的照地光（我方，档 = 命中档；终结技期间的命中记终结技档）
+func hit_light(pos: Vector2, col: Color, tier: int) -> void:
+	if tier < 2 or not LateRead2.on("light_share"):
+		return
+	var lt: int = 3 if (g.ult != null and g.ult.playing()) else tier
+	hit_lights.append([pos, LateRead2.k("light_share_hit_r", 64.0) * (1.25 if tier >= 3 else 1.0), col, g.t, 0.12, lt])
+	if hit_lights.size() > HIT_LIGHT_MAX:
+		hit_lights.pop_front()
+
+
+func _share_pick(cand: Array, nmax: int, vr: Rect2) -> Array:
+	var now: float = g.t
+	hit_lights = hit_lights.filter(func(L): return now - float(L[3]) < float(L[4]))
+	for L in hit_lights:
+		if vr.has_point(L[0]):
+			var lf: float = 1.0 - (now - float(L[3])) / float(L[4])
+			cand.append([(0.55 + 0.2 * (int(L[5]) - 2)) * (0.5 + 0.5 * lf), L[0], float(L[1]), L[2], 0, int(L[5]), false, true])
+	var na: int = clampi(roundi(float(nmax) * LateRead2.k("light_share_ally", 0.5)), 0, nmax)
+	var picked: Array = []
+	var ext := 0
+	for nm in share_sources:
+		var src: Array = share_sources[nm]
+		if na - picked.size() <= 0:
+			break
+		var got: Array = (src[0] as Callable).call(vr, mini(int(src[1]), na - picked.size()))
+		for c in got:
+			if picked.size() >= na:
+				break
+			var cc: Array = c.duplicate()
+			while cc.size() < 6:
+				cc.append(0 if cc.size() == 4 else 1)
+			cc.resize(8)
+			cc[6] = true
+			picked.append(cc)
+			ext += 1
+	var ally: Array = []
+	var rest: Array = []
+	for i in cand.size():
+		var c: Array = cand[i]
+		if int(c[4]) == 0:
+			ally.append([float(c[5]) * 10.0 + float(c[0]), i])
+		else:
+			rest.append(c)
+	dl_stat.cand_ally = ally.size()
+	dl_stat.cand_foe = rest.size()
+	var top: Array = _top_n(ally, na - picked.size()) if na - picked.size() > 0 else []
+	var used := {}
+	for t in top:
+		var c: Array = cand[int(t[1])]
+		used[int(t[1])] = true
+		if c.size() < 8:
+			c.resize(8)
+		c[6] = true
+		picked.append(c)
+	for t in ally:
+		if not used.has(int(t[1])):
+			rest.append(cand[int(t[1])])
+	var left: int = nmax - picked.size()
+	if left > 0:
+		picked.append_array(_top_n(rest, left) if rest.size() > left else rest)
+	dl_stat.ext = ext
+	return picked
+
+
+func _dl_stat(cand: Array, n: int) -> void:
+	var s := {"n": n, "ally": 0, "foe": 0, "hit": 0, "ult": 0, "heavy": 0}
+	for i in n:
+		var c: Array = cand[i]
+		if c.size() > 4 and int(c[4]) == 1:
+			s.foe += 1
+			continue
+		s.ally += 1
+		if c.size() > 7 and c[7] is bool and c[7]:
+			s.hit += 1
+		if c.size() > 5:
+			if int(c[5]) >= 3:
+				s.ult += 1
+			elif int(c[5]) == 2:
+				s.heavy += 1
+	for key in s:
+		dl_stat[key] = s[key]
 
 
 ## 按强度（[0]）从大到小取前 n 个：插入选择，代替整表 sort_custom（候选上百个时多数一次比较就被拒，docs/50 §26）
@@ -572,6 +686,10 @@ func _process(_dt: float) -> void:
 			var ld = g.squad.leader() if g.squad != null else null
 			var tc_on: bool = Bal.v("render/trail_col", 1.0) > 0.0
 			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp, ld.trail_cols() if ld != null and ld.has_method("trail_cols") and tc_on else [])
+			if g.world.env_dim < 0.999:   # docs/247 V10：怪群密集时环境孢子压暗（灯火余烬是灯火本身，不压）
+				particles.spores.modulate.a *= g.world.env_dim
+				if particles.warm_spores != null:
+					particles.warm_spores.modulate.a *= g.world.env_dim
 			# 队友跑动余烬（淡、少，队长为主）：倒地 / 不在场的不给
 			var ml: Array = []
 			if g.squad != null:
