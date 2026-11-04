@@ -695,6 +695,10 @@ const ELITE_COL := Color(1.0, 0.42, 0.25)
 func draw_elite_marks(ct: Transform2D) -> void:
 	if g.demo_op != "" or g.state == Game.S.SHOW:
 		return
+	_elite_mark_batch(ct).flush(g.hud)
+
+
+func _elite_mark_batch(ct: Transform2D) -> RefCounted:
 	var vs := g.hud.size
 	var tb := Tris.new()   # 血条 + 三角一批提交（原来每只 4 次绘制调用）
 	var mark_v2: bool = Bal.v("render/elite_mark_v2", 0.0) > 0.0
@@ -704,9 +708,10 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		var sp: Vector2 = ct * (e.pos + Vector2(0, -e.r - 14.0))
 		if sp.x < -40 or sp.y < -40 or sp.x > vs.x + 40 or sp.y > vs.y + 40:
 			continue
-		var w: float = maxf(24.0, e.r * 1.4)
-		tb.rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
-		tb.rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), Color(0.75, 0.8, 0.84) if mark_v2 else ELITE_COL)
+		if not (mark_v2 and e.get("squad", false)):
+			var w: float = maxf(24.0, e.r * 1.4)
+			tb.rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
+			tb.rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), Color(0.75, 0.8, 0.84) if mark_v2 else ELITE_COL)
 		var tip: Vector2 = sp + Vector2(0, -4)
 		if mark_v2:
 			var p: Vector2 = (tip + Vector2(0, -12)).round()
@@ -733,7 +738,7 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		var bw: float = 64.0
 		tb.rect(Rect2(bp + Vector2(-bw / 2.0 - 1.0, -1.0), Vector2(bw + 2.0, 5)), Color(0, 0, 0, 0.7))
 		tb.rect(Rect2(bp + Vector2(-bw / 2.0, 0), Vector2(bw * clampf(b.hp / maxf(1.0, b.maxhp), 0.0, 1.0), 3)), UI.RED)
-	tb.flush(g.hud)
+	return tb
 
 
 ## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 2.4 秒（10-28 起，加最后一击定格 + 队友化光尘，docs/62 §3.21c）——

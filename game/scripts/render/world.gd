@@ -2756,7 +2756,7 @@ var _am_mode := 0
 ## 第一次判过记在 e.dcs，以后只查会变的状态（docs/50 §14 OPT_EDRAW 的快速写法；10-15 删掉逐项全判的旧版，docs/101 S2）
 func _dc_ok(e: Dictionary) -> bool:
 	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
-		return false   # Timed squad rim is deliberately outside the persistent sprite cache.
+		return false   # Marked enemies keep their full visual path outside the persistent sprite cache.
 	var st = e.get("dcs")
 	if st == null:
 		st = e.boss or e.chest or e.tex == "e_knight" or D.ENEMIES.get(e.type, _NO_DEF).get("draw_full", false)
@@ -2854,15 +2854,15 @@ func _ol_sig() -> int:
 
 ## 这只敌人画不画精英冷色描边
 func _rim_on(e: Dictionary) -> bool:
+	if e.get("ishar_blessed", false):
+		return true
 	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
-		return e.get("squad", false) and fposmod(g.t, 3.0) < 0.15
+		return false
 	return e.get("ishar_blessed", false) or (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
 
 
 ## 描边颜色：精英冷色描边开着时用冷青（旧写法 ol_norm 下的橙红只在旋钮关时保留）；普通怪中性淡紫白
 func _ol_col(e: Dictionary) -> Color:
-	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
-		return Color(1.0, 1.0, 1.0, 0.85)
 	if e.get("ishar_blessed", false):
 		return Color(3.2, 0.24, 0.3, 0.9)
 	if e.get("squad", false):
