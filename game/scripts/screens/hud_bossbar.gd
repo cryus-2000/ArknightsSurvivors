@@ -218,6 +218,17 @@ func _row(v: Dictionary, r: Rect2, t: float) -> void:
 	var an: Array = _anim(v, t)
 	var a: float = an[1]
 	var col: Color = theme_col(v.type)
+	if h.v3 != null and h.v3.on():
+		# 指挥台统一（docs/222 §20）：名字靠左（白）+ 称号（灰），右侧状态照旧；条收到 5 像素、不画两端括号，Boss 主色与花纹保留（每只 Boss 的识别）
+		var nw: float = g.font.get_string_size(v.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(15)).x
+		UI.text(g.hud, g.font, Vector2(r.position.x + 10.0, r.position.y + 13.0), v.name, 15, Color(0.95, 0.95, 0.96, a), HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
+		if v.title != "":
+			UI.text(g.hud, g.font, Vector2(r.position.x + 18.0 + nw, r.position.y + 13.0), v.title, 11, Color(0.6, 0.63, 0.66, a), HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
+		_status(v, r, a)
+		var br2 := _expand(Rect2(r.position.x + 10.0, r.position.y + 21.0, r.size.x - 20.0, 5.0), a)
+		_fill(v, br2, col, an[0], an[2], an[3], an[4], t, true)
+		_extras(v, br2, a)
+		return
 	var label: String = v.name + ("  ·  " + v.title if v.title != "" else "")
 	UI.text(g.hud, g.font, Vector2(r.position.x, r.position.y + 13.0), label, 14, Color(1, 0.94, 0.96, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	_status(v, r, a)

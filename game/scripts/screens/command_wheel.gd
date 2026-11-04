@@ -327,6 +327,19 @@ func _apply_style() -> void:
 	style = s
 	prts = s >= 1
 	match s:
+		3:   # 指挥台统一（docs/222 §20，11-05 用户「指挥面板统一配色就行，底层的层叠结构可以保留，花纹可以换」）：
+			# 黑白灰 + 青（选中 = 可操作）+ 洋红（集火 / 无效 = 危险），同指挥台 / 属性栏；斜纹带换成刻度环，警戒斜纹块换成一道实色竖条
+			C_ACC = UI.CYAN
+			C_ACC_HI = Color(1.0, 1.0, 1.0)
+			C_INK = Color(0.02, 0.06, 0.07)
+			C_PLATE = Color(0.035, 0.04, 0.047)
+			C_FILL = Color(0.11, 0.115, 0.122)
+			C_FILL_IN = Color(0.065, 0.07, 0.076)
+			C_LINE = Color(0.55, 0.57, 0.6)
+			C_TEXT = Color(0.93, 0.935, 0.94)
+			C_DIAL = Color(0.85, 0.87, 0.89)
+			C_FRIEND = Color(0.93, 0.935, 0.94)
+			C_WARN = UI.RED
 		1:   # PRTS·警戒：碳黑 + 白 + 警戒黄（选中块 = 黄底黑字），友方蓝白，攻击橙红
 			C_ACC = Color(1.0, 0.788, 0.102)       # #FFC91A
 			C_ACC_HI = Color(1.0, 0.906, 0.5)
@@ -373,7 +386,7 @@ func item_col(it: Dictionary) -> Color:
 		"guard", "recall":
 			return C_FRIEND
 		"roam", "point", "clear":
-			return C_ACC if style == 1 else C_FRIEND
+			return C_ACC if style == 1 or style == 3 else C_FRIEND
 		"focus", "boss", "mob":
 			return C_WARN
 	return it.col
@@ -382,6 +395,9 @@ func item_col(it: Dictionary) -> Color:
 ## 警戒斜纹块（黄 / 黑，PRTS 档的标志装饰）：斜条按宽度分段，顶点横坐标夹进 r 里
 func hazard(ci: CanvasItem, r: Rect2, a: float, col := Color(0, 0, 0, 0)) -> void:
 	var cy: Color = col if col.a > 0.0 else C_ACC
+	if style == 3:   # 指挥台统一：不画斜纹，只留一道实色竖条
+		ci.draw_rect(Rect2(r.position, Vector2(minf(3.0, r.size.x), r.size.y)), Color(cy.r, cy.g, cy.b, a))
+		return
 	ci.draw_rect(r, Color(0.03, 0.03, 0.035, a))
 	var s: float = r.size.y * 0.5
 	var x := -r.size.y
@@ -495,10 +511,15 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 	var hb: float = r_dial - 3.0 * k
 	var drift: float = deg_to_rad(3.0) * spin
 	var hov_a: float = deg_to_rad(float(ANG[hov])) if hov >= 0 else 0.0
+	var ticks: bool = style == 3   # 指挥台统一：斜纹（//////）换成径向刻度，每 15° 一根长的（同指挥台头像的刻度环）
 	for i in 120:
 		var ang: float = deg_to_rad(i * 3.0) + fposmod(drift, deg_to_rad(3.0))
 		var p0: Vector2 = c + Vector2.from_angle(ang) * ha
 		var p1: Vector2 = c + Vector2.from_angle(ang + deg_to_rad(1.6)) * hb
+		if ticks:
+			ang = deg_to_rad(i * 3.0)
+			p0 = c + Vector2.from_angle(ang) * ha
+			p1 = c + Vector2.from_angle(ang) * (ha + (hb - ha) * (1.0 if i % 5 == 0 else 0.45))
 		if hov >= 0 and absf(wrapf(ang - hov_a, -PI, PI)) < deg_to_rad(float(HALF[hov]) - GAP):
 			hatch_hi.append(p0)
 			hatch_hi.append(p1)
@@ -622,6 +643,7 @@ func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, p
 ## 扇环（外沿两角切角 ch）；ch ≈ 0 时不切
 func _wedge(c: Vector2, ri: float, ro: float, a0: float, a1: float, ch: float) -> PackedVector2Array:
 	var pts := PackedVector2Array()
+	ch = minf(ch, (ro - ri) * 0.8)   # 选中填色从内沿往外推的头几帧环很薄：切角比环还深会自相交（引擎报 triangulation failed），按环厚收
 	var cut: bool = ch > 0.5
 	var da: float = ch / ro if cut else 0.0
 	if cut:
