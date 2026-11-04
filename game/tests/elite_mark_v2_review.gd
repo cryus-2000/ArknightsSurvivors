@@ -21,6 +21,9 @@ func _process(_dt: float) -> void:
 func capture() -> void:
 	game.set_process(false)
 	game.set_physics_process(false)
+	# Make the freeze explicit for the optical child too; shot() maintains its
+	# draw-time double buffer rather than depending on child process ordering.
+	game.optical.set_process(false)
 	for e in game.enemies:
 		e.dead = true
 	game.fx.clear()
@@ -52,8 +55,25 @@ func capture() -> void:
 	get_tree().quit()
 
 func shot(name: String) -> void:
+	var emitted := 0
+	var colours := {}
 	for i in 3:
+		if game.optical._lo_on:
+			game.optical._lo_step()
+		game.glow_next = []
+		game.glow_tex_next = []
 		game.queue_redraw()
 		game.hud.queue_redraw()
 		await RenderingServer.frame_post_draw
+		game.glow_cur = game.glow_next
+		game.glow_next = []
+		game.glow_tex_cur = game.glow_tex_next
+		game.glow_tex_next = []
+		emitted = game.glow_cur.size()
+		for point in game.glow_cur:
+			colours[str(point[2])] = true
+		game.optical.glow_node.queue_redraw()
+		await RenderingServer.frame_post_draw
+	assert(emitted > 0, "Frozen review did not forward fresh emit points")
+	print("ELITE_MARK_EMIT ", name, " points=", emitted, " colours=", colours.keys())
 	get_viewport().get_texture().get_image().save_png(out + "/" + name)
