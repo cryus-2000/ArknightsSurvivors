@@ -1,0 +1,7 @@
+('link1_s11_24', 65, [], False)
+('link0_s11_24', 65, [], False)
+('link2_s11_24', 65, [], False)
+连携事件 [('cover', '30.189')]
+三栏 cmp_link 帧 194
+link0_s11_24 vs link1_s11_24：TRACE 65 / 65 行，逐行一致
+link0_s11_24 vs link2_s11_24：TRACE 65 / 65 行，逐行一致
