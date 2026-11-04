@@ -36,6 +36,7 @@ var slot := 0              # 编队位序号
 var is_leader := false     # 主控干员（玩家操控、唯一受击体，docs/23 v0.7）
 var node_lv := 0           # 已拿的普通成长节点数（0–4），驱动统一小强化与气场
 const NODE_ATK := 0.06
+const LateShapeC = preload("res://scripts/characters/blocks/late_shape.gd")   # 后期形状随成长（docs/244）
 var aura_t := 0.0
 var voice_t := 25.0        # 战斗台词计时（squad.gd 每帧递减）
 var entry_voice_done := false   # 登场语音每个实例只请求一次（含 Squad.add 的即时兜底）
@@ -1009,12 +1010,14 @@ func deep_cards() -> Array:
 			for c in chs:
 				var cd: Dictionary = chs[c]
 				out.append({"kind": "prog", "op": id, "choice": c, "name": "%s · %s" % [n.get("name", "精英化"), cd.get("name", c)],
-					"desc": cd.get("desc", n.get("desc", "")), "brief": cd.get("brief", ""), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
+					"desc": str(cd.get("desc", n.get("desc", ""))) + (LateShapeC.elite_text(self, int(n.level)) if LateShapeC.on(g) else ""), "brief": cd.get("brief", ""), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
 		else:
 			n = node_view(n)   # 节点 5：按已选路线的名字 / 说明 / 图标
 			var req_txt := node_requires_text(n)
 			# 普通节点另带统一的攻击 +6%（NODE_ATK，advance()）：写在卡面说明末尾，免得这部分成长看不见
 			var node_atk: String = ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))) if n.get("type", "") != "elite" else ""
+			if n.get("type", "") == "elite" and LateShapeC.on(g):
+				node_atk += LateShapeC.elite_text(self, int(n.get("level", 1)))   # 后期形状（docs/244）：精英化卡写出这一档的形状加成
 			out.append({"kind": "prog", "op": id, "choice": "", "name": "%s · %s" % [display_name(), n.get("name", "成长 " + stage_txt)],
 				"desc": n.get("desc", "") + node_atk + (("\n条件：%s（已满足）" % req_txt) if req_txt != "" and avail else ""), "brief": n.get("brief", ""), "icon": n.get("icon", ""), "avail": avail, "req": req_txt, "elite": n.get("level", 0)})
 	out.append_array(extra_cards())

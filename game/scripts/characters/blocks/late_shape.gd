@@ -80,6 +80,37 @@ static func tick(o) -> void:
 	g.sync_stats()
 
 
+## 精英化卡面追加的一行（「；形状：……」）：这一档（w_e1 / w_e2）带来的加成
+static func elite_text(o, level: int) -> String:
+	var w: float = kn("w_e2", 1.0) if level >= 2 else kn("w_e1", 0.5)
+	if w <= 0.0:
+		return ""
+	var parts: Array = []
+	match lane(o):
+		"melee":
+			parts.append("攻击范围 +%d%%" % int(round(kn("melee_range", 0.12) * w * 100.0)))
+			parts.append("每 %s 次普攻多放 1 道剑气（%d%% 普攻伤害）" % [_n(1.0 / maxf(0.01, kn("melee_qi", 0.6) * w)), int(round(kn("qi_mult", 0.4) * 100.0))])
+		"multi":
+			parts.append("每 %s 次普攻多射 1 发（%d%% 普攻伤害，射向另一名敌人）" % [_n(1.0 / maxf(0.01, kn("multi_shots", 0.6) * w)), int(round(kn("multi_eps", 0.4) * 100.0))])
+			parts.append("攻击范围 +%d%%" % int(round(kn("multi_range", 0.06) * w * 100.0)))
+		"summon":
+			parts.append("攻击范围 +%d%%" % int(round(kn("summon_range", 0.12) * w * 100.0)))
+			parts.append("追击与召唤物伤害 +%d%%" % int(round(kn("summon_dmg", 0.15) * w * 100.0)))
+		"control":
+			parts.append("攻击范围 +%d%%" % int(round(kn("control_range", 0.15) * w * 100.0)))
+			parts.append("控制时长 +%d%%" % int(round(kn("control_dur", 0.08) * w * 100.0)))
+		_:
+			return ""
+	return "\n形状：" + "，".join(parts)
+
+
+static func _n(v: float) -> String:
+	var t := "%.1f" % v
+	while t.ends_with("0"):
+		t = t.substr(0, t.length() - 1)
+	return t.trim_suffix(".")
+
+
 ## 本干员这一次出手的额外弹 / 剑气（并进可见成长汇总 s 的副本；relic_shots / relic_qi = 藏品那部分对本干员是否生效）
 static func op_summary(o, s: Dictionary, relic_shots: bool, relic_qi: bool, ranged_ok: bool, melee_ok: bool) -> Dictionary:
 	var r := {"e_scatter": 0.0, "e_burst": 0.0, "e_shots": 0.0, "t_shots": 1.0, "e_qi": 0.0, "qi_mult": 0.0, "qi_hits": 1}
