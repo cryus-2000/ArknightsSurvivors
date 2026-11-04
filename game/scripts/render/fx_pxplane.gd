@@ -390,7 +390,7 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 	if it.has("loopk"):
 		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), it.gp, false, false)
 		return
-		if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
+	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
 		r._draw_strip(ci, str(it.k), int(it.fi), it.gp, it.flip, true)
 		return
 	r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), it.gp, it.flip, not it.get("loop", false))
