@@ -709,9 +709,7 @@ func _draw_leader_sil() -> void:
 	var ec: Color = Color(0.02, 0.03, 0.07, Bal.v("render/lead_sil_edge_a", 0.6) * _sil_a)
 	for d in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2)]:
 		draw_sprite_at(p + d, st.flip, ec, st.frame, wt, st.hf, fo)
-	sq_ol = squad_ol_col(o.col(), _sil_a)   # docs/247 S1：剪影上照样描代表色边
 	draw_sprite_at(p, st.flip, g.sprite.modulate, st.frame, st.tex, st.hf, fo)
-	sq_ol = Color(0, 0, 0, 0)
 
 
 ## docs/247 S2：点 p（脚底）是否落在一个还没结算的敌方预警里（圆 / 扇形 / 直线，含 Boss 招式；判定同 classify_tells，余量 12）
@@ -739,7 +737,7 @@ func _in_warn(p: Vector2) -> bool:
 
 
 ## docs/247 S2 方案 2（render/late_read_s2 = 2，缺省）：站在敌方预警里的干员，在敌方顶层的预警填充之后、敌弹与预警轮廓之前再画一遍本体
-## （带 S1 描边），预警填充不再罩住人；敌弹、预警轮廓照样压在最上面。只画不改状态
+## 预警填充不再罩住人；敌弹、预警轮廓照样压在最上面。只画不改状态
 func _draw_squad_over_warns() -> void:
 	if LateRead.mode("s2", 2.0) != 2.0 or g.squad == null or g.state == g.S.DEAD or g.warns.is_empty():
 		return
@@ -3646,15 +3644,9 @@ func _draw_enemy_full(e: Dictionary) -> void:
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
 var draw_target: CanvasItem = null   # 光学观感的高清干员层：干员本体临时画到这里（render/optical.gd _draw_ops 设，画完清回 null）
 
-## docs/247 S1：draw_sprite_at 这一次调用前先描一圈 1 格（2 世界像素）的边；a = 0 不描。character.draw_body / 召唤物本体设、画完清零。
-## 描边颜色不经 Look.op_mod（不受 look 的 actor_cap 受光封顶），正值 RGB 不走角色受光材质
-var sq_ol := Color(0, 0, 0, 0)
-
-
-## 小队描边颜色：代表色往白提一点、保持饱和，透明度跟本体（淡入 / 倒下渐隐时一起淡）；late_read s1 关时返回透明
+## docs/247 S3 放置物描边用的我方色：代表色拉到满亮度 × s1_ol_hdr（暗场里不被压成灰）。
+## 小队描边 11-05 用户定不要（小队只靠头顶红三角标识），已删；这里只剩放置物在用
 func squad_ol_col(c: Color, a := 1.0) -> Color:
-	if not LateRead.on("s1"):
-		return Color(0, 0, 0, 0)
 	var m: float = maxf(c.r, maxf(c.g, c.b))
 	var k: float = 1.0 / maxf(0.01, m)   # 拉到满亮度：深色代表色在暗地面上也看得见
 	var hk: float = LateRead.k("s1_ol_hdr", 1.35)   # 略超 1：暗场里描边不被压成灰
@@ -3669,13 +3661,6 @@ func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textur
 	var fh := tx.get_height()
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
 	var pk: float = Game.PX / A.hires_of(tx) * sc   # sc：召唤物体型（可见成长 #130，docs/163）；缺省 1
-	if sq_ol.a > 0.0:
-		var wt: Texture2D = A.white_of(tx)
-		var pr: Vector2 = (pos + g.draw_off).round()
-		var dr := Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh))
-		for d in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2)]:
-			ci.draw_set_transform(pr + d, 0.0, Vector2(-pk if flip else pk, pk))
-			ci.draw_texture_rect_region(wt, dr, src, sq_ol)
 	ci.draw_set_transform((pos + g.draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
 	ci.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, Look.op_mod(g, pos, col))
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

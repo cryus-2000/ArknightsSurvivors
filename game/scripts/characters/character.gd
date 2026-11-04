@@ -2972,9 +2972,7 @@ func draw_body() -> void:
 		var fl: float = g.elite_moment.flash(self)   # 精英化时刻爆亮（docs/249 §2）
 		if fl > 0.0:
 			mod = Color(mod.r * (1.0 + 2.2 * fl), mod.g * (1.0 + 2.2 * fl), mod.b * (1.0 + 2.2 * fl), mod.a)
-	g.world.sq_ol = g.world.squad_ol_col(col(), mod.a if mod.a >= 0.95 else 0.0)   # docs/247 S1（本体半透明时——无敌闪烁 / 淡入淡出——不描，免得描边色从本体里透出来）：本人代表色 1 格描边（late_read 关时 a = 0 不画）
 	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
-	g.world.sq_ol = Color(0, 0, 0, 0)
 
 
 ## 就地解散后在落点淡入（squad.blink_fx，11-02 取代向上跳出屏幕）：warp_t 由 world.update_visuals 推进，< 0 = 不在瞬回。纯画面
