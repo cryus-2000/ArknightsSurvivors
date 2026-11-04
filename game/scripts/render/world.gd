@@ -3728,6 +3728,27 @@ func draw_nest_auras() -> void:
 		var lite: bool = Bal.v("render/nest_aura_lite", 0.0) > 0.0   # docs/139 §8：只留一层淡底 + 不转的虚线边界
 		var ac := Color(0.9, 0.5, 1.6)
 		if LateRead2.on("ground_ring_edge"):
+			var nk: float = LateRead2.nest_k()
+			if nk > 0.0 and not lite:
+				# V9 巢穴例外（nest_k，缺省 0.5）：保留约 nest_k 倍原填充 + 贴图，边一圈明显呼吸（1.6 秒），留一道内收涟漪；我方 / 中立光环仍只画边
+				var tex9 := _lazy_tex("fx_nest_aura_big")
+				if tex9 != null:
+					var fw9: float = tex9.get_width() / 4.0
+					var fr9 := int(g.t * 10.0) % 4
+					g.wcv.draw_texture_rect_region(tex9, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(fr9 * fw9, 0, fw9, tex9.get_height()), Color(1, 1, 1, (0.5 if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15 else 0.35) * nk))
+				for q in 4:
+					tb_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, minf(0.035 * nk, 0.0175)), 1.0, 32)
+				var u9: float = fmod(g.t * 0.5 + e.id * 0.17, 1.0)
+				tb_ring(e.pos, ar * (1.0 - u9 * 0.85), 1.5, Color(ac.r, ac.g, ac.b, 0.28 * (1.0 - u9)), 40)
+				var br: float = 0.5 + 0.5 * sin((g.t / 1.6 + float(e.id) * 0.13) * TAU)
+				var eb: float = 0.55 + 0.45 * br
+				if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15:
+					eb = 1.0
+				var rotn: float = g.t * 0.4 + e.id
+				for q in 18:
+					var an: float = rotn + q * TAU / 18.0
+					tb_arc(e.pos, ar, an, an + TAU / 36.0, 2.0 + 1.5 * br, Color(ac.r, ac.g, ac.b, eb), 3)
+				continue
 			# docs/247 V9：只画边 + 呼吸，填充一层 ≤ 0.04；脉冲（aura_pulse_t 0.15 秒）时边加亮，代替原来贴图整片加亮
 			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, LateRead2.fill_a(0.03)), 1.0, 32)
 			var pk: bool = g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15
