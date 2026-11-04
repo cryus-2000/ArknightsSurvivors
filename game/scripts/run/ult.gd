@@ -149,7 +149,7 @@ func ref_hp() -> float:
 	return Bal.v("ult/ref_hp", 20.0) * g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp) * g.enemy_hp_mult
 
 
-## 终结技重新定位（docs/245，开关 ult/rework 缺省 0；0 时下面三项全不求值，同 seed TRACE 与改前逐行相同）：
+## 终结技重新定位（docs/247，开关 ult/rework 缺省 0；0 时下面三项全不求值，同 seed TRACE 与改前逐行相同）：
 ##   rw_freq 降频：全部来源 × ult/rw_e_mult；伤害 / 击杀两项再按「最近 ult/rw_tau 秒攒下的原始充能」递减（÷ (1 + 累计 / ult/rw_soft)），
 ##     每秒上限换成 ult/rw_sec_cap——短时间大量伤害 / 击杀不再把充能条顶满，前期零星伤害基本不受影响；受伤 / 连携照旧
 ##   rw_cap 精英 / Boss 单次上限：精英单次最多打掉最大生命 × ult/rw_elite（仍不致死、留 elite_floor），中期 Boss 单次 × ult/rw_boss，最终 Boss 照旧

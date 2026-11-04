@@ -64,7 +64,7 @@ func dmg(e: Dictionary, eff: float, h: Dictionary) -> void:
 	var b := _bin()
 	var c := cat(h)
 	if c == "ult" and (e.elite or e.boss) and g.ult != null:
-		# 单次终结技打掉的比例（docs/245）：按 g.ult.serial 分次记，取最大的一次
+		# 单次终结技打掉的比例（docs/247）：按 g.ult.serial 分次记，取最大的一次
 		if int(e.get("_dgus", -1)) != int(g.ult.serial):
 			e["_dgus"] = int(g.ult.serial)
 			e["_dgu1"] = 0.0

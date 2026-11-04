@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""终结技重新定位 A/B 汇总（docs/245）：开关 ult/rework 与各旋钮、加上 growth/late_shape 的多组对比，全部对同一组基线配对。
+"""终结技重新定位 A/B 汇总（docs/247）：开关 ult/rework 与各旋钮、加上 growth/late_shape 的多组对比，全部对同一组基线配对。
 
 用法（仓库根目录）：
     python tools/ult_rework_ab.py --diag off=build/ab/diag_off.jsonl,all=build/ab/diag_all.jsonl,... \
