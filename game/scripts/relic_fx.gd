@@ -566,7 +566,7 @@ func _advance_target(cls: String):
 	return best
 
 
-## 博士银印：邀请一名随机干员以精英一入队（可婉拒：全队各推进 1 个节点 + 一次成长三选一，docs/247）；编队已满时全队各推进 1 个节点
+## 博士银印：邀请一名随机干员以精英一入队（可婉拒：全队各推进 1 个节点 + 一次成长三选一，docs/252）；编队已满时全队各推进 1 个节点
 func _silver_seal() -> void:
 	var cards: Array = g.progression.recruit_cards()
 	if cards.is_empty():
@@ -576,7 +576,7 @@ func _silver_seal() -> void:
 	g.progression.offer_recruit("silver", str(c.id))
 
 
-## 人事部铜印（docs/57）：邀请一名随机干员入队并推进 1 个成长节点（可婉拒：一次成长三选一，docs/247）；编队已满时改为一次成长三选一
+## 人事部铜印（docs/57）：邀请一名随机干员入队并推进 1 个成长节点（可婉拒：一次成长三选一，docs/252）；编队已满时改为一次成长三选一
 func _recruit_one() -> void:
 	var cards: Array = g.progression.recruit_cards()
 	if cards.is_empty():

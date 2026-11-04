@@ -1,5 +1,5 @@
 extends Node
-## 入队邀请二选一的回归（docs/247，用户 11-05：自动招募改成「接受入队 / 婉拒」）：
+## 入队邀请二选一的回归（docs/252，用户 11-05：自动招募改成「接受入队 / 婉拒」）：
 ##   godot --headless --path game res://tests/recruit_offer_test.tscn -- --regression --balance --seed=1 --op=eyjafjalla
 ##   （再加 --touch 跑触屏排版；加 --bot_solo=1 查单人局机器人一律婉拒）
 ## 第 5 帧起：

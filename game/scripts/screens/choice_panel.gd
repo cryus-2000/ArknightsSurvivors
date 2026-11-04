@@ -351,7 +351,7 @@ func draw_bg() -> void:
 		_:
 			var en_label := "RELIC" if g.choice_kind == "relic" else ("NODE" if g.choice_kind == "cross" else ("SQUAD SWAP" if g.choice_kind == "swap" else ("GROWTH PATH" if g.choice_kind == "branch" else "LEVEL UP")))
 			if g.choice_kind == "offer" or (g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit")):
-				en_label = "RECRUIT"   # 入队邀请二选一（docs/247）同招募
+				en_label = "RECRUIT"   # 入队邀请二选一（docs/252）同招募
 			var L: Dictionary = lay()
 			var ph: bool = L.touch
 			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）

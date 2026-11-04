@@ -796,7 +796,7 @@ func record(marks = null) -> Dictionary:
 	if g.has_meta("bond_log") and not g.get_meta("bond_log").is_empty():
 		rec["bonds"] = g.get_meta("bond_log").map(func(x): return [str(x.id), x.t])   # 羁绊成立（docs/217 §7）；没成立过的局不写
 	if not g.progression.offer_log.is_empty() and (g.progression.solo_bot() or Cfg.dev_args().has("--offerlog")):
-		rec["offers"] = g.progression.offer_log.duplicate()   # 入队邀请（docs/247）：[秒, 来源, 干员, accept|decline]；缺省不写（BALANCE 与改前逐字相同）
+		rec["offers"] = g.progression.offer_log.duplicate()   # 入队邀请（docs/252）：[秒, 来源, 干员, accept|decline]；缺省不写（BALANCE 与改前逐字相同）
 	if g.ult != null:
 		rec["ult"] = g.ult.report()   # 终结技 / 连携 / 连携终结技次数与能量来源（docs/198 原型；ult/on 关时没有这一项）
 	return rec

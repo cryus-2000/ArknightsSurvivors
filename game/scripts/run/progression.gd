@@ -406,7 +406,7 @@ func cancel_branch() -> void:
 	g.nav_sel = int(ctx.get("sel", 0))
 
 
-## ---- 入队邀请（用户 11-05，docs/247）：人事部铜印 / 博士银印 / 立即招募类事件不再直接入队，改为「接受入队 / 婉拒」二选一。
+## ---- 入队邀请（用户 11-05，docs/252）：人事部铜印 / 博士银印 / 立即招募类事件不再直接入队，改为「接受入队 / 婉拒」二选一。
 ## 来源按原规则用 g.rng 抽好干员再交过来（offer_recruit），随机数消耗与改前相同。
 ## 机器人 / 测试 / 演示 / Boss 演练：同一帧自动结算（缺省接受，与改前逐行相同；--bot_solo=1 一律婉拒）；
 ## 玩家局排进 offer_queue，check_pending 时弹二选一（暂停，样式同升级三选一）。
@@ -417,7 +417,7 @@ var offer_log: Array = []     # [秒, 来源, 干员 id, "accept" | "decline"]�
 const OFFER_SRC := {"copper": "人事部铜印", "silver": "博士银印", "event": "招募干员"}
 
 
-## --bot_solo=1：单人局机器人（docs/247）：入队邀请一律婉拒，升级卡不选招募卡，强制招募画面不出，事件不选招募项
+## --bot_solo=1：单人局机器人（docs/252）：入队邀请一律婉拒，升级卡不选招募卡，强制招募画面不出，事件不选招募项
 static func solo_bot() -> bool:
 	return Cfg.dev_args().has("--bot_solo=1")
 

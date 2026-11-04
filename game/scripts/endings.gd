@@ -1193,14 +1193,14 @@ func _max_hp(pct: float) -> void:
 	g.vfx.add_text(g.ppos + Vector2(0, -110), "最大生命 %+d%%" % int(round(pct * 100.0)), Color(0.55, 1.0, 0.6) if pct > 0.0 else Color(1.0, 0.45, 0.45), 16)
 
 
-## 立即招募一名干员（随机，g.rng；接受入队 / 婉拒二选一，婉拒改为一次成长三选一，docs/247）；编队已满改为一次成长三选一
+## 立即招募一名干员（随机，g.rng；接受入队 / 婉拒二选一，婉拒改为一次成长三选一，docs/252）；编队已满改为一次成长三选一
 func _recruit() -> void:
 	var cards: Array = g.progression.recruit_cards()
 	if cards.is_empty():
 		g.pending_levelups += 1
 		g.vfx.show_banner("编队已满，改为一次成长三选一")
 		return
-	g.progression.offer_recruit("event", str(cards[g.rng.randi() % cards.size()].id))   # 接受入队 / 婉拒（docs/247）
+	g.progression.offer_recruit("event", str(cards[g.rng.randi() % cards.size()].id))   # 接受入队 / 婉拒（docs/252）
 
 
 ## ---------- 机器人 ----------
@@ -1372,7 +1372,7 @@ func _opt_value(op: Dictionary) -> float:
 		if x.has("curse"):
 			s -= 1.5
 		if g.progression.solo_bot() and (x.has("recruit") or x.has("recruit_pick")):
-			s += 1.0 if x.has("recruit") else -6.0   # --bot_solo=1（docs/247）：立即招募会婉拒（= 一次成长三选一）；挑人招募没有婉拒，避开
+			s += 1.0 if x.has("recruit") else -6.0   # --bot_solo=1（docs/252）：立即招募会婉拒（= 一次成长三选一）；挑人招募没有婉拒，避开
 		elif x.has("recruit") or x.has("recruit_pick"):
 			s += 1.0 if g.squad.is_full() else 3.0
 		if x.has("sp_gain"):

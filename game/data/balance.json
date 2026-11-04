@@ -818,7 +818,7 @@
   "_regen_t": "分档（协调人 10-13，只加旋钮）：第 1 / 第 2 名队友入队各加多少生命回复；-1 = 沿用 regen_per_member。第 3 名起（编队上限 +1）按 regen_per_member。招募界面、属性面板、指南的数字跟着走",
   "regen_t1": -1,
   "regen_t2": -1,
-  "_solo": "「独行」补偿（docs/247，用户 11-05：单 C 次要玩法，补到「能打」为限）：solo_buff 1 = 编队只有队长一人时，生命 / 回复按 solo_steps 个入队台阶算（每台阶 hp_per_member / regen_per_member），另加全伤害 solo_dmg（加算）；有人入队即撤。缺省 0 = 关（同 seed TRACE 与改前相同）",
+  "_solo": "「独行」补偿（docs/252，用户 11-05：单 C 次要玩法，补到「能打」为限）：solo_buff 1 = 编队只有队长一人时，生命 / 回复按 solo_steps 个入队台阶算（每台阶 hp_per_member / regen_per_member），另加全伤害 solo_dmg（加算）；有人入队即撤。缺省 0 = 关（同 seed TRACE 与改前相同）",
   "solo_buff": 0,
   "solo_steps": 1,
   "solo_dmg": 0.1

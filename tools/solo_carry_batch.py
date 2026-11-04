@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""单人局胜率批跑（docs/247）：20 名干员各当一次队长 × 种子 × 潮位，机器人 normal，两组对照：
+"""单人局胜率批跑（docs/252）：20 名干员各当一次队长 × 种子 × 潮位，机器人 normal，两组对照：
   squad = 普通策略（入队邀请接受、照常招募）；solo = --bot_solo=1（邀请一律婉拒、不选招募卡、不进强制招募画面）。
 可再加一组 A/B（--groups solo,solo_buff --buff "--bal=段/键=值"）测补偿开关。
 

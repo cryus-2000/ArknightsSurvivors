@@ -273,7 +273,7 @@ func _apply_size_hp() -> void:
 	var rb: float = regen_bonus(n)
 	if rb != 0.0 and n > 0 and g.stats.has_stat(&"regen"):
 		g.stats.add(&"regen", "flat", rb, "squad")
-	# 「独行」（docs/247，squad/solo_buff 缺省 0 = 关）：编队只有队长一人时，生命 / 回复按 solo_steps 个入队台阶算，另加全伤害 solo_dmg；
+	# 「独行」（docs/252，squad/solo_buff 缺省 0 = 关）：编队只有队长一人时，生命 / 回复按 solo_steps 个入队台阶算，另加全伤害 solo_dmg；
 	# 有人入队即撤（同一来源 "squad"，上面已整体移除重算）
 	if ops.size() == 1 and Bal.vi("squad/solo_buff", 0) > 0:
 		var ss: int = Bal.vi("squad/solo_steps", 1)

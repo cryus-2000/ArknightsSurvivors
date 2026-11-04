@@ -1,5 +1,5 @@
 extends Node
-## 入队邀请二选一截图（docs/247 验收用，不进快检）：铜印 / 银印 / 事件三种来源各存一张 PNG，另存一张键盘焦点在「婉拒」上的。
+## 入队邀请二选一截图（docs/252 验收用，不进快检）：铜印 / 银印 / 事件三种来源各存一张 PNG，另存一张键盘焦点在「婉拒」上的。
 ##   桌面：godot --path game --resolution 1280x720 res://tests/recruit_offer_capture.tscn -- --balance --seed=1 --op=eyjafjalla --shot_dir=<目录>
 ##   手机：同上加 --touch --resolution 1170x540
 ## 有窗口（截图要画面），本机用 tools/godot_runner 起（窗口放副屏 / 屏幕外、静音）；云端用 xvfb-run。

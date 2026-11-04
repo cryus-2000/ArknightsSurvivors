@@ -2166,7 +2166,7 @@ func check_pending() -> void:
 	if not show_queue.is_empty():
 		show_screen.open(show_queue.pop_front())
 		return
-	if progression.open_offer_queued():   # 入队邀请（铜印 / 银印 / 立即招募事件）：接受入队 / 婉拒二选一（docs/247）
+	if progression.open_offer_queued():   # 入队邀请（铜印 / 银印 / 立即招募事件）：接受入队 / 婉拒二选一（docs/252）
 		return
 	if progression.open_branch_queued():   # 赠送推进（典训 / 博士银印）碰到分支节点：先选路线（docs/119 §4.1）
 		return
