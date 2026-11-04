@@ -11,6 +11,10 @@ func _initialize() -> void:
 	settings.warn_v2 = 1
 	assert(Warn.owns(w))
 	assert(is_zero_approx(Warn.urgency(w)), "ordinary phase must not brighten")
+	assert(is_equal_approx(Warn.progress(w), 0.2))
+	# Zero-fill fallback must not access a canvas, even for overlapping calls.
+	for overlap in 12:
+		Warn.fill(null, w)
 	w.t = 0.85
 	assert(is_equal_approx(Warn.urgency(w), 0.5))
 	w.owner.elite = true
