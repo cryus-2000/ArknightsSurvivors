@@ -115,7 +115,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				e.pose = 0.35
 				e.pose_max = 0.35
 				g.vfx.sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
-				g.vfx.add_text(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
+				g.vfx.add_alert(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
 				Sfx.play("dodge", -8.0)
 			elif e.ammo > 0:
 				_card_run(e, dir, dist)
@@ -134,7 +134,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			e.ammo = int(D.ENEMIES[e.type].get("ammo", 3))   # 卡门 3 发、伊比利亚 1 发（数值 10-01）
 			e.ai = "ranged"
 			e.count_end = 0.0
-			g.vfx.add_text(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
+			g.vfx.add_alert(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
 			_card_cycle(e)
 			if e.type == "iberia" and p2:
 				e.reload_follow = true
@@ -155,7 +155,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				e.sword_t = Bal.v("boss/carmen_sword", 8.0)
 				e.sword_done = true
 				e.ai = "melee"
-				g.vfx.add_text(e.pos + Vector2(0, -50), "炮身近战", Color(1.0, 0.5, 0.4), 18)
+				g.vfx.add_alert(e.pos + Vector2(0, -50), "炮身近战", Color(1.0, 0.5, 0.4), 18)
 				Sfx.play("carmen_sword", -2.1, 1.0, 0.0)
 			else:
 				e.sword_done = false
@@ -176,12 +176,12 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 						var away: Vector2 = (e.pos - g.ppos).normalized() if e.pos.distance_to(g.ppos) > 1.0 else Vector2.RIGHT
 						e.kb = away * Bal.v("boss/carmen_reload_hop", 720.0)
 						g.vfx.sparks(e.pos, away, Color(0.9, 0.9, 0.8), 12, 180.0)
-						g.vfx.add_text(e.pos + Vector2(0, -50), "退避", Color(0.95, 0.92, 0.85), 14)
+						g.vfx.add_alert(e.pos + Vector2(0, -50), "退避", Color(0.95, 0.92, 0.85), 14)
 				e.channel = rt
 				e.reload_dmg = 0.0
 				e.count_end = g.t + rt   # 读条环（界面与美术读 count_end / count_max）
 				e.count_max = rt
-				g.vfx.add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
+				g.vfx.add_alert(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
 
 
 ## 图鉴 / Boss 演练：直接进入第二幕（伊比利亚装填完毕放清膛、卡门炮身近战段）
@@ -440,7 +440,7 @@ func saint_interrupt(e: Dictionary) -> void:
 	e.sw = []
 	_clear_screen(e)   # 打断 = 在飞的弹幕作废（主轴的奖励）
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4), "enemy": true})
-	g.vfx.add_text(e.pos + Vector2(0, -60), "装填被打断！", Color(1.0, 0.85, 0.4), 20)
+	g.vfx.add_alert(e.pos + Vector2(0, -60), "装填被打断！", Color(1.0, 0.85, 0.4), 20)
 	Sfx.play("boom", -6.0, 1.2, 0.0)
 
 

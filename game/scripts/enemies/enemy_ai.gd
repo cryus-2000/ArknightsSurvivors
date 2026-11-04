@@ -148,7 +148,7 @@ func start_scream(e: Dictionary, d: Dictionary) -> void:
 	e["scream_t0"] = g.t + float(d.get("scream_delay", 0.4))
 	e["scream_t1"] = float(e.scream_t0) + float(d.get("scream_t", 2.5))
 	Sfx.enemy("screech", e.pos.distance_to(g.ppos))
-	g.vfx.add_text(e.pos + Vector2(0, -e.r - 24.0), "尖叫", Color(0.55, 0.85, 1.0), 14)
+	g.vfx.add_alert(e.pos + Vector2(0, -e.r - 24.0), "尖叫", Color(0.55, 0.85, 1.0), 14)
 
 
 ## 箱形恐鱼现形后张口蓄势再啃咬，用现有预警/命中机制；不再无动作地接触扣血。
@@ -254,7 +254,7 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 	if not e.enraged and e.hp <= e.maxhp * float(d.get("enrage_at", 0.5)):
 		e.enraged = true
 		e.spd *= float(d.get("enrage_spd", 1.35))
-		g.vfx.add_text(e.pos + Vector2(0, -e.r - 20.0), "狂暴", Color(1.0, 0.4, 0.5), 14)
+		g.vfx.add_alert(e.pos + Vector2(0, -e.r - 20.0), "狂暴", Color(1.0, 0.4, 0.5), 14)
 	# 拖痕（docs/155）：原来每 0.7 秒铺一片、常驻且共用 32 片总上限，一追就是一长串，顶满后全图溟痕都不再生成。
 	# 现在每走 enemy/trail_spacing 铺一片（站着不动不铺），每只最多留 trail_max 片，更旧的淡出；怪物溟痕总量另有上限（combat.add_enemy_mire）
 	if e.enraged and d.get("trail_mire", false):
@@ -420,7 +420,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			e.ai = "melee"
 			# 打空后先近战追击一段再装填（docs/38 §8.2）：不然她一直保持射程，低射程编队打不到（9/29 实测伊比利亚 >120 秒）
 			e.reload_t = maxf(e.get("reload_t", 0.0), float(Bal.v("boss/saint_melee", 8.0)))
-			g.vfx.add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
+			g.vfx.add_alert(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
 	for k in n:
 		var dk := dir.rotated((k - (n - 1) / 2.0) * 0.22)
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),

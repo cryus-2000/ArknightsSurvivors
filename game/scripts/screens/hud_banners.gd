@@ -313,7 +313,7 @@ func draw_banner(vs: Vector2) -> void:
 	# 横幅通知
 	var horde_band: bool = g.vfx.horde_band_on() and not g.panel.visible
 	# 暂停 / 指南 / 胜利结算时不画（横幅压在面板顶上，10-11）；暂停期间计时也停（game.gd），继续游戏后接着显示
-	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and g.state != Game.S.PAUSE and g.state != Game.S.INTRO and g.state != Game.S.WIN and (not horde_band or g.vfx.banner_prio >= 3) and not g.boss_intro.active() and not (g.ult != null and g.ult.cutin_holds_banner()):   # 精英化演出的遮罩只有 86%，横幅会透出来；Boss 登场名片在场时横幅让位（只是不画，计时照走）
+	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and g.state != Game.S.PAUSE and g.state != Game.S.INTRO and g.state != Game.S.WIN and (not horde_band or g.vfx.banner_prio >= 3) and not g.boss_intro.active() and not (g.ult != null and g.ult.cutin_holds_banner()) and not (g.elite_moment != null and g.elite_moment.on(g) and g.elite_moment.banner_busy()):   # 精英化演出的遮罩只有 86%，横幅会透出来；Boss 登场名片在场时横幅让位（只是不画，计时照走）
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
 		var by := banner_y(vs) if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
 		# 入场动效（docs/62 §3.10）：从这一条第一次真正画出来起算（面板挡住期间横幅计时暂停，关掉后才「到达」）
@@ -392,6 +392,11 @@ func banner_y(vs: Vector2) -> float:
 	return maxf(vs.y * 0.24, h.bars.boss_bottom + 16.0 + 30.0) if h.bars.boss_bottom > 0.0 else vs.y * 0.24
 
 
+## 指挥台（docs/222 §18）占着底部中央时，开局提示往上让出整台高度
+func _console_lift(vs: Vector2) -> float:
+	return h.v3.lift(vs) if h.v3 != null and h.v3.on() else 0.0
+
+
 ## 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 func draw_open_hints(vs: Vector2) -> void:
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
@@ -403,12 +408,12 @@ func draw_open_hints(vs: Vector2) -> void:
 		if g.t < 6.0:
 			# 普攻永远自动；按住瞄准改方向（10-31 取消手动普攻）
 			var ohint: String = "按住左半屏拖动移动 · 攻击自动 · 拖动瞄准键改方向" if g.touch.active else Pad.hint("WASD 移动 · 攻击自动 · 按住左键朝光标瞄准", "左摇杆移动 · 攻击自动 · 右摇杆瞄准")
-			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			UI.text(g.hud, g.font, Vector2(0, vs.y - 60 - _console_lift(vs)), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif (g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0:
 			var ha := clampf(minf(g.t - 6.0, 16.0 - g.t) / 0.5, 0.0, 1.0) if g.tab_hint <= 0.0 else clampf(g.tab_hint / 0.5, 0.0, 1.0)
 			var pulse := 0.5 + 0.5 * sin(g.t * 5.0)
 			var cx := vs.x / 2.0
-			var y := vs.y - 78.0
+			var y := vs.y - 78.0 - _console_lift(vs)
 			var box := Rect2(cx - 150, y - 22, 300, 40)
 			g.hud.draw_rect(box, Color(0.03, 0.035, 0.045, 0.82 * ha))
 			g.hud.draw_rect(box, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (0.3 + 0.5 * pulse) * ha), false, 1.0)

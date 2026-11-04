@@ -149,6 +149,19 @@ func ref_hp() -> float:
 	return Bal.v("ult/ref_hp", 20.0) * g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp) * g.enemy_hp_mult
 
 
+## 终结技重新定位（docs/250，开关 ult/rework 缺省 0；0 时下面三项全不求值，同 seed TRACE 与改前逐行相同）：
+##   rw_freq 降频：全部来源 × ult/rw_e_mult；伤害 / 击杀两项再按「最近 ult/rw_tau 秒攒下的原始充能」递减（÷ (1 + 累计 / ult/rw_soft)），
+##     每秒上限换成 ult/rw_sec_cap——短时间大量伤害 / 击杀不再把充能条顶满，前期零星伤害基本不受影响；受伤 / 连携照旧
+##   rw_cap 精英 / Boss 单次上限：精英单次最多打掉最大生命 × ult/rw_elite（仍不致死、留 elite_floor），中期 Boss 单次 × ult/rw_boss，最终 Boss 照旧
+##   rw_ring 小怪「清一圈 + 留余烬」：作用中心 _ult_at 的 ult/rw_ring_r 以内照旧清光；圈外小怪这次最多掉最大生命 × ult/rw_ember，剩下的交给普攻 / 技能
+var _rw_acc := 0.0     # 降频：最近 rw_tau 秒的原始充能（指数衰减）
+var _rw_t := 0.0
+
+
+static func rw(sub: String) -> bool:
+	return Bal.vi("ult/rework", 0) > 0 and Bal.v("ult/rw_" + sub, 1.0) > 0.0
+
+
 func _gain(v: float, src: String) -> void:
 	if v <= 0.0 or energy >= FULL:
 		return
@@ -156,7 +169,17 @@ func _gain(v: float, src: String) -> void:
 	if s != _sec:
 		_sec = s
 		_sec_gain = 0.0
-	v = minf(v * Bal.v("ult/e_mult", 1.0), Bal.v("ult/e_sec_cap", 1.0) - _sec_gain)
+	if rw("freq"):
+		v *= Bal.v("ult/e_mult", 1.0) * Bal.v("ult/rw_e_mult", 1.0)
+		if src == "out" or src == "kill":
+			_rw_acc *= exp(-maxf(0.0, g.t - _rw_t) / maxf(0.1, Bal.v("ult/rw_tau", 10.0)))
+			_rw_t = g.t
+			var raw := v
+			v /= 1.0 + _rw_acc / maxf(0.01, Bal.v("ult/rw_soft", 6.0))
+			_rw_acc += raw
+		v = minf(v, Bal.v("ult/rw_sec_cap", 1.2) - _sec_gain)
+	else:
+		v = minf(v * Bal.v("ult/e_mult", 1.0), Bal.v("ult/e_sec_cap", 1.0) - _sec_gain)
 	if v <= 0.0:
 		return
 	_sec_gain += v
@@ -850,10 +873,24 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		# ult/dmgk_<干员> 范围统一后的输出补偿（§5.10）；ult/minion_hpk > 0（试验，缺省关）：预算至少是这只小怪自身最大生命 × hpk（后期高血种类也能清）
 		amt = maxf(amt, e.maxhp * Bal.v("ult/minion_hpk", 0.0) * frac)
 		amt *= Bal.v("ult/minion_k", 1.0) * Bal.v("ult/dmgk_" + str(o.id), 1.0)
+		if Bal.v("growth/late_shape", 0.0) > 0.0 and Bal.v("shape_lv/p3_on", 0.0) > 0.0:
+			# P3（docs/248 §7）：终结技对小怪只清队长周围一圈（p3_r），外圈经 p3_band 过渡到 × p3_far；精英 / Boss 的份额不动
+			var dd: float = e.pos.distance_to(g.ppos)
+			var r0: float = Bal.v("shape_lv/p3_r", 300.0)
+			var x: float = clampf((dd - r0) / maxf(1.0, Bal.v("shape_lv/p3_band", 80.0)), 0.0, 1.0)
+			amt *= lerpf(1.0, Bal.v("shape_lv/p3_far", 0.3), x)
 	if e.boss:
 		amt = minf(amt, maxf(0.0, full_b - float(e.ult_d)))
+		if e != g.final_boss and rw("cap"):
+			amt = minf(amt, maxf(0.0, Bal.v("ult/rw_boss", 0.18) * e.maxhp - float(e.ult_d)))
 	elif e.elite or e.get("part", false):
 		amt = minf(amt, maxf(0.0, e.hp - Bal.v("ult/elite_floor", 0.1) * e.maxhp))
+		if rw("cap"):
+			amt = minf(amt, maxf(0.0, Bal.v("ult/rw_elite", 0.5) * e.maxhp - float(e.ult_d)))
+	elif _ult_at != Vector2.INF and rw("ring"):
+		var rr: float = Bal.v("ult/rw_ring_r", 300.0)
+		if e.pos.distance_squared_to(_ult_at) > rr * rr:
+			amt = minf(amt, maxf(0.0, Bal.v("ult/rw_ember", 0.6) * e.maxhp - float(e.ult_d)))
 	if amt <= 0.0:
 		return 0.0
 	if e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0:

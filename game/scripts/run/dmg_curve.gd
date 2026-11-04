@@ -29,6 +29,13 @@ static func _cut_v(t: float, cut: float, a: float, b: float, sc: float) -> float
 
 
 static func target(t: float) -> float:
+	if Bal.v("growth/late_shape", 0.0) > 0.0:   # 后期形状原型的难度补偿（docs/248）：comp_from → comp_to 秒内平滑升到 × comp_dmg，之后保持
+		var x: float = clampf((t - Bal.v("shape_lv/comp_from", 240.0)) / maxf(1.0, Bal.v("shape_lv/comp_to", 420.0) - Bal.v("shape_lv/comp_from", 240.0)), 0.0, 1.0)
+		return _target0(t) * (1.0 + (Bal.v("shape_lv/comp_dmg", 1.0) - 1.0) * x * x * (3.0 - 2.0 * x))
+	return _target0(t)
+
+
+static func _target0(t: float) -> float:
 	var cut: float = Bal.v("dmg_curve/mid_cut", 0.0)
 	var sc: float = Bal.v("dmg_curve/scale", 1.0)   # 全程整体倍率（难度校准 10-31，缺省 1 = 不变）
 	if cut <= 0.0:

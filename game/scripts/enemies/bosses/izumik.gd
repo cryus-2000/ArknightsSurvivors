@@ -225,7 +225,7 @@ func _burn_step(e: Dictionary, dt: float) -> void:
 		var amt: float = g.combat.lose_hp(float(e.burn_dps) * 0.5, "izu_burn", true)
 		if amt >= 1.0:
 			g.hurt_flash = maxf(g.hurt_flash, 0.06)
-			g.vfx.add_text(g.ppos + Vector2(0, -80), "-%d 震撼" % int(amt), COL, 14)
+			g.vfx.add_alert(g.ppos + Vector2(0, -80), "-%d 震撼" % int(amt), COL, 14)
 
 
 ## ---- 伊祖米克（docs/38 §8.7）
@@ -238,7 +238,7 @@ func izumik_absorb(e: Dictionary) -> void:
 	if cut > 0.0 and e.has("learn_t"):
 		e.learn_t -= cut
 		e.count_end -= cut
-	g.vfx.add_text(e.pos + Vector2(0, -50), "吸收 · 强化 %d" % e.izu_layers, Color(0.5, 1.0, 0.6), 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -50), "吸收 · 强化 %d" % e.izu_layers, Color(0.5, 1.0, 0.6), 16)
 	if e.phase == 1 and not e.dead and Bal.v("boss/izumik_share_small", 0.5) > 0.0 and not g.warns.any(func(w): return is_same(w.owner, e) and not w.done):
 		_share(e, (g.ppos - e.pos).normalized(), true)
 
@@ -265,7 +265,7 @@ func _izumik_lamp_step(e: Dictionary, dt: float) -> void:
 				if l.prog >= 1.0:
 					l.lit = true
 					g.fx.append({"kind": "ring", "pos": l.pos, "r": e.lamp_r, "life": 0.6, "max": 0.6, "col": Color(1.4, 1.1, 0.5), "enemy": true})
-					g.vfx.add_text(l.pos + Vector2(0, -40), "灯柱点亮", Color(1.0, 0.85, 0.4), 16)
+					g.vfx.add_alert(l.pos + Vector2(0, -40), "灯柱点亮", Color(1.0, 0.85, 0.4), 16)
 					Sfx.play("izu_lamp_lit", -4.0, 1.0, 0.0)
 			else:
 				l.prog = maxf(0.0, l.prog - dt)
@@ -334,7 +334,7 @@ func _batch_step(e: Dictionary) -> void:
 			live.append(o)
 	e.batch = live
 	e.batch_t = g.t
-	g.vfx.add_text(e.pos + Vector2(0, -60), "子代来袭", COL, 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -60), "子代来袭", COL, 16)
 	Sfx.play("tentacle", -5.0, 0.8)
 
 
@@ -348,7 +348,7 @@ func _cocoon(e: Dictionary, o: Dictionary) -> void:
 	o.dmg = 0.0
 	o.extra_next = INF
 	o.pos = g.combat.arena_clamp(e.pos + (o.pos - e.pos).normalized() * (e.r + 30.0), 60.0)
-	g.vfx.add_text(o.pos + Vector2(0, -36), "结茧", COL, 13)
+	g.vfx.add_alert(o.pos + Vector2(0, -36), "结茧", COL, 13)
 
 
 ## 阐释阶段的吸收：每 izumik_absorb_need（5）只强化 1 层（伤害 × (1 + izumik_stack_dmg 0.15)，最多 izumik_stack_max 4 层）并回 izumik_stack_heal（5%）生命
@@ -360,10 +360,10 @@ func _absorb2(e: Dictionary) -> void:
 		e.izu_stacks = int(e.get("izu_stacks", 0)) + 1
 		e.dmg *= 1.0 + Bal.v("boss/izumik_stack_dmg", 0.15)
 		e.hp = minf(e.maxhp, e.hp + e.maxhp * Bal.v("boss/izumik_stack_heal", 0.05))
-		g.vfx.add_text(e.pos + Vector2(0, -60), "吸收 · 强化 %d 层" % int(e.izu_stacks), Color(0.5, 1.0, 0.6), 18)
+		g.vfx.add_alert(e.pos + Vector2(0, -60), "吸收 · 强化 %d 层" % int(e.izu_stacks), Color(0.5, 1.0, 0.6), 18)
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.6), "enemy": true})
 	else:
-		g.vfx.add_text(e.pos + Vector2(0, -50), "吸收 %d / %d" % [e.absorb_n % need, need], Color(0.5, 1.0, 0.6), 14)
+		g.vfx.add_alert(e.pos + Vector2(0, -50), "吸收 %d / %d" % [e.absorb_n % need, need], Color(0.5, 1.0, 0.6), 14)
 
 
 ## 三幕「分享·全场」：借震撼的全场判定（telegraph izu_wave：冲刺无敌或灯柱光圈里不受伤），带 share_all——结算后你躲进的那根灯柱熄灭
@@ -1071,5 +1071,5 @@ func _brood(e: Dictionary) -> void:
 		live.append(o)
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 30.0, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
 	e.izu_brood = live
-	g.vfx.add_text(e.pos + Vector2(0, -60), "子代化生", COL, 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -60), "子代化生", COL, 16)
 	Sfx.play("tentacle", -4.0, 0.7)

@@ -5,6 +5,7 @@ extends RefCounted
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const SaintDraw = preload("res://scripts/render/saint_draw.gd")
+const MinionWarn = preload("res://scripts/render/minion_warn.gd")
 
 
 ## 预警绘制（地面填充层；轮廓 / 出口 / 端盖在 world.draw_warn_outlines）：结算瞬间闪白。
@@ -84,6 +85,9 @@ static func draw_fills(g) -> void:
 			continue
 		if w.get("dim", false) or quiet(w):
 			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
+		if MinionWarn.owns(w):
+			MinionWarn.fill(g, w)
+			continue
 		if preload("res://scripts/render/ishar_tell_draw.gd").owns(w):
 			continue   # 伊莎玛拉地面预警由 ishar_tell_draw 画（docs/170）
 		if w.get("act", "") == "izu_wave" and g.optical_on:

@@ -149,7 +149,8 @@
    "op": "add",
    "value": 0.08,
    "scope": "squad",
-   "pool": false
+   "pool": false,
+   "pool_flag": "growth/late_shape"
   },
   "squad_crit": {
    "name": "协同·专",
@@ -172,6 +173,37 @@
    "value": 2.0,
    "scope": "squad",
    "_doc": "10-23 用户定：每张 +2、可叠 2 次（最多穿 4 个），穿过后的目标伤害不减；只在编队有远程普攻（子弹能穿透的）干员时进卡池；不影响技能弹幕；与穿甲弹同在时藏品全穿、卡层数失效"
+  },
+  "splash": {
+   "name": "扩散",
+   "desc": "近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。",
+   "max": 2,
+   "cat": "lane",
+   "requires": "shape:splash",
+   "r_bal": ["shape_lv/splash_r", 60],
+   "stat": "op_splash",
+   "op": "flat",
+   "value": 0.25,
+   "scope": "squad",
+   "pool": false,
+   "pool_flag": "growth/late_shape",
+   "_doc": "docs/248 P2：命中溅射（半径 shape_lv/splash_r）；同一干员同一帧只溅一次；开关 growth/late_shape 开时才进卡池"
+  },
+  "chain": {
+   "name": "连锁",
+   "desc": "多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。",
+   "max": 2,
+   "cat": "lane",
+   "requires": "shape:chain",
+   "r_bal": ["shape_lv/chain_r", 170],
+   "mult_bal": ["shape_lv/chain_mult", 0.5],
+   "stat": "op_chain",
+   "op": "flat",
+   "value": 1.0,
+   "scope": "squad",
+   "pool": false,
+   "pool_flag": "growth/late_shape",
+   "_doc": "docs/248 P2：命中弹射（距离 shape_lv/chain_r，倍率 shape_lv/chain_mult），每张多弹 1 次；开关 growth/late_shape 开时才进卡池"
   },
   "lane_melee": {
    "name": "近战·扩域",

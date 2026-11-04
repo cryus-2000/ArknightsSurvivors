@@ -2017,7 +2017,7 @@ func _skill_rows(cd: Dictionary) -> Array:
 	for si in sks.size():
 		var sk: Dictionary = sks[si]
 		var tag := "自动"
-		if sk.get("mode", "auto") == "manual":
+		if sk.get("mode", "auto") == "manual" and Bal.vi("ult/on", 1) <= 0:   # 终结技开着时手动技能按自动放
 			tag = "手动 Q"
 		elif sk.get("permanent", false):
 			tag = "永久"

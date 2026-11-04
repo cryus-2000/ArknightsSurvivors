@@ -18,6 +18,7 @@ const HudBanners = preload("res://scripts/screens/hud_banners.gd")
 const HudAllyHp = preload("res://scripts/screens/hud_allyhp.gd")   # 队友血条原型（docs/114 §19）
 const HudIcons = preload("res://scripts/screens/hud_icons.gd")
 const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 局内 HUD 编辑式（docs/222，ui/hud_v2）
+const HudV3 = preload("res://scripts/screens/hud_v3.gd")   # 局内指挥台（docs/222 §18，ui/hud_v3）：正下方一台收拢队长 / 队友 / 指令
 const HudUlt = preload("res://scripts/screens/hud_ult.gd")   # 终结技 / 连携技 HUD 与立绘切入（docs/198；g.ult 为 null 时不调）
 const TextQ = preload("res://scripts/screens/hud_textq.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
@@ -29,6 +30,7 @@ var banners: HudBanners
 var allyhp: HudAllyHp
 var ult: HudUlt
 var v2: HudV2
+var v3: HudV3
 
 
 func _init(game: Game) -> void:
@@ -40,6 +42,7 @@ func _init(game: Game) -> void:
 	allyhp = HudAllyHp.new(self)
 	ult = HudUlt.new(self)
 	v2 = HudV2.new(self)
+	v3 = HudV3.new(self)
 
 
 ## HUD 合批段：段内 UI 助手的色块进 Tris 批、文字延后，batch_end 时先一次提交色块再画字（段内各块互不重叠才能这样用）
@@ -271,7 +274,11 @@ func _draw_body() -> void:
 		return
 	# 各块的层次见 LAYER_ORDER（与 10-22 拆块前的实际层次相同：原缓存层在下，原主画布各段按原顺序在上）；块内的先后照旧，别调换。
 	# 绘制回调按登记先后执行：boss 块写的 bars.boss_bottom 在 front / tail 读之前更新
-	if not (panel_over_top() and g.choice_kind == "event"):
+	var console: bool = HudV3.on()   # 指挥台（docs/222 §18）：左上生命块、右下编队卡、状态行、队友血条行、底部冲刺 / 瞄准提示都收进正下方一台
+	if console:
+		if not (panel_over_top() and g.choice_kind == "event"):
+			v3.draw(vs)   # 画在 top_left 层（每帧画；闲时整层降透明度）
+	elif not (panel_over_top() and g.choice_kind == "event"):
 		# 触屏事件（节点卡的不期而遇）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）
 		_layer("top_left", bars.top_left_sig(vs), func(): bars.draw_top_left(vs))
 	_layer("pointers", null, func():
@@ -296,13 +303,14 @@ func _draw_body() -> void:
 	if not pq:
 		relics.register_tray(vs)   # 藏品栏缓存层（藏品 / 等级 / 悬停格变了才重画）
 	_layer("boss", null, func(): bars.draw_boss_bars(vs))
-	if not pq:
+	if not pq and not console:
 		squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
 	if g.ult != null:
 		_layer("ult", null, func(): ult.draw(vs))   # 终结技能量 / 协同 / 连携排队（触屏：终结技键与连携键）
 	_layer("front", null, func():
 		bars.draw_xp_top(vs)   # 经验通栏细条（屏幕最上沿）
-		allyhp.draw(vs)   # 队友血条原型（command/hpbar_style 1 / 3；0 = 编队卡缓存层里的原版）
+		if not console:
+			allyhp.draw(vs)   # 队友血条原型（command/hpbar_style 1 / 3；0 = 编队卡缓存层里的原版）
 		banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
 		banners.draw_banner(vs)
 		banners.draw_notices(vs)
@@ -310,11 +318,12 @@ func _draw_body() -> void:
 		relics.draw_relic_tooltip(vs)
 		g.panel_ui.draw_pick_glow(g.hud)   # 选卡后的选中余光
 		g.touch.draw_hud(vs))
-	if not overlay_left() and not pq:
+	if not overlay_left() and not pq and not console:
 		var sitems: Array = bars.status_items()
 		_layer("status", bars.status_sig(vs, sitems), func(): bars.draw_status(vs, sitems))
 	_layer("tail", null, func():
-		banners.draw_dash_hint(vs)
+		if not console:
+			banners.draw_dash_hint(vs)
 		banners.draw_zone_hint(vs)
 		squad.draw_manual_aim()
 		squad.draw_manual_hint()
@@ -322,6 +331,8 @@ func _draw_body() -> void:
 		g.victory.draw_hud(vs))   # 胜利收尾：暖金光环 + 「探索完成」（run/victory_flow.gd，docs/62 §3.21c）   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
 	if g.ult != null:
 		_layer("ult_cut", null, func(): ult.draw_cutins(vs))   # 终结技立绘切入条带（压在各块之上、整屏状态界面之下）
+	if g.elite_moment != null and g.elite_moment.on(g):
+		g.elite_moment.draw_hud(vs)   # 精英化时刻横幅（docs/249 §2）
 	g.pick.draw(vs)   # 指点（示意原型）：已下达指令的标记 + 选点阶段的准星
 	if g.ult != null:
 		g.ult.draw_aim(vs)   # 终结技慢动作瞄准 v2（ult/aim，docs/209 §3）：PRTS 范围格 + 信息板，同指点一套画法
@@ -377,6 +388,8 @@ func _draw_body() -> void:
 func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	draw_elite_marks(ct)
 	var readable: bool = Bal.v("render/clarity_text", 1.0) > 0.0 and g.demo_op == ""
+	var ft_k: float = Bal.v("render/float_text_k", 0.7)
+	var ft_min: int = Bal.vi("render/float_text_min", 9)
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
 	var dn: Array = []   # 合批时先收集，_dmg_numbers 分层画（docs/50 §13）
 	for f in (g.texts if ((g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "") and not _dbg_nonum else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）；--clutterdbg=nonum 量测
@@ -388,8 +401,8 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		if readable and _damage_label(str(f.text)):
 			pop = 1.0 + 0.15 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
-		var sz := _qs(int(f.size * pop))
-		dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
+		var sz := _qs(int(f.size * pop)) if f.get("keep", false) else _qs(maxi(ft_min, int(round(f.size * pop * ft_k))))   # 局内飘字缩放 render/float_text_k（11-05 缩约 30%），手机上不低于 float_text_min
+		dn.append([sp - Vector2(FT_BOX * 0.5, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
 	if readable:
 		dn = _clear_damage_text(dn, ct, vs)
 	clarity_text_drawn = dn.size()
@@ -410,12 +423,12 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 			# 文字避让（用户 11-03 保留 LEVEL UP!，只缩小）：字号约 60%、弹出 1.2，整组放在队长保护框（与伤害数字避让同一个框，头顶 60）上方，不压身体
 			var top: Vector2 = ct * (g.ppos + Vector2(0, -60 - age * 14.0))
 			var lv_y: float = top.y - 16.0   # 保护框按身体量，耳朵 / 发饰会高出框顶几像素，再留 16
-			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y - 11.0 * pop - 3.0), "LEVEL UP!", _qs(int(18 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
-			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y), "Lv.%d" % g.level, _qs(int(11 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 3)
+			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y - 11.0 * pop - 3.0), "LEVEL UP!", _qs(maxi(ft_min, int(18 * pop * ft_k))), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y), "Lv.%d" % g.level, _qs(maxi(ft_min, int(11 * pop * ft_k))), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 3)
 		else:
 			var lp: Vector2 = ct * (g.ppos + Vector2(0, -92 - age * 14.0))
-			UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(int(30 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
-			UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(int(18 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+			UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(maxi(ft_min, int(30 * pop * ft_k))), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
+			UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(maxi(ft_min, int(18 * pop * ft_k))), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
 
 	if g.flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, g.flash * 0.5))
@@ -560,7 +573,7 @@ static func clear_damage_text(dn: Array, body: Rect2, vs: Vector2, font: Font, c
 		var w: float = font.get_string_size(str(it[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 		var ah := Vector2(font.get_ascent(sz), font.get_height(sz))
 		var p: Vector2 = it[0]
-		var box := Rect2(p.x + (120.0 - w) * 0.5 - 5, p.y - ah.x - 5, w + 10, ah.y + 10)
+		var box := Rect2(p.x + (FT_BOX - w) * 0.5 - 5, p.y - ah.x - 5, w + 10, ah.y + 10)
 		if box.intersects(body):
 			var shift: float = body.position.y - 6.0 - box.end.y
 			box.position.y += shift
@@ -581,6 +594,8 @@ static func clear_damage_text(dn: Array, body: Rect2, vs: Vector2, font: Font, c
 	return out
 
 
+## 飘字居中框宽：原来 120，长的 Boss 招式提示（「假死 · 8 秒内击倒另一体」）会被裁掉半截；放宽到 360，居中位置不变（11-05）
+const FT_BOX := 360.0
 func _dmg_numbers(dn: Array) -> void:
 	var n: int = dn.size()
 	var ci: CanvasItem = g.hud
@@ -608,7 +623,7 @@ func _dmg_numbers(dn: Array) -> void:
 			wc[it[1]] = w
 		var ah: Vector2 = _numh[ks]
 		var p: Vector2 = it[0]
-		var bb := Rect2(p.x + (120.0 - w) * 0.5 - 6.0, p.y - ah.x - 6.0, w + 12.0, ah.y + 12.0)
+		var bb := Rect2(p.x + (FT_BOX - w) * 0.5 - 6.0, p.y - ah.x - 6.0, w + 12.0, ah.y + 12.0)
 		var L := 0
 		for j in i:
 			if lay[j] >= L and (bbs[j] as Rect2).intersects(bb):
@@ -634,11 +649,11 @@ func _dmg_numbers(dn: Array) -> void:
 		for k in order[L]:
 			var ks: int = k % 1024
 			for it in grp[k]:
-				ci.draw_string_outline(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, 120, ks, 4, Color(0, 0, 0, it[3].a * 0.8))
+				ci.draw_string_outline(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, 4, Color(0, 0, 0, it[3].a * 0.8))
 		for k in order[L]:
 			var ks: int = k % 1024
 			for it in grp[k]:
-				ci.draw_string(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, 120, ks, it[3])
+				ci.draw_string(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, it[3])
 
 
 var _numw := {}   # 字号 -> {字串: 宽}（飘字外接框用；数字常重复，省掉重复量字）
@@ -695,18 +710,35 @@ const ELITE_COL := Color(1.0, 0.42, 0.25)
 func draw_elite_marks(ct: Transform2D) -> void:
 	if g.demo_op != "" or g.state == Game.S.SHOW:
 		return
+	_elite_mark_batch(ct).flush(g.hud)
+
+
+func _elite_mark_batch(ct: Transform2D) -> RefCounted:
 	var vs := g.hud.size
 	var tb := Tris.new()   # 血条 + 三角一批提交（原来每只 4 次绘制调用）
+	var mark_v2: bool = Bal.v("render/elite_mark_v2", 0.0) > 0.0
 	for e in g.enemies:
-		if e.dead or not e.elite or e.boss or e.get("under", false):
+		if e.dead or (not e.elite and not (mark_v2 and e.get("squad", false))) or e.boss or e.get("under", false):
 			continue
 		var sp: Vector2 = ct * (e.pos + Vector2(0, -e.r - 14.0))
 		if sp.x < -40 or sp.y < -40 or sp.x > vs.x + 40 or sp.y > vs.y + 40:
 			continue
-		var w: float = maxf(24.0, e.r * 1.4)
-		tb.rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
-		tb.rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), ELITE_COL)
+		if not (mark_v2 and e.get("squad", false)):
+			var w: float = maxf(24.0, e.r * 1.4)
+			tb.rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
+			tb.rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), Color(0.75, 0.8, 0.84) if mark_v2 else ELITE_COL)
 		var tip: Vector2 = sp + Vector2(0, -4)
+		if mark_v2:
+			var p: Vector2 = (tip + Vector2(0, -12)).round()
+			# Same downward triangle for both ranks; squad coral is muted, not translucent.
+			var mark_col := Color.html("b96b70") if e.get("squad", false) else Color(0.95, 0.97, 1.0)
+			for row in 3:
+				var rw: float = 12.0 - float(row) * 4.0
+				tb.rect(Rect2(p + Vector2(-rw * 0.5 - 1, row * 4 - 1), Vector2(rw + 2, 6)), Color(0, 0, 0, 0.8))
+			for row in 3:
+				var rw: float = 12.0 - float(row) * 4.0
+				tb.rect(Rect2(p + Vector2(-rw * 0.5, row * 4), Vector2(rw, 4)), mark_col)
+			continue
 		var bob: float = 2.0 * sin(g.t * 5.0 + e.id)
 		var tri := PackedVector2Array([tip + Vector2(-6, -10 + bob), tip + Vector2(6, -10 + bob), tip + Vector2(0, -3 + bob)])
 		tb.poly(PackedVector2Array([tri[0] + Vector2(-2, -1), tri[1] + Vector2(2, -1), tri[2] + Vector2(0, 2)]), Color(0, 0, 0, 0.7))
@@ -721,7 +753,7 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		var bw: float = 64.0
 		tb.rect(Rect2(bp + Vector2(-bw / 2.0 - 1.0, -1.0), Vector2(bw + 2.0, 5)), Color(0, 0, 0, 0.7))
 		tb.rect(Rect2(bp + Vector2(-bw / 2.0, 0), Vector2(bw * clampf(b.hp / maxf(1.0, b.maxhp), 0.0, 1.0), 3)), UI.RED)
-	tb.flush(g.hud)
+	return tb
 
 
 ## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 2.4 秒（10-28 起，加最后一击定格 + 队友化光尘，docs/62 §3.21c）——
@@ -839,8 +871,12 @@ func blocks_click(mp: Vector2) -> bool:
 			return true
 	if mp.y < 104.0 and (mp.x < 400.0 or mp.x > vs.x - 260.0 or absf(mp.x - vs.x * 0.5) < 190.0):
 		return true
-	var sw: float = (v2.squad_size(g.squad.size()).x + 36.0) if HudV2.on() else maxf(maxi(1, g.squad.size()) * HudSquad.SQ_COL_W, 250.0) + 16.0
-	if mp.x > vs.x - sw and mp.y > squad.squad_top(vs) - 44.0:
-		return true
+	if HudV3.on():
+		if v3.rect(vs).has_point(mp):
+			return true
+	else:
+		var sw: float = (v2.squad_size(g.squad.size()).x + 36.0) if HudV2.on() else maxf(maxi(1, g.squad.size()) * HudSquad.SQ_COL_W, 250.0) + 16.0
+		if mp.x > vs.x - sw and mp.y > squad.squad_top(vs) - 44.0:
+			return true
 	var rad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
 	return mp.distance_to(Vector2(16.0 + rad + 8.0, vs.y - rad - 24.0)) < rad + 14.0

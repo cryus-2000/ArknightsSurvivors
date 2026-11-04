@@ -21,6 +21,7 @@ var rsp: Dictionary = {}   # 响应动作（docs/118）：触发沿 / 冷却记�
 var native_motion: Dictionary = {}
 
 const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见成长藏品（docs/163）
+const LateShape = preload("res://scripts/characters/blocks/late_shape.gd")   # 后期形状随成长（docs/248，开关 growth/late_shape）
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
 const FxGlS3 = preload("res://scripts/characters/blocks/fx_gladiia_s3.gd")   # 歌蕾蒂娅 S3 漩涡画面（pixfx，用户 10-31；区域 pix: gl_s3）
 const ObCore = SegSkalter
@@ -284,6 +285,8 @@ func update(dt: float) -> void:
 	if hw.has("mz"):
 		SegMizuki.h3_tick_effects(self, dt)
 	_tick_shots(dt)
+	if LateShape.on(g):
+		LateShape.tick(self)   # 后期形状随成长：档位变了才重挂属性（docs/248）
 	VisGrowth.tick(self, dt)   # 可见成长：额外弹 / 连发队列 / 剑气（vg 为空时直接返回）
 	SegExusiai.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
 	ObSummon.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
@@ -1201,7 +1204,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	if str(f.kind) != "strip":
 		return ObSummon.mf_draw_pfx(self, f, a) or SegEyjafjalla.hw_draw_pfx(self, f, a)   # 召唤物扩展段的程序粒子（crescent / impact / core / qshard / beamray）；手写迁移段（熔岩柱……）
 	if not f.get("add", false):
-		ObFx.fx_draw(cv, g, f, g.world.fx_dim)
+		ObFx.fx_draw(cv, g, f, g.world.fx_dim, self)
 	return true
 
 
@@ -1215,7 +1218,7 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 		return
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
-			ObFx.fx_draw(ci, g, f, g.world.fx_dim)
+			ObFx.fx_draw(ci, g, f, g.world.fx_dim, self)
 		elif str(f.kind) == "tx_rain" and f.get("add", false):
 			SegTexas.tx_rain_draw(ci, self, f)
 
@@ -1892,7 +1895,10 @@ func bullet_exploded(b: Dictionary) -> void:
 
 ## 精英化第 2 批段：本干员造成伤害之后（咒文链上的传递）
 func deal_damage(e: Dictionary, dmg: float) -> void:
+	var h0 = g.hit
 	super(e, dmg)
+	if LateShape.on(g):
+		LateShape.on_hit(self, e, dmg, h0)   # 升级卡「扩散」「连锁」（docs/248）
 	if not sm.is_empty() and not sm.get("mark_b", _ED).is_empty():
 		ObSummon.mark_hit(self, e)   # 召唤 / 封印段：verb.mark 叠层（拉普兰德 S3）
 	if not hw.is_empty():

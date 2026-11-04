@@ -360,7 +360,7 @@ func _cold_step(e: Dictionary, dt: float) -> void:
 		e.frostbite_hit = true
 		g.combat.slow_leader("knight_frostbite", t, 0.5)
 		g.combat.frost_leader(t, "boss")
-		g.vfx.add_text(g.ppos + Vector2(0, -104), "冻伤！下一击加重", Color(0.75, 0.95, 1.4), 16)
+		g.vfx.add_alert(g.ppos + Vector2(0, -104), "冻伤！下一击加重", Color(0.75, 0.95, 1.4), 16)
 		g.vfx.sparks(g.ppos, Vector2.UP, Color(0.8, 1.2, 1.6), 12, 160.0)
 		Sfx.play("stake_shatter", -10.0, 1.3, 0.0)
 

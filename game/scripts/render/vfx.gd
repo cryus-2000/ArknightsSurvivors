@@ -4,11 +4,13 @@ extends RefCounted
 
 const A = preload("res://scripts/art.gd")
 const FxRecipe = preload("res://scripts/render/fx_recipe.gd")   # 配方接管判断（docs/245）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247）
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/251 V4：帧条特效的伤害档标记（render/light_share）
 const UM = preload("res://scripts/ui_motion.gd")
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 颗粒层是否开着（grains）：开着时绿色水花 / 邪能贴图让位给专属色颗粒
@@ -312,6 +314,9 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 		e.squash = maxf(float(e.get("squash", 0.0)), sq)
 	if not dot and is_lead_hit(h):
 		lead_mark(e)
+	if not dot and g.optical_on and g.optical != null and LateRead2.on("light_share"):
+		# docs/251 V4：我方命中照地。档：终结技期间 3 / 技能、暴击、弱点、三档命中 2 / 其余 1（optical.hit_light 里再判终结技）
+		g.optical.hit_light(e.pos, _op_col(h), 2 if (skill or crit or weak or tier >= 3) else 1)
 	if tier > 0:
 		_tier_fx(e, h, tier)
 		_leader_kick(h, e, tier)
@@ -512,6 +517,10 @@ func slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Colo
 			a = ang - half + span * 0.5 + (half * 2.0 - span) * float(k) / float(segs - 1)
 		g.fx.append({"kind": "slash", "tex": tex_name, "pos": origin, "ang": a, "scale": sc, "life": life, "max": life, "col": col,
 			"frames": frames, "anchor": anchor})
+		if spawn_op != null and LateRead.on("v5"):
+			var sgk: float = LateRead.grow_of(spawn_op)
+			if sgk > 1.001:
+				g.fx[-1]["grow"] = sgk   # docs/247 V5：刀光放大（只画面）
 
 
 ## 伞击贴图选择：有 V7 帧条就用，没有就退回旧 slash
@@ -673,6 +682,15 @@ func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 	g.texts.append({"pos": pos, "pos0": p0, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
 	if g.texts.size() > TEXT_CAP:
 		g.texts.pop_front()
+
+
+## Boss / 精英 / 敌人招式名与警示类飘字（11-05 用户「boss招式提醒不变」）：同 add_text，但不跟着局内飘字缩放（render/float_text_k），保持原字号
+func add_alert(pos: Vector2, text: String, col: Color, size := 14) -> void:
+	var n: int = g.texts.size()
+	var last = g.texts[n - 1] if n > 0 else null
+	add_text(pos, text, col, size)
+	if not g.texts.is_empty() and not is_same(g.texts[g.texts.size() - 1], last):
+		g.texts[g.texts.size() - 1]["keep"] = true
 
 
 ## 可合并的数字飘字：["前缀", "数字"]（纯数字前缀为空；「弱点 94」「破绽 382」按前缀分开合并），其余返回 []
@@ -915,7 +933,7 @@ func hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 
 
 ## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
-func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
+func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false, thick := 0) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null:
 		return
@@ -924,6 +942,8 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
 	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
+	if thick > 0:   # docs/247 V5：精一起主形加厚 1 格（同帧四向错 1 格、同色 55% 先垫一遍）
+		LateRead.thick_under(g.wcv, tx, Rect2(fw * (frame % frames), 0, fw, fh), Rect2(-an, Vector2(fw, fh)), pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale), FD.capc(col))
 	g.wcv.draw_set_transform(pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale))
 	g.wcv.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
 	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -938,7 +958,12 @@ const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 ## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
 ## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
 ## delay：晚这么多秒才开始播（期间不画、不补光学火星；维什戴尔大爆炸的连环外圈，docs/137 §8）
+var spawn_op = null      # squad.update 在每名干员更新期间置为该干员（docs/247 V5：帧条按精英化放大；纯画面标记）
+## V5 不放大的帧条：死亡 / 溶解 / 击杀碎散（是敌人的，不是我方主形）
+static func _v5_skip(name: String) -> bool:
+	return name.contains("death") or name.contains("dissolve") or name.contains("kill") or name.contains("shatter") or name.contains("gem")
 var spawn_lead := false   # squad.update 在队长更新期间置真：这期间生成的帧条特效打上 lead（world 绘制时按突出队长档提亮，docs/139 §11）
+var spawn_tier := 1       # docs/251 V4：squad.update 按干员当时是否在技能期间置 2 / 1（纯画面标记，只在 render/light_share 开时写进特效）
 
 func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1), delay := 0.0) -> bool:
 	if _fxc != null:
@@ -955,8 +980,15 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	if _fxc != null:
 		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
+	if LateRead2.on("light_share"):
+		f["lt"] = 3 if (g.ult != null and g.ult.playing()) else spawn_tier   # docs/251 V4 照地光的伤害档：终结技 3 / 技能期间 2 / 普攻 1
 	if spawn_lead:
 		f["lead"] = true
+	if spawn_op != null and not ground and LateRead.on("v5") and not _v5_skip(name):
+		var gk: float = LateRead.grow_of(spawn_op)
+		if gk > 1.001:
+			f["grow"] = gk   # docs/247 V5：干员出手生成的主形帧条，绘制时 × grow 再取整（判定、火星补粒不变）
+			f["thick"] = LateRead.thick_of(spawn_op)
 	if delay > 0.0:
 		f["delay"] = delay
 	if bottom:
@@ -1378,7 +1410,7 @@ func mire_motes(m: Dictionary, budget: int) -> int:
 		var h2: float = fmod(absf(sin(cyc * 5.9 + k * 1.7 + sd * 1.3)) * 263.7, 1.0)
 		var off := Vector2.from_angle(h * TAU) * r * 0.7 * sqrt(h2)
 		var p: Vector2 = m.pos + Vector2(off.x, off.y * 0.55 - ph * 34.0 + sin(tt * 2.1) * 3.0)
-		var al: float = sin(ph * PI) * 0.55 * a
+		var al: float = sin(ph * PI) * 0.55 * a * g.world.env_dim   # docs/251 V10：怪群密集时环境光尘压暗（关时 env_dim 恒 1）
 		var sz: float = 2.0 if k % 2 == 0 else 3.0
 		_wv().tb_quad(p, p + Vector2(sz, 0), p + Vector2(sz, sz), p + Vector2(0, sz), Color(1.1, 0.75, 1.6, al))
 	return n

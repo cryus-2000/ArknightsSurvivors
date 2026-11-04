@@ -36,7 +36,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, mate
 	if panic:
 		if not e.get("panic", false):
 			e.panic_n = int(e.get("panic_n", 0)) + 1   # 遥测 panic_n
-			g.vfx.add_text(e.pos + Vector2(0, -50), "慌乱", Color(1.0, 0.45, 0.8), 16)
+			g.vfx.add_alert(e.pos + Vector2(0, -50), "慌乱", Color(1.0, 0.45, 0.8), 16)
 			Sfx.play("bishop_panic", -4.8, 1.0, 0.0)   # 慌乱：结巴的吸气颤音
 		e.ai = "melee"
 		e.aggro = mate.pos
@@ -79,8 +79,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, mate
 		# 敌方增益用敌方洋红（docs/48 ⑤：原来借用友方治疗十字和绿环，看着像我方在回血）
 		g.fx.append({"kind": "ring", "pos": p.pos, "r": p.r * 2.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.3, 0.72)})
 		g.fx.append({"kind": "rays", "pos": p.pos, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.3, 0.72)})
-		g.vfx.add_text(e.pos + Vector2(0, -50), "祝福", Color(1.0, 0.45, 0.8), 16)
-		g.vfx.add_text(p.pos + Vector2(0, -50), "加速", Color(1.0, 0.45, 0.8), 14)
+		g.vfx.add_alert(e.pos + Vector2(0, -50), "祝福", Color(1.0, 0.45, 0.8), 16)
+		g.vfx.add_alert(p.pos + Vector2(0, -50), "加速", Color(1.0, 0.45, 0.8), 14)
 		Sfx.play("pickup", -6.0, 0.8)
 	elif not panic and _cd(e, "summon", 14.0):
 		e.pose = 0.6
@@ -89,7 +89,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, mate
 			var sp: Vector2 = e.pos + Vector2.from_angle(TAU * k / 4.0) * 70.0
 			g.spawner.spawn_enemy("bone" if k % 2 == 0 else "slider", sp)
 			g.fx.append({"kind": "ring", "pos": sp, "r": 22.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.9, 1.0)})
-		g.vfx.add_text(e.pos + Vector2(0, -50), "召潮", Color(0.5, 0.9, 1.0), 16)
+		g.vfx.add_alert(e.pos + Vector2(0, -50), "召潮", Color(0.5, 0.9, 1.0), 16)
 		Sfx.play("tentacle", -6.0, 0.8)
 
 
@@ -159,7 +159,7 @@ func _swap(e: Dictionary, mate: Dictionary) -> void:
 	var pa: float = (mate.pos - e.pos).angle()
 	_warn(e, "line", 1.15, {"pos": g.ppos - Vector2.from_angle(pa) * 420.0, "ang": pa, "len": 840.0, "wid": 14.0, "track": 0.5, "track_center": true, "act": "shot", "name": "",
 		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.39, "lock": false, "kp": "bishop", "kp_k": 1.0, "skin": "mc_link"})
-	g.vfx.add_text(e.pos + Vector2(0, -50), "统一", Color(0.4, 0.9, 1.0), 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -50), "统一", Color(0.4, 0.9, 1.0), 16)
 
 
 ## D · 接潮扇浪（第二幕）：enemies.json patterns「接潮扇浪」（manual）——扇形 r260 半角 0.9，追踪 0.3 总 1.4；扇形本身一次 e.dmg × 0.9 + 7 发浪弹 320px/s

@@ -36,6 +36,9 @@ var slot := 0              # 编队位序号
 var is_leader := false     # 主控干员（玩家操控、唯一受击体，docs/23 v0.7）
 var node_lv := 0           # 已拿的普通成长节点数（0–4），驱动统一小强化与气场
 const NODE_ATK := 0.06
+const LateShapeC = preload("res://scripts/characters/blocks/late_shape.gd")   # 后期形状随成长（docs/248）
+const VisNodesC = preload("res://scripts/characters/blocks/vis_nodes.gd")   # 看得见的成长节点（docs/249 §3，开关 growth/visible_nodes）
+const EliteMomentC = preload("res://scripts/run/elite_moment.gd")   # 精英化时刻演出（docs/249 §2，开关 growth/elite_show）
 var aura_t := 0.0
 var voice_t := 25.0        # 战斗台词计时（squad.gd 每帧递减）
 var entry_voice_done := false   # 登场语音每个实例只请求一次（含 Squad.add 的即时兜底）
@@ -586,6 +589,8 @@ func _elite_show(stage: int) -> void:
 			var ak: Dictionary = n.attack
 			items.append({"tag": "普攻", "tag_en": "ATTACK", "glyph": str(ak.get("name", "攻")).substr(0, 1), "name": ak.get("name", ""), "desc": ak.get("desc", ""), "col": col().lerp(Color(1, 0.9, 0.6), 0.35)})
 			break
+	if EliteMomentC.on(g) and g.get("elite_moment") != null:
+		g.elite_moment.push(self, stage)   # 精英化时刻（docs/249 §2）：定格 + 横幅 + 爆亮，排在全屏演出之前
 	g.show_queue.append({"head": "%s · 精英%s" % [display_name(), ["", "一", "二"][stage]], "en": "ELITE  PROMOTION  " + ["", "I", "II"][stage], "col": col(), "op": self, "elite": stage, "items": items})
 
 
@@ -663,6 +668,8 @@ func draw_pfx(floor_layer: bool) -> void:
 			continue
 		# 后期特效密集时整体降透明度（render/world.gd 的 fx_dim，EA 1.1）；a 也传给干员自己的 _draw_pfx
 		var a: float = clampf(f.life / f.max, 0.0, 1.0) * g.world.fx_dim
+		if g.world.lr_v3 and pfx_cappable(f) and f.kind != "strip":   # strip = 数据干员的技能帧条（主形），不算装饰
+			a = clampf(f.life / f.max, 0.0, 1.0) * g.world.deco_dim   # docs/247 V3：只有装饰小粒子吃降噪，技能帧条 / 判定 / 提示照常 1
 		if _draw_pfx(f, a):
 			continue
 		var c: Color = f.get("col", col())
@@ -978,13 +985,18 @@ func _advance(choice: String) -> void:
 			# 新解锁的技能立即充满：选下精英化卡的当下就能看到新技能（原来从 0 充能，要等 15–30 秒）
 			if elite < 3 and skill_unlocked(elite) and not perm[elite]:
 				sp[elite] = sp_need(elite)
+			if elite >= 2 and VisNodesC.on(g):
+				VisNodesC.elite2(self)   # 精二：本人基础属性一档 + 全队效果（docs/249 §3）
 			_elite_show(elite)
 		"custom":
 			on_custom_node(n.get("id", ""), choice)
 	# 每个普通节点的统一小强化（docs/25 §5.1 第 9 条）：攻击 +6%；气场与命中火花随节点数增强
 	if n.type != "elite":
 		node_lv += 1
-		g.stats.add(&"op_atk", "add", NODE_ATK, "node:%s:%d" % [id, prog], "op:" + id)
+		if VisNodesC.on(g):
+			VisNodesC.node_step(self)   # 看得见的节点（docs/249 §3）：攻击 +6% 换成本人形状流派的一项
+		else:
+			g.stats.add(&"op_atk", "add", NODE_ATK, "node:%s:%d" % [id, prog], "op:" + id)
 		refresh_stats()
 		# 升级瞬间：职业色光柱 + 一圈光点，告诉玩家「她变强了」
 		if pos != Vector2.INF:
@@ -1010,18 +1022,24 @@ func deep_cards() -> Array:
 				names.append("「%s」" % str(rc[k].get("name", k)))
 			var bdesc: String = str(n.get("branch_desc", "选定一条培养路线：%s。之后的节点沿同一路线强化。" % " / ".join(names)))
 			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · %s" % [display_name(), n.get("name", "培养路线")],
-				"desc": bdesc + ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))) + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
+				"desc": bdesc + (VisNodesC.node_text(self) if VisNodesC.on(g) else ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0)))) + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
 				"icon": n.get("icon", ""), "avail": avail, "req": node_requires_text(n), "elite": 0})
 		elif not chs.is_empty():
 			for c in chs:
 				var cd: Dictionary = chs[c]
 				out.append({"kind": "prog", "op": id, "choice": c, "name": "%s · %s" % [n.get("name", "精英化"), cd.get("name", c)],
-					"desc": cd.get("desc", n.get("desc", "")), "brief": cd.get("brief", ""), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
+					"desc": str(cd.get("desc", n.get("desc", ""))) + (LateShapeC.elite_text(self, int(n.level)) if LateShapeC.on(g) else "") + (VisNodesC.elite_text(self, int(n.level)) if VisNodesC.on(g) else ""), "brief": cd.get("brief", ""), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
 		else:
 			n = node_view(n)   # 节点 5：按已选路线的名字 / 说明 / 图标
 			var req_txt := node_requires_text(n)
 			# 普通节点另带统一的攻击 +6%（NODE_ATK，advance()）：写在卡面说明末尾，免得这部分成长看不见
 			var node_atk: String = ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))) if n.get("type", "") != "elite" else ""
+			if n.get("type", "") != "elite" and VisNodesC.on(g):
+				node_atk = VisNodesC.node_text(self)   # 看得见的节点（docs/249 §3）
+			if n.get("type", "") == "elite" and LateShapeC.on(g):
+				node_atk += LateShapeC.elite_text(self, int(n.get("level", 1)))   # 后期形状（docs/248）：精英化卡写出这一档的形状加成
+			if n.get("type", "") == "elite" and VisNodesC.on(g):
+				node_atk += VisNodesC.elite_text(self, int(n.get("level", 1)))   # 精二基础属性 + 全队效果（docs/249 §3）
 			out.append({"kind": "prog", "op": id, "choice": "", "name": "%s · %s" % [display_name(), n.get("name", "成长 " + stage_txt)],
 				"desc": n.get("desc", "") + node_atk + (("\n条件：%s（已满足）" % req_txt) if req_txt != "" and avail else ""), "brief": n.get("brief", ""), "icon": n.get("icon", ""), "avail": avail, "req": req_txt, "elite": n.get("level", 0)})
 	out.append_array(extra_cards())
@@ -2957,6 +2975,10 @@ func draw_body() -> void:
 		mod = Color(1.0 + 0.5 * k, 1.0 + 0.8 * k, 1.0 + 0.9 * k, 1.0 - k)
 	if wk < 1.0:
 		mod = Color(mod.r + 0.6 * (1.0 - wk), mod.g + 0.7 * (1.0 - wk), mod.b + 0.8 * (1.0 - wk), mod.a * wk)   # 淡入：先泛青白再回本色
+	if EliteMomentC.on(g) and g.get("elite_moment") != null:
+		var fl: float = g.elite_moment.flash(self)   # 精英化时刻爆亮（docs/249 §2）
+		if fl > 0.0:
+			mod = Color(mod.r * (1.0 + 2.2 * fl), mod.g * (1.0 + 2.2 * fl), mod.b * (1.0 + 2.2 * fl), mod.a)
 	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 
@@ -3076,6 +3098,13 @@ func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vect
 	var fw: float = float(tx.get_width() / frames)
 	var fh: float = float(tx.get_height())
 	var k: float = g.PX / A.hires_of(tx)
+	var gk: float = _LateRead.grow_of(self)
+	if gk > 1.001 and not g.vfx._v5_skip(name):   # docs/247 V5：干员技能帧条按精英化 / 节点放大、取整，精一起加厚 1 格
+		var gs: Array = _LateRead.grow_scale(g, tx, frames, g.PX, gk, A.hires_of(tx))
+		k = gs[0] / A.hires_of(tx)
+		if gs[1] and _LateRead.thick_of(self) > 0:
+			_cv_flush()
+			_LateRead.thick_under(g.wcv, tx, Rect2(fw * (frame % frames), 0, fw, fh), Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), p.round(), ang, Vector2(-k if flip else k, k), col)
 	cv.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
 	cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

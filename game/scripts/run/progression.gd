@@ -77,12 +77,14 @@ func open_levelup() -> void:
 	var picks: Array = []
 	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底见 build_guide.must_recruit
 	var recruit: Array = recruit_cards()
-	if g.guide.must_recruit(recruit):
+	if g.guide.must_recruit(recruit) and not _forced_skipped():
 		# 保底画面（docs/119 §4.3）：有合格人选时保证一名与已持有藏品有实际互动的候选（build_guide.forced_recruit_order；开关关 = 只洗牌）
 		var n_show: int = want + g.rfx.rule("recruit_extra")   # 罗德岛战术电台：招募多一个选项
 		recruit_offers.append([int(g.t), "forced", g.squad.size()])
 		levelup_t.append(int(g.t))
 		g.panel_ui.show_choices("招募干员", g.guide.forced_recruit_order(recruit, n_show).slice(0, n_show), "level")
+		if not offer_auto() and not g.onboard.force_recruit():
+			g.panel_ui.add_recruit_decline()   # 真人局：招募卡下方一个次一级的「婉拒」（新手引导的强制招募照旧必选；机器人 / 测试局不加，选项与随机数同改前）
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
 	var deep: Array = []
@@ -204,6 +206,16 @@ func open_relic_choice() -> void:
 
 ## 「更换队友」画面的上下文：{opts, kind, title, sub, sel, new}。选「不替换」时按它恢复刚才的三选一（这次选择不消耗）
 var swap_ctx: Dictionary = {}
+## 强制招募画面婉拒过的档（用户 11-05「加上」，docs/252 第 5 条）：1 = Lv.5 只有 1 人那一档，2 = Lv.9 不满 3 人那一档；婉拒过的档不再弹
+var forced_declined := 0
+
+
+func _forced_tier() -> int:
+	return 2 if (g.level >= Bal.vi("levelup/force_recruit_level_3", 9) and g.squad.size() < g.squad.REGULAR_MAX) else 1
+
+
+func _forced_skipped() -> bool:
+	return not g.onboard.force_recruit() and forced_declined >= _forced_tier()
 var swaps: Array = []   # 本局换人记录 [秒, 换下, 换上]（遥测 / 作战记录）
 var recruit_offers: Array = []   # 升级面板里出现招募 / 换人 / 保底招募的记录 [秒, "recruit"|"swap"|"forced", 编队人数]（遥测）
 var levelup_t: Array = []        # 每次升级面板的时刻（遥测：换人选择间隔）
@@ -233,14 +245,20 @@ func auto_swap_target(card: Dictionary) -> String:
 	return best_id
 
 
-## 自动选卡可选的下标：满员招募卡只在 auto_swap_target 给出人选时才算
+## 自动选卡可选的下标：满员招募卡只在 auto_swap_target 给出人选时才算；--bot_solo=1 时招募卡一律不算（全是招募卡时退回全部，不卡死）
 func auto_choices() -> Array:
 	var out: Array = []
+	var solo := solo_bot()
 	for i in g.choices.size():
 		var c: Dictionary = g.choices[i]
 		if c.get("kind", "") == "recruit" and c.get("swap", false) and auto_swap_target(c) == "":
 			continue
+		if solo and c.get("kind", "") == "recruit":
+			continue
 		out.append(i)
+	if out.is_empty():
+		for i in g.choices.size():
+			out.append(i)
 	return out
 
 
@@ -400,6 +418,125 @@ func cancel_branch() -> void:
 	g.nav_sel = int(ctx.get("sel", 0))
 
 
+## ---- 入队邀请（用户 11-05，docs/252）：人事部铜印 / 博士银印 / 立即招募类事件不再直接入队，改为「接受入队 / 婉拒」二选一。
+## 来源按原规则用 g.rng 抽好干员再交过来（offer_recruit），随机数消耗与改前相同。
+## 机器人 / 测试 / 演示 / Boss 演练：同一帧自动结算（缺省接受，与改前逐行相同；--bot_solo=1 一律婉拒）；
+## 玩家局排进 offer_queue，check_pending 时弹二选一（暂停，样式同升级三选一）。
+## 婉拒：铜印 / 事件给一次成长三选一；银印给全队各推进 1 个节点 + 一次成长三选一。编队已满时各来源照旧（不弹二选一）。
+var offer_queue: Array = []   # [{src, id}]
+var offer_ctx: Dictionary = {}
+var offer_log: Array = []     # [秒, 来源, 干员 id, "accept" | "decline"]（遥测）
+const OFFER_SRC := {"copper": "人事部铜印", "silver": "博士银印", "event": "招募干员"}
+
+
+## --bot_solo=1：单人局机器人（docs/252）：入队邀请一律婉拒，升级卡不选招募卡，强制招募画面不出，事件不选招募项
+static func solo_bot() -> bool:
+	return Cfg.dev_args().has("--bot_solo=1")
+
+
+func offer_auto() -> bool:
+	return g.mode != g.Mode.PLAY or g.demo_op != "" or g.trial.active or g.bot != null
+
+
+func offer_recruit(src: String, cid: String) -> void:
+	if offer_auto():
+		resolve_offer(src, cid, not solo_bot())
+		return
+	offer_queue.append({"src": src, "id": cid})
+
+
+## 结算一次邀请。accept 的分支与改前的直接入队逐句相同
+func resolve_offer(src: String, cid: String, accept: bool) -> void:
+	offer_log.append([int(g.t), src, cid, "accept" if accept else "decline"])
+	if not accept:
+		_offer_decline(src, cid)
+		return
+	var o = g.squad.add(cid)
+	if o == null:
+		offer_full(src)
+		return
+	match src:
+		"silver":
+			var guard := 0
+			while o.elite < 1 and not o.next_node().is_empty() and guard < 8:
+				o.advance("")
+				guard += 1
+			g.vfx.show_banner("博士银印：「%s」以精英一加入编队" % o.display_name())
+		"copper":
+			if not o.next_node().is_empty() and o.node_available(o.next_node()):
+				o.advance("")
+			g.vfx.show_banner("人事部铜印：「%s」加入编队" % o.display_name())
+		_:
+			g.vfx.show_banner("「%s」加入编队" % o.display_name())
+			g.vfx.promote_burst(o.pos, false)
+
+
+## 编队已满（或排队期间人已在队）：各来源原来的满员处理
+func offer_full(src: String) -> void:
+	if src == "silver":
+		_advance_all()
+		g.vfx.show_banner("博士银印：全队各推进一个成长节点")
+	else:
+		g.pending_levelups += 1
+
+
+func _offer_decline(src: String, cid: String) -> void:
+	var nm: String = str(Character.load_def(cid).get("name", cid))
+	g.pending_levelups += 1
+	if src == "silver":
+		_advance_all()
+		g.vfx.show_banner("博士银印：婉拒「%s」—— 全队各推进一个成长节点，另获一次成长三选一" % nm)
+	else:
+		g.vfx.show_banner("%s婉拒「%s」—— 改为一次成长三选一" % ["人事部铜印：" if src == "copper" else "", nm])
+
+
+func _advance_all() -> void:
+	for o in g.squad.ops:
+		var n: Dictionary = o.next_node()
+		if not n.is_empty() and o.node_available(n):
+			o.advance("")
+
+
+## 这次加入时的档位（卡面第一行）
+func offer_tier(src: String, cid: String) -> String:
+	match src:
+		"silver":
+			return "以精英一加入"
+		"copper":
+			return "以精英零加入\n成长节点 1/%d" % (Character.load_def(cid).get("progression", []) as Array).size()
+	return "以精英零加入"
+
+
+## 排队中的邀请：开二选一（game.check_pending 调）。返回是否开了一屏；排队期间编队满了 / 人已在队的按满员处理
+func open_offer_queued() -> bool:
+	while not offer_queue.is_empty():
+		var x: Dictionary = offer_queue.pop_front()
+		if g.squad.has(str(x.id)) or g.squad.is_full():
+			offer_full(str(x.src))
+			continue
+		open_offer(x)
+		return true
+	return false
+
+
+func open_offer(x: Dictionary) -> void:
+	offer_ctx = x
+	var src: String = str(x.src)
+	var cid: String = str(x.id)
+	var d: Dictionary = Character.load_def(cid)
+	var cls: String = str(d.get("class", ""))
+	var intro: String = str(d.get("gallery", {}).get("intro", d.get("gallery", {}).get("desc", "")))
+	var acc := {"kind": "recruit", "offer": true, "id": cid, "name": str(d.get("name", cid)), "cls": cls,
+		"desc": offer_tier(src, cid) + "\n" + intro, "cat": "接受入队 · %s  JOIN" % cls}
+	var dec := {"kind": "offer_decline", "name": "婉拒", "cat": "婉拒  DECLINE", "col": UI.SUB,
+		"desc": "全队各推进 1 个成长节点，另获一次成长三选一" if src == "silver" else "改为一次成长三选一"}
+	var sub := "选择是否加入编队"
+	var jb: String = g.squad.join_bonus_text()
+	if jb != "":
+		sub += " · " + jb
+	g.panel_ui.show_choices(str(OFFER_SRC.get(src, "招募干员")), [acc, dec], "offer", sub)
+
+
 ## 机器人在路线屏选哪一项：固定路线（干员实例 bot_route / 换人 default_route）那张；找不到取 0
 func auto_branch_pick() -> int:
 	var want := ""
@@ -427,6 +564,27 @@ func pick(i: int) -> void:
 		Sfx.play("ui_move", -6.0, 0.7)   # 买不起的事件选项（深蓝之心的房间）
 		return
 	g.panel_ui.mark_pick(i)   # 选中余光（choice_panel.draw_pick_glow）：面板马上关，选中的那张亮一下再散开
+	if g.choice_kind == "offer":
+		# 入队邀请二选一：不占升级 / 宝箱次数；婉拒给的成长三选一由 resolve_offer 记进 pending_levelups，关面板后 check_pending 接着弹
+		var ox := offer_ctx
+		offer_ctx = {}
+		g.panel.visible = false
+		g.state = g.S.PLAY
+		resolve_offer(str(ox.get("src", "event")), str(ox.get("id", "")), o.get("offer", false))
+		Sfx.play("ui_ok", -4.0)
+		if o.get("offer", false):
+			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
+		g.check_pending()
+		return
+	if str(o.get("kind", "")) == "recruit_decline":
+		# 强制招募画面的「婉拒」：这一次升级改为普通成长三选一（不额外消耗升级次数），这一档之后不再弹强制招募
+		forced_declined = maxi(forced_declined, _forced_tier())
+		recruit_offers.append([int(g.t), "forced_decline", g.squad.size()])
+		if not levelup_t.is_empty():
+			levelup_t.pop_back()   # 同一次升级重开，不重复记
+		Sfx.play("ui_ok", -6.0)
+		open_levelup()
+		return
 	match o.kind:
 		"recruit":
 			if o.get("swap", false):

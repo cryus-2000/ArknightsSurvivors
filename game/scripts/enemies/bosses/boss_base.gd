@@ -72,7 +72,7 @@ func on_lethal(e: Dictionary) -> bool:
 		e.coma_t = 0.0
 		e.count_end = g.t + Bal.v("boss/pair_race", 8.0)   # 倒计时环（界面与美术读 count_end / count_max）
 		e.count_max = Bal.v("boss/pair_race", 8.0)
-		g.vfx.add_text(e.pos + Vector2(0, -50), "假死 · %d 秒内击倒另一体" % int(e.count_max), Color(0.6, 1.0, 0.9), 16)
+		g.vfx.add_alert(e.pos + Vector2(0, -50), "假死 · %d 秒内击倒另一体" % int(e.count_max), Color(0.6, 1.0, 0.9), 16)
 		return true
 	return false
 
