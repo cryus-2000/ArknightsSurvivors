@@ -80,5 +80,9 @@ cat "$OUT/env.txt"
 ( cd build/cloud && find "$TAG" -type f \( -name '*.md' -o -name '*.json' -o -name '*.txt' -o -name '*.log' \) -print0 \
     | tar -czf /work/result.tar.gz --null -T - )
 gcloud storage cp /work/result.tar.gz "$GS/result.tar.gz" -q
+# 出图任务（tools/gcp_render.py）：$OUT/media/ 下的 PNG / MP4 不进上面的包，原样传到桶里 $GS/media/，由本机下载
+if [ -d "$OUT/media" ] && [ -n "$(ls -A "$OUT/media")" ]; then
+    gcloud storage cp -r "$OUT/media" "$GS/" -q || echo "media 上传失败"
+fi
 echo "$RC" | gcloud storage cp - "$GS/done" -q
 status "done rc=$RC"
