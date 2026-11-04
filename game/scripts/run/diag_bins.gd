@@ -12,7 +12,7 @@ var bins: Array = []
 var _acc := 0.0
 var warn_stats: Dictionary = {}   # "施法者类型|形状|动作|boss/elite/mob" -> [次数, 时长和, 面积和（世界像素²）, 颜色]
 var elites: Array = []            # 精英死亡：{t0 首次出现, t1 死亡, cat 致死类别, ultf 终结技伤害 / 最大生命, horde 是否围猎 / 大群}
-var _ult_d: Dictionary = {}       # Boss 实例 id -> [类型, 终结技伤害, 最大生命]
+var _ult_d: Dictionary = {}       # Boss 实例 id -> [类型, 终结技伤害, 最大生命, 单次最大比例, 上一次 serial, 吃到几次]
 const VIEW := Vector2(1280.0, 720.0)
 
 
@@ -63,16 +63,27 @@ func dmg(e: Dictionary, eff: float, h: Dictionary) -> void:
 		return
 	var b := _bin()
 	var c := cat(h)
+	if c == "ult" and (e.elite or e.boss) and g.ult != null:
+		# 单次终结技打掉的比例（docs/245）：按 g.ult.serial 分次记，取最大的一次
+		if int(e.get("_dgus", -1)) != int(g.ult.serial):
+			e["_dgus"] = int(g.ult.serial)
+			e["_dgu1"] = 0.0
+		e["_dgu1"] = float(e._dgu1) + eff
+		e["_dgum"] = maxf(float(e.get("_dgum", 0.0)), float(e._dgu1) / maxf(1.0, float(e.maxhp)))
 	if c == "ult" and e.elite and not e.boss:
 		e["_dgu"] = float(e.get("_dgu", 0.0)) + eff
 	if e.boss:
 		if not e.has("_dgb"):
 			e["_dgb"] = _ult_d.size() + 1
-			_ult_d[int(e._dgb)] = [str(e.type), 0.0, float(e.maxhp)]
+			_ult_d[int(e._dgb)] = [str(e.type), 0.0, float(e.maxhp), 0.0, -1, 0]   # 类型, 终结技伤害, 最大生命, 单次最大比例, 上一次的 serial, 吃到几次
 		var bk := int(e._dgb)
 		_ult_d[bk][2] = maxf(float(_ult_d[bk][2]), float(e.maxhp))
 		if c == "ult":
 			_ult_d[bk][1] += eff
+			_ult_d[bk][3] = maxf(float(_ult_d[bk][3]), float(e.get("_dgum", 0.0)))
+			if int(_ult_d[bk][4]) != int(g.ult.serial):
+				_ult_d[bk][4] = int(g.ult.serial)
+				_ult_d[bk][5] = int(_ult_d[bk][5]) + 1
 	b.dmg[c] = float(b.dmg.get(c, 0.0)) + eff
 	if not e.boss:
 		b.dmg_nb[c] = float(b.dmg_nb.get(c, 0.0)) + eff
@@ -86,7 +97,8 @@ func kill(e: Dictionary) -> void:
 	b.kill[c] = int(b.kill.get(c, 0)) + 1
 	if e.elite and not e.boss:
 		elites.append({"t0": snappedf(float(e.get("_dgt", g.t)), 0.1), "t1": snappedf(g.t, 0.1), "cat": c, "type": str(e.type),
-			"ultf": snappedf(float(e.get("_dgu", 0.0)) / maxf(1.0, float(e.maxhp)), 0.001), "horde": e.has("horde")})
+			"ultf": snappedf(float(e.get("_dgu", 0.0)) / maxf(1.0, float(e.maxhp)), 0.001), "horde": e.has("horde"),
+			"ultm": snappedf(float(e.get("_dgum", 0.0)), 0.001)})
 	if not e.boss and not e.has("_dg"):
 		e["_dg"] = 1   # 一秒内刷出又被打死的，也算进本桶刷怪量
 		b.sp_n += 1
@@ -170,7 +182,8 @@ func _warn_area(w: Dictionary) -> float:
 func extra() -> Dictionary:
 	var bo: Array = []
 	for k in _ult_d:
-		bo.append({"type": _ult_d[k][0], "ultf": snappedf(_ult_d[k][1] / maxf(1.0, _ult_d[k][2]), 0.001)})
+		bo.append({"type": _ult_d[k][0], "ultf": snappedf(_ult_d[k][1] / maxf(1.0, _ult_d[k][2]), 0.001),
+			"ultm": snappedf(float(_ult_d[k][3]), 0.001), "ultn": _ult_d[k][5]})
 	var ws := {}
 	for k in warn_stats:
 		var st: Array = warn_stats[k]
