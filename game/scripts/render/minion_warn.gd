@@ -12,7 +12,7 @@ static func urgency(w: Dictionary) -> float:
 	return clampf(1.0 - (float(w.dur) - float(w.t)) / maxf(0.01, Bal.v("render/warn_v2_final", 0.3)), 0.0, 1.0)
 
 static func color() -> Color:
-	return Color(Bal.v("render/warn_v2_r", 0.85), Bal.v("render/warn_v2_g", 0.055), Bal.v("render/warn_v2_b", 0.15))
+	return Color(Bal.v("render/warn_v2_r", 0.70), Bal.v("render/warn_v2_g", 0.23), Bal.v("render/warn_v2_b", 0.24))
 
 static func polygon(g, w: Dictionary) -> PackedVector2Array:
 	var pts := PackedVector2Array()
@@ -68,7 +68,7 @@ static func stroke(g, points: PackedVector2Array, c: Color, width: float, dim :=
 
 static func outline(g, w: Dictionary) -> void:
 	var u := urgency(w)
-	var c := color().lerp(Color(1.0, 0.12, 0.2), u)
+	var c := color().lerp(Color(0.94, 0.20, 0.24), u)
 	c.a = Bal.v("render/warn_v2_idle_a", 0.94)
 	var pts := polygon(g, w)
 	pts.append(pts[0])
@@ -104,4 +104,4 @@ static func outline(g, w: Dictionary) -> void:
 			stroke(g, PackedVector2Array([tip - d * 10.0, tip]), c, width)
 
 	# Warm red time-track remains distinct from the darker stable range boundary.
-	timer(g, w, Color(1.0, 0.48, 0.38, 1.0))
+	timer(g, w, Color(0.88, 0.43, 0.38, 1.0))
