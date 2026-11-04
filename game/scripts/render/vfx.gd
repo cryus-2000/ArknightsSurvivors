@@ -956,10 +956,10 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	if _fxc != null:
 		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
+	if LateRead2.on("light_share"):
+		f["lt"] = 3 if (g.ult != null and g.ult.playing()) else spawn_tier   # docs/247 V4 照地光的伤害档：终结技 3 / 技能期间 2 / 普攻 1
 	if spawn_lead:
 		f["lead"] = true
-	if LateRead2.on("light_share"):
-		f["lt"] = 3 if (g.ult != null and g.ult.playing()) else spawn_tier   # V4 照地光的伤害档：终结技 3 / 技能期间 2 / 普攻 1
 	if delay > 0.0:
 		f["delay"] = delay
 	if bottom:

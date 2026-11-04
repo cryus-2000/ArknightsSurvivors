@@ -436,13 +436,12 @@ func update(dt: float) -> void:
 	for o in ops:
 		if o.cmd_down > 0.0:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）
+		g.vfx.spawn_tier = 2 if LateRead2.on("light_share") and o.skill_active() else 1   # docs/247 V4：这名干员这一帧生成的帧条，技能期间记重击档（纯画面标记）
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		g.vfx.spawn_lead = o.is_leader   # 这段里生成的帧条特效记为队长的（docs/139 §11 突出队长；纯画面标记）
-		g.vfx.spawn_tier = 2 if LateRead2.on("light_share") and o.skill_active() else 1   # docs/247 V4：技能期间的帧条记重击档（纯画面标记）
 		o.update(dt)
 		g.vfx.spawn_lead = false
-		g.vfx.spawn_tier = 1
 		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
@@ -453,6 +452,7 @@ func update(dt: float) -> void:
 		o._tick_pfx(dt)
 		if pf:
 			t0 = g.prof_add("sq_pfx", t0)
+	g.vfx.spawn_tier = 1
 	if bl:
 		_blink_check(dt, "update")
 
