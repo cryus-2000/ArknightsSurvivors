@@ -87,7 +87,7 @@ static func thick_of(op) -> int:
 
 
 ## 画一帧帧条（同 vfx.spr_rot）时的加厚底：同一帧在上下左右各错 1 格、同色降透明度先画一遍，主形笔画整体粗 2 格
-static func thick_under(ci: CanvasItem, tx: Texture2D, src: Rect2, dst: Rect2, pos: Vector2, ang: float, sc: Vector2, col: Color, a := 0.55) -> void:
+static func thick_under(ci, tx: Texture2D, src: Rect2, dst: Rect2, pos: Vector2, ang: float, sc: Vector2, col: Color, a := 0.55) -> void:
 	var c := Color(col.r, col.g, col.b, col.a * a)
 	var px := 2.0
 	for d in [Vector2(-px, 0), Vector2(px, 0), Vector2(0, -px), Vector2(0, px)]:
