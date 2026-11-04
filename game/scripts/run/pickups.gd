@@ -55,32 +55,55 @@ func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 		g.gems[-1]["src"] = src   # 宝箱来源（遥测，docs/191）
 
 
-## Only settled XP is eligible: do not teleport new drops into a flying magnet pickup.
+# Count once per simulation step / collection state / container size. Target positions
+# are never cached: every merge still selects the nearest currently settled XP.
+var _cap_count_t := -INF
+var _cap_count_size := -1
+var _cap_count_dead := -1
+var _cap_live_count := 0
+
+func _cap_count() -> int:
+	if _cap_count_t != g.t or _cap_count_size != g.gems.size() or _cap_count_dead != dead_n:
+		_cap_live_count = 0
+		for item in g.gems:
+			if not item.dead and item.kind == "xp":
+				_cap_live_count += 1
+		_cap_count_t = g.t
+		_cap_count_size = g.gems.size()
+		_cap_count_dead = dead_n
+	return _cap_live_count
+
+
+## Only settled XP within the configured radius is eligible.
 func _cap_xp(pos: Vector2, val: float) -> bool:
-	var count := 0
+	var threshold := Bal.vi("render/gem_cap_n", 200)
+	if g.gems.size() < threshold or _cap_count() < threshold:
+		return false
 	var nearest: Dictionary = {}
 	var nearest_big: Dictionary = {}
 	var dist := INF
 	var big_dist := INF
 	var big_value: float = Bal.v("render/gem_cap_big", 5.0)
+	var radius: float = maxf(0.0, Bal.v("render/gem_cap_radius", 400.0))
+	var radius_sq := radius * radius
 	for item in g.gems:
-		if item.dead or item.kind != "xp":
+		if item.dead or item.kind != "xp" or item.mag or float(item.z) > 0.0 or float(item.vz) != 0.0:
 			continue
-		count += 1
-		if item.mag or float(item.z) > 0.0 or float(item.vz) != 0.0:
+		var offset: Vector2 = item.pos - pos
+		if absf(offset.x) > radius or absf(offset.y) > radius:
 			continue
-		var d: float = pos.distance_squared_to(item.pos)
+		var d: float = offset.length_squared()
+		if d > radius_sq:
+			continue
 		if d < dist:
 			dist = d
 			nearest = item
 		if float(item.val) >= big_value and d < big_dist:
 			big_dist = d
 			nearest_big = item
-	if count < Bal.vi("render/gem_cap_n", 200):
-		return false
 	var target: Dictionary = nearest_big if not nearest_big.is_empty() else nearest
 	if target.is_empty():
-		return false # All XP in flight: retain the normal drop and overflow safeguards.
+		return false # No nearby settled XP: keep normal drop / overflow safeguards.
 	target.val += val
 	return true
 
@@ -177,6 +200,7 @@ func _pick_r() -> float:
 ## 逐帧：落地物理、吸附、拾取（性能 docs/50 §11 的写法；10-15 删掉逐帧结果相同的旧写法 _update_old，docs/101 S2）：字段一律直接读（掉落物只由 drop() 生成，
 ## 字段齐全）；拾取半径循环外算一次、发生拾取后重算；离主控够远、没被吸起的掉落物只累计 age 就跳过（旧写法照样什么都不做）
 func update(dt: float) -> void:
+	_cap_count_t = -INF
 	_recall_tick(dt)
 	var pr: float = _pick_r()
 	var pp: Vector2 = g.ppos

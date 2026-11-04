@@ -42,8 +42,27 @@ func _ready() -> void:
 	g.pickups.drop(Vector2(95, 0), "xp", 2.0)
 	check(g.gems.size() == 3 and g.gems[1].val == 3.0, "no large XP promotes nearest small XP")
 	g.gems[0].dead = true
+	g.pickups.dead_n += 1 # Same invalidation used by collection and recall.
 	g.pickups.drop(Vector2.ZERO, "xp", 1.0)
 	check(g.gems.size() == 4, "dead XP does not count toward cap")
+	# A nearby small gem wins over a large gem beyond the configured radius.
+	g.gems.clear()
+	g.t += 0.01
+	r.gem_cap = 0
+	r.gem_cap_radius = 400.0
+	for point in [Vector2(401, 0), Vector2(60, 0), Vector2(30, 0)]:
+		g.pickups.drop(point, "xp", 10.0 if point.x > 400 else 1.0)
+		g.gems[-1].z = 0.0
+		g.gems[-1].vz = 0.0
+	r.gem_cap = 1
+	g.pickups.drop(Vector2.ZERO, "xp", 2.0)
+	check(g.gems.size() == 3 and g.gems[2].val == 3.0 and g.gems[0].val == 10.0, "nearest local small beats out-of-radius large")
+	g.pickups.drop(Vector2(2000, 0), "xp", 2.0)
+	check(g.gems.size() == 4, "no target in radius falls back to normal drop")
+	g.gems[0].pos = Vector2(400, 0)
+	g.pickups.drop(Vector2.ZERO, "xp", 2.0)
+	check(g.gems[0].val == 12.0, "radius boundary inclusive and eligible large preferred")
+	check(g.pickups.xp_on_ground() == 18.0, "bounded merges preserve all fixture XP")
 	var previous := 0.0
 	for value in [1.0, 2.0, 5.0, 20.0]:
 		var bright: Color = g.world._gem_v2_color(value, false)
