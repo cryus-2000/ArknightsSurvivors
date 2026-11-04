@@ -69,6 +69,7 @@
     "merchant_build_offer",
     "economy",
     "event_trade",
+    "event_fit",
     "event_maxhp",
     "node_cards"
    ]

@@ -1149,6 +1149,7 @@ SCENE_REGRESSIONS = {
     "boss_support": ("Boss 保留杂兵、友方保色与枪声混音", "boss_support_test", r"BOSS SUPPORT failures=0", []),
     "boss_boundary": ("Boss 黑潮边界", "boss_boundary_test", r"BOSS BOUNDARY failures=0", []),
     "route_knight": ("结局线事件链（骑士 / 深蓝之心 / 升华）与骑士路线", "route_knight_regression", r"ROUTE KNIGHT REGRESSION: 0 failures", []),
+    "event_fit": ("事件选项条放得下：深蓝之心 7 个选项（源石锭 0）每张都在面板里、「离开」可选、焦点起在第一张能选的", "event_fit_test", r"EVENT FIT failures=0", []),
     "event_maxhp": ("事件最大生命 -10%（狂徒妄念）：面板暂停、非满血换算、骑士入队不改生命", "event_maxhp_test", r"EVENT MAXHP TEST: 0 failures", []),
     "enemy_prepare": ("敌人攻击前摇", "enemy_prepare_test", r"ENEMY PREPARE TEST: 0 failures", []),
     "feedback": ("攻击反馈", "feedback_test", r"FEEDBACK TESTS PASSED", []),

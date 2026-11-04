@@ -598,6 +598,10 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	if kind == "event":
 		ev_shown_t = UM.now()
 	g.nav_sel = 0
+	for k in opts.size():
+		if not opts[k].get("disabled", false):
+			g.nav_sel = k
+			break
 	if kind != "event":
 		release_event_cg()
 	g.state = Game.S.CHOICE
@@ -648,6 +652,25 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	var ev_dw: float = (ev_w - 100.0 - 70.0) if ph else 420.0
 	var ev_h0: float = 74.0 if ph else 100.0
 	var ev_base_lines: int = 1 if ph else 2
+	var ev_sep: float = 10.0 if ph else 14.0
+	var ev_compact := false
+	if ev and not ph:
+		# 桌面（11-05 用户「深蓝之心事件那里源石锭不够无法退出」）：深蓝之心 7 个选项，100 高的条只放得下 5 张，「离开」在屏幕外点不到。
+		# 放不下就逐档压紧：74 高 / 间距 8 → 62 高 / 间距 6，说明一行（同手机排法），条连同底下的提示都在面板里
+		var avail_d: float = g.panel.size.y - float(g.panel_col.offset_top) - 34.0
+		for tier in [[100.0, 14.0, 2], [74.0, 8.0, 1], [62.0, 6.0, 1]]:
+			var tot_d := -float(tier[1])
+			for o in opts:
+				var fd := UI.fit(g.font, option_description(o), ev_dw, (4.0 if int(tier[2]) == 2 else 1.2) * g.font.get_height(UI.fs(12)), [13, 12] if int(tier[2]) == 2 else [12])
+				tot_d += float(tier[0]) + maxf(0.0, fd.lines.size() - int(tier[2])) * float(fd.lh) + float(tier[1])
+			ev_h0 = float(tier[0])
+			ev_sep = float(tier[1])
+			ev_base_lines = int(tier[2])
+			ev_compact = int(tier[2]) == 1
+			if tot_d <= avail_d:
+				break
+		if ev_compact:
+			ev_sizes = [12]
 	if ph:
 		var avail: float = g.panel.size.y - float(g.panel_col.offset_top) - 24.0
 		for s in [19, 18, 17, 16, 15, 14]:
@@ -658,6 +681,11 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			ev_sizes = [s]
 			if tot <= avail:
 				break
+			if s == 14:   # 最小字号还放不下（深蓝之心 7 个选项）：条高 74 → 62、间距 10 → 4，保证最后的「离开」在屏幕里
+				ev_h0 = 62.0
+				ev_sep = 4.0
+	if ev:
+		g.panel_col.add_theme_constant_override("separation", int(ev_sep))
 	for i in opts.size():
 		var o: Dictionary = opts[i]
 		var display_desc := option_description(o)
@@ -682,6 +710,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
 		if L.touch:
 			card.set_meta("phone", true)
+		if ev_compact:
+			card.set_meta("compact", true)   # 桌面紧凑选项条：按手机那套偏移画（标题 30、说明 40 起、图标 48）
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
@@ -704,10 +734,10 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			var fe := UI.fit(g.font, display_desc, ev_dw, 4.0 * g.font.get_height(UI.fs(13 if not ph else int(ev_sizes[0]))), ev_sizes)
+			var fe := UI.fit(g.font, display_desc, ev_dw, (1.2 if ev_compact else 4.0) * g.font.get_height(UI.fs(13 if not ph else int(ev_sizes[0]))), ev_sizes)
 			card.set_meta("fit", fe)
 			card.custom_minimum_size.y = ev_h0 + maxf(0.0, fe.lines.size() - ev_base_lines) * float(fe.lh)
-			ev_bars_h += card.custom_minimum_size.y + (10.0 if ph else 14.0)
+			ev_bars_h += card.custom_minimum_size.y + ev_sep
 		else:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0 if Pad.touch_ui() else DESC_H_DESK, [15, 14, 13, 12] if Pad.touch_ui() else DESC_SIZES_DESK)
@@ -1233,7 +1263,7 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var ox: float = card.get_meta("ox", 0.0)
 	var w := card.size.x
 	var base := Vector2(ox, 0)
-	var ph: bool = card.get_meta("phone", false)   # 手机：条本体 74 高，图标 48、标题 30、说明 40 起
+	var ph: bool = card.get_meta("phone", false) or card.get_meta("compact", false)   # 手机 / 桌面紧凑：条本体 74（或 62）高，图标 48、标题 30、说明 40 起
 	var tx0: float = 100.0 if ph else 112.0
 	var shape: PackedVector2Array = art.bars[i % art.bars.size()]
 	var sp := PackedVector2Array()
