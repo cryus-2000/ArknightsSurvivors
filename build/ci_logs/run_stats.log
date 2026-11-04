@@ -5,7 +5,7 @@
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-206 checks, 0 failed
+208 checks, 0 failed
 RUN STATS failures=0
 ERROR: 4 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
