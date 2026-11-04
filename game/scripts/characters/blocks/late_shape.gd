@@ -13,6 +13,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const LANES := ["melee", "multi", "summon", "control"]
+const VisNodesL = preload("res://scripts/characters/blocks/vis_nodes.gd")   # docs/245：节点弹数走 op_summary
 
 
 static func on(g) -> bool:
@@ -122,8 +123,13 @@ static func op_summary(o, s: Dictionary, relic_shots: bool, relic_qi: bool, rang
 			r.e_qi = float(s.e_qi)
 			r.qi_mult = float(s.qi_mult)
 			r.qi_hits = int(s.qi_hits)
-	var t := tier(o)
+	var t := tier(o) if on(o.g) else 0.0   # 只开 growth/visible_nodes 时没有档位部分
 	var l := lane(o)
+	var vn: float = VisNodesL.extra_shots(o) if VisNodesL.on(o.g) and ranged_ok else 0.0   # 看得见的节点（docs/245）：普通节点的弹数并进同一个累计器
+	if vn > 0.0:
+		r.e_scatter += vn
+		r.e_shots += vn
+		r.t_shots += VisNodesL.kn("shot_mult", 0.5) * vn
 	if t > 0.0 and l == "multi" and ranged_ok:
 		var n: float = kn("multi_shots", 0.6) * t
 		r.e_scatter += n

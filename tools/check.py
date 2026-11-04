@@ -1181,6 +1181,8 @@ SCENE_REGRESSIONS = {
     "summon_seal_blocks": ("召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）", "summon_seal_blocks_test", r"SUMMON SEAL BLOCKS failures=0", ["--balance", "--op=sstest"]),
     "build_progression": ("分支培养 + 培养保底（docs/119 §4.1 / §4.2）：一张培养卡进二选一、返回不重抽、只扣一次升级、节点 5 按路线、赠送推进排队 / 固定路线、换人继承选路线、其余干员兼容", "build_progression_test", r"BUILD PROGRESSION failures=0",
                           ["--balance", "--seed=1", "--op=texas", "--squad=hoshiguma,eyjafjalla"]),
+    "vis_nodes": ("看得见的成长节点 + 精英化时刻（docs/245，开关开）：节点按流派加范围 / 弹数 / 体量、不再加攻击 +6%；精二本人一档 + 全队效果、离队撤销；时刻平衡模式不挡、玩家局定格挡住后放行；偏红颜色调淡", "vis_nodes_test", r"VIS NODES failures=0",
+                  ["--balance", "--seed=1", "--op=texas", "--squad=exusiai,kaltsit", "--bal=growth/visible_nodes=1", "--bal=growth/elite_show=1"]),
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),

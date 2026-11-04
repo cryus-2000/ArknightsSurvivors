@@ -9,6 +9,7 @@ const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
 const Tactics = preload("res://scripts/characters/tactics.gd")   # 战术姿态 v2（command/v2，docs/209 §1）
+const VisNodesS = preload("res://scripts/characters/blocks/vis_nodes.gd")   # 精二全队效果离队撤销（docs/245 §3）
 
 const REGULAR_MAX := 3
 ## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
@@ -167,6 +168,8 @@ func remove(cid: String) -> void:
 			_leave_fx(ops[i])
 			if ops[i].has_method("on_leave"):
 				ops[i].on_leave()
+			if VisNodesS.on(g):
+				VisNodesS.on_leave(g, cid)   # 精二全队效果随人走（docs/245 §3）
 			ops.remove_at(i)
 			break
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
@@ -1324,8 +1327,11 @@ func draw_entities_floor() -> void:
 
 func draw_shadows() -> void:
 	cv.begin()
+	var em_on: bool = g.get("elite_moment") != null and g.elite_moment.on(g)
 	for o in _fx_order():
 		if o.pos != Vector2.INF:
+			if em_on:
+				g.elite_moment.draw_ground(o, cv)   # 精英化常驻脚下光池 + 时刻光柱（docs/245 §2），在影子之前
 			cv.sync()
 			cv.touch()
 			var sk: Vector2 = o.shadow_k()   # 技能换动作组离地（docs/92 安洁莉娜浮空）：缩小变淡；判定仍按地面位置
