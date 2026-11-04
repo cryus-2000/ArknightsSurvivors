@@ -76,6 +76,16 @@ function sweep(p, t, o, C, ACC, ST) {
     for (let a = tail; a <= head; a += 0.12) p.light(Math.cos(a + th) * R * 0.9, Math.sin(a + th) * R * 0.9, C[n - 2], 0.35 * (1 - cool));
     return;
   }
+  // 精一起：刃外一道 2 格钢灰盾缘（盾斧的盾边，形状差；11-05 用户同意精一要看得出来），刀尾 30% 不画，收刀时一起变暗
+  if (el >= 1) {
+    for (let a = tail + (head - tail) * 0.3; a <= head; a += 0.35 / R) {
+      const ca = Math.cos(a + th), sa = Math.sin(a + th);
+      for (let k = 1; k <= 2.5; k += 0.5) {
+        const c = hot ? WHITE : k < 2 ? (sa < 0 ? ST[5] : ST[4]) : ST[2];
+        p.px(Math.round(ca * (R + k)), Math.round(sa * (R + k) * SY - H0), cool > 0.5 ? ST[2] : c);
+      }
+    }
+  }
   // 出手第一帧：盾缘一道径向刃光
   if (hot) {
     const ha = head + th;
@@ -114,6 +124,18 @@ function sweepGround(p, t, o, C, ACC, ST, AM, DU) {
     for (let d = 0; d < wr; d += 1) {
       const rr = R - d;
       p.dot(Math.round(Math.cos(a + th) * rr), Math.round(Math.sin(a + th) * rr * SY), C[0], 0.45 * (1 - cool));
+    }
+  }
+  // 精一起：盾缘落处一下贴地冲击（不规整小圈，0.05–0.25 秒）
+  if (el >= 1) {
+    const ha0 = -+o.span / 2 + +o.span + th, px0 = Math.cos(ha0) * R * 0.95, py0 = Math.sin(ha0) * R * 0.95 * SY, u0 = t - 0.04;
+    if (u0 > 0 && u0 < 0.22) {
+      const rr = 4 + 30 * u0 + 2 * el, m = Math.ceil(rr * TAU);
+      for (let j = 0; j < m; j++) {
+        const a = (j / m) * TAU;
+        if (nz(a * 3.7, o.seed + 521) < 0.3 + u0 * 2) continue;
+        p.px(Math.round(px0 + Math.cos(a) * rr), Math.round(py0 + Math.sin(a) * rr * SY), u0 < 0.07 ? C[6] : C[4]);
+      }
     }
   }
   // 尘：刀头最后落处（弧末端）
@@ -273,15 +295,15 @@ function ring(p, t, o, C, ACC, DU) {
 
 // ---------------------------------------------------------------- S2 荆棘：身边一圈地刺破土（钢灰，刺尖琥珀；精二两圈、更高、刺尖白热转暖金）
 function spikes(o) {
-  const el = +o.el, rows = el >= 2 ? [[20, 9], [34, 12]] : [[24, 10]];
+  const el = +o.el, rows = el >= 2 ? [[24, 5], [42, 7]] : [[30, 7]];   // 11-05 放大：根数减到 7 / 12，半径加大
   const out = [];
   rows.forEach(([rr, N], ri) => {
     for (let i = 0; i < N; i++) {
       const sd = ri * 31 + i;
       const a = TAU * (i + nz(sd * 1.3, o.seed + 801) * 0.6) / N + ri * 0.4;
       const r = rr * (0.85 + 0.3 * nz(sd * 2.1, o.seed + 803));
-      const h = (el >= 2 ? 22 : 16) * (0.55 + 0.6 * nz(sd * 3.3, o.seed + 805)) * (ri === 1 ? 0.85 : 1);
-      out.push({ gx: Math.cos(a) * r, gy: Math.sin(a) * r * +o.SY, h, w: 3 + Math.round(2 * nz(sd * 4.7, o.seed + 807)), lean: Math.cos(a) * 0.35, d: 0.025 * nz(sd * 5.9, o.seed + 809) + ri * 0.04 });
+      const h = (el >= 2 ? 32 : 25) * (0.7 + 0.45 * nz(sd * 3.3, o.seed + 805)) * (ri === 1 ? 0.85 : 1);
+      out.push({ gx: Math.cos(a) * r, gy: Math.sin(a) * r * +o.SY, h, w: 5 + Math.round(2 * nz(sd * 4.7, o.seed + 807)), lean: Math.cos(a) * 0.35, d: 0.025 * nz(sd * 5.9, o.seed + 809) + ri * 0.04 });
     }
   });
   return out.sort((A, B) => A.gy - B.gy);
@@ -562,7 +584,7 @@ export function draw(p, t, o) {
 // 一次出手的几道剑气在游戏里合成一道（S = 横向半宽，按道数 1 / 2 / 3+ 取三档），贴地往前推的一堵矮浪墙：前凸、顶上白唇；
 // 精一更高 + 两侧甩钢屑；精二顶上压一道钢灰盾缘 + 暖金火星。三帧：0 热白 / 1 常态 / 2 碎开散掉（游戏按剑气年龄与剩余寿命挑帧）。
 function qiWave(p, t, o, C, ACC, ST, AM, DU) {
-  const SY = +o.SY, th = +o.dir * D2R, el = +o.el, n = C.length, S = +o.S, H = [7, 9, 10][el];
+  const SY = +o.SY, th = +o.dir * D2R, el = +o.el, n = C.length, S = +o.S, H = [12, 15, 18][el];   // 11-05 用户同意放大：原 7 / 9 / 10，1 倍下读成细弧
   const fx = Math.cos(th), fy = Math.sin(th) * SY, nx = -Math.sin(th), ny = Math.cos(th) * SY;
   const f = Math.min(2, Math.round(t * 15)), brk = f === 2;
   const cols = [];
@@ -574,7 +596,7 @@ function qiWave(p, t, o, C, ACC, ST, AM, DU) {
   }
   cols.sort((A, B) => A.y - B.y);
   for (const c of cols) {
-    for (let d = -3; d <= 0; d++) {   // 墙厚：后面暗两阶 → 前脸
+    for (let d = -4; d <= 0; d++) {   // 墙厚 5 格：后面暗两阶 → 前脸
       const hx = c.x + fx * d, hy = c.y + fy * d, hd = c.h * (1 + d * 0.08);
       for (let z = 0; z <= hd; z += 0.5) {
         const q = z / Math.max(1, hd);
