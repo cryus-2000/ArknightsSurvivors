@@ -1,6 +1,6 @@
 # 冒烟 · ulpianus
 # 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=1 --op=ulpianus --squad=wisadel,gladiia --bot=expert --maxt=90 --relics=all --maxprog --sptest --bosstimes=20,45,70 --forceboss=3 --dccheck
-# 用时 26 秒；结束时全机 Godot 3 个
+# 用时 31 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org

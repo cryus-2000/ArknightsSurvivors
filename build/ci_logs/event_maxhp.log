@@ -5,7 +5,7 @@
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-PANEL GRACE grace=0.80 contact_2s=28.5 hp_left=55.8/101.2
+PANEL GRACE grace=0.80 contact_2s=28.5 hp_left=25.5/101.2
 EVENT MAXHP TEST: 0 failures
 ERROR: 6 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
