@@ -112,10 +112,8 @@ func _input(event: InputEvent) -> void:
 			if event.button_index in PlayKeys.ULT.ult.pad:
 				_ult_hold(event.button_index, event.pressed)
 				return
-			if event.button_index in PlayKeys.ULT.combo.pad:
-				if event.pressed:
-					tap(int(PlayKeys.ULT.combo.keys[0]))
-				return
+			if event.button_index == JOY_BUTTON_Y:
+				return   # 原连携技键（11-05 收回）：对局里没有动作，也不落到下面的旧映射（Ⓨ = Q）
 		elif not _q_hold.is_empty():
 			_q_hold.clear()
 			_key(KEY_Q, false)   # 按住终结技键时离开对局（选卡弹出等）：补一个松开
@@ -130,7 +128,7 @@ func _input(event: InputEvent) -> void:
 			var on: bool = event.axis_value > (0.3 if was else 0.6)
 			_trig[event.axis] = on
 			if on and not was:
-				# 对局里 RT 直接按冲刺（Ⓑ）：RB 在切换队长开着时让给切人
+				# 对局里 RT 直接按冲刺（Ⓑ）：终结技开着时 RB 归终结技（core/play_keys.gd ULT）
 				_press_button(JOY_BUTTON_B if (context == "play" and event.axis == JOY_AXIS_TRIGGER_RIGHT) else TRIGGER_AS[event.axis])
 	elif event is InputEventKey or event is InputEventScreenTouch:
 		_set_using(false)

@@ -804,6 +804,8 @@ func record(marks = null) -> Dictionary:
 	if diag.on:
 		rec["diag"] = diag.report()
 		rec["diag_x"] = diag.extra()
+	if not g.progression.offer_log.is_empty() and (g.progression.solo_bot() or Cfg.dev_args().has("--offerlog")):
+		rec["offers"] = g.progression.offer_log.duplicate()   # 入队邀请（docs/252）：[秒, 来源, 干员, accept|decline]；缺省不写（BALANCE 与改前逐字相同）
 	if g.ult != null:
 		rec["ult"] = g.ult.report()   # 终结技 / 连携 / 连携终结技次数与能量来源（docs/198 原型；ult/on 关时没有这一项）
 	return rec

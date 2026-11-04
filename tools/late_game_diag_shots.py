@@ -47,6 +47,7 @@ def shoot_one(job):
             "--balance", "--nodeath", "--seed=%d" % seed, "--op=" + op, "--maxt=%d" % (TARGETS[-1] + 5),
             "--shots=" + ",".join(str(f) for f in frames()), "--clutterlog", "--shotdir=" + d]
     args += EXTRA
+    os.makedirs(d, exist_ok=True)
     if layer in LOOK_LAYERS:
         args.append("--lookdbg=" + layer)
     elif layer != "full":
@@ -62,8 +63,10 @@ def cmd_shoot(a):
         EXTRA.append("--squad=" + a.squad)
     if a.relics:
         EXTRA.append("--relics=" + a.relics)
+    for kv in (a.bal.split(",") if a.bal else []):
+        EXTRA.append("--bal=" + kv)   # 旋钮覆盖（放置物对照 docs/246：--bal render/placeable_v2=1）
     if a.extra:
-        EXTRA.extend(a.extra.split())   # 透传任意参数（docs/245 配方对照：--extra "--bal=fx/recipe=1"）
+        EXTRA.extend(a.extra.split())   # docs/247：如 "--bal=render/late_read=1"
     TAG = a.tag
     if a.targets:
         TARGETS[:] = [int(x) for x in a.targets.split(",")]
@@ -246,6 +249,8 @@ def main():
     s.add_argument("--tag", default="")
     s.add_argument("--layers", default=",".join(LAYERS))
     s.add_argument("--targets", default="")
+    s.add_argument("--bal", default="", help="逗号分隔的 段/键=值，逐个转成 --bal=（docs/246）")
+    s.add_argument("--extra", default="", help="透传给游戏的额外参数（空格分隔），docs/247 开 / 关对照用")
     b = sp.add_parser("budget")
     b.add_argument("--op", default="logos")
     b.add_argument("--tag", default="_user")

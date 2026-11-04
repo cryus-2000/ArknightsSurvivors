@@ -130,6 +130,8 @@ func weighted_order(cards: Array) -> Array:
 
 ## ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
 func must_recruit(recruit: Array) -> bool:
+	if g.progression.solo_bot():
+		return false   # --bot_solo=1（docs/252）：单人局机器人不进强制招募画面
 	return not recruit.is_empty() and (g.onboard.force_recruit() or (g.level >= Bal.vi("levelup/force_recruit_level_1", 5) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 9) and g.squad.size() < Squad.REGULAR_MAX))
 
 

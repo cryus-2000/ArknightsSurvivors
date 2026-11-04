@@ -193,6 +193,11 @@ func test_real() -> void:
 	line.run.erase("rs")
 	var old: Dictionary = RunStats.model(RunStats.from_log(line, game.RL))
 	ok(bool(old.log) and absf(float(old.total) - float(live.total)) <= float(osum.size()), "对局记录：旧格式（只有 op_stats）还原的全队伤害 ≈ 当场")
+	# 编队输出占比 / 入队文字（11-05：整局只用艾雅法拉，铜印 / 事件招募进过队的人都写 0%）
+	ok(RunStats.pct_label({"dmg": 0.0, "pct": 0}) == "—" and RunStats.pct_label({"dmg": 3.0, "pct": 0}) == "<1%" and RunStats.pct_label({"dmg": 50.0, "pct": 37}) == "37%", "占比文字：0 伤害「—」、不到 1%「<1%」、其余整数")
+	ok(RunStats.join_label({"key": "x", "join_t": 0.5, "left_t": -1.0}) == "" and RunStats.join_label({"key": "x", "join_t": 125.0, "left_t": -1.0}) == "2:05 入队"
+		and RunStats.join_label({"key": "x", "join_t": 125.0, "left_t": 610.0}) == "2:05 入队 · 10:10 离队" and RunStats.join_label({"key": "x", "join_t": 125.0, "left_t": 610.0}, false) == "2:05 入队",
+		"入队文字：开局空、中途「m:ss 入队」、离过队接「· m:ss 离队」、放不下只写入队")
 	# 胜局记录（11-05 bug 排查）：胜利演出里写盘时 state 还没到 WIN，rs.result 曾恒为 dead、带击倒者；对局记录点开胜局显示「探索终止」
 	game.victory.recorded = true
 	var wraw: Dictionary = RunStats.snapshot(game)

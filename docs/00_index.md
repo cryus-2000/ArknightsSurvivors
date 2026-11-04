@@ -1,5 +1,7 @@
 # 00 · 文档索引
 
+- [gem_v2_1105](gem_v2_1105.md)：进行中；结晶四档改色与独立合并上限候选，默认关闭，含验收入口；任务单 codex_tasks_1105。
+
 > 2026-10-14 整理（用户：「docs 也需要进行进一步的整理」）。每篇一行：编号、标题、状态、一句话说明、被谁引用。
 > 状态：**现行规范**（现在仍要遵守）／**已实施记录**（已落地，留作记录或参考；代码注释可能还按节引用）／**进行中**（未全部实施或仍在追加）／**作废**。
 > 「被谁引用」是 2026-10-14 扫描 docs/、AGENTS.md、CLAUDE.md、game/、tools/、art/ 的结果：数字是 docs 编号，其后是代码 / 数据文件。
@@ -22,6 +24,9 @@
 同一件事两篇文档说法不同时，先看下面各行「说明」里写的「以 xx 为准」；还没定的冲突由协调人裁定（2026-10-14 冲突表已交协调人）。
 
 ## 规范（所有会话遵守）
+
+- [244_elite_mark_v2](244_elite_mark_v2.md)：审阅中；默认关闭的精英白标记、小队沉珊瑚红三角和物种色呼吸光点；来源：11-05 Codex任务单3。
+- [普通怪预警收细](warn_v2_1105.md)：进行中；`render/warn_v2` 默认关，普通怪细边与最后 0.3 秒信号，精英/Boss 保持原画法；截图与云端验收说明。
 
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
@@ -145,9 +150,17 @@
 | [220_wisadel_fx_calm](220_wisadel_fx_calm.md) | 维什戴尔收特效 11-01 | 已做，待用户看对照 | 齐射只留一团主爆炸、去二次闪光 / 内环、亮度封顶、队友降一档、同屏上限；fx/wd_calm=0 一键回退；后期每秒特效 124 → 57 | 137 §8；seg_wisadel、tools/wisadel_calm_rec.py |
 | [221_late_game_readability_1102](221_late_game_readability_1102.md) | 后期实战画面巡检 11-02 | 清单 + 推荐，待用户批 | 7–10 分钟、4 人满编、Boss + 终结技 + 连携 + 羁绊同框；电脑 / 手机横屏 / 竖屏实录，分层量测（友方占屏、敌弹被友方改色 14–38%、队长周围被盖、界面占屏 11% / 15%）；11 条：敌方层挪顶层、队长剪影、全屏演出排队、左列分槽、羁绊常驻小图标、手机编队卡收起；不降队友特效 | 139 §10–11、130、217 §4、220；Claude outputs/late_audit_1102 |
 | [226_late_render_layers](226_late_render_layers.md) | 后期渲染层三件 11-02 | 已做，待用户看对照 | 敌弹 / 预警挪到友方特效之上（g.wcv 画布切换，新绘制写 g.wcv.draw_*）、队长被盖时画剪影、全队装饰粒子峰值上限 160；改色 4.4% → 3.4%（修正后量法，221 原量法多为噪点） | 221；render/world.gd draw_top、tools/late_render_measure.py |
+| [246_placeables_redraw_1105](246_placeables_redraw_1105.md) | 支援放置物重画 11-05 | 已做，11-05 用户定缺省开、防暴桩橙（placeable_v2 = 1、stake_pal = 1） | 地雷 / 轰隆隆 / 防暴桩按原作装置造型运行时逐像素画（render/placeable_v2），画在敌人之上、冷白描边、呼吸亮点、四段爆炸 + 地面点光；TRACE 开关都逐行一致；轰隆隆伤害来源与地雷拆开 | render/placeable_draw.gd、relic_fx.gd |
 | [243_late_game_diag_1105](243_late_game_diag_1105.md) | 后期攻击不显眼 / 依赖终结技清屏诊断 11-05 | 诊断报告，待用户拍板 | 80 局分桶遥测（--diagbins）+ 分层截图：攻击小 / 碎 / 不随成长长大，受伤红边常亮，终结技按怪血曲线定档；召唤物与放置物、色彩与层级预算、预警、终结技频率；改法 V1–V10 / S1–S5 / P1–P4 | 221、226、242、198；run/diag_bins.gd、tools/late_game_diag*.py |
 | [245_fx_recipe_pilot_1105](245_fx_recipe_pilot_1105.md) | 运行时攻击特效配方 · 逻各斯 / 推进之王试点 11-05 | 试点第二轮（§5 原作改编），待用户看三档图与录像 | §5：主形改按原作轮廓与配色运行时像素化重建（墨羽 / 咒文 / 碎芒 / 咒域；旋光 / 熔岩裂网 / 锤徽），E1 每招一处形状差、E2 原作高阶意象，素材 docs/assets/fx_canon/；开关 fx/recipe（缺省关）：运行时实心硬边主形 + Noita 式大颗粒 + 照地光（盏数 / 强度上限），核心 / 装饰两层；每干员一份 data/fx_recipes/*.json，E1 放大加厚多一拍、E2 质变 + 点缀色；同种子开关 TRACE 逐行一致，开关对照、分层量测、三档并排、20 秒录像 | 243、242；render/fx_recipe.gd、data/fx_recipes/、tools/fx_recipe_compare.py、tools/fx_canon_shots.py、tools/fx_canon_rec.py |
 | [246_pxplane_skadi_1105](246_pxplane_skadi_1105.md) | pixelfx「转平面」试验 · 斯卡蒂 11-05 | 待用户看三栏对比 | 开关 fx/px_plane（缺省关；1 转平面 / 2 旧做法原样贴）：贴地层压扁 + 立起层按 y 排序、1 像素 = 1 美术像素整数放大、色层吃场景光 + 热芯 emit + 照地光、Noita 水滴；统一 15 fps 动画时钟；斩击改月牙刀痕 + 白刃线 + 命中斩痕；同种子 TRACE 逐行一致 | 245、242；render/fx_pxplane.gd、tools/pixelfx_fx/water/ak-skadi-pp.js、tools/pxplane_bake.py、tools/pxplane_shots.py |
+| [247_late_read_b1](247_late_read_b1.md) | 后期可读性第一批（只改画面）11-05 | 已做，开关缺省关，待用户看对照 | render/late_read：V1 受伤红边按 1 秒承伤、S1 小队描边 + 脚底光、S2 站在预警里的干员画到预警之上、S3 地雷 / 轰隆隆 / 地面池尺寸下限 + 描边呼吸、V3 降噪只压装饰层、V7 普通怪半混白、V5 主形随精英化放大；S5 轰隆隆拆出伤害来源；同 seed TRACE 开 / 关一致；整帧红主要来自黑潮色调（未改） | 243、226、221；render/late_read.gd、tools/late_read_ab.py、tools/late_read_compare.py |
+| [248_late_power_ab](248_late_power_ab.md) | 后期打得动：形状随成长 + 形状卡 数值原型与 A/B 11-05 | 原型（开关 growth/late_shape 缺省 0），P3 已追加、P3 版胜率未跑 | 精一 / 精二 / Lv14 / Lv20 门槛按「近战 / 多弹 / 召唤 / 控场」四条流派加范围、剑气、多射、穿透（shape_lv 表 + 例外表）；协同·广回池，新卡扩散 / 连锁；诊断 80 对 + 胜率 4 × 84 局：终结技击杀 14 → 11%（潮位 0）/ 19 → 16%（潮位 10），补偿后 m0 63%（超窗 8）/ m18 68%；P3 建议做、P4 暂缓 | 243、201、216；blocks/late_shape.gd、tools/late_power_ab.py |
+| [249_elite_moment](249_elite_moment.md) | 成长看得见：精英化时刻 + 看得见的节点 11-05 | 原型，两开关缺省关，待用户拍板 | growth/elite_show 定格 + 横幅 + 爆亮 + 常驻脚下光池；growth/visible_nodes 节点按流派换范围 / 弹数 / 体量、精二本人一档 + 每人一条全队效果、怪物生命 ×1.08 补偿；云端配对 m0 52.4 / m18 67.9；后期终结技占比不变 | 243、244、91、76；blocks/vis_nodes.gd、run/elite_moment.gd、tools/elite_moment_shots.py |
+| [250_ult_rebalance_ab](250_ult_rebalance_ab.md) | 终结技重新定位 A/B 11-05 | 原型 + A/B 报告，待用户拍板 | 开关 ult/rework（缺省 0）：降频 / 精英与中期 Boss 单次上限 / 清一圈留余烬；诊断 80 局 × 4 组 + 胜率 84 局 × 3 组 × 2 档；推荐与 growth/late_shape 一起开（m0 52.4% / m18 71.4%） | 243、244、199；run/ult.gd、run/diag_bins.gd、tools/ult_rework_ab.py |
+| [251_late_read_b2_1105](251_late_read_b2_1105.md) | 后期可读性第二批 11-05（V4 / V9 / V10） | 已做，三个开关缺省关；录像、额外 TRACE 用例、最终快检未做 | render/light_share 照地光我方保底份额 + 伤害档排序 + 命中照地；render/ground_ring_edge 地面光环只画边 + 呼吸（8:00 光环占屏 16.5% → 1.8%）；render/crowd_env_dim 怪群密集时压暗地面 / 溟痕 / 环境颗粒；TRACE 开关逐行一致；附：云端截图须带 --quality=high，否则光学观感整层关 | render/late_read2.gd、render/optical.gd、render/world.gd、render/vfx.gd、world/map.gd、relic_fx.gd |
+| [252_solo_carry_1105](252_solo_carry_1105.md) | 单 C：自动招募可婉拒 + 单人局胜率小样 11-05 | 已做（婉拒）；补偿开关 squad/solo_buff 缺省 0、A/B 待跑 | 铜印 / 银印 / 立即招募事件改「接受入队 / 婉拒」二选一（机器人同帧接受，TRACE 逐行一致）；--bot_solo=1 单人局机器人；normal 160 局两组胜率均 0、单人早倒 35 秒，高手小样 3/5 vs 0/5；强制招募画面无法婉拒待用户定 | run/progression.gd、relic_fx.gd、endings.gd、tools/solo_carry_batch.py |
+| [253_late_game_research](253_late_game_research.md) | 同类游戏后期画面可读性调研 11-04 | 调研 + 方案，待用户挑 | 11 款同类 + Riot / GDC：角色可见、敌我分色、特效设置、掉落物、成长加码、出处（只核到搜索摘要）；8 个全局方案：红色只留给威胁、结晶退出暖金、地面区域只画边、拥挤时压暗怪群、小队光池、出手短命光源、威胁高亮开关、特效强度设置；推荐三批顺序 | 221、226、139、242 §11–12 |
 | [224_fly_up_audit_1102](224_fly_up_audit_1102.md) | 「突然向上飞走」排查 11-02 | 4 条已换就地解散，9 条保留待用户定 | 部署撤回 / 掉队归位 / 换人被换下 / 骑士离队改为光圈收拢 + 像素碎散淡出（瞬回的再淡入）；squad/deploy_exit 2 = 跑回、0 = 旧；招募从天而降、拾取吸附、飘字等保留列表 | 219、209；squad._leave_fx、allies/knight.gd |
 | [222_hud_redesign_1102](222_hud_redesign_1102.md) | 局内 HUD 重新设计方向稿 11-02 | 方向稿第三轮，待用户确认 ② 水月深海精进版 | 用户「加了指挥模式和倍速后界面乱」：现状 13 块盘点（队友生命三份、右下三行、右上藏品栏）；三个方向 A 四角收拢（推荐）/ B 底部指挥台 / C 终端侧栏，电脑 + 手机效果稿；开局指南卡统一成炭灰面板 + 青条 + 节点标签条 + 菱形步骤点；§5 第二轮在 A 布局上做三套视觉处理（PRTS 终端 / 水月深海 / 强图形）；§6 第三轮按用户选择精进 ②：磨砂玻璃 + 液面槽 + 泡，编队卡用 @2x 待机帧 | 37、219、221；Claude outputs/hud_redesign_1102、tools/probes/hud_mock_1102.py |
 | [201_final_boss_weak_diag](201_final_boss_weak_diag.md) | 最终 Boss「太弱」诊断与加伤 | 记录 | 10-29：最终 Boss 加伤血量不动；弹速 / 弹数 / 节奏旋钮；伊祖米克连携调度改版（izumik-sched） | 170、142b、bosses/*.gd |

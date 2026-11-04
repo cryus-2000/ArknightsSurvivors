@@ -1,6 +1,6 @@
 # core
 # 参数：--headless --path /home/user/ArknightsSurvivors/game -s res://tests/test_core.gd
-# 用时 7 秒；结束时全机 Godot 3 个
+# 用时 5 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
@@ -2565,4 +2565,8 @@ ERROR: 干员 skalter 的 blocks.skills[0].fx[0].play 要配 ease（只用于扩
        [3] validate_operator (res://scripts/characters/character.gd:141)
        [4] test_blocks_e5 (res://tests/test_core.gd:1372)
        [5] _init (res://tests/test_core.gd:49)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
 

@@ -1121,7 +1121,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 		y += rs
 	if sks.size() > op_skill and m.rows[2] >= 1.0:
 		var sk: Dictionary = sks[op_skill]
-		var txt: String = ((Pad.hint("队长按 Q 释放；", "队长按 Ⓐ 释放；", "队长点技能键释放；") + "作为队友自动。") if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
+		var txt: String = ((Pad.hint("队长按 Q 释放；", "队长按 Ⓐ 释放；", "队长点技能键释放；") + "作为队友自动。") if sk.get("mode", "auto") == "manual" and Bal.vi("ult/on", 1) <= 0 else "") + str(sk.get("desc", ""))
 		var urows := _op_ult_rows(d)
 		var ures: float = urows.size() * (20.0 if ph else 24.0)
 		var room := (box.end.y - y - ures) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0) - ures)
@@ -1164,7 +1164,7 @@ var _ult_txt := {}
 
 func _op_skill_row(ci: CanvasItem, r: Rect2, od: Dictionary, i: int, compact: bool, a: float) -> void:
 	var sk: Dictionary = od.def.skills[i]
-	var manual: bool = sk.get("mode", "auto") == "manual"
+	var manual: bool = sk.get("mode", "auto") == "manual" and Bal.vi("ult/on", 1) <= 0   # 终结技开着时手动技能按自动放，不标「手动 Q」
 	var sel := i == op_skill
 	var h := r.size.y
 	UI.bpanel(ci, r, false, sel, a, UI.VIOLET)

@@ -52,6 +52,8 @@ const PLAYER := {
 	&"op_skill_sp": {"base": 1.0, "min": 0.1, "name": "干员技力回复倍率"},
 	&"op_skill_power": {"base": 1.0, "min": 0.0, "name": "干员技能强度倍率"},
 	&"op_shots": {"base": 1.0, "min": 1.0, "name": "干员每次射击子弹数倍率（弹道普攻 shape.projectile 读：子弹数 = shots × 本值，add +1.0 = 单发干员多 1 发；能天使 docs/61 §14）"},
+	&"op_splash": {"base": 0.0, "min": 0.0, "name": "普攻命中溅射伤害比例（升级卡「扩散」，late_shape.on_hit 读；docs/248）"},
+	&"op_chain": {"base": 0.0, "min": 0.0, "name": "普攻命中弹射次数（升级卡「连锁」，late_shape.on_hit 读；docs/248）"},
 	&"op_pierce": {"base": 0.0, "min": 0.0, "name": "干员远程普攻直线子弹的额外穿透数（flat 加；升级卡「贯穿」+1 / 次，character.atk_pierce 读；10-23）"},
 	# ---- 兼容：旧援护系统的键（藏品数据仍引用；现在等价于全队干员修正）
 	&"ally_cap": {"base": 3.0, "min": 0.0, "max": 5.0, "name": "编队上限（旧键）"},

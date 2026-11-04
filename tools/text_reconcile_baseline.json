@@ -1,6 +1,9 @@
 {
 "_doc": "tools/text_reconcile.py 的已知待核清单（类别|条目|数字）：文字里的数字当前解释不了。逐条核实后改文字 / 补参数，再 --update-baseline 删掉。",
 "known": [
+"升级卡|passive#chain|170",
+"升级卡|passive#chain|50",
+"升级卡|passive#splash|60",
 "局外认知塑造|meta#atk5|15",
 "局外认知塑造|meta#def4|5",
 "局外认知塑造|meta#disp4|3",

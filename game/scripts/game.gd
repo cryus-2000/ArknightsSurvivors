@@ -42,6 +42,7 @@ const Roster = preload("res://scripts/core/roster.gd")
 const Meta = preload("res://scripts/core/meta.gd")
 const StatsScreen = preload("res://scripts/screens/stats_panel.gd")
 const EliteShowScreen = preload("res://scripts/screens/elite_show.gd")
+const EliteMoment = preload("res://scripts/run/elite_moment.gd")   # 精英化时刻演出（docs/249 §2，growth/elite_show）
 const IntroScreen = preload("res://scripts/screens/intro.gd")
 const BossIntro = preload("res://scripts/screens/boss_intro.gd")
 const Vfx = preload("res://scripts/render/vfx.gd")
@@ -77,6 +78,7 @@ const HIT_BASE := {
 	"法术援护": {"emitter": "support", "origin": "support", "range": "远程", "kind": "法术", "tags": ["projectile", "area"]},
 	"藏品": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["dot"]},
 	"地雷": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "物理", "tags": ["area", "detonation"]},
+	"轰隆隆": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "物理", "tags": ["area", "detonation"]},   # 支援轰隆隆（211）自爆；11-05 前与地雷共用「地雷」
 	"真实": {"emitter": "operator", "origin": "relic", "range": "近战", "kind": "真实", "tags": ["execute"]},
 	"岁怒": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area"]},
 	"净尘": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area", "dot"]},
@@ -124,6 +126,7 @@ var onboard = preload("res://scripts/screens/onboard.gd").new(self)   # 新手�
 var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
 var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
+var elite_moment = EliteMoment.new(self)   # 精英化时刻：定格 + 横幅 + 爆亮 + 常驻脚下光池（docs/249 §2；开关关时不入队，什么都不做）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
 var settlement = preload("res://scripts/screens/settlement_screen.gd").new(self)
 var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
@@ -386,6 +389,7 @@ var hud: Control
 var panel: Control
 var panel_box: HBoxContainer
 var panel_col: VBoxContainer   # 事件选项条（C 版式）的竖排容器
+var panel_scroll: ScrollContainer   # 套在 panel_col 外的竖向滚动区（选项放不下时滚，choice_panel）
 var panel_fg: Control          # 标题、商人立绘、事件插画画在这层（压暗带之上、卡片之下）
 var panel_tip: Control         # 面板最上层：截断说明的完整提示
 var font: Font
@@ -1507,10 +1511,14 @@ func _process(delta: float) -> void:
 	_mem_guard(delta)
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
+	if EliteMoment.on(self):
+		elite_moment.tick(delta)   # 精英化时刻：真实时间（docs/249 §2）
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
+	elif state == S.PLAY and EliteMoment.on(self) and elite_moment.freezing():
+		pass   # 精英化时刻定格（只在玩家局，docs/249 §2）：模拟不走，画面照画
 	elif state == S.PLAY:
 		if (mode != Mode.PLAY and not playclock_test) or demo_op != "":
 			_update(dt)
@@ -1777,10 +1785,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_dash()
 		get_viewport().set_input_as_handled()
 		return
-	# 终结技 Q / 连携技 E（docs/198 §2.4，ult/on）：取代下面的手动技能路由
+	# 终结技 Q（docs/198 §2.4，ult/on）：取代下面的手动技能路由。连携全自动，E 不再有绑定（11-05 收回）
 	var act: String = PlayKeys.action_of(k, true) if ult != null else ""
-	if (act == "ult" or act == "combo") and state == S.PLAY:
-		if (ult.press_q() if act == "ult" else ult.press_e()):
+	if act == "ult" and state == S.PLAY:
+		if ult.press_q():
 			get_viewport().set_input_as_handled()
 		return
 	# 手动技能（ult/on = 0 的旧路由）：Q / E / J（手柄 Ⓐ / Ⓨ 注入 Q，Ⓧ 注入 J）。终结技开着时 J / Ⓧ 不再有动作（10-31 取消攻击键）
@@ -2162,8 +2170,12 @@ func check_pending() -> void:
 		return
 	if ult != null and ult.playing():
 		return   # 终结技播放中：升级 / 宝箱三选一、精英化演出、路线选择都等播完再弹（计数照攒，播完逐个按原顺序弹）
+	if EliteMoment.on(self) and elite_moment.pending():
+		return   # 精英化时刻定格中（只在玩家局）：全屏演出、路线、宝箱、升级都等定格结束再弹（docs/249 §2）
 	if not show_queue.is_empty():
 		show_screen.open(show_queue.pop_front())
+		return
+	if progression.open_offer_queued():   # 入队邀请（铜印 / 银印 / 立即招募事件）：接受入队 / 婉拒二选一（docs/252）
 		return
 	if progression.open_branch_queued():   # 赠送推进（典训 / 博士银印）碰到分支节点：先选路线（docs/119 §4.1）
 		return

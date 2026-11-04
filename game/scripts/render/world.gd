@@ -14,7 +14,9 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Fxr = preload("res://scripts/render/fx_recipe.gd")
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246）   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247，render/late_read）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # 后期可读性第二批（docs/251：light_share / ground_ring_edge / crowd_env_dim）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
@@ -59,6 +61,8 @@ var anim_t := 0.0
 ## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45；render/declutter 的 dim_floor）
+var deco_dim := 1.0               # 装饰层（火花 / 碎片 / 光点 / 拖尾）的降噪系数；late_read V3 关时 = fx_dim（docs/247）
+var lr_v3 := false                # 本帧 late_read V3 生效（降噪只压装饰层）
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
@@ -88,13 +92,17 @@ var _dbg_warn: bool = Dc.dbg("nowarn")
 var _dbg_tell: bool = Dc.dbg("notell")
 var _dbg_foefx: bool = Dc.dbg("nofoefx")
 var _dbg_shock: bool = Dc.dbg("noshock")
-var _dbg_aura: bool = Dc.dbg("noaura")
+var _dbg_aura: bool = Dc.dbg("noaura") or Dc.dbg("noring")   # noring（docs/251 V9 量测）= 巢穴光环 + 灯标 / 灯柱 / 遥乡 / 旗帜地圈
 var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
 var _gc_sink = null   # GroundCrack.TbSink（_init 里建）
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
+## docs/251 V10（render/crowd_env_dim，缺省 0 = 关）：怪群密集时环境（地面 / 溟痕 / 环境颗粒）压暗的系数，1 = 不压。
+## env_crowd 同 ecrowd 的口径（活着的敌人数，平滑同速），起止点单设 crowd_env_from / crowd_env_span；开关关时恒 1
+var env_crowd := 0.0
+var env_dim := 1.0
 ## 精英冷色描边（界面与美术 10-15，协调人「精英冷色标识在局内暗处的可读性」）：Codex 10-14 把四只精英的帧条亮边改回冷色后，
 ## 照亮圈外（灯火 2）只看帧条分不出精英和普通怪（截图 build/shots/elite_rim/），全靠 HUD 头顶 ▼。这里只给精英画一圈
 ## 颜色 > 1 的冷青描边（抵消环境暗色，同 Boss 轮廓光的做法），不受「Boss 轮廓光」开关影响；普通怪仍不画（docs/50 §12 A）。
@@ -106,6 +114,7 @@ const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
 ## 原 (2.6, 0.45, 0.45) 过曲线后发粉，压低绿蓝通道成正红（10-26 第二次反馈）；身体本色不调
 const SQUAD_RIM_COL := Color(2.4, 0.16, 0.12, 0.95)
 var elite_rim := 0.0
+var elite_mark_v2 := false
 var elite_rim_col := Color(0, 0, 0, 0)
 var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
 static var _atlas_cache := {}      # 上一次拼好的图集（键：帧条名单 + 镜像 / 法线开关；贴图 instance id 也须相同）
@@ -118,6 +127,7 @@ const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
+const DECO_KINDS := {"spark": true, "shard": true, "mote": true, "ember": true, "trail": true}   # docs/247 V3：降噪只压这些装饰件
 const FOE_KINDS := ["boss_phase", "boss_down", "spear_fly", "frost_track", "frost_step", "reflow", "glint", "drain"]   # 没打 enemy 标记的敌方 / Boss 特效（量测分层用）
 const AMB_KINDS := ["mote", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane"}
@@ -177,7 +187,7 @@ func update_visuals(dt: float) -> void:
 	g.cam.position = ccen.round() if cround == 1.0 else ((ccen / Game.PX).round() * Game.PX if cround >= 2.0 else ccen)
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
-	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * 1.5)
+	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * (LateRead.k("v1_decay", 2.5) if LateRead.on("v1") else 1.5))   # docs/247 V1：红边只在大伤害时亮，退得快一点
 	g.hurt_duck = move_toward(g.hurt_duck, 0.0, rd)
 	g.red_flash = move_toward(g.red_flash, 0.0, rd * 2.0)
 	g.hp_shake = move_toward(g.hp_shake, 0.0, rd)
@@ -256,6 +266,7 @@ func update_visuals(dt: float) -> void:
 			ne += 1
 	var ewant: float = 0.0 if g.demo_op != "" else clampf((ne - 90.0) / 120.0, 0.0, 1.0)
 	ecrowd = move_toward(ecrowd, ewant, rd * 0.8)
+	_env_dim_step(ne, rd)
 	# 后期降噪预设（render/declutter，render/declutter.gd）：敌人多也算拥挤（crowd_mix，缺省 0 = 只看特效数）
 	dcrowd = maxf(crowd, ecrowd * Dc.p("crowd_mix"))
 	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
@@ -274,8 +285,19 @@ func update_visuals(dt: float) -> void:
 	if mate_on:
 		mate_dim = minf(mate_dim, Bal.v("render/mate_fx", 0.55))
 		mate_desat = Bal.v("render/mate_desat", 0.35)
+	# 后期可读性 V3（docs/247，render/late_read）：降噪只压装饰层。deco_dim 留原来的降噪系数给火花 / 碎片 / 光点 / 拖尾，
+	# fx_dim（干员脚本、核心帧条读的那个）恒为 1，队友 / 队长的整体透明度系数也不再压
+	lr_v3 = LateRead.on("v3")
+	if lr_v3:
+		deco_dim = fx_dim
+		fx_dim = 1.0
+		mate_dim = 1.0
+		lead_dim = 1.0
+	else:
+		deco_dim = fx_dim
 	if _dbg_friend:
 		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
+		deco_dim = 0.0
 	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
 	flash_a = lerpf(0.9, Dc.p("flash_a"), ecrowd)
 	_lamp_rim = (Bal.v("render/rim", 0.0) > 0.0 or g.optical_on) and g.get("actor_mat") != null
@@ -288,14 +310,30 @@ func update_visuals(dt: float) -> void:
 	var fg: float = Bal.v("fx/flash_group", 6.0)
 	if nfl > fg:
 		flash_a *= maxf(Bal.v("fx/flash_group_floor", 0.35), fg / float(nfl))
+	if LateRead.on("v7"):
+		flash_a = minf(flash_a, LateRead.k("v7_a", 0.5))   # docs/247 V7：普通怪受击最多 50% 混白（不再整只刷白），精英 / Boss 不走 flash_a，照旧整只闪
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	elite_rim = clampf(Bal.v("render/elite_rim", 0.55), 0.0, 1.0)
+	elite_mark_v2 = Bal.v("render/elite_mark_v2", 0.0) > 0.0
 	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
 	elite_rim_col = Color(ELITE_RIM_RGB.r * rg, ELITE_RIM_RGB.g * rg, ELITE_RIM_RGB.b * rg, elite_rim)
-	g.fx_add.modulate.a = 0.0 if _dbg_friend else lerpf(1.0, Dc.p("add_floor"), dcrowd)
+	g.fx_add.modulate.a = 0.0 if _dbg_friend else (1.0 if lr_v3 else lerpf(1.0, Dc.p("add_floor"), dcrowd))   # V3：加色层是干员核心光，不压
 	if g.post != null and "crowd" in g.post:
 		g.post.crowd = dcrowd
-		g.post.bloom_cut = Dc.p("bloom_cut")
+		g.post.bloom_cut = Dc.p("bloom_cut") * (LateRead.k("v3_bloom", 0.0) if lr_v3 else 1.0)   # V3：全屏辉光分不出层，拥挤削减改由装饰层自己变淡承担
+
+
+## docs/251 V10：怪群密集时压暗环境。系数 = 1 − crowd_env_k（缺省 0.18）× env_crowd，env_crowd 按活敌数 crowd_env_from → +crowd_env_span 线性到 1、
+## 平滑同 ecrowd；只给地面（draw_world 地面之后一层黑纱）、溟痕本体（map.draw_mire）、环境颗粒（光学孢子 / 溟痕光尘 / 浮游雪）用。
+## 我方特效、小队、敌人、敌弹、预警、掉落都在黑纱之上或不读它。图鉴演示不压。只读状态
+func _env_dim_step(ne: int, rd: float) -> void:
+	if not LateRead2.on("crowd_env_dim") or g.demo_op != "":
+		env_crowd = 0.0
+		env_dim = 1.0
+		return
+	var w: float = clampf((float(ne) - LateRead2.k("crowd_env_from", 20.0)) / maxf(1.0, LateRead2.k("crowd_env_span", 50.0)), 0.0, 1.0)
+	env_crowd = move_toward(env_crowd, w, rd * 0.8)
+	env_dim = 1.0 - clampf(LateRead2.k("crowd_env_k", 0.18), 0.0, 0.5) * env_crowd
 
 
 ## 表现事件步骤（docs/101 B3，10-15）：game._process 末尾每帧调一次（有头时在本帧绘制之前），无头批跑也照常走。
@@ -416,6 +454,8 @@ func draw_world() -> void:
 		if gv > 0.002:
 			var gm: Color = g.map.ground_mean()
 			g.wcv.draw_rect(view_rect(8.0), Color(gm.r, gm.g, gm.b, gv))
+		if env_dim < 0.999:
+			g.wcv.draw_rect(view_rect(8.0), Color(0.0, 0.0, 0.0, 1.0 - env_dim))   # docs/251 V10：地面 / 地形道具压暗（终结技地面层、干员地面特效、溟痕之后的一切都在这层之上）
 	if g.ult != null:
 		g.ult.draw_world_back(self)   # 终结技地面层帧条（刀痕残痕 / 领域 / 裂纹 / 海嗣水纹）
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
@@ -433,12 +473,16 @@ func draw_world() -> void:
 	_pk("gems")
 	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
 	_build_vis(evr)
+	_draw_squad_pools()
 	_draw_shadows(evr)
 	_pk("shadows")
 	_draw_sorted_entities(evr)
 	_pk("sorted_entities")
+	if not _dbg_friend:
+		g.rfx.draw_upper()   # 放置物第二版（render/placeable_v2，docs/246）：地雷 / 轰隆隆 / 防暴桩本体与爆炸画在敌人之上
 	_draw_overlays_shield_drones()
 	_pk("shield_drones")
+	_draw_placed_top()
 	_draw_bullets()
 	_pk("bullets")
 	_draw_fx()
@@ -595,6 +639,7 @@ func draw_top() -> void:
 	_pk("")
 	_draw_warn_fills()
 	_pk("ft_fills")
+	_draw_squad_over_warns()
 	_draw_leader_sil()
 	_pk("ft_sil")
 	_draw_foe_upper()
@@ -647,6 +692,8 @@ func _draw_leader_sil() -> void:
 		return
 	if Engine.get_process_frames() % 3 == 0:
 		_sil_score = _leader_cover()   # 每 3 帧算一次覆盖分（渐显本身有 0.15 秒缓冲）
+		if LateRead.mode("s2", 2.0) == 1.0 and _in_warn(o.pos):
+			_sil_score = maxf(_sil_score, Bal.v("render/lead_sil_s1", 10.0))   # docs/247 S2 方案 1：被敌方预警盖住也画剪影
 	var s0: float = Bal.v("render/lead_sil_s0", 4.0)
 	var s1: float = Bal.v("render/lead_sil_s1", 10.0)
 	var want: float = clampf((_sil_score - s0) / maxf(0.01, s1 - s0), 0.0, 1.0)
@@ -665,6 +712,84 @@ func _draw_leader_sil() -> void:
 	for d in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2)]:
 		draw_sprite_at(p + d, st.flip, ec, st.frame, wt, st.hf, fo)
 	draw_sprite_at(p, st.flip, g.sprite.modulate, st.frame, st.tex, st.hf, fo)
+
+
+## docs/247 S2：点 p（脚底）是否落在一个还没结算的敌方预警里（圆 / 扇形 / 直线，含 Boss 招式；判定同 classify_tells，余量 12）
+func _in_warn(p: Vector2) -> bool:
+	var gy: float = ground_y()
+	var lr := 12.0
+	for w in g.warns:
+		if w.done or int(w.get("style", 1)) == 0:
+			continue
+		match str(w.get("shape", "")):
+			"cone":
+				var d: Vector2 = p - w.pos
+				var dist: float = d.length()
+				if dist <= float(w.r) + lr and (dist <= lr or absf(angle_difference(d.angle(), float(w.ang))) <= float(w.half) + asin(minf(1.0, lr / dist))):
+					return true
+			"line":
+				var b2: Vector2 = w.pos + Vector2.from_angle(float(w.ang)) * float(w.len)
+				if p.distance_to(Geometry2D.get_closest_point_to_segment(p, w.pos, b2)) < float(w.wid) + lr:
+					return true
+			"circle":
+				var dc: Vector2 = p - w.pos
+				if Vector2(dc.x, dc.y / maxf(gy, 0.01)).length() < float(w.r) + lr:
+					return true
+	return false
+
+
+## docs/247 S2 方案 2（render/late_read_s2 = 2，缺省）：站在敌方预警里的干员，在敌方顶层的预警填充之后、敌弹与预警轮廓之前再画一遍本体
+## 预警填充不再罩住人；敌弹、预警轮廓照样压在最上面。只画不改状态
+func _draw_squad_over_warns() -> void:
+	if LateRead.mode("s2", 2.0) != 2.0 or g.squad == null or g.state == g.S.DEAD or g.warns.is_empty():
+		return
+	for o in g.squad.ops:
+		if o.pos == Vector2.INF or o.cmd_down > 0.0 or o.arriving() or not _in_warn(o.pos):
+			continue
+		o.draw_body()
+		o._cv_flush()
+
+
+## docs/247 S1：脚底光池（地面层，影子之前）：队长一圈暖白光照地，队员小一号、淡一半。三阶硬边（同 optical_steps 防油腻），
+## 只往下照地、不往外扩光环；颜色暖白偏琥珀，避开结晶暖金（更白、更淡）
+func _draw_squad_pools() -> void:
+	if not LateRead.on("s1") or g.squad == null or g.state == g.S.DEAD:
+		return
+	var pc := Color(1.0, 0.9, 0.74)
+	var a0: float = LateRead.k("s1_pool_a", 0.13)
+	for o in g.squad.ops:
+		if o.pos == Vector2.INF or o.cmd_down > 0.0 or (o.arriving() and o.arrive_t < o.ARRIVE_WAIT):
+			continue
+		var r: float = LateRead.k("s1_pool_r", 40.0) * (1.0 if o.is_leader else 0.65)
+		var a: float = a0 * (1.0 if o.is_leader else 0.5)
+		var c: Vector2 = ((o.pos + Vector2(0, 2)) / 2.0).round() * 2.0
+		g.wcv.draw_set_transform(c, 0.0, Vector2(1.0, 0.5))
+		for q in 3:
+			var k: float = 1.0 - float(q) / 3.0
+			g.wcv.draw_circle(Vector2.ZERO, r * k, Color(pc.r, pc.g, pc.b, a * (0.55 + 0.45 * float(q) / 2.0)))
+		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## docs/247 S3：我方放置物在敌人之上画（地雷 / 轰隆隆走 relic_fx.draw_placed_top；干员地面池 hw.pools —— 逻各斯铭文、艾雅法拉熔池等 ——
+## 补一圈本人代表色 1 格描边 + 呼吸，半径不小于 s3_rmin，最后 0.3 秒淡出）。--clutterdbg=nofriend 时不画
+func _draw_placed_top() -> void:
+	if _dbg_friend or not LateRead.on("s3"):
+		return
+	g.rfx.draw_placed_top(g.wcv)
+	var rmin: float = LateRead.k("s3_rmin", 14.0)
+	for o in g.squad.ops:
+		var h = o.get("hw")
+		if not (h is Dictionary) or not h.has("pools"):
+			continue
+		var c: Color = squad_ol_col(o.col())
+		if c.h < 0.06 or c.h > 0.9:
+			c = LateRead.ALLY_COL   # 红只留给危险：红系代表色的放置物描边改用我方青白
+		var rmax: float = LateRead.k("s3_rim_max", 48.0)
+		for l in h.pools:
+			var al: float = clampf(float(l.t) / 0.3, 0.0, 1.0)
+			if al <= 0.0 or float(l.r) >= rmax:
+				continue   # 大圈（墓志铭书写圈、大熔池）本身已有完整边，不再加描边，免得画面脏
+			LateRead.placed_rim(g.wcv, l.pos + Vector2(0, 4), maxf(float(l.r), rmin), Color(c.r, c.g, c.b, 1.0), g.t, fmod(absf(l.pos.x) * 0.011, 1.0), 0.5, 0.55 * al)
 
 
 ## 预警分类 → Boss 招式预警填充（render/telegraph_draw；敌方顶层开着时挪到 draw_top）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
@@ -740,7 +865,9 @@ func _draw_pickups_fast() -> void:
 	var vr: Rect2 = view_rect(40.0)
 	gem_qa = lerpf(0.7, Dc.p("gem_quiet_a"), dcrowd)
 	var n_all: int = g.gems.size()
-	var crowd_gems: bool = n_all > Bal.vi("render/gem_merge_n", GEM_MERGE_N)
+	var gem_v2: bool = Bal.vi("render/gem_v2", 0) > 0
+	var merge_n: int = Bal.vi("render/gem_cap_merge_n", 30) if Bal.vi("render/gem_cap", 0) > 0 else Bal.vi("render/gem_merge_n", GEM_MERGE_N)
+	var crowd_gems: bool = n_all > merge_n
 	var many: bool = n_all > 60
 	var pp: Vector2 = g.ppos
 	var tgt: Vector2 = pp + Vector2(0, -12)
@@ -748,6 +875,7 @@ func _draw_pickups_fast() -> void:
 	var bob_t: float = t * 4.0
 	var tw_t: float = t * 6.0
 	var cells := {}
+	var cell_values := {}
 	var small_p := PackedVector2Array()   # 小结晶贴图：位置 / 颜色
 	var small_c := PackedColorArray()
 	var big_p := PackedVector2Array()
@@ -796,6 +924,10 @@ func _draw_pickups_fast() -> void:
 	var near2: float = near_r * near_r
 	var near_k: float = Bal.v("render/gem_near_k", 1.15)
 	var spark_rest: float = Bal.v("render/gem_spark_rest", 0.12)
+	if gem_v2:
+		rest_on = true
+		near_k = Bal.v("render/gem_v2_near_k", 1.12)
+		core = Color(-1, 0, 0) # Emission follows each value tier and its resting brightness.
 	if rest_on:
 		many = false   # 不再走「远处安静」的压暗
 	for g_item in g.gems:
@@ -811,11 +943,20 @@ func _draw_pickups_fast() -> void:
 			if crowd_gems and far and gz <= 1.0 and not big:
 				var ck := Vector2i(floori(pos.x / GEM_CELL), floori(pos.y / GEM_CELL))
 				cells[ck] = int(cells.get(ck, 0)) + 1
+				if gem_v2:
+					cell_values[ck] = float(cell_values.get(ck, 0.0)) + float(g_item.val)
 				continue
 			if gz > 1.0:
 				_pq_air_shadow(pos, gz)
 			var quiet: bool = many and far
 			var rest: bool = rest_on and not mag and gz <= 1.0 and pos.distance_squared_to(pp) > near2
+			if gem_v2:
+				lit_s = _gem_v2_color(float(g_item.val), rest)
+				lit_b = lit_s
+				lit_m = lit_s * near_k
+				lit_m.a = 1.0
+				cy = lit_s
+				pu = lit_s
 			var tw: float = 0.75 + 0.25 * sin(tw_t + g_item.seed)
 			var gp: Vector2 = pos + Vector2(0, (sin(bob_t + pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
 			if mag:
@@ -824,7 +965,9 @@ func _draw_pickups_fast() -> void:
 				var tl: float = 10.0 + 24.0 * minf(1.0, g_item.mag_t * 2.0)
 				_gt_line(gp, gp + dv * tl * GEM_VIS, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), (5.0 if big else 3.0) * GEM_VIS)
 				_gt_line(gp, gp + dv * tl * 0.6 * GEM_VIS, Color(2.5, 2.5, 2.5, 0.7), 1.5 * GEM_VIS)
-			if rest:
+			if gem_v2:
+				pass # Faceted sprite + its emission are enough; no circular glow behind new gems.
+			elif rest:
 				_gt_circle(gp, (7.0 if big else 5.0) * GEM_VIS, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)   # 静止：一圈紧贴的小光晕
 			elif not quiet:
 				_gt_circle(gp, (13.0 if big else 9.0) * tw * GEM_VIS, glow_b0 if big else glow_s0, _gt_fan14, _gt_c42)
@@ -841,7 +984,7 @@ func _draw_pickups_fast() -> void:
 			else:
 				small_p.append(gp)
 				small_c.append(gcol)
-			if not quiet and (not rest or fposmod(g_item.seed * 0.618, 1.0) < spark_rest):
+			if not quiet and (not rest or (not gem_v2 and fposmod(g_item.seed * 0.618, 1.0) < spark_rest)):
 				spark.append([gp, (2.0 + 1.5 * tw) * GEM_VIS, tw])
 			continue
 		# 落地的源石锭 / 灯油（不吸的时候数量可能上百）：先收集，循环后按贴图连续画（同 vfx.spr 的算式；画在结晶光晕批之前，同旧写法的前后关系）
@@ -873,17 +1016,37 @@ func _draw_pickups_fast() -> void:
 	# 合并后的一堆：在格子中心画一颗，堆里 3 颗以上画成大结晶（紫），压暗同远处安静结晶；先画完小的再画大的（同贴图连续才合批）
 	var mp_s := PackedVector2Array()
 	var mp_b := PackedVector2Array()
+	var mc_s := PackedColorArray()
+	var mc_b := PackedColorArray()
 	for ck in cells:
 		var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
 		if cells[ck] >= 3:
 			mp_b.append(cp)
+			if gem_v2:
+				mc_b.append(_gem_v2_color(float(cell_values[ck]), true))
 		else:
 			mp_s.append(cp)
+			if gem_v2:
+				mc_s.append(_gem_v2_color(float(cell_values[ck]), true))
 	var qc := PackedColorArray()
 	qc.resize(maxi(mp_s.size(), mp_b.size()))
 	qc.fill(lit_s if rest_on else quiet_col)
-	_gem_sprites("gem_small", Game.PX, mp_s, qc)
-	_gem_sprites("gem_big", Game.PX, mp_b, qc)
+	_gem_sprites("gem_small", Game.PX, mp_s, mc_s if gem_v2 else qc)
+	_gem_sprites("gem_big", Game.PX, mp_b, mc_b if gem_v2 else qc)
+
+
+func _gem_v2_color(value: float, rest: bool) -> Color:
+	var levels: Array = Bal.sec("render").get("gem_v2_values", [2, 5, 20])
+	var tier := 0
+	for threshold in levels:
+		if value >= float(threshold):
+			tier += 1
+	# Multipliers for the existing warm-white facets; no additional texture or halo.
+	var color: Color = [Color(0.32, 0.92, 0.54), Color(0.58, 1.04, 0.48), Color(0.78, 1.12, 0.72), Color(1.16, 1.08, 0.90)][mini(tier, 3)]
+	if rest:
+		color *= Bal.v("render/gem_v2_rest_k", 0.82)
+		color.a = 1.0
+	return color
 
 
 ## ---- 掉落物剩余断点合批（docs/50 §13，OPT_PICKB）：空中影子（每颗一个椭圆）、特殊掉落（宝箱 / 磁铁 / 回复药剂）的光柱、
@@ -1323,7 +1486,13 @@ func _draw_bullets() -> void:
 					g.wcv.draw_circle(b.pos, 14.0 * vk, _bc(Color(1.4, 0.6, 2.2, 0.2)))
 				"arcane":
 					g.wcv.draw_line(b.pos - n * 20.0, b.pos, _bc(Color(1.4, 0.6, 2.2, 0.35)), 4.0)
-			g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX * vk, _bc(Color.WHITE))
+			var bgk: float = LateRead.grow_of(g.squad.get_op(str(b.op))) if b.has("op") and LateRead.on("v5") else 1.0
+			if bgk > 1.001:   # docs/247 V5：干员投射物主形按精英化 / 节点放大（判定半径不变），精一起加厚
+				var btx: Texture2D = g.tex.get(ptex)
+				var bgs: Array = LateRead.grow_scale(g, btx, int(pspec[0]), Game.PX * vk, bgk, A.hires_of(btx))
+				g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), bgs[0], _bc(Color.WHITE), Vector2(-1, -1), false, 1 if bgs[1] and bgk >= 1.2 else 0)
+			else:
+				g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX * vk, _bc(Color.WHITE))
 			continue
 		match b.kind:
 			"arrow":
@@ -1480,7 +1649,7 @@ func _draw_fx() -> void:
 				f["bg"] = true
 				_bfx_grains(f)
 			a *= BFX_DIM
-		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
+		var fdim: float = 1.0 if f.get("enemy", false) else (deco_dim if lr_v3 and DECO_KINDS.has(f.kind) else fx_dim)   # 敌方特效不降噪（docs/48 ③）；V3：只有装饰件吃降噪
 		if fdim < 1.0 and DIM_KINDS.has(f.kind):
 			a *= fdim
 		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
@@ -1881,7 +2050,12 @@ func _draw_fx() -> void:
 					scol = lead_col(scol)   # 队长放的帧条特效：提亮 / 暖色（docs/139 §11）
 				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
 					continue   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
-				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+				if f.has("grow") and LateRead.on("v5"):   # docs/247 V5：干员主形按精英化 / 节点放大后再取整，精一起加厚 1 格
+					var gtx: Texture2D = g.tex.get(f.name)
+					var gs: Array = LateRead.grow_scale(g, gtx, int(spec[0]), f.scale, float(f.grow), A.hires_of(gtx) if gtx != null else 1.0)
+					g.vfx.spr_rot(f.name, fr, f.pos, f.ang, gs[0], scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false), int(f.get("thick", 0)) if gs[1] else 0)
+				else:
+					g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					g.wcv.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
 			"impact":
@@ -2010,7 +2184,11 @@ func _draw_fx() -> void:
 				var tn: String = f.get("tex", "slash")
 				g.wcv.draw_set_transform(f.pos, f.ang, Vector2.ONE)
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
-				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
+				var ssc: float = f.scale
+				if f.has("grow") and LateRead.on("v5"):   # docs/247 V5：刀光按精英化 / 节点放大（取整、上限同帧条）
+					var stx: Texture2D = g.tex.get(tn)
+					ssc = LateRead.grow_scale(g, stx, nf, f.scale, float(f.grow), A.hires_of(stx) if stx != null else 1.0)[0]
+				g.vfx.spr(tn, nf, fr, Vector2.ZERO, ssc, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	tb_flush()   # gcrack 等写进 tb 批的特效在这里一次提交
 
@@ -2763,6 +2941,8 @@ var _am_mode := 0
 ## 缓存路径的排除条件（docs/39 §8）。Boss / 宝箱 / 骑士帧条 / DC_SKIP_TYPES 这几项开局后不会变（boss、chest、tex、type 只在生成时写），
 ## 第一次判过记在 e.dcs，以后只查会变的状态（docs/50 §14 OPT_EDRAW 的快速写法；10-15 删掉逐项全判的旧版，docs/101 S2）
 func _dc_ok(e: Dictionary) -> bool:
+	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
+		return false   # Marked enemies keep their full visual path outside the persistent sprite cache.
 	var st = e.get("dcs")
 	if st == null:
 		st = e.boss or e.chest or e.tex == "e_knight" or D.ENEMIES.get(e.type, _NO_DEF).get("draw_full", false)
@@ -2860,6 +3040,10 @@ func _ol_sig() -> int:
 
 ## 这只敌人画不画精英冷色描边
 func _rim_on(e: Dictionary) -> bool:
+	if e.get("ishar_blessed", false):
+		return true
+	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
+		return false
 	return e.get("ishar_blessed", false) or (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
 
 
@@ -3015,7 +3199,8 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 					if far:
 						pts.append([q, cd[3], Vector2(fw, fh), dens])
 		_glow_cache[name] = pts
-	var big: bool = e.get("elite", false) or e.get("boss", false)
+	var marked: bool = elite_mark_v2 and not e.get("boss", false) and (e.get("elite", false) or e.get("squad", false))
+	var big: bool = e.get("elite", false) or e.get("boss", false) or marked
 	var cc: Color = g.optical.enemy_glow(e)
 	var npt: int = mini(pts.size(), 4 if big else 3)
 	for ip in npt:
@@ -3026,7 +3211,16 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 		if flip:
 			d.x = -d.x
 		var sz: float = maxf(2.0, sc) * (1.5 if big else 1.0)
-		g.glow_next.append([(pos + d - Vector2(sz, sz) * 0.5).round(), sz, cc])
+		var point_col: Color = cc
+		if marked:
+			point_col = pt[1]   # Species colour from this frame's emit mask / native bright pixel.
+			if ip == npt - 1:
+				point_col *= 0.72 + 0.28 * (0.5 + 0.5 * sin(g.t * 3.0 + float(e.id)))
+		var point_pos: Vector2 = (pos + d - Vector2(sz, sz) * 0.5).round()
+		if g.optical_on:
+			g.glow_next.append([point_pos, sz, point_col])
+		elif marked and ip == npt - 1:
+			g.wcv.draw_rect(Rect2(point_pos, Vector2(sz, sz)), point_col)
 
 
 ## 重画帧条的发光层（name_emit，同帧索引、同原点）：每帧取发光像素按 6 美术像素格归并，取像素最多的至多 4 团的重心。
@@ -3424,6 +3618,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if e.get("ishar_blessed", false):
 			oc = _ol_col(e)
+		if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
+			oc = _ol_col(e)
 		if not e.elite and not e.boss and not e.get("squad", false):
 			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
@@ -3433,7 +3629,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if bfx >= 0 and _rec == null:
 		_burst_fx_layer(e, "_back", bfx, bpos, flip)
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
-	if g.optical_on and _rec == null:
+	if (g.optical_on or (elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)))) and _rec == null:
 		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e, frame)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
@@ -3464,6 +3660,15 @@ func _draw_enemy_full(e: Dictionary) -> void:
 ## 在任意位置绘制水月（残影、倒影用）
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
 var draw_target: CanvasItem = null   # 光学观感的高清干员层：干员本体临时画到这里（render/optical.gd _draw_ops 设，画完清回 null）
+
+## docs/247 S3 放置物描边用的我方色：代表色拉到满亮度 × s1_ol_hdr（暗场里不被压成灰）。
+## 小队描边 11-05 用户定不要（小队只靠头顶红三角标识），已删；这里只剩放置物在用
+func squad_ol_col(c: Color, a := 1.0) -> Color:
+	var m: float = maxf(c.r, maxf(c.g, c.b))
+	var k: float = 1.0 / maxf(0.01, m)   # 拉到满亮度：深色代表色在暗地面上也看得见
+	var hk: float = LateRead.k("s1_ol_hdr", 1.35)   # 略超 1：暗场里描边不被压成灰
+	return Color(minf(1.0, c.r * k * 0.95 + 0.05) * hk, minf(1.0, c.g * k * 0.95 + 0.05) * hk, minf(1.0, c.b * k * 0.95 + 0.05) * hk, LateRead.k("s1_ol_a", 0.95) * clampf(a, 0.0, 1.0))
+
 
 func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float, sc := 1.0) -> void:
 	if tx == null:
@@ -3662,13 +3867,23 @@ func draw_nest_auras() -> void:
 		if not view_rect(ar + 20.0).has_point(e.pos):
 			continue   # 屏外不画（性能 9/30：原来全场每只都画）
 		var lite: bool = Bal.v("render/nest_aura_lite", 0.0) > 0.0   # docs/139 §8：只留一层淡底 + 不转的虚线边界
+		var ac := Color(0.9, 0.5, 1.6)
+		if LateRead2.on("ground_ring_edge"):
+			# docs/251 V9：只画边 + 呼吸，填充一层 ≤ 0.04；脉冲（aura_pulse_t 0.15 秒）时边加亮，代替原来贴图整片加亮
+			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, LateRead2.fill_a(0.03)), 1.0, 32)
+			var pk: bool = g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15
+			var ea9: float = 0.85 if pk else 0.6 * LateRead2.edge_breath(g.t, float(e.id) * 0.13)
+			var rot9: float = g.t * 0.4 + e.id
+			for q in 18:
+				var a9: float = rot9 + q * TAU / 18.0
+				tb_arc(e.pos, ar, a9, a9 + TAU / 36.0, 2.0, Color(ac.r, ac.g, ac.b, ea9), 3)
+			continue
 		var aura_tex := _lazy_tex("fx_nest_aura_big") if not lite else null
 		if aura_tex != null:
 			var fw: float = aura_tex.get_width() / 4.0
 			var frame := int(g.t * 10.0) % 4
 			g.wcv.draw_texture_rect_region(aura_tex, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(frame * fw, 0, fw, aura_tex.get_height()), Color(1, 1, 1, 0.5 if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15 else 0.35))
 		# 柔光底 / 内收涟漪 / 转动虚线外圈都进无贴图批，函数末尾一次提交（原来每只约 24 次绘制调用）
-		var ac := Color(0.9, 0.5, 1.6)
 		if lite:
 			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, 0.05), 1.0, 32)
 			for q in 18:
@@ -3991,7 +4206,7 @@ func _izu_lamps(e: Dictionary) -> void:
 		var pulse: float = 0.5 + 0.5 * sin(g.t * (10.0 if waving else 3.0))
 		g.wcv.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
 		if lit:
-			g.wcv.draw_circle(Vector2.ZERO, lr, Color(1.0, 0.8, 0.4, (0.12 + 0.08 * pulse) if waving else 0.08))
+			g.wcv.draw_circle(Vector2.ZERO, lr, Color(1.0, 0.8, 0.4, LateRead2.fill_a((0.12 + 0.08 * pulse) if waving else 0.08)))   # docs/251 V9：填充封顶 0.04（地波蓄力时边本来就加粗脉动）
 			g.wcv.draw_arc(Vector2.ZERO, lr, 0.0, TAU, 56, Color(1.8, 1.4, 0.6, 0.6 + 0.35 * pulse if waving else 0.55), 3.0 if waving else 2.0)
 		else:
 			g.wcv.draw_arc(Vector2.ZERO, 40.0, 0.0, TAU, 32, Color(1.0, 0.8, 0.45, 0.35), 1.5)
@@ -4073,26 +4288,32 @@ func draw_beacons() -> void:
 		var r: float = float(b.get("r", 70.0))
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 3.0)
 		g.wcv.draw_set_transform(pos, 0.0, Vector2(1.0, ground_y()))
+		var br9: float = LateRead2.edge_breath(g.t, pos.x * 0.003)   # docs/251 V9：开时填充封顶 0.04、边呼吸；关时 = 1
 		if not lit:
-			g.wcv.draw_circle(Vector2.ZERO, r, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.07 + 0.05 * pulse))
+			g.wcv.draw_circle(Vector2.ZERO, r, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, LateRead2.fill_a(0.07 + 0.05 * pulse)))
 			for q in 20:
 				var a0: float = g.t * 0.3 + q * TAU / 20.0
-				tb_arc(pos, r, a0, a0 + TAU / 40.0, 2.0, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55), 3, ground_y())   # 虚线进批（原来 20 段各一次调用）
+				tb_arc(pos, r, a0, a0 + TAU / 40.0, 2.0, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55 * br9), 3, ground_y())   # 虚线进批（原来 20 段各一次调用）
 			# 引路圈（docs/56 a，beacon/guide_r > 0 才有）：guide_r 处一圈很淡的同款虚线，寿命过 guide_life 即消失
 			var gr: float = float(b.get("guide_r", 0.0))
 			if gr > 0.0 and float(b.get("age", 0.0)) <= float(b.get("guide_life", 45.0)):
 				for q in 28:
 					var a2: float = -g.t * 0.2 + q * TAU / 28.0
-					tb_arc(pos, gr, a2, a2 + TAU / 56.0, 1.5, Color(BEACON_COL.r * 1.3, BEACON_COL.g * 1.3, BEACON_COL.b * 1.3, 0.16 + 0.04 * pulse), 3, ground_y())
+					tb_arc(pos, gr, a2, a2 + TAU / 56.0, 1.5, Color(BEACON_COL.r * 1.3, BEACON_COL.g * 1.3, BEACON_COL.b * 1.3, (0.16 + 0.04 * pulse) * LateRead2.ring_vis()), 3, ground_y())
 		else:
 			var left: float = float(b.get("safe_end", 0.0)) - g.t
 			if left > 0.0:
 				var cr: float = float(b.get("clear_r", 260.0))
-				g.wcv.draw_circle(Vector2.ZERO, cr, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.05))
+				g.wcv.draw_circle(Vector2.ZERO, cr, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, LateRead2.fill_a(0.05) * (0.5 if LateRead2.on("ground_ring_edge") else 1.0)))
 				for q in 36:
 					var a1: float = -g.t * 0.1 + q * TAU / 36.0
-					tb_arc(pos, cr, a1, a1 + TAU / 72.0, 2.0, Color(BEACON_COL.r * 1.4, BEACON_COL.g * 1.4, BEACON_COL.b * 1.4, 0.45 if left > 5.0 else 0.45 * absf(sin(g.t * 8.0))), 3, ground_y())
-			g.wcv.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, 0.16 + 0.06 * pulse))
+					tb_arc(pos, cr, a1, a1 + TAU / 72.0, 2.0, Color(BEACON_COL.r * 1.4, BEACON_COL.g * 1.4, BEACON_COL.b * 1.4, (0.45 if left > 5.0 else 0.45 * absf(sin(g.t * 8.0))) * LateRead2.ring_vis()), 3, ground_y())
+			if LateRead2.on("ground_ring_edge"):
+				# V9：灯标脚下的亮盘改成一圈亮边 + 极淡底（亮盘在暗场里是整片发光的半透明几何）
+				g.wcv.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, LateRead2.fill_a(0.16)))
+				g.wcv.draw_arc(Vector2.ZERO, 46.0, 0.0, TAU, 40, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, 0.55 * br9), 2.0)
+			else:
+				g.wcv.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, (0.16 + 0.06 * pulse) * LateRead2.ring_vis()))
 		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		tb_flush()
 		# 点燃进度（暖色环；读 prog / need，离开光圈时进度缓慢回退也看得到）
@@ -4788,6 +5009,9 @@ func draw_warn_outlines(ground := false) -> void:
 			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
 		if IsharTell.owns(w):
 			continue   # 伊莎玛拉：涟漪勾边已在 ishar_tell_draw 画（docs/170）
+		if preload("res://scripts/render/minion_warn.gd").owns(w):
+			preload("res://scripts/render/minion_warn.gd").outline(g, w)
+			continue
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))
 		var tracking: bool = tr > 0.0 and w.t < tr

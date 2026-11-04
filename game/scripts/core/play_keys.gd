@@ -1,15 +1,15 @@
 ## 局内按键表（arch_review_1029 P0-2）：局内「动作 → 键盘 / 手柄 / 触屏」只在这里声明一次，game.gd（键盘路由）、pad.gd（手柄注入）、
 ## HUD 按键提示都查它。手柄按钮在对局里先翻成表里的键盘键（pad.gd 注入合成按键），game.gd 只认键盘键。
-## 两张表：ULT 开着（balance ult/on，docs/198 §2.4：Q 终结技、E 连携技）与 LEGACY（ult/on = 0 的旧手动技能路由，原样保留对照）。
+## 两张表：ULT 开着（balance ult/on，docs/198 §2.4：Q 终结技；连携全自动，11-05 用户「E键可以收回」后 E / Ⓨ / 触屏连携键都不再有绑定）
+## 与 LEGACY（ult/on = 0 的旧手动技能路由，原样保留对照）。
 ## 现状订正（docs/198 §2.4 写的「Ⓨ 现在是 E、RB 沿用手动技能」不对）：旧映射里 Ⓐ / Ⓨ 都是 Q（手动技能），RB 是冲刺；
-## 新映射 Ⓐ / RB = 终结技（按住瞄准），Ⓨ = 连携技，冲刺只剩 Ⓑ / RT。
+## 新映射 Ⓐ / RB = 终结技（按住瞄准），冲刺只剩 Ⓑ / RT，Ⓨ 在对局里没有动作。
 ## hold：手柄按住期间保持键盘键按下（瞄准类），松开才发松开事件；touch：触屏布局键名（touch_editor 布局存档里的名字，不改名不用迁移）。
 ## 普攻没有键（10-31 取消手动普攻）：永远自动，按住瞄准 = 鼠标左键 / 右摇杆 / 触屏瞄准键，由 doctor.aim_held 每帧直接读。
 extends RefCounted
 
 const ULT := {
 	"ult": {"keys": [KEY_Q], "pad": [JOY_BUTTON_A, JOY_BUTTON_RIGHT_SHOULDER], "hold": true, "touch": "skill", "hint_key": "Q", "hint_pad": "RB/Ⓐ"},
-	"combo": {"keys": [KEY_E], "pad": [JOY_BUTTON_Y], "hold": false, "touch": "skill", "hint_key": "E", "hint_pad": "Ⓨ"},
 	"dash": {"keys": [KEY_SPACE, KEY_SHIFT, KEY_K], "pad": [JOY_BUTTON_B], "hold": false, "touch": "dash", "hint_key": "SPACE", "hint_pad": "Ⓑ"},
 	"command": {"keys": [KEY_F], "pad": [JOY_BUTTON_LEFT_SHOULDER], "hold": false, "touch": "", "hint_key": "F", "hint_pad": "LB"},
 }
