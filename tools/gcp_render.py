@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""在 GCP 虚拟机上出截图 / 录像（docs/254）：本机只写代码，不开 Godot 渲染。
+"""在 GCP 虚拟机上出截图 / 录像（docs/256）：本机只写代码，不开 Godot 渲染。
 
   python tools/gcp_render.py --branch <分支或提交> --job <任务> [--args "<任务参数>"] [--name <名>]
 

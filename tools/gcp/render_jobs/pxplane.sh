@@ -4,7 +4,7 @@
 #   demo                                      → $MEDIA/（cmp_*.png、cmp_*_x2.png、tiers_*.png）
 #   rec --seed 11 --from 480 --secs 20        → $MEDIA/late_8m00_onoff.mp4
 #   trace --seed 23 --maxt 300 --extra "--elite2 --sptest"
-# 三栏是「当前游戏 / 旧做法 / 转平面」；原作参照图不上 GCP，要「原作」一栏由本机事后拼（docs/254 §4）
+# 三栏是「当前游戏 / 旧做法 / 转平面」；原作参照图不上 GCP，要「原作」一栏由本机事后拼（docs/256 §4）
 RARGS="${RENDER_ARGS:-demo;rec --seed 11 --from 480 --secs 20;trace --seed 23 --maxt 300 --extra \"--elite2 --sptest\"}"
 IFS=';' read -ra PARTS <<< "$RARGS"
 RC=0
