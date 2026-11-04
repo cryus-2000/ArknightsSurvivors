@@ -11,7 +11,8 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
-const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
+const Fxr = preload("res://scripts/render/fx_recipe.gd")
+const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246）   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
@@ -1130,6 +1131,10 @@ func _sorted_fast(evr: Rect2) -> bool:
 		ka.append(g.knight.pos.y + 18.0)
 		objs.append(null)
 		kind.append(4)
+	for it in Pxp.sort_items(g):   # 转平面试验（docs/246，fx/px_plane = 1）：立起层特效按脚底 y 排进单位层
+		ka.append(Pxp.sort_key(it))
+		objs.append(it)
+		kind.append(7)
 	for pr in g.map.sort_props:
 		ka.append(pr[1].y)
 		objs.append(pr)
@@ -1170,6 +1175,8 @@ func _sorted_fast(evr: Rect2) -> bool:
 				3:
 					if not _dbg_ground:
 						g.map.draw_sort_prop(ob)
+				7:
+					Pxp.draw_sorted(g, g.wcv, ob)
 		else:
 			for i in v:
 				_se_draw(objs[i], kind[i])
@@ -1195,6 +1202,8 @@ func _se_draw(ob, kd: int) -> void:
 		3:
 			if not _dbg_ground:
 				g.map.draw_sort_prop(ob)
+		7:
+			Pxp.draw_sorted(g, g.wcv, ob)
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）

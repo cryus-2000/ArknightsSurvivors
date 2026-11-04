@@ -11,7 +11,9 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # docs/246 转平面试验（fx/px_plane）：斯卡蒂借这里的接管、颗粒、灯光预算
 const DIR := "res://data/fx_recipes/"
+const PXP_DIR := "res://data/fx_pxplane/"
 const SY := 0.55          # 地面椭圆压扁（同区域画法）
 const SHAPE_MAX := 48     # 每名干员同时在画的主形上限（超出丢最旧的）
 const LIGHT_LIFE_MAX := 0.15
@@ -50,14 +52,22 @@ func enabled() -> bool:
 	var fr: int = Engine.get_process_frames()
 	if fr != _on_frame:
 		_on_frame = fr
-		_on = Bal.v("fx/recipe", 0.0) > 0.0 and not g.headless_batch
+		_on = (Bal.v("fx/recipe", 0.0) > 0.0 or Bal.v("fx/px_plane", 0.0) > 0.0) and not g.headless_batch
 	return _on
 
 
+const _NONE := {}
+
 func recipe(id: String) -> Dictionary:
+	# 转平面试验（docs/246）的干员只在 fx/px_plane 开着时有配方（读 data/fx_pxplane/）；其余干员只在 fx/recipe 开着时有
+	var px: bool = Pxp.IDS.has(id)
+	if px and not Pxp.owns_id(g, id):
+		return _NONE
+	if not px and Bal.v("fx/recipe", 0.0) <= 0.0:
+		return _NONE
 	if not recipes.has(id):
 		var d := {}
-		var p: String = DIR + id + ".json"
+		var p: String = (PXP_DIR if px else DIR) + id + ".json"
 		if FileAccess.file_exists(p):
 			var f := FileAccess.open(p, FileAccess.READ)
 			var v = JSON.parse_string(f.get_as_text())
@@ -172,7 +182,8 @@ static func ev(o, kind: String, d: Dictionary = {}) -> void:
 func _ev(o, kind: String, d: Dictionary) -> void:
 	var p: Dictionary = pal(o)
 	_exp()
-	if _x_react:
+	var pxm: int = Pxp.of(g).mode() if Pxp.IDS.has(str(o.id)) else 0
+	if _x_react and pxm != 2:   # 转平面「旧做法」对照（2）不加受击反应
 		var heavy: bool = kind in ["exec", "slam", "lock_tick", "fan_tick"] or (kind == "swing" and d.get("heavy", false))
 		var col: Color = p.get("flash", p.light)
 		if d.has("e") and d.e != null:
@@ -181,6 +192,9 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 			_react(e, col, heavy)
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 三档并排图对齐用（tools/fx_canon_shots.py）：事件发生的引擎帧
 		print("FXRLOG %s %s%s %d" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames()])
+	if pxm > 0:
+		Pxp.of(g).ev(o, kind, d)   # 转平面试验（docs/246）
+		return
 	match kind:
 		"fire":
 			# 逻各斯出手：笔尖四芒星芒（原作 attack 0.50 s「出手星芒」）；精一起加斜向四芒成八芒
@@ -694,6 +708,9 @@ func draw_floor(o) -> void:
 	_step()
 	if o.pos == Vector2.INF:
 		return
+	if Pxp.owns_id(g, str(o.id)):
+		Pxp.of(g).draw_floor(o)   # 转平面试验（docs/246）：贴地层
+		return
 	var cv = o.cv
 	var p: Dictionary = pal(o)
 	var keep_mod := _core_mod(cv)
@@ -707,7 +724,7 @@ func draw_floor(o) -> void:
 ## 区域层（draw_auras 接管时调）：持续技能的场
 func draw_auras(o) -> void:
 	_step()
-	if o.pos == Vector2.INF:
+	if o.pos == Vector2.INF or Pxp.owns_id(g, str(o.id)):
 		return
 	var cv = o.cv
 	var keep_mod := _core_mod(cv)
@@ -724,6 +741,10 @@ func draw_over(o) -> void:
 	_step()
 	var cv = o.cv
 	var p: Dictionary = pal(o)
+	if Pxp.owns_id(g, str(o.id)):   # 转平面试验（docs/246）：旧做法整张贴在这里；转平面版只有 Noita 水滴颗粒在这层
+		Pxp.of(g).draw_over(o)
+		_draw_parts(o, cv, p)
+		return
 	var keep_mod := _core_mod(cv)
 	_draw_state_over(o, cv, p)
 	for s in shapes.get(str(o.id), []):

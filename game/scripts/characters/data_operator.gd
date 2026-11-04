@@ -1081,7 +1081,8 @@ func _hit_fx(e: Dictionary, origin: Vector2) -> void:
 func draw_auras() -> void:
 	_draw_fields()
 	if not hw.is_empty():
-		SegSkadi.hw_draw_rings(self)   # 手写迁移段：常驻程序圈（aura_ring）、喷发热浪环……
+		if not Fxr.Pxp.owns_id(g, str(id)):   # 转平面试验（docs/246）接管时不画常驻程序圈
+			SegSkadi.hw_draw_rings(self)   # 手写迁移段：常驻程序圈（aura_ring）、喷发热浪环……
 		if Fxr.owns(self):
 			Fxr.of(g).draw_auras(self)   # 配方接管（docs/245）：持续技能的场改画实心主形
 		else:
