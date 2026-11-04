@@ -746,15 +746,23 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 	var h: float = (pad + dh + 10.0 + text_h) if stacked else maxf(dh + pad * 2.0, text_h + pad)
 	var pr := Rect2(frame.position, Vector2(w, h))
 	var gold := Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a)
-	UI.panel(hud, pr, Color(UI.BG2.r, UI.BG2.g, UI.BG2.b, 0.95 * a), Color(1, 1, 1, 0.16 * a), 10.0, gold)
-	hud.draw_rect(Rect2(pr.position + Vector2(0, 10), Vector2(4, h - 20)), gold)
+	var v3: bool = g.hud_view.v3 != null and g.hud_view.v3.on()   # 指挥台统一（docs/222 §20）：金边 / 金竖条换成白，英文小签换灰；做完条件仍是青（可操作）
+	if v3:
+		gold = Color(0.925, 0.933, 0.941, a)
+		hud.draw_rect(pr, Color(0.02, 0.03, 0.04, 0.9 * a))
+		hud.draw_polyline(PackedVector2Array([pr.position + Vector2(0, 12), pr.position, pr.position + Vector2(12, 0)]), Color(1, 1, 1, 0.55 * a), 1.0)
+		hud.draw_polyline(PackedVector2Array([pr.end - Vector2(0, 12), pr.end, pr.end - Vector2(12, 0)]), Color(1, 1, 1, 0.55 * a), 1.0)
+		hud.draw_rect(Rect2(pr.position + Vector2(0, 10), Vector2(2, h - 20)), gold)
+	else:
+		UI.panel(hud, pr, Color(UI.BG2.r, UI.BG2.g, UI.BG2.b, 0.95 * a), Color(1, 1, 1, 0.16 * a), 10.0, gold)
+		hud.draw_rect(Rect2(pr.position + Vector2(0, 10), Vector2(4, h - 20)), gold)
 	var dr := Rect2(pr.position + Vector2(pad, pad), Vector2(dw, dh))
 	if a > 0.6:
 		Demos.draw(hud, id, dr, t, _ctx())
 	var tp: Vector2 = (dr.position + Vector2(0, dh + 12.0)) if stacked else Vector2(dr.end.x + pad, pr.position.y + pad - 2.0)
 	var basic: Array = drill_ids()
 	var en: String = ("TUTORIAL  %d / %d" % [basic.find(id) + 1, basic.size()]) if (drill and basic.has(id) and not big) else (("TUTORIAL  ·  %s" % c.get("en", "")) if id == "drill_end" else ("NEW  ·  %s" % c.get("en", "")))
-	UI.en(hud, font, tp + Vector2(0, 14), en, 10, gold, 2.5)
+	UI.en(hud, font, tp + Vector2(0, 14), en, 10, Color(0.6, 0.63, 0.66, a) if v3 else gold, 2.5)
 	UI.text(hud, font, tp + Vector2(0, 40), str(c.get("title", "")), 20 if not big else 24, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
 	var asc: float = font.get_ascent(UI.fs(fsz))
 	for i in lines.size():
