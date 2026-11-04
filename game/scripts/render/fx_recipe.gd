@@ -1,6 +1,6 @@
 ## 运行时攻击特效配方（docs/245）：开关 fx/recipe（缺省 0 = 关）。
 ## 11-05 第二轮（docs/245 §5）：用户要「以原作技能特效为底的本作改编，更显眼」——主形按原作轮廓与配色在运行时像素化重建
-## （逻各斯：墨羽「言」、四芒星芒、白色不规则碎芒、咒文字块、地面椭圆咒域；推进之王：银橙旋光、白热闪、熔岩裂网、前向枝裂、锤徽、黑三角碎块），
+## （逻各斯：墨迹彗星「言」、四芒星芒、白色不规则碎芒、咒文字块、地面椭圆咒域；推进之王：银橙旋光、白热闪、熔岩裂网、前向枝裂、锤徽、黑三角碎块），
 ## 改编部分：比原作大、命中定帧爆亮、少量大颗 Noita 颗粒（墨滴 / 火星线 / 三角碎块 / 暗烟）、照地光；同一招元素 ≤ 3 种。
 ## 精英三档：E1 = 同主形 ×1.2–1.3 + 加厚 + 多一拍 + 一处形状差（八芒、燕尾、双行咒文、齿轮、小裂网 …）；E2 = 换原作更高阶的意象、体量 ×1.5。
 ## 节奏「蓄势 → 命中定帧爆亮 → 冷却余韵」；分两层：核心（主形，不受拥挤降噪）/ 装饰（颗粒，按 world.fx_dim 和拥挤度减量减淡）。
@@ -168,6 +168,12 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 				"grow": true, "tone": str(m.get("tone", ""))})
 			if m.tier >= 1:
 				_grains(o, at, at.y + 30.0, "twinkle", int(m.get("n", 2)), m, dir)
+			# 起手笔光（原作 attack_start：身前挥出白弧 + 墨弧）→ 身周化成一圈字环
+			_shape(o, {"k": "whirl", "c": o.pos + Vector2(0, -24), "ang": dir.angle(), "r": float(m.get("arc_r", 22.0)) * m.sc, "half": 1.1,
+				"w": float(m.get("arc_w", 9.0)) * m.sc * m.thick, "strands": 2, "life": 0.16, "freeze": 0.03, "layer": "over", "tone": "shard",
+				"sdir": -1.0 if dir.x * float(o.face) < 0.0 else 1.0})
+			_shape(o, {"k": "glyphring", "c": o.pos + Vector2(0, -22), "r": float(m.get("ring_r", 24.0)) * m.sc, "n": int(m.get("ring_n", 9)) + 3 * m.tier,
+				"life": float(m.get("ring_life", 0.36)), "freeze": 0.0, "layer": "over", "delay": 0.05, "follow": true, "accent": m.tier >= 2})
 		"hit":
 			_hit(o, d.get("at", o.pos), float(d.get("gy", 0.0)), str(d.get("move", "hit")), d.get("dir", Vector2.ZERO))
 		"exec":
@@ -267,7 +273,7 @@ func _hit(o, at: Vector2, gy: float, name: String, dir: Vector2) -> void:
 	_light(o, at, float(m.get("light_r", 80.0)) * m.sc, float(m.get("light_i", 0.5)), float(m.get("light_life", 0.11)), p.light)
 
 
-## 逻各斯殁亡处决（原作 S1 hit_03）：目标上竖起交叉的咒文链（X）+ 竖直墨柱；精一三道（米字），精二白热光团 + 双柱；溢出伤害飞一支墨羽到下一名
+## 逻各斯殁亡处决（原作 S1 hit_03）：目标上竖起交叉的咒文链（X）+ 竖直墨柱；精一三道（米字），精二白热光团 + 双柱；溢出伤害飞一支墨迹彗星到下一名
 func _exec(o, d: Dictionary, p: Dictionary) -> void:
 	var m2: Dictionary = move(o, "exec")
 	if m2.is_empty():
@@ -293,7 +299,7 @@ func _exec(o, d: Dictionary, p: Dictionary) -> void:
 	_light(o, e_at, float(m2.get("light_r", 110.0)) * m2.sc, float(m2.get("light_i", 0.75)), float(m2.get("light_life", 0.14)), p.light)
 
 
-## 每跳：提喻（lock_tick）= 目标处竖直长芒（原作提喻 hitloop）；精二换成高大的竖碎芒。咒域（fan_tick）= 区域内敌人紫白四芒星 + 白碎片；精二每跳先飞来一支大墨羽（原作延异视阈每轮 4 发）
+## 每跳：提喻（lock_tick）= 目标处竖直长芒（原作提喻 hitloop）；精二换成高大的竖碎芒。咒域（fan_tick）= 区域内敌人紫白四芒星 + 白碎片；精二每跳先飞来一支大墨迹彗星（原作延异视阈每轮 4 发）
 func _tick(o, kind: String, d: Dictionary, p: Dictionary) -> void:
 	var m3: Dictionary = move(o, "s1_tick" if kind == "lock_tick" else "s3_tick")
 	if m3.is_empty():
@@ -708,6 +714,9 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 		"runex":
 			_draw_runex(cv, s, tn, u, gk, p)
 			return
+		"glyphring":
+			_draw_glyphring(cv, s, tn, u, p)
+			return
 	var layers: Array = [[1.0, tn[0]], [0.72, tn[1]], [0.36, tn[2]]]
 	for L in layers:
 		var col: Color = L[1]
@@ -732,7 +741,7 @@ static func _seg(a: Vector2, b: Vector2, wa: float, wb: float) -> PackedVector2A
 	return PackedVector2Array([_snap(a + nv * wa * 0.5), _snap(b + nv * wb * 0.5), _snap(b - nv * wb * 0.5), _snap(a - nv * wa * 0.5)])
 
 
-## 墨羽（逻各斯「言」，原作 trail 的羽笔形：尖头、前宽、长身收尾）；fork = 燕尾（精一的形状差）
+## 墨迹彗星（逻各斯「言」，原作 trail 的羽笔形：尖头、前宽、长身收尾）；fork = 燕尾（精一的形状差）
 static func _quill(c: Vector2, dv: Vector2, L: float, W: float, fork: bool) -> PackedVector2Array:
 	var nv: Vector2 = dv.orthogonal()
 	var pts := PackedVector2Array([_snap(c + dv * L * 0.5), _snap(c + dv * L * 0.22 + nv * W * 0.5), _snap(c - dv * L * 0.12 + nv * W * 0.36)])
@@ -800,7 +809,7 @@ func _geo(s: Dictionary, gk: float, k: float) -> Array:
 				var nv4: Vector2 = dv4.orthogonal()
 				out4.append(PackedVector2Array([_snap(q + dv4 * w4 * 1.3), _snap(q - dv4 * w4 * 0.6 + nv4 * w4 * 0.7), _snap(q - dv4 * w4 * 0.6 - nv4 * w4 * 0.7)]))
 			return out4
-		"dart":   # 飞行中的墨羽：前 60% 寿命从 a 飞到 b，之后不画（命中交给星芒）
+		"dart":   # 飞行中的墨迹彗星：前 60% 寿命从 a 飞到 b，之后不画（命中交给星芒）
 			var u5: float = float(s.get("_u", 0.0))
 			if u5 > 0.62:
 				return []
@@ -1015,6 +1024,30 @@ func _draw_runex(cv, s: Dictionary, tn: Array, u: float, gk: float, p: Dictionar
 		_glyph_strip(cv, c - dv * L * 0.5, dv, L, cs, int(s.get("seed2", s.seed)) + j * 131, bg, fg, fg2, u / 0.25, 1)
 
 
+## 字环（逻各斯起手：笔光化成的一圈咒文，原作 attack 0.26–0.34 s）：身周扁椭圆上一圈直立小字，缓转，前 30% 寿命逐字亮起
+func _draw_glyphring(cv, s: Dictionary, tn: Array, u: float, p: Dictionary) -> void:
+	var n: int = maxi(4, int(s.get("n", 9)))
+	var r: float = float(s.r) * (0.8 + 0.2 * minf(1.0, u / 0.3))
+	var al: float = float(tn[3])
+	var cells: Array = _glyph_cells()
+	var rot: float = g.t * 2.2
+	var c: Vector2 = s.c
+	var sd: int = int(s.seed)
+	for i in n:
+		if float(i) / n > u / 0.3:
+			break
+		var a: float = rot + TAU * i / n
+		var q: Vector2 = _snap(c + Vector2(cos(a) * r, sin(a) * r * 0.42) - Vector2(3, 4))
+		var front: bool = sin(a) > 0.0
+		var col: Color = (p.hot if front else p.light) if not (s.get("accent", false) and i % 3 == 0) else p.accent
+		col.a *= al * (1.0 if front else 0.7)
+		var bg: Color = p.dark
+		bg.a = 0.7 * al
+		cv.draw_rect(Rect2(q - Vector2(2, 2), Vector2(10, 12)), bg)
+		for cl in cells[int(_h(sd, i) * GLYPHS.size()) % GLYPHS.size()]:
+			cv.draw_rect(Rect2(q + Vector2(cl.x, cl.y) * 2.0, Vector2(2, 2)), col)
+
+
 ## 冲击环 / 墨环 / 尘环 / 号令波（地面）：一条实心厚带从 r0 扩到 r（缓出），三阶：外暗边 → 主色 → 热芯细线
 func _draw_ring(cv, s: Dictionary, tn: Array, u: float) -> void:
 	var e: float = 1.0 - pow(1.0 - u, 2.2)
@@ -1166,7 +1199,7 @@ func _draw_state_floor(o, cv, p: Dictionary) -> void:
 		_draw_waves(o, cv, p)
 
 
-## 逻各斯「言」（原作 trail_01 的墨羽）：深墨羽身 + 亮蓝鳞纹 + 白热笔尖，身后一道细墨尾；精一燕尾，精二羽身更大、身后拖一行白色咒文（原作提喻的字块）
+## 逻各斯「言」（原作 trail_01）：墨迹彗星 = 白热亮头 + 深蓝墨尾（尾上蓝色闪点）；精一墨尾后段分两股，精二体量 ×1.5、身后拖一行白 / 紫咒文（原作提喻的字块）
 func _draw_bolts(o, cv, p: Dictionary) -> void:
 	var m: Dictionary = move(o, "bolt")
 	if m.is_empty():
@@ -1178,30 +1211,59 @@ func _draw_bolts(o, cv, p: Dictionary) -> void:
 		var hist: Array = bo.get("visual", {}).get("hist", bo.hist)
 		var L: float = float(m.get("len", 30.0)) * m.sc
 		var W: float = float(m.get("w", 12.0)) * m.sc * m.thick
-		# 细墨尾：沿历史点（暗边 + 主色），给出弧线走向
-		if hist.size() >= 2:
-			var tw: float = float(m.get("trail_w", 4.0)) * m.sc
-			for i in range(1, hist.size()):
-				var k: float = float(i) / float(hist.size())
-				cv.draw_line(_snap(hist[i - 1]), _snap(hist[i]), Color(p.dark.r, p.dark.g, p.dark.b, 0.9), maxf(2.0, tw * k + 2.0))
-				cv.draw_line(_snap(hist[i - 1]), _snap(hist[i]), p.main, maxf(2.0, tw * k * 0.5))
 		var age: float = float(bo.get("age", 0.0))
 		var hot: bool = age < 0.06   # 出手首帧亮一下
 		var fork: bool = m.tier >= 1
 		if m.tier >= 2:
 			var bg: Color = p.dark
 			bg.a = 0.8
-			_glyph_strip(cv, at - dv * L * 0.45, -dv, L * float(m.get("rune_k", 1.4)), 2.0, int(bo.get("_fxr_sd", 7)), bg, p.hot, p.accent, 1.0, 1, -40.0)
-		var sk: float = 1.0 + (0.2 if hot else 0.0)
-		cv.draw_colored_polygon(_quill(at, dv, (L + 4.0) * sk, (W + 4.0) * sk, fork), p.dark)
-		cv.draw_colored_polygon(_quill(at - dv * L * 0.04, dv, L * 0.82 * sk, W * 0.46 * sk, fork), p.main if m.tier < 2 else p.accent)
-		# 鳞纹：羽身上一排亮点（原作羽身的蓝色鳞片）
+			_glyph_strip(cv, at - dv * L * 0.55, -dv, L * float(m.get("rune_k", 1.0)), 2.0, int(bo.get("_fxr_sd", 7)), bg, p.hot, p.accent, 1.0, 1, -40.0)
+		# 墨迹彗星（原作 trail_01）：白热亮头 + 深蓝墨尾；尾沿飞行历史点走（弧线），不够长就顺着来向延长到 L
+		var path: Array = [at]
+		for i in range(hist.size() - 1, -1, -1):
+			if (hist[i] as Vector2).distance_to(path[-1]) > 1.0:
+				path.append(hist[i])
+		var cut: Array = [at]
+		var acc := 0.0
+		for i in range(1, path.size()):
+			var sl: float = (path[i] as Vector2).distance_to(path[i - 1])
+			if acc + sl >= L:
+				cut.append((path[i - 1] as Vector2).lerp(path[i], (L - acc) / sl))
+				acc = L
+				break
+			cut.append(path[i])
+			acc += sl
+		if acc < L:
+			var back: Vector2 = -dv if cut.size() < 2 else ((cut[-1] as Vector2) - (cut[-2] as Vector2)).normalized()
+			cut.append((cut[-1] as Vector2) + back * (L - acc))
 		var nv: Vector2 = dv.orthogonal()
-		var ns: int = int(L / 6.0)
-		for i in ns:
-			var f: float = -0.38 + 0.58 * float(i) / maxf(1.0, ns - 1)
-			cv.draw_rect(Rect2(_snap(at + dv * L * f + nv * W * (0.18 if i % 2 == 0 else -0.22)), Vector2(2, 2)), p.light)
-		cv.draw_colored_polygon(_quill(at + dv * L * 0.3, dv, L * 0.36 * sk, W * 0.36 * sk, false), p.hot if not hot else Color(2.0, 2.0, 2.2))
+		var tot := 0.0
+		var fs: Array = [0.0]
+		for i in range(1, cut.size()):
+			tot += (cut[i] as Vector2).distance_to(cut[i - 1])
+			fs.append(tot)
+		for i in range(1, cut.size()):
+			var f0: float = float(fs[i - 1]) / maxf(1.0, tot)
+			var f1: float = float(fs[i]) / maxf(1.0, tot)
+			var wa: float = W * pow(1.0 - f0, 0.8)
+			var wb: float = W * pow(1.0 - f1, 0.8)
+			cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], wa + 4.0, maxf(2.0, wb + 2.0)), p.dark)
+			var mc: Color = p.main if m.tier < 2 else p.accent
+			if fork and f0 > 0.3:
+				# 精一：墨尾在后段分成两股（形状差）
+				var sp0: float = W * 0.3 * (f0 - 0.3) / 0.7
+				var sp1: float = W * 0.3 * (f1 - 0.3) / 0.7
+				for sg in [-1.0, 1.0]:
+					var o0: Vector2 = (cut[i - 1] as Vector2) + nv * sp0 * sg
+					var o1: Vector2 = (cut[i] as Vector2) + nv * sp1 * sg
+					cv.draw_colored_polygon(_seg(o0, o1, maxf(2.0, wa * 0.32), maxf(2.0, wb * 0.32)), mc)
+			else:
+				cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], maxf(2.0, wa * 0.45), maxf(2.0, wb * 0.45)), mc)
+			if i % 2 == 0:   # 墨尾里的亮点（原作尾上的蓝色闪点）
+				cv.draw_rect(Rect2(_snap((cut[i] as Vector2) + nv * wb * (0.25 if i % 4 == 0 else -0.25)), Vector2(2, 2)), p.light)
+		var hr: float = W * (0.62 if not hot else 0.8)
+		cv.draw_colored_polygon(_quill(at + dv * hr * 0.2, dv, hr * 2.4, hr * 1.5, false), p.light)
+		cv.draw_colored_polygon(_quill(at + dv * hr * 0.3, dv, hr * 1.7, hr * 1.0, false), p.hot if not hot else Color(2.0, 2.0, 2.2))
 		# 滴墨：每 shed 秒一滴（画面计时，按弹的年龄定，不抽玩法随机）
 		var sh: float = float(m.get("shed", 0.1))
 		if sh > 0.0 and int(age / sh) != int(bo.get("_fxr_drip", -1)):
@@ -1345,7 +1407,7 @@ static func _fan_band(c: Vector2, fa: float, half: float, r0: float, r1: float, 
 
 
 ## 延异视阈（S3，原作 range_01 的地面咒域）：贴地扇面 = 暗底 + 暗紫内圈带 + 亮蓝外圈厚带（每跳外圈爆亮一拍），弧两端与正中各一枚四芒星
-## （原作内圈是暗琥珀，本作改暗紫，避开结晶暖金）。精一：外圈外沿浮一排咒文（原作飘在咒域上的字行）；精二：内圈换点缀紫、每跳飞来大墨羽（见 _tick）
+## （原作内圈是暗琥珀，本作改暗紫，避开结晶暖金）。精一：外圈外沿浮一排咒文（原作飘在咒域上的字行）；精二：内圈换点缀紫、每跳飞来大墨迹彗星（见 _tick）
 func _draw_fan(o, cv, p: Dictionary) -> void:
 	var h: Dictionary = o.hw
 	var fn = h.get("fan", {})
