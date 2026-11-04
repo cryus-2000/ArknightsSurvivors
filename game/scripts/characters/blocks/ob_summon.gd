@@ -1934,6 +1934,8 @@ static func mf_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
 			for i in n2:
 				var px := _mf_particle(o, f, tpl, p, ctx, i, n2)
 				if f.has("gfx"):
+					if Fxr.owns(o):
+						continue   # 配方接管（docs/245）：技能起手的放射光等全局画面件不生成
 					px["max"] = px.life
 					if str(px.get("kind", "")) == "rays":
 						px["op_spoke"] = true   # 干员技能发动的放射光束（render/hit_spokes）

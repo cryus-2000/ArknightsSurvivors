@@ -6,6 +6,7 @@
 extends RefCounted
 
 const _BalG = preload("res://scripts/core/balance.gd")   # data/balance.json 旋钮（add_cc_growth 读 growth 段）；名字带下划线避免和子类 const Bal 重名
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 运行时攻击特效配方（docs/245，fx/recipe）：接管的干员只跳过原画面、改画配方主形
 const _LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247）
 
 var g                      # Game (Node2D)
@@ -415,20 +416,28 @@ func impact_pause(seconds: float) -> void:
 
 
 func ground_dust(at: Vector2, radius := 22.0, count := 7) -> void:
+	if Fxr.owns(self):
+		return   # 配方接管（docs/245）：不生成原画面件，主形由配方画
 	g.vfx.ground_dust(at, radius, count)
 
 ## 播放一次性特效帧条（V6_FRAMES 注册的 fx_*）；贴图缺失返回 false，调用方可退回程序特效
 func spawn_fx_sprite(name: String, pos: Vector2, scale: float = -1.0, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
+	if Fxr.owns(self):
+		return true   # 配方接管：当作已播（调用方不走程序回退）
 	return g.vfx.fx_sprite(name, pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col)
 
 
 ## 旧式整条动画特效（跟随可选）
 func play_anim_fx(name: String, pos: Vector2, dur: float, scale: float = -1.0, follow := false) -> bool:
+	if Fxr.owns(self):
+		return true
 	return g.vfx.anim(name, pos, dur, g.PX if scale < 0.0 else scale, follow)
 
 
 ## 挥砍弧光（普攻 / 技能的刀光）
 func slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Color, tex_name := "slash", life := 0.22) -> void:
+	if Fxr.owns(self):
+		return
 	g.vfx.slash_fx(origin, ang, half, radius, col, tex_name, life)
 
 
@@ -444,6 +453,8 @@ func enemy_hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 
 ## 方向性火花
 func sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void:
+	if Fxr.owns(self):
+		return
 	g.vfx.sparks(pos, dir, col, n, spd)
 
 

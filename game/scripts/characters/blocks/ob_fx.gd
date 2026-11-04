@@ -43,6 +43,7 @@ const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displac
 	"shape.boomerang", "verb.summon_cmd"]
 
 const ArtS = preload("res://scripts/art.gd")
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 运行时攻击特效配方（docs/245，fx/recipe）：接管的干员只跳过原画面、改画配方主形
 const _LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247）
 
 

@@ -245,6 +245,7 @@ def main():
     s.add_argument("--jobs", type=int, default=4)
     s.add_argument("--squad", default="")
     s.add_argument("--relics", default="")
+    s.add_argument("--extra", default="")
     s.add_argument("--tag", default="")
     s.add_argument("--layers", default=",".join(LAYERS))
     s.add_argument("--targets", default="")
