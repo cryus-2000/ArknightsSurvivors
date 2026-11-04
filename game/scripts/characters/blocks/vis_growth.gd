@@ -19,6 +19,8 @@ const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # �
 const LateShape = preload("res://scripts/characters/blocks/late_shape.gd")   # 后期形状随成长（docs/248）
 const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")
 const _PXP = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246 §9）：接管的干员剑气改画本人风格（斯卡蒂 = 水刃 + 浪痕）   # 看得见的成长节点（docs/249）
+const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")   # 看得见的成长节点（docs/249）
+const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面（docs/254）：接管的干员剑气由 fx_pxplane 画
 
 ## 读 op_shots 之外的远程普攻形状（cmd_role 同一张表）
 const RANGED_SHAPES := ["projectile", "shell", "bolt", "cannon", "point_aoe", "foxfire", "lantern"]
@@ -474,7 +476,7 @@ static func draw(o) -> void:
 			cv.draw_line(p - d * 14.0 * sc, p, Color(tc.r, tc.g, tc.b, 0.7), 4.0 * sc)
 		cv.draw_circle(p, 7.0 * sc, Color(tc.r, tc.g, tc.b, 0.3))
 		cv.draw_circle(p, 3.6 * sc, Color(minf(tc.r * 1.5, 1.8), minf(tc.g * 1.5, 1.8), minf(tc.b * 1.5, 1.8), 1.0))
-	if v.qi.is_empty():
+	if v.qi.is_empty() or Pxp.owns_id(g, str(o.id)):   # 转平面（docs/254）接管：星熊剑气画成盾击冲击波（fx_pxplane）
 		return
 	if _PXP.owns_id(g, str(o.id)):
 		return   # 转平面接管：剑气由 fx_pxplane 画（只画，判定照旧）

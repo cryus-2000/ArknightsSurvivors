@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""斯卡蒂转平面试验（docs/246，fx/px_plane）的看图工具。本机 Windows，窗口在屏幕外、静音（godot_runner），一次只开 1 个 Godot（串行）。
+"""转平面试验（docs/246 斯卡蒂、docs/254 星熊；fx/px_plane）的看图工具。--op 选干员（缺省 skadi）。本机 Windows，窗口在屏幕外、静音（godot_runner），一次只开 1 个 Godot（串行）。
 
   demo  图鉴演示模式（tests/elite_demo_shot.tscn）逐招连拍：三种画法（0 当前游戏 / 2 旧做法原样贴 / 1 转平面）× 精英档，
         同一招同一时刻对齐（同一演示、同一帧号），拼「三栏对比」：每招一张 + 2 倍局部；另拼三档并排（只转平面版）。
@@ -20,19 +20,23 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import godot_runner as GR
 
-os.environ.setdefault("GODOT_MAX_PROCS", "1")   # 本机只开 1 个 Godot：机器上没有别的 Godot 在跑时才开（星熊 / 流明会话同机）
-GR.MAX_PROCS = 1
-LATE = ["--bal=growth/late_shape=1"]   # 截图一律开后期形状（额外剑气要在三档图里看得到，docs/246 §9）
-
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 BUILD = os.path.join(ROOT, "build", "pxplane")
 LOGS = os.path.join(BUILD, "logs")
-MODE_NAME = {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}
+OPS = {
+    "skadi": {"name": "斯卡蒂", "modes": {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}, "off": {0: 3, 1: 12, 2: 10}},
+    # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
+    "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
+}
+OP = "skadi"
+MODE_NAME = OPS[OP]["modes"]
 MODE_KEY = {3: "atk", 0: "s1", 1: "s2", 2: "s3"}
 MODE_TIERS = {3: [0, 1, 2], 0: [0, 1, 2], 1: [1, 2], 2: [2]}
+LATE = ["--bal=growth/late_shape=1"]   # 截图一律开后期形状（额外剑气要在三档图里看得到，docs/246 §9）
 COLS = [(0, "① 当前游戏原样"), (2, "② pixelfx 原样直接贴（旧做法）"), (1, "③ 转平面 + 统一像素 + 吃光 + Noita")]
 FONT = "C:/Windows/Fonts/msyh.ttc"
+REUSE = False
 
 
 def font(sz):
@@ -42,10 +46,14 @@ def font(sz):
 def shoot(px, tier, mode, start, every, n, w=1280, h=720, extra=(), suffix=""):
     tag = "e%d_m%d_px%d%s" % (tier, mode, px, suffix)
     fdir = os.path.join(BUILD, "demo", tag)
+    if REUSE and len(glob.glob(os.path.join(fdir, "f_*.png"))) >= n:   # --reuse：只重拼图，不再开 Godot
+        lg = os.path.join(LOGS, "demo_" + tag + ".log")
+        out = open(lg, encoding="utf-8").read() if os.path.exists(lg) else ""
+        return tag, sorted(glob.glob(os.path.join(fdir, "f_*.png"))), [], [l.split() for l in out.splitlines() if l.startswith("FXRLOG")]
     shutil.rmtree(fdir, ignore_errors=True)
     os.makedirs(fdir)
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
-            "--shot_op=skadi", "--shot_stage=%d" % tier, "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
+            "--shot_op=" + OP, "--shot_stage=%d" % tier, "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=%d" % every, "--shot_n=%d" % n, "--shot_w=%d" % w, "--shot_h=%d" % h,
             "--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1"] + LATE + list(extra)
     out, err, to = GR.run_godot(args, 900)
@@ -82,7 +90,7 @@ def demo(a):
     for mode in [int(x) for x in a.modes.split(",")]:
         for tier in MODE_TIERS[mode]:
             for px, _ in COLS:
-                tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, a.n)
+                tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, a.n, extra=a.extra.split())
                 print(tag, len(frames), "帧", errs[:2], flush=True)
                 res[(tier, mode, px)] = frames
                 if px == 1:
@@ -98,19 +106,21 @@ def demo(a):
             e = energy(fr[1][:n], fr[0][:n])
             k = int(np.argmax(e))
             # 技能招：按技能事件帧对齐（能量峰常落在普攻上）。S1 出手即判定；S2 起跳约 15 帧后落地；S3 取起手后约 0.3 秒（大水柱 + 第一记暗蓝旋斩）
-            OFF = {0: 3, 1: 12, 2: 10}
+            OFF = OPS[OP]["off"]
             if mode in OFF:
                 evs = [int(x[3]) for x in res.get((tier, mode, "ev"), []) if len(x) > 3 and x[2] == "skill%d" % mode and x[3].isdigit()]
                 f0 = int(a.start * 30)
                 cand = [(fe + OFF[mode] - f0) // a.every for fe in evs if (fe + OFF[mode] - f0) // a.every >= 0]
                 if cand and cand[0] < n:
                     k = cand[0]
+            if a.force_k >= 0:
+                k = min(a.force_k, n - 1)   # --force_k：指定帧（自动对齐挑不到那一招时）
             # 三栏：同一帧号（同一时刻、同一画面）
             ims = [Image.open(fr[px][k]).convert("RGB") for px, _ in COLS]
             W, H = ims[0].size
             sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
             dd = ImageDraw.Draw(sheet)
-            dd.text((12, 8), "斯卡蒂 %s · 精英 %d · 同一帧（演示第 %d 张）" % (MODE_NAME[mode], tier, k), fill=(230, 230, 230), font=font_b)
+            dd.text((12, 8), OPS[OP]["name"] + " %s · 精英 %d · 同一帧（演示第 %d 张）" % (MODE_NAME[mode], tier, k), fill=(230, 230, 230), font=font_b)
             for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
                 sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
             base = "cmp_%s_e%d" % (MODE_KEY[mode], tier)
@@ -133,14 +143,14 @@ def demo(a):
             crop.save(os.path.join(out, base + "_x2.png"))
             # 三档并排：转平面版，命中峰前后 5 帧
             idx = [max(0, min(n - 1, k + d)) for d in (-2, -1, 0, 2, 5)]
-            row = [Image.open(fr[1][j]).convert("RGB").crop((x0 - 160 if x0 >= 160 else 0, max(0, y0 - 90), min(W, x0 + cw + 160), min(H, y0 + ch + 90))) for j in idx]
+            row = [Image.open(fr[1][j]).convert("RGB").crop((x0, y0, x0 + cw, y0 + ch)).resize((cw * 2, ch * 2), Image.NEAREST) for j in idx]   # 2 倍局部（最近邻）
             tiers_up.append((tier, row))
             print("三栏", base, "帧", k, flush=True)
         if tiers_up:
             rw, rh = tiers_up[0][1][0].size
             sheet = Image.new("RGB", (100 + rw * 5 + 16, 56 + (rh + 8) * len(tiers_up)), (12, 12, 16))
             dd = ImageDraw.Draw(sheet)
-            dd.text((12, 8), "转平面版三档 · 斯卡蒂 %s（每行一档，命中前后 5 帧）" % MODE_NAME[mode], fill=(230, 230, 230), font=font_b)
+            dd.text((12, 8), "转平面版三档 · " + OPS[OP]["name"] + " %s（每行一档，命中前后 5 帧）" % MODE_NAME[mode], fill=(230, 230, 230), font=font_b)
             for r, (tier, row) in enumerate(tiers_up):
                 y = 56 + r * (rh + 8)
                 dd.text((16, y + rh // 2 - 18), "E%d" % tier, fill=(255, 255, 255), font=font(34))
@@ -177,6 +187,58 @@ def fps_cmp(a):
                         "-i", lab, "-filter_complex", "[0:v]%s,pad=964:540:0:0:black[l];[1:v]%s[r];[l][r]hstack=inputs=2[h];[h][2:v]overlay=0:0[v]" % (crop, crop),
                         "-map", "[v]", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", mp4], check=True)
         print("录像", mp4, flush=True)
+
+
+def linkcmp(a, base):
+    """连携技三栏（docs/254）：实战局里本干员当队员（--lead 另指队长），fx/px_plane = 1 / 0 / 2 各录一段（同种子、同参数，玩法逐行一致），
+    从 1 那局的 PXPLOG（fx/recipe_log = 1）找连携事件（cover / combo）的游戏时间，换算成录像帧号，拼三栏 + 2 倍局部。"""
+    t0, secs, st = a.t0, a.secs, 2
+    dirs = {}
+    for px in (1, 0, 2):
+        tag = "link%d_s%d_%d" % (px, a.seed, t0)
+        ex = base + ["--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1", "--realtime", "--rtfrom=%d" % t0, "--recframes=%d,%d" % (t0, secs * 30),
+                     "--recstride=%d" % st, "--maxt=%d" % (t0 + secs + 1)]
+        dirs[px] = os.path.join(BUILD, tag + "_frames")
+        print(run(tag, ex, 30, dirs[px]), flush=True)
+    log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ")]
+    print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
+    if not evs:
+        print("这段里没有连携技出手", flush=True)
+        return False
+    T = float(evs[0][-1])
+    k = int(round((T - t0) * 30.0)) + 8   # 落定后约 0.25 秒（盾立定、冲击环扩开）
+    k -= k % st
+    fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in (0, 2, 1)}
+    if not all(os.path.exists(f) for f in fr.values()):
+        print("缺帧", fr, flush=True)
+        return False
+    ims = [Image.open(fr[px]).convert("RGB") for px, _ in COLS]
+    W, H = ims[0].size
+    f30 = font(30)
+    sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
+    dd = ImageDraw.Draw(sheet)
+    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ("举盾" if evs[0][2] == "cover" else "举盾推挡", a.seed, T), fill=(230, 230, 230), font=f30)
+    for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
+        sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
+    os.makedirs(a.out, exist_ok=True)
+    sheet.save(os.path.join(a.out, "cmp_link.png"))
+    a1 = np.asarray(ims[2], dtype=np.int16)
+    a0 = np.asarray(ims[0], dtype=np.int16)
+    m = (np.abs(a1 - a0).sum(axis=2) > 60)
+    ys, xs = np.nonzero(m)
+    cx, cy = (int(np.median(xs)), int(np.median(ys))) if len(xs) else (W // 2, H // 2)
+    cw, ch = 320, 180
+    x0 = min(max(0, cx - cw // 2), W - cw)
+    y0 = min(max(0, cy - ch // 2), H - ch)
+    crop = Image.new("RGB", (cw * 2 * 3 + 8, ch * 2 + 56), (12, 12, 16))
+    dd = ImageDraw.Draw(crop)
+    dd.text((12, 8), "2 倍局部（最近邻放大） · 连携技", fill=(230, 230, 230), font=f30)
+    for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
+        crop.paste(label(im.crop((x0, y0, x0 + cw, y0 + ch)).resize((cw * 2, ch * 2), Image.NEAREST), lab, 20), (i * (cw * 2 + 4), 56))
+    crop.save(os.path.join(a.out, "cmp_link_x2.png"))
+    print("三栏 cmp_link 帧", k, flush=True)
+    return diff("link0_s%d_%d" % (a.seed, t0), "link1_s%d_%d" % (a.seed, t0)) & diff("link0_s%d_%d" % (a.seed, t0), "link2_s%d_%d" % (a.seed, t0))
 
 
 def branch(a):
@@ -311,8 +373,9 @@ def diff(a, b):
 
 
 def main():
+    global OP, MODE_NAME, BUILD, LOGS, REUSE
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "branch", "combo"])
+    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "linkcmp", "branch", "combo"])
     ap.add_argument("--out", default=os.path.join(BUILD, "out"))
     ap.add_argument("--modes", default="3,0,1,2")
     ap.add_argument("--start", type=float, default=2.0)
@@ -325,20 +388,32 @@ def main():
     ap.add_argument("--maxt", type=int, default=300)
     ap.add_argument("--extra", default="")
     ap.add_argument("--pxs", default="0,1")
+    ap.add_argument("--op", default="skadi", choices=sorted(OPS))
+    ap.add_argument("--crf", type=int, default=20)
+    ap.add_argument("--lead", default="", help="rec / trace：另找一名队长，--op 的干员当队员（拍连携技用）")
+    ap.add_argument("--reuse", action="store_true")
+    ap.add_argument("--force_k", type=int, default=-1)
     a = ap.parse_args()
-    base = ["--seed=%d" % a.seed, "--op=skadi"] + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
+    REUSE = a.reuse
+    OP, MODE_NAME = a.op, OPS[a.op]["modes"]
+    if a.op != "skadi":
+        BUILD = os.path.join(ROOT, "build", "pxplane_" + a.op)
+        LOGS = os.path.join(BUILD, "logs")
+    base = ["--seed=%d" % a.seed] + (["--op=" + a.lead, "--squad=" + a.op] if a.lead else ["--op=" + a.op]) + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
     if a.cmd == "demo":
         demo(a)
         return
     if a.cmd == "fps":
         fps_cmp(a)
         return
-    if a.cmd == "branch":
+    if a.cmd == "branch":   # 斯卡蒂分支招（docs/246）
         branch(a)
         return
-    if a.cmd == "combo":
+    if a.cmd == "combo":   # 斯卡蒂连携技「落潮横扫」三栏（docs/246）
         combo(a)
         return
+    if a.cmd == "linkcmp":
+        sys.exit(0 if linkcmp(a, base) else 1)
     tags = []
     if a.cmd == "rec":
         for px in (0, 1):   # 串行：本机同一时间只开 1 个 Godot
@@ -363,8 +438,8 @@ def main():
         mp4 = os.path.join(a.out, "late_%dm%02d_onoff.mp4" % (a.t0 // 60, a.t0 % 60))
         subprocess.run([ff, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(d0, "rec_%05d.png"), "-framerate", "30", "-i", os.path.join(d1, "rec_%05d.png"),
                         "-i", lab, "-filter_complex", "[0:v]pad=1284:720:0:0:black[l];[l][1:v]hstack=inputs=2[h];[h][2:v]overlay=0:0[v]", "-map", "[v]", "-frames:v", str(n),
-                        "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", mp4], check=True)
-        print("录像", mp4, "%d 帧" % n)
+                        "-c:v", "libx264", "-crf", str(a.crf), "-pix_fmt", "yuv420p", mp4], check=True)
+        print("录像", mp4, "%d 帧" % n, "%.1f MB" % (os.path.getsize(mp4) / 1048576))
     elif a.cmd == "trace":
         for px in [int(x) for x in a.pxs.split(",")]:
             tag = "trace%d_s%d" % (px, a.seed)

@@ -109,6 +109,7 @@ static func exec_line(o, b: Dictionary) -> Array:
 			o.add_cc(e, stun * (0.5 if e.elite else 1.0))
 	for e in hits:
 		o._hit_fx(e, o.pos)
+	_FXR.ev(o, "shape", {"src": src, "line": true, "ang": ang, "len": L, "w": W, "es": hits})   # 只画（docs/254 星熊转平面）
 	for s in b.get("on_hit", _EA):
 		for e in hits:
 			apply_status(o, e, s)
@@ -344,7 +345,7 @@ static func gm_boil_sand(o, b: Dictionary) -> void:
 static func gm_draw(o) -> void:
 	var cv = o.cv
 	for f in o.fields:
-		if not f.get("sand", false):
+		if not f.get("sand", false) or _FXR.Pxp.owns_id(o.g, str(o.id)):   # 转平面（docs/254）接管时热砂由 fx_pxplane 画
 			continue
 		var fa: float = clampf((float(f.n) * float(f.every) - float(f.t)) / 0.4, 0.0, 1.0)
 		var sf: float = o.ring_flash("sand%d" % int(f.pos.x * 7.0 + f.pos.y))   # 10-31 TA H1：外缘椭圆只在铺开那一瞬

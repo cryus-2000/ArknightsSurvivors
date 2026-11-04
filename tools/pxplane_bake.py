@@ -8,7 +8,7 @@
   data/pxp_skadi.json 帧数、fps、帧尺寸、原点（脚底 / 地面点），以及每帧的 emit 点表（最亮的热芯像素：进光学层发光通道）。
 raw（旧做法对照，fx/px_plane = 2）：色层 + 光层烤成一张（光晕变成颜色），游戏里旋转 + 小数缩放直接贴。
 
-用法（仓库根目录）：python tools/pxplane_bake.py [--only 键前缀]
+用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma] [--only 键前缀]（星熊 docs/254：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json）
 """
 import argparse, json, os, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -20,9 +20,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PFX = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(ROOT))) if ".claude" in ROOT else os.path.dirname(ROOT), "build", "pixelfx")
 if not os.path.isdir(PFX):
     PFX = os.path.join(ROOT, "build", "pixelfx")
-SRC = os.path.join(ROOT, "tools", "pixelfx_fx", "water", "ak-skadi-pp.js")
 OUT_ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
-OUT_META = os.path.join(ROOT, "game", "data", "pxp_skadi.json")
+# 干员 → (pixelfx 效果 id「目录/文件名」, 帧条元数据, 帧条键前缀, emit 另算的点缀色)。docs/246 斯卡蒂、docs/254 星熊
+OPS = {
+    "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0x5f, 0xf0)]),
+    "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
+}
 TMP = os.path.join(ROOT, "build", "pxp_bake")
 FPS = 15                       # 统一动画时钟（协调人 11-05）：一律 15 fps，时长不对增删帧
 DIRS = [-90, -45, 0, 45, 90]   # 平面角；另一半（135 / 180 / -135）游戏里水平翻转
@@ -30,7 +33,7 @@ EMIT_LUMA = 0.95               # 色层亮度 ≥ 这个的像素算热芯（只
 EMIT_MAX = 48                  # 每帧 emit 点上限（均匀抽）
 
 
-def variants():
+def variants_skadi():
     v = []
     T = [0, 1, 2]
     # 普攻横扫：半径 56（reach 112 / 2）、弧 2.8；三档体量 / 刀光幕高
@@ -95,18 +98,75 @@ def variants():
     return v
 
 
+def variants_hoshiguma():
+    """星熊（docs/254）：判定从 hoshiguma.json 读，美术像素 = 世界 / 2。"""
+    v = []
+    T = [0, 1, 2]
+    # 尺寸档：范围成长（growth/late_shape 近战 +12% / 档、范围卡）会放大判定，帧条按几档半径预生成，游戏挑最近的一档（只整数放大，不缩放）
+    for R in (47, 56, 66):   # 普攻「盾斧斩」：锥形 reach 94 / 半角 70° → 半径 47、弧 2.44；精一盾缘崩钢屑，精二暖金副刃 + 金火星
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("sweep_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": 2.44, "W": [11, 13, 15][el] + (R - 47) // 8, "dir": d, "el": el, "dur": 0.3}, 0.34))
+    for R in (75, 95):   # S1「战意」：s1_r 150 → 冲击环 75；立起层下劈弧朝右（朝左游戏里翻转）
+        for el in T:
+            for ly in ("up", "gd"):
+                v.append(("slam_r%d_e%d_%s" % (R, el, ly), {"part": "slam", "layer": ly, "R": R, "el": el, "seed": 5}, 0.6))
+    v.append(("pulse_gd", {"part": "ring", "layer": "gd", "R": 45, "el": 1, "seed": 9}, 0.5))   # 般若之重 / 盾墙反震
+    for el in (1, 2):   # S2「荆棘」起手地刺：身后半圈 / 身前半圈分开（按脚底 y 排在星熊前后）
+        for half in ("back", "front"):
+            v.append(("thorns_e%d_%s_up" % (el, half), {"part": "thorns", "layer": "up", "half": half, "el": el, "seed": 4}, 0.62))
+        v.append(("thorns_e%d_gd" % el, {"part": "thorns", "layer": "gd", "el": el, "seed": 4}, 0.62))
+        for R in (40, 30):   # 热砂：荆棘 sand_r 80 → 40；热砂·落刃 blade_r 60 → 30（荆棘期间 ×1.3 ≈ 40）
+            v.append(("sand%d_e%d_gd" % (R, el), {"part": "sand", "layer": "gd", "R": R, "el": el, "seed": 6 + R, "_loop": True}, 0.4))
+    for L in (110, 140):   # S3「力之锯」直线斩：s3_len 220 / s3_w 50 → 110 / 25
+        for d in DIRS:
+            for ly in ("up", "gd"):
+                v.append(("rip_l%d_%s_d%d" % (L, ly, d), {"part": "rip", "layer": ly, "L": L, "W": 25, "dir": d, "el": 2, "seed": 3}, 0.6))
+    for S in (10, 16, 22):   # 后期剑气（growth/late_shape）：一次出手 1 / 2 / 3+ 道合成一道盾击冲击波，三帧（热白 / 常态 / 碎开）
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("qi_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.2))
+    for d in DIRS:   # 连携技「举盾推挡」：盾落点的立起大盾（方向件）+ 队长脚下的冲击环（140 → 70）
+        v.append(("shove_up_d%d" % d, {"part": "shove", "layer": "up", "dir": d, "el": 1, "seed": 8}, 0.52))
+    for ly in ("up", "gd"):   # 技能连携 v2「举盾」（link/v2 缺省开时实际用的连携）：举 1.0 秒 + 散 0.5 秒
+        v.append(("cover_%s" % ly, {"part": "cover", "layer": ly, "el": 1, "seed": 8}, 1.5))
+    v.append(("shove_gd", {"part": "shove", "layer": "gd", "R": 70, "el": 1, "seed": 8}, 0.52))
+    v.append(("s3cast_up", {"part": "s3cast", "layer": "up", "R": 30, "el": 2}, 0.56))
+    v.append(("s3cast_gd", {"part": "s3cast", "layer": "gd", "R": 50, "el": 2, "seed": 13}, 0.5))
+    v.append(("s3aura_gd", {"part": "s3aura", "layer": "gd", "R": 22, "el": 2, "_loop": True}, 0.4))
+    for ly in ("up", "gd"):   # 精二「般若回旋」锯盾（循环）
+        v.append(("saw_%s" % ly, {"part": "saw", "layer": ly, "R": 13, "el": 2, "_loop": True}, 0.4))
+    # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
+    for el in T:
+        v.append(("raw_sweep_e%d" % el, {"part": "sweep", "view": "raw", "R": 47, "span": 2.44, "W": [11, 13, 15][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
+        v.append(("raw_slam_e%d" % el, {"part": "slam", "layer": "gd", "view": "raw", "R": 75, "el": el, "seed": 5}, 0.6))
+    for el in (1, 2):
+        v.append(("raw_thorns_e%d" % el, {"part": "thorns", "view": "raw", "el": el, "seed": 4}, 0.62))
+    v.append(("raw_rip", {"part": "rip", "view": "raw", "L": 110, "W": 25, "dir": 0, "el": 2}, 0.6))
+    v.append(("raw_saw", {"part": "saw", "view": "raw", "R": 13, "el": 2, "_loop": True}, 0.4))
+    return v
+
+
+VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma}
+FX_ID = "water/ak-skadi-pp"
+PREFIX = ""
+ACC_RG = [(0x5f, 0xf0)]
+
+
 def render(key, opts, dur):
-    d = os.path.join(TMP, key)
+    d = os.path.join(TMP, FX_ID.split("/")[-1], key)
     os.makedirs(d, exist_ok=True)
-    o = dict(opts)
+    o = {k: x for k, x in opts.items() if not k.startswith("_")}
     o.setdefault("dur", min(0.46, dur - 0.04))
-    p = subprocess.run(["node", "tools/ak_layers.mjs", "water/ak-skadi-pp", "--out", d, "--fps", str(FPS), "--opts", json.dumps(o)], cwd=PFX, capture_output=True, text=True)
+    p = subprocess.run(["node", "tools/ak_layers.mjs", FX_ID, "--out", d, "--fps", str(FPS), "--opts", json.dumps(o)], cwd=PFX, capture_output=True, text=True)
     if p.returncode != 0:
         raise RuntimeError(key + ": " + p.stderr[-400:])
-    return key, d, dur
+    return key, d, dur, bool(opts.get("_loop", False))
 
 
-def bake(key, d, dur):
+def bake(key, d, dur, loop=False):
     meta = json.load(open(os.path.join(d, "meta.json")))
     fw, fh = meta["frameSize"]
     n = meta["frames"]
@@ -114,7 +174,7 @@ def bake(key, d, dur):
     ox, oy = meta["pivot"]
     col = np.asarray(Image.open(os.path.join(d, "color.png")).convert("RGBA")).astype(np.float32) / 255.0
     lit = np.asarray(Image.open(os.path.join(d, "light.png")).convert("RGB")).astype(np.float32) / 255.0
-    loop = key.startswith(("blade_", "raw_blade", "pool", "qi_"))
+    loop = loop or key.startswith(("blade_", "raw_blade", "pool", "qi_"))
     nf = min(n, int(round(dur * fps)))
     if loop:
         nf = int(round(0.4 * fps))   # 循环 0.4 秒 = 6 帧
@@ -148,7 +208,9 @@ def bake(key, d, dur):
             emit.append([])
             continue
         luma = c[..., 0] * 0.2126 + c[..., 1] * 0.7152 + c[..., 2] * 0.0722
-        acc = (np.abs(c[..., 0] - 0x5f / 255) < 0.02) & (np.abs(c[..., 1] - 0xf0 / 255) < 0.02)
+        acc = np.zeros(c.shape[:2], bool)
+        for ar, ag in ACC_RG:
+            acc |= (np.abs(c[..., 0] - ar / 255) < 0.02) & (np.abs(c[..., 1] - ag / 255) < 0.02)
         m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
         py, px = np.nonzero(m)
         idx = np.arange(len(px))
@@ -159,7 +221,7 @@ def bake(key, d, dur):
             r, g_, b = c[py[j], px[j], :3]
             pts.append([int(px[j]), int(py[j]), "%02x%02x%02x" % (int(r * 255), int(g_ * 255), int(b * 255))])
         emit.append(pts)
-    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s.png" % key), optimize=True)
+    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key)), optimize=True)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": loop, "emit": emit}
 
 
@@ -167,23 +229,28 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")
     ap.add_argument("--jobs", type=int, default=6)
+    ap.add_argument("--op", default="skadi", choices=sorted(OPS))
     a = ap.parse_args()
-    shutil.copy(SRC, os.path.join(PFX, "src", "fx", "water", "ak-skadi-pp.js"))
+    global FX_ID, PREFIX, ACC_RG
+    FX_ID, meta_name, PREFIX, ACC_RG = OPS[a.op]
+    OUT_META = os.path.join(ROOT, "game", "data", meta_name)
+    sub, fn = FX_ID.split("/")
+    shutil.copy(os.path.join(ROOT, "tools", "pixelfx_fx", sub, fn + ".js"), os.path.join(PFX, "src", "fx", sub, fn + ".js"))
     os.makedirs(OUT_ART, exist_ok=True)
     os.makedirs(TMP, exist_ok=True)
-    vs = [x for x in variants() if x[0].startswith(a.only)]
+    vs = [x for x in VARIANTS[a.op]() if x[0].startswith(a.only)]
     reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) and a.only else {}
     with ThreadPoolExecutor(a.jobs) as ex:
         rs = list(ex.map(lambda x: render(*x), vs))
-    for key, d, dur in rs:
-        k, m = bake(key, d, dur)
+    for key, d, dur, lp in rs:
+        k, m = bake(key, d, dur, lp)
         if m is None:
             print("空", k)
             continue
-        reg[k] = m
+        reg[PREFIX + k] = m
         print("%-22s %2d 帧 %3d×%3d emit %d" % (k, m["n"], m["w"], m["h"], max((len(e) for e in m["emit"]), default=0)))
     reg = {k: reg[k] for k in sorted(reg)}
-    reg["_doc"] = "docs/246 斯卡蒂转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
+    reg["_doc"] = ("docs/254 星熊" if a.op == "hoshiguma" else "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
     json.dump(reg, open(OUT_META, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("共 %d 件" % (len(reg) - 1))
 
