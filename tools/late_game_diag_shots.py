@@ -19,6 +19,9 @@ SHOT = os.path.join(ROOT, "build", "late_diag", "shots")
 SPF = 0.0659                       # 非实时平衡模式约 0.0659 局内秒 / 渲染帧（late_clutter.py 同口径）
 TARGETS = [180, 480, 570, 640]     # 3:00 / 8:00 / 9:30 后期满屏 / 10:40 最终 Boss 战
 LAYERS = ["full", "nofriend", "noenemy", "nofoe"]
+LOOK_LAYERS = ["noflash"]          # 走 --lookdbg=（render/look.gd）：noflash = 敌人受击白闪不画
+# 色彩与层级预算（docs/243 §6）用的全部分层：我方特效 / 敌人本体 / 敌方弹幕预警 / 环境颗粒 / 结晶 / 伤害数字 / 溟痕 / 地面光环叠层 / 地面 / 受击白闪
+BUDGET_LAYERS = ["full", "nofriend", "noenemy", "nofoe", "noamb", "nogem", "nonum", "nomire", "noaura", "noground", "noflash"]
 WORLD_BOX = (180, 150, 1100, 560)  # 中央战场区（避开顶栏 / 小地图 / 编队卡）
 
 
@@ -44,7 +47,9 @@ def shoot_one(job):
             "--balance", "--nodeath", "--seed=%d" % seed, "--op=" + op, "--maxt=%d" % (TARGETS[-1] + 5),
             "--shots=" + ",".join(str(f) for f in frames()), "--clutterlog", "--shotdir=" + d]
     args += EXTRA
-    if layer != "full":
+    if layer in LOOK_LAYERS:
+        args.append("--lookdbg=" + layer)
+    elif layer != "full":
         args.append("--clutterdbg=" + layer)
     p = subprocess.run(args, capture_output=True, text=True, timeout=5400)
     errs = [l for l in (p.stdout + p.stderr).splitlines() if "SCRIPT ERROR" in l or "Parse Error" in l]
@@ -58,6 +63,8 @@ def cmd_shoot(a):
     if a.relics:
         EXTRA.append("--relics=" + a.relics)
     TAG = a.tag
+    if a.targets:
+        TARGETS[:] = [int(x) for x in a.targets.split(",")]
     jobs = [(op, a.seed, ly) for op in a.ops.split(",") for ly in a.layers.split(",")]
     with ThreadPoolExecutor(a.jobs) as ex:
         for job, n, errs in ex.map(shoot_one, jobs):
@@ -141,6 +148,85 @@ def cmd_measure(a):
         print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()})
 
 
+def _hsv(F):
+    mx = F.max(axis=2)
+    mn = F.min(axis=2)
+    d = mx - mn
+    import numpy as np
+    h = np.zeros_like(mx)
+    r, g, b = F[..., 0], F[..., 1], F[..., 2]
+    nz = d > 1e-6
+    i = nz & (mx == r)
+    h[i] = ((g[i] - b[i]) / d[i]) % 6
+    i = nz & (mx == g) & ~(mx == r)
+    h[i] = (b[i] - r[i]) / d[i] + 2
+    i = nz & (mx == b) & ~(mx == r) & ~(mx == g)
+    h[i] = (r[i] - g[i]) / d[i] + 4
+    return h * 60.0, np.where(mx > 0, d / np.maximum(mx, 1e-6), 0), mx
+
+
+HUE_NAMES = [(345, 15, "红"), (15, 45, "橙"), (45, 70, "金黄"), (70, 160, "绿"), (160, 200, "青"), (200, 255, "蓝"), (255, 300, "紫"), (300, 345, "洋红")]
+
+
+def _hue_name(h):
+    for a, b, n in HUE_NAMES:
+        if (a > b and (h >= a or h < b)) or (a <= h < b):
+            return n
+    return "?"
+
+
+def cmd_budget(a):
+    """色彩与层级预算：同一帧各层（全透明差分）的占屏面积、主色、平均亮度及排名、红 / 洋红像素占比"""
+    import numpy as np
+    from PIL import Image
+    global TAG
+    TAG = a.tag
+    TARGETS[:] = [int(x) for x in a.targets.split(",")]
+    x0, y0, x1, y1 = WORLD_BOX
+    names = {"nofriend": "我方攻击特效", "noenemy": "敌人本体", "nofoe": "敌方弹幕 / 预警", "noamb": "环境颗粒 / 光尘",
+             "nogem": "经验结晶等掉落", "nonum": "伤害数字", "nomire": "溟痕", "noaura": "地面光环叠层", "noground": "地面纹理",
+             "noflash": "敌人受击闪白"}
+    res = []
+    for ti, t in enumerate(TARGETS):
+        f = frames()[ti * 2]
+        full = _load(a.op, a.seed, "full", f)
+        if full is None:
+            continue
+        F = full[y0:y1, x0:x1]
+        H, S, V = _hsv(F)
+        L = _luma(F)
+        red = ((H >= 330) | (H < 20)) & (S > 0.35) & (V > 0.25)
+        rows = []
+        for ly in BUDGET_LAYERS[1:]:
+            im = _load(a.op, a.seed, ly, f)
+            if im is None:
+                continue
+            m = np.abs(im[y0:y1, x0:x1] - F).max(axis=2) > 0.06
+            if m.sum() == 0:
+                rows.append({"layer": ly, "name": names[ly], "area_pct": 0.0})
+                continue
+            hs = H[m & (S > 0.2)]
+            hist = np.histogram(hs, bins=24, range=(0, 360))[0] if hs.size else np.zeros(24)
+            dom = _hue_name(float(np.argmax(hist) * 15 + 7.5)) if hs.size > 20 else "灰（低饱和）"
+            rows.append({"layer": ly, "name": names[ly], "area_pct": float(m.mean() * 100), "L_mean": float(L[m].mean()),
+                         "L_p90": float(np.percentile(L[m], 90)), "sat_mean": float(S[m].mean()), "dominant": dom,
+                         "red_pct_of_layer": float((red & m).sum() / m.sum() * 100), "share_of_red_px": float((red & m).sum() / max(1, red.sum()) * 100)})
+        for i, r in enumerate(sorted([r for r in rows if "L_mean" in r], key=lambda r: -r["L_mean"])):
+            r["L_rank"] = i + 1
+        meta = json.load(open(os.path.join(SHOT, "%s%s_s%d_full" % (a.op, TAG, a.seed), "shot_%d.json" % f)))
+        res.append({"t": meta.get("t"), "frame": f, "red_px_pct_frame": float(red.mean() * 100), "leader_scr": meta.get("leader_scr"),
+                    "enemies_on": meta.get("enemies_on"), "dcrowd": meta.get("dcrowd"), "fx_dim": meta.get("fx_dim"), "layers": rows})
+        Image.fromarray((full * 255).astype(np.uint8)).save(os.path.join(a.out, "budget_%s_%d.png" % (a.op, t)))
+        # 红色像素图：红 / 洋红像素原色、其余压灰，直观看「红从哪来」
+        g = np.repeat(L[..., None], 3, axis=2) * 0.35
+        g[red] = F[red]
+        vis = (full * 255).astype(np.uint8).copy()
+        vis[y0:y1, x0:x1] = (g * 255).astype(np.uint8)
+        Image.fromarray(vis).save(os.path.join(a.out, "budget_red_%s_%d.png" % (a.op, t)))
+    json.dump(res, open(os.path.join(a.out, "budget_%s.json" % a.op), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(json.dumps(res, ensure_ascii=False, indent=1))
+
+
 def main():
     p = argparse.ArgumentParser()
     sp = p.add_subparsers(dest="cmd")
@@ -152,12 +238,19 @@ def main():
     s.add_argument("--relics", default="")
     s.add_argument("--tag", default="")
     s.add_argument("--layers", default=",".join(LAYERS))
+    s.add_argument("--targets", default="")
+    b = sp.add_parser("budget")
+    b.add_argument("--op", default="logos")
+    b.add_argument("--tag", default="_user")
+    b.add_argument("--seed", type=int, default=11)
+    b.add_argument("--targets", default="586")
+    b.add_argument("--out", default=os.path.join(ROOT, "docs", "assets", "late_game_diag"))
     m = sp.add_parser("measure")
     m.add_argument("--ops", default="texas,exusiai,eyjafjalla,skalter")
     m.add_argument("--seed", type=int, default=11)
     m.add_argument("--out", default=os.path.join(ROOT, "docs", "assets", "late_game_diag"))
     a = p.parse_args()
-    {"shoot": cmd_shoot, "measure": cmd_measure}.get(a.cmd, lambda _: p.print_help())(a)
+    {"shoot": cmd_shoot, "measure": cmd_measure, "budget": cmd_budget}.get(a.cmd, lambda _: p.print_help())(a)
 
 
 if __name__ == "__main__":
