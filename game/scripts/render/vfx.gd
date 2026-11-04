@@ -9,6 +9,7 @@ const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/251 V4：帧条特效的伤害档标记（render/light_share）
 const UM = preload("res://scripts/ui_motion.gd")
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 颗粒层是否开着（grains）：开着时绿色水花 / 邪能贴图让位给专属色颗粒
@@ -312,6 +313,9 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 		e.squash = maxf(float(e.get("squash", 0.0)), sq)
 	if not dot and is_lead_hit(h):
 		lead_mark(e)
+	if not dot and g.optical_on and g.optical != null and LateRead2.on("light_share"):
+		# docs/251 V4：我方命中照地。档：终结技期间 3 / 技能、暴击、弱点、三档命中 2 / 其余 1（optical.hit_light 里再判终结技）
+		g.optical.hit_light(e.pos, _op_col(h), 2 if (skill or crit or weak or tier >= 3) else 1)
 	if tier > 0:
 		_tier_fx(e, h, tier)
 		_leader_kick(h, e, tier)
@@ -956,6 +960,7 @@ var spawn_op = null      # squad.update 在每名干员更新期间置为该干�
 static func _v5_skip(name: String) -> bool:
 	return name.contains("death") or name.contains("dissolve") or name.contains("kill") or name.contains("shatter") or name.contains("gem")
 var spawn_lead := false   # squad.update 在队长更新期间置真：这期间生成的帧条特效打上 lead（world 绘制时按突出队长档提亮，docs/139 §11）
+var spawn_tier := 1       # docs/251 V4：squad.update 按干员当时是否在技能期间置 2 / 1（纯画面标记，只在 render/light_share 开时写进特效）
 
 func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1), delay := 0.0) -> bool:
 	if _fxc != null:
@@ -972,6 +977,8 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	if _fxc != null:
 		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
+	if LateRead2.on("light_share"):
+		f["lt"] = 3 if (g.ult != null and g.ult.playing()) else spawn_tier   # docs/251 V4 照地光的伤害档：终结技 3 / 技能期间 2 / 普攻 1
 	if spawn_lead:
 		f["lead"] = true
 	if spawn_op != null and not ground and LateRead.on("v5") and not _v5_skip(name):
@@ -1400,7 +1407,7 @@ func mire_motes(m: Dictionary, budget: int) -> int:
 		var h2: float = fmod(absf(sin(cyc * 5.9 + k * 1.7 + sd * 1.3)) * 263.7, 1.0)
 		var off := Vector2.from_angle(h * TAU) * r * 0.7 * sqrt(h2)
 		var p: Vector2 = m.pos + Vector2(off.x, off.y * 0.55 - ph * 34.0 + sin(tt * 2.1) * 3.0)
-		var al: float = sin(ph * PI) * 0.55 * a
+		var al: float = sin(ph * PI) * 0.55 * a * g.world.env_dim   # docs/251 V10：怪群密集时环境光尘压暗（关时 env_dim 恒 1）
 		var sz: float = 2.0 if k % 2 == 0 else 3.0
 		_wv().tb_quad(p, p + Vector2(sz, 0), p + Vector2(sz, sz), p + Vector2(0, sz), Color(1.1, 0.75, 1.6, al))
 	return n

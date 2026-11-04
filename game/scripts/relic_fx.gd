@@ -84,6 +84,7 @@ var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
 var stakes: Array = []     # 防暴桩：{pos, life}
 ## 放置物第二版画法（render/placeable_v2，docs/246）：只画不改玩法
 const PlaceDraw = preload("res://scripts/render/placeable_draw.gd")
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/251 V9：遥乡 / 旗帜地圈只画边
 var pdraw = null
 # ---- docs/74（用户 10-12）：吸血 / 击杀回复 / 源石锭熔铸
 var steal_used := 0.0      # 吸血：本秒已回复（未乘受治疗加成），随 sp_budget_t 每秒清零
@@ -1156,9 +1157,10 @@ func draw() -> void:
 		var bl2: float = 0.5 + 0.5 * sin(g.t * 2.5)
 		var inside := in_home()
 		g.draw_set_transform(home_pos, 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, HOME_R, Color(0.4, 1.0, 0.85, 0.07 + 0.05 * bl2 + (0.06 if inside else 0.0)))
-		g.draw_arc(Vector2.ZERO, HOME_R, 0.0, TAU, 48, Color(0.55, 1.0, 0.9, 0.45 + 0.25 * bl2), 2.0)
-		g.draw_arc(Vector2.ZERO, HOME_R * (0.35 + 0.6 * fmod(g.t * 0.4, 1.0)), 0.0, TAU, 40, Color(0.7, 1.0, 0.95, 0.35 * (1.0 - fmod(g.t * 0.4, 1.0))), 1.5)
+		g.draw_circle(Vector2.ZERO, HOME_R, Color(0.4, 1.0, 0.85, LateRead2.fill_a(0.07 + 0.05 * bl2 + (0.06 if inside else 0.0))))   # docs/251 V9：填充封顶 0.04（边本来就呼吸）
+		var rv: float = LateRead2.ring_vis()
+		g.draw_arc(Vector2.ZERO, HOME_R, 0.0, TAU, 48, Color(0.55, 1.0, 0.9, (0.45 + 0.25 * bl2) * rv), 2.0)
+		g.draw_arc(Vector2.ZERO, HOME_R * (0.35 + 0.6 * fmod(g.t * 0.4, 1.0)), 0.0, TAU, 40, Color(0.7, 1.0, 0.95, 0.35 * (1.0 - fmod(g.t * 0.4, 1.0)) * rv), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 旗帜：金色地圈 + 旗杆与飘动的三角旗
 	for id in zones:
@@ -1169,8 +1171,8 @@ func draw() -> void:
 		var ins := in_zone(id)
 		var wv: float = sin(g.t * 6.0) * 4.0
 		g.draw_set_transform(z.pos, 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, zr, Color(1.0, 0.8, 0.4, 0.06 + (0.06 if ins else 0.0)))
-		g.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(1.0, 0.85, 0.5, 0.5), 2.0)
+		g.draw_circle(Vector2.ZERO, zr, Color(1.0, 0.8, 0.4, LateRead2.fill_a(0.06 + (0.06 if ins else 0.0))))   # docs/251 V9：填充封顶 0.04、边呼吸（站在里面时边更亮）
+		g.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(1.0, 0.85, 0.5, (0.7 * LateRead2.ring_vis() if ins and LateRead2.on("ground_ring_edge") else 0.5 * LateRead2.edge_breath(g.t, float(z.pos.x) * 0.003))), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		g.draw_line(z.pos, z.pos + Vector2(0, -54), Color(0.5, 0.4, 0.3), 2.0)
 		g.draw_colored_polygon(PackedVector2Array([z.pos + Vector2(0, -54), z.pos + Vector2(26 + wv, -46), z.pos + Vector2(0, -38)]), Color(1.0, 0.75, 0.3, 0.9))

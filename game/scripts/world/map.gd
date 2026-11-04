@@ -619,7 +619,7 @@ func update_snow(dt: float, vs: Vector2) -> void:
 func draw_snow() -> void:
 	var sc: Array = theme.get("snow", {}).get("color", [0.8, 0.9, 1.0])
 	# 后期降噪（render/declutter snow_k，缺省 1 = 不变）：拥挤时浮游颗粒变淡；--clutterdbg=noamb 量测时不显示
-	var sk: float = 0.0 if g.world._dbg_amb else Dc.at("snow_k", g.world.dcrowd)
+	var sk: float = 0.0 if g.world._dbg_amb else Dc.at("snow_k", g.world.dcrowd) * g.world.env_dim   # env_dim：docs/251 V10 环境颗粒压暗
 	for s in snow:
 		var c := Color(sc[0], sc[1], sc[2], (0.25 + 0.15 * sin(s.s * 2.0)) * sk)
 		g.draw_rect(Rect2((s.p + Vector2(sin(s.s) * 6.0, 0)).round(), Vector2(2, 2)), c)
@@ -954,8 +954,9 @@ func draw_mire(m: Dictionary) -> void:
 	if m.has("fade"):
 		a *= clampf(float(m.fade) / maxf(0.01, float(m.get("fade_len", Bal.v("enemy/mire_fade", 1.5)))), 0.0, 1.0)   # 被挤掉的溟痕慢慢淡出（docs/155）；灯标驱散用 fade_len（扫到前满不透明、到点 0.25 秒碎散）
 	var t: float = g.t
+	var ek: float = g.world.env_dim   # docs/251 V10（render/crowd_env_dim）：怪群密集时溟痕本体压暗（判定圈不压）；关时恒 1
 	if mire_v2:
-		draw_mire_cells(_mire_disc(m), int(t * 2.0 + m.seed) % 2, Color(1, 1, 1, a))
+		draw_mire_cells(_mire_disc(m), int(t * 2.0 + m.seed) % 2, Color(ek, ek, ek, a))
 		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a) * mire_tint(), 36)
 		return
 	var mt: Texture2D = tex.get(mire_cfg().get("tex", "terrain_mire"))
@@ -963,7 +964,7 @@ func draw_mire(m: Dictionary) -> void:
 		# 溟痕贴图（2 帧脉动）：按判定半径缩放，外圈画判定提示
 		var fw := mt.get_width() / 2
 		var sz := Vector2(m.r * 2.3, m.r * 2.3)
-		g.draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, a) * mire_tint())
+		g.draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(ek, ek, ek, a) * mire_tint())
 		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a) * mire_tint(), 36)   # 判定圈进 world 的无贴图合批，调用方画完所有溟痕后一次提交（性能 9/30）
 		return
 	for k in 7:
