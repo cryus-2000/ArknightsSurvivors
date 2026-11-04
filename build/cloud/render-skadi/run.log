@@ -1,0 +1,22 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2158 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py demo
+   rc=0  1532 秒
+三栏 cmp_s1_e1 帧 41
+三栏 cmp_s1_e2 帧 37
+三栏 cmp_s2_e1 帧 4
+三栏 cmp_s2_e2 帧 0
+三栏 cmp_s3_e2 帧 58
+== pxplane_shots.py rec --seed 11 --from 480 --secs 20
+   rc=0  849 秒
+('rec0_s11_480', 499, [], False)
+('rec1_s11_480', 499, [], False)
+录像 build/cloud/render-skadi/media/late_8m00_onoff.mp4 600 帧
+rec0_s11_480 vs rec1_s11_480：TRACE 499 / 499 行，逐行一致
+== pxplane_shots.py trace --seed 23 --maxt 300 --extra "--elite2 --sptest"
+   rc=0  228 秒
+('trace0_s23', 301, [], False)
+('trace1_s23', 301, [], False)
+trace0_s23 vs trace1_s23：TRACE 301 / 301 行，逐行一致
+media：23 个文件，67M

@@ -1,0 +1,67 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXRLOG skadi shape 30
+PXPLOG 大剑 1.40 30
+FXRLOG skadi shape 33
+PXPLOG 大剑 1.40 33
+FXRLOG skadi shape 37
+PXPLOG 大剑 3.14 37
+FXRLOG skadi shape 52
+PXPLOG 大剑 1.40 52
+FXRLOG skadi shape 55
+PXPLOG 大剑 1.40 55
+FXRLOG skadi shape 59
+PXPLOG 大剑 3.14 59
+FXRLOG skadi shape 74
+PXPLOG 大剑 1.40 74
+FXRLOG skadi shape 74
+PXPLOG 反手斩 1.40 74
+FXRLOG skadi shape 77
+PXPLOG 大剑 1.40 77
+FXRLOG skadi shape 81
+PXPLOG 大剑 3.14 81
+FXRLOG skadi shape 96
+PXPLOG 大剑 1.40 96
+FXRLOG skadi shape 99
+PXPLOG 大剑 1.40 99
+FXRLOG skadi shape 103
+PXPLOG 大剑 3.14 103
+FXRLOG skadi shape 118
+PXPLOG 大剑 1.40 118
+FXRLOG skadi shape 121
+PXPLOG 大剑 1.40 121
+FXRLOG skadi shape 125
+PXPLOG 大剑 3.14 125
+FXRLOG skadi shape 141
+PXPLOG 破浪下劈 1.05 141
+FXRLOG skadi shape 141
+PXPLOG 反手斩 1.40 141
+FXRLOG skadi shape 144
+PXPLOG 大剑 1.40 144
+FXRLOG skadi shape 148
+PXPLOG 大剑 3.14 148
+FXRLOG skadi shape 162
+PXPLOG 大剑 1.40 162
+FXRLOG skadi shape 165
+PXPLOG 大剑 1.40 165
+FXRLOG skadi shape 169
+PXPLOG 大剑 3.14 169
+ERROR: 4 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+ERROR: Texture with GL ID of 36: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 37: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1435: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 43 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 19 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
