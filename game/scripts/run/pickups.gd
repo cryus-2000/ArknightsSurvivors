@@ -51,6 +51,7 @@ func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 	g.gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false, "mag_t": 0.0,
 		"z": 6.0, "vz": r.randf_range(260.0, 300.0) if special else r.randf_range(190.0, 260.0), "vel": sp * (0.5 if special else 1.1),
 		"special": special, "landed": false, "age": 0.0, "seed": r.randf() * TAU, "out_t": 0.0})
+	_cap_count_size = -1 # Appends also invalidate same-size demo/reset replacements.
 	if src != "":
 		g.gems[-1]["src"] = src   # 宝箱来源（遥测，docs/191）
 
