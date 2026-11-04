@@ -191,7 +191,7 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 		for e in d.get("es", []):
 			_react(e, col, heavy)
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 三档并排图对齐用（tools/fx_canon_shots.py）：事件发生的引擎帧
-		print("FXRLOG %s %s%s %d" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames()])
+		print("FXRLOG %s %s%s %d %.3f" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames(), float(g.t)])   # 第 5 列 = 游戏时间（实局找事件时刻用，docs/255）
 	if pxm > 0:
 		Pxp.of(g).ev(o, kind, d)   # 转平面试验（docs/246）
 		return
