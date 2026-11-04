@@ -486,7 +486,8 @@ function sawGround(p, t, o, C) {
   p.shade(-R, -R * SY, R, R * SY, (x, y, out) => {
     const d = Math.hypot(x / R, y / (R * SY));
     if (d > 1) return;
-    out.c = C[0]; out.a = d < 0.7 ? 0.5 : 0.3;
+    if (d > 0.75) return;
+    out.c = C[1]; out.a = 1;   // 实色暗椭圆（半透明会被抖成网点）
   });
 }
 

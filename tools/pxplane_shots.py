@@ -27,7 +27,7 @@ LOGS = os.path.join(BUILD, "logs")
 OPS = {
     "skadi": {"name": "斯卡蒂", "modes": {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}, "off": {0: 3, 1: 12, 2: 10}},
     # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
-    "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 3, 1: 3, 2: 10}},
+    "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
 }
 OP = "skadi"
 MODE_NAME = OPS[OP]["modes"]
@@ -35,6 +35,7 @@ MODE_KEY = {3: "atk", 0: "s1", 1: "s2", 2: "s3"}
 MODE_TIERS = {3: [0, 1, 2], 0: [0, 1, 2], 1: [1, 2], 2: [2]}
 COLS = [(0, "① 当前游戏原样"), (2, "② pixelfx 原样直接贴（旧做法）"), (1, "③ 转平面 + 统一像素 + 吃光 + Noita")]
 FONT = "C:/Windows/Fonts/msyh.ttc"
+REUSE = False
 
 
 def font(sz):
@@ -44,6 +45,10 @@ def font(sz):
 def shoot(px, tier, mode, start, every, n, w=1280, h=720, extra=(), suffix=""):
     tag = "e%d_m%d_px%d%s" % (tier, mode, px, suffix)
     fdir = os.path.join(BUILD, "demo", tag)
+    if REUSE and len(glob.glob(os.path.join(fdir, "f_*.png"))) >= n:   # --reuse：只重拼图，不再开 Godot
+        lg = os.path.join(LOGS, "demo_" + tag + ".log")
+        out = open(lg, encoding="utf-8").read() if os.path.exists(lg) else ""
+        return tag, sorted(glob.glob(os.path.join(fdir, "f_*.png"))), [], [l.split() for l in out.splitlines() if l.startswith("FXRLOG")]
     shutil.rmtree(fdir, ignore_errors=True)
     os.makedirs(fdir)
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
@@ -84,7 +89,7 @@ def demo(a):
     for mode in [int(x) for x in a.modes.split(",")]:
         for tier in MODE_TIERS[mode]:
             for px, _ in COLS:
-                tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, a.n)
+                tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, a.n, extra=a.extra.split())
                 print(tag, len(frames), "帧", errs[:2], flush=True)
                 res[(tier, mode, px)] = frames
                 if px == 1:
@@ -107,6 +112,8 @@ def demo(a):
                 cand = [(fe + OFF[mode] - f0) // a.every for fe in evs if (fe + OFF[mode] - f0) // a.every >= 0]
                 if cand and cand[0] < n:
                     k = cand[0]
+            if a.force_k >= 0:
+                k = min(a.force_k, n - 1)   # --force_k：指定帧（自动对齐挑不到那一招时）
             # 三栏：同一帧号（同一时刻、同一画面）
             ims = [Image.open(fr[px][k]).convert("RGB") for px, _ in COLS]
             W, H = ims[0].size
@@ -135,7 +142,7 @@ def demo(a):
             crop.save(os.path.join(out, base + "_x2.png"))
             # 三档并排：转平面版，命中峰前后 5 帧
             idx = [max(0, min(n - 1, k + d)) for d in (-2, -1, 0, 2, 5)]
-            row = [Image.open(fr[1][j]).convert("RGB").crop((x0 - 160 if x0 >= 160 else 0, max(0, y0 - 90), min(W, x0 + cw + 160), min(H, y0 + ch + 90))) for j in idx]
+            row = [Image.open(fr[1][j]).convert("RGB").crop((x0, y0, x0 + cw, y0 + ch)).resize((cw * 2, ch * 2), Image.NEAREST) for j in idx]   # 2 倍局部（最近邻）
             tiers_up.append((tier, row))
             print("三栏", base, "帧", k, flush=True)
         if tiers_up:
@@ -212,6 +219,7 @@ def diff(a, b):
 
 
 def main():
+    global OP, MODE_NAME, BUILD, LOGS, REUSE
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps"])
     ap.add_argument("--out", default=os.path.join(BUILD, "out"))
@@ -228,13 +236,16 @@ def main():
     ap.add_argument("--pxs", default="0,1")
     ap.add_argument("--op", default="skadi", choices=sorted(OPS))
     ap.add_argument("--crf", type=int, default=20)
+    ap.add_argument("--lead", default="", help="rec / trace：另找一名队长，--op 的干员当队员（拍连携技用）")
+    ap.add_argument("--reuse", action="store_true")
+    ap.add_argument("--force_k", type=int, default=-1)
     a = ap.parse_args()
-    global OP, MODE_NAME, BUILD, LOGS
+    REUSE = a.reuse
     OP, MODE_NAME = a.op, OPS[a.op]["modes"]
     if a.op != "skadi":
         BUILD = os.path.join(ROOT, "build", "pxplane_" + a.op)
         LOGS = os.path.join(BUILD, "logs")
-    base = ["--seed=%d" % a.seed, "--op=" + a.op] + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
+    base = ["--seed=%d" % a.seed] + (["--op=" + a.lead, "--squad=" + a.op] if a.lead else ["--op=" + a.op]) + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
     if a.cmd == "demo":
         demo(a)
         return
