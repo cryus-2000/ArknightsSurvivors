@@ -52,14 +52,31 @@
 - 帧条：`game/art/fx/pxp/pxp_hsg_*.png` + `game/data/pxp_hoshiguma.json`；效果源 `tools/pixelfx_fx/melee/ak-hoshiguma-pp.js`；重新生成 `python tools/pxplane_bake.py --op hoshiguma`（之后 Godot `--import` 一次）。颜色组 `data/fx_pxplane/hoshiguma.json`（只给颗粒 / 照地光 / 受击反应）。
 - 看图：`python tools/pxplane_shots.py demo|rec|trace --op hoshiguma [--lead texas]`（输出在 `build/pxplane_hoshiguma/`；`--lead` 让别人当队长、星熊当队员，拍连携用；`--reuse` 只重拼图；`--force_k` 指定三栏取哪一帧）。事件对齐：`fx/recipe_log = 1` 时打印 `PXPLOG hsg <事件> <招> <游戏时间>`。
 
-## 4. 交付
+## 4. 交付（本机 `Claude outputs/pxplane_hoshiguma_1105/`，不进 git）
 
-（见 §6 填写后的清单）
+- 三栏对比 `cmp_<招>_e<档>.png`（① 当前游戏 / ② 旧做法原样贴 / ③ 转平面）+ 2 倍局部 `_x2.png`：atk（E0 / E1 / E2）、s1（E0 / E1 / E2）、s2（E1 / E2）、s3（E2）。图鉴演示连拍，开着 `growth/late_shape = 1`，并把 `shape_lv/lv1` 调到 1（只为演示里精零也有剑气；演示等级低，正式局要队伍 16 级）。
+- `cmp_link.png` / `cmp_link_x2.png`：连携技「举盾」三栏，实战局（德克萨斯当队长、星熊当队员，种子 11，`--elite2 --sptest`），30.19 秒那次出手后 8 帧。
+- 三档并排 `tiers_atk / s1 / s2 / s3.png`（只转平面版，2 倍局部，每行一档、5 帧）。
+- `late_8m00_onoff.mp4`：同种子 11、8:00 起 20 秒，左关右开，30 帧原速，26.8 MB；德克萨斯当队长、星熊当队员（为了拍到连携），开 `growth/late_shape = 1`。
+- ② 旧做法列：普攻 / 力之锯 / 飞盾是同一形状按旧做法（正圆、光晕烤进颜色、小数缩放旋转、盖在最上层）贴；S1 / 荆棘 / 连携只贴了冲击环 / 地刺的旧做法版，没有立起件（对照用，不是旧 pixelfx 帧条原件）。
 
 ## 5. 验收
 
-（待填）
+| 项 | 结果 |
+|---|---|
+| TRACE：德克萨斯队长 + 星熊，种子 11，`--elite2 --sptest`，`growth/late_shape = 1`，到 5:00，`fx/px_plane` = 0 / 1 / 2（GCP） | 301 行，0 vs 1、0 vs 2 逐行一致 |
+| TRACE：录像那一局（种子 11，8:00 起 20 秒，`--realtime`，`late_shape = 1`），0 vs 1（GCP） | 501 行逐行一致 |
+| TRACE：连携那一局（种子 11，24 秒起 40 秒），0 / 1 / 2（GCP） | 65 行，两两一致 |
+| 脚本错误 | 演示 33 局（本机）+ GCP 8 局，SCRIPT ERROR 0 条 |
+
+截图在本机出（11-05 协调人改规矩前），TRACE / 录像 / 连携三栏在 GCP 出（docs/256，`render-hoshiguma-1105b / c`）。
 
 ## 6. 看图判断（Claude）
 
-（待填）
+- **成了的**：普攻是一道钝头青绿刀痕，和斯卡蒂的针尖月牙一眼可分；S1 下劈弧 + 裂网冲击环 + 碎石是最有力量感的一招，三档差别最清楚（精一尘墙、精二裂缝熔成暖金）；力之锯白热锯线 → 青 → 暗沟的冷却读得清；飞盾改成鬼面盾后一眼是盾；连携「举盾」大盾立在队长身侧，比原来的琥珀贴图更贴本作像素格。
+- **还不够的**：
+  - 普攻 E0 → E1 的差别只在盾缘钢屑，1 倍下不明显；E2 的质变主要靠「般若回旋」飞盾，不是刀痕本身。
+  - 荆棘地刺在怪群里偏小，被白色伤害数字和受击闪白盖住；热砂只画边，后期密集时容易看不见。
+  - 剑气（盾击冲击波）1 倍下只有十来个美术像素高，远处读成一道细弧，力量感弱于斩击本体。
+  - 连携「举盾」盾面 64 世界像素高，比原来的琥珀贴图小一圈。
+- 结论：做法沿用斯卡蒂口径没问题；建议用户先看 S1 / 力之锯 / 飞盾 / 连携，普攻精一差别和荆棘体量可能要再加。
