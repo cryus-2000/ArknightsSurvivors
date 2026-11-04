@@ -322,6 +322,8 @@ func _draw_body() -> void:
 		g.victory.draw_hud(vs))   # 胜利收尾：暖金光环 + 「探索完成」（run/victory_flow.gd，docs/62 §3.21c）   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
 	if g.ult != null:
 		_layer("ult_cut", null, func(): ult.draw_cutins(vs))   # 终结技立绘切入条带（压在各块之上、整屏状态界面之下）
+	if g.elite_moment != null and g.elite_moment.on(g):
+		g.elite_moment.draw_hud(vs)   # 精英化时刻横幅（docs/249 §2）
 	g.pick.draw(vs)   # 指点（示意原型）：已下达指令的标记 + 选点阶段的准星
 	if g.ult != null:
 		g.ult.draw_aim(vs)   # 终结技慢动作瞄准 v2（ult/aim，docs/209 §3）：PRTS 范围格 + 信息板，同指点一套画法
