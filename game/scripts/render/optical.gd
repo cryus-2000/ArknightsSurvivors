@@ -193,7 +193,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 ## 外部来源（通用接口，「我方份额内再分配」）：share_source(名字, Callable(vr: Rect2, n: int) -> Array 候选, quota)，
 ##   候选同上格式（前 4 位必填，阵营 / 档缺省按我方普攻）；fx_recipe 合并时把 FxRecipe.lights_for 登记成 "recipe"、quota = fx/recipe_dl（见 docs/247 §5）
 var share_sources := {}   # 名字 → [Callable, quota]
-var hit_lights: Array = []   # 三档命中（vfx._tier_fx）登记的短命照地光：[pos, r, col, t0, life, tier]；只在 light_share 开时登记
+var hit_lights: Array = []   # 我方命中（vfx.hit_react）登记的短命照地光：[pos, r, col, t0, life, tier]；只在 light_share 开时登记
 const HIT_LIGHT_MAX := 24
 var dl_stat := {"n": 0, "ally": 0, "foe": 0, "hit": 0, "ult": 0, "heavy": 0, "ext": 0, "cand_ally": 0, "cand_foe": 0}   # 量测（--clutterlog 写进 shot_*.json）
 
@@ -205,12 +205,13 @@ func share_source(name: String, fn: Callable, quota: int) -> void:
 		share_sources.erase(name)
 
 
-## vfx._tier_fx 调：二 / 三档命中在命中点挂一盏 0.12 秒的照地光（我方，档 = 命中档；终结技期间的命中记终结技档）
+## vfx.hit_react 调：我方每一下非持续伤害命中在命中点挂一盏 0.12 秒的照地光（只留最近 HIT_LIGHT_MAX 盏）；
+## 档 tier：2 = 技能 / 暴击 / 弱点 / 三档命中，1 = 普攻；终结技期间一律记 3。半径 light_share_hit_r × (0.8 / 1 / 1.3)
 func hit_light(pos: Vector2, col: Color, tier: int) -> void:
-	if tier < 2 or not LateRead2.on("light_share"):
+	if not LateRead2.on("light_share"):
 		return
 	var lt: int = 3 if (g.ult != null and g.ult.playing()) else tier
-	hit_lights.append([pos, LateRead2.k("light_share_hit_r", 64.0) * (1.25 if tier >= 3 else 1.0), col, g.t, 0.12, lt])
+	hit_lights.append([pos, LateRead2.k("light_share_hit_r", 64.0) * [0.8, 0.8, 1.0, 1.3][clampi(lt, 0, 3)], col, g.t, 0.12, lt])
 	if hit_lights.size() > HIT_LIGHT_MAX:
 		hit_lights.pop_front()
 
@@ -221,7 +222,7 @@ func _share_pick(cand: Array, nmax: int, vr: Rect2) -> Array:
 	for L in hit_lights:
 		if vr.has_point(L[0]):
 			var lf: float = 1.0 - (now - float(L[3])) / float(L[4])
-			cand.append([(0.55 + 0.2 * (int(L[5]) - 2)) * (0.5 + 0.5 * lf), L[0], float(L[1]), L[2], 0, int(L[5]), false, true])
+			cand.append([[0.0, 0.4, 0.6, 0.8][clampi(int(L[5]), 0, 3)] * (0.5 + 0.5 * lf), L[0], float(L[1]), L[2], 0, int(L[5]), false, true])
 	var na: int = clampi(roundi(float(nmax) * LateRead2.k("light_share_ally", 0.5)), 0, nmax)
 	var picked: Array = []
 	var ext := 0

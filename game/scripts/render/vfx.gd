@@ -312,6 +312,9 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 		e.squash = maxf(float(e.get("squash", 0.0)), sq)
 	if not dot and is_lead_hit(h):
 		lead_mark(e)
+	if not dot and g.optical_on and g.optical != null and LateRead2.on("light_share"):
+		# docs/247 V4：我方命中照地。档：终结技期间 3 / 技能、暴击、弱点、三档命中 2 / 其余 1（optical.hit_light 里再判终结技）
+		g.optical.hit_light(e.pos, _op_col(h), 2 if (skill or crit or weak or tier >= 3) else 1)
 	if tier > 0:
 		_tier_fx(e, h, tier)
 		_leader_kick(h, e, tier)
@@ -379,8 +382,6 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 		return
 	var col: Color = _op_col(h)
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
-	if tier >= 2 and g.optical_on and g.optical != null:
-		g.optical.hit_light(e.pos, col, tier)   # docs/247 V4：二 / 三档命中照地（render/light_share 关时直接返回）
 	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
 	var lead: bool = g.ch != null and str(h.get("op", "")) == str(g.ch.id)
 	if lead and g.world.lead_lv > 0:
