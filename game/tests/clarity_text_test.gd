@@ -28,7 +28,7 @@ func _run() -> void:
 		if not Hud._damage_label(row[1]):
 			continue
 		var w: float = font.get_string_size(row[1], HORIZONTAL_ALIGNMENT_LEFT, -1, row[2]).x
-		var box := Rect2(row[0].x + (120.0 - w) * 0.5 - 5, row[0].y - font.get_ascent(row[2]) - 5, w + 10, font.get_height(row[2]) + 10)
+		var box := Rect2(row[0].x + (Hud.FT_BOX - w) * 0.5 - 5, row[0].y - font.get_ascent(row[2]) - 5, w + 10, font.get_height(row[2]) + 10)
 		assert(not box.intersects(body), "damage still covers leader")
 		assert(Rect2(Vector2.ZERO, Vector2(800, 600)).encloses(box), "text moved off screen")
 		for other in damage_boxes:

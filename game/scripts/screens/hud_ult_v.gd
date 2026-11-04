@@ -118,11 +118,14 @@ func _head_q() -> Array:
 func draw(vs: Vector2) -> void:
 	_track_full()
 	_track_link()
+	var console: bool = u.h.v3 != null and u.h.v3.on()   # 指挥台（docs/222 §18）：头像 + 能量环 + 等级在正下方那台里画，左上 B′ 徽记与就绪小牌不画
 	if ver() > 0:
 		if g.touch.active:
 			_draw_touch_min(vs)   # 触屏：能量只在 Q 键上
-			if ver() == 2:
+			if ver() == 2 and not console:
 				_draw_b(true)   # B′ 徽记（头像 + 等级）触屏也画，不画能量弧
+		elif console:
+			pass
 		else:
 			match ver():
 				1:
@@ -131,8 +134,8 @@ func draw(vs: Vector2) -> void:
 					_draw_b()
 				3:
 					_draw_c()
-		_draw_ready()
-		if ver() == 2:
+		_draw_ready()   # 队长脚下的就绪光圈（世界里），指挥台也保留
+		if ver() == 2 and not console:
 			_draw_ready_toast(vs)
 		_draw_edge(vs)
 	if link_cue() > 0:

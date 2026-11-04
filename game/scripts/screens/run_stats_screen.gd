@@ -599,7 +599,7 @@ func _join_text(row: Dictionary, long := false) -> String:
 	elif float(row.join_t) < 1.0:
 		jt = "开局"
 	else:
-		jt = fmt_t(float(row.join_t)) + (" 加入编队" if long else " 加入")
+		return RunStats.join_label(row)   # 「m:ss 入队 · m:ss 离队」，结算编队输出同一说法
 	if float(row.left_t) >= 0.0:
 		jt += " · %s 离队" % fmt_t(float(row.left_t))
 	return jt
@@ -896,7 +896,7 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 			if bool(row.leader) and fill >= 1.0 and not UM.rm():
 				bh = 6.0 + 2.0 * UM.out_back((t - float(_bar_t0[i]) - float(_bar_dur[i])) / UM.T2, 1.4)   # 队长落位后条加粗一点
 			_bar(Rect2(bx, cy - bh * 0.5, bw, bh), [[1.0, row.col]], fill * float(row.share) / maxf(0.001, vmax))
-		_p(Vector2(rr.end.x - 12.0, cy), "%d%%" % int(row.pct), 2.0, ink, 2)   # 终值（不跟着条滚：截图不会截到 0%）
+		_p(Vector2(rr.end.x - 12.0, cy), RunStats.pct_label(row), 2.0, ink if float(row.dmg) > 0.0 else sub, 2)   # 终值（不跟着条滚：截图不会截到 0%）；<1% / 0 伤害写「—」（RunStats.pct_label）
 
 
 ## 藏品格（右上，按件数定高；放不下时缩格）：等级点、遭诅 / 升华角标；返回格子底边 y

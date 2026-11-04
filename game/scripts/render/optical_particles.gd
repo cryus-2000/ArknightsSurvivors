@@ -11,6 +11,7 @@ const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Dc = preload("res://scripts/render/declutter.gd")
+const LateRead2 = preload("res://scripts/render/late_read2.gd")
 
 const DEBRIS_PTS := 40        # 每只怪最多取多少个像素当碎屑
 const DEBRIS_POOL := 20       # 同时在飞的击杀碎屑组数（中画质 10）
@@ -590,8 +591,8 @@ func tier_burst(pos: Vector2, col: Color, tier: int) -> void:
 		var now := Time.get_ticks_msec() / 1000.0
 		_near_load = _near_load * exp(-(now - _near_t) / 0.5) + tier * 0.34
 		_near_t = now
-		if _near_load > Bal.v("render/optical_local_bursts", 4.0):
-			a = 0.4
+		if _near_load > Bal.v("render/optical_local_bursts", 4.0) and not (tier >= 3 and LateRead2.on("light_share")):
+			a = 0.4   # docs/251 V4：light_share 开时三档（重击）命中迸溅不吃局部喷发预算
 	p.global_position = pos
 	p.modulate = Color(col.r, col.g, col.b, a)
 	p.visible = true

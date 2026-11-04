@@ -37,7 +37,7 @@ func effective_max_fps() -> int:
 	return 30 if fps_lock30 else 60
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
-var dmg_numbers := true
+var dmg_numbers := false   # 11-05 用户「把字什么的都缩小吧，并且默认关闭」：新档缺省关；老档里存过的值照旧读
 var hitstop := true
 var boss_intro := true   # Boss 登场演出（黑边 + 名片，纯画面；screens/boss_intro.gd，用户 10-10）
 var reduce_motion := false   # 减少动态效果（docs/58 §9 / §11）：界面位移 / 缩放 / 扫入 / 浪幕直接到终态，只留 ≤ 120 ms 淡入淡出

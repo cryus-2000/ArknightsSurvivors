@@ -314,7 +314,7 @@ func update(dt: float) -> void:
 			e.set_t = maxf(0.0, e.set_t - dt)
 			if e.set_t == 0.0:
 				e.weak = D.ENEMIES[e.type].get("weak", "")
-				g.vfx.add_text(e.pos + Vector2(0, -24), "架起结束", Color(0.75, 0.8, 0.9), 13)
+				g.vfx.add_alert(e.pos + Vector2(0, -24), "架起结束", Color(0.75, 0.8, 0.9), 13)
 		e.flash -= dt
 		e.jhit -= dt
 		var stun0: float = e.stun
@@ -465,7 +465,7 @@ func update(dt: float) -> void:
 						e.set_done = true
 						e.set_t = 20.0
 						e.weak = "法术"
-						g.vfx.add_text(e.pos + Vector2(0, -24), "架起 · 法术弱点", Color(0.75, 0.8, 0.9), 14)
+						g.vfx.add_alert(e.pos + Vector2(0, -24), "架起 · 法术弱点", Color(0.75, 0.8, 0.9), 14)
 					if e.set_t > 0.0:
 						pass
 					elif dist > e.range * 0.85:
@@ -575,7 +575,7 @@ func _devour(e: Dictionary, o: Dictionary) -> void:
 	e.r = min(e.r + 1.5 * esc, 32.0 * esc)
 	e.xp += o.xp
 	o.dead = true
-	g.vfx.add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
+	g.vfx.add_alert(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
 
 
 ## 喂食目标（feed_to_id，伊祖米克）还在且未死；已被清理的 by_id 返回 null，按已死算（docs/101 B5）
@@ -590,7 +590,7 @@ func final_target_valid(e: Dictionary) -> bool:
 func morph(e: Dictionary) -> void:
 	e.dead = true
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
-	g.vfx.add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
 	for k in 2:
 		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng_enemy.randi() % 3], e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 20.0)
 

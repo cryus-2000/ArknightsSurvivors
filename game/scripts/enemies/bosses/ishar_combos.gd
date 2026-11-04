@@ -390,7 +390,7 @@ func _emit_step(e: Dictionary) -> void:
 					var o = sl.get("o")
 					if o is Dictionary and not o.dead and o.hp < o.maxhp:
 						o.hp = o.maxhp
-						g.vfx.add_text(o.pos + Vector2(0, -30), "抚愈", COL, 14)
+						g.vfx.add_alert(o.pos + Vector2(0, -30), "抚愈", COL, 14)
 						_grains(o.pos, 10, "mote_up", false)
 	e.ishar_emits = keep
 
@@ -442,7 +442,7 @@ func _chorus_rings(e: Dictionary) -> void:
 				d.merge({"n": 20, "gap": 0, "a0": gc, "spd": 70.0, "mult": 0.16, "hold": 0.0}, true)
 			_emit(e, g.t + 0.8 + step_t * w + 0.25 * k, d)
 	if wall:
-		g.vfx.add_text(e.pos + Vector2(0, -70), "合唱成墙 · 冲刺穿过", COL, 16)
+		g.vfx.add_alert(e.pos + Vector2(0, -70), "合唱成墙 · 冲刺穿过", COL, 16)
 	var dur: float = 0.8 + step_t * (waves - 1) + 0.25 * (sources.size() - 1) + hold
 	e.wind = maxf(e.wind, dur)
 	e.cdt = maxf(e.cdt, dur)
@@ -483,7 +483,7 @@ func _heal_song(e: Dictionary) -> void:
 	_emit(e, g.t + 2.4, {"kind": "heal", "src": null})
 	e.wind = maxf(e.wind, 2.4)
 	e.cdt = maxf(e.cdt, 2.4)
-	g.vfx.add_text(e.pos + Vector2(0, -70), "歌声结束时治疗连线海嗣", COL, 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -70), "歌声结束时治疗连线海嗣", COL, 16)
 
 
 ## 网鸣（取材「它为大群发声」：歌声经网传给每只连线海嗣）：每 1.1 秒一波，歌声团（r8、150px/s）沿每条连线流到节点，
@@ -644,7 +644,7 @@ func _zone_step(e: Dictionary) -> void:
 			# 歌声侵蚀（10-28 协调人：「歌声治愈大群、侵蚀对手」）：站在地带内受治疗降低，离开即恢复（combat.song_heal_mult）
 			if float(e.get("song_cut_until", 0.0)) < g.t and g.t >= float(e.get("song_tip_next", 0.0)):
 				e.song_tip_next = g.t + 3.0
-				g.vfx.add_text(g.ppos + Vector2(0, -80), "歌声侵蚀 · 受治疗 −%d%%" % roundi(100.0 * Bal.v("boss/ishar_song_heal_cut", 0.7)), Color(0.86, 0.26, 0.42), 15)
+				g.vfx.add_alert(g.ppos + Vector2(0, -80), "歌声侵蚀 · 受治疗 −%d%%" % roundi(100.0 * Bal.v("boss/ishar_song_heal_cut", 0.7)), Color(0.86, 0.26, 0.42), 15)
 			e.song_cut_until = g.t + 0.1
 		if g.t < float(z.born) or g.t < float(z.next):
 			continue
@@ -683,7 +683,7 @@ func _seeking_tears(e: Dictionary) -> void:
 	var a0: float = _aim(e.pos)
 	for k in 5:
 		_emit(e, g.t + 0.4 + 0.25 * k, {"kind": "seek", "src": null, "a": a0 + (k - 2) * 0.7})
-	g.vfx.add_text(e.pos + Vector2(0, -70), "侵蚀之泪 · 绕开它", act_col(e), 15)
+	g.vfx.add_alert(e.pos + Vector2(0, -70), "侵蚀之泪 · 绕开它", act_col(e), 15)
 	_grains(e.pos, 14, "mote_in", true)
 	var dur: float = 0.4 + 0.25 * 4 + 1.0
 	e.wind = maxf(e.wind, dur)
@@ -708,7 +708,7 @@ func _inward_song(e: Dictionary) -> void:
 		_emit(e, g.t + 0.5 + 1.4 * w, {"kind": "inring", "src": null, "c": c, "R": R, "n": 36, "gap": 5,
 			"gc": gc + sgn * 0.6 * w, "spd": Bal.v("boss/ishar_inward_spd", 80.0), "hold": 0.8})
 	g.fx.append({"kind": "ring", "pos": c, "r": R, "life": 0.7, "max": 0.7, "col": COL, "enemy": true})
-	g.vfx.add_text(e.pos + Vector2(0, -70), "合围之歌 · 找缺口", COL, 15)
+	g.vfx.add_alert(e.pos + Vector2(0, -70), "合围之歌 · 找缺口", COL, 15)
 	Sfx.play("tentacle", -8.0, 0.55)
 	var dur: float = 0.5 + 1.4 * (waves - 1) + 0.8 + 1.0
 	e.wind = maxf(e.wind, dur)
@@ -752,7 +752,7 @@ func _rebirth_song(e: Dictionary) -> void:
 	if srcs.is_empty():
 		_emit(e, g.t + 0.4, {"kind": "ring", "src": null, "n": 12, "a0": 0.0, "spd": 90.0, "mult": 0.22})
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.8, "max": 0.8, "col": COL, "enemy": true})
-	g.vfx.add_text(e.pos + Vector2(0, -80), "重生之歌 · 拆网打断", COL, 16)
+	g.vfx.add_alert(e.pos + Vector2(0, -80), "重生之歌 · 拆网打断", COL, 16)
 	_grains(e.pos, 18, "mote_up", false)
 	Sfx.play("tentacle", -6.0, 0.5)
 	e.wind = maxf(e.wind, t)
@@ -786,7 +786,7 @@ func _act_step(e: Dictionary) -> void:
 		var c: Vector2 = g.zone_c if g.zone_frozen else e.pos
 		_dash_start(e, c, null, 0.8)
 		e.ishar_fence = {"c": c, "r0": (g.zone_r if g.zone_frozen else 600.0) - 20.0, "t0": g.t, "next": g.t + 1.0}
-		g.vfx.add_text(e.pos + Vector2(0, -80), "她沉入场心 · 歌声围拢", act_col(e), 18)
+		g.vfx.add_alert(e.pos + Vector2(0, -80), "她沉入场心 · 歌声围拢", act_col(e), 18)
 	# 一幕站定唱歌，但队长离开 320 以外她会慢慢走近（测试台 r9：完全不动时队伍走远打不到她，34% 超时）
 	var far: bool = act == 0 and g.combat.ground_d(g.ppos, e.pos) > Bal.v("boss/ishar_a1_reach", 320.0)
 	if not e.get("ishar_dash", {}).is_empty() or act == 2:
@@ -796,7 +796,7 @@ func _act_step(e: Dictionary) -> void:
 	_fence_step(e)
 	if g.t < float(e.get("rebirth_until", 0.0)) and int(e.get("web_n", 0)) <= 0:
 		e.rebirth_until = g.t   # 重生之歌：网拆空当场结束
-		g.vfx.add_text(e.pos + Vector2(0, -80), "歌声中断", COL, 15)
+		g.vfx.add_alert(e.pos + Vector2(0, -80), "歌声中断", COL, 15)
 
 
 ## 潮涌突进（二幕，取材「潮涌迫近」的位移，本作改编）：0.9 秒直线预警，之后 0.3 秒冲到队长身前 90 像素处（路径上 e.dmg × 0.6）；

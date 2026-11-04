@@ -23,7 +23,8 @@ var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧�
 var ev_bars_h := 0.0           # 事件选项条的总高度（选项条按说明行数加高，提示文字跟在后面）
 var serif: Font                # 事件标题用的衬线粗体（fonts/serif.ttf，缺失时退回 UI 字体）
 ## 事件（C 版式，原作「不期而遇」）：左边撕纸边灰阶墨色插画——画面里唯一的彩色物件是「不期而遇」节点图标（docs/154，原为海嗣祭坛）；
-## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
+const EV_HINT_ROOM := 30.0   # 事件选项滚动区底边到面板底边：留给「点击选项…」提示一行
+## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col（套在 panel_scroll 里，放不下时竖向滚动）。插画的随机形状按事件名缓存
 var ev_art := {}
 var ink_tex: GradientTexture2D
 ## 事件插画（docs/156，Codex 母稿 art/archive/incoming_1028/event_cg_1026 离线缩成运行时用图）：按事件 id 打开面板时才 load，
@@ -219,6 +220,24 @@ func build(parent: Node) -> void:
 	g.panel_fg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	g.panel_fg.draw.connect(draw_bg)
 	g.panel.add_child(g.panel_fg)
+	# 强制招募画面的「婉拒」（add_recruit_decline）：招募卡下方居中、次一级的小按钮
+	decline_btn = Button.new()
+	decline_btn.anchor_left = 0.5
+	decline_btn.anchor_right = 0.5
+	decline_btn.anchor_top = 1.0
+	decline_btn.anchor_bottom = 1.0
+	decline_btn.offset_left = -170.0
+	decline_btn.offset_right = 170.0
+	decline_btn.offset_top = -86.0
+	decline_btn.offset_bottom = -48.0
+	decline_btn.focus_mode = Control.FOCUS_NONE
+	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+		decline_btn.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	decline_btn.draw.connect(_draw_decline)
+	decline_btn.mouse_entered.connect(decline_btn.queue_redraw)
+	decline_btn.mouse_exited.connect(decline_btn.queue_redraw)
+	decline_btn.pressed.connect(func(): g.progression.pick(int(decline_btn.get_meta("i", -1))))
+	decline_btn.visible = false
 	g.panel_box = HBoxContainer.new()
 	g.panel_box.add_theme_constant_override("separation", 36)
 	g.panel_box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -226,25 +245,33 @@ func build(parent: Node) -> void:
 	g.panel_box.offset_top = 184
 	g.panel_box.offset_bottom = -100
 	g.panel.add_child(g.panel_box)
-	# 事件选项（C 版式）：右半屏竖排的选项条
+	# 事件选项（C 版式）：右半屏竖排的选项条。外面套一层竖向滚动（11-05 用户「把事件的做成那种可以滚动的」：深蓝之心 7 个选项放不下，
+	# 「离开」在屏幕外点不到）——卡高不变；滚轮 / 触屏拖动 / 上下键都能滚，焦点移到屏外的卡时自动滚过去，能滚时上下边缘渐隐 + 小箭头
+	g.panel_scroll = ScrollContainer.new()
+	g.panel_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	g.panel_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER   # 不画滚动条，用边缘渐隐 + 箭头提示
+	g.panel_scroll.anchor_left = 0.5
+	g.panel_scroll.anchor_right = 0.5
+	g.panel_scroll.anchor_bottom = 1.0
+	g.panel_scroll.offset_left = 12
+	g.panel_scroll.offset_right = 608
+	var L: Dictionary = lay()
+	g.panel_scroll.offset_top = float(L.ev_col_top)   # 手机：选项列顶边 70（见 CARDS_TOP_PHONE 注释）
+	g.panel_scroll.offset_bottom = -EV_HINT_ROOM   # 底下留一行给「点击选项…」提示
 	g.panel_col = VBoxContainer.new()
 	g.panel_col.add_theme_constant_override("separation", 14)
-	g.panel_col.anchor_left = 0.5
-	g.panel_col.anchor_right = 0.5
-	g.panel_col.offset_left = 12
-	g.panel_col.offset_right = 608
-	var L: Dictionary = lay()
-	g.panel_col.offset_top = float(L.ev_col_top)   # 手机：选项列顶边 70（见 CARDS_TOP_PHONE 注释）
-	g.panel_col.offset_bottom = 560
+	g.panel_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if L.touch:
 		# 手机：选项条横跨整屏（左右各留 24），条间距 10
-		g.panel_col.anchor_left = 0.0
-		g.panel_col.anchor_right = 1.0
-		g.panel_col.offset_left = 24
-		g.panel_col.offset_right = -24
+		g.panel_scroll.anchor_left = 0.0
+		g.panel_scroll.anchor_right = 1.0
+		g.panel_scroll.offset_left = 24
+		g.panel_scroll.offset_right = -24
 		g.panel_col.add_theme_constant_override("separation", 10)
 	g.panel_col.visible = false
-	g.panel.add_child(g.panel_col)
+	g.panel_scroll.visible = false
+	g.panel_scroll.add_child(g.panel_col)
+	g.panel.add_child(g.panel_scroll)
 	# 最上层：说明被截断（排不下末行带「…」）的卡片，悬停 / 焦点时在这里画完整说明
 	g.panel_tip = Control.new()
 	g.panel_tip.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -339,6 +366,9 @@ func layout(kind: String) -> void:
 		g.panel_box.pivot_offset = Vector2(bw / 2.0, 0.0)
 	g.panel_box.visible = kind != "event"
 	g.panel_col.visible = kind == "event"
+	g.panel_scroll.visible = kind == "event"
+	g.panel_scroll.scroll_vertical = 0   # 每次打开从顶上开始
+	_ev_nav_seen = -1
 
 
 func draw_bg() -> void:
@@ -350,8 +380,8 @@ func draw_bg() -> void:
 			draw_event_bg(vs)
 		_:
 			var en_label := "RELIC" if g.choice_kind == "relic" else ("NODE" if g.choice_kind == "cross" else ("SQUAD SWAP" if g.choice_kind == "swap" else ("GROWTH PATH" if g.choice_kind == "branch" else "LEVEL UP")))
-			if g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit"):
-				en_label = "RECRUIT"
+			if g.choice_kind == "offer" or (g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit")):
+				en_label = "RECRUIT"   # 入队邀请二选一（docs/252）同招募
 			var L: Dictionary = lay()
 			var ph: bool = L.touch
 			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）
@@ -523,13 +553,13 @@ func _event_caption(art: Dictionary, p0: Vector2) -> void:
 	if panel_sub_text != "":
 		g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.soft(panel_sub_text), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 右侧标题
-	var col_top: float = g.panel_col.offset_top   # 触屏 150 / 桌面 196，标题跟着上移
+	var col_top: float = g.panel_scroll.offset_top   # 触屏 150 / 桌面 196，标题跟着上移
 	var L: Dictionary = lay()
 	var tt: float = float(L.ev_title_dy)   # 触屏标题再贴近选项列 12，不压到顶栏的威胁等级行
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
 	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "选择一项", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
-	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + ev_bars_h + 6), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
+	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + minf(ev_bars_h, g.panel_scroll.size.y) + 6), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
 
 
 ## 手机版事件背景（手机端 UI 优化 r2）：逻辑高只有约 481，左侧 560×500 的插画放不下——顶部一行放节点小图标 + 事件名（衬线）+
@@ -558,7 +588,7 @@ func _draw_event_bg_phone(vs: Vector2) -> void:
 	if panel_sub_text != "":
 		UI.text_fit(g.panel_fg, g.font, Vector2(x0 + tw + 18, 50), UI.soft(panel_sub_text), 15, Color(0.81, 0.79, 0.76), vs.x - x0 - tw - 46.0, 12)
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
-	UI.text(g.panel_fg, g.font, Vector2(24, g.panel_col.offset_top + ev_bars_h + 6), hint, 14, Color(0.55, 0.54, 0.52))
+	UI.text(g.panel_fg, g.font, Vector2(24, g.panel_scroll.offset_top + minf(ev_bars_h, g.panel_scroll.size.y) + 6), hint, 14, Color(0.55, 0.54, 0.52))
 
 
 ## 当前事件的插画（没有对应图返回 null，退回墨色底 + 节点图标）
@@ -598,6 +628,10 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	if kind == "event":
 		ev_shown_t = UM.now()
 	g.nav_sel = 0
+	for k in opts.size():
+		if not opts[k].get("disabled", false):
+			g.nav_sel = k
+			break
 	if kind != "event":
 		release_event_cg()
 	g.state = Game.S.CHOICE
@@ -616,6 +650,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			var jb: String = g.squad.join_bonus_text()
 			if jb != "":
 				panel_sub_text += " · " + jb
+	decline_btn.visible = false
 	if not quiet:
 		Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
 	for c in g.panel_box.get_children():
@@ -649,7 +684,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	var ev_h0: float = 74.0 if ph else 100.0
 	var ev_base_lines: int = 1 if ph else 2
 	if ph:
-		var avail: float = g.panel.size.y - float(g.panel_col.offset_top) - 24.0
+		var avail: float = g.panel.size.y - float(g.panel_scroll.offset_top) - EV_HINT_ROOM
 		for s in [19, 18, 17, 16, 15, 14]:
 			var tot := -10.0
 			for o in opts:
@@ -692,6 +727,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		card.set_meta("lift", 0.0)
 		if ev:
 			card.set_meta("bar", true)
+			card.mouse_filter = Control.MOUSE_FILTER_PASS   # 滚轮 / 触屏拖动往上传给 panel_scroll（Button 缺省 STOP 会把滚轮吃掉）
 		card.modulate.a = 0.0
 		card.draw.connect((draw_event_bar if ev else (draw_node_card if kind == "cross" else draw_card)).bind(card, o, i))
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
@@ -1030,12 +1066,81 @@ func option_description(option: Dictionary) -> String:
 	var stage: int = maxi(op.elite, int(option.get("elite", 0)))
 	for i in 3:
 		var sk: Dictionary = op.skill_def(i)
-		if i > stage or sk.get("mode", "auto") != "manual":
+		if i > stage or sk.get("mode", "auto") != "manual" or op.g.ult != null:   # 终结技开着时手动技能按自动放（character.is_manual），不写「按 Q」
 			continue
 		var use: String = (("队长点技能键释放" if Pad.touch_ui() else "队长按 Q 释放") if op.is_leader else "作为队友自动释放")
 		var timing: String = "解锁后" if not op.skill_unlocked(i) else "技力满后"
 		return "%s%s「%s」。\n%s" % [timing, use, sk.get("name", "技能"), description]
 	return description
+
+
+## 事件选项滚动：键盘 / 手柄焦点（g.nav_sel）换到屏外的卡时把它滚进来
+var _ev_nav_seen := -1
+func _ev_follow_focus() -> void:
+	if g.choice_kind != "event" or not g.panel_scroll.visible or g.nav_sel == _ev_nav_seen:
+		return
+	if not (Pad.using or g.kb_nav) and _ev_nav_seen >= 0:
+		return   # 鼠标 / 触屏在用：焦点不带着滚（只在打开时对一次起点）
+	_ev_nav_seen = g.nav_sel
+	if g.nav_sel >= 0 and g.nav_sel < g.panel_col.get_child_count():
+		g.panel_scroll.ensure_control_visible(g.panel_col.get_child(g.nav_sel) as Control)
+
+
+## 能滚的时候：滚动区上 / 下边缘渐隐 + 小箭头（还有内容在上面 / 下面）。画在面板最上层（draw_panel_tip）
+func draw_ev_scroll_hint(ci: CanvasItem) -> void:
+	if g.choice_kind != "event" or not g.panel_scroll.visible:
+		return
+	var bar = g.panel_scroll.get_v_scroll_bar()
+	var room: float = float(bar.max_value) - float(bar.page)
+	if room <= 1.0:
+		return   # 放得下：和原来一样，不画
+	var r: Rect2 = g.panel_scroll.get_global_rect()
+	r.position -= ci.get_global_rect().position
+	var sv: float = float(g.panel_scroll.scroll_vertical)
+	var fade := 42.0
+	var dark := Color(0.03, 0.04, 0.06, 0.85)
+	var clear := Color(0.03, 0.04, 0.06, 0.0)
+	var pulse: float = 0.6 + 0.4 * sin(UM.now() * 4.0) if not UM.rm() else 0.8
+	if sv > 1.0:
+		ci.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), Vector2(r.end.x, r.position.y + fade), Vector2(r.position.x, r.position.y + fade)]), PackedColorArray([dark, dark, clear, clear]))
+		_chevron(ci, Vector2(r.get_center().x, r.position.y + 10.0), -1.0, pulse)
+	if sv < room - 1.0:
+		ci.draw_polygon(PackedVector2Array([Vector2(r.position.x, r.end.y - fade), Vector2(r.end.x, r.end.y - fade), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([clear, clear, dark, dark]))
+		_chevron(ci, Vector2(r.get_center().x, r.end.y - 10.0), 1.0, pulse)
+
+
+## 小箭头（dir 1 = 朝下、-1 = 朝上），青色、随呼吸透明度
+func _chevron(ci: CanvasItem, c: Vector2, dir: float, a: float) -> void:
+	var col := Color(0.18, 0.72, 1.0, a)
+	for k in 2:
+		var y: float = c.y + dir * (k * 6.0 - 3.0)
+		ci.draw_polyline(PackedVector2Array([Vector2(c.x - 9.0, y - dir * 4.0), Vector2(c.x, y + dir * 3.0), Vector2(c.x + 9.0, y - dir * 4.0)]), col, 2.0, true)
+
+
+## 强制招募画面加「婉拒」（用户 11-05「加上」）：选项末尾多一项（数字键 / 方向键 / 手柄都能走到），画成招募卡下方次一级的小按钮
+var decline_btn: Button
+func add_recruit_decline() -> void:
+	g.choices.append({"kind": "recruit_decline", "name": "婉拒", "desc": "改为一次成长三选一"})
+	decline_btn.set_meta("i", g.choices.size() - 1)
+	var touch: bool = bool(lay().touch)   # 手机：卡片更高，按钮贴到面板最底下那条空隙（卡底约 427 / 481）
+	decline_btn.offset_top = -40.0 if touch else -86.0
+	decline_btn.offset_bottom = -6.0 if touch else -48.0
+	if decline_btn.get_parent() == null:
+		g.panel.add_child(decline_btn)
+	g.panel.move_child(decline_btn, -1)
+	decline_btn.visible = true
+	decline_btn.queue_redraw()
+
+
+func _draw_decline() -> void:
+	var i: int = int(decline_btn.get_meta("i", -1))
+	var hot: bool = (i == g.nav_sel) if (Pad.using or g.kb_nav) else decline_btn.is_hovered()
+	var r := Rect2(Vector2.ZERO, decline_btn.size)
+	decline_btn.draw_rect(r, Color(0.05, 0.06, 0.08, 0.72 if hot else 0.5))
+	decline_btn.draw_rect(r, Color(0.55, 0.54, 0.52, 0.9 if hot else 0.45), false, 1.0)
+	var key: String = "" if Pad.touch_ui() else ("Ⓐ" if Pad.using else str(i + 1))
+	var txt: String = "婉拒 · 改为一次成长三选一"
+	UI.ctext(decline_btn, g.font, Vector2(0, r.size.y / 2.0 + 6.0), txt + ("   [%s]" % key if key != "" and not Pad.using else ""), 15, Color(0.86, 0.85, 0.82) if hot else Color(0.62, 0.61, 0.58), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 ## 每帧：按面板种类推进入场动效（card_motion.update）；悬停抬起各种类共用
@@ -1046,7 +1151,10 @@ func animate_cards(dt: float) -> void:
 		return
 	g.panel_fg.queue_redraw()
 	g.panel_tip.queue_redraw()
+	if decline_btn.visible:
+		decline_btn.queue_redraw()
 	motion.update(dt)
+	_ev_follow_focus()
 
 
 ## 卡片图标：按种类取对应贴图（relic_ / growth_ / weapon_ / evo_ / skill_），没有则返回 null
@@ -1142,7 +1250,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 			var dst := Rect2(feet - (foot2 - bb.position) * sc + motion.icon_off, bb.size * sc)
 			dst.position = dst.position.round()
 			card.draw_texture_rect_region(idle.tex, dst, bb)
-	elif o.kind == "swap_keep" or o.kind == "branch_back":
+	elif o.kind == "swap_keep" or o.kind == "branch_back" or o.kind == "offer_decline":
 		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换 / 返回上一步
 	elif ic != null:
 		draw_icon_fit(card, ic, c + Vector2(0, bob), 64.0 if compact else 96.0)
@@ -1374,6 +1482,7 @@ func load_op_tex(cid: String) -> void:
 
 ## 选卡 / 商店 / 事件：焦点卡片的说明被截断（或作用对象标签收成了「+N」）时，在面板最上层画完整说明（卡片下方，放不下放上方）
 func draw_panel_tip() -> void:
+	draw_ev_scroll_hint(g.panel_tip)
 	var box: BoxContainer = g.panel_col if (g.choice_kind == "event" and g.state == Game.S.CHOICE) else g.panel_box
 	var vs := g.panel_tip.size
 	for card in box.get_children():

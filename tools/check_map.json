@@ -60,11 +60,17 @@
     "vis_growth",
     "card_desc",
     "card_desc_fit",
+    "recruit_offer",
+    "recruit_offer_touch",
+    "recruit_offer_solo",
     "build_affinity",
     "build_progression",
+    "vis_nodes",
     "merchant_build_offer",
     "economy",
     "event_trade",
+    "event_fit",
+    "forced_decline",
     "event_maxhp",
     "node_cards"
    ]
@@ -104,7 +110,10 @@
   "render": {
    "scenes": [
     "render_perf",
-    "look"
+    "look",
+    "gem_v2_tiers",
+    "warn_v2_contract",
+    "elite_mark_v2_review"
    ]
   },
   "ult": {

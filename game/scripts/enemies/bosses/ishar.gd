@@ -336,7 +336,7 @@ func _web_step(e: Dictionary, dt: float) -> void:
 				slots[i].come = _web_mob(e, _come_pos(e, i, cap), i)
 				n += 1
 		if n > 0:
-			g.vfx.add_text(e.pos + Vector2(0, -60), "召唤合唱", COL, 16)
+			g.vfx.add_alert(e.pos + Vector2(0, -60), "召唤合唱", COL, 16)
 			Sfx.play("tentacle", -6.0, 1.2)
 
 
@@ -608,6 +608,6 @@ func _web_shield(e: Dictionary) -> void:
 
 func _layer_break(e: Dictionary, src: Dictionary) -> void:
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r + 22.0, "life": 0.35, "max": 0.35, "col": COL, "enemy": true})
-	g.vfx.add_text(e.pos + Vector2(0, -e.r - 44.0), "护盾 −1", COL, 15)
+	g.vfx.add_alert(e.pos + Vector2(0, -e.r - 44.0), "护盾 −1", COL, 15)
 	g.vfx.sparks(e.pos + Vector2(0, -e.r * 0.5), (e.pos - src.pos).normalized() if not is_same(src, e) else Vector2.UP, COL, 10, 220.0)
 	Sfx.play("break_open", -6.0, 1.3, 0.05)

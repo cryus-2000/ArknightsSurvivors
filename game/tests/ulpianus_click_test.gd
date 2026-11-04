@@ -108,6 +108,10 @@ func run(o) -> void:
 	reset(o, true)
 	var vs: Vector2 = game.hud.size
 	var huds := {"顶栏左（生命 / 灯火）": Vector2(120, 40), "右下编队栏": Vector2(vs.x - 60, vs.y - 60), "左下声呐": Vector2(16 + 78 + 8, vs.y - 78 - 24), "顶部中央计时": Vector2(vs.x * 0.5, 30)}
+	if game.hud_view.HudV3.on():
+		# 指挥台（ui/hud_v3，11-05）：右下编队栏收进正下方一台，改测指挥台中央
+		huds.erase("右下编队栏")
+		huds["正下方指挥台"] = game.hud_view.v3.rect(vs).get_center()
 	if game.pause_btn.has_area():
 		huds["暂停键"] = game.pause_btn.get_center()
 	for k in huds:

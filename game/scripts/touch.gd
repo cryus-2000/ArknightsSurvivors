@@ -83,19 +83,10 @@ func handle(event: InputEvent) -> bool:
 				g.doctor.touch_atk = true
 				g.doctor.touch_atk_dir = Vector2.ZERO
 				return true
-			# 终结技 / 连携键（ult/on）：两键点击区挨着，同时落在两个区里时取中心近的
+			# 终结技键（ult/on）。连携键 11-05 收回（连携全自动），这里不再有连携键的点击区
 			if g.ult != null and g.state == g.S.PLAY:
 				var ur: Rect2 = _hit(ult_rect) if ult_rect.has_area() else Rect2()
-				var cr: Rect2 = _hit(combo_rect) if combo_rect.has_area() else Rect2()
 				var in_u: bool = ur.has_point(p) and skill_id < 0
-				var in_c: bool = cr.has_point(p)
-				if in_u and in_c:
-					in_c = p.distance_to(combo_rect.get_center()) < p.distance_to(ult_rect.get_center())
-					in_u = not in_c
-				if in_c:
-					g.ult.press_e()
-					flash["combo"] = 0.2
-					return true
 				if in_u:
 					skill_id = fid
 					skill_origin = p
@@ -406,7 +397,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 			var ub: Dictionary = ult_btn(vs)
 			var cb: Dictionary = combo_btn(vs)
 			ult_rect = Rect2(ub.c - Vector2(ub.r, ub.r), Vector2(ub.r, ub.r) * 2.0)
-			combo_rect = Rect2(cb.c - Vector2(cb.r, cb.r), Vector2(cb.r, cb.r) * 2.0) if Bal.vi("link/v2", 1) <= 0 else Rect2()   # 连携 v2：没有连携键
+			combo_rect = Rect2()   # 连携键 11-05 收回（连携全自动）
 		else:
 			_draw_skill_button(hud, font, L.skill.c, L.skill.s)
 		btn_rects.append([g.hud_view.v2.plates(vs).speed if g.hud_view.v2.on() else speed_rect(vs), "speed"])   # 编辑式：倍速在右上小牌

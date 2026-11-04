@@ -23,6 +23,7 @@
 extends RefCounted
 
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247）
 const D = preload("res://scripts/data.gd")
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -81,6 +82,10 @@ var used := {}             # 一次性触发（args.once）已用：id -> true
 var ingot_floor := 0       # 商店按售价保底（docs/218）：shop.buy 在 gain_relic 前设、后清；「立即获得源石锭」至少给这么多
 var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
 var stakes: Array = []     # 防暴桩：{pos, life}
+## 放置物第二版画法（render/placeable_v2，docs/246）：只画不改玩法
+const PlaceDraw = preload("res://scripts/render/placeable_draw.gd")
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/251 V9：遥乡 / 旗帜地圈只画边
+var pdraw = null
 # ---- docs/74（用户 10-12）：吸血 / 击杀回复 / 源石锭熔铸
 var steal_used := 0.0      # 吸血：本秒已回复（未乘受治疗加成），随 sp_budget_t 每秒清零
 var kh_cnt := 0            # 击杀回复：累计击杀权重（精英 / Boss 按权重计）
@@ -563,27 +568,17 @@ func _advance_target(cls: String):
 	return best
 
 
-## 博士银印：招募一名随机干员并直接推进到精一；编队已满时全队各推进 1 个节点
+## 博士银印：邀请一名随机干员以精英一入队（可婉拒：全队各推进 1 个节点 + 一次成长三选一，docs/252）；编队已满时全队各推进 1 个节点
 func _silver_seal() -> void:
 	var cards: Array = g.progression.recruit_cards()
-	if not cards.is_empty():
-		var c: Dictionary = cards[g.rng.randi() % cards.size()]
-		var o = g.squad.add(c.id)
-		if o != null:
-			var guard := 0
-			while o.elite < 1 and not o.next_node().is_empty() and guard < 8:
-				o.advance("")
-				guard += 1
-			g.vfx.show_banner("博士银印：「%s」以精英一加入编队" % o.display_name())
-			return
-	for o in g.squad.ops:
-		var n: Dictionary = o.next_node()
-		if not n.is_empty() and o.node_available(n):
-			o.advance("")
-	g.vfx.show_banner("博士银印：全队各推进一个成长节点")
+	if cards.is_empty():
+		g.progression.offer_full("silver")   # 满员：全队各推进一个节点
+		return
+	var c: Dictionary = cards[g.rng.randi() % cards.size()]
+	g.progression.offer_recruit("silver", str(c.id))
 
 
-## 人事部铜印（docs/57）：招募一名随机干员并推进 1 个成长节点；编队已满时改为一次成长三选一
+## 人事部铜印（docs/57）：邀请一名随机干员入队并推进 1 个成长节点（可婉拒：一次成长三选一，docs/252）；编队已满时改为一次成长三选一
 func _recruit_one() -> void:
 	var cards: Array = g.progression.recruit_cards()
 	if cards.is_empty():
@@ -591,13 +586,7 @@ func _recruit_one() -> void:
 		g.vfx.show_banner("人事部铜印：编队已满，改为一次成长三选一")
 		return
 	var c: Dictionary = cards[g.rng.randi() % cards.size()]
-	var o = g.squad.add(c.id)
-	if o == null:
-		g.pending_levelups += 1
-		return
-	if not o.next_node().is_empty() and o.node_available(o.next_node()):
-		o.advance("")
-	g.vfx.show_banner("人事部铜印：「%s」加入编队" % o.display_name())
+	g.progression.offer_recruit("copper", str(c.id))
 
 
 ## 随机获得 n 件藏品（大教堂拼图 / “绝唱”，docs/57 P19）：从当前可出现的候选里按 g.rng 抽，rarity 非空时只抽该档
@@ -920,8 +909,11 @@ func _explode_mine(mn: Dictionary) -> void:
 			g.combat.damage(e, Bal.v("relic/mine_dmg", 42.0) * g.dmg_mult * g.combat.enemy_hp_time_mult(), hd)
 			if not e.boss:
 				g.enemies_sys.apply_kb(e, (e.pos - mn.pos).normalized() * 360.0)
-	g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
-	g.vfx.sparks(mn.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
+	if PlaceDraw.on():
+		_pd().boom("mine", mn.pos)   # 第二版：暖橙爆点 + 焦痕 + 三团烟 + 地面点光（不加外扩光环）
+	else:
+		g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
+		g.vfx.sparks(mn.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
 	g.vfx.shake_screen(0.5)
 	Sfx.play("boom", -6.0, 1.0, 0.05)
 
@@ -1018,13 +1010,16 @@ func _tick_bombs(dt: float) -> void:
 		else:
 			b.pos = b.pos.move_toward(g.ppos + Vector2(0, 30), 120.0 * dt)
 		if b.life <= 0.0:
-			_area("地雷", b.pos, b.r, b.dmg * g.dmg_mult * g.combat.enemy_hp_time_mult())
+			_area("轰隆隆", b.pos, b.r, b.dmg * g.dmg_mult * g.combat.enemy_hp_time_mult())   # 11-05 起与地雷分开统计（docs/246 §4）
 			for j in g.enemies_sys.query(b.pos, b.r + 20.0):
 				var e2: Dictionary = g.enemies[j]
 				if not e2.dead and not e2.boss and e2.pos.distance_to(b.pos) < b.r + e2.r:
 					g.enemies_sys.apply_kb(e2, (e2.pos - b.pos).normalized() * 300.0)
-			g.fx.append({"kind": "explode", "pos": b.pos, "r": b.r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
-			g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
+			if PlaceDraw.on():
+				_pd().boom("bomb", b.pos)   # 第二版：薄荷白冷色震荡 + 两道静电折线 + 地面点光
+			else:
+				g.fx.append({"kind": "explode", "pos": b.pos, "r": b.r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
+				g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
 			g.vfx.shake_screen(0.5)
 			Sfx.play("boom", -6.0, 1.0, 0.05)
 	bombs = bombs.filter(func(x): return x.life > 0.0)
@@ -1118,8 +1113,24 @@ func _zone_bonus(key: String) -> float:
 	return v
 
 
+func _pd():
+	if pdraw == null:
+		pdraw = PlaceDraw.new(g)
+	return pdraw
+
+
+## 放置物第二版的敌人之上一遍（world._draw_sorted_entities 之后调用）；开关关着时什么都不画
+func draw_upper() -> void:
+	if PlaceDraw.on():
+		_pd().draw_upper(self)
+
+
 func draw() -> void:
-	for mn in mines:
+	var v2 := PlaceDraw.on()
+	if v2:
+		_pd().draw_ground(self)   # 警示虚线圈 / 影子 / 焦痕；装置本体在 draw_upper
+	var lr_top: bool = LateRead.on("s3") and not v2   # docs/247 S3：地雷 / 轰隆隆改在敌人之上由 draw_placed_top 画（放置物第二版开着时由它画，S3 不接管）
+	for mn in (mines if not (v2 or lr_top) else []):
 		var bl: float = 0.5 + 0.5 * sin(g.t * 8.0)
 		g.draw_set_transform(mn.pos, 0.0, Vector2(1.0, 0.6))
 		g.draw_circle(Vector2.ZERO, 9.0, Color(0.25, 0.22, 0.2))
@@ -1130,9 +1141,10 @@ func draw() -> void:
 		var bl2: float = 0.5 + 0.5 * sin(g.t * 2.5)
 		var inside := in_home()
 		g.draw_set_transform(home_pos, 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, HOME_R, Color(0.4, 1.0, 0.85, 0.07 + 0.05 * bl2 + (0.06 if inside else 0.0)))
-		g.draw_arc(Vector2.ZERO, HOME_R, 0.0, TAU, 48, Color(0.55, 1.0, 0.9, 0.45 + 0.25 * bl2), 2.0)
-		g.draw_arc(Vector2.ZERO, HOME_R * (0.35 + 0.6 * fmod(g.t * 0.4, 1.0)), 0.0, TAU, 40, Color(0.7, 1.0, 0.95, 0.35 * (1.0 - fmod(g.t * 0.4, 1.0))), 1.5)
+		g.draw_circle(Vector2.ZERO, HOME_R, Color(0.4, 1.0, 0.85, LateRead2.fill_a(0.07 + 0.05 * bl2 + (0.06 if inside else 0.0))))   # docs/251 V9：填充封顶 0.04（边本来就呼吸）
+		var rv: float = LateRead2.ring_vis()
+		g.draw_arc(Vector2.ZERO, HOME_R, 0.0, TAU, 48, Color(0.55, 1.0, 0.9, (0.45 + 0.25 * bl2) * rv), 2.0)
+		g.draw_arc(Vector2.ZERO, HOME_R * (0.35 + 0.6 * fmod(g.t * 0.4, 1.0)), 0.0, TAU, 40, Color(0.7, 1.0, 0.95, 0.35 * (1.0 - fmod(g.t * 0.4, 1.0)) * rv), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 旗帜：金色地圈 + 旗杆与飘动的三角旗
 	for id in zones:
@@ -1143,19 +1155,31 @@ func draw() -> void:
 		var ins := in_zone(id)
 		var wv: float = sin(g.t * 6.0) * 4.0
 		g.draw_set_transform(z.pos, 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, zr, Color(1.0, 0.8, 0.4, 0.06 + (0.06 if ins else 0.0)))
-		g.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(1.0, 0.85, 0.5, 0.5), 2.0)
+		g.draw_circle(Vector2.ZERO, zr, Color(1.0, 0.8, 0.4, LateRead2.fill_a(0.06 + (0.06 if ins else 0.0))))   # docs/251 V9：填充封顶 0.04、边呼吸（站在里面时边更亮）
+		g.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(1.0, 0.85, 0.5, (0.7 * LateRead2.ring_vis() if ins and LateRead2.on("ground_ring_edge") else 0.5 * LateRead2.edge_breath(g.t, float(z.pos.x) * 0.003))), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		g.draw_line(z.pos, z.pos + Vector2(0, -54), Color(0.5, 0.4, 0.3), 2.0)
 		g.draw_colored_polygon(PackedVector2Array([z.pos + Vector2(0, -54), z.pos + Vector2(26 + wv, -46), z.pos + Vector2(0, -38)]), Color(1.0, 0.75, 0.3, 0.9))
 	# 轰隆隆：小圆身子 + 红灯
-	for b in bombs:
+	for b in (bombs if not (v2 or lr_top) else []):
 		g.draw_circle(b.pos, 8.0, Color(0.35, 0.35, 0.4))
 		g.draw_circle(b.pos + Vector2(0, -3), 3.0, Color(1.0, 0.3 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0)), 0.3))
 	# 防暴桩：木桩
-	for s in stakes:
+	for s in (stakes if not v2 else []):
 		g.draw_rect(Rect2(s.pos + Vector2(-5, -26), Vector2(10, 30)), Color(0.55, 0.42, 0.3))
 		g.draw_rect(Rect2(s.pos + Vector2(-7, -28), Vector2(14, 5)), Color(0.85, 0.75, 0.3))
+
+
+## 后期可读性 S3（docs/247，render/late_read）：地雷 / 轰隆隆在敌人之上画，尺寸下限 + 我方青白描边 + 0.8 秒呼吸（LateRead.placed）。
+## 地雷贴地扁圆、中心闪灯改成我方青白；轰隆隆立体圆身、头顶一格暖白灯（不用红：红只留给危险）。只画不改状态
+func draw_placed_top(ci: CanvasItem) -> void:
+	if not LateRead.on("s3") or PlaceDraw.on():   # 放置物第二版开着时它自己画在敌人之上
+		return
+	var rmin: float = LateRead.k("s3_rmin", 14.0)
+	for mn in mines:
+		LateRead.placed(ci, mn.pos, rmin, LateRead.ALLY_COL, Color(0.16, 0.2, 0.24), g.t, fmod(mn.pos.x * 0.013, 1.0), true)
+	for b in bombs:
+		LateRead.placed(ci, b.pos + Vector2(0, -4), rmin + 2.0, LateRead.ALLY_COL, Color(0.22, 0.26, 0.32), g.t, fmod(b.pos.y * 0.017, 1.0), false, Color(1.0, 0.95, 0.8, 0.6 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0))))
 
 
 ## ---------- 动态倍率（每次伤害查询）----------

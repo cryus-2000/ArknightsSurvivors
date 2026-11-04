@@ -7,8 +7,10 @@ const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/251 V4 伤害档标记
 const UI = preload("res://scripts/ui.gd")
 const Tactics = preload("res://scripts/characters/tactics.gd")   # 战术姿态 v2（command/v2，docs/209 §1）
+const VisNodesS = preload("res://scripts/characters/blocks/vis_nodes.gd")   # 精二全队效果离队撤销（docs/249 §3）
 
 const REGULAR_MAX := 3
 ## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
@@ -167,6 +169,8 @@ func remove(cid: String) -> void:
 			_leave_fx(ops[i])
 			if ops[i].has_method("on_leave"):
 				ops[i].on_leave()
+			if VisNodesS.on(g):
+				VisNodesS.on_leave(g, cid)   # 精二全队效果随人走（docs/249 §3）
 			ops.remove_at(i)
 			break
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
@@ -273,6 +277,18 @@ func _apply_size_hp() -> void:
 	var rb: float = regen_bonus(n)
 	if rb != 0.0 and n > 0 and g.stats.has_stat(&"regen"):
 		g.stats.add(&"regen", "flat", rb, "squad")
+	# 「独行」（docs/252，squad/solo_buff 缺省 0 = 关）：编队只有队长一人时，生命 / 回复按 solo_steps 个入队台阶算，另加全伤害 solo_dmg；
+	# 有人入队即撤（同一来源 "squad"，上面已整体移除重算）
+	if ops.size() == 1 and Bal.vi("squad/solo_buff", 0) > 0:
+		var ss: int = Bal.vi("squad/solo_steps", 1)
+		if per != 0.0 and ss > 0:
+			g.stats.add(&"max_hp", "mult", 1.0 + per * ss, "squad")
+		var srb: float = regen_bonus(ss)
+		if srb != 0.0 and g.stats.has_stat(&"regen"):
+			g.stats.add(&"regen", "flat", srb, "squad")
+		var sd: float = Bal.v("squad/solo_dmg", 0.1)
+		if sd != 0.0 and g.stats.has_stat(&"dmg"):
+			g.stats.add(&"dmg", "add", sd, "squad")
 	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
 	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
 		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)
@@ -435,11 +451,14 @@ func update(dt: float) -> void:
 	for o in ops:
 		if o.cmd_down > 0.0:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）
+		g.vfx.spawn_tier = 2 if LateRead2.on("light_share") and o.skill_active() else 1   # docs/251 V4：这名干员这一帧生成的帧条，技能期间记重击档（纯画面标记）
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		g.vfx.spawn_lead = o.is_leader   # 这段里生成的帧条特效记为队长的（docs/139 §11 突出队长；纯画面标记）
+		g.vfx.spawn_op = o   # docs/247 V5：同上，记是谁放的（按精英化放大主形）
 		o.update(dt)
 		g.vfx.spawn_lead = false
+		g.vfx.spawn_op = null
 		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
@@ -450,6 +469,7 @@ func update(dt: float) -> void:
 		o._tick_pfx(dt)
 		if pf:
 			t0 = g.prof_add("sq_pfx", t0)
+	g.vfx.spawn_tier = 1
 	if bl:
 		_blink_check(dt, "update")
 
@@ -1324,8 +1344,11 @@ func draw_entities_floor() -> void:
 
 func draw_shadows() -> void:
 	cv.begin()
+	var em_on: bool = g.get("elite_moment") != null and g.elite_moment.on(g)
 	for o in _fx_order():
 		if o.pos != Vector2.INF:
+			if em_on:
+				g.elite_moment.draw_ground(o, cv)   # 精英化常驻脚下光池 + 时刻光柱（docs/249 §2），在影子之前
 			cv.sync()
 			cv.touch()
 			var sk: Vector2 = o.shadow_k()   # 技能换动作组离地（docs/92 安洁莉娜浮空）：缩小变淡；判定仍按地面位置
@@ -1347,8 +1370,9 @@ func draw_leader_mark() -> void:
 	# 短弧长度 = 冲刺冷却（冷却中从 0 长到 70°，满了是整段 + 白芯）。可见度仍按「深边 + 色 + 白芯」画，几十条预警线压在身上时也认得出
 	var dark := Color(0.02, 0.02, 0.05, 0.75)
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-	cv.draw_circle(Vector2.ZERO, 24.0, Color(0.0, 0.0, 0.03, 0.28))
-	cv.draw_circle(Vector2.ZERO, 16.0, Color(0.0, 0.0, 0.03, 0.22))
+	var pool_k: float = 0.35 if int(o.elite) >= 1 and g.get("elite_moment") != null and g.elite_moment.on(g) else 1.0   # 精英化光池开着时软影压淡，不把队长脚下的光池盖黑（docs/249 §2）
+	cv.draw_circle(Vector2.ZERO, 24.0, Color(0.0, 0.0, 0.03, 0.28 * pool_k))
+	cv.draw_circle(Vector2.ZERO, 16.0, Color(0.0, 0.0, 0.03, 0.22 * pool_k))
 	var dk: float = g.dash_frac()
 	var fa: float = 0.0 if g.facing > 0.0 else PI
 	var half: float = deg_to_rad(35.0) * (dk if dk < 1.0 else 1.0)

@@ -6,6 +6,7 @@ const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247，只改画面）
 const Meta = preload("res://scripts/core/meta.gd")   # 认知塑造质变节点（docs/109 §14 v5）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -464,6 +465,23 @@ func drain_corrode(tick: float) -> void:
 		lose_hp(minf(bt * amp, room), "corrode", true)
 
 
+## 后期可读性 V1（docs/247 §1，render/late_read）：受伤红边改按「最近 1 秒承伤 ÷ 最大生命」驱动。
+## 低于 render/late_read_v1_thr（3%）只留一个很淡的脉冲（v1_pulse），过门槛后按超出量线性升到满（v1_span 12% 时满）；
+## 红闪（hud 全屏薄红 + 边光）同口径。只写画面量，不碰对局
+var _lr_rows: Array = []   # [时刻, 实际扣血]
+
+func _lr_vignette(amount: float) -> void:
+	_lr_rows.append([g.t, amount])
+	var w: float = _window_sum(_lr_rows, 1.0) / maxf(1.0, g.max_hp)
+	var thr: float = LateRead.k("v1_thr", 0.03)
+	if w < thr:
+		g.hurt_vignette = maxf(g.hurt_vignette, LateRead.k("v1_pulse", 0.12))
+		return
+	var u: float = clampf((w - thr) / LateRead.k("v1_span", 0.12), 0.0, 1.0)
+	g.hurt_vignette = maxf(g.hurt_vignette, 0.4 + 0.6 * u)
+	g.red_flash = maxf(g.red_flash, 0.1 + 0.27 * u)
+
+
 ## 受击扣血（伤害类型见 g.in_type、来源见 g.dmg_src）：藏品承伤、护甲、法抗算完后走 lose_hp。返回实际扣掉的生命
 func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	if g.in_type[1] != "真实":
@@ -484,8 +502,11 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	g.hurt_flash = 0.2
 	# 受击反馈按伤害占最大生命的比例分级
 	var sev := clampf(amount / g.max_hp / 0.12, 0.0, 1.0)
-	g.hurt_vignette = 0.6 + 0.4 * sev
-	g.red_flash = maxf(g.red_flash, 0.12 + 0.25 * sev)
+	if LateRead.on("v1"):
+		_lr_vignette(amount)
+	else:
+		g.hurt_vignette = 0.6 + 0.4 * sev
+		g.red_flash = maxf(g.red_flash, 0.12 + 0.25 * sev)
 	g.hp_shake = 0.35
 	g.head_bar_t = 2.5
 	g.vfx.shake_screen(0.55 + 0.8 * sev)
@@ -932,7 +953,7 @@ func gate_clamp(e: Dictionary, dmg: float) -> float:
 		if e.hp > lh and e.hp - dmg <= lh and e.act_t < e.act_min:
 			dmg = e.hp - lh
 			e.gate_hold = true
-			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+			g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
 		return dmg
 	var line: float = e.maxhp * float(gates[0])
 	if e.hp > line and e.hp - dmg <= line:
@@ -941,7 +962,7 @@ func gate_clamp(e: Dictionary, dmg: float) -> float:
 			gate_pass(e)   # 这一击照样结算（截在刻度上），之后 0.8 秒不受伤
 		else:
 			e.gate_hold = true
-			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+			g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
 	return dmg
 
 
@@ -995,7 +1016,7 @@ func start_break(e: Dictionary, t: float) -> void:
 	e.brk_len = e.break_t   # 破绽总长（render/break_ring 倒计时弧用）
 	if final_break_quiet(e):
 		return
-	g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "破绽", UI.GOLD, 20)
+	g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "破绽", UI.GOLD, 20)
 
 
 ## 最终 Boss 破绽不写字（用户 10-28；中期 Boss 照旧，玩家在那里学会破绽）：boss/break_text_final 0 = 不写（缺省），1 = 恢复。

@@ -104,6 +104,27 @@ static func _sum(d: Dictionary) -> float:
 
 
 ## 最大余数法：整数百分比合计恰好 100（全为 0 时全 0）
+## 编队输出的占比文字（结算 / 作战记录共用，11-05 用户「可以修改」）：伤害为 0 写「—」，有伤害但取整后是 0 写「<1%」
+## （原来整局只用艾雅法拉的局，铜印 / 事件招募进过队的干员都写 0%，像是白占一行）
+static func pct_label(row: Dictionary) -> String:
+	if float(row.get("dmg", 0.0)) <= 0.0:
+		return "—"
+	if int(row.get("pct", 0)) <= 0:
+		return "<1%"
+	return "%d%%" % int(row.pct)
+
+
+## 中途入队的干员（join_t > 1 秒）：「m:ss 入队」，离过队再接「 · m:ss 离队」；with_left = false 只写入队。开局就在队里的返回 ""
+static func join_label(row: Dictionary, with_left := true) -> String:
+	if str(row.get("key", "")) == OTHER or float(row.get("join_t", 0.0)) <= 1.0:
+		return ""
+	var ms := func(t: float) -> String: return "%d:%02d" % [int(t) / 60, int(t) % 60]
+	var s: String = ms.call(float(row.join_t)) + " 入队"
+	if with_left and float(row.get("left_t", -1.0)) >= 0.0:
+		s += " · " + ms.call(float(row.left_t)) + " 离队"
+	return s
+
+
 static func pct_ints(vals: Array) -> Array:
 	var tot := 0.0
 	for v in vals:

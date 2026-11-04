@@ -177,6 +177,10 @@ func _ready() -> void:
 		ok(kind_r in ["追击", "冲阵", "附加"], "突击优先进攻类（%s）" % kind_r)
 		u.queue.clear()
 		ok(not u.press_e(), "v2 没有 E 键")
+		# 11-05 E 键收回：终结技按键表里 E / Ⓨ 不再映射任何动作，触屏没有连携键点击区
+		var PK = preload("res://scripts/core/play_keys.gd")
+		ok(PK.action_of(KEY_E, true) == "" and PK.pad_key(JOY_BUTTON_Y, true).is_empty() and not PK.ULT.has("combo"), "E / Ⓨ 没有绑定")
+		ok(not g.touch.combo_rect.has_area(), "触屏没有连携键")
 		# 没有敌人：队长放技能不亮、不占间隔；亮起后区域被清空：不出手、退还间隔（11-01 用户「终结技后不用连携」一并确认）
 		var ld0 = sq.leader()
 		u.set_meta("link_next", -INF)

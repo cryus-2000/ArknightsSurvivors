@@ -33,6 +33,7 @@ func _ready() -> void:
 	check_rest_break()
 	check_mire()
 	check_decoy_stats()
+	check_decoy_dash()
 	print("PARANOIA COMBOS failures=", failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -343,3 +344,15 @@ func check_decoy_stats() -> void:
 	var n: Dictionary = g.spawner.spawn_enemy("bone", Vector2(60, 0))
 	g.combat.damage(n, 5.0, g.combat.make_hit("真实"))
 	check(float(sum.call()) > before, "control: hit on a normal enemy is counted")
+
+
+## 冲刺穿过幻影炸开（11-05 云端诊断：艾丽妮 s23 --nodeath 报 combat.gd hurt「Out of bounds get index 1」）：
+## 伤害类型原来只传 ["法术"]，少了距离一项，g.in_type[1] 越界。现在必须是 [距离, 类型] 两项
+func check_decoy_dash() -> void:
+	var e := fresh(3)
+	var o: Dictionary = g.bai.boss("paranoia")._decoy_make(e, 0)
+	g.in_type = ["远程", "物理"]
+	g.invuln = 0.0
+	g.bai.boss("paranoia")._decoy_pop(e, {"o": o, "next": 0.0}, true)
+	check((g.in_type as Array).size() == 2 and str(g.in_type[0]) in ["近战", "远程"] and str(g.in_type[1]) == "法术", "decoy dash-through hit passes [range, type] (%s)" % [g.in_type])
+	check(o.dead, "decoy popped")

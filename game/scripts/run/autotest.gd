@@ -15,6 +15,7 @@ const KILL_TYPES := ["bone", "stone", "offspring", "runner", "floater", "reaper"
 const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀那一帧；-1 = 击杀前一帧）
 var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
+var _elite_at := -1.0   # --eliteat=秒（docs/249 §5）：-1 = 还没读参数，0 = 不用 / 已触发
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
 var _mimicscream_done := false
@@ -1044,6 +1045,18 @@ func step() -> void:
 					bi._test_shots.pop_front()
 				if g.state == g.S.WIN and g.state_age > 1.5:
 					g.get_tree().quit()
+	if _elite_at < 0.0:
+		_elite_at = 0.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--eliteat="):
+				_elite_at = float(a.substr(10))   # 截图 / 录屏（docs/249 §5）：到点把队长推到精英二，拍精英化时刻
+	if _elite_at > 0.0 and g.state == g.S.PLAY and g.t >= _elite_at:
+		_elite_at = 0.0
+		var lo = g.squad.leader()
+		while lo != null and lo.elite < 2 and not lo.next_node().is_empty():
+			lo.advance("")
+		if g.elite_moment.queue.size() > 1:
+			g.elite_moment.queue = g.elite_moment.queue.slice(-1)   # 一次推过精一和精二：只拍精二那一次
 	if Cfg.dev_args().has("--fastlevel") and g.state == g.S.PLAY and (g.at_frames == 30 or g.at_frames == 400):
 		g.level = 9 if g.at_frames == 30 else 19
 		g.pickups.gain_xp(g.xp_need + 0.1)
@@ -2206,9 +2219,16 @@ func _clutter_log() -> void:
 		"warns_full": wfull, "warns_dim": wdim, "dash_full": dash_full, "dash_dim": dash_dim, "texts": g.texts.size(),
 		"texts_drawn": g.hud_view.clarity_text_drawn,
 		"gems_on": gems_on, "mires": g.mires.size(), "snow": g.map.snow.size(),
+		"env_dim": snappedf(g.world.env_dim, 0.001), "env_crowd": snappedf(g.world.env_crowd, 0.001), "dl": g.optical.dl_stat.duplicate() if g.optical != null else {},   # docs/251：环境压暗系数、照地光分账
 		"crowd": snappedf(g.world.crowd, 0.001), "ecrowd": snappedf(g.world.ecrowd, 0.001), "dcrowd": snappedf(g.world.dcrowd, 0.001),
 		"fx_dim": snappedf(g.world.fx_dim, 0.001), "declutter": Dc.level(), "leader_scr": [lp.x, lp.y], "lamp": g.lamp,
 		"lamp_r": g.lamp_light.texture_scale * 64.0}
+	# docs/247 量测：干员 / 召唤物 / 地雷 / 轰隆隆的屏幕坐标（小队被盖比例、放置物可见度），降噪的装饰层系数
+	d["deco_dim"] = snappedf(g.world.deco_dim, 0.001)
+	d["fx_grow"] = g.fx.filter(func(f): return f.has("grow")).size()
+	d["ops_scr"] = g.squad.ops.filter(func(o): return o.pos != Vector2.INF).map(func(o): return [o.id, (ct * o.pos).x, (ct * o.pos).y, o.elite])
+	d["mines_scr"] = g.rfx.mines.map(func(m): return [(ct * m.pos).x, (ct * m.pos).y])
+	d["bombs_scr"] = g.rfx.bombs.map(func(b): return [(ct * b.pos).x, (ct * b.pos).y])
 	var f := FileAccess.open(g.shot_dir + "/shot_%d.json" % g.at_frames, FileAccess.WRITE)
 	if f != null:
 		f.store_string(JSON.stringify(d))

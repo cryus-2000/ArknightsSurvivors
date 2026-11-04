@@ -1572,7 +1572,7 @@ func _draw_summary10() -> void:
 	var cls_n := {}
 	for r in results:
 		cls_n[Roster.class_of(r.id)] = true
-	UI.text_at(ci, f, Vector2(48, D.y - 44), "%d 名干员已加入名册（覆盖 %d 个职业），可在编队界面设为队长。" % [n, cls_n.size()], 16, UI.TEXT, "lm")
+	UI.text_at(ci, f, Vector2(48, D.y - 44), "%d 名干员已加入名册（覆盖 %d 个职业），出发时可选为队长。" % [n, cls_n.size()], 16, UI.TEXT, "lm")
 	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
 	HS.main_btn(ci, f, br, "完成", "" if Pad.touch else "Enter")
 	_btn(br, "ok")
@@ -1640,7 +1640,7 @@ func _draw_summary() -> void:
 	HS.bottom_bar(ci, D, 88)
 	var left := _vouchers()
 	var more: bool = (left > 0 or _can_direct()) and not Roster.locked_ids().is_empty()
-	UI.text_at(ci, f, Vector2(64, D.y - 44), "已加入名册。新干员可在编队界面设为队长。" + ("   剩余寻访凭证 × %d" % left if more else ""), 16, UI.TEXT, "lm")
+	UI.text_at(ci, f, Vector2(64, D.y - 44), "已加入名册。出发时可选为队长。" + ("   剩余寻访凭证 × %d" % left if more else ""), 16, UI.TEXT, "lm")
 	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
 	HS.main_btn(ci, f, br, "继续寻访" if more else "完成", "")
 	_btn(br, "ok")

@@ -31,7 +31,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.rage = true
 		e.spd *= 1.35
 		e.dmg *= 1.2
-		g.vfx.add_text(e.pos + Vector2(0, -50), "狂暴", Color(1.0, 0.4, 0.4), 18)
+		g.vfx.add_alert(e.pos + Vector2(0, -50), "狂暴", Color(1.0, 0.4, 0.4), 18)
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.3, 0.3)})
 		Sfx.play("roar", -6.0, 1.3)
 		_erupt(e)   # C 迸发：狂暴开始的一刻（docs/95 §10.2 C）
