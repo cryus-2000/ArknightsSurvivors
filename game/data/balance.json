@@ -836,11 +836,11 @@
  },
  "shape_lv": {
   "_doc": "docs/244 P1 形状档位表（growth/late_shape 开时生效）。档 = 门槛权重之和：精一 w_e1、精二 w_e2、队伍等级 ≥ lv1 加 w_lv1、≥ lv2 加 w_lv2。四条形状流派每档的加成：melee 范围 melee_range、剑气 melee_qi 道（普攻 × qi_mult，穿 qi_hits 名）；multi 额外弹 multi_shots 发（每发普攻 × multi_eps）、范围 multi_range、能穿透的普攻子弹每档 multi_pierce（取整）；summon 范围 summon_range、追击与召唤物伤害 summon_dmg；control 范围 control_range、控制时长 control_dur。x_lane：不在四条里的干员（或要改流派的）{干员: 流派}，none = 不给。P2：扩散半径 splash_r；连锁距离 chain_r、倍率 chain_mult",
-  "w_e1": 0.5, "w_e2": 1.0, "lv1": 16, "w_lv1": 0.5, "lv2": 22, "w_lv2": 0.5,
-  "melee_range": 0.12, "melee_qi": 0.6, "qi_mult": 0.4, "qi_hits": 3,
-  "multi_shots": 0.6, "multi_eps": 0.4, "multi_range": 0.06, "multi_pierce": 0.8,
-  "summon_range": 0.12, "summon_dmg": 0.15,
-  "control_range": 0.15, "control_dur": 0.08,
+  "w_e1": 1.0, "w_e2": 1.5, "lv1": 14, "w_lv1": 0.5, "lv2": 20, "w_lv2": 0.5,
+  "melee_range": 0.15, "melee_qi": 1.0, "qi_mult": 0.6, "qi_hits": 4,
+  "multi_shots": 1.0, "multi_eps": 0.6, "multi_range": 0.08, "multi_pierce": 0.8,
+  "summon_range": 0.18, "summon_dmg": 0.3,
+  "control_range": 0.25, "control_dur": 0.12,
   "splash_r": 60, "chain_r": 170, "chain_mult": 0.5,
   "x_lane": {"logos": "multi", "lumen": "multi", "saria": "melee", "skalter": "control"}
  },
