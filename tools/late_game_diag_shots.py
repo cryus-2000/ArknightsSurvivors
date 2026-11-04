@@ -74,7 +74,7 @@ def cmd_shoot(a):
 def _load(op, seed, layer, f):
     from PIL import Image
     import numpy as np
-    p = os.path.join(SHOT, "%s_s%d_%s" % (op, seed, layer), "shot_%d.png" % f)
+    p = os.path.join(SHOT, "%s%s_s%d_%s" % (op, TAG, seed, layer), "shot_%d.png" % f)
     if not os.path.exists(p):
         return None
     return np.asarray(Image.open(p).convert("RGB")).astype(np.float32) / 255.0
@@ -85,6 +85,8 @@ def _luma(im):
 
 
 def cmd_measure(a):
+    global TAG
+    TAG = a.tag
     import numpy as np
     from PIL import Image
     from scipy import ndimage as ndi
@@ -97,7 +99,7 @@ def cmd_measure(a):
             full = _load(op, a.seed, "full", f)
             if full is None:
                 continue
-            meta = json.load(open(os.path.join(SHOT, "%s_s%d_full" % (op, a.seed), "shot_%d.json" % f)))
+            meta = json.load(open(os.path.join(SHOT, "%s%s_s%d_full" % (op, TAG, a.seed), "shot_%d.json" % f)))
             box = lambda im: im[y0:y1, x0:x1]
             F = box(full)
             masks = {}
@@ -141,9 +143,9 @@ def cmd_measure(a):
             for m, c in [(me, (255, 60, 200)), (mb, (255, 150, 0)), (mf, (0, 255, 255))]:
                 edge = m & ~ndi.binary_erosion(m, iterations=1)
                 sub[edge] = c
-            Image.fromarray(vis).save(os.path.join(a.out, "mask_%s_%d.png" % (op, t)))
-            Image.fromarray((full * 255).astype(np.uint8)).save(os.path.join(a.out, "shot_%s_%d.png" % (op, t)))
-    json.dump(rows, open(os.path.join(a.out, "visual_metrics.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+            Image.fromarray(vis).save(os.path.join(a.out, "mask_%s%s_%d.png" % (op, TAG, t)))
+            Image.fromarray((full * 255).astype(np.uint8)).save(os.path.join(a.out, "shot_%s%s_%d.png" % (op, TAG, t)))
+    json.dump(rows, open(os.path.join(a.out, "visual_metrics%s.json" % TAG), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     for r in rows:
         print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()})
 
@@ -209,7 +211,7 @@ def cmd_budget(a):
             hist = np.histogram(hs, bins=24, range=(0, 360))[0] if hs.size else np.zeros(24)
             dom = _hue_name(float(np.argmax(hist) * 15 + 7.5)) if hs.size > 20 else "灰（低饱和）"
             rows.append({"layer": ly, "name": names[ly], "area_pct": float(m.mean() * 100), "L_mean": float(L[m].mean()),
-                         "L_p90": float(np.percentile(L[m], 90)), "sat_mean": float(S[m].mean()), "dominant": dom,
+                         "L_p90": float(np.percentile(L[m], 90)), "L_p95": float(np.percentile(L[m], 95)), "sat_mean": float(S[m].mean()), "dominant": dom,
                          "red_pct_of_layer": float((red & m).sum() / m.sum() * 100), "share_of_red_px": float((red & m).sum() / max(1, red.sum()) * 100)})
         for i, r in enumerate(sorted([r for r in rows if "L_mean" in r], key=lambda r: -r["L_mean"])):
             r["L_rank"] = i + 1
@@ -251,6 +253,7 @@ def main():
     m.add_argument("--ops", default="texas,exusiai,eyjafjalla,skalter")
     m.add_argument("--seed", type=int, default=11)
     m.add_argument("--out", default=os.path.join(ROOT, "docs", "assets", "late_game_diag"))
+    m.add_argument("--tag", default="")
     a = p.parse_args()
     {"shoot": cmd_shoot, "measure": cmd_measure, "budget": cmd_budget}.get(a.cmd, lambda _: p.print_help())(a)
 

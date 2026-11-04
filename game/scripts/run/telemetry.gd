@@ -803,6 +803,7 @@ func record(marks = null) -> Dictionary:
 		rec["bonds"] = g.get_meta("bond_log").map(func(x): return [str(x.id), x.t])   # 羁绊成立（docs/217 §7）；没成立过的局不写
 	if diag.on:
 		rec["diag"] = diag.report()
+		rec["diag_x"] = diag.extra()
 	if g.ult != null:
 		rec["ult"] = g.ult.report()   # 终结技 / 连携 / 连携终结技次数与能量来源（docs/198 原型；ult/on 关时没有这一项）
 	return rec
