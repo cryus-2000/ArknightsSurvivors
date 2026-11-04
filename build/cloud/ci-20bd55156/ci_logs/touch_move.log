@@ -1,0 +1,100 @@
+# touch_move
+# 参数：--headless --path /work/repo/game res://tests/touch_move_test.tscn -- --regression --seed=1 --touch
+# 用时 19 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TOUCH MOVE 1280x720: visible=(1113.043, 626.087) ui_k=1.11 hud=(1000.0, 562.5001)
+TOUCH MOVE 1280x720 idx=0: dx=41.3 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=5: dx=42.8 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1280x720 idx=2147483000: dx=42.8 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=-1294967296: dx=37.0 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1280x720 idx=-1: dx=35.2 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=-1294967297: dx=43.1 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1560x720: visible=(1356.522, 626.087) ui_k=1.15 hud=(1179.584, 544.4235)
+TOUCH MOVE 1560x720 idx=0: dx=41.3 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=5: dx=40.2 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE 1560x720 idx=2147483000: dx=40.0 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=-1294967296: dx=30.2 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE 1560x720 idx=-1: dx=34.4 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=-1294967297: dx=30.9 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE: 0 failures
+ERROR: 170 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 70 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+ERROR: Invalid polygon data, triangulation failed.
+   at: canvas_item_add_polygon (servers/rendering/renderer_canvas_cull.cpp:1770)
+   GDScript backtrace (most recent call first):
+       [0] _draw_ef (res://scripts/screens/command_wheel.gd:550)
+       [1] draw (res://scripts/screens/command_wheel.gd:432)
+       [2] _draw_body (res://scripts/screens/hud.gd:330)
+       [3] draw (res://scripts/screens/hud.gd:196)
+       [4] _timed (res://scripts/game.gd:2321)
+       [5] <anonymous lambda> (res://scripts/game.gd:1127)
+ERROR: Invalid polygon data, triangulation failed.
+   at: canvas_item_add_polygon (servers/rendering/renderer_canvas_cull.cpp:1770)
+   GDScript backtrace (most recent call first):
+       [0] _draw_ef (res://scripts/screens/command_wheel.gd:550)
+       [1] draw (res://scripts/screens/command_wheel.gd:432)
+       [2] _draw_body (res://scripts/screens/hud.gd:330)
+       [3] draw (res://scripts/screens/hud.gd:196)
+       [4] _timed (res://scripts/game.gd:2321)
+       [5] <anonymous lambda> (res://scripts/game.gd:1127)
+ERROR: Invalid polygon data, triangulation failed.
+   at: canvas_item_add_polygon (servers/rendering/renderer_canvas_cull.cpp:1770)
+   GDScript backtrace (most recent call first):
+       [0] _draw_ef (res://scripts/screens/command_wheel.gd:550)
+       [1] draw (res://scripts/screens/command_wheel.gd:432)
+       [2] _draw_body (res://scripts/screens/hud.gd:330)
+       [3] draw (res://scripts/screens/hud.gd:196)
+       [4] _timed (res://scripts/game.gd:2321)
+       [5] <anonymous lambda> (res://scripts/game.gd:1127)
+ERROR: Invalid polygon data, triangulation failed.
+   at: canvas_item_add_polygon (servers/rendering/renderer_canvas_cull.cpp:1770)
+   GDScript backtrace (most recent call first):
+       [0] _draw_ef (res://scripts/screens/command_wheel.gd:550)
+       [1] draw (res://scripts/screens/command_wheel.gd:432)
+       [2] _draw_body (res://scripts/screens/hud.gd:330)
+       [3] draw (res://scripts/screens/hud.gd:196)
+       [4] _timed (res://scripts/game.gd:2321)
+       [5] <anonymous lambda> (res://scripts/game.gd:1127)
+ERROR: Invalid polygon data, triangulation failed.
+   at: canvas_item_add_polygon (servers/rendering/renderer_canvas_cull.cpp:1770)
+   GDScript backtrace (most recent call first):
+       [0] _draw_ef (res://scripts/screens/command_wheel.gd:550)
+       [1] draw (res://scripts/screens/command_wheel.gd:432)
+       [2] _draw_body (res://scripts/screens/hud.gd:330)
+       [3] draw (res://scripts/screens/hud.gd:196)
+       [4] _timed (res://scripts/game.gd:2321)
+       [5] <anonymous lambda> (res://scripts/game.gd:1127)
+ERROR: Invalid polygon data, triangulation failed.
+   at: canvas_item_add_polygon (servers/rendering/renderer_canvas_cull.cpp:1770)
+   GDScript backtrace (most recent call first):
+       [0] _draw_ef (res://scripts/screens/command_wheel.gd:550)
+       [1] draw (res://scripts/screens/command_wheel.gd:432)
+       [2] _draw_body (res://scripts/screens/hud.gd:330)
+       [3] draw (res://scripts/screens/hud.gd:196)
+       [4] _timed (res://scripts/game.gd:2321)
+       [5] <anonymous lambda> (res://scripts/game.gd:1127)
+ERROR: Invalid polygon data, triangulation failed.
+   at: canvas_item_add_polygon (servers/rendering/renderer_canvas_cull.cpp:1770)
+   GDScript backtrace (most recent call first):
+       [0] _draw_ef (res://scripts/screens/command_wheel.gd:550)
+       [1] draw (res://scripts/screens/command_wheel.gd:432)
+       [2] _draw_body (res://scripts/screens/hud.gd:330)
+       [3] draw (res://scripts/screens/hud.gd:196)
+       [4] _timed (res://scripts/game.gd:2321)
+       [5] <anonymous lambda> (res://scripts/game.gd:1127)
+WARNING: 2 RIDs of type "CanvasItem" were leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2735)
+WARNING: 742 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 26 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
