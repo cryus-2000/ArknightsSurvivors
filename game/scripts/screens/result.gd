@@ -193,6 +193,11 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		# 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：面板占到约 90% 宽（结局结算给右侧剪影留 300）
 		pw = minf(vs.x - 300.0 - 32.0, 700.0) if ending_panel else minf(vs.x - 80.0, 960.0)
 	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - 190, pw, 380)
+	# 手机暂停（用户 11-05「各个按键有点拥挤，时钟位置也可以调整」）：六个按钮排成两行三个、面板加高；表盘挪到统计行右侧、与统计行上下居中
+	var grid2: bool = Cfg.touch_device() and g.state == Game.S.PAUSE and opts.size() >= 6
+	if grid2:
+		var ph: float = minf(vs.y - 16.0, 460.0)
+		r = Rect2(vs.x / 2 - pw / 2.0, (vs.y - ph) / 2.0, pw, ph)
 	if ending_panel:
 		# 面板 + 右侧剪影（约 260 宽）整体居中，剪影和「结局 Ⅱ / 已达成」不再贴屏幕右边、压到编队 HUD（触屏紧凑版 1113 宽）
 		r.position.x = maxf(16.0, (vs.x - (pw + 260.0)) / 2.0)
@@ -243,7 +248,12 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		UI.en(g.hud, g.font, Vector2(r.get_center().x - ew / 2.0 + rw0[0], r.position.y + 50), en_title, 13, _fa(col, rw0[1]), 4.0)
 		_heading_a(Vector2(r.get_center().x + rw0[0], r.position.y + 90), title, tsz, minf(250.0, pw / 2.0 - 24.0), rw0[1])
 	if g.state == Game.S.PAUSE:
-		_draw_dial(Vector2(r.end.x - (190.0 if Cfg.touch_device() else 150.0), r.position.y + 205.0), 62.0)
+		if grid2:
+			var top_rel: float = 140.0
+			var bot_rel: float = r.size.y - 2.0 * 66.0 - 22.0
+			_draw_dial(Vector2(r.end.x - 150.0, r.position.y + (top_rel + bot_rel) / 2.0), 54.0)
+		else:
+			_draw_dial(Vector2(r.end.x - (190.0 if Cfg.touch_device() else 150.0), r.position.y + 205.0), 62.0)
 	var touch: bool = Cfg.touch_device()   # 触屏（手机）：统计行字 +4、按钮本体 60 高、字 19；桌面不变
 	var display_time: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
 	var mm := int(display_time) / 60
@@ -272,7 +282,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
 	# 行距：多了「生机细胞」一行（docs/109 §3.1）时收紧，最后一行不压到按钮（触屏按钮 60 高、桌面 40 高）
 	var y0s: float = 166.0 if ending_panel else 156.0
-	var btn_top: float = r.size.y - (84.0 if touch else 70.0) - (12.0 if touch else 10.0)
+	var btn_top: float = r.size.y - (84.0 if touch else 70.0) - (12.0 if touch else 10.0) - (66.0 if grid2 else 0.0)
 	var dy: float = minf(34.0 if touch else 32.0, (btn_top - y0s) / maxf(1.0, stats.size() - 0.4))
 	for i in stats.size():
 		var y := r.position.y + y0s + i * dy
@@ -284,11 +294,15 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		UI.text(g.hud, g.font, Vector2(r.position.x + 62 + rw[0], y), stats[i][0], 20 if touch else 16, _fa(UI.SUB, rw[1]))
 		UI.text(g.hud, g.font, Vector2(r.position.x + 200 + rw[0], y), stats[i][1], 22 if touch else 18, _fa(UI.TEXT, rw[1]))
 	var bx := r.position.x + 40
-	var bw := (r.size.x - 80 - 12 * (opts.size() - 1)) / opts.size()
+	var per_row: int = 3 if grid2 else opts.size()
+	var bw := (r.size.x - 80 - 12 * (per_row - 1)) / per_row
 	g.result_btns.clear()
 	var mouse := g.hud.get_local_mouse_position()
 	for op in opts:
 		var br := Rect2(bx, r.end.y - 84, bw, 60) if touch else Rect2(bx, r.end.y - 70, bw, 40)
+		if grid2:   # 两行三个：第一行在上，行距 66
+			var bi0: int = g.result_btns.size()
+			br = Rect2(r.position.x + 40 + (bi0 % 3) * (bw + 12), r.end.y - 84 - (1 - bi0 / 3) * 66.0, bw, 56)
 		var bi: int = g.result_btns.size()
 		g.result_btns.append([br.grow_individual(6, 12, 6, 12) if Pad.touch_ui() else br, op[2]])   # 触屏点击区 80 高
 		var hov: bool = (bi == g.res_sel) if (Pad.using or g.kb_nav) else br.has_point(mouse)
