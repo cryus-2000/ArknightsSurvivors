@@ -12,7 +12,7 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
-const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/244，render/late_read）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247，render/late_read）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
@@ -58,7 +58,7 @@ var anim_t := 0.0
 ## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45；render/declutter 的 dim_floor）
-var deco_dim := 1.0               # 装饰层（火花 / 碎片 / 光点 / 拖尾）的降噪系数；late_read V3 关时 = fx_dim（docs/244）
+var deco_dim := 1.0               # 装饰层（火花 / 碎片 / 光点 / 拖尾）的降噪系数；late_read V3 关时 = fx_dim（docs/247）
 var lr_v3 := false                # 本帧 late_read V3 生效（降噪只压装饰层）
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
@@ -119,7 +119,7 @@ const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
-const DECO_KINDS := {"spark": true, "shard": true, "mote": true, "ember": true, "trail": true}   # docs/244 V3：降噪只压这些装饰件
+const DECO_KINDS := {"spark": true, "shard": true, "mote": true, "ember": true, "trail": true}   # docs/247 V3：降噪只压这些装饰件
 const FOE_KINDS := ["boss_phase", "boss_down", "spear_fly", "frost_track", "frost_step", "reflow", "glint", "drain"]   # 没打 enemy 标记的敌方 / Boss 特效（量测分层用）
 const AMB_KINDS := ["mote", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane"}
@@ -179,7 +179,7 @@ func update_visuals(dt: float) -> void:
 	g.cam.position = ccen.round() if cround == 1.0 else ((ccen / Game.PX).round() * Game.PX if cround >= 2.0 else ccen)
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
-	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * (LateRead.k("v1_decay", 2.5) if LateRead.on("v1") else 1.5))   # docs/244 V1：红边只在大伤害时亮，退得快一点
+	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * (LateRead.k("v1_decay", 2.5) if LateRead.on("v1") else 1.5))   # docs/247 V1：红边只在大伤害时亮，退得快一点
 	g.hurt_duck = move_toward(g.hurt_duck, 0.0, rd)
 	g.red_flash = move_toward(g.red_flash, 0.0, rd * 2.0)
 	g.hp_shake = move_toward(g.hp_shake, 0.0, rd)
@@ -276,7 +276,7 @@ func update_visuals(dt: float) -> void:
 	if mate_on:
 		mate_dim = minf(mate_dim, Bal.v("render/mate_fx", 0.55))
 		mate_desat = Bal.v("render/mate_desat", 0.35)
-	# 后期可读性 V3（docs/244，render/late_read）：降噪只压装饰层。deco_dim 留原来的降噪系数给火花 / 碎片 / 光点 / 拖尾，
+	# 后期可读性 V3（docs/247，render/late_read）：降噪只压装饰层。deco_dim 留原来的降噪系数给火花 / 碎片 / 光点 / 拖尾，
 	# fx_dim（干员脚本、核心帧条读的那个）恒为 1，队友 / 队长的整体透明度系数也不再压
 	lr_v3 = LateRead.on("v3")
 	if lr_v3:
@@ -302,7 +302,7 @@ func update_visuals(dt: float) -> void:
 	if nfl > fg:
 		flash_a *= maxf(Bal.v("fx/flash_group_floor", 0.35), fg / float(nfl))
 	if LateRead.on("v7"):
-		flash_a = minf(flash_a, LateRead.k("v7_a", 0.5))   # docs/244 V7：普通怪受击最多 50% 混白（不再整只刷白），精英 / Boss 不走 flash_a，照旧整只闪
+		flash_a = minf(flash_a, LateRead.k("v7_a", 0.5))   # docs/247 V7：普通怪受击最多 50% 混白（不再整只刷白），精英 / Boss 不走 flash_a，照旧整只闪
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	elite_rim = clampf(Bal.v("render/elite_rim", 0.55), 0.0, 1.0)
 	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
@@ -666,7 +666,7 @@ func _draw_leader_sil() -> void:
 	if Engine.get_process_frames() % 3 == 0:
 		_sil_score = _leader_cover()   # 每 3 帧算一次覆盖分（渐显本身有 0.15 秒缓冲）
 		if LateRead.mode("s2", 2.0) == 1.0 and _in_warn(o.pos):
-			_sil_score = maxf(_sil_score, Bal.v("render/lead_sil_s1", 10.0))   # docs/244 S2 方案 1：被敌方预警盖住也画剪影
+			_sil_score = maxf(_sil_score, Bal.v("render/lead_sil_s1", 10.0))   # docs/247 S2 方案 1：被敌方预警盖住也画剪影
 	var s0: float = Bal.v("render/lead_sil_s0", 4.0)
 	var s1: float = Bal.v("render/lead_sil_s1", 10.0)
 	var want: float = clampf((_sil_score - s0) / maxf(0.01, s1 - s0), 0.0, 1.0)
@@ -687,7 +687,7 @@ func _draw_leader_sil() -> void:
 	draw_sprite_at(p, st.flip, g.sprite.modulate, st.frame, st.tex, st.hf, fo)
 
 
-## docs/244 S2：点 p（脚底）是否落在一个还没结算的敌方预警里（圆 / 扇形 / 直线，含 Boss 招式；判定同 classify_tells，余量 12）
+## docs/247 S2：点 p（脚底）是否落在一个还没结算的敌方预警里（圆 / 扇形 / 直线，含 Boss 招式；判定同 classify_tells，余量 12）
 func _in_warn(p: Vector2) -> bool:
 	var gy: float = ground_y()
 	var lr := 12.0
@@ -711,7 +711,7 @@ func _in_warn(p: Vector2) -> bool:
 	return false
 
 
-## docs/244 S2 方案 2（render/late_read_s2 = 2，缺省）：站在敌方预警里的干员，在敌方顶层的预警填充之后、敌弹与预警轮廓之前再画一遍本体
+## docs/247 S2 方案 2（render/late_read_s2 = 2，缺省）：站在敌方预警里的干员，在敌方顶层的预警填充之后、敌弹与预警轮廓之前再画一遍本体
 ## 预警填充不再罩住人；敌弹、预警轮廓照样压在最上面。只画不改状态
 func _draw_squad_over_warns() -> void:
 	if LateRead.mode("s2", 2.0) != 2.0 or g.squad == null or g.state == g.S.DEAD or g.warns.is_empty():
@@ -723,7 +723,7 @@ func _draw_squad_over_warns() -> void:
 		o._cv_flush()
 
 
-## docs/244 S1：脚底光池（地面层，影子之前）：队长一圈暖白光照地，队员小一号、淡一半。三阶硬边（同 optical_steps 防油腻），
+## docs/247 S1：脚底光池（地面层，影子之前）：队长一圈暖白光照地，队员小一号、淡一半。三阶硬边（同 optical_steps 防油腻），
 ## 只往下照地、不往外扩光环；颜色暖白偏琥珀，避开结晶暖金（更白、更淡）
 func _draw_squad_pools() -> void:
 	if not LateRead.on("s1") or g.squad == null or g.state == g.S.DEAD:
@@ -743,7 +743,7 @@ func _draw_squad_pools() -> void:
 		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## docs/244 S3：我方放置物在敌人之上画（地雷 / 轰隆隆走 relic_fx.draw_placed_top；干员地面池 hw.pools —— 逻各斯铭文、艾雅法拉熔池等 ——
+## docs/247 S3：我方放置物在敌人之上画（地雷 / 轰隆隆走 relic_fx.draw_placed_top；干员地面池 hw.pools —— 逻各斯铭文、艾雅法拉熔池等 ——
 ## 补一圈本人代表色 1 格描边 + 呼吸，半径不小于 s3_rmin，最后 0.3 秒淡出）。--clutterdbg=nofriend 时不画
 func _draw_placed_top() -> void:
 	if _dbg_friend or not LateRead.on("s3"):
@@ -1414,7 +1414,7 @@ func _draw_bullets() -> void:
 				"arcane":
 					g.wcv.draw_line(b.pos - n * 20.0, b.pos, _bc(Color(1.4, 0.6, 2.2, 0.35)), 4.0)
 			var bgk: float = LateRead.grow_of(g.squad.get_op(str(b.op))) if b.has("op") and LateRead.on("v5") else 1.0
-			if bgk > 1.001:   # docs/244 V5：干员投射物主形按精英化 / 节点放大（判定半径不变），精一起加厚
+			if bgk > 1.001:   # docs/247 V5：干员投射物主形按精英化 / 节点放大（判定半径不变），精一起加厚
 				var btx: Texture2D = g.tex.get(ptex)
 				var bgs: Array = LateRead.grow_scale(g, btx, int(pspec[0]), Game.PX * vk, bgk, A.hires_of(btx))
 				g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), bgs[0], _bc(Color.WHITE), Vector2(-1, -1), false, 1 if bgs[1] and bgk >= 1.2 else 0)
@@ -1977,7 +1977,7 @@ func _draw_fx() -> void:
 					scol = lead_col(scol)   # 队长放的帧条特效：提亮 / 暖色（docs/139 §11）
 				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
 					continue   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
-				if f.has("grow") and LateRead.on("v5"):   # docs/244 V5：干员主形按精英化 / 节点放大后再取整，精一起加厚 1 格
+				if f.has("grow") and LateRead.on("v5"):   # docs/247 V5：干员主形按精英化 / 节点放大后再取整，精一起加厚 1 格
 					var gtx: Texture2D = g.tex.get(f.name)
 					var gs: Array = LateRead.grow_scale(g, gtx, int(spec[0]), f.scale, float(f.grow), A.hires_of(gtx) if gtx != null else 1.0)
 					g.vfx.spr_rot(f.name, fr, f.pos, f.ang, gs[0], scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false), int(f.get("thick", 0)) if gs[1] else 0)
@@ -2112,7 +2112,7 @@ func _draw_fx() -> void:
 				g.wcv.draw_set_transform(f.pos, f.ang, Vector2.ONE)
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
 				var ssc: float = f.scale
-				if f.has("grow") and LateRead.on("v5"):   # docs/244 V5：刀光按精英化 / 节点放大（取整、上限同帧条）
+				if f.has("grow") and LateRead.on("v5"):   # docs/247 V5：刀光按精英化 / 节点放大（取整、上限同帧条）
 					var stx: Texture2D = g.tex.get(tn)
 					ssc = LateRead.grow_scale(g, stx, nf, f.scale, float(f.grow), A.hires_of(stx) if stx != null else 1.0)[0]
 				g.vfx.spr(tn, nf, fr, Vector2.ZERO, ssc, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
@@ -3563,7 +3563,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
 var draw_target: CanvasItem = null   # 光学观感的高清干员层：干员本体临时画到这里（render/optical.gd _draw_ops 设，画完清回 null）
 
-## docs/244 S3 放置物描边用的我方色：代表色拉到满亮度 × s1_ol_hdr（暗场里不被压成灰）。
+## docs/247 S3 放置物描边用的我方色：代表色拉到满亮度 × s1_ol_hdr（暗场里不被压成灰）。
 ## 小队描边 11-05 用户定不要（小队只靠头顶红三角标识），已删；这里只剩放置物在用
 func squad_ol_col(c: Color, a := 1.0) -> Color:
 	var m: float = maxf(c.r, maxf(c.g, c.b))

@@ -657,7 +657,7 @@ func draw_pfx(floor_layer: bool) -> void:
 		# 后期特效密集时整体降透明度（render/world.gd 的 fx_dim，EA 1.1）；a 也传给干员自己的 _draw_pfx
 		var a: float = clampf(f.life / f.max, 0.0, 1.0) * g.world.fx_dim
 		if g.world.lr_v3 and pfx_cappable(f) and f.kind != "strip":   # strip = 数据干员的技能帧条（主形），不算装饰
-			a = clampf(f.life / f.max, 0.0, 1.0) * g.world.deco_dim   # docs/244 V3：只有装饰小粒子吃降噪，技能帧条 / 判定 / 提示照常 1
+			a = clampf(f.life / f.max, 0.0, 1.0) * g.world.deco_dim   # docs/247 V3：只有装饰小粒子吃降噪，技能帧条 / 判定 / 提示照常 1
 		if _draw_pfx(f, a):
 			continue
 		var c: Color = f.get("col", col())
@@ -3072,7 +3072,7 @@ func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vect
 	var fh: float = float(tx.get_height())
 	var k: float = g.PX / A.hires_of(tx)
 	var gk: float = _LateRead.grow_of(self)
-	if gk > 1.001 and not g.vfx._v5_skip(name):   # docs/244 V5：干员技能帧条按精英化 / 节点放大、取整，精一起加厚 1 格
+	if gk > 1.001 and not g.vfx._v5_skip(name):   # docs/247 V5：干员技能帧条按精英化 / 节点放大、取整，精一起加厚 1 格
 		var gs: Array = _LateRead.grow_scale(g, tx, frames, g.PX, gk, A.hires_of(tx))
 		k = gs[0] / A.hires_of(tx)
 		if gs[1] and _LateRead.thick_of(self) > 0:
