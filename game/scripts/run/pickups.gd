@@ -34,6 +34,8 @@ func count_items(kind := "") -> int:
 func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 	if kind == "xp":
 		xp_dropped += val
+		if Bal.vi("render/gem_cap", 0) > 0 and _cap_xp(pos, val):
+			return
 		# 兜底（docs/38 §8.13 方案 A）：场上掉落物 > pickup/gem_overflow（400）时新掉的经验直接入账，算回收、另记次数。
 		# recall_after = 0（关回收、走旧逻辑对照）时同一条就是旧的「溢出自动入账」
 		if g.gems.size() > int(Bal.v("pickup/gem_overflow", 400.0)):
@@ -51,6 +53,36 @@ func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 		"special": special, "landed": false, "age": 0.0, "seed": r.randf() * TAU, "out_t": 0.0})
 	if src != "":
 		g.gems[-1]["src"] = src   # 宝箱来源（遥测，docs/191）
+
+
+## Only settled XP is eligible: do not teleport new drops into a flying magnet pickup.
+func _cap_xp(pos: Vector2, val: float) -> bool:
+	var count := 0
+	var nearest: Dictionary = {}
+	var nearest_big: Dictionary = {}
+	var dist := INF
+	var big_dist := INF
+	var big_value: float = Bal.v("render/gem_cap_big", 5.0)
+	for item in g.gems:
+		if item.dead or item.kind != "xp":
+			continue
+		count += 1
+		if item.mag or float(item.z) > 0.0 or float(item.vz) != 0.0:
+			continue
+		var d: float = pos.distance_squared_to(item.pos)
+		if d < dist:
+			dist = d
+			nearest = item
+		if float(item.val) >= big_value and d < big_dist:
+			big_dist = d
+			nearest_big = item
+	if count < Bal.vi("render/gem_cap_n", 200):
+		return false
+	var target: Dictionary = nearest_big if not nearest_big.is_empty() else nearest
+	if target.is_empty():
+		return false # All XP in flight: retain the normal drop and overflow safeguards.
+	target.val += val
+	return true
 
 
 ## 掉落弹出用的独立随机流：第一次用时按局种子派生（g.rng.seed 只读、不消耗），同 seed 可复现
