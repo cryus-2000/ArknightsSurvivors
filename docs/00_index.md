@@ -23,6 +23,8 @@
 
 ## 规范（所有会话遵守）
 
+- [244_elite_mark_v2](244_elite_mark_v2.md)：审阅中；默认关闭的精英白标记、物种色呼吸光点和小队同步短闪；来源：11-05 Codex任务单3。
+
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
 | [06_git_collaboration](06_git_collaboration.md) | Git 协作与美术分工 | 现行规范 | Codex / Claude 分工、交接与合入；「Claude 在主工作区」「没有远程」两句已过时，以 41 §3 为准 | 38、41、54、91、99、归档24 等 12 篇；v14_codex_fx_props.md、skalter_s3_handoff.md、AGENTS.md 等 4 个文件 |

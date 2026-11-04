@@ -104,6 +104,7 @@ const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
 ## 原 (2.6, 0.45, 0.45) 过曲线后发粉，压低绿蓝通道成正红（10-26 第二次反馈）；身体本色不调
 const SQUAD_RIM_COL := Color(2.4, 0.16, 0.12, 0.95)
 var elite_rim := 0.0
+var elite_mark_v2 := false
 var elite_rim_col := Color(0, 0, 0, 0)
 var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
 static var _atlas_cache := {}      # 上一次拼好的图集（键：帧条名单 + 镜像 / 法线开关；贴图 instance id 也须相同）
@@ -288,6 +289,7 @@ func update_visuals(dt: float) -> void:
 		flash_a *= maxf(Bal.v("fx/flash_group_floor", 0.35), fg / float(nfl))
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	elite_rim = clampf(Bal.v("render/elite_rim", 0.55), 0.0, 1.0)
+	elite_mark_v2 = Bal.v("render/elite_mark_v2", 0.0) > 0.0
 	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
 	elite_rim_col = Color(ELITE_RIM_RGB.r * rg, ELITE_RIM_RGB.g * rg, ELITE_RIM_RGB.b * rg, elite_rim)
 	g.fx_add.modulate.a = 0.0 if _dbg_friend else lerpf(1.0, Dc.p("add_floor"), dcrowd)
@@ -2753,6 +2755,8 @@ var _am_mode := 0
 ## 缓存路径的排除条件（docs/39 §8）。Boss / 宝箱 / 骑士帧条 / DC_SKIP_TYPES 这几项开局后不会变（boss、chest、tex、type 只在生成时写），
 ## 第一次判过记在 e.dcs，以后只查会变的状态（docs/50 §14 OPT_EDRAW 的快速写法；10-15 删掉逐项全判的旧版，docs/101 S2）
 func _dc_ok(e: Dictionary) -> bool:
+	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
+		return false   # Timed squad rim is deliberately outside the persistent sprite cache.
 	var st = e.get("dcs")
 	if st == null:
 		st = e.boss or e.chest or e.tex == "e_knight" or D.ENEMIES.get(e.type, _NO_DEF).get("draw_full", false)
@@ -2850,11 +2854,15 @@ func _ol_sig() -> int:
 
 ## 这只敌人画不画精英冷色描边
 func _rim_on(e: Dictionary) -> bool:
+	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
+		return e.get("squad", false) and fposmod(g.t, 3.0) < 0.15
 	return e.get("ishar_blessed", false) or (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
 
 
 ## 描边颜色：精英冷色描边开着时用冷青（旧写法 ol_norm 下的橙红只在旋钮关时保留）；普通怪中性淡紫白
 func _ol_col(e: Dictionary) -> Color:
+	if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
+		return Color(1.0, 1.0, 1.0, 0.85)
 	if e.get("ishar_blessed", false):
 		return Color(3.2, 0.24, 0.3, 0.9)
 	if e.get("squad", false):
@@ -3000,7 +3008,8 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 					if far:
 						pts.append([q, cd[3], Vector2(fw, fh), dens])
 		_glow_cache[name] = pts
-	var big: bool = e.get("elite", false) or e.get("boss", false)
+	var marked: bool = elite_mark_v2 and not e.get("boss", false) and (e.get("elite", false) or e.get("squad", false))
+	var big: bool = e.get("elite", false) or e.get("boss", false) or marked
 	var cc: Color = g.optical.enemy_glow(e)
 	var npt: int = mini(pts.size(), 4 if big else 3)
 	for ip in npt:
@@ -3011,7 +3020,16 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 		if flip:
 			d.x = -d.x
 		var sz: float = maxf(2.0, sc) * (1.5 if big else 1.0)
-		g.glow_next.append([(pos + d - Vector2(sz, sz) * 0.5).round(), sz, cc])
+		var point_col: Color = cc
+		if marked:
+			point_col = pt[1]   # Species colour from this frame's emit mask / native bright pixel.
+			if ip == npt - 1:
+				point_col *= 0.72 + 0.28 * (0.5 + 0.5 * sin(g.t * 3.0 + float(e.id)))
+		var point_pos: Vector2 = (pos + d - Vector2(sz, sz) * 0.5).round()
+		if g.optical_on:
+			g.glow_next.append([point_pos, sz, point_col])
+		elif marked and ip == npt - 1:
+			g.wcv.draw_rect(Rect2(point_pos, Vector2(sz, sz)), point_col)
 
 
 ## 重画帧条的发光层（name_emit，同帧索引、同原点）：每帧取发光像素按 6 美术像素格归并，取像素最多的至多 4 团的重心。
@@ -3409,6 +3427,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if e.get("ishar_blessed", false):
 			oc = _ol_col(e)
+		if elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)):
+			oc = _ol_col(e)
 		if not e.elite and not e.boss and not e.get("squad", false):
 			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
@@ -3418,7 +3438,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if bfx >= 0 and _rec == null:
 		_burst_fx_layer(e, "_back", bfx, bpos, flip)
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
-	if g.optical_on and _rec == null:
+	if (g.optical_on or (elite_mark_v2 and not e.boss and (e.elite or e.get("squad", false)))) and _rec == null:
 		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e, frame)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
