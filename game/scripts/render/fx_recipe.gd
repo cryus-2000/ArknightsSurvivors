@@ -798,12 +798,13 @@ func _geo(s: Dictionary, gk: float, k: float) -> Array:
 					L = R * (1.0 - float(s.inner)) * (0.7 + 0.3 * _h(sd, i + 17)) * (0.65 + 0.35 * k)
 				out2.append(PackedVector2Array([_snap(c2 - dv2 * bw * 0.6), _snap(c2 + nv2 * bw * 0.5), _snap(c2 + dv2 * L), _snap(c2 - nv2 * bw * 0.5)]))
 			return out2
-		"orb":   # 白热光团（原作命中的白色光球）：八角硬边
+		"orb":   # 白热星核（11-05：不准用圆形光团显眼）：八芒尖星，内角收到 0.22，长短芒交替
 			var r3: float = float(s.r) * gk * (0.55 + 0.45 * k)
 			var pts3 := PackedVector2Array()
-			for i in 8:
-				var a3: float = TAU * (i + 0.5) / 8.0
-				pts3.append(_snap(c + Vector2(cos(a3), sin(a3)) * r3))
+			for i in 16:
+				var a3: float = TAU * i / 16.0 - PI / 2.0
+				var rr3: float = r3 * (0.22 if i % 2 == 1 else (1.0 if (i / 2) % 2 == 0 else 0.6))
+				pts3.append(_snap(c + Vector2(cos(a3), sin(a3)) * rr3))
 			return [pts3]
 		"web":
 			return _web(s, gk, k, true)
@@ -1133,7 +1134,7 @@ func _draw_parts(o, cv, p: Dictionary) -> void:
 				if u > 0.4:
 					col = col.lerp(p.dark, 0.5)
 			"twinkle":
-				col = p.hot if u < 0.4 else p.light
+				col = (p.hot if u < 0.4 else p.light) if not q.get("gold", false) else (p.get("gold", p.hot) if u < 0.5 else p.get("gold", p.hot).lerp(p.dark, 0.3))
 				col.a *= dim * (1.0 if u < 0.75 else 0.5)
 				var cc: Vector2 = _snap(pos)
 				cv.draw_rect(Rect2(cc, Vector2(2, 2)), col)
@@ -1221,16 +1222,17 @@ func _draw_bolts(o, cv, p: Dictionary) -> void:
 		var at: Vector2 = pose[0]
 		var dv := Vector2.from_angle(float(pose[1]))
 		var hist: Array = bo.get("visual", {}).get("hist", bo.hist)
-		var L: float = float(m.get("len", 30.0)) * m.sc
-		var W: float = float(m.get("w", 12.0)) * m.sc * m.thick
+		# 11-05 用户：放大只放在长度上——墨尾随档位加长，弹头保持小而尖（三档最多差 1 美术像素），墨尾宽不随档位变
+		var L: float = float(m.get("len", 66.0)) * m.sc
+		var W: float = float(m.get("w", 6.0))
+		var hl: float = float(m.get("head_len", 12.0)) + (2.0 if m.tier >= 1 else 0.0)
+		var hw: float = float(m.get("head_w", 4.0)) + (2.0 if m.tier >= 1 else 0.0)
 		var age: float = float(bo.get("age", 0.0))
-		var hot: bool = age < 0.06   # 出手首帧亮一下
+		var hot: bool = age < 0.06   # 出手首帧亮一下（只变亮，不变大）
 		var fork: bool = m.tier >= 1
-		if m.tier >= 2:
-			var bg: Color = p.dark
-			bg.a = 0.8
-			_glyph_strip(cv, at - dv * L * 0.55, -dv, L * float(m.get("rune_k", 1.0)), 2.0, int(bo.get("_fxr_sd", 7)), bg, p.hot, p.accent, 1.0, 1, -40.0)
-		# 墨迹彗星（原作 trail_01）：白热亮头 + 深蓝墨尾；尾沿飞行历史点走（弧线），不够长就顺着来向延长到 L
+		if m.tier >= 2:   # 精二：尾后一行细笔画咒文
+			_glyph_strip(cv, at - dv * L * 0.5, -dv, L * float(m.get("rune_k", 0.9)), 2.0, int(bo.get("_fxr_sd", 7)), Color(0, 0, 0, 0), p.hot, p.accent, 1.0, 1, -40.0)
+		# 墨尾（原作 trail_01）：细长深蓝墨尾沿飞行历史点走（弧线），不够长就顺着来向延长到 L；越往后越细
 		var path: Array = [at]
 		for i in range(hist.size() - 1, -1, -1):
 			if (hist[i] as Vector2).distance_to(path[-1]) > 1.0:
@@ -1254,28 +1256,41 @@ func _draw_bolts(o, cv, p: Dictionary) -> void:
 		for i in range(1, cut.size()):
 			tot += (cut[i] as Vector2).distance_to(cut[i - 1])
 			fs.append(tot)
+		var mc: Color = p.main if m.tier < 2 else p.accent
 		for i in range(1, cut.size()):
 			var f0: float = float(fs[i - 1]) / maxf(1.0, tot)
 			var f1: float = float(fs[i]) / maxf(1.0, tot)
-			var wa: float = W * pow(1.0 - f0, 0.8)
-			var wb: float = W * pow(1.0 - f1, 0.8)
-			cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], wa + 4.0, maxf(2.0, wb + 2.0)), p.dark)
-			var mc: Color = p.main if m.tier < 2 else p.accent
+			var wa: float = W * pow(1.0 - f0, 0.9)
+			var wb: float = W * pow(1.0 - f1, 0.9)
+			cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], wa + 2.0, maxf(2.0, wb)), p.dark)
 			if fork and f0 > 0.3:
 				# 精一：墨尾在后段分成两股（形状差）
-				var sp0: float = W * 0.3 * (f0 - 0.3) / 0.7
-				var sp1: float = W * 0.3 * (f1 - 0.3) / 0.7
+				var sp0: float = W * 0.45 * (f0 - 0.3) / 0.7
+				var sp1: float = W * 0.45 * (f1 - 0.3) / 0.7
 				for sg in [-1.0, 1.0]:
 					var o0: Vector2 = (cut[i - 1] as Vector2) + nv * sp0 * sg
 					var o1: Vector2 = (cut[i] as Vector2) + nv * sp1 * sg
-					cv.draw_colored_polygon(_seg(o0, o1, maxf(2.0, wa * 0.32), maxf(2.0, wb * 0.32)), mc)
-			else:
-				cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], maxf(2.0, wa * 0.45), maxf(2.0, wb * 0.45)), mc)
-			if i % 2 == 0:   # 墨尾里的亮点（原作尾上的蓝色闪点）
-				cv.draw_rect(Rect2(_snap((cut[i] as Vector2) + nv * wb * (0.25 if i % 4 == 0 else -0.25)), Vector2(2, 2)), p.light)
-		var hr: float = W * (0.62 if not hot else 0.8)
-		cv.draw_colored_polygon(_quill(at + dv * hr * 0.2, dv, hr * 2.4, hr * 1.5, false), p.light)
-		cv.draw_colored_polygon(_quill(at + dv * hr * 0.3, dv, hr * 1.7, hr * 1.0, false), p.hot if not hot else Color(2.0, 2.0, 2.2))
+					cv.draw_colored_polygon(_seg(o0, o1, maxf(2.0, wa * 0.34), 2.0), mc)
+			elif wa * 0.4 >= 2.0:
+				cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], maxf(2.0, wa * 0.4), maxf(2.0, wb * 0.4)), mc)
+		# 墨尾纹理（原作尾里细密的条纹 / 点）：沿尾每 4 px 一个 1 美术像素亮点，左右交替，越往后越稀越暗
+		var d := 4.0
+		var seg_i := 1
+		while d < tot * 0.9 and seg_i < cut.size():
+			while seg_i < cut.size() - 1 and float(fs[seg_i]) < d:
+				seg_i += 1
+			var s0: float = float(fs[seg_i - 1])
+			var s1: float = float(fs[seg_i])
+			var q: Vector2 = (cut[seg_i - 1] as Vector2).lerp(cut[seg_i], clampf((d - s0) / maxf(0.01, s1 - s0), 0.0, 1.0))
+			var f: float = d / maxf(1.0, tot)
+			var k: int = int(d / 4.0)
+			if not (f > 0.55 and k % 2 == 1):
+				var dc: Color = p.light if f < 0.4 else p.main.lerp(p.light, 0.35)
+				cv.draw_rect(Rect2(_snap(q + nv * W * 0.22 * (1.0 - f) * (1.0 if k % 2 == 0 else -1.0)), Vector2(2, 2)), dc)
+			d += 4.0
+		# 弹头：小而尖的白色箭头状亮点（不画圆球）
+		cv.draw_colored_polygon(_quill(at + dv * hl * 0.15, dv, hl + 2.0, hw + 2.0, false), p.light)
+		cv.draw_colored_polygon(_quill(at + dv * hl * 0.2, dv, hl, hw, false), p.hot if not hot else Color(2.0, 2.0, 2.2))
 		# 滴墨：每 shed 秒一滴（画面计时，按弹的年龄定，不抽玩法随机）
 		var sh: float = float(m.get("shed", 0.1))
 		if sh > 0.0 and int(age / sh) != int(bo.get("_fxr_drip", -1)):
@@ -1285,6 +1300,9 @@ func _draw_bolts(o, cv, p: Dictionary) -> void:
 			var tg: Dictionary = bo.get("e", {})
 			var gy: float = (tg.pos.y if not tg.is_empty() else at.y) + 8.0
 			_grains(o, at - dv * L * 0.4, maxf(gy, at.y + 18.0), "drop", 1, m)
+			if m.tier >= 1 and int(age / sh) % 2 == 0:   # 精一起：飞行中零星金色小星（原作 0.88 s，淡金，比结晶的暖金浅）
+				_grains(o, at - dv * L * 0.25, maxf(gy, at.y + 18.0), "twinkle", 1, m)
+				parts[-1]["gold"] = true
 		_light_follow(o, at, float(m.get("light_r", 46.0)) * m.sc, float(m.get("light_i", 0.22)), p.light)
 
 
