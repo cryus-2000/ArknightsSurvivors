@@ -350,8 +350,8 @@ func draw_bg() -> void:
 			draw_event_bg(vs)
 		_:
 			var en_label := "RELIC" if g.choice_kind == "relic" else ("NODE" if g.choice_kind == "cross" else ("SQUAD SWAP" if g.choice_kind == "swap" else ("GROWTH PATH" if g.choice_kind == "branch" else "LEVEL UP")))
-			if g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit"):
-				en_label = "RECRUIT"
+			if g.choice_kind == "offer" or (g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit")):
+				en_label = "RECRUIT"   # 入队邀请二选一（docs/252）同招募
 			var L: Dictionary = lay()
 			var ph: bool = L.touch
 			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）
@@ -1142,7 +1142,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 			var dst := Rect2(feet - (foot2 - bb.position) * sc + motion.icon_off, bb.size * sc)
 			dst.position = dst.position.round()
 			card.draw_texture_rect_region(idle.tex, dst, bb)
-	elif o.kind == "swap_keep" or o.kind == "branch_back":
+	elif o.kind == "swap_keep" or o.kind == "branch_back" or o.kind == "offer_decline":
 		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换 / 返回上一步
 	elif ic != null:
 		draw_icon_fit(card, ic, c + Vector2(0, bob), 64.0 if compact else 96.0)
