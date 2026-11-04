@@ -1,5 +1,5 @@
 extends RefCounted
-## 后期攻击形状随成长变化（docs/244，数值原型，开关 growth/late_shape，缺省 0 = 关，关时不做任何事、不读写随机数）。
+## 后期攻击形状随成长变化（docs/248，数值原型，开关 growth/late_shape，缺省 0 = 关，关时不做任何事、不读写随机数）。
 ## P1：每名干员按「档」拿形状加成。档 = 达到的门槛权重之和（balance.json shape_lv 段）：
 ##   精一 w_e1、精二 w_e2（精英化节点的强度跃升）；队伍等级 ≥ lv1 / lv2 各 w_lv1 / w_lv2。
 ## 加成按干员的形状流派（lane）分四条，参数同在 shape_lv 段，每档：
@@ -13,7 +13,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const LANES := ["melee", "multi", "summon", "control"]
-const VisNodesL = preload("res://scripts/characters/blocks/vis_nodes.gd")   # docs/245：节点弹数走 op_summary
+const VisNodesL = preload("res://scripts/characters/blocks/vis_nodes.gd")   # docs/249：节点弹数走 op_summary
 
 
 static func on(g) -> bool:
@@ -125,7 +125,7 @@ static func op_summary(o, s: Dictionary, relic_shots: bool, relic_qi: bool, rang
 			r.qi_hits = int(s.qi_hits)
 	var t := tier(o) if on(o.g) else 0.0   # 只开 growth/visible_nodes 时没有档位部分
 	var l := lane(o)
-	var vn: float = VisNodesL.extra_shots(o) if VisNodesL.on(o.g) and ranged_ok else 0.0   # 看得见的节点（docs/245）：普通节点的弹数并进同一个累计器
+	var vn: float = VisNodesL.extra_shots(o) if VisNodesL.on(o.g) and ranged_ok else 0.0   # 看得见的节点（docs/249）：普通节点的弹数并进同一个累计器
 	if vn > 0.0:
 		r.e_scatter += vn
 		r.e_shots += vn

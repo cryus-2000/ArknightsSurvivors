@@ -42,7 +42,7 @@ const Roster = preload("res://scripts/core/roster.gd")
 const Meta = preload("res://scripts/core/meta.gd")
 const StatsScreen = preload("res://scripts/screens/stats_panel.gd")
 const EliteShowScreen = preload("res://scripts/screens/elite_show.gd")
-const EliteMoment = preload("res://scripts/run/elite_moment.gd")   # 精英化时刻演出（docs/245 §2，growth/elite_show）
+const EliteMoment = preload("res://scripts/run/elite_moment.gd")   # 精英化时刻演出（docs/249 §2，growth/elite_show）
 const IntroScreen = preload("res://scripts/screens/intro.gd")
 const BossIntro = preload("res://scripts/screens/boss_intro.gd")
 const Vfx = preload("res://scripts/render/vfx.gd")
@@ -125,7 +125,7 @@ var onboard = preload("res://scripts/screens/onboard.gd").new(self)   # 新手�
 var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
 var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
-var elite_moment = EliteMoment.new(self)   # 精英化时刻：定格 + 横幅 + 爆亮 + 常驻脚下光池（docs/245 §2；开关关时不入队，什么都不做）
+var elite_moment = EliteMoment.new(self)   # 精英化时刻：定格 + 横幅 + 爆亮 + 常驻脚下光池（docs/249 §2；开关关时不入队，什么都不做）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
 var settlement = preload("res://scripts/screens/settlement_screen.gd").new(self)
 var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
@@ -1510,13 +1510,13 @@ func _process(delta: float) -> void:
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
 	if EliteMoment.on(self):
-		elite_moment.tick(delta)   # 精英化时刻：真实时间（docs/245 §2）
+		elite_moment.tick(delta)   # 精英化时刻：真实时间（docs/249 §2）
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
 	elif state == S.PLAY and EliteMoment.on(self) and elite_moment.freezing():
-		pass   # 精英化时刻定格（只在玩家局，docs/245 §2）：模拟不走，画面照画
+		pass   # 精英化时刻定格（只在玩家局，docs/249 §2）：模拟不走，画面照画
 	elif state == S.PLAY:
 		if (mode != Mode.PLAY and not playclock_test) or demo_op != "":
 			_update(dt)
@@ -2169,7 +2169,7 @@ func check_pending() -> void:
 	if ult != null and ult.playing():
 		return   # 终结技播放中：升级 / 宝箱三选一、精英化演出、路线选择都等播完再弹（计数照攒，播完逐个按原顺序弹）
 	if EliteMoment.on(self) and elite_moment.pending():
-		return   # 精英化时刻定格中（只在玩家局）：全屏演出、路线、宝箱、升级都等定格结束再弹（docs/245 §2）
+		return   # 精英化时刻定格中（只在玩家局）：全屏演出、路线、宝箱、升级都等定格结束再弹（docs/249 §2）
 	if not show_queue.is_empty():
 		show_screen.open(show_queue.pop_front())
 		return

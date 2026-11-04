@@ -1,5 +1,5 @@
 extends Node
-## 看得见的成长节点 + 精英化时刻回归（docs/245）：
+## 看得见的成长节点 + 精英化时刻回归（docs/249）：
 ##   godot --headless --path game res://tests/vis_nodes_test.tscn -- --regression --balance --seed=1 --op=texas --squad=exusiai,kaltsit --bal=growth/visible_nodes=1 --bal=growth/elite_show=1
 ## 校验：普通节点不再加攻击 +6%，按流派加范围（德克萨斯）/ 弹数（能天使）/ 体量（凯尔希）；精二本人攻击 +12%、攻速 +6%，全队效果挂上、离队撤销；
 ## 卡面写出这一项；精英化时刻：入队、平衡模式不挡弹窗、玩家局定格挡住、定格结束放行；偏红的本人颜色调淡。全部通过时打印 "VIS NODES failures=0"

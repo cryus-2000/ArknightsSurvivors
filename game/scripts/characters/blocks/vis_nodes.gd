@@ -1,5 +1,5 @@
 extends RefCounted
-## 看得见的成长节点（docs/245 §3，数值原型，开关 growth/visible_nodes，缺省 0 = 关，关时不做任何事、不读写随机数）。
+## 看得见的成长节点（docs/249 §3，数值原型，开关 growth/visible_nodes，缺省 0 = 关，关时不做任何事、不读写随机数）。
 ## 1. 普通节点（成长线 节点 节点 精一 节点 节点 精二 里的 4 个普通节点）不再给「攻击 +6%」（character.NODE_ATK），改给本人形状流派的一项：
 ##      melee   范围 +range
 ##      multi   弹数：每次普攻 +shots 发额外弹（每发 = 普攻 × shot_mult，射向另一名敌人；复用可见成长 vis_growth 的弹体，
@@ -8,7 +8,7 @@ extends RefCounted
 ##      control 范围 +ctl_range
 ##    流派取法同 late_shape.lane（shape_lv/x_lane 例外表）。
 ## 2. 精二：本人攻击 +e2_atk、攻击速度 +e2_aspd，另给全队一条效果（vis_nodes/team，scope squad = 全局；离队时 squad.remove 撤销）。
-## 与 late_shape（docs/244）的关系：late_shape 管「精英化 / 队伍等级门槛」的形状档，本块管「普通节点」与「精二」，两者来源名不同（lshape: / vnode: / ve2: / vteam:），
+## 与 late_shape（docs/248）的关系：late_shape 管「精英化 / 队伍等级门槛」的形状档，本块管「普通节点」与「精二」，两者来源名不同（lshape: / vnode: / ve2: / vteam:），
 ## 同开时各加各的；额外弹走同一个 op_summary 累计器，所以不会出两套弹体。
 
 const Bal = preload("res://scripts/core/balance.gd")

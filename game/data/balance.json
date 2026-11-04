@@ -831,18 +831,18 @@
  "growth": {
   "_doc": "被动卡数值（docs/83）。armor_pct：生存卡「硬化」每级让队长受到的物理伤害 ×(1 − armor_pct)，乘算（4 级 ×0.92^4 ≈ 0.716，即 −28.4%）；10-13 用户选方案 B，取代原来每级物理减伤 +2（固定值跟不上后期敌人攻击，docs/83 §4）。作用于所有物理伤害（含不吃护甲的冲击环），在固定减伤之前算",
   "armor_pct": 0.08,
-  "_doc_late_shape": "后期打得动原型（docs/244）：late_shape 1 = 攻击形状随精英化 / 等级门槛变化（参数 shape_lv 段，脚本 blocks/late_shape.gd）+ 形状卡进池（协同·广、扩散、连锁，cards.json pool_flag）。0 = 关，同种子与改前逐行相同",
+  "_doc_late_shape": "后期打得动原型（docs/248）：late_shape 1 = 攻击形状随精英化 / 等级门槛变化（参数 shape_lv 段，脚本 blocks/late_shape.gd）+ 形状卡进池（协同·广、扩散、连锁，cards.json pool_flag）。0 = 关，同种子与改前逐行相同",
   "late_shape": 0,
-  "_doc_elite_show": "精英化时刻演出（docs/245 §2）：elite_show 1 = 精英化后定格 + 横幅 + 干员爆亮，之后脚下常驻本人颜色光池（精二更大更亮）。纯画面：平衡 / 批跑不定格、不改让位顺序，随机数只用 vrng；0 = 关，画面与改前相同",
+  "_doc_elite_show": "精英化时刻演出（docs/249 §2）：elite_show 1 = 精英化后定格 + 横幅 + 干员爆亮，之后脚下常驻本人颜色光池（精二更大更亮）。纯画面：平衡 / 批跑不定格、不改让位顺序，随机数只用 vrng；0 = 关，画面与改前相同",
   "elite_show": 0,
-  "_doc_visible_nodes": "看得见的成长节点（docs/245 §3，数值改动）：visible_nodes 1 = 普通节点的攻击 +6% 换成按形状流派的一项（范围 / 弹数 / 体量），精二再给一档基础属性和一条全队效果（参数 vis_nodes 段，脚本 blocks/vis_nodes.gd）。0 = 关，同种子与改前逐行相同",
+  "_doc_visible_nodes": "看得见的成长节点（docs/249 §3，数值改动）：visible_nodes 1 = 普通节点的攻击 +6% 换成按形状流派的一项（范围 / 弹数 / 体量），精二再给一档基础属性和一条全队效果（参数 vis_nodes 段，脚本 blocks/vis_nodes.gd）。0 = 关，同种子与改前逐行相同",
   "visible_nodes": 0
  },
  "vis_nodes": {
-  "_doc": "docs/245 §3。普通节点每个：melee 范围 +range（op_range add）；multi 弹数：每次普攻 +shots 发额外弹（每发 = 普攻 × shot_mult，射向另一名敌人，复用 vis_growth 弹体），普攻不是弹道的多弹干员改给范围；summon 体量：范围 +sum_range、追击与召唤物伤害 +sum_dmg；control 范围 +ctl_range。流派同 late_shape（shape_lv/x_lane）。精二：本人攻击 +e2_atk、攻击速度 +e2_aspd（add），再给 team 表里的一条全队效果（scope squad = 全局；离队时撤销）。team 每项 {stat, op, value, txt}；txt 是卡面 / 横幅上的一句话，none = 已有全队效果（docs/91：能天使天使的祝福、凯尔希回防），不再加",
+  "_doc": "docs/249 §3。普通节点每个：melee 范围 +range（op_range add）；multi 弹数：每次普攻 +shots 发额外弹（每发 = 普攻 × shot_mult，射向另一名敌人，复用 vis_growth 弹体），普攻不是弹道的多弹干员改给范围；summon 体量：范围 +sum_range、追击与召唤物伤害 +sum_dmg；control 范围 +ctl_range。流派同 late_shape（shape_lv/x_lane）。精二：本人攻击 +e2_atk、攻击速度 +e2_aspd（add），再给 team 表里的一条全队效果（scope squad = 全局；离队时撤销）。team 每项 {stat, op, value, txt}；txt 是卡面 / 横幅上的一句话，none = 已有全队效果（docs/91：能天使天使的祝福、凯尔希回防），不再加",
   "range": 0.06, "shots": 0.2, "shot_mult": 0.5, "sum_range": 0.05, "sum_dmg": 0.05, "ctl_range": 0.06,
   "e2_atk": 0.12, "e2_aspd": 0.06,
-  "_doc_comp": "怪物补偿（用户 11-05「加成给多了就加强怪物」）：开关开时开局乘到 enemy_hp / enemy_dmg 上（run_setup → vis_nodes.apply_run）；值由 docs/245 §4 云端配对定",
+  "_doc_comp": "怪物补偿（用户 11-05「加成给多了就加强怪物」）：开关开时开局乘到 enemy_hp / enemy_dmg 上（run_setup → vis_nodes.apply_run）；值由 docs/249 §4 云端配对定",
   "enemy_hp": 1.08, "enemy_dmg": 1.0,
   "team": {
    "angelina": {"stat": "control_dur", "op": "add", "value": 0.10, "txt": "全队控制时长 +10%"},
@@ -868,7 +868,7 @@
   }
  },
  "shape_lv": {
-  "_doc": "docs/244 P1 形状档位表（growth/late_shape 开时生效）。档 = 门槛权重之和：精一 w_e1、精二 w_e2、队伍等级 ≥ lv1 加 w_lv1、≥ lv2 加 w_lv2。四条形状流派每档的加成：melee 范围 melee_range、剑气 melee_qi 道（普攻 × qi_mult，穿 qi_hits 名）；multi 额外弹 multi_shots 发（每发普攻 × multi_eps）、范围 multi_range、能穿透的普攻子弹每档 multi_pierce（取整）；summon 范围 summon_range、追击与召唤物伤害 summon_dmg；control 范围 control_range、控制时长 control_dur。x_lane：不在四条里的干员（或要改流派的）{干员: 流派}，none = 不给。P2：扩散半径 splash_r；连锁距离 chain_r、倍率 chain_mult",
+  "_doc": "docs/248 P1 形状档位表（growth/late_shape 开时生效）。档 = 门槛权重之和：精一 w_e1、精二 w_e2、队伍等级 ≥ lv1 加 w_lv1、≥ lv2 加 w_lv2。四条形状流派每档的加成：melee 范围 melee_range、剑气 melee_qi 道（普攻 × qi_mult，穿 qi_hits 名）；multi 额外弹 multi_shots 发（每发普攻 × multi_eps）、范围 multi_range、能穿透的普攻子弹每档 multi_pierce（取整）；summon 范围 summon_range、追击与召唤物伤害 summon_dmg；control 范围 control_range、控制时长 control_dur。x_lane：不在四条里的干员（或要改流派的）{干员: 流派}，none = 不给。P2：扩散半径 splash_r；连锁距离 chain_r、倍率 chain_mult",
   "w_e1": 0.5, "w_e2": 1.0, "lv1": 16, "w_lv1": 0.5, "lv2": 22, "w_lv2": 0.5,
   "melee_range": 0.12, "melee_qi": 0.6, "qi_mult": 0.4, "qi_hits": 3,
   "multi_shots": 0.6, "multi_eps": 0.4, "multi_range": 0.06, "multi_pierce": 0.8,

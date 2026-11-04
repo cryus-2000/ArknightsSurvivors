@@ -1,13 +1,13 @@
-# 245 成长看得见：精英化时刻 + 看得见的节点（11-05）
+# 249 成长看得见：精英化时刻 + 看得见的节点（11-05）
 
 **结论（5 行）**
 1. 两个开关都做完，缺省 0：画面 `growth/elite_show`（精英化定格 + 横幅 + 爆亮 + 常驻脚下光池），数值 `growth/visible_nodes`（普通节点攻击 +6% 换成范围 / 弹数 / 体量，精二本人一档 + 每人一条全队效果）；开关全关时同种子 TRACE 逐行一致。
 2. 看得见：截图里精二一眼能认（大光池 + 亮边），精英化瞬间有横幅、光柱、爆亮；精一光池偏淡，能天使等红色系调成淡粉白后在暗地面上对比不够（§5）。
 3. 数值不补偿时两档都出窗：无认知 54.8% → 66.7%、18 细胞 65.5% → 81.0%（配对 18 细胞负转胜 23 / 胜转负 10，p 0.035）。
 4. 按用户 11-05「加成给多了就加强怪物」：开关开时怪物生命 ×1.08（`vis_nodes/enemy_hp`），无认知 52.4%、18 细胞 67.9%，都回到窗口，配对差不显著（19 / 21、17 / 15）；只加生命 ×1.15 会把 18 细胞压到 59.5%。
-5. 补偿后后期清怪比、终结技占比几乎不变（5–9 分钟终结技击杀 14% → 13%、19% → 19%）：本版解决「成长看得见」，没有解决「后期靠终结技清屏」；后者要和 docs/244 形状档一起开、再配对测（§3.3、§8）。
+5. 补偿后后期清怪比、终结技占比几乎不变（5–9 分钟终结技击杀 14% → 13%、19% → 19%）：本版解决「成长看得见」，没有解决「后期靠终结技清屏」；后者要和 docs/248 形状档一起开、再配对测（§3.3、§8）。
 
-分支 `claude/elite-moment`（基于 `claude/late-power-ab` 329f277ee，即 docs/243 诊断 + docs/244 形状原型）。两个开关缺省都是 0：`growth/elite_show`（画面）、`growth/visible_nodes`（数值）。开关全关时同种子 TRACE 与 329f277ee 逐行相同（§6）。
+分支 `claude/elite-moment`（基于 `claude/late-power-ab` 329f277ee，即 docs/243 诊断 + docs/248 形状原型）。两个开关缺省都是 0：`growth/elite_show`（画面）、`growth/visible_nodes`（数值）。开关全关时同种子 TRACE 与 329f277ee 逐行相同（§6）。
 
 ---
 
@@ -65,7 +65,7 @@
 
 ### 3.1 普通节点：攻击 +6% → 按形状流派的一项
 
-流派取法同 docs/244 `late_shape.lane`（干员 `lanes` 里第一个属于 melee / multi / summon / control 的；例外表 `shape_lv/x_lane`：逻各斯、流明 → multi，塞雷娅 → melee，浊心斯卡蒂 → control）。
+流派取法同 docs/248 `late_shape.lane`（干员 `lanes` 里第一个属于 melee / multi / summon / control 的；例外表 `shape_lv/x_lane`：逻各斯、流明 → multi，塞雷娅 → melee，浊心斯卡蒂 → control）。
 
 | 流派 | 干员 | 每个普通节点 | 4 个节点合计 | 看得见在哪 |
 |---|---|---|---|---|
@@ -77,7 +77,7 @@
 （multi 流派里普攻不是弹道的干员改给攻击范围 +6%，按 `vis_nodes.ranged()`：shape ∈ projectile / shell / bolt / cannon / point_aoe / foxfire / lantern；现有 5 人都是弹道，这一条目前没人用到。）
 
 - 卡面末尾原来的「；攻击 +6%」换成这一项，弹数写成「每 N 次普攻多射 1 发」（N 按拿完这个节点后的累计算）。
-- 额外弹复用可见成长 `vis_growth` 的弹体，和 docs/244 的档位弹、藏品多射在同一个累计器（`late_shape.op_summary`）里，不另起一条发射，也不会出两套弹体。
+- 额外弹复用可见成长 `vis_growth` 的弹体，和 docs/248 的档位弹、藏品多射在同一个累计器（`late_shape.op_summary`）里，不另起一条发射，也不会出两套弹体。
 
 ### 3.2 精二：基础属性一档 + 全队效果
 
@@ -109,9 +109,9 @@
 
 全部写在 `balance.json` `vis_nodes/team`（`txt` 即玩家可见句子）。都是本作机制，不引原作台词，不涉及 docs/76 §4 的档案事实。
 
-### 3.3 与 docs/244（`growth/late_shape`）怎么合
+### 3.3 与 docs/248（`growth/late_shape`）怎么合
 
-| | docs/244 late_shape | 本文 visible_nodes |
+| | docs/248 late_shape | 本文 visible_nodes |
 |---|---|---|
 | 管哪一段 | 精英化节点（精一 w 0.5、精二 w 1.0）+ 队伍等级门槛（Lv16 / Lv22 各 0.5）的形状档 | 4 个普通节点 + 精二 |
 | 形状项 | 每档：melee 范围 + 剑气；multi 弹数 + 范围 + 穿透；summon 范围 + 召唤伤害；control 范围 + 控制时长 | 每节点只一项（范围 / 弹数 / 体量） |
@@ -175,7 +175,7 @@
 
 ## 6. 开关关闭时 TRACE 逐行一致
 
-`python tools/trace_base.py 11 <队长> 600 --ref 329f277ee --here`（同一云端机器，基线 = docs/244 头；原型提交与最终提交 3f3c1345e 各核对一次）：
+`python tools/trace_base.py 11 <队长> 600 --ref 329f277ee --here`（同一云端机器，基线 = docs/248 头；原型提交与最终提交 3f3c1345e 各核对一次）：
 
 | 队长 | TRACE 行数 | 结果 |
 |---|---|---|
@@ -193,13 +193,13 @@ BALANCE 行只差画面峰值 / prof 计时字段（工具提示，同 docs/36 �
 - `python tools/check.py --auto --jobs 3`（云端，171 项）：第一遍 4 项失败，已修后单项重跑全过：
   - 核心契约测试、藏品卡说明放得下：`elite_moment.gd` 直接用了自动加载单例 `Sfx` / `Cfg`，这两个测试不加载单例，编译报错；改成按节点 `/root/Sfx`、`/root/Cfg` 取（同 link_bond.gd），只动音效与「减少动态效果」读法，玩法不变。
   - 检查映射：新回归 `vis_nodes` 归进 relic 组（与 build_progression 同组）。
-  - 说明对账：继承自 docs/244 的「扩散」「连锁」卡面 60 / 170 / 50 对不上数值表（实际来自 `shape_lv/splash_r`、`chain_r`、`chain_mult`，数值一致），`--update-baseline` 登记，基线 66 → 69 条。
+  - 说明对账：继承自 docs/248 的「扩散」「连锁」卡面 60 / 170 / 50 对不上数值表（实际来自 `shape_lv/splash_r`、`chain_r`、`chain_mult`，数值一致），`--update-baseline` 登记，基线 66 → 69 条。
   - 其余 167 项第一遍即通过（含同 seed 复现、成长节点当场生效、全部冒烟）。
 - 改动：`balance.json`（`growth/elite_show`、`growth/visible_nodes`、`vis_nodes` 段含怪物补偿 `enemy_hp` 1.08 / `enemy_dmg` 1.0）、`blocks/vis_nodes.gd`（新）、`run/elite_moment.gd`（新）、`character.gd`、`game.gd`、`squad.gd`、`hud.gd`、`hud_banners.gd`、`late_shape.gd`（op_summary 并入节点弹数）、`vis_growth.gd`（开关判定）、`autotest.gd`（`--eliteat`）、`run_setup.gd`（怪物补偿；`--prog` 开局推进不播时刻）、`tools/check.py`、`tools/elite_moment_shots.py`（新）、`tests/vis_nodes_test.*`（新）。
 
 ## 8. 待用户 / 协调人定
 
-1. **后期靠终结技没有改善**（§4.2）：要真正动结构，应和 docs/244 `growth/late_shape` 同开（late_shape 管精英化 / 等级门槛的形状档，本文管普通节点），同开时本文 `vis_nodes/shots` 建议降到 0.1；再按同样的矩阵配对测，必要时用 `vis_nodes/enemy_hp` 重新拉窗口。没测。
+1. **后期靠终结技没有改善**（§4.2）：要真正动结构，应和 docs/248 `growth/late_shape` 同开（late_shape 管精英化 / 等级门槛的形状档，本文管普通节点），同开时本文 `vis_nodes/shots` 建议降到 0.1；再按同样的矩阵配对测，必要时用 `vis_nodes/enemy_hp` 重新拉窗口。没测。
 2. **精一光池偏淡、红色系干员对比不够**：可给调淡过的颜色单独提亮，或精一改用头顶小徽记。需要用户看图定。
 3. **全队效果数值**（§3.2）是首版，没有逐人测。歌蕾蒂娅 / 艾丽妮 / 星熊等的那一条只在编队里有她们时生效，矩阵里只有队长是固定的。
 4. 开局 4 分钟内死亡变多（§4.1）：怪物补偿从第 1 秒起生效，节点要等升级才拿；如要更平，可改成按时间或按全队节点数渐进加强（需要再测）。

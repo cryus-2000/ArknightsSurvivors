@@ -99,7 +99,7 @@ static func apply_test_args(g) -> void:
 				if g.squad.add(cid) != null:
 					g.panel_ui.load_op_tex(cid)
 	if VisNodesR.on(g):
-		VisNodesR.apply_run(g)   # 看得见的节点开着时怪物同步加强（docs/245 §4，用户 11-05「加成给多了就加强怪物」）
+		VisNodesR.apply_run(g)   # 看得见的节点开着时怪物同步加强（docs/249 §4，用户 11-05「加成给多了就加强怪物」）
 	# 测试：全队直接推进 N 个成长节点（看精英化后的技能 / 特效）
 	for a in Cfg.dev_args():
 		if a.begins_with("--prog="):
@@ -107,4 +107,4 @@ static func apply_test_args(g) -> void:
 				for k in int(a.substr(7)):
 					o.advance()
 			if g.get("elite_moment") != null:
-				g.elite_moment.queue.clear()   # 开局直接推进不是真的晋升：不播精英化时刻（docs/245）
+				g.elite_moment.queue.clear()   # 开局直接推进不是真的晋升：不播精英化时刻（docs/249）

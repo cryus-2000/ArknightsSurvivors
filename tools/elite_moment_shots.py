@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""成长看得见截图（docs/245 §5）：同种子同一干员精零 / 精一 / 精二对照 + 精英化瞬间（云端 xvfb + opengl3，参照 late_game_diag_shots.py）。
+"""成长看得见截图（docs/249 §5）：同种子同一干员精零 / 精一 / 精二对照 + 精英化瞬间（云端 xvfb + opengl3，参照 late_game_diag_shots.py）。
 
 用法（仓库根目录，Linux 云端）：
     python tools/elite_moment_shots.py shoot --ops texas,exusiai --seed 11
