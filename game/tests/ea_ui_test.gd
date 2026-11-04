@@ -71,8 +71,10 @@ func run() -> void:
 	var op = game.ch
 	op.is_leader = true
 	var option := {"kind": "prog", "op": "ulpianus", "elite": 2, "desc": "解锁技能"}
-	check("按 Q" in game.panel_ui.option_description(option), "leader growth hints Q")
-	check("按 Q" in game.show_screen.skill_item(op, 2).desc, "leader elite show hints Q")
+	# 终结技开着（ult/on，缺省）时手动技能按自动放、Q 归终结技：队长也不提示「按 Q」（11-05 清旧说明）；关着时照旧提示
+	var q_hint: bool = game.ult == null
+	check(("按 Q" in game.panel_ui.option_description(option)) == q_hint, "leader growth hints Q only without ult")
+	check(("按 Q" in game.show_screen.skill_item(op, 2).desc) == q_hint, "leader elite show hints Q only without ult")
 	op.is_leader = false
 	check(not "按 Q" in game.panel_ui.option_description(option), "ally growth never asks Q")
 	check("自动" in game.show_screen.skill_item(op, 2).desc, "ally elite show says auto")
