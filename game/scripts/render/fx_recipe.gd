@@ -111,13 +111,14 @@ static func owns_id(game, oid: String) -> bool:
 
 # ================================================================ 配方读取
 
-## 某一招在这名干员当前精英档下的参数：moves[name] 合并 e1（精一起）/ e2（精二起），sc = 档位体量
+## 某一招在这名干员当前精英档下的参数：moves[name] 合并 e1（精一起）/ e2（精二起），sc = 档位体量；tier_min = 该招解锁时的精英档
 func move(o, name: String) -> Dictionary:
 	var rc: Dictionary = recipe(str(o.id))
 	var base: Dictionary = rc.get("moves", {}).get(name, {})
 	if base.is_empty():
 		return {}
-	var t: int = tier(o)
+	# 技能按精英化解锁（character.skill_unlocked：S2 精一、S3 精二），配方里这些招式没有更低的档：tier_min 托底，不留死档
+	var t: int = maxi(tier(o), int(base.get("tier_min", 0)))
 	var m: Dictionary = base.duplicate()
 	if t >= 1 and base.get("e1", null) is Dictionary:
 		m.merge(base.e1, true)
@@ -218,10 +219,10 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 			if m8.is_empty():
 				return
 			var tl: float = float(d.get("t", 0.42))
-			_shape(o, {"k": "converge", "c": o.pos + Vector2(0, -30), "r": float(m8.get("conv_r", 70.0)) * m8.sc, "n": int(m8.get("conv_n", 7)) + 2 * m8.tier,
+			_shape(o, {"k": "converge", "c": o.pos + Vector2(0, -30), "r": float(m8.get("conv_r", 70.0)) * m8.sc, "n": int(m8.get("conv_n", 9)) + (2 if m8.tier >= 2 else 0),
 				"w": float(m8.get("conv_w", 6.0)) * m8.sc, "life": tl * 0.7, "freeze": 0.0, "layer": "over"})
 			_shape(o, {"k": "whirl", "c": o.pos + Vector2(0, -36), "ang": -PI / 2.0, "r": float(m8.get("whirl_r", 30.0)) * m8.sc, "half": PI * 0.92,
-				"w": float(m8.get("whirl_w", 9.0)) * m8.sc * m8.thick, "strands": 2 + m8.tier, "life": tl, "delay": tl * 0.35, "freeze": 0.0, "layer": "over",
+				"w": float(m8.get("whirl_w", 9.0)) * m8.sc * m8.thick, "strands": 3 if m8.tier < 2 else 4, "life": tl, "delay": tl * 0.35, "freeze": 0.0, "layer": "over",
 				"follow": true, "accent": m8.tier >= 2})
 			_shape(o, {"k": "ring", "c": d.get("to", o.pos), "r0": float(m8.get("mark_r", 26.0)) * m8.sc, "r": float(m8.get("mark_r", 26.0)) * m8.sc, "w": 3.0,
 				"life": tl + 0.05, "freeze": 0.0, "layer": "floor", "tone": "ash", "hold": true})
@@ -285,8 +286,8 @@ func _exec(o, d: Dictionary, p: Dictionary) -> void:
 	var e_at: Vector2 = d.get("at", o.pos)
 	var gy: float = float(d.get("gy", e_at.y))
 	var L: float = float(m2.get("len", 60.0)) * m2.sc
-	_shape(o, {"k": "runex", "c": e_at + Vector2(0, -L * 0.15), "len": L, "gs": float(m2.get("gs", 2.0)) * (1.0 + 0.25 * m2.tier), "spread": 0.42,
-		"strips": 2 + mini(m2.tier, 1), "life": float(m2.get("life", 0.5)), "freeze": float(m2.get("freeze", 0.06)), "layer": "over", "accent": m2.tier >= 2,
+	_shape(o, {"k": "runex", "c": e_at + Vector2(0, -L * 0.15), "len": L, "gs": 2.0, "spread": 0.42,
+		"strips": 3, "life": float(m2.get("life", 0.5)), "freeze": float(m2.get("freeze", 0.06)), "layer": "over", "accent": m2.tier >= 2,
 		"seed2": g.vrng.randi(), "grow": true})
 	var pw: float = float(m2.get("w", 12.0)) * m2.sc * m2.thick
 	_shape(o, {"k": "beam", "a": Vector2(e_at.x, gy), "b": Vector2(e_at.x, gy - L * 1.15), "w": pw, "life": float(m2.get("life", 0.5)) * 0.8,
@@ -317,7 +318,7 @@ func _tick(o, kind: String, d: Dictionary, p: Dictionary) -> void:
 		var qgy: float = float(q[1])
 		var R: float = float(m3.get("r", 16.0)) * m3.sc
 		var dl: float = 0.0
-		if kind == "fan_tick" and m3.tier >= 2:
+		if kind == "fan_tick":
 			dl = float(m3.get("dart_t", 0.12))
 			var src: Vector2 = o.pos + Vector2(-o.face * 26.0 + 18.0 * (k - 1.5), -70.0 - 6.0 * k)
 			_shape(o, {"k": "dart", "a": src, "b": qa, "len": float(m3.get("dart_len", 34.0)) * m3.sc, "w": float(m3.get("dart_w", 12.0)) * m3.sc, "life": dl / 0.6,
@@ -329,10 +330,10 @@ func _tick(o, kind: String, d: Dictionary, p: Dictionary) -> void:
 			_shape(o, {"k": "flare", "c": qa, "ang": 0.0, "r": R * 0.55, "rv": R * (1.5 if m3.tier < 1 else 1.9), "w": float(m3.get("w", 5.0)) * m3.sc * m3.thick,
 				"n8": m3.tier >= 1, "life": float(m3.get("life", 0.22)), "freeze": float(m3.get("freeze", 0.04)), "layer": "over", "grow": true, "tone": "shard"})
 		else:
-			_shape(o, {"k": "flare", "c": qa, "ang": 0.0, "r": R, "rv": R * 0.9, "w": float(m3.get("w", 5.0)) * m3.sc * m3.thick, "n8": m3.tier >= 1,
+			_shape(o, {"k": "flare", "c": qa, "ang": 0.0, "r": R, "rv": R * 0.9, "w": float(m3.get("w", 5.0)) * m3.sc * m3.thick, "n8": true,
 				"life": float(m3.get("life", 0.22)), "freeze": float(m3.get("freeze", 0.04)), "layer": "over", "grow": true, "delay": dl + 0.03 * k,
-				"accent": m3.tier >= 2})
-			_shape(o, {"k": "shards", "c": qa, "r": R * 1.1, "n": 3 + m3.tier, "w": 4.0 * m3.sc, "ang": g.vrng.randf() * TAU, "life": float(m3.get("life", 0.22)) * 0.9,
+				"accent": true})
+			_shape(o, {"k": "shards", "c": qa, "r": R * 1.1, "n": 5, "w": 4.0 * m3.sc, "ang": g.vrng.randf() * TAU, "life": float(m3.get("life", 0.22)) * 0.9,
 				"freeze": 0.03, "layer": "over", "grow": true, "tone": "shard", "delay": dl + 0.03 * k})
 		_grains(o, qa, qgy, str(m3.get("grain", "ink")), int(m3.get("n", 1)), m3)
 		k += 1
@@ -410,12 +411,11 @@ func _swing(o, d: Dictionary) -> void:
 		e2["echo"] = true
 		_shape(o, e2)
 	if heavy:
-		_shape(o, {"k": "cfan", "c": land + Vector2(0, 6), "ang": ang, "r": float(m.get("crack_r", 60.0)) * m.sc, "n": int(m.get("branches", 4)) + m.tier,
+		_shape(o, {"k": "cfan", "c": land + Vector2(0, 6), "ang": ang, "r": float(m.get("crack_r", 60.0)) * m.sc, "n": int(m.get("branches", 6)),
 			"w": float(m.get("crack_w", 6.0)) * m.thick, "spread": 0.55, "life": float(m.get("crack_life", 0.7)), "freeze": float(m.get("freeze", 0.045)),
-			"layer": "floor", "grow": true, "tone": "crack", "accent": m.tier >= 2})
-		if m.tier >= 1:
-			_shape(o, {"k": "ring", "c": land + Vector2(0, 6), "r0": 10.0, "r": float(m.get("smoke_r", 34.0)) * m.sc, "w": float(m.get("smoke_w", 10.0)),
-				"life": float(m.get("smoke_life", 0.5)), "freeze": 0.0, "layer": "floor", "tone": "ash"})
+			"layer": "floor", "grow": true, "tone": "crack", "accent": true})
+		_shape(o, {"k": "ring", "c": land + Vector2(0, 6), "r0": 10.0, "r": float(m.get("smoke_r", 34.0)) * m.sc, "w": float(m.get("smoke_w", 10.0)),
+			"life": float(m.get("smoke_life", 0.5)), "freeze": 0.0, "layer": "floor", "tone": "ash"})
 	elif m.tier >= 1:
 		_shape(o, {"k": "web", "c": land + Vector2(0, 6), "r": float(m.get("web_r", 20.0)) * m.sc, "n": int(m.get("branches", 5)) + m.tier, "w": float(m.get("web_w", 5.0)) * m.thick,
 			"life": float(m.get("web_life", 0.45)), "freeze": float(m.get("freeze", 0.045)), "layer": "floor", "grow": true, "accent": m.tier >= 2})
@@ -433,15 +433,14 @@ func _slam(o, d: Dictionary, p: Dictionary) -> void:
 	var r9: float = float(d.get("r", 110.0))
 	var at9: Vector2 = d.get("at", o.pos)
 	var fz: float = float(m9.get("freeze", 0.07))
-	_shape(o, {"k": "web", "c": at9 + Vector2(0, 2), "r": r9 * float(m9.get("web_k", 0.6)) * m9.sc, "n": int(m9.get("branches", 7)) + 2 * m9.tier,
+	_shape(o, {"k": "web", "c": at9 + Vector2(0, 2), "r": r9 * float(m9.get("web_k", 0.6)) * m9.sc, "n": int(m9.get("branches", 9)),
 		"w": float(m9.get("web_w", 8.0)) * m9.thick, "life": float(m9.get("life", 0.75)), "freeze": fz, "layer": "floor", "grow": true, "accent": m9.tier >= 2})
 	_shape(o, {"k": "ring", "c": at9 + Vector2(0, 2), "r0": r9 * 0.3, "r": r9, "w": float(m9.get("ring_w", 12.0)) * m9.thick, "life": float(m9.get("ring_life", 0.4)),
 		"freeze": 0.0, "layer": "floor", "tone": "ash"})
 	_shape(o, {"k": "flare", "c": at9 + Vector2(0, -10), "ang": 0.0, "r": r9 * 0.3 * m9.sc, "rv": r9 * 0.22 * m9.sc, "w": 12.0 * m9.sc, "life": 0.16, "freeze": fz,
 		"layer": "over", "grow": true, "tone": "flash"})
-	if m9.tier >= 1:
-		_shape(o, {"k": "beam", "a": at9 + Vector2(0, 4), "b": at9 + Vector2(0, -float(m9.get("pillar", 120.0)) * m9.sc), "w": float(m9.get("pillar_w", 18.0)) * m9.sc,
-			"life": float(m9.get("pillar_life", 0.2)), "freeze": fz, "layer": "over", "grow": true, "tone": "flash"})
+	_shape(o, {"k": "beam", "a": at9 + Vector2(0, 4), "b": at9 + Vector2(0, -float(m9.get("pillar", 120.0)) * m9.sc), "w": float(m9.get("pillar_w", 18.0)) * m9.sc,
+		"life": float(m9.get("pillar_life", 0.2)), "freeze": fz, "layer": "over", "grow": true, "tone": "flash"})
 	if m9.tier >= 2:
 		for k in 4:
 			var a: float = TAU * (k + 0.5) / 4.0 + g.vrng.randf_range(-0.3, 0.3)
@@ -1426,8 +1425,8 @@ static func _fan_arc(c: Vector2, fa: float, half: float, r: float, N: int) -> Pa
 
 
 ## 延异视阈（S3，原作 range_01 的地面咒域）。11-05 用户嫌平涂分层：改成
-## 外圈一道亮蓝细边（1–2 美术像素）+ 内部由外向内变暗的低透明度渐变（12 圈、每圈只差约 0.02，最外 α ≤ 0.22，不盖敌人）+ 两道很淡的流动旋涡纹；
-## 亮度靠一盏跟随照地光，不靠填色。弧两端与正中各一枚小四芒星。精一：边加宽一档 + 外沿浮一排细笔画咒文；精二：渐变掺点缀紫、每跳飞来深色墨刃（见 _tick，实心）
+## 外圈一道亮蓝细边（2 美术像素）+ 内部由外向内变暗的低透明度渐变（12 圈、每圈只差约 0.02，最外 α ≤ 0.22，不盖敌人，掺点缀紫）+ 两道很淡的流动旋涡纹 +
+## 外沿一排细笔画咒文；亮度靠一盏跟随照地光，不靠填色。弧两端与正中各一枚小四芒星；每跳飞来深色墨刃（见 _tick，实心）。S3 精二才解锁，只有这一个形态
 func _draw_fan(o, cv, p: Dictionary) -> void:
 	var h: Dictionary = o.hw
 	var fn = h.get("fan", {})
@@ -1451,7 +1450,7 @@ func _draw_fan(o, cv, p: Dictionary) -> void:
 	var ut: float = 1.0 - clampf(float(fn.get("tick", 0.0)) / maxf(0.05, tk), 0.0, 1.0)
 	var pulse: bool = ut < 0.16
 	var amax: float = minf(0.25, float(m.get("fill_a", 0.22)))
-	var tint: Color = p.main if m.tier < 2 else p.main.lerp(p.accent, 0.45)
+	var tint: Color = p.main.lerp(p.accent, 0.45)
 	var nb: int = 12
 	for j in nb:
 		var k: float = 1.0 - float(j) / nb   # 1 外 → 0 内
@@ -1478,7 +1477,7 @@ func _draw_fan(o, cv, p: Dictionary) -> void:
 		if seg.size() >= 2:
 			cv.draw_polyline(seg, Color(sw.r, sw.g, sw.b, 0.16 * fade), 2.0)
 	# 外圈亮蓝细边（每跳提亮一拍）+ 两侧细边
-	var ew: float = 2.0 if m.tier < 1 else 4.0
+	var ew := 4.0
 	var ec: Color = p.hot if pulse else p.light
 	var arc: PackedVector2Array = _fan_arc(c, fa, half, rr, N)
 	cv.draw_polyline(arc, Color(p.dark.r, p.dark.g, p.dark.b, 0.6 * fade), ew + 2.0)
@@ -1497,18 +1496,18 @@ func _draw_fan(o, cv, p: Dictionary) -> void:
 			col2.a *= fade
 			for poly in _geo(st, 1.0, float(Ly[0])):
 				cv.draw_colored_polygon(poly, col2)
-	if m.tier >= 1:   # 精一：外沿一排细笔画咒文（切向小字行）
-		var nr: int = int(m.get("rune_rows", 4))
-		var fg: Color = Color(p.hot.r, p.hot.g, p.hot.b, fade) if m.tier >= 2 else Color(p.light.r, p.light.g, p.light.b, fade)
-		var fg2: Color = Color(p.accent.r, p.accent.g, p.accent.b, fade) if m.tier >= 2 else fg
-		for i in nr:
-			var a3: float = fa - half + 2.0 * half * (i + 0.5) / nr
-			var q3: Vector2 = c + Vector2(cos(a3), sin(a3) * 0.8) * (rr + 16.0)
-			var tg := Vector2(-sin(a3), cos(a3) * 0.8).normalized()
-			if tg.x < 0.0:
-				tg = -tg
-			var Lr: float = rr * float(m.get("rune_len", 0.26))
-			_glyph_strip(cv, q3 - tg * Lr * 0.5, tg, Lr, 2.0, 41 + i * 13, Color(0, 0, 0, 0), fg, fg2, open, 1, 24.0)
+	# 外沿一排细笔画咒文（切向小字行）
+	var nr: int = int(m.get("rune_rows", 4))
+	var fg: Color = Color(p.hot.r, p.hot.g, p.hot.b, fade)
+	var fg2: Color = Color(p.accent.r, p.accent.g, p.accent.b, fade)
+	for i in nr:
+		var a3: float = fa - half + 2.0 * half * (i + 0.5) / nr
+		var q3: Vector2 = c + Vector2(cos(a3), sin(a3) * 0.8) * (rr + 16.0)
+		var tg := Vector2(-sin(a3), cos(a3) * 0.8).normalized()
+		if tg.x < 0.0:
+			tg = -tg
+		var Lr: float = rr * float(m.get("rune_len", 0.26))
+		_glyph_strip(cv, q3 - tg * Lr * 0.5, tg, Lr, 2.0, 41 + i * 13, Color(0, 0, 0, 0), fg, fg2, open, 1, 24.0)
 	# 亮度靠照地：咒域中部一盏跟随光（每跳亮一拍）
 	var mid: Vector2 = c + Vector2(cos(fa), sin(fa) * 0.8) * rr * 0.6
 	_light_follow(o, mid, rr * 0.9, float(m.get("light_i", 0.3)) * (1.6 if pulse else 1.0) * fade, p.light)

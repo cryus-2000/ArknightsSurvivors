@@ -21,6 +21,8 @@ import godot_runner as GR
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 MODE_NAME = {3: "普攻", 0: "S1", 1: "S2", 2: "S3"}
+# 技能按精英化解锁（character.skill_unlocked：S1 精零、S2 精一、S3 精二），只拍真实存在的档
+MODE_TIERS = {3: [0, 1, 2], 0: [0, 1, 2], 1: [1, 2], 2: [2]}
 
 
 def shoot(godot, op, tier, mode, out, recipe, start, every, n, w, h):
@@ -188,7 +190,7 @@ def main():
     ops = a.ops.split(",")
     modes = [int(m) for m in a.modes.split(",")]
     tiers = [int(t) for t in a.tiers.split(",")]
-    jobs = [(op, t, m) for op in ops for m in modes for t in tiers]
+    jobs = [(op, t, m) for op in ops for m in modes for t in tiers if t in MODE_TIERS[m]]
     res = {}
     if a.reuse:
         for op, t, m in jobs:
@@ -206,7 +208,8 @@ def main():
         phone_rows = []
         for m in modes:
             rows = []
-            for t in tiers:
+            mt = [t for t in tiers if t in MODE_TIERS[m]]
+            for t in mt:
                 fr = res.get((op, t, m), [])
                 if not fr:
                     rows = []
@@ -219,20 +222,21 @@ def main():
             up = 760.0 / (box[2] - box[0])
             full_rows = rows
             rows = crop_rows(rows, box, up)
-            sheet(rows, ["E%d" % t for t in tiers], "%s %s  E0 / E1 / E2（每行一档，命中峰值对齐，%s）" % (op, MODE_NAME.get(m, m), "配方开" if a.recipe else "配方关"),
+            sheet(rows, ["E%d" % t for t in mt], "%s %s  %s（每行一档，命中峰值对齐，%s）" % (op, MODE_NAME.get(m, m), " / ".join("E%d" % t for t in mt), "配方开" if a.recipe else "配方关"),
                   os.path.join(a.out, "tiers_%s_m%d%s.png" % (op, m, suf)))
-            phone_rows.append(full_rows)
+            phone_rows.append(dict(zip(mt, full_rows)))
         if phone_rows:
             # 手机屏宽：每招取峰值帧，整屏缩到 390 宽，列 = 招式，行 = 档位
             cols = len(phone_rows)
-            h0, w0 = phone_rows[0][0][2].shape[:2]
+            h0, w0 = next(iter(phone_rows[0].values()))[2].shape[:2]
             pw, ph = 390, int(h0 * 390 / w0)
             im = Image.new("RGB", (40 + pw * cols, 30 + ph * len(tiers)), (10, 12, 18))
             d = ImageDraw.Draw(im)
             for c, rows in enumerate(phone_rows):
                 d.text((40 + c * pw + 6, 6), MODE_NAME.get(modes[c], str(modes[c])), fill=(220, 224, 232), font=font(16))
-                for r, row in enumerate(rows):
-                    im.paste(Image.fromarray(row[2].astype(np.uint8)).resize((pw, ph), Image.LANCZOS), (40 + c * pw, 30 + r * ph))
+                for r, t in enumerate(tiers):
+                    if t in rows:   # 没解锁的档留空
+                        im.paste(Image.fromarray(rows[t][2].astype(np.uint8)).resize((pw, ph), Image.LANCZOS), (40 + c * pw, 30 + r * ph))
             for r, t in enumerate(tiers):
                 d.text((6, 30 + r * ph + ph // 2 - 10), "E%d" % t, fill=(230, 230, 236), font=font(16))
             im.save(os.path.join(a.out, "phone_%s%s.png" % (op, suf)))
