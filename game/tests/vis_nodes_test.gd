@@ -40,6 +40,7 @@ func _process(_d: float) -> void:
 	game.pending_chests = 0
 	game.show_queue.clear()
 	ok(VN.on(game) and EM.on(game), "两个开关都开着（--bal）")
+	ok(is_equal_approx(game.enemy_hp_mult, VN.kn("enemy_hp", 1.0)), "怪物生命补偿已乘上（%.2f）" % game.enemy_hp_mult)
 	var tx = game.squad.get_op("texas")
 	var ex = game.squad.get_op("exusiai")
 	var ks = game.squad.get_op("kaltsit")

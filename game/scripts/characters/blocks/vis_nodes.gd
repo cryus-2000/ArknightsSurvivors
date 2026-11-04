@@ -92,6 +92,17 @@ static func elite2(o) -> void:
 	g.sync_stats()
 
 
+## 开局（run_setup）：怪物强度补偿。用户 11-05 定：节点加成不收，按开关同步加强怪物（vis_nodes/enemy_hp、enemy_dmg，乘算；Boss 生命同样读 enemy_hp_mult）
+static func apply_run(g) -> void:
+	var h: float = kn("enemy_hp", 1.0)
+	var d: float = kn("enemy_dmg", 1.0)
+	if not is_equal_approx(h, 1.0):
+		g.stats.add(&"enemy_hp", "mult", h, "vnodes_comp")
+	if not is_equal_approx(d, 1.0):
+		g.stats.add(&"enemy_dmg", "mult", d, "vnodes_comp")
+	g.sync_stats()
+
+
 ## 离队（squad.remove）：撤销全队效果（本人作用域的来源留着也不会作用到别人）
 static func on_leave(g, oid: String) -> void:
 	g.stats.remove_source("vteam:" + oid)

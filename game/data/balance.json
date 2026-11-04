@@ -842,6 +842,8 @@
   "_doc": "docs/245 §3。普通节点每个：melee 范围 +range（op_range add）；multi 弹数：每次普攻 +shots 发额外弹（每发 = 普攻 × shot_mult，射向另一名敌人，复用 vis_growth 弹体），普攻不是弹道的多弹干员改给范围；summon 体量：范围 +sum_range、追击与召唤物伤害 +sum_dmg；control 范围 +ctl_range。流派同 late_shape（shape_lv/x_lane）。精二：本人攻击 +e2_atk、攻击速度 +e2_aspd（add），再给 team 表里的一条全队效果（scope squad = 全局；离队时撤销）。team 每项 {stat, op, value, txt}；txt 是卡面 / 横幅上的一句话，none = 已有全队效果（docs/91：能天使天使的祝福、凯尔希回防），不再加",
   "range": 0.06, "shots": 0.2, "shot_mult": 0.5, "sum_range": 0.05, "sum_dmg": 0.05, "ctl_range": 0.06,
   "e2_atk": 0.12, "e2_aspd": 0.06,
+  "_doc_comp": "怪物补偿（用户 11-05「加成给多了就加强怪物」）：开关开时开局乘到 enemy_hp / enemy_dmg 上（run_setup → vis_nodes.apply_run）；值由 docs/245 §4 云端配对定",
+  "enemy_hp": 1.0, "enemy_dmg": 1.0,
   "team": {
    "angelina": {"stat": "control_dur", "op": "add", "value": 0.10, "txt": "全队控制时长 +10%"},
    "exusiai": {"stat": "none", "txt": "天使的祝福（另外两名干员攻击速度 +15%）"},
