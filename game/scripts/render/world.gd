@@ -4829,6 +4829,9 @@ func draw_warn_outlines(ground := false) -> void:
 			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
 		if IsharTell.owns(w):
 			continue   # 伊莎玛拉：涟漪勾边已在 ishar_tell_draw 画（docs/170）
+		if preload("res://scripts/render/minion_warn.gd").owns(w):
+			preload("res://scripts/render/minion_warn.gd").outline(g, w)
+			continue
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))
 		var tracking: bool = tr > 0.0 and w.t < tr
