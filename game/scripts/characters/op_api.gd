@@ -6,6 +6,7 @@
 extends RefCounted
 
 const _BalG = preload("res://scripts/core/balance.gd")   # data/balance.json 旋钮（add_cc_growth 读 growth 段）；名字带下划线避免和子类 const Bal 重名
+const _LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247）
 
 var g                      # Game (Node2D)
 
@@ -474,10 +475,21 @@ func draw_spr(name: String, frames: int, frame: int, pos: Vector2, scale: float 
 	g.vfx.spr(name, frames, frame, pos, g.PX if scale < 0.0 else scale, flip, col, anchor, sq)
 
 
+static func A_hires(tx: Texture2D) -> float:
+	return preload("res://scripts/art.gd").hires_of(tx) if tx != null else 1.0
+
+
 ## 旋转帧条绘制（支持 @2x 贴图）
 func draw_spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale: float = -1.0, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
 	_cv_flush()
-	g.vfx.spr_rot(name, frame, pos, ang, g.PX if scale < 0.0 else scale, col, anchor_px, flip)
+	var sc: float = g.PX if scale < 0.0 else scale
+	var gk: float = _LateRead.grow_of(self)
+	if gk > 1.001 and not g.vfx._v5_skip(name):   # docs/247 V5：干员自画的旋转帧条（技能主形）按精英化 / 节点放大、取整，精一起加厚
+		var tx: Texture2D = g.tex.get(name)
+		var gs: Array = _LateRead.grow_scale(g, tx, int(g.V6_FRAMES.get(name, [1, 0.0])[0]), sc, gk, A_hires(tx))
+		g.vfx.spr_rot(name, frame, pos, ang, gs[0], col, anchor_px, flip, _LateRead.thick_of(self) if gs[1] else 0)
+		return
+	g.vfx.spr_rot(name, frame, pos, ang, sc, col, anchor_px, flip)
 
 
 ## 合批中直接往 g 上画（贴图包装、UI.diamond 等）之前：先把攒下的几何提交（保持层序），并把当前变换下发给 g

@@ -656,6 +656,8 @@ func draw_pfx(floor_layer: bool) -> void:
 			continue
 		# 后期特效密集时整体降透明度（render/world.gd 的 fx_dim，EA 1.1）；a 也传给干员自己的 _draw_pfx
 		var a: float = clampf(f.life / f.max, 0.0, 1.0) * g.world.fx_dim
+		if g.world.lr_v3 and pfx_cappable(f) and f.kind != "strip":   # strip = 数据干员的技能帧条（主形），不算装饰
+			a = clampf(f.life / f.max, 0.0, 1.0) * g.world.deco_dim   # docs/247 V3：只有装饰小粒子吃降噪，技能帧条 / 判定 / 提示照常 1
 		if _draw_pfx(f, a):
 			continue
 		var c: Color = f.get("col", col())
@@ -2950,7 +2952,9 @@ func draw_body() -> void:
 		mod = Color(1.0 + 0.5 * k, 1.0 + 0.8 * k, 1.0 + 0.9 * k, 1.0 - k)
 	if wk < 1.0:
 		mod = Color(mod.r + 0.6 * (1.0 - wk), mod.g + 0.7 * (1.0 - wk), mod.b + 0.8 * (1.0 - wk), mod.a * wk)   # 淡入：先泛青白再回本色
+	g.world.sq_ol = g.world.squad_ol_col(col(), mod.a if mod.a >= 0.95 else 0.0)   # docs/247 S1（本体半透明时——无敌闪烁 / 淡入淡出——不描，免得描边色从本体里透出来）：本人代表色 1 格描边（late_read 关时 a = 0 不画）
 	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	g.world.sq_ol = Color(0, 0, 0, 0)
 
 
 ## 就地解散后在落点淡入（squad.blink_fx，11-02 取代向上跳出屏幕）：warp_t 由 world.update_visuals 推进，< 0 = 不在瞬回。纯画面
@@ -3069,6 +3073,13 @@ func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vect
 	var fw: float = float(tx.get_width() / frames)
 	var fh: float = float(tx.get_height())
 	var k: float = g.PX / A.hires_of(tx)
+	var gk: float = _LateRead.grow_of(self)
+	if gk > 1.001 and not g.vfx._v5_skip(name):   # docs/247 V5：干员技能帧条按精英化 / 节点放大、取整，精一起加厚 1 格
+		var gs: Array = _LateRead.grow_scale(g, tx, frames, g.PX, gk, A.hires_of(tx))
+		k = gs[0] / A.hires_of(tx)
+		if gs[1] and _LateRead.thick_of(self) > 0:
+			_cv_flush()
+			_LateRead.thick_under(g.wcv, tx, Rect2(fw * (frame % frames), 0, fw, fh), Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), p.round(), ang, Vector2(-k if flip else k, k), col)
 	cv.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
 	cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

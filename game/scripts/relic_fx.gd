@@ -23,6 +23,7 @@
 extends RefCounted
 
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247）
 const D = preload("res://scripts/data.gd")
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -1143,7 +1144,8 @@ func draw() -> void:
 	var v2 := PlaceDraw.on()
 	if v2:
 		_pd().draw_ground(self)   # 警示虚线圈 / 影子 / 焦痕；装置本体在 draw_upper
-	for mn in (mines if not v2 else []):
+	var lr_top: bool = LateRead.on("s3") and not v2   # docs/247 S3：地雷 / 轰隆隆改在敌人之上由 draw_placed_top 画（放置物第二版开着时由它画，S3 不接管）
+	for mn in (mines if not (v2 or lr_top) else []):
 		var bl: float = 0.5 + 0.5 * sin(g.t * 8.0)
 		g.draw_set_transform(mn.pos, 0.0, Vector2(1.0, 0.6))
 		g.draw_circle(Vector2.ZERO, 9.0, Color(0.25, 0.22, 0.2))
@@ -1173,13 +1175,25 @@ func draw() -> void:
 		g.draw_line(z.pos, z.pos + Vector2(0, -54), Color(0.5, 0.4, 0.3), 2.0)
 		g.draw_colored_polygon(PackedVector2Array([z.pos + Vector2(0, -54), z.pos + Vector2(26 + wv, -46), z.pos + Vector2(0, -38)]), Color(1.0, 0.75, 0.3, 0.9))
 	# 轰隆隆：小圆身子 + 红灯
-	for b in (bombs if not v2 else []):
+	for b in (bombs if not (v2 or lr_top) else []):
 		g.draw_circle(b.pos, 8.0, Color(0.35, 0.35, 0.4))
 		g.draw_circle(b.pos + Vector2(0, -3), 3.0, Color(1.0, 0.3 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0)), 0.3))
 	# 防暴桩：木桩
 	for s in (stakes if not v2 else []):
 		g.draw_rect(Rect2(s.pos + Vector2(-5, -26), Vector2(10, 30)), Color(0.55, 0.42, 0.3))
 		g.draw_rect(Rect2(s.pos + Vector2(-7, -28), Vector2(14, 5)), Color(0.85, 0.75, 0.3))
+
+
+## 后期可读性 S3（docs/247，render/late_read）：地雷 / 轰隆隆在敌人之上画，尺寸下限 + 我方青白描边 + 0.8 秒呼吸（LateRead.placed）。
+## 地雷贴地扁圆、中心闪灯改成我方青白；轰隆隆立体圆身、头顶一格暖白灯（不用红：红只留给危险）。只画不改状态
+func draw_placed_top(ci: CanvasItem) -> void:
+	if not LateRead.on("s3") or PlaceDraw.on():   # 放置物第二版开着时它自己画在敌人之上
+		return
+	var rmin: float = LateRead.k("s3_rmin", 14.0)
+	for mn in mines:
+		LateRead.placed(ci, mn.pos, rmin, LateRead.ALLY_COL, Color(0.16, 0.2, 0.24), g.t, fmod(mn.pos.x * 0.013, 1.0), true)
+	for b in bombs:
+		LateRead.placed(ci, b.pos + Vector2(0, -4), rmin + 2.0, LateRead.ALLY_COL, Color(0.22, 0.26, 0.32), g.t, fmod(b.pos.y * 0.017, 1.0), false, Color(1.0, 0.95, 0.8, 0.6 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0))))
 
 
 ## ---------- 动态倍率（每次伤害查询）----------

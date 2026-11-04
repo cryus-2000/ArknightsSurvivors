@@ -1782,7 +1782,9 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	var col := Color.WHITE
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
+	g.world.sq_ol = g.world.squad_ol_col(o.col())   # docs/247 S1：召唤物本体同样描本人代表色 1 格边（late_read 关时 a = 0 不画）
 	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	g.world.sq_ol = Color(0, 0, 0, 0)
 	if s.has("m3"):
 		s["draw_top"] = [fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g), hov]   # 头顶血条找头顶（hud_allyhp._m3_head，10-31）
 	for f in fl:

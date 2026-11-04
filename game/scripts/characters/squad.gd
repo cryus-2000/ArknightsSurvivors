@@ -438,8 +438,10 @@ func update(dt: float) -> void:
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		g.vfx.spawn_lead = o.is_leader   # 这段里生成的帧条特效记为队长的（docs/139 §11 突出队长；纯画面标记）
+		g.vfx.spawn_op = o   # docs/247 V5：同上，记是谁放的（按精英化放大主形）
 		o.update(dt)
 		g.vfx.spawn_lead = false
+		g.vfx.spawn_op = null
 		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
