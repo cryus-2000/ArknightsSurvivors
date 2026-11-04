@@ -222,7 +222,19 @@ def cmd_run(a):
             git("bundle", "create", bnd, tref, "^" + base)
         finally:
             git("update-ref", "-d", tref)
-        print("提交 %s 不在 origin 上：上传 bundle（基于 %s，%.1f MB）" % (sha[:10], base[:10], os.path.getsize(bnd) / 1e6))
+        # bundle 的前置提交不止 base 一个：分支里合进过别的分支（如 integ）时，被合分支沿途的祖先也是前置（11-05 星熊出图两次失败）。
+        # 读 bundle 头里所有「-<提交>」前置行，虚拟机逐个从 origin 浅拉（它们都可从 base 到达，必在 origin 上）
+        pre = []
+        with open(bnd, "rb") as fh:
+            fh.readline()
+            for ln in iter(fh.readline, b""):
+                ln = ln.strip()
+                if not ln:
+                    break
+                if ln.startswith(b"-"):
+                    pre.append(ln[1:].split()[0].decode())
+        base = " ".join(dict.fromkeys([base] + pre))
+        print("提交 %s 不在 origin 上：上传 bundle（前置 %d 个，%.1f MB）" % (sha[:10], len(base.split()), os.path.getsize(bnd) / 1e6))
         gc("storage", "cp", bnd, gs + "/repo.bundle", "-q")
     t0 = time.time()
     model = "STANDARD" if a.standard else "SPOT"

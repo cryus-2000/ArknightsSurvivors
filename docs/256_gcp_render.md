@@ -65,3 +65,4 @@ python tools/gcp_render.py --branch HEAD --job custom --cmd 'python3 tools/pxpla
 - 软件渲染与本机显卡渲染逐像素不会完全相同，但构图、颜色、像素格一致。斯卡蒂三栏与 docs/246 本机图肉眼看不出区别。
 - `rec` 用 `--fixed-fps 30 --realtime`。虚拟机跑不满实时也不丢帧（按帧号存图），mp4 仍是 30 帧原速。
 - 抢占式机器被回收时，batch.py 自动改用标准机重跑一次。中途断了可以 `python tools/gcp/batch.py collect render-<名>` 收结果，再用 `gcloud storage cp -r gs://<项目>-batch/render-<名>/media/* <本机目录>` 取媒体。
+- **本机没推的提交**：batch.py 打 bundle 上传。11-05 前只浅拉一个基准提交，分支里合进过别的分支（如 integ-1105）时，bundle 还有别的前置提交，虚拟机报「Repository lacks these prerequisite commits」（星熊出图前两次就是这样失败的）。现在 batch.py 读出 bundle 头里的全部前置提交，虚拟机逐个从 origin 浅拉后再取 bundle；本机已用同样的合并结构模拟验证。推到 origin 再跑最稳，不推也行。
