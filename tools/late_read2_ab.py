@@ -18,10 +18,10 @@ import godot_runner as GR
 CASES = [
     ("复现局 维什戴尔+铃兰+逻各斯 s7", ["--seed=7", "--op=wisadel", "--squad=suzuran,logos", "--bot=expert", "--maxt=240"]),
     ("召唤专项 凯尔希+水月+塞雷娅 地雷组+轰隆隆 s11", ["--seed=11", "--op=kaltsit", "--squad=mizuki,saria", "--relics=210,211", "--nodeath", "--maxt=300"]),
-    ("能天使 s11 不死 到后期", ["--seed=11", "--op=exusiai", "--nodeath", "--maxt=600"]),
+    ("遥乡 + 旗帜 + 灯标 德克萨斯 s23", ["--seed=23", "--op=texas", "--relics=116,117", "--bot=expert", "--maxt=300"]),
 ]
 V4, V9, V10 = "--bal=render/light_share=1", "--bal=render/ground_ring_edge=1", "--bal=render/crowd_env_dim=1"
-CONFIGS = [("关", []), ("全开", [V4, V9, V10]), ("V4", [V4]), ("V9", [V9]), ("V10", [V10])]
+CONFIGS = [("关", []), ("全开", [V4, V9, V10])]   # 各项单开的 TRACE 由 late_read2_shots.py 的截图局（full 层带 --trace=1）覆盖
 
 
 def run(job):
@@ -30,7 +30,7 @@ def run(job):
         cmd = [GR.find_godot(), "--headless", "--path", os.path.join(root, "game"), "--"]
     else:
         cmd = ["xvfb-run", "-a", "-s", "-screen 0 1280x720x24", GR.find_godot(), "--rendering-driver", "opengl3", "--path", os.path.join(root, "game"),
-               "--resolution", "1280x720", "--audio-driver", "Dummy", "--fixed-fps", "60", "--"]
+               "--resolution", "1280x720", "--audio-driver", "Dummy", "--fixed-fps", "60", "--", "--quality=high"]   # 云端 llvmpipe 自动档会落到「低」、光学观感整层关，V4 就测不到
     cmd += ["--balance", "--trace=1"] + args + cfg
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)
     out = p.stdout + p.stderr
