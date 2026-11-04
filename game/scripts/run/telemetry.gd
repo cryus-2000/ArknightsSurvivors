@@ -20,6 +20,8 @@ const MAX_BYTES := 8000000         # 本地记录上限（约 8 MB、上千局�
 const MIN_SAVE_T := 20.0           # 局内不足 20 秒就退出的不记（开局误点、立即重开）
 
 var g: Game
+const DiagBins = preload("res://scripts/run/diag_bins.gd")
+var diag   # docs/243 后期诊断分桶（只读，--diagbins 才启用）
 # ---- 整局指标（原 core/bot.gd，2026-09-26 挪来）
 var sample_next := 0.0          # 下一个采样时间点（按局内时间对齐到 0 / 30 / 60 …）
 var curve: Array = []           # 每 30 秒：{t, hp, lamp, lv, kills, squad, taken, enemies}
@@ -152,6 +154,7 @@ var build: Dictionary = {}
 
 
 func _init(game: Game) -> void:
+	diag = DiagBins.new(game)
 	g = game
 	var f := FileAccess.open("res://data/build.json", FileAccess.READ)
 	if f != null:
@@ -163,6 +166,7 @@ func _init(game: Game) -> void:
 
 ## 每帧采样（只观察，不改状态、不用随机数，所以不影响同 seed 复现）
 func tick(dt: float) -> void:
+	diag.tick(dt)
 	var t: float = g.t
 	if last_pos == Vector2.ZERO:
 		last_pos = g.ppos
@@ -437,6 +441,7 @@ func _snap(t: float) -> void:
 
 ## 普通怪死亡时记一笔（combat 击杀结算调用）：按分钟 × 类型累计只数与受击次数，精英 / Boss / 友方不记
 func on_kill(e: Dictionary) -> void:
+	diag.kill(e)
 	if e.elite or e.boss or e.get("friendly", false):
 		return
 	var k := "%d:%s" % [int(g.t / 60.0), e.type]
@@ -462,6 +467,7 @@ static func lamp_tier(v: float) -> int:
 ## 一次有效伤害：eff = 实际扣掉的生命（同 dmg_out），raw = 这一下算出来的伤害（不封顶到剩余生命，「最高单次」用）
 func on_dmg(e: Dictionary, eff: float, raw: float, hd: Dictionary = {}) -> void:
 	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传（docs/101 B7 ⑤）
+	diag.dmg(e, eff, h)
 	var op: String = str(h.get("op", ""))
 	if op == "":
 		op = "_other"
@@ -795,6 +801,8 @@ func record(marks = null) -> Dictionary:
 		rec["cmd"] = g.squad.cmd_stats()   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数；没切过模式的局不写（BALANCE 与 main 逐字相同）
 	if g.has_meta("bond_log") and not g.get_meta("bond_log").is_empty():
 		rec["bonds"] = g.get_meta("bond_log").map(func(x): return [str(x.id), x.t])   # 羁绊成立（docs/217 §7）；没成立过的局不写
+	if diag.on:
+		rec["diag"] = diag.report()
 	if g.ult != null:
 		rec["ult"] = g.ult.report()   # 终结技 / 连携 / 连携终结技次数与能量来源（docs/198 原型；ult/on 关时没有这一项）
 	return rec
