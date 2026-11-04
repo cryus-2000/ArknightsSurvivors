@@ -255,6 +255,7 @@ def main():
     r.add_argument("--jobs", type=int, default=4)
     r.add_argument("--squad", default="")
     r.add_argument("--relics", default="")
+    r.add_argument("--extra", default="", help="透传给游戏的额外参数，空格分隔（A/B 开关，例如 \"--bal=growth/late_shape=1\"，docs/244）")
     r.add_argument("--out", default=os.path.join(ROOT, "build", "late_diag", "raw.jsonl"))
     q = sp.add_parser("sum")
     q.add_argument("--inp", default=os.path.join(ROOT, "build", "late_diag", "raw.jsonl"))
@@ -268,6 +269,7 @@ def main():
             EXTRA.append("--squad=" + a.squad)
         if a.relics:
             EXTRA.append("--relics=" + a.relics)
+        EXTRA.extend(a.extra.split())
         cmd_run(a)
     elif a.cmd == "sum":
         cmd_sum(a)

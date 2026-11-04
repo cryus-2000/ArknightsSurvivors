@@ -13,6 +13,7 @@ var rej_log: Array = []        # 每次排异的说明文字
 ##   squad → 协同（全队干员），种类上限 PASSIVE_CAP 4
 ## 选满种类后只出已有种类。desc 里的数字由 passive_desc() 按 balance.json 现值生成的，以它为准。
 ## 卡的定义在 data/cards.json（10-22 从这里的常量原样迁出，docs/126 A1）：键序 = 出卡 / 机器人遍历的顺序；新卡只填 json
+const LateShape = preload("res://scripts/characters/blocks/late_shape.gd")
 static var _card_data = null
 static var PASSIVES: Dictionary = _cards().get("passives", {})
 static var FILLERS: Array = _cards().get("fillers", [])
@@ -369,9 +370,11 @@ func passive_cards(cat: String) -> Array:
 		var n: int = g.growth.get(pid, 0)
 		if n >= pdef.max or (full and n == 0):
 			continue
-		if not pdef.get("pool", true):
-			continue   # 精简停用（docs/203）：生存属性只在认知塑造
+		if not pdef.get("pool", true) and not (pdef.has("pool_flag") and Bal.v(str(pdef.pool_flag), 0.0) > 0.0):
+			continue   # 精简停用（docs/203）：生存属性只在认知塑造；pool_flag 开关开着时照常进池（docs/244：协同·广、扩散、连锁）
 		var rq: String = str(pdef.get("requires", ""))
+		if rq.begins_with("shape:") and not g.squad.ops.any(func(o): return LateShape.splash_eater(o) if rq == "shape:splash" else LateShape.chain_eater(o)):
+			continue   # 形状卡（docs/244）：编队里有吃这张卡的干员才出
 		if rq.begins_with("lane:") and not g.squad.ops.any(func(o): return o.in_lane(rq.substr(5))):
 			continue   # 流派卡：编队里有该流派干员才出
 		if str(pdef.get("stat", "")) == "shield_interval" and g.shield_max <= 0:
@@ -442,6 +445,8 @@ func passive_preview(pid: String) -> String:
 		"squad_atk": return "全队攻击 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_atk", ["squad"]), g.stats.value_for(&"op_atk", ["squad"]) + Bal.v("squad/op_atk_base", 0.9) * 0.08]   # 加算：+0.08 乘在基础 op_atk_base 上（10-28 原写 +0.08，实际 +0.072）
 		"squad_aspd": return "全队攻速 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_aspd", ["squad"]), g.stats.value_for(&"op_aspd", ["squad"]) + 0.06]
 		"squad_range": return "全队范围 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_range", ["squad"]), g.stats.value_for(&"op_range", ["squad"]) + 0.08]
+		"splash": return "溅射伤害 %d%% → %d%%" % [int(round(g.stats.value_for(&"op_splash", ["squad"]) * 100.0)), int(round((g.stats.value_for(&"op_splash", ["squad"]) + 0.25) * 100.0))]
+		"chain": return "弹射次数 %d → %d" % [int(round(g.stats.value_for(&"op_chain", ["squad"]))), int(round(g.stats.value_for(&"op_chain", ["squad"]))) + 1]
 		"squad_crit": return "技能强度 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_skill_power", ["squad"]), g.stats.value_for(&"op_skill_power", ["squad"]) + 0.1]
 	# 新卡（cards.json 里有、上面没写特别写法的）：属性 现值 → 选中后
 	var c: Dictionary = PASSIVES.get(pid, {})
