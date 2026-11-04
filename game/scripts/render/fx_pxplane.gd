@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254，见文件末尾一节）。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、浊心斯卡蒂（docs/260），各自一节在文件后部。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,11 +18,13 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := ["res://data/pxp_skadi.json", "res://data/pxp_hoshiguma.json"]   # 星熊（docs/254）的键带 hsg_ 前缀
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_"}   # 帧条表 → 键前缀（星熊表内键已带 hsg_；流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
+const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
+const LM_AC := Color("#ff9640")   # 精二点缀灯火橙
 const DIRS := [-90, -45, 0, 45, 90]
 const EMIT_CAP := 360     # 每帧送进发光层的 emit 点上限（整队）
 const ITEM_MAX := 72
@@ -67,12 +69,15 @@ static func owns_id(game, oid: String) -> bool:
 
 func _meta(k: String) -> Dictionary:
 	if meta.is_empty():
-		for mp in METAS:
-			var f := FileAccess.open(mp, FileAccess.READ)
-			if f != null:
-				var v = JSON.parse_string(f.get_as_text())
-				if v is Dictionary:
-					meta.merge(v)
+		for path in METAS:
+			var f := FileAccess.open(path, FileAccess.READ)
+			if f == null:
+				continue
+			var v = JSON.parse_string(f.get_as_text())
+			if v is Dictionary:
+				for kk in v:
+					if str(kk) != "_doc":
+						meta[str(METAS[path]) + str(kk)] = v[kk]
 	return meta.get(k, {})
 
 
@@ -130,6 +135,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	var p: Dictionary = R.pal(o)
 	if str(o.id) == "hoshiguma":
 		_ev_hsg(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "lumen":
+		_ev_lumen(o, kind, d, raw, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -271,7 +279,7 @@ func _add_gd(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit
 
 func _step() -> void:
 	var now: float = g.t
-	items = items.filter(func(it): return now - float(it.t0) < _life(str(it.k)) + 0.02)
+	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02)
 	var tk: int = int(floor(g.t * 15.0))
 	if g.ppos != Vector2.INF and tk != _fol_tick:   # 跟着队长走的件（举盾）：位置每拍（15 fps）跳一格，对齐美术像素格
 		_fol_tick = tk
@@ -301,6 +309,9 @@ func draw_floor(o) -> void:
 	if id == "hoshiguma":
 		_floor_hsg(o)
 		return
+	if id == "lumen":
+		_lm_draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -313,10 +324,15 @@ func draw_floor(o) -> void:
 
 ## 上层（_draw_skill_over → fx_recipe.draw_over 转来）：旧做法（2）的整张贴图都画在这里（盖在所有单位上）
 func draw_over(o) -> void:
+	if str(o.id) == "lumen" and o.hw.has("lm"):
+		_sl()._h3lm_draw_units(o)   # 发光单元是本体附属物（不是攻击特效），接管时照画
 	if mode() != 2:
 		return
 	var cv = o.cv
 	var id: String = str(o.id)
+	if id == "lumen":
+		_lm_draw_raw(o)
+		return
 	for it in items:
 		if str(it.ly) != "raw" or str(it.oid) != id:
 			continue
@@ -346,6 +362,9 @@ static func sort_items(game) -> Array:
 			out.append(it)
 	for o in game.squad.ops:
 		if IDS.has(str(o.id)) and o.pos != Vector2.INF:
+			if str(o.id) == "lumen":
+				r._lm_sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "hoshiguma":
@@ -365,7 +384,13 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 	if it.get("cut", false):
 		r._draw_cut(ci, it)
 		return
-	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
+	if it.has("rt"):
+		r._lm_draw_rt(ci, it)
+		return
+	if it.has("loopk"):
+		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), it.gp, false, false)
+		return
+		if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
 		r._draw_strip(ci, str(it.k), int(it.fi), it.gp, it.flip, true)
 		return
 	r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), it.gp, it.flip, not it.get("loop", false))
@@ -404,7 +429,7 @@ func _draw_cut(ci, it: Dictionary) -> void:
 static func sort_key(it: Dictionary) -> float:
 	if it.has("wave"):
 		return float((it.wave[1] as Vector2).y) + 2.0
-	if it.get("cut", false):
+	if it.get("cut", false) or it.has("gy"):
 		return float(it.gy)
 	return float((it.gp as Vector2).y) + 1.0 + float(it.get("sk", 0.0))   # sk：身后半圈的件往前排（星熊地刺）
 
@@ -745,3 +770,437 @@ func _qpos(q: Dictionary) -> Vector2:
 		c = [tick, q.p]
 		q["_pxq"] = c
 	return c[1]
+
+
+# ================================================================ 流明（docs/255，照斯卡蒂 docs/246 的做法）
+## 帧条件（tools/pxplane_bake_lumen.py，键前缀 lm_）：光弹命中 / 折光落点 / 荧光治疗 / 出光点 / 沐雨 v3 / 光雨雨区（循环）/ 沛霖水柱 / 灯火不灭起手 · 光圈（循环）· 光爆；
+## 线状件在运行时按美术像素格逐格画（光弹、折光、灯塔光柱 + 地面光痕、治疗连线、灯塔守望光扇）：方向任意，不旋转贴图，2 世界像素一格、15 fps 节拍换形。
+## 光弹位置每帧走（380 像素 / 秒，按 15 fps 跳格一次跳 25 像素会一卡一卡），只取整到美术像素格；弹头形状按 15 fps 节拍换。
+## 旧做法（2）：旧放开版帧条（tools/pixelfx_fx/lumen_ul_ref）光晕烤进颜色，小数缩放 + 旋转，盖在所有单位上。
+
+var _slm = null
+
+func _sl():
+	if _slm == null:
+		_slm = load("res://scripts/characters/blocks/seg_lumen.gd")   # 运行时取（避免和积木链循环 preload）
+	return _slm
+
+
+func _lm_up(o, k: String, at: Vector2, gy: float) -> void:
+	if k.begins_with("hit"):   # 命中水花同屏上限（同一名干员）：主弹至多 5 团、小水花（发光单元 / 额外弹 / 折光 / 连锁 / 光柱穿透）至多 3 团——后期弹多也不叠成一片白
+		var small: bool = k.begins_with("hits")
+		var n := 0
+		for it in items:
+			if str(it.oid) == str(o.id) and str(it.k).begins_with("lm_hits" if small else "lm_hit_") and str(it.ly) == "up":
+				n += 1
+		if n >= (3 if small else 5):
+			return
+	_push({"k": "lm_" + k, "t0": g.t, "gp": _snap(at), "gy": gy, "flip": false, "ly": "up", "oid": str(o.id)})
+
+
+func _lm_gd(o, k: String, at: Vector2) -> void:
+	_push({"k": "lm_" + k, "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
+
+
+func _lm_raw(o, k: String, at: Vector2, rot: float, sc: float) -> void:
+	_push({"k": "lm_" + k, "t0": g.t, "gp": at, "ly": "raw", "rot": rot, "sc": sc, "oid": str(o.id)})
+
+
+func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	var px: float = g.PX
+	match kind:
+		"lm_hit":   # 光弹命中：立起水花（原点 = 命中点，按敌人脚底排序）+ 地上湿痕；发光单元的弹小一号、不留湿痕
+			var e: Dictionary = d.e
+			var at: Vector2 = d.at
+			var small: bool = d.get("unit", false)
+			if raw:
+				_lm_raw(o, "raw_hit_e%d" % t, at, 0.0, px * (0.75 if small else 1.15))
+				return
+			_lm_up(o, ("hits_e%d_up" if small else "hit_e%d_up") % t, at, float(e.pos.y) + 1.0)
+			if not small:
+				_lm_gd(o, "hit_e%d_gd" % t, e.pos + Vector2(0, 2))
+			_burst(o, R, p, at, float(e.pos.y) + 2.0, [e], (1 if small else 2) + t, 60.0 + 15.0 * t, 0.3 + 0.1 * t)
+		"lm_refract":   # 精一折光：命中点到下一只之间一道 1 美术像素白芯细光，落点小水花
+			var a: Vector2 = d.a
+			var b: Vector2 = d.b
+			if raw:
+				_push({"rt": "rawline", "a": a, "b": b, "t0": g.t, "life": 0.12, "ly": "raw", "oid": str(o.id), "k": ""})
+				_lm_raw(o, "raw_hit_e1", b, 0.0, px * 0.6)
+				return
+			_push({"rt": "line", "a": a, "b": b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", b.y + 10.0)), "oid": str(o.id), "k": ""})
+			_lm_up(o, "hits_e%d_up" % t, b, float(d.get("gy", b.y + 10.0)))
+			R._light(o, b, 60.0, 0.35, 0.1, p.light)
+		"lm_pillar":   # 精二灯塔光柱：出光点一颗四芒星 + 一道实心光柱（任意方向逐格画）+ 地上一道光痕；命中的前 4 只各一团水花
+			var from: Vector2 = d.from
+			var dv: Vector2 = d.d
+			var L: float = float(d.L)
+			var foot: Vector2 = d.get("foot", from)
+			var es: Array = d.get("es", [])
+			if raw:
+				_lm_raw(o, "raw_pillar", from, dv.angle(), px * L / 200.0 * 1.13)
+				for e in es.slice(0, 4):
+					_lm_raw(o, "raw_hit_e2", e.pos + Vector2(0, -float(e.r) * 0.5), 0.0, px * 1.15)
+				return
+			_push({"rt": "beam", "a": _snap(from), "d": dv, "L": L, "W": float(d.get("W", 10.0)), "t0": g.t, "life": 4.0 / 15.0, "ly": "up", "gy": foot.y + 1.0, "oid": str(o.id), "k": ""})
+			_push({"rt": "streak", "a": _snap(foot), "d": dv, "L": L, "t0": g.t, "life": 3.0 / 15.0, "ly": "gd", "oid": str(o.id), "k": ""})
+			_lm_up(o, "flare_up", from, foot.y + 2.0)
+			R._light(o, from, 90.0, 0.55, 0.12, p.light)
+			R._light(o, foot + dv * L * 0.6, 110.0, 0.35, 0.12, p.light)
+			for e in es.slice(0, 3):   # 一线穿透：每只一团小水花（至多 3 团），不叠成一片白
+				var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
+				_lm_up(o, "hits_e2_up", hp, float(e.pos.y) + 1.0)
+			if not es.is_empty():
+				_burst(o, R, p, from, foot.y, [es[0]], 3, 70.0, 0.4)
+		"lm_mend":   # 荧光治疗：队长身前一侧卷上去一缕水流
+			var at2: Vector2 = d.at
+			for it in items:   # 沐雨同一拍也会回血：只画沐雨，不再叠一缕水流（同一招元素 ≤ 3）
+				if str(it.k).begins_with("lm_drizzle") or str(it.k).begins_with("lm_raw_drizzle"):
+					if is_equal_approx(float(it.t0), g.t):
+						return
+			if raw:
+				_lm_raw(o, "raw_mend_e%d" % t, at2, 0.0, px * 1.15)
+				return
+			_lm_up(o, "mend_e%d_up" % t, at2, at2.y + 1.0)
+			R._light(o, at2 + Vector2(0, -30), 70.0, 0.35, 0.12, p.light)
+		"lm_link":   # 提灯到治疗落点的细光（2 拍）
+			if raw:
+				_push({"rt": "rawline", "a": d.a, "b": d.b, "t0": g.t, "life": 0.25, "ly": "raw", "oid": str(o.id), "k": ""})
+				return
+			_push({"rt": "link", "a": d.a, "b": d.b, "t0": g.t, "life": 2.0 / 15.0, "ly": "up", "gy": (d.b as Vector2).y + 24.0, "oid": str(o.id), "k": ""})
+		"lm_xhit":   # 后期额外弹命中：小一号水花；同一拍至多 3 团（弹数随档位增加，画面不跟着碎）
+			var xe: Dictionary = d.e
+			if _lm_beat_n(o, "xh") >= 3:
+				return
+			if raw:
+				_lm_raw(o, "raw_hit_e%d" % t, d.at, 0.0, px * 0.75)
+				return
+			_lm_up(o, "hits_e%d_up" % t, d.at, float(xe.pos.y) + 1.0)
+		"lm_chain":   # 「连锁」弹射：同折光一套 1 美术像素细光；同一拍至多 3 道
+			if _lm_beat_n(o, "ch") >= 3:
+				return
+			if raw:
+				_push({"rt": "rawline", "a": d.a, "b": d.b, "t0": g.t, "life": 0.14, "ly": "raw", "oid": str(o.id), "k": ""})
+				return
+			_push({"rt": "line", "a": d.a, "b": d.b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", 0.0)), "oid": str(o.id), "k": ""})
+			_lm_up(o, "hits_e%d_up" % t, d.b, float(d.get("gy", 0.0)))
+		"lm_cshot":   # 连携技「清创光弹」出手：一颗大光弹飞向队长
+			if raw:
+				_push({"rt": "rawcbolt", "a": d.a, "b": d.b, "t0": g.t, "life": float(d.travel), "ly": "raw", "oid": str(o.id), "k": ""})
+				return
+			_push({"rt": "cbolt", "a": d.a, "b": d.b, "t0": g.t, "life": float(d.travel), "ly": "up", "gy": (d.b as Vector2).y + 31.0, "oid": str(o.id), "k": ""})
+			R._light(o, d.a, 70.0, 0.4, 0.1, p.light)
+		"lm_lfire":   # 连携 v2「清创光弹」（skill_link l_lumen）：提灯一颗大光弹 0.13 秒飞到队长胸口 → 炸开（同 lm_cleanse）；连携区域 1.2 秒内光尘往上飘
+			var la: Vector2 = d.a
+			var lt: Vector2 = d.at
+			var lc: Vector2 = d.c
+			if raw:
+				_push({"rt": "rawcbolt", "a": la, "b": lt + Vector2(0, -30), "t0": g.t, "life": 0.13, "ly": "raw", "oid": str(o.id), "k": ""})
+				_lm_raw(o, "raw_hit_e2", lt + Vector2(0, -30), 0.0, px * 1.7)
+				return
+			_push({"rt": "cbolt", "a": la, "b": lt + Vector2(0, -30), "t0": g.t, "life": 0.13, "ly": "up", "gy": lt.y + 1.0, "oid": str(o.id), "k": ""})
+			var t1: float = g.t + 0.13
+			_push({"k": "lm_cleanse_up", "t0": t1, "gp": _snap(lt + Vector2(0, -30)), "gy": lt.y + 1.0, "flip": false, "ly": "up", "oid": str(o.id)})
+			_push({"k": "lm_cleanse_gd", "t0": t1, "gp": _snap(lc), "flip": false, "ly": "gd", "oid": str(o.id)})
+			_push({"k": "lm_lmotes_up", "t0": t1, "gp": _snap(lc), "gy": lc.y + 1.0, "flip": false, "ly": "up", "oid": str(o.id)})
+			R._light(o, lt + Vector2(0, -20), 170.0, 0.8, 0.15, p.light)
+			R._grains(o, lt + Vector2(0, -30), lt.y, "ink", 4, {"tier": 1})
+		"lm_cleanse":   # 连携技落点：队长胸口一团大水花 + 灯火橙光尘上飘；地上照亮范围边弧原地闪一下
+			var ct: Vector2 = d.at
+			if raw:
+				_lm_raw(o, "raw_hit_e2", ct + Vector2(0, -30), 0.0, px * 1.7)
+				return
+			_lm_up(o, "cleanse_up", ct + Vector2(0, -30), ct.y + 1.0)
+			_lm_gd(o, "cleanse_gd", ct)
+			R._light(o, ct + Vector2(0, -20), 170.0, 0.8, 0.15, p.light)
+			R._grains(o, ct + Vector2(0, -30), ct.y, "ink", 4, {"tier": 1})
+		"lm_burst":   # 灯火不灭结束光爆：短粗双层星芒 + 竖光柱；地上判定半径边弧原地闪一下
+			var at3: Vector2 = d.at
+			if raw:
+				_lm_raw(o, "raw_burst", at3, 0.0, px * float(d.get("r", 220.0)) / 220.0 * 1.13)
+				return
+			_lm_up(o, "burst_up", at3, at3.y + 1.0)
+			_lm_gd(o, "burst_gd", at3)
+			R._light(o, at3 + Vector2(0, -60), 240.0, 0.9, 0.15, p.light)
+			R._grains(o, at3 + Vector2(0, -60), at3.y, "ink", 8, {"tier": 2})
+		"skill":
+			var i: int = int(d.get("i", -1))
+			var lp: Vector2 = g.ppos
+			if i == 0:   # 沐雨 v3：脚下涟漪弧法阵（贴地）+ 斜细雨 / 十字星 / 精二灯塔光柱（立起）
+				items = items.filter(func(it): return not ((str(it.k).begins_with("lm_mend") or str(it.k).begins_with("lm_raw_mend")) and is_equal_approx(float(it.t0), g.t)))
+				if raw:
+					_lm_raw(o, "raw_drizzle_e%d" % t, lp, 0.0, px * 1.07)
+					return
+				_lm_gd(o, "drizzle_e%d_gd" % t, lp)
+				_lm_up(o, "drizzle_e%d_up" % t, lp, lp.y + 1.0)
+				R._light(o, lp + Vector2(0, -20), 150.0, 0.45 + 0.1 * t, 0.15, p.light)
+			elif i == 1:   # 沛霖：头顶水柱砸下（精二三道）+ 落点湿痕
+				var tt: int = maxi(t, 1)
+				if raw:
+					_lm_raw(o, "raw_downpour_e%d" % tt, lp, 0.0, px * 1.13)
+					return
+				_lm_up(o, "downpour_e%d_up" % tt, lp, lp.y + 1.0)
+				_lm_gd(o, "downpour_e%d_gd" % tt, lp)
+				R._light(o, lp + Vector2(0, -20), 130.0, 0.6, 0.15, p.light)
+				R._grains(o, lp + Vector2(0, -24), lp.y, "ink", 3 + 2 * tt, {"tier": tt})
+			elif i == 2:   # 灯火不灭起手：头顶四芒灯光 + 水流卷上去；光圈原地亮起
+				if raw:
+					_lm_raw(o, "raw_lamp", lp, 0.0, px * 1.13)
+					return
+				_lm_up(o, "s3open_up", lp, lp.y + 1.0)
+				_lm_gd(o, "s3open_gd", lp)
+				R._light(o, lp + Vector2(0, -96), 160.0, 0.7, 0.15, p.light)
+
+
+## 同一名干员这一拍（1/15 秒）已出的某类件数（额外弹命中 / 连锁），超过上限就不再加画面
+var _beat_cnt := {}
+
+func _lm_beat_n(o, k: String) -> int:
+	var key: String = str(o.id) + k
+	var beat: int = int(floor(g.t * 15.0))
+	var c: Array = _beat_cnt.get(key, [beat, 0])
+	if int(c[0]) != beat:
+		c = [beat, 0]
+	c[1] = int(c[1]) + 1
+	_beat_cnt[key] = c
+	return int(c[1]) - 1
+
+
+## 贴地层：一次性件 + 运行时线状贴地件 + 状态件（光雨雨区、灯塔光圈、灯塔守望光扇）
+func _lm_draw_floor(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	for it in items:
+		if str(it.ly) != "gd" or str(it.oid) != id:
+			continue
+		if it.has("rt"):
+			_lm_draw_rt(cv, it)
+		else:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+	if not o.hw.has("lm"):
+		return
+	var lm: Dictionary = o.hw.lm
+	if float(lm.get("rain_t", 0.0)) > 0.0:
+		_draw_strip(cv, "lm_rain_gd", frame_of(0.0), _snap(g.ppos), false, false)
+	var S = _sl()
+	if S._h3_tower_on(o):
+		_draw_strip(cv, "lm_tower_gd", frame_of(0.0), _snap(lm.tower_pos), false, false)
+	var bb: Dictionary = S._h3_beam_block(o)
+	if S._h3_beam_on(o, bb):
+		_lm_draw_fan(cv, o, lm, bb)
+
+
+## 立起层的状态件：光弹（运行时）、光雨雨点（循环帧条）、灯塔光尘（循环帧条）
+func _lm_sort_items(o, out: Array) -> void:
+	if not o.hw.has("lm"):
+		return
+	var lm: Dictionary = o.hw.lm
+	for b in lm.bolts:
+		out.append({"rt": "bolt", "b": b, "o": o, "gy": (b.pos as Vector2).y + 30.0})
+	if not o.vg.is_empty():   # 后期额外弹：同时最多画最新的 6 颗（更早的照常结算伤害，只是不画；弹数随档位增加，画面不变碎）
+		var xs: Array = o.vg.bul
+		for i in range(maxi(0, xs.size() - 6), xs.size()):
+			var xb: Dictionary = xs[i]
+			out.append({"rt": "xbolt", "b": xb, "o": o, "gy": (xb.p as Vector2).y + 1.0})
+	if float(lm.get("rain_t", 0.0)) > 0.0:
+		out.append({"loopk": "lm_rain_up", "gp": _snap(g.ppos), "gy": g.ppos.y + 1.0})
+	if _sl()._h3_tower_on(o):
+		var tp: Vector2 = lm.tower_pos
+		out.append({"loopk": "lm_tower_up", "gp": _snap(tp), "gy": tp.y + 1.0})
+
+
+func _px(ci, p: Vector2, c: Color) -> void:
+	ci.draw_rect(Rect2(_snap(p), Vector2(g.PX, g.PX)), c)
+
+
+func _glow(p: Vector2, c: Color) -> void:
+	if not g.optical_on:
+		return
+	var fr: int = Engine.get_process_frames()
+	if fr != _emit_frame:
+		_emit_frame = fr
+		_emit_n = 0
+	if _emit_n >= EMIT_CAP:
+		return
+	_emit_n += 1
+	g.glow_next.append([_snap(p), g.PX, Color(c.r, c.g, c.b, Bal.v("fx/px_plane_emit", 0.8))])
+
+
+## 运行时线状件：line 折光 / link 治疗连线 / beam 灯塔光柱 / streak 光柱地面光痕 / bolt 光弹
+func _lm_draw_rt(ci, it: Dictionary) -> void:
+	var px: float = g.PX
+	var C: Array = LM_C
+	match str(it.rt):
+		"line", "link":
+			var f: int = frame_of(float(it.t0))
+			var link: bool = str(it.rt) == "link"
+			var nb: int = 2 if link else 3
+			if f < 0 or f >= nb:
+				return
+			var a: Vector2 = it.a
+			var b: Vector2 = it.b
+			var n: int = maxi(1, int(a.distance_to(b) / px))
+			for i in n + 1:
+				var u: float = float(i) / float(n)
+				if f == 2 and u < 0.5:
+					continue   # 最后一拍只剩靠落点的一半
+				var q: Vector2 = a.lerp(b, u)
+				var core: Color = (C[6] if f == 0 else C[5]) if not link else (C[5] if f == 0 else C[4])
+				_px(ci, q, core)
+				if f == 0 and not link and i % 3 == 0:
+					_glow(q, C[6])
+		"beam":   # 光柱：第 0 拍满宽白芯 → 往中线收 → 从出光端熄；最远端 15% 收尖
+			var f2: int = frame_of(float(it.t0))
+			if f2 < 0 or f2 > 3:
+				return
+			var a2: Vector2 = it.a
+			var dv: Vector2 = it.d
+			var nv := Vector2(-dv.y, dv.x)
+			var L: float = float(it.L)
+			var hw: float = float(it.W) / px * 0.5 * [1.0, 0.75, 0.45, 0.25][f2]   # 半宽（美术像素）
+			var s: float = L * [0.0, 0.0, 0.25, 0.55][f2]
+			var k := 0
+			while s <= L:
+				var u: float = s / L
+				var w: float = hw * (1.0 if u < 0.85 else (1.0 - u) / 0.15)
+				var c0: Vector2 = a2 + dv * s
+				var m: int = int(round(w))
+				for q in range(-m, m + 1):
+					var edge: bool = absi(q) == m and m > 0
+					var col: Color = C[3] if edge else (C[6] if (f2 <= 1 and absi(q) <= maxi(0, m - 2)) else (C[5] if absi(q) <= 1 else C[4]))
+					_px(ci, c0 + nv * float(q) * px, col)
+				if f2 <= 1 and k % 3 == 0:
+					_glow(c0, C[6])
+				s += px
+				k += 1
+		"streak":   # 光柱在地上的光痕（照亮的地面）：1 美术像素钢蓝线，3 拍里从出光端往外熄
+			var f3: int = frame_of(float(it.t0))
+			if f3 < 0 or f3 > 2:
+				return
+			var a3: Vector2 = it.a
+			var L3: float = float(it.L)
+			var s3: float = L3 * [0.0, 0.3, 0.6][f3]
+			while s3 <= L3:
+				_px(ci, a3 + (it.d as Vector2) * s3, C[3] if f3 == 0 else C[2])
+				s3 += px
+		"bolt":   # 光弹（普攻 / 发光单元）
+			var b: Dictionary = it.b
+			_lm_bolt(ci, b.pos, b.vel, tier(it.o), b.get("big", false), str(b.get("src", "")) == "发光单元")
+		"xbolt":   # 后期额外弹（growth/late_shape 等的 vis_growth 弹体）：同一套光弹，小一号（同发光单元）
+			var xb: Dictionary = it.b
+			_lm_bolt(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, tier(it.o), false, true)
+		"cbolt":   # 连携技「清创光弹」：提灯到队长胸口飞 travel 秒，大一号、不分档（尾 18 格 + 两格宽芯 + 灯火橙芯）
+			var u: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.life)), 0.0, 1.0)
+			var ca: Vector2 = it.a
+			var cb: Vector2 = it.b
+			_lm_bolt(ci, ca.lerp(cb, u), cb - ca, 2, true, false, true)
+
+
+## 一颗光弹：雨滴形弹头（白芯 + 冰蓝）+ 钢蓝尾，尾长分档；精一弹头前缘四芒折光星（按拍闪），精二尾更长、尾根一点灯火橙。位置每帧走、取整到美术像素格
+func _lm_bolt(ci, pos: Vector2, vel: Vector2, t: int, big: bool, unit: bool, link := false) -> void:
+	var px: float = g.PX
+	var C: Array = LM_C
+	var dv2: Vector2 = vel.normalized()
+	var nv2 := Vector2(-dv2.y, dv2.x)
+	var head: Vector2 = _snap(pos)
+	var tl: int = [9, 12, 16][t] + (4 if big else 0) - (3 if unit else 0) + (2 if link else 0)
+	var beat: int = int(floor(g.t * 15.0))
+	for i in tl:
+		var u: float = float(i) / float(tl)
+		var w: int = 1 if i < 3 else 0
+		if link and i < tl * 0.6:
+			w = 1
+		elif t >= 1 and i * 2 < tl and i >= 3:
+			w = 1 if (i + beat) % 3 != 0 else 0
+		var col: Color = C[6] if i == 0 else (C[5] if i < 3 else (C[4] if u < 0.55 else C[3]))
+		var q: Vector2 = head - dv2 * float(i) * px
+		_px(ci, q, col)
+		for side in range(1, w + 1):
+			_px(ci, q + nv2 * px * side, C[4] if i < 3 else C[3])
+			_px(ci, q - nv2 * px * side, C[4] if i < 3 else C[3])
+	_px(ci, head + dv2 * px, C[5])
+	if t >= 2:
+		_px(ci, head - dv2 * px * 2.0, LM_AC)
+	if t >= 1 and beat % 2 == 0:   # 折光星
+		for dd in [1, 2]:
+			var cc: Color = C[6] if dd == 1 else C[5]
+			_px(ci, head + dv2 * px * float(dd + 1), cc)
+			_px(ci, head + nv2 * px * float(dd), cc)
+			_px(ci, head - nv2 * px * float(dd), cc)
+	_glow(head, C[6])
+	_glow(head - dv2 * px, C[5])
+
+
+## 灯塔守望光扇（贴地，按 15 fps 节拍转）：只画两道边 + 中线，不平涂
+func _lm_draw_fan(cv, o, lm: Dictionary, bb: Dictionary) -> void:
+	var S = _sl()
+	var px: float = g.PX
+	var tq: float = floor(g.t * 15.0) / 15.0
+	var a: float = tq * TAU / float(bb.get("period", 2.0))
+	var dv := Vector2(cos(a), sin(a) * 0.55)
+	var org: Vector2 = S._h3_beam_origin(o)
+	var L: float = float(bb.get("len", 260.0))
+	var twr: bool = S._h3_tower_on(o)
+	var fade: float = clampf((float(lm.get("tower_t", 0.0)) if twr else float(lm.get("beam_t", 0.0))) / 0.5, 0.0, 1.0)
+	if fade <= 0.05:
+		return
+	var nv := Vector2(-dv.y, dv.x).normalized()
+	var t: int = tier(o)
+	var half: float = 13.0 * [1.0, 1.25, 1.5][t]   # 扇口半宽（美术像素），精一 ×1.25、精二 ×1.5
+	var s: float = 8.0
+	var k := 0
+	while s <= L:
+		var u: float = s / L
+		var w: float = 1.5 + (half - 1.5) * u
+		var c0: Vector2 = org + dv * s
+		_px(cv, c0, LM_C[5] if u < 0.7 else LM_C[4])
+		if t >= 1:
+			_px(cv, c0 + nv * px, LM_C[4])
+		for sd in [-1.0, 1.0]:
+			if (k + int(u * 7.0)) % 5 != 4:   # 边线有缺口，不是两条死线
+				_px(cv, c0 + nv * w * px * sd, LM_C[3] if u > 0.3 else LM_C[4])
+		if k % 4 == 0:
+			_glow(c0, LM_C[5])
+		s += px
+		k += 1
+	if t >= 2:
+		_px(cv, org, LM_AC)
+
+
+## 旧做法（2）：旧放开版帧条整张贴（光晕烤进颜色、小数缩放、旋转），盖在所有单位上
+func _lm_draw_raw(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	var rf: float = Bal.v("fx/px_plane_raw_fps", 12.8)
+	for it in items:
+		if str(it.ly) != "raw" or str(it.oid) != id:
+			continue
+		if str(it.get("rt", "")) == "rawcbolt":
+			var cu: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.life)), 0.0, 1.0)
+			_draw_raw(cv, "lm_raw_bolt_e2", posmod(int(g.t * rf), maxi(1, int(_meta("lm_raw_bolt_e2").get("n", 1)))), (it.a as Vector2).lerp(it.b, cu), ((it.b as Vector2) - (it.a as Vector2)).angle(), g.PX * 1.6)
+			continue
+		if str(it.get("rt", "")) == "rawline":
+			var kk: float = 1.0 - (g.t - float(it.t0)) / maxf(0.01, float(it.life))
+			cv.draw_line(it.a, it.b, Color(0.77, 0.88, 0.95, 0.9 * kk), 2.0)
+			continue
+		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * rf), it.gp, float(it.rot), float(it.sc))
+	if not o.hw.has("lm"):
+		return
+	var lm: Dictionary = o.hw.lm
+	var t: int = tier(o)
+	var lf: int = int(g.t * rf)
+	for b in lm.bolts:
+		var mk: Dictionary = _meta("lm_raw_bolt_e%d" % t)
+		_draw_raw(cv, "lm_raw_bolt_e%d" % t, posmod(lf, maxi(1, int(mk.get("n", 1)))), b.pos, (b.vel as Vector2).angle(), g.PX * (1.4 if b.get("big", false) else 1.13))
+	if not o.vg.is_empty():
+		var mx: Dictionary = _meta("lm_raw_bolt_e%d" % t)
+		for xb in o.vg.bul:
+			_draw_raw(cv, "lm_raw_bolt_e%d" % t, posmod(lf, maxi(1, int(mx.get("n", 1)))), (xb.p as Vector2) + Vector2(0, -18.0), (xb.v as Vector2).angle(), g.PX * 0.9)
+	if float(lm.get("rain_t", 0.0)) > 0.0:
+		_draw_raw(cv, "lm_raw_rain", posmod(lf, maxi(1, int(_meta("lm_raw_rain").get("n", 1)))), g.ppos, 0.0, g.PX * 1.07)
+	var S = _sl()
+	if S._h3_tower_on(o):
+		_draw_raw(cv, "lm_raw_tower", posmod(lf, maxi(1, int(_meta("lm_raw_tower").get("n", 1)))), lm.tower_pos, 0.0, g.PX * 1.07)
+	var bb: Dictionary = S._h3_beam_block(o)
+	if S._h3_beam_on(o, bb):
+		var dv: Vector2 = S._h3_beam_dir(o, bb)
+		_draw_raw(cv, "lm_raw_sweep", posmod(lf, maxi(1, int(_meta("lm_raw_sweep").get("n", 1)))), S._h3_beam_origin(o), dv.angle(), g.PX * float(bb.get("len", 260.0)) / 260.0 * 1.13)

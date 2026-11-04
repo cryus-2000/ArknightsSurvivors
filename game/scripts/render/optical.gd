@@ -144,17 +144,19 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			for L in grains.lights:   # 颗粒簇登记的灯（fx_grains.light）
 				if vr.has_point(L[0]):
 					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2], 0, 1])
-		# 配方 / 转平面照地光（docs/245 / 246）：先留出自己的份额（至多 fx/recipe_dl 盏、不超过总数一半、强度总和封顶），其余照旧（V4 light_share 分账或按亮度取）
+		# 配方 / 转平面照地光（docs/245 / 246）：分账开（render/light_share）时并进候选按份额分；关时先留出自己的份额（至多 fx/recipe_dl 盏、不超过总数一半、强度总和封顶），其余照旧按亮度取
 		var mine: Array = FxRecipe.lights_for(g, vr, nmax)
 		for c in mine:
-			c.append_array([0, 1])   # 同 V4 候选格式：我方、普通档
-		var rest: int = nmax - mine.size()
+			c.append_array([0, 1])
 		var share: bool = LateRead2.on("light_share")
 		if share:
-			cand = _share_pick(cand, rest, vr)
-		elif cand.size() > rest:
-			cand = _top_n(cand, rest)
-		cand.append_array(mine)
+			cand.append_array(mine)
+			cand = _share_pick(cand, nmax, vr)
+		else:
+			var rest: int = nmax - mine.size()
+			if cand.size() > rest:
+				cand = _top_n(cand, rest)
+			cand.append_array(mine)
 		# 局部预算（防油腻 ②）：队长 render/optical_local_r（120）内入选的光强度总和封顶 render/optical_local_light（1.6），超出按比例压
 		var lr: float = Bal.v("render/optical_local_r", 120.0)
 		var lsum := 0.0
