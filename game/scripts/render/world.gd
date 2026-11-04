@@ -915,9 +915,9 @@ func _gem_v2_color(value: float, rest: bool) -> Color:
 		if value >= float(threshold):
 			tier += 1
 	# Multipliers for the existing warm-white facets; no additional texture or halo.
-	var color: Color = [Color(0.22, 0.78, 0.35), Color(0.35, 0.95, 0.44), Color(0.64, 1.08, 0.55), Color(1.16, 1.08, 0.90)][mini(tier, 3)]
+	var color: Color = [Color(0.32, 0.92, 0.54), Color(0.58, 1.04, 0.48), Color(0.78, 1.12, 0.72), Color(1.16, 1.08, 0.90)][mini(tier, 3)]
 	if rest:
-		color *= Bal.v("render/gem_v2_rest_k", 0.65)
+		color *= Bal.v("render/gem_v2_rest_k", 0.82)
 		color.a = 1.0
 	return color
 

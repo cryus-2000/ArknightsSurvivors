@@ -26,7 +26,7 @@ func _draw() -> void:
 		return
 	draw_rect(Rect2(0, 0, 1280, 720), Color("18212a"))
 	var font := ThemeDB.fallback_font
-	draw_string(font, Vector2(35, 45), "XP tiers - production sprite renderer, 3x (without scene lighting)", HORIZONTAL_ALIGNMENT_LEFT, -1, 24)
+	draw_string(font, Vector2(35, 45), "XP tiers - production renderer: 3x above / native below (no scene lighting)", HORIZONTAL_ALIGNMENT_LEFT, -1, 24)
 	for row in 2:
 		draw_string(font, Vector2(35, 130 + row * 240), "REST" if row == 0 else "NEAR / ATTRACTED", HORIZONTAL_ALIGNMENT_LEFT, -1, 20)
 		for i in 4:
@@ -37,4 +37,5 @@ func _draw() -> void:
 				c.a = 1.0
 			var pos := Vector2(230 + i * 265, 215 + row * 240)
 			game.world._gem_sprites("gem_small" if i < 2 else "gem_big", 6.0, PackedVector2Array([pos]), PackedColorArray([c]))
+			game.world._gem_sprites("gem_small" if i < 2 else "gem_big", 2.0, PackedVector2Array([pos + Vector2(0, 45)]), PackedColorArray([c]))
 			draw_string(font, pos + Vector2(-30, 90), str(value) + " XP", HORIZONTAL_ALIGNMENT_LEFT, -1, 22)
