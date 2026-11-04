@@ -1040,6 +1040,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.maxhp = e.hp
 		e.spd = d.spd
 		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult * Bal.v("boss/dmg_x_" + type, 1.0)   # 单只 Boss 伤害旋钮（缺省 1.0，同 hp_x_<id>）
+		if Bal.v("growth/late_shape", 0.0) > 0.0:
+			e.dmg *= Bal.v("shape_lv/comp_boss_dmg", 1.0)   # 后期形状原型的难度补偿（docs/244）
 		g.combat.gate_init(e, type)   # 阶段卡点与每幕最短时长（docs/38 §1.3）
 	if type == "pocket":
 		e.burst_at = e.maxhp * (2.0 / 3.0)   # 节点 66% / 33%（enemies.gd 囊海爬行者）

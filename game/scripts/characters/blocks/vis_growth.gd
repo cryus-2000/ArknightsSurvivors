@@ -363,6 +363,8 @@ static func qi_style(o) -> String:
 
 static func _hit(o, e: Dictionary, dmg: float, src: String) -> void:
 	o.log_hit(src, ["projectile", "growth"])
+	if e.boss and LateShape.on(o.g):
+		dmg *= Bal.v("shape_lv/boss_k", 1.0)   # 后期形状原型（docs/244）：额外弹 / 剑气打 Boss 打折（开关开时，藏品来的也一样）
 	o.deal_damage(e, dmg * (o.vs_elite() if e.elite or e.boss else 1.0))
 
 

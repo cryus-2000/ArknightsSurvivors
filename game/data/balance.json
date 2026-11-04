@@ -842,8 +842,8 @@
   "summon_range": 0.18, "summon_dmg": 0.3,
   "control_range": 0.25, "control_dur": 0.12,
   "splash_r": 60, "chain_r": 170, "chain_mult": 0.5,
-  "_doc_comp": "难度补偿（只在 growth/late_shape 开时生效）：普通怪伤害在 comp_from → comp_to 秒平滑升到 × comp_dmg（dmg_curve.target）；所有 Boss 生命 × comp_boss_hp（spawner）",
-  "comp_from": 240, "comp_to": 420, "comp_dmg": 1.0, "comp_boss_hp": 1.0,
+  "_doc_comp": "难度补偿（只在 growth/late_shape 开时生效）：普通怪伤害在 comp_from → comp_to 秒平滑升到 × comp_dmg（dmg_curve.target）；所有 Boss 生命 × comp_boss_hp、伤害 × comp_boss_dmg（spawner）；boss_k = 额外弹 / 剑气 / 扩散 / 连锁打 Boss 的伤害倍率",
+  "comp_from": 240, "comp_to": 420, "comp_dmg": 1.0, "comp_boss_hp": 1.0, "comp_boss_dmg": 1.0, "boss_k": 1.0,
   "x_lane": {"logos": "multi", "lumen": "multi", "saria": "melee", "skalter": "control"}
  },
  "response": {

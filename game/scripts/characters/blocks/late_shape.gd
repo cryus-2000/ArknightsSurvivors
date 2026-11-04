@@ -170,7 +170,7 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 			if x.dead or x.id == e.id or x.pos.distance_to(e.pos) > r + float(x.r):
 				continue
 			o.log_hit(_src(o, "扩散"), ["lshape"])
-			o.deal_damage(x, dmg * sp)
+			o.deal_damage(x, dmg * sp * (kn("boss_k", 1.0) if x.boss else 1.0))
 		o.fx({"kind": "ring", "pos": e.pos, "r": r, "r0": 8.0, "life": 0.22, "col": o.col(), "floor": true, "w": 2.0})
 	if ch > 0:
 		var cur: Dictionary = e
@@ -193,7 +193,7 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 			done[nx.id] = true
 			o.fx({"kind": "line", "pos": cur.pos + Vector2(0, -16), "to": nx.pos + Vector2(0, -16), "life": 0.14, "col": o.col().lerp(Color.WHITE, 0.4), "w": 2.0})
 			o.log_hit(_src(o, "连锁"), ["lshape"])
-			o.deal_damage(nx, d)
+			o.deal_damage(nx, d * (kn("boss_k", 1.0) if nx.boss else 1.0))
 			cur = nx
 
 
