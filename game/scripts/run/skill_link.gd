@@ -14,6 +14,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const LFX = preload("res://scripts/run/link_fx_common.gd")   # 连携画面公用件：衔接（接力光 + 光柱）/ 变体种子（用户 10-31 连携美术重做）
 const LFB = preload("res://scripts/run/link_fx_b.gd")   # B 组 10 人画面（link-fx-b）
+const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/255）：流明「清创光弹」接管时改画流明光弹，只画
 const LFA = preload("res://scripts/run/link_fx_a.gd")   # 连携画面 A 组 10 人（德克萨斯 / 能天使 / 浊心斯卡蒂 / 凯尔希 / 乌尔比安 / 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔）
 
 ## 放技能的干员 id → {技能序号: [搭档 id, 合成类型]}
@@ -1039,16 +1040,22 @@ static func _step16(u, a: Dictionary) -> bool:
 				u.g.lamp = minf(float(u.g.lamp_cap), float(u.g.lamp) + Bal.v("ult/link_lumen_lamp", 10.0))
 				u.g.nerve = 0.0
 				u.light(lp4, 160.0, cl, 0.6)
-				u.grain("mote_up", lp4, Vector2.UP, cl, 10)
+				if _FXR.owns(p):
+					_FXR.ev(p, "lm_lfire", {"a": p.pos + Vector2(20.0 * float(p.face), -37.0), "at": lp4, "c": c, "r": r})   # 转平面（docs/255）：只画
+				else:
+					u.grain("mote_up", lp4, Vector2.UP, cl, 10)
 			if t < 1.2:
-				if int(t * 30.0) % 2 == 0:
+				var pxo: bool = _FXR.owns(p)
+				if int(t * 30.0) % 2 == 0 and not pxo:
 					u.grain("mote_up", c + Vector2.from_angle(t * 11.0) * r * fposmod(t * 3.7, 1.0), Vector2.UP, cl, 2)
-				if not LFB.lu_motes(u, c, r, t):
+				if not pxo and not LFB.lu_motes(u, c, r, t):
 					u.shape({"kind": "dots", "c": c, "r": r, "n": 16, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.04})
 				for j in 4:
 					if t >= 0.3 * j and once.call("b%d" % j):
 						for e in u.in_circle(c, r):
 							_hit16(p, e, "灼烧光点", 0.2)
+							if pxo:
+								_FXR.ev(p, "lm_xhit", {"e": e, "at": e.pos + Vector2(0, -float(e.r) * 0.5)})   # 转平面（docs/255）：只画
 						u.light(c, r, cl, 0.2)
 				return false
 			return t >= 1.3

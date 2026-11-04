@@ -89,10 +89,17 @@ export function create(o) {
   let t = 0;
   const S = {};
   // ---------------------------------------------------------------- 预计算
-  if (part === "hit") {
+  if (part === "cleanse") {
+    // 连携技「清创光弹」（不分档）：光弹在队长胸口炸成一团大水花（同普攻命中一套画法，体量 ×1.7）+ 几点灯火橙光尘往上飘（灯火回复）；
+    // 贴地：半径 R（= 150 / 2）的照亮范围原地闪一下（4 段边弧 + 淡渐变，不外扩）
+    S.motes = [];
+    for (let i = 0; i < 8; i++) { const a = Rg.range(-Math.PI, Math.PI); S.motes.push({ x: Math.cos(a) * Rg.range(4, 16), y: Rg.range(-4, 6), v: Rg.range(30, 52), d: 0.05 + i * 0.03, w: i % 3 === 0 }); }
+    S.segs = segsOf(Rg, 4, 0.62);
+  }
+  if (part === "hit" || part === "cleanse") {
     // 光弹命中（原作 lumen_attack_01_hit 尖刺水花，旧放开版主形）：实心水团 + 5–7 根粗水刺 + 两三颗落地的水珠。
     // E1 体量 ×1.25、第二拍爆亮；E2 质变：一团变三团 ×1.5、芯一点灯火橙、水团顶上冲起一道竖直灯塔细光（精二灯塔意象）
-    S.K = 1.3 * [1, 1.25, 1.5][E] * (+o.k || 1);
+    S.K = part === "cleanse" ? 2.2 : 1.6 * [1, 1.25, 1.5][E] * (+o.k || 1);   // 11-05：E0 ×1.3 在后期画面里太小，提到 ×1.6
     S.blobs = E === 2 ? [[0, 0, 1], [6, -3, 0.6], [4, 4, 0.5]] : [[0, 0, 1]];
     const n = E === 2 ? 7 : E === 1 ? 6 : 5;
     S.spikes = jitterAngles(Rg, n, -Math.PI, Math.PI, 0.42).map((a, i) => ({ a, L: (5 + 7 * nz(i * 1.7, +o.seed) + 4 * Math.max(0, Math.cos(a))) * S.K }));
@@ -176,7 +183,21 @@ export function create(o) {
     draw(p) {
       const R = +o.R;
       // ================================================================ hit
-      if (part === "hit") {
+      if (part === "cleanse") {
+        if (up)
+          for (const m of S.motes) {   // 灯火回复：橙 / 白光尘往上飘，0.5 秒散
+            const a = t - m.d;
+            if (a <= 0 || a > 0.55) continue;
+            const y = m.y - 20 - a * m.v, k = Math.sin((a / 0.55) * Math.PI);
+            D(p, m.x, y, m.w ? AC : k > 0.7 ? C[6] : C[5], k + 0.2);
+            if (k > 0.5) D(p, m.x, y + 1, m.w ? AC : C[4], k);
+          }
+        if (gd) {
+          const a = t < 0.04 ? 1 : 1 - smooth(0.12, 0.5, t);
+          if (a > 0) { innerFade(p, R, SY, 16, 0.12 * a, C, +o.seed); edgeArcs(p, R, SY, S.segs, 3, a, C, +o.seed, t, t < SEG); }
+        }
+      }
+      if (part === "hit" || (part === "cleanse" && up)) {
         const K = S.K;
         if (up) {
           const out = 0.55 + 0.45 * ease.outCubic(clamp(t / 0.05)), back = smooth(0.1, 0.3 + 0.04 * E, t);
@@ -198,13 +219,13 @@ export function create(o) {
                 for (let q = -w; q <= w; q += 0.5) p.px(ca * d - sa * q, sa * d * 0.85 + ca * q + droop, Math.abs(q) > w - 0.5 && w > 0.6 ? C[Math.max(3, ci - 1)] : C[ci]);
               }
             }
-          if (E === 2 && t < 0.2) {   // 竖直灯塔细光：冲上去、往中线收
-            const H = 26 * K * ease.outCubic(clamp(t / 0.06)), W = 1.2 * (1 - smooth(0.06, 0.2, t));
+          if (E === 2 && t < 0.2 && !(+o.k < 1) && part === "hit") {   // 竖直灯塔细光：冲上去、往中线收（只给主弹命中；小水花不带，免得多弹叠成一片白）
+            const H = 14 * K * ease.outCubic(clamp(t / 0.06)), W = 1.2 * (1 - smooth(0.06, 0.2, t));
             for (let y = 2; y <= H; y += 1) for (let x = -W; x <= W; x += 0.5) D(p, x, -y, Math.abs(x) < 0.6 && t < 0.1 ? C[6] : C[5], clamp(1.3 - y / H));
           }
           if (t > 0.08) for (const d of S.drops) if (d.b < 3 && t < 0.5) { p.px(d.x, d.y, C[5]); p.px(d.x + 1, d.y, C[4]); p.px(d.x, d.y - 1, C[6]); }
         }
-        if (gd) {   // 地上一块不规则湿痕（暗钢蓝，抖动变稀），朝镜头一侧几点水光；0.45 秒散掉
+        if (gd && part === "hit") {   // 地上一块不规则湿痕（暗钢蓝，抖动变稀），朝镜头一侧几点水光；0.45 秒散掉
           const u = clamp(t / 0.45), r0 = 5.5 * K;
           if (u < 1)
             for (let y = -r0 * SY; y <= r0 * SY; y += 1)
@@ -405,8 +426,8 @@ export function create(o) {
         const LY = -46;
         if (up) {
           const u = clamp(t / 0.45);
-          if (u < 1) star(p, 0, LY, [[1, 0, 42, 3.2], [-1, 0, 42, 3.2], [0, -1, 32, 3.2], [0, 1, 22, 3], [0.7, 0.7, 22, 2.4], [-0.7, 0.7, 22, 2.4], [0.7, -0.7, 24, 2.4], [-0.7, -0.7, 24, 2.4]], 1 - ease.inQuad(u), t, C);
-          if (t < 0.3) for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) { const m = Math.abs(x) + Math.abs(y); if (m <= 4) p.px(x, LY + y, m <= 1 ? AC : m <= 2 || t < 0.07 ? C[6] : C[5]); }
+          if (u < 1) star(p, 0, LY, [[1, 0, 58, 4], [-1, 0, 58, 4], [0, -1, 44, 4], [0, 1, 30, 3.6], [0.7, 0.7, 30, 3], [-0.7, 0.7, 30, 3], [0.7, -0.7, 33, 3], [-0.7, -0.7, 33, 3]], 1 - ease.inQuad(u), t, C);   // 11-05 实机看偏小：×1.4
+          if (t < 0.3) for (let y = -5; y <= 5; y++) for (let x = -5; x <= 5; x++) { const m = Math.abs(x) + Math.abs(y); if (m <= 5) p.px(x, LY + y, m <= 1 ? AC : m <= 2 || t < 0.07 ? C[6] : C[5]); }
           if (t < 0.35) {   // 竖直白光柱：冲上去、往中线收（白芯只在第 0 拍）
             const H = 70 * ease.outCubic(clamp(t / 0.07)), W = 3.5 * (1 - smooth(0.07, 0.35, t));
             for (let y = 0; y <= H; y += 1) for (let x = -W; x <= W; x += 0.5) D(p, x, LY - y, Math.abs(x) < W * 0.45 && t < 0.07 ? C[6] : C[5], clamp(1.2 - y / Math.max(H, 1)) * 0.95);

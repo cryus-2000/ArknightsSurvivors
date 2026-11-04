@@ -27,6 +27,8 @@ LOGS = os.path.join(BUILD, "logs")
 OPS = {"skadi": ("斯卡蒂", {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}),
        "lumen": ("流明", {3: "普攻 荧光", 0: "S1 沐雨", 1: "S2 沛霖", 2: "S3 灯火不灭"})}
 OP = "skadi"
+START = {("lumen", 2): 1.2}   # 流明 S3 在演示开头约 1.3 秒就起手：提前开拍
+BALS = []   # --bals 透传的旋钮（如 growth/late_shape=1），截图 / 录像 / TRACE 都带上
 MODE_NAME = dict(OPS[OP][1])
 MODE_KEY = {3: "atk", 0: "s1", 1: "s2", 2: "s3"}
 MODE_TIERS = {3: [0, 1, 2], 0: [0, 1, 2], 1: [1, 2], 2: [2]}
@@ -46,7 +48,7 @@ def shoot(px, tier, mode, start, every, n, w=1280, h=720, extra=(), suffix=""):
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
             "--shot_op=" + OP, "--shot_stage=%d" % tier, "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=%d" % every, "--shot_n=%d" % n, "--shot_w=%d" % w, "--shot_h=%d" % h,
-            "--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1"] + list(extra)
+            "--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1"] + ["--bal=" + b for b in BALS] + list(extra)
     out, err, to = GR.run_godot(args, 900)
     os.makedirs(LOGS, exist_ok=True)
     open(os.path.join(LOGS, "demo_" + tag + ".log"), "w", encoding="utf-8").write((out or "") + "\n" + (err or ""))
@@ -111,7 +113,7 @@ def demo(a):
     for mode in [int(x) for x in a.modes.split(",")]:
         for tier in MODE_TIERS[mode]:
             for px, _ in COLS:
-                tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, max(a.n, 190) if (OP == "lumen" and mode == 2) else a.n)
+                tag, frames, errs, ev = shoot(px, tier, mode, START.get((OP, mode), a.start), a.every, max(a.n, 190) if (OP == "lumen" and mode == 2) else a.n)
                 print(tag, len(frames), "帧", errs[:2], flush=True)
                 res[(tier, mode, px)] = frames
                 if px == 1:
@@ -121,16 +123,17 @@ def demo(a):
         tiers_up = []
         for tier in MODE_TIERS[mode]:
             fr = {px: res[(tier, mode, px)] for px, _ in COLS}
+            st = START.get((OP, mode), a.start)
             n = min(len(v) for v in fr.values())
             if n == 0:
                 continue
             e = energy(fr[1][:n], fr[0][:n])
             k = int(np.argmax(e))
             # 技能招：按技能事件帧对齐（能量峰常落在普攻上）。S1 出手即判定；S2 起跳约 15 帧后落地；S3 取起手后约 0.3 秒（大水柱 + 第一记暗蓝旋斩）
-            OFF = {0: 3, 1: 12, 2: 10} if OP == "skadi" else {0: 4, 1: 3, 2: 4}
+            OFF = {0: 3, 1: 12, 2: 10} if OP == "skadi" else {0: 13, 1: 12, 2: 13}   # 流明：另含引擎帧号比连拍帧号多的约 9 帧（启动帧）
             if mode in OFF:
                 evs = [int(x[3]) for x in res.get((tier, mode, "ev"), []) if len(x) > 3 and x[2] == "skill%d" % mode and x[3].isdigit()]
-                f0 = int(a.start * 30)
+                f0 = int(st * 30)
                 cand = [(fe + OFF[mode] - f0) // a.every for fe in evs if (fe + OFF[mode] - f0) // a.every >= 0]
                 if cand and cand[0] < n:
                     k = cand[0]
@@ -138,7 +141,7 @@ def demo(a):
             ims, x0, y0, cw, ch, W, H = sheet3(fr, k, base, "%s %s · 精英 %d · 同一帧（演示第 %d 张）" % (OPS[OP][0], MODE_NAME[mode], tier, k), out)
             if OP == "lumen" and mode == 2:   # 灯火不灭结束光爆：起手后约 10 秒，按光爆事件帧另出一张
                 evb = [int(x[3]) for x in res.get((tier, mode, "ev"), []) if len(x) > 3 and x[2] == "lm_burst" and x[3].isdigit()]
-                kb = [(fe + 2 - int(a.start * 30)) // a.every for fe in evb]
+                kb = [(fe + 11 - int(st * 30)) // a.every for fe in evb]
                 kb = [x for x in kb if 0 <= x < n]
                 if kb:
                     sheet3(fr, kb[0], "cmp_s3burst_e2", "%s S3 灯火不灭 · 结束光爆 · 精英 2 · 同一帧（演示第 %d 张）" % (OPS[OP][0], kb[0]), out)
@@ -237,12 +240,16 @@ def main():
     ap.add_argument("--pxs", default="0,1")
     ap.add_argument("--op", default="skadi", choices=sorted(OPS))
     ap.add_argument("--crf", type=int, default=20)
+    ap.add_argument("--name", default="late", help="录像文件名前缀")
+    ap.add_argument("--leader", default="", help="录像 / TRACE 换队长（干员本人放 --squad，好拍连携技）")
+    ap.add_argument("--bals", default="", help="逗号分隔的旋钮，如 growth/late_shape=1")
     a = ap.parse_args()
     global OP
     OP = a.op
+    BALS.extend([x for x in a.bals.split(",") if x])
     MODE_NAME.clear()
     MODE_NAME.update(OPS[OP][1])
-    base = ["--seed=%d" % a.seed, "--op=" + OP] + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
+    base = ["--seed=%d" % a.seed, "--op=" + (a.leader or OP)] + ["--bal=" + b for b in BALS] + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
     if a.cmd == "demo":
         demo(a)
         return
@@ -251,14 +258,14 @@ def main():
         return
     tags = []
     if a.cmd == "rec":
-        for px in (0, 1):   # 串行：本机同一时间只开 1 个 Godot
+        for px in [int(x) for x in a.pxs.split(",")]:   # 串行：本机同一时间只开 1 个 Godot（mp4 用前两个：左关右开）
             tag = "rec%d_%s_s%d_%d" % (px, OP, a.seed, a.t0)
             ex = base + ["--bal=fx/px_plane=%d" % px, "--realtime", "--rtfrom=%d" % a.t0, "--recframes=%d,%d" % (a.t0, a.secs * 30), "--maxt=%d" % (a.t0 + a.secs + 1)]
             print(run(tag, ex, 30, os.path.join(BUILD, tag + "_frames")), flush=True)
             tags.append(tag)
         import imageio_ffmpeg
         ff = imageio_ffmpeg.get_ffmpeg_exe()
-        d0, d1 = [os.path.join(BUILD, t + "_frames") for t in tags]
+        d0, d1 = [os.path.join(BUILD, t + "_frames") for t in tags[:2]]
         n = min(len(glob.glob(os.path.join(d0, "rec_*.png"))), len(glob.glob(os.path.join(d1, "rec_*.png"))))
         lab = os.path.join(BUILD, "_rec_labels.png")
         im = Image.new("RGBA", (2560 + 4, 720), (0, 0, 0, 0))
@@ -270,7 +277,7 @@ def main():
             d.text((x + 20, 664), t, fill=(255, 255, 255, 255), font=f)
         im.save(lab)
         os.makedirs(a.out, exist_ok=True)
-        mp4 = os.path.join(a.out, "late_%dm%02d_onoff.mp4" % (a.t0 // 60, a.t0 % 60))
+        mp4 = os.path.join(a.out, "%s_%dm%02d_onoff.mp4" % (a.name, a.t0 // 60, a.t0 % 60))
         subprocess.run([ff, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(d0, "rec_%05d.png"), "-framerate", "30", "-i", os.path.join(d1, "rec_%05d.png"),
                         "-i", lab, "-filter_complex", "[0:v]pad=1284:720:0:0:black[l];[l][1:v]hstack=inputs=2[h];[h][2:v]overlay=0:0[v]", "-map", "[v]", "-frames:v", str(n),
                         "-c:v", "libx264", "-crf", str(a.crf), "-pix_fmt", "yuv420p", mp4], check=True)

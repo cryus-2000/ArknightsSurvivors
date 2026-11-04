@@ -40,6 +40,9 @@ def variants():
         v.append(("hits_e%d_up" % el, PP, {"part": "hit", "layer": "up", "el": el, "seed": 6, "k": 0.6}, 0.4, False))   # 折光落点（小一号）
         v.append(("mend_e%d_up" % el, PP, {"part": "mend", "layer": "up", "el": el, "seed": 2}, 0.67, False))
     v.append(("flare_up", PP, {"part": "flare", "layer": "up", "el": 2}, 0.27, False))
+    for ly in ("up", "gd"):   # 连携技「清创光弹」落点（不分档）
+        v.append(("cleanse_%s" % ly, PP, {"part": "cleanse", "layer": ly, "el": 1, "R": 75, "seed": 7}, 0.6, False))
+    v.append(("lmotes_up", PP, {"part": "tower", "layer": "up", "el": 2, "R": 75, "seed": 9, "dur": 1.2}, 1.2, False))   # 连携 v2 区域光尘（1.2 秒一次）
     for ly in ("up", "gd"):
         v.append(("rain_%s" % ly, PP, {"part": "rainloop", "layer": ly, "R": 70, "seed": 6, "dur": 1.2}, 1.2, True))
         for el in (1, 2):
