@@ -27,7 +27,7 @@ OP, SQUAD, SEED = "logos", "texas,suzuran", 11
 
 def _cmd(d, extra, maxt):
     return ["xvfb-run", "-a", "-s", "-screen 0 1280x720x24", GR.find_godot(), "--rendering-driver", "opengl3", "--path", os.path.join(ROOT, "game"),
-            "--resolution", "1280x720", "--audio-driver", "Dummy", "--fixed-fps", "60", "--",
+            "--resolution", "1280x720", "--audio-driver", "Dummy", "--fixed-fps", "60", "--", "--quality=high",
             "--balance", "--nodeath", "--seed=%d" % SEED, "--op=" + OP, "--squad=" + SQUAD, "--maxt=%d" % maxt, "--clutterlog", "--shotdir=" + d] + extra
 
 

@@ -312,7 +312,7 @@ func _env_dim_step(ne: int, rd: float) -> void:
 		env_crowd = 0.0
 		env_dim = 1.0
 		return
-	var w: float = clampf((float(ne) - LateRead2.k("crowd_env_from", 60.0)) / maxf(1.0, LateRead2.k("crowd_env_span", 90.0)), 0.0, 1.0)
+	var w: float = clampf((float(ne) - LateRead2.k("crowd_env_from", 20.0)) / maxf(1.0, LateRead2.k("crowd_env_span", 50.0)), 0.0, 1.0)
 	env_crowd = move_toward(env_crowd, w, rd * 0.8)
 	env_dim = 1.0 - clampf(LateRead2.k("crowd_env_k", 0.18), 0.0, 0.5) * env_crowd
 
