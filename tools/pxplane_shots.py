@@ -230,15 +230,17 @@ def combo(a):
     """连携技「落潮横扫」三栏：局内（队长德克萨斯 + 斯卡蒂 + 推进之王，master 机器人会冲刺），同种子 fx/px_plane = 0 / 2 / 1 各一局，
     86 秒起连存 12 秒（30 帧原速），按转平面局的连携事件帧对齐三栏，另出 2 倍局部"""
     os.makedirs(a.out, exist_ok=True)
-    t0, secs = 86, 12
+    t0, secs = 79, 6   # 实时步长下种子 3 约 82 秒触发一次落潮横扫（tools 里先不存帧探过）
     dirs = {}
     pxlog = []
     for px in (0, 2, 1):
         tag = "combo_px%d" % px
         fdir = os.path.join(BUILD, tag)
-        ex = ["--seed=3", "--op=texas", "--squad=skadi,siege", "--bot=master", "--maxprog", "--bal=ult/test_fill_at=-1", "--bal=fx/px_plane=%d" % px,
-              "--bal=fx/recipe_log=1", "--realtime", "--playclock", "--rtfrom=%d" % (t0 - 3), "--recframes=%d,%d" % (t0, secs * 30), "--maxt=%d" % (t0 + secs + 2)] + LATE
-        r = run(tag, ex, 30, fdir)
+        # 「落潮横扫」是 E 连携（combo.gd，触发：队长冲刺结束），新版连携 link/v2 缺省开时不亮起，这里关掉 v2 拍它；
+        # 队长德克萨斯 + 斯卡蒂 + 推进之王，master 机器人会冲刺；整局实时步长（快进步长不同会让冲刺时机分岔）
+        ex = ["--seed=3", "--op=texas", "--squad=skadi,siege", "--bot=master", "--maxprog", "--bal=ult/test_fill_at=-1", "--bal=link/v2=0", "--bal=fx/px_plane=%d" % px,
+              "--bal=fx/recipe_log=1", "--realtime", "--rtfrom=0", "--recframes=%d,%d" % (t0, secs * 60), "--maxt=%d" % (t0 + secs + 2)] + LATE
+        r = run(tag, ex, 60, fdir)   # 60 帧步长：与非实时快跑同一步长，机器人冲刺时机一致（连携才会在同一时刻触发）
         print(r, flush=True)
         dirs[px] = fdir
         if px == 1:
@@ -258,7 +260,7 @@ def combo(a):
     fb = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    dd.text((12, 8), "斯卡蒂连携技「落潮横扫」（局内，队长冲刺落点）· 同种子同一帧", fill=(230, 230, 230), font=fb)
+    dd.text((12, 8), "斯卡蒂连携技「落潮横扫」（局内 E 连携，队长冲刺落点；link/v2=0）· 同种子同一帧", fill=(230, 230, 230), font=fb)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
     sheet.save(os.path.join(a.out, "cmp_combo.png"))

@@ -77,19 +77,23 @@
 | 项 | 结果 |
 |---|---|
 | TRACE（只改画面）：斯卡蒂队长，种子 23，`--elite2 --sptest`，到 5:00，`fx/px_plane` = 0 / 1 / 2 | 301 行，0 vs 1、0 vs 2 逐行一致 |
-| TRACE：录像那一局（种子 11，8:00 起 20 秒，`--realtime`），0 vs 1 | 499 行逐行一致 |
-| 脚本错误 | 演示 27 局 + 录像 2 局 + TRACE 3 局，日志里 0 条 SCRIPT ERROR |
+| TRACE：同上开 `growth/late_shape=1`（额外剑气走 `_fire_qi`），种子 29，到 7:00，0 vs 1 | 421 行逐行一致 |
+| TRACE：8:00 录像那一局（种子 11，`--realtime`，开 late_shape），0 vs 1 | 501 行逐行一致 |
+| TRACE：连携技录像三局（种子 3，`link/v2=0`，实时步长），0 vs 1、0 vs 2 | 86 行逐行一致 |
+| 脚本错误 | 全部日志 0 条 SCRIPT ERROR |
 
-工具：`tools/pxplane_shots.py demo | fps | trace | rec`（本机 Windows，窗口屏幕外、静音、一次只开 1 个 Godot）。
+工具：`tools/pxplane_shots.py demo | fps | trace | rec | branch | combo`（本机 Windows，窗口屏幕外、静音；`GODOT_MAX_PROCS=1`：机器上没有别的 Godot 在跑时才开）。截图一律开 `growth/late_shape=1`。
 
-## 7. 交付（本机 `Claude outputs/px_plane_skadi_1105/`，含原作参照不进仓库的约定同 docs/245）
+## 7. 交付（本机 `Claude outputs/px_plane_skadi_1105/`）
 
-- 三栏对比：`cmp_<招>_e<档>.png`（① 当前游戏 / ② 旧做法原样贴 / ③ 转平面），每张配 `_x2.png` 2 倍局部（最近邻）。招：atk 普攻（E0 / E1 / E2）、s1（E0 / E1 / E2）、s2（E1 / E2）、s3（E2）。
-- 三档并排（只转平面版）：`tiers_atk.png`、`tiers_s1.png`、`tiers_s2.png`、`tiers_s3.png`。
-- `late_8m00_onoff.mp4`：同种子 11、8:00 起 20 秒，左关右开，30 帧原速。
-- `fps_before_after_atk.mp4`、`fps_before_after_s1.mp4`：帧率统一前后。
+- 三栏对比：`cmp_<招>_e<档>.png`（① 当前游戏 / ② 旧做法原样贴 / ③ 转平面）+ `_x2.png` 2 倍局部。招：atk（E0–E2）、s1（E0–E2）、s2（E1 / E2）、s3（E2）、**combo 连携技「落潮横扫」**（`cmp_combo.png`）。
+- 三档并排（转平面版，开 late_shape，精二普攻那一行能看到水刃剑气）：`tiers_atk / s1 / s2 / s3.png`。
+- 分支招一行一招：`branches.png`（跃浪 / 回澜 / 涌潮 / 怒涛终结大浪；怒涛第二圈本局没触发）。
+- `late_8m00_onoff.mp4`（开 late_shape）、`fps_before_after_atk.mp4` / `_s1.mp4`。
 
-**注意**：三栏取的是图鉴演示里同一张存图（同一帧号），但演示模式本身不是逐帧确定的（敌人生成、伤害数字三局略有不同），所以三栏是「同一招、同一时刻」，画面细节不完全相同。真正逐帧同局的对照看 8:00 录像。
+**注意**：
+- 三栏取图鉴演示里同一张存图，但演示本身不逐帧确定，三栏是「同一招、同一时刻」，细节不全同；逐帧同局的对照看 8:00 录像和连携三栏（局内同种子）。
+- 「落潮横扫」是 E 连携（`combo.gd`，触发：队长冲刺结束）。当前缺省的新版连携 `link/v2=1` 下 E 连携不亮起，斯卡蒂接的是技能连携「拖刃冲锋」（`skill_link.gd` / `link_fx_a.gd`，还是通用画法，本轮没接管）；拍图时临时 `link/v2=0`。
 
 ## 8. 看图判断（Claude）
 
