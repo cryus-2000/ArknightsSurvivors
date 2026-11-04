@@ -738,7 +738,9 @@ func _draw_pickups_fast() -> void:
 	var vr: Rect2 = view_rect(40.0)
 	gem_qa = lerpf(0.7, Dc.p("gem_quiet_a"), dcrowd)
 	var n_all: int = g.gems.size()
-	var crowd_gems: bool = n_all > Bal.vi("render/gem_merge_n", GEM_MERGE_N)
+	var gem_v2: bool = Bal.vi("render/gem_v2", 0) > 0
+	var merge_n: int = Bal.vi("render/gem_cap_merge_n", 30) if Bal.vi("render/gem_cap", 0) > 0 else Bal.vi("render/gem_merge_n", GEM_MERGE_N)
+	var crowd_gems: bool = n_all > merge_n
 	var many: bool = n_all > 60
 	var pp: Vector2 = g.ppos
 	var tgt: Vector2 = pp + Vector2(0, -12)
@@ -746,6 +748,7 @@ func _draw_pickups_fast() -> void:
 	var bob_t: float = t * 4.0
 	var tw_t: float = t * 6.0
 	var cells := {}
+	var cell_values := {}
 	var small_p := PackedVector2Array()   # 小结晶贴图：位置 / 颜色
 	var small_c := PackedColorArray()
 	var big_p := PackedVector2Array()
@@ -794,6 +797,10 @@ func _draw_pickups_fast() -> void:
 	var near2: float = near_r * near_r
 	var near_k: float = Bal.v("render/gem_near_k", 1.15)
 	var spark_rest: float = Bal.v("render/gem_spark_rest", 0.12)
+	if gem_v2:
+		rest_on = true
+		near_k = Bal.v("render/gem_v2_near_k", 1.12)
+		core = Color(-1, 0, 0) # Emission follows each value tier and its resting brightness.
 	if rest_on:
 		many = false   # 不再走「远处安静」的压暗
 	for g_item in g.gems:
@@ -809,11 +816,20 @@ func _draw_pickups_fast() -> void:
 			if crowd_gems and far and gz <= 1.0 and not big:
 				var ck := Vector2i(floori(pos.x / GEM_CELL), floori(pos.y / GEM_CELL))
 				cells[ck] = int(cells.get(ck, 0)) + 1
+				if gem_v2:
+					cell_values[ck] = float(cell_values.get(ck, 0.0)) + float(g_item.val)
 				continue
 			if gz > 1.0:
 				_pq_air_shadow(pos, gz)
 			var quiet: bool = many and far
 			var rest: bool = rest_on and not mag and gz <= 1.0 and pos.distance_squared_to(pp) > near2
+			if gem_v2:
+				lit_s = _gem_v2_color(float(g_item.val), rest)
+				lit_b = lit_s
+				lit_m = lit_s * near_k
+				lit_m.a = 1.0
+				cy = lit_s
+				pu = lit_s
 			var tw: float = 0.75 + 0.25 * sin(tw_t + g_item.seed)
 			var gp: Vector2 = pos + Vector2(0, (sin(bob_t + pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
 			if mag:
@@ -822,7 +838,9 @@ func _draw_pickups_fast() -> void:
 				var tl: float = 10.0 + 24.0 * minf(1.0, g_item.mag_t * 2.0)
 				_gt_line(gp, gp + dv * tl * GEM_VIS, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), (5.0 if big else 3.0) * GEM_VIS)
 				_gt_line(gp, gp + dv * tl * 0.6 * GEM_VIS, Color(2.5, 2.5, 2.5, 0.7), 1.5 * GEM_VIS)
-			if rest:
+			if gem_v2:
+				pass # Faceted sprite + its emission are enough; no circular glow behind new gems.
+			elif rest:
 				_gt_circle(gp, (7.0 if big else 5.0) * GEM_VIS, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)   # 静止：一圈紧贴的小光晕
 			elif not quiet:
 				_gt_circle(gp, (13.0 if big else 9.0) * tw * GEM_VIS, glow_b0 if big else glow_s0, _gt_fan14, _gt_c42)
@@ -839,7 +857,7 @@ func _draw_pickups_fast() -> void:
 			else:
 				small_p.append(gp)
 				small_c.append(gcol)
-			if not quiet and (not rest or fposmod(g_item.seed * 0.618, 1.0) < spark_rest):
+			if not quiet and (not rest or (not gem_v2 and fposmod(g_item.seed * 0.618, 1.0) < spark_rest)):
 				spark.append([gp, (2.0 + 1.5 * tw) * GEM_VIS, tw])
 			continue
 		# 落地的源石锭 / 灯油（不吸的时候数量可能上百）：先收集，循环后按贴图连续画（同 vfx.spr 的算式；画在结晶光晕批之前，同旧写法的前后关系）
@@ -871,17 +889,37 @@ func _draw_pickups_fast() -> void:
 	# 合并后的一堆：在格子中心画一颗，堆里 3 颗以上画成大结晶（紫），压暗同远处安静结晶；先画完小的再画大的（同贴图连续才合批）
 	var mp_s := PackedVector2Array()
 	var mp_b := PackedVector2Array()
+	var mc_s := PackedColorArray()
+	var mc_b := PackedColorArray()
 	for ck in cells:
 		var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
 		if cells[ck] >= 3:
 			mp_b.append(cp)
+			if gem_v2:
+				mc_b.append(_gem_v2_color(float(cell_values[ck]), true))
 		else:
 			mp_s.append(cp)
+			if gem_v2:
+				mc_s.append(_gem_v2_color(float(cell_values[ck]), true))
 	var qc := PackedColorArray()
 	qc.resize(maxi(mp_s.size(), mp_b.size()))
 	qc.fill(lit_s if rest_on else quiet_col)
-	_gem_sprites("gem_small", Game.PX, mp_s, qc)
-	_gem_sprites("gem_big", Game.PX, mp_b, qc)
+	_gem_sprites("gem_small", Game.PX, mp_s, mc_s if gem_v2 else qc)
+	_gem_sprites("gem_big", Game.PX, mp_b, mc_b if gem_v2 else qc)
+
+
+func _gem_v2_color(value: float, rest: bool) -> Color:
+	var levels: Array = Bal.sec("render").get("gem_v2_values", [2, 5, 20])
+	var tier := 0
+	for threshold in levels:
+		if value >= float(threshold):
+			tier += 1
+	# Multipliers for the existing warm-white facets; no additional texture or halo.
+	var color: Color = [Color(0.32, 0.92, 0.54), Color(0.58, 1.04, 0.48), Color(0.78, 1.12, 0.72), Color(1.16, 1.08, 0.90)][mini(tier, 3)]
+	if rest:
+		color *= Bal.v("render/gem_v2_rest_k", 0.82)
+		color.a = 1.0
+	return color
 
 
 ## ---- 掉落物剩余断点合批（docs/50 §13，OPT_PICKB）：空中影子（每颗一个椭圆）、特殊掉落（宝箱 / 磁铁 / 回复药剂）的光柱、

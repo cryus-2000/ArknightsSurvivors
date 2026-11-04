@@ -34,6 +34,8 @@ func count_items(kind := "") -> int:
 func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 	if kind == "xp":
 		xp_dropped += val
+		if Bal.vi("render/gem_cap", 0) > 0 and _cap_xp(pos, val):
+			return
 		# 兜底（docs/38 §8.13 方案 A）：场上掉落物 > pickup/gem_overflow（400）时新掉的经验直接入账，算回收、另记次数。
 		# recall_after = 0（关回收、走旧逻辑对照）时同一条就是旧的「溢出自动入账」
 		if g.gems.size() > int(Bal.v("pickup/gem_overflow", 400.0)):
@@ -49,8 +51,62 @@ func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 	g.gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false, "mag_t": 0.0,
 		"z": 6.0, "vz": r.randf_range(260.0, 300.0) if special else r.randf_range(190.0, 260.0), "vel": sp * (0.5 if special else 1.1),
 		"special": special, "landed": false, "age": 0.0, "seed": r.randf() * TAU, "out_t": 0.0})
+	_cap_count_size = -1 # Appends also invalidate same-size demo/reset replacements.
 	if src != "":
 		g.gems[-1]["src"] = src   # 宝箱来源（遥测，docs/191）
+
+
+# Count once per simulation step / collection state / container size. Target positions
+# are never cached: every merge still selects the nearest currently settled XP.
+var _cap_count_t := -INF
+var _cap_count_size := -1
+var _cap_count_dead := -1
+var _cap_live_count := 0
+
+func _cap_count() -> int:
+	if _cap_count_t != g.t or _cap_count_size != g.gems.size() or _cap_count_dead != dead_n:
+		_cap_live_count = 0
+		for item in g.gems:
+			if not item.dead and item.kind == "xp":
+				_cap_live_count += 1
+		_cap_count_t = g.t
+		_cap_count_size = g.gems.size()
+		_cap_count_dead = dead_n
+	return _cap_live_count
+
+
+## Only settled XP within the configured radius is eligible.
+func _cap_xp(pos: Vector2, val: float) -> bool:
+	var threshold := Bal.vi("render/gem_cap_n", 200)
+	if g.gems.size() < threshold or _cap_count() < threshold:
+		return false
+	var nearest: Dictionary = {}
+	var nearest_big: Dictionary = {}
+	var dist := INF
+	var big_dist := INF
+	var big_value: float = Bal.v("render/gem_cap_big", 5.0)
+	var radius: float = maxf(0.0, Bal.v("render/gem_cap_radius", 400.0))
+	var radius_sq := radius * radius
+	for item in g.gems:
+		if item.dead or item.kind != "xp" or item.mag or float(item.z) > 0.0 or float(item.vz) != 0.0:
+			continue
+		var offset: Vector2 = item.pos - pos
+		if absf(offset.x) > radius or absf(offset.y) > radius:
+			continue
+		var d: float = offset.length_squared()
+		if d > radius_sq:
+			continue
+		if d < dist:
+			dist = d
+			nearest = item
+		if float(item.val) >= big_value and d < big_dist:
+			big_dist = d
+			nearest_big = item
+	var target: Dictionary = nearest_big if not nearest_big.is_empty() else nearest
+	if target.is_empty():
+		return false # No nearby settled XP: keep normal drop / overflow safeguards.
+	target.val += val
+	return true
 
 
 ## 掉落弹出用的独立随机流：第一次用时按局种子派生（g.rng.seed 只读、不消耗），同 seed 可复现
@@ -145,6 +201,7 @@ func _pick_r() -> float:
 ## 逐帧：落地物理、吸附、拾取（性能 docs/50 §11 的写法；10-15 删掉逐帧结果相同的旧写法 _update_old，docs/101 S2）：字段一律直接读（掉落物只由 drop() 生成，
 ## 字段齐全）；拾取半径循环外算一次、发生拾取后重算；离主控够远、没被吸起的掉落物只累计 age 就跳过（旧写法照样什么都不做）
 func update(dt: float) -> void:
+	_cap_count_t = -INF
 	_recall_tick(dt)
 	var pr: float = _pick_r()
 	var pp: Vector2 = g.ppos
