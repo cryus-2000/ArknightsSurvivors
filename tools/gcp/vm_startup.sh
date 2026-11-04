@@ -37,7 +37,8 @@ mkdir -p "$WORK" && cd "$WORK" || exit 1
 git init -q && git remote add origin https://github.com/cryus-2000/ArknightsSurvivors.git
 if [ -n "$BASE" ]; then
     # 提交不在 origin 上：浅拉基准提交，再从桶里的 bundle 补上之后的提交
-    git fetch -q --depth 1 origin "$BASE" || fail "fetch base" 98
+    # BASE = 空格隔开的全部前置提交（bundle 头里的 - 行，batch.py 读出）；逐个浅拉，缺一个 bundle 就取不出
+    git fetch -q --depth 1 origin $BASE || fail "fetch base" 98
     gcloud storage cp "$GS/repo.bundle" /work/repo.bundle -q
     git fetch -q /work/repo.bundle "$SHA" || fail bundle 98
 else
@@ -80,5 +81,9 @@ cat "$OUT/env.txt"
 ( cd build/cloud && find "$TAG" -type f \( -name '*.md' -o -name '*.json' -o -name '*.txt' -o -name '*.log' \) -print0 \
     | tar -czf /work/result.tar.gz --null -T - )
 gcloud storage cp /work/result.tar.gz "$GS/result.tar.gz" -q
+# 出图任务（tools/gcp_render.py）：$OUT/media/ 下的 PNG / MP4 不进上面的包，原样传到桶里 $GS/media/，由本机下载
+if [ -d "$OUT/media" ] && [ -n "$(ls -A "$OUT/media")" ]; then
+    gcloud storage cp -r "$OUT/media" "$GS/" -q || echo "media 上传失败"
+fi
 echo "$RC" | gcloud storage cp - "$GS/done" -q
 status "done rc=$RC"

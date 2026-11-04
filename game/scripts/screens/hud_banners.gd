@@ -46,6 +46,14 @@ func _key_hint(c: Vector2, pre: String, key: String, post: String, size: int, co
 
 
 ## 商人方向指示：屏外时边缘圆圈 + 头像 + 箭头 + 距离；屏内时头顶跳动箭头
+## 屏外指针落在屏幕边缘的位置：沿「中心 → 目标」方向，与内缩 m 的屏幕框求交；指挥台开着时底边再让出整台高度（docs/222 §20）
+func _edge(vs: Vector2, sp: Vector2, m: float) -> Vector2:
+	var r := Rect2(m, m, vs.x - 2.0 * m, vs.y - 2.0 * m - _console_lift(vs))
+	var c: Vector2 = r.get_center()
+	var d: Vector2 = (sp - c).normalized()
+	return c + d * minf(absf((r.size.x / 2.0) / maxf(absf(d.x), 0.01)), absf((r.size.y / 2.0) / maxf(absf(d.y), 0.01)))
+
+
 func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 	# 商人方向指示
 	if not g.merchant.is_empty():
@@ -59,7 +67,8 @@ func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 		if not Rect2(Vector2(60, 60), vs - Vector2(120, 120)).has_point(sp):
 			var c := vs / 2.0
 			var d := (sp - c).normalized()
-			var edge: Vector2 = c + d * min(abs((vs.x / 2 - 64) / max(abs(d.x), 0.01)), abs((vs.y / 2 - 64) / max(abs(d.y), 0.01)))
+			var edge: Vector2 = _edge(vs, sp, 64.0)
+			d = (sp - edge).normalized()
 			var pulse := 0.5 + 0.5 * sin(g.t * 6.0)
 			g.hud.draw_circle(edge, 30.0 + 4.0 * pulse + 6.0 * lk, Color(1.0, 0.7, 0.3, 0.12) if not leaving else Color(1.0, 0.4, 0.3, 0.25 * lk))
 			g.hud.draw_circle(edge, 24.0, Color(0.06, 0.05, 0.03, 0.85))
@@ -96,7 +105,7 @@ func _preview_line(at: Vector2, vs: Vector2) -> void:
 		return
 	var w := 320.0
 	var x: float = clampf(at.x - w / 2.0, 8.0, vs.x - w - 8.0)
-	var y: float = clampf(at.y, 24.0, vs.y - 8.0)
+	var y: float = clampf(at.y, 24.0, vs.y - 8.0 - _console_lift(vs))
 	UI.text(g.hud, g.font, Vector2(x, y), pv, 13, Color(1.0, 0.9, 0.6), HORIZONTAL_ALIGNMENT_CENTER, w, 3)
 
 
@@ -114,7 +123,8 @@ func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
 		return
 	var c := vs / 2.0
 	var d := (sp - c).normalized()
-	var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 40) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 40) / maxf(absf(d.y), 0.01)))
+	var edge: Vector2 = _edge(vs, sp, 40.0)
+	d = (sp - edge).normalized()
 	var pulse := 0.5 + 0.5 * sin(g.t * 8.0)
 	var tip: Vector2 = edge + d * (16.0 + 5.0 * pulse)
 	var base: Vector2 = edge - d * 10.0
@@ -198,11 +208,12 @@ func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 			continue
 		var c := vs / 2.0
 		var d := (sp - c).normalized()
-		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 72) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 72) / maxf(absf(d.y), 0.01)))
+		var edge: Vector2 = _edge(vs, sp, 72.0)
+		d = (sp - edge).normalized()
 		var tries := 0
 		while tries < 4 and placed.any(func(p): return p.distance_to(edge) < 76.0):
 			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
-			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72))
+			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72 + _console_lift(vs)))
 			tries += 1
 		placed.append(edge)
 		var pulse := 0.5 + 0.5 * sin(g.t * 7.0)
@@ -270,7 +281,8 @@ func draw_beacon_pointers(vs: Vector2, ct: Transform2D) -> void:
 			continue
 		var c := vs / 2.0
 		var d := (sp - c).normalized()
-		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 64) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 64) / maxf(absf(d.y), 0.01)))
+		var edge: Vector2 = _edge(vs, sp, 64.0)
+		d = (sp - edge).normalized()
 		var col := Color(1.0, 0.78, 0.42)
 		h._hb.circle(edge, 20.0, Color(0.06, 0.05, 0.03, 0.85), 24)
 		h._hb.arc(edge, 20.0, 0.0, TAU, 2.0, col, 24)
@@ -336,12 +348,13 @@ func draw_banner(vs: Vector2) -> void:
 			else:
 				kb = UM.out_cubic(et / UM.T2)
 				kt = UM.out_cubic(et / UM.T3)
-			var bw: float = vs.x * 0.76 * kb
+			var bw: float = vs.x * (0.46 if _console_lift(vs) > 0.0 else 0.76) * kb   # 指挥台：暗带收窄到 46%，不再横跨整屏
 			if bw >= 4.0:
-				UI.fade_band(g.hud, Rect2(vs.x / 2.0 - bw / 2.0, by - 30, bw, 46), Color(0.03, 0.035, 0.045, 0.84 * a), minf(160.0, bw / 2.0))
+				UI.fade_band(g.hud, Rect2(vs.x / 2.0 - bw / 2.0, by - 30, bw, 46), Color(0.03, 0.035, 0.045, (0.6 if _console_lift(vs) > 0.0 else 0.84) * a), minf(160.0, bw / 2.0))
 			for yy in ([by - 30.0, by + 16.0] if bw >= 4.0 else []):
-				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 - vs.x * 0.34 * kb, yy), Color(1, 1, 1), 0.4 * a, 0.0)
-				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 + vs.x * 0.34 * kb, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+				var hw: float = vs.x * (0.2 if _console_lift(vs) > 0.0 else 0.34) * kb
+				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 - hw, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 + hw, yy), Color(1, 1, 1), 0.4 * a, 0.0)
 			if kt >= 1.0:
 				UI.text(g.hud, g.font, Vector2(0, by), g.banner, 21, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 			else:
@@ -384,11 +397,18 @@ func draw_notices(vs: Vector2) -> void:
 ## 不再叠到标签上。返回槽顶 y
 const LINK_TAG_H := 66.0   # 连携提示占的高度（头像 26 半径 + 上下边）
 func lane_y(vs: Vector2) -> float:
-	return maxf(banner_y(vs) + 30.0, h.bars.status_bottom + 12.0)
+	return maxf(banner_y_top(vs) + 30.0, h.bars.status_bottom + 12.0)
 
 
 ## 横幅高度：默认屏幕 24% 处；有 Boss 血条时从血条块底部往下让（docs/38：横幅高度从 Boss 块实际底部 +16 起算）
 func banner_y(vs: Vector2) -> float:
+	if _console_lift(vs) > 0.0:
+		return vs.y - _console_lift(vs) - 120.0   # 指挥台（docs/222 §20）：横幅在台子上方，玩家视线所在；让开开局提示（台子上方 60–100）
+	return banner_y_top(vs)
+
+
+## 原来的横幅高度（屏幕 24% / Boss 血条下）：左侧通知槽按它排
+func banner_y_top(vs: Vector2) -> float:
 	return maxf(vs.y * 0.24, h.bars.boss_bottom + 16.0 + 30.0) if h.bars.boss_bottom > 0.0 else vs.y * 0.24
 
 

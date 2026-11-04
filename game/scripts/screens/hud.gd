@@ -345,7 +345,7 @@ func _draw_body() -> void:
 		Game.S.STATS:
 			g.stats_screen.draw(vs)
 		Game.S.PAUSE:
-			g.result_screen.draw(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["演示", "H", "demos"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
+			g.result_screen.draw(vs, "暂停", "PAUSED", Color(0.925, 0.933, 0.941) if HudV3.on() else UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["演示", "H", "demos"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
 		Game.S.DEAD:
 			if g.state_age < DEATH_T:
 				draw_death_transition(vs)
