@@ -118,7 +118,7 @@ func draw_ground(o, cv) -> void:
 	var c: Color = safe_col(o)
 	var big: bool = el >= 2
 	var r: float = (27.0 if big else 19.0) * (1.0 + 0.35 * mk)
-	var a: float = (0.30 if big else 0.17) + 0.35 * mk
+	var a: float = (0.36 if big else 0.26) + 0.3 * mk
 	var p: Vector2 = o.pos + Vector2(0, 4)
 	cv.draw_set_transform(p, 0.0, Vector2(1.0, 0.45))
 	cv.draw_circle(Vector2.ZERO, r, Color(c.r, c.g, c.b, a * 0.45))

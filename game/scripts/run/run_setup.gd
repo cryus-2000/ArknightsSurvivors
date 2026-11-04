@@ -103,3 +103,5 @@ static func apply_test_args(g) -> void:
 			for o in g.squad.ops:
 				for k in int(a.substr(7)):
 					o.advance()
+			if g.get("elite_moment") != null:
+				g.elite_moment.queue.clear()   # 开局直接推进不是真的晋升：不播精英化时刻（docs/245）

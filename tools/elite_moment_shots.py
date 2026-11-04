@@ -54,7 +54,7 @@ def cmd_shoot(a):
 
 def _font(sz):
     from PIL import ImageFont
-    for p in ["/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    for p in [os.path.join(ROOT, "game", "fonts", "ui.ttf"), "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc", "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
               os.path.join(ROOT, "game", "fonts", "NotoSansSC-Regular.otf")]:
         if os.path.exists(p):
             return ImageFont.truetype(p, sz)
