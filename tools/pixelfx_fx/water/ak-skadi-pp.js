@@ -6,7 +6,7 @@
 // 方向件（ribbon / blade）按 dir（度，平面角，y 向下 = 朝镜头）逐向生成，游戏挑最近的一张（另一半水平翻转）。
 // view: "raw" 出「旧做法」对照：横版 / 正俯视的原样画（圆不压扁、刀光是平躺的整圆弧、光晕烤进颜色），游戏里旋转 + 小数缩放贴上去。
 // 色：本人深海蓝（house.js OP.skadi）；精二点缀海绿 #5ff0cc；不用危险红。同一招元素 ≤ 3。
-import { fit, clamp, smooth, ease, noise, TAU, hex, WHITE } from "../../core/index.js";
+import { fit, clamp, smooth, ease, noise, noise2, TAU, hex, WHITE } from "../../core/index.js";
 
 export const meta = {
   name: "Skadi plane",
@@ -43,11 +43,12 @@ const nz = (x, sd) => noise(x, sd) * 0.5 + 0.5;   // 0..1
 // 斩击（11-05 用户「斩击没有刀剑感」后重写）：腰高的水平刀痕——大剑横扫扫过的那一片，按俯视斜角压扁（SY）、抬到腰高（H0）。
 // 刀剑感来自：① 月牙形（中段厚、两头收成针尖，最厚处偏刀头）；② 外缘 1 像素白刃线（刀尖走过的路）+ 刀头一道径向刃光（剑身那一下的反光）；
 // ③ 顺着弧走的速度纹；④ 快：第 0 帧就扫出 55%，第 1 帧扫满，之后从刀尾往前收。命中斩痕在游戏里画（fx_pxplane._cuts）。
-// 精一：内圈晚一帧再来一刀（双刃，暗一阶）；精二：白刃线内侧一道海绿副刃 + 刃外浪沫点。
+// 精一：刀身加厚 + 刃外一排浪沫点；精二：再加白刃线内侧一道海绿副刃。（11-05 去掉内圈第二刀：叠起来碎）
 function sweep(t, span, full) {
   const a0 = -span / 2;
   const head = a0 + span * (full ? 0.4 + 0.6 * clamp(t / 0.1) : 0.55 + 0.45 * clamp(t / 0.067));
-  const tail = a0 + span * smooth(0.06, full ? 0.36 : 0.3, t);
+  // 11-05 用户「还有碎斩击」：收刀不再从刀尾往前吃成细碎尾巴，整道月牙一起变薄变暗；刀尾只往前收一点
+  const tail = a0 + span * 0.22 * smooth(0.07, full ? 0.36 : 0.3, t);
   return [a0, head, tail];
 }
 
@@ -56,11 +57,12 @@ function smear(p, t, o, C, ACC, full, k) {
   const raw = o.view === "raw", SY = raw ? 1 : +o.SY, H0 = raw ? 0 : +o.H0, th = +o.dir * D2R, el = +o.el, n = C.length;
   const tt = t - k.dt;
   if (tt < 0) return;
-  const span = full ? TAU : +o.span;
+  const span = full ? TAU * 0.84 : +o.span;   // 旋斩：一整道约 300° 的连续月牙（不断开、不画整圈）
   const [a0, head, tail] = sweep(tt, span, full);
-  const hot = tt < 0.1, cool = smooth(0.1, +o.dur, tt);
-  if (head - tail < 0.03 || cool >= 0.99) return;
-  const R = k.R, Wr = k.Wr * (1 - 0.45 * cool);
+  const st = o.style || "basic";   // basic 普攻 / s1 迅捷打击（更白更重、刀头甩水扇）/ s3 涌潮悲歌（深海暗蓝 + 海绿浪沫刃 + 向外甩水）
+  const hot = tt < (st === "s1" ? 0.13 : 0.1), cool = smooth(0.1, +o.dur, tt);
+  if (head - tail < 0.03 || cool >= 0.72) return;   // 收到只剩细线前就整道消失（不留细环）
+  const R = k.R, Wr = k.Wr * (1 - 0.7 * cool);
   const B = R + 3;
   p.shade(-B, -B * SY - H0, B, B * SY - H0, (x, y, out) => {
     const pz = (y + H0) / SY, r = Math.hypot(x, pz);
@@ -70,25 +72,26 @@ function smear(p, t, o, C, ACC, full, k) {
     if (a < tail || a > head) return;
     const u = (a - tail) / Math.max(0.001, head - tail);   // 0 刀尾 → 1 刀头
     let wr = Wr * Math.pow(Math.sin(Math.PI * Math.pow(u, 1.8)), 0.75);
-    if (full) {
-      const g = nz(a * 1.6, o.seed + 41) * 0.75 + nz(a * 4.7, o.seed + 43) * 0.25;
-      if (g < 0.3) return;
-      wr *= 0.45 + 1.2 * (g - 0.3);
-    }
+    if (full) wr *= 0.75 + 0.45 * nz(a * 1.3, o.seed + 41);   // 旋斩粗细起伏（不断开）
     if (wr < 0.7) return;
     const jag = 0.8 * nz(a * 14, o.seed + 3);
     const q = (R + jag - r) / wr;                        // 0 外缘（刃）→ 1 内沿
     if (q < 0 || q > 1) return;
     let ci;
-    if (q < 0.13) ci = k.edge && hot ? n - 1 : n - 2;    // 白刃线
+    const eq = st === "s1" ? 0.2 : 0.13;
+    if (q < eq) ci = k.edge && hot ? n - 1 : n - 2;      // 白刃线（S1 两格）
     else if (q < 0.34) ci = n - 3;
     else if (q < 0.6) ci = n - 4;
     else if (q < 0.85) ci = n - 5;
     else { ci = n - 6; out.a = 0.55; }                   // 内沿抖动变稀，不平涂
+    if (cool > 0.6) out.a = (out.a === undefined ? 1 : out.a) * 0.6;   // 收刀最后两拍整道抖动变稀
     if (q > 0.18 && q < 0.85 && nz(r * 0.85 + o.seed, o.seed + 91) > 0.68) ci += 1;   // 速度纹
     if (hot && u > 0.82 && q < 0.5) ci = n - 1;          // 刀头热白
+    if (st === "s1" && q < 0.6) ci += 1;                 // S1 整体亮一阶（更白、更重）
+    if (st === "s3") ci -= 1;                            // S3 深海暗蓝
     ci = clamp(ci - k.dim - Math.round(cool * 2.5) - (u < 0.2 ? 1 : 0), 1, n - 1);
     out.c = C[ci];
+    if (st === "s3" && !hot && q < 0.16) out.c = ACC;    // S3 刃线换海绿浪沫
     if (out.a === undefined) out.a = 1;
     if (el >= 2 && k.edge && !hot && q > 0.13 && q < 0.26) out.c = ACC;   // 精二海绿副刃
   });
@@ -105,7 +108,29 @@ function smear(p, t, o, C, ACC, full, k) {
   if (raw) {   // 旧做法：光晕烤进颜色
     for (let a = tail; a <= head; a += 0.12) p.light(Math.cos(a + th) * R * 0.9, Math.sin(a + th) * R * 0.9, C[n - 2], 0.35 * (1 - cool));
   }
-  if (el >= 2 && cool < 0.7) for (let a = tail; a <= head; a += 0.09) {   // 精二：刃外浪沫点
+  if (st === "s1" && tt > 0.03 && tt < 0.32) {   // S1：刀头顺切线甩出一扇水花（有重力、往下落）
+    const ha = head + th, tx = -Math.sin(ha), ty = Math.cos(ha) * SY, hx = Math.cos(ha) * R, hy = Math.sin(ha) * R * SY - H0;
+    const N = 16 + 4 * el, u = tt - 0.03;
+    for (let i = 0; i < N; i++) {
+      const sp = 150 + 150 * nz(i * 3.1, o.seed + 201), da = (nz(i * 1.7, o.seed + 203) - 0.5) * 1.4;
+      const dx = tx * Math.cos(da) - ty * Math.sin(da), dy = tx * Math.sin(da) + ty * Math.cos(da);
+      const x = hx + dx * sp * u + Math.cos(ha) * sp * 0.25 * u, y = hy + dy * sp * u + 260 * u * u;
+      const c = u < 0.12 ? WHITE : u < 0.2 ? C[n - 2] : C[n - 4];
+      const X = Math.round(x), Y = Math.round(y);
+      p.px(X, Y, c);
+      if (i % 2 === 0) { p.px(X + 1, Y, c); p.px(X, Y + 1, C[n - 3]); }   // 一半是 2 格大水珠
+      if (u < 0.2) p.px(Math.round(x - dx * 2), Math.round(y - dy * 2), C[n - 4]);   // 拖一格尾
+    }
+  }
+  if (st === "s3" && tt > 0.04 && tt < 0.34) {   // S3：沿弧向外甩水（径向、有重力）
+    const u = tt - 0.04;
+    for (let i = 0; i < 16; i++) {
+      const a = tail + (head - tail) * nz(i * 2.3, o.seed + 301) + th, sp = 50 + 60 * nz(i * 1.9, o.seed + 303);
+      const x = Math.cos(a) * (R + sp * u), y = Math.sin(a) * (R + sp * u) * SY - H0 - 40 * u + 300 * u * u;
+      p.px(Math.round(x), Math.round(y), u < 0.12 ? C[n - 1] : i % 2 ? ACC : C[n - 3]);
+    }
+  }
+  if (el >= 1 && cool < 0.6) for (let a = tail + (head - tail) * 0.3; a <= head; a += 0.09) {   // 精一起：刃外一排浪沫点（取代内圈第二刀）
     if (nz(a * 7, o.seed + 13) < 0.62) continue;
     const rr = R + 2, x = Math.cos(a + th) * rr, y = Math.sin(a + th) * rr * SY - H0;
     p.px(Math.round(x), Math.round(y), C[n - 1]);
@@ -114,7 +139,6 @@ function smear(p, t, o, C, ACC, full, k) {
 
 function ribbon(p, t, o, C, ACC, full) {
   const R = +o.R, W = +o.W, el = +o.el;
-  if (el >= 1) smear(p, t, o, C, ACC, full, { R: R * 0.72, Wr: W * 0.6, dt: 0.067, dim: 1, edge: false });   // 精一：内圈晚一帧的第二刀
   smear(p, t, o, C, ACC, full, { R, Wr: W, dt: 0, dim: 0, edge: true });
 }
 
@@ -122,19 +146,134 @@ function ribbon(p, t, o, C, ACC, full) {
 function ribbonGround(p, t, o, C, ACC, full) {
   if (o.view === "raw") return;
   const R = +o.R, W = +o.W, SY = +o.SY, th = +o.dir * D2R;
-  const span = full ? TAU : +o.span;
+  const span = full ? TAU * 0.84 : +o.span;
   const [a0, head, tail] = sweep(t, span, full);
   const cool = smooth(0.1, +o.dur, t);
-  if (head - tail < 0.03 || cool >= 0.99) return;
+  if (head - tail < 0.03 || cool >= 0.72) return;
   for (let a = tail; a <= head; a += 0.4 / R) {
     const u = (a - tail) / Math.max(0.001, head - tail);
-    if (full && nz(a * 1.6, o.seed + 41) * 0.75 + nz(a * 4.7, o.seed + 43) * 0.25 < 0.3) continue;
     const wr = W * 0.5 * Math.pow(Math.sin(Math.PI * Math.pow(u, 1.8)), 0.75);
     for (let d = 0; d < wr; d += 1) {
       const rr = R - d, x = Math.cos(a + th) * rr, y = Math.sin(a + th) * rr * SY;
       p.dot(Math.round(x), Math.round(y), C[0], 0.45 * (1 - cool));
     }
+    const st = o.style || "basic";
+    if ((st === "s1" || st === "s3") && u > 0.15) {   // S1 / S3：刀痕下面地上一道泡沫水痕（宽 3 格，暗水 + 稀疏白沫）
+      for (let d = 0; d < 3; d++) {
+        const rr = R * 0.84 - d, x = Math.cos(a + th) * rr, y = Math.sin(a + th) * rr * SY;
+        const foam = nz(a * 11 + d * 7, o.seed + 401) > 0.78;
+        p.dot(Math.round(x), Math.round(y), foam ? C[6] : C[3], (foam ? 0.9 : 0.6) * (1 - cool));
+      }
+    }
   }
+}
+
+// S2 跃浪击：碎浪（11-05 用户「海浪那种溃散的感觉要做出来，不要做成那种扇形」）。
+// 不是一整片扇面水墙，而是一道不规则的浪：浪线前后错落、高低不一、有缺口，两边不对称；
+// 立起（0–0.1 秒）→ 浪顶往前卷出白唇（0.1–0.2）→ 浪头碎成一块块白沫往前翻滚、受重力落下，浪身塌下（0.18–0.36）
+// → 地上留一摊往前漫开的碎白沫，越来越稀、孔越来越多直到散掉（贴地层，0.25–0.6）。
+// 每根浪柱的基点、高度、碎块都由种子散列决定（不抽随机数）。
+function breakerCols(o) {
+  const R = +o.R, hA = +o.span / 2, th = +o.dir * D2R, SY = +o.SY, el = +o.el;
+  const cols = [];
+  const a0 = -hA * (0.75 + 0.35 * nz(1.3, o.seed + 701)), a1 = hA * (0.75 + 0.35 * nz(2.9, o.seed + 703));   // 两边不对称
+  for (let a = a0; a <= a1; a += 0.5 / R) {
+    const gap = nz(a * 4.1, o.seed + 705);
+    if (gap < 0.2) continue;                                            // 缺口
+    const rj = R * (0.86 + 0.28 * nz(a * 2.3, o.seed + 707));           // 浪线前后错落
+    const peak = Math.pow(nz(a * 5.2, o.seed + 709), 1.6) * 0.7 + 0.45 * nz(a * 1.7, o.seed + 711);
+    const edge = Math.min(1, (a - a0) / 0.35, (a1 - a) / 0.35);          // 两头收低
+    const h = +o.H * (0.25 + peak) * Math.max(0.15, edge);
+    const pa = a + th;
+    cols.push({ a, pa, gx: Math.cos(pa) * rj, gy: Math.sin(pa) * rj * SY, h, ox: Math.cos(pa), oy: Math.sin(pa) * SY, near: Math.sin(pa), i: cols.length });
+  }
+  return cols;
+}
+
+function breaker(p, t, o, C, ACC) {
+  const SY = +o.SY, el = +o.el, n = C.length;
+  const rise = ease.outCubic(clamp(t / 0.1)), curl = smooth(0.08, 0.2, t), brk = smooth(0.17, 0.36, t);
+  const cols = breakerCols(o).sort((A, B) => A.gy - B.gy);
+  for (const c of cols) {
+    const hb = c.h * rise * (1 - 0.92 * brk);                            // 浪身塌下
+    if (hb >= 1) for (let z = 0; z <= hb; z += 0.5) {
+      const k = z / Math.max(1, c.h);
+      const lean = curl * c.h * 0.35 * k * k;                            // 越高越往前倾
+      const x = c.gx + c.ox * lean, y = c.gy - z + c.oy * lean;
+      let ci = k < 0.25 ? n - 6 : k < 0.55 ? n - 5 : k < 0.8 ? n - 4 : n - 3;
+      if (c.near > 0.3) ci += 1;
+      const strk = nz(c.a * 23, o.seed + 713);                           // 竖向水纹
+      if (strk > 0.68) ci += 1; else if (strk < 0.25) ci -= 1;
+      if (k < 0.2 && nz(z * 3 + c.a * 40, o.seed + 715) < 0.45) continue; // 底部抖动变稀
+      if (el >= 2 && k > 0.35 && k < 0.5) { p.px(Math.round(x), Math.round(y), ACC); continue; }
+      p.px(Math.round(x), Math.round(y), C[clamp(ci - Math.round(brk * 2), 1, n - 1)]);
+    }
+    // 白唇：浪顶往前卷出的一截白沫（碎开前）
+    if (curl > 0 && brk < 0.6 && hb >= 2) {
+      const L = 2 + 5 * curl * (0.5 + nz(c.a * 9, o.seed + 717));
+      for (let s = 0; s <= L; s += 0.5) {
+        const u = s / L;
+        const x = c.gx + c.ox * (c.h * 0.35 * curl + s), y = c.gy - hb - 1 + c.oy * s + u * u * 3;
+        p.px(Math.round(x), Math.round(y), u < 0.6 ? WHITE : C[n - 2]);
+      }
+    }
+    // 碎块：浪头碎成白沫团往前翻滚、受重力落下（每根浪柱 1–2 团，大小 2–3 格）
+    if (brk > 0.02) {
+      const m = 1 + (nz(c.a * 13, o.seed + 719) > 0.55 ? 1 : 0) + (el >= 2 ? 1 : 0);
+      for (let j = 0; j < m; j++) {
+        const sd = c.i * 7 + j * 3;
+        const u = (t - 0.17 - 0.03 * nz(sd, o.seed + 721)) ;
+        if (u <= 0) continue;
+        const v = 40 + 50 * nz(sd * 1.7, o.seed + 723), up = 30 + 40 * nz(sd * 2.3, o.seed + 725);
+        const fx = c.gx + c.ox * (c.h * 0.35 + v * u), fy0 = c.gy - c.h * (0.75 + 0.2 * nz(sd, o.seed + 727)) + c.oy * v * u;
+        const fy = fy0 - up * u + 420 * u * u;
+        if (fy > c.gy + c.oy * v * u + 2) continue;                      // 落地就没了（地上的白沫交给贴地层）
+        const sz = nz(sd * 3.1, o.seed + 729) > 0.5 ? 3 : 2;
+        const col = u < 0.08 ? WHITE : u < 0.16 ? C[n - 2] : C[n - 3];
+        for (let dx = 0; dx < sz; dx++) for (let dy = 0; dy < sz - (dx === sz - 1 ? 1 : 0); dy++) p.px(Math.round(fx) + dx, Math.round(fy) + dy, col);
+      }
+    }
+  }
+}
+
+// 碎浪地面：浪脚暗湿带 → 碎沫摊开：往前漫的一片碎白沫（噪声取阈值，越往后阈值越高 = 孔越多、越稀），只在浪线前方，不画扇面边
+function breakerGround(p, t, o, C, ACC) {
+  const R = +o.R, SY = +o.SY, n = C.length, th = +o.dir * D2R;
+  const rise = clamp(t / 0.1), spread = smooth(0.22, 0.5, t), fade = smooth(0.32, +o.dur, t);
+  if (fade >= 0.99) return;
+  const cols = breakerCols(o);
+  for (const c of cols) {
+    if (rise > 0.3 && spread < 0.7) for (let d = -1; d <= 1; d++) {   // 浪脚暗湿带（实色细带，浪还立着的时候）
+      const x = c.gx + c.ox * d, y = c.gy + c.oy * d;
+      p.px(Math.round(x), Math.round(y), C[1]);
+    }
+    if (spread <= 0) continue;
+    const reach = (12 + 34 * nz(c.a * 3.7, o.seed + 731)) * spread;      // 每根往前漫的距离不一样
+    for (let s = 0; s <= reach; s += 1) {
+      for (let w = -2; w <= 2; w++) {
+        const x = c.gx + c.ox * s - c.oy / SY * w * 0.8, y = c.gy + c.oy * s + c.ox * SY * w * 0.8;
+        const nn = noise2(x * 0.35, y * 0.5, o.seed + 733) * 0.5 + 0.5;
+        const thr = 0.28 + 0.6 * fade + 0.22 * (s / Math.max(1, reach));
+        if (nn < thr) continue;                                          // 孔
+        const col = nn > thr + 0.25 ? WHITE : nn > thr + 0.12 ? C[n - 2] : C[n - 4];
+        p.px(Math.round(x), Math.round(y), col);
+      }
+    }
+  }
+}
+
+// S3 涌潮悲歌持续期间：脚下一滩不规则积水（循环 0.4 秒）——只画边 + 内侧淡抖动，边上几点水光慢慢挪
+function pool(p, t, o, C, ACC) {
+  const R = +o.R, SY = +o.SY, n = C.length, ph = (t / 0.4) * TAU;
+  const rad = (a) => R * (0.82 + 0.18 * nz(a * 1.4 + 3, o.seed + 601) + 0.02 * Math.sin(a * 5 + ph));
+  const m = Math.ceil(R * TAU * 1.2);
+  for (let j = 0; j < m; j++) {
+    const a = (j / m) * TAU, r = rad(a), ca = Math.cos(a), sa = Math.sin(a);
+    if (nz(a * 2.2, o.seed + 605) < 0.3) continue;   // 积水边断续（不是整圈）
+    for (let k = 0; k < 3; k += 0.5) p.px(Math.round(ca * (r - k)), Math.round(sa * (r - k) * SY), k < 1 ? (sa < 0 ? C[2] : C[3]) : C[1]);
+    if (nz(a * 6 + ph * 0.3, o.seed + 603) > 0.82) p.px(Math.round(ca * (r - 1)), Math.round(sa * (r - 1) * SY), C[5]);
+  }
+
 }
 
 // 水柱：从地面竖直冲起、冠部碎开、回落；raw 同形（旧做法的差别在游戏里的贴法）
@@ -198,14 +337,13 @@ function ring(p, t, o, C, ACC) {
       p.dot(Math.round(ca * (rr - k)), Math.round(sa * (rr - k) * SY), col, 1 - fade * 0.6);
     }
   }
-  // 内侧淡渐变：由外向内抖动变稀（α ≤ 0.25）
-  const inner = 0.16 * (1 - fade);
-  if (inner > 0.02) p.shade(-r, -r * SY, r, r * SY, (x, y, out) => {
-    const d = Math.hypot(x / r, y / (r * SY));
-    if (d > 0.9 || d < 0.55) return;
-    out.c = C[3];
-    out.a = inner * smooth(0.55, 0.9, d);
-  });
+  // 内侧：一圈 2 格深色内边（用颜色阶代替透明度网点，11-05 2 倍下网点太显）
+  if (fade < 0.7) for (let j = 0; j < m; j++) {
+    const a = (j / m) * TAU;
+    if (nz(a * 3.1, o.seed + 23) < 0.18 + fade * 0.5) continue;
+    const rr = r + 1.6 * nz(a * 5, o.seed + 11) - th - 1;
+    for (let k = 0; k < 2; k += 0.5) p.px(Math.round(Math.cos(a) * (rr - k)), Math.round(Math.sin(a) * (rr - k) * SY), C[1]);
+  }
   if (o.view === "raw") p.glowRing && p.glowRing(0, 0, r, C[n - 2], 0.4 * (1 - fade));
 }
 
@@ -279,6 +417,8 @@ export function draw(p, t, o) {
     case "spin": return gd ? ribbonGround(p, t, o, C, ACC, true) : ribbon(p, t, o, C, ACC, true);
     case "splash": return gd ? splashGround(p, t, o, C, ACC) : splash(p, t, o, C, ACC);
     case "blade": return gd ? bladeGround(p, t, o, C) : blade(p, t, o, C, ACC);
+    case "curtain": return gd ? breakerGround(p, t, o, C, ACC) : breaker(p, t, o, C, ACC);   // S2 碎浪
+    case "pool": return gd ? pool(p, t, o, C, ACC) : undefined;
     case "ring": return gd || o.view === "raw" ? ring(p, t, o, C, ACC) : undefined;
   }
 }

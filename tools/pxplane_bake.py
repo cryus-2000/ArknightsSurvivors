@@ -42,28 +42,34 @@ def variants():
     for el in T:
         for d in DIRS:
             for ly in ("up", "gd"):
-                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [73, 78, 84][el], "span": 3.5, "W": [16, 18, 21][el], "H0": 12, "dir": d, "el": el, "dur": 0.36}, 0.4))
+                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [73, 78, 84][el], "span": 3.5, "W": [16, 18, 21][el], "H0": 12, "dir": d, "el": el, "dur": 0.36, "style": "s1"}, 0.4))
     # 全方向旋斩：异乡之舞第三下（62）、涌潮悲歌（92）
     for el in T:
         for ly in ("up", "gd"):
             v.append(("spin_e%d_%s" % (el, ly), {"part": "spin", "layer": ly, "R": [62, 66, 70][el], "W": [12, 14, 16][el], "el": el, "dur": 0.36}, 0.4))
     for ly in ("up", "gd"):
-        v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7}, 0.47))
+        v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7, "style": "s3"}, 0.47))
     # 水柱：破浪下劈（精一普攻，落点）/ 跃浪击（S2）
     for el in (1, 2):
         v.append(("leap_e%d_up" % el, {"part": "splash", "layer": "up", "R": 40, "H": [40, 48][el - 1], "el": el}, 0.5))
         v.append(("leap_e%d_gd" % el, {"part": "splash", "layer": "gd", "R": 65, "el": el}, 0.5))
-        v.append(("s2_e%d_up" % el, {"part": "splash", "layer": "up", "R": [56, 64][el - 1], "H": [60, 74][el - 1], "el": el, "seed": 5}, 0.56))
-        v.append(("s2_e%d_gd" % el, {"part": "splash", "layer": "gd", "R": 75, "el": el, "seed": 5}, 0.56))
+        for d in DIRS:   # S2 跃浪击：前方弧形水墙（立起、卷倒、拍下），不是月牙
+            for ly in ("up", "gd"):
+                v.append(("s2_e%d_%s_d%d" % (el, ly, d), {"part": "curtain", "layer": ly, "R": 42, "H": [38, 48][el - 1], "span": [1.9, 2.3][el - 1], "dir": d, "el": el, "seed": 5}, 0.56))
     # 涌潮水环 / 悲歌起手：贴地冲击环
     for el in T:
         v.append(("pulse_e%d_gd" % el, {"part": "ring", "layer": "gd", "R": 60, "el": el}, 0.5))
     v.append(("s3cast_gd", {"part": "ring", "layer": "gd", "R": 92, "el": 2, "seed": 9}, 0.5))
+    v.append(("s3cast_up", {"part": "splash", "layer": "up", "R": 70, "H": 90, "el": 2, "seed": 9}, 0.56))   # 悲歌起手：身边冲起的大水柱
+    v.append(("pool_gd", {"part": "pool", "layer": "gd", "R": 70, "seed": 6}, 0.4))   # 悲歌持续：脚下积水（循环）
     # 潮刃（精二）/ 跃浪浪墙：竖直浪头（循环 0.3 秒）
     for d in DIRS:
         for ly in ("up", "gd"):
             v.append(("blade_%s_d%d" % (ly, d), {"part": "blade", "layer": ly, "R": 26, "H": 16, "dir": d, "el": 2}, 0.4))
-            v.append(("wall_%s_d%d" % (ly, d), {"part": "blade", "layer": ly, "R": 70, "H": 26, "dir": d, "el": 1, "seed": 4}, 0.4))
+    for el in (1, 2):   # 「跃浪」浪墙：推进途中每两拍在浪头生成一道小碎浪（11-05 用户「海浪溃散的感觉」，不再是整块平移的浪幕）
+        for d in DIRS:
+            for ly in ("up", "gd"):
+                v.append(("wallbrk_e%d_%s_d%d" % (el, ly, d), {"part": "curtain", "layer": ly, "R": 36, "H": [24, 30][el - 1], "span": 2.0, "dir": d, "el": el, "seed": 4 + d % 7, "dur": 0.42}, 0.47))
     # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
     for el in T:
         v.append(("raw_basic_e%d" % el, {"part": "ribbon", "view": "raw", "R": 56, "span": 2.8, "W": [12, 14, 16][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
@@ -95,7 +101,7 @@ def bake(key, d, dur):
     ox, oy = meta["pivot"]
     col = np.asarray(Image.open(os.path.join(d, "color.png")).convert("RGBA")).astype(np.float32) / 255.0
     lit = np.asarray(Image.open(os.path.join(d, "light.png")).convert("RGB")).astype(np.float32) / 255.0
-    loop = key.startswith(("blade", "wall", "raw_blade"))
+    loop = key.startswith(("blade_", "raw_blade", "pool"))
     nf = min(n, int(round(dur * fps)))
     if loop:
         nf = int(round(0.4 * fps))   # 循环 0.4 秒 = 6 帧

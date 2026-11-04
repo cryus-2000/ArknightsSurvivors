@@ -23,7 +23,7 @@ const ART := "res://art/fx/pxp/pxp_%s.png"
 const IDS := {"skadi": true}
 const DIRS := [-90, -45, 0, 45, 90]
 const EMIT_CAP := 360     # 每帧送进发光层的 emit 点上限（整队）
-const ITEM_MAX := 40
+const ITEM_MAX := 72
 
 var g
 var meta := {}
@@ -127,6 +127,8 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	match kind:
 		"shape":
 			var src: String = str(d.get("src", ""))
+			if Bal.v("fx/recipe_log", 0.0) > 0.0:
+				print("PXPLOG %s %s %d" % [src, "c" if d.get("circle", false) else "%.2f" % float(d.get("half", 0.0)), Engine.get_process_frames()])
 			if d.get("circle", false):
 				var c: Vector2 = d.get("c", o.pos)
 				var r: float = float(d.get("r", 60.0))
@@ -158,10 +160,13 @@ func ev(o, kind: String, d: Dictionary) -> void:
 					_cuts(o, es, t, 4)
 					_burst(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 4 + 2 * t, 140.0, 0.5)
 				"跃浪击":
-					var at: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * r2 * 0.5
+					# 跃浪击（11-05 用户「每个技能要做出视觉上的区别」）：不用月牙，前方立起一道弧形水墙、往前卷倒拍下
+					var at: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * r2 * 0.56
 					var tt: int = maxi(t, 1)
-					_add_up(o, "s2_e%d" % tt, at, raw, "raw_splash_e%d" % tt, r2, 75.0, ang)
-					_add_gd(o, "s2_e%d" % tt, at, raw, "", r2, 75.0)
+					if raw:
+						_add_up(o, "s2_e%d" % tt, at, raw, "raw_splash_e%d" % tt, r2, 75.0, ang)
+					else:
+						_add_dir(o, "s2_e%d" % tt, o.pos, ang)
 					_burst(o, R, p, at + Vector2(0, -30), at.y, es, 7 + 2 * tt, 170.0, 0.7)
 				"破浪下劈":
 					var at2: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * r2 * 0.5
@@ -170,8 +175,11 @@ func ev(o, kind: String, d: Dictionary) -> void:
 					_add_gd(o, "leap_e%d" % t2, at2, raw, "", r2, 65.0)
 					_burst(o, R, p, at2 + Vector2(0, -22), at2.y, es, 5 + t2, 140.0, 0.55)
 		"skill":
-			if int(d.get("i", -1)) == 2:   # 涌潮悲歌起手：脚下一圈贴地水环
+			if int(d.get("i", -1)) == 2:   # 涌潮悲歌起手：身边冲起一柱大水 + 脚下一圈贴地水环
 				_add_gd(o, "s3cast", o.pos, raw, "raw_ring_e2", 185.0, 92.0)
+				_add_up(o, "s3cast", o.pos + Vector2(0, 2), raw, "raw_splash_e2", 185.0, 75.0, 0.0)
+				if mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -60), o.pos.y, "ink", 8, {"tier": 2})
 				R._light(o, o.pos + Vector2(0, -10), 150.0, 0.6, 0.15, p.light)
 
 
@@ -215,12 +223,28 @@ func _add(o, key: String, at: Vector2, ang: float, r: float, raw: bool, rawk: St
 	if raw:
 		_push({"k": rawk, "t0": g.t, "gp": at + Vector2(0, -10), "ly": "raw", "rot": ang, "sc": g.PX * (r * 0.5) / fit, "oid": str(o.id)})
 		return
+	# 11-05 用户「还有碎斩击」：同一名干员出新一刀时，只留上一刀（正在收）+ 这一刀，更早的刀痕立刻收掉
+	var sl: Array = []
+	for it in items:
+		if str(it.oid) == str(o.id) and it.get("slash", false) and str(it.ly) == "up":
+			sl.append(it.t0)
+	if sl.size() >= 2:
+		sl.sort()
+		var keep_t: float = float(sl[sl.size() - 1])
+		items = items.filter(func(it): return not (it.get("slash", false) and str(it.oid) == str(o.id) and float(it.t0) < keep_t))
 	var dk: Array = pick_dir(ang)
 	var spin: bool = key.begins_with("spin")
 	var ku: String = (key + "_up") if spin else "%s_up_d%d" % [key, dk[0]]
 	var kg: String = (key + "_gd") if spin else "%s_gd_d%d" % [key, dk[0]]
-	_push({"k": ku, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "up", "oid": str(o.id)})
-	_push({"k": kg, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "gd", "oid": str(o.id)})
+	_push({"k": ku, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "up", "oid": str(o.id), "slash": true})
+	_push({"k": kg, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "gd", "oid": str(o.id), "slash": true})
+
+
+## 方向件（不是斩击：不参与「只留最近两刀」）
+func _add_dir(o, key: String, at: Vector2, ang: float) -> void:
+	var dk: Array = pick_dir(ang)
+	_push({"k": "%s_up_d%d" % [key, dk[0]], "t0": g.t, "gp": _snap(at), "flip": dk[1], "ly": "up", "oid": str(o.id)})
+	_push({"k": "%s_gd_d%d" % [key, dk[0]], "t0": g.t, "gp": _snap(at), "flip": dk[1], "ly": "gd", "oid": str(o.id)})
 
 
 func _add_up(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit: float, ang: float) -> void:
@@ -261,9 +285,12 @@ func draw_floor(o) -> void:
 		return
 	var cv = o.cv
 	var id: String = str(o.id)
+	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
+		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+	_wall_spawn(o)
 	for w in _waves(o):
 		_draw_strip(cv, w[0] + "_gd_d%d" % w[3], frame_of(0.0), w[1], w[2], false)
 
@@ -354,13 +381,33 @@ static func sort_key(it: Dictionary) -> float:
 	return float((it.gp as Vector2).y) + 1.0
 
 
-## 潮刃（弹体式）/ 跃浪浪墙：直接读玩法状态 o.hw.waves → [帧条前缀, 地面点, 翻转, 方向]
+## 「跃浪」浪墙：推进途中每两拍（15 fps）在浪头位置生成一道小碎浪（一次性件，原点放在浪头后方 36 美术像素，让碎浪的浪线落在浪头上）。
+## 只读玩法状态，画面计时记在浪字典的 _pxs（玩法不读）
+func _wall_spawn(o) -> void:
+	if mode() != 1 or o.hw.is_empty() or not o.hw.has("waves"):
+		return
+	var tick: int = int(floor(g.t * 15.0))
+	var t: int = clampi(tier(o), 1, 2)
+	for w in o.hw.waves:
+		if w.b.has("proj"):
+			continue
+		if w.has("_pxs") and tick - int(w._pxs) < 2:
+			continue
+		w["_pxs"] = tick
+		var dv: Vector2 = w.dir
+		var org: Vector2 = w.pos - Vector2(dv.x, dv.y * 0.72) * 36.0 * g.PX
+		_add_dir(o, "wallbrk_e%d" % t, org, dv.angle())
+
+
+## 潮刃（弹体式）：直接读玩法状态 o.hw.waves → [帧条前缀, 地面点, 翻转, 方向]（浪墙改由 _wall_spawn 生成碎浪，不在这里）
 func _waves(o) -> Array:
 	var out: Array = []
 	if o.hw.is_empty() or not o.hw.has("waves"):
 		return out
 	for w in o.hw.waves:
 		var b: Dictionary = w.b
+		if not b.has("proj"):
+			continue
 		var dk: Array = pick_dir((w.dir as Vector2).angle())
 		out.append(["blade" if b.has("proj") else "wall", _wpos(w), dk[1], dk[0]])
 	return out

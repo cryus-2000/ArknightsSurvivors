@@ -81,6 +81,8 @@ def demo(a):
                 tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, a.n)
                 print(tag, len(frames), "帧", errs[:2], flush=True)
                 res[(tier, mode, px)] = frames
+                if px == 1:
+                    res[(tier, mode, "ev")] = ev
     font_b = font(30)
     for mode in [int(x) for x in a.modes.split(",")]:
         tiers_up = []
@@ -91,6 +93,14 @@ def demo(a):
                 continue
             e = energy(fr[1][:n], fr[0][:n])
             k = int(np.argmax(e))
+            # 技能招：按技能事件帧对齐（能量峰常落在普攻上）。S1 出手即判定；S2 起跳约 15 帧后落地；S3 取起手后约 0.3 秒（大水柱 + 第一记暗蓝旋斩）
+            OFF = {0: 3, 1: 12, 2: 10}
+            if mode in OFF:
+                evs = [int(x[3]) for x in res.get((tier, mode, "ev"), []) if len(x) > 3 and x[2] == "skill%d" % mode and x[3].isdigit()]
+                f0 = int(a.start * 30)
+                cand = [(fe + OFF[mode] - f0) // a.every for fe in evs if (fe + OFF[mode] - f0) // a.every >= 0]
+                if cand and cand[0] < n:
+                    k = cand[0]
             # 三栏：同一帧号（同一时刻、同一画面）
             ims = [Image.open(fr[px][k]).convert("RGB") for px, _ in COLS]
             W, H = ims[0].size
