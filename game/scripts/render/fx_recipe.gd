@@ -99,16 +99,16 @@ static func _prep(d: Dictionary) -> void:
 	d["_pal"] = out
 
 
-## 三项实验开关（docs/245 §5.9，各自缺省 0，都要 fx/recipe 开着才生效）：每帧读一次
+## 三项实验开关（docs/245 §5.9，11-05 起缺省 1，都要 fx/recipe 开着才生效）：每帧读一次
 func _exp() -> void:
 	var fr: int = Engine.get_process_frames()
 	if fr == _x_frame:
 		return
 	_x_frame = fr
 	var on: bool = enabled()
-	_x_outline = on and Bal.v("fx/recipe_outline", 0.0) > 0.0
-	_x_hitlight = on and Bal.v("fx/recipe_hitlight", 0.0) > 0.0
-	_x_react = on and Bal.v("fx/recipe_hitreact", 0.0) > 0.0
+	_x_outline = on and Bal.v("fx/recipe_outline", 1.0) > 0.0
+	_x_hitlight = on and Bal.v("fx/recipe_hitlight", 1.0) > 0.0
+	_x_react = on and Bal.v("fx/recipe_hitreact", 1.0) > 0.0
 
 
 ## 这名干员的画面由配方接管吗（开关开 + 有配方）
@@ -283,9 +283,6 @@ func _hit(o, at: Vector2, gy: float, name: String, dir: Vector2) -> void:
 			"life": float(m.get("life", 0.26)) * 0.8, "freeze": float(m.get("freeze", 0.05)), "layer": "over", "grow": true})
 		_shape(o, {"k": "ring", "c": Vector2(at.x, gy), "r0": R * 0.5, "r": R * float(m.get("ring_k", 1.4)), "w": float(m.get("ring_w", 3.0)) * m.thick,
 			"life": float(m.get("ring_life", 0.5)), "freeze": 0.0, "layer": "floor", "delay": 0.04})
-		if m.tier >= 1:
-			_shape(o, {"k": "ring", "c": Vector2(at.x, gy), "r0": R * 0.3, "r": R * float(m.get("ring_k", 1.4)) * 0.68, "w": float(m.get("ring_w", 3.0)),
-				"life": float(m.get("ring_life", 0.5)) * 0.9, "freeze": 0.0, "layer": "floor", "delay": 0.1})
 	else:
 		_shape(o, {"k": "orb", "c": at, "r": R * 0.42, "life": 0.14, "freeze": 0.06, "layer": "over", "grow": true, "tone": "shard"})
 		_shape(o, {"k": "runex", "c": at, "len": R * float(m.get("rune_k", 2.0)), "gs": float(m.get("gs", 2.0)), "spread": 0.5, "strips": 2,
