@@ -12,6 +12,7 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/244，render/late_read）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
@@ -57,6 +58,8 @@ var anim_t := 0.0
 ## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45；render/declutter 的 dim_floor）
+var deco_dim := 1.0               # 装饰层（火花 / 碎片 / 光点 / 拖尾）的降噪系数；late_read V3 关时 = fx_dim（docs/244）
+var lr_v3 := false                # 本帧 late_read V3 生效（降噪只压装饰层）
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
@@ -116,6 +119,7 @@ const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
+const DECO_KINDS := {"spark": true, "shard": true, "mote": true, "ember": true, "trail": true}   # docs/244 V3：降噪只压这些装饰件
 const FOE_KINDS := ["boss_phase", "boss_down", "spear_fly", "frost_track", "frost_step", "reflow", "glint", "drain"]   # 没打 enemy 标记的敌方 / Boss 特效（量测分层用）
 const AMB_KINDS := ["mote", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane"}
@@ -175,7 +179,7 @@ func update_visuals(dt: float) -> void:
 	g.cam.position = ccen.round() if cround == 1.0 else ((ccen / Game.PX).round() * Game.PX if cround >= 2.0 else ccen)
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
-	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * 1.5)
+	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * (LateRead.k("v1_decay", 2.5) if LateRead.on("v1") else 1.5))   # docs/244 V1：红边只在大伤害时亮，退得快一点
 	g.hurt_duck = move_toward(g.hurt_duck, 0.0, rd)
 	g.red_flash = move_toward(g.red_flash, 0.0, rd * 2.0)
 	g.hp_shake = move_toward(g.hp_shake, 0.0, rd)
@@ -272,8 +276,19 @@ func update_visuals(dt: float) -> void:
 	if mate_on:
 		mate_dim = minf(mate_dim, Bal.v("render/mate_fx", 0.55))
 		mate_desat = Bal.v("render/mate_desat", 0.35)
+	# 后期可读性 V3（docs/244，render/late_read）：降噪只压装饰层。deco_dim 留原来的降噪系数给火花 / 碎片 / 光点 / 拖尾，
+	# fx_dim（干员脚本、核心帧条读的那个）恒为 1，队友 / 队长的整体透明度系数也不再压
+	lr_v3 = LateRead.on("v3")
+	if lr_v3:
+		deco_dim = fx_dim
+		fx_dim = 1.0
+		mate_dim = 1.0
+		lead_dim = 1.0
+	else:
+		deco_dim = fx_dim
 	if _dbg_friend:
 		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
+		deco_dim = 0.0
 	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
 	flash_a = lerpf(0.9, Dc.p("flash_a"), ecrowd)
 	_lamp_rim = (Bal.v("render/rim", 0.0) > 0.0 or g.optical_on) and g.get("actor_mat") != null
@@ -286,14 +301,16 @@ func update_visuals(dt: float) -> void:
 	var fg: float = Bal.v("fx/flash_group", 6.0)
 	if nfl > fg:
 		flash_a *= maxf(Bal.v("fx/flash_group_floor", 0.35), fg / float(nfl))
+	if LateRead.on("v7"):
+		flash_a = minf(flash_a, LateRead.k("v7_a", 0.5))   # docs/244 V7：普通怪受击最多 50% 混白（不再整只刷白），精英 / Boss 不走 flash_a，照旧整只闪
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	elite_rim = clampf(Bal.v("render/elite_rim", 0.55), 0.0, 1.0)
 	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
 	elite_rim_col = Color(ELITE_RIM_RGB.r * rg, ELITE_RIM_RGB.g * rg, ELITE_RIM_RGB.b * rg, elite_rim)
-	g.fx_add.modulate.a = 0.0 if _dbg_friend else lerpf(1.0, Dc.p("add_floor"), dcrowd)
+	g.fx_add.modulate.a = 0.0 if _dbg_friend else (1.0 if lr_v3 else lerpf(1.0, Dc.p("add_floor"), dcrowd))   # V3：加色层是干员核心光，不压
 	if g.post != null and "crowd" in g.post:
 		g.post.crowd = dcrowd
-		g.post.bloom_cut = Dc.p("bloom_cut")
+		g.post.bloom_cut = Dc.p("bloom_cut") * (LateRead.k("v3_bloom", 0.0) if lr_v3 else 1.0)   # V3：全屏辉光分不出层，拥挤削减改由装饰层自己变淡承担
 
 
 ## 表现事件步骤（docs/101 B3，10-15）：game._process 末尾每帧调一次（有头时在本帧绘制之前），无头批跑也照常走。
@@ -431,12 +448,14 @@ func draw_world() -> void:
 	_pk("gems")
 	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
 	_build_vis(evr)
+	_draw_squad_pools()
 	_draw_shadows(evr)
 	_pk("shadows")
 	_draw_sorted_entities(evr)
 	_pk("sorted_entities")
 	_draw_overlays_shield_drones()
 	_pk("shield_drones")
+	_draw_placed_top()
 	_draw_bullets()
 	_pk("bullets")
 	_draw_fx()
@@ -593,6 +612,7 @@ func draw_top() -> void:
 	_pk("")
 	_draw_warn_fills()
 	_pk("ft_fills")
+	_draw_squad_over_warns()
 	_draw_leader_sil()
 	_pk("ft_sil")
 	_draw_foe_upper()
@@ -645,6 +665,8 @@ func _draw_leader_sil() -> void:
 		return
 	if Engine.get_process_frames() % 3 == 0:
 		_sil_score = _leader_cover()   # 每 3 帧算一次覆盖分（渐显本身有 0.15 秒缓冲）
+		if LateRead.mode("s2", 2.0) == 1.0 and _in_warn(o.pos):
+			_sil_score = maxf(_sil_score, Bal.v("render/lead_sil_s1", 10.0))   # docs/244 S2 方案 1：被敌方预警盖住也画剪影
 	var s0: float = Bal.v("render/lead_sil_s0", 4.0)
 	var s1: float = Bal.v("render/lead_sil_s1", 10.0)
 	var want: float = clampf((_sil_score - s0) / maxf(0.01, s1 - s0), 0.0, 1.0)
@@ -662,7 +684,87 @@ func _draw_leader_sil() -> void:
 	var ec: Color = Color(0.02, 0.03, 0.07, Bal.v("render/lead_sil_edge_a", 0.6) * _sil_a)
 	for d in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2)]:
 		draw_sprite_at(p + d, st.flip, ec, st.frame, wt, st.hf, fo)
+	sq_ol = squad_ol_col(o.col(), _sil_a)   # docs/244 S1：剪影上照样描代表色边
 	draw_sprite_at(p, st.flip, g.sprite.modulate, st.frame, st.tex, st.hf, fo)
+	sq_ol = Color(0, 0, 0, 0)
+
+
+## docs/244 S2：点 p（脚底）是否落在一个还没结算的敌方预警里（圆 / 扇形 / 直线，含 Boss 招式；判定同 classify_tells，余量 12）
+func _in_warn(p: Vector2) -> bool:
+	var gy: float = ground_y()
+	var lr := 12.0
+	for w in g.warns:
+		if w.done or int(w.get("style", 1)) == 0:
+			continue
+		match str(w.get("shape", "")):
+			"cone":
+				var d: Vector2 = p - w.pos
+				var dist: float = d.length()
+				if dist <= float(w.r) + lr and (dist <= lr or absf(angle_difference(d.angle(), float(w.ang))) <= float(w.half) + asin(minf(1.0, lr / dist))):
+					return true
+			"line":
+				var b2: Vector2 = w.pos + Vector2.from_angle(float(w.ang)) * float(w.len)
+				if p.distance_to(Geometry2D.get_closest_point_to_segment(p, w.pos, b2)) < float(w.wid) + lr:
+					return true
+			"circle":
+				var dc: Vector2 = p - w.pos
+				if Vector2(dc.x, dc.y / maxf(gy, 0.01)).length() < float(w.r) + lr:
+					return true
+	return false
+
+
+## docs/244 S2 方案 2（render/late_read_s2 = 2，缺省）：站在敌方预警里的干员，在敌方顶层的预警填充之后、敌弹与预警轮廓之前再画一遍本体
+## （带 S1 描边），预警填充不再罩住人；敌弹、预警轮廓照样压在最上面。只画不改状态
+func _draw_squad_over_warns() -> void:
+	if LateRead.mode("s2", 2.0) != 2.0 or g.squad == null or g.state == g.S.DEAD or g.warns.is_empty():
+		return
+	for o in g.squad.ops:
+		if o.pos == Vector2.INF or o.cmd_down > 0.0 or o.arriving() or not _in_warn(o.pos):
+			continue
+		o.draw_body()
+		o._cv_flush()
+
+
+## docs/244 S1：脚底光池（地面层，影子之前）：队长一圈暖白光照地，队员小一号、淡一半。三阶硬边（同 optical_steps 防油腻），
+## 只往下照地、不往外扩光环；颜色暖白偏琥珀，避开结晶暖金（更白、更淡）
+func _draw_squad_pools() -> void:
+	if not LateRead.on("s1") or g.squad == null or g.state == g.S.DEAD:
+		return
+	var pc := Color(1.0, 0.9, 0.74)
+	var a0: float = LateRead.k("s1_pool_a", 0.13)
+	for o in g.squad.ops:
+		if o.pos == Vector2.INF or o.cmd_down > 0.0 or (o.arriving() and o.arrive_t < o.ARRIVE_WAIT):
+			continue
+		var r: float = LateRead.k("s1_pool_r", 40.0) * (1.0 if o.is_leader else 0.65)
+		var a: float = a0 * (1.0 if o.is_leader else 0.5)
+		var c: Vector2 = ((o.pos + Vector2(0, 2)) / 2.0).round() * 2.0
+		g.wcv.draw_set_transform(c, 0.0, Vector2(1.0, 0.5))
+		for q in 3:
+			var k: float = 1.0 - float(q) / 3.0
+			g.wcv.draw_circle(Vector2.ZERO, r * k, Color(pc.r, pc.g, pc.b, a * (0.55 + 0.45 * float(q) / 2.0)))
+		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## docs/244 S3：我方放置物在敌人之上画（地雷 / 轰隆隆走 relic_fx.draw_placed_top；干员地面池 hw.pools —— 逻各斯铭文、艾雅法拉熔池等 ——
+## 补一圈本人代表色 1 格描边 + 呼吸，半径不小于 s3_rmin，最后 0.3 秒淡出）。--clutterdbg=nofriend 时不画
+func _draw_placed_top() -> void:
+	if _dbg_friend or not LateRead.on("s3"):
+		return
+	g.rfx.draw_placed_top(g.wcv)
+	var rmin: float = LateRead.k("s3_rmin", 14.0)
+	for o in g.squad.ops:
+		var h = o.get("hw")
+		if not (h is Dictionary) or not h.has("pools"):
+			continue
+		var c: Color = squad_ol_col(o.col())
+		if c.h < 0.06 or c.h > 0.9:
+			c = LateRead.ALLY_COL   # 红只留给危险：红系代表色的放置物描边改用我方青白
+		var rmax: float = LateRead.k("s3_rim_max", 48.0)
+		for l in h.pools:
+			var al: float = clampf(float(l.t) / 0.3, 0.0, 1.0)
+			if al <= 0.0 or float(l.r) >= rmax:
+				continue   # 大圈（墓志铭书写圈、大熔池）本身已有完整边，不再加描边，免得画面脏
+			LateRead.placed_rim(g.wcv, l.pos + Vector2(0, 4), maxf(float(l.r), rmin), Color(c.r, c.g, c.b, 1.0), g.t, fmod(absf(l.pos.x) * 0.011, 1.0), 0.5, 0.55 * al)
 
 
 ## 预警分类 → Boss 招式预警填充（render/telegraph_draw；敌方顶层开着时挪到 draw_top）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
@@ -1313,7 +1415,13 @@ func _draw_bullets() -> void:
 					g.wcv.draw_circle(b.pos, 14.0 * vk, _bc(Color(1.4, 0.6, 2.2, 0.2)))
 				"arcane":
 					g.wcv.draw_line(b.pos - n * 20.0, b.pos, _bc(Color(1.4, 0.6, 2.2, 0.35)), 4.0)
-			g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX * vk, _bc(Color.WHITE))
+			var bgk: float = LateRead.grow_of(g.squad.get_op(str(b.op))) if b.has("op") and LateRead.on("v5") else 1.0
+			if bgk > 1.001:   # docs/244 V5：干员投射物主形按精英化 / 节点放大（判定半径不变），精一起加厚
+				var btx: Texture2D = g.tex.get(ptex)
+				var bgs: Array = LateRead.grow_scale(g, btx, int(pspec[0]), Game.PX * vk, bgk, A.hires_of(btx))
+				g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), bgs[0], _bc(Color.WHITE), Vector2(-1, -1), false, 1 if bgs[1] and bgk >= 1.2 else 0)
+			else:
+				g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX * vk, _bc(Color.WHITE))
 			continue
 		match b.kind:
 			"arrow":
@@ -1470,7 +1578,7 @@ func _draw_fx() -> void:
 				f["bg"] = true
 				_bfx_grains(f)
 			a *= BFX_DIM
-		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
+		var fdim: float = 1.0 if f.get("enemy", false) else (deco_dim if lr_v3 and DECO_KINDS.has(f.kind) else fx_dim)   # 敌方特效不降噪（docs/48 ③）；V3：只有装饰件吃降噪
 		if fdim < 1.0 and DIM_KINDS.has(f.kind):
 			a *= fdim
 		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
@@ -1871,7 +1979,12 @@ func _draw_fx() -> void:
 					scol = lead_col(scol)   # 队长放的帧条特效：提亮 / 暖色（docs/139 §11）
 				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
 					continue   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
-				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+				if f.has("grow") and LateRead.on("v5"):   # docs/244 V5：干员主形按精英化 / 节点放大后再取整，精一起加厚 1 格
+					var gtx: Texture2D = g.tex.get(f.name)
+					var gs: Array = LateRead.grow_scale(g, gtx, int(spec[0]), f.scale, float(f.grow), A.hires_of(gtx) if gtx != null else 1.0)
+					g.vfx.spr_rot(f.name, fr, f.pos, f.ang, gs[0], scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false), int(f.get("thick", 0)) if gs[1] else 0)
+				else:
+					g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					g.wcv.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
 			"impact":
@@ -2000,7 +2113,11 @@ func _draw_fx() -> void:
 				var tn: String = f.get("tex", "slash")
 				g.wcv.draw_set_transform(f.pos, f.ang, Vector2.ONE)
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
-				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
+				var ssc: float = f.scale
+				if f.has("grow") and LateRead.on("v5"):   # docs/244 V5：刀光按精英化 / 节点放大（取整、上限同帧条）
+					var stx: Texture2D = g.tex.get(tn)
+					ssc = LateRead.grow_scale(g, stx, nf, f.scale, float(f.grow), A.hires_of(stx) if stx != null else 1.0)[0]
+				g.vfx.spr(tn, nf, fr, Vector2.ZERO, ssc, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	tb_flush()   # gcrack 等写进 tb 批的特效在这里一次提交
 
@@ -3448,6 +3565,21 @@ func _draw_enemy_full(e: Dictionary) -> void:
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
 var draw_target: CanvasItem = null   # 光学观感的高清干员层：干员本体临时画到这里（render/optical.gd _draw_ops 设，画完清回 null）
 
+## docs/244 S1：draw_sprite_at 这一次调用前先描一圈 1 格（2 世界像素）的边；a = 0 不描。character.draw_body / 召唤物本体设、画完清零。
+## 描边颜色不经 Look.op_mod（不受 look 的 actor_cap 受光封顶），正值 RGB 不走角色受光材质
+var sq_ol := Color(0, 0, 0, 0)
+
+
+## 小队描边颜色：代表色往白提一点、保持饱和，透明度跟本体（淡入 / 倒下渐隐时一起淡）；late_read s1 关时返回透明
+func squad_ol_col(c: Color, a := 1.0) -> Color:
+	if not LateRead.on("s1"):
+		return Color(0, 0, 0, 0)
+	var m: float = maxf(c.r, maxf(c.g, c.b))
+	var k: float = 1.0 / maxf(0.01, m)   # 拉到满亮度：深色代表色在暗地面上也看得见
+	var hk: float = LateRead.k("s1_ol_hdr", 1.35)   # 略超 1：暗场里描边不被压成灰
+	return Color(minf(1.0, c.r * k * 0.95 + 0.05) * hk, minf(1.0, c.g * k * 0.95 + 0.05) * hk, minf(1.0, c.b * k * 0.95 + 0.05) * hk, LateRead.k("s1_ol_a", 0.95) * clampf(a, 0.0, 1.0))
+
+
 func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float, sc := 1.0) -> void:
 	if tx == null:
 		return
@@ -3456,6 +3588,13 @@ func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textur
 	var fh := tx.get_height()
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
 	var pk: float = Game.PX / A.hires_of(tx) * sc   # sc：召唤物体型（可见成长 #130，docs/163）；缺省 1
+	if sq_ol.a > 0.0:
+		var wt: Texture2D = A.white_of(tx)
+		var pr: Vector2 = (pos + g.draw_off).round()
+		var dr := Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh))
+		for d in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2)]:
+			ci.draw_set_transform(pr + d, 0.0, Vector2(-pk if flip else pk, pk))
+			ci.draw_texture_rect_region(wt, dr, src, sq_ol)
 	ci.draw_set_transform((pos + g.draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
 	ci.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, Look.op_mod(g, pos, col))
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

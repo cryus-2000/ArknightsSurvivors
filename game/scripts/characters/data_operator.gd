@@ -1196,7 +1196,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	if str(f.kind) != "strip":
 		return ObSummon.mf_draw_pfx(self, f, a) or SegEyjafjalla.hw_draw_pfx(self, f, a)   # 召唤物扩展段的程序粒子（crescent / impact / core / qshard / beamray）；手写迁移段（熔岩柱……）
 	if not f.get("add", false):
-		ObFx.fx_draw(cv, g, f, g.world.fx_dim)
+		ObFx.fx_draw(cv, g, f, g.world.fx_dim, self)
 	return true
 
 
@@ -1208,7 +1208,7 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	_draw_vortex(ci, "add")
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
-			ObFx.fx_draw(ci, g, f, g.world.fx_dim)
+			ObFx.fx_draw(ci, g, f, g.world.fx_dim, self)
 		elif str(f.kind) == "tx_rain" and f.get("add", false):
 			SegTexas.tx_rain_draw(ci, self, f)
 

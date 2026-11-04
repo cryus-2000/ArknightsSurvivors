@@ -100,8 +100,16 @@ func update_bullets(dt: float) -> void:
 			break
 
 
-## 子弹命中：按种类结算伤害与特效
+## 子弹命中：按种类结算伤害与特效。docs/244 V5：结算期间把发射的干员记进 vfx.spawn_op（只是画面标记：命中 / 爆炸帧条按精英化放大）
 func bullet_hit(b: Dictionary, e: Dictionary) -> void:
+	var so = g.vfx.spawn_op
+	if b.has("op") and g.squad != null:
+		g.vfx.spawn_op = g.squad.get_op(str(b.op))
+	_bullet_hit(b, e)
+	g.vfx.spawn_op = so
+
+
+func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	if e.get("friendly", false):
 		return   # 友方不拦弹、不消耗穿透/弹跳，也不触发附带控制。
 	var h: Dictionary = g.combat.make_hit(b.src, b.get("tags", [])) if b.has("src") else g.combat.make_hit("法术援护" if b.kind in ["fire", "arcane"] else "援护")

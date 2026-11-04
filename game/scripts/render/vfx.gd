@@ -3,6 +3,7 @@ extends RefCounted
 ## 加色混合层（fx_add 节点）的绘制；特效与各种提示计时的逐帧衰减。干员经 characters/op_api.gd 调用。2026-09-26 从 game.gd 拆出。
 
 const A = preload("res://scripts/art.gd")
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/244）
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -509,6 +510,10 @@ func slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Colo
 			a = ang - half + span * 0.5 + (half * 2.0 - span) * float(k) / float(segs - 1)
 		g.fx.append({"kind": "slash", "tex": tex_name, "pos": origin, "ang": a, "scale": sc, "life": life, "max": life, "col": col,
 			"frames": frames, "anchor": anchor})
+		if spawn_op != null and LateRead.on("v5"):
+			var sgk: float = LateRead.grow_of(spawn_op)
+			if sgk > 1.001:
+				g.fx[-1]["grow"] = sgk   # docs/244 V5：刀光放大（只画面）
 
 
 ## 伞击贴图选择：有 V7 帧条就用，没有就退回旧 slash
@@ -912,7 +917,7 @@ func hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 
 
 ## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
-func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
+func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false, thick := 0) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null:
 		return
@@ -921,6 +926,8 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
 	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
+	if thick > 0:   # docs/244 V5：精一起主形加厚 1 格（同帧四向错 1 格、同色 55% 先垫一遍）
+		LateRead.thick_under(g.wcv, tx, Rect2(fw * (frame % frames), 0, fw, fh), Rect2(-an, Vector2(fw, fh)), pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale), FD.capc(col))
 	g.wcv.draw_set_transform(pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale))
 	g.wcv.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
 	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -935,6 +942,10 @@ const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 ## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
 ## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
 ## delay：晚这么多秒才开始播（期间不画、不补光学火星；维什戴尔大爆炸的连环外圈，docs/137 §8）
+var spawn_op = null      # squad.update 在每名干员更新期间置为该干员（docs/244 V5：帧条按精英化放大；纯画面标记）
+## V5 不放大的帧条：死亡 / 溶解 / 击杀碎散（是敌人的，不是我方主形）
+static func _v5_skip(name: String) -> bool:
+	return name.contains("death") or name.contains("dissolve") or name.contains("kill") or name.contains("shatter") or name.contains("gem")
 var spawn_lead := false   # squad.update 在队长更新期间置真：这期间生成的帧条特效打上 lead（world 绘制时按突出队长档提亮，docs/139 §11）
 
 func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1), delay := 0.0) -> bool:
@@ -954,6 +965,11 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
 	if spawn_lead:
 		f["lead"] = true
+	if spawn_op != null and not ground and LateRead.on("v5") and not _v5_skip(name):
+		var gk: float = LateRead.grow_of(spawn_op)
+		if gk > 1.001:
+			f["grow"] = gk   # docs/244 V5：干员出手生成的主形帧条，绘制时 × grow 再取整（判定、火星补粒不变）
+			f["thick"] = LateRead.thick_of(spawn_op)
 	if delay > 0.0:
 		f["delay"] = delay
 	if bottom:

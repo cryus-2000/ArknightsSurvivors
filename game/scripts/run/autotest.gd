@@ -2209,6 +2209,12 @@ func _clutter_log() -> void:
 		"crowd": snappedf(g.world.crowd, 0.001), "ecrowd": snappedf(g.world.ecrowd, 0.001), "dcrowd": snappedf(g.world.dcrowd, 0.001),
 		"fx_dim": snappedf(g.world.fx_dim, 0.001), "declutter": Dc.level(), "leader_scr": [lp.x, lp.y], "lamp": g.lamp,
 		"lamp_r": g.lamp_light.texture_scale * 64.0}
+	# docs/244 量测：干员 / 召唤物 / 地雷 / 轰隆隆的屏幕坐标（小队被盖比例、放置物可见度），降噪的装饰层系数
+	d["deco_dim"] = snappedf(g.world.deco_dim, 0.001)
+	d["fx_grow"] = g.fx.filter(func(f): return f.has("grow")).size()
+	d["ops_scr"] = g.squad.ops.filter(func(o): return o.pos != Vector2.INF).map(func(o): return [o.id, (ct * o.pos).x, (ct * o.pos).y, o.elite])
+	d["mines_scr"] = g.rfx.mines.map(func(m): return [(ct * m.pos).x, (ct * m.pos).y])
+	d["bombs_scr"] = g.rfx.bombs.map(func(b): return [(ct * b.pos).x, (ct * b.pos).y])
 	var f := FileAccess.open(g.shot_dir + "/shot_%d.json" % g.at_frames, FileAccess.WRITE)
 	if f != null:
 		f.store_string(JSON.stringify(d))

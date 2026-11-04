@@ -23,6 +23,7 @@
 extends RefCounted
 
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
+const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/244）
 const D = preload("res://scripts/data.gd")
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -1018,7 +1019,7 @@ func _tick_bombs(dt: float) -> void:
 		else:
 			b.pos = b.pos.move_toward(g.ppos + Vector2(0, 30), 120.0 * dt)
 		if b.life <= 0.0:
-			_area("地雷", b.pos, b.r, b.dmg * g.dmg_mult * g.combat.enemy_hp_time_mult())
+			_area("轰隆隆", b.pos, b.r, b.dmg * g.dmg_mult * g.combat.enemy_hp_time_mult())
 			for j in g.enemies_sys.query(b.pos, b.r + 20.0):
 				var e2: Dictionary = g.enemies[j]
 				if not e2.dead and not e2.boss and e2.pos.distance_to(b.pos) < b.r + e2.r:
@@ -1119,7 +1120,8 @@ func _zone_bonus(key: String) -> float:
 
 
 func draw() -> void:
-	for mn in mines:
+	var lr_top: bool = LateRead.on("s3")   # docs/244 S3：地雷 / 轰隆隆改在敌人之上由 draw_placed_top 画
+	for mn in (mines if not lr_top else []):
 		var bl: float = 0.5 + 0.5 * sin(g.t * 8.0)
 		g.draw_set_transform(mn.pos, 0.0, Vector2(1.0, 0.6))
 		g.draw_circle(Vector2.ZERO, 9.0, Color(0.25, 0.22, 0.2))
@@ -1149,13 +1151,25 @@ func draw() -> void:
 		g.draw_line(z.pos, z.pos + Vector2(0, -54), Color(0.5, 0.4, 0.3), 2.0)
 		g.draw_colored_polygon(PackedVector2Array([z.pos + Vector2(0, -54), z.pos + Vector2(26 + wv, -46), z.pos + Vector2(0, -38)]), Color(1.0, 0.75, 0.3, 0.9))
 	# 轰隆隆：小圆身子 + 红灯
-	for b in bombs:
+	for b in (bombs if not lr_top else []):
 		g.draw_circle(b.pos, 8.0, Color(0.35, 0.35, 0.4))
 		g.draw_circle(b.pos + Vector2(0, -3), 3.0, Color(1.0, 0.3 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0)), 0.3))
 	# 防暴桩：木桩
 	for s in stakes:
 		g.draw_rect(Rect2(s.pos + Vector2(-5, -26), Vector2(10, 30)), Color(0.55, 0.42, 0.3))
 		g.draw_rect(Rect2(s.pos + Vector2(-7, -28), Vector2(14, 5)), Color(0.85, 0.75, 0.3))
+
+
+## 后期可读性 S3（docs/244，render/late_read）：地雷 / 轰隆隆在敌人之上画，尺寸下限 + 我方青白描边 + 0.8 秒呼吸（LateRead.placed）。
+## 地雷贴地扁圆、中心闪灯改成我方青白；轰隆隆立体圆身、头顶一格暖白灯（不用红：红只留给危险）。只画不改状态
+func draw_placed_top(ci: CanvasItem) -> void:
+	if not LateRead.on("s3"):
+		return
+	var rmin: float = LateRead.k("s3_rmin", 14.0)
+	for mn in mines:
+		LateRead.placed(ci, mn.pos, rmin, LateRead.ALLY_COL, Color(0.16, 0.2, 0.24), g.t, fmod(mn.pos.x * 0.013, 1.0), true)
+	for b in bombs:
+		LateRead.placed(ci, b.pos + Vector2(0, -4), rmin + 2.0, LateRead.ALLY_COL, Color(0.22, 0.26, 0.32), g.t, fmod(b.pos.y * 0.017, 1.0), false, Color(1.0, 0.95, 0.8, 0.6 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0))))
 
 
 ## ---------- 动态倍率（每次伤害查询）----------

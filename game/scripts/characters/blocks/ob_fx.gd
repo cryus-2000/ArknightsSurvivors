@@ -43,6 +43,7 @@ const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displac
 	"shape.boomerang", "verb.summon_cmd"]
 
 const ArtS = preload("res://scripts/art.gd")
+const _LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/244）
 
 
 ## 瞬时播放：c / r 是出手形状的中心与半径（技能发动、常驻光环时是区域中心与半径），hits 是本次命中的敌人，ang 是锥形的朝向。
@@ -202,7 +203,7 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 
 
 ## 画一条 strip 粒子（data_operator._draw_pfx / draw_fx_add 调）。dim：整体透明度（fx_dim）
-static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
+static func fx_draw(ci, g, f: Dictionary, dim: float, op = null) -> void:
 	if f.has("grow"):
 		fx_draw_grow(ci, g, f, dim)
 		return
@@ -227,6 +228,17 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 	if not f.loop:
 		a *= _mat_handoff(g, f, el, frames, fr)
 	var sc: float = float(f.sc) if f.get("fit", false) or not ("vfx" in g) or g.vfx == null else g.vfx.int_scale(float(f.sc))   # 低分辨率层整数格（docs/138 §10）；按半径拟合的不取整
+	var gk: float = _LateRead.grow_of(op) if op != null and not f.loop and not f.get("fit", false) else 1.0
+	if gk > 1.001 and not g.vfx._v5_skip(str(f.name)):   # docs/244 V5：一次性技能帧条（主形）按精英化 / 节点放大、取整，精一起加厚；循环件 / 按半径拟合的区域不动
+		var tx: Texture2D = g.tex.get(str(f.name))
+		var gs: Array = _LateRead.grow_scale(g, tx, frames, float(f.sc), gk, ArtS.hires_of(tx) if tx != null else 1.0)
+		sc = gs[0]
+		if gs[1] and _LateRead.thick_of(op) > 0 and tx != null:
+			var h: float = ArtS.hires_of(tx)
+			var fw: int = tx.get_width() / frames
+			var fh: int = tx.get_height()
+			var an: Vector2 = f.anc * h if f.anc.x >= 0.0 else Vector2(fw, fh) / 2.0
+			_LateRead.thick_under(ci, tx, Rect2(fw * (fr % frames), 0, fw, fh), Rect2(-an, Vector2(fw, fh)), f.pos, float(f.ang), Vector2(sc / h, sc / h), Color(f.col.r, f.col.g, f.col.b, f.col.a * a))
 	fx_frame(ci, g, str(f.name), frames, fr, f.pos, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
 
 
