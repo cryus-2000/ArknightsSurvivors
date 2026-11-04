@@ -879,10 +879,10 @@
   "summon_range": 0.18, "summon_dmg": 0.3,
   "control_range": 0.25, "control_dur": 0.12,
   "splash_r": 60, "chain_r": 170, "chain_mult": 0.5,
-  "_doc_comp": "难度补偿（只在 growth/late_shape 开时生效）：普通怪伤害在 comp_from → comp_to 秒平滑升到 × comp_dmg（dmg_curve.target）；所有 Boss 生命 × comp_boss_hp、伤害 × comp_boss_dmg（spawner）；boss_k = 额外弹 / 剑气 / 扩散 / 连锁打 Boss 的伤害倍率。11-05 后期诊断 B 组（docs/250）：Boss 补偿 1.4 / 1.3 / 0.5 → 1.0 / 1.0 / 0.8（几套补偿叠加后 Boss 过硬）",
+  "_doc_comp": "难度补偿（只在 growth/late_shape 开时生效）：普通怪伤害在 comp_from → comp_to 秒平滑升到 × comp_dmg（dmg_curve.target）；所有 Boss 生命 × comp_boss_hp、伤害 × comp_boss_dmg（spawner）；boss_k = 额外弹 / 剑气 / 扩散 / 连锁打 Boss 的伤害倍率。11-05 后期诊断 B 组（docs/250）：Boss 补偿 1.4 / 1.3 / 0.5 → 1.0 / 1.0 / 0.8（几套补偿叠加后 Boss 过硬）。11-05 四开关全开胜率 m0 72.6 / m18 86.9 偏易 → 调难度第二轮 R2a：普通怪伤害 150 → 360 秒升到 × 2.0（原 240 → 420 秒 × 1.5）、Boss 伤害 × 1.2，Boss 生命不加；expert 84 局 m0 52.4% / m18 71.4%，normal 诊断中期 Boss 击破 67%、最终 54%",
   "p3_on": 1, "p3_r": 300, "p3_band": 80, "p3_far": 0.3,
   "_doc_p3": "P3（只在 growth/late_shape 开时）：终结技对普通小怪的伤害按离队长的距离衰减，≤ p3_r 全额，p3_r → p3_r + p3_band 过渡到 × p3_far；p3_on 0 = 关掉 P3 只留形状",
-  "comp_from": 240, "comp_to": 420, "comp_dmg": 1.5, "comp_boss_hp": 1.0, "comp_boss_dmg": 1.0, "boss_k": 0.8,
+  "comp_from": 150, "comp_to": 360, "comp_dmg": 2.0, "comp_boss_hp": 1.0, "comp_boss_dmg": 1.2, "boss_k": 0.8,
   "x_lane": {"logos": "multi", "lumen": "multi", "saria": "melee", "skalter": "control"}
  },
  "response": {
