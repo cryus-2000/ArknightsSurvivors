@@ -50,7 +50,9 @@ func pending() -> bool:
 	hist.append({"t": snappedf(float(g.t), 0.01), "op": str(q.op.id), "stage": st})
 	if q.op.pos != Vector2.INF:
 		_burst(q.op, st)
-	Sfx.play("levelup", -2.0, 0.8 if st >= 2 else 0.95, 0.0)
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null   # 核心契约测试不加载自动加载单例（同 link_bond.gd）
+	if sfx != null:
+		sfx.play("levelup", -2.0, 0.8 if st >= 2 else 0.95, 0.0)
 	return _blocks()
 
 
@@ -85,13 +87,19 @@ static func safe_col(o) -> Color:
 	return c
 
 
+## 设置「减少动态效果」（Cfg 是自动加载单例，核心契约测试里没有：按节点取）
+func _reduce() -> bool:
+	var c: Node = g.get_node_or_null("/root/Cfg") if g.is_inside_tree() else null
+	return c != null and bool(c.get("reduce_motion"))
+
+
 ## 爆亮系数 0–1（character.draw_body 读）
 func flash(o) -> float:
 	if cur.is_empty() or cur.op != o:
 		return 0.0
 	var t: float = cur.t
 	var k: float = clampf(t / 0.08, 0.0, 1.0) if t < 0.08 else exp(-(t - 0.08) * 3.2)
-	return k * (0.55 if Cfg.reduce_motion else 1.0)
+	return k * (0.55 if _reduce() else 1.0)
 
 
 func _burst(o, st: int) -> void:
@@ -155,7 +163,7 @@ func draw_hud(vs: Vector2) -> void:
 	var st: int = int(cur.stage)
 	var c: Color = safe_col(o)
 	var y: float = vs.y * 0.22   # 与普通横幅同一带：横幅在场时普通横幅让位（hud_banners 读 banner_busy，计时照走）
-	var sw: float = clampf(t / 0.22, 0.0, 1.0) if not Cfg.reduce_motion else 1.0
+	var sw: float = clampf(t / 0.22, 0.0, 1.0) if not _reduce() else 1.0
 	var hgt: float = 74.0 if str(cur.team) == "" else 96.0
 	var hud = g.hud
 	hud.draw_rect(Rect2(0, y, vs.x * sw, hgt), Color(0.02, 0.03, 0.05, 0.62 * a))

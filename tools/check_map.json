@@ -62,6 +62,7 @@
     "card_desc_fit",
     "build_affinity",
     "build_progression",
+    "vis_nodes",
     "merchant_build_offer",
     "economy",
     "event_trade",

@@ -188,7 +188,11 @@ BALANCE 行只差画面峰值 / prof 计时字段（工具提示，同 docs/36 �
 ## 7. 回归与改动文件
 
 - 新回归 `vis_nodes`（`tools/check.py --only vis_nodes`，24 项，含怪物补偿已乘上）：节点不再加攻击、按流派加范围 / 弹数 / 召唤伤害；精二本人一档、全队效果作用到队友、离队撤销；卡面文字；时刻在平衡模式不挡弹窗、玩家局定格挡住、定格结束放行、只爆亮本人；能天使的红调淡。
-- `python tools/check.py --auto --jobs 3`：运行中，结果补在下一次提交。
+- `python tools/check.py --auto --jobs 3`（云端，171 项）：第一遍 4 项失败，已修后单项重跑全过：
+  - 核心契约测试、藏品卡说明放得下：`elite_moment.gd` 直接用了自动加载单例 `Sfx` / `Cfg`，这两个测试不加载单例，编译报错；改成按节点 `/root/Sfx`、`/root/Cfg` 取（同 link_bond.gd），只动音效与「减少动态效果」读法，玩法不变。
+  - 检查映射：新回归 `vis_nodes` 归进 relic 组（与 build_progression 同组）。
+  - 说明对账：继承自 docs/244 的「扩散」「连锁」卡面 60 / 170 / 50 对不上数值表（实际来自 `shape_lv/splash_r`、`chain_r`、`chain_mult`，数值一致），`--update-baseline` 登记，基线 66 → 69 条。
+  - 其余 167 项第一遍即通过（含同 seed 复现、成长节点当场生效、全部冒烟）。
 - 改动：`balance.json`（`growth/elite_show`、`growth/visible_nodes`、`vis_nodes` 段含怪物补偿 `enemy_hp` 1.08 / `enemy_dmg` 1.0）、`blocks/vis_nodes.gd`（新）、`run/elite_moment.gd`（新）、`character.gd`、`game.gd`、`squad.gd`、`hud.gd`、`hud_banners.gd`、`late_shape.gd`（op_summary 并入节点弹数）、`vis_growth.gd`（开关判定）、`autotest.gd`（`--eliteat`）、`run_setup.gd`（怪物补偿；`--prog` 开局推进不播时刻）、`tools/check.py`、`tools/elite_moment_shots.py`（新）、`tests/vis_nodes_test.*`（新）。
 
 ## 8. 待用户 / 协调人定
