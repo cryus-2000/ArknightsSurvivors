@@ -377,6 +377,8 @@ func _draw_body() -> void:
 func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	draw_elite_marks(ct)
 	var readable: bool = Bal.v("render/clarity_text", 1.0) > 0.0 and g.demo_op == ""
+	var ft_k: float = Bal.v("render/float_text_k", 0.7)
+	var ft_min: int = Bal.vi("render/float_text_min", 9)
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
 	var dn: Array = []   # 合批时先收集，_dmg_numbers 分层画（docs/50 §13）
 	for f in (g.texts if ((g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "") and not _dbg_nonum else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）；--clutterdbg=nonum 量测
@@ -388,7 +390,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		if readable and _damage_label(str(f.text)):
 			pop = 1.0 + 0.15 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
-		var sz := _qs(int(f.size * pop))
+		var sz := _qs(maxi(ft_min, int(round(f.size * pop * ft_k))))   # 局内飘字缩放 render/float_text_k（11-05 缩约 30%），手机上不低于 float_text_min
 		dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
 	if readable:
 		dn = _clear_damage_text(dn, ct, vs)
@@ -410,12 +412,12 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 			# 文字避让（用户 11-03 保留 LEVEL UP!，只缩小）：字号约 60%、弹出 1.2，整组放在队长保护框（与伤害数字避让同一个框，头顶 60）上方，不压身体
 			var top: Vector2 = ct * (g.ppos + Vector2(0, -60 - age * 14.0))
 			var lv_y: float = top.y - 16.0   # 保护框按身体量，耳朵 / 发饰会高出框顶几像素，再留 16
-			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y - 11.0 * pop - 3.0), "LEVEL UP!", _qs(int(18 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
-			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y), "Lv.%d" % g.level, _qs(int(11 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 3)
+			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y - 11.0 * pop - 3.0), "LEVEL UP!", _qs(maxi(ft_min, int(18 * pop * ft_k))), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+			UI.text(g.hud, g.font, Vector2(top.x - 150, lv_y), "Lv.%d" % g.level, _qs(maxi(ft_min, int(11 * pop * ft_k))), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 3)
 		else:
 			var lp: Vector2 = ct * (g.ppos + Vector2(0, -92 - age * 14.0))
-			UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(int(30 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
-			UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(int(18 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+			UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(maxi(ft_min, int(30 * pop * ft_k))), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
+			UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(maxi(ft_min, int(18 * pop * ft_k))), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
 
 	if g.flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, g.flash * 0.5))

@@ -134,6 +134,9 @@ voice=0.0
 
 [progress]
 difficulty=0
+
+[game]
+dmg_numbers=true
 """
 
 
