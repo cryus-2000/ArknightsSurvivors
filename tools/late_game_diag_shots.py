@@ -30,15 +30,20 @@ def frames():
     return out
 
 
+EXTRA = []   # shoot --squad / --relics 透传（召唤物专项，docs/243 §5）
+TAG = ""
+
+
 def shoot_one(job):
     op, seed, layer = job
-    d = os.path.join(SHOT, "%s_s%d_%s" % (op, seed, layer))
+    d = os.path.join(SHOT, "%s%s_s%d_%s" % (op, TAG, seed, layer))
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
     args = ["xvfb-run", "-a", "-s", "-screen 0 1280x720x24", GR.find_godot(), "--rendering-driver", "opengl3", "--path", os.path.join(ROOT, "game"),
             "--resolution", "1280x720", "--audio-driver", "Dummy", "--fixed-fps", "60", "--",
             "--balance", "--nodeath", "--seed=%d" % seed, "--op=" + op, "--maxt=%d" % (TARGETS[-1] + 5),
             "--shots=" + ",".join(str(f) for f in frames()), "--clutterlog", "--shotdir=" + d]
+    args += EXTRA
     if layer != "full":
         args.append("--clutterdbg=" + layer)
     p = subprocess.run(args, capture_output=True, text=True, timeout=5400)
@@ -47,7 +52,13 @@ def shoot_one(job):
 
 
 def cmd_shoot(a):
-    jobs = [(op, a.seed, ly) for op in a.ops.split(",") for ly in LAYERS]
+    global TAG
+    if a.squad:
+        EXTRA.append("--squad=" + a.squad)
+    if a.relics:
+        EXTRA.append("--relics=" + a.relics)
+    TAG = a.tag
+    jobs = [(op, a.seed, ly) for op in a.ops.split(",") for ly in a.layers.split(",")]
     with ThreadPoolExecutor(a.jobs) as ex:
         for job, n, errs in ex.map(shoot_one, jobs):
             print(job, "files", n, errs, flush=True)
@@ -137,6 +148,10 @@ def main():
     s.add_argument("--ops", default="texas,exusiai,eyjafjalla,skalter")
     s.add_argument("--seed", type=int, default=11)
     s.add_argument("--jobs", type=int, default=4)
+    s.add_argument("--squad", default="")
+    s.add_argument("--relics", default="")
+    s.add_argument("--tag", default="")
+    s.add_argument("--layers", default=",".join(LAYERS))
     m = sp.add_parser("measure")
     m.add_argument("--ops", default="texas,exusiai,eyjafjalla,skalter")
     m.add_argument("--seed", type=int, default=11)

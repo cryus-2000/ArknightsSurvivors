@@ -21,9 +21,12 @@ CAT_ZH = {"basic": "普攻", "S1": "技能1", "S2": "技能2", "S3": "技能3", 
           "combo": "连携", "relic": "藏品", "summon": "召唤物", "support": "支援", "other": "其他", "S?": "技能?"}
 
 
+EXTRA = []   # run --squad / --relics 透传（召唤物专项，docs/243 §5）
+
+
 def run_one(godot, op, seed, tide):
     args = [godot, "--headless", "--path", GAME, "--", "--balance", "--seed=%d" % seed, "--tide=%d" % tide,
-            "--op=" + op, "--nodeath", "--diagbins"]
+            "--op=" + op, "--nodeath", "--diagbins"] + EXTRA
     out, err, _ = GR.run_godot(args, 1800)
     errs = GR.script_errors(out, err)
     rec = None
@@ -250,6 +253,8 @@ def main():
     r.add_argument("--tides", default="0,10")
     r.add_argument("--ops", default="")
     r.add_argument("--jobs", type=int, default=4)
+    r.add_argument("--squad", default="")
+    r.add_argument("--relics", default="")
     r.add_argument("--out", default=os.path.join(ROOT, "build", "late_diag", "raw.jsonl"))
     q = sp.add_parser("sum")
     q.add_argument("--inp", default=os.path.join(ROOT, "build", "late_diag", "raw.jsonl"))
@@ -259,6 +264,10 @@ def main():
         a.seeds = [int(x) for x in a.seeds.split(",")]
         a.tides = [int(x) for x in a.tides.split(",")]
         a.ops = [x for x in a.ops.split(",") if x]
+        if a.squad:
+            EXTRA.append("--squad=" + a.squad)
+        if a.relics:
+            EXTRA.append("--relics=" + a.relics)
         cmd_run(a)
     elif a.cmd == "sum":
         cmd_sum(a)
