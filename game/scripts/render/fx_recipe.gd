@@ -25,6 +25,7 @@ var _on := false
 var _on_frame := -1
 var _step_frame := -1
 var _t_last := -1.0
+var _tide_i := {}         # 浊心斯卡蒂 S3：已涌过的次数（画面计时）
 var reacts := {}          # 受击反应（fx/recipe_hitreact）：敌人 id → [命中时刻, 颜色, 停顿到, 冻结的选帧时间]
 var _x_frame := -1
 var _x_outline := false
@@ -407,6 +408,8 @@ func _cast(o, i: int, p: Dictionary) -> void:
 				_shape(o, {"k": "bubble", "c": o.pos + Vector2(0, -26), "r": float(m4.get("bubble_r", 24.0)) * m4.sc, "life": life, "freeze": fz, "layer": "over", "grow": true})
 			"ripple":   # 浊心斯卡蒂 S2：一圈地面涟漪
 				_shape(o, {"k": "ring", "c": o.pos + Vector2(0, 4), "r0": 12.0, "r": float(m4.get("ripple_r", 90.0)) * m4.sc, "w": 3.0, "life": life, "freeze": 0.0, "layer": "floor", "tone": "bubble"})
+			"tide":   # 浊心斯卡蒂 S3：潮涌爆发（见 _tide）
+				_tide(o)
 			"crescent2":   # 浊心斯卡蒂 S3：蓝 / 玫红两道新月环身（原作 S3 起手）
 				_shape(o, {"k": "whirl", "c": o.pos + Vector2(0, -20), "ang": 0.0, "r": float(m4.get("cres_r", 30.0)) * m4.sc, "half": PI * 0.8, "w": 10.0 * m4.sc, "strands": 2,
 					"life": life, "freeze": fz, "layer": "over", "tone": "bubble"})
@@ -596,6 +599,8 @@ func _ev_eyja(o, kind: String, d: Dictionary, p: Dictionary) -> void:
 				return
 			var at2: Vector2 = d.at + Vector2(0, -6)
 			var R: float = clampf(float(d.get("r", 50.0)) * float(m2.get("r_k", 0.5)), 14.0, 64.0) * m2.sc * sqrt(float(d.get("sz", 1.0)))
+			_shape(o, {"k": "blast", "c": at2, "r": R * float(m2.get("blast_k", 0.7)), "ang": g.vrng.randf() * TAU, "life": float(m2.get("blast_life", 0.26)),
+				"freeze": float(m2.get("freeze", 0.05)), "layer": "over", "grow": true, "tone": "blast"})
 			_shape(o, {"k": "flare", "c": at2, "ang": g.vrng.randf() * 0.6, "r": R * 0.7, "rv": R * 0.62, "w": float(m2.get("w", 7.0)) * m2.sc * m2.thick, "n8": true,
 				"life": float(m2.get("life", 0.22)), "freeze": float(m2.get("freeze", 0.05)), "layer": "over", "grow": true, "tone": "flash"})
 			_shape(o, {"k": "shards", "c": at2, "r": R, "n": int(m2.get("tongues", 6)) + m2.tier, "w": float(m2.get("tongue_w", 6.0)) * m2.sc, "ang": g.vrng.randf() * TAU,
@@ -620,6 +625,7 @@ func _ev_eyja(o, kind: String, d: Dictionary, p: Dictionary) -> void:
 				return
 			var at3: Vector2 = d.at
 			var R3: float = clampf(float(d.get("r", 30.0)) * 0.5, 10.0, 40.0) * sqrt(float(d.get("sz", 1.0))) * m3.sc
+			_shape(o, {"k": "blast", "c": at3 + Vector2(0, -5), "r": R3 * 0.75, "ang": g.vrng.randf() * TAU, "life": 0.2, "freeze": 0.04, "layer": "over", "grow": true, "tone": "blast"})
 			_shape(o, {"k": "flare", "c": at3 + Vector2(0, -4), "ang": 0.0, "r": R3 * 0.8, "rv": R3 * 0.6, "w": 5.0 * m3.sc, "life": 0.14, "freeze": 0.04, "layer": "over",
 				"grow": true, "tone": "flash"})
 			_shape(o, {"k": "web", "c": at3 + Vector2(0, 2), "r": R3 * 1.2, "n": 5 + m3.tier, "w": 4.0 * m3.thick, "life": float(m3.get("web_life", 0.5)), "freeze": 0.04,
@@ -638,22 +644,25 @@ func _ev_eyja(o, kind: String, d: Dictionary, p: Dictionary) -> void:
 				"freeze": 0.03, "layer": "over", "grow": true, "tone": "flash"})
 			_grains(o, d.at + Vector2(0, -8), (d.at as Vector2).y, "ember", int(m4.get("n", 4)), m4, Vector2.UP)
 		"erupt":
+			# S3 火山每发（原作：红色爆团 + 暗红花瓣 + 火星线）：实心大爆团（暖红 → 亮橙 → 白热芯，体量不小于旧版熔岩一片）+ 4–6 片暗红花瓣碎片向外飞散 + 长火星线 + 地面熔裂网 + 强照地
 			var m5: Dictionary = move(o, "erupt")
 			if m5.is_empty():
 				return
-			var at5: Vector2 = d.at + Vector2(0, -6)
-			var R5: float = clampf(float(d.get("r", 40.0)) * 0.6, 16.0, 56.0) * m5.sc
-			_shape(o, {"k": "flare", "c": at5, "ang": 0.4, "r": R5 * 0.75, "rv": R5 * 0.65, "w": 7.0 * m5.sc, "n8": true, "life": 0.22, "freeze": 0.05, "layer": "over",
-				"grow": true, "tone": "red"})
-			_shape(o, {"k": "shards", "c": at5, "r": R5 * 1.1, "n": 7, "w": 5.0 * m5.sc, "ang": g.vrng.randf() * TAU, "life": 0.24, "freeze": 0.05, "layer": "over",
-				"grow": true, "tone": "red"})
-			_shape(o, {"k": "web", "c": d.at + Vector2(0, 2), "r": R5 * 1.3, "n": 7, "w": 5.0, "life": 0.6, "freeze": 0.05, "layer": "floor", "grow": true, "tone": "flame"})
-			for k in 4:
-				var a5: float = TAU * k / 4.0 + g.vrng.randf_range(-0.4, 0.4)
-				_shape(o, {"k": "star", "c": at5, "n": 5, "r": 7.0 * m5.sc, "ang": a5, "vel": Vector2.from_angle(a5) * R5 * 2.0 * Vector2(1.0, 0.8), "spin": 3.0,
-					"life": 0.45, "freeze": 0.0, "layer": "over", "tone": "petal", "accent": true})
+			var at5: Vector2 = d.at + Vector2(0, -10)
+			var R5: float = clampf(float(d.get("r", 40.0)) * float(m5.get("r_k", 1.0)), 30.0, 80.0) * m5.sc
+			_shape(o, {"k": "blast", "c": at5, "r": R5, "ang": g.vrng.randf() * TAU, "life": float(m5.get("life", 0.36)), "freeze": float(m5.get("freeze", 0.07)),
+				"layer": "over", "grow": true, "tone": "blast"})
+			_shape(o, {"k": "shards", "c": at5, "r": R5 * 1.35, "n": 8, "w": 8.0 * m5.sc, "ang": g.vrng.randf() * TAU, "life": float(m5.get("life", 0.36)) * 0.8,
+				"freeze": float(m5.get("freeze", 0.07)), "layer": "over", "grow": true, "tone": "red"})
+			_shape(o, {"k": "web", "c": d.at + Vector2(0, 2), "r": R5 * 1.5, "n": 8, "w": 7.0, "life": 0.7, "freeze": 0.07, "layer": "floor", "grow": true, "tone": "flame"})
+			var pn5: int = int(m5.get("petal_n", 5))
+			for k in pn5:
+				var a5: float = TAU * k / pn5 + g.vrng.randf_range(-0.35, 0.35)
+				_shape(o, {"k": "star", "c": at5 + Vector2.from_angle(a5) * R5 * 0.4, "n": 5, "r": float(m5.get("petal_r", 11.0)) * m5.sc, "ang": a5,
+					"vel": Vector2.from_angle(a5) * R5 * 3.2 * Vector2(1.0, 0.8), "spin": 4.0, "life": 0.55, "freeze": 0.0, "layer": "over", "tone": "petal", "accent": true})
+			_grains(o, at5, float(d.at.y) + 4.0, "streak", int(m5.get("streaks", 8)), {"grain_spd": 1.5, "tier": 2})
 			_grains(o, at5, float(d.at.y) + 4.0, "ember", 5, m5)
-			_hitlight(o, at5, float(d.at.y) + 4.0, R5, 140.0 * m5.sc, 0.8, 0.14, p.light)
+			_hitlight(o, at5, float(d.at.y) + 4.0, R5, float(m5.get("light_r", 200.0)) * m5.sc, float(m5.get("light_i", 1.0)), 0.15, p.light)
 
 
 ## 浊心斯卡蒂：歌域的每一下（shape circle）——命中的敌人头上冒细笔画音符 + 一道细玫红歌声线连回她；精一余音 = 环带一圈细波；伊莎玛拉的一下 = 两圈细涟漪
@@ -678,6 +687,11 @@ func _ev_skalter(o, d: Dictionary, p: Dictionary) -> void:
 				"layer": "floor", "tone": "rose"})
 	elif center == "target":
 		_shape(o, {"k": "ring", "c": c + Vector2(0, 4), "r0": 6.0, "r": r, "w": 2.0, "life": 0.3, "freeze": 0.0, "layer": "floor", "tone": "bubble"})
+	if center == "zone" and not d.get("band", false):   # 普攻每一下：歌域边一道粗笔触波（亮蓝 + 深蓝阴影），0.3 秒扩出即散（爆发主体）
+		var mw: Dictionary = move(o, "wave")
+		if not mw.is_empty():
+			_shape(o, {"k": "brushwave", "c": c + Vector2(0, 4), "r0": r * 0.82, "r": r * 1.03, "w": float(mw.get("w", 6.0)) * mw.thick, "n": int(mw.get("strokes", 5)) + mw.tier,
+				"life": float(mw.get("life", 0.32)), "freeze": 0.0, "layer": "floor", "accent": mw.tier >= 2})
 	var k2 := 0
 	var from: Vector2 = o.pos + Vector2(0, -30)
 	for e in es:
@@ -1000,6 +1014,16 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 		"song":
 			_draw_song(cv, s, tn, u)
 			return
+		"brushwave":
+			var rr: float = lerpf(float(s.r0), float(s.r), 1.0 - pow(1.0 - u, 2.0))
+			_draw_brush_ring(cv, s.c, rr, int(s.get("n", 5)), float(s.w) * (1.0 - 0.4 * u), p, (1.0 - u) * 1.0, float(s.get("seed", 0) % 100) * 0.06, s.get("accent", false))
+			return
+		"tide":
+			_draw_tide(cv, s, u, p)
+			return
+		"tide_cols":
+			_draw_tide_cols(cv, s, u, p)
+			return
 		"note":
 			_draw_note(cv, s.c + Vector2(0, -18.0 * u), tn[1], float(tn[3]) * (1.0 - u * 0.5), int(s.get("seed", 0)) % 2)
 			return
@@ -1017,6 +1041,11 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 				for op in Geometry2D.offset_polygon(poly, 2.0, Geometry2D.JOIN_MITER):
 					cv.draw_colored_polygon(op, oc)
 	var layers: Array = [[1.0, tn[0]], [0.72, tn[1]], [0.36, tn[2]]]
+	if str(s.k) == "blast":   # 爆团四阶；定帧期间不整团发白，只芯白热（暖红 → 亮橙 → 白热芯）
+		if age < float(s.get("freeze", 0.0)):
+			layers = [[1.0, pp.dark], [0.8, pp.main], [0.55, pp.get("light", pp.main)], [0.3, Color(pp.hot.r * 1.4, pp.hot.g * 1.4, pp.hot.b * 1.4)]]
+		else:
+			layers = [[1.0, tn[0]], [0.8, tn[1]], [0.55, pp.get("light", tn[1]).lerp(tn[1], clampf(age / maxf(0.01, float(s.life)), 0.0, 1.0))], [0.28, tn[2]]]
 	for L in layers:
 		var col: Color = L[1]
 		if col.a <= 0.0:
@@ -1028,7 +1057,7 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 
 
 ## 描边（fx/recipe_outline，Hades 式线稿）：只给小物件主形（弹体、刃、星芒、碎刺、光柱、三角汇聚），大面积场域、地面裂网与文字不加
-const OUTLINE_KINDS := ["flare", "shards", "orb", "dart", "spike", "tear", "converge", "crescent", "beam", "spear3", "star", "chunk"]
+const OUTLINE_KINDS := ["flare", "shards", "orb", "dart", "spike", "tear", "converge", "crescent", "beam", "spear3", "star", "chunk", "blast"]
 
 
 static func _outline_col(p: Dictionary) -> Color:
@@ -1136,6 +1165,15 @@ func _geo(s: Dictionary, gk: float, k: float) -> Array:
 			return [_quill(at5, dv5, float(s.len) * (0.75 + 0.25 * k), float(s.w) * k, false)]
 		"hammer":
 			return _hammer(s, gk, k)
+		"blast":   # 实心爆团（11-05 规则分两类：爆发主体按原作体量做大、做实，靠短时长不挡画面）：14 瘤不规则团，k 越小越圆越小
+			var r7: float = float(s.r) * gk * pow(k, 0.55)
+			var sd7: int = int(s.seed)
+			var pts7 := PackedVector2Array()
+			for i in 14:
+				var a7: float = TAU * i / 14.0 + float(s.get("ang", 0.0))
+				var j7: float = (0.78 + 0.22 * _h(sd7, i)) if i % 2 == 0 else (0.9 + 0.1 * _h(sd7, i + 3))
+				pts7.append(_snap(c + Vector2(cos(a7), sin(a7) * 0.9) * r7 * lerpf(1.0, j7, k)))
+			return [pts7]
 		"chunk":   # 熔岩块（艾雅法拉抛射）：不规则六边硬壳，种子定形
 			var r6: float = float(s.r) * gk * (0.6 + 0.4 * k)
 			var sd6: int = int(s.seed)
@@ -1372,6 +1410,58 @@ func _draw_glyphring(cv, s: Dictionary, tn: Array, u: float, p: Dictionary) -> v
 		col.a *= al * (1.0 if front else 0.7)
 		for cl in cells[int(_h(sd, i) * GLYPHS.size()) % GLYPHS.size()]:
 			cv.draw_rect(Rect2(q + Vector2(cl.x, cl.y) * 2.0, Vector2(2, 2)), col)
+
+
+## 潮涌爆发（浊心斯卡蒂 S3，原作 buff_02 / buff_03：粗笔触圈 + 红色竖光柱）：0.45 秒的爆发主体——
+## 粗笔触环（亮蓝 + 深蓝阴影，4–8 px）从 0.6 扩到 1.0 歌域半径；内部由中心往外的实心渐变（中心 α 0.5 → 边 0.35）；
+## 8 道旋转的向心笔触线；4–5 根粗亮玫红竖光柱（宽 12–16 px，白热芯）冲起再回落。之后收成持续态（加粗笔触圈 + 细光柱）。
+func _tide(o) -> void:
+	var m: Dictionary = move(o, "tide")
+	if m.is_empty() or o.pos == Vector2.INF:
+		return
+	var zr: float = float(o.call("_zone_vis_r")) if o.has_method("_zone_vis_r") else float(o.zr)
+	_shape(o, {"k": "tide", "c": o.zone_c() + Vector2(0, 4), "r": zr, "life": float(m.get("life", 0.45)), "freeze": 0.0, "layer": "floor", "follow": true})
+	_shape(o, {"k": "tide_cols", "c": o.pos, "r": zr, "life": float(m.get("life", 0.45)), "freeze": 0.0, "layer": "over", "follow": true,
+		"n": int(m.get("pillars", 5)), "w": float(m.get("pillar_w", 14.0)), "h": float(m.get("pillar_h", 130.0))})
+	_light(o, o.pos, zr * 1.1, float(m.get("light_i", 0.9)), 0.15, pal(o).light)
+
+
+func _draw_tide(cv, s: Dictionary, u: float, p: Dictionary) -> void:
+	var c: Vector2 = s.c
+	var R: float = float(s.r) * lerpf(0.6, 1.0, 1.0 - pow(1.0 - minf(1.0, u / 0.45), 2.0))
+	var fade: float = 1.0 if u < 0.55 else 1.0 - (u - 0.55) / 0.45
+	var deep: Color = p.get("tones", {}).get("deep", p).main
+	cv.draw_set_transform(_snap(c), 0.0, Vector2(1.0, SY))
+	for L in [[1.0, 0.35], [0.66, 0.08], [0.36, 0.07]]:   # 中心往外的实心渐变：边 0.35、中心约 0.5
+		cv.draw_circle(Vector2.ZERO, R * float(L[0]), Color(deep.r, deep.g, deep.b, float(L[1]) * fade))
+	var rot: float = g.t * 3.0
+	for i in 8:   # 旋转的向心笔触线
+		var a0: float = rot + TAU * i / 8.0
+		var pts := PackedVector2Array()
+		for j in 7:
+			var t: float = float(j) / 6.0
+			var rr: float = R * lerpf(0.95, 0.3, t)
+			var a: float = a0 + t * 0.9
+			pts.append(Vector2(cos(a), sin(a)) * rr)
+		cv.draw_polyline(pts, Color(p.light.r, p.light.g, p.light.b, 0.8 * fade), 3.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_draw_brush_ring(cv, c, R, 8, 8.0, p, fade, rot * 0.3, true)
+
+
+func _draw_tide_cols(cv, s: Dictionary, u: float, p: Dictionary) -> void:
+	var rs: Dictionary = p.get("tones", {}).get("rose", p)
+	var n: int = int(s.get("n", 5))
+	var up: float = minf(1.0, u / 0.2)
+	var fade: float = 1.0 if u < 0.6 else 1.0 - (u - 0.6) / 0.4
+	for k in n:
+		var a: float = TAU * k / n + 0.3
+		var q: Vector2 = (s.c as Vector2) + Vector2(cos(a) * 30.0, 4.0 + sin(a) * 12.0)
+		var hgt: float = float(s.h) * up * (0.8 + 0.2 * _h(71, k))
+		var w: float = float(s.w) * (0.85 + 0.3 * _h(73, k))
+		for Ly in [[w + 4.0, rs.dark, 0.8], [w, rs.main, 1.0], [w * 0.4, rs.hot, 1.0]]:
+			var col: Color = Ly[1]
+			col.a *= float(Ly[2]) * fade
+			cv.draw_colored_polygon(_seg(q, q + Vector2(0, -hgt), float(Ly[0]), float(Ly[0]) * 0.6), col)
 
 
 ## 歌声线（浊心斯卡蒂）：命中点 → 她，一道细弧线（2 px），从命中点一端写出、尾端先熄
@@ -2060,6 +2150,16 @@ func _draw_skalter_floor(o, cv, p: Dictionary) -> void:
 	var w: float = float(mz.get("w", 4.0)) * (1.6 if s3 else 1.0) * mz.thick
 	_edge_glow(cv, c + Vector2(0, 4), zr, p.main, float(mz.get("glow_a", 0.1)) * (1.5 if s3 else 1.0), 0.3)
 	_draw_brush_ring(cv, c + Vector2(0, 4), zr, n, w, p, 1.0, g.t * 0.15, mz.tier >= 2 or s3)
+	var nl: int = int(mz.get("inner_lines", 5)) + (3 if s3 else 0)
+	cv.draw_set_transform(_snap(c + Vector2(0, 4)), 0.0, Vector2(1.0, SY))
+	for i in nl:   # 内侧旋转的细笔触线（潮的动势），α 0.3，只占边缘往里 35%
+		var a0: float = -g.t * (0.35 if not s3 else 0.9) + TAU * i / nl + 0.7 * _h(61, i)
+		var pts := PackedVector2Array()
+		for j in 6:
+			var t: float = float(j) / 5.0
+			pts.append(Vector2.from_angle(a0 + t * 0.55) * zr * lerpf(0.92, 0.68, t))
+		cv.draw_polyline(pts, Color(p.light.r, p.light.g, p.light.b, float(mz.get("line_a", 0.3)) * (1.4 if s3 else 1.0)), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# S1：脚下玫红细地环（精二双环）
 	if o.skill_active_left(0) > 0.0:
 		var m1: Dictionary = move(o, "s1")
@@ -2105,13 +2205,20 @@ func _draw_skalter_over(o, cv, p: Dictionary) -> void:
 			var q: Vector2 = o.pos + Vector2(cos(a) * rr, -6.0 + sin(a) * rr * 0.5)
 			_draw_fish(cv, q + Vector2(0, 2), a + PI / 2.0, rs.dark, (float(m2.get("fish_sz", 1.0)) + 0.25 * m2.tier) * 1.25)
 			_draw_fish(cv, q, a + PI / 2.0, rs.main, float(m2.get("fish_sz", 1.0)) + 0.25 * m2.tier)
-	if o.skill_active_left(2) > 0.0:   # S3 玫红竖光柱（细）+ 上浮光点
+	if o.skill_active_left(2) > 0.0:   # S3：每 tide_every 秒再涌一次（爆发主体），持续态 = 玫红竖光柱 + 上浮光点
 		var m3: Dictionary = move(o, "s3")
+		var el: float = o.skill_active_dur(2) - o.skill_active_left(2)
+		var ti: int = int(el / float(m3.get("tide_every", 3.0)))
+		var key: String = str(o.id)
+		if ti > 0 and int(_tide_i.get(key, 0)) != ti:
+			_tide(o)
+		_tide_i[key] = ti
 		for k in int(m3.get("pillars", 4)):
 			var a: float = TAU * k / float(m3.get("pillars", 4)) + 0.4
 			var q: Vector2 = o.pos + Vector2(cos(a) * 26.0, 4.0 + sin(a) * 10.0)
-			var hgt: float = 70.0 + 26.0 * sin(g.t * 4.0 + k * 1.7)
-			for Ly in [[6.0, rs.dark], [3.0, rs.main], [1.0, rs.hot]]:
+			var hgt: float = 80.0 + 26.0 * sin(g.t * 4.0 + k * 1.7)
+			var pw: float = float(m3.get("pillar_w", 6.0))
+			for Ly in [[pw + 2.0, rs.dark], [pw * 0.6, rs.main], [maxf(2.0, pw * 0.25), rs.hot]]:
 				cv.draw_colored_polygon(_seg(q, q + Vector2(0, -hgt), float(Ly[0]) + 2.0, float(Ly[0])), Ly[1])
 		for k in 6:
 			var ph: float = fmod(g.t * 0.5 + _h(53, k), 1.0)

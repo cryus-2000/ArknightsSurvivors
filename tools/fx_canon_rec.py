@@ -70,6 +70,7 @@ def main():
     ap.add_argument("--secs", type=int, default=20)
     ap.add_argument("--maxt", type=int, default=300)
     ap.add_argument("--extra", default="")
+    ap.add_argument("--jobs", type=int, default=1, help="同时开几个 Godot（11-05 本机限流：缺省 1，串行）")
     a = ap.parse_args()
     base = ["--seed=%d" % a.seed, "--op=" + a.op] + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
     tags = []
@@ -80,7 +81,7 @@ def main():
             ex = base + ["--bal=fx/recipe=%d" % on, "--realtime", "--rtfrom=%d" % a.t0, "--recframes=%d,%d" % (a.t0, a.secs * 30), "--maxt=%d" % (a.t0 + a.secs + 1)]
             jobs.append((tag, ex, 30, os.path.join(OUT, tag + "_frames")))
             tags.append(tag)
-        with ThreadPoolExecutor(2) as ex:
+        with ThreadPoolExecutor(a.jobs) as ex:
             for r in ex.map(lambda j: run(*j), jobs):
                 print(r, flush=True)
         import imageio_ffmpeg
@@ -99,7 +100,7 @@ def main():
             tag = "%s_trace%d_s%d" % (a.op, on, a.seed)
             jobs.append((tag, base + ["--bal=fx/recipe=%d" % on, "--maxt=%d" % a.maxt], 60, None))
             tags.append(tag)
-        with ThreadPoolExecutor(2) as ex:
+        with ThreadPoolExecutor(a.jobs) as ex:
             for r in ex.map(lambda j: run(*j), jobs):
                 print(r, flush=True)
     elif a.cmd == "grid":
@@ -112,7 +113,7 @@ def main():
             ex = base + ["--bal=fx/recipe=1"] + ex2 + ["--realtime", "--rtfrom=%d" % a.t0, "--recframes=%d,%d" % (a.t0, a.secs * 30), "--maxt=%d" % (a.t0 + a.secs + 1)]
             jobs.append((tag, ex, 30, os.path.join(OUT, tag + "_frames")))
             tags.append(tag)
-        with ThreadPoolExecutor(4) as ex:
+        with ThreadPoolExecutor(a.jobs) as ex:
             for r in ex.map(lambda j: run(*j), jobs):
                 print(r, flush=True)
         import imageio_ffmpeg
