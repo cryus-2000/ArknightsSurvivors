@@ -248,6 +248,10 @@ func _hit(o, at: Vector2, gy: float, name: String, dir: Vector2) -> void:
 	var sh := {"k": "shards", "c": at, "r": R, "n": int(m.get("shards", 5)), "w": float(m.get("w", 5.0)) * m.sc * m.thick, "ang": a0,
 		"life": float(m.get("life", 0.26)), "freeze": float(m.get("freeze", 0.05)), "layer": "over", "grow": true, "tone": str(m.get("shard_tone", "shard"))}
 	_shape(o, sh)
+	if m.tier >= 1:
+		# 精一起：外圈再多一圈短碎刺（8 根，转半格），手机宽度下也看得出「多一圈」
+		_shape(o, {"k": "shards", "c": at, "r": R * float(m.get("ring2_k", 1.45)), "n": 8, "w": float(m.get("w", 5.0)) * m.sc * 0.7, "ang": a0 + 0.39, "inner": 0.6,
+			"life": float(m.get("life", 0.26)) * 0.85, "freeze": float(m.get("freeze", 0.05)), "layer": "over", "grow": true, "tone": str(m.get("shard_tone", "shard")), "delay": 0.03})
 	if m.tier < 2:
 		_shape(o, {"k": "flare", "c": at, "ang": 0.0, "r": R * 0.62, "rv": R * 0.62, "w": float(m.get("w", 5.0)) * m.sc, "n8": m.tier >= 1,
 			"life": float(m.get("life", 0.26)) * 0.8, "freeze": float(m.get("freeze", 0.05)), "layer": "over", "grow": true})
@@ -366,7 +370,10 @@ func _cast(o, i: int, p: Dictionary) -> void:
 					"w": float(m4.get("band_w", 5.0)) * m4.thick, "life": float(m4.get("band_life", 0.22)), "freeze": fz, "layer": "over", "grow": true, "tone": "flash"})
 	if m4.has("ring"):
 		_shape(o, {"k": "ring", "c": o.pos + Vector2(0, 4), "r0": 10.0, "r": float(m4.ring) * m4.sc, "w": float(m4.get("ring_w", 5.0)) * m4.thick,
-			"life": float(m4.get("ring_life", 0.4)), "freeze": 0.0, "layer": "floor", "tone": str(m4.get("ring_tone", ""))})
+			"life": float(m4.get("ring_life", 0.4)), "freeze": float(m4.get("ring_freeze", 0.0)), "layer": "floor", "tone": str(m4.get("ring_tone", ""))})
+		if m4.tier >= 1 and m4.get("ring2", false):   # 精一：晚一拍再震一圈（形状差）
+			_shape(o, {"k": "ring", "c": o.pos + Vector2(0, 4), "r0": 8.0, "r": float(m4.ring) * m4.sc * 0.62, "w": float(m4.get("ring_w", 5.0)) * m4.thick * 0.8,
+				"life": float(m4.get("ring_life", 0.4)) * 0.8, "freeze": 0.0, "layer": "floor", "tone": str(m4.get("ring_tone", "")), "delay": 0.1, "accent": m4.tier >= 2})
 	if m4.has("grain"):
 		_grains(o, c, o.pos.y, str(m4.grain), int(m4.get("n", 6)), m4)
 	_light(o, o.pos, float(m4.get("light_r", 120.0)) * m4.sc, float(m4.get("light_i", 0.7)), float(m4.get("light_life", 0.15)), p.light)
@@ -783,7 +790,14 @@ func _geo(s: Dictionary, gk: float, k: float) -> Array:
 				var bw: float = maxf(1.5, float(s.w) * (0.6 + 0.4 * _h(sd, i + 31)) * k)
 				var dv2 := Vector2.from_angle(a)
 				var nv2: Vector2 = dv2.orthogonal()
-				out2.append(PackedVector2Array([_snap(c - dv2 * bw * 0.6), _snap(c + nv2 * bw * 0.5), _snap(c + dv2 * L), _snap(c - nv2 * bw * 0.5)]))
+				var c2: Vector2 = c + dv2 * R * float(s.get("inner", 0.0))
+				if s.has("inner"):
+					a = float(s.ang) + TAU * i / n
+					dv2 = Vector2.from_angle(a)
+					nv2 = dv2.orthogonal()
+					c2 = c + dv2 * R * float(s.inner)
+					L = R * (1.0 - float(s.inner)) * (0.7 + 0.3 * _h(sd, i + 17)) * (0.65 + 0.35 * k)
+				out2.append(PackedVector2Array([_snap(c2 - dv2 * bw * 0.6), _snap(c2 + nv2 * bw * 0.5), _snap(c2 + dv2 * L), _snap(c2 - nv2 * bw * 0.5)]))
 			return out2
 		"orb":   # 白热光团（原作命中的白色光球）：八角硬边
 			var r3: float = float(s.r) * gk * (0.55 + 0.45 * k)
@@ -957,9 +971,9 @@ func _draw_whirl(cv, s: Dictionary, tn: Array, u: float, p: Dictionary) -> void:
 # ---------------------------------------------------------------- 咒文（原作逻各斯提喻的连线字块、殁亡处决的符文链；本作 3×4 像素字形）
 
 const GLYPHS := [
-	["###", "#..", "##.", "#.."], [".#.", "###", ".#.", ".#."], ["#.#", ".#.", "#.#", "#.#"], ["###", "..#", "..#", "###"],
-	["#..", "#..", "#..", "###"], [".#.", "...", "#.#", "..."], ["##.", "#.#", "##.", "#.."], ["#.#", "###", "#.#", "#.#"],
-	["###", "#.#", "#.#", "###"], [".##", "#..", "#..", ".##"], ["#.#", "#.#", ".#.", ".#."], ["###", ".#.", ".#.", "###"],
+	["###", "..#", ".##", "..#", "..#"], [".#.", "###", ".#.", ".#.", ".#."], ["#.#", "#.#", ".#.", "#.#", "#.#"], ["###", ".#.", ".#.", ".#.", "###"],
+	[".#.", "...", "...", "#.#", "..."], ["##.", "..#", "..#", "..#", "##."], ["#..", "#..", "###", "#.#", "#.#"], ["#.#", "#.#", "###", "..#", "..#"],
+	[".#.", "#.#", "#.#", "#.#", "#.#"], ["#..", "##.", "#.#", "#..", "#.."], ["###", "#.#", "#.#", "#.#", "#.#"], ["...", ".#.", "...", ".#.", "..."],
 ]
 static var _gcells: Array = []
 
@@ -968,7 +982,7 @@ static func _glyph_cells() -> Array:
 	if _gcells.is_empty():
 		for gl in GLYPHS:
 			var cl: Array = []
-			for y in 4:
+			for y in gl.size():
 				for x in 3:
 					if gl[y][x] == "#":
 						cl.append(Vector2(x, y))
@@ -976,38 +990,40 @@ static func _glyph_cells() -> Array:
 	return _gcells
 
 
-## 一条咒文：从 a 沿 dv 排 L 长，字格 cs；字形按 sd 散列选；scroll = 沿线流动（像素 / 秒）；reveal 0..1 = 从起点写出的比例
-## rows = 1 或 2（2 = 中线两侧各一行，精一的形状差）；bg 暗底（a = 0 不画）；fg / fg2 字色交替
-func _glyph_strip(cv, a: Vector2, dv: Vector2, L: float, cs: float, sd: int, bg: Color, fg: Color, fg2: Color, reveal: float, rows: int, scroll := 0.0) -> void:
+## 一条咒文（11-05 用户：白字不准加粗）：从 a 沿 dv 排 L 长；字是 3×5 细笔画、1 美术像素（2 px）宽、字距 2 格、直立不旋转、不画底色块；
+## 字形按 sd 散列选；scroll = 沿线流动（像素 / 秒）；reveal 0..1 = 从起点写出的比例；rows = 1 或 2（2 = 中线两侧各一行、前后错开半字，精一的形状差）；
+## fg / fg2 字色交替（精二用更亮的白 + 点缀紫，不加粗）。bg 参数保留不用。
+func _glyph_strip(cv, a: Vector2, dv: Vector2, L: float, _cs: float, sd: int, _bg: Color, fg: Color, fg2: Color, reveal: float, rows: int, scroll := 0.0) -> void:
+	var cs := 2.0
 	var nv: Vector2 = dv.orthogonal()
-	var adv: float = cs * 4.0
+	if nv.y > 0.0:
+		nv = -nv
+	var adv: float = cs * 5.0
 	var Lr: float = L * clampf(reveal, 0.0, 1.0)
 	if Lr < adv:
 		return
-	if bg.a > 0.0:
-		var hw: float = cs * (2.6 if rows == 1 else 5.2)
-		cv.draw_colored_polygon(PackedVector2Array([_snap(a + nv * hw), _snap(a + dv * Lr + nv * hw), _snap(a + dv * Lr - nv * hw), _snap(a - nv * hw)]), bg)
 	var cells: Array = _glyph_cells()
 	var sh: float = fmod(g.t * scroll, adv) if scroll != 0.0 else 0.0
 	var base_i: int = int(floor(g.t * scroll / adv)) if scroll != 0.0 else 0
 	var n: int = int(Lr / adv) + 1
 	for r in rows:
-		var off: float = (-2.0 if rows == 1 else (-4.6 if r == 0 else 0.6)) * cs
+		var off: float = (5.0 if rows == 1 else (11.0 if r == 0 else -1.0)) * cs * 0.5
+		var stag: float = 0.0 if r == 0 else adv * 0.5
 		for i in n + 1:
-			var x0: float = i * adv + sh - adv
+			var x0: float = i * adv + sh - adv + stag
 			if x0 < 0.0 or x0 + cs * 3.0 > Lr:
 				continue
 			var gi: int = int(_h(sd + r * 977, i - base_i) * GLYPHS.size()) % GLYPHS.size()
 			var col: Color = fg if (i - base_i + r) % 3 != 0 else fg2
+			var q0: Vector2 = _snap(a + dv * (x0 + cs * 1.5) + nv * off - Vector2(cs * 1.5, cs * 2.5))
 			for cl in cells[gi]:
-				var q: Vector2 = a + dv * (x0 + cl.x * cs) + nv * (off + cl.y * cs)
-				cv.draw_colored_polygon(PackedVector2Array([_snap(q), _snap(q + dv * cs), _snap(q + dv * cs + nv * cs), _snap(q + nv * cs)]), col)
+				cv.draw_rect(Rect2(q0 + Vector2(cl.x, cl.y) * cs, Vector2(cs, cs)), col)
 
 
 ## 咒文交叉（殁亡处决 / 精二命中）：2–3 条咒文从中心交叉，前 25% 寿命写出
 func _draw_runex(cv, s: Dictionary, tn: Array, u: float, gk: float, p: Dictionary) -> void:
 	var L: float = float(s.len) * gk
-	var cs: float = maxf(2.0, round(float(s.get("gs", 2.0)) / 2.0) * 2.0)
+	var cs := 2.0
 	var al: float = float(tn[3])
 	var bg: Color = tn[0]
 	bg.a *= 0.85 * al
@@ -1037,13 +1053,10 @@ func _draw_glyphring(cv, s: Dictionary, tn: Array, u: float, p: Dictionary) -> v
 		if float(i) / n > u / 0.3:
 			break
 		var a: float = rot + TAU * i / n
-		var q: Vector2 = _snap(c + Vector2(cos(a) * r, sin(a) * r * 0.42) - Vector2(3, 4))
+		var q: Vector2 = _snap(c + Vector2(cos(a) * r, sin(a) * r * 0.42) - Vector2(3, 5))
 		var front: bool = sin(a) > 0.0
 		var col: Color = (p.hot if front else p.light) if not (s.get("accent", false) and i % 3 == 0) else p.accent
 		col.a *= al * (1.0 if front else 0.7)
-		var bg: Color = p.dark
-		bg.a = 0.7 * al
-		cv.draw_rect(Rect2(q - Vector2(2, 2), Vector2(10, 12)), bg)
 		for cl in cells[int(_h(sd, i) * GLYPHS.size()) % GLYPHS.size()]:
 			cv.draw_rect(Rect2(q + Vector2(cl.x, cl.y) * 2.0, Vector2(2, 2)), col)
 
@@ -1328,11 +1341,9 @@ func _draw_lock(o, cv, p: Dictionary) -> void:
 	var tw: float = (float(m.get("w", 2.0)) + float(m.get("w_ramp", 2.0)) * ramp) * m.thick
 	cv.draw_line(_snap(a), _snap(bb), Color(p.dark.r, p.dark.g, p.dark.b, 0.9), tw + 4.0)
 	cv.draw_line(_snap(a), _snap(bb), p.main, tw)
-	var cs: float = 2.0 * float(m.get("gs", 1.0)) * (2.0 if m.tier >= 2 else 1.0)
-	var bg: Color = p.dark
-	bg.a = 0.75
 	if L > 8.0:
-		_glyph_strip(cv, a + dv * 6.0, dv, L - 6.0, cs, 3 + int(lk.n) / 4, bg, p.hot, p.accent if m.tier >= 2 else p.light,
+		var fg: Color = p.hot if m.tier >= 2 else p.get("glyph", p.light)
+		_glyph_strip(cv, a + dv * 6.0, dv, L - 6.0, 2.0, 3 + int(lk.n) / 4, Color(0, 0, 0, 0), fg, p.accent if m.tier >= 2 else fg,
 			1.0, 2 if m.tier >= 1 else 1, float(m.get("scroll", 70.0)))
 	if head >= 1.0:
 		var gp: Vector2 = lk.e.pos + Vector2(0, 4)
@@ -1406,8 +1417,17 @@ static func _fan_band(c: Vector2, fa: float, half: float, r0: float, r1: float, 
 	return pts
 
 
-## 延异视阈（S3，原作 range_01 的地面咒域）：贴地扇面 = 暗底 + 暗紫内圈带 + 亮蓝外圈厚带（每跳外圈爆亮一拍），弧两端与正中各一枚四芒星
-## （原作内圈是暗琥珀，本作改暗紫，避开结晶暖金）。精一：外圈外沿浮一排咒文（原作飘在咒域上的字行）；精二：内圈换点缀紫、每跳飞来大墨迹彗星（见 _tick）
+static func _fan_arc(c: Vector2, fa: float, half: float, r: float, N: int) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in N + 1:
+		var a: float = fa - half + 2.0 * half * i / N
+		pts.append(_snap(c + Vector2(cos(a), sin(a) * 0.8) * r))
+	return pts
+
+
+## 延异视阈（S3，原作 range_01 的地面咒域）。11-05 用户嫌平涂分层：改成
+## 外圈一道亮蓝细边（1–2 美术像素）+ 内部由外向内变暗的低透明度渐变（12 圈、每圈只差约 0.02，最外 α ≤ 0.22，不盖敌人）+ 两道很淡的流动旋涡纹；
+## 亮度靠一盏跟随照地光，不靠填色。弧两端与正中各一枚小四芒星。精一：边加宽一档 + 外沿浮一排细笔画咒文；精二：渐变掺点缀紫、每跳飞来深色墨刃（见 _tick，实心）
 func _draw_fan(o, cv, p: Dictionary) -> void:
 	var h: Dictionary = o.hw
 	var fn = h.get("fan", {})
@@ -1426,51 +1446,72 @@ func _draw_fan(o, cv, p: Dictionary) -> void:
 	var fade: float = clampf(float(fn.t) / 0.35, 0.0, 1.0)
 	var rr: float = r * (0.6 + 0.4 * (1.0 - pow(1.0 - open, 2.0)))
 	var c: Vector2 = o.pos
-	var N := 22
-	var wedge := PackedVector2Array([_snap(c)])
-	for i in N + 1:
-		var a: float = fa - half + 2.0 * half * i / N
-		wedge.append(_snap(c + Vector2(cos(a), sin(a) * 0.8) * rr))
-	var dk: Color = p.dark
-	cv.draw_colored_polygon(wedge, Color(dk.r, dk.g, dk.b, float(m.get("fill_a", 0.35)) * fade))
-	var inn: Color = p.get("inner", p.dark) if m.tier < 2 else p.accent.lerp(p.dark, 0.45)
-	cv.draw_colored_polygon(_fan_band(c, fa, half, rr * 0.48, rr * 0.64, N), Color(inn.r, inn.g, inn.b, 0.75 * fade))
+	var N := 28
 	var tk: float = float(b.get("tick", 0.5))
 	var ut: float = 1.0 - clampf(float(fn.get("tick", 0.0)) / maxf(0.05, tk), 0.0, 1.0)
 	var pulse: bool = ut < 0.16
-	var bw: float = float(m.get("band", 0.14)) * (1.0 + 0.25 * m.tier)
-	cv.draw_colored_polygon(_fan_band(c, fa, half, rr * (1.0 - bw) - 3.0, rr + 3.0, N), Color(dk.r, dk.g, dk.b, 0.9 * fade))
-	var mc: Color = p.main.lerp(p.light, 0.5) if pulse else p.main   # 每跳外圈提亮一拍（不整圈白热，免得发白）
-	cv.draw_colored_polygon(_fan_band(c, fa, half, rr * (1.0 - bw), rr, N), Color(mc.r, mc.g, mc.b, fade))
-	var lc: Color = p.light if not pulse else p.hot
-	cv.draw_colored_polygon(_fan_band(c, fa, half, rr - 4.0, rr - 2.0, N), Color(lc.r, lc.g, lc.b, fade))
+	var amax: float = minf(0.25, float(m.get("fill_a", 0.22)))
+	var tint: Color = p.main if m.tier < 2 else p.main.lerp(p.accent, 0.45)
+	var nb: int = 12
+	for j in nb:
+		var k: float = 1.0 - float(j) / nb   # 1 外 → 0 内
+		var r1: float = rr * k
+		var r0: float = maxf(4.0, rr * (k - 1.0 / nb))
+		var col: Color = p.dark.lerp(tint, 0.25 + 0.6 * k)
+		col.a = (0.02 + (amax - 0.02) * k * k) * fade
+		cv.draw_colored_polygon(_fan_band(c, fa, half, r0, r1, N), col)
+	# 淡旋涡纹：两道虚线弧，随时间沿弧流动
+	var sw: Color = p.light
+	for q in 2:
+		var rq: float = rr * (0.5 + 0.24 * q + 0.04 * sin(g.t * 1.3 + q))
+		var seg := PackedVector2Array()
+		for i in N * 2 + 1:
+			var a: float = fa - half + 2.0 * half * i / (N * 2)
+			var on: bool = sin(a * 9.0 - g.t * (2.4 + q)) > 0.35
+			if on:
+				seg.append(_snap(c + Vector2(cos(a), sin(a) * 0.8) * (rq + 6.0 * (float(i) / (N * 2) - 0.5))))
+			elif seg.size() >= 2:
+				cv.draw_polyline(seg, Color(sw.r, sw.g, sw.b, 0.16 * fade), 2.0)
+				seg = PackedVector2Array()
+			else:
+				seg = PackedVector2Array()
+		if seg.size() >= 2:
+			cv.draw_polyline(seg, Color(sw.r, sw.g, sw.b, 0.16 * fade), 2.0)
+	# 外圈亮蓝细边（每跳提亮一拍）+ 两侧细边
+	var ew: float = 2.0 if m.tier < 1 else 4.0
+	var ec: Color = p.hot if pulse else p.light
+	var arc: PackedVector2Array = _fan_arc(c, fa, half, rr, N)
+	cv.draw_polyline(arc, Color(p.dark.r, p.dark.g, p.dark.b, 0.6 * fade), ew + 2.0)
+	cv.draw_polyline(arc, Color(ec.r, ec.g, ec.b, fade), ew)
 	for sgn in [-1.0, 1.0]:
 		var ea: float = fa + half * sgn
-		cv.draw_line(_snap(c), _snap(c + Vector2(cos(ea), sin(ea) * 0.8) * rr), Color(mc.r, mc.g, mc.b, 0.8 * fade), 2.0)
-	# 四芒星：弧两端 + 正中
-	var fr: float = float(m.get("star_r", 12.0)) * m.sc * (0.85 + 0.15 * sin(g.t * 6.0))
-	for k in 3:
-		var a2: float = fa + half * float(k - 1) * 1.02
-		var q: Vector2 = c + Vector2(cos(a2), sin(a2) * 0.8) * (rr + 6.0)
-		var st := {"k": "flare", "c": q, "ang": 0.0, "r": fr, "rv": fr * 1.2, "w": 4.0 * m.thick}
-		for Ly in [[1.0, p.dark], [0.72, p.main if not pulse else p.hot], [0.36, p.hot]]:
-			var col: Color = Ly[1]
-			col.a *= fade
+		cv.draw_line(_snap(c), _snap(c + Vector2(cos(ea), sin(ea) * 0.8) * rr), Color(p.light.r, p.light.g, p.light.b, 0.55 * fade), 2.0)
+	# 四芒星：弧两端 + 正中（小物件，实心）
+	var fr: float = float(m.get("star_r", 9.0)) * m.sc * (0.85 + 0.15 * sin(g.t * 6.0))
+	for k2 in 3:
+		var a2: float = fa + half * float(k2 - 1) * 1.02
+		var q2: Vector2 = c + Vector2(cos(a2), sin(a2) * 0.8) * (rr + 6.0)
+		var st := {"k": "flare", "c": q2, "ang": 0.0, "r": fr, "rv": fr * 1.3, "w": 3.0}
+		for Ly in [[1.0, p.dark], [0.72, p.light if not pulse else p.hot], [0.36, p.hot]]:
+			var col2: Color = Ly[1]
+			col2.a *= fade
 			for poly in _geo(st, 1.0, float(Ly[0])):
-				cv.draw_colored_polygon(poly, col)
-	if m.tier >= 1:   # 精一：外沿一排咒文（切向小字行）
+				cv.draw_colored_polygon(poly, col2)
+	if m.tier >= 1:   # 精一：外沿一排细笔画咒文（切向小字行）
 		var nr: int = int(m.get("rune_rows", 4))
-		var bg: Color = Color(dk.r, dk.g, dk.b, 0.7 * fade)
-		var fg: Color = Color(p.hot.r, p.hot.g, p.hot.b, fade)
-		var fg2: Color = Color(p.light.r, p.light.g, p.light.b, fade) if m.tier < 2 else Color(p.accent.r, p.accent.g, p.accent.b, fade)
+		var fg: Color = Color(p.hot.r, p.hot.g, p.hot.b, fade) if m.tier >= 2 else Color(p.light.r, p.light.g, p.light.b, fade)
+		var fg2: Color = Color(p.accent.r, p.accent.g, p.accent.b, fade) if m.tier >= 2 else fg
 		for i in nr:
 			var a3: float = fa - half + 2.0 * half * (i + 0.5) / nr
-			var q3: Vector2 = c + Vector2(cos(a3), sin(a3) * 0.8) * (rr + 18.0)
+			var q3: Vector2 = c + Vector2(cos(a3), sin(a3) * 0.8) * (rr + 16.0)
 			var tg := Vector2(-sin(a3), cos(a3) * 0.8).normalized()
 			if tg.x < 0.0:
 				tg = -tg
 			var Lr: float = rr * float(m.get("rune_len", 0.26))
-			_glyph_strip(cv, q3 - tg * Lr * 0.5, tg, Lr, 2.0, 41 + i * 13, bg, fg, fg2, open, 1, 24.0)
+			_glyph_strip(cv, q3 - tg * Lr * 0.5, tg, Lr, 2.0, 41 + i * 13, Color(0, 0, 0, 0), fg, fg2, open, 1, 24.0)
+	# 亮度靠照地：咒域中部一盏跟随光（每跳亮一拍）
+	var mid: Vector2 = c + Vector2(cos(fa), sin(fa) * 0.8) * rr * 0.6
+	_light_follow(o, mid, rr * 0.9, float(m.get("light_i", 0.3)) * (1.6 if pulse else 1.0) * fade, p.light)
 
 
 ## 扇形半径与判定同一个函数（运行时 load，不 preload 积木脚本，免得循环引用）
