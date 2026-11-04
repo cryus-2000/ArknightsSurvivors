@@ -1,0 +1,12 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2158 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+# 同种子 TRACE 对比
+
+A：`--bal=fx/px_plane=0`　B：`--bal=fx/px_plane=1`　共用：``
+
+| 局 | A 行数 | B 行数 | 结果 | 第一处差异 |
+|---|---|---|---|---|
+| skadi 种子 23 300 秒 | 228 | 228 | 逐行一致 |  |
+| mizuki 种子 11 300 秒 | 301 | 301 | 逐行一致 |  |
+media：0 个文件，4.0K
