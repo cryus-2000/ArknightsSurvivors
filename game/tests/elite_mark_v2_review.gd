@@ -48,8 +48,9 @@ func capture() -> void:
 			if on == 1 and (e.elite or e.get("squad", false)):
 				assert(not game.world._dc_ok(e))
 		await shot("off.png" if on == 0 else "on.png")
+	verify_marks()
 	game.t = 6.05
-	await shot("squad_flash.png")
+	await shot("no_flash.png")
 	assert(game.world.dc_checked > 0, "--dccheck did not exercise cached ordinary enemies")
 	print("ELITE_MARK_REVIEW dc_checked=", game.world.dc_checked, " sample_count=", samples.size())
 	get_tree().quit()
@@ -77,3 +78,39 @@ func shot(name: String) -> void:
 	assert(emitted > 0, "Frozen review did not forward fresh emit points")
 	print("ELITE_MARK_EMIT ", name, " points=", emitted, " colours=", colours.keys())
 	get_viewport().get_texture().get_image().save_png(out + "/" + name)
+
+
+func verify_marks() -> void:
+	# Exercise the production HUD geometry, including an elite+squad overlap.
+	var saved: Array = game.enemies.duplicate()
+	game.enemies.clear()
+	var ct: Transform2D = game.get_canvas_transform()
+	var empty_count: int = game.hud_view._elite_mark_batch(ct).pts.size()
+	var e: Dictionary = samples[2].duplicate()
+	e.elite = true
+	game.enemies.append(e)
+	var squad_batch = game.hud_view._elite_mark_batch(ct)
+	assert(squad_batch.pts.size() - empty_count == 24, "Squad must contain six marker rectangles only")
+	assert(squad_batch.cols.has(Color.html("b96b70")), "Squad triangle colour changed")
+	e["squad"] = false
+	var elite_batch = game.hud_view._elite_mark_batch(ct)
+	assert(elite_batch.pts.size() - empty_count == 32, "Elite must retain two healthbar rectangles")
+	assert(elite_batch.cols.has(Color(0.95, 0.97, 1.0)), "Elite white triangle lost")
+	game.enemies.clear()
+	game.enemies.append_array(saved)
+	for on in [false, true]:
+		game.world.elite_mark_v2 = on
+		for squad in [false, true]:
+			e["squad"] = squad
+			for time in [0.0, 0.05, 0.15, 2.99, 3.0, 3.05, 6.05]:
+				game.t = time
+				e["ishar_blessed"] = false
+				if on:
+					assert(not game.world._rim_on(e), "v2 unblessed member must never flash its rim")
+				elif squad:
+					assert(game.world._rim_on(e), "Default-off squad rim changed")
+				e["ishar_blessed"] = true
+				assert(game.world._rim_on(e), "Blessing must override v2 outline suppression")
+				assert(game.world._ol_col(e) == Color(3.2, 0.24, 0.3, 0.9), "Blessed special colour overridden")
+	game.world.elite_mark_v2 = true
+	print("ELITE_MARK_RULES PASS: squad 24 vertices, elite 32; no periodic rim; blessing priority in both toggles")
