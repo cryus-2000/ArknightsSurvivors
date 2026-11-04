@@ -25,8 +25,8 @@ MODE_NAME = {3: "普攻", 0: "S1", 1: "S2", 2: "S3"}
 MODE_TIERS = {3: [0, 1, 2], 0: [0, 1, 2], 1: [1, 2], 2: [2]}
 
 
-def shoot(godot, op, tier, mode, out, recipe, start, every, n, w, h):
-    tag = "%s_e%d_m%d_r%d" % (op, tier, mode, recipe)
+def shoot(godot, op, tier, mode, out, recipe, start, every, n, w, h, extra=(), suffix=""):
+    tag = "%s_e%d_m%d_r%d%s" % (op, tier, mode, recipe, suffix)
     fdir = os.path.join(out, "raw", tag)
     os.makedirs(fdir, exist_ok=True)
     for f in glob.glob(os.path.join(fdir, "*.png")):
@@ -35,7 +35,7 @@ def shoot(godot, op, tier, mode, out, recipe, start, every, n, w, h):
             "--shot_op=" + op, "--shot_stage=2",   # 玩法一律精二（精零 / 精一没有 S2 / S3），画面档位用 fx/recipe_tier 强制
             "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=%d" % every, "--shot_n=%d" % n, "--shot_w=%d" % w, "--shot_h=%d" % h,
-            "--bal=fx/recipe=%d" % recipe, "--bal=fx/recipe_tier=%d" % tier, "--bal=fx/recipe_log=1"]
+            "--bal=fx/recipe=%d" % recipe, "--bal=fx/recipe_tier=%d" % tier, "--bal=fx/recipe_log=1"] + list(extra)
     outp, err, to = GR.run_godot(args, 900)
     errs = GR.script_errors(outp, err)
     frames = sorted(glob.glob(os.path.join(fdir, "f_*.png")))
@@ -183,6 +183,8 @@ def main():
     ap.add_argument("--h", type=int, default=360)
     ap.add_argument("--jobs", type=int, default=3)
     ap.add_argument("--reuse", action="store_true", help="不重拍，只用 raw/ 里已有的帧重新拼图")
+    ap.add_argument("--extra", default="", help="另加的 Godot 用户参数（空格隔开），如 \"--bal=fx/recipe_outline=1\"")
+    ap.add_argument("--suffix", default="", help="raw 目录与输出图名后缀（区分实验开关）")
     a = ap.parse_args()
     a.out = os.path.abspath(a.out)
     os.makedirs(a.out, exist_ok=True)
@@ -194,16 +196,16 @@ def main():
     res = {}
     if a.reuse:
         for op, t, m in jobs:
-            tag = "%s_e%d_m%d_r%d" % (op, t, m, a.recipe)
+            tag = "%s_e%d_m%d_r%d%s" % (op, t, m, a.recipe, a.suffix)
             res[(op, t, m)] = sorted(glob.glob(os.path.join(a.out, "raw", tag, "f_*.png")))
     else:
         with ThreadPoolExecutor(max(1, min(a.jobs, 4))) as ex:
-            futs = {j: ex.submit(shoot, godot, j[0], j[1], j[2], a.out, a.recipe, a.start, a.every, a.n, a.w, a.h) for j in jobs}
+            futs = {j: ex.submit(shoot, godot, j[0], j[1], j[2], a.out, a.recipe, a.start, a.every, a.n, a.w, a.h, a.extra.split(), a.suffix) for j in jobs}
             for j, f in futs.items():
                 tag, frames, errs, to = f.result()
                 res[j] = frames
                 print(tag, "%d 张" % len(frames), "超时" if to else "", ("脚本错误 %d：%s" % (len(errs), errs[0][:240])) if errs else "")
-    suf = "" if a.recipe else "_off"
+    suf = ("" if a.recipe else "_off") + a.suffix
     for op in ops:
         phone_rows = []
         for m in modes:

@@ -10,6 +10,7 @@ trace：只比 TRACE（--fixed-fps 60 非实时，不存帧），默认推进之
 用法（仓库根目录）：
     python tools/fx_canon_rec.py rec   --op logos --squad siege --seed 11 --from 480 --secs 20
     python tools/fx_canon_rec.py trace --op siege --squad logos --seed 23 --maxt 300 --extra "--elite2 --sptest"
+    python tools/fx_canon_rec.py grid  --op logos --squad siege --seed 11 --from 480 --secs 20     # §5.9 三项实验四宫格：全关 / 只开描边 / 只开命中照地 / 三项全开
 输出：build/fx_canon/rec/late_<起始秒>_onoff.mp4、build/fx_canon/rec/logs/*.log
 """
 import argparse, glob, os, shutil, subprocess, sys
@@ -61,7 +62,7 @@ def diff(a, b):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["rec", "trace", "diff"])
+    ap.add_argument("cmd", choices=["rec", "trace", "diff", "grid"])
     ap.add_argument("--op", default="logos")
     ap.add_argument("--squad", default="siege")
     ap.add_argument("--seed", type=int, default=11)
@@ -101,6 +102,45 @@ def main():
         with ThreadPoolExecutor(2) as ex:
             for r in ex.map(lambda j: run(*j), jobs):
                 print(r, flush=True)
+    elif a.cmd == "grid":
+        # 配方开着，三项实验（docs/245 §5.9）按四种组合各跑一遍，拼 2×2（每格 1280×720 → 整体缩到 1920×1080），TRACE 四局两两比
+        CFG = [("全关（v4）", []), ("只开 1 描边", ["--bal=fx/recipe_outline=1"]), ("只开 2 命中照地", ["--bal=fx/recipe_hitlight=1"]),
+               ("三项全开（1 描边 + 2 命中照地 + 3 受击反应）", ["--bal=fx/recipe_outline=1", "--bal=fx/recipe_hitlight=1", "--bal=fx/recipe_hitreact=1"])]
+        jobs = []
+        for k, (lab, ex2) in enumerate(CFG):
+            tag = "%s_grid%d_s%d_%d" % (a.op, k, a.seed, a.t0)
+            ex = base + ["--bal=fx/recipe=1"] + ex2 + ["--realtime", "--rtfrom=%d" % a.t0, "--recframes=%d,%d" % (a.t0, a.secs * 30), "--maxt=%d" % (a.t0 + a.secs + 1)]
+            jobs.append((tag, ex, 30, os.path.join(OUT, tag + "_frames")))
+            tags.append(tag)
+        with ThreadPoolExecutor(4) as ex:
+            for r in ex.map(lambda j: run(*j), jobs):
+                print(r, flush=True)
+        import imageio_ffmpeg
+        from PIL import Image, ImageDraw, ImageFont
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+        lab = os.path.join(OUT, "_grid_labels.png")
+        im = Image.new("RGBA", (2560, 1440), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        fnt = ImageFont.truetype("C:/Windows/Fonts/msyh.ttc", 30)
+        for k, (t, _) in enumerate(CFG):
+            x, y = (k % 2) * 1280, (k // 2) * 720
+            d.rectangle((x + 10, y + 640, x + 30 + int(d.textlength(t, font=fnt)), y + 690), fill=(0, 0, 0, 170))
+            d.text((x + 20, y + 645), t, fill=(255, 255, 255, 255), font=fnt)
+        im.save(lab)
+        dirs = [os.path.join(OUT, t + "_frames") for t in tags]
+        n = min(len(glob.glob(os.path.join(dd, "rec_*.png"))) for dd in dirs)
+        mp4 = os.path.join(OUT, "exp3_%dm%02d_grid.mp4" % (a.t0 // 60, a.t0 % 60))
+        args = [ff, "-y", "-loglevel", "error"]
+        for dd in dirs:
+            args += ["-framerate", "30", "-i", os.path.join(dd, "rec_%05d.png")]
+        args += ["-i", lab, "-filter_complex", "[0:v][1:v]hstack=inputs=2[t];[2:v][3:v]hstack=inputs=2[b];[t][b]vstack=inputs=2[g];[g][4:v]overlay=0:0,scale=1920:-2[v]",
+                 "-map", "[v]", "-frames:v", str(n), "-c:v", "libx264", "-crf", "26", "-preset", "slow", "-pix_fmt", "yuv420p", mp4]
+        subprocess.run(args, check=True)
+        print("录像", mp4, "%d 帧" % n)
+        ok = True
+        for t in tags[1:]:
+            ok &= diff(tags[0], t)
+        sys.exit(0 if ok else 1)
     else:
         tags = [os.path.basename(f)[:-4] for f in sorted(glob.glob(os.path.join(LOGS, "*0_s*.log")))]
         tags = [t for p in tags for t in (p, p.replace("rec0", "rec1").replace("trace0", "trace1"))]

@@ -246,3 +246,20 @@
 
 ![弹头特写 v3 → v4](assets/fx_canon/head_zoom_v3_v4.png)
 - v4 TRACE：录像局 501 行、精二局 301 行，开 / 关逐行一致。
+
+### 5.9 三项实验开关（用户批准，各一个独立开关，缺省 0；都要 `fx/recipe` 开着才生效）
+
+| 开关 | 做什么 | 范围 / 预算 |
+|---|---|---|
+| `fx/recipe_outline` | 小物件主形外加一圈 1 美术像素深色描边（Hades 式线稿），颜色 = 本人主色 × 0.3（逻各斯深蓝、推进之王深褐，不用纯黑） | 只给弹体、刃、星芒、碎刺、光柱、三角汇聚（`OUTLINE_KINDS`）、旋光每股、彗星墨尾与弹头；大面积场域、地面裂网 / 墨环、咒文不加。`Geometry2D.offset_polygon` 每帧现算 |
+| `fx/recipe_hitlight` | 命中一盏本人色短命点光（Noita「每次爆炸一盏有寿命的光」）：寿命 0.1–0.15 秒（缺省 0.13）、半径 × `recipe_hitlight_r`（1.3）、强度 × `recipe_hitlight_i`（1.4，封顶 1）；同时命中点脚下压暗一小圈（半径 1.5 倍星芒、α 0.15 → 0、0.1 秒，地面层） | 开着时**取代**常规命中光（不叠两盏）；仍走配方灯预算：至多 `fx/recipe_dl` 盏、≤ 光学层总灯数一半、强度总和 ≤ `fx/recipe_dl_sum` |
+| `fx/recipe_hitreact` | 被我方打中的敌人闪本人颜色 0.06 秒（逻各斯 `#a9b6ff`、推进之王 `#ffa060`，取代白闪，之后到 0.3 秒内不再白闪）；重击和技能命中（逻各斯处决 / 提喻每跳 / 咒域每跳，推进之王碎颅每锤 / 跃空锤落地）被打那只**局部停顿 2 帧**：只冻结这只怪的选帧时间 | 只改画面：`world.gd` 选帧用 `Fxr.react_t(g, e)`（停顿期返回命中那一刻的时间，`g.t` 不动），白闪颜色用 `Fxr.react_col(g, e)`；位移、判定、`e.flash` 都不碰；Boss 不接管。停顿只作用于走画法缓存的普通怪（`_dc_emit`）；精英 / 走完整画法的怪只闪色不停顿 |
+
+- **接 late-read-b2 的 V4「我方照地份额」**：`fx_recipe.lights_for()` 算配方灯盏数时多取一次 `_share(game, nmax, n)`——若 `res://scripts/render/light_share.gd` 存在且提供 `static func recipe_share(game, nmax: int) -> int`，盏数取它与 `fx/recipe_dl` 的较小值；没有这个脚本 / 方法就原样。light_share 那边只要导出这个函数（返回「我方照地份额里给配方的盏数」），两边合入后自动生效，不用再改这边。强度总和上限仍由 `fx/recipe_dl_sum` 管，若 light_share 也给强度份额，可在同一处再接一个 `recipe_sum_share`。
+- 钩子改动：`seg_logos` / `seg_siege` 的 `Fxr.ev` 多传被打中的敌人引用（`e` / `es`，咒域每跳多收一个只画用的 `fx_es` 列表），玩法调用与随机数不动。
+- 录像 `docs/assets/fx_canon/exp3_8m00_grid.mp4`：逻各斯队长 + 推进之王，种子 11，8:00 起 20 秒、30 帧原速，四宫格 = 全关（v4）| 只开 1 | 只开 2 | 三项全开（仓库版 1920×1080 压缩；本机 `Claude outputs/fx_canon_1105/exp3_8m00_grid_full.mp4` 同尺寸高码率）。
+- 命中瞬间特写 `docs/assets/fx_canon/exp3_hit_zoom.png`（游戏像素 2 倍，普攻精一：全关 | 1 | 2 | 3，两人各命中 +0 / +4 帧）。图鉴演示不固定种子，各格敌群位置不同，只看效果本身。
+- TRACE：四宫格四局（同种子 11、到 8:21）两两逐行一致（501 行）；推进之王队长 + 逻各斯精二局（种子 23）配方关 vs 配方开 + 三项全开逐行一致（301 行），BALANCE 只有同屏特效计数差。
+
+![命中瞬间特写](assets/fx_canon/exp3_hit_zoom.png)
+- 快检 `check.py --auto --jobs 3`（改了 world.gd 与积木钩子）：169 项通过、0 失败（755 秒）。

@@ -69,7 +69,7 @@ static func _h4_hammer_release(o, a: Dictionary) -> void:
 		o.fx({"kind": "crack", "pos": land + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": H4_FLAME, "floor": true, "n": 6})
 		_h3_vsparks(o, land, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
 		o.impact_pause(0.04)
-	Fxr.ev(o, "swing", {"ang": ang, "reach": reach, "land": land, "heavy": heavy})   # 配方（docs/245）：只画
+	Fxr.ev(o, "swing", {"ang": ang, "reach": reach, "land": land, "heavy": heavy, "es": hits})   # 配方（docs/245）：只画
 	hw_record(o, dmg, ang, reach, land)
 	_h4_hammer_after(o, a, hits, dmg)   # 精英化第 4 批的追加（粉碎）；迁移时没有
 	var q: Dictionary = _h4_sub(o, a.get("quake", null))
@@ -316,7 +316,7 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	var hits: Array = o.area_hit(str(b.get("src", "")), pos, r, o.base("atk", 0.0) * float(b.get("mult", 2.2)) * o._dmg_bonus() * pw * sm, float(b.get("kb", 220.0)), float(b.get("stun", 0.6)))
 	o.fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
 	o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
-	Fxr.ev(o, "slam", {"at": pos, "r": r})
+	Fxr.ev(o, "slam", {"at": pos, "r": r, "es": hits})
 	o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
 	o.fx({"kind": "h4_pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
 	# 10-14 用户「推进之王二技能打中地面的火焰效果删除，只保留裂地效果」：去掉落地火圈与一圈火焰（fx_fire_aura / fx_flames / 程序 h4_blaze），

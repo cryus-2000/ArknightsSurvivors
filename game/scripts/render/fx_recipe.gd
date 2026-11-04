@@ -25,6 +25,11 @@ var _on := false
 var _on_frame := -1
 var _step_frame := -1
 var _t_last := -1.0
+var reacts := {}          # 受击反应（fx/recipe_hitreact）：敌人 id → [命中时刻, 颜色, 停顿到, 冻结的选帧时间]
+var _x_frame := -1
+var _x_outline := false
+var _x_hitlight := false
+var _x_react := false
 var stat_lights := 0      # 量测：上一帧送进 optical 的灯数
 var stat_parts := 0
 
@@ -94,6 +99,18 @@ static func _prep(d: Dictionary) -> void:
 	d["_pal"] = out
 
 
+## 三项实验开关（docs/245 §5.9，各自缺省 0，都要 fx/recipe 开着才生效）：每帧读一次
+func _exp() -> void:
+	var fr: int = Engine.get_process_frames()
+	if fr == _x_frame:
+		return
+	_x_frame = fr
+	var on: bool = enabled()
+	_x_outline = on and Bal.v("fx/recipe_outline", 0.0) > 0.0
+	_x_hitlight = on and Bal.v("fx/recipe_hitlight", 0.0) > 0.0
+	_x_react = on and Bal.v("fx/recipe_hitreact", 0.0) > 0.0
+
+
 ## 这名干员的画面由配方接管吗（开关开 + 有配方）
 static func owns(o) -> bool:
 	if o == null or o.g == null:
@@ -154,6 +171,14 @@ static func ev(o, kind: String, d: Dictionary = {}) -> void:
 
 func _ev(o, kind: String, d: Dictionary) -> void:
 	var p: Dictionary = pal(o)
+	_exp()
+	if _x_react:
+		var heavy: bool = kind in ["exec", "slam", "lock_tick", "fan_tick"] or (kind == "swing" and d.get("heavy", false))
+		var col: Color = p.get("flash", p.light)
+		if d.has("e") and d.e != null:
+			_react(d.e, col, heavy)
+		for e in d.get("es", []):
+			_react(e, col, heavy)
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 三档并排图对齐用（tools/fx_canon_shots.py）：事件发生的引擎帧
 		print("FXRLOG %s %s%s %d" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames()])
 	match kind:
@@ -275,7 +300,7 @@ func _hit(o, at: Vector2, gy: float, name: String, dir: Vector2) -> void:
 		e2["ang"] = float(sh.ang) + 0.5
 		_shape(o, e2)
 	_grains(o, at, gy, str(m.get("grain", "ink")), int(m.get("n", 3)), m, dir)
-	_light(o, at, float(m.get("light_r", 80.0)) * m.sc, float(m.get("light_i", 0.5)), float(m.get("light_life", 0.11)), p.light)
+	_hitlight(o, at, gy, R, float(m.get("light_r", 80.0)) * m.sc, float(m.get("light_i", 0.5)), float(m.get("light_life", 0.11)), p.light)
 
 
 ## 逻各斯殁亡处决（原作 S1 hit_03）：目标上竖起交叉的咒文链（X）+ 竖直墨柱；精一三道（米字），精二白热光团 + 双柱；溢出伤害飞一支墨迹彗星到下一名
@@ -301,7 +326,7 @@ func _exec(o, d: Dictionary, p: Dictionary) -> void:
 		_shape(o, {"k": "dart", "a": e_at, "b": d.to, "len": float(m2.get("dart_len", 22.0)) * m2.sc, "w": float(m2.get("dart_w", 8.0)) * m2.sc, "life": 0.2,
 			"freeze": 0.0, "layer": "over"})
 	_grains(o, Vector2(e_at.x, gy - 30.0), gy, str(m2.get("grain", "ink")), int(m2.get("n", 5)), m2)
-	_light(o, e_at, float(m2.get("light_r", 110.0)) * m2.sc, float(m2.get("light_i", 0.75)), float(m2.get("light_life", 0.14)), p.light)
+	_hitlight(o, e_at, gy, L * 0.4, float(m2.get("light_r", 110.0)) * m2.sc, float(m2.get("light_i", 0.75)), float(m2.get("light_life", 0.14)), p.light)
 
 
 ## 每跳：提喻（lock_tick）= 目标处竖直长芒（原作提喻 hitloop）；精二换成高大的竖碎芒。咒域（fan_tick）= 区域内敌人紫白四芒星 + 白碎片；精二每跳先飞来一支大墨迹彗星（原作延异视阈每轮 4 发）
@@ -338,7 +363,7 @@ func _tick(o, kind: String, d: Dictionary, p: Dictionary) -> void:
 		_grains(o, qa, qgy, str(m3.get("grain", "ink")), int(m3.get("n", 1)), m3)
 		k += 1
 	if not pts.is_empty():
-		_light(o, pts[0][0], float(m3.get("light_r", 70.0)) * m3.sc, float(m3.get("light_i", 0.4)), 0.1, p.light)
+		_hitlight(o, pts[0][0], float(pts[0][1]), float(m3.get("r", 16.0)) * m3.sc, float(m3.get("light_r", 70.0)) * m3.sc, float(m3.get("light_i", 0.4)), 0.1, p.light)
 
 
 ## 技能起手：每招一种原作意象（json 的 core）
@@ -422,7 +447,7 @@ func _swing(o, d: Dictionary) -> void:
 	_grains(o, land + Vector2(0, -6), land.y + 6.0, str(m.get("grain", "streak")), int(m.get("n", 5)), m, Vector2.from_angle(ang))
 	if m.has("grain2"):
 		_grains(o, land + Vector2(0, -6), land.y + 6.0, str(m.grain2), int(m.get("n2", 3)), m, Vector2.from_angle(ang))
-	_light(o, land, float(m.get("light_r", 100.0)) * m.sc, float(m.get("light_i", 0.6)), float(m.get("light_life", 0.12)), p.light)
+	_hitlight(o, land, land.y + 6.0, fr, float(m.get("light_r", 100.0)) * m.sc, float(m.get("light_i", 0.6)), float(m.get("light_life", 0.12)), p.light)
 
 
 ## 跃空锤落地（原作 skill_02_attack）：地面炸开熔岩裂网（橙黄枝裂）+ 灰色尘环 + 黑色三角碎块；精一加竖直冲柱，精二裂网冷钢边、环外再裂出四道前向枝裂
@@ -449,7 +474,67 @@ func _slam(o, d: Dictionary, p: Dictionary) -> void:
 	_grains(o, at9 + Vector2(0, -10), at9.y, str(m9.get("grain", "tri")), int(m9.get("n", 8)), m9)
 	if m9.has("grain2"):
 		_grains(o, at9 + Vector2(0, -10), at9.y, str(m9.grain2), int(m9.get("n2", 4)), m9)
-	_light(o, at9, float(m9.get("light_r", 150.0)) * m9.sc, float(m9.get("light_i", 0.85)), 0.15, p.light)
+	_hitlight(o, at9, at9.y, r9 * 0.3 * m9.sc, float(m9.get("light_r", 150.0)) * m9.sc, float(m9.get("light_i", 0.85)), 0.15, p.light)
+
+
+## 受击反应：被打中的敌人闪本人颜色（REACT_FLASH 秒，不白闪）；重击 / 技能命中再加 REACT_STOP 秒的局部打击停顿（只冻结这一只的选帧时间）
+const REACT_FLASH := 0.06
+const REACT_STOP := 2.0 / 60.0
+
+
+func _react(e, col: Color, heavy: bool) -> void:
+	if not (e is Dictionary) or e.get("dead", false) or e.get("boss", false):
+		return
+	var id = e.get("id", -1)
+	var prev: Array = reacts.get(id, [])
+	var st: float = g.t + REACT_STOP if heavy else (float(prev[2]) if not prev.is_empty() else -1.0)
+	var ft: float = float(prev[3]) if not prev.is_empty() and g.t < float(prev[2]) else g.t
+	reacts[id] = [g.t, col, st, ft]
+
+
+## world.gd 选帧用：打击停顿期间返回命中那一刻的时间（只这一只的动画停），其余照常 g.t
+static func react_t(game, e: Dictionary) -> float:
+	if not game.has_meta("fx_recipe"):
+		return game.t
+	var r = game.get_meta("fx_recipe")
+	r._exp()
+	if not r._x_react or r.reacts.is_empty():
+		return game.t
+	var q: Array = r.reacts.get(e.id, [])
+	if q.is_empty() or game.t >= float(q[2]):
+		return game.t
+	return float(q[3])
+
+
+## world.gd 受击闪用：a < 0 = 不接管（照旧白闪）；a = 0 = 接管、这一帧不闪（白闪由本人色取代）；a > 0 = 闪这个颜色
+static func react_col(game, e: Dictionary) -> Color:
+	if not game.has_meta("fx_recipe"):
+		return Color(0, 0, 0, -1)
+	var r = game.get_meta("fx_recipe")
+	r._exp()
+	if not r._x_react or r.reacts.is_empty():
+		return Color(0, 0, 0, -1)
+	var q: Array = r.reacts.get(e.id, [])
+	if q.is_empty():
+		return Color(0, 0, 0, -1)
+	var age: float = game.t - float(q[0])
+	if age < 0.0 or age > 0.3:
+		return Color(0, 0, 0, -1)
+	if age < REACT_FLASH:
+		var c: Color = q[1]
+		return Color(c.r, c.g, c.b, 0.85)
+	return Color(0, 0, 0, 0)
+
+
+## 命中照地（fx/recipe_hitlight，Noita 式「每次命中一盏有寿命的光」）：一盏 0.13 秒本人色点光（比常规命中光大、亮），
+## 同时命中点脚下压暗一小圈（半径 1.5 倍星芒、压暗 15%、0.1 秒），衬出光。开关关时照旧挂常规命中光。
+func _hitlight(o, at: Vector2, gy: float, R: float, r: float, inten: float, life: float, col: Color) -> void:
+	_exp()
+	if not _x_hitlight:
+		_light(o, at, r, inten, life, col)
+		return
+	_light(o, at, r * float(Bal.v("fx/recipe_hitlight_r", 1.3)), minf(1.0, inten * float(Bal.v("fx/recipe_hitlight_i", 1.4))), clampf(life, 0.1, 0.15) if life >= 0.1 else 0.13, col)
+	_shape(o, {"k": "shade", "c": Vector2(at.x, gy), "r": R * 1.5, "life": 0.1, "freeze": 0.0, "layer": "floor"})
 
 
 func _shape(o, s: Dictionary) -> void:
@@ -555,6 +640,10 @@ func _step() -> void:
 	for id in shapes:
 		var lst: Array = shapes[id]
 		shapes[id] = lst.filter(func(s): return now - float(s.t0) < float(s.life) + 0.02)
+	if not reacts.is_empty():
+		for id in reacts.keys():
+			if now - float(reacts[id][0]) > 0.3:
+				reacts.erase(id)
 
 
 # ================================================================ 光（照地；全局光源预算 + 上限）
@@ -577,6 +666,7 @@ static func lights_for(game, vr: Rect2, nmax: int) -> Array:
 		cand.append([float(L[5]) * k, L[0], float(L[1]), L[2]])
 	cand.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
 	var n: int = mini(int(Bal.v("fx/recipe_dl", 4.0)), nmax / 2)
+	n = mini(n, _share(game, nmax, n))
 	cand = cand.slice(0, maxi(0, n))
 	var sum := 0.0
 	for c in cand:
@@ -587,6 +677,17 @@ static func lights_for(game, vr: Rect2, nmax: int) -> Array:
 			c[0] = float(c[0]) * cap / sum
 	r.stat_lights = cand.size()
 	return cand
+
+
+## 我方照地份额（late-read-b2 的 V4 render/light_share 合入后生效）：light_share.gd 若提供 static func recipe_share(game, nmax) -> int，
+## 配方灯盏数取它与 fx/recipe_dl 的较小值；没有这个脚本 / 方法时原样返回（docs/245 §5.9）
+static func _share(game, nmax: int, n: int) -> int:
+	if not ResourceLoader.exists("res://scripts/render/light_share.gd"):
+		return n
+	var LS = load("res://scripts/render/light_share.gd")
+	if LS == null or not LS.has_method("recipe_share"):
+		return n
+	return int(LS.recipe_share(game, nmax))
 
 
 # ================================================================ 绘制
@@ -723,6 +824,19 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 		"glyphring":
 			_draw_glyphring(cv, s, tn, u, p)
 			return
+		"shade":   # 命中照地的压暗圈（地面，扁椭圆，α 0.15 → 0）
+			cv.draw_set_transform(_snap(s.c), 0.0, Vector2(1.0, SY))
+			cv.draw_circle(Vector2.ZERO, float(s.r), Color(0, 0, 0, 0.15 * (1.0 - u)))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			return
+	_exp()
+	if _x_outline and str(s.k) in OUTLINE_KINDS:
+		var oc: Color = _outline_col(p)
+		oc.a *= float(tn[3])
+		for poly in _geo(s, gk, 1.0):
+			if poly.size() >= 3:
+				for op in Geometry2D.offset_polygon(poly, 2.0, Geometry2D.JOIN_MITER):
+					cv.draw_colored_polygon(op, oc)
 	var layers: Array = [[1.0, tn[0]], [0.72, tn[1]], [0.36, tn[2]]]
 	for L in layers:
 		var col: Color = L[1]
@@ -732,6 +846,15 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 		for poly in _geo(s, gk, float(L[0])):
 			if poly.size() >= 3:
 				cv.draw_colored_polygon(poly, col)
+
+
+## 描边（fx/recipe_outline，Hades 式线稿）：只给小物件主形（弹体、刃、星芒、碎刺、光柱、三角汇聚），大面积场域、地面裂网与文字不加
+const OUTLINE_KINDS := ["flare", "shards", "orb", "dart", "spike", "tear", "converge", "crescent", "beam", "spear3", "star"]
+
+
+static func _outline_col(p: Dictionary) -> Color:
+	var m: Color = p.main
+	return Color(m.r * 0.3, m.g * 0.3, m.b * 0.3, 1.0)
 
 
 ## 四芒星芒（原作逻各斯出手 / 命中 / 咒域四角的星芒；推进之王的白热闪与镜头光带也是这个形，臂长不等）
@@ -961,6 +1084,9 @@ func _draw_whirl(cv, s: Dictionary, tn: Array, u: float, p: Dictionary) -> void:
 		var bb: float = lerpf(float(s.ang), a1, hh)
 		var mc: Color = tn[1] if i == 0 else (silver if str(s.get("tone", "")) == "" else tn[1])
 		var dk: Color = tn[0]
+		if _x_outline:
+			var oc: Color = _outline_col(p)
+			cv.draw_colored_polygon(_arc_band(s.c, R, aa, bb, th + 8.0, t0, head * (1.0 - 0.06 * i)), Color(oc.r, oc.g, oc.b, al))
 		cv.draw_colored_polygon(_arc_band(s.c, R, aa, bb, th + 4.0, t0, head * (1.0 - 0.06 * i)), Color(dk.r, dk.g, dk.b, dk.a * al))
 		cv.draw_colored_polygon(_arc_band(s.c, R, aa, bb, th, t0, head * (1.0 - 0.06 * i)), Color(mc.r, mc.g, mc.b, mc.a * al))
 		if i == 0 and (tn[2] as Color).a > 0.0:
@@ -1262,6 +1388,8 @@ func _draw_bolts(o, cv, p: Dictionary) -> void:
 			var f1: float = float(fs[i]) / maxf(1.0, tot)
 			var wa: float = W * pow(1.0 - f0, 0.9)
 			var wb: float = W * pow(1.0 - f1, 0.9)
+			if _x_outline:
+				cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], wa + 6.0, maxf(2.0, wb) + 4.0), _outline_col(p))
 			cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], wa + 2.0, maxf(2.0, wb)), p.dark)
 			if fork and f0 > 0.3:
 				# 精一：墨尾在后段分成两股（形状差）
@@ -1289,6 +1417,10 @@ func _draw_bolts(o, cv, p: Dictionary) -> void:
 				cv.draw_rect(Rect2(_snap(q + nv * W * 0.22 * (1.0 - f) * (1.0 if k % 2 == 0 else -1.0)), Vector2(2, 2)), dc)
 			d += 4.0
 		# 弹头：小而尖的白色箭头状亮点（不画圆球）
+		_exp()
+		if _x_outline:
+			for op in Geometry2D.offset_polygon(_quill(at + dv * hl * 0.15, dv, hl + 2.0, hw + 2.0, false), 2.0, Geometry2D.JOIN_MITER):
+				cv.draw_colored_polygon(op, _outline_col(p))
 		cv.draw_colored_polygon(_quill(at + dv * hl * 0.15, dv, hl + 2.0, hw + 2.0, false), p.light)
 		cv.draw_colored_polygon(_quill(at + dv * hl * 0.2, dv, hl, hw, false), p.hot if not hot else Color(2.0, 2.0, 2.2))
 		# 滴墨：每 shed 秒一滴（画面计时，按弹的年龄定，不抽玩法随机）

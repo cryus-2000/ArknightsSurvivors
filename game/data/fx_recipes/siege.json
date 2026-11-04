@@ -6,7 +6,8 @@
 		"main": "#ff6a1a",
 		"hot": "#fff0c8",
 		"accent": "#9cb4cc",
-		"light": "#ff8233"
+		"light": "#ff8233",
+		"flash": "#ffa060"
 	},
 	"tones": {
 		"flash": {

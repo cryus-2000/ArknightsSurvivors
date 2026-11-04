@@ -11,6 +11,7 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
@@ -2869,7 +2870,7 @@ func _ol_col(e: Dictionary) -> Color:
 ## 按缓存发绘制：和 _draw_enemy_full 末段同序（描边 → 本体 → 白闪 → 词条 → 弱点）
 func _dc_emit(e: Dictionary, c: Array) -> void:
 	var frames: int = c[9]
-	var frame: int = int(g.t * float(c[10]) + e.id * 0.37) % frames
+	var frame: int = int(Fxr.react_t(g, e) * float(c[10]) + e.id * 0.37) % frames   # 打击停顿期间冻结这一只的选帧（g.t 不动）
 	if c[22]:
 		frame = int((g.t - float(e.get("prepare_started", g.t))) * 3.0) % 2   # 举肢准备（_dc_prep）：和 _draw_enemy_full 同一选帧，再换算到帧条真实帧数
 		if c[23]:
@@ -2901,22 +2902,27 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 		var size := Vector2(fw, ra[3]) * sc
 		var p: Vector2 = bpos + g.draw_off
 		var rw = rw_all if e.flash > 0.0 else null
+		var rc: Color = Fxr.react_col(g, e)   # a < 0 照旧白闪；a = 0 不闪；a > 0 闪这个颜色
+		var wcol: Color = Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc.a < 0.0 else Color(rc.r, rc.g, rc.b, rc.a)
+		if rc.a == 0.0:
+			rw = null
 		if flip:
 			g.wcv.draw_set_transform(p.round(), 0.0, Vector2(-1, 1))
 			var rf := Rect2(-size * anc, size)
 			g.wcv.draw_texture_rect_region(ra[0], rf, src, _rimc(c[11] * _act_mod))
 			if rw != null:
-				g.wcv.draw_texture_rect_region(rw[0], rf, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
+				g.wcv.draw_texture_rect_region(rw[0], rf, src, wcol * _act_mod)
 			g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		else:
 			var rn := Rect2((p - size * anc).round(), size)
 			g.wcv.draw_texture_rect_region(ra[0], rn, src, _rimc(c[11] * _act_mod))
 			if rw != null:
-				g.wcv.draw_texture_rect_region(rw[0], rn, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
+				g.wcv.draw_texture_rect_region(rw[0], rn, src, wcol * _act_mod)
 	else:
 		_espr(body, frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
-		if e.flash > 0.0:
-			_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
+		var rc2: Color = Fxr.react_col(g, e)
+		if e.flash > 0.0 and rc2.a != 0.0:
+			_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc2.a < 0.0 else rc2, anc, Vector2.ONE)
 	if g.optical_on and _rec == null:
 		_glow_pts(body, frames, bpos + g.draw_off, sc, flip, anc, e, frame)
 	if _rec == null and e.affix != "":
@@ -3423,7 +3429,9 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
 		var hit_a: float = g.vfx.boss_flash_alpha(e, Bal.v("fx/flash_boss", 0.5)) if e.boss else (0.9 if e.elite else flash_a)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）、限频淡出（docs/137）
-		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, hit_a), anc, sq)
+		var rc3: Color = Fxr.react_col(g, e)   # 配方受击反应：闪本人色（Boss 不接管，react_col 对 Boss 返回 a < 0）
+		if rc3.a != 0.0:
+			_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, hit_a) if rc3.a < 0.0 else Color(rc3.r, rc3.g, rc3.b, minf(rc3.a, hit_a + 0.1)), anc, sq)
 	elif e.boss and _rec == null and g.tex.has(name + "_white"):
 		# Boss 登场：先是白剪影、0.15–0.7 秒亮成本体（screens/boss_intro.gd；Boss 不进画法缓存，docs/50 §9.9）
 		var sk: float = g.boss_intro.silhouette_k(e)

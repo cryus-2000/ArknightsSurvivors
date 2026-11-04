@@ -9,7 +9,8 @@
 		"light": "#8fa2ff",
 		"inner": "#2a2266",
 		"glyph": "#c9d2ff",
-		"gold": "#f2dfa6"
+		"gold": "#f2dfa6",
+		"flash": "#a9b6ff"
 	},
 	"tones": {
 		"shard": {
