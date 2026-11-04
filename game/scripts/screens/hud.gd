@@ -18,6 +18,7 @@ const HudBanners = preload("res://scripts/screens/hud_banners.gd")
 const HudAllyHp = preload("res://scripts/screens/hud_allyhp.gd")   # 队友血条原型（docs/114 §19）
 const HudIcons = preload("res://scripts/screens/hud_icons.gd")
 const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 局内 HUD 编辑式（docs/222，ui/hud_v2）
+const HudV3 = preload("res://scripts/screens/hud_v3.gd")   # 局内指挥台（docs/222 §18，ui/hud_v3）：正下方一台收拢队长 / 队友 / 指令
 const HudUlt = preload("res://scripts/screens/hud_ult.gd")   # 终结技 / 连携技 HUD 与立绘切入（docs/198；g.ult 为 null 时不调）
 const TextQ = preload("res://scripts/screens/hud_textq.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
@@ -29,6 +30,7 @@ var banners: HudBanners
 var allyhp: HudAllyHp
 var ult: HudUlt
 var v2: HudV2
+var v3: HudV3
 
 
 func _init(game: Game) -> void:
@@ -40,6 +42,7 @@ func _init(game: Game) -> void:
 	allyhp = HudAllyHp.new(self)
 	ult = HudUlt.new(self)
 	v2 = HudV2.new(self)
+	v3 = HudV3.new(self)
 
 
 ## HUD 合批段：段内 UI 助手的色块进 Tris 批、文字延后，batch_end 时先一次提交色块再画字（段内各块互不重叠才能这样用）
@@ -271,7 +274,11 @@ func _draw_body() -> void:
 		return
 	# 各块的层次见 LAYER_ORDER（与 10-22 拆块前的实际层次相同：原缓存层在下，原主画布各段按原顺序在上）；块内的先后照旧，别调换。
 	# 绘制回调按登记先后执行：boss 块写的 bars.boss_bottom 在 front / tail 读之前更新
-	if not (panel_over_top() and g.choice_kind == "event"):
+	var console: bool = HudV3.on()   # 指挥台（docs/222 §18）：左上生命块、右下编队卡、状态行、队友血条行、底部冲刺 / 瞄准提示都收进正下方一台
+	if console:
+		if not (panel_over_top() and g.choice_kind == "event"):
+			v3.draw(vs)   # 画在 top_left 层（每帧画；闲时整层降透明度）
+	elif not (panel_over_top() and g.choice_kind == "event"):
 		# 触屏事件（节点卡的不期而遇）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）
 		_layer("top_left", bars.top_left_sig(vs), func(): bars.draw_top_left(vs))
 	_layer("pointers", null, func():
@@ -296,13 +303,14 @@ func _draw_body() -> void:
 	if not pq:
 		relics.register_tray(vs)   # 藏品栏缓存层（藏品 / 等级 / 悬停格变了才重画）
 	_layer("boss", null, func(): bars.draw_boss_bars(vs))
-	if not pq:
+	if not pq and not console:
 		squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
 	if g.ult != null:
 		_layer("ult", null, func(): ult.draw(vs))   # 终结技能量 / 协同 / 连携排队（触屏：终结技键与连携键）
 	_layer("front", null, func():
 		bars.draw_xp_top(vs)   # 经验通栏细条（屏幕最上沿）
-		allyhp.draw(vs)   # 队友血条原型（command/hpbar_style 1 / 3；0 = 编队卡缓存层里的原版）
+		if not console:
+			allyhp.draw(vs)   # 队友血条原型（command/hpbar_style 1 / 3；0 = 编队卡缓存层里的原版）
 		banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
 		banners.draw_banner(vs)
 		banners.draw_notices(vs)
@@ -310,11 +318,12 @@ func _draw_body() -> void:
 		relics.draw_relic_tooltip(vs)
 		g.panel_ui.draw_pick_glow(g.hud)   # 选卡后的选中余光
 		g.touch.draw_hud(vs))
-	if not overlay_left() and not pq:
+	if not overlay_left() and not pq and not console:
 		var sitems: Array = bars.status_items()
 		_layer("status", bars.status_sig(vs, sitems), func(): bars.draw_status(vs, sitems))
 	_layer("tail", null, func():
-		banners.draw_dash_hint(vs)
+		if not console:
+			banners.draw_dash_hint(vs)
 		banners.draw_zone_hint(vs)
 		squad.draw_manual_aim()
 		squad.draw_manual_hint()
@@ -862,8 +871,12 @@ func blocks_click(mp: Vector2) -> bool:
 			return true
 	if mp.y < 104.0 and (mp.x < 400.0 or mp.x > vs.x - 260.0 or absf(mp.x - vs.x * 0.5) < 190.0):
 		return true
-	var sw: float = (v2.squad_size(g.squad.size()).x + 36.0) if HudV2.on() else maxf(maxi(1, g.squad.size()) * HudSquad.SQ_COL_W, 250.0) + 16.0
-	if mp.x > vs.x - sw and mp.y > squad.squad_top(vs) - 44.0:
-		return true
+	if HudV3.on():
+		if v3.rect(vs).has_point(mp):
+			return true
+	else:
+		var sw: float = (v2.squad_size(g.squad.size()).x + 36.0) if HudV2.on() else maxf(maxi(1, g.squad.size()) * HudSquad.SQ_COL_W, 250.0) + 16.0
+		if mp.x > vs.x - sw and mp.y > squad.squad_top(vs) - 44.0:
+			return true
 	var rad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
 	return mp.distance_to(Vector2(16.0 + rad + 8.0, vs.y - rad - 24.0)) < rad + 14.0
