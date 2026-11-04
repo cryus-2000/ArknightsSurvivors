@@ -130,7 +130,7 @@ func _input(event: InputEvent) -> void:
 			var on: bool = event.axis_value > (0.3 if was else 0.6)
 			_trig[event.axis] = on
 			if on and not was:
-				# 对局里 RT 直接按冲刺（Ⓑ）：RB 在切换队长开着时让给切人
+				# 对局里 RT 直接按冲刺（Ⓑ）：终结技开着时 RB 归终结技（core/play_keys.gd ULT）
 				_press_button(JOY_BUTTON_B if (context == "play" and event.axis == JOY_AXIS_TRIGGER_RIGHT) else TRIGGER_AS[event.axis])
 	elif event is InputEventKey or event is InputEventScreenTouch:
 		_set_using(false)

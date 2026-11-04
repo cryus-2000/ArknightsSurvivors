@@ -1030,7 +1030,7 @@ func option_description(option: Dictionary) -> String:
 	var stage: int = maxi(op.elite, int(option.get("elite", 0)))
 	for i in 3:
 		var sk: Dictionary = op.skill_def(i)
-		if i > stage or sk.get("mode", "auto") != "manual":
+		if i > stage or sk.get("mode", "auto") != "manual" or op.g.ult != null:   # 终结技开着时手动技能按自动放（character.is_manual），不写「按 Q」
 			continue
 		var use: String = (("队长点技能键释放" if Pad.touch_ui() else "队长按 Q 释放") if op.is_leader else "作为队友自动释放")
 		var timing: String = "解锁后" if not op.skill_unlocked(i) else "技力满后"
