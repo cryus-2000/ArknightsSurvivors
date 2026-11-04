@@ -17,7 +17,8 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # 剑气非线性速度（10-27）
 const LateShape = preload("res://scripts/characters/blocks/late_shape.gd")   # 后期形状随成长（docs/248）
-const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")   # 看得见的成长节点（docs/249）
+const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")
+const _PXP = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246 §9）：接管的干员剑气改画本人风格（斯卡蒂 = 水刃 + 浪痕）   # 看得见的成长节点（docs/249）
 
 ## 读 op_shots 之外的远程普攻形状（cmd_role 同一张表）
 const RANGED_SHAPES := ["projectile", "shell", "bolt", "cannon", "point_aoe", "foxfire", "lantern"]
@@ -475,6 +476,8 @@ static func draw(o) -> void:
 		cv.draw_circle(p, 3.6 * sc, Color(minf(tc.r * 1.5, 1.8), minf(tc.g * 1.5, 1.8), minf(tc.b * 1.5, 1.8), 1.0))
 	if v.qi.is_empty():
 		return
+	if _PXP.owns_id(g, str(o.id)):
+		return   # 转平面接管：剑气由 fx_pxplane 画（只画，判定照旧）
 	var has_tex: bool = o._fx_tex(QI_PROJ) != null
 	var oc: Color = o.col()
 	var ocn: float = 0.85 / maxf(maxf(oc.r, oc.g), maxf(oc.b, 0.05))   # 0.85：再高会被光学辉光吹成白（艾丽妮粉实测）

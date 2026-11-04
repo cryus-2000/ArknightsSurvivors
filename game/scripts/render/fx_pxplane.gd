@@ -183,6 +183,17 @@ func ev(o, kind: String, d: Dictionary) -> void:
 					_add_up(o, "leap_e%d" % t2, at2, raw, "raw_splash_e%d" % t2, r2, 65.0, ang)
 					_add_gd(o, "leap_e%d" % t2, at2, raw, "", r2, 65.0)
 					_burst(o, R, p, at2 + Vector2(0, -22), at2.y, es, 5 + t2, 140.0, 0.55)
+		"combo":   # 连携技「落潮横扫」（docs/246 §9，不分档）：整圈白刃大月牙 + 脚下一圈矮浪往外推 + 水滴、照地光
+			var at3: Vector2 = d.get("at", o.pos)
+			if Bal.v("fx/recipe_log", 0.0) > 0.0:
+				print("PXPLOG combo c %d 115 -" % Engine.get_process_frames())
+			if raw:
+				_add(o, "", at3, 0.0, float(d.get("r", 115.0)), raw, "raw_spin_e1", 62.0)
+			else:
+				_add_pair(o, "combo_spin", at3)
+				_add_pair(o, "combo_swell", at3)
+				_cuts(o, d.get("es", []), 1, 4)
+			_burst(o, R, p, at3 + Vector2(0, -14), at3.y, d.get("es", []), 8, 160.0, 0.65)
 		"skill":
 			if int(d.get("i", -1)) == 2:   # 涌潮悲歌起手：身边冲起一柱大水 + 脚下一圈贴地水环
 				_add_gd(o, "s3cast", o.pos, raw, "raw_ring_e2", 185.0, 92.0)
@@ -306,6 +317,7 @@ func draw_floor(o) -> void:
 		if str(it.ly) == "gd" and str(it.oid) == id:
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
 	_wall_spawn(o)
+	_draw_qi_wakes(o, cv)
 	for w in _waves(o):
 		_draw_strip(cv, w[0] + "_gd_d%d" % w[3], frame_of(0.0), w[1], w[2], false)
 
@@ -320,6 +332,9 @@ func draw_over(o) -> void:
 		if str(it.ly) != "raw" or str(it.oid) != id:
 			continue
 		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8)), it.gp, float(it.rot), float(it.sc))
+	if o.get("vg") is Dictionary and not o.vg.is_empty():
+		for q in o.vg.get("qi", []):
+			_draw_raw(cv, "raw_blade", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), int(_meta("raw_blade").get("n", 1))), q.p + Vector2(0, -16), (q.v as Vector2).angle(), g.PX * 1.3)
 	for w in o.hw.get("waves", []):
 		var b: Dictionary = w.b
 		if not b.has("proj") and not b.has("tex"):
@@ -343,6 +358,8 @@ static func sort_items(game) -> Array:
 		if IDS.has(str(o.id)) and o.pos != Vector2.INF:
 			for w in r._waves(o):
 				out.append({"wave": w})
+			for qw in r._qis(o):
+				out.append({"wave": qw})
 	return out
 
 
@@ -414,6 +431,47 @@ func _wall_spawn(o) -> void:
 		_add_dir(o, "wallbrk_e%d" % t, org, dv.angle())
 
 
+## late_shape / 可见成长的额外剑气（o.vg.qi）→ 水刃：[帧条前缀, 地面点（按 15 fps 节拍跳格）, 翻转, 方向]
+func _qis(o) -> Array:
+	var out: Array = []
+	if mode() != 1 or not (o.get("vg") is Dictionary) or o.vg.is_empty():
+		return out
+	var t: int = tier(o)
+	for q in o.vg.get("qi", []):
+		var dk: Array = pick_dir((q.v as Vector2).angle())
+		out.append(["qi_e%d" % t, _wpos({"pos": q.p, "_pxq": q.get("_pxq")}, q), dk[1], dk[0]])
+	return out
+
+
+## 剑气身后地上的 V 字白沫浪痕：从出手点到当前位置，越靠后越稀、越暗；逐美术像素画（对齐 2 世界像素格）
+func _draw_qi_wakes(o, cv) -> void:
+	if not (o.get("vg") is Dictionary) or o.vg.is_empty():
+		return
+	var px: float = g.PX
+	for q in o.vg.get("qi", []):
+		var dv: Vector2 = (q.v as Vector2).normalized()
+		var nv := Vector2(-dv.y, dv.x * 0.72)
+		var head: Vector2 = _wpos({"pos": q.p, "_pxq": q.get("_pxq")}, q)
+		var L: float = minf(90.0, (q.p as Vector2).distance_to(q.get("p0", q.p)) + 20.0)
+		var sd: int = int(q.get("o0", Vector2.ZERO).x * 7.0) & 1023
+		var s := 4.0
+		while s < L:
+			var u: float = s / L
+			for side in [-1.0, 1.0]:
+				if Fxr_h(sd + int(s) * 3 + (1 if side > 0 else 0)) < 0.25 + 0.6 * u:
+					continue
+				var pp: Vector2 = _snap(head - Vector2(dv.x, dv.y * 0.72) * s + nv * side * (3.0 + s * 0.32))
+				cv.draw_rect(Rect2(pp, Vector2(px, px)), Color.html("#ffffff") if u < 0.25 else (Color.html("#93b4f7") if u < 0.6 else Color.html("#446ec0")))
+			s += px
+
+
+static func Fxr_h(i: int) -> float:
+	var x: int = (i * 0x9E3779B1) & 0x7fffffff
+	x = x ^ (x >> 13)
+	x = (x * 1103515245 + 12345) & 0x7fffffff
+	return float((x >> 8) & 0xffff) / 65535.0
+
+
 ## 潮刃（弹体式）：直接读玩法状态 o.hw.waves → [帧条前缀, 地面点, 翻转, 方向]（浪墙改由 _wall_spawn 生成碎浪，不在这里）
 func _waves(o) -> Array:
 	var out: Array = []
@@ -430,14 +488,17 @@ func _waves(o) -> Array:
 
 ## 潮刃 / 浪墙的画面位置：统一节拍时每 1/15 秒才跳一次格（对齐 2 世界像素 = 1 美术像素）；对照档平滑跟随。
 ## 记在浪自己的字典里（画面专用键 _pxq，玩法不读）
-func _wpos(w: Dictionary) -> Vector2:
+func _wpos(w: Dictionary, store = null) -> Vector2:
 	if not is_equal_approx(clock(), 15.0):
 		return w.pos
 	var tick: int = int(floor(g.t * 15.0))
 	var q = w.get("_pxq")
 	if q == null or int(q[0]) != tick:
 		q = [tick, _snap(w.pos)]
-		w["_pxq"] = q
+		if store != null:
+			store["_pxq"] = q
+		else:
+			w["_pxq"] = q
 	return q[1]
 
 

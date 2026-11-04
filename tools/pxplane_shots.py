@@ -20,6 +20,10 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import godot_runner as GR
 
+os.environ.setdefault("GODOT_MAX_PROCS", "1")   # 本机只开 1 个 Godot：机器上没有别的 Godot 在跑时才开（星熊 / 流明会话同机）
+GR.MAX_PROCS = 1
+LATE = ["--bal=growth/late_shape=1"]   # 截图一律开后期形状（额外剑气要在三档图里看得到，docs/246 §9）
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 BUILD = os.path.join(ROOT, "build", "pxplane")
@@ -43,7 +47,7 @@ def shoot(px, tier, mode, start, every, n, w=1280, h=720, extra=(), suffix=""):
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
             "--shot_op=skadi", "--shot_stage=%d" % tier, "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=%d" % every, "--shot_n=%d" % n, "--shot_w=%d" % w, "--shot_h=%d" % h,
-            "--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1"] + list(extra)
+            "--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1"] + LATE + list(extra)
     out, err, to = GR.run_godot(args, 900)
     os.makedirs(LOGS, exist_ok=True)
     open(os.path.join(LOGS, "demo_" + tag + ".log"), "w", encoding="utf-8").write((out or "") + "\n" + (err or ""))
@@ -202,10 +206,10 @@ def branch(a):
         ("怒涛（S1 分支二）：0.4 秒后第二圈，更高 + 海绿", ("surge", 0), lambda q: q[1] == "涌潮" and q[5] == "skill" and int(q[4]) < 160, 0),
         ("怒涛（S1 分支二）：悲歌结束环身大碎浪", ("surge", 2), lambda q: q[1] == "涌潮" and int(q[4]) >= 160, 0),
     ]
-    cw, ch = 400, 250
+    cw, ch = 560, 330
     sheet = Image.new("RGB", (cw * 6 + 8 * 5, 56 + (ch + 44) * len(rows)), (12, 12, 16))
     d = ImageDraw.Draw(sheet)
-    d.text((12, 8), "斯卡蒂分支招（转平面版，精二，图鉴演示，2 倍局部；每行事件后约 0–0.6 秒）", fill=(230, 230, 230), font=font(28))
+    d.text((12, 8), "斯卡蒂分支招（转平面版，精二，图鉴演示，1 倍；每行事件后约 0–0.6 秒）", fill=(230, 230, 230), font=font(28))
     for r, (lab, key, pred, off) in enumerate(rows):
         frames, k = first(key, pred)
         y = 56 + r * (ch + 44)
@@ -216,10 +220,62 @@ def branch(a):
             i = min(len(frames) - 1, k + off + j * 3)
             im = Image.open(frames[i]).convert("RGB")
             W, H = im.size
-            c = im.crop((W // 2 - cw // 4 - 40, H // 2 - ch // 4 - 30, W // 2 + cw // 4 - 40, H // 2 + ch // 4 - 30)).resize((cw, ch), Image.NEAREST)
+            c = im.crop((W // 2 - cw // 2 - 20, H // 2 - ch // 2 - 10, W // 2 + cw // 2 - 20, H // 2 + ch // 2 - 10)).resize((cw, ch), Image.NEAREST)   # 1 倍、大范围（2 倍局部会把大浪裁出框）
             sheet.paste(c, (j * (cw + 8), y + 40))
     sheet.save(os.path.join(a.out, "branches.png"))
     print("分支招", os.path.join(a.out, "branches.png"), flush=True)
+
+
+def combo(a):
+    """连携技「落潮横扫」三栏：局内（队长德克萨斯 + 斯卡蒂 + 推进之王，master 机器人会冲刺），同种子 fx/px_plane = 0 / 2 / 1 各一局，
+    86 秒起连存 12 秒（30 帧原速），按转平面局的连携事件帧对齐三栏，另出 2 倍局部"""
+    os.makedirs(a.out, exist_ok=True)
+    t0, secs = 86, 12
+    dirs = {}
+    pxlog = []
+    for px in (0, 2, 1):
+        tag = "combo_px%d" % px
+        fdir = os.path.join(BUILD, tag)
+        ex = ["--seed=3", "--op=texas", "--squad=skadi,siege", "--bot=master", "--maxprog", "--bal=ult/test_fill_at=-1", "--bal=fx/px_plane=%d" % px,
+              "--bal=fx/recipe_log=1", "--realtime", "--playclock", "--rtfrom=%d" % (t0 - 3), "--recframes=%d,%d" % (t0, secs * 30), "--maxt=%d" % (t0 + secs + 2)] + LATE
+        r = run(tag, ex, 30, fdir)
+        print(r, flush=True)
+        dirs[px] = fdir
+        if px == 1:
+            log = open(os.path.join(LOGS, tag + ".log"), encoding="utf-8", errors="ignore").read()
+            pxlog = [l.split() for l in log.splitlines() if l.startswith("PXPLOG combo")]
+    fr = {px: sorted(glob.glob(os.path.join(dirs[px], "rec_*.png"))) for px in dirs}
+    n = min(len(v) for v in fr.values())
+    if n == 0:
+        print("没有帧")
+        return
+    # 连携帧：转平面局与「当前游戏」差异最大的那一帧（连携事件只有引擎帧号，录制起点的引擎帧号不可知）
+    e = energy(fr[1][:n], fr[0][:n])
+    k = int(np.argmax(e))
+    print("连携事件", len(pxlog), "次；取第", k, "帧", flush=True)
+    ims = [Image.open(fr[px][min(n - 1, k + 1)]).convert("RGB") for px, _ in COLS]
+    W, H = ims[0].size
+    fb = font(30)
+    sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
+    dd = ImageDraw.Draw(sheet)
+    dd.text((12, 8), "斯卡蒂连携技「落潮横扫」（局内，队长冲刺落点）· 同种子同一帧", fill=(230, 230, 230), font=fb)
+    for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
+        sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
+    sheet.save(os.path.join(a.out, "cmp_combo.png"))
+    a1 = np.asarray(ims[2], dtype=np.int16)
+    a0 = np.asarray(ims[0], dtype=np.int16)
+    ys, xs = np.nonzero(np.abs(a1 - a0).sum(axis=2) > 60)
+    cx, cy = (int(np.median(xs)), int(np.median(ys))) if len(xs) else (W // 2, H // 2)
+    cw, ch = 320, 180
+    x0 = min(max(0, cx - cw // 2), W - cw)
+    y0 = min(max(0, cy - ch // 2), H - ch)
+    crop = Image.new("RGB", (cw * 2 * 3 + 8, ch * 2 + 56), (12, 12, 16))
+    dd = ImageDraw.Draw(crop)
+    dd.text((12, 8), "2 倍局部 · 连携技「落潮横扫」", fill=(230, 230, 230), font=fb)
+    for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
+        crop.paste(label(im.crop((x0, y0, x0 + cw, y0 + ch)).resize((cw * 2, ch * 2), Image.NEAREST), lab, 20), (i * (cw * 2 + 4), 56))
+    crop.save(os.path.join(a.out, "cmp_combo_x2.png"))
+    print("连携三栏", os.path.join(a.out, "cmp_combo.png"), flush=True)
 
 
 def run(tag, extra, fps, fdir=None):
@@ -254,7 +310,7 @@ def diff(a, b):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "branch"])
+    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "branch", "combo"])
     ap.add_argument("--out", default=os.path.join(BUILD, "out"))
     ap.add_argument("--modes", default="3,0,1,2")
     ap.add_argument("--start", type=float, default=2.0)
@@ -277,6 +333,9 @@ def main():
         return
     if a.cmd == "branch":
         branch(a)
+        return
+    if a.cmd == "combo":
+        combo(a)
         return
     tags = []
     if a.cmd == "rec":
