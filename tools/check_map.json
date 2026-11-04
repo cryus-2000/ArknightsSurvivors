@@ -104,7 +104,10 @@
   "render": {
    "scenes": [
     "render_perf",
-    "look"
+    "look",
+    "gem_v2_tiers",
+    "warn_v2_contract",
+    "elite_mark_v2_review"
    ]
   },
   "ult": {
