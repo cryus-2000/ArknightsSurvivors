@@ -92,11 +92,20 @@ func _draw_dial(c: Vector2, rad: float) -> void:
 		_dial_hand(ci, c, rad, -720.0 * (1.0 - UM.out_back(hk, 1.6)), 1.0)
 	var st := (t - HAND0 - HAND) / 0.3
 	if st > 0.0 and st < 1.0:
-		ci.draw_arc(c, rad + 26.0 * UM.out_cubic(st), 0.0, TAU, 48, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.6 * (1.0 - st)), 1.5)
+		var rc: Color = Color(1, 1, 1) if _dial_v3() else UI.CYAN
+		ci.draw_arc(c, rad + 26.0 * UM.out_cubic(st), 0.0, TAU, 48, Color(rc.r, rc.g, rc.b, 0.6 * (1.0 - st)), 1.5)
+
+
+## 指挥台统一（docs/222 §20，用户 11-05「时钟是不是也可以再画一下」）
+func _dial_v3() -> bool:
+	return g.hud_view.v3 != null and g.hud_view.v3.on()
 
 
 func _dial_face(ci: CanvasItem, c: Vector2, rad: float, ak: float, a: float) -> void:
 	if ak <= 0.0:
+		return
+	if _dial_v3():
+		_dial_face_v3(ci, c, rad, ak, a)
 		return
 	ci.draw_circle(c, rad, Color(0.02, 0.05, 0.07, 0.55 * a))
 	ci.draw_arc(c, rad, -PI / 2.0, -PI / 2.0 + TAU * ak, 48, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.8 * a), 1.5)
@@ -108,9 +117,48 @@ func _dial_face(ci: CanvasItem, c: Vector2, rad: float, ak: float, a: float) -> 
 		ci.draw_line(c + d * r0, c + d * (rad - 2.0), Color(1, 1, 1, (0.75 if i % 3 == 0 else 0.45) * a), 2.0 if i % 3 == 0 else 1.0)
 
 
+## v3 表盘：外圈 60 格刻度环（整点长，同指挥台头像的终结技环），按 ak 顺时针画出；内圈 6 段威胁环（已过的白、当前段按进度填、
+## 未到的暗），表下一行「威胁 Ⅰ · 浅滩」。不用青（不可操作）、不用洋红（不是危险）
+func _dial_face_v3(ci: CanvasItem, c: Vector2, rad: float, ak: float, a: float) -> void:
+	ci.draw_circle(c, rad, Color(0.01, 0.015, 0.02, 0.6 * a))
+	for i in 60:
+		if float(i) / 60.0 > ak:
+			break
+		var d := Vector2.from_angle(deg_to_rad(i * 6.0 - 90.0))
+		var big: bool = i % 5 == 0
+		var r0: float = rad - (10.0 if i % 15 == 0 else (7.0 if big else 4.0))
+		ci.draw_line(c + d * r0, c + d * rad, Color(1, 1, 1, (0.85 if i % 15 == 0 else (0.55 if big else 0.25)) * a), 1.5 if big else 1.0)
+	ci.draw_arc(c, rad + 4.0, -PI / 2.0, -PI / 2.0 + TAU * ak, 64, Color(1, 1, 1, 0.22 * a), 1.0)
+	# 威胁环：6 段，段间留缝
+	var n: int = D.THREAT.size()
+	var tf: float = 1.0
+	if g.threat < n - 1:
+		tf = clampf((g.t - float(D.THREAT[g.threat].t)) / (float(D.THREAT[g.threat + 1].t) - float(D.THREAT[g.threat].t)), 0.0, 1.0)
+	var ri: float = rad * 0.58
+	var seg: float = TAU / n
+	for k in n:
+		var a0: float = -PI / 2.0 + k * seg + 0.06
+		var a1: float = a0 + seg - 0.12
+		if a0 > -PI / 2.0 + TAU * ak:
+			break
+		ci.draw_arc(c, ri, a0, a1, 12, Color(1, 1, 1, 0.14 * a), 3.0)
+		var f: float = 1.0 if k < g.threat else (tf if k == g.threat else 0.0)
+		if f > 0.0:
+			ci.draw_arc(c, ri, a0, a0 + (a1 - a0) * f, 12, Color(1, 1, 1, (0.85 if k < g.threat else 0.6) * a), 3.0)
+	if ak >= 1.0:
+		var tr: Dictionary = D.THREAT[g.threat]
+		var lab: String = "威胁 %s · %s" % [["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][clampi(g.threat, 0, 5)], str(tr.get("name", ""))]
+		UI.text(ci, g.font, Vector2(c.x - 100.0, c.y + rad + 26.0), lab, 13, Color(0.6, 0.63, 0.66, a), HORIZONTAL_ALIGNMENT_CENTER, 200)
+
+
 ## deg：秒针相对 12 点的角度（顺时针为正）
 func _dial_hand(ci: CanvasItem, c: Vector2, rad: float, deg: float, a: float) -> void:
 	var d := Vector2.from_angle(deg_to_rad(deg - 90.0))
+	if _dial_v3():   # 白色细针 + 针尾短配重 + 中心白点（不用洋红）
+		ci.draw_line(c - d * rad * 0.18, c + d * (rad - 12.0), Color(0.93, 0.935, 0.94, a), 1.5)
+		ci.draw_circle(c + d * (rad - 12.0), 2.0, Color(0.93, 0.935, 0.94, a))
+		ci.draw_circle(c, 3.0, Color(0.93, 0.935, 0.94, a))
+		return
 	var red := Color(UI.RED.r, UI.RED.g, UI.RED.b, a)
 	ci.draw_line(c - d * rad * 0.2, c + d * (rad - 14.0), red, 2.0)
 	ci.draw_circle(c, 3.5, Color(1, 1, 1, a))
