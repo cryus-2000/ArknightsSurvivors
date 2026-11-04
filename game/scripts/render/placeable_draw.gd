@@ -141,47 +141,70 @@ static func mine_image() -> Image:
 	return im
 
 
-## 轰隆隆 24×22（朝右；含描边余量）：灰色圆角机身、正面白色菱形徽记、前翼朝前、天线在后（薄荷绿灯）、四条短腿
-const BOMB_W := 24
-const BOMB_H := 22
-const BOMB_FOOT := Vector2(12, 21)   # 脚底中点（贴图坐标）
-const BOMB_LAMP_P := Vector2i(2, 1)  # 天线灯 2×2 左上角
+## 轰隆隆 23×20（正面视角；含描边余量）：宽而扁的弧面装甲板（像阔剑地雷：正面略内凹、两端向后收成圆角），
+## 正面中央白色菱形徽记（菱形里套小菱形）、下方深色横槽、两侧散热横纹；底下三条细长支脚向外张开；天线从顶部一侧伸出（薄荷绿灯）
+const BOMB_W := 23
+const BOMB_H := 20
+const BOMB_FOOT := Vector2(11.5, 19)   # 脚底中点（贴图坐标）
+const BOMB_LAMP_P := Vector2i(17, 1)   # 天线灯 2×2 左上角
+const BOMB_GEM := Vector2i(11, 7)      # 菱形徽记中心（呼吸亮点）
+const BOMB_TILT_ROW := 11              # 倾斜时这一行以上整体朝移动方向错 1 格
+
+## 板面上下沿：两端高、中间低 1 格（正面略内凹的弧）
+static func _bomb_top(x: int) -> int:
+	return 5 if x >= 6 and x <= 16 else 4
+
 
 static func bomb_image(step: int) -> Image:
 	var im := _img(BOMB_W, BOMB_H)
-	# 腿：远侧一对（暗）+ 近侧一对；step 0 / 1 交替抬腿
-	var legs := [[6, true], [14, true], [9, false], [17, false]]
-	for i in legs.size():
-		var lx: int = legs[i][0]
-		var far: bool = legs[i][1]
-		var lift: int = 2 if ((i % 2) == step) else 0
-		var sw: int = 1 if ((i % 2) == step) else 0   # 抬起的腿往前迈一格
-		var col := Color8(0x26, 0x29, 0x2e) if far else Color8(0x3a, 0x3e, 0x45)
-		_rect(im, lx + sw, 16, lx + 1 + sw, 19 - lift, col)
-		_rect(im, lx + sw - (0 if far else 1), 20 - lift, lx + 1 + sw + 1, 20 - lift, Color8(0x1a, 0x1c, 0x20) if far else Color8(0x55, 0x5b, 0x63))
-	# 机身：圆角矩形 16×11
-	_rect(im, 3, 6, 18, 16, Color8(0x8b, 0x91, 0x99))
-	_rect(im, 3, 6, 18, 8, Color8(0xae, 0xb4, 0xbb))
-	_rect(im, 4, 6, 17, 6, Color8(0xcc, 0xd2, 0xd8))
-	_rect(im, 3, 14, 18, 16, Color8(0x5d, 0x63, 0x6b))
-	for p in [Vector2i(3, 6), Vector2i(18, 6), Vector2i(3, 16), Vector2i(18, 16)]:
-		im.set_pixel(p.x, p.y, Color(0, 0, 0, 0))
-	_rect(im, 10, 7, 10, 15, Color8(0x6c, 0x72, 0x7a))   # 面板接缝
-	# 正面（右端）亮一档 + 白色菱形徽记
-	_rect(im, 15, 8, 18, 14, Color8(0x9c, 0xa2, 0xaa))
-	for dy in range(-2, 3):
-		for dx in range(-2, 3):
-			if absi(dx) + absi(dy) <= 2:
-				_px(im, 16 + dx, 11 + dy, Color8(0xf4, 0xf6, 0xf8))
-	_px(im, 18, 11, Color8(0xc8, 0xd0, 0xd6))
-	# 前端传感窗：徽记上方一道深色横条
-	_rect(im, 15, 7, 18, 7, Color8(0x2a, 0x2f, 0x36))
-	# 前翼：上前方一片朝前的斜翼 + 下前方一片小翼
-	_poly(im, PackedVector2Array([Vector2(13, 7), Vector2(21.5, 3.8), Vector2(21.5, 5.6), Vector2(19, 8.5), Vector2(17, 8.5)]), Color8(0x6f, 0x75, 0x7d))
-	_poly(im, PackedVector2Array([Vector2(13, 6), Vector2(21.5, 3.2), Vector2(21.5, 4.4), Vector2(14, 7)]), Color8(0xc3, 0xc9, 0xcf))
-	# 天线（后方，斜向后上）+ 灯座
-	for p in [Vector2i(5, 5), Vector2i(4, 4), Vector2i(4, 3)]:
-		im.set_pixel(p.x, p.y, Color8(0x3a, 0x3e, 0x44))
+	# 三脚架：左右两条向外张开、中间一条在后（暗）；step 0 抬左脚、1 抬右脚
+	var dark := Color8(0x26, 0x29, 0x2e)
+	var leg := Color8(0x4a, 0x50, 0x58)
+	var foot := Color8(0x6a, 0x72, 0x7b)
+	_rect(im, 11, 13, 11, 17, dark)
+	_px(im, 11, 18, Color8(0x1a, 0x1c, 0x20))
+	for side in [-1, 1]:
+		var lift: int = 1 if (side < 0) == (step == 0) else 0
+		var x0: int = 11 + side * 5
+		for k in 5:   # 斜向外张开的细长支脚：每两行外移一格
+			var yy: int = 13 + k
+			if yy <= 17 - lift:
+				_px(im, x0 + side * ((k + 1) / 2), yy, leg)
+		_rect(im, mini(x0 + side * 2, x0 + side * 3), 18 - lift, maxi(x0 + side * 2, x0 + side * 3), 18 - lift, foot)
+	# 装甲板：x 2–20，上沿 4/5、下沿 12/13（内凹弧），两端各收 2 格成圆角
+	for x in range(2, 21):
+		var top: int = _bomb_top(x)
+		var bot: int = top + 8
+		var y0: int = top + (1 if x == 2 or x == 20 else 0)
+		var y1: int = bot - (1 if x == 2 or x == 20 else 0)
+		for y in range(y0, y1 + 1):
+			var c := Color8(0x8b, 0x91, 0x99)
+			if y == y0:
+				c = Color8(0xcc, 0xd2, 0xd8)
+			elif y <= top + 2:
+				c = Color8(0xae, 0xb4, 0xbb)
+			elif y >= bot - 1:
+				c = Color8(0x5d, 0x63, 0x6b)
+			if x <= 3 or x >= 19:
+				c = c.darkened(0.22)   # 两端向后收：暗一档
+			elif (x >= 6 and x <= 16) and y > top + 2 and y < bot - 1:
+				c = Color8(0x80, 0x86, 0x8e)   # 中段内凹：比两侧略暗
+			im.set_pixel(x, y, c)
+	# 两侧散热横纹（各 3 道）
+	for y in [7, 9, 11]:
+		_rect(im, 4, y, 6, y, Color8(0x55, 0x5b, 0x63))
+		_rect(im, 16, y, 18, y, Color8(0x55, 0x5b, 0x63))
+	# 菱形徽记：外菱形白，里面套一个灰蓝小菱形（呼吸亮点在小菱形上）
+	for dy in range(-3, 4):
+		for dx in range(-3, 4):
+			var d: int = absi(dx) + absi(dy)
+			if d <= 3:
+				_px(im, BOMB_GEM.x + dx, BOMB_GEM.y + dy + 1, Color8(0xf4, 0xf6, 0xf8) if d >= 2 else Color8(0x86, 0x96, 0x9e))
+	# 下方深色横槽
+	_rect(im, 8, 12, 14, 12, Color8(0x22, 0x26, 0x2c))
+	# 天线：顶部右侧伸出，顶端薄荷绿灯
+	_px(im, 17, 4, Color8(0x3a, 0x3e, 0x44))
+	_px(im, 17, 3, Color8(0x3a, 0x3e, 0x44))
 	_rect(im, BOMB_LAMP_P.x, BOMB_LAMP_P.y, BOMB_LAMP_P.x + 1, BOMB_LAMP_P.y + 1, BOMB_LAMP)
 	_outline(im, OUTLINE)
 	return im
@@ -396,30 +419,39 @@ func draw_upper(rfx) -> void:
 		var prev: Vector2 = b.get("_vp", b.pos)
 		var mv: Vector2 = b.pos - prev
 		b["_vp"] = b.pos
-		if absf(mv.x) > 0.05:
-			b["_vd"] = 1.0 if mv.x > 0.0 else -1.0
+		var moving: bool = mv.length() > 0.05
+		var tilt := 0.0   # 正面视角不转身：上半身朝移动方向错 1 美术像素
+		if moving and absf(mv.x) > 0.05:
+			tilt = PX if mv.x > 0.0 else -PX
 		b["_vw"] = float(b.get("_vw", 0.0)) + mv.length()
 		var step: int = int(float(b["_vw"]) / 7.0) % 2
-		var flip: bool = float(b.get("_vd", 1.0)) < 0.0
 		var hop: float = 0.0
+		var sway: float = 0.0
 		if age < 0.25:
 			hop = -18.0 * sin(age / 0.25 * PI)
-		elif mv.length() > 0.05:
-			hop = -PX * float(step)   # 走路一颠一颠
-		var foot: Vector2 = b.pos + off + Vector2(0, 10 + hop)
+		elif moving:
+			sway = PX * (1.0 if step == 0 else -1.0) * 0.5   # 左右轻微晃动（半格，落到 2 像素网格上是 0 / 1 格交替）
+		var foot: Vector2 = b.pos + off + Vector2(sway, 10 + hop)
 		var col := Color.WHITE
 		var lt: float = float(b.life)
 		if lt < 1.2 and fmod(t, 0.16) < 0.08:
 			col = Color(1.6, 1.8, 1.7)   # 蓄势：寿命将尽时急闪
 		var tx := tex("bomb%d" % step)
 		col = _mod(b.pos, col)
-		_blit(cv, tx, foot, BOMB_FOOT, flip, col)
-		var lx: float = (float(BOMB_LAMP_P.x) - BOMB_FOOT.x) * PX
-		if flip:
-			lx = -lx - 2.0 * PX
-		var tl: Vector2 = Vector2(_snap(foot.x), _snap(foot.y)) + Vector2(lx, (float(BOMB_LAMP_P.y) - BOMB_FOOT.y) * PX)
-		var bl: float = 0.5 + 0.5 * sin(t * (9.0 if lt < 1.2 else 3.6))
-		_breath(cv, tl, Vector2(2, 2), BOMB_LAMP, bl, _mod(b.pos))
+		var o: Vector2 = Vector2(_snap(foot.x), _snap(foot.y)) - BOMB_FOOT * PX
+		o = Vector2(roundf(o.x / PX) * PX, o.y)
+		var cut: float = float(BOMB_TILT_ROW)
+		# 分两段画：上半（cut 行以上）错 tilt，下半（支脚）不动
+		cv.draw_texture_rect_region(tx, Rect2(o + Vector2(tilt, 0), Vector2(BOMB_W, cut) * PX), Rect2(0, 0, BOMB_W, cut), col)
+		cv.draw_texture_rect_region(tx, Rect2(o + Vector2(0, cut * PX), Vector2(BOMB_W, BOMB_H - cut) * PX), Rect2(0, cut, BOMB_W, BOMB_H - cut), col)
+		# 呼吸亮点：菱形里的小菱形
+		var bl: float = 0.5 + 0.5 * sin(t * (9.0 if lt < 1.2 else 3.4))
+		var gc: Vector2 = o + Vector2(tilt, 0) + (Vector2(BOMB_GEM) + Vector2(0, 1)) * PX
+		var hc: Color = Color8(0x86, 0x96, 0x9e).lerp(Color(0.86, 1.0, 0.94), 0.2 + 0.8 * bl) * col
+		_bm = Color.WHITE
+		_qdisc(cv, gc + Vector2(PX * 0.5, PX * 0.5), PX * (3.0 + bl), 0.9, Color(BOMB_LAMP.r * col.r, BOMB_LAMP.g * col.g, BOMB_LAMP.b * col.b, (0.05 + 0.13 * bl) * col.a))
+		for q in [Vector2(0, 0), Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
+			cv.draw_rect(Rect2(gc + q * PX, Vector2(PX, PX)), Color(hc.r, hc.g, hc.b, col.a))
 	var pal: int = int(Bal.v("render/placeable_stake_pal", 0.0))
 	for s in rfx.stakes:
 		var age: float = _born(s)
