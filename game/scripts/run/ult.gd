@@ -850,6 +850,12 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		# ult/dmgk_<干员> 范围统一后的输出补偿（§5.10）；ult/minion_hpk > 0（试验，缺省关）：预算至少是这只小怪自身最大生命 × hpk（后期高血种类也能清）
 		amt = maxf(amt, e.maxhp * Bal.v("ult/minion_hpk", 0.0) * frac)
 		amt *= Bal.v("ult/minion_k", 1.0) * Bal.v("ult/dmgk_" + str(o.id), 1.0)
+		if Bal.v("growth/late_shape", 0.0) > 0.0 and Bal.v("shape_lv/p3_on", 0.0) > 0.0:
+			# P3（docs/248 §7）：终结技对小怪只清队长周围一圈（p3_r），外圈经 p3_band 过渡到 × p3_far；精英 / Boss 的份额不动
+			var dd: float = e.pos.distance_to(g.ppos)
+			var r0: float = Bal.v("shape_lv/p3_r", 300.0)
+			var x: float = clampf((dd - r0) / maxf(1.0, Bal.v("shape_lv/p3_band", 80.0)), 0.0, 1.0)
+			amt *= lerpf(1.0, Bal.v("shape_lv/p3_far", 0.3), x)
 	if e.boss:
 		amt = minf(amt, maxf(0.0, full_b - float(e.ult_d)))
 	elif e.elite or e.get("part", false):

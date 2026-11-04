@@ -15,7 +15,8 @@ extends RefCounted
 ## 玩法随机：不用。全部状态在 o.vg（每名干员）与 g.rfx.lv（藏品等级）里。
 
 const Bal = preload("res://scripts/core/balance.gd")
-const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # 剑气非线性速度（10-27）
+const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")
+const LateShape = preload("res://scripts/characters/blocks/late_shape.gd")   # 剑气非线性速度（10-27）
 
 ## 读 op_shots 之外的远程普攻形状（cmd_role 同一张表）
 const RANGED_SHAPES := ["projectile", "shell", "bolt", "cannon", "point_aoe", "foxfire", "lantern"]
@@ -243,6 +244,14 @@ static func st(o) -> Dictionary:
 
 static func on_release(o) -> void:
 	var s := summary(o.g)
+	if LateShape.on(o.g):   # 后期形状随成长（docs/248）：本干员的额外弹 / 剑气 = 藏品部分 + 档位部分
+		var sh: String = str(o.B.get("attack", {}).get("shape", "")) if o.has_method("cur_attack") else ""
+		var ls := LateShape.op_summary(o, s, shot_eater(o), qi_eater(o), sh in RANGED_SHAPES, sh != "" and sh != "support" and not sh in RANGED_SHAPES)
+		if float(ls.e_shots) > 0.0:
+			_fire_shots(o, ls)
+		if float(ls.e_qi) > 0.0:
+			_fire_qi(o, ls)
+		return
 	if s.is_empty():
 		return
 	if s.e_shots > 0.0 and shot_eater(o):
@@ -354,6 +363,8 @@ static func qi_style(o) -> String:
 
 static func _hit(o, e: Dictionary, dmg: float, src: String) -> void:
 	o.log_hit(src, ["projectile", "growth"])
+	if e.boss and LateShape.on(o.g):
+		dmg *= Bal.v("shape_lv/boss_k", 1.0)   # 后期形状原型（docs/248）：额外弹 / 剑气打 Boss 打折（开关开时，藏品来的也一样）
 	o.deal_damage(e, dmg * (o.vs_elite() if e.elite or e.boss else 1.0))
 
 
