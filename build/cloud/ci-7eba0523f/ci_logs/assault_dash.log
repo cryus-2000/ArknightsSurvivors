@@ -1,0 +1,20 @@
+# assault_dash
+# 参数：--headless --path /work/repo/game res://tests/assault_dash_test.tscn -- --regression --seed=1 --regression --balance --seed=1 --op=skadi --squad=texas,lappland
+# 用时 24 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DASH COUNTS tx=[0, 4, 0] lap=[0, 2, 0]
+ASSAULT DASH checks=9 failures=0
+ERROR: 5 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+WARNING: 51 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 23 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
