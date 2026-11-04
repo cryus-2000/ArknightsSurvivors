@@ -8,7 +8,7 @@
   data/pxp_skadi.json 帧数、fps、帧尺寸、原点（脚底 / 地面点），以及每帧的 emit 点表（最亮的热芯像素：进光学层发光通道）。
 raw（旧做法对照，fx/px_plane = 2）：色层 + 光层烤成一张（光晕变成颜色），游戏里旋转 + 小数缩放直接贴。
 
-用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma] [--only 键前缀]（星熊 docs/248：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json）
+用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma] [--only 键前缀]（星熊 docs/254：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json）
 """
 import argparse, json, os, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -21,7 +21,7 @@ PFX = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(ROOT))) if ".
 if not os.path.isdir(PFX):
     PFX = os.path.join(ROOT, "build", "pixelfx")
 OUT_ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
-# 干员 → (pixelfx 效果 id「目录/文件名」, 帧条元数据, 帧条键前缀, emit 另算的点缀色)。docs/246 斯卡蒂、docs/248 星熊
+# 干员 → (pixelfx 效果 id「目录/文件名」, 帧条元数据, 帧条键前缀, emit 另算的点缀色)。docs/246 斯卡蒂、docs/254 星熊
 OPS = {
     "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0x5f, 0xf0)]),
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
@@ -86,16 +86,19 @@ def variants_skadi():
 
 
 def variants_hoshiguma():
-    """星熊（docs/248）：判定从 hoshiguma.json 读，美术像素 = 世界 / 2。"""
+    """星熊（docs/254）：判定从 hoshiguma.json 读，美术像素 = 世界 / 2。"""
     v = []
     T = [0, 1, 2]
-    for el in T:   # 普攻「盾斧斩」：锥形 reach 94 / 半角 70° → 半径 47、弧 2.44；精一盾缘崩钢屑，精二暖金副刃 + 金火星
-        for d in DIRS:
+    # 尺寸档：范围成长（growth/late_shape 近战 +12% / 档、范围卡）会放大判定，帧条按几档半径预生成，游戏挑最近的一档（只整数放大，不缩放）
+    for R in (47, 56, 66):   # 普攻「盾斧斩」：锥形 reach 94 / 半角 70° → 半径 47、弧 2.44；精一盾缘崩钢屑，精二暖金副刃 + 金火星
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("sweep_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": 2.44, "W": [11, 13, 15][el] + (R - 47) // 8, "dir": d, "el": el, "dur": 0.3}, 0.34))
+    for R in (75, 95):   # S1「战意」：s1_r 150 → 冲击环 75；立起层下劈弧朝右（朝左游戏里翻转）
+        for el in T:
             for ly in ("up", "gd"):
-                v.append(("sweep_e%d_%s_d%d" % (el, ly, d), {"part": "sweep", "layer": ly, "R": 47, "span": 2.44, "W": [11, 13, 15][el], "dir": d, "el": el, "dur": 0.3}, 0.34))
-    for el in T:   # S1「战意」：s1_r 150 → 冲击环 75；立起层下劈弧朝右（朝左游戏里翻转）
-        for ly in ("up", "gd"):
-            v.append(("slam_e%d_%s" % (el, ly), {"part": "slam", "layer": ly, "R": 75, "el": el, "seed": 5}, 0.6))
+                v.append(("slam_r%d_e%d_%s" % (R, el, ly), {"part": "slam", "layer": ly, "R": R, "el": el, "seed": 5}, 0.6))
     v.append(("pulse_gd", {"part": "ring", "layer": "gd", "R": 45, "el": 1, "seed": 9}, 0.5))   # 般若之重 / 盾墙反震
     for el in (1, 2):   # S2「荆棘」起手地刺：身后半圈 / 身前半圈分开（按脚底 y 排在星熊前后）
         for half in ("back", "front"):
@@ -103,9 +106,18 @@ def variants_hoshiguma():
         v.append(("thorns_e%d_gd" % el, {"part": "thorns", "layer": "gd", "el": el, "seed": 4}, 0.62))
         for R in (40, 30):   # 热砂：荆棘 sand_r 80 → 40；热砂·落刃 blade_r 60 → 30（荆棘期间 ×1.3 ≈ 40）
             v.append(("sand%d_e%d_gd" % (R, el), {"part": "sand", "layer": "gd", "R": R, "el": el, "seed": 6 + R, "_loop": True}, 0.4))
-    for d in DIRS:   # S3「力之锯」直线斩：s3_len 220 / s3_w 50 → 110 / 25
-        for ly in ("up", "gd"):
-            v.append(("rip_%s_d%d" % (ly, d), {"part": "rip", "layer": ly, "L": 110, "W": 25, "dir": d, "el": 2, "seed": 3}, 0.6))
+    for L in (110, 140):   # S3「力之锯」直线斩：s3_len 220 / s3_w 50 → 110 / 25
+        for d in DIRS:
+            for ly in ("up", "gd"):
+                v.append(("rip_l%d_%s_d%d" % (L, ly, d), {"part": "rip", "layer": ly, "L": L, "W": 25, "dir": d, "el": 2, "seed": 3}, 0.6))
+    for S in (10, 16, 22):   # 后期剑气（growth/late_shape）：一次出手 1 / 2 / 3+ 道合成一道盾击冲击波，三帧（热白 / 常态 / 碎开）
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("qi_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.2))
+    for d in DIRS:   # 连携技「举盾推挡」：盾落点的立起大盾（方向件）+ 队长脚下的冲击环（140 → 70）
+        v.append(("shove_up_d%d" % d, {"part": "shove", "layer": "up", "dir": d, "el": 1, "seed": 8}, 0.52))
+    v.append(("shove_gd", {"part": "shove", "layer": "gd", "R": 70, "el": 1, "seed": 8}, 0.52))
     v.append(("s3cast_up", {"part": "s3cast", "layer": "up", "R": 30, "el": 2}, 0.56))
     v.append(("s3cast_gd", {"part": "s3cast", "layer": "gd", "R": 50, "el": 2, "seed": 13}, 0.5))
     v.append(("s3aura_gd", {"part": "s3aura", "layer": "gd", "R": 22, "el": 2, "_loop": True}, 0.4))
@@ -223,7 +235,7 @@ def main():
         reg[PREFIX + k] = m
         print("%-22s %2d 帧 %3d×%3d emit %d" % (k, m["n"], m["w"], m["h"], max((len(e) for e in m["emit"]), default=0)))
     reg = {k: reg[k] for k in sorted(reg)}
-    reg["_doc"] = ("docs/248 星熊" if a.op == "hoshiguma" else "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
+    reg["_doc"] = ("docs/254 星熊" if a.op == "hoshiguma" else "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
     json.dump(reg, open(OUT_META, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("共 %d 件" % (len(reg) - 1))
 

@@ -1,6 +1,6 @@
-// 星熊「转平面」（docs/248，开关 fx/px_plane，照 docs/246 斯卡蒂的做法）：pixelfx 画法，按本作俯视斜角重画。
+// 星熊「转平面」（docs/254，开关 fx/px_plane，照 docs/246 斯卡蒂的做法）：pixelfx 画法，按本作俯视斜角重画。
 // 一个文件按 part 出各件；每件分两层（layer）：
-//   up 立起层 —— 离地的东西（腰高盾斧刀痕、下劈弧、地刺、锯盾、锯线火花），原点 = 脚底地面点，进单位层按 y 排序；
+//   up 立起层 —— 离地的东西（腰高盾斧刀痕、下劈弧、地刺、飞盾、锯线火花、剑气浪墙、推挡大盾），原点 = 脚底地面点，进单位层按 y 排序；
 //   gd 贴地层 —— 地面上的东西（投影、裂网冲击环、热砂、撕裂沟），已按 SY（0.72）压扁，画在地面层。
 // 1 像素 = 1 美术像素 = 2 世界像素，游戏里只按 2 倍整数放大、不旋转；方向件按 dir（−90 / −45 / 0 / 45 / 90°）逐向生成，另一半水平翻转。
 // view: "raw" 出「旧做法」对照：正俯视 / 正圆、光晕烤进颜色，游戏里旋转 + 小数缩放贴。
@@ -9,7 +9,7 @@ import { fit, clamp, smooth, ease, noise, noise2, TAU, hex, WHITE } from "../../
 
 export const meta = {
   name: "Hoshiguma plane",
-  desc: "Hoshiguma's shield-axe sweeps, shield slam, thorn spikes, heat sand, saw rip and spinning saw-shield redrawn for a 3/4 top-down plane.",
+  desc: "Hoshiguma's shield-axe sweeps, shield slam, thorn spikes, heat sand, saw rip, thrown spinning shield, shield shockwaves and shield shove redrawn for a 3/4 top-down plane.",
   tags: ["melee", "slash", "topdown", "hoshiguma", "one-shot"],
   size: [300, 260],
   origin: [150, 150],
@@ -448,28 +448,34 @@ function s3aura(p, t, o, C) {
   }
 }
 
-// ---------------------------------------------------------------- 精二「般若回旋」：横转着飞的锯盾（循环），腰高；地上影子
+// ---------------------------------------------------------------- 精二「般若回旋」：横转着飞出去的盾「般若」（循环），腰高；地上影子
+// 11-05 用户「星熊飞出去的是盾而不是锯子」：不画锯齿。盾在水平面里转（俯视斜角压扁），轮廓是上宽下收的盾形，
+// 钢灰盾面左上受光、浅钢盾缘，盾面中间鬼面（一道亮钢眉 + 两点青绿眼），转到侧面时变窄；外面两道短速度弧。
 function saw(p, t, o, C, ACC, ST) {
-  const raw = o.view === "raw", SY = raw ? 1 : +o.SY, H0 = raw ? 0 : 11, R = +o.R, n = C.length;
-  const ph = (t / 0.4) * TAU * 1.5;
-  p.shade(-R - 4, -(R + 4) * SY - H0, R + 4, (R + 4) * SY - H0, (x, y, out) => {
-    const pz = (y + H0) / SY, r = Math.hypot(x, pz);
-    const a = Math.atan2(pz, x) - ph;
-    const toothA = ((a % (TAU / 8)) + TAU / 8) % (TAU / 8) / (TAU / 8);
-    const big = nz(Math.floor(((a % TAU) + TAU) % TAU / (TAU / 8)), o.seed + 1301) > 0.5;
-    const rt = R + (toothA < 0.45 ? (big ? 3.5 : 2.5) * (1 - toothA / 0.45) : 0);   // 锯齿（不等大）
-    if (r > rt) return;
+  const raw = o.view === "raw", SY = raw ? 1 : +o.SY, H0 = raw ? 0 : 11, n = C.length;
+  const HW = 9, HH = 13;                                              // 盾的半宽 / 半高（盾自身平面里）
+  const ph = (t / 0.4) * TAU;                                         // 0.4 秒转一圈（6 帧）
+  const ca = Math.cos(ph), sa = Math.sin(ph);
+  const B = 15;
+  // 盾自身坐标 (u 横, v 竖) → 水平面 (x, z)：盾平躺在水平面里转（飞盘式），世界 x = u·cos − v·sin，深度 = u·sin + v·cos
+  p.shade(-B, -B * SY - H0, B, B * SY - H0, (x, y, out) => {
+    const pz = (y + H0) / SY;
+    const u = x * ca + pz * sa, v = -x * sa + pz * ca;               // 逆转回盾自身坐标
+    const vv = v / HH;
+    if (vv < -1 || vv > 1) return;
+    const half = HW * (vv < 0 ? 1 - 0.1 * vv * vv : 1 - 0.55 * vv * vv);   // 上宽圆肩、下沿收成钝尖
+    if (Math.abs(u) > half) return;
     out.a = 1;
-    if (r > R - 0.5) { out.c = toothA < 0.12 ? WHITE : ST[4]; return; }
-    if (r > R - 2) { out.c = C[n - 3]; return; }                      // 青绿盾缘
-    const lit = (-x - pz) / (R * 1.4);                                // 左上受光
-    out.c = r < R * 0.35 ? ST[3] : lit > 0.25 ? ST[3] : lit > -0.2 ? ST[2] : ST[1];
-    if (Math.abs(r - R * 0.6) < 0.6 && Math.cos(a * 2) > 0.3) out.c = C[n - 4];   // 盾面一圈转动的青纹
+    const edge = half - Math.abs(u) < 1.2 || 1 - Math.abs(vv) < 0.09;
+    if (edge) { out.c = ST[4]; if (x + pz < -6) out.c = ST[5]; return; }   // 盾缘（左上那段更亮）
+    const lit = (-x - pz) / (B * 1.2);
+    out.c = lit > 0.2 ? ST[3] : lit > -0.25 ? ST[2] : ST[1];
+    if (Math.abs(vv + 0.15) < 0.09 && Math.abs(u) < half * 0.6) out.c = ST[4];          // 鬼面眉
+    if (Math.abs(vv - 0.05) < 0.08 && Math.abs(Math.abs(u) - half * 0.32) < 0.9) out.c = C[n - 2];   // 两点青绿眼
   });
-  // 速度纹：盾缘外两道短弧
-  for (let k = 0; k < 2; k++) {
+  for (let k = 0; k < 2; k++) {                                       // 速度弧：盾外两道短弧（顺转向）
     const a0 = ph + k * Math.PI;
-    for (let a = a0; a < a0 + 1.1; a += 0.12) p.px(Math.round(Math.cos(a) * (R + 4)), Math.round(Math.sin(a) * (R + 4) * SY - H0), a < a0 + 0.4 ? C[n - 2] : C[n - 4]);
+    for (let a = a0; a < a0 + 1.0; a += 0.12) p.px(Math.round(Math.cos(a) * (B + 1)), Math.round(Math.sin(a) * (B + 1) * SY - H0), a < a0 + 0.4 ? C[n - 2] : C[n - 4]);
   }
   if (raw) p.light(0, 0, C[n - 2], 0.5);
 }
@@ -497,5 +503,116 @@ export function draw(p, t, o) {
     case "s3cast": return gd ? ring(p, t, o, C, ACC, DU) : s3swirl(p, t, o, C, ACC);
     case "s3aura": return gd ? s3aura(p, t, o, C) : undefined;
     case "saw": return gd ? sawGround(p, t, o, C) : saw(p, t, o, C, ACC, ST);
+    case "qi": return gd ? qiWaveGround(p, t, o, C, ACC, ST, AM, DU) : qiWave(p, t, o, C, ACC, ST, AM, DU);
+    case "shove": return gd ? shoveGround(p, t, o, C, ACC, ST, AM, DU) : shove(p, t, o, C, ACC, ST, AM, DU);
+  }
+}
+
+// ---------------------------------------------------------------- 后期剑气（growth/late_shape 给近战的额外一击，vis_growth._fire_qi）：星熊版 = 盾击冲击波
+// 一次出手的几道剑气在游戏里合成一道（S = 横向半宽，按道数 1 / 2 / 3+ 取三档），贴地往前推的一堵矮浪墙：前凸、顶上白唇；
+// 精一更高 + 两侧甩钢屑；精二顶上压一道钢灰盾缘 + 暖金火星。三帧：0 热白 / 1 常态 / 2 碎开散掉（游戏按剑气年龄与剩余寿命挑帧）。
+function qiWave(p, t, o, C, ACC, ST, AM, DU) {
+  const SY = +o.SY, th = +o.dir * D2R, el = +o.el, n = C.length, S = +o.S, H = [7, 9, 10][el];
+  const fx = Math.cos(th), fy = Math.sin(th) * SY, nx = -Math.sin(th), ny = Math.cos(th) * SY;
+  const f = Math.min(2, Math.round(t * 15)), brk = f === 2;
+  const cols = [];
+  for (let w = -S; w <= S; w += 0.5) {
+    const u = w / S, k = 1 - u * u;
+    if (brk && nz(w * 1.7, o.seed + 1401) < 0.45) continue;            // 碎开：一段段断掉
+    const bulge = 5 * k, h = H * Math.pow(k, 0.45) * (0.8 + 0.35 * nz(w * 0.9, o.seed + 1403)) * (brk ? 0.5 : 1);
+    cols.push({ w, bulge, h, x: fx * bulge + nx * w, y: fy * bulge + ny * w, u });
+  }
+  cols.sort((A, B) => A.y - B.y);
+  for (const c of cols) {
+    for (let d = -3; d <= 0; d++) {   // 墙厚：后面暗两阶 → 前脸
+      const hx = c.x + fx * d, hy = c.y + fy * d, hd = c.h * (1 + d * 0.08);
+      for (let z = 0; z <= hd; z += 0.5) {
+        const q = z / Math.max(1, hd);
+        let ci = q > 0.8 ? n - 2 : q > 0.5 ? n - 3 : q > 0.2 ? n - 4 : n - 5;
+        if (f === 0 && q > 0.6 && d === 0) ci = n - 1;
+        if (brk) ci -= 2;
+        ci += d < 0 ? Math.max(-2, d) : 0;
+        p.px(Math.round(hx), Math.round(hy - z), C[clamp(ci, 1, n - 1)]);
+      }
+    }
+    if (el >= 2 && !brk) {   // 精二：浪墙顶上压一道钢灰盾缘（盾击的那条边），刚出手一帧白热（11-05 用户：飞出去的是盾，不是锯子，所以不画锯齿）
+      p.px(Math.round(c.x), Math.round(c.y - c.h - 1), f === 0 ? WHITE : ST[4]);
+      if (Math.abs(c.u) < 0.7) p.px(Math.round(c.x), Math.round(c.y - c.h - 2), ST[3]);
+    }
+  }
+  if (el >= 1) {                                                       // 两侧甩出的钢屑 / 精二暖金火星
+    for (let i = 0; i < 6 + 2 * el; i++) {
+      const side = i % 2 ? 1 : -1, u = (f + 0.5) / 15;
+      const x = side * S * (0.9 + 0.3 * nz(i, o.seed + 1409)) + side * 60 * u, z = 4 + 40 * u - 200 * u * u;
+      const X = fx * (2 + 30 * u * nz(i * 3, o.seed + 1411)) + nx * x, Y = fy * (2 + 30 * u) + ny * x - z;
+      const gold = el >= 2 && i % 3 === 0;
+      p.px(Math.round(X), Math.round(Y), gold ? (f === 0 ? WHITE : ACC) : f === 0 ? ST[5] : ST[3]);
+    }
+  }
+}
+
+function qiWaveGround(p, t, o, C, ACC, ST, AM, DU) {
+  const SY = +o.SY, th = +o.dir * D2R, S = +o.S, el = +o.el;
+  const fx = Math.cos(th), fy = Math.sin(th) * SY, nx = -Math.sin(th), ny = Math.cos(th) * SY;
+  const f = Math.min(2, Math.round(t * 15));
+  for (let w = -S; w <= S; w += 0.5) {                                 // 浪墙脚下压暗 + 往后犁出的一截暗沟
+    const u = w / S, k = 1 - u * u, bulge = 5 * k;
+    for (let s = 0; s < 3 + 9 * k; s += 1) {
+      const X = fx * (bulge - s) + nx * w, Y = fy * (bulge - s) + ny * w;
+      p.dot(Math.round(X), Math.round(Y), s < 2 ? C[0] : DU[1], (s < 2 ? 0.6 : 0.4) * (f === 2 ? 0.5 : 1));
+    }
+  }
+  for (let i = 0; i < 8; i++) {                                        // 两端甩起的尘点
+    const side = i % 2 ? 1 : -1, d = S + 2 + 4 * nz(i, o.seed + 1421) + f * 2;
+    p.px(Math.round(nx * side * d - fx * 3 * nz(i * 2, o.seed + 1423)), Math.round(ny * side * d - fy * 3 - f), f === 0 ? DU[4] : DU[3]);
+  }
+}
+
+// ---------------------------------------------------------------- 连携技「举盾推挡」：冲到队长身边，大盾立在外侧往外一推；以队长为心一圈推开的冲击环 + 放射推痕
+// up（方向件，原点 = 盾落点）：一面立起的鬼面大盾（钢灰盾面、青绿盾缘、白热上沿），第 0–1 帧往外推 10 格，前面两道往外扩的气浪弧；之后抖动变稀散掉
+// gd（原点 = 队长脚下）：冲击环（半径 70 = 140 世界）+ 16 道不等长放射推痕 + 环边尘团
+function shove(p, t, o, C, ACC, ST, AM, DU) {
+  const SY = +o.SY, th = +o.dir * D2R, n = C.length;
+  const fx = Math.cos(th), fy = Math.sin(th) * SY, nx = -Math.sin(th), ny = Math.cos(th) * SY;
+  const push = 10 * ease.outCubic(clamp(t / 0.12)), fade = smooth(0.25, 0.5, t), hot = t < 0.067;
+  if (fade >= 0.99) return;
+  const HW = 13, HH = 30;
+  for (let w = -HW; w <= HW; w += 0.5) {
+    const u = Math.abs(w) / HW, top = HH * (1 - 0.35 * u * u), bot = 2 * u;   // 盾形：上宽圆肩、下沿收
+    const bx = fx * push + w * (0.75 + 0.25 * Math.abs(Math.cos(th))), by = fy * push;   // 盾面朝镜头，只往外推
+    for (let z = bot; z <= top; z += 0.5) {
+      if (fade > 0.3 && nz(w * 3 + z * 7, o.seed + 1501) < fade) continue;   // 散掉前抖动变稀
+      const rim = u > 0.86 || z > top - 1.5 || z < bot + 1;
+      let c = rim ? C[n - 3] : (w < 0 ? ST[3] : ST[2]);
+      if (!rim && Math.abs(z - HH * 0.55) < 3 && u < 0.4) c = ST[4];          // 鬼面：盾面中段一道亮钢眉
+      if (!rim && Math.abs(z - HH * 0.42) < 1 && u > 0.12 && u < 0.3) c = C[n - 2];   // 两点青绿眼
+      if (z > top - 1.5) c = hot ? WHITE : C[n - 2];
+      p.px(Math.round(bx), Math.round(by - z), c);
+    }
+  }
+  if (t < 0.3) for (let k = 0; k < 2; k++) {                                // 气浪弧：盾前往外扩
+    const d = 6 + push + (t * 140) * (1 + 0.4 * k), span = HW * (1.2 + 0.5 * k);
+    for (let w = -span; w <= span; w += 0.5) {
+      const u = w / span;
+      if (nz(w * 1.3 + k * 9, o.seed + 1503) < 0.25) continue;
+      const X = fx * (d - 4 * u * u) + nx * w, Y = fy * (d - 4 * u * u) + ny * w - HH * 0.4 * (1 - u * u);
+      p.px(Math.round(X), Math.round(Y), t < 0.14 ? C[n - 2] : C[n - 4]);
+    }
+  }
+}
+
+function shoveGround(p, t, o, C, ACC, ST, AM, DU) {
+  const R = +o.R, SY = +o.SY, n = C.length;
+  ring(p, t, o, C, ACC, DU);
+  const g = ease.outCubic(clamp(t / 0.18)), fade = smooth(0.2, 0.5, t);
+  if (fade >= 0.99) return;
+  for (let i = 0; i < 16; i++) {                                           // 放射推痕：被推开的敌人在地上拖出的痕
+    const a = TAU * (i + nz(i * 1.9, o.seed + 1511) * 0.6) / 16, L = R * (0.25 + 0.3 * nz(i * 2.7, o.seed + 1513));
+    const r1 = R * 0.95 * g, r0 = Math.max(R * 0.3, r1 - L);
+    for (let r = r0; r <= r1; r += 1) {
+      if (nz(r * 0.8 + i * 5, o.seed + 1515) < fade * 0.9) continue;
+      const q = (r - r0) / Math.max(1, r1 - r0);
+      p.px(Math.round(Math.cos(a) * r), Math.round(Math.sin(a) * r * SY), q > 0.75 ? (t < 0.1 ? C[n - 2] : C[n - 4]) : q > 0.4 ? C[3] : DU[2]);
+    }
   }
 }

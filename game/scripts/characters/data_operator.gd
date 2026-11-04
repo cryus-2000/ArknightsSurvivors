@@ -1587,7 +1587,7 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 					g.hitstop = maxf(g.hitstop, stop)   # 命中顿帧
 				if b.has("fx"):
 					ObFx.fx_play(self, b.fx, pos, 30.0)
-				if not Fxr.owns(self):   # 转平面（docs/248）接管时下劈 / 裂网由 fx_pxplane 画
+				if not Fxr.owns(self):   # 转平面（docs/254）接管时下劈 / 裂网由 fx_pxplane 画
 					SegHoshiguma.s1_slash_fx(self, b)   # 重斩画面（用户 10-31）：弧光 + 裂网 + 碎石，纯画面
 				float_text(pos + Vector2(0, -88), str(b.get("text", "嘲讽")), Color(1.0, 0.85, 0.4), 16)
 				_sfx_op("big")
@@ -1873,7 +1873,7 @@ func _draw_skill_over() -> void:
 	VisGrowth.draw(self)       # 可见成长：额外弹 / 剑气
 	ObSummon.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
 	ObSummon.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
-	if not Fxr.Pxp.owns_id(g, str(id)):   # 转平面（docs/248）接管时锯盾由 fx_pxplane 画
+	if not Fxr.Pxp.owns_id(g, str(id)):   # 转平面（docs/254）接管时锯盾由 fx_pxplane 画
 		ObElite.el_draw_over(self)    # 精英化段：往返弹体
 	if Fxr.owns(self):
 		Fxr.of(g).draw_over(self)   # 配方接管（docs/245）：投射弹 / 光束 / 锁链 / 主形 / 颗粒

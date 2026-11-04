@@ -651,7 +651,7 @@ static func pfx_cappable(f: Dictionary) -> bool:
 func draw_pfx(floor_layer: bool) -> void:
 	var px_keep: Dictionary = {}
 	if Fxr.owns(self):
-		px_keep = Fxr.Pxp.KEEP_PFX.get(str(id), {})   # 转平面（docs/248）：状态提示帧条（星熊格挡闪光）照画
+		px_keep = Fxr.Pxp.KEEP_PFX.get(str(id), {})   # 转平面（docs/254）：状态提示帧条（星熊格挡闪光）照画
 		if px_keep.is_empty():
 			return   # 配方接管（docs/245）：原粒子照常走完寿命，只是不画
 	var skip: int = pfx_skip if not floor_layer else 0
