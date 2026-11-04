@@ -16,11 +16,11 @@ import late_game_diag_shots as S
 
 ALL = ["--bal=render/light_share=1", "--bal=render/ground_ring_edge=1", "--bal=render/crowd_env_dim=1"]
 CONFIGS = {   # tag → (额外参数, 分层, 时刻)
-    "_OFF": ([], ["full", "nofriend", "noring", "noground"], [180, 480, 570]),
-    "_ON": (ALL, ["full", "nofriend", "noring", "noground"], [180, 480, 570]),
+    "_OFF": ([], ["full", "nofriend", "noring"], [180, 480, 570]),
+    "_ON": (ALL, ["full", "nofriend", "noring"], [180, 480, 570]),
     "_V4": ([ALL[0]], ["full", "nofriend"], [480]),
-    "_V9": ([ALL[1]], ["full", "noring"], [480]),
-    "_V10": ([ALL[2]], ["full", "nofriend", "noground"], [480]),
+    "_V9": ([ALL[1]], ["full"], [480]),       # V9 只改光环层：它的 noring 与全关的 noring 是同一张图，量测时借用全关的
+    "_V10": ([ALL[2]], ["full", "nofriend"], [480]),
 }
 OP, SQUAD, SEED = "logos", "texas,suzuran", 11
 
@@ -41,9 +41,13 @@ def shoot_one(job):
     for t in targets:
         f = int(round(t / S.SPF))
         fr += [f, f + 4]
-    args = _cmd(d, list(extra) + ["--shots=" + ",".join(str(f) for f in fr)] + ([] if layer == "full" else ["--clutterdbg=" + layer]), targets[-1] + 5)
-    p = subprocess.run(args, capture_output=True, text=True, timeout=7200)
-    errs = [l for l in (p.stdout + p.stderr).splitlines() if "SCRIPT ERROR" in l or "Parse Error" in l]
+    # full 层顺带 --trace=1：同一局的 TRACE 存成 trace.txt，各配置之间逐行比（docs/36 §3.2；截图、--clutterlog 各配置相同）
+    args = _cmd(d, list(extra) + ["--shots=" + ",".join(str(f) for f in fr)] + (["--trace=1"] if layer == "full" else ["--clutterdbg=" + layer]), targets[-1] + 5)
+    p = subprocess.run(args, capture_output=True, text=True, timeout=14400)
+    out = (p.stdout + p.stderr).splitlines()
+    if layer == "full":
+        open(os.path.join(d, "trace.txt"), "w").write("\n".join(l for l in out if l.startswith("TRACE ")) + "\n")
+    errs = [l for l in out if "SCRIPT ERROR" in l or "Parse Error" in l]
     return job, len(os.listdir(d)), errs[:3]
 
 
