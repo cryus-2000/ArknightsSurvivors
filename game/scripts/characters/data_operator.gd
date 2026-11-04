@@ -988,6 +988,7 @@ func _release_skill() -> void:
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 	if sb.has("fx"):
 		ObFx.fx_play(self, sb.fx, zone_c(), _zone_r_now())
+	Fxr.ev(self, "skill", {"i": i})   # 配方（docs/245）：技能起手的主形（只画）
 
 
 func load_skill_attacks(i: int, amount: int) -> void:
@@ -1081,7 +1082,10 @@ func draw_auras() -> void:
 	_draw_fields()
 	if not hw.is_empty():
 		SegSkadi.hw_draw_rings(self)   # 手写迁移段：常驻程序圈（aura_ring）、喷发热浪环……
-		ObHw.hw_draw_auras(self)
+		if Fxr.owns(self):
+			Fxr.of(g).draw_auras(self)   # 配方接管（docs/245）：持续技能的场改画实心主形
+		else:
+			ObHw.hw_draw_auras(self)
 	if pos == Vector2.INF or not B.has("zone"):
 		return
 	var c := zone_c()
@@ -1133,10 +1137,10 @@ func draw_body() -> void:
 	if not hw.is_empty() and SegSiege.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
 		return
 	_draw_body_fx(false)
-	if not hw.is_empty():
+	if not hw.is_empty() and not Fxr.owns(self):
 		ObHw.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
 	super()
-	if not hw.is_empty():
+	if not hw.is_empty() and not Fxr.owns(self):
 		ObHw.hw_draw_body(self, true)
 	_draw_body_fx(true)
 
@@ -1206,6 +1210,8 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 		ObHw.h3_draw_add_all(self, ci, loop)   # 手写迁移段第 3 批：提灯光 / 灯塔光 / 光束、技能光环帧条
 	_draw_hold_strips(ci, "add")
 	_draw_vortex(ci, "add")
+	if Fxr.owns(self):
+		return
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
 			ObFx.fx_draw(ci, g, f, g.world.fx_dim)
@@ -1684,7 +1690,9 @@ func _negate_fx(b: Dictionary) -> void:
 
 ## 地面层：区域帧条由通用 fx 在生成时播（pfx，循环到区域结束）；没写 fx / 缺图时画程序椭圆；negate_next 待命时主控脚下一圈金色盾环
 func draw_entities_floor() -> void:
-	if not hw.is_empty():
+	if Fxr.owns(self):
+		Fxr.of(g).draw_floor(self)   # 配方接管（docs/245）：落点坑 / 冲击环 / 地裂 / 铭文
+	elif not hw.is_empty():
 		ObHw.hw_draw_floor(self)   # 手写迁移段：浪墙 / 熔岩池 / 咒文……
 	for f in fields:
 		if ObFx.fx_any_tex(self, f.fx):
@@ -1861,7 +1869,11 @@ func _draw_skill_over() -> void:
 	ObSummon.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
 	ObSummon.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
 	ObElite.el_draw_over(self)    # 精英化段：往返弹体
-	if not hw.is_empty():
+	if Fxr.owns(self):
+		Fxr.of(g).draw_over(self)   # 配方接管（docs/245）：投射弹 / 光束 / 锁链 / 主形 / 颗粒
+		if hw.has("links"):
+			SegLogos.hw_draw_runes(self)   # 安魂叠层的头顶符文是状态提示，不属于攻击特效，照画
+	elif not hw.is_empty():
 		ObHw.hw_draw_over(self)   # 手写迁移段：法术弹 / 抛射火团 / 咒文 / 锚……（第 3 批：浮空影环、锯弧、光弹、水母……）
 	_draw_hold_strips(cv, "over")   # 常驻跟随帧条的 over 层（精英化段：能天使祝福光环挂在队友头顶）
 

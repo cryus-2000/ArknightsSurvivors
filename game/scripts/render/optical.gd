@@ -7,6 +7,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const D = preload("res://scripts/data.gd")
 const A = preload("res://scripts/art.gd")
 const FD = preload("res://scripts/render/frame_dst.gd")
+const FxRecipe = preload("res://scripts/render/fx_recipe.gd")   # 配方照地光（docs/245）
 
 var g
 var rect: ColorRect
@@ -142,8 +143,12 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			for L in grains.lights:   # 颗粒簇登记的灯（fx_grains.light）
 				if vr.has_point(L[0]):
 					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2]])
-		if cand.size() > nmax:
-			cand = _top_n(cand, nmax)
+		# 配方照地光（docs/245，fx/recipe）：先留出自己的份额（至多 fx/recipe_dl 盏、不超过总数一半、强度总和封顶），其余照旧按亮度取
+		var mine: Array = FxRecipe.lights_for(g, vr, nmax)
+		var rest: int = nmax - mine.size()
+		if cand.size() > rest:
+			cand = _top_n(cand, rest)
+		cand.append_array(mine)
 		# 局部预算（防油腻 ②）：队长 render/optical_local_r（120）内入选的光强度总和封顶 render/optical_local_light（1.6），超出按比例压
 		var lr: float = Bal.v("render/optical_local_r", 120.0)
 		var lsum := 0.0

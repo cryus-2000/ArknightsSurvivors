@@ -139,6 +139,7 @@ static func _hw3_bolts(o, dt: float) -> void:
 							bolt.visual = {"variant": q.variant, "start": hand, "span": maxf(1.0, hand.distance_to(bolt.to)), "u": 0.0, "hist": [hand]}
 						h.bolts.append(bolt)
 						o.fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": HW_PALE, "alpha": 0.7})
+						Fxr.ev(o, "fire", {"at": hand, "dir": (bolt.to - hand).normalized()})   # 配方（docs/245）：只画
 		h.word_q = h.word_q.filter(func(q): return q.t > 0.0)
 	if h.bolts.is_empty():
 		return
@@ -196,6 +197,7 @@ static func hw_bolt_pose(bo: Dictionary) -> Array:
 static func hw_bolt_hit(o, e: Dictionary, dmg: float, src: String, b: Dictionary) -> void:
 	if e.dead:
 		return
+	Fxr.ev(o, "hit", {"at": e.pos + Vector2(0, -float(e.r) * 0.5), "gy": float(e.pos.y) + 4.0})   # 配方（docs/245）：只画
 	var h: Dictionary = o.hw
 	var keep := hw_snap(o)
 	var ke = h.hit_e
@@ -261,6 +263,7 @@ static func hw_execute(o, b: Dictionary) -> bool:
 	if b.has("fx"):
 		fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e])
 	o._exec_list(b.get("on_exec", []), e.pos)
+	var fx_to := {}
 	if over > 0.0:
 		var pool: Array = o.nearest_enemies(int(b.get("pool", 6)), hw_range(o), o.pos)
 		pool = pool.filter(func(q): return not is_same(q, e) and not q.dead)
@@ -272,10 +275,14 @@ static func hw_execute(o, b: Dictionary) -> bool:
 				apply_status(o, q2, s)
 			var la: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 			var lb: Vector2 = q2.pos + Vector2(0, -q2.r * 0.5)
+			fx_to["to"] = lb
 			if g.tex.get("fx_logos_s1_link") != null:
 				o.fx({"kind": "s1link", "pos": la, "to": lb, "life": 0.3})
 			else:
 				o.fx({"kind": "line", "pos": la, "to": lb, "life": 0.2, "col": HW_INK, "w": 2.0})
+	fx_to["at"] = e.pos + Vector2(0, -e.r * 0.5)
+	fx_to["gy"] = float(e.pos.y) + 4.0
+	Fxr.ev(o, "exec", fx_to)   # 配方（docs/245）：只画
 	return true
 
 
@@ -334,6 +341,7 @@ static func _hw3_lock(o, dt: float) -> void:
 		if g.tex.get("fx_logos_s1_chain") == null:
 			o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
 		o.fx({"kind": "glow", "pos": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
+		Fxr.ev(o, "lock_tick", {"pts": [[lk.e.pos + Vector2(0, -lk.e.r * 0.5), float(lk.e.pos.y) + 4.0]]})
 
 
 static func _hw_lock_jump(o, lk: Dictionary) -> void:
@@ -443,6 +451,7 @@ static func _hw3_fan(o, dt: float) -> void:
 		var dmg: float = hw_atk(o) * float(b.get("mult", 0.6)) * o.skill_power()
 		var shown := 0
 		var shots := 0
+		var fx_pts: Array = []
 		if _s3_extra_on(g):   # 出手瞬间他身前一闪（施法符文）
 			o.spawn_fx_sprite("fx_logos_glyph", o.pos + Vector2.from_angle(float(h.fan_ang)) * 24.0 + Vector2(0, -22), g.PX * 0.9, 0.0, false)
 		for j in o.query_ids(o.pos, r + 30.0):
@@ -454,6 +463,8 @@ static func _hw3_fan(o, dt: float) -> void:
 			if not e.dead:
 				for s in b.get("on_hit", _EA):
 					apply_status(o, e, s)
+			if fx_pts.size() < 4:
+				fx_pts.append([e.pos + Vector2(0, -e.r * 0.5), float(e.pos.y) + 4.0])
 			if shown < 3:
 				shown += 1
 				o.spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
@@ -462,6 +473,7 @@ static func _hw3_fan(o, dt: float) -> void:
 				var sl: Array = h.get("s3_shots", [])
 				sl.append({"to": e.pos + Vector2(0, -e.r * 0.5), "t0": g.t, "side": 1.0 if shots % 2 == 0 else -1.0})
 				h["s3_shots"] = sl
+		Fxr.ev(o, "fan_tick", {"pts": fx_pts})   # 配方（docs/245）：只画
 	var f: float = float(b.get("bullet_slow", 0.2))
 	var in_fan := func(p: Vector2) -> bool: return hw_in_fan(o, p)
 	g.shots.slow_in(in_fan, f, "acuity")   # 敌弹池接口（docs/101 §7.3.10）

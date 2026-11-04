@@ -62,6 +62,8 @@ def cmd_shoot(a):
         EXTRA.append("--squad=" + a.squad)
     if a.relics:
         EXTRA.append("--relics=" + a.relics)
+    if a.extra:
+        EXTRA.extend(a.extra.split())   # 透传任意参数（docs/245 配方对照：--extra "--bal=fx/recipe=1"）
     TAG = a.tag
     if a.targets:
         TARGETS[:] = [int(x) for x in a.targets.split(",")]
@@ -240,6 +242,7 @@ def main():
     s.add_argument("--jobs", type=int, default=4)
     s.add_argument("--squad", default="")
     s.add_argument("--relics", default="")
+    s.add_argument("--extra", default="")
     s.add_argument("--tag", default="")
     s.add_argument("--layers", default=",".join(LAYERS))
     s.add_argument("--targets", default="")

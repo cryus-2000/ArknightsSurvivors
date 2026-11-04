@@ -3,6 +3,7 @@ extends RefCounted
 ## 加色混合层（fx_add 节点）的绘制；特效与各种提示计时的逐帧衰减。干员经 characters/op_api.gd 调用。2026-09-26 从 game.gd 拆出。
 
 const A = preload("res://scripts/art.gd")
+const FxRecipe = preload("res://scripts/render/fx_recipe.gd")   # 配方接管判断（docs/245）
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -376,6 +377,8 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 	Sfx.play("hit", [0.0, -17.0, -12.0, -8.0][tier], [1.0, 1.25, 1.05, 0.85][tier])
 	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
 		return
+	if FxRecipe.owns_id(g, str(h.get("op", ""))):
+		return   # 配方接管的干员（docs/245）：命中颗粒 / 命中星由配方画；顿帧与命中音照旧
 	var col: Color = _op_col(h)
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
 	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]

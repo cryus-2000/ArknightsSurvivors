@@ -69,6 +69,7 @@ static func _h4_hammer_release(o, a: Dictionary) -> void:
 		o.fx({"kind": "crack", "pos": land + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": H4_FLAME, "floor": true, "n": 6})
 		_h3_vsparks(o, land, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
 		o.impact_pause(0.04)
+	Fxr.ev(o, "swing", {"ang": ang, "reach": reach, "land": land, "heavy": heavy})   # 配方（docs/245）：只画
 	hw_record(o, dmg, ang, reach, land)
 	_h4_hammer_after(o, a, hits, dmg)   # 精英化第 4 批的追加（粉碎）；迁移时没有
 	var q: Dictionary = _h4_sub(o, a.get("quake", null))
@@ -106,6 +107,7 @@ static func _h4_hammer_after(o, a: Dictionary, hits: Array, dmg: float) -> void:
 				var an: float = -PI / 2.0 + g.vrng.randf_range(-1.1, 1.1)
 				o.fx({"kind": "spark", "pos": p + Vector2(0, -6), "vel": Vector2.from_angle(an) * g.vrng.randf_range(90.0, 170.0), "life": 0.45, "col": Color(1.6, 1.25, 0.55), "sz": 3.0, "grav": 520.0})
 		o.fx({"kind": "ring", "pos": p, "r": r, "r0": 6.0, "life": 0.25, "col": H4_GOLD, "floor": true, "w": 2.0, "alpha": 0.6})
+		Fxr.ev(o, "crush", {"at": p})
 
 
 ## 狮吼（docs/202，10-29 去数值化）：冲击环击退的敌人在 life 秒内撞上别的敌人（没被这一圈击退的）时，两者各受锤击 col_mult 的伤害；
@@ -168,6 +170,7 @@ static func _h4_flights_tick(o, sg: Dictionary, dt: float) -> void:
 
 
 static func _h4_crash_fx(o, p: Vector2, dir: Vector2) -> void:
+	Fxr.ev(o, "crash", {"at": p + Vector2(0, -8)})
 	o.fx({"kind": "glow", "pos": p + Vector2(0, -8), "r": 15.0, "life": 0.16, "col": Color(2.0, 1.6, 0.8), "alpha": 0.85})
 	o.fx({"kind": "ring", "pos": p + Vector2(0, 2), "r": 22.0, "r0": 4.0, "life": 0.2, "col": H4_GOLD, "floor": true, "w": 2.5})
 	o.fx({"kind": "line", "pos": p + Vector2(0, -8) - dir * 12.0, "to": p + Vector2(0, -8) + dir * 12.0, "life": 0.14, "col": Color(2.0, 1.7, 1.0), "w": 3.0})
@@ -186,6 +189,7 @@ static func _h4_quake(o, q: Dictionary, p: Vector2, mult: float) -> void:
 	if roar and kb > 0.0:
 		_h4_flights_add(o, ro, qh, p)
 	o.fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r, "r0": 10.0, "life": 0.32, "col": H4_GOLD, "floor": true, "w": 3.0 if roar else 2.0})
+	Fxr.ev(o, "quake", {"at": p + Vector2(0, 6), "r": r, "roar": roar})
 	if roar:
 		o.fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r * 0.7, "r0": 6.0, "life": 0.26, "col": Color(2.0, 1.6, 0.8), "floor": true, "w": 1.5})
 	for k in (8 if roar else 5):
@@ -226,6 +230,7 @@ static func _h4_breach(o, br: Dictionary, p: Vector2, ang: float, mult: float) -
 		sg.fissures.pop_front()
 	var life: float = float(br.get("life", 0.6))
 	sg.fissures.append({"pts": pts, "t": life, "max": life, "w": w, "a": a, "dir": dir, "len": L, "b": br})
+	Fxr.ev(o, "breach", {"pts": pts, "life": life})
 	for k in 4:
 		_h3_vsparks(o, a + dir * L * (0.25 + 0.25 * k), Color(1.0, 0.8, 0.35), 2, 140.0, 0.3, 2.0, 280.0, true)
 	_h4_breach_after(o, br, a, dir, L)   # 精英化第 4 批的追加（岩刺）；迁移时没有
@@ -297,6 +302,7 @@ static func _h4_start_leap(o, tg, maxd: float) -> void:
 		sg.leap_to = o.pos + dv.normalized() * clampf(dv.length() - 24.0, 0.0, maxd)
 		o.face = signf(dv.x) if absf(dv.x) > 1.0 else o.face
 	o.fx({"kind": "ring", "pos": o.pos, "r": 26.0, "r0": 6.0, "life": 0.2, "col": H4_GOLD, "floor": true, "w": 2.0})
+	Fxr.ev(o, "leap", {"to": sg.leap_to, "t": float(sg.leap_b.get("t", 0.42))})
 
 
 ## 跃空锤落地：伤害 / 眩晕 / 全队技力；second = 再跃的第二跳（× again.mult，不回技力）
@@ -310,6 +316,7 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	var hits: Array = o.area_hit(str(b.get("src", "")), pos, r, o.base("atk", 0.0) * float(b.get("mult", 2.2)) * o._dmg_bonus() * pw * sm, float(b.get("kb", 220.0)), float(b.get("stun", 0.6)))
 	o.fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
 	o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
+	Fxr.ev(o, "slam", {"at": pos, "r": r})
 	o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
 	o.fx({"kind": "h4_pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
 	# 10-14 用户「推进之王二技能打中地面的火焰效果删除，只保留裂地效果」：去掉落地火圈与一圈火焰（fx_fire_aura / fx_flames / 程序 h4_blaze），
@@ -378,7 +385,8 @@ static func h4_cmd_wave(o, b: Dictionary) -> void:
 	if sg.waves.size() >= int(b.get("max", 2)):
 		sg.waves.pop_front()
 	sg.waves.append({"pos": o.pos, "t": 0.0, "r": 0.0, "dmg": o.base("atk", 0.0) * float(b.get("mult", 0.6)) * o._dmg_bonus() * o.skill_power(), "hit": {}, "b": b})
-	o.g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -20), "life": 0.45, "max": 0.45, "col": H4_GOLD, "op_spoke": true})
+	if not Fxr.owns(o):
+		o.g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -20), "life": 0.45, "max": 0.45, "col": H4_GOLD, "op_spoke": true})
 	_h3_sfx(o, "big", -4.0, 1.2)
 
 
