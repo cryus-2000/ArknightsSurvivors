@@ -175,6 +175,53 @@ def fps_cmp(a):
         print("录像", mp4, flush=True)
 
 
+def branch(a):
+    """分支招一行一招（转平面版，精二）：跃浪 / 回澜（跃浪路线 S2）、涌潮 / 怒涛第二圈（涌潮路线 S1）、怒涛终结大浪（涌潮路线 S3 结束）。
+    按 PXPLOG 事件帧对齐，每行 6 帧（事件后 0–0.6 秒），斯卡蒂附近 2 倍局部"""
+    os.makedirs(a.out, exist_ok=True)
+    plan = [("wave", 1, 2.0, 120), ("surge", 0, 2.0, 120), ("surge", 2, 8.5, 90)]
+    shots = {}
+    for route, mode, start, n in plan:
+        tag, frames, errs, ev = shoot(1, 2, mode, start, 2, n, extra=["--route=skadi:" + route], suffix="_" + route)
+        log = open(os.path.join(LOGS, "demo_" + tag + ".log"), encoding="utf-8", errors="ignore").read()
+        px = [l.split() for l in log.splitlines() if l.startswith("PXPLOG")]
+        shots[(route, mode)] = (frames, px, int(start * 30))
+        print(tag, len(frames), errs[:2], len(px), flush=True)
+
+    def first(key, pred):
+        frames, px, f0 = shots[key]
+        for q in px:
+            if pred(q) and (int(q[3]) - f0) // 2 >= 0:
+                return frames, (int(q[3]) - f0) // 2
+        return frames, None
+
+    rows = [
+        ("跃浪（S2 分支一）：一路碎浪往前推", ("wave", 1), lambda q: q[1] == "跃浪击", 2),
+        ("回澜（S2 分支二）：海水倒卷回脚下，汇中心冲起水柱", ("wave", 1), lambda q: q[1] == "跃浪" and q[2] == "c", 0),
+        ("涌潮（S1 分支一）：脚下涌出一圈矮水涌往外推", ("surge", 0), lambda q: q[1] == "涌潮" and q[5] == "-" and int(q[4]) < 160, 0),
+        ("怒涛（S1 分支二）：0.4 秒后第二圈，更高 + 海绿", ("surge", 0), lambda q: q[1] == "涌潮" and q[5] == "skill" and int(q[4]) < 160, 0),
+        ("怒涛（S1 分支二）：悲歌结束环身大碎浪", ("surge", 2), lambda q: q[1] == "涌潮" and int(q[4]) >= 160, 0),
+    ]
+    cw, ch = 400, 250
+    sheet = Image.new("RGB", (cw * 6 + 8 * 5, 56 + (ch + 44) * len(rows)), (12, 12, 16))
+    d = ImageDraw.Draw(sheet)
+    d.text((12, 8), "斯卡蒂分支招（转平面版，精二，图鉴演示，2 倍局部；每行事件后约 0–0.6 秒）", fill=(230, 230, 230), font=font(28))
+    for r, (lab, key, pred, off) in enumerate(rows):
+        frames, k = first(key, pred)
+        y = 56 + r * (ch + 44)
+        d.text((12, y + 4), lab + ("" if k is not None else "（本局没触发）"), fill=(255, 255, 255), font=font(24))
+        if k is None:
+            continue
+        for j in range(6):
+            i = min(len(frames) - 1, k + off + j * 3)
+            im = Image.open(frames[i]).convert("RGB")
+            W, H = im.size
+            c = im.crop((W // 2 - cw // 4 - 40, H // 2 - ch // 4 - 30, W // 2 + cw // 4 - 40, H // 2 + ch // 4 - 30)).resize((cw, ch), Image.NEAREST)
+            sheet.paste(c, (j * (cw + 8), y + 40))
+    sheet.save(os.path.join(a.out, "branches.png"))
+    print("分支招", os.path.join(a.out, "branches.png"), flush=True)
+
+
 def run(tag, extra, fps, fdir=None):
     os.makedirs(LOGS, exist_ok=True)
     args = [GR.find_godot(), "--path", GAME, "--audio-driver", "Dummy", "--resolution", "1280x720", "--fixed-fps", str(fps), "--",
@@ -207,7 +254,7 @@ def diff(a, b):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps"])
+    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "branch"])
     ap.add_argument("--out", default=os.path.join(BUILD, "out"))
     ap.add_argument("--modes", default="3,0,1,2")
     ap.add_argument("--start", type=float, default=2.0)
@@ -227,6 +274,9 @@ def main():
         return
     if a.cmd == "fps":
         fps_cmp(a)
+        return
+    if a.cmd == "branch":
+        branch(a)
         return
     tags = []
     if a.cmd == "rec":

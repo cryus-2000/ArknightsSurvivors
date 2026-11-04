@@ -59,6 +59,19 @@ def variants():
     # 涌潮水环 / 悲歌起手：贴地冲击环
     for el in T:
         v.append(("pulse_e%d_gd" % el, {"part": "ring", "layer": "gd", "R": 60, "el": el}, 0.5))
+    for el in (0, 1, 2):   # 涌潮（S1 分支一 / 悲歌每秒一圈）：矮水涌往外推
+        for ly in ("up", "gd"):
+            v.append(("swell_e%d_%s" % (el, ly), {"part": "swell", "layer": ly, "R": 60, "H": [7, 9, 11][el], "el": el, "dur": 0.45}, 0.5))
+    for ly in ("up", "gd"):
+        v.append(("swell2_%s" % ly, {"part": "swell", "layer": ly, "R": 62, "H": 15, "el": 2, "dur": 0.5, "seed": 8}, 0.56))   # 怒涛第二圈：更高 + 海绿
+        v.append(("backwash_%s" % ly, {"part": "backwash", "layer": ly, "R": 75, "el": 2, "dur": 0.75}, 0.76))   # 回澜：海水倒卷回脚下，汇中心冲起水柱
+        v.append(("nutao_%s" % ly, {"part": "curtain", "layer": ly, "R": 90, "H": 52, "span": 5.6, "dir": 90, "el": 2, "seed": 11, "dur": 0.6}, 0.66))   # 怒涛：悲歌结束环身大碎浪
+    for el in (0, 1, 2):   # late_shape 额外剑气 = 水刃：竖直小浪头（同潮刃意象），按精英档变大；循环
+        for d in DIRS:
+            v.append(("qi_e%d_up_d%d" % (el, d), {"part": "blade", "layer": "up", "R": [18, 22, 26][el], "H": [10, 13, 16][el], "dir": d, "el": el, "seed": 12}, 0.4))
+    for ly in ("up", "gd"):   # 连携技「落潮横扫」：整圈白刃大月牙 + 脚下一圈矮浪往外推
+        v.append(("combo_spin_%s" % ly, {"part": "spin", "layer": ly, "R": 58, "W": 18, "H0": 12, "el": 1, "dur": 0.4, "seed": 13, "style": "s1"}, 0.47))
+        v.append(("combo_swell_%s" % ly, {"part": "swell", "layer": ly, "R": 66, "H": 13, "el": 1, "dur": 0.42, "seed": 14}, 0.5))
     v.append(("s3cast_gd", {"part": "ring", "layer": "gd", "R": 92, "el": 2, "seed": 9}, 0.5))
     v.append(("s3cast_up", {"part": "splash", "layer": "up", "R": 70, "H": 90, "el": 2, "seed": 9}, 0.56))   # 悲歌起手：身边冲起的大水柱
     v.append(("pool_gd", {"part": "pool", "layer": "gd", "R": 70, "seed": 6}, 0.4))   # 悲歌持续：脚下积水（循环）
@@ -101,7 +114,7 @@ def bake(key, d, dur):
     ox, oy = meta["pivot"]
     col = np.asarray(Image.open(os.path.join(d, "color.png")).convert("RGBA")).astype(np.float32) / 255.0
     lit = np.asarray(Image.open(os.path.join(d, "light.png")).convert("RGB")).astype(np.float32) / 255.0
-    loop = key.startswith(("blade_", "raw_blade", "pool"))
+    loop = key.startswith(("blade_", "raw_blade", "pool", "qi_"))
     nf = min(n, int(round(dur * fps)))
     if loop:
         nf = int(round(0.4 * fps))   # 循环 0.4 秒 = 6 帧

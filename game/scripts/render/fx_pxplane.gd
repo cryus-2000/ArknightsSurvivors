@@ -128,14 +128,23 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		"shape":
 			var src: String = str(d.get("src", ""))
 			if Bal.v("fx/recipe_log", 0.0) > 0.0:
-				print("PXPLOG %s %s %d" % [src, "c" if d.get("circle", false) else "%.2f" % float(d.get("half", 0.0)), Engine.get_process_frames()])
+				print("PXPLOG %s %s %d %d %s" % [src, "c" if d.get("circle", false) else "%.2f" % float(d.get("half", 0.0)), Engine.get_process_frames(), int(d.get("r", 0.0)), "skill" if "skill" in d.get("tags", []) else "-"])
 			if d.get("circle", false):
 				var c: Vector2 = d.get("c", o.pos)
 				var r: float = float(d.get("r", 60.0))
+				# 分支招各有各的样子（11-05 用户「分支招数能不能做出点差距出来」）
 				if src == "大剑":   # 冲刺收尾的响应横扫（圆形）：按全向旋斩画
 					_add(o, "spin_e%d" % t, c, 0.0, r, raw, "raw_spin_e%d" % t, 62.0)
-				elif r >= 160.0:
-					_add_gd(o, "s3cast", c, raw, "raw_ring_e2", r, 92.0)
+				elif raw:
+					_add_gd(o, "", c, raw, "raw_ring_e%d" % t, r, 60.0)
+				elif src == "跃浪":   # 回澜：海水倒卷回脚下，汇到中心冲起一柱水
+					_add_pair(o, "backwash", c)
+				elif src == "涌潮" and r >= 160.0:   # 怒涛：悲歌结束环身一记大碎浪
+					_add_pair(o, "nutao", c)
+				elif src == "涌潮" and "skill" in d.get("tags", []):   # 怒涛：0.4 秒后的第二圈，更高 + 海绿
+					_add_pair(o, "swell2", c)
+				elif src == "涌潮":   # 涌潮：脚下涌出一圈矮水涌往外推
+					_add_pair(o, "swell_e%d" % t, c)
 				else:
 					_add_gd(o, "pulse_e%d" % t, c, raw, "raw_ring_e%d" % t, r, 60.0)
 				_burst(o, R, p, c + Vector2(0, -10), c.y + 4.0, d.get("es", []), 4 + 2 * t, 120.0, 0.45)
@@ -238,6 +247,12 @@ func _add(o, key: String, at: Vector2, ang: float, r: float, raw: bool, rawk: St
 	var kg: String = (key + "_gd") if spin else "%s_gd_d%d" % [key, dk[0]]
 	_push({"k": ku, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "up", "oid": str(o.id), "slash": true})
 	_push({"k": kg, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "gd", "oid": str(o.id), "slash": true})
+
+
+## 以脚底为原点的一对件（立起 + 贴地）
+func _add_pair(o, key: String, at: Vector2) -> void:
+	_push({"k": key + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)})
+	_push({"k": key + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
 
 
 ## 方向件（不是斩击：不参与「只留最近两刀」）
