@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/work/repo/tools/late_game_diag.py", line 281, in <module>
+    main()
+  File "/work/repo/tools/late_game_diag.py", line 275, in main
+    cmd_sum(a)
+  File "/work/repo/tools/late_game_diag.py", line 186, in cmd_sum
+    plots(a.out, summ, oprows)
+  File "/work/repo/tools/late_game_diag.py", line 191, in plots
+    import matplotlib
+ModuleNotFoundError: No module named 'matplotlib'
