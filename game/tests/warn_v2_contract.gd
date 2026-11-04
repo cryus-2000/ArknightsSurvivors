@@ -19,6 +19,12 @@ func _initialize() -> void:
 	w.owner.boss = true
 	assert(not Warn.owns(w), "boss presentation must not change")
 	w.owner.boss = false
+	w.owner.squad = true
+	assert(not Warn.owns(w), "squad members can be ordinary species with elite=false")
+	w.owner.squad = false
+	w.owner.cross_elite = true
+	assert(not Warn.owns(w), "crossroads elite presentation must not change")
+	w.owner.cross_elite = false
 	w.must_dash = true
 	assert(not Warn.owns(w), "mandatory dodge remains prominent")
 	w.must_dash = false

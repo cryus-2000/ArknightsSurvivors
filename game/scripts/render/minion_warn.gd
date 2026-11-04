@@ -6,7 +6,7 @@ static func owns(w: Dictionary) -> bool:
 	if Bal.v("render/warn_v2", 0.0) <= 0.0:
 		return false
 	var owner = w.get("owner")
-	return owner is Dictionary and not owner.get("boss", false) and not owner.get("elite", false) and not w.get("must_dash", false) and int(w.get("style", 1)) not in [0, 4, 5] and str(w.get("shape", "")) in ["circle", "line", "cone"]
+	return owner is Dictionary and not owner.get("boss", false) and not owner.get("elite", false) and not owner.get("squad", false) and not owner.get("cross_elite", false) and not w.get("must_dash", false) and int(w.get("style", 1)) not in [0, 4, 5] and str(w.get("shape", "")) in ["circle", "line", "cone"]
 
 static func urgency(w: Dictionary) -> float:
 	return clampf(1.0 - (float(w.dur) - float(w.t)) / maxf(0.01, Bal.v("render/warn_v2_final", 0.3)), 0.0, 1.0)

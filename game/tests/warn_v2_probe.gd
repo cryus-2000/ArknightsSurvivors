@@ -45,7 +45,7 @@ func capture(count: int) -> void:
 	Engine.time_scale = 0.0
 	var report := {"time": game.t, "ordinary_warnings": count, "seed": 11, "warnings": []}
 	for w in game.warns:
-		report.warnings.append({"act": w.act, "shape": w.shape, "elite": w.owner.get("elite", false), "boss": w.owner.get("boss", false), "remaining": w.dur-w.t, "done": w.done})
+		report.warnings.append({"act": w.act, "shape": w.shape, "elite": w.owner.get("elite", false), "boss": w.owner.get("boss", false), "squad": w.owner.get("squad", false), "cross_elite": w.owner.get("cross_elite", false), "remaining": w.dur-w.t, "done": w.done})
 	for enabled in [0, 1]:
 		Bal.sec("render").warn_v2 = enabled
 		Bal.clear_cache()
