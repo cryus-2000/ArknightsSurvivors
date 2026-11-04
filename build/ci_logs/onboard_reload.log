@@ -1,6 +1,6 @@
 # onboard_reload
 # 参数：--headless --audio-driver Dummy --fixed-fps 30 --path /home/user/ArknightsSurvivors/game -- --balance --realtime --seed=3 --op=mizuki --bot=master --nodeath --onboard=ask --onboardpick=0 --onboardreload --maxt=30
-# 用时 15 秒；结束时全机 Godot 3 个
+# 用时 14 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
