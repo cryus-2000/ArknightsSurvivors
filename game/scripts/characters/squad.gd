@@ -273,6 +273,18 @@ func _apply_size_hp() -> void:
 	var rb: float = regen_bonus(n)
 	if rb != 0.0 and n > 0 and g.stats.has_stat(&"regen"):
 		g.stats.add(&"regen", "flat", rb, "squad")
+	# 「独行」（docs/247，squad/solo_buff 缺省 0 = 关）：编队只有队长一人时，生命 / 回复按 solo_steps 个入队台阶算，另加全伤害 solo_dmg；
+	# 有人入队即撤（同一来源 "squad"，上面已整体移除重算）
+	if ops.size() == 1 and Bal.vi("squad/solo_buff", 0) > 0:
+		var ss: int = Bal.vi("squad/solo_steps", 1)
+		if per != 0.0 and ss > 0:
+			g.stats.add(&"max_hp", "mult", 1.0 + per * ss, "squad")
+		var srb: float = regen_bonus(ss)
+		if srb != 0.0 and g.stats.has_stat(&"regen"):
+			g.stats.add(&"regen", "flat", srb, "squad")
+		var sd: float = Bal.v("squad/solo_dmg", 0.1)
+		if sd != 0.0 and g.stats.has_stat(&"dmg"):
+			g.stats.add(&"dmg", "add", sd, "squad")
 	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
 	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
 		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)

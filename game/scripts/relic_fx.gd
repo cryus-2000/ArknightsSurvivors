@@ -566,27 +566,17 @@ func _advance_target(cls: String):
 	return best
 
 
-## 博士银印：招募一名随机干员并直接推进到精一；编队已满时全队各推进 1 个节点
+## 博士银印：邀请一名随机干员以精英一入队（可婉拒：全队各推进 1 个节点 + 一次成长三选一，docs/247）；编队已满时全队各推进 1 个节点
 func _silver_seal() -> void:
 	var cards: Array = g.progression.recruit_cards()
-	if not cards.is_empty():
-		var c: Dictionary = cards[g.rng.randi() % cards.size()]
-		var o = g.squad.add(c.id)
-		if o != null:
-			var guard := 0
-			while o.elite < 1 and not o.next_node().is_empty() and guard < 8:
-				o.advance("")
-				guard += 1
-			g.vfx.show_banner("博士银印：「%s」以精英一加入编队" % o.display_name())
-			return
-	for o in g.squad.ops:
-		var n: Dictionary = o.next_node()
-		if not n.is_empty() and o.node_available(n):
-			o.advance("")
-	g.vfx.show_banner("博士银印：全队各推进一个成长节点")
+	if cards.is_empty():
+		g.progression.offer_full("silver")   # 满员：全队各推进一个节点
+		return
+	var c: Dictionary = cards[g.rng.randi() % cards.size()]
+	g.progression.offer_recruit("silver", str(c.id))
 
 
-## 人事部铜印（docs/57）：招募一名随机干员并推进 1 个成长节点；编队已满时改为一次成长三选一
+## 人事部铜印（docs/57）：邀请一名随机干员入队并推进 1 个成长节点（可婉拒：一次成长三选一，docs/247）；编队已满时改为一次成长三选一
 func _recruit_one() -> void:
 	var cards: Array = g.progression.recruit_cards()
 	if cards.is_empty():
@@ -594,13 +584,7 @@ func _recruit_one() -> void:
 		g.vfx.show_banner("人事部铜印：编队已满，改为一次成长三选一")
 		return
 	var c: Dictionary = cards[g.rng.randi() % cards.size()]
-	var o = g.squad.add(c.id)
-	if o == null:
-		g.pending_levelups += 1
-		return
-	if not o.next_node().is_empty() and o.node_available(o.next_node()):
-		o.advance("")
-	g.vfx.show_banner("人事部铜印：「%s」加入编队" % o.display_name())
+	g.progression.offer_recruit("copper", str(c.id))
 
 
 ## 随机获得 n 件藏品（大教堂拼图 / “绝唱”，docs/57 P19）：从当前可出现的候选里按 g.rng 抽，rarity 非空时只抽该档
