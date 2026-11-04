@@ -188,6 +188,58 @@ def fps_cmp(a):
         print("录像", mp4, flush=True)
 
 
+def linkcmp(a, base):
+    """连携技三栏（docs/254）：实战局里本干员当队员（--lead 另指队长），fx/px_plane = 1 / 0 / 2 各录一段（同种子、同参数，玩法逐行一致），
+    从 1 那局的 PXPLOG（fx/recipe_log = 1）找连携事件（cover / combo）的游戏时间，换算成录像帧号，拼三栏 + 2 倍局部。"""
+    t0, secs, st = a.t0, a.secs, 2
+    dirs = {}
+    for px in (1, 0, 2):
+        tag = "link%d_s%d_%d" % (px, a.seed, t0)
+        ex = base + ["--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1", "--realtime", "--rtfrom=%d" % t0, "--recframes=%d,%d" % (t0, secs * 30),
+                     "--recstride=%d" % st, "--maxt=%d" % (t0 + secs + 1)]
+        dirs[px] = os.path.join(BUILD, tag + "_frames")
+        print(run(tag, ex, 30, dirs[px]), flush=True)
+    log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ")]
+    print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
+    if not evs:
+        print("这段里没有连携技出手", flush=True)
+        return False
+    T = float(evs[0][-1])
+    k = int(round((T - t0) * 30.0)) + 8   # 落定后约 0.25 秒（盾立定、冲击环扩开）
+    k -= k % st
+    fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in (0, 2, 1)}
+    if not all(os.path.exists(f) for f in fr.values()):
+        print("缺帧", fr, flush=True)
+        return False
+    ims = [Image.open(fr[px]).convert("RGB") for px, _ in COLS]
+    W, H = ims[0].size
+    f30 = font(30)
+    sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
+    dd = ImageDraw.Draw(sheet)
+    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ("举盾" if evs[0][2] == "cover" else "举盾推挡", a.seed, T), fill=(230, 230, 230), font=f30)
+    for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
+        sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
+    os.makedirs(a.out, exist_ok=True)
+    sheet.save(os.path.join(a.out, "cmp_link.png"))
+    a1 = np.asarray(ims[2], dtype=np.int16)
+    a0 = np.asarray(ims[0], dtype=np.int16)
+    m = (np.abs(a1 - a0).sum(axis=2) > 60)
+    ys, xs = np.nonzero(m)
+    cx, cy = (int(np.median(xs)), int(np.median(ys))) if len(xs) else (W // 2, H // 2)
+    cw, ch = 320, 180
+    x0 = min(max(0, cx - cw // 2), W - cw)
+    y0 = min(max(0, cy - ch // 2), H - ch)
+    crop = Image.new("RGB", (cw * 2 * 3 + 8, ch * 2 + 56), (12, 12, 16))
+    dd = ImageDraw.Draw(crop)
+    dd.text((12, 8), "2 倍局部（最近邻放大） · 连携技", fill=(230, 230, 230), font=f30)
+    for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
+        crop.paste(label(im.crop((x0, y0, x0 + cw, y0 + ch)).resize((cw * 2, ch * 2), Image.NEAREST), lab, 20), (i * (cw * 2 + 4), 56))
+    crop.save(os.path.join(a.out, "cmp_link_x2.png"))
+    print("三栏 cmp_link 帧", k, flush=True)
+    return diff("link0_s%d_%d" % (a.seed, t0), "link1_s%d_%d" % (a.seed, t0)) & diff("link0_s%d_%d" % (a.seed, t0), "link2_s%d_%d" % (a.seed, t0))
+
+
 def run(tag, extra, fps, fdir=None):
     os.makedirs(LOGS, exist_ok=True)
     args = [GR.find_godot(), "--path", GAME, "--audio-driver", "Dummy", "--resolution", "1280x720", "--fixed-fps", str(fps), "--",
@@ -221,7 +273,7 @@ def diff(a, b):
 def main():
     global OP, MODE_NAME, BUILD, LOGS, REUSE
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps"])
+    ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "linkcmp"])
     ap.add_argument("--out", default=os.path.join(BUILD, "out"))
     ap.add_argument("--modes", default="3,0,1,2")
     ap.add_argument("--start", type=float, default=2.0)
@@ -252,6 +304,8 @@ def main():
     if a.cmd == "fps":
         fps_cmp(a)
         return
+    if a.cmd == "linkcmp":
+        sys.exit(0 if linkcmp(a, base) else 1)
     tags = []
     if a.cmd == "rec":
         for px in (0, 1):   # 串行：本机同一时间只开 1 个 Godot
