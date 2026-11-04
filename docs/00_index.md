@@ -23,6 +23,8 @@
 
 ## 规范（所有会话遵守）
 
+- [普通怪预警收细](warn_v2_1105.md)：进行中；`render/warn_v2` 默认关，普通怪细边与最后 0.3 秒信号，精英/Boss 保持原画法；截图与云端验收说明。
+
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
 | [06_git_collaboration](06_git_collaboration.md) | Git 协作与美术分工 | 现行规范 | Codex / Claude 分工、交接与合入；「Claude 在主工作区」「没有远程」两句已过时，以 41 §3 为准 | 38、41、54、91、99、归档24 等 12 篇；v14_codex_fx_props.md、skalter_s3_handoff.md、AGENTS.md 等 4 个文件 |
