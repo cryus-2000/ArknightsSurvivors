@@ -77,12 +77,14 @@ func open_levelup() -> void:
 	var picks: Array = []
 	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底见 build_guide.must_recruit
 	var recruit: Array = recruit_cards()
-	if g.guide.must_recruit(recruit):
+	if g.guide.must_recruit(recruit) and not _forced_skipped():
 		# 保底画面（docs/119 §4.3）：有合格人选时保证一名与已持有藏品有实际互动的候选（build_guide.forced_recruit_order；开关关 = 只洗牌）
 		var n_show: int = want + g.rfx.rule("recruit_extra")   # 罗德岛战术电台：招募多一个选项
 		recruit_offers.append([int(g.t), "forced", g.squad.size()])
 		levelup_t.append(int(g.t))
 		g.panel_ui.show_choices("招募干员", g.guide.forced_recruit_order(recruit, n_show).slice(0, n_show), "level")
+		if not offer_auto() and not g.onboard.force_recruit():
+			g.panel_ui.add_recruit_decline()   # 真人局：招募卡下方一个次一级的「婉拒」（新手引导的强制招募照旧必选；机器人 / 测试局不加，选项与随机数同改前）
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
 	var deep: Array = []
@@ -204,6 +206,16 @@ func open_relic_choice() -> void:
 
 ## 「更换队友」画面的上下文：{opts, kind, title, sub, sel, new}。选「不替换」时按它恢复刚才的三选一（这次选择不消耗）
 var swap_ctx: Dictionary = {}
+## 强制招募画面婉拒过的档（用户 11-05「加上」，docs/252 第 5 条）：1 = Lv.5 只有 1 人那一档，2 = Lv.9 不满 3 人那一档；婉拒过的档不再弹
+var forced_declined := 0
+
+
+func _forced_tier() -> int:
+	return 2 if (g.level >= Bal.vi("levelup/force_recruit_level_3", 9) and g.squad.size() < g.squad.REGULAR_MAX) else 1
+
+
+func _forced_skipped() -> bool:
+	return not g.onboard.force_recruit() and forced_declined >= _forced_tier()
 var swaps: Array = []   # 本局换人记录 [秒, 换下, 换上]（遥测 / 作战记录）
 var recruit_offers: Array = []   # 升级面板里出现招募 / 换人 / 保底招募的记录 [秒, "recruit"|"swap"|"forced", 编队人数]（遥测）
 var levelup_t: Array = []        # 每次升级面板的时刻（遥测：换人选择间隔）
@@ -563,6 +575,15 @@ func pick(i: int) -> void:
 		if o.get("offer", false):
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
 		g.check_pending()
+		return
+	if str(o.get("kind", "")) == "recruit_decline":
+		# 强制招募画面的「婉拒」：这一次升级改为普通成长三选一（不额外消耗升级次数），这一档之后不再弹强制招募
+		forced_declined = maxi(forced_declined, _forced_tier())
+		recruit_offers.append([int(g.t), "forced_decline", g.squad.size()])
+		if not levelup_t.is_empty():
+			levelup_t.pop_back()   # 同一次升级重开，不重复记
+		Sfx.play("ui_ok", -6.0)
+		open_levelup()
 		return
 	match o.kind:
 		"recruit":

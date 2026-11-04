@@ -220,6 +220,24 @@ func build(parent: Node) -> void:
 	g.panel_fg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	g.panel_fg.draw.connect(draw_bg)
 	g.panel.add_child(g.panel_fg)
+	# 强制招募画面的「婉拒」（add_recruit_decline）：招募卡下方居中、次一级的小按钮
+	decline_btn = Button.new()
+	decline_btn.anchor_left = 0.5
+	decline_btn.anchor_right = 0.5
+	decline_btn.anchor_top = 1.0
+	decline_btn.anchor_bottom = 1.0
+	decline_btn.offset_left = -170.0
+	decline_btn.offset_right = 170.0
+	decline_btn.offset_top = -86.0
+	decline_btn.offset_bottom = -48.0
+	decline_btn.focus_mode = Control.FOCUS_NONE
+	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+		decline_btn.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	decline_btn.draw.connect(_draw_decline)
+	decline_btn.mouse_entered.connect(decline_btn.queue_redraw)
+	decline_btn.mouse_exited.connect(decline_btn.queue_redraw)
+	decline_btn.pressed.connect(func(): g.progression.pick(int(decline_btn.get_meta("i", -1))))
+	decline_btn.visible = false
 	g.panel_box = HBoxContainer.new()
 	g.panel_box.add_theme_constant_override("separation", 36)
 	g.panel_box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -632,6 +650,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			var jb: String = g.squad.join_bonus_text()
 			if jb != "":
 				panel_sub_text += " · " + jb
+	decline_btn.visible = false
 	if not quiet:
 		Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
 	for c in g.panel_box.get_children():
@@ -1098,6 +1117,32 @@ func _chevron(ci: CanvasItem, c: Vector2, dir: float, a: float) -> void:
 		ci.draw_polyline(PackedVector2Array([Vector2(c.x - 9.0, y - dir * 4.0), Vector2(c.x, y + dir * 3.0), Vector2(c.x + 9.0, y - dir * 4.0)]), col, 2.0, true)
 
 
+## 强制招募画面加「婉拒」（用户 11-05「加上」）：选项末尾多一项（数字键 / 方向键 / 手柄都能走到），画成招募卡下方次一级的小按钮
+var decline_btn: Button
+func add_recruit_decline() -> void:
+	g.choices.append({"kind": "recruit_decline", "name": "婉拒", "desc": "改为一次成长三选一"})
+	decline_btn.set_meta("i", g.choices.size() - 1)
+	var touch: bool = bool(lay().touch)   # 手机：卡片更高，按钮贴到面板最底下那条空隙（卡底约 427 / 481）
+	decline_btn.offset_top = -40.0 if touch else -86.0
+	decline_btn.offset_bottom = -6.0 if touch else -48.0
+	if decline_btn.get_parent() == null:
+		g.panel.add_child(decline_btn)
+	g.panel.move_child(decline_btn, -1)
+	decline_btn.visible = true
+	decline_btn.queue_redraw()
+
+
+func _draw_decline() -> void:
+	var i: int = int(decline_btn.get_meta("i", -1))
+	var hot: bool = (i == g.nav_sel) if (Pad.using or g.kb_nav) else decline_btn.is_hovered()
+	var r := Rect2(Vector2.ZERO, decline_btn.size)
+	decline_btn.draw_rect(r, Color(0.05, 0.06, 0.08, 0.72 if hot else 0.5))
+	decline_btn.draw_rect(r, Color(0.55, 0.54, 0.52, 0.9 if hot else 0.45), false, 1.0)
+	var key: String = "" if Pad.touch_ui() else ("Ⓐ" if Pad.using else str(i + 1))
+	var txt: String = "婉拒 · 改为一次成长三选一"
+	UI.ctext(decline_btn, g.font, Vector2(0, r.size.y / 2.0 + 6.0), txt + ("   [%s]" % key if key != "" and not Pad.using else ""), 15, Color(0.86, 0.85, 0.82) if hot else Color(0.62, 0.61, 0.58), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+
+
 ## 每帧：按面板种类推进入场动效（card_motion.update）；悬停抬起各种类共用
 func animate_cards(dt: float) -> void:
 	if not g.panel.visible:
@@ -1106,6 +1151,8 @@ func animate_cards(dt: float) -> void:
 		return
 	g.panel_fg.queue_redraw()
 	g.panel_tip.queue_redraw()
+	if decline_btn.visible:
+		decline_btn.queue_redraw()
 	motion.update(dt)
 	_ev_follow_focus()
 
