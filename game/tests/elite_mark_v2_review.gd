@@ -55,6 +55,15 @@ func capture() -> void:
 	print("ELITE_MARK_REVIEW dc_checked=", game.world.dc_checked, " sample_count=", samples.size())
 	get_tree().quit()
 
+## 等一帧画完：出图时等渲染（frame_post_draw）；快检无头没有渲染帧，改等两次 process_frame（世界层照常 _draw，--dccheck 比对得到）
+func _frame() -> void:
+	if out != "":
+		await RenderingServer.frame_post_draw
+	else:
+		await get_tree().process_frame
+		await get_tree().process_frame
+
+
 func shot(name: String) -> void:
 	var emitted := 0
 	var colours := {}
@@ -65,7 +74,7 @@ func shot(name: String) -> void:
 		game.glow_tex_next = []
 		game.queue_redraw()
 		game.hud.queue_redraw()
-		await RenderingServer.frame_post_draw
+		await _frame()
 		game.glow_cur = game.glow_next
 		game.glow_next = []
 		game.glow_tex_cur = game.glow_tex_next
@@ -74,10 +83,11 @@ func shot(name: String) -> void:
 		for point in game.glow_cur:
 			colours[str(point[2])] = true
 		game.optical.glow_node.queue_redraw()
-		await RenderingServer.frame_post_draw
-	assert(emitted > 0, "Frozen review did not forward fresh emit points")
+		await _frame()
+	assert(out == "" or emitted > 0, "Frozen review did not forward fresh emit points")
 	print("ELITE_MARK_EMIT ", name, " points=", emitted, " colours=", colours.keys())
-	get_viewport().get_texture().get_image().save_png(out + "/" + name)
+	if out != "":
+		get_viewport().get_texture().get_image().save_png(out + "/" + name)
 
 
 func verify_marks() -> void:

@@ -10,6 +10,9 @@ func _ready() -> void:
 		if arg.begins_with("--gem-review-out="):
 			out = arg.trim_prefix("--gem-review-out=")
 	game = Game.new()
+	if out == "":
+		_regression()
+		return
 	game.wcv = self
 	game.optical_on = false
 	game.tex["gem_small"] = Art.tex("gem_small")
@@ -20,6 +23,26 @@ func _ready() -> void:
 	get_viewport().get_texture().get_image().save_png(out.path_join("tiers_3x.png"))
 	game.free()
 	get_tree().quit()
+
+## 快检（check.py gem_v2_tiers）：四档经验 1 / 2 / 5 / 20 颜色两两不同，静止比近身 / 吸起暗
+func _regression() -> void:
+	var fails := 0
+	var seen := {}
+	for value in [1.0, 2.0, 5.0, 20.0]:
+		var near: Color = game.world._gem_v2_color(value, false)
+		var rest: Color = game.world._gem_v2_color(value, true)
+		if seen.has(near.to_html()):
+			print("FAIL gem tier colour repeats at ", value)
+			fails += 1
+		seen[near.to_html()] = true
+		if not (rest.r < near.r and rest.g < near.g):
+			print("FAIL rest gem not dimmer at ", value)
+			fails += 1
+	game.free()
+	if fails == 0:
+		print("GEM V2 TIERS PASS")
+	get_tree().quit(1 if fails else 0)
+
 
 func _draw() -> void:
 	if game == null:
