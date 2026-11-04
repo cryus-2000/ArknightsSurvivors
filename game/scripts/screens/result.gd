@@ -145,7 +145,7 @@ func _dial_face_v3(ci: CanvasItem, c: Vector2, rad: float, ak: float, a: float) 
 		var f: float = 1.0 if k < g.threat else (tf if k == g.threat else 0.0)
 		if f > 0.0:
 			ci.draw_arc(c, ri, a0, a0 + (a1 - a0) * f, 12, Color(1, 1, 1, (0.85 if k < g.threat else 0.6) * a), 3.0)
-	if ak >= 1.0:
+	if ak >= 1.0 and not Cfg.touch_device():   # 手机：表盘离按钮近，这行会贴到按钮上，不写（环本身照画）
 		var tr: Dictionary = D.THREAT[g.threat]
 		var lab: String = "威胁 %s · %s" % [["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][clampi(g.threat, 0, 5)], str(tr.get("name", ""))]
 		UI.text(ci, g.font, Vector2(c.x - 100.0, c.y + rad + 26.0), lab, 13, Color(0.6, 0.63, 0.66, a), HORIZONTAL_ALIGNMENT_CENTER, 200)
@@ -188,7 +188,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	if g.state == Game.S.PAUSE:
 		dim = UM.prog(0.0, UM.T1, _mt()) if UM.rm() else UM.out_cubic(_mt() / PAUSE_DIM)
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.72 * dim))
-	var pw := 600.0 if opts.size() <= 3 else 700.0   # 暂停菜单五个按钮：加宽，按键牌才放得下
+	var pw := 600.0 if opts.size() <= 3 else (840.0 if opts.size() >= 6 else 700.0)   # 暂停菜单五个按钮：加宽，按键牌才放得下；六个（加了「演示」）再加宽到 840，「重新开始」「回到标题」的按键牌不压字（用户 11-05）
 	if Cfg.touch_device():
 		# 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：面板占到约 90% 宽（结局结算给右侧剪影留 300）
 		pw = minf(vs.x - 300.0 - 32.0, 700.0) if ending_panel else minf(vs.x - 80.0, 960.0)
