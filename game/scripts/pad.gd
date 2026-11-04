@@ -112,10 +112,8 @@ func _input(event: InputEvent) -> void:
 			if event.button_index in PlayKeys.ULT.ult.pad:
 				_ult_hold(event.button_index, event.pressed)
 				return
-			if event.button_index in PlayKeys.ULT.combo.pad:
-				if event.pressed:
-					tap(int(PlayKeys.ULT.combo.keys[0]))
-				return
+			if event.button_index == JOY_BUTTON_Y:
+				return   # 原连携技键（11-05 收回）：对局里没有动作，也不落到下面的旧映射（Ⓨ = Q）
 		elif not _q_hold.is_empty():
 			_q_hold.clear()
 			_key(KEY_Q, false)   # 按住终结技键时离开对局（选卡弹出等）：补一个松开

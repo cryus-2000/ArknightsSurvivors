@@ -1777,10 +1777,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_dash()
 		get_viewport().set_input_as_handled()
 		return
-	# 终结技 Q / 连携技 E（docs/198 §2.4，ult/on）：取代下面的手动技能路由
+	# 终结技 Q（docs/198 §2.4，ult/on）：取代下面的手动技能路由。连携全自动，E 不再有绑定（11-05 收回）
 	var act: String = PlayKeys.action_of(k, true) if ult != null else ""
-	if (act == "ult" or act == "combo") and state == S.PLAY:
-		if (ult.press_q() if act == "ult" else ult.press_e()):
+	if act == "ult" and state == S.PLAY:
+		if ult.press_q():
 			get_viewport().set_input_as_handled()
 		return
 	# 手动技能（ult/on = 0 的旧路由）：Q / E / J（手柄 Ⓐ / Ⓨ 注入 Q，Ⓧ 注入 J）。终结技开着时 J / Ⓧ 不再有动作（10-31 取消攻击键）
