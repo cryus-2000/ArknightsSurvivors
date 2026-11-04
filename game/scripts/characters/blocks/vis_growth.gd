@@ -17,8 +17,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # 剑气非线性速度（10-27）
 const LateShape = preload("res://scripts/characters/blocks/late_shape.gd")   # 后期形状随成长（docs/248）
-const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")
-const _PXP = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246 §9）：接管的干员剑气改画本人风格（斯卡蒂 = 水刃 + 浪痕）   # 看得见的成长节点（docs/249）
+const _PXP = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246 §9）：接管的干员剑气改画本人风格（斯卡蒂 = 水刃 + 浪痕）
 const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")   # 看得见的成长节点（docs/249）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面（docs/254）：接管的干员剑气由 fx_pxplane 画
 const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/255）：流明的额外弹改画流明光弹，只画
