@@ -853,7 +853,9 @@ static func _step_cast(u, a: Dictionary, _dt: float) -> bool:
 		var tp: Vector2 = _cast_pos(u, a)
 		a.tpos = tp
 		var tr: float = float(a.travel)
-		if tr > 0.0:
+		if tr > 0.0 and str(a.s) == "lumen" and _FXR.owns(p):
+			_FXR.ev(p, "lm_cshot", {"a": p.pos + Vector2(0, -26), "b": tp + Vector2(0, -30), "travel": tr})   # 转平面（docs/255）：只画
+		elif tr > 0.0:
 			_tracer(u, p.pos + Vector2(0, -26), tp, c, tr + 0.1, 7.0)
 			u.shape({"kind": "ring", "c": tp, "r": 60.0, "r1": 20.0, "w": 2.0, "col": c, "life": tr})
 		p._set_face(1.0 if tp.x >= p.pos.x else -1.0)
@@ -934,7 +936,10 @@ static func _impact(u, a: Dictionary) -> void:
 			for e in hits:
 				if not e.dead:
 					e["lit"] = maxf(float(e.get("lit", 0.0)), 3.0)
-			u.shape({"kind": "circle", "c": tp, "r": 150.0, "col": c.lerp(Color.WHITE, 0.5), "fill": 0.2, "life": 0.4})
+			if _FXR.owns(p):
+				_FXR.ev(p, "lm_cleanse", {"at": tp, "r": 150.0, "es": hits})   # 转平面（docs/255）：只画
+			else:
+				u.shape({"kind": "circle", "c": tp, "r": 150.0, "col": c.lerp(Color.WHITE, 0.5), "fill": 0.2, "life": 0.4})
 			support = true
 			var ir = _op(u, "irene")
 			if had and ir != null and _free(u, ir):   # 审判庭：艾丽妮自动补一刺打队长身边最近的敌人
