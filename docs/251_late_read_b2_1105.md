@@ -1,4 +1,4 @@
-# 247 后期可读性第二批：V4 照地光分账 / V9 地面光环只画边 / V10 拥挤压暗环境（11-05）
+# 251 后期可读性第二批：V4 照地光分账 / V9 地面光环只画边 / V10 拥挤压暗环境（11-05）
 
 **结论**
 1. 三项都做了，各一个独立开关、缺省 0 = 关、只改画面：`render/light_share`（V4）、`render/ground_ring_edge`（V9）、`render/crowd_env_dim`（V10）。同 seed TRACE：全关 vs 全开 576 行逐行一致（到 9:35），全关 vs 各项单开 486 行逐行一致（到 8:05）。
@@ -57,7 +57,7 @@
 
 - 「地面光环占屏」= full 与 `noring` 两遍逐像素差 > 0.06；V9 单开借用全关的 `noring`（V9 只改光环层，两边的 `noring` 是同一张图）。
 - 「我方亮度占比」= 我方特效掩码（full 与 `nofriend` 的差）内亮度总和 ÷ 战场区亮度总和。地面平均亮度 / 对比度没量（`noground` 层为省时间砍掉了）。
-- 整帧红像素 50–67%（8:00 / 9:30）全是黑潮阶段的全屏色调（docs/244 §1 的结论），三项都不碰。
+- 整帧红像素 50–67%（8:00 / 9:30）全是黑潮阶段的全屏色调（docs/247 §1 的结论），三项都不碰。
 
 ## 5. 和配方试点（`claude/fx-recipe-pilot`，docs/245）怎么接
 那边在 `optical._dyn_lights` 里直接 `FxRecipe.lights_for(g, vr, nmax)` 先占至多 `fx/recipe_dl`（4）盏、不超过一半，和本分支的同一段会冲突（合并试验：`optical.gd` 两处冲突，一处是 preload 行）。合并时这样解：
@@ -81,7 +81,7 @@ const LateRead2 = preload("res://scripts/render/late_read2.gd")
 - 也可以在 `_ready` 里登记一次（`share_source` 是持久表），效果相同。
 - 接口：`optical.share_source(名字, Callable(vr: Rect2, n: int) -> Array, quota)`；quota ≤ 0 或 Callable 失效即注销。份额内按登记顺序先给来源，再给档位排序。
 
-## 6. 和第一批（`claude/late-read-b1`，docs/244）的合并
+## 6. 和第一批（`claude/late-read-b1`，docs/247）的合并
 - 合并试验：b1 与 integ-1105 本来就冲突的 4 个文件（`relic_fx.gd`、`game.gd`、`docs/00_index.md`、`tools/late_game_diag_shots.py`）照旧冲突，**本分支没有新增冲突**。`squad.gd` / `vfx.gd` 里本分支的伤害档标记特意挪开了 b1 的 `spawn_op` 那几行。`relic_fx.gd` 的冲突全在 b1 vs integ 的放置物段，本分支改的遥乡 / 旗帜段不在冲突块里。
 - V10 与 b1 的 V3（降噪只压装饰层）不冲突：V10 不读不写 `fx_dim` / `deco_dim` / `dcrowd`，只新增 `env_dim`；b1 的 S1 脚底光池在地面黑纱之后画，不被压暗。
 - `autotest.gd` 的量测字段插在 `_clutter_log` 字典中段，b1 在字典末尾追加，两边不相邻。

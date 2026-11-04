@@ -13,7 +13,7 @@ const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
-const LateRead2 = preload("res://scripts/render/late_read2.gd")   # 后期可读性第二批（docs/247：light_share / ground_ring_edge / crowd_env_dim）
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # 后期可读性第二批（docs/251：light_share / ground_ring_edge / crowd_env_dim）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
@@ -87,14 +87,14 @@ var _dbg_warn: bool = Dc.dbg("nowarn")
 var _dbg_tell: bool = Dc.dbg("notell")
 var _dbg_foefx: bool = Dc.dbg("nofoefx")
 var _dbg_shock: bool = Dc.dbg("noshock")
-var _dbg_aura: bool = Dc.dbg("noaura") or Dc.dbg("noring")   # noring（docs/247 V9 量测）= 巢穴光环 + 灯标 / 灯柱 / 遥乡 / 旗帜地圈
+var _dbg_aura: bool = Dc.dbg("noaura") or Dc.dbg("noring")   # noring（docs/251 V9 量测）= 巢穴光环 + 灯标 / 灯柱 / 遥乡 / 旗帜地圈
 var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
 var _gc_sink = null   # GroundCrack.TbSink（_init 里建）
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
-## docs/247 V10（render/crowd_env_dim，缺省 0 = 关）：怪群密集时环境（地面 / 溟痕 / 环境颗粒）压暗的系数，1 = 不压。
+## docs/251 V10（render/crowd_env_dim，缺省 0 = 关）：怪群密集时环境（地面 / 溟痕 / 环境颗粒）压暗的系数，1 = 不压。
 ## env_crowd 同 ecrowd 的口径（活着的敌人数，平滑同速），起止点单设 crowd_env_from / crowd_env_span；开关关时恒 1
 var env_crowd := 0.0
 var env_dim := 1.0
@@ -304,7 +304,7 @@ func update_visuals(dt: float) -> void:
 		g.post.bloom_cut = Dc.p("bloom_cut")
 
 
-## docs/247 V10：怪群密集时压暗环境。系数 = 1 − crowd_env_k（缺省 0.18）× env_crowd，env_crowd 按活敌数 crowd_env_from → +crowd_env_span 线性到 1、
+## docs/251 V10：怪群密集时压暗环境。系数 = 1 − crowd_env_k（缺省 0.18）× env_crowd，env_crowd 按活敌数 crowd_env_from → +crowd_env_span 线性到 1、
 ## 平滑同 ecrowd；只给地面（draw_world 地面之后一层黑纱）、溟痕本体（map.draw_mire）、环境颗粒（光学孢子 / 溟痕光尘 / 浮游雪）用。
 ## 我方特效、小队、敌人、敌弹、预警、掉落都在黑纱之上或不读它。图鉴演示不压。只读状态
 func _env_dim_step(ne: int, rd: float) -> void:
@@ -436,7 +436,7 @@ func draw_world() -> void:
 			var gm: Color = g.map.ground_mean()
 			g.wcv.draw_rect(view_rect(8.0), Color(gm.r, gm.g, gm.b, gv))
 		if env_dim < 0.999:
-			g.wcv.draw_rect(view_rect(8.0), Color(0.0, 0.0, 0.0, 1.0 - env_dim))   # docs/247 V10：地面 / 地形道具压暗（终结技地面层、干员地面特效、溟痕之后的一切都在这层之上）
+			g.wcv.draw_rect(view_rect(8.0), Color(0.0, 0.0, 0.0, 1.0 - env_dim))   # docs/251 V10：地面 / 地形道具压暗（终结技地面层、干员地面特效、溟痕之后的一切都在这层之上）
 	if g.ult != null:
 		g.ult.draw_world_back(self)   # 终结技地面层帧条（刀痕残痕 / 领域 / 裂纹 / 海嗣水纹）
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
@@ -3728,7 +3728,7 @@ func draw_nest_auras() -> void:
 		var lite: bool = Bal.v("render/nest_aura_lite", 0.0) > 0.0   # docs/139 §8：只留一层淡底 + 不转的虚线边界
 		var ac := Color(0.9, 0.5, 1.6)
 		if LateRead2.on("ground_ring_edge"):
-			# docs/247 V9：只画边 + 呼吸，填充一层 ≤ 0.04；脉冲（aura_pulse_t 0.15 秒）时边加亮，代替原来贴图整片加亮
+			# docs/251 V9：只画边 + 呼吸，填充一层 ≤ 0.04；脉冲（aura_pulse_t 0.15 秒）时边加亮，代替原来贴图整片加亮
 			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, LateRead2.fill_a(0.03)), 1.0, 32)
 			var pk: bool = g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15
 			var ea9: float = 0.85 if pk else 0.6 * LateRead2.edge_breath(g.t, float(e.id) * 0.13)
@@ -4065,7 +4065,7 @@ func _izu_lamps(e: Dictionary) -> void:
 		var pulse: float = 0.5 + 0.5 * sin(g.t * (10.0 if waving else 3.0))
 		g.wcv.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
 		if lit:
-			g.wcv.draw_circle(Vector2.ZERO, lr, Color(1.0, 0.8, 0.4, LateRead2.fill_a((0.12 + 0.08 * pulse) if waving else 0.08)))   # docs/247 V9：填充封顶 0.04（地波蓄力时边本来就加粗脉动）
+			g.wcv.draw_circle(Vector2.ZERO, lr, Color(1.0, 0.8, 0.4, LateRead2.fill_a((0.12 + 0.08 * pulse) if waving else 0.08)))   # docs/251 V9：填充封顶 0.04（地波蓄力时边本来就加粗脉动）
 			g.wcv.draw_arc(Vector2.ZERO, lr, 0.0, TAU, 56, Color(1.8, 1.4, 0.6, 0.6 + 0.35 * pulse if waving else 0.55), 3.0 if waving else 2.0)
 		else:
 			g.wcv.draw_arc(Vector2.ZERO, 40.0, 0.0, TAU, 32, Color(1.0, 0.8, 0.45, 0.35), 1.5)
@@ -4147,7 +4147,7 @@ func draw_beacons() -> void:
 		var r: float = float(b.get("r", 70.0))
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 3.0)
 		g.wcv.draw_set_transform(pos, 0.0, Vector2(1.0, ground_y()))
-		var br9: float = LateRead2.edge_breath(g.t, pos.x * 0.003)   # docs/247 V9：开时填充封顶 0.04、边呼吸；关时 = 1
+		var br9: float = LateRead2.edge_breath(g.t, pos.x * 0.003)   # docs/251 V9：开时填充封顶 0.04、边呼吸；关时 = 1
 		if not lit:
 			g.wcv.draw_circle(Vector2.ZERO, r, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, LateRead2.fill_a(0.07 + 0.05 * pulse)))
 			for q in 20:

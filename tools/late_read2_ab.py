@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""后期可读性第二批（docs/247）同 seed TRACE 对照：light_share / ground_ring_edge / crowd_env_dim 全关、全开、各单开，同一局逐行比 TRACE，
-（由 docs/244 的 late_read_ab.py 改来）
+"""后期可读性第二批（docs/251）同 seed TRACE 对照：light_share / ground_ring_edge / crowd_env_dim 全关、全开、各单开，同一局逐行比 TRACE，
+（由 docs/247 的 late_read_ab.py 改来）
 可选再和基准提交（另一份检出，--base 指目录）的「关」逐行比。画面代码只在有窗口时跑，所以缺省用 xvfb + opengl3、
 --fixed-fps 60 非实时（同 late_game_diag_shots.py）；--headless 另跑一遍无头。
 

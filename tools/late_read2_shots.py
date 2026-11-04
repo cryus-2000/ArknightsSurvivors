@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""后期可读性第二批（docs/247：V4 light_share / V9 ground_ring_edge / V10 crowd_env_dim）开 / 关对照截图、录像。
+"""后期可读性第二批（docs/251：V4 light_share / V9 ground_ring_edge / V10 crowd_env_dim）开 / 关对照截图、录像。
 截图口径同 late_game_diag_shots.py（云端 xvfb + opengl3，1280×720，--fixed-fps 60 非实时，同种子）。
 
     python tools/late_read2_shots.py shoot            # 5 组配置 × 各自需要的分层，3:00 / 8:00 / 9:30

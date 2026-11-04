@@ -7,7 +7,7 @@ const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
-const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/247 V4 伤害档标记
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/251 V4 伤害档标记
 const UI = preload("res://scripts/ui.gd")
 const Tactics = preload("res://scripts/characters/tactics.gd")   # 战术姿态 v2（command/v2，docs/209 §1）
 
@@ -436,7 +436,7 @@ func update(dt: float) -> void:
 	for o in ops:
 		if o.cmd_down > 0.0:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）
-		g.vfx.spawn_tier = 2 if LateRead2.on("light_share") and o.skill_active() else 1   # docs/247 V4：这名干员这一帧生成的帧条，技能期间记重击档（纯画面标记）
+		g.vfx.spawn_tier = 2 if LateRead2.on("light_share") and o.skill_active() else 1   # docs/251 V4：这名干员这一帧生成的帧条，技能期间记重击档（纯画面标记）
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		g.vfx.spawn_lead = o.is_leader   # 这段里生成的帧条特效记为队长的（docs/139 §11 突出队长；纯画面标记）

@@ -1,4 +1,4 @@
-## 后期可读性第二批（docs/247，用户 11-05 批 V4 / V9 / V10）：三个独立开关，缺省 0 = 关，只改画面、不改玩法和数值。
+## 后期可读性第二批（docs/251，用户 11-05 批 V4 / V9 / V10）：三个独立开关，缺省 0 = 关，只改画面、不改玩法和数值。
 ##   render/light_share       V4 照地光按我方 / 敌方分账：总盏数不变（optical_dl_max），我方保底份额 light_share_ally（缺省一半），
 ##                            我方份额内按伤害档排序：终结技 > 重击（技能期间的帧条、三档命中）> 普攻；份额内可再分给外部来源（share_source）
 ##   render/ground_ring_edge  V9 地面光环叠层（巢穴光环、灯标 / 引路圈、伊祖米克灯柱光圈、遥乡 / 旗帜地圈）只画边 + 呼吸，填充 ≤ ring_fill_max（0.04）
@@ -36,7 +36,7 @@ static func k(key: String, def: float) -> float:
 
 
 ## ---------------- V9：地面光环只画边 ----------------
-## --clutterdbg=noring（量测，docs/247 §4）：V9 管的地面光环叠层整层不画（填充与边都为 0，代码照跑），开 / 关两边同一口径量「地面半透明占屏」
+## --clutterdbg=noring（量测，docs/251 §4）：V9 管的地面光环叠层整层不画（填充与边都为 0，代码照跑），开 / 关两边同一口径量「地面半透明占屏」
 static func ring_vis() -> float:
 	return 0.0 if Dc.dbg("noring") else 1.0
 

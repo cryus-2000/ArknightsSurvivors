@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""后期可读性第二批（docs/247）开 / 关对照：拼并排图 + 分层量测。截图由 late_read2_shots.py shoot 产出。
+"""后期可读性第二批（docs/251）开 / 关对照：拼并排图 + 分层量测。截图由 late_read2_shots.py shoot 产出。
 
 指标（战场区 WORLD_BOX，口径同 docs/243 §1.3：两遍逐像素差 > 0.06 = 该层掩码）：
   friend_pct        我方特效占屏（full 与 nofriend 的差）

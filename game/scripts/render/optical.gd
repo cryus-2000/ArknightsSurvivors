@@ -7,7 +7,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const D = preload("res://scripts/data.gd")
 const A = preload("res://scripts/art.gd")
 const FD = preload("res://scripts/render/frame_dst.gd")
-const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/247 V4 照地光分账（render/light_share）
+const LateRead2 = preload("res://scripts/render/late_read2.gd")   # docs/251 V4 照地光分账（render/light_share）
 
 var g
 var rect: ColorRect
@@ -184,14 +184,14 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 	mat.set_shader_parameter("dl_col", _dl_col)
 
 
-## ---------------- docs/247 V4：照地光按我方 / 敌方分账（render/light_share，缺省 0 = 关） ----------------
+## ---------------- docs/251 V4：照地光按我方 / 敌方分账（render/light_share，缺省 0 = 关） ----------------
 ## 候选格式 [强度, 位置, 半径, 颜色, 阵营 0 我方 / 1 敌方, 伤害档 0 无 / 1 普攻 / 2 重击 / 3 终结技]（入选后补第 7 位「我方份额」）。
 ## 总盏数仍是 optical_dl_max（GPU 开销不变）：
 ##   ① 我方保底 = round(nmax × light_share_ally)（缺省 0.5 → 12 盏里 6 盏）；
 ##   ② 份额内先给外部来源（share_source 登记的，每个来源至多 quota 盏，按自己的强度取），再按「档 × 10 + 强度」取我方候选——终结技 > 重击 > 普攻；
 ##   ③ 剩下的盏数照旧在所有没入选的候选（我方 + 敌方）里按强度取。我方候选少时，空出的保底盏数自然让给敌方 / 其余。
 ## 外部来源（通用接口，「我方份额内再分配」）：share_source(名字, Callable(vr: Rect2, n: int) -> Array 候选, quota)，
-##   候选同上格式（前 4 位必填，阵营 / 档缺省按我方普攻）；fx_recipe 合并时把 FxRecipe.lights_for 登记成 "recipe"、quota = fx/recipe_dl（见 docs/247 §5）
+##   候选同上格式（前 4 位必填，阵营 / 档缺省按我方普攻）；fx_recipe 合并时把 FxRecipe.lights_for 登记成 "recipe"、quota = fx/recipe_dl（见 docs/251 §5）
 var share_sources := {}   # 名字 → [Callable, quota]
 var hit_lights: Array = []   # 我方命中（vfx.hit_react）登记的短命照地光：[pos, r, col, t0, life, tier]；只在 light_share 开时登记
 const HIT_LIGHT_MAX := 24
@@ -687,7 +687,7 @@ func _process(_dt: float) -> void:
 			var ld = g.squad.leader() if g.squad != null else null
 			var tc_on: bool = Bal.v("render/trail_col", 1.0) > 0.0
 			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp, ld.trail_cols() if ld != null and ld.has_method("trail_cols") and tc_on else [])
-			if g.world.env_dim < 0.999:   # docs/247 V10：怪群密集时环境孢子压暗（灯火余烬是灯火本身，不压）
+			if g.world.env_dim < 0.999:   # docs/251 V10：怪群密集时环境孢子压暗（灯火余烬是灯火本身，不压）
 				particles.spores.modulate.a *= g.world.env_dim
 				if particles.warm_spores != null:
 					particles.warm_spores.modulate.a *= g.world.env_dim

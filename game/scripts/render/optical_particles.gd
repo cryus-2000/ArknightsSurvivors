@@ -592,7 +592,7 @@ func tier_burst(pos: Vector2, col: Color, tier: int) -> void:
 		_near_load = _near_load * exp(-(now - _near_t) / 0.5) + tier * 0.34
 		_near_t = now
 		if _near_load > Bal.v("render/optical_local_bursts", 4.0) and not (tier >= 3 and LateRead2.on("light_share")):
-			a = 0.4   # docs/247 V4：light_share 开时三档（重击）命中迸溅不吃局部喷发预算
+			a = 0.4   # docs/251 V4：light_share 开时三档（重击）命中迸溅不吃局部喷发预算
 	p.global_position = pos
 	p.modulate = Color(col.r, col.g, col.b, a)
 	p.visible = true
