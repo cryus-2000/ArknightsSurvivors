@@ -25,6 +25,11 @@ func shot(name: String) -> void:
 	for i in 4:
 		redraw(game)
 		await RenderingServer.frame_post_draw
+		# Optical processing is frozen too: advance only its draw-command buffers.
+		game.glow_cur = game.glow_next
+		game.glow_next = []
+		game.glow_tex_cur = game.glow_tex_next
+		game.glow_tex_next = []
 	get_viewport().get_texture().get_image().save_png(out.path_join(name + ".png"))
 
 func redraw(node: Node) -> void:
