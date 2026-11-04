@@ -74,11 +74,13 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 	var oe: Array = b.get("on_explode", []) + patch.get("on_explode", [])
 	if b.has("lob") and cond_true(o, b.lob.get("cond", _ED)):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（取代直线弹与后续弹）
 		hw_lob_volley(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, oe)
+		Fxr.ev(o, "efire", {"at": hw_tip(o, b), "dir": (ts[0].pos - hw_tip(o, b)).normalized(), "lob": true})   # 配方（docs/245 §6）：只画
 		if b.has("fire_fx"):
 			_eg_fx(o, b.fire_fx, hw_tip(o, b), 10.0)
 		return
 	_hw_cast(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, 1.0, oe, not is_atk)
 	var tip: Vector2 = hw_tip(o, b)   # 发射时可能转了身：后续弹与出手光按转身后的出手点（同手写）
+	Fxr.ev(o, "efire", {"at": tip, "dir": (ts[0].pos - tip).normalized(), "big": b.get("look", {}).has("big_tex")})   # 配方（docs/245 §6）：只画
 	if b.has("fire_fx"):
 		_eg_fx(o, b.fire_fx, tip, 10.0)
 	for f in b.get("follow", _EA):
@@ -125,6 +127,7 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	var g = o.g
 	var b: Dictionary = bl.get("hw_b", {})
 	var h := _hw2(o)
+	Fxr.ev(o, "eboom", {"at": bl.pos, "r": float(bl.aoe), "sz": float(bl.get("sz", 1.0)), "big": b.get("look", {}).has("big_tex")})   # 配方（docs/245 §6）：只画
 	if b.get("look", {}).get("weighted", false):
 		_hw_magma_impact(o, bl.pos, float(bl.aoe), float(bl.get("sz", 1.0)), b.get("boom_fx", []), bl.get("hw_fireball", false), b.get("look", {}).has("big_tex"))   # big_tex = S2 点燃弹：命中爆燃
 	elif b.has("boom_fx"):
@@ -260,6 +263,7 @@ static func hw_ignite_blast(o, at: Vector2, r: float) -> void:
 ## 熔岩块喷起的原点（10-14 用户「火山喷发的感觉」，纯画面，g.vrng）：白热闪光 + 一束向上猛喷的火星 + 几缕黑烟
 static func _hw_lob_burst(o, at: Vector2, sz: float) -> void:
 	var g = o.g
+	Fxr.ev(o, "lob_burst", {"at": at, "sz": sz})   # 配方（docs/245 §6）：只画
 	var gr = _eg(o)
 	if gr != null:   # 颗粒版（docs/138 §14）：白热软圆 → 短灯；火星 → 带重力落地的颗粒；黑烟 → 上飘冷却成灰的火星；喷口形状保留
 		gr.light(at + Vector2(0, -6), 52.0 * sz, MagmaProjectile.HOT, 0.14)
@@ -442,6 +446,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 					o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
 			if l.t >= l.dur:
 				o.area_hit(l.src, l.to, l.r, l.dmg)
+				Fxr.ev(o, "lob_land", {"at": l.to, "r": float(l.r), "sz": float(l.sz), "src": str(l.src)})   # 配方（docs/245 §6）：只画
 				if "meteor2" in o.taken and l.src == "熔岩天降":
 					hw_ignite_blast(o, l.to, float(l.r))
 				if lk is Dictionary and lk.get("weighted", false):
@@ -487,6 +492,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 				o._exec_list(p.do, p.pos)
 				if p.has("shot"):
 					MagmaProjectile.impact(o, p.pos, float(p.shot.get("radius", 40.0)), float(p.shot.get("size", 1.2)))
+				Fxr.ev(o, "erupt", {"at": p.pos, "r": float(p.get("shot", {}).get("radius", 40.0))})   # 配方（docs/245 §6）：只画
 		h.erupts = h.erupts.filter(func(p): return p.t > 0.0)
 	if not h.pulse.is_empty():
 		var pu: Dictionary = h.pulse
@@ -580,6 +586,7 @@ static func hw_instant(o, i: int) -> bool:
 		o.load_skill_attacks(i, int(dv.next_attacks))
 	if sb.has("fx"):
 		_eg_fx(o, sb.fx, o.pos, 30.0)
+	Fxr.ev(o, "skill", {"i": i})   # 配方（docs/245 §6）：cast: instant 的技能起手（只画）
 	o.effect_skill = i
 	o._exec_list(sb.get("do", []))
 	o.effect_skill = -1

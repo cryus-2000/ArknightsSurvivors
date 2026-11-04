@@ -87,7 +87,7 @@ def main():
         ff = imageio_ffmpeg.get_ffmpeg_exe()
         d0, d1 = [os.path.join(OUT, t + "_frames") for t in tags]
         n = min(len(glob.glob(os.path.join(d0, "rec_*.png"))), len(glob.glob(os.path.join(d1, "rec_*.png"))))
-        mp4 = os.path.join(OUT, "late_%dm%02d_onoff.mp4" % (a.t0 // 60, a.t0 % 60))
+        mp4 = os.path.join(OUT, "late_%s_%dm%02d_onoff.mp4" % (a.op, a.t0 // 60, a.t0 % 60))
         # 左关右开，各 1280×720 原尺寸并排，30 帧原速
         subprocess.run([ff, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(d0, "rec_%05d.png"), "-framerate", "30", "-i", os.path.join(d1, "rec_%05d.png"),
                         "-filter_complex", "[0:v][1:v]hstack=inputs=2,drawbox=x=1278:y=0:w=4:h=ih:color=black@1:t=fill[v]", "-map", "[v]", "-frames:v", str(n),

@@ -189,6 +189,8 @@ static func _snap(p: Vector2) -> Vector2:
 
 
 static func material_on(o) -> bool:
+	if o.g is Node and o.g.has_meta("fx_recipe") and o.g.get_meta("fx_recipe").enabled() and not o.g.get_meta("fx_recipe").recipe(str(o.id)).is_empty():
+		return false   # 配方接管（docs/245 §6）：材质颗粒 / 帧条改由配方画（只改画面）
 	var opt = o.g.get("optical")   # 契约测试的假 g 可能是 Dictionary（eyja_volcanic_weight），不能直接 .optical
 	return opt != null and opt.grains != null and opt.grains.material_on()
 

@@ -43,7 +43,6 @@ const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displac
 	"shape.boomerang", "verb.summon_cmd"]
 
 const ArtS = preload("res://scripts/art.gd")
-const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 运行时攻击特效配方（docs/245，fx/recipe）：接管的干员只跳过原画面、改画配方主形
 
 
 ## 瞬时播放：c / r 是出手形状的中心与半径（技能发动、常驻光环时是区域中心与半径），hits 是本次命中的敌人，ang 是锥形的朝向。

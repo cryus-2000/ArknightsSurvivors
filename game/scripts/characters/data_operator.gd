@@ -1080,12 +1080,14 @@ func _hit_fx(e: Dictionary, origin: Vector2) -> void:
 ## 区域：地面椭圆，灯火充盈 / 昏暗 / 其他三种色；shape.orbit 的判定点画成小菱形
 func draw_auras() -> void:
 	_draw_fields()
+	if Fxr.owns(self):
+		Fxr.of(g).draw_auras(self)   # 配方接管（docs/245）：持续技能的场、区域边（浊心领域）改画配方；常驻圈、漩涡、常驻帧条都不画
+		if B.has("zone") and str(B.zone.get("look", "")) == "particles":
+			SegSkalter.sk_gn_draw(self)   # 成长节点的潮声音符 / 共振层是状态提示，照画
+		return
 	if not hw.is_empty():
 		SegSkadi.hw_draw_rings(self)   # 手写迁移段：常驻程序圈（aura_ring）、喷发热浪环……
-		if Fxr.owns(self):
-			Fxr.of(g).draw_auras(self)   # 配方接管（docs/245）：持续技能的场改画实心主形
-		else:
-			ObHw.hw_draw_auras(self)
+		ObHw.hw_draw_auras(self)
 	if pos == Vector2.INF or not B.has("zone"):
 		return
 	var c := zone_c()
@@ -1146,6 +1148,8 @@ func draw_body() -> void:
 
 
 func _draw_body_fx(front: bool) -> void:
+	if Fxr.owns(self):
+		return   # 配方接管（docs/245 §6）：贴身漩涡层不画
 	for u in _fxb:
 		ObVortex.fx_body(cv, self, _fxb[u], front)
 
@@ -1181,6 +1185,8 @@ func _zone_vis_r() -> float:
 
 ## squad.draw_ground_fx → 这里（world.draw_world 画完地砖紧接着调；没有 ground 层条目时什么都不画）
 func draw_ground_fx() -> void:
+	if Fxr.owns(self):
+		return   # 配方接管（docs/245 §6）：地面常驻帧条 / 召唤物区域帧条不画
 	_draw_hold_strips(cv, "ground")
 	if not sm.is_empty():
 		SegSkalter.e5_draw_zone_ground(self)   # 精英化第 5 批段：召唤物区域的地面帧条
@@ -1208,10 +1214,10 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	super(ci, loop)
 	if not hw.is_empty():
 		ObHw.h3_draw_add_all(self, ci, loop)   # 手写迁移段第 3 批：提灯光 / 灯塔光 / 光束、技能光环帧条
+	if Fxr.owns(self):
+		return   # 配方接管：常驻帧条 / 漩涡加色层 / 帧条粒子都不画（10-05 起漩涡也在这里挡）
 	_draw_hold_strips(ci, "add")
 	_draw_vortex(ci, "add")
-	if Fxr.owns(self):
-		return
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
 			ObFx.fx_draw(ci, g, f, g.world.fx_dim)

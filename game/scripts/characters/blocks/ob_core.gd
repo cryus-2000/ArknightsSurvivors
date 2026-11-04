@@ -19,6 +19,7 @@ const _EA: Array = []
 const _ED: Dictionary = {}
 
 
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 运行时攻击特效配方（docs/245，fx/recipe）：接管的干员只跳过原画面、改画配方主形（10-05 从 ob_fx 挪到链底，exec_shape 也要发事件）
 const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关（剑雨终结亮环）
 
 
@@ -356,6 +357,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
 			fx_c = c
 			fx_r = r
+			Fxr.ev(o, "shape", {"c": c, "r": r, "es": hits, "band": b.has("band") or b.has("among"), "center": str(b.get("center", "")), "src": src})   # 配方（docs/245 §6）：只画
 			_F().hw_record(o, dmg, fx_a, r, c)   # 手写迁移段：记下这一下（basis prev / 普攻的 attack）
 		"cone":
 			var r2: float = shape_radius(o, b)

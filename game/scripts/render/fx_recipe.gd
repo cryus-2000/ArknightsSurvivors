@@ -35,7 +35,7 @@ var stat_parts := 0
 
 
 static func of(game):
-	if game == null:
+	if game == null or not (game is Object):   # 契约测试的假 g 可能是 Dictionary（eyja_volcanic_weight）：不接管
 		return null
 	if game.has_meta("fx_recipe"):
 		return game.get_meta("fx_recipe")
@@ -116,14 +116,14 @@ static func owns(o) -> bool:
 	if o == null or o.g == null:
 		return false
 	var r = of(o.g)
-	return r.enabled() and not r.recipe(str(o.id)).is_empty()
+	return r != null and r.enabled() and not r.recipe(str(o.id)).is_empty()
 
 
 static func owns_id(game, oid: String) -> bool:
 	if game == null or oid == "":
 		return false
 	var r = of(game)
-	return r.enabled() and not r.recipe(oid).is_empty()
+	return r != null and r.enabled() and not r.recipe(oid).is_empty()
 
 
 # ================================================================ 配方读取
@@ -179,6 +179,9 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 			_react(d.e, col, heavy)
 		for e in d.get("es", []):
 			_react(e, col, heavy)
+		if kind in ["eboom", "lob_land", "erupt"] and d.has("at"):
+			for e in _near(o, d.at, float(d.get("r", 30.0))):
+				_react(e, col, kind == "erupt" or d.get("big", false))
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 三档并排图对齐用（tools/fx_canon_shots.py）：事件发生的引擎帧
 		print("FXRLOG %s %s%s %d" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames()])
 	match kind:
@@ -253,6 +256,10 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 				"life": tl + 0.05, "freeze": 0.0, "layer": "floor", "tone": "ash", "hold": true})
 		"slam":
 			_slam(o, d, p)
+		"efire", "eboom", "lob_land", "lob_burst", "erupt":
+			_ev_eyja(o, kind, d, p)
+		"shape":
+			_ev_skalter(o, d, p)
 		"crash":
 			var m10: Dictionary = move(o, "crash")
 			if m10.is_empty():
@@ -387,6 +394,24 @@ func _cast(o, i: int, p: Dictionary) -> void:
 			"hammer":
 				_shape(o, {"k": "hammer", "c": c, "r": float(m4.get("r", 26.0)) * m4.sc, "gear": m4.tier >= 1, "life": life, "freeze": fz, "layer": "over", "grow": true,
 					"accent": m4.tier >= 2})
+			"petals":   # 艾雅法拉：暗红五瓣花向外绽开（原作命中 / 起手的暗红花瓣）
+				var pn: int = int(m4.get("petal_n", 5)) + (2 if m4.tier >= 1 else 0)
+				for k in pn:
+					var a: float = TAU * k / pn + g.vrng.randf_range(-0.2, 0.2)
+					_shape(o, {"k": "star", "c": c, "n": 5, "r": float(m4.get("petal_r", 8.0)) * m4.sc, "ang": a, "vel": Vector2.from_angle(a) * float(m4.get("petal_v", 90.0)) * Vector2(1.0, 0.8),
+						"spin": 3.0, "life": life, "freeze": fz * 0.5, "layer": "over", "grow": true, "tone": "petal", "accent": m4.tier >= 2})
+			"spiral":   # 艾雅法拉 S2：白热双旋（原作点燃起手的金色双螺旋，改白热 + 熔橙，避开结晶暖金）
+				_shape(o, {"k": "whirl", "c": c + Vector2(o.face * 14.0, 0), "ang": -PI / 2.0, "r": float(m4.get("spiral_r", 22.0)) * m4.sc, "half": PI * 0.95,
+					"w": float(m4.get("spiral_w", 7.0)) * m4.sc * m4.thick, "strands": 2 + mini(m4.tier, 1), "life": life, "freeze": fz, "layer": "over", "tone": "flash"})
+			"bubble":   # 浊心斯卡蒂 S1：水泡一闪
+				_shape(o, {"k": "bubble", "c": o.pos + Vector2(0, -26), "r": float(m4.get("bubble_r", 24.0)) * m4.sc, "life": life, "freeze": fz, "layer": "over", "grow": true})
+			"ripple":   # 浊心斯卡蒂 S2：一圈地面涟漪
+				_shape(o, {"k": "ring", "c": o.pos + Vector2(0, 4), "r0": 12.0, "r": float(m4.get("ripple_r", 90.0)) * m4.sc, "w": 3.0, "life": life, "freeze": 0.0, "layer": "floor", "tone": "bubble"})
+			"crescent2":   # 浊心斯卡蒂 S3：蓝 / 玫红两道新月环身（原作 S3 起手）
+				_shape(o, {"k": "whirl", "c": o.pos + Vector2(0, -20), "ang": 0.0, "r": float(m4.get("cres_r", 30.0)) * m4.sc, "half": PI * 0.8, "w": 10.0 * m4.sc, "strands": 2,
+					"life": life, "freeze": fz, "layer": "over", "tone": "bubble"})
+				_shape(o, {"k": "whirl", "c": o.pos + Vector2(0, -20), "ang": PI, "r": float(m4.get("cres_r", 30.0)) * m4.sc * 0.86, "half": PI * 0.7, "w": 9.0 * m4.sc, "strands": 1,
+					"life": life, "freeze": fz, "layer": "over", "tone": "rose", "sdir": -1.0, "delay": 0.05})
 			"band":
 				var bc: Vector2 = o.pos + Vector2(0, -float(m4.get("band_y", 24.0)))
 				_shape(o, {"k": "flare", "c": bc, "ang": 0.0, "r": float(m4.get("band_r", 90.0)) * m4.sc, "rv": float(m4.get("band_rv", 8.0)) * (2.6 if m4.tier >= 2 else 1.0) * m4.sc,
@@ -532,6 +557,143 @@ func _hitlight(o, at: Vector2, gy: float, R: float, r: float, inten: float, life
 		return
 	_light(o, at, r * float(Bal.v("fx/recipe_hitlight_r", 1.3)), minf(1.0, inten * float(Bal.v("fx/recipe_hitlight_i", 1.4))), clampf(life, 0.1, 0.15) if life >= 0.1 else 0.13, col)
 	_shape(o, {"k": "shade", "c": Vector2(at.x, gy), "r": R * 1.5, "life": 0.1, "freeze": 0.0, "layer": "floor"})
+
+
+# ================================================================ 艾雅法拉 / 浊心斯卡蒂（docs/245 §6，推广验证）
+
+## 半径内的敌人（只读空间索引，受击反应用）
+func _near(o, at: Vector2, r: float) -> Array:
+	var out: Array = []
+	if not o.has_method("query_ids"):
+		return out
+	for j in o.query_ids(at, r + 16.0):
+		var e = g.enemies[j]
+		if not e.dead and e.pos.distance_to(at) <= r + float(e.r):
+			out.append(e)
+		if out.size() >= 12:
+			break
+	return out
+
+
+## 艾雅法拉事件：出手（笔尖白热四芒 + 暗红花瓣）/ 爆点（白热火团星芒 + 火舌碎芒 + 花瓣飞散）/ 熔岩块落地 / 喷口 / S3 喷发落点（红色爆团）
+func _ev_eyja(o, kind: String, d: Dictionary, p: Dictionary) -> void:
+	match kind:
+		"efire":
+			var m: Dictionary = move(o, "fire")
+			if m.is_empty():
+				return
+			var at: Vector2 = d.at
+			_shape(o, {"k": "flare", "c": at, "ang": 0.0, "r": float(m.get("len", 16.0)) * m.sc, "rv": float(m.get("len", 16.0)) * m.sc * 0.7, "w": 4.0 * m.sc,
+				"n8": m.tier >= 1, "life": 0.12, "freeze": 0.04, "layer": "over", "grow": true, "tone": "flash"})
+			var pn: int = int(m.get("petal_n", 3)) + m.tier
+			for k in pn:
+				var a: float = TAU * k / pn + g.vrng.randf_range(-0.3, 0.3)
+				_shape(o, {"k": "star", "c": at + Vector2.from_angle(a) * 6.0, "n": 5, "r": float(m.get("petal_r", 5.0)) * m.sc, "ang": a, "vel": Vector2.from_angle(a) * 46.0,
+					"spin": 4.0, "life": 0.3, "freeze": 0.0, "layer": "over", "tone": "petal", "accent": m.tier >= 2})
+		"eboom":
+			var m2: Dictionary = move(o, "boom_big" if d.get("big", false) else "boom")
+			if m2.is_empty():
+				return
+			var at2: Vector2 = d.at + Vector2(0, -6)
+			var R: float = clampf(float(d.get("r", 50.0)) * float(m2.get("r_k", 0.5)), 14.0, 64.0) * m2.sc * sqrt(float(d.get("sz", 1.0)))
+			_shape(o, {"k": "flare", "c": at2, "ang": g.vrng.randf() * 0.6, "r": R * 0.7, "rv": R * 0.62, "w": float(m2.get("w", 7.0)) * m2.sc * m2.thick, "n8": true,
+				"life": float(m2.get("life", 0.22)), "freeze": float(m2.get("freeze", 0.05)), "layer": "over", "grow": true, "tone": "flash"})
+			_shape(o, {"k": "shards", "c": at2, "r": R, "n": int(m2.get("tongues", 6)) + m2.tier, "w": float(m2.get("tongue_w", 6.0)) * m2.sc, "ang": g.vrng.randf() * TAU,
+				"life": float(m2.get("life", 0.22)) * 1.1, "freeze": float(m2.get("freeze", 0.05)), "layer": "over", "grow": true, "tone": "flame"})
+			var pn2: int = int(m2.get("petal_n", 4)) + 2 * mini(m2.tier, 1)
+			for k in pn2:
+				var a2: float = TAU * k / pn2 + g.vrng.randf_range(-0.25, 0.25)
+				_shape(o, {"k": "star", "c": at2 + Vector2.from_angle(a2) * R * 0.35, "n": 5, "r": float(m2.get("petal_r", 7.0)) * m2.sc, "ang": a2,
+					"vel": Vector2.from_angle(a2) * R * 2.2 * Vector2(1.0, 0.8), "spin": 3.0, "life": float(m2.get("petal_life", 0.42)), "freeze": 0.0, "layer": "over",
+					"tone": "petal", "accent": m2.tier >= 2, "delay": 0.02})
+			if float(m2.beat) > 0.0:
+				_shape(o, {"k": "flare", "c": at2, "ang": 0.7, "r": R * 0.85, "rv": R * 0.75, "w": 4.0 * m2.sc, "life": 0.16, "freeze": 0.0, "layer": "over", "grow": true,
+					"tone": "flash", "echo": true, "delay": float(m2.beat)})
+			if d.get("big", false):   # S2 点燃弹：爆点再卷一道白热双旋（原作点燃范围的螺旋）
+				_shape(o, {"k": "whirl", "c": at2, "ang": g.vrng.randf() * TAU, "r": R * 0.95, "half": PI * 0.95, "w": 8.0 * m2.sc * m2.thick, "strands": 2 + mini(m2.tier, 1),
+					"life": 0.32, "freeze": 0.04, "layer": "over", "tone": "flash"})
+			_grains(o, at2, float(d.at.y) + 4.0, "ember", int(m2.get("n", 5)), m2)
+			_hitlight(o, at2, float(d.at.y) + 4.0, R, float(m2.get("light_r", 110.0)) * m2.sc, float(m2.get("light_i", 0.7)), 0.13, p.light)
+		"lob_land":
+			var m3: Dictionary = move(o, "lob_land")
+			if m3.is_empty():
+				return
+			var at3: Vector2 = d.at
+			var R3: float = clampf(float(d.get("r", 30.0)) * 0.5, 10.0, 40.0) * sqrt(float(d.get("sz", 1.0))) * m3.sc
+			_shape(o, {"k": "flare", "c": at3 + Vector2(0, -4), "ang": 0.0, "r": R3 * 0.8, "rv": R3 * 0.6, "w": 5.0 * m3.sc, "life": 0.14, "freeze": 0.04, "layer": "over",
+				"grow": true, "tone": "flash"})
+			_shape(o, {"k": "web", "c": at3 + Vector2(0, 2), "r": R3 * 1.2, "n": 5 + m3.tier, "w": 4.0 * m3.thick, "life": float(m3.get("web_life", 0.5)), "freeze": 0.04,
+				"layer": "floor", "grow": true, "tone": "flame"})
+			for k in 2:
+				var a3: float = g.vrng.randf() * TAU
+				_shape(o, {"k": "star", "c": at3 + Vector2(0, -6), "n": 5, "r": 5.0 * m3.sc, "ang": a3, "vel": Vector2.from_angle(a3) * 60.0 * Vector2(1.0, 0.7), "spin": 4.0,
+					"life": 0.32, "freeze": 0.0, "layer": "over", "tone": "petal", "accent": m3.tier >= 2})
+			_grains(o, at3 + Vector2(0, -4), at3.y, "ember", int(m3.get("n", 3)), m3)
+			_hitlight(o, at3, at3.y, R3, float(m3.get("light_r", 80.0)) * m3.sc, float(m3.get("light_i", 0.55)), 0.12, p.light)
+		"lob_burst":
+			var m4: Dictionary = move(o, "lob_burst")
+			if m4.is_empty():
+				return
+			_shape(o, {"k": "flare", "c": d.at + Vector2(0, -10), "ang": 0.0, "r": 7.0 * m4.sc, "rv": 26.0 * m4.sc * float(d.get("sz", 1.0)), "w": 5.0 * m4.sc, "life": 0.16,
+				"freeze": 0.03, "layer": "over", "grow": true, "tone": "flash"})
+			_grains(o, d.at + Vector2(0, -8), (d.at as Vector2).y, "ember", int(m4.get("n", 4)), m4, Vector2.UP)
+		"erupt":
+			var m5: Dictionary = move(o, "erupt")
+			if m5.is_empty():
+				return
+			var at5: Vector2 = d.at + Vector2(0, -6)
+			var R5: float = clampf(float(d.get("r", 40.0)) * 0.6, 16.0, 56.0) * m5.sc
+			_shape(o, {"k": "flare", "c": at5, "ang": 0.4, "r": R5 * 0.75, "rv": R5 * 0.65, "w": 7.0 * m5.sc, "n8": true, "life": 0.22, "freeze": 0.05, "layer": "over",
+				"grow": true, "tone": "red"})
+			_shape(o, {"k": "shards", "c": at5, "r": R5 * 1.1, "n": 7, "w": 5.0 * m5.sc, "ang": g.vrng.randf() * TAU, "life": 0.24, "freeze": 0.05, "layer": "over",
+				"grow": true, "tone": "red"})
+			_shape(o, {"k": "web", "c": d.at + Vector2(0, 2), "r": R5 * 1.3, "n": 7, "w": 5.0, "life": 0.6, "freeze": 0.05, "layer": "floor", "grow": true, "tone": "flame"})
+			for k in 4:
+				var a5: float = TAU * k / 4.0 + g.vrng.randf_range(-0.4, 0.4)
+				_shape(o, {"k": "star", "c": at5, "n": 5, "r": 7.0 * m5.sc, "ang": a5, "vel": Vector2.from_angle(a5) * R5 * 2.0 * Vector2(1.0, 0.8), "spin": 3.0,
+					"life": 0.45, "freeze": 0.0, "layer": "over", "tone": "petal", "accent": true})
+			_grains(o, at5, float(d.at.y) + 4.0, "ember", 5, m5)
+			_hitlight(o, at5, float(d.at.y) + 4.0, R5, 140.0 * m5.sc, 0.8, 0.14, p.light)
+
+
+## 浊心斯卡蒂：歌域的每一下（shape circle）——命中的敌人头上冒细笔画音符 + 一道细玫红歌声线连回她；精一余音 = 环带一圈细波；伊莎玛拉的一下 = 两圈细涟漪
+func _ev_skalter(o, d: Dictionary, p: Dictionary) -> void:
+	var m: Dictionary = move(o, "pulse")
+	if m.is_empty():
+		return
+	var es: Array = d.get("es", [])
+	var c: Vector2 = d.get("c", o.pos)
+	var r: float = float(d.get("r", 80.0))
+	var center: String = str(d.get("center", ""))
+	if center.begins_with("summon"):
+		var mi: Dictionary = move(o, "ishar")
+		if not mi.is_empty():
+			for k in 2:
+				_shape(o, {"k": "ring", "c": c + Vector2(0, 4), "r0": 8.0, "r": r * (0.55 + 0.3 * k), "w": 2.0, "life": 0.45, "freeze": 0.0, "layer": "floor", "tone": "bubble",
+					"delay": 0.08 * k})
+	elif d.get("band", false):
+		var mb: Dictionary = move(o, "band")
+		if not mb.is_empty():
+			_shape(o, {"k": "ring", "c": c + Vector2(0, 4), "r0": r * 0.55, "r": r, "w": float(mb.get("w", 3.0)), "life": float(mb.get("life", 0.4)), "freeze": 0.0,
+				"layer": "floor", "tone": "rose"})
+	elif center == "target":
+		_shape(o, {"k": "ring", "c": c + Vector2(0, 4), "r0": 6.0, "r": r, "w": 2.0, "life": 0.3, "freeze": 0.0, "layer": "floor", "tone": "bubble"})
+	var k2 := 0
+	var from: Vector2 = o.pos + Vector2(0, -30)
+	for e in es:
+		if k2 >= int(m.get("max", 4)):
+			break
+		if e.dead:
+			continue
+		var at: Vector2 = e.pos + Vector2(0, -float(e.r) - 6.0)
+		_shape(o, {"k": "note", "c": at, "life": float(m.get("note_life", 0.5)), "freeze": 0.0, "layer": "over", "tone": "rose" if k2 % 2 == 0 else "bubble", "delay": 0.03 * k2})
+		_shape(o, {"k": "flare", "c": e.pos + Vector2(0, -float(e.r) * 0.5), "ang": 0.0, "r": float(m.get("flare_r", 9.0)) * m.sc, "rv": float(m.get("flare_r", 9.0)) * m.sc * 1.2,
+			"w": 3.0, "n8": m.tier >= 1, "life": 0.18, "freeze": 0.03, "layer": "over", "grow": true, "tone": "bubble"})
+		if m.tier >= 1 or k2 < 2:
+			_shape(o, {"k": "song", "a": at, "b": from, "life": 0.32, "freeze": 0.0, "layer": "over", "tone": "rose", "seed2": int(e.id)})
+		k2 += 1
+	if not es.is_empty():
+		_hitlight(o, es[0].pos, float(es[0].pos.y) + 4.0, 12.0, float(m.get("light_r", 70.0)) * m.sc, float(m.get("light_i", 0.4)), 0.1, p.light)
 
 
 func _shape(o, s: Dictionary) -> void:
@@ -713,6 +875,8 @@ func draw_auras(o) -> void:
 	var keep_mod := _core_mod(cv)
 	if o.hw.has("fan"):
 		_draw_fan(o, cv, pal(o))
+	if _style(o) == "skalter":
+		_draw_skalter_floor(o, cv, pal(o))
 	if o.hw.has("s3_shots"):   # 原画法在绘制时清理出手轨迹；接管后由这里清，免得列表只增不减
 		var now: float = g.t
 		o.hw["s3_shots"] = o.hw.s3_shots.filter(func(sh): return now - float(sh.t0) < 0.3)
@@ -792,6 +956,15 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 		return
 	if s.get("follow", false) and s.get("op", null) != null:
 		s["c"] = s.op.pos + (s.off as Vector2)
+	if s.has("vel"):
+		if not s.has("c0"):
+			s["c0"] = s.c
+		var tt: float = age
+		s["c"] = (s.c0 as Vector2) + (s.vel as Vector2) * (tt - 0.5 * tt * tt / maxf(0.05, float(s.life)))   # 减速飞出
+	if s.has("spin"):
+		if not s.has("ang0"):
+			s["ang0"] = float(s.get("ang", 0.0))
+		s["ang"] = float(s.ang0) + float(s.spin) * age
 	var pp: Dictionary = _tp(p, s)
 	var life: float = float(s.life)
 	var tn: Array = _tones(pp, age, life, float(s.get("freeze", 0.0)), s.get("accent", false))
@@ -821,6 +994,15 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 		"glyphring":
 			_draw_glyphring(cv, s, tn, u, p)
 			return
+		"bubble":
+			_draw_bubble(cv, s.c, float(s.r) * gk, pp, float(tn[3]), age)
+			return
+		"song":
+			_draw_song(cv, s, tn, u)
+			return
+		"note":
+			_draw_note(cv, s.c + Vector2(0, -18.0 * u), tn[1], float(tn[3]) * (1.0 - u * 0.5), int(s.get("seed", 0)) % 2)
+			return
 		"shade":   # 命中照地的压暗圈（地面，扁椭圆，α 0.15 → 0）
 			cv.draw_set_transform(_snap(s.c), 0.0, Vector2(1.0, SY))
 			cv.draw_circle(Vector2.ZERO, float(s.r), Color(0, 0, 0, 0.15 * (1.0 - u)))
@@ -846,7 +1028,7 @@ func _draw_shape(cv, s: Dictionary, p: Dictionary) -> void:
 
 
 ## 描边（fx/recipe_outline，Hades 式线稿）：只给小物件主形（弹体、刃、星芒、碎刺、光柱、三角汇聚），大面积场域、地面裂网与文字不加
-const OUTLINE_KINDS := ["flare", "shards", "orb", "dart", "spike", "tear", "converge", "crescent", "beam", "spear3", "star"]
+const OUTLINE_KINDS := ["flare", "shards", "orb", "dart", "spike", "tear", "converge", "crescent", "beam", "spear3", "star", "chunk"]
 
 
 static func _outline_col(p: Dictionary) -> Color:
@@ -954,6 +1136,14 @@ func _geo(s: Dictionary, gk: float, k: float) -> Array:
 			return [_quill(at5, dv5, float(s.len) * (0.75 + 0.25 * k), float(s.w) * k, false)]
 		"hammer":
 			return _hammer(s, gk, k)
+		"chunk":   # 熔岩块（艾雅法拉抛射）：不规则六边硬壳，种子定形
+			var r6: float = float(s.r) * gk * (0.6 + 0.4 * k)
+			var sd6: int = int(s.seed)
+			var pts6 := PackedVector2Array()
+			for i in 6:
+				var a6: float = float(s.get("ang", 0.0)) + TAU * i / 6.0
+				pts6.append(_snap(c + Vector2(cos(a6), sin(a6)) * r6 * (0.75 + 0.35 * _h(sd6, i))))
+			return [pts6]
 		"beam":   # 光束 / 竖柱：两端收尖的实心带
 			var a: Vector2 = s.a
 			var b: Vector2 = s.b
@@ -1184,6 +1374,94 @@ func _draw_glyphring(cv, s: Dictionary, tn: Array, u: float, p: Dictionary) -> v
 			cv.draw_rect(Rect2(q + Vector2(cl.x, cl.y) * 2.0, Vector2(2, 2)), col)
 
 
+## 歌声线（浊心斯卡蒂）：命中点 → 她，一道细弧线（2 px），从命中点一端写出、尾端先熄
+func _draw_song(cv, s: Dictionary, tn: Array, u: float) -> void:
+	var a: Vector2 = s.a
+	var b: Vector2 = s.b
+	var n := 12
+	var bow: float = 22.0 * (1.0 if int(s.get("seed2", 0)) % 2 == 0 else -1.0)
+	var nv: Vector2 = (b - a).normalized().orthogonal()
+	var head: float = clampf(u / 0.4, 0.0, 1.0)
+	var tail: float = clampf((u - 0.45) / 0.55, 0.0, 1.0)
+	var pts := PackedVector2Array()
+	for i in n + 1:
+		var t: float = lerpf(tail, head, float(i) / n)
+		pts.append(_snap(a.lerp(b, t) + nv * bow * sin(t * PI)))
+	var col: Color = tn[1]
+	col.a *= float(tn[3])
+	if pts.size() >= 2:
+		cv.draw_polyline(pts, col, 2.0)
+
+
+## 水泡（浊心斯卡蒂 S1）：一圈细边（不填色）+ 左上高光弧 + 两点反光
+func _draw_bubble(cv, c: Vector2, r: float, pp: Dictionary, al: float, age: float) -> void:
+	var w: float = 1.0 + 0.04 * sin(age * 5.0)
+	cv.draw_set_transform(_snap(c), 0.0, Vector2(w, 2.0 - w))
+	var ec: Color = pp.main
+	ec.a *= al
+	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, ec, 2.0)
+	var hc: Color = pp.hot
+	hc.a *= al
+	cv.draw_arc(Vector2.ZERO, r - 4.0, PI * 1.05, PI * 1.45, 8, hc, 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_rect(Rect2(_snap(c + Vector2(-r * 0.45, -r * 0.55)), Vector2(2, 2)), hc)
+	cv.draw_rect(Rect2(_snap(c + Vector2(-r * 0.3, -r * 0.68)), Vector2(2, 2)), hc)
+
+
+## 细笔画音符（1 美术像素笔画）：符头 2×2 + 符干 + 符尾；kind 1 = 双连音
+static func _draw_note(cv, c: Vector2, col: Color, al: float, kind: int) -> void:
+	var q: Vector2 = _snap(c)
+	col.a *= al
+	cv.draw_rect(Rect2(q, Vector2(4, 2)), col)
+	cv.draw_rect(Rect2(q + Vector2(2, -8), Vector2(2, 9)), col)
+	if kind == 0:
+		cv.draw_rect(Rect2(q + Vector2(4, -8), Vector2(2, 2)), col)
+		cv.draw_rect(Rect2(q + Vector2(6, -6), Vector2(2, 2)), col)
+	else:
+		cv.draw_rect(Rect2(q + Vector2(8, 0), Vector2(4, 2)), col)
+		cv.draw_rect(Rect2(q + Vector2(10, -8), Vector2(2, 9)), col)
+		cv.draw_rect(Rect2(q + Vector2(2, -8), Vector2(10, 2)), col)
+
+
+## 小鱼（浊心斯卡蒂 S2 / S3，原作游动的红色小鱼）：2–3 美术像素的身子 + 尾鳍，朝游动方向
+static func _draw_fish(cv, c: Vector2, dir: float, col: Color, sz: float) -> void:
+	var dv := Vector2.from_angle(dir)
+	var nv: Vector2 = dv.orthogonal()
+	var L: float = 8.0 * sz
+	var W: float = 4.0 * sz
+	cv.draw_colored_polygon(PackedVector2Array([_snap(c + dv * L * 0.5), _snap(c + nv * W * 0.5), _snap(c - dv * L * 0.3), _snap(c - nv * W * 0.5)]), col)
+	cv.draw_colored_polygon(PackedVector2Array([_snap(c - dv * L * 0.25), _snap(c - dv * L * 0.65 + nv * W * 0.6), _snap(c - dv * L * 0.65 - nv * W * 0.6)]), col)
+
+
+## 笔触圈（浊心斯卡蒂歌域，原作 buff_01_range 的蓝色毛笔圈）：几段粗细不一的弧笔触沿椭圆边缘，留缺口，慢转；只画边，不填色
+## n 笔、w 主笔宽；accent = 夹一笔玫红
+func _draw_brush_ring(cv, c: Vector2, r: float, n: int, w: float, p: Dictionary, al: float, rot: float, accent: bool) -> void:
+	cv.draw_set_transform(_snap(c), 0.0, Vector2(1.0, SY))
+	var sd := 17
+	for i in n:
+		var a0: float = rot + TAU * i / n + (_h(sd, i) - 0.5) * 0.4
+		var span: float = TAU / n * (0.55 + 0.3 * _h(sd, i + 9))
+		var rr: float = r * (0.97 + 0.06 * _h(sd, i + 23))
+		var ww: float = w * (0.7 + 0.6 * _h(sd, i + 31))
+		var segs: int = maxi(6, int(span * rr / 8.0))
+		var mc: Color = p.main if not (accent and i == 0) else p.accent
+		cv.draw_arc(Vector2.ZERO, rr, a0, a0 + span, segs, Color(p.dark.r, p.dark.g, p.dark.b, 0.7 * al), ww + 2.0)
+		cv.draw_arc(Vector2.ZERO, rr, a0, a0 + span, segs, Color(mc.r, mc.g, mc.b, al), ww)
+		cv.draw_arc(Vector2.ZERO, rr - ww * 0.3, a0 + span * 0.15, a0 + span * 0.7, maxi(4, segs / 2), Color(p.light.r, p.light.g, p.light.b, 0.9 * al), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 区域内侧的淡渐变（只贴着边缘往里一小段，α ≤ amax，由外向内变淡；不盖敌人）
+func _edge_glow(cv, c: Vector2, r: float, col: Color, amax: float, depth: float) -> void:
+	cv.draw_set_transform(_snap(c), 0.0, Vector2(1.0, SY))
+	var nb := 5
+	for j in nb:
+		var k: float = 1.0 - float(j) / nb
+		var a: float = amax * k * k
+		cv.draw_arc(Vector2.ZERO, r * (1.0 - depth * (float(j) + 0.5) / nb), 0.0, TAU, 40, Color(col.r, col.g, col.b, a), r * depth / nb + 1.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 ## 冲击环 / 墨环 / 尘环 / 号令波（地面）：一条实心厚带从 r0 扩到 r（缓出），三阶：外暗边 → 主色 → 热芯细线
 func _draw_ring(cv, s: Dictionary, tn: Array, u: float) -> void:
 	var e: float = 1.0 - pow(1.0 - u, 2.2)
@@ -1321,6 +1599,10 @@ func _draw_parts(o, cv, p: Dictionary) -> void:
 
 func _draw_state_over(o, cv, p: Dictionary) -> void:
 	var h: Dictionary = o.hw
+	if h.has("lobs") and h.has("shells"):
+		_draw_eyja_over(o, cv, p)
+	if _style(o) == "skalter":
+		_draw_skalter_over(o, cv, p)
 	if h.has("bolts"):
 		_draw_bolts(o, cv, p)
 		_draw_lock(o, cv, p)
@@ -1329,6 +1611,8 @@ func _draw_state_over(o, cv, p: Dictionary) -> void:
 
 func _draw_state_floor(o, cv, p: Dictionary) -> void:
 	var h: Dictionary = o.hw
+	if h.has("lobs") and h.has("shells"):
+		_draw_eyja_floor(o, cv, p)
 	if h.has("pools"):
 		_draw_pools(o, cv, p)
 	if h.has("sg"):
@@ -1658,6 +1942,270 @@ func _draw_fan(o, cv, p: Dictionary) -> void:
 	# 亮度靠照地：咒域中部一盏跟随光（每跳亮一拍）
 	var mid: Vector2 = c + Vector2(cos(fa), sin(fa) * 0.8) * rr * 0.6
 	_light_follow(o, mid, rr * 0.9, float(m.get("light_i", 0.3)) * (1.6 if pulse else 1.0) * fade, p.light)
+
+
+func _style(o) -> String:
+	return str(recipe(str(o.id)).get("style", ""))
+
+
+## 艾雅法拉上层：法术弹 = 熔岩彗星（小尖白热头 + 细长熔橙尾，越往后越细越暗，尾里一格一格的亮块）；
+## 抛射熔岩块 = 暗壳六边块 + 熔芯 + 短火星尾；S3 喷发弹同熔岩块（大一号、红芯）；灼烧中的敌人头上一小撮火舌；S1 剩余次数 = 身边绕飞的暗红花瓣数
+func _draw_eyja_over(o, cv, p: Dictionary) -> void:
+	var m: Dictionary = move(o, "shell")
+	if m.is_empty():
+		return
+	var fl: Dictionary = p.get("tones", {}).get("flame", p)
+	for bl in g.bullets:
+		if bl.life <= 0.0 or bl.get("op", "") != o.id or bl.kind != "fire" or not bl.has("hw_b"):
+			continue
+		var big: bool = bl.hw_b.get("look", {}).has("big_tex")
+		var mm: Dictionary = move(o, "shell_big") if big else m
+		var dv: Vector2 = (bl.vel as Vector2).normalized()
+		var L: float = float(mm.get("len", 56.0)) * mm.sc * sqrt(float(bl.get("sz", 1.0)))
+		var W: float = float(mm.get("w", 6.0))
+		var at: Vector2 = bl.pos
+		_comet(cv, at, dv, [at, at - dv * L], L, W, fl, float(mm.get("head_len", 10.0)) + (2.0 if mm.tier >= 1 else 0.0), float(mm.get("head_w", 4.0)) + (2.0 if mm.tier >= 1 else 0.0), false, p)
+		if big or mm.tier >= 2:   # 点燃弹：弹头两侧绕两片暗红花瓣
+			for k in 2:
+				var a: float = g.t * 9.0 + PI * k
+				var st := {"k": "star", "c": at - dv * 6.0 + Vector2(cos(a), sin(a)) * 9.0, "n": 5, "r": 5.0, "ang": a}
+				_draw_simple(cv, st, p.get("tones", {}).get("petal", p))
+		if mm.tier >= 1 and int(g.t * 20.0 + float(bl.pos.x)) % 3 == 0:   # 精一：尾后甩出零星火星
+			_grains(o, at - dv * L * 0.3, at.y + 26.0, "ember", 1, mm, -dv)
+		_light_follow(o, at, float(mm.get("light_r", 50.0)) * mm.sc, float(mm.get("light_i", 0.25)), p.light)
+	var ml: Dictionary = move(o, "lob")
+	for l in o.hw.lobs:
+		if float(l.t) >= float(l.dur):
+			continue
+		var lp: Vector2 = _lob_pos(l, float(l.t))
+		var lp0: Vector2 = _lob_pos(l, maxf(0.0, float(l.t) - 0.05))
+		var ldv: Vector2 = (lp - lp0).normalized() if lp.distance_to(lp0) > 0.1 else Vector2.DOWN
+		_comet(cv, lp, ldv, [lp, lp0, lp0 - ldv * 6.0], 14.0 * float(l.sz), 4.0, fl, 0.0, 0.0, false, p)
+		var ch := {"k": "chunk", "c": lp, "r": float(ml.get("r", 6.0)) * float(l.sz) * ml.sc, "ang": float(l.t) * 9.0 * float(l.get("spin", 1.0)), "seed": int(l.from.x * 7.0) & 0xffff}
+		_draw_simple(cv, ch, p.get("tones", {}).get("crust", p))
+	for ev in o.hw.get("erupts", []):
+		if not ev.has("shot") or float(ev.t) <= 0.0:
+			continue
+		var sh: Dictionary = ev.shot
+		var k: float = clampf(1.0 - float(ev.t) / float(sh.dur), 0.0, 1.0)
+		var ep: Vector2 = _mp_at(sh.from, ev.pos, k, float(sh.get("apex", 24.0)))
+		var ep0: Vector2 = _mp_at(sh.from, ev.pos, maxf(0.0, k - 0.06), float(sh.get("apex", 24.0)))
+		var edv: Vector2 = (ep - ep0).normalized() if ep.distance_to(ep0) > 0.1 else Vector2.DOWN
+		_comet(cv, ep, edv, [ep, ep0, ep0 - edv * 10.0], 30.0, 6.0, p.get("tones", {}).get("red", fl), 8.0, 4.0, false, p)
+		_draw_simple(cv, {"k": "chunk", "c": ep, "r": 7.0 * float(sh.get("size", 1.2)), "ang": k * 8.0, "seed": int(ev.pos.x) & 0xffff}, p.get("tones", {}).get("crust", p))
+	# 灼烧：敌人头上一小撮火舌（状态提示，至多 16 名）
+	var nb := 0
+	for bu in o.hw.burns:
+		if nb >= 16 or bu.e.dead or float(bu.t) <= 0.0:
+			continue
+		nb += 1
+		var bp: Vector2 = bu.e.pos + Vector2(0, -float(bu.e.r) * 0.9)
+		var fk: float = 0.7 + 0.3 * sin(g.t * 14.0 + float(bu.e.id))
+		_draw_simple(cv, {"k": "spike", "c": bp, "ang": -PI / 2.0, "len": 10.0 * fk, "w": 5.0}, fl)
+	# S1 二重咏唱剩余次数：身边绕飞的暗红花瓣（一次一片）
+	if o.pos != Vector2.INF and o.get("ammo") != null and int(o.ammo[0]) > 0:
+		var m1: Dictionary = move(o, "cast1")
+		var n1: int = int(o.ammo[0])
+		for k3 in n1:
+			var a3: float = g.t * 2.4 + TAU * k3 / n1
+			var q3: Vector2 = o.pos + Vector2(cos(a3) * 22.0, -26.0 + sin(a3) * 10.0)
+			_draw_simple(cv, {"k": "star", "c": q3, "n": 5, "r": 6.0 * float(m1.get("sc", 1.0)), "ang": a3 * 1.5}, p.get("tones", {}).get("petal", p), m1.get("tier", 0) >= 2)
+
+
+## 艾雅法拉地面：熔池 = 一道熔橙细边（暗边衬）+ 贴边往里的淡渐变（α ≤ 0.2）+ 两三道熔裂细纹；S3 喷发期间脚下一道细热浪环 + 两片绕行花瓣
+func _draw_eyja_floor(o, cv, p: Dictionary) -> void:
+	var mp: Dictionary = move(o, "pool")
+	if not mp.is_empty():
+		for l in o.hw.pools:
+			if l.b.get("burst", false):
+				continue
+			var a: float = clampf(float(l.t) / 0.3, 0.0, 1.0) * clampf((float(l.dur) - float(l.t)) / 0.15, 0.0, 1.0)
+			var c: Vector2 = l.pos
+			var r: float = float(l.r)
+			_edge_glow(cv, c, r, p.main, float(mp.get("glow_a", 0.18)) * a, 0.45)
+			cv.draw_set_transform(_snap(c), 0.0, Vector2(1.0, SY))
+			cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(p.dark.r, p.dark.g, p.dark.b, 0.7 * a), 4.0)
+			cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(p.main.r, p.main.g, p.main.b, (0.85 + 0.15 * sin(g.t * 5.0 + c.x)) * a), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			var web := {"k": "web", "c": c, "r": r * 0.7, "n": 3, "w": 3.0, "seed": int(l.get("pat", 7)), "ang": 0.0}
+			for Ly in [[1.0, p.dark], [0.5, p.main]]:
+				var col: Color = Ly[1]
+				col.a *= 0.55 * a
+				for poly in _geo(web, 1.0, float(Ly[0])):
+					cv.draw_colored_polygon(poly, col)
+	if o.pos != Vector2.INF and not o.hw.pulse.is_empty():
+		var mr: Dictionary = move(o, "pulse_ring")
+		if not mr.is_empty():
+			var rr: float = float(mr.get("r", 56.0)) + 4.0 * sin(g.t * 6.0)
+			cv.draw_set_transform(_snap(o.pos + Vector2(0, 4)), 0.0, Vector2(1.0, SY))
+			cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 36, Color(p.dark.r, p.dark.g, p.dark.b, 0.6), 4.0)
+			cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 36, Color(p.light.r, p.light.g, p.light.b, 0.9), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			for k in 3:
+				var a2: float = g.t * 1.8 + TAU * k / 3.0
+				_draw_simple(cv, {"k": "star", "c": o.pos + Vector2(cos(a2) * rr, 4.0 + sin(a2) * rr * SY), "n": 5, "r": 7.0, "ang": a2}, p.get("tones", {}).get("petal", p), true)
+
+
+## 浊心斯卡蒂地面：歌域笔触圈（常驻，所有档）+ S1 玫红地环 / S2 涟漪 + 鱼 / S3 加粗笔触 + 玫红光柱
+func _draw_skalter_floor(o, cv, p: Dictionary) -> void:
+	if o.pos == Vector2.INF:
+		return
+	var mz: Dictionary = move(o, "zone")
+	var c: Vector2 = o.zone_c()
+	if c == Vector2.INF:
+		return
+	var zr: float = float(o.call("_zone_vis_r")) if o.has_method("_zone_vis_r") else float(o.zr)
+	var s3: bool = o.skill_active_left(2) > 0.0
+	var n: int = int(mz.get("strokes", 4)) + mz.tier + (2 if s3 else 0)
+	var w: float = float(mz.get("w", 4.0)) * (1.6 if s3 else 1.0) * mz.thick
+	_edge_glow(cv, c + Vector2(0, 4), zr, p.main, float(mz.get("glow_a", 0.1)) * (1.5 if s3 else 1.0), 0.3)
+	_draw_brush_ring(cv, c + Vector2(0, 4), zr, n, w, p, 1.0, g.t * 0.15, mz.tier >= 2 or s3)
+	# S1：脚下玫红细地环（精二双环）
+	if o.skill_active_left(0) > 0.0:
+		var m1: Dictionary = move(o, "s1")
+		var rs: Dictionary = p.get("tones", {}).get("rose", p)
+		for k in (2 if m1.tier >= 2 else 1):
+			cv.draw_set_transform(_snap(o.pos + Vector2(0, 4)), 0.0, Vector2(1.0, SY))
+			cv.draw_arc(Vector2.ZERO, 30.0 * m1.sc + 8.0 * k, 0.0, TAU, 32, Color(rs.dark.r, rs.dark.g, rs.dark.b, 0.6), 5.0)
+			cv.draw_arc(Vector2.ZERO, 30.0 * m1.sc + 8.0 * k, 0.0, TAU, 32, rs.main, 3.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# S2：一圈圈细涟漪从她脚下扩开（同时两圈，错开半拍）
+	if o.perm_on[1]:
+		var m2: Dictionary = move(o, "s2")
+		var per: float = float(m2.get("period", 1.4))
+		for k in (3 if m2.tier >= 2 else 2):
+			var u: float = fmod(g.t / per + float(k) / (3.0 if m2.tier >= 2 else 2.0), 1.0)
+			var rr: float = lerpf(14.0, zr * 0.85, 1.0 - pow(1.0 - u, 2.0))
+			cv.draw_set_transform(_snap(o.pos + Vector2(0, 4)), 0.0, Vector2(1.0, SY))
+			cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(p.light.r, p.light.g, p.light.b, 0.55 * (1.0 - u)), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _draw_skalter_over(o, cv, p: Dictionary) -> void:
+	if o.pos == Vector2.INF:
+		return
+	var tones: Dictionary = p.get("tones", {})
+	var rs: Dictionary = tones.get("rose", p)
+	if o.skill_active_left(0) > 0.0:   # S1 水泡（精一起两层）+ 上浮小泡
+		var m1: Dictionary = move(o, "s1")
+		var bc: Vector2 = o.pos + Vector2(0, -26)
+		for k in (2 if m1.tier >= 1 else 1):
+			_draw_bubble(cv, bc, (24.0 + 6.0 * k) * m1.sc, tones.get("bubble", p), 0.9 - 0.3 * k, g.t + k)
+		for k in (3 + 2 * m1.tier):
+			var ph: float = fmod(g.t * 0.6 + _h(31, k), 1.0)
+			var q: Vector2 = bc + Vector2((_h(37, k) - 0.5) * 50.0, 24.0 - ph * 60.0)
+			cv.draw_rect(Rect2(_snap(q), Vector2(2, 2)), Color(p.hot.r, p.hot.g, p.hot.b, 0.8 * (1.0 - ph)))
+	if o.perm_on[1]:   # S2 小鱼绕游（精二 5 条）
+		var m2: Dictionary = move(o, "s2")
+		var nf: int = int(m2.get("fish", 3)) + (2 if m2.tier >= 2 else 0)
+		for k in nf:
+			var sp: float = 1.1 + 0.25 * _h(41, k)
+			var a: float = g.t * sp + TAU * k / nf
+			var rr: float = 44.0 + 14.0 * _h(43, k)
+			var q: Vector2 = o.pos + Vector2(cos(a) * rr, -6.0 + sin(a) * rr * 0.5)
+			_draw_fish(cv, q + Vector2(0, 2), a + PI / 2.0, rs.dark, (float(m2.get("fish_sz", 1.0)) + 0.25 * m2.tier) * 1.25)
+			_draw_fish(cv, q, a + PI / 2.0, rs.main, float(m2.get("fish_sz", 1.0)) + 0.25 * m2.tier)
+	if o.skill_active_left(2) > 0.0:   # S3 玫红竖光柱（细）+ 上浮光点
+		var m3: Dictionary = move(o, "s3")
+		for k in int(m3.get("pillars", 4)):
+			var a: float = TAU * k / float(m3.get("pillars", 4)) + 0.4
+			var q: Vector2 = o.pos + Vector2(cos(a) * 26.0, 4.0 + sin(a) * 10.0)
+			var hgt: float = 70.0 + 26.0 * sin(g.t * 4.0 + k * 1.7)
+			for Ly in [[6.0, rs.dark], [3.0, rs.main], [1.0, rs.hot]]:
+				cv.draw_colored_polygon(_seg(q, q + Vector2(0, -hgt), float(Ly[0]) + 2.0, float(Ly[0])), Ly[1])
+		for k in 6:
+			var ph: float = fmod(g.t * 0.5 + _h(53, k), 1.0)
+			var q2: Vector2 = o.pos + Vector2((_h(59, k) - 0.5) * 90.0, 6.0 - ph * 90.0)
+			cv.draw_rect(Rect2(_snap(q2), Vector2(2, 2)), Color(p.hot.r, p.hot.g, p.hot.b, 0.85 * (1.0 - ph)))
+
+
+## 简单硬边形（三阶：暗边 / 主色 / 热芯），状态驱动的小物件用
+func _draw_simple(cv, s: Dictionary, pp: Dictionary, accent := false) -> void:
+	var dk: Color = pp.dark if not accent else pp.get("accent", pp.dark)
+	_exp()
+	if _x_outline:
+		var oc: Color = _outline_col(pp)
+		for poly in _geo(s, 1.0, 1.0):
+			if poly.size() >= 3:
+				for op in Geometry2D.offset_polygon(poly, 2.0, Geometry2D.JOIN_MITER):
+					cv.draw_colored_polygon(op, oc)
+	for L in [[1.0, dk], [0.72, pp.main], [0.36, pp.hot]]:
+		for poly in _geo(s, 1.0, float(L[0])):
+			if poly.size() >= 3:
+				cv.draw_colored_polygon(poly, L[1])
+
+
+## 彗星（尖头 + 渐细尾）：path 从头到尾；W 尾宽；hl / hw 弹头尺寸（0 = 不画弹头）；尾里每 4 px 一个亮点
+func _comet(cv, at: Vector2, dv: Vector2, path: Array, L: float, W: float, pp: Dictionary, hl: float, hw: float, fork: bool, p: Dictionary) -> void:
+	var cut: Array = [path[0]]
+	var acc := 0.0
+	for i in range(1, path.size()):
+		var sl: float = (path[i] as Vector2).distance_to(path[i - 1])
+		if sl < 0.5:
+			continue
+		if acc + sl >= L:
+			cut.append((path[i - 1] as Vector2).lerp(path[i], (L - acc) / sl))
+			acc = L
+			break
+		cut.append(path[i])
+		acc += sl
+	if acc < L and cut.size() >= 1:
+		var back: Vector2 = -dv if cut.size() < 2 else ((cut[-1] as Vector2) - (cut[-2] as Vector2)).normalized()
+		cut.append((cut[-1] as Vector2) + back * (L - acc))
+	var tot := 0.0
+	var fs: Array = [0.0]
+	for i in range(1, cut.size()):
+		tot += (cut[i] as Vector2).distance_to(cut[i - 1])
+		fs.append(tot)
+	_exp()
+	var oc: Color = _outline_col(p)
+	for i in range(1, cut.size()):
+		var f0: float = float(fs[i - 1]) / maxf(1.0, tot)
+		var f1: float = float(fs[i]) / maxf(1.0, tot)
+		var wa: float = W * pow(1.0 - f0, 0.9)
+		var wb: float = W * pow(1.0 - f1, 0.9)
+		if _x_outline:
+			cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], wa + 6.0, maxf(2.0, wb) + 4.0), oc)
+		cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], wa + 2.0, maxf(2.0, wb)), pp.dark)
+		if wa * 0.45 >= 2.0:
+			cv.draw_colored_polygon(_seg(cut[i - 1], cut[i], maxf(2.0, wa * 0.45), maxf(2.0, wb * 0.45)), pp.main)
+	var d := 3.0
+	var si := 1
+	var nv: Vector2 = dv.orthogonal()
+	while d < tot * 0.85 and si < cut.size():
+		while si < cut.size() - 1 and float(fs[si]) < d:
+			si += 1
+		var s0: float = float(fs[si - 1])
+		var s1: float = float(fs[si])
+		var q: Vector2 = (cut[si - 1] as Vector2).lerp(cut[si], clampf((d - s0) / maxf(0.01, s1 - s0), 0.0, 1.0))
+		var f: float = d / maxf(1.0, tot)
+		var col: Color = pp.hot if f < 0.25 else (pp.get("light", pp.main) if f < 0.55 else pp.main)
+		cv.draw_rect(Rect2(_snap(q + nv * W * 0.18 * (1.0 - f) * (1.0 if int(d / 3.0) % 2 == 0 else -1.0)), Vector2(2, 2)), col)
+		d += 3.0 + 2.0 * f
+	if hl > 0.0:
+		if _x_outline:
+			for op in Geometry2D.offset_polygon(_quill(at + dv * hl * 0.15, dv, hl + 2.0, hw + 2.0, false), 2.0, Geometry2D.JOIN_MITER):
+				cv.draw_colored_polygon(op, oc)
+		cv.draw_colored_polygon(_quill(at + dv * hl * 0.15, dv, hl + 2.0, hw + 2.0, false), pp.get("light", pp.main))
+		cv.draw_colored_polygon(_quill(at + dv * hl * 0.2, dv, hl, hw, false), pp.hot)
+
+
+## 抛射弧（同 seg_eyjafjalla._hw_lob_pos_at；这里不 preload 积木脚本，免得循环引用）
+static func _lob_pos(l: Dictionary, t: float) -> Vector2:
+	var k: float = clampf(t / float(l.dur), 0.0, 1.0)
+	var lk = l.b.get("look", null)
+	if lk is Dictionary:
+		if lk.get("weighted", false):
+			return _mp_at(l.from, l.to, k, float(l.h) * float(lk.get("apex_k", 1.0)))
+		if lk.has("arc_pow"):
+			return (l.from as Vector2).lerp(l.to, k) + Vector2(0, -pow(sin(k * PI), float(lk.arc_pow)) * float(l.h) * float(lk.get("apex_k", 1.0)))
+		return (l.from as Vector2).lerp(l.to, k) + Vector2(0, -sin(pow(k, 0.8) * PI) * float(l.h) * float(lk.get("apex_k", 1.0)))
+	return (l.from as Vector2).lerp(l.to, k) + Vector2(0, -sin(k * PI) * float(l.h))
+
+
+## 同 MagmaProjectile.position_at
+static func _mp_at(from: Vector2, to: Vector2, k: float, height: float) -> Vector2:
+	return from.lerp(to, k) + Vector2(0, -4.0 * height * k * (1.0 - k) * (1.18 - 0.36 * k))
 
 
 ## 扇形半径与判定同一个函数（运行时 load，不 preload 积木脚本，免得循环引用）

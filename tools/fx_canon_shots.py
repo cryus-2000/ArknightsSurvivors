@@ -32,7 +32,7 @@ def shoot(godot, op, tier, mode, out, recipe, start, every, n, w, h, extra=(), s
     for f in glob.glob(os.path.join(fdir, "*.png")):
         os.remove(f)
     args = [godot, "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
-            "--shot_op=" + op, "--shot_stage=2",   # 玩法一律精二（精零 / 精一没有 S2 / S3），画面档位用 fx/recipe_tier 强制
+            "--shot_op=" + op, "--shot_stage=%d" % (2 if op in ("logos", "siege") else tier),   # 玩法精英档 = 画面档（MODE_TIERS 只拍已解锁的档）；逻各斯 / 推进之王沿用 v4 的精二玩法出图
             "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=%d" % every, "--shot_n=%d" % n, "--shot_w=%d" % w, "--shot_h=%d" % h,
             "--bal=fx/recipe=%d" % recipe, "--bal=fx/recipe_tier=%d" % tier, "--bal=fx/recipe_log=1"] + list(extra)
@@ -63,6 +63,12 @@ ALIGN = {
     ("siege", 0): [("skill0", -1), ("skill0", 1), ("skill0", 3), ("skill0", 5), ("skill0", 8)],
     ("siege", 1): [("leap", 1), ("slam", -2), ("slam", 0), ("slam", 2), ("slam", 5)],
     ("siege", 2): [("skill2", 2), ("swing_h", -1), ("swing_h", 0), ("swing_h", 2), ("swing_h", 5)],
+    ("eyjafjalla", 0): [("skill0", 1), ("skill0", 4), ("eboom", 0), ("eboom", 2), ("eboom", 5)],
+    ("eyjafjalla", 1): [("skill1", 1), ("skill1", 4), ("eboom", 0), ("eboom", 2), ("eboom", 5)],
+    ("eyjafjalla", 2): [("skill2", 1), ("skill2", 5), ("erupt", 0), ("erupt", 3), ("erupt", 8)],
+    ("skalter", 0): [("skill0", 1), ("skill0", 4), ("skill0", 8), ("skill0", 14), ("skill0", 22)],
+    ("skalter", 1): [("skill1", 1), ("skill1", 4), ("skill1", 10), ("skill1", 18), ("skill1", 30)],
+    ("skalter", 2): [("skill2", 1), ("skill2", 4), ("skill2", 10), ("skill2", 18), ("skill2", 30)],
 }
 
 
