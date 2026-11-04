@@ -1,11 +1,11 @@
 # squad_v2
 # 参数：--headless --path /home/user/ArknightsSurvivors/game res://tests/squad_v2_test.tscn -- --regression --seed=1 --regression --balance --seed=1 --op=texas --squad=hoshiguma,exusiai
-# 用时 11 秒；结束时全机 Godot 3 个
+# 用时 13 秒；结束时全机 Godot 3 个
 
 ## stdout
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-SQUAD V2 checks=33 failures=0
+SQUAD V2 checks=35 failures=0
 ERROR: 5 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
 
 
