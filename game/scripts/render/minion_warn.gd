@@ -39,27 +39,30 @@ static func fill(_g, _w: Dictionary) -> void:
 static func progress(w: Dictionary) -> float:
 	return clampf(float(w.t) / maxf(0.01, float(w.dur)), 0.0, 1.0)
 
-static func timer(g, w: Dictionary, c: Color) -> void:
-	# A narrow segment grows ALONG the fixed range edge, never expands the range.
+static func timer_points(g, w: Dictionary) -> PackedVector2Array:
+	# Interior sweep means time only. The full outer danger boundary stays fixed.
 	var p := progress(w)
-	if p <= 0.0:
-		return
 	var pts := PackedVector2Array()
+	if p <= 0.0:
+		return pts
 	match str(w.shape):
 		"line":
 			var d := Vector2.from_angle(w.ang)
 			var n := d.orthogonal() * float(w.wid)
-			for side in [-1.0, 1.0]:
-				g.wcv.draw_line(w.pos + n * side, w.pos + n * side + d * float(w.len) * p, c, 2.0)
+			var center: Vector2 = w.pos + d * float(w.len) * p
+			pts.append_array([center - n, center + n])
 		"cone":
-			for i in 25:
-				pts.append(w.pos + Vector2.from_angle(w.ang - w.half + 2.0 * w.half * p * i / 24.0) * w.r)
-			g.wcv.draw_polyline(pts, c, 2.0)
+			pts.append_array([w.pos, w.pos + Vector2.from_angle(w.ang - w.half + 2.0 * w.half * p) * w.r])
 		"circle":
 			for i in 49:
-				var a: float = -PI * 0.5 + TAU * p * i / 48.0
-				pts.append(w.pos + Vector2(cos(a), sin(a) * g.combat.GROUND_Y) * float(w.r))
-			g.wcv.draw_polyline(pts, c, 2.0)
+				var a: float = TAU * i / 48.0
+				pts.append(w.pos + Vector2(cos(a), sin(a) * g.combat.GROUND_Y) * float(w.r) * p)
+	return pts
+
+static func timer(g, w: Dictionary, c: Color) -> void:
+	var pts := timer_points(g, w)
+	if pts.size() > 1:
+		stroke(g, pts, c, 2.0)
 
 static func stroke(g, points: PackedVector2Array, c: Color, width: float, dim := false) -> void:
 	# A fixed dark keyline separates the boundary from both bright VFX and dark terrain.
@@ -74,7 +77,7 @@ static func outline(g, w: Dictionary) -> void:
 	pts.append(pts[0])
 	if w.get("dim", false):
 		# Not on the leader's collision path: keep the extent readable without urgency marks.
-		stroke(g, pts, Color(0.64, 0.12, 0.19, 0.9), 2.0, true)
+		g.wcv.draw_polyline(pts, Color(0.64, 0.12, 0.19, 0.4), 2.0)
 		return
 	# PX=2: one art pixel normally, two in the last 0.3 s; no moving or flashing fill.
 	var width := 4.0 if u > 0.0 else 2.0
@@ -86,10 +89,6 @@ static func outline(g, w: Dictionary) -> void:
 		var size: float = minf(float(w.wid), 12.0)
 		stroke(g, PackedVector2Array([tip - d * size * 1.5 + n * size, tip, tip - d * size * 1.5 - n * size]), c, width)
 	elif str(w.shape) == "cone":
-		var front := PackedVector2Array()
-		for i in 25:
-			front.append(w.pos + Vector2.from_angle(w.ang - w.half + 2.0 * w.half * i / 24.0) * w.r)
-		stroke(g, front, c, 4.0)
 		# A short inset point marks the attack axis without extending the real outer edge.
 		var d := Vector2.from_angle(w.ang)
 		var n := d.orthogonal()
@@ -103,5 +102,5 @@ static func outline(g, w: Dictionary) -> void:
 			var tip: Vector2 = w.pos + d * float(w.r)
 			stroke(g, PackedVector2Array([tip - d * 10.0, tip]), c, width)
 
-	# Warm red time-track remains distinct from the darker stable range boundary.
+	# Coral interior sweep is separated spatially from the stable danger boundary.
 	timer(g, w, Color(0.88, 0.43, 0.38, 1.0))

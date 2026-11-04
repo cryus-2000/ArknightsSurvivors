@@ -9,6 +9,7 @@ args=[runner.find_godot(),'--path',str(ROOT/'game'),'--audio-driver','Dummy',
       '--balance','--nodeath','--bot=expert','--seed=11','--op=logos',
       '--squad=texas,suzuran','--rtfrom=478','--maxt=510',
       '--bal=render/warn_v2=1','--warn-shot-dir='+OUT.as_posix()]
+if "--perf" in sys.argv: args.append("--warn-perf")
 import time
 started=time.time()
 stdout,stderr,timeout=runner.run_godot(args,900)

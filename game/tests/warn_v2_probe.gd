@@ -6,9 +6,12 @@ const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")
 var game
 var busy := false
 var out := ""
+var perf := false
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
+		if arg == "--warn-perf":
+			perf = true
 		if arg.begins_with("--warn-shot-dir="):
 			out = arg.substr(16)
 	assert(not out.is_empty())
@@ -61,4 +64,33 @@ func capture(count: int) -> void:
 	var f := FileAccess.open(out.path_join("capture.json"), FileAccess.WRITE)
 	f.store_string(JSON.stringify(report, "  "))
 	print("WARN_V2_CAPTURE ", JSON.stringify(report))
+	if perf:
+		await measure_perf(report)
 	get_tree().quit()
+
+func measure_perf(report: Dictionary) -> void:
+	# Same frozen state, alternating settings; measures wall frame time including renderer.
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = 0
+	game.world._dbg_friend = false
+	game.world._dbg_foe = false
+	game.world._dbg_warn = false
+	var blocks: Array = []
+	for block in 8:
+		var enabled := block % 2
+		Bal.sec("render").warn_v2 = enabled
+		Bal.clear_cache()
+		for warmup in 20:
+			redraw(game)
+			await RenderingServer.frame_post_draw
+		var samples: Array = []
+		for sample in 90:
+			var start := Time.get_ticks_usec()
+			redraw(game)
+			await RenderingServer.frame_post_draw
+			samples.append(float(Time.get_ticks_usec() - start) / 1000.0)
+		blocks.append({"enabled": enabled, "frame_ms": samples})
+	report["perf_blocks"] = blocks
+	report["perf_limitations"] = "Frozen scene redraw wall-frame time, vsync disabled. Not whole-game simulation or isolated GPU time; includes driver/scheduler noise. Three visible ordinary warnings, not a worst-case warning swarm."
+	var f := FileAccess.open(out.path_join("perf.json"), FileAccess.WRITE)
+	f.store_string(JSON.stringify(report, "  "))
