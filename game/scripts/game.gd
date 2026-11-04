@@ -389,6 +389,7 @@ var hud: Control
 var panel: Control
 var panel_box: HBoxContainer
 var panel_col: VBoxContainer   # 事件选项条（C 版式）的竖排容器
+var panel_scroll: ScrollContainer   # 套在 panel_col 外的竖向滚动区（选项放不下时滚，choice_panel）
 var panel_fg: Control          # 标题、商人立绘、事件插画画在这层（压暗带之上、卡片之下）
 var panel_tip: Control         # 面板最上层：截断说明的完整提示
 var font: Font
