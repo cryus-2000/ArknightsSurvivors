@@ -12,7 +12,7 @@ else:
     if mode=='sanity':
         args+=['--headless','--','--balance','--nodeath','--seed=11','--op=logos','--maxt=5','--dccheck','--bal=render/elite_mark_v2=1']
     elif mode=='late':
-        args+=['--','--balance','--nodeath','--bot=expert','--seed=11','--op=logos','--squad=texas,suzuran','--realtime','--rtfrom=477','--recframes=480,16','--recstride=30','--shotdir='+OUT.as_posix(),'--maxt=497','--bal=render/elite_mark_v2=1']
+        args+=['--','--balance','--nodeath','--bot=expert','--seed=11','--op=logos','--squad=texas,suzuran','--realtime','--rtfrom=477','--recframes=480,480','--recstride=30','--shotdir='+OUT.as_posix(),'--maxt=497','--bal=render/elite_mark_v2=1']
     else:
         args+=['res://tests/elite_mark_v2_review.tscn','--','--balance','--nodeath','--seed=11','--op=logos','--dccheck','--review-dir='+OUT.as_posix()]
 stdout,stderr,timeout=gr.run_godot(args,900)
