@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""斯卡蒂转平面试验（docs/246，fx/px_plane）的看图工具。本机 Windows，窗口在屏幕外、静音（godot_runner），一次只开 1 个 Godot（串行）。
+"""转平面试验（docs/246 斯卡蒂、docs/248 星熊；fx/px_plane）的看图工具。--op 选干员（缺省 skadi）。本机 Windows，窗口在屏幕外、静音（godot_runner），一次只开 1 个 Godot（串行）。
 
   demo  图鉴演示模式（tests/elite_demo_shot.tscn）逐招连拍：三种画法（0 当前游戏 / 2 旧做法原样贴 / 1 转平面）× 精英档，
         同一招同一时刻对齐（同一演示、同一帧号），拼「三栏对比」：每招一张 + 2 倍局部；另拼三档并排（只转平面版）。
@@ -24,7 +24,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 BUILD = os.path.join(ROOT, "build", "pxplane")
 LOGS = os.path.join(BUILD, "logs")
-MODE_NAME = {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}
+OPS = {
+    "skadi": {"name": "斯卡蒂", "modes": {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}, "off": {0: 3, 1: 12, 2: 10}},
+    # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
+    "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 3, 1: 3, 2: 10}},
+}
+OP = "skadi"
+MODE_NAME = OPS[OP]["modes"]
 MODE_KEY = {3: "atk", 0: "s1", 1: "s2", 2: "s3"}
 MODE_TIERS = {3: [0, 1, 2], 0: [0, 1, 2], 1: [1, 2], 2: [2]}
 COLS = [(0, "① 当前游戏原样"), (2, "② pixelfx 原样直接贴（旧做法）"), (1, "③ 转平面 + 统一像素 + 吃光 + Noita")]
@@ -41,7 +47,7 @@ def shoot(px, tier, mode, start, every, n, w=1280, h=720, extra=(), suffix=""):
     shutil.rmtree(fdir, ignore_errors=True)
     os.makedirs(fdir)
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
-            "--shot_op=skadi", "--shot_stage=%d" % tier, "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
+            "--shot_op=" + OP, "--shot_stage=%d" % tier, "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=%d" % every, "--shot_n=%d" % n, "--shot_w=%d" % w, "--shot_h=%d" % h,
             "--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1"] + list(extra)
     out, err, to = GR.run_godot(args, 900)
@@ -94,7 +100,7 @@ def demo(a):
             e = energy(fr[1][:n], fr[0][:n])
             k = int(np.argmax(e))
             # 技能招：按技能事件帧对齐（能量峰常落在普攻上）。S1 出手即判定；S2 起跳约 15 帧后落地；S3 取起手后约 0.3 秒（大水柱 + 第一记暗蓝旋斩）
-            OFF = {0: 3, 1: 12, 2: 10}
+            OFF = OPS[OP]["off"]
             if mode in OFF:
                 evs = [int(x[3]) for x in res.get((tier, mode, "ev"), []) if len(x) > 3 and x[2] == "skill%d" % mode and x[3].isdigit()]
                 f0 = int(a.start * 30)
@@ -106,7 +112,7 @@ def demo(a):
             W, H = ims[0].size
             sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
             dd = ImageDraw.Draw(sheet)
-            dd.text((12, 8), "斯卡蒂 %s · 精英 %d · 同一帧（演示第 %d 张）" % (MODE_NAME[mode], tier, k), fill=(230, 230, 230), font=font_b)
+            dd.text((12, 8), OPS[OP]["name"] + " %s · 精英 %d · 同一帧（演示第 %d 张）" % (MODE_NAME[mode], tier, k), fill=(230, 230, 230), font=font_b)
             for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
                 sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
             base = "cmp_%s_e%d" % (MODE_KEY[mode], tier)
@@ -136,7 +142,7 @@ def demo(a):
             rw, rh = tiers_up[0][1][0].size
             sheet = Image.new("RGB", (100 + rw * 5 + 16, 56 + (rh + 8) * len(tiers_up)), (12, 12, 16))
             dd = ImageDraw.Draw(sheet)
-            dd.text((12, 8), "转平面版三档 · 斯卡蒂 %s（每行一档，命中前后 5 帧）" % MODE_NAME[mode], fill=(230, 230, 230), font=font_b)
+            dd.text((12, 8), "转平面版三档 · " + OPS[OP]["name"] + " %s（每行一档，命中前后 5 帧）" % MODE_NAME[mode], fill=(230, 230, 230), font=font_b)
             for r, (tier, row) in enumerate(tiers_up):
                 y = 56 + r * (rh + 8)
                 dd.text((16, y + rh // 2 - 18), "E%d" % tier, fill=(255, 255, 255), font=font(34))
@@ -220,8 +226,15 @@ def main():
     ap.add_argument("--maxt", type=int, default=300)
     ap.add_argument("--extra", default="")
     ap.add_argument("--pxs", default="0,1")
+    ap.add_argument("--op", default="skadi", choices=sorted(OPS))
+    ap.add_argument("--crf", type=int, default=20)
     a = ap.parse_args()
-    base = ["--seed=%d" % a.seed, "--op=skadi"] + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
+    global OP, MODE_NAME, BUILD, LOGS
+    OP, MODE_NAME = a.op, OPS[a.op]["modes"]
+    if a.op != "skadi":
+        BUILD = os.path.join(ROOT, "build", "pxplane_" + a.op)
+        LOGS = os.path.join(BUILD, "logs")
+    base = ["--seed=%d" % a.seed, "--op=" + a.op] + (["--squad=" + a.squad] if a.squad else []) + a.extra.split()
     if a.cmd == "demo":
         demo(a)
         return
@@ -252,8 +265,8 @@ def main():
         mp4 = os.path.join(a.out, "late_%dm%02d_onoff.mp4" % (a.t0 // 60, a.t0 % 60))
         subprocess.run([ff, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(d0, "rec_%05d.png"), "-framerate", "30", "-i", os.path.join(d1, "rec_%05d.png"),
                         "-i", lab, "-filter_complex", "[0:v]pad=1284:720:0:0:black[l];[l][1:v]hstack=inputs=2[h];[h][2:v]overlay=0:0[v]", "-map", "[v]", "-frames:v", str(n),
-                        "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", mp4], check=True)
-        print("录像", mp4, "%d 帧" % n)
+                        "-c:v", "libx264", "-crf", str(a.crf), "-pix_fmt", "yuv420p", mp4], check=True)
+        print("录像", mp4, "%d 帧" % n, "%.1f MB" % (os.path.getsize(mp4) / 1048576))
     elif a.cmd == "trace":
         for px in [int(x) for x in a.pxs.split(",")]:
             tag = "trace%d_s%d" % (px, a.seed)

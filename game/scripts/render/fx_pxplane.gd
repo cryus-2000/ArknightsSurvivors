@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：只做斯卡蒂。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/248，见文件末尾一节）。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,9 +18,11 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const META := "res://data/pxp_skadi.json"
+const METAS := ["res://data/pxp_skadi.json", "res://data/pxp_hoshiguma.json"]   # 星熊（docs/248）的键带 hsg_ 前缀
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true}
+const IDS := {"skadi": true, "hoshiguma": true}
+## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
+const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const DIRS := [-90, -45, 0, 45, 90]
 const EMIT_CAP := 360     # 每帧送进发光层的 emit 点上限（整队）
 const ITEM_MAX := 72
@@ -64,11 +66,12 @@ static func owns_id(game, oid: String) -> bool:
 
 func _meta(k: String) -> Dictionary:
 	if meta.is_empty():
-		var f := FileAccess.open(META, FileAccess.READ)
-		if f != null:
-			var v = JSON.parse_string(f.get_as_text())
-			if v is Dictionary:
-				meta = v
+		for mp in METAS:
+			var f := FileAccess.open(mp, FileAccess.READ)
+			if f != null:
+				var v = JSON.parse_string(f.get_as_text())
+				if v is Dictionary:
+					meta.merge(v)
 	return meta.get(k, {})
 
 
@@ -124,6 +127,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	var t: int = tier(o)
 	var R = load("res://scripts/render/fx_recipe.gd").of(g)
 	var p: Dictionary = R.pal(o)
+	if str(o.id) == "hoshiguma":
+		_ev_hsg(o, kind, d, raw, t, R, p)
+		return
 	match kind:
 		"shape":
 			var src: String = str(d.get("src", ""))
@@ -285,6 +291,9 @@ func draw_floor(o) -> void:
 		return
 	var cv = o.cv
 	var id: String = str(o.id)
+	if id == "hoshiguma":
+		_floor_hsg(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -305,6 +314,10 @@ func draw_over(o) -> void:
 		if str(it.ly) != "raw" or str(it.oid) != id:
 			continue
 		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8)), it.gp, float(it.rot), float(it.sc))
+	if id == "hoshiguma":   # 般若回旋的锯盾：旧做法整张贴（正圆、光晕烤进颜色、盖在上面）
+		for bm in _booms(o):
+			_draw_raw(cv, "hsg_raw_saw", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), int(_meta("hsg_raw_saw").get("n", 1))), o.pos + bm.dir * _boom_d(bm) + Vector2(0, -22), 0.0, g.PX)
+		return
 	for w in o.hw.get("waves", []):
 		var b: Dictionary = w.b
 		if not b.has("proj") and not b.has("tex"):
@@ -328,6 +341,9 @@ static func sort_items(game) -> Array:
 		if IDS.has(str(o.id)) and o.pos != Vector2.INF:
 			for w in r._waves(o):
 				out.append({"wave": w})
+			if str(o.id) == "hoshiguma":
+				for bm in r._booms(o):
+					out.append({"k": "hsg_saw_up", "t0": 0.0, "gp": r._boom_gp(o, bm), "flip": false, "loop": true})
 	return out
 
 
@@ -340,7 +356,7 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 	if it.get("cut", false):
 		r._draw_cut(ci, it)
 		return
-	r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), it.gp, it.flip, true)
+	r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), it.gp, it.flip, not it.get("loop", false))
 
 
 ## 斩痕：沿方向逐美术像素画（2 世界像素格），第 0 拍白芯 + 两侧浅蓝、第 1 拍浅蓝变短、第 2 拍只剩两头几点
@@ -378,7 +394,7 @@ static func sort_key(it: Dictionary) -> float:
 		return float((it.wave[1] as Vector2).y) + 2.0
 	if it.get("cut", false):
 		return float(it.gy)
-	return float((it.gp as Vector2).y) + 1.0
+	return float((it.gp as Vector2).y) + 1.0 + float(it.get("sk", 0.0))   # sk：身后半圈的件往前排（星熊地刺）
 
 
 ## 「跃浪」浪墙：推进途中每两拍（15 fps）在浪头位置生成一道小碎浪（一次性件，原点放在浪头后方 36 美术像素，让碎浪的浪线落在浪头上）。
@@ -427,7 +443,7 @@ func _wpos(w: Dictionary) -> Vector2:
 
 
 ## 一张帧条的一帧：1 帧条像素 = g.PX 世界像素（整数倍），原点对齐 2 像素格；不旋转（方向靠预生成 + 水平翻转）
-func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool) -> void:
+func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mod := Color.WHITE) -> void:
 	var m: Dictionary = _meta(k)
 	var tx: Texture2D = _tex(k)
 	if m.is_empty() or tx == null:
@@ -443,9 +459,9 @@ func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool) ->
 	var left: float = gp.x - (w - float(m.ox)) * px if flip else gp.x - float(m.ox) * px
 	var src := Rect2(fi * w, 0.0, w, h)
 	if flip:
-		ci.draw_texture_rect_region(tx, Rect2(Vector2(left + w * px, top), Vector2(-w * px, h * px)), src)
+		ci.draw_texture_rect_region(tx, Rect2(Vector2(left + w * px, top), Vector2(-w * px, h * px)), src, mod)
 	else:
-		ci.draw_texture_rect_region(tx, Rect2(Vector2(left, top), Vector2(w * px, h * px)), src)
+		ci.draw_texture_rect_region(tx, Rect2(Vector2(left, top), Vector2(w * px, h * px)), src, mod)
 	_emit(m, fi, Vector2(left, top), w, flip)
 
 
@@ -490,3 +506,146 @@ func _draw_raw(cv, k: String, fi: int, at: Vector2, rot: float, sc: float) -> vo
 	cv.draw_set_transform(at, rot, Vector2(sc, sc))
 	cv.draw_texture_rect_region(tx, Rect2(Vector2(-float(m.ox), -float(m.oy)), Vector2(w, h)), Rect2(fi * w, 0.0, w, h))
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ================================================================ 星熊（docs/248，照 docs/246 斯卡蒂的做法）
+## 普攻「盾斧斩」= 腰高钝头刀痕（精一盾缘崩钢屑、精二暖金副刃 + 金火星；精二另有「般若回旋」锯盾）；
+## S1「战意」= 立起的下劈弧 + 裂网冲击环 + 碎石（精一尘墙、精二裂缝熔成暖金）；
+## S2「荆棘」= 起手一圈地刺破土 + 每斩留的热砂（只画边 + 内边 + 几点热光）；
+## S3「力之锯」= 起手腰高青绿弧旋起 + 直线撕裂（贴地撕裂沟 + 低处锯线 + 远端暖金火星），持续时脚下一圈转动的齿印。
+
+func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	match kind:
+		"shape":
+			var src: String = str(d.get("src", ""))
+			var es: Array = d.get("es", [])
+			if d.get("line", false):   # 力之锯：直线斩（seg_hoshiguma.exec_line 的钩子）
+				var ang: float = float(d.get("ang", 0.0))
+				var L: float = float(d.get("len", 220.0))
+				var dv := Vector2.from_angle(ang)
+				if raw:
+					_push({"k": "hsg_raw_rip", "t0": g.t, "gp": o.pos + Vector2(0, -10), "ly": "raw", "rot": ang, "sc": g.PX * (L * 0.5) / 110.0, "oid": str(o.id)})
+				else:
+					_add_dir(o, "hsg_rip", o.pos, ang)
+				_cuts(o, es, 2, 3)
+				_burst_m(o, R, p, o.pos + dv * L * 0.9 + Vector2(0, -12), o.pos.y + dv.y * L * 0.9, es, 6, "shard", 130.0, 0.5)
+				return
+			if d.get("circle", false):
+				var c: Vector2 = d.get("c", o.pos)
+				var r: float = float(d.get("r", 60.0))
+				match src:
+					"举盾反击":   # S1 战意：下劈 + 裂网冲击环（判定圈以星熊为心）
+						var fl: bool = float(o.face) < 0.0
+						if raw:
+							_push({"k": "hsg_raw_slam_e%d" % t, "t0": g.t, "gp": c, "ly": "raw", "rot": 0.0, "sc": g.PX * (r * 0.5) / 75.0, "oid": str(o.id)})
+						else:
+							_push({"k": "hsg_slam_e%d_up" % t, "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id)})
+							_push({"k": "hsg_slam_e%d_gd" % t, "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id)})
+						_cuts(o, es, t, 4)
+						_burst_m(o, R, p, c + Vector2(-30.0 if fl else 30.0, -6), c.y + 2.0, es, 8 + 3 * t, "rock", 200.0, 0.8)
+					"热砂", "热砂沸腾":
+						pass   # 热砂每 0.5 秒结算一次：画面由区域本身（_floor_hsg 读 o.fields）表现，不逐跳画
+					_:   # 般若之重 / 盾墙反震：贴地冲击环
+						if not raw:
+							_push({"k": "hsg_pulse_gd", "t0": g.t, "gp": _snap(c), "flip": false, "ly": "gd", "oid": str(o.id)})
+						_burst_m(o, R, p, c + Vector2(0, -8), c.y + 2.0, es, 3, "rock", 110.0, 0.4)
+				return
+			# 锥形：盾斧斩（普攻）
+			var ang2: float = float(d.get("ang", 0.0))
+			var r2: float = float(d.get("r", 94.0))
+			var dv2 := Vector2.from_angle(ang2)
+			_add(o, "hsg_sweep_e%d" % t, o.pos, ang2, r2, raw, "hsg_raw_sweep_e%d" % t, 47.0)
+			_cuts(o, es, t, 2)
+			_burst_m(o, R, p, o.pos + dv2 * r2 * 0.6 + Vector2(0, -12), o.pos.y + dv2.y * r2 * 0.6 * 0.72, es, 2 + t, "shard" if t >= 1 else "rock", 90.0, 0.35)
+		"skill":
+			var i: int = int(d.get("i", -1))
+			if i == 1:   # 荆棘起手：一圈地刺破土（身后半圈排在她身后、身前半圈排在她身前）
+				var tt: int = maxi(t, 1)
+				if raw:
+					_push({"k": "hsg_raw_thorns_e%d" % tt, "t0": g.t, "gp": o.pos + Vector2(0, -8), "ly": "raw", "rot": 0.0, "sc": g.PX, "oid": str(o.id)})
+				else:
+					_push({"k": "hsg_thorns_e%d_back_up" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": str(o.id), "sk": -8.0})
+					_push({"k": "hsg_thorns_e%d_front_up" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": str(o.id), "sk": 4.0})
+					_push({"k": "hsg_thorns_e%d_gd" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+				if mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -20), o.pos.y, "shard", 6 + 3 * tt, {"tier": tt})
+					R._light(o, o.pos + Vector2(0, -10), 120.0, 0.5, 0.15, p.accent)
+			elif i == 2:   # 力之锯起手：腰高三道青绿弧旋起 + 脚下冲击环
+				if raw:
+					_push({"k": "hsg_raw_slam_e2", "t0": g.t, "gp": o.pos, "ly": "raw", "rot": 0.0, "sc": g.PX * 50.0 / 75.0, "oid": str(o.id)})
+				else:
+					_push({"k": "hsg_s3cast_up", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": str(o.id)})
+					_push({"k": "hsg_s3cast_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+				if mode() == 1:
+					R._light(o, o.pos + Vector2(0, -20), 140.0, 0.6, 0.15, p.light)
+
+
+## 命中：少量颗粒（材质可选）+ 一盏照地短光；只在转平面版
+func _burst_m(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, mat: String, lr: float, li: float) -> void:
+	if mode() != 1:
+		return
+	var m := {"tier": tier(o), "grain_spd": 1.0}
+	if not es.is_empty():
+		var e: Dictionary = es[0]
+		var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
+		R._grains(o, hp, float(e.pos.y) + 2.0, mat, mini(n, 2 + es.size()), m, (hp - o.pos).normalized())
+		R._light(o, hp, lr, li, 0.12, p.light)
+	else:
+		R._grains(o, at, gy, mat, maxi(1, n / 2), m)
+		R._light(o, at, lr * 0.8, li * 0.6, 0.1, p.light)
+
+
+## 地面层（星熊）：贴地件、热砂（读 o.fields，循环 + 淡入淡出）、力之锯持续时脚下齿印、锯盾影子
+func _floor_hsg(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	var t: int = clampi(tier(o), 1, 2)
+	for f in o.fields:
+		if not f.get("sand", false):
+			continue
+		var fa: float = clampf((float(f.n) * float(f.every) - float(f.t)) / 0.4, 0.0, 1.0) * clampf(float(f.t) / 0.15, 0.0, 1.0)
+		if fa <= 0.0:
+			continue
+		var rk: int = 40 if float(f.r) >= 70.0 else 30
+		_draw_strip(cv, "hsg_sand%d_e%d_gd" % [rk, t], frame_of(0.0), _snap(f.pos), false, false, Color(1, 1, 1, fa))
+	if o.skill_active_left(2) > 0.0:
+		_draw_strip(cv, "hsg_s3aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
+	for it in items:
+		if str(it.ly) == "gd" and str(it.oid) == id:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+	for bm in _booms(o):
+		_draw_strip(cv, "hsg_saw_gd", frame_of(0.0), _boom_gp(o, bm), false, false)
+
+
+## 般若回旋：读玩法状态 o.el.boom（往返弹体）
+func _booms(o) -> Array:
+	var el = o.get("el")
+	if not (el is Dictionary) or el.is_empty() or not el.has("boom"):
+		return []
+	return el.boom
+
+
+## 弹体此刻离星熊的距离（同 ob_elite._el_boom_d，纯函数抄一份，只读）
+static func _boom_d(bm: Dictionary) -> float:
+	var t: float = float(bm.t)
+	var to: float = float(bm.to)
+	if t < to:
+		var k: float = t / maxf(0.01, to)
+		return float(bm.L) * (1.0 - (1.0 - k) * (1.0 - k))
+	if t < to + float(bm.hold):
+		return float(bm.L)
+	var k2: float = clampf((t - to - float(bm.hold)) / maxf(0.01, float(bm.tb)), 0.0, 1.0)
+	return float(bm.L) * (1.0 - k2 * k2)
+
+
+## 锯盾的地面点：统一节拍时每 1/15 秒跳一格（记在弹体字典的画面专用键 _pxq，玩法不读）
+func _boom_gp(o, bm: Dictionary) -> Vector2:
+	var p: Vector2 = o.pos + bm.dir * _boom_d(bm)
+	if not is_equal_approx(clock(), 15.0):
+		return p
+	var tick: int = int(floor(g.t * 15.0))
+	var q = bm.get("_pxq")
+	if q == null or int(q[0]) != tick:
+		q = [tick, _snap(p)]
+		bm["_pxq"] = q
+	return q[1]
