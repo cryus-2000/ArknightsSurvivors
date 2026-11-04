@@ -66,6 +66,11 @@ func tick(delta: float) -> void:
 		cur = {}
 
 
+## 本时刻的横幅在场（hud_banners：普通横幅只是不画，计时照走，同 Boss 名片）
+func banner_busy() -> bool:
+	return not cur.is_empty() and g.state == g.S.PLAY and cur.t < cur.freeze + 0.6
+
+
 ## 定格中（game._process 用它跳过模拟步，同 hitstop 分支）
 func freezing() -> bool:
 	return not cur.is_empty() and cur.t < cur.freeze and _blocks()
@@ -122,6 +127,13 @@ func draw_ground(o, cv) -> void:
 	if big:
 		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(minf(1.0, c.r * 1.25), minf(1.0, c.g * 1.25), minf(1.0, c.b * 1.25), 0.55 + 0.3 * mk), 1.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var fl: float = flash(o)
+	if fl > 0.0:
+		# 爆亮：身后一团静止的本人颜色亮光（在本体之前画 = 在人身后；不外扩）
+		var cb := Color(minf(1.0, c.r * 0.5 + 0.6), minf(1.0, c.g * 0.5 + 0.6), minf(1.0, c.b * 0.5 + 0.6), 0.0)
+		for i in 3:
+			cb.a = fl * (0.22 + 0.18 * i)
+			cv.draw_circle(p + Vector2(0, -24), 30.0 - 8.0 * i, cb)
 	if mk > 0.0:
 		# 身后光柱：底宽 22、高 120，向上变细变淡（画在本体之前 = 在人身后）
 		var h: float = 120.0 * (0.6 + 0.4 * mk)
@@ -142,7 +154,7 @@ func draw_hud(vs: Vector2) -> void:
 	var o = cur.op
 	var st: int = int(cur.stage)
 	var c: Color = safe_col(o)
-	var y: float = vs.y * 0.24
+	var y: float = vs.y * 0.22   # 与普通横幅同一带：横幅在场时普通横幅让位（hud_banners 读 banner_busy，计时照走）
 	var sw: float = clampf(t / 0.22, 0.0, 1.0) if not Cfg.reduce_motion else 1.0
 	var hgt: float = 74.0 if str(cur.team) == "" else 96.0
 	var hud = g.hud

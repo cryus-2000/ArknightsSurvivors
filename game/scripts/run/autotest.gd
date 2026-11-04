@@ -15,6 +15,7 @@ const KILL_TYPES := ["bone", "stone", "offspring", "runner", "floater", "reaper"
 const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀那一帧；-1 = 击杀前一帧）
 var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
+var _elite_at := -1.0   # --eliteat=秒（docs/245 §5）：-1 = 还没读参数，0 = 不用 / 已触发
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
 var _mimicscream_done := false
@@ -1044,6 +1045,18 @@ func step() -> void:
 					bi._test_shots.pop_front()
 				if g.state == g.S.WIN and g.state_age > 1.5:
 					g.get_tree().quit()
+	if _elite_at < 0.0:
+		_elite_at = 0.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--eliteat="):
+				_elite_at = float(a.substr(10))   # 截图 / 录屏（docs/245 §5）：到点把队长推到精英二，拍精英化时刻
+	if _elite_at > 0.0 and g.state == g.S.PLAY and g.t >= _elite_at:
+		_elite_at = 0.0
+		var lo = g.squad.leader()
+		while lo != null and lo.elite < 2 and not lo.next_node().is_empty():
+			lo.advance("")
+		if g.elite_moment.queue.size() > 1:
+			g.elite_moment.queue = g.elite_moment.queue.slice(-1)   # 一次推过精一和精二：只拍精二那一次
 	if Cfg.dev_args().has("--fastlevel") and g.state == g.S.PLAY and (g.at_frames == 30 or g.at_frames == 400):
 		g.level = 9 if g.at_frames == 30 else 19
 		g.pickups.gain_xp(g.xp_need + 0.1)

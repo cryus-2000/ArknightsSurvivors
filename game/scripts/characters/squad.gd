@@ -1353,8 +1353,9 @@ func draw_leader_mark() -> void:
 	# 短弧长度 = 冲刺冷却（冷却中从 0 长到 70°，满了是整段 + 白芯）。可见度仍按「深边 + 色 + 白芯」画，几十条预警线压在身上时也认得出
 	var dark := Color(0.02, 0.02, 0.05, 0.75)
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-	cv.draw_circle(Vector2.ZERO, 24.0, Color(0.0, 0.0, 0.03, 0.28))
-	cv.draw_circle(Vector2.ZERO, 16.0, Color(0.0, 0.0, 0.03, 0.22))
+	var pool_k: float = 0.35 if int(o.elite) >= 1 and g.get("elite_moment") != null and g.elite_moment.on(g) else 1.0   # 精英化光池开着时软影压淡，不把队长脚下的光池盖黑（docs/245 §2）
+	cv.draw_circle(Vector2.ZERO, 24.0, Color(0.0, 0.0, 0.03, 0.28 * pool_k))
+	cv.draw_circle(Vector2.ZERO, 16.0, Color(0.0, 0.0, 0.03, 0.22 * pool_k))
 	var dk: float = g.dash_frac()
 	var fa: float = 0.0 if g.facing > 0.0 else PI
 	var half: float = deg_to_rad(35.0) * (dk if dk < 1.0 else 1.0)
