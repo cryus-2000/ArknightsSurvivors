@@ -709,8 +709,14 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		tb.rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), Color(0.75, 0.8, 0.84) if mark_v2 else ELITE_COL)
 		var tip: Vector2 = sp + Vector2(0, -4)
 		if mark_v2:
-			# Three 2-art-pixel rows: a compact white downward marker with dark separation.
 			var p: Vector2 = (tip + Vector2(0, -12)).round()
+			if e.get("squad", false):
+				# User revision: squad-only fixed red double bar; no full-body red rim.
+				tb.rect(Rect2(p + Vector2(-8, -2), Vector2(16, 16)), Color(0.025, 0.035, 0.055, 0.96))
+				for row in 2:
+					tb.rect(Rect2(p + Vector2(-6, row * 8), Vector2(12, 4)), Color.html("e94f56"))
+				continue
+			# Ordinary elites keep the three 2-art-pixel rows of the white downward mark.
 			for row in 3:
 				var rw: float = 12.0 - float(row) * 4.0
 				tb.rect(Rect2(p + Vector2(-rw * 0.5 - 1, row * 4 - 1), Vector2(rw + 2, 6)), Color(0, 0, 0, 0.8))
