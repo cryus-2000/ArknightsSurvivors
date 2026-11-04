@@ -13,7 +13,7 @@ export const meta = {
   tags: ["melee", "slash", "topdown", "hoshiguma", "one-shot"],
   size: [300, 260],
   origin: [150, 150],
-  duration: 0.6,
+  duration: 1.6,   // 最长一件（举盾 1.5 秒）；各件实际帧数由 tools/pxplane_bake.py 按件截
   loop: false,
   fps: 15,   // 统一动画时钟：本作特效帧条一律 15 fps
   bg: "dark",
@@ -490,6 +490,54 @@ function sawGround(p, t, o, C) {
   });
 }
 
+// ---------------------------------------------------------------- 技能连携 v2「举盾」（skill_link cover）：瞬到队长身侧立起鬼面大盾，举 1.0 秒、再 0.5 秒散掉（游戏让盾跟着队长走）
+// up：大盾往下一顿立定（第 0 拍白热上沿、落下 4 格），举盾期间盾缘一点亮光沿边慢慢走一圈；最后 0.5 秒抖动变稀散掉。盾面始终朝镜头，dir 只决定左右（翻转）
+// gd：立定那一下脚下一小圈冲击环 + 两侧尘；举盾期间盾脚下压暗
+function cover(p, t, o, C, ACC, ST, AM, DU) {
+  const n = C.length, HW = 14, HH = 32;
+  const drop = 4 * (1 - ease.outCubic(clamp(t / 0.1))), fade = smooth(1.0, 1.5, t), hot = t < 0.067;
+  if (fade >= 0.99) return;
+  const per = 2 * HW + 2 * HH, glint = ((t - 0.1) / 0.9) * per;   // 亮点沿盾缘走的位置
+  for (let w = -HW; w <= HW; w += 0.5) {
+    const u = Math.abs(w) / HW, top = HH * (1 - 0.35 * u * u), bot = 2 * u;
+    for (let z = bot; z <= top; z += 0.5) {
+      if (fade > 0.02 && nz(w * 3 + z * 7, o.seed + 1601) < fade) continue;
+      const rim = u > 0.86 || z > top - 1.5 || z < bot + 1;
+      let c = rim ? C[n - 3] : (w < 0 ? ST[3] : ST[2]);
+      if (!rim && Math.abs(z - HH * 0.55) < 3 && u < 0.4) c = ST[4];
+      if (!rim && Math.abs(z - HH * 0.42) < 1 && u > 0.12 && u < 0.3) c = C[n - 2];
+      if (z > top - 1.5) c = hot ? WHITE : C[n - 2];
+      if (rim && t > 0.1 && t < 1.0) {   // 盾缘亮点：沿左边往上、过顶、沿右边往下
+        const pos = w < 0 ? (top - z) : (w <= 0 ? 0 : HH + 2 * HW - (top - z));
+        const along = z > top - 1.5 ? HH + (w + HW) : pos;
+        if (Math.abs(along - glint) < 2.5) c = WHITE;
+      }
+      p.px(Math.round(w), Math.round(-z - drop), c);
+    }
+  }
+}
+
+function coverGround(p, t, o, C, ACC, ST, AM, DU) {
+  const fade = smooth(1.0, 1.5, t), n = C.length, SY = +o.SY;
+  if (fade >= 0.99) return;
+  for (let w = -14; w <= 14; w += 1) p.dot(Math.round(w), 1, C[0], 0.55 * (1 - fade));   // 盾脚下压暗
+  if (t < 0.4) {
+    const g = ease.outCubic(clamp(t / 0.2)), r = 10 + 22 * g, f2 = smooth(0.15, 0.4, t);
+    const m = Math.ceil(r * TAU);
+    for (let j = 0; j < m; j++) {
+      const a = (j / m) * TAU;
+      if (nz(a * 3.3, o.seed + 1611) < 0.25 + f2 * 0.6) continue;
+      p.px(Math.round(Math.cos(a) * r), Math.round(Math.sin(a) * r * SY), t < 0.07 ? C[n - 2] : C[n - 4]);
+    }
+    for (let i = 0; i < 10; i++) {   // 两侧尘
+      const side = i % 2 ? 1 : -1, u = t;
+      const x = side * (14 + 50 * u * (0.5 + nz(i, o.seed + 1613))), y = -2 - 20 * u + 60 * u * u;
+      if (nz(i * 4 + t * 20, o.seed + 1615) < f2) continue;
+      p.px(Math.round(x), Math.round(y), DU[3]);
+    }
+  }
+}
+
 export function draw(p, t, o) {
   const C = fit(o.palette, 8), ST = fit(o.steel, 6), AM = fit(o.amber, 6), DU = fit(o.dust, 5), ACC = hex(o.accent);
   const gd = o.layer === "gd";
@@ -504,6 +552,7 @@ export function draw(p, t, o) {
     case "s3aura": return gd ? s3aura(p, t, o, C) : undefined;
     case "saw": return gd ? sawGround(p, t, o, C) : saw(p, t, o, C, ACC, ST);
     case "qi": return gd ? qiWaveGround(p, t, o, C, ACC, ST, AM, DU) : qiWave(p, t, o, C, ACC, ST, AM, DU);
+    case "cover": return gd ? coverGround(p, t, o, C, ACC, ST, AM, DU) : cover(p, t, o, C, ACC, ST, AM, DU);
     case "shove": return gd ? shoveGround(p, t, o, C, ACC, ST, AM, DU) : shove(p, t, o, C, ACC, ST, AM, DU);
   }
 }

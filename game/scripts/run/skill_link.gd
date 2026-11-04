@@ -14,6 +14,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const LFX = preload("res://scripts/run/link_fx_common.gd")   # 连携画面公用件：衔接（接力光 + 光柱）/ 变体种子（用户 10-31 连携美术重做）
 const LFB = preload("res://scripts/run/link_fx_b.gd")   # B 组 10 人画面（link-fx-b）
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/254）：接管的干员连携画面改由 fx_pxplane 画（只画）
 const LFA = preload("res://scripts/run/link_fx_a.gd")   # 连携画面 A 组 10 人（德克萨斯 / 能天使 / 浊心斯卡蒂 / 凯尔希 / 乌尔比安 / 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔）
 
 ## 放技能的干员 id → {技能序号: [搭档 id, 合成类型]}
@@ -495,7 +496,9 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			if t >= 0.1 and not a.done.has("beat"):
 				a.done["beat"] = true
 				_beat(u)
-				if LFX.on() and u.fx_ready(LFB.HS_SHIELD):
+				if Fxr.owns(p):
+					Fxr.ev(p, "cover", {"side": side2, "at": lp + side2 * 46.0, "es": a.taunt})   # 转平面（docs/254）：举盾（盾跟着队长走，fx_pxplane 画 1.5 秒）
+				elif LFX.on() and u.fx_ready(LFB.HS_SHIELD):
 					LFB.hs_plant(u, lp + side2 * 46.0, side2)
 				else:
 					u.grain("sh_glint", lp + side2 * 46.0, side2, AMBER, 8)
@@ -505,7 +508,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 						u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -38), "w": 3.0, "col": AMBER, "life": 1.0})
 			if t < 1.5:
 				var fa: float = 1.0 if t < 1.0 else 1.0 - (t - 1.0) / 0.5
-				if t < 0.1 or not LFB.hs_shield(u, lp + side2 * 46.0, side2, fa, t):
+				if not Fxr.owns(p) and (t < 0.1 or not LFB.hs_shield(u, lp + side2 * 46.0, side2, fa, t)):
 					u.shape({"kind": "sector", "c": lp + side2 * 46.0, "r": 60.0, "a": side2.angle(), "half": 0.9, "col": AMBER, "fill": 0.5 * fa, "life": 0.04})
 					u.shape({"kind": "line", "a": lp + side2 * 46.0 + side2.orthogonal() * 42.0, "b": lp + side2 * 46.0 - side2.orthogonal() * 42.0, "w": 5.0, "col": Color(AMBER, fa), "life": 0.04})
 				if t < 1.0:

@@ -117,6 +117,8 @@ def variants_hoshiguma():
                     v.append(("qi_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.2))
     for d in DIRS:   # 连携技「举盾推挡」：盾落点的立起大盾（方向件）+ 队长脚下的冲击环（140 → 70）
         v.append(("shove_up_d%d" % d, {"part": "shove", "layer": "up", "dir": d, "el": 1, "seed": 8}, 0.52))
+    for ly in ("up", "gd"):   # 技能连携 v2「举盾」（link/v2 缺省开时实际用的连携）：举 1.0 秒 + 散 0.5 秒
+        v.append(("cover_%s" % ly, {"part": "cover", "layer": ly, "el": 1, "seed": 8}, 1.5))
     v.append(("shove_gd", {"part": "shove", "layer": "gd", "R": 70, "el": 1, "seed": 8}, 0.52))
     v.append(("s3cast_up", {"part": "s3cast", "layer": "up", "R": 30, "el": 2}, 0.56))
     v.append(("s3cast_gd", {"part": "s3cast", "layer": "gd", "R": 50, "el": 2, "seed": 13}, 0.5))

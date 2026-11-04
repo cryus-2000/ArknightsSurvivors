@@ -36,6 +36,7 @@ var _mode_frame := -1
 var _emit_n := 0
 var _emit_frame := -1
 var _ecol := {}
+var _fol_tick := -1
 
 
 static func of(game):
@@ -271,6 +272,12 @@ func _add_gd(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit
 func _step() -> void:
 	var now: float = g.t
 	items = items.filter(func(it): return now - float(it.t0) < _life(str(it.k)) + 0.02)
+	var tk: int = int(floor(g.t * 15.0))
+	if g.ppos != Vector2.INF and tk != _fol_tick:   # 跟着队长走的件（举盾）：位置每拍（15 fps）跳一格，对齐美术像素格
+		_fol_tick = tk
+		for it in items:
+			if it.has("fol"):
+				it.gp = _snap(g.ppos + (it.fol as Vector2))
 
 
 func _life(k: String) -> float:
@@ -563,6 +570,15 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 			_add(o, "hsg_sweep_r%d_e%d" % [_bucket(r2 * 0.5, [47, 56, 66]), t], o.pos, ang2, r2, raw, "hsg_raw_sweep_e%d" % t, 47.0)
 			_cuts(o, es, t, 2)
 			_burst_m(o, R, p, o.pos + dv2 * r2 * 0.6 + Vector2(0, -12), o.pos.y + dv2.y * r2 * 0.6 * 0.72, es, 2 + t, "shard" if t >= 1 else "rock", 90.0, 0.35)
+		"cover":   # 技能连携 v2「举盾」：队长身侧立起鬼面大盾 1.5 秒（盾跟着队长走：fol = 相对队长的偏移）
+			var sd2: Vector2 = d.get("side", Vector2.RIGHT)
+			var off: Vector2 = sd2 * 46.0
+			if raw:
+				_push({"k": "hsg_raw_slam_e0", "t0": g.t, "gp": g.ppos + off, "ly": "raw", "rot": 0.0, "sc": g.PX * 30.0 / 75.0, "oid": str(o.id)})
+			else:
+				_push({"k": "hsg_cover_up", "t0": g.t, "gp": _snap(g.ppos + off), "fol": off, "flip": sd2.x < 0.0, "ly": "up", "oid": str(o.id)})
+				_push({"k": "hsg_cover_gd", "t0": g.t, "gp": _snap(g.ppos + off), "fol": off, "flip": sd2.x < 0.0, "ly": "gd", "oid": str(o.id)})
+			_burst_m(o, R, p, g.ppos + off + Vector2(0, -20), g.ppos.y + off.y + 2.0, [], 6, "shard", 140.0, 0.6)
 		"combo_dash":   # 连携技冲刺：沿途几颗碎石（代替通用干员色拖影）
 			if mode() == 1:
 				var a0: Vector2 = d.get("from", o.pos)
