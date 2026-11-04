@@ -30,7 +30,7 @@ def run_metrics(rec):
         dps = (nb - u) / 60.0
         cr = (nb - u) / m["sp_hp"] if m["sp_hp"] > 0 else None
         ttc = hp_screen / dps if dps > 0 else None
-        rows.append({"m": m["m"], "clear_r": cr, "ttc": ttc, "lv": m["lv"]})
+        rows.append({"m": m["m"], "clear_r": cr, "ttc": ttc, "lv": m["lv"], "nb": nb, "nbu": u})
         if m["m"] in LATE:
             agg["nb"] += nb
             agg["nb_ult"] += u
@@ -168,8 +168,13 @@ def main():
             md.append("| %d | %s | %.2f | %s | %s | %s | %.1f | %s | %s |" % (t, nm, d["clear_med"], pct(d["clear_lt1"]), pct(d["ult_dmg"]), pct(d["ult_kill"]), d["ttc_med"], pct(d["win"]), d["t_med"]))
     md += ["", "### 逐分钟清怪比中位（关 → 开）", "", "| 分钟 | " + " | ".join("潮位 %d" % t for t in tides) + " |", "|---|" + "---|" * len(tides)]
     bm = {t: (by_minute(s0, keys, t), by_minute(s1, keys, t)) for t in tides}
+    def ush(side, t, m):
+        a = sum(row["nbu"] for k in keys if k[2] == t for row in side[k]["rows"] if row["m"] == m)
+        b = sum(row["nb"] for k in keys if k[2] == t for row in side[k]["rows"] if row["m"] == m)
+        return a / b if b else float("nan")
     res["minute"] = {t: {m: [med(bm[t][0].get(m, {"cr": []})["cr"]), med(bm[t][1].get(m, {"cr": []})["cr"]),
-                             med(bm[t][0].get(m, {"ttc": []})["ttc"]), med(bm[t][1].get(m, {"ttc": []})["ttc"])] for m in range(0, 13)} for t in tides}
+                             med(bm[t][0].get(m, {"ttc": []})["ttc"]), med(bm[t][1].get(m, {"ttc": []})["ttc"]),
+                             ush(s0, t, m), ush(s1, t, m)] for m in range(0, 13)} for t in tides}
     for m in range(1, 11):
         md.append("| %d | " % m + " | ".join("%.2f → %.2f" % (res["minute"][t][m][0], res["minute"][t][m][1]) for t in tides) + " |")
     for t in tides:
@@ -222,15 +227,17 @@ def plots(res, tides, out):
             plt.rcParams["font.sans-serif"] = [f]
             break
     plt.rcParams["axes.unicode_minus"] = False
-    ms = list(range(1, 11))
-    fig, axs = plt.subplots(1, 2, figsize=(12, 4.2))
-    for ax, idx, title in ((axs[0], 0, "清怪比中位（非终结技伤害 ÷ 新刷怪生命）"), (axs[1], 2, "同屏清空秒数中位（不靠终结技）")):
+    ms = list(range(1, 10))
+    fig, axs = plt.subplots(1, 3, figsize=(16, 4.2))
+    for ax, idx, title in ((axs[0], 0, "清怪比中位（非终结技伤害 ÷ 新刷怪生命）"), (axs[1], 2, "同屏清空秒数中位（不靠终结技）"), (axs[2], 4, "终结技占普通怪伤害")):
         for t, c in zip(tides, ("#3b7dd8", "#d8543b")):
             mm = res["minute"][t]
             ax.plot(ms, [mm[m][idx] for m in ms], "--", color=c, label="潮位 %d 关" % t)
             ax.plot(ms, [mm[m][idx + 1] for m in ms], "-", color=c, lw=2, label="潮位 %d 开" % t)
         if idx == 0:
             ax.axhline(1.0, color="#888", lw=0.8)
+        if idx == 4:
+            ax.axhline(0.1, color="#888", lw=0.8, ls=":")
         ax.axvspan(5, 9, color="#999", alpha=0.08)
         ax.set_xlabel("分钟")
         ax.set_title(title)
