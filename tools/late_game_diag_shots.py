@@ -214,7 +214,9 @@ def cmd_budget(a):
         for i, r in enumerate(sorted([r for r in rows if "L_mean" in r], key=lambda r: -r["L_mean"])):
             r["L_rank"] = i + 1
         meta = json.load(open(os.path.join(SHOT, "%s%s_s%d_full" % (a.op, TAG, a.seed), "shot_%d.json" % f)))
-        res.append({"t": meta.get("t"), "frame": f, "red_px_pct_frame": float(red.mean() * 100), "leader_scr": meta.get("leader_scr"),
+        H2, S2, V2 = _hsv(full)
+        red_all = ((H2 >= 330) | (H2 < 20)) & (S2 > 0.35) & (V2 > 0.25)
+        res.append({"t": meta.get("t"), "frame": f, "red_px_pct_frame": float(red.mean() * 100), "red_px_pct_fullframe": float(red_all.mean() * 100), "leader_scr": meta.get("leader_scr"),
                     "enemies_on": meta.get("enemies_on"), "dcrowd": meta.get("dcrowd"), "fx_dim": meta.get("fx_dim"), "layers": rows})
         Image.fromarray((full * 255).astype(np.uint8)).save(os.path.join(a.out, "budget_%s_%d.png" % (a.op, t)))
         # 红色像素图：红 / 洋红像素原色、其余压灰，直观看「红从哪来」
