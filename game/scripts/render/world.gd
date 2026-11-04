@@ -435,6 +435,8 @@ func draw_world() -> void:
 	_pk("shadows")
 	_draw_sorted_entities(evr)
 	_pk("sorted_entities")
+	if not _dbg_friend:
+		g.rfx.draw_upper()   # 放置物第二版（render/placeable_v2，docs/245）：地雷 / 轰隆隆 / 防暴桩本体与爆炸画在敌人之上
 	_draw_overlays_shield_drones()
 	_pk("shield_drones")
 	_draw_bullets()

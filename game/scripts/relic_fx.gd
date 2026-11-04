@@ -81,6 +81,9 @@ var used := {}             # 一次性触发（args.once）已用：id -> true
 var ingot_floor := 0       # 商店按售价保底（docs/218）：shop.buy 在 gain_relic 前设、后清；「立即获得源石锭」至少给这么多
 var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
 var stakes: Array = []     # 防暴桩：{pos, life}
+## 放置物第二版画法（render/placeable_v2，docs/245）：只画不改玩法
+const PlaceDraw = preload("res://scripts/render/placeable_draw.gd")
+var pdraw = null
 # ---- docs/74（用户 10-12）：吸血 / 击杀回复 / 源石锭熔铸
 var steal_used := 0.0      # 吸血：本秒已回复（未乘受治疗加成），随 sp_budget_t 每秒清零
 var kh_cnt := 0            # 击杀回复：累计击杀权重（精英 / Boss 按权重计）
@@ -920,8 +923,11 @@ func _explode_mine(mn: Dictionary) -> void:
 			g.combat.damage(e, Bal.v("relic/mine_dmg", 42.0) * g.dmg_mult * g.combat.enemy_hp_time_mult(), hd)
 			if not e.boss:
 				g.enemies_sys.apply_kb(e, (e.pos - mn.pos).normalized() * 360.0)
-	g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
-	g.vfx.sparks(mn.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
+	if PlaceDraw.on():
+		_pd().boom("mine", mn.pos)   # 第二版：暖橙爆点 + 焦痕 + 三团烟 + 地面点光（不加外扩光环）
+	else:
+		g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
+		g.vfx.sparks(mn.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
 	g.vfx.shake_screen(0.5)
 	Sfx.play("boom", -6.0, 1.0, 0.05)
 
@@ -1018,13 +1024,16 @@ func _tick_bombs(dt: float) -> void:
 		else:
 			b.pos = b.pos.move_toward(g.ppos + Vector2(0, 30), 120.0 * dt)
 		if b.life <= 0.0:
-			_area("地雷", b.pos, b.r, b.dmg * g.dmg_mult * g.combat.enemy_hp_time_mult())
+			_area("轰隆隆", b.pos, b.r, b.dmg * g.dmg_mult * g.combat.enemy_hp_time_mult())   # 11-05 起与地雷分开统计（docs/245 §4）
 			for j in g.enemies_sys.query(b.pos, b.r + 20.0):
 				var e2: Dictionary = g.enemies[j]
 				if not e2.dead and not e2.boss and e2.pos.distance_to(b.pos) < b.r + e2.r:
 					g.enemies_sys.apply_kb(e2, (e2.pos - b.pos).normalized() * 300.0)
-			g.fx.append({"kind": "explode", "pos": b.pos, "r": b.r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
-			g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
+			if PlaceDraw.on():
+				_pd().boom("bomb", b.pos)   # 第二版：薄荷白冷色震荡 + 两道静电折线 + 地面点光
+			else:
+				g.fx.append({"kind": "explode", "pos": b.pos, "r": b.r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
+				g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
 			g.vfx.shake_screen(0.5)
 			Sfx.play("boom", -6.0, 1.0, 0.05)
 	bombs = bombs.filter(func(x): return x.life > 0.0)
@@ -1118,8 +1127,23 @@ func _zone_bonus(key: String) -> float:
 	return v
 
 
+func _pd():
+	if pdraw == null:
+		pdraw = PlaceDraw.new(g)
+	return pdraw
+
+
+## 放置物第二版的敌人之上一遍（world._draw_sorted_entities 之后调用）；开关关着时什么都不画
+func draw_upper() -> void:
+	if PlaceDraw.on():
+		_pd().draw_upper(self)
+
+
 func draw() -> void:
-	for mn in mines:
+	var v2 := PlaceDraw.on()
+	if v2:
+		_pd().draw_ground(self)   # 警示虚线圈 / 影子 / 焦痕；装置本体在 draw_upper
+	for mn in (mines if not v2 else []):
 		var bl: float = 0.5 + 0.5 * sin(g.t * 8.0)
 		g.draw_set_transform(mn.pos, 0.0, Vector2(1.0, 0.6))
 		g.draw_circle(Vector2.ZERO, 9.0, Color(0.25, 0.22, 0.2))
@@ -1149,11 +1173,11 @@ func draw() -> void:
 		g.draw_line(z.pos, z.pos + Vector2(0, -54), Color(0.5, 0.4, 0.3), 2.0)
 		g.draw_colored_polygon(PackedVector2Array([z.pos + Vector2(0, -54), z.pos + Vector2(26 + wv, -46), z.pos + Vector2(0, -38)]), Color(1.0, 0.75, 0.3, 0.9))
 	# 轰隆隆：小圆身子 + 红灯
-	for b in bombs:
+	for b in (bombs if not v2 else []):
 		g.draw_circle(b.pos, 8.0, Color(0.35, 0.35, 0.4))
 		g.draw_circle(b.pos + Vector2(0, -3), 3.0, Color(1.0, 0.3 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0)), 0.3))
 	# 防暴桩：木桩
-	for s in stakes:
+	for s in (stakes if not v2 else []):
 		g.draw_rect(Rect2(s.pos + Vector2(-5, -26), Vector2(10, 30)), Color(0.55, 0.42, 0.3))
 		g.draw_rect(Rect2(s.pos + Vector2(-7, -28), Vector2(14, 5)), Color(0.85, 0.75, 0.3))
 
