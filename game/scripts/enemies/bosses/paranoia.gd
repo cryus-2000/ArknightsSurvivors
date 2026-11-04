@@ -289,7 +289,7 @@ func _decoy_pop(e: Dictionary, sl: Dictionary, dashed: bool) -> void:
 	g.fx.append({"kind": "ring", "pos": o.pos, "r": o.r * 2.0, "life": 0.45, "max": 0.45, "col": COL, "enemy": true})
 	g.vfx.sparks(o.pos, Vector2.UP, COL, 14, 160.0)
 	if dashed:
-		g.combat.enemy_hit(e.dmg * 0.3, {"boss": true, "src_type": e.type}, false, true, ["法术"], "boss_" + e.type)
+		g.combat.enemy_hit(e.dmg * 0.3, {"boss": true, "src_type": e.type}, false, true, ["近战", "法术"], "boss_" + e.type)
 		g.combat.slow_leader("paranoia_decoy", 1.0, 0.7)
 		g.vfx.add_text(o.pos + Vector2(0, -50), "幻影", Color(0.85, 0.7, 1.0), 16)
 		Sfx.play("shell_break", -8.0, 1.6, 0.0)
