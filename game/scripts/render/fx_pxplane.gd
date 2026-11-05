@@ -305,8 +305,9 @@ func _burst(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, lr: 
 func _s1_land(o, R, p: Dictionary, at: Vector2) -> void:
 	if mode() != 1:
 		return
-	R._light(o, at + Vector2(0, -8), Bal.v("fx/px_plane_s1_light_r", 160.0), Bal.v("fx/px_plane_s1_light_i", 0.7) * MI.lit_k(g), 0.15, p.light)
-	_push({"core": true, "t0": g.t + 0.06, "gp": at + Vector2(0, -12), "gy": at.y + 2.0, "ly": "up", "oid": str(o.id), "k": "", "life": 0.36})
+	var li: float = minf(0.88, Bal.v("fx/px_plane_s1_light_i", 0.65) * MI.lit_k(g))   # 打击感包开时 ×1.35，封在 docs/270 爆发类上限 0.9 以内
+	R._light(o, at, Bal.v("fx/px_plane_s1_light_r", 160.0), li, 0.15, p.light)
+	_push({"core": true, "t0": g.t + 0.06, "gp": at + Vector2(0, -12), "gy": at.y + 2.0, "ly": "up", "oid": str(o.id), "k": "", "life": 0.36, "o": o, "li": li, "at": at})
 
 
 ## 十字亮芯：第 0 拍长臂白芯，之后逐拍收短、转冰蓝；每格进 emit
@@ -318,6 +319,9 @@ func _draw_core(ci, it: Dictionary) -> void:
 	var c0: Vector2 = _snap(_gp(it))
 	var m: int = [6, 4, 3, 1][f]
 	var col := Color(1, 1, 1) if f <= 1 else Color.html("#c4dcff")
+	if f <= 2 and is_instance_valid(it.o):   # 落点灯撑到横斩落下：每帧跟一盏（0.05 秒寿命，走配方灯光预算），逐拍减弱
+		var R = load("res://scripts/render/fx_recipe.gd").of(g)
+		R._light_follow(it.o, it.at, Bal.v("fx/px_plane_s1_light_r", 160.0), float(it.li) * [1.0, 0.85, 0.6][f], R.pal(it.o).light)
 	for i in range(-m, m + 1):
 		for q in ([Vector2(i, 0)] if i == 0 else [Vector2(i, 0), Vector2(0, i)]):
 			var pp: Vector2 = _snap(c0 + q * px)
