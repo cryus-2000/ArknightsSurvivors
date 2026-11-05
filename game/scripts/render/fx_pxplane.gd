@@ -2411,7 +2411,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			if mode() == 1 and not lst.is_empty():
 				var hp: Vector2 = lst[0].pos + Vector2(0, -float(lst[0].r) * 0.5)
 				for i in mini(2, lst.size()):   # docs/270：命中帧要量得出核心辉光——命中点一小撮白芯进 emit（2 拍）
-					_push({"k": "", "mzhot": true, "t0": g.t, "gp": _snap(lst[i].pos + Vector2(0, -float(lst[i].r) * 0.55)), "ly": "gd", "oid": str(o.id), "life": 2.0 / 15.0})
+					_push({"k": "", "mzhot": true, "t0": g.t, "gp": _snap(lst[i].pos + Vector2(0, -float(lst[i].r) * 0.55)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0})
 				R._grains(o, hp, float(lst[0].pos.y) + 2.0, "ink", 4 + (1 if t >= 2 else 0), {"tier": t}, (hp - o.pos).normalized())   # docs/270：每次挥伞 4–5 颗（原来伞击 + 每根触手各撒，一簇 13 颗）
 				R._light(o, hp, 100.0, 0.4 * MI.lit_k(g), 0.12, p.light)
 		"mz_tent":
@@ -2435,7 +2435,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_mz_tent(o, {"pos": at, "r": 10.0, "boss": true}, at, _mz_tk("pierce", t), raw, t, 0.0)
 			if mode() == 1:
 				R._grains(o, at + Vector2(0, -18), at.y, "ink", 3, {"tier": t})   # docs/270：三团合一簇 ≤ 16（伞击 4–5 + 3 × 3）
-				_push({"k": "", "mzhot": true, "t0": g.t, "gp": _snap(at + Vector2(0, -16)), "ly": "gd", "oid": str(o.id), "life": 2.0 / 15.0})
+				_push({"k": "", "mzhot": true, "t0": g.t, "gp": _snap(at + Vector2(0, -16)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0})
 				R._light(o, at + Vector2(0, -14), 140.0, 0.55 * MI.lit_k(g), 0.14, p.light)
 		"mz_sting":   # 深蓝之籽蛰中：一朵紫色小水母
 			var e2: Dictionary = d.get("e", {})
@@ -2510,12 +2510,13 @@ func _mz_draw_floor(o) -> void:
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
 
 
-## 命中白芯：只进发光层（十字 5 点 + 第 0 拍外圈 4 点，emit 预算内），不画色层——色层的亮由水母绽开那一帧自己画
+## 命中白芯：只进发光层（4 拍：十字 + 斜角，逐拍收小变淡，emit 预算内），不画色层——色层的亮由水母绽开那一帧自己画；
+## docs/270 复测：体检挑的命中帧在出手后约 0.2 秒，2 拍白芯已熄（辉光面积 8），延到 4 拍
 func _mz_hot(it: Dictionary) -> void:
 	if not g.optical_on:
 		return
 	var f: int = frame_of(float(it.t0))
-	if f < 0 or f > 1:
+	if f < 0 or f > 3:
 		return
 	var fr: int = Engine.get_process_frames()
 	if fr != _emit_frame:
@@ -2523,9 +2524,9 @@ func _mz_hot(it: Dictionary) -> void:
 		_emit_n = 0
 	var px: float = g.PX
 	var c0: Vector2 = it.gp
-	var k: float = minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * MI.lit_k(g) * (1.0 if f == 0 else 0.7))
-	var pts: Array = [Vector2.ZERO, Vector2(px, 0), Vector2(-px, 0), Vector2(0, px), Vector2(0, -px)]
-	if f == 0:
+	var k: float = minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * MI.lit_k(g) * [1.0, 0.9, 0.75, 0.55][f])
+	var pts: Array = [Vector2.ZERO, Vector2(px, 0), Vector2(-px, 0), Vector2(0, px), Vector2(0, -px), Vector2(px, px), Vector2(-px, px), Vector2(px, -px), Vector2(-px, -px)]
+	if f <= 1:
 		pts += [Vector2(px * 2, 0), Vector2(-px * 2, 0), Vector2(0, px * 2), Vector2(0, -px * 2)]
 	for q in pts:
 		if _emit_n >= EMIT_CAP:
