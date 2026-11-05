@@ -338,6 +338,55 @@ function bell(p, cx, cy, R, C, X, body, rim, top, k) {
   });
 }
 
+// 海月水母（11-05 用户「水月的水母应该是海月水母」）：扁平的碟形伞、半透明；伞里四个马蹄形生殖腺环（海月的招牌）；
+// 伞沿一圈细短的缘须；中央垂下四条带褶边的短口腕（不是长垂须）。俯视斜角看：伞顶在上、伞沿略往下垂、生殖腺环按 3/4 视角压扁。
+// cfg：body 伞体色、alpha 伞体透明度（真半透明，不抖动）、rim 伞缘 / 轮廓色、top 伞顶高光、gon 生殖腺环色、arm 口腕色、armK 口腕长 / R、
+//      outline 只剩轮廓 + 生殖腺（消散那两拍）、ph 口腕摆动相位、fringe 缘须
+function aurelia(p, cx, cy, R, C, X, cfg) {
+  const hh = Math.max(2, R * 0.46), sag = R * 0.08;
+  const topY = (u) => cy - hh * Math.pow(Math.max(0, 1 - u * u), 0.6);
+  const botY = (u) => cy + sag * (1 - u * u);
+  // 伞体
+  for (let x = -R; x <= R; x++) {
+    const u = x / R, y0 = R0(topY(u)), y1 = R0(botY(u));
+    for (let y = y0; y <= y1; y++) {
+      const edge = y === y0 || y === y1 || Math.abs(x) >= R - 0.5;
+      if (edge) { p.px(R0(cx + x), y, cfg.rim); continue; }
+      if (cfg.outline) continue;
+      const hi = y <= y0 + 1 && u < -0.1 && u > -0.65;            // 伞顶左侧一道高光
+      if (hi) p.px(R0(cx + x), y, cfg.top);
+      else p.blend(R0(cx + x), y, cfg.body, cfg.alpha);
+    }
+  }
+  // 四个马蹄形生殖腺环（环口朝中心）
+  const gy = cy - hh * 0.42, rgx = R * 0.3, rgy = hh * 0.42, rh = Math.max(0.8, R * 0.16);   // 四环成苜蓿形（上下左右各一，3/4 视角压扁）
+  for (let k = 0; k < 4; k++) {
+    const a = (k / 4) * TAU, gx = cx + Math.cos(a) * rgx, gyy = gy + Math.sin(a) * rgy;
+    if (rh < 1.2) { p.px(R0(gx), R0(gyy), cfg.gon); continue; }
+    for (let b = 0; b < TAU; b += 0.35 / rh) {
+      const rel = ((b - (a + Math.PI)) % TAU + TAU) % TAU;
+      if (rel < 0.6 || rel > TAU - 0.6) continue;                 // 环口朝中心（马蹄形）
+      p.px(R0(gx + Math.cos(b) * rh), R0(gyy + Math.sin(b) * rh * 0.7), cfg.gon);
+    }
+  }
+  // 缘须：伞沿一圈细短须
+  if (cfg.fringe !== false) for (let x = -R + 1; x <= R - 1; x++) {
+    const u = x / R, y = R0(botY(u)) + 1, L = R >= 8 ? 1 + ((x + 9) % 2) : 1;
+    for (let s = 0; s < L; s++) p.px(R0(cx + x), y + s, s ? C[4] : cfg.rim);
+  }
+  // 口腕：中央四条带褶边的短腕
+  const ph = cfg.ph || 0, L = Math.max(2, R * (cfg.armK || 0.7));
+  for (let i = 0; i < 4; i++) {
+    const x0 = cx + (i / 3 - 0.5) * R * 0.5;
+    for (let s = 1; s <= L; s++) {
+      const x = x0 + Math.sin(s * 0.6 + i * 1.7 + ph) * (0.6 + s / L);
+      const y = botY(0) + s;
+      p.px(R0(x), R0(y), cfg.arm);
+      if (R >= 9 && s % 3 === 1) p.px(R0(x + (i < 2 ? -1 : 1)), R0(y), cfg.outline ? C[3] : cfg.rim);   // 褶边
+    }
+  }
+}
+
 function bloom(p, t, o, C, X) {
   const el = +o.el, n = C.length, st = o.style || "hit", raw = o.view === "raw";
   const R = +o.R;
@@ -358,27 +407,10 @@ function bloom(p, t, o, C, X) {
   const rise = [0, 0, 1, 3, 5, 7][f], Rk = R * [0, 0.85, 1.0, 1.0, 0.95, 0.9][f];
   const cy = cy0 - rise;
   const dim = f >= 4;
-  bell(p, 0, cy, Rk, C, X, dim ? C[4] : cyan, dim ? C[3] : cyanL, dim ? C[5] : WHITE, { outline: f >= 4 });
-  // 精二四瓣花纹
-  if (el >= 2 && f >= 1 && f <= 4) {
-    const pr = Rk * 0.42;
-    for (let a = 0; a < TAU; a += 0.06) {
-      const rr = pr * Math.abs(Math.cos(2 * a));
-      p.px(R0(Math.cos(a) * rr), R0(cy - Rk * 0.32 + Math.sin(a) * rr * 0.75), f >= 3 ? C[5] : X.ac);
-    }
-  }
-  // 细须：伞下往下飘（精一起更多更长）
-  if (f >= 2) {
-    const ns = (st === "burst" ? 6 : 3) + el;
-    for (let i = 0; i < ns; i++) {
-      const x0 = (i / Math.max(1, ns - 1) - 0.5) * Rk * 1.5;
-      const L = Rk * (0.7 + 0.25 * el) * (st === "burst" ? 1.4 : 1) * (1 - 0.25 * (f - 2));
-      for (let s = 1; s <= L; s++) {
-        if (f >= 4 && (s + i) % 2) continue;
-        p.px(R0(x0 + Math.sin(s * 0.55 + i * 1.7 + f) * 1.2), R0(cy + 2 + s), s < L * 0.4 ? (dim ? C[4] : cyan) : (el >= 2 ? X.ac : C[4]));
-      }
-    }
-  }
+  // 海月水母：精零 / 精一生殖腺淡紫白，精二荧光紫（发光）；唤醒的大水母口腕更长
+  const gon = el >= 2 || st === "sting" ? X.ac : C[5];
+  aurelia(p, 0, cy, Rk, C, X, { body: dim ? C[4] : cyan, alpha: dim ? 0.4 : 0.62, rim: dim ? C[3] : cyanL, top: WHITE, gon: dim && el < 2 ? C[4] : gon,
+    arm: dim ? C[3] : (st === "burst" ? cyanL : C[5]), armK: (st === "burst" ? 0.85 : 0.6) + 0.1 * el, outline: f >= 4, ph: f * 1.1 });
   if (raw) p.light(0, cy - Rk * 0.3, cyan, 0.6 * (1 - f / 6));
 }
 
@@ -532,18 +564,8 @@ function moon(p, t, o, C, X, gd) {
   if (t > 0.6) return;
   const Rb = 18 + 3 * Math.sin(t * 18);
   const dim = t > 0.38;
-  bell(p, 0, -rise, Rb, C, X, dim ? C[4] : X.cy, dim ? X.ac : X.cyL, WHITE, { outline: t > 0.47 });
-  for (let a = 0; a < TAU; a += 0.04) {   // 伞里四瓣花纹
-    const rr = Rb * 0.45 * Math.abs(Math.cos(2 * a));
-    p.px(R0(Math.cos(a) * rr), R0(-rise - Rb * 0.3 + Math.sin(a) * rr * 0.75), X.ac);
-  }
-  for (let i = 0; i < 9; i++) {
-    const x0 = (i / 8 - 0.5) * Rb * 1.6, L = 30 + 12 * nz(i * 1.7, +o.seed + 103);
-    for (let s = 1; s <= L; s++) {
-      if (t > 0.45 && (s + i) % 2) continue;
-      p.px(R0(x0 + Math.sin(s * 0.3 + i * 1.3 + t * 12) * 2), R0(-rise + 2 + s), s < 8 ? X.cy : i % 2 ? X.ac : C[4]);
-    }
-  }
+  aurelia(p, 0, -rise, Rb + 4, C, X, { body: dim ? C[4] : X.cy, alpha: dim ? 0.4 : 0.6, rim: dim ? X.ac : X.cyL, top: WHITE, gon: X.ac,
+    arm: dim ? C[4] : X.cyL, armK: 1.25, outline: t > 0.47, ph: t * 12 });   // 一只大海月水母浮起（四个荧光紫生殖腺环、长褶口腕）
   if (f === 0) for (let i = 0; i < 12; i++) {   // 起手一闪
     const a = (i / 12) * TAU, L = 20 + 10 * nz(i, +o.seed + 105);
     for (let d = 4; d <= L; d += 0.5) p.px(R0(Math.cos(a) * d), R0(-14 + Math.sin(a) * d * 0.7), d < 10 ? WHITE : X.cyL);
@@ -580,12 +602,7 @@ function jelly(p, t, o, C, X) {
   const f = Math.floor(t * 15 + 1e-6) % 6, el = +o.el, R = +o.R;
   const pul = [0, 1, 1.5, 1, 0.3, -0.3][f];
   const Rw = R + pul * 0.6, cy = -(+o.H0);
-  bell(p, 0, cy, Rw, C, X, C[6], X.ac, WHITE, { outline: false });
-  p.px(0, R0(cy - Rw * 0.35), X.ac);                          // 伞里一点荧光芯
-  for (let i = 0; i < 4; i++) {
-    const x0 = (i / 3 - 0.5) * Rw * 1.2, L = R * 1.6 - (i % 2);
-    for (let s = 1; s <= L; s++) p.px(R0(x0 + Math.sin(s * 0.7 + i * 1.9 + f * 1.05) * 0.9), R0(cy + 1 + s), s < 3 ? C[5] : i % 2 ? X.ac : C[4]);
-  }
+  aurelia(p, 0, cy, Rw + 1, C, X, { body: C[6], alpha: 0.7, rim: C[5], top: WHITE, gon: X.ac, arm: C[5], armK: 1.0, ph: f * 1.05 });   // 小海月水母
 }
 
 // 唤醒充能好：脚下一圈断续青色小环（循环，一亮一暗）
