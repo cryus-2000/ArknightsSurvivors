@@ -1514,11 +1514,45 @@ func _lg_pool(ci, l: Dictionary) -> void:
 
 ## 延异视阈咒域（原作 range_01；11-05 第三轮用户「改成渐变填充」「符文条太直」）：
 ## 填充 = 亮蓝边缘往中心渐暗（7 阶，最浓 α 0.38，怪透得出来），每个美术像素按 interleaved gradient noise 抖动取相邻两阶，不出平涂色带；
-## 外边 2 格亮边保留；域内随机冒出短符文段（第六轮：每段 3–5 字弯成小弧，逐字淡入、留约 0.5 秒、逐字淡出，同屏至多 6 段）；每跳外边亮一拍
+## 外边 2 格亮边保留；域内随机冒出咒文段（第七轮：每段 6–10 字各走各的曲线，一个个写出来再扭一下，停 0.8–1.2 秒后逐字褪去，段尾细丝 + 墨点，部分字暗紫辉光，同屏至多 4 段）；每跳外边亮一拍
 const LG_FILL := [[Color("#0b0d22"), 0.34], [Color("#161c3e"), 0.34], [Color("#28355f"), 0.32], [Color("#495694"), 0.33],
 	[Color("#6a78ca"), 0.36], [Color("#8c99ff"), 0.38], [Color("#b4bdff"), 0.38]]
-const LG_SEG_N := 6   # 随机符文段同屏上限
-const LG_SEG_P := 1.25   # 每段一轮的秒数（出现 ≈ 0.9 秒 + 空档）
+const LG_SEG_N := 4   # 咒文段同屏上限（第七轮：段变长，段数从 6 减到 4）
+const LG_SEG_P := 2.1   # 每段一轮的秒数（书写 ≈ 0.4–0.6 秒 + 停 0.8–1.2 秒 + 褪去）
+const LG_GLOW := Color("#6a4fc0")   # 咒文暗紫辉光（进发光层）
+
+
+## 一段咒文的曲线（扇形平面坐标、美术像素、未压扁）：龟形走法每步 4 像素，转角按类型给——0 螺旋收拢 / 1 波浪起伏 / 2 弯钩 / 3 往外甩。
+## 返回 [Vector3(x, y, 朝向)]，6–10 个
+func _lg_seg_path(sd: int, rc: float, fa: float, half: float) -> Array:
+	var typ: int = int(_lg_h(sd + 9) * 4.0)
+	var n: int = 6 + int(_lg_h(sd + 3) * 5.0)
+	var af: float = (_lg_h(sd + 1) * 2.0 - 1.0) * 0.8
+	var rf: float = 0.30 + 0.5 * _lg_h(sd + 2)
+	var a0: float = fa + half * af
+	var x: float = cos(a0) * rc * rf
+	var y: float = sin(a0) * rc * rf
+	var head: float = a0 + (PI / 2.0 if _lg_h(sd + 5) < 0.5 else -PI / 2.0) + (_lg_h(sd + 6) - 0.5) * 0.8
+	if typ == 3:
+		head = a0 + (_lg_h(sd + 6) - 0.5) * 0.6
+	var sg: float = 1.0 if _lg_h(sd + 7) < 0.5 else -1.0
+	var out: Array = []
+	for j in n:
+		out.append(Vector3(x, y, head))
+		var k: float
+		match typ:
+			0:
+				k = sg * (0.28 + 0.05 * j)
+			1:
+				k = 0.55 * sin(j * 1.1 + sd) * sg
+			2:
+				k = 0.05 * sg if j < n * 0.5 else 0.62 * sg
+			_:
+				k = 0.10 * sg
+		head += k
+		x += cos(head) * 4.0
+		y += sin(head) * 4.0
+	return out
 var _lg_fill_tex := {}
 
 
@@ -1607,40 +1641,55 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 			if (i / 3) % 3 == 2:
 				continue
 			ci.draw_rect(Rect2(_snap(c + dn * float(i) * px), Vector2(px, px)), Color(LG_C[3].r, LG_C[3].g, LG_C[3].b, 0.8 * fade))
-	# 随机符文段（11-05 第六轮用户「符文条改成随机出现在位置然后消失」）：同屏至多 LG_SEG_N 段；每段 3–5 个细字弯成一小段弧，
-	# 逐字淡入 → 留约 0.5 秒 → 逐字淡出，空一会儿再在别处冒出来。位置 / 字数 / 弯度按「段号 + 第几轮」固定种子取伪随机（不抽画面随机流、不每帧乱跳），
-	# 时间一律按 15 fps 拍子取；位置相对扇形朝向定，咒域转向时跟着转
+	# 咒文段（11-05 第七轮用户「长一点没关系，要有咒术和巫术的感觉，每个字可以用不同的曲线」）：同屏至多 LG_SEG_N 段，每段 6–10 个细字，
+	# 各走各的曲线（螺旋收拢 / 波浪起伏 / 弯钩 / 往外甩）；字一个个被写出来（第一拍白），写出后自己扭一下；停 0.8–1.2 秒后从头到尾逐字褪去；
+	# 写完时段尾拖出一道细丝和三点墨；每三个字一个带暗紫辉光（进光学发光层）。位置 / 曲线按「段号 + 第几轮」固定种子取，时间按 15 fps 拍子取
 	if open > 0.5:
 		var tb: float = floor(g.t * 15.0) / 15.0
 		for ks in LG_SEG_N:
-			var P: float = LG_SEG_P + 0.17 * float(ks % 3)
+			var P: float = LG_SEG_P + 0.23 * float(ks % 3)
 			var lt0: float = tb + P * float(ks) / LG_SEG_N
 			var cyc: int = int(floor(lt0 / P))
 			var lt: float = lt0 - float(cyc) * P
-			if lt > 0.9:
-				continue
 			var sd: int = ks * 977 + cyc * 131
-			var af: float = (_lg_h(sd + 1) * 2.0 - 1.0) * 0.85   # 扇形内的角位置（× 半角）
-			var rf: float = 0.32 + 0.58 * _lg_h(sd + 2)   # 半径位置（× 当前半径）
-			var nch: int = 3 + int(_lg_h(sd + 3) * 3.0)
-			var bend: float = (_lg_h(sd + 4) - 0.5) * 0.9   # 弯度：沿弧再多弯一点（美术像素 / 字²）
-			var rad0: float = rc * rf
-			for j in nch:
-				var tin: float = 0.04 * j   # 逐字淡入
-				var tout: float = 0.62 + 0.05 * j   # 逐字淡出（从头到尾）
-				if lt < tin or lt > tout + 0.1:
+			var path: Array = _lg_seg_path(sd, rc, fa, half)
+			var nseg: int = path.size()
+			var hold: float = 0.8 + 0.4 * _lg_h(sd + 8)
+			for j in nseg:
+				var tin: float = 0.06 * j
+				var tout: float = 0.06 * nseg + hold + 0.05 * j
+				if lt < tin or lt > tout + 0.12:
 					continue
-				var al2: float = minf(1.0, (lt - tin) / 0.1) * clampf(1.0 - (lt - tout) / 0.1, 0.0, 1.0)
-				if al2 < 0.25:
+				var pj: Vector3 = path[j]
+				var ang: float = atan2(pj.y, pj.x)
+				if Vector2(pj.x, pj.y).length() > rc * 0.97 or absf(wrapf(ang - fa, -PI, PI)) > half * 0.95:
 					continue
-				var sj: float = (float(j) - float(nch - 1) * 0.5) * 4.0
-				var rj: float = rad0 + bend * (float(j) - float(nch - 1) * 0.5) * (float(j) - float(nch - 1) * 0.5)
-				var aj: float = fa + half * af + sj / maxf(rj, 1.0)
-				if rj < 10.0 or absf(wrapf(aj - fa, -PI, PI)) > half * 0.95:
-					continue
-				var gc: Color = LG_AC if (j + ks + cyc) % 4 == 0 else LG_C[5]
+				var al2: float = clampf(1.0 - (lt - tout) / 0.12, 0.0, 1.0)
+				var age: float = lt - tin
+				var wig: float = round(sin(age * 22.0) * 1.2) if age < 0.27 else 0.0   # 写出来后自己扭一下
+				var gq := Vector2(pj.x - sin(pj.z) * wig, (pj.y + cos(pj.z) * wig) * LG_SY)
+				var glow: bool = (j + sd) % 3 == 0
+				var gc: Color = LG_C[6] if age < 1.0 / 15.0 else (LG_AC if glow else LG_C[5])
 				gc.a = fade * al2
-				_lg_glyph(ci, c + Vector2(cos(aj) * rj, sin(aj) * rj * LG_SY) * px, sd + j * 3, gc)
+				var gp: Vector2 = c + gq * px
+				_lg_glyph(ci, gp, sd + j * 3, gc)
+				if glow and age >= 1.0 / 15.0 and al2 > 0.5:
+					_glow(gp, LG_GLOW)
+					_glow(gp + Vector2(0, -2.0 * px), LG_GLOW)
+			# 段尾细丝 + 三点墨
+			var tdone: float = 0.06 * nseg
+			var toutn: float = 0.06 * nseg + hold + 0.05 * nseg
+			if lt >= tdone and lt <= toutn + 0.12 and nseg > 0:
+				var al3: float = minf(1.0, (lt - tdone) / 0.1) * clampf(1.0 - (lt - toutn) / 0.12, 0.0, 1.0) * fade
+				var pe: Vector3 = path[nseg - 1]
+				var hv := Vector2(cos(pe.z), sin(pe.z))
+				for k3 in range(1, 7):
+					var q3: Vector2 = Vector2(pe.x, pe.y) + hv * float(3 + k3) + Vector2(0, sin(k3 * 0.9) * 0.8)
+					ci.draw_rect(Rect2(_snap(c + Vector2(q3.x, q3.y * LG_SY) * px), Vector2(px, px)), Color(LG_C[2].r, LG_C[2].g, LG_C[2].b, al3 * (1.0 - k3 / 8.0)))
+				var dd: Array = [9.0, 11.5, 13.5]
+				for k4 in 3:
+					var q4: Vector2 = Vector2(pe.x, pe.y) + hv * float(dd[k4]) + Vector2(0, (k4 - 1) * 0.8)
+					ci.draw_rect(Rect2(_snap(c + Vector2(q4.x, q4.y * LG_SY) * px), Vector2(px, px)), Color(LG_INK[1].r, LG_INK[1].g, LG_INK[1].b, al3))
 	var R2 = load("res://scripts/render/fx_recipe.gd").of(g)
 	R2._light_follow(o, c + Vector2(cos(fa), sin(fa) * LG_SY) * rr * 0.6, rr * 0.9, (0.45 if pulse else 0.25) * fade, LG_C[3])
 
