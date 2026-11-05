@@ -1,0 +1,9 @@
+784	s1win45/angelina_atk.json
+893447	s1win45/angelina_atk.png
+31233	s1win45/angelina_atk_A.log
+140828	s1win45/angelina_atk_x2.png
+777	s1win45/angelina_s1.json
+896332	s1win45/angelina_s1.png
+31393	s1win45/angelina_s1_A.log
+157478	s1win45/angelina_s1_x2.png
+1665	s1win45/audit_angelina.json
