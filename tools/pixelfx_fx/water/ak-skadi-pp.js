@@ -358,40 +358,81 @@ function pool(p, t, o, C, ACC) {
 }
 
 // 水柱：从地面竖直冲起、冠部碎开、回落；raw 同形（旧做法的差别在游戏里的贴法）
-function splash(p, t, o, C, ACC) {
-  const Hm = +o.H, R = +o.R, el = +o.el, n = C.length;
-  const rise = ease.outCubic(clamp(t / 0.09)), fall = ease.inQuad(clamp((t - 0.16) / 0.26));
-  const h = Hm * rise * (1 - fall);
-  if (h < 1) return;
-  const wB = R * 0.32 * (0.7 + 0.3 * rise) * (1 + fall * 0.6);   // 底宽（回落时摊开）
-  const hot = t > 0.05 && t < 0.12;
-  const cols = el >= 2 ? 3 : el >= 1 ? 2 : 1;   // 精一两股、精二三股（形状差）
-  for (let k = 0; k < cols; k++) {
-    const side = cols === 1 ? 0 : (k / (cols - 1) - 0.5) * 2;   // -1 左股 / 0 中 / 1 右股
-    const mid = Math.abs(side) < 0.01;
-    const hk = h * (mid ? 1 : 0.62);
-    for (let y = 0; y >= -hk; y--) {
-      const u = -y / Math.max(1, hk);                       // 0 底 → 1 顶
-      const off = side * wB * (0.45 + 0.9 * u);             // 侧股往外斜（精一 / 精二的形状差）
-      const half = wB * (mid ? 1 : 0.5) * (1 - 0.55 * u) * (0.85 + 0.25 * nz(y * 0.3 + k * 9, o.seed + 3 + Math.floor(t * 20)));
-      for (let x = Math.round(off - half); x <= Math.round(off + half); x++) {
-        const s = (x - off) / Math.max(1, half);            // -1 左 → 1 右（光从左上来）
-        let ci = s < -0.55 ? n - 2 : s < 0.1 ? n - 3 : s < 0.6 ? n - 4 : n - 6;
-        if (u > 0.82) ci = n - 1;                           // 冠部白沫
-        if (hot && Math.abs(s) < 0.4) ci = n - 1;
-        ci = clamp(ci - Math.round(fall * 2), 1, n - 1);
-        let col = C[ci];
-        if (el >= 2 && Math.abs(s) < 0.25 && u > 0.2 && u < 0.7 && !hot) col = ACC;
-        p.px(x, y, col);
-      }
-    }
-    // 冠部碎开的几粒（贴着冠）
-    const offT = side * wB * 1.35;
-    if (rise > 0.8) for (let i = 0; i < 5; i++) {
-      const a = -Math.PI / 2 + (i - 2) * 0.5, d = 3 + 6 * smooth(0.08, 0.3, t);
-      p.px(Math.round(offT + Math.cos(a) * d * 1.4), Math.round(-hk + Math.sin(a) * d - 1 + fall * 10), C[n - 1 - (i % 2)]);
+// 水花冠（11-05 用户实机「斯卡蒂的这个要不要修改一下」：原来是实心锥柱、锯齿边，看着像冰块不像水，块面太大）：
+// 底部一圈压扁的白沫 → 中间往上溅出 3–5 簇高低不一的水舌（精零 3、精一 4、精二 5），主体半透明海蓝、只有舌尖是白芯 →
+// 舌尖碎成水滴往外落 → 0.4 秒左右整冠塌下去。宽度按 R（判定半径）封顶：水舌散布 ≤ 0.5R，白沫圈 ≤ 0.6R。终结技劈浪水柱同一画法（ak-skadi-ult-pp.js crown）。
+export function crown(p, t, C, ACC, k) {
+  // k：{x, y 底部中心（画布坐标）, W 半宽上限, H 最高水舌高, m 水舌数, SY, seed, raw}
+  const n = C.length, W = k.W, Hm = k.H, m = k.m, sd = k.seed, SY = k.SY;
+  if (t < 0 || t > 0.5) return;
+  const grow = ease.outCubic(clamp(t / 0.12)), fade = smooth(0.18, 0.44, t);
+  // ① 底部一圈压扁白沫（断续，往外摊开、变稀）
+  const rr = W * (0.35 + 0.25 * grow + 0.15 * fade);
+  for (let a = 0; a < TAU; a += 0.9 / rr) {
+    const q = nz(a * 4.3, sd + 201);
+    if (q < 0.25 + 0.65 * fade) continue;
+    const x = k.x + Math.cos(a) * rr, y = k.y + Math.sin(a) * rr * SY * 0.6;
+    const back = Math.sin(a) < 0;
+    p.dot(Math.round(x), Math.round(y), q > 0.8 && !back ? WHITE : C[n - 2], back ? 0.55 : 0.9);
+    if (q > 0.7) p.dot(Math.round(x + Math.cos(a)), Math.round(y), C[n - 3], 0.6);
+  }
+  // ①′ 根部水裙：几股水舌在底下连成一片（半透明海蓝，上沿起伏），0.2 秒后往下塌
+  const sk = Hm * 0.26 * grow * (1 - smooth(0.12, 0.34, t));
+  if (sk >= 1) for (let x = -W * 0.48; x <= W * 0.48; x += 0.5) {
+    const e = 1 - Math.pow(Math.abs(x) / (W * 0.48), 2);
+    const hz = sk * e * (0.6 + 0.4 * nz(x * 0.15, sd + 231));
+    for (let z = 0; z <= hz; z += 0.5) {
+      const q = z / Math.max(1, hz);
+      if (nz(x * 0.9 + z * 0.7, sd + 233) < 0.12 + 0.3 * q) continue;
+      p.dot(Math.round(k.x + x), Math.round(k.y - z), q > 0.8 ? C[n - 2] : x < 0 ? C[n - 3] : C[n - 4], 0.6 * (1 - 0.6 * fade));
     }
   }
+  // ② 水舌：每簇根部在白沫圈里、往上（略往外斜）溅，高低不一；先冲上去，0.18 秒后从下往上塌
+  for (let j = 0; j < m; j++) {
+    const f = m === 1 ? 0 : (j / (m - 1) - 0.5) * 2;
+    const bx = k.x + f * W * 0.42 + (nz(j * 3.1, sd + 203) - 0.5) * W * 0.18;
+    const by = k.y + (nz(j * 5.3, sd + 205) - 0.5) * W * 0.3 * SY;
+    const hj = Hm * (j === Math.floor(m / 2) ? 1 : 0.45 + 0.4 * nz(j * 7.7, sd + 207));
+    const dl = 0.03 * nz(j * 2.9, sd + 209);
+    const tj = t - dl;
+    if (tj <= 0) continue;
+    const up = ease.outCubic(clamp(tj / 0.11)), col = smooth(0.17, 0.4, tj);
+    const top = hj * up * (1 - 0.35 * col), bot = hj * 0.85 * col;          // 塌：根部先断、整股往下缩
+    const lean = (f * 0.35 + (nz(j * 1.7, sd + 211) - 0.5) * 0.3);           // 往外斜
+    const wb = Math.max(2, W * 0.2 * (0.75 + 0.45 * nz(j * 4.1, sd + 213)));   // 水舌要有水量（太细像触须，用户否过）
+    for (let z = bot; z <= top; z += 0.5) {
+      const u = z / Math.max(1, hj), ut = (z - bot) / Math.max(1, top - bot);
+      const half = wb * (1 - 0.7 * Math.pow(u, 1.6)) * (0.85 + 0.3 * nz(z * 0.35 + j * 9, sd + 215 + Math.floor(t * 15)));
+      const cx = bx + lean * z + Math.sin(z * 0.25 + j) * 0.8;
+      for (let x = -half; x <= half; x += 0.5) {
+        const s = x / Math.max(0.5, half);
+        const tip = ut > 0.82 && top - z < 5;
+        if (!tip && nz(z * 0.6 + x * 1.3 + j * 5, sd + 217) < 0.07 + 0.4 * col + 0.25 * Math.pow(Math.abs(s), 3)) continue;   // 水里有孔，不成实心块
+        let c = C[n - 4], al = 0.62;
+        if (s < -0.45) { c = C[n - 3]; al = 0.72; }                         // 迎光一侧亮一阶
+        if (s > 0.55) { c = C[n - 5]; al = 0.5; }
+        if (tip) { c = WHITE; al = 1; }                                       // 白芯只在舌尖
+        else if (ut > 0.65 && Math.abs(s) < 0.3) { c = k.raw ? C[n - 2] : ACC; al = 0.8; }
+        p.dot(Math.round(cx + x), Math.round(by - z), c, al * (1 - 0.6 * fade));
+      }
+    }
+    // ③ 舌尖碎成水滴往外落（每簇 3–4 颗，2 格，落到底就没）
+    for (let i = 0; i < 4; i++) {
+      const u = tj - 0.1 - 0.04 * nz(j * 3 + i, sd + 219);
+      if (u <= 0 || (i === 3 && m < 4)) continue;
+      const ang = (f + (nz(j * 7 + i, sd + 221) - 0.5) * 1.6), v = 30 + 35 * nz(j * 11 + i, sd + 223);
+      const x = bx + lean * hj + Math.sin(ang) * v * u, z = hj * 0.95 + (20 + 25 * nz(i + j, sd + 225)) * u - 260 * u * u;
+      if (z < 0) continue;
+      const c = u < 0.06 ? WHITE : u < 0.16 ? C[n - 2] : C[n - 3];
+      p.dot(Math.round(x), Math.round(by - z), c, 0.95);
+      p.dot(Math.round(x), Math.round(by - z) + 1, C[n - 4], 0.7);
+    }
+  }
+}
+
+function splash(p, t, o, C, ACC) {
+  const el = +o.el, raw = o.view === "raw";
+  crown(p, t, C, ACC, { x: 0, y: 0, W: +o.R * 0.5, H: +o.H, m: 3 + Math.min(2, el), SY: raw ? 1 : +o.SY, seed: +o.seed * 7 + 31, raw });
 }
 
 // 贴地冲击环 / 积水：边一圈 + 内侧淡渐变（抖动），不平涂；边沿不规整；raw = 正圆
