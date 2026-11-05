@@ -292,9 +292,9 @@ def steam():
 
 
 # ---------------------------------------------------------------- 运行时件（游戏里 fx_pxplane_exu.gd 逐格画，这里是同一算法的 Python 版）
-B_LEN = {"n": [12, 14, 16], "s1": [14, 16, 18], "s2": [10, 11, 12], "s3": [12, 13, 14], "g": [12, 14, 16], "t1": [13, 14, 16], "t2": [13, 14, 16], "t3": [13, 14, 16],
-         "tr": [20, 20, 20], "x": [8, 8, 8]}
-B_CORE = [3, 4, 5]   # 白热芯长度（美术像素），按精英档
+# 11-05 第四轮（用户「还是以肉鸽的可视化为优先级最高」）：高可读光弹——弹身 B 格（3 宽 + 一圈光晕描边）+ 亮尾 T 格
+B_BODY = {"n": [6, 7, 8], "s1": [8, 8, 9], "s2": [5, 6, 6], "s3": [7, 7, 8], "g": [7, 8, 8], "t1": [6, 7, 8], "t2": [6, 7, 8], "t3": [6, 7, 8], "tr": [8, 8, 8], "x": [4, 4, 4]}
+B_TAIL = {"n": [8, 10, 12], "s1": [10, 12, 14], "s2": [6, 7, 8], "s3": [8, 10, 12], "g": [8, 10, 12], "t1": [9, 10, 12], "t2": [9, 10, 12], "t3": [9, 10, 12], "tr": [16, 16, 16], "x": [5, 5, 5]}
 
 
 def bullet_kind(tex):
@@ -303,36 +303,54 @@ def bullet_kind(tex):
             "proj_exusiai_bullet_power": "g", "proj_exusiai_bullet_t1": "t1", "proj_exusiai_bullet_t2": "t2", "proj_exusiai_bullet_t3": "t3"}.get(tex, "n")
 
 
+def bullet_px(kind, tier, d, small=False, tracer=False):
+    """光弹的像素表：[(x, y, 色阶序号 或 "rim", 是否进发光层)]，原点 = 弹头。按弹道坐标扫像素格分类（任意方向都不漏洞）：
+    a = 沿弹道往后的距离、c = 横向偏移；弹身 a∈[-0.5, B-0.5]、c∈[-1.5, 1.5 + (wide-1)]（两头各收窄 1）；外扩 1 格是光晕描边；
+    亮尾 a∈(B-0.5, B+T-0.5]，|c|<0.5（前 3 格 |c|<1.5）。游戏里 fx_pxplane_exu._bul_px 同一算法（按 32 个方向缓存）"""
+    key = "tr" if tracer else ("x" if small else kind)
+    B = B_BODY[key][tier]
+    T = B_TAIL[key][tier]
+    wide = 2 if (tier >= 2 and not small) else 1
+    c0, c1 = -1.5, 1.5 + (wide - 1)
+    R = B + T + 4
+    out = []
+    for y in range(-R, R + 1):
+        for x in range(-R, R + 1):
+            av = -(x * d[0] + y * d[1])
+            cv = x * -d[1] + y * d[0]
+            end = av < 0.5 or av > B - 1.5
+            lo, hi = (c0 + 1, c1 - 1) if end else (c0, c1)
+            if -0.5 <= av <= B - 0.5 and lo <= cv <= hi:
+                white = abs(cv - (wide - 1) * 0.5) < 0.5 + (wide - 1) * 0.5 and not (end and av > B - 1.5)
+                out.append((x, y, 6 if white else 5, white))
+            elif not small and -1.5 <= av <= B - 0.5 + 0.5 and lo - 1 <= cv <= hi + 1 and not (av > B - 0.5 and abs(cv) < 0.5):
+                out.append((x, y, "rim", False))
+            elif B - 0.5 < av <= B + T - 0.5:
+                j = av - B
+                u = j / max(1, T)
+                if abs(cv) < 0.5:
+                    out.append((x, y, 5 if u < 0.3 else (4 if u < 0.65 else 3), False))
+                elif j < 2.5 and abs(cv) < 1.5 and not small:
+                    out.append((x, y, 4 if j < 1.5 else 3, False))
+    return out
+
+
 def bullet(kind, tier, d, beat, small=False, tracer=False, back=0):
-    """一颗曳光弹（原点 = 弹头，d = 单位方向）：白热芯 3–5 格（按档，额外弹 2 格）两侧各一格朱橙光晕、芯进发光层；
-    后面一条亮色渐暗的尖长尾（速射 12–16 格）。S1 / 倾泻芯第 1 格再宽一圈（重弹）；S3 尾侧橙红点；精二弹头两侧按拍闪金点；曳光弹金色长尾。
-    「细」靠形状尖长，不靠缩小（11-05 第三轮按实机 1 倍：上一轮太细看不见）。back = 只画面的后移（美术像素，倾泻扇形错开用）"""
+    """一颗光弹（原点 = 弹头，d = 单位方向），肉鸽式高可读弹，不追求像真子弹：弹身中线白芯、两侧亮色（3 宽，精二 4 宽），
+    外面一圈光晕描边（本色；精一起金色）、两头圆钝，芯进发光层；亮尾前 3 格 3 宽、之后 1 宽渐暗；精二弹头两侧按拍闪金点；
+    额外弹 / 跳弹（small）小一号无描边。back = 只画面的后移（美术像素，倾泻扇形错开用）"""
     C = RAMP["g" if kind in ("tr",) else ("n" if kind == "x" else kind)]
-    L = B_LEN["tr" if tracer else ("x" if small else kind)][tier]
-    K = 2 if small else B_CORE[tier]
     if tracer:
         C = GOLD
-    nv = (-d[1], d[0])
-    ox, oy = -d[0] * back, -d[1] * back
+    rim = GOLD[4] if (tier >= 1 and not small and not tracer) else C[3]
+    ox, oy = round(-d[0] * back), round(-d[1] * back)
     b = Buf()
-    for i in range(L):
-        x, y = ox - d[0] * i, oy - d[1] * i
-        if i < K:
-            b.put(x, y, C[6])
-            for sd in (-1, 1):
-                b.put_if_empty(x + nv[0] * sd, y + nv[1] * sd, C[4] if i < K - 1 else C[3])
-            if (kind in ("s1", "g") and i == 1 and not small):
-                for sd in (-2, 2):
-                    b.put_if_empty(x + nv[0] * sd, y + nv[1] * sd, C[4])
-        else:
-            u = (i - K) / max(1, L - K)
-            b.put(x, y, C[5] if u < 0.25 else (C[4] if u < 0.6 else C[3]))
-            if kind == "s3" and not small and i % 2 == 1:
-                b.put_if_empty(x + nv[0], y + nv[1], C[3])
-    b.put(ox + d[0], oy + d[1], C[5])
+    for (x, y, k, _) in bullet_px(kind, tier, d, small, tracer):
+        b.put(ox + x, oy + y, rim if k == "rim" else C[k])
     if tier >= 2 and not small and beat % 2 == 0:
-        b.put(ox + nv[0] * 3 - d[0], oy + nv[1] * 3 - d[1], GOLD[5])
-        b.put(ox - nv[0] * 3 - d[0] * 2, oy - nv[1] * 3 - d[1] * 2, GOLD[4])
+        nv = (-d[1], d[0])
+        b.put(ox - d[0] + nv[0] * -4, oy - d[1] + nv[1] * -4, GOLD[6])
+        b.put(ox - d[0] * 2 + nv[0] * 5, oy - d[1] * 2 + nv[1] * 5, GOLD[5])
     return b
 
 

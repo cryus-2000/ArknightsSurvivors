@@ -21,8 +21,9 @@ const RAMP := {
 	"t2": ["#2a1c06", "#5c3e0a", "#a8741a", "#f0c050", "#ffe08a", "#fff6d8", "#ffffff"],
 	"t3": ["#2a1c06", "#5c3e0a", "#a8741a", "#e8b030", "#ffd86a", "#fff2c0", "#ffffff"],
 }
-const B_LEN := {"n": [12, 14, 16], "s1": [14, 16, 18], "s2": [10, 11, 12], "s3": [12, 13, 14], "g": [12, 14, 16], "t1": [13, 14, 16], "t2": [13, 14, 16], "t3": [13, 14, 16], "tr": [20, 20, 20], "x": [8, 8, 8]}
-const B_CORE := [3, 4, 5]   # 白热芯长度（美术像素），按精英档
+## 11-05 第四轮（用户「还是以肉鸽的可视化为优先级最高」）：高可读光弹——弹身 B 格（3 宽 + 一圈光晕描边）+ 亮尾 T 格（同 pxplane_exu_art）
+const B_BODY := {"n": [6, 7, 8], "s1": [8, 8, 9], "s2": [5, 6, 6], "s3": [7, 7, 8], "g": [7, 8, 8], "t1": [6, 7, 8], "t2": [6, 7, 8], "t3": [6, 7, 8], "tr": [8, 8, 8], "x": [4, 4, 4]}
+const B_TAIL := {"n": [8, 10, 12], "s1": [10, 12, 14], "s2": [6, 7, 8], "s3": [8, 10, 12], "g": [8, 10, 12], "t1": [9, 10, 12], "t2": [9, 10, 12], "t3": [9, 10, 12], "tr": [16, 16, 16], "x": [5, 5, 5]}
 const TIER_MIN := {"n": 0, "s1": 0, "s2": 1, "s3": 2, "g": 1}
 const BKIND := {"proj_exusiai_bullet": "n", "proj_exusiai_bullet_s1": "s1", "proj_exusiai_bullet_s2": "s2", "proj_exusiai_bullet_s3": "s3",
 	"proj_exusiai_bullet_power": "g", "proj_exusiai_bullet_t1": "t1", "proj_exusiai_bullet_t2": "t2", "proj_exusiai_bullet_t3": "t3"}
@@ -330,36 +331,66 @@ static func _hsh(x: int, y: int, k: int) -> int:
 	return ((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) & 0xFFFF
 
 
-## 一颗曳光弹（同 pxplane_exu_art.bullet）：白热芯 3–5 格（额外弹 2 格）两侧各一格朱橙光晕、芯进发光层 + 亮色渐暗的尖长尾；
-## S1 / 倾泻芯第 1 格再宽一圈；S3 尾侧橙红点；精二弹头两侧按拍闪金点；曳光弹金色长尾。back = 只画面的后移（美术像素）
+## 光弹像素表（同 pxplane_exu_art.bullet_px）：按弹道坐标扫像素格分类，任意方向不漏洞；按 32 个方向缓存。项 = [x, y, 色阶序号（-1 = 描边）, 是否进发光层]
+var _bpx := {}
+
+func _bul_px(key: String, t: int, small: bool, ai: int) -> Array:
+	var ck: String = "%s|%d|%d|%d" % [key, t, 1 if small else 0, ai]
+	if _bpx.has(ck):
+		return _bpx[ck]
+	var ang: float = float(ai) * TAU / 32.0
+	var dx: float = cos(ang)
+	var dy: float = sin(ang)
+	var B: int = int(B_BODY[key][t])
+	var T: int = int(B_TAIL[key][t])
+	var wide: int = 2 if (t >= 2 and not small) else 1
+	var c0: float = -1.5
+	var c1: float = 1.5 + float(wide - 1)
+	var R: int = B + T + 4
+	var out: Array = []
+	for y in range(-R, R + 1):
+		for x in range(-R, R + 1):
+			var av: float = -(float(x) * dx + float(y) * dy)
+			var cv: float = float(x) * -dy + float(y) * dx
+			var e: bool = av < 0.5 or av > float(B) - 1.5
+			var lo: float = c0 + 1.0 if e else c0
+			var hi: float = c1 - 1.0 if e else c1
+			if av >= -0.5 and av <= float(B) - 0.5 and cv >= lo and cv <= hi:
+				var white: bool = absf(cv - float(wide - 1) * 0.5) < 0.5 + float(wide - 1) * 0.5 and not (e and av > float(B) - 1.5)
+				out.append([x, y, 6 if white else 5, white])
+			elif not small and av >= -1.5 and av <= float(B) and cv >= lo - 1.0 and cv <= hi + 1.0 and not (av > float(B) - 0.5 and absf(cv) < 0.5):
+				out.append([x, y, -1, false])
+			elif av > float(B) - 0.5 and av <= float(B + T) - 0.5:
+				var j: float = av - float(B)
+				var u: float = j / float(maxi(1, T))
+				if absf(cv) < 0.5:
+					out.append([x, y, 5 if u < 0.3 else (4 if u < 0.65 else 3), false])
+				elif j < 2.5 and absf(cv) < 1.5 and not small:
+					out.append([x, y, 4 if j < 1.5 else 3, false])
+	_bpx[ck] = out
+	return out
+
+
+## 一颗光弹（同 pxplane_exu_art.bullet，肉鸽式高可读弹）：弹身中线白芯 + 两侧亮色（3 宽，精二 4 宽）+ 一圈光晕描边（精一起金色）、两头圆钝，
+## 芯进发光层；亮尾前 3 格 3 宽、之后 1 宽渐暗；精二弹头两侧按拍闪金点；额外弹小一号无描边。back = 只画面的后移（美术像素）
 func _bullet(ci, pos: Vector2, vel: Vector2, kind: String, t: int, small: bool, tracer: bool, back := 0.0) -> void:
 	var rp: String = "g" if tracer else kind
-	var L: int = int(B_LEN["tr" if tracer else ("x" if small else kind)][t])
-	var K: int = 2 if small else int(B_CORE[t])
-	var d: Vector2 = vel.normalized()
-	var nv := Vector2(-d.y, d.x)
+	var key: String = "tr" if tracer else ("x" if small else kind)
+	var ai: int = posmod(int(round(vel.angle() / TAU * 32.0)), 32)
+	var d: Vector2 = Vector2.from_angle(float(ai) * TAU / 32.0)
 	var px: float = g.PX
-	var head: Vector2 = Pxp._snap(pos - d * back * px)
-	for i in range(L - 1, -1, -1):   # 从尾往头画：芯和光晕盖在尾上
-		var q: Vector2 = head - d * float(i) * px
-		if i < K:
-			var hc: Color = _c(rp, 4 if i < K - 1 else 3)
-			r._px(ci, q + nv * px, hc)
-			r._px(ci, q - nv * px, hc)
-			if kind in ["s1", "g"] and i == 1 and not small:
-				r._px(ci, q + nv * px * 2.0, _c(rp, 4))
-				r._px(ci, q - nv * px * 2.0, _c(rp, 4))
-			r._px(ci, q, _c(rp, 6))
-			r._glow(q, _c(rp, 6))
-		else:
-			var u: float = float(i - K) / float(maxi(1, L - K))
-			r._px(ci, q, _c(rp, 5 if u < 0.25 else (4 if u < 0.6 else 3)))
-			if kind == "s3" and not small and i % 2 == 1:
-				r._px(ci, q + nv * px, _c(rp, 3))
-	r._px(ci, head + d * px, _c(rp, 5))
+	var head: Vector2 = Pxp._snap(pos) - (d * back).round() * px
+	var rim: Color = _c("g", 4) if (t >= 1 and not small and not tracer) else _c(rp, 3)
+	for q in _bul_px(key, t, small, ai):
+		var at: Vector2 = head + Vector2(float(q[0]), float(q[1])) * px
+		var k: int = int(q[2])
+		ci.draw_rect(Rect2(at, Vector2(px, px)), rim if k < 0 else _c(rp, k))
+		if q[3]:
+			r._glow(at, _c(rp, 6))
 	if t >= 2 and not small and int(floor(g.t * 15.0)) % 2 == 0:
-		r._px(ci, head + nv * px * 3.0 - d * px, _c("g", 5))
-		r._px(ci, head - nv * px * 3.0 - d * px * 2.0, _c("g", 4))
+		var nv := Vector2(-d.y, d.x)
+		r._px(ci, head - d * px - nv * px * 4.0, _c("g", 6))
+		r._px(ci, head - d * px * 2.0 + nv * px * 5.0, _c("g", 5))
 
 ## 后坐（只改画面，character.draw_body 读）：开火那一拍本体往枪口反方向挪 1 美术像素
 func kick(o) -> Vector2:
