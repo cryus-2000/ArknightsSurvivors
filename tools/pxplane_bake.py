@@ -63,8 +63,8 @@ def variants_skadi():
         v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7, "style": "s3"}, 0.7))
     # 水柱：破浪下劈（精一普攻，落点）/ 跃浪击（S2）
     for el in (1, 2):
-        v.append(("leap_e%d_up" % el, {"part": "splash", "layer": "up", "R": 40, "H": [40, 48][el - 1], "el": el}, 0.5))
-        v.append(("leap_e%d_gd" % el, {"part": "splash", "layer": "gd", "R": 65, "el": el}, 0.5))
+        v.append(("leap_e%d_up" % el, {"part": "splash", "layer": "up", "R": 40, "CW": [24, 28][el - 1], "H": 14, "el": el}, 0.62))
+        v.append(("leap_e%d_gd" % el, {"part": "splash", "layer": "gd", "R": 65, "CW": [24, 28][el - 1], "H": 14, "el": el}, 0.62))
         for d in DIRS:   # S2 跃浪击：前方弧形水墙（立起、卷倒、拍下），不是月牙
             for ly in ("up", "gd"):
                 v.append(("s2_e%d_%s_d%d" % (el, ly, d), {"part": "curtain", "layer": ly, "R": 42, "H": [38, 48][el - 1], "span": [1.9, 2.3][el - 1], "dir": d, "el": el, "seed": 5}, 0.56))
@@ -84,8 +84,8 @@ def variants_skadi():
     for ly in ("up", "gd"):   # 连携技「落潮横扫」：整圈白刃大月牙 + 脚下一圈矮浪往外推
         v.append(("combo_spin_%s" % ly, {"part": "spin", "layer": ly, "R": 58, "W": 18, "H0": 12, "el": 1, "dur": 0.4, "seed": 13, "style": "s1"}, 0.47))
         v.append(("combo_swell_%s" % ly, {"part": "swell", "layer": ly, "R": 66, "H": 13, "el": 1, "dur": 0.42, "seed": 14}, 0.5))
-    v.append(("s3cast_gd", {"part": "ring", "layer": "gd", "R": 92, "el": 2, "seed": 9}, 0.5))
-    v.append(("s3cast_up", {"part": "splash", "layer": "up", "R": 70, "H": 90, "el": 2, "seed": 9}, 0.56))   # 悲歌起手：身边冲起的大水柱
+    v.append(("s3cast_gd", {"part": "splash", "layer": "gd", "R": 92, "CW": 40, "H": 16, "el": 2, "seed": 9}, 0.62))
+    v.append(("s3cast_up", {"part": "splash", "layer": "up", "R": 70, "CW": 40, "H": 16, "el": 2, "seed": 9}, 0.62))   # 悲歌起手：身边冲起的大水柱
     v.append(("pool_gd", {"part": "pool", "layer": "gd", "R": 70, "seed": 6}, 0.4))   # 悲歌持续：脚下积水（循环）
     # 潮刃（精二）/ 跃浪浪墙：竖直浪头（循环 0.3 秒）
     for d in DIRS:
