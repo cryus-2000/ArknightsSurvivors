@@ -106,28 +106,29 @@
   function tipBox(cls) { return '<div class="sv-tip ' + (cls || '') + '"><div class="sv-cap sy-en">NOTE</div><div class="bd"></div></div>'; }
 
   // ---------------------------------------------------------------- 方向 4：PRTS 认证终端（11-05 用户「codex 的加载页可以替换我们目前的加载页」）
-  // 起点是 Codex 演示（docs/reference/prts-entry-1105）；同日用户「多余的几何标志去掉、图标改成呼吸、跟局内 PRTS 对齐」：
-  // 画法与桌面 boot_views.draw_v4 一一对应——标志淡入后慢呼吸，外圈 60 格刻度环 = 进度（同指挥台头像环），白细线分项，青色只表示「在走 / 完成」。
+  // 起点是 Codex 演示（docs/reference/prts-entry-1105），同日按用户意见对齐局内 PRTS（画法与桌面 boot_views.draw_v4 一一对应）：
+  // 标志呼吸 + 光晕 + 大淡三角、外圈细环上两组反向慢转弧段、方位菱形节点 + 读数、环两侧水平细线 + 往外走的青光、60 格刻度环 = 进度。
   // 进度全接真实状态：下载字节 → 解压 → 引擎启动（拿不到进度：不定进度——刻度环上一段青格慢转、百分比 ---，不按时间推）→ Godot 回传 → 读完整圈转青。
   // 标志 = loader_rhodes.png（用户给的 240×240 原图）最近邻采样到 120×120，亮度 > 112 留、> 168 冷白、其余次灰（同 screens/rhodes_logo.gd）。
-  // 同日三改（用户「有点素了，没有科技感、几何感、呼吸感」）：外圈细环 + 反向慢转弧段、四方位菱形节点 + 读数、标志后大淡三角 + 光晕、
-  // 贯穿环两侧的水平细线 + 青光、淡点阵 + 扫描纹，呼吸统一 2.6 秒（同桌面 draw_v4）。
-  // 主线程被引擎占住时画布会停一下（引擎编译 wasm 那几秒）。系统「减少动态效果」时：直接终态、不呼吸。
+  // 11-05 用户「为什么感觉有点卡」：引擎编译 wasm / Godot 编译脚本时主线程会被占住几百毫秒到几秒，画布那几秒停住。
+  // 所以凡是「一直在动」的（标志 / 光晕 / 三角呼吸、弧段转动、细线青光）都是 DOM + CSS 动画（只动 opacity / transform，走合成线程，主线程忙时照样流畅）；
+  // 画布只画静态底 + 进度（刻度、文字、分项），内容变了才重画。系统「减少动态效果」时 CSS 动画全停。
   function p4Init(d) {
-    var cv = d.querySelector('.p4c'), ctx = cv.getContext('2d');
+    var cv = d.querySelector('.p4c'), ctx = cv.getContext('2d'), fx = d.querySelector('.p4fx');
     var v = { root: d, tip: { style: {}, textContent: '' }, f: 0, stage: { text: '' }, ind: false, lines: null };
     var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var lg = null, img = new Image(), T0 = performance.now(), readyT = -1;
+    var img = new Image(), T0 = performance.now(), readyT = -1, lastSig = '', lay = '';
     img.onload = function () {
-      var a = document.createElement('canvas'); a.width = a.height = 120;
-      var ax = a.getContext('2d'); ax.imageSmoothingEnabled = false; ax.drawImage(img, 0, 0, 120, 120);
+      var a = fx.querySelector('.p4logo'), ax = a.getContext('2d');
+      ax.imageSmoothingEnabled = false; ax.drawImage(img, 0, 0, 120, 120);
       var id = ax.getImageData(0, 0, 120, 120), px = id.data;
       for (var i = 0; i < px.length; i += 4) {
         var lv = (px[i] + px[i + 1] + px[i + 2]) / 3;
         if (lv > 112 && px[i + 3] > 127) { var hi = lv > 168; px[i] = hi ? 236 : 146; px[i + 1] = hi ? 238 : 151; px[i + 2] = hi ? 240 : 160; px[i + 3] = 255; }
         else px[i + 3] = 0;
       }
-      ax.putImageData(id, 0, 0); lg = a;
+      ax.putImageData(id, 0, 0);
+      fx.classList.add('on');   // 淡入（CSS transition）
     };
     img.src = 'loader_rhodes.png';
     var BG = '#0f1013', TX = '#eceef0', SUB = '#9297a0', ACC = '#36e2dc', RULE = '#353943';
@@ -135,41 +136,59 @@
     function box(x, y, w, h, c, a) { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(w), Math.ceil(h)); ctx.globalAlpha = 1; }
     function lab(s, x, y, sz, c, al) { ctx.fillStyle = c; ctx.font = Math.round(sz) + 'px Consolas,"Microsoft YaHei","PingFang SC",monospace'; ctx.textAlign = al || 'left'; ctx.fillText(s, Math.round(x), Math.round(y)); }
     function head(x, y, s, k, rw) { box(x, y - 6 * k, 18 * k, 2, TX); lab(s, x + 26 * k, y, 13 * k, TX); box(x, y + 12 * k, rw, 1, RULE); }
+    // 动效层的位置（CSS 像素），只在窗口尺寸变时重排
+    function layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1) {
+      var key = W + 'x' + H;
+      if (lay === key) return;
+      lay = key;
+      var q = function (sel) { return fx.querySelector(sel); }, px = function (x) { return (x / dpr).toFixed(1) + 'px'; };
+      fx.style.cssText = 'left:' + px(cx) + ';top:' + px(cy);
+      var lg = q('.p4logo'); lg.style.width = lg.style.height = px(span); lg.style.left = lg.style.top = px(-span / 2);
+      var gw = q('.p4glow'); gw.style.width = gw.style.height = px(span * 1.3); gw.style.left = gw.style.top = px(-span * 0.65);
+      var T = R * 0.66 / 0.66 * 1.5, tri = q('.p4tri');   // 外接圆 1.5 倍环
+      tri.setAttribute('viewBox', [-T, -T, 2 * T, 2 * T].join(' ')); tri.style.width = tri.style.height = px(2 * T); tri.style.left = tri.style.top = px(-T);
+      tri.innerHTML = '<polygon points="0,' + (-T) + ' ' + (T * 0.866) + ',' + (T * 0.5) + ' ' + (-T * 0.866) + ',' + (T * 0.5) + '"/>';
+      [['.p4rot.a', R2, 3, 34, 1.5], ['.p4rot.b', R2 + 7 * k, 2, 14, 2]].forEach(function (o) {
+        var el = q(o[0]), r = o[1], cc = 2 * Math.PI * r, seg = cc * o[3] / 360, gap = cc / o[2] - seg, e = r + 4 * k;
+        el.style.width = el.style.height = px(2 * e); el.style.left = el.style.top = px(-e);
+        el.innerHTML = '<svg viewBox="' + [-e, -e, 2 * e, 2 * e].join(' ') + '"><circle r="' + r + '" stroke-width="' + o[4] * dpr + '" stroke-dasharray="' + seg + ' ' + gap + '"/></svg>';
+      });
+      var len = hl - (hx1 - cx);
+      ['.p4run.r', '.p4run.l'].forEach(function (sel, i) {
+        var el = q(sel);
+        el.style.cssText = 'left:' + px(i ? -(hx1 - cx) - len : hx1 - cx) + ';top:' + px(0) + ';width:' + px(len) + ';--len:' + px(len - 26 * k) + ';--w:' + px(26 * k);
+      });
+    }
     function frame() {
       if (!d.isConnected) return;
       requestAnimationFrame(frame);
       var dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
-      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
-      ctx.imageSmoothingEnabled = false;
-      var t = rm ? 9 : (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
+      var t = (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
       if (rd && readyT < 0) readyT = performance.now();
       var u = readyT < 0 ? -1 : (performance.now() - readyT) / 1000;
+      // 画布只在内容变时重画（进度格 / 日志 / 阶段 / 不定进度的转格 / 读完脉冲 / 计时到 0.1 秒）
+      var spin = Math.floor((t * 14) % 60);
+      var sig = [W, H, Math.floor(p * 1000), v.stage.text, logs.length, logs.filter(function (l) { return l.ok; }).length, v.ind ? spin : -1, rd, rd && u < 0.6 ? Math.floor(u * 30) : -1, Math.floor(t * 10), got, done, bootProgress].join('|');
+      if (sig === lastSig) return;
+      lastSig = sig;
+      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
       var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.42, m = 22 * k;
+      var span = 120 * Math.max(1, Math.floor(H * 0.34 / 120)), R = span * 0.66, R2 = R + 22 * k;
+      var hx0 = cx - R - 46 * k, hx1 = cx + R + 46 * k, hl = W > 760 * dpr ? W / 2 - 200 * k : W / 2 - 10;
+      layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1);
       box(0, 0, W, H, BG);
-      var tt = rm ? 0 : t, br = rm ? 1 : 0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6);
       ctx.fillStyle = SUB; ctx.globalAlpha = 0.12;
       for (var gx = 0; gx < W; gx += 24 * k) for (var gy = 0; gy < H; gy += 24 * k) ctx.fillRect(Math.round(gx), Math.round(gy), 1, 1);
       ctx.fillStyle = '#000';
       for (var sy = 0; sy < H; sy += 3) ctx.fillRect(0, sy, W, 1);
       ctx.globalAlpha = 1;
       lab('SYS 1105 · T+' + ('00' + (rm ? 0 : t).toFixed(1)).slice(-5), cx, 28 * k, 10 * k, SUB, 'center');
-      lab('PRTS', m, 28 * k, 12 * k, TX); lab('/ 启动校验', m + 50 * k, 28 * k, 12 * k, SUB);
+      lab('PRTS', m, 28 * k, 12 * k, TX); lab('/ 启动校验', m + 44 * k, 28 * k, 12 * k, SUB);
       if (W > 600 * dpr) lab('ARKNIGHTS FAN GAME', W - m, 28 * k, 11 * k, SUB, 'right');
       box(m, 40 * k, W - 2 * m, 1, RULE);
-      var s = Math.max(1, Math.floor(H * 0.34 / 120)), span = 120 * s;
-      var fade = rm ? 1 : ease(t / 0.4), breath = rm || rd ? 1 : 0.72 + 0.28 * (0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6));
-      var R0 = span * 0.66, gl = (0.6 + 0.4 * br) * fade;
-      ctx.fillStyle = ACC;
-      for (var j = 0; j < 4; j++) { ctx.globalAlpha = 0.022 * gl; ctx.beginPath(); ctx.arc(cx, cy, span * (0.62 - j * 0.1), 0, 2 * Math.PI); ctx.fill(); }
-      ctx.globalAlpha = (0.05 + 0.05 * br) * fade; ctx.strokeStyle = TX; ctx.lineWidth = 1; ctx.beginPath();
-      [-90, 30, 150, -90].forEach(function (a3, i) { var px = cx + Math.cos(a3 * Math.PI / 180) * R0 * 1.5, py = cy + Math.sin(a3 * Math.PI / 180) * R0 * 1.5; if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); });
-      ctx.stroke(); ctx.globalAlpha = 1;
-      var hx0 = cx - R0 - 46 * k, hx1 = cx + R0 + 46 * k, hl = W > 760 * dpr ? W / 2 - 200 * k : W / 2 - 10;
       box(cx - hl, cy, hx0 - (cx - hl), 1, RULE); box(hx1, cy, cx + hl - hx1, 1, RULE);
       box(cx - hl - 1.5, cy - 1, 3, 3, SUB); box(cx + hl - 1.5, cy - 1, 3, 3, SUB);
-      if (!rd || rm) { var run = ((tt / 2.2) % 1) * (hl - (hx1 - cx)); box(hx1 + run, cy, 26 * k, 1, ACC, 0.8); box(hx0 - run - 26 * k, cy, 26 * k, 1, ACC, 0.8); }
-      if (lg) { ctx.globalAlpha = fade * breath; ctx.drawImage(lg, Math.round(cx - span / 2), Math.round(cy - span / 2), span, span); ctx.globalAlpha = 1; }
-      var R = span * 0.66, lit = Math.floor(p * 60), spin = Math.floor((t * 14) % 60);
+      var lit = Math.floor(p * 60);
       ctx.lineCap = 'butt';
       for (var i = 0; i < 60; i++) {
         var a = -Math.PI / 2 + 2 * Math.PI * i / 60, mj = i % 5 === 0, l = (mj ? 9 : 5) * k, col, al;
@@ -177,28 +196,21 @@
         else if (v.ind && ((i - spin + 60) % 60) < 5) { col = ACC; al = 0.35 + 0.13 * ((i - spin + 60) % 60); }   // 不定进度：一段青格慢转
         else if (i < lit) { col = TX; al = 0.85; }
         else if (i === lit && !v.ind) { col = ACC; al = 1; }
-        else { col = SUB; al = 0.2 + 0.14 * br; }
-        ctx.globalAlpha = al * fade; ctx.strokeStyle = col; ctx.lineWidth = (mj ? 2 : 1.5) * dpr;
+        else { col = SUB; al = 0.27; }
+        ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = (mj ? 2 : 1.5) * dpr;
         ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(a) * (R + l), cy + Math.sin(a) * (R + l)); ctx.stroke();
       }
-      ctx.globalAlpha = 0.18 * fade; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R - 6 * k, 0, 2 * Math.PI); ctx.stroke();
-      var R2 = R + 22 * k;
-      ctx.globalAlpha = 0.16 * fade; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R2, 0, 2 * Math.PI); ctx.stroke();
-      ctx.lineWidth = 1.5 * dpr; ctx.strokeStyle = TX; ctx.globalAlpha = 0.5 * fade;
-      for (j = 0; j < 3; j++) { var a0 = tt * 0.16 + j * 2 * Math.PI / 3; ctx.beginPath(); ctx.arc(cx, cy, R2, a0, a0 + 34 * Math.PI / 180); ctx.stroke(); }
-      ctx.lineWidth = 2 * dpr; ctx.strokeStyle = rd ? TX : ACC; ctx.globalAlpha = 0.55 * fade;
-      for (j = 0; j < 2; j++) { var a1 = -tt * 0.28 + j * Math.PI; ctx.beginPath(); ctx.arc(cx, cy, R2 + 7 * k, a1, a1 + 14 * Math.PI / 180); ctx.stroke(); }
+      ctx.globalAlpha = 0.18; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R - 6 * k, 0, 2 * Math.PI); ctx.stroke();
+      ctx.globalAlpha = 0.16; ctx.beginPath(); ctx.arc(cx, cy, R2, 0, 2 * Math.PI); ctx.stroke();
+      if (rd && !rm && u >= 0 && u < 0.5) { var q = ease(u / 0.5); ctx.globalAlpha = 0.6 * (1 - q); ctx.strokeStyle = ACC; ctx.lineWidth = 1.5 * dpr; ctx.beginPath(); ctx.arc(cx, cy, R + 14 * k + q * 40 * k, 0, 2 * Math.PI); ctx.stroke(); }
       var nd = 4 * k;
-      for (j = 0; j < 4; j++) {
+      for (var j = 0; j < 4; j++) {
         var na = -Math.PI / 2 + j * Math.PI / 2, nx = cx + Math.cos(na) * R2, ny = cy + Math.sin(na) * R2;
-        ctx.globalAlpha = 0.7 * fade; ctx.fillStyle = j === 2 ? SUB : TX;
+        ctx.globalAlpha = 0.7; ctx.fillStyle = j === 2 ? SUB : TX;
         ctx.beginPath(); ctx.moveTo(nx, ny - nd); ctx.lineTo(nx + nd, ny); ctx.lineTo(nx, ny + nd); ctx.lineTo(nx - nd, ny); ctx.closePath(); ctx.fill();
       }
-      ctx.globalAlpha = fade;
+      ctx.globalAlpha = 1;
       lab('000', cx, cy - R2 - 10 * k, 9 * k, SUB, 'center'); lab('090', cx + R2 + 10 * k, cy - 6 * k, 9 * k, SUB); lab('270', cx - R2 - 10 * k, cy - 6 * k, 9 * k, SUB, 'right');
-      ctx.globalAlpha = 1;
-      if (rd && !rm && u >= 0 && u < 0.5) { var q = ease(u / 0.5); ctx.globalAlpha = 0.6 * (1 - q); ctx.strokeStyle = ACC; ctx.lineWidth = 1.5 * dpr; ctx.beginPath(); ctx.arc(cx, cy, R + 14 * k + q * 40 * k, 0, 2 * Math.PI); ctx.stroke(); }
-      ctx.globalAlpha = 1;
       var ly = cy + R + 48 * k;
       if (!rd) {
         lab(v.stage.text || '', cx, ly, 16 * k, TX, 'center');
@@ -233,7 +245,8 @@
     for (var i = 0; i < 50; i++) segs += '<i></i>';
     var h = '';
     if (BV === 4) {   // PRTS 认证终端（11-05，Codex docs/reference/prts-entry-1105；同桌面 boot_views.draw_v4）：画布逐帧画，扫描线 / 不定进度是 CSS 动画
-      h = '<canvas class="p4c"></canvas>';
+      h = '<canvas class="p4c"></canvas><div class="p4fx"><b class="p4glow"></b><svg class="p4tri"></svg><canvas class="p4logo" width="120" height="120"></canvas>' +
+        '<div class="p4rot a"></div><div class="p4rot b"></div><div class="p4run r"><b></b></div><div class="p4run l"><b></b></div></div>';
     } else if (BV === 1) {
       h = '<div class="sv-scan"></div>' + snowLayer(46) + head('罗德岛作战终端 · 启动程序', 1) +
         '<div class="sv-body1">' + logBox('sv-frame') + tipBox() + '</div>' +
