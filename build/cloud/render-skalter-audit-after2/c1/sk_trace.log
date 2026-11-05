@@ -1,0 +1,3 @@
+('trace0_s23', 301, [], False)
+('trace1_s23', 301, [], False)
+trace0_s23 vs trace1_s23：TRACE 301 / 301 行，逐行一致
