@@ -48,14 +48,32 @@
 - 帧条：`game/art/fx/pxp/pxp_ey_*.png`（118 件，约 2 MB）+ `game/data/pxp_eyjafjalla.json`；效果源 `tools/pixelfx_fx/fire/ak-eyjafjalla-pp.js`（用库里的 `Particles` / `Bits` / `fire/fireball`；半透明一律按固定噪声成团消散，在本文件里把画布的 Bayer 网点换掉）；重新生成 `python tools/pxplane_bake_eyja.py`（需要本机 pixelfx 库 `build/pixelfx`，缺的 `.png.import` 按模板补）。颜色组 `data/fx_pxplane/eyjafjalla.json`。
 - 出图：`tools/pxplane_shots.py --op eyjafjalla`（技能招对齐到技能事件之后第一次爆点事件；连携三栏按 `PXPLOG ey ey_link` 对齐）；原作一栏本机拼：`python tools/pxplane_refcol.py --op eyjafjalla --ref "Claude outputs/eyjafjalla_ref" --cmp <GCP 下载目录> --out <交付目录>`。
 
-## 4. 交付
+## 4. 交付（本机 `Claude outputs/pxplane_eyjafjalla_1105/`，不进 git）
 
-（GCP 全套跑完后补）
+- 四栏对比 `cmp_<招>_e<档>.png`（0 原作参照 / ① 当前游戏 / ② 旧做法原样贴 / ③ 转平面）+ 2 倍局部 `_x2.png`：atk（E0 / E1 / E2）、s1（E0 / E1 / E2）、s2（E1 / E2）、s3（E2）。图鉴演示连拍，开着 `growth/late_shape = 1`。原作一栏是本机用 `tools/pxplane_refcol.py` 从 `Claude outputs/eyjafjalla_ref/` 的解包回放关键帧拼的（普攻 / S1 用 attack_01_hit，S2 用 skill_02_hit，S3 和连携用 skill_03_hit）。
+- 三档并排 `tiers_atk / s1 / s2 / s3.png`（只转平面版，每行一档、5 帧）。
+- 连携技三栏 `cmp_link.png` / `cmp_link_x2.png`：实战局（德克萨斯当队长、艾雅法拉当队员，种子 11，`--elite2 --sptest`），7.12 秒那次出手（0.42 秒后砸地）砸地后约 0.15 秒。
+- `late_8m00_onoff.mp4`：同种子 11、8:00 起 20 秒，左关右开，30 帧原速，13.6 MB（crf 28）；德克萨斯当队长、艾雅法拉当队员，开 `growth/late_shape = 1`。
+- ② 旧做法列：同一形状不压扁、光晕烤进颜色、小数缩放 + 旋转、盖在所有单位上；弹体用 0° 帧条按飞行方向旋转 1.3 倍贴（对照用，不是旧 pixelfx 帧条原件）。
 
 ## 5. 验收
 
-（GCP 全套跑完后补）
+| 项 | 结果 |
+|---|---|
+| TRACE：艾雅法拉队长，种子 23，`--elite2 --sptest`，`growth/late_shape = 1`，到 5:00，`fx/px_plane` = 0 / 1 / 2（GCP，画画面跑） | 301 行，0 vs 1、0 vs 2 逐行一致 |
+| TRACE：录像那一局（德克萨斯队长 + 艾雅法拉，种子 11，8:00 起 20 秒 `--realtime`，`late_shape = 1`），0 vs 1 | 501 行逐行一致 |
+| TRACE：连携那一局（种子 11，5 秒起 6 秒，7.12 秒出手），0 / 1 / 2 | 11 行，两两一致 |
+| 脚本错误 | GCP 演示 54 局 + 录像 2 局 + TRACE 3 局 + 连携 6 局，日志里 SCRIPT ERROR 0 条 |
+
+出图全在 GCP（docs/256：首轮 `render-eyja-demo2` 单台 e2；改色后 `render-eyja-full1` 拆 7 台 c2d-highcpu-4，26 分钟；连携重跑 `render-eyja-link2`）。
 
 ## 6. 看图判断（Claude）
 
-（GCP 全套跑完后补）
+- **成了的**：按用户「参考 pixelfx 的做法」换成库的粒子火团以后，爆团、火柱、火山落点都是 pixelfx 那种成团翻滚、冷却变暗的火，不再是平涂色块；S3 落点是实心大爆团（暖红到亮橙 + 花瓣状暗红碎片 + 火星线），比现版熔岩大一圈；火球 / 熔岩块用的就是库里的 fireball，带火尾、岩壳透橙。三档一眼可分：普攻 E0 一团 → E1 二段爆 + 熔岩块 → E2 三发低抛 + 火柱 + 熔池；S1 E2 火苗圈变火柱；S2 E2 一根变三根。8:00 实战录像里现版几乎看不见她的攻击，转平面版的橙色爆团在怪群和红色预警里都读得出来（橙对粉红，没撞色）。
+- **还不够的**：
+  - 普攻 E0 爆团偏小（R 26 一档），早期画面里存在感一般；
+  - 后期多发低抛 + 额外弹时火尾连成一串，和 ② 旧做法的「一条火龙」有点像，但每颗之间有间隔，比 ② 碎得少；
+  - S2 火柱在图鉴演示里被白色伤害数字和受击闪白挡住大半，柱形不如预览帧条里清楚；
+  - 咏唱火缕（S1 起手）只有 0.6 秒、1–2 美术像素粗，三档图对齐在爆点上没拍到它，实机才看得见；
+  - 熔岩池只画边，后期满地爆团时熔岩边容易被盖住（按规矩不加铺色）。
+- 结论：方向照 pixelfx 库做，火山 / 熔岩 / 火球的「火」感比第一版程序色块好很多；建议用户先看 S3、普攻 E2、8:00 录像。
