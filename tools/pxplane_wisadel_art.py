@@ -13,7 +13,7 @@ import math
 
 FIRE = ["#fff0e4", "#ffa868", "#f04a24", "#c41e18", "#8e1010", "#5c0a0c", "#360608", "#1a0305"]   # 11-05 用户：炮击要原作的黑红（原作 wisdel_*_hit：纯红 + 暗血红 + 近黑，橙火星）；偏橙的血红，和敌方预警粉红 #ff2667 拉开
 SMOKE = ["#0c0607", "#180a0c", "#26100f", "#381a18", "#4e2a28"]
-SOUL = ["#120e1a", "#262034", "#3e3452", "#5e5276", "#8a7ea6", "#b8aed2", "#e8e2f6"]
+SOUL = ["#14040680", "#2a080cb0", "#3e0c12c0", "#7a141c", "#b82228", "#e8443c", "#ffb0a0"]   # 11-05 用户「紫色是不是不需要」：魂灵之影改黑红体系——暗红半透明身（前三阶带透明度）+ 红描边，比主炮暗、薄
 DUST = ["#1e1414", "#34221e", "#4e3430", "#6e4c44", "#8e6a5e"]
 IRON = ["#141012", "#2a2226", "#463c40", "#6a5e60"]
 SCORCH = ["#100606", "#1a0a0a", "#261010"]
@@ -32,7 +32,7 @@ POP_R = 8                                      # 被合并掉的爆炸（同屏�
 
 def hx(s):
     s = s.lstrip("#")
-    return (int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16), 255)
+    return (int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16), int(s[6:8], 16) if len(s) >= 8 else 255)
 
 
 def hsh(x, y, k=0):
@@ -170,28 +170,6 @@ def _flash(b, cx, cy, r, rays=6, ray_k=0.95, R=None, seed=0):
 
 # ================================================================ 普攻爆团（立起层）+ 焦痕（贴地层）
 
-def boom_up(R, v=0):
-    """实心爆团：第 0 拍白热团 + 放射刺；1–2 拍火团（橙白芯）；3–6 拍冷成焦褐、顶上黑烟成团散开。宽 ≤ R"""
-    seed = 11 + v * 101 + R
-    puffs = _puffs(R, seed, 9 + R // 4)
-    frames = []
-    for f in range(7):
-        b = Buf()
-        if f == 0:
-            _flash(b, 0, -R * 0.4, R * 0.62, 7, 0.98, R, seed)
-        else:
-            _draw_puffs(b, puffs, f, seed, cool=0.17)
-            if f <= 2:   # 热芯（第 1 拍白热、第 2 拍暗金，读作「实心」）
-                blob(b, 0, -R * 0.3, R * (0.34 - 0.1 * f), 1.0 - 0.2 * (f - 1), seed + 50, squash=0.8)
-            if f >= 3:   # 冒顶黑烟（第 3 拍起，成团散开）
-                for j in range(3):
-                    sx = (j - 1) * R * 0.32 + (hf(j, 1, seed) - 0.5) * R * 0.15
-                    sy = -R * (0.75 + 0.12 * (f - 2) + 0.1 * hf(j, 2, seed))
-                    blob(b, sx, sy, R * (0.18 + 0.03 * f), 0.0, seed + 70 + j, smoke=True, dissolve=max(0.0, (f - 3) * 0.3))
-        frames.append(b)
-    return frames
-
-
 def scorch_gd(R, shock=False):
     """焦痕：不规整的断续暗边 + 2 格更暗内边 + 稀疏暗斑 + 4 道裂缝（先暗金后冷暗）；shock = 精二外圈一道往外推的细热环。
     游戏里最后一帧再停 0.8 秒淡掉"""
@@ -238,19 +216,6 @@ def scorch_gd(R, shock=False):
                 a = i * math.tau / steps2
                 x, y = gpt(Rs, a)
                 b.put(x, y, col)
-        frames.append(b)
-    return frames
-
-
-def pop_up():
-    """被合并掉的爆炸：一小团火 → 烟（4 拍）"""
-    frames = []
-    for f in range(4):
-        b = Buf()
-        if f == 0:
-            _flash(b, 0, -5, 3.5, 4, 0.9, POP_R, 3)
-        else:
-            blob(b, 0, -5 - f * 2, 3 + f, 0.85 - 0.3 * f, 5, dissolve=max(0.0, (f - 1) * 0.35))
         frames.append(b)
     return frames
 
@@ -323,38 +288,6 @@ def quake_gd(R):
 
 # ================================================================ 魂灵之影：残影（立起）/ 殉爆（立起）/ 魂炮出膛
 
-def shade_up():
-    """残影：灰紫人形从地里浮出（0.25 秒 = 4 拍），两点淡紫眼，头顶两缕火舌跳动"""
-    frames = []
-    W, Hh = 7, 21
-    for f in range(4):
-        b = Buf()
-        rise = [0.4, 0.75, 1.0, 1.0][f]
-        top = -int(Hh * rise)
-        for y in range(top, 1):
-            u = (y - top) / max(1, -top + 1)
-            half = W * (0.45 + 0.55 * min(1.0, u * 1.6)) if u < 0.75 else W * (1.0 - (u - 0.75) * 0.8)
-            half = max(1.0, half)
-            for x in range(-int(half), int(half) + 1):
-                edge = abs(x) >= int(half)
-                c = SOUL[3] if edge and x < 0 else (SOUL[2] if edge else SOUL[1])
-                if y == 0:
-                    c = SOUL[0]
-                b.put(x, y, c)
-        ey = top + 5
-        if rise >= 0.75:
-            b.put(-2, ey, SOUL[6])
-            b.put(2, ey, SOUL[6])
-            b.put(-2, ey + 1, SOUL[4])
-            b.put(2, ey + 1, SOUL[4])
-        for j, dx in enumerate((-2, 2)):
-            L = 3 + ((f + j) % 2) * 2
-            for s in range(L):
-                b.put(dx + (1 if (s + f) % 3 == 0 else 0) * (1 if j else -1), top - 1 - s, SOUL[5] if s < 2 else SOUL[4])
-        frames.append(b)
-    return frames
-
-
 def sblast_up(R, link=False):
     """残影殉爆 / 魂炮落点：第 0 拍灰紫碎影往心里收（内爆），第 1 拍暗紫核心爆开 + 往上窜的灰紫火舌，2–5 拍火舌升起、成团散成暗烟；底下一圈压扁的细环"""
     seed = 91 + R + (500 if link else 0)
@@ -405,16 +338,6 @@ def sblast_up(R, link=False):
                         heat = (1.0 - u) * (1.0 - 0.25 * k)
                         c = SOUL[max(1, min(5, int(round(1.6 + heat * 3.4 - abs(dx) * 0.8))))] if k < 4 else SMOKE[2 + (dx == 0)]
                         b.put(xx + dx, yy, c)
-        frames.append(b)
-    return frames
-
-
-def smz_up():
-    """魂炮出膛：一团暗紫烟（3 拍）"""
-    frames = []
-    for f in range(3):
-        b = Buf()
-        blob(b, 0, -1 - f, 2.2 + f * 0.8, 0.6 - 0.25 * f, 17, soul=True, dissolve=max(0.0, (f - 1) * 0.4))
         frames.append(b)
     return frames
 
@@ -474,74 +397,6 @@ def glint_up(big=False):
 
 # ================================================================ S1 定点清算：处刑火柱（立起）
 
-def pillar_up(R, tier):
-    """第 0 拍：落点一道白热竖柱（高 1.4R）+ 地面白热扁团；1–2 拍火团沿柱往上堆、顶上成蘑菇帽；3–7 拍冷成焦褐、黑烟帽升起散开。
-    精一：0.13 秒后外圈三处小殉爆（在 0.8R 上）；精二：灰紫魂火绕柱盘旋上升。宽 ≤ R"""
-    seed = 131 + R
-    Hc = R * 1.35
-    col = []
-    nc = 9 + R // 5
-    for i in range(nc):
-        u = (i + 0.5) / nc
-        col.append(((hf(i, 2, seed) - 0.5) * R * 0.16, (hf(i, 3, seed) - 0.5) * R * 0.1, R * 0.1 + u * Hc * 0.82, R * (0.09 + 0.05 * hf(i, 4, seed)) * (1.0 - 0.35 * u), 1.0 - 0.3 * u, R * 0.06))   # 11-05 协调人：中段收细
-    cap = [((hf(i, 5, seed) - 0.5) * R * 0.75, (hf(i, 6, seed) - 0.5) * R * 0.15, Hc * (0.85 + 0.12 * hf(i, 7, seed)), R * (0.18 + 0.1 * hf(i, 8, seed)), 0.7, R * 0.07) for i in range(6)]
-    base = _puffs(R, seed + 3, 6, spread=0.62, hmin=0.05, hmax=0.15, rmin=0.16, rmax=0.26, flat=True)
-    subs = [(math.tau * (k / 3.0) + 0.6, ) for k in range(3)]
-    frames = []
-    for f in range(8):
-        b = Buf()
-        if f == 0:
-            for y in range(int(Hc)):
-                u = y / Hc
-                hw = R * 0.12 * (1.0 - 0.5 * u) + 1
-                for x in range(-int(hw), int(hw) + 1):
-                    b.put(x, -y, FIRE[0] if abs(x) < hw * 0.55 else FIRE[1])
-            blob(b, 0, -2, R * 0.42, 1.0, seed, squash=0.45)
-            _flash(b, 0, -R * 0.1, 0.1, 6, 0.9, R, seed)
-        else:
-            _draw_puffs(b, base, f, seed + 3, cool=0.24)
-            _draw_puffs(b, col, f, seed + 5, cool=0.19, rise_k=1.3)
-            _draw_puffs(b, cap, f, seed + 9, cool=0.17, rise_k=1.6)
-            if f >= 3:
-                for j in range(2):
-                    blob(b, (j - 0.5) * R * 0.4, -Hc * (1.05 + 0.08 * (f - 3)), R * (0.18 + 0.025 * f), 0.0, seed + 40 + j, smoke=True, dissolve=max(0.0, (f - 4) * 0.22))
-        if 1 <= f <= 5:   # 沿柱往上窜的火舌（细，1–2 像素，逐拍错开）
-            for j in range(5):
-                x0 = (j - 2) * R * 0.07 + (hf(j, f, seed) - 0.5) * 2
-                y0 = -R * 0.15 - (f - 1) * R * 0.18 - hf(j, 2, seed) * R * 0.3
-                L = int(R * (0.35 + 0.25 * hf(j, f + 3, seed)))
-                for s_ in range(L):
-                    u = s_ / max(1, L)
-                    if f >= 4 and vnoise(j * 5, s_, seed + f, 2.0) < (f - 3) * 0.35:
-                        continue
-                    xx = x0 + math.sin(u * 4.0 + j + f) * 1.4
-                    c = FIRE[1] if u < 0.25 else (FIRE[2] if u < 0.6 else FIRE[3])
-                    b.put(xx, y0 - s_, c)
-                    if u < 0.4 and j % 2 == 0:
-                        b.put(xx + 1, y0 - s_, FIRE[2])
-        if tier >= 1 and 2 <= f <= 5:   # 精一：外圈三处小殉爆
-            k = f - 2
-            for s, in subs:
-                x, y = gpt(R * 0.8, s)
-                if k == 0:
-                    _flash(b, x, y - 4, 2.6, 4, 0.9, 7, seed + int(s * 10))
-                else:
-                    blob(b, x, y - 4 - k * 2, 2.5 + k, 0.85 - 0.3 * k, seed + int(s * 10), dissolve=max(0.0, (k - 1) * 0.35))
-        if tier >= 2 and 1 <= f <= 6:   # 精二：灰紫魂火绕柱盘旋上升
-            for j in range(2):
-                for s in range(10):
-                    u = (s + f * 3) / 30.0
-                    if u > 1.0:
-                        continue
-                    a = u * 9.0 + j * math.pi
-                    x = math.cos(a) * R * 0.3
-                    y = -u * Hc * 1.05 + math.sin(a) * R * 0.08
-                    c = SOUL[6] if s == 9 else (SOUL[5] if s > 6 else SOUL[3])
-                    b.put(x, y, c)
-        frames.append(b)
-    return frames
-
-
 def bracket_px(r, beat):
     """S1 强化炮落点准星：四角括号（地面，压扁），半径 r（美术像素），随拍往里收一格。返回 [(x, y, 颜色)]"""
     out = []
@@ -557,36 +412,6 @@ def bracket_px(r, beat):
 
 
 # ================================================================ S2 饱和复仇：贴地扁爆（立起，矮）+ 放射焦星（贴地）
-
-def dome_up(R):
-    """地毯轰炸：一团贴地的扁爆——第 0 拍贴地白热扁盘 + 低放射，1–2 拍一圈矮火团（高 ≤ 0.3R）往外滚，3–5 拍冷成一圈低黑烟散开"""
-    seed = 171 + R
-    ring = []
-    n = 10 + R // 5
-    for i in range(n):
-        a = i * math.tau / n + hf(i, 1, seed) * 0.3
-        ring.append((a, R * (0.45 + 0.4 * hf(i, 2, seed)), R * (0.14 + 0.08 * hf(i, 3, seed)), 1.0 - 0.3 * hf(i, 4, seed)))
-    frames = []
-    for f in range(6):
-        b = Buf()
-        if f == 0:
-            blob(b, 0, -R * 0.08, R * 0.75, 1.0, seed, squash=0.42)
-            _flash(b, 0, -R * 0.08, 0.1, 10, 1.0, R, seed)
-        else:
-            k = f - 1
-            items = sorted(ring, key=lambda q: math.sin(q[0]))
-            for (a, rr, pr, h0) in items:
-                rr2 = min(R * 1.0 - pr * 0.6, rr * (1.0 + 0.08 * k))
-                x, y = gpt(rr2, a)
-                heat = h0 - 0.23 * k
-                dis = max(0.0, (0.3 - heat) * 2.0 + (k - 2) * 0.15) if heat < 0.3 else 0.0
-                if dis < 0.98:
-                    blob(b, x, y - pr * 0.6 - k * 1.2, pr * (1.0 + 0.1 * k), max(0.0, heat), seed + int(a * 50), dissolve=dis, squash=0.8)
-            if k <= 1:
-                blob(b, 0, -R * 0.06, R * (0.4 - 0.15 * k), 0.95 - 0.3 * k, seed + 1, squash=0.42)
-        frames.append(b)
-    return frames
-
 
 def star_gd(R, flames=False):
     """放射焦星：8–10 道黑色放射焦痕（从 0.25R 到 1.0R，越外越细），第 0–1 拍道缝里暗金；flames = 精二：焦痕上留 5 簇小地火（跳 9 拍）"""
@@ -631,58 +456,6 @@ def star_gd(R, flames=False):
 
 
 # ================================================================ S3 爆裂黎明：巨炮（地平线白光 + 升起的光穹 + 烟环）
-
-def dawn_up(R):
-    """第 0 拍：贴地一道横贯 0.95R 的白热地平线 + 升起的半圆光穹（宽 0.85R、高 0.5R）；1–2 拍光穹里翻滚火团、柱心往上冲；
-    3–8 拍外沿一圈黑烟环往外滚、中心蘑菇烟柱升起、成团散开。宽 ≤ R"""
-    seed = 211 + R
-    core = _puffs(R, seed, 14 + R // 6, spread=0.62, hmin=0.08, hmax=0.42, rmin=0.14, rmax=0.24)
-    col = [((hf(i, 1, seed) - 0.5) * R * 0.22, 0.0, R * (0.3 + 0.9 * hf(i, 2, seed)), R * (0.1 + 0.06 * hf(i, 3, seed)), 0.95 - 0.3 * hf(i, 2, seed), R * 0.05) for i in range(10)]
-    nr = 14 + R // 8
-    rim = [(i * math.tau / nr + hf(i, 4, seed) * 0.25, R * (0.06 + 0.07 * hf(i, 5, seed))) for i in range(nr)]
-    frames = []
-    for f in range(8):
-        b = Buf()
-        if f == 0:
-            W = R * 0.95
-            for x in range(-int(W), int(W) + 1):
-                u = abs(x) / W
-                b.put(x, 0, FIRE[0] if u < 0.35 else (FIRE[1] if u < 0.75 else FIRE[2]))
-                if u < 0.85:
-                    b.put(x, -1, FIRE[1] if u < 0.5 else FIRE[2])
-                if u < 0.5:
-                    b.put(x, 1, FIRE[2])
-            Wd, Hd = R * 0.85, R * 0.5
-            for y in range(int(Hd) + 1):
-                hw = Wd * math.sqrt(max(0.0, 1.0 - (y / Hd) ** 2))
-                for x in range(-int(hw), int(hw) + 1):
-                    dd = math.hypot(x / Wd, y / Hd)
-                    c = FIRE[1] if dd < 0.45 else (FIRE[2] if dd < 0.8 else FIRE[3])   # 11-05 协调人：第一拍压暗一档
-                    b.put(x, -2 - y, c)
-        else:
-            k = f - 1
-            # 烟环：外沿往外滚（地面压扁），后半圈先画
-            if k >= 1:
-                for (a, pr) in sorted(rim, key=lambda q: math.sin(q[0])):
-                    rr = R * (0.55 + 0.08 * k) * (0.92 + 0.12 * hf(int(a * 40), 6, seed))
-                    rr = min(rr, R * 1.0 - pr)
-                    x, y = gpt(rr, a)
-                    dis = max(0.0, (k - 2) * 0.24)
-                    if dis < 0.98:
-                        blob(b, x, y - pr * 0.8 - k * 1.5, pr * (1.0 + 0.12 * k), max(0.0, 0.5 - 0.2 * k), seed + int(a * 40), dissolve=dis)
-            _draw_puffs(b, core, f, seed, cool=0.16, grow=0.06)
-            _draw_puffs(b, col, f, seed + 2, cool=0.14, rise_k=1.8)
-            if k >= 2:
-                for j in range(3):
-                    blob(b, (j - 1) * R * 0.18, -R * (1.0 + 0.1 * (k - 2)) - j * 3, R * (0.16 + 0.02 * k), 0.0, seed + 90 + j, smoke=True, dissolve=max(0.0, (k - 4) * 0.22))
-            if k == 0:   # 第 1 拍地平线余辉
-                W = R * 0.8
-                for x in range(-int(W), int(W) + 1, 1):
-                    if hf(x, 1, seed) < 0.75:
-                        b.put_if_empty(x, 0, FIRE[2] if abs(x) < W * 0.6 else FIRE[4])
-        frames.append(b)
-    return frames
-
 
 def dawn_gd(R):
     """巨炮落点地面：冲击环往外推（第 0–2 拍）+ 12 道放射裂缝（先暗金后冷）+ 焦痕（最后一帧停 0.8 秒淡掉）"""
@@ -803,35 +576,6 @@ def mark_px(beat, gift=False):
 
 # ================================================================ 连携「天降厚礼」：炮弹从天而降 + 一圈圈余震
 
-def lk_up(R):
-    """落地：第 0 拍一道从天上插进地面的黑红亮线（弹道最后一段）+ 地面白芯团；1–2 拍矮火裙 + 往上溅的碎块；3–5 拍黑红烟成团散开。宽 ≤ 0.8R"""
-    seed = 307 + R
-    puffs = _puffs(R, seed, 7, spread=0.45, hmin=0.1, hmax=0.35, rmin=0.24, rmax=0.36)
-    frames = []
-    for f in range(6):
-        b = Buf()
-        if f == 0:
-            for y in range(int(R * 1.6)):
-                u = y / (R * 1.6)
-                b.put(0, -y, FIRE[0] if u < 0.3 else (FIRE[2] if u < 0.7 else FIRE[4]))
-                if u < 0.5:
-                    b.put(-1, -y, FIRE[3])
-                    b.put(1, -y, FIRE[3])
-            blob(b, 0, -2, R * 0.38, 1.0, seed, squash=0.5)
-        else:
-            _draw_puffs(b, puffs, f, seed, cool=0.2)
-            if f <= 2:
-                for k in range(6):   # 往上溅的碎块（V 形）
-                    a = -math.pi / 2 + (k - 2.5) * 0.35
-                    d = R * (0.25 + 0.2 * f) * (0.8 + 0.4 * hf(k, 1, seed))
-                    x, y = math.cos(a) * d, math.sin(a) * d - 2 + f * f * 2
-                    b.put(x, y, SMOKE[1])
-                    b.put(x + 1, y, SMOKE[2])
-                    b.put(x, y - 1, FIRE[3] if f == 1 else SMOKE[2])
-        frames.append(b)
-    return frames
-
-
 def lk_gd(R):
     """余震涟漪：三道细环依次从中心往外推（第 1 / 3 / 5 拍起，各推 3 拍到 0.55 / 0.8 / 1.0R），环上带几粒尘；中心一块焦斑。共 9 拍"""
     seed = 331 + R
@@ -879,3 +623,310 @@ def drop_px(beat):
             out.append((-1, y, FIRE[4] if i < 3 else FIRE[5]))
             out.append((1, y, FIRE[4] if i < 3 else FIRE[5]))
     return out
+
+
+# ================================================================ 11-05 第三版：粒子为主（用户「太实了，没有原作那种粒子感，烟雾太多」）
+# 原作 wisdel_*_hit：中心一团很短的红光，之后是一圈往外甩的细长红火星（带尾）+ 几粒黑点，几乎没有烟。
+# 这里：热芯只亮 1–2 拍；之后是一簇往外飞的红 / 亮橙火星（1 像素粗、2–5 格短尾，越飞越暗）+ 少量黑碎点；烟只留 2–3 小团、带红边、0.4 秒内散完。
+
+def _spark_set(R, seed, n, dmin=0.45, dmax=1.0, hmax=0.6, h0=0.25, up=None, dark=0.22):
+    """火星表：[(角度, 落点距离, 起始高度, 抛高, 寿命比例 0..1, 是否黑碎点)]"""
+    out = []
+    for i in range(n):
+        a = h2(i, 1, seed) * math.tau
+        if up is not None:   # 往上喷：地面散开小
+            d = R * up * math.sqrt(h2(i, 2, seed))
+        else:
+            d = R * (dmin + (dmax - dmin) * math.sqrt(h2(i, 2, seed)))
+        out.append((a, d, R * h0 * h2(i, 3, seed), R * hmax * (0.3 + 0.7 * h2(i, 4, seed)), 0.55 + 0.45 * h2(i, 5, seed), h2(i, 6, seed) < dark))
+    return out
+
+
+def _spark_pos(sp, u):
+    a, d, h0, H, life, dk = sp
+    k = 1.0 - (1.0 - u) * (1.0 - u)          # 先快后慢
+    h = h0 * (1.0 - u) + 4.0 * H * u * (1.0 - u)
+    return d * k * math.cos(a), d * k * math.sin(a) * SQ - h
+
+
+def _draw_sparks(b, sparks, f, nf, start=1, tail=0.14, cy=0.0, cols=None):
+    """第 start 拍起飞，按 u = (f − start + 1) / (nf − start) 走；每颗画一段从 u − tail 到 u 的线（亮头、暗尾）"""
+    cols = cols or FIRE
+    if f < start:
+        return
+    u = (f - start + 1) / max(1, nf - start)
+    for sp in sparks:
+        if u > sp[4]:
+            continue
+        ul = u / sp[4]
+        x1, y1 = _spark_pos(sp, u)
+        if sp[5]:   # 黑碎点：2×2，不带尾
+            for dx in (0, 1):
+                for dy in (0, 1):
+                    b.put(x1 + dx, y1 + dy + cy, SMOKE[1] if dx == 0 else SMOKE[2])
+            continue
+        x0, y0 = _spark_pos(sp, max(0.0, u - tail))
+        head = cols[1] if ul < 0.3 else (cols[2] if ul < 0.6 else cols[3])
+        mid = cols[3] if ul < 0.5 else cols[4]
+        end = cols[5]
+        n = max(1, int(math.ceil(max(abs(x1 - x0), abs(y1 - y0)))))
+        for i in range(n + 1):
+            t = i / n
+            c = end if t < 0.35 else (mid if t < 0.75 else head)
+            b.put(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t + cy, c)
+        b.put(x1, y1 + cy, head)
+
+
+def _red_smoke(b, cx, cy, r, f0, f, seed, life=4):
+    """一小团黑烟：边缘一圈暗红（受热），往上飘、life 拍内成团散完（0.4 秒以内）"""
+    k = f - f0
+    if k < 0 or k >= life:
+        return
+    rr = r * (1.0 + 0.18 * k)
+    yy = cy - k * r * 0.35
+    dis = k / float(life) * 0.95
+    ri = int(math.ceil(rr))
+    for y in range(-ri, ri + 1):
+        for x in range(-ri, ri + 1):
+            d = math.hypot(x, y)
+            edge = rr * (0.85 + 0.15 * vnoise(cx + x, cy + y, seed, 2.0))
+            if d > edge:
+                continue
+            if dis > 0.0 and vnoise(cx + x, yy + y, seed + 7) < dis * (0.6 + 0.4 * d / max(1.0, rr)):
+                continue
+            if d > edge - 1.3:
+                c = FIRE[5] if (y < 0) else FIRE[6]
+            else:
+                lit = (-x * 0.6 - y * 0.8) / max(1.0, rr)
+                c = SMOKE[max(0, min(3, int(round(1.4 + lit * 1.3))))]
+            b.put(cx + x, yy + y, c)
+
+
+def _core(b, cx, cy, r, f):
+    """热芯：第 0 拍亮橙红实团（白芯很小），第 1 拍缩一半变红，第 2 拍起没有"""
+    if f >= 2 or f < 0:
+        return
+    rr = r * (1.0 if f == 0 else 0.55)
+    ri = int(math.ceil(rr))
+    for y in range(-ri, ri + 1):
+        for x in range(-ri, ri + 1):
+            d = math.hypot(x, y)
+            if d > rr * (0.88 + 0.12 * h2(x, y, 5)):
+                continue
+            u = d / max(1.0, rr)
+            if f == 0:
+                c = FIRE[0] if u < 0.3 else (FIRE[1] if u < 0.65 else FIRE[2])
+            else:
+                c = FIRE[1] if u < 0.35 else (FIRE[2] if u < 0.7 else FIRE[3])
+            b.put(cx + x, cy + y, c)
+
+
+def boom_up(R, v=0):
+    """普攻：热芯 2 拍 → 一圈往外甩的红 / 亮橙火星（带短尾）+ 黑碎点，2–3 小团红边黑烟 0.4 秒散完。共 6 拍，宽 ≤ R"""
+    seed = 11 + R
+    sparks = _spark_set(R, seed, 16 + R // 2, dmin=0.4, dmax=0.98, hmax=0.55, h0=0.35)
+    frames = []
+    for f in range(6):
+        b = Buf()
+        _core(b, 0, -R * 0.3, R * 0.34, f)
+        if f == 0:
+            for k in range(8):   # 第 0 拍一圈细长放射刺（原作的放射红线）
+                a = k * math.tau / 8 + h2(k, 9, seed) * 0.4
+                L = R * (0.55 + 0.35 * h2(k, 8, seed))
+                for s_ in range(int(R * 0.34), int(L)):
+                    b.put(math.cos(a) * s_, -R * 0.3 + math.sin(a) * s_ * SQ, FIRE[2] if s_ < L * 0.7 else FIRE[4])
+        for j in range(3 if R >= 30 else 2):
+            _red_smoke(b, (j - 1) * R * 0.28, -R * (0.35 + 0.1 * j), R * 0.13, 1 + (j % 2), f, seed + 40 + j)
+        _draw_sparks(b, sparks, f, 6)
+        frames.append(b)
+    return frames
+
+
+def pop_up():
+    """被合并掉的爆炸：一小点热芯 + 6 颗火星（4 拍）"""
+    sparks = _spark_set(POP_R, 3, 6, dmin=0.5, dmax=1.0, hmax=0.8, h0=0.5, dark=0.0)
+    frames = []
+    for f in range(4):
+        b = Buf()
+        _core(b, 0, -4, 2.5, f)
+        _draw_sparks(b, sparks, f, 4, tail=0.25)
+        frames.append(b)
+    return frames
+
+
+def pillar_up(R, tier):
+    """S1 处刑火柱：第 0 拍一道细白热竖柱（高 1.35R）+ 地面热芯；之后火星沿柱往上喷泉（地面散开 ≤ 0.3R、抛高到 1.25R）+ 一圈贴地火星到 0.92R，
+    细火舌沿柱往上窜；顶上 2 小团红边黑烟。精一：外圈三处小火星簇；精二：一缕暗红魂火绕柱盘旋上升。共 8 拍"""
+    seed = 131 + R
+    Hc = R * 1.35
+    jet = _spark_set(R, seed, 18 + R // 3, up=0.3, hmax=1.25, h0=0.15, dark=0.12)
+    ring = _spark_set(R, seed + 3, 10 + R // 5, dmin=0.5, dmax=0.92, hmax=0.25, h0=0.1, dark=0.3)
+    subs = [math.tau * (k / 3.0) + 0.6 for k in range(3)]
+    sub_sp = _spark_set(8, seed + 5, 6, dmin=0.4, dmax=1.0, hmax=0.9, h0=0.4, dark=0.0)
+    frames = []
+    for f in range(8):
+        b = Buf()
+        if f <= 1:
+            hc = Hc if f == 0 else Hc * 0.6
+            for y in range(int(hc)):
+                u = y / hc
+                hw = (R * 0.05 * (1.0 - 0.5 * u) + 1) * (1.0 if f == 0 else 0.6)
+                for x in range(-int(hw), int(hw) + 1):
+                    b.put(x, -y, (FIRE[0] if abs(x) < hw * 0.5 and u < 0.6 else FIRE[1]) if f == 0 else (FIRE[2] if u < 0.5 else FIRE[3]))
+        _core(b, 0, -3, R * 0.26, f)
+        _draw_sparks(b, jet, f, 8, tail=0.12)
+        _draw_sparks(b, ring, f, 8, tail=0.16)
+        if 1 <= f <= 5:   # 细火舌沿柱往上窜
+            for j in range(4):
+                x0 = (j - 1.5) * R * 0.06
+                y0 = -R * 0.1 - (f - 1) * R * 0.2 - h2(j, 2, seed) * R * 0.3
+                L = int(R * (0.3 + 0.2 * h2(j, f + 3, seed)))
+                for s_ in range(L):
+                    u = s_ / max(1, L)
+                    if f >= 4 and vnoise(j * 5, s_, seed + f, 2.0) < (f - 3) * 0.4:
+                        continue
+                    b.put(x0 + math.sin(u * 4.0 + j + f) * 1.3, y0 - s_, FIRE[1] if u < 0.25 else (FIRE[2] if u < 0.6 else FIRE[3]))
+        for j in range(2):
+            _red_smoke(b, (j - 0.5) * R * 0.25, -Hc * (0.95 + 0.08 * j), R * 0.1, 3 + j, f, seed + 40 + j)
+        if tier >= 1 and 2 <= f <= 5:
+            for s0 in subs:
+                x, y = gpt(R * 0.8, s0)
+                bb = Buf()
+                _core(bb, 0, -3, 2.2, f - 2)
+                _draw_sparks(bb, sub_sp, f - 2, 4, start=0, tail=0.25)
+                for (px_, py_), c in bb.p.items():
+                    b.put(x + px_, y + py_, c)
+        if tier >= 2 and 1 <= f <= 6:
+            for s_ in range(14):
+                u = (s_ + f * 3) / 30.0
+                if u > 1.0:
+                    continue
+                a = u * 9.0
+                c = SOUL[6] if s_ == 13 else (SOUL[5] if s_ > 9 else SOUL[4])
+                b.put(math.cos(a) * R * 0.3, -u * Hc * 1.05 + math.sin(a) * R * 0.08, c)
+        frames.append(b)
+    return frames
+
+
+def dome_up(R):
+    """S2 地毯轰炸：第 0 拍贴地扁热芯（0.55R）+ 低放射；之后一大圈贴着地皮往外掠的火星（抛高 ≤ 0.12R）到 0.95R + 黑碎点；1 小团红边烟。6 拍"""
+    seed = 171 + R
+    sparks = _spark_set(R, seed, 22 + R // 2, dmin=0.55, dmax=0.95, hmax=0.12, h0=0.08, dark=0.25)
+    frames = []
+    for f in range(6):
+        b = Buf()
+        if f <= 1:
+            rr = R * (0.55 if f == 0 else 0.3)
+            for y in range(-int(rr * 0.45), int(rr * 0.45) + 1):
+                for x in range(-int(rr), int(rr) + 1):
+                    d = math.hypot(x / rr, y / (rr * 0.45))
+                    if d > 1.0:
+                        continue
+                    c = (FIRE[0] if d < 0.35 else (FIRE[1] if d < 0.7 else FIRE[2])) if f == 0 else (FIRE[2] if d < 0.6 else FIRE[3])
+                    b.put(x, y - R * 0.06, c)
+            if f == 0:
+                for k in range(10):
+                    a = k * math.tau / 10 + h2(k, 9, seed) * 0.3
+                    for s_ in range(int(R * 0.55), int(R * 0.9)):
+                        b.put(math.cos(a) * s_, math.sin(a) * s_ * SQ - R * 0.06, FIRE[2] if s_ < R * 0.75 else FIRE[4])
+        _red_smoke(b, R * 0.1, -R * 0.2, R * 0.1, 2, f, seed + 40)
+        _draw_sparks(b, sparks, f, 6, tail=0.2)
+        frames.append(b)
+    return frames
+
+
+def dawn_up(R):
+    """S3 爆裂黎明：第 0 拍贴地白热地平线 + 升起的光穹（已压暗一档）；第 1 拍光穹缩成矮热芯；之后一大圈往外甩的火星（到 0.98R、抛高到 0.7R）+ 黑碎点，
+    外沿 4 小团红边烟 0.4 秒散完。共 8 拍"""
+    seed = 211 + R
+    sparks = _spark_set(R, seed, 50 + R // 2, dmin=0.3, dmax=0.98, hmax=0.7, h0=0.3, dark=0.25)
+    frames = []
+    for f in range(8):
+        b = Buf()
+        if f == 0:
+            W = R * 0.95
+            for x in range(-int(W), int(W) + 1):
+                u = abs(x) / W
+                b.put(x, 0, FIRE[0] if u < 0.35 else (FIRE[1] if u < 0.75 else FIRE[2]))
+                if u < 0.85:
+                    b.put(x, -1, FIRE[1] if u < 0.5 else FIRE[2])
+                if u < 0.5:
+                    b.put(x, 1, FIRE[2])
+        if f <= 1:
+            Wd, Hd = R * (0.85 if f == 0 else 0.45), R * (0.5 if f == 0 else 0.25)
+            for y in range(int(Hd) + 1):
+                hw = Wd * math.sqrt(max(0.0, 1.0 - (y / Hd) ** 2))
+                for x in range(-int(hw), int(hw) + 1):
+                    dd = math.hypot(x / Wd, y / Hd)
+                    if f == 0:
+                        c = FIRE[1] if dd < 0.45 else (FIRE[2] if dd < 0.8 else FIRE[3])
+                    else:
+                        c = FIRE[2] if dd < 0.5 else FIRE[3]
+                    b.put(x, -2 - y, c)
+        for j in range(4):
+            a = j * math.tau / 4 + 0.5
+            x, y = gpt(R * 0.6, a)
+            _red_smoke(b, x, y - R * 0.12, R * 0.09, 2 + (j % 2), f, seed + 40 + j)
+        _draw_sparks(b, sparks, f, 8, tail=0.13)
+        frames.append(b)
+    return frames
+
+
+def lk_up(R):
+    """连携落地：第 0 拍一道插进地面的亮线（弹道最后一段）+ 地面热芯；之后火星往上溅成 V 形（地面散开 ≤ 0.55R、抛高到 1.1R）+ 黑碎点；1 小团红边烟。6 拍"""
+    seed = 307 + R
+    sparks = _spark_set(R, seed, 18 + R // 2, up=0.55, hmax=1.1, h0=0.1, dark=0.25)
+    frames = []
+    for f in range(6):
+        b = Buf()
+        if f == 0:
+            for y in range(int(R * 1.6)):
+                u = y / (R * 1.6)
+                b.put(0, -y, FIRE[0] if u < 0.3 else (FIRE[2] if u < 0.7 else FIRE[4]))
+                if u < 0.5:
+                    b.put(-1, -y, FIRE[3])
+                    b.put(1, -y, FIRE[3])
+        _core(b, 0, -2, R * 0.3, f)
+        _red_smoke(b, 0, -R * 0.4, R * 0.12, 2, f, seed + 40)
+        _draw_sparks(b, sparks, f, 6, tail=0.12)
+        frames.append(b)
+    return frames
+
+
+def shade_up():
+    """残影（黑红）：暗红半透明人形从地里浮出（4 拍），一圈红描边，两点亮红眼，头顶两缕红火舌"""
+    frames = []
+    W, Hh = 7, 21
+    for f in range(4):
+        b = Buf()
+        rise = [0.4, 0.75, 1.0, 1.0][f]
+        top = -int(Hh * rise)
+        for y in range(top, 1):
+            u = (y - top) / max(1, -top + 1)
+            half = W * (0.45 + 0.55 * min(1.0, u * 1.6)) if u < 0.75 else W * (1.0 - (u - 0.75) * 0.8)
+            half = max(1.0, half)
+            for x in range(-int(half), int(half) + 1):
+                edge = abs(x) >= int(half) or y == top
+                b.put(x, y, SOUL[4] if edge else (SOUL[1] if u > 0.3 else SOUL[2]))
+        if rise >= 0.75:
+            ey = top + 5
+            b.put(-2, ey, SOUL[6])
+            b.put(2, ey, SOUL[6])
+        for j, dx in enumerate((-2, 2)):
+            L = 3 + ((f + j) % 2) * 2
+            for s_ in range(L):
+                b.put(dx + (1 if (s_ + f) % 3 == 0 else 0) * (1 if j else -1), top - 1 - s_, SOUL[5] if s_ < 2 else SOUL[4])
+        frames.append(b)
+    return frames
+
+
+def smz_up():
+    """魂炮出膛：一小团暗红烟 + 3 颗红火星（3 拍）"""
+    sparks = _spark_set(4, 17, 3, dmin=0.6, dmax=1.0, hmax=0.6, h0=0.3, dark=0.0)
+    frames = []
+    for f in range(3):
+        b = Buf()
+        _red_smoke(b, 0, -2, 2.2, 0, f, 17, life=3)
+        _draw_sparks(b, sparks, f, 3, start=0, tail=0.3)
+        frames.append(b)
+    return frames

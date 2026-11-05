@@ -5,7 +5,7 @@
 帧条直接读 tools/pxplane_bake_wisadel.py 烤出的 game/art/fx/pxp/pxp_wd_*.png + game/data/pxp_wisadel.json（与游戏同一份）；
 炮弹、落点准星、四角括号、残影标记用 tools/pxplane_wisadel_art.py 里与 fx_pxplane_wd.gd 同算法的 Python 版逐格画。
 摆法照游戏：炮口 = 脚底 + (14, −34)，炮弹 1500 px/s、最高拱 18；爆炸半径 66（精一起 × 1.15 = 76），余震 0.45 秒后 × 1.2；
-精一被炸死的敌人留残影 0.25 秒后殉爆（× 0.8）、主目标挂标记；精二两个魂灵之影悬在肩后，每发炮击跟一炮（落点画成 0.7 的灰紫殉爆）；
+精一被炸死的敌人留残影 0.25 秒后殉爆（× 0.8）、主目标挂标记；精二两个魂灵之影悬在肩后，每发炮击跟一炮（落点画成 0.7 的暗红殉爆）；
 S1 三发强化炮 × 1.375；S2 × 1.25（攻击间隔 × 0.8，后半段 4 连发）；S3 巨炮 × 2.5、间隔 × 0.6。
 每招一张：E0 / E1 / E2 左右并排（只放实际存在的档）；上半 1 倍（实机大小：1 美术像素 = 2 屏幕像素）、下半 2 倍放大；15 fps 原速循环。
 光照近似：整体压暗到 AMBIENT，爆点挂一盏短照地光；热芯（emit 点）近似发光层加一层柔光。Noita 颗粒在 GIF 里按同材质近似画（rock 碎块 / ember 火星）。
@@ -27,7 +27,7 @@ GROUND = (36, 46, 48)
 FONT = "C:/Windows/Fonts/msyh.ttc"
 AMBIENT = 0.8
 FIRE_L = (1.0, 0.42, 0.28)
-SOUL_L = (0.62, 0.52, 0.9)
+SOUL_L = (0.8, 0.22, 0.2)
 SQ = 0.72
 TIP = (14, -34)
 
@@ -112,10 +112,10 @@ class Col:
         self.seed += 1
         for i in range(n):
             a = rnd.uniform(0, math.tau)
-            sp = rnd.uniform(50, 130) * spd if mat == "rock" else rnd.uniform(60, 170) * spd
-            vh = rnd.uniform(110, 230) if mat == "rock" else rnd.uniform(80, 210)
+            sp = rnd.uniform(50, 130) * spd if mat == "rock" else rnd.uniform(170, 320) * spd
+            vh = rnd.uniform(110, 230) if mat == "rock" else rnd.uniform(60, 180)
             sz = 4 + 2 * int(rnd.random() < 0.5) if mat == "rock" else 2 + 2 * int(rnd.random() < 0.5)
-            self.grains.append(Grain(mat, (at[0], gy), max(0.0, gy - at[1]), (math.cos(a) * sp, math.sin(a) * sp * SQ), vh, rnd.uniform(0.8, 1.2) * (1.0 if mat == "rock" else 0.8), sz, tk))
+            self.grains.append(Grain(mat, (at[0], gy), max(0.0, gy - at[1]), (math.cos(a) * sp, math.sin(a) * sp * SQ), vh, rnd.uniform(0.8, 1.2) * (1.0 if mat == "rock" else 0.42), sz, tk))
 
     def soul_pos(self, k):
         side = -1 if k == 0 else 1
@@ -183,28 +183,28 @@ class Col:
             self.add("dawng_r%d" % s3, tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 30), min(230, r * 1.15), 0.85, tk, 3)
             self.grain("rock", (c[0], c[1] - 40), c[1] + 2, 8, tk, 1.4)
-            self.grain("ember", (c[0], c[1] - 30), c[1] + 2, 8, tk, 1.4)
+            self.grain("streak", (c[0], c[1] - 30), c[1] + 2, 8, tk, 1.4)
         elif kind == "exec":
             s2 = pick(A.S2_R, r)
             self.add("dome_r%d" % s2, tk, c, gy=c[1] + 1)
             self.add("st_r%d_e%d" % (s2, 2 if self.t >= 2 else 1), tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 12), min(180, r * 1.6), 0.68, tk)
             self.grain("rock", (c[0], c[1] - 14), c[1] + 2, 4, tk, 1.2)
-            self.grain("ember", (c[0], c[1] - 10), c[1] + 2, 4, tk, 1.2)
+            self.grain("streak", (c[0], c[1] - 10), c[1] + 2, 4, tk, 1.2)
         elif s1:
             p1 = pick(A.S1_R, r)
             self.add("pil_r%d_e%d" % (p1, self.t), tk, c, gy=c[1] + 2)
             self.add("sc_r%d" % pick([22, 26, 30, 34, 38, 43, 48, 50, 56, 62], r), tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 36), min(190, r * 1.7), 0.75, tk)
             self.grain("rock", (c[0], c[1] - 30), c[1] + 2, 6, tk, 1.25)
-            self.grain("ember", (c[0], c[1] - 24), c[1] + 2, 6, tk, 1.25)
+            self.grain("streak", (c[0], c[1] - 24), c[1] + 2, 6, tk, 1.25)
         else:
             bk = pick(A.BOOM_R, r)
             self.add("boom_r%d" % bk, tk, c, gy=c[1] + 1)
             self.add(("sc2_r%d" if self.t >= 2 else "sc_r%d") % bk, tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 20), min(150, max(100, r * 1.6)), 0.6, tk)
             self.grain("rock", (c[0], c[1] - 18), c[1] + 2, 3, tk)
-            self.grain("ember", (c[0], c[1] - 14), c[1] + 2, 3, tk)
+            self.grain("streak", (c[0], c[1] - 14), c[1] + 2, 3, tk)
 
 
 # ---------------------------------------------------------------- 绘制
@@ -352,7 +352,7 @@ def render(lib, col, tk):
         age = (tk - gr.t0) / 15.0
         if age < 0 or age > gr.life + 0.5:
             continue
-        g_ = 1100.0 if gr.mat == "rock" else 900.0
+        g_ = 1100.0 if gr.mat == "rock" else 520.0
         tt = min(age, gr.life)
         h = gr.h + gr.vh * tt - 0.5 * g_ * tt * tt
         landed = h <= 0
@@ -371,6 +371,12 @@ def render(lib, col, tk):
             c = "#ffa868" if u < 0.2 else ("#c41e18" if u < 0.55 else "#6a1410")
         sz = gr.sz
         xx, yy = snap((x, y))
+        if gr.mat != "rock" and not landed:   # 火星线：沿速度方向拖一小段（同 fx_recipe streak）
+            vx, vy = gr.v[0], gr.v[1] - (gr.vh - g_ * tt)
+            vl = math.hypot(vx, vy) or 1.0
+            tl = max(4.0, min(18.0, vl * 0.05))
+            dr.line([xx, yy, xx - vx / vl * tl, yy - vy / vl * tl], fill=A.hx(c), width=max(2, sz // 2 * 2))
+            continue
         dr.rectangle([xx, yy, xx + sz - 1, yy + (sz if not landed else max(2, sz - 2)) - 1], fill=A.hx(c))
     # 残影标记
     for (ei, a0, a1, gift) in col.marks:
@@ -488,7 +494,7 @@ def sc_late(t):
             c.shells.append({"kind": "x", "from": frm, "to": (e[0], e[1] - 18), "t0": tk + 1 + j, "t1": tk + 1 + j + ln, "r": 10, "s1": False})
             c.add("xpop", tk + 1 + j + ln, (e[0], e[1]), gy=e[1] + 1)
             if j == 0:
-                c.grain("ember", (e[0], e[1] - 12), e[1] + 2, 2, tk + 1 + j + ln)
+                c.grain("streak", (e[0], e[1] - 12), e[1] + 2, 2, tk + 1 + j + ln)
                 c.light((e[0], e[1] - 10), 80, 0.4, tk + 1 + j + ln)
     return c
 
@@ -524,7 +530,7 @@ def sc_link():
         if j % 2 == 0:
             c.light((e[0], e[1] - 16), 130, 0.7, tk + 5)
         c.grain("rock", (e[0], e[1] - 14), e[1] + 2, 3, tk + 5, 1.2)
-        c.grain("ember", (e[0], e[1] - 10), e[1] + 2, 3, tk + 5, 1.2)
+        c.grain("streak", (e[0], e[1] - 10), e[1] + 2, 3, tk + 5, 1.2)
     return c
 
 

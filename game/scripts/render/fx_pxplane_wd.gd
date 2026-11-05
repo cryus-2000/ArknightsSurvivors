@@ -1,8 +1,8 @@
 ## 维什戴尔转平面（docs/274，fx/px_plane = 1）：fx_pxplane.gd 按 id 转来的一节，单独成文件（第五批四人并行，少撞 fx_pxplane.gd）。
 ## 帧条由 tools/pxplane_bake_wisadel.py 烤（图形 tools/pxplane_wisadel_art.py），键前缀 wd_；炮弹、落点准星、残影标记、续燃引线在这里逐格画
 ## （算法同 pxplane_wisadel_art.py 的 shell_px() / reticle_px() / bracket_px() / mark_px()，改一边要改另一边）。
-## 招牌（每招一个意象）：普攻 = 实心爆团（亮橙红热芯 → 血红 → 黑红烟，原作黑红）+ 焦痕，余震 = 土尘冲击圈 + 地缝一线红；精一加灰紫残影殉爆（好礼）+ 主目标头上残影标记；
-## 精二加魂炮（灰紫小炮弹 + 灰紫殉爆）+ 主爆外圈一道热冲击环。S1 = 处刑火柱（竖直白热柱 → 火团堆成蘑菇帽）+ 落点四角括号；
+## 招牌（每招一个意象）：普攻 = 火星爆（热芯 1–2 拍 → 一圈红 / 亮橙火星带短尾 + 黑碎点，少量红边黑烟 0.4 秒散完；原作黑红）+ 焦痕，余震 = 土尘冲击圈 + 地缝一线红；精一加暗红残影殉爆（好礼）+ 主目标头上残影标记；
+## 精二加魂炮（暗红小炮弹 + 暗红殉爆）+ 主爆外圈一道热冲击环。S1 = 处刑火柱（竖直白热柱 → 火团堆成蘑菇帽）+ 落点四角括号；
 ## S2 = 地毯轰炸（贴地扁爆、一圈矮火团往外滚）+ 放射焦星（精二焦星上留地火）；S3 = 巨炮「黎明」（贴地白热地平线 + 升起的光穹 + 外沿烟环）；
 ## 连携「天降厚礼」= 她朝天开一炮，死者处各有一发炮弹拖着黑红尾迹从天上砸下 → 落地矮爆 + 三道余震涟漪依次推开。
 ## 只画：读玩法状态（o.hw.wd 的 shells / quakes / marks），画面专用键只在 wd 里写 pxk（S1 强化炮标记，玩法不读）；不碰玩法与玩法随机数。
@@ -14,9 +14,9 @@ const Bal = preload("res://scripts/core/balance.gd")
 
 const FIRE := [Color("#fff0e4"), Color("#ffa868"), Color("#f04a24"), Color("#c41e18"), Color("#8e1010"), Color("#5c0a0c"), Color("#360608"), Color("#1a0305")]   # 黑红（11-05 用户：对齐原作），偏橙的血红，和敌方预警粉红拉开
 const SMOKE := [Color("#0c0607"), Color("#180a0c"), Color("#26100f"), Color("#381a18"), Color("#4e2a28")]
-const SOUL := [Color("#120e1a"), Color("#262034"), Color("#3e3452"), Color("#5e5276"), Color("#8a7ea6"), Color("#b8aed2"), Color("#e8e2f6")]
+const SOUL := [Color("#14040680"), Color("#2a080cb0"), Color("#3e0c12c0"), Color("#7a141c"), Color("#b82228"), Color("#e8443c"), Color("#ffb0a0")]   # 魂灵之影（11-05 用户去紫）：暗红半透明身 + 红描边，比主炮暗
 const IRON := [Color("#141012"), Color("#2a2226"), Color("#463c40"), Color("#6a5e60")]
-const SOUL_L := Color(0.62, 0.52, 0.9)     # 魂灵照地光（灰紫）
+const SOUL_L := Color(0.8, 0.22, 0.2)      # 魂灵照地光（暗红，比主炮的橙红暗）
 const SQ := 0.72
 const BOOM_R := [22, 26, 30, 34, 38, 43, 48]
 const S1_R := [44, 50, 56, 62]
@@ -115,7 +115,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			if _beat_n(o, "pop") >= POP_CAP:
 				return
 			_up(o, "pop", d.c, {"gy": (d.c as Vector2).y + 1.0})
-		"wd_shade":   # 被炸死 / 带标记倒下的敌人留下残影（灰紫人形浮出）
+		"wd_shade":   # 被炸死 / 带标记倒下的敌人留下残影（暗红半透明人形浮出）
 			if _beat_n(o, "shd") >= 3:
 				return
 			_up(o, "shade", d.pos, {"gy": (d.pos as Vector2).y + 1.0})
@@ -129,7 +129,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var at: Vector2 = d.at
 			_up(o, "xpop", at, {"gy": at.y + 1.0})
 			if _beat_n(o, "xhg") == 0:
-				R._grains(o, at + Vector2(0, -12), at.y + 2.0, "ember", 2, {"tier": t})
+				R._grains(o, at + Vector2(0, -12), at.y + 2.0, "streak", 2, {"tier": t})
 				R._light(o, at + Vector2(0, -10), 80.0, 0.4, 0.1, p.light)
 		"wd_splash":   # 升级卡「扩散」：一小团火（同 pop）
 			if _beat_n(o, "pop") >= POP_CAP:
@@ -160,8 +160,8 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			_gd(o, "lk_gd", c)
 			if int(d.get("j", 0)) % 2 == 0:
 				R._light(o, c + Vector2(0, -16), 130.0, 0.7, 0.13, p.light)
-			R._grains(o, c + Vector2(0, -14), c.y + 2.0, "rock", 3, {"tier": 2, "grain_spd": 1.2})
-			R._grains(o, c + Vector2(0, -10), c.y + 2.0, "ember", 3, {"tier": 2, "grain_spd": 1.2})
+			R._grains(o, c + Vector2(0, -14), c.y + 2.0, "rock", 2, {"tier": 2, "grain_spd": 1.2})
+			R._grains(o, c + Vector2(0, -10), c.y + 2.0, "streak", 3, {"tier": 2, "grain_spd": 1.2})
 		"skill":
 			var si: int = int(d.get("i", -1))
 			if si < 0 or o.pos == Vector2.INF:
@@ -190,21 +190,21 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 					R._light(o, c + Vector2(0, -6), clampf(rr * 0.9, 80.0, 140.0), 0.38, 0.1, p.light)
 			if _beat_n(o, "qg") == 0:
 				R._grains(o, c + Vector2(0, -4), c.y + 2.0, "rock", 2, {"tier": t})
-		"shade", "soul":   # 残影殉爆 / 魂炮落点：灰紫内爆 → 火舌（魂炮缩到 0.7）
+		"shade", "soul":   # 残影殉爆 / 魂炮落点：暗红内爆 → 火舌（魂炮缩到 0.7）
 			if _beat_n(o, "sb") >= 3:
 				return
 			var sb: int = _pick(SB_R, rr * (0.7 if k == "soul" else 1.0))
 			_up(o, "sb_r%d" % sb, c, {"gy": c.y + 1.0})
 			if k == "shade" or _beat_n(o, "sbl") == 0:
 				R._light(o, c + Vector2(0, -16), clampf(rr * 1.4, 90.0, 140.0), 0.55, 0.12, SOUL_L)
-			R._grains(o, c + Vector2(0, -12), c.y + 2.0, "rock", 2 if k == "soul" else 3, {"tier": t})
+			R._grains(o, c + Vector2(0, -12), c.y + 2.0, "streak", 2 if k == "soul" else 3, {"tier": t})
 		"giant":   # 爆裂黎明：地平线白光 + 光穹 + 烟环；地面冲击环 + 放射裂缝 + 焦痕
 			var s3: int = _pick(S3_R, rr)
 			_up(o, "dawn_r%d" % s3, c, {"gy": c.y + 2.0})
 			_gd(o, "dawng_r%d" % s3, c, {"hold": true, "life": 7.0 / 15.0 + HOLD})
 			R._light(o, c + Vector2(0, -30), minf(230.0, rr * 1.15), 0.85, 0.15, p.light)
-			R._grains(o, c + Vector2(0, -40), c.y + 2.0, "rock", 8, {"tier": t, "grain_spd": 1.4})
-			R._grains(o, c + Vector2(0, -30), c.y + 2.0, "ember", 8, {"tier": t, "grain_spd": 1.4})
+			R._grains(o, c + Vector2(0, -40), c.y + 2.0, "rock", 6, {"tier": t, "grain_spd": 1.4})
+			R._grains(o, c + Vector2(0, -30), c.y + 2.0, "streak", 10, {"tier": t, "grain_spd": 1.4})
 		"exec":   # 饱和复仇：贴地扁爆 + 放射焦星（精二焦星上留地火）
 			if _beat_n(o, "bm") >= BOOM_CAP:
 				return
@@ -213,8 +213,8 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var stk: String = "st_r%d_e%d" % [s2, 2 if t >= 2 else 1]
 			_gd(o, stk, c, {"hold": true, "life": float(r._meta("wd_" + stk).get("n", 6)) / 15.0 + HOLD})
 			R._light(o, c + Vector2(0, -12), minf(180.0, rr * 1.6), 0.68, 0.12, p.light)
-			R._grains(o, c + Vector2(0, -14), c.y + 2.0, "rock", 4, {"tier": t, "grain_spd": 1.2})
-			R._grains(o, c + Vector2(0, -10), c.y + 2.0, "ember", 4, {"tier": t, "grain_spd": 1.2})
+			R._grains(o, c + Vector2(0, -14), c.y + 2.0, "rock", 2, {"tier": t, "grain_spd": 1.2})
+			R._grains(o, c + Vector2(0, -10), c.y + 2.0, "streak", 6, {"tier": t, "grain_spd": 1.2})
 		_:
 			if _beat_n(o, "bm") >= BOOM_CAP:
 				return
@@ -223,15 +223,15 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				_up(o, "pil_r%d_e%d" % [s1, t], c, {"gy": c.y + 2.0})
 				_scorch(o, "sc_r%d" % _pick(SC_R, rr), c)
 				R._light(o, c + Vector2(0, -36), minf(190.0, rr * 1.7), 0.75, 0.14, p.light)
-				R._grains(o, c + Vector2(0, -30), c.y + 2.0, "rock", 6, {"tier": t, "grain_spd": 1.25})
-				R._grains(o, c + Vector2(0, -24), c.y + 2.0, "ember", 6, {"tier": t, "grain_spd": 1.25})
+				R._grains(o, c + Vector2(0, -30), c.y + 2.0, "rock", 4, {"tier": t, "grain_spd": 1.25})
+				R._grains(o, c + Vector2(0, -24), c.y + 2.0, "streak", 8, {"tier": t, "grain_spd": 1.25})
 			else:   # 普攻：实心爆团 + 焦痕（精二焦痕外圈一道热冲击环）
 				var bk: int = _pick(BOOM_R, rr)
 				_up(o, "boom_r%d" % bk, c, {"gy": c.y + 1.0})
 				_scorch(o, ("sc2_r%d" if t >= 2 else "sc_r%d") % bk, c)
 				R._light(o, c + Vector2(0, -20), clampf(rr * 1.6, 100.0, 150.0), 0.6, 0.12, p.light)
-				R._grains(o, c + Vector2(0, -18), c.y + 2.0, "rock", 3, {"tier": t})
-				R._grains(o, c + Vector2(0, -14), c.y + 2.0, "ember", 3, {"tier": t})
+				R._grains(o, c + Vector2(0, -18), c.y + 2.0, "rock", 2, {"tier": t})
+				R._grains(o, c + Vector2(0, -14), c.y + 2.0, "streak", 4, {"tier": t})
 
 
 # ================================================================ 绘制
@@ -505,7 +505,7 @@ func _bracket(ra: float, beat: int) -> Array:
 	return out
 
 
-## 残影标记：灰紫小魂火（5 宽 7 高）+ 两点淡紫眼；好礼 = 脚边一粒暗金
+## 残影标记：暗红小魂火（5 宽 7 高）+ 两点亮红眼；好礼 = 脚边一粒橙红
 func _mark(beat: int, gift: bool) -> Array:
 	var out: Array = []
 	var bob: int = 1 if (beat / 3) % 2 == 1 else 0
