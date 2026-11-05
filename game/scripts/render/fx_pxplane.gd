@@ -3430,8 +3430,12 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_mz_bloom(o, lst[i], bk, raw, t)
 			if mode() == 1 and not lst.is_empty():
 				var hp: Vector2 = lst[0].pos + Vector2(0, -float(lst[0].r) * 0.5)
-				R._grains(o, hp, float(lst[0].pos.y) + 2.0, "ink", mini(2 + t, 1 + lst.size()), {"tier": t}, (hp - o.pos).normalized())
-				R._light(o, hp, 100.0, 0.4 * MI.lit_k(g), 0.12, p.light)
+				for i in mini(2, lst.size()):   # docs/270：命中帧要量得出核心辉光——命中点一小撮白芯进 emit（4 拍）
+					var hot := {"k": "", "mzhot": true, "t0": g.t, "gp": _snap(lst[i].pos + Vector2(0, -float(lst[i].r) * 0.55)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0}
+					if i == 0:   # 颗粒等白芯第一次画的时候再撒（发光层晚一帧上屏：颗粒和辉光落在同一帧）；每次挥伞 4–5 颗（原来伞击 + 每根触手各撒，一簇 13 颗）
+						hot["gr"] = [hp, float(lst[0].pos.y) + 2.0, 4 + (1 if t >= 2 else 0), t, (hp - o.pos).normalized()]
+					_push(hot)
+				R._light(o, hp, 100.0, 0.5 * MI.lit_k(g), 0.12, p.light)   # docs/270 复测：照地亮度峰值 +42 → 0.45 时 +48（下限 +50）→ 0.5（实测约 0.68）
 		"mz_tent":
 			var e: Dictionary = d.get("e", {})
 			if e.is_empty():
@@ -3441,9 +3445,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_mz_bloom(o, e, "mz_bloom_e0_up", raw, t)
 				return
 			var stn: float = float(d.get("stun", 0.0))
-			_mz_tent(o, e, d.get("at", e.pos), _mz_tk("big", 2) if s3 else (_mz_tk("curl", t) if stn >= 0.45 else _mz_tk("slam", t)), raw, t, stn)
-			if mode() == 1 and not s3:
-				R._grains(o, e.pos + Vector2(0, -6), float(e.pos.y) + 2.0, "ink", 2, {"tier": t})
+			_mz_tent(o, e, d.get("at", e.pos), _mz_tk("big", 2) if s3 else (_mz_tk("curl", t) if stn >= 0.45 else _mz_tk("slam", t)), raw, t, stn)   # 触手不再另撒颗粒（颗粒数算进伞击那一簇）
 		"mz_burst":   # 唤醒创伤扩散：大水母绽开 + 地上冲击环
 			var at: Vector2 = d.get("at", o.pos)
 			if raw:
@@ -3454,7 +3456,8 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			if t >= 1:   # 精一起：每团大水母下面钻出一根触手（分档加新元素，不靠换色）
 				_mz_tent(o, {"pos": at, "r": 10.0, "boss": true}, at, _mz_tk("pierce", t), raw, t, 0.0)
 			if mode() == 1:
-				R._grains(o, at + Vector2(0, -18), at.y, "ink", 4 + t, {"tier": t})
+				R._grains(o, at + Vector2(0, -18), at.y, "ink", 3, {"tier": t})   # docs/270：三团合一簇 ≤ 16（伞击 4–5 + 3 × 3）
+				_push({"k": "", "mzhot": true, "t0": g.t, "gp": _snap(at + Vector2(0, -16)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0})
 				R._light(o, at + Vector2(0, -14), 140.0, 0.55 * MI.lit_k(g), 0.14, p.light)
 		"mz_sting":   # 深蓝之籽蛰中：一朵紫色小水母
 			var e2: Dictionary = d.get("e", {})
@@ -3523,7 +3526,41 @@ func _mz_draw_floor(o) -> void:
 		_draw_strip(cv, "mz_pool_r%d_gd" % _mz_pick(rr * 0.5, [81, 104]), frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
+			if it.has("mzhot"):
+				_mz_hot(it)
+				continue
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
+
+
+## 命中白芯：只进发光层（4 拍：十字 + 斜角，逐拍收小变淡，emit 预算内），不画色层——色层的亮由水母绽开那一帧自己画；
+## docs/270 复测：体检挑的命中帧在出手后约 0.2 秒，2 拍白芯已熄（辉光面积 8），延到 4 拍
+func _mz_hot(it: Dictionary) -> void:
+	if it.has("gr"):
+		var gr: Array = it.gr
+		it.erase("gr")
+		var oo = _op(str(it.oid))
+		if oo != null:
+			load("res://scripts/render/fx_recipe.gd").of(g)._grains(oo, gr[0], gr[1], "ink", int(gr[2]), {"tier": int(gr[3])}, gr[4])
+	if not g.optical_on:
+		return
+	var f: int = frame_of(float(it.t0))
+	if f < 0 or f > 3:
+		return
+	var fr: int = Engine.get_process_frames()
+	if fr != _emit_frame:
+		_emit_frame = fr
+		_emit_n = 0
+	var px: float = g.PX
+	var c0: Vector2 = it.gp
+	var k: float = minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * MI.lit_k(g) * [1.0, 0.9, 0.75, 0.55][f])
+	var pts: Array = [Vector2.ZERO, Vector2(px, 0), Vector2(-px, 0), Vector2(0, px), Vector2(0, -px), Vector2(px, px), Vector2(-px, px), Vector2(px, -px), Vector2(-px, -px)]
+	if f <= 1:
+		pts += [Vector2(px * 2, 0), Vector2(-px * 2, 0), Vector2(0, px * 2), Vector2(0, -px * 2)]
+	for q in pts:
+		if _emit_n >= EMIT_CAP:
+			return
+		_emit_n += 1
+		g.glow_next.append([c0 + q, px, Color(0.85, 0.97, 1.0, k)])
 
 
 ## 排序项：深蓝之籽（身后 / 离身游猎的小水母）、藏品剑气（小水母游过去）

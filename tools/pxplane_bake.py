@@ -28,7 +28,7 @@ OPS = {
     "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0xc4, 0xdc)]),   # 点缀冰蓝（11-05 用户定，原海绿 5f f0）
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
     "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
-    "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7)]),
+    "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7), (0xcf, 0xd6)]),   # docs/270：伞沿淡紫白亮边也进 emit（命中帧已过白热拍）
     "texas": ("melee/ak-texas-pp", "pxp_texas.json", "tx_", [(0x9f, 0xe3)]),
 }
 TMP = os.path.join(ROOT, "build", "pxp_bake")
@@ -395,8 +395,11 @@ def bake(key, d, dur, loop=False):
         m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
         py, px = np.nonzero(m)
         idx = np.arange(len(px))
-        if len(idx) > EMIT_MAX:
-            idx = idx[np.linspace(0, len(idx) - 1, EMIT_MAX).astype(int)]
+        cap = EMIT_MAX
+        if PREFIX == "mz_":   # 水月（docs/270）：emit p90 ≤ 300——伞面 / 旋斩每帧 24 点，常驻件（深蓝之籽、水镜、充能环）每帧 6 点
+            cap = 6 if key.startswith(("jelly", "qi_", "pool", "ready")) else 24
+        if len(idx) > cap:
+            idx = idx[np.linspace(0, len(idx) - 1, cap).astype(int)]
         pts = []
         for j in idx:
             r, g_, b = c[py[j], px[j], :3]
