@@ -61,6 +61,8 @@ var act_anim := "attack"   # 当前动作实际播放的帧条（通常同 act_k
 # ---- 动画：贴图槽来自 def.sprites（idle / run / attack / hurt / death），帧数 = 宽 / 高
 var anim_kind := ""
 var anim_t := 0.0
+var vis_hold_until := -1.0   # 卡肉局部顿帧（render/melee_impact.meat，只画）：到这个游戏时间之前本体停在命中那一帧
+var vis_hold_st: Dictionary = {}
 const ANIM_FPS := {"idle": 4.0, "run": 10.0, "hurt": 10.0, "death": 6.0}
 # ---- 干员自己的特效粒子（docs/25）：{kind, pos, life, max, col, r, vel, floor, …}，squad.gd 每帧 tick、按层绘制
 var pfx: Array = []
@@ -2944,6 +2946,11 @@ func foot_off(tx: Texture2D, kind: String = "") -> float:
 ## 画干员本体（世界坐标，脚底在 pos）
 func draw_body() -> void:
 	var st := anim_state()
+	if g != null and vis_hold_until > g.t:   # 卡肉：命中那一帧停住（只画，玩法读数照旧走 anim_state）
+		if vis_hold_st.is_empty():
+			vis_hold_st = st
+		else:
+			st = vis_hold_st
 	if st.is_empty():
 		cv.draw_circle(pos, 10.0, Color(0.6, 0.9, 1.0))
 		return

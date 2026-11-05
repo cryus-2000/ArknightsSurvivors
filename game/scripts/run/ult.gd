@@ -16,6 +16,7 @@ const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane_irene；只画）
+const TXP = preload("res://scripts/run/ult_px_tx.gd")   # 德克萨斯终结技转平面加强（docs/257 §9，ult/px_plane_texas；只画）
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，同开关；只画）
 const HOP = preload("res://scripts/run/ult_px_ho.gd")   # 星熊终结技配色对齐 + 崩解（docs/254 §9）
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9，ult/px_plane_gladiia；只画）
@@ -1489,6 +1490,8 @@ func draw_world(w) -> void:
 		GLP.of(g).draw_front(self, w)   # 歌蕾蒂娅：亮核 / 水滴 / 崩解（docs/263 §9）
 	if MZP.on():
 		MZP.of(g).draw_front(self, w)   # 水月「水母群」转平面：海月水母 / 压缩环 / 炸开亮核与冲击环 / 崩解 / 缠绕（docs/261 §8）
+	if TXP.on():
+		TXP.of(g).draw_front(self, w)   # 德克萨斯终结技转平面加强：斩开那一下的亮核 / 冲击环 / 粒子云 / 崩解（docs/257 §9）
 	_draw_inhale(w)
 	_draw_hit_frame(w)
 

@@ -332,6 +332,8 @@ static func _tx_sweep(o, a: Vector2, c: Vector2, w: float, hit: Dictionary, dmg:
 		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
 		for s in b.get("on_hit", _EA):
 			apply_status(o, e, s)
+		if dash and hit.size() == 1:   # 卡肉（render/melee_impact.meat，只画）：一次冲刺只在第一只身上卡一下
+			_MI.hit(o, src, tags, [e])
 		if dash:   # 精英化段：verb.dash_mod 的 on_hit（idx = 这次冲刺扫到的第几个，first_only 只给第 0 个）
 			for s in o.tx.get("on_hit", _EA):
 				apply_status(o, e, s, Vector2.INF, -1.0, 0.0, hit.size() - 1)
@@ -926,6 +928,7 @@ static func tx_rift_update(o, dt: float) -> void:
 			sc.append({"a": p0 - ud * ext, "c": p1 + ud * ext, "until": g.t + life})
 			tx["scars"] = sc
 			rf.flash = {"p": p1, "from": p0, "t": rf.t}
+			o.tx["lf"] = {"p": p1, "from": p0, "gt": float(g.t), "pose": float(b.get("pose", 0.12))}   # 只画（S3 隐藏队长时两轮之间画上一刀的定格用），玩法不读
 			_tx_rift_trail(o, rf.from, p1)   # 瞬移残影：上一处 → 这一刀落点
 			rf.from = p1
 			o._sfx_op("hit")
@@ -978,7 +981,34 @@ static func _tx_rift_grains(o, a: Vector2, c: Vector2, step: float) -> void:
 static func tx_rift_draw_body(o) -> bool:
 	_tx_rift_draw_trails(o)
 	var rf = o.tx.get("rift")
+	# S3 期间隐藏原地的队长（11-06 用户「S3 的时候干员飞出去了，是不是可以隐藏跑动的队长」，fx/texas_s3_hide_captain，缺省 0）：
+	# 只画——她当队长、剑雨滂沱持续期间（或这一轮次元斩还没斩完），两轮次元斩之间不再在原地画本体；结束时从最后一刀的落点留一串瞬移残影回到原位、本体 0.18 秒淡入。
+	# 玩家位置、受击判定、镜头、拾取都不碰（本体逻辑位置本来就全程在原地）
+	var g = o.g
+	var hide: bool = MfBal.v("fx/texas_s3_hide_captain", 0.0) > 0.0 and o.is_leader and (o.skill_active_left(2) > 0.0 or rf != null)
+	if hide:
+		o.tx["s3h"] = true
+	elif o.tx.get("s3h", false):
+		o.tx.erase("s3h")
+		o.tx["s3_app"] = float(g.t)
+		var lf0: Dictionary = o.tx.get("lf", {})
+		if not lf0.is_empty():
+			_tx_rift_trail(o, lf0.p, o.pos)
 	if rf == null:
+		if hide:
+			var lf: Dictionary = o.tx.get("lf", {})   # 上一轮最后一刀的定格：照原来的定格时长画完（之后原地什么都不画，直到下一轮）
+			if not lf.is_empty():
+				var age: float = float(g.t) - float(lf.gt)
+				var pose0: float = float(lf.pose)
+				if age >= 0.0 and age < pose0:
+					var dv0: Vector2 = (lf.p as Vector2) - (lf.from as Vector2)
+					var k0: float = clampf((1.0 - age / pose0) / 0.3, 0.0, 1.0)
+					o.draw_body_at(lf.p, dv0.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k0))
+			return true
+		var ap: float = float(o.tx.get("s3_app", -1.0))
+		if ap >= 0.0 and float(g.t) - ap < 0.18:   # 现身：淡入
+			o.draw_body_at(o.pos, float(o.face) < 0.0, Color(1.0, 1.0, 1.0, clampf((float(g.t) - ap) / 0.18, 0.15, 1.0)))
+			return true
 		return false
 	var fl: Dictionary = rf.flash
 	var pose: float = float(rf.b.get("pose", 0.12))   # 定格：每刀斩完在落点停住的时间（下一刀先到就换位），最后 30% 渐隐

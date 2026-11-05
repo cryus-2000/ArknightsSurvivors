@@ -533,6 +533,10 @@ func _op(oid: String):
 func _step() -> void:
 	var now: float = g.t
 	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
+	for it in items:   # 卡肉（melee_impact.meat）：命中那一拍（第 1 帧）多停 stk 秒再接着扫
+		if it.has("stk") and frame_of(float(it.t0)) >= 2:
+			it.t0 = float(it.t0) + float(it.stk)
+			it.erase("stk")
 	var tk: int = int(floor(g.t * 15.0))
 	if tk != _fol_tick:   # 跟人走的件：位置每拍（15 fps）跳一格，对齐美术像素格
 		_fol_tick = tk
@@ -4946,3 +4950,20 @@ func _tx_qi(o) -> Array:
 		var back: Vector2 = gp - (e.v as Vector2).normalized() * 30.0
 		_tx_rain(o, [{"p": back, "d": 0.0, "a": 0.0, "fl": (tick % 2) == 0}], "tx_sw_s14_e%d" % t, false, t)
 	return out
+
+
+## 卡肉（render/melee_impact.meat 调）：这名干员最近出的斩击件（刀痕 / 旋斩 / 直线刀光）在命中那一拍多停 sec（按 15 fps 拍取整，至少 1 拍）
+func stuck(o, sec: float) -> void:
+	var b: float = maxf(1.0, round(sec * 15.0)) / 15.0
+	var id: String = str(o.id)
+	var n := 0
+	for i in range(items.size() - 1, -1, -1):
+		var it: Dictionary = items[i]
+		if str(it.oid) != id or it.has("stk") or g.t - float(it.t0) > 0.1:
+			continue
+		if it.get("slash", false) or it.has("ln") or str(it.k).begins_with("tx_spin"):
+			it["stk"] = b
+			n += 1
+			if n >= 4:
+				return
+
