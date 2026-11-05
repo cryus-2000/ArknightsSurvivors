@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('siege_atk_A', 180, [])
+局 ('siege_atk_B', 180, [])
+局 ('siege_atk_C', 180, [])
+局 ('siege_s1_A', 180, [])
+局 ('siege_s1_B', 180, [])
+局 ('siege_s1_C', 180, [])
+体检 {"op": "siege", "mode": "atk", "frame": 20, "engine": 49, "secs": 6.0, "hits": 0, "acts": 31, "skill": 0, "skill_frame": null, "parts_total": 48, "parts_per_hit": 1.5, "parts_per_s": 8.0, "bursts": 8, "burst_med": 7.0, "burst_max": 12, "lights_per_burst": 2.12, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"rock": 40, "streak": 8}, "life": 0.9, "sz": 4.7, "alive_max": 15, "lights": 17, "lights_per_hit": 0.55, "light_r": 100.0, "light_i": 0.4, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 360, "emit_mean": 170.1, "emit_p90": 261, "gl_peak": 62.7, "gl_area_hit": 3711, "gl_mean_hit": 15.1, "em_peak": 232.4, "em_area_hit": 357, "em_mean_hit": 126.2, "crop": [590, 305, 320, 180]}
+体检 {"op": "siege", "mode": "s1", "frame": 26, "engine": 55, "secs": 6.0, "hits": 0, "acts": 25, "skill": 2, "skill_frame": 39, "parts_total": 86, "parts_per_hit": 3.4, "parts_per_s": 14.3, "bursts": 8, "burst_med": 14.0, "burst_max": 22, "lights_per_burst": 2.0, "parts_s1_1s": 22, "skill_burst_max": 22, "mats": {"rock": 40, "streak": 46}, "life": 0.69, "sz": 3.8, "alive_max": 22, "lights": 16, "lights_per_hit": 0.64, "light_r": 120.0, "light_i": 0.45, "light_life": 0.12, "skill_light_r": 160, "skill_light_i": 0.7, "emit_max": 360, "emit_mean": 144.2, "emit_p90": 266, "gl_peak": 87.6, "gl_area_hit": 6008, "gl_mean_hit": 14.2, "em_peak": 235.3, "em_area_hit": 220, "em_mean_hit": 77.8, "crop": [547, 266, 320, 180]}
+media：9 个文件，2.1M
