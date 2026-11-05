@@ -3,8 +3,8 @@
 ## 色：Mon3tr 攻击 = 黑 / 墨绿 / 荧光绿；治疗 = 骨白 + 薄荷（不用红，和攻击分开）。只画，不碰玩法与玩法随机数（颗粒走 g.vrng）。
 ## 招牌：普攻爪击 = 三道平行爪痕（精一 + 地上犁痕，精二 + 命中处黑晶刺）；治疗 = 缝合环（精一 + 头顶骨白十字，精二 + 下针光柱）；
 ##       扑击 = 交叉爪 + 四道地爪印；回防 / 护主 = 一圈黑骨刺破土；S1 = 骨肋合拢（精一 + 六角板，精二 + 头顶结扣）；
-##       S2 = 荧光指令符上升（精二 + 热流）；S3（红，用户 11-05 指定，和 Mon3tr 本体染红统一）= 竖直爆柱 → 熔毁爪（实心重月牙 + 熔滴）+ 身边热流 → 结束红色实心大爆团；
-##       不毁重构 = 小红爆 + 回响环 → Mon3tr 身上碎片回收、骨架一段段亮起合拢（+ 一盏照地光）；余焰 = 淡边；连携「Mon3tr 掩护」= 朝敌一侧半圈骨刺墙 + 推波。
+##       S2 = 荧光指令符上升（精二 + 热流）；S3（红，用户 11-05 指定，和 Mon3tr 本体染红统一）= 本体甲缝裂开泛红光 + 脚下红色冲击 → 熔毁爪（实心重月牙 + 熔滴）+ 身边热流 → 结束红色实心大爆团；
+##       不毁重构 = 小红爆 + 回响环 → 碎片飞回本体、本体甲棱（取自 Mon3tr 贴图）从躯干往外一段段亮起、外轮廓合拢一闪（+ 一盏照地光）；余焰 = 淡边；连携「Mon3tr 掩护」= 朝敌一侧半圈骨刺墙 + 推波。
 ## 旧做法对照（fx/px_plane = 2）凯尔希不接管（fx_pxplane.owns_id 返回 false），画面 = 当前游戏。
 extends RefCounted
 
@@ -107,7 +107,7 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			var i: int = int(d.get("i", -1))
 			var s3 = _m3(o)
 			if i == 0 and s3 != null and "melt_triple" in o.taken:   # S1 分支「不毁重构」：三连爆之后 Mon3tr 身上碎片回收 + 骨架一段段亮起合拢（用户 11-05「太不明显」）
-				var rb := _put(r, o, "rebuild_up", s3.pos, "up", "m3", false, 2.0, 7.0 / 15.0)
+				var rb := _put(r, o, "rebuild_up", s3.pos, "up", "m3", float(s3.face) < 0.0, 2.0, 7.0 / 15.0)   # 骨架取自本体贴图，叠在本体上、随朝向翻转
 				rb["klit"] = true
 				_put(r, o, "rebuild_gd", s3.pos, "gd", "m3", false, 0.0, 7.0 / 15.0)
 			if i == 0 and g.ppos != Vector2.INF:   # S1 结构加固：队长身边骨肋合拢
@@ -121,8 +121,8 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 				if t >= 2:
 					_put(r, o, "s2str_up", s3.pos, "up", "m3", false, 1.0)
 				R._light(o, s3.pos + Vector2(0, -30), 100.0, 0.45, 0.15, p.light)
-			elif i == 2 and s3 != null:   # S3 熔毁起手：竖直爆柱 + 焦环
-				_put(r, o, "s3cast_up", s3.pos, "up", "m3", false, 1.0)
+			elif i == 2 and s3 != null:   # S3 熔毁起手（用户 11-05）：本体甲缝从躯干往外裂开泛红光 + 热流上蒸 + 脚下贴地红色冲击
+				_put(r, o, "s3cast_up", s3.pos, "up", "m3", float(s3.face) < 0.0, 2.0)
 				_put(r, o, "s3cast_gd", s3.pos, "gd", "m3")
 				R._light(o, s3.pos + Vector2(0, -40), 130.0, 0.6, 0.15, p.get("melt", p.light))
 		"shape":

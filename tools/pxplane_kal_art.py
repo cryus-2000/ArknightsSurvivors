@@ -540,38 +540,6 @@ def hex_ring(R, col_hi, col_lo, n=8):
 
 
 # ================================================================ S3 熔毁：起手竖直爆柱；持续期间 Mon3tr 身边竖直热流（循环，跟着走）
-def s3_cast():
-    up = Strip(8, 40, 80, 20, 76)
-    for f in range(8):
-        Hh = [30, 64, 66, 60, 50, 40, 30, 20][f]
-        Wd = [3, 7, 6, 5, 3, 2, 1, 1][f]
-        for y in range(int(Hh)):
-            t = y / max(1, Hh)
-            half = Wd * (1 - t ** 2)
-            for x in range(-int(half) - 1, int(half) + 2):
-                if f >= 4 and (x + y) % 3 == 0:
-                    continue
-                edge = abs(x) >= half
-                c = M["f"] if edge else (M["d1"] if abs(x) > 1 else (M["h"] if f == 1 else M["f"] if f <= 2 else M["m1"]))
-                up.gput(f, x, 0, c, lift=y)
-        if f >= 2:   # 爆柱散成上升热流
-            for j in range(6):
-                x = (j - 2.5) * 5
-                for i in range(5):
-                    up.gput(f, x, 0, M["f"] if i < 2 else M["m2"], lift=10 + (f - 2) * 7 + i + j * 3)
-    gd = Strip(8, 56, 40, 28, 20)
-    for f in range(8):
-        r = [12, 18, 22, 23, 23, 23, 23, 23][f]
-        n = int(2 * math.pi * r * 1.3)
-        for i in range(n):
-            a = 2 * math.pi * i / n
-            if f >= 5 and i % 2:
-                continue
-            gd.gput(f, r * math.cos(a), r * math.sin(a) * SY, M["f"] if f <= 2 else (M["m2"] if f <= 4 else M["d2"]))
-            gd.gput(f, (r - 1) * math.cos(a), (r - 1) * math.sin(a) * SY, M["k"], 180)
-    return up, gd
-
-
 def s3_aura():
     up = Strip(12, 44, 60, 22, 54, loop=True)
     rnd = random.Random(3)
@@ -682,81 +650,6 @@ def melt(Rw, big):
     return up, gd
 
 
-def rebuild():
-    """不毁重构（Mon3tr 身上，用户 11-05「不毁重构的特效有点太不明显」）：炸散的碎片往本体回收 →
-    骨架线（脊 + 四对肋）从下往上一段段亮起 → 合拢一闪 → 熄。14 拍，红色组，2 像素粗，1 倍下读得清。"""
-    up = Strip(14, 84, 70, 42, 60)
-    gd = Strip(14, 84, 40, 42, 20)
-    rnd = random.Random(21)
-    frag = [(rnd.uniform(0, 2 * math.pi), rnd.uniform(26, 36), rnd.uniform(0, 14)) for _ in range(12)]
-    cz = 22      # 本体中心高度
-    bones = []   # 骨架：脊（竖）+ 四对肋（从脊往两侧弯下）；第三项 = 亮起顺序
-    for y in range(6, 42):
-        bones.append((0, y, (y - 6) / 36.0 * 0.3))
-    for j, y0 in enumerate((16, 22, 28, 34)):
-        L = [9, 12, 12, 9][j]
-        for i in range(1, L + 1):
-            u = i / L
-            for sgn in (1, -1):
-                bones.append((sgn * i, y0 - 4 * u * u, 0.3 + j * 0.16 + u * 0.1))
-    for f in range(14):
-        if f <= 6:   # 碎片回收：从外圈飞向本体中心（带拖尾），到本体时变热白
-            t = min(1.0, f / 6.0)
-            e = t * t * (3 - 2 * t)
-            for (a, d0, z0) in frag:
-                d = d0 * (1 - e)
-                gx, gy = d * math.cos(a), d * math.sin(a) * SY
-                z = z0 + (cz - z0) * e
-                c = M["h"] if f >= 5 else (M["f"] if f >= 2 else M["m2"])
-                for (dx, dz) in ((0, 0), (1, 0), (0, 1), (1, 1)):
-                    up.gput(f, gx + dx, gy, c, lift=z + dz)
-                if f >= 1:
-                    for q in (3, 4):
-                        tg = d + q
-                        up.gput(f, tg * math.cos(a), tg * math.sin(a) * SY, M["m1"], lift=z, over=False)
-                if f <= 1:
-                    gd.gput(f, gx, gy, M["k"], 180)
-        if f >= 4:   # 骨架一段段亮起（f4–10），合拢一闪（f11），熄（f12–13）
-            lit = min(1.0, (f - 4) / 6.0)
-            for (x, y, o) in bones:
-                if o > lit + 1e-6:
-                    continue
-                fresh = lit - o < 0.18
-                if f <= 10:
-                    c = M["w"] if fresh else M["f"]
-                elif f == 11:
-                    c = M["w"]
-                elif f == 12:
-                    c = M["m2"]
-                else:
-                    if (x + int(y)) % 2:
-                        continue
-                    c = M["m1"]
-                up.gput(f, x, 0, c, lift=y)
-                up.gput(f, x, 0, M["m1"] if f <= 11 else M["d2"], lift=y - 1, over=False)
-                if x == 0:
-                    up.gput(f, 1, 0, c, lift=y)
-            if f == 11:
-                for yy in range(-5, 6):
-                    for xx in range(-5, 6):
-                        d = math.hypot(xx, yy)
-                        if d <= 5:
-                            up.gput(f, xx, 0, M["w"] if d < 3 else M["h"], lift=cz + yy)
-        # 地面：回收时一圈收紧的暗红环，合拢时一圈亮环
-        if f <= 7 or f in (11, 12):
-            r = 34 * (1 - min(1.0, f / 7.0)) + 8
-            if f in (11, 12):
-                r = 20 if f == 11 else 26
-            n = int(2 * math.pi * r * 1.3)
-            for i in range(n):
-                a = 2 * math.pi * i / n
-                if f <= 7 and i % 3 == 0:
-                    continue
-                c = M["f"] if f == 11 else (M["m2"] if f <= 7 else M["m1"])
-                gd.gput(f, r * math.cos(a), r * math.sin(a) * SY, c)
-    return up, gd
-
-
 def echo_ring(Rw):
     R = Rw / 2.0
     gd = Strip(7, int(2 * R + 8), int(2 * R * SY + 8), int(R + 4), int(R * SY + 4))
@@ -837,6 +730,161 @@ def link(dirdeg):
                 continue
             gd.gput(f, gx, gy, M["f"] if f <= 1 else (M["m2"] if f <= 3 else M["d2"]))
             gd.gput(f, gx - math.cos(a), gy - math.sin(a) * SY, M["k"], 170)
+    return up, gd
+
+
+def _m3_body():
+    """Mon3tr 本体贴图（idle 第 0 帧 @1x，64×64，脚底 (32, 60)，头朝右）：返回 (alpha, 亮度, 外轮廓, 甲棱高光, 甲缝)。
+    骨架 / 裂缝都取自本体像素，叠上去位置一一对得上（用户 11-05「骨架可以参照 m3 本体的骨架来做」）。"""
+    p = os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_mon3tr_idle@1x.png")
+    im = np.asarray(Image.open(p).convert("RGBA"))[:, :64].astype(int)
+    a = im[..., 3] > 100
+    lum = im[..., :3].mean(-1)
+    hi = (lum > np.percentile(lum[a], 80)) & a
+    pad = np.pad(a, 1)
+    inner = pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:]
+    edge = a & ~inner
+    lp = np.pad(lum, 1)
+    nb = np.maximum.reduce([lp[:-2, 1:-1], lp[2:, 1:-1], lp[1:-1, :-2], lp[1:-1, 2:]])
+    seam = a & inner & (lum < 22) & (nb > 45) & ~hi
+    return a, lum, edge, hi, seam
+
+
+M3_HOV = 2      # Mon3tr 悬浮（美术像素，float h 4 世界 ≈ 2）
+M3_CORE = (30, 36)
+
+
+def _m3_put(st, f, x, y, c, over=True):
+    """本体贴图像素 (x, y) → 帧条（原点 = Mon3tr 脚底，ox 在 32 对称，翻转时和本体一起镜像）"""
+    st.put(f, st.ox + (x - 32), st.oy - (60 - y) - M3_HOV, c, over=over)
+
+
+def rebuild():
+    """不毁重构（Mon3tr 身上，用户 11-05「不毁重构的特效有点太不明显」「骨架参照 m3 本体」）：
+    炸散的碎片飞回本体上各自的位置 → 本体的甲棱（脊、肋、前臂刃、爪、尾卷、头冠，取自本体贴图高光）从躯干中心往外一段段亮起 →
+    合拢：整个外轮廓一闪 + 实心亮芯 → 熄。14 拍，红色组。"""
+    a, lum, edge, hi, seam = _m3_body()
+    up = Strip(14, 64, 72, 32, 66)
+    gd = Strip(14, 84, 40, 42, 20)
+    ys, xs = np.nonzero(hi)
+    pts = list(zip(xs.tolist(), ys.tolist()))
+    cx, cy = M3_CORE
+    dmax = max(math.hypot(x - cx, y - cy) for x, y in pts)
+    order = {(x, y): math.hypot(x - cx, (y - cy) * 1.2) / (dmax * 1.2) for x, y in pts}
+    rnd = random.Random(21)
+    tgt = rnd.sample(pts, 14)
+    frag = [(x, y, rnd.uniform(0, 2 * math.pi), rnd.uniform(18, 30)) for (x, y) in tgt]
+    ey, ex = np.nonzero(edge)
+    for f in range(14):
+        if f <= 6:   # 碎片飞回本体（各自落到一处甲棱上），带拖尾
+            t = min(1.0, f / 6.0)
+            e = t * t * (3 - 2 * t)
+            for (x, y, ang, d0) in frag:
+                d = d0 * (1 - e)
+                px, py = x + math.cos(ang) * d, y + math.sin(ang) * d * 0.8 + (1 - e) * 10
+                c = M["h"] if f >= 5 else (M["f"] if f >= 2 else M["m2"])
+                for (dx, dy) in ((0, 0), (1, 0), (0, 1), (1, 1)):
+                    _m3_put(up, f, px + dx, py + dy, c)
+                if f >= 1:
+                    for q in (2.5, 3.5):
+                        _m3_put(up, f, px + math.cos(ang) * q, py + math.sin(ang) * q * 0.8 + 1, M["m1"], over=False)
+        if f >= 4:   # 甲棱从躯干中心往外一段段亮起
+            lit = min(1.0, (f - 4) / 6.0)
+            for (x, y), o in order.items():
+                if o > lit + 1e-6:
+                    continue
+                fresh = lit - o < 0.16
+                if f <= 10:
+                    c = M["w"] if fresh else M["f"]
+                elif f == 11:
+                    c = M["h"]
+                elif f == 12:
+                    c = M["m2"]
+                else:
+                    if (x + y) % 2:
+                        continue
+                    c = M["m1"]
+                _m3_put(up, f, x, y, c)
+        if f == 11:   # 合拢：外轮廓一闪 + 躯干实心亮芯
+            for x, y in zip(ex.tolist(), ey.tolist()):
+                _m3_put(up, f, x, y, M["f"])
+            for yy in range(-4, 5):
+                for xx in range(-4, 5):
+                    d = math.hypot(xx, yy)
+                    if d <= 4:
+                        _m3_put(up, f, cx + xx, cy + yy, M["w"] if d < 2.5 else M["h"])
+        if f == 12:
+            for x, y in zip(ex.tolist(), ey.tolist()):
+                if (x + y) % 2 == 0:
+                    _m3_put(up, f, x, y, M["m1"])
+        # 地面：回收时一圈收紧的暗红环；合拢时一圈亮环
+        if f <= 7 or f in (11, 12):
+            r = 34 * (1 - min(1.0, f / 7.0)) + 8
+            if f in (11, 12):
+                r = 20 if f == 11 else 26
+            n = int(2 * math.pi * r * 1.3)
+            for i in range(n):
+                aa = 2 * math.pi * i / n
+                if f <= 7 and i % 3 == 0:
+                    continue
+                c = M["f"] if f == 11 else (M["m2"] if f <= 7 else M["m1"])
+                gd.gput(f, r * math.cos(aa), r * math.sin(aa) * SY, c)
+    return up, gd
+
+
+def s3_cast():
+    """S3 熔毁起手（用户 11-05「起手那个光柱有点奇怪」）：从 Mon3tr 本体发出来——甲片之间的缝从躯干往外一路裂开、泛出红光，
+    热流从背上往上蒸腾；脚下炸开一圈贴地红色冲击。不再用孤立的竖光柱。10 拍，红色组。"""
+    a, lum, edge, hi, seam = _m3_body()
+    up = Strip(10, 64, 90, 32, 84)
+    cx, cy = M3_CORE
+    ys, xs = np.nonzero(seam | (hi & (lum > np.percentile(lum[a], 92))))
+    pts = list(zip(xs.tolist(), ys.tolist()))
+    dmax = max(math.hypot(x - cx, y - cy) for x, y in pts)
+    rnd = random.Random(8)
+    streak = [(rnd.uniform(14, 48), rnd.uniform(10, 22), rnd.uniform(0, 2), rnd.randint(4, 7)) for _ in range(7)]
+    for f in range(10):
+        spread = min(1.0, (f + 1) / 4.0)
+        for (x, y) in pts:
+            o = math.hypot(x - cx, y - cy) / dmax
+            if o > spread:
+                continue
+            fresh = spread - o < 0.25 and f <= 3
+            if f <= 3:
+                c = M["w"] if fresh else M["f"]
+            elif f <= 5:
+                c = M["h"] if (x + y + f) % 3 == 0 else M["f"]
+            elif f <= 7:
+                c = M["m2"]
+            else:
+                if (x + y) % 2:
+                    continue
+                c = M["m1"]
+            _m3_put(up, f, x, y, c)
+        if f >= 2:   # 热流从背上往上蒸腾
+            for (x, y0, ph, L) in streak:
+                tt = f - 2 - ph
+                if tt < 0:
+                    continue
+                for i in range(L):
+                    yy = y0 - tt * 4.5 - i
+                    c = M["h"] if (i == 0 and tt < 3) else (M["f"] if tt < 4 else (M["m2"] if tt < 6 else M["m1"]))
+                    _m3_put(up, f, x + math.sin((yy + ph * 5) * 0.35), yy, c)
+    gd = Strip(10, 64, 40, 32, 20)
+    for f in range(10):
+        if f == 0:
+            continue
+        r = [0, 9, 16, 21, 24, 25, 25, 25, 25, 25][f]
+        n = int(2 * math.pi * r * 1.3)
+        for i in range(n):
+            aa = 2 * math.pi * i / n
+            gx, gy = r * math.cos(aa), r * math.sin(aa) * SY
+            if f <= 4:
+                gd.gput(f, gx, gy, M["h"] if f == 1 else M["f"])
+                for k in (1, 2):
+                    gd.gput(f, gx * (r - k) / r, gy * (r - k) / r, M["m1"] if k == 1 else M["d1"], 220)
+            elif (i + f) % (f - 3) == 0:
+                gd.gput(f, gx, gy, M["m2"] if f < 7 else M["d2"], 200 if f < 8 else 120)
     return up, gd
 
 

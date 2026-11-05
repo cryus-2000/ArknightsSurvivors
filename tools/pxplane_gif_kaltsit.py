@@ -301,7 +301,7 @@ def scenes(lib):
     out["s2"] = (cols, 18, (22, -18))
     # S3 熔毁：起手爆柱 → 持续热流 + 熔毁爪 → 结束一枚大结晶炸开（半径 130）
     s = base(46, E_FRONT)
-    s.add("s3cast_up", 1, M3, sk=1)
+    s.add("s3cast_up", 1, M3, sk=2)
     s.add("s3cast_gd", 1, M3)
     s.add("s3aura_up", 3, lambda tk: M3, loop=True, until=26, sk=1)
     s.add("s3aura_gd", 3, lambda tk: M3, loop=True, until=26)
