@@ -1,0 +1,14 @@
+11025	mag/flashrec.csv
+706551	mag/fr_00000.png
+705946	mag/fr_00010.png
+692887	mag/fr_00020.png
+712969	mag/fr_00030.png
+721719	mag/fr_00040.png
+701036	mag/fr_00050.png
+711967	mag/fr_00060.png
+708303	mag/fr_00070.png
+709901	mag/fr_00080.png
+719712	mag/fr_00090.png
+717614	mag/fr_00100.png
+729550	mag/fr_00110.png
+57850	mag/run.log
