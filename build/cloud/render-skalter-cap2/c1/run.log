@@ -1,0 +1,34 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2467 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+| 机器人 | 第几次 | 出现 | 时间 | 数量 | 清 80% 用时 均 / 中（清完/出现） | 20 秒内掉血 均 / 最大 | 30 秒内死亡 | 编成 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 1 | 12 | 1:15 | 15 | 12s / 12s（12/12） | 12 / 36 | 0 | bone/slider/stone ×7；bone/slider ×5 |
+| expert | 2 | 12 | 2:45 | 20 | 9s / 9s（12/12） | 17 / 46 | 0 | bone/slider ×7；bone/slider/stone ×5 |
+| expert | 3 | 12 | 4:26 | 25 | 10s / 10s（12/12） | 21 / 73 | 1 | bone/slider/stone ×5；bone/offspring/slider/stone ×3；bone/floater/runner/slider ×3 |
+| expert | 4 | 12 | 5:08 | 36 | 18s / 15s（11/12） | 45 / 126 | 2 | bone/floater/reaper/runner/slider/tracer ×5；bone/offspring/reaper/runner/slider/spitter/tracer ×4；bone/reaper/runner/slider/tracer ×3 |
+| expert | 5 | 10 | 6:17 | 40 | 14s / 13s（9/10） | 48 / 123 | 2 | bone/floater/reaper/runner/slider/tracer ×4；bone/offspring/reaper/runner/slider/spitter/tracer ×3；bone/reaper/runner/slider/tracer ×3 |
+| expert | 6 | 5 | 8:13 | 26 | 11s / 11s（5/5） | 15 / 23 | 0 | bone/floater/founder/nest/runner/slider/stone/tracer ×3；bone/floater/offspring/reaper/runner/slider/spitter/stone ×1；bone/founder/nest/runner/slider/spitter/stone/tracer ×1 |
+| expert | 7 | 3 | 8:58 | 21 | 16s / 9s（3/3） | 16 / 40 | 0 | bone/floater/founder/nest/reaper/runner/slider/stone/tracer ×3 |
+
+| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [expert] skalter | 12 | 41% | 9:15 / 5:04 | 0.0 / - | 8 / 16 / 23 / 24 | 62% | 88% | 36 | 1468 | 声浪 18% 终结技·skalter·激光 6% 锚击 4% 狐火 4% | 自身回复 25% 浊心斯卡蒂 25% 塞雷娅 14% (1283 / 0.0) | contact_tracer |
+
+### 机器人指标（docs/29）
+
+| 机器人 · 开局 | n | 胜率 | 存活 均/最短 | 3:30 存活 | 5:00 存活 | 首次招募 | 首次精一 / 精二 | 中期 Boss 击杀数 / 平均用时 | 受击/分 | 承伤/分 | 低血(<35%)秒 | 熄灯秒 | 静止% | 开局干员 伤害占比 / 每分钟 | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [expert] skalter | 12 | 41% | 9:15 / 5:04 | 100% | 100% | 1:10 | 1:00 / 3:05 | 1.8 / 63s | 130.5 | 138 | 8 | 12 | 4 | 25% / 15024 | wound |
+
+### 藏品（docs/35）
+
+| 机器人 | 开局 | 局数 | 平均藏品数 | 藏品直接伤害 | 各流派 出现 / 拿取 | 无效拿取 |
+|---|---|---|---|---|---|---|
+| expert | skalter | 12 | 10.3 | 3.1% | class 43/18 control 16/6 economy 31/8 general 87/43 heal 53/19 melee 19/3 multi 12/4 shield 12/8 summon 11/2 survival 42/12 weak 7/1 | 0 |
+| 合计 | | | | | class 43/18 control 16/6 economy 31/8 general 87/43 heal 53/19 melee 19/3 multi 12/4 shield 12/8 summon 11/2 survival 42/12 weak 7/1 | |
+
+拿取最多（出现 / 拿取）：食腐者手杖 13/5，《旧高卢地名源流考》 6/4，遥乡之引 5/3，猎人的口粮 12/3，支援轰隆隆 4/3，游戏室管理员权限卡 3/3，锈刃-可视静谧 7/3，支柱-勤奋 7/3，血魔的银杯 7/2，安洁莉娜的创想 7/2，涌动之餐 3/2，“多功能”发夹 2/2
+耗时 135s
+写入 build/cloud/render-skalter-cap2-c1/capoff_solo/capoff_solo_1105_0536.{json,md}
+media：0 个文件，4.0K
