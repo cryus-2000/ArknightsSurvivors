@@ -48,95 +48,115 @@ def _star(b, x, y, arm, cols, keep=False):
 # ================================================================ 运行时件（游戏 fx_pxplane_ir.gd 同算法）
 
 def lance(L, d, f, tier, gust=False, link=False):
-    """刺击光刃（运行时逐格画）：原点 = 她的脚底，沿世界方向 d（单位向量）从手边刺到判定长度 L（美术像素），离地 LANCE_H。
-    中段一道 1 像素白芯（细靠尖长 + 亮芯），刃身两侧金边、靠刃尖三分之一最宽、刃尖收成针；刃尖一颗四芒星。
-    第 0 拍刺出 70%、第 1 拍到全长最亮，第 2 拍刃尾往前收、暗一阶，第 3 拍只剩刃尖。gust = 起风（更粗更白、热白多停一拍）。
-    精二：刃身外缘一圈深蓝潮光（水裹着光刃）。返回 [(x, y, 颜色, 发光)]，坐标相对脚底（美术像素，已含抬高）。"""
+    """刺击光锥（运行时逐格画；11-05 用户第二版「光刺不明显、要重新设计」）：原点 = 她的脚底，沿世界方向 d 刺到判定长度 L（美术像素），离地 LANCE_H。
+    第 0 拍：她身前只闪一颗四芒星（精二 / 起风八芒 + 一圈光点）；第 1–2 拍：光锥一下贯穿到全长——**根宽头尖的实心块面**，白芯 + 淡紫 + 亮紫外缘；
+    之后收成一条变窄的亮线，再从根部熄灭，最后只剩刃尖几点。gust = 起风：根更宽（6 格）、长 1.1 倍、亮态多停一拍。
+    精一：刃尖往前崩出三道短碎芒（在判定长度 1.1 倍以内）。返回 [(x, y, 颜色, 发光)]，坐标相对脚底（美术像素，已含抬高）"""
     dx, dy = d
     nx, ny = -dy, dx
     out = []
-    s0 = 5.0
-    hot_f = 2 if gust else 1
-    if f > hot_f + 2:
+    hot_f = 3 if gust else 2
+    if f < 0 or f > hot_f + 3:
         return out
-    if f == 0:   # 第 0 拍：整把光刃（带刃尖）刺到 70% 长度
-        L = s0 + (L - s0) * 0.7
-        u_lo, u_hi = 0.0, 1.0
-    elif f <= hot_f:
-        u_lo, u_hi = 0.0, 1.0
-    elif f == hot_f + 1:
-        u_lo, u_hi = 0.45, 1.0
-    else:
-        u_lo, u_hi = 0.78, 1.0
-    dim = 0 if f <= hot_f else (1 if f == hot_f + 1 else 2)
-    wmax = 2 if (gust or link) else 1
-    n = max(4, int(L - s0))
-    for i in range(n + 1):
-        u = i / n
-        if u < u_lo or u > u_hi:
-            continue
-        s = s0 + (L - s0) * u
-        cx, cy = dx * s, dy * s - LANCE_H
-        # 刃身半宽：尾部 0 → 刃尖前 1/3 最宽 → 刃尖收针
-        if u < 0.25:
-            hw = 0
-        elif u < 0.88:
-            hw = wmax if u > 0.45 else (1 if wmax >= 1 and u > 0.32 else 0)
-        elif u < 0.96:
-            hw = max(0, wmax - 1)
-        else:
-            hw = 0
-        if u < 0.18:   # 刃尾：断续速度纹
-            if (i // 2) % 2 == 0 and f <= hot_f:
-                out.append((cx, cy, LT[3 - dim], False))
-            continue
-        if dim >= 1:   # 收刀：刃身窄一格、外侧稀疏，不成一块砖
-            hw = max(0, hw - 1)
-        core = LT[6 - dim] if u < 0.97 else LT[5 - dim]
-        if dim >= 2 and i % 2:
-            continue
-        out.append((cx, cy, core, dim == 0))
-        for w in range(1, hw + 1):
-            if dim >= 1 and (i + w) % 2:
-                continue
-            c = LT[5 - dim] if w == 1 else LT[4 - dim]
-            out.append((cx + nx * w, cy + ny * w, c, False))
-            out.append((cx - nx * w, cy - ny * w, c, False))
-        if tier >= 2 and 0.5 < u < 0.93 and (i + f) % 3 != 2:   # 精二：潮光裹刃
-            w2 = hw + 1
-            out.append((cx + nx * w2, cy + ny * w2, TIDE[5 - dim] if (i // 3) % 2 else TIDE[4 - dim], False))
-            out.append((cx - nx * w2, cy - ny * w2, TIDE[4 - dim], False))
-    if f <= hot_f + 1:   # 刃尖四芒星
-        tx, ty = dx * (L + 1), dy * (L + 1) - LANCE_H
-        arm = (3 if (gust or tier >= 2) else 2) if f <= hot_f else 1
-        b = Buf()
-        _star(b, tx, ty, arm, [LT[6], LT[5 - dim], LT[3]])
-        for (x, y), c in b.p.items():
-            out.append((x, y, c, c == LT[6]))
-    if f <= hot_f and not link:   # 速度纹：刃身两侧各一道短虚线
-        for side in (-3, 3):
-            for i in range(int(n * 0.3), int(n * 0.6)):
-                if (i // 2) % 2:
+    if gust:
+        L = L * 1.1
+    s0 = 4.0
+    W0 = 6.0 if (gust or link) else 3.5
+    hx0, hy0 = dx * (s0 + 6), dy * (s0 + 6) - LANCE_H - 1
+    cells = {}
+
+    def put(x, y, c, glow=False, keep=False):
+        k = (int(round(x)), int(round(y)))
+        if keep and k in cells:
+            return
+        cells[k] = (c, glow)
+
+    if 1 <= f <= hot_f:   # 实心光锥
+        Lc = L
+        n = int((Lc - s0) * 2) + 1
+        for i in range(n + 1):
+            u = i / n
+            s = s0 + (Lc - s0) * u
+            ur = (s - s0) / max(1.0, L - s0)   # 按全长算锥度（第 0 拍是半截锥）
+            hw = W0 * (1.0 - ur) ** 0.85
+            if ur < 0.06:
+                hw *= 0.7 + 5.0 * ur
+            m = int(math.ceil(hw * 2))
+            for j in range(-m, m + 1):
+                w = j / 2.0
+                if abs(w) > hw + 0.25:
                     continue
-                s = s0 + (L - s0) * i / n
-                out.append((dx * s + nx * side, dy * s - LANCE_H + ny * side, LT[2], False))
-    return out
+                k = abs(w) / max(0.6, hw)
+                if k < 0.34 or hw < 0.9:
+                    c, gl = LT[6], True
+                elif k < 0.62:
+                    c, gl = LT[5], False
+                elif k < 0.86:
+                    c, gl = LT[4], False
+                else:
+                    c, gl = LT[3], False
+                put(dx * s + nx * w, dy * s - LANCE_H + ny * w, c, gl)
+    elif f > hot_f:   # 收成亮线，从根部熄灭
+        g2 = f - hot_f   # 1 / 2 / 3
+        lo = [0.0, 0.0, 0.4, 0.75][g2]
+        n = int(L - s0)
+        for i in range(n + 1):
+            u = i / n
+            if u < lo:
+                continue
+            s = s0 + (L - s0) * u
+            if g2 == 3 and i % 2:
+                continue
+            c = LT[6] if g2 == 1 and u < 0.95 else (LT[5] if g2 <= 2 else LT[4])
+            put(dx * s, dy * s - LANCE_H, c, g2 == 1)
+            if g2 == 1 and u < 0.6 and (gust or link):
+                put(dx * s + nx, dy * s - LANCE_H + ny, LT[4])
+                put(dx * s - nx, dy * s - LANCE_H - ny, LT[4])
+    # 出手星芒
+    if f <= 1 and not link:
+        arm = [6 if (gust or tier >= 2) else 5, 2][f]
+        b = Buf()
+        _star(b, hx0, hy0, arm, [LT[6], LT[5], LT[4]])
+        if f == 0:
+            for q in (-1, 1):
+                b.put_if_empty(hx0 + q, hy0, LT[6])
+                b.put_if_empty(hx0, hy0 + q, LT[6])
+            if tier >= 2 or gust:   # 精二 / 起风：斜向四芒（八芒）+ 一圈光点
+                for q in range(1, 3):
+                    for sx, sy in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+                        b.put_if_empty(hx0 + sx * q, hy0 + sy * q, LT[5] if q == 1 else LT[4])
+                for q in range(8):
+                    a = q / 8 * math.tau
+                    b.put_if_empty(hx0 + round(math.cos(a) * 6), hy0 + round(math.sin(a) * 6), LT[4])
+        for (x, y), c in b.p.items():
+            put(x, y, c, c == LT[6])
+    # 精一：刃尖崩出三道短碎芒
+    if tier >= 1 and not link and hot_f <= f <= hot_f + 1:
+        tx, ty = dx * L, dy * L - LANCE_H
+        for q, sp in enumerate((-0.45, 0.0, 0.45)):
+            a = math.atan2(dy, dx) + sp
+            r0 = 1 + (f - hot_f) * 2
+            for k in range(3 if f == hot_f else 2):
+                rr = r0 + k
+                if rr > L * 0.1 + 2:
+                    break
+                put(tx + math.cos(a) * rr, ty + math.sin(a) * rr, LT[6] if k == 0 and f == hot_f else LT[4], keep=True)
+    return [(x, y, c, gl) for (x, y), (c, gl) in cells.items()]
 
 
 def lance_gd(L, d, f, tier, gust=False):
-    """刺击的贴地部分：光刃在地上的投影阴影（第 0–2 拍）；精一起加一道潮痕——刺击线两侧两条压扁的细水纹 + 几点白沫，6 拍淡掉"""
+    """刺击的贴地部分：光锥在地上的投影阴影（亮态各拍）；起风另有一道潮痕（刺击线两侧两条压扁细水纹 + 几点白沫，6 拍淡掉）。普攻不画水"""
     dx, dy = d
     out = []
+    if gust:
+        L = L * 1.1
     n = max(4, int(L))
-    if f <= 2:
-        for i in range(int(n * 0.25), int(n * 0.95)):
-            if f == 2 and i % 2:
-                continue
+    hot_f = 3 if gust else 2
+    if 1 <= f <= hot_f:
+        for i in range(int(n * 0.15), int(n * 0.9)):
             out.append((dx * i, dy * i, SHADOW, 0.5))
-    if tier >= 1 or gust:
-        if f > 5:
-            return out
-        gx, gy = -dy, dx * SQ   # 地面法向（压扁）
+    if gust and f <= 5:
+        gx, gy = -dy, dx * SQ
         gl = math.hypot(gx, gy) or 1.0
         gx, gy = gx / gl, gy / gl
         cols = [TIDE[5], TIDE[5], TIDE[4], TIDE[3], TIDE[3], TIDE[2]]
@@ -149,38 +169,43 @@ def lance_gd(L, d, f, tier, gust=False):
                     continue
                 if f >= 4 and (i + f) % 2:
                     continue
-                off = 2.5 + 2.0 * u + 0.6 * f + (1 if (i // 4) % 2 else 0)
+                off = 3.5 + 2.0 * u + 0.6 * f + (1 if (i // 4) % 2 else 0)
                 out.append((dx * i + gx * off * side, dy * i + gy * off * side, cols[f], 1.0))
-        if f <= 3:
-            for k in range(3):
-                i = int(n * (0.45 + 0.2 * k))
-                side = 1 if k % 2 else -1
-                off = 2.5 + 2.0 * i / n + 0.6 * f
-                out.append((dx * i + gx * off * side, dy * i + gy * off * side, TIDE[6], 1.0))
+    return out
+
+
+def charge(d, f, tier):
+    """起风蓄光（出手前 0.2 秒，3 拍）：身前出手点四周 8 粒光点往里收拢，越收越亮，第 2 拍聚成一团白芯。原点 = 她的脚底"""
+    dx, dy = d
+    hx0, hy0 = dx * 10, dy * 10 - LANCE_H - 1
+    out = []
+    if f < 0 or f > 2:
+        return out
+    rr = [16, 9, 3][f]
+    for q in range(8):
+        a = q / 8 * math.tau + f * 0.5
+        x, y = hx0 + math.cos(a) * rr, hy0 + math.sin(a) * rr
+        out.append((x, y, LT[4] if f == 0 else LT[5], f == 2))
+        out.append((x + 1, y, LT[3] if f == 0 else LT[4], False))
+        if f < 2:
+            out.append((hx0 + math.cos(a) * (rr + 2), hy0 + math.sin(a) * (rr + 2), LT[3], False))
+    for dx2, dy2 in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+        if f == 0 and (dx2 or dy2):
+            continue
+        out.append((hx0 + dx2, hy0 + dy2, LT[6] if f >= 1 else LT[5], True))
     return out
 
 
 def pierce(d, f, tier):
-    """贯穿：被刺中的那只身上，沿刺击方向一道短白芯线从身后穿出 + 两粒深蓝水珠甩出（3 拍）。原点 = 被刺中处"""
-    dx, dy = d
-    nx, ny = -dy, dx
+    """被贯穿的那只身上闪一个小十字（2 拍）：白芯、臂端亮紫。原点 = 被刺中处"""
     out = []
-    if f > 2:
+    if f < 0 or f > 1:
         return out
-    a0, a1 = [(-3, 7), (1, 9), (6, 10)][f]
-    for s in range(a0, a1 + 1):
-        c = LT[6] if f == 0 else (LT[5] if f == 1 else LT[3])
-        if s >= a1 - 1:
-            c = LT[4] if f < 2 else LT[2]
-        out.append((dx * s, dy * s, c, f == 0))
-        if f == 0 and 0 <= s <= 4:
-            out.append((dx * s + nx, dy * s + ny, LT[4], False))
-    for k, side in enumerate((-1, 1)):
-        s = 6 + 3 * f + k
-        h = [0, 1, 3][f]
-        out.append((dx * s + nx * side * (2 + f), dy * s + ny * side * (2 + f) + h, TIDE[5] if f < 2 else TIDE[4], False))
-    if tier >= 1 and f == 0:
-        out.append((dx * 8 + nx * 3, dy * 8 + ny * 3 - 1, TIDE[6], False))
+    arm = 3 if f == 0 else 2
+    b = Buf()
+    _star(b, 0, 0, arm, [LT[6], LT[5] if f == 0 else LT[4], LT[4] if f == 0 else LT[3]])
+    for (x, y), c in b.p.items():
+        out.append((x, y, c, c == LT[6]))
     return out
 
 

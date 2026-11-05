@@ -267,7 +267,7 @@ def render(lib, col, tk):
             strip(it["k"], tk - it["t0"] if not it["loop"] else tk, item_pos(it), it["flip"], it["loop"])
     for r in col.rt:
         f = tk - r["t0"]
-        if r["kind"] == "lance" and 0 <= f <= 6:
+        if r["kind"] == "lance" and 0 <= f <= 7:
             pts(snap(col.op), A.lance_gd(r["L"], r["d"], f, col.t, r["gust"]))
         if r["kind"] == "lampring" and 0 <= f < r["n"]:
             pts(snap(r["c"]), A.lamp_ring(r["r"], tk, f / 15.0, r["n"] / 15.0))
@@ -290,10 +290,12 @@ def render(lib, col, tk):
         f = tk - r["t0"]
         if f < 0:
             continue
-        if r["kind"] == "lance" and f <= 5:
+        if r["kind"] == "lance" and f <= 6:
             tip = (col.op[0] + r["d"][0] * r["L"] * 2, col.op[1] + r["d"][1] * r["L"] * 2)
             sort.append((max(col.op[1], tip[1]) + 1, "lance", r))
-        elif r["kind"] == "pierce" and f <= 2:
+        elif r["kind"] == "charge" and f <= 2:
+            sort.append((col.op[1] + 1.5, "charge", r))
+        elif r["kind"] == "pierce" and 1 <= f <= 2:
             sort.append((col.enemies[r["e"]]["p"][1] + 1, "pierce", r))
         elif r["kind"] == "tracer" and f <= 1:
             sort.append((max(r["a"][1], r["b"][1]) + 20, "tracer", r))
@@ -332,9 +334,11 @@ def render(lib, col, tk):
             dx, dy = b[0] - a[0], b[1] - a[1]
             L = math.hypot(dx, dy)
             pts(snap(a), A.lance(L / 2.0, (dx / L, dy / L), tk - v["t0"], 2, False, link=True))
+        elif kind == "charge":
+            pts(snap(col.op), A.charge(v["d"], tk - v["t0"], col.t))
         elif kind == "pierce":
             p = col.epos(v["e"], tk)
-            pts(snap((p[0], p[1] - 6)), A.pierce(v["d"], tk - v["t0"], col.t))
+            pts(snap((p[0], p[1] - 6)), A.pierce(v["d"], tk - v["t0"] - 1, col.t))   # 光锥第 1 拍到才闪
         elif kind == "tracer":
             a, b = v["a"], v["b"]
             pp = A.tracer((0, 0), ((b[0] - a[0]) / 2.0, (b[1] - a[1]) / 2.0), tk - v["t0"])
@@ -426,6 +430,10 @@ def sc_atk(t):
 
 def sc_s1(t):
     c = Col(t, E_MAIN, op=(110, 150))
+    e = c.enemies[0]["p"]
+    dd = (e[0] - c.op[0], e[1] - 12 - c.op[1])
+    dl = math.hypot(*dd)
+    c.rt.append({"kind": "charge", "t0": 0, "d": (dd[0] / dl, dd[1] / dl)})   # 起风蓄光 0.2 秒
     hits = c.thrust(3, 0, gust=True)
     if hits:
         e0 = hits[0]
@@ -435,7 +443,7 @@ def sc_s1(t):
         if t >= 1:
             c.add("gust_gd", 4, p, gd=True)
         c.light((p[0], p[1] - 10), 140, 0.75, 4, 3, TIDE_L)
-    c.thrust(6, 0, gust=True, stage=2)
+    c.thrust(7, 0, gust=True, stage=2)
     _atk_round(c, 30, 3)
     return c
 

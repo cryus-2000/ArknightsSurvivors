@@ -122,7 +122,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 		"ir_thrust":   # 一段刺击：光刃（跟她）+ 投影 / 潮痕（贴地，跟她）+ 贯穿（跟被刺的那只）+ 首中处水珠 + 照地光
 			var dv: Vector2 = d.d
 			var es: Array = d.get("es", [])
-			_push_rt(o, {"k": "lance", "op": o, "d": dv, "L": float(d.L) * 0.5, "gust": d.get("gust", false), "life": 6.0 / 15.0 + 0.02})
+			_push_rt(o, {"k": "lance", "d": dv, "L": float(d.L) * 0.5, "gust": d.get("gust", false), "life": 7.0 / 15.0 + (1.0 / 15.0 if d.get("gust", false) else 0.0) + 0.02})
 			for i in mini(PIERCE_N, es.size()):
 				_push_rt(o, {"k": "pierce", "e": es[i], "d": dv, "life": 3.0 / 15.0 + 0.02})
 			if not es.is_empty():
@@ -138,6 +138,8 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				_push_rt(o, {"k": "estrip", "e": e, "s": "ir_gust_gd", "oy": 0.0, "air": false, "life": 7.0 / 15.0 + 0.02, "ly": "gd"})
 			R._light(o, e.pos + Vector2(0, -20), 140.0, 0.75, 0.14, TIDE_LIGHT)
 			R._grains(o, e.pos + Vector2(0, -30), float(e.pos.y) + 2.0, "ink", 6 + 2 * t, {"tier": t})
+		"ir_charge":   # 起风蓄光（S1 那一刺的起手，0.2 秒）：身前光点收拢（跟她）
+			_push_rt(o, {"k": "charge", "d": Vector2.from_angle(float(d.ang)), "life": 3.0 / 15.0 + 0.02})
 		"ir_launch":   # 精一挑刺（高 10 的那一下）：那只身下一道往上挑的金色细弧
 			if float(d.get("h", 0.0)) <= 12.0 and not d.en.get("dead", false):
 				_push_rt(o, {"k": "estrip", "e": d.en, "s": "ir_pick_up", "oy": 0.0, "air": false, "life": 5.0 / 15.0 + 0.02, "ly": "up"})
@@ -277,6 +279,8 @@ func sort_items(o, out: Array) -> void:
 				out.append({"ir": it, "skey": maxf(a.y, tip.y) + 1.0})
 			"pierce":
 				out.append({"ir": it, "skey": float(it.e.pos.y) + 1.0})
+			"charge":
+				out.append({"ir": it, "skey": o.pos.y + 1.5})
 			"tracer":
 				out.append({"ir": it, "skey": maxf((it.a as Vector2).y, (it.b as Vector2).y) + 20.0})
 			"estrip":
@@ -303,7 +307,9 @@ func draw_rt(ci, item: Dictionary) -> void:
 		"pierce":
 			var e: Dictionary = it.e
 			var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.55 - float(e.get("air", 0.0)))
-			_pts(ci, hp, _pierce(it.d, _fr(float(it.t0)), 1))
+			_pts(ci, hp, _pierce(it.d, _fr(float(it.t0)) - 1, 1))   # 光锥第 1 拍到才闪
+		"charge":
+			_pts(ci, it.op.pos, _charge(it.d, _fr(float(it.t0))))
 		"tracer":
 			var a2: Vector2 = Pxp._snap(it.a)
 			_pts(ci, a2, _tracer(((it.b as Vector2) - a2) * 0.5, _fr(float(it.t0))))
@@ -358,83 +364,116 @@ static func _star(out: Array, x: float, y: float, arm: int, c0: Color, c1: Color
 		out.append([x, y - i, c, false])
 
 
-## 同 lance()
+## 同 lance()：根宽头尖的实心光锥（白芯 + 淡紫 + 亮紫外缘）→ 收成亮线 → 从根部熄灭；出手星芒；精一刃尖碎芒
 func _lance(L: float, d: Vector2, f: int, tier: int, gust: bool, link := false) -> Array:
-	var out: Array = []
 	var n2 := Vector2(-d.y, d.x)
-	var s0 := 5.0
-	var hot_f: int = 2 if gust else 1
-	if f < 0 or f > hot_f + 2:
-		return out
-	var u_lo := 0.0
-	if f == 0:
-		L = s0 + (L - s0) * 0.7
-	elif f == hot_f + 1:
-		u_lo = 0.45
-	elif f > hot_f + 1:
-		u_lo = 0.78
-	var dim: int = 0 if f <= hot_f else (1 if f == hot_f + 1 else 2)
-	var wmax: int = 2 if (gust or link) else 1
-	var n: int = maxi(4, int(L - s0))
-	for i in n + 1:
-		var u: float = float(i) / float(n)
-		if u < u_lo:
-			continue
-		var s: float = s0 + (L - s0) * u
-		var cx: float = d.x * s
-		var cy: float = d.y * s - LANCE_H
-		var hw := 0
-		if u < 0.25:
-			hw = 0
-		elif u < 0.88:
-			hw = wmax if u > 0.45 else (1 if u > 0.32 else 0)
-		elif u < 0.96:
-			hw = maxi(0, wmax - 1)
-		if u < 0.18:
-			if (i / 2) % 2 == 0 and f <= hot_f:
-				out.append([cx, cy, LT[3 - dim], false])
-			continue
-		if dim >= 1:
-			hw = maxi(0, hw - 1)
-		var core: Color = LT[6 - dim] if u < 0.97 else LT[5 - dim]
-		if dim >= 2 and i % 2 == 1:
-			continue
-		out.append([cx, cy, core, dim == 0])
-		for w in range(1, hw + 1):
-			if dim >= 1 and (i + w) % 2 == 1:
-				continue
-			var c: Color = LT[5 - dim] if w == 1 else LT[4 - dim]
-			out.append([cx + n2.x * w, cy + n2.y * w, c, false])
-			out.append([cx - n2.x * w, cy - n2.y * w, c, false])
-		if tier >= 2 and u > 0.5 and u < 0.93 and (i + f) % 3 != 2:
-			var w2: int = hw + 1
-			out.append([cx + n2.x * w2, cy + n2.y * w2, TIDE[5 - dim] if (i / 3) % 2 == 1 else TIDE[4 - dim], false])
-			out.append([cx - n2.x * w2, cy - n2.y * w2, TIDE[4 - dim], false])
-	if f <= hot_f + 1:
-		var arm: int = ((3 if (gust or tier >= 2) else 2) if f <= hot_f else 1)
-		_star(out, d.x * (L + 1.0), d.y * (L + 1.0) - LANCE_H, arm, LT[6], LT[5 - dim], LT[3])
-	if f <= hot_f and not link:
-		for side in [-3, 3]:
-			for i in range(int(n * 0.3), int(n * 0.6)):
-				if (i / 2) % 2 == 1:
+	var hot_f: int = 3 if gust else 2
+	if f < 0 or f > hot_f + 3:
+		return []
+	if gust:
+		L *= 1.1
+	var s0 := 4.0
+	var W0: float = 6.0 if (gust or link) else 3.5
+	var h0 := Vector2(d.x * (s0 + 6.0), d.y * (s0 + 6.0) - LANCE_H - 1.0)
+	var cells := {}
+	if f >= 1 and f <= hot_f:   # 第 0 拍只闪星芒，第 1 拍起光锥一下贯穿到全长
+		var Lc: float = L
+		var n: int = int((Lc - s0) * 2.0) + 1
+		for i in n + 1:
+			var u: float = float(i) / float(n)
+			var s: float = s0 + (Lc - s0) * u
+			var ur: float = (s - s0) / maxf(1.0, L - s0)
+			var hw: float = W0 * pow(1.0 - ur, 0.85)
+			if ur < 0.06:
+				hw *= 0.7 + 5.0 * ur
+			var m: int = int(ceil(hw * 2.0))
+			for j in range(-m, m + 1):
+				var w: float = j / 2.0
+				if absf(w) > hw + 0.25:
 					continue
-				var s2: float = s0 + (L - s0) * float(i) / float(n)
-				out.append([d.x * s2 + n2.x * side, d.y * s2 - LANCE_H + n2.y * side, LT[2], false])
+				var k: float = absf(w) / maxf(0.6, hw)
+				var c: Color
+				var gl := false
+				if k < 0.34 or hw < 0.9:
+					c = LT[6]
+					gl = true
+				elif k < 0.62:
+					c = LT[5]
+				elif k < 0.86:
+					c = LT[4]
+				else:
+					c = LT[3]
+				cells[Vector2i(roundi(d.x * s + n2.x * w), roundi(d.y * s - LANCE_H + n2.y * w))] = [c, gl]
+	elif f > hot_f:
+		var g2: int = f - hot_f
+		var lo: float = [0.0, 0.0, 0.4, 0.75][g2]
+		var n3: int = int(L - s0)
+		for i in n3 + 1:
+			var u2: float = float(i) / float(n3)
+			if u2 < lo:
+				continue
+			var s2: float = s0 + (L - s0) * u2
+			if g2 == 3 and i % 2 == 1:
+				continue
+			var c2: Color = LT[6] if g2 == 1 and u2 < 0.95 else (LT[5] if g2 <= 2 else LT[4])
+			cells[Vector2i(roundi(d.x * s2), roundi(d.y * s2 - LANCE_H))] = [c2, g2 == 1]
+			if g2 == 1 and u2 < 0.6 and (gust or link):
+				cells[Vector2i(roundi(d.x * s2 + n2.x), roundi(d.y * s2 - LANCE_H + n2.y))] = [LT[4], false]
+				cells[Vector2i(roundi(d.x * s2 - n2.x), roundi(d.y * s2 - LANCE_H - n2.y))] = [LT[4], false]
+	if f <= 1 and not link:   # 出手星芒（精二 / 起风八芒 + 一圈光点）
+		var st: Array = []
+		var arm: int = (6 if (gust or tier >= 2) else 5) if f == 0 else 2
+		_star(st, h0.x, h0.y, arm, LT[6], LT[5], LT[4])
+		for q in st:
+			cells[Vector2i(roundi(float(q[0])), roundi(float(q[1])))] = [q[2], q[2] == LT[6]]
+		if f == 0:
+			var extra: Array = []
+			for q2 in [-1, 1]:
+				extra.append([h0.x + q2, h0.y, LT[6]])
+				extra.append([h0.x, h0.y + q2, LT[6]])
+			if tier >= 2 or gust:
+				for q3 in range(1, 3):
+					for sg in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
+						extra.append([h0.x + sg.x * q3, h0.y + sg.y * q3, LT[5] if q3 == 1 else LT[4]])
+				for q4 in 8:
+					var a4: float = q4 / 8.0 * TAU
+					extra.append([h0.x + roundf(cos(a4) * 6.0), h0.y + roundf(sin(a4) * 6.0), LT[4]])
+			for e5 in extra:
+				var k5 := Vector2i(roundi(float(e5[0])), roundi(float(e5[1])))
+				if not cells.has(k5):
+					cells[k5] = [e5[2], e5[2] == LT[6]]
+	if tier >= 1 and not link and f >= hot_f and f <= hot_f + 1:   # 精一：刃尖崩出三道短碎芒
+		var tp := Vector2(d.x * L, d.y * L - LANCE_H)
+		for sp in [-0.45, 0.0, 0.45]:
+			var a6: float = d.angle() + sp
+			var r0: int = 1 + (f - hot_f) * 2
+			var kn: int = 3 if f == hot_f else 2
+			for k6 in kn:
+				var rr: float = r0 + k6
+				if rr > L * 0.1 + 2.0:
+					break
+				var k7 := Vector2i(roundi(tp.x + cos(a6) * rr), roundi(tp.y + sin(a6) * rr))
+				if not cells.has(k7):
+					cells[k7] = [LT[6] if k6 == 0 and f == hot_f else LT[4], false]
+	var out: Array = []
+	for kk in cells:
+		out.append([float(kk.x), float(kk.y), cells[kk][0], cells[kk][1]])
 	return out
 
 
-## 同 lance_gd()：[x, y, 颜色, 不透明度]
-func _lance_gd(L: float, d: Vector2, f: int, tier: int, gust: bool) -> Array:
+## 同 lance_gd()：投影阴影（亮态各拍）；起风另有潮痕。普攻不画水
+func _lance_gd(L: float, d: Vector2, f: int, _tier: int, gust: bool) -> Array:
 	var out: Array = []
-	var n: int = maxi(4, int(L))
 	if f < 0:
 		return out
-	if f <= 2:
-		for i in range(int(n * 0.25), int(n * 0.95)):
-			if f == 2 and i % 2 == 1:
-				continue
+	if gust:
+		L *= 1.1
+	var n: int = maxi(4, int(L))
+	var hot_f: int = 3 if gust else 2
+	if f >= 1 and f <= hot_f:
+		for i in range(int(n * 0.15), int(n * 0.9)):
 			out.append([d.x * i, d.y * i, SHADOW, 0.5])
-	if (tier >= 1 or gust) and f <= 5:
+	if gust and f <= 5:
 		var gv := Vector2(-d.y, d.x * SQ)
 		gv = gv.normalized() if gv != Vector2.ZERO else Vector2.UP
 		var cols: Array = [TIDE[5], TIDE[5], TIDE[4], TIDE[3], TIDE[3], TIDE[2]]
@@ -447,40 +486,39 @@ func _lance_gd(L: float, d: Vector2, f: int, tier: int, gust: bool) -> Array:
 					continue
 				if f >= 4 and (i + f) % 2 == 1:
 					continue
-				var off: float = 2.5 + 2.0 * u + 0.6 * f + (1.0 if (i / 4) % 2 == 1 else 0.0)
+				var off: float = 3.5 + 2.0 * u + 0.6 * f + (1.0 if (i / 4) % 2 == 1 else 0.0)
 				out.append([d.x * i + gv.x * off * side, d.y * i + gv.y * off * side, cols[f], 1.0])
-		if f <= 3:
-			for k in 3:
-				var i2: int = int(n * (0.45 + 0.2 * k))
-				var side2: int = 1 if k % 2 == 1 else -1
-				var off2: float = 2.5 + 2.0 * float(i2) / float(n) + 0.6 * f
-				out.append([d.x * i2 + gv.x * off2 * side2, d.y * i2 + gv.y * off2 * side2, TIDE[6], 1.0])
 	return out
 
 
-## 同 pierce()
-func _pierce(d: Vector2, f: int, tier: int) -> Array:
+## 同 charge()：起风蓄光，身前 8 粒光点往里收拢（3 拍）
+func _charge(d: Vector2, f: int) -> Array:
 	var out: Array = []
 	if f < 0 or f > 2:
 		return out
-	var n2 := Vector2(-d.y, d.x)
-	var rng: Array = [[-3, 7], [1, 9], [6, 10]][f]
-	var a1: int = rng[1]
-	for s in range(int(rng[0]), a1 + 1):
-		var c: Color = LT[6] if f == 0 else (LT[5] if f == 1 else LT[3])
-		if s >= a1 - 1:
-			c = LT[4] if f < 2 else LT[2]
-		out.append([d.x * s, d.y * s, c, f == 0])
-		if f == 0 and s >= 0 and s <= 4:
-			out.append([d.x * s + n2.x, d.y * s + n2.y, LT[4], false])
-	var k := 0
-	for side in [-1, 1]:
-		var s3: float = 6.0 + 3.0 * f + k
-		var hh: float = [0.0, 1.0, 3.0][f]
-		out.append([d.x * s3 + n2.x * side * (2 + f), d.y * s3 + n2.y * side * (2 + f) + hh, TIDE[5] if f < 2 else TIDE[4], false])
-		k += 1
-	if tier >= 1 and f == 0:
-		out.append([d.x * 8 + n2.x * 3, d.y * 8 + n2.y * 3 - 1, TIDE[6], false])
+	var h0 := Vector2(d.x * 10.0, d.y * 10.0 - LANCE_H - 1.0)
+	var rr: float = [16.0, 9.0, 3.0][f]
+	for q in 8:
+		var a: float = q / 8.0 * TAU + f * 0.5
+		var p := h0 + Vector2(cos(a), sin(a)) * rr
+		out.append([p.x, p.y, LT[4] if f == 0 else LT[5], f == 2])
+		out.append([p.x + 1.0, p.y, LT[3] if f == 0 else LT[4], false])
+		if f < 2:
+			var p2 := h0 + Vector2(cos(a), sin(a)) * (rr + 2.0)
+			out.append([p2.x, p2.y, LT[3], false])
+	for dd in [Vector2(0, 0), Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+		if f == 0 and dd != Vector2.ZERO:
+			continue
+		out.append([h0.x + dd.x, h0.y + dd.y, LT[6] if f >= 1 else LT[5], true])
+	return out
+
+
+## 同 pierce()：被贯穿的那只身上闪一个小十字（2 拍）
+func _pierce(_d: Vector2, f: int, _tier: int) -> Array:
+	var out: Array = []
+	if f < 0 or f > 1:
+		return out
+	_star(out, 0.0, 0.0, 3 if f == 0 else 2, LT[6], LT[5] if f == 0 else LT[4], LT[4] if f == 0 else LT[3])
 	return out
 
 

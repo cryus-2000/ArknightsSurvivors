@@ -45,6 +45,8 @@ static func h3_attack_start(o, a: Dictionary, dt: float) -> void:
 	if an == "" and a.has("anim"):
 		an = str(a.anim)
 	o.start_attack(at if a.get("turn", true) else Vector2.INF, 0.5, 0.25, an)
+	if str(a.get("shape", "")) == "thrust" and o.ammo.size() > 0 and int(o.ammo[0]) > 0:   # 转平面（docs/272）：起风那一刺的蓄光，只画（只读弹药）
+		_FXR.ev(o, "ir_charge", {"ang": (at - o.pos).angle()})
 	_e3_windup(o)   # 精英化第 3 批：trig.on_windup（卷刃）
 
 
