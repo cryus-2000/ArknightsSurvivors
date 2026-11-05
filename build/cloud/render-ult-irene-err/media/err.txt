@@ -1,0 +1,39 @@
+TRACE t=321.02 lv=17 k=799 hp=146.25 n=43 rng=-7356679285516583664/-4686908648769700006/5271742247865358609/-325052340822277281/-852560438157678648 pos=1488.51,279.32 h=27597.527 sq=4197814476 lamp=10000 nd=4197670970 rl=6
+TRACE t=322.01 lv=17 k=809 hp=146.25 n=37 rng=7910669719601901880/-6258978630729427915/1713732181838326163/-4582973147399084965/-852560438157678648 pos=1081.35,303.46 h=22365.198 sq=1711045169 lamp=9921 nd=4197670970 rl=6
+SCRIPT ERROR: Invalid access of index '3' on a base object of type: 'Array'.
+          at: _pts (res://scripts/run/ult_px_ir.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _pts (res://scripts/run/ult_px_ir.gd:134)
+              [1] _draw_blast (res://scripts/run/ult_px_ir.gd:774)
+              [2] draw_front (res://scripts/run/ult_px_ir.gd:217)
+              [3] draw_world (res://scripts/run/ult.gd:1459)
+--
+              [5] draw_world (res://scripts/render/world.gd:487)
+              [6] _draw (res://scripts/game.gd:2331)
+SCRIPT ERROR: Invalid access of index '3' on a base object of type: 'Array'.
+          at: _pts (res://scripts/run/ult_px_ir.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _pts (res://scripts/run/ult_px_ir.gd:134)
+              [1] _draw_blast (res://scripts/run/ult_px_ir.gd:774)
+              [2] draw_front (res://scripts/run/ult_px_ir.gd:217)
+              [3] draw_world (res://scripts/run/ult.gd:1459)
+--
+TRACE t=462.07 lv=23 k=1334 hp=146.25 n=32 rng=-5509150566398438279/656503685869909000/3612001682940854455/4557190204238599130/6743446136613568748 pos=2141.86,139.02 h=18653.711 sq=2854644049 lamp=9177 nd=4197670970 rl=12
+TRACE t=463.06 lv=23 k=1337 hp=146.25 n=33 rng=-5509150566398438279/-7928297613790518547/4020158980902431521/8800712838103899696/6743446136613568748 pos=1869.15,-106.62 h=19507.363 sq=3687838827 lamp=9177 nd=4197670970 rl=12
+SCRIPT ERROR: Invalid access of index '3' on a base object of type: 'Array'.
+          at: _pts (res://scripts/run/ult_px_ir.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _pts (res://scripts/run/ult_px_ir.gd:134)
+              [1] _draw_blast (res://scripts/run/ult_px_ir.gd:774)
+              [2] draw_front (res://scripts/run/ult_px_ir.gd:217)
+              [3] draw_world (res://scripts/run/ult.gd:1459)
+--
+TRACE t=483.05 lv=24 k=1529 hp=146.25 n=37 rng=-4967024163501580139/-2463104985593072056/-2067195134541795949/-4401295684572317161/-7542982805888954924 pos=1713.45,-33.48 h=22763.437 sq=216776971 lamp=10000 nd=4197670970 rl=13
+CMD t=483.19 stance=0
+SCRIPT ERROR: Invalid access of index '3' on a base object of type: 'Array'.
+          at: _pts (res://scripts/run/ult_px_ir.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _pts (res://scripts/run/ult_px_ir.gd:134)
+              [1] _draw_blast (res://scripts/run/ult_px_ir.gd:774)
+              [2] draw_front (res://scripts/run/ult_px_ir.gd:217)
+              [3] draw_world (res://scripts/run/ult.gd:1459)
