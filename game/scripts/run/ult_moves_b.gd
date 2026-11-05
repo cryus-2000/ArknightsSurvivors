@@ -1022,7 +1022,7 @@ static func _gl_v2(u) -> bool:
 static func _an_start(u, o, c: Vector2) -> Dictionary:
 	var rt := _route(o)
 	var R: float = aim_r("angelina")
-	var col: Color = u._col(o)
+	var col: Color = _anc(u._col(o))
 	var lift: Array = []
 	var bosses: Array = []
 	for e in u.in_circle(c, R):
@@ -1036,13 +1036,13 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 	o.play_vis_anim("attack")
 	var a := {"c": c, "R": R, "lift": lift, "bosses": bosses, "TL": Bal.v("ult/an_lift", 0.6), "TH": Bal.v("ult/an_hold", 0.3), "lifted": false, "slams": 0,
 		"nslam": 2 if rt == "pull" else 1, "tide": rt == "lock", "tide_t": 0.0, "ring_t": 0.0, "streak_t": 0.0, "fx": []}
-	a["core"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": Color(0.1, 0.02, 0.16), "fill": 0.9, "life": 3.0})
+	a["core"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": _anc(Color(0.1, 0.02, 0.16)), "fill": 0.9, "life": 3.0})
 	a["halo"] = _keep(u, a, {"kind": "ring", "c": c, "r": 60.0, "w": 5.0, "col": col.lerp(Color.WHITE, 0.4), "life": 3.0})
-	_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": Color(0.25, 0.08, 0.35), "fill": 0.14, "life": 3.0})
+	_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": _anc(Color(0.25, 0.08, 0.35)), "fill": 0.14, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 2.5, "col": col, "life": 3.0})
 	var ks: float = R / 470.0   # 帧条按 470 时的比例跟着半径缩放
 	if _an_v2(u):   # 奇点：Codex 第二批重力核心关键帧（fx_an_core），代码持续旋转、吸起期间缩小变亮
-		a["core"] = u.strip("fx_an_core", c, {"sc": 0.8 * ks, "life": 3.0, "col": Color(1.0, 1.0, 1.0, 0.9)})
+		a["core"] = u.strip("fx_an_core", c, {"sc": 0.8 * ks, "life": 3.0, "col": _anc(Color(1.0, 1.0, 1.0, 0.9))})
 		a.fx.append(a.core)
 	a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2 * ks, "layer": "back", "loop": true, "life": 3.0}))
 	if _an_v3():   # 被吸的碎屑（只画面）：一圈地块先慢后快吸向奇点、悬着抖，砸地时弹开落下（用户 10-31「吸入要有重量感」）
@@ -1050,7 +1050,7 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 		var deb: Array = []
 		for q in 16:
 			var hq: float = PF.h(vs + q * 1.7)
-			var s: Dictionary = {"kind": "rock", "c": c, "r": 7.0 + 9.0 * hq, "col": Color(0.3, 0.26, 0.34), "glow": Color(0.7, 0.45, 0.95), "seed": float(q) + vs,
+			var s: Dictionary = {"kind": "rock", "c": c, "r": 7.0 + 9.0 * hq, "col": _anc(Color(0.3, 0.26, 0.34)), "glow": _anc(Color(0.7, 0.45, 0.95)), "seed": float(q) + vs,
 				"rot": hq * TAU, "spin": (hq - 0.5) * 6.0, "life": 3.0}
 			u.shape(s)
 			deb.append({"s": s, "a0": TAU * (q + hq * 0.8) / 16.0, "r0": R * (0.55 + 0.4 * hq), "h": hq})
@@ -1066,7 +1066,7 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 	var R: float = a.R
 	var TL: float = a.TL
 	var TH: float = a.TH
-	var col: Color = u._col(o)
+	var col: Color = _anc(u._col(o))
 	var g = u.g
 	var ts: float = TL + TH   # 第一次砸地的时刻
 	var tb: float = 0.32      # 三重引力：弹起再砸的间隔
@@ -1144,7 +1144,7 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 				e["wl_kb"] = maxf(float(e.get("wl_kb", 1.0)) if float(e.get("wl_t", 0.0)) > g.t else 1.0, 1.5)
 		for e in a.bosses:
 			_hit(u, a, o, e, fr, {"src": "砸地", "stun": 0.3})
-		var dust := Color(0.6, 0.5, 0.68)
+		var dust := _anc(Color(0.6, 0.5, 0.68))
 		if not _an_v2(u):   # v2 不画旧的亮白收拢帧条（预审报砸地发白）
 			u.strip("fx_angelina_well_close", c, {"sc": 3.6 * R / 470.0})
 		if _an_v2(u):   # v2 砸地：顿帧 + 砸坑（fx_an_crater）+ 紫灰尘环（fx_an_ring）推到 R + 紫色粒子 + 两拍隆起
@@ -1154,9 +1154,9 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 			if u.fx_ready("fx_an_crater"):
 				var cr: float = PF.tex_w(u, "fx_an_crater") * 0.5
 				u.strip("fx_an_crater", c, {"layer": "back", "sc": R * 0.3 / cr, "sc1": R * 0.42 / cr, "scd": 0.1, "ang": PF.h(vs3) * TAU, "sx": -1.0 if PF.h(vs3 + 1.0) < 0.5 else 1.0,
-					"life": 1.8, "fade": 0.7, "col": Color(0.95, 0.9, 1.0), "col1": Color(0.55, 0.5, 0.6), "cold": 0.6})
-			PF.particles(u, c, 300, "ult_burst", [Color(0.6, 0.45, 0.85)], 0.0, vs3, R * 0.85)   # 尘环贴图预审报重复拼接，改两层紫灰粒子
-			PF.particles(u, c, 300, "ult_burst", [Color(0.62, 0.58, 0.7)], 0.06, vs3 + 5.0, R * 0.6)
+					"life": 1.8, "fade": 0.7, "col": _anc(Color(0.95, 0.9, 1.0)), "col1": _anc(Color(0.55, 0.5, 0.6)), "cold": 0.6})
+			PF.particles(u, c, 300, "ult_burst", [_anc(Color(0.6, 0.45, 0.85))], 0.0, vs3, R * 0.85)   # 尘环贴图预审报重复拼接，改两层紫灰粒子
+			PF.particles(u, c, 300, "ult_burst", [_anc(Color(0.62, 0.58, 0.7))], 0.06, vs3 + 5.0, R * 0.6)
 			PF.heave(u, c, R * 0.45, vs3 + 2.0)
 			PF.heave(u, c, R * 0.85, vs3 + 3.0, 0.18)
 			if _an_v3() and si == 0:   # 打击感（10-31）：冲击帧（粒子 + 弹开的碎屑进剪影）+ 凹坑压深留久 + 外圈六团紫灰逐帧烟尘
@@ -1175,11 +1175,11 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 				if u.fx_ready("fx_an_crater"):
 					var cr2: float = PF.tex_w(u, "fx_an_crater") * 0.5
 					u.strip("fx_an_crater", c, {"layer": "back", "sc": R * 0.5 / cr2, "sc1": R * 0.46 / cr2, "scd": 0.12, "ang": PF.h(vs3 + 4.0) * TAU,
-						"life": 2.8, "fade": 1.0, "col": Color(0.75, 0.7, 0.82), "col1": Color(0.4, 0.36, 0.45), "cold": 1.0})
+						"life": 2.8, "fade": 1.0, "col": _anc(Color(0.75, 0.7, 0.82)), "col1": _anc(Color(0.4, 0.36, 0.45)), "cold": 1.0})
 				for q in 6:
 					var hq: float = PF.h(vs3 * 3.0 + q)
 					var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 6.0)
-					PF.dust(u, c + dq * R * (0.4 + 0.3 * hq), 190.0 + 70.0 * hq, 0.04 + 0.03 * (q % 3), vs3 + q, dq * (60.0 + 40.0 * hq), Color(0.9, 0.85, 1.0))
+					PF.dust(u, c + dq * R * (0.4 + 0.3 * hq), 190.0 + 70.0 * hq, 0.04 + 0.03 * (q % 3), vs3 + q, dq * (60.0 + 40.0 * hq), _anc(Color(0.9, 0.85, 1.0)))
 			if a.has("core"):
 				u.shapes.erase(a.core)
 		else:
@@ -1221,6 +1221,34 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 
 ## 安洁莉娜 v2（ult/an_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：奇点 = Codex 重力核心关键帧持续旋转、越吸越小越亮；
 ## 砸地 = 顿帧 + 砸坑 + 两层紫 / 紫灰粒子 + 两拍隆起（尘环贴图预审报重复拼接，已去掉）。吸起 / 砸地判定与时序不动
+## 安洁莉娜终结技只改颜色（ult/px_plane_angelina，11-06 用户「安洁莉娜终结技过」起缺省 1；11-06 用户看完更喜欢原版：画面、节奏、体量、音效都不动，只把配色对齐到 docs/267 定稿的紫色 8 阶）。
+## 程序画的颜色（环、线、尘、粒子、碎屑、砸坑调色）按亮度映射到这 8 阶，alpha 原样，> 1 的过曝倍数原样；帧条贴图本身已是紫色，不动
+const AN_V := [Color("#140c24"), Color("#312f5c"), Color("#5c4a8e"), Color("#8765c0"), Color("#b280f2"), Color("#cdacf7"), Color("#e8d9fb"), Color("#ffffff")]
+static var _an_vl: Array = []
+
+
+static func _anp() -> bool:
+	return Bal.v("ult/px_plane", 0.0) > 0.0 or Bal.v("ult/px_plane_angelina", 0.0) > 0.0
+
+
+static func _anc(c: Color) -> Color:
+	if not _anp():
+		return c
+	if _an_vl.is_empty():
+		for v in AN_V:
+			_an_vl.append(0.3 * v.r + 0.59 * v.g + 0.11 * v.b)
+	var m: float = maxf(1.0, maxf(c.r, maxf(c.g, c.b)))
+	var l: float = clampf((0.3 * c.r + 0.59 * c.g + 0.11 * c.b) / m, 0.0, 1.0)
+	var out: Color = AN_V[0]
+	for i in range(AN_V.size() - 1):
+		var l0: float = float(_an_vl[i])
+		var l1: float = float(_an_vl[i + 1])
+		if l <= l1 or i == AN_V.size() - 2:
+			out = (AN_V[i] as Color).lerp(AN_V[i + 1], clampf((l - l0) / maxf(0.001, l1 - l0), 0.0, 1.0))
+			break
+	return Color(out.r * m, out.g * m, out.b * m, c.a)
+
+
 static func _an_v3() -> bool:   # 安洁莉娜打击感（10-31）：被吸碎屑 + 砸地冲击帧 + 深坑 + 逐帧烟尘；0 = 10-30 版
 	return Bal.v("ult/an_fx_v3", 1.0) > 0.0
 

@@ -86,3 +86,33 @@
 - 录像：GCP 出的 mp4 42 MB（crf 20），本机用 ffmpeg 重压到 crf 26 = 19.9 MB（只重编码，不开 Godot）；原文件留在 gs 桶（7 天）。
 - 第一次连携段失败：脚本取了快跑段（7.1 秒）的连携事件算出负帧号；`pxplane_shots.py linkcmp` 改成只取录像窗口内的事件（a646e2272）后重跑通过。连携 2 倍局部的取景被德克萨斯的黄色特效带偏，看全图 `cmp_link.png` ③ 栏：三枚碎片带弧线尾迹绕圈收拢。
 - 出图命令：`python tools/gcp_render.py --branch claude/pxplane-angelina --job pxplane --split --name angelina --args 'demo --op angelina;rec --op angelina --seed 11 --from 480 --secs 20 --extra=--bal=growth/late_shape=1;trace --op angelina --seed 23 --maxt 300 --extra="--elite2 --sptest --bal=growth/late_shape=1";linkcmp …'`。
+
+## 10. 光感 / 粒子感补齐（docs/270，11-05 → 11-06）
+
+协调人转用户「补齐 + 开工」，补法：颗粒太细太少、emit 弱（p90 25）→ 白芯加厚进 emit；S1 落点 tri 颗粒 6–10 颗、每颗 ≥ 3 px；落点一盏半径 160 的灯。只改画面。
+
+| 改了什么 | 提交 |
+|---|---|
+| 落点照地灯：普攻 130–150 / 0.6–0.68、S1 160–180 / 0.8–0.88，0.15 秒；颗粒改黑紫三角 tri（普攻 4、S1 12，拥挤降噪后约 7）；星芒 / 光刺 / 连携落定白芯加厚、弹体亮边加长 | c1cf58881、a5a62c803 |
+| 星芒收掉后落点中心留白热「压缩点」再亮 3 拍；S1 光刺白芯多保持一拍 | a5a62c803、00d6f1b9a |
+| 落点类帧条亮紫一阶也进发光层（门槛 0.8 → 0.7，白芯本来就是纯白，只给白像素加辉光量不出）；这类帧条每帧 emit 上限 64 → 200 | 82ceab8df、aa45d6ecb |
+| `fx_audit.py` 的 S1 窗口可用 `FXA_S1_WIN` 放宽（缺省 30 帧不变） | 41d895bf1 |
+
+**复测**（新量法 5d26a06b8：照地面积 / 核心辉光取命中帧及其后 2 帧最大值；最终提交 bd10d3873，GCP）：
+
+| 招 | 补前（f8fc305fd） | 补后 | 判定 |
+|---|---|---|---|
+| 普攻 | 颗粒 2.6 px、核心辉光 27、emit p90 24 → 6 / 10 | tri 6.1 px、每次 4 颗、灯 125 / 0.64、照地 +65 / 5373 px、核心辉光 325、emit p90 208 | **10 / 10** |
+| S1（落点帧，`FXA_S1_WIN=45`） | 颗粒 4、灯 95、核心辉光 0、emit 25 → 6 / 10 | 最大一簇 12 颗、tri 6.7 px、灯 180 / 0.88、照地 +85 / 8363 px、核心辉光 363、emit p90 259 | **10 / 10** |
+| S1（缺省 30 帧窗口） | — | 9 / 10，只差「颗粒数 4」 | 窗口量不到 S1 落点：S1 是「接下来 3 发」，第一发起手后约 36 帧才落地，窗口里那次落地是起手前已射出的普通弹 |
+
+- TRACE：`fx/px_plane` 开 / 关，种子 23（`--elite2 --sptest`，开 late_shape，5:00）301 行逐行一致；0 条 SCRIPT ERROR。
+- 对比图与判定：`Claude outputs/fx_audit_1105/fix_angelina/`（`cmp_atk_x2.png`；`before/`、`final_def/`、`final_s1win45/` 各有 `fx_audit_judge.md`）；原始量值在 `Claude outputs/render-fxfix-angelina-final/`。
+
+## 11. 终结技只改颜色（11-06）
+
+用户看完各人终结技升级后更喜欢原版：安洁莉娜终结技的画面、节奏、体量、音效全部不动，只把配色对齐到本稿定稿的紫色。
+
+- 开关 `ult/px_plane_angelina`（11-06 用户「安洁莉娜终结技过」起缺省 1；总开关 `ult/px_plane` 开着也生效）。`ult_moves_b.gd` 安洁莉娜段里程序画的颜色（奇点暗圈、范围底色与边线、吸入碎屑、收拢线、砸地尘环、两层爆散粒子、砸坑调色、外圈烟尘）一律经 `_anc()`：按亮度映射到定稿紫 8 阶（`#140c24` … `#ffffff`），alpha 和过曝倍数原样。Codex 的帧条（重力核心、失重井前后层、砸坑）本身已是同一色系的紫，没动。
+- TRACE：种子 3 德克萨斯 / 能天使队友、31.5 秒充满放出，开 / 关 46 行逐行一致（`windowed=1` 带画面跑）。
+- 原版 / 新版并排：`Claude outputs/pxplane_angelina_1105/gif/angelina_ult_color_cmp.gif`（GCP 同局录像抽 15 帧 / 秒；上半整屏 0.5 倍，下半中心 1 倍）。画面主体是帧条，差别只在尘、粒子、碎屑、环的色相上，肉眼差别小。
