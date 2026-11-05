@@ -34,10 +34,13 @@ LIMIT = read_limit()
 _cache = {}
 
 
+NEWDIR = ""
+
+
 def wav(name, old):
     key = (name, old)
     if key not in _cache:
-        p = os.path.join(OLD, name + "_old.wav") if old else None
+        p = os.path.join(OLD, name + "_old.wav") if old else (os.path.join(NEWDIR, name + ".wav") if NEWDIR and name.startswith("op_lumen_") else None)
         if not p or not os.path.exists(p):
             p = None
             for ext in (".wav", ".ogg"):
@@ -68,8 +71,12 @@ def main():
     ap.add_argument("--secs", type=float, default=10.0)
     ap.add_argument("--out", required=True)
     ap.add_argument("--name", default="lumen_atk_sfx")
+    ap.add_argument("--newdir", default="", help="改后那版流明攻击音从这个目录取 op_lumen_atk.wav / op_lumen_hit.wav（候选对比用；缺省用 game/audio/sfx）")
+    ap.add_argument("--unit_db", type=float, default=0.0, help="改后那版：发光单元 / 非本体的命中（调用处偏移 ≤ −3 dB 的 op_lumen_hit）再加这么多 dB；≤ −60 = 不出声")
     ap.add_argument("--only", default="", help="只混这个前缀的音（如 op_lumen_ 只听流明自己的声音）")
     a = ap.parse_args()
+    global NEWDIR
+    NEWDIR = a.newdir
     fr2t, plays, ops = [], [], []
     for l in open(a.log, encoding="utf-8"):
         p = l.split()
@@ -90,6 +97,10 @@ def main():
                 continue
             t = tm(f)
             kind = sn.split("_")[-1]
+            if ver == "after" and sn == "op_lumen_hit" and v <= -3.0 and a.unit_db != 0.0:
+                if a.unit_db <= -60.0:
+                    continue
+                v += a.unit_db
             if ver == "after" and sn == "op_lumen_hit":
                 if t - gap_last.get(sn, -99.0) < 0.09:
                     continue
