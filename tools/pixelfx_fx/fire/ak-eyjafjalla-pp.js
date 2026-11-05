@@ -251,7 +251,9 @@ function lavaSeams(p, R, SY, t, C, sd, cool, cells) {
 
 export function create(o) {
   patchPainter();
-  FIRE_RAMP.splice(0, FIRE_RAMP.length, ...RAMP9.map((c) => (c ? hex(c) : 0)));
+  // 终结技喷柱冷到暗红那一阶也直接散掉（大团暗红圆片在满屏怪群里像血块，红色只留给危险）
+  const ramp = String(o.part).startsWith("u") ? RAMP9.map((c, i) => (i >= 6 ? 0 : c)) : RAMP9;
+  FIRE_RAMP.splice(0, FIRE_RAMP.length, ...ramp.map((c) => (c ? hex(c) : 0)));
   const C = fit(o.palette, 7).concat(fit([HOTY_HEX], 1)), E = +o.el, R = +o.R, part = o.part, ly = o.layer;
   const raw = ly === "raw", up = ly === "up" || raw, gd = ly === "gd" || raw, SY = raw ? 1 : +o.SY;
   const Rg = new Rng(+o.seed + 17 * E + 3 * R);
