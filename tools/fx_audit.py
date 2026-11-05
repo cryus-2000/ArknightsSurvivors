@@ -139,13 +139,14 @@ def analyse(op, mode, out):
     s0 = sk[0] if (mode == 0 and sk) else None
     skl, skb = None, None
     if s0 is not None:
-        wl = [(float(x[1]), int(x[0])) for bb in bursts(fxa, s0, s0 + 30) for x in bb["L"]]
+        wl = [(float(x[1]), int(x[0])) for bb in bursts(fxa, s0, s0 + int(os.environ.get("FXA_S1_WIN", "30"))) for x in bb["L"]]
         skl = max(wl) if wl else (0.0, 0)
-        skb = max([bb["n"] for bb in bursts(fxa, s0, s0 + 30)] or [0])
+        skb = max([bb["n"] for bb in bursts(fxa, s0, s0 + int(os.environ.get("FXA_S1_WIN", "30")))] or [0])
     # 命中那一刻：普攻 = 第一下命中（或出手）后 8 帧内；S1 = 技能事件后 1 秒内。
     # 打分 = 照地亮度（A−B 总和，按窗内最大值归一）× 0.6 + 近 4 帧新颗粒数（归一）× 0.4：不再只看颗粒，免得挑到灯还没亮的帧
     anchor = s0 if s0 is not None else (hits[0] if hits else (acts[0] if acts else e0 + 15))
-    cand = [i for i in sorted(f2e) if anchor <= f2e[i] <= anchor + (30 if mode == 0 else 8)] or [min(f2e)]
+    s1w = int(os.environ.get("FXA_S1_WIN", "30"))   # S1 窗口（帧）；缺省 30。安洁莉娜 S1 是「接下来 3 发」，第一发约在起手后 36 帧落地（docs/267 §10），补量时设 45
+    cand = [i for i in sorted(f2e) if anchor <= f2e[i] <= anchor + (s1w if mode == 0 else 8)] or [min(f2e)]
     sc = {}
     for i in cand:
         pa, pb = os.path.join(BUILD, tags["A"], "f_%04d.png" % i), os.path.join(BUILD, tags["B"], "f_%04d.png" % i)
