@@ -24,6 +24,7 @@ OUTLINE = (0x2c, 0x16, 0x0a)
 DEEP = (0x55, 0x2a, 0x10)  # 口里 / 源图深线
 WHITE = (255, 255, 255)
 ACC = (0xff, 0xf1, 0xb8)
+FILL_A = 179              # 内部填充不透明度 70%（第四轮 100%）；描边 100%
 
 
 def load(src):
@@ -68,7 +69,7 @@ def render(inside, idx, el, frame):
             if ins[yy, xx]:
                 k = ix[yy, xx]
                 c = DEEP if k <= 0 else TONES[min(3, k - 1 + shift)]
-                out[yy, xx] = (*c, 255)
+                out[yy, xx] = (*c, FILL_A)   # 内部填充半透明（用户 11-05「狮吼的透明度可以降低一点」），描边仍实心
     edge = ndimage.binary_dilation(ins) & ~ins
     oc = WHITE if frame <= 1 else (ACC if el >= 2 else OUTLINE)
     if frame >= 2 and el < 2:
