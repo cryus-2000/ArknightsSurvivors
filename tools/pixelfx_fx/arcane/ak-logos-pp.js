@@ -65,13 +65,14 @@ function star(p, cx, cy, rays, k, cool, C, INK) {
 }
 
 // 不规整长碎刺（原作 cici）：一根尖刺带 1–2 处折，根部宽、尖细；ret 0 → 1 从根往尖收（刺尖留到最后）
+const BL = [hex("#eef0f6"), hex("#c9cedc"), hex("#8e94ab")];   // 原作 cici 碎刺是灰白刃，不是本色（11-05 第四轮对原作）
 function thorn(p, cx, cy, a, L, w0, bend, ret, C, hot) {
   const ca = Math.cos(a), sa = Math.sin(a);
   for (let s = L * ret; s <= L; s += 0.5) {
     const v = s / L, kink = Math.sin(v * 5.2 + bend) * bend * 1.6 * v, th = w0 * (1 - v);
     for (let q = -th; q <= th; q += 0.5) {
       const x = cx + ca * s - sa * (q + kink), y = cy + sa * s + ca * (q + kink);
-      const c = hot ? (v < 0.18 ? C[6] : Math.abs(q) > th * 0.5 ? C[3] : C[4]) : Math.abs(q) > th * 0.5 ? C[3] : v < 0.25 ? C[5] : C[4];
+      const c = hot ? (v < 0.18 ? C[6] : Math.abs(q) > th * 0.5 ? BL[2] : BL[0]) : Math.abs(q) > th * 0.5 ? BL[2] : v < 0.4 ? BL[1] : BL[2];
       p.px(x, y, c);
     }
   }
@@ -140,10 +141,10 @@ export function create(o) {
         if (up) {
           const beat2 = E >= 1 && t >= SEG && t < SEG * 2;   // E1 起第 1 拍星芒再撑一下（只撑大小，不再整团转白）
           const small = kk < 1 || part === "tick";
-          const cool = Math.max(small ? 0.22 : 0, clamp((t - SEG) / 0.22));
-          const sk = t < SEG ? 1 : beat2 ? 0.95 : 1 - 0.55 * smooth(SEG, 0.36, t);
-          if (t < 0.36) {
-            const rays = [[1, 0, 21, 2.2], [-1, 0, 21, 2.2], [0, -1, 16, 2], [0, 1, 13, 1.8]];
+          const cool = Math.max(small ? 0.22 : 0, clamp((t - SEG) / 0.2));
+          const sk = t < SEG ? 1 : beat2 ? 0.95 : 1 - 0.3 * smooth(SEG, 0.6, t);   // 原作 1.20 s：转暗后仍是一颗长臂暗星，留到地面墨环出来
+          if (t < 0.6) {
+            const rays = [[1, 0, 25, 1.9], [-1, 0, 25, 1.9], [0, -1, 18, 1.7], [0, 1, 16, 1.5]];
             if (E >= 1) rays.push([1, -1, 10, 1.4], [-1, -1, 10, 1.4], [1, 1, 8, 1.2], [-1, 1, 8, 1.2]);
             star(p, 0, 0, rays, K * sk, cool, C, INK);
             if (E === 2 && t < SEG && !small) for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) if (Math.abs(x) + Math.abs(y) <= 2) p.px(x, y, C[6]);
@@ -168,11 +169,9 @@ export function create(o) {
           const u = clamp((t - 0.06) / 0.62);
           if (t > 0.06 && u < 1) {
             const a = 1 - smooth(0.45, 1, u), gr = 1 + 0.25 * ease.outCubic(u);
-            inkRing(p, 11 * K * gr, SY, a, C, INK, +o.seed, t < 0.25);
-            if (E >= 1) {   // E1 新元素：外圈第二道墨环（亮弧、加一道内墨，1 倍下也看得出是两圈）
-              inkRing(p, 17 * K * gr, SY, a, C, INK, +o.seed + 5, true);
-              inkRing(p, 16 * K * gr, SY, a * 0.9, C, INK, +o.seed + 6, false);
-            }
+            inkRing(p, 14 * K * gr, SY, a, C, INK, +o.seed, t < 0.25);   // 原作 1.40 s：两圈同心细墨环
+            inkRing(p, 21 * K * gr, SY, a * 0.85, C, INK, +o.seed + 5, E >= 1);
+            if (E >= 1) inkRing(p, 20 * K * gr, SY, a * 0.9, C, INK, +o.seed + 6, false);   // 精一：外圈加一道内墨、带亮弧
             if (E === 2) {
               const r0 = 5 * K;
               for (let y = -r0 * SY; y <= r0 * SY; y++) for (let x = -r0; x <= r0; x++) {
@@ -210,11 +209,20 @@ export function create(o) {
         // 笔尖星芒（原作 0.50 s 出手星芒）：笔尖 = 身前 20、高 18
         const tx = 20, ty = -18;
         if (!big) {
-          const st = t - 0.04;
-          if (st > 0 && st < 0.22) {
-            const rays = [[1, 0, 8, 1.3], [-1, 0, 6, 1.1], [0, -1, 7, 1.2], [0, 1, 6, 1.1]];
-            if (E >= 1) rays.push([1, -1, 4, 0.9], [-1, -1, 4, 0.9], [1, 1, 4, 0.9], [-1, 1, 4, 0.9]);
-            star(p, tx, ty, rays, (E === 2 ? 1.2 : 1) * (1 - 0.4 * smooth(0.05, 0.22, st)), clamp((st - SEG) / 0.15), C, INK);
+          // 出手星芒（原作 0.50–0.88 s）：笔尖一颗细长的蓝紫四芒星，白芯只一点，跟着彗星飞出后还亮一会儿再冷掉
+          const st = t - 0.03;
+          if (st > 0 && st < 0.42) {
+            const rays = [[1, 0, 14, 1.1], [-1, 0, 12, 1.1], [0, -1, 13, 1.1], [0, 1, 11, 1.0]];
+            if (E >= 1) rays.push([1, -1, 5, 0.8], [-1, -1, 5, 0.8], [1, 1, 5, 0.8], [-1, 1, 5, 0.8]);
+            const k = (E === 2 ? 1.2 : 1) * (0.7 + 0.3 * ease.outCubic(clamp(st / 0.08))) * (1 - 0.35 * smooth(0.2, 0.42, st));
+            for (const [dx, dy, L, w0] of rays) {
+              const n = Math.hypot(dx, dy), ux = dx / n, uy = dy / n, len = L * k;
+              for (let s2 = 0; s2 <= len; s2 += 0.5) {
+                const v = s2 / len, th = w0 * (1 - v);
+                for (let q = -th; q <= th; q += 0.5) p.px(tx + ux * s2 - uy * q, ty + uy * s2 + ux * q, st > 0.3 ? C[2] : v < 0.12 ? C[6] : v < 0.4 ? C[4] : C[3]);
+              }
+            }
+            if (E === 2 && st < 0.25) p.px(tx, ty, AC);
           }
         } else {
           // 延异视阈起手：笔尖蓄势（小星慢慢长）→ 0.3 秒开域爆亮（大八芒）→ 0.6 秒收

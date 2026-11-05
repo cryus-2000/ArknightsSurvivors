@@ -1247,7 +1247,7 @@ const LG_SY := 0.72
 ## 细字咒文 3×5（同 ak-logos-pp.js 的 GLYPHS）：每字 15 位，行优先
 const LG_GL := ["111010010010011", "101111001001001", "110001010100011", "010111010010110", "100110101100111",
 	"011100111001110", "101101010101101", "111100110100100", "010010111000101", "110101110100100"]
-const LG_BOLT_LEN := [18, 22, 26]   # 墨尾长（美术像素）：放大只放在长度上，弹头三档一样尖
+const LG_BOLT_LEN := [24, 28, 32]   # 墨尾长（美术像素，11-05 第四轮对原作：约 3/4 身高）：放大只放在长度上，弹头三档一样尖
 
 var _lg_fire_t := -9.0
 
@@ -1358,7 +1358,7 @@ func _ev_logos(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 				var q2: Vector2 = pts2[i][0]
 				var t1: float = g.t + 0.03 * i
 				_push({"lrt": "vbolt", "a": tip, "b": q2, "t0": t1, "life": 0.2, "ly": "up", "gy": float(pts2[i][1]), "oid": "logos", "k": "", "tier": 2, "side": 1.0 if i % 2 == 0 else -1.0})
-				_push({"k": "lg_hits_e2_up", "t0": t1 + 0.2, "gp": _snap(q2), "gy": float(pts2[i][1]), "flip": false, "ly": "up", "oid": "logos"})
+				_push({"k": "lg_hits_e1_up", "t0": t1 + 0.2, "gp": _snap(q2), "gy": float(pts2[i][1]), "flip": false, "ly": "up", "oid": "logos"})
 			if not pts2.is_empty():
 				R._light(o, pts2[0][0], 110.0, 0.45, 0.12, p.light)
 		"lg_xhit":   # 后期额外弹命中：小一号星芒；同一拍至多 3 团
@@ -1499,7 +1499,7 @@ func _lg_pool(ci, l: Dictionary) -> void:
 
 ## 延异视阈咒域（原作 range_01；11-05 第三轮用户「改成渐变填充」「符文条太直」）：
 ## 填充 = 亮蓝边缘往中心渐暗（7 阶，最浓 α 0.38，怪透得出来），每个美术像素按 interleaved gradient noise 抖动取相邻两阶，不出平涂色带；
-## 外边 2 格亮边保留；4 条弯曲符文带（一条贴外边的弧、三条往中心收的螺旋），字沿带子每 2 拍挪一格，像在吟诵；每跳外边亮一拍
+## 外边 2 格亮边保留；4 条流动符文带（第四轮：整条带绕咒域公转、带身起伏、字从带尾生到带头灭、流速时快时慢），像在吟诵；每跳外边亮一拍
 const LG_FILL := [[Color("#0b0d22"), 0.34], [Color("#161c3e"), 0.34], [Color("#28355f"), 0.32], [Color("#495694"), 0.33],
 	[Color("#6a78ca"), 0.36], [Color("#8c99ff"), 0.38], [Color("#b4bdff"), 0.38]]
 ## 符文带：[起始角（相对扇形中线，× 半角）, 起始半径比例, 角步进方向, 每像素半径收缩比例, 字数, 种子]
@@ -1592,9 +1592,11 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 			if (i / 3) % 3 == 2:
 				continue
 			ci.draw_rect(Rect2(_snap(c + dn * float(i) * px), Vector2(px, px)), Color(LG_C[3].r, LG_C[3].g, LG_C[3].b, 0.8 * fade))
-	# 弯曲符文带（张开过半才写）：底线每 2 格一点暗蓝，字距 4 格，每 2 拍沿带挪一格；带头带尾的字按拍明灭
+	# 流动符文带（11-05 第四轮用户「符文条要有流动感，现在像固定在原地」）：
+	#   整条带绕咒域缓慢公转（带快慢起伏）、带身像绸带一样小幅起伏；字从带尾淡入，一路流到带头淡出（有生有灭），流速时快时慢；
+	#   一律按 15 fps 拍子取时间（tb），字仍是 1 美术像素细字；带子出了扇形就不画
 	if open > 0.5:
-		var shift: int = (beat / 2) % 4
+		var tb: float = floor(g.t * 15.0) / 15.0
 		for st in LG_STRIPS:
 			var s0: float = float(st[0])
 			var r0: float = float(st[1])
@@ -1602,30 +1604,34 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 			var pitch: float = float(st[3])
 			var nch: int = int(st[4])
 			var sd: int = int(st[5])
-			for kb in range(0, nch * 4 + 1, 2):
-				var sb: float = float(kb + shift)
-				var rb: float = rc * (r0 + pitch * sb)
-				if rb < 12.0:
+			var Lb: float = float(nch * 4)
+			var rev: float = fposmod(s0 + 1.0 + 0.11 * tb * sgn2 + 0.06 * sin(tb * 0.7 + sd), 2.0) - 1.0   # 公转：起始角在扇形里慢慢绕
+			var flow: float = 5.0 * tb + 2.2 * sin(tb * 1.4 + sd)   # 字流过的弧长（导数 5 ± 3.1，始终向前、时快时慢）
+			var pts_band := func(sb: float) -> Vector2:
+				var rb: float = rc * (r0 + pitch * sb) + 1.5 * sin(sb * 0.22 - tb * 2.4 + sd)   # 带身起伏（振幅 1.5 美术像素）
+				var ab: float = fa + half * rev + sgn2 * sb / maxf(rb, 1.0)
+				if rb < 12.0 or absf(wrapf(ab - fa, -PI, PI)) > half * 0.96:
+					return Vector2.INF
+				return Vector2(cos(ab) * rb, sin(ab) * rb * LG_SY)
+			for kb in range(0, int(Lb) + 1, 2):   # 底线：每 2 格一点暗蓝，两头淡
+				var bq: Vector2 = pts_band.call(float(kb))
+				if bq == Vector2.INF:
 					continue
-				var ab: float = fa + half * s0 + sgn2 * sb / rb
-				if absf(wrapf(ab - fa, -PI, PI)) > half * 0.97:
-					continue
-				var bp: Vector2 = c + Vector2(cos(ab) * rb, sin(ab) * rb * LG_SY + 3.0) * px
-				ci.draw_rect(Rect2(_snap(bp), Vector2(px, px)), Color(LG_C[2].r, LG_C[2].g, LG_C[2].b, 0.8 * fade))
+				var ea: float = minf(1.0, minf(float(kb), Lb - float(kb)) / 6.0)
+				ci.draw_rect(Rect2(_snap(c + (bq + Vector2(0, 3)) * px), Vector2(px, px)), Color(LG_C[2].r, LG_C[2].g, LG_C[2].b, 0.75 * fade * ea))
 			for j in nch + 1:
-				var s: float = float(j * 4 + shift)
-				var rad: float = rc * (r0 + pitch * s)
-				if rad < 12.0:
+				var sraw: float = float(j) * 4.0 - flow
+				var s: float = fposmod(sraw, Lb)   # 带尾（s 大）→ 带头（s 小）
+				var life: int = int(floor(sraw / Lb))   # 每流完一趟换一个字（新生）
+				var gq: Vector2 = pts_band.call(Lb - s)
+				if gq == Vector2.INF:
 					continue
-				var ang: float = fa + half * s0 + sgn2 * s / rad
-				if absf(wrapf(ang - fa, -PI, PI)) > half * 0.97:
+				var ea2: float = minf(1.0, minf(s, Lb - s) / 6.0)   # 带尾淡入、带头淡出
+				if ea2 < 0.25:
 					continue
-				var edge: int = mini(j, nch - j)
-				if edge == 0 and _lg_h(sd * 7 + beat / 6) < 0.5:
-					continue
-				var gc: Color = LG_AC if (j + sd) % 4 == 0 else LG_C[5]
-				gc.a = fade * (0.95 if edge > 0 else 0.6)
-				_lg_glyph(ci, c + Vector2(cos(ang) * rad, sin(ang) * rad * LG_SY) * px, j * 3 + sd * 5 - (beat / 2) / 4, gc)
+				var gc: Color = LG_AC if (j + sd - life) % 4 == 0 else LG_C[5]
+				gc.a = fade * ea2
+				_lg_glyph(ci, c + gq * px, j * 3 + sd * 5 - life * 7, gc)
 	var R2 = load("res://scripts/render/fx_recipe.gd").of(g)
 	R2._light_follow(o, c + Vector2(cos(fa), sin(fa) * LG_SY) * rr * 0.6, rr * 0.9, (0.45 if pulse else 0.25) * fade, LG_C[3])
 
@@ -1649,19 +1655,49 @@ func _lg_sort_items(o, out: Array) -> void:
 			out.append({"lrt": "links", "l": lkk, "o": o, "gy": float((lkk.m[0] as Dictionary).pos.y) + 1.0})
 
 
-## 墨迹彗星：head 弹头位置（世界）、dv 飞行方向、L 墨尾长（美术像素）。白头尖细（6 格箭头，不做光球）；
-## 墨尾深蓝（墨边 + 一根蓝芯线 + 按拍闪的蓝点），粗在前三成、往后收尖；精一后段分两股；精二尾后一行细字（白 / 紫）
-func _lg_comet(ci, head: Vector2, dv: Vector2, L: int, t: int, al := 1.0, big := false) -> void:
+## 弧线弹道（只画面，11-05 第四轮用户「增加些投射的弧度」）：从 a 往上抛、弧线落到 b，s ∈ [0, 1]；判定与命中时间仍走玩法里的追踪弹位
+static func _lg_arc(a: Vector2, b: Vector2, s: float, lift: float) -> Vector2:
+	return a.lerp(b, s) + Vector2(0, -4.0 * lift * s * (1.0 - s))
+
+
+## 沿弧线从弹头往回取墨尾的点（每点相隔约 1 美术像素），弹头在前
+func _lg_arc_path(a: Vector2, b: Vector2, u: float, n: int, lift: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var ds: float = g.PX / maxf(8.0, a.distance_to(b) * 1.15)
+	for k in n + 1:
+		var s: float = u - float(k) * ds
+		if s < 0.0:
+			break
+		out.append(_lg_arc(a, b, s, lift))
+	return out
+
+
+func _lg_line_path(head: Vector2, dv: Vector2, n: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for k in n + 1:
+		out.append(head - dv * float(k) * g.PX)
+	return out
+
+
+## 墨迹彗星（原作 trail_01）：path = 弹头在前的弧线点列。白头尖细（6 格箭头，不做光球）；墨尾深蓝（墨边 + 一根蓝芯线 + 按拍闪的蓝点），
+## 粗在前三成、往后收尖，沿弧线拖；尾旁零星淡金小星（原作 0.88 s）。精一：墨尾分成两股绞着走；精二：尾后一行细字（白 / 紫）
+func _lg_comet(ci, path: PackedVector2Array, t: int, al := 1.0, big := false, sd := 0) -> void:
 	var px: float = g.PX
-	var nv := Vector2(-dv.y, dv.x)
-	var h0: Vector2 = _snap(head)
+	var L: int = path.size() - 1
+	if L < 1:
+		return
 	var beat: int = int(floor(g.t * 15.0))
-	var W: float = 2.2 if big else 1.6
+	var W: float = 2.6 if big else 2.0
+	var head: Vector2 = path[0]
+	var dv0: Vector2 = (path[0] - path[1]).normalized()
+	var nL: float = float(LG_BOLT_LEN[mini(t, 2)] if not big else 36)
 	for i in range(2, L + 1):
-		var v: float = float(i) / float(L)
+		var v: float = float(i) / nL
+		var dv: Vector2 = (path[i - 1] - path[i]).normalized()
+		var nv := Vector2(-dv.y, dv.x)
 		var w: float = W * (1.0 - pow((v - 0.3) / 0.7, 1.5)) if v > 0.3 else W * smoothstep(0.05, 0.3, v)
-		var split: float = (1.2 + 2.6 * v) * absf(sin(v * 5.0 + float(beat) * 0.4)) + 0.8 if (t >= 1 and v > 0.12) else 0.0   # 精一新元素：墨尾分成两股绞着走（11-05 第三轮）
-		var ctr: Vector2 = head - dv * float(i) * px
+		var split: float = (1.2 + 2.6 * v) * absf(sin(v * 5.0 + float(beat) * 0.4)) + 0.8 if (t >= 1 and v > 0.12) else 0.0   # 精一新元素：墨尾分成两股绞着走
+		var ctr: Vector2 = path[i]
 		var sides: Array = [-1.0, 1.0] if split > 0.6 else [0.0]
 		for sgn in sides:
 			var c0: Vector2 = ctr + nv * float(sgn) * split * px
@@ -1674,48 +1710,74 @@ func _lg_comet(ci, head: Vector2, dv: Vector2, L: int, t: int, al := 1.0, big :=
 					col = LG_INK[0]
 				else:
 					col = LG_INK[1]
-				col.a = al * (1.0 if v < 0.75 else 1.0 - (v - 0.75) * 2.4)
+				col.a = al * (1.0 if v < 0.75 else maxf(0.0, 1.0 - (v - 0.75) * 2.4))
 				ci.draw_rect(Rect2(_snap(c0 + nv * float(q) * px), Vector2(px, px)), col)
+	var h0: Vector2 = _snap(head)
+	var nv0 := Vector2(-dv0.y, dv0.x)
 	var cells: Array = [[1, 0], [0, 0], [-1, 0], [-1, 1], [-1, -1], [-2, 0]]
 	for qq in cells:
-		var cell: Vector2 = h0 + (dv * float(qq[0]) + nv * float(qq[1])) * px
+		var cell: Vector2 = h0 + (dv0 * float(qq[0]) + nv0 * float(qq[1])) * px
 		var hc: Color = Color(1, 1, 1, al) if int(qq[1]) == 0 else Color(LG_C[5].r, LG_C[5].g, LG_C[5].b, al)
 		ci.draw_rect(Rect2(_snap(cell), Vector2(px, px)), hc)
 	_glow(h0, LG_C[6])
-	_glow(h0 - dv * px, LG_C[5])
+	_glow(h0 - dv0 * px, LG_C[5])
+	# 淡金小星：尾旁两颗，按拍明灭（亮的那拍是十字，暗的那拍一点）
+	for k in 2:
+		var idx: int = int(L * (0.55 + 0.3 * k))
+		if idx >= path.size() or idx < 2:
+			continue
+		var ph: float = _lg_h(sd * 13 + k * 7 + beat / 2)
+		if ph < 0.35:
+			continue
+		var dvk: Vector2 = (path[idx - 1] - path[idx]).normalized()
+		var gp: Vector2 = _snap(path[idx] + Vector2(-dvk.y, dvk.x) * (4.0 if k == 0 else -5.0) * px)
+		var gc := Color(LG_GOLD.r, LG_GOLD.g, LG_GOLD.b, al)
+		ci.draw_rect(Rect2(gp, Vector2(px, px)), gc)
+		if ph > 0.7:
+			for o4 in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				ci.draw_rect(Rect2(gp + o4 * px, Vector2(px, px)), Color(gc.r, gc.g, gc.b, al * 0.7))
 	if t >= 2:   # 精二：尾后一行细字
+		var tail: Vector2 = path[L]
+		var dvt: Vector2 = (path[maxi(0, L - 1)] - path[L]).normalized()
 		for k in 3:
-			var gp: Vector2 = head - dv * float(L + 5 + 6 * k) * px
-			var gc: Color = LG_AC if (k + beat / 3) % 3 == 0 else LG_C[5]
-			gc.a = al * (0.9 - 0.25 * k)
-			_lg_glyph(ci, gp, k + beat / 3, gc)
+			var gp2: Vector2 = tail - dvt * float(5 + 6 * k) * px
+			var gc2: Color = LG_AC if (k + beat / 3) % 3 == 0 else LG_C[5]
+			gc2.a = al * (0.9 - 0.25 * k)
+			_lg_glyph(ci, gp2, k + beat / 3, gc2)
 
 
 ## 运行时件
 func _lg_draw_rt(ci, it: Dictionary) -> void:
 	var px: float = g.PX
 	match str(it.lrt):
-		"bolt":
+		"bolt":   # 「言」：画面走弧线（a = 出手点，b = 目标，u = 飞行进度），玩法弹位照旧追踪；只记画面专用键 _pxs0 / _pxu
 			var bo: Dictionary = it.b
 			var o = it.o
-			var pose: Array = load("res://scripts/render/fx_recipe.gd")._bolt_pose(bo)
-			_lg_comet(ci, pose[0], Vector2.from_angle(float(pose[1])), LG_BOLT_LEN[tier(o)], tier(o))
+			var a0: Vector2
+			var u0: float
+			if bo.has("visual"):
+				a0 = bo.visual.start
+				u0 = float(bo.visual.u)
+			else:
+				if not bo.has("_pxs0"):
+					bo["_pxs0"] = bo.pos
+				a0 = bo._pxs0
+				var d0: float = maxf(1.0, a0.distance_to(bo.to))
+				u0 = maxf(float(bo.get("_pxu", 0.0)), clampf(1.0 - (bo.pos as Vector2).distance_to(bo.to) / d0, 0.0, 1.0))
+				bo["_pxu"] = u0
+			var tt: int = tier(o)
+			var lift: float = minf(56.0, a0.distance_to(bo.to) * 0.28)
+			_lg_comet(ci, _lg_arc_path(a0, bo.to, u0, LG_BOLT_LEN[tt], lift), tt, 1.0, false, int(bo.get("rune", 0)) & 1023)
 		"xbolt":
 			var xb: Dictionary = it.b
-			_lg_comet(ci, (xb.p as Vector2) + Vector2(0, -16), (xb.v as Vector2).normalized(), 12, mini(1, tier(it.o)))
-		"vbolt":   # 咒域每跳 / 连携出手：从 a 飞到 b（走一道浅弧），飞到即止
+			_lg_comet(ci, _lg_line_path((xb.p as Vector2) + Vector2(0, -16), (xb.v as Vector2).normalized(), 14), mini(1, tier(it.o)))
+		"vbolt":   # 咒域每跳 / 连携出手：从 a 往上抛、弧线落到 b，飞到即止
 			var u: float = (g.t - float(it.t0)) / float(it.life)
 			if u < 0.0 or u > 1.0:
 				return
-			var a: Vector2 = it.a
-			var b: Vector2 = it.b
-			var dv: Vector2 = (b - a).normalized()
-			var nv := Vector2(-dv.y, dv.x) * float(it.get("side", 1.0))
-			var lift: float = minf(40.0, a.distance_to(b) * 0.12)
-			var p: Vector2 = a.lerp(b, u) + nv * 4.0 * lift * u * (1.0 - u)
-			var tg: Vector2 = (b - a + nv * 4.0 * lift * (1.0 - 2.0 * u)).normalized()
 			var big: bool = it.get("big", false)
-			_lg_comet(ci, p, tg, 30 if big else 20, int(it.tier), 1.0, big)
+			var lift2: float = minf(48.0, (it.a as Vector2).distance_to(it.b) * 0.25)
+			_lg_comet(ci, _lg_arc_path(it.a, it.b, u, 36 if big else 24, lift2), int(it.tier), 1.0, big, int(it.get("side", 1.0) > 0.0))
 		"lock":   # 提喻：笔尖 → 目标一道蓝丝线 + 上方一行细字向目标流动；精一上下两行；精二字白紫相间、丝线成一串墨珠
 			var o2 = it.o
 			var lk: Dictionary = o2.hw.lock
