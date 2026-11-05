@@ -12,7 +12,7 @@
     "skalter": {"hf_slot": "final", "voice": "skalter_command_2", "voice_alt": ["skalter_entry", "skalter_skill_3"], "seg": {"激光": {}, "爆裂": {}},
       "fx": {"strip:fx_ult_skalter_seaborn_front": {"slot": "rise"},
              "strip:fx_sk_blast": {"slot": ["blast_1", "blast_2", "blast_3"], "gap": 0.2, "vol": -6.0},
-             "strip:fx_sk_flash": {"min_sc": 1.5, "slot": "final", "vol": 1.0}}},
+             "strip:fx_sk_flash": {"min_sc": 1.5, "slot": "final", "vol": 1.0}, "strip:fx_sk_blast_db": {"slot": ["blast_1", "blast_2", "blast_3"], "gap": 0.2, "vol": -6.0}, "strip:fx_sk_flash_db": {"min_sc": 1.5, "slot": "final", "vol": 1.0}}},
     "kaltsit": {"voice": "kaltsit_skill_1", "voice_alt": ["kaltsit_skill_3", "kaltsit_skill_2"], "seg": {"熔毁": {"hit": "ring_hit", "gap": 0.13}},
       "fx": {"strip:fx_ult_kaltsit_melt_front": {"slot": "land", "gap": 0.3},
              "ring": {"r": 24.0, "slot": ["gather_1", "gather_2", "gather_3"], "gap": 0.05, "vol": -6.0}}},
