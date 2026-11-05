@@ -43,7 +43,8 @@ def variants():
         for d in DIRS:
             for ly in ("up", "gd"):
                 # S1 = 竖斩（11-05 用户「迅捷打击和普攻太相似，换成竖斩和横斩」）：RV 竖月牙半径、R 落地矮浪外缘（≈ 判定 145 / 2）
-                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "vslash", "layer": ly, "RV": [40, 44, 48][el], "R": [73, 78, 84][el], "W": [14, 16, 18][el], "dir": d, "el": el, "dur": 0.36}, 0.7))
+                # 11-05 用户再改：十字斩（先竖劈、0.12 秒后接一道 200° 横扫），RV 竖月牙半径、R 横扫半径（判定 145 / 2）、WH 横扫刀身宽
+                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "cross", "layer": ly, "RV": [40, 44, 48][el], "R": [73, 78, 84][el], "W": [14, 16, 18][el], "WH": [16, 18, 21][el], "dir": d, "el": el, "dur": 0.36}, 0.8))
     # 全方向旋斩：异乡之舞第三下（62）、涌潮悲歌（92）
     for el in T:
         for ly in ("up", "gd"):

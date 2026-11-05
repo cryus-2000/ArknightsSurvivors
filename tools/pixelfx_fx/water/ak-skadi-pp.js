@@ -674,6 +674,23 @@ function vslashGround(p, t, o, C, ACC) {
   }
 }
 
+
+// S1 = 十字斩（11-05 用户「S1 可以是类似于十字斩，先竖着再横着，这样就不用改范围」）：先竖劈（vslash），
+// 落地那一拍（0.12 秒后）接一道比普攻更宽的横扫月牙（弧 200°，对上前方 200° 判定），两刀在身前交成「十」字。
+// 分档：E1 竖劈落点的直裂发光（深海裂痕）；E2 两刀都刃变重。横扫这一刀不另加裂痕（免得地上两道裂痕太乱）
+const CROSS_DT = 0.12;
+function cross(p, t, o, C, ACC) {
+  vslash(p, t, o, C, ACC);
+  const R = +o.R, W = +o.WH || +o.W;
+  smear(p, t, Object.assign({}, o, { span: 3.5, H0: 12 }), C, ACC, false, { R, Wr: W, dt: CROSS_DT, dim: 0, edge: true });
+}
+
+function crossGround(p, t, o, C, ACC) {
+  vslashGround(p, t, o, C, ACC);
+  const tt = t - CROSS_DT;
+  if (tt > 0) ribbonGround(p, tt, Object.assign({}, o, { span: 3.5, el: 0, W: +o.WH || +o.W, style: "basic" }), C, ACC, false);   // 横扫这一刀只要投影阴影
+}
+
 export function draw(p, t, o) {
   const C = fit(o.palette, 8), ACC = hex(o.accent);
   const gd = o.layer === "gd";
@@ -685,6 +702,7 @@ export function draw(p, t, o) {
     case "curtain": return gd ? breakerGround(p, t, o, C, ACC) : breaker(p, t, o, C, ACC);   // S2 碎浪
     case "swell": return swell(p, t, o, C, ACC, gd);
     case "backwash": return backwash(p, t, o, C, ACC, gd);
+    case "cross": return gd ? crossGround(p, t, o, C, ACC) : cross(p, t, o, C, ACC);   // S1 十字斩
     case "vslash": return gd ? vslashGround(p, t, o, C, ACC) : vslash(p, t, o, C, ACC);   // S1 竖斩
     case "pool": return gd ? pool(p, t, o, C, ACC) : undefined;
     case "ring": return gd || o.view === "raw" ? ring(p, t, o, C, ACC) : undefined;
