@@ -1343,8 +1343,9 @@ func _lm_draw_raw(o) -> void:
 
 # ================================================================ 水月（docs/261，照 docs/246 斯卡蒂的做法）
 ## 意象：深海、水母、触手、幻象。色：深蓝紫 8 阶（OP.mizuki）+ 水母荧光青；精二点缀荧光紫。
-## 普攻「伞击」= 腰高伞面月牙（伞沿扇贝 + 伞骨；精一伞沿下挂水母细须、精二伞骨荧光紫）+ 命中处青色水母绽开 + 生命最低的那只脚下钻出触手；
-## S1「唤醒」= 更大更白的伞面 + 青色荧光沿 + 向外甩水，命中处三团大水母绽开 + 地上冲击环；
+## 分档按「每升一档多一个新元素」（11-05 用户）：精零 = 伞面 + 水母；精一起触手出现；精二荧光紫 + 深蓝之籽 + 双触手 / 对缠。
+## 普攻「伞击」= 腰高伞面月牙（伞沿扇贝 + 伞骨；精二伞骨荧光紫）+ 命中处青色水母绽开 + 精一起生命最低的那只脚下钻出触手（精零只绽开水母）；
+## S1「唤醒」= 更大更白的伞面 + 青白沿 + 向外甩水，命中处三团大水母绽开 + 地上冲击环；精一起每团下面钻出触手；
 ## S2「囚徒困境」= 起手一圈触手钻出 + 中心冰蓝尖晶；持续期间伞击更薄更快、青白沿 + 幻影残弧，被触手打中的缠住（前后两半圈）；
 ## S3「镜花水月」= 起手大水母从脚下浮起 + 地上一圈水镜带月影；持续期间深蓝紫旋斩 + 荧光紫刃，脚下水镜，触手更粗；
 ## 精二「深蓝之籽」= 身后小水母改画像素水母（离身游猎时拖三点尾），蛰中一朵紫色小水母；连携「小触手」= 高触手钻出 + 缠住 1 秒。
@@ -1481,6 +1482,9 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			if e.is_empty():
 				return
 			var s3: bool = d.get("s3", false)
+			if t == 0 and not s3:   # 11-05 用户：精零普攻不出触手（触手是精一的招牌），追击那一下只在目标身上绽开一朵水母
+				_mz_bloom(o, e, "mz_bloom_e0_up", raw, t)
+				return
 			_mz_tent(o, e, d.get("at", e.pos), "mz_tentbig" if s3 else "mz_tent_e%d" % t, raw, t, float(d.get("stun", 0.0)))
 			if mode() == 1 and not s3:
 				R._grains(o, e.pos + Vector2(0, -6), float(e.pos.y) + 2.0, "ink", 2, {"tier": t})
@@ -1491,6 +1495,8 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				return
 			_push({"k": "mz_burst_e%d_up" % t, "t0": g.t, "gp": _snap(at + Vector2(0, -16)), "gy": at.y + 3.0, "flip": false, "ly": "up", "oid": str(o.id)})
 			_push({"k": "mz_burst_e%d_gd" % t, "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
+			if t >= 1:   # 精一起：每团大水母下面钻出一根触手（分档加新元素，不靠换色）
+				_mz_tent(o, {"pos": at, "r": 10.0, "boss": true}, at, "mz_tent_e%d" % t, raw, t, 0.0)
 			if mode() == 1:
 				R._grains(o, at + Vector2(0, -18), at.y, "ink", 4 + t, {"tier": t})
 				R._light(o, at + Vector2(0, -14), 140.0, 0.55 * MI.lit_k(g), 0.14, p.light)

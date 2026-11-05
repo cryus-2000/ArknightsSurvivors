@@ -91,26 +91,12 @@ function canopy(p, t, o, C, X, k) {
     out.c = C[ci];
     if (q > 0.86 && nz(r * 1.7 + a * 9, +o.seed + 77) < 0.45) return 0;      // 内沿成团变稀（不平涂、不网点）
     if (!hot && q < 0.14 && (st === "s1" || st === "s2")) out.c = st === "s1" ? X.cyL : X.cyL;   // 唤醒 / 囚徒困境：青白沿
-    else if (!hot && q < 0.14 && st === "basic" && el >= 1) out.c = X.cy;     // 精一起：普攻伞沿换水母荧光青
     if (st === "s3" && !hot && q < 0.16) out.c = X.ac;                       // 镜花水月：荧光紫刃
     if (el >= 2 && !hot && rib && q > 0.16 && q < 0.8 && st !== "s2") out.c = X.ac;   // 精二：伞骨荧光紫
     if (cool > 0.55 && nz(r * 2.3 + a * 13, +o.seed + 79) < 0.4) return 0;   // 收势最后两拍成团消散
   });
   if (raw) for (let a = tail; a <= head; a += 0.12) p.light(Math.cos(a + th) * R * 0.9, Math.sin(a + th) * R * 0.9, C[n - 2], 0.35 * (1 - cool));
-  // 精一起：伞沿下垂的水母细须（内沿往下挂，随收势变短）
-  if (el >= 1 && cool < 0.6 && st !== "s3") {
-    for (let a = tail + (head - tail) * 0.15; a <= head; a += 0.075) {
-      if (nz(a * 5.3, +o.seed + 13) < 0.35) continue;
-      const rr = R - Wr * 0.9, x = Math.cos(a + th) * rr, y = Math.sin(a + th) * rr * SY - H0;
-      const L = R0((3 + 4 * nz(a * 7.7, +o.seed + 17)) * (1 - cool));
-      for (let s = 1; s <= L; s++) p.px(R0(x + Math.sin(s * 0.9 + a * 4) * 0.6), R0(y + s), s <= 1 ? C[n - 3] : el >= 2 ? X.ac : C[n - 5]);
-    }
-    for (let a = tail + (head - tail) * 0.3; a <= head; a += 0.17) {   // 外缘青色荧光点
-      if (nz(a * 8.1, +o.seed + 19) < 0.55) continue;
-      const rr = R + 2, x = Math.cos(a + th) * rr, y = Math.sin(a + th) * rr * SY - H0;
-      p.px(R0(x), R0(y), X.cy);
-    }
-  }
+  // 11-05 用户「加吸盘亮点看不出什么差距」：精一不再靠细须 / 青沿这类细节区分，改由触手（新元素）出现；伞面 E0 = E1，E2 才质变
   // 囚徒困境：身后一道幻影残弧（晚一拍、暗两阶、只画伞沿那一圈）
   if (st === "s2" && tt > 0.066 && cool < 0.5) {
     const Rg = R - Wr - 3;
@@ -335,6 +321,14 @@ function coil(p, t, o, C, X) {
       p.px(R0(x), R0(y + d - w / 2), C[ci]);
     }
     if (front && el >= 1 && Math.floor(a * 3) % 4 === 0) p.px(R0(x), R0(y), el >= 2 ? X.ac : C[n - 3]);
+  }
+  // 精二：再一根反向缠的触手（两股交叉对缠，形状变化，不只是换色）
+  if (el >= 2) for (let a = 0; a < TURN; a += 0.5 / rx) {
+    const z = 8 - (a / TURN) * 5, s2 = Math.sin(-a + 0.8), front = s2 > 0;
+    if ((half === "front") !== front) continue;
+    const x = Math.cos(-a + 0.8) * (rx + 1), y = s2 * ry - z;
+    for (let d = 0; d < 2.5; d += 0.5) p.px(R0(x), R0(y + d - 1.2), C[d < 0.8 ? 1 : front ? 4 : 2]);
+    if (front && Math.floor(a * 3) % 4 === 1) p.px(R0(x), R0(y), X.ac);
   }
   // 末端翘起的小钩（前半圈）
   if (half === "front") {

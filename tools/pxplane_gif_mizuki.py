@@ -286,24 +286,27 @@ def jel_fn(P, n, out=None):
 def mv_atk():
     ps = []
     for t in (0, 1, 2):
-        P = Panel(["E0  伞击", "E1  伞击 · 水母细须 / 触手更粗 + 吸盘", "E2  伞骨荧光紫 / 双触手 / 深蓝之籽"][t])
+        P = Panel(["E0  伞面 + 水母（无触手）", "E1  + 触手（精一新元素）", "E2  + 荧光紫 / 双触手 / 深蓝之籽"][t])
         es = cone_enemies(P)
         for sw in (0.35, 1.25):
             P.slash("mz_atk_r56_e%d" % t, sw)
             P.bloom("mz_bloom_e%d_up" % t, sw, es[0])
             P.bloom("mz_bloom_e%d_up" % t, sw, es[3])
-            P.tent("mz_tent_e%d" % t, sw, es[1] if sw < 1 else es[4])
+            if t == 0:
+                P.bloom("mz_bloom_e0_up", sw, es[1] if sw < 1 else es[4])
+            else:
+                P.tent("mz_tent_e%d" % t, sw, es[1] if sw < 1 else es[4])
         if t == 2:
             P.jel.append(jel_fn(P, 2, (0, 0.8, es[2])))
             P.bloom("mz_sting_up", 1.1, es[2])
         ps.append(P)
-    return ps, 1.8, "普攻「伞击」：伞面月牙 + 命中水母绽开 + 生命最低者脚下触手（精一起拖拽）"
+    return ps, 1.8, "普攻「伞击」：每升一档多一个新元素（E0 伞面 + 水母 → E1 触手 → E2 荧光紫 + 深蓝之籽）"
 
 
 def mv_s1():
     ps = []
     for t in (0, 1, 2):
-        P = Panel(["E0  唤醒", "E1  唤醒 · 细须 + 大水母须更长", "E2  唤醒 · 荧光紫伞骨 + 四瓣纹"][t])
+        P = Panel(["E0  唤醒：大水母 ×3", "E1  + 每团下面钻出触手", "E2  + 荧光紫 / 四瓣纹 / 双触手"][t])
         es = cone_enemies(P)
         P.add("mz_ready_gd", 0, (P.mz[0], P.mz[1] + 4), "gd", loop=True, life=0.42)
         sw = 0.45
@@ -313,17 +316,22 @@ def mv_s1():
             x, y = e["pos"]
             P.add("mz_burst_e%d_up" % t, sw + 0.06 * k, (x, y - 16), "up", gy=y + 3)
             P.add("mz_burst_e%d_gd" % t, sw + 0.06 * k, (x, y), "gd")
-        P.tent("mz_tent_e%d" % t, sw, es[2])
+            if t >= 1:
+                P.tent("mz_tent_e%d" % t, sw + 0.06 * k, {"pos": (x, y), "r": 10})
+        if t == 0:
+            P.bloom("mz_bloom_e0_up", sw, es[2])
+        else:
+            P.tent("mz_tent_e%d" % t, sw, es[2])
         if t == 2:
             P.jel.append(jel_fn(P, 2))
         ps.append(P)
-    return ps, 1.6, "S1「唤醒」：更大更白的伞面 + 青色荧光沿 + 三团大水母（创伤扩散）"
+    return ps, 1.6, "S1「唤醒」：更大更白的伞面 + 三团大水母（创伤扩散），精一起水母下钻出触手"
 
 
 def mv_s2():
     ps = []
     for t in (1, 2):
-        P = Panel(["", "E1  囚徒困境（精一解锁）", "E2  囚徒困境 · 荧光紫吸盘 / 双触手"][t])
+        P = Panel(["", "E1  囚徒困境：触手缠一股", "E2  双触手 + 两股交叉对缠"][t])
         es = cone_enemies(P)
         P.casts.append(0.1)
         P.add("mz_s2cast_e%d_up" % t, 0.1, P.mz, "up")
