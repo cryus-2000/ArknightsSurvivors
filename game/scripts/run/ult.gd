@@ -2025,7 +2025,7 @@ func _fx_tag(s: Dictionary) -> void:
 	var rules: Dictionary = _aud(str(caster.id)).get("fx", {})
 	if rules.is_empty():
 		return
-	var key: String = ("strip:" + str(s.get("name", ""))) if str(s.get("kind", "")) == "strip" else str(s.get("kind", ""))
+	var key: String = ("strip:" + str(s.get("name", "")).trim_suffix("_pxe")) if str(s.get("kind", "")) == "strip" else str(s.get("kind", ""))   # 只改颜色的贴图（*_pxe，docs/259 §8）沿用原贴图的音效规则
 	if s.has("v") and rules.has(key + "+v"):
 		key += "+v"
 	for k in [key, key + "#2", key + "#3"]:   # 同一种图形可写几条规则（键后加 #2 / #3），按序取第一条对得上的
