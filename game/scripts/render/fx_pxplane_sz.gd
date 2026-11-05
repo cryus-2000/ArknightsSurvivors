@@ -235,8 +235,15 @@ func draw_floor(o) -> void:
 		var rad: float = _sz().h4_fox_r(o, fl)
 		var mode: int = 2 if float(sz.haze_t) > 0.0 else (1 if _sz()._h4_warm(o, fl) else 0)
 		var c0: Vector2 = Pxp._snap(o.pos + Vector2(0, 4))
-		for q in _aura_px(int(round(rad * 0.5)), int(floor(g.t * 15.0)), mode):
-			cv.draw_rect(Rect2(c0 + Vector2(q[0], q[1]) * px, Vector2(px, px)), q[2])
+		var ring: Array = _aura_px(int(round(rad * 0.5)), int(floor(g.t * 15.0)), mode)
+		if cv.active and not (g.opt_old & g.OPT_SZAURA):   # 整组展开好的矩形平移后一次接到批尾（docs/287 §3 ④）；圆心在 2 像素格上，顶点与逐个 draw_rect 逐位相同
+			if _ring_q_key != _ring_key:
+				_ring_q_key = _ring_key
+				_ring_q = _aura_quads(ring, px)
+			cv.add_quads(Transform2D(0.0, c0) * (_ring_q[0] as PackedVector2Array), _ring_q[1])
+		else:
+			for q in ring:
+				cv.draw_rect(Rect2(c0 + Vector2(q[0], q[1]) * px, Vector2(px, px)), q[2])
 	for s2 in sz.brands:   # 精一狐火灼印：被打中的敌人脚下小金印
 		var e: Dictionary = s2.e
 		if e.get("dead", false):
@@ -260,6 +267,33 @@ func _floor_items(o) -> void:
 
 func draw_over(_o) -> void:
 	pass
+
+
+var _ring_q_key := ""
+var _ring_q: Array = []
+
+## 光域像素 → 以圆心为原点、已展开的矩形三角形（点序同 batch_canvas._quad）与逐点颜色
+func _aura_quads(ring: Array, px: float) -> Array:
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	pts.resize(ring.size() * 6)
+	cols.resize(ring.size() * 6)
+	var k := 0
+	for q in ring:
+		var p0: Vector2 = Vector2(q[0], q[1]) * px
+		var p1: Vector2 = p0 + Vector2(px, 0.0)
+		var p2: Vector2 = p0 + Vector2(px, px)
+		var p3: Vector2 = p0 + Vector2(0.0, px)
+		pts[k] = p0
+		pts[k + 1] = p1
+		pts[k + 2] = p2
+		pts[k + 3] = p0
+		pts[k + 4] = p2
+		pts[k + 5] = p3
+		for j in 6:
+			cols[k + j] = q[2]
+		k += 6
+	return [pts, cols]
 
 
 func _aura_px(R: int, bt: int, mode: int) -> Array:

@@ -236,6 +236,19 @@ func draw_colored_polygon(points: PackedVector2Array, col: Color, uvs := PackedV
 	_fill(q.size(), col)
 
 
+## 已展开的实心矩形（每 6 点一个，点序同 _quad：p0 p1 p2 p0 p2 p3；cols 逐点）：合批时整组接到批尾，与逐个 draw_rect 同结果（docs/287 §3 ④）。
+## 只在合批中（active）用；调用方在批外照旧逐个 draw_rect
+func add_quads(pts: PackedVector2Array, cols: PackedColorArray) -> void:
+	if mute:
+		return
+	if mod_on:
+		cols = cols.duplicate()
+		for i in cols.size():
+			cols[i] = _dim(cols[i])
+	_pts.append_array(pts if xf == Transform2D.IDENTITY else xf * pts)
+	_cols.append_array(cols)
+
+
 func draw_rect(rect: Rect2, col: Color, filled := true, width := -1.0, aa := false) -> void:
 	if mute:
 		return
