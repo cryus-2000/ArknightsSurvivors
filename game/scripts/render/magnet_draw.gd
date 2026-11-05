@@ -100,8 +100,8 @@ static func draw(w, g_item: Dictionary, pos: Vector2, gz: float, t: float, px: f
 		w._pq_guard(Rect2(c - Vector2(rr + 3.0, rr + 3.0), Vector2(rr + 3.0, rr + 3.0) * 2.0))
 		for i in 16:
 			var p: Vector2 = (c + Vector2.from_angle(TAU * i / 16.0 + sd) * rr).snapped(Vector2(px, px))
-			var pc: Color = RED if i % 2 == 0 else BLUE
-			w._pb.rect(Rect2(p, Vector2(px, px)), Color(pc.r * 1.8, pc.g * 1.8, pc.b * 1.8, a))
+			var pc: Color = RED_L if i % 2 == 0 else BLUE_L
+			w._pb.rect(Rect2(p - Vector2(px, px), Vector2(px, px) * 2.0), Color(pc.r * 2.2, pc.g * 2.2, pc.b * 2.2, a))
 		# 铁屑：4 簇朝磁铁聚拢，到了弹开
 		for q in 4:
 			var ph: float = fmod(t / 2.4 + q * 0.25 + sd * 0.1, 1.0)
@@ -111,8 +111,8 @@ static func draw(w, g_item: Dictionary, pos: Vector2, gz: float, t: float, px: f
 			var tn: Vector2 = Vector2.from_angle(ang + PI / 2.0)
 			var fa: float = 0.9 if ph < 0.75 else 0.9 * (1.0 - (ph - 0.75) / 0.25)
 			for j in 4:
-				var o: Vector2 = tn * float(j - 1.5) * 3.0 + Vector2.from_angle(ang) * float((j * 5) % 3 - 1) * 2.0
-				w._pb.rect(Rect2((base + o).snapped(Vector2(px, px)), Vector2(px, px if j % 2 == 0 else px * 2.0)), Color(FILING.r, FILING.g, FILING.b, fa))
+				var o: Vector2 = tn * float(j - 1.5) * 5.0 + Vector2.from_angle(ang) * float((j * 5) % 3 - 1) * 3.0
+				w._pb.rect(Rect2((base + o).snapped(Vector2(px, px)), Vector2(px * 2.0, px * (2.0 if j % 2 == 0 else 3.0))), Color(FILING.r * 1.5, FILING.g * 1.5, FILING.b * 1.5, fa))
 	# 本体
 	var tx: Texture2D = tex()
 	var size := Vector2(W, W) * px

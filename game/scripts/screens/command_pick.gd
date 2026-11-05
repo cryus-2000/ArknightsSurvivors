@@ -387,9 +387,14 @@ func _draw_boss_marks(hud: CanvasItem, ct: Transform2D) -> void:
 		var sp: Vector2 = ct * (b.pos + Vector2(0, -r0 * 0.6))
 		var r: float = (r0 * 1.1 + 8.0) * ct.get_scale().x
 		var pu: float = 0.0 if Cfg.reduce_motion else 0.5 + 0.5 * sin(g.t * 3.0)
-		var col := Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, 0.42 + 0.12 * pu)
-		_corners(hud, sp, r, col, 1.6)
-		UI.ctext(hud, g.font, sp + Vector2(-r, -r - 6.0), "BOSS", 10, col, HORIZONTAL_ALIGNMENT_LEFT, 60)
+		var col := Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, 0.8 + 0.2 * pu)
+		# 深色衬底再画亮色角（特效堆里也读得出来）
+		_corners(hud, sp, r, Color(0, 0, 0, 0.6), 4.5)
+		_corners(hud, sp, r, col, 2.4)
+		var tl: Vector2 = sp + Vector2(-r, -r - 17.0)
+		hud.draw_rect(Rect2(tl, Vector2(38, 14)), Color(W.C_PLATE.r, W.C_PLATE.g, W.C_PLATE.b, 0.85))
+		hud.draw_rect(Rect2(tl, Vector2(2, 14)), col)
+		UI.ctext(hud, g.font, tl + Vector2(5, 11), "BOSS", 11, col, HORIZONTAL_ALIGNMENT_LEFT, 60)
 
 
 ## 录片说明字幕（--democap 才画，只在示意录像里用）：按当前状态自动换——圆盘开着 / 选点中 / 指令生效中
