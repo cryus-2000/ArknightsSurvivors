@@ -1,0 +1,6 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4227 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+u_ulpianus frames 240 (8.0 秒) errors []  
+输出 /work/repo/build/ult_rec/orig
+media：1 个文件，4.8M
