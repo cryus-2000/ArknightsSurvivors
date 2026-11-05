@@ -2070,6 +2070,7 @@ func _ey_draw_raw(o) -> void:
 
 var _motes: Array = []   # 技力粒子：{to 队友, from, t0, life, bend}（只画）
 var _sg_imp := {}        # 干员 id → 最近一锤的落点（只画）
+var _sg_cores: Array = []   # 锤击落点亮芯：{at, t0, big}，3 拍（0.2 秒）内每帧排进发光层
 
 
 func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
@@ -2086,6 +2087,10 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			var imp: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * reach * 0.7   # 锤弧落点（平面里压扁的那一点）
 			var dk: Array = pick_dir(ang)
 			_sg_imp[id] = imp   # 这一锤的落点（破阵地裂从这里裂出去；只画）
+			if mode() == 1:   # 落点亮芯稳定进发光层（docs/270：普攻命中帧核心辉光 ≥ 30；帧条 emit 是均匀抽点，大多落在四散的火星上）
+				if _sg_cores.size() >= 6:
+					_sg_cores.pop_front()
+				_sg_cores.append({"at": _snap(imp + Vector2(0, -6)), "t0": g.t, "big": bool(d.get("heavy", false)) or bool(d.get("patch", false))})
 			if raw:
 				var rk: String = "sg_raw_s3" if heavy else "sg_raw_imp_e%d" % t
 				_push({"k": rk, "t0": g.t, "gp": imp + Vector2(0, -6), "ly": "raw", "rot": ang, "sc": g.PX * (reach * 0.5) / 46.0, "oid": id})
@@ -2115,7 +2120,7 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_push({"k": ik + "_up", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "up", "oid": id})
 				_push({"k": ik + "_gd", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "gd", "oid": id})
 			var big: bool = heavy or patch
-			_burst_m(o, R, p, imp + Vector2(0, -8), imp.y + 2.0, d.get("es", []), (2 + t) + (4 if big else 0), "rock", 100.0 + (60.0 if big else 0.0), 0.4 + (0.3 if big else 0.0))
+			_burst_m(o, R, p, imp + Vector2(0, -8), imp.y + 2.0, d.get("es", []), (2 + mini(t, 1)) + (4 if big else 0), "rock", 100.0 + (60.0 if big else 0.0), 0.4 + (0.3 if big else 0.0))   # docs/270：普攻颗粒中位 10 → 压回 3–8
 		"crush":   # 精一「粉碎」：击倒处碎石迸开（强制低档画面时不画）
 			if t < 1 or raw:
 				return
@@ -2123,7 +2128,7 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			_push({"k": "sg_crush_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": id})
 			_push({"k": "sg_crush_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": id})
 			if mode() == 1:
-				R._grains(o, at + Vector2(0, -8), at.y, "rock", 3, {"tier": t})
+				R._grains(o, at + Vector2(0, -8), at.y, "rock", 2, {"tier": t})
 		"breach":   # 精二「破阵」地裂 + 岩刺 / 再跃（队长版）原地砸出的地裂（不出岩刺）
 			var pts: PackedVector2Array = d.get("pts", PackedVector2Array())
 			if pts.size() < 2 or raw:
@@ -2143,7 +2148,7 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_push({"k": "sg_fis_l90_up_d%d" % dk2[0], "t0": g.t, "gp": _snap(st), "flip": dk2[1], "ly": "up", "oid": id})
 			if mode() == 1:
 				var mid: Vector2 = st + Vector2(cos(fa), sin(fa) * 0.72) * float(L)
-				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 3, {"tier": t})
+				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 1, {"tier": t})   # docs/270：普攻单次颗粒 ≤ 12
 				R._light(o, mid, 120.0, 0.45, 0.15, p.light)
 		"quake":   # 成长「震地」/「狮吼」：落点一圈贴地冲击环（狮吼双环）
 			if raw:
@@ -2263,6 +2268,7 @@ func _sg_draw_motes(o) -> void:
 func _floor_sg(o) -> void:
 	var cv = o.cv
 	var id: String = str(o.id)
+	_sg_draw_cores()   # 落点亮芯先排进发光层：地面层每帧最先画，整队 EMIT_CAP 顶满时也不被挤掉（docs/270）
 	if o.skill_active_left(2) > 0.0:
 		_draw_strip(cv, "sg_s3aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	if o.hw.has("sg"):
@@ -2586,3 +2592,34 @@ func _mz_draw_jelly(ci, it: Dictionary) -> void:
 			var pp: Vector2 = _snap((it.a as Vector2) + back * float(6 + i * 6))
 			ci.draw_rect(Rect2(pp, Vector2(g.PX, g.PX)), cols[i])
 	_draw_strip(ci, str(it.mzj), frame_of(0.0), it.gp, false, false)
+
+
+## 锤击落点亮芯：白闪那三拍（0.2 秒）在落点排一块十字形发光点（中心 4×4 美术像素、四臂各 1 格；号令一锤 / 碎颅大一圈），之后每拍缩一格、变暗
+func _sg_draw_cores() -> void:
+	if _sg_cores.is_empty() or not g.optical_on:
+		return
+	var fr: int = Engine.get_process_frames()
+	if fr != _emit_frame:   # 同 _emit：每帧重新计数（整队共用 EMIT_CAP）
+		_emit_frame = fr
+		_emit_n = 0
+	var px: float = g.PX
+	var k: float = Bal.v("fx/px_plane_emit", 0.8)
+	var keep: Array = []
+	for c in _sg_cores:
+		var age: float = g.t - float(c.t0)
+		if age > 0.2:
+			continue
+		keep.append(c)
+		var f2: bool = age > 0.067
+		var s: float = (4.0 if not c.big else 5.0) - (1.0 if f2 else 0.0) - (1.0 if age > 0.134 else 0.0)
+		var col: Color = Color(1.0, 0.97, 0.85, minf(1.0, k * 1.2)) if not f2 else Color(1.0, 0.88, 0.55, k)
+		var at: Vector2 = c.at
+		var pts: Array = [[at - Vector2(s, s) * px * 0.5, s * px]]
+		for dv in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+			pts.append([_snap(at + dv * (s * 0.5 + 0.5 + (1.0 if c.big else 0.0)) * px) - Vector2(px, px) * 0.5, px])
+		for q in pts:
+			if _emit_n >= EMIT_CAP:
+				break
+			_emit_n += 1
+			g.glow_next.append([q[0], q[1], col])
+	_sg_cores = keep
