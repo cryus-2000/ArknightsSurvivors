@@ -2567,6 +2567,7 @@ const SK_R := [Color("#3a0d1b"), Color("#5e1424"), Color("#86202d"), Color("#a83
 const SK_T := [Color("#06141c"), Color("#0b2a35"), Color("#124552"), Color("#1b6466"), Color("#3b8e89"), Color("#86c6bd"), Color("#e8f5f0")]   # 海嗣青（house.js OP.skalter_sea，原作海嗣色，偏灰、避开敌弹青）：伊莎玛拉小歌域与同步声浪
 const SK_NOTE := ["....####", "....#..#", "....#..#", "....#...", "....#...", "....#...", ".####...", "#####...", "#####...", ".###...."]
 const SK_NOTE2 := ["...########", "...#......#", "...#......#", "...#......#", "...#......#", ".###....###", "####...####", "####...####", ".##.....##."]
+const SK_UP := ["..#..", ".###.", "#.#.#", "..#..", ".###.", "#.#.#"]   # 增益双箭头（往上）
 const SK_FISH := ["#...####..", "##.######.", ".#########", "##.######.", "#...####.."]
 var _sk_st := {}          # 干员 id → 画面状态（缓动半径、潮涌下次时刻、上一拍去重），玩法不读
 
@@ -2773,6 +2774,10 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 				return
 			match src:
 				"声浪":
+					if mode() == 1 and (o.skill_active_left(0) > 0.0 or o.skill_active_left(2) > 0.0) and _sk_count(o, "buff") < 6:
+						for q in g.squad.ops:   # 增益挂在吃到增益的人身上：歌域里的每名干员头顶一枚往上飘的双箭头（攻速 / 攻击提升），每圈声浪一次
+							if q.pos != Vector2.INF and o.in_zone(q.pos):
+								_sk_push(o, {"skr": "buff", "c": q.pos, "tgt": q, "s3": o.skill_active_left(2) > 0.0, "ly": "up", "gy": q.pos.y + 2.0, "life": 8.0 / 15.0})
 					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 					_sk_notes(o, es, t, R, p)
 					var lp: Vector2 = c + Vector2(0, -6)
@@ -2836,21 +2841,21 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 			var zr: float = float(o.zr)
 			if raw:
 				var rk2: String = ["sk_raw_s1_e%d" % t, "sk_raw_s2_e%d" % maxi(t, 1), "sk_raw_s3_e2"][clampi(i, 0, 2)]
-				_push({"k": rk2, "t0": g.t, "gp": o.pos, "ly": "raw", "rot": 0.0, "sc": px * (zr * 0.5) / 95.0, "oid": str(o.id)})
+				_push({"k": rk2, "t0": g.t, "gp": zc, "ly": "raw", "rot": 0.0, "sc": px * (zr * 0.5) / 95.0, "oid": str(o.id)})
 				return
 			match i:
 				0:   # S1 同归殊途之吟：身周气泡（循环到技能结束，读 skill_active_left）+ 脚下酒红细环；歌域扩张一道浪
 					_sk_push(o, {"skr": "wave", "c": zc, "r": zr, "tier": t, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
-					R._light(o, o.pos + Vector2(0, -24), 90.0, 0.5, 0.15, SK_B[5])
+					R._light(o, zc + Vector2(0, -24), 90.0, 0.5, 0.15, SK_B[5])   # 歌域圆心 = 队长（她当队友时不在她脚下）
 					if mode() == 1:
-						R._grains(o, o.pos + Vector2(0, -30), o.pos.y, "ink", 3 + t, {"tier": t})
+						R._grains(o, zc + Vector2(0, -30), zc.y, "ink", 3 + t, {"tier": t})
 				1:   # S2 同葬无光之愿：脚下旋涡 + 小鱼散开
 					var tt: int = maxi(t, 1)
-					_sk_push(o, {"skr": "vortex", "c": o.pos, "tier": tt, "ly": "gd", "life": 12.0 / 15.0, "o": o, "fs": true})
-					_sk_push(o, {"skr": "fishburst", "c": o.pos, "tier": tt, "ly": "up", "gy": o.pos.y + 1.0, "life": 12.0 / 15.0, "o": o, "fs": true})
+					_sk_push(o, {"skr": "vortex", "c": zc, "tier": tt, "ly": "gd", "life": 12.0 / 15.0, "o": o, "fz": true})   # 歌域圆心 = 队长
+					_sk_push(o, {"skr": "fishburst", "c": zc, "tier": tt, "ly": "up", "gy": zc.y + 1.0, "life": 12.0 / 15.0, "o": o, "fz": true})
 					if tt >= 2:
-						_sk_push(o, {"skr": "spout", "c": o.pos, "ly": "up", "gy": o.pos.y + 2.0, "life": 8.0 / 15.0, "o": o, "fs": true})
-					R._light(o, o.pos + Vector2(0, -12), 110.0, 0.5, 0.15, SK_B[4])
+						_sk_push(o, {"skr": "spout", "c": zc, "ly": "up", "gy": zc.y + 2.0, "life": 8.0 / 15.0, "o": o, "fz": true})
+					R._light(o, zc + Vector2(0, -12), 110.0, 0.5, 0.15, SK_B[4])
 				2:   # S3 潮涌，潮枯：起手就是第一次潮涌，之后每 3 秒一次（draw_floor 里按技能剩余时间续）
 					st.s3_next = g.t
 		"sk_link":   # 连携 v2「歌声」：区域笔触圈 3 秒 + 起手一道大浪 + 音符
@@ -3170,6 +3175,20 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 					for x in row.length():
 						if row[x] == "#":
 							_glow(tl + Vector2(float(x), float(y)) * px, C[6] if y >= pat.size() - 2 else C[5])
+		"buff":   # 增益标记：吃到增益的干员头顶一枚双箭头，往上飘 8 拍（S1 蓝、S3 酒红），跟着那名干员走
+			if f < 0 or f > 7:
+				return
+			var q2 = it.get("tgt", null)
+			var bp: Vector2 = c
+			if q2 != null and is_instance_valid(q2) and q2.pos != Vector2.INF:
+				bp = q2.pos
+			var Cb: Array = SK_R if it.get("s3", false) else SK_B
+			var colb: Color = Cb[5] if f < 4 else Cb[4]
+			colb.a = 1.0 if f < 6 else 0.5
+			var tlb: Vector2 = bp + Vector2(-5.0 * px * 0.5, -58.0 - float(f) * px)
+			_sk_pat(ci, SK_UP, tlb, colb, Cb[6] if f < 2 else colb, false, Color(Cb[0].r, Cb[0].g, Cb[0].b, 0.7))
+			if f <= 1:
+				_glow(tlb + Vector2(2.0 * px, 0.0), Cb[6])
 		"pop":   # 命中点白芯：十字 5 格 + 外圈 4 格浅色（第 1 拍只剩十字），整块进发光层
 			if f < 0 or f > 1:
 				return
@@ -3267,8 +3286,8 @@ func _sk_column(ci, foot: Vector2, W: int, H: float, C: Array, f: int) -> void:
 ## 立起层的状态件：S1 身周气泡、S2 常驻小鱼
 func _sk_sort_items(o, out: Array) -> void:
 	var t: int = tier(o)
-	if o.skill_active_left(0) > 0.0:
-		out.append({"skr_s": "bubble", "o": o, "gy": o.pos.y + 3.0})
+	if o.skill_active_left(0) > 0.0 and o.B.has("zone"):
+		out.append({"skr_s": "bubble", "o": o, "gy": o.zone_c().y + 3.0})   # 气泡罩在歌域圆心 = 队长身上
 	var s2on: bool = o.get("perm_on") != null and bool(o.perm_on[1])
 	if s2on and o.B.has("zone"):
 		out.append({"skr_s": "fish", "o": o, "gy": o.zone_c().y + 1.0})
@@ -3281,7 +3300,8 @@ func _sk_draw_state_up(ci, it: Dictionary) -> void:
 	var bt: int = _sk_beat()
 	match str(it.skr_s):
 		"bubble":   # S1：身周一团气泡（细膜 + 左上高光 + 淡淡的水 0.16）；E1 双层膜、E2 三团（主泡两侧各连一个小泡）
-			var c: Vector2 = _snap(o.pos + Vector2(0, -26))
+			var zc0: Vector2 = o.zone_c()
+			var c: Vector2 = _snap(zc0 + Vector2(0, -26))
 			var wob: float = [0.0, 1.0, 0.0, -1.0][bt % 4] * px
 			var Rb: float = (23.0 if t == 0 else 26.0) * px
 			var bubs: Array = [[c, Rb + wob]]
@@ -3302,12 +3322,12 @@ func _sk_draw_state_up(ci, it: Dictionary) -> void:
 			# 脚下酒红细环（贴地，跟在立起件里画：它跟着气泡走、本来就在她脚下）
 			var fr := PackedVector2Array()
 			for k in 25:
-				fr.append(_snap(_sk_ep(o.pos + Vector2(0, 2), 20.0 * px, TAU * float(k) / 24.0)))
+				fr.append(_snap(_sk_ep(zc0 + Vector2(0, 2), 20.0 * px, TAU * float(k) / 24.0)))
 			ci.draw_polyline(fr, Color(SK_R[3].r, SK_R[3].g, SK_R[3].b, 0.85), px)
 			if t >= 1:   # 精一：外面再一圈酒红细环
 				var fr2 := PackedVector2Array()
 				for k in 25:
-					fr2.append(_snap(_sk_ep(o.pos + Vector2(0, 2), 26.0 * px, TAU * float(k) / 24.0 + 0.1)))
+					fr2.append(_snap(_sk_ep(zc0 + Vector2(0, 2), 26.0 * px, TAU * float(k) / 24.0 + 0.1)))
 				ci.draw_polyline(fr2, Color(SK_R[2].r, SK_R[2].g, SK_R[2].b, 0.7), px)
 			# 上浮小泡：每拍错落 3–5 个
 			var nb: int = 3 + t
