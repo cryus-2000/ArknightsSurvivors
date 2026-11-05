@@ -8,6 +8,7 @@ import argparse, os, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as gr  # noqa: E402
+# 不带 --balance / --op 这类开局参数：带了标题页会直接开局换场景，截图节点被释放（11-06 GCP 第一次就是这样）
 
 
 def main():
@@ -20,8 +21,8 @@ def main():
     bad = 0
     for lang in a.langs.split(","):
         args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--resolution", "1280x720",
-                "res://tests/l10n_shots.tscn", "--", "--lang=" + lang, "--balance", "--seed=1", "--op=mizuki",
-                "--squad=skadi,kaltsit", "--shot_dir=" + a.out.replace(os.sep, "/")] + a.extra.split()
+                "res://tests/l10n_shots.tscn", "--", "--lang=" + lang,
+                "--shot_dir=" + a.out.replace(os.sep, "/")] + a.extra.split()
         o, e, to = gr.run_godot(args, 1200)
         open(os.path.join(a.out, "run_%s.log" % lang), "w", encoding="utf-8").write(o + "\n----\n" + e)
         errs = gr.script_errors(o, e)

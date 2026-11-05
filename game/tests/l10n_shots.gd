@@ -1,6 +1,6 @@
 extends Node
 ## 英文版界面截图（docs/276 §10 第三步验收用）：标题页（选人 / 图鉴干员档案·属性·技能·成长 / 敌人 / Boss / 设置）与局内（HUD / 招募卡 / 升级卡）各截一张。
-##   godot --path game --resolution 1280x720 res://tests/l10n_shots.tscn -- --lang=en --balance --seed=1 --op=mizuki --squad=skadi,kaltsit --shot_dir=<目录>
+##   godot --path game --resolution 1280x720 res://tests/l10n_shots.tscn -- --lang=en --shot_dir=<目录>（不带 --balance / --op 等开局参数，否则标题页直接开局换场景）
 ## 不判对错，只出图；脚本错误由调用方扫输出。--lang=zh 出中文对照。打印 "L10N SHOTS done=<张数>"
 const Loc = preload("res://scripts/core/loc.gd")
 

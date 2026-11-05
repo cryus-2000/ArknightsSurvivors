@@ -200,8 +200,9 @@ static func _fill(en_s: String, toks: Array, m: RegExMatch) -> String:
 
 
 ## 读 JSON 时按路径换长文本（只换这些字段；名字、标签、伤害来源名留中文，显示时再 s()）
+## hint（指挥响应短名，responses.gd 校验 ≤ 6 字）与 text（飘字 {s, col}）是短名 / 结构，不在读时换，显示时 s() 查
 const LONG := {"desc": true, "brief": true, "branch_desc": true, "intro": true, "lore": true, "trigger": true,
-	"hint": true, "banner": true, "line": true, "text": true}
+	"banner": true, "line": true}
 
 
 static func tree(node, prefix: String) -> void:
