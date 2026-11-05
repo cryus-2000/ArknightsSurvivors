@@ -2086,7 +2086,7 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_push({"k": "sg_fis_l90_up_d%d" % dk2[0], "t0": g.t, "gp": _snap(st), "flip": dk2[1], "ly": "up", "oid": id})
 			if mode() == 1:
 				var mid: Vector2 = st + Vector2(cos(fa), sin(fa) * 0.72) * float(L)
-				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 2, {"tier": t})
+				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 1, {"tier": t})   # docs/270：普攻单次颗粒 ≤ 12
 				R._light(o, mid, 120.0, 0.45, 0.15, p.light)
 		"quake":   # 成长「震地」/「狮吼」：落点一圈贴地冲击环（狮吼双环）
 			if raw:
