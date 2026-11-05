@@ -3,7 +3,7 @@
 **结论摘要**
 1. 第四批，照 docs/246 的做法做塞雷娅（`saria`）：普攻、S1–S3、节点招、后期额外攻击（late_shape）、连携技（`link/v2` 缺省的「钙质护盾」）。终结技不动；干员本体、怪物、环境不动。开关同一个 `fx/px_plane`（1 = 转平面；0 / 2 = 当前游戏原样，塞雷娅没有「旧做法原样贴」对照）。
 2. 帧条全部用纯 Python 烤（不依赖 pixelfx 库），送审 GIF 读的是同一份帧条：`Claude outputs/pxplane_saria_1105/gif/`。
-3. 现状：**只出了送审 GIF，等用户点头**；还没推分支，没上 GCP，没跑游戏内截图 / 录像 / TRACE（本机不开 Godot）。
+3. 用户看 GIF 后点头（「塞雷娅就先这样吧」），已推 `claude/pxplane-saria` 并在 GCP 出完游戏内三栏 / 三档 / 连携三栏 / 8:00 开关录像；全部日志 SCRIPT ERROR 0 条；同种子 TRACE 开 / 关逐行一致（§6）。
 
 ---
 
@@ -69,6 +69,19 @@
 - 精二晶柱位置按玩法椭圆（0.55），冲击环按 0.72 压扁，上下两根柱子在环内侧一点；
 - 游戏内未实跑（本机不开 Godot）：GDScript 只人工通读过、没有跑过解析，GCP 首跑时先看日志 SCRIPT ERROR。
 
-## 6. 待做（用户点头后）
+## 6. 游戏内验收（GCP，提交 cc68a1019；docs/256）
 
-推 `claude/pxplane-saria`，`tools/gcp_render.py --split` 出：三栏对比、三档图、连携三栏、8:00 开 / 关 mp4（≤ 30 MB）、TRACE 开 / 关（逐行一致）。
+| 项 | 结果 |
+|---|---|
+| TRACE：塞雷娅队长，种子 23，`--elite2 --sptest`，`growth/late_shape = 1`，到 5:00，`fx/px_plane` 0 vs 1 | 301 行逐行一致 |
+| TRACE：8:00 录像那一局（种子 11，`--realtime`，late_shape），0 vs 1 | 501 行逐行一致 |
+| TRACE：连携那一局（德克萨斯队长 + 塞雷娅，种子 11，10–40 秒实时），0 vs 1 | 41 行逐行一致；19.80 秒出「钙质护盾」 |
+| 脚本错误 | 演示 18 局 + 录像 2 局 + TRACE 2 局 + 连携 6 局，SCRIPT ERROR 0 条 |
+
+产物（本机 `Claude outputs/pxplane_saria_1105/render/`；原始在 `Claude outputs/render-saria-1105` / `-1105b` / `-1105c`，日志在 `cloud-results/render-saria-1105*` 分支）：
+- 三栏对比 `cmp_<招>_e<档>.png` + `_x2.png`：atk（E0 / E1 / E2）、s1（E0 / E1 / E2）、s2（E1 / E2）、s3（E2）。② 栏同 ①（塞雷娅没有旧做法对照）。图鉴演示连拍，三栏不逐帧确定，细节不全同。
+- 三档并排 `tiers_atk / s1 / s2 / s3.png`。
+- 连携三栏 `cmp_link.png` / `cmp_link_x2.png`（实战局，那一刻 S3 晶簇也在场）。
+- `late_8m00_onoff.mp4`：同种子 11、8:00 起 20 秒，左关右开，30 帧原速，28.3 MB，开 late_shape。
+
+出图走了三趟：第一趟 rec 段 `--extra "--bal=…"` 被 argparse 当成选项（要写 `--extra="…"`），连携段录制起点 24 秒晚于出手（19.47 秒）；第二趟只重跑 rec（通过）和连携（16–28 秒这次没出手）；第三趟连携放宽到 10–40 秒通过。合计约 1 小时机时。
