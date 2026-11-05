@@ -14,6 +14,11 @@ const GOLD := [Color("#2a1c06"), Color("#5c3e0a"), Color("#a8741a"), Color("#e8b
 const VERM := [Color("#2a100c"), Color("#5c2418"), Color("#a8402a"), Color("#f07048"), Color("#ffa880"), Color("#ffe0cc"), Color("#ffffff")]
 const SQ := 0.72
 const HALO_Y := -80.0
+const RB := 170.0          # 最大爆炸的判定边缘（原冲击帧碎环半径，世界像素）
+const SPRAY_N := 22        # 崩解喷散每只颗数（docs/270 爆发档一簇 ≤ 25）
+const SPRAY_CAP := 16      # 最大爆炸一次至多碎多少只（多了不画喷散，引擎击杀碎屑照补）
+const CLOUD_COLS := [Color("#ffffff"), Color("#fff2c0"), Color("#ffe0cc"), Color("#ffa880"), Color("#ffd86a")]
+const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷散取怪物自身颜色）
 
 
 static func on() -> bool:
@@ -80,13 +85,44 @@ static func bullet(u, p0: Vector2, k: int) -> Dictionary:
 	return s
 
 
-## 爆裂弹爆点：立起爆团（两种变体交替）+ 地上焦痕 + Noita 碎屑（每个爆点 2–3 颗，第一轮一片爆点合起来 6–16）+ 照地光每 2 个一盏
+## 路上的爆裂弹爆点：两拍硬星芯（两种变体交替）+ 闪烁粒子云（11-05 用户：路上的爆炸用粒子云，不要烟团）+ 地上焦痕 + Noita 碎屑（每个 2–3 颗）+ 照地光每 2 个一盏
 static func burst(u, a: Dictionary, p: Vector2, sc: float, i: int, red: Color, gold: Color) -> void:
-	strip(u, "ex_ult_burst_v%d" % (i % 2), p + Vector2(0, -12), 5.0 / 15.0 + 0.02, {"burst": true})
+	strip(u, "ex_ult_burst_v%d" % (i % 2), p + Vector2(0, -12), 2.0 / 15.0 + 0.02, {"burst": true})
+	u.shape({"kind": "pxfn", "px": "cloud", "c": p + Vector2(0, -12), "sd": i * 7 + 3, "size": 30.0, "n": 40, "life": 1.2})
 	strip(u, "ex_ult_scorch_gd", p, 4.0 / 15.0 + 0.02, {"layer": "back"})
 	grains(u, a.o, p + Vector2(0, -12), p.y + 2.0, "rock", 2 + (i % 2), Vector2.ZERO)
 	if i % 2 == 0:
 		u.light(p, 160.0 * sc, red.lerp(gold, 0.5), 0.15)
+
+
+## 整招最大的一下爆炸（冲击帧那一发；11-05 用户「最大的爆炸的时候才是应该慢动作和冲击帧的时候」，口径 ult_brief.md §3）：
+## 冲击帧剪影（原爆点帧条 ×2.4 + 碎环的剪影，只在冲击帧两拍显形）→ 半拍预备（光点往中心收、圈内压暗）→ 中心小亮核亮 2 拍 + 照地灯打满 240 + 轻震 3px / 0.12 秒
+## → 8 格厚压扁冲击环 3.5 拍推到判定边缘（环后地面一闪）→ 160 颗粒子云往外喷 → 崩解：被打中过的怪按冲击环推到它那一刻，补一次引擎击杀碎屑 + 本色像素喷散。
+## 慢动作 / 定格走共用的 ult.impact（冲击帧两拍 + 定格 + 0.25 倍慢放 + 缓回），这里主动在爆心调一次，冲击、慢放、大灯都落在这一下
+static func big_blast(u, a: Dictionary, imp: Vector2, gold: Color, red: Color) -> void:
+	var c: Vector2 = imp + Vector2(0, -12)
+	u.shape({"kind": "pxfn", "px": "hfsil", "c": c, "life": 0.35, "hf": true})
+	u.shape({"kind": "pxfn", "px": "pre", "c": imp, "life": 0.5 / 15.0})
+	u.shape({"kind": "pxfn", "px": "core", "c": c, "delay": 0.5 / 15.0, "life": 2.0 / 15.0})
+	u.shape({"kind": "pxfn", "px": "bring", "c": imp, "delay": 0.5 / 15.0, "life": 5.5 / 15.0, "layer": "back"})
+	u.shape({"kind": "pxfn", "px": "cloud", "c": c, "sd": 977, "size": RB * 0.6 / 2.0, "n": 160, "delay": 0.5 / 15.0, "life": 1.2})
+	u.light(imp, 240.0, red.lerp(gold, 0.6), 0.6)
+	u.shake(3.0, 0.12)
+	grains(u, a.o, c, imp.y + 2.0, "rock", 12, Vector2.ZERO)
+	var seen := {}
+	var n := 0
+	for e in a.normals + a.eq:
+		var id: int = int(e.id)
+		if seen.has(id) or not (a.done.has(id) or a.hitd.has(id)):
+			continue
+		seen[id] = true
+		var dd: float = e.pos.distance_to(imp)
+		var uu: float = clampf((dd - RB * 0.16) / (RB * 0.84), 0.0, 1.0)
+		var ta: float = (0.5 + 3.5 * (1.0 - sqrt(1.0 - uu))) / 15.0   # 冲击环 r(t) 的反函数（先快后慢）
+		var out: Vector2 = (e.pos - imp).normalized() if dd > 1.0 else Vector2.RIGHT
+		u.shape({"kind": "pxfn", "px": "spray", "e": e, "c": e.pos + Vector2(0, -10), "out": out, "sd": id * 13 + 5, "draw_spray": n < SPRAY_CAP, "delay": ta, "life": 1.3})
+		n += 1
+	u.impact(imp)
 
 
 static func chain(u, p0: Vector2, p1: Vector2, life: float) -> void:
@@ -149,6 +185,91 @@ static func draw(g, s: Dictionary, dim: float, sil = null) -> void:
 				for q2 in [Vector2(4, 0), Vector2(-4, 0), Vector2(0, 4), Vector2(0, -4)]:
 					g.draw_rect(Rect2(p + q2, Vector2(2, 2)), Color(GOLD[5] if sil == null else sil, dim))
 			Pxp.of(g)._glow(p, GOLD[6])
+		"cloud":
+			if sil != null:
+				return
+			_pts(g, s.c, _cloud(float(s.age), int(s.sd), float(s.size), int(s.n)), dim)
+		"pre":   # 预备：判定圈内压暗 + 16 粒光点往中心收
+			if sil != null:
+				return
+			var cs: Vector2 = _snap(s.c) + Vector2(0, 12)
+			var ry: float = RB * SQ
+			var y: float = -ry
+			while y <= ry:
+				var hw: float = RB * sqrt(maxf(0.0, 1.0 - (y / ry) * (y / ry)))
+				g.draw_rect(Rect2(cs + Vector2(-hw, y), Vector2(hw * 2.0, 2.0)), Color(0, 0, 0, 0.28 * dim))
+				y += 2.0
+			var k: float = clampf(float(s.age) / maxf(0.001, float(s.max)), 0.0, 1.0)
+			for i in 16:
+				var ang: float = float(i) / 16.0 * TAU + 0.4
+				var rr: float = RB * (0.8 - 0.6 * k)
+				var q: Vector2 = s.c + Vector2(cos(ang) * rr, sin(ang) * rr * SQ)
+				g.draw_rect(Rect2(_snap(q), Vector2(2, 2)), Color(GOLD[5], dim))
+				Pxp.of(g)._glow(_snap(q), GOLD[5])
+		"core":   # 亮核：中心小一圈（半径 14 格，毛边），白芯 → 金 → 朱橙，亮 2 拍；不做整块平涂的大圆
+			var bt: int = mini(1, beat)
+			var R0: int = 14 if bt == 0 else 9
+			var cs2: Vector2 = _snap(s.c)
+			for x in range(-R0, R0 + 1):
+				for y2 in range(-R0, R0 + 1):
+					var yy: float = float(y2) / SQ
+					var r: float = sqrt(float(x * x) + yy * yy)
+					if r > float(R0 - _hsh(x, y2, 31) % 3):
+						continue
+					var u2: float = r / float(R0)
+					var col: Color = (GOLD[6] if u2 < 0.35 else (GOLD[5] if u2 < 0.65 else VERM[4])) if bt == 0 else (GOLD[5] if u2 < 0.4 else VERM[4])
+					if sil != null:
+						col = sil
+					var q2: Vector2 = cs2 + Vector2(x, y2) * 2.0
+					g.draw_rect(Rect2(q2, Vector2(2, 2)), Color(col, dim))
+					if u2 < 0.35 and sil == null and (x + y2) % 2 == 0:
+						Pxp.of(g)._glow(q2, GOLD[6])
+		"bring":   # 冲击环（贴地压扁）：8 格厚，3.5 拍从 0.16 R 推到判定边缘（先快后慢），环后 6–14 格地面一闪，到边后 2 拍淡掉
+			var t: float = float(s.age) * 15.0
+			var uu: float = minf(1.0, t / 3.5)
+			var R1: float = RB / 2.0
+			var R0b: float = R1 * 0.16
+			var rr2: float = R0b + (R1 - R0b) * (1.0 - (1.0 - uu) * (1.0 - uu))
+			var al: float = 1.0 if t <= 3.5 else maxf(0.0, 1.0 - (t - 3.5) / 2.0)
+			var cols: Array = [GOLD[6], GOLD[6], GOLD[5], GOLD[5], VERM[5], VERM[4], VERM[3], VERM[2]]
+			var n2: int = maxi(48, int(TAU * rr2))
+			var cs3: Vector2 = _snap(s.c)
+			for i in n2:
+				var th: float = float(i) / float(n2) * TAU
+				var ct := Vector2(cos(th), sin(th) * SQ)
+				for j in 8:
+					var col2: Color = cols[j] if sil == null else sil
+					g.draw_rect(Rect2(cs3 + (ct * (rr2 - float(j))).round() * 2.0, Vector2(2, 2)), Color(col2, al * dim))
+				if t <= 4.0 and sil == null:
+					for j2 in range(6, 15, 2):
+						if (i + j2) % 3 != 0:
+							continue
+						g.draw_rect(Rect2(cs3 + (ct * (rr2 - float(j2) - 2.0)).round() * 2.0, Vector2(2, 2)), Color(GOLD[4], 0.45 * al * dim * (1.0 - float(j2 - 6) / 9.0)))
+		"spray":   # 崩解：第一次画时补一次引擎击杀碎屑（按怪物贴图像素碎开）；再画本色像素喷散
+			if sil != null:
+				return
+			if not s.get("fired", false):
+				s["fired"] = true
+				var e = s.e
+				if g.optical_on and g.optical != null and g.optical.particles != null and not e.get("boss", false):
+					g.optical.particles.kill_burst(e)
+			if s.get("draw_spray", true):
+				var ec: Color = D.ENEMIES.get(str(s.e.get("type", "")), {}).get("ecol", Color(0.6, 0.9, 0.9))
+				_spray(g, s.c, float(s.age), int(s.sd), s.out, ec, dim)
+		"hfsil":   # 冲击帧剪影（只在冲击帧两拍画）：原爆点帧条第 1 帧 ×2.4 + 半径 170、10 宽的碎环，按剪影色
+			if sil == null:
+				return
+			var tx: Texture2D = g.ult._strip_tex("fx_ult_exusiai_burst_front") if g.get("ult") != null else null
+			if tx != null:
+				var fw: float = float(tx.get_width()) / 6.0
+				var fh: float = float(tx.get_height())
+				var k2: float = g.PX * 2.4 / 2.0
+				g.draw_set_transform(s.c, 0.0, Vector2(k2, k2))
+				g.draw_texture_rect_region(tx, Rect2(Vector2(-fw * 0.5, -fh * 0.5), Vector2(fw, fh)), Rect2(fw, 0.0, fw, fh), Color(sil, 1.0))
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			for i in 96:
+				var th2: float = float(i) / 96.0 * TAU
+				g.draw_rect(Rect2(_snap(s.c + Vector2(cos(th2), sin(th2)) * 170.0) - Vector2(5, 5), Vector2(10, 10)), Color(sil, 1.0))
 		"line":   # 连锁闪线：1 美术像素，朱橙 / 金交替，后一半时间只剩靠落点一半
 			var a2: Vector2 = s.a
 			var b2: Vector2 = s.b
@@ -205,3 +326,71 @@ static func _reticle(g, c: Vector2, hw: float, f: int, elite: bool, sil, dim: fl
 		var dc: Color = VERM[4] if sil == null else sil
 		dc.a = dim
 		g.draw_rect(Rect2(cs, Vector2(4, 4) if elite else Vector2(2, 2)), dc)
+
+
+static func _hf01(k: int, sd: int, salt: int) -> float:
+	return float(_hsh(k, sd, salt) % 1000) / 1000.0
+
+
+static func _hsh(x: int, y: int, k: int) -> int:
+	return ((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) & 0xFFFF
+
+
+## 点表画到画布：项 [x, y, 颜色, 进发光层, 边长格]（美术像素偏移）
+static func _pts(g, c: Vector2, lst: Array, dim: float) -> void:
+	var cs: Vector2 = _snap(c)
+	for q in lst:
+		var p: Vector2 = cs + Vector2(round(float(q[0])), round(float(q[1]))) * 2.0
+		var sz: float = 2.0 * float(q[4])
+		g.draw_rect(Rect2(p, Vector2(sz, sz)), Color(q[2], dim))
+		if q[3]:
+			Pxp.of(g)._glow(p, q[2])
+
+
+## 闪烁粒子云（同 pxplane_exu_ult_art.cloud_px）
+static func _cloud(age: float, sd: int, size: float, n: int) -> Array:
+	var out: Array = []
+	if age < 0.0 or age > 1.2:
+		return out
+	var fr: int = int(age * 15.0)
+	var u: float = minf(1.0, age / 0.35)
+	var grow: float = 1.0 - pow(1.0 - u, 2.0)
+	for k in n:
+		if age > 0.25 and (fr + k) % 3 == 0:
+			continue
+		if _hf01(k, sd, 84) < age / 1.2:
+			continue
+		var a: float = TAU * _hf01(k, sd, 81)
+		var r: float = size * sqrt(_hf01(k, sd, 82)) * grow + age * 4.0
+		var x: float = cos(a) * r
+		var y: float = sin(a) * r * SQ - age * 10.0 * _hf01(k, sd, 83)
+		var hc: float = _hf01(k, sd, 85)
+		var ci: int = 0 if hc < 0.3 else (1 if hc < 0.6 else (2 if hc < 0.8 else (3 if hc < 0.95 else 4)))
+		if age > 0.6:
+			ci = mini(4, ci + 1)
+		out.append([x, y, CLOUD_COLS[ci], ci == 0 and age < 0.3, 2 if k % 3 == 0 else 1])
+	return out
+
+
+## 崩解本色喷散（同 pxplane_exu_ult_art.spray_px，k = 1.6 倍）：世界像素偏移
+static func _spray(g, c: Vector2, age: float, sd: int, out_dir: Vector2, ec: Color, dim: float) -> void:
+	if age < 0.0 or age > 1.3:
+		return
+	var cols: Array = [ec.lightened(0.45), ec.lightened(0.15), ec, ec.darkened(0.3)]
+	var base: float = out_dir.angle()
+	var k: float = 1.6
+	for q in int(float(SPRAY_N) * minf(1.4, k)):
+		var ang: float = base + (_hf01(q, sd, 71) - 0.5) * 2.2
+		var spd: float = (30.0 + 70.0 * _hf01(q, sd, 72)) * k
+		var vh: float = 30.0 + 60.0 * _hf01(q, sd, 73)
+		var tl: float = 2.0 * vh / 260.0
+		var t: float = minf(age, 0.9)
+		var tt: float = minf(t, tl)
+		var h: float = maxf(0.0, vh * tt - 0.5 * 260.0 * tt * tt) if t < tl else 0.0
+		var col: Color = cols[q % 4]
+		if age < 2.0 / 15.0 and q % 3 == 0:
+			col = Color(1, 1, 1)
+		var al: float = 1.0 if age < 0.9 else maxf(0.0, (1.3 - age) / 0.4)
+		var sz: float = 4.0 if q % 3 != 2 else 2.0
+		var p: Vector2 = _snap(c + Vector2(cos(ang) * spd * tt, sin(ang) * spd * tt * SQ - h))
+		g.draw_rect(Rect2(p, Vector2(sz, sz)), Color(col, al * dim))

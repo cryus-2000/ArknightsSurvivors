@@ -662,7 +662,10 @@ static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 	if bt.size() >= int(Bal.v("ult/ex_burst_fx", 48.0)):
 		return
 	bt.append(t)
-	if UPX.on():   # 转平面（docs/262 §11）：像素爆团 + 焦痕 + 碎屑 + 照地光（每 2 个一盏）
+	if UPX.on():   # 转平面（docs/262 §11）：两拍星芯 + 闪烁粒子云 + 焦痕 + 碎屑 + 照地光（每 2 个一盏）；最大那一下已由 big_blast 画
+		if a.get("fv_skip", null) is Vector2 and (a.fv_skip as Vector2).is_equal_approx(p):
+			a.erase("fv_skip")
+			return
 		UPX.burst(u, a, p, sc, int(a.fired) + bt.size(), EX_RED, EX_GOLD)
 		return
 	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc * 1.5})
@@ -764,7 +767,13 @@ static func _ex_land(u, a: Dictionary, o, b: Dictionary) -> void:
 	# 这一发打冲击帧（这一发的爆点 + 一道红金碎环 + 同屏在场的爆点帧条进剪影）+ 短顿帧
 	var fv: bool = _ex_v3() and not a.get("fv", false) and (a.bt.size() + 1 >= int(Bal.v("ult/ex_hf_n", 5.0)) or float(a.t) >= 1.0)
 	var n0: int = u.shapes.size()
-	if fv:
+	if fv and UPX.on():   # 转平面（docs/262 §11）：整招最大的一下爆炸（冲击帧剪影 / 预备 / 亮核 / 冲击环 / 粒子云 / 崩解 + 共用冲击慢放落在这一下）
+		a["fv"] = true
+		a["fv_skip"] = imp
+		PF.hf_on(u, a)
+		UPX.big_blast(u, a, imp, EX_GOLD, EX_RED)
+		u.g.vfx.stop(Bal.v("ult/ex_hitstop", 0.08), "ult", true)
+	elif fv:
 		a["fv"] = true
 		u.strip("fx_ult_exusiai_burst_front", imp, {"o": Vector2(64, 64), "sc": 2.4})
 		u.shape({"kind": "ring", "c": imp, "r": 170.0, "r1": 30.0, "w": 10.0, "col": EX_GOLD, "life": 0.35})

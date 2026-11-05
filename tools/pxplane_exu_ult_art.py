@@ -80,9 +80,9 @@ def ult_halo():
 
 
 def ult_burst(var=0):
-    """爆裂弹爆点（原点 = 爆心，立起层）：5 拍。第 0 拍 9×9 白金芯 + 8 道硬芒（朱橙 / 金交替，12 / 9 格）；第 1 拍芯成朱橙火团 + 芒外移断开 + 一圈火星；
-    第 2 拍火团缩小变暗 + 碎屑往外飞；第 3 拍几团烟 + 碎屑下坠；第 4 拍余烬。var 1 芒转 22.5°（同一时刻多个爆点不完全一样）"""
-    fr = [Buf() for _ in range(5)]
+    """路上的爆裂弹爆点芯（原点 = 爆心，立起层）：2 拍硬星芯。第 0 拍 9×9 白金芯 + 8 道硬芒（朱橙 / 金交替，12 / 9 格）；第 1 拍芯暗一阶 + 芒外移断开 + 一圈火星。
+    不画烟团（11-05 用户：路上的爆炸用粒子云，不要烟）；体量交给运行时的闪烁粒子云 cloud_px()。var 1 芒转 22.5°"""
+    fr = [Buf() for _ in range(2)]
     off = math.pi / 8 if var else 0.0
     for i in range(8):
         a = off + i / 8 * math.tau
@@ -90,24 +90,15 @@ def ult_burst(var=0):
         C = N if i % 2 == 0 else G
         L = 12 if i % 2 == 0 else 9
         _spike(fr[0], (d[0] * 4, d[1] * 4), d, L, [C[6], C[6], C[5], C[5], C[4], C[4], C[3]])
-        for s in range(L // 2 + 4, L + 6):
-            fr[1].put(d[0] * s, d[1] * s, C[4] if s < L + 3 else C[3])
-        fr[2].put(d[0] * (L + 7), d[1] * (L + 7) + 2, CHIP[2])
-        fr[3].put(d[0] * (L + 8), d[1] * (L + 8) + 6, CHIP[1])
-        fr[4].put(d[0] * (L + 8), d[1] * (L + 8) + 9, CHIP[0])
+        for s2 in range(L // 2 + 4, L + 6):
+            fr[1].put(d[0] * s2, d[1] * s2, C[4] if s2 < L + 3 else C[3])
     for x in range(-5, 6):
         for y in range(-5, 6):
             r = abs(x) + abs(y)
             if r <= 4:
                 fr[0].put(x, y, G[6] if r <= 3 else G[5])
-            if r <= 5 and hsh(x, y, 1) % 5:
-                fr[1].put(x, y, N[5] if r <= 2 else (N[4] if r <= 4 else N[3]))
-            if r <= 3 and hsh(x, y, 2) % 3:
-                fr[2].put(x, y - 1, N[3] if r <= 1 else N[2])
-            if r <= 3 and hsh(x, y, 3) % 3 == 0:
-                fr[3].put(x + 1, y - 4, SMOKE[2])
-            if r <= 2 and hsh(x, y, 4) % 4 == 0:
-                fr[4].put(x + 1, y - 7, SMOKE[1])
+            if r <= 3 and hsh(x, y, 1) % 4:
+                fr[1].put(x, y, G[5] if r <= 1 else N[4])
     for i in range(16):
         t = i / 16 * math.tau + 0.2
         fr[1].put_if_empty(math.cos(t) * 8, math.sin(t) * 8, G[5] if i % 2 else N[5])
@@ -173,4 +164,108 @@ def reticle_px(h_world, f, elite):
                     out.append(((sx * hp - sx * w) * 2, (sy * hp - sy * j) * 2, col))
     if f < 6:
         out += [(0, 0, N[4]), (2, 0, N[4]), (0, 2, N[4]), (2, 2, N[4])] if elite else [(0, 0, N[4])]
+    return out
+
+
+def hf01(k, sd, salt):
+    """0–1 的坐标哈希（同 GDScript _hf）"""
+    return (hsh(k, sd, salt) % 1000) / 1000.0
+
+
+CLOUD_COLS = [GOLD[6], GOLD[5], N[5], N[4], GOLD[4]]
+
+
+def cloud_px(age, sd, size, n):
+    """闪烁粒子云（运行时，立起层；同 ult_px_exusiai._cloud）：n 颗 1–2 格的小亮点（白金 / 金 / 浅朱 / 朱橙，少量暗金），0.35 秒内往外炸开到 size（美术像素，按面积均匀铺满），
+    之后逐拍闪烁（每拍三分之一不亮）、慢慢漂上去、越剩越少，1.2 秒散完。返回 [(x, y, 色, 是否进发光层, 边长格)]（美术像素偏移，y 已压扁）"""
+    out = []
+    if age < 0.0 or age > 1.2:
+        return out
+    fr = int(age * 15.0)
+    u = min(1.0, age / 0.35)
+    grow = 1.0 - (1.0 - u) ** 2
+    for k in range(n):
+        if age > 0.25 and (fr + k) % 3 == 0:
+            continue
+        if hf01(k, sd, 84) < age / 1.2:
+            continue
+        a = math.tau * hf01(k, sd, 81)
+        r = size * math.sqrt(hf01(k, sd, 82)) * grow + age * 4.0
+        x = math.cos(a) * r
+        y = math.sin(a) * r * SQ - age * 10.0 * hf01(k, sd, 83)
+        hc = hf01(k, sd, 85)
+        ci = 0 if hc < 0.3 else (1 if hc < 0.6 else (2 if hc < 0.8 else (3 if hc < 0.95 else 4)))
+        if age > 0.6:
+            ci = min(4, ci + 1)
+        out.append((x, y, CLOUD_COLS[ci], ci == 0 and age < 0.3, 2 if k % 3 == 0 else 1))
+    return out
+
+
+def blast_core(beat):
+    """最大爆炸的亮核（美术像素，原点 = 爆心）：只有中心小一圈（半径 14 格，按坐标哈希毛边），白芯 → 金 → 朱橙，亮 2 拍（第 1 拍缩小变暗）；不做整块平涂的大圆"""
+    out = []
+    if beat < 0 or beat > 1:
+        return out
+    R = 14 if beat == 0 else 9
+    for x in range(-R, R + 1):
+        for y in range(-R, R + 1):
+            yy = y / SQ
+            r = math.sqrt(x * x + yy * yy)
+            if r > R - (hsh(x, y, 31) % 3):
+                continue
+            u = r / R
+            c = (G[6] if u < 0.35 else (G[5] if u < 0.65 else N[4])) if beat == 0 else (G[5] if u < 0.4 else N[4])
+            out.append((x, y, c, u < 0.35))
+    return out
+
+
+def blast_ring(R0, R1, t):
+    """最大爆炸的冲击环（贴地压扁，美术像素）：t = 起爆后的拍数（可小数）；3.5 拍从 R0 推到 R1（先快后慢），8 格厚（外缘白金 → 金 → 朱橙 → 暗朱），
+    环后 6–14 格的地面一闪（淡金点，隔行）；到边后 2 拍淡掉。返回 [(x, y, 色, 不透明度)]"""
+    out = []
+    if t < 0 or t > 5.5:
+        return out
+    u = min(1.0, t / 3.5)
+    r = R0 + (R1 - R0) * (1 - (1 - u) ** 2)
+    al = 1.0 if t <= 3.5 else max(0.0, 1.0 - (t - 3.5) / 2.0)
+    n = max(48, int(math.tau * r))
+    cols = [G[6], G[6], G[5], G[5], N[5], N[4], N[3], N[2]]
+    for i in range(n):
+        th = i / n * math.tau
+        ct, sn = math.cos(th), math.sin(th)
+        for j in range(8):
+            rr = r - j
+            out.append((round(ct * rr), round(sn * rr * SQ), cols[j], al))
+        if t <= 4.0:
+            for j2 in range(6, 15, 2):
+                if (i + j2) % 3:
+                    continue
+                rr = r - j2 - 2
+                out.append((round(ct * rr), round(sn * rr * SQ), G[4], 0.45 * al * (1.0 - (j2 - 6) / 9.0)))
+    return out
+
+
+def spray_px(age, sd, out_dir, n=22, k=1.0, cols=None):
+    """怪物崩解的本色像素喷散（同艾丽妮 _draw_sprays）：n 颗，沿 out_dir ± 63° 往外喷，有重量（G 260）、落地停一下熄灭；头两拍每 3 颗一颗白芯。
+    cols = 怪物代表色的亮 / 稍亮 / 本色 / 暗四阶。返回 [(x, y, 色, 不透明度, 边长格)]（世界像素偏移）"""
+    out = []
+    if age < 0 or age > 1.3:
+        return out
+    base = math.atan2(out_dir[1], out_dir[0])
+    for q in range(int(n * min(1.4, k))):
+        ang = base + (hf01(q, sd, 71) - 0.5) * 2.2
+        spd = (30.0 + 70.0 * hf01(q, sd, 72)) * k
+        vh = 30.0 + 60.0 * hf01(q, sd, 73)
+        Gv = 260.0
+        tl = 2.0 * vh / Gv
+        t = min(age, 0.9)
+        tt = min(t, tl)
+        h = max(0.0, vh * tt - 0.5 * Gv * tt * tt) if t < tl else 0.0
+        x = math.cos(ang) * spd * tt
+        y = math.sin(ang) * spd * tt * SQ - h
+        c = cols[q % 4]
+        if age < 2.0 / 15.0 and q % 3 == 0:
+            c = "#ffffff"
+        al = 1.0 if age < 0.9 else max(0.0, (1.3 - age) / 0.4)
+        out.append((x, y, c, al, 2 if q % 3 != 2 else 1))
     return out
