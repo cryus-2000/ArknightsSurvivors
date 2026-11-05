@@ -1,0 +1,9 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+econ probe patched
+total 2468
+drwxr-xr-x 2 root root    4096 Nov  5 02:30 .
+drwxr-xr-x 3 root root    4096 Nov  5 02:26 ..
+-rw-r--r-- 1 root root 1521008 Nov  5 02:26 econ_expert_1105_0226.json
+-rw-r--r-- 1 root root   10480 Nov  5 02:26 econ_expert_1105_0226.md
+-rw-r--r-- 1 root root  968775 Nov  5 02:30 econ_normal_1105_0230.json
+-rw-r--r-- 1 root root    8999 Nov  5 02:30 econ_normal_1105_0230.md
