@@ -26,7 +26,7 @@ PX = 2
 GROUND = (36, 46, 48)
 FONT = "C:/Windows/Fonts/msyh.ttc"
 AMBIENT = 0.8
-FIRE_L = (1.0, 0.72, 0.38)
+FIRE_L = (1.0, 0.42, 0.28)
 SOUL_L = (0.62, 0.52, 0.9)
 SQ = 0.72
 TIP = (14, -34)
@@ -99,6 +99,7 @@ class Col:
         self.grains = []
         self.souls = tier >= 2
         self.seed = 7 + tier
+        self.drops = []      # 连携下坠炮弹 (落点, 起拍)
 
     def add(self, k, tk, gp, flip=False, gd=False, gy=None, hold=False):
         self.items.append({"k": k, "t0": tk, "gp": snap(gp), "flip": flip, "gd": gd, "gy": gp[1] if gy is None else gy, "hold": hold})
@@ -286,6 +287,12 @@ def render(lib, col, tk):
             gy = s["from"][1] + lift + (s["to"][1] - s["from"][1] - lift) * k
             for dx in (-2, 0, 2):
                 put_px(gx + dx, gy, A.SMOKE[0], a=0.55)
+    for (dc, d0) in col.drops:
+        if d0 <= tk < d0 + 6:
+            kd = min(1.0, (tk - d0) / 5.25)
+            c0 = snap(dc)
+            for (x, y, c) in A.reticle_px(30, kd, tk):
+                put_px(c0[0] + x * PX, c0[1] + y * PX, c)
     for it in col.items:
         if it["gd"]:
             draw_item(it)
@@ -308,6 +315,9 @@ def render(lib, col, tk):
             k = (tk - s["t0"]) / max(1, s["t1"] - s["t0"])
             lift = 82 if s["kind"] == "soul" else (18 if s["kind"] == "x" else 34)
             sort.append((s["from"][1] + lift + (s["to"][1] - s["from"][1] - lift) * k + 1, "shell", (s, k)))
+    for (dc, d0) in col.drops:
+        if d0 <= tk < d0 + 6:
+            sort.append((dc[1] + 1, "drop", (dc, d0)))
     sort.sort(key=lambda s: s[0])
     for _, kind, v in sort:
         if kind == "e":
@@ -320,6 +330,12 @@ def render(lib, col, tk):
             img.alpha_composite(SOUL_SPR, dest=snap((sx - SOUL_SPR.width // 2, sy - SOUL_SPR.height // 2)))
         elif kind == "it":
             draw_item(v)
+        elif kind == "drop":
+            (dc, d0) = v
+            u = min(1.0, (tk - d0) / 5.25)
+            hd = snap((dc[0], dc[1] - 240 * (1 - u * u) - 6))
+            for (x, y, c) in A.drop_px(tk):
+                put_px(hd[0] + x * PX, hd[1] + y * PX, c, glow=1 <= y <= 2)
         elif kind == "shell":
             s, k = v
             fr, to = s["from"], s["to"]
@@ -350,9 +366,9 @@ def render(lib, col, tk):
         y = gr.gp[1] + gr.v[1] * tt - h
         u = min(1.0, age / gr.life)
         if gr.mat == "rock":
-            c = "#c27a2c" if u < 0.12 else "#38333a"
+            c = "#8e2418" if u < 0.12 else "#2e2224"
         else:
-            c = "#ffe2a0" if u < 0.2 else ("#f59a2e" if u < 0.55 else "#8a4a1c")
+            c = "#ffa868" if u < 0.2 else ("#c41e18" if u < 0.55 else "#6a1410")
         sz = gr.sz
         xx, yy = snap((x, y))
         dr.rectangle([xx, yy, xx + sz - 1, yy + (sz if not landed else max(2, sz - 2)) - 1], fill=A.hx(c))
@@ -493,17 +509,22 @@ def sc_branch():
 
 
 def sc_link():
-    """连携「好礼」（skill_link l_wisadel，link/v2 缺省，不分档）：区域里 1 秒内倒下的敌人原地浮出残影，0.35 秒后殉爆（半径 60）"""
+    """连携「天降厚礼」（skill_link l_wisadel，link/v2 缺省，不分档）：队长技能后 1 秒内区域里倒下的敌人处，0.35 秒后炸开（半径 60）。
+    画面：她朝天开一炮 → 每个死者处一发炮弹拖着黑红尾迹从天上砸下（落点准星收拢）→ 落地矮爆 + 三道余震涟漪依次推开"""
     c = Col(2, E_MAIN)
     c.souls = False
-    for j, (ei, tk) in enumerate([(0, 3), (3, 6), (2, 8), (5, 12)]):
+    c.add("mzg_d-90", 1, (c.op[0] + 4, c.op[1] - 48), gy=c.op[1] + 1)
+    c.light((c.op[0] + 4, c.op[1] - 48), 100, 0.55, 1)
+    for j, (ei, tk) in enumerate([(0, 4), (3, 7), (2, 9), (5, 13)]):
         e = c.enemies[ei]
         c.enemies[ei][2] = tk
-        c.add("shade", tk, (e[0], e[1]), gy=e[1] + 1)
-        c.add("sb_r%d" % pick(A.SB_R, 60), tk + 5, (e[0], e[1]), gy=e[1] + 1)
+        c.drops.append(((e[0], e[1]), tk))
+        c.add("lk_up", tk + 5, (e[0], e[1]), gy=e[1] + 1)
+        c.add("lk_gd", tk + 5, (e[0], e[1]), gd=True)
         if j % 2 == 0:
-            c.light((e[0], e[1] - 16), 120, 0.6, tk + 5, col=SOUL_L)
-        c.grain("rock", (e[0], e[1] - 14), e[1] + 2, 3, tk + 5)
+            c.light((e[0], e[1] - 16), 130, 0.7, tk + 5)
+        c.grain("rock", (e[0], e[1] - 14), e[1] + 2, 3, tk + 5, 1.2)
+        c.grain("ember", (e[0], e[1] - 10), e[1] + 2, 3, tk + 5, 1.2)
     return c
 
 
@@ -535,7 +556,7 @@ def main():
     if not only or "branch" in only:
         gif(lib, [("节点：余烬未冷（三圈余震）/ 续燃（吸向残影）/ 礼尚往来 / 余响（精二）", sc_branch())], 66, os.path.join(a.out, "wisadel_branch.gif"), title, (290, 160))
     if not only or "link" in only:
-        gif(lib, [("连携技「好礼」（link/v2 缺省，不分档）", sc_link())], 36, os.path.join(a.out, "wisadel_link.gif"), title, (290, 160))
+        gif(lib, [("连携技「天降厚礼」（link/v2 缺省，不分档）", sc_link())], 40, os.path.join(a.out, "wisadel_link.gif"), title, (290, 160))
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 META = os.path.join(ROOT, "game", "data", "pxp_wisadel.json")
 DIRS = [-90, -45, 0, 45, 90]
-EMIT_LUM = 0.86
+EMIT_LUM = 0.78
 EMIT_MAX = 32
 
 IMPORT_TMPL = """[remap]
@@ -87,6 +87,8 @@ def strips():
         out["mzg_d%d" % d] = (A.muzzle_up(d, big=True), False)
     out["glint"] = (A.glint_up(), False)
     out["glintb"] = (A.glint_up(big=True), False)
+    out["lk_up"] = (A.lk_up(30), False)
+    out["lk_gd"] = (A.lk_gd(30), False)
     return out
 
 

@@ -11,12 +11,12 @@ tools/pxplane_gif_wisadel.py 用它拼送审 GIF；运行时件在游戏里由 f
 - 炮弹 IRON：黑铁。"""
 import math
 
-FIRE = ["#fff8ea", "#ffe6a8", "#ffc860", "#f5a032", "#d8701c", "#9a4614", "#5a2610", "#2e140a"]
-SMOKE = ["#0e0b0d", "#1c1719", "#2c2629", "#40383c", "#5a5054"]
+FIRE = ["#fff0e4", "#ffa868", "#f04a24", "#c41e18", "#8e1010", "#5c0a0c", "#360608", "#1a0305"]   # 11-05 用户：炮击要原作的黑红（原作 wisdel_*_hit：纯红 + 暗血红 + 近黑，橙火星）；偏橙的血红，和敌方预警粉红 #ff2667 拉开
+SMOKE = ["#0c0607", "#180a0c", "#26100f", "#381a18", "#4e2a28"]
 SOUL = ["#120e1a", "#262034", "#3e3452", "#5e5276", "#8a7ea6", "#b8aed2", "#e8e2f6"]
-DUST = ["#241e1a", "#3e352d", "#5e5244", "#857660", "#a89880"]
+DUST = ["#1e1414", "#34221e", "#4e3430", "#6e4c44", "#8e6a5e"]
 IRON = ["#141012", "#2a2226", "#463c40", "#6a5e60"]
-SCORCH = ["#120e0e", "#1c1616", "#261e1c"]
+SCORCH = ["#100606", "#1a0a0a", "#261010"]
 SQ = 0.72   # 贴地压扁（combat.GROUND_Y）
 DIRS = [-90, -45, 0, 45, 90]
 
@@ -483,7 +483,7 @@ def pillar_up(R, tier):
     nc = 9 + R // 5
     for i in range(nc):
         u = (i + 0.5) / nc
-        col.append(((hf(i, 2, seed) - 0.5) * R * 0.16, (hf(i, 3, seed) - 0.5) * R * 0.1, R * 0.1 + u * Hc * 0.82, R * (0.15 + 0.08 * hf(i, 4, seed)) * (1.0 - 0.3 * u), 1.0 - 0.3 * u, R * 0.06))
+        col.append(((hf(i, 2, seed) - 0.5) * R * 0.16, (hf(i, 3, seed) - 0.5) * R * 0.1, R * 0.1 + u * Hc * 0.82, R * (0.09 + 0.05 * hf(i, 4, seed)) * (1.0 - 0.35 * u), 1.0 - 0.3 * u, R * 0.06))   # 11-05 协调人：中段收细
     cap = [((hf(i, 5, seed) - 0.5) * R * 0.75, (hf(i, 6, seed) - 0.5) * R * 0.15, Hc * (0.85 + 0.12 * hf(i, 7, seed)), R * (0.18 + 0.1 * hf(i, 8, seed)), 0.7, R * 0.07) for i in range(6)]
     base = _puffs(R, seed + 3, 6, spread=0.62, hmin=0.05, hmax=0.15, rmin=0.16, rmax=0.26, flat=True)
     subs = [(math.tau * (k / 3.0) + 0.6, ) for k in range(3)]
@@ -505,6 +505,20 @@ def pillar_up(R, tier):
             if f >= 3:
                 for j in range(2):
                     blob(b, (j - 0.5) * R * 0.4, -Hc * (1.05 + 0.08 * (f - 3)), R * (0.18 + 0.025 * f), 0.0, seed + 40 + j, smoke=True, dissolve=max(0.0, (f - 4) * 0.22))
+        if 1 <= f <= 5:   # 沿柱往上窜的火舌（细，1–2 像素，逐拍错开）
+            for j in range(5):
+                x0 = (j - 2) * R * 0.07 + (hf(j, f, seed) - 0.5) * 2
+                y0 = -R * 0.15 - (f - 1) * R * 0.18 - hf(j, 2, seed) * R * 0.3
+                L = int(R * (0.35 + 0.25 * hf(j, f + 3, seed)))
+                for s_ in range(L):
+                    u = s_ / max(1, L)
+                    if f >= 4 and vnoise(j * 5, s_, seed + f, 2.0) < (f - 3) * 0.35:
+                        continue
+                    xx = x0 + math.sin(u * 4.0 + j + f) * 1.4
+                    c = FIRE[1] if u < 0.25 else (FIRE[2] if u < 0.6 else FIRE[3])
+                    b.put(xx, y0 - s_, c)
+                    if u < 0.4 and j % 2 == 0:
+                        b.put(xx + 1, y0 - s_, FIRE[2])
         if tier >= 1 and 2 <= f <= 5:   # 精一：外圈三处小殉爆
             k = f - 2
             for s, in subs:
@@ -633,7 +647,7 @@ def dawn_up(R):
             W = R * 0.95
             for x in range(-int(W), int(W) + 1):
                 u = abs(x) / W
-                b.put(x, 0, FIRE[0] if u < 0.7 else FIRE[1])
+                b.put(x, 0, FIRE[0] if u < 0.35 else (FIRE[1] if u < 0.75 else FIRE[2]))
                 if u < 0.85:
                     b.put(x, -1, FIRE[1] if u < 0.5 else FIRE[2])
                 if u < 0.5:
@@ -643,7 +657,7 @@ def dawn_up(R):
                 hw = Wd * math.sqrt(max(0.0, 1.0 - (y / Hd) ** 2))
                 for x in range(-int(hw), int(hw) + 1):
                     dd = math.hypot(x / Wd, y / Hd)
-                    c = FIRE[0] if dd < 0.6 else (FIRE[1] if dd < 0.85 else FIRE[2])
+                    c = FIRE[1] if dd < 0.45 else (FIRE[2] if dd < 0.8 else FIRE[3])   # 11-05 协调人：第一拍压暗一档
                     b.put(x, -2 - y, c)
         else:
             k = f - 1
@@ -784,4 +798,84 @@ def mark_px(beat, gift=False):
         out.append((3, 3 - bob, FIRE[2]))
         out.append((4, 3 - bob, FIRE[4]))
         out.append((3, 4 - bob, FIRE[4]))
+    return out
+
+
+# ================================================================ 连携「天降厚礼」：炮弹从天而降 + 一圈圈余震
+
+def lk_up(R):
+    """落地：第 0 拍一道从天上插进地面的黑红亮线（弹道最后一段）+ 地面白芯团；1–2 拍矮火裙 + 往上溅的碎块；3–5 拍黑红烟成团散开。宽 ≤ 0.8R"""
+    seed = 307 + R
+    puffs = _puffs(R, seed, 7, spread=0.45, hmin=0.1, hmax=0.35, rmin=0.24, rmax=0.36)
+    frames = []
+    for f in range(6):
+        b = Buf()
+        if f == 0:
+            for y in range(int(R * 1.6)):
+                u = y / (R * 1.6)
+                b.put(0, -y, FIRE[0] if u < 0.3 else (FIRE[2] if u < 0.7 else FIRE[4]))
+                if u < 0.5:
+                    b.put(-1, -y, FIRE[3])
+                    b.put(1, -y, FIRE[3])
+            blob(b, 0, -2, R * 0.38, 1.0, seed, squash=0.5)
+        else:
+            _draw_puffs(b, puffs, f, seed, cool=0.2)
+            if f <= 2:
+                for k in range(6):   # 往上溅的碎块（V 形）
+                    a = -math.pi / 2 + (k - 2.5) * 0.35
+                    d = R * (0.25 + 0.2 * f) * (0.8 + 0.4 * hf(k, 1, seed))
+                    x, y = math.cos(a) * d, math.sin(a) * d - 2 + f * f * 2
+                    b.put(x, y, SMOKE[1])
+                    b.put(x + 1, y, SMOKE[2])
+                    b.put(x, y - 1, FIRE[3] if f == 1 else SMOKE[2])
+        frames.append(b)
+    return frames
+
+
+def lk_gd(R):
+    """余震涟漪：三道细环依次从中心往外推（第 1 / 3 / 5 拍起，各推 3 拍到 0.55 / 0.8 / 1.0R），环上带几粒尘；中心一块焦斑。共 9 拍"""
+    seed = 331 + R
+    frames = []
+    for f in range(9):
+        b = Buf()
+        for i in range(int(R * R * 0.12)):
+            a = hf(i, 1, seed) * math.tau
+            x, y = gpt(R * 0.3 * math.sqrt(hf(i, 2, seed)), a)
+            b.put_if_empty(x, y, SCORCH[0] if hf(i, 3, seed) < 0.6 else SCORCH[1])
+        for k in range(3):
+            st = 1 + 2 * k
+            u = f - st
+            if u < 0 or u > 3:
+                continue
+            Rr = R * [0.55, 0.8, 1.0][k] * [0.55, 0.8, 0.95, 1.0][u]
+            col = [FIRE[2], FIRE[3], FIRE[5], FIRE[6]][u]
+            steps = int(Rr * 6)
+            for i in range(steps):
+                if hf(i // 4, 5, seed + k) < 0.12 + 0.12 * u:
+                    continue
+                x, y = gpt(Rr, i * math.tau / steps)
+                b.put(x, y, col)
+                if u <= 1 and i % 7 == 0:
+                    b.put(x, y - 1, DUST[3])
+        frames.append(b)
+    return frames
+
+
+def drop_px(beat):
+    """连携下坠炮弹（竖直往下）：弹头 3×3 黑铁 + 下端亮芯，上方一道 14 格黑红尾迹（中间 3 格宽、往上收细）。返回 [(x, y, 颜色)]，原点 = 弹头中心"""
+    out = []
+    for y in range(-1, 2):
+        for x in range(-1, 2):
+            out.append((x, y, IRON[1] if x < 0 else IRON[0]))
+    out.append((0, 2, FIRE[0]))
+    out.append((-1, 1, FIRE[2]))
+    out.append((1, 1, FIRE[3]))
+    tail = [FIRE[1], FIRE[2], FIRE[2], FIRE[2], FIRE[3], FIRE[3], FIRE[3], FIRE[4], FIRE[4], FIRE[4], FIRE[5], FIRE[5], FIRE[5], FIRE[6], FIRE[6], SMOKE[3], SMOKE[3], SMOKE[2], SMOKE[2], SMOKE[2], SMOKE[1], SMOKE[1]]
+    for i, c in enumerate(tail):
+        y = -2 - i
+        wob = 1 if (beat + i) % 4 == 0 and i > 8 else (-1 if (beat + i) % 4 == 2 and i > 8 else 0)
+        out.append((wob, y, c))
+        if i < 10:
+            out.append((-1, y, FIRE[4] if i < 3 else FIRE[5]))
+            out.append((1, y, FIRE[4] if i < 3 else FIRE[5]))
     return out

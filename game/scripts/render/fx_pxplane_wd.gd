@@ -1,9 +1,10 @@
 ## 维什戴尔转平面（docs/274，fx/px_plane = 1）：fx_pxplane.gd 按 id 转来的一节，单独成文件（第五批四人并行，少撞 fx_pxplane.gd）。
 ## 帧条由 tools/pxplane_bake_wisadel.py 烤（图形 tools/pxplane_wisadel_art.py），键前缀 wd_；炮弹、落点准星、残影标记、续燃引线在这里逐格画
 ## （算法同 pxplane_wisadel_art.py 的 shell_px() / reticle_px() / bracket_px() / mark_px()，改一边要改另一边）。
-## 招牌（每招一个意象）：普攻 = 实心爆团（橙白热芯 → 暗金 → 黑烟）+ 焦痕，余震 = 土尘冲击圈 + 地缝暗金；精一加灰紫残影殉爆（好礼）+ 主目标头上残影标记；
+## 招牌（每招一个意象）：普攻 = 实心爆团（亮橙红热芯 → 血红 → 黑红烟，原作黑红）+ 焦痕，余震 = 土尘冲击圈 + 地缝一线红；精一加灰紫残影殉爆（好礼）+ 主目标头上残影标记；
 ## 精二加魂炮（灰紫小炮弹 + 灰紫殉爆）+ 主爆外圈一道热冲击环。S1 = 处刑火柱（竖直白热柱 → 火团堆成蘑菇帽）+ 落点四角括号；
-## S2 = 地毯轰炸（贴地扁爆、一圈矮火团往外滚）+ 放射焦星（精二焦星上留地火）；S3 = 巨炮「黎明」（贴地白热地平线 + 升起的光穹 + 外沿烟环）。
+## S2 = 地毯轰炸（贴地扁爆、一圈矮火团往外滚）+ 放射焦星（精二焦星上留地火）；S3 = 巨炮「黎明」（贴地白热地平线 + 升起的光穹 + 外沿烟环）；
+## 连携「天降厚礼」= 她朝天开一炮，死者处各有一发炮弹拖着黑红尾迹从天上砸下 → 落地矮爆 + 三道余震涟漪依次推开。
 ## 只画：读玩法状态（o.hw.wd 的 shells / quakes / marks），画面专用键只在 wd 里写 pxk（S1 强化炮标记，玩法不读）；不碰玩法与玩法随机数。
 ## 挂在人身上的件（炮口焰、技能起手星芒）带 fo 跟她走；爆团、焦痕、余震、残影留在原地。
 extends RefCounted
@@ -11,8 +12,8 @@ extends RefCounted
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
-const FIRE := [Color("#fff8ea"), Color("#ffe6a8"), Color("#ffc860"), Color("#f5a032"), Color("#d8701c"), Color("#9a4614"), Color("#5a2610"), Color("#2e140a")]
-const SMOKE := [Color("#0e0b0d"), Color("#1c1719"), Color("#2c2629"), Color("#40383c"), Color("#5a5054")]
+const FIRE := [Color("#fff0e4"), Color("#ffa868"), Color("#f04a24"), Color("#c41e18"), Color("#8e1010"), Color("#5c0a0c"), Color("#360608"), Color("#1a0305")]   # 黑红（11-05 用户：对齐原作），偏橙的血红，和敌方预警粉红拉开
+const SMOKE := [Color("#0c0607"), Color("#180a0c"), Color("#26100f"), Color("#381a18"), Color("#4e2a28")]
 const SOUL := [Color("#120e1a"), Color("#262034"), Color("#3e3452"), Color("#5e5276"), Color("#8a7ea6"), Color("#b8aed2"), Color("#e8e2f6")]
 const IRON := [Color("#141012"), Color("#2a2226"), Color("#463c40"), Color("#6a5e60")]
 const SOUL_L := Color(0.62, 0.52, 0.9)     # 魂灵照地光（灰紫）
@@ -34,6 +35,9 @@ var r      # fx_pxplane 实例
 var g
 var _beat := {}
 var _lines: Array = []   # 续燃引线 / 连锁：{a, b, t0, oid}
+var _drops: Array = []   # 连携下坠炮弹：{c, t0, oid}（0.35 秒从 DROP_H 高砸到 c）
+const DROP_T := 0.35     # 同 skill_link l_wisadel 残影 → 炸开的延时
+const DROP_H := 240.0
 
 
 func _init(px) -> void:
@@ -135,17 +139,29 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			_lines.append({"a": d.a, "b": d.b, "t0": g.t, "oid": str(o.id), "br": false})
 			if _lines.size() > 8:
 				_lines.pop_front()
-		"wd_lghost":   # 连携「好礼」：死者原地浮出残影
-			if _beat_n(o, "shd") >= 4:
+		"wd_lgo":   # 连携「天降厚礼」起手：她朝天开一炮（炮口焰朝上，跟她）
+			if o.pos == Vector2.INF:
 				return
-			_up(o, "shade", d.at, {"gy": (d.at as Vector2).y + 1.0})
-		"wd_lblast":   # 连携「好礼」：残影殉爆（半径 60）
+			var mz2: Vector2 = o.pos + Vector2(4.0 * float(o.face), -48.0)
+			_up(o, "mzg_d-90", mz2, {"fo": Pxp._snap(mz2) - Pxp._snap(o.pos), "gy": o.pos.y + 1.0})
+			R._light(o, mz2, 100.0, 0.55, 0.1, p.light)
+		"wd_lghost":   # 连携：死者处一发炮弹从天上砸下来（0.35 秒后落地 = 玩法上残影炸开的时刻），地上先出落点准星
+			if _drops.size() >= 10:
+				return
+			_drops.append({"c": Pxp._snap(d.at), "t0": g.t, "oid": str(o.id)})
+		"wd_lblast":   # 连携：落地矮爆 + 三道余震涟漪（半径 60）
 			var c: Vector2 = d.at
-			var sb: int = _pick(SB_R, float(d.get("r", 60.0)))
-			_up(o, "sb_r%d" % sb, c, {"gy": c.y + 1.0})
+			if d.get("late", false):   # 补的一发：伤害当下结算，画面等炮弹落地（DROP_T 后）再炸；不挂灯 / 颗粒
+				var tl: float = g.t + DROP_T
+				_up(o, "lk_up", c, {"gy": c.y + 1.0, "t0": tl, "life": DROP_T + 0.5})
+				_gd(o, "lk_gd", c, {"t0": tl, "life": DROP_T + 0.7})
+				return
+			_up(o, "lk_up", c, {"gy": c.y + 1.0})
+			_gd(o, "lk_gd", c)
 			if int(d.get("j", 0)) % 2 == 0:
-				R._light(o, c + Vector2(0, -16), 120.0, 0.6, 0.12, SOUL_L)
-			R._grains(o, c + Vector2(0, -14), c.y + 2.0, "rock", 3, {"tier": 2})
+				R._light(o, c + Vector2(0, -16), 130.0, 0.7, 0.13, p.light)
+			R._grains(o, c + Vector2(0, -14), c.y + 2.0, "rock", 3, {"tier": 2, "grain_spd": 1.2})
+			R._grains(o, c + Vector2(0, -10), c.y + 2.0, "ember", 3, {"tier": 2, "grain_spd": 1.2})
 		"skill":
 			var si: int = int(d.get("i", -1))
 			if si < 0 or o.pos == Vector2.INF:
@@ -283,6 +299,17 @@ func draw_floor(o) -> void:
 					continue
 				var an: float = TAU * i / n
 				r._px(cv, Pxp._snap(q3.pos) + Vector2(round(rq * cos(an)), round(rq * sin(an) * SQ)) * px, Color(FIRE[5].r, FIRE[5].g, FIRE[5].b, 0.35 + 0.5 * a))
+	var now0: float = g.t
+	_drops = _drops.filter(func(D): return now0 - float(D.t0) < DROP_T + 0.05)
+	for D in _drops:   # 连携落点准星（半径 30 美术像素 = 爆点 60）+ 弹影
+		if str(D.oid) != id:
+			continue
+		var kd: float = clampf((now0 - float(D.t0)) / DROP_T, 0.0, 1.0)
+		for q in _reticle(30.0, kd, bt):
+			r._px(cv, D.c + q[0] * px, q[1])
+		var sw: int = 1 if kd < 0.5 else 2
+		for dx in range(-sw, sw + 1):
+			r._px(cv, D.c + Vector2(dx * px, 0), Color(SMOKE[0].r, SMOKE[0].g, SMOKE[0].b, 0.4 + 0.3 * kd))
 	for it in r.items:
 		if str(it.ly) != "gd" or str(it.oid) != id:
 			continue
@@ -346,6 +373,9 @@ func sort_items(o, out: Array) -> void:
 	if vg is Dictionary and not vg.is_empty():   # 后期额外弹（late_shape / 可见成长）：黑铁小弹 + 两格火尾
 		for bu in vg.get("bul", []):
 			out.append({"wd": "xshell", "b": bu, "gy": (bu.p as Vector2).y + 1.0})
+	for D in _drops:
+		if str(D.oid) == str(o.id) and g.t - float(D.t0) < DROP_T:
+			out.append({"wd": "drop", "D": D, "gy": (D.c as Vector2).y + 1.0})
 	var wd: Dictionary = _wd(o)
 	if wd.is_empty():
 		return
@@ -355,6 +385,16 @@ func sort_items(o, out: Array) -> void:
 
 func draw_rt(ci, it: Dictionary) -> void:
 	match str(it.wd):
+		"drop":   # 连携下坠炮弹：越落越快（h = H × (1 − u²)），竖直黑红尾迹（同 pxplane_wisadel_art.drop_px）
+			var D: Dictionary = it.D
+			var u: float = clampf((g.t - float(D.t0)) / DROP_T, 0.0, 1.0)
+			var hd3: Vector2 = Pxp._snap((D.c as Vector2) + Vector2(0, -DROP_H * (1.0 - u * u) - 6.0))
+			var bt3: int = int(floor(g.t * 15.0))
+			for q in _drop(bt3):
+				var p3: Vector2 = hd3 + q[0] * g.PX
+				r._px(ci, p3, q[1])
+				if q[0].y >= 1.0 and q[0].y <= 2.0:
+					r._glow(p3, q[1])
 		"xshell":
 			var bu: Dictionary = it.b
 			var px2: float = g.PX
@@ -484,4 +524,27 @@ func _mark(beat: int, gift: bool) -> Array:
 		out.append([Vector2(3, 3 - bob), FIRE[2]])
 		out.append([Vector2(4, 3 - bob), FIRE[4]])
 		out.append([Vector2(3, 4 - bob), FIRE[4]])
+	return out
+
+
+## 连携下坠炮弹：[美术像素偏移（原点 = 弹头中心）, 颜色]
+func _drop(beat: int) -> Array:
+	var out: Array = []
+	for y in range(-1, 2):
+		for x in range(-1, 2):
+			out.append([Vector2(x, y), IRON[1] if x < 0 else IRON[0]])
+	out.append([Vector2(0, 2), FIRE[0]])
+	out.append([Vector2(-1, 1), FIRE[2]])
+	out.append([Vector2(1, 1), FIRE[3]])
+	var tail: Array = [FIRE[1], FIRE[2], FIRE[2], FIRE[2], FIRE[3], FIRE[3], FIRE[3], FIRE[4], FIRE[4], FIRE[4], FIRE[5], FIRE[5], FIRE[5], FIRE[6], FIRE[6], SMOKE[3], SMOKE[3], SMOKE[2], SMOKE[2], SMOKE[2], SMOKE[1], SMOKE[1]]
+	for i in tail.size():
+		var y2: int = -2 - i
+		var wob := 0
+		if i > 8:
+			var m: int = (beat + i) % 4
+			wob = 1 if m == 0 else (-1 if m == 2 else 0)
+		out.append([Vector2(wob, y2), tail[i]])
+		if i < 10:
+			out.append([Vector2(-1, y2), FIRE[4] if i < 3 else FIRE[5]])
+			out.append([Vector2(1, y2), FIRE[4] if i < 3 else FIRE[5]])
 	return out
