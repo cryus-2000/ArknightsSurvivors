@@ -1,0 +1,5 @@
+('trace0_logos_s23', 301, [], False)
+('trace1_logos_s23', 301, [], False)
+('trace2_logos_s23', 301, [], False)
+trace0_logos_s23 vs trace1_logos_s23：TRACE 301 / 301 行，逐行一致
+trace0_logos_s23 vs trace2_logos_s23：TRACE 301 / 301 行，逐行一致
