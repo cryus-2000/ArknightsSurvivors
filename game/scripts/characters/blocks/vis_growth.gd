@@ -408,6 +408,8 @@ static func tick(o, dt: float) -> void:
 				_hit(o, e, float(b.dmg), _src(o, str(b.key), "远程"))
 				if str(o.id) == "lumen":
 					_FXR.ev(o, "lm_xhit", {"e": e, "at": e.pos + Vector2(0, SHOT_Y)})   # 转平面（docs/255）：只画
+				elif str(o.id) == "logos":
+					_FXR.ev(o, "lg_xhit", {"e": e, "at": e.pos + Vector2(0, SHOT_Y)})   # 转平面（docs/258）：只画
 				elif str(o.id) == "eyjafjalla":
 					_FXR.ev(o, "ey_xhit", {"e": e, "at": e.pos, "r": 30.0})   # 转平面（docs/259）：只画
 				elif str(o.id) == "exusiai":
@@ -476,7 +478,7 @@ static func draw(o) -> void:
 	var low: bool = quality() == "low"
 	var tc := _tint(o)
 	var sc: float = kn("shot_scale", 0.8)
-	var pxb: bool = str(o.id) in ["lumen", "eyjafjalla", "exusiai", "wisadel"] and _FXR.Pxp.owns_id(g, str(o.id))   # 转平面（docs/255 / 259 / 262 / 274）：流明光弹、艾雅法拉熔岩块、维什戴尔小炮弹由 fx_pxplane 画
+	var pxb: bool = str(o.id) in ["lumen", "eyjafjalla", "exusiai", "logos", "wisadel"] and _FXR.Pxp.owns_id(g, str(o.id))   # 转平面（docs/255 / 258 / 259 / 262 / 274）：流明光弹、逻各斯彗星、艾雅法拉熔岩块、维什戴尔小炮弹等由 fx_pxplane 画
 	for b in ([] if pxb else v.bul):
 		var p: Vector2 = b.p + Vector2(0, SHOT_Y)
 		var d: Vector2 = b.v.normalized()
