@@ -786,13 +786,17 @@ static func _step16(u, a: Dictionary) -> bool:
 						var side: float = signf((e.pos - q).dot(nv))
 						p.apply_kb(e, nv * (side if side != 0.0 else 1.0) * 200.0)
 						_hit16(p, e, "冲阵", 0.6)
-				if not LFB.sg_dash(u, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
+				if Fxr.owns(p):
+					Fxr.ev(p, "link_dash", {"q": q})   # 转平面（docs/264）：冲刺扬起的碎土由 fx_pxplane 画（只画）
+				elif not LFB.sg_dash(u, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
 					u.grain("bfx_dust", q + Vector2(0, 8), Vector2.UP, Color(0.4, 0.36, 0.3), 1)
 				return false
 			if once.call("slam"):
 				_beat(u)
 				u.g.vfx.stop(0.05, "link", true)
-				if not LFB.sg_slam(u, c):
+				if Fxr.owns(p):
+					Fxr.ev(p, "link_slam", {"c": c, "es": u.in_circle(c, 90.0)})   # 转平面（docs/264）：尾锤大砸坑由 fx_pxplane 画（只画）
+				elif not LFB.sg_slam(u, c):
 					u.shape({"kind": "ring", "c": c, "r": 95.0, "r1": 20.0, "w": 8.0, "col": cl, "life": 0.4})
 					u.shape({"kind": "ellipse", "c": c + Vector2(0, 4), "rx": 50.0, "ry": 20.0, "col": Color(0.12, 0.1, 0.08), "fill": 0.7, "layer": "back", "life": 1.0})
 					u.debris(c, cl, 2)

@@ -1,4 +1,4 @@
-## 近战打击感包（docs/246 §11，11-05 用户实机「现在近战打击感比较弱」）：开关 fx/melee_impact（缺省 0 = 关），先只给斯卡蒂、星熊。
+## 近战打击感包（docs/246 §11，11-05 用户实机「现在近战打击感比较弱」）：开关 fx/melee_impact（缺省 0 = 关），先给斯卡蒂、星熊，11-05 加推进之王（docs/264）。
 ## 只改画面，不碰玩法与随机数（同种子 TRACE 开关逐行一致）：
 ##   ① 命中顿帧：走 vfx.stop 总闸（平衡 / 批跑局不消耗顿帧）；队长全量、队友按 fx/melee_impact_mate 比例；轻击 / 重击两档；
 ##   ② 重击轻震镜头：g.ult.shake（按真实时间、减少动态效果时为 0），用户同意的 3px / 0.12s 量级；
@@ -8,7 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42)}
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3)}   # 推进之王（docs/264）：锤击 / 跃空锤落地
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false}
 const FLASH_T := 0.07
 

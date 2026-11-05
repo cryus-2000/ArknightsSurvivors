@@ -60,12 +60,12 @@ const _NONE := {}
 
 func recipe(id: String) -> Dictionary:
 	# 转平面试验（docs/246）的干员只在 fx/px_plane 开着时有配方（读 data/fx_pxplane/）；其余干员只在 fx/recipe 开着时有
-	var px: bool = Pxp.IDS.has(id)
-	if px and not Pxp.owns_id(g, id):
-		return _NONE
+	# 推进之王（docs/264）原本有 docs/245 的配方：转平面关着时照旧走 fx/recipe 的配方（缓存键分开）
+	var px: bool = Pxp.IDS.has(id) and Pxp.owns_id(g, id)
 	if not px and Bal.v("fx/recipe", 0.0) <= 0.0:
 		return _NONE
-	if not recipes.has(id):
+	var ck: String = ("px:" + id) if px else id
+	if not recipes.has(ck):
 		var d := {}
 		var p: String = (PXP_DIR if px else DIR) + id + ".json"
 		if FileAccess.file_exists(p):
@@ -74,8 +74,8 @@ func recipe(id: String) -> Dictionary:
 			if v is Dictionary:
 				d = v
 				_prep(d)
-		recipes[id] = d
-	return recipes[id]
+		recipes[ck] = d
+	return recipes[ck]
 
 
 ## 颜色字段（"#rrggbb" 或 [r, g, b]）预先转成 Color

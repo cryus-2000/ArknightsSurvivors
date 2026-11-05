@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://x5wr6rs2s90uy"
-path="res://.godot/imported/pxp_ey_ball_boulder_dm90.png-d1b5465898bb870f8ea5e7f3294fd961.ctex"
+uid="uid://yhkngbkf2rce"
+path="res://.godot/imported/pxp_ey_ball_boulder_dm90.png-c1a8ed4acfbf90ed639aa621d2ead1d8.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_ey_ball_boulder_dm90.png"
-dest_files=["res://.godot/imported/pxp_ey_ball_boulder_dm90.png-d1b5465898bb870f8ea5e7f3294fd961.ctex"]
+dest_files=["res://.godot/imported/pxp_ey_ball_boulder_dm90.png-c1a8ed4acfbf90ed639aa621d2ead1d8.ctex"]
 
 [params]
 

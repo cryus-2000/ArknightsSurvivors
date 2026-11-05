@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://da91vmtq8koad"
-path="res://.godot/imported/pxp_ey_ball_rock_dm45.png-15e7ebca76c539dc668fd92129b95ed1.ctex"
+uid="uid://dba1vmtq8koad"
+path="res://.godot/imported/pxp_ey_ball_rock_dm45.png-552be981af1091205175cb8050619a83.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_ey_ball_rock_dm45.png"
-dest_files=["res://.godot/imported/pxp_ey_ball_rock_dm45.png-15e7ebca76c539dc668fd92129b95ed1.ctex"]
+dest_files=["res://.godot/imported/pxp_ey_ball_rock_dm45.png-552be981af1091205175cb8050619a83.ctex"]
 
 [params]
 

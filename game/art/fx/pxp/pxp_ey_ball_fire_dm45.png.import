@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://tlvjmyq8ssor4"
-path="res://.godot/imported/pxp_ey_ball_fire_dm45.png-3186c0e2383e5614f93bf23e51de184d.ctex"
+uid="uid://t6oo5yysb0b"
+path="res://.godot/imported/pxp_ey_ball_fire_dm45.png-b0376e3c233ed297a46eb5d14503fc15.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_ey_ball_fire_dm45.png"
-dest_files=["res://.godot/imported/pxp_ey_ball_fire_dm45.png-3186c0e2383e5614f93bf23e51de184d.ctex"]
+dest_files=["res://.godot/imported/pxp_ey_ball_fire_dm45.png-b0376e3c233ed297a46eb5d14503fc15.ctex"]
 
 [params]
 
