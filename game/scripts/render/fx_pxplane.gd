@@ -2410,9 +2410,11 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_mz_bloom(o, lst[i], bk, raw, t)
 			if mode() == 1 and not lst.is_empty():
 				var hp: Vector2 = lst[0].pos + Vector2(0, -float(lst[0].r) * 0.5)
-				for i in mini(2, lst.size()):   # docs/270：命中帧要量得出核心辉光——命中点一小撮白芯进 emit（2 拍）
-					_push({"k": "", "mzhot": true, "t0": g.t, "gp": _snap(lst[i].pos + Vector2(0, -float(lst[i].r) * 0.55)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0})
-				R._grains(o, hp, float(lst[0].pos.y) + 2.0, "ink", 4 + (1 if t >= 2 else 0), {"tier": t}, (hp - o.pos).normalized())   # docs/270：每次挥伞 4–5 颗（原来伞击 + 每根触手各撒，一簇 13 颗）
+				for i in mini(2, lst.size()):   # docs/270：命中帧要量得出核心辉光——命中点一小撮白芯进 emit（4 拍）
+					var hot := {"k": "", "mzhot": true, "t0": g.t, "gp": _snap(lst[i].pos + Vector2(0, -float(lst[i].r) * 0.55)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0}
+					if i == 0:   # 颗粒等白芯第一次画的时候再撒（发光层晚一帧上屏：颗粒和辉光落在同一帧）；每次挥伞 4–5 颗（原来伞击 + 每根触手各撒，一簇 13 颗）
+						hot["gr"] = [hp, float(lst[0].pos.y) + 2.0, 4 + (1 if t >= 2 else 0), t, (hp - o.pos).normalized()]
+					_push(hot)
 				R._light(o, hp, 100.0, 0.4 * MI.lit_k(g), 0.12, p.light)
 		"mz_tent":
 			var e: Dictionary = d.get("e", {})
@@ -2513,6 +2515,12 @@ func _mz_draw_floor(o) -> void:
 ## 命中白芯：只进发光层（4 拍：十字 + 斜角，逐拍收小变淡，emit 预算内），不画色层——色层的亮由水母绽开那一帧自己画；
 ## docs/270 复测：体检挑的命中帧在出手后约 0.2 秒，2 拍白芯已熄（辉光面积 8），延到 4 拍
 func _mz_hot(it: Dictionary) -> void:
+	if it.has("gr"):
+		var gr: Array = it.gr
+		it.erase("gr")
+		var oo = _op(str(it.oid))
+		if oo != null:
+			load("res://scripts/render/fx_recipe.gd").of(g)._grains(oo, gr[0], gr[1], "ink", int(gr[2]), {"tier": int(gr[3])}, gr[4])
 	if not g.optical_on:
 		return
 	var f: int = frame_of(float(it.t0))
