@@ -1,0 +1,7 @@
+('link1_s11_5', 11, [], False)
+('link0_s11_5', 11, [], False)
+('link2_s11_5', 11, [], False)
+连携事件 [('ey_link', '7.116')]
+三栏 cmp_link 帧 80
+link0_s11_5 vs link1_s11_5：TRACE 11 / 11 行，逐行一致
+link0_s11_5 vs link2_s11_5：TRACE 11 / 11 行，逐行一致
