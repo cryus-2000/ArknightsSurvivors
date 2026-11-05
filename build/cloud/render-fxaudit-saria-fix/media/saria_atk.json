@@ -1,0 +1,39 @@
+{
+ "op": "saria",
+ "mode": "atk",
+ "frame": 15,
+ "engine": 74,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 24,
+ "skill": 0,
+ "parts_total": 30,
+ "parts_per_hit": 1.2,
+ "parts_per_s": 6.0,
+ "parts_s1_1s": null,
+ "mats": {
+  "shard": 30
+ },
+ "life": 0.8,
+ "sz": 3.5,
+ "alive_max": 9,
+ "lights": 15,
+ "lights_per_hit": 0.62,
+ "light_r": 70.0,
+ "light_i": 0.5,
+ "light_life": 0.1,
+ "emit_max": 304,
+ "emit_mean": 85.7,
+ "gl_peak": 93.3,
+ "gl_area_hit": 1233,
+ "gl_mean_hit": 11.3,
+ "em_peak": 236.1,
+ "em_area_hit": 36,
+ "em_mean_hit": 102.5,
+ "crop": [
+  547,
+  221,
+  320,
+  180
+ ]
+}

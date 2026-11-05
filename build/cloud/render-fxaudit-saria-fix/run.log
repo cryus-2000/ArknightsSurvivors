@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('saria_atk_A', 150, [])
+局 ('saria_atk_B', 150, [])
+局 ('saria_atk_C', 150, [])
+局 ('saria_s1_A', 150, [])
+局 ('saria_s1_B', 150, [])
+局 ('saria_s1_C', 150, [])
+体检 {"op": "saria", "mode": "atk", "frame": 15, "engine": 74, "secs": 5.0, "hits": 0, "acts": 24, "skill": 0, "parts_total": 30, "parts_per_hit": 1.2, "parts_per_s": 6.0, "parts_s1_1s": null, "mats": {"shard": 30}, "life": 0.8, "sz": 3.5, "alive_max": 9, "lights": 15, "lights_per_hit": 0.62, "light_r": 70.0, "light_i": 0.5, "light_life": 0.1, "emit_max": 304, "emit_mean": 85.7, "gl_peak": 93.3, "gl_area_hit": 1233, "gl_mean_hit": 11.3, "em_peak": 236.1, "em_area_hit": 36, "em_mean_hit": 102.5, "crop": [547, 221, 320, 180]}
+体检 {"op": "saria", "mode": "s1", "frame": 0, "engine": 59, "secs": 5.0, "hits": 0, "acts": 8, "skill": 2, "parts_total": 20, "parts_per_hit": 2.5, "parts_per_s": 4.0, "parts_s1_1s": 5, "mats": {"shard": 20}, "life": 0.8, "sz": 3.6, "alive_max": 8, "lights": 5, "lights_per_hit": 0.62, "light_r": 100.0, "light_i": 0.65, "light_life": 0.1, "emit_max": 173, "emit_mean": 63.2, "gl_peak": 88.0, "gl_area_hit": 2023, "gl_mean_hit": 14.0, "em_peak": 230.2, "em_area_hit": 166, "em_mean_hit": 88.2, "crop": [511, 259, 320, 180]}
+media：9 个文件，2.1M
