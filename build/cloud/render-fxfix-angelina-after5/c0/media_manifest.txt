@@ -1,0 +1,9 @@
+782	angelina_atk.json
+894947	angelina_atk.png
+27680	angelina_atk_A.log
+151202	angelina_atk_x2.png
+774	angelina_s1.json
+894888	angelina_s1.png
+27830	angelina_s1_A.log
+142133	angelina_s1_x2.png
+1660	audit_angelina.json
