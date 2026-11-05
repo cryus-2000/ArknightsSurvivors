@@ -1,0 +1,7 @@
+('link1_s11_450', 461, [], False)
+('link0_s11_450', 461, [], False)
+('link2_s11_450', 461, [], False)
+连携事件 [('exu_link', '454.084'), ('exu_link', '454.117'), ('exu_link', '454.151'), ('exu_link', '454.184'), ('exu_link', '454.184'), ('exu_link', '454.217'), ('exu_link', '454.251'), ('exu_link', '454.284')]
+三栏 cmp_link 帧 126
+link0_s11_450 vs link1_s11_450：TRACE 461 / 461 行，逐行一致
+link0_s11_450 vs link2_s11_450：TRACE 461 / 461 行，逐行一致
