@@ -396,7 +396,7 @@ func _lance(L: float, d: Vector2, f: int, tier: int, gust: bool, link := false) 
 				var gl := false
 				if k < 0.34 or hw < 0.9:
 					c = LT[6]
-					gl = true
+					gl = (i + j) % 2 == 0   # 白芯隔一格出 emit（体检 S1 emit p90 325 > 300，docs/272 §6）
 				elif k < 0.62:
 					c = LT[5]
 				elif k < 0.86:

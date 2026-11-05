@@ -88,7 +88,7 @@ def lance(L, d, f, tier, gust=False, link=False):
                     continue
                 k = abs(w) / max(0.6, hw)
                 if k < 0.34 or hw < 0.9:
-                    c, gl = LT[6], True
+                    c, gl = LT[6], (i + j) % 2 == 0   # 白芯隔一格出 emit（docs/272 §6）
                 elif k < 0.62:
                     c, gl = LT[5], False
                 elif k < 0.86:
