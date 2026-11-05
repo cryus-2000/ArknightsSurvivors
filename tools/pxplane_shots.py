@@ -29,6 +29,9 @@ OPS = {
     # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
     # 推进之王（docs/264）：S1 取起手后 4 帧（战旗 + 狮头 + 声波环）；S2 起跳 0.42 秒后落地，取落地后约 3 帧；S3 取起手后约 0.3 秒（光带 + 炭火边）
+    # 能天使（docs/262）：技能起手后约 0.2–0.3 秒（S1 第一发强力弹命中、S2 扫射、S3 第一轮 4 连射）；没有「旧做法」对照，② 栏同 ①
+    "exusiai": {"name": "能天使", "modes": {3: "普攻 速射", 0: "S1 冲锋模式", 1: "S2 扫射模式", 2: "S3 过载模式"}, "off": {0: 8, 1: 8, 2: 9},
+                "cols": [(0, "① 当前游戏原样"), (0, "②（能天使没有旧做法对照，同 ①）"), (1, "③ 转平面 + 统一像素 + 吃光 + Noita")]},
     "siege": {"name": "推进之王", "modes": {3: "普攻 锤击", 0: "S1 冲锋号令·γ型", 1: "S2 跃空锤", 2: "S3 碎颅击"}, "off": {0: 4, 1: 16, 2: 10}},
 }
 OP = "skadi"
@@ -92,6 +95,8 @@ def demo(a):
     for mode in [int(x) for x in a.modes.split(",")]:
         for tier in MODE_TIERS[mode]:
             for px, _ in COLS:
+                if (tier, mode, px) in res:
+                    continue   # 同一画法只拍一次（能天使 ② 栏同 ①）
                 tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, a.n, extra=a.extra.split())
                 print(tag, len(frames), "帧", errs[:2], flush=True)
                 res[(tier, mode, px)] = frames
@@ -203,13 +208,14 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam")]
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam") or l.startswith("FXRLOG exusiai exu_link")]
+    evs = [e for e in evs if not e[0].startswith("FXRLOG") or t0 <= float(e[-1]) <= t0 + secs - 1]   # 能天使：只取录像窗口里的（FXRLOG 从开局记起）
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
         return False
     T = float(evs[0][-1])
-    k = int(round((T - t0) * 30.0)) + 8   # 落定后约 0.25 秒（盾立定、冲击环扩开）
+    k = int(round((T - t0) * 30.0)) + (4 if evs[0][2] == "exu_link" else 8)   # 落定后约 0.25 秒（盾立定、冲击环扩开）；能天使取第一发后约 0.13 秒（曳光推进中）
     k -= k % st
     fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in (0, 2, 1)}
     if not all(os.path.exists(f) for f in fr.values()):
@@ -220,7 +226,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    lname = {"cover": "举盾", "link_slam": "冲阵"}.get(evs[0][2], "举盾推挡")
+    lname = {"cover": "举盾", "link_slam": "冲阵", "exu_link": "穿透扫射"}.get(evs[0][2], "举盾推挡")
     dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (lname, a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
@@ -376,7 +382,7 @@ def diff(a, b):
 
 
 def main():
-    global OP, MODE_NAME, BUILD, LOGS, REUSE
+    global OP, MODE_NAME, BUILD, LOGS, REUSE, COLS
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "linkcmp", "branch", "combo"])
     ap.add_argument("--out", default=os.path.join(BUILD, "out"))
@@ -399,6 +405,7 @@ def main():
     a = ap.parse_args()
     REUSE = a.reuse
     OP, MODE_NAME = a.op, OPS[a.op]["modes"]
+    COLS = OPS[a.op].get("cols", COLS)
     if a.op != "skadi":
         BUILD = os.path.join(ROOT, "build", "pxplane_" + a.op)
         LOGS = os.path.join(BUILD, "logs")
