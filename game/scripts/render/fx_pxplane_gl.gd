@@ -2,7 +2,7 @@
 ## 全部是静态函数，第一个参数 r = fx_pxplane 实例（借它的件表、帧条绘制、15 fps 节拍、发光层、精英档）。只画，不碰玩法、不抽随机数（变化取位置 / 时刻的哈希）。
 ## 意象：钩索、锚、海流。普攻每一下都是掷钩 → 落地水刺 → 绷紧 → 拖回（地上一道 V 字拖痕）→ 到位拍水；
 ##   精一「锚定」：到位处地上一枚锚印（眩晕期间）；精二（质变）：水团芯换深渊紫、落点再炸开一小冠深渊紫水花，到位「冲撞」一圈贴地细涟漪。
-## S1 大洋裂断 = 重钩（两格粗链）+ 一大冠水花炸开 + 沿钩线地上一道被分开的水（「裂断」，贴地，运行时逐格画）；
+## S1 大洋裂断 = 重钩（两格粗链）+ 一大冠水花炸开 + 沿钩线两侧像拉链一样掀起翻卷的浪（「裂断」，运行时逐格画）、塌成贴地白沫；
 ## S2 掌握怒海 = 起手倾斜水环升起 + 脚下浪沫圈（持续）+ 每次掷钩身边海水往里倒卷；S3 碎漩狂舞 = 龙卷水墙（用户认可的龙卷版转平面：远半圈 / 近半圈分开排序）。
 ## 连携（技能连携 v2「聚拢」）= 几道链同时甩出把怪拖向区域 + 四周海水往中心倒卷、汇成一柱。
 ## 帧条：game/art/fx/pxp/pxp_gl_*.png + data/pxp_gladiia.json（tools/pxplane_bake_gladiia.py）；运行时线状件（链、钩头、拖痕、裂断暗沟、沉底锁链）逐美术像素画。
@@ -14,6 +14,7 @@ const C := [Color("#0d1a2e"), Color("#182f51"), Color("#294a78"), Color("#3a65a0
 const CH := [Color("#243246"), Color("#5c7090"), Color("#8798b3"), Color("#dbe2ec"), Color("#f6f8fb")]   # 链：OP.gladiia_tide 冷灰蓝
 const ACC := Color("#b3a8ee")   # 精二点缀深渊紫（OP.gladiia_abyss）
 const ACC2 := Color("#7a6cc8")
+const CYAN := Color("#6ec6d8")   # S1 翻卷浪的青色中段（深海蓝 → 青 → 白沫）
 const SY := 0.72
 const HIT_R := [38, 52, 66]
 const S1_R := [35, 48, 61]
@@ -26,6 +27,14 @@ static var _SegU = null
 
 static func _h(x: float) -> float:
 	return fposmod(sin(x * 12.9898 + 78.233) * 43758.5453, 1.0)
+
+
+## 一维值噪声（相邻格的哈希平滑插值，0..1）
+static func _vn(x: float) -> float:
+	var i: float = floorf(x)
+	var f: float = x - i
+	f = f * f * (3.0 - 2.0 * f)
+	return lerpf(_h(i), _h(i + 1.0), f)
 
 
 static func _bucket(v: float, opts: Array) -> int:
@@ -209,12 +218,96 @@ static func _burst(r, o, R, p: Dictionary, at: Vector2, es: Array, n: int, lr: f
 	R._light(o, hp, lr, li * MI.lit_k(r.g), 0.12, p.light)
 
 
-## S1「裂断」（11-05 用户：原来两侧立起的水墙去掉）：沿钩线地上一道被分开的水——中间暗沟，两侧细白沫线往外推开后散掉（贴地，不立起）
+## S1「裂断」（用户 11-05 第三轮：「水墙不用去掉，换一个表现形式，可以稍微华丽一点」）：沿钩线两侧掀起翻卷的浪——
+## 从她脚边往目标像拉链一样依次掀起，浪身外倾、浪顶卷成白色浪舌碎成水沫、甩出成团水滴，约 0.6 秒后塌成贴地白沫与细涟漪；
+## 浪身深海蓝 → 青 → 白沫，带少量海流纹，浪尖细碎亮光（进发光层）；两侧有空隙，中间被拉的怪看得见；精二浪更高、透深渊紫、外侧再掀第二层。
+## 立起的浪按 32 世界像素一段分段排序；地上一道暗沟 + 两侧白沫线往外推开成细涟漪
 static func _parting(r, o, a: Vector2, c: Vector2, t: int) -> void:
 	var L: float = a.distance_to(c)
 	if L < 60.0:
 		return
-	r._push({"glrt": "trench", "a": a, "d": (c - a) / L, "L": L, "tier": t, "t0": r.g.t, "life": 0.75, "ly": "gd", "oid": str(o.id), "k": "", "gp": a})
+	var d: Vector2 = (c - a) / L
+	var s: float = 28.0
+	var k: int = 0
+	while s < L - 8.0 and k < 14:
+		var s1: float = minf(L - 8.0, s + 32.0)
+		var mid: Vector2 = a + d * ((s + s1) * 0.5)
+		r._push({"glrt": "part", "a": a, "d": d, "s0": s, "s1": s1, "L": L, "tier": t, "t0": r.g.t, "life": PART_ZIP + PART_LIFE, "ly": "up", "oid": str(o.id), "k": "", "gp": mid, "gy": mid.y + 1.0})
+		s = s1
+		k += 1
+	r._push({"glrt": "trench", "a": a, "d": d, "L": L, "tier": t, "t0": r.g.t, "life": 1.0, "ly": "gd", "oid": str(o.id), "k": "", "gp": a})
+
+
+const PART_ZIP := 0.25    # 从脚边掀到目标处用的时间（拉链）
+const PART_LIFE := 0.7    # 每一处浪从掀起到塌完
+
+
+## 一段翻卷浪（两侧）：u = 这一处的局部时刻（按离她的距离依次推迟）
+static func _draw_part(r, ci, it: Dictionary) -> void:
+	var g = r.g
+	var tier: int = int(it.tier)
+	var a: Vector2 = it.a
+	var d: Vector2 = it.d
+	var L: float = float(it.L)
+	var nrm := Vector2(-d.y, d.x * SY).normalized()
+	var hmax: float = [10.0, 13.0, 17.0][tier]
+	var s: float = float(it.s0)
+	while s < float(it.s1):
+		var u: float = g.t - float(it.t0) - PART_ZIP * (s / maxf(1.0, L))
+		if u >= 0.0 and u < PART_LIFE:
+			var taper: float = clampf((s - 28.0) / 30.0, 0.0, 1.0) * clampf((L - 8.0 - s) / 24.0, 0.0, 1.0)
+			for layer in (2 if tier >= 2 else 1):
+				var lu: float = u - 0.06 * float(layer)
+				if lu < 0.0:
+					continue
+				for sg in [-1.0, 1.0]:
+					var gv: float = _vn(s / 14.0 + sg * 1.7 + float(layer) * 3.1)
+					if gv < 0.3:   # 空隙（成段，中间被拉的怪看得见）
+						continue
+					var hs: float = _vn(s / 9.0 + sg * 3.0 + float(layer))   # 浪高沿钩线缓缓起伏（不成梳齿）
+					var off: float = 14.0 + 8.0 * float(layer)
+					var bp: Vector2 = a + d * s + nrm * sg * off * (1.0 + 0.12 * hs)
+					var hl: float = hmax * (1.0 - 0.45 * float(layer))
+					_wave_col(r, ci, bp, nrm * sg, lu, hl * (0.6 + 0.4 * hs) * (0.4 + 0.6 * taper) * clampf((gv - 0.3) / 0.08, 0.3, 1.0), tier, s + sg * 31.0 + float(layer) * 7.0, gv > 0.36)
+		s += 2.0
+
+
+## 翻卷浪的一列：0.1 秒掀起 → 浪身外倾、浪顶卷出白色浪舌 → 0.32 秒起浪舌碎成水沫甩出水滴 → 0.45–0.7 秒塌下
+static func _wave_col(r, ci, bp: Vector2, out: Vector2, u: float, H: float, tier: int, sd: float, tongue := true) -> void:
+	var rise: float = 1.0 - pow(1.0 - clampf(u / 0.1, 0.0, 1.0), 3.0)
+	var fall: float = clampf((u - 0.45) / 0.25, 0.0, 1.0)
+	var curl: float = clampf(u / 0.3, 0.0, 1.0)
+	var h: float = H * rise * (1.0 - fall)
+	var hp: int = int(round(h))
+	if hp >= 1:
+		for z in hp + 1:
+			var kz: float = float(z) / maxf(1.0, float(hp))
+			var c: Color = C[2] if kz < 0.3 else (C[4] if kz < 0.6 else (CYAN if kz < 0.85 else C[6]))
+			if tier >= 2 and kz > 0.25 and kz < 0.6 and _h(sd * 0.7 + float(z) * 1.3) > 0.55:
+				c = ACC2   # 精二：浪身里透出深渊紫
+			if kz > 0.2 and kz < 0.8 and _h(sd * 0.3 + float(z) * 0.9 + u * 15.0) > 0.86:
+				c = C[5]   # 少量海流纹
+			var lean: Vector2 = out * (kz * kz * 4.0 * curl)
+			r._px(ci, bp + lean + Vector2(0, -2.0 * float(z)), c)
+		# 浪舌：浪顶往外卷出 2–3 格白，再往下垂一格
+		if tongue and curl > 0.3 and u < 0.36:   # 空隙边上不画（免得孤零零一根竖白）；朝镜头 / 背镜头的浪舌压短
+			var top: Vector2 = bp + out * (4.0 * curl) + Vector2(0, -2.0 * float(hp))
+			var tl: int = (1 if absf(out.y) > 0.7 else 2) + int(_h(sd) * 2.0)
+			for q in tl:
+				r._px(ci, top + out * 2.0 * float(q + 1), C[7])
+			r._px(ci, top + out * 2.0 * float(tl) + Vector2(0, 2), C[6])
+			if _h(sd * 1.9 + floorf(u * 15.0)) > 0.72:   # 浪尖细碎亮光
+				r._glow(top + out * 2.0, C[7])
+				r._px(ci, top + out * 2.0 + Vector2(0, -2), C[7])
+	# 浪舌碎成水沫、甩出成团水滴（有重力）
+	if u > 0.32 and u < 0.62 and _h(sd * 0.57) > 0.4:
+		var v: float = u - 0.32
+		var dp: Vector2 = bp + out * (8.0 + 70.0 * v) + Vector2(0, -2.0 * H * 0.85 - 40.0 * v + 420.0 * v * v)
+		if dp.y < bp.y:
+			var dc: Color = ACC if tier >= 2 and _h(sd * 2.3) > 0.7 else C[6]
+			r._px(ci, dp, dc)
+			if _h(sd * 3.1) > 0.5:
+				r._px(ci, dp + Vector2(2, 0), C[5])
 
 # ================================================================ 绘制
 
@@ -281,7 +374,8 @@ static func sort_items(r, o, out: Array) -> void:
 
 
 static func draw_rt(r, ci, it: Dictionary) -> void:
-	pass   # 立起的运行时件（原 S1 裂断水墙）11-05 已去掉；留着分流入口
+	if str(it.glrt) == "part":
+		_draw_part(r, ci, it)
 
 
 # ---------------------------------------------------------------- 运行时线状件
@@ -391,12 +485,12 @@ static func _draw_wake(r, cv, it: Dictionary) -> void:
 static func _draw_trench(r, cv, it: Dictionary) -> void:
 	var g = r.g
 	var u: float = g.t - float(it.t0)
-	var gone: float = clampf((u - 0.25) / 0.5, 0.0, 1.0)
+	var gone: float = clampf((u - 0.45) / 0.55, 0.0, 1.0)
 	var tier: int = int(it.tier)
 	var a: Vector2 = it.a
 	var d: Vector2 = it.d
 	var nrm := Vector2(-d.y, d.x * SY).normalized()
-	var w: float = 8.0 + 6.0 * (1.0 - pow(1.0 - clampf(u / 0.15, 0.0, 1.0), 3.0))   # 两侧白沫往外推开
+	var w: float = 8.0 + 6.0 * (1.0 - pow(1.0 - clampf(u / 0.15, 0.0, 1.0), 3.0)) + 14.0 * clampf((u - 0.5) / 0.45, 0.0, 1.0)   # 两侧白沫往外推开；浪塌后继续外扩成细涟漪
 	var s: float = 28.0
 	while s < float(it.L) - 8.0:
 		var base: Vector2 = a + d * s + Vector2(0, 2)

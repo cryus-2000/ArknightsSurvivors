@@ -7,7 +7,7 @@
   - 背景游戏地面色，打在几只怪（深色剪影）上，干员本体用 idle 第 0 帧；
   - 每栏上半 1 倍（= 实机大小：1 美术像素 = 2 屏幕像素），下半 2 倍放大；
   - 15 fps 原速循环（一拍 = 一帧，帧时长 70 / 60 / 70 毫秒交替，平均 66.7）。
-帧条用 tools/pxplane_bake_gladiia.py 烘出的同一批 PNG；运行时线状件（链、钩头、拖痕、裂断暗沟、沉底锁链）
+帧条用 tools/pxplane_bake_gladiia.py 烘出的同一批 PNG；运行时线状件（链、钩头、拖痕、裂断翻卷浪与暗沟、沉底锁链）
 按 game/scripts/render/fx_pxplane_gl.gd 的同一算法逐美术像素画（这里是 Python 抄写，改一边要同步另一边）。
 玩法时序按 gladiia.json / seg_ulpianus 的钩索：飞 dist/900 秒（0.1–0.24）→ 绷紧 0.12 → 拖 0.22（kr = 1-(1-k)²）→ 到位。
 贴地层先画；立起层、怪、干员按脚底 y 排序；链与钩头在上层；热芯（emit）近似发光层加一层柔光。场景压暗 / 受光不模拟。
@@ -38,12 +38,20 @@ def hx(s):
 C = [hx(c) for c in ["#0d1a2e", "#182f51", "#294a78", "#3a65a0", "#4c80c7", "#8bacdb", "#c9d9ee", "#ffffff"]]
 CH = [hx(c) for c in ["#243246", "#5c7090", "#8798b3", "#dbe2ec", "#f6f8fb"]]
 ACC = hx("#b3a8ee")
+ACC2 = hx("#7a6cc8")
 HIT_R = [38, 52, 66]
 S1_R = [35, 48, 61]
 
 
 def h_(x):
     return math.fmod(math.sin(x * 12.9898 + 78.233) * 43758.5453, 1.0) % 1.0
+
+
+def vn(x):
+    i = math.floor(x)
+    f = x - i
+    f = f * f * (3 - 2 * f)
+    return h_(i) + (h_(i + 1.0) - h_(i)) * f
 
 
 def snap(v):
@@ -212,13 +220,75 @@ def wake(cv, it, t, e):
                 cv.px((q[0] + nr[0] * w * sg, q[1] + nr[1] * w * sg), C[7] if back < 8 and fade <= 0 else (C[6] if k < 0.5 else C[5]))
 
 
+CYAN = hx("#6ec6d8")
+PART_ZIP, PART_LIFE = 0.25, 0.7
+
+
+def wave_col(cv, bp, out, u, H, tier, sd, tongue=True):
+    rise = 1 - (1 - min(1.0, max(0.0, u / 0.1))) ** 3
+    fall = min(1.0, max(0.0, (u - 0.45) / 0.25))
+    curl = min(1.0, max(0.0, u / 0.3))
+    hp = int(round(H * rise * (1 - fall)))
+    if hp >= 1:
+        for z in range(hp + 1):
+            kz = z / max(1.0, hp)
+            c = C[2] if kz < 0.3 else (C[4] if kz < 0.6 else (CYAN if kz < 0.85 else C[6]))
+            if tier >= 2 and 0.25 < kz < 0.6 and h_(sd * 0.7 + z * 1.3) > 0.55:
+                c = ACC2
+            if 0.2 < kz < 0.8 and h_(sd * 0.3 + z * 0.9 + u * 15.0) > 0.86:
+                c = C[5]
+            lean = kz * kz * 4.0 * curl
+            cv.px((bp[0] + out[0] * lean, bp[1] + out[1] * lean - 2 * z), c)
+        if tongue and curl > 0.3 and u < 0.36:
+            top = (bp[0] + out[0] * 4 * curl, bp[1] + out[1] * 4 * curl - 2 * hp)
+            tl = (1 if abs(out[1]) > 0.7 else 2) + int(h_(sd) * 2.0)
+            for q in range(tl):
+                cv.px((top[0] + out[0] * 2 * (q + 1), top[1] + out[1] * 2 * (q + 1)), C[7])
+            cv.px((top[0] + out[0] * 2 * tl, top[1] + out[1] * 2 * tl + 2), C[6])
+            if h_(sd * 1.9 + math.floor(u * 15.0)) > 0.72:
+                cv.glow((top[0] + out[0] * 2, top[1] + out[1] * 2), C[7])
+                cv.px((top[0] + out[0] * 2, top[1] + out[1] * 2 - 2), C[7])
+    if 0.32 < u < 0.62 and h_(sd * 0.57) > 0.4:
+        v = u - 0.32
+        dp = (bp[0] + out[0] * (8 + 70 * v), bp[1] + out[1] * (8 + 70 * v) - 2 * H * 0.85 - 40 * v + 420 * v * v)
+        if dp[1] < bp[1]:
+            cv.px(dp, ACC if tier >= 2 and h_(sd * 2.3) > 0.7 else C[6])
+            if h_(sd * 3.1) > 0.5:
+                cv.px((dp[0] + 2, dp[1]), C[5])
+
+
+def part(cv, it, t):
+    tier, a, d, L = it["tier"], it["a"], it["d"], it["L"]
+    nr = norm((-d[1], d[0] * SY))
+    hmax = [10.0, 13.0, 17.0][tier]
+    s = it["s0"]
+    while s < it["s1"]:
+        u = t - it["t0"] - PART_ZIP * (s / max(1.0, L))
+        if 0 <= u < PART_LIFE:
+            taper = min(1.0, max(0.0, (s - 28) / 30)) * min(1.0, max(0.0, (L - 8 - s) / 24))
+            for layer in range(2 if tier >= 2 else 1):
+                lu = u - 0.06 * layer
+                if lu < 0:
+                    continue
+                for sg in (-1.0, 1.0):
+                    gv = vn(s / 14.0 + sg * 1.7 + layer * 3.1)
+                    if gv < 0.3:
+                        continue
+                    hs = vn(s / 9.0 + sg * 3.0 + layer)
+                    off = 14.0 + 8.0 * layer
+                    bp = (a[0] + d[0] * s + nr[0] * sg * off * (1 + 0.12 * hs), a[1] + d[1] * s + nr[1] * sg * off * (1 + 0.12 * hs))
+                    hl = hmax * (1 - 0.45 * layer)
+                    wave_col(cv, bp, (nr[0] * sg, nr[1] * sg), lu, hl * (0.6 + 0.4 * hs) * (0.4 + 0.6 * taper) * min(1.0, max(0.3, (gv - 0.3) / 0.08)), tier, s + sg * 31.0 + layer * 7.0, gv > 0.36)
+        s += 2.0
+
+
 def trench(cv, it, t):
     u = t - it["t0"]
-    gone = min(1.0, max(0.0, (u - 0.25) / 0.5))
+    gone = min(1.0, max(0.0, (u - 0.45) / 0.55))
     tier = it["tier"]
     a, d, L = it["a"], it["d"], it["L"]
     nr = norm((-d[1], d[0] * SY))
-    w = 8.0 + 6.0 * (1 - (1 - min(1.0, max(0.0, u / 0.15))) ** 3)
+    w = 8.0 + 6.0 * (1 - (1 - min(1.0, max(0.0, u / 0.15))) ** 3) + 14.0 * min(1.0, max(0.0, (u - 0.5) / 0.45))
     s = 28.0
     while s < L - 8:
         base = (a[0] + d[0] * s, a[1] + d[1] * s + 2)
@@ -326,7 +396,13 @@ class Scene:
     def parting(self, tk, a, c):
         L = math.hypot(c[0] - a[0], c[1] - a[1])
         d = ((c[0] - a[0]) / L, (c[1] - a[1]) / L)
-        self.rt.append({"kind": "trench", "a": a, "d": d, "L": L, "tier": self.tier, "t0": tk / 15.0, "life": 0.75})
+        s = 28.0
+        while s < L - 8:
+            s1 = min(L - 8, s + 32)
+            mid = (a[0] + d[0] * (s + s1) / 2, a[1] + d[1] * (s + s1) / 2)
+            self.rt.append({"kind": "part", "a": a, "d": d, "s0": s, "s1": s1, "L": L, "tier": self.tier, "t0": tk / 15.0, "life": PART_ZIP + PART_LIFE, "gy": mid[1] + 1})
+            s = s1
+        self.rt.append({"kind": "trench", "a": a, "d": d, "L": L, "tier": self.tier, "t0": tk / 15.0, "life": 1.0})
 
     def step_enemies(self, t):
         for hk in self.hooks:
@@ -392,6 +468,8 @@ def render(sc, tk):
             trench(cv, it, t)
         elif it["kind"] == "sunk":
             sunk(cv, it["a"], it["c"], it["gone"](t))
+        elif it["kind"] == "part":
+            sortables.append((OY + it["gy"], "part", it))
     for e in sc.en:
         sortables.append((OY + e["pos"][1], "enemy", e))
     sortables.append((OY + 0.0, "op", None))
@@ -399,6 +477,8 @@ def render(sc, tk):
     for _, kind, v in sortables:
         if kind == "enemy":
             cv.sprite(ENEMY, v["pos"], (ENEMY.width // 2, ENEMY.height - 6))
+        elif kind == "part":
+            part(cv, v, t)
         elif kind == "op":
             cv.sprite(OPSPR, (0, 0), (64, 120))
         else:
@@ -485,7 +565,7 @@ def sc_late(lib, el):
 
 
 def sc_s1(lib, el):
-    sc = Scene(lib, el, PACK, 30)
+    sc = Scene(lib, el, PACK, 34)
     sc.hook(2, 3, heavy=True)
     return sc
 
@@ -624,7 +704,7 @@ def main():
     title = "歌蕾蒂娅 · 转平面 · 15 fps 原速"
     jobs = {
         "atk": lambda: gif([("普攻「钩索」 精英 %d" % el + ("（锚定）" if el == 1 else "（冲撞）" if el == 2 else ""), sc_atk(lib, el)) for el in (0, 1, 2)], 36, os.path.join(a.out, "gladiia_atk.gif"), title, (150, -10)),
-        "s1": lambda: gif([("S1「缺水的大洋裂断」 精英 %d" % el, sc_s1(lib, el)) for el in (0, 1, 2)], 30, os.path.join(a.out, "gladiia_s1.gif"), title, (130, -14)),
+        "s1": lambda: gif([("S1「缺水的大洋裂断」 精英 %d" % el, sc_s1(lib, el)) for el in (0, 1, 2)], 34, os.path.join(a.out, "gladiia_s1.gif"), title, (130, -14)),
         "s2": lambda: gif([("S2「缺水的掌握怒海」 精英 %d" % el, sc_s2(lib, el)) for el in (1, 2)], 36, os.path.join(a.out, "gladiia_s2.gif"), title, (40, -20)),
         "s3": lambda: gif([("S3「缺水的碎漩狂舞」 精英 2（起 → 每跳 → 收）", sc_s3(lib))], 46, os.path.join(a.out, "gladiia_s3.gif"), title, (190, -36)),
         "link": lambda: gif([("连携技「聚拢」（技能连携 v2 缺省版）", sc_link(lib))], 30, os.path.join(a.out, "gladiia_link.gif"), title, (150, -10)),
