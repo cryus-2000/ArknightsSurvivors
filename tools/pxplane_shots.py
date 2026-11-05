@@ -216,6 +216,7 @@ def linkcmp(a, base):
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
     evs = [l.split() for l in log.splitlines() if l.startswith(key) or l.startswith("PXPLOG hsg combo ")]
+    evs = [e for e in evs if float(e[-1]) >= t0]   # 快跑到 t0 那段也会打日志，只要录像段里的
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
