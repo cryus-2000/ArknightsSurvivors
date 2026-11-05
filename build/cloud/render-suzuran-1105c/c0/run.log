@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3654 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('suzuran_atk_A', 150, [])
+局 ('suzuran_atk_B', 150, [])
+局 ('suzuran_atk_C', 150, [])
+局 ('suzuran_s1_A', 150, [])
+局 ('suzuran_s1_B', 150, [])
+局 ('suzuran_s1_C', 150, [])
+体检 {"op": "suzuran", "mode": "atk", "frame": 4, "engine": 63, "secs": 5.0, "hits": 0, "acts": 59, "skill": 0, "parts_total": 81, "parts_per_hit": 1.4, "parts_per_s": 16.2, "parts_s1_1s": null, "mats": {"flame": 81}, "life": 0.87, "sz": 4.0, "alive_max": 24, "lights": 28, "lights_per_hit": 0.47, "light_r": 90.0, "light_i": 0.55, "light_life": 0.12, "emit_max": 335, "emit_mean": 202.0, "gl_peak": 93.8, "gl_area_hit": 1648, "gl_mean_hit": 19.0, "em_peak": 238.0, "em_area_hit": 181, "em_mean_hit": 99.3, "crop": [485, 280, 320, 180]}
+体检 {"op": "suzuran", "mode": "s1", "frame": 21, "engine": 80, "secs": 5.0, "hits": 0, "acts": 44, "skill": 0, "parts_total": 64, "parts_per_hit": 1.5, "parts_per_s": 12.8, "parts_s1_1s": null, "mats": {"flame": 64}, "life": 0.84, "sz": 4.0, "alive_max": 20, "lights": 20, "lights_per_hit": 0.45, "light_r": 90.0, "light_i": 0.55, "light_life": 0.12, "emit_max": 360, "emit_mean": 143.1, "gl_peak": 92.7, "gl_area_hit": 3722, "gl_mean_hit": 21.4, "em_peak": 230.0, "em_area_hit": 68, "em_mean_hit": 114.6, "crop": [428, 274, 320, 180]}
+录像 ('suzuran', '13.9 MB', [])
+media：10 个文件，16M
