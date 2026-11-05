@@ -37,8 +37,8 @@ var stat_parts := 0
 
 
 static func of(game):
-	if game == null:
-		return null
+	if game == null or not (game is Object):
+		return null   # 契约测试的假 g 是 Dictionary（eyja_volcanic_weight）：不接管
 	if game.has_meta("fx_recipe"):
 		return game.get_meta("fx_recipe")
 	var r = new()
@@ -126,14 +126,14 @@ static func owns(o) -> bool:
 	if o == null or o.g == null:
 		return false
 	var r = of(o.g)
-	return r.enabled() and not r.recipe(str(o.id)).is_empty()
+	return r != null and r.enabled() and not r.recipe(str(o.id)).is_empty()
 
 
 static func owns_id(game, oid: String) -> bool:
 	if game == null or oid == "":
 		return false
 	var r = of(game)
-	return r.enabled() and not r.recipe(oid).is_empty()
+	return r != null and r.enabled() and not r.recipe(oid).is_empty()
 
 
 # ================================================================ 配方读取
