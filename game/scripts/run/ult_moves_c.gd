@@ -11,7 +11,6 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：流明 / 铃兰（docs/199 §7.9）
-const PXP = preload("res://scripts/render/fx_pxplane.gd")   # 终结技转平面（ult/px_plane，docs/264 §10）：推进之王只画
 const IDS: Array = ["saria", "suzuran", "logos", "hoshiguma", "siege", "irene", "lappland", "lumen"]
 const DIR_OPS: Array = ["suzuran", "logos", "irene"]   # 塞雷娅 10-30 改成以自身为圆心的拳风环，不瞄
 const POINT_OPS: Array = ["siege"]
@@ -515,25 +514,6 @@ static func _sa_punch_v2(u, a: Dictionary, org: Vector2, R: float, tr: float) ->
 ## 变体：尘浪环 3 种；裂网（用户 10-30「推进之王的裂地感太直」「都跟乌尔比安的对齐」）用乌尔比安同形的分叉裂缝 4 种转灰（fx_sg_fork1–4：灰白尘光、冷灰岩唇）
 const SG_RINGS := ["fx_sg_shock", "fx_sg_shock2", "fx_sg_shock3"]
 const SG_FORKS := ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"]
-
-
-## 推进之王终结技转平面（ult/px_plane，缺省 0；docs/264 §10）：画面改走 fx_pxplane 的帧条（1 像素 = 1 美术像素、15 fps、贴地层压扁），
-## 原 u.shape / pixfx 画面不生成。判定、时序、伤害、震屏、顿帧、冲击帧（整屏白 + 黑剪影）一律不动；要 fx/px_plane 也开着（转平面层在画）
-static func _sg_px(u) -> bool:
-	return Bal.v("ult/px_plane", 0.0) > 0.0 and PXP.owns_id(u.g, "siege")
-
-
-## 冲击帧的剪影主体：一组看不见的裂缝折线（平时 alpha 0，冲击帧那两拍画成黑 / 白剪影；不抽随机数，按落点哈希）
-static func _sg_px_hf(u, c: Vector2, R: float, vs: float) -> void:
-	for j in 14:
-		var a: float = TAU * (j + PF.h(vs + j * 1.7) * 0.6) / 14.0
-		var p0: Vector2 = c + Vector2.from_angle(a) * 20.0
-		var L: float = R * (0.45 + 0.45 * PF.h(vs * 3.0 + j))
-		for q in 5:
-			var a2: float = a + (PF.h(vs + j * 5.0 + q) - 0.5) * 0.7
-			var p1: Vector2 = p0 + Vector2(cos(a2), sin(a2) * 0.72) * L / 5.0
-			u.shape({"kind": "line", "a": p0, "b": p1, "w": 7.0 - q, "col": Color(0, 0, 0, 0), "life": 0.3, "hf": true})
-			p0 = p1
 
 
 static func _sg_v3() -> bool:   # 推进之王打击感（10-31）：冲击帧 + 逐帧烟尘 + 浮空落地扬尘；0 = 10-30 版
@@ -1211,13 +1191,10 @@ static func _sg_start(u, o, aim: Vector2, d: Vector2) -> Dictionary:
 	var T: float = Bal.v("ult/sg_air", 0.6)
 	var R: float = Bal.v("ult/sg_r", 540.0) * (450.0 / 480.0 if rt == "leap" else 1.0)
 	var col: Color = u._col(o)
-	if _sg_px(u):   # 转平面（docs/264 §10）：起跳尘 + 落点预兆 + 空中蓄力由 fx_pxplane 画
-		PXP.of(u.g).ult_sg(o, "start", {"p0": o.pos, "c": c, "T": T, "R": R})
-	else:
-		# 起跳尘 + 落点预兆（影子在落点由大缩小、越来越深）
-		_ring(u, o.pos, 110.0, 30.0, COL_ROCK.lerp(Color.WHITE, 0.3), 0.3, 5.0)
-		u.shape({"kind": "dots", "c": o.pos, "r": 80.0, "n": 10, "col": COL_ROCK, "life": 0.35})
-		_ring(u, c, 50.0, R, Color(col, 0.7), T, 3.0)
+	# 起跳尘 + 落点预兆（影子在落点由大缩小、越来越深）
+	_ring(u, o.pos, 110.0, 30.0, COL_ROCK.lerp(Color.WHITE, 0.3), 0.3, 5.0)
+	u.shape({"kind": "dots", "c": o.pos, "r": 80.0, "n": 10, "col": COL_ROCK, "life": 0.35})
+	_ring(u, c, 50.0, R, Color(col, 0.7), T, 3.0)
 	o.play_vis_anim("attack")
 	return {"p0": o.pos, "c": c, "T": T, "R": R, "H": Bal.v("ult/sg_h", 170.0), "landed": false, "mseg": {}, "fseg": {}, "air": [], "still": [],
 		"fall": false, "sp": 0.4 if rt == "cmd" else Bal.v("ult/sg_sp", 0.25), "cmd": rt == "cmd", "leap": rt == "leap",
@@ -1229,27 +1206,15 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 	var rc: float = R * _core()
 	o.play_vis_anim("attack")
 	o.screen_shake(1.0 if big else 0.6)
-	var px: bool = _sg_px(u)
-	if px:   # 转平面（docs/264 §10）：砸落画面由 fx_pxplane 画；顿帧 / 冲击帧照旧
-		PXP.of(u.g).ult_sg(o, "smash", {"c": c, "R": R, "big": big})
-		if big and _sg_v2(u):   # 同原 v2 路径的条件：顿帧 + 冲击帧只在原来也会有的时候发（开 / 关 TRACE 逐行一致）
-			var vs0: float = PF.vseed(u, c)
-			u.g.vfx.stop(Bal.v("ult/sg_hitstop", 0.1), "ult", true)
-			if _sg_v3():
-				_sg_px_hf(u, c, R, vs0)
-				PF.hf_on(u, a)
-	else:
-		u.shape({"kind": "circle", "c": c, "r": 100.0, "col": Color.WHITE, "fill": 0.9, "life": 0.1})
-	var v2: bool = big and _sg_v2(u) and not px
-	if px:
-		pass
-	elif v2:
+	u.shape({"kind": "circle", "c": c, "r": 100.0, "col": Color.WHITE, "fill": 0.9, "life": 0.1})
+	var v2: bool = big and _sg_v2(u)
+	if v2:
 		_sg_smash_v2(u, c, R, a)
 	else:
 		u.shape({"kind": "circle", "c": c, "r": R, "col": COL_ROCK, "fill": 0.22, "life": 0.3})
 		_ring(u, c, R, 60.0, col.lerp(Color.WHITE, 0.3), 0.4, 16.0 if big else 10.0)
 		_ring(u, c, R * 0.7, 40.0, COL_ROCK.lerp(col, 0.5), 0.35, 8.0, 0.04)
-	var nc: int = 0 if v2 or px else (14 if big else 8)
+	var nc: int = 0 if v2 else (14 if big else 8)
 	for j in nc:   # 放射裂地
 		var dv := Vector2.from_angle(j * TAU / nc + 0.2)
 		var ln: float = R * (0.55 + 0.4 * float((j * 5) % 4) / 3.0)
@@ -1261,13 +1226,13 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 		var nn: int = rings[ri][1]
 		for j in nn:
 			var p: Vector2 = c + Vector2.from_angle(TAU * (j + 0.5 * (ri % 2)) / nn + 0.3 * ri) * rr
-			if v2 or px:   # v2 不画黄色岩刺 / fx_rock_burst（用户 10-30 不喜欢那团黄色烟尘），碎石交给隆起
+			if v2:   # v2 不画黄色岩刺 / fx_rock_burst（用户 10-30 不喜欢那团黄色烟尘），碎石交给隆起
 				continue
 			if j % 2 == 0:
 				u.strip("fx_siege_rock_spike", p, {"o": Vector2(16, 54), "sc": 1.5, "delay": 0.05 * ri})
 			else:
 				u.strip("fx_rock_burst", p, {"sc": 1.6, "delay": 0.05 * ri})
-	for j in (0 if v2 or px else 16):   # 碎石块往外飞
+	for j in (0 if v2 else 16):   # 碎石块往外飞
 		var dv := Vector2.from_angle(j * 2.39996)
 		u.shape({"kind": "blade", "a": c + dv * 50.0, "b": c + dv * 64.0, "w": 6.0, "col": COL_ROCK.lerp(Color.WHITE, 0.2), "glow": COL_ROCK, "life": 0.45, "v": dv * (500.0 + 120.0 * float(j % 3))})
 	for e in u.in_circle(c, R):
@@ -1295,9 +1260,6 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 		var p: Vector2 = gp + Vector2(0, -sin(k * PI) * float(a.H))
 		_lead_move(u, o, p)
 		u.shape({"kind": "circle", "c": gp, "r": 22.0 - 8.0 * sin(k * PI), "col": Color(0.05, 0.04, 0.03), "fill": 0.5, "life": 0.04})
-		if _sg_px(u):   # 转平面：落点影子 / 预兆、空中蓄力在帧条里；本体的地面影子照画
-			a.prev = p
-			return false
 		u.shape({"kind": "circle", "c": c, "r": lerpf(30.0, 70.0, k), "col": Color(0.05, 0.04, 0.03), "fill": 0.35 * k, "life": 0.04})
 		u.shape({"kind": "line", "a": a.prev, "b": p, "w": 6.0, "col": col.lerp(Color.WHITE, 0.3), "life": 0.2})
 		if _sg_v2(u):   # 落点一大片地面跟着渐暗（压暗，砸下那一刻撤掉）
@@ -1309,29 +1271,18 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 		_lead_move(u, o, c)
 		_lead_land(u, o)
 		_sg_smash(u, a, o, c, float(a.R), Bal.v("ult/sg_smash", 0.75), a.mseg, true)
-		if _sg_px(u):   # 转平面：四拍余震的画面在砸落帧条里；这里只按拍震屏 + 照地光 / 碎石（同原节奏 0.18）
-			var Rp: float = float(a.R)
-			a["pxbeats"] = [[t, Rp * 0.3, 0], [t + 0.18, Rp * 0.55, 1], [t + 0.36, Rp * 0.8, 2], [t + 0.54, Rp * 1.0, 3]]
-		elif _sg_v2(u):   # 节奏：一拍一圈往外震（对齐乌尔比安四圈，间隔 0.18）
+		if _sg_v2(u):   # 节奏：一拍一圈往外震（对齐乌尔比安四圈，间隔 0.18）
 			var Rr: float = float(a.R)
 			a["vs"] = PF.vseed(u, c)
 			a["beats"] = [[t, Rr * 0.3, 0], [t + 0.18, Rr * 0.55, 1], [t + 0.36, Rr * 0.8, 2], [t + 0.54, Rr * 1.0, 3]]
 		_team_sp(u, o, float(a.sp))
-		if a.cmd and _sg_px(u):   # 万兽之王：金色号令波（转平面）
-			PXP.of(u.g).ult_sg(o, "cmd", {"c": c})
-		elif a.cmd:   # 万兽之王：金色号令波
+		if a.cmd:   # 万兽之王：金色号令波
 			_ring(u, c, 620.0, 100.0, Color(1.0, 0.85, 0.3), 0.6, 6.0, 0.1)
 			_ring(u, c, 520.0, 80.0, Color(1.0, 0.95, 0.6), 0.5, 3.0, 0.18)
 		if a.leap:
 			var nx: Vector2 = u._densest(c, 420.0, 220.0)
 			a.l2 = {"from": c, "to": nx if nx != Vector2.INF and nx.distance_to(c) > 120.0 else c + (c - Vector2(a.p0)).normalized() * 260.0, "t0": t + 0.25, "dur": 0.3, "done": false}
 	PF.beats_tick(u, a, t, c, Color(0.95, 0.9, 0.8))
-	if a.has("pxbeats"):   # 转平面的四拍：震屏量同 PF.beats_tick
-		var pb: Array = a.pxbeats
-		while not pb.is_empty() and t >= float(pb[0][0]):
-			var b: Array = pb.pop_front()
-			u.shake(4.0 + 2.0 * int(b[2]), 0.18)
-			PXP.of(u.g).ult_sg(o, "beat", {"c": c, "r": float(b[1]), "i": int(b[2])})
 	var lt: float = T
 	if not a.fall and t >= lt + Bal.v("ult/sg_lift", 0.8):
 		a.fall = true   # 震上半空的落地：25%
@@ -1343,10 +1294,7 @@ static func _sg_step(u, a: Dictionary, o) -> bool:
 			_once(u, a, o, a.fseg, e, Bal.v("ult/sg_fall", 0.25), {"src": "落地", "edge": bool(e.get("_sg_edge", false))})
 			if n < 30:
 				n += 1
-				if _sg_px(u):   # 转平面：前 8 只落地各一小圈尘 + 两颗碎石
-					if n <= 8:
-						PXP.of(u.g).ult_sg(o, "fall", {"p": ar.e.pos})
-				elif _sg_v3() and _sg_v2(u):   # 浮空的落地：前 8 只各扬一小团逐帧烟尘（有重量）
+				if _sg_v3() and _sg_v2(u):   # 浮空的落地：前 8 只各扬一小团逐帧烟尘（有重量）
 					if n <= 8:
 						PF.dust(u, ar.e.pos, 90.0, 0.0, float(e.id) * 0.37, Vector2.ZERO)
 				else:

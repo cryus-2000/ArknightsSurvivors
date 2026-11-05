@@ -18,7 +18,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_siege_ult.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
 const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true}
@@ -3581,54 +3581,6 @@ func _sg_draw_cores() -> void:
 			g.glow_next.append([q[0], q[1], col])
 	_sg_cores = keep
 
-
-# ================================================================ 推进之王终结技（ult/px_plane，docs/264 §10；ult_moves_c._sg_* 在开关开时转来，只画）
-## start：起跳一小圈 + 落点预兆（断续金环一闪一闪、影子越来越深、中心细裂一节节冒出、碎屑跳）+ 空中蓄力（跟人走）
-## smash：主砸 = 白金爆闪 + 冲柱 + 火星线 + 碎石高抛 + 两圈隆起尘墙 + 大裂网熔芯冷却 + 深坑 + 冲击环 + 四拍余震 + 坑里吼起一只大狮头；再跃第二下 = 裂地小一号
-## beat：四拍余震每拍一盏照地光 + 几颗碎石（画面在砸落帧条里）；fall：浮空的敌人落地一小圈尘；cmd：万兽之王号令波
-func ult_sg(o, kind: String, d: Dictionary) -> void:
-	if mode() != 1:
-		return
-	var id: String = str(o.id)
-	var R = load("res://scripts/render/fx_recipe.gd").of(g)
-	var p: Dictionary = R.pal(o)
-	if Bal.v("fx/recipe_log", 0.0) > 0.0:
-		print("PXPLOG sg ult_%s %.3f" % [kind, g.t])
-	match kind:
-		"start":
-			var c: Vector2 = d.get("c", o.pos)
-			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(d.get("p0", o.pos)), "flip": false, "ly": "gd", "oid": id})
-			_push({"k": "sg_ult_warn_gd", "t0": g.t, "gp": _snap(c), "flip": false, "ly": "gd", "oid": id})
-			_push({"k": "sg_ult_charge_up", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": id, "fo": Vector2.ZERO})
-			R._grains(o, o.pos + Vector2(0, -4), o.pos.y, "rock", 4, {"tier": 2})
-		"smash":
-			var c2: Vector2 = d.get("c", o.pos)
-			if d.get("big", true):
-				for k in ["sg_ult_smash_gd", "sg_ult_smash_up", "sg_ult_lion_up"]:
-					_push({"k": k, "t0": g.t, "gp": _snap(c2), "flip": false, "ly": "gd" if k.ends_with("_gd") else "up", "oid": id})
-				R._light(o, c2, 240.0, 0.9, 0.15, p.light)   # 爆发档上限内：半径 240、强度 0.9
-				R._grains(o, c2 + Vector2(0, -16), c2.y, "rock", 16, {"tier": 2})
-				R._grains(o, c2 + Vector2(0, -16), c2.y, "streak", 8, {"tier": 2})
-				_sg_motes(o, 2)
-			else:   # 再跃第二下：裂地小一号
-				_push({"k": "sg_rift_r70_e2_up", "t0": g.t, "gp": _snap(c2), "flip": false, "ly": "up", "oid": id})
-				_push({"k": "sg_rift_r70_e2_gd", "t0": g.t, "gp": _snap(c2), "flip": false, "ly": "gd", "oid": id})
-				R._light(o, c2, 180.0, 0.7, 0.15, p.light)
-				R._grains(o, c2 + Vector2(0, -10), c2.y, "rock", 8, {"tier": 2})
-		"beat":
-			var c3: Vector2 = d.get("c", o.pos)
-			var r: float = float(d.get("r", 100.0))
-			var i: int = int(d.get("i", 0))
-			var dv := Vector2.from_angle(TAU * float(i) / 4.0 + 0.6)
-			var at: Vector2 = c3 + Vector2(dv.x, dv.y * 0.72) * r * 0.9
-			R._light(o, at, 160.0, 0.6, 0.12, p.light)
-			R._grains(o, at + Vector2(0, -6), at.y, "rock", 4, {"tier": 2})
-		"fall":
-			var fp: Vector2 = d.get("p", o.pos)
-			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(fp), "flip": false, "ly": "gd", "oid": id})
-			R._grains(o, fp + Vector2(0, -4), fp.y, "rock", 2, {"tier": 2})
-		"cmd":
-			_push({"k": "sg_cmd_gd", "t0": g.t, "gp": _snap(d.get("c", o.pos)), "flip": false, "ly": "gd", "oid": id})
 
 # ================================================================ 德克萨斯（docs/257，照 docs/246 斯卡蒂 / docs/254 星熊的做法）
 ## 普攻「拔刀」= 腰高琥珀刀痕，两头针尖（精一刀头甩碎晶 + 钉剑，精二白刃内侧冷青刃光）；骤雨 / 回马剑 = 整道约 300° 旋斩；
