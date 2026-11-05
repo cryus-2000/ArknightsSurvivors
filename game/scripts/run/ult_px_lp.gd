@@ -13,6 +13,8 @@ const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷�
 const UM = preload("res://scripts/ui_motion.gd")
 const LP := [Color("#15121f"), Color("#2b2542"), Color("#4a4274"), Color("#7b70b4"), Color("#b3aae4"), Color("#e4e0ff"), Color("#ffffff")]   # 同 fx_pxplane_lp.LP
 const LIGHT := Color(0.78, 0.74, 1.0)
+## 配色对齐用的色阶：同 LP 的紫白，但中段更饱和（11-06 实机：终结技的刃是贴图 × 颜色，按 LP 落阶后几乎看不出紫）
+const TV := [Color("#15121f"), Color("#2a2048"), Color("#4a3790"), Color("#7a5fd6"), Color("#a48cf2"), Color("#d4c8ff"), Color("#ffffff")]
 const FPS := 15.0
 const SQ := 0.72
 const PRE := 2.0 / 15.0      # 预备 2 拍
@@ -51,10 +53,10 @@ static func tint(c: Color) -> Color:
 	var l: float = clampf(0.3 * c.r + 0.59 * c.g + 0.11 * c.b, 0.0, 1.0)
 	if l < 0.95:
 		l *= 0.85   # 11-06 实机：按原亮度落阶几乎全是白 / 淡紫，看不出紫 → 非白芯整体压一档，落到 #b3aae4 / #7b70b4 的紫段
-	var prev: Color = LP[0]
+	var prev: Color = TV[0]
 	var pl: float = _l(prev)
-	for k in range(1, LP.size()):
-		var cur: Color = LP[k]
+	for k in range(1, TV.size()):
+		var cur: Color = TV[k]
 		var cl: float = _l(cur)
 		if l <= cl:
 			var u: float = 0.0 if cl - pl < 0.0001 else clampf((l - pl) / (cl - pl), 0.0, 1.0)
