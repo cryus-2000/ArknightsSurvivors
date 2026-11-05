@@ -116,7 +116,17 @@ GCP 体检（同一条 `tools/fx_audit.py shots --ops exusiai`）：补前 rende
 - 合 integ 时 `tools/pxplane_shots.py` 里能天使的干员表、演示去重、连携事件三处被推进之王的版本覆盖，已补回（两边都留）。
 - 对比图：`Claude outputs/fx_audit_1105/fix_exusiai/cmp_atk_x2.png`、`cmp_s1_x2.png`（上补前、下补后，命中帧 2 倍 + 照地光 / 辉光热图；挑的是第一下命中那一帧，碎屑还没飞出来，差别主要看数值），before_audit.json / after_audit.json。
 
-## 11. 终结技画面升级（ult/px_plane，缺省关；11-05 晚按 ult_brief §9 恢复，并排已送审）
+## 11. 终结技画面升级（ult/px_plane_exusiai，**缺省开**；11-06 用户「能天使没问题」）
+
+**定稿（11-06）**：单人开关 `ult/px_plane_exusiai = 1`（balance.json `ult` 段，写法同斯卡蒂 / 艾丽妮；总开关 `ult/px_plane` 仍可一键全开，0 = 原画面）。加长版 impact（`_px.wav`）跟着单人开关走。
+GCP 验收（提交 449e15e8c，`trace_ab`，windowed，能天使队长 + 塞雷娅 / 拉普兰德，种子 3，强制放终结技，A = 开关 0、B = 开关 1）：
+
+| 局 | 行数 A / B | 结果 |
+|---|---|---|
+| 40 秒（31.5 秒放） | 41 / 41 | 逐行一致（cloud-results/render-ult-exusiai-trace40） |
+| 490 秒（8:01.5 放，怪多） | 491 / 491 | 逐行一致（cloud-results/render-ult-exusiai-trace490） |
+
+日志 0 条 SCRIPT ERROR；同局实拍并排见下文。
 
 **现行版本（§9 口径：以原版为底，主要做配色对齐，能用 px_plane 加强的顺手加强）**，本地提交，未推：
 - 原画面的造型、节奏、体量不动（锁定框环绕、双枪连射、爆点帧条成片）。
@@ -126,7 +136,7 @@ GCP 体检（同一条 `tools/fx_audit.py shots --ops exusiai`）：补前 rende
 - 最大那一下（冲击帧那一发）：原爆点帧条 ×2.4、碎环和冲击帧剪影照旧，上面叠 8 格厚冲击环、照地灯 240、轻震 3px、160 颗粒子云和崩解（引擎击杀碎屑 + 本色喷散）；`u.impact(爆心)` 让共用冲击慢放落在这一下。
 - 音效回到原版（原作的 charge / cast 照用，A / B 候选和收尾声都已撤掉）。只在开关开着时，`ult.gd _ua` 优先播 `<名>_px.wav`：`ult_exusiai_impact_px.wav` = 原 impact 原样做底，补 Sonniss Trailer Booms 075 的低频余音，从 1.3 秒拉到 2.6 秒，跟着慢放拖尾（`tools/gen_sfx_ult_exusiai_px.py`）。
 - 并排（GCP 同种子同参数实拍，各 240 帧，0 条 SCRIPT ERROR）：`Claude outputs/ult_px_exusiai_1105/exusiai_ult_vs_newaudio.mp4` / `_origaudio.mp4` / `exusiai_ult_vs.gif`；原片在 `render-ult-exusiai-px4/orig` 和 `pxon`。
-- 待定：共用慢放的回速 `ult/imp_ease` 全员都是 0.35 秒，brief 要 0.15 秒，改它会影响所有人，交协调人定。还要跑开 / 关 TRACE，以及 8:00 怪多场面的并排。
+- 待定：共用慢放的回速 `ult/imp_ease` 全员都是 0.35 秒，brief 要 0.15 秒，改它会影响所有人，交协调人定。
 
 以下是之前几版的记录（第一、二版整套替换，第三版加了 A / B 音效），都已被上面的版本取代。
 
