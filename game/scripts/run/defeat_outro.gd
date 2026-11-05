@@ -11,12 +11,12 @@ const Game = preload("res://scripts/game.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const HIT_FREEZE := 0.1    # 最后一击定格
 ## 旋钮（data/balance.json 的 outro/*，没写用缺省）：慢放倍率 / 慢放时长（秒，定格之后起算）/ 压暗时长（秒，从倒下起算）
-var SLOW: float = Bal.v("outro/slow", 0.25)
-var SLOW_T: float = Bal.v("outro/slow_t", 1.2)
-var DIM_T: float = Bal.v("outro/dim_t", 1.6)
-const SETTLE := 0.4        # 慢放结束后缓到静止
-const FADE0 := 0.25        # 队友开始消散
-const FADE1 := 1.1         # 队友散尽
+var SLOW: float = Bal.v("outro/slow", 0.2)   # 0.25 → 0.2（11-05 用户「死亡和胜利的时候的镜头慢动作和时间可以拉长一点」：约 1.7 倍长、进出更缓）
+var SLOW_T: float = Bal.v("outro/slow_t", 2.0)   # 1.2 → 2.0
+var DIM_T: float = Bal.v("outro/dim_t", 2.8)   # 1.6 → 2.8
+const SETTLE := 0.8        # 慢放结束后缓到静止（0.4 → 0.8）
+const FADE0 := 0.4         # 队友开始消散（0.25 → 0.4）
+const FADE1 := 1.9         # 队友散尽（1.1 → 1.9）
 const DUST := Color(0.75, 1.35, 1.55)
 var g
 var _hit := false

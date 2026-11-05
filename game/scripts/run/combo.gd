@@ -8,6 +8,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 配方 / 转平面试验的画面钩子（docs/246 §9：连携技也接管；只画）
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/254）：接管的干员连携技改由 fx_pxplane 画（只画）
 
 const CLS := {
 	"texas": "A", "exusiai": "A", "skadi": "A", "siege": "A", "eyjafjalla": "A",
@@ -597,7 +598,10 @@ static func _step_dash(u, a: Dictionary, dt: float) -> bool:
 		p.syn_mv = {"from": p0, "to": stop, "t": 0.0, "dur": dur}
 		p.cmd_inv = maxf(p.cmd_inv, dur + 0.4)
 		p._set_face(1.0 if dir.x >= 0.0 else -1.0, true)
-		_tracer(u, p0 + Vector2(0, -20), stop + Vector2(0, -20), p.col(), dur + 0.14, 8.0)   # 干员色拖影
+		if Fxr.owns(p) and str(a.s) == "hoshiguma":
+			Fxr.ev(p, "combo_dash", {"from": p0, "to": stop})   # 转平面（docs/254）：冲刺尘痕代替通用拖影（只画）
+		else:
+			_tracer(u, p0 + Vector2(0, -20), stop + Vector2(0, -20), p.col(), dur + 0.14, 8.0)   # 干员色拖影
 		a.ph = 1
 		a.tp0 = a.age
 		return false
@@ -670,7 +674,10 @@ static func _strike(u, a: Dictionary) -> void:
 		"hoshiguma":   # 举盾推开周围敌人，队长 1.5 秒受到伤害 −50%
 			hits = _area(p, g.ppos, 140.0, 1.2, 260.0)
 			u.team_buff("combo:hoshiguma", Bal.v("ult/hoshi_t", 1.5), [[&"dmg_taken", "mult", Bal.v("ult/hoshi_taken", 0.5)]])
-			_ring(u, g.ppos, 140.0, c, 0.4)
+			if Fxr.owns(p):
+				Fxr.ev(p, "combo", {"c": g.ppos, "at": stop, "dir": Vector2(a.dir), "side": (stop - g.ppos), "r": 140.0, "es": hits})   # 转平面（docs/254）：举盾推挡（只画）
+			else:
+				_ring(u, g.ppos, 140.0, c, 0.4)
 			_landed(u, a, g.ppos, hits.size(), true)
 			return
 		"saria":   # 琥珀晶柱围一圈挡 2 秒，队长回复 6% 最大生命
@@ -846,7 +853,9 @@ static func _step_cast(u, a: Dictionary, _dt: float) -> bool:
 		var tp: Vector2 = _cast_pos(u, a)
 		a.tpos = tp
 		var tr: float = float(a.travel)
-		if tr > 0.0:
+		if tr > 0.0 and str(a.s) == "lumen" and _FXR.owns(p):
+			_FXR.ev(p, "lm_cshot", {"a": p.pos + Vector2(0, -26), "b": tp + Vector2(0, -30), "travel": tr})   # 转平面（docs/255）：只画
+		elif tr > 0.0:
 			_tracer(u, p.pos + Vector2(0, -26), tp, c, tr + 0.1, 7.0)
 			u.shape({"kind": "ring", "c": tp, "r": 60.0, "r1": 20.0, "w": 2.0, "col": c, "life": tr})
 		p._set_face(1.0 if tp.x >= p.pos.x else -1.0)
@@ -906,12 +915,16 @@ static func _impact(u, a: Dictionary) -> void:
 					cand.append(e)
 			var pp: Vector2 = p.pos
 			cand.sort_custom(func(x, y): return x.pos.distance_squared_to(pp) < y.pos.distance_squared_to(pp))
+			var mzpx: bool = _FXR.owns(p)   # 转平面（docs/261）：接管时触手追击 + 缠住由 fx_pxplane 画（只画）
 			for e in cand.slice(0, 8):
-				_beam(u, pp + Vector2(0, -16), e.pos + Vector2(0, -6), c, 0.3, 3.0)
+				if not mzpx:
+					_beam(u, pp + Vector2(0, -16), e.pos + Vector2(0, -6), c, 0.3, 3.0)
 				_hit1(p, e, 1.2)
 				if not e.dead and not e.boss:
 					p.add_cc(e, 1.0 * (0.5 if e.elite else 1.0))
 				hits.append(e)
+			if mzpx:
+				_FXR.ev(p, "mz_link", {"es": hits})
 			tp = _centroid(hits) if not hits.is_empty() else pp
 		"kaltsit":   # Mon3tr 扑击击退，队长回复 8% 并清神经损伤
 			hits = _area(p, tp, 130.0, 1.5, 220.0)
@@ -927,7 +940,10 @@ static func _impact(u, a: Dictionary) -> void:
 			for e in hits:
 				if not e.dead:
 					e["lit"] = maxf(float(e.get("lit", 0.0)), 3.0)
-			u.shape({"kind": "circle", "c": tp, "r": 150.0, "col": c.lerp(Color.WHITE, 0.5), "fill": 0.2, "life": 0.4})
+			if _FXR.owns(p):
+				_FXR.ev(p, "lm_cleanse", {"at": tp, "r": 150.0, "es": hits})   # 转平面（docs/255）：只画
+			else:
+				u.shape({"kind": "circle", "c": tp, "r": 150.0, "col": c.lerp(Color.WHITE, 0.5), "fill": 0.2, "life": 0.4})
 			support = true
 			var ir = _op(u, "irene")
 			if had and ir != null and _free(u, ir):   # 审判庭：艾丽妮自动补一刺打队长身边最近的敌人

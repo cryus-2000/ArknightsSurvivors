@@ -6,6 +6,8 @@ const MzVg = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见
 const MizukiS3Fx = preload("res://scripts/characters/mizuki_s3_fx.gd")
 
 const H3_GOLD := Color(0.957, 0.753, 0.306)   # 同 ui.gd GOLD（灯火金：唤醒）
+const _MZFX = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/261 水月）：接管时原画面件不生成，事件只画
+const _MZMI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：伞击命中顿帧 / 闪色 / 画面推开（只画）
 
 
 static func _h3mz(o) -> Dictionary:
@@ -193,8 +195,9 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 			sfx.play("swing_heavy", -3.0)
 	else:
 		_h3_sfx(o, "atk", 3.0)
+	var pxo: bool = _MZFX.owns(o)
 	if hit.size() > 0:
-		_h3_sfx(o, "hit", 8.0 if empowered else 4.0, 0.85 if empowered else 1.0)
+		_h3_sfx(o, "hit", (8.0 if empowered else 4.0) - (3.0 if pxo else 0.0), 0.85 if empowered else 1.0)   # 转平面（docs/261）：频繁的普攻命中音压 3 dB
 		o.impact_pause(0.09 if empowered else 0.03)
 		for k in min(hit.size(), 6):
 			var he: Dictionary = hit[k]
@@ -246,8 +249,9 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	if empowered and hit.size() > 0 and bu is Dictionary:
 		var ip: Vector2 = hit[0].pos
 		# 10-24 用户「水月一技能造成的这些黄色的圆形可以去掉」：命中处的金色十字光团（impact）不画了；r70 金环本来就被 render/hit_rings 关着
-		g.fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": H3_GOLD, "op_hit": true})
-		g.flash = maxf(g.flash, 0.12)
+		if not pxo:   # 转平面（docs/261）接管时金环 / 整屏闪不生成（不整屏发白），改由 fx_pxplane 画创伤扩散
+			g.fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": H3_GOLD, "op_hit": true})
+			g.flash = maxf(g.flash, 0.12)
 		for k in mini(hit.size(), int(bu.get("n", 3))):
 			mz.delayed.append({"at": float(bu.get("gap", 0.06)) * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * float(bu.get("mult", 0.6)), "r": float(bu.get("r", 80.0)), "b": bu})
 	# 斩击表现
@@ -267,6 +271,8 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		o.slash_fx(o.pos, ang, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
 	if empowered and not s3 and not slash_tex.begins_with("fx_umbrella_slash"):
 		o.slash_fx(o.pos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
+	_MZMI.hit(o, src, ["skill"] if empowered or s3 else [], hit)   # 近战打击感包（只画）
+	_MZFX.ev(o, "mz_umb", {"ang": ang, "r": radius, "half": half, "es": hit, "emp": empowered, "s3": s3, "s2": o.s_t[1] > 0.0})   # 转平面（docs/261）：只画
 
 
 static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun: float) -> void:
@@ -290,6 +296,14 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		if mz.stakes.size() >= int(sk.get("max", 6)) + MzVg.summon_subs(g, "stake"):   # 只扩容量，仍由原触手攻击创建（163B §4）
 			mz.stakes.pop_front()
 		mz.stakes.append({"pos": p, "t": float(sk.get("life", 1.5)), "tick": float(sk.get("every", 0.5)), "dmg": dmg * float(sk.get("mult", 0.4)), "flip": g.vrng.randf() < 0.5, "b": sk})
+	if _MZFX.owns(o):   # 转平面（docs/261）：目标脚下钻出触手（束缚时缠住），只画；同一帧多根触手只响一声、压低音量
+		_MZFX.ev(o, "mz_tent", {"e": target, "at": p, "stun": stun, "s3": h3_full_circle(o, a)})
+		if not is_equal_approx(float(o.get_meta("mz_tsfx", -1.0)), float(g.t)):
+			o.set_meta("mz_tsfx", float(g.t))
+			var sfx0: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+			if sfx0 != null:
+				sfx0.play("tentacle", -8.0)
+		return
 	if h3_full_circle(o, a):
 		return   # S3 的触手从整片范围同时出现，命中效果不重复逐敌生成。
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
@@ -322,6 +336,7 @@ static func _h3_stakes_tick(o, mz: Dictionary, dt: float) -> void:
 				o.log_hit(str(o.B.get("attack", _ED).get("tentacle", {}).get("src", "")))
 				o.deal_damage(e, s.dmg)
 			if any:
+				_MZFX.ev(o, "mz_stake", {"at": s.pos})   # 转平面（docs/261）：只画
 				o.spawn_fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85 * 0.8, 0.0, s.flip, true, Color(1,1,1,0.8))
 				s.flip = not s.flip
 	mz.stakes = mz.stakes.filter(func(s): return s.t > 0.0)
@@ -340,6 +355,7 @@ static func _h3_run_delayed(o, dl: Dictionary) -> void:
 					if not e.boss:
 						o.apply_kb(e, (e.pos - dl.pos).normalized() * float(bu.get("kb", 200.0)))
 			# 创伤扩散的金色实心圆 + 粗圆环（burst）不画了（10-24 用户），伤害 / 击退 / 火星照旧
+			_MZFX.ev(o, "mz_burst", {"at": dl.pos})   # 转平面（docs/261）：大水母绽开 + 地上冲击环，只画
 			o.sparks(dl.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 10, 280.0)
 			var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 			if sfx != null:
@@ -351,9 +367,11 @@ static func h3_cast_push(o, b: Dictionary) -> void:
 	var g = o.g
 	var big: bool = b.get("big", false)
 	o.screen_shake(0.8 if big else 0.5)
-	g.flash = maxf(g.flash, 0.25)
+	var pxo: bool = _MZFX.owns(o)   # 转平面（docs/261）接管时整屏闪 / 圆环 / 放射线不生成，起手由 fx_pxplane 画（skill 事件）
+	if not pxo:
+		g.flash = maxf(g.flash, 0.25)
 	var c: Color = _mf_col(b.get("col", []), Color(0.45, 0.8, 1.0))
-	if not big:
+	if not big and not pxo:
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
 		g.fx.append({"kind": "rays", "pos": o.pos, "life": 0.6, "max": 0.6, "col": c, "op_spoke": true})
@@ -393,11 +411,30 @@ static func h3_tentacle_col(o, bright := 1.0) -> Color:
 static func _h3mz_draw_floor(o) -> void:
 	var g = o.g
 	var cv = o.cv
-	var mz: Dictionary = o.hw.mz
 	for f in g.fx:
 		if f.kind == "tentacle":
 			_h3_draw_tentacle(o, f)
 	_e3_draw_binds(o)
+	_h3mz_draw_keep(o)
+	var bp: Vector2 = o.pos + Vector2(0, 6)
+	MizukiS3Fx.draw(o, false)
+	if o.s_t[1] > 0.0:
+		var fade2 := clampf(o.s_t[1] / 1.0, 0.0, 1.0)
+		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
+		cv.draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 40, Color(0.6, 1.1, 1.8, 0.6 * fade2), 2.0)
+		cv.draw_arc(Vector2.ZERO, 66.0, g.t * 3.0, g.t * 3.0 + PI, 24, Color(0.6, 1.1, 1.8, 0.4 * fade2), 3.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if o.ammo[0] > 0:
+		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
+		cv.draw_arc(Vector2.ZERO, 34.0 + 3.0 * sin(g.t * 8.0), 0.0, TAU, 32, Color(2.0, 1.5, 0.6, 0.7), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 不属于攻击特效、转平面（docs/261）接管时也照画的地面件：缠住标记（病理性依恋）、触手桩范围边、灯火照明圈
+static func _h3mz_draw_keep(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var mz: Dictionary = o.hw.mz
 	_g202_mz_draw(o)
 	for s in mz.stakes:
 		var a: float = clampf(s.t / 0.4, 0.0, 1.0)
@@ -413,17 +450,6 @@ static func _h3mz_draw_floor(o) -> void:
 		if q % 2 == 0:
 			cv.draw_arc(Vector2.ZERO, lr, TAU * q / 32.0 + g.t * 0.1, TAU * (q + 1) / 32.0 + g.t * 0.1, 3, Color(1.6, 1.3, 0.8, 0.22), 1.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	MizukiS3Fx.draw(o, false)
-	if o.s_t[1] > 0.0:
-		var fade2 := clampf(o.s_t[1] / 1.0, 0.0, 1.0)
-		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
-		cv.draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 40, Color(0.6, 1.1, 1.8, 0.6 * fade2), 2.0)
-		cv.draw_arc(Vector2.ZERO, 66.0, g.t * 3.0, g.t * 3.0 + PI, 24, Color(0.6, 1.1, 1.8, 0.4 * fade2), 3.0)
-		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if o.ammo[0] > 0:
-		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
-		cv.draw_arc(Vector2.ZERO, 34.0 + 3.0 * sin(g.t * 8.0), 0.0, TAU, 32, Color(2.0, 1.5, 0.6, 0.7), 2.0)
-		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 static func _h3_draw_tentacle(o, f: Dictionary) -> void:
@@ -634,6 +660,9 @@ static func _g202_smash_take(o, e: Dictionary, sm: Dictionary) -> float:
 			mz.cling.remove_at(i)
 			var g = o.g
 			var p: Vector2 = e.pos
+			if _MZFX.owns(o):   # 转平面（docs/261）：脚下钻出触手，只画
+				_MZFX.ev(o, "mz_tent", {"e": e, "at": p, "stun": 0.0, "s3": false})
+				return float(sm.get("mult", 1.5))
 			g.fx.append({"kind": "rift", "pos": p, "r": 30.0, "life": 0.3, "max": 0.3})
 			if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX * 0.9, 0.0, g.vrng.randf() < 0.5, true, Color(1, 1, 1, 0.9)):
 				g.fx.append({"kind": "tentacle", "pos": p, "life": 0.4, "max": 0.4, "flip": g.vrng.randf() < 0.5})
@@ -802,6 +831,7 @@ static func _e3_sting(o, jb: Dictionary, e: Dictionary) -> void:
 		var sd: float = float(jb.get("stun", 0.3)) * (0.5 if e.elite else 1.0)
 		o.add_cc(e, sd)
 		mz.binds.append({"e": e, "t": sd})
+	_MZFX.ev(o, "mz_sting", {"e": e})   # 转平面（docs/261）：只画
 	if not o.spawn_fx_sprite(str(jb.get("sting_fx", "fx_mizuki_jelly_sting")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": Color(0.9, 0.6, 1.6), "alpha": 0.6})
 

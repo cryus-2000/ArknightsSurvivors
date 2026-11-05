@@ -51,6 +51,7 @@ static func _h3_mend(o, h: float, size: int, sub: String) -> Vector2:
 		o.spawn_fx_sprite("fx_holy_impact_lantern", m3[1].pos + Vector2(0, -34), g.PX * 0.9)
 		return m3[1].pos
 	o.heal_leader(h, o.display_name(), sub)
+	_FXR.ev(o, "lm_mend", {"at": g.ppos})   # 转平面试验（docs/255）：只画
 	o.float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), H3_WARM, size)
 	o.spawn_fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
 	if not o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
@@ -125,7 +126,10 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		for m in hb.get("lamp_adds", _EA):   # 响应动作（docs/118 §4.2）：cond 成立时这次回复 / 驱散另给灯火 + add
 			if cond_true(o, m.get("cond", _ED)):
 				g.lamp = minf(g.lamp_cap, g.lamp + float(m.get("add", 0.0)))
-		g.fx.append({"kind": "beam", "a": hand, "b": mend_at + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": H3_WARM, "w": 2.5})
+		if _FXR.owns(o):
+			_FXR.ev(o, "lm_link", {"a": hand, "b": mend_at + Vector2(0, -24)})   # 转平面试验（docs/255）：只画
+		else:
+			g.fx.append({"kind": "beam", "a": hand, "b": mend_at + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": H3_WARM, "w": 2.5})
 	lm.hand_glow = 0.18
 	var rr: float = _h3_bolt_range(o, a)
 	var ts: Array = ((o.aim_targets(1, rr, o.pos) if lm.armed else []) if o.held_aim() else o.los_targets(1, rr, o.pos))
@@ -182,6 +186,7 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 				b.pierce = int(b.pierce) - 1   # 贯穿卡 / 穿甲弹：穿过去继续飞（已命中的不再打）
 			else:
 				b.life = 0.0
+			_FXR.ev(o, "lm_hit", {"e": e, "at": e.pos + Vector2(0, -e.r * 0.5), "unit": src == str(o.B.get("attack", _ED).get("units", _ED).get("src", "发光单元"))})   # 转平面试验（docs/255）：只画
 			if not o.spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
 				o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": H3_WARM, "alpha": 0.6})
 			_h3_vsparks(o, e.pos + Vector2(0, -e.r * 0.5), H3_WARM, 4, 120.0, 0.3, 2.0)
@@ -258,7 +263,10 @@ static func _h3_light_burst(o, lm: Dictionary, b: Dictionary) -> void:
 	# 10-29：取消「日炎」大火球（fx_sunburst，用户定）；爆发只留地面环 / 光线 / 火花
 	for i in 3:
 		o.fx({"kind": "ring", "pos": tp, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": H3_WARM, "floor": true, "w": 4.0 - i})
-	g.fx.append({"kind": "rays", "pos": tp + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": H3_WARM, "op_spoke": true})
+	if _FXR.owns(o):
+		_FXR.ev(o, "lm_burst", {"at": tp, "r": r})   # 转平面试验（docs/255）：只画
+	else:
+		g.fx.append({"kind": "rays", "pos": tp + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": H3_WARM, "op_spoke": true})
 	_h3_vsparks(o, tp + Vector2(0, -30), H3_WARM, 18, 240.0, 0.5, 3.0, 160.0)
 	o.float_text(tp + Vector2(0, -90), str(bu.get("src", "")), H3_WARM, 18)
 	g.shake = maxf(g.shake, 4.0)
@@ -450,6 +458,7 @@ static func _h3_beam_tick(o, lm: Dictionary, dt: float) -> void:
 		o.log_hit(str(bb.get("src", "")))
 		o.deal_damage(e, o.base(str(bb.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * float(bb.get("mult", 0.4)) * o.skill_power())
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.2, "col": H3_WARM, "alpha": 0.6})
+		_FXR.ev(o, "lm_xhit", {"e": e, "at": e.pos + Vector2(0, -e.r * 0.5)})   # 转平面（docs/255）：光束扫中处一团小水花（同屏上限同额外弹），只画
 
 
 ## 天赋：灯火 ≥ lamp 时自身技力额外充能（同手写，在出手判定之前）
@@ -617,6 +626,8 @@ static func h3_draw_add(o, ci) -> void:
 		ci.draw_set_transform((lm.tower_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		pass
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if _FXR.owns(o):
+		return   # 转平面试验（docs/255）：光弹光晕 / 守望光扇由 fx_pxplane 画（发光走 emit）
 	for b in lm.bolts:
 		ci.draw_circle(b.pos, 14.0 if b.get("big", false) else 9.0, Color(0.9, 0.7, 0.3, 0.35))
 	var bb := _h3_beam_block(o)
@@ -692,6 +703,7 @@ static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
 	var a: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 	var b: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
 	o.fx({"kind": "line", "pos": a, "to": b, "life": 0.12, "col": Color(1.6, 1.45, 1.0), "w": 1.0, "laser": true})
+	_FXR.ev(o, "lm_refract", {"a": a, "b": b, "gy": float(best.pos.y) + 1.0})   # 转平面试验（docs/255）：只画
 	if not o.spawn_fx_sprite(str(rf.get("hit", "fx_lumen_refract_hit")), b, g.PX):
 		o.spawn_fx_sprite("fx_holy_impact_lantern", b, g.PX * 0.5)
 
@@ -741,6 +753,11 @@ static func _e3_beam_fire(o, bm: Dictionary, from: Vector2, d: Vector2, dmg: flo
 	if g.hp < g.max_hp and float(bm.get("heal", 0.0)) > 0.0:
 		o.heal_leader(g.max_hp * float(bm.heal), o.display_name(), str(bm.get("heal_sub", "")))
 	o.fx({"kind": "h3_beam", "pos": from, "dir": d, "len": L, "w": W, "life": 0.2, "tile": str(bm.get("tile", "fx_lumen_beam"))})
+	if _FXR.owns(o):
+		var fes: Array = []
+		for hh in hits:
+			fes.append(hh[1])
+		_FXR.ev(o, "lm_pillar", {"from": from, "d": d, "L": L, "W": W, "foot": org, "es": fes})   # 转平面试验（docs/255）：只画
 	if not o.spawn_fx_sprite(str(bm.get("flare", "fx_lumen_beam_flare")), from, g.PX):
 		o.fx({"kind": "glow", "pos": from, "r": 14.0, "life": 0.2, "col": Color(1.6, 1.4, 0.9), "alpha": 0.7})
 	_h3_sfx(o, "atk", 2.0, 1.25, 0.05)

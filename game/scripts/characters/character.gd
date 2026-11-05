@@ -649,11 +649,16 @@ static func pfx_cappable(f: Dictionary) -> bool:
 
 
 func draw_pfx(floor_layer: bool) -> void:
+	var px_keep: Dictionary = {}
 	if Fxr.owns(self):
-		return   # 配方接管（docs/245）：原粒子照常走完寿命，只是不画
+		px_keep = Fxr.Pxp.KEEP_PFX.get(str(id), {})   # 转平面（docs/254）：状态提示帧条（星熊格挡闪光）照画
+		if px_keep.is_empty():
+			return   # 配方接管（docs/245）：原粒子照常走完寿命，只是不画
 	var skip: int = pfx_skip if not floor_layer else 0
 	for f in pfx:
 		if f.get("floor", false) != floor_layer:
+			continue
+		if not px_keep.is_empty() and not px_keep.has(str(f.get("name", ""))):
 			continue
 		if skip > 0 and pfx_cappable(f):
 			skip -= 1
@@ -2974,7 +2979,7 @@ func draw_body() -> void:
 		var fl: float = g.elite_moment.flash(self)   # 精英化时刻爆亮（docs/249 §2）
 		if fl > 0.0:
 			mod = Color(mod.r * (1.0 + 2.2 * fl), mod.g * (1.0 + 2.2 * fl), mod.b * (1.0 + 2.2 * fl), mod.a)
-	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()) + Fxr.Pxp.recoil(self), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))   # recoil：转平面开火后坐（docs/262，只画）
 
 
 ## 就地解散后在落点淡入（squad.blink_fx，11-02 取代向上跳出屏幕）：warp_t 由 world.update_visuals 推进，< 0 = 不在瞬回。纯画面

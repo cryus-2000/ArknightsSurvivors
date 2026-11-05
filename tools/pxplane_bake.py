@@ -8,7 +8,7 @@
   data/pxp_skadi.json 帧数、fps、帧尺寸、原点（脚底 / 地面点），以及每帧的 emit 点表（最亮的热芯像素：进光学层发光通道）。
 raw（旧做法对照，fx/px_plane = 2）：色层 + 光层烤成一张（光晕变成颜色），游戏里旋转 + 小数缩放直接贴。
 
-用法（仓库根目录）：python tools/pxplane_bake.py [--only 键前缀]
+用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma|siege|mizuki]（推进之王 docs/264：帧条 pxp_sg_*、元数据 data/pxp_siege.json） [--only 键前缀]（星熊 docs/254：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json）
 """
 import argparse, json, os, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -20,10 +20,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PFX = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(ROOT))) if ".claude" in ROOT else os.path.dirname(ROOT), "build", "pixelfx")
 if not os.path.isdir(PFX):
     PFX = os.path.join(ROOT, "build", "pixelfx")
-SRC = os.path.join(ROOT, "tools", "pixelfx_fx", "water", "ak-skadi-pp.js")
 OUT_ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 OUT_META = os.path.join(ROOT, "game", "data", "pxp_skadi.json")
-ACCENT = ""
+ACCENT = ""   # --accent：颜色对比用，覆盖效果文件里的点缀色
+# 干员 → (pixelfx 效果 id「目录/文件名」, 帧条元数据, 帧条键前缀, emit 另算的点缀色)。docs/246 斯卡蒂、docs/254 星熊
+OPS = {
+    "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0xc4, 0xdc)]),   # 点缀冰蓝（11-05 用户定，原海绿 5f f0）
+    "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
+    "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
+    "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7)]),
+}
 TMP = os.path.join(ROOT, "build", "pxp_bake")
 FPS = 15                       # 统一动画时钟（协调人 11-05）：一律 15 fps，时长不对增删帧
 DIRS = [-90, -45, 0, 45, 90]   # 平面角；另一半（135 / 180 / -135）游戏里水平翻转
@@ -31,7 +37,7 @@ EMIT_LUMA = 0.95               # 色层亮度 ≥ 这个的像素算热芯（只
 EMIT_MAX = 48                  # 每帧 emit 点上限（均匀抽）
 
 
-def variants():
+def variants_skadi():
     v = []
     T = [0, 1, 2]
     # 普攻横扫：半径 56（reach 112 / 2）、弧 2.8；三档体量 / 刀光幕高
@@ -98,20 +104,199 @@ def variants():
     return v
 
 
+def variants_hoshiguma():
+    """星熊（docs/254）：判定从 hoshiguma.json 读，美术像素 = 世界 / 2。"""
+    v = []
+    T = [0, 1, 2]
+    # 尺寸档：范围成长（growth/late_shape 近战 +12% / 档、范围卡）会放大判定，帧条按几档半径预生成，游戏挑最近的一档（只整数放大，不缩放）
+    for R in (47, 56, 66):   # 普攻「盾斧斩」：锥形 reach 94 / 半角 70° → 半径 47、弧 2.44；精一盾缘崩钢屑，精二暖金副刃 + 金火星
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("sweep_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": 2.44, "W": [11, 13, 15][el] + (R - 47) // 8, "dir": d, "el": el, "dur": 0.3}, 0.34))
+    for R in (75, 95):   # S1「战意」：s1_r 150 → 冲击环 75；立起层下劈弧朝右（朝左游戏里翻转）
+        for el in T:
+            for ly in ("up", "gd"):
+                v.append(("slam_r%d_e%d_%s" % (R, el, ly), {"part": "slam", "layer": ly, "R": R, "el": el, "seed": 5}, 0.6))
+    v.append(("pulse_gd", {"part": "ring", "layer": "gd", "R": 45, "el": 1, "seed": 9}, 0.5))   # 般若之重 / 盾墙反震
+    for el in (1, 2):   # S2「荆棘」起手地刺：身后半圈 / 身前半圈分开（按脚底 y 排在星熊前后）
+        for half in ("back", "front"):
+            v.append(("thorns_e%d_%s_up" % (el, half), {"part": "thorns", "layer": "up", "half": half, "el": el, "seed": 4}, 0.62))
+        v.append(("thorns_e%d_gd" % el, {"part": "thorns", "layer": "gd", "el": el, "seed": 4}, 0.62))
+        for R in (40, 30):   # 热砂：荆棘 sand_r 80 → 40；热砂·落刃 blade_r 60 → 30（荆棘期间 ×1.3 ≈ 40）
+            v.append(("sand%d_e%d_gd" % (R, el), {"part": "sand", "layer": "gd", "R": R, "el": el, "seed": 6 + R, "_loop": True}, 0.4))
+    for L in (110, 140):   # S3「力之锯」直线斩：s3_len 220 / s3_w 50 → 110 / 25
+        for d in DIRS:
+            for ly in ("up", "gd"):
+                v.append(("rip_l%d_%s_d%d" % (L, ly, d), {"part": "rip", "layer": ly, "L": L, "W": 25, "dir": d, "el": 2, "seed": 3}, 0.6))
+    for S in (10, 16, 22):   # 后期剑气（growth/late_shape）：一次出手 1 / 2 / 3+ 道合成一道盾击冲击波，三帧（热白 / 常态 / 碎开）
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("qi_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.2))
+    for d in DIRS:   # 连携技「举盾推挡」：盾落点的立起大盾（方向件）+ 队长脚下的冲击环（140 → 70）
+        v.append(("shove_up_d%d" % d, {"part": "shove", "layer": "up", "dir": d, "el": 1, "seed": 8}, 0.52))
+    for ly in ("up", "gd"):   # 技能连携 v2「举盾」（link/v2 缺省开时实际用的连携）：举 1.0 秒 + 散 0.5 秒
+        v.append(("cover_%s" % ly, {"part": "cover", "layer": ly, "el": 1, "seed": 8}, 1.5))
+    v.append(("shove_gd", {"part": "shove", "layer": "gd", "R": 70, "el": 1, "seed": 8}, 0.52))
+    v.append(("s3cast_up", {"part": "s3cast", "layer": "up", "R": 30, "el": 2}, 0.56))
+    v.append(("s3cast_gd", {"part": "s3cast", "layer": "gd", "R": 50, "el": 2, "seed": 13}, 0.5))
+    v.append(("s3aura_gd", {"part": "s3aura", "layer": "gd", "R": 22, "el": 2, "_loop": True}, 0.4))
+    for ly in ("up", "gd"):   # 精二「般若回旋」锯盾（循环）
+        v.append(("saw_%s" % ly, {"part": "saw", "layer": ly, "R": 13, "el": 2, "_loop": True}, 0.4))
+    # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
+    for el in T:
+        v.append(("raw_sweep_e%d" % el, {"part": "sweep", "view": "raw", "R": 47, "span": 2.44, "W": [11, 13, 15][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
+        v.append(("raw_slam_e%d" % el, {"part": "slam", "layer": "gd", "view": "raw", "R": 75, "el": el, "seed": 5}, 0.6))
+    for el in (1, 2):
+        v.append(("raw_thorns_e%d" % el, {"part": "thorns", "view": "raw", "el": el, "seed": 4}, 0.62))
+    v.append(("raw_rip", {"part": "rip", "view": "raw", "L": 110, "W": 25, "dir": 0, "el": 2}, 0.6))
+    v.append(("raw_saw", {"part": "saw", "view": "raw", "R": 13, "el": 2, "_loop": True}, 0.4))
+    return v
+
+
+def variants_siege():
+    """推进之王（docs/264）：判定从 siege.json 读，美术像素 = 世界 / 2。"""
+    v = []
+    T = [0, 1, 2]
+    for R in (46, 56, 66):   # 普攻锤击：reach 92 × op_range → 46 / 56 / 66；下砸锤弧（方向件，挂在人身上）
+        for el in T:
+            for d in DIRS:
+                v.append(("arc_r%d_e%d_up_d%d" % (R, el, d), {"part": "arc", "layer": "up", "R": R, "dir": d, "el": el, "dur": 0.3}, 0.34))
+    for el in T:   # 冲锋号令强化一锤（S1，E0–E2）/ 碎颅（S3，只有 E2）：锤弧更粗、热白多一拍
+        for d in DIRS:
+            v.append(("arc_s1_e%d_up_d%d" % (el, d), {"part": "arc", "layer": "up", "R": 56, "dir": d, "el": el, "style": "s1", "dur": 0.36}, 0.4))
+    for d in DIRS:
+        v.append(("arc_s3_up_d%d" % d, {"part": "arc", "layer": "up", "R": 56, "dir": d, "el": 2, "style": "s3", "dur": 0.38}, 0.42))
+        v.append(("s3_gd_d%d" % d, {"part": "s3", "layer": "gd", "dir": d, "el": 2, "seed": 5}, 0.8))
+    v.append(("s3_up", {"part": "s3", "layer": "up", "el": 2, "seed": 5}, 0.55))
+    for el in T:   # 落点：普攻 / S1 强化一锤（不分方向，原点 = 锤落点，留在原地）
+        for st in ("atk", "s1"):
+            for ly in ("up", "gd"):
+                v.append(("imp_%s_e%d_%s" % (st, el, ly), {"part": "imp", "layer": ly, "el": el, "style": st, "seed": 3 + el}, 0.7))
+    for el in (1, 2):   # S2 跃空锤：落地环形尘浪（s2_r 110 → 55，不开裂）；路线「再跃·裂地」140 → 70 保留裂网；起跳 → 落点残影弧（跃出距离 24 / 45）
+        for ly in ("up", "gd"):
+            v.append(("slam_r55_e%d_%s" % (el, ly), {"part": "slam", "layer": ly, "R": 55, "el": el, "seed": 7}, 0.7))
+            v.append(("rift_r70_e%d_%s" % (el, ly), {"part": "slam", "layer": ly, "R": 70, "el": el, "style": "rift", "seed": 7}, 0.85))
+        for D in (24, 45):
+            for d in DIRS:
+                v.append(("trail_l%d_e%d_up_d%d" % (D, el, d), {"part": "trail", "layer": "up", "L": D, "dir": d, "el": el, "seed": 29}, 0.64))
+    for R in (35, 45, 55):   # 震地 / 狮吼：quake_r 70 × op_range（× roar r_mult）
+        for st in ("q", "roar"):
+            v.append(("quake_r%d_%s_gd" % (R, st), {"part": "quake", "layer": "gd", "R": R, "style": st, "seed": 9}, 0.5))
+    for ly in ("up", "gd"):
+        v.append(("crush_%s" % ly, {"part": "crush", "layer": ly, "el": 1, "seed": 11}, 0.6))
+        v.append(("crash_%s" % ly, {"part": "crash", "layer": ly, "el": 1, "seed": 13}, 0.45))
+        v.append(("link_%s" % ly, {"part": "link", "layer": ly, "el": 1, "seed": 15}, 0.8))
+        v.append(("s3cast_%s" % ly, {"part": "s3cast", "layer": ly, "el": 2, "seed": 17}, 0.5))
+        for el in T:
+            v.append(("s1cast_e%d_%s" % (el, ly), {"part": "s1cast", "layer": ly, "el": el, "seed": 19}, 0.5))
+    for L in (60, 90, 110):   # 破阵（精二普攻，len 180 → 90）/ 再跃队长版地裂（120–220 → 60–110，不出岩刺）
+        for d in DIRS:
+            v.append(("fis_l%d_gd_d%d" % (L, d), {"part": "fis", "layer": "gd", "L": L, "dir": d, "el": 2, "seed": 21}, 0.66))
+            v.append(("crk_l%d_gd_d%d" % (L, d), {"part": "fis", "layer": "gd", "L": L, "dir": d, "el": 1, "style": "crk", "seed": 23}, 0.66))
+    for d in DIRS:
+        v.append(("fis_l90_up_d%d" % d, {"part": "fis", "layer": "up", "L": 90, "dir": d, "el": 2, "seed": 21}, 0.66))
+    v.append(("cmd_gd", {"part": "cmd", "layer": "gd", "R": 90, "el": 1, "seed": 25}, 0.66))
+    v.append(("s3aura_gd", {"part": "s3aura", "layer": "gd", "R": 24, "el": 2, "seed": 27, "_loop": True}, 0.4))
+    for S in (18, 24, 30):   # 后期剑气 = 锤击甩出去的冲击波（0.53 秒 8 帧，游戏里自己往前推）：一次出手 1 / 2 / 3+ 道合成一道
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("wave_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.54))
+    # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
+    for el in T:
+        v.append(("raw_imp_e%d" % el, {"part": "imp", "layer": "gd", "view": "raw", "el": el, "seed": 3 + el}, 0.6))
+    for el in (1, 2):
+        v.append(("raw_slam_e%d" % el, {"part": "slam", "layer": "gd", "view": "raw", "R": 55, "el": el, "seed": 7}, 0.7))
+    v.append(("raw_s3", {"part": "s3", "layer": "gd", "view": "raw", "dir": 0, "el": 2, "seed": 5}, 0.7))
+    return v
+
+
+def variants_mizuki():
+    """水月（docs/261）：判定从 mizuki.json 读，美术像素 = 世界 / 2。范围成长（late_shape 召唤流派 +12% / 档、范围卡）会放大判定，
+    伞击 / 唤醒 / 镜花水月按两档半径预生成，游戏挑最近的一档（只整数放大，不缩放）。"""
+    v = []
+    T = [0, 1, 2]
+    SPAN = 2.62   # 伞击半角 75° → 弧 150°
+    for R in (56, 70):   # 普攻伞击：swing_radius 112 → 56
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("atk_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": SPAN, "W": [10, 12, 14][el] + (R - 56) // 7, "dir": d, "el": el, "dur": 0.3, "style": "basic"}, 0.34))
+    for R in (56, 70):   # 囚徒困境期间的伞击（间隔减半）：更薄更快、青白沿 + 幻影残弧
+        for el in (1, 2):
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("s2_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": SPAN, "W": [9, 11][el - 1] + (R - 56) // 7, "dir": d, "el": el, "dur": 0.26, "style": "s2", "seed": 5}, 0.3))
+    for R in (73, 92):   # 唤醒强化的那一击：范围 × 1.3 → 73
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("s1_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": SPAN, "W": [14, 16, 18][el] + (R - 73) // 8, "H0": 13, "dir": d, "el": el, "dur": 0.36, "style": "s1", "seed": 7}, 0.4))
+    for R in (81, 104):   # 镜花水月旋斩：全范围、范围 × 1.45 → 81
+        for ly in ("up", "gd"):
+            v.append(("spin3_r%d_%s" % (R, ly), {"part": "spin", "layer": ly, "R": R, "W": 16 + (R - 81) // 8, "H0": 13, "el": 2, "dur": 0.36, "style": "s3", "seed": 9}, 0.4))
+    # 触手五种形态（11-05 用户「多做几个形态」），每种 3 个变体（弯向 / 长短 / 粗细随种子变）：
+    # slam 拍击（普攻追击，精二多一根卷须）/ pierce 刺穿（唤醒大水母下、触手桩）/ curl 卷须（囚徒困境束缚）/ big 粗拍击（镜花水月）/ cluster 群生（连携）
+    FORMS = [("slam", (1, 2), 24), ("pierce", (1, 2), 32), ("curl", (1, 2), 30), ("big", (2,), 32), ("cluster", (2,), 34)]   # 拍击横向够到约 1.25H：H 24 / 32 → 落点不越出目标一带
+    for form, els, H in FORMS:
+        for el in els:
+            for vv in range(3):
+                for ly in ("up", "gd"):
+                    v.append(("tent_%s_e%d_v%d_%s" % (form, el, vv, ly), {"part": "tent", "layer": ly, "form": form, "H": H, "el": el, "v": vv, "seed": 11 + vv * 5}, 0.52))
+    for el in T:   # 命中水母绽开（原点 = 命中点）；唤醒创伤扩散（大，带地上冲击环）
+        v.append(("bloom_e%d_up" % el, {"part": "bloom", "layer": "up", "R": [7, 9, 11][el], "H0": 0, "el": el, "style": "hit", "seed": 21 + el}, 0.42))
+        v.append(("burst_e%d_up" % el, {"part": "bloom", "layer": "up", "R": [14, 17, 20][el], "H0": 0, "el": el, "style": "burst", "seed": 24 + el}, 0.42))
+        v.append(("burst_e%d_gd" % el, {"part": "bloom", "layer": "gd", "R": [14, 17, 20][el], "el": el, "style": "burst", "seed": 24 + el}, 0.45))
+    v.append(("sting_up", {"part": "bloom", "layer": "up", "R": 6, "H0": 0, "el": 2, "style": "sting", "seed": 27}, 0.42))   # 深蓝之籽蛰中
+    for rx in (6, 9, 13, 18):   # 缠绕（束缚）：按敌人体型四档，前 / 后半圈两张，循环
+        for el in (1, 2):
+            for half in ("front", "back"):
+                v.append(("coil_r%d_e%d_%s_up" % (rx, el, half), {"part": "coil", "layer": "up", "R": rx, "half": half, "el": el, "_loop": True}, 0.4))
+    for el in (1, 2):   # 囚徒困境起手：一圈触手钻出 + 中心冰蓝尖晶 + 碎屑
+        for ly in ("up", "gd"):
+            v.append(("s2cast_e%d_%s" % (el, ly), {"part": "tring", "layer": ly, "R": 46, "n": 6 + el, "H": 30, "el": el, "style": "s2", "seed": 31}, 0.6))
+    for ly in ("up", "gd"):
+        v.append(("awk2_%s" % ly, {"part": "tring", "layer": ly, "R": 44, "n": 6, "H": 22, "el": 1, "style": "ring", "seed": 33}, 0.55))   # 惊跳反射·余悸
+        v.append(("moon_%s" % ly, {"part": "moon", "layer": ly, "R": 68, "el": 2, "seed": 35}, 0.66))   # 镜花水月起手
+    for R in (81, 104):   # 镜花水月持续：脚下水镜（循环）
+        v.append(("pool_r%d_gd" % R, {"part": "pool", "layer": "gd", "R": R, "el": 2, "seed": 37, "_loop": True}, 0.4))
+    v.append(("jelly_up", {"part": "jelly", "layer": "up", "R": 5, "H0": 0, "el": 2, "_loop": True}, 0.4))   # 深蓝之籽（循环）
+    for el in T:   # 藏品剑气 → 小水母游过去（循环）
+        v.append(("qi_e%d_up" % el, {"part": "jelly", "layer": "up", "R": [5, 6, 7][el], "H0": 0, "el": el, "seed": 41, "_loop": True}, 0.4))
+    v.append(("ready_gd", {"part": "ready", "layer": "gd", "R": 17, "_loop": True}, 0.4))   # 唤醒充能好
+    v.append(("ripple_gd", {"part": "ripple", "layer": "gd", "R": 30, "seed": 43}, 0.36))   # 扩散
+    # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
+    for el in T:
+        v.append(("raw_atk_e%d" % el, {"part": "sweep", "view": "raw", "R": 56, "span": SPAN, "W": [10, 12, 14][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
+        v.append(("raw_s1_e%d" % el, {"part": "sweep", "view": "raw", "R": 73, "span": SPAN, "W": [14, 16, 18][el], "dir": 0, "el": el, "dur": 0.36, "style": "s1"}, 0.4))
+        v.append(("raw_tent_e%d" % el, {"part": "tent", "view": "raw", "form": "slam", "H": 30, "el": el, "seed": 11}, 0.5))
+        v.append(("raw_bloom_e%d" % el, {"part": "bloom", "view": "raw", "R": [7, 9, 11][el], "H0": 0, "el": el}, 0.42))
+    v.append(("raw_spin3", {"part": "spin", "view": "raw", "R": 81, "W": 16, "el": 2, "dur": 0.36, "style": "s3"}, 0.4))
+    return v
+
+
+VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "mizuki": variants_mizuki}
+FX_ID = "water/ak-skadi-pp"
+PREFIX = ""
+ACC_RG = [(0x5f, 0xf0)]
+
+
 def render(key, opts, dur):
-    d = os.path.join(TMP, key)
+    d = os.path.join(TMP, FX_ID.split("/")[-1], key)
     os.makedirs(d, exist_ok=True)
-    o = dict(opts)
+    o = {k: x for k, x in opts.items() if not k.startswith("_")}
     o.setdefault("dur", min(0.46, dur - 0.04))
     if ACCENT:
         o["accent"] = ACCENT
-    p = subprocess.run(["node", "tools/ak_layers.mjs", "water/ak-skadi-pp", "--out", d, "--fps", str(FPS), "--opts", json.dumps(o)], cwd=PFX, capture_output=True, text=True)
+    p = subprocess.run(["node", "tools/ak_layers.mjs", FX_ID, "--out", d, "--fps", str(FPS), "--opts", json.dumps(o)], cwd=PFX, capture_output=True, text=True)
     if p.returncode != 0:
         raise RuntimeError(key + ": " + p.stderr[-400:])
-    return key, d, dur
+    return key, d, dur, bool(opts.get("_loop", False))
 
 
-def bake(key, d, dur):
+def bake(key, d, dur, loop=False):
     meta = json.load(open(os.path.join(d, "meta.json")))
     fw, fh = meta["frameSize"]
     n = meta["frames"]
@@ -119,7 +304,7 @@ def bake(key, d, dur):
     ox, oy = meta["pivot"]
     col = np.asarray(Image.open(os.path.join(d, "color.png")).convert("RGBA")).astype(np.float32) / 255.0
     lit = np.asarray(Image.open(os.path.join(d, "light.png")).convert("RGB")).astype(np.float32) / 255.0
-    loop = key.startswith(("blade_", "raw_blade", "pool", "qi_"))
+    loop = loop or key.startswith(("blade_", "raw_blade", "pool", "qi_"))
     nf = min(n, int(round(dur * fps)))
     if loop:
         nf = int(round(0.4 * fps))   # 循环 0.4 秒 = 6 帧
@@ -153,9 +338,9 @@ def bake(key, d, dur):
             emit.append([])
             continue
         luma = c[..., 0] * 0.2126 + c[..., 1] * 0.7152 + c[..., 2] * 0.0722
-        ah = (ACCENT or "#c4dcff").lstrip("#")
-        ar, ag, ab = int(ah[0:2], 16) / 255, int(ah[2:4], 16) / 255, int(ah[4:6], 16) / 255
-        acc = (np.abs(c[..., 0] - ar) < 0.02) & (np.abs(c[..., 1] - ag) < 0.02) & (np.abs(c[..., 2] - ab) < 0.02)
+        acc = np.zeros(c.shape[:2], bool)
+        for ar, ag in ACC_RG:
+            acc |= (np.abs(c[..., 0] - ar / 255) < 0.02) & (np.abs(c[..., 1] - ag / 255) < 0.02)
         m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
         py, px = np.nonzero(m)
         idx = np.arange(len(px))
@@ -166,7 +351,7 @@ def bake(key, d, dur):
             r, g_, b = c[py[j], px[j], :3]
             pts.append([int(px[j]), int(py[j]), "%02x%02x%02x" % (int(r * 255), int(g_ * 255), int(b * 255))])
         emit.append(pts)
-    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s.png" % key), optimize=True)
+    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm"))), optimize=True)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": loop, "emit": emit}
 
 
@@ -174,32 +359,41 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")
     ap.add_argument("--jobs", type=int, default=6)
-    ap.add_argument("--accent", default="", help="点缀色（精二描边 / 深海裂痕发光芯 / S3 刃线）；缺省用效果文件里的")
+    ap.add_argument("--op", default="skadi", choices=sorted(OPS))
+    ap.add_argument("--accent", default="", help="点缀色对比（覆盖效果文件里的点缀色，emit 按它取）")
     ap.add_argument("--out-art", default="", help="对比用：帧条写到别处（不动 game/art）")
     ap.add_argument("--out-meta", default="")
     a = ap.parse_args()
-    global ACCENT, OUT_ART, OUT_META, TMP
+    global FX_ID, PREFIX, ACC_RG, ACCENT, OUT_ART, OUT_META, TMP
+    FX_ID, meta_name, PREFIX, ACC_RG = OPS[a.op]
+    OUT_META = os.path.join(ROOT, "game", "data", meta_name)
     ACCENT = a.accent
+    if ACCENT:
+        h = ACCENT.lstrip("#")
+        ACC_RG = [(int(h[0:2], 16), int(h[2:4], 16))]
     if a.out_art:
         OUT_ART = a.out_art
         OUT_META = a.out_meta or os.path.join(a.out_art, "meta.json")
         TMP = os.path.join(a.out_art, "_tmp")
-    shutil.copy(SRC, os.path.join(PFX, "src", "fx", "water", "ak-skadi-pp.js"))
+    sub, fn = FX_ID.split("/")
+    shutil.copy(os.path.join(ROOT, "tools", "pixelfx_fx", sub, fn + ".js"), os.path.join(PFX, "src", "fx", sub, fn + ".js"))
     os.makedirs(OUT_ART, exist_ok=True)
     os.makedirs(TMP, exist_ok=True)
-    vs = [x for x in variants() if x[0].startswith(a.only)]
-    reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) and a.only else {}
+    vs = [x for x in VARIANTS[a.op]() if x[0].startswith(a.only)]
+    reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) else {}
+    if not a.only:   # 全量重烘：清掉旧件，只留不由本脚本生成的（推进之王狮头 sg_lion_*，tools/pxplane_lion.py）
+        reg = {k: v for k, v in reg.items() if k.startswith("sg_lion_")}
     with ThreadPoolExecutor(a.jobs) as ex:
         rs = list(ex.map(lambda x: render(*x), vs))
-    for key, d, dur in rs:
-        k, m = bake(key, d, dur)
+    for key, d, dur, lp in rs:
+        k, m = bake(key, d, dur, lp)
         if m is None:
             print("空", k)
             continue
-        reg[k] = m
+        reg[PREFIX + k] = m
         print("%-22s %2d 帧 %3d×%3d emit %d" % (k, m["n"], m["w"], m["h"], max((len(e) for e in m["emit"]), default=0)))
     reg = {k: reg[k] for k in sorted(reg)}
-    reg["_doc"] = "docs/246 斯卡蒂转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
+    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "mizuki": "docs/261 水月"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
     json.dump(reg, open(OUT_META, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("共 %d 件" % (len(reg) - 1))
 

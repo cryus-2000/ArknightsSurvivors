@@ -13,7 +13,7 @@ const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Fxr = preload("res://scripts/render/fx_recipe.gd")
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246）
-const MeleeImpact = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：画面击退   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
+const MeleeImpact = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §12）：画面击退   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247，render/late_read）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
@@ -3600,10 +3600,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if e.get("sword_t", 0.0) > 0.0:
 		_sword_glint(e, bpos)
 	if e.get("air", 0.0) > 0.0:
+		var alk: Vector2 = Pxp.air_look(g, e)   # 转平面（docs/267）：安洁莉娜托起的敌人影子随高度缩小变淡、悬停时上下浮动 1 美术像素（只画；其余 (1, 0) 原样）
 		g.wcv.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
-		g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9, Color(0, 0, 0, 0.35))
+		g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9 * alk.x, Color(0, 0, 0, 0.35 * (0.4 + 0.6 * alk.x)))
 		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		g.draw_off.y -= e.air
+		g.draw_off.y -= e.air + alk.y
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if e.get("part", false):
 		# 部件（塑路者核心等）：心跳脉动——每拍一次放大 + 金色光晕；描边不受「怪物轮廓光」开关影响
@@ -3873,6 +3874,27 @@ func draw_nest_auras() -> void:
 		var lite: bool = Bal.v("render/nest_aura_lite", 0.0) > 0.0   # docs/139 §8：只留一层淡底 + 不转的虚线边界
 		var ac := Color(0.9, 0.5, 1.6)
 		if LateRead2.on("ground_ring_edge"):
+			var nk: float = LateRead2.nest_k()
+			if nk > 0.0 and not lite:
+				# V9 巢穴例外（nest_k，缺省 0.5）：保留约 nest_k 倍原填充 + 贴图，边一圈明显呼吸（1.6 秒），留一道内收涟漪；我方 / 中立光环仍只画边
+				var tex9 := _lazy_tex("fx_nest_aura_big")
+				if tex9 != null:
+					var fw9: float = tex9.get_width() / 4.0
+					var fr9 := int(g.t * 10.0) % 4
+					g.wcv.draw_texture_rect_region(tex9, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(fr9 * fw9, 0, fw9, tex9.get_height()), Color(1, 1, 1, (0.5 if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15 else 0.35) * nk))
+				for q in 4:
+					tb_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, minf(0.035 * nk, 0.0175)), 1.0, 32)
+				var u9: float = fmod(g.t * 0.5 + e.id * 0.17, 1.0)
+				tb_ring(e.pos, ar * (1.0 - u9 * 0.85), 1.5, Color(ac.r, ac.g, ac.b, 0.28 * (1.0 - u9)), 40)
+				var br: float = 0.5 + 0.5 * sin((g.t / 1.6 + float(e.id) * 0.13) * TAU)
+				var eb: float = 0.55 + 0.45 * br
+				if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15:
+					eb = 1.0
+				var rotn: float = g.t * 0.4 + e.id
+				for q in 18:
+					var an: float = rotn + q * TAU / 18.0
+					tb_arc(e.pos, ar, an, an + TAU / 36.0, 2.0 + 1.5 * br, Color(ac.r, ac.g, ac.b, eb), 3)
+				continue
 			# docs/251 V9：只画边 + 呼吸，填充一层 ≤ 0.04；脉冲（aura_pulse_t 0.15 秒）时边加亮，代替原来贴图整片加亮
 			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, LateRead2.fill_a(0.03)), 1.0, 32)
 			var pk: bool = g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15

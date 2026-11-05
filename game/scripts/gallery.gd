@@ -132,6 +132,7 @@ func open() -> void:
 	_build()
 	_restart_open()
 	_skip()   # 10-22 用户：进图鉴不要入场动效（卡片浮现 / 面板滑入），直接出现；换页、换干员的动效不变
+	_logo_start()   # 11-05 用户：先显示罗德岛标志再进图鉴（_draw_logo_intro，0.55 秒短版）
 	_warm_demo()
 
 
@@ -245,6 +246,7 @@ func _process(delta: float) -> void:
 		return
 	A.warm_step(4000)
 	UIMo.advance(delta)
+	_intro_rec_tick()
 	t += delta
 	form_t += delta
 	# 悬停：120 ms 抬 4 px（触屏不认悬停；减少动态时直接到位）
@@ -927,6 +929,10 @@ var drag_acc := 0.0   # 触屏上下滑动翻页（没有滚轮）
 
 
 func _gui_input(event: InputEvent) -> void:
+	if logo_active() and ((event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed) or (event is InputEventKey and event.pressed)):
+		_logo_skip()   # 标志入场中：点一下 / 按键直接进图鉴
+		accept_event()
+		return
 	if event is InputEventMouseMotion:
 		if tab == TAB_EVENT and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) and ev_list_r.has_point(_design(event.position)):
 			ev_scroll = clampf(ev_scroll - event.relative.y / maxf(dk, 0.01), 0.0, ev_scroll_max)
@@ -1287,6 +1293,7 @@ func _draw() -> void:
 		_draw_panel(e, ph)
 	_draw_hint(ph)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_draw_logo_intro()   # 「档案解密」入场（盖在最上面，0.8 秒）
 
 
 ## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
@@ -2456,3 +2463,75 @@ func _ev_detail(e: Dictionary, ph: bool, x0: float, w: float, y: float, a: float
 		draw_rect(track, UI.fa(UI.C_L_INK, 0.15 * a))
 		var th: float = track.size.y * track.size.y / (track.size.y + ev_scroll_max)
 		draw_rect(Rect2(track.position.x - 1.0, y + (track.size.y - th) * ev_scroll / ev_scroll_max, 4.0, th), UI.fa(UI.C_L_INK, 0.6 * a))
+
+
+
+# ---------------------------------------------------------------- 入场：「档案解密」（screens/prts_intro.gd，11-05 用户「参考莱茵生命风格的动效」，短版 0.8 秒）
+## 罗德岛标志逐笔描出 → 两条对角线合拢到中心、停一下、收回 → 磨砂层由糊变清揭开图鉴。磨砂用一层拷屏模糊（ui_glass.gdshader：
+## 半径与底色透明度随 intro.frost() 退到 0）；不能拷屏（手机网页 / 苹果 WebKit，Cfg.screen_copy_ok）时 prts_intro 自己平涂淡出。
+## 点击 / 按键直接跳到图鉴并吞掉这次输入；减少动态 ≤ 0.12 秒淡出；截图 / 无头直接终态（--galleryintro 录像时才播）
+const PrtsIntro = preload("res://scripts/screens/prts_intro.gd")
+var intro = PrtsIntro.new()
+var frost_bbc: BackBufferCopy = null
+var frost_ci: ColorRect = null
+
+
+func _logo_start() -> void:
+	var test: bool = DisplayServer.get_name() == "headless" or (Array(Cfg.dev_args()).any(func(a): return str(a).begins_with("--galleryshot=")) and not Cfg.dev_args().has("--galleryintro"))
+	var nc := 0
+	for e in entries:
+		if not e.get("locked", false):
+			nc += 1
+	intro.info = {"count": nc, "total": entries.size()}
+	intro.start("decrypt", test)
+	if frost_ci == null and glass_mat != null and glass_fx:
+		frost_bbc = BackBufferCopy.new()
+		frost_bbc.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+		frost_ci = ColorRect.new()
+		frost_ci.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frost_ci.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var m := ShaderMaterial.new()
+		m.shader = glass_mat.shader
+		frost_ci.material = m
+		add_child(frost_bbc)
+		add_child(frost_ci)
+	_frost_tick()
+
+
+## 磨砂层：只在揭开阶段显示，半径 14 → 0、底色 0.85 → 0
+func _frost_tick() -> void:
+	if frost_ci == null:
+		return
+	var f: float = intro.frost()
+	frost_ci.visible = f >= 0.0
+	frost_bbc.visible = f >= 0.0
+	if f >= 0.0:
+		frost_ci.material.set_shader_parameter("radius", 14.0 * f)
+		frost_ci.material.set_shader_parameter("tint", Color(PrtsIntro.BG.r, PrtsIntro.BG.g, PrtsIntro.BG.b, 0.85 * f))
+
+
+var _intro_rec := false   # --galleryintro 录像：开图鉴 1.5 秒（等启动卡顿过去）后重播一次入场
+
+
+func _intro_rec_tick() -> void:
+	if not _intro_rec and Cfg.dev_args().has("--galleryintro") and _now() > 1.5:
+		_intro_rec = true
+		_logo_start()
+	_frost_tick()
+
+
+func logo_active() -> bool:
+	return intro.active()
+
+
+func _logo_skip() -> void:
+	intro.skip()
+	_frost_tick()
+
+
+func _draw_logo_intro() -> void:
+	if not intro.active():
+		return
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	intro.host_frost = frost_ci != null
+	intro.draw(self, size, font)

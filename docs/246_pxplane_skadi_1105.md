@@ -139,7 +139,23 @@
 - 旋钮：`fx/melee_impact_stop / _stop_heavy / _mate / _shake_px / _shake_t / _push / _push_heavy / _lit`。
 - 验证：TRACE 在批跑模式比（顿帧在玩家时钟里会真的停模拟，开 / 关两局本来就会分岔，所以 TRACE 口径同 docs/245：`--balance` 非 `--playclock`）；对照录像用 `--realtime --playclock`（顿帧看得见）。脚本 `tools/melee_impact_rec.py`，在 GCP 上跑（`tools/gcp_render.py --job custom`）。
 
-## 12. 分档不靠浪花（11-04 用户「E1 / E2 的浪花感觉没什么用，可以想办法换一个」；11-05 协调人转）
+## 12. 出图流程（11-05 起放 GCP，docs/256）
+
+本机只写代码、不开 Godot 渲染；截图、录像和 TRACE 都用一条命令放到 GCP 上出：
+
+```
+python tools/gcp_render.py --branch <自己的分支> --job pxplane --name <名>                # demo + rec + trace 三段全跑
+python tools/gcp_render.py --branch <自己的分支> --job pxplane --args "demo --modes 3,0" # 只出普攻 / S1 三栏
+python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cases=skadi:23:300 a="--bal=fx/px_plane=0" b="--bal=fx/px_plane=1"'
+```
+
+- **产物**：图和 mp4 自动下载到 `<主仓库>/Claude outputs/render-<名>/`。日志和 TRACE 结果在 `cloud-results/render-<名>` 分支的 `build/cloud/render-<名>/` 下：`pxplane_rec.log` / `pxplane_trace.log` 末行写着是否逐行一致。
+- **index.json**：虚拟机上自动跑 `asset_index.py` 生成，不用管。
+- **原作参照**：图只在本机，不上 GCP。三栏里要加「原作」一栏，下载后在本机用 PIL 拼到左边。
+- **斯卡蒂实测**（本稿 3108c1778，8 核抢占式）：本节 §7 的 23 个文件、69 MB 全部拿回，全程 48 分钟，约 0.07 美元。其中 demo 26 分钟、rec 14 分钟、trace 3 分钟。TRACE 301 行、录像局 499 行逐行一致，同 §6。
+- **星熊、流明等其他人**：照 `pxplane_shots.py` 写自己的出图脚本，Godot 只经 `godot_runner.run_godot` 启动，输出目录取 `--out`。然后用 `--job custom --cmd 'python3 tools/<脚本>.py … --out $MEDIA'` 跑，或在 `tools/gcp/render_jobs/` 加一个任务文件。
+
+## 13. 分档不靠浪花（原 §12）（11-04 用户「E1 / E2 的浪花感觉没什么用，可以想办法换一个」；11-05 协调人转）
 
 口径：**每升一档多一个新元素**。
 - 去掉：精一起刀刃外的一排白浪沫点（普攻 / S1 / 旋斩原来的分档元素）。
@@ -147,9 +163,9 @@
 - **精二 + 刃变重**（11-05 用户：触须「很怪，不要」，已删）：同一道月牙，热白那一拍之后刀身压成深海暗色，内外两侧各一圈海绿描边（外缘白刃线保留），比精一更沉更厚；精一的深海裂痕照留。
 - 普攻、S1、旋斩、悲歌旋斩都用这一套；分支招 / 浪类招式的白沫是招式本体，不算分档点缀，不动。
 - 仍保留的水花（列出待用户定）：S1 刀头甩出的一扇水花（S1 区别于普攻的标志，不是分档）、S1 / S3 刀痕下的地面泡沫水痕、S3 沿弧向外甩水、命中处的 Noita 水滴颗粒（每档一样）。
-- 看图：`Claude outputs/px_plane_skadi_1105/tiers_atk_s1_v2.gif`（朝右）、`tiers_atk_s1_v2_d45.gif`（斜下）——本机 `tools/pxplane_gif.py` 直接用烘焙帧条拼（不开 Godot），三档并排。
+- 看图：`Claude outputs/px_plane_skadi_1105/tiers_atk_s1_v2.gif`（朝右）、`tiers_atk_s1_v2_d45.gif`（斜下）——本机 `tools/pxplane_gif_skadi.py` 直接用烘焙帧条拼（不开 Godot），三档并排。
 
-## 13. 普攻横斩、S1 竖斩（11-05 用户「迅捷打击和普攻的感觉是不是太相似了，可以换成竖斩和横斩」）
+## 14. 普攻横斩、S1 竖斩 / 十字斩（原 §13）（11-05 用户「迅捷打击和普攻的感觉是不是太相似了，可以换成竖斩和横斩」）
 
 - 普攻 = **横斩**（不变）：腰高的水平月牙。
 - S1 迅捷打击·γ型 = **竖斩**（`part: vslash`）：大剑从头顶后方（125°）以肩高为轴竖着劈到身前地面（劈进地下的部分不画），刀光是一道立在出手方向竖直平面里的月牙；落地那一下沿出手方向炸开一道直裂（几处小分叉），刀身在地上一道直线投影。原来的刀头甩水扇、地面泡沫水痕不再用。
@@ -160,10 +176,10 @@
 - **11-05 再改：S1 = 十字斩**（用户「S1 可以是类似于十字斩，先竖着再横着，这样就不用改范围」，`part: cross`）：先竖劈（上面那道竖月牙 + 落点直裂），0.12 秒后接一道弧 200° 的横扫月牙（比普攻宽，对上前方 200° 判定），两刀在身前交成「十」字；横扫这一刀只要投影阴影，不另加裂痕。分档：E1 竖劈落点直裂发光（深海裂痕），E2 两刀都刃变重。判定不改。
   看图：`tiers_atk_s1_v5.gif`（朝右）、`tiers_atk_s1_v5_d45.gif`（斜下）。
 
-## 14. 点缀色改冰蓝（11-05 用户：暗绿 / 海绿换掉，三选一选冰蓝）
+## 15. 点缀色改冰蓝（原 §14）（11-05 用户：暗绿 / 海绿换掉，三选一选冰蓝）
 
 - 点缀色 `#5ff0cc`（海绿）→ `#c4dcff`（冰蓝）：E1 深海裂痕的发光芯、E2 刃变重的内外描边、S3 刃线、潮刃 / 水柱里原来的海绿芯都跟着换（效果文件 `accent`、`data/fx_pxplane/skadi.json` 的 `palette.accent`）。冰蓝和敌弹青 `#33ceff` 分得开（偏白、饱和度低）。
 - 对比图：`accent_compare_暗蓝_冰蓝_海绿.png`、`accent_a_暗蓝.gif`、`accent_b_冰蓝.gif`；定稿 `tiers_atk_s1_v6.gif` / `_d45.gif`。
 - 顺带修了一个烘焙 bug：深海裂痕小分叉一行引用已删的变量，碰到分叉时整批烘焙中断（之前静默失败，部分帧条没更新）；现在全部 174 件重烘焙。
-- `tools/pxplane_bake.py` 新增 `--accent / --out-art / --out-meta`（出颜色对比不动 game/art），`tools/pxplane_gif.py` 新增 `--art / --title`。
+- `tools/pxplane_bake.py` 新增 `--accent / --out-art / --out-meta`（出颜色对比不动 game/art），`tools/pxplane_gif_skadi.py`（斯卡蒂并排 GIF，合 integ 时改名，`tools/pxplane_gif.py` 是推进之王等用的多人送审 GIF）新增 `--art / --title`。
 

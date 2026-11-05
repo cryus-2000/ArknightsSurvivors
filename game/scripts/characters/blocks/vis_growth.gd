@@ -17,8 +17,10 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # 剑气非线性速度（10-27）
 const LateShape = preload("res://scripts/characters/blocks/late_shape.gd")   # 后期形状随成长（docs/248）
-const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")
-const _PXP = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246 §9）：接管的干员剑气改画本人风格（斯卡蒂 = 水刃 + 浪痕）   # 看得见的成长节点（docs/249）
+const _PXP = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246 §9）：接管的干员剑气改画本人风格（斯卡蒂 = 水刃 + 浪痕）
+const VisNodes = preload("res://scripts/characters/blocks/vis_nodes.gd")   # 看得见的成长节点（docs/249）
+const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面（docs/254）：接管的干员剑气由 fx_pxplane 画
+const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/255）：流明的额外弹改画流明光弹，只画
 
 ## 读 op_shots 之外的远程普攻形状（cmd_role 同一张表）
 const RANGED_SHAPES := ["projectile", "shell", "bolt", "cannon", "point_aoe", "foxfire", "lantern"]
@@ -404,6 +406,12 @@ static func tick(o, dt: float) -> void:
 					continue
 				b.hit[e.id] = true
 				_hit(o, e, float(b.dmg), _src(o, str(b.key), "远程"))
+				if str(o.id) == "lumen":
+					_FXR.ev(o, "lm_xhit", {"e": e, "at": e.pos + Vector2(0, SHOT_Y)})   # 转平面（docs/255）：只画
+				elif str(o.id) == "eyjafjalla":
+					_FXR.ev(o, "ey_xhit", {"e": e, "at": e.pos, "r": 30.0})   # 转平面（docs/259）：只画
+				elif str(o.id) == "exusiai":
+					_FXR.ev(o, "exu_xhit", {"e": e, "at": e.pos + Vector2(0, SHOT_Y)})   # 转平面（docs/262）：只画
 				o.fx({"kind": "spark", "pos": e.pos + Vector2(0, SHOT_Y), "vel": b.v.normalized() * 40.0, "life": 0.14, "col": _tint(o), "sz": 2.0, "drag": 4.0})
 				if b.hit.size() >= int(b.max):
 					b.life = 0.0
@@ -466,7 +474,8 @@ static func draw(o) -> void:
 	var low: bool = quality() == "low"
 	var tc := _tint(o)
 	var sc: float = kn("shot_scale", 0.8)
-	for b in v.bul:
+	var pxb: bool = str(o.id) in ["lumen", "eyjafjalla", "exusiai"] and _FXR.Pxp.owns_id(g, str(o.id))   # 转平面（docs/255 / 259 / 262）：流明光弹、艾雅法拉熔岩块由 fx_pxplane 画
+	for b in ([] if pxb else v.bul):
 		var p: Vector2 = b.p + Vector2(0, SHOT_Y)
 		var d: Vector2 = b.v.normalized()
 		if not low:   # 拖尾：两段由浅到亮
@@ -474,7 +483,7 @@ static func draw(o) -> void:
 			cv.draw_line(p - d * 14.0 * sc, p, Color(tc.r, tc.g, tc.b, 0.7), 4.0 * sc)
 		cv.draw_circle(p, 7.0 * sc, Color(tc.r, tc.g, tc.b, 0.3))
 		cv.draw_circle(p, 3.6 * sc, Color(minf(tc.r * 1.5, 1.8), minf(tc.g * 1.5, 1.8), minf(tc.b * 1.5, 1.8), 1.0))
-	if v.qi.is_empty():
+	if v.qi.is_empty() or Pxp.owns_id(g, str(o.id)):   # 转平面（docs/254）接管：星熊剑气画成盾击冲击波（fx_pxplane）
 		return
 	if _PXP.owns_id(g, str(o.id)):
 		return   # 转平面接管：剑气由 fx_pxplane 画（只画，判定照旧）

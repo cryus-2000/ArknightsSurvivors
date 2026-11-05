@@ -39,7 +39,7 @@
     else {
       if (!bootT0) bootT0 = performance.now();
       var s = (performance.now() - bootT0) / 1000;
-      f = 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
+      f = BV === 4 ? 0.6 : 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 方向 4（PRTS 认证终端）：拿不到真实进度就不动，刻度环上显示不定进度（p4Init）   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
       busy = true;
     }
     f = shownProgress = Math.max(shownProgress, Math.min(1, f));
@@ -105,11 +105,153 @@
   function logBox(cls) { return '<div class="sv-log ' + (cls || '') + '"><div class="sv-cap sy-en">SYSTEM LOG</div><div class="sv-lines"></div></div>'; }
   function tipBox(cls) { return '<div class="sv-tip ' + (cls || '') + '"><div class="sv-cap sy-en">NOTE</div><div class="bd"></div></div>'; }
 
+  // ---------------------------------------------------------------- 方向 4：PRTS 认证终端（11-05 用户「codex 的加载页可以替换我们目前的加载页」）
+  // 起点是 Codex 演示（docs/reference/prts-entry-1105），同日按用户意见对齐局内 PRTS（画法与桌面 boot_views.draw_v4 一一对应）：
+  // 标志呼吸 + 光晕 + 大淡三角、外圈细环上两组反向慢转弧段、方位菱形节点 + 读数、环两侧水平细线 + 往外走的青光、60 格刻度环 = 进度。
+  // 进度全接真实状态：下载字节 → 解压 → 引擎启动（拿不到进度：不定进度——刻度环上一段青格慢转、百分比 ---，不按时间推）→ Godot 回传 → 读完整圈转青。
+  // 标志 = loader_rhodes.png（用户给的 240×240 原图）最近邻采样到 120×120，亮度 > 112 留、> 168 冷白、其余次灰（同 screens/rhodes_logo.gd）。
+  // 11-05 用户「为什么感觉有点卡」：引擎编译 wasm / Godot 编译脚本时主线程会被占住几百毫秒到几秒，画布那几秒停住。
+  // 所以凡是「一直在动」的（标志 / 光晕 / 三角呼吸、弧段转动、细线青光）都是 DOM + CSS 动画（只动 opacity / transform，走合成线程，主线程忙时照样流畅）；
+  // 画布只画静态底 + 进度（刻度、文字、分项），内容变了才重画。系统「减少动态效果」时 CSS 动画全停。
+  function p4Init(d) {
+    var cv = d.querySelector('.p4c'), ctx = cv.getContext('2d'), fx = d.querySelector('.p4fx');
+    var v = { root: d, tip: { style: {}, textContent: '' }, f: 0, stage: { text: '' }, ind: false, lines: null };
+    var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var img = new Image(), T0 = performance.now(), readyT = -1, lastSig = '', lay = '';
+    img.onload = function () {
+      var a = fx.querySelector('.p4logo'), ax = a.getContext('2d');
+      ax.imageSmoothingEnabled = false; ax.drawImage(img, 0, 0, 120, 120);
+      var id = ax.getImageData(0, 0, 120, 120), px = id.data;
+      for (var i = 0; i < px.length; i += 4) {
+        var lv = (px[i] + px[i + 1] + px[i + 2]) / 3;
+        if (lv > 112 && px[i + 3] > 127) { var hi = lv > 168; px[i] = hi ? 236 : 146; px[i + 1] = hi ? 238 : 151; px[i + 2] = hi ? 240 : 160; px[i + 3] = 255; }
+        else px[i + 3] = 0;
+      }
+      ax.putImageData(id, 0, 0);
+      fx.classList.add('on');   // 淡入（CSS transition）
+    };
+    img.src = 'loader_rhodes.png';
+    var BG = '#0f1013', TX = '#eceef0', SUB = '#9297a0', ACC = '#36e2dc', RULE = '#353943';
+    var clamp = function (x) { return Math.max(0, Math.min(1, x)); }, ease = function (x) { return 1 - Math.pow(1 - clamp(x), 3); };
+    function box(x, y, w, h, c, a) { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(w), Math.ceil(h)); ctx.globalAlpha = 1; }
+    function lab(s, x, y, sz, c, al) { ctx.fillStyle = c; ctx.font = Math.round(sz) + 'px Consolas,"Microsoft YaHei","PingFang SC",monospace'; ctx.textAlign = al || 'left'; ctx.fillText(s, Math.round(x), Math.round(y)); }
+    function head(x, y, s, k, rw) { box(x, y - 6 * k, 18 * k, 2, TX); lab(s, x + 26 * k, y, 13 * k, TX); box(x, y + 12 * k, rw, 1, RULE); }
+    // 动效层的位置（CSS 像素），只在窗口尺寸变时重排
+    function layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1) {
+      var key = W + 'x' + H;
+      if (lay === key) return;
+      lay = key;
+      var q = function (sel) { return fx.querySelector(sel); }, px = function (x) { return (x / dpr).toFixed(1) + 'px'; };
+      fx.style.cssText = 'left:' + px(cx) + ';top:' + px(cy);
+      var lg = q('.p4logo'); lg.style.width = lg.style.height = px(span); lg.style.left = lg.style.top = px(-span / 2);
+      var ha = q('.p4halo'); ha.style.width = ha.style.height = px(R * 2.5); ha.style.left = ha.style.top = px(-R * 1.25);
+      var gw = q('.p4glow'); gw.style.width = gw.style.height = px(span * 1.3); gw.style.left = gw.style.top = px(-span * 0.65);
+      var T = R * 0.66 / 0.66 * 1.5, tri = q('.p4tri');   // 外接圆 1.5 倍环
+      tri.setAttribute('viewBox', [-T, -T, 2 * T, 2 * T].join(' ')); tri.style.width = tri.style.height = px(2 * T); tri.style.left = tri.style.top = px(-T);
+      tri.innerHTML = '<polygon points="0,' + (-T) + ' ' + (T * 0.866) + ',' + (T * 0.5) + ' ' + (-T * 0.866) + ',' + (T * 0.5) + '"/>';
+      [['.p4rot.a', R2, 3, 34, 1.5], ['.p4rot.b', R2 + 7 * k, 2, 14, 2]].forEach(function (o) {
+        var el = q(o[0]), r = o[1], cc = 2 * Math.PI * r, seg = cc * o[3] / 360, gap = cc / o[2] - seg, e = r + 4 * k;
+        el.style.width = el.style.height = px(2 * e); el.style.left = el.style.top = px(-e);
+        el.innerHTML = '<svg viewBox="' + [-e, -e, 2 * e, 2 * e].join(' ') + '"><circle r="' + r + '" stroke-width="' + o[4] * dpr + '" stroke-dasharray="' + seg + ' ' + gap + '"/></svg>';
+      });
+      var len = hl - (hx1 - cx);
+      ['.p4run.r', '.p4run.l'].forEach(function (sel, i) {
+        var el = q(sel);
+        el.style.cssText = 'left:' + px(i ? -(hx1 - cx) - len : hx1 - cx) + ';top:' + px(0) + ';width:' + px(len) + ';--len:' + px(len - 26 * k) + ';--w:' + px(26 * k);
+      });
+    }
+    function frame() {
+      if (!d.isConnected) return;
+      requestAnimationFrame(frame);
+      var dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
+      var t = (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
+      if (rd && readyT < 0) readyT = performance.now();
+      var u = readyT < 0 ? -1 : (performance.now() - readyT) / 1000;
+      // 画布只在内容变时重画（进度格 / 日志 / 阶段 / 不定进度的转格 / 读完脉冲 / 计时到 0.1 秒）
+      var spin = Math.floor((t * 14) % 60);
+      var sig = [W, H, Math.floor(p * 1000), v.stage.text, logs.length, logs.filter(function (l) { return l.ok; }).length, v.ind ? spin : -1, rd, rd && u < 0.6 ? Math.floor(u * 30) : -1, Math.floor(t * 30), got, done, bootProgress].join('|');   // 30 次 / 秒：刻度环 / 当前格 / 日志小方块随呼吸
+      if (sig === lastSig) return;
+      lastSig = sig;
+      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+      var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.42, m = 22 * k;
+      var br = rm ? 1 : 0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6), rb = rd ? 1 : 0.8 + 0.2 * br;   // 呼吸相位（同 CSS p4br：0 秒最亮）
+      var span = 120 * Math.max(1, Math.floor(H * 0.34 / 120)), R = span * 0.66, R2 = R + 22 * k;
+      var hx0 = cx - R - 46 * k, hx1 = cx + R + 46 * k, hl = W > 760 * dpr ? W / 2 - 200 * k : W / 2 - 10;
+      layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1);
+      box(0, 0, W, H, BG);
+      ctx.fillStyle = SUB; ctx.globalAlpha = 0.12;
+      for (var gx = 0; gx < W; gx += 24 * k) for (var gy = 0; gy < H; gy += 24 * k) ctx.fillRect(Math.round(gx), Math.round(gy), 1, 1);
+      ctx.fillStyle = '#000';
+      for (var sy = 0; sy < H; sy += 3) ctx.fillRect(0, sy, W, 1);
+      ctx.globalAlpha = 1;
+      lab('SYS 1105 · T+' + ('00' + (rm ? 0 : t).toFixed(1)).slice(-5), cx, 28 * k, 10 * k, SUB, 'center');
+      lab('PRTS', m, 28 * k, 12 * k, TX); lab('/ 启动校验', m + 44 * k, 28 * k, 12 * k, SUB);
+      if (W > 600 * dpr) lab('ARKNIGHTS FAN GAME', W - m, 28 * k, 11 * k, SUB, 'right');
+      box(m, 40 * k, W - 2 * m, 1, RULE);
+      box(cx - hl, cy, hx0 - (cx - hl), 1, RULE); box(hx1, cy, cx + hl - hx1, 1, RULE);
+      box(cx - hl - 1.5, cy - 1, 3, 3, SUB); box(cx + hl - 1.5, cy - 1, 3, 3, SUB);
+      var lit = Math.floor(p * 60);
+      ctx.lineCap = 'butt';
+      for (var i = 0; i < 60; i++) {
+        var a = -Math.PI / 2 + 2 * Math.PI * i / 60, mj = i % 5 === 0, l = (mj ? 9 : 5) * k, col, al;
+        if (rd) { col = ACC; al = 0.9; }
+        else if (v.ind && ((i - spin + 60) % 60) < 5) { col = ACC; al = 0.35 + 0.13 * ((i - spin + 60) % 60); }   // 不定进度：一段青格慢转
+        else if (i < lit) { col = TX; al = 0.85; }
+        else if (i === lit && !v.ind) { col = ACC; al = (0.55 + 0.45 * br) / rb; }   // 当前格随呼吸闪
+        else { col = SUB; al = 0.2 + 0.14 * br; }
+        ctx.globalAlpha = Math.min(1, al * rb); ctx.strokeStyle = col; ctx.lineWidth = (mj ? 2 : 1.5) * dpr;
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(a) * (R + l), cy + Math.sin(a) * (R + l)); ctx.stroke();
+      }
+      ctx.globalAlpha = 0.18; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R - 6 * k, 0, 2 * Math.PI); ctx.stroke();
+      ctx.globalAlpha = 0.1 + 0.12 * br; ctx.beginPath(); ctx.arc(cx, cy, R2, 0, 2 * Math.PI); ctx.stroke();
+      if (rd && !rm && u >= 0 && u < 0.5) { var q = ease(u / 0.5); ctx.globalAlpha = 0.6 * (1 - q); ctx.strokeStyle = ACC; ctx.lineWidth = 1.5 * dpr; ctx.beginPath(); ctx.arc(cx, cy, R + 14 * k + q * 40 * k, 0, 2 * Math.PI); ctx.stroke(); }
+      var nd = 4 * k;
+      for (var j = 0; j < 4; j++) {
+        var na = -Math.PI / 2 + j * Math.PI / 2, nx = cx + Math.cos(na) * R2, ny = cy + Math.sin(na) * R2;
+        ctx.globalAlpha = 0.7; ctx.fillStyle = j === 2 ? SUB : TX;
+        ctx.beginPath(); ctx.moveTo(nx, ny - nd); ctx.lineTo(nx + nd, ny); ctx.lineTo(nx, ny + nd); ctx.lineTo(nx - nd, ny); ctx.closePath(); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      lab('000', cx, cy - R2 - 10 * k, 9 * k, SUB, 'center'); lab('090', cx + R2 + 10 * k, cy - 6 * k, 9 * k, SUB); lab('270', cx - R2 - 10 * k, cy - 6 * k, 9 * k, SUB, 'right');
+      var ly = cy + R + 48 * k;
+      if (!rd) {
+        lab(v.stage.text || '', cx, ly, 16 * k, TX, 'center');
+        lab('ARCHIVE INDEX  ' + (v.ind ? '---' : ('00' + Math.floor(p * 100)).slice(-3)) + '%', cx, ly + 20 * k, 10 * k, SUB, 'center');
+      } else lab('认证通过', cx, Math.min(ly, (Math.min(innerHeight * 0.8, innerHeight - 60 - 25) - 25 - 18) * dpr), 16 * k, ACC, 'center');   // 让开「开始游戏」按钮上沿
+      if (W > 760 * dpr) {
+        var lx = m, rx = W - m - 150 * k, py = 104 * k;
+        head(lx, py, '启动校验', k, 170 * k);
+        logs.slice(Math.max(0, logs.length - 4)).forEach(function (ln, i) {
+          var yy = py + 35 * k + i * 24 * k;
+          box(lx, yy - 4 * k, 3 * k, 3 * k, ln.ok ? TX : (ln.key === logKey ? ACC : RULE), ln.ok || ln.key !== logKey ? 1 : 0.45 + 0.55 * br);
+          lab(ln.s, lx + 12 * k, yy + 1 * k, 11 * k, ln.ok ? TX : SUB);
+        });
+        head(rx, py, '资源索引', k, 150 * k);
+        var bp = bootProgress === null ? 0 : clamp((bootProgress - 0.6) / 0.4);
+        [['DOWNLOAD', clamp(got / Math.max(1, total))], ['UNPACK', done ? 1 : 0], ['ENGINE', bootProgress !== null ? 1 : -1], ['WARMUP', rd ? 1 : bp]].forEach(function (q2, i) {
+          var yb = py + 38 * k + i * 32 * k, fq = q2[1];
+          lab(q2[0], rx, yb, 10 * k, SUB); box(rx, yb + 8 * k, 150 * k, 1, RULE);
+          if (fq < 0) { var eph = (t / 1.6) % 1; if (done) box(rx + ease(eph) * 126 * k, yb + 7.5 * k, 24 * k, 2, ACC, Math.sin(eph * Math.PI)); }   // 引擎启动：不定进度（两端淡入淡出，不硬跳回）
+          else box(rx, yb + 7.5 * k, Math.floor(fq * 150 * k), 2, fq >= 1 ? ACC : TX);
+        });
+      }
+      lab('RHODES ISLAND', m, H - 20 * k, 11 * k, SUB);
+      ctx.globalAlpha = rd ? 1 : 0.6 + 0.4 * br;
+      lab(rd ? 'ACCESS / GRANTED' : 'ACCESS / PENDING', W - m, H - 20 * k, 11 * k, rd ? ACC : SUB, 'right');
+      ctx.globalAlpha = 1;
+    }
+    requestAnimationFrame(frame);
+    return v;
+  }
+
   function buildV(d) {
     var segs = '';
     for (var i = 0; i < 50; i++) segs += '<i></i>';
     var h = '';
-    if (BV === 1) {
+    if (BV === 4) {   // PRTS 认证终端（11-05，Codex docs/reference/prts-entry-1105；同桌面 boot_views.draw_v4）：画布逐帧画，扫描线 / 不定进度是 CSS 动画
+      h = '<canvas class="p4c"></canvas><div class="p4fx"><b class="p4halo"></b><b class="p4glow"></b><svg class="p4tri"></svg><canvas class="p4logo" width="120" height="120"></canvas>' +
+        '<div class="p4rot a"></div><div class="p4rot b"></div><div class="p4run r"><b></b></div><div class="p4run l"><b></b></div></div>';
+    } else if (BV === 1) {
       h = '<div class="sv-scan"></div>' + snowLayer(46) + head('罗德岛作战终端 · 启动程序', 1) +
         '<div class="sv-body1">' + logBox('sv-frame') + tipBox() + '</div>' +
         '<div class="sv-prog"><div class="sv-segs">' + segs + '</div><div class="sv-pct">000%</div><div class="sv-what"></div></div>';
@@ -167,6 +309,7 @@
     d.className = 'sv sv' + BV;
     d.innerHTML = h + FOOT;
     var q = function (s) { return d.querySelector(s); };
+    if (BV === 4) return p4Init(d);
     return { root: d, lines: q('.sv-lines'), tip: q('.sv-tip .bd'), code: q('.sv-code'), segs: d.querySelectorAll('.sv-segs i'), pct: q('.sv-pct'),
       what: q('.sv-what'), ruler: q('.sv-ruler'), depth: q('.sv-depth'), sync: q('.sv-sync'), deep: q('.sv-deep'), jelly: q('.sv-jwrap'),
       ticks: d.querySelectorAll('.sv-ticks line'), num: q('.sv-num'), rows: q('.sv-rows'), contacts: q('.sv-contacts'), build: q('.sv-build'), dark: q('.sv-dark'), net: d.querySelectorAll('.sv-net line') };
@@ -175,6 +318,7 @@
   // 每次 upd() 调：f = 进度 0–1，stage = {key, text, ok}，n / total = 编译到第几个（Godot 回传后才有）
   function updV(v, f, stage) {
     logStep(stage.key, stage.text, stage.ok);
+    if (BV === 4) { v.f = f; v.stage = stage; v.ind = done && bootProgress === null; return; }
     var nmax = window.innerHeight < 520 ? 7 : (window.innerHeight > window.innerWidth ? 9 : 12);   // 矮屏（手机横屏）/ 竖屏少留几行，不压页脚和提示
     var html = '', start = Math.max(0, logs.length - nmax);
     for (var i = start; i < logs.length; i++) {
@@ -315,6 +459,7 @@
       var place = function () {
         var low = window.innerHeight < 520, bh = low ? 42 : 50;
         var y = window.innerHeight - (low ? 64 : 96) - bh / 2;   // 缺省：底部
+        if (BV === 4) y = Math.min(window.innerHeight * 0.8, window.innerHeight - 60 - bh / 2);   // 方向 4：进度条的位置（同 boot_views.start_rect）
         if (dial && !(BV === 3 && window.innerHeight > window.innerWidth)) {
           y = dial.getBoundingClientRect().bottom + (BV === 3 ? 34 : 30) + bh / 2;
           y = Math.min(y, window.innerHeight - 30 - bh / 2 - (low ? 0 : 22));   // 让出页脚声明（矮屏不写下面那行英文）

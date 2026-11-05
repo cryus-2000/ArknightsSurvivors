@@ -1,4 +1,4 @@
-## 近战打击感包（docs/246 §11，11-05 用户实机「现在近战打击感比较弱」）：开关 fx/melee_impact（缺省 0 = 关），先只给斯卡蒂、星熊。
+## 近战打击感包（docs/246 §11，11-05 用户实机「现在近战打击感比较弱」）：开关 fx/melee_impact（缺省 0 = 关），先给斯卡蒂、星熊，11-05 加推进之王（docs/264）。
 ## 只改画面，不碰玩法与随机数（同种子 TRACE 开关逐行一致）：
 ##   ① 命中顿帧：走 vfx.stop 总闸（平衡 / 批跑局不消耗顿帧）；队长全量、队友按 fx/melee_impact_mate 比例；轻击 / 重击两档；
 ##   ② 重击轻震镜头：g.ult.shake（按真实时间、减少动态效果时为 0），用户同意的 3px / 0.12s 量级；
@@ -8,7 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42)}
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false}
 const FLASH_T := 0.07
 
@@ -31,7 +31,7 @@ static func hit(o, src: String, tags: Array, hits: Array) -> void:
 		return
 	var heavy: bool = "skill" in tags or bool(HEAVY.get(src, false))
 	# ① 顿帧
-	var sec: float = Bal.v("fx/melee_impact_stop_heavy", 0.075) if heavy else Bal.v("fx/melee_impact_stop", 0.045)
+	var sec: float = Bal.v("fx/melee_impact_stop_heavy", 0.0375) if heavy else Bal.v("fx/melee_impact_stop", 0.0225)
 	if not o.is_leader:
 		sec *= Bal.v("fx/melee_impact_mate", 0.6)
 	if g.vfx != null:
@@ -41,7 +41,7 @@ static func hit(o, src: String, tags: Array, hits: Array) -> void:
 		g.ult.shake(Bal.v("fx/melee_impact_shake_px", 3.0), Bal.v("fx/melee_impact_shake_t", 0.12))
 	# ③ 闪色 + 画面击退（每只记在敌人字典的画面专用键 mi_*，玩法不读）
 	var col: Color = IDS[str(o.id)]
-	var px: float = Bal.v("fx/melee_impact_push_heavy", 7.0) if heavy else Bal.v("fx/melee_impact_push", 4.0)
+	var px: float = Bal.v("fx/melee_impact_push_heavy", 4.7) if heavy else Bal.v("fx/melee_impact_push", 2.7)
 	for e in hits:
 		if not (e is Dictionary) or e.get("dead", false):
 			continue
@@ -52,14 +52,17 @@ static func hit(o, src: String, tags: Array, hits: Array) -> void:
 		e["mi_col"] = col
 
 
-## world._eoff 叠加：推开 0.04 秒、0.12 秒弹回（画面位移，按美术像素取整）
+## world._eoff 叠加：推开 fx/melee_impact_push_in 秒、fx/melee_impact_push_back 秒弹回（画面位移，按美术像素取整）
+## 11-05 用户「打击感现在又有点太钝了」：推开 0.04 → 0.027、弹回 0.12 → 0.08（时长约缩 1/3），位移 push 4 → 2.7 / 7 → 4.7
 static func off(g, e: Dictionary) -> Vector2:
 	if not e.has("mi_at") or not on(g):
 		return Vector2.ZERO
 	var age: float = g.t - float(e.mi_at)
-	if age < 0.0 or age > 0.16:
+	var ti: float = maxf(0.001, Bal.v("fx/melee_impact_push_in", 0.027))
+	var tb: float = maxf(0.001, Bal.v("fx/melee_impact_push_back", 0.08))
+	if age < 0.0 or age > ti + tb:
 		return Vector2.ZERO
-	var k: float = age / 0.04 if age < 0.04 else 1.0 - (age - 0.04) / 0.12
+	var k: float = age / ti if age < ti else 1.0 - (age - ti) / tb
 	return ((e.mi_dir as Vector2) * float(e.mi_px) * k / 2.0).round() * 2.0
 
 

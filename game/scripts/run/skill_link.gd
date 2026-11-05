@@ -14,6 +14,8 @@ const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const LFX = preload("res://scripts/run/link_fx_common.gd")   # 连携画面公用件：衔接（接力光 + 光柱）/ 变体种子（用户 10-31 连携美术重做）
 const LFB = preload("res://scripts/run/link_fx_b.gd")   # B 组 10 人画面（link-fx-b）
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/254）：接管的干员连携画面改由 fx_pxplane 画（只画）
+const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/255）：流明「清创光弹」接管时改画流明光弹，只画
 const LFA = preload("res://scripts/run/link_fx_a.gd")   # 连携画面 A 组 10 人（德克萨斯 / 能天使 / 浊心斯卡蒂 / 凯尔希 / 乌尔比安 / 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔）
 
 ## 放技能的干员 id → {技能序号: [搭档 id, 合成类型]}
@@ -357,11 +359,15 @@ static func _step_sample(u, a: Dictionary) -> bool:
 		"lava":   # 艾雅法拉：抬杖 → 熔岩块（约 2 倍大、旋转、滴火星冒烟、地上有影子）0.42 秒砸进区域 → 顿帧 + 碎岩迸溅 + 熔岩溅落灼地 → 两跳点燃
 			var T := 0.42
 			var R: float = Bal.v("ult/link_lava_rock_r", 42.0)
+			var pxo: bool = Fxr.owns(p)   # 转平面（docs/259）：接管时岩块 / 砸地画面改由 fx_pxplane 画，下面只留玩法
 			if not a.done.has("go"):
 				a.done["go"] = true
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				a["from_p"] = p.pos + Vector2(float(p.face) * 10.0, -44.0)
+				if pxo:
+					Fxr.ev(p, "ey_link", {"a": a.from_p, "c": c, "T": T, "R": R, "foot": p.pos})
+					return false
 				u.grain("fire", a.from_p, Vector2.UP, Color.WHITE, 8)
 				u.light(a.from_p, 120.0, CRACK, 0.3)
 				var rock := {"kind": "rock", "c": a.from_p, "r": R * 0.5, "col": CRUST, "glow": CRACK, "core": CORE, "seed": 3.0, "life": T + 0.2}
@@ -370,6 +376,8 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				u.shape(shadow)
 				a["rock"] = rock
 				a["shadow"] = shadow
+			if t < T and pxo:
+				return false
 			if t < T:
 				var k: float = t / T
 				var gp: Vector2 = Vector2(a.from_p).lerp(c, k)   # 地面投影
@@ -390,6 +398,17 @@ static func _step_sample(u, a: Dictionary) -> bool:
 					u.spark(pos + Vector2(0, R * 0.5), CRACK, 1, hgt)   # 往下滴的火星，落到地面
 				u.light(gp, 120.0, CRACK, 0.06)   # 灯打在地面投影上（照在岩块上会把暗壳照成亮红）
 				return false
+			if not a.done.has("hit") and pxo:
+				a.done["hit"] = true
+				_beat(u)
+				u.g.vfx.stop(0.07, "link", true)   # 砸地顿一下
+				var hr2: float = r * 0.75
+				var burn2: Array = u.in_circle(c, hr2)
+				a["burn"] = burn2
+				Fxr.ev(p, "ey_link_hit", {"c": c, "r": hr2, "es": burn2})
+				for e in burn2:
+					p.log_hit(_src(p, "熔岩"), ["连携"])
+					p.deal_damage(e, _dmg(p, Bal.v("ult/link_lava_mult", 1.0), e))
 			if not a.done.has("hit"):
 				a.done["hit"] = true
 				a.rock.life = 0.0
@@ -438,7 +457,10 @@ static func _step_sample(u, a: Dictionary) -> bool:
 							continue
 						p.log_hit(_src(p, "点燃"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_burn_mult", 0.25), e))
-						u.grain("fire", e.pos + Vector2(0, -12), Vector2.UP, Color.WHITE, 3)
+						if not pxo:
+							u.grain("fire", e.pos + Vector2(0, -12), Vector2.UP, Color.WHITE, 3)
+					if pxo:
+						Fxr.ev(p, "ey_link_burn", {"es": a.burn})
 			return t >= T + 0.9
 		"gather":   # 歌蕾蒂娅：甩钩 0.14 秒 → 拖 0.36 秒 → 落地，钩索残留 0.5 秒慢慢收
 			var pull: Array = a.pull
@@ -495,7 +517,9 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			if t >= 0.1 and not a.done.has("beat"):
 				a.done["beat"] = true
 				_beat(u)
-				if LFX.on() and u.fx_ready(LFB.HS_SHIELD):
+				if Fxr.owns(p):
+					Fxr.ev(p, "cover", {"side": side2, "at": lp + side2 * 46.0, "es": a.taunt})   # 转平面（docs/254）：举盾（盾跟着队长走，fx_pxplane 画 1.5 秒）
+				elif LFX.on() and u.fx_ready(LFB.HS_SHIELD):
 					LFB.hs_plant(u, lp + side2 * 46.0, side2)
 				else:
 					u.grain("sh_glint", lp + side2 * 46.0, side2, AMBER, 8)
@@ -505,7 +529,7 @@ static func _step_sample(u, a: Dictionary) -> bool:
 						u.shape({"kind": "line", "a": e.pos + Vector2(0, -24), "b": e.pos + Vector2(0, -38), "w": 3.0, "col": AMBER, "life": 1.0})
 			if t < 1.5:
 				var fa: float = 1.0 if t < 1.0 else 1.0 - (t - 1.0) / 0.5
-				if t < 0.1 or not LFB.hs_shield(u, lp + side2 * 46.0, side2, fa, t):
+				if not Fxr.owns(p) and (t < 0.1 or not LFB.hs_shield(u, lp + side2 * 46.0, side2, fa, t)):
 					u.shape({"kind": "sector", "c": lp + side2 * 46.0, "r": 60.0, "a": side2.angle(), "half": 0.9, "col": AMBER, "fill": 0.5 * fa, "life": 0.04})
 					u.shape({"kind": "line", "a": lp + side2 * 46.0 + side2.orthogonal() * 42.0, "b": lp + side2 * 46.0 - side2.orthogonal() * 42.0, "w": 5.0, "col": Color(AMBER, fa), "life": 0.04})
 				if t < 1.0:
@@ -686,11 +710,17 @@ static func _step16(u, a: Dictionary) -> bool:
 				var ts: Array = u.in_circle(c, r)
 				ts.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
 				a["ts"] = ts.slice(0, 6)
+				var mzpx: bool = _FXR.owns(p)   # 转平面（docs/261）：接管时脚下钻出触手 + 缠住 1 秒由 fx_pxplane 画（只画）
 				for e in a.ts:
 					_hit16(p, e, "小触手", 0.5)
 					_cc(p, e, 1.0)
-					u.grain("water", e.pos, Vector2.UP, cl, 3)
-				a["mzv2"] = LFB.mz_tentacles(u, a.ts)
+					if not mzpx:
+						u.grain("water", e.pos, Vector2.UP, cl, 3)
+				if mzpx:
+					_FXR.ev(p, "mz_link", {"es": a.ts, "c": c, "r": r})
+					a["mzv2"] = true
+				else:
+					a["mzv2"] = LFB.mz_tentacles(u, a.ts)
 			if t < 1.0 and a.get("mzv2", false):
 				if once.call("lt"):
 					u.light(c, 150.0, cl, 0.6)
@@ -762,13 +792,17 @@ static func _step16(u, a: Dictionary) -> bool:
 						var side: float = signf((e.pos - q).dot(nv))
 						p.apply_kb(e, nv * (side if side != 0.0 else 1.0) * 200.0)
 						_hit16(p, e, "冲阵", 0.6)
-				if not LFB.sg_dash(u, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
+				if Fxr.owns(p):
+					Fxr.ev(p, "link_dash", {"q": q})   # 转平面（docs/264）：冲刺扬起的碎土由 fx_pxplane 画（只画）
+				elif not LFB.sg_dash(u, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
 					u.grain("bfx_dust", q + Vector2(0, 8), Vector2.UP, Color(0.4, 0.36, 0.3), 1)
 				return false
 			if once.call("slam"):
 				_beat(u)
 				u.g.vfx.stop(0.05, "link", true)
-				if not LFB.sg_slam(u, c):
+				if Fxr.owns(p):
+					Fxr.ev(p, "link_slam", {"c": c, "es": u.in_circle(c, 90.0)})   # 转平面（docs/264）：尾锤大砸坑由 fx_pxplane 画（只画）
+				elif not LFB.sg_slam(u, c):
 					u.shape({"kind": "ring", "c": c, "r": 95.0, "r1": 20.0, "w": 8.0, "col": cl, "life": 0.4})
 					u.shape({"kind": "ellipse", "c": c + Vector2(0, 4), "rx": 50.0, "ry": 20.0, "col": Color(0.12, 0.1, 0.08), "fill": 0.7, "layer": "back", "life": 1.0})
 					u.debris(c, cl, 2)
@@ -793,12 +827,15 @@ static func _step16(u, a: Dictionary) -> bool:
 				var fp: Vector2 = p.pos + Vector2(0, -20)
 				var tp: Vector2 = fp + d * (fp.distance_to(c) + 250.0)
 				var tc: Color = Color(1.0, 0.3, 0.25) if i % 2 == 0 else Color(1.0, 0.82, 0.4)   # 红金交替
-				if LFA.on(u, "fx_lk_tx1"):
+				var band: Array = u.in_band(fp, tp, 14.0)
+				if _FXR.owns(p):   # 转平面（docs/262）：一发长曳光 + 枪口焰 + 前 2 只被穿的火花，只画
+					_FXR.ev(p, "exu_link", {"fp": fp, "tp": tp, "i": i, "es": band.slice(0, 2)})
+				elif LFA.on(u, "fx_lk_tx1"):
 					LFA.exusiai_shot(u, fp, tp, i)
 				else:
 					u.shape({"kind": "line", "a": fp, "b": tp, "w": 3.0, "col": tc, "life": 0.16})
 					u.grain("bfx_flash", fp + d * 30.0, d, tc, 2)
-				for e in u.in_band(fp, tp, 14.0):
+				for e in band:
 					_hit16(p, e, "穿透扫射", 0.35)
 				a.k = i + 1
 			if t >= 0.1 and once.call("lt"):
@@ -893,11 +930,14 @@ static func _step16(u, a: Dictionary) -> bool:
 					if e.pos.distance_to(c) > r * 0.5 and not e.boss:
 						outs.append(e)
 				a["outs"] = outs.slice(0, 14)
+				if Fxr.owns(p):
+					Fxr.ev(p, "ang_link", {"c": c, "r": r})   # 转平面（docs/267）：三枚碎片绕圈收拢由 fx_pxplane_ang 画，只画
 			var T2 := 0.45
+			var apx: bool = Fxr.owns(p)
 			if t < T2:
 				var k2: float = t / T2
 				var rr: float = lerpf(r + 150.0, r * 0.4, k2)
-				for j in 3:
+				for j in (0 if apx else 3):
 					var sp: Vector2 = c + Vector2.from_angle(TAU * (k2 * 1.0 + j / 3.0)) * rr
 					if not LFB.an_core(u, sp, k2, j):
 						u.shape({"kind": "rock", "c": sp, "r": 9.0, "col": Color(0.2, 0.1, 0.3), "glow": cl, "seed": 3.0 + j, "rot": k2 * 6.0, "life": 0.04})
@@ -908,7 +948,9 @@ static func _step16(u, a: Dictionary) -> bool:
 						p.nudge(e, (to - e.pos) * 0.16)
 				return false
 			if once.call("land"):
-				if not LFB.an_land(u, c, r):
+				if apx:
+					Fxr.ev(p, "ang_link_land", {"c": c, "r": r, "es": a.outs})   # 转平面（docs/267）：只画
+				elif not LFB.an_land(u, c, r):
 					u.light(c, 160.0, cl, 0.4)
 					u.shape({"kind": "ring", "c": c, "r": r * 0.6, "r1": r * 0.2, "w": 5.0, "col": cl, "life": 0.4})
 				for e in a.outs:
@@ -973,7 +1015,10 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				a["shield0"] = int(u.g.shield)
 				u.g.shield = int(u.g.shield) + 1
-				if not LFB.sa_ground(u, c, r):
+				var pxo_sa: bool = Fxr.owns(p)   # 转平面（docs/269）：晶板护盾 + 钙化地面斑改由 fx_pxplane 画（只画）
+				if pxo_sa:
+					Fxr.ev(p, "sa_link", {"c": c, "r": r})
+				elif not LFB.sa_ground(u, c, r):
 					for j in 7:
 						var off: Vector2 = Vector2.from_angle(j * 2.39996) * r * (0.25 + 0.55 * fposmod(j * 0.618, 1.0))
 						u.shape({"kind": "ellipse", "c": c + off, "rx": 30.0, "ry": 13.0, "col": cl.darkened(0.35), "fill": 0.6, "layer": "back", "life": 1.6})
@@ -981,7 +1026,7 @@ static func _step16(u, a: Dictionary) -> bool:
 				u.light(c, r, cl, 0.6)
 			if t < 1.5:
 				var hk: float = 1.0 if t < 1.2 else (1.5 - t) / 0.3
-				for j in 6:   # 队长身周一圈钙质护盾块
+				for j in (0 if Fxr.owns(p) else 6):   # 队长身周一圈钙质护盾块（转平面接管时由 fx_pxplane 画）
 					var sp: Vector2 = lp2 + Vector2(0, -16) + Vector2.from_angle(TAU * j / 6.0 + t) * 30.0
 					u.shape({"kind": "rock", "c": sp, "r": 6.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": float(j), "fill": hk, "life": 0.04})
 				if int(t * 10.0) % 3 == 0:
@@ -1039,16 +1084,22 @@ static func _step16(u, a: Dictionary) -> bool:
 				u.g.lamp = minf(float(u.g.lamp_cap), float(u.g.lamp) + Bal.v("ult/link_lumen_lamp", 10.0))
 				u.g.nerve = 0.0
 				u.light(lp4, 160.0, cl, 0.6)
-				u.grain("mote_up", lp4, Vector2.UP, cl, 10)
+				if _FXR.owns(p):
+					_FXR.ev(p, "lm_lfire", {"a": p.pos + Vector2(20.0 * float(p.face), -37.0), "at": lp4, "c": c, "r": r})   # 转平面（docs/255）：只画
+				else:
+					u.grain("mote_up", lp4, Vector2.UP, cl, 10)
 			if t < 1.2:
-				if int(t * 30.0) % 2 == 0:
+				var pxo: bool = _FXR.owns(p)
+				if int(t * 30.0) % 2 == 0 and not pxo:
 					u.grain("mote_up", c + Vector2.from_angle(t * 11.0) * r * fposmod(t * 3.7, 1.0), Vector2.UP, cl, 2)
-				if not LFB.lu_motes(u, c, r, t):
+				if not pxo and not LFB.lu_motes(u, c, r, t):
 					u.shape({"kind": "dots", "c": c, "r": r, "n": 16, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.04})
 				for j in 4:
 					if t >= 0.3 * j and once.call("b%d" % j):
 						for e in u.in_circle(c, r):
 							_hit16(p, e, "灼烧光点", 0.2)
+							if pxo:
+								_FXR.ev(p, "lm_xhit", {"e": e, "at": e.pos + Vector2(0, -float(e.r) * 0.5)})   # 转平面（docs/255）：只画
 						u.light(c, r, cl, 0.2)
 				return false
 			return t >= 1.3

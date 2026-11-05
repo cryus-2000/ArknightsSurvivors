@@ -154,9 +154,9 @@ func roll(first := false) -> void:
 	g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": oil_desc(), "price": price("oil"), "sold": false})
 
 
-## 商人灯油：灯火 +50 × 灯油效果（夜阳草，docs/240）
+## 商人灯油：灯火 + shop/oil_amount × 灯油效果（夜阳草，docs/240）；11-05 用户「5块钱+50会不会太多了，可以价格不变但是少加点」→ 50 改 30，价格不变
 func oil_amount() -> float:
-	return 50.0 * g.oil_mult
+	return Bal.v("shop/oil_amount", 30.0) * g.oil_mult
 
 
 func oil_desc() -> String:

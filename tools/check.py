@@ -1056,6 +1056,8 @@ def check_blocks_eq(godot):
 
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
+# 11-05 后期四开关（ult/rework、growth/late_shape / visible_nodes / elite_show）缺省开后，ulpianus_charge / build_progression / dmg_curve / recruit_offer(_touch)
+# 测的是开关关时的原机制（伤害数、节点 +6%、基础伤害曲线、招募推进），条目里显式关掉四开关；开关开时的机制各有自己的回归（vis_nodes、late_shape、ult_rework 等）
 SCENE_REGRESSIONS = {
     "card_desc_fit": ("藏品卡说明放得下（可见成长 7 件必须放得下；其余只报告截断）", "card_desc_fit_test.gd", r"CARD DESC FIT cut=\d+ failures=0", []),
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
@@ -1161,7 +1163,7 @@ SCENE_REGRESSIONS = {
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
     "hoshiguma_taunt": ("星熊 S1 重斩 + 拉怪（10-30 改版，docs/140）", "hoshiguma_taunt_test", r"HOSHIGUMA TAUNT failures=0", ["--balance", "--op=mizuki", "--squad=hoshiguma"]),
-    "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--balance", "--op=ulpianus"]),
+    "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--op=ulpianus"]),
     "ulpianus_click": ("乌尔比安 S3 左键点场地释放、点 HUD 不误触（10-26）", "ulpianus_click_test", r"ULPIANUS CLICK failures=0", ["--bal=ult/on=0", "--balance", "--op=ulpianus"]),
     "saria_slots": ("塞雷娅 S3 晶柱碰怪即碎、原位重新长出（10-29）", "saria_slots_test", r"SARIA SLOTS failures=0", ["--balance", "--op=saria"]),
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
@@ -1182,13 +1184,13 @@ SCENE_REGRESSIONS = {
     "enemy_identity": ("敌人原作机制与类型抗性", "enemy_identity_test", r"ENEMY IDENTITY checks=\d+ failures=0", ["--balance", "--op=sstest"]),
     "summon_seal_blocks": ("召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）", "summon_seal_blocks_test", r"SUMMON SEAL BLOCKS failures=0", ["--balance", "--op=sstest"]),
     "build_progression": ("分支培养 + 培养保底（docs/119 §4.1 / §4.2）：一张培养卡进二选一、返回不重抽、只扣一次升级、节点 5 按路线、赠送推进排队 / 固定路线、换人继承选路线、其余干员兼容", "build_progression_test", r"BUILD PROGRESSION failures=0",
-                          ["--balance", "--seed=1", "--op=texas", "--squad=hoshiguma,eyjafjalla"]),
+                          ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=texas", "--squad=hoshiguma,eyjafjalla"]),
     "vis_nodes": ("看得见的成长节点 + 精英化时刻（docs/249，开关开）：节点按流派加范围 / 弹数 / 体量、不再加攻击 +6%；精二本人一档 + 全队效果、离队撤销；时刻平衡模式不挡、玩家局定格挡住后放行；偏红颜色调淡", "vis_nodes_test", r"VIS NODES failures=0",
                   ["--balance", "--seed=1", "--op=texas", "--squad=exusiai,kaltsit", "--bal=growth/visible_nodes=1", "--bal=growth/elite_show=1"]),
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
-    "dmg_curve": ("普通怪伤害曲线（docs/194）：单调、封顶、一阶连续、池平均一下 = 目标曲线、换池不跳", "dmg_curve_test", r"DMG CURVE failures=0", []),
+    "dmg_curve": ("普通怪伤害曲线（docs/194）：单调、封顶、一阶连续、池平均一下 = 目标曲线、换池不跳", "dmg_curve_test", r"DMG CURVE failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0"]),
     "tide": ("潮位阶梯 0–15（docs/109 §5）：16 级、锚点 0 / 4 / 8 与旧三档逐键、严格累加", "tide_test", r"TIDE failures=0", []),
     "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 625、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", ["--roster=start5"]),
     "meta_mech": ("认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一、绝处逢生复活、未雨绸缪闪避 + 闪避补偿", "meta_mech_test", r"META MECH checks=\d+ failures=0",
@@ -1206,8 +1208,8 @@ SCENE_REGRESSIONS = {
     "elite_mark_v2_review": ("精英 / 小队标记 v2 规则 + 画法缓存自检（render/elite_mark_v2，缺省关）", "elite_mark_v2_review", r"ELITE_MARK_REVIEW dc_checked=[1-9]", ["--dccheck"]),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
     "card_desc": ("卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能", "card_desc_test", r"CARD DESC failures=0", ["--balance", "--op=ulpianus", "--squad=skadi,angelina"]),
-    "recruit_offer": ("入队邀请二选一（docs/252，用户 11-05）：铜印 / 银印 / 立即招募事件机器人同一帧接受、玩家局弹「接受入队 / 婉拒」并暂停，数字键 / 方向键回车 / 点卡都能选，婉拒给成长三选一（银印另加全队推进），满员不弹", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--balance", "--seed=1", "--op=eyjafjalla"]),
-    "recruit_offer_touch": ("入队邀请二选一 · 触屏排版（同上，--touch）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--touch"]),
+    "recruit_offer": ("入队邀请二选一（docs/252，用户 11-05）：铜印 / 银印 / 立即招募事件机器人同一帧接受、玩家局弹「接受入队 / 婉拒」并暂停，数字键 / 方向键回车 / 点卡都能选，婉拒给成长三选一（银印另加全队推进），满员不弹", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla"]),
+    "recruit_offer_touch": ("入队邀请二选一 · 触屏排版（同上，--touch）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla", "--touch"]),
     "recruit_offer_solo": ("--bot_solo=1 单人局机器人：邀请一律婉拒、升级不选招募卡、不进强制招募画面（docs/252）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--bot_solo=1"]),
     "trace_fields": ("TRACE 新增字段 sq / lamp / nd / rl（10-29，docs/126 R3）：只读、不动 rng、对队友位置 / 突击生命 / 技力 / 普攻计时 / 灯火 / 神经损伤 / 藏品数各自敏感、还原后回到原值", "trace_fields_test", r"TRACE FIELDS failures=0", ["--balance", "--op=skadi", "--squad=kaltsit,texas"]),
     "ui_smoke": ("界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点", "ui_smoke_test", r"UI SMOKE failures=0", []),
