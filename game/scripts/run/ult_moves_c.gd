@@ -1232,7 +1232,6 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 	var px: bool = _sg_px(u)
 	if px:   # 转平面（docs/264 §10）：砸落画面由 fx_pxplane 画；顿帧 / 冲击帧照旧
 		PXP.of(u.g).ult_sg(o, "smash", {"c": c, "R": R, "big": big})
-		u.shape({"kind": "circle", "c": c, "r": 100.0, "col": Color(1, 1, 1, 0), "fill": 0.0, "life": 0.1})   # 看不见：只为照旧触发音效（ult_audio.json siege fx.circle r100 → smash）
 		if big and _sg_v2(u):   # 同原 v2 路径的条件：顿帧 + 冲击帧只在原来也会有的时候发（开 / 关 TRACE 逐行一致）
 			var vs0: float = PF.vseed(u, c)
 			u.g.vfx.stop(Bal.v("ult/sg_hitstop", 0.1), "ult", true)
@@ -1271,12 +1270,9 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 	for j in (0 if v2 or px else 16):   # 碎石块往外飞
 		var dv := Vector2.from_angle(j * 2.39996)
 		u.shape({"kind": "blade", "a": c + dv * 50.0, "b": c + dv * 64.0, "w": 6.0, "col": COL_ROCK.lerp(Color.WHITE, 0.2), "glow": COL_ROCK, "life": 0.45, "v": dv * (500.0 + 120.0 * float(j % 3))})
-	var crumble: Array = []
 	for e in u.in_circle(c, R):
 		if seg.has(int(e.id)):
 			continue
-		if px and big:
-			crumble.append(e)
 		var edge: bool = e.pos.distance_to(c) > rc
 		e["_sg_edge"] = edge
 		_once(u, a, o, seg, e, frac, {"src": "砸地", "edge": edge})
@@ -1284,8 +1280,6 @@ static func _sg_smash(u, a: Dictionary, o, c: Vector2, R: float, frac: float, se
 			a.still.append(e)   # Boss 不浮空，落地那一份照样记（不然 Boss 只吃到 75%）
 		elif not e.dead:
 			_launch(u, a, e, Bal.v("ult/sg_lift", 0.8), 70.0)
-	if not crumble.is_empty():   # 转平面：被主砸打中的怪按冲击环到达时刻崩解成自身颜色的像素（只画）
-		PXP.of(u.g).ult_sg(o, "crumble", {"c": c, "R": R, "es": crumble})
 
 
 static func _sg_step(u, a: Dictionary, o) -> bool:
