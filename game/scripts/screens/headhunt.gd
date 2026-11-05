@@ -490,8 +490,11 @@ func input(event: InputEvent) -> bool:
 	if intro.active():
 		if (event is InputEventMouseButton or event is InputEventScreenTouch or event is InputEventKey or event is InputEventJoypadButton) and event.pressed:
 			intro.skip()
-			return true
-		return event is InputEventMouseButton or event is InputEventScreenTouch
+			# 11-06 用户「十连要点两次」：鼠标左键点下去既收起入场动画、也照常点到按钮（键盘 / 手柄仍只收起）
+			if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT):
+				return true
+		else:
+			return event is InputEventMouseButton or event is InputEventScreenTouch
 	if mode == "pick" and choices.size() > _pick_geom().cap:
 		if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_WHEEL_RIGHT]:
 			_pick_step(-1 if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT] else 1)
@@ -508,8 +511,9 @@ func input(event: InputEvent) -> bool:
 				_act(act)
 			return true
 	if _tr != "" and (event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch) and event.is_pressed():
-		_tr = ""   # 转场中任意键 / 点按：直接到位，这次输入不再往下传
-		return true
+		_tr = ""   # 转场中任意键 / 点按：直接到位；键盘这次输入不再往下传，鼠标左键照常点到按钮（11-06 用户「十连要点两次」）
+		if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT):
+			return true
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var p: Vector2 = (event.position / Cfg.ui_k - _off) / _k
 		for r in rects:
@@ -523,6 +527,8 @@ func input(event: InputEvent) -> bool:
 					_pdrag = {"x": p.x, "s": pick_scroll, "act": r[1]}   # 列表要滚动时：按下先当拖动，松手时位移 < 12 才算点选
 					return true
 			if hit:
+				if mode == "summary" and ten and r[1] is String and r[1] == "ok" and not _sum_done():
+					_sum_finish()   # 点「继续寻访 / 完成」按钮：落卡没放完也一次就走（键盘 Enter 仍是先到位、再按才走）
 				_act(r[1])
 				return true
 		if mode == "bag":
