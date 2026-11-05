@@ -394,6 +394,8 @@ def bake(key, d, dur, loop=False):
             r, g_, b = c[py[j], px[j], :3]
             pts.append([int(px[j]), int(py[j]), "%02x%02x%02x" % (int(r * 255), int(g_ * 255), int(b * 255))])
         emit.append(pts)
+    if PREFIX == "tx_" and key.startswith("sw_"):   # 德克萨斯落剑（docs/270 §5）：emit 只留插地那一拍（第 2 帧，t ≈ 0.13 秒），每帧至多 20 点；一次剑雨十几柄剑不再顶满 360
+        emit = [(pts[::max(1, len(pts) // 20)][:20] if i == 2 else []) for i, pts in enumerate(emit)]
     Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm"))), optimize=True)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": loop, "emit": emit}
 

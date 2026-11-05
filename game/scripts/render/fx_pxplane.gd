@@ -656,9 +656,10 @@ func _draw_cut(ci, it: Dictionary) -> void:
 				ci.draw_rect(Rect2(_snap(p + nv * px), Vector2(px, px)), side)
 			if f <= 1 and lk > 1.0 and w > 0.5:
 				ci.draw_rect(Rect2(_snap(p - nv * px), Vector2(px, px)), side)
-			if f == 0 and w > 0.4 and g.optical_on and _emit_n < EMIT_CAP and (i & 1) == 0:
+			var ek: bool = it.has("emk")   # emk：斩痕白芯每格都进发光层、留两拍（德克萨斯，docs/270 §5「核心辉光 0」）
+			if (f == 0 or (ek and f == 1)) and w > (0.25 if ek else 0.4) and g.optical_on and _emit_n < EMIT_CAP and ((i & 1) == 0 or ek):
 				_emit_n += 1
-				g.glow_next.append([p, px, Color(1, 1, 1, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk))])
+				g.glow_next.append([p, px, Color(1, 1, 1, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk)) if not ek else Color(1.0, 0.9, 0.7, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk * (1.0 if f == 0 else 0.7)))])
 
 
 ## 立起件当前的排序位置：有 gyo（相对原点的脚底偏移）按当前原点 + gyo；有 gy 的跟着原点平移；斩痕按被砍那只的脚底；其余原点 + 1；再加 sk 偏移（星熊地刺）。
@@ -2587,7 +2588,7 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id), "fo": Vector2.ZERO})
 							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id), "fo": Vector2.ZERO})
 						_tx_cuts(o, es, t, 2)
-						_burst_m(o, R, p, c + Vector2(0, -16), c.y + 2.0, es, 2 + t, "shard", 110.0, 0.35)
+						_burst_m(o, R, p, c + Vector2(0, -16), c.y + 2.0, es, 2 + t, "shard", 120.0, 0.5)   # docs/270：同拔刀，灯强度提到 0.5
 					_:
 						pass   # 剑雨 / 余像·剑雨的判定圈：画面由落剑（tx_rain 事件）画，不逐圈画
 				return
@@ -2597,7 +2598,7 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			var dv := Vector2.from_angle(ang)
 			_add(o, "tx_slash_r%d_e%d" % [_bucket(r2 * 0.5, [56, 63, 70]), t], o.pos, ang, r2, raw, "tx_raw_slash_e%d" % t, 56.0)
 			_tx_cuts(o, es, t, 2)
-			_burst_m(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 2 + t, "shard", 90.0, 0.3)
+			_burst_m(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 2 + t, "shard", 110.0, 0.5)   # docs/270：普攻灯强度 0.3（全员最暗）→ 0.5
 			if t >= 1 and not raw and mode() == 1:   # 精一钉剑：命中里离她最近的 2 名（非 Boss）各插一柄源石剑，跟着敌人，0.7 秒后碎掉
 				var lst: Array = es.filter(func(x): return not x.boss and not x.dead)
 				lst.sort_custom(func(x1, x2): return x1.pos.distance_squared_to(o.pos) < x2.pos.distance_squared_to(o.pos))
@@ -2690,6 +2691,7 @@ func _tx_cuts(o, es: Array, t: int, n: int) -> void:
 	for i in range(maxi(0, k0 - n), items.size()):
 		var it: Dictionary = items[i]
 		if it.get("cut", false) and str(it.oid) == str(o.id):
+			it["emk"] = true
 			it["c1"] = "#ffdc9c"
 			it["c2"] = "#ffac3c"
 			it["c3"] = "#e2781c"
