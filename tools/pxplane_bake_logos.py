@@ -26,6 +26,7 @@ OUT_META = os.path.join(ROOT, "game", "data", "pxp_logos.json")
 TMP = os.path.join(ROOT, "build", "pxp_bake_logos")
 FPS = 15
 EMIT_LUMA = 0.95
+EMIT_LUMA_HIT = 0.86
 EMIT_MAX = 48
 ACC = (0xa4, 0x87, 0xff)   # 精二点缀紫：也进发光层
 
@@ -110,7 +111,8 @@ def bake(key, d, dur, loop):
             continue
         luma = c[..., 0] * 0.2126 + c[..., 1] * 0.7152 + c[..., 2] * 0.0722
         acc = (np.abs(c[..., 0] - ACC[0] / 255) < 0.03) & (np.abs(c[..., 1] - ACC[1] / 255) < 0.03)
-        m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
+        thr = EMIT_LUMA_HIT if key.startswith(("hit_", "hits_", "tick_")) else EMIT_LUMA   # docs/270：命中帧核心辉光 27 → ≥ 30，命中件的亮芯阶（#dce0ff）也进发光层
+        m = (c[..., 3] > 0.5) & ((luma >= thr) | acc)
         py, px = np.nonzero(m)
         idx = np.arange(len(px))
         if len(idx) > EMIT_MAX:
