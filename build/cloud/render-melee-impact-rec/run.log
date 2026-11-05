@@ -1,0 +1,9 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2189 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+skadi 0 360 帧 []
+skadi 1 360 帧 []
+hoshiguma 0 360 帧 []
+hoshiguma 1 360 帧 []
+录像 /work/repo/build/cloud/render-melee-impact-rec/media/melee_impact_onoff.mp4 10.8 MB 360 帧
+media：5 个文件，11M
