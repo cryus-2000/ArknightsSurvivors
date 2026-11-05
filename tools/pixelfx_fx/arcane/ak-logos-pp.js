@@ -55,7 +55,7 @@ function star(p, cx, cy, rays, k, cool, C, INK) {
       for (let q = -th; q <= th; q += 0.5) {
         const edge = Math.abs(q) > th * 0.5;
         let c;
-        if (cool < 0.2) c = v < 0.55 ? C[6] : edge ? C[4] : C[5];
+        if (cool < 0.2) c = v < 0.3 && !edge ? C[6] : edge ? C[4] : C[5];   // 白只给芯（11-05 首轮：整团发白）
         else if (cool < 0.55) c = v < 0.2 ? C[6] : edge ? C[2] : C[4];
         else c = v < 0.15 ? C[3] : edge ? INK[0] : INK[1];
         p.px(cx + dx * s - dy * q, cy + dy * s + dx * q, c);
@@ -71,7 +71,7 @@ function thorn(p, cx, cy, a, L, w0, bend, ret, C, hot) {
     const v = s / L, kink = Math.sin(v * 5.2 + bend) * bend * 1.6 * v, th = w0 * (1 - v);
     for (let q = -th; q <= th; q += 0.5) {
       const x = cx + ca * s - sa * (q + kink), y = cy + sa * s + ca * (q + kink);
-      const c = hot ? (v < 0.7 ? C[6] : C[5]) : Math.abs(q) > th * 0.5 ? C[4] : v < 0.5 ? C[6] : C[5];
+      const c = hot ? (v < 0.3 ? C[6] : Math.abs(q) > th * 0.5 ? C[4] : C[5]) : Math.abs(q) > th * 0.5 ? C[3] : v < 0.25 ? C[5] : C[4];
       p.px(x, y, c);
     }
   }
@@ -122,7 +122,7 @@ export function create(o) {
   }
   if (part === "exec") {
     // 殁亡处决（原作 hit_03）：两道交叉的细字咒文链从上斜插到敌人脚下 + 身后一道竖墨柱；E2 第三道竖链 + 紫字 + 白热八芒
-    const H = E >= 2 ? 62 : 54;
+    const H = E >= 2 ? 72 : 62;
     S.H = H;
     S.chains = [[-15, -H, 9, 3], [15, -H, -9, 3]];
     if (E >= 2) S.chains.push([0, -H - 8, 0, 4]);
@@ -138,17 +138,18 @@ export function create(o) {
       if (part === "hit" || part === "tick") {
         const K = S.K;
         if (up) {
-          const beat2 = E >= 1 && t >= SEG && t < SEG * 2;
-          const cool = beat2 ? 0.1 : clamp((t - SEG) / 0.22);
+          const beat2 = E >= 1 && t >= SEG && t < SEG * 2;   // E1 起第 1 拍星芒再撑一下（只撑大小，不再整团转白）
+          const small = kk < 1 || part === "tick";
+          const cool = Math.max(small ? 0.22 : 0, clamp((t - SEG) / 0.22));
           const sk = t < SEG ? 1 : beat2 ? 0.95 : 1 - 0.55 * smooth(SEG, 0.36, t);
           if (t < 0.36) {
             const rays = [[1, 0, 21, 2.2], [-1, 0, 21, 2.2], [0, -1, 16, 2], [0, 1, 13, 1.8]];
             if (E >= 1) rays.push([1, -1, 10, 1.4], [-1, -1, 10, 1.4], [1, 1, 8, 1.2], [-1, 1, 8, 1.2]);
             star(p, 0, 0, rays, K * sk, cool, C, INK);
-            if (E === 2 && t < SEG * 2) for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) if (Math.abs(x) + Math.abs(y) <= 2) p.px(x, y, C[6]);
+            if (E === 2 && t < SEG && !small) for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) if (Math.abs(x) + Math.abs(y) <= 2) p.px(x, y, C[6]);
           }
           const ret = t < SEG ? 0 : smooth(SEG, 0.26, t);
-          if (ret < 0.98) for (const s of S.th) thorn(p, 0, 0, s.a, s.L, s.w, s.b, ret, C, t < SEG);
+          if (ret < 0.98) for (const s of S.th) thorn(p, 0, 0, s.a, s.L, s.w, s.b, ret, C, t < SEG && !small);
           for (const q of S.quills) {   // E2 墨羽：深蓝实心长锋甩开，蓝边，羽梢紫；0.45 秒干涸
             const u = ease.outCubic(clamp(t / 0.1)), dry = smooth(0.2, 0.45, t);
             if (dry >= 1) continue;
@@ -232,7 +233,7 @@ export function create(o) {
             for (let y = 0; y <= H * rise; y++) {
               const v = y / H, w = (5 + 2 * nz(y * 0.3, +o.seed)) * (1 - 0.5 * v);
               for (let x = -w; x <= w; x++) {
-                const c = Math.abs(x) > w - 1.2 ? C[1] : INK[nz(x * 0.7 + y * 0.2, +o.seed + 3) > 0.5 ? 0 : 1];
+                const c = Math.abs(x) > w - 1.2 ? (y < H * 0.5 && nz(y * 0.4, +o.seed + 1) > 0.45 ? C[3] : C[2]) : INK[nz(x * 0.7 + y * 0.2, +o.seed + 3) > 0.5 ? 0 : 1];
                 D(p, x, -y, c, (1 - dis) * (1 - 0.6 * v));
               }
             }
@@ -241,7 +242,7 @@ export function create(o) {
             const L = Math.hypot(x1 - x0, y1 - y0), n = Math.floor(L / 6.5), wr = clamp(t / 0.12);
             for (let i = 0; i <= n * wr; i++) {
               const v = i / n, x = x0 + (x1 - x0) * v, y = y0 + (y1 - y0) * v;
-              const a = 1 - smooth(0.32, 0.6, t + (1 - v) * 0.05);
+              const a = 1 - smooth(0.4, 0.7, t + (1 - v) * 0.05);
               const c = t < SEG * 2 ? C[6] : E === 2 && i % 3 === ci % 3 ? AC : t < 0.3 ? C[5] : C[3];
               glyph(p, x, y, S.gl[ci][i % 14], c, a);
               if (i < n * wr - 1 && a > 0.3) D(p, x + (x1 - x0) / n * 0.5, y + (y1 - y0) / n * 0.5, C[3], a);   // 字间一点连笔

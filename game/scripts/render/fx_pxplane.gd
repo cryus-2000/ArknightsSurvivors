@@ -1246,19 +1246,19 @@ static func _lg_h(i: int) -> float:
 
 
 func _lg_up(o, k: String, at: Vector2, gy: float, flip := false) -> void:
-	if k.begins_with("hit_"):   # 同屏上限：主命中至多 4 团同时在画，再多换小一号（后期多弹不叠成一片白）
+	if k.begins_with("hit_"):   # 同屏上限：主命中至多 3 团同时在画，再多换小一号；小一号至多 3 团（后期多弹不叠成一片白）
 		var n := 0
 		for it in items:
 			if str(it.oid) == "logos" and str(it.get("k", "")).begins_with("lg_hit_") and str(it.ly) == "up":
 				n += 1
-		if n >= 4:
+		if n >= 3:
 			k = k.replace("hit_", "hits_")
 	if k.begins_with("hits_"):
 		var n2 := 0
 		for it in items:
 			if str(it.oid) == "logos" and str(it.get("k", "")).begins_with("lg_hits_") and str(it.ly) == "up":
 				n2 += 1
-		if n2 >= 4:
+		if n2 >= 3:
 			return
 	_push({"k": "lg_" + k, "t0": g.t, "gp": _snap(at), "gy": gy, "flip": flip, "ly": "up", "oid": "logos"})
 
@@ -1498,14 +1498,14 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 	var c: Vector2 = _snap(o.pos)
 	var tk: float = float(b.get("tick", 0.5))
 	var pulse: bool = float(fn.get("tick", 0.0)) > tk - 1.0 / 15.0
-	# 内侧淡渐变：贴着外边往里约 16 美术像素，α 0 → 0.12（真半透明，中间不铺）
+	# 内侧淡渐变：贴着外边往里约 16 美术像素，α 0 → 0.14（真半透明，中间不铺）
 	var band: float = 16.0 * px
 	var N := 32
 	for j in 6:
 		var r0: float = maxf(4.0, rr - band * (1.0 - float(j) / 6.0))
 		var r1: float = rr - band * (1.0 - (float(j) + 1.0) / 6.0)
 		var col: Color = LG_C[2]
-		col.a = 0.12 * pow((float(j) + 1.0) / 6.0, 2.0) * fade
+		col.a = 0.14 * pow((float(j) + 1.0) / 6.0, 2.0) * fade
 		var pts := PackedVector2Array()
 		for i in N + 1:
 			var a: float = fa - half + 2.0 * half * i / N
@@ -1528,6 +1528,8 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 		var ic: Color = LG_INK[1] if hv > 0.3 else LG_C[1]
 		ic.a = fade
 		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), ec)
+		if hv > 0.45:   # 外边 2 格亮（一圈断续加厚，不是匀称圆环）
+			ci.draw_rect(Rect2(_snap(c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr + px)), Vector2(px, px)), Color(LG_C[4].r, LG_C[4].g, LG_C[4].b, fade))
 		ci.draw_rect(Rect2(_snap(q2), Vector2(px, px)), ic)
 		if pulse and (i % 3) == 0:
 			_glow(q, LG_C[5])
@@ -1664,7 +1666,7 @@ func _lg_draw_rt(ci, it: Dictionary) -> void:
 					ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_INK[1])
 					continue
 				ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_C[3] if (i + beat2) % 7 != 0 else LG_C[5])
-			var rows: Array = [6.0] if t2 < 1 else [6.0, -6.0]
+			var rows: Array = [6.0] if t2 < 1 else ([6.0, -6.0] if t2 < 2 else [7.0, 0.0, -7.0])   # 精二质变：丝线本身也写成一行字（三行字成链）
 			for ri in rows.size():
 				var off: float = float(rows[ri])
 				var ng2: int = int(L / 5.0)
