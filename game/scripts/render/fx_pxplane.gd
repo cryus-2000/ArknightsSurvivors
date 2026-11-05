@@ -2588,7 +2588,7 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id), "fo": Vector2.ZERO})
 							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id), "fo": Vector2.ZERO})
 						_tx_cuts(o, es, t, 2)
-						_burst_m(o, R, p, c + Vector2(0, -16), c.y + 2.0, es, 2 + t, "shard", 120.0, 0.5)   # docs/270：同拔刀，灯强度提到 0.5
+						_tx_hit(o, R, c + Vector2(0, -16), c.y + 2.0, es, 2 + t, 120.0, 0.5)   # docs/270：同拔刀，灯强度提到 0.5
 					_:
 						pass   # 剑雨 / 余像·剑雨的判定圈：画面由落剑（tx_rain 事件）画，不逐圈画
 				return
@@ -2598,7 +2598,7 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			var dv := Vector2.from_angle(ang)
 			_add(o, "tx_slash_r%d_e%d" % [_bucket(r2 * 0.5, [56, 63, 70]), t], o.pos, ang, r2, raw, "tx_raw_slash_e%d" % t, 56.0)
 			_tx_cuts(o, es, t, 2)
-			_burst_m(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 2 + t, "shard", 110.0, 0.5)   # docs/270：普攻灯强度 0.3（全员最暗）→ 0.5
+			_tx_hit(o, R, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 2 + t, 110.0, 0.5)   # docs/270：普攻灯强度 0.3（全员最暗）→ 0.5
 			if t >= 1 and not raw and mode() == 1:   # 精一钉剑：命中里离她最近的 2 名（非 Boss）各插一柄源石剑，跟着敌人，0.7 秒后碎掉
 				var lst: Array = es.filter(func(x): return not x.boss and not x.dead)
 				lst.sort_custom(func(x1, x2): return x1.pos.distance_squared_to(o.pos) < x2.pos.distance_squared_to(o.pos))
@@ -2626,9 +2626,9 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					if not raw:
 						_push({"k": "tx_array_r65_gd", "t0": g.t + fin_d + ft, "gp": _snap(cc), "flip": false, "ly": "gd", "oid": str(o.id)})
 					if mode() == 1:
-						_txq.append([g.t + fin_d + ft, "land", {"o": o, "p": cc, "n": 8, "lr": 220.0, "li": 0.8}])
-				if mode() == 1:
-					R._light(o, cc + Vector2(0, -20), 160.0, 0.45, 0.12, p.light)
+						_txq.append([_tx_beat(g.t + fin_d, 2), "land", {"o": o, "p": cc, "n": 8, "lr": 220.0, "li": 0.8}])
+				if mode() == 1:   # 剑雨中心那盏灯跟第一柄剑插地同一拍亮（docs/270：灯与辉光同帧）
+					_txq.append([_tx_beat(g.t, 2), "lt", {"o": o, "p": cc + Vector2(0, -20), "lr": 180.0, "li": 0.6}])
 		"tx_dash":   # 冲刺（拔刀冲刺 / 战术快递 / 突进 / 冲刺斩）：腰高直线刀光 + 地上焦痕；S2 永久生效后加粗
 			var a0: Vector2 = d.get("from", o.pos)
 			var b0: Vector2 = d.get("to", o.pos)
@@ -2684,6 +2684,29 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					R._light(o, o.pos + Vector2(0, -20), 180.0, 0.6, 0.15, p.light)
 
 
+## 命中：碎晶当场生成；照地灯推迟到这一帧的绘制里再挂（docs/270：灯和斩痕白芯的辉光同一帧亮——emit 点在绘制时排进发光层、下一帧才显出，
+## 灯在玩法更新里挂会比辉光早一帧，体检取的命中帧上就量不到辉光）
+func _tx_hit(o, R, at: Vector2, gy: float, es: Array, n: int, lr: float, li: float) -> void:
+	if mode() != 1:
+		return
+	var m := {"tier": tier(o), "grain_spd": 1.0}
+	var hp: Vector2 = at
+	if not es.is_empty():
+		var e: Dictionary = es[0]
+		hp = e.pos + Vector2(0, -float(e.r) * 0.5)
+		R._grains(o, hp, float(e.pos.y) + 2.0, "shard", mini(n, 2 + es.size()), m, (hp - o.pos).normalized())
+	else:
+		R._grains(o, at, gy, "shard", maxi(1, n / 2), m)
+		lr *= 0.8
+		li *= 0.6
+	_txq.append([g.t, "lt", {"o": o, "p": hp, "lr": lr, "li": li}])
+
+
+## 某一时刻起第 k 拍（15 fps 节拍）开始的时刻：帧条第 k 帧被画出来的那一拍
+func _tx_beat(t0: float, k: int) -> float:
+	return (floor(t0 * 15.0) + float(k)) / 15.0
+
+
 ## 斩痕（同斯卡蒂 _cuts，琥珀色）
 func _tx_cuts(o, es: Array, t: int, n: int) -> void:
 	var k0: int = items.size()
@@ -2712,7 +2735,7 @@ func _tx_rain(o, bl: Array, key: String, raw: bool, t: int) -> void:
 	_push({"rain": bl, "key": key, "t0": g.t, "life": tm + lf, "ly": "rain", "oid": str(o.id), "k": ""})
 	if mode() == 1:   # 前三柄落地那一下：几颗碎晶 + 一盏短照地光
 		for b in bl.slice(0, 3):
-			_txq.append([g.t + float(b.d) + 0.1, "land", {"o": o, "p": b.p, "n": 3, "lr": 90.0, "li": 0.3}])
+			_txq.append([_tx_beat(g.t + float(b.d), 2), "land", {"o": o, "p": b.p, "n": 3, "lr": 110.0, "li": 0.45}])
 
 
 ## 直线刀光（运行时逐格）：w 芯宽（格）、hold 保持几拍再碎、style 0 冲刺 / 1 加粗（号令 · 连携）/ 2 次元斩；gs = 地上留焦痕
@@ -2820,7 +2843,12 @@ func _tx_due() -> void:
 			continue
 		var dd: Dictionary = q[2]
 		var o = dd.o
+		if not is_instance_valid(o):
+			continue
 		var at: Vector2 = dd.p
+		if str(q[1]) == "lt":
+			R._light(o, at, float(dd.lr), float(dd.li), 0.12, R.pal(o).get("light", TX_C[5]))
+			continue
 		R._grains(o, at + Vector2(0, -6), at.y + 1.0, "shard", int(dd.n), {"tier": tier(o)})
 		R._light(o, at + Vector2(0, -8), float(dd.lr), float(dd.li), 0.1, R.pal(o).get("light", TX_C[5]))
 	_txq = keep
