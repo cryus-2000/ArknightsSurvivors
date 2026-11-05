@@ -972,6 +972,34 @@ const ENEMY_SUFFIXES := ["_move", "_attack", "_charge", "_death", "_slash", "_re
 ## 11-01 删掉从没交过图的水月旧特效 9 条（fx_s1_burst / fx_cast / fx_stun 等，docs/214 A4），只剩 fx_hit
 const FXF := {"fx_hit": 4}
 
+## 干员专属特效帧条的名字前缀（fx_<前缀>_… / proj_<前缀>_…；终结技 fx_ult_<干员>_…）→ 干员 id。
+## 手机网页开局只读编队里干员的这些帧条，中途入队时补读（docs/287 §3 ①：原来全员 V6 帧条开局全读，与编队无关，约 130 MB）。
+## 不在表里的前缀（公共命中 / 敌方 / 道具）照旧开局读
+const OP_FX := {
+	"skalter": ["skalter", "sk", "ult_skalter"], "skadi": ["skadi", "sd"], "logos": ["logos", "lo"], "lappland": ["lappland", "la"],
+	"eyjafjalla": ["ey", "eyja"], "siege": ["siege", "sg"], "irene": ["irene", "ir", "irv"], "ulpianus": ["ulpianus", "ul", "ult_ulpianus"],
+	"angelina": ["angelina", "an"], "gladiia": ["gladiia", "gl"], "mizuki": ["mizuki", "mz"], "hoshiguma": ["hoshiguma", "hs"],
+	"wisadel": ["wisadel", "wd"], "lumen": ["lumen"], "saria": ["saria", "sa"], "specter_unchained": ["specter"], "suzuran": ["suzuran"],
+	"texas": ["texas", "ult_texas"], "exusiai": ["exusiai", "ult_exusiai"], "kaltsit": ["mon3tr", "ult_kaltsit"],
+}
+static var _fx_tok := {}
+
+## 帧条名 → 所属干员 id（不是干员专属特效时为 ""）
+static func fx_owner(n: String) -> String:
+	if not (n.begins_with("fx_") or n.begins_with("proj_")):
+		return ""
+	if _fx_tok.is_empty():
+		for cid in OP_FX:
+			for t in OP_FX[cid]:
+				_fx_tok[t] = cid
+	var p: PackedStringArray = n.split("_")
+	if p.size() < 2:
+		return ""
+	var tk: String = p[1]
+	if tk == "ult" and p.size() > 2:
+		tk = "ult_" + p[2]
+	return str(_fx_tok.get(tk, ""))
+
 ## 美术 V6 帧条：名称 -> [帧数, fps]
 const V6_FRAMES := {
 	"prop_knight_frost_stake": [4, 4.0], "prop_knight_frost_stake_rise": [3, 12.0], "prop_knight_frost_stake_break": [6, 14.0],

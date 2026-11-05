@@ -531,7 +531,12 @@ func _op(oid: String):
 	return null
 
 
+var _step_fr := -1
 func _step() -> void:
+	var fr: int = Engine.get_process_frames()
+	if fr == _step_fr and not (g.opt_old & g.OPT_PXSTEP):   # 一帧只清一次（docs/287 §3 ⑤）：原来每名干员每个绘制层进来都整表 filter 一遍；同一帧 g.t 不变，结果相同
+		return
+	_step_fr = fr
 	var now: float = g.t
 	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
 	for it in items:   # 卡肉（melee_impact.meat）：命中那一拍（第 1 帧）多停 stk 秒再接着扫
@@ -3756,6 +3761,149 @@ func _sk_ep(c: Vector2, rr: float, a: float) -> Vector2:
 ## 一笔贴地笔触弧：c 圆心（世界）、R 半径（世界）、a0 → a1 弧度、w 宽（美术像素）、taper 两头收尖、seed 粗细起伏；
 ## 主色一条带 + 外缘 1 美术像素迎光边（中段）+ 内缘 1 美术像素暗边；顶点对齐 2 世界像素格
 func _sk_arc(cv, c: Vector2, R: float, a0: float, a1: float, w: float, col: Color, hi: Color, lo: Color, seed: float, taper := true) -> void:
+	if g.opt_old & g.OPT_SKDOM:
+		_sk_arc_old(cv, c, R, a0, a1, w, col, hi, lo, seed, taper)
+		return
+	if _sk_test:   # --skdomtest：新旧两种写法各算一遍、逐位比顶点 / 颜色 / 下标，不一致计数（PF SKDOM 打印），画的是旧写法
+		var ra := _SkRec.new()
+		var rb := _SkRec.new()
+		_sk_arc_old(ra, c, R, a0, a1, w, col, hi, lo, seed, taper)
+		_sk_arc_new(rb, c, R, a0, a1, w, col, hi, lo, seed, taper)
+		_sk_test_n += 1
+		if not ra.same(rb):
+			_sk_test_bad += 1
+		if _sk_test_n % 2000 == 0:
+			print("PF SKDOM n=%d bad=%d" % [_sk_test_n, _sk_test_bad])
+		_sk_arc_old(cv, c, R, a0, a1, w, col, hi, lo, seed, taper)
+		return
+	_sk_arc_new(cv, c, R, a0, a1, w, col, hi, lo, seed, taper)
+
+
+## 歌域笔触弧的缓存写法（docs/287 §3 ②，OPT_SKDOM）：角度的 cos / sin 与逐点粗细只跟（a0, a1, 点数, 宽, 种子, 收尖）有关，
+## 转动按 15 fps 节拍走，60 帧下同一拍 4 帧共用；每帧只做「圆心 + 半径 × 方向 → 对齐 2 像素格」。
+## 浮点算式与 _sk_arc_old 逐项同序（角度两种写法 span * u 与 span * i / n 各存一份），顶点逐位相同（--skdomtest 校验）
+class _SkRec:
+	var calls: Array = []
+	func add_tris(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32Array) -> void:
+		calls.append([pts, cols, idx])
+	func same(o) -> bool:
+		if calls.size() != o.calls.size():
+			return false
+		for i in calls.size():
+			for j in 3:
+				if calls[i][j] != o.calls[i][j]:
+					return false
+		return true
+
+var _sk_test: bool = (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--skdomtest")
+var _sk_test_n := 0
+var _sk_test_bad := 0
+var _sk_ac := {}          # 弧几何缓存：键 → [cos(a), sin(a), 粗细, 迎光 / 暗边 cos, sin]
+var _sk_ac_beat := -1
+var _sk_idx := {}
+var _sk_gc := {}          # 贴边渐变：点数 → [cos, sin, 下标表]         # 条带下标表：点数 → PackedInt32Array（只跟点数有关）
+
+func _sk_arc_geo(a0: float, a1: float, n: int, w: float, px: float, seed: float, taper: bool) -> Array:
+	var bt: int = _sk_beat()
+	if bt != _sk_ac_beat:
+		_sk_ac_beat = bt
+		_sk_ac.clear()
+	var key := [a0, a1, n, w, px, seed, taper]
+	var e = _sk_ac.get(key)
+	if e != null:
+		return e
+	var span: float = a1 - a0
+	var ca := PackedFloat64Array()
+	var sa := PackedFloat64Array()
+	var ths := PackedFloat64Array()
+	var cb := PackedFloat64Array()
+	var sb := PackedFloat64Array()
+	ca.resize(n + 1)
+	sa.resize(n + 1)
+	ths.resize(n + 1)
+	cb.resize(n + 1)
+	sb.resize(n + 1)
+	for i in n + 1:
+		var u: float = float(i) / float(n)
+		var a: float = a0 + span * u
+		var th: float = w * px * (pow(maxf(0.0, sin(PI * u)), 0.55) if taper else 1.0) * (0.82 + 0.36 * _sk_h(i / 3, seed))
+		th = maxf(th, px * 0.5) if taper else th
+		ths[i] = th
+		ca[i] = cos(a)
+		sa[i] = sin(a)
+		var a2: float = a0 + span * float(i) / float(n)
+		cb[i] = cos(a2)
+		sb[i] = sin(a2)
+	e = [ca, sa, ths, cb, sb]
+	_sk_ac[key] = e
+	return e
+
+
+func _sk_arc_new(cv, c: Vector2, R: float, a0: float, a1: float, w: float, col: Color, hi: Color, lo: Color, seed: float, taper := true) -> void:
+	if R <= 2.0 or w <= 0.0 or col.a <= 0.003:
+		return
+	var px: float = g.PX
+	var span: float = a1 - a0
+	var n: int = clampi(int(absf(span) * R / (px * 3.0)), 3, 72)
+	var geo: Array = _sk_arc_geo(a0, a1, n, w, px, seed, taper)
+	var ca: PackedFloat64Array = geo[0]
+	var sa: PackedFloat64Array = geo[1]
+	var ths: PackedFloat64Array = geo[2]
+	var cb: PackedFloat64Array = geo[3]
+	var sb: PackedFloat64Array = geo[4]
+	var pts := PackedVector2Array()
+	pts.resize((n + 1) * 2)
+	for i in n + 1:
+		var th: float = ths[i]
+		var r1: float = R + th * 0.5
+		var r2: float = R - th * 0.5
+		pts[i * 2] = ((c + Vector2(ca[i] * r1, sa[i] * r1 * SK_SY)) / 2.0).round() * 2.0
+		pts[i * 2 + 1] = ((c + Vector2(ca[i] * r2, sa[i] * r2 * SK_SY)) / 2.0).round() * 2.0
+	_sk_band_pts(cv, pts, n + 1, col)
+	if w >= 2.0 and hi.a > 0.003:   # 迎光边：外缘中段 1 美术像素
+		var lo_i: int = n / 5
+		var hi_i: int = n - n / 5
+		var m2: int = hi_i - lo_i + 1
+		var p2 := PackedVector2Array()
+		p2.resize(m2 * 2)
+		for i in range(lo_i, hi_i + 1):
+			var th: float = ths[i]
+			var r1: float = R + th * 0.5
+			var r2: float = R + th * 0.5 - px
+			var k: int = (i - lo_i) * 2
+			p2[k] = ((c + Vector2(cb[i] * r1, sb[i] * r1 * SK_SY)) / 2.0).round() * 2.0
+			p2[k + 1] = ((c + Vector2(cb[i] * r2, sb[i] * r2 * SK_SY)) / 2.0).round() * 2.0
+		_sk_band_pts(cv, p2, m2, hi)
+	if w >= 3.0 and lo.a > 0.003:   # 内缘暗边
+		var p3 := PackedVector2Array()
+		p3.resize((n + 1) * 2)
+		for i in n + 1:
+			var th: float = ths[i]
+			var r1: float = R - th * 0.5 + px
+			var r2: float = R - th * 0.5
+			p3[i * 2] = ((c + Vector2(cb[i] * r1, sb[i] * r1 * SK_SY)) / 2.0).round() * 2.0
+			p3[i * 2 + 1] = ((c + Vector2(cb[i] * r2, sb[i] * r2 * SK_SY)) / 2.0).round() * 2.0
+		_sk_band_pts(cv, p3, n + 1, lo)
+
+
+## _sk_band 的已交错版本：pts 已是 外0, 内0, 外1, 内1 …（m 对）；下标表按 m 缓存（与 _sk_band 生成的相同）
+func _sk_band_pts(cv, pts: PackedVector2Array, m: int, col: Color) -> void:
+	if m < 2:
+		return
+	var idx = _sk_idx.get(m)
+	if idx == null:
+		idx = PackedInt32Array()
+		for i in m - 1:
+			var k: int = i * 2
+			idx.append_array([k, k + 1, k + 2, k + 1, k + 3, k + 2])
+		_sk_idx[m] = idx
+	var cols := PackedColorArray()
+	cols.resize(pts.size())
+	cols.fill(col)
+	cv.add_tris(pts, cols, idx)
+
+
+func _sk_arc_old(cv, c: Vector2, R: float, a0: float, a1: float, w: float, col: Color, hi: Color, lo: Color, seed: float, taper := true) -> void:
 	if R <= 2.0 or w <= 0.0 or col.a <= 0.003:
 		return
 	var px: float = g.PX
@@ -3818,11 +3966,41 @@ func _sk_grad(cv, c: Vector2, r0: float, r1: float, col: Color, a0: float, a1: f
 	if r1 <= 2.0 or (a0 <= 0.003 and a1 <= 0.003):
 		return
 	var n: int = clampi(int(r1 / 6.0), 20, 64)
+	var ci := Color(col.r, col.g, col.b, a0)
+	var co := Color(col.r, col.g, col.b, a1)
+	if not (g.opt_old & g.OPT_SKDOM) and not _sk_test:   # 缓存写法（docs/287 §3 ②）：方向表与下标表只跟点数有关；算式同下
+		var gt = _sk_gc.get(n)
+		if gt == null:
+			var gc := PackedFloat64Array()
+			var gs := PackedFloat64Array()
+			var gi := PackedInt32Array()
+			for i in n:
+				var a: float = TAU * float(i) / float(n)
+				gc.append(cos(a))
+				gs.append(sin(a))
+			for i in n:
+				var k: int = i * 2
+				var k2: int = ((i + 1) % n) * 2
+				gi.append_array([k, k + 1, k2, k + 1, k2 + 1, k2])
+			gt = [gc, gs, gi]
+			_sk_gc[n] = gt
+		var gc2: PackedFloat64Array = gt[0]
+		var gs2: PackedFloat64Array = gt[1]
+		var rr0: float = maxf(0.0, r0)
+		var pts2 := PackedVector2Array()
+		pts2.resize(n * 2)
+		var cols2 := PackedColorArray()
+		cols2.resize(n * 2)
+		for i in n:
+			pts2[i * 2] = ((c + Vector2(gc2[i] * r1, gs2[i] * r1 * SK_SY)) / 2.0).round() * 2.0
+			pts2[i * 2 + 1] = ((c + Vector2(gc2[i] * rr0, gs2[i] * rr0 * SK_SY)) / 2.0).round() * 2.0
+			cols2[i * 2] = co
+			cols2[i * 2 + 1] = ci
+		cv.add_tris(pts2, cols2, gt[2])
+		return
 	var pts := PackedVector2Array()
 	var cols := PackedColorArray()
 	var idx := PackedInt32Array()
-	var ci := Color(col.r, col.g, col.b, a0)
-	var co := Color(col.r, col.g, col.b, a1)
 	for i in n:
 		var a: float = TAU * float(i) / float(n)
 		pts.append(_snap(_sk_ep(c, r1, a)))
