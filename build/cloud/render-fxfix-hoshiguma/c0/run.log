@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('hoshiguma_atk_A', 150, [])
+局 ('hoshiguma_atk_B', 150, [])
+局 ('hoshiguma_atk_C', 150, [])
+局 ('hoshiguma_s1_A', 150, [])
+局 ('hoshiguma_s1_B', 150, [])
+局 ('hoshiguma_s1_C', 150, [])
+体检 {"op": "hoshiguma", "mode": "atk", "frame": 32, "engine": 91, "secs": 5.0, "hits": 0, "acts": 9, "skill": 0, "parts_total": 28, "parts_per_hit": 3.1, "parts_per_s": 5.6, "parts_s1_1s": null, "mats": {"rock": 13, "shard": 15}, "life": 0.9, "sz": 3.9, "alive_max": 12, "lights": 9, "lights_per_hit": 1.0, "light_r": 90.0, "light_i": 0.35, "light_life": 0.12, "emit_max": 167, "emit_mean": 71.6, "gl_peak": 70.2, "gl_area_hit": 1679, "gl_mean_hit": 10.6, "em_peak": 227.0, "em_area_hit": 0, "em_mean_hit": 0.0, "crop": [517, 267, 320, 180]}
+体检 {"op": "hoshiguma", "mode": "s1", "frame": 5, "engine": 64, "secs": 5.0, "hits": 0, "acts": 8, "skill": 1, "parts_total": 27, "parts_per_hit": 3.4, "parts_per_s": 5.4, "parts_s1_1s": 21, "mats": {"rock": 15, "shard": 12}, "life": 0.94, "sz": 3.8, "alive_max": 21, "lights": 8, "lights_per_hit": 1.0, "light_r": 110.0, "light_i": 0.4, "light_life": 0.12, "emit_max": 192, "emit_mean": 67.8, "gl_peak": 72.9, "gl_area_hit": 34, "gl_mean_hit": 9.1, "em_peak": 224.5, "em_area_hit": 32, "em_mean_hit": 14.1, "crop": [530, 263, 320, 180]}
+录像 ('hoshiguma', '11.0 MB', [])
+media：10 个文件，13M

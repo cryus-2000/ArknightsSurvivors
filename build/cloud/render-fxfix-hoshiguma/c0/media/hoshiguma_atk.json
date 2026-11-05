@@ -1,0 +1,40 @@
+{
+ "op": "hoshiguma",
+ "mode": "atk",
+ "frame": 32,
+ "engine": 91,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 9,
+ "skill": 0,
+ "parts_total": 28,
+ "parts_per_hit": 3.1,
+ "parts_per_s": 5.6,
+ "parts_s1_1s": null,
+ "mats": {
+  "rock": 13,
+  "shard": 15
+ },
+ "life": 0.9,
+ "sz": 3.9,
+ "alive_max": 12,
+ "lights": 9,
+ "lights_per_hit": 1.0,
+ "light_r": 90.0,
+ "light_i": 0.35,
+ "light_life": 0.12,
+ "emit_max": 167,
+ "emit_mean": 71.6,
+ "gl_peak": 70.2,
+ "gl_area_hit": 1679,
+ "gl_mean_hit": 10.6,
+ "em_peak": 227.0,
+ "em_area_hit": 0,
+ "em_mean_hit": 0.0,
+ "crop": [
+  517,
+  267,
+  320,
+  180
+ ]
+}
