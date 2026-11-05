@@ -1,0 +1,530 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXA 0 0.000 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 1 0.025 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 2 0.058 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 3 0.100 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 4 0.129 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 5 0.159 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 6 0.192 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 7 0.225 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 8 0.258 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXRLOG mizuki mz_tent 8 0.292
+FXRLOG mizuki mz_umb 8 0.292
+FXA 9 0.292 new=ink:5 life=0.92 sz=4.4 alive=5 L=100/0.61/0.12/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 10 0.325 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=123 emit=81
+FXA 11 0.358 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=123 emit=81
+FXA 12 0.392 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=135 emit=93
+FXA 13 0.425 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=135 emit=93
+FXA 14 0.458 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=133 emit=99
+FXRLOG mizuki mz_sting 14 0.492
+FXA 15 0.492 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=133 emit=99
+FXA 16 0.525 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=159 emit=125
+FXA 17 0.558 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=159 emit=125
+FXA 18 0.592 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=116 emit=100
+FXA 19 0.625 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=116 emit=100
+FXA 20 0.658 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=112 emit=96
+FXA 21 0.692 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=112 emit=96
+FXA 22 0.725 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=34
+FXA 23 0.758 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=34
+FXA 24 0.792 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=11
+FXA 25 0.825 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=11
+FXA 26 0.858 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=10
+FXA 27 0.892 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=10
+FXA 28 0.925 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXA 29 0.958 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 0 29
+FXA 30 0.992 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 1 30
+FXA 31 1.025 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 2 31
+FXA 32 1.058 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 3 32
+FXA 33 1.092 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 4 33
+FXA 34 1.125 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 5 34
+FXRLOG mizuki mz_tent 34 1.158
+FXRLOG mizuki mz_tent 34 1.158
+FXRLOG mizuki mz_umb 34 1.158
+FXA 35 1.158 new=ink:5 life=0.93 sz=4.8 alive=7 L=100/0.61/0.12/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 6 35
+FXA 36 1.192 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=126 emit=84
+FXSHOT 7 36
+FXA 37 1.225 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=126 emit=84
+FXSHOT 8 37
+FXA 38 1.258 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=151 emit=109
+FXSHOT 9 38
+FXA 39 1.292 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=152 emit=109
+FXSHOT 10 39
+FXA 40 1.325 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=155 emit=120
+FXSHOT 11 40
+FXA 41 1.358 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=155 emit=120
+FXSHOT 12 41
+FXA 42 1.392 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=159 emit=124
+FXSHOT 13 42
+FXA 43 1.425 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=159 emit=124
+FXSHOT 14 43
+FXA 44 1.458 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=116 emit=99
+FXSHOT 15 44
+FXA 45 1.492 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=116 emit=99
+FXSHOT 16 45
+FXA 46 1.525 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=92
+FXSHOT 17 46
+FXA 47 1.558 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=92
+FXSHOT 18 47
+FXA 48 1.592 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=39 emit=23
+FXSHOT 19 48
+FXA 49 1.625 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=39 emit=23
+FXSHOT 20 49
+FXA 50 1.658 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=31 emit=15
+FXSHOT 21 50
+FXA 51 1.692 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=31 emit=15
+FXSHOT 22 51
+FXA 52 1.725 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 23 52
+FXA 53 1.758 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 24 53
+FXA 54 1.792 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 25 54
+FXA 55 1.825 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 26 55
+FXA 56 1.858 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 27 56
+FXA 57 1.892 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 28 57
+FXA 58 1.925 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 29 58
+FXA 59 1.958 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 30 59
+FXA 60 1.992 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 31 60
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_tent 60 2.025
+FXRLOG mizuki mz_umb 60 2.025
+FXRLOG mizuki mz_burst 60 2.025
+FXA 61 2.025 new=ink:8 life=0.91 sz=4.2 alive=12 L=100/0.61/0.12/6fe8ff;140/0.74/0.14/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 32 61
+FXRLOG mizuki mz_burst 61 2.058
+FXA 62 2.058 new=ink:3 life=0.96 sz=4.0 alive=15 L=140/0.74/0.14/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=141 emit=96
+FXSHOT 33 62
+FXA 63 2.092 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=178 emit=120
+FXSHOT 34 63
+FXRLOG mizuki mz_burst 63 2.125
+FXA 64 2.125 new=ink:3 life=0.86 sz=5.3 alive=14 L=140/0.74/0.14/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=290 emit=232
+FXSHOT 35 64
+FXA 65 2.158 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=327 emit=256
+FXSHOT 36 65
+FXA 66 2.192 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=295 emit=240
+FXSHOT 37 66
+FXA 67 2.225 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=295 emit=240
+FXSHOT 38 67
+FXA 68 2.258 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=283 emit=232
+FXSHOT 39 68
+FXA 69 2.292 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=283 emit=232
+FXSHOT 40 69
+FXA 70 2.325 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=225 emit=210
+FXSHOT 41 70
+FXA 71 2.358 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=225 emit=210
+FXSHOT 42 71
+FXA 72 2.392 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=197 emit=191
+FXSHOT 43 72
+FXA 73 2.425 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=197 emit=191
+FXSHOT 44 73
+FXA 74 2.458 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=83 emit=77
+FXSHOT 45 74
+FXA 75 2.492 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=83 emit=77
+FXSHOT 46 75
+FXA 76 2.525 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=21
+FXSHOT 47 76
+FXA 77 2.558 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=21
+FXSHOT 48 77
+FXA 78 2.592 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 49 78
+FXA 79 2.625 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 50 79
+FXA 80 2.658 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 51 80
+FXA 81 2.692 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 52 81
+FXA 82 2.725 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 53 82
+FXRLOG mizuki mz_sting 82 2.758
+FXA 83 2.758 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 54 83
+FXA 84 2.792 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=30
+FXSHOT 55 84
+FXA 85 2.825 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=30
+FXSHOT 56 85
+FXA 86 2.858 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=30
+FXSHOT 57 86
+FXRLOG mizuki mz_tent 86 2.892
+FXRLOG mizuki mz_tent 86 2.892
+FXRLOG mizuki mz_tent 86 2.892
+FXRLOG mizuki mz_tent 86 2.892
+FXRLOG mizuki mz_tent 86 2.892
+FXRLOG mizuki mz_umb 86 2.892
+FXA 87 2.892 new=ink:5 life=0.91 sz=5.2 alive=15 L=100/0.61/0.12/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=37 emit=30
+FXSHOT 58 87
+FXA 88 2.925 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=146 emit=120
+FXSHOT 59 88
+FXA 89 2.958 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=156 emit=120
+FXSHOT 60 89
+FXA 90 2.992 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=220 emit=184
+FXSHOT 61 90
+FXA 91 3.025 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=220 emit=184
+FXSHOT 62 91
+FXA 92 3.058 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=200 emit=172
+FXSHOT 63 92
+FXA 93 3.092 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=200 emit=172
+FXSHOT 64 93
+FXA 94 3.125 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=216 emit=188
+FXSHOT 65 94
+FXA 95 3.158 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=216 emit=188
+FXSHOT 66 95
+FXA 96 3.192 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=172 emit=162
+FXSHOT 67 96
+FXA 97 3.225 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=172 emit=162
+FXSHOT 68 97
+FXA 98 3.258 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=153 emit=143
+FXSHOT 69 98
+FXA 99 3.292 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=153 emit=143
+FXSHOT 70 99
+FXA 100 3.325 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=63 emit=53
+FXSHOT 71 100
+FXA 101 3.358 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=63 emit=53
+FXSHOT 72 101
+FXA 102 3.392 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=31 emit=21
+FXSHOT 73 102
+FXA 103 3.425 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=31 emit=21
+FXSHOT 74 103
+FXA 104 3.458 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 75 104
+FXA 105 3.492 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 76 105
+FXA 106 3.525 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 77 106
+FXA 107 3.558 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 78 107
+FXA 108 3.592 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 79 108
+FXA 109 3.625 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 80 109
+FXA 110 3.658 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 81 110
+FXA 111 3.692 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 82 111
+FXA 112 3.725 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 83 112
+FXRLOG mizuki mz_tent 112 3.758
+FXRLOG mizuki mz_umb 112 3.758
+FXA 113 3.758 new=ink:5 life=1.02 sz=5.2 alive=8 L=100/0.61/0.12/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 84 113
+FXA 114 3.792 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=117 emit=81
+FXSHOT 85 114
+FXA 115 3.825 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=117 emit=81
+FXSHOT 86 115
+FXA 116 3.858 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=129 emit=93
+FXSHOT 87 116
+FXA 117 3.892 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=129 emit=93
+FXSHOT 88 117
+FXA 118 3.925 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=127 emit=99
+FXSHOT 89 118
+FXA 119 3.958 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=127 emit=99
+FXSHOT 90 119
+FXA 120 3.992 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=129 emit=101
+FXSHOT 91 120
+FXA 121 4.025 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=129 emit=101
+FXSHOT 92 121
+FXA 122 4.058 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=86 emit=76
+FXSHOT 93 122
+FXA 123 4.092 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=86 emit=76
+FXSHOT 94 123
+FXA 124 4.125 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=82 emit=72
+FXSHOT 95 124
+FXA 125 4.158 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=82 emit=72
+FXSHOT 96 125
+FXA 126 4.192 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=20 emit=10
+FXSHOT 97 126
+FXA 127 4.225 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=20 emit=10
+FXSHOT 98 127
+FXA 128 4.258 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=23 emit=7
+FXSHOT 99 128
+FXA 129 4.292 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=23 emit=7
+FXSHOT 100 129
+FXA 130 4.325 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 101 130
+FXA 131 4.358 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 102 131
+FXA 132 4.392 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 103 132
+FXA 133 4.425 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 104 133
+FXA 134 4.458 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 105 134
+FXRLOG mizuki mz_tent 134 4.492
+FXRLOG mizuki mz_umb 134 4.492
+FXA 135 4.492 new=ink:5 life=0.89 sz=4.4 alive=10 L=100/0.61/0.12/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 106 135
+FXA 136 4.525 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=86 emit=57
+FXSHOT 107 136
+FXA 137 4.558 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=86 emit=57
+FXSHOT 108 137
+FXA 138 4.592 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=98 emit=69
+FXSHOT 109 138
+FXA 139 4.625 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=98 emit=69
+FXSHOT 110 139
+FXA 140 4.658 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=100 emit=75
+FXSHOT 111 140
+FXA 141 4.692 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=100 emit=75
+FXSHOT 112 141
+FXA 142 4.725 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=77
+FXSHOT 113 142
+FXA 143 4.758 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=77
+FXSHOT 114 143
+FXRLOG mizuki mz_sting 143 4.792
+FXA 144 4.792 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=68 emit=52
+FXSHOT 115 144
+FXA 145 4.825 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=92 emit=76
+FXSHOT 116 145
+FXA 146 4.858 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=88 emit=72
+FXSHOT 117 146
+FXA 147 4.892 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=88 emit=72
+FXSHOT 118 147
+FXA 148 4.925 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=34
+FXSHOT 119 148
+FXA 149 4.958 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=34
+FXSHOT 120 149
+FXA 150 4.992 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=47 emit=31
+FXSHOT 121 150
+FXA 151 5.025 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=47 emit=31
+FXSHOT 122 151
+FXA 152 5.058 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=10
+FXSHOT 123 152
+FXA 153 5.092 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=10
+FXSHOT 124 153
+FXA 154 5.125 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=10
+FXSHOT 125 154
+FXA 155 5.158 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=10
+FXSHOT 126 155
+FXA 156 5.192 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 127 156
+FXA 157 5.225 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 128 157
+FXA 158 5.258 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 129 158
+FXA 159 5.292 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 130 159
+FXA 160 5.325 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 131 160
+FXRLOG mizuki mz_tent 160 5.358
+FXRLOG mizuki mz_umb 160 5.358
+FXA 161 5.358 new=ink:5 life=0.97 sz=4.8 alive=8 L=100/0.61/0.12/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 132 161
+FXA 162 5.392 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=123 emit=81
+FXSHOT 133 162
+FXA 163 5.425 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=123 emit=81
+FXSHOT 134 163
+FXA 164 5.458 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=136 emit=94
+FXSHOT 135 164
+FXA 165 5.492 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=136 emit=94
+FXSHOT 136 165
+FXA 166 5.525 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=133 emit=99
+FXSHOT 137 166
+FXA 167 5.558 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=133 emit=99
+FXSHOT 138 167
+FXA 168 5.592 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=135 emit=101
+FXSHOT 139 168
+FXA 169 5.625 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=135 emit=101
+FXSHOT 140 169
+FXA 170 5.658 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=93 emit=77
+FXSHOT 141 170
+FXA 171 5.692 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=93 emit=77
+FXSHOT 142 171
+FXA 172 5.725 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=90 emit=74
+FXSHOT 143 172
+FXA 173 5.758 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=90 emit=74
+FXSHOT 144 173
+FXA 174 5.792 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=35 emit=19
+FXSHOT 145 174
+FXA 175 5.825 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=25
+FXSHOT 146 175
+FXA 176 5.858 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=25 emit=8
+FXSHOT 147 176
+FXA 177 5.892 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=25 emit=8
+FXSHOT 148 177
+FXA 178 5.925 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 149 178
+FXA 179 5.958 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 150 179
+FXA 180 5.992 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 151 180
+FXA 181 6.025 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=6
+FXSHOT 152 181
+FXA 182 6.058 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 153 182
+FXA 183 6.092 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 154 183
+FXA 184 6.125 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 155 184
+FXA 185 6.158 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 156 185
+FXA 186 6.192 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 157 186
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_tent 186 6.225
+FXRLOG mizuki mz_umb 186 6.225
+FXRLOG mizuki mz_burst 186 6.225
+FXA 187 6.225 new=ink:8 life=0.94 sz=4.2 alive=11 L=100/0.61/0.12/6fe8ff;140/0.74/0.14/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=28 emit=12
+FXSHOT 158 187
+FXRLOG mizuki mz_burst 187 6.258
+FXA 188 6.258 new=ink:3 life=0.85 sz=4.7 alive=13 L=140/0.74/0.14/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=140 emit=94
+FXSHOT 159 188
+FXA 189 6.292 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=174 emit=118
+FXSHOT 160 189
+FXRLOG mizuki mz_burst 189 6.325
+FXA 190 6.325 new=ink:3 life=0.92 sz=6.0 alive=14 L=140/0.74/0.14/6fe8ff gr=0 gnew=0 sp=0 gl=0 glow=286 emit=230
+FXSHOT 161 190
+FXA 191 6.358 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=323 emit=254
+FXSHOT 162 191
+FXA 192 6.392 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=303 emit=250
+FXSHOT 163 192
+FXA 193 6.425 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=303 emit=250
+FXSHOT 164 193
+FXA 194 6.458 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=287 emit=238
+FXSHOT 165 194
+FXA 195 6.492 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=287 emit=238
+FXSHOT 166 195
+FXA 196 6.525 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=227 emit=214
+FXSHOT 167 196
+FXA 197 6.558 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=227 emit=214
+FXSHOT 168 197
+FXA 198 6.592 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=201 emit=197
+FXSHOT 169 198
+FXA 199 6.625 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=201 emit=197
+FXSHOT 170 199
+FXA 200 6.658 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=83
+FXSHOT 171 200
+FXA 201 6.692 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=83
+FXSHOT 172 201
+FXA 202 6.725 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=17
+FXSHOT 173 202
+FXA 203 6.758 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=17
+FXSHOT 174 203
+FXA 204 6.792 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=10 emit=6
+FXSHOT 175 204
+FXA 205 6.825 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=10 emit=6
+FXSHOT 176 205
+FXA 206 6.858 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=10 emit=6
+FXSHOT 177 206
+FXA 207 6.892 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=10 emit=6
+FXSHOT 178 207
+FXA 208 6.925 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=10 emit=6
+FXSHOT 179 208
+ERROR: 40 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1624: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1625: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1626: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1627: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1628: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1629: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1631: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1632: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1644: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1645: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1662: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1663: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1696: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1718: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1719: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1720: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1731: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1732: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1733: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1734: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1735: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1736: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1737: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1738: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1739: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1740: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1741: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1742: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1743: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1744: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1753: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1754: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 207 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 27 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
