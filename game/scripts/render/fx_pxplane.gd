@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_siege.json": ""}   # 帧条表 → 键前缀（星熊的键自带 hsg_、推进之王自带 sg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "siege": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -139,6 +139,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "lumen":
 		_ev_lumen(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "siege":
+		_ev_sg(o, kind, d, raw, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -369,6 +372,9 @@ func draw_floor(o) -> void:
 	if id == "lumen":
 		_lm_draw_floor(o)
 		return
+	if id == "siege":
+		_floor_sg(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -384,6 +390,8 @@ func draw_floor(o) -> void:
 func draw_over(o) -> void:
 	if str(o.id) == "lumen" and o.hw.has("lm"):
 		_sl()._h3lm_draw_units(o)   # 发光单元是本体附属物（不是攻击特效），接管时照画
+	if str(o.id) == "siege" and mode() == 1:
+		_sg_draw_motes(o)   # 冲锋号令 / 跃空锤的全队技力粒子（状态提示：技力飞向队友）
 	if mode() != 2:
 		return
 	var cv = o.cv
@@ -434,6 +442,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
 				for qw in r._qis(o):
 					out.append({"wave": qw})
+			elif str(o.id) == "siege":   # 推进之王锤击冲击波（docs/264）
+				for qv in r._qi_volleys(o):
+					out.append({"k": qv.k + "_up_d%d" % qv.d, "fi": qv.f, "gp": qv.gp, "flip": qv.flip})
 			elif str(o.id) == "hoshiguma":   # 星熊锯盾 + 剑气齐射（docs/254）
 				for bm in r._booms(o):
 					out.append({"k": "hsg_saw_up", "t0": 0.0, "gp": r._boom_gp(o, bm), "flip": false, "loop": true})
@@ -873,7 +884,7 @@ func _qi_volleys(o) -> Array:
 		var S: int = 10 if n <= 1 else (16 if n == 2 else 22)
 		var dk: Array = pick_dir((e.v as Vector2).angle())
 		var f: int = 0 if float(e.t) < 1.0 / 15.0 else (2 if float(e.life) < 0.07 else 1)
-		out.append({"k": "hsg_qi_s%d_e%d" % [S, t], "d": dk[0], "flip": dk[1], "gp": _snap(e.p / float(n)), "f": f})
+		out.append({"k": "%s_qi_s%d_e%d" % ["sg" if str(o.id) == "siege" else "hsg", S, t], "d": dk[0], "flip": dk[1], "gp": _snap(e.p / float(n)), "f": f})
 	return out
 
 
@@ -1319,3 +1330,210 @@ func _lm_draw_raw(o) -> void:
 	if S._h3_beam_on(o, bb):
 		var dv: Vector2 = S._h3_beam_dir(o, bb)
 		_draw_raw(cv, "lm_raw_sweep", posmod(lf, maxi(1, int(_meta("lm_raw_sweep").get("n", 1)))), S._h3_beam_origin(o), dv.angle(), g.PX * float(bb.get("len", 260.0)) / 260.0 * 1.13)
+
+
+# ================================================================ 推进之王（docs/264，照 docs/246 斯卡蒂 / docs/254 星熊的做法）
+## 帧条 pxp_sg_*（tools/pixelfx_fx/melee/ak-siege-pp.js，tools/pxplane_bake.py --op siege）。主色本人金（熔金 8 阶），尘 / 碎石暖土，精二点缀白金熔芯。
+## 普攻「锤击」= 下砸锤弧（挂在人身上，跟人走）+ 落点白闪 / 火星线 / 分叉裂网（落地留在原地）；精一碎石 + 隆起尘墙 + 「粉碎」碎石迸开；精二裂缝熔芯 + 「破阵」地裂与岩刺；
+## S1「冲锋号令·γ型」= 腰高号令声浪 + 脚下冲击环，下一锤换「号令一锤」（锤弧更粗、落点金色冲击环）；分支「万兽之王」号令波读玩法状态 o.hw.sg.waves；
+## S2「跃空锤」= 起跳一小圈 → 落地竖直冲柱 + 大裂网 + 冲击环 + 碎石 + 尘墙（精二熔芯 + 环外前向枝裂）；
+## S3「碎颅击」= 起手腰高横向光带 + 冲击环，持续时脚下炭火边，每锤横向扁白闪 + 向前分叉的地裂扇；
+## 后期剑气（钝器）= 锤击冲击波（贴地往前滚的土浪 + 身后裂痕），同一次出手几道合成一道；技能连携 v2「冲阵」= 尾锤大砸坑。
+
+var _motes: Array = []   # 技力粒子：{to 队友, from, t0, life, bend}（只画）
+var _sg_imp := {}        # 干员 id → 最近一锤的落点（只画）
+
+
+func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用：事件的游戏时间
+		print("PXPLOG sg %s %s %.3f" % [kind, str(d.get("src", d.get("i", ""))), g.t])
+	var id: String = str(o.id)
+	match kind:
+		"swing":   # 锤击（普攻 / 冲锋号令强化一锤 / 碎颅）：seg_siege._h4_hammer_release
+			var ang: float = float(d.get("ang", 0.0))
+			var reach: float = float(d.get("reach", 92.0))
+			var heavy: bool = d.get("heavy", false)
+			var patch: bool = d.get("patch", false)
+			var dv := Vector2.from_angle(ang)
+			var imp: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * reach * 0.7   # 锤弧落点（平面里压扁的那一点）
+			var dk: Array = pick_dir(ang)
+			_sg_imp[id] = imp   # 这一锤的落点（破阵地裂从这里裂出去；只画）
+			if raw:
+				var rk: String = "sg_raw_s3" if heavy else "sg_raw_imp_e%d" % t
+				_push({"k": rk, "t0": g.t, "gp": imp + Vector2(0, -6), "ly": "raw", "rot": ang, "sc": g.PX * (reach * 0.5) / 46.0, "oid": id})
+				return
+			var ak: String
+			if heavy:
+				ak = "sg_arc_s3_up_d%d" % dk[0]
+			elif patch:
+				ak = "sg_arc_s1_e%d_up_d%d" % [t, dk[0]]
+			else:
+				ak = "sg_arc_r%d_e%d_up_d%d" % [_bucket(reach * 0.5, [46, 56, 66]), t, dk[0]]
+			# 同一名干员同屏只留最新一锤 + 正在收的一锤（不叠成一团）
+			var sl: Array = []
+			for it in items:
+				if str(it.oid) == id and it.get("slash", false):
+					sl.append(float(it.t0))
+			if sl.size() >= 2:
+				sl.sort()
+				var keep_t: float = float(sl[sl.size() - 1])
+				items = items.filter(func(it): return not (it.get("slash", false) and str(it.oid) == id and float(it.t0) < keep_t))
+			_push({"k": ak, "t0": g.t, "gp": _snap(o.pos), "flip": dk[1], "ly": "up", "oid": id, "slash": true, "fo": Vector2.ZERO})   # 锤弧挂在人身上：跟人走
+			if heavy:
+				_push({"k": "sg_s3_up", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "up", "oid": id})
+				_push({"k": "sg_s3_gd_d%d" % dk[0], "t0": g.t, "gp": _snap(imp), "flip": dk[1], "ly": "gd", "oid": id})
+			else:
+				var ik: String = "sg_imp_%s_e%d" % ["s1" if patch else "atk", t]
+				_push({"k": ik + "_up", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "up", "oid": id})
+				_push({"k": ik + "_gd", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "gd", "oid": id})
+			var big: bool = heavy or patch
+			_burst_m(o, R, p, imp + Vector2(0, -8), imp.y + 2.0, d.get("es", []), (2 + t) + (4 if big else 0), "rock", 100.0 + (60.0 if big else 0.0), 0.4 + (0.3 if big else 0.0))
+		"crush":   # 精一「粉碎」：击倒处碎石迸开（强制低档画面时不画）
+			if t < 1 or raw:
+				return
+			var at: Vector2 = d.get("at", o.pos)
+			_push({"k": "sg_crush_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": id})
+			_push({"k": "sg_crush_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": id})
+			if mode() == 1:
+				R._grains(o, at + Vector2(0, -8), at.y, "rock", 3, {"tier": t})
+		"breach":   # 精二「破阵」地裂 + 岩刺 / 再跃（队长版）原地砸出的地裂（不出岩刺）
+			var pts: PackedVector2Array = d.get("pts", PackedVector2Array())
+			if pts.size() < 2 or raw:
+				return
+			var spikes: bool = d.get("spikes", false)
+			if spikes and t < 2:
+				return
+			var a: Vector2 = pts[0]
+			var b: Vector2 = pts[pts.size() - 1]
+			var fa: float = (b - a).angle()
+			var dk2: Array = pick_dir(fa)
+			var st: Vector2 = _sg_imp.get(id, a) if spikes else o.pos + Vector2(a.x - o.pos.x, (a.y - o.pos.y) * 0.72)
+			var L: int = 90 if spikes else _bucket(a.distance_to(b) * 0.5, [60, 90, 110])
+			var pre: String = "sg_fis" if spikes else "sg_crk"
+			_push({"k": "%s_l%d_gd_d%d" % [pre, L, dk2[0]], "t0": g.t, "gp": _snap(st), "flip": dk2[1], "ly": "gd", "oid": id})
+			if spikes:
+				_push({"k": "sg_fis_l90_up_d%d" % dk2[0], "t0": g.t, "gp": _snap(st), "flip": dk2[1], "ly": "up", "oid": id})
+			if mode() == 1:
+				var mid: Vector2 = st + Vector2(cos(fa), sin(fa) * 0.72) * float(L)
+				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 3, {"tier": t})
+				R._light(o, mid, 120.0, 0.45, 0.15, p.light)
+		"quake":   # 成长「震地」/「狮吼」：落点一圈贴地冲击环（狮吼双环）
+			if raw:
+				return
+			var qa: Vector2 = d.get("at", o.pos)
+			_push({"k": "sg_quake_r%d_%s_gd" % [_bucket(float(d.get("r", 70.0)) * 0.5, [35, 45, 55]), "roar" if d.get("roar", false) else "q"], "t0": g.t, "gp": _snap(qa), "flip": false, "ly": "gd", "oid": id})
+		"crash":   # 狮吼：被击退的敌人撞上别的敌人 / 障碍
+			if raw:
+				return
+			var ca: Vector2 = d.get("at", o.pos) + Vector2(0, 8)
+			_push({"k": "sg_crash_up", "t0": g.t, "gp": _snap(ca), "flip": false, "ly": "up", "oid": id})
+			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(ca), "flip": false, "ly": "gd", "oid": id})
+			if mode() == 1:
+				R._light(o, ca, 70.0, 0.35, 0.1, p.light)
+		"leap":   # 跃空锤起跳：脚下一小圈
+			if raw:
+				return
+			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
+			if mode() == 1:
+				R._grains(o, o.pos + Vector2(0, -4), o.pos.y, "rock", 3, {"tier": t})
+		"slam":   # 跃空锤落地（含再跃第二下）
+			_sg_slam(o, R, p, d.get("at", o.pos), float(d.get("r", 110.0)), d.get("es", []), raw, maxi(t, 1))
+			_sg_motes(o, 1)
+		"shape":   # 路线「再跃·裂地」：跃空锤落地 0.8 秒后以自身为心再震一圈（circle 震地 r140）
+			if d.get("circle", false) and str(d.get("src", "")) == "震地":
+				_sg_slam(o, R, p, d.get("c", o.pos), float(d.get("r", 140.0)), d.get("es", []), raw, maxi(t, 1))
+		"skill":
+			var i: int = int(d.get("i", -1))
+			if raw:
+				return
+			if i == 0:   # 冲锋号令：腰高号令声浪（跟人走）+ 脚下冲击环（留在原地）+ 技力粒子飞向队友
+				_push({"k": "sg_s1cast_e%d_up" % t, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": id, "fo": Vector2.ZERO})
+				_push({"k": "sg_s1cast_e%d_gd" % t, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
+				_sg_motes(o, 2)
+				if mode() == 1:
+					R._light(o, o.pos + Vector2(0, -30), 130.0, 0.5, 0.15, p.light)
+			elif i == 2:   # 碎颅击起手：腰高横向光带（跟人走）+ 脚下冲击环
+				_push({"k": "sg_s3cast_up", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": id, "fo": Vector2.ZERO})
+				_push({"k": "sg_s3cast_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
+				if mode() == 1:
+					R._light(o, o.pos + Vector2(0, -24), 150.0, 0.6, 0.15, p.light)
+		"link_dash":   # 技能连携 v2「冲阵」冲刺途中：脚下扬起的碎土（代替通用拖影 / 尘）
+			if mode() == 1 and g.vrng.randf() < 0.35:
+				var q: Vector2 = d.get("q", o.pos)
+				R._grains(o, q + Vector2(0, -2), q.y + 2.0, "rock", 1, {"tier": 1})
+		"link_slam":   # 「冲阵」尾锤：大砸坑 + 裂网 + 冲击环 + 碎石 + 两层尘墙
+			var lc: Vector2 = d.get("c", o.pos)
+			if raw:
+				_push({"k": "sg_raw_slam_e1", "t0": g.t, "gp": lc, "ly": "raw", "rot": 0.0, "sc": g.PX * 46.0 / 55.0, "oid": id})
+				return
+			_push({"k": "sg_link_up", "t0": g.t, "gp": _snap(lc), "flip": false, "ly": "up", "oid": id})
+			_push({"k": "sg_link_gd", "t0": g.t, "gp": _snap(lc), "flip": false, "ly": "gd", "oid": id})
+			_burst_m(o, R, p, lc + Vector2(0, -10), lc.y + 2.0, d.get("es", []), 10, "rock", 170.0, 0.7)
+
+
+func _sg_slam(o, R, p: Dictionary, at: Vector2, r: float, es: Array, raw: bool, t: int) -> void:
+	if raw:
+		_push({"k": "sg_raw_slam_e%d" % t, "t0": g.t, "gp": at, "ly": "raw", "rot": 0.0, "sc": g.PX * (r * 0.5) / 55.0, "oid": str(o.id)})
+		return
+	var sk: String = "sg_slam_r%d_e%d" % [_bucket(r * 0.5, [55, 70]), t]
+	_push({"k": sk + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)})
+	_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
+	_burst_m(o, R, p, at + Vector2(0, -10), at.y + 2.0, es, 8 + 3 * t, "rock", 200.0, 0.85)
+
+
+## 技力粒子：从她飞向每名队友（状态提示，原程序 h4_spmote 接管时不画，这里按美术像素格画）
+func _sg_motes(o, n: int) -> void:
+	if mode() != 1:
+		return
+	for m in g.squad.ops:
+		if m == o or m.pos == Vector2.INF:
+			continue
+		for k in n:
+			if _motes.size() >= 24:
+				_motes.pop_front()
+			_motes.append({"to": m, "from": o.pos + Vector2(0, -22), "t0": g.t + 0.06 * k, "life": 0.45 + 0.08 * k, "bend": g.vrng.randf_range(-40.0, 40.0)})
+
+
+func _sg_draw_motes(o) -> void:
+	if _motes.is_empty():
+		return
+	var cv = o.cv
+	var px: float = g.PX
+	var keep: Array = []
+	for mt in _motes:
+		var age: float = g.t - float(mt.t0)
+		if age > float(mt.life):
+			continue
+		keep.append(mt)
+		if age < 0.0 or mt.to.pos == Vector2.INF:
+			continue
+		var k: float = age / float(mt.life)
+		var st: Vector2 = mt.from
+		var to: Vector2 = mt.to.pos + Vector2(0, -24)
+		var at: Vector2 = st.lerp(to, k) + Vector2(0, -sin(k * PI) * 30.0) + st.direction_to(to).orthogonal() * sin(k * PI) * float(mt.bend)
+		var k2: float = maxf(0.0, k - 0.1)
+		var tl: Vector2 = st.lerp(to, k2) + Vector2(0, -sin(k2 * PI) * 30.0) + st.direction_to(to).orthogonal() * sin(k2 * PI) * float(mt.bend)
+		cv.draw_rect(Rect2(_snap(tl), Vector2(px, px)), Color("#e08e26"))
+		var c: Vector2 = _snap(at)
+		cv.draw_rect(Rect2(c - Vector2(px, px) * 0.5, Vector2(px, px) * 2.0), Color("#ffbf3c"))
+		cv.draw_rect(Rect2(c, Vector2(px, px)), Color("#fff1b8"))
+		if g.optical_on and _emit_n < EMIT_CAP:
+			_emit_n += 1
+			g.glow_next.append([c, px, Color(1.0, 0.85, 0.5, Bal.v("fx/px_plane_emit", 0.8))])
+	_motes = keep
+
+
+## 地面层（推进之王）：贴地件、号令波（读 o.hw.sg.waves）、碎颅击持续时脚下炭火边、锤击冲击波的影子与裂痕
+func _floor_sg(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	if o.skill_active_left(2) > 0.0:
+		_draw_strip(cv, "sg_s3aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
+	if o.hw.has("sg"):
+		for w in o.hw.sg.get("waves", []):   # 万兽之王号令波：帧号按波自己的年龄（0.4 秒扩满 + 0.25 秒淡掉）
+			_draw_strip(cv, "sg_cmd_gd", int(floor(float(w.t) * 15.0)), _snap(w.pos), false, true)
+	for it in items:
+		if str(it.ly) == "gd" and str(it.oid) == id:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
+	for qv in _qi_volleys(o):
+		_draw_strip(cv, qv.k + "_gd_d%d" % qv.d, int(qv.f), qv.gp, qv.flip, true)
