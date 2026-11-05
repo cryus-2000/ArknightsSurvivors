@@ -143,3 +143,15 @@ python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cas
   - 落地类留在原地：冲击环、碎浪、碎沫、积水、湿痕、浪痕。
   - 排序：`sort_items` 生成排序项时按当前位置写 `sk`，跟人的件和施放者同一 y 排。
 - 其他干员接法：凡是「挂在人身上」的件，推进件时带 `fo`（`_add` 已自带）；落地件不带。
+
+## 11. 近战打击感包（11-05 用户实机「现在近战打击感比较弱」）：开关 `fx/melee_impact`（缺省 0），先给斯卡蒂、星熊
+
+`game/scripts/render/melee_impact.gd`，`ob_core.exec_shape` 锥形 / 圆形判定后一行 `_MI.hit(o, src, tags, hits)`；与 `fx/px_plane` 无关（星熊没开转平面也生效）。全部只改画面：
+- **命中顿帧**：走 `vfx.stop` 总闸（kind `melee_impact`，受 `fx/hitstop_gap` 限频；平衡 / 批跑局不消耗顿帧）。轻击 0.045 秒、重击 0.075 秒；队长全量、队友 × 0.6（原来近战只有个别招式在形状里写 `pause`，且走 `impact_pause` 的 0.28 秒限频，读起来很轻）。重击 = 技能来源（tags 带 skill）或斯卡蒂的迅捷打击 / 跃浪击 / 破浪下劈。
+- **重击镜头轻震**：`g.ult.shake(3, 0.12)`（用户同意的量级，按真实时间、减少动态效果时为 0）。
+- **受击闪本人色 + 画面击退**：被打中的怪闪 0.07 秒本人色（斯卡蒂淡蓝、星熊琥珀；经 `fx_recipe.react_col` 回落，配方 / 转平面自己的受击反应优先），并在画面上被往外推 4（重击 7）世界像素、0.04 秒推出 0.12 秒弹回（`world._eoff` 叠加，Boss × 0.4、精英 × 0.7）；判定位置、玩法击退都不动。
+- **命中音**：确认照旧——`vfx._tier_fx` 在配方 / 转平面接管判断之前就播命中音，接管不吞声音；本包不另加声音。
+- **斩痕 / 照地光提亮**：转平面的命中斩痕长 ×1.2、两侧各多一格浅蓝、白芯发光 × 1.35；命中照地光强度 × 1.35。
+- 旋钮：`fx/melee_impact_stop / _stop_heavy / _mate / _shake_px / _shake_t / _push / _push_heavy / _lit`。
+- 验证：TRACE 在批跑模式比（顿帧在玩家时钟里会真的停模拟，开 / 关两局本来就会分岔，所以 TRACE 口径同 docs/245：`--balance` 非 `--playclock`）；对照录像用 `--realtime --playclock`（顿帧看得见）。脚本 `tools/melee_impact_rec.py`，在 GCP 上跑（`tools/gcp_render.py --job custom`）。
+
