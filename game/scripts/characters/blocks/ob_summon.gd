@@ -699,6 +699,7 @@ static func _mark_draw(o) -> void:
 		if k_open < 1.0:   # 开场扩散的波前
 			cv.draw_arc(Vector2.ZERO, r_now, 0.0, TAU, 56, Color(1, 1, 1, 0.8 * (1.0 - k_open)), 5.0 * (1.0 - k_open) + 1.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var lpm = Fxr.Pxp.lp_marks(g) if str(o.id) == "lappland" else null   # 转平面（docs/273）：层数画成头顶刻痕、叠满的灰白冲击波由十字斩代替（只画）
 	if on and o.sm.has("marks"):
 		var ls: Array = []
 		for id in o.sm.marks:
@@ -713,11 +714,14 @@ static func _mark_draw(o) -> void:
 			var e2: Dictionary = m2.e
 			var er: float = float(e2.r)
 			var fresh: float = clampf(1.0 - (g.t - float(m2.t)) / 0.12, 0.0, 1.0)   # 新叠一层：0.12 秒亮闪
+			if lpm != null:
+				lpm.draw_tally(cv, e2, int(m2.n), g.t - float(m2.t) < 0.14)
+				continue
 			cv.draw_set_transform(e2.pos, 0.0, Vector2(1.0, 0.45))
 			for L in int(m2.n):
 				cv.draw_arc(Vector2.ZERO, er + 4.0 + 4.0 * L, 0.0, TAU, 24, Color(MARK_COL.r, MARK_COL.g, MARK_COL.b, 0.45 + 0.5 * fresh), 1.0 + 0.5 * L + 1.5 * fresh)
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	for f in o.sm.get("mark_fx", _EA):
+	for f in ([] if lpm != null else o.sm.get("mark_fx", _EA)):
 		var age: float = g.t - float(f.t)
 		if age >= 0.4:
 			continue
@@ -753,6 +757,7 @@ static func sm_draw_over(o) -> void:
 	var cv = o.cv
 	if o.sm.has("mark_b"):
 		_mark_draw(o)
+	var lpm = Fxr.Pxp.lp_marks(g) if str(o.id) == "lappland" else null   # 转平面（docs/273）：封印画成被斩断的符印（只画）
 	for id in o.sm.seal:
 		var e: Dictionary = o.sm.seal[id]
 		if e.dead or not sealed(e, g.t) or str(e.get("seal_by", "")) != o.id:
@@ -760,6 +765,9 @@ static func sm_draw_over(o) -> void:
 		var left: float = float(e.seal_t) - g.t
 		var al: float = clampf(left / 0.3, 0.0, 1.0) * 0.9
 		var er: float = float(e.r)
+		if lpm != null:
+			lpm.draw_seal(cv, e, 10.0 if o.sm.get("marks", {}).has(id) else 0.0)
+			continue
 		if str(e.get("seal_look", "")) == "cross":   # 灰叉：8×8、2px、#AAAEB2，头顶上方 12px；没有地面圈 / 菱形
 			var cp: Vector2 = e.pos + Vector2(0, -er * 2.0 - 12.0)
 			var gc := Color(0.667, 0.682, 0.698, al)

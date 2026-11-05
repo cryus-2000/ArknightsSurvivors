@@ -1718,6 +1718,7 @@ func _defer(arr: Array) -> void:
 
 ## 格挡的画面 / 声音（不碰 g.rng）：通用 fx（§5.6，中心 = 主控）、text = 飘字（缺省「格挡」）
 func _negate_fx(b: Dictionary) -> void:
+	Fxr.ev(self, "ll_block", {})   # 转平面（docs/273 拉普兰德日晷格挡）：只画；其他接管的干员不认这个事件
 	if b.has("fx"):
 		ObFx.fx_play(self, b.fx, g.ppos, 30.0)
 	float_text(g.ppos + Vector2(0, -88), str(b.get("text", "格挡")), Color(1.0, 0.85, 0.4), 16)

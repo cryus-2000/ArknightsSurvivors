@@ -634,6 +634,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				a["d"] = d0
 				a["sp"] = ep
 			var T := 0.28
+			var pxo_lp: bool = Fxr.owns(p)   # 转平面（docs/273）：月牙剑气 + 斩痕改由 fx_pxplane 画（只画）
+			if pxo_lp and t >= 0.1 and once.call("pxlp"):
+				Fxr.ev(p, "ll_link", {"sp": a.sp, "ep": c + Vector2(a.d) * (r + 50.0), "T": T, "d": a.d})
 			if t >= 0.1 and t < 0.1 + T:
 				if once.call("beat"):
 					_beat(u)
@@ -642,7 +645,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				var dd: Vector2 = a.d
 				var q: Vector2 = Vector2(a.sp).lerp(c + dd * (r + 50.0), k)
 				var nv: Vector2 = dd.orthogonal()
-				if not LFB.lp_wave(u, a, q, dd, k):
+				if pxo_lp:
+					pass
+				elif not LFB.lp_wave(u, a, q, dd, k):
 					for j in 5:   # 月牙：一串弧形排开的刃块（中间厚两端尖）
 						var off: float = (float(j) - 2.0) / 2.0
 						var bp: Vector2 = q + nv * off * 70.0 - dd * (off * off) * 26.0
@@ -656,7 +661,8 @@ static func _step16(u, a: Dictionary) -> bool:
 				return false
 			if once.call("trail"):
 				u.light(c, 150.0, cl, 0.3)
-				LFB.lp_scar(u, a, a.sp, c + Vector2(a.d) * (r + 50.0))
+				if not Fxr.owns(p):
+					LFB.lp_scar(u, a, a.sp, c + Vector2(a.d) * (r + 50.0))
 			return t >= 0.1 + T + 0.45
 		"l_specter":   # 替身：她身后分出一个暗红替身，冲过区域斩一次（替身 = 一串干员色残影块 + 一刀）；本人不动
 			if once.call("go"):

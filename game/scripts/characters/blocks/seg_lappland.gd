@@ -87,6 +87,7 @@ static func _ll_dial_arm(o) -> void:
 	o.fx({"kind": "ring", "pos": o.pos, "r": 46.0, "r0": 12.0, "life": 0.4, "col": LL_COL, "floor": true, "w": 3.0, "alpha": 0.9})
 	o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -26), "r": 26.0, "life": 0.4, "col": LL_COL, "alpha": 0.5})
 	o.float_text(o.pos + Vector2(0, -70), "反斩", LL_COL, 14)
+	_FXR.ev(o, "ll_arm", {})   # 转平面（docs/273）：只画
 
 
 ## 每次横扫之后：反斩还待命（这一下没有剑气把它用掉）→ 额外掷出一道大剑气
@@ -120,6 +121,7 @@ static func _ll_riposte(o, b: Dictionary) -> void:
 	var org: Vector2 = o.pos + Vector2(0, -10)
 	var hits: Array = o.melee_hit(str(b.get("src", "回敬")), org, ang, half, r, dmg, float(b.get("kb", 0.0)), 0.0, ["follow_up", "area"])
 	fx_play(o, b.get("slash_fx", []), org, r, hits, ang)
+	_FXR.ev(o, "ll_riposte", {"ang": ang, "r": r, "es": hits})   # 转平面（docs/273）：只画
 	o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -26), "r": 22.0, "life": 0.3, "col": LL_COL, "alpha": 0.5})
 	o.float_text(o.pos + Vector2(0, -70), "回敬", LL_COL, 14)
 	o._sfx_op("atk")
@@ -143,6 +145,10 @@ static func _ll_seal_spread(o, b: Dictionary) -> void:
 		cand.append(t)
 	var sel: Array = o.cap_targets(cand, e.pos, int(b.get("n", 6)))
 	var s := {"st": "seal", "dur": float(b.get("dur", 2.0)), "elite_mult": 0.5, "boss": false, "look": "cross"}
+	var tos: Array = []
+	for t in sel:
+		tos.append(t.pos)
+	_FXR.ev(o, "ll_spread", {"at": e.pos, "to": tos})   # 转平面（docs/273）：只画
 	for t in sel:
 		apply_status(o, t, s, t.pos)
 		o.fx({"kind": "line", "pos": e.pos + Vector2(0, -12), "to": t.pos + Vector2(0, -12), "life": 0.25, "col": LL_COL, "w": 1.5})

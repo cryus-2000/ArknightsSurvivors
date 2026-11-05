@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_specter_unchained.json": "su_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_specter_unchained.json": "su_", "res://data/pxp_lappland.json": "lp_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skalter": true, "logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true, "skalter": true, "specter_unchained": true}
+const IDS := {"skalter": true, "logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true, "skalter": true, "specter_unchained": true, "lappland": true}
 const GL = preload("res://scripts/render/fx_pxplane_gl.gd")   # 歌蕾蒂娅一节（docs/263）单独成文件
 const UL = preload("res://scripts/render/fx_pxplane_ul.gd")   # 乌尔比安一节（docs/266）单独成文件
 const KA = preload("res://scripts/render/fx_pxplane_kal.gd")   # 凯尔希一节（docs/265）单独成文件
@@ -71,7 +71,7 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene", "kaltsit", "wisadel"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene", "kaltsit", "wisadel", "lappland"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
 		return of(game).mode() == 1
 	return of(game).mode() > 0
 
@@ -151,6 +151,23 @@ func _wd():
 	if _wdm == null:
 		_wdm = load("res://scripts/render/fx_pxplane_wd.gd").new(self)
 	return _wdm
+
+
+## 拉普兰德一节（docs/273，单独文件 fx_pxplane_lp.gd；运行时 load 避免循环 preload）
+var _lpm = null
+
+
+func _lp():
+	if _lpm == null:
+		_lpm = load("res://scripts/render/fx_pxplane_lp.gd").new(self)
+	return _lpm
+
+
+## ob_summon.sm_draw_over 转来（docs/273，只画）：拉普兰德接管时封印标记画成被斩断的符印、观察层数画成头顶刻痕。没接管返回 null
+static func lp_marks(game):
+	if not (game is Object) or not owns_id(game, "lappland"):
+		return null
+	return of(game)._lp()
 
 
 func _meta(k: String) -> Dictionary:
@@ -272,6 +289,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "wisadel":
 		_wd().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "lappland":
+		_lp().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -620,6 +640,9 @@ func draw_floor(o) -> void:
 	if id == "wisadel":
 		_wd().draw_floor(o)
 		return
+	if id == "lappland":
+		_lp().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -655,6 +678,10 @@ func draw_over(o) -> void:
 	if str(o.id) == "wisadel":
 		if mode() == 1:
 			_wd().draw_over(o)   # 残影标记 + 续燃引线（docs/274）
+		return
+	if str(o.id) == "lappland":
+		if mode() == 1:
+			_lp().draw_over(o)   # 封印传染细虚线（docs/273）
 		return
 	if mode() != 2:
 		return
@@ -758,6 +785,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "wisadel":
 				r._wd().sort_items(o, out)
 				continue
+			if str(o.id) == "lappland":
+				r._lp().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -781,6 +811,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.has("surt"):   # 归溟幽灵鲨运行时件（docs/268）
 		SU.draw_rt(r, ci, it)
+		return
+	if it.has("lp"):   # 拉普兰德运行时件（docs/273）
+		r._lp().draw_rt(ci, it)
 		return
 	if it.has("ex"):   # 能天使运行时件（docs/262）
 		r._ex().draw_rt(ci, it)
@@ -995,7 +1028,7 @@ func _wpos(w: Dictionary, store = null) -> Vector2:
 
 
 ## 一张帧条的一帧：1 帧条像素 = g.PX 世界像素（整数倍），原点对齐 2 像素格；不旋转（方向靠预生成 + 水平翻转）
-func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mod := Color.WHITE) -> void:
+func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mod := Color.WHITE, emit := true) -> void:
 	var m: Dictionary = _meta(k)
 	var tx: Texture2D = _tex(k)
 	if m.is_empty() or tx == null:
@@ -1016,7 +1049,8 @@ func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mo
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		ci.draw_texture_rect_region(tx, Rect2(Vector2(left, top), Vector2(w * px, h * px)), src, mod)
-	_emit(m, fi, Vector2(left, top), w, flip)
+	if emit:   # 残影 / 半透明副本可以不发光（docs/273 拉普兰德剑气残光，体检 emit 顶上限）
+		_emit(m, fi, Vector2(left, top), w, flip)
 
 
 ## 热芯像素进光学发光层（同 world._glow_pts 的格式：[左上角, 边长, 颜色]）
