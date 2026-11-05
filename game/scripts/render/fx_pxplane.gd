@@ -2624,7 +2624,7 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					var fin_d: float = tm + 0.12
 					_tx_rain(o, [{"p": cc, "d": fin_d, "a": 0.0, "fl": false}], "tx_sw_s40_e2", raw, t)
 					if not raw:
-						_push({"k": "tx_array_r65_gd", "t0": g.t + fin_d + ft, "gp": _snap(cc), "flip": false, "ly": "gd", "oid": str(o.id)})
+						_push({"k": "tx_array_r65_gd", "t0": _tx_beat(g.t + fin_d, 2), "gp": _snap(cc), "flip": false, "ly": "gd", "oid": str(o.id)})   # 剑阵热白第一拍 = 巨剑插地那一拍 = 中心灯（docs/270：灯与辉光同帧）
 					if mode() == 1:
 						_txq.append([_tx_beat(g.t + fin_d, 2), "land", {"o": o, "p": cc, "n": 8, "lr": 220.0, "li": 0.8}])
 				if mode() == 1:   # 剑雨中心那盏灯跟第一柄剑插地同一拍亮（docs/270：灯与辉光同帧）
