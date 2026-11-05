@@ -1,0 +1,39 @@
+{
+ "op": "skalter",
+ "mode": "s1",
+ "frame": 1,
+ "engine": 60,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 31,
+ "skill": 1,
+ "parts_total": 42,
+ "parts_per_hit": 1.4,
+ "parts_per_s": 8.4,
+ "parts_s1_1s": 13,
+ "mats": {
+  "twinkle": 42
+ },
+ "life": 0.49,
+ "sz": 2.0,
+ "alive_max": 6,
+ "lights": 7,
+ "lights_per_hit": 0.23,
+ "light_r": 239.0,
+ "light_i": 0.41,
+ "light_life": 0.12,
+ "emit_max": 15,
+ "emit_mean": 4.6,
+ "gl_peak": 44.0,
+ "gl_area_hit": 11917,
+ "gl_mean_hit": 9.1,
+ "em_peak": 203.1,
+ "em_area_hit": 33,
+ "em_mean_hit": 23.2,
+ "crop": [
+  377,
+  298,
+  320,
+  180
+ ]
+}
