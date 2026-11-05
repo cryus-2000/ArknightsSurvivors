@@ -82,6 +82,9 @@ def strips():
         for t in (1, 2):
             out["wolf_e%d_d%d" % (t, d)] = (A.wolf_frames(d, t), True)
         out["link_d%d" % d] = (A.link_frame(d), True)
+        for nm, (R, sp, th) in A.QI_SIZES.items():
+            out["qi_%s_d%d" % (nm, d)] = (A.qi_frame(d, R, sp, th), True)
+            out["qish_%s_d%d" % (nm, d)] = (A.qi_shadow(d, R, sp, th), True)
     out["s3_up"] = (A.s3_up(), False)
     out["s3_gd"] = (A.s3_gd(), False)
     out["xcut_up"] = (A.xcut_frames(), False)

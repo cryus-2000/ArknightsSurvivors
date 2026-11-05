@@ -1,17 +1,18 @@
 """拉普兰德转平面（docs/273）的像素图形：纯 Python，tools/pxplane_bake_lappland.py 用它烤帧条（game/art/fx/pxp/pxp_lp_*.png + game/data/pxp_lappland.json），
 tools/pxplane_gif_lappland.py 用它拼送审 GIF。运行时件（剑气细针、狼首弹的拖尾 / 晶片、命中斩痕、封招符印、观察刻痕、连携斩痕）在游戏里由
-fx_pxplane_lp.gd 逐格画，算法与本文件 needle() / cut_px() / sigil_px() / tally_px() 一一对应，改一边要改另一边。
+fx_pxplane_lp.gd 逐格画，算法与本文件 needle() / cut_px() / chain_px() / tally_px() 一一对应，改一边要改另一边。
 单位：美术像素（游戏里 1 美术像素 = g.PX = 2 世界像素）。全部确定性（抖动用坐标哈希）。
 
 配色（原作 whitew_* 参照：贴图全是冷灰白，普攻是两段细月牙刀光，S2 是黑白狼首弹 + 菱形晶片 + 烟；Claude outputs/pixelfx_ul_lappland/original_moves.md）：
 - LP：冷紫灰 → 白 7 阶（剑光；任务单「紫白剑光」）；
 - WOLF：黑紫 → 灰白（S2 狼魂：狼首、烟、晶片）。
-- 封招符印：淡紫菱形符 + 白色斩线（被斩断的符印）。不用红（红只给危险）。"""
+- 封招：精英 / Boss 头顶一圈断开的紫色锁链环（11-05 用户认不出原来的「方块加线」符印）；剑气 = 贴地低飞的紫白月牙。不用红（红只给危险）。"""
 import math
 
 LP = ["#15121f", "#2b2542", "#4a4274", "#7b70b4", "#b3aae4", "#e4e0ff", "#ffffff"]
 WOLF = ["#0a090f", "#1b1828", "#2e2a40", "#4d4862", "#8a8698", "#cfcdd8", "#ffffff"]
 SHADOW = "#100e16"
+QV = ["#ffffff", "#d6ccff", "#9a86ea", "#5c4ca8"]   # 剑气 / 锁链：更紫的一组（刃线白 → 紫）
 SQ = 0.72   # 贴地压扁（combat.GROUND_Y）
 WAIST = 5   # 腰高（美术像素；判定原点 脚底 + (0, −10) 世界像素）
 
@@ -205,30 +206,47 @@ def cut_px(f, L, d, x=False):
 
 
 # 封招符印（7×7）：菱形符框 + 中心点；斩线从左上到右下，两半错开一格（被斩断）
-_SIG = [(0, -3), (1, -2), (2, -1), (3, 0), (2, 1), (1, 2), (0, 3), (-1, 2), (-2, 1), (-3, 0), (-2, -1), (-1, -2)]
+_SIG = sorted({(round(4 * math.cos(k * math.tau / 24)), round(4 * math.sin(k * math.tau / 24))) for k in range(24)})   # 符印圆环（十字斩第 0 拍 / 传染碎片）
+CHAIN_R = 6        # 封招锁链环半径（美术像素）
+CHAIN_GAP = -0.8   # 断口方向（右上）
 
 
-def sigil_px(age_tk, left_s):
-    """age_tk：封印起拍后第几拍；left_s：剩余秒。返回 [(dx, dy, 颜色, 不透明度, 发光)]，原点 = 符心"""
+def chain_px(age_tk, total_s, left_s):
+    """封招锁链环（只画精英 / Boss）：头顶一圈紫色锁链环，右上一道断口；断口两端出现时闪白，之后每秒闪一下；
+    封印期间断口慢慢张大、两半往外错开、整圈渐淡，最后 0.3 秒褪掉。返回 [(dx, dy, 颜色, 不透明度, 发光)]，原点 = 环心"""
     out = []
-    al = max(0.0, min(1.0, left_s / 0.3))
-    split = 0 if age_tk < 1 else 1
-    hot = age_tk < 2
-    for y in range(-4, 5):   # 暗底实心菱形（让符在任何地面 / 怪物上都读得出）
-        for x in range(-4, 5):
-            if abs(x) + abs(y) <= 4:
-                out.append((x, y, SHADOW, 0.75 * al, False))
-    for (x, y) in _SIG:
-        side = 1 if (x - y) > 0 else -1   # 斩线右上半往右上错、左下半往左下错
-        sx = split * side
-        out.append((x + sx, y - sx, LP[6] if hot else LP[4], al, hot))
-    out.append((0, 0, LP[5], al, False))
-    if age_tk >= 1:   # 斩线（第 1 拍白热，之后淡紫）
-        for i in range(-4, 5):
-            if abs(i) <= 1:
+    crack = max(0.0, min(1.0, 1.0 - left_s / max(0.1, total_s)))
+    al = max(0.0, min(1.0, left_s / 0.3)) * (1.0 - 0.45 * crack)
+    gap = 0.22 + 0.75 * crack                    # 断口半张角（弧度）
+    drift = round(1.6 * crack)                   # 两半往外错开
+    flash = age_tk < 3 or (age_tk % 15) < 1
+    n = 48
+    gx, gy = math.cos(CHAIN_GAP), math.sin(CHAIN_GAP)
+    seen = set()
+    for k in range(n):
+        a = k * math.tau / n
+        da = _ang_d(a, CHAIN_GAP)
+        if abs(da) < gap:
+            continue
+        side = 1 if da > 0 else -1
+        ox, oy = -gy * side * drift, gx * side * drift   # 垂直断口方向错开
+        for rr, kind in ((CHAIN_R + 1.6, "o"), (CHAIN_R - 1.6, "o"), (CHAIN_R + 0.5, "c"), (CHAIN_R - 0.5, "c")):
+            x, y = round(rr * math.cos(a) + ox), round(rr * math.sin(a) + oy)
+            if (x, y, kind) in seen:
                 continue
-            out.append((i, i, LP[6] if age_tk < 3 else LP[5], al, age_tk < 3))
-    return out
+            seen.add((x, y, kind))
+            if kind == "o":
+                out.append((x, y, SHADOW, 0.75 * al, False))
+            else:
+                end = abs(da) < gap + 0.45
+                link = (k // 3) % 2 == 0
+                if end and flash:
+                    out.append((x, y, LP[6], al, True))
+                else:
+                    out.append((x, y, (LP[5] if rr > CHAIN_R else LP[4]) if link else QV[2], al, False))
+    # 去掉被链身盖住的暗边（暗边只留在外侧 / 内侧）
+    body = {(x, y) for (x, y, c, a2, gl) in out if c != SHADOW}
+    return [q for q in out if not (q[2] == SHADOW and (q[0], q[1]) in body)]
 
 
 def tally_px(n, fresh):
@@ -579,6 +597,37 @@ def arm_gd():
 
 
 # ================================================================ 连携「月牙剑气」：大月牙（凸面朝前，横跨约 150 世界像素 = 判定宽 140）
+
+def qi_frame(d_deg, R, span, thick, lift=3):
+    """剑气月牙（凸面朝前，贴地低飞：抬 lift 美术像素）；R = 月牙所在圆半径，原点 = 月牙中点。两拍：亮 / 刃线略收"""
+    d = math.radians(d_deg)
+    out = []
+    for i in range(2):
+        b = Buf()
+        tmp = Buf()
+        crescent(tmp, R, d, span, thick * (1.0 if i == 0 else 0.85), 1.0, 0.0, QV, lift=0, ccw=True, seed=97 + i)
+        cx, cy = -R * math.cos(d) * 0.94, -R * math.sin(d) * 0.94 * SQ
+        for (x, y), c in tmp.p.items():
+            b.put(x + cx, y + cy - lift, c)
+        out.append(b)
+    return out
+
+
+def qi_shadow(d_deg, R, span, thick):
+    """剑气贴地影子（地面层）"""
+    d = math.radians(d_deg)
+    b = Buf()
+    tmp = Buf()
+    crescent(tmp, R, d, span * 0.9, max(1.5, thick * 0.6), 1.0, 0.0, [SHADOW] * 4, lift=0, ccw=True, seed=5, edge=False)
+    cx, cy = -R * math.cos(d) * 0.94, -R * math.sin(d) * 0.94 * SQ
+    for (x, y), c in tmp.p.items():
+        b.put(x + cx, y + cy, c)
+    return [b]
+
+
+# 剑气尺寸档：键 → (圆半径, 半张角, 最厚)；far = 领主远掷 / 追猎 / 狼魂期间远掷，twin = 双生刃，big = 日晷·反斩大剑气，qi = 后期额外剑气
+QI_SIZES = {"far": (16, 0.9, 3.5), "twin": (13, 0.85, 3.0), "big": (26, 0.9, 5.5), "qi": (12, 0.85, 2.6)}
+
 
 def link_frame(d_deg):
     d = math.radians(d_deg)

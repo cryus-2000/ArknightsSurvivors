@@ -1,7 +1,7 @@
 ## 拉普兰德转平面（docs/273，fx/px_plane = 1）：fx_pxplane.gd 按 id 转来的一节，单独成文件（第五批四人并行，少撞 fx_pxplane.gd）。
 ## 帧条由 tools/pxplane_bake_lappland.py 烤（图形 tools/pxplane_lappland_art.py），键前缀 lp_；
 ## 剑气细针 / 狼首弹拖尾与晶片 / 命中斩痕 / 封招符印 / 观察刻痕 / 连携斩痕在这里按美术像素格逐格画（算法同 pxplane_lappland_art.py 的
-## needle() / cut_px() / sigil_px() / tally_px()，改一边要改另一边）。
+## needle() / cut_px() / chain_px() / tally_px()，改一边要改另一边）。
 ## 只画：读玩法状态（o.hw.waves、o.vg.qi、敌人的 seal_t / 观察层数），画面专用键只写剑气字典的 _pxq（按 15 fps 跳格的位置），玩法不读；不碰玩法与玩法随机数。
 ## 挂在人身上的件带 fo（跟她）或 fol（日晷格挡跟队长）；斩痕 / 剑气命中星跟被打的那只（e / ef）；冲击环、声波、烟环、刻痕环留原地。
 extends RefCounted
@@ -15,6 +15,9 @@ const SHADOW := Color("#100e16")
 const ATK_R := [44, 50, 58, 68]
 const DANCE_R := [60, 70, 84]
 const BARK_R := [75, 90]
+const CHAIN_R := 6.0       # 封招锁链环半径（美术像素，同 pxplane_lappland_art.CHAIN_R）
+const CHAIN_GAP := -0.8    # 断口方向（右上）
+const QV2 := Color("#9a86ea")
 const SIG := [Vector2i(0, -3), Vector2i(1, -2), Vector2i(2, -1), Vector2i(3, 0), Vector2i(2, 1), Vector2i(1, 2), Vector2i(0, 3), Vector2i(-1, 2), Vector2i(-2, 1), Vector2i(-3, 0), Vector2i(-2, -1), Vector2i(-1, -2)]
 const HIT_N := 3           # 一记横扫至多画 3 只身上的斩痕
 const WHIT_BEAT := 3       # 剑气命中星每拍至多 3 个
@@ -206,6 +209,10 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				return
 			r._push({"lp": "star", "k": "", "life": 0.2, "e": e, "t0": g.t, "gp": e.pos + Vector2(0, -float(e.r) * 0.55), "gy": float(e.pos.y) + 1.0, "ly": "up", "oid": str(o.id)})
 			var wolf: bool = str(d.get("src", "")) == "狼魂"
+			if not wolf:   # 剑气命中：斩痕炸开（交叉，跟着那只）
+				var wd: Vector2 = ((e.pos as Vector2) - o.pos).normalized() if (e.pos as Vector2) != o.pos else Vector2.RIGHT
+				r._push({"lp": "cut", "k": "", "life": 0.2, "e": e, "t0": g.t, "gp": e.pos + Vector2(0, -float(e.r) * 0.55), "gy": float(e.pos.y) + 1.0,
+					"d": wd.orthogonal(), "x": true, "L": 9.0, "ly": "up", "oid": str(o.id)})
 			_hit_fx(o, R, p, [e], 2, 1 if wolf else 0, 90.0 if not wolf else 120.0, 0.45 if not wolf else 0.6)
 		"ll_link":   # 连携「月牙剑气」：大月牙从起点扫到终点（T 秒），扫完地上留一道斩痕
 			_links.append({"oid": str(o.id), "sp": d.sp, "ep": d.ep, "t0": g.t, "T": float(d.T), "d": d.d})
@@ -238,6 +245,15 @@ func draw_floor(o) -> void:
 					continue
 				_px(cv, a.lerp(b, u), LP[5] if age < 2 else (LP[3] if age < 5 else LP[2]))
 	_qi_scratch(o, cv)
+	if not o.hw.is_empty() and o.hw.has("waves"):   # 剑气贴地影子
+		for w in o.hw.waves:
+			var b: Dictionary = w.b
+			if b.get("ll", false) and str(b.get("src", "")) != "狼魂":
+				_qi_shadow(cv, "big" if w.get("big", false) else ("twin" if str(b.get("src", "")) == "双生刃" else "far"), r._wpos(w), w.dir)
+	var vg = o.get("vg")
+	if vg is Dictionary and not vg.is_empty():
+		for q in vg.get("qi", []):
+			_qi_shadow(cv, "qi", r._wpos({"pos": q.p, "_pxq": q.get("_pxq")}, q), (q.v as Vector2).normalized())
 
 
 ## 上层：封印传染的细虚线
@@ -329,10 +345,9 @@ func draw_rt(ci, it: Dictionary) -> void:
 		"qi":
 			var q: Dictionary = it.q
 			var dv: Vector2 = (q.v as Vector2).normalized()
-			var hd: Vector2 = (it.gp as Vector2) + Vector2(0, -16)
-			_needle(ci, hd, dv, 11, 1, false)
-			if int(it.t) >= 2:   # 精二：旁边一道晚半拍的回声细针
-				_needle(ci, hd - dv * 4.0 * g.PX + dv.orthogonal() * 3.0 * g.PX, dv, 8, 1, false, LP[3])
+			_qi(ci, "qi", it.gp, dv, 0)
+			if int(it.t) >= 2:   # 精二：旁边一道晚半拍的小回声
+				r._draw_strip(ci, "lp_qi_qi_d%d" % int(Pxp.pick_dir(dv.angle())[0]), r.frame_of(0.0), Pxp._snap((it.gp as Vector2) - dv * 12.0 + dv.orthogonal() * 8.0), Pxp.pick_dir(dv.angle())[1], false, Color(1, 1, 1, 0.5))
 		"link":
 			var dk: Array = Pxp.pick_dir((it.d as Vector2).angle())
 			r._draw_strip(ci, "lp_link_d%d" % int(dk[0]), 0, it.gp, dk[1], false)
@@ -366,12 +381,7 @@ func _draw_wave(ci, it: Dictionary) -> void:
 						_px(ci, q + Vector2(pc[0], pc[1]) * g.PX, pc[2])
 				k += 1
 		return
-	if w.get("big", false):
-		_needle(ci, hd, dv, 20, 2, true)
-	elif src == "双生刃":
-		_needle(ci, hd, dv, 13, 2, false)
-	else:
-		_needle(ci, hd, dv, 16, 2, false)
+	_qi(ci, "big" if w.get("big", false) else ("twin" if src == "双生刃" else "far"), gp, dv, 0, fade)   # 11-05 用户「远掷应该是剑气」：月牙剑气贴地飞 + 残光
 	if w.has("hm"):   # 追猎：被盯上的那只四角各一点淡紫
 		var tg = w.get("tg", {})
 		if tg is Dictionary and not tg.is_empty() and not tg.get("dead", true):
@@ -380,6 +390,22 @@ func _draw_wave(ci, it: Dictionary) -> void:
 			for sx in [-1.0, 1.0]:
 				for sy in [-1.0, 1.0]:
 					_px(ci, c0 + Vector2(sx * h, sy * h * 0.8), LP[4])
+
+
+## 月牙剑气（帧条 lp_qi_<档>_d*，贴地低飞）+ 身后两道残光（7 / 14 世界像素后、透明 0.45 / 0.22；出手头两拍逐道出现）
+func _qi(ci, kind: String, gp: Vector2, dv: Vector2, _age: int, mod := Color.WHITE) -> void:
+	var dk: Array = Pxp.pick_dir(dv.angle())
+	var k: String = "lp_qi_%s_d%d" % [kind, int(dk[0])]
+	var gap: float = 10.0 if kind == "big" else 7.0
+	for gi in [2, 1]:
+		r._draw_strip(ci, k, r.frame_of(0.0), Pxp._snap(gp - dv * gap * gi), dk[1], false, Color(1, 1, 1, (0.22 if gi == 2 else 0.45) * mod.a))
+	r._draw_strip(ci, k, r.frame_of(0.0), gp, dk[1], false, mod)
+
+
+## 剑气贴地影子（地面层）
+func _qi_shadow(cv, kind: String, gp: Vector2, dv: Vector2) -> void:
+	var dk: Array = Pxp.pick_dir(dv.angle())
+	r._draw_strip(cv, "lp_qish_%s_d%d" % [kind, int(dk[0])], 0, gp, dk[1], false)
 
 
 ## 同 pxplane_lappland_art.needle()：头 2 格白热，后面渐暗收尖；big = 两侧再各一道平行细针
@@ -439,9 +465,12 @@ func _draw_cut(ci, it: Dictionary) -> void:
 
 # ================================================================ 状态提示（ob_summon.sm_draw_over 转来，接管时代替灰叉 / 银圈）
 
-## 封招符印（同 pxplane_lappland_art.sigil_px）：头顶一枚淡紫菱形符被白色斩线斩断；出现时白热一拍、斩开、最后 0.3 秒褪掉。
-## 起拍记在本模块的 _seal_st（[封印止时刻, 起拍时刻]，止时刻变了 = 新的一次封印，重来一遍出现动画）
+## 封招锁链环（同 pxplane_lappland_art.chain_px；11-05 用户「头上那个方块加线是什么」→ 改成一眼能懂的断开锁链环）：
+## 只给精英 / Boss 画（普通怪不画，免得满屏）。头顶一圈紫色锁链环，右上一道断口，断口两端出现时闪白、之后每秒闪一下；
+## 封印期间断口慢慢张大、两半往外错开、整圈渐淡，最后 0.3 秒褪掉。起拍记在本模块的 _seal_st（[封印止时刻, 起拍时刻]，止时刻变了 = 新的一次封印）
 func draw_seal(cv, e: Dictionary, lift: float) -> void:
+	if not (e.get("elite", false) or e.get("boss", false)):
+		return
 	var eid: int = int(e.get("id", 0))
 	var st = _seal_st.get(eid)
 	if not (st is Array) or not is_equal_approx(float(st[0]), float(e.seal_t)):
@@ -453,31 +482,47 @@ func draw_seal(cv, e: Dictionary, lift: float) -> void:
 					_seal_st.erase(k)
 	var age: int = r.frame_of(float(st[1]))
 	var left: float = float(e.seal_t) - g.t
-	var al: float = clampf(left / 0.3, 0.0, 1.0)
-	var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) * 2.0 - 16.0 - lift))
+	var total: float = maxf(0.1, float(st[0]) - float(st[1]))
+	var crack: float = clampf(1.0 - left / total, 0.0, 1.0)
+	var al: float = clampf(left / 0.3, 0.0, 1.0) * (1.0 - 0.45 * crack)
+	var gap: float = 0.22 + 0.75 * crack
+	var drift: float = roundf(1.6 * crack)
+	var flash: bool = age < 3 or (age % 15) < 1
+	var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) * 2.0 - 22.0 - lift))
 	var px: float = g.PX
-	for y in range(-4, 5):
-		for x in range(-4, 5):
-			if absi(x) + absi(y) <= 4:
-				cv.draw_rect(Rect2(c0 + Vector2(x, y) * px, Vector2(px, px)), Color(SHADOW, 0.75 * al))
-	var split: int = 0 if age < 1 else 1
-	var hot: bool = age < 2
-	for q in SIG:
-		var sd: int = 1 if (q.x - q.y) > 0 else -1
-		var sx: int = split * sd
-		var p: Vector2 = c0 + Vector2(q.x + sx, q.y - sx) * px
-		cv.draw_rect(Rect2(p, Vector2(px, px)), Color(LP[6] if hot else LP[4], al))
-		if hot:
-			_glow(p, LP[6])
-	cv.draw_rect(Rect2(c0, Vector2(px, px)), Color(LP[5], al))
-	if age >= 1:
-		for i in range(-4, 5):
-			if absi(i) <= 1:
+	var gv := Vector2(cos(CHAIN_GAP), sin(CHAIN_GAP))
+	var body := {}
+	var outl := {}
+	for k in 48:
+		var a: float = k * TAU / 48.0
+		var da: float = angle_difference(CHAIN_GAP, a)
+		if absf(da) < gap:
+			continue
+		var side: float = 1.0 if da > 0.0 else -1.0
+		var off := Vector2(-gv.y * side * drift, gv.x * side * drift)
+		for rr in [CHAIN_R + 0.5, CHAIN_R - 0.5]:
+			var q := Vector2i(roundi(rr * cos(a) + off.x), roundi(rr * sin(a) + off.y))
+			if body.has(q):
 				continue
-			var p2: Vector2 = c0 + Vector2(i, i) * px
-			cv.draw_rect(Rect2(p2, Vector2(px, px)), Color(LP[6] if age < 3 else LP[5], al))
-			if age < 3:
-				_glow(p2, LP[6])
+			var end: bool = absf(da) < gap + 0.45
+			var c: Color
+			if end and flash:
+				c = LP[6]
+			elif int(k / 3.0) % 2 == 0:
+				c = LP[5] if rr > CHAIN_R else LP[4]
+			else:
+				c = QV2
+			body[q] = c
+		for rr2 in [CHAIN_R + 1.6, CHAIN_R - 1.6]:
+			outl[Vector2i(roundi(rr2 * cos(a) + off.x), roundi(rr2 * sin(a) + off.y))] = true
+	for q in outl:
+		if not body.has(q):
+			cv.draw_rect(Rect2(c0 + Vector2(q) * px, Vector2(px, px)), Color(SHADOW, 0.75 * al))
+	for q in body:
+		var c2: Color = body[q]
+		cv.draw_rect(Rect2(c0 + Vector2(q) * px, Vector2(px, px)), Color(c2, al))
+		if c2 == LP[6]:
+			_glow(c0 + Vector2(q) * px, LP[6])
 
 
 ## 观察刻痕（同 pxplane_lappland_art.tally_px）：头顶 n 道斜竖短刻，新叠的那道白热

@@ -80,8 +80,9 @@ def sprite(path, n):
 class Col:
     """一栏的时间轴（拍 = 1/15 秒），坐标一律世界像素"""
 
-    def __init__(self, tier, enemies, op=(120, 150), lead=None):
+    def __init__(self, tier, enemies, op=(120, 150), lead=None, elites=(0, 3)):
         self.t = tier
+        self.elites = set(elites)   # 精英（画大一号；封招锁链环只画精英 / Boss）
         self.items = []
         self.enemies = [[float(x), float(y), 10 ** 9] for x, y in enemies]
         self.op = op
@@ -180,6 +181,8 @@ class Col:
         if hit_t:
             q = self.enemies[hit_t[1]]
             self.add("star", hit_t[0], (q[0], q[1] - 16))
+            if kind != "wolf":   # 剑气命中：斩痕炸开（交叉）
+                self.cuts.append((hit_t[1], hit_t[0], (-d[1], d[0]), True))
             self.light((q[0], q[1] - 12), 90, 0.45, hit_t[0])
         return nd
 
@@ -220,7 +223,7 @@ def render(lib, col, tk):
         if glow:
             ed.rectangle([x, y, x + PX - 1, y + PX - 1], fill=cc[:3])
 
-    def strip(k, fi, gp, flip=False, loop=False):
+    def strip(k, fi, gp, flip=False, loop=False, alpha=None):
         if k == "star":   # 剑气命中：四角星（运行时同 fx_pxplane_lp._star）
             if 0 <= fi < 3:
                 L = [4, 3, 2][fi]
@@ -240,9 +243,13 @@ def render(lib, col, tk):
         left = gx - (m["w"] - m["ox"]) * PX if flip else gx - m["ox"] * PX
         top = gy - m["oy"] * PX
         big = fr.resize((fr.width * PX, fr.height * PX), Image.NEAREST)
+        if alpha is not None:
+            arr = np.asarray(big).copy()
+            arr[..., 3] = (arr[..., 3] * alpha).astype(np.uint8)
+            big = Image.fromarray(arr, "RGBA")
         l, t = int(left), int(top)
         img.alpha_composite(big, dest=(max(0, l), max(0, t)), source=(max(0, -l), max(0, -t)))
-        for q in m["emit"][fi2]:
+        for q in (m["emit"][fi2] if alpha is None else []):
             x = q[0] if not flip else m["w"] - 1 - q[0]
             ed.rectangle([l + x * PX, t + q[1] * PX, l + x * PX + PX - 1, t + q[1] * PX + PX - 1], fill=tuple(int(q[2][i:i + 2], 16) for i in (0, 2, 4)))
 
@@ -264,6 +271,12 @@ def render(lib, col, tk):
                     continue
                 u = i / max(1, n)
                 put_px(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, A.LP[5] if age < 2 else (A.LP[3] if age < 5 else A.LP[2]))
+    for nd in col.needles:   # 剑气贴地影子
+        if nd["kind"] != "wolf" and nd["t0"] <= tk < nd["t1"]:
+            s0 = (tk - nd["t0"]) / 15.0 * nd["spd"]
+            p = (nd["p0"][0] + nd["d"][0] * s0, nd["p0"][1] + nd["d"][1] * s0)
+            dd, fl = pick_dir(math.degrees(math.atan2(nd["d"][1], nd["d"][0])))
+            strip("qish_%s_d%d" % (nd["kind"], dd), 0, snap(p), fl, loop=True)
     for nd in col.needles:   # 精一后期剑气：身后地上一道细划痕（跟到剑气当前位置）
         if nd["kind"] == "qi" and nd["tier"] >= 1 and nd["t0"] <= tk < nd["t1"] + 6:
             u = min(tk, nd["t1"]) - nd["t0"]
@@ -296,7 +309,8 @@ def render(lib, col, tk):
     sort.sort(key=lambda s: s[0])
     for _, kind, v in sort:
         if kind == "e":
-            img.alpha_composite(ENEMY, dest=(int(v[0] - ENEMY.width // 2), int(v[1] - ENEMY.height + 6)))
+            spr = ENEMY_E if col.enemies.index(v) in col.elites else ENEMY
+            img.alpha_composite(spr, dest=(int(v[0] - spr.width // 2), int(v[1] - spr.height + 6)))
         elif kind == "op":
             img.alpha_composite(OPS["lappland"], dest=snap((col.op[0] - 64, col.op[1] - 120)))
         elif kind == "lead":
@@ -329,13 +343,16 @@ def render(lib, col, tk):
                         q = (nd["p0"][0] + d[0] * sk + (A.hf(k, 1) - 0.5) * 10, nd["p0"][1] + d[1] * sk - 16 + age * 2.2)
                         for (dx, dy, c) in ((0, -1, A.WOLF[5]), (0, 0, A.WOLF[4]), (-1, 0, A.WOLF[3]), (1, 0, A.WOLF[3]), (0, 1, A.WOLF[3])):
                             put_px(q[0] + dx * PX, q[1] + dy * PX, c)
-            else:
-                L = {"far": 16, "twin": 13, "big": 20, "qi": 11}[nd["kind"]]
-                pts = A.needle(L, 2 if nd["kind"] != "qi" else 1, nd["tier"], big=nd["kind"] == "big")
-                if nd["kind"] == "qi" and nd["tier"] >= 2:   # 精二后期剑气：旁边一道晚半拍的回声细针
-                    pts = pts + [(s + 4, w + 3, A.LP[3], False) for (s, w, c, gl) in A.needle(8, 1, 0)]
-                for (s, w, c, gl) in pts:
-                    put_px(hd[0] - d[0] * s * PX + nv[0] * w * PX, hd[1] - d[1] * s * PX + nv[1] * w * PX, c, glow=gl)
+            else:   # 月牙剑气（贴地低飞）+ 身后两道残光
+                dd, fl = pick_dir(math.degrees(math.atan2(d[1], d[0])))
+                k = "qi_%s_d%d" % (nd["kind"], dd)
+                gap = 7 if nd["kind"] != "big" else 10
+                for gi, al in ((2, 0.22), (1, 0.45)):
+                    if tk - nd["t0"] >= gi:
+                        strip(k, tk, snap((p[0] - d[0] * gap * gi, p[1] - d[1] * gap * gi)), fl, loop=True, alpha=al)
+                strip(k, tk, snap(p), fl, loop=True)
+                if nd["kind"] == "qi" and nd["tier"] >= 2:   # 精二后期剑气：旁边一道晚半拍的小回声
+                    strip(k, tk, snap((p[0] - d[0] * 12 - d[1] * 8, p[1] - d[1] * 12 + d[0] * 8)), fl, loop=True, alpha=0.5)
     # 命中斩痕（跟着被砍的那只）
     for (ei, t0, dv, x) in col.cuts:
         f = tk - t0
@@ -358,9 +375,11 @@ def render(lib, col, tk):
     # 封招符印（头顶）
     for (ei, t0, t1) in col.seals:
         e = col.enemies[ei]
+        if ei not in col.elites:
+            continue
         if t0 <= tk < t1 and tk < e[2] and not any(s0 <= tk < s1 and s0 > t0 for (ej, s0, s1) in col.seals if ej == ei):
-            c0 = snap((e[0], e[1] - 40 - (10 if ei in col.tally else 0)))
-            for (dx, dy, c, a, gl) in A.sigil_px(tk - t0, (t1 - tk) / 15.0):
+            c0 = snap((e[0], e[1] - 66 - (10 if ei in col.tally else 0)))
+            for (dx, dy, c, a, gl) in A.chain_px(tk - t0, (t1 - t0) / 15.0, (t1 - tk) / 15.0):
                 put_px(c0[0] + dx * PX, c0[1] + dy * PX, c, glow=gl, a=a)
     for (a, b, t0) in col.chains:   # 封印传染：死亡处到新目标的细虚线
         age = tk - t0
@@ -430,7 +449,7 @@ def sc_atk(t):
 
 def sc_far():
     """领主远掷（近战触及外）+ 追猎 + 反斩大剑气（不分档；精一，封印照常）"""
-    c = Col(1, E_FAR, op=(110, 150))
+    c = Col(1, E_FAR, op=(110, 150), elites=(1,))
     for k, tg in enumerate([0, 1, 2]):
         tk = 2 + 15 * k
         e = c.enemies[tg]
@@ -543,7 +562,7 @@ SCENES = {"atk": (sc_atk, 66, (200, 140)), "s1": (sc_s1, 46, (140, 150)), "s2": 
 
 
 def main():
-    global ENEMY, OPS
+    global ENEMY, ENEMY_E, OPS
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")
     ap.add_argument("--out", default=os.path.join(MAIN, "Claude outputs", "pxplane_lappland_1105", "gif"))
@@ -554,6 +573,7 @@ def main():
     arr = np.asarray(en).astype(np.float32)
     arr[..., :3] = arr[..., :3] * 0.32 + np.array([10, 12, 14])
     ENEMY = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
+    ENEMY_E = ENEMY.resize((int(ENEMY.width * 1.6) // 2 * 2, int(ENEMY.height * 1.6) // 2 * 2), Image.NEAREST)
     OPS = {"lappland": sprite(os.path.join(ROOT, "game", "art", "operators", "lappland", "op_lappland_idle@2x.png"), 8),
            "texas": sprite(os.path.join(ROOT, "game", "art", "operators", "texas", "op_texas_idle@2x.png"), 7)}
     only = set(x for x in a.only.split(",") if x)
