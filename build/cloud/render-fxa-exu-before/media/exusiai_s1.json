@@ -1,0 +1,40 @@
+{
+ "op": "exusiai",
+ "mode": "s1",
+ "frame": 6,
+ "engine": 65,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 100,
+ "skill": 2,
+ "parts_total": 1115,
+ "parts_per_hit": 11.2,
+ "parts_per_s": 223.0,
+ "parts_s1_1s": 9,
+ "mats": {
+  "shard": 15,
+  "grains": 1100
+ },
+ "life": 0.8,
+ "sz": 3.2,
+ "alive_max": 278,
+ "lights": 24,
+ "lights_per_hit": 0.24,
+ "light_r": 112.0,
+ "light_i": 0.76,
+ "light_life": 0.09,
+ "emit_max": 360,
+ "emit_mean": 144.1,
+ "gl_peak": 95.4,
+ "gl_area_hit": 7372,
+ "gl_mean_hit": 18.1,
+ "em_peak": 238.2,
+ "em_area_hit": 64,
+ "em_mean_hit": 62.8,
+ "crop": [
+  412,
+  272,
+  320,
+  180
+ ]
+}
