@@ -207,6 +207,48 @@ function crust(p, x0, y0, r, ph, C, ang = 0) {
     }
 }
 
+// 终结技地裂：放射状、近直、每段折一下、近心 2 格粗往外收细，枝杈从中段岔出；heat 按距离从心往外传
+function ultCracks(p, list, SY, t, C, grow) {
+  for (const k of list) {
+    const segs = [[k.x0, k.y0, k.a, k.L, 2]];
+    while (segs.length) {
+      let [x, y, a, L, w] = segs.pop();
+      const n = Math.floor(L * grow);
+      for (let s = 0; s < n; s++) {
+        if (s % 7 === 6) a += (nz(k.i * 3.1 + s, 61) - 0.5) * 0.7;
+        x += Math.cos(a); y += Math.sin(a);
+        const d = Math.hypot(x, y) / k.R;
+        const heat = clamp(1.25 - d - Math.max(0, t - 0.4) * 0.9);
+        const c = heat > 0.85 ? C[7] : heat > 0.55 ? C[5] : heat > 0.3 ? C[4] : heat > 0.1 ? C[3] : C[2];
+        p.px(x, y * SY, c);
+        if (w > 1 && s < n * 0.6) p.px(x + Math.sin(a), (y - Math.cos(a)) * SY, heat > 0.5 ? C[4] : C[2]);
+        if (s === Math.floor(L * 0.45) && w > 1 && nz(k.i * 7.7, 63) > 0.35) segs.push([x, y, a + (nz(k.i * 5.3, 64) > 0.5 ? 0.6 : -0.6), L * 0.45, 1]);
+      }
+    }
+  }
+}
+
+// 熔岩池结壳缝：池里只画壳块之间的缝（透橙、按拍明灭、随时间冷），不铺满；外沿一圈粗熔岩边
+function lavaSeams(p, R, SY, t, C, sd, cool, cells) {
+  // 龟裂壳块：按种子点分区（Voronoi），只画两块之间的缝（最近两个种子点距离差小于 1.3 像素），缝里透橙、按拍明灭、随冷却变暗
+  for (let y = -R * SY; y <= R * SY; y++)
+    for (let x = -R; x <= R; x++) {
+      const q = Math.hypot(x / R, y / (R * SY));
+      if (q > 0.96) continue;
+      let d1 = 1e9, d2 = 1e9;
+      for (const [cx, cy] of cells) {
+        const d = Math.hypot(x - cx, (y - cy) / SY);
+        if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+      }
+      const gap = d2 - d1;
+      if (gap > 1.3) continue;
+      const fl = nz(x * 0.05 + y * 0.07 + t * 1.5, sd + 2);
+      const heat = clamp(1 - cool + (fl - 0.5) * 0.5 - q * 0.3);
+      const c = gap < 0.6 && heat > 0.55 ? C[7] : heat > 0.45 ? C[5] : heat > 0.25 ? C[4] : heat > 0.1 ? C[3] : C[2];
+      p.px(x, y, c);
+    }
+}
+
 export function create(o) {
   patchPainter();
   FIRE_RAMP.splice(0, FIRE_RAMP.length, ...RAMP9.map((c) => (c ? hex(c) : 0)));
@@ -333,7 +375,8 @@ export function create(o) {
   }
   if (part === "lavaup") {
     // 熔岩池上方（循环，立起）：池里鼓起熔岩泡，鼓到顶「啵」地破开，冒一小簇火苗和一两颗火星——熔岩感靠这个，不靠铺满地面
-    S.bub = Array.from({ length: +o.k < 1 ? 3 : 5 }, (_, i) => { const a = Rg.range(0, TAU), r = R * Rg.range(0.15, 0.75); return { x: Math.cos(a) * r, y: Math.sin(a) * r * SY, ph: (i + Rg.range(0, 0.6)) / (+o.k < 1 ? 3 : 5), s: Rg.range(1.5, 2.5) }; });
+    const nB = Math.max(+o.k < 1 ? 3 : 5, Math.round(R / 9));
+    S.bub = Array.from({ length: nB }, (_, i) => { const a = Rg.range(0, TAU), r = R * Math.sqrt(Rg.range(0.02, 0.8)); return { x: Math.cos(a) * r, y: Math.sin(a) * r * SY, ph: (i + Rg.range(0, 0.6)) / nB, s: Rg.range(1.5, 2.5) * (R > 60 ? 1.4 : 1) }; });
   }
   if (part === "s1cast") {
     // S1 二重咏唱起手：两缕火从脚下绕身旋上杖头（二重）；E1 加粗 + 杖头一圈火星；E2 三缕 + 地上一圈咏唱火环边
@@ -355,6 +398,41 @@ export function create(o) {
   }
   if (part === "aura") {
     S.segs = segsOf(Rg, 3, 0.5);
+  }
+  // ---------------------------------------------------------------- 终结技「海底火山」（docs/259 §7，开关 ult/px_plane）：形式、时序、判定照旧，只换画法
+  if (part === "ucrack") {
+    // 蓄压 0.4 秒：落点压暗一圈，熔岩裂网从落点往外爬、越来越亮（压力往上顶），喷发后冷成暗缝慢慢淡掉
+    S.uc = [];
+    const nC = 11, a0 = Rg.range(0, TAU);
+    for (let i = 0; i < nC; i++) { const a = a0 + (i + Rg.range(-0.25, 0.25)) * TAU / nC; S.uc.push({ i, x0: Math.cos(a) * 6, y0: Math.sin(a) * 6, a, L: R * Rg.range(0.6, 0.95), R }); }
+    S.segs = segsOf(Rg, 6, 0.55);
+  }
+  if (part === "ufount") {
+    // 喷发：地面撑破，一根粗熔岩柱冲上去（库里 flame-pillar 的火团串，加粗加高）+ 柱顶炸开 + 地壳碎块往外崩飞 + 火星 + 余烬
+    S.flash = [0, -R * 0.12, R * 0.22];
+    column(0, R * 0.16, R * 1.6, 0.6, 0, 70);
+    column(-R * 0.1, R * 0.1, R * 1.1, 0.5, 0.05, 24);
+    column(R * 0.12, R * 0.1, R * 1.2, 0.5, 0.08, 24);
+    fireBurst(30, 0, -R * 0.1, R * 0.25, R * 2.4, 0.5, R * 0.12, 20);
+    fireBurst(16, 0, -R * 1.45, R * 0.2, R * 1.8, 0.45, R * 0.11, -30, 0.12);   // 柱顶炸开往下塌
+    chunkBurst(18, 0, -R * 0.15, R * 2.2, 1.6, 3.2, 1.0, 1.6);
+    sparkBurst(50, 0, -R * 0.5, R * 5, 0.45, 0.9);
+    emberBurst(18, 0, -R * 0.8, R * 1.6, 1.0);
+  }
+  if (part === "upool") {
+    S.segs = segsOf(Rg, 7, 0.9);
+    S.cells = [];
+    const nCell = Math.round(R * R * SY / 520);
+    for (let i = 0, tries = 0; S.cells.length < nCell && tries < nCell * 40; tries++) {   // 种子点之间留最小间距（太近会出实心三角块）
+      const a = Rg.range(0, TAU), r = Math.sqrt(Rg.next()) * R, c = [Math.cos(a) * r, Math.sin(a) * r * SY];
+      if (S.cells.every(([x, y]) => Math.hypot(x - c[0], (y - c[1]) / SY) > R * 0.16)) S.cells.push(c);
+    }
+  }
+  if (part === "pumice") {
+    // 火山弹落地的浮石：一小块不规则岩，落地亮橙、冷成暗红再成黑（2.6 秒）
+    S.pts = [];
+    const n = Math.round(R * R * 0.9);
+    for (let i = 0; i < n; i++) { const a = Rg.range(0, TAU), r = Math.sqrt(Rg.next()) * R; S.pts.push([Math.round(Math.cos(a) * r), Math.round(Math.sin(a) * r * SY)]); }
   }
   // 第 0–1 拍爆心闪光（实心、白芯小、外圈橙黄；第 1 拍缩一圈变橙）：粒子火团第 0 拍还小，靠它给出「砰」的一下
   const flash = (p) => {
@@ -511,6 +589,28 @@ export function create(o) {
           if (a > 0) { edge(p, R, SY, S.segs, 2, a, C, sd, t, t < 0.2); cracks(p, S.cr, SY, t, C, sd, 0.15, 0.7); }
         }
         if (raw && t < 0.5) p.glow(0, -R, R * 1.4, C[5], 0.55);
+      }
+      // ================================================================ 终结技件
+      if (part === "ucrack" && gd) {
+        const a = t < 0.4 ? 0.3 + 0.7 * t / 0.4 : 1 - smooth(0.5, 1.4, t);
+        if (a > 0) {
+          innerFade(p, R * 0.8, SY, R * 0.5, 0.2 * a, C[0], sd);   // 落点压暗（真半透明，只贴边往里）
+          ultCracks(p, S.uc, SY, t, C, Math.min(1, 0.15 + t / 0.4));
+          if (t > 0.4) edge(p, R * 0.95, SY, S.segs, 3, a, C, sd, t, t < 0.6);
+        }
+      }
+      if (part === "ufount" && up) sim(p);
+      if (part === "upool" && gd) {   // o.k = 冷却程度 0（刚漫开）→ 1（结壳）；循环 1.2 秒只是缝里的明灭
+        const ph = (t / +o.dur) * TAU, cool = +o.k;
+        innerFade(p, R, SY, R * 0.35, 0.22 * (1 - 0.6 * cool), C[3], sd);
+        lavaSeams(p, R, SY, Math.sin(ph) * 0.6, C, sd, cool, S.cells);
+        edge(p, R, SY, S.segs, 5, 1, C, sd, Math.sin(ph) * 0.6, cool < 0.4, 0.08);
+      }
+      if (part === "pumice" && gd) {
+        const k = t / 2.6;
+        const c = k < 0.05 ? C[7] : k < 0.15 ? C[5] : k < 0.3 ? C[3] : k < 0.5 ? C[2] : C[1];
+        const fade = 1 - smooth(0.75, 1, k);
+        for (const [x, y] of S.pts) D(p, x, y, (x + y) < -1 && k < 0.5 ? C[Math.min(7, C.indexOf(c) + 1)] : c, fade);
       }
       // ================================================================ aura（S3 持续：脚下一圈断续热边，循环）
       if (part === "aura" && gd) {
