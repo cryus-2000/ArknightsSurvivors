@@ -1,0 +1,8 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2675 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+('rec0_s11_480', 501, [], False)
+('rec1_s11_480', 501, [], False)
+录像 build/cloud/render-exusiai-r4-f2ef6c4e-c2/media/late_8m00_onoff.mp4 600 帧 17.6 MB
+rec0_s11_480 vs rec1_s11_480：TRACE 501 / 501 行，逐行一致
+media：1 个文件，18M
