@@ -76,9 +76,13 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 		hw_lob_volley(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, oe)
 		if b.has("fire_fx"):
 			_eg_fx(o, b.fire_fx, hw_tip(o, b), 10.0)
+		_FXR.ev(o, "ey_fire", {"at": hw_tip(o, b)})   # 转平面（docs/259）：出手火光，只画
 		return
 	_hw_cast(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, 1.0, oe, not is_atk)
+	if not patch.is_empty() and _FXR.owns(o):
+		g.bullets[-1]["pxs"] = true   # 转平面（docs/259）：二重咏唱强化弹的画面标记（画面专用键，玩法不读）
 	var tip: Vector2 = hw_tip(o, b)   # 发射时可能转了身：后续弹与出手光按转身后的出手点（同手写）
+	_FXR.ev(o, "ey_fire", {"at": tip, "big": b.get("look", {}).has("big_tex")})   # 转平面（docs/259）：出手火光，只画
 	if b.has("fire_fx"):
 		_eg_fx(o, b.fire_fx, tip, 10.0)
 	for f in b.get("follow", _EA):
@@ -125,6 +129,8 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	var g = o.g
 	var b: Dictionary = bl.get("hw_b", {})
 	var h := _hw2(o)
+	if not b.is_empty():   # 转平面（docs/259）：爆点画面，只画（三重咏唱低抛弹走 _hw5_lob_land 那边的钩子）
+		_FXR.ev(o, "ey_boom", {"at": bl.pos, "r": float(bl.aoe), "k": "s2" if b.get("look", {}).has("big_tex") else ("s1" if bl.get("pxs", false) else "atk")})
 	if b.get("look", {}).get("weighted", false):
 		_hw_magma_impact(o, bl.pos, float(bl.aoe), float(bl.get("sz", 1.0)), b.get("boom_fx", []), bl.get("hw_fireball", false), b.get("look", {}).has("big_tex"))   # big_tex = S2 点燃弹：命中爆燃
 	elif b.has("boom_fx"):
@@ -441,6 +447,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 					l.trail = 0.05
 					o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
 			if l.t >= l.dur:
+				_FXR.ev(o, "ey_splash", {"at": l.to, "r": float(l.r), "src": str(l.src)})   # 转平面（docs/259）：抛射熔岩落地，只画
 				o.area_hit(l.src, l.to, l.r, l.dmg)
 				if "meteor2" in o.taken and l.src == "熔岩天降":
 					hw_ignite_blast(o, l.to, float(l.r))
@@ -486,6 +493,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 			if p.t <= 0.0:
 				o._exec_list(p.do, p.pos)
 				if p.has("shot"):
+					_FXR.ev(o, "ey_s3", {"at": p.pos, "r": float(p.shot.get("radius", 75.0))})   # 转平面（docs/259）：火山落点，只画
 					MagmaProjectile.impact(o, p.pos, float(p.shot.get("radius", 40.0)), float(p.shot.get("size", 1.2)))
 		h.erupts = h.erupts.filter(func(p): return p.t > 0.0)
 	if not h.pulse.is_empty():
@@ -580,6 +588,8 @@ static func hw_instant(o, i: int) -> bool:
 		o.load_skill_attacks(i, int(dv.next_attacks))
 	if sb.has("fx"):
 		_eg_fx(o, sb.fx, o.pos, 30.0)
+	if str(o.id) == "eyjafjalla":
+		_FXR.ev(o, "skill", {"i": i})   # 转平面（docs/259）：二重咏唱起手（cast: instant 不走 data_operator 的技能事件），只画
 	o.effect_skill = i
 	o._exec_list(sb.get("do", []))
 	o.effect_skill = -1
@@ -1009,6 +1019,7 @@ static func _hw5_lob_land(o, b: Dictionary, s: Dictionary) -> void:
 		if not e.dead and e.pos.distance_to(c) < aoe + e.r:
 			o.deal_damage(e, float(s.dmg))
 	o._sfx_op("hit")
+	_FXR.ev(o, "ey_boom", {"at": c, "r": aoe, "k": "tri"})   # 转平面（docs/259）：三重咏唱每落一发，只画
 	var lb: Dictionary = b.lob
 	if lb.get("weighted", false):
 		_hw_magma_impact(o, c, aoe, float(s.sz), lb.get("boom_fx", []))

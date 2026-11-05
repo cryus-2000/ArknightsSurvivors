@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255），各自一节在文件末尾。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、艾雅法拉（docs/259），各自一节在文件末尾。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -40,6 +40,7 @@ var _emit_n := 0
 var _emit_frame := -1
 var _ecol := {}
 var _fol_tick := -1
+var _fopo_tick := -1   # 艾雅法拉跟施放者的件（fopo = 干员对象、foff = 偏移，docs/259）
 
 
 static func of(game):
@@ -139,6 +140,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "lumen":
 		_ev_lumen(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "eyjafjalla":
+		_ev_ey(o, kind, d, raw, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -347,6 +351,15 @@ func _step() -> void:
 				var op = _op_by_id(str(it.oid))
 				if op != null and op.pos != Vector2.INF:
 					it.gp = _snap(op.pos)
+	if tk != _fopo_tick:   # 跟着施放者本人走的件（艾雅法拉咏唱火缕 / 火山喷柱 / 出手火光，docs/259）：位置每拍跳一格
+		_fopo_tick = tk
+		for it in items:
+			if it.has("fopo") and is_instance_valid(it.fopo) and it.fopo.pos != Vector2.INF:
+				var np: Vector2 = _snap(it.fopo.pos + (it.foff as Vector2))
+				if it.has("at"):
+					it.at = np
+				else:
+					it.gp = np
 
 
 func _life(k: String) -> float:
@@ -373,6 +386,9 @@ func draw_floor(o) -> void:
 	if id == "lumen":
 		_lm_draw_floor(o)
 		return
+	if id == "eyjafjalla":
+		_ey_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -394,6 +410,9 @@ func draw_over(o) -> void:
 	var id: String = str(o.id)
 	if id == "lumen":
 		_lm_draw_raw(o)
+		return
+	if id == "eyjafjalla":
+		_ey_draw_raw(o)
 		return
 	for it in items:
 		if str(it.ly) != "raw" or str(it.oid) != id:
@@ -431,6 +450,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "lumen":
 				r._lm_sort_items(o, out)
 				continue
+			if str(o.id) == "eyjafjalla":
+				r._ey_sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -456,11 +478,17 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
 		r._draw_strip(ci, str(it.k), int(it.fi), it.gp, it.flip, true)
 		return
+	if it.has("ert"):   # 艾雅法拉运行时件（docs/259）
+		r._ey_draw_rt(ci, it)
+		return
 	if it.has("rt"):
 		r._lm_draw_rt(ci, it)
 		return
 	if it.has("loopk"):
 		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), it.gp, false, false)
+		return
+	if it.get("loop", false) and it.has("life"):   # 循环一次性件（艾雅法拉连携熔岩泡）：带淡入淡出
+		r._draw_strip(ci, str(it.k), r.frame_of(0.0), r._gp(it), false, false, Color(1, 1, 1, r._ey_loop_a(it)))
 		return
 	r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, not it.get("loop", false))
 
@@ -1431,3 +1459,424 @@ func _op_by_id(oid: String):
 		if str(m.id) == oid:
 			return m
 	return null
+
+
+# ================================================================ 艾雅法拉（docs/259，照斯卡蒂 docs/246 的做法；11-05 用户「火山和熔岩的感觉要做出来，火球也是，参考 pixelfx 的做法」）
+## 帧条件（tools/pxplane_bake_eyja.py，键前缀 ey_）：爆团 / 火柱 / 火山爆团 / 喷柱都用 pixelfx 库的粒子做法（火团冷却、火星、余烬、熔岩块），
+## 火球 / 熔岩块用库里 fire/fireball（按 5 个平面角生成、另一半翻转、循环），熔岩池 / 熔池只画边 + 淡渐变 + 循环的熔岩泡（立起层）。
+## 弹体、熔池、熔蚀裂纹、灼烧火苗直接读玩法状态（g.bullets 里本人的 fire 弹、o.hw 的 lobs / lobvol / erupts / pools / melt_list / burns、o.vg.bul），只读；
+## 画面位置按帧走、取整到美术像素格（弹体快，按 15 fps 跳格会一卡一卡，同流明光弹）；帧条形状按 15 fps 节拍换。
+## 原画面（MagmaProjectile 的弹体 / 落点 / 材质颗粒、hw_draw_*、o.fx 粒子、连携的岩块 / 冲击）接管时一律不画 / 不生成，玩法照旧。
+
+const EY_C := [Color("#1a0705"), Color("#4a110a"), Color("#8f1d0d"), Color("#d2330f"), Color("#f6561a"), Color("#ff8a3d"), Color("#fff0e0"), Color("#ffaa45")]
+const EY_BOOM_R := [26, 34, 44, 56]
+const EY_S1_R := [40, 52, 66]
+const EY_IG_R := [44, 56]
+const EY_S3_R := [38, 46]
+const EY_POOL_R := [25, 30]
+const EY_LAVA_R := [30, 36]
+const EY_SPL_R := [15, 22]
+const EY_BURN_MAX := 16
+const EY_MELT_MAX := 32
+
+var _sey = null
+
+func _se():
+	if _sey == null:
+		_sey = load("res://scripts/characters/blocks/seg_eyjafjalla.gd")   # 运行时取（避免和积木链循环 preload）
+	return _sey
+
+
+func _ey_push(o, k: String, at: Vector2, ly: String, extra := {}) -> void:
+	var it := {"k": "ey_" + k, "t0": g.t, "gp": _snap(at), "flip": false, "ly": ly, "oid": str(o.id)}
+	it.merge(extra, true)
+	_push(it)
+
+
+func _ey_rawi(o, k: String, at: Vector2, rot: float, sc: float) -> void:
+	_push({"k": "ey_" + k, "t0": g.t, "gp": at, "ly": "raw", "rot": rot, "sc": sc, "oid": str(o.id)})
+
+
+## 同一名干员正在画的某类立起件数（同屏封顶：后期弹多时爆团不叠成一片）
+func _ey_cnt(o, pre: String) -> int:
+	var n := 0
+	for it in items:
+		if str(it.oid) == str(o.id) and str(it.ly) == "up" and str(it.k).begins_with(pre):
+			n += 1
+	return n
+
+
+func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用（tools/pxplane_shots.py）：事件的游戏时间
+		print("PXPLOG ey %s %s %.3f" % [kind, str(d.get("k", d.get("i", ""))), g.t])
+	var px: float = g.PX
+	match kind:
+		"ey_boom":   # 熔岩弹爆炸：普攻（atk）/ 三重咏唱每落一发（tri）/ 二重咏唱强化弹（s1）/ 点燃弹（s2）
+			var at: Vector2 = d.at
+			var r: float = float(d.r)
+			match str(d.get("k", "atk")):
+				"s2":
+					var tt: int = maxi(t, 1)
+					if raw:
+						_ey_rawi(o, "raw_ignite", at, 0.0, px * r * 0.5 / 47.0)
+						return
+					var b2: int = _bucket(r * 0.5, EY_IG_R)
+					_ey_push(o, "ignite_r%d_e%d_up" % [b2, tt], at, "up")
+					_ey_push(o, "ignite_r%d_e%d_gd" % [b2, tt], at, "gd")
+					if mode() == 1:
+						R._grains(o, at + Vector2(0, -50), at.y, "streak", 5 + 3 * tt, {"tier": tt})
+					R._light(o, at + Vector2(0, -40), r * 1.8, 0.65, 0.15, p.light)
+				"s1":
+					if raw:
+						_ey_rawi(o, "raw_s1boom", at, 0.0, px * r * 0.5 / 44.0)
+						return
+					var b1: int = _bucket(r * 0.5, EY_S1_R)
+					_ey_push(o, "s1boom_r%d_e%d_up" % [b1, t], at, "up")
+					_ey_push(o, "s1boom_r%d_e%d_gd" % [b1, t], at, "gd")
+					if mode() == 1:
+						R._grains(o, at + Vector2(0, -30), at.y, "ember", 4 + 2 * t, {"tier": t})
+					R._light(o, at + Vector2(0, -24), r * 1.6, 0.55, 0.15, p.light)
+				_:
+					R._light(o, at + Vector2(0, -20), r * 1.3, 0.4, 0.12, p.light)
+					if _ey_cnt(o, "ey_boom") >= 6:
+						return
+					if raw:
+						_ey_rawi(o, "raw_boom_e%d" % t, at, 0.0, px * r * 0.5 / 30.0)
+						return
+					var b0: int = _bucket(r * 0.5, EY_BOOM_R)
+					_ey_push(o, "boom_r%d_e%d_up" % [b0, t], at, "up")
+					_ey_push(o, "boom_r%d_e%d_gd" % [b0, t], at, "gd")
+					if mode() == 1:
+						R._grains(o, at + Vector2(0, -20), at.y, "ember", 2 + t, {"tier": t})
+		"ey_splash", "ey_xhit":   # 抛射熔岩落地（火星迸溅 / 星火燎原 / 熔岩天降）、后期额外弹命中：小一号
+			var at2: Vector2 = d.at
+			var r2: float = float(d.get("r", 30.0))
+			if kind == "ey_xhit" and _lm_beat_n(o, "eyx") >= 3:
+				return
+			if _ey_cnt(o, "ey_splash") >= 5:
+				return
+			if raw:
+				_ey_rawi(o, "raw_splash", at2, 0.0, px * r2 * 0.5 / 18.0)
+				return
+			var bs: int = _bucket(r2 * 0.5, EY_SPL_R)
+			_ey_push(o, "splash_r%d_up" % bs, at2, "up")
+			if kind == "ey_splash":
+				_ey_push(o, "splash_r%d_gd" % bs, at2, "gd")
+				if mode() == 1:
+					R._grains(o, at2 + Vector2(0, -10), at2.y, "rock", 2, {"tier": t})
+			R._light(o, at2 + Vector2(0, -10), r2 * 1.6, 0.4, 0.1, p.light)
+		"ey_s3":   # 火山落点：实心大爆团（火团 + 往上冲的火 + 熔岩块 + 花瓣状暗红碎片 + 火星线）
+			var at3: Vector2 = d.at
+			var r3: float = float(d.r)
+			R._light(o, at3 + Vector2(0, -30), r3 * 2.0, 0.7, 0.15, p.light)
+			if raw:
+				_ey_rawi(o, "raw_s3boom", at3, 0.0, px * r3 * 0.5 / 38.0)
+				return
+			var b3: int = _bucket(r3 * 0.5, EY_S3_R)
+			_ey_push(o, "s3boom_r%d_up" % b3, at3, "up")
+			_ey_push(o, "s3boom_r%d_gd" % b3, at3, "gd")
+			if mode() == 1:
+				R._grains(o, at3 + Vector2(0, -40), at3.y, "streak", 6, {"tier": 2})
+				R._grains(o, at3 + Vector2(0, -20), at3.y, "rock", 3, {"tier": 2})
+		"ey_fire":   # 出手：杖头两拍火光
+			if raw:
+				return
+			_push({"ert": "muz", "at": _snap(d.at), "big": d.get("big", false), "t0": g.t, "life": 2.0 / 15.0, "ly": "up", "gy": o.pos.y + 1.0, "oid": str(o.id), "k": "", "fopo": o, "foff": (d.at as Vector2) - o.pos})
+			R._light(o, d.at, 60.0, 0.35, 0.08, p.light)
+		"ey_chain":   # 「连锁」弹射：一道 1 美术像素的火线（3 拍）
+			if _lm_beat_n(o, "eych") >= 3 or raw:
+				return
+			_push({"ert": "chain", "a": d.a, "b": d.b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", 0.0)), "oid": str(o.id), "k": ""})
+		"ey_link":   # 连携 v2「熔岩」：杖头抛出一块大熔岩块（库里火球 + 岩壳），T 秒高抛砸进区域；地上影子跟着
+			var la: Vector2 = d.a
+			var lc: Vector2 = d.c
+			var T: float = float(d.T)
+			_push({"ert": "lrock", "a": la, "c": lc, "T": T, "t0": g.t, "life": T, "ly": "up", "gy": lc.y + 2.0, "oid": str(o.id), "k": "", "raw": raw})
+			_push({"ert": "lshadow", "a": Vector2(la.x, (d.get("foot", la) as Vector2).y), "c": lc, "T": T, "t0": g.t, "life": T, "ly": "gd", "oid": str(o.id), "k": ""})
+			R._light(o, la, 120.0, 0.5, 0.12, p.light)
+		"ey_link_hit", "ey_combo":   # 连携熔岩块砸地 / 旧连携技「放大熔岩弹」落点：火山爆团 + 一摊熔岩（只画边 + 熔岩泡）
+			var c: Vector2 = d.get("c", d.get("at", o.pos))
+			var lr: float = float(d.get("r", 105.0))
+			var dur: float = 2.0 if kind == "ey_combo" else 0.9
+			R._light(o, c + Vector2(0, -30), maxf(240.0, lr * 2.0), 0.7, 0.15, p.light)
+			if raw:
+				_ey_rawi(o, "raw_s3boom", c, 0.0, px * lr * 0.5 / 38.0)
+				return
+			_ey_push(o, "s3boom_r46_up", c, "up")
+			_ey_push(o, "s3boom_r46_gd", c, "gd")
+			_ey_push(o, "lava_r36_gd", c, "gd", {"loop": true, "life": dur})
+			_ey_push(o, "lavaup_l36_up", c, "up", {"loop": true, "life": dur})
+			if mode() == 1:
+				R._grains(o, c + Vector2(0, -40), c.y, "streak", 10, {"tier": 2})
+				R._grains(o, c + Vector2(0, -20), c.y, "rock", 6, {"tier": 2})
+		"ey_link_burn":   # 连携两跳点燃：被烧的那几只身上冒火星
+			if mode() != 1:
+				return
+			var n := 0
+			for e in d.get("es", []):
+				if e.dead or n >= 6:
+					continue
+				n += 1
+				R._grains(o, e.pos + Vector2(0, -float(e.r) * 0.6), float(e.pos.y), "ember", 2, {"tier": 1})
+		"skill":
+			var i: int = int(d.get("i", -1))
+			if i == 0:   # 二重咏唱起手：火缕绕身旋上杖头
+				if raw:
+					_ey_rawi(o, "raw_s1cast", o.pos, 0.0, px * 1.13)
+					return
+				_ey_push(o, "s1cast_e%d_up" % t, o.pos, "up", {"fopo": o, "foff": Vector2.ZERO})
+				if t >= 2:
+					_ey_push(o, "s1cast_e2_gd", o.pos, "gd", {"fopo": o, "foff": Vector2.ZERO})
+				R._light(o, o.pos + Vector2(0, -100), 100.0, 0.5, 0.15, p.light)
+			elif i == 2:   # 火山起手：身后熔岩喷柱 + 脚下裂缝圈
+				var fl: bool = float(o.face) < 0.0
+				if raw:
+					_ey_rawi(o, "raw_s3cast", o.pos, 0.0, px * 1.13)
+					return
+				_ey_push(o, "s3cast_up", o.pos, "up", {"flip": fl, "sk": -6.0, "fopo": o, "foff": Vector2.ZERO})
+				_ey_push(o, "s3cast_gd", o.pos, "gd", {"flip": fl, "fopo": o, "foff": Vector2.ZERO})
+				R._light(o, o.pos + Vector2(0, -60), 170.0, 0.7, 0.15, p.light)
+				if mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -40), o.pos.y, "rock", 5, {"tier": 2})
+
+
+## 地面层：一次性贴地件、循环熔岩（连携 / 旧连携技）、熔岩池 / 熔池（读 o.hw.pools）、熔蚀裂纹、抛射物影子、火山期间脚下热圈
+func _ey_floor(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	var px: float = g.PX
+	if not o.hw.is_empty() and o.hw.has("pulse") and not (o.hw.pulse as Dictionary).is_empty():
+		_draw_strip(cv, "ey_aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
+	for l in o.hw.get("pools", []):
+		var key: String = _ey_pool_key(l, "gd")
+		if key == "":
+			continue
+		_draw_strip(cv, key, frame_of(0.0) + int(l.get("pat", 0)) % 7, _snap(l.pos), false, false, Color(1, 1, 1, _ey_pool_a(l)))
+	for it in items:
+		if str(it.ly) != "gd" or str(it.oid) != id:
+			continue
+		if it.has("ert"):
+			_ey_draw_rt(cv, it)
+		elif it.get("loop", false):
+			_draw_strip(cv, str(it.k), frame_of(0.0), it.gp, false, false, Color(1, 1, 1, _ey_loop_a(it)))
+		else:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+	# 熔蚀（精一普攻）：被熔岩弹命中的敌人脚下三小段暗红裂纹（状态提示）
+	var nm := 0
+	for m in o.hw.get("melt_list", []):
+		var e: Dictionary = m.e
+		var left: float = float(m.until) - g.t
+		if e.dead or left <= 0.0 or nm >= EY_MELT_MAX:
+			continue
+		nm += 1
+		var base: Vector2 = _snap(e.pos + Vector2(0, 2))
+		var rr: float = clampf(float(e.r) * 0.5, 5.0, 12.0)
+		for q in 3:
+			var a0: float = q * TAU / 3.0 + float(e.id) * 0.7
+			for s in 5:
+				if left < 0.3 and s >= 2:
+					continue
+				var an: float = a0 + s * 0.13
+				_px(cv, base + Vector2(cos(an) * rr, sin(an) * rr * 0.72) * px, EY_C[3] if (s + q) % 2 == 0 else EY_C[2])
+	# 抛射物（熔岩块 / 三重咏唱低抛弹）的地面影子：暗色小椭圆，越高越小
+	for l in o.hw.get("lobs", []):
+		var k: float = clampf(float(l.t) / maxf(0.01, float(l.dur)), 0.0, 1.0)
+		_ey_shadow(cv, (l.from as Vector2).lerp(l.to, k) + Vector2(0, (1.0 - k) * 6.0), 2.0 + 2.0 * float(l.sz), k)
+	for v in o.hw.get("lobvol", []):
+		for s in v.shots:
+			if float(s.t) < 0.0 or float(s.t) >= float(s.dur):
+				continue
+			var k2: float = clampf(float(s.t) / float(s.dur), 0.0, 1.0)
+			_ey_shadow(cv, (s.from as Vector2).lerp(s.to, k2) + Vector2(0, (1.0 - k2) * 40.0), 3.0, k2)
+
+
+func _ey_shadow(cv, gp: Vector2, r: float, k: float) -> void:
+	var px: float = g.PX
+	var c := Color(0.05, 0.02, 0.02, 0.45)
+	var rr: int = int(round(r * (0.6 + 0.4 * k)))
+	var base: Vector2 = _snap(gp)
+	for y in range(-1, 2):
+		for x in range(-rr, rr + 1):
+			if absi(y) == 1 and absi(x) >= rr:
+				continue
+			cv.draw_rect(Rect2(base + Vector2(x, y) * px, Vector2(px, px)), c)
+
+
+## 熔岩池 / 熔池帧条键：S3 熔岩（look lava）或三重咏唱熔池（look pool / weighted）
+func _ey_pool_key(l: Dictionary, ly: String) -> String:
+	var b: Dictionary = l.b
+	var look: String = str(b.get("look", ""))
+	if look == "lava":
+		return ("ey_lava_r%d_gd" if ly == "gd" else "ey_lavaup_l%d_up") % _bucket(float(l.r) * 0.5, EY_LAVA_R)
+	if look == "pool" or b.get("weighted", false):
+		return ("ey_pool_r%d_gd" if ly == "gd" else "ey_lavaup_p%d_up") % _bucket(float(l.r) * 0.5, EY_POOL_R)
+	return ""
+
+
+func _ey_pool_a(l: Dictionary) -> float:
+	return clampf((float(l.dur) - float(l.t)) / 0.15, 0.0, 1.0) * clampf(float(l.t) / 0.3, 0.0, 1.0)
+
+
+func _ey_loop_a(it: Dictionary) -> float:
+	return clampf((g.t - float(it.t0)) / 0.12, 0.0, 1.0) * clampf((float(it.t0) + float(it.life) - g.t) / 0.3, 0.0, 1.0)
+
+
+## 立起层的状态件：弹体（火球 / 熔岩块）、熔岩泡（循环）、灼烧火苗
+func _ey_sort_items(o, out: Array) -> void:
+	var S = _se()
+	var oid: String = str(o.id)
+	for bl in g.bullets:   # 本人的法术弹（普攻 / 二重咏唱强化 / 点燃弹）
+		if bl.life <= 0.0 or str(bl.get("op", "")) != oid or str(bl.kind) != "fire" or not bl.has("hw_b"):
+			continue
+		var lk: Dictionary = bl.hw_b.get("look", {})
+		var st: String = "ign" if lk.has("big_tex") else ("pow" if bl.get("pxs", false) else ("fire" if bl.get("hw_fireball", false) else "lava"))
+		out.append({"ert": "ball", "st": st, "pos": bl.pos, "dir": bl.vel, "gy": (bl.pos as Vector2).y + 40.0, "ph": int(absf(bl.pos.x)) % 7})
+	if not o.hw.is_empty():
+		for l in o.hw.get("lobs", []):   # 火星迸溅 / 星火燎原 / 熔岩天降的熔岩块
+			if float(l.t) >= float(l.dur):
+				continue
+			var lp: Vector2 = S._hw_lob_pos(l)
+			var lp0: Vector2 = S._hw_lob_pos_at(l, maxf(0.0, float(l.t) - 0.03))
+			var k: float = clampf(float(l.t) / maxf(0.01, float(l.dur)), 0.0, 1.0)
+			var big: bool = float(l.sz) >= 1.1 or str(l.src) == "熔岩天降"
+			out.append({"ert": "ball", "st": "rock" if big else "chip", "pos": lp, "dir": lp - lp0 if lp.distance_squared_to(lp0) > 0.01 else Vector2.DOWN, "gy": (l.from as Vector2).lerp(l.to, k).y + 2.0, "ph": int(absf(l.to.x)) % 7})
+		for v in o.hw.get("lobvol", []):   # 三重咏唱低抛弹
+			var apex: float = float(v.vol.b.lob.get("apex", 20.0))
+			for s in v.shots:
+				if float(s.t) < 0.0 or float(s.t) >= float(s.dur):
+					continue
+				var k2: float = clampf(float(s.t) / float(s.dur), 0.0, 1.0)
+				var sp: Vector2 = _ey_arc(s.from, s.to, k2, apex) + Vector2(0, -8)
+				var sp0: Vector2 = _ey_arc(s.from, s.to, maxf(0.0, k2 - 0.05), apex) + Vector2(0, -8)
+				out.append({"ert": "ball", "st": "lava", "pos": sp, "dir": sp - sp0 if sp.distance_squared_to(sp0) > 0.01 else Vector2.RIGHT, "gy": (s.from as Vector2).lerp(s.to, k2).y + 30.0, "ph": int(absf(s.to.x)) % 7})
+		for ev in o.hw.get("erupts", []):   # 火山弹
+			if not ev.has("shot") or float(ev.t) <= 0.0:
+				continue
+			var shot: Dictionary = ev.shot
+			var k3: float = clampf(1.0 - float(ev.t) / float(shot.dur), 0.0, 1.0)
+			var ap: float = float(shot.get("apex", 24.0))
+			var ep: Vector2 = _ey_arc(shot.from, ev.pos, k3, ap)
+			var ep0: Vector2 = _ey_arc(shot.from, ev.pos, maxf(0.0, k3 - 0.05), ap)
+			out.append({"ert": "ball", "st": "rock", "pos": ep, "dir": ep - ep0 if ep.distance_squared_to(ep0) > 0.01 else Vector2.DOWN, "gy": (shot.from as Vector2).lerp(ev.pos, k3).y + 54.0 * (1.0 - k3), "ph": int(absf(ev.pos.x)) % 7})
+		for l in o.hw.get("pools", []):   # 熔岩泡（循环，立起）
+			var key: String = _ey_pool_key(l, "up")
+			if key != "":
+				out.append({"loopk": key, "gp": _snap(l.pos), "gy": (l.pos as Vector2).y + 1.0, "mod": Color(1, 1, 1, _ey_pool_a(l))})
+		var nb := 0
+		for bu in o.hw.get("burns", []):   # 灼烧：敌人身上两小簇火苗（状态提示）
+			if nb >= EY_BURN_MAX:
+				break
+			if float(bu.t) <= 0.0 or bu.e.dead:
+				continue
+			nb += 1
+			out.append({"ert": "burn", "e": bu.e, "gy": float(bu.e.pos.y) + 1.0})
+	if not o.vg.is_empty():   # 后期额外弹：小熔岩块，同时最多画最新 6 颗
+		var xs: Array = o.vg.bul
+		for i in range(maxi(0, xs.size() - 6), xs.size()):
+			var xb: Dictionary = xs[i]
+			out.append({"ert": "ball", "st": "chip", "pos": (xb.p as Vector2) + Vector2(0, -18.0), "dir": xb.v, "gy": (xb.p as Vector2).y + 1.0, "ph": i % 7})
+
+
+## MagmaProjectile.position_at 的同一条弧（纯函数抄一份，只读）
+static func _ey_arc(from: Vector2, to: Vector2, k: float, height: float) -> Vector2:
+	return from.lerp(to, k) + Vector2(0, -4.0 * height * k * (1.0 - k) * (1.18 - 0.36 * k))
+
+
+## 运行时件：ball 弹体（帧条按方向挑）/ muz 出手火光 / chain 连锁火线 / lrock 连携熔岩块 / lshadow 它的影子 / burn 灼烧火苗
+func _ey_draw_rt(ci, it: Dictionary) -> void:
+	var px: float = g.PX
+	match str(it.ert):
+		"ball":
+			_ey_ball(ci, str(it.st), it.pos, it.dir, int(it.get("ph", 0)))
+		"muz":
+			var f: int = frame_of(float(it.t0))
+			if f < 0 or f > 1:
+				return
+			var c0: Vector2 = it.at
+			var m: int = 3 if it.get("big", false) else 2
+			_px(ci, c0, EY_C[6] if f == 0 else EY_C[7])
+			for dv in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]:
+				for s in range(1, m + (1 if f == 0 else 0)):
+					_px(ci, c0 + dv * float(s) * px, EY_C[7] if s == 1 else EY_C[5])
+			if f == 0:
+				_glow(c0, EY_C[7])
+		"chain":
+			var f2: int = frame_of(float(it.t0))
+			if f2 < 0 or f2 > 2:
+				return
+			var a: Vector2 = it.a
+			var b: Vector2 = it.b
+			var n: int = maxi(1, int(a.distance_to(b) / px))
+			for i in n + 1:
+				var u: float = float(i) / float(n)
+				if f2 == 2 and u < 0.5:
+					continue
+				_px(ci, a.lerp(b, u), EY_C[7] if f2 == 0 else EY_C[5])
+				if f2 == 0 and i % 3 == 0:
+					_glow(a.lerp(b, u), EY_C[7])
+		"lrock":
+			var u2: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.T)), 0.0, 1.0)
+			var pos: Vector2 = _ey_lrock_pos(it, u2)
+			var pos0: Vector2 = _ey_lrock_pos(it, maxf(0.0, u2 - 0.05))
+			if it.get("raw", false):
+				_draw_raw(ci, "ey_ball_boulder_d0", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), 18), pos, (pos - pos0).angle(), g.PX * 1.3)
+			else:
+				_ey_ball(ci, "boulder", pos, pos - pos0 if pos.distance_squared_to(pos0) > 0.01 else Vector2.DOWN, 0)
+		"lshadow":
+			var u3: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.T)), 0.0, 1.0)
+			_ey_shadow(ci, (it.a as Vector2).lerp(it.c, u3) + Vector2(0, 10), 6.0 + 8.0 * u3, u3)
+		"burn":
+			var e: Dictionary = it.e
+			if e.dead:
+				return
+			var beat: int = int(floor(g.t * 15.0))
+			var base: Vector2 = _snap(e.pos + Vector2(0, -float(e.r) * 0.55))
+			var off: int = maxi(2, int(float(e.r) * 0.15))
+			for j in 2:
+				var x: int = -off if j == 0 else off
+				var h: int = 2 + int(_hn(int(e.id) * 3 + j + beat) * 3.0)
+				for s in h:
+					_px(ci, base + Vector2(x, -s) * px, EY_C[5] if s == 0 else (EY_C[4] if s < h - 1 else EY_C[3]))
+				if j == 0:
+					_glow(base + Vector2(x, 0) * px, EY_C[5])
+
+
+static func _hn(i: int) -> float:
+	var x: int = (i * 1103515245 + 12345) & 0x7fffffff
+	return float(x % 1000) / 1000.0
+
+
+func _ey_lrock_pos(it: Dictionary, u: float) -> Vector2:
+	var gp: Vector2 = (it.a as Vector2).lerp(it.c, u)
+	return gp + Vector2(0, -140.0 * sin(PI * u))
+
+
+## 一颗弹体：帧条 ey_ball_<样式>_d<方向>（按飞行方向挑最近的平面角 + 水平翻转），循环；原点 = 弹头，位置每帧走、取整到美术像素格
+func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int) -> void:
+	var dk: Array = pick_dir(dir.angle() if dir.length_squared() > 0.0001 else 0.0)
+	_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+
+
+## 旧做法（2）：同一形状光晕烤进颜色、小数缩放、旋转，盖在所有单位上；弹体用 0° 帧条按飞行方向旋转 1.3 倍贴
+func _ey_draw_raw(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	var rf: float = Bal.v("fx/px_plane_raw_fps", 12.8)
+	var lf: int = int(g.t * rf)
+	for it in items:
+		if str(it.ly) != "raw" or str(it.oid) != id:
+			continue
+		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * rf), it.gp, float(it.rot), float(it.sc))
+	for l in o.hw.get("pools", []):
+		if _ey_pool_key(l, "gd") != "":
+			_draw_raw(cv, "ey_raw_lava", posmod(lf, 18), l.pos, 0.0, g.PX * float(l.r) * 0.5 / 30.0)
+	var tmp: Array = []
+	_ey_sort_items(o, tmp)
+	for it in tmp:
+		if str(it.get("ert", "")) == "ball":
+			_draw_raw(cv, "ey_ball_%s_d0" % str(it.st), posmod(lf, 18), it.pos, (it.dir as Vector2).angle(), g.PX * 1.3)
+		elif str(it.get("ert", "")) == "burn":
+			_ey_draw_rt(cv, it)
+	for it in items:
+		if str(it.oid) == id and str(it.get("ert", "")) == "lrock" and it.get("raw", false):
+			_ey_draw_rt(cv, it)
