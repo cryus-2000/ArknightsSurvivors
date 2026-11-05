@@ -325,7 +325,7 @@ func sort_items(o, out: Array) -> void:
 		for q in tg.pts:
 			var u: float = clampf(1.0 - float(q.t) / life, 0.0, 1.0)
 			var lv: int = 0 if u < 0.4 else (1 if u < 0.75 else 2)
-			out.append({"sz": "tuft", "gp": Pxp._snap((q.pos as Vector2) + Vector2(0, 6)), "fi": lv * 4 + (bt + j) % 4, "skey": (q.pos as Vector2).y + 6.0})
+			out.append({"sz": "tuft", "gp": Pxp._snap((q.pos as Vector2) + Vector2(0, 6)), "tf": lv * 4 + (bt + j) % 4, "skey": (q.pos as Vector2).y + 6.0})
 			j += 1
 	var fl: Dictionary = S._h4_live(o, "verb.foxlight")
 	if not fl.is_empty():
@@ -388,7 +388,7 @@ func draw_rt(ci, it: Dictionary) -> void:
 			var fi: int = r.frame_of(0.0) + int(it.get("ph", 0))
 			r._draw_strip(ci, str(it.k), fi, it.gp, bool(it.get("flip", false)), false, Color(1, 1, 1, float(it.get("a", 1.0))))
 		"tuft":
-			r._draw_strip(ci, "sz_tuft", int(it.fi), it.gp, false, true)
+			r._draw_strip(ci, "sz_tuft", int(it.tf), it.gp, false, true)   # 键名 tf（fi / ex / wave / cut 等被 fx_pxplane.draw_sorted 先截走）
 		"bolt":
 			var b: Dictionary = it.b
 			var dv: Vector2 = (b.vel as Vector2).normalized() if (b.vel as Vector2).length() > 1.0 else Vector2.RIGHT
