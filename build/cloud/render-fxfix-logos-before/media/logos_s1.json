@@ -1,0 +1,40 @@
+{
+ "op": "logos",
+ "mode": "s1",
+ "frame": 19,
+ "engine": 78,
+ "secs": 5.0,
+ "hits": 11,
+ "acts": 46,
+ "skill": 1,
+ "parts_total": 67,
+ "parts_per_hit": 6.1,
+ "parts_per_s": 13.4,
+ "parts_s1_1s": 13,
+ "mats": {
+  "twinkle": 34,
+  "ink": 33
+ },
+ "life": 0.7,
+ "sz": 3.3,
+ "alive_max": 17,
+ "lights": 34,
+ "lights_per_hit": 3.09,
+ "light_r": 70.0,
+ "light_i": 0.35,
+ "light_life": 0.1,
+ "emit_max": 168,
+ "emit_mean": 57.3,
+ "gl_peak": 76.5,
+ "gl_area_hit": 4916,
+ "gl_mean_hit": 14.4,
+ "em_peak": 234.4,
+ "em_area_hit": 32,
+ "em_mean_hit": 95.7,
+ "crop": [
+  506,
+  276,
+  320,
+  180
+ ]
+}

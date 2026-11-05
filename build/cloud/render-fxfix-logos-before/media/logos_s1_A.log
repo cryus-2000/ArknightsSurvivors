@@ -1,0 +1,568 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXA 0 0.000 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 1 0.025 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 2 0.058 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 3 0.100 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 4 0.129 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 5 0.159 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 6 0.192 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 7 0.225 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 8 0.258 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 9 0.292 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 10 0.325 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 11 0.358 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 12 0.392 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 13 0.425 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 14 0.458 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 15 0.492 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 16 0.525 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 17 0.558 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 18 0.592 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 19 0.625 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 20 0.658 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 21 0.692 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 22 0.725 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 23 0.758 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 24 0.792 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 25 0.825 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG logos fire 25 0.858
+PXPLOG lg fire  0.858
+FXA 26 0.858 new=twinkle:3 life=0.51 sz=2.0 alive=3 L=60/0.30/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 27 0.892 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=25 emit=9
+FXA 28 0.925 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=67 emit=51
+FXRLOG logos fire 28 0.958
+PXPLOG lg fire  0.958
+FXA 29 0.958 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=67 emit=51
+FXA 30 0.992 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=74 emit=58
+FXA 31 1.025 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=74 emit=58
+FXA 32 1.058 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=70 emit=54
+FXRLOG logos fire 32 1.092
+PXPLOG lg fire  1.092
+FXRLOG logos hit 32 1.092
+PXPLOG lg hit  1.092
+FXA 33 1.092 new=ink:3,twinkle:2 life=0.77 sz=4.0 alive=8 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=70 emit=54
+FXA 34 1.125 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=75 emit=59
+FXRLOG logos lg_xhit 34 1.158
+PXPLOG lg lg_xhit  1.158
+FXRLOG logos lg_xhit 34 1.158
+PXPLOG lg lg_xhit  1.158
+FXA 35 1.158 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=77 emit=61
+FXRLOG logos hit 35 1.192
+PXPLOG lg hit  1.192
+FXA 36 1.192 new=ink:3,twinkle:2 life=0.73 sz=3.2 alive=13 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXRLOG logos lg_xhit 36 1.225
+PXPLOG lg lg_xhit  1.225
+FXA 37 1.225 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=93 emit=78
+FXA 38 1.258 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=137 emit=122
+FXA 39 1.292 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=137 emit=122
+FXA 40 1.325 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=160 emit=145
+FXRLOG logos hit 40 1.358
+PXPLOG lg hit  1.358
+FXA 41 1.358 new=ink:3,twinkle:2 life=0.70 sz=3.6 alive=17 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=160 emit=145
+FXA 42 1.392 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=121 emit=108
+FXA 43 1.425 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=121 emit=108
+FXA 44 1.458 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=69 emit=56
+FXA 45 1.492 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=69 emit=56
+FXA 46 1.525 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=37
+FXA 47 1.558 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=37
+FXA 48 1.592 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=13
+FXRLOG logos skill0 48 1.625
+PXPLOG lg skill 0 1.625
+FXA 49 1.625 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=13
+FXA 50 1.658 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXA 51 1.692 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXA 52 1.725 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXA 53 1.758 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXA 54 1.792 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXA 55 1.825 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXRLOG logos lock_tick 55 1.858
+PXPLOG lg lock_tick  1.858
+FXA 56 1.858 new=- life=0.00 sz=0.0 alive=10 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXA 57 1.892 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=2
+FXA 58 1.925 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=30 emit=17
+FXA 59 1.958 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=30 emit=17
+FXSHOT 0 59
+FXA 60 1.992 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=37 emit=24
+FXSHOT 1 60
+FXA 61 2.025 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=37 emit=24
+FXSHOT 2 61
+FXA 62 2.058 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=30 emit=17
+FXSHOT 3 62
+FXA 63 2.092 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=30 emit=17
+FXSHOT 4 63
+FXRLOG logos lock_tick 63 2.125
+PXPLOG lg lock_tick  2.125
+FXA 64 2.125 new=- life=0.00 sz=0.0 alive=3 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=14 emit=1
+FXSHOT 5 64
+FXA 65 2.158 new=- life=0.00 sz=0.0 alive=2 L=- gr=0 gnew=0 sp=0 gl=0 glow=13 emit=1
+FXSHOT 6 65
+FXRLOG logos fire 65 2.192
+PXPLOG lg fire  2.192
+FXA 66 2.192 new=twinkle:3 life=0.54 sz=2.0 alive=5 L=60/0.30/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=29 emit=17
+FXSHOT 7 66
+FXA 67 2.225 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=38 emit=26
+FXSHOT 8 67
+FXA 68 2.258 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=75
+FXSHOT 9 68
+FXRLOG logos fire 68 2.292
+PXPLOG lg fire  2.292
+FXA 69 2.292 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=75
+FXSHOT 10 69
+FXA 70 2.325 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=75
+FXSHOT 11 70
+FXRLOG logos lock_tick 70 2.358
+PXPLOG lg lock_tick  2.358
+FXA 71 2.358 new=- life=0.00 sz=0.0 alive=3 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=87 emit=75
+FXSHOT 12 71
+FXA 72 2.392 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=68 emit=56
+FXSHOT 13 72
+FXA 73 2.425 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=68 emit=56
+FXSHOT 14 73
+FXA 74 2.458 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=65 emit=53
+FXSHOT 15 74
+FXA 75 2.492 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=65 emit=53
+FXSHOT 16 75
+FXRLOG logos hit 75 2.525
+PXPLOG lg hit  2.525
+FXA 76 2.525 new=ink:3,twinkle:2 life=0.78 sz=3.6 alive=8 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=70 emit=58
+FXSHOT 17 76
+FXRLOG logos lg_xhit 76 2.558
+PXPLOG lg lg_xhit  2.558
+FXRLOG logos lg_xhit 76 2.558
+PXPLOG lg lg_xhit  2.558
+FXRLOG logos lg_xhit 76 2.558
+PXPLOG lg lg_xhit  2.558
+FXA 77 2.558 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=93 emit=81
+FXSHOT 18 77
+FXRLOG logos hit 77 2.592
+PXPLOG lg hit  2.592
+FXA 78 2.592 new=ink:3,twinkle:2 life=0.77 sz=3.2 alive=13 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=67 emit=57
+FXSHOT 19 78
+FXRLOG logos lock_tick 78 2.625
+PXPLOG lg lock_tick  2.625
+FXRLOG logos shape 78 2.625
+PXPLOG lg shape  2.625
+FXA 79 2.625 new=- life=0.00 sz=0.0 alive=12 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=90 emit=80
+FXSHOT 20 79
+FXA 80 2.658 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=138 emit=129
+FXSHOT 21 80
+FXA 81 2.692 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=139 emit=130
+FXSHOT 22 81
+FXA 82 2.725 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=175 emit=166
+FXSHOT 23 82
+FXA 83 2.758 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=175 emit=166
+FXSHOT 24 83
+FXA 84 2.792 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=137 emit=128
+FXSHOT 25 84
+FXA 85 2.825 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=137 emit=128
+FXSHOT 26 85
+FXRLOG logos lock_tick 85 2.858
+PXPLOG lg lock_tick  2.858
+FXA 86 2.858 new=- life=0.00 sz=0.0 alive=10 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=66 emit=57
+FXSHOT 27 86
+FXA 87 2.892 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=66 emit=58
+FXSHOT 28 87
+FXA 88 2.925 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=62 emit=54
+FXSHOT 29 88
+FXA 89 2.958 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=62 emit=54
+FXSHOT 30 89
+FXA 90 2.992 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=38 emit=30
+FXSHOT 31 90
+FXA 91 3.025 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=38 emit=30
+FXSHOT 32 91
+FXA 92 3.058 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=25 emit=17
+FXSHOT 33 92
+FXA 93 3.092 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=25 emit=17
+FXSHOT 34 93
+FXRLOG logos lock_tick 93 3.125
+PXPLOG lg lock_tick  3.125
+FXA 94 3.125 new=- life=0.00 sz=0.0 alive=6 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=9 emit=1
+FXSHOT 35 94
+FXA 95 3.158 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=8 emit=1
+FXSHOT 36 95
+FXA 96 3.192 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=17
+FXSHOT 37 96
+FXA 97 3.225 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=17
+FXSHOT 38 97
+FXA 98 3.258 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=31 emit=24
+FXSHOT 39 98
+FXA 99 3.292 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=31 emit=24
+FXSHOT 40 99
+FXA 100 3.325 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=17
+FXSHOT 41 100
+FXRLOG logos lock_tick 100 3.358
+PXPLOG lg lock_tick  3.358
+FXA 101 3.358 new=- life=0.00 sz=0.0 alive=5 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=24 emit=17
+FXSHOT 42 101
+FXA 102 3.392 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=9 emit=2
+FXSHOT 43 102
+FXA 103 3.425 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=9 emit=2
+FXSHOT 44 103
+FXA 104 3.458 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=17
+FXSHOT 45 104
+FXA 105 3.492 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=17
+FXSHOT 46 105
+FXRLOG logos fire 105 3.525
+PXPLOG lg fire  3.525
+FXA 106 3.525 new=twinkle:3 life=0.46 sz=2.0 alive=3 L=60/0.30/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=31 emit=24
+FXSHOT 47 106
+FXA 107 3.558 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=40 emit=33
+FXSHOT 48 107
+FXA 108 3.592 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=75 emit=68
+FXSHOT 49 108
+FXRLOG logos lock_tick 108 3.625
+PXPLOG lg lock_tick  3.625
+FXRLOG logos fire 108 3.625
+PXPLOG lg fire  3.625
+FXRLOG logos shape 108 3.625
+PXPLOG lg shape  3.625
+FXA 109 3.625 new=- life=0.00 sz=0.0 alive=3 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=75 emit=68
+FXSHOT 50 109
+FXA 110 3.658 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=67 emit=60
+FXSHOT 51 110
+FXA 111 3.692 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=67 emit=60
+FXSHOT 52 111
+FXA 112 3.725 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=78 emit=71
+FXSHOT 53 112
+FXRLOG logos fire 112 3.758
+PXPLOG lg fire  3.758
+FXRLOG logos hit 112 3.758
+PXPLOG lg hit  3.758
+FXA 113 3.758 new=ink:3,twinkle:2 life=0.71 sz=3.6 alive=8 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=78 emit=71
+FXSHOT 54 113
+FXA 114 3.792 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=88 emit=83
+FXSHOT 55 114
+FXRLOG logos lg_xhit 114 3.825
+PXPLOG lg lg_xhit  3.825
+FXA 115 3.825 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=90 emit=85
+FXSHOT 56 115
+FXRLOG logos lock_tick 115 3.858
+PXPLOG lg lock_tick  3.858
+FXRLOG logos lg_xhit 115 3.858
+PXPLOG lg lg_xhit  3.858
+FXA 116 3.858 new=- life=0.00 sz=0.0 alive=8 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=78 emit=73
+FXSHOT 57 116
+FXRLOG logos hit 116 3.892
+PXPLOG lg hit  3.892
+FXA 117 3.892 new=ink:3,twinkle:2 life=0.76 sz=3.2 alive=13 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=75 emit=72
+FXSHOT 58 117
+FXRLOG logos lg_xhit 117 3.925
+PXPLOG lg lg_xhit  3.925
+FXA 118 3.925 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=155 emit=142
+FXSHOT 59 118
+FXA 119 3.958 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=154 emit=141
+FXSHOT 60 119
+FXRLOG logos hit 119 3.992
+PXPLOG lg hit  3.992
+FXA 120 3.992 new=ink:3,twinkle:2 life=0.68 sz=3.2 alive=16 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=163 emit=150
+FXSHOT 61 120
+FXA 121 4.025 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=161 emit=148
+FXSHOT 62 121
+FXA 122 4.058 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=154 emit=141
+FXSHOT 63 122
+FXA 123 4.092 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=154 emit=141
+FXSHOT 64 123
+FXRLOG logos lock_tick 123 4.125
+PXPLOG lg lock_tick  4.125
+FXA 124 4.125 new=- life=0.00 sz=0.0 alive=15 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=87 emit=74
+FXSHOT 65 124
+FXA 125 4.158 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=85 emit=74
+FXSHOT 66 125
+FXA 126 4.192 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=64 emit=53
+FXSHOT 67 126
+FXA 127 4.225 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=64 emit=53
+FXSHOT 68 127
+FXA 128 4.258 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=52 emit=41
+FXSHOT 69 128
+FXA 129 4.292 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=51 emit=41
+FXSHOT 70 129
+FXA 130 4.325 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=33 emit=23
+FXSHOT 71 130
+FXRLOG logos lock_tick 130 4.358
+PXPLOG lg lock_tick  4.358
+FXA 131 4.358 new=- life=0.00 sz=0.0 alive=13 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=33 emit=23
+FXSHOT 72 131
+FXA 132 4.392 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=2
+FXSHOT 73 132
+FXA 133 4.425 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=2
+FXSHOT 74 133
+FXA 134 4.458 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 75 134
+FXA 135 4.492 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 76 135
+FXA 136 4.525 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=34 emit=24
+FXSHOT 77 136
+FXA 137 4.558 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=34 emit=24
+FXSHOT 78 137
+FXA 138 4.592 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 79 138
+FXRLOG logos lock_tick 138 4.625
+PXPLOG lg lock_tick  4.625
+FXRLOG logos shape 138 4.625
+PXPLOG lg shape  4.625
+FXA 139 4.625 new=- life=0.00 sz=0.0 alive=7 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 80 139
+FXA 140 4.658 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=2
+FXSHOT 81 140
+FXA 141 4.692 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=2
+FXSHOT 82 141
+FXA 142 4.725 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 83 142
+FXA 143 4.758 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 84 143
+FXA 144 4.792 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=34 emit=24
+FXSHOT 85 144
+FXA 145 4.825 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=34 emit=24
+FXSHOT 86 145
+FXRLOG logos lock_tick 145 4.858
+PXPLOG lg lock_tick  4.858
+FXRLOG logos fire 145 4.858
+PXPLOG lg fire  4.858
+FXA 146 4.858 new=twinkle:3 life=0.48 sz=2.0 alive=4 L=70/0.35/0.10/8c99ff;60/0.30/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 87 146
+FXA 147 4.892 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=37 emit=28
+FXSHOT 88 147
+FXA 148 4.925 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=79 emit=70
+FXSHOT 89 148
+FXRLOG logos fire 148 4.958
+PXPLOG lg fire  4.958
+FXA 149 4.958 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=79 emit=70
+FXSHOT 90 149
+FXA 150 4.992 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=93 emit=84
+FXSHOT 91 150
+FXRLOG logos hit 150 5.025
+PXPLOG lg hit  5.025
+FXA 151 5.025 new=ink:3,twinkle:2 life=0.71 sz=3.2 alive=8 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=93 emit=84
+FXSHOT 92 151
+FXA 152 5.058 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=96
+FXSHOT 93 152
+FXRLOG logos fire 152 5.092
+PXPLOG lg fire  5.092
+FXA 153 5.092 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=96
+FXSHOT 94 153
+FXRLOG logos lock_tick 153 5.125
+PXPLOG lg lock_tick  5.125
+FXA 154 5.125 new=- life=0.00 sz=0.0 alive=8 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=69 emit=60
+FXSHOT 95 154
+FXRLOG logos lg_xhit 154 5.158
+PXPLOG lg lg_xhit  5.158
+FXRLOG logos lg_xhit 154 5.158
+PXPLOG lg lg_xhit  5.158
+FXA 155 5.158 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=72 emit=63
+FXSHOT 96 155
+FXA 156 5.192 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=93
+FXSHOT 97 156
+FXRLOG logos hit 156 5.225
+PXPLOG lg hit  5.225
+FXRLOG logos lg_xhit 156 5.225
+PXPLOG lg lg_xhit  5.225
+FXA 157 5.225 new=ink:3,twinkle:2 life=0.76 sz=3.6 alive=13 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=102 emit=93
+FXSHOT 98 157
+FXA 158 5.258 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=134
+FXSHOT 99 158
+FXA 159 5.292 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=134
+FXSHOT 100 159
+FXA 160 5.325 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=136 emit=128
+FXSHOT 101 160
+FXRLOG logos lock_tick 160 5.358
+PXPLOG lg lock_tick  5.358
+FXA 161 5.358 new=- life=0.00 sz=0.0 alive=11 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=136 emit=128
+FXSHOT 102 161
+FXRLOG logos hit 161 5.392
+PXPLOG lg hit  5.392
+FXA 162 5.392 new=ink:3,twinkle:2 life=0.82 sz=4.4 alive=16 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=137 emit=130
+FXSHOT 103 162
+FXA 163 5.425 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=136 emit=129
+FXSHOT 104 163
+FXA 164 5.458 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=95 emit=88
+FXSHOT 105 164
+FXA 165 5.492 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=95 emit=88
+FXSHOT 106 165
+FXA 166 5.525 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=63 emit=56
+FXSHOT 107 166
+FXA 167 5.558 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=63 emit=56
+FXSHOT 108 167
+FXA 168 5.592 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=42 emit=36
+FXSHOT 109 168
+FXRLOG logos lock_tick 168 5.625
+PXPLOG lg lock_tick  5.625
+FXRLOG logos shape 168 5.625
+PXPLOG lg shape  5.625
+FXA 169 5.625 new=- life=0.00 sz=0.0 alive=13 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=42 emit=36
+FXSHOT 110 169
+FXA 170 5.658 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=9
+FXSHOT 111 170
+FXA 171 5.692 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=13 emit=8
+FXSHOT 112 171
+FXA 172 5.725 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=17
+FXSHOT 113 172
+FXA 173 5.758 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=17
+FXSHOT 114 173
+FXA 174 5.792 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=29 emit=24
+FXSHOT 115 174
+FXA 175 5.825 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=29 emit=24
+FXSHOT 116 175
+FXRLOG logos lock_tick 175 5.858
+PXPLOG lg lock_tick  5.858
+FXA 176 5.858 new=- life=0.00 sz=0.0 alive=8 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=22 emit=17
+FXSHOT 117 176
+FXA 177 5.892 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=17
+FXSHOT 118 177
+FXA 178 5.925 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=17
+FXSHOT 119 178
+FXA 179 5.958 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=17
+FXSHOT 120 179
+FXA 180 5.992 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=24
+FXSHOT 121 180
+FXA 181 6.025 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=24
+FXSHOT 122 181
+FXA 182 6.058 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=17
+FXSHOT 123 182
+FXA 183 6.092 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=17
+FXSHOT 124 183
+FXRLOG logos lock_tick 183 6.125
+PXPLOG lg lock_tick  6.125
+FXA 184 6.125 new=- life=0.00 sz=0.0 alive=6 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=5 emit=1
+FXSHOT 125 184
+FXA 185 6.158 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=4 emit=1
+FXSHOT 126 185
+FXRLOG logos fire 185 6.192
+PXPLOG lg fire  6.192
+FXA 186 6.192 new=twinkle:3 life=0.48 sz=2.0 alive=5 L=60/0.30/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=30 emit=17
+FXSHOT 127 186
+FXA 187 6.225 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=39 emit=26
+FXSHOT 128 187
+FXA 188 6.258 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=88 emit=75
+FXSHOT 129 188
+FXRLOG logos fire 188 6.292
+PXPLOG lg fire  6.292
+FXRLOG logos hit 188 6.292
+PXPLOG lg hit  6.292
+FXRLOG logos lg_xhit 188 6.292
+PXPLOG lg lg_xhit  6.292
+FXA 189 6.292 new=ink:3,twinkle:2 life=0.77 sz=3.6 alive=9 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=88 emit=75
+FXSHOT 130 189
+FXRLOG logos lg_xhit 189 6.325
+PXPLOG lg lg_xhit  6.325
+FXA 190 6.325 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=110 emit=97
+FXSHOT 131 190
+FXRLOG logos lock_tick 190 6.358
+PXPLOG lg lock_tick  6.358
+FXA 191 6.358 new=- life=0.00 sz=0.0 alive=8 L=70/0.35/0.10/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=108 emit=96
+FXSHOT 132 191
+FXA 192 6.392 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=127 emit=115
+FXSHOT 133 192
+FXRLOG logos fire 192 6.425
+PXPLOG lg fire  6.425
+FXRLOG logos lg_xhit 192 6.425
+PXPLOG lg lg_xhit  6.425
+FXA 193 6.425 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=127 emit=115
+FXSHOT 134 193
+FXA 194 6.458 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=154 emit=142
+FXSHOT 135 194
+FXRLOG logos hit 194 6.492
+PXPLOG lg hit  6.492
+FXA 195 6.492 new=ink:3,twinkle:2 life=0.69 sz=4.0 alive=13 L=130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=156 emit=144
+FXSHOT 136 195
+FXA 196 6.525 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=180 emit=168
+FXSHOT 137 196
+FXA 197 6.558 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=180 emit=168
+FXSHOT 138 197
+FXA 198 6.592 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=116 emit=104
+FXSHOT 139 198
+FXRLOG logos lock_tick 198 6.625
+PXPLOG lg lock_tick  6.625
+FXRLOG logos hit 198 6.625
+PXPLOG lg hit  6.625
+FXA 199 6.625 new=ink:3,twinkle:2 life=0.72 sz=4.4 alive=17 L=70/0.35/0.10/8c99ff;130/0.70/0.12/8c99ff gr=0 gnew=0 sp=0 gl=0 glow=116 emit=104
+FXSHOT 140 199
+FXA 200 6.658 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=99 emit=90
+FXSHOT 141 200
+FXA 201 6.692 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=99 emit=90
+FXSHOT 142 201
+FXA 202 6.725 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=64 emit=55
+FXSHOT 143 202
+FXA 203 6.758 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=64 emit=55
+FXSHOT 144 203
+FXA 204 6.792 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=48 emit=39
+FXSHOT 145 204
+FXA 205 6.825 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=48 emit=39
+FXSHOT 146 205
+FXA 206 6.858 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=35 emit=26
+FXSHOT 147 206
+FXA 207 6.892 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=35 emit=26
+FXSHOT 148 207
+FXA 208 6.925 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=6
+FXSHOT 149 208
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1717: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1725: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1726: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 179 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
