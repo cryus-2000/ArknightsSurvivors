@@ -895,6 +895,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				var ts: Array = u.in_circle(c, r)
 				ts.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
 				a["ts"] = ts.slice(0, 4)
+				if Fxr.owns(p):
+					Fxr.ev(p, "sz_link", {"ts": a.ts, "c": c})   # 转平面（docs/271）：四团狐火绕身 + 追迹由 fx_pxplane_sz 画，只画
+			var szpx: bool = Fxr.owns(p)
 			var T1 := 0.35
 			var T2 := 0.25
 			for j in 4:
@@ -908,12 +911,14 @@ static func _step16(u, a: Dictionary) -> bool:
 						if e != null and not e.dead:
 							_hit16(p, e, "狐火", 0.6)
 							u.g.enemies_sys.lite_slow(e, 0.3, 1.5)
-						if LFX.on() and u.fx_ready(LFB.SZ_FOX[0]):
+						if szpx:
+							Fxr.ev(p, "sz_link_hit", {"at": to, "e": e})   # 转平面（docs/271）：只画
+						elif LFX.on() and u.fx_ready(LFB.SZ_FOX[0]):
 							LFB.sz_pop(u, to)
 						else:
 							u.grain("fire", to, Vector2.UP, cl, 4)
 							u.light(to, 90.0, cl, 0.2)
-				if t < T1 + T2:
+				if t < T1 + T2 and not szpx:
 					var dv: Vector2 = (q - orb).normalized() if t >= T1 and q != orb else Vector2.from_angle(TAU * (j / 4.0 + minf(t, T1) / T1) + PI / 2.0)
 					if not LFB.sz_fox(u, q, dv, j):
 						u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
