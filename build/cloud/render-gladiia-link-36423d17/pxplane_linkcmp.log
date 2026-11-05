@@ -1,0 +1,7 @@
+('link1_s11_70', 75, [], False)
+('link0_s11_70', 75, [], False)
+('link2_s11_70', 75, [], False)
+连携事件 [('gl_lland', '71.422')]
+三栏 cmp_link 帧 50
+link0_s11_70 vs link1_s11_70：TRACE 75 / 75 行，逐行一致
+link0_s11_70 vs link2_s11_70：TRACE 75 / 75 行，逐行一致
