@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 META = os.path.join(ROOT, "game", "data", "pxp_angelina.json")
 EMIT_LUM = 0.8
-EMIT_MAX = 24
+EMIT_MAX = 64   # docs/270 补齐：星芒 / 光刺白芯加厚后，每帧送进发光层的点上限（整队另有 EMIT_CAP 360）
 RIB_ROT = [0, 90, 180, 270]
 
 IMPORT_TMPL = """[remap]
