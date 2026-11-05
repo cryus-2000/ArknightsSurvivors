@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://wrhylh758d4e"
-path="res://.godot/imported/pxp_an_blades_up.png-4b3ac4b8c57e4e3620fa6e9eb4b83476.ctex"
+uid="uid://xcdhhs62akis"
+path="res://.godot/imported/pxp_an_gcore_cast_up.png-89981a364fb4e91f49a746161a9a6913.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_an_blades_up.png"
-dest_files=["res://.godot/imported/pxp_an_blades_up.png-4b3ac4b8c57e4e3620fa6e9eb4b83476.ctex"]
+source_file="res://art/fx/pxp/pxp_an_gcore_cast_up.png"
+dest_files=["res://.godot/imported/pxp_an_gcore_cast_up.png-89981a364fb4e91f49a746161a9a6913.ctex"]
 
 [params]
 

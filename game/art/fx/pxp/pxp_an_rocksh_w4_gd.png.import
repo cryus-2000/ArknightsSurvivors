@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xwh2bcujeg46"
-path="res://.godot/imported/pxp_an_lift_z2_gd.png-99a3d203f41ee65c5c3805a1130026db.ctex"
+uid="uid://lkocu4iphhuf"
+path="res://.godot/imported/pxp_an_rocksh_w4_gd.png-d71470800a82f72c34bad3c357a7cc65.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_an_lift_z2_gd.png"
-dest_files=["res://.godot/imported/pxp_an_lift_z2_gd.png-99a3d203f41ee65c5c3805a1130026db.ctex"]
+source_file="res://art/fx/pxp/pxp_an_rocksh_w4_gd.png"
+dest_files=["res://.godot/imported/pxp_an_rocksh_w4_gd.png-d71470800a82f72c34bad3c357a7cc65.ctex"]
 
 [params]
 

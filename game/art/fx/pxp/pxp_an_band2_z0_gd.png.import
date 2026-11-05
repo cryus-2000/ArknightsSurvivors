@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://rjtdhgvabm7z"
-path="res://.godot/imported/pxp_an_band_z0_gd.png-e75cf8d3bab41fee11b1f88b05a26fe5.ctex"
+uid="uid://zolmdnms2hja"
+path="res://.godot/imported/pxp_an_band2_z0_gd.png-87e7a49ff049f88aacb21408616cd743.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_an_band_z0_gd.png"
-dest_files=["res://.godot/imported/pxp_an_band_z0_gd.png-e75cf8d3bab41fee11b1f88b05a26fe5.ctex"]
+source_file="res://art/fx/pxp/pxp_an_band2_z0_gd.png"
+dest_files=["res://.godot/imported/pxp_an_band2_z0_gd.png-87e7a49ff049f88aacb21408616cd743.ctex"]
 
 [params]
 

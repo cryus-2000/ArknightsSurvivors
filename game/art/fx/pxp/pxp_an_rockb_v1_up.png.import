@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://q3e0u1o2i080"
-path="res://.godot/imported/pxp_an_blades_cast_up.png-5d38a4db4a5f97ad2dce82c3f16f6e6c.ctex"
+uid="uid://f4ngipuioj7j"
+path="res://.godot/imported/pxp_an_rockb_v1_up.png-5d4765b533cd50861ed4dadc05e9b7a8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_an_blades_cast_up.png"
-dest_files=["res://.godot/imported/pxp_an_blades_cast_up.png-5d38a4db4a5f97ad2dce82c3f16f6e6c.ctex"]
+source_file="res://art/fx/pxp/pxp_an_rockb_v1_up.png"
+dest_files=["res://.godot/imported/pxp_an_rockb_v1_up.png-5d4765b533cd50861ed4dadc05e9b7a8.ctex"]
 
 [params]
 

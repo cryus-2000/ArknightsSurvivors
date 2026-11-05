@@ -2,9 +2,10 @@
 ## 帧条由 tools/pxplane_bake_angelina.py 烤（图形 tools/pxplane_ang_art.py），键前缀 an_；弹尾、弹药珠、连携碎片尾迹、透镜线在这里逐格画
 ## （算法同 pxplane_ang_art.py 的 trail_px() / pips_px() / link_trail()，改一边要改另一边）。
 ## 招牌（每招一个意象）：普攻 = 黑紫重力弹 + 落点内爆（星芒 + 三角碎片被吸进来 + 暗凹）；精一加收紧断弧（重力停顿）；精二加失重井（黑紫旋臂井）。
-## S1 = 三根细长光刺从上往下钉进落点；S2 = 缠绕细绸带绕她旋进、收到环带上一点；S3 = 身后三叉光刃 + 场内碎石被托起；连携 = 三枚大碎片绕圈收拢。
-## 悬浮的敌人：脚下向上的短竖线 + 影子随高度缩小 + 悬停时上下浮动 1 美术像素（world.gd 读 air_look，只画）。
-## 挂在人身上的件（杖头星芒、身后光刃）带 fo 跟她走；跟场的件（环带、场边、绸带）跟着场心走；落点、井、碎石留在原地。只画，不碰玩法与玩法随机数。
+## S1 = 三根细长光刺从上往下钉进落点；S2 = 缠绕细绸带绕她旋进、收到环带上一点（常驻环带带流动光点）；
+## S3 = 头顶重力核心（实心黑紫核 + 两道斜转光环）+ 场内空间扭曲波纹往里收 + 少数几块大碎石绕场心缓慢转、托起（同屏 ≤ 4）；连携 = 三枚大碎片绕圈收拢。
+## 悬浮的敌人：影子随高度缩小变淡 + 悬停时上下浮动 1 美术像素（world.gd 读 air_look，只画；11-05 第二轮去掉脚下竖线）。
+## 挂在人身上的件（杖头星芒、重力核心）带 fo 跟她走；跟场的件（环带、场边、绸带）跟着场心走；落点、井、碎石留在原地。只画，不碰玩法与玩法随机数。
 extends RefCounted
 
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
@@ -16,6 +17,7 @@ const MUZZLE := Vector2(34, -80)   # 同 angelina.json blocks.attack.muzzle（�
 const ARC_H := 26.0                # 同 data_operator._draw_shots 的弧高
 const LAND_CAP := 3                # 每拍至多几处落点画面
 const LINK_T := 0.45               # 同 skill_link l_angelina 的 T2
+const CORE_Y := -112.0             # 重力核心在她脚底上方（头顶）
 
 var r      # fx_pxplane 实例
 var g
@@ -24,7 +26,6 @@ var _air := {}          # e.id → 安洁莉娜的悬浮表项（每帧重建）
 var _air_frame := -1
 var _rib_n := {}        # 每人第几次绸带（汇点方位轮换）
 var _field_n := {}      # 每人微粒模式第几次场拍（隔一拍出一次绸带）
-var _rock_beat := {}    # 每人上一次出碎石的拍
 var _links: Array = []  # 连携引力环：{c, r, t0, oid}
 
 
@@ -127,14 +128,15 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				var c3: Vector2 = st.get("c", g.ppos if g.demo_op == "" else o.pos)
 				if c3 != Vector2.INF:
 					_gd(o, "bandop_z%d_gd" % _zi(float(st.get("ring", 110.0)) / 110.0), c3, _field_follow(o, c3))
-			elif si == 2:   # 反重力模式：场边从外往里收亮一下 + 身后三叉光刃弹出
+			elif si == 2:   # 反重力模式：场边从外往里收亮一下 + 头顶一圈亮点收成重力核心
 				var st2: Dictionary = _field_state(o, "lift")
 				var c4: Vector2 = st2.get("c", g.ppos if g.demo_op == "" else o.pos)
 				if c4 != Vector2.INF:
 					_gd(o, "liftop_z%d_gd" % _zi(float(st2.get("r", 220.0)) / 220.0), c4, _field_follow(o, c4))
-				_up(o, "blades_cast_up", o.pos, {"fo": Vector2.ZERO, "sk": -2.0})
-				R._light(o, o.pos + Vector2(0, -40), 150.0, 0.6, 0.15, p.light)
-				R._grains(o, o.pos + Vector2(0, -40), o.pos.y + 2.0, "twinkle", 4, {"tier": 2})
+				var cp: Vector2 = o.pos + Vector2(0, CORE_Y)
+				_up(o, "gcore_cast_up", cp, {"fo": cp - o.pos, "sk": -CORE_Y + 1.0})
+				R._light(o, cp + Vector2(0, 40), 160.0, 0.7, 0.15, p.light)
+				R._grains(o, cp, o.pos.y + 2.0, "twinkle", 5, {"tier": 2})
 		"ang_splash":   # 升级卡「扩散」：往里收的断续环（每拍至多 2）
 			if _beat_n(o, "sp") >= 2:
 				return
@@ -186,9 +188,11 @@ func draw_floor(o) -> void:
 			if not (st is Dictionary) or not st.has("c") or st.c == Vector2.INF:
 				continue
 			if str(st.get("look", "")) == "ring":
-				r._draw_strip(cv, "an_band_z%d_gd" % _zi(float(st.get("ring", 110.0)) / 110.0), r.frame_of(0.0), Pxp._snap(st.c), false, false)
+				r._draw_strip(cv, "an_band2_z%d_gd" % _zi(float(st.get("ring", 110.0)) / 110.0), r.frame_of(0.0), Pxp._snap(st.c), false, false)
 			elif str(st.get("look", "")) == "lift":
-				r._draw_strip(cv, "an_lift_z%d_gd" % _zi(float(st.get("r", 220.0)) / 220.0), r.frame_of(0.0), Pxp._snap(st.c), false, false)
+				r._draw_strip(cv, "an_ripple_z%d_gd" % _zi(float(st.get("r", 220.0)) / 220.0), r.frame_of(0.0), Pxp._snap(st.c), false, false)
+				for rk in _rock_list(st):   # 大碎石的地面影子（随高度变小）
+					r._draw_strip(cv, "an_rocksh_w%d_gd" % int(rk[4]), 0, Pxp._snap(rk[1]), false, false)
 	for it in r.items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
 			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
@@ -199,18 +203,6 @@ func draw_floor(o) -> void:
 			if not (f is Dictionary) or not f.has("r"):
 				continue
 			r._draw_strip(cv, "an_well_z%d_gd" % _zi(float(f.r) / 60.0), r.frame_of(g.t - float(f.t)), Pxp._snap(f.pos), false, true)
-	# 悬浮的敌人脚下：向上的短竖线
-	var al = o.get("air_list")
-	if al is Array:
-		var na := 0
-		for a in al:
-			var e: Dictionary = a.e
-			if e.dead or float(a.t) < 0.1:
-				continue
-			na += 1
-			if na > 12:   # 同屏封顶：反重力场一次托起几十只，竖线只画前 12 只（影子 / 浮动照常）
-				break
-			r._draw_strip(cv, "an_float_l_gd" if float(e.r) >= 14.0 else "an_float_s_gd", r.frame_of(float(int(e.id) % 6) / 15.0), Pxp._snap(e.pos + Vector2(0, float(e.r) * 0.8)), false, false)
 	# 重力弹的地面投影
 	var sh = o.get("shots")
 	if sh is Array:
@@ -239,7 +231,7 @@ func _shot_ground(s: Dictionary) -> Vector2:
 	return gs.lerp(s.p1, _shot_k(s))
 
 
-## 立起层的状态件（每帧生成）：重力弹、速充弹药珠、身后三叉光刃、反重力碎石（按拍生成一次性件）、连携碎片、透镜线
+## 立起层的状态件（每帧生成）：重力弹、速充弹药珠、重力核心、反重力大碎石、连携碎片、透镜线
 func sort_items(o, out: Array) -> void:
 	_air_frame = -1   # 悬浮表每帧重建
 	var sh = o.get("shots")
@@ -252,8 +244,11 @@ func sort_items(o, out: Array) -> void:
 	if am is Array and int(am[0]) > 0:
 		out.append({"an": "pips", "o": o, "n": mini(3, int(am[0])), "gy": o.pos.y + 0.5})
 	if o.skill_active_left(2) > 0.0:
-		out.append({"an": "loop", "k": "an_blades_up", "gp": Pxp._snap(o.pos), "gy": o.pos.y - 2.0})
-		_rocks(o)
+		out.append({"an": "loop", "k": "an_gcore_up", "gp": Pxp._snap(o.pos + Vector2(0, CORE_Y)), "gy": o.pos.y + 1.0})
+		var st: Dictionary = _field_state(o, "lift")
+		if not st.is_empty() and st.c != Vector2.INF:
+			for rk in _rock_list(st):
+				out.append({"an": "loop", "k": "an_rockb_v%d_up" % int(rk[0]), "gp": Pxp._snap((rk[1] as Vector2) - Vector2(0, float(rk[3]) + 10.0)), "gy": (rk[1] as Vector2).y + 1.0})
 	var now: float = g.t
 	_links = _links.filter(func(L): return now - float(L.t0) < LINK_T)
 	for L in _links:
@@ -267,24 +262,34 @@ func sort_items(o, out: Array) -> void:
 			out.append({"an": "lens", "s": s, "o": o, "gy": _shot_ground(s).y})
 
 
-## 反重力碎石：每 6 拍（0.4 秒）在场内 3 处（坐标哈希，不抽随机数）各托起一块
-func _rocks(o) -> void:
-	var st: Dictionary = _field_state(o, "lift")
-	if st.is_empty() or st.c == Vector2.INF:
-		return
-	var bt: int = int(floor(g.t * 15.0))
-	var id: String = str(o.id)
-	if bt % 6 != 0 or int(_rock_beat.get(id, -1)) == bt:
-		return
-	_rock_beat[id] = bt
-	var R: float = float(st.get("r", 220.0)) * 0.85
-	for j in 3:
-		var h1: float = _hf(bt / 6, j, 7)
-		var h2: float = _hf(bt / 6, j, 13)
-		var a: float = TAU * (float(j) / 3.0 + h1 * 0.3)
-		var rr: float = R * (0.3 + 0.65 * h2)
-		var at: Vector2 = (st.c as Vector2) + Vector2(cos(a) * rr, sin(a) * rr * 0.72)
-		_up(o, "rock_v%d_up" % ((bt / 6 + j) % 3), at)
+## 反重力大碎石（同 pxplane_ang_art.rock_state）：场开着第 t 秒时在场的碎石，每 0.6 秒生一块、每块活 2 秒（同屏 ≤ 4），
+## 绕场心缓慢转、托起 24 → 悬停微浮 → 落回；坐标哈希，不抽随机数。返回 [[变体, 地面点, 0, 高度, 影子半宽]]
+func _rock_list(st: Dictionary) -> Array:
+	var out: Array = []
+	var t: float = float(st.get("t", 0.0))
+	var R: float = float(st.get("r", 220.0)) * 0.97
+	var c: Vector2 = st.c
+	var n_now: int = int(floor(t / 0.6))
+	for n in range(maxi(0, n_now - 3), n_now + 1):
+		var age: float = t - float(n) * 0.6
+		if age < 0.0 or age >= 2.0:
+			continue
+		var a0: float = _hf(n, 1, 7) * TAU
+		var rr: float = R * (0.35 + 0.45 * _hf(n, 2, 13))
+		var a: float = a0 + 0.55 * age
+		var h: float
+		if age < 0.4:
+			var u: float = age / 0.4
+			h = 24.0 * (1.0 - (1.0 - u) * (1.0 - u))
+		elif age < 1.6:
+			h = 24.0 + (2.0 if (int(age * 15.0) / 3) % 2 == 1 else 0.0)
+		else:
+			var u2: float = 1.0 - (age - 1.6) / 0.4
+			h = 24.0 * u2 * u2
+		var gp: Vector2 = c + Vector2(cos(a) * rr, sin(a) * rr * 0.72)
+		var sw: int = 6 if h < 8.0 else (4 if h < 18.0 else 3)
+		out.append([n % 2, gp, 0, h, sw])
+	return out
 
 
 static func _hf(x: int, y: int, k: int) -> float:

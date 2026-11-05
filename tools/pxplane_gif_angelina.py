@@ -81,7 +81,7 @@ class Col:
         self.wells = []      # (c, t0)
         self.loops = []      # (k, gp, 起拍, 止拍, gy) 状态件
         self.e0 = [[float(x), float(y)] for x, y in enemies]
-        self.flipped = 0
+        self.s3 = None       # (起拍, 场心, 半径)：反重力场开着（重力核心 + 大碎石按 rock_state 时间表）
 
     def epos(self, i, tk):
         x, y = self.e0[i]
@@ -184,13 +184,11 @@ def render(lib, col, tk, ENEMY, OP):
     for (c, t0) in col.wells:
         if tk >= t0:
             strip("well_z0_gd", tk - t0, snap(c))
-    na = 0
-    for i in range(len(col.e0)):
-        h = col.eair(i, tk)
-        if h > 4 and na < 12:
-            na += 1
-            x, y = col.epos(i, tk)
-            strip("float_l_gd", tk + i, snap((x, y + 14 * 0.8)), loop=True)
+    rocks = []
+    if col.s3 and tk >= col.s3[0]:
+        rocks = A.rock_state((tk - col.s3[0]) / 15.0, col.s3[2] * 0.97, col.s3[1])
+        for (v, gx, gy, h, sw) in rocks:
+            strip("rocksh_w%d_gd" % sw, 0, snap((gx, gy)))
     for s in col.shots:
         if s["t0"] <= tk < s["t1"]:
             k = (tk - s["t0"]) / (s["t1"] - s["t0"])
@@ -212,6 +210,10 @@ def render(lib, col, tk, ENEMY, OP):
     for s in col.shots:
         if s["t0"] <= tk < s["t1"]:
             sort.append((s["p1"][1], "orb", s))
+    for (v, gx, gy, h, sw) in rocks:
+        sort.append((gy + 1, "loop", ("rockb_v%d_up" % v, snap((gx, gy - h - 10)))))
+    if col.s3 and tk >= col.s3[0]:
+        sort.append((col.op[1] + 1, "loop", ("gcore_up", snap((col.op[0], col.op[1] - 112)))))
     for (t0, t1, n) in col.pips:
         if t0 <= tk < t1:
             sort.append((col.op[1] + 0.5, "pips", n))
@@ -348,7 +350,7 @@ def sc_s2(t):
     c = Col(t, [(80 + 150 * math.cos(a), 170 + 150 * math.sin(a) * 0.62) for a in (-0.5, -0.1, 0.35, 0.8, -0.9, 2.6, 3.4, 1.4, -1.6, 0.1)], op=(170, 140))
     cen = c.op
     c.add("bandop_z0_gd", 1, cen, gd=True)
-    c.loops.append(("band_z0_gd", snap(cen), 6, 999, cen[1]))
+    c.loops.append(("band2_z0_gd", snap(cen), 6, 999, cen[1]))
     # 每 0.5 秒（7.5 拍）把场内敌人往环带 110 整形；绸带隔一拍出一次
     for q, bt in enumerate([1, 8, 16, 23, 31, 38]):
         for i in range(len(c.e0)):
@@ -368,23 +370,15 @@ def sc_s3(t):
     c = Col(t, E_MAIN + [(150, 120), (120, 215)], op=(150, 160))
     cen = c.op
     c.add("liftop_z0_gd", 1, cen, gd=True)
-    c.add("blades_cast_up", 1, cen, gy=cen[1] - 2)
-    c.loops.append(("lift_z0_gd", snap(cen), 7, 999, cen[1]))
-    c.loops.append(("blades_up", snap(cen), 5, 999, cen[1] - 2))
-    c.lights.append((cen[0], cen[1] - 40, 150, 0.6, 1, 2))
+    c.add("gcore_cast_up", 1, (cen[0], cen[1] - 112), gy=cen[1] + 1)
+    c.loops.append(("ripple_z0_gd", snap(cen), 7, 999, cen[1]))
+    c.s3 = (6, cen, 220)
+    c.lights.append((cen[0], cen[1] - 70, 160, 0.7, 1, 2))
     for i in range(len(c.e0)):
         x, y = c.e0[i]
         if math.hypot(x - cen[0], y - cen[1]) <= 220:
             c.lifts.append((i, 2 + i % 3, 999, 30))
             c.moves.append((i, 2, 55, (cen[0] - x) * 0.3, (cen[1] - y) * 0.3))
-    for bt in range(6, 60, 6):   # 碎石：每 6 拍 3 块（坐标哈希，同游戏 _rocks）
-        for j in range(3):
-            h1 = A.hf(bt // 6, j, 7)
-            h2 = A.hf(bt // 6, j, 13)
-            a = math.tau * (j / 3.0 + h1 * 0.3)
-            rr = 220 * 0.85 * (0.3 + 0.65 * h2)
-            at = (cen[0] + math.cos(a) * rr, cen[1] + math.sin(a) * rr * 0.72)
-            c.add("rock_v%d_up" % ((bt // 6 + j) % 3), bt, at)
     return c
 
 

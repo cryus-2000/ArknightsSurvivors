@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://jbp25rqrltx8"
-path="res://.godot/imported/pxp_an_float_s_gd.png-480c229766a9db8eff9aa8c91749abf3.ctex"
+uid="uid://a4yyiiyz84ng"
+path="res://.godot/imported/pxp_an_ripple_z0_gd.png-43db6473af16109eb75f830e7abb8cba.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_an_float_s_gd.png"
-dest_files=["res://.godot/imported/pxp_an_float_s_gd.png-480c229766a9db8eff9aa8c91749abf3.ctex"]
+source_file="res://art/fx/pxp/pxp_an_ripple_z0_gd.png"
+dest_files=["res://.godot/imported/pxp_an_ripple_z0_gd.png-43db6473af16109eb75f830e7abb8cba.ctex"]
 
 [params]
 

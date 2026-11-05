@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://i4i06k2pt3kh"
-path="res://.godot/imported/pxp_an_rock_v1_up.png-fba8cca184ff139ca532958e92a58197.ctex"
+uid="uid://c3ql2tm5nbxh"
+path="res://.godot/imported/pxp_an_ripple_z1_gd.png-1c041428ef3bc6f2eba821c668b9ef57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_an_rock_v1_up.png"
-dest_files=["res://.godot/imported/pxp_an_rock_v1_up.png-fba8cca184ff139ca532958e92a58197.ctex"]
+source_file="res://art/fx/pxp/pxp_an_ripple_z1_gd.png"
+dest_files=["res://.godot/imported/pxp_an_ripple_z1_gd.png-1c041428ef3bc6f2eba821c668b9ef57.ctex"]
 
 [params]
 

@@ -652,3 +652,187 @@ def link_land():
                         b.put(i, -math.sqrt(max(0.0, rr * rr - i * i)) * SQ, V[4] if k < 4 else V[3])
         gd.append(b)
     return up, gd
+
+
+# ---------------------------------------------------------------- 第二轮（11-05 用户「S3 的光刃很奇怪，S2 和 S3 的问题修改一下，可以稍微华丽一点」）
+def band2(z):
+    """环带 v2（贴地循环 8 帧，原点 = 场心）：比 v1 亮一档的稀疏短划 + 6 颗沿环带流动的光点（亮头 + 4 格尾，相邻两颗反向），1 倍下读得出范围"""
+    R = 55.0 * Z[z]
+    fr = []
+    n = int(R * 4.5)
+    for k in range(8):
+        b = Buf()
+        for i in range(n):
+            seg = (i + k) % 12
+            if seg >= 4:
+                continue
+            t = i / n * math.tau
+            b.put(math.cos(t) * R, math.sin(t) * R * SQ, V[4] if (i // 12) % 3 == 0 and seg in (1, 2) else V[3])
+        for j in range(6):
+            sgn = 1 if j % 2 == 0 else -1
+            t0 = j * math.tau / 6 + sgn * (k / 8.0) * (math.tau / 6)
+            for s in range(5):
+                t = t0 - sgn * s * 0.035
+                col = V[7] if s == 0 else (V[6] if s == 1 else (V[5] if s < 4 else V[4]))
+                b.put(math.cos(t) * R, math.sin(t) * R * SQ, col)
+            b.put(math.cos(t0) * R, math.sin(t0) * R * SQ - 1, V[5])
+        fr.append(b)
+    return fr
+
+
+def gcore(cast=False):
+    """反重力「重力核心」（立起层，原点 = 核心中心，游戏里放在她头顶上方 112 世界像素，跟她走）：
+    黑紫实心核（亮紫边、白高光、下沿发箍红一小段）+ 两道斜着的光环（前半亮、后半暗被核挡住）绕核转，各有一颗白亮珠沿环走；
+    外圈一圈暗紫点线一呼一吸。8 帧循环。cast = 起手 5 帧：外圈一圈亮点往里收成核、一记星芒"""
+    fr = []
+    RC = 6
+    rings = [(16.0, 5.0, math.radians(18)), (15.0, 4.5, math.radians(-24))]
+    for k in range(8 if not cast else 5):
+        b = Buf()
+        if cast and k < 3:   # 往里收
+            rr = 26 - k * 8
+            n = int(rr * 6)
+            for i in range(n):
+                if i % 3 == 0:
+                    continue
+                t = i / n * math.tau + k * 0.4
+                b.put(math.cos(t) * rr, math.sin(t) * rr * 0.8, V[6] if k < 2 else V[5])
+            if k == 2:
+                _star(b, 12, [V[7], V[7], V[6], V[5]], 4, 111, 1.6, 0, 0)
+            fr.append(b)
+            continue
+        back, front = Buf(), Buf()
+        for ri, (rx, ry, tilt) in enumerate(rings):
+            ct, st = math.cos(tilt), math.sin(tilt)
+            n = 64
+            bead = (k / 8.0 + ri * 0.5) % 1.0
+            for i in range(n):
+                u = i / n
+                t = u * math.tau
+                x, y = math.cos(t) * rx, math.sin(t) * ry
+                X, Y = x * ct - y * st, x * st + y * ct
+                is_front = math.sin(t) > 0
+                d = abs(((u - bead + 0.5) % 1.0) - 0.5)
+                if d < 0.02:
+                    col = V[7]
+                elif d < 0.06:
+                    col = V[6]
+                else:
+                    col = V[5] if is_front else V[3]
+                (front if is_front else back).put(X, Y, col)
+        ro = 20 + (1 if k % 4 < 2 else 0)   # 外圈呼吸点线
+        for i in range(36):
+            if (i + k) % 3:
+                continue
+            t = i / 36 * math.tau
+            back.put(math.cos(t) * ro, math.sin(t) * ro * 0.8, V[2])
+        b.p.update(back.p)
+        for y in range(-RC - 1, RC + 2):
+            for x in range(-RC - 1, RC + 2):
+                d = math.hypot(x, y)
+                if d <= RC - 0.8:
+                    b.put(x, y, V[0] if d < RC - 2 else V[1])
+                elif d <= RC + 0.4:
+                    a = (math.atan2(y, x) / math.tau * 8 - k) % 8
+                    b.put(x, y, V[6] if a < 1.5 else V[5])
+        b.put(-2, -3, V[7])
+        b.put(-3, -2, V[7])
+        b.put(0, RC, ACC[2])
+        b.put(-1, RC, ACC[1])
+        b.put(1, RC, ACC[1])
+        b.p.update(front.p)
+        if cast and k == 3:
+            _star(b, 8, [V[7], V[6], V[5]], 4, 113, 1.2, 0, 0)
+        fr.append(b)
+    return fr
+
+
+def ripple(z):
+    """反重力场的空间扭曲（贴地循环 12 帧 = 0.8 秒，原点 = 场心）：两道细波纹从场边往场心收（半径按角度起伏，像空间被拧了一下），
+    越往里越亮；场边一圈很暗的稀疏点线标出范围"""
+    R = 110.0 * Z[z] * 0.97
+    fr = []
+    for k in range(12):
+        b = Buf()
+        n = int(R * 4)
+        for i in range(n):
+            if i % 7:
+                continue
+            t = i / n * math.tau
+            b.put(math.cos(t) * R, math.sin(t) * R * SQ, V[3])
+        for w in range(2):
+            u = ((k / 12.0) + w * 0.5) % 1.0
+            rr = R * (0.95 - 0.75 * u)
+            m = max(24, int(rr * 4.5))
+            for i in range(m):
+                t = i / m * math.tau
+                wob = 1.0 + 0.06 * math.sin(t * 3 + k * 0.5 + w)
+                if (i // 3 + w) % 4 == 3:
+                    continue
+                col = V[2] if u < 0.35 else (V[3] if u < 0.7 else V[4])
+                b.put(math.cos(t) * rr * wob, math.sin(t) * rr * wob * SQ, col)
+        fr.append(b)
+    return fr
+
+
+def rock_big(var):
+    """反重力大碎石（立起层，原点 = 碎石中心）：4 帧缓慢翻转循环（顶面亮阶换边）；黑紫身、顶面一阶亮、底面一排紫光反射"""
+    shapes = [[(-7, -1), (-4, -5), (2, -6), (7, -2), (6, 3), (0, 5), (-5, 4)],
+              [(-6, -3), (-1, -6), (5, -5), (8, 0), (4, 5), (-3, 5), (-7, 2)]][var % 2]
+    fr = []
+    xs = [p[0] for p in shapes]
+    ys = [p[1] for p in shapes]
+    for k in range(4):
+        b = Buf()
+        for y in range(min(ys), max(ys) + 1):
+            for x in range(min(xs), max(xs) + 1):
+                if not _inside(x, y, shapes):
+                    continue
+                top = not _inside(x, y - 1, shapes)
+                bot = not _inside(x, y + 1, shapes)
+                edge = not _inside(x - 1, y, shapes) or not _inside(x + 1, y, shapes)
+                col = V[1]
+                if top:
+                    col = V[3] if ((x + k) % 4) < 2 else V[2]
+                elif bot:
+                    col = V[4]
+                elif edge:
+                    col = V[0]
+                elif hsh(x, y, var) % 7 == 0:
+                    col = V[2]
+                b.put(x, y, col)
+        fr.append(b)
+    return fr
+
+
+def rock_shadow(w):
+    b = Buf()
+    for x in range(-w, w + 1):
+        b.put(x, 0, SHADOW)
+    for x in range(-w + 1, w):
+        b.put(x, 1, SHADOW)
+    return [b]
+
+
+def rock_state(t, R, c=(0.0, 0.0)):
+    """反重力大碎石的时间表（游戏 fx_pxplane_ang._rock_list 同算法）：场开着第 t 秒时在场的碎石，每 0.6 秒生一块、每块活 2 秒（同屏 ≤ 4）。
+    返回 [(变体, 地面点 x, y, 高度, 影子半宽)]；位置绕场心缓慢转、托起 → 悬停微浮 → 落回"""
+    out = []
+    n_now = int(math.floor(t / 0.6))
+    for n in range(max(0, n_now - 3), n_now + 1):
+        age = t - n * 0.6
+        if age < 0 or age >= 2.0:
+            continue
+        a0 = hf(n, 1, 7) * math.tau
+        rr = R * (0.35 + 0.45 * hf(n, 2, 13))
+        a = a0 + 0.55 * age
+        if age < 0.4:
+            h = 24 * ease_out(age / 0.4)
+        elif age < 1.6:
+            h = 24 + (2 if (int(age * 15) // 3) % 2 else 0)
+        else:
+            h = 24 * (1 - (age - 1.6) / 0.4) ** 2
+        gx, gy = c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr * SQ
+        sw = 6 if h < 8 else (4 if h < 18 else 3)
+        out.append((n % 2, gx, gy, h, sw))
+    return out

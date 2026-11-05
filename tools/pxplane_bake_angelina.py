@@ -72,24 +72,24 @@ def strips():
     for z in range(3):
         out["well_z%d_gd" % z] = (A.well(z), False)
         out["echo_z%d_gd" % z] = (A.ring_in(37.5 * A.Z[z] * 0.8, 5, 6), False)
-        out["band_z%d_gd" % z] = (A.band(z), True)
         out["bandop_z%d_gd" % z] = (A.band_open(z), False)
-        out["lift_z%d_gd" % z] = (A.lift_edge(z), True)
         out["liftop_z%d_gd" % z] = (A.lift_edge(z, True), False)
+        out["band2_z%d_gd" % z] = (A.band2(z), True)
+        out["ripple_z%d_gd" % z] = (A.ripple(z), True)
         for t in (1, 2):
             for r in RIB_ROT:
                 out["rib_e%d_z%d_r%d_gd" % (t, z, r)] = (A.ribbon(t, z, r), False)
-    out["float_s_gd"] = (A.float_lines(4), True)
-    out["float_l_gd"] = (A.float_lines(7), True)
     out["splash_gd"] = (A.ring_in(30.0 * 0.95, 4, 0), False)
     out["dense_in_gd"] = (A.ring_in(30.0, 5, 0, (4, 4, 3, 3, 2), 3), False)
     out["dense_pop_up"] = (A.dense_pop(30.0), False)
     out["lock_gd"] = (A.lock_mark(8), False)
     out["s1cast_up"] = (A.cast_star(), False)
-    out["blades_up"] = (A.blades(), True)
-    out["blades_cast_up"] = (A.blades(True), False)
-    for v in range(3):
-        out["rock_v%d_up" % v] = (A.rock(v), False)
+    out["gcore_up"] = (A.gcore(), True)
+    out["gcore_cast_up"] = (A.gcore(True), False)
+    for v in range(2):
+        out["rockb_v%d_up" % v] = (A.rock_big(v), True)
+    for w in (3, 4, 6):
+        out["rocksh_w%d_gd" % w] = (A.rock_shadow(w), True)
     out["lk_shard_up"] = (A.link_shard(), True)
     up, gd = A.link_land()
     out["lk_land_up"] = (up, False)
