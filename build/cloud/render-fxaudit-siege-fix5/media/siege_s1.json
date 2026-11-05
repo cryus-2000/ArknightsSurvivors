@@ -1,0 +1,40 @@
+{
+ "op": "siege",
+ "mode": "s1",
+ "frame": 2,
+ "engine": 61,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 20,
+ "skill": 2,
+ "parts_total": 64,
+ "parts_per_hit": 3.2,
+ "parts_per_s": 12.8,
+ "parts_s1_1s": 22,
+ "mats": {
+  "rock": 28,
+  "streak": 36
+ },
+ "life": 0.67,
+ "sz": 3.6,
+ "alive_max": 22,
+ "lights": 13,
+ "lights_per_hit": 0.65,
+ "light_r": 100.0,
+ "light_i": 0.4,
+ "light_life": 0.12,
+ "emit_max": 360,
+ "emit_mean": 158.4,
+ "gl_peak": 89.0,
+ "gl_area_hit": 29,
+ "gl_mean_hit": 6.7,
+ "em_peak": 232.3,
+ "em_area_hit": 339,
+ "em_mean_hit": 121.5,
+ "crop": [
+  552,
+  304,
+  320,
+  180
+ ]
+}
