@@ -1,0 +1,42 @@
+{
+ "op": "kaltsit",
+ "mode": "s1",
+ "frame": 0,
+ "engine": 59,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 10,
+ "skill": 2,
+ "parts_total": 47,
+ "parts_per_hit": 4.7,
+ "parts_per_s": 9.4,
+ "parts_s1_1s": 11,
+ "mats": {
+  "dust": 16,
+  "rise": 15,
+  "ember": 8,
+  "rock": 8
+ },
+ "life": 0.91,
+ "sz": 3.0,
+ "alive_max": 20,
+ "lights": 11,
+ "lights_per_hit": 1.1,
+ "light_r": 120.0,
+ "light_i": 0.5,
+ "light_life": 0.15,
+ "emit_max": 321,
+ "emit_mean": 125.1,
+ "gl_peak": 128.2,
+ "gl_area_hit": 34,
+ "gl_mean_hit": 6.0,
+ "em_peak": 249.2,
+ "em_area_hit": 0,
+ "em_mean_hit": 0.0,
+ "crop": [
+  540,
+  277,
+  320,
+  180
+ ]
+}
