@@ -1,0 +1,127 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXRLOG eyjafjalla ey_fire 24 0.825
+PXPLOG ey ey_fire  0.825
+FXRLOG eyjafjalla ey_xhit 32 1.092
+PXPLOG ey ey_xhit  1.092
+FXRLOG eyjafjalla skill0 33 1.125
+PXPLOG ey skill 0 1.125
+FXRLOG eyjafjalla ey_boom 35 1.192
+PXPLOG ey ey_boom atk 1.192
+FXRLOG eyjafjalla ey_boom 41 1.392
+PXPLOG ey ey_boom atk 1.392
+FXRLOG eyjafjalla ey_splash 44 1.492
+PXPLOG ey ey_splash  1.492
+FXRLOG eyjafjalla ey_splash 50 1.692
+PXPLOG ey ey_splash  1.692
+FXRLOG eyjafjalla ey_fire 60 2.025
+PXPLOG ey ey_fire  2.025
+FXRLOG eyjafjalla ey_xhit 67 2.258
+PXPLOG ey ey_xhit  2.258
+FXRLOG eyjafjalla ey_boom 70 2.358
+PXPLOG ey ey_boom s1 2.358
+FXRLOG eyjafjalla ey_splash 79 2.658
+PXPLOG ey ey_splash  2.658
+FXRLOG eyjafjalla ey_fire 96 3.225
+PXPLOG ey ey_fire  3.225
+FXRLOG eyjafjalla ey_xhit 105 3.525
+PXPLOG ey ey_xhit  3.525
+FXRLOG eyjafjalla ey_boom 113 3.792
+PXPLOG ey ey_boom s1 3.792
+FXRLOG eyjafjalla ey_boom 117 3.925
+PXPLOG ey ey_boom atk 3.925
+FXRLOG eyjafjalla ey_splash 126 4.225
+PXPLOG ey ey_splash  4.225
+FXRLOG eyjafjalla ey_splash 127 4.258
+PXPLOG ey ey_splash  4.258
+FXRLOG eyjafjalla ey_fire 132 4.425
+PXPLOG ey ey_fire  4.425
+FXRLOG eyjafjalla ey_xhit 140 4.692
+PXPLOG ey ey_xhit  4.692
+FXRLOG eyjafjalla ey_boom 146 4.892
+PXPLOG ey ey_boom s1 4.892
+FXRLOG eyjafjalla ey_boom 149 4.992
+PXPLOG ey ey_boom atk 4.992
+FXRLOG eyjafjalla ey_splash 160 5.358
+PXPLOG ey ey_splash  5.358
+FXRLOG eyjafjalla ey_splash 163 5.458
+PXPLOG ey ey_splash  5.458
+FXRLOG eyjafjalla ey_fire 168 5.625
+PXPLOG ey ey_fire  5.625
+FXRLOG eyjafjalla ey_xhit 171 5.725
+PXPLOG ey ey_xhit  5.725
+FXRLOG eyjafjalla ey_boom 172 5.758
+PXPLOG ey ey_boom atk 5.758
+FXRLOG eyjafjalla ey_boom 176 5.892
+PXPLOG ey ey_boom atk 5.892
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1701: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1718: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1719: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1733: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1734: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1738: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1739: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 179 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

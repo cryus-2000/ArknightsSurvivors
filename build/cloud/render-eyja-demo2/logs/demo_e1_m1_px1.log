@@ -1,0 +1,143 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXRLOG eyjafjalla ey_fire 24 0.825
+PXPLOG ey ey_fire  0.825
+FXRLOG eyjafjalla ey_xhit 32 1.092
+PXPLOG ey ey_xhit  1.092
+FXRLOG eyjafjalla ey_boom 35 1.192
+PXPLOG ey ey_boom atk 1.192
+FXRLOG eyjafjalla ey_boom 39 1.325
+PXPLOG ey ey_boom atk 1.325
+FXRLOG eyjafjalla ey_splash 44 1.492
+PXPLOG ey ey_splash  1.492
+FXRLOG eyjafjalla ey_fire 45 1.525
+PXPLOG ey ey_fire  1.525
+FXRLOG eyjafjalla skill1 45 1.525
+PXPLOG ey skill 1 1.525
+FXRLOG eyjafjalla ey_splash 48 1.625
+PXPLOG ey ey_splash  1.625
+FXRLOG eyjafjalla ey_boom 56 1.892
+PXPLOG ey ey_boom s2 1.892
+FXRLOG eyjafjalla ey_fire 60 2.025
+PXPLOG ey ey_fire  2.025
+FXRLOG eyjafjalla ey_splash 65 2.192
+PXPLOG ey ey_splash  2.192
+FXRLOG eyjafjalla ey_splash 65 2.192
+PXPLOG ey ey_splash  2.192
+FXRLOG eyjafjalla ey_splash 67 2.258
+PXPLOG ey ey_splash  2.258
+FXRLOG eyjafjalla ey_splash 68 2.292
+PXPLOG ey ey_splash  2.292
+FXRLOG eyjafjalla ey_splash 68 2.292
+PXPLOG ey ey_splash  2.292
+FXRLOG eyjafjalla ey_xhit 69 2.325
+PXPLOG ey ey_xhit  2.325
+FXRLOG eyjafjalla ey_boom 75 2.525
+PXPLOG ey ey_boom atk 2.525
+FXRLOG eyjafjalla ey_fire 102 3.425
+PXPLOG ey ey_fire  3.425
+FXRLOG eyjafjalla ey_xhit 110 3.692
+PXPLOG ey ey_xhit  3.692
+FXRLOG eyjafjalla ey_boom 114 3.825
+PXPLOG ey ey_boom atk 3.825
+FXRLOG eyjafjalla ey_boom 116 3.892
+PXPLOG ey ey_boom atk 3.892
+FXRLOG eyjafjalla ey_fire 123 4.125
+PXPLOG ey ey_fire  4.125
+FXRLOG eyjafjalla skill1 123 4.125
+PXPLOG ey skill 1 4.125
+FXRLOG eyjafjalla ey_splash 123 4.125
+PXPLOG ey ey_splash  4.125
+FXRLOG eyjafjalla ey_splash 125 4.192
+PXPLOG ey ey_splash  4.192
+FXRLOG eyjafjalla ey_boom 134 4.492
+PXPLOG ey ey_boom s2 4.492
+FXRLOG eyjafjalla ey_fire 138 4.625
+PXPLOG ey ey_fire  4.625
+FXRLOG eyjafjalla ey_splash 143 4.792
+PXPLOG ey ey_splash  4.792
+FXRLOG eyjafjalla ey_splash 143 4.792
+PXPLOG ey ey_splash  4.792
+FXRLOG eyjafjalla ey_splash 143 4.792
+PXPLOG ey ey_splash  4.792
+FXRLOG eyjafjalla ey_splash 146 4.892
+PXPLOG ey ey_splash  4.892
+FXRLOG eyjafjalla ey_splash 146 4.892
+PXPLOG ey ey_splash  4.892
+FXRLOG eyjafjalla ey_xhit 146 4.892
+PXPLOG ey ey_xhit  4.892
+FXRLOG eyjafjalla ey_boom 151 5.058
+PXPLOG ey ey_boom atk 5.058
+FXRLOG eyjafjalla ey_boom 155 5.192
+PXPLOG ey ey_boom atk 5.192
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1701: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1717: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1718: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1719: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1720: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1726: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1727: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 179 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
