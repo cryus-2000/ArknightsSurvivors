@@ -852,7 +852,9 @@ static func _step_cast(u, a: Dictionary, _dt: float) -> bool:
 		var tp: Vector2 = _cast_pos(u, a)
 		a.tpos = tp
 		var tr: float = float(a.travel)
-		if tr > 0.0 and str(a.s) == "lumen" and _FXR.owns(p):
+		if tr > 0.0 and str(a.s) == "eyjafjalla" and _FXR.owns(p):
+			_FXR.ev(p, "ey_link", {"a": p.pos + Vector2(0, -26), "c": tp, "T": tr, "R": 42.0, "foot": p.pos})   # 转平面（docs/259）：放大熔岩弹抛过去，只画
+		elif tr > 0.0 and str(a.s) == "lumen" and _FXR.owns(p):
 			_FXR.ev(p, "lm_cshot", {"a": p.pos + Vector2(0, -26), "b": tp + Vector2(0, -30), "travel": tr})   # 转平面（docs/255）：只画
 		elif tr > 0.0:
 			_tracer(u, p.pos + Vector2(0, -26), tp, c, tr + 0.1, 7.0)
@@ -891,7 +893,10 @@ static func _impact(u, a: Dictionary) -> void:
 	match str(a.s):
 		"eyjafjalla":   # 放大熔岩弹 + 2 秒熔岩
 			hits = _area(p, tp, 105.0, 1.4, 80.0)
-			_ring(u, tp, 105.0, c, 0.4)
+			if Fxr.owns(p):
+				Fxr.ev(p, "ey_combo", {"at": tp, "r": 105.0, "es": hits})   # 转平面（docs/259）：落点火山爆团 + 熔岩，只画
+			else:
+				_ring(u, tp, 105.0, c, 0.4)
 			_linger(u, p, {"kind": "lava", "dur": 2.0, "c": tp, "r": 90.0})
 		"wisadel":   # 炮击 + 余震
 			hits = _area(p, tp, 110.0, 1.5, 120.0)
@@ -993,7 +998,8 @@ static func _step_linger(u, a: Dictionary, dt: float) -> bool:
 				_area(o, a.c, float(a.r), 0.2)
 			if int(a.age / 0.25) != int(a.get("vf", -1)):
 				a["vf"] = int(a.age / 0.25)
-				u.shape({"kind": "circle", "c": a.c, "r": float(a.r), "col": Color(1.0, 0.45, 0.15), "fill": 0.22, "life": 0.3})
+				if not Fxr.owns(o):   # 转平面（docs/259）接管时熔岩由 fx_pxplane 画
+					u.shape({"kind": "circle", "c": a.c, "r": float(a.r), "col": Color(1.0, 0.45, 0.15), "fill": 0.22, "life": 0.3})
 		"after":   # 0.45 秒后余震
 			if a.age >= 0.45 and not a.get("hit", false):
 				a["hit"] = true

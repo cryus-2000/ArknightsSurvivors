@@ -30,6 +30,10 @@ OPS = {
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
     # 流明：另含引擎帧号比连拍帧号多的约 9 帧（启动帧）
     "lumen": {"name": "流明", "modes": {3: "普攻 荧光", 0: "S1 沐雨", 1: "S2 沛霖", 2: "S3 灯火不灭"}, "off": {0: 13, 1: 12, 2: 13}},
+    # 艾雅法拉（docs/259）：技能画面在出手之后的爆点上——对齐到技能事件之后第一次爆点事件（evk）再加 off 帧（爆团鼓到最大）
+    "eyjafjalla": {"name": "艾雅法拉", "modes": {3: "普攻 熔岩弹", 0: "S1 二重咏唱", 1: "S2 点燃", 2: "S3 火山"}, "off": {0: 4, 1: 4, 2: 4},
+                   "evk": {0: "ey_boom", 1: "ey_boom", 2: "ey_s3"},
+                   "link": ["PXPLOG ey ey_link ", "PXPLOG ey ey_combo "], "link_k": 17, "link_name": "熔岩"},
 }
 OP = "skadi"
 START = {("lumen", 2): 1.2}   # 流明 S3 在演示开头约 1.3 秒就起手：提前开拍
@@ -143,6 +147,10 @@ def demo(a):
             OFF = OPS[OP]["off"]
             if mode in OFF:
                 evs = [int(x[3]) for x in res.get((tier, mode, "ev"), []) if len(x) > 3 and x[2] == "skill%d" % mode and x[3].isdigit()]
+                evk = OPS[OP].get("evk", {}).get(mode, "")
+                if evk and evs:   # 技能事件之后第一次爆点
+                    nx = [int(x[3]) for x in res.get((tier, mode, "ev"), []) if len(x) > 3 and x[2] == evk and x[3].isdigit() and int(x[3]) > evs[0]]
+                    evs = nx[:1] if nx else evs
                 f0 = int(st * 30)
                 cand = [(fe + OFF[mode] - f0) // a.every for fe in evs if (fe + OFF[mode] - f0) // a.every >= 0]
                 if cand and cand[0] < n:
@@ -217,13 +225,14 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ")]
+    pre = OPS[OP].get("link", ["PXPLOG hsg cover", "PXPLOG hsg combo "])
+    evs = [l.split() for l in log.splitlines() if any(l.startswith(x) for x in pre)]
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
         return False
     T = float(evs[0][-1])
-    k = int(round((T - t0) * 30.0)) + 8   # 落定后约 0.25 秒（盾立定、冲击环扩开）
+    k = int(round((T - t0) * 30.0)) + int(OPS[OP].get("link_k", 8))   # 星熊：落定后约 0.25 秒（盾立定、冲击环扩开）；艾雅法拉：熔岩块砸地后约 0.15 秒
     k -= k % st
     fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in (0, 2, 1)}
     if not all(os.path.exists(f) for f in fr.values()):
@@ -234,7 +243,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ("举盾" if evs[0][2] == "cover" else "举盾推挡", a.seed, T), fill=(230, 230, 230), font=f30)
+    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (OPS[OP].get("link_name", "举盾" if evs[0][2] == "cover" else "举盾推挡"), a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
     os.makedirs(a.out, exist_ok=True)
