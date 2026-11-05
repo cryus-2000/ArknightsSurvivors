@@ -8,8 +8,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0), "lappland": Color(0.8, 0.76, 1.0)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
-const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false, "狼之舞": true, "断喝": true, "噤声": true}
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0), "gladiia": Color(0.62, 0.72, 1.0), "ulpianus": Color(0.62, 0.69, 0.94), "lappland": Color(0.8, 0.76, 1.0)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
+const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false, "大洋裂断": true, "冲撞": true, "狼之舞": true, "断喝": true, "噤声": true}
+## 不走打击感包的招：歌蕾蒂娅 S3 每 0.75 秒一跳、反震（持续 / 被动，顿帧震屏会一直抖）
+const SKIP := {"碎漩狂舞": true, "反震": true}
 const FLASH_T := 0.07
 
 
@@ -24,7 +26,9 @@ static func lit_k(g) -> float:
 
 ## ob_core.exec_shape 判定结算后调（只画）：o 出手的干员，src 招式名，tags，hits 被打中的敌人
 static func hit(o, src: String, tags: Array, hits: Array) -> void:
-	if hits.is_empty() or not IDS.has(str(o.id)):
+	if hits.is_empty() or not IDS.has(str(o.id)) or SKIP.has(src):
+		return
+	if str(o.id) == "ulpianus" and src in ["撼地", "定点爆破", "锁链回旋"]:   # 乌尔比安（docs/266）：锚击的附带冲击不再顿一次
 		return
 	var g = o.g
 	if not on(g):

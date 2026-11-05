@@ -30,6 +30,7 @@ static func gl_drag_tick(o, hk: Dictionary, dg: Dictionary, dt: float) -> void:
 	dg["spk"] = 0.045
 	var g = o.g
 	var e: Dictionary = dg.e
+	_FXR.ev(o, "gl_barb", {"e": e})   # 转平面（docs/263）：只画
 	for k in 2:
 		o.fx({"kind": "spark", "pos": e.pos + Vector2(g.vrng.randf_range(-6, 6), -float(e.r) * 0.4 + g.vrng.randf_range(-4, 4)),
 			"vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(30.0, 90.0), "life": 0.35, "col": GL_COL, "sz": 3.0, "drag": 2.0})
@@ -62,6 +63,7 @@ static func gl_arrive(o, hk: Dictionary) -> void:
 		var hits: Array = o.melee_hit(str(sl.get("src", "回收斩")), org, ang, deg_to_rad(float(sl.get("half", 65.0))), r, float(hk.dmg) * float(sl.get("mult", 1.0)),
 			float(sl.get("kb", 0.0)), 0.0, ["follow_up", "area"])
 		fx_play(o, sl.get("fx", []), org, r, hits, ang)
+		_FXR.ev(o, "gl_slash", {"org": org, "ang": ang, "r": r, "es": hits})   # 转平面（docs/263）：只画
 		o.screen_shake(0.06)
 	var ch := _gl_on(o, "chain")
 	if not ch.is_empty() and o.pos != Vector2.INF:
@@ -130,6 +132,7 @@ static func _gl_geyser(o, gz: Dictionary, p: Vector2) -> void:
 	var g = o.g
 	var r: float = float(gz.get("r", 30.0))
 	fx_play(o, gz.get("fx", []), p, r)
+	_FXR.ev(o, "gl_geyser", {"p": p, "r": r})   # 转平面（docs/263）：只画
 	o.fx({"kind": "line", "pos": p, "to": p + Vector2(0, -44.0), "life": 0.35, "col": GL_BLUE, "w": 5.0})
 	o.fx({"kind": "ring", "pos": p, "r": r + 8.0, "r0": 6.0, "life": 0.3, "col": GL_BLUE, "floor": true, "w": 2.0, "alpha": 0.8})
 	for j in o.query_ids(p, r + 30.0):

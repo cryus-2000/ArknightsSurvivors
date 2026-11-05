@@ -142,6 +142,7 @@ static func _h4_fox_release(o, a: Dictionary) -> void:
 				bt = lt[0]
 		_h4_fire_big(o, a, from, bt)
 	var sl: Dictionary = _h4_sub(o, a.get("seal", null)) if volley else {}
+	var fired: Array = []   # 转平面（docs/271）：只画
 	for k in n:
 		if room <= 0:
 			break
@@ -151,10 +152,12 @@ static func _h4_fox_release(o, a: Dictionary) -> void:
 		var b := {"kind": "arcane", "pos": from, "vel": d * float(a.get("speed", 330.0)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o._dmg_bonus() * (o.vs_elite() if tg.elite or tg.boss else 1.0),
 			"life": float(a.get("life", 1.6)), "r": float(a.get("bullet_r", 7.0)), "aoe": float(a.get("aoe", 26.0)), "home": tg, "turn": float(a.get("turn", 7.0)), "src": str(a.get("src", "")), "op": o.id, "fx_col": H4_FOX, "hidden": true, "etrail": 0.0}
 		g.bullets.append(b)
+		fired.append(b)
 		if not sl.is_empty():
 			sz.sealed.append(b)   # 画地为牢：命中由 game 结算，这里记住弹体，下一帧看它是否撞上了敌人
 		_h4_fox_track(o, a, b)   # 精英化第 4 批（狐火灼印）的挂点；迁移时没有
 	o.fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": H4_FOX, "alpha": 0.5})
+	_FXR.ev(o, "sz_fire", {"bs": fired, "volley": volley, "tip": from})   # 转平面（docs/271）：只画
 	_h3_sfx(o, "atk")
 
 
@@ -242,6 +245,7 @@ static func _h4_attach_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 		o.deal_damage(e3, dmg * (o.vs_elite() if e3.elite or e3.boss else 1.0))
 		o.fx({"kind": "flame", "pos": e3.pos + Vector2(0, 4), "vel": Vector2(0, -30), "life": 0.3, "col": H4_FOX, "sz": 9.0})
 	o.fx({"kind": "ring", "pos": sz.att[0].e.pos, "r": r, "r0": r * 0.6, "life": 0.25, "col": H4_FOX, "floor": true, "w": 1.5, "alpha": 0.5})
+	_FXR.ev(o, "sz_att", {"c": sz.att[0].e.pos})   # 转平面（docs/271）：只画
 	# 传火：每团附着体至多传一次，传给 r 内最近的一名未被附着的敌人
 	for s2 in passes:
 		if not sz.att.has(s2) or s2.e.dead:
@@ -269,6 +273,7 @@ static func _h4_attach_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 		_h4_attach(o, at, best2, false)
 		o.fx({"kind": "line", "pos": s2.e.pos + Vector2(0, -10), "to": best2.pos + Vector2(0, -10), "life": 0.25, "col": Color(2.0, 1.6, 0.8), "w": 3.0})
 		o.fx({"kind": "glow", "pos": best2.pos + Vector2(0, -10), "r": 14.0, "life": 0.25, "col": H4_FOX, "alpha": 0.8})
+		_FXR.ev(o, "sz_pass", {"a": s2.e.pos, "b": best2.pos})   # 转平面（docs/271）：只画
 
 
 ## 灼印：dur 秒内受到的伤害 + value（敌人 frag_t / frag_v，combat.gd 读；同名取最高、再命中刷新）；脚下金印画面
@@ -301,6 +306,7 @@ static func _h4_fire_big(o, a: Dictionary, from: Vector2, tg: Dictionary) -> voi
 		"life": float(mg.get("life", 1.3)), "r": float(mg.get("r", 14.0)), "hit": {}, "trail": 0.0})
 	o.fx({"kind": "glow", "pos": from, "r": 24.0, "life": 0.22, "col": H4_FOX, "alpha": 0.7})
 	o.fx({"kind": "ring", "pos": from, "r": 30.0, "r0": 6.0, "life": 0.25, "col": H4_FOX, "w": 2.0})
+	_FXR.ev(o, "sz_big", {"from": from})   # 转平面（docs/271）：只画
 
 
 static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
@@ -341,6 +347,7 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 			var a2: float = g.vrng.randf() * TAU
 			var rr2: float = g.vrng.randf_range(0.3, 0.9) * h4_fox_r(o, fl)
 			o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
+			_FXR.ev(o, "sz_drop", {"at": o.pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0)})   # 转平面（docs/271）：只画（狐火落点代替光柱）
 		# 光域生效时主控缓慢回复（原作：范围内友军回复）
 		sz.heal_acc = float(sz.heal_acc) + dt
 		if float(sz.heal_acc) >= 1.0:
@@ -348,6 +355,7 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 			if g.hp < g.max_hp:
 				var hv: Array = fl.get("heal", [0.005, 0.01])
 				o.heal_leader(g.max_hp * (float(hv[1]) if float(sz.haze_t) > 0.0 else float(hv[0])), str(fl.get("src", o.display_name())))
+				_FXR.ev(o, "sz_heal", {})   # 转平面（docs/271）：只画
 		if was_haze and float(sz.haze_t) <= 0.0:
 			# 迷雾刚结束：回到暖光（永久）或清除加成
 			if warm:
@@ -398,6 +406,7 @@ static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 				o.add_cc(e, -INF, 1.0, "stop")
 			o.fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": H4_FOX, "w": 2.5})
 			_h3_vsparks(o, e.pos, H4_FOX, 4, 180.0, 0.3, 2.5)
+			_FXR.ev(o, "sz_bhit", {"e": e})   # 转平面（docs/271）：只画
 			_h4_fox_hit(o, a, e)   # 精英化第 4 批（狐火灼印）的挂点
 	sz.bigfox = sz.bigfox.filter(func(f): return f.life > 0.0)
 
@@ -563,7 +572,8 @@ static func h4_fox_cast(o, b: Dictionary) -> void:
 	var fl: Dictionary = _h4_live(o, "verb.foxlight")
 	var rr: float = h4_fox_r(o, fl)
 	o.fx({"kind": "ring", "pos": o.pos, "r": rr, "r0": 10.0, "life": 0.6, "col": H4_FOX, "floor": true})
-	g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": H4_FOX, "op_spoke": true})
+	if not _FXR.owns(o):   # 转平面（docs/271）接管时起手画面由 fx_pxplane_sz 画
+		g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": H4_FOX, "op_spoke": true})
 	# 圣光光柱：中心一根 + 光域边缘六根小的
 	o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(0, 4), g.PX * (1.4 if haze else 1.0), 0.0, false, true)
 	for k in 6:

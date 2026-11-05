@@ -74,6 +74,9 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 	var oe: Array = b.get("on_explode", []) + patch.get("on_explode", [])
 	if b.has("lob") and cond_true(o, b.lob.get("cond", _ED)):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（取代直线弹与后续弹）
 		hw_lob_volley(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, oe)
+		if not patch.is_empty() and _FXR.owns(o) and not o.hw.get("lobvol", []).is_empty():
+			for sh in o.hw.lobvol[-1].shots:
+				sh["pxs"] = true   # 转平面（docs/259 / 270）：精二低抛时二重咏唱强化的那一组也按 S1 画（画面专用键，玩法不读）
 		if b.has("fire_fx"):
 			_eg_fx(o, b.fire_fx, hw_tip(o, b), 10.0)
 		_FXR.ev(o, "ey_fire", {"at": hw_tip(o, b)})   # 转平面（docs/259）：出手火光，只画
@@ -1019,7 +1022,7 @@ static func _hw5_lob_land(o, b: Dictionary, s: Dictionary) -> void:
 		if not e.dead and e.pos.distance_to(c) < aoe + e.r:
 			o.deal_damage(e, float(s.dmg))
 	o._sfx_op("hit")
-	_FXR.ev(o, "ey_boom", {"at": c, "r": aoe, "k": "tri"})   # 转平面（docs/259）：三重咏唱每落一发，只画
+	_FXR.ev(o, "ey_boom", {"at": c, "r": aoe, "k": "s1" if s.get("pxs", false) else "tri"})   # 转平面（docs/259）：三重咏唱每落一发，只画
 	var lb: Dictionary = b.lob
 	if lb.get("weighted", false):
 		_hw_magma_impact(o, c, aoe, float(s.sz), lb.get("boom_fx", []))
