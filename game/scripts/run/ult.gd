@@ -656,7 +656,10 @@ func _default_dir(ld) -> Vector2:
 		if d.length_squared() > 640.0 * 640.0 or d == Vector2.ZERO:
 			continue
 		cnt[int(posmod(roundi(d.angle() / (PI / 4.0)), 8))] += 1
+	var no_v: bool = Bal.v("ult/test_aim_h", 0.0) > 0.0   # 录像用（docs/246 §16）：不取正上 / 正下，劈浪点（前方 520）才落在屏内
 	for i in 8:
+		if no_v and (i == 2 or i == 6):
+			continue
 		if cnt[i] > bn:
 			bn = cnt[i]
 			best = Vector2.from_angle(i * PI / 4.0)

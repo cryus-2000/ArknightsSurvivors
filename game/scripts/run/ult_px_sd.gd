@@ -8,6 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷散取怪物自身颜色）
 const META := "res://data/ult_px_skadi.json"
 const ART := "res://art/fx/pxp/ult_sd/%s.png"
 const ICE := Color(0.77, 0.86, 1.0)
@@ -82,7 +83,7 @@ func _ev(u, kind: String, d: Dictionary) -> void:
 				tex = load(p) if ResourceLoader.exists(p) else null
 			_cache = {}
 			st = {"o0": d.o0, "d": d.d, "dk": kf[0], "flip": kf[1], "t0": g.t, "tex": tex,
-				"rects": dirs[kf[0]], "crash_t": -1.0, "end_t": -1.0}
+				"rects": dirs[kf[0]], "crash_t": -1.0, "end_t": -1.0, "hits": [], "sprays": []}
 		"cleave":   # 下劈落地：落点一盏照地光（冰蓝）
 			if not st.is_empty():
 				u.light(_plane(150.0, 0.0), 160.0, ICE, 0.35)
@@ -90,6 +91,13 @@ func _ev(u, kind: String, d: Dictionary) -> void:
 			if not st.is_empty():
 				st.crash_t = g.t
 				u.light(_plane(540.0, 0.0), 460.0, Color(0.85, 0.92, 1.0), 0.6)
+		"hit":   # 被下劈 / 浪头打中的怪：冲击环扫到它那一拍补崩解（同一只只记一次）
+			if not st.is_empty() and st.hits.size() < HIT_MAX:
+				var e: Dictionary = d.e
+				for h in st.hits:
+					if is_same(h.e, e):
+						return
+				st.hits.append({"e": e, "p": e.pos, "done": false})
 		"surge":   # 涌潮路线终点再炸一次：同一爆点画法不另烤，只补一盏光
 			if not st.is_empty():
 				u.light(d.c, 220.0, ICE, 0.4)
@@ -179,6 +187,84 @@ func _prefetch(d: Vector2) -> void:
 		_cache = {p: load(p)}
 
 
+# ================================================================ 怪物崩解（用户 11-05「我说的崩解是原版那个粒子特效，就是怪物炸开的这个特效」；做法同艾丽妮 docs/275 §1.0）
+## 冲击环（爆心起 0.25 秒推到判定边，同烤图 shockR）扫到被这一招打中 / 打死的怪那一拍：
+##   ① 补一次引擎原有的击杀碎屑（optical_particles.kill_burst，按怪物贴图像素碎开；原有的击杀碎屑照常、时机不动）；
+##   ② 一圈怪物本色（enemies.json ecol 亮 / 本色 / 暗三阶，头两拍白芯）的像素喷散，初速顺着冲击方向往外，有重量、落地、停一下熄灭。
+## 劈浪之后才打中的怪（环已扫过）当拍就炸；环外的怪在环推到边那一拍炸、弱一号。只画，散布按哈希，不抽随机数。
+const HIT_MAX := 120
+const SPRAY_N := 22
+const SPRAY_MAX := 80
+const SHOCK_T := 0.25
+
+
+func _shock_r(ac: float) -> float:   # 世界像素（烤图 26 → 230 美术像素）
+	var k: float = clampf(ac / SHOCK_T, 0.0, 1.0)
+	return 52.0 + (460.0 - 52.0) * (1.0 - pow(1.0 - k, 3.0))
+
+
+static func _hf(x: int, y: int, k: int) -> float:
+	return float(((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) & 0xFFFF) / 65535.0
+
+
+func _shatter_tick() -> void:
+	if float(st.crash_t) < 0.0 or st.hits.is_empty():
+		return
+	var ac: float = g.t - float(st.crash_t)
+	var bc: Vector2 = _plane(540.0, 0.0)
+	var rr: float = _shock_r(ac)
+	for h in st.hits:
+		if h.done:
+			continue
+		var p: Vector2 = h.e.pos if not h.e.get("dead", false) else h.p
+		var rel: Vector2 = p - bc
+		var dist: float = Vector2(rel.x, rel.y / 0.72).length()
+		if dist <= rr or ac >= SHOCK_T:
+			h.done = true
+			_monster_burst(h.e, p, rel, 1.0 if dist <= 460.0 else 0.7)
+
+
+func _monster_burst(e: Dictionary, p: Vector2, rel: Vector2, k: float) -> void:
+	if g.optical_on and g.optical != null and g.optical.particles != null and not e.get("boss", false):
+		g.optical.particles.kill_burst(e)
+	var col: Color = D.ENEMIES.get(str(e.get("type", "")), {}).get("ecol", Color(0.6, 0.9, 0.9))
+	var out: Vector2 = Vector2(rel.x, rel.y / 0.72).normalized() if rel.length() > 1.0 else (st.d as Vector2)
+	st.sprays.append({"p": p + Vector2(0, -10), "t0": g.t, "col": col, "out": out, "k": k, "sd": int(e.get("id", 0)) * 13 + 5})
+	if st.sprays.size() > SPRAY_MAX:
+		st.sprays.pop_front()
+
+
+func _draw_sprays() -> void:
+	var px: float = g.PX
+	for sp in st.sprays:
+		var age: float = g.t - float(sp.t0)
+		if age > 1.3 or age < 0.0:
+			continue
+		var col: Color = sp.col
+		var cols: Array = [col.lightened(0.45), col.lightened(0.15), col, col.darkened(0.3)]
+		var k: float = float(sp.k)
+		var base: Vector2 = ((sp.p as Vector2) / 2.0).round() * 2.0
+		var sd: int = int(sp.sd)
+		for q in int(SPRAY_N * k):
+			var ang: float = (sp.out as Vector2).angle() + (_hf(q, sd, 71) - 0.5) * 1.8
+			var spd: float = (40.0 + 90.0 * _hf(q, sd, 72)) * k
+			var vh: float = 30.0 + 60.0 * _hf(q, sd, 73)
+			var t_land: float = 2.0 * vh / 260.0
+			var t: float = minf(age, 0.9)
+			var tt: float = minf(t, t_land)
+			var hgt: float = maxf(0.0, vh * tt - 130.0 * tt * tt) if t < t_land else 0.0
+			var off := Vector2(cos(ang) * spd * tt, sin(ang) * spd * tt * 0.72 - hgt)
+			var c: Color = cols[q % 4]
+			var hot: bool = age < 2.0 / 15.0 and q % 3 == 0
+			if hot:
+				c = Color.WHITE
+			c.a = 1.0 if age < 0.9 else maxf(0.0, (1.3 - age) / 0.4)
+			var sz: float = px * (2.0 if q % 3 != 2 else 1.0)
+			g.draw_rect(Rect2(base + (off / 2.0).round() * 2.0, Vector2(sz, sz)), c)
+			if hot:
+				_glow(base + off, Color.WHITE)
+
+
 # ================================================================ 绘制（ult.gd 四处转来）
 
 func draw_back(_u, w) -> void:
@@ -194,6 +280,8 @@ func draw_front(_u, w) -> void:
 	w.tb_flush()
 	_layer("up")
 	_emits()
+	_shatter_tick()
+	_draw_sprays()
 
 
 ## 冲击帧剪影：爆点那一拍的立起层（浪的两半 + 剑光 + 亮核）按 fg 纯色重画（烤好的白色剪影 × fg）

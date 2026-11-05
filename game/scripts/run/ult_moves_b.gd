@@ -222,6 +222,8 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		for e in u.in_circle(sc, 210.0):
 			a.sseg[int(e.id)] = true
 			_hit(u, a, o, e, Bal.v("ult/sd_slash", 0.3), {"src": "下劈", "edge": e.pos.distance_to(sc) > 210.0 * (1.0 - _edge_w())})
+			if a.get("px", false):
+				SDP.ev(u, "hit", {"e": e})   # 转平面：记下被打中的怪，冲击环扫到时补崩解（只画）
 		if a.get("px", false):
 			if _sd_v5(u):
 				u.g.vfx.stop(Bal.v("ult/sd_cut_stop", 0.06), "ult", true)   # 劈下那一下顿住（同原画面）
@@ -342,6 +344,8 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			w.seg[int(e.id)] = true
 			var fr: float = full - (Bal.v("ult/sd_slash", 0.3) if a.sseg.has(int(e.id)) and a.waves.size() == 1 else 0.0)
 			_hit(u, a, o, e, fr, {"src": "浪头", "edge": absf(rel.dot(n)) > hw * (1.0 - _edge_w()), "kb": _kb_for(e, d, 400.0, 240.0)})
+			if a.get("px", false):
+				SDP.ev(u, "hit", {"e": e})
 		if k >= 1.0:
 			w.done = true
 			for s in w.fx:   # 浪过：水痕 1.5 秒（只有画面）
