@@ -1,0 +1,6 @@
+card_desc rc=0
+touch_layout rc=0
+ui_smoke rc=0
+core rc=0
+data_lint rc=0
+text_reconcile rc=0
