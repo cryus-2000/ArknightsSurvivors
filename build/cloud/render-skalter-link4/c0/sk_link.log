@@ -1,0 +1,7 @@
+('link1_s11_71', 77, [], False)
+('link0_s11_71', 77, [], False)
+('link2_s11_71', 77, [], False)
+连携事件 [('sk_link', '7.128'), ('sk_link', '72.814')]
+三栏 cmp_link 帧 62
+link0_s11_71 vs link1_s11_71：TRACE 77 / 77 行，逐行一致
+link0_s11_71 vs link2_s11_71：TRACE 77 / 77 行，逐行一致
