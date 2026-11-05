@@ -298,7 +298,9 @@ def main():
     os.makedirs(OUT_ART, exist_ok=True)
     os.makedirs(TMP, exist_ok=True)
     vs = [x for x in VARIANTS[a.op]() if x[0].startswith(a.only)]
-    reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) and a.only else {}
+    reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) else {}
+    if not a.only:   # 全量重烘：清掉旧件，只留不由本脚本生成的（推进之王狮头 sg_lion_*，tools/pxplane_lion.py）
+        reg = {k: v for k, v in reg.items() if k.startswith("sg_lion_")}
     with ThreadPoolExecutor(a.jobs) as ex:
         rs = list(ex.map(lambda x: render(*x), vs))
     for key, d, dur, lp in rs:

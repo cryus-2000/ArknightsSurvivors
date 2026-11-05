@@ -625,7 +625,7 @@ function s1castUp(p, t, o, C, ACC, DU) {
       p.px(px0 - 1, cy + 1, C[n - 3]); p.px(px0 + 1, cy + 1, C[n - 3]);
     }
   }
-  lionHead(p, t, o, C, ACC, el);
+  // 狮头剪影改用生图转的帧条 pxp_sg_lion_*（tools/pxplane_lion.py，docs/264 §8），游戏里另推一件；这里只出声波环和吹开的尘
   roarRings(p, t, o, C, ACC, 40, 30, 12, 84, [2, 3, 3][el], 0.95, true, el >= 2, 0.06);
   blowDust(p, t, o, DU, el);
 }

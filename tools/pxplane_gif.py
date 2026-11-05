@@ -260,6 +260,7 @@ def siege_scenes(lib):
     for t in (0, 1, 2):
         s = base(26, E_RIGHT)
         s.pair("sg_s1cast_e%d" % t, 1, (0, 0))   # 朝右（面向敌群）
+        s.add("sg_lion_e%d_up" % t, 1, (0, 0))
         hammer(s, 8, t, 0, style="s1", kill=1)
         cols.append(("S1「冲锋号令·γ型」 精英 %d" % t, s))
     out["s1"] = (cols, 26, (24, -10))
@@ -267,8 +268,10 @@ def siege_scenes(lib):
     s = base(22, E_RIGHT + E_UP)
     s.pair("sg_s1cast_e2", 1, (0, 0))
     s.add("sg_cmd_gd", 1, (0, 0))
+    s.add("sg_lion_e2_up", 1, (0, 0))
     s2 = base(22, E_RIGHT)
     s2.pair("sg_s1cast_e2", 1, (0, 0))
+    s2.add("sg_lion_e2_up", 1, (0, 0))
     out["s1_branch"] = ([("S1 分支「万兽之王」号令波（精二）", s), ("对照：不选分支（精二）", s2)], 22, (0, -10))
     # S2 跃空锤
     def leap(s, tk0, a, b, T=6, h=21):
