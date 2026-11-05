@@ -20,6 +20,8 @@ const EMIT_CAP := 240
 const SHOCK_T := 3.5 / 15.0
 const SPRAY_N := 22
 const SPRAY_MAX := 60
+const END_T := 1.35     # 炸开后粒子云 / 照地光 / 崩解的总寿命（游戏秒）
+const FADE_T := 0.45    # 末尾渐隐（11-06 用户「末尾那个要不要加个渐变消失」：0.3–0.5 秒、真 alpha、按 15 fps 拍走）
 
 var g
 var a = null          # 这一次终结技的招式字典（ult_moves_b._mz_start 返回的 a；jl / jl_c1 / jl_burst / t 由原逻辑更新，这里只读）
@@ -82,7 +84,7 @@ func _ev(_u, kind: String, d: Dictionary) -> void:
 func _live() -> bool:
 	if a == null:
 		return false
-	if bursts_t >= 0.0 and g.t - bursts_t > 2.0:
+	if bursts_t >= 0.0 and g.t - bursts_t > END_T + 0.7:
 		a = null
 		return false
 	if not a.has("jl"):
@@ -243,7 +245,7 @@ func draw_front(_u, w) -> void:
 		var e: Dictionary = bd.e
 		if age > float(bd.life) or e.get("dead", false):
 			continue
-		_pts(w, e.pos, _coil(float(e.get("r", 14.0)) * 0.5 + 2.0))
+		_pts(w, e.pos, _coil(float(e.get("r", 14.0)) * 0.5 + 2.0, _fade_al(age, float(bd.life))))
 	w.tb_flush()
 
 
@@ -306,7 +308,13 @@ func _ring(r0: float, r1: float, tau: float, thick: int, main: bool) -> Array:
 
 
 ## 漏网缠绕：同 S2 的像素触手圈（1.25 圈矮螺旋，一勒一松）
-func _coil(er: float) -> Array:
+## 末尾渐隐：剩下不到 FADE_T 秒时透明度按 15 fps 一拍一拍降到 0（真 alpha，不抖动）
+static func _fade_al(age: float, life: float) -> float:
+	var left: float = ceilf((life - age) * 15.0) / 15.0
+	return clampf(left / FADE_T, 0.0, 1.0)
+
+
+func _coil(er: float, al := 1.0) -> Array:
 	var out: Array = []
 	var f: int = int(floor(g.t * 15.0)) % 6
 	var sq_: float = [0.0, 1.0, 1.5, 1.0, 0.0, -0.5][f]
@@ -324,10 +332,11 @@ func _coil(er: float) -> Array:
 		var dd := 0.0
 		while dd < wd:
 			var ci: int = 1 if dd < 0.8 else ((3 if front else 2) if dd < wd - 1.0 else (5 if front else 3))
-			out.append([x, y + dd - wd / 2.0, C8[ci], false])
+			var cc: Color = C8[ci]
+			out.append([x, y + dd - wd / 2.0, Color(cc.r, cc.g, cc.b, al), false])
 			dd += 1.0
 		if front and int(an * 3.0) % 4 == 0:
-			out.append([x, y, AC, true])
+			out.append([x, y, Color(AC.r, AC.g, AC.b, al), al > 0.5])
 		an += 0.5 / maxf(2.0, rx)
 	return out
 
@@ -348,7 +357,7 @@ func _monster_burst(e: Dictionary, c0: Vector2) -> void:
 func _draw_sprays(w) -> void:
 	for sp in sprays:
 		var age: float = g.t - float(sp.t0)
-		if age > 1.3:
+		if age > END_T:
 			continue
 		var col: Color = sp.col
 		var cols: Array = [col.lightened(0.45), col.lightened(0.15), col, col.darkened(0.3)]
@@ -366,6 +375,6 @@ func _draw_sprays(w) -> void:
 			var hot: bool = age < 2.0 / 15.0 and q % 3 == 0
 			if hot:
 				cc = Color(1, 1, 1)
-			var al: float = 1.0 if age < 0.9 else maxf(0.0, (1.3 - age) / 0.4)
+			var al: float = _fade_al(age, END_T)
 			lst.append([cos(ang) * spd * tt, sin(ang) * spd * tt * SQ - h, Color(cc.r, cc.g, cc.b, al), hot, 2.0 if q % 3 != 2 else 1.0])
 		_pts(w, sp.p, lst)

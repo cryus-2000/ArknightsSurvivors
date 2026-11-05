@@ -1239,7 +1239,10 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 		col = col.lerp(s.col1, clampf(age / maxf(0.001, float(s.get("cold", 0.4))), 0.0, 1.0))
 		col.a = ca
 	if s.has("fade"):
-		col.a *= clampf((float(s.max) - age) / maxf(0.001, float(s.fade)), 0.0, 1.0)
+		var left: float = float(s.max) - age
+		if s.get("fade_q", false):   # 按 15 fps 一拍一拍地降真透明度（水月转平面末尾渐隐，docs/261 §8.6）
+			left = ceilf(left * 15.0) / 15.0
+		col.a *= clampf(left / maxf(0.001, float(s.fade)), 0.0, 1.0)
 	var ux: float = float(s.get("ux", 0.0))
 	var uw: float = minf(float(s.get("uw", fw)), fw - ux)
 	var vw: float = uw

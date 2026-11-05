@@ -587,6 +587,7 @@ static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
 	var px: bool = MZP.on()   # 转平面（docs/261 §8）：粒子云体量照旧、换本人配色；爆闪 / 碎环由 ult_px_mz 画像素版；出声的图形透明保留；水雾（烟）不要
 	var cA: Color = MZP.CY if px else Color(0.38, 0.62, 0.68)
 	var cB: Color = MZP.AC if px else Color(0.48, 0.4, 0.7)
+	var fx_end: Dictionary = {"life": MZP.END_T, "fade": MZP.FADE_T, "fade_q": true} if px else {}   # 11-06 用户「末尾那个要不要加个渐变消失」：粒子云不再一齐消失
 	a["jl_burst"] = t
 	var vs: float = float(a.jl_vs) + 77.0
 	var R: float = float(a.R)
@@ -607,13 +608,13 @@ static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
 			j.ring.max = 0.0
 		var hh: float = PF.h(vs + i * 3.1)
 		u.shape({"kind": "circle", "c": p, "r": 34.0, "col": NOCOL if px else Color(0.7, 0.88, 0.9), "fill": 0.85, "life": 0.07})   # 每只的爆闪（≤ 0.9；出声 pop）
-		PF.particles(u, p, 600, "ult_burst", [cA, cB], 0.0, vs + i, 190.0 + 90.0 * hh)
-		PF.particles(u, p, 40, "ult_burst_s", [MZP.CYL if px else Color(0.55, 0.85, 0.9)], 0.0, vs + i * 7.0, 70.0)
+		PF.particles(u, p, 600, "ult_burst", [cA, cB], 0.0, vs + i, 190.0 + 90.0 * hh, fx_end)
+		PF.particles(u, p, 40, "ult_burst_s", [MZP.CYL if px else Color(0.55, 0.85, 0.9)], 0.0, vs + i * 7.0, 70.0, fx_end)
 		if not px:
 			PF.ring(u, LU_RINGS, p, 10.0, 130.0 + 60.0 * hh, 0.22, 0.5, {"seed": vs + i * 2.0, "layer": "front", "col": Color(0.55, 0.9, 0.95, 0.8), "col1": Color(0.3, 0.28, 0.6, 0.5), "cold": 0.3, "fade": 0.25})
 		u.grain("water", p, Vector2.from_angle(hh * TAU), Color(0.55, 0.85, 0.9), 8)
 		u.light(p, 110.0, Color(0.3, 0.55, 0.62), 0.25)
-		PF.particles(u, p, 30, "ult_ember", [MZP.C8[5] if px else Color(0.4, 0.66, 0.7)], 0.15 + 0.03 * (i % 3), vs + i * 5.0, 60.0)
+		PF.particles(u, p, 30, "ult_ember", [MZP.C8[5] if px else Color(0.4, 0.66, 0.7)], 0.15 + 0.03 * (i % 3), vs + i * 5.0, 60.0, fx_end)
 	var ctr: Vector2 = sum / maxf(1.0, float(a.jl.size()))
 	if a.has("jl_dim"):   # 压暗一下撤掉：暗 → 亮的反差就是冲击
 		a.jl_dim.max = 0.0
@@ -625,6 +626,7 @@ static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
 		PF.dust(u, p2, 130.0 + 60.0 * hh2, 0.02, vs + i * 3.0, Vector2.from_angle(hh2 * TAU) * 40.0, Color(0.42, 0.6, 0.66))
 	u.shape({"kind": "ring", "c": ctr, "r": R * 1.05, "r1": 60.0, "w": 10.0, "col": NOCOL if px else Color(0.45, 0.75, 0.85, 0.8), "life": 0.55, "frag": true})   # 群心大冲击波（出声 burst）
 	if px:
+		u.light(ctr, R * 0.6, Color(0.22, 0.42, 0.48), MZP.END_T)   # 照地光跟粒子云一起慢慢减弱（同长）
 		MZP.ev(u, "burst", {"c": ctr, "hits": a.get("mz_hits", [])})
 	u.light(ctr, R * 1.1, Color(0.3, 0.55, 0.62), 0.4)
 	u.shake(3.0, 0.15)
