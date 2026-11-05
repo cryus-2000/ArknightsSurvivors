@@ -172,14 +172,14 @@ def land(tier, mode, z):
             f.put(sx, sy * SQ - 30, V[7])
             f.put(sx, sy * SQ - 31, V[6])
         up.append(f)
-    for k in range(4):
+    for k in range(6):   # docs/270 补齐：星芒收掉后落点中心留一颗白热「压缩点」再亮 3 拍（发光核心）
         f = Buf()
-        if s1 and k <= 2:
+        if s1 and k <= 3:
             for (sx, sy, sl) in spikes:
                 top = sy * SQ - sl * (1.0 - 0.25 * k)
                 for y in range(int(top), int(sy * SQ) + 1):
                     u = (y - top) / max(1, sy * SQ - top)
-                    f.put(sx, y, V[7] if k == 0 or (k == 1 and u > 0.5) else (V[6] if k == 1 else V[4]))
+                    f.put(sx, y, V[7] if k <= 1 or u > 0.55 else (V[6] if k == 2 else V[5]))
                     if k == 0:
                         f.put(sx + 1, y, V[6] if u > 0.3 else V[5])
                 if k == 0:
@@ -197,9 +197,21 @@ def land(tier, mode, z):
                 for y in range(-1, 2):
                     f.put(x, -12 + y, V[7])
         elif k == 2:
-            _star(f, L * 0.3, [V[5], V[4], V[3]], 4, sd, 0.8, -12)
+            _star(f, L * 0.35, [V[6], V[5], V[4]], 4, sd, 1.0, -12)
+            for x in range(-2, 3):
+                for y in range(-2, 3):
+                    if abs(x) + abs(y) <= 2:
+                        f.put(x, -12 + y, V[7])
+        elif k <= 4:
+            r0 = 2 if k == 3 else 1
+            for x in range(-r0, r0 + 1):
+                for y in range(-r0, r0 + 1):
+                    if abs(x) + abs(y) <= r0:
+                        f.put(x, -12 + y, V[7] if abs(x) + abs(y) < r0 or k == 4 else V[6])
+            f.put(2, -15, V[5])
+            f.put(-3, -14, V[4])
         else:
-            f.put(0, -12, V[3])
+            f.put(0, -12, V[6])
             f.put(1, -14, V[4])
             f.put(-2, -15, V[3])
         up.append(f)
