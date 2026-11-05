@@ -396,6 +396,9 @@ var tex := {}
 ## 老手机（2–3 GB 内存）的标签页在开局就解码全部 Boss 帧条会被系统杀掉（docs/33 移动端）。桌面版永远为空（行为不变）。
 ## 名单：开局 WEB_EARLY_T 秒内会刷到的种类（威胁表、精英 elite_after、同伴骑士）照常预载，其余在 spawner.new_enemy 里经 ensure_enemy_tex 按需加载
 var tex_deferred := {}
+## 手机网页：开局没读的干员专属特效帧条（干员 id → [帧条名]），入队时 load_op_fx 补读（docs/287 §3 ①）。--lazyfx：桌面上试
+var tex_lazy_fx := {}
+var lazy_fx: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) or Cfg.dev_args().has("--lazyfx")
 const WEB_EARLY_T := 180.0
 var panel_title_text := ""
 # ---------- 打击感 ----------
@@ -498,6 +501,9 @@ const OPT_CPP := 131072   # 原生代码对照位（docs/101 §4.7 / B8）：置
 const OPT_HUDSQ := 524288   # HUD 编队栏：各干员 skill_hud() / portrait() 每帧取一次共用，每帧层不再算名字 / 精英标签；置位走旧写法（每帧取 2–3 次）。画面相同
 const OPT_HUDNC := 2097152   # HUD 块缓存（docs/126 §9.2）：置位时所有 HUD 块每帧画（同 --hudnocache），供 --optab 同局轮换量缓存的净收益。画面相同
 const OPT_PARA := 4194304   # 偏执狂二阶段「海嗣滴」弹：两个多边形进 TriBatch（Geometry2D 三角化后随批提交），不再每颗弹 tb_flush + 两次 draw_colored_polygon；置位走旧写法。画面相同（同一三角化）
+const OPT_SKDOM := 8388608   # 浊心斯卡蒂歌域笔触弧（fx_pxplane._sk_arc，docs/287 §3 ②）：角度 cos / sin 与粗细按节拍缓存；置位走旧写法（逐点重算）。画面逐位相同（--skdomtest）
+const OPT_SZAURA := 16777216   # 铃兰狐火光域（fx_pxplane_sz.draw_floor，docs/287 §3 ④）：展开好的像素矩形整组平移进批；置位走旧写法（逐像素 draw_rect）。画面逐位相同
+const OPT_PXSTEP := 33554432   # 转平面条目清理（fx_pxplane._step，docs/287 §3 ⑤）：一帧只跑一次；置位走旧写法（每名干员每层都跑）。画面相同
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
@@ -766,6 +772,23 @@ func _enemy_evict(n: String) -> void:
 			A.uncache(nm)
 	tex_deferred[n] = true
 
+## 中途入队的干员：补读开局跳过的专属特效帧条；光学压阶（optical._fxq_step）名单已建好时把它们接到名单末尾，照常换压阶版
+func load_op_fx(cid: String) -> void:
+	var ns: Array = tex_lazy_fx.get(cid, [])
+	if ns.is_empty():
+		return
+	tex_lazy_fx.erase(cid)
+	var t0 := Time.get_ticks_msec()
+	for n in ns:
+		if tex.get(n) == null:
+			tex[n] = A.tex(n)
+	if optical != null and not optical._fxq_names.is_empty():
+		optical._fxq_names.append_array(ns)
+	perf_rep.tag("读帧条")
+	if not Cfg.dev_args().is_empty():
+		print("PF FXLAZY t=%.1f %s n=%d ms=%d" % [t, cid, ns.size(), Time.get_ticks_msec() - t0])
+
+
 func ensure_white(n: String) -> void:
 	if not lazy_white or n == "":
 		return
@@ -989,7 +1012,19 @@ func _ready() -> void:
 				tex[nsa[kind]] = A.tex(str(nsa[kind]))
 	A.mark("tex_chars")
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
+	var fx_ids := {}
+	for o in squad.ops:
+		fx_ids[str(o.id)] = true
+	if demo_op != "":
+		fx_ids[demo_op] = true
 	for n in V6_FRAMES:
+		if lazy_fx:
+			var ow: String = A.fx_owner(n)
+			if ow != "" and not fx_ids.has(ow):
+				if not tex_lazy_fx.has(ow):
+					tex_lazy_fx[ow] = []
+				tex_lazy_fx[ow].append(n)
+				continue
 		tex[n] = A.tex(n)
 		# 敌人的附加帧条（休眠 / 唤醒 / 狂暴）也要白色剪影：受击闪白与轮廓光用
 		if n.begins_with("e_") and tex[n] != null and not lazy_white:
