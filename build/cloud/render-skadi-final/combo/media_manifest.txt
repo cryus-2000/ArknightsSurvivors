@@ -1,0 +1,2 @@
+1363605	cmp_combo.png
+201383	cmp_combo_x2.png

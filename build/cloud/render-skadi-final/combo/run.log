@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2189 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py combo
+   rc=0  1581 秒
+('combo_px0', 86, [], False)
+('combo_px2', 86, [], False)
+('combo_px1', 86, [], False)
+连携事件 1 次；取第 162 帧
+连携三栏 build/cloud/render-skadi-final-combo/media/cmp_combo.png
+media：2 个文件，1.5M
