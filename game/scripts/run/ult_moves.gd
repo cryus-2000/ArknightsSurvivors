@@ -11,7 +11,6 @@ const Bal = preload("res://scripts/core/balance.gd")
 const A = preload("res://scripts/art.gd")
 ## 其余 15 人（用户 10-29「20 个干员的都做好」）：分两个文件写，接口同本文件（handles / aim_kind / aim_r / start / step）
 const MB = preload("res://scripts/run/ult_moves_b.gd")   # 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔 / 归溟幽灵鲨 / 水月
-const TXP = preload("res://scripts/run/ult_px_tx.gd")   # 德克萨斯终结技转平面加强（docs/257 §9，ult/px_plane_texas；只画）
 const MC = preload("res://scripts/run/ult_moves_c.gd")   # 塞雷娅 / 铃兰 / 逻各斯 / 星熊 / 推进之王 / 艾丽妮 / 拉普兰德 / 流明
 
 const POINT_OPS := ["texas", "kaltsit", "ulpianus"]
@@ -311,7 +310,7 @@ static func _tx_dash_start(u, o) -> bool:
 
 static func _tx_dash_to(u, a: Dictionary, o, p0: Vector2, p1: Vector2, w := 4.0) -> void:
 	var d: Vector2 = (p1 - p0).normalized() if p1 != p0 else Vector2.RIGHT
-	u.shape({"kind": "blade", "a": p0 - d * 20.0, "b": p1 + d * 20.0, "w": w, "col": TXP.core(Color(1.0, 0.97, 0.9)), "glow": TXP.glow(), "grow": 0.025, "life": 0.13, "fo": 0.08})   # 身影线：一闪划过（转平面开：琥珀，docs/257 §9）
+	u.shape({"kind": "blade", "a": p0 - d * 20.0, "b": p1 + d * 20.0, "w": w, "col": Color(1.0, 0.97, 0.9), "glow": TX_GLOW, "grow": 0.025, "life": 0.13, "fo": 0.08})   # 身影线：一闪划过
 	var vs: float = PF.h(p0.x * 0.007 + p1.y * 0.013)
 	PF.dust(u, p0 + Vector2(0, 8), 60.0 + 30.0 * vs, 0.0, vs * 9.0, -d * 50.0, Color(0.6, 0.58, 0.56))   # 起步蹬地一小团烟
 	MC._lead_move(u, o, p1)
@@ -332,7 +331,7 @@ static func _ul_v3() -> bool:
 static func _tx_blade(u, ln: Array, v2 := false) -> void:
 	var hold: float = Bal.v("ult/tx_blade_hold", 0.2)
 	# v2（打击感试点，pixfx §6.6）：出手 1 帧到位（不长出来）、斩痕进冲击帧剪影
-	u.shape({"kind": "blade", "a": ln[0], "b": ln[1], "w": Bal.v("ult/tx_blade_w", 10.0), "col": TXP.core(Color.WHITE), "glow": TXP.glow(), "grow": 0.0 if v2 else 0.035, "life": hold + (Bal.v("ult/tx_fade", 0.7) if v2 else 0.035), "fo": Bal.v("ult/tx_fade", 0.7) if v2 else 0.08, "hf": v2})
+	u.shape({"kind": "blade", "a": ln[0], "b": ln[1], "w": Bal.v("ult/tx_blade_w", 10.0), "col": Color.WHITE, "glow": TX_GLOW, "grow": 0.0 if v2 else 0.035, "life": hold + (Bal.v("ult/tx_fade", 0.7) if v2 else 0.035), "fo": Bal.v("ult/tx_fade", 0.7) if v2 else 0.08, "hf": v2})
 
 
 ## 斩开 v2 的余部：沿刀痕的拖影（smear）+ 逐帧烟尘（五团、大小 / 延迟错开、往刀痕两侧散）；不飞碎石（用户 10-31）
@@ -343,8 +342,8 @@ static func _tx_cut_v2(u, ln: Array) -> void:
 	var vs: float = PF.h(a.x * 0.013 + b.y * 0.029)
 	# smear：冲击帧过后（0.13 秒）沿刀痕一条又宽又亮、两头拉出去的拖影带，0.1 秒
 	var hf2: float = 2.0 * Bal.v("ult/hit_frame_t", 0.067)
-	u.shape({"kind": "band", "a": a - d * 90.0, "b": b + d * 90.0, "w": 56.0, "col": TXP.core(Color(1.0, 0.95, 0.85)), "fill": 0.7, "life": 0.1, "delay": hf2})
-	u.shape({"kind": "band", "a": a - d * 140.0, "b": b + d * 140.0, "w": 22.0, "col": TXP.band2(Color(1.0, 0.85, 0.6)), "fill": 0.9, "life": 0.14, "delay": hf2})
+	u.shape({"kind": "band", "a": a - d * 90.0, "b": b + d * 90.0, "w": 56.0, "col": Color(1.0, 0.95, 0.85), "fill": 0.7, "life": 0.1, "delay": hf2})
+	u.shape({"kind": "band", "a": a - d * 140.0, "b": b + d * 140.0, "w": 22.0, "col": Color(1.0, 0.85, 0.6), "fill": 0.9, "life": 0.14, "delay": hf2})
 	var nrm: Vector2 = d.orthogonal()
 	for k in 3:   # 烟尘团（生成大贴图）：沿刀痕三处、大小 / 延迟错开，往刀痕两侧飘开
 		var hk: float = PF.h(vs + k * 1.7)
@@ -370,7 +369,7 @@ static func _tx_shatter(u, ln: Array, i0: int) -> void:
 		var tw: float = 0.18 * (1.0 if (k + i0) % 2 == 0 else -1.0)
 		var h: Vector2 = (p1 - p0).rotated(tw) * 0.5
 		var sgn: float = 1.0 if (k * 3 + i0) % 2 == 0 else -1.0
-		u.shape({"kind": "blade", "a": m - h, "b": m + h, "w": 5.0, "col": TXP.core(Color(1.0, 0.88, 0.72)), "glow": TXP.glow(), "life": 0.25,
+		u.shape({"kind": "blade", "a": m - h, "b": m + h, "w": 5.0, "col": Color(1.0, 0.88, 0.72), "glow": TX_GLOW, "life": 0.25,
 			"v": nrm * sgn * (70.0 + 25.0 * float((k * 7 + i0) % 4)) + d * 30.0 * float((k % 3) - 1)})
 
 
@@ -383,7 +382,7 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 	while int(a.drawn) < n and t >= float(a.drawn) * 0.5 / float(n):
 		# 画网：一道道橙色发丝线显现（斩开前的预兆）
 		var pl: Array = lines[int(a.drawn)]
-		u.shape({"kind": "line", "a": pl[0], "b": pl[1], "w": 1.5, "col": TXP.glow(), "life": maxf(0.05, 0.75 - t)})
+		u.shape({"kind": "line", "a": pl[0], "b": pl[1], "w": 1.5, "col": TX_GLOW, "life": maxf(0.05, 0.75 - t)})
 		a.drawn = int(a.drawn) + 1
 		if a.dash:   # 沿这道斩线闪身划过：从离她近的一端进、远的一端出
 			var near0: bool = o.pos.distance_to(pl[0]) <= o.pos.distance_to(pl[1])
@@ -404,8 +403,6 @@ static func _tx_step(u, a: Dictionary, o) -> bool:
 			u.tiles_line("fx_ult_texas_scar_back", ln[0], ln[1], {"layer": "back", "fps": 5.0, "life": 1.8 if v2 else 0.8})
 			if v2:
 				_tx_cut_v2(u, ln)
-		if TXP.on():
-			TXP.ev(u, "cut", {"c": a.c, "R": a.R, "es": u.in_circle(a.c, a.R)})   # 转平面加强（docs/257 §9）：斩开这一下叠冲击环 / 亮核 / 照地灯 / 崩解（只画；名单在判定前取，只读）
 		_hit_circle(u, a, o, a.c, a.R, float(a.cut_d), a.cut_seg, {"src": "斩开", "big": 1.0})
 		o.screen_shake(0.6)
 		o.play_vis_anim("attack")
