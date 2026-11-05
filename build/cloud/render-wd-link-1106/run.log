@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4376 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+('link1_s3_33', 42, [], False)
+('link0_s3_33', 42, [], False)
+连携事件 [('wd_lblast', '36.965'), ('wd_lblast', '36.965')]
+三栏 cmp_link 帧 126
+link0_s3_33 vs link1_s3_33：TRACE 42 / 42 行，逐行一致
+media：2 个文件，1.1M
