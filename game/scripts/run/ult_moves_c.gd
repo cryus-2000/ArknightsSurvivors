@@ -838,7 +838,7 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 const LO_RUNE := "fx_lo_rune"
 const LO_GLYPH := ["fx_lo_glyph1", "fx_lo_glyph2", "fx_lo_glyph3", "fx_lo_glyph4"]
 const LO_VIO := Color(0.72, 0.62, 1.0)
-## ult/px_plane_logos（docs/258 §9，缺省 0）：只换配色——原版紫换成本次定稿的逻各斯配色（同 fx_pxplane LG_C：#28355f #495694 #6a78ca #8c99ff #b4bdff #dce0ff #ffffff，点缀紫 #a487ff）。
+## ult/px_plane_logos（docs/258 §9，11-06 用户批准后缺省 1）：只换配色——原版紫换成本次定稿的逻各斯配色（同 fx_pxplane LG_C：#28355f #495694 #6a78ca #8c99ff #b4bdff #dce0ff #ffffff，点缀紫 #a487ff）。
 ## 画面 / 节奏 / 体量 / 音效 / 判定一概不动；原版默认路径（圆形咒域 + 真空压缩爆炸）里没有笔直的符文条（矩形咒域的符文带只在 ult/lo_circ = 0 时出现），不用改
 const LOPX := {"vio": Color("#8c99ff"), "pale": Color("#dce0ff"), "ring_in": Color("#b4bdff"), "ring": Color("#8c99ff"), "ring_dk": Color("#6a78ca"), "ring_cool": Color("#495694"),
 	"ember": Color("#495694"), "dust": Color(0.3, 0.34, 0.5), "acc": Color("#a487ff"), "mark": Color(1.1, 1.6, 1.55, 1.0), "seal": Color(0.9, 1.25, 1.2, 0.95)}
