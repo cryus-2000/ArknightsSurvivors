@@ -1032,9 +1032,9 @@ static func tx_rift_draw_body(o) -> bool:
 static func _tx_pos_mark(o) -> void:
 	var cv = o.cv
 	var c: Vector2 = (o.pos / 2.0).floor() * 2.0 + Vector2(0, 2)
-	var br: float = 0.42 + 0.12 * sin(float(int(float(o.g.t) * 15.0)) * 0.7)
-	var edge := Color(1.0, 0.72, 0.36, br)
-	var core := Color(0.12, 0.08, 0.05, br * 0.7)
+	var br: float = 0.62 + 0.12 * sin(float(int(float(o.g.t) * 15.0)) * 0.7)   # 11-06 用户选 A 后：1 倍下偏淡，0.42 → 0.62
+	var edge := Color(1.0, 0.78, 0.44, br)
+	var core := Color(0.12, 0.08, 0.05, br * 0.6)
 	for y in range(-3, 4):
 		var hw: int = 6 - 2 * absi(y)
 		for x in range(-hw, hw + 1):
