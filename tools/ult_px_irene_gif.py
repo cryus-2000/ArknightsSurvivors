@@ -257,15 +257,17 @@ def render(tk, ph, t, hfk):
                 dl = 0.08 + 0.04 * abs(x) * 3
                 f = int(math.floor((age - dl) * 15))
                 pts(bp, A.boom(f, s=2.4))
-                for side in (-1, 1):
-                    pts(bp, A.dust_wall((nv[0] * side, nv[1] * side), age - dl - 0.03, i * 2 + (side > 0)))
-            for q in range(24):
-                x = (q - 11.5) / 11.5
-                sd = 100 + q
-                gp = (C[0] + DV[0] * R_W * x * 1.05, C[1] + DV[1] * R_W * x * 1.05)
-                gr = A.grain(age - 0.03 * abs(x) * 4, sd, "rock")
-                if gr:
-                    put(gp[0] + gr[0] * PX, gp[1] + gr[1] * PX, gr[2], sz=gr[3] // 2 or 1)
+            # 崩解（用户 11-05「碎石和尘土比原版薄，少了崩解感」）：尘墙先画、碎石压在上面
+            for side in (-1, 1):
+                for k in range(A.PLUME_N):
+                    x = (k - (A.PLUME_N - 1) / 2) / ((A.PLUME_N - 1) / 2)
+                    root = (C[0] + DV[0] * R_W * x * 0.92 + nv[0] * side * 12, C[1] + DV[1] * R_W * x * 0.92 + nv[1] * side * 12)
+                    pts(root, A.plume(age - 0.12 - 0.1 * abs(x), k * 2 + (side > 0) + 300, (nv[0] * side, nv[1] * side)))
+            for q in range(A.SLAB_N):
+                side = 1 if q % 2 else -1
+                x = ((q // 2) - (A.SLAB_N // 2 - 1) / 2) / ((A.SLAB_N // 2 - 1) / 2)
+                sp = (C[0] + DV[0] * R_W * x * 0.95 + nv[0] * side * 6, C[1] + DV[1] * R_W * x * 0.95 + nv[1] * side * 6)
+                pts(sp, A.slab(age - 0.06 - 0.12 * abs(x), 200 + q, (nv[0] * side, nv[1] * side)))
     # ---- 光照
     if ct >= 0.1:
         k = max(0.0, 1.0 - (ct - 0.1) / 2.0)

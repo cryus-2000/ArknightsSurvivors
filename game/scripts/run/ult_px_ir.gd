@@ -1,7 +1,7 @@
 ## 艾丽妮终结技「宣判」转平面画面（docs/275，开关 ult/px_plane，缺省 0 = 原画面）：只改画面，招式时间轴 / 判定 / 伤害 / 冲击帧逻辑全照 ult_moves_c._irv_*。
 ## 纹章用用户 10-31 认可的图案，重采样到美术像素格并压扁、只留线稿、改白色阶（11-05 用户：纹章用白、紫留给斩击；tools/ult_px_irene_bake.py → art/fx/pxp/pxp_ult_ir_seal.png）。
 ## 1 特效像素 = 1 美术像素（g.PX = 2 世界像素），15 fps 节拍（帧号按全局拍子），贴地层压扁 0.72；白 + 亮紫为主，深海蓝潮水作辅色（docs/272 §1）。
-## 画法与 tools/ult_px_irene_art.py 一一对应（windup / seal_mod / chain / blade / thread / splash / boom / final_blade / crack / dust_wall / grain），改一边要改另一边。
+## 画法与 tools/ult_px_irene_art.py 一一对应（windup / seal_mod / chain / blade / thread / splash / boom / final_blade / crack / slab / plume / grain），改一边要改另一边。
 ## 事件由 ult_moves_c 的 _irv_* 在原来画图的位置发（IRP.ev），不抽随机数（散布按坐标哈希）；冲击帧剪影（收尾斩击 + 主裂缝）由 ult._draw_hit_frame 调 draw_hf 画。
 extends RefCounted
 
@@ -217,14 +217,16 @@ func draw_front(_u, w) -> void:
 			var bp2: Vector2 = c + dv2 * Rw * x * 0.95 + nv * (_hf(i, 1, 2) - 0.5) * 30.0
 			var dl: float = 0.08 + 0.04 * absf(x) * 3.0
 			_pts(w, bp2, _boom(int(floor((fa - dl) * 15.0)), true, 2.4))
-			for side in [-1.0, 1.0]:
-				_pts(w, bp2, _dust_wall(nv * side, fa - dl - 0.03, i * 2 + (1 if side > 0.0 else 0)))
-		for q in 24:
-			var x2: float = (float(q) - 11.5) / 11.5
-			var gp: Vector2 = c + dv2 * Rw * x2 * 1.05
-			var gr2: Array = _grain(fa - 0.03 * absf(x2) * 4.0, 100 + q, "rock")
-			if not gr2.is_empty():
-				_pts(w, gp, [[gr2[0], gr2[1], gr2[2], 1.0, gr2[3]]])
+		# 崩解：尘墙先画、碎石压在上面（11-05 用户「少了原作那种崩解感」）
+		for side in [-1.0, 1.0]:
+			var ns: Vector2 = nv * side
+			for k in PLUME_N:
+				var x3: float = (k - (PLUME_N - 1) / 2.0) / ((PLUME_N - 1) / 2.0)
+				_pts(w, c + dv2 * Rw * x3 * 0.92 + ns * 12.0, _plume(fa - 0.12 - 0.1 * absf(x3), k * 2 + (1 if side > 0.0 else 0) + 300, ns))
+		for q in SLAB_N:
+			var side2: float = 1.0 if q % 2 == 1 else -1.0
+			var x4: float = (float(q / 2) - (SLAB_N / 2 - 1) / 2.0) / ((SLAB_N / 2 - 1) / 2.0)
+			_pts(w, c + dv2 * Rw * x4 * 0.95 + nv * side2 * 6.0, _slab(fa - 0.06 - 0.12 * absf(x4), 200 + q, nv * side2))
 	w.tb_flush()
 
 
@@ -537,23 +539,6 @@ func _crack(R: float, ang: float, age: float, seed: int, life: float) -> Array:
 	return out
 
 
-func _dust_wall(nd: Vector2, age: float, seed: int) -> Array:
-	var out: Array = []
-	if age < 0.0 or age > 1.2:
-		return out
-	var u: float = age / 1.2
-	for q in 10:
-		var h: float = _hf(q, seed, 21)
-		var dist: float = (8.0 + 20.0 * h) * (1.0 - pow(1.0 - u, 2.0))
-		var along: float = (q - 4.5) * 4.0 + (_hf(q, seed, 22) - 0.5) * 4.0   # 沿斩线方向错开（不排成一横条）
-		var x: float = nd.x * dist - nd.y * along
-		var y: float = (nd.y * dist + nd.x * along) * SQ - 2.0 - 10.0 * u * (0.5 + h) - 3.0 * _hf(q, seed, 23)
-		var szd: float = 3.0 if u < 0.35 else (2.0 if u < 0.7 else 1.0)
-		var cd: Color = LT[4] if u < 0.12 else (DUST[3] if u < 0.45 else (DUST[2] if u < 0.75 else DUST[1]))   # 刚扬起那一下被斩光照成亮紫
-		out.append([x, y, cd, 0.9 * (1.0 - u * 0.6), szd])
-	return out
-
-
 ## 同 grain()：[x, y, 颜色, 边长]；空 = 已熄灭
 func _grain(age: float, seed: int, kind: String) -> Array:
 	var life: float = {"shard": 0.8, "rock": 1.0, "drop": 0.85}[kind]
@@ -580,3 +565,115 @@ func _grain(age: float, seed: int, kind: String) -> Array:
 		_:
 			c = TIDE[5] if not landed else TIDE[3]
 	return [cos(a) * spd * tt, sin(a) * spd * tt * SQ - h, c, sz / 2.0]
+
+
+## 收尾斩击后的崩解（11-05 用户「碎石和尘土比原版薄，少了原作那种崩解感」；同 slab() / plume()）：
+## 0–0.12 裂缝爆亮长出 → 0.06 起地面块沿裂缝掀起 → 0.12 起两侧尘墙冲起翻卷 → 约 0.5 秒碎石落地、弹一下、部分碎成小块 → 0.45 秒起尘土塌下散开，0.8 秒散完
+const WARM := [Color("#211d1a"), Color("#332d28"), Color("#4a423b"), Color("#655b52"), Color("#8a8076"), Color("#aea398")]
+const SLAB_N := 24     # 地面块总数（两侧合计；docs/270 爆发档一簇 ≤ 25）
+const PLUME_N := 14    # 每侧尘墙团数
+
+
+func _slab(age: float, seed: int, nd: Vector2) -> Array:
+	var out: Array = []
+	if age < 0.0 or age > 1.5:
+		return out
+	var w: int = 5 + int(4.0 * _hf(seed, 1, 41))
+	var h: int = maxi(3, int(w * (0.55 + 0.3 * _hf(seed, 2, 42))))
+	var spd: float = 14.0 + 30.0 * _hf(seed, 3, 43)
+	var tang: float = -6.0 + 12.0 * _hf(seed, 4, 44)
+	var vx: float = nd.x * spd - nd.y * tang
+	var vy: float = (nd.y * spd + nd.x * tang) * SQ
+	var vh: float = 100.0 + 60.0 * _hf(seed, 5, 45)
+	var G := 320.0
+	var t1: float = 2.0 * vh / G
+	var vh2: float = vh * 0.28
+	var t2: float = 2.0 * vh2 / G
+	var al: float = 1.0 if age < 1.2 else maxf(0.0, (1.5 - age) / 0.3)
+	var x: float
+	var y: float
+	var z: float
+	if age < t1:
+		x = vx * age
+		y = vy * age
+		z = vh * age - 0.5 * G * age * age
+	elif age < t1 + t2:
+		var t: float = age - t1
+		x = vx * (t1 + t * 0.4)
+		y = vy * (t1 + t * 0.4)
+		z = vh2 * t - 0.5 * G * t * t
+	else:
+		x = vx * (t1 + t2 * 0.4)
+		y = vy * (t1 + t2 * 0.4)
+		z = 0.0
+	var landed: bool = age >= t1
+	if landed and seed % 3 == 0:   # 碎成 3 小块
+		var tt: float = age - t1
+		for q in 3:
+			var a: float = q * 2.1 + _hf(seed, q, 46)
+			var d: float = minf(1.0, tt / 0.25) * (3.0 + 3.0 * _hf(seed, q, 47))
+			var zz: float = maxf(0.0, 8.0 * tt - 30.0 * tt * tt) if tt < 0.27 else 0.0
+			var cx: float = x + cos(a) * d
+			var cy: float = y + sin(a) * d * SQ - zz
+			for dx in 2:
+				for dy in 2:
+					out.append([cx + dx, cy + dy, WARM[3] if dy == 0 else WARM[1], al])
+		return out
+	var rot: bool = _hf(seed, 6, 48) > 0.5
+	for dx in w:
+		for dy in h:
+			if (dx == 0 or dx == w - 1) and (dy == 0 or dy == h - 1) and _hsh(dx, dy, seed) % 2 == 1:
+				continue
+			var c: Color
+			if dy == 0:
+				c = LT[4] if age < 0.18 else WARM[4]
+			elif dx == (w - 1 if rot else 0):
+				c = WARM[1]
+			else:
+				c = WARM[3] if dy == 1 else WARM[2]
+			out.append([x - w / 2.0 + dx, y - z - h + dy, c, al])
+	if not landed:
+		out.append([x, y + 1.0, WARM[0], 0.6 * al])
+		out.append([x + 1.0, y + 1.0, WARM[0], 0.6 * al])
+	return out
+
+
+func _plume(age: float, seed: int, ns: Vector2) -> Array:
+	var out: Array = []
+	if age < 0.0 or age > 0.8:
+		return out
+	var up: float = minf(1.0, age / 0.3)
+	var fall: float = maxf(0.0, (age - 0.4) / 0.4)
+	var fq: int = int(age * 15.0)
+	for b in 6:
+		var h0: float = _hf(seed, b, 51)
+		var H: float = (10.0 + 18.0 * h0) * (1.0 - pow(1.0 - up, 2.0)) * (1.0 - 0.75 * fall)
+		var r: float = 3.0 + 4.0 * up + 3.0 * fall + 2.0 * h0
+		var curl: float = sin(age * 9.0 + b * 1.7) * (1.0 + 2.0 * up)
+		var spread: float = (3.0 + 6.0 * h0) * up + 10.0 * fall
+		var along: float = (b - 2.5) * 3.5
+		var bx: float = ns.x * spread - ns.y * along + curl
+		var by: float = (ns.y * spread + ns.x * along) * SQ - H
+		var al: float = 0.9 * pow(1.0 - fall, 1.3)
+		if al <= 0.03:
+			continue
+		var ri: int = int(ceil(r))
+		for dx in range(-ri, ri + 1):
+			for dy in range(-ri, ri + 1):
+				var d: float = Vector2(dx, dy * 1.2).length()
+				var ang8: int = int((atan2(dy, dx) + PI) / TAU * 8.0) % 8
+				var rr: float = r * (0.8 + 0.35 * _hf(b * 8 + ang8, seed, 52))
+				if d > rr or (d > rr * 0.7 and _hsh(dx + b, dy, seed + fq) % 4 == 0):
+					continue
+				var top: bool = dy < -rr * 0.45
+				var c: Color
+				if top and age < 0.25:
+					c = LT[4] if d > rr * 0.5 else LT[5]
+				elif d > rr * 0.75:
+					c = WARM[2]
+				elif top:
+					c = WARM[5]
+				else:
+					c = WARM[4] if d < rr * 0.4 else WARM[3]
+				out.append([bx + dx, by + dy, c, al])
+	return out

@@ -1,4 +1,4 @@
-"""艾丽妮终结技「宣判」转平面画面（docs/275，开关 ult/px_plane）的像素图形（Python 版）：纹章、光链、穿梭斩线、连环爆、收尾斩击、裂缝、尘墙、蓄力。
+"""艾丽妮终结技「宣判」转平面画面（docs/275，开关 ult/px_plane）的像素图形（Python 版）：纹章、光链、穿梭斩线、连环爆、收尾斩击、裂缝、崩解（碎石 slab / 尘墙 plume）、蓄力。
 游戏里由 game/scripts/run/ult_px_ir.gd 逐格画，算法与本文件一一对应，改一边要改另一边；tools/ult_px_irene_gif.py 用它拼送审 GIF。
 单位：美术像素（1 美术像素 = 2 世界像素）；坐标相对给定原点；全部确定性（坐标哈希，不用随机数）。
 配色：白 + 亮紫为主（LT，与 docs/272 普攻 / 技能同一色阶），深海蓝潮水作辅色（TIDE），裂缝冷下去用暗紫灰（COOL），尘土灰（DUST）。
@@ -324,27 +324,6 @@ def crack(R, ang, age, seed, life=2.0):
     return out
 
 
-def dust_wall(n_dir, age, seed):
-    """斩线两侧往外推的尘墙一团（贴地上方，灰）：6 团 2–3 格的尘块往外推、往上团起、变淡，0.9 秒。原点 = 起点"""
-    out = []
-    if age < 0 or age > 1.2:
-        return out
-    u = age / 1.2
-    for q in range(10):
-        h = hf(q, seed, 21)
-        dist = (8 + 20 * h) * (1 - (1 - u) ** 2)
-        tx, ty = -n_dir[1], n_dir[0]   # 沿斩线方向错开（不排成一横条）
-        along = (q - 4.5) * 4 + (hf(q, seed, 22) - 0.5) * 4
-        x = n_dir[0] * dist + tx * along
-        y = (n_dir[1] * dist + ty * along) * SQ - 2 - 10 * u * (0.5 + h) - 3 * hf(q, seed, 23)
-        s = 3 if u < 0.35 else 2 if u < 0.7 else 1
-        c = DUST[3] if u < 0.45 else DUST[2] if u < 0.75 else DUST[1]
-        for dx in range(s):
-            for dy in range(s):
-                out.append((x + dx, y + dy, LT[4] if u < 0.12 else c, 0.9 * (1 - u * 0.6)))
-    return out
-
-
 # ================================================================ Noita 颗粒（解析轨迹：有重量、落地、停一下熄灭）
 
 def grain(age, seed, kind="shard"):
@@ -383,3 +362,109 @@ def grain(age, seed, kind="shard"):
 def hx3(s):
     s = s.lstrip("#")
     return (int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16))
+
+
+# ================================================================ 收尾斩击后的崩解（11-05 用户「碎石和尘土比原版薄，少了原作那种崩解感」）
+# 节奏：0–0.12 裂缝爆亮长出 → 0.06 起地面块沿裂缝掀起（离中心越远越晚）→ 0.12 起两侧尘墙冲起翻卷 → 约 0.5 秒碎石落地、弹一下、部分碎成小块 → 0.45 秒起尘土塌下散开，0.8 秒散完。
+WARM = ["#211d1a", "#332d28", "#4a423b", "#655b52", "#8a8076", "#aea398"]   # 地面暖灰（尘 / 碎石）
+SLAB_N = 24       # 地面块总数（两侧合计；docs/270 爆发档一簇 ≤ 25）
+PLUME_N = 14      # 每侧尘墙团数（相邻相叠成一片墙）
+
+
+def slab(age, seed, nd=(1.0, 0.0)):
+    """一块地面碎石（原点 = 它在裂缝边上的出生点；返回 [(x, y, 颜色, 不透明度)]）：4–8 格实心不规则块，暗面 + 亮顶边（刚掀起时被斩光照成亮紫边）；
+    掀起（上抛 + 往裂缝外侧飞）→ 落地 → 弹一下 → 停住；三分之一落地时碎成 3 小块；1.5 秒内淡掉"""
+    out = []
+    if age < 0 or age > 1.5:
+        return out
+    w = 5 + int(4 * hf(seed, 1, 41))
+    h = max(3, int(w * (0.55 + 0.3 * hf(seed, 2, 42))))
+    spd = 14 + 30 * hf(seed, 3, 43)   # 往裂缝外侧（nd = 地面法向）飞，带一点沿裂缝的偏
+    tang = -6 + 12 * hf(seed, 4, 44)
+    vx = nd[0] * spd - nd[1] * tang
+    vy = (nd[1] * spd + nd[0] * tang) * SQ
+    vh = 100 + 60 * hf(seed, 5, 45)
+    G = 320.0
+    t1 = 2 * vh / G
+    vh2 = vh * 0.28
+    t2 = 2 * vh2 / G
+    al = 1.0 if age < 1.2 else max(0.0, (1.5 - age) / 0.3)
+    if age < t1:
+        t = age
+        x, y, z = vx * t, vy * t, vh * t - 0.5 * G * t * t
+    elif age < t1 + t2:
+        t = age - t1
+        x, y, z = vx * (t1 + t * 0.4), vy * (t1 + t * 0.4), vh2 * t - 0.5 * G * t * t
+    else:
+        x, y, z = vx * (t1 + t2 * 0.4), vy * (t1 + t2 * 0.4), 0.0
+    landed = age >= t1
+    lit = age < 0.18
+    if landed and seed % 3 == 0:   # 碎成 3 小块
+        tt = age - t1
+        for q in range(3):
+            a = q * 2.1 + hf(seed, q, 46)
+            d = min(1.0, tt / 0.25) * (3 + 3 * hf(seed, q, 47))
+            zz = max(0.0, 8 * tt - 30 * tt * tt) if tt < 0.27 else 0.0
+            cx, cy = x + math.cos(a) * d, y + math.sin(a) * d * SQ - zz
+            for dx in range(2):
+                for dy in range(2):
+                    out.append((cx + dx, cy + dy, WARM[3] if dy == 0 else WARM[1], al))
+        return out
+    rot = 1 if hf(seed, 6, 48) > 0.5 else 0
+    for dx in range(w):
+        for dy in range(h):
+            if (dx in (0, w - 1)) and (dy in (0, h - 1)) and hsh(dx, dy, seed) % 2:
+                continue   # 缺角（不规则）
+            if dy == 0:
+                c = LT[4] if lit else WARM[4]
+            elif dx == (w - 1 if rot else 0):
+                c = WARM[1]
+            else:
+                c = WARM[3] if dy == 1 else WARM[2]
+            out.append((x - w / 2 + dx, y - z - h + dy, c, al))
+    if not landed:   # 空中：地上一点影子
+        out.append((x, y + 1, WARM[0], 0.6 * al))
+        out.append((x + 1, y + 1, WARM[0], 0.6 * al))
+    return out
+
+
+def plume(age, seed, nside):
+    """一团尘墙（原点 = 裂缝边上的根部；nside = 往外的地面法向）：6 团尘块冲起、边翻卷边长大（0.12–0.4 秒），顶边带一点白紫光；
+    0.4 秒后塌下、往外摊开、变淡，0.8 秒散完。返回 [(x, y, 颜色, 不透明度)]"""
+    out = []
+    if age < 0 or age > 0.8:
+        return out
+    up = min(1.0, age / 0.3)
+    fall = max(0.0, (age - 0.4) / 0.4)
+    for b in range(6):
+        h0 = hf(seed, b, 51)
+        H = (10 + 18 * h0) * (1 - (1 - up) ** 2) * (1 - 0.75 * fall)
+        r = 3 + 4 * up + 3 * fall + 2 * h0
+        curl = math.sin(age * 9 + b * 1.7) * (1 + 2 * up)
+        spread = (3 + 6 * h0) * up + 10 * fall
+        tx, ty = -nside[1], nside[0]   # 沿裂缝方向铺开
+        along = (b - 2.5) * 3.5
+        bx = nside[0] * spread + tx * along + curl
+        by = (nside[1] * spread + ty * along) * SQ - H
+        al = 0.9 * (1 - fall) ** 1.3
+        if al <= 0.03:
+            continue
+        ri = int(math.ceil(r))
+        for dx in range(-ri, ri + 1):
+            for dy in range(-ri, ri + 1):
+                d = math.hypot(dx, dy * 1.2)
+                ang8 = int((math.atan2(dy, dx) + math.pi) / math.tau * 8) % 8
+                rr = r * (0.8 + 0.35 * hf(b * 8 + ang8, seed, 52))   # 边缘起伏（不成正圆）
+                if d > rr or (d > rr * 0.7 and hsh(dx + b, dy, seed + int(age * 15)) % 4 == 0):
+                    continue
+                top = dy < -rr * 0.45
+                if top and age < 0.25:
+                    c = LT[4] if d > rr * 0.5 else LT[5]
+                elif d > rr * 0.75:
+                    c = WARM[2]
+                elif top:
+                    c = WARM[5]
+                else:
+                    c = WARM[4] if d < rr * 0.4 else WARM[3]
+                out.append((bx + dx, by + dy, c, al))
+    return out
