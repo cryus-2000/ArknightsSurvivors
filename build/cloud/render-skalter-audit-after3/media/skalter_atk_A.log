@@ -1,0 +1,494 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXA 0 0.000 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 1 0.025 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 2 0.058 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 3 0.100 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 4 0.129 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 5 0.159 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 6 0.192 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 7 0.225 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 8 0.258 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 9 0.292 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 10 0.325 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 11 0.358 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 12 0.392 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 13 0.425 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 14 0.458 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 15 0.492 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 16 0.525 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 17 0.558 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 18 0.592 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 19 0.625 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 20 0.658 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 21 0.692 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 22 0.725 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG skalter shape 22 0.758
+PXPLOG sk shape 声浪 0.758
+FXRLOG skalter shape 22 0.758
+PXPLOG sk shape 声浪 0.758
+FXA 23 0.758 new=ink:5 life=0.92 sz=4.8 alive=5 L=80/0.38/0.12/4f80ec;100/0.50/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 24 0.792 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXA 25 0.825 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXA 26 0.858 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXA 27 0.892 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXA 28 0.925 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 29 0.958 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG skalter shape 29 0.992
+PXPLOG sk shape 海嗣 0.992
+FXA 30 0.992 new=ink:7 life=0.87 sz=4.6 alive=12 L=90/0.42/0.12/86c6bd gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 31 1.025 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXA 32 1.058 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXA 33 1.092 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXA 34 1.125 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 35 1.158 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 36 1.192 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 37 1.225 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 38 1.258 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 39 1.292 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 40 1.325 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG skalter shape 40 1.358
+PXPLOG sk shape 余音 1.358
+FXA 41 1.358 new=ink:2 life=1.06 sz=6.0 alive=14 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 42 1.392 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 43 1.425 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 44 1.458 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 45 1.492 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 46 1.525 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 47 1.558 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 48 1.592 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 49 1.625 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 50 1.658 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 51 1.692 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG skalter shape 51 1.725
+PXPLOG sk shape 声浪 1.725
+FXRLOG skalter shape 51 1.725
+PXPLOG sk shape 声浪 1.725
+FXA 52 1.725 new=ink:5 life=0.92 sz=4.0 alive=16 L=80/0.38/0.12/4f80ec;100/0.50/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 53 1.758 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXA 54 1.792 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXA 55 1.825 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXA 56 1.858 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 57 1.892 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 58 1.925 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG skalter shape 58 1.958
+PXPLOG sk shape 海嗣 1.958
+FXA 59 1.958 new=ink:7 life=0.91 sz=5.1 alive=15 L=90/0.42/0.12/86c6bd gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 0 59
+FXA 60 1.992 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 1 60
+FXA 61 2.025 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 2 61
+FXA 62 2.058 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 3 62
+FXA 63 2.092 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 4 63
+FXA 64 2.125 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 5 64
+FXA 65 2.158 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 6 65
+FXA 66 2.192 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 7 66
+FXA 67 2.225 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 8 67
+FXA 68 2.258 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 9 68
+FXA 69 2.292 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 10 69
+FXRLOG skalter shape 69 2.325
+PXPLOG sk shape 余音 2.325
+FXA 70 2.325 new=ink:2 life=0.74 sz=4.0 alive=14 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 11 70
+FXA 71 2.358 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 12 71
+FXA 72 2.392 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 13 72
+FXA 73 2.425 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 14 73
+FXA 74 2.458 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 15 74
+FXA 75 2.492 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 16 75
+FXA 76 2.525 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 17 76
+FXA 77 2.558 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 18 77
+FXA 78 2.592 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 19 78
+FXA 79 2.625 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 20 79
+FXA 80 2.658 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 21 80
+FXRLOG skalter shape 80 2.692
+PXPLOG sk shape 声浪 2.692
+FXRLOG skalter shape 80 2.692
+PXPLOG sk shape 声浪 2.692
+FXA 81 2.692 new=ink:5 life=0.86 sz=4.8 alive=14 L=80/0.38/0.12/4f80ec;100/0.50/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 22 81
+FXA 82 2.725 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 23 82
+FXA 83 2.758 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 24 83
+FXA 84 2.792 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 25 84
+FXA 85 2.825 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 26 85
+FXA 86 2.858 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 27 86
+FXA 87 2.892 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 28 87
+FXRLOG skalter shape 87 2.925
+PXPLOG sk shape 潮汐和声 2.925
+FXRLOG skalter shape 87 2.925
+PXPLOG sk shape 海嗣 2.925
+FXA 88 2.925 new=ink:9 life=0.94 sz=5.3 alive=19 L=90/0.42/0.12/4f80ec;90/0.42/0.12/86c6bd gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 29 88
+FXA 89 2.958 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=176 emit=160
+FXSHOT 30 89
+FXA 90 2.992 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=170
+FXSHOT 31 90
+FXA 91 3.025 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=170
+FXSHOT 32 91
+FXA 92 3.058 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 33 92
+FXA 93 3.092 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 34 93
+FXA 94 3.125 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 35 94
+FXA 95 3.158 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 36 95
+FXRLOG skalter shape 95 3.192
+PXPLOG sk shape 潮汐和声 3.192
+FXA 96 3.192 new=ink:2 life=0.92 sz=4.0 alive=17 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 37 96
+FXA 97 3.225 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=34
+FXSHOT 38 97
+FXA 98 3.258 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXSHOT 39 98
+FXRLOG skalter shape 98 3.292
+PXPLOG sk shape 余音 3.292
+FXA 99 3.292 new=ink:2 life=0.80 sz=5.0 alive=18 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXSHOT 40 99
+FXA 100 3.325 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 41 100
+FXA 101 3.358 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 42 101
+FXA 102 3.392 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 43 102
+FXA 103 3.425 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 44 103
+FXA 104 3.458 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 45 104
+FXA 105 3.492 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 46 105
+FXA 106 3.525 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 47 106
+FXA 107 3.558 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 48 107
+FXA 108 3.592 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 49 108
+FXRLOG skalter shape 108 3.625
+PXPLOG sk shape 声浪 3.625
+FXRLOG skalter shape 108 3.625
+PXPLOG sk shape 声浪 3.625
+FXA 109 3.625 new=ink:5 life=0.84 sz=5.6 alive=19 L=80/0.38/0.12/4f80ec;100/0.50/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 50 109
+FXA 110 3.658 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 51 110
+FXA 111 3.692 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 52 111
+FXA 112 3.725 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 53 112
+FXA 113 3.758 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 54 113
+FXA 114 3.792 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 55 114
+FXA 115 3.825 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 56 115
+FXRLOG skalter shape 115 3.858
+PXPLOG sk shape 海嗣 3.858
+FXA 116 3.858 new=ink:7 life=0.95 sz=5.1 alive=19 L=90/0.42/0.12/86c6bd gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 57 116
+FXA 117 3.892 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 58 117
+FXA 118 3.925 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 59 118
+FXA 119 3.958 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 60 119
+FXA 120 3.992 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 61 120
+FXA 121 4.025 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 62 121
+FXA 122 4.058 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 63 122
+FXA 123 4.092 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 64 123
+FXA 124 4.125 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 65 124
+FXA 125 4.158 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 66 125
+FXA 126 4.192 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 67 126
+FXRLOG skalter shape 126 4.225
+PXPLOG sk shape 余音 4.225
+FXA 127 4.225 new=ink:2 life=0.96 sz=6.0 alive=14 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 68 127
+FXA 128 4.258 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 69 128
+FXA 129 4.292 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 70 129
+FXA 130 4.325 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 71 130
+FXA 131 4.358 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 72 131
+FXA 132 4.392 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 73 132
+FXA 133 4.425 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 74 133
+FXA 134 4.458 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 75 134
+FXA 135 4.492 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 76 135
+FXA 136 4.525 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 77 136
+FXA 137 4.558 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 78 137
+FXRLOG skalter shape 137 4.592
+PXPLOG sk shape 声浪 4.592
+FXRLOG skalter shape 137 4.592
+PXPLOG sk shape 声浪 4.592
+FXA 138 4.592 new=ink:5 life=0.91 sz=4.4 alive=14 L=80/0.38/0.12/4f80ec;100/0.50/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 79 138
+FXA 139 4.625 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 80 139
+FXA 140 4.658 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 81 140
+FXA 141 4.692 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 82 141
+FXA 142 4.725 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 83 142
+FXA 143 4.758 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 84 143
+FXA 144 4.792 new=- life=0.00 sz=0.0 alive=7 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 85 144
+FXRLOG skalter shape 144 4.825
+PXPLOG sk shape 海嗣 4.825
+FXA 145 4.825 new=ink:7 life=0.98 sz=5.7 alive=14 L=90/0.42/0.12/86c6bd gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 86 145
+FXA 146 4.858 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 87 146
+FXA 147 4.892 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 88 147
+FXA 148 4.925 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 89 148
+FXA 149 4.958 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 90 149
+FXA 150 4.992 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 91 150
+FXA 151 5.025 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 92 151
+FXA 152 5.058 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 93 152
+FXA 153 5.092 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 94 153
+FXA 154 5.125 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 95 154
+FXA 155 5.158 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 96 155
+FXRLOG skalter shape 155 5.192
+PXPLOG sk shape 余音 5.192
+FXA 156 5.192 new=ink:2 life=1.02 sz=5.0 alive=14 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 97 156
+FXA 157 5.225 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 98 157
+FXA 158 5.258 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 99 158
+FXA 159 5.292 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 100 159
+FXA 160 5.325 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 101 160
+FXA 161 5.358 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 102 161
+FXA 162 5.392 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 103 162
+FXA 163 5.425 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 104 163
+FXA 164 5.458 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 105 164
+FXA 165 5.492 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 106 165
+FXA 166 5.525 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 107 166
+FXRLOG skalter shape 166 5.558
+PXPLOG sk shape 声浪 5.558
+FXRLOG skalter shape 166 5.558
+PXPLOG sk shape 声浪 5.558
+FXA 167 5.558 new=ink:5 life=0.86 sz=4.4 alive=14 L=80/0.38/0.12/4f80ec;100/0.50/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 108 167
+FXA 168 5.592 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 109 168
+FXA 169 5.625 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 110 169
+FXA 170 5.658 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 111 170
+FXA 171 5.692 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 112 171
+FXA 172 5.725 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 113 172
+FXA 173 5.758 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 114 173
+FXRLOG skalter shape 173 5.792
+PXPLOG sk shape 潮汐和声 5.792
+FXRLOG skalter shape 173 5.792
+PXPLOG sk shape 海嗣 5.792
+FXA 174 5.792 new=ink:9 life=0.86 sz=5.1 alive=16 L=90/0.42/0.12/4f80ec;90/0.42/0.12/86c6bd gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 115 174
+FXA 175 5.825 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=176 emit=160
+FXSHOT 116 175
+FXA 176 5.858 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=170
+FXSHOT 117 176
+FXA 177 5.892 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=170
+FXSHOT 118 177
+FXA 178 5.925 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 119 178
+FXA 179 5.958 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 120 179
+FXA 180 5.992 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 121 180
+FXA 181 6.025 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 122 181
+FXRLOG skalter shape 181 6.058
+PXPLOG sk shape 潮汐和声 6.058
+FXA 182 6.058 new=ink:2 life=0.95 sz=6.0 alive=18 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 123 182
+FXA 183 6.092 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=50 emit=34
+FXSHOT 124 183
+FXA 184 6.125 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXSHOT 125 184
+FXRLOG skalter shape 184 6.158
+PXPLOG sk shape 余音 6.158
+FXA 185 6.158 new=ink:2 life=0.89 sz=5.0 alive=18 L=90/0.42/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXSHOT 126 185
+FXA 186 6.192 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 127 186
+FXA 187 6.225 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 128 187
+FXA 188 6.258 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 129 188
+FXA 189 6.292 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 130 189
+FXA 190 6.325 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 131 190
+FXA 191 6.358 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 132 191
+FXA 192 6.392 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 133 192
+FXA 193 6.425 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 134 193
+FXA 194 6.458 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 135 194
+FXRLOG skalter shape 194 6.492
+PXPLOG sk shape 声浪 6.492
+FXRLOG skalter shape 194 6.492
+PXPLOG sk shape 声浪 6.492
+FXA 195 6.492 new=ink:5 life=0.88 sz=5.2 alive=18 L=80/0.38/0.12/4f80ec;100/0.50/0.12/4f80ec gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 136 195
+FXA 196 6.525 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 137 196
+FXA 197 6.558 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=254 emit=238
+FXSHOT 138 197
+FXA 198 6.592 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 139 198
+FXA 199 6.625 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=232
+FXSHOT 140 199
+FXA 200 6.658 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 141 200
+FXA 201 6.692 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 142 201
+FXRLOG skalter shape 201 6.725
+PXPLOG sk shape 海嗣 6.725
+FXA 202 6.725 new=ink:7 life=0.84 sz=5.1 alive=18 L=90/0.42/0.12/86c6bd gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 143 202
+FXA 203 6.758 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 144 203
+FXA 204 6.792 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 145 204
+FXA 205 6.825 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=126
+FXSHOT 146 205
+FXA 206 6.858 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 147 206
+FXA 207 6.892 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 148 207
+FXA 208 6.925 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 149 208
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1694: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1695: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1696: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1701: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1717: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 179 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
