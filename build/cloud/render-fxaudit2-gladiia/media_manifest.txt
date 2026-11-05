@@ -1,0 +1,9 @@
+1633	audit_gladiia.json
+769	gladiia_atk.json
+886599	gladiia_atk.png
+30094	gladiia_atk_A.log
+147369	gladiia_atk_x2.png
+762	gladiia_s1.json
+892534	gladiia_s1.png
+29969	gladiia_s1_A.log
+142038	gladiia_s1_x2.png
