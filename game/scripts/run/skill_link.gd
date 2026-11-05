@@ -852,14 +852,18 @@ static func _step16(u, a: Dictionary) -> bool:
 					if e.dead and not a.done.has("d%d" % int(e.id)):
 						a.done["d%d" % int(e.id)] = true
 						a.gh.append([e.pos, t])
-						if not LFB.wd_ghost(u, e.pos):
+						if _FXR.owns(p):
+							_FXR.ev(p, "wd_lghost", {"at": e.pos})   # 转平面（docs/274）：灰紫残影浮出，只画
+						elif not LFB.wd_ghost(u, e.pos):
 							u.shape({"kind": "ellipse", "c": e.pos + Vector2(0, -16), "rx": 12.0, "ry": 18.0, "col": cl, "fill": 0.55, "life": 0.35})
 			if t >= 0.8 and a.gh.is_empty() and once.call("fallback"):
 				a.gh.append([_tgp(a), t - 0.35])
 			for j in a.gh.size():
 				var gp: Vector2 = a.gh[j][0]
 				if t >= float(a.gh[j][1]) + 0.35 and once.call("b%d" % j):
-					if not LFB.wd_blast(u, gp, j):
+					if _FXR.owns(p):
+						_FXR.ev(p, "wd_lblast", {"at": gp, "r": 60.0, "j": j})   # 转平面（docs/274）：灰紫殉爆，只画
+					elif not LFB.wd_blast(u, gp, j):
 						u.shape({"kind": "ring", "c": gp, "r": 60.0, "r1": 12.0, "w": 6.0, "col": cl, "life": 0.3})
 						u.shape({"kind": "rock", "c": gp, "r": 22.0, "col": cl, "glow": Color(1.0, 0.8, 0.55), "seed": 9.0 + j, "hold": false, "life": 0.14})
 						u.shape({"kind": "ellipse", "c": gp + Vector2(0, 4), "rx": 26.0, "ry": 11.0, "col": Color(0.12, 0.06, 0.06), "fill": 0.7, "layer": "back", "life": 0.9})

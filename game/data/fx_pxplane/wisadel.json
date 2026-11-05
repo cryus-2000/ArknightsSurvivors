@@ -1,0 +1,4 @@
+{
+	"_doc": "docs/274 维什戴尔转平面（fx/px_plane）：颜色组只给 Noita 颗粒（rock 爆炸碎块 / ember 火星）、照地光（light）、受击反应（flash）用；主形是纯 Python 烤的帧条（data/pxp_wisadel.json）。爆炸暗金 / 橙白热芯 + 黑烟，魂灵之影灰紫（帧条里）；红色只给危险，这里不用",
+	"palette": {"dark": "#3a1c0c", "main": "#f59a2e", "hot": "#ffe2a0", "accent": "#c8bede", "light": "#ffb050", "flash": "#ffc070"}
+}

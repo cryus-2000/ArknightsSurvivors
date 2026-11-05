@@ -185,6 +185,8 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 			_FXR.ev(o, "mz_splash", {"at": e.pos})   # 转平面（docs/261）：水月的扩散改画一圈细水纹，只画
 		elif str(o.id) == "angelina":
 			_FXR.ev(o, "ang_splash", {"at": e.pos})   # 转平面（docs/267）：只画
+		elif str(o.id) == "wisadel":
+			_FXR.ev(o, "wd_splash", {"at": e.pos})   # 转平面（docs/274）：只画
 	if ch > 0:
 		var cur: Dictionary = e
 		var done := {e.id: true}
@@ -211,6 +213,8 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 				_FXR.ev(o, "lm_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0, "e": nx})   # 转平面（docs/255）：只画
 			elif str(o.id) == "eyjafjalla":
 				_FXR.ev(o, "ey_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0, "e": nx})   # 转平面（docs/259）：只画
+			elif str(o.id) == "wisadel":
+				_FXR.ev(o, "wd_lchain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16)})   # 转平面（docs/274）：只画
 			o.log_hit(_src(o, "连锁"), ["lshape"])
 			o.deal_damage(nx, d * (kn("boss_k", 1.0) if nx.boss else 1.0))
 			cur = nx

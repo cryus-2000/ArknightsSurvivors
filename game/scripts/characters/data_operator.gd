@@ -1141,7 +1141,7 @@ func draw_body() -> void:
 	if not hw.is_empty() and SegSiege.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
 		return
 	_draw_body_fx(false)
-	if not hw.is_empty() and not Fxr.owns(self):
+	if not hw.is_empty() and (not Fxr.owns(self) or hw.has("wd")):   # 转平面（docs/274）：维什戴尔的魂灵之影是召唤物本体（不是攻击特效），接管时照画
 		ObHw.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
 	super()
 	if not hw.is_empty() and not Fxr.owns(self):

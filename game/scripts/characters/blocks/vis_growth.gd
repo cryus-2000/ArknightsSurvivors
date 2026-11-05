@@ -412,6 +412,8 @@ static func tick(o, dt: float) -> void:
 					_FXR.ev(o, "ey_xhit", {"e": e, "at": e.pos, "r": 30.0})   # 转平面（docs/259）：只画
 				elif str(o.id) == "exusiai":
 					_FXR.ev(o, "exu_xhit", {"e": e, "at": e.pos + Vector2(0, SHOT_Y)})   # 转平面（docs/262）：只画
+				elif str(o.id) == "wisadel":
+					_FXR.ev(o, "wd_xhit", {"e": e, "at": e.pos})   # 转平面（docs/274）：只画
 				o.fx({"kind": "spark", "pos": e.pos + Vector2(0, SHOT_Y), "vel": b.v.normalized() * 40.0, "life": 0.14, "col": _tint(o), "sz": 2.0, "drag": 4.0})
 				if b.hit.size() >= int(b.max):
 					b.life = 0.0
@@ -474,7 +476,7 @@ static func draw(o) -> void:
 	var low: bool = quality() == "low"
 	var tc := _tint(o)
 	var sc: float = kn("shot_scale", 0.8)
-	var pxb: bool = str(o.id) in ["lumen", "eyjafjalla", "exusiai"] and _FXR.Pxp.owns_id(g, str(o.id))   # 转平面（docs/255 / 259 / 262）：流明光弹、艾雅法拉熔岩块由 fx_pxplane 画
+	var pxb: bool = str(o.id) in ["lumen", "eyjafjalla", "exusiai", "wisadel"] and _FXR.Pxp.owns_id(g, str(o.id))   # 转平面（docs/255 / 259 / 262 / 274）：流明光弹、艾雅法拉熔岩块、维什戴尔小炮弹由 fx_pxplane 画
 	for b in ([] if pxb else v.bul):
 		var p: Vector2 = b.p + Vector2(0, SHOT_Y)
 		var d: Vector2 = b.v.normalized()
