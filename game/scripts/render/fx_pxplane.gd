@@ -2415,7 +2415,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					if i == 0:   # 颗粒等白芯第一次画的时候再撒（发光层晚一帧上屏：颗粒和辉光落在同一帧）；每次挥伞 4–5 颗（原来伞击 + 每根触手各撒，一簇 13 颗）
 						hot["gr"] = [hp, float(lst[0].pos.y) + 2.0, 4 + (1 if t >= 2 else 0), t, (hp - o.pos).normalized()]
 					_push(hot)
-				R._light(o, hp, 100.0, 0.4 * MI.lit_k(g), 0.12, p.light)
+				R._light(o, hp, 100.0, 0.45 * MI.lit_k(g), 0.12, p.light)   # docs/270 复测：照地亮度峰值 +42（下限 +50）→ 实测强度 0.54 → 约 0.6
 		"mz_tent":
 			var e: Dictionary = d.get("e", {})
 			if e.is_empty():
