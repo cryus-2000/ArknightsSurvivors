@@ -82,6 +82,7 @@ func _probe() -> String:
 			ls.append("%d/%.2f/%.2f/%s" % [int(L[1]), float(L[5]), float(L[4]), (L[2] as Color).to_html(false)])
 	var gr := 0
 	var gnew := 0
+	var gtn := {}
 	var sp := 0
 	var gl := 0
 	if "optical" in g and g.optical != null and g.optical.grains != null:
@@ -90,6 +91,8 @@ func _probe() -> String:
 		for i in G.life.size():
 			if G.life[i] == G.lmax[i] and G.delay[i] <= 0.0:
 				gnew += 1
+				var tn: String = str(G._names[int(G.tpl[i])]) if int(G.tpl[i]) >= 0 and int(G.tpl[i]) < G._names.size() else "?"
+				gtn[tn] = int(gtn.get(tn, 0)) + 1   # 新颗粒按模板名分（查来源，docs/262 §10）
 		for s in G.sparks:
 			if s.size() > 6:
 				continue
@@ -110,9 +113,12 @@ func _probe() -> String:
 	var ns: Array = []
 	for k in newm:
 		ns.append("%s:%d" % [k, newm[k]])
-	return "FXA %d %.3f new=%s life=%.2f sz=%.1f alive=%d L=%s gr=%d gnew=%d sp=%d gl=%d glow=%d emit=%d" % [
+	var gts: Array = []
+	for k2 in gtn:
+		gts.append("%s:%d" % [k2, gtn[k2]])
+	return "FXA %d %.3f new=%s life=%.2f sz=%.1f alive=%d L=%s gr=%d gnew=%d sp=%d gl=%d glow=%d emit=%d gt=%s" % [
 		Engine.get_process_frames(), float(g.t), ",".join(ns) if ns.size() else "-", lsum / maxf(1, nn), ssum / maxf(1, nn), alive,
-		";".join(ls) if ls.size() else "-", gr, gnew, sp, gl, glow, emit]
+		";".join(ls) if ls.size() else "-", gr, gnew, sp, gl, glow, emit, ",".join(gts) if gts.size() else "-"]
 
 
 func _process(_dt: float) -> void:
