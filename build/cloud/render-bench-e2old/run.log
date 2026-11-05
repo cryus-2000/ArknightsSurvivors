@@ -1,0 +1,11 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2189 项）
+render_prep 完成，用时 51 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py demo --modes 3
+   rc=0  844 秒
+e2_m3_px2 60 帧 []
+e2_m3_px1 60 帧 []
+三栏 cmp_atk_e0 帧 34
+三栏 cmp_atk_e1 帧 45
+三栏 cmp_atk_e2 帧 4
+media：7 个文件，9.4M
