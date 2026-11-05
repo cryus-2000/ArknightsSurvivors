@@ -1,0 +1,3 @@
+124556	rec_texas_0.log
+124381	rec_texas_1.log
+5611940	texas_s3_hide_onoff.mp4
