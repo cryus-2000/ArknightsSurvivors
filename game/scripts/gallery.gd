@@ -2467,14 +2467,15 @@ func _ev_detail(e: Dictionary, ph: bool, x0: float, w: float, y: float, a: float
 
 
 # ---------------------------------------------------------------- 入场：罗德岛标志短版（用户 11-05；Codex 演示 docs/reference/prts-entry-1105「图鉴 · 短版」）
-## 总长 0.55 秒（真实时间）：0–0.06 背景压暗；0–0.13 标志横条归位亮起；0.08–0.24 图鉴黄细扫描线掠过；0.20–0.30 标志退去；
-## 0.24–0.55 中央双侧阶梯幕展开、黄细边退到屏幕外。标志 = 用户原图运行时采样 120×120（screens/rhodes_logo.gd）。
+## 总长 0.55 秒（真实时间）。11-05 同日用户「多余的几何标志去掉、图标改成呼吸、跟局内 PRTS 对齐」，去掉黄扫描线 / 阶梯幕 / 黄边：
+## 0–0.06 背景压暗；0–0.12 标志淡入（一次呼吸：0.22–0.32 淡出）；0.03–0.22 外圈 60 格刻度环逐格亮（同指挥台头像环）；
+## 0.24–0.55 暗幕从正中左右分开、内沿一道白细线。标志 = 用户原图运行时采样 120×120（screens/rhodes_logo.gd）。
 ## 点击 / 按键直接跳到图鉴并吞掉这次输入；减少动态效果时只做 ≤ 0.12 秒淡入；截图 / 无头测试直接终态（--galleryintro 录像时才播）
 const LOGO_T := 0.55
 const LOGO_RM_T := 0.12
 const RhodesLogo = preload("res://scripts/screens/rhodes_logo.gd")
 const LOGO_BG := Color(0.059, 0.063, 0.075)      # #0F1013
-const LOGO_Y := Color(1.0, 0.808, 0.0)           # #FFCE00（只用于图鉴）
+const LOGO_W := Color(0.925, 0.933, 0.941)       # #ECEEF0（同指挥台白）
 var logo_t0 := -100.0
 var logo_rm := false
 
@@ -2512,31 +2513,26 @@ func _draw_logo_intro() -> void:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, 1.0 - t / LOGO_RM_T))
 		return
 	var appear: float = clampf(t / 0.06, 0.0, 1.0)
-	var unfold: float = UIMo.out_cubic(clampf((t - 0.24) / 0.31, 0.0, 1.0))
+	var open: float = UIMo.out_cubic(clampf((t - 0.24) / 0.31, 0.0, 1.0))
 	var cx: float = vs.x / 2.0
-	var row := 6.0
-	var y := 0.0
-	while y < vs.y:
-		var half: float = maxf(0.0, unfold * vs.x * 0.62 - absf(y + row / 2.0 - vs.y / 2.0) * 0.16)
-		var l: float = floorf((cx - half) / 3.0) * 3.0
-		var r: float = ceilf((cx + half) / 3.0) * 3.0
-		var bc := Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, appear)
-		if half <= 0.0:
-			draw_rect(Rect2(0, y, vs.x, row), bc)
-		else:
-			draw_rect(Rect2(0, y, maxf(0.0, l), row), bc)
-			draw_rect(Rect2(r, y, maxf(0.0, vs.x - r), row), bc)
-			if unfold < 0.98:
-				draw_rect(Rect2(l - 3.0, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
-				draw_rect(Rect2(r, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
-		y += row
-	if t < 0.30:
-		var reveal: float = UIMo.out_cubic(clampf(t / 0.13, 0.0, 1.0))
-		var span: float = roundf(vs.y * 0.36 / 120.0) * 120.0   # 每个标志像素取整数屏幕像素
+	var half: float = roundf(open * vs.x / 2.0)
+	var bc := Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, appear)
+	draw_rect(Rect2(0, 0, cx - half, vs.y), bc)
+	draw_rect(Rect2(cx + half, 0, vs.x - cx - half, vs.y), bc)
+	if open > 0.0 and open < 1.0:
+		var ea := Color(LOGO_W.r, LOGO_W.g, LOGO_W.b, 0.7 * (1.0 - open))
+		draw_rect(Rect2(cx - half - 1.0, 0, 1.0, vs.y), ea)
+		draw_rect(Rect2(cx + half, 0, 1.0, vs.y), ea)
+	if t < 0.32:
+		var span: float = roundf(vs.y * 0.3 / 120.0) * 120.0   # 每个标志像素取整数屏幕像素
 		var s: float = span / 120.0
-		var top: float = roundf(vs.y / 2.0 - span / 2.0)
-		var a: float = (1.0 - clampf((t - 0.20) / 0.10, 0.0, 1.0)) * appear
-		RhodesLogo.draw_bands(self, Vector2(roundf(cx - span / 2.0), top), s, 10, func(b): return roundf((1.0 if b % 2 else -1.0) * 15.0 * s * (1.0 - reveal)), Color(1, 1, 1, a))
-		if t > 0.08 and t < 0.24:
-			var sy: float = top + span * clampf((t - 0.08) / 0.16, 0.0, 1.0)
-			draw_rect(Rect2(roundf(cx - span * 0.59), roundf(sy), roundf(span * 1.18), 2.0), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, a))
+		var a: float = UIMo.out_cubic(clampf(t / 0.12, 0.0, 1.0)) * (1.0 - clampf((t - 0.22) / 0.10, 0.0, 1.0)) * appear
+		var cy: float = vs.y / 2.0
+		RhodesLogo.draw_bands(self, Vector2(roundf(cx - span / 2.0), roundf(cy - span / 2.0)), s, 120, func(_b): return 0.0, Color(1, 1, 1, a))
+		var R: float = span * 0.66
+		var lit: int = int(floor(clampf((t - 0.03) / 0.19, 0.0, 1.0) * 60.0))
+		for i in 60:
+			var dir := Vector2.from_angle(-PI / 2.0 + TAU * i / 60.0)
+			var major: bool = i % 5 == 0
+			var col := Color(LOGO_W.r, LOGO_W.g, LOGO_W.b, (0.85 if i < lit else 0.2) * a)
+			draw_line(Vector2(cx, cy) + dir * R, Vector2(cx, cy) + dir * (R + (9.0 if major else 5.0) * s / 2.0), col, 2.0 if major else 1.5, true)

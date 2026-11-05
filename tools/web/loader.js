@@ -39,7 +39,7 @@
     else {
       if (!bootT0) bootT0 = performance.now();
       var s = (performance.now() - bootT0) / 1000;
-      f = BV === 4 ? 0.6 : 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 方向 4（PRTS 认证终端）：拿不到真实进度就不动，画面上显示不定进度（p4ind）   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
+      f = BV === 4 ? 0.6 : 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 方向 4（PRTS 认证终端）：拿不到真实进度就不动，刻度环上显示不定进度（p4Init）   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
       busy = true;
     }
     f = shownProgress = Math.max(shownProgress, Math.min(1, f));
@@ -106,12 +106,13 @@
   function tipBox(cls) { return '<div class="sv-tip ' + (cls || '') + '"><div class="sv-cap sy-en">NOTE</div><div class="bd"></div></div>'; }
 
   // ---------------------------------------------------------------- 方向 4：PRTS 认证终端（11-05 用户「codex 的加载页可以替换我们目前的加载页」）
-  // 造型 / 配色照 Codex 演示（docs/reference/prts-entry-1105），画法与桌面 boot_views.draw_v4 一一对应；进度全接真实状态：
-  // 下载字节 → 解压 → 引擎启动（拿不到进度：不定进度，不按时间推）→ Godot 回传的编译 / 预热进度 → 读完（__syBootReady）一次外扩脉冲 + 「认证通过」。
+  // 起点是 Codex 演示（docs/reference/prts-entry-1105）；同日用户「多余的几何标志去掉、图标改成呼吸、跟局内 PRTS 对齐」：
+  // 画法与桌面 boot_views.draw_v4 一一对应——标志淡入后慢呼吸，外圈 60 格刻度环 = 进度（同指挥台头像环），白细线分项，青色只表示「在走 / 完成」。
+  // 进度全接真实状态：下载字节 → 解压 → 引擎启动（拿不到进度：不定进度——刻度环上一段青格慢转、百分比 ---，不按时间推）→ Godot 回传 → 读完整圈转青。
   // 标志 = loader_rhodes.png（用户给的 240×240 原图）最近邻采样到 120×120，亮度 > 112 留、> 168 冷白、其余次灰（同 screens/rhodes_logo.gd）。
-  // 主线程被引擎占住时画布会停，扫描线与不定进度条是 CSS 动画照常走。系统「减少动态效果」时：直接终态、不扫描。
+  // 主线程被引擎占住时画布会停一下（引擎编译 wasm 那几秒）。系统「减少动态效果」时：直接终态、不呼吸。
   function p4Init(d) {
-    var cv = d.querySelector('.p4c'), ctx = cv.getContext('2d'), scan = d.querySelector('.p4scan'), ind = d.querySelector('.p4ind');
+    var cv = d.querySelector('.p4c'), ctx = cv.getContext('2d');
     var v = { root: d, tip: { style: {}, textContent: '' }, f: 0, stage: { text: '' }, ind: false, lines: null };
     var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var lg = null, img = new Image(), T0 = performance.now(), readyT = -1;
@@ -127,11 +128,11 @@
       ax.putImageData(id, 0, 0); lg = a;
     };
     img.src = 'loader_rhodes.png';
-    var BG = '#0f1013', PANEL = '#1a1c21', TX = '#eceef0', SUB = '#9297a0', STEEL = '#7e98b8', ACC = '#36e2dc', SCN = '#3cc8e4', RULE = '#353943';
+    var BG = '#0f1013', TX = '#eceef0', SUB = '#9297a0', ACC = '#36e2dc', RULE = '#353943';
     var clamp = function (x) { return Math.max(0, Math.min(1, x)); }, ease = function (x) { return 1 - Math.pow(1 - clamp(x), 3); };
     function box(x, y, w, h, c, a) { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(w), Math.ceil(h)); ctx.globalAlpha = 1; }
-    function stairs(ax, ay, bx, by, c, a) { var n = Math.ceil(Math.max(Math.abs(bx - ax), Math.abs(by - ay)) / 4); for (var i = 0; i <= n; i++) box(Math.round((ax + (bx - ax) * i / Math.max(1, n)) / 3) * 3, Math.round((ay + (by - ay) * i / Math.max(1, n)) / 3) * 3, 3, 3, c, a); }
     function lab(s, x, y, sz, c, al) { ctx.fillStyle = c; ctx.font = Math.round(sz) + 'px Consolas,"Microsoft YaHei","PingFang SC",monospace'; ctx.textAlign = al || 'left'; ctx.fillText(s, Math.round(x), Math.round(y)); }
+    function head(x, y, s, k, rw) { box(x, y - 6 * k, 18 * k, 2, TX); lab(s, x + 26 * k, y, 13 * k, TX); box(x, y + 12 * k, rw, 1, RULE); }
     function frame() {
       if (!d.isConnected) return;
       requestAnimationFrame(frame);
@@ -141,88 +142,51 @@
       var t = rm ? 9 : (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
       if (rd && readyT < 0) readyT = performance.now();
       var u = readyT < 0 ? -1 : (performance.now() - readyT) / 1000;
-      var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.425, m = 22 * k;
+      var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.42, m = 22 * k;
       box(0, 0, W, H, BG);
-      for (var gx = 0; gx < W; gx += 24 * k) for (var gy = 0; gy < H; gy += 24 * k) box(gx, gy, 1, 1, STEEL, 0.18);
-      for (var sy = 0; sy < H; sy += 4) box(0, sy, W, 1, '#000', 0.14);
-      lab('PRTS / BOOT TERMINAL', m, 28 * k, 12 * k, TX);
+      lab('PRTS', m, 28 * k, 12 * k, TX); lab('/ 启动校验', m + 50 * k, 28 * k, 12 * k, SUB);
       if (W > 600 * dpr) lab('ARKNIGHTS FAN GAME', W - m, 28 * k, 11 * k, SUB, 'right');
       box(m, 40 * k, W - 2 * m, 1, RULE);
-      for (var i = 0; i < 41; i++) { var x = cx - 160 * k + i * 8 * k, mj = i % 5 === 0; box(x, 51 * k, 1, (mj ? 8 : 4) * k, STEEL, 0.4); box(x, H - 52 * k, 1, (mj ? 7 : 3) * k, STEEL, 0.3); }
-      var cf = rm || rd ? 0.5 : (t * 0.65) % 1, cur = cx - 160 * k + cf * 320 * k;
-      box(cur, 50 * k, 9 * k, 3 * k, ACC); box(2 * cx - cur, H - 53 * k, 9 * k, 3 * k, SCN);
-      var s = Math.max(1, Math.floor(H * 0.44 / 120)), span = 120 * s, left = Math.round(cx - span / 2), top = Math.round(cy - span / 2);
-      var asm = rm ? 1 : ease(t / 0.66), split = rd && !rm ? Math.round(Math.sin(clamp(u / 0.17) * Math.PI) * 3) : 0;
-      if (lg) {
-        ctx.globalAlpha = Math.min(1, asm + 0.2);
-        for (var b = 0; b < 15; b++) {
-          var dx = Math.round((b % 2 ? 1 : -1) * ((110 + b * 8) * k * (1 - asm) + split));
-          ctx.drawImage(lg, 0, b * 8, 120, 8, left + dx, top + b * 8 * s, span, 8 * s);
-        }
-        ctx.globalAlpha = 1;
+      var s = Math.max(1, Math.floor(H * 0.34 / 120)), span = 120 * s;
+      var fade = rm ? 1 : ease(t / 0.4), breath = rm || rd ? 1 : 0.72 + 0.28 * (0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6));
+      if (lg) { ctx.globalAlpha = fade * breath; ctx.drawImage(lg, Math.round(cx - span / 2), Math.round(cy - span / 2), span, span); ctx.globalAlpha = 1; }
+      var R = span * 0.66, lit = Math.floor(p * 60), spin = Math.floor((t * 14) % 60);
+      ctx.lineCap = 'butt';
+      for (var i = 0; i < 60; i++) {
+        var a = -Math.PI / 2 + 2 * Math.PI * i / 60, mj = i % 5 === 0, l = (mj ? 9 : 5) * k, col, al;
+        if (rd) { col = ACC; al = 0.9; }
+        else if (v.ind && ((i - spin + 60) % 60) < 5) { col = ACC; al = 0.35 + 0.13 * ((i - spin + 60) % 60); }   // 不定进度：一段青格慢转
+        else if (i < lit) { col = TX; al = 0.85; }
+        else if (i === lit && !v.ind) { col = ACC; al = 1; }
+        else { col = SUB; al = 0.28; }
+        ctx.globalAlpha = al * fade; ctx.strokeStyle = col; ctx.lineWidth = (mj ? 2 : 1.5) * dpr;
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(a) * (R + l), cy + Math.sin(a) * (R + l)); ctx.stroke();
       }
-      var lock = Math.round((1 - asm) * 65 * k) + (rd && !rm ? Math.round(ease(u / 0.3) * 9 * k) : 0), hw = span / 2 + 19 * k;
-      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (c) {
-        var x0 = cx + c[0] * (hw + lock), y0 = cy + c[1] * (hw + lock);
-        box(x0 - (c[0] > 0 ? 16 * k : 0), y0, 18 * k, 2 * k, ACC, 0.8); box(x0, y0 - (c[1] > 0 ? 16 * k : 0), 2 * k, 18 * k, ACC, 0.8);
-      });
-      for (var j = 0; j < 3; j++) {
-        var r = (140 + j * 10) * k, tr = (1 - (rm ? 1 : ease((t - j * 0.07) / 0.65))) * 95 * k, al = 0.36 - j * 0.09;
-        stairs(cx - tr, cy - r, cx + r * 0.9 - tr, cy + r * 0.62, SCN, al);
-        stairs(cx + r * 0.9, cy + r * 0.62 + tr, cx - r * 0.9, cy + r * 0.62 + tr, SCN, al);
-        stairs(cx - r * 0.9 + tr, cy + r * 0.62, cx + tr, cy - r, SCN, al);
-      }
-      var tt = rm ? 0 : t;
-      for (i = 0; i < 12; i++) {
-        var a = i * Math.PI / 6 + tt * 1.8, r2 = 167 * k;
-        stairs(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2 * 0.65, cx + Math.cos(a + 0.11) * r2, cy + Math.sin(a + 0.11) * r2 * 0.65, i % 3 === 0 ? ACC : STEEL, 0.3 + (i % 3) * 0.15);
-      }
-      for (var side = -1; side <= 1; side += 2) for (var ln = 0; ln < 3; ln++) {
-        var mv = ((tt * 180 + ln * 49) % 125) * k, x2 = cx + side * (185 * k + mv), y2 = cy - 48 * k + ln * 48 * k;
-        box(x2, y2, (side < 0 ? 22 : 14) * k, 2 * k, SCN, 0.55); box(x2 + side * 27 * k, y2, 4 * k, 2 * k, ACC);
-      }
-      if (rd && !rm && u >= 0 && u < 0.38) {
-        var pu = u / 0.38, rr = (134 + pu * 72) * k;
-        for (j = 0; j < 16; j++) { var a2 = j * Math.PI / 8; stairs(cx + Math.cos(a2) * rr, cy + Math.sin(a2) * rr * 0.7, cx + Math.cos(a2) * (rr + 15 * k), cy + Math.sin(a2) * (rr + 15 * k) * 0.7, ACC, (1 - pu) * 0.8); }
-      }
-      // 扫描线（CSS 动画，读取期间在标志上循环；不表示进度）
-      var sc = 'left:' + (cx - span * 0.55) / dpr + 'px;top:' + top / dpr + 'px;width:' + span * 1.1 / dpr + 'px;height:' + span / dpr + 'px';
-      if (scan.__s !== sc) { scan.style.cssText = sc; scan.__s = sc; }
-      scan.style.display = !rd && !rm && t > 0.66 ? 'block' : 'none';
-      // 两侧面板：左 = 真实阶段日志（最近 4 行），右 = 真实进度分项
+      ctx.globalAlpha = 0.18 * fade; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R - 6 * k, 0, 2 * Math.PI); ctx.stroke();
+      if (rd && !rm && u >= 0 && u < 0.5) { var q = ease(u / 0.5); ctx.globalAlpha = 0.6 * (1 - q); ctx.strokeStyle = ACC; ctx.lineWidth = 1.5 * dpr; ctx.beginPath(); ctx.arc(cx, cy, R + 14 * k + q * 40 * k, 0, 2 * Math.PI); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+      var ly = cy + R + 34 * k;
+      if (!rd) {
+        lab(v.stage.text || '', cx, ly, 16 * k, TX, 'center');
+        lab('ARCHIVE INDEX  ' + (v.ind ? '---' : ('00' + Math.floor(p * 100)).slice(-3)) + '%', cx, ly + 20 * k, 10 * k, SUB, 'center');
+      } else lab('认证通过', cx, Math.min(ly, (Math.min(innerHeight * 0.8, innerHeight - 60 - 25) - 25 - 18) * dpr), 16 * k, ACC, 'center');   // 让开「开始游戏」按钮上沿
       if (W > 760 * dpr) {
         var lx = m, rx = W - m - 150 * k, py = 104 * k;
-        lab('01 / 启动校验', lx, py, 12 * k, TX); box(lx, py + 12 * k, 170 * k, 1, RULE);
-        var sh = logs.slice(Math.max(0, logs.length - 4));
-        sh.forEach(function (l, i) {
-          var yy = py + 35 * k + i * 26 * k;
-          box(lx, yy - 4 * k, 4 * k, 4 * k, l.ok ? ACC : (l.key === logKey ? SCN : RULE));
-          lab(l.s, lx + 12 * k, yy + 1 * k, 11 * k, l.ok ? TX : SUB);
+        head(lx, py, '启动校验', k, 170 * k);
+        logs.slice(Math.max(0, logs.length - 4)).forEach(function (ln, i) {
+          var yy = py + 35 * k + i * 24 * k;
+          box(lx, yy - 4 * k, 3 * k, 3 * k, ln.ok ? TX : (ln.key === logKey ? ACC : RULE));
+          lab(ln.s, lx + 12 * k, yy + 1 * k, 11 * k, ln.ok ? TX : SUB);
         });
-        lab('02 / 资源索引', rx, py, 12 * k, TX); box(rx, py + 12 * k, 128 * k, 1, RULE);
+        head(rx, py, '资源索引', k, 150 * k);
         var bp = bootProgress === null ? 0 : clamp((bootProgress - 0.6) / 0.4);
-        var parts = [['DOWNLOAD', clamp(got / Math.max(1, total))], ['UNPACK', done ? 1 : 0], ['ENGINE', bootProgress !== null ? 1 : -1], ['WARMUP', rd ? 1 : bp]];
-        parts.forEach(function (q, i) {
-          var yb = py + 40 * k + i * 36 * k, fq = q[1];
-          lab(q[0], rx, yb, 10 * k, SUB); box(rx, yb + 8 * k, 124 * k, 2 * k, RULE);
-          if (fq < 0) { if (done) box(rx + ((t * 0.8) % 1) * 100 * k, yb + 8 * k, 24 * k, 2 * k, SCN); }   // 引擎启动：不定进度
-          else box(rx, yb + 8 * k, Math.floor(fq * 124 * k), 2 * k, fq >= 1 ? ACC : SCN);
+        [['DOWNLOAD', clamp(got / Math.max(1, total))], ['UNPACK', done ? 1 : 0], ['ENGINE', bootProgress !== null ? 1 : -1], ['WARMUP', rd ? 1 : bp]].forEach(function (q2, i) {
+          var yb = py + 38 * k + i * 32 * k, fq = q2[1];
+          lab(q2[0], rx, yb, 10 * k, SUB); box(rx, yb + 8 * k, 150 * k, 1, RULE);
+          if (fq < 0) { if (done) box(rx + ((t * 0.8) % 1) * 126 * k, yb + 7.5 * k, 24 * k, 2, ACC); }   // 引擎启动：不定进度
+          else box(rx, yb + 7.5 * k, Math.floor(fq * 150 * k), 2, fq >= 1 ? ACC : TX);
         });
-        lab('SESSION / WEB', lx, H - 105 * k, 10 * k, STEEL); lab(rd ? 'AUTH / VERIFIED' : 'AUTH / CHECKING', lx, H - 87 * k, 10 * k, ACC);
-        lab(v.ind ? 'INDEX / ---' : 'INDEX / ' + ('00' + Math.floor(p * 100)).slice(-3), rx, H - 105 * k, 10 * k, STEEL);
-        lab(rd ? 'LINK / READY' : 'LINK / ACTIVE', rx, H - 87 * k, 10 * k, ACC);
       }
-      var barw = Math.min(280 * k, W - 100), bx = cx - barw / 2, by = H * 0.8;
-      if (!rd) {
-        lab(v.stage.text || '', cx, H * 0.75, 18 * k, TX, 'center');
-        var on = Math.floor(p * 28);
-        for (i = 0; i < 28; i++) box(bx + i * barw / 28, by, barw / 28 - 3, 5 * k, i < on ? ACC : PANEL);
-        lab('ARCHIVE INDEX', bx, by + 26 * k, 11 * k, SUB);
-        lab(v.ind ? '---%' : ('00' + Math.floor(p * 100)).slice(-3) + '%', bx + barw, by + 26 * k, 12 * k, TX, 'right');
-      } else lab('认证通过', cx, Math.min(H * 0.75, (Math.min(innerHeight * 0.8, innerHeight - 60 - 25) - 25 - 18) * dpr), 18 * k, ACC, 'center');   // 让开「开始游戏」按钮上沿
-      var ic = 'left:' + bx / dpr + 'px;top:' + by / dpr + 'px;width:' + barw / dpr + 'px;height:' + 5 * k / dpr + 'px';
-      if (ind.__s !== ic) { ind.style.cssText = ic; ind.__s = ic; }
-      ind.style.display = v.ind && !rd ? 'block' : 'none';
       lab('RHODES ISLAND', m, H - 20 * k, 11 * k, SUB);
       lab(rd ? 'ACCESS / GRANTED' : 'ACCESS / PENDING', W - m, H - 20 * k, 11 * k, rd ? ACC : SUB, 'right');
     }
@@ -235,7 +199,7 @@
     for (var i = 0; i < 50; i++) segs += '<i></i>';
     var h = '';
     if (BV === 4) {   // PRTS 认证终端（11-05，Codex docs/reference/prts-entry-1105；同桌面 boot_views.draw_v4）：画布逐帧画，扫描线 / 不定进度是 CSS 动画
-      h = '<canvas class="p4c"></canvas><div class="p4scan"><b></b></div><div class="p4ind"><b></b></div>';
+      h = '<canvas class="p4c"></canvas>';
     } else if (BV === 1) {
       h = '<div class="sv-scan"></div>' + snowLayer(46) + head('罗德岛作战终端 · 启动程序', 1) +
         '<div class="sv-body1">' + logBox('sv-frame') + tipBox() + '</div>' +
