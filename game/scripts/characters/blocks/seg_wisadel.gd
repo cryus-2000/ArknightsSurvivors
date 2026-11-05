@@ -258,7 +258,8 @@ static func _h4_cannon_release(o, a: Dictionary) -> void:
 			var rings: bool = not _h4_sub(o, ash.get("rings", null)).is_empty()
 			var d1: float = atk * float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
 			var aim_to: Vector2 = _g202_chain_aim(o, a, tgt.pos)   # docs/202 余烬未冷·续燃：残影链
-			_h4_fire(o, a, aim_to, d1, str(a.get("src", "")), float(ash.get("size", 1.65)), true, 0.0, false, rings)
+			var s1s: Dictionary = _h4_fire(o, a, aim_to, d1, str(a.get("src", "")), float(ash.get("size", 1.65)), true, 0.0, false, rings)
+			s1s["pxk"] = "s1"   # 转平面（docs/274）：画面专用键（定点清算的强化炮画成处刑火柱），玩法不读
 			_h4_twin(o, a, tgt, d1, rings)
 		else:
 			_h4_fire(o, a, tgt.pos, atk, str(a.get("src", "")), 1.0, true, 0.0)
@@ -302,6 +303,7 @@ static func _g202_chain_aim(o, a: Dictionary, to: Vector2) -> Vector2:
 				best = d2
 				out = sd.pos
 		if out != to:
+			_FXR.ev(o, "wd_chain", {"a": to, "b": out})   # 转平面（docs/274）：只画
 			_wfx(o, {"kind": "line", "pos": to, "to": out, "life": 0.18, "col": H4_EMBER, "w": 2.0, "laser": true}, false)
 			_wfx(o, {"kind": "ring", "pos": out, "r": 34.0, "r0": 8.0, "life": 0.3, "col": Color(1.7, 0.7, 0.3), "floor": true, "w": 2.5, "alpha": 0.9}, false)
 	wd["chain_prev"] = g.t
@@ -389,6 +391,7 @@ static func _h4_fire(o, a: Dictionary, to: Vector2, base_dmg: float, src: String
 	if not own:
 		return s
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
+	_FXR.ev(o, "wd_fire", {"from": from, "to": to, "kind": kind})   # 转平面（docs/274）：炮口焰，只画
 	var dir := (to - from).normalized()
 	_wfx(o, {"kind": "h4_muzzle", "pos": from, "dir": dir, "life": 0.07, "col": H4_RED, "sz": 30.0 * size})
 	if _wc("wd_muzzle_glow", 0.0, 1.0) > 0.0:   # 炮口小光团：收特效时不画（锥形炮口焰保留）
@@ -454,7 +457,9 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 			if s.hist.size() > 9:
 				s.hist.pop_front()
 		if s.t >= s.dur:
+			wd["pxk"] = str(s.get("pxk", ""))   # 转平面（docs/274）：画面专用（S1 强化炮），玩法不读
 			_h4_explode(o, a, s.to, s.dmg, s.r, s.src, 0, s.stun, s.light, false, str(s.kind), s.get("mark_c", null))
+			wd["pxk"] = ""
 			var me = s.get("mark_e", null)   # 魂炮（follow）：命中时给它的目标挂残影标记（目标还活着、在爆炸范围内）
 			if me != null and not me.dead and me.pos.distance_to(s.to) < float(s.r) + float(me.r):
 				_h4_mark(o, a, me)
@@ -527,6 +532,7 @@ static func _h4wd_on_kill(o, e: Dictionary) -> void:
 		return
 	var mk: Dictionary = a.get("mark", {})
 	wd.shades.append({"pos": e.pos, "t": _g202_shade_delay(o), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * (mm if mm >= 0.0 else float(mk.get("mult", 0.45))) * o._dmg_bonus(), "r": _h4_wd_aoe(o, a) * float(mk.get("r", 0.9)), "depth": 1})
+	_FXR.ev(o, "wd_shade", {"pos": e.pos})   # 转平面（docs/274）：只画
 	_wfx(o, {"kind": "h4_shade", "pos": e.pos, "life": 0.3, "col": H4_DARK}, false)
 
 
@@ -648,7 +654,10 @@ static func _h4_soul_shot(o, a: Dictionary, fc: Dictionary, s: Dictionary, tg: D
 	if fc.get("mark", false):
 		sh["mark_e"] = tg
 	var dir: Vector2 = (tg.pos - from).normalized()
-	_wspr(o, "fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, Color(0.55, 0.3, 0.75))   # 炮口一团暗紫烟（10-21 用户：魂灵之影不要攻击帧，直接出弹）
+	if _FXR.owns(o):
+		_FXR.ev(o, "wd_fire", {"from": from + dir * 6.0, "to": tg.pos, "kind": "soul"})   # 转平面（docs/274）：魂炮出膛一团暗紫烟，只画
+	else:
+		_wspr(o, "fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, Color(0.55, 0.3, 0.75))   # 炮口一团暗紫烟（10-21 用户：魂灵之影不要攻击帧，直接出弹）
 	for q in _n(o, 3):
 		_wfx(o, {"kind": "spark", "pos": from, "vel": dir.rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 130), "life": 0.2, "col": Color(0.55, 0.15, 0.35), "sz": 2.0, "drag": 3.0})
 	_h3_sfx(o, "atk", -4.0, 1.25, 0.05)
@@ -734,7 +743,8 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 	var mark_hit: bool = not _h4_sub(o, mark_c).is_empty()
 	var low_mark: Dictionary = _h4_sub(o, a.get("lowmark", null)) if kind != "shade" else {}   # docs/202 亡者回响：炮击 / 余震波及的残血敌人直接挂残影标记
 	var n_kill := 0
-	for e in o.arc_targets(c, 0.0, PI, r):
+	var es_hit: Array = o.arc_targets(c, 0.0, PI, r)
+	for e in es_hit:
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		if not e.dead and g.rfx.sniper_execute(e, g.hit):
@@ -759,7 +769,9 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			_h4_dup_puff(o, c)   # 收特效：同屏主爆炸已到上限，这一发缩成小火花（声音照响）
 			_h3_sfx(o, "hit", -3.0 if light else 0.0, 1.0, 0.08)
 		else:
-			_h4_boom_visual(o, a, c, r, kind, light, rings)
+			_h4_boom_visual(o, a, c, r, kind, light, rings, es_hit)
+	elif kind == "soul" and _FXR.owns(o):
+		_FXR.ev(o, "wd_boom", {"c": c, "r": r, "kind": kind})   # 转平面（docs/274）：魂炮落点不并进主爆（灰紫小殉爆，每拍封顶），只画
 	elif kind != "quake" and _calm():
 		_h4_dup_puff(o, c)   # 收特效：同一轮齐射里只留第一团主爆炸，其余缩成小火花
 	var shc: Dictionary = _h4_sub(o, sh)
@@ -769,13 +781,26 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			if wd.shades.size() >= int(sh.get("max", 12)):
 				break
 			wd.shades.append({"pos": killed[k], "t": _g202_shade_delay(o), "dmg": dmg * float(sh.get("mult", 0.4)), "r": r * float(sh.get("r", 0.8)), "depth": depth + 1})
+			_FXR.ev(o, "wd_shade", {"pos": killed[k]})   # 转平面（docs/274）：只画
 			_wfx(o, {"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK}, false)
 
 
 ## 爆炸的画面 + 音效（伤害在 _h4_explode 里先结算，这里只管看和听）
-static func _h4_boom_visual(o, a: Dictionary, c: Vector2, r: float, kind: String, light: bool, rings: bool) -> void:
+static func _h4_boom_visual(o, a: Dictionary, c: Vector2, r: float, kind: String, light: bool, rings: bool, es: Array = []) -> void:
 	var g = o.g
 	_wstat(o, "b_" + (kind if kind != "" else "main"))
+	if _FXR.owns(o):   # 转平面（docs/274）：画面改由 fx_pxplane_wd 画；顿帧、音效照旧
+		var live: Array = es.filter(func(e): return not e.dead)
+		_FXR.ev(o, "wd_boom", {"c": c, "r": r, "kind": kind, "rings": rings, "pxk": str(_h4wd(o).get("pxk", "")), "es": live.slice(0, 6)})
+		if kind == "giant":
+			o.impact_pause(0.05)
+		if kind == "quake":
+			_h3_sfx(o, "quake", 0.0, 1.0, 0.1)
+		elif kind == "giant" or kind == "exec":
+			_h3_sfx(o, "big", -1.0, 1.0, 0.04)
+		else:
+			_h3_sfx(o, "hit", -3.0 if light else 0.0, 1.0, 0.08)
+		return
 	if kind == "quake":
 		# 只在地面：双红环 + 裂纹 + 一圈向上的余烬，不闪光不冒烟
 		_wfx(o, {"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": H4_RED, "floor": true, "w": 3.0})
@@ -856,6 +881,9 @@ static func _h4_boom_over_cap(o) -> bool:
 ## 缩掉的爆炸：落点几颗暗红小火花
 static func _h4_dup_puff(o, c: Vector2) -> void:
 	var g = o.g
+	if _FXR.owns(o):
+		_FXR.ev(o, "wd_pop", {"c": c})   # 转平面（docs/274）：一小团火，只画
+		return
 	for k in _n(o, int(BalW.v("fx/wd_puff_n", 2.0)) * 2):
 		_wfx(o, {"kind": "spark", "pos": c + Vector2(g.vrng.randf_range(-8, 8), g.vrng.randf_range(-6, 4)), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(50, 120) + Vector2(0, -30),
 			"life": 0.25, "col": H4_EMBER, "sz": 2.0, "drag": 3.0, "grav": 120.0})
@@ -1247,6 +1275,7 @@ static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> 
 	var frame: int = o.attack_phase_frame(int(spec.frames), int(spec.fire), o.attack_dur - o.attack_t)
 	var origin: Vector2 = o.sprite_point_at(slot, "muzzles", frame, muzzle, null, false)
 	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(effect.src), float(effect.size), true, 0.0, false, false, "exec", effect.get("mark", null), origin)
+	_FXR.ev(o, "wd_fire", {"from": origin, "to": target.pos, "kind": "exec"})   # 转平面（docs/274）：只画
 	_wfx(o, {"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
 	_h3_sfx(o, "atk", 2.0)
 	_h4_cannon_after(o, a, target)

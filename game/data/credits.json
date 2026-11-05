@@ -50,8 +50,8 @@
   ],
   [
    "音乐与音效",
-   "配乐与大部分音效由 AI 程序化合成：Claude（Anthropic）编写合成脚本生成旋律、编曲与音效，参考了《水月与深蓝之树》原声的氛围，不含原声音频。寻访演出的音效（落包、拉链、开包的光、光炸、翻卡）同样为程序合成，听感参照原作寻访，不含原作音频。部分枪声、锁链、刀划与金属撞击剪辑自 CC0 公有领域录音：Freesound 用户 DarkShroom、Invisible_inks、BaggoNotes、Keatonmcq、serøutōnin--deprivəd、Kp69606、16bitstudios、DaVoiceActor、IENBA，Kenney「Impact Sounds」「RPG Sounds」。终结技的部分刀剑、撞击与爆炸声，以及灯火暗淡时的心跳，剪辑自 Sonniss「GDC Game Audio Bundle 2026」（免版税）。",
-   "https://freesound.org  ·  https://kenney.nl"
+   "部分音效剪辑自《明日方舟》原作音效（多名干员的终结技、能天使与流明的普攻等），商人场景配乐取自《明日方舟》原作配乐；以上版权归鹰角网络（Hypergryph）所有，本作仅在同人、非商业范围内使用，感谢鹰角网络。局内战斗、Boss 与结算等配乐由 Suno（AI 音乐生成）制作。其余音效与部分短乐句由 Claude（Anthropic）编写脚本程序合成，寻访演出的音效（落包、拉链、开包的光、光炸、翻卡）也是程序合成。部分刀剑、撞击、爆炸声与灯火暗淡时的心跳剪辑自 Sonniss「GDC Game Audio Bundle 2026」（免版税）；部分枪声、锁链、刀划与金属撞击剪辑自 CC0 公有领域录音：Freesound 用户 DarkShroom、Invisible_inks、BaggoNotes、Keatonmcq、serøutōnin--deprivəd、Kp69606、16bitstudios、DaVoiceActor、IENBA，Kenney「Impact Sounds」「RPG Sounds」。",
+   "https://sonniss.com/gameaudiogdc  ·  https://suno.com  ·  https://freesound.org  ·  https://kenney.nl"
   ],
   [
    "干员语音",
