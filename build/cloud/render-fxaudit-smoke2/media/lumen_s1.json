@@ -1,0 +1,39 @@
+{
+ "op": "lumen",
+ "mode": "s1",
+ "frame": 6,
+ "engine": 65,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 42,
+ "skill": 2,
+ "parts_total": 42,
+ "parts_per_hit": 1.0,
+ "parts_per_s": 8.4,
+ "parts_s1_1s": 9,
+ "mats": {
+  "ink": 42
+ },
+ "life": 0.9,
+ "sz": 5.2,
+ "alive_max": 15,
+ "lights": 27,
+ "lights_per_hit": 0.64,
+ "light_r": 90.0,
+ "light_i": 0.68,
+ "light_life": 0.12,
+ "emit_max": 240,
+ "emit_mean": 49.2,
+ "gl_peak": 106.6,
+ "gl_area_hit": 2343,
+ "gl_mean_hit": 17.0,
+ "em_peak": 231.8,
+ "em_area_hit": 118,
+ "em_mean_hit": 80.1,
+ "crop": [
+  479,
+  301,
+  320,
+  180
+ ]
+}

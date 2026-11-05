@@ -1,0 +1,20 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('skadi_atk_A', 150, [])
+局 ('skadi_atk_B', 150, [])
+局 ('skadi_atk_C', 150, [])
+局 ('skadi_s1_A', 150, [])
+局 ('skadi_s1_B', 150, [])
+局 ('skadi_s1_C', 150, [])
+体检 {"op": "skadi", "mode": "atk", "frame": 7, "engine": 66, "secs": 5.0, "hits": 0, "acts": 25, "skill": 0, "parts_total": 115, "parts_per_hit": 4.6, "parts_per_s": 23.0, "parts_s1_1s": null, "mats": {"ink": 115}, "life": 0.88, "sz": 5.0, "alive_max": 27, "lights": 27, "lights_per_hit": 1.08, "light_r": 90.0, "light_i": 0.41, "light_life": 0.12, "emit_max": 327, "emit_mean": 156.9, "gl_peak": 55.4, "gl_area_hit": 2627, "gl_mean_hit": 12.7, "em_peak": 245.4, "em_area_hit": 65, "em_mean_hit": 101.7, "crop": [499, 298, 320, 180]}
+体检 {"op": "skadi", "mode": "s1", "frame": 16, "engine": 75, "secs": 5.0, "hits": 0, "acts": 21, "skill": 2, "parts_total": 90, "parts_per_hit": 4.3, "parts_per_s": 18.0, "parts_s1_1s": 23, "mats": {"ink": 90}, "life": 0.91, "sz": 5.0, "alive_max": 23, "lights": 21, "lights_per_hit": 1.0, "light_r": 90.0, "light_i": 0.41, "light_life": 0.12, "emit_max": 267, "emit_mean": 136.5, "gl_peak": 53.3, "gl_area_hit": 751, "gl_mean_hit": 7.6, "em_peak": 238.0, "em_area_hit": 228, "em_mean_hit": 122.1, "crop": [493, 300, 320, 180]}
+局 ('lumen_atk_A', 150, [])
+局 ('lumen_atk_B', 150, [])
+局 ('lumen_atk_C', 150, [])
+局 ('lumen_s1_A', 150, [])
+局 ('lumen_s1_B', 150, [])
+局 ('lumen_s1_C', 150, [])
+体检 {"op": "lumen", "mode": "atk", "frame": 11, "engine": 70, "secs": 5.0, "hits": 0, "acts": 58, "skill": 0, "parts_total": 51, "parts_per_hit": 0.9, "parts_per_s": 10.2, "parts_s1_1s": null, "mats": {"ink": 51}, "life": 0.87, "sz": 4.7, "alive_max": 18, "lights": 41, "lights_per_hit": 0.71, "light_r": 90.0, "light_i": 0.54, "light_life": 0.12, "emit_max": 212, "emit_mean": 49.7, "gl_peak": 78.6, "gl_area_hit": 2244, "gl_mean_hit": 18.2, "em_peak": 234.1, "em_area_hit": 53, "em_mean_hit": 47.7, "crop": [484, 286, 320, 180]}
+体检 {"op": "lumen", "mode": "s1", "frame": 6, "engine": 65, "secs": 5.0, "hits": 0, "acts": 42, "skill": 2, "parts_total": 42, "parts_per_hit": 1.0, "parts_per_s": 8.4, "parts_s1_1s": 9, "mats": {"ink": 42}, "life": 0.9, "sz": 5.2, "alive_max": 15, "lights": 27, "lights_per_hit": 0.64, "light_r": 90.0, "light_i": 0.68, "light_life": 0.12, "emit_max": 240, "emit_mean": 49.2, "gl_peak": 106.6, "gl_area_hit": 2343, "gl_mean_hit": 17.0, "em_peak": 231.8, "em_area_hit": 118, "em_mean_hit": 80.1, "crop": [479, 301, 320, 180]}
+media：17 个文件，4.1M
