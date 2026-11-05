@@ -118,7 +118,7 @@ GCP 体检（同一条 `tools/fx_audit.py shots --ops exusiai`）：补前 rende
 
 ## 11. 终结技画面升级（ult/px_plane，11-05，**已暂停**）
 
-> **状态（11-05 晚）**：用户「所有终结技先停下来，除了艾莉妮的」，本节工作暂停，本地提交留着、不推。停在第三版（提交见 git log）：按 ult_brief §8「以原版为底，只往上加」，`ult_moves` 已恢复原画面，只在最大那一下（冲击帧那一发）叠冲击环、照地灯 240、轻震、160 颗粒子云、崩解（引擎击杀碎屑 + 本色喷散），并主动 `u.impact(爆心)` 让共用冲击慢放落在这一下；路上的原爆点上叠闪烁粒子云。音效 A / B 两套候选已写进 `game/audio/sfx`（`tools/gen_sfx_ult_exusiai_px.py`；原 charge / cast 是原作客户端音源，必须换；impact 以原文件为底加长余音；新增收尾弹壳 `u.cue("end")`），`ult/sfx_alt = 1` 试听 B。还没做：GCP 录像的并排 GIF、音效清单、「原版好在哪里 / 新版加了什么」对照表；`ult.imp_ease` 共用 0.35 秒（brief 要 0.15）待定。注意：音效文件替换不受 `ult/px_plane` 控制，关着开关也是新音效。下面是第一 / 第二版（整套替换）时写的说明，已被第三版取代。
+> **状态（11-05 晚）**：用户「所有终结技先停下来，除了艾莉妮的」，本节工作暂停，本地提交留着、不推。停在第三版（提交见 git log）：按 ult_brief §8「以原版为底，只往上加」，`ult_moves` 已恢复原画面，只在最大那一下（冲击帧那一发）叠冲击环、照地灯 240、轻震、160 颗粒子云、崩解（引擎击杀碎屑 + 本色喷散），并主动 `u.impact(爆心)` 让共用冲击慢放落在这一下；路上的原爆点上叠闪烁粒子云。音效 A / B 两套候选已写进 `game/audio/sfx`（`tools/gen_sfx_ult_exusiai_px.py`；原 charge / cast 是原作客户端音源，必须换；impact 以原文件为底加长余音；新增收尾弹壳 `u.cue("end")`），`ult/sfx_alt = 1` 试听 B。还没做：GCP 录像的并排 GIF、音效清单、「原版好在哪里 / 新版加了什么」对照表；`ult.imp_ease` 共用 0.35 秒（brief 要 0.15）待定。注意：音效文件替换不受 `ult/px_plane` 控制，关着开关也是新音效。已有素材（恢复时直接用）：原终结技实拍 `Claude outputs/render-ult-exusiai-orig2/`；第三版开关打开的实拍 `Claude outputs/render-ult-exusiai-px3/pxa`（音效 A）/ `pxb`（音效 B），各 240 帧、0 条 SCRIPT ERROR、带离线混音。下面是第一 / 第二版（整套替换）时写的说明，已被第三版取代。
 
 协调人转用户：「终结技可以安排起来了，先再做四个人的，在原有的基础上改进美术」。只改画面。终结技的方式、判定、时长、伤害、发数都照 docs/198 和 `ult_moves` 原样不动；开关 `ult/px_plane` 缺省 0，即原画面。
 
