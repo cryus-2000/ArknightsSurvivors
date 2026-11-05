@@ -181,3 +181,18 @@
 - 工具：`tools/ult_px_mizuki_gif.py`（画法，点头后照它逐函数移植成 `game/scripts/run/ult_px_mz.gd`）、`tools/ult_px_mizuki_av.py`（并排 + 混音）。
 
 示意场景：30 只怪均匀摆在扫过的半圆里、没有 HUD 和队友；水母位置按原版公式；时间轴照原版（冲击 0.77 秒）。还没在游戏里跑过：点头后接进 `ult/px_plane`，GCP 录带声音的实机录像 + 8:00 同局原版 / 新版并排 + 开 / 关 TRACE。
+
+### 8.5 接进游戏（11-05 用户：「水月用原版的音效 + 新的画面」；提交 14a44ebdf）
+
+- **音效**：完全用原版（`ult_mizuki_*.wav` 一直没动）；A / B / C 候选都不用，`gen_sfx_ult_seg_1030.py` 的 `mizuki()` 已还原为原作版。
+- **开关**：`ult/px_plane`（同艾丽妮，缺省 0）且 `ult/px_plane_mizuki`（缺省 1，按干员单独关）。本分支并入了 `claude/ult-px-irene`，`ult.gd` 的转发和她的写在一起。
+- **实现**：`game/scripts/run/ult_px_mz.gd`（海月水母群、压缩细环 + 光点吸入、伞盖一鼓、中心小亮核、每只细环、厚冲击环从判定中心推到横扫半径、怪物崩解、像素缠绕、冲击帧剪影）；`ult_fx_c.mz_jelly_start / step / burst` 在开关开时：水母只留被原逻辑更新的位置 / 缩放字典（不进图形表），**原版里出声的图形照常生成、颜色全透明**（地面暗斑 r26 → rise、压缩环 r90 → compress、每只爆闪 r34 → pop、群心大环 → burst；音效按图形种类 / 半径挂，跟颜色无关），每只 600 粒粒子云照旧、换本人配色，贴图碎环和水雾不生成；`ult_moves_b._mz_step` 记横扫打中的怪（给崩解）、漏网缠绕改发事件；`ult.gd` 转发 draw_front / draw_hf，水月冲击慢放缓回 `ult/px_mz_ease` 0.15 秒（只缩真实时间）。
+
+| 验收（GCP） | 结果 |
+|---|---|
+| 实机录像：`ult_rec.py --clips u_mizuki --sfx --extra="--bal=ult/px_plane=1"`（水月队长 + 塞雷娅 / 能天使，种子 3，31.5 秒放） | 240 帧，SCRIPT ERROR 0；音效 216 次（原版同局 215 次） |
+| 8:00 怪多场面开 / 关各一段（`--at 480 --secs 10 --sfx`） | 各 300 帧，SCRIPT ERROR 0 |
+| TRACE：种子 3 · 40 秒（31.5 秒放）、种子 3 · 490 秒（481.5 秒放），`ult/px_plane` 0 vs 1，windowed | 41 / 41、491 / 491 行逐行一致 |
+
+- 录像（本机 `Claude outputs/ult_px_mizuki_1105/`）：`ult_mizuki_live_px_on.mp4`（31.5 秒放、原版声音）、`ult_mizuki_8m_before_after.mp4`（左原版右新版，声音取右边）、`ult_mizuki_8m_on.mp4`。原始在 `render-ult-mizuki-px-14a44ebd/`。
+- **注意**：8:00 并排的两段是实时录像（`--realtime --playclock`），两局在终结技放出前就已分叉（08:01 时击杀数 1502 / 1524），放出时刻差几帧，所以并排只是大致对齐、不是逐帧同一时刻；玩法一致以 TRACE（非实时）为准。8:00 两段音效次数 402 / 334 的差也来自这个分叉。
