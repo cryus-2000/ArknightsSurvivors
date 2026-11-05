@@ -1,0 +1,5 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2490 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+build/cloud/render-lumen-sfx-684f20e3-1/media/sfx_events_11.log 20818 行 SCRIPT ERROR: 0 
+media：1 个文件，844K
