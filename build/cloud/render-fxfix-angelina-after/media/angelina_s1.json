@@ -1,0 +1,40 @@
+{
+ "op": "angelina",
+ "mode": "s1",
+ "frame": 7,
+ "engine": 66,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 29,
+ "skill": 2,
+ "parts_total": 40,
+ "parts_per_hit": 1.4,
+ "parts_per_s": 8.0,
+ "parts_s1_1s": 8,
+ "mats": {
+  "tri": 28,
+  "shard": 12
+ },
+ "life": 0.92,
+ "sz": 6.6,
+ "alive_max": 21,
+ "lights": 8,
+ "lights_per_hit": 0.28,
+ "light_r": 125.0,
+ "light_i": 0.64,
+ "light_life": 0.14,
+ "emit_max": 128,
+ "emit_mean": 26.5,
+ "gl_peak": 83.9,
+ "gl_area_hit": 37,
+ "gl_mean_hit": 12.6,
+ "em_peak": 236.2,
+ "em_area_hit": 22,
+ "em_mean_hit": 172.2,
+ "crop": [
+  452,
+  256,
+  320,
+  180
+ ]
+}
