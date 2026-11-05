@@ -179,6 +179,8 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 			o.log_hit(_src(o, "扩散"), ["lshape"])
 			o.deal_damage(x, dmg * sp * (kn("boss_k", 1.0) if x.boss else 1.0))
 		o.fx({"kind": "ring", "pos": e.pos, "r": r, "r0": 8.0, "life": 0.22, "col": o.col(), "floor": true, "w": 2.0})
+		if str(o.id) == "exusiai":
+			_FXR.ev(o, "exu_splash", {"at": e.pos})   # 转平面（docs/262）：只画
 	if ch > 0:
 		var cur: Dictionary = e
 		var done := {e.id: true}
@@ -199,6 +201,8 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 				break
 			done[nx.id] = true
 			o.fx({"kind": "line", "pos": cur.pos + Vector2(0, -16), "to": nx.pos + Vector2(0, -16), "life": 0.14, "col": o.col().lerp(Color.WHITE, 0.4), "w": 2.0})
+			if str(o.id) == "exusiai":
+				_FXR.ev(o, "exu_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0})   # 转平面（docs/262）：只画
 			if str(o.id) == "lumen":
 				_FXR.ev(o, "lm_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0, "e": nx})   # 转平面（docs/255）：只画
 			o.log_hit(_src(o, "连锁"), ["lshape"])

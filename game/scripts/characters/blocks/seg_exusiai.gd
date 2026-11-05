@@ -301,6 +301,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
 				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
 	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
+	_FXR.ev(o, "exu_fire", {"mz": mz, "d": d0, "fx": mfx, "fan": fan})   # 转平面（docs/262）：只画
 	if not fan:
 		# 枪声跟出弹同一帧：每一轮射击一声（连射的后几轮、掩护射击补射也各一声；原来整个普攻出手只在 _release_body 末尾响一声，技能连射靠发动时的预混音频）。
 		# 弹匣倾泻（fan）那一下有自己的 big 音。冲锋模式强力弹低一点更沉，过载连射（burst > 1）每轮略轻免得糊
@@ -391,6 +392,7 @@ static func _exu_bullets(o, dt: float) -> void:
 				_exu_mark(o, e, bu.tr)
 			o._sfx_op("hit")
 			o.spawn_fx_sprite(str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
+			_FXR.ev(o, "exu_hit", {"e": e, "at": e.pos + Vector2(0, EXU_AIM_Y), "fx": str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit")), "tr": not bu.get("tr", {}).is_empty(), "v": bu.v})   # 转平面（docs/262）：只画
 			if bu.ric and not ric.is_empty() and g.rng_op.randf() < float(ric.get("chance", 0.0)):
 				var nx = _exu_next(o, e, float(ric.get("r", 120.0)))
 				if nx != null:
@@ -460,6 +462,8 @@ static func exu_exec(o, b: Dictionary, at: Vector2) -> void:
 		"verb.attack_lock":
 			var st2 := exu_st(o)
 			st2.lock = maxf(float(st2.lock), float(b.get("dur", 0.0)))
+			if o.pos != Vector2.INF:
+				_FXR.ev(o, "exu_heat", {"mz": _exu_muzzle(o, o.B.get("attack", {}))})   # 转平面（docs/262）：枪管过热冒烟，只画
 
 
 ## 技能外壳 dur.ammo（data_operator._release_skill）：装填 N 发，打完为止；HUD 环显示剩余 / 总数
@@ -480,8 +484,10 @@ static func exu_draw(o) -> void:
 	var g = o.g
 	var fr: int = int(g.t * 20.0) % 2
 	var bfx = g.world.bulfx
-	bfx.observe("exu:" + str(o.id), o.ext.bul, "p", false, true, Color(1.0, 0.82, 0.5))   # 子弹出现 / 到期画面（命中有 fx_exusiai_hit，不叠）
-	for bu in o.ext.bul:
+	var pxo: bool = _FXR.Pxp.owns_id(g, str(o.id))   # 转平面（docs/262）接管：弹体由 fx_pxplane_exu 画
+	if not pxo:
+		bfx.observe("exu:" + str(o.id), o.ext.bul, "p", false, true, Color(1.0, 0.82, 0.5))   # 子弹出现 / 到期画面（命中有 fx_exusiai_hit，不叠）
+	for bu in ([] if pxo else o.ext.bul):
 		var tn: String = str(bu.tex)
 		var tx = g.tex.get(tn) if tn != "" else null
 		if tx != null:

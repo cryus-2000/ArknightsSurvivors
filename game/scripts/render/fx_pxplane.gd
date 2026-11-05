@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_exusiai.json": "ex_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §12）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "exusiai": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -65,7 +65,18 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
+	if oid == "exusiai":   # 能天使（docs/262）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+		return of(game).mode() == 1
 	return of(game).mode() > 0
+
+
+## 能天使一节（docs/262，单独文件 fx_pxplane_exu.gd；运行时 load 避免循环 preload）
+var _exm = null
+
+func _ex():
+	if _exm == null:
+		_exm = load("res://scripts/render/fx_pxplane_exu.gd").new(self)
+	return _exm
 
 
 func _meta(k: String) -> Dictionary:
@@ -139,6 +150,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "lumen":
 		_ev_lumen(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "exusiai":
+		_ex().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -369,6 +383,9 @@ func draw_floor(o) -> void:
 	if id == "lumen":
 		_lm_draw_floor(o)
 		return
+	if id == "exusiai":
+		_ex().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -433,6 +450,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "lumen":
 				r._lm_sort_items(o, out)
 				continue
+			if str(o.id) == "exusiai":
+				r._ex().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -448,6 +468,9 @@ static func sort_items(game) -> Array:
 
 static func draw_sorted(game, ci, it: Dictionary) -> void:
 	var r = game.get_meta("fx_pxplane")
+	if it.has("ex"):   # 能天使运行时件（docs/262）
+		r._ex().draw_rt(ci, it)
+		return
 	if it.has("wave"):
 		var w: Array = it.wave
 		r._draw_strip(ci, w[0] + "_up_d%d" % w[3], r.frame_of(0.0), w[1], w[2], false)
