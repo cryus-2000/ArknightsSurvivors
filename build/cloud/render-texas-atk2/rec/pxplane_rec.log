@@ -1,0 +1,4 @@
+('rec0_s11_480', 499, [], False)
+('rec1_s11_480', 499, [], False)
+录像 build/cloud/render-texas-atk2-rec/media/late_8m00_onoff.mp4 600 帧 22.7 MB
+rec0_s11_480 vs rec1_s11_480：TRACE 499 / 499 行，逐行一致
