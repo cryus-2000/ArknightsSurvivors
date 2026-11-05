@@ -3795,7 +3795,7 @@ class _SkRec:
 					return false
 		return true
 
-var _sk_test: bool = Cfg.dev_args().has("--skdomtest")
+var _sk_test: bool = (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--skdomtest")
 var _sk_test_n := 0
 var _sk_test_bad := 0
 var _sk_ac := {}          # 弧几何缓存：键 → [cos(a), sin(a), 粗细, 迎光 / 暗边 cos, sin]
