@@ -167,6 +167,8 @@
 - **A「深海水压」**：sf = 水泡撞击反放（倒吸）；cast = 深水下沉 + 一点魔法气流；rise = 卡通气泡串（3 个音高）；compress = 深水下沉反放 + 低音下坠反放（往里吸）；**burst = 深水下沉冲击 + 预告片低频轰 + 水泡撞击 + 慢放低频余音（低频轰放慢到 0.55 倍、600 Hz 低通，约 1.8 秒）**；pop = 水泡撞击升调；end = 湖面涟漪退去。重心 0.5–1.5 kHz，4 kHz 以上 ≤ 0.2%。
 - **B「幻象」**：sf / rise = 音乐盒一音（3 个音高，先柔和削峰）；cast = 星界气流 + 音乐盒低一音；compress = 魔法嗡鸣反放 + 深水反放；burst = 同 A 再加一层低音下坠；pop = 卡通气泡；end = 带混响的低音下沉。
 - 风险：两版 burst 的能量 91–97% 在 200 Hz 以下，手机外放可能偏闷，实机听过再定要不要补一点中频。
+- **C「原作加厚」**（11-05 用户确认原作客户端音源可以用）：保留 10-31 定稿那几声原作（水泡 / 召潮 / 黑洞 / 水炮 + 潮涌），只做三件事：群爆加厚（再叠深水下沉 + 预告片低频轰）、补慢放低频余音（同 A）、4–6.5 kHz 压约 9 dB 并滚掉 7.5 kHz 以上；收尾用潮涌尾巴。实测群爆重心 5.5 → 2.4 kHz、4–6.5 kHz 能量 2.2% → 0.2%，水泡 rise / pop 重心约 5.5–6.1 → 2.9–3.0 kHz。起手提示音和群爆先柔和削峰再对齐响度（否则软限幅把整段压平，比该槽目标响 2–3 dB）。
+- **手机外放试听**：三个候选各有一版模拟手机扬声器频响（200 Hz 以下 4 阶高通）：`ult_mizuki_new_{A,B,C}_phone.mp4`。
 
 清单（每一下的文件、第几秒、音量）：`Claude outputs/ult_px_mizuki_1105/sfx_cues.md`；文件 `sfx/A/`、`sfx/B/`；生成 `python game/tools/gen_sfx_ult_seg_1030.py --only mizuki --reseed [--variant 2] --out <目录>`（不带 `--apply`，没写进游戏）。
 
@@ -174,7 +176,7 @@
 
 - `ult_mizuki_1x.gif`（1 倍整屏，15 fps：超必杀暂停 → 起手慢放 → 升起 → 压缩渐暗 → 冲击帧两拍 → 顿帧 → 慢放 → 缓回 → 收尾）、`ult_mizuki_x2.gif`（中心 2 倍）；
 - `ult_mizuki_before_after.gif` / `.mp4`：左原版实录（含原声）、右新版示意，按冲击帧对齐；
-- `ult_mizuki_new_A.mp4` / `_B.mp4`：新版示意 + 候选音效 A / B；
+- `ult_mizuki_new_A.mp4` / `_B.mp4` / `_C.mp4`：新版示意 + 候选音效 A / B / C；`_phone` 结尾的是手机扬声器模拟版；
 - `sfx_cues.md`：音效清单。
 - 工具：`tools/ult_px_mizuki_gif.py`（画法，点头后照它逐函数移植成 `game/scripts/run/ult_px_mz.gd`）、`tools/ult_px_mizuki_av.py`（并排 + 混音）。
 

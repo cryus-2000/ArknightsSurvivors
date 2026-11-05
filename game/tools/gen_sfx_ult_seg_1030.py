@@ -353,9 +353,22 @@ def mizuki(v=1):
     """docs/261 §8（11-05 终结技转平面，任务单「不能用原作客户端里解出来的音源」）：10-31 定稿 ① 用的原作 waterbubble / seasummon / darkholespell /
     bigwatercannon / tidesurging 全换成库里有授权的录音（Sonniss GDC 2026，docs/113 §20），槽名不变，另加收尾 end。
     原版辨识度在两处：水泡一路往上的「咕噜」、群爆那一下的深水炮响——这两处用录音还原；群爆加厚 + 补慢放低频余音，高频压掉。
-    v=1 候选 A「深海水压」：水泡 / 深水下沉 / 水面涟漪；v=2 候选 B「幻象」：音乐盒一音 + 魔法嗡鸣倒吸，群爆同 A 但多一层低音下坠"""
+    v=1 候选 A「深海水压」：水泡 / 深水下沉 / 水面涟漪；v=2 候选 B「幻象」：音乐盒一音 + 魔法嗡鸣倒吸，群爆同 A 但多一层低音下坠；
+    v=3 候选 C：原作几声原样保留（用户 11-05 确认原作音源可用），只加厚群爆、补余音、压 4–6.5 kHz"""
     rev = lambda x: x[::-1].copy()
     soft = lambda x: np.tanh(x * 4.0) / np.tanh(4.0)   # 音乐盒起音峰太尖：先柔和削峰，再按槽对齐响度（否则软限幅把整段压平、反而比高潮还响）
+    if v == 3:   # 候选 C（11-05 用户「原作的音源没问题，我问过了可以用」）：保留 10-31 定稿的原作几声，只加厚高潮、补慢放低频余音、压 4–6.5 kHz 尖声
+        tame = lambda x: lp(x - lp(hp(x, 4000), 6500) * 0.65, 7500)   # 4–6.5 kHz 压约 9 dB，7.5 kHz 以上滚掉
+        return {
+            "sf": soft(tame(akd("p_skill_waterbubble.wav", 0.15, 0.5, 0.8, fout=0.25))), "cast": tame(akd("p_skill_seasummon.wav", 0.0, 0.6, 1.1, fout=0.3)),
+            **{"rise_%d" % (i + 1): tame(akd("p_skill_waterbubble.wav", 0.15, 0.5, r, fout=0.2)) for i, r in enumerate([1.3, 1.42, 1.55])},
+            "compress": tame(akd("p_skill_darkholespell.wav", 0.0, 0.55, 1.1, fout=0.1)),
+            "burst": soft(tame(pad(akd("p_skill_bigwatercannon.wav", 0.0, 1.6, 0.9, fout=0.6), akd("p_skill_tidesurging.wav", 0.45, 1.2, 1.1, fout=0.5) * 0.6,
+                              lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7, lp(sn("sub", 0.0, 1.4, 0.85, fout=0.6), 2500) * 0.6,
+                              lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8, _mz_tail() * 0.9))),   # 加厚：深水下沉 + 预告片低频 + 慢放余音
+            **{"pop_%d" % (i + 1): tame(akd("p_skill_waterbubble.wav", 0.15, 0.4, r, fout=0.15)) for i, r in enumerate([1.7, 1.85, 2.0])},
+            "end": fadeio(lp(akd("p_skill_tidesurging.wav", 1.2, 1.4, 0.9), 2500), 0.15, 0.9),   # 收尾：潮涌尾巴退下去
+        }
     if v == 2:
         return {
             "sf": soft(fadeio(lp(lib(MZ_BOX, 0.0, 0.9, 0.85, fout=0.4), 5000), 0.002, 0.4)),

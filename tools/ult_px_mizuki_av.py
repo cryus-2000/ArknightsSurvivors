@@ -93,21 +93,38 @@ def mix(cand, dur):
     return path, rows
 
 
+def phone_sim(path):
+    """手机扬声器频响示意：200 Hz 以下 4 阶高通（试听用，不进游戏）"""
+    from scipy.signal import butter, sosfilt
+    x = read_wav(path)
+    y = sosfilt(butter(4, 200, "highpass", fs=SR, output="sos"), x).astype(np.float32)
+    out = path.replace(".wav", "_phone.wav")
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
+        w.writeframes((np.clip(y, -1, 1) * 32767).astype(np.int16).tobytes())
+    return out
+
+
 def main():
     fr = new_frames()
     n = len(fr)
     dur = n / 15
     # 新版 + 候选音效
     md = ["# 水月终结技 · 音效清单（docs/261 §8）\n", "时刻 = 新版送审视频里的秒（按 Q 起算，真实时间）；音量 = 文件本身最响 100 ms RMS（dBFS，docs/113 口径），游戏里按 ult_audio.json 的 vol 再调。\n"]
-    for cand in ("A", "B"):
+    NAMES = {"A": "深海水压（库内录音）", "B": "幻象（库内录音）", "C": "原作音源加厚 + 余音 + 压尖（用户 11-05 确认原作音源可用）"}
+    for cand in ("A", "B", "C"):
+        if not os.path.isdir(os.path.join(OUT, "sfx", cand)):
+            continue
         wav, rows = mix(cand, dur)
-        mp4 = os.path.join(OUT, "ult_mizuki_new_%s.mp4" % cand)
-        subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", "15", "-i", os.path.join(OUT, "new_frames", "f_%04d.png"), "-i", wav,
-                        "-vf", "fps=30", "-c:v", "libx264", "-crf", "22", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-shortest", mp4], check=True)
-        md.append("\n## 候选 %s（%s）\n\n| 槽 | 文件 | 第几秒 | 音量 dBFS | 时长 s | 时机 |\n|---|---|---|---|---|---|\n" % (cand, "深海水压" if cand == "A" else "幻象"))
+        phone = phone_sim(wav)   # 手机外放模拟：200 Hz 以下扬声器出不来（4 阶高通）
+        for w_, tag in ((wav, ""), (phone, "_phone")):
+            mp4 = os.path.join(OUT, "ult_mizuki_new_%s%s.mp4" % (cand, tag))
+            subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", "15", "-i", os.path.join(OUT, "new_frames", "f_%04d.png"), "-i", w_,
+                            "-vf", "fps=30", "-c:v", "libx264", "-crf", "22", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-shortest", mp4], check=True)
+            print(mp4)
+        md.append("\n## 候选 %s（%s）\n\n| 槽 | 文件 | 第几秒 | 音量 dBFS | 时长 s | 时机 |\n|---|---|---|---|---|---|\n" % (cand, NAMES[cand]))
         for slot, f, t, d, L, why in rows:
             md.append("| %s | sfx/%s/%s | %.2f | %.1f | %.2f | %s |\n" % (slot, cand, f, t, d, L, why))
-        print(mp4)
     open(os.path.join(OUT, "sfx_cues.md"), "w", encoding="utf-8").write("".join(md))
     # 并排：原版实录按冲击帧对齐（原版里冲击帧 = 整屏最白的那一帧）
     tmp = os.path.join(OUT, "_orig")
