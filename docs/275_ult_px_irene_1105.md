@@ -121,3 +121,13 @@
 - TRACE：`cloud-results/render-ult-irene-trace` 分支 `build/cloud/render-ult-irene-trace/trace_ab.md`。
 - 原版对照录像：`Claude outputs/render-ult-irene-orig/u_irene.mp4`（同种子、同参数，开关关）。
 
+### 6.1 怪物崩解 + 收尾大爆版（提交 8f35e8add）
+
+| 项 | 结果 |
+|---|---|
+| 怪物多的场面实机录像：`ult_rec.py --clips u_irene --at 480 --secs 10`，开 / 关各一段（8:01.5 放终结技） | 两段各 300 帧，SCRIPT ERROR 0 条。开着时依次出现：亮核 → 冲击环 → 被宣判的怪成片炸成自身颜色的像素粒子；地面碎石和尘作配角 |
+| TRACE：种子 3 · 40 秒（31.5 秒放）/ 种子 3 · 490 秒（481.5 秒放），`ult/px_plane` 0 vs 1，windowed | 41 / 41 行、491 / 491 行逐行一致 |
+| 中途修的错 | 冲击环「地面一闪」的点表少了第 4 项（不透明度），`_pts` 读 q[3] 时报 SCRIPT ERROR（8:00 那局查出，调用栈指到 `_draw_blast`），已修 |
+
+- 录像：本机 `Claude outputs/ult_px_irene_1105/ult_irene_8m_before_after.mp4`（左原版、右转平面，同种子同一时刻），`ult_irene_8m_on.mp4`（开着的原片）。
+
