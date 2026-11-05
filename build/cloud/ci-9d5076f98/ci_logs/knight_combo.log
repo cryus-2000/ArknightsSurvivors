@@ -1,0 +1,31 @@
+# knight_combo
+# 参数：--headless --path /work/repo/game res://tests/knight_combo_test.tscn -- --regression --seed=1
+# 用时 13 秒；结束时全机 Godot 8 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+COMBO 1 ["断潮劈击", "冲锋", "长枪连刺"] dashes=1
+COMBO 1 ["踏冰裂阵", "断潮劈击", "冲锋"] dashes=1
+COMBO 1 ["侧踏挑枪", "冲锋"] dashes=1
+COMBO 1 ["冲锋", "长枪连刺"] dashes=1
+COMBO 1 ["冰线", "寒冷追击", "长枪连刺"] dashes=1
+COMBO 1 ["长枪连刺", "断潮劈击"] dashes=0
+COMBO 1 ["掷枪", "冲锋"] dashes=1
+COMBO 2 ["冲锋", "再冲锋", "裂地冲锋", "再冲锋"] dashes=3
+KNIGHT COMBO failures=0
+ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 65 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 24 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
