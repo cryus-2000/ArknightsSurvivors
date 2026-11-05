@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、艾雅法拉（docs/259）、水月（docs/261），各自一节在文件末尾。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、艾雅法拉（docs/259）、水月（docs/261）、德克萨斯（docs/257）、歌蕾蒂娅（docs/263，单独文件 fx_pxplane_gl.gd），各自一节在文件末尾；逻各斯（docs/258）见文件末段。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,17 +18,19 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_siege_ult.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_siege_ult.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true}
+const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true}
+const GL = preload("res://scripts/render/fx_pxplane_gl.gd")   # 歌蕾蒂娅一节（docs/263）单独成文件
+const UL = preload("res://scripts/render/fx_pxplane_ul.gd")   # 乌尔比安一节（docs/266）单独成文件
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
-const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
+const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}, "gladiia": {"fx_gladiia_water_glide": true}}   # 歌蕾蒂娅水滑行是跑动拖尾，不属攻击特效
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
 const LM_AC := Color("#ff9640")   # 精二点缀灯火橙
 const DIRS := [-90, -45, 0, 45, 90]
 const EMIT_CAP := 360     # 每帧送进发光层的 emit 点上限（整队）
-const ITEM_MAX := 72
+const ITEM_MAX := 120   # 逻各斯（docs/258）消弹墨点 / 跳转笔较多：72 → 120
 
 var g
 var meta := {}
@@ -40,6 +42,7 @@ var _emit_n := 0
 var _emit_frame := -1
 var _ecol := {}
 var _fol_tick := -1
+var _fopl_tick := -1
 var _fopo_tick := -1   # 艾雅法拉跟施放者的件（fopo = 干员对象、foff = 偏移，docs/259）
 
 
@@ -66,7 +69,7 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid in ["exusiai", "angelina", "saria"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
 		return of(game).mode() == 1
 	return of(game).mode() > 0
 
@@ -103,9 +106,15 @@ static func air_look(game, e: Dictionary) -> Vector2:
 	if game == null or not game.has_meta("fx_pxplane"):
 		return Vector2(1.0, 0.0)
 	var r = game.get_meta("fx_pxplane")
-	if r._anm == null or r.mode() != 1:
+	if r.mode() != 1:
 		return Vector2(1.0, 0.0)
-	return r._anm.air_look(e)
+	if r._anm != null:
+		var v: Vector2 = r._anm.air_look(e)
+		if v != Vector2(1.0, 0.0):
+			return v
+	if r._irm != null:   # 艾丽妮挑起 / 掀起的敌人（docs/272）
+		return r._irm.air_look(e)
+	return Vector2(1.0, 0.0)
 ## 塞雷娅一节（docs/269，单独文件 fx_pxplane_sa.gd；运行时 load 避免循环 preload）
 var _sam = null
 
@@ -114,6 +123,23 @@ func _sa():
 	if _sam == null:
 		_sam = load("res://scripts/render/fx_pxplane_sa.gd").new(self)
 	return _sam
+## 铃兰一节（docs/271，单独文件 fx_pxplane_sz.gd；运行时 load 避免循环 preload）
+var _szm = null
+
+
+func _szx():
+	if _szm == null:
+		_szm = load("res://scripts/render/fx_pxplane_sz.gd").new(self)
+	return _szm
+
+## 艾丽妮一节（docs/272，单独文件 fx_pxplane_ir.gd；运行时 load 避免循环 preload）
+var _irm = null
+
+
+func _ir():
+	if _irm == null:
+		_irm = load("res://scripts/render/fx_pxplane_ir.gd").new(self)
+	return _irm
 
 
 func _meta(k: String) -> Dictionary:
@@ -188,6 +214,12 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	if str(o.id) == "lumen":
 		_ev_lumen(o, kind, d, raw, t, R, p)
 		return
+	if str(o.id) == "gladiia":
+		GL.ev(self, o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "ulpianus":
+		UL.ev(self, o, kind, d, raw, t, R, p)
+		return
 	if str(o.id) == "eyjafjalla":
 		_ev_ey(o, kind, d, raw, t, R, p)
 		return
@@ -197,6 +229,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	if str(o.id) == "exusiai":
 		_ex().ev(o, kind, d, t, R, p)
 		return
+	if str(o.id) == "texas":
+		_ev_tx(o, kind, d, raw, t, R, p)
+		return
 	if str(o.id) == "mizuki":
 		_ev_mz(o, kind, d, raw, t, R, p)
 		return
@@ -205,6 +240,15 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "saria":
 		_sa().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "logos":
+		_ev_logos(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "suzuran":
+		_szx().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "irene":
+		_ir().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -250,6 +294,7 @@ func ev(o, kind: String, d: Dictionary) -> void:
 					_add(o, "s1_e%d" % t, o.pos, ang, r2, raw, "raw_s1_e%d" % t, 73.0)
 					_cuts(o, es, t, 4)
 					_burst(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 4 + 2 * t, 140.0, 0.5)
+					_s1_land(o, R, p, o.pos + Vector2(dv.x, dv.y * 0.72) * r2 * 0.55)
 				"跃浪击":
 					# 跃浪击（11-05 用户「每个技能要做出视觉上的区别」）：不用月牙，前方立起一道弧形水墙、往前卷倒拍下
 					var at: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * r2 * 0.56
@@ -298,6 +343,40 @@ func _burst(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, lr: 
 	else:
 		R._grains(o, at, gy, "ink", maxi(1, n / 2), m)
 		R._light(o, at, lr * 0.8, li * 0.6 * MI.lit_k(g), 0.1, p.light)
+
+
+## S1 十字斩落点（docs/270 光感补齐，11-05）：落点挂一盏照地灯（fx/px_plane_s1_light_r / _i，缺省 160 / 0.7）+ 交叉中心一颗十字亮芯（4 拍，进 emit）。只画
+func _s1_land(o, R, p: Dictionary, at: Vector2) -> void:
+	if mode() != 1:
+		return
+	var li: float = minf(0.88, Bal.v("fx/px_plane_s1_light_i", 0.65) * MI.lit_k(g))   # 打击感包开时 ×1.35，封在 docs/270 爆发类上限 0.9 以内
+	R._light(o, at, Bal.v("fx/px_plane_s1_light_r", 160.0), li, 0.15, p.light)
+	_push({"core": true, "t0": g.t + 0.06, "gp": at + Vector2(0, -12), "gy": at.y + 2.0, "ly": "up", "oid": str(o.id), "k": "", "life": 0.36, "o": o, "li": li, "at": at})
+
+
+## 十字亮芯：第 0 拍长臂白芯，之后逐拍收短、转冰蓝；每格进 emit
+func _draw_core(ci, it: Dictionary) -> void:
+	var f: int = frame_of(float(it.t0))
+	if f < 0 or f > 3:
+		return
+	var px: float = g.PX
+	var c0: Vector2 = _snap(_gp(it))
+	var m: int = [6, 4, 3, 1][f]
+	var col := Color(1, 1, 1) if f <= 1 else Color.html("#c4dcff")
+	if f <= 2 and is_instance_valid(it.o):   # 落点灯撑到横斩落下：每帧跟一盏（0.05 秒寿命，走配方灯光预算），逐拍减弱
+		var R = load("res://scripts/render/fx_recipe.gd").of(g)
+		R._light_follow(it.o, it.at, Bal.v("fx/px_plane_s1_light_r", 160.0), float(it.li) * [1.0, 0.85, 0.6][f], R.pal(it.o).light)
+	for i in range(-m, m + 1):
+		for q in ([Vector2(i, 0)] if i == 0 else [Vector2(i, 0), Vector2(0, i)]):
+			var pp: Vector2 = _snap(c0 + q * px)
+			ci.draw_rect(Rect2(pp, Vector2(px, px)), col)
+			if absi(i) <= m - 1:
+				_glow(pp, Color(1, 1, 1))
+	if f == 0:
+		for q in [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]:
+			var pp: Vector2 = _snap(c0 + q * px)
+			ci.draw_rect(Rect2(pp, Vector2(px, px)), col)
+			_glow(pp, Color(1, 1, 1))
 
 
 ## 命中斩痕（刀剑感：被砍中的那只身上一道 1 美术像素白芯的斜线，3 拍收掉；精二交叉成 X）。只在转平面版；至多 n 只（离斯卡蒂由近到远）
@@ -421,6 +500,8 @@ func _step() -> void:
 				var op = _op_by_id(str(it.oid))
 				if op != null and op.pos != Vector2.INF:
 					it.gp = _snap(op.pos)
+			elif it.has("fe") and not it.fe.dead:   # 德克萨斯钉剑：跟着被钉的敌人（只读位置）
+				it.gp = _snap(it.fe.pos)
 	if tk != _fopo_tick:   # 跟着施放者本人走的件（艾雅法拉咏唱火缕 / 火山喷柱 / 出手火光，docs/259）：位置每拍跳一格
 		_fopo_tick = tk
 		for it in items:
@@ -430,6 +511,16 @@ func _step() -> void:
 					it.at = np
 				else:
 					it.gp = np
+	if tk != _fopl_tick:   # 挂在施放者身上的件（逻各斯笔光 / 字环，docs/258）：每拍（15 fps）跟到施放者当前脚底与朝向
+		_fopl_tick = tk
+		for it in items:
+			if it.has("fopl"):
+				var fo = it.fopl
+				if is_instance_valid(fo) and fo.pos != Vector2.INF:
+					it.gp = _snap(fo.pos)
+					it.flip = float(fo.face) < 0.0
+					if it.has("gy"):
+						it.gy = float(fo.pos.y) + 2.0
 
 
 func _life(k: String) -> float:
@@ -458,6 +549,9 @@ func draw_floor(o) -> void:
 	if id == "lumen":
 		_lm_draw_floor(o)
 		return
+	if id == "gladiia":
+		GL.floor_layer(self, o)
+		return
 	if id == "eyjafjalla":
 		_ey_floor(o)
 		return
@@ -467,6 +561,9 @@ func draw_floor(o) -> void:
 	if id == "exusiai":
 		_ex().draw_floor(o)
 		return
+	if id == "texas":
+		_floor_tx(o)
+		return
 	if id == "mizuki":
 		_mz_draw_floor(o)
 		return
@@ -475,6 +572,18 @@ func draw_floor(o) -> void:
 		return
 	if id == "saria":
 		_sa().draw_floor(o)
+		return
+	if id == "logos":
+		_lg_draw_floor(o)
+		return
+	if id == "ulpianus":
+		UL.floor_layer(self, o)
+		return
+	if id == "suzuran":
+		_szx().draw_floor(o)
+		return
+	if id == "irene":
+		_ir().draw_floor(o)
 		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
@@ -491,11 +600,19 @@ func draw_floor(o) -> void:
 func draw_over(o) -> void:
 	if str(o.id) == "lumen" and o.hw.has("lm"):
 		_sl()._h3lm_draw_units(o)   # 发光单元是本体附属物（不是攻击特效），接管时照画
+	if str(o.id) == "gladiia":
+		_step()
+		GL.over(self, o)   # 链 + 钩头（转平面版、旧做法对照都画）；旧做法的整张贴图
+		return
 	if str(o.id) == "siege" and mode() == 1:
 		_sg_draw_motes(o)   # 冲锋号令 / 跃空锤的全队技力粒子（状态提示：技力飞向队友）
 	if str(o.id) == "saria":
 		if mode() == 1:
 			_sa().draw_over(o)   # 状态提示 + 钙化斑（docs/269）
+		return
+	if str(o.id) == "ulpianus":
+		_step()
+		UL.over(self, o)   # 锁链 + 锚（转平面版、旧做法对照都画）
 		return
 	if mode() != 2:
 		return
@@ -507,12 +624,18 @@ func draw_over(o) -> void:
 	if id == "eyjafjalla":
 		_ey_draw_raw(o)
 		return
+	if id == "texas":
+		_tx_draw_raw_lines(o)
 	if id == "mizuki" and o.hw.has("mz"):
 		_smz()._h3mz_draw_jellies(o)   # 旧做法对照：深蓝之籽照原画法
+	if id == "logos":
+		_lg_draw_raw(o)
 	for it in items:
 		if str(it.ly) != "raw" or str(it.oid) != id:
 			continue
 		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8)), it.gp, float(it.rot), float(it.sc))
+	if id == "logos":
+		return
 	if id == "hoshiguma":   # 般若回旋的锯盾：旧做法整张贴（正圆、光晕烤进颜色、盖在上面）
 		for bm in _booms(o):
 			_draw_raw(cv, "hsg_raw_saw", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), int(_meta("hsg_raw_saw").get("n", 1))), o.pos + bm.dir * _boom_d(bm) + Vector2(0, -22), 0.0, g.PX)
@@ -545,6 +668,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "lumen":
 				r._lm_sort_items(o, out)
 				continue
+			if str(o.id) == "gladiia":
+				GL.sort_items(r, o, out)
+				continue
 			if str(o.id) == "eyjafjalla":
 				r._ey_sort_items(o, out)
 				continue
@@ -554,11 +680,26 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "exusiai":
 				r._ex().sort_items(o, out)
 				continue
+			if str(o.id) == "texas":
+				r._tx_sort_items(o, out)
+				continue
 			if str(o.id) == "angelina":
 				r._an().sort_items(o, out)
 				continue
 			if str(o.id) == "saria":
 				r._sa().sort_items(o, out)
+				continue
+			if str(o.id) == "logos":
+				r._lg_sort_items(o, out)
+				continue
+			if str(o.id) == "ulpianus":
+				UL.sort_items(r, o, out)
+				continue
+			if str(o.id) == "suzuran":
+				r._szx().sort_items(o, out)
+				continue
+			if str(o.id) == "irene":
+				r._ir().sort_items(o, out)
 				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
@@ -585,6 +726,12 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 	if it.get("cut", false):
 		r._draw_cut(ci, it)
 		return
+	if it.get("core", false):
+		r._draw_core(ci, it)
+		return
+	if it.has("ln"):   # 德克萨斯：运行时直线刀光（冲刺 / 次元斩 / 连携）
+		r._tx_draw_line(ci, it, false)
+		return
 	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
 		r._draw_strip(ci, str(it.k), int(it.fi), r._gp(it), it.flip, true)
 		return
@@ -594,14 +741,29 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 	if it.has("sa"):   # 塞雷娅运行时件（docs/269）
 		r._sa().draw_rt(ci, it)
 		return
+	if it.has("ulrt"):   # 乌尔比安运行时件（docs/266）
+		UL.draw_rt(r, ci, it)
+		return
+	if it.has("sz"):   # 铃兰运行时件（docs/271）
+		r._szx().draw_rt(ci, it)
+		return
+	if it.has("ir"):   # 艾丽妮运行时件（docs/272）
+		r._ir().draw_rt(ci, it)
+		return
 	if it.has("ert"):   # 艾雅法拉运行时件（docs/259）
 		r._ey_draw_rt(ci, it)
 		return
 	if it.has("rt"):
 		r._lm_draw_rt(ci, it)
 		return
+	if it.has("glrt"):
+		GL.draw_rt(r, ci, it)
+		return
 	if it.has("mzj"):
 		r._mz_draw_jelly(ci, it)
+		return
+	if it.has("lrt"):
+		r._lg_draw_rt(ci, it)
 		return
 	if it.has("loopk"):
 		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), r._gp(it), false, false)
@@ -622,8 +784,8 @@ func _draw_cut(ci, it: Dictionary) -> void:
 	var dirs: Array = [it.d]
 	if it.x:
 		dirs.append((it.d as Vector2).rotated(1.25))
-	var core := Color(1, 1, 1) if f == 0 else Color.html("#cddcfb")
-	var side := Color.html("#93b4f7") if f == 0 else Color.html("#598cf2")
+	var core := Color(1, 1, 1) if f == 0 else Color.html(str(it.get("c1", "#cddcfb")))   # c1 / c2 / c3：干员自己的斩痕色（德克萨斯琥珀）
+	var side := Color.html(str(it.get("c2", "#93b4f7"))) if f == 0 else Color.html(str(it.get("c3", "#598cf2")))
 	var lk: float = MI.lit_k(g)
 	var L: float = float(it.L) * [1.0, 0.8, 0.5][f] * (1.0 + (lk - 1.0) * 0.6)   # 打击感包开：斩痕长一点、亮一点
 	for d in dirs:
@@ -640,9 +802,10 @@ func _draw_cut(ci, it: Dictionary) -> void:
 				ci.draw_rect(Rect2(_snap(p + nv * px), Vector2(px, px)), side)
 			if f <= 1 and lk > 1.0 and w > 0.5:
 				ci.draw_rect(Rect2(_snap(p - nv * px), Vector2(px, px)), side)
-			if f == 0 and w > 0.4 and g.optical_on and _emit_n < EMIT_CAP and (i & 1) == 0:
+			var ek: bool = it.has("emk")   # emk：斩痕白芯每格都进发光层、留两拍（德克萨斯，docs/270 §5「核心辉光 0」）
+			if (f == 0 or (ek and f == 1)) and w > (0.25 if ek else 0.4) and g.optical_on and _emit_n < EMIT_CAP and ((i & 1) == 0 or ek):
 				_emit_n += 1
-				g.glow_next.append([p, px, Color(1, 1, 1, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk))])
+				g.glow_next.append([p, px, Color(1, 1, 1, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk)) if not ek else Color(1.0, 0.9, 0.7, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk * (1.0 if f == 0 else 0.7)))])
 
 
 ## 立起件当前的排序位置：有 gyo（相对原点的脚底偏移）按当前原点 + gyo；有 gy 的跟着原点平移；斩痕按被砍那只的脚底；其余原点 + 1；再加 sk 偏移（星熊地刺）。
@@ -867,7 +1030,9 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id), "fop": true})   # 下劈弧跟人；裂网冲击环（_gd）是落在地上的，留在原地
 							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id)})
 						_cuts(o, es, t, 4)
-						_burst_m(o, R, p, c + Vector2(-30.0 if fl else 30.0, -6), c.y + 2.0, es, 8 + 3 * t, "rock", 200.0, 0.8)
+						_burst_m(o, R, p, c + Vector2(-30.0 if fl else 30.0, -6), c.y + 2.0, es, 8 + 3 * t, "rock", 0.0, 0.0, false)
+						if mode() == 1:   # 落地那一下：一盏照地灯 200 / 0.80（docs/270 §3「爆发」140–240 / 0.6–0.9；协调人 11-05 定：有没有打中都挂），打中时挂在第一只敌人身上，没打中挂在落点
+							R._light(o, (es[0].pos + Vector2(0, -float(es[0].r) * 0.5)) if not es.is_empty() else c + Vector2(-30.0 if fl else 30.0, -6), 200.0, 0.8, 0.12, p.light)
 					"热砂", "热砂沸腾":
 						pass   # 热砂每 0.5 秒结算一次：画面由区域本身（_floor_hsg 读 o.fields）表现，不逐跳画
 					_:   # 般若之重 / 盾墙反震：贴地冲击环
@@ -935,7 +1100,7 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 
 
 ## 命中：少量颗粒（材质可选）+ 一盏照地短光；只在转平面版
-func _burst_m(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, mat: String, lr: float, li: float) -> void:
+func _burst_m(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, mat: String, lr: float, li: float, light := true) -> void:
 	if mode() != 1:
 		return
 	var m := {"tier": tier(o), "grain_spd": 1.0}
@@ -943,10 +1108,12 @@ func _burst_m(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, ma
 		var e: Dictionary = es[0]
 		var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
 		R._grains(o, hp, float(e.pos.y) + 2.0, mat, mini(n, 2 + es.size()), m, (hp - o.pos).normalized())
-		R._light(o, hp, lr, li, 0.12, p.light)
+		if light:
+			R._light(o, hp, lr, li, 0.12, p.light)
 	else:
 		R._grains(o, at, gy, mat, maxi(1, n / 2), m)
-		R._light(o, at, lr * 0.8, li * 0.6, 0.1, p.light)
+		if light:
+			R._light(o, at, lr * 0.8, li * 0.6, 0.1, p.light)
 
 
 ## 地面层（星熊）：贴地件、热砂（读 o.fields，循环 + 淡入淡出）、力之锯持续时脚下齿印、锯盾影子
@@ -1101,6 +1268,14 @@ func _lm_raw(o, k: String, at: Vector2, rot: float, sc: float) -> void:
 	_push({"k": "lm_" + k, "t0": g.t, "gp": at, "ly": "raw", "rot": rot, "sc": sc, "oid": str(o.id)})
 
 
+## 技能起手的照地光晚一拍（1/15 秒）亮：沐雨 / 沛霖 / 灯火不灭的帧条第 0 拍几乎是空的、主形第 1 拍才出来，发光层又晚一帧显示；
+## 光若在施放那一帧就最亮，会比主形先到（光感体检 docs/270 量到的就是「有光没芯」那一帧）。走 fx_recipe 同一个灯表，只是起点挪后
+func _lm_light_beat(R, o, at: Vector2, r: float, inten: float, col: Color) -> void:
+	R.lights.append([at, r, col, g.t + 1.0 / 15.0, 0.15, inten, str(o.id)])
+	if R.lights.size() > 32:
+		R.lights.pop_front()
+
+
 func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
 	var px: float = g.PX
 	match kind:
@@ -1114,6 +1289,8 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 			_lm_up(o, ("hits_e%d_up" if small else "hit_e%d_up") % t, at, float(e.pos.y) + 1.0, false, e)
 			if not small:
 				_lm_gd(o, "hit_e%d_gd" % t, e.pos + Vector2(0, 2))
+				# 命中亮芯（光感体检 docs/270：普攻命中帧发光核心只有 14 < 30）：水花的白芯只在第 0 拍，这里在命中点另挂 3 拍亮芯进发光层，跟着被打的那只
+				_push({"rt": "hcore", "e": e, "a": at, "t": t, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(e.pos.y) + 1.5, "oid": str(o.id), "k": ""})
 			_burst(o, R, p, at, float(e.pos.y) + 2.0, [e], (1 if small else 2) + t, 60.0 + 15.0 * t, 0.3 + 0.1 * t)
 		"lm_refract":   # 精一折光：命中点到下一只之间一道 1 美术像素白芯细光，落点小水花
 			var a: Vector2 = d.a
@@ -1237,7 +1414,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_gd(o, "drizzle_e%d_gd" % t, lp, true)
 				_lm_up(o, "drizzle_e%d_up" % t, lp, lp.y + 1.0, true)
-				R._light(o, lp + Vector2(0, -20), 150.0, 0.45 + 0.1 * t, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -20), 150.0, 0.45 + 0.1 * t, p.light)
 			elif i == 1:   # 沛霖：头顶水柱砸下（精二三道）+ 落点湿痕
 				var tt: int = maxi(t, 1)
 				if raw:
@@ -1245,7 +1422,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_up(o, "downpour_e%d_up" % tt, lp, lp.y + 1.0, true)
 				_lm_gd(o, "downpour_e%d_gd" % tt, lp, true)
-				R._light(o, lp + Vector2(0, -20), 130.0, 0.6, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -20), 130.0, 0.6, p.light)
 				R._grains(o, lp + Vector2(0, -24), lp.y, "ink", 3 + 2 * tt, {"tier": tt})
 			elif i == 2:   # 灯火不灭起手：头顶四芒灯光 + 水流卷上去；光圈原地亮起
 				if raw:
@@ -1253,7 +1430,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_up(o, "s3open_up", lp, lp.y + 1.0, true)
 				_lm_gd(o, "s3open_gd", lp, true)
-				R._light(o, lp + Vector2(0, -96), 160.0, 0.7, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -96), 160.0, 0.7, p.light)
 
 
 ## 同一名干员这一拍（1/15 秒）已出的某类件数（额外弹命中 / 连锁），超过上限就不再加画面
@@ -1399,6 +1576,28 @@ func _lm_draw_rt(ci, it: Dictionary) -> void:
 			_lm_bolt(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, tier(it.o), false, true)
 		"wbeam":
 			_lm_draw_wbeam(ci, it.o, it.bb)
+		"hcore":   # 命中亮芯：第 0 拍 3×3 + 十字臂、第 1 拍 3×3、第 2 拍中心 + 四点；每点 1 美术像素白芯并进 emit（精二中心一点灯火橙）
+			var fh: int = frame_of(float(it.t0))
+			if fh < 0 or fh > 2:
+				return
+			var e: Dictionary = it.e
+			var c: Vector2 = (e.pos + Vector2(0, -float(e.r) * 0.5)) if not e.get("dead", false) else (it.a as Vector2)
+			var pts: Array = []
+			if fh <= 1:
+				for yy in [-1, 0, 1]:
+					for xx in [-1, 0, 1]:
+						pts.append(Vector2(xx, yy))
+				if fh == 0:
+					pts.append_array([Vector2(2, 0), Vector2(-2, 0), Vector2(0, 2), Vector2(0, -2), Vector2(3, 0), Vector2(-3, 0)])
+			else:
+				pts = [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]
+			for q in pts:
+				var pp: Vector2 = c + q * px
+				var col: Color = C[6] if (fh == 0 or (q as Vector2).length() < 1.5) else C[5]
+				if int(it.t) >= 2 and q == Vector2.ZERO and fh <= 1:
+					col = LM_AC
+				_px(ci, pp, col)
+				_glow(pp, C[6] if col != LM_AC else LM_AC)
 		"cbolt":   # 连携技「清创光弹」：提灯到队长胸口飞 travel 秒，大一号、不分档（尾 18 格 + 两格宽芯 + 灯火橙芯）
 			var u: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.life)), 0.0, 1.0)
 			var ca: Vector2 = it.a
@@ -1437,8 +1636,13 @@ func _lm_bolt(ci, pos: Vector2, vel: Vector2, t: int, big: bool, unit: bool, lin
 			_px(ci, head + dv2 * px * float(dd + 1), cc)
 			_px(ci, head + nv2 * px * float(dd), cc)
 			_px(ci, head - nv2 * px * float(dd), cc)
-	_glow(head, C[6])
-	_glow(head - dv2 * px, C[5])
+	if unit:
+		_glow(head, C[6])
+		_glow(head - dv2 * px, C[5])
+	else:   # 主弹弹头一团 3×3 亮芯进发光层（光感体检 docs/270：发光层晚一帧显示，命中那一帧亮的是弹头上一帧留下的辉光，2 点太弱）
+		for yy in [-1, 0, 1]:
+			for xx in [-1, 0, 1]:
+				_glow(head + Vector2(xx, yy) * px, C[6] if absi(xx) + absi(yy) <= 1 else C[5])
 
 
 ## 灯塔守望光束（11-05 用户「流明那个光束得重新做一下」；原来是贴地光扇、两道边带缺口——又碎又平、不亮）。
@@ -1568,6 +1772,801 @@ func _lm_draw_raw(o) -> void:
 		var dv: Vector2 = S._h3_beam_dir(o, bb)
 		_draw_raw(cv, "lm_raw_sweep", posmod(lf, maxi(1, int(_meta("lm_raw_sweep").get("n", 1)))), S._h3_beam_origin(o), dv.angle(), g.PX * float(bb.get("len", 260.0)) / 260.0 * 1.13)
 
+
+# ================================================================ 逻各斯（docs/258，照斯卡蒂 docs/246 / 流明 docs/255 的做法）
+## 帧条件（tools/pxplane_bake_logos.py，键前缀 lg_）：命中星芒 + 碎刺 / 地面墨环、出手笔光 + 字环、提喻每跳、殁亡交叉咒文链 + 墨柱、延异视阈起手。
+## 运行时逐格画（2 世界像素一格，方向任意、不旋转贴图，形状按 15 fps 节拍换）：「言」墨迹彗星（白头尖细 + 深蓝墨尾）、提喻咒文行、连缀咒文链、
+## 殁亡溢出跳转笔、咒域（只画边 + 淡渐变 + 外沿细字行）、连携字环 / 消弹墨点、铭文 / 墓志铭地面咒文。咒文一律 3×5 细字（1 美术像素笔画）。
+## 彗星位置每帧走、只取整到像素格（同流明光弹：按 15 fps 跳格会一卡一卡）。
+## 旧做法（2）：旧放开版帧条（tools/pixelfx_fx/logos_ul_ref）光晕烤进颜色，小数缩放 + 旋转，盖在所有单位上。
+
+const LG_C := [Color("#28355f"), Color("#495694"), Color("#6a78ca"), Color("#8c99ff"), Color("#b4bdff"), Color("#dce0ff"), Color("#ffffff")]   # house.js OP.logos 7 阶
+const LG_INK := [Color("#0b0d22"), Color("#161c3e")]   # 墨（压底两阶）
+const LG_AC := Color("#a487ff")   # 精二点缀紫
+const LG_GOLD := Color("#e8d6a0")   # 连携「黑金咒文」的淡金（只点在少数字上）
+const LG_SY := 0.72
+## 细字咒文 3×5（同 ak-logos-pp.js 的 GLYPHS）：每字 15 位，行优先
+const LG_GL := ["111010010010011", "101111001001001", "110001010100011", "010111010010110", "100110101100111",
+	"011100111001110", "101101010101101", "111100110100100", "010010111000101", "110101110100100"]
+const LG_BOLT_LEN := [24, 28, 32]   # 墨尾长（美术像素，11-05 第四轮对原作：约 3/4 身高）：放大只放在长度上，弹头三档一样尖
+
+var _lg_fire_t := -9.0
+
+
+static func _lg_h(i: int) -> float:
+	return fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
+
+
+func _lg_up(o, k: String, at: Vector2, gy: float, flip := false, follow := false) -> void:
+	if k.begins_with("hit_"):   # 同屏上限：主命中至多 3 团同时在画，再多换小一号；小一号至多 3 团（后期多弹不叠成一片白）
+		var n := 0
+		for it in items:
+			if str(it.oid) == "logos" and str(it.get("k", "")).begins_with("lg_hit_") and str(it.ly) == "up":
+				n += 1
+		if n >= (3 if tier(o) < 1 else 2):   # 第六轮：精一 / 精二命中亮核大，怪群密时同屏主命中压到 2 团
+			k = k.replace("hit_", "hits_")
+	if k.begins_with("hits_"):
+		var n2 := 0
+		for it in items:
+			if str(it.oid) == "logos" and str(it.get("k", "")).begins_with("lg_hits_") and str(it.ly) == "up":
+				n2 += 1
+		if n2 >= 3:
+			return
+	var it := {"k": "lg_" + k, "t0": g.t, "gp": _snap(at), "gy": gy, "flip": flip, "ly": "up", "oid": "logos"}
+	if follow:
+		it["fopl"] = o   # 逻各斯跟施放者（对象本身；星熊用的 fop 是布尔 + 按 id 找人，键分开）
+	_push(it)
+
+
+func _lg_gd(k: String, at: Vector2) -> void:
+	_push({"k": "lg_" + k, "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": "logos"})
+
+
+func _lg_raw(k: String, at: Vector2, rot: float, sc: float) -> void:
+	_push({"k": "lg_" + k, "t0": g.t, "gp": at, "ly": "raw", "rot": rot, "sc": sc, "oid": "logos"})
+
+
+func _lg_tip(o) -> Vector2:
+	var tv = o.B.get("attack", {}).get("tip", [40, -36])
+	return o.pos + Vector2(float(tv[0]) * float(o.face), float(tv[1]))
+
+
+func _ev_logos(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	var px: float = g.PX
+	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用（tools/pxplane_shots.py）：事件的游戏时间
+		print("PXPLOG lg %s %s %.3f" % [kind, str(d.get("i", "")), g.t])
+	match kind:
+		"fire":   # 出手：身前笔光 → 身周细字字环 + 笔尖星芒（原点 = 脚底；朝左水平翻转）。连发（复指 / 天赋）0.25 秒内只画一次
+			if g.t - _lg_fire_t < 0.25 and g.t >= _lg_fire_t:
+				return
+			_lg_fire_t = g.t
+			var hand: Vector2 = d.get("at", _lg_tip(o))
+			if raw:
+				_lg_raw("raw_start_e%d" % t, hand, (d.get("dir", Vector2.RIGHT) as Vector2).angle(), px)
+				return
+			_lg_up(o, "fire_e%d_up" % t, o.pos, o.pos.y + 2.0, float(o.face) < 0.0, true)
+			R._light(o, hand, 60.0, 0.3, 0.1, p.light)
+			if t >= 1:
+				R._grains(o, hand, o.pos.y + 2.0, "twinkle", 1 + t, {"tier": t}, d.get("dir", Vector2.RIGHT))
+		"hit":   # 「言」命中（原作 hit_01）：白色星芒 + 不规整长碎刺，冷成深蓝 → 墨；地上一圈墨环
+			var e: Dictionary = d.e
+			var at: Vector2 = d.get("at", e.pos)
+			if raw:
+				_lg_raw("raw_hit_e%d" % t, at, (at - o.pos).angle(), px)
+				return
+			_lg_up(o, "hit_e%d_up" % t, at, float(e.pos.y) + 1.0)
+			_lg_gd("hit_e%d_gd" % t, e.pos + Vector2(0, 2))
+			R._light(o, at, 90.0 + 20.0 * t, 0.5 + 0.1 * t, 0.12, p.light)
+			R._grains(o, at, float(e.pos.y) + 2.0, "ink", 1 + t, {"tier": t}, (at - o.pos).normalized())
+			if t >= 1:
+				R._grains(o, at, float(e.pos.y) + 2.0, "twinkle", t, {"tier": t})
+		"exec":   # 殁亡处决（原作 hit_03）：交叉细字咒文链 + 竖墨柱；溢出伤害跳转 = 一笔墨（白笔头）写到下一只
+			var e2: Dictionary = d.e
+			var tt: int = maxi(t, 1)
+			var foot: Vector2 = e2.pos
+			if raw:
+				_lg_raw("raw_epitaph", foot, 0.0, px * 0.9)
+				if d.has("to"):
+					var dv0: Vector2 = (d.to as Vector2) - (d.at as Vector2)
+					_lg_raw("raw_link", d.at, dv0.angle(), px * dv0.length() / 128.0)
+				return
+			_lg_up(o, "exec_e%d_up" % tt, foot, foot.y + 1.0)
+			_lg_gd("exec_e%d_gd" % tt, foot + Vector2(0, 2))
+			R._light(o, foot + Vector2(0, -40), 150.0, 0.75, 0.14, p.light)
+			R._grains(o, foot + Vector2(0, -30), foot.y + 2.0, "ink", 3 + tt, {"tier": tt})
+			if d.has("to"):
+				var b: Vector2 = d.to
+				_push({"lrt": "jump", "a": d.at, "b": b, "t0": g.t + 0.05, "life": 4.0 / 15.0, "ly": "up", "gy": b.y + 12.0, "oid": "logos", "k": ""})
+				_push({"k": "lg_hits_e%d_up" % t, "t0": g.t + 0.05 + 2.0 / 15.0, "gp": _snap(b), "gy": b.y + 12.0, "flip": false, "ly": "up", "oid": "logos"})
+		"lock_tick":   # 提喻每一跳：目标身上一颗小星芒 + 碎刺（白 → 冷）
+			var pts: Array = d.get("pts", [])
+			if pts.is_empty():
+				return
+			var pt: Vector2 = pts[0][0]
+			if raw:
+				_lg_raw("raw_tick_e%d" % t, pt, (pt - o.pos).angle(), px * 0.8)
+				return
+			_lg_up(o, "tick_e%d_up" % t, pt, float(pts[0][1]))
+			R._light(o, pt, 70.0, 0.35, 0.1, p.light)
+		"fan_tick":   # 延异视阈每一跳：笔尖向咒域里至多 4 只各射一道墨迹彗星（0.2 秒飞到），落点小星芒
+			var pts2: Array = d.get("pts", [])
+			if raw:
+				for q in pts2:
+					_lg_raw("raw_hit_e2", q[0], 0.0, px * 0.7)
+				return
+			var tip: Vector2 = _lg_tip(o)
+			for i in pts2.size():
+				var q2: Vector2 = pts2[i][0]
+				var t1: float = g.t + 0.03 * i
+				_push({"lrt": "vbolt", "a": tip, "b": q2, "t0": t1, "life": 0.2, "ly": "up", "gy": float(pts2[i][1]), "oid": "logos", "k": "", "tier": 2, "side": 1.0 if i % 2 == 0 else -1.0})
+				_push({"k": "lg_hits_e1_up", "t0": t1 + 0.2, "gp": _snap(q2), "gy": float(pts2[i][1]), "flip": false, "ly": "up", "oid": "logos"})
+			if not pts2.is_empty():
+				R._light(o, pts2[0][0], 110.0, 0.45, 0.12, p.light)
+		"lg_xhit":   # 后期额外弹命中：小一号星芒；同一拍至多 3 团
+			if _lm_beat_n(o, "xh") >= 3:
+				return
+			if raw:
+				_lg_raw("raw_hit_e%d" % t, d.at, 0.0, px * 0.6)
+				return
+			_lg_up(o, "hits_e%d_up" % t, d.at, float((d.e as Dictionary).pos.y) + 1.0)
+		"lg_chain":   # 「连锁」弹射：一笔墨跳转 + 落点小星芒；同一拍至多 3 道
+			if _lm_beat_n(o, "ch") >= 3:
+				return
+			if raw:
+				var dv1: Vector2 = (d.b as Vector2) - (d.a as Vector2)
+				_lg_raw("raw_link", d.a, dv1.angle(), px * dv1.length() / 128.0)
+				return
+			_push({"lrt": "jump", "a": d.a, "b": d.b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", 0.0)), "oid": "logos", "k": ""})
+			_lg_up(o, "hits_e%d_up" % t, d.b, float(d.get("gy", 0.0)))
+		"lg_link":   # 连携 v2「消弹」（skill_link l_logos）：区域上空浮起一圈细字咒文（少数淡金 = 原作黑金），被消的每颗敌弹化一点墨落下
+			var c: Vector2 = d.c
+			var r: float = float(d.r)
+			var gone: PackedVector2Array = d.get("gone", PackedVector2Array())
+			if raw:
+				_lg_raw("raw_seal", c, 0.0, px * (r + 20.0) / 80.0)
+				return
+			_push({"lrt": "seal", "c": _snap(c), "r": r + 20.0, "t0": g.t, "life": 0.8, "ly": "up", "gy": c.y + (r + 20.0) * LG_SY, "oid": "logos", "k": ""})
+			_push({"lrt": "ring", "c": _snap(c), "r": r + 20.0, "t0": g.t, "life": 0.6, "ly": "gd", "oid": "logos", "k": ""})
+			for i in mini(gone.size(), 16):
+				_push({"lrt": "pop", "c": _snap(gone[i]), "t0": g.t + 0.02 * (i % 5), "life": 0.4, "ly": "up", "gy": gone[i].y + 20.0, "oid": "logos", "k": "", "gi": i})
+			R._light(o, c, r + 60.0, 0.6, 0.15, p.light)
+		"lg_cshot":   # 连携技（combo.gd，link/v2 = 0）出手：一颗大彗星飞到落点
+			if raw:
+				_push({"lrt": "rawline", "a": d.a, "b": d.b, "t0": g.t, "life": float(d.travel), "ly": "raw", "oid": "logos", "k": ""})
+				return
+			_push({"lrt": "vbolt", "a": d.a, "b": d.b, "t0": g.t, "life": float(d.travel), "ly": "up", "gy": (d.b as Vector2).y + 1.0, "oid": "logos", "k": "", "tier": 2, "side": 1.0, "big": true})
+		"lg_combo":   # 连携技「咒文扩散」落点：大墨环闪一下；处决的每只一道墨笔 + 殁亡咒文链（至多 6）
+			var tp: Vector2 = d.at
+			var es: Array = d.get("es", [])
+			if raw:
+				_lg_raw("raw_seal", tp, 0.0, px * 1.5)
+				return
+			_push({"lrt": "ring", "c": _snap(tp), "r": 240.0, "t0": g.t, "life": 0.45, "ly": "gd", "oid": "logos", "k": ""})
+			_lg_up(o, "hit_e2_up", tp + Vector2(0, -10), tp.y + 1.0)
+			for i in mini(es.size(), 6):
+				var ee: Dictionary = es[i]
+				_push({"lrt": "jump", "a": tp + Vector2(0, -10), "b": ee.pos + Vector2(0, -8), "t0": g.t, "life": 4.0 / 15.0, "ly": "up", "gy": float(ee.pos.y) + 1.0, "oid": "logos", "k": ""})
+				_push({"k": "lg_exec_e2_up", "t0": g.t + 0.1, "gp": _snap(ee.pos), "gy": float(ee.pos.y) + 1.0, "flip": false, "ly": "up", "oid": "logos"})
+			R._light(o, tp, 260.0, 0.85, 0.15, p.light)
+			R._grains(o, tp + Vector2(0, -20), tp.y, "ink", 6, {"tier": 2})
+		"skill":
+			var si: int = int(d.get("i", -1))
+			if si == 1:   # 殁亡（永久）：起手一圈字环
+				if raw:
+					_lg_raw("raw_start_e%d" % maxi(t, 1), _lg_tip(o), 0.0, px * 1.2)
+					return
+				_lg_up(o, "fire_e%d_up" % maxi(t, 1), o.pos, o.pos.y + 2.0, float(o.face) < 0.0, true)
+				R._light(o, o.pos + Vector2(0, -30), 110.0, 0.5, 0.14, p.light)
+			elif si == 2:   # 延异视阈起手：双层字环 → 笔尖蓄势 → 开域爆亮
+				if raw:
+					_lg_raw("raw_seal", o.pos + Vector2(0, -20), 0.0, px)
+					return
+				_lg_up(o, "s3open_up", o.pos, o.pos.y + 2.0, float(o.face) < 0.0, true)
+				var tip2: Vector2 = _lg_tip(o)
+				R._light(o, tip2, 160.0, 0.8, 0.15, p.light)
+				R._grains(o, tip2, o.pos.y + 2.0, "twinkle", 5, {"tier": 2})
+
+
+## 贴地层：一次性件 + 运行时贴地件 + 状态件（咒域、提喻目标脚下墨环、铭文 / 墓志铭）
+func _lg_draw_floor(o) -> void:
+	var cv = o.cv
+	for it in items:
+		if str(it.ly) != "gd" or str(it.oid) != "logos":
+			continue
+		if it.has("lrt"):
+			_lg_draw_rt(cv, it)
+		else:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+	var h: Dictionary = o.hw
+	if h.has("s3_shots"):   # 原画法在绘制时清理出手轨迹；接管后由这里清，免得列表只增不减
+		var now: float = g.t
+		h["s3_shots"] = h.s3_shots.filter(func(sh): return now - float(sh.t0) < 0.3)
+	if h.has("pools"):
+		for l in h.pools:
+			if str(l.b.get("look", "")) == "rune":
+				_lg_pool(cv, l)
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and float(lk.get("t", 0.0)) > 0.0 and lk.e != null and not lk.e.dead:
+		var ramp: float = clampf(int(lk.n) / float(lk.b.get("ramp_n", 12.0)), 0.0, 1.0)
+		var rr: float = 11.0 + 5.0 * ramp
+		_lg_ell(cv, lk.e.pos + Vector2(0, 3), rr, 1.0, 1, 7)
+		if tier(o) >= 1:
+			_lg_ell(cv, lk.e.pos + Vector2(0, 3), rr + 5.0, 0.8, 0, 11)
+	var fn = h.get("fan", {})
+	if fn is Dictionary and not fn.is_empty() and float(fn.get("t", 0.0)) > 0.0:
+		_lg_fan(cv, o, fn)
+
+
+## 地面细椭圆环（美术像素格，按噪声断续）：r 美术像素
+func _lg_ell(ci, c: Vector2, r: float, a: float, hi: int, sd: int) -> void:
+	var px: float = g.PX
+	var n: int = maxi(12, int(TAU * r))
+	var cc: Vector2 = _snap(c)
+	for i in n:
+		var an: float = TAU * i / n
+		var hv: float = _lg_h(sd * 977 + i)
+		if hv < 0.22 or hv > a + 0.22:
+			continue
+		var q: Vector2 = cc + Vector2(cos(an) * r, sin(an) * r * LG_SY) * px
+		var lit: bool = hi > 0 and sin(an) > 0.3 and hv > 0.55
+		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), LG_C[4] if lit else (LG_C[2] if hv > 0.7 else LG_INK[1]))
+
+
+## 二次贝塞尔（弯的符文行 / 锁链用）
+static func _lg_bez(a: Vector2, c: Vector2, b: Vector2, s: float) -> Vector2:
+	var u: float = 1.0 - s
+	return a * (u * u) + c * (2.0 * u * s) + b * (s * s)
+
+
+## a → b 往上拱 bow（世界像素）的控制点：弧顶离弦 bow
+static func _lg_bow_ctrl(a: Vector2, b: Vector2, bow: float) -> Vector2:
+	var d: Vector2 = b - a
+	var n := Vector2(-d.y, d.x).normalized()
+	if n.y > 0.0:
+		n = -n
+	return (a + b) * 0.5 + n * bow * 2.0
+
+
+func _lg_glyph(ci, p: Vector2, gi: int, col: Color) -> void:
+	var px: float = g.PX
+	var s: String = LG_GL[posmod(gi, LG_GL.size())]
+	var o0: Vector2 = _snap(p) - Vector2(px, 2.0 * px)
+	for k in 15:
+		if s.unicode_at(k) == 49:
+			ci.draw_rect(Rect2(o0 + Vector2(k % 3, k / 3) * px, Vector2(px, px)), col)
+
+
+## 铭文 / 墓志铭（成长节点）：地上一圈断续墨环 + 上方浮着几个细字；墓志铭从少到多写满
+func _lg_pool(ci, l: Dictionary) -> void:
+	var al: float = clampf(float(l.t) / 0.3, 0.0, 1.0)
+	var burst: bool = l.b.get("burst", false)
+	var k: float = 1.0 - float(l.t) / maxf(0.01, float(l.dur)) if burst else 1.0
+	var r: float = float(l.r) / g.PX
+	_lg_ell(ci, l.pos, r * (0.6 + 0.4 * k), al, 1, int(l.pos.x))
+	var beat: int = int(floor(g.t * 15.0))
+	var n: int = 3 if not burst else 1 + int(k * 4.0)
+	for i in n:
+		var x: float = (float(i) - (n - 1) * 0.5) * 5.0
+		var bob: float = (2.0 if ((beat / 4 + i) % 2) == 0 else 0.0) - 0.12 * x * x   # 浮字排成一小段弧（第六轮：不留笔直的字行）
+		var c: Color = LG_C[5] if (beat / 3 + i) % 4 != 0 else LG_C[6]
+		c.a = al
+		_lg_glyph(ci, l.pos + Vector2(x, -18.0 - bob) * g.PX, int(l.pos.x) + i * 3 + beat / 8, c)
+
+
+## 延异视阈咒域（原作 range_01；11-05 第三轮用户「改成渐变填充」「符文条太直」）：
+## 填充 = 亮蓝边缘往中心渐暗（7 阶，最浓 α 0.38，怪透得出来），每个美术像素按 interleaved gradient noise 抖动取相邻两阶，不出平涂色带；
+## 外边 2 格亮边保留；域内随机冒出咒文段（第七轮：每段 6–10 字各走各的曲线，一个个写出来再扭一下，停 0.8–1.2 秒后逐字褪去，段尾细丝 + 墨点，部分字暗紫辉光，同屏至多 4 段）；每跳外边亮一拍
+const LG_FILL := [[Color("#0b0d22"), 0.34], [Color("#161c3e"), 0.34], [Color("#28355f"), 0.32], [Color("#495694"), 0.33],
+	[Color("#6a78ca"), 0.36], [Color("#8c99ff"), 0.38], [Color("#b4bdff"), 0.38]]
+const LG_SEG_N := 4   # 咒文段同屏上限（第七轮：段变长，段数从 6 减到 4）
+const LG_SEG_P := 2.1   # 每段一轮的秒数（书写 ≈ 0.4–0.6 秒 + 停 0.8–1.2 秒 + 褪去）
+const LG_GLOW := Color("#6a4fc0")   # 咒文暗紫辉光（进发光层）
+
+
+## 一段咒文的曲线（扇形平面坐标、美术像素、未压扁）：龟形走法每步 4 像素，转角按类型给——0 螺旋收拢 / 1 波浪起伏 / 2 弯钩 / 3 往外甩。
+## 返回 [Vector3(x, y, 朝向)]，6–10 个
+func _lg_seg_path(sd: int, rc: float, fa: float, half: float) -> Array:
+	var typ: int = int(_lg_h(sd + 9) * 4.0)
+	var n: int = 6 + int(_lg_h(sd + 3) * 5.0)
+	var af: float = (_lg_h(sd + 1) * 2.0 - 1.0) * 0.8
+	var rf: float = 0.30 + 0.5 * _lg_h(sd + 2)
+	var a0: float = fa + half * af
+	var x: float = cos(a0) * rc * rf
+	var y: float = sin(a0) * rc * rf
+	var head: float = a0 + (PI / 2.0 if _lg_h(sd + 5) < 0.5 else -PI / 2.0) + (_lg_h(sd + 6) - 0.5) * 0.8
+	if typ == 3:
+		head = a0 + (_lg_h(sd + 6) - 0.5) * 0.6
+	var sg: float = 1.0 if _lg_h(sd + 7) < 0.5 else -1.0
+	var out: Array = []
+	for j in n:
+		out.append(Vector3(x, y, head))
+		var k: float
+		match typ:
+			0:
+				k = sg * (0.28 + 0.05 * j)
+			1:
+				k = 0.55 * sin(j * 1.1 + sd) * sg
+			2:
+				k = 0.05 * sg if j < n * 0.5 else 0.62 * sg
+			_:
+				k = 0.10 * sg
+		head += k
+		x += cos(head) * 4.0
+		y += sin(head) * 4.0
+	return out
+var _lg_fill_tex := {}
+
+
+static func _lg_ign(x: int, y: int) -> float:   # interleaved gradient noise：细密、不成格子（不是 Bayer）
+	return fposmod(52.9829189 * fposmod(0.06711056 * x + 0.00583715 * y, 1.0), 1.0)
+
+
+## 整盘渐变（压扁椭圆，半径 R 美术像素）只生成一次（按 R 缓存）；扇形用带 UV 的多边形取其中一块，1 贴图像素 = 1 美术像素
+func _lg_fill(R: int) -> Texture2D:
+	if _lg_fill_tex.has(R):
+		return _lg_fill_tex[R]
+	var ry: int = int(ceil(R * LG_SY))
+	var img := Image.create_empty(2 * R + 1, 2 * ry + 1, false, Image.FORMAT_RGBA8)
+	var n: int = LG_FILL.size()
+	for y in range(-ry, ry + 1):
+		for x in range(-R, R + 1):
+			var q: float = Vector2(float(x) / R, float(y) / (R * LG_SY)).length()
+			if q > 1.0:
+				continue
+			var ang: float = atan2(float(y) / LG_SY, float(x))
+			var flow: float = 0.35 * sin(ang * 5.0 + q * 7.0)   # 一道静止的旋涡纹，抖动阈值跟着弯（读作缓慢流动的墨域）
+			var v: float = pow(q, 2.4) * (n - 1) + (_lg_ign(x + 4000, y + 4000) - 0.5) * 1.15 + flow * 0.5
+			var k: int = clampi(int(floor(v + 0.5)), 0, n - 1)
+			var c: Color = LG_FILL[k][0]
+			c.a = float(LG_FILL[k][1])
+			img.set_pixel(x + R, y + ry, c)
+	var tx := ImageTexture.create_from_image(img)
+	_lg_fill_tex[R] = tx
+	return tx
+
+
+func _lg_fan(ci, o, fn: Dictionary) -> void:
+	var b: Dictionary = fn.b
+	var px: float = g.PX
+	var r: float = float(load("res://scripts/characters/blocks/seg_logos.gd").hw_fan_r(o, b))
+	var half: float = deg_to_rad(float(b.get("deg", 100.0))) * 0.5
+	var fa: float = float(o.hw.fan_ang)
+	var dur: float = float(b.get("dur", 12.0))
+	var el: float = dur - float(fn.t)
+	var open: float = clampf(floor(el * 15.0) / 15.0 / 0.33, 0.0, 1.0)   # 按拍张开
+	var fade: float = clampf(float(fn.t) / 0.35, 0.0, 1.0)
+	var rr: float = r * (0.55 + 0.45 * (1.0 - pow(1.0 - open, 2.0)))
+	var c: Vector2 = _snap(o.pos)
+	var tk: float = float(b.get("tick", 0.5))
+	var pulse: bool = float(fn.get("tick", 0.0)) > tk - 1.0 / 15.0
+	var beat: int = int(floor(g.t * 15.0))
+	# 渐变填充
+	var R: int = maxi(8, int(round(r / px)))
+	var tex: Texture2D = _lg_fill(R)
+	var tw: float = 2.0 * R + 1.0
+	var th: float = 2.0 * ceil(R * LG_SY) + 1.0
+	var k: float = float(R) * px / rr   # 张开期间按比例取（张满后 = 1，贴图像素正好落在美术像素格上）
+	var N := 40
+	var pts := PackedVector2Array([c])
+	var uvs := PackedVector2Array([Vector2((R + 0.5) / tw, (ceil(R * LG_SY) + 0.5) / th)])
+	for i in N + 1:
+		var a: float = fa - half + 2.0 * half * i / N
+		var p: Vector2 = Vector2(cos(a), sin(a) * LG_SY) * rr
+		pts.append(c + p)
+		var lp: Vector2 = p * k / px
+		uvs.append(Vector2((lp.x + R + 0.5) / tw, (lp.y + ceil(R * LG_SY) + 0.5) / th))
+	ci.draw_colored_polygon(pts, Color(1, 1, 1, fade), uvs, tex)
+	# 外边：2 美术像素（外亮内墨），按噪声断续加厚；两侧边：1 像素断续
+	var rc: float = rr / px
+	var n: int = maxi(16, int(2.0 * half * rc))
+	for i in n + 1:
+		var a3: float = fa - half + 2.0 * half * i / n
+		var hv: float = _lg_h(i * 31 + 7)
+		var q: Vector2 = c + Vector2(cos(a3), sin(a3) * LG_SY) * rr
+		var ec: Color = LG_C[6] if pulse else (LG_C[5] if hv > 0.66 else LG_C[4])
+		ec.a = fade
+		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), ec)
+		if hv > 0.45:
+			ci.draw_rect(Rect2(_snap(c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr + px)), Vector2(px, px)), Color(LG_C[4].r, LG_C[4].g, LG_C[4].b, fade))
+		var ic: Color = LG_INK[1] if hv > 0.3 else LG_C[1]
+		ic.a = fade
+		ci.draw_rect(Rect2(_snap(c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr - px * 1.2)), Vector2(px, px)), ic)
+		if pulse and (i % 3) == 0:
+			_glow(q, LG_C[5])
+	for sgn in [-1.0, 1.0]:
+		var ea: float = fa + half * sgn
+		var dv := Vector2(cos(ea), sin(ea) * LG_SY)
+		var m: int = int(dv.length() * rr / px)
+		var dn: Vector2 = dv.normalized()
+		for i in m:
+			if (i / 3) % 3 == 2:
+				continue
+			ci.draw_rect(Rect2(_snap(c + dn * float(i) * px), Vector2(px, px)), Color(LG_C[3].r, LG_C[3].g, LG_C[3].b, 0.8 * fade))
+	# 咒文段（11-05 第七轮用户「长一点没关系，要有咒术和巫术的感觉，每个字可以用不同的曲线」）：同屏至多 LG_SEG_N 段，每段 6–10 个细字，
+	# 各走各的曲线（螺旋收拢 / 波浪起伏 / 弯钩 / 往外甩）；字一个个被写出来（第一拍白），写出后自己扭一下；停 0.8–1.2 秒后从头到尾逐字褪去；
+	# 写完时段尾拖出一道细丝和三点墨；每三个字一个带暗紫辉光（进光学发光层）。位置 / 曲线按「段号 + 第几轮」固定种子取，时间按 15 fps 拍子取
+	if open > 0.5:
+		var tb: float = floor(g.t * 15.0) / 15.0
+		for ks in LG_SEG_N:
+			var P: float = LG_SEG_P + 0.23 * float(ks % 3)
+			var lt0: float = tb + P * float(ks) / LG_SEG_N
+			var cyc: int = int(floor(lt0 / P))
+			var lt: float = lt0 - float(cyc) * P
+			var sd: int = ks * 977 + cyc * 131
+			var path: Array = _lg_seg_path(sd, rc, fa, half)
+			var nseg: int = path.size()
+			var hold: float = 0.8 + 0.4 * _lg_h(sd + 8)
+			for j in nseg:
+				var tin: float = 0.06 * j
+				var tout: float = 0.06 * nseg + hold + 0.05 * j
+				if lt < tin or lt > tout + 0.12:
+					continue
+				var pj: Vector3 = path[j]
+				var ang: float = atan2(pj.y, pj.x)
+				if Vector2(pj.x, pj.y).length() > rc * 0.97 or absf(wrapf(ang - fa, -PI, PI)) > half * 0.95:
+					continue
+				var al2: float = clampf(1.0 - (lt - tout) / 0.12, 0.0, 1.0)
+				var age: float = lt - tin
+				var wig: float = round(sin(age * 22.0) * 1.2) if age < 0.27 else 0.0   # 写出来后自己扭一下
+				var gq := Vector2(pj.x - sin(pj.z) * wig, (pj.y + cos(pj.z) * wig) * LG_SY)
+				var glow: bool = (j + sd) % 3 == 0
+				var gc: Color = LG_C[6] if age < 1.0 / 15.0 else (LG_AC if glow else LG_C[5])
+				gc.a = fade * al2
+				var gp: Vector2 = c + gq * px
+				_lg_glyph(ci, gp, sd + j * 3, gc)
+				if glow and age >= 1.0 / 15.0 and al2 > 0.5:
+					_glow(gp, LG_GLOW)
+					_glow(gp + Vector2(0, -2.0 * px), LG_GLOW)
+			# 段尾细丝 + 三点墨
+			var tdone: float = 0.06 * nseg
+			var toutn: float = 0.06 * nseg + hold + 0.05 * nseg
+			if lt >= tdone and lt <= toutn + 0.12 and nseg > 0:
+				var al3: float = minf(1.0, (lt - tdone) / 0.1) * clampf(1.0 - (lt - toutn) / 0.12, 0.0, 1.0) * fade
+				var pe: Vector3 = path[nseg - 1]
+				var hv := Vector2(cos(pe.z), sin(pe.z))
+				for k3 in range(1, 7):
+					var q3: Vector2 = Vector2(pe.x, pe.y) + hv * float(3 + k3) + Vector2(0, sin(k3 * 0.9) * 0.8)
+					ci.draw_rect(Rect2(_snap(c + Vector2(q3.x, q3.y * LG_SY) * px), Vector2(px, px)), Color(LG_C[2].r, LG_C[2].g, LG_C[2].b, al3 * (1.0 - k3 / 8.0)))
+				var dd: Array = [9.0, 11.5, 13.5]
+				for k4 in 3:
+					var q4: Vector2 = Vector2(pe.x, pe.y) + hv * float(dd[k4]) + Vector2(0, (k4 - 1) * 0.8)
+					ci.draw_rect(Rect2(_snap(c + Vector2(q4.x, q4.y * LG_SY) * px), Vector2(px, px)), Color(LG_INK[1].r, LG_INK[1].g, LG_INK[1].b, al3))
+	var R2 = load("res://scripts/render/fx_recipe.gd").of(g)
+	R2._light_follow(o, c + Vector2(cos(fa), sin(fa) * LG_SY) * rr * 0.6, rr * 0.9, (0.45 if pulse else 0.25) * fade, LG_C[3])
+
+
+## 立起层的状态件：「言」彗星（运行时）、后期额外弹、提喻咒文行、连缀咒文链
+func _lg_sort_items(o, out: Array) -> void:
+	var h: Dictionary = o.hw
+	if h.has("bolts"):
+		for bo in h.bolts:
+			out.append({"lrt": "bolt", "b": bo, "o": o, "gy": float((bo.to as Vector2).y) + 14.0})
+	if not o.vg.is_empty():   # 后期额外弹：同时最多画最新 6 颗（更早的照常结算，只是不画）
+		var xs: Array = o.vg.bul
+		for i in range(maxi(0, xs.size() - 6), xs.size()):
+			var xb: Dictionary = xs[i]
+			out.append({"lrt": "xbolt", "b": xb, "o": o, "gy": (xb.p as Vector2).y + 1.0})
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and float(lk.get("t", 0.0)) > 0.0 and lk.e != null and not lk.e.dead:
+		out.append({"lrt": "lock", "o": o, "gy": float(lk.e.pos.y) + 1.0})
+	if h.has("links") and not h.links.is_empty():
+		for lkk in h.links:
+			out.append({"lrt": "links", "l": lkk, "o": o, "gy": float((lkk.m[0] as Dictionary).pos.y) + 1.0})
+
+
+## 法术弹道（只画面）：第四轮的上抛弧被用户否了（11-05「不应该是迫击炮的感觉，而应该是法术投射的感觉」），
+## 改成贴着平面飞、只带一点侧向弯曲：一道浅弧（side 决定往哪边弯）加一点 S 形摆动，两端都落在 a / b 上，s ∈ [0, 1]；判定与命中时间仍走玩法里的追踪弹位
+static func _lg_arc(a: Vector2, b: Vector2, s: float, lift: float, side := 1.0) -> Vector2:
+	var d: Vector2 = b - a
+	var n := Vector2(-d.y, d.x).normalized() * side
+	return a.lerp(b, s) + n * (lift * sin(PI * s) + 0.3 * lift * sin(TAU * s))
+
+
+## 沿弧线从弹头往回取墨尾的点（每点相隔约 1 美术像素），弹头在前
+func _lg_arc_path(a: Vector2, b: Vector2, u: float, n: int, lift: float, side := 1.0) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var ds: float = g.PX / maxf(8.0, a.distance_to(b) * 1.15)
+	for k in n + 1:
+		var s: float = u - float(k) * ds
+		if s < 0.0:
+			break
+		out.append(_lg_arc(a, b, s, lift, side))
+	return out
+
+
+func _lg_line_path(head: Vector2, dv: Vector2, n: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for k in n + 1:
+		out.append(head - dv * float(k) * g.PX)
+	return out
+
+
+## 墨迹彗星（原作 trail_01）：path = 弹头在前的弧线点列。白头尖细（6 格箭头，不做光球）；墨尾深蓝（墨边 + 一根蓝芯线 + 按拍闪的蓝点），
+## 粗在前三成、往后收尖，沿弧线拖；尾旁零星淡金小星（原作 0.88 s）。精一：墨尾分成两股绞着走；精二：尾后一行细字（白 / 紫）
+func _lg_comet(ci, path: PackedVector2Array, t: int, al := 1.0, big := false, sd := 0) -> void:
+	var px: float = g.PX
+	var L: int = path.size() - 1
+	if L < 1:
+		return
+	var beat: int = int(floor(g.t * 15.0))
+	var W: float = 2.6 if big else 2.0
+	var head: Vector2 = path[0]
+	var dv0: Vector2 = (path[0] - path[1]).normalized()
+	var nL: float = float(LG_BOLT_LEN[mini(t, 2)] if not big else 36)
+	for i in range(2, L + 1):
+		var v: float = float(i) / nL
+		var dv: Vector2 = (path[i - 1] - path[i]).normalized()
+		var nv := Vector2(-dv.y, dv.x)
+		var w: float = W * (1.0 - pow((v - 0.3) / 0.7, 1.5)) if v > 0.3 else W * smoothstep(0.05, 0.3, v)
+		var split: float = (1.2 + 2.6 * v) * absf(sin(v * 5.0 + float(beat) * 0.4)) + 0.8 if (t >= 1 and v > 0.12) else 0.0   # 精一新元素：墨尾分成两股绞着走
+		var ctr: Vector2 = path[i]
+		var sides: Array = [-1.0, 1.0] if split > 0.6 else [0.0]
+		for sgn in sides:
+			var c0: Vector2 = ctr + nv * float(sgn) * split * px
+			var ww: int = int(round(w * (0.6 if split > 0.6 else 1.0)))
+			for q in range(-ww, ww + 1):
+				var col: Color
+				if q == 0:
+					col = LG_C[5] if ((i + beat) % 6 == 0 and v < 0.8) else (LG_C[3] if v < 0.7 else LG_C[2])
+				elif absi(q) == ww:
+					col = LG_INK[0]
+				else:
+					col = LG_INK[1]
+				col.a = al * (1.0 if v < 0.75 else maxf(0.0, 1.0 - (v - 0.75) * 2.4))
+				ci.draw_rect(Rect2(_snap(c0 + nv * float(q) * px), Vector2(px, px)), col)
+	var h0: Vector2 = _snap(head)
+	var nv0 := Vector2(-dv0.y, dv0.x)
+	var cells: Array = [[1, 0], [0, 0], [-1, 0], [-1, 1], [-1, -1], [-2, 0]]
+	for qq in cells:
+		var cell: Vector2 = h0 + (dv0 * float(qq[0]) + nv0 * float(qq[1])) * px
+		var hc: Color = Color(1, 1, 1, al) if int(qq[1]) == 0 else Color(LG_C[5].r, LG_C[5].g, LG_C[5].b, al)
+		ci.draw_rect(Rect2(_snap(cell), Vector2(px, px)), hc)
+	_glow(h0, LG_C[6])
+	_glow(h0 - dv0 * px, LG_C[5])
+	# 淡金小星：尾旁两颗，按拍明灭（亮的那拍是十字，暗的那拍一点）
+	for k in 2:
+		var idx: int = int(L * (0.55 + 0.3 * k))
+		if idx >= path.size() or idx < 2:
+			continue
+		var ph: float = _lg_h(sd * 13 + k * 7 + beat / 2)
+		if ph < 0.35:
+			continue
+		var dvk: Vector2 = (path[idx - 1] - path[idx]).normalized()
+		var gp: Vector2 = _snap(path[idx] + Vector2(-dvk.y, dvk.x) * (4.0 if k == 0 else -5.0) * px)
+		var gc := Color(LG_GOLD.r, LG_GOLD.g, LG_GOLD.b, al)
+		ci.draw_rect(Rect2(gp, Vector2(px, px)), gc)
+		if ph > 0.7:
+			for o4 in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				ci.draw_rect(Rect2(gp + o4 * px, Vector2(px, px)), Color(gc.r, gc.g, gc.b, al * 0.7))
+	# 咒文残光（法术弹的拖尾感）：尾后几个细字一路变淡；精零 1 个暗字、精一 2 个、精二 3 个亮字（白 / 紫）
+	var tail: Vector2 = path[L]
+	var dvt: Vector2 = (path[maxi(0, L - 1)] - path[L]).normalized()
+	for k in t + 1:
+		var gp2: Vector2 = tail - dvt * float(5 + 6 * k) * px
+		var gc2: Color = (LG_AC if (k + beat / 3) % 3 == 0 else LG_C[5]) if t >= 2 else LG_C[3 + t]
+		gc2.a = al * (0.9 - 0.25 * k) * (1.0 if t >= 2 else 0.7)
+		_lg_glyph(ci, gp2, k + beat / 3 + sd, gc2)
+
+
+## 运行时件
+func _lg_draw_rt(ci, it: Dictionary) -> void:
+	var px: float = g.PX
+	match str(it.lrt):
+		"bolt":   # 「言」：画面走弧线（a = 出手点，b = 目标，u = 飞行进度），玩法弹位照旧追踪；只记画面专用键 _pxs0 / _pxu
+			var bo: Dictionary = it.b
+			var o = it.o
+			var a0: Vector2
+			var u0: float
+			if bo.has("visual"):
+				a0 = bo.visual.start
+				u0 = float(bo.visual.u)
+			else:
+				if not bo.has("_pxs0"):
+					bo["_pxs0"] = bo.pos
+				a0 = bo._pxs0
+				var d0: float = maxf(1.0, a0.distance_to(bo.to))
+				u0 = maxf(float(bo.get("_pxu", 0.0)), clampf(1.0 - (bo.pos as Vector2).distance_to(bo.to) / d0, 0.0, 1.0))
+				bo["_pxu"] = u0
+			var tt: int = tier(o)
+			var lift: float = minf(26.0, a0.distance_to(bo.to) * 0.12)
+			var sd0: int = int(bo.get("rune", 0)) & 1023
+			_lg_comet(ci, _lg_arc_path(a0, bo.to, u0, LG_BOLT_LEN[tt], lift, 1.0 if sd0 % 2 == 0 else -1.0), tt, 1.0, false, sd0)
+		"xbolt":
+			var xb: Dictionary = it.b
+			_lg_comet(ci, _lg_line_path((xb.p as Vector2) + Vector2(0, -16), (xb.v as Vector2).normalized(), 14), mini(1, tier(it.o)))
+		"vbolt":   # 咒域每跳 / 连携出手：贴着平面带一点侧弯飞到 b，飞到即止
+			var u: float = (g.t - float(it.t0)) / float(it.life)
+			if u < 0.0 or u > 1.0:
+				return
+			var big: bool = it.get("big", false)
+			var lift2: float = minf(24.0, (it.a as Vector2).distance_to(it.b) * 0.12)
+			_lg_comet(ci, _lg_arc_path(it.a, it.b, u, 36 if big else 24, lift2, float(it.get("side", 1.0))), int(it.tier), 1.0, big, int(it.get("side", 1.0) > 0.0))
+		"lock":   # 提喻：笔尖 → 目标一道弯的蓝丝线（往上拱、随拍轻轻摆）+ 沿弧一行细字向目标流动；精一上下两行；精二字白紫相间、丝线成一串墨珠
+			# 11-05 第六轮用户「还有笔直的符文条」：原来是一条直线，改成二次弧（不再有笔直的字行）
+			var o2 = it.o
+			var lk: Dictionary = o2.hw.lock
+			var t2: int = tier(o2)
+			var a2: Vector2 = _lg_tip(o2)
+			var b2: Vector2 = lk.e.pos + Vector2(0, -float(lk.e.r) * 0.5)
+			var head: float = minf(1.0, (int(lk.n) * float(lk.b.get("tick", 0.25)) + float(lk.tick)) / maxf(0.05, float(lk.b.get("tick", 0.25))))
+			var Lf: float = a2.distance_to(b2) / px
+			if Lf < 2.0:
+				return
+			var beat2: int = int(floor(g.t * 15.0))
+			var bow: float = clampf(Lf * 0.1, 4.0, 16.0) + 1.0 * sin(float(beat2) * 0.35)
+			var ctrl: Vector2 = _lg_bow_ctrl(a2, b2, bow * px)
+			var n: int = int(Lf * head)
+			var prev: Vector2 = a2
+			var cum: float = 0.0
+			var nextg: float = 3.0
+			var k: int = 0
+			var rows: Array = [6.0] if t2 < 1 else ([6.0, -6.0] if t2 < 2 else [7.0, 0.0, -7.0])   # 精二质变：丝线本身也写成一行字（三行字成链）
+			var ng2: int = int(Lf * head / 5.0)
+			for i in n:
+				var s: float = float(i) / Lf
+				var p2: Vector2 = _lg_bez(a2, ctrl, b2, s)
+				if t2 >= 2 and i % 3 == 1:
+					ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_INK[1])
+				else:
+					ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_C[3] if (i + beat2) % 7 != 0 else LG_C[5])
+				cum += p2.distance_to(prev) / px
+				prev = p2
+				if cum >= nextg:
+					nextg += 5.0
+					var tg: Vector2 = (_lg_bez(a2, ctrl, b2, minf(1.0, s + 0.02)) - p2).normalized()
+					var nv2 := Vector2(-tg.y, tg.x)
+					if nv2.y > 0.0:
+						nv2 = -nv2   # 字行在线的上方
+					for ri in rows.size():
+						var gc2: Color = LG_C[5]
+						if t2 >= 2 and (k + beat2 / 2) % 2 == 0:
+							gc2 = LG_AC
+						elif k == ng2 - 1:
+							gc2 = LG_C[6]
+						_lg_glyph(ci, p2 + nv2 * float(rows[ri]) * px, k * 3 + ri * 5 - beat2 / 2, gc2)
+					k += 1
+			_glow(prev, LG_C[5])
+		"links":   # 精二连缀：成员之间一道下垂的弧链（像挂着的锁链，不再是直线）：一串墨珠 + 每 9 像素一个细字，一颗白珠按拍沿链走
+			var lkk: Dictionary = it.l
+			var mm: Array = lkk.m
+			var a0: Dictionary = mm[0]
+			if a0.dead:
+				return
+			var al: float = clampf(float(lkk.t) / 0.25, 0.0, 1.0)
+			var pa: Vector2 = a0.pos + Vector2(0, -float(a0.r) * 0.6)
+			var beat3: int = int(floor(g.t * 15.0))
+			for j in range(1, mm.size()):
+				var q: Dictionary = mm[j]
+				if q.dead:
+					continue
+				var pb: Vector2 = q.pos + Vector2(0, -float(q.r) * 0.6)
+				var Lq: int = int(pa.distance_to(pb) / px)
+				if Lq < 2:
+					continue
+				var sag: Vector2 = (pa + pb) * 0.5 + Vector2(0, minf(float(Lq) * 0.2, 14.0) * px)   # 往下垂
+				var ctl: Vector2 = sag * 2.0 - (pa + pb) * 0.5
+				for i in Lq:
+					if i % 2 == 1:
+						continue
+					var cc: Color = LG_C[6] if (i / 2) == (beat3 % maxi(1, Lq / 2)) else (LG_C[3] if i % 4 == 0 else LG_INK[1])
+					cc.a = al
+					ci.draw_rect(Rect2(_snap(_lg_bez(pa, ctl, pb, float(i) / Lq)), Vector2(px, px)), cc)
+				for k2 in range(1, Lq / 9):
+					var gc3: Color = LG_C[5] if k2 % 2 else LG_AC
+					gc3.a = al
+					_lg_glyph(ci, _lg_bez(pa, ctl, pb, float(k2 * 9) / Lq) + Vector2(0, -4.0 * px), k2 + j * 4 + beat3 / 4, gc3)
+		"jump":   # 一笔墨（白笔头）从 a 写到 b：第 0 拍写到 70%、第 1 拍写满、之后从笔尾干回去
+			var f: int = frame_of(float(it.t0))
+			if f < 0:
+				return
+			var a3: Vector2 = it.a
+			var b3: Vector2 = it.b
+			var Lj: int = int(a3.distance_to(b3) / px)
+			if Lj < 2:
+				return
+			var dj: Vector2 = (b3 - a3) / (float(Lj) * px)
+			var nj := Vector2(-dj.y, dj.x)
+			var i1: int = int(Lj * (0.7 if f == 0 else 1.0))
+			var i0: int = 0 if f <= 1 else int(Lj * (0.4 * (f - 1)))
+			for i in range(i0, i1):
+				var v: float = float(i) / Lj
+				var p3: Vector2 = a3 + dj * float(i) * px
+				var hot: bool = i >= i1 - 3
+				ci.draw_rect(Rect2(_snap(p3), Vector2(px, px)), LG_C[6] if hot else LG_C[3])
+				if not hot and v > 0.15 and v < 0.85:
+					ci.draw_rect(Rect2(_snap(p3 + nj * px), Vector2(px, px)), LG_INK[1])
+			if i1 > 0:
+				_glow(a3 + dj * float(i1 - 1) * px, LG_C[6])
+		"seal":   # 连携「消弹」：区域边上浮起一圈细字（少数淡金），整圈按拍转、往上浮，0.8 秒散
+			var u2: float = (g.t - float(it.t0)) / float(it.life)
+			if u2 < 0.0 or u2 > 1.0:
+				return
+			var c2: Vector2 = it.c
+			var rr2: float = float(it.r)
+			var beat4: int = int(floor(g.t * 15.0))
+			var n2: int = clampi(int(TAU * rr2 / px / 8.0), 16, 56)   # 第六轮：字距 11 → 8
+			var rise: float = minf(1.0, u2 / 0.15) * 10.0 + u2 * 8.0
+			for i in n2:
+				var an: float = TAU * float(i) / n2 + float(beat4 - int(floor(float(it.t0) * 15.0))) * 0.03
+				var hv2: float = _lg_h(i * 17 + 3)
+				if u2 > 0.6 and hv2 < (u2 - 0.6) * 2.5:
+					continue
+				var gp3: Vector2 = c2 + Vector2(cos(an) * rr2, sin(an) * rr2 * LG_SY) + Vector2(0, -rise * px)
+				var back: bool = sin(an) < -0.2
+				var gc4: Color = LG_GOLD if i % 4 == 0 else (LG_C[4] if back else LG_C[6])   # 第六轮：提亮一档（前半圈白、后半圈亮蓝、淡金 1/4）
+				if u2 < 0.08:
+					gc4 = LG_C[6]
+				ci.draw_rect(Rect2(_snap(gp3) + Vector2(0, 3.0 * px), Vector2(px, px)), LG_INK[0])   # 字脚一点墨影
+				ci.draw_rect(Rect2(_snap(gp3) + Vector2(px, 3.0 * px), Vector2(px, px)), LG_C[3])   # 字脚一道亮蓝底线（读作一圈环）
+				if u2 < 0.3 and i % 2 == 0:
+					_glow(gp3, LG_C[5])
+				_lg_glyph(ci, gp3, i * 3 + beat4 / 3, gc4)
+		"pop":   # 被消的敌弹：一点白 → 一团墨收紧 → 一小块细字碎块落下熄灭
+			var f2: int = frame_of(float(it.t0))
+			if f2 < 0 or f2 > 6:
+				return
+			var c3: Vector2 = it.c
+			if f2 == 0:
+				for qq in [[0, 0], [1, 0], [0, 1], [1, 1]]:
+					ci.draw_rect(Rect2(_snap(c3) + Vector2(qq[0], qq[1]) * px, Vector2(px, px)), LG_C[6])
+			elif f2 <= 2:
+				for y in range(-1, 3):
+					for x in range(-1, 3):
+						var md: int = absi(x * 2 - 1) + absi(y * 2 - 1)
+						if md <= 4:
+							ci.draw_rect(Rect2(_snap(c3) + Vector2(x, y) * px, Vector2(px, px)), LG_INK[0] if md < 4 else LG_C[2])
+			else:
+				_lg_glyph(ci, c3 + Vector2(0, float((f2 - 2) * (f2 - 2)) * px), int(it.gi), LG_C[4] if f2 < 5 else LG_C[2])
+		"ring":   # 贴地大墨环原地闪一下（不外扩）：外亮内墨 2 像素，按噪声断续
+			var u3: float = (g.t - float(it.t0)) / float(it.life)
+			if u3 < 0.0 or u3 > 1.0:
+				return
+			var rr3: float = float(it.r) / px
+			var a5: float = 1.0 if u3 < 0.12 else 1.0 - (u3 - 0.12) / 0.88
+			var n3: int = int(TAU * rr3)
+			for i in n3:
+				var hv3: float = _lg_h(i * 7 + 11)
+				if hv3 > a5 + 0.15 or hv3 < 0.12:
+					continue
+				var an2: float = TAU * float(i) / n3
+				var q3: Vector2 = (it.c as Vector2) + Vector2(cos(an2) * rr3, sin(an2) * rr3 * LG_SY) * px
+				ci.draw_rect(Rect2(_snap(q3), Vector2(px, px)), LG_C[6] if u3 < 0.1 else (LG_C[4] if hv3 > 0.5 else LG_C[3]))
+				ci.draw_rect(Rect2(_snap(q3 - Vector2(cos(an2), sin(an2) * LG_SY) * px * 1.2), Vector2(px, px)), LG_INK[1])
+
+
+## 旧做法（2）：状态件整张贴（彗星帧条、锁定印、咒域帧条），旋转 + 小数缩放，盖在所有单位上
+func _lg_draw_raw(o) -> void:
+	var cv = o.cv
+	var fps: float = Bal.v("fx/px_plane_raw_fps", 12.8)
+	var t: int = tier(o)
+	var h: Dictionary = o.hw
+	var fn = h.get("fan", {})
+	if fn is Dictionary and not fn.is_empty() and float(fn.get("t", 0.0)) > 0.0:
+		var r: float = float(load("res://scripts/characters/blocks/seg_logos.gd").hw_fan_r(o, fn.b))
+		_draw_raw(cv, "lg_raw_field", posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_field").get("n", 1)))), o.pos, float(h.fan_ang), r / 150.0)
+	if h.has("bolts"):
+		for bo in h.bolts:
+			var pose: Array = load("res://scripts/render/fx_recipe.gd")._bolt_pose(bo)
+			_draw_raw(cv, "lg_raw_bolt_e%d" % t, posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_bolt_e%d" % t).get("n", 1)))), pose[0], float(pose[1]), g.PX * 1.1)
+	if not o.vg.is_empty():
+		for xb in o.vg.bul:
+			_draw_raw(cv, "lg_raw_bolt_e0", posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_bolt_e0").get("n", 1)))), (xb.p as Vector2) + Vector2(0, -16), (xb.v as Vector2).angle(), g.PX * 0.8)
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and float(lk.get("t", 0.0)) > 0.0 and lk.e != null and not lk.e.dead:
+		var b: Vector2 = lk.e.pos + Vector2(0, -float(lk.e.r) * 0.5)
+		cv.draw_line(_lg_tip(o), b, Color(0.55, 0.6, 1.0, 0.9), 3.0)
+		_draw_raw(cv, "lg_raw_lock", posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_lock").get("n", 1)))), lk.e.pos + Vector2(0, -float(lk.e.r) - 20.0), 0.0, g.PX * 1.3)
+	if h.has("links"):
+		for lkk in h.links:
+			var mm: Array = lkk.m
+			for j in range(1, mm.size()):
+				if not mm[0].dead and not mm[j].dead:
+					cv.draw_line(mm[0].pos + Vector2(0, -10), mm[j].pos + Vector2(0, -10), Color(0.65, 0.53, 1.0, 0.8), 2.0)
+	for it in items:
+		if str(it.oid) == "logos" and str(it.ly) == "raw" and str(it.get("lrt", "")) == "rawline":
+			var u: float = (g.t - float(it.t0)) / maxf(0.01, float(it.life))
+			if u >= 0.0 and u <= 1.0:
+				cv.draw_line(it.a, (it.a as Vector2).lerp(it.b, u), Color(0.55, 0.6, 1.0, 0.9), 4.0)
 ## 最后 n 件标成「跟着出手的干员走」（fop）
 func _follow_last(o, n: int) -> void:
 	for i in range(maxi(0, items.size() - n), items.size()):
@@ -1656,7 +2655,8 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					_ey_push(o, "s1boom_r%d_e%d_gd" % [b1, t], at, "gd")
 					if mode() == 1:
 						R._grains(o, at + Vector2(0, -30), at.y, "ember", 4 + 2 * t, {"tier": t})
-					R._light(o, at + Vector2(0, -24), r * 1.6, 0.55, 0.15, p.light)
+					R._light(o, at + Vector2(0, -24), 160.0, 0.7, 0.15, p.light)   # docs/270 补齐（爆发类下限）：每发爆点一盏 160 / 0.7
+					_push({"ert": "core", "at": at + Vector2(0, -float(b1) * 0.45 * g.PX), "rr": 5.0 + 0.5 * t, "t0": g.t, "life": 4.0 / 15.0, "ly": "up", "gy": at.y + 1.0, "oid": str(o.id), "k": ""})   # 爆心进 emit
 				_:
 					R._light(o, at + Vector2(0, -20), r * 1.3, 0.4, 0.12, p.light)
 					if _ey_cnt(o, "ey_boom") >= 6:
@@ -1748,7 +2748,11 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_ey_push(o, "s1cast_e%d_up" % t, o.pos, "up", {"fopo": o, "foff": Vector2.ZERO})
 				if t >= 2:
 					_ey_push(o, "s1cast_e2_gd", o.pos, "gd", {"fopo": o, "foff": Vector2.ZERO})
-				R._light(o, o.pos + Vector2(0, -100), 100.0, 0.5, 0.15, p.light)
+				# docs/270 补齐：起手本身也按爆发档——杖头一盏 160 / 0.7、杖头热芯进发光层、迸几颗火星（强化弹要等下一次普攻约 1.2 秒后才落地）
+				R._light(o, o.pos + Vector2(0, -100), 160.0, 0.7, 0.15, p.light)
+				_push({"ert": "core", "at": o.pos + Vector2(0, -110), "rr": 6.0 + 0.5 * t, "t0": g.t, "life": 4.0 / 15.0, "ly": "up", "gy": o.pos.y + 1.0, "oid": str(o.id), "k": "", "fop": o, "foff": Vector2(0, -110)})
+				if mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -110), o.pos.y, "ember", 6 + t, {"tier": t})
 			elif i == 2:   # 火山起手：身后熔岩喷柱 + 脚下裂缝圈
 				var fl: bool = float(o.face) < 0.0
 				if raw:
@@ -1909,6 +2913,16 @@ func _ey_draw_rt(ci, it: Dictionary) -> void:
 	match str(it.ert):
 		"ball":
 			_ey_ball(ci, str(it.st), it.pos, it.dir, int(it.get("ph", 0)))
+		"core":   # 爆心发光点团（docs/270 补齐）：不画色块，只往发光层送一团热芯点，4 拍里由大到小
+			var fc: int = frame_of(float(it.t0))
+			if fc < 0 or fc > 3:
+				return
+			var rr: int = int(round(float(it.rr) * [1.0, 0.8, 0.55, 0.3][fc]))
+			var cc: Vector2 = _snap(it.at)
+			for yy in range(-rr, rr + 1):
+				for xx in range(-rr, rr + 1):
+					if xx * xx + yy * yy <= rr * rr:
+						_glow(cc + Vector2(xx, yy) * px, EY_C[7] if xx * xx + yy * yy > rr * rr / 3 else EY_C[6])
 		"muz":
 			var f: int = frame_of(float(it.t0))
 			if f < 0 or f > 1:
@@ -2615,3 +3629,422 @@ func ult_sg(o, kind: String, d: Dictionary) -> void:
 			R._grains(o, fp + Vector2(0, -4), fp.y, "rock", 2, {"tier": 2})
 		"cmd":
 			_push({"k": "sg_cmd_gd", "t0": g.t, "gp": _snap(d.get("c", o.pos)), "flip": false, "ly": "gd", "oid": id})
+
+# ================================================================ 德克萨斯（docs/257，照 docs/246 斯卡蒂 / docs/254 星熊的做法）
+## 普攻「拔刀」= 腰高琥珀刀痕，两头针尖（精一刀头甩碎晶 + 钉剑，精二白刃内侧冷青刃光）；骤雨 / 回马剑 = 整道约 300° 旋斩；
+## S1「剑雨」= 源石剑从天而降、插地、刃光沿刃走一趟、碎成碎晶（精一更多更大，精二再大一号 + 收尾中心巨剑 + 地面剑阵）；
+## S2「冲锋号令·γ型」= 起手琥珀光柱，之后所有冲刺的直线刀光加粗（精二带冷青刃光点）；
+## S3「剑雨滂沱」= 起手身边一圈落剑 + 剑阵；次元斩每刀一道腰高细长直线刀痕 + 目标处落一柄大剑；
+## 精二余像 = 地上两道残像边线，消散时沿路落剑；后期剑气 = 飞出去的源石剑（同一次出手合成一柄），沿路落小剑；
+## 连携（追击 / 冲刺斩）= 冲刺直线刀光 + 目标处十字斩。
+## 帧条键前缀 tx_（data/pxp_texas.json，tools/pxplane_bake.py --op texas）；直线刀光按美术像素格运行时逐格画（方向任意，不旋转贴图）。
+
+const TX_C: Array[Color] = [Color("#120804"), Color("#2c1406"), Color("#5a2808"), Color("#9c4610"), Color("#e2781c"), Color("#ffac3c"), Color("#ffdc9c"), Color("#ffffff")]
+const TX_AC := Color("#9fe3ff")
+const TX_H := 24.0                       # 腰高（世界像素）：直线刀光离地高度
+const TX_RAIN_CAP := [10, 13, 16]        # 剑雨同一次至多画几柄（三档）；其余照常结算，只是不画
+const TX_SW := [[16, 0], [19, 1], [22, 2]]   # 剑雨三档的剑：[剑长, 档]
+
+var _tx_spin := 0
+var _txq: Array = []                     # 画面延时事件：[时刻, 种类, 数据]（落剑落地那一下的碎晶 / 照地光）
+
+
+func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用（tools/pxplane_shots.py）：事件的游戏时间
+		print("PXPLOG tx %s %s %.3f" % [kind, str(d.get("src", d.get("i", ""))), g.t])
+	match kind:
+		"shape":
+			var src: String = str(d.get("src", ""))
+			var es: Array = d.get("es", [])
+			if d.get("circle", false):
+				var c: Vector2 = d.get("c", o.pos)
+				var r: float = float(d.get("r", 100.0))
+				match src:
+					"骤雨", "回马剑":   # 360° 旋斩（骤雨连斩 4 下左右交替）
+						_tx_spin += 1
+						var sk: String = "tx_spin_r%d_e%d" % [_bucket(r * 0.5, [50, 56, 63]), t]
+						if raw:
+							_push({"k": "tx_raw_spin_e%d" % t, "t0": g.t, "gp": c + Vector2(0, -10), "ly": "raw", "rot": float(_tx_spin) * 1.3, "sc": g.PX * (r * 0.5) / 50.0, "oid": str(o.id)})
+						else:
+							var fl: bool = (_tx_spin % 2) == 1
+							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id), "fo": Vector2.ZERO})
+							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id), "fo": Vector2.ZERO})
+						_tx_cuts(o, es, t, 2)
+						_tx_hit(o, R, c + Vector2(0, -16), c.y + 2.0, es, 2 + t, 120.0, 0.5)   # docs/270：同拔刀，灯强度提到 0.5
+					_:
+						pass   # 剑雨 / 余像·剑雨的判定圈：画面由落剑（tx_rain 事件）画，不逐圈画
+				return
+			# 锥形：拔刀（普攻）
+			var ang: float = float(d.get("ang", 0.0))
+			var r2: float = float(d.get("r", 112.0))
+			var dv := Vector2.from_angle(ang)
+			_add(o, "tx_slash_r%d_e%d" % [_bucket(r2 * 0.5, [56, 63, 70]), t], o.pos, ang, r2, raw, "tx_raw_slash_e%d" % t, 56.0)
+			_tx_cuts(o, es, t, 2)
+			_tx_hit(o, R, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 2 + t, 110.0, 0.5)   # docs/270：普攻灯强度 0.3（全员最暗）→ 0.5
+			if t >= 1 and not raw and mode() == 1:   # 精一钉剑：命中里离她最近的 2 名（非 Boss）各插一柄源石剑，跟着敌人，0.7 秒后碎掉
+				var lst: Array = es.filter(func(x): return not x.boss and not x.dead)
+				lst.sort_custom(func(x1, x2): return x1.pos.distance_squared_to(o.pos) < x2.pos.distance_squared_to(o.pos))
+				for i in mini(2, lst.size()):
+					var pe: Dictionary = lst[i]
+					_push({"k": "tx_pin_h%d_e%d_up" % [15 if float(pe.r) >= 22.0 else 9, mini(t, 2)], "t0": g.t, "gp": _snap(pe.pos), "fe": pe, "flip": (pe.pos.x < o.pos.x), "ly": "up", "oid": str(o.id)})
+		"tx_rain":   # verb.fx_rain（剑雨 / 剑雨·连 / 剑雨·连绵 / 余像·剑雨）：落剑清单由玩法画面那份（g.vrng）给出
+			var bl: Array = d.get("bl", [])
+			if bl.is_empty():
+				return
+			var path: bool = d.get("path", false)
+			var sw: Array = [14, 2] if path else TX_SW[t]
+			var cap: int = 12 if path else TX_RAIN_CAP[t]
+			var lst2: Array = bl.slice(0, cap)
+			var ft: float = float(d.get("ft", 0.1))
+			var cc: Vector2 = d.get("c", o.pos)
+			_tx_rain(o, lst2, "tx_sw_s%d_e%d" % [sw[0], sw[1]], raw, t)
+			if not path:
+				if t >= 2 and not d.get("echo", false):   # 精二收尾：中心一柄巨剑 + 地面剑阵（质变）
+					var tm := 0.0
+					for b in lst2:
+						tm = maxf(tm, float(b.d))
+					var fin_d: float = tm + 0.12
+					_tx_rain(o, [{"p": cc, "d": fin_d, "a": 0.0, "fl": false}], "tx_sw_s40_e2", raw, t)
+					if not raw:
+						_push({"k": "tx_array_r65_gd", "t0": _tx_beat(g.t + fin_d, 2), "gp": _snap(cc), "flip": false, "ly": "gd", "oid": str(o.id)})   # 剑阵热白第一拍 = 巨剑插地那一拍 = 中心灯（docs/270：灯与辉光同帧）
+					if mode() == 1:
+						_txq.append([_tx_beat(g.t + fin_d, 2), "land", {"o": o, "p": cc, "n": 8, "lr": 220.0, "li": 0.8}])
+				if mode() == 1:   # 剑雨中心那盏灯跟第一柄剑插地同一拍亮（docs/270：灯与辉光同帧）
+					_txq.append([_tx_beat(g.t, 2), "lt", {"o": o, "p": cc + Vector2(0, -20), "lr": 180.0, "li": 0.6}])
+		"tx_dash":   # 冲刺（拔刀冲刺 / 战术快递 / 突进 / 冲刺斩）：腰高直线刀光 + 地上焦痕；S2 永久生效后加粗
+			var a0: Vector2 = d.get("from", o.pos)
+			var b0: Vector2 = d.get("to", o.pos)
+			var s2: bool = t >= 1 and o.perm.size() > 1 and o.perm[1]
+			_tx_line(o, a0, b0, 2 if s2 else 1, 1, 1 if s2 else 0, raw, true)
+			if mode() == 1:
+				R._light(o, b0 + Vector2(0, -20), 120.0, 0.35, 0.1, p.light)
+		"tx_trail":   # 精二余像：地上两道残像边线，life 秒内淡掉（消散时的落剑走 tx_rain path）
+			if not raw:
+				_push({"tr": true, "a": d.get("from", o.pos), "b": d.get("to", o.pos), "w": float(d.get("w", 44.0)), "t0": g.t, "life": float(d.get("life", 0.6)), "ly": "gd2", "oid": str(o.id), "k": ""})
+		"tx_scar":   # 次元斩：一道腰高细长直线刀痕（判定线两端外延），scar 秒后碎开
+			var hold: int = maxi(1, int(round(float(d.get("life", 0.22)) * 15.0)))
+			_tx_line(o, d.get("a", o.pos), d.get("c", o.pos), 2 if float(d.get("wmax", 2.0)) >= 3.0 else 1, hold, 2, raw, false)
+		"tx_cut":   # 次元斩每一刀：目标处落一柄大剑（剑雨滂沱）
+			var at: Vector2 = d.get("at", o.pos)
+			_tx_rain(o, [{"p": at, "d": 0.0, "a": 0.0, "fl": (int(g.t * 15.0) % 2) == 0}], "tx_sw_s26_e2", raw, 2)
+			_burst_m(o, R, p, at + Vector2(0, -20), at.y + 2.0, [], 4, "shard", 130.0, 0.45)
+		"tx_link":   # 连携（技能连携 v2「追击」/ combo「冲刺斩」）：粗直线刀光 + 目标处十字斩
+			var fa: Vector2 = d.get("from", o.pos)
+			var tb: Vector2 = d.get("to", o.pos)
+			var mid: Vector2 = d.get("mid", tb)
+			var dv2: Vector2 = (tb - fa).normalized() if tb != fa else Vector2.RIGHT
+			_tx_line(o, fa, tb, 2, 2, 1, raw, true)
+			if raw:
+				_push({"k": "tx_raw_xcut", "t0": g.t, "gp": mid + Vector2(0, -24), "ly": "raw", "rot": dv2.angle(), "sc": g.PX * 1.37, "oid": str(o.id)})
+			else:
+				var dk: Array = pick_dir(dv2.angle())
+				_push({"k": "tx_xcut_up_d%d" % dk[0], "t0": g.t, "gp": _snap(mid), "flip": dk[1], "ly": "up", "oid": str(o.id)})
+				_push({"k": "tx_xcut_gd_d%d" % dk[0], "t0": g.t, "gp": _snap(mid), "flip": dk[1], "ly": "gd", "oid": str(o.id)})
+			_tx_cuts(o, d.get("es", []), 1, 3)
+			_burst_m(o, R, p, mid + Vector2(0, -20), mid.y + 2.0, d.get("es", []), 8, "shard", 200.0, 0.8)
+		"skill":
+			var i: int = int(d.get("i", -1))
+			if i == 1:   # 冲锋号令·γ型起手：琥珀光柱 + 脚下断续环
+				var tt: int = maxi(t, 1)
+				if raw:
+					_push({"k": "tx_raw_spin_e%d" % tt, "t0": g.t, "gp": o.pos + Vector2(0, -10), "ly": "raw", "rot": 0.0, "sc": g.PX * 0.6, "oid": str(o.id)})
+				else:
+					_push({"k": "tx_order_e%d_up" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": float(o.face) < 0.0, "ly": "up", "oid": str(o.id), "fo": Vector2.ZERO})
+					_push({"k": "tx_order_e%d_gd" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id), "fo": Vector2.ZERO})
+				if mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -30), o.pos.y, "shard", 5 + 2 * tt, {"tier": tt})
+					R._light(o, o.pos + Vector2(0, -30), 140.0, 0.6, 0.15, p.light)
+			elif i == 2:   # 剑雨滂沱起手：身边一圈 8 柄剑依次落下 + 剑阵
+				var ring: Array = []
+				for k in 8:
+					var a: float = TAU * float(k) / 8.0 + 0.2
+					ring.append({"p": o.pos + Vector2(cos(a), sin(a) * 0.72) * 104.0, "d": 0.035 * float(k), "a": 0.0, "fl": k % 2 == 1})
+				_tx_rain(o, ring, "tx_sw_s22_e2", raw, 2)
+				if not raw:
+					_push({"k": "tx_array_r56_gd", "t0": g.t + 0.1, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+				if mode() == 1:
+					R._light(o, o.pos + Vector2(0, -20), 180.0, 0.6, 0.15, p.light)
+
+
+## 命中：碎晶当场生成；照地灯推迟到这一帧的绘制里再挂（docs/270：灯和斩痕白芯的辉光同一帧亮——emit 点在绘制时排进发光层、下一帧才显出，
+## 灯在玩法更新里挂会比辉光早一帧，体检取的命中帧上就量不到辉光）
+func _tx_hit(o, R, at: Vector2, gy: float, es: Array, n: int, lr: float, li: float) -> void:
+	if mode() != 1:
+		return
+	var m := {"tier": tier(o), "grain_spd": 1.0}
+	var hp: Vector2 = at
+	if not es.is_empty():
+		var e: Dictionary = es[0]
+		hp = e.pos + Vector2(0, -float(e.r) * 0.5)
+		R._grains(o, hp, float(e.pos.y) + 2.0, "shard", mini(n, 2 + es.size()), m, (hp - o.pos).normalized())
+	else:
+		R._grains(o, at, gy, "shard", maxi(1, n / 2), m)
+		lr *= 0.8
+		li *= 0.6
+	_txq.append([g.t, "lt", {"o": o, "p": hp, "lr": lr, "li": li}])
+
+
+## 某一时刻起第 k 拍（15 fps 节拍）开始的时刻：帧条第 k 帧被画出来的那一拍
+func _tx_beat(t0: float, k: int) -> float:
+	return (floor(t0 * 15.0) + float(k)) / 15.0
+
+
+## 斩痕（同斯卡蒂 _cuts，琥珀色）
+func _tx_cuts(o, es: Array, t: int, n: int) -> void:
+	var k0: int = items.size()
+	_cuts(o, es, t, n)
+	for i in range(maxi(0, k0 - n), items.size()):
+		var it: Dictionary = items[i]
+		if it.get("cut", false) and str(it.oid) == str(o.id):
+			it["emk"] = true
+			it["c1"] = "#ffdc9c"
+			it["c2"] = "#ffac3c"
+			it["c3"] = "#e2781c"
+
+
+## 一组落剑：bl = [{p 落点, d 延时, a 倾角, fl 翻转}]；一条组件（ly rain），画时按每柄的出手时刻展开（sort_items / 地面层）
+func _tx_rain(o, bl: Array, key: String, raw: bool, t: int) -> void:
+	if bl.is_empty():
+		return
+	var lf: float = _life(key + "_l0_up")
+	var tm := 0.0
+	for b in bl:
+		tm = maxf(tm, float(b.d))
+	if raw:   # 旧做法：每柄一张旋转 + 小数缩放的整张贴图，盖在最上层
+		for b in bl.slice(0, 10):
+			_push({"k": "tx_raw_sword_e%d" % t, "t0": g.t + float(b.d), "gp": (b.p as Vector2) + Vector2(0, -24), "ly": "raw", "rot": float(b.a), "sc": g.PX * 1.37, "oid": str(o.id)})
+		return
+	_push({"rain": bl, "key": key, "t0": g.t, "life": tm + lf, "ly": "rain", "oid": str(o.id), "k": ""})
+	if mode() == 1:   # 前三柄落地那一下：几颗碎晶 + 一盏短照地光
+		for b in bl.slice(0, 3):
+			_txq.append([_tx_beat(g.t + float(b.d), 2), "land", {"o": o, "p": b.p, "n": 3, "lr": 110.0, "li": 0.45}])
+
+
+## 直线刀光（运行时逐格）：w 芯宽（格）、hold 保持几拍再碎、style 0 冲刺 / 1 加粗（号令 · 连携）/ 2 次元斩；gs = 地上留焦痕
+func _tx_line(o, a: Vector2, b: Vector2, w: int, hold: int, style: int, raw: bool, gs: bool) -> void:
+	if a.distance_to(b) < 4.0:
+		return
+	if raw:
+		_push({"rawln": true, "a": a, "b": b, "t0": g.t, "life": 0.34, "ly": "rawln", "oid": str(o.id), "k": ""})
+		return
+	_push({"ln": true, "a": a, "b": b, "w": w, "hold": hold, "st": style, "gs": gs, "cold": tier(o) >= 2, "t0": g.t, "life": float(hold + 4) / 15.0, "gy": maxf(a.y, b.y) + 2.0, "ly": "up", "oid": str(o.id), "k": ""})
+
+
+func _tx_cell(ci, p: Vector2, c: Color) -> void:
+	ci.draw_rect(Rect2(_snap(p), Vector2(g.PX, g.PX)), c)
+
+
+## 直线刀光一帧：第 0 拍白芯 + 两侧亮琥珀；之后芯转淡琥珀、两侧暗一阶；hold 拍后两拍里逐格断开；两头收尖。ground = 地上的焦痕（只画暗琥珀，晚两拍断完）
+func _tx_draw_line(ci, it: Dictionary, ground: bool) -> void:
+	var f: int = frame_of(float(it.t0))
+	var hold: int = int(it.hold)
+	if f < 0:
+		return
+	var a: Vector2 = it.a
+	var b: Vector2 = it.b
+	var px: float = g.PX
+	var L: float = a.distance_to(b)
+	var dv: Vector2 = (b - a) / maxf(1.0, L)
+	var nv := Vector2(-dv.y, dv.x)
+	var n: int = maxi(2, int(L / px))
+	if ground:
+		if f > hold + 3:
+			return
+		var brk: float = clampf(float(f - hold + 1) / 4.0, 0.0, 1.0)
+		for i in n + 1:
+			if fposmod(float(i) * 0.618034 + float(int(absf(a.x)) % 13) * 0.07, 1.0) < brk:
+				continue
+			var u0: float = float(i) / float(n)
+			if u0 < 0.06 or u0 > 0.96:
+				continue
+			_tx_cell(ci, a + dv * float(i) * px + Vector2(0, 2), TX_C[3] if f <= 1 else (TX_C[2] if f <= hold + 1 else TX_C[1]))
+		return
+	if f > hold + 1:
+		return
+	var st: int = int(it.st)
+	var w: int = int(it.w)
+	var lift := Vector2(0, -TX_H)
+	var broke: bool = f >= hold
+	var cold: bool = st == 1 and w >= 2 and it.get("cold", false)
+	for i in n + 1:
+		var u: float = float(i) / float(n)
+		var prof: float = pow(sin(PI * clampf(u * 0.92 + 0.04, 0.0, 1.0)), 0.5)   # 两头收尖
+		if broke and fposmod(float(i) * 0.618034 + float(f) * 0.31, 1.0) < (0.45 if f == hold else 0.75):
+			continue
+		var q: Vector2 = a + dv * float(i) * px + lift
+		var cw: int = w if prof > 0.55 else 1
+		var core: Color = Color(1, 1, 1) if f == 0 else (TX_C[6] if not broke else TX_C[5])
+		var side: Color = TX_C[5] if f == 0 else (TX_C[4] if not broke else TX_C[3])
+		for k in cw:
+			_tx_cell(ci, q + nv * float(k) * px, core)
+		if prof > 0.3:
+			_tx_cell(ci, q - nv * px, TX_AC if (cold and (i % 7) == 3 and not broke) else side)   # 精二号令 / 连携：冷青刃光点
+			_tx_cell(ci, q + nv * float(cw) * px, side)
+			if st >= 1 and prof > 0.7 and f <= 1:
+				_tx_cell(ci, q + nv * float(cw + 1) * px, TX_C[3])
+		if f == 0 and (i & 1) == 0 and prof > 0.4:
+			_glow(q, Color(1.0, 0.85, 0.6))
+
+
+## 精二余像：地上两道残像边线（断续、贴边一格暗内边），life 秒内淡掉；不铺满
+func _tx_draw_trail(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	var life: float = float(it.life)
+	if age < 0.0 or age >= life:
+		return
+	var k: float = age / life
+	var a: Vector2 = it.a
+	var b: Vector2 = it.b
+	var px: float = g.PX
+	var L: float = a.distance_to(b)
+	var dv: Vector2 = (b - a) / maxf(1.0, L)
+	var nv := Vector2(-dv.y, dv.x * 0.72).normalized()
+	var hw: float = float(it.w) * 0.5
+	var n: int = maxi(2, int(L / px))
+	var tick: int = int(floor(g.t * 15.0))
+	for side in [-1.0, 1.0]:
+		for i in n + 1:
+			if fposmod(float(i) * 0.618034 + side * 0.3 + float(tick) * 0.11, 1.0) < 0.25 + 0.6 * k:   # 越来越稀
+				continue
+			var q: Vector2 = a + dv * float(i) * px + nv * hw * side
+			_tx_cell(ci, q, TX_C[5] if k < 0.3 else (TX_C[4] if k < 0.65 else TX_C[3]))
+			_tx_cell(ci, q - nv * px * side, TX_C[1])
+
+
+func _tx_due() -> void:
+	if _txq.is_empty():
+		return
+	var now: float = g.t
+	var keep: Array = []
+	var R = load("res://scripts/render/fx_recipe.gd").of(g)
+	for q in _txq:
+		if now < float(q[0]):
+			keep.append(q)
+			continue
+		if mode() != 1 or now - float(q[0]) > 0.2:
+			continue
+		var dd: Dictionary = q[2]
+		var o = dd.o
+		if not is_instance_valid(o):
+			continue
+		var at: Vector2 = dd.p
+		if str(q[1]) == "lt":
+			R._light(o, at, float(dd.lr), float(dd.li), 0.12, R.pal(o).get("light", TX_C[5]))
+			continue
+		R._grains(o, at + Vector2(0, -6), at.y + 1.0, "shard", int(dd.n), {"tier": tier(o)})
+		R._light(o, at + Vector2(0, -8), float(dd.lr), float(dd.li), 0.1, R.pal(o).get("light", TX_C[5]))
+	_txq = keep
+
+
+## 落剑组展开：每柄的立起件（出手前不画；按剑倾角挑 l0 / l1）
+func _tx_rain_items(it: Dictionary, ground: bool) -> Array:
+	var out: Array = []
+	var key: String = it.key
+	var t0: float = float(it.t0)
+	var lf: float = _life(key + "_l0_up")
+	for b in it.rain:
+		var ts: float = t0 + float(b.d)
+		if g.t < ts or g.t > ts + lf:
+			continue
+		var gp: Vector2 = _snap(b.p)
+		if ground:
+			out.append({"k": key + "_gd", "t0": ts, "gp": gp, "flip": b.fl})
+		else:
+			out.append({"k": key + ("_l1_up" if absf(float(b.a)) > 0.03 else "_l0_up"), "t0": ts, "gp": gp, "flip": b.fl})
+	return out
+
+
+func _tx_sort_items(o, out: Array) -> void:
+	var id: String = str(o.id)
+	for it in items:
+		if str(it.ly) == "rain" and str(it.oid) == id:
+			out.append_array(_tx_rain_items(it, false))
+	for qv in _tx_qi(o):
+		out.append({"k": qv.k + "_up_d%d" % qv.d, "fi": qv.f, "gp": qv.gp, "flip": qv.flip})
+
+
+## 地面层（德克萨斯）：贴地件、落剑的冲击 / 焦痕、余像边线、直线刀光的地上焦痕、剑气影子
+func _floor_tx(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	_tx_due()
+	for it in items:
+		if str(it.oid) != id:
+			continue
+		match str(it.ly):
+			"gd":
+				_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)   # 挂在人身上的件（fo）按施放者当前位置
+			"gd2":
+				_tx_draw_trail(cv, it)
+			"rain":
+				for s in _tx_rain_items(it, true):
+					_draw_strip(cv, str(s.k), frame_of(float(s.t0)), s.gp, s.flip, true)
+			"up":
+				if it.has("ln") and it.gs:
+					_tx_draw_line(cv, it, true)
+	for qv in _tx_qi(o):
+		_draw_strip(cv, qv.k + "_gd_d%d" % qv.d, int(qv.f), qv.gp, qv.flip, true)
+
+
+## 旧做法（2）：直线刀光 = 一张光晕烤进颜色的横条，旋转 + 横向拉伸到线长，盖在最上层
+func _tx_draw_raw_lines(o) -> void:
+	var cv = o.cv
+	var m: Dictionary = _meta("tx_raw_line")
+	var tx: Texture2D = _tex("tx_raw_line")
+	if m.is_empty() or tx == null:
+		return
+	for it in items:
+		if str(it.ly) != "rawln" or str(it.oid) != str(o.id):
+			continue
+		var fi: int = int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8))
+		if fi < 0 or fi >= int(m.n):
+			continue
+		var a: Vector2 = it.a
+		var b: Vector2 = it.b
+		var w: float = float(m.w)
+		var h: float = float(m.h)
+		cv.draw_set_transform((a + b) * 0.5 + Vector2(0, -TX_H), (b - a).angle(), Vector2(a.distance_to(b) / w, g.PX * 1.37))
+		cv.draw_texture_rect_region(tx, Rect2(Vector2(-float(m.ox), -float(m.oy)), Vector2(w, h)), Rect2(fi * w, 0.0, w, h))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 后期剑气（growth/late_shape → vis_growth._fire_qi）：同一次出手的几道合成一柄飞剑（同星熊 _qi_volleys 的分组）；
+## 飞行途中每 3 拍在身后落一柄小剑（剑雨意象，每组至多 3 柄；画面计时记在剑气字典的画面专用键 _pxd，玩法不读）
+func _tx_qi(o) -> Array:
+	var out: Array = []
+	if mode() != 1 or o.vg.is_empty() or not o.vg.has("qi") or o.vg.qi.is_empty():
+		return out
+	var grp: Dictionary = {}
+	for q in o.vg.qi:
+		var key: int = int(round((g.t - float(q.t)) * 60.0))
+		if not grp.has(key):
+			grp[key] = {"p": Vector2.ZERO, "v": Vector2.ZERO, "n": 0, "t": float(q.t), "life": float(q.life), "q0": q}
+		var e: Dictionary = grp[key]
+		e.p += _qpos(q)
+		e.v += (q.v as Vector2).normalized()
+		e.n += 1
+		e.life = minf(float(e.life), float(q.life))
+	var t: int = tier(o)
+	var keys: Array = grp.keys()
+	keys.sort()
+	keys.reverse()
+	var tick: int = int(floor(g.t * 15.0))
+	for key in keys.slice(0, 2):   # 同屏至多两组（最新两次出手）
+		var e: Dictionary = grp[key]
+		var n: int = int(e.n)
+		var S: int = 1 if n <= 1 else (2 if n == 2 else 3)
+		var dk: Array = pick_dir((e.v as Vector2).angle())
+		var f: int = 0 if float(e.t) < 1.0 / 15.0 else (2 if float(e.life) < 0.07 else 1)
+		var gp: Vector2 = _snap(e.p / float(n))
+		out.append({"k": "tx_qi_s%d_e%d" % [S, t], "d": dk[0], "flip": dk[1], "gp": gp, "f": f})
+		var q0: Dictionary = e.q0
+		if not q0.has("_pxd"):
+			q0["_pxd"] = [tick, 0]
+			continue
+		var dn: Array = q0._pxd
+		if tick - int(dn[0]) < 3 or int(dn[1]) >= 3:
+			continue
+		q0["_pxd"] = [tick, int(dn[1]) + 1]
+		var back: Vector2 = gp - (e.v as Vector2).normalized() * 30.0
+		_tx_rain(o, [{"p": back, "d": 0.0, "a": 0.0, "fl": (tick % 2) == 0}], "tx_sw_s14_e%d" % t, false, t)
+	return out

@@ -100,6 +100,16 @@ func update_bullets(dt: float) -> void:
 			break
 
 
+var _fxr_s = null
+
+
+## 转平面配方（docs/271）：运行时 load，免得和 game.gd 循环 preload
+func _fxr():
+	if _fxr_s == null:
+		_fxr_s = load("res://scripts/render/fx_recipe.gd")
+	return _fxr_s
+
+
 ## 子弹命中：按种类结算伤害与特效。docs/247 V5：结算期间把发射的干员记进 vfx.spawn_op（只是画面标记：命中 / 爆炸帧条按精英化放大）
 func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	var so = g.vfx.spawn_op
@@ -151,9 +161,13 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					var o: Dictionary = g.enemies[k]
 					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 						g.combat.damage(o, b.dmg, h)
-			if b.has("fx_col") or not g.vfx.fx_sprite("fx_arcane_hit", e.pos):
-				g.fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
-			g.vfx.sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
+			var bop = g.squad.get_op("suzuran") if str(b.get("op", "")) == "suzuran" and g.squad != null else null
+			if bop != null and _fxr().owns(bop):
+				_fxr().ev(bop, "sz_hit", {"e": e, "b": b})   # 转平面（docs/271）：铃兰狐火命中改由 fx_pxplane_sz 画（只画）
+			else:
+				if b.has("fx_col") or not g.vfx.fx_sprite("fx_arcane_hit", e.pos):
+					g.fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
+				g.vfx.sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
 			if b.has("op"):
 				Sfx.op(b.op, "hit")   # 铃兰狐火
 			b.life = 0.0
