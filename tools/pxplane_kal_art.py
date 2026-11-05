@@ -1010,6 +1010,10 @@ def main():
     bk.save("guard_bk_up")
     fr.save("guard_fr_up")
     g.save("guard_gd", emit_hot=False)
+    bk, fr, g = red(guard_land, 100)   # 熔毁期间 / 熔毁爆前后触发的回防：同一套熔毁红（11-05 实机：绿环叠在红爆上撞色）
+    bk.save("guard_bk_up_r")
+    fr.save("guard_fr_up_r")
+    g.save("guard_gd_r", emit_hot=False)
     heal_ring().save("heal_gd")
     heal_cross().save("heal_cross_up")
     heal_column().save("heal_col_up")

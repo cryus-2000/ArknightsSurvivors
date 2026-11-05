@@ -181,11 +181,14 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			var rr: float = float(d.get("r", 70.0))
 			var es2: Array = d.get("es", [])
 			if src.ends_with("回防"):   # 精二回防 / 技能响应护主：一圈黑骨刺破土
-				_put(r, o, "guard_gd", c, "gd")
-				_put(r, o, "guard_bk_up", c, "up", "", false, -3.0)
-				_put(r, o, "guard_fr_up", c, "up")
-				_hit(r, o, R, p, es2, "", 0, 140.0, 0.55)
-				R._light(o, c + Vector2(0, -10), 160.0, 0.5, 0.15, p.light)
+				# 熔毁期间、或熔毁爆前后 0.6 秒内触发的：改熔毁红版（11-05 实机：回防正好和熔毁爆同一刻触发，绿环叠在红爆上撞色）
+				var hot: bool = o.skill_active_left(2) > 0.0 or g.t - float(o.get_meta("ka_s3_on_t", -9.0)) < 0.6 or absf(g.t - float(o.get_meta("ka_melt_t", -9.0))) < 0.6
+				var rs: String = "_r" if hot else ""
+				_put(r, o, "guard_gd" + rs, c, "gd")
+				_put(r, o, "guard_bk_up" + rs, c, "up", "", false, -3.0)
+				_put(r, o, "guard_fr_up" + rs, c, "up")
+				_hit(r, o, R, p, es2, "", 0, 140.0, 0.55, p.get("melt", p.light) if rs != "" else p.light)
+				R._light(o, c + Vector2(0, -10), 160.0, 0.5, 0.15, p.get("melt", p.light) if rs != "" else p.light)
 				_pp(r, o, c + Vector2(0, -2), c.y, "dust", 8, DUST_HOT, DUST_DK)
 			elif src.ends_with("熔毁"):
 				if "dot" in d.get("tags", []):   # 不毁重构·余焰：每跳一圈淡边 + 少量余烬
@@ -264,6 +267,7 @@ static func floor_layer(r, o) -> void:
 	var s = _m3(o)
 	if s != null and o.skill_active_left(2) > 0.0:   # 熔毁期间 Mon3tr 脚下一圈淡环（循环，跟着走）
 		r._draw_strip(cv, "ka_s3aura_gd", r.frame_of(0.0), r._snap(s.pos), false, false)
+		o.set_meta("ka_s3_on_t", r.g.t)   # 熔毁最后在场的时刻（收尾 0.6 秒内触发的回防也用熔毁红）
 		var bt: int = int(floor(r.g.t * 15.0))
 		if int(o.get_meta("ka_s3_bt", -1)) != bt:
 			o.set_meta("ka_s3_bt", bt)
