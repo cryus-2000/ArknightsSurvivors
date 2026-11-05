@@ -1,0 +1,27 @@
+# elite_mark_v2_review
+# 参数：--headless --path /work/repo/game res://tests/elite_mark_v2_review.tscn -- --regression --seed=1 --dccheck
+# 用时 15 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ELITE_MARK_EMIT off.png points=0 colours=[]
+ELITE_MARK_EMIT on.png points=0 colours=[]
+ELITE_MARK_RULES PASS: squad 24 vertices, elite 32; no periodic rim; blessing priority in both toggles
+ELITE_MARK_EMIT no_flash.png points=0 colours=[]
+ELITE_MARK_REVIEW dc_checked=6 sample_count=5
+ERROR: 78 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 432 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 27 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
