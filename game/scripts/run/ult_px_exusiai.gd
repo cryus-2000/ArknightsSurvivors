@@ -1,4 +1,4 @@
-## 能天使终结技转平面画面（docs/262 §11，开关 ult/px_plane，缺省 0 = 原画面）：只改画面，判定 / 时长 / 伤害 / 发数一律照 ult_moves 原样。
+## 能天使终结技转平面画面（docs/262 §11，开关 ult/px_plane_exusiai，11-06 用户点头后缺省 1；或总开关 ult/px_plane；0 = 原画面）：只改画面，判定 / 时长 / 伤害 / 发数一律照 ult_moves 原样。
 ## 11-05 晚口径（ult_brief.md §9）：以原版为底，主要做配色对齐（ult_moves 的 _exr / _exg：危险红换朱橙），能用 px_plane 加强的顺手加强——
 ## 最大那一下叠 big_blast、路上的爆点叠 cloud、平涂实心圆去掉、斜举光刃换头顶大光环（halo）；下面其余的生成函数（举枪闪光 / 锁定框 / 光弹 / 像素爆团）是第一版整套替换的画法，暂不调用。
 ## 画面件都是 ult 的图形（u.shape），kind = "pxfn"、px = 画法；ult.gd 的 draw_world / draw_world_back / 冲击帧见到 pxfn 就交给 draw()。
@@ -24,7 +24,7 @@ const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷�
 
 
 static func on() -> bool:
-	return Bal.v("ult/px_plane", 0.0) > 0.0
+	return Bal.v("ult/px_plane", 0.0) > 0.0 or Bal.v("ult/px_plane_exusiai", 1.0) > 0.0   # 总开关或能天使一人（11-06 用户「能天使没问题」后缺省开）
 
 
 static func _snap(v: Vector2) -> Vector2:
