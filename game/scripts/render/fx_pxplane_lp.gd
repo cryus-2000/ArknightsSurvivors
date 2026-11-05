@@ -29,6 +29,7 @@ var _beat := {}
 var _last_atk := {}        # 干员 id → 上一记双刃的时刻（双刃连斩补刀 0.12 秒后到，画反向月牙）
 var _links: Array = []     # 连携月牙剑气：{oid, sp, ep, t0, T, d}
 var _rt: Array = []        # 运行时地面件：{k: scar / chain, a, b, t0}
+var _claw_rot := 0         # 狼之舞爪痕起始组型（只画）
 var _seal_st := {}         # 敌人 id → [封印止时刻, 起拍时刻]（不往敌人字典里写画面键）
 
 
@@ -106,7 +107,8 @@ func _cuts(o, es: Array, t: int, n: int, x: bool) -> void:
 			"d": tg, "x": x, "L": 7.0 + 2.0 * t, "ly": "up", "oid": str(o.id)})
 
 
-## 狼之舞爪痕：一组三道并排弯钩抓痕（帧条 lp_claw_up，方向一致，敌人在她左边时水平翻转），第 k 组晚 k 拍抓出；贴地 lp_claw_gd 很淡的爪印
+## 狼之舞爪痕（11-05 用户「更加大一点以及杂乱一点」）：一组三道弯钩抓痕，长 22–26 美术像素、角度 / 长短 / 间距各不相同，偶有分叉或断成两截；
+## 三种组（帧条 lp_claw_v0/1/2：斜抓 / 近乎横抓 / 反方向），几组之间轮换错开，敌人在她左边时水平翻转；第 k 组晚 k 拍抓出；贴地 lp_claw_v*_gd 很淡的爪印
 func _claws(o, es: Array, rr: float) -> void:
 	var lst: Array = []
 	for e in es:
@@ -114,20 +116,23 @@ func _claws(o, es: Array, rr: float) -> void:
 			lst.append(e)
 	lst.sort_custom(func(a, b): return a.pos.distance_squared_to(o.pos) < b.pos.distance_squared_to(o.pos))
 	var n: int = mini(3, lst.size())
+	_claw_rot = (_claw_rot + 1) % 3   # 每次狼之舞换一个起始组型，连着几次不重样
 	for k in n:
 		var e: Dictionary = lst[k]
 		var t0: float = (floor(g.t * 15.0) + k) / 15.0
 		var fl: bool = (e.pos as Vector2).x < o.pos.x
-		r._push({"k": "lp_claw_up", "t0": t0, "gp": Pxp._snap(e.pos + Vector2(0, -float(e.r) * 0.55)), "gy": float(e.pos.y) + 1.0, "flip": fl, "ly": "up", "oid": str(o.id), "e": e})
-		r._push({"k": "lp_claw_gd", "t0": t0, "gp": Pxp._snap(e.pos), "flip": fl, "ly": "gd", "oid": str(o.id)})
+		var v: int = (k + _claw_rot) % 3
+		r._push({"k": "lp_claw_v%d_up" % v, "t0": t0, "gp": Pxp._snap(e.pos + Vector2(0, -float(e.r) * 0.55)), "gy": float(e.pos.y) + 1.0, "flip": fl, "ly": "up", "oid": str(o.id), "e": e})
+		r._push({"k": "lp_claw_v%d_gd" % v, "t0": t0, "gp": Pxp._snap(e.pos), "flip": fl, "ly": "gd", "oid": str(o.id)})
 	if n == 0:   # 没打中：身前扇形里两组
 		var fa: float = o.facing_angle() if o.has_method("facing_angle") else 0.0
 		for k in 2:
 			var a: float = fa + (-0.35 if k == 0 else 0.35)
 			var gp: Vector2 = o.pos + Vector2(cos(a), sin(a) * 0.72) * rr * 0.6
 			var t1: float = (floor(g.t * 15.0) + k) / 15.0
-			r._push({"k": "lp_claw_up", "t0": t1, "gp": Pxp._snap(gp + Vector2(0, -12)), "gy": gp.y + 1.0, "flip": cos(a) < 0.0, "ly": "up", "oid": str(o.id)})
-			r._push({"k": "lp_claw_gd", "t0": t1, "gp": Pxp._snap(gp), "flip": cos(a) < 0.0, "ly": "gd", "oid": str(o.id)})
+			var v2: int = (k + _claw_rot) % 3
+			r._push({"k": "lp_claw_v%d_up" % v2, "t0": t1, "gp": Pxp._snap(gp + Vector2(0, -12)), "gy": gp.y + 1.0, "flip": cos(a) < 0.0, "ly": "up", "oid": str(o.id)})
+			r._push({"k": "lp_claw_v%d_gd" % v2, "t0": t1, "gp": Pxp._snap(gp), "flip": cos(a) < 0.0, "ly": "gd", "oid": str(o.id)})
 
 
 ## 命中颗粒（Noita：碎光片 shard 为主 + 1 枚黑三角 tri 压边长）+ 一盏照地短光

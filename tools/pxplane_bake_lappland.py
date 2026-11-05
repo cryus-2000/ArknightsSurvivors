@@ -84,8 +84,9 @@ def strips():
         for nm, (R, sp, th) in A.QI_SIZES.items():
             out["qi_%s_d%d" % (nm, d)] = (A.qi_frame(d, R, sp, th), True)
             out["qish_%s_d%d" % (nm, d)] = (A.qi_shadow(d, R, sp, th), True)
-    out["claw_up"] = (A.claw_frames(), False)
-    out["claw_gd"] = (A.claw_gd(), False)
+    for v in range(len(A.CLAW_SETS)):
+        out["claw_v%d_up" % v] = (A.claw_frames(v), False)
+        out["claw_v%d_gd" % v] = (A.claw_gd(v), False)
     out["s3_up"] = (A.s3_up(), False)
     out["s3_gd"] = (A.s3_gd(), False)
     out["xcut_up"] = (A.xcut_frames(), False)

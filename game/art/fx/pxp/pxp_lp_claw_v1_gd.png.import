@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://h10tsf6lnsw2"
-path="res://.godot/imported/pxp_lp_claw_gd.png-aa2dd42b47ddb6df49bac83c379e4d15.ctex"
+uid="uid://gjvkwthln754"
+path="res://.godot/imported/pxp_lp_claw_v1_gd.png-68b352af2ade1733163ab4106d300f80.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_lp_claw_gd.png"
-dest_files=["res://.godot/imported/pxp_lp_claw_gd.png-aa2dd42b47ddb6df49bac83c379e4d15.ctex"]
+source_file="res://art/fx/pxp/pxp_lp_claw_v1_gd.png"
+dest_files=["res://.godot/imported/pxp_lp_claw_v1_gd.png-68b352af2ade1733163ab4106d300f80.ctex"]
 
 [params]
 

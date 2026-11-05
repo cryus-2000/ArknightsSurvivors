@@ -194,8 +194,9 @@ class Col:
         for k, ei in enumerate(hits[:3]):   # 爪痕：至多 3 组，一组隔一拍
             q = self.enemies[ei]
             fl = q[0] < self.op[0]
-            self.add("claw_up", tk + k, (q[0], q[1] - 6), fl, gy=q[1] + 1)
-            self.add("claw_gd", tk + k, (q[0], q[1]), fl, gd=True)
+            v = (k + 1) % 3   # 三种组型轮换（同游戏 _claw_rot 第一次 = 1）
+            self.add("claw_v%d_up" % v, tk + k, (q[0], q[1] - 6), fl, gy=q[1] + 1)
+            self.add("claw_v%d_gd" % v, tk + k, (q[0], q[1]), fl, gd=True)
         for ei in hits:
             self.seal(ei, tk + 1, 2.0)
         self.light((self.op[0], self.op[1] - 10), 170, 0.75, tk, 3)
