@@ -250,6 +250,7 @@ func ev(o, kind: String, d: Dictionary) -> void:
 					_add(o, "s1_e%d" % t, o.pos, ang, r2, raw, "raw_s1_e%d" % t, 73.0)
 					_cuts(o, es, t, 4)
 					_burst(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 4 + 2 * t, 140.0, 0.5)
+					_s1_land(o, R, p, o.pos + Vector2(dv.x, dv.y * 0.72) * r2 * 0.55)
 				"跃浪击":
 					# 跃浪击（11-05 用户「每个技能要做出视觉上的区别」）：不用月牙，前方立起一道弧形水墙、往前卷倒拍下
 					var at: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * r2 * 0.56
@@ -298,6 +299,40 @@ func _burst(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, lr: 
 	else:
 		R._grains(o, at, gy, "ink", maxi(1, n / 2), m)
 		R._light(o, at, lr * 0.8, li * 0.6 * MI.lit_k(g), 0.1, p.light)
+
+
+## S1 十字斩落点（docs/270 光感补齐，11-05）：落点挂一盏照地灯（fx/px_plane_s1_light_r / _i，缺省 160 / 0.7）+ 交叉中心一颗十字亮芯（4 拍，进 emit）。只画
+func _s1_land(o, R, p: Dictionary, at: Vector2) -> void:
+	if mode() != 1:
+		return
+	var li: float = minf(0.88, Bal.v("fx/px_plane_s1_light_i", 0.65) * MI.lit_k(g))   # 打击感包开时 ×1.35，封在 docs/270 爆发类上限 0.9 以内
+	R._light(o, at, Bal.v("fx/px_plane_s1_light_r", 160.0), li, 0.15, p.light)
+	_push({"core": true, "t0": g.t + 0.06, "gp": at + Vector2(0, -12), "gy": at.y + 2.0, "ly": "up", "oid": str(o.id), "k": "", "life": 0.36, "o": o, "li": li, "at": at})
+
+
+## 十字亮芯：第 0 拍长臂白芯，之后逐拍收短、转冰蓝；每格进 emit
+func _draw_core(ci, it: Dictionary) -> void:
+	var f: int = frame_of(float(it.t0))
+	if f < 0 or f > 3:
+		return
+	var px: float = g.PX
+	var c0: Vector2 = _snap(_gp(it))
+	var m: int = [6, 4, 3, 1][f]
+	var col := Color(1, 1, 1) if f <= 1 else Color.html("#c4dcff")
+	if f <= 2 and is_instance_valid(it.o):   # 落点灯撑到横斩落下：每帧跟一盏（0.05 秒寿命，走配方灯光预算），逐拍减弱
+		var R = load("res://scripts/render/fx_recipe.gd").of(g)
+		R._light_follow(it.o, it.at, Bal.v("fx/px_plane_s1_light_r", 160.0), float(it.li) * [1.0, 0.85, 0.6][f], R.pal(it.o).light)
+	for i in range(-m, m + 1):
+		for q in ([Vector2(i, 0)] if i == 0 else [Vector2(i, 0), Vector2(0, i)]):
+			var pp: Vector2 = _snap(c0 + q * px)
+			ci.draw_rect(Rect2(pp, Vector2(px, px)), col)
+			if absi(i) <= m - 1:
+				_glow(pp, Color(1, 1, 1))
+	if f == 0:
+		for q in [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]:
+			var pp: Vector2 = _snap(c0 + q * px)
+			ci.draw_rect(Rect2(pp, Vector2(px, px)), col)
+			_glow(pp, Color(1, 1, 1))
 
 
 ## 命中斩痕（刀剑感：被砍中的那只身上一道 1 美术像素白芯的斜线，3 拍收掉；精二交叉成 X）。只在转平面版；至多 n 只（离斯卡蒂由近到远）
@@ -584,6 +619,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.get("cut", false):
 		r._draw_cut(ci, it)
+		return
+	if it.get("core", false):
+		r._draw_core(ci, it)
 		return
 	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
 		r._draw_strip(ci, str(it.k), int(it.fi), r._gp(it), it.flip, true)

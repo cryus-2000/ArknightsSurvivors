@@ -21,9 +21,11 @@ PFX = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(ROOT))) if ".
 if not os.path.isdir(PFX):
     PFX = os.path.join(ROOT, "build", "pixelfx")
 OUT_ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
+OUT_META = os.path.join(ROOT, "game", "data", "pxp_skadi.json")
+ACCENT = ""   # --accent：颜色对比用，覆盖效果文件里的点缀色
 # 干员 → (pixelfx 效果 id「目录/文件名」, 帧条元数据, 帧条键前缀, emit 另算的点缀色)。docs/246 斯卡蒂、docs/254 星熊
 OPS = {
-    "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0x5f, 0xf0)]),
+    "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0xc4, 0xdc)]),   # 点缀冰蓝（11-05 用户定，原海绿 5f f0）
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
     "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
     "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7)]),
@@ -42,18 +44,20 @@ def variants_skadi():
     for el in T:
         for d in DIRS:
             for ly in ("up", "gd"):
-                v.append(("basic_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [56, 60, 64][el], "span": 2.8, "W": [12, 14, 16][el], "dir": d, "el": el, "dur": 0.3}, 0.34))
+                v.append(("basic_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [56, 60, 64][el], "span": 2.8, "W": [12, 14, 16][el], "dir": d, "el": el, "dur": 0.3}, 0.7))
     # 迅捷打击·γ型：半径 73（132 × 1.1 / 2）、弧 3.5
     for el in T:
         for d in DIRS:
             for ly in ("up", "gd"):
-                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [73, 78, 84][el], "span": 3.5, "W": [16, 18, 21][el], "H0": 12, "dir": d, "el": el, "dur": 0.36, "style": "s1"}, 0.4))
+                # S1 = 竖斩（11-05 用户「迅捷打击和普攻太相似，换成竖斩和横斩」）：RV 竖月牙半径、R 落地矮浪外缘（≈ 判定 145 / 2）
+                # 11-05 用户再改：十字斩（先竖劈、0.12 秒后接一道 200° 横扫），RV 竖月牙半径、R 横扫半径（判定 145 / 2）、WH 横扫刀身宽
+                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "cross", "layer": ly, "RV": [40, 44, 48][el], "R": [73, 78, 84][el], "W": [14, 16, 18][el], "WH": [16, 18, 21][el], "dir": d, "el": el, "dur": 0.36}, 0.8))
     # 全方向旋斩：异乡之舞第三下（62）、涌潮悲歌（92）
     for el in T:
         for ly in ("up", "gd"):
-            v.append(("spin_e%d_%s" % (el, ly), {"part": "spin", "layer": ly, "R": [62, 66, 70][el], "W": [12, 14, 16][el], "el": el, "dur": 0.36}, 0.4))
+            v.append(("spin_e%d_%s" % (el, ly), {"part": "spin", "layer": ly, "R": [62, 66, 70][el], "W": [12, 14, 16][el], "el": el, "dur": 0.36}, 0.7))
     for ly in ("up", "gd"):
-        v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7, "style": "s3"}, 0.47))
+        v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7, "style": "s3"}, 0.7))
     # 水柱：破浪下劈（精一普攻，落点）/ 跃浪击（S2）
     for el in (1, 2):
         v.append(("leap_e%d_up" % el, {"part": "splash", "layer": "up", "R": 40, "H": [40, 48][el - 1], "el": el}, 0.5))
@@ -91,7 +95,7 @@ def variants_skadi():
     # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
     for el in T:
         v.append(("raw_basic_e%d" % el, {"part": "ribbon", "view": "raw", "R": 56, "span": 2.8, "W": [12, 14, 16][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
-        v.append(("raw_s1_e%d" % el, {"part": "ribbon", "view": "raw", "R": 73, "span": 3.5, "W": [16, 18, 21][el], "dir": 0, "el": el, "dur": 0.36}, 0.4))
+        v.append(("raw_s1_e%d" % el, {"part": "vslash", "view": "raw", "RV": 44, "R": 73, "W": [14, 16, 18][el], "dir": 0, "el": el, "dur": 0.36}, 0.4))
         v.append(("raw_spin_e%d" % el, {"part": "spin", "view": "raw", "R": 62, "W": [12, 14, 16][el], "el": el, "dur": 0.36}, 0.4))
         v.append(("raw_ring_e%d" % el, {"part": "ring", "view": "raw", "R": 60, "el": el}, 0.5))
     for el in (1, 2):
@@ -284,6 +288,8 @@ def render(key, opts, dur):
     os.makedirs(d, exist_ok=True)
     o = {k: x for k, x in opts.items() if not k.startswith("_")}
     o.setdefault("dur", min(0.46, dur - 0.04))
+    if ACCENT:
+        o["accent"] = ACCENT
     p = subprocess.run(["node", "tools/ak_layers.mjs", FX_ID, "--out", d, "--fps", str(FPS), "--opts", json.dumps(o)], cwd=PFX, capture_output=True, text=True)
     if p.returncode != 0:
         raise RuntimeError(key + ": " + p.stderr[-400:])
@@ -354,10 +360,21 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--jobs", type=int, default=6)
     ap.add_argument("--op", default="skadi", choices=sorted(OPS))
+    ap.add_argument("--accent", default="", help="点缀色对比（覆盖效果文件里的点缀色，emit 按它取）")
+    ap.add_argument("--out-art", default="", help="对比用：帧条写到别处（不动 game/art）")
+    ap.add_argument("--out-meta", default="")
     a = ap.parse_args()
-    global FX_ID, PREFIX, ACC_RG
+    global FX_ID, PREFIX, ACC_RG, ACCENT, OUT_ART, OUT_META, TMP
     FX_ID, meta_name, PREFIX, ACC_RG = OPS[a.op]
     OUT_META = os.path.join(ROOT, "game", "data", meta_name)
+    ACCENT = a.accent
+    if ACCENT:
+        h = ACCENT.lstrip("#")
+        ACC_RG = [(int(h[0:2], 16), int(h[2:4], 16))]
+    if a.out_art:
+        OUT_ART = a.out_art
+        OUT_META = a.out_meta or os.path.join(a.out_art, "meta.json")
+        TMP = os.path.join(a.out_art, "_tmp")
     sub, fn = FX_ID.split("/")
     shutil.copy(os.path.join(ROOT, "tools", "pixelfx_fx", sub, fn + ".js"), os.path.join(PFX, "src", "fx", sub, fn + ".js"))
     os.makedirs(OUT_ART, exist_ok=True)
