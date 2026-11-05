@@ -67,6 +67,7 @@ var _dl_pos := PackedVector4Array()
 var _dl_col := PackedVector4Array()
 var _fxsz := {}   # 帧条名 → 1x 帧高（世界像素换算用）
 var _fxq_names: Array = []
+var _fxq_drop: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_fxq_drop", 1.0)) or Cfg.dev_args().has("--fxqdrop")   # 压阶版换入后不留原图（docs/287 §3 ①b）
 var _fxq_orig := {}
 var _fxq_i := 0
 var _fxq_miss := {}
@@ -334,11 +335,19 @@ func _fxq_step(on: bool) -> void:
 			if q == null or q.get_width() != g.tex[nm].get_width():
 				_fxq_miss[nm] = true   # 没有压阶版（敌方特效 / 寻访），或尺寸对不上（原图换过、压阶版过期）就用原图
 				continue
-			_fxq_orig[nm] = g.tex[nm]
+			if _fxq_drop:
+				_fxq_orig[nm] = null   # 手机网页（docs/287 §3 ①b）：原图不留一份，从贴图缓存放掉；换回原图时重读
+				A.uncache(nm)
+			else:
+				_fxq_orig[nm] = g.tex[nm]
 			g.tex[nm] = q
 	elif not _fxq_orig.is_empty():
 		for nm in _fxq_orig:
-			g.tex[nm] = _fxq_orig[nm]
+			if _fxq_orig[nm] == null:
+				A.uncache("optical_fx/" + nm)
+				g.tex[nm] = A.tex(nm)
+			else:
+				g.tex[nm] = _fxq_orig[nm]
 		_fxq_orig.clear()
 		_fxq_i = 0
 
