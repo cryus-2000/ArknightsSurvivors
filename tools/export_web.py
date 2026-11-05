@@ -105,7 +105,7 @@ def main():
         shutil.copy2(os.path.join(ROOT, "game", "export_presets.cfg"), os.path.join(src, "game", "export_presets.cfg"))
     # 运行时贴图都在 game/art（docs/189），随 pck 走；网页包（Toy 50 MB）不带干员 @2x 回退条，游戏读 @1x（docs/128）
     _, freed = release_slim.prune_game_art(os.path.join(src, "game"), drop_fallback=True)
-    print("[瘦身] 干员 @2x 回退条不进网页包：%.2f MB" % (freed / 1e6))
+    print("[瘦身] 干员 @2x 回退条 + 转平面旧做法对照帧条不进网页包：%.2f MB" % (freed / 1e6))
     print("源码：%s @ %s" % (a.ref, commit))
     # 构建信息（同 export_build.py）：局内记录的版本号、发布对象；演练入口与全部解锁按 audience 判断
     bj = os.path.join(src, "game", "data", "build.json")
