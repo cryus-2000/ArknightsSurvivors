@@ -1088,7 +1088,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				var sd: Vector2 = a.side
 				var mp: Vector2 = a.mp
-				if not LFB.ka_block(u, mp, sd):
+				if Fxr.owns(p):
+					Fxr.ev(p, "kal_link", {"at": mp, "side": sd})   # 转平面（docs/265）：骨刺墙 + 推波由 fx_pxplane_kal 画（只画）
+				elif not LFB.ka_block(u, mp, sd):
 					u.debris(mp, cl, 2)
 					u.light(mp, 150.0, cl, 0.5)
 				p.heal_leader(u.g.max_hp * Bal.v("ult/link_kaltsit_heal", 0.03), "技能连携")
