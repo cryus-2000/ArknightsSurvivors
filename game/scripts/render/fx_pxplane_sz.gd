@@ -8,8 +8,8 @@ extends RefCounted
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
-const F := [Color("#2a1405"), Color("#5c2a0c"), Color("#a04e14"), Color("#e08424"), Color("#ffb84a"), Color("#ffe6a6"), Color("#ffffff")]
-const P := [Color("#2e2a3e"), Color("#5a5478"), Color("#9690b8"), Color("#cfcae8"), Color("#f2f0ff")]
+const F := [Color("#2e2618"), Color("#5e4e34"), Color("#9a8058"), Color("#ccae78"), Color("#e8d4a8"), Color("#fbf1d8"), Color("#ffffff")]   # 淡米金：取色 PRTS 立绘尾巴 / 头发（docs/271 §1）
+const P := [Color("#2e2a24"), Color("#5a5448"), Color("#9a9282"), Color("#d8d0c0"), Color("#fffaf0")]
 const SQ := 0.72
 const S2_R := [68, 80, 92, 104]
 const S3_R := [94, 110, 126, 142]
@@ -98,6 +98,8 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var volley: bool = d.get("volley", false)
 			for b in d.get("bs", []):
 				b["_pxv"] = volley
+				if volley:   # 11-05：五发出手时错开成扇形（画面上沿各自出射方向先推出去，0.3 秒内并回真实位置）
+					b["_pxf"] = [g.t, (b.vel as Vector2).normalized()]
 			if volley:
 				var tip: Vector2 = d.get("tip", o.pos)
 				if t >= 1:
@@ -290,6 +292,8 @@ func sort_items(o, out: Array) -> void:
 	elif float(sz.haze_t) <= 0.0 and S._h4_next_merge(o, a):
 		conv = clampf(1.0 - o.cd / 0.45, 0.0, 1.0)
 	var tip: Vector2 = S._h4_tip(o, a)
+	if r.tier(o) >= 2:   # 11-05：精二九尾和绕身狐火只留九尾常驻（三火归一汇聚那一下仍画杖头狐火）
+		n = 0
 	for k in n:
 		var an: float = float(bt) / 15.0 * 1.6 + k * TAU / n
 		var gy: float = o.pos.y + sin(an) * 13.0
@@ -299,12 +303,12 @@ func sort_items(o, out: Array) -> void:
 				continue
 			pp = pp.lerp(tip, conv * conv)
 		out.append({"sz": "strip", "k": "sz_fl_s", "gp": Pxp._snap(pp + Vector2(0, 4)), "flip": false, "skey": gy + 1.0, "loop": true, "ph": k})
-	if conv > 0.5:
+	if conv > (0.2 if n == 0 else 0.5):
 		out.append({"sz": "strip", "k": "sz_gather", "gp": Pxp._snap(tip), "flip": false, "skey": o.pos.y + 2.0, "loop": true})
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("op", "") != o.id or b.kind != "arcane":
 			continue
-		out.append({"sz": "bolt", "b": b, "skey": (b.pos as Vector2).y + 4.0})
+		out.append({"sz": "bolt", "b": b, "skey": _bolt_pos(b).y + 4.0})
 	for f in sz.bigfox:
 		var dk: Array = Pxp.pick_dir((f.vel as Vector2).angle())
 		out.append({"sz": "strip", "k": "sz_bigfox_d%d" % int(dk[0]), "gp": Pxp._snap(f.pos), "flip": bool(dk[1]), "skey": (f.pos as Vector2).y + 8.0, "loop": true})
@@ -388,7 +392,7 @@ func draw_rt(ci, it: Dictionary) -> void:
 		"bolt":
 			var b: Dictionary = it.b
 			var dv: Vector2 = (b.vel as Vector2).normalized() if (b.vel as Vector2).length() > 1.0 else Vector2.RIGHT
-			_bolt(ci, Pxp._snap(b.pos), dv, bt, b.get("_pxv", false))
+			_bolt(ci, Pxp._snap(_bolt_pos(b)), dv, bt, b.get("_pxv", false))
 		"pass":
 			var x: Dictionary = it.x
 			var f: int = int(floor(g.t * 15.0)) - int(floor(float(x.t0) * 15.0))
@@ -411,6 +415,14 @@ func draw_rt(ci, it: Dictionary) -> void:
 						continue
 					ci.draw_rect(Rect2(Pxp._snap(p0.lerp(p1, float(i) / float(maxi(1, m)))), Vector2(px, px)), col)
 			_bolt(ci, head, dv2, bt, true)
+
+
+## 画面位置：全力以赴那五发出手 0.3 秒内沿各自出射方向多推 22 世界像素（扇形错开），之后就是真实位置
+func _bolt_pos(b: Dictionary) -> Vector2:
+	if not b.has("_pxf"):
+		return b.pos
+	var k: float = maxf(0.0, 1.0 - (g.t - float(b._pxf[0])) / 0.3)
+	return (b.pos as Vector2) + (b._pxf[1] as Vector2) * 22.0 * k
 
 
 func _bolt(ci, head: Vector2, d: Vector2, bt: int, big: bool) -> void:

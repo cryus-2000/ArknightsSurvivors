@@ -12,7 +12,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 META = os.path.join(ROOT, "game", "data", "pxp_suzuran.json")
 DIRS = [-90, -45, 0, 45, 90]
-EMIT_LUM = 0.8
+EMIT_LUM = 0.9   # 米金色系里 F[4]（亮度 0.84）不进发光层，只让白 / 米白热芯进
 EMIT_MAX = 32
 
 

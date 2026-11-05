@@ -3,9 +3,10 @@ tools/pxplane_bake_suzuran.py 用它烤帧条（game/art/fx/pxp/pxp_sz_*.png + g
 tools/pxplane_gif_suzuran.py 用它拼送审 GIF；运行时件在游戏里由 fx_pxplane_sz.gd 逐格画，算法与本文件 fox_bolt() / aura_ring() / pass_line() 一一对应，改一边要改另一边。
 单位：美术像素（游戏里 1 美术像素 = g.PX = 2 世界像素）。全部确定性（不用随机数，抖动用坐标哈希）。
 
-配色：
-- 狐火 F：暖金 7 阶（深棕 → 橙金 → 浅金 → 白），她的招牌；
-- 浅色 P：浅紫白（狐火尖、九尾尾尖、狐火渺然的薄雾），任务单「暖金狐火配浅色」；
+配色（11-05 用户「铃兰的尾巴颜色是跟她头发颜色差不多的」：尾巴相关特效与狐火统一到她头发 / 尾巴的淡米金色系）：
+- 狐火 F：淡米金 7 阶，取色自 PRTS 立绘渲染 build/prts_ref/suzuran/idle_f00.png 的尾巴（主 #e2d1af、亮 #f7eddf、暗 #c1b091 / #a7997e / #857a66）
+  与头发（#e9dbba / #fefce6），游戏本体贴图 op_suzuran_idle@2x 主色 #e1d0ae 一致；狐火比头发略暖一点（#ccae78 外缘）以读成火；
+- 浅色 P：中性米白（狐火尖、九尾白尾尖 = 原作尾尖 #f7eddf、狐火渺然的薄雾）；
 - 金印 G：亮金（全力以赴的符印、画地为牢、狐火灼印），比狐火更黄、线状；
 - 祝福 M：浅薄荷（队长回复：铃兰小铃铛），和治疗绿分开、也和狐火分开。不用红。
 
@@ -13,8 +14,8 @@ tools/pxplane_gif_suzuran.py 用它拼送审 GIF；运行时件在游戏里由 f
 S2 = 落地火环（光域推开一圈火）；S3 = 尾焰扫过（一条大火尾绕身扫一圈）+ 薄雾 + 狐火落点；连携 = 四团狐火绕身后拖光追迹。"""
 import math
 
-F = ["#2a1405", "#5c2a0c", "#a04e14", "#e08424", "#ffb84a", "#ffe6a6", "#ffffff"]
-P = ["#2e2a3e", "#5a5478", "#9690b8", "#cfcae8", "#f2f0ff"]
+F = ["#2e2618", "#5e4e34", "#9a8058", "#ccae78", "#e8d4a8", "#fbf1d8", "#ffffff"]
+P = ["#2e2a24", "#5a5448", "#9a9282", "#d8d0c0", "#fffaf0"]
 G = ["#3a2606", "#7a5410", "#c89420", "#ffd24a", "#fff0b0"]
 M = ["#0c3020", "#22744a", "#5cc88a", "#b4f0cc", "#f0fff6"]
 SQ = 0.72    # 贴地压扁（combat.GROUND_Y）
@@ -578,35 +579,46 @@ def heal_gd():
 
 
 def sweep(R, f, n_f, half=None):
-    """狐火渺然起手「尾焰扫过」（立起）：一条大火尾贴着地面绕她扫一圈（≈ 300°，头亮尾暗、尾巴越往后越矮越稀），
-    扫到哪里那里留一排矮火舌很快熄掉。half = 'b' / 'f' 前后半圈分开排序。原点 = 脚底"""
+    """狐火渺然起手「尾焰扫过」（立起）：一条连成一道的火尾贴地绕她扫一圈（≈ 300°）——
+    沿弧每 1 美术像素一列，列高从火尾头（最高、最亮、两侧更蓬）往后连续变矮，顶边按坐标哈希起伏（不齐、但不断开），
+    底边一道亮线连着。half = 'b' / 'f' 前后半圈分开排序。原点 = 脚底"""
     b = Buf()
     head = -math.pi * 0.6 + f / (n_f - 3) * math.tau * 0.84
-    span = 1.9
-    n_t = int(R * 0.9)
-    for k in range(n_t):
-        a = -math.pi * 0.6 + k / n_t * math.tau * 0.84
+    span = 2.2
+    M = int(R * math.tau * 0.84 * 1.1)
+    for q in range(M):
+        a = -math.pi * 0.6 + q / M * math.tau * 0.84
         lag = head - a
-        if lag < 0 or a > head:
+        if lag < 0 or lag > span:
             continue
+        u = lag / span
         rr = R * (0.92 + 0.08 * math.sin(a * 3 + 1.0))
         x, y = rr * math.cos(a), rr * math.sin(a) * SQ
         if half == "b" and y > 0.5:
             continue
         if half == "f" and y <= 0.5:
             continue
-        if lag < span:   # 尾焰本体：头最高最亮最密（像一条蓬起的狐尾），往后变矮变稀
-            u = lag / span
-            h = (18 if u < 0.12 else 15 * (1 - u) + 3) * (0.5 + 0.7 * hf(k, 1, 7))   # 高低错落，不成一排齐的火墙
-            if (k % 2 and u > 0.45) or (k % 3 == 1 and u > 0.25):
-                continue
-            flame(b, x, y, h, 5 if u < 0.25 else 3, f * 1.7 + k, k, pale=(u < 0.2 or k % 5 == 0))
-            if u < 0.3:   # 头部两侧再各补一根（蓬松）
-                for sd in (-1, 1):
-                    flame(b, x + sd * 2, y - sd, h * 0.7, 3, f * 1.7 + k + sd, k + 11 * sd)
-        elif lag < span + 1.4 and k % 3 == 0:   # 余火：一排矮火舌，很快熄
-            u2 = (lag - span) / 1.4
-            flame(b, x, y, 4 * (1 - u2) + 1, 2, f * 1.3 + k, k, cool=1 + int(u2 * 2))
+        h = (17.0 * (1.0 - u) ** 0.85 + 1.5) * (0.82 + 0.3 * hf(q // 2, f, 9))
+        sway = math.sin(f * 1.7 + q * 0.35) * 1.2
+        hh = int(h)
+        for yy in range(hh + 1):
+            v = yy / max(1, hh)
+            if v > 0.8:
+                c = P[4] if (u < 0.25 and v > 0.9) else F[4]
+            elif v > 0.45:
+                c = F[4] if u < 0.5 else F[3]
+            elif v > 0.12:
+                c = F[5] if u < 0.4 else F[4]
+            else:
+                c = F[6] if u < 0.15 else F[3]
+            b.put(x + sway * v, y - yy, c)
+        if u < 0.3:   # 火尾头两侧更蓬（往内外各多一列矮一些的）
+            for sd in (-1.5, 1.5):
+                x2, y2 = (rr + sd) * math.cos(a), (rr + sd) * math.sin(a) * SQ
+                if (half == "b" and y2 > 0.5) or (half == "f" and y2 <= 0.5):
+                    continue
+                for yy in range(int(h * 0.6) + 1):
+                    b.put_if_empty(x2 + sway * yy / max(1.0, h), y2 - yy, F[4] if yy > h * 0.3 else F[5])
     return b
 
 

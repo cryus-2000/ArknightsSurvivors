@@ -26,7 +26,7 @@ GROUND = (36, 46, 48)
 DIRS = [-90, -45, 0, 45, 90]
 FONT = "C:/Windows/Fonts/msyh.ttc"
 AMBIENT = 0.8
-FOX_L = (1.0, 0.72, 0.29)
+FOX_L = (0.94, 0.85, 0.63)   # 米金照地光（同 data/fx_pxplane/suzuran.json light #f0d8a0）
 HEAL_L = (0.6, 1.0, 0.75)
 
 
@@ -156,6 +156,9 @@ class Col:
                 seen[ftk] = (tuple(p), (v[0] / 330, v[1] / 330))
             for ftk, (pp, vv) in seen.items():
                 if hit_t is None or ftk < hit_t:
+                    if big:   # 全力以赴：出手 0.3 秒内沿各自出射方向多推 22（扇形错开，同 fx_pxplane_sz._bolt_pos）
+                        kk = max(0.0, 1.0 - (ftk - tk) / 15.0 / 0.3)
+                        pp = (pp[0] + math.cos(d0) * 22 * kk, pp[1] + math.sin(d0) * 22 * kk)
                     self.put_rt(ftk, pp[1] + 4, "bolt", (pp, vv, big))
             if hit_t is not None:
                 self.pop(hit_t, ei, stamp=big)
@@ -282,7 +285,8 @@ def render(lib, col, tk):
         sort.append((col.op[1] - 2, "raw", ("tails", tk, snap(col.op), col.face < 0, True)))
     conv = col.conv.get(tk, 0.0)
     tp = col.tip()
-    for k in range(col.wisps):
+    nw = 0 if col.t >= 2 else col.wisps   # 精二只留九尾常驻
+    for k in range(nw):
         an = tk / 15.0 * 1.6 + k * math.tau / col.wisps
         gy = col.op[1] + math.sin(an) * 13
         pp = (col.op[0] + math.cos(an) * 40, col.op[1] - 22 + math.sin(an) * 13)
@@ -291,7 +295,7 @@ def render(lib, col, tk):
                 continue
             pp = (pp[0] + (tp[0] - pp[0]) * conv * conv, pp[1] + (tp[1] - pp[1]) * conv * conv)
         sort.append((gy + 1, "raw", ("fl_s", tk + k, snap((pp[0], pp[1] + 4)), False, True)))
-    if conv > 0.5:
+    if conv > (0.2 if nw == 0 else 0.5):
         sort.append((col.op[1] + 2, "raw", ("gather", tk, snap(tp), False, True)))
     for (a0, a1, n, big) in col.edge:
         if a0 <= tk < a1:
