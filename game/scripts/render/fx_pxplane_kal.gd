@@ -20,6 +20,26 @@ const LINK_D := [-90, -45, 0, 45, 90]
 static var _dye := {}
 const MELT_RED := Color8(204, 54, 26)     # 熔毁红色阶主红（RD m2）：精二身侧红弧等程序画的件用
 const MELT_HOT := Color8(255, 108, 46)    # 亮橙红（RD f）
+const MELT_DK := Color8(92, 16, 13)       # 暗血红（RD d2）
+const MELT_FLOOR := Color8(148, 28, 18)   # 熔毁期间脚下常驻照地光（暗红）
+const GR_HOT := Color8(170, 242, 62)      # 荧光绿
+const GR_DK := Color8(30, 62, 34)         # 墨绿
+const HEAL_HOT := Color8(238, 246, 228)   # 骨白
+const HEAL_DK := Color8(70, 168, 124)     # 薄荷
+const DUST_HOT := Color8(132, 138, 120)   # 扬尘
+const DUST_DK := Color8(58, 64, 56)
+
+
+## 有色 Noita 颗粒（fx_recipe 颗粒池，自带颜色；数量封顶，只在转平面版）：粒子算在该招主元素里，不另算一种（协调人 11-05）
+static func _pp(r, o, at: Vector2, gy: float, mat: String, n: int, c0: Color, c1: Color, dir := Vector2.ZERO) -> void:
+	if r.mode() != 1 or n <= 0:
+		return
+	var R = load("res://scripts/render/fx_recipe.gd").of(r.g)
+	R._grains(o, at, gy, mat, mini(n, 10), {"tier": r.tier(o), "c0": c0, "c1": c1}, dir)
+
+
+static func _hp(e: Dictionary) -> Vector2:
+	return e.pos + Vector2(0, -float(e.r) * 0.5)
 
 
 ## S3 熔毁期间 Mon3tr 的红轮廓叠层（用户 11-05「m3 的染红可以是那种粒子特效带来的轮廓和部分染色」）：
@@ -88,7 +108,9 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			if o.skill_active_left(2) > 0.0:   # S3 熔毁期间：墨绿实心重月牙 + 熔滴
 				_put(r, o, "mclaw_r%d_s%d_up" % [Rb, sw], at, "up", "m3", flip)
 				_put(r, o, "mclaw_r%d_s%d_gd" % [Rb, sw], at, "gd", "m3", flip)
-				_hit(r, o, R, p, es, "", 0, 110.0, 0.5, p.get("melt", p.light))   # 红色招式不撒颗粒（颗粒池按干员一套绿色）
+				_hit(r, o, R, p, es, "", 0, 110.0, 0.5, p.get("melt", p.light))
+				if not es.is_empty():   # 熔滴火星：红，几颗，快飞快落
+					_pp(r, o, _hp(es[0]), float(es[0].pos.y) + 2.0, "ember", 3, MELT_HOT, MELT_DK, (_hp(es[0]) - at).normalized())
 				return
 			_put(r, o, "claw_r%d_s%d_up" % [Rb, sw], at, "up", "m3", flip)
 			_put(r, o, "claw_r%d_s%d_%s" % [Rb, sw, "gd1" if t >= 1 else "gd"], at, "gd", "", flip)   # 犁痕落地不跟走
@@ -100,13 +122,17 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 					n += 1
 					_put(r, o, "spike_up", e.pos, "up")
 					_put(r, o, "spike_gd", e.pos, "gd")
-			_hit(r, o, R, p, es, "shard", 0 if t >= 2 else 2 + t, 80.0, 0.3)   # 精二由晶刺当碎屑，不另撒颗粒（同招元素 ≤ 3）
+			_hit(r, o, R, p, es, "", 0, 90.0, 0.35)
+			if not es.is_empty():   # 命中甩出荧光火星 / 碎晶屑：几颗，飞得快、落得快（粒子算在爪痕主元素里）
+				_pp(r, o, _hp(es[0]), float(es[0].pos.y) + 2.0, "ember", 2 + t, GR_HOT, GR_DK, (_hp(es[0]) - at).normalized())
 		"kal_pounce":   # 精一扑击落地（ob_elite._el_land）
 			var at2: Vector2 = d.get("at", o.pos)
 			var fl: bool = float(d.get("face", 1.0)) < 0.0
 			_put(r, o, "pounce_up", at2, "up", "", fl)
 			_put(r, o, "pounce_gd", at2, "gd", "", fl)
-			_hit(r, o, R, p, d.get("es", []), "tri", 3, 90.0, 0.4)
+			_hit(r, o, R, p, d.get("es", []), "", 0, 90.0, 0.4)
+			R._light(o, at2 + Vector2(0, -8), 90.0, 0.35, 0.12, p.light)
+			_pp(r, o, at2 + Vector2(0, -2), at2.y, "dust", 6, DUST_HOT, DUST_DK)
 		"kal_heal":   # 治疗（data_operator._heal）：目标 = 队长或 Mon3tr；技能治疗（S1）只出地环
 			var tm3: bool = d.get("m3", false)
 			var s2 = _m3(o) if tm3 else null
@@ -115,6 +141,7 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 				return
 			var fo: String = "m3" if s2 != null else "lead"
 			_put(r, o, "heal_gd", tp, "gd", fo)
+			_pp(r, o, tp + Vector2(0, -4), tp.y, "rise", 3 if d.get("power", false) else 4, HEAL_HOT, HEAL_DK)
 			if d.get("power", false):
 				R._light(o, tp + Vector2(0, -20), 90.0, 0.35, 0.15, p.get("heal", p.light))
 				return
@@ -135,6 +162,7 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 				_put(r, o, "s1rib_fr2_up" if t >= 2 else "s1rib_fr_up", g.ppos, "up", "lead", false, 1.0)
 				if t >= 1:
 					_put(r, o, "s1hex_gd", g.ppos, "gd", "lead")
+				R._light(o, g.ppos + Vector2(0, -30), 120.0, 0.45, 0.15, p.get("heal", p.light))
 			elif i == 1 and s3 != null:   # S2 战术协同：Mon3tr 身上指令符
 				_put(r, o, "s2hex_gd", s3.pos, "gd", "m3")
 				_put(r, o, "s2cmd_up", s3.pos, "up", "m3", false, 1.0)
@@ -156,22 +184,29 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 				_put(r, o, "guard_gd", c, "gd")
 				_put(r, o, "guard_bk_up", c, "up", "", false, -3.0)
 				_put(r, o, "guard_fr_up", c, "up")
-				_hit(r, o, R, p, es2, "tri", 5, 140.0, 0.55)
+				_hit(r, o, R, p, es2, "", 0, 140.0, 0.55)
+				R._light(o, c + Vector2(0, -10), 160.0, 0.5, 0.15, p.light)
+				_pp(r, o, c + Vector2(0, -2), c.y, "dust", 8, DUST_HOT, DUST_DK)
 			elif src.ends_with("熔毁"):
 				if "dot" in d.get("tags", []):   # 不毁重构·余焰：每跳一圈淡边 + 少量余烬
 					_put(r, o, "smol_r%d_gd" % (130 if rr >= 117.0 else 105), c, "gd")
+					if not es2.is_empty():
+						_pp(r, o, _hp(es2[0]), float(es2[0].pos.y), "rise", 1, MELT_HOT, MELT_DK)
 					return
 				var last: float = float(o.get_meta("ka_melt_t", -9.0))
 				if g.t - last < 0.6:   # 三连爆的第 2 / 3 下：回响环 + 碎晶
 					_put(r, o, "echo_r%d_gd" % _bucket(ECHO_R, rr), c, "gd")
 					_put(r, o, "echo_up", c, "up", "", false, 3.0)
 					_hit(r, o, R, p, es2, "", 0, 150.0, 0.5, p.get("melt", p.light))
+					_pp(r, o, c + Vector2(0, -16), c.y, "ember", 4, MELT_HOT, MELT_DK)
 				else:   # 熔毁爆（S3 结束，大）/ 不毁重构 · 倒地重构（小）：一枚墨绿结晶炸开
 					o.set_meta("ka_melt_t", g.t)
 					var big: bool = rr >= 115.0
 					_put(r, o, "melt_r%d_up" % (130 if big else 70), c, "up", "", false, 3.0)
 					_put(r, o, "melt_r%d_gd" % (130 if big else 70), c, "gd")
-					R._light(o, c + Vector2(0, -20), 240.0 if big else 160.0, 1.0 if big else 0.65, 0.15, p.get("melt", p.light))   # 红色熔毁爆：碎晶在帧条里，不另撒颗粒
+					R._light(o, c + Vector2(0, -20), 240.0 if big else 160.0, 1.0 if big else 0.65, 0.15, p.get("melt", p.light))
+					_pp(r, o, c + Vector2(0, -30), c.y, "ember", 10 if big else 6, MELT_HOT, MELT_DK)   # 火星迸出、落地熄灭
+					_pp(r, o, c + Vector2(0, -20), c.y, "rise", 4 if big else 2, MELT_HOT, MELT_DK)
 		"kal_link":   # 连携「Mon3tr 掩护」（skill_link l_kaltsit）：朝敌一侧半圈骨刺墙 + 推波；队长身上治疗
 			var at3: Vector2 = d.get("at", o.pos)
 			var sd: Vector2 = d.get("side", Vector2.RIGHT)
@@ -182,15 +217,15 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 				_put(r, o, "heal_gd", g.ppos, "gd", "lead")
 				_put(r, o, "heal_cross_up", g.ppos, "up", "lead", false, 1.0)
 			R._light(o, at3 + Vector2(0, -16), 150.0, 0.55, 0.15, p.light)
-			if r.mode() == 1:
-				R._grains(o, at3 + sd * 30.0 + Vector2(0, -10), at3.y + sd.y * 30.0, "tri", 4, {"tier": t}, sd)
+			_pp(r, o, at3 + sd * 30.0 + Vector2(0, -4), at3.y + sd.y * 30.0, "dust", 7, DUST_HOT, DUST_DK, sd)
 		"kal_debride":   # 节点「清创」累积满：敌人脚下黑晶刺 + 回响环
 			var e: Dictionary = d.get("e", {})
 			if e.is_empty():
 				return
 			_put(r, o, "spike_up", e.pos, "up")
 			_put(r, o, "echo_r70_gd", e.pos, "gd")
-			_hit(r, o, R, p, [e], "tri", 3, 100.0, 0.4)
+			_hit(r, o, R, p, [e], "", 0, 100.0, 0.4)
+			_pp(r, o, _hp(e), float(e.pos.y), "ember", 3, GR_HOT, GR_DK)
 
 
 ## 命中：少量 Noita 颗粒（fx_recipe 颗粒池）+ 一盏照地短光；只在转平面版
@@ -229,6 +264,15 @@ static func floor_layer(r, o) -> void:
 	var s = _m3(o)
 	if s != null and o.skill_active_left(2) > 0.0:   # 熔毁期间 Mon3tr 脚下一圈淡环（循环，跟着走）
 		r._draw_strip(cv, "ka_s3aura_gd", r.frame_of(0.0), r._snap(s.pos), false, false)
+		var bt: int = int(floor(r.g.t * 15.0))
+		if int(o.get_meta("ka_s3_bt", -1)) != bt:
+			o.set_meta("ka_s3_bt", bt)
+			var R = load("res://scripts/render/fx_recipe.gd").of(r.g)
+			if bt % 2 == 0:   # 脚下常驻一圈暗红照地光（灯寿命 0.15 秒，每两拍续一盏，走光照预算）
+				R._light(o, (s.pos as Vector2) + Vector2(0, -6), 110.0, 0.35, 0.15, MELT_FLOOR)
+			if bt % 2 == 1 and r.mode() == 1:   # 火星从本体轮廓往上飘
+				var ep: Vector2 = (s.pos as Vector2) + Vector2(r.g.vrng.randf_range(-36.0, 36.0), -r.g.vrng.randf_range(30.0, 96.0))
+				_pp(r, o, ep, float(s.pos.y), "rise", 1, MELT_HOT, MELT_DK)
 	for it in r.items:
 		if it.get("klit", false) and r.frame_of(float(it.t0)) >= 11:   # 不毁重构合拢那一拍：一盏照地光
 			it["klit"] = false

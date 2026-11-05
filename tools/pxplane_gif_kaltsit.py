@@ -6,7 +6,8 @@
   - E0 / E1 / E2 并排（只放实际存在的档）；连携单独一张；
   - 游戏地面色背景 + 几只怪（深色剪影）；凯尔希、Mon3tr 用 idle 第 0 帧；
   - 上半 1 倍（实机大小：1 美术像素 = 2 屏幕像素），下半 2 倍放大；15 fps 原速。
-贴地层先画；立起层、怪、干员按脚底 y 排序；热芯（emit 点）近似光学发光层加一层柔光。Noita 颗粒、照地光、场景压暗不模拟。
+贴地层先画；立起层、怪、干员按脚底 y 排序；热芯（emit 点）近似光学发光层加一层柔光。
+照地光近似成压扁的柔光椭圆（叠加）；Noita 颗粒用和游戏同一套材质参数（fx_recipe.MATS）做简易模拟；场景压暗不模拟。
 
 用法：python tools/pxplane_gif_kaltsit.py [--only claw,heal] [--out 目录]
 """
@@ -52,6 +53,26 @@ def sprite_frames(path, n):
     return [im.crop((i * fw, 0, (i + 1) * fw, im.height)) for i in range(n)]
 
 
+# fx_recipe.MATS 的子集（世界像素 / 秒）
+MATS = {
+    "ember": {"grav": 900.0, "rest": 0.38, "bounce": 1, "land": 0.3, "sz": [2, 4], "spd": [60.0, 170.0], "up": [80.0, 210.0], "life": 0.8},
+    "rise": {"grav": -55.0, "rest": 0.0, "bounce": 0, "land": 0.0, "sz": [2, 2], "spd": [4.0, 16.0], "up": [18.0, 40.0], "life": 1.0},
+    "dust": {"grav": 420.0, "rest": 0.0, "bounce": 0, "land": 0.25, "sz": [2, 2], "spd": [40.0, 110.0], "up": [30.0, 80.0], "life": 0.5},
+}
+GR = ((170, 242, 62), (30, 62, 34))
+HEAL = ((238, 246, 228), (70, 168, 124))
+MELT = ((255, 108, 46), (92, 16, 13))
+DUST = ((132, 138, 120), (58, 64, 56))
+LG = (156, 240, 58)          # 照地光：荧光绿
+LH = (168, 240, 207)         # 治疗薄荷
+LM = (255, 108, 46)          # 熔毁橙红
+LMF = (148, 28, 18)          # 熔毁期间脚下暗红
+
+
+def _lerp(a, b, u):
+    return tuple(int(a[i] + (b[i] - a[i]) * u) for i in range(3))
+
+
 class Scene:
     def __init__(self, lib, n):
         self.lib, self.n = lib, n
@@ -61,6 +82,73 @@ class Scene:
         self.m3 = lambda tk: (M3[0], M3[1], 0.0)
         self.m3_face = 1
         self.m3_dye = lambda tk: False   # S3 熔毁期间本体换熔毁红换色贴图
+        self.lights = []      # [拍, 地面点（美术像素）, 抬高（世界）, 半径（世界）, 强度, 颜色, 持续拍]
+        self.pts = None
+        self._spawn = []      # [拍, 地面点（美术像素）, 出生高度（世界）, 材质, 数量, (c0, c1), 方向]
+        self.seed = 5
+
+    def light(self, tk, at, r, inten, col, life=2, lift=10):
+        self.lights.append([tk, at, lift, r, inten, col, life])
+
+    def pp(self, tk, at, h, mat, n, cols, d=None):
+        self._spawn.append([tk, at, h, mat, min(n, 10), cols, d])
+
+    def particles(self, tk):
+        """逐拍模拟（4 个子步），结果缓存"""
+        if self.pts is None:
+            rnd = np.random.default_rng(self.seed)
+            hist = []
+            live = []
+            dt = 1.0 / 60.0
+            for t in range(self.n):
+                for sp in self._spawn:
+                    if sp[0] != t:
+                        continue
+                    mt = MATS[sp[3]]
+                    for _ in range(sp[4]):
+                        a = rnd.uniform(0, 2 * math.pi) if sp[6] is None else math.atan2(sp[6][1], sp[6][0]) + rnd.uniform(-0.9, 0.9)
+                        v = rnd.uniform(*mt["spd"])
+                        live.append({"m": sp[3], "x": OX + sp[1][0] * PX, "y": OY + sp[1][1] * PX, "h": sp[2], "vx": math.cos(a) * v, "vy": math.sin(a) * v * SY,
+                                     "vh": rnd.uniform(*mt["up"]), "age": 0.0, "life": mt["life"] * rnd.uniform(0.8, 1.2), "landed": -1.0, "nb": 0,
+                                     "sz": mt["sz"][0] if rnd.random() < 0.5 else mt["sz"][1], "c": sp[5]})
+                for _ in range(4):
+                    keep = []
+                    for q in live:
+                        mt = MATS[q["m"]]
+                        q["age"] += dt
+                        if q["landed"] >= 0:
+                            q["landed"] += dt
+                            if q["landed"] < mt["land"]:
+                                keep.append(q)
+                            continue
+                        q["x"] += q["vx"] * dt
+                        q["y"] += q["vy"] * dt
+                        q["vx"] *= max(0.0, 1 - 1.2 * dt)
+                        q["vy"] *= max(0.0, 1 - 1.2 * dt)
+                        q["vh"] -= mt["grav"] * dt
+                        q["h"] += q["vh"] * dt
+                        if q["h"] <= 0:
+                            q["h"] = 0
+                            if q["nb"] < mt["bounce"] and abs(q["vh"]) > 60:
+                                q["nb"] += 1
+                                q["vh"] = -q["vh"] * mt["rest"]
+                                q["vx"] *= 0.55
+                                q["vy"] *= 0.55
+                            elif mt["land"] > 0:
+                                q["landed"] = 0.0
+                        if q["age"] < q["life"] + mt["land"]:
+                            keep.append(q)
+                    live = keep
+                snap = []
+                for q in live:
+                    u = min(1.0, q["age"] / max(0.001, q["life"]))
+                    c = _lerp(q["c"][0], q["c"][1], min(1.0, u * 1.4))
+                    if q["landed"] >= 0:
+                        c = _lerp(c, (0, 0, 0), 0.35)
+                    snap.append((round(q["x"] / 2) * 2, round((q["y"] - q["h"]) / 2) * 2, q["sz"], c, q["landed"] < 0 and u < 0.35))
+                hist.append(snap)
+            self.pts = hist
+        return self.pts[tk]
 
     def add(self, k, tk, gp, flip=False, loop=False, until=None, sk=0.0):
         self.items.append({"k": k, "t0": tk, "gp": gp, "flip": flip, "loop": loop, "until": until, "sk": sk})
@@ -150,9 +238,25 @@ def render(sc, tk):
         else:
             img.alpha_composite(v[0], dest=(max(0, v[1][0]), max(0, v[1][1])), source=(max(0, -v[1][0]), max(0, -v[1][1])))
             emit(v)
-    glow = np.asarray(em.filter(ImageFilter.GaussianBlur(2))).astype(np.float32) * 0.35
+    dr = ImageDraw.Draw(img)
+    for (x, y, sz, c, hot) in sc.particles(tk):
+        dr.rectangle([x, y, x + sz - 1, y + sz - 1], fill=c + (255,))
+        if hot:
+            ed.rectangle([x, y, x + sz - 1, y + sz - 1], fill=c)
+    glow = np.asarray(em.filter(ImageFilter.GaussianBlur(2))).astype(np.float32) * 0.45
     base = np.asarray(img.convert("RGB")).astype(np.float32)
-    return Image.fromarray(np.clip(base + glow, 0, 255).astype(np.uint8), "RGB")
+    # 照地光：压扁的柔光椭圆，强度随寿命线性衰减（近似光学层点光）
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    lit = np.zeros((H, W, 3), np.float32)
+    for (t0, at, lift, r, inten, col, life) in sc.lights:
+        if not (t0 <= tk < t0 + life):
+            continue
+        k = inten * (1.0 - (tk - t0) / life)
+        cx, cy = OX + at[0] * PX, OY + at[1] * PX
+        d = np.sqrt(((xx - cx) / r) ** 2 + ((yy - cy) / (r * SY)) ** 2)
+        fall = np.clip(1.0 - d, 0, 1) ** 2 * k
+        lit += fall[..., None] * np.array(col, np.float32)[None, None, :] * 0.55
+    return Image.fromarray(np.clip(base + glow + lit, 0, 255).astype(np.uint8), "RGB")
 
 
 def gif(cols, n, path, title, zc):
@@ -194,6 +298,12 @@ E_FRONT = [[52, -6, -1], [60, 6, -1], [70, -12, -1], [66, 14, -1], [80, 0, -1], 
 
 def claw(sc, tk, at, tier, Rw, sw, flip=False, melt=False, hits=()):
     pre = "mclaw" if melt else "claw"
+    if hits:
+        e = hits[0]
+        hp = (e[0], e[1] - 6)
+        d = (e[0] - at[0], e[1] - at[1])
+        sc.pp(tk, (e[0], e[1]), 12, "ember", 3 if melt else 2 + tier, MELT if melt else GR, d)
+        sc.light(tk, (e[0], e[1]), 110 if melt else 90, 0.5 if melt else 0.35, LM if melt else LG)
     sc.add("%s_r%d_s%d_up" % (pre, Rw, sw), tk, at, flip)
     sc.add("%s_r%d_s%d_%s" % (pre, Rw, sw, "gd1" if (tier >= 1 and not melt) else "gd"), tk, at, flip)
     if tier >= 2 and not melt:
@@ -202,8 +312,12 @@ def claw(sc, tk, at, tier, Rw, sw, flip=False, melt=False, hits=()):
             sc.add("spike_gd", tk + 1, (e[0], e[1]))
 
 
-def heal(sc, tk, tgt, tier):
+def heal(sc, tk, tgt, tier, power=False):
     sc.add("heal_gd", tk, tgt)
+    sc.pp(tk, tgt, 4, "rise", 3 if power else 4, HEAL)
+    sc.light(tk, tgt, 90 if power else 70, 0.35 if power else 0.3, LH, lift=20)
+    if power:
+        return
     if tier >= 1:
         sc.add("heal_cross_up", tk, tgt, sk=1)
     if tier >= 2:
@@ -254,6 +368,8 @@ def scenes(lib):
         s.m3 = mp
         s.add("pounce_up", 4, (56, 2))
         s.add("pounce_gd", 4, (56, 2))
+        s.light(4, (56, 2), 90, 0.35, LG, lift=8)
+        s.pp(4, (56, 2), 2, "dust", 6, DUST)
         claw(s, 7, (56, 2), t, 128, 0, hits=[[66, -2], [72, 8]])
         cols.append(("精一「扑击」落地（半径 40）精英 %d" % t, s))
     out["lunge"] = (cols, 20, (56, -4))
@@ -270,6 +386,8 @@ def scenes(lib):
     s.add("guard_gd", 6, (60, 2))
     s.add("guard_bk_up", 6, (60, 2), sk=-3)
     s.add("guard_fr_up", 6, (60, 2))
+    s.light(6, (60, 2), 160, 0.5, LG)
+    s.pp(6, (60, 2), 2, "dust", 8, DUST)
     out["guard"] = ([("精二「回防」/「护主」落地（半径 100）", s)], 22, (60, -8))
     # S1 结构加固（队长身上）：骨肋合拢 + 治疗（E1 + 六角板，E2 + 头顶结扣）
     cols = []
@@ -279,7 +397,8 @@ def scenes(lib):
         s.add("s1rib_fr2_up" if t >= 2 else "s1rib_fr_up", 2, (0, 0), sk=1)
         if t >= 1:
             s.add("s1hex_gd", 2, (0, 0))
-        s.add("heal_gd", 4, (0, 0))   # 技能治疗只出地环（同招元素 ≤ 3：骨肋 + 地面件 + 结扣）
+        heal(s, 4, (0, 0), t, power=True)   # 技能治疗只出地环 + 光点（同招元素 ≤ 3：骨肋 + 地面件 + 结扣）
+        s.light(2, (0, 0), 120, 0.45, LH, lift=30)
         cols.append(("S1「结构加固」精英 %d" % t, s))
     out["s1"] = (cols, 20, (0, -16))
     # S1 分支「不毁重构」：Mon3tr 处三连爆（70 结晶 → 87 / 105 回响环）
@@ -291,6 +410,11 @@ def scenes(lib):
     s.add("echo_r105_gd", 2 + 6, M3)
     s.add("echo_up", 2 + 6, M3, sk=3)
     s.add("rebuild_up", 2 + 7, M3, sk=2)   # 三连爆之后：碎片回收 + 骨架一段段亮起合拢
+    s.light(2, M3, 160, 0.65, LM, lift=20)
+    s.pp(4, M3, 30, "ember", 6, MELT)
+    s.pp(5, M3, 16, "ember", 4, MELT)
+    s.pp(8, M3, 16, "ember", 4, MELT)
+    s.light(9 + 11, M3, 150, 0.7, LM, lift=22)
     s.add("rebuild_gd", 2 + 7, M3)
     for k in range(3):   # 余焰（节点 5）：每 0.5 秒一圈淡边
         s.add("smol_r105_gd", 24 + k * 7 + 0, M3)
@@ -301,6 +425,7 @@ def scenes(lib):
         s = base(18, [])
         s.add("s2hex_gd", 2, M3)
         s.add("s2cmd_up", 2, M3, sk=1)
+        s.light(2, M3, 100, 0.45, LG, lift=30)
         if t >= 2:
             s.add("s2str_up", 3, M3, sk=1)
         cols.append(("S2「战术协同」精英 %d" % t, s))
@@ -312,8 +437,17 @@ def scenes(lib):
     s.add("s3cast_gd", 1, M3)
     s.add("s3aura_up", 3, lambda tk: M3, loop=True, until=26, sk=1)
     s.add("s3aura_gd", 3, lambda tk: M3, loop=True, until=26)
-    claw(s, 8, M3, 2, 161, 0, melt=True)
-    claw(s, 17, M3, 2, 161, 1, melt=True)
+    claw(s, 8, M3, 2, 161, 0, melt=True, hits=[E_FRONT[0], E_FRONT[1]])
+    claw(s, 17, M3, 2, 161, 1, melt=True, hits=[E_FRONT[2]])
+    for k in range(1, 27):   # 熔毁期间：脚下常驻暗红照地光 + 火星从本体轮廓往上飘
+        if k % 2 == 0:
+            s.light(k, M3, 110, 0.35, LMF, life=2, lift=6)
+        else:
+            s.pp(k, (M3[0] + ((k * 37) % 36 - 18) / 2.0, M3[1]), 30 + (k * 23) % 66, "rise", 1, MELT)
+    s.light(1, M3, 130, 0.6, LM, lift=40)
+    s.light(27, M3, 240, 1.0, LM, lift=20)
+    s.pp(29, M3, 30, "ember", 10, MELT)
+    s.pp(29, M3, 20, "rise", 4, MELT)
     s.add("melt_r130_up", 27, M3, sk=3)
     s.add("melt_r130_gd", 27, M3)
     out["s3"] = ([("S3「熔毁」精英 2（红：起手 → 熔毁爪 → 结束熔毁爆）", s)], 46, (30, -8))
@@ -322,6 +456,8 @@ def scenes(lib):
     s.m3 = lambda tk: (25, 0, 0.0)
     s.add("link_up_d0", 2, (25, 0), sk=1)
     s.add("link_gd_d0", 2, (25, 0))
+    s.light(2, (25, 0), 150, 0.55, LG, lift=16)
+    s.pp(2, (40, 0), 2, "dust", 7, DUST, (1, 0))
     heal(s, 3, (0, 0), 2)
     out["link"] = ([("连携技「Mon3tr 掩护」（link/v2 缺省版）", s)], 20, (30, -6))
     return out

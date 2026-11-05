@@ -592,6 +592,8 @@ const MATS := {
 	"tri": {"grav": 1000.0, "rest": 0.3, "bounce": 1, "land": 0.5, "sz": [6, 10], "spd": [70.0, 170.0], "up": [140.0, 260.0], "life": 1.0},
 	"puff": {"grav": -40.0, "rest": 0.0, "bounce": 0, "land": 0.0, "sz": [8, 12], "spd": [10.0, 40.0], "up": [10.0, 40.0], "life": 0.6},
 	"shard": {"grav": 760.0, "rest": 0.45, "bounce": 1, "land": 0.35, "sz": [2, 4], "spd": [70.0, 160.0], "up": [90.0, 200.0], "life": 0.8},
+	"rise": {"grav": -55.0, "rest": 0.0, "bounce": 0, "land": 0.0, "sz": [2, 2], "spd": [4.0, 16.0], "up": [18.0, 40.0], "life": 1.0},   # 慢慢上飘的光点（凯尔希治疗 / 熔毁火星，docs/265）
+	"dust": {"grav": 420.0, "rest": 0.0, "bounce": 0, "land": 0.25, "sz": [2, 2], "spd": [40.0, 110.0], "up": [30.0, 80.0], "life": 0.5},   # 落地扬起的尘点（docs/265）
 }
 
 
@@ -617,6 +619,9 @@ func _grains(o, at: Vector2, gy: float, mat: String, n: int, m: Dictionary, dir 
 			"vh": g.vrng.randf_range(float(mt.up[0]), float(mt.up[1])), "age": 0.0, "life": float(mt.life) * g.vrng.randf_range(0.8, 1.2),
 			"sz": sz, "nb": 0, "landed": -1.0, "rot": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14.0, 14.0),
 			"accent": m.get("tier", 0) >= 2 and mat == "shard"})
+		if m.has("c0"):   # 自带颜色（docs/265：颗粒池按干员一套色，凯尔希的治疗薄荷 / 熔毁红另给）
+			parts[parts.size() - 1]["c0"] = m.c0
+			parts[parts.size() - 1]["c1"] = m.get("c1", m.c0)
 
 
 func _step() -> void:
@@ -1274,6 +1279,19 @@ func _draw_parts(o, cv, p: Dictionary) -> void:
 		var col: Color
 		var u: float = clampf(float(q.age) / maxf(0.001, float(q.life)), 0.0, 1.0)
 		var pos: Vector2 = q.gp - Vector2(0, float(q.h))
+		if q.has("c0"):   # 自带颜色：热 → 冷，落地后再压暗一阶、熄灭前半透明
+			col = (q.c0 as Color).lerp(q.c1, clampf(u * 1.4, 0.0, 1.0))
+			var sz2 := Vector2(sz, sz)
+			if float(q.landed) >= 0.0:
+				var lk3: float = float(q.landed) / maxf(0.01, float(mt.land))
+				col = col.lerp(Color(0, 0, 0), 0.35)
+				if lk3 > 0.6:
+					col.a *= 0.5
+			elif str(q.m) == "rise" and u > 0.7:
+				col.a *= 0.6
+			col.a *= dim
+			cv.draw_rect(Rect2(_snap(pos), sz2), col)
+			continue
 		match str(q.m):
 			"ink", "drop":
 				col = p.main if u < 0.25 else p.dark.lerp(p.main, 0.3)

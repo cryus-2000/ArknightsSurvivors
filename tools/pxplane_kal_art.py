@@ -80,7 +80,7 @@ class Strip:
                 ys, xs = np.nonzero(self.a[i, :, :, 3] > 200)
                 for y, x in zip(ys, xs):
                     c = tuple(int(v) for v in self.a[i, y, x, :3])
-                    if c in (GREEN["h"], GREEN["w"], HC["w"], HC["b"], RD["h"], RD["w"], RD["f"]):
+                    if c in (GREEN["h"], GREEN["w"], GREEN["f"], HC["w"], HC["b"], RD["h"], RD["w"], RD["f"]):
                         pts.append([int(x), int(y), hx(c)])
                 if len(pts) > 48:
                     step = len(pts) / 48.0
@@ -759,9 +759,9 @@ def rebuild():
                 c = M["h"] if f >= 5 else (M["f"] if f >= 2 else M["m2"])
                 for (dx, dy) in ((0, 0), (1, 0), (0, 1), (1, 1)):
                     _m3_put(up, f, px + dx, py + dy, c)
-                if f >= 1:
-                    for q in (2.5, 3.5):
-                        _m3_put(up, f, px + math.cos(ang) * q, py + math.sin(ang) * q * 0.8 + 1, M["m1"], over=False)
+                if f >= 1:   # 光尾（来路方向，亮 → 暗 4 格）
+                    for qi, q in enumerate((2.0, 3.0, 4.0, 5.0)):
+                        _m3_put(up, f, px + math.cos(ang) * q, py + math.sin(ang) * q * 0.8 + 1, [M["f"], M["m2"], M["m1"], M["d2"]][qi], over=False)
         if f >= 4:   # 甲棱从躯干中心往外一段段亮起
             lit = min(1.0, (f - 4) / 6.0)
             for (x, y), o in order.items():
