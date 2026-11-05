@@ -710,11 +710,17 @@ static func _step16(u, a: Dictionary) -> bool:
 				var ts: Array = u.in_circle(c, r)
 				ts.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
 				a["ts"] = ts.slice(0, 6)
+				var mzpx: bool = _FXR.owns(p)   # 转平面（docs/261）：接管时脚下钻出触手 + 缠住 1 秒由 fx_pxplane 画（只画）
 				for e in a.ts:
 					_hit16(p, e, "小触手", 0.5)
 					_cc(p, e, 1.0)
-					u.grain("water", e.pos, Vector2.UP, cl, 3)
-				a["mzv2"] = LFB.mz_tentacles(u, a.ts)
+					if not mzpx:
+						u.grain("water", e.pos, Vector2.UP, cl, 3)
+				if mzpx:
+					_FXR.ev(p, "mz_link", {"es": a.ts, "c": c, "r": r})
+					a["mzv2"] = true
+				else:
+					a["mzv2"] = LFB.mz_tentacles(u, a.ts)
 			if t < 1.0 and a.get("mzv2", false):
 				if once.call("lt"):
 					u.light(c, 150.0, cl, 0.6)

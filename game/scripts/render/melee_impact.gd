@@ -8,7 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3)}   # 推进之王（docs/264）：锤击 / 跃空锤落地
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false}
 const FLASH_T := 0.07
 
