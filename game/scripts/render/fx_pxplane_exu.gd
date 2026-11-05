@@ -1,7 +1,7 @@
 ## 能天使转平面（docs/262，fx/px_plane = 1）：fx_pxplane.gd 按 id 转来的一节，单独成文件（第三批四人并行，少撞 fx_pxplane.gd）。
 ## 帧条（枪口焰 / 命中火花 / 贴地环 / 光环 / 烟）由 tools/pxplane_bake_exusiai.py 烤（图形 tools/pxplane_exu_art.py），键前缀 ex_；
 ## 弹体、连携曳光、连锁细线在这里按美术像素格逐格画（算法同 pxplane_exu_art.py 的 bullet() / tracer_line()，改一边要改另一边）。
-## 同屏封顶（纯射手、高射速，最常出现的三类件）：弹体每人只画最新 16 颗（额外弹 6 颗）；枪口焰每人同时 1 个（新的顶掉旧的）；
+## 同屏封顶（纯射手、高射速，最常出现的三类件）：弹体每人只画最新 24 颗（额外弹 6 颗）；枪口焰每人同时 1 个（新的顶掉旧的）；
 ## 命中火花每拍（1/15 秒）至多 3 团（技能弹 4 团）、同时在画至多 8 团；额外弹 / 连锁 / 溅射每拍各至多 3 / 3 / 2；照地光每拍至多 1 盏；弹壳每拍至多 1 颗。
 ## 挂在人身上的件（枪口焰、过热烟、过载光环）带 fo 跟着她走（docs/246 §11）；命中火花、贴地环留在原地。只画，不碰玩法与玩法随机数。
 extends RefCounted
@@ -21,13 +21,14 @@ const RAMP := {
 	"t2": ["#2a1c06", "#5c3e0a", "#a8741a", "#f0c050", "#ffe08a", "#fff6d8", "#ffffff"],
 	"t3": ["#2a1c06", "#5c3e0a", "#a8741a", "#e8b030", "#ffd86a", "#fff2c0", "#ffffff"],
 }
-const B_LEN := {"n": [7, 8, 9], "s1": [9, 10, 11], "s2": [6, 6, 7], "s3": [8, 8, 9], "g": [8, 9, 10], "t1": [8, 8, 9], "t2": [8, 8, 9], "t3": [8, 8, 9], "tr": [14, 14, 14], "x": [5, 5, 5]}
+const B_LEN := {"n": [12, 14, 16], "s1": [14, 16, 18], "s2": [10, 11, 12], "s3": [12, 13, 14], "g": [12, 14, 16], "t1": [13, 14, 16], "t2": [13, 14, 16], "t3": [13, 14, 16], "tr": [20, 20, 20], "x": [8, 8, 8]}
+const B_CORE := [3, 4, 5]   # 白热芯长度（美术像素），按精英档
 const TIER_MIN := {"n": 0, "s1": 0, "s2": 1, "s3": 2, "g": 1}
 const BKIND := {"proj_exusiai_bullet": "n", "proj_exusiai_bullet_s1": "s1", "proj_exusiai_bullet_s2": "s2", "proj_exusiai_bullet_s3": "s3",
 	"proj_exusiai_bullet_power": "g", "proj_exusiai_bullet_t1": "t1", "proj_exusiai_bullet_t2": "t2", "proj_exusiai_bullet_t3": "t3"}
 const FXMODE := {"fx_exusiai_muzzle": "n", "fx_exusiai_muzzle_s1": "s1", "fx_exusiai_muzzle_s2": "s2", "fx_exusiai_muzzle_s3": "s3", "fx_exusiai_muzzle_gold": "g",
 	"fx_exusiai_hit": "n", "fx_exusiai_hit_s1": "s1", "fx_exusiai_hit_s2": "s2", "fx_exusiai_hit_s3": "s3", "fx_exusiai_hit_gold": "g", "fx_exusiai_pierce_gold": "full"}
-const BUL_DRAW := 16
+const BUL_DRAW := 24      # 11-05 第三轮：后期满屏也看得出一串弹雨
 const XBUL_DRAW := 6
 const HIT_LIVE := 8
 const MZ_Y := 35.0        # 枪口在脚底上方约 35（seg_exusiai muzzle [30, -35]）：挂在人身上的件排序时往下补回脚底
@@ -91,7 +92,7 @@ func _on_her(o, k: String, at: Vector2, flip := false, tag := "") -> void:
 
 func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 	match kind:
-		"exu_fire":   # 一轮射击：枪口焰（同时 1 个）+ 弹壳 + 照地光（每拍至多 1）
+		"exu_fire":   # 一轮射击：枪口火（同时 1 个）+ 照地光（每发一盏、每拍至多 2）+ 弹壳（每拍至多 1）
 			var mz: Vector2 = d.mz
 			var m: String = str(FXMODE.get(str(d.get("fx", "")), "n"))
 			var tt: int = _mtier(m, t)
@@ -104,8 +105,9 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			_on_her(o, "mz_%s_e%d_v%d_d%d" % [m, tt, vc % 2, int(dp[0])], mz, bool(dp[1]), "mz")
 			if vc % 3 == 0:   # 偶尔一缕枪口烟
 				_on_her(o, "smoke_up", mz)
-			if _beat_n(o, "fire") == 0:   # 枪口照地：短而亮
-				R._light(o, mz, 70.0 + 12.0 * tt + (20.0 if m != "n" else 0.0), 0.5 + 0.08 * tt, 0.07, p.light)
+			if _beat_n(o, "fire") < 2:   # 枪口照地：每发都照一下（短而亮，每拍至多 2 盏，走配方灯光预算）
+				R._light(o, mz, 90.0 + 12.0 * tt + (20.0 if m != "n" else 0.0), 0.6 + 0.08 * tt, 0.07, p.light)
+			if _beat_n(o, "casing") == 0:
 				R._grains(o, mz + Vector2(-4.0 * float(o.face), 0), o.pos.y + 2.0, "shard", 2 if d.get("fan", false) else 1, {"tier": 0}, Vector2(-float(o.face), -0.4))   # 弹壳：往后上方抛出、落地弹一下
 		"exu_hit":
 			var e: Dictionary = d.e
@@ -121,9 +123,9 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var hd: Array = Pxp.pick_dir((d.get("v", e.pos - o.pos) as Vector2).angle())
 			var key: String = ("hit_full_d%d" % int(hd[0])) if m2 == "full" else "hit_%s_e%d_d%d" % [m2, _mtier(m2, t), int(hd[0])]
 			_up(o, key, at, float(e.pos.y) + 1.0, {"hit": true, "flip": bool(hd[1])})
-			if _beat_n(o, "hl") == 0:
+			if _beat_n(o, "hl") < 2:   # 命中照地：亮度压过受击闪色
 				var big: bool = m2 != "n" and m2 != "s2"
-				R._light(o, at, (60.0 if big else 45.0) + 12.0 * t, (0.4 if big else 0.28) + 0.08 * t, 0.1, p.light)
+				R._light(o, at, (80.0 if big else 65.0) + 12.0 * t, (0.6 if big else 0.5) + 0.08 * t, 0.1, p.light)
 				if m2 == "full" or m2 == "s3":
 					R._grains(o, at, float(e.pos.y) + 2.0, "ember", 2, {"tier": t}, d.get("v", Vector2.ZERO).normalized())
 		"exu_xhit":   # 后期额外弹 / 跳弹落点：小一号，每拍至多 3 团
@@ -328,33 +330,36 @@ static func _hsh(x: int, y: int, k: int) -> int:
 	return ((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) & 0xFFFF
 
 
-## 一颗弹（同 pxplane_exu_art.bullet）：细长、尾迹短——2 格白热弹头（第 0 格 2 像素宽）+ 很快变暗的 1 像素尾；S1 / 倾泻第 1 格 3 宽；
-## S3 前 2 格 2 宽 + 尾侧橙红点；精二弹头两侧按拍闪金点；曳光弹金色长尾。back = 只画面的后移（美术像素）
+## 一颗曳光弹（同 pxplane_exu_art.bullet）：白热芯 3–5 格（额外弹 2 格）两侧各一格朱橙光晕、芯进发光层 + 亮色渐暗的尖长尾；
+## S1 / 倾泻芯第 1 格再宽一圈；S3 尾侧橙红点；精二弹头两侧按拍闪金点；曳光弹金色长尾。back = 只画面的后移（美术像素）
 func _bullet(ci, pos: Vector2, vel: Vector2, kind: String, t: int, small: bool, tracer: bool, back := 0.0) -> void:
 	var rp: String = "g" if tracer else kind
 	var L: int = int(B_LEN["tr" if tracer else ("x" if small else kind)][t])
+	var K: int = 2 if small else int(B_CORE[t])
 	var d: Vector2 = vel.normalized()
 	var nv := Vector2(-d.y, d.x)
 	var px: float = g.PX
 	var head: Vector2 = Pxp._snap(pos - d * back * px)
-	for i in L:
-		var u: float = float(i) / float(L)
-		var ci2: int = 6 if i < 2 else (5 if i < 3 else (4 if u < 0.45 else (3 if u < 0.7 else 2)))
+	for i in range(L - 1, -1, -1):   # 从尾往头画：芯和光晕盖在尾上
 		var q: Vector2 = head - d * float(i) * px
-		r._px(ci, q, _c(rp, ci2))
-		if i == 0 and not small:
-			r._px(ci, q + nv * px, _c(rp, 5))
-		if not small and ((kind in ["s1", "g"] and i == 1) or (kind == "s3" and i < 2)):
-			r._px(ci, q + nv * px, _c(rp, 5))
-			r._px(ci, q - nv * px, _c(rp, 5))
-		if kind == "s3" and not small and i >= 3 and i < L - 1 and i % 2 == 1:
-			r._px(ci, q + nv * px, _c(rp, 3))
+		if i < K:
+			var hc: Color = _c(rp, 4 if i < K - 1 else 3)
+			r._px(ci, q + nv * px, hc)
+			r._px(ci, q - nv * px, hc)
+			if kind in ["s1", "g"] and i == 1 and not small:
+				r._px(ci, q + nv * px * 2.0, _c(rp, 4))
+				r._px(ci, q - nv * px * 2.0, _c(rp, 4))
+			r._px(ci, q, _c(rp, 6))
+			r._glow(q, _c(rp, 6))
+		else:
+			var u: float = float(i - K) / float(maxi(1, L - K))
+			r._px(ci, q, _c(rp, 5 if u < 0.25 else (4 if u < 0.6 else 3)))
+			if kind == "s3" and not small and i % 2 == 1:
+				r._px(ci, q + nv * px, _c(rp, 3))
 	r._px(ci, head + d * px, _c(rp, 5))
 	if t >= 2 and not small and int(floor(g.t * 15.0)) % 2 == 0:
-		r._px(ci, head + nv * px * 2.0 - d * px, _c("g", 5))
-		r._px(ci, head - nv * px * 2.0 - d * px * 2.0, _c("g", 4))
-	r._glow(head, _c(rp, 6))
-
+		r._px(ci, head + nv * px * 3.0 - d * px, _c("g", 5))
+		r._px(ci, head - nv * px * 3.0 - d * px * 2.0, _c("g", 4))
 
 ## 后坐（只改画面，character.draw_body 读）：开火那一拍本体往枪口反方向挪 1 美术像素
 func kick(o) -> Vector2:

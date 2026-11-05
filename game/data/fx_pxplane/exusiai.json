@@ -1,4 +1,4 @@
 {
-	"_doc": "docs/262 能天使转平面（fx/px_plane = 1）：颜色组只给 Noita 颗粒（shard 弹壳：hot 黄铜 → dark 暗铜；ember 火星：hot → main 红）、照地光（light 暖红橙）、受击反应（flash）用；主形是帧条（data/pxp_exusiai.json）和运行时逐格画的弹体 / 曳光（render/fx_pxplane_exu.gd）",
-	"palette": {"dark": "#5c3e0a", "main": "#f07048", "hot": "#ffd86a", "accent": "#fff2c0", "light": "#ffa880", "flash": "#ffa880"}
+	"_doc": "docs/262 能天使转平面（fx/px_plane = 1）：颜色组只给 Noita 颗粒（shard 弹壳：hot 黄铜 → dark 暗铜；ember 火星：hot → main 红）、照地光（light 暖红橙）、受击反应（flash，11-05 第三轮压暗成深赭，让命中火花压过受击闪色）用；主形是帧条（data/pxp_exusiai.json）和运行时逐格画的弹体 / 曳光（render/fx_pxplane_exu.gd）",
+	"palette": {"dark": "#5c3e0a", "main": "#f07048", "hot": "#ffd86a", "accent": "#fff2c0", "light": "#ffa880", "flash": "#7a4434"}
 }

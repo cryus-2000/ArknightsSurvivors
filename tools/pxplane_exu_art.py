@@ -51,9 +51,9 @@ class Buf:
 
 
 # ---------------------------------------------------------------- 尺寸表（模式 → 三档）
-MZ_L = {"n": [7, 8, 9], "s1": [9, 10, 11], "s2": [7, 8, 9], "s3": [9, 10, 11], "g": [8, 9, 10]}
-HIT_N = {"n": [5, 7, 9], "s1": [7, 9, 11], "s2": [5, 7, 8], "s3": [7, 9, 11], "g": [7, 9, 11], "x": [3, 3, 3], "full": [9, 9, 9]}
-HIT_L = {"n": [5, 6, 7], "s1": [6, 7, 8], "s2": [5, 6, 6], "s3": [6, 7, 8], "g": [6, 7, 8], "x": [4, 4, 4], "full": [8, 8, 8]}
+MZ_L = {"n": [14, 16, 18], "s1": [16, 18, 20], "s2": [12, 14, 16], "s3": [16, 18, 20], "g": [14, 16, 18]}   # 11-05 第三轮按实机 1 倍放大约一倍
+HIT_N = {"n": [8, 10, 12], "s1": [10, 12, 14], "s2": [8, 10, 11], "s3": [10, 12, 14], "g": [10, 12, 14], "x": [5, 5, 5], "full": [12, 12, 12]}
+HIT_L = {"n": [9, 10, 12], "s1": [10, 12, 14], "s2": [8, 9, 10], "s3": [10, 12, 14], "g": [10, 12, 14], "x": [6, 6, 6], "full": [12, 12, 12]}
 # 金属火花（橙白，所有模式共用；模式色只在命中芯上）与碎屑
 SPARK = ["#5a2a0c", "#9a4a14", "#d87a28", "#ffb050", "#ffe0a0", "#fff6e0", "#ffffff"]
 CHIP = ["#2a2628", "#4a4448", "#6e666c"]
@@ -80,17 +80,17 @@ def muzzle(mode, tier, deg, var=0):
     d = (math.cos(a), math.sin(a))
     nv = (-d[1], d[0])
     L = MZ_L[mode][tier] + (2 if tier >= 1 else 0) - (1 if var == 1 else 0)
-    P = 3 + tier
+    P = 6 + 2 * tier
     f0, f1 = Buf(), Buf()
     fronts = [0.0] if mode != "g" else [-0.42, -0.21, 0.0, 0.21, 0.42]
     for ra in fronts:
         dd = _rot(d, ra)
         nn = (-dd[1], dd[0])
-        LL = L if ra == 0.0 else L - 2
+        LL = L if ra == 0.0 else L - 3
         _spike(f0, (dd[0] * 2, dd[1] * 2), dd, LL, [C[6], C[6], C[5], C[5], C[4], C[4], C[3]])
         if ra == 0.0:
-            for q in (-1, 1):   # 根部 3 像素宽，收尖
-                _spike(f0, (dd[0] * 2 + nn[0] * q, dd[1] * 2 + nn[1] * q), dd, max(2, LL // 3), [C[5], C[4]], keep=True)
+            for q in (-2, -1, 1, 2):   # 根部 5 像素宽，收尖
+                _spike(f0, (dd[0] * 2 + nn[0] * q, dd[1] * 2 + nn[1] * q), dd, max(2, LL // (3 if abs(q) == 1 else 5)), [C[5], C[4]] if abs(q) == 1 else [C[4], C[3]], keep=True)
         _spike(f1, (dd[0] * 2, dd[1] * 2), dd, max(2, LL // 2), [C[5], C[4], C[3]])
     sides = []
     if var == 0 or mode == "s3":
@@ -100,12 +100,13 @@ def muzzle(mode, tier, deg, var=0):
     for sd in sides:
         _spike(f0, (sd[0] * 2, sd[1] * 2), sd, P, [C[5], C[4], C[3]])
         f1.put(sd[0] * 2, sd[1] * 2, C[3])
-    _spike(f0, (-d[0] * 2, -d[1] * 2), (-d[0], -d[1]), 2, [C[4], C[3]])
-    for x in (-1, 0, 1):
-        for y in (-1, 0, 1):
-            f0.put(x, y, C[6] if abs(x) + abs(y) <= 1 else C[5])
-            if abs(x) + abs(y) <= 1:
-                f1.put(x, y, C[5] if (x, y) == (0, 0) else C[4])
+    _spike(f0, (-d[0] * 2, -d[1] * 2), (-d[0], -d[1]), 4, [C[5], C[4], C[3]])
+    for x in range(-2, 3):
+        for y in range(-2, 3):
+            if abs(x) + abs(y) <= 3:
+                f0.put(x, y, C[6] if abs(x) + abs(y) <= 2 else C[5])
+            if abs(x) + abs(y) <= 2:
+                f1.put(x, y, C[5] if abs(x) + abs(y) <= 1 else C[4])
     if tier >= 2:
         for sd in (-1, 1):
             f0.put(nv[0] * 2 * sd - d[0], nv[1] * 2 * sd - d[1], GOLD[6])
@@ -148,7 +149,7 @@ def hit(mode, tier, deg):
             ang = a + math.pi + (-1.3 + 2.6 * ((i * 0.618 + hsh(i, tier, 3) % 7 * 0.02) % 1.0))
         sd = (math.cos(ang), math.sin(ang))
         L = Lm - (hsh(i, n, 5) % 3)
-        _spike(fr[0], (sd[0] * 2, sd[1] * 2), sd, max(2, int(L * 0.6)), [S[5], S[4], S[4], S[3]])
+        _spike(fr[0], (sd[0] * 2, sd[1] * 2), sd, max(3, int(L * 0.65)), [S[6], S[5], S[5], S[4], S[4], S[3]])
         for s in range(int(L * 0.5), L + 1):   # 第 1 拍：外半段，带一点下坠
             u = s / max(1, L)
             fr[1].put(sd[0] * (s + 1), sd[1] * (s + 1) + u * 1.5, S[4] if u < 0.75 else S[3])
@@ -157,10 +158,12 @@ def hit(mode, tier, deg):
             fr[2].put(sd[0] * (L + 1), sd[1] * (L + 1) + 2, S[2])
         if i % 3 == 0:
             fr[3].put(sd[0] * (L + 2), sd[1] * (L + 2) + 6, S[2])
-    for x in (-1, 0, 1):
-        for y in (-1, 0, 1):
-            fr[0].put(x, y, C[6] if abs(x) + abs(y) <= 1 else C[5])
-    fr[1].put(0, 0, C[4])
+    for x in range(-2, 3):
+        for y in range(-2, 3):
+            if abs(x) + abs(y) <= 3:
+                fr[0].put(x, y, C[6] if abs(x) + abs(y) <= 2 else C[5])
+            if abs(x) + abs(y) <= 1:
+                fr[1].put(x, y, C[5] if (x, y) == (0, 0) else C[4])
     if mode != "x":   # 碎屑：深色小块往回上方飞、落下
         for j in range(2 + (1 if tier >= 1 else 0)):
             ang = a + math.pi + (-0.7 + 0.7 * j)
@@ -289,8 +292,9 @@ def steam():
 
 
 # ---------------------------------------------------------------- 运行时件（游戏里 fx_pxplane_exu.gd 逐格画，这里是同一算法的 Python 版）
-B_LEN = {"n": [7, 8, 9], "s1": [9, 10, 11], "s2": [6, 6, 7], "s3": [8, 8, 9], "g": [8, 9, 10], "t1": [8, 8, 9], "t2": [8, 8, 9], "t3": [8, 8, 9],
-         "tr": [14, 14, 14], "x": [5, 5, 5]}
+B_LEN = {"n": [12, 14, 16], "s1": [14, 16, 18], "s2": [10, 11, 12], "s3": [12, 13, 14], "g": [12, 14, 16], "t1": [13, 14, 16], "t2": [13, 14, 16], "t3": [13, 14, 16],
+         "tr": [20, 20, 20], "x": [8, 8, 8]}
+B_CORE = [3, 4, 5]   # 白热芯长度（美术像素），按精英档
 
 
 def bullet_kind(tex):
@@ -300,32 +304,35 @@ def bullet_kind(tex):
 
 
 def bullet(kind, tier, d, beat, small=False, tracer=False, back=0):
-    """一颗弹（原点 = 弹头，d = 单位方向）：细长、尾迹短——2 格白热弹头（第 0 格 2 像素宽）+ 很快变暗的 1 像素尾。
-    S1 / 倾泻：第 1 格 3 像素宽（重弹）；S3：前 2 格 2 像素宽 + 尾侧橙红点；精二：弹头两侧按拍闪金点；曳光弹（tr）：金色长尾。
-    small = 额外弹 / 跳弹；back = 只画面的后移（美术像素，倾泻扇形错开用）"""
+    """一颗曳光弹（原点 = 弹头，d = 单位方向）：白热芯 3–5 格（按档，额外弹 2 格）两侧各一格朱橙光晕、芯进发光层；
+    后面一条亮色渐暗的尖长尾（速射 12–16 格）。S1 / 倾泻芯第 1 格再宽一圈（重弹）；S3 尾侧橙红点；精二弹头两侧按拍闪金点；曳光弹金色长尾。
+    「细」靠形状尖长，不靠缩小（11-05 第三轮按实机 1 倍：上一轮太细看不见）。back = 只画面的后移（美术像素，倾泻扇形错开用）"""
     C = RAMP["g" if kind in ("tr",) else ("n" if kind == "x" else kind)]
     L = B_LEN["tr" if tracer else ("x" if small else kind)][tier]
+    K = 2 if small else B_CORE[tier]
     if tracer:
         C = GOLD
     nv = (-d[1], d[0])
     ox, oy = -d[0] * back, -d[1] * back
     b = Buf()
     for i in range(L):
-        u = i / L
-        col = C[6] if i < 2 else (C[5] if i < 3 else (C[4] if u < 0.45 else (C[3] if u < 0.7 else C[2])))
         x, y = ox - d[0] * i, oy - d[1] * i
-        b.put(x, y, col)
-        if i == 0 and not small:
-            b.put(x + nv[0], y + nv[1], C[5])
-        if (kind in ("s1", "g") and i == 1 and not small) or (kind == "s3" and i < 2 and not small):
+        if i < K:
+            b.put(x, y, C[6])
             for sd in (-1, 1):
-                b.put(x + nv[0] * sd, y + nv[1] * sd, C[5])
-        if kind == "s3" and not small and 3 <= i < L - 1 and i % 2 == 1:
-            b.put(x + nv[0], y + nv[1], C[3])
+                b.put_if_empty(x + nv[0] * sd, y + nv[1] * sd, C[4] if i < K - 1 else C[3])
+            if (kind in ("s1", "g") and i == 1 and not small):
+                for sd in (-2, 2):
+                    b.put_if_empty(x + nv[0] * sd, y + nv[1] * sd, C[4])
+        else:
+            u = (i - K) / max(1, L - K)
+            b.put(x, y, C[5] if u < 0.25 else (C[4] if u < 0.6 else C[3]))
+            if kind == "s3" and not small and i % 2 == 1:
+                b.put_if_empty(x + nv[0], y + nv[1], C[3])
     b.put(ox + d[0], oy + d[1], C[5])
     if tier >= 2 and not small and beat % 2 == 0:
-        b.put(ox + nv[0] * 2 - d[0], oy + nv[1] * 2 - d[1], GOLD[5])
-        b.put(ox - nv[0] * 2 - d[0] * 2, oy - nv[1] * 2 - d[1] * 2, GOLD[4])
+        b.put(ox + nv[0] * 3 - d[0], oy + nv[1] * 3 - d[1], GOLD[5])
+        b.put(ox - nv[0] * 3 - d[0] * 2, oy - nv[1] * 3 - d[1] * 2, GOLD[4])
     return b
 
 
