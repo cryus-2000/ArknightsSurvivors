@@ -358,40 +358,115 @@ function pool(p, t, o, C, ACC) {
 }
 
 // 水柱：从地面竖直冲起、冠部碎开、回落；raw 同形（旧做法的差别在游戏里的贴法）
-function splash(p, t, o, C, ACC) {
-  const Hm = +o.H, R = +o.R, el = +o.el, n = C.length;
-  const rise = ease.outCubic(clamp(t / 0.09)), fall = ease.inQuad(clamp((t - 0.16) / 0.26));
-  const h = Hm * rise * (1 - fall);
-  if (h < 1) return;
-  const wB = R * 0.32 * (0.7 + 0.3 * rise) * (1 + fall * 0.6);   // 底宽（回落时摊开）
-  const hot = t > 0.05 && t < 0.12;
-  const cols = el >= 2 ? 3 : el >= 1 ? 2 : 1;   // 精一两股、精二三股（形状差）
-  for (let k = 0; k < cols; k++) {
-    const side = cols === 1 ? 0 : (k / (cols - 1) - 0.5) * 2;   // -1 左股 / 0 中 / 1 右股
-    const mid = Math.abs(side) < 0.01;
-    const hk = h * (mid ? 1 : 0.62);
-    for (let y = 0; y >= -hk; y--) {
-      const u = -y / Math.max(1, hk);                       // 0 底 → 1 顶
-      const off = side * wB * (0.45 + 0.9 * u);             // 侧股往外斜（精一 / 精二的形状差）
-      const half = wB * (mid ? 1 : 0.5) * (1 - 0.55 * u) * (0.85 + 0.25 * nz(y * 0.3 + k * 9, o.seed + 3 + Math.floor(t * 20)));
-      for (let x = Math.round(off - half); x <= Math.round(off + half); x++) {
-        const s = (x - off) / Math.max(1, half);            // -1 左 → 1 右（光从左上来）
-        let ci = s < -0.55 ? n - 2 : s < 0.1 ? n - 3 : s < 0.6 ? n - 4 : n - 6;
-        if (u > 0.82) ci = n - 1;                           // 冠部白沫
-        if (hot && Math.abs(s) < 0.4) ci = n - 1;
-        ci = clamp(ci - Math.round(fall * 2), 1, n - 1);
-        let col = C[ci];
-        if (el >= 2 && Math.abs(s) < 0.25 && u > 0.2 && u < 0.7 && !hot) col = ACC;
-        p.px(x, y, col);
+// 真半透明（不抖动）：颜色的 alpha 字节直接写进像素（pixelfx 的 p.dot 是有序抖动，像素画里显脏，11-05 用户否过）
+export function dotA(p, x, y, c, a) {
+  if (a >= 0.999) return p.px(x, y, c);
+  if (a <= 0.02) return;
+  p.px(x, y, ((c & 0xffffff) | (Math.round(a * 255) << 24)) >>> 0);
+}
+
+// 落水水爆（11-05 第二版。第一版「水花冠」用户：有点奇怪——细条水舌像珊瑚 / 手指、棋盘格半透明显脏、看不出被砸起来的水）。
+// 俯视下立起的柱子不好读 → 以贴地为主：
+//   gd：压扁的环形水爆当主体（白沫环迅速往外扩、环边不规则浪唇；实心海蓝 + 亮边，不抖动）+ 环内一片统一透明度的湿印 +
+//       每颗水滴的地面小影子（靠影子读高度）+ 落地白点；
+//   up：一圈很矮的水冠（≤ 角色身高一半，16 美术像素），浪唇往外翻、往下落；8–14 颗水滴 / 小水团沿抛物线往外甩、落回。
+// 宽度按 W（≤ 判定半径）封顶。S3 起手、S2 破浪下劈、终结技劈浪水柱同一套（ak-skadi-ult-pp.js 调 crown）。
+function crownDrops(k) {
+  const m = k.nd || 10, out = [];
+  for (let i = 0; i < m; i++) {
+    const a = (i + 0.5 * nz(i * 1.7, k.seed + 301)) / m * TAU;
+    const v = k.W * (0.9 + 0.8 * nz(i * 2.3, k.seed + 303)) / 0.45;          // 落回前飞出约 0.6–1.2 W（不出判定圈太多）
+    const vz = 70 + 70 * nz(i * 3.1, k.seed + 305);
+    const big = nz(i * 4.7, k.seed + 307) > 0.65;                              // 小水团（3 格）
+    const dl = 0.03 + 0.04 * nz(i * 5.9, k.seed + 309);
+    const T = (2 * vz) / 520;                                                  // 落回时间（重力 520）
+    out.push({ a, v, vz, big, dl, T });
+  }
+  return out;
+}
+
+export function crown(p, t, C, ACC, k) {
+  // k：{x, y 落点（画布坐标）, W 半径上限, H 水冠高上限, SY, seed, layer "up" / "gd", raw, nd 水滴数}
+  const n = C.length, W = k.W, SY = k.SY, sd = k.seed;
+  if (t < 0 || t > 0.62) return;
+  const grow = ease.outCubic(clamp(t / 0.26)), fade = smooth(0.24, 0.55, t);
+  const gd = k.layer !== "up";
+  const ring = (rad, fn) => { for (let a = 0; a < TAU; a += 0.7 / Math.max(4, rad)) fn(a, Math.cos(a), Math.sin(a)); };
+  if (gd || k.raw) {
+    // ① 环内湿印：统一透明度一整片（不抖动），跟着环长、先褪
+    const rw = W * (0.25 + 0.6 * grow);
+    if (fade < 0.95) for (let y = -rw * SY; y <= rw * SY; y += 1) for (let x = -rw; x <= rw; x += 1) {
+      if ((x * x) / (rw * rw) + (y * y) / (rw * rw * SY * SY) > 1) continue;
+      dotA(p, k.x + x, k.y + y, C[1], 0.45 * (1 - fade));
+    }
+    // ② 水爆环：实心带（内暗外亮），外沿不规则浪唇 + 一圈亮边；前 0.12 秒中心一圈白沫环
+    const r = W * (0.22 + 0.78 * grow), th = Math.max(1, 3.5 * (1 - 0.7 * grow));
+    if (fade < 0.97) ring(r, (a, ca, sa) => {
+      const q = nz(a * 3.7, sd + 311);
+      if (q < 0.18 + 0.7 * fade) return;                                       // 断口（越到后面越多，环散成几段）
+      const lip = r * (1 + 0.14 * (nz(a * 5.3, sd + 313) - 0.5) * 2) + (q > 0.8 ? 2 : 0);
+      for (let d = -th; d <= 0.5; d += 0.5) {
+        const rr = lip + d, x = k.x + ca * rr, y = k.y + sa * rr * SY;
+        const c = d > -0.6 ? (q > 0.62 ? WHITE : C[n - 2]) : d > -th * 0.5 ? C[n - 3] : C[n - 4];
+        dotA(p, Math.round(x), Math.round(y), c, 1);
+      }
+    });
+    if (t < 0.14) ring(r * 0.45, (a, ca, sa) => {
+      if (nz(a * 6.1, sd + 315) < 0.3) return;
+      dotA(p, Math.round(k.x + ca * r * 0.45), Math.round(k.y + sa * r * 0.45 * SY), WHITE, 1);
+    });
+    // ③ 水滴：地面小影子（跟着水滴走，离地越高影子越小越淡）+ 落地白点
+    for (const d of crownDrops(k)) {
+      const u = t - d.dl;
+      if (u <= 0) continue;
+      const fl = Math.min(u, d.T), gx = k.x + Math.cos(d.a) * d.v * fl, gy = k.y + Math.sin(d.a) * d.v * fl * SY;
+      if (u < d.T) {
+        const z = d.vz * u - 260 * u * u, sh = z > 14 ? 1 : 2;
+        for (let i = 0; i < sh; i++) dotA(p, Math.round(gx) + i, Math.round(gy), C[0], 0.55);
+      } else if (u < d.T + 0.2) {
+        const c = u < d.T + 0.07 ? WHITE : C[n - 3];
+        dotA(p, Math.round(gx), Math.round(gy), c, 1);
+        if (d.big) dotA(p, Math.round(gx) + 1, Math.round(gy), c, 1);
       }
     }
-    // 冠部碎开的几粒（贴着冠）
-    const offT = side * wB * 1.35;
-    if (rise > 0.8) for (let i = 0; i < 5; i++) {
-      const a = -Math.PI / 2 + (i - 2) * 0.5, d = 3 + 6 * smooth(0.08, 0.3, t);
-      p.px(Math.round(offT + Math.cos(a) * d * 1.4), Math.round(-hk + Math.sin(a) * d - 1 + fall * 10), C[n - 1 - (i % 2)]);
+    if (!k.raw) return;
+  }
+  // ④ 矮水冠：一圈往外翻的浪唇（先翻起、0.18 秒后往外倒下塌平），2–3 阶实色；背面先画（屏幕 y 小的先）
+  const rc = W * (0.2 + 0.45 * grow), hc = Math.min(k.H, 16) * 0.7 * ease.outCubic(clamp(t / 0.1)) * (1 - smooth(0.16, 0.42, t));
+  if (hc >= 1.5) {
+    const cols = [];
+    ring(rc, (a, ca, sa) => { if (nz(a * 4.9, sd + 321) > 0.38) cols.push([a, ca, sa]); });
+    cols.sort((A, B) => A[2] - B[2]);
+    for (const [a, ca, sa] of cols) {
+      const hh = hc * (0.35 + 0.65 * Math.pow(nz(a * 2.3, sd + 323), 1.5));   // 高低差大：几处翻得高、其余贴着
+      const back = sa < -0.2;
+      for (let z = 0; z <= hh; z += 0.5) {
+        const q = z / hh, out = 7 * q * q * (0.6 + 0.4 * grow);                // 越往上越往外翻
+        const x = k.x + ca * (rc + out), y = k.y + sa * (rc + out) * SY - z;
+        const c = q > 0.8 ? (back ? C[n - 2] : WHITE) : q > 0.4 ? C[n - 3] : C[n - 4];
+        dotA(p, Math.round(x), Math.round(y), back && q <= 0.8 ? C[n - 5] : c, 1);
+      }
+      // 浪唇往外、往下卷一截
+      const lx = k.x + ca * (rc + 4), ly = k.y + sa * (rc + 4) * SY - hh;
+      for (let s2 = 1; s2 <= 3; s2++) dotA(p, Math.round(lx + ca * s2), Math.round(ly + s2 * 0.8), s2 === 1 && !back ? WHITE : C[n - 2], 1);
     }
   }
+  // ⑤ 水滴 / 小水团：沿抛物线往外、往上，再落回（落地交给贴地层的白点）
+  for (const d of crownDrops(k)) {
+    const u = t - d.dl;
+    if (u <= 0 || u >= d.T) continue;
+    const z = d.vz * u - 260 * u * u;
+    const x = k.x + Math.cos(d.a) * d.v * u, y = k.y + Math.sin(d.a) * d.v * u * SY - z;
+    const c = u < 0.07 ? WHITE : z > 10 ? C[n - 2] : C[n - 3];
+    dotA(p, Math.round(x), Math.round(y), c, 1);
+    dotA(p, Math.round(x) + 1, Math.round(y), d.big ? c : C[n - 3], 1);
+    if (d.big) { dotA(p, Math.round(x), Math.round(y) + 1, C[n - 3], 1); dotA(p, Math.round(x) + 1, Math.round(y) + 1, C[n - 4], 1); }
+  }
+}
+
+function splash(p, t, o, C, ACC) {
+  const el = +o.el, raw = o.view === "raw";
+  crown(p, t, C, ACC, { x: 0, y: 0, W: +o.CW || +o.R * 0.5, H: +o.H, SY: raw ? 1 : +o.SY, seed: +o.seed * 7 + 31, raw, layer: o.layer || "up", nd: 8 + 2 * Math.min(3, el + 1) });
 }
 
 // 贴地冲击环 / 积水：边一圈 + 内侧淡渐变（抖动），不平涂；边沿不规整；raw = 正圆
@@ -478,16 +553,9 @@ function bladeGround(p, t, o, C) {
 }
 
 function splashGround(p, t, o, C, ACC) {
-  // 水柱底下的湿印 + 冲击环（同 ring，小一号）
-  ring(p, t, o, C, ACC);
-  if (o.view === "raw") return;
-  const R = +o.R * 0.3, SY = +o.SY, fade = smooth(0.1, +o.dur, t);
-  if (fade < 0.99) p.shade(-R, -R * SY, R, R * SY, (x, y, out) => {
-    const d = Math.hypot(x / R, y / (R * SY));
-    if (d > 1) return;
-    out.c = C[0];
-    out.a = 0.4 * (1 - fade) * (1 - d * 0.6);
-  });
+  // 落水水爆的贴地层（环 + 湿印 + 水滴影子 / 落地白点），同 splash 的参数（CW 两层一致）
+  const el = +o.el;
+  crown(p, t, C, ACC, { x: 0, y: 0, W: +o.CW || +o.R * 0.5, H: +o.H, SY: +o.SY, seed: +o.seed * 7 + 31, layer: "gd", nd: 8 + 2 * Math.min(3, el + 1) });
 }
 
 // ---- 分支招（11-05 用户「分支招数能不能做出点差距出来」）

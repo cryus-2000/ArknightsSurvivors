@@ -11,6 +11,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：流明 / 铃兰（docs/199 §7.9）
+const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
 const IDS: Array = ["saria", "suzuran", "logos", "hoshiguma", "siege", "irene", "lappland", "lumen"]
 const DIR_OPS: Array = ["suzuran", "logos", "irene"]   # 塞雷娅 10-30 改成以自身为圆心的拳风环，不瞄
 const POINT_OPS: Array = ["siege"]
@@ -1491,8 +1492,9 @@ static func _irv_start(u, o) -> Dictionary:
 	if _irv3():   # 用户 10-31「镜头不要晃，固定」：整段终结技镜头钉在纹章中心（她穿梭时镜头不跟）
 		u.cam_hold = c
 		u.cam_hold_until = u.g.t + 1.7
+	IRP.ev(u, "start", {"c": c, "R": R})   # 转平面（docs/275）：开着时纹章 / 光链 / 斩线 / 爆 / 收尾斩击都由 ult_px_ir 画，下面只留玩法
 	# 定罪前一拍：纹章从 1.25 倍压下来（0.1 秒），金光收拢
-	if u.fx_ready(IRV_SEAL):
+	if u.fx_ready(IRV_SEAL) and not IRP.on():
 		var rr: float = PF.tex_w(u, IRV_SEAL) * 0.5
 		var s: Dictionary = u.strip(IRV_SEAL, c, {"layer": "back", "sc": R * 1.25 / rr, "sc1": R / rr, "scd": 0.1, "ang": PF.h(vs) * TAU, "life": 2.0, "fade": 0.3,
 			"col": Color(0.95, 0.9, 0.78, 0.5), "col1": Color(0.75, 0.76, 0.82, 0.32), "cold": 0.5})   # 半透明盖地（深蓝底别盖满屏）
@@ -1507,12 +1509,14 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 	var c: Vector2 = a.c
 	var R: float = a.R
 	var vs: float = a.vs
+	var px: bool = IRP.on()   # 转平面（docs/275）：只换画面
 	# ① 定罪
 	if not a.stamped and t >= 0.1:
 		a.stamped = true
 		u.g.vfx.stop(0.05, "ult", true)   # 局部顿一下
-		u.light(c, R * 0.5, IRV_GOLD, 2.0 if _irv3() else 0.25)   # 用户 10-31「灯火的快速闪动让画面有闪烁感」：第三版只留这一盏、2 秒慢慢暗下去，其余短灯都不点
-		PF.dust(u, c, 260.0, 0.0, vs, Vector2.ZERO, Color(0.6, 0.58, 0.55))
+		if not px:
+			u.light(c, R * 0.5, IRV_GOLD, 2.0 if _irv3() else 0.25)   # 用户 10-31「灯火的快速闪动让画面有闪烁感」：第三版只留这一盏、2 秒慢慢暗下去，其余短灯都不点
+			PF.dust(u, c, 260.0, 0.0, vs, Vector2.ZERO, Color(0.6, 0.58, 0.55))
 		var n := 0
 		for e in u.in_circle(c, R):
 			_once(u, a, o, a.wseg, e, Bal.v("ult/ir_wind_f", 0.1), {"src": "定罪", "pre": true, "edge": e.pos.distance_to(c) > float(a.rc)})
@@ -1521,7 +1525,9 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			if not e.boss:
 				u.g.enemies_sys.add_cc(e, Bal.v("ult/ir_lift", 1.2) * (0.5 if e.elite else 1.0))   # 钉住（原来是挑飞浮空，同时长）
 			var pin := {"e": e, "d": e.pos.distance_to(c), "chain": {}}
-			if n < 18 and _irv2():   # 用户 10-31 改表现：锁链从纹章外圈一根根射出、绷直扎到怪身上（链节沿线逐节伸出 0.12 秒），扎中处金色碎光
+			if n < 18 and px:
+				IRP.ev(u, "pin", {"e": e, "delay": 0.02 * (n % 6)})
+			elif n < 18 and _irv2():   # 用户 10-31 改表现：锁链从纹章外圈一根根射出、绷直扎到怪身上（链节沿线逐节伸出 0.12 秒），扎中处金色碎光
 				var rim: Vector2 = c + (e.pos - c).normalized() * R * 0.97 if e.pos.distance_to(c) > 1.0 else c + Vector2.RIGHT * R
 				pin["rim"] = rim
 				pin["links"] = _irv_chain(u, rim, e.pos + Vector2(0, -10), 0.02 * (n % 6))
@@ -1591,7 +1597,10 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 		a["spun"] = true
 		o.play_vis_anim("attack")
 		if _irv3():   # 穿梭完瞬身回纹章中心
-			u.shape({"kind": "blade", "a": o.pos, "b": c, "w": 4.0, "col": IRV_WHITE, "glow": IRV_NAVY, "life": 0.12})
+			if px:
+				IRP.ev(u, "dash", {"a": o.pos, "b": c})
+			else:
+				u.shape({"kind": "blade", "a": o.pos, "b": c, "w": 4.0, "col": IRV_WHITE, "glow": IRV_NAVY, "life": 0.12})
 			_lead_move(u, o, c)
 			_lead_land(u, o)
 		for e in u.in_circle(c, R):   # 收刀前扫漏的补斩（刀扫过时还没进圈的）
@@ -1626,7 +1635,9 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 				u._seg_sfx("宣判")   # 被钉住的敌人多半已被行刑斩死、_once 不再命中：炸开照样出声（原来只在命中时配声，11-01 终结技审查录像里连环爆一声都没有）
 			_once(u, a, o, a.bseg, e, fr, {"src": "宣判", "pre": fc, "edge": float(pn.d) > float(a.rc)})   # 第一下（非 pre）= 冲击帧
 			var hh: float = PF.h(vs + float(pn.d))
-			if _irv2():   # 用户 10-31 改表现：每一炸更大更实——金白爆团 + 烟尘 + 地块崩起；链子崩成链节飞散
+			if px:
+				IRP.ev(u, "boom", {"e": e, "p": bp, "big": float(pn.d) <= R * 0.5})
+			elif _irv2():   # 用户 10-31 改表现：每一炸更大更实——金白爆团 + 烟尘 + 地块崩起；链子崩成链节飞散
 				PF.particles(u, bp, 200, "ult_burst", [Color(0.8, 0.66, 0.38), Color(0.45, 0.52, 0.7)], 0.0, vs + float(pn.d), 90.0 + 40.0 * hh)   # 预审：连环爆叠起来发白，压暗一档
 				PF.dust(u, bp, 120.0, 0.03, vs + float(pn.d) * 0.1, Vector2.ZERO, Color(0.6, 0.58, 0.56))
 				PF.aftershock(u, bp, 50.0, vs + float(pn.d), 0.02, 3, Color(0.75, 0.72, 0.7))
@@ -1664,10 +1675,11 @@ static func _irv_step(u, a: Dictionary, o) -> bool:
 			if not _irv2():
 				PF.cracks(u, IRV_FORKS, c, PF.angles(8, PF.h(vs) * TAU, vs), cl_l, {"seed": vs, "r0": 40.0, "rev": 0.15, "rev0": 0.2, "life": 0.9, "fade": 0.5,
 				"big": 0.45, "small": 0.3, "col": Color(1.0, 0.86, 0.5), "col1": Color(0.3, 0.3, 0.34, 0.6), "cold": 0.35})
-			PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.7, 0.4)], 0.0, vs, R * 0.5)   # 深蓝粒子团放大后成一块平的蓝圆盘，只留暗金
-			if not _irv3():
+			if not px:
+				PF.particles(u, c, 300, "ult_burst", [Color(0.85, 0.7, 0.4)], 0.0, vs, R * 0.5)   # 深蓝粒子团放大后成一块平的蓝圆盘，只留暗金
+			if not _irv3() and not px:
 				PF.aftershock(u, c, R * 0.7, vs, 0.05, 10, Color(0.75, 0.72, 0.7))   # 纹章碎块崩起
-			if not _irv3():
+			if not _irv3() and not px:
 				u.light(c, R * 0.6, IRV_GOLD, 0.25)
 	return a.boomed and t >= float(a.end_t)
 
@@ -1691,11 +1703,14 @@ static func _irv_shuttle(u, a: Dictionary, o, k: float) -> void:
 		var np: Vector2 = c + Vector2.from_angle(a0 + (PF.h(vs + j) - 0.5) * 0.4) * R * (0.65 + 0.2 * PF.h(vs + j * 3.0))
 		var fp: Vector2 = o.pos
 		var dv: Vector2 = (np - fp).normalized() if np != fp else Vector2.RIGHT
-		u.shape({"kind": "blade", "a": fp - dv * 30.0, "b": np + dv * 40.0, "w": 6.0, "col": IRV_WHITE, "glow": IRV_NAVY, "grow": 0.03, "life": 0.28})   # 斩线
-		u.shape({"kind": "blade", "a": fp, "b": np, "w": 2.0, "col": IRV_GOLD, "glow": IRV_NAVY, "life": 0.4})   # 留下的金丝
-		for q in 3:
-			PF.particles(u, fp.lerp(np, (q + 0.5) / 3.0), 40, "ult_burst_s", [IRV_WHITE, IRV_NAVY], 0.02 * q, vs + j * 7.0 + q, 50.0)
-		PF.dust(u, np + Vector2(0, 8), 80.0, 0.0, vs + j, -dv * 60.0, Color(0.62, 0.64, 0.7))
+		if IRP.on():   # 转平面（docs/275）：斩线 / 细线 / 落点水花由 ult_px_ir 画
+			IRP.ev(u, "dash", {"a": fp, "b": np})
+		else:
+			u.shape({"kind": "blade", "a": fp - dv * 30.0, "b": np + dv * 40.0, "w": 6.0, "col": IRV_WHITE, "glow": IRV_NAVY, "grow": 0.03, "life": 0.28})   # 斩线
+			u.shape({"kind": "blade", "a": fp, "b": np, "w": 2.0, "col": IRV_GOLD, "glow": IRV_NAVY, "life": 0.4})   # 留下的金丝
+			for q in 3:
+				PF.particles(u, fp.lerp(np, (q + 0.5) / 3.0), 40, "ult_burst_s", [IRV_WHITE, IRV_NAVY], 0.02 * q, vs + j * 7.0 + q, 50.0)
+			PF.dust(u, np + Vector2(0, 8), 80.0, 0.0, vs + j, -dv * 60.0, Color(0.62, 0.64, 0.7))
 		_lead_move(u, o, np)
 		o.face_to(dv.angle())
 		o.play_vis_anim("attack")
@@ -1715,6 +1730,12 @@ static func _irv_final_cut(u, c: Vector2, R: float, vs: float, a := {}) -> void:
 	if not a.is_empty() and Bal.v("ult/ir_cut_hf", 1.0) > 0.0:   # 11-01 细调：原来只调 impact、没开冲击帧 → 走了共用白闪，录像里整屏发白一拍；改成真正的冲击帧（剪影只给斩线 + 主裂缝）
 		PF.hf_on(u, a)
 	u.impact(c)   # 冲击帧放在这一刀（顿帧 + 慢放，用户 10-31）
+	if IRP.on():   # 转平面（docs/275）：斩线 / 裂缝 / 沿线爆 / 碎石 / 尘墙由 ult_px_ir 画（冲击帧剪影也在那边画）；只留声音
+		IRP.ev(u, "final", {"c": c, "R": R, "dv": dv})
+		var sfx0: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
+		if sfx0 != null:
+			sfx0.play("boom", -1.0, 1.1)
+		return
 	# 一刀劈开大地：斩线两侧各一条粗分叉裂缝从中心往两端长出去（先金亮后冷成暗缝）+ 沿线地块崩起 + 两侧尘墙往外推
 	var fk: Array = []
 	for k in 2:
