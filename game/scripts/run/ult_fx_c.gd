@@ -772,7 +772,7 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 		PF.particles(u, ctr + dq * r1 * 0.95, 30, "ult_burst_s", [Color(1.0, 0.55, 0.2), _red()], 0.15 + 0.04 * q, float(a.sb_vs) + q, 60.0)
 	u.light(c, 160.0, SUP.col(Color(0.6, 0.1, 0.12), Color(0.3, 0.5, 0.8)), 0.25)
 	u.g.vfx.stop(Bal.v("ult/sb_hitstop", 0.16), "ult", true)
-	u.light(ctr, r1 * 1.2, SUP.col(Color(0.55, 0.08, 0.1), Color(0.3, 0.52, 0.85)), 0.35)
+	u.light(ctr, r1 * 1.2, SUP.col(Color(0.55, 0.08, 0.1), Color(0.22, 0.32, 0.55)), 0.35)
 	PF.particles(u, ctr, 300, "ult_burst", [_red(), _dark()], 0.12, float(a.sb_vs) + 99.0, r1)
 	for q in 7:   # 锯开的口子：一圈不规整的撕裂痕
 		var ta: float = TAU * (q + PF.h(vs + q)) / 7.0

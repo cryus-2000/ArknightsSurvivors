@@ -195,7 +195,7 @@ func draw_front(u, w) -> void:
 	var ctr: Vector2 = st.ctr
 	if not st.lit:
 		st.lit = true
-		u.light(ctr, float(st.R) * 0.9, Color(0.85, 0.93, 1.0), 0.6)   # 照地灯打满（docs/270 爆发档上段，冷白蓝，不发白）
+		u.light(ctr, float(st.R) * 0.7, Color(0.8, 0.8, 0.84), 0.6)   # 照地灯打满（docs/270 爆发档上段）；偏中性灰白：冷白蓝打在青色地面上会发青绿（GCP 第一版看出来的）
 		u.light(ctr, float(st.R) * 0.45, SP[1], 0.35)   # 锯磨地的橙热芯
 	var f: int = _beat()
 	if f >= 0 and f <= 1:   # 亮核：一簇白 / 冰蓝 / 橙亮点（黄金角散开，靠中心密），不是平涂大圆
