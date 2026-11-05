@@ -15,6 +15,7 @@ const MC = preload("res://scripts/run/ult_moves_c.gd")   # 塞雷娅 / 铃兰 / 
 
 const POINT_OPS := ["texas", "kaltsit", "ulpianus"]
 const AUTO_OPS := ["exusiai", "skalter"]
+const SkD = preload("res://scripts/data.gd")   # 怪物代表色 ecol（浊心斯卡蒂终结技崩解喷散，docs/260 §10）
 const COL_SK_RED := Color(0.78, 0.06, 0.14)
 const COL_SK_TEAL := Color(0.25, 0.95, 0.82)
 const COL_STEEL := Color(0.72, 0.8, 0.9)
@@ -177,7 +178,7 @@ static func _abort(u, a: Dictionary) -> void:
 # ================================================================ 帧条公用
 
 ## 弧状拼接段的参考半径（1x 像素，manifest arc_reference_radius_logical）：素材按这个半径画弧
-const ARC_R0 := {"fx_ult_skalter_domain_back": 123.6385, "fx_ult_kaltsit_crack_back": 185.4578, "fx_ult_ulpianus_crack_back": 185.4578}
+const ARC_R0 := {"fx_ult_skalter_domain_back": 123.6385, "fx_ult_skalter_domain_back_db": 123.6385, "fx_ult_kaltsit_crack_back": 185.4578, "fx_ult_ulpianus_crack_back": 185.4578}
 
 
 ## 弧状拼接段铺到半径 r：沿切向缩放 k = √(r / 参考半径)、径向反缩 1 / k —— 弧的曲率正好变成 r（小角度近似），
@@ -966,24 +967,24 @@ static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 		"echo": rt == "echo", "col": u._col(o)}
 	# 口中聚光（蓄力期间长大，吐息期间成根焰）+ 吐息本体各层（每帧改位置）
 	var org: Vector2 = o.pos + soff
-	a["cone"] = _sk_keep(u, a, {"kind": "sector", "c": org, "r": 1.0, "a": 0.0, "half": 0.1, "col": COL_SK_RED, "fill": 0.0, "life": life})
-	a["halo"] = _sk_keep(u, a, {"kind": "band", "a": org, "b": org, "w": 1.0, "col": COL_SK_RED, "fill": 0.0, "life": life})
-	a["body"] = _sk_keep(u, a, {"kind": "band", "a": org, "b": org, "w": 1.0, "col": COL_SK_RED.lerp(Color(1.0, 0.3, 0.35), 0.35), "fill": 0.0, "life": life})
-	a["inner"] = _sk_keep(u, a, {"kind": "band", "a": org, "b": org, "w": 1.0, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.35), "fill": 0.0, "life": life})
+	a["cone"] = _sk_keep(u, a, {"kind": "sector", "c": org, "r": 1.0, "a": 0.0, "half": 0.1, "col": _skr(u), "fill": 0.0, "life": life})
+	a["halo"] = _sk_keep(u, a, {"kind": "band", "a": org, "b": org, "w": 1.0, "col": _skr(u), "fill": 0.0, "life": life})
+	a["body"] = _sk_keep(u, a, {"kind": "band", "a": org, "b": org, "w": 1.0, "col": _skr(u).lerp(Color(1.0, 0.3, 0.35), 0.35), "fill": 0.0, "life": life})
+	a["inner"] = _sk_keep(u, a, {"kind": "band", "a": org, "b": org, "w": 1.0, "col": _skt(u).lerp(Color.WHITE, 0.35), "fill": 0.0, "life": life})
 	a["wire"] = _sk_keep(u, a, {"kind": "line", "a": org, "b": org, "w": 1.0, "col": Color(1.0, 0.95, 0.97), "life": life})
-	a["glow"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 6.0, "col": COL_SK_TEAL, "fill": 0.85, "life": life})
+	a["glow"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 6.0, "col": _skt(u), "fill": 0.85, "life": life})
 	a["core"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 3.0, "col": Color.WHITE, "fill": 0.95, "life": life})
-	a["tipc"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 1.0, "col": COL_SK_TEAL, "fill": 0.0, "life": life})
+	a["tipc"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 1.0, "col": _skt(u), "fill": 0.0, "life": life})
 	a["tipw"] = _sk_keep(u, a, {"kind": "circle", "c": org, "r": 1.0, "col": Color(1.0, 0.95, 0.97), "fill": 0.0, "life": life})
 	if _sk_v2(u):   # 吐息 v2：程序画的各层带子换成 pixgen 整条光束贴图（两层错开滚动）+ 根部 / 命中点爆闪贴图
 		a["v2"] = true
 		u.shapes.erase(a.body)   # 只换暗红主体带；外辉光 / 青白芯 / 白芯线 / 命中点亮核照旧（用户 10-30「亮度我喜欢左边的」）
-		var bh: float = float(u._strip_tex(SK_BEAM).get_height())
+		var bh: float = float(u._strip_tex(_skn(u, SK_BEAM)).get_height())
 		for key in ["bm", "bm2"]:
-			a[key] = u.strip(SK_BEAM, org, {"o": Vector2(0.0, bh * 0.5), "uw": 1.0, "life": life, "col": Color(1, 1, 1, 0.0)})
+			a[key] = u.strip(_skn(u, SK_BEAM), org, {"o": Vector2(0.0, bh * 0.5), "uw": 1.0, "life": life, "col": Color(1, 1, 1, 0.0)})
 			a.fx.append(a[key])
 		for key in ["rf", "tf"]:
-			a[key] = u.strip(SK_FLASH, org, {"sc": 0.1, "life": life, "col": Color(1, 1, 1, 0.0)})
+			a[key] = u.strip(_skn(u, SK_FLASH), org, {"sc": 0.1, "life": life, "col": Color(1, 1, 1, 0.0)})
 			a.fx.append(a[key])
 		for key in ["inner", "wire", "tipw"]:   # 亮芯画在贴图上面
 			u.shapes.erase(a[key])
@@ -1035,7 +1036,7 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 		if a.tseg.has(int(e.id)):
 			continue
 		a.tseg[int(e.id)] = true
-		_hit(u, a, o, e, float(a.tfrac), {"src": "爆裂", "edge": e.pos.distance_to(c) > er})
+		_hit(u, a, o, e, float(a.tfrac), {"src": "爆裂", "edge": e.pos.distance_to(c) > er, "pre": _skp(u)})
 	var i: int = int(a.nb)
 	a.nb = i + 1
 	if not a.has("tp"):
@@ -1047,20 +1048,20 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 		_sk_blast_v2(u, p, 1.0, float(i))
 	else:
 		u.shape({"kind": "circle", "c": p, "r": 40.0, "col": Color(1.0, 0.9, 0.92), "fill": 0.9, "life": 0.07})
-		u.shape({"kind": "rock", "c": p, "r": 58.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.5), "core": COL_SK_TEAL, "seed": float(i), "rot": float(i) * 0.7, "fill": 0.9, "hold": false, "life": 0.22})
-		u.shape({"kind": "ring", "c": p, "r": 96.0, "r1": 24.0, "w": 6.0, "col": COL_SK_RED.lerp(Color.WHITE, 0.3), "solid": true, "life": 0.2})
-	u.shape({"kind": "ring", "c": p, "r": 130.0, "r1": 30.0, "w": 8.0, "col": COL_SK_TEAL, "life": 0.34})   # 缺省碎裂
-	u.shape({"kind": "ellipse", "c": p + Vector2(0, 8), "rx": 70.0, "ry": 32.0, "col": COL_SK_RED.darkened(0.7), "fill": 0.4, "life": 1.1, "layer": "back"})   # 灼地
+		u.shape({"kind": "rock", "c": p, "r": 58.0, "col": _skr(u), "glow": _skr(u).lerp(_skt(u), 0.5), "core": _skt(u), "seed": float(i), "rot": float(i) * 0.7, "fill": 0.9, "hold": false, "life": 0.22})
+		u.shape({"kind": "ring", "c": p, "r": 96.0, "r1": 24.0, "w": 6.0, "col": _skr(u).lerp(Color.WHITE, 0.3), "solid": true, "life": 0.2})
+	u.shape({"kind": "ring", "c": p, "r": 130.0, "r1": 30.0, "w": 8.0, "col": _skt(u), "life": 0.34})   # 缺省碎裂
+	u.shape({"kind": "ellipse", "c": p + Vector2(0, 8), "rx": 70.0, "ry": 32.0, "col": _skr(u).darkened(0.7), "fill": 0.4, "life": 1.1, "layer": "back"})   # 灼地
 	for m in 4:   # 掀起的碎岩（带重力）
 		var h: float = fposmod(float(i * 5 + m) * 0.618, 1.0)
 		var dv := Vector2.from_angle(TAU * (float(m) + h) / 4.0 + float(i) * 0.9)
-		u.shape({"kind": "rock", "c": p + dv * 20.0, "r": 8.0 + 7.0 * h, "col": Color(0.2, 0.12, 0.14), "glow": COL_SK_RED, "seed": float(i * 4 + m), "rot": h * TAU, "spin": (h - 0.5) * 10.0,
+		u.shape({"kind": "rock", "c": p + dv * 20.0, "r": 8.0 + 7.0 * h, "col": Color(0.2, 0.12, 0.14), "glow": _skr(u), "seed": float(i * 4 + m), "rot": h * TAU, "spin": (h - 0.5) * 10.0,
 			"v": dv * (140.0 + 120.0 * h) + Vector2(0, -330.0 - 160.0 * h), "grav": 1500.0, "hold": true, "life": 0.55 + 0.15 * h})
-	u.grain("bfx_burst", p, Vector2.from_angle(float(i) * 2.39996), COL_SK_RED if i % 2 == 0 else COL_SK_TEAL, 10)
-	u.grain("lava", p, Vector2.UP, COL_SK_RED, 4)
+	u.grain("bfx_burst", p, Vector2.from_angle(float(i) * 2.39996), _skr(u) if i % 2 == 0 else _skt(u), 10)
+	u.grain("lava", p, Vector2.UP, _skr(u), 4)
 	u.grain("bfx_dust", p, Vector2.UP, Color(0.5, 0.42, 0.45), 4)
-	u.light(p, 190.0, COL_SK_RED.lerp(COL_SK_TEAL, 0.25 if i % 2 == 0 else 0.0), 0.26)
-	u.debris(p, COL_SK_RED if i % 2 == 0 else COL_SK_TEAL, 2)
+	u.light(p, 190.0, _skr(u).lerp(_skt(u), 0.25 if i % 2 == 0 else 0.0), 0.26)
+	u.debris(p, _skr(u) if i % 2 == 0 else _skt(u), 2)
 	u.shake(4.0, 0.14)
 
 
@@ -1073,12 +1074,34 @@ const SK_BLAST := "fx_sk_blast"
 const SK_COLD := Color(0.45, 0.22, 0.26)
 
 
+## 终结技配色对齐（docs/260 §10，开关 ult/px_plane，缺省 0 = 原版）：开着时血红 → 深海蓝（SK_B 主色）、青 → 浅蓝白，红贴图换 *_db 蓝版
+## （tools/ult_px_skalter_bake.py 按亮度重映射，形状 / 帧排布不动）；酒红只留作点缀。只改画面
+static func _skp(u) -> bool:
+	return Bal.v("ult/px_plane", 0.0) > 0.0
+
+
+static func _skr(u) -> Color:
+	return Color(0.153, 0.322, 0.769) if _skp(u) else COL_SK_RED
+
+
+static func _skt(u) -> Color:
+	return Color(0.616, 0.737, 1.0) if _skp(u) else COL_SK_TEAL
+
+
+static func _skcold(u) -> Color:
+	return Color(0.09, 0.16, 0.38) if _skp(u) else SK_COLD
+
+
+static func _skn(u, n: String) -> String:
+	return n + "_db" if _skp(u) and u.fx_ready(n + "_db") else n
+
+
 static func _sk_v2(u) -> bool:
-	return Bal.v("ult/sk_beam_v2", 1.0) > 0.0 and u.fx_ready(SK_BEAM) and u.fx_ready(SK_FLASH) and u.fx_ready(SK_BLAST)
+	return Bal.v("ult/sk_beam_v2", 1.0) > 0.0 and u.fx_ready(_skn(u, SK_BEAM)) and u.fx_ready(_skn(u, SK_FLASH)) and u.fx_ready(_skn(u, SK_BLAST))
 
 
 static func _sk_beam_v2(u, a: Dictionary, org: Vector2, tip: Vector2, imp: Vector2, wk: float, t: float) -> void:
-	var tex: Texture2D = u._strip_tex(SK_BEAM)
+	var tex: Texture2D = u._strip_tex(_skn(u, SK_BEAM))
 	var k: float = u.g.PX / A.hires_of(tex)
 	var tw: float = float(tex.get_width())
 	var uw: float = minf(tw, org.distance_to(tip) / k)
@@ -1107,11 +1130,11 @@ static func _sk_beam_v2(u, a: Dictionary, org: Vector2, tip: Vector2, imp: Vecto
 
 ## 一个爆点：爆闪 + 爆炸贴图（缓出放大，白亮 → 暗红余烬）；k = 大小倍率
 static func _sk_blast_v2(u, p: Vector2, k: float, seed0: float, delay := 0.0) -> void:
-	var bt: Texture2D = u._strip_tex(SK_BLAST)
+	var bt: Texture2D = u._strip_tex(_skn(u, SK_BLAST))
 	var br: float = bt.get_width() * 0.5 * u.g.PX / A.hires_of(bt)
-	u.strip(SK_FLASH, p, {"sc": 1.1 * k, "ang": seed0 * 0.9, "life": 0.07, "delay": delay})
-	u.strip(SK_BLAST, p, {"sc": 40.0 * k / br, "sc1": 95.0 * k / br, "scd": 0.16, "ang": seed0 * 1.7, "life": 0.38, "fade": 0.22,
-		"col": Color.WHITE, "col1": SK_COLD, "cold": 0.22, "delay": delay})
+	u.strip(_skn(u, SK_FLASH), p, {"sc": 1.1 * k, "ang": seed0 * 0.9, "life": 0.07, "delay": delay})
+	u.strip(_skn(u, SK_BLAST), p, {"sc": 40.0 * k / br, "sc1": 95.0 * k / br, "scd": 0.16, "ang": seed0 * 1.7, "life": 0.38, "fade": 0.22,
+		"col": Color.WHITE, "col1": _skcold(u), "cold": 0.22, "delay": delay})
 
 
 ## 收尾大爆 v3（用户 10-31「最后的爆炸应该是在攻击方式内裂地」）：不再以她为圆心放一圈放射裂网，改沿吐息烧过的轨迹——
@@ -1169,6 +1192,21 @@ static func _sk_final_v2(u, c: Vector2, L: float) -> void:
 
 ## 挑下一个追的目标：圈内（没烧过的优先）敌人按角度分 32 格加权（精英 / Boss × 4），相邻格平滑后除以 (1 + 0.6 × 与当前朝向的角差)，
 ## 取最高那格里的精英 / Boss，否则取离格中心角最近的一只；圈里没人 → null
+## 怪物崩解（docs/275 §1.0 同法）：收尾大爆圈内的怪整只炸成自身像素——引擎原有的击杀碎屑（optical_particles.kill_burst，按怪物贴图像素碎开）
+## 再补一次 + 一撮怪物本色颗粒顺着冲击往外喷；原有的击杀碎屑照常出。至多 40 只，Boss 不碎。只画
+static func _sk_crumble(u, c: Vector2, L: float) -> void:
+	var g = u.g
+	var n := 0
+	for e in u.in_circle(c, L):
+		if n >= 40 or e.get("boss", false):
+			continue
+		n += 1
+		if g.optical_on and g.optical != null and g.optical.particles != null:
+			g.optical.particles.kill_burst(e)
+		var col: Color = SkD.ENEMIES.get(str(e.get("type", "")), {}).get("ecol", Color(0.6, 0.8, 0.9))
+		u.grain("bfx_burst", e.pos + Vector2(0, -float(e.get("r", 10.0)) * 0.5), (e.pos - c).normalized() if e.pos != c else Vector2.UP, col, 4)
+
+
 static func _sk_pick(u, a: Dictionary, c: Vector2):
 	var L: float = a.L
 	var all: Array = u.in_circle(c, L)
@@ -1243,11 +1281,11 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		if t >= float(a.ci_t):
 			a.ci_t = t + 0.08
 			var j: int = int(t * 100.0)
-			_ring(u, org, 12.0, 150.0, COL_SK_RED if j % 2 == 0 else COL_SK_TEAL, 0.16, 4.0)
+			_ring(u, org, 12.0, 150.0, _skr(u) if j % 2 == 0 else _skt(u), 0.16, 4.0)
 			for m in 6:   # 光点往口里收
 				var dv := Vector2.from_angle(float(m) * TAU / 6.0 + float(j) * 0.7)
-				u.grain("mote_in", org + dv * 110.0, -dv, COL_SK_TEAL if m % 2 == 0 else COL_SK_RED, 2)
-			u.light(org, lerpf(60.0, 200.0, kc), COL_SK_TEAL, 0.1)
+				u.grain("mote_in", org + dv * 110.0, -dv, _skt(u) if m % 2 == 0 else _skr(u), 2)
+			u.light(org, lerpf(60.0, 200.0, kc), _skt(u), 0.1)
 		if a.get("v2", false):   # 口中爆闪贴图跟着长大
 			a.rf.c = org
 			a.rf.sc = lerpf(0.15, 0.6, kc * kc)
@@ -1295,7 +1333,7 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 			if hit:
 				a.lseg[int(e.id)] = true
 				a.newp.append(e.pos)
-				_hit(u, a, o, e, float(a.lfrac), {"src": "激光", "edge": d.length() > er})
+				_hit(u, a, o, e, float(a.lfrac), {"src": "激光", "edge": d.length() > er, "pre": _skp(u)})   # pre：转平面版冲击帧 + 慢放只给收尾大爆（只改画面）
 				if e == tg and float(a.tgt_hit) < 0.0:
 					a.tgt_hit = t
 		# 命中点：追着的目标在光束上就是它，否则光束末端
@@ -1349,15 +1387,15 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 		var side: Vector2 = dir.orthogonal()
 		for m in 3:   # 沿线颗粒：往两侧迸 + 顺着光束冲出去
 			var bp: Vector2 = org.lerp(tip, 0.2 + 0.27 * float(m) + 0.08 * float(fr2 % 3))
-			u.grain("bfx_flash", bp, side * (1.0 if (fr2 + m) % 2 == 0 else -1.0), COL_SK_TEAL if m == 1 else COL_SK_RED, 2)
-		u.grain("lava", imp, -dir, COL_SK_RED, 2)
-		u.grain("bfx_burst", imp, Vector2.from_angle(cur + PI + 0.6 * sin(t * 23.0)), COL_SK_TEAL if fr2 % 2 == 0 else COL_SK_RED, 2)
+			u.grain("bfx_flash", bp, side * (1.0 if (fr2 + m) % 2 == 0 else -1.0), _skt(u) if m == 1 else _skr(u), 2)
+		u.grain("lava", imp, -dir, _skr(u), 2)
+		u.grain("bfx_burst", imp, Vector2.from_angle(cur + PI + 0.6 * sin(t * 23.0)), _skt(u) if fr2 % 2 == 0 else _skr(u), 2)
 		if fr2 % 4 == 0:
-			u.light(imp, 200.0, COL_SK_RED, 0.1)
-			u.light(org.lerp(tip, 0.45), 220.0, COL_SK_TEAL, 0.1)
-			u.light(org, 140.0, COL_SK_TEAL, 0.1)
+			u.light(imp, 200.0, _skr(u), 0.1)
+			u.light(org.lerp(tip, 0.45), 220.0, _skt(u), 0.1)
+			u.light(org, 140.0, _skt(u), 0.1)
 		if fr2 % 3 == 0:   # 光束根部往外喷的气浪
-			u.shape({"kind": "ring", "c": org, "r": 56.0, "r1": 20.0, "w": 6.0, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.3), "solid": true, "life": 0.12})
+			u.shape({"kind": "ring", "c": org, "r": 56.0, "r1": 20.0, "w": 6.0, "col": _skt(u).lerp(Color.WHITE, 0.3), "solid": true, "life": 0.12})
 		# 轨迹爆点：每 ult/sk_trail_dt 秒把新烧到的敌人按 70 合并成团，至多 3 团各炸一个（延迟 0.08 秒）；没有新烧到就在命中点炸一个
 		if t >= float(a.trail_t):
 			a.trail_t = t + Bal.v("ult/sk_trail_dt", 0.16)
@@ -1391,7 +1429,7 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				a.newp = []
 				a.close_t = t   # 海嗣沉下
 				a.blast_t = t + Bal.v("ult/sk_blast_delay", 0.12)
-				_ring(u, org, 10.0, 160.0, COL_SK_TEAL, 0.12, 8.0)   # 口中的光往回一收
+				_ring(u, org, 10.0, 160.0, _skt(u), 0.12, 8.0)   # 口中的光往回一收
 		return false
 	# 收尾大爆（第二个强调点）：她周围半径 L 一次炸开，短顿帧 + 大一点的震屏；之后留下领域（画面 + 增益）
 	if not a.blasted and t >= float(a.blast_t):
@@ -1411,42 +1449,45 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				_hit(u, a, o, e, bf, {"src": "爆裂", "edge": e.pos.distance_to(c) > er2, "kb": (e.pos - c).normalized() * _kb_v(160.0)})
 		u.g.vfx.stop(Bal.v("ult/sk_blast_freeze", 0.08), "ult", true)
 		u.shake(9.0, 0.45)
+		if _skp(u):
+			u.impact(c)   # 冲击帧 + 慢放落在整招最大的这一下（光束 / 轨迹的命中已标 pre）
+			_sk_crumble(u, c, L)
 		# 收尾大爆：不铺满屏实心红圆（10-30 美术口径），中心一团碎块炸开 + 一圈圈碎裂冲击 + 大量颗粒 / 碎屑
 		if a.get("v2", false):
 			var n0: int = u.shapes.size()
 			var v3: bool = Bal.v("ult/sk_fx_v3", 1.0) > 0.0 and a.get("tp", []).size() >= 2
 			if v3:
 				_sk_final_v3(u, a.tp, c)
-				PF.hf_since(u, n0, [SK_BLAST])   # 打击感（10-31）：收尾大爆冲击帧（爆团剪影）+ 顿帧
+				PF.hf_since(u, n0, [_skn(u, SK_BLAST)])   # 打击感（10-31）：收尾大爆冲击帧（爆团剪影）+ 顿帧
 				PF.hf_on(u, a)
 				u.g.vfx.stop(Bal.v("ult/sk_hitstop", 0.1), "ult", true)
 			else:
 				_sk_final_v2(u, c, L)
 		else:
-			u.shape({"kind": "rock", "c": c, "r": 90.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.4), "core": COL_SK_TEAL, "seed": 5.0, "fill": 0.9, "hold": false, "life": 0.22})
+			u.shape({"kind": "rock", "c": c, "r": 90.0, "col": _skr(u), "glow": _skr(u).lerp(_skt(u), 0.4), "core": _skt(u), "seed": 5.0, "fill": 0.9, "hold": false, "life": 0.22})
 		for m2 in 16:
 			var dm: Vector2 = Vector2.from_angle(TAU * float(m2) / 16.0 + 0.2)
-			u.grain("bfx_burst", c + dm * L * 0.3, dm, COL_SK_RED if m2 % 2 == 0 else COL_SK_TEAL, 6)
-			u.grain("lava", c + dm * L * 0.6, dm, COL_SK_RED, 3)
-		u.debris(c, COL_SK_RED, 3)
-		_ring(u, c, L, 40.0, COL_SK_RED.lerp(Color.WHITE, 0.3), 0.5, 18.0)
-		u.light(c, L, COL_SK_RED, 0.5)
-		u.debris(c, COL_SK_RED, 3)
+			u.grain("bfx_burst", c + dm * L * 0.3, dm, _skr(u) if m2 % 2 == 0 else _skt(u), 6)
+			u.grain("lava", c + dm * L * 0.6, dm, _skr(u), 3)
+		u.debris(c, _skr(u), 3)
+		_ring(u, c, L, 40.0, _skr(u).lerp(Color.WHITE, 0.3), 0.5, 18.0)
+		u.light(c, minf(L, 240.0) if _skp(u) else L, _skr(u), 0.5)
+		u.debris(c, _skr(u), 3)
 		for m in 8:
 			var dq := Vector2.from_angle(float(m) * TAU / 8.0 + 0.3)
-			u.debris(c + dq * L * 0.6, COL_SK_TEAL if m % 2 == 0 else COL_SK_RED, 2)
-			u.grain("bfx_burst", c + dq * L * 0.35, dq, COL_SK_RED, 8)
-		_ring(u, c, L * 0.92, 30.0, COL_SK_TEAL, 0.55, 10.0, 0.04)
-		_ring(u, c, L * 0.7, 20.0, COL_SK_RED.lerp(Color.WHITE, 0.3), 0.5, 6.0, 0.08)
+			u.debris(c + dq * L * 0.6, _skt(u) if m % 2 == 0 else _skr(u), 2)
+			u.grain("bfx_burst", c + dq * L * 0.35, dq, _skr(u), 8)
+		_ring(u, c, L * 0.92, 30.0, _skt(u), 0.55, 10.0, 0.04)
+		_ring(u, c, L * 0.7, 20.0, (Color(0.66, 0.2, 0.24) if _skp(u) else _skr(u).lerp(Color.WHITE, 0.3)), 0.5, 6.0, 0.08)   # 转平面版：这一圈留作酒红点缀
 		for m in (0 if a.get("v2", false) else 16):
 			var dv := Vector2.from_angle(float(m) * TAU / 16.0 + 0.1)
-			u.shape({"kind": "blade", "a": c + dv * 60.0, "b": c + dv * 200.0, "w": 10.0, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.3), "glow": COL_SK_TEAL if m % 2 == 0 else COL_SK_RED,
+			u.shape({"kind": "blade", "a": c + dv * 60.0, "b": c + dv * 200.0, "w": 10.0, "col": _skt(u).lerp(Color.WHITE, 0.3), "glow": _skt(u) if m % 2 == 0 else _skr(u),
 				"life": 0.32, "v": dv * 900.0})
-		u.shape({"kind": "dots", "c": c, "r": L * 0.9, "n": 40, "col": COL_SK_TEAL.lerp(Color.WHITE, 0.3), "life": 0.6})
+		u.shape({"kind": "dots", "c": c, "r": L * 0.9, "n": 40, "col": _skt(u).lerp(Color.WHITE, 0.3), "life": 0.6})
 		var dd: float = a.dd
-		u.shape({"kind": "ring", "c": c, "r": L, "w": 6.0, "col": COL_SK_RED, "life": dd, "layer": "back"})   # 领域边：碎裂像素环（原实心淡红圆）
+		u.shape({"kind": "ring", "c": c, "r": L, "w": 6.0, "col": _skr(u), "life": dd, "layer": "back"})   # 领域边：碎裂像素环（原实心淡红圆）
 		# 领域花纹（fx_ult_skalter_domain_back 弧状拼接段，地面层循环）：铺在领域边上往里 20，外缘不出伤害圈
-		_arc(u, "fx_ult_skalter_domain_back", c, L - 20.0, {"layer": "back", "loop": true, "life": dd})
+		_arc(u, _skn(u, "fx_ult_skalter_domain_back"), c, L - 20.0, {"layer": "back", "loop": true, "life": dd})
 		u.team_buff("ult:skalter_dom", dd, [[&"dmg", "mult", Bal.v("ult/sk_atk", 1.2)], [&"regen_pct", "flat", Bal.v("ult/sk_heal", 0.015)]], c, L)   # 只在领域里生效（协调人 10-30）
 		o.play_vis_anim("attack")
 	return a.blasted and a.pend.is_empty() and not a.fx.has(a.sf)
@@ -1809,7 +1850,7 @@ static func _sk_zones(u) -> void:
 				e["frag_v"] = amp if float(e.get("frag_t", 0.0)) <= g.t else maxf(float(e.get("frag_v", 0.0)), amp)
 				e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), g.t + 0.25)
 		if int(g.t * 10.0) % 4 == 0:
-			u.grain("mote_up", p, Vector2.UP, COL_SK_TEAL, 1)
+			u.grain("mote_up", p, Vector2.UP, _skt(u), 1)
 	if zs.is_empty():
 		u.remove_meta("sk_zones")
 
