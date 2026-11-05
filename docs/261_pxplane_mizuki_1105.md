@@ -92,6 +92,23 @@
 
 第二轮（11-05 用户意见后）：E0 → E1 靠触手出现区分，E1 → E2 靠荧光紫 + 深蓝之籽 + 双触手 / 对缠；S2 期间触手和缠绕集中在低血目标上时偏密（已加同只不叠）。
 
-## 6. GCP 出图与验收（待用户点头后补）
+## 6. GCP 出图与验收（11-05 用户看完 GIF 点头后，分支 claude/pxplane-mizuki）
 
-- 三栏对比（当前 / 旧做法 / 转平面）、三档图、8:00 开 / 关 mp4（≤ 30 MB）、TRACE 开 / 关逐行一致。
+| 项 | 结果 |
+|---|---|
+| TRACE：水月队长，种子 23，`--elite2 --sptest`，`growth/late_shape=1`，到 5:00，`fx/px_plane` 0 vs 1（画画面跑 windowed=1） | 301 行逐行一致（cloud-results/render-mizuki-trace-623ee5ab） |
+| TRACE：同上种子 29，到 7:00 | 421 行逐行一致 |
+| TRACE：8:00 录像那一局（种子 11，`--realtime`，late_shape） | 500 行逐行一致（render-mizuki-rec-623ee5ab） |
+| 脚本错误 | 演示 27 局 × 2 轮 + 录像 2 局，日志 0 条 SCRIPT ERROR |
+| 录像 | `late_8m00_onoff.mp4`，左关右开，30 帧原速，25.8 MB（crf 26） |
+
+实机看图：普攻三档和 GIF 一致（E0 伞面 + 水母、E1 拍击触手、E2 荧光紫 + 深蓝之籽）；8:00 录像里伞面月牙、缠绕、触手能读出来，不整屏发白、不比原版满。
+第一轮实机 E1 一次挥伞冒出 5–6 根拍击触手堆成一丛（演示局敌人扎堆、多目标追击），同屏触手上限 8 → 5（a04d6f524，只改画面）。
+
+**交付**（本机 `Claude outputs/`）：
+- `render-mizuki-demo-a04d6f52/`：三栏对比 `cmp_<招>_e<档>.png` + `_x2.png`（atk E0–E2、s1 E0–E2、s2 E1 / E2、s3 E2），三档并排 `tiers_atk / s1 / s2 / s3.png`；
+- `render-mizuki-s1-a04d6f52/`：S1 补拍（从 0.5 秒起逐帧 120 帧）：E2 拍到完整的三团大水母 + 刺穿触手 + 冲击环，E1 拍到强化伞面与命中，E0 仍只拍到强化前的普通伞击；
+- `render-mizuki-rec-623ee5ab/late_8m00_onoff.mp4`；
+- `pxplane_mizuki_1105/gif/`：交审 GIF。
+
+注意：图鉴演示不逐帧确定，三栏是「同一招、同一时刻」，细节不全同；S1 是「下一次伞击强化」，出手时刻不固定，演示窗口里 E0 / E1 没拍到强化那一击时以 GIF 和补拍为准。出图工具 `tools/pxplane_shots.py --op mizuki`（S2 按事件对齐，S1 / S3 按差异能量峰挑帧）。
