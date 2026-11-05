@@ -1,11 +1,11 @@
 ## 歌蕾蒂娅「转平面」（docs/263，开关 fx/px_plane）：fx_pxplane 的歌蕾蒂娅一节单独成文件（同批四人同时改 fx_pxplane.gd，分开免得合并冲突）。
 ## 全部是静态函数，第一个参数 r = fx_pxplane 实例（借它的件表、帧条绘制、15 fps 节拍、发光层、精英档）。只画，不碰玩法、不抽随机数（变化取位置 / 时刻的哈希）。
 ## 意象：钩索、锚、海流。普攻每一下都是掷钩 → 落地水刺 → 绷紧 → 拖回（地上一道 V 字拖痕）→ 到位拍水；
-##   精一「锚定」：到位处地上一枚锚印（眩晕期间）；精二（质变）：水团芯换深渊紫、落点中心冲起细水柱，到位「冲撞」一圈往外走的碎浪。
-## S1 大洋裂断 = 重钩（两格粗链）+ 大水柱 + 沿钩线两侧海水被劈开立起（「裂断」，运行时逐格画）；
+##   精一「锚定」：到位处地上一枚锚印（眩晕期间）；精二（质变）：水团芯换深渊紫、落点再炸开一小冠深渊紫水花，到位「冲撞」一圈贴地细涟漪。
+## S1 大洋裂断 = 重钩（两格粗链）+ 一大冠水花炸开 + 沿钩线地上一道被分开的水（「裂断」，贴地，运行时逐格画）；
 ## S2 掌握怒海 = 起手倾斜水环升起 + 脚下浪沫圈（持续）+ 每次掷钩身边海水往里倒卷；S3 碎漩狂舞 = 龙卷水墙（用户认可的龙卷版转平面：远半圈 / 近半圈分开排序）。
 ## 连携（技能连携 v2「聚拢」）= 几道链同时甩出把怪拖向区域 + 四周海水往中心倒卷、汇成一柱。
-## 帧条：game/art/fx/pxp/pxp_gl_*.png + data/pxp_gladiia.json（tools/pxplane_bake_gladiia.py）；运行时线状件（链、钩头、拖痕、裂断水墙、沉底锁链）逐美术像素画。
+## 帧条：game/art/fx/pxp/pxp_gl_*.png + data/pxp_gladiia.json（tools/pxplane_bake_gladiia.py）；运行时线状件（链、钩头、拖痕、裂断暗沟、沉底锁链）逐美术像素画。
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -48,11 +48,9 @@ static func _strip_pair(r, o, key: String, at: Vector2, follow := false, sk := 0
 	r._push(b)
 
 
-## 浪环三件：远半圈 bk（排在环心后方远沿，怪在它前面）/ 近半圈 up（排在近沿，盖住环里的怪）/ 地面 gd；ra = 环半径（美术像素）
+## 贴地涟漪两件：近半圈零星水沫 up（排在环的近沿）+ 地面细涟漪 gd；ra = 环半径（美术像素）
 static func _ring3(r, o, key: String, at: Vector2, ra: float, follow := false) -> void:
-	var dz: float = ra * 2.0 * SY
-	_strip(r, o, key + "_bk", at, "up", follow, -dz)
-	_strip(r, o, key + "_up", at, "up", follow, dz)
+	_strip(r, o, key + "_up", at, "up", follow, ra * 2.0 * SY)
 	_strip(r, o, key + "_gd", at, "gd", follow)
 
 
@@ -211,24 +209,12 @@ static func _burst(r, o, R, p: Dictionary, at: Vector2, es: Array, n: int, lr: f
 	R._light(o, hp, lr, li * MI.lit_k(r.g), 0.12, p.light)
 
 
-## S1「裂断」：沿钩线两侧海水被劈开立起（运行时逐格画）。立起水墙按 32 世界像素一段分段排序；地上一道暗沟 + 湿边
+## S1「裂断」（11-05 用户：原来两侧立起的水墙去掉）：沿钩线地上一道被分开的水——中间暗沟，两侧细白沫线往外推开后散掉（贴地，不立起）
 static func _parting(r, o, a: Vector2, c: Vector2, t: int) -> void:
 	var L: float = a.distance_to(c)
 	if L < 60.0:
 		return
-	var d: Vector2 = (c - a) / L
-	var s0: float = 28.0
-	var seg: float = 32.0
-	var s: float = s0
-	var k: int = 0
-	while s < L - 8.0 and k < 14:
-		var s1: float = minf(L - 8.0, s + seg)
-		var mid: Vector2 = a + d * ((s + s1) * 0.5)
-		r._push({"glrt": "part", "a": a, "d": d, "s0": s, "s1": s1, "L": L, "tier": t, "t0": r.g.t, "life": 0.62, "ly": "up", "oid": str(o.id), "k": "", "gp": mid, "gy": mid.y + 1.0})
-		s = s1
-		k += 1
-	r._push({"glrt": "trench", "a": a, "d": d, "L": L, "tier": t, "t0": r.g.t, "life": 0.75, "ly": "gd", "oid": str(o.id), "k": "", "gp": a})
-
+	r._push({"glrt": "trench", "a": a, "d": (c - a) / L, "L": L, "tier": t, "t0": r.g.t, "life": 0.75, "ly": "gd", "oid": str(o.id), "k": "", "gp": a})
 
 # ================================================================ 绘制
 
@@ -295,8 +281,7 @@ static func sort_items(r, o, out: Array) -> void:
 
 
 static func draw_rt(r, ci, it: Dictionary) -> void:
-	if str(it.glrt) == "part":
-		_draw_part(r, ci, it)
+	pass   # 立起的运行时件（原 S1 裂断水墙）11-05 已去掉；留着分流入口
 
 
 # ---------------------------------------------------------------- 运行时线状件
@@ -403,60 +388,29 @@ static func _draw_wake(r, cv, it: Dictionary) -> void:
 				r._px(cv, q + nrm * w * sg, C[7] if back < 8.0 and fade <= 0.0 else C[6] if k < 0.5 else C[5])
 
 
-## 裂断水墙的一段：两侧立起的水（深蓝 → 亮蓝 → 白唇往外倾），0.12 秒立起、停到 0.3 秒、0.5 秒塌完（塌时浪沫往外落）
-static func _draw_part(r, ci, it: Dictionary) -> void:
-	var g = r.g
-	var u: float = g.t - float(it.t0)
-	var tier: int = int(it.tier)
-	var hmax: float = [8.0, 12.0, 16.0][tier]
-	var rise: float = 1.0 - pow(1.0 - clampf(u / 0.12, 0.0, 1.0), 3.0)
-	var fall: float = clampf((u - 0.3) / 0.2, 0.0, 1.0)
-	var a: Vector2 = it.a
-	var d: Vector2 = it.d
-	var nrm := Vector2(-d.y, d.x * SY).normalized()
-	var L: float = float(it.L)
-	var s: float = float(it.s0)
-	while s < float(it.s1):
-		var taper: float = clampf((s - 28.0) / 30.0, 0.0, 1.0) * clampf((L - 8.0 - s) / 24.0, 0.0, 1.0)
-		for sg in [-1.0, 1.0]:
-			var hs: float = _h(s * 0.13 + sg * 3.0)
-			var bp: Vector2 = a + d * s + nrm * sg * 12.0 * (1.0 + 0.15 * hs)
-			var h: float = hmax * rise * (1.0 - fall) * (0.6 + 0.4 * hs) * (0.35 + 0.65 * taper)
-			var hp: int = int(round(h))
-			if h < 1.0:   # 立起前 / 塌完：不画（不留一道白线）
-				continue
-			for z in hp + 1:
-				var kz: float = float(z) / maxf(1.0, float(hp))
-				var c: Color = C[3] if kz < 0.35 else (C[4] if kz < 0.7 else C[6])
-				var lean: Vector2 = nrm * sg * (2.0 if kz > 0.8 else 0.0)
-				if z == hp:
-					c = ACC if tier >= 2 and _h(s * 0.7) > 0.6 else C[7]
-				r._px(ci, bp + lean + Vector2(0, -2.0 * float(z)), c)
-			if hp >= 3 and u < 0.12:
-				r._glow(bp + Vector2(0, -2.0 * float(hp)), C[7])
-			if fall > 0.0 and fall < 1.0 and _h(s * 0.29 + sg) > 0.6:   # 塌时浪沫往外落
-				var v: float = u - 0.3
-				var dp: Vector2 = bp + nrm * sg * (4.0 + 60.0 * v) + Vector2(0, -2.0 * hmax * 0.8 + 400.0 * v * v)
-				if dp.y < bp.y:
-					r._px(ci, dp, C[6])
-		s += 2.0
-
-
 static func _draw_trench(r, cv, it: Dictionary) -> void:
 	var g = r.g
 	var u: float = g.t - float(it.t0)
-	var gone: float = clampf((u - 0.3) / 0.45, 0.0, 1.0)
+	var gone: float = clampf((u - 0.25) / 0.5, 0.0, 1.0)
+	var tier: int = int(it.tier)
 	var a: Vector2 = it.a
 	var d: Vector2 = it.d
 	var nrm := Vector2(-d.y, d.x * SY).normalized()
+	var w: float = 8.0 + 6.0 * (1.0 - pow(1.0 - clampf(u / 0.15, 0.0, 1.0), 3.0))   # 两侧白沫往外推开
 	var s: float = 28.0
 	while s < float(it.L) - 8.0:
-		var hs: float = _h(s * 0.41)
-		if hs > gone:
-			r._px(cv, a + d * s + Vector2(0, 2), C[0])
+		var base: Vector2 = a + d * s + Vector2(0, 2)
+		if _h(s * 0.41) > 0.2 + 0.8 * gone:
+			r._px(cv, base, C[0])
 		for sg in [-1.0, 1.0]:
-			if _h(s * 0.9 + sg * 5.0) > 0.3 + 0.7 * gone:
-				r._px(cv, a + d * s + nrm * sg * 12.0 + Vector2(0, 2), C[2])
+			var q: float = _h(s * 0.9 + sg * 5.0)
+			if q > 0.3 + 0.7 * gone:
+				var c: Color = C[5] if q > 0.6 else C[2]
+				if tier >= 2 and _h(s * 1.7 + sg) > 0.9:
+					c = ACC
+				r._px(cv, base + nrm * sg * w, c)
+			if tier >= 1 and _h(s * 1.3 + sg * 9.0) > 0.78 + 0.22 * gone:
+				r._px(cv, base + nrm * sg * (w + 3.0), C[6])
 		s += 2.0
 
 

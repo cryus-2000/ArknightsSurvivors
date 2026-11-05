@@ -7,7 +7,7 @@
   - 背景游戏地面色，打在几只怪（深色剪影）上，干员本体用 idle 第 0 帧；
   - 每栏上半 1 倍（= 实机大小：1 美术像素 = 2 屏幕像素），下半 2 倍放大；
   - 15 fps 原速循环（一拍 = 一帧，帧时长 70 / 60 / 70 毫秒交替，平均 66.7）。
-帧条用 tools/pxplane_bake_gladiia.py 烘出的同一批 PNG；运行时线状件（链、钩头、拖痕、裂断水墙、暗沟、沉底锁链）
+帧条用 tools/pxplane_bake_gladiia.py 烘出的同一批 PNG；运行时线状件（链、钩头、拖痕、裂断暗沟、沉底锁链）
 按 game/scripts/render/fx_pxplane_gl.gd 的同一算法逐美术像素画（这里是 Python 抄写，改一边要同步另一边）。
 玩法时序按 gladiia.json / seg_ulpianus 的钩索：飞 dist/900 秒（0.1–0.24）→ 绷紧 0.12 → 拖 0.22（kr = 1-(1-k)²）→ 到位。
 贴地层先画；立起层、怪、干员按脚底 y 排序；链与钩头在上层；热芯（emit）近似发光层加一层柔光。场景压暗 / 受光不模拟。
@@ -212,53 +212,27 @@ def wake(cv, it, t, e):
                 cv.px((q[0] + nr[0] * w * sg, q[1] + nr[1] * w * sg), C[7] if back < 8 and fade <= 0 else (C[6] if k < 0.5 else C[5]))
 
 
-def part(cv, it, t):
-    u = t - it["t0"]
-    tier = it["tier"]
-    hmax = [8.0, 12.0, 16.0][tier]
-    rise = 1 - (1 - min(1.0, max(0.0, u / 0.12))) ** 3
-    fall = min(1.0, max(0.0, (u - 0.3) / 0.2))
-    a, d, L = it["a"], it["d"], it["L"]
-    nr = norm((-d[1], d[0] * SY))
-    s = it["s0"]
-    while s < it["s1"]:
-        taper = min(1.0, max(0.0, (s - 28) / 30)) * min(1.0, max(0.0, (L - 8 - s) / 24))
-        for sg in (-1.0, 1.0):
-            hs = h_(s * 0.13 + sg * 3.0)
-            bp = (a[0] + d[0] * s + nr[0] * sg * 12 * (1 + 0.15 * hs), a[1] + d[1] * s + nr[1] * sg * 12 * (1 + 0.15 * hs))
-            hh = hmax * rise * (1 - fall) * (0.6 + 0.4 * hs) * (0.35 + 0.65 * taper)
-            hp = int(round(hh))
-            if hh < 1.0:
-                continue
-            for z in range(hp + 1):
-                kz = z / max(1.0, hp)
-                c = C[3] if kz < 0.35 else (C[4] if kz < 0.7 else C[6])
-                lean = (nr[0] * sg * 2, nr[1] * sg * 2) if kz > 0.8 else (0, 0)
-                if z == hp:
-                    c = ACC if tier >= 2 and h_(s * 0.7) > 0.6 else C[7]
-                cv.px((bp[0] + lean[0], bp[1] + lean[1] - 2 * z), c)
-            if hp >= 3 and u < 0.12:
-                cv.glow((bp[0], bp[1] - 2 * hp), C[7])
-            if 0 < fall < 1 and h_(s * 0.29 + sg) > 0.6:
-                v = u - 0.3
-                dp = (bp[0] + nr[0] * sg * (4 + 60 * v), bp[1] + nr[1] * sg * (4 + 60 * v) - 2 * hmax * 0.8 + 400 * v * v)
-                if dp[1] < bp[1]:
-                    cv.px(dp, C[6])
-        s += 2.0
-
-
 def trench(cv, it, t):
     u = t - it["t0"]
-    gone = min(1.0, max(0.0, (u - 0.3) / 0.45))
+    gone = min(1.0, max(0.0, (u - 0.25) / 0.5))
+    tier = it["tier"]
     a, d, L = it["a"], it["d"], it["L"]
     nr = norm((-d[1], d[0] * SY))
+    w = 8.0 + 6.0 * (1 - (1 - min(1.0, max(0.0, u / 0.15))) ** 3)
     s = 28.0
     while s < L - 8:
-        if h_(s * 0.41) > gone:
-            cv.px((a[0] + d[0] * s, a[1] + d[1] * s + 2), C[0])
+        base = (a[0] + d[0] * s, a[1] + d[1] * s + 2)
+        if h_(s * 0.41) > 0.2 + 0.8 * gone:
+            cv.px(base, C[0])
         for sg in (-1.0, 1.0):
-            if h_(s * 0.9 + sg * 5.0) > 0.3 + 0.7 * gone:
-                cv.px((a[0] + d[0] * s + nr[0] * sg * 12, a[1] + d[1] * s + nr[1] * sg * 12 + 2), C[2])
+            q = h_(s * 0.9 + sg * 5.0)
+            if q > 0.3 + 0.7 * gone:
+                c = C[5] if q > 0.6 else C[2]
+                if tier >= 2 and h_(s * 1.7 + sg) > 0.9:
+                    c = ACC
+                cv.px((base[0] + nr[0] * sg * w, base[1] + nr[1] * sg * w), c)
+            if tier >= 1 and h_(s * 1.3 + sg * 9.0) > 0.78 + 0.22 * gone:
+                cv.px((base[0] + nr[0] * sg * (w + 3), base[1] + nr[1] * sg * (w + 3)), C[6])
         s += 2.0
 
 
@@ -296,7 +270,6 @@ class Scene:
 
     def ring3(self, k, tk, gp, ra):
         dz = ra * 2 * SY
-        self.add(k + "_bk", tk, gp, "up", sk=-dz)
         self.add(k + "_up", tk, gp, "up", sk=dz)
         self.add(k + "_gd", tk, gp, "gd")
 
@@ -353,13 +326,7 @@ class Scene:
     def parting(self, tk, a, c):
         L = math.hypot(c[0] - a[0], c[1] - a[1])
         d = ((c[0] - a[0]) / L, (c[1] - a[1]) / L)
-        s = 28.0
-        while s < L - 8:
-            s1 = min(L - 8, s + 32)
-            mid = (a[0] + d[0] * (s + s1) / 2, a[1] + d[1] * (s + s1) / 2)
-            self.rt.append({"kind": "part", "a": a, "d": d, "s0": s, "s1": s1, "L": L, "tier": self.tier, "t0": tk / 15.0, "life": 0.62, "gy": mid[1] + 1})
-            s = s1
-        self.rt.append({"kind": "trench", "a": a, "d": d, "L": L, "t0": tk / 15.0, "life": 0.75})
+        self.rt.append({"kind": "trench", "a": a, "d": d, "L": L, "tier": self.tier, "t0": tk / 15.0, "life": 0.75})
 
     def step_enemies(self, t):
         for hk in self.hooks:
@@ -425,8 +392,6 @@ def render(sc, tk):
             trench(cv, it, t)
         elif it["kind"] == "sunk":
             sunk(cv, it["a"], it["c"], it["gone"](t))
-        elif it["kind"] == "part":
-            sortables.append((OY + it["gy"], "part", it))
     for e in sc.en:
         sortables.append((OY + e["pos"][1], "enemy", e))
     sortables.append((OY + 0.0, "op", None))
@@ -436,8 +401,6 @@ def render(sc, tk):
             cv.sprite(ENEMY, v["pos"], (ENEMY.width // 2, ENEMY.height - 6))
         elif kind == "op":
             cv.sprite(OPSPR, (0, 0), (64, 120))
-        elif kind == "part":
-            part(cv, v, t)
         else:
             k, fi, gp, fl, loop = v
             cv.strip(lib, k, fi, gp, fl, loop)

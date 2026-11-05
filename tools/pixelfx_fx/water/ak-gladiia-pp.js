@@ -10,7 +10,7 @@ import { fit, clamp, smooth, ease, noise, noise2, TAU, hex, WHITE } from "../../
 
 export const meta = {
   name: "Gladiia plane",
-  desc: "Gladiia's hook, anchor and maelstrom moves redrawn for a 3/4 top-down plane: water spikes and geysers, a breaking ring wave, a tide funnel, and squashed ground rings, wakes and anchor marks.",
+  desc: "Gladiia's hook, anchor and maelstrom moves redrawn for a 3/4 top-down plane: water spikes and splash crowns, flat ground ripples, a tide funnel, and squashed ground rings, wakes and anchor marks.",
   tags: ["water", "hook", "topdown", "gladiia", "one-shot"],
   size: [220, 230],
   origin: [110, 160],
@@ -96,13 +96,7 @@ function hit(p, t, o, C, A1, A2) {
       if (y < 3) { p.px(R0(x), R0(y), u < 0.08 ? C[n - 2] : C[n - 3]); if (i % 2 === 0) p.px(R0(x) + 1, R0(y), C[n - 4]); }
     }
   }
-  if (el >= 2 && t < 0.4) {   // 精二：中心一道细水柱冲起再碎落
-    const H = 20 * ease.outCubic(clamp((t - 0.067) / 0.1)) * (1 - smooth(0.24, 0.4, t));
-    for (let z = 0; z <= H; z += 0.5) {
-      const kz = z / Math.max(1, H), c = kz > 0.82 ? WHITE : kz > 0.5 ? C[n - 3] : A2;
-      p.px(-1, R0(cy - 3 - z), kz > 0.82 ? C[n - 2] : C[3]); p.px(0, R0(cy - 3 - z), c); p.px(1, R0(cy - 3 - z), C[3]);
-    }
-  }
+  if (el >= 2) crown(p, t - 0.05, o, C, A1, { N: 12, H: 14, spread: 34, r0: 3, acc: true, seed: 5 });   // 精二：落点再炸开一小冠水花（深渊紫水滴）
   if (raw) p.light(0, cy, C[n - 3], 0.6 * (1 - fade));
 }
 
@@ -198,137 +192,119 @@ function arriveGround(p, t, o, C, A1) {
 }
 const r0 = (big) => (big ? 8 : 5);
 
-// ---------------------------------------------------------------- 浪环（精二「冲撞」/ 反震 / 扩散）：一圈往外走的浪，浪顶外倾卷出白唇，碎成白沫落下
-function ringWave(p, t, o, C, A1, gd) {
-  const R = +o.R, H = +o.H, SY = o.view === "raw" ? 1 : +o.SY, n = C.length, el = +o.el;
-  const D = +o.dur, go = ease.outCubic(clamp(t / (D * 0.65))), r = R * (0.3 + 0.7 * go);
-  const rise = Math.sin(Math.PI * clamp(t / (D * 0.85))), brk = smooth(D * 0.45, D * 0.9, t);
-  const m = Math.ceil(r * TAU * 1.1);
-  if (gd) {
-    if (t > D) return;
-    for (let j = 0; j < m; j++) {
-      const a = (j / m) * TAU;
-      if (nz(a * 4.3, o.seed + 51) < 0.15 + 0.85 * brk * 0.8) continue;
-      const rr = r * (0.94 + 0.12 * nz(a * 7.7, o.seed + 53));
-      p.px(R0(Math.cos(a) * rr), R0(Math.sin(a) * rr * SY), C[1]);   // 浪脚暗湿带
-      p.px(R0(Math.cos(a) * (rr - 1)), R0(Math.sin(a) * (rr - 1) * SY), C[2]);
-      if (brk > 0.2 && nz(a * 13, o.seed + 55) > 0.6) p.px(R0(Math.cos(a) * (rr + 2)), R0(Math.sin(a) * (rr + 2) * SY), C[n - 2]);   // 摊开的碎沫
-    }
+// ---------------------------------------------------------------- 水花冠（11-05 用户「水柱有点搞笑」：不做竖直水柱）：贴地炸开——
+// 第 0 拍一块扁的白色拍水，随后一圈水滴有重量地往外上方甩出、受重力落回地面（落地成一点暗水），根部一圈不规整白沫；顶端不规则，没有柱身。
+// N 水滴数、H 甩起的大致高度（美术像素）、spread 往外的速度、r0 起点半径；精二（acc）四分之一水滴点深渊紫
+function crown(p, t, o, C, A1, k) {
+  const n = C.length, SY = +o.SY, G = 420, N = k.N, H = k.H, sp = k.spread, r0 = k.r0, sd = (k.seed || 0) + o.seed;
+  if (t < 0) return;
+  if (t < 0.067) {   // 第 0 拍：扁的白色拍水
+    const w = Math.round(r0 * (k.wide || 1)) + 3;
+    for (let x = -w; x <= w; x++) { p.px(x, 0, WHITE); if (Math.abs(x) < w - 1) p.px(x, -1, C[n - 2]); }
+    for (let i = 0; i < 5; i++) { const x = R0((nz(i * 2.7, sd + 301) - 0.5) * 2 * w); p.px(x, -2 - (i % 2), WHITE); }
     return;
   }
-  if (t > D) return;
-  const cols = [];
-  for (let j = 0; j < m; j++) {
-    const a = (j / m) * TAU;
-    if (nz(a * 4.3, o.seed + 51) < 0.12) continue;   // 断口
-    if (o.layer === "bk" ? Math.sin(a) >= 0 : o.layer === "up" && o.view !== "raw" && Math.sin(a) < 0) continue;
-    cols.push(a);
-  }
-  cols.sort((x, y) => Math.sin(x) - Math.sin(y));   // 远半圈先画
-  for (const a of cols) {
-    const rr = r * (0.94 + 0.12 * nz(a * 7.7, o.seed + 53));
-    const bx = Math.cos(a) * rr, by = Math.sin(a) * rr * SY;
-    const h = H * rise * (0.55 + 0.45 * nz(a * 3.7, o.seed + 57)) * (1 - 0.8 * brk);
-    const far = Math.sin(a) < -0.2 ? 2 : Math.sin(a) < 0.2 ? 1 : 0;
-    for (let z = 0; z <= h; z += 0.5) {
-      const k = z / Math.max(1, h), lean = k * k * (1.5 + 3 * brk);
-      let ci = k > 0.78 ? n - 1 : k > 0.5 ? n - 3 : k > 0.25 ? n - 4 : n - 5;
-      ci = clamp(ci - far, 1, n - 1);
-      let c = C[ci];
-      if (el >= 2 && k > 0.78 && nz(a * 21, o.seed + 59) > 0.55) c = A1;   // 精二浪顶点深渊紫
-      p.px(R0(bx + Math.cos(a) * lean), R0(by + Math.sin(a) * SY * lean - z), c);
+  const u = t - 0.067;
+  for (let i = 0; i < N; i++) {
+    const a = (i + 0.9 * nz(i * 2.1, sd + 303)) / N * TAU, q = nz(i * 1.3, sd + 305);
+    const vz = Math.sqrt(2 * G * H) * (0.45 + 0.55 * q), vh = sp * (0.5 + 0.5 * nz(i * 3.7, sd + 307));
+    const rr = r0 + vh * u, gx = Math.cos(a) * rr, gy = Math.sin(a) * rr * SY, z = vz * u - 0.5 * G * u * u;
+    if (z < -0.5) {   // 落回地面：一点暗水，停一拍
+      const tl = (2 * vz) / G;
+      if (u - tl < 0.1) p.px(R0(Math.cos(a) * (r0 + vh * tl)), R0(Math.sin(a) * (r0 + vh * tl) * SY), C[3]);
+      continue;
     }
-    if (brk > 0.05) {   // 浪头碎成白沫往外翻、受重力落下
-      const u = (t - D * 0.45), hh = H * (0.55 + 0.45 * nz(a * 3.7, o.seed + 57)) * 0.8;
-      if (nz(a * 17, o.seed + 61) > 0.55) {
-        const x = bx + Math.cos(a) * (3 + 30 * u), y = by + Math.sin(a) * SY * (3 + 30 * u) - hh + 260 * u * u;
-        if (y < by + 1) p.px(R0(x), R0(y), u < 0.08 ? WHITE : C[n - 3]);
+    let c = u < 0.06 ? WHITE : vz - G * u > 0 ? C[n - 2] : C[n - 3];   // 上升亮、下落暗一阶
+    if (k.acc && i % 4 === 1 && u >= 0.06) c = A1;
+    const X = R0(gx), Y = R0(gy - z);
+    p.px(X, Y, c);
+    if (q > (k.big ? 0.25 : 0.6)) { p.px(X + 1, Y, C[n - 3]); if (k.big && q > 0.7) p.px(X, Y + 1, C[n - 4]); }   // 一部分是 2 格大水滴（重钩更多更大）
+    if (u < 0.14) p.px(R0(gx - Math.cos(a) * 1.5), R0(gy - z + 1.5), C[4]);   // 刚甩出时拖一格尾
+  }
+  if (u < 0.22) {   // 根部一圈不规整白沫（贴地，不立起）
+    const rf = r0 + sp * 0.12 * ease.outCubic(clamp(u / 0.15)), m = Math.ceil(rf * TAU);
+    for (let j = 0; j < m; j++) {
+      const a = (j / m) * TAU, qq = nz(a * 5.1, sd + 309);
+      if (qq < 0.35 + smooth(0.08, 0.22, u) * 0.6) continue;
+      p.px(R0(Math.cos(a) * rf), R0(Math.sin(a) * rf * SY - (qq > 0.8 ? 1 : 0)), qq > 0.7 ? WHITE : C[n - 3]);
+    }
+  }
+}
+
+// ---------------------------------------------------------------- 水波纹（精二「冲撞」/ 反震 / 扩散）：贴地压扁的细涟漪往外扩散后淡掉（11-05 用户「水波纹太像水墙」：不立起、不厚）
+// gd：1 格细线（前沿 + 晚半拍的第二道），颜色低调，越外越暗、按噪声断开散掉；up：沿涟漪零星跳起的几点水沫（1–3 格高）；bk 空
+function ringWave(p, t, o, C, A1, gd) {
+  const R = +o.R, SY = o.view === "raw" ? 1 : +o.SY, n = C.length, el = +o.el, D = +o.dur;
+  if (t > D || o.layer === "bk") return;
+  for (const [dt, ks] of [[0, 1], [0.09, 0.78]]) {
+    const tt = t - dt;
+    if (tt < 0) continue;
+    const k = ease.outCubic(clamp(tt / (D * 0.8))), r = R * ks * (0.25 + 0.75 * k), gone = smooth(D * 0.35, D, t);
+    const m = Math.ceil(r * TAU * 1.1);
+    for (let j = 0; j < m; j++) {
+      const a = (j / m) * TAU, q = nz(a * 4.3 + dt * 9, o.seed + 51);
+      if (q < 0.2 + 0.8 * gone) continue;
+      const rr = r * (0.96 + 0.08 * nz(a * 7.7, o.seed + 53)), x = Math.cos(a) * rr, y = Math.sin(a) * rr * SY;
+      if (gd || o.view === "raw") {
+        let c = k < 0.3 ? C[5] : k < 0.65 ? C[4] : C[3];
+        if (dt > 0) c = C[3];
+        if (el >= 2 && q > 0.93) c = A1;
+        p.px(R0(x), R0(y), c);
+      } else if (dt === 0 && q > 0.9 && tt < D * 0.6) {   // 零星跳起的水沫
+        const hop = 3 * Math.sin(Math.PI * clamp(tt / (D * 0.6)));
+        p.px(R0(x), R0(y - 1 - hop * nz(a * 13, o.seed + 55)), el >= 2 && q > 0.96 ? A1 : C[n - 3]);
       }
     }
   }
-  if (o.view === "raw") p.light(0, 0, C[n - 3], 0.5 * (1 - brk));
+  if (o.view === "raw") p.light(0, 0, C[n - 3], 0.4 * (1 - t / D));
 }
 
-// ---------------------------------------------------------------- 回卷浪（S2 每次掷钩拉近身边 / 连携「聚拢」）：四周海水往中心倒卷，浪沫边越收越快；spout 时汇到中心冲起一柱
+// ---------------------------------------------------------------- 回卷（S2 每次掷钩拉近身边 / 连携「聚拢」）：贴地的细涟漪往中心收、越收越快，身后拖几道往外的细水纹；big：汇到中心炸开一冠水花
 function backwash(p, t, o, C, A1, gd) {
-  const R = +o.R, H = +o.H, SY = +o.SY, n = C.length, el = +o.el, D = +o.dur, spout = !!+o.big;
+  const R = +o.R, SY = +o.SY, n = C.length, el = +o.el, D = +o.dur, spout = !!+o.big;
+  if (o.layer === "bk") return;
   const g = ease.inCubic(clamp(t / D)), r = R * (1 - 0.8 * g);
   if (t < D) {
     const m = Math.ceil(r * TAU * 1.1);
-    const cols = [];
     for (let j = 0; j < m; j++) {
-      const a = (j / m) * TAU;
-      if (nz(a * 3.3, o.seed + 71) < 0.28) continue;
-      if (!gd && (o.layer === "bk" ? Math.sin(a) >= 0 : Math.sin(a) < 0)) continue;
-      cols.push(a);
-    }
-    cols.sort((x, y) => Math.sin(x) - Math.sin(y));
-    for (const a of cols) {
-      const rr = r * (0.9 + 0.2 * nz(a * 6.1, o.seed + 73)), x = Math.cos(a) * rr, y = Math.sin(a) * rr * SY;
-      if (gd) {   // 地上：前沿暗湿带 + 往外拖的水纹（越收越快、纹越长）
-        p.px(R0(x), R0(y), C[1]);
-        const L = 2 + 10 * g * nz(a * 9, o.seed + 75);
-        for (let s = 1; s <= L; s += 1) if (nz(a * 31 + s, o.seed + 77) > 0.4)
-          p.px(R0(x + Math.cos(a) * s), R0(y + Math.sin(a) * SY * s), s < 3 ? C[n - 4] : C[n - 5]);
-        continue;
-      }
-      const h = H * (0.6 + 0.4 * nz(a * 4.7, o.seed + 79)), far = Math.sin(a) < -0.2 ? 1 : 0;
-      for (let z = 0; z <= h; z += 0.5) {
-        const k = z / h, lean = -k * k * 3;
-        let c = k > 0.65 ? (el >= 2 && nz(a * 19, o.seed + 81) > 0.6 ? A1 : WHITE) : k > 0.35 ? C[n - 3 - far] : C[n - 5 - far];
-        p.px(R0(x + Math.cos(a) * lean), R0(y - z + Math.sin(a) * SY * lean), c);
+      const a = (j / m) * TAU, q = nz(a * 3.3, o.seed + 71);
+      if (q < 0.3) continue;
+      const rr = r * (0.94 + 0.12 * nz(a * 6.1, o.seed + 73)), x = Math.cos(a) * rr, y = Math.sin(a) * rr * SY;
+      if (gd) {
+        p.px(R0(x), R0(y), el >= 2 && q > 0.94 ? A1 : g < 0.4 ? C[4] : C[5]);
+        if (q > 0.72) {   // 往外拖的细水纹（越收越快、纹越长）
+          const L = 2 + 7 * g * nz(a * 9, o.seed + 75);
+          for (let s = 2; s <= L; s += 1) p.px(R0(x + Math.cos(a) * s), R0(y + Math.sin(a) * SY * s), C[2]);
+        }
+      } else if (q > 0.9) {
+        p.px(R0(x), R0(y - 1 - 2 * nz(a * 11, o.seed + 77)), C[n - 3]);
       }
     }
   }
-  if (spout && o.layer === "up" && t >= D - 0.03) geyserUp(p, t - (D - 0.03), Object.assign({}, o, { H: +o.H2 || 40, W: 4, el }), C, A1);
-  if (spout && gd && t >= D - 0.03) hitGround(p, t - (D - 0.03), Object.assign({}, o, { R: R * 0.4 }), C);
+  if (spout && t >= D - 0.03) {
+    if (gd) hitGround(p, t - (D - 0.03), Object.assign({}, o, { R: R * 0.35 }), C);
+    else crown(p, t - (D - 0.03), o, C, A1, { N: 22, H: +o.H2 || 30, spread: 70, r0: 4, seed: 11 });
+  }
 }
 
-// ---------------------------------------------------------------- 水柱（S1 重钩落地 / 暗涌 / 连携汇流）：冲起 → 顶上炸开水花 → 塌落
+// 「水花冠」作为独立件（暗涌）
 function geyserUp(p, t, o, C, A1) {
-  const H = +o.H, W = +o.W, n = C.length, el = +o.el;
-  if (t < 0) return;
-  const rise = ease.outCubic(clamp(t / 0.12)), fall = smooth(0.24, 0.5, t), hc = H * rise * (1 - fall);
-  for (let z = 0; z <= hc; z += 0.5) {
-    const k = z / Math.max(1, H), w = W * (0.7 + 0.5 * k) * (1 - 0.5 * fall);
-    for (let q = -w / 2; q <= w / 2 + 0.01; q += 0.5) {
-      const e = Math.abs(q) / Math.max(0.5, w / 2);
-      let c = t < 0.067 ? (e < 0.6 ? WHITE : C[n - 2]) : e > 0.75 ? C[3] : q < 0 ? C[n - 3] : C[4];
-      if (el >= 2 && t >= 0.067 && e < 0.3 && k < 0.7) c = A1;   // 精二：深渊紫的芯
-      if (k * H > hc - 3 && t >= 0.067) c = e < 0.5 ? WHITE : C[n - 2];   // 柱顶白沫
-      p.px(R0(q), R0(-z), c);
-    }
-  }
-  if (t > 0.08) {   // 柱顶炸开的水花（有重力）
-    const u = t - 0.08, N = 12 + 4 * el;
-    for (let i = 0; i < N; i++) {
-      const a = -Math.PI * (0.1 + 0.8 * nz(i * 2.3, o.seed + 91)), v = 40 + 50 * nz(i * 1.1, o.seed + 93);
-      const x = Math.cos(a) * v * u, y = -H * rise + Math.sin(a) * v * u + 300 * u * u;
-      if (y > 2) continue;
-      p.px(R0(x), R0(y), u < 0.06 ? WHITE : u < 0.16 ? C[n - 2] : C[n - 4]);
-      if (i % 3 === 0) p.px(R0(x) + 1, R0(y), C[n - 3]);
-    }
-  }
+  const H = +o.H, el = +o.el;
+  crown(p, t, o, C, A1, { N: 12 + 3 * el, H: H, spread: 30 + H * 0.8, r0: 3, acc: el >= 2, seed: 7 });
 }
 
-// S1「缺水的大洋裂断」重钩落地：大水柱 + 根部一圈粗水刺；精一更高、水花更多；精二（质变）深渊紫的芯 + 两侧各一道副柱
+// S1「缺水的大洋裂断」重钩落地：一大冠水花炸开（底部宽、往外上方甩出成团水滴、有重量地落回）+ 根部一圈粗水刺；
+// 精一水花更多更高；精二（质变）水滴点深渊紫 + 0.16 秒后第二冠回落溅起
 function s1hit(p, t, o, C, A1, A2) {
   const R = +o.R, el = +o.el, n = C.length;
-  geyserUp(p, t, Object.assign({}, o, { H: 40 + 8 * el + R * 0.2, W: 5 + el }), C, A1);
-  if (el >= 2) for (const sx of [-1, 1]) {
-    const off = sx * R * 0.38, H2 = (30 + R * 0.15);
-    const tt = t - 0.05;
-    if (tt < 0) continue;
-    const rise = ease.outCubic(clamp(tt / 0.12)), fall = smooth(0.22, 0.45, tt), hc = H2 * rise * (1 - fall);
-    for (let z = 0; z <= hc; z += 0.5) for (let q = -1; q <= 1; q++)
-      p.px(R0(off + q), R0(-z), z > hc - 2 ? WHITE : q === 0 ? A2 : C[4]);
-  }
+  crown(p, t, o, C, A1, { N: 30 + 10 * el, H: 30 + 8 * el + R * 0.2, spread: 50 + R * 1.0, r0: 5 + el, acc: el >= 2, big: true, wide: 2, seed: 3 });
+  if (el >= 2) crown(p, t - 0.16, o, C, A1, { N: 14, H: 12, spread: 30 + R * 0.6, r0: 6, acc: true, seed: 9 });
   if (t >= 0.067 && t < 0.36) {
     const N = 6 + el, L = R * 0.35, fade = smooth(0.12, 0.36, t);
     for (let i = 0; i < N; i++) {
-      const a = -Math.PI * (0.04 + 0.92 * (i + 0.5) / N), lj = 0.7 + 0.3 * nz(i * 1.9, o.seed + 101);
+      const a = -Math.PI * (-0.08 + 1.16 * (i + 0.7 * nz(i * 2.3, o.seed + 99)) / N), lj = 0.5 + 0.5 * nz(i * 1.9, o.seed + 101);
       const l = L * lj * (1 - 0.8 * fade);
-      if (l >= 2) spike(p, Math.cos(a) * 4, Math.sin(a) * 2, a * 0.6 - 0.2 * Math.PI, l, 3, C[4], C[n - 3], WHITE);
+      if (l >= 2) spike(p, Math.cos(a) * 4, Math.sin(a) * 2, a, l, 2 + 1.5 * nz(i * 3.3, o.seed + 103), C[4], C[n - 3], WHITE);
     }
   }
 }
@@ -357,7 +333,7 @@ function s1hitGround(p, t, o, C) {
 // half: bk 远半圈（排在她身后）/ up 近半圈 + 水柱；精二（质变）两道反向水环 + 深渊紫高光
 function s2ring(p, t, o, C, A1, half) {
   const R = +o.R, SY = +o.SY, n = C.length, el = +o.el;
-  const rings = el >= 2 ? [[R, 26, 1, 4], [R * 0.68, 15, -1, 3]] : [[R, 24, 1, 3]];
+  const rings = el >= 2 ? [[R, 26, 1, 2], [R * 0.68, 15, -1, 2]] : [[R, 24, 1, 2]];
   for (const [Rr, Z, dirn, th] of rings) {
     const grow = ease.outCubic(clamp(t / 0.28)), r = Rr * (0.7 + 0.3 * grow), z0 = Z * grow, gone = smooth(0.32, 0.56, t);
     const m = Math.ceil(r * TAU * 1.2), rot = dirn * t * 4;
@@ -379,7 +355,7 @@ function s2ring(p, t, o, C, A1, half) {
       }
     }
   }
-  if (half !== "bk" && t >= 0.12) geyserUp(p, t - 0.12, Object.assign({}, o, { H: 20 + 6 * el, W: 3, el }), C, A1);
+  if (half !== "bk" && t >= 0.12) crown(p, t - 0.12, o, C, A1, { N: 14 + 4 * el, H: 16 + 4 * el, spread: 34, r0: 4, acc: el >= 2, seed: 13 });
 }
 
 function s2ringGround(p, t, o, C) {
@@ -477,9 +453,9 @@ function tornado(p, t, o, T, A1, layer) {
       let streak = -1;
       for (let b = 0; b < bands.length; b++) {
         const B = bands[b];
-        if ((Math.round(z + B.z0 * 4) % 4) !== 0) continue;
+        if ((Math.round(z + B.z0 * 5) % 5) !== 0) continue;
         const ab = ((a - (B.ph + rot + B.tw * kz)) % (TAU / 3) + TAU / 3) % (TAU / 3);
-        if (ab < B.len * (near ? 0.55 : 0.8) * (0.5 + 0.5 * nz(z * 0.37 + b, o.seed + 191))) { streak = b; break; }
+        if (ab < B.len * (near ? 0.38 : 0.6) * (0.5 + 0.5 * nz(z * 0.37 + b, o.seed + 191))) { streak = b; break; }
       }
       const edge = Math.abs(Math.cos(a)) > 0.965;   // 两侧轮廓（侧面看过去水墙最厚）
       if (!near) {

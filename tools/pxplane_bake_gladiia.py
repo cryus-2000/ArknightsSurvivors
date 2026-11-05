@@ -53,16 +53,16 @@ def variants():
         v.append(("arr_e%d_gd" % el, {"part": "arrive", "layer": "gd", "el": el, "big": 0, "seed": 7}, 0.6 if el == 0 else 1.1))
         v.append(("s1arr_e%d_up" % el, {"part": "arrive", "layer": "up", "el": el, "big": 1, "seed": 9}, 0.4))
         v.append(("s1arr_e%d_gd" % el, {"part": "arrive", "layer": "gd", "el": el, "big": 1, "seed": 9}, 0.6 if el == 0 else 1.1))
-    # 精二「冲撞」（ram_r 80 → 40）/ 反震（pop_r 120 → 60）/ 扩散（splash_r 60 → 30）：往外走的浪环
+    # 精二「冲撞」（ram_r 80 → 40）/ 反震（pop_r 120 → 60）/ 扩散（splash_r 60 → 30）：贴地细涟漪往外扩散（11-05 用户「水波纹太像水墙」后改）
     for k, R, H, el, dur in (("ram", 40, 13, 2, 0.45), ("pop", 60, 9, 1, 0.5), ("splash", 30, 5, 0, 0.3)):
-        for ly in ("bk", "up", "gd"):
+        for ly in ("up", "gd"):
             v.append(("%s_%s" % (k, ly), {"part": "wave", "layer": ly, "R": R, "H": H, "el": el, "dur": dur, "seed": 11 + R}, dur + 0.04))
     # S2 起手水环（远半圈 bk / 近半圈 + 水柱 up / 地面 gd）、持续脚下浪沫圈（循环）、每次掷钩拉近身边（s2_pull_r 160 → 80）
     for el in (1, 2):
         for ly in ("bk", "up", "gd"):
             v.append(("s2cast_e%d_%s" % (el, ly), {"part": "s2cast", "layer": ly, "R": 46, "el": el, "seed": 13}, 0.62))
         v.append(("s2aura_e%d_gd" % el, {"part": "s2aura", "layer": "gd", "R": 17, "el": el, "dur": 0.6, "seed": 15, "_loop": 0.6}, 0.6))
-        for ly in ("bk", "up", "gd"):
+        for ly in ("up", "gd"):
             v.append(("s2pull_e%d_%s" % (el, ly), {"part": "backwash", "layer": ly, "R": 80, "H": 4, "el": el, "dur": 0.3, "big": 0, "seed": 17}, 0.34))
     # S3 龙卷（s3_r 130 → 65，高 56）：起 / 循环 / 收，每段三层；每跳地上收拢弧
     for mode, dur in (("open", 0.34), ("loop", 0.6), ("close", 0.56)):
@@ -80,7 +80,7 @@ def variants():
     for ly in ("up", "gd"):
         v.append(("geyser_%s" % ly, {"part": "geyser", "layer": ly, "R": 15, "H": 30, "W": 3, "el": 1, "seed": 25}, 0.5))
     # 连携「聚拢」（技能连携 v2 gather，区域 150 → 75）：四周海水往中心倒卷，汇到中心冲起一柱
-    for ly in ("bk", "up", "gd"):
+    for ly in ("up", "gd"):
         v.append(("link_%s" % ly, {"part": "backwash", "layer": ly, "R": 75, "H": 7, "H2": 46, "el": 1, "dur": 0.28, "big": 1, "seed": 27}, 0.82))
     # raw：旧做法（不压扁、光晕烤进颜色），游戏里小数缩放贴上去
     v.append(("raw_hit", {"part": "hit", "layer": "up", "view": "raw", "R": 38, "el": 1, "seed": 3}, 0.47))
