@@ -81,6 +81,7 @@ class Scene:
         self.items = []
         self.enemies = []      # [x, y, 消失拍（-1 = 不消失）]
         self.op_path = lambda tk: (0.0, 0.0, 0.0)   # 拍 → (x, y, 离地高)
+        self.tier = 0
 
     def add(self, k, tk, gp, flip=False, loop=False, fi=None, until=None):
         self.items.append({"k": k, "t0": tk, "gp": gp, "flip": flip, "loop": loop, "fi": fi, "until": until})
@@ -279,28 +280,36 @@ def siege_scenes(lib):
             u = min(1.0, (tk - tk0) / T)
             return (a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, 4 * h * u * (1 - u))
         s.op_path = path
-        s.add("sg_crash_gd", tk0, a)   # 起跳：脚下一小圈
+        s.add("sg_crash_gd", tk0, a)   # 起跳：脚下一小圈 + 残影弧
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        d, fl = pick_dir(math.degrees(math.atan2(dy / SY, dx)))
+        D = 24 if math.hypot(dx, dy / SY) < 34.5 else 45
+        s.add("sg_trail_l%d_e%d_up_d%d" % (D, s.tier, d), tk0, a, fl)
     cols = []
     for t in (1, 2):
         s = base(26, E_RIGHT)
-        leap(s, 1, (0, 0), (34, 0))
-        s.pair("sg_slam_r55_e%d" % t, 7, (34, 0))
+        s.tier = t
+        leap(s, 1, (0, 0), (40, 0))
+        s.pair("sg_slam_r55_e%d" % t, 7, (40, 0))
         cols.append(("S2「跃空锤」 精英 %d" % t, s))
     out["s2"] = (cols, 26, (34, -16))
     # S2 分支
     s = base(32, E_RIGHT + [[110, 10, -1], [120, 0, -1], [104, 22, -1]])
+    s.tier = 2
     leap(s, 1, (0, 0), (34, 0))
     s.pair("sg_slam_r55_e2", 7, (34, 0))
-    leap(s, 8, (34, 0), (96, 8), T=6, h=26)
-    s.pair("sg_slam_r55_e2", 14, (96, 8))
+    leap(s, 8, (34, 0), (79, 8), T=6, h=26)
+    s.pair("sg_slam_r55_e2", 14, (79, 8))
     s2 = base(32, E_RIGHT + [[110, 10, -1], [120, 0, -1], [104, 22, -1]])
+    s2.tier = 2
     leap(s2, 1, (0, 0), (34, 0))
     s2.pair("sg_slam_r55_e2", 7, (34, 0))
     s2.add("sg_crk_l90_gd_d0", 8, (34, 0))
     s3 = base(32, E_RIGHT)
+    s3.tier = 2
     leap(s3, 1, (0, 0), (34, 0))
     s3.pair("sg_slam_r55_e2", 7, (34, 0))
-    s3.pair("sg_slam_r70_e2", 19, (34, 0))
+    s3.pair("sg_rift_r70_e2", 19, (34, 0))
     out["s2_branch"] = ([("分支「再跃」：落地再跃第二下", s), ("「再跃」她当队长：原地砸出地裂", s2), ("路线「再跃·裂地」：0.8 秒后再震一圈", s3)], 32, (40, -10))
     # S3 碎颅击
     s = base(34, E_RIGHT + E_UP)
@@ -309,25 +318,20 @@ def siege_scenes(lib):
     hammer(s, 6, 2, 0, style="s3", kill=1)
     hammer(s, 24, 2, -50, style="s3", kill=7)
     out["s3"] = ([("S3「碎颅击」 精英 2（只有精二）", s)], 34, (30, -10))
-    # 后期剑气（late_shape）
+    # 后期剑气（late_shape）= 锤击冲击波：游戏里自己往前推（600·a − 500·a² 世界像素，按 15 fps 跳格），2 道合一取 S24
     cols = []
     for t in (0, 1, 2):
-        s = base(24, [[78, -4, -1], [90, 8, -1], [100, -10, -1], [30, -6, -1]])
+        s = base(26, [[90, -4, -1], [104, 8, -1], [118, -10, -1], [30, -6, -1]])
         hammer(s, 2, t, 0)
-        for S in (16,):
-            k = "sg_qi_s%d_e%d" % (S, t)
-            t0 = 2
-            sp = 260.0 / 15.0   # 520 世界像素 / 秒 → 每拍 17.3 美术像素（游戏里按 15 fps 跳格）
-            life_ticks = 3
-            x0 = 32.0
+        t0, x0 = 2, 32.0
 
-            def fi(tk, t0=t0, life_ticks=life_ticks):
-                a = tk - t0
-                return 0 if a < 1 else (2 if a >= life_ticks - 1 else 1)
-            s.add(k + "_up_d0", t0, (lambda tk, t0=t0: (x0 + sp * (tk - t0), 0)), fi=fi, until=t0 + life_ticks)
-            s.add(k + "_gd_d0", t0, (lambda tk, t0=t0: (x0 + sp * (tk - t0), 0)), fi=fi, until=t0 + life_ticks)
+        def gp(tk, t0=t0, x0=x0):
+            a = (tk - t0) / 15.0
+            return (x0 + (600 * a - 500 * a * a) / PX, 0)
+        s.add("sg_wave_s24_e%d_up_d0" % t, t0, gp)
+        s.add("sg_wave_s24_e%d_gd_d0" % t, t0, gp)
         cols.append(("后期剑气（锤击冲击波，2 道合一）精英 %d" % t, s))
-    out["qi"] = (cols, 24, (50, -6))
+    out["qi"] = (cols, 26, (70, -6))
     # 成长节点：震地 / 狮吼
     s = base(24, E_RIGHT)
     lp = hammer(s, 2, 0, 0)

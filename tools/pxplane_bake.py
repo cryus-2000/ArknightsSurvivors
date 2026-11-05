@@ -169,10 +169,13 @@ def variants_siege():
         for st in ("atk", "s1"):
             for ly in ("up", "gd"):
                 v.append(("imp_%s_e%d_%s" % (st, el, ly), {"part": "imp", "layer": ly, "el": el, "style": st, "seed": 3 + el}, 0.7))
-    for R in (55, 70):   # S2 跃空锤落地：s2_r 110 → 55；再跃·裂地 140 → 70
-        for el in (1, 2):
-            for ly in ("up", "gd"):
-                v.append(("slam_r%d_e%d_%s" % (R, el, ly), {"part": "slam", "layer": ly, "R": R, "el": el, "seed": 7}, 0.85))
+    for el in (1, 2):   # S2 跃空锤：落地环形尘浪（s2_r 110 → 55，不开裂）；路线「再跃·裂地」140 → 70 保留裂网；起跳 → 落点残影弧（跃出距离 24 / 45）
+        for ly in ("up", "gd"):
+            v.append(("slam_r55_e%d_%s" % (el, ly), {"part": "slam", "layer": ly, "R": 55, "el": el, "seed": 7}, 0.7))
+            v.append(("rift_r70_e%d_%s" % (el, ly), {"part": "slam", "layer": ly, "R": 70, "el": el, "style": "rift", "seed": 7}, 0.85))
+        for D in (24, 45):
+            for d in DIRS:
+                v.append(("trail_l%d_e%d_up_d%d" % (D, el, d), {"part": "trail", "layer": "up", "L": D, "dir": d, "el": el, "seed": 29}, 0.64))
     for R in (35, 45, 55):   # 震地 / 狮吼：quake_r 70 × op_range（× roar r_mult）
         for st in ("q", "roar"):
             v.append(("quake_r%d_%s_gd" % (R, st), {"part": "quake", "layer": "gd", "R": R, "style": st, "seed": 9}, 0.5))
@@ -191,11 +194,11 @@ def variants_siege():
         v.append(("fis_l90_up_d%d" % d, {"part": "fis", "layer": "up", "L": 90, "dir": d, "el": 2, "seed": 21}, 0.66))
     v.append(("cmd_gd", {"part": "cmd", "layer": "gd", "R": 90, "el": 1, "seed": 25}, 0.66))
     v.append(("s3aura_gd", {"part": "s3aura", "layer": "gd", "R": 24, "el": 2, "seed": 27, "_loop": True}, 0.4))
-    for S in (10, 16, 22):   # 后期剑气 = 锤击冲击波：一次出手 1 / 2 / 3+ 道合成一道
+    for S in (18, 24, 30):   # 后期剑气 = 锤击甩出去的冲击波（0.53 秒 8 帧，游戏里自己往前推）：一次出手 1 / 2 / 3+ 道合成一道
         for el in T:
             for d in DIRS:
                 for ly in ("up", "gd"):
-                    v.append(("qi_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.2))
+                    v.append(("wave_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.54))
     # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
     for el in T:
         v.append(("raw_imp_e%d" % el, {"part": "imp", "layer": "gd", "view": "raw", "el": el, "seed": 3 + el}, 0.6))

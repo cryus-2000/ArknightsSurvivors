@@ -5,7 +5,8 @@
 // 1 像素 = 1 美术像素 = 2 世界像素，游戏里只按 2 倍整数放大、不旋转；方向件按 dir（−90 / −45 / 0 / 45 / 90°）逐向生成，另一半水平翻转。
 // view: "raw" 出「旧做法」对照：正俯视 / 正圆、光晕烤进颜色，游戏里旋转 + 小数缩放贴。
 // 色：本人金（游戏代表色 #ffc759 一组，熔金 8 阶；不用危险红）；尘 / 碎石暖土；精二点缀白金熔芯 #fff1b8（裂缝冷得慢、一直透亮）。
-// 力量感照「裂地 v3」（11-05 用户认可）：不规整的分叉裂网、爆亮后冷却、隆起的尘墙；不画规整放射线 / 同心圈。
+// 11-05 第二轮（用户「是不是都是裂地有点太重复」）：裂地（裂地 v3 的分叉裂网）只留给最重的——S3 碎颅、精二破阵、路线「再跃·裂地」；
+// 普攻 = 金属火花 + 空气压缩白弧 + 小凹痕；S1 = 战旗 + 狮吼声浪；S2 = 残影弧 + 环形尘浪；熔铁飞溅是她独有的质感（精一起）。
 import { fit, clamp, smooth, ease, noise, TAU, hex, WHITE } from "../../core/index.js";
 
 export const meta = {
@@ -230,23 +231,94 @@ function flash(p, t, C, rx, ry, z, t0) {
   }
 }
 
-// ---------------------------------------------------------------- 普攻 / S1 强化一锤 的落点（立起层：白闪 + 火星线 + 碎石 + 尘墙；贴地层：裂网 + 砸坑 + 冲击环）
+// ---------------------------------------------------------------- 熔铁质感（她的锤是锻铁）：通红的熔铁飞溅——白热出锤、受重力落地、落地成一点暗红慢慢冷掉
+function spatter(p, t, o, C, ACC, N, spd, sd, t0, white) {
+  const n = C.length, SY = +o.SY;
+  for (let i = 0; i < N; i++) {
+    const u = t - (t0 || 0) - 0.008 * (i % 4);
+    if (u <= 0) continue;
+    const a = TAU * nz(i * 2.9, sd + 1601), v = spd * (0.5 + 0.7 * nz(i * 3.7, sd + 1603)), vz = 70 + 90 * nz(i * 5.1, sd + 1605);
+    const tl = (vz + Math.sqrt(vz * vz + 4 * 300 * 6)) / (2 * 300);   // 落地时刻（z = 6 起抛）
+    const ul = Math.min(u, tl);
+    const gx = Math.cos(a) * v * ul, gy = Math.sin(a) * v * ul * SY, z = Math.max(0, 6 + vz * ul - 300 * ul * ul);
+    const X = Math.round(gx), Y = Math.round(gy - z);
+    if (u < tl) {
+      const c = u < 0.067 ? WHITE : u < 0.2 ? (white ? ACC : C[n - 2]) : C[n - 3];
+      p.px(X, Y, c);
+      if (u < 0.15) p.px(X, Y + 1, C[n - 4]);                                // 拖一格
+    } else {
+      const k = u - tl;                                                       // 落地：一点熔铁冷掉
+      if (k > 0.45) continue;
+      p.px(X, Y, k < 0.12 ? C[n - 3] : k < 0.28 ? C[n - 5] : C[n - 6]);
+    }
+  }
+}
+
+// 空气压缩环：锤面撞地那一下把空气锤开——一圈细的白弧（1 格，断续），很快扩开、两拍就没（不是贴地冲击环：细、白、离地一点）
+function compress(p, t, o, C, R0, R1, z, t0, gold) {
+  const n = C.length, SY = +o.SY, u = t - (t0 || 0);
+  if (u < 0 || u >= 0.2) return;
+  const k = ease.outCubic(clamp(u / 0.2)), r = R0 + (R1 - R0) * k;
+  const m = Math.ceil(r * TAU * 1.2);
+  for (let j = 0; j < m; j++) {
+    const a = (j / m) * TAU;
+    if (nz(a * 4.1 + (t0 || 0) * 9, o.seed + 1621) < 0.18 + u * 2.5) continue;
+    const sa = Math.sin(a);
+    const c = u < 0.067 ? WHITE : gold ? (sa > 0 ? C[n - 2] : C[n - 3]) : (sa > 0 ? C[n - 1] : C[n - 2]);
+    p.px(Math.round(Math.cos(a) * r), Math.round(sa * r * SY - z), c);
+    if (u < 0.067 && sa > 0.2) p.px(Math.round(Math.cos(a) * r), Math.round(sa * r * SY - z + 1), C[n - 3]);
+  }
+}
+
+function dent(p, t, o, DU, rx) {
+  const SY = +o.SY, fade = smooth(0.2, 0.6, t);
+  if (fade >= 0.97) return;
+  p.shade(-rx - 1, -rx * SY - 1, rx + 1, rx * SY + 1, (x, y, out) => {
+    const d = Math.hypot(x / rx, y / (rx * SY));
+    if (d > 1) return;
+    out.c = d > 0.7 && y < 0 ? DU[3] : DU[0];
+    out.a = 0.55 * (1 - fade);
+  });
+}
+
+// ---------------------------------------------------------------- 普攻落点（不开裂）：锤面撞击的金属火花 + 一圈空气压缩白弧 + 小凹痕和几块碎石
+// 精一：熔铁飞溅（通红的锤头余温）+ 碎石多；精二：飞溅白金、两圈压缩弧——精二的裂地只给「破阵」地裂
+// S1「号令一锤」：两圈压缩弧（白、金，错开一拍）更大 + 金色号令声浪往前一推，同样不开裂
 function impUp(p, t, o, C, ACC, ST, DU) {
-  const el = +o.el, s1 = o.style === "s1", k = s1 ? 1.4 : 1;
-  flash(p, t, C, (7 + 2 * el) * k, (3 + el) * k, 3, 0.0);
-  streaks(p, t, o, C, ([6, 8, 10][el] + (s1 ? 4 : 0)), 120 * k, o.seed, 0.0, 60);
-  if (el >= 1 || s1) rubble(p, t, o, ST, DU, (s1 ? 7 : 4) + 2 * el, (16 + 4 * el) * k, o.seed + 5, 0.03, el >= 2 ? ACC : null);
-  if (el >= 1 || s1) dustWall(p, t, o, DU, (14 + 4 * el) * k, 10 + 3 * el, (6 + 2 * el) * k, o.seed + 7, 0.05);   // 精一起：隆起的尘墙
+  const el = +o.el, s1 = o.style === "s1", k = s1 ? 1.35 : 1;
+  flash(p, t, C, (5 + el) * k, (2 + el) * k, 3, 0.0);
+  streaks(p, t, o, C, ([8, 10, 12][el] + (s1 ? 4 : 0)), 150 * k, o.seed, 0.0, 80);   // 金属火花（细长、会落）
+  compress(p, t, o, C, 6, (22 + 4 * el) * k, 3, 0.0, false);
+  if (el >= 2 || s1) compress(p, t, o, C, 4, (16 + 3 * el) * k, 5, 0.067, true);
+  if (el >= 1 || s1) spatter(p, t, o, C, ACC, (s1 ? 8 : 4) + 3 * el, 70 * k, o.seed + 9, 0.02, el >= 2);
+  rubble(p, t, o, ST, DU, (el >= 1 ? 5 : 3) + (s1 ? 3 : 0), (8 + 2 * el) * k, o.seed + 5, 0.03, null);
+  if (s1) roarFwd(p, t, o, C, ACC, el);
 }
 
 function impGd(p, t, o, C, ACC, DU) {
-  const el = +o.el, s1 = o.style === "s1", k = s1 ? 1.4 : 1, SY = +o.SY;
-  const raw = o.view === "raw";
-  const sy = raw ? 1 : SY;
-  crater(p, t, o, DU, (6 + 2 * el) * k, sy, 0.6);
-  drawCracks(p, t, o, C, ACC, DU, crackPaths(o, [18, 24, 30][el] * k, [4, 6, 8][el] + (s1 ? 2 : 0), o.seed + 41), sy, el >= 2, 0.0);
-  if (s1) ring(p, t, o, C, 34 + 6 * el, sy, 0.02, 3);                         // S1 号令一锤：落点一圈金色冲击环（S1 的标志）
-  if (raw) p.glow && p.glow(0, 0, 24 * k, C[C.length - 2], 0.6 * (1 - smooth(0.05, 0.3, t)));
+  const el = +o.el, s1 = o.style === "s1", raw = o.view === "raw";
+  if (raw) {   // 旧做法对照：正圆 + 光晕
+    crater(p, t, o, DU, 6 + 2 * el, 1, 0.6);
+    p.glow && p.glow(0, 0, 24, C[C.length - 2], 0.6 * (1 - smooth(0.05, 0.3, t)));
+    return;
+  }
+  dent(p, t, o, DU, (5 + el) * (s1 ? 1.4 : 1));
+}
+
+// 号令一锤：落点往四周一推的金色声浪（同 S1 号令的狮吼弧，压低到地面高度）
+function roarFwd(p, t, o, C, ACC, el) {
+  const n = C.length, SY = +o.SY;
+  for (let w = 0; w < 2; w++) {
+    const u = t - 0.04 - 0.07 * w;
+    if (u < 0 || u > 0.3) continue;
+    const r = 12 + 140 * u * (1 - u), fade = smooth(0.15, 0.3, u), m = Math.ceil(r * TAU);
+    for (let j = 0; j < m; j++) {
+      const a = (j / m) * TAU;
+      if (nz(a * 5.3 + w * 7, o.seed + 1631) < 0.35 + fade * 0.55) continue;
+      const sa = Math.sin(a);
+      p.px(Math.round(Math.cos(a) * r), Math.round(sa * r * SY - 8), u < 0.067 ? WHITE : el >= 2 && w === 0 ? ACC : sa > 0 ? C[n - 2] : C[n - 4]);
+    }
+  }
 }
 
 // ---------------------------------------------------------------- S3 碎颅：落点横向扁白闪 + 向前分叉的地裂扇（原作 S3 hit）
@@ -265,7 +337,73 @@ function s3Gd(p, t, o, C, ACC, DU) {
   if (raw) p.glow && p.glow(0, 0, 30, C[C.length - 2], 0.7 * (1 - smooth(0.05, 0.35, t)));
 }
 
-// ---------------------------------------------------------------- S2 跃空锤落地：竖直冲柱（原作）+ 碎石 + 尘墙；贴地大裂网 + 冲击环 + 砸坑。精二：冲柱白金芯、裂缝更密且熔芯冷得慢、碎石带熔金、第二圈尘墙
+// ---------------------------------------------------------------- S2 跃空锤（重点在「跃」和「落」，不开裂）
+// 跃：起跳点 → 落点一道金色残影弧（她在空中抡锤转一圈：弧上三段渐暗残影 + 锤头一道亮线），方向件，原点 = 起跳点，D = 跃出距离
+function leapTrail(p, t, o, C, ACC) {
+  const SY = +o.SY, th = +o.dir * D2R, n = C.length, D = +o.L, H = 21, el = +o.el;
+  const fx = Math.cos(th), fy = Math.sin(th) * SY;
+  const T = 0.42, u = clamp(t / T), fade = smooth(T, T + 0.2, t);
+  if (fade >= 0.99) return;
+  const head = u, tail = Math.max(0, u - 0.55) + fade * u;
+  for (let s = tail; s <= head; s += 0.5 / Math.max(1, D)) {
+    const x = D * s, z = 4 * H * s * (1 - s) + 16;                        // 身体中心高度走抛物线
+    const q = (s - tail) / Math.max(0.001, head - tail);                  // 0 尾 → 1 头
+    const w = 1 + Math.round(2 * q);
+    for (let k = -w; k <= w; k++) {
+      const e = Math.abs(k) / (w + 0.5);
+      let ci = q > 0.85 ? (e < 0.5 ? n - 1 : n - 2) : q > 0.5 ? (e < 0.5 ? n - 2 : n - 3) : (e < 0.5 ? n - 3 : n - 5);
+      ci = clamp(ci - Math.round(fade * 3), 1, n - 1);
+      if (q < 0.4 && ((Math.round(s * D * 2) + k) & 1)) continue;          // 尾巴抖动变稀
+      p.px(Math.round(fx * x), Math.round(fy * x - z + k), el >= 2 && q > 0.5 && e < 0.4 ? ACC : C[ci]);
+    }
+  }
+  // 抡锤一圈：锤头那一点绕身体转（四拍一圈），留一小截亮弧
+  if (u < 1) for (let a = 0; a < 1.2; a += 0.08) {
+    const ang = u * TAU * 1.2 - a, x = D * u + Math.cos(ang) * 10, z = 4 * H * u * (1 - u) + 16 + Math.sin(ang) * 10;
+    p.px(Math.round(fx * x), Math.round(fy * x - z), a < 0.3 ? WHITE : a < 0.7 ? C[n - 2] : C[n - 4]);
+  }
+}
+
+// 落：一圈环形尘浪（贴地往外滚的尘团，有受光顶、越滚越矮）+ 碎石飞起再落下 + 落点白闪与浅坑；精二：尘浪两圈、熔铁飞溅白金
+function dustWave(p, t, o, DU, C, R, m, hMax, sd, t0, hot) {
+  const SY = +o.SY, u = t - (t0 || 0), n = C.length;
+  if (u <= 0 || u > 0.55) return;
+  const g = ease.outCubic(clamp(u / 0.35)), r = R * (0.25 + 0.75 * g);
+  for (let j = 0; j < m; j++) {
+    const a = TAU * (j + nz(j * 1.3, sd + 1701) * 0.6) / m;
+    if (u > 0.3 && nz(j * 7.7, sd + 1703) < (u - 0.3) * 4) continue;         // 散掉：整团消失
+    const h = hMax * (0.6 + 0.4 * nz(j * 2.1, sd + 1705)) * (1 - 0.6 * g);
+    const gx = Math.cos(a) * r, gy = Math.sin(a) * r * SY;
+    const rr = 2 + (nz(j * 3.7, sd + 1707) > 0.5 ? 1 : 0) + (u < 0.2 ? 1 : 0);
+    for (let dy = -rr; dy <= rr; dy++) for (let dx = -rr - 1; dx <= rr + 1; dx++) {
+      if ((dx * dx) / ((rr + 1) * (rr + 1)) + (dy * dy) / (rr * rr) > 1.05) continue;
+      let c = dy < -rr * 0.3 ? DU[4] : dy < rr * 0.3 ? DU[3] : DU[2];
+      if (hot && u < 0.1 && dy < -rr * 0.3) c = C[n - 3];                   // 落地那一拍：尘浪顶被照亮
+      p.px(Math.round(gx + dx), Math.round(gy - h * 0.5 + dy), c);
+    }
+  }
+}
+
+function slamUp(p, t, o, C, ACC, ST, DU) {
+  const R = +o.R, el = +o.el;
+  if (o.style === "rift") return riftUp(p, t, o, C, ACC, ST, DU);
+  flash(p, t, C, 12, 4, 4, 0.0);
+  compress(p, t, o, C, 10, R * 0.7, 4, 0.0, false);
+  dustWave(p, t, o, DU, C, R, 22 + 4 * el, 12 + 2 * el, o.seed + 3, 0.02, true);
+  if (el >= 2) dustWave(p, t, o, DU, C, R * 0.6, 14, 9, o.seed + 4, 0.12, false);
+  rubble(p, t, o, ST, DU, 14 + 5 * el, R * 0.45, o.seed + 5, 0.03, el >= 2 ? ACC : null);
+  spatter(p, t, o, C, ACC, 6 + 5 * el, 90, o.seed + 6, 0.02, el >= 2);
+}
+
+function slamGd(p, t, o, C, ACC, DU) {
+  const R = +o.R, el = +o.el, raw = o.view === "raw", SY = raw ? 1 : +o.SY;
+  if (o.style === "rift") return riftGd(p, t, o, C, ACC, DU);
+  crater(p, t, o, DU, R * 0.2, SY, 0.6);
+  if (raw) { ring(p, t, o, C, R, SY, 0.0, 3); p.glow && p.glow(0, 0, R * 0.6, C[C.length - 2], 0.7 * (1 - smooth(0.05, 0.4, t))); return; }
+  ring(p, t, o, C, R * 1.02, SY, 0.04, 2);                                 // 尘浪外沿压出的一圈浅印（细、断续）
+}
+
+// 路线「再跃·裂地」（名字就是裂地）：竖直冲柱 + 大裂网 + 冲击环 + 碎石 + 尘墙（原作 S2 的裂网，金色）
 function pillar(p, t, C, ACC, H, W, el) {
   const n = C.length, u = t - 0.0;
   if (u >= 0.27) return;
@@ -283,22 +421,20 @@ function pillar(p, t, C, ACC, H, W, el) {
   }
 }
 
-function slamUp(p, t, o, C, ACC, ST, DU) {
+function riftUp(p, t, o, C, ACC, ST, DU) {
   const R = +o.R, el = +o.el;
   pillar(p, t, C, ACC, R * 1.15, 9 + 2 * el, el);
   flash(p, t, C, 11, 4, 4, 0.0);
   streaks(p, t, o, C, 10 + 4 * el, 170, o.seed + 1, 0.0, 90);
   rubble(p, t, o, ST, DU, 12 + 4 * el, R * 0.8, o.seed + 3, 0.03, el >= 2 ? ACC : null);
   dustWall(p, t, o, DU, R * 0.95, 16 + 4 * el, 10 + 3 * el, o.seed + 5, 0.06);
-  if (el >= 2) dustWall(p, t, o, DU, R * 0.55, 12, 8, o.seed + 6, 0.12);   // 精二：第二圈尘墙（晚一拍）
 }
 
-function slamGd(p, t, o, C, ACC, DU) {
-  const R = +o.R, el = +o.el, raw = o.view === "raw", SY = raw ? 1 : +o.SY;
+function riftGd(p, t, o, C, ACC, DU) {
+  const R = +o.R, el = +o.el, SY = +o.SY;
   crater(p, t, o, DU, R * 0.24, SY, 0.7);
   ring(p, t, o, C, R, SY, 0.0, 3);
-  drawCracks(p, t, o, C, ACC, DU, crackPaths(o, R * 0.95, [9, 9, 13][el], o.seed + 61), SY, el >= 2, 0.0);   // 精二：裂缝更密、熔芯冷得慢
-  if (raw) p.glow && p.glow(0, 0, R * 0.6, C[C.length - 2], 0.7 * (1 - smooth(0.05, 0.4, t)));
+  drawCracks(p, t, o, C, ACC, DU, crackPaths(o, R * 0.95, [9, 9, 13][el], o.seed + 61), SY, el >= 2, 0.0);
 }
 
 // ---------------------------------------------------------------- 震地 / 狮吼（成长节点）：落点一圈贴地冲击环 + 环边尘团；狮吼双环、更厚、尘多
@@ -318,14 +454,13 @@ function quake(p, t, o, C, ACC, DU) {
   }
 }
 
-// ---------------------------------------------------------------- 精一「粉碎」：击倒处碎石迸开（立起）+ 小裂星（贴地）
+// ---------------------------------------------------------------- 精一「粉碎」：击倒处碎石迸开（立起）+ 小凹痕（贴地，不开裂）
 function crushUp(p, t, o, C, ACC, ST, DU) {
   flash(p, t, C, 5, 3, 6, 0.0);
   rubble(p, t, o, ST, DU, 8, 10, o.seed + 21, 0.02, C[C.length - 3]);
 }
 function crushGd(p, t, o, C, ACC, DU) {
-  crater(p, t, o, DU, 5, +o.SY, 0.5);
-  drawCracks(p, t, o, C, ACC, DU, crackPaths(o, 13, 5, o.seed + 23), +o.SY, false, 0.0);
+  dent(p, t, o, DU, 5);
 }
 
 // ---------------------------------------------------------------- 狮吼撞击：小白闪 + 四点火星（立起）+ 小冲击环（贴地）
@@ -411,30 +546,68 @@ function fisUp(p, t, o, C, ACC, ST) {
   }
 }
 
-// ---------------------------------------------------------------- S1 冲锋号令（全队回技力 + 下一锤强化）：腰高号令声浪（向外扩的断续金弧）+ 头顶一点号令金芒；贴地一小圈冲击 + 尘
-// E0 一道声浪；E1 两道 + 脚下尘圈；E2 三道 + 最外一道白金
+// ---------------------------------------------------------------- S1 冲锋号令（全队回技力 + 下一锤强化）：狮王号令，不砸地
+// 立起：她身后立起一面金色战旗（旗杆拔起、旗面迎风抖三拍、旗上狮纹章），两侧各一组狮吼声浪「)))」往外推；
+// 贴地：脚下一圈很淡的金色涟漪（细，不是冲击环）。E0 声浪每侧 1 道；E1 2 道 + 旗头王冠尖；E2 3 道 + 旗边白金、王冠亮
 function s1castUp(p, t, o, C, ACC, DU) {
   const el = +o.el, SY = +o.SY, n = C.length, waves = el + 1;
+  // 战旗：旗杆在她身后偏左，旗面朝右飘
+  const rise = ease.outCubic(clamp(t / 0.1)), fade = smooth(0.42, 0.6, t);
+  if (fade < 0.99) {
+    const px0 = -10, top = 46 + 22 * rise;
+    for (let z = 4; z <= top; z++) {
+      if (fade > 0.3 && nz(z * 1.7, o.seed + 1801) < fade) continue;
+      p.px(px0, Math.round(-z), z > top - 2 ? C[n - 2] : C[n - 5]);
+    }
+    const FW = 16, FH = 11, f = Math.floor(t * 15);
+    for (let x = 1; x <= FW; x++) {
+      const wav = Math.round(Math.sin(x * 0.45 - f * 1.3) * 1.5 * (x / FW));
+      for (let y = 0; y < FH - Math.round(x / FW * 2); y++) {
+        if (fade > 0.3 && nz(x * 3 + y * 7, o.seed + 1803) < fade) continue;
+        const edge = y === 0 || x === FW || y === FH - 1 - Math.round(x / FW * 2);
+        let c = edge ? (el >= 2 ? ACC : C[n - 2]) : (x + wav) % 6 < 3 ? C[n - 3] : C[n - 4];
+        const ex = x - 8, ey = y - 5;                                       // 狮纹章：旗中一块暗色盾形 + 一点亮（狮眼）
+        if (Math.abs(ex) + Math.abs(ey) * 0.8 < 3.5) c = C[2];
+        if (ex === 0 && ey === -1) c = t < 0.15 ? WHITE : C[n - 2];
+        if (t < 0.067) c = edge ? WHITE : C[n - 2];
+        p.px(px0 + x, Math.round(-top + 1 + y + wav), c);
+      }
+    }
+    if (el >= 1) {                                                         // 旗头王冠尖（三点）
+      const cy = Math.round(-top - 2), cc = el >= 2 && t < 0.3 ? WHITE : C[n - 2];
+      for (const dx of [-2, 0, 2]) p.px(px0 + dx, cy - (dx === 0 ? 1 : 0), cc);
+      p.px(px0 - 1, cy + 1, C[n - 3]); p.px(px0 + 1, cy + 1, C[n - 3]);
+    }
+  }
+  // 狮吼声浪：两侧各 waves 道「)」往外推（每道一段弧，不是整圈）
   for (let w = 0; w < waves; w++) {
-    const u = t - 0.07 * w;
+    const u = t - 0.05 - 0.07 * w;
     if (u < 0 || u > 0.36) continue;
-    const r = 14 + 120 * u * (1 - u * 0.9), z = 26 + 4 * w, fade = smooth(0.18, 0.36, u);
-    const m = Math.ceil(r * TAU);
-    for (let j = 0; j < m; j++) {
-      const a = (j / m) * TAU;
-      if (nz(a * 4.3 + w * 3, o.seed + 1001) < 0.3 + fade * 0.6) continue;  // 断续，不是整圈
-      const sa = Math.sin(a);
-      let c = u < 0.067 ? WHITE : sa > 0 ? C[n - 2] : C[n - 4];               // 前半圈亮、后半圈暗（有前后）
-      if (el >= 2 && w === waves - 1 && u >= 0.067) c = ACC;
-      p.px(Math.round(Math.cos(a) * r), Math.round(sa * r * SY - z), c);
-      if (u < 0.15 && sa > 0.3) p.px(Math.round(Math.cos(a) * r), Math.round(sa * r * SY - z + 1), C[n - 4]);
+    const r = 10 + 110 * u * (1 - u * 0.8), fd = smooth(0.2, 0.36, u);
+    for (const side of [-1, 1]) {
+      for (let a = -0.75; a <= 0.75; a += 0.6 / r) {
+        if (nz(a * 9 + w * 3 + side, o.seed + 1805) < 0.15 + fd * 0.6) continue;
+        const x = side * Math.cos(a) * r, y = Math.sin(a) * r * 0.9 - 34;
+        const c = u < 0.067 ? WHITE : el >= 2 && w === waves - 1 ? ACC : Math.abs(a) < 0.4 ? C[n - 2] : C[n - 3];
+        p.px(Math.round(x), Math.round(y), c);
+        if (Math.abs(a) < 0.5 && u < 0.2) p.px(Math.round(x - side), Math.round(y), C[n - 4]);
+      }
     }
   }
 }
 
 function s1castGd(p, t, o, C, ACC, DU) {
-  ring(p, t, o, C, 22 + 4 * +o.el, +o.SY, 0.0, 2);
-  if (+o.el >= 1) quakeDust(p, t, o, DU, 18 + 4 * +o.el, 6 + 2 * +o.el);
+  const el = +o.el, SY = +o.SY, n = C.length;
+  for (let w = 0; w < 1 + (el >= 1 ? 1 : 0); w++) {                          // 淡金涟漪：1 格细线、断续
+    const u = t - 0.1 * w;
+    if (u < 0 || u > 0.45) continue;
+    const r = 10 + 60 * ease.outCubic(clamp(u / 0.45)), m = Math.ceil(r * TAU);
+    for (let j = 0; j < m; j++) {
+      const a = (j / m) * TAU;
+      if (nz(a * 3.3 + w * 5, o.seed + 1811) < 0.4 + u) continue;
+      p.px(Math.round(Math.cos(a) * r), Math.round(Math.sin(a) * r * SY), u < 0.15 ? C[n - 2] : C[n - 4]);
+    }
+  }
 }
 
 function quakeDust(p, t, o, DU, R, m) {
@@ -518,71 +691,85 @@ function s3aura(p, t, o, C, ACC) {
   }
 }
 
-// ---------------------------------------------------------------- 后期剑气（growth/late_shape，钝器）= 锤击冲击波：贴地往前滚的一道土浪（凸面朝前的拱起碎土 + 浪脚一线熔金），身后拖一道裂痕
-// 一次出手的几道剑气在游戏里合成一道（S = 横向半宽，按道数 1 / 2 / 3+ 取三档）。三帧：0 出手热白 / 1 常态 / 2 碎开变稀。
-// 精一：土浪上方蹦起碎石；精二：浪脚熔芯白金 + 裂痕更长
+// ---------------------------------------------------------------- 后期剑气（growth/late_shape，钝器）= 锤击甩出去的一道冲击波（用户 11-05「剑气是很弱」：加长到 0.5 秒、体量 2 倍以上）
+// 游戏里按出手生成一件、自己往前推（前快后慢，约 0.5 秒推 160 世界像素），同一次出手几道合成一道（S = 横向半宽 18 / 24 / 30，按道数 1 / 2 / 3+）。
+// 前沿：一道亮色弧（凸面朝前，白热 → 金，离地低、两头收），弧下一线熔金贴地；身后拖碎石（蹦起落下）和尘团，越往后越稀；最后 2 拍前沿碎开。
+// 精一：碎石多 + 前沿外一道细白压缩弧；精二：前沿芯白金、拖一串熔铁飞溅
 function qiUp(p, t, o, C, ACC, ST, DU) {
   const SY = +o.SY, th = +o.dir * D2R, el = +o.el, n = C.length, S = +o.S;
   const fx = Math.cos(th), fy = Math.sin(th) * SY, nx = -Math.sin(th), ny = Math.cos(th) * SY;
-  const f = Math.min(2, Math.round(t * 15));
-  const bulge = S * 0.4, Hm = 6 + el + S * 0.15;
   const P = (x, w, z) => [Math.round(fx * x + nx * w), Math.round(fy * x + ny * w - z)];
-  // 浪脚熔金线（贴地、连续 2 格）：锤子砸出去的那一道冲击沿地面跑
-  if (f < 2) for (let w = -S; w <= S; w += 0.5) {
-    const k = 1 - (w / S) * (w / S), x = bulge * k + 0.5;
-    const [X, Y] = P(x, w, 0);
-    p.px(X, Y, f === 0 ? WHITE : el >= 2 ? ACC : C[n - 2]);
-    p.px(X, Y - 1, f === 0 ? C[n - 2] : C[n - 3]);
-  }
-  // 土浪：沿浪线一团团被掀起的土（大小不一、中间高两头低），有受光顶
-  const step = 3;
-  for (let w = -S + 1; w <= S - 1; w += step) {
-    const sd = Math.round(w * 7.3);
-    const k = 1 - (w / S) * (w / S);
-    if (f === 2 && nz(sd, o.seed + 1403) < 0.5) continue;                 // 碎开
-    const x0 = bulge * k - 1.5, z0 = Hm * Math.sqrt(k) * (0.55 + 0.45 * nz(sd, o.seed + 1401)) * (f === 2 ? 0.7 : 1);
-    const rr = 2 + (k > 0.55 ? 1 : 0) + (f === 1 ? 1 : 0) - (f === 2 ? 1 : 0);
-    for (let dz = -rr; dz <= rr; dz++) for (let dw = -rr; dw <= rr; dw++) {
-      if (dz * dz + dw * dw > rr * rr + 0.5) continue;
-      const [X, Y] = P(x0, w + dw, z0 * 0.6 + dz);
-      let c = dz > rr * 0.3 ? DU[4] : dz > -rr * 0.3 ? DU[3] : DU[2];
-      if (dz >= rr - 0.5 && f === 0) c = C[n - 2];                         // 出手那一拍：顶上一线金
-      p.px(X, Y, c);
+  const f = Math.floor(t * 15), N = 8, brk = f >= N - 2, bulge = S * 0.45;
+  const Wd = 3 + el;                                                        // 前沿弧厚
+  for (let w = -S; w <= S; w += 0.5) {
+    const u = w / S, k = 1 - u * u, x0 = bulge * k;
+    const zt = 2 + 7 * Math.pow(k, 0.7);                                    // 中间高两头低
+    for (let d = 0; d < Wd * Math.max(0.35, k); d += 0.5) {
+      if (brk && nz(w * 2.3 + d * 5 + f, o.seed + 1901) < 0.45 + (f - N + 2) * 0.25) continue;
+      const q = d / Wd;
+      let c = q < 0.3 ? (f === 0 ? WHITE : el >= 2 ? ACC : C[n - 2]) : q < 0.65 ? C[n - 3] : C[n - 4];
+      if (f >= 4 && q < 0.3 && el < 2) c = C[n - 3];
+      for (let z = 0; z <= zt; z += 1) {
+        if (z > 1 && z < zt - 1 && q > 0.3) continue;                         // 中段只画外缘，不平涂成墙
+        const [X, Y] = P(x0 - d, w, z);
+        p.px(X, Y, z >= zt - 1 ? c : z <= 1 ? (q < 0.5 ? C[n - 2] : C[n - 4]) : C[n - 4]);
+      }
     }
-    for (let z = 0; z < z0 * 0.6 - rr; z += 1) { const [X, Y] = P(x0, w, z); p.px(X, Y, DU[2]); }   // 土柱根
   }
-  // 碎石：土浪上方蹦起（精一起更多、精二带熔金）
-  const NR = 3 + 3 * el;
-  if (f < 2) for (let i = 0; i < NR; i++) {
-    const w = S * (nz(i * 2.3, o.seed + 1411) * 1.8 - 0.9), z = Hm + 2 + 7 * nz(i * 3.1, o.seed + 1413) + (f === 1 ? 4 : 0);
-    const x = bulge * (1 - (w / S) * (w / S)) - 1 - 3 * nz(i, o.seed + 1415);
-    const [X, Y] = P(x, w, z);
-    p.px(X, Y, el >= 2 && i % 3 === 0 ? ACC : ST[4]); p.px(X + 1, Y, ST[2]); p.px(X, Y + 1, ST[2]);
+  if (el >= 1 && f < 5) for (let w = -S * 1.1; w <= S * 1.1; w += 0.5) {      // 精一：前沿外一道细白压缩弧
+    if (nz(w * 1.7 + f * 3, o.seed + 1903) < 0.3) continue;
+    const u = w / (S * 1.1), x = bulge * (1 - u * u) + 3;
+    const [X, Y] = P(x, w, 5 + 3 * (1 - u * u));
+    p.px(X, Y, f < 2 ? WHITE : C[n - 2]);
+  }
+  // 身后：碎石蹦起落下 + 尘团（相对前沿往后，越往后越稀）
+  const NR = 6 + 4 * el;
+  for (let i = 0; i < NR; i++) {
+    const ph = (nz(i * 1.3, o.seed + 1905) + f * 0.25) % 1;                   // 每颗自己的一跳
+    const back = 4 + 26 * nz(i * 2.7, o.seed + 1907), w = S * (nz(i * 3.9, o.seed + 1909) * 1.8 - 0.9);
+    const z = 18 * ph * (1 - ph) * 4 * (0.6 + 0.4 * nz(i, o.seed + 1911));
+    if (brk && i % 2) continue;
+    const [X, Y] = P(bulge * (1 - (w / S) * (w / S)) - back, w, z);
+    p.px(X, Y, ST[4]); p.px(X + 1, Y, ST[2]); p.px(X, Y + 1, ST[2]);
+  }
+  for (let i = 0; i < 7 + 2 * el; i++) {
+    const back = 6 + 30 * nz(i * 4.1, o.seed + 1913), w = S * (nz(i * 5.3, o.seed + 1915) * 1.6 - 0.8);
+    if (nz(i * 6.7 + f, o.seed + 1917) < back / 50) continue;
+    const rr = 2 + (back < 16 ? 1 : 0);
+    const [X, Y] = P(bulge * (1 - (w / S) * (w / S)) - back, w, 3 + rr);
+    for (let dy = -rr; dy <= rr; dy++) for (let dx = -rr - 1; dx <= rr + 1; dx++) {
+      if ((dx * dx) / ((rr + 1) * (rr + 1)) + (dy * dy) / (rr * rr) > 1.05) continue;
+      p.px(X + dx, Y + dy, dy < 0 ? DU[4] : DU[3]);
+    }
+  }
+  if (el >= 2 && f < N - 2) for (let i = 0; i < 6; i++) {                    // 精二：前沿甩下的熔铁飞溅（落在身后）
+    const back = 2 + 14 * ((nz(i * 2.1, o.seed + 1921) + f * 0.3) % 1), w = S * (nz(i * 3.3, o.seed + 1923) * 1.6 - 0.8);
+    const [X, Y] = P(bulge * (1 - (w / S) * (w / S)) - back, w, Math.max(0, 6 - back * 0.4));
+    p.px(X, Y, back < 6 ? WHITE : back < 10 ? ACC : C[n - 3]);
   }
 }
 
 function qiGd(p, t, o, C, ACC, ST, DU) {
   const SY = +o.SY, th = +o.dir * D2R, el = +o.el, n = C.length, S = +o.S;
   const fx = Math.cos(th), fy = Math.sin(th) * SY, nx = -Math.sin(th), ny = Math.cos(th) * SY;
-  const f = Math.min(2, Math.round(t * 15));
-  const bulge = S * 0.4, Lt = 14 + 5 * el + S * 0.4;
-  for (let w = -S; w <= S; w += 1) {                                          // 浪脚的影子
+  const f = Math.floor(t * 15), bulge = S * 0.45;
+  for (let w = -S; w <= S; w += 1) {                                        // 前沿的影子 + 贴地一线熔金
     const k = 1 - (w / S) * (w / S);
-    for (let d = 0; d < 3; d++) p.dot(Math.round(fx * (bulge * k - d) + nx * w), Math.round(fy * (bulge * k - d) + ny * w + 1), DU[0], f === 2 ? 0.25 : 0.5);
+    for (let d = 0; d < 4; d++) p.dot(Math.round(fx * (bulge * k - d) + nx * w), Math.round(fy * (bulge * k - d) + ny * w + 1), DU[0], f >= 6 ? 0.25 : 0.5);
+    if (f < 6) p.px(Math.round(fx * (bulge * k + 1) + nx * w), Math.round(fy * (bulge * k + 1) + ny * w), f === 0 ? WHITE : el >= 2 ? ACC : C[n - 3]);
   }
-  let y = 0;                                                                  // 身后裂痕：一道锯齿细裂往后拖，越远越暗
-  for (let s = 0; s < Lt; s += 1) {
-    y += (nz(s * 0.4, o.seed + 1421) - 0.5) * 1.1; y *= 0.9;
-    if (f === 2 && nz(s * 0.7, o.seed + 1423) < 0.5) continue;
-    const x = -s, q = s / Lt;
-    let c = q < 0.3 ? (f === 0 ? WHITE : el >= 2 ? ACC : C[n - 3]) : q < 0.6 ? C[n - 5] : DU[1];
-    p.px(Math.round(fx * x + nx * y), Math.round(fy * x + ny * y), c);
-    if (q < 0.5) p.px(Math.round(fx * x + nx * y), Math.round(fy * x + ny * y) + 1, DU[0]);
+  for (let i = 0; i < 3; i++) {                                              // 身后：被推过的地面三道拖痕
+    const w = S * (i - 1) * 0.55;
+    for (let s = 0; s < 22 + 4 * el; s++) {
+      if (nz(s * 0.9 + i * 11, o.seed + 1931) < 0.35 + s / 40) continue;
+      const x = bulge * (1 - (w / S) * (w / S)) - 4 - s;
+      p.px(Math.round(fx * x + nx * w), Math.round(fy * x + ny * w), s < 6 ? DU[2] : DU[1]);
+    }
   }
 }
 
 // ---------------------------------------------------------------- 技能连携 v2「冲阵」尾锤（link/v2 缺省开时实际出的连携，skill_link.gd l_siege）：
-// 冲到区域中心一锤砸地：大砸坑（深色坑 + 坑口受光土）+ 不规整裂网 + 冲击环 + 碎石顶起落回（大小不一、少数高飞）+ 两层尘墙。和 S2 区分：没有冲柱，坑大、碎石多
+// 冲到区域中心一锤砸地：大砸坑（深色坑 + 坑口受光土）+ 冲击环（不开裂） + 碎石顶起落回（大小不一、少数高飞）+ 两层尘墙。和 S2 区分：没有冲柱，坑大、碎石多
 function linkUp(p, t, o, C, ACC, ST, DU) {
   flash(p, t, C, 14, 5, 4, 0.0);
   streaks(p, t, o, C, 10, 150, o.seed + 41, 0.0, 70);
@@ -594,7 +781,6 @@ function linkGd(p, t, o, C, ACC, DU) {
   const SY = +o.SY;
   crater(p, t, o, DU, 18, SY, 0.8);
   ring(p, t, o, C, 46, SY, 0.0, 3);
-  drawCracks(p, t, o, C, ACC, DU, crackPaths(o, 44, 9, o.seed + 49), SY, false, 0.0);
 }
 
 export function draw(p, t, o) {
@@ -605,6 +791,7 @@ export function draw(p, t, o) {
     case "imp": return gd ? impGd(p, t, o, C, ACC, DU) : impUp(p, t, o, C, ACC, ST, DU);
     case "s3": return gd ? s3Gd(p, t, o, C, ACC, DU) : s3Up(p, t, o, C, ACC, ST, DU);
     case "slam": return gd ? slamGd(p, t, o, C, ACC, DU) : slamUp(p, t, o, C, ACC, ST, DU);
+    case "trail": return gd ? undefined : leapTrail(p, t, o, C, ACC);
     case "quake": return gd ? quake(p, t, o, C, ACC, DU) : undefined;
     case "crush": return gd ? crushGd(p, t, o, C, ACC, DU) : crushUp(p, t, o, C, ACC, ST, DU);
     case "crash": return gd ? crashGd(p, t, o, C) : crashUp(p, t, o, C);

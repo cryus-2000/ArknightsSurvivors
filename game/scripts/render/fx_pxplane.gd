@@ -319,6 +319,10 @@ func _add_gd(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit
 ## 挂在人身上的件（fo = 出手时相对施放者脚底的偏移）每次绘制按施放者当前位置重算，朝向保持出手时的方向；
 ## 斩痕（e）跟着被砍的那只；其余（落地类：冲击环、碎浪、碎沫、积水、湿痕）留在出手时的世界坐标
 func _gp(it: Dictionary) -> Vector2:
+	if it.has("mv"):   # 推进之王锤击冲击波（docs/264）：自己往前推（前快后慢），按 15 fps 节拍跳格
+		var mv: Dictionary = it.mv
+		var age: float = float(int(floor(g.t * 15.0)) - int(floor(float(it.t0) * 15.0))) / 15.0
+		return _snap(mv.p0 + (mv.dir as Vector2) * (600.0 * age - 500.0 * age * age))
 	if it.has("fo"):
 		var op = _op(str(it.oid))
 		if op != null and op.pos != Vector2.INF:
@@ -429,7 +433,7 @@ static func sort_items(game) -> Array:
 	for it in r.items:
 		if str(it.ly) == "up":
 			var gp: Vector2 = r._gp(it)   # 跟人 / 跟怪的件按当前位置排序
-			if it.has("fo") or it.has("e"):
+			if it.has("fo") or it.has("e") or it.has("mv"):
 				it["skc"] = gp.y + (float(it.e.r) * 0.55 + 1.0 if it.get("cut", false) and it.has("e") else 1.0)
 			out.append(it)
 	for o in game.squad.ops:
@@ -442,9 +446,6 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
 				for qw in r._qis(o):
 					out.append({"wave": qw})
-			elif str(o.id) == "siege":   # 推进之王锤击冲击波（docs/264）
-				for qv in r._qi_volleys(o):
-					out.append({"k": qv.k + "_up_d%d" % qv.d, "fi": qv.f, "gp": qv.gp, "flip": qv.flip})
 			elif str(o.id) == "hoshiguma":   # 星熊锯盾 + 剑气齐射（docs/254）
 				for bm in r._booms(o):
 					out.append({"k": "hsg_saw_up", "t0": 0.0, "gp": r._boom_gp(o, bm), "flip": false, "loop": true})
@@ -1430,18 +1431,22 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(ca), "flip": false, "ly": "gd", "oid": id})
 			if mode() == 1:
 				R._light(o, ca, 70.0, 0.35, 0.1, p.light)
-		"leap":   # 跃空锤起跳：脚下一小圈
+		"leap":   # 跃空锤起跳：脚下一小圈 + 起跳点 → 落点一道金色残影弧（她在空中抡锤转一圈）
 			if raw:
 				return
 			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
+			var to: Vector2 = d.get("to", o.pos)
+			if to.distance_to(o.pos) > 8.0:
+				var dk3: Array = pick_dir((to - o.pos).angle())
+				_push({"k": "sg_trail_l%d_e%d_up_d%d" % [_bucket(to.distance_to(o.pos) * 0.5, [24, 45]), maxi(t, 1), dk3[0]], "t0": g.t, "gp": _snap(o.pos), "flip": dk3[1], "ly": "up", "oid": id})
 			if mode() == 1:
 				R._grains(o, o.pos + Vector2(0, -4), o.pos.y, "rock", 3, {"tier": t})
 		"slam":   # 跃空锤落地（含再跃第二下）
-			_sg_slam(o, R, p, d.get("at", o.pos), float(d.get("r", 110.0)), d.get("es", []), raw, maxi(t, 1))
+			_sg_slam(o, R, p, d.get("at", o.pos), float(d.get("r", 110.0)), d.get("es", []), raw, maxi(t, 1), "slam")
 			_sg_motes(o, 1)
 		"shape":   # 路线「再跃·裂地」：跃空锤落地 0.8 秒后以自身为心再震一圈（circle 震地 r140）
 			if d.get("circle", false) and str(d.get("src", "")) == "震地":
-				_sg_slam(o, R, p, d.get("c", o.pos), float(d.get("r", 140.0)), d.get("es", []), raw, maxi(t, 1))
+				_sg_slam(o, R, p, d.get("c", o.pos), float(d.get("r", 140.0)), d.get("es", []), raw, maxi(t, 1), "rift")
 		"skill":
 			var i: int = int(d.get("i", -1))
 			if raw:
@@ -1471,11 +1476,12 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			_burst_m(o, R, p, lc + Vector2(0, -10), lc.y + 2.0, d.get("es", []), 10, "rock", 170.0, 0.7)
 
 
-func _sg_slam(o, R, p: Dictionary, at: Vector2, r: float, es: Array, raw: bool, t: int) -> void:
+## S2 落地 = 环形尘浪（slam，不开裂）；路线「再跃·裂地」= 冲柱 + 裂网（rift）
+func _sg_slam(o, R, p: Dictionary, at: Vector2, r: float, es: Array, raw: bool, t: int, kind: String) -> void:
 	if raw:
 		_push({"k": "sg_raw_slam_e%d" % t, "t0": g.t, "gp": at, "ly": "raw", "rot": 0.0, "sc": g.PX * (r * 0.5) / 55.0, "oid": str(o.id)})
 		return
-	var sk: String = "sg_slam_r%d_e%d" % [_bucket(r * 0.5, [55, 70]), t]
+	var sk: String = ("sg_rift_r70_e%d" % t) if kind == "rift" else ("sg_slam_r55_e%d" % t)
 	_push({"k": sk + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)})
 	_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
 	_burst_m(o, R, p, at + Vector2(0, -10), at.y + 2.0, es, 8 + 3 * t, "rock", 200.0, 0.85)
@@ -1535,5 +1541,61 @@ func _floor_sg(o) -> void:
 	for it in items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
-	for qv in _qi_volleys(o):
-		_draw_strip(cv, qv.k + "_gd_d%d" % qv.d, int(qv.f), qv.gp, qv.flip, true)
+	_sg_qi_track(o)
+
+
+## 后期剑气（late_shape → vis_growth._fire_qi，只读 o.vg.qi）：每次出手新生成的几道合成一道冲击波，自己往前推约 0.5 秒（判定照旧，画面比判定走得远）；
+## 前沿扫过的怪打出火星（每道冲击波至多 5 只）。同屏每人至多两道。新剑气记一个画面专用键 _pxw（玩法不读）
+var _sgw: Array = []   # {oid, mv, t0, hits, S}
+
+
+func _sg_qi_track(o) -> void:
+	var id: String = str(o.id)
+	if not o.vg.is_empty() and o.vg.has("qi"):
+		var grp: Array = []
+		for q in o.vg.qi:
+			if not q.has("_pxw"):
+				q["_pxw"] = true
+				grp.append(q)
+		if not grp.is_empty():
+			var p0 := Vector2.ZERO
+			var dsum := Vector2.ZERO
+			for q in grp:
+				p0 += q.p
+				dsum += (q.v as Vector2).normalized()
+			p0 /= float(grp.size())
+			var dir: Vector2 = dsum.normalized() if dsum.length() > 0.01 else Vector2.RIGHT
+			var n: int = grp.size()
+			var S: int = 18 if n <= 1 else (24 if n == 2 else 30)
+			var dk: Array = pick_dir(dir.angle())
+			var mv := {"p0": p0, "dir": Vector2(dir.x, dir.y * 0.72).normalized()}
+			var k: String = "sg_wave_s%d_e%d" % [S, tier(o)]
+			var mine: Array = _sgw.filter(func(w): return str(w.oid) == id)
+			if mine.size() >= 2:   # 同屏每人至多两道：最早的一道立刻收掉
+				var old: Dictionary = mine[0]
+				var omv: Dictionary = old.mv
+				items = items.filter(func(it): return not (it.has("mv") and is_same(it.mv, omv)))
+				_sgw.erase(old)
+			_push({"k": k + "_up_d%d" % dk[0], "t0": g.t, "gp": _snap(p0), "flip": dk[1], "ly": "up", "oid": id, "mv": mv})
+			_push({"k": k + "_gd_d%d" % dk[0], "t0": g.t, "gp": _snap(p0), "flip": dk[1], "ly": "gd", "oid": id, "mv": mv})
+			_sgw.append({"oid": id, "mv": mv, "t0": g.t, "hits": {}, "S": float(S) * 2.0})
+	if _sgw.is_empty() or mode() != 1:
+		return
+	var R = load("res://scripts/render/fx_recipe.gd").of(g)
+	var keep: Array = []
+	for w in _sgw:
+		if g.t - float(w.t0) > 0.55:
+			continue
+		keep.append(w)
+		if str(w.oid) != id or w.hits.size() >= 5:
+			continue
+		var front: Vector2 = _gp({"mv": w.mv, "t0": w.t0})
+		for j in o.query_ids(front, float(w.S) + 20.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or w.hits.has(e.id) or e.pos.distance_to(front) > float(w.S) * 0.8 + float(e.r):
+				continue
+			w.hits[e.id] = true
+			R._grains(o, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.pos.y) + 2.0, "streak", 2, {"tier": tier(o)}, w.mv.dir)
+			if w.hits.size() >= 5:
+				break
+	_sgw = keep
