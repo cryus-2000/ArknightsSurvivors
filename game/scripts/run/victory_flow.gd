@@ -6,11 +6,11 @@ extends RefCounted
 const Game = preload("res://scripts/game.gd")
 const D = preload("res://scripts/data.gd")
 const DURATION := 1.7
-const FIN_DUR := 2.0        # 最终 Boss 击破演出总长（真实秒）
-const FIN_IN := 0.3         # 1.0 → FIN_SCALE 的用时
-const FIN_OUT := 0.4        # 末尾回到 1.0 的用时
-const FIN_SCALE := 0.15
-const OUT_DUR := 1.1        # 慢动作之后的收尾（docs/62 §3.21c）：暖金光环扩开、四周压暗、「探索完成」浮出，再进结算
+const FIN_DUR := 3.4        # 最终 Boss 击破演出总长（真实秒）；2.0 → 3.4（11-05 用户「死亡和胜利的时候的镜头慢动作和时间可以拉长一点」：约 1.7 倍长、进出更缓）
+const FIN_IN := 0.6         # 1.0 → FIN_SCALE 的用时（0.3 → 0.6）
+const FIN_OUT := 0.9        # 末尾回到 1.0 的用时（0.4 → 0.9）
+const FIN_SCALE := 0.12     # 0.15 → 0.12
+const OUT_DUR := 1.6        # 1.1 → 1.6，结算延后弹出；慢动作之后的收尾（docs/62 §3.21c）：暖金光环扩开、四周压暗、「探索完成」浮出，再进结算
 const UI = preload("res://scripts/ui.gd")
 var g: Game
 var active := false

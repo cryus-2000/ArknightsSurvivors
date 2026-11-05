@@ -2979,7 +2979,7 @@ func draw_body() -> void:
 		var fl: float = g.elite_moment.flash(self)   # 精英化时刻爆亮（docs/249 §2）
 		if fl > 0.0:
 			mod = Color(mod.r * (1.0 + 2.2 * fl), mod.g * (1.0 + 2.2 * fl), mod.b * (1.0 + 2.2 * fl), mod.a)
-	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()) + Fxr.Pxp.recoil(self), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))   # recoil：转平面开火后坐（docs/262，只画）
 
 
 ## 就地解散后在落点淡入（squad.blink_fx，11-02 取代向上跳出屏幕）：warp_t 由 world.update_visuals 推进，< 0 = 不在瞬回。纯画面

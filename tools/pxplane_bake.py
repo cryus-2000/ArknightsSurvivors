@@ -8,7 +8,7 @@
   data/pxp_skadi.json 帧数、fps、帧尺寸、原点（脚底 / 地面点），以及每帧的 emit 点表（最亮的热芯像素：进光学层发光通道）。
 raw（旧做法对照，fx/px_plane = 2）：色层 + 光层烤成一张（光晕变成颜色），游戏里旋转 + 小数缩放直接贴。
 
-用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma|texas] [--only 键前缀]（星熊 docs/254：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json；德克萨斯 docs/257：pxp_tx_*、data/pxp_texas.json）
+用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma|siege]（推进之王 docs/264：帧条 pxp_sg_*、元数据 data/pxp_siege.json） [--only 键前缀]（星熊 docs/254：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json）
 """
 import argparse, json, os, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -25,6 +25,7 @@ OUT_ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 OPS = {
     "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0x5f, 0xf0)]),
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
+    "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
     "texas": ("melee/ak-texas-pp", "pxp_texas.json", "tx_", [(0x9f, 0xe3)]),
 }
 TMP = os.path.join(ROOT, "build", "pxp_bake")
@@ -150,6 +151,64 @@ def variants_hoshiguma():
     return v
 
 
+def variants_siege():
+    """推进之王（docs/264）：判定从 siege.json 读，美术像素 = 世界 / 2。"""
+    v = []
+    T = [0, 1, 2]
+    for R in (46, 56, 66):   # 普攻锤击：reach 92 × op_range → 46 / 56 / 66；下砸锤弧（方向件，挂在人身上）
+        for el in T:
+            for d in DIRS:
+                v.append(("arc_r%d_e%d_up_d%d" % (R, el, d), {"part": "arc", "layer": "up", "R": R, "dir": d, "el": el, "dur": 0.3}, 0.34))
+    for el in T:   # 冲锋号令强化一锤（S1，E0–E2）/ 碎颅（S3，只有 E2）：锤弧更粗、热白多一拍
+        for d in DIRS:
+            v.append(("arc_s1_e%d_up_d%d" % (el, d), {"part": "arc", "layer": "up", "R": 56, "dir": d, "el": el, "style": "s1", "dur": 0.36}, 0.4))
+    for d in DIRS:
+        v.append(("arc_s3_up_d%d" % d, {"part": "arc", "layer": "up", "R": 56, "dir": d, "el": 2, "style": "s3", "dur": 0.38}, 0.42))
+        v.append(("s3_gd_d%d" % d, {"part": "s3", "layer": "gd", "dir": d, "el": 2, "seed": 5}, 0.8))
+    v.append(("s3_up", {"part": "s3", "layer": "up", "el": 2, "seed": 5}, 0.55))
+    for el in T:   # 落点：普攻 / S1 强化一锤（不分方向，原点 = 锤落点，留在原地）
+        for st in ("atk", "s1"):
+            for ly in ("up", "gd"):
+                v.append(("imp_%s_e%d_%s" % (st, el, ly), {"part": "imp", "layer": ly, "el": el, "style": st, "seed": 3 + el}, 0.7))
+    for el in (1, 2):   # S2 跃空锤：落地环形尘浪（s2_r 110 → 55，不开裂）；路线「再跃·裂地」140 → 70 保留裂网；起跳 → 落点残影弧（跃出距离 24 / 45）
+        for ly in ("up", "gd"):
+            v.append(("slam_r55_e%d_%s" % (el, ly), {"part": "slam", "layer": ly, "R": 55, "el": el, "seed": 7}, 0.7))
+            v.append(("rift_r70_e%d_%s" % (el, ly), {"part": "slam", "layer": ly, "R": 70, "el": el, "style": "rift", "seed": 7}, 0.85))
+        for D in (24, 45):
+            for d in DIRS:
+                v.append(("trail_l%d_e%d_up_d%d" % (D, el, d), {"part": "trail", "layer": "up", "L": D, "dir": d, "el": el, "seed": 29}, 0.64))
+    for R in (35, 45, 55):   # 震地 / 狮吼：quake_r 70 × op_range（× roar r_mult）
+        for st in ("q", "roar"):
+            v.append(("quake_r%d_%s_gd" % (R, st), {"part": "quake", "layer": "gd", "R": R, "style": st, "seed": 9}, 0.5))
+    for ly in ("up", "gd"):
+        v.append(("crush_%s" % ly, {"part": "crush", "layer": ly, "el": 1, "seed": 11}, 0.6))
+        v.append(("crash_%s" % ly, {"part": "crash", "layer": ly, "el": 1, "seed": 13}, 0.45))
+        v.append(("link_%s" % ly, {"part": "link", "layer": ly, "el": 1, "seed": 15}, 0.8))
+        v.append(("s3cast_%s" % ly, {"part": "s3cast", "layer": ly, "el": 2, "seed": 17}, 0.5))
+        for el in T:
+            v.append(("s1cast_e%d_%s" % (el, ly), {"part": "s1cast", "layer": ly, "el": el, "seed": 19}, 0.5))
+    for L in (60, 90, 110):   # 破阵（精二普攻，len 180 → 90）/ 再跃队长版地裂（120–220 → 60–110，不出岩刺）
+        for d in DIRS:
+            v.append(("fis_l%d_gd_d%d" % (L, d), {"part": "fis", "layer": "gd", "L": L, "dir": d, "el": 2, "seed": 21}, 0.66))
+            v.append(("crk_l%d_gd_d%d" % (L, d), {"part": "fis", "layer": "gd", "L": L, "dir": d, "el": 1, "style": "crk", "seed": 23}, 0.66))
+    for d in DIRS:
+        v.append(("fis_l90_up_d%d" % d, {"part": "fis", "layer": "up", "L": 90, "dir": d, "el": 2, "seed": 21}, 0.66))
+    v.append(("cmd_gd", {"part": "cmd", "layer": "gd", "R": 90, "el": 1, "seed": 25}, 0.66))
+    v.append(("s3aura_gd", {"part": "s3aura", "layer": "gd", "R": 24, "el": 2, "seed": 27, "_loop": True}, 0.4))
+    for S in (18, 24, 30):   # 后期剑气 = 锤击甩出去的冲击波（0.53 秒 8 帧，游戏里自己往前推）：一次出手 1 / 2 / 3+ 道合成一道
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("wave_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.54))
+    # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
+    for el in T:
+        v.append(("raw_imp_e%d" % el, {"part": "imp", "layer": "gd", "view": "raw", "el": el, "seed": 3 + el}, 0.6))
+    for el in (1, 2):
+        v.append(("raw_slam_e%d" % el, {"part": "slam", "layer": "gd", "view": "raw", "R": 55, "el": el, "seed": 7}, 0.7))
+    v.append(("raw_s3", {"part": "s3", "layer": "gd", "view": "raw", "dir": 0, "el": 2, "seed": 5}, 0.7))
+    return v
+
+
 def variants_texas():
     """德克萨斯（docs/257）：判定从 texas.json 读，美术像素 = 世界 / 2。"""
     v = []
@@ -198,7 +257,7 @@ def variants_texas():
     return v
 
 
-VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "texas": variants_texas}
+VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "texas": variants_texas}
 FX_ID = "water/ak-skadi-pp"
 PREFIX = ""
 ACC_RG = [(0x5f, 0xf0)]
@@ -270,7 +329,7 @@ def bake(key, d, dur, loop=False):
             r, g_, b = c[py[j], px[j], :3]
             pts.append([int(px[j]), int(py[j]), "%02x%02x%02x" % (int(r * 255), int(g_ * 255), int(b * 255))])
         emit.append(pts)
-    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key)), optimize=True)
+    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm"))), optimize=True)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": loop, "emit": emit}
 
 
@@ -288,7 +347,9 @@ def main():
     os.makedirs(OUT_ART, exist_ok=True)
     os.makedirs(TMP, exist_ok=True)
     vs = [x for x in VARIANTS[a.op]() if x[0].startswith(a.only)]
-    reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) and a.only else {}
+    reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) else {}
+    if not a.only:   # 全量重烘：清掉旧件，只留不由本脚本生成的（推进之王狮头 sg_lion_*，tools/pxplane_lion.py）
+        reg = {k: v for k, v in reg.items() if k.startswith("sg_lion_")}
     with ThreadPoolExecutor(a.jobs) as ex:
         rs = list(ex.map(lambda x: render(*x), vs))
     for key, d, dur, lp in rs:
@@ -299,7 +360,7 @@ def main():
         reg[PREFIX + k] = m
         print("%-22s %2d 帧 %3d×%3d emit %d" % (k, m["n"], m["w"], m["h"], max((len(e) for e in m["emit"]), default=0)))
     reg = {k: reg[k] for k in sorted(reg)}
-    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "texas": "docs/257 德克萨斯"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
+    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "texas": "docs/257 德克萨斯"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
     json.dump(reg, open(OUT_META, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("共 %d 件" % (len(reg) - 1))
 

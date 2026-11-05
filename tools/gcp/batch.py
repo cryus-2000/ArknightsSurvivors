@@ -24,7 +24,13 @@ GCLOUD = shutil.which("gcloud") or shutil.which("gcloud.cmd") or "gcloud"
 # us-central1 牌价（美元 / 小时，2026-10），只用于估算花费
 PRICE = {("e2-standard-8", "SPOT"): 0.0806, ("e2-standard-8", "STANDARD"): 0.2681,
          ("e2-highcpu-8", "SPOT"): 0.0595, ("e2-highcpu-8", "STANDARD"): 0.1979,
-         ("e2-standard-4", "SPOT"): 0.0403, ("e2-standard-4", "STANDARD"): 0.1340}
+         ("e2-standard-4", "SPOT"): 0.0403, ("e2-standard-4", "STANDARD"): 0.1340,
+         ("n2-standard-8", "SPOT"): 0.0785, ("n2-standard-8", "STANDARD"): 0.3885,
+         ("n2-highcpu-8", "SPOT"): 0.0580, ("n2-highcpu-8", "STANDARD"): 0.2868,
+         ("c2d-highcpu-8", "SPOT"): 0.0610, ("c2d-highcpu-8", "STANDARD"): 0.3013}
+# 外网 IP 配额每区 8 个（11-05 实测），一区开满就换下一区；镜像是全局的，桶在 us-central1，跨区只多一点流量（docs/256 §7）
+ZONES = ["us-central1-a", "us-east1-b", "us-east4-a", "us-west1-b", "us-west4-a"]
+IMAGE_FAMILY = "arkr-render"   # tools/gcp/build_image.py 做的预装镜像；项目里没有就退回 debian-12
 EXTRA_PER_H = 0.005 + 0.0055   # 临时外网 IP + 30 GB pd-balanced
 
 
@@ -118,16 +124,46 @@ def create_vm(a, name, gs, sha, base, cmds, model):
     cmdf = os.path.join(tmp, "cmds.sh")
     with open(cmdf, "w", encoding="utf-8", newline="\n") as f:
         f.write(cmds + "\n")
-    args = ["compute", "instances", "create", name, "--zone", a.zone, "--machine-type", a.machine,
-            "--image-family", "debian-12", "--image-project", "debian-cloud",
-            "--boot-disk-size", "30GB", "--boot-disk-type", "pd-balanced",
+    img = ["--image-family", IMAGE_FAMILY, "--image-project", project()] if (not getattr(a, "no_image", False) and has_image()) else ["--image-family", "debian-12", "--image-project", "debian-cloud"]
+    args = ["compute", "instances", "create", name, "--zone", a.zone, "--machine-type", a.machine] + img + [
+            "--boot-disk-size", "20GB", "--boot-disk-type", "pd-balanced",
             "--service-account", a.sa, "--scopes", "cloud-platform", "--labels", "purpose=batch",
             "--provisioning-model", model, "--instance-termination-action", "DELETE",
             "--max-run-duration", "%ds" % int(a.hours * 3600),
             "--metadata", ",".join("%s=%s" % kv for kv in md.items()),
             "--metadata-from-file", "startup-script=%s,batch-cmds=%s" % (os.path.join(HERE, "vm_startup.sh"), cmdf)]
-    print("开机 %s（%s %s，%s，最长 %.1f 小时）" % (name, a.machine, model, a.zone, a.hours))
-    gc(*args)
+    # 配额满时：本区外网 IP / 机型配额 / 机房没货 → 换下一个区；全项目 CPU 配额满 → 每分钟重试，最多等 --quota-wait 分钟（11-05）
+    t0 = time.time()
+    zones = [a.zone] + [z for z in ZONES if z != a.zone] if getattr(a, "zone_auto", True) else [a.zone]
+    zi = 0
+    told = False
+    while True:
+        args[args.index("--zone") + 1] = zones[zi]
+        r = gc(*args, check=False)
+        if r.returncode == 0:
+            a.zone = zones[zi]
+            print("开机 %s（%s %s，%s，%s，最长 %.1f 小时）" % (name, a.machine, model, a.zone, img[1], a.hours))
+            return
+        err = r.stderr or ""
+        q = (re.search(r"Quota '([A-Z0-9_]+)'", err) or [None, ""])[1]
+        if ("Quota" not in err and "ZONE_RESOURCE_POOL_EXHAUSTED" not in err and "does not exist in zone" not in err) or time.time() - t0 > getattr(a, "quota_wait", 90) * 60:
+            raise RuntimeError("开机失败：\n" + err[-1500:])
+        if q != "CPUS_ALL_REGIONS" and zi + 1 < len(zones):
+            zi += 1   # 区内配额（IN_USE_ADDRESSES、*_CPUS、SSD）或机房没货：换区再试
+            continue
+        if not told:
+            print("配额满（%s），排队等别的虚拟机结束，每分钟重试" % (q or "机房没货"), flush=True)
+            told = True
+        zi = 0
+        time.sleep(60)
+
+
+_HAS_IMAGE = None
+def has_image() -> bool:
+    global _HAS_IMAGE
+    if _HAS_IMAGE is None:
+        _HAS_IMAGE = gc("compute", "images", "describe-from-family", IMAGE_FAMILY, "--project", project(), "--format=value(name)", check=False).returncode == 0
+    return _HAS_IMAGE
 
 
 def wait(name, zone, gs, poll):
@@ -296,6 +332,9 @@ def main():
     r.add_argument("--standard", action="store_true", help="用标准机（缺省抢占式 spot，便宜约 70%%）")
     r.add_argument("--hours", type=float, default=3.0, help="最长运行时间，到点 GCE 强制删机")
     r.add_argument("--poll", type=int, default=60)
+    r.add_argument("--no-image", action="store_true", help="不用预装镜像 arkr-render，按老办法从 debian-12 装环境")
+    r.add_argument("--no-zone-auto", dest="zone_auto", action="store_false", help="只在 --zone 指定的区开机，不换区")
+    r.add_argument("--quota-wait", type=float, default=90, help="配额满时最多排队等多少分钟（每分钟重试开机）")
     r.add_argument("--no-push", action="store_true", help="只建结果提交不推（调试用）")
     c = sub.add_parser("collect")
     c.add_argument("tag")

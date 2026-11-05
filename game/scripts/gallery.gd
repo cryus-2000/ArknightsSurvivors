@@ -132,6 +132,7 @@ func open() -> void:
 	_build()
 	_restart_open()
 	_skip()   # 10-22 用户：进图鉴不要入场动效（卡片浮现 / 面板滑入），直接出现；换页、换干员的动效不变
+	_logo_start()   # 11-05 用户：先显示罗德岛标志再进图鉴（_draw_logo_intro，0.55 秒短版）
 	_warm_demo()
 
 
@@ -245,6 +246,7 @@ func _process(delta: float) -> void:
 		return
 	A.warm_step(4000)
 	UIMo.advance(delta)
+	_intro_rec_tick()
 	t += delta
 	form_t += delta
 	# 悬停：120 ms 抬 4 px（触屏不认悬停；减少动态时直接到位）
@@ -927,6 +929,10 @@ var drag_acc := 0.0   # 触屏上下滑动翻页（没有滚轮）
 
 
 func _gui_input(event: InputEvent) -> void:
+	if logo_active() and ((event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed) or (event is InputEventKey and event.pressed)):
+		_logo_skip()   # 标志入场中：点一下 / 按键直接进图鉴
+		accept_event()
+		return
 	if event is InputEventMouseMotion:
 		if tab == TAB_EVENT and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) and ev_list_r.has_point(_design(event.position)):
 			ev_scroll = clampf(ev_scroll - event.relative.y / maxf(dk, 0.01), 0.0, ev_scroll_max)
@@ -1287,6 +1293,7 @@ func _draw() -> void:
 		_draw_panel(e, ph)
 	_draw_hint(ph)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_draw_logo_intro()   # 罗德岛标志入场（盖在最上面，0.55 秒）
 
 
 ## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
@@ -2456,3 +2463,80 @@ func _ev_detail(e: Dictionary, ph: bool, x0: float, w: float, y: float, a: float
 		draw_rect(track, UI.fa(UI.C_L_INK, 0.15 * a))
 		var th: float = track.size.y * track.size.y / (track.size.y + ev_scroll_max)
 		draw_rect(Rect2(track.position.x - 1.0, y + (track.size.y - th) * ev_scroll / ev_scroll_max, 4.0, th), UI.fa(UI.C_L_INK, 0.6 * a))
+
+
+
+# ---------------------------------------------------------------- 入场：罗德岛标志短版（用户 11-05；Codex 演示 docs/reference/prts-entry-1105「图鉴 · 短版」）
+## 总长 0.55 秒（真实时间）：0–0.06 背景压暗；0–0.13 标志横条归位亮起；0.08–0.24 图鉴黄细扫描线掠过；0.20–0.30 标志退去；
+## 0.24–0.55 中央双侧阶梯幕展开、黄细边退到屏幕外。标志 = 用户原图运行时采样 120×120（screens/rhodes_logo.gd）。
+## 点击 / 按键直接跳到图鉴并吞掉这次输入；减少动态效果时只做 ≤ 0.12 秒淡入；截图 / 无头测试直接终态（--galleryintro 录像时才播）
+const LOGO_T := 0.55
+const LOGO_RM_T := 0.12
+const RhodesLogo = preload("res://scripts/screens/rhodes_logo.gd")
+const LOGO_BG := Color(0.059, 0.063, 0.075)      # #0F1013
+const LOGO_Y := Color(1.0, 0.808, 0.0)           # #FFCE00（只用于图鉴）
+var logo_t0 := -100.0
+var logo_rm := false
+
+
+func _logo_start() -> void:
+	var test: bool = DisplayServer.get_name() == "headless" or (Array(Cfg.dev_args()).any(func(a): return str(a).begins_with("--galleryshot=")) and not Cfg.dev_args().has("--galleryintro"))
+	logo_t0 = -100.0 if test else _now()
+	logo_rm = UIMo.rm()
+
+
+var _intro_rec := false   # --galleryintro 录像：开图鉴 1.5 秒（等启动卡顿过去）后重播一次入场
+
+
+func _intro_rec_tick() -> void:
+	if not _intro_rec and Cfg.dev_args().has("--galleryintro") and _now() > 1.5:
+		_intro_rec = true
+		_logo_start()
+
+
+func logo_active() -> bool:
+	return _now() - logo_t0 < (LOGO_RM_T if logo_rm else LOGO_T)
+
+
+func _logo_skip() -> void:
+	logo_t0 = -100.0
+
+
+func _draw_logo_intro() -> void:
+	var t: float = _now() - logo_t0
+	if t < 0.0 or not logo_active():
+		return
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var vs: Vector2 = size
+	if logo_rm:
+		draw_rect(Rect2(Vector2.ZERO, vs), Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, 1.0 - t / LOGO_RM_T))
+		return
+	var appear: float = clampf(t / 0.06, 0.0, 1.0)
+	var unfold: float = UIMo.out_cubic(clampf((t - 0.24) / 0.31, 0.0, 1.0))
+	var cx: float = vs.x / 2.0
+	var row := 6.0
+	var y := 0.0
+	while y < vs.y:
+		var half: float = maxf(0.0, unfold * vs.x * 0.62 - absf(y + row / 2.0 - vs.y / 2.0) * 0.16)
+		var l: float = floorf((cx - half) / 3.0) * 3.0
+		var r: float = ceilf((cx + half) / 3.0) * 3.0
+		var bc := Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, appear)
+		if half <= 0.0:
+			draw_rect(Rect2(0, y, vs.x, row), bc)
+		else:
+			draw_rect(Rect2(0, y, maxf(0.0, l), row), bc)
+			draw_rect(Rect2(r, y, maxf(0.0, vs.x - r), row), bc)
+			if unfold < 0.98:
+				draw_rect(Rect2(l - 3.0, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
+				draw_rect(Rect2(r, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
+		y += row
+	if t < 0.30:
+		var reveal: float = UIMo.out_cubic(clampf(t / 0.13, 0.0, 1.0))
+		var span: float = roundf(vs.y * 0.36 / 120.0) * 120.0   # 每个标志像素取整数屏幕像素
+		var s: float = span / 120.0
+		var top: float = roundf(vs.y / 2.0 - span / 2.0)
+		var a: float = (1.0 - clampf((t - 0.20) / 0.10, 0.0, 1.0)) * appear
+		RhodesLogo.draw_bands(self, Vector2(roundf(cx - span / 2.0), top), s, 10, func(b): return roundf((1.0 if b % 2 else -1.0) * 15.0 * s * (1.0 - reveal)), Color(1, 1, 1, a))
+		if t > 0.08 and t < 0.24:
+			var sy: float = top + span * clampf((t - 0.08) / 0.16, 0.0, 1.0)
+			draw_rect(Rect2(roundf(cx - span * 0.59), roundf(sy), roundf(span * 1.18), 2.0), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, a))

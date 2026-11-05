@@ -18,6 +18,6 @@ for P in "${PARTS[@]}"; do
     tail -5 "$OUT/pxplane_$(echo "$P" | cut -d' ' -f1).log"
 done
 # 中间帧与 Godot 日志（看 SCRIPT ERROR 用）
-mkdir -p "$OUT/logs" && cp build/pxplane/logs/*.log "$OUT/logs/" 2>/dev/null || true
+mkdir -p "$OUT/logs" && cp build/pxplane*/logs/*.log "$OUT/logs/" 2>/dev/null || true
 grep -l "SCRIPT ERROR" "$OUT"/logs/*.log 2>/dev/null | head && echo "有 SCRIPT ERROR，见上面的日志" || true
 exit $RC

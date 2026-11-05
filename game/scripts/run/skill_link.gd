@@ -362,11 +362,15 @@ static func _step_sample(u, a: Dictionary) -> bool:
 		"lava":   # 艾雅法拉：抬杖 → 熔岩块（约 2 倍大、旋转、滴火星冒烟、地上有影子）0.42 秒砸进区域 → 顿帧 + 碎岩迸溅 + 熔岩溅落灼地 → 两跳点燃
 			var T := 0.42
 			var R: float = Bal.v("ult/link_lava_rock_r", 42.0)
+			var pxo: bool = Fxr.owns(p)   # 转平面（docs/259）：接管时岩块 / 砸地画面改由 fx_pxplane 画，下面只留玩法
 			if not a.done.has("go"):
 				a.done["go"] = true
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				a["from_p"] = p.pos + Vector2(float(p.face) * 10.0, -44.0)
+				if pxo:
+					Fxr.ev(p, "ey_link", {"a": a.from_p, "c": c, "T": T, "R": R, "foot": p.pos})
+					return false
 				u.grain("fire", a.from_p, Vector2.UP, Color.WHITE, 8)
 				u.light(a.from_p, 120.0, CRACK, 0.3)
 				var rock := {"kind": "rock", "c": a.from_p, "r": R * 0.5, "col": CRUST, "glow": CRACK, "core": CORE, "seed": 3.0, "life": T + 0.2}
@@ -375,6 +379,8 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				u.shape(shadow)
 				a["rock"] = rock
 				a["shadow"] = shadow
+			if t < T and pxo:
+				return false
 			if t < T:
 				var k: float = t / T
 				var gp: Vector2 = Vector2(a.from_p).lerp(c, k)   # 地面投影
@@ -395,6 +401,17 @@ static func _step_sample(u, a: Dictionary) -> bool:
 					u.spark(pos + Vector2(0, R * 0.5), CRACK, 1, hgt)   # 往下滴的火星，落到地面
 				u.light(gp, 120.0, CRACK, 0.06)   # 灯打在地面投影上（照在岩块上会把暗壳照成亮红）
 				return false
+			if not a.done.has("hit") and pxo:
+				a.done["hit"] = true
+				_beat(u)
+				u.g.vfx.stop(0.07, "link", true)   # 砸地顿一下
+				var hr2: float = r * 0.75
+				var burn2: Array = u.in_circle(c, hr2)
+				a["burn"] = burn2
+				Fxr.ev(p, "ey_link_hit", {"c": c, "r": hr2, "es": burn2})
+				for e in burn2:
+					p.log_hit(_src(p, "熔岩"), ["连携"])
+					p.deal_damage(e, _dmg(p, Bal.v("ult/link_lava_mult", 1.0), e))
 			if not a.done.has("hit"):
 				a.done["hit"] = true
 				a.rock.life = 0.0
@@ -443,7 +460,10 @@ static func _step_sample(u, a: Dictionary) -> bool:
 							continue
 						p.log_hit(_src(p, "点燃"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_burn_mult", 0.25), e))
-						u.grain("fire", e.pos + Vector2(0, -12), Vector2.UP, Color.WHITE, 3)
+						if not pxo:
+							u.grain("fire", e.pos + Vector2(0, -12), Vector2.UP, Color.WHITE, 3)
+					if pxo:
+						Fxr.ev(p, "ey_link_burn", {"es": a.burn})
 			return t >= T + 0.9
 		"gather":   # 歌蕾蒂娅：甩钩 0.14 秒 → 拖 0.36 秒 → 落地，钩索残留 0.5 秒慢慢收
 			var pull: Array = a.pull
@@ -769,13 +789,17 @@ static func _step16(u, a: Dictionary) -> bool:
 						var side: float = signf((e.pos - q).dot(nv))
 						p.apply_kb(e, nv * (side if side != 0.0 else 1.0) * 200.0)
 						_hit16(p, e, "冲阵", 0.6)
-				if not LFB.sg_dash(u, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
+				if Fxr.owns(p):
+					Fxr.ev(p, "link_dash", {"q": q})   # 转平面（docs/264）：冲刺扬起的碎土由 fx_pxplane 画（只画）
+				elif not LFB.sg_dash(u, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
 					u.grain("bfx_dust", q + Vector2(0, 8), Vector2.UP, Color(0.4, 0.36, 0.3), 1)
 				return false
 			if once.call("slam"):
 				_beat(u)
 				u.g.vfx.stop(0.05, "link", true)
-				if not LFB.sg_slam(u, c):
+				if Fxr.owns(p):
+					Fxr.ev(p, "link_slam", {"c": c, "es": u.in_circle(c, 90.0)})   # 转平面（docs/264）：尾锤大砸坑由 fx_pxplane 画（只画）
+				elif not LFB.sg_slam(u, c):
 					u.shape({"kind": "ring", "c": c, "r": 95.0, "r1": 20.0, "w": 8.0, "col": cl, "life": 0.4})
 					u.shape({"kind": "ellipse", "c": c + Vector2(0, 4), "rx": 50.0, "ry": 20.0, "col": Color(0.12, 0.1, 0.08), "fill": 0.7, "layer": "back", "life": 1.0})
 					u.debris(c, cl, 2)
@@ -800,12 +824,15 @@ static func _step16(u, a: Dictionary) -> bool:
 				var fp: Vector2 = p.pos + Vector2(0, -20)
 				var tp: Vector2 = fp + d * (fp.distance_to(c) + 250.0)
 				var tc: Color = Color(1.0, 0.3, 0.25) if i % 2 == 0 else Color(1.0, 0.82, 0.4)   # 红金交替
-				if LFA.on(u, "fx_lk_tx1"):
+				var band: Array = u.in_band(fp, tp, 14.0)
+				if _FXR.owns(p):   # 转平面（docs/262）：一发长曳光 + 枪口焰 + 前 2 只被穿的火花，只画
+					_FXR.ev(p, "exu_link", {"fp": fp, "tp": tp, "i": i, "es": band.slice(0, 2)})
+				elif LFA.on(u, "fx_lk_tx1"):
 					LFA.exusiai_shot(u, fp, tp, i)
 				else:
 					u.shape({"kind": "line", "a": fp, "b": tp, "w": 3.0, "col": tc, "life": 0.16})
 					u.grain("bfx_flash", fp + d * 30.0, d, tc, 2)
-				for e in u.in_band(fp, tp, 14.0):
+				for e in band:
 					_hit16(p, e, "穿透扫射", 0.35)
 				a.k = i + 1
 			if t >= 0.1 and once.call("lt"):

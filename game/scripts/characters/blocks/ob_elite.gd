@@ -524,6 +524,7 @@ static func el_mate_attack(o, m) -> void:
 		var c: Vector2 = m.pos + Vector2(14.0 * float(m.face), -30.0)
 		if t.has("fx"):
 			fx_play(o, t.fx, c, 12.0)
+		_FXR.ev(o, "exu_bless", {"at": c, "gy": m.pos.y + 1.0})   # 转平面（docs/262）：能天使接管时改画金色小星芒，只画
 
 
 # ---------------------------------------------------------------- 本段的校验

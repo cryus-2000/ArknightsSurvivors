@@ -49,14 +49,14 @@
 - `_cuts`（命中斩痕）加了可选颜色键 `c1 / c2 / c3`，德克萨斯用琥珀；斯卡蒂、星熊不传，照旧蓝色。
 - 帧条：`game/art/fx/pxp/pxp_tx_*.png`（253 张）+ `game/data/pxp_texas.json`；效果源 `tools/pixelfx_fx/melee/ak-texas-pp.js`；重新生成 `python tools/pxplane_bake.py --op texas`。`.png.import` 按现有帧条的格式生成（uid 随机，路径 md5 同 Godot 规则）。
 - 颜色组 `game/data/fx_pxplane/texas.json`（只给颗粒 / 照地光 / 受击反应）。
-- 看图：`tools/pxplane_shots.py --op texas`（OPS 加德克萨斯；`linkcmp` 按干员找连携事件行 `PXPLOG tx tx_link`）；原作一栏 `tools/pxplane_refcol.py`（本机 PIL 拼，不开 Godot）。
+- 看图：`tools/pxplane_shots.py --op texas`（OPS 加德克萨斯；`linkcmp` 按干员找连携事件行 `PXPLOG tx tx_link`）；原作一栏 `tools/pxplane_refcol_texas.py`（本机 PIL 拼，不开 Godot）。
 
 本分支合进了 `claude/pxplane-lumen` 和 `claude/integ-1105`（后者已含斯卡蒂 / 星熊 / 流明三人）：冲突以 integ 版为底，再补回德克萨斯的几处分流（`IDS`、`METAS`、`ev` / `draw_floor` / `draw_over` / `sort_items` / `draw_sorted`）。
 
 ## 4. 交付（本机 `Claude outputs/pxplane_texas_1105/`，不进 git）
 
 - 三栏对比 `cmp_<招>_e<档>.png`（① 当前游戏 / ② 旧做法原样贴 / ③ 转平面）+ 2 倍局部 `_x2.png`：atk（E0 / E1 / E2）、s1（E0 / E1 / E2）、s2（E1 / E2）、s3（E2）。图鉴演示连拍，开着 `growth/late_shape = 1`。
-- 四栏 `cmp4_<招>_e<档>.png`：在三栏左边加「0 原作参照」（本机回放的原作关键帧，`tools/pxplane_refcol.py` 拼）。普攻、S1 有原作参照；S2 / S3 / 连携只写一行「无原作参照」的说明，不编图。
+- 四栏 `cmp4_<招>_e<档>.png`：在三栏左边加「0 原作参照」（本机回放的原作关键帧，`tools/pxplane_refcol_texas.py` 拼）。普攻、S1 有原作参照；S2 / S3 / 连携只写一行「无原作参照」的说明，不编图。
 - `cmp_link.png` / `cmp_link_x2.png`：连携技「追击」三栏，实战局（流明当队长、德克萨斯当队员，种子 11，`--elite2 --sptest`），46.79 秒那次出手后 0.1 秒。
 - 三档并排 `tiers_atk / s1 / s2 / s3.png`（只转平面版，2 倍局部，每行一档、5 帧）。
 - `late_8m00_onoff.mp4`：同种子 11、德克萨斯当队长、8:00 起 20 秒，左关右开，30 帧原速，22.6 MB（crf 26），开 `growth/late_shape = 1`。

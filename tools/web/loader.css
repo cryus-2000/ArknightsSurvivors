@@ -315,3 +315,20 @@
   #sy-load .sv-contacts .pg, #sy-load .sv-contacts .go rect.bx, #sy-load .sv-contacts .lt, #sy-load .sv-contacts .gl,
   #sy-load .sv-net .nd, #sy-load .sv-geo1, #sy-load .sv-geo2, #sy-load .sv-orbit { animation: none; }
 }
+
+/* ---------------- 方向 4：PRTS 认证终端（11-05，loader.js p4Init；同桌面 boot_views.draw_v4）---------------- */
+#sy-load.sv4 { background: #0f1013; }
+#sy-load.sv4 .p4c { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+#sy-load.sv4 .p4scan { position: absolute; display: none; pointer-events: none; }
+#sy-load.sv4 .p4scan b { position: absolute; left: 0; top: 0; width: 100%; height: 100%; animation: p4scan 1.4s linear infinite; }
+#sy-load.sv4 .p4scan b::before { content: ""; position: absolute; left: 0; right: 0; top: -18px; height: 18px; background: rgba(54, 226, 220, .09); }
+#sy-load.sv4 .p4scan b::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: #36e2dc; box-shadow: -10px 0 0 0 #eceef0, 10px 0 0 0 #eceef0; }
+@keyframes p4scan { from { transform: translateY(0); } to { transform: translateY(100%); } }
+#sy-load.sv4 .p4ind { position: absolute; display: none; overflow: hidden; pointer-events: none; }
+#sy-load.sv4 .p4ind b { position: absolute; top: 0; bottom: 0; width: 22%; background: linear-gradient(90deg, transparent, #3cc8e4, transparent); animation: p4ind 1.1s linear infinite; }
+@keyframes p4ind { from { transform: translateX(-100%); } to { transform: translateX(460%); } }
+#sy-load.sv4 .sy-foot { color: rgba(146, 151, 160, .7); bottom: 6px; font-size: 10px; }
+@media (prefers-reduced-motion: reduce) {
+  #sy-load.sv4 .p4scan b, #sy-load.sv4 .p4ind b { animation: none; }
+  #sy-load.sv4.sy-out { transition-duration: .12s; }
+}
