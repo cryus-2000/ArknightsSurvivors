@@ -60,7 +60,7 @@ const _NONE := {}
 
 func recipe(id: String) -> Dictionary:
 	# 转平面试验（docs/246）的干员只在 fx/px_plane 开着时有配方（读 data/fx_pxplane/）；其余干员只在 fx/recipe 开着时有
-	# 推进之王（docs/264）原本有 docs/245 的配方：转平面关着时照旧走 fx/recipe 的配方（缓存键分开）
+	# 推进之王（docs/264）、逻各斯（docs/258）原本有 docs/245 的配方：转平面关着时照旧走 fx/recipe 的配方（缓存键分开）
 	var px: bool = Pxp.IDS.has(id) and Pxp.owns_id(g, id)
 	if not px and Bal.v("fx/recipe", 0.0) <= 0.0:
 		return _NONE

@@ -209,6 +209,8 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 				_FXR.ev(o, "exu_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0})   # 转平面（docs/262）：只画
 			if str(o.id) == "lumen":
 				_FXR.ev(o, "lm_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0, "e": nx})   # 转平面（docs/255）：只画
+			elif str(o.id) == "logos":
+				_FXR.ev(o, "lg_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0, "e": nx})   # 转平面（docs/258）：只画
 			elif str(o.id) == "eyjafjalla":
 				_FXR.ev(o, "ey_chain", {"a": cur.pos + Vector2(0, -16), "b": nx.pos + Vector2(0, -16), "gy": float(nx.pos.y) + 1.0, "e": nx})   # 转平面（docs/259）：只画
 			o.log_hit(_src(o, "连锁"), ["lshape"])
