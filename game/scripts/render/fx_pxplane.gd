@@ -1101,6 +1101,14 @@ func _lm_raw(o, k: String, at: Vector2, rot: float, sc: float) -> void:
 	_push({"k": "lm_" + k, "t0": g.t, "gp": at, "ly": "raw", "rot": rot, "sc": sc, "oid": str(o.id)})
 
 
+## 技能起手的照地光晚一拍（1/15 秒）亮：沐雨 / 沛霖 / 灯火不灭的帧条第 0 拍几乎是空的、主形第 1 拍才出来，发光层又晚一帧显示；
+## 光若在施放那一帧就最亮，会比主形先到（光感体检 docs/270 量到的就是「有光没芯」那一帧）。走 fx_recipe 同一个灯表，只是起点挪后
+func _lm_light_beat(R, o, at: Vector2, r: float, inten: float, col: Color) -> void:
+	R.lights.append([at, r, col, g.t + 1.0 / 15.0, 0.15, inten, str(o.id)])
+	if R.lights.size() > 32:
+		R.lights.pop_front()
+
+
 func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
 	var px: float = g.PX
 	match kind:
@@ -1239,7 +1247,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_gd(o, "drizzle_e%d_gd" % t, lp, true)
 				_lm_up(o, "drizzle_e%d_up" % t, lp, lp.y + 1.0, true)
-				R._light(o, lp + Vector2(0, -20), 150.0, 0.45 + 0.1 * t, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -20), 150.0, 0.45 + 0.1 * t, p.light)
 			elif i == 1:   # 沛霖：头顶水柱砸下（精二三道）+ 落点湿痕
 				var tt: int = maxi(t, 1)
 				if raw:
@@ -1247,7 +1255,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_up(o, "downpour_e%d_up" % tt, lp, lp.y + 1.0, true)
 				_lm_gd(o, "downpour_e%d_gd" % tt, lp, true)
-				R._light(o, lp + Vector2(0, -20), 130.0, 0.6, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -20), 130.0, 0.6, p.light)
 				R._grains(o, lp + Vector2(0, -24), lp.y, "ink", 3 + 2 * tt, {"tier": tt})
 			elif i == 2:   # 灯火不灭起手：头顶四芒灯光 + 水流卷上去；光圈原地亮起
 				if raw:
@@ -1255,7 +1263,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_up(o, "s3open_up", lp, lp.y + 1.0, true)
 				_lm_gd(o, "s3open_gd", lp, true)
-				R._light(o, lp + Vector2(0, -96), 160.0, 0.7, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -96), 160.0, 0.7, p.light)
 
 
 ## 同一名干员这一拍（1/15 秒）已出的某类件数（额外弹命中 / 连锁），超过上限就不再加画面
