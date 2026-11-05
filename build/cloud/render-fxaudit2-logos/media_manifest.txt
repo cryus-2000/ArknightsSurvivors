@@ -1,0 +1,9 @@
+1660	audit_logos.json
+783	logos_atk.json
+892123	logos_atk.png
+27593	logos_atk_A.log
+136596	logos_atk_x2.png
+773	logos_s1.json
+893905	logos_s1.png
+29338	logos_s1_A.log
+144137	logos_s1_x2.png
