@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3837 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('texas_atk_A', 150, [])
+局 ('texas_atk_B', 150, [])
+局 ('texas_atk_C', 150, [])
+局 ('texas_s1_A', 150, [])
+局 ('texas_s1_B', 150, [])
+局 ('texas_s1_C', 150, [])
+体检 {"op": "texas", "mode": "atk", "frame": 21, "engine": 80, "secs": 5.0, "hits": 0, "acts": 19, "skill": 0, "parts_total": 72, "parts_per_hit": 3.8, "parts_per_s": 14.4, "parts_s1_1s": null, "mats": {"shard": 72}, "life": 0.79, "sz": 3.0, "alive_max": 28, "lights": 20, "lights_per_hit": 1.05, "light_r": 110.0, "light_i": 0.5, "light_life": 0.12, "emit_max": 144, "emit_mean": 57.6, "gl_peak": 71.3, "gl_area_hit": 1043, "gl_mean_hit": 8.8, "em_peak": 233.4, "em_area_hit": 0, "em_mean_hit": 0.0, "crop": [521, 267, 320, 180]}
+体检 {"op": "texas", "mode": "s1", "frame": 4, "engine": 63, "secs": 5.0, "hits": 0, "acts": 12, "skill": 3, "parts_total": 80, "parts_per_hit": 6.7, "parts_per_s": 16.0, "parts_s1_1s": 30, "mats": {"shard": 80}, "life": 0.8, "sz": 3.2, "alive_max": 31, "lights": 23, "lights_per_hit": 1.92, "light_r": 110.0, "light_i": 0.45, "light_life": 0.1, "emit_max": 360, "emit_mean": 91.8, "gl_peak": 81.3, "gl_area_hit": 3998, "gl_mean_hit": 13.9, "em_peak": 233.2, "em_area_hit": 25, "em_mean_hit": 15.6, "crop": [557, 305, 320, 180]}
+media：9 个文件，2.1M
