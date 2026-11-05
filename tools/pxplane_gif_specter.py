@@ -245,6 +245,25 @@ def draw_line_px(img, a, b, cols, teeth=False, t=0, glow=None):
                 d.rectangle([p[0], p[1], p[0] + 1, p[1] + 1], fill=cols[1] + (255,))
 
 
+def vwake(img, a, b, u):
+    """同 fx_pxplane_su._draw_cut_scars：鲨鳍划水的 V 形水痕，尖在斩线末端"""
+    d_ = ImageDraw.Draw(img)
+    L = math.hypot(b[0] - a[0], b[1] - a[1])
+    dx, dy = (b[0] - a[0]) / L, (b[1] - a[1]) / L
+    nx, ny = -dy, dx * SY
+    for i in range(int(L / 2) + 1):
+        s_ = i * 2
+        k = s_ / L
+        if i % 3 == 2 or k > 0.85:
+            continue
+        c = (230, 243, 255) if k < 0.2 else (AB[5] if k < 0.45 else AB[3])
+        if u > 0.5:
+            c = AB[4] if k < 0.3 else AB[2]
+        for sd in (-1, 1):
+            p = snap(b[0] - dx * s_ + nx * sd * s_ * 0.16, b[1] - dy * s_ + ny * sd * s_ * 0.16)
+            d_.rectangle([p[0], p[1], p[0] + 1, p[1] + 1], fill=c + (255,))
+
+
 def render(P, t):
     img = ground()
     glow = np.zeros((PH, PW, 3), np.float32)
@@ -471,7 +490,7 @@ def ghost_echo(P, t_on, t_off):
 
 def mv_s2():
     ps = []
-    labels = ["", "E1  起手白闪 + 冒泡；期间身后两道替身残影", "E2  + 身后幽蓝触须"]
+    labels = ["", "E1  起手白闪 + 冒泡；期间身后两道替身残影", "E2  + 环斩时朝最近敌人一记鲨口咬合"]
     for t in (1, 2):
         P = Panel(labels[t], me=(130, 175), tier=t)
         P.move = lambda tt: (110 + 200 * min(1.0, max(0.0, (tt - 0.4) / 1.6)), 175)
@@ -479,8 +498,14 @@ def mv_s2():
         P.add("s2cast_up", 0.1, P.me, "up", sk=2, follow=True)
         P.add("s2cast_gd", 0.1, P.me, "gd", follow=True)
         ghost_echo(P, 0.15, 9)
-        if t >= 2:
-            P.add("s2tent_up", 0.2, P.me, "up", sk=-6, loop=True, life=9, follow=True)
+        for i, sw in enumerate((0.75, 1.5, 2.25)):   # S2 攻速 +60%：环斩间隔约 0.75 秒
+            P.swings.append((sw, False))
+            P.ring("n", 102, sw, rev=i % 2 == 1, es=[e for e in es if math.hypot(e["pos"][0] - P.pos(sw)[0], e["pos"][1] - P.pos(sw)[1]) < 125])
+            if t >= 2:
+                tgt = min(es, key=lambda e: math.hypot(e["pos"][0] - P.pos(sw)[0], e["pos"][1] - P.pos(sw)[1]))
+                ang = math.atan2(tgt["pos"][1] - P.pos(sw)[1], tgt["pos"][0] - P.pos(sw)[0])
+                d, flip = pick_dir(ang)
+                P.add("s2bite_up_d%d" % d, sw, P.me, "up", flip, math.sin(ang) * 46.0, follow=True)
         ps.append(P)
     # 第三格：S2 结束倒下 → 替身跟随（替身光环每秒一圈）
     P = Panel("S2 结束：本体倒下 → 水花里替身起身，光环每秒一圈", me=(200, 175), tier=2)
@@ -556,12 +581,12 @@ def blades(P, t0, dirs):
 
 
 def mv_nodes():
-    A = Panel("双重回转：0.15 秒后反向第二圈（替身青细锯环）", tier=1)
+    A = Panel("双重回转：0.15 秒后小一号、抬高一截的锯反转，和主锯环错位交叠", tier=1)
     es = ring_enemies(A)
     for sw in (0.3, 1.5):
         A.swings.append((sw, False))
         A.ring("n", 102, sw, es=in_r(A, es, 102))
-        A.ring("g", 110, sw + 0.15, rev=True, es=[])
+        A.ring("d", 102 * 0.7, sw + 0.15, rev=True, es=[])
     B = Panel("血色潮痕：环斩留一圈潮痕 1.5 秒（深海青，只画边）", tier=1)
     es = ring_enemies(B)
     for sw in (0.3, 1.5):
@@ -617,7 +642,7 @@ def mv_qi():
 
 
 def mv_link():
-    P = Panel("link/v2 缺省版（不分档）：替身残影冲过区域 → 一道带锯齿的斩线 → 地上冷成暗痕", me=(80, 190))
+    P = Panel("link/v2 缺省版（不分档）：替身残影冲过 → 带锯齿的斩线 → 鲨鳍划水的 V 形水痕", me=(80, 190))
     es = [P.en(200, 140), P.en(240, 175, "slider", 22), P.en(280, 150), P.en(300, 200, "slider", 22), P.en(220, 210)]
     fp = (80, 190)
     tp = (360, 150)
@@ -642,12 +667,11 @@ def mv_link():
         if u < 0:
             return
         f = int(math.floor(t * FPS)) - int(math.floor((t0 + T) * FPS))
+        if f >= 1 and u < 0.9 and (f % 2 == 0 or u < 0.5):
+            vwake(img, (fp[0], fp[1] + 2), (tp[0], tp[1] + 2), u)
         if f <= 2:
             cols = [((255, 255, 255), GH[2]), (GH[3], GH[2]), (GH[2], GH[1])][f]
             draw_line_px(img, fp, tp, cols, teeth=True, glow=gl)
-        elif u < 0.9:
-            if f % 2 == 0 or u < 0.5:
-                draw_line_px(img, (fp[0], fp[1] + 2), (tp[0], tp[1] + 2), (AB[2], None))
     cut.floor = False
 
     def cut_up(img, t, gl):

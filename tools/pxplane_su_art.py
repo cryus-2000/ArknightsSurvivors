@@ -73,6 +73,8 @@ STYLES = {
     "w": dict(H=5, bt=4, gap=13.0, band=(AB[3], AB[4], AB[5]), tooth=(ST[2], ST[4], ST[5]), spin=0.42, hot=(AB[7], AB[6], AB[5]), shadow=True, wet=True),
     "h": dict(H=7, bt=5, gap=15.0, band=(AB[1], AB[2], AB[4]), tooth=(ST[2], ST[4], SP[1]), spin=0.36, hot=(SP[0], SP[1], SP[2]), shadow=True, heavy=True),
     "g": dict(H=3, bt=2, gap=11.0, band=(GH[0], GH[1], GH[2]), tooth=(GH[1], GH[2], GH[3]), spin=0.42, hot=(GH[3], GH[2], GH[2]), shadow=False),
+    # 双重回转（11-05 用户「和旋锯拉开」）：反向第二圈是一枚小一号、抬高一截的锯，和主锯环错位交叠着反转（齿更密、替身青锯身 + 钢齿）
+    "d": dict(H=5, bt=3, gap=9.0, band=(GH[0], GH[1], GH[2]), tooth=(ST[2], ST[4], GH[3]), spin=0.5, hot=(GH[3], GH[3], GH[2]), shadow=True, lift=17),
     "s": dict(H=5, bt=4, gap=13.0, band=(AB[3], GH[1], GH[2]), tooth=(ST[3], GH[2], GH[3]), spin=0.55, hot=(GH[3], GH[3], GH[2]), shadow=True, whirl=True),
 }
 LIFT = 7      # 锯环中心离地（美术像素，腰高）
@@ -95,9 +97,10 @@ def ring_frames(R, sty, n=RING_N):
     rx = R + H + pad
     ry = int(math.ceil((R + H) * SY)) + pad
     W = 2 * rx + 1
-    Hh = 2 * ry + LIFT + 3
+    lift = S.get("lift", LIFT)
+    Hh = 2 * ry + lift + 3
     cx, cy = rx, ry
-    ox, oy = cx, cy + LIFT
+    ox, oy = cx, cy + lift
     N = max(16, int(round(2 * math.pi * R / gap)))
     dth = 2 * math.pi / N
     backs, fronts = [], []
@@ -494,7 +497,7 @@ def s1_aura(tier):
                     continue
                 sway = 1.6 * math.sin(u * 5.0 + f * 0.8 + q)
                 w = 1 if u > 0.45 else 2
-                c = AB[6] if u > 0.75 else (AB[5] if u > 0.4 else AB[4])
+                c = AB[7] if u > 0.8 else (AB[6] if u > 0.45 else AB[5])
                 for dx in range(w):
                     cv.put(bx + sway + dx, by - s, c)
         out.append(cv)
@@ -600,6 +603,53 @@ def tentacles():
                     cv.put(x + dx - w // 2, y, c)
                 if u < 0.6 and s % 7 == 3:
                     cv.put(x - w // 2 - 1, y, GH[1])   # 吸盘暗点
+        out.append(cv)
+    return out, ox, oy
+
+
+def shark_bite(deg, n=5):
+    """S2 精二（11-05 用户「拿鲨鱼来点意象」，取代触须）：环斩时朝最近的敌人一记鲨口咬合——上下两道带锯齿的颌弧从张开到合拢（铰点在靠她一侧），
+    合上那一拍齿尖白闪，之后变稀散掉。替身青颌 + 白齿。原点 = 她的脚底；deg 平面角（0 = 向右）"""
+    W, Hh = 131, 95
+    ox, oy = 65, 60
+    d = math.radians(deg)
+    fx, fy = math.cos(d), math.sin(d) * SY
+    L = math.hypot(fx, fy)
+    fx, fy = fx / L, fy / L
+    D = 38.0
+    cx, cy = ox + fx * D, oy - 12 + fy * D
+    hs = 1 if fx >= -0.05 else -1      # 铰点在靠她的一侧（屏幕横向）
+    out = []
+    gaps = [14, 9, 3, 0, 0]
+    for f in range(n):
+        cv = Cv(W, Hh)
+        gp_ = gaps[f]
+        for side in (-1, 1):   # -1 上颌 / 1 下颌
+            for i in range(-18, 19):
+                u = i / 18.0
+                # 从铰点（靠她一侧）到颌尖开口越来越大
+                op = gp_ * (0.5 + 0.5 * ((u * hs) + 1) / 2)
+                bow = 6.5 * (1 - u * u)
+                yb = cy + side * (op + bow)
+                x = cx + i
+                if f == 4 and hsh(i, side, "bf") < 0.5:
+                    continue
+                for t_ in range(3):   # 颌身 3 格厚（往外）
+                    c = GH[1] if t_ == 2 else GH[2]
+                    if f == 3:
+                        c = GH[3] if t_ < 2 else GH[2]
+                    cv.put(x, yb + side * t_, c)
+                if i % 4 == 0 and abs(u) < 0.92:   # 齿：朝内的三角尖
+                    for k in range(1, 4):
+                        c = AB[7] if (f >= 2 and k == 3) else GH[3]
+                        if f == 4:
+                            c = GH[2]
+                        cv.put(x, yb - side * k, c)
+                        if k == 1:
+                            cv.put(x + 1, yb - side * k, c)
+        if f == 3:   # 合拢的一拍：齿缝一线白闪
+            for i in range(-17, 18):
+                cv.put(cx + i, cy, AB[7] if abs(i) < 12 else GH[3])
         out.append(cv)
     return out, ox, oy
 
@@ -887,7 +937,7 @@ def save(key, frames, ox, oy, loop=False):
     META[key] = {"n": len(frames), "fps": FPS, "w": w, "h": h, "ox": int(ox), "oy": int(oy), "loop": bool(loop), "emit": [emit_pts(f) for f in frames]}
 
 
-RING_R = {"n": [51, 58, 66], "w": [51, 58, 66], "g": [51, 58, 66, 76], "s": [66, 76, 88], "h": [76, 88, 100]}
+RING_R = {"n": [51, 58, 66], "w": [51, 58, 66], "d": [36, 41, 46, 53], "s": [66, 76, 88], "h": [76, 88, 100]}
 DIRS = [-90, -45, 0, 45, 90]
 
 
@@ -942,8 +992,9 @@ def build(only=""):
         save("s2cast_up", s2, x2, y2)
         p2, px2, py2 = pulse_frames(22, [AB[7], AB[6], AB[5], AB[4]], n=4, seed=6, start=0.4, inner=None)
         save("s2cast_gd", p2, px2, py2)
-        te, tx, ty = tentacles()
-        save("s2tent_up", te, tx, ty, loop=True)
+        for dg in DIRS:
+            bb, bx, by = shark_bite(dg)
+            save("s2bite_up_d%d" % dg, bb, bx, by)
     if want("s3"):
         wb, wf, wx, wy = big_wave(76)
         save("s3wave_bk_up", wb, wx, wy)

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ccccccccccccc"
-path="res://.godot/imported/pxp_su_saw_g_r66_fr_up.png-eb099a60fd35be9e4859423c8023ee0a.ctex"
+uid="uid://mmmmmmmmmmmmm"
+path="res://.godot/imported/pxp_su_s2bite_up_d90.png-1856b68eb7aa2b14b45bb80e4279e922.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_su_saw_g_r66_fr_up.png"
-dest_files=["res://.godot/imported/pxp_su_saw_g_r66_fr_up.png-eb099a60fd35be9e4859423c8023ee0a.ctex"]
+source_file="res://art/fx/pxp/pxp_su_s2bite_up_d90.png"
+dest_files=["res://.godot/imported/pxp_su_s2bite_up_d90.png-1856b68eb7aa2b14b45bb80e4279e922.ctex"]
 
 [params]
 

@@ -4,15 +4,15 @@
 ##   普攻环斩 = 腰高一圈锯环（前倾锯齿每拍转、出手两拍白热刀头弧扫过，前后半圈分开排序）+ 贴地接触影 + 命中处切向橙色火星；
 ##     精一 = 起手外圈一道往里收的水纹（卷刃）；精二 = 锯齿甩水珠 + 替身闪现（现身水花 → 三次脉冲环 → 碎成泡沫）。
 ##   S1 = 光柱落下 + 符环（精一水冠、精二两片鲨鳍绕身），期间深海暗焰；S2 = 横向白闪 + 冒泡，期间身后两道替身残影（替身青，与本体分色），
-##     精二身后幽蓝触须；结束倒下 = 水花里替身起身，替身光环每秒一圈；S3 = 起手大浪绕身，期间重锯（齿尖橙热、火星多、地上切向锯痕）。
-##   分支：双重回转 = 替身青反向细锯环；血色潮痕 = 深海青潮痕（只画边）；锯鸣 = 旋锯（青白锯环 + 内圈回声）；共振 = 水刃 + 收尾震地；困兽 = 追加一圈 + 白环。
-##   late_shape 剑气 = 横飞的锯盘；连携 l_specter = 替身残影冲过 → 带锯齿的斩线 → 地上冷成暗痕。
+##     精二环斩时朝最近的敌人一记鲨口咬合；结束倒下 = 水花里替身起身，替身光环每秒一圈；S3 = 起手大浪绕身，期间重锯（齿尖橙热、火星多、地上切向锯痕）。
+##   分支：双重回转 = 小一号、抬高一截的反转锯（和主锯环错位交叠）；血色潮痕 = 深海青潮痕（只画边）；锯鸣 = 旋锯（青白锯环 + 内圈回声）；共振 = 水刃 + 收尾震地；困兽 = 追加一圈 + 白环。
+##   late_shape 剑气 = 横飞的锯盘；连携 l_specter = 替身残影冲过 → 带锯齿的斩线 → 地上一道鲨鳍划水的 V 形水痕。
 ## 只画：读玩法状态（o.hw.sp、o.vg.qi），画面计时 / 火星 / 残影快照都存在 fx_pxplane 实例的 meta「su」里；随机只用 g.vrng。红色只给危险：原 S3 / 困兽 / 锯鸣的红改成橙热 / 青白。
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const SY := 0.72
-const RING_R := {"n": [51, 58, 66], "w": [51, 58, 66], "g": [51, 58, 66, 76], "s": [66, 76, 88], "h": [76, 88, 100]}
+const RING_R := {"n": [51, 58, 66], "w": [51, 58, 66], "d": [36, 41, 46, 53], "s": [66, 76, 88], "h": [76, 88, 100]}
 const SPK := [Color("#fff3cc"), Color("#ffd27a"), Color("#ffa04a"), Color("#e3692a"), Color("#8a3d1d")]
 const GH := [Color("#0e3846"), Color("#2a7c96"), Color("#6ccde4"), Color("#c6f4ff")]
 const AB := [Color("#060a15"), Color("#0d1832"), Color("#172f5e"), Color("#234d94"), Color("#3a77c2"), Color("#78afe6"), Color("#c4e2fa"), Color("#ffffff")]
@@ -51,8 +51,9 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			var rev: bool = bool(d.get("rev", false))
 			var es: Array = d.get("es", [])
 			var sty := "n"
-			if k == 1:
-				sty = "g"
+			if k == 1:   # 双重回转：小一号、抬高一截的反转锯，和还在转的主锯环错位交叠（11-05 用户「和旋锯拉开」）
+				sty = "d"
+				rr *= 0.7
 			elif k == 2:
 				sty = "s"
 			elif heavy:
@@ -66,6 +67,8 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				r._push({"k": "su_gouge_r%d_gd" % _bucket(rr / 2.0, RING_R.h), "t0": g.t, "gp": r._snap(o.pos), "flip": rev, "ly": "gd", "oid": id})
 			if k != 1:
 				_hit_sparks(r, o, es, rev, 5 if heavy else (1 if k == 2 else 2), heavy)
+			if k == 0 and t >= 2 and o.s_t.size() > 1 and o.s_t[1] > 0.0 and not es.is_empty():
+				_bite(r, o, es)   # S2 精二：鲨口咬合（11-05 用户：触须换成鲨鱼意象）
 			var n: int = mini(es.size(), 3 if k == 2 else 6)
 			if not es.is_empty():
 				r._burst(o, R, p, o.pos + Vector2(0, -14), o.pos.y + 2.0, es, 2 + n, 120.0 if heavy else 95.0, 0.5 if heavy else 0.32)
@@ -175,6 +178,17 @@ static func _ring(r, o, sty: String, rw: float, rev: bool, raw: bool) -> void:
 	r._push({"k": k + "_fr_up", "t0": g.t, "gp": gp, "flip": rev, "ly": "up", "oid": id, "su_ring": true, "fo": Vector2.ZERO, "sk": sk})
 	if not r._meta(k + "_gd").is_empty():
 		r._push({"k": k + "_gd", "t0": g.t, "gp": gp, "flip": rev, "ly": "gd", "oid": id, "su_ring": true, "fo": Vector2.ZERO})
+
+
+## S2 精二鲨口：朝最近的那只，上下两道锯齿颌弧从张开到合拢（帧条按 5 个平面角预生成、另一半翻转；挂在她身上）
+static func _bite(r, o, es: Array) -> void:
+	var best: Dictionary = es[0]
+	for e in es:
+		if e.pos.distance_squared_to(o.pos) < best.pos.distance_squared_to(o.pos):
+			best = e
+	var ang: float = (best.pos - o.pos).angle()
+	var dk: Array = r.pick_dir(ang)
+	r._push({"k": "su_s2bite_up_d%d" % int(dk[0]), "t0": r.g.t, "gp": r._snap(o.pos), "flip": dk[1], "ly": "up", "oid": str(o.id), "fo": Vector2.ZERO, "sk": sin(ang) * 46.0})
 
 
 static func _up(r, o, k: String, at: Vector2, sk: float, follow: bool) -> void:
@@ -338,17 +352,36 @@ static func _draw_cuts(r, o, cv) -> void:
 		_cut_line(r, cv, c.fp, c.tp, cols[0], cols[1], true, f == 0)
 
 
+## 斩线之后地上留一道鲨鳍划水的 V 形水痕（11-05 用户「拿鲨鱼来点意象」）：尖在斩线末端，往回张开；近尖白沫、远处暗；0.9 秒隔拍散掉
 static func _draw_cut_scars(r, o, cv) -> void:
 	var g = r.g
 	var id: String = str(o.id)
+	var px: float = g.PX
 	for c in _st(r).cuts:
 		if str(c.oid) != id:
 			continue
 		var f: int = r.frame_of(float(c.t0))
 		var u: float = g.t - float(c.t0)
-		if f < 3 or u > 0.9 or (u > 0.5 and (f & 1) == 1):
+		if f < 1 or u > 0.9 or (u > 0.5 and (f & 1) == 1):
 			continue
-		_cut_line(r, cv, (c.fp as Vector2) + Vector2(0, 2), (c.tp as Vector2) + Vector2(0, 2), AB[2], Color(0, 0, 0, 0), false, false)
+		var a: Vector2 = (c.fp as Vector2) + Vector2(0, 2)
+		var b: Vector2 = (c.tp as Vector2) + Vector2(0, 2)
+		var L: float = a.distance_to(b)
+		if L < 4.0:
+			continue
+		var d: Vector2 = (b - a) / L
+		var nv := Vector2(-d.y, d.x * SY)
+		var n: int = int(L / px)
+		for i in n + 1:
+			var s: float = float(i) * px   # 离尖的距离
+			var k: float = s / L
+			if (i % 3) == 2 or k > 0.85:
+				continue
+			var cc: Color = Color.html("#e6f3ff") if k < 0.2 else (AB[5] if k < 0.45 else AB[3])
+			if u > 0.5:
+				cc = AB[4] if k < 0.3 else AB[2]
+			for sd in [-1.0, 1.0]:
+				cv.draw_rect(Rect2(r._snap(b - d * s + nv * sd * s * 0.16), Vector2(px, px)), cc)
 
 
 static func _cut_line(r, cv, a: Vector2, b: Vector2, core: Color, side: Color, teeth: bool, emit: bool) -> void:
@@ -421,8 +454,6 @@ static func sort_items(r, o, out: Array) -> void:
 				out.append({"surt": "loop", "k": "su_s1fin_bk_up", "gp": gp, "skey": gp.y - 30.0})
 				out.append({"surt": "loop", "k": "su_s1fin_fr_up", "gp": gp, "skey": gp.y + 30.0})
 		if s2:
-			if t >= 2:
-				out.append({"surt": "loop", "k": "su_s2tent_up", "gp": gp, "skey": gp.y - 6.0})
 			for lg in [[0.24, 0.3], [0.12, 0.5]]:
 				var snap: Array = _echo_at(echo, g.t - float(lg[0]))
 				if not snap.is_empty() and not (snap[2] as Dictionary).is_empty() and (snap[1] as Vector2).distance_to(o.pos) > 6.0:
