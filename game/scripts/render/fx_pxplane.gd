@@ -18,15 +18,15 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_"}   # 帧条表 → 键前缀（星熊 json 键自带 hsg_；流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_logos.json": "lg_"}   # 帧条表 → 键前缀（星熊 json 键自带 hsg_；流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "logos": true}
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
 const LM_AC := Color("#ff9640")   # 精二点缀灯火橙
 const DIRS := [-90, -45, 0, 45, 90]
 const EMIT_CAP := 360     # 每帧送进发光层的 emit 点上限（整队）
-const ITEM_MAX := 72
+const ITEM_MAX := 120   # 逻各斯（docs/258）消弹墨点 / 跳转笔较多：72 → 120
 
 var g
 var meta := {}
@@ -137,6 +137,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "lumen":
 		_ev_lumen(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "logos":
+		_ev_logos(o, kind, d, raw, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -311,6 +314,9 @@ func draw_floor(o) -> void:
 	if id == "lumen":
 		_lm_draw_floor(o)
 		return
+	if id == "logos":
+		_lg_draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -332,10 +338,14 @@ func draw_over(o) -> void:
 	if id == "lumen":
 		_lm_draw_raw(o)
 		return
+	if id == "logos":
+		_lg_draw_raw(o)
 	for it in items:
 		if str(it.ly) != "raw" or str(it.oid) != id:
 			continue
 		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8)), it.gp, float(it.rot), float(it.sc))
+	if id == "logos":
+		return
 	if id == "hoshiguma":   # 般若回旋的锯盾：旧做法整张贴（正圆、光晕烤进颜色、盖在上面）
 		for bm in _booms(o):
 			_draw_raw(cv, "hsg_raw_saw", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), int(_meta("hsg_raw_saw").get("n", 1))), o.pos + bm.dir * _boom_d(bm) + Vector2(0, -22), 0.0, g.PX)
@@ -364,6 +374,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "lumen":
 				r._lm_sort_items(o, out)
 				continue
+			if str(o.id) == "logos":
+				r._lg_sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "hoshiguma":
@@ -385,6 +398,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.has("rt"):
 		r._lm_draw_rt(ci, it)
+		return
+	if it.has("lrt"):
+		r._lg_draw_rt(ci, it)
 		return
 	if it.has("loopk"):
 		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), it.gp, false, false)
@@ -1203,3 +1219,598 @@ func _lm_draw_raw(o) -> void:
 	if S._h3_beam_on(o, bb):
 		var dv: Vector2 = S._h3_beam_dir(o, bb)
 		_draw_raw(cv, "lm_raw_sweep", posmod(lf, maxi(1, int(_meta("lm_raw_sweep").get("n", 1)))), S._h3_beam_origin(o), dv.angle(), g.PX * float(bb.get("len", 260.0)) / 260.0 * 1.13)
+
+
+# ================================================================ 逻各斯（docs/258，照斯卡蒂 docs/246 / 流明 docs/255 的做法）
+## 帧条件（tools/pxplane_bake_logos.py，键前缀 lg_）：命中星芒 + 碎刺 / 地面墨环、出手笔光 + 字环、提喻每跳、殁亡交叉咒文链 + 墨柱、延异视阈起手。
+## 运行时逐格画（2 世界像素一格，方向任意、不旋转贴图，形状按 15 fps 节拍换）：「言」墨迹彗星（白头尖细 + 深蓝墨尾）、提喻咒文行、连缀咒文链、
+## 殁亡溢出跳转笔、咒域（只画边 + 淡渐变 + 外沿细字行）、连携字环 / 消弹墨点、铭文 / 墓志铭地面咒文。咒文一律 3×5 细字（1 美术像素笔画）。
+## 彗星位置每帧走、只取整到像素格（同流明光弹：按 15 fps 跳格会一卡一卡）。
+## 旧做法（2）：旧放开版帧条（tools/pixelfx_fx/logos_ul_ref）光晕烤进颜色，小数缩放 + 旋转，盖在所有单位上。
+
+const LG_C := [Color("#28355f"), Color("#495694"), Color("#6a78ca"), Color("#8c99ff"), Color("#b4bdff"), Color("#dce0ff"), Color("#ffffff")]   # house.js OP.logos 7 阶
+const LG_INK := [Color("#0b0d22"), Color("#161c3e")]   # 墨（压底两阶）
+const LG_AC := Color("#a487ff")   # 精二点缀紫
+const LG_GOLD := Color("#e8d6a0")   # 连携「黑金咒文」的淡金（只点在少数字上）
+const LG_SY := 0.72
+## 细字咒文 3×5（同 ak-logos-pp.js 的 GLYPHS）：每字 15 位，行优先
+const LG_GL := ["111010010010011", "101111001001001", "110001010100011", "010111010010110", "100110101100111",
+	"011100111001110", "101101010101101", "111100110100100", "010010111000101", "110101110100100"]
+const LG_BOLT_LEN := [18, 22, 26]   # 墨尾长（美术像素）：放大只放在长度上，弹头三档一样尖
+
+var _lg_fire_t := -9.0
+
+
+static func _lg_h(i: int) -> float:
+	return fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
+
+
+func _lg_up(o, k: String, at: Vector2, gy: float, flip := false) -> void:
+	if k.begins_with("hit_"):   # 同屏上限：主命中至多 4 团同时在画，再多换小一号（后期多弹不叠成一片白）
+		var n := 0
+		for it in items:
+			if str(it.oid) == "logos" and str(it.get("k", "")).begins_with("lg_hit_") and str(it.ly) == "up":
+				n += 1
+		if n >= 4:
+			k = k.replace("hit_", "hits_")
+	if k.begins_with("hits_"):
+		var n2 := 0
+		for it in items:
+			if str(it.oid) == "logos" and str(it.get("k", "")).begins_with("lg_hits_") and str(it.ly) == "up":
+				n2 += 1
+		if n2 >= 4:
+			return
+	_push({"k": "lg_" + k, "t0": g.t, "gp": _snap(at), "gy": gy, "flip": flip, "ly": "up", "oid": "logos"})
+
+
+func _lg_gd(k: String, at: Vector2) -> void:
+	_push({"k": "lg_" + k, "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": "logos"})
+
+
+func _lg_raw(k: String, at: Vector2, rot: float, sc: float) -> void:
+	_push({"k": "lg_" + k, "t0": g.t, "gp": at, "ly": "raw", "rot": rot, "sc": sc, "oid": "logos"})
+
+
+func _lg_tip(o) -> Vector2:
+	var tv = o.B.get("attack", {}).get("tip", [40, -36])
+	return o.pos + Vector2(float(tv[0]) * float(o.face), float(tv[1]))
+
+
+func _ev_logos(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	var px: float = g.PX
+	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用（tools/pxplane_shots.py）：事件的游戏时间
+		print("PXPLOG lg %s %s %.3f" % [kind, str(d.get("i", "")), g.t])
+	match kind:
+		"fire":   # 出手：身前笔光 → 身周细字字环 + 笔尖星芒（原点 = 脚底；朝左水平翻转）。连发（复指 / 天赋）0.25 秒内只画一次
+			if g.t - _lg_fire_t < 0.25 and g.t >= _lg_fire_t:
+				return
+			_lg_fire_t = g.t
+			var hand: Vector2 = d.get("at", _lg_tip(o))
+			if raw:
+				_lg_raw("raw_start_e%d" % t, hand, (d.get("dir", Vector2.RIGHT) as Vector2).angle(), px)
+				return
+			_lg_up(o, "fire_e%d_up" % t, o.pos, o.pos.y + 2.0, float(o.face) < 0.0)
+			R._light(o, hand, 60.0, 0.3, 0.1, p.light)
+			if t >= 1:
+				R._grains(o, hand, o.pos.y + 2.0, "twinkle", 1 + t, {"tier": t}, d.get("dir", Vector2.RIGHT))
+		"hit":   # 「言」命中（原作 hit_01）：白色星芒 + 不规整长碎刺，冷成深蓝 → 墨；地上一圈墨环
+			var e: Dictionary = d.e
+			var at: Vector2 = d.get("at", e.pos)
+			if raw:
+				_lg_raw("raw_hit_e%d" % t, at, (at - o.pos).angle(), px)
+				return
+			_lg_up(o, "hit_e%d_up" % t, at, float(e.pos.y) + 1.0)
+			_lg_gd("hit_e%d_gd" % t, e.pos + Vector2(0, 2))
+			R._light(o, at, 90.0 + 20.0 * t, 0.5 + 0.1 * t, 0.12, p.light)
+			R._grains(o, at, float(e.pos.y) + 2.0, "ink", 1 + t, {"tier": t}, (at - o.pos).normalized())
+			if t >= 1:
+				R._grains(o, at, float(e.pos.y) + 2.0, "twinkle", t, {"tier": t})
+		"exec":   # 殁亡处决（原作 hit_03）：交叉细字咒文链 + 竖墨柱；溢出伤害跳转 = 一笔墨（白笔头）写到下一只
+			var e2: Dictionary = d.e
+			var tt: int = maxi(t, 1)
+			var foot: Vector2 = e2.pos
+			if raw:
+				_lg_raw("raw_epitaph", foot, 0.0, px * 0.9)
+				if d.has("to"):
+					var dv0: Vector2 = (d.to as Vector2) - (d.at as Vector2)
+					_lg_raw("raw_link", d.at, dv0.angle(), px * dv0.length() / 128.0)
+				return
+			_lg_up(o, "exec_e%d_up" % tt, foot, foot.y + 1.0)
+			_lg_gd("exec_e%d_gd" % tt, foot + Vector2(0, 2))
+			R._light(o, foot + Vector2(0, -40), 150.0, 0.75, 0.14, p.light)
+			R._grains(o, foot + Vector2(0, -30), foot.y + 2.0, "ink", 3 + tt, {"tier": tt})
+			if d.has("to"):
+				var b: Vector2 = d.to
+				_push({"lrt": "jump", "a": d.at, "b": b, "t0": g.t + 0.05, "life": 4.0 / 15.0, "ly": "up", "gy": b.y + 12.0, "oid": "logos", "k": ""})
+				_push({"k": "lg_hits_e%d_up" % t, "t0": g.t + 0.05 + 2.0 / 15.0, "gp": _snap(b), "gy": b.y + 12.0, "flip": false, "ly": "up", "oid": "logos"})
+		"lock_tick":   # 提喻每一跳：目标身上一颗小星芒 + 碎刺（白 → 冷）
+			var pts: Array = d.get("pts", [])
+			if pts.is_empty():
+				return
+			var pt: Vector2 = pts[0][0]
+			if raw:
+				_lg_raw("raw_tick_e%d" % t, pt, (pt - o.pos).angle(), px * 0.8)
+				return
+			_lg_up(o, "tick_e%d_up" % t, pt, float(pts[0][1]))
+			R._light(o, pt, 70.0, 0.35, 0.1, p.light)
+		"fan_tick":   # 延异视阈每一跳：笔尖向咒域里至多 4 只各射一道墨迹彗星（0.2 秒飞到），落点小星芒
+			var pts2: Array = d.get("pts", [])
+			if raw:
+				for q in pts2:
+					_lg_raw("raw_hit_e2", q[0], 0.0, px * 0.7)
+				return
+			var tip: Vector2 = _lg_tip(o)
+			for i in pts2.size():
+				var q2: Vector2 = pts2[i][0]
+				var t1: float = g.t + 0.03 * i
+				_push({"lrt": "vbolt", "a": tip, "b": q2, "t0": t1, "life": 0.2, "ly": "up", "gy": float(pts2[i][1]), "oid": "logos", "k": "", "tier": 2, "side": 1.0 if i % 2 == 0 else -1.0})
+				_push({"k": "lg_hits_e2_up", "t0": t1 + 0.2, "gp": _snap(q2), "gy": float(pts2[i][1]), "flip": false, "ly": "up", "oid": "logos"})
+			if not pts2.is_empty():
+				R._light(o, pts2[0][0], 110.0, 0.45, 0.12, p.light)
+		"lg_xhit":   # 后期额外弹命中：小一号星芒；同一拍至多 3 团
+			if _lm_beat_n(o, "xh") >= 3:
+				return
+			if raw:
+				_lg_raw("raw_hit_e%d" % t, d.at, 0.0, px * 0.6)
+				return
+			_lg_up(o, "hits_e%d_up" % t, d.at, float((d.e as Dictionary).pos.y) + 1.0)
+		"lg_chain":   # 「连锁」弹射：一笔墨跳转 + 落点小星芒；同一拍至多 3 道
+			if _lm_beat_n(o, "ch") >= 3:
+				return
+			if raw:
+				var dv1: Vector2 = (d.b as Vector2) - (d.a as Vector2)
+				_lg_raw("raw_link", d.a, dv1.angle(), px * dv1.length() / 128.0)
+				return
+			_push({"lrt": "jump", "a": d.a, "b": d.b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", 0.0)), "oid": "logos", "k": ""})
+			_lg_up(o, "hits_e%d_up" % t, d.b, float(d.get("gy", 0.0)))
+		"lg_link":   # 连携 v2「消弹」（skill_link l_logos）：区域上空浮起一圈细字咒文（少数淡金 = 原作黑金），被消的每颗敌弹化一点墨落下
+			var c: Vector2 = d.c
+			var r: float = float(d.r)
+			var gone: PackedVector2Array = d.get("gone", PackedVector2Array())
+			if raw:
+				_lg_raw("raw_seal", c, 0.0, px * (r + 20.0) / 80.0)
+				return
+			_push({"lrt": "seal", "c": _snap(c), "r": r + 20.0, "t0": g.t, "life": 0.8, "ly": "up", "gy": c.y + (r + 20.0) * LG_SY, "oid": "logos", "k": ""})
+			_push({"lrt": "ring", "c": _snap(c), "r": r + 20.0, "t0": g.t, "life": 0.6, "ly": "gd", "oid": "logos", "k": ""})
+			for i in mini(gone.size(), 16):
+				_push({"lrt": "pop", "c": _snap(gone[i]), "t0": g.t + 0.02 * (i % 5), "life": 0.4, "ly": "up", "gy": gone[i].y + 20.0, "oid": "logos", "k": "", "gi": i})
+			R._light(o, c, r + 60.0, 0.6, 0.15, p.light)
+		"lg_cshot":   # 连携技（combo.gd，link/v2 = 0）出手：一颗大彗星飞到落点
+			if raw:
+				_push({"lrt": "rawline", "a": d.a, "b": d.b, "t0": g.t, "life": float(d.travel), "ly": "raw", "oid": "logos", "k": ""})
+				return
+			_push({"lrt": "vbolt", "a": d.a, "b": d.b, "t0": g.t, "life": float(d.travel), "ly": "up", "gy": (d.b as Vector2).y + 1.0, "oid": "logos", "k": "", "tier": 2, "side": 1.0, "big": true})
+		"lg_combo":   # 连携技「咒文扩散」落点：大墨环闪一下；处决的每只一道墨笔 + 殁亡咒文链（至多 6）
+			var tp: Vector2 = d.at
+			var es: Array = d.get("es", [])
+			if raw:
+				_lg_raw("raw_seal", tp, 0.0, px * 1.5)
+				return
+			_push({"lrt": "ring", "c": _snap(tp), "r": 240.0, "t0": g.t, "life": 0.45, "ly": "gd", "oid": "logos", "k": ""})
+			_lg_up(o, "hit_e2_up", tp + Vector2(0, -10), tp.y + 1.0)
+			for i in mini(es.size(), 6):
+				var ee: Dictionary = es[i]
+				_push({"lrt": "jump", "a": tp + Vector2(0, -10), "b": ee.pos + Vector2(0, -8), "t0": g.t, "life": 4.0 / 15.0, "ly": "up", "gy": float(ee.pos.y) + 1.0, "oid": "logos", "k": ""})
+				_push({"k": "lg_exec_e2_up", "t0": g.t + 0.1, "gp": _snap(ee.pos), "gy": float(ee.pos.y) + 1.0, "flip": false, "ly": "up", "oid": "logos"})
+			R._light(o, tp, 260.0, 0.85, 0.15, p.light)
+			R._grains(o, tp + Vector2(0, -20), tp.y, "ink", 6, {"tier": 2})
+		"skill":
+			var si: int = int(d.get("i", -1))
+			if si == 1:   # 殁亡（永久）：起手一圈字环
+				if raw:
+					_lg_raw("raw_start_e%d" % maxi(t, 1), _lg_tip(o), 0.0, px * 1.2)
+					return
+				_lg_up(o, "fire_e%d_up" % maxi(t, 1), o.pos, o.pos.y + 2.0, float(o.face) < 0.0)
+				R._light(o, o.pos + Vector2(0, -30), 110.0, 0.5, 0.14, p.light)
+			elif si == 2:   # 延异视阈起手：双层字环 → 笔尖蓄势 → 开域爆亮
+				if raw:
+					_lg_raw("raw_seal", o.pos + Vector2(0, -20), 0.0, px)
+					return
+				_lg_up(o, "s3open_up", o.pos, o.pos.y + 2.0, float(o.face) < 0.0)
+				var tip2: Vector2 = _lg_tip(o)
+				R._light(o, tip2, 160.0, 0.8, 0.15, p.light)
+				R._grains(o, tip2, o.pos.y + 2.0, "twinkle", 5, {"tier": 2})
+
+
+## 贴地层：一次性件 + 运行时贴地件 + 状态件（咒域、提喻目标脚下墨环、铭文 / 墓志铭）
+func _lg_draw_floor(o) -> void:
+	var cv = o.cv
+	for it in items:
+		if str(it.ly) != "gd" or str(it.oid) != "logos":
+			continue
+		if it.has("lrt"):
+			_lg_draw_rt(cv, it)
+		else:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+	var h: Dictionary = o.hw
+	if h.has("s3_shots"):   # 原画法在绘制时清理出手轨迹；接管后由这里清，免得列表只增不减
+		var now: float = g.t
+		h["s3_shots"] = h.s3_shots.filter(func(sh): return now - float(sh.t0) < 0.3)
+	if h.has("pools"):
+		for l in h.pools:
+			if str(l.b.get("look", "")) == "rune":
+				_lg_pool(cv, l)
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and float(lk.get("t", 0.0)) > 0.0 and lk.e != null and not lk.e.dead:
+		var ramp: float = clampf(int(lk.n) / float(lk.b.get("ramp_n", 12.0)), 0.0, 1.0)
+		var rr: float = 11.0 + 5.0 * ramp
+		_lg_ell(cv, lk.e.pos + Vector2(0, 3), rr, 1.0, 1, 7)
+		if tier(o) >= 1:
+			_lg_ell(cv, lk.e.pos + Vector2(0, 3), rr + 5.0, 0.8, 0, 11)
+	var fn = h.get("fan", {})
+	if fn is Dictionary and not fn.is_empty() and float(fn.get("t", 0.0)) > 0.0:
+		_lg_fan(cv, o, fn)
+
+
+## 地面细椭圆环（美术像素格，按噪声断续）：r 美术像素
+func _lg_ell(ci, c: Vector2, r: float, a: float, hi: int, sd: int) -> void:
+	var px: float = g.PX
+	var n: int = maxi(12, int(TAU * r))
+	var cc: Vector2 = _snap(c)
+	for i in n:
+		var an: float = TAU * i / n
+		var hv: float = _lg_h(sd * 977 + i)
+		if hv < 0.22 or hv > a + 0.22:
+			continue
+		var q: Vector2 = cc + Vector2(cos(an) * r, sin(an) * r * LG_SY) * px
+		var lit: bool = hi > 0 and sin(an) > 0.3 and hv > 0.55
+		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), LG_C[4] if lit else (LG_C[2] if hv > 0.7 else LG_INK[1]))
+
+
+func _lg_glyph(ci, p: Vector2, gi: int, col: Color) -> void:
+	var px: float = g.PX
+	var s: String = LG_GL[posmod(gi, LG_GL.size())]
+	var o0: Vector2 = _snap(p) - Vector2(px, 2.0 * px)
+	for k in 15:
+		if s.unicode_at(k) == 49:
+			ci.draw_rect(Rect2(o0 + Vector2(k % 3, k / 3) * px, Vector2(px, px)), col)
+
+
+## 铭文 / 墓志铭（成长节点）：地上一圈断续墨环 + 上方浮着几个细字；墓志铭从少到多写满
+func _lg_pool(ci, l: Dictionary) -> void:
+	var al: float = clampf(float(l.t) / 0.3, 0.0, 1.0)
+	var burst: bool = l.b.get("burst", false)
+	var k: float = 1.0 - float(l.t) / maxf(0.01, float(l.dur)) if burst else 1.0
+	var r: float = float(l.r) / g.PX
+	_lg_ell(ci, l.pos, r * (0.6 + 0.4 * k), al, 1, int(l.pos.x))
+	var beat: int = int(floor(g.t * 15.0))
+	var n: int = 3 if not burst else 1 + int(k * 4.0)
+	for i in n:
+		var x: float = (float(i) - (n - 1) * 0.5) * 5.0
+		var bob: float = 2.0 if ((beat / 4 + i) % 2) == 0 else 0.0
+		var c: Color = LG_C[5] if (beat / 3 + i) % 4 != 0 else LG_C[6]
+		c.a = al
+		_lg_glyph(ci, l.pos + Vector2(x, -18.0 - bob) * g.PX, int(l.pos.x) + i * 3 + beat / 8, c)
+
+
+## 延异视阈咒域（原作 range_01）：只画边 + 内侧淡渐变（不平涂、不分层）；外沿一排细字随拍流动；每跳外边亮一拍
+func _lg_fan(ci, o, fn: Dictionary) -> void:
+	var b: Dictionary = fn.b
+	var px: float = g.PX
+	var r: float = float(load("res://scripts/characters/blocks/seg_logos.gd").hw_fan_r(o, b))
+	var half: float = deg_to_rad(float(b.get("deg", 100.0))) * 0.5
+	var fa: float = float(o.hw.fan_ang)
+	var dur: float = float(b.get("dur", 12.0))
+	var el: float = dur - float(fn.t)
+	var open: float = clampf(floor(el * 15.0) / 15.0 / 0.33, 0.0, 1.0)   # 按拍张开
+	var fade: float = clampf(float(fn.t) / 0.35, 0.0, 1.0)
+	var rr: float = r * (0.55 + 0.45 * (1.0 - pow(1.0 - open, 2.0)))
+	var c: Vector2 = _snap(o.pos)
+	var tk: float = float(b.get("tick", 0.5))
+	var pulse: bool = float(fn.get("tick", 0.0)) > tk - 1.0 / 15.0
+	# 内侧淡渐变：贴着外边往里约 16 美术像素，α 0 → 0.12（真半透明，中间不铺）
+	var band: float = 16.0 * px
+	var N := 32
+	for j in 6:
+		var r0: float = maxf(4.0, rr - band * (1.0 - float(j) / 6.0))
+		var r1: float = rr - band * (1.0 - (float(j) + 1.0) / 6.0)
+		var col: Color = LG_C[2]
+		col.a = 0.12 * pow((float(j) + 1.0) / 6.0, 2.0) * fade
+		var pts := PackedVector2Array()
+		for i in N + 1:
+			var a: float = fa - half + 2.0 * half * i / N
+			pts.append(c + Vector2(cos(a), sin(a) * LG_SY) * r1)
+		for i in range(N, -1, -1):
+			var a2: float = fa - half + 2.0 * half * i / N
+			pts.append(c + Vector2(cos(a2), sin(a2) * LG_SY) * r0)
+		ci.draw_colored_polygon(pts, col)
+	# 外边：2 美术像素（外亮内墨），按噪声有亮暗起伏；两侧边：1 像素断续
+	var rc: float = rr / px
+	var n: int = maxi(16, int(2.0 * half * rc))
+	var beat: int = int(floor(g.t * 15.0))
+	for i in n + 1:
+		var a3: float = fa - half + 2.0 * half * i / n
+		var hv: float = _lg_h(i * 31 + 7)
+		var q: Vector2 = c + Vector2(cos(a3), sin(a3) * LG_SY) * rr
+		var q2: Vector2 = c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr - px * 1.2)
+		var ec: Color = LG_C[6] if pulse else (LG_C[5] if hv > 0.66 else LG_C[4])
+		ec.a = fade
+		var ic: Color = LG_INK[1] if hv > 0.3 else LG_C[1]
+		ic.a = fade
+		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), ec)
+		ci.draw_rect(Rect2(_snap(q2), Vector2(px, px)), ic)
+		if pulse and (i % 3) == 0:
+			_glow(q, LG_C[5])
+	for sgn in [-1.0, 1.0]:
+		var ea: float = fa + half * sgn
+		var dv := Vector2(cos(ea), sin(ea) * LG_SY)
+		var m: int = int(dv.length() * rr / px)
+		var dn: Vector2 = dv.normalized()
+		for i in m:
+			if (i / 3) % 3 == 2:
+				continue
+			var ec2: Color = LG_C[3]
+			ec2.a = 0.8 * fade
+			ci.draw_rect(Rect2(_snap(c + dn * float(i) * px), Vector2(px, px)), ec2)
+	# 外沿细字行：沿外边外侧每 9 像素一个字，每 2 拍换字（原作 zifu 字条闪现）
+	var ng: int = int(2.0 * half * (rc + 6.0) / 9.0)
+	for i in ng:
+		var a4: float = fa - half + 2.0 * half * (float(i) + 0.5) / ng
+		if _lg_h(i * 13 + beat / 6) < 0.3:
+			continue
+		var gp: Vector2 = c + Vector2(cos(a4), sin(a4) * LG_SY) * (rr + 7.0 * px)
+		var gc: Color = LG_C[5] if (i + beat / 2) % 5 != 0 else LG_AC
+		gc.a = fade * open
+		_lg_glyph(ci, gp, i * 7 + beat / 2, gc)
+	var R = load("res://scripts/render/fx_recipe.gd").of(g)
+	R._light_follow(o, c + Vector2(cos(fa), sin(fa) * LG_SY) * rr * 0.6, rr * 0.9, (0.45 if pulse else 0.25) * fade, LG_C[3])
+
+
+## 立起层的状态件：「言」彗星（运行时）、后期额外弹、提喻咒文行、连缀咒文链
+func _lg_sort_items(o, out: Array) -> void:
+	var h: Dictionary = o.hw
+	if h.has("bolts"):
+		for bo in h.bolts:
+			out.append({"lrt": "bolt", "b": bo, "o": o, "gy": float((bo.to as Vector2).y) + 14.0})
+	if not o.vg.is_empty():   # 后期额外弹：同时最多画最新 6 颗（更早的照常结算，只是不画）
+		var xs: Array = o.vg.bul
+		for i in range(maxi(0, xs.size() - 6), xs.size()):
+			var xb: Dictionary = xs[i]
+			out.append({"lrt": "xbolt", "b": xb, "o": o, "gy": (xb.p as Vector2).y + 1.0})
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and float(lk.get("t", 0.0)) > 0.0 and lk.e != null and not lk.e.dead:
+		out.append({"lrt": "lock", "o": o, "gy": float(lk.e.pos.y) + 1.0})
+	if h.has("links") and not h.links.is_empty():
+		for lkk in h.links:
+			out.append({"lrt": "links", "l": lkk, "o": o, "gy": float((lkk.m[0] as Dictionary).pos.y) + 1.0})
+
+
+## 墨迹彗星：head 弹头位置（世界）、dv 飞行方向、L 墨尾长（美术像素）。白头尖细（6 格箭头，不做光球）；
+## 墨尾深蓝（墨边 + 一根蓝芯线 + 按拍闪的蓝点），粗在前三成、往后收尖；精一后段分两股；精二尾后一行细字（白 / 紫）
+func _lg_comet(ci, head: Vector2, dv: Vector2, L: int, t: int, al := 1.0, big := false) -> void:
+	var px: float = g.PX
+	var nv := Vector2(-dv.y, dv.x)
+	var h0: Vector2 = _snap(head)
+	var beat: int = int(floor(g.t * 15.0))
+	var W: float = 2.2 if big else 1.6
+	for i in range(2, L + 1):
+		var v: float = float(i) / float(L)
+		var w: float = W * (1.0 - pow((v - 0.3) / 0.7, 1.5)) if v > 0.3 else W * smoothstep(0.05, 0.3, v)
+		var split: float = maxf(0.0, v - 0.55) * 7.0 if t >= 1 else 0.0
+		var ctr: Vector2 = head - dv * float(i) * px
+		var sides: Array = [-1.0, 1.0] if split > 0.6 else [0.0]
+		for sgn in sides:
+			var c0: Vector2 = ctr + nv * float(sgn) * split * px
+			var ww: int = int(round(w * (0.6 if split > 0.6 else 1.0)))
+			for q in range(-ww, ww + 1):
+				var col: Color
+				if q == 0:
+					col = LG_C[5] if ((i + beat) % 6 == 0 and v < 0.8) else (LG_C[3] if v < 0.7 else LG_C[2])
+				elif absi(q) == ww:
+					col = LG_INK[0]
+				else:
+					col = LG_INK[1]
+				col.a = al * (1.0 if v < 0.75 else 1.0 - (v - 0.75) * 2.4)
+				ci.draw_rect(Rect2(_snap(c0 + nv * float(q) * px), Vector2(px, px)), col)
+	var cells: Array = [[1, 0], [0, 0], [-1, 0], [-1, 1], [-1, -1], [-2, 0]]
+	for qq in cells:
+		var cell: Vector2 = h0 + (dv * float(qq[0]) + nv * float(qq[1])) * px
+		var hc: Color = Color(1, 1, 1, al) if int(qq[1]) == 0 else Color(LG_C[5].r, LG_C[5].g, LG_C[5].b, al)
+		ci.draw_rect(Rect2(_snap(cell), Vector2(px, px)), hc)
+	_glow(h0, LG_C[6])
+	_glow(h0 - dv * px, LG_C[5])
+	if t >= 2:   # 精二：尾后一行细字
+		for k in 3:
+			var gp: Vector2 = head - dv * float(L + 5 + 6 * k) * px
+			var gc: Color = LG_AC if (k + beat / 3) % 3 == 0 else LG_C[5]
+			gc.a = al * (0.9 - 0.25 * k)
+			_lg_glyph(ci, gp, k + beat / 3, gc)
+
+
+## 运行时件
+func _lg_draw_rt(ci, it: Dictionary) -> void:
+	var px: float = g.PX
+	match str(it.lrt):
+		"bolt":
+			var bo: Dictionary = it.b
+			var o = it.o
+			var pose: Array = load("res://scripts/render/fx_recipe.gd")._bolt_pose(bo)
+			_lg_comet(ci, pose[0], Vector2.from_angle(float(pose[1])), LG_BOLT_LEN[tier(o)], tier(o))
+		"xbolt":
+			var xb: Dictionary = it.b
+			_lg_comet(ci, (xb.p as Vector2) + Vector2(0, -16), (xb.v as Vector2).normalized(), 12, mini(1, tier(it.o)))
+		"vbolt":   # 咒域每跳 / 连携出手：从 a 飞到 b（走一道浅弧），飞到即止
+			var u: float = (g.t - float(it.t0)) / float(it.life)
+			if u < 0.0 or u > 1.0:
+				return
+			var a: Vector2 = it.a
+			var b: Vector2 = it.b
+			var dv: Vector2 = (b - a).normalized()
+			var nv := Vector2(-dv.y, dv.x) * float(it.get("side", 1.0))
+			var lift: float = minf(40.0, a.distance_to(b) * 0.12)
+			var p: Vector2 = a.lerp(b, u) + nv * 4.0 * lift * u * (1.0 - u)
+			var tg: Vector2 = (b - a + nv * 4.0 * lift * (1.0 - 2.0 * u)).normalized()
+			var big: bool = it.get("big", false)
+			_lg_comet(ci, p, tg, 30 if big else 20, int(it.tier), 1.0, big)
+		"lock":   # 提喻：笔尖 → 目标一道蓝丝线 + 上方一行细字向目标流动；精一上下两行；精二字白紫相间、丝线成一串墨珠
+			var o2 = it.o
+			var lk: Dictionary = o2.hw.lock
+			var t2: int = tier(o2)
+			var a2: Vector2 = _lg_tip(o2)
+			var b2: Vector2 = lk.e.pos + Vector2(0, -float(lk.e.r) * 0.5)
+			var head: float = minf(1.0, (int(lk.n) * float(lk.b.get("tick", 0.25)) + float(lk.tick)) / maxf(0.05, float(lk.b.get("tick", 0.25))))
+			var bb: Vector2 = a2.lerp(b2, head)
+			var L: float = a2.distance_to(bb) / px
+			if L < 2.0:
+				return
+			var dv2: Vector2 = (bb - a2) / (L * px)
+			var nv2 := Vector2(-dv2.y, dv2.x)
+			if nv2.y > 0.0:
+				nv2 = -nv2   # 字行在线的上方
+			var beat2: int = int(floor(g.t * 15.0))
+			for i in int(L):
+				var p2: Vector2 = a2 + dv2 * float(i) * px
+				if t2 >= 2 and i % 3 == 1:
+					ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_INK[1])
+					continue
+				ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_C[3] if (i + beat2) % 7 != 0 else LG_C[5])
+			var rows: Array = [6.0] if t2 < 1 else [6.0, -6.0]
+			for ri in rows.size():
+				var off: float = float(rows[ri])
+				var ng2: int = int(L / 5.0)
+				for k in ng2:
+					var gp2: Vector2 = a2 + dv2 * (float(k) * 5.0 + 3.0) * px + nv2 * off * px
+					var gc2: Color = LG_C[5]
+					if t2 >= 2 and (k + beat2 / 2) % 2 == 0:
+						gc2 = LG_AC
+					elif k == ng2 - 1:
+						gc2 = LG_C[6]
+					_lg_glyph(ci, gp2, k * 3 + ri * 5 - beat2 / 2, gc2)
+			_glow(bb, LG_C[5])
+		"links":   # 精二连缀：成员之间一串墨珠 + 每 9 像素一个细字，一颗白珠按拍沿链走
+			var lkk: Dictionary = it.l
+			var mm: Array = lkk.m
+			var a0: Dictionary = mm[0]
+			if a0.dead:
+				return
+			var al: float = clampf(float(lkk.t) / 0.25, 0.0, 1.0)
+			var pa: Vector2 = a0.pos + Vector2(0, -float(a0.r) * 0.6)
+			var beat3: int = int(floor(g.t * 15.0))
+			for j in range(1, mm.size()):
+				var q: Dictionary = mm[j]
+				if q.dead:
+					continue
+				var pb: Vector2 = q.pos + Vector2(0, -float(q.r) * 0.6)
+				var Lq: int = int(pa.distance_to(pb) / px)
+				if Lq < 2:
+					continue
+				var dq: Vector2 = (pb - pa) / (float(Lq) * px)
+				for i in Lq:
+					if i % 2 == 1:
+						continue
+					var cc: Color = LG_C[6] if (i / 2) == (beat3 % maxi(1, Lq / 2)) else (LG_C[3] if i % 4 == 0 else LG_INK[1])
+					cc.a = al
+					ci.draw_rect(Rect2(_snap(pa + dq * float(i) * px), Vector2(px, px)), cc)
+				for k in range(1, Lq / 9):
+					var gc3: Color = LG_C[5] if k % 2 else LG_AC
+					gc3.a = al
+					_lg_glyph(ci, pa + dq * float(k * 9) * px + Vector2(0, -4.0 * px), k + j * 4 + beat3 / 4, gc3)
+		"jump":   # 一笔墨（白笔头）从 a 写到 b：第 0 拍写到 70%、第 1 拍写满、之后从笔尾干回去
+			var f: int = frame_of(float(it.t0))
+			if f < 0:
+				return
+			var a3: Vector2 = it.a
+			var b3: Vector2 = it.b
+			var Lj: int = int(a3.distance_to(b3) / px)
+			if Lj < 2:
+				return
+			var dj: Vector2 = (b3 - a3) / (float(Lj) * px)
+			var nj := Vector2(-dj.y, dj.x)
+			var i1: int = int(Lj * (0.7 if f == 0 else 1.0))
+			var i0: int = 0 if f <= 1 else int(Lj * (0.4 * (f - 1)))
+			for i in range(i0, i1):
+				var v: float = float(i) / Lj
+				var p3: Vector2 = a3 + dj * float(i) * px
+				var hot: bool = i >= i1 - 3
+				ci.draw_rect(Rect2(_snap(p3), Vector2(px, px)), LG_C[6] if hot else LG_C[3])
+				if not hot and v > 0.15 and v < 0.85:
+					ci.draw_rect(Rect2(_snap(p3 + nj * px), Vector2(px, px)), LG_INK[1])
+			if i1 > 0:
+				_glow(a3 + dj * float(i1 - 1) * px, LG_C[6])
+		"seal":   # 连携「消弹」：区域边上浮起一圈细字（少数淡金），整圈按拍转、往上浮，0.8 秒散
+			var u2: float = (g.t - float(it.t0)) / float(it.life)
+			if u2 < 0.0 or u2 > 1.0:
+				return
+			var c2: Vector2 = it.c
+			var rr2: float = float(it.r)
+			var beat4: int = int(floor(g.t * 15.0))
+			var n2: int = clampi(int(TAU * rr2 / px / 11.0), 12, 40)
+			var rise: float = minf(1.0, u2 / 0.15) * 10.0 + u2 * 8.0
+			for i in n2:
+				var an: float = TAU * float(i) / n2 + float(beat4 - int(floor(float(it.t0) * 15.0))) * 0.03
+				var hv2: float = _lg_h(i * 17 + 3)
+				if u2 > 0.6 and hv2 < (u2 - 0.6) * 2.5:
+					continue
+				var gp3: Vector2 = c2 + Vector2(cos(an) * rr2, sin(an) * rr2 * LG_SY) + Vector2(0, -rise * px)
+				var back: bool = sin(an) < -0.2
+				var gc4: Color = LG_GOLD if i % 5 == 0 else (LG_C[3] if back else LG_C[5])
+				if u2 < 0.08:
+					gc4 = LG_C[6]
+				ci.draw_rect(Rect2(_snap(gp3) + Vector2(0, 3.0 * px), Vector2(px, px)), LG_INK[0])   # 字脚一点墨影
+				_lg_glyph(ci, gp3, i * 3 + beat4 / 3, gc4)
+		"pop":   # 被消的敌弹：一点白 → 一团墨收紧 → 一小块细字碎块落下熄灭
+			var f2: int = frame_of(float(it.t0))
+			if f2 < 0 or f2 > 6:
+				return
+			var c3: Vector2 = it.c
+			if f2 == 0:
+				for qq in [[0, 0], [1, 0], [0, 1], [1, 1]]:
+					ci.draw_rect(Rect2(_snap(c3) + Vector2(qq[0], qq[1]) * px, Vector2(px, px)), LG_C[6])
+			elif f2 <= 2:
+				for y in range(-1, 3):
+					for x in range(-1, 3):
+						var md: int = absi(x * 2 - 1) + absi(y * 2 - 1)
+						if md <= 4:
+							ci.draw_rect(Rect2(_snap(c3) + Vector2(x, y) * px, Vector2(px, px)), LG_INK[0] if md < 4 else LG_C[2])
+			else:
+				_lg_glyph(ci, c3 + Vector2(0, float((f2 - 2) * (f2 - 2)) * px), int(it.gi), LG_C[4] if f2 < 5 else LG_C[2])
+		"ring":   # 贴地大墨环原地闪一下（不外扩）：外亮内墨 2 像素，按噪声断续
+			var u3: float = (g.t - float(it.t0)) / float(it.life)
+			if u3 < 0.0 or u3 > 1.0:
+				return
+			var rr3: float = float(it.r) / px
+			var a5: float = 1.0 if u3 < 0.12 else 1.0 - (u3 - 0.12) / 0.88
+			var n3: int = int(TAU * rr3)
+			for i in n3:
+				var hv3: float = _lg_h(i * 7 + 11)
+				if hv3 > a5 + 0.15 or hv3 < 0.12:
+					continue
+				var an2: float = TAU * float(i) / n3
+				var q3: Vector2 = (it.c as Vector2) + Vector2(cos(an2) * rr3, sin(an2) * rr3 * LG_SY) * px
+				ci.draw_rect(Rect2(_snap(q3), Vector2(px, px)), LG_C[6] if u3 < 0.1 else (LG_C[4] if hv3 > 0.5 else LG_C[3]))
+				ci.draw_rect(Rect2(_snap(q3 - Vector2(cos(an2), sin(an2) * LG_SY) * px * 1.2), Vector2(px, px)), LG_INK[1])
+
+
+## 旧做法（2）：状态件整张贴（彗星帧条、锁定印、咒域帧条），旋转 + 小数缩放，盖在所有单位上
+func _lg_draw_raw(o) -> void:
+	var cv = o.cv
+	var fps: float = Bal.v("fx/px_plane_raw_fps", 12.8)
+	var t: int = tier(o)
+	var h: Dictionary = o.hw
+	var fn = h.get("fan", {})
+	if fn is Dictionary and not fn.is_empty() and float(fn.get("t", 0.0)) > 0.0:
+		var r: float = float(load("res://scripts/characters/blocks/seg_logos.gd").hw_fan_r(o, fn.b))
+		_draw_raw(cv, "lg_raw_field", posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_field").get("n", 1)))), o.pos, float(h.fan_ang), r / 150.0)
+	if h.has("bolts"):
+		for bo in h.bolts:
+			var pose: Array = load("res://scripts/render/fx_recipe.gd")._bolt_pose(bo)
+			_draw_raw(cv, "lg_raw_bolt_e%d" % t, posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_bolt_e%d" % t).get("n", 1)))), pose[0], float(pose[1]), g.PX * 1.1)
+	if not o.vg.is_empty():
+		for xb in o.vg.bul:
+			_draw_raw(cv, "lg_raw_bolt_e0", posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_bolt_e0").get("n", 1)))), (xb.p as Vector2) + Vector2(0, -16), (xb.v as Vector2).angle(), g.PX * 0.8)
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and float(lk.get("t", 0.0)) > 0.0 and lk.e != null and not lk.e.dead:
+		var b: Vector2 = lk.e.pos + Vector2(0, -float(lk.e.r) * 0.5)
+		cv.draw_line(_lg_tip(o), b, Color(0.55, 0.6, 1.0, 0.9), 3.0)
+		_draw_raw(cv, "lg_raw_lock", posmod(int(g.t * fps), maxi(1, int(_meta("lg_raw_lock").get("n", 1)))), lk.e.pos + Vector2(0, -float(lk.e.r) - 20.0), 0.0, g.PX * 1.3)
+	if h.has("links"):
+		for lkk in h.links:
+			var mm: Array = lkk.m
+			for j in range(1, mm.size()):
+				if not mm[0].dead and not mm[j].dead:
+					cv.draw_line(mm[0].pos + Vector2(0, -10), mm[j].pos + Vector2(0, -10), Color(0.65, 0.53, 1.0, 0.8), 2.0)
+	for it in items:
+		if str(it.oid) == "logos" and str(it.ly) == "raw" and str(it.get("lrt", "")) == "rawline":
+			var u: float = (g.t - float(it.t0)) / maxf(0.01, float(it.life))
+			if u >= 0.0 and u <= 1.0:
+				cv.draw_line(it.a, (it.a as Vector2).lerp(it.b, u), Color(0.55, 0.6, 1.0, 0.9), 4.0)

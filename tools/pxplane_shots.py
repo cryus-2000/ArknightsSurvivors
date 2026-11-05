@@ -31,13 +31,14 @@ OPS = {
     # 流明（docs/255）：另含引擎帧号比连拍帧号多的约 9 帧（启动帧）
     "lumen": {"name": "流明", "modes": {3: "普攻 荧光", 0: "S1 沐雨", 1: "S2 沛霖", 2: "S3 灯火不灭"}, "off": {0: 13, 1: 12, 2: 13}},
     # 逻各斯（docs/258）
-    "logos": {"name": "逻各斯", "modes": {3: "普攻", 0: "S1", 1: "S2", 2: "S3"}, "off": {0: 4, 1: 6, 2: 8}},
+    # 逻各斯（docs/258）：S1 提喻取锁定后第 2 跳；S2 殁亡是常驻增益，取起手字环；S3 取开域爆亮那一拍
+    "logos": {"name": "逻各斯", "modes": {3: "普攻「言」", 0: "S1 提喻", 1: "S2 殁亡", 2: "S3 延异视阈"}, "off": {0: 16, 1: 4, 2: 12}},
 }
 OP = "skadi"
 START = {("lumen", 2): 1.2}   # 流明 S3 在演示开头约 1.3 秒就起手：提前开拍
 BALS = []   # --bals 透传的旋钮（如 growth/late_shape=1），截图 / 录像 / TRACE 都带上
 # 连携技事件（PXPLOG <前缀> <事件> …）：linkcmp 按这些事件对齐
-LINK_EV = {"hoshiguma": ("hsg", ("cover", "combo")), "lumen": ("lm", ("lm_lfire", "lm_cshot")), "logos": ("lg", ("link", "combo"))}
+LINK_EV = {"hoshiguma": ("hsg", ("cover", "combo")), "lumen": ("lm", ("lm_lfire", "lm_cshot")), "logos": ("lg", ("lg_link", "lg_combo"))}
 MODE_NAME = OPS[OP]["modes"]
 MODE_KEY = {3: "atk", 0: "s1", 1: "s2", 2: "s3"}
 MODE_TIERS = {3: [0, 1, 2], 0: [0, 1, 2], 1: [1, 2], 2: [2]}
