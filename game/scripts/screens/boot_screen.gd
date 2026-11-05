@@ -12,6 +12,7 @@ extends Control
 ## 网页：前面还有 HTML 加载页（tools/web/loader.js，下载占 0–60%、引擎启动 60–80%），这里接着它的百分比走、不倒退；
 ## 网页只保留 HTML 加载页；本页不另绘制，实际进度经 __syBootProgress 回传，主菜单就绪才 __syBootDone。
 ## 测试（带命令行参数、无界面）直接切标题页，不走本页；--bootshot / --loadprof / --bootrec 才走（--bootshot 在读到一半时截图退出）。
+## 11-05 方向 4 = Codex PRTS 认证终端（docs/reference/prts-entry-1105，用户「可以替换我们目前的加载页」），现为缺省。
 ## 10-30 用户「更加有 PRTS 的感觉，但是保留点深海的特色」：balance ui/boot_v 1–3 是三个新方向的原型（画法在 boot_views.gd），0 = 本页原样。
 ##   三个方向的系统日志按真实加载状态排（启动引擎 → 每个编译类别 n / 总数 → 标题页 → 着色器 → 稳帧），不是预录的动画。
 ##   --bootrec=<目录>：逐帧存 rec_<帧>.png 直到标题页出现后 2 秒（录对照片）；--bootslow=<毫秒>：每读完一个文件多等这么久（只给录像拉长，调试参数）
@@ -144,7 +145,9 @@ func _ready() -> void:
 			items = d.get("items", [])
 	tip_i = randi() % Tips.TIPS.size()
 	_threads = OS.has_feature("threads") and not OS.has_feature("web")
-	_v = clampi(Bal.vi("ui/boot_v", 0), 0, 3)
+	_v = clampi(Bal.vi("ui/boot_v", 0), 0, 4)
+	if _v == 4:
+		texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST   # 方向 4 的罗德岛标志是像素图（整数倍最近邻）
 	if font != null:
 		views = Views.new(self, font)
 	if rec_dir != "":
@@ -497,7 +500,7 @@ func _view_state() -> Dictionary:
 	var label: String = "进入标题页" if out_t >= 0.0 else (cur_label if _opened else "编译 · " + cur_label)
 	var file: String = cur_file if out_t < 0.0 else ""
 	return {"p": _progress(), "label": label, "ready": _await >= 0.0 or out_t >= 0.0, "file": file, "n": mini(idx, items.size()), "total": items.size(),
-		"lines": lines, "t": t, "tip": Tips.TIPS[tip_i], "tip_a": ta}
+		"lines": lines, "t": t, "tip": Tips.TIPS[tip_i], "tip_a": ta, "u": _await}
 
 
 func _txt(pos: Vector2, s: String, sz: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, w := -1.0) -> void:
@@ -532,6 +535,8 @@ func _draw() -> void:
 				views.draw_v2(vs, _view_state())
 			3:
 				views.draw_v3(vs, _view_state())
+			4:
+				views.draw_v4(vs, _view_state())
 		_draw_start(vs)
 		return
 	draw_texture_rect(bg, Rect2(Vector2.ZERO, vs), false)
