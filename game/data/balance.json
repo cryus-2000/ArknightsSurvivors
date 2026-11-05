@@ -384,6 +384,8 @@
   "relic_step": 0.3,
   "_relic_step": "本次每买一件藏品，余下藏品价格再 +relic_step（在 purchase_step 之上，docs/191）；0 = 改前",
   "ingot_relic_floor": 1.2,
+  "oil_amount": 30,
+  "_oil_amount": "商人灯油每瓶加的灯火（× 灯油效果 oil_mult）；价格 5 × 商人倍率不变。11-05 用户「5块钱+50会不会太多了，可以价格不变但是少加点」：50 → 30",
   "_ingot_relic_floor": "商店买的「立即获得源石锭」藏品按售价保底：到手 = max(原数额, ceil(实付 × 本值))；补给箱 / 事件照原数额（docs/218，用户 11-01「越买越赚可以，不能亏」）；0 = 改前"
  },
  "onboard": {
