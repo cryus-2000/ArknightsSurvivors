@@ -6,7 +6,7 @@
 ## 挂在人身上的件带 fo（跟她）或 fol（日晷格挡跟队长）；斩痕 / 剑气命中星跟被打的那只（e / ef）；冲击环、声波、烟环、刻痕环留原地。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 

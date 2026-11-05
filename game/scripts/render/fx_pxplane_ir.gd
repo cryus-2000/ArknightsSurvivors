@@ -6,7 +6,7 @@
 ## 挂在人身上的件跟她（光刃、月牙、枪口火光、追斩光刺）；起风水旋 / 挑刺 / 严律刺印跟被打的那只；冲击环、爆点、水花碎沫、提灯光圈留在原地。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 

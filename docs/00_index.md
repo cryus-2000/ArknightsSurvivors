@@ -260,7 +260,7 @@
 | [50_performance](50_performance.md) | 性能测量 | 进行中 | 帧时测量方法与各轮优化记录；§18 原生运动核心实测，§19 HUD 字体缓存与隔离对照，§20 双端 60 帧迭代（尚未达标），§21 网页为主基准（手机口径、WebGL 状态缓存 −19% / Boss −32%）；§26 叠加特效后的帧率与同屏上限 65（云端不合）；§27 帧率稳定优先：启动页稳 60 再进标题、着色器预热、界面动效审计、`--ftrec` 帧时记录；§28 低配基准（限核 / 网页节流 + 手机视口）与逐级自动降档 | 21、35、36、38、39、41 等 15 篇；render/world.gd、game.gd、data/balance.json 等 34 个文件 |
 | [55_code_audit](55_code_audit.md) | 代码冗余审计 | 进行中 | 大部分清理已做；§6 剩余项未做 | 35、39、41、56、57、归档14；boss_ai.gd、game.gd、relic_fx.gd 等 21 个文件 |
 | [101_arch_audit_1015](101_arch_audit_1015.md) | 代码框架审计与 C++ 预留 | 进行中 | 10-15 框架问题 / 冗余清单、原生代码切入面与构建约束、阶段 0 / 1 / 2 路线；§7 派活清单、§8 待用户定 | — |
-| [282_code_cleanup_1106](282_code_cleanup_1106.md) | 代码整理盘点与去冗余 11-06 | 进行中 | 死代码 69 项 + 2 个无引用脚本 + 4 个已定案回退开关已删（第一批），pxplane 重复小工具合到 render/px_util.gd（第二批）；拆大文件排在美术分支 / 帧率会话之后；§6 待定 | 101、126、39；tools/gcp/render_jobs/cleanup_verify.sh |
+| [286_code_cleanup_1106](286_code_cleanup_1106.md) | 代码整理盘点与去冗余 11-06 | 进行中 | 死代码 69 项 + 2 个无引用脚本 + 4 个已定案回退开关已删（第一批），pxplane 重复小工具合到 render/px_util.gd（第二批）；拆大文件排在美术分支 / 帧率会话之后；§6 待定 | 101、126、39；tools/gcp/render_jobs/cleanup_verify.sh |
 | [104_pixel_pipeline](104_pixel_pipeline.md) | 干员像素素材流程规范 | 现行规范 | 10-16 定：Codex 静态 f0 / 动画（分层合成）两条线、三层验收、f0 并行 + 人内串行；口径只在 103 改 | 97、103；tools/px_lint.py |
 | [105_op_anim_arch_for_codex](105_op_anim_arch_for_codex.md) | 干员动画接口：现状与 Codex 改造说明 | 已实施记录 | 核心迁移已在 6b697796 完成；现行契约见 87 §3.5，补齐序列恢复与互斥校验；截图验收仍由界面与美术负责 | 87、92、101 |
 | [106_codebase_overview_for_codex](106_codebase_overview_for_codex.md) | 代码架构总览（给 Codex 改代码） | 现行规范 | 10-17：目录职责、每帧次序、干员数据与动画接口、测试工具、Codex 改代码规则 §6 | 41、36、101、105 |

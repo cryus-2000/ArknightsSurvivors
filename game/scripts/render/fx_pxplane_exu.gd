@@ -6,7 +6,7 @@
 ## 挂在人身上的件（枪口焰、过热烟、过载光环）带 fo 跟着她走（docs/246 §11）；命中火花、贴地环留在原地。只画，不碰玩法与玩法随机数。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const ObFx = preload("res://scripts/characters/blocks/ob_fx.gd")
 const ObCore = preload("res://scripts/characters/blocks/ob_core.gd")   # aura_members

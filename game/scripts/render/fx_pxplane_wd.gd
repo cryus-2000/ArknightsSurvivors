@@ -9,7 +9,7 @@
 ## 挂在人身上的件（炮口焰、技能起手星芒）带 fo 跟她走；爆团、焦痕、余震、残影留在原地。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 

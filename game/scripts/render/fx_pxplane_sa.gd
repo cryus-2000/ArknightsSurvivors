@@ -5,7 +5,7 @@
 ## 挂在人身上的件带 fo（跟她）或 fol（跟队长：治疗、连携护盾、药物配置光环）；命中芒跟被打的那只（e）；冲击环、裂纹、碎晶、地面斑留在原地。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 

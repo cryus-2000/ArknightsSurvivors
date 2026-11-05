@@ -1,4 +1,4 @@
-# 代码整理（docs/282）的一次性验证：被测提交跑真全量快检（不重录金样：整理要求积木等价金样原样通过），
+# 代码整理（docs/286）的一次性验证：被测提交跑真全量快检（不重录金样：整理要求积木等价金样原样通过），
 # 再与基线提交逐行比同种子 TRACE（画画面跑，绘制代码也执行）。
 # 用法：python tools/gcp/batch.py run <tag> --commit <提交> --cmd 'BASE=<基线完整提交号> bash tools/gcp/render_jobs/cleanup_verify.sh'
 # 结果：$OUT/ci_check.log、$OUT/ci_logs/、$OUT/trace_ab.md、$OUT/trace/；最后一行 RESULT check=<rc> trace=<rc>
