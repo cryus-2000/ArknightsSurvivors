@@ -6,7 +6,7 @@
   op_lumen_hit（光弹 / 发光单元每颗命中都放，后期一秒十来次）：原作 p_skill_fishhealbuff1（治疗水声）开头 0.14 秒，
       250 Hz 高通去闷响，叠一半原作 p_skill_shinestar 开头（低通 2.8 kHz），8 阶低通 3.2 kHz + 5 kHz 以上再压，40 ms 淡出 → 一声轻亮的水滴，代替原来 6.4 kHz 重心、36% 能量在 6 kHz 以上的「叮」；
   op_lumen_atk（每次出手）：原作 p_skill_lantern_cast 开头 0.2 秒（提灯起手那一下），低通 4 kHz、60 ms 淡出。
-响度：按 docs/113 §1「有效响度」口径（50 ms 窗 RMS 最大值）对齐原文件后，命中再 −4 dB、出手 −2 dB（sfx.gd OP_DB 另有节流 / 音高随机，见 docs/255 §7）。
+响度：按 docs/113 §1「有效响度」口径（50 ms 窗 RMS 最大值）对齐原文件后，命中、出手都再 −4 dB，峰值封顶 −6 dB（sfx.gd OP_DB 另有节流 / 音高随机，见 docs/255 §7）。
 原作素材在主仓库 build/ak_src/flat/（不进 git / 包；用户 10-15 确认已获授权，终结技音效同源）。
 
 用法（仓库根目录）：python game/tools/gen_sfx_lumen_atk_1105.py          → 只写 build/sfx_lumen_1105/（含 _old 原文件副本）
@@ -74,8 +74,8 @@ def make():
     hit = fades(hit, 0.002, 0.04)
     atk = load("p_skill_lantern_cast.wav", 0.015, 0.2)
     atk = lp(atk, 4000)
-    atk = fades(atk, 0.002, 0.06)
-    return {"op_lumen_hit": (hit, -4.0), "op_lumen_atk": (atk, -2.0)}
+    atk = fades(atk, 0.008, 0.06)   # 8 ms 淡入：去掉提灯起手那一下的尖峰（不然峰值 −1 dB，比原文件还冲）
+    return {"op_lumen_hit": (hit, -4.0, 0.5), "op_lumen_atk": (atk, -4.0, 0.5)}
 
 
 def main():
@@ -83,7 +83,7 @@ def main():
     ap.add_argument("--apply", action="store_true")
     a = ap.parse_args()
     os.makedirs(OUT, exist_ok=True)
-    for name, (x, rel) in make().items():
+    for name, (x, rel, pk_cap) in make().items():
         src = os.path.join(SFX, name + ".wav")
         old_copy = os.path.join(OUT, name + "_old.wav")
         if not os.path.exists(old_copy):
@@ -91,8 +91,8 @@ def main():
         old, _ = sf.read(old_copy)
         x = x * 10 ** ((eff(old) + rel - eff(x)) / 20.0)
         pk = np.abs(x).max()
-        if pk > 0.89:
-            x *= 0.89 / pk
+        if pk > pk_cap:   # 峰值封顶 −6 dB（命中、出手都是高频连发的小声，不要尖）
+            x *= pk_cap / pk
         print(name, "原：", stats(old))
         print(name, "新：", stats(x))
         sf.write(os.path.join(OUT, name + ".wav"), x.astype(np.float32), SR, subtype="PCM_16")

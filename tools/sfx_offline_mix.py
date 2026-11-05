@@ -68,6 +68,7 @@ def main():
     ap.add_argument("--secs", type=float, default=10.0)
     ap.add_argument("--out", required=True)
     ap.add_argument("--name", default="lumen_atk_sfx")
+    ap.add_argument("--only", default="", help="只混这个前缀的音（如 op_lumen_ 只听流明自己的声音）")
     a = ap.parse_args()
     fr2t, plays, ops = [], [], []
     for l in open(a.log, encoding="utf-8"):
@@ -82,7 +83,7 @@ def main():
     LM = ("op_lumen_atk", "op_lumen_hit")
     outs = {}
     for ver in ("before", "after"):
-        ev = [(tm(f), n, v, pi, pv, False) for f, n, v, pi, pv in plays if n not in LM]
+        ev = [(tm(f), n, v, pi, pv, False) for f, n, v, pi, pv in plays if n not in LM and n.startswith(a.only)]
         gap_last = {}
         for f, sn, v, pi, pv in ops:
             if sn not in LM:
