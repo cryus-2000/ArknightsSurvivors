@@ -23,7 +23,7 @@ OUT_ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 OUT_META = os.path.join(ROOT, "game", "data", "pxp_eyjafjalla.json")
 TMP = os.path.join(ROOT, "build", "pxp_bake_eyja")
 FPS = 15
-EMIT_LUMA = 0.9
+EMIT_LUMA = 0.93
 EMIT_MAX = 48
 ACC = (0xff, 0xaa, 0x45)   # 橙黄热芯也进发光层
 PRE = "ey_"
@@ -39,7 +39,7 @@ LAVA_R = (30, 36)
 SPL_R = (15, 22)
 DIRS = (-90, -45, 0, 45, 90)
 # 弹体：(名, 头半径, 岩壳, 速度系数)。fire 精零火球 / lava 精一熔岩弹 / pow 二重咏唱强化弹 / ign 点燃弹 / rock 火山弹·熔岩天降 / chip 小熔岩块（火星迸溅、星火燎原、额外弹）/ boulder 连携熔岩块
-BALLS = (("fire", 3, 0, 0.45), ("lava", 3.5, 1, 0.45), ("pow", 4.5, 0, 0.5), ("ign", 6, 0, 0.55), ("rock", 5, 1, 0.45), ("chip", 2.5, 1, 0.4), ("boulder", 9, 1, 0.4))
+BALLS = (("fire", 3, 0, 0.32), ("lava", 3.5, 1, 0.32), ("pow", 4.5, 0, 0.36), ("ign", 6, 0, 0.4), ("rock", 5, 1, 0.3), ("chip", 2.5, 1, 0.28), ("boulder", 9, 1, 0.3))
 
 
 def variants():
@@ -158,7 +158,7 @@ def bake(key, d, dur, loop):
             continue
         luma = c[..., 0] * 0.2126 + c[..., 1] * 0.7152 + c[..., 2] * 0.0722
         acc = (np.abs(c[..., 0] - ACC[0] / 255) < 0.03) & (np.abs(c[..., 1] - ACC[1] / 255) < 0.03) & (np.abs(c[..., 2] - ACC[2] / 255) < 0.03)
-        m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
+        m = (c[..., 3] > 0.5) & (luma >= EMIT_LUMA)   # 11-05 首轮：橙黄热芯也进发光层时整团被吹白，只留最白的芯
         py, px = np.nonzero(m)
         idx = np.arange(len(px))
         if len(idx) > EMIT_MAX:

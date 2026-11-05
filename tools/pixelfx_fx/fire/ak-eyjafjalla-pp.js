@@ -169,7 +169,8 @@ function cracks(p, cr, SY, t, C, sd, tHot, tCool) {
 // 爆团 / 火柱 / 喷发 = 库里 explosions、flame-pillar 那套粒子：火团（P.FIRE）沿火焰色阶冷却、火星（P.SPARK）、余烬（P.EMBER）、
 // 带受光面的熔岩块（Bits CHUNK）；火球 = 库里 fire/fireball 原样（按 5 个平面角转着生成）。色阶换成她的熔岩色（暖红偏橙、白只在最热一阶）；
 // 不加烟（库里的紫灰烟在本作地面上发脏），火团冷到最暗一阶就成团散掉。半透明一律按固定噪声成团消散（不用 Bayer 网点）。
-const RAMP9 = ["#fff0e0", "#ffe3a8", "#ffc46b", "#ffaa45", "#ff8a3d", "#f6561a", "#d2330f", "#8f1d0d", "#4a110a"];
+// 11-05 GCP 首轮：头三阶太白被辉光吹成淡黄白、末两阶画成半透明暗红圆片像血团 → 头从橙黄起，冷到暗红后直接散掉（0 = 不画）
+const RAMP9 = ["#ffd59a", "#ffc46b", "#ffaa45", "#ff8a3d", "#f6561a", "#d2330f", "#8f1d0d", 0, 0];
 const LAVA_ROCK = ["#1a0705", "#4a110a", "#8f1d0d", "#f6561a", "#ffaa45"];   // 熔岩块：暗壳 → 受光面透橙
 const BALL_PAL = ["#4a110a", "#8f1d0d", "#d2330f", "#f6561a", "#ff8a3d", "#ffaa45", "#ffc46b", "#ffe3a8", "#fff0e0"];
 
@@ -208,7 +209,7 @@ function crust(p, x0, y0, r, ph, C, ang = 0) {
 
 export function create(o) {
   patchPainter();
-  FIRE_RAMP.splice(0, FIRE_RAMP.length, ...RAMP9.map(hex));
+  FIRE_RAMP.splice(0, FIRE_RAMP.length, ...RAMP9.map((c) => (c ? hex(c) : 0)));
   const C = fit(o.palette, 7).concat(fit([HOTY_HEX], 1)), E = +o.el, R = +o.R, part = o.part, ly = o.layer;
   const raw = ly === "raw", up = ly === "up" || raw, gd = ly === "gd" || raw, SY = raw ? 1 : +o.SY;
   const Rg = new Rng(+o.seed + 17 * E + 3 * R);

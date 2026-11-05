@@ -1296,7 +1296,7 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					_ey_push(o, "ignite_r%d_e%d_gd" % [b2, tt], at, "gd")
 					if mode() == 1:
 						R._grains(o, at + Vector2(0, -50), at.y, "streak", 5 + 3 * tt, {"tier": tt})
-					R._light(o, at + Vector2(0, -40), r * 1.8, 0.9, 0.15, p.light)
+					R._light(o, at + Vector2(0, -40), r * 1.8, 0.65, 0.15, p.light)
 				"s1":
 					if raw:
 						_ey_rawi(o, "raw_s1boom", at, 0.0, px * r * 0.5 / 44.0)
@@ -1306,9 +1306,9 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					_ey_push(o, "s1boom_r%d_e%d_gd" % [b1, t], at, "gd")
 					if mode() == 1:
 						R._grains(o, at + Vector2(0, -30), at.y, "ember", 4 + 2 * t, {"tier": t})
-					R._light(o, at + Vector2(0, -24), r * 1.6, 0.8, 0.15, p.light)
+					R._light(o, at + Vector2(0, -24), r * 1.6, 0.55, 0.15, p.light)
 				_:
-					R._light(o, at + Vector2(0, -20), r * 1.3, 0.55, 0.12, p.light)
+					R._light(o, at + Vector2(0, -20), r * 1.3, 0.4, 0.12, p.light)
 					if _ey_cnt(o, "ey_boom") >= 6:
 						return
 					if raw:
@@ -1339,7 +1339,7 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 		"ey_s3":   # 火山落点：实心大爆团（火团 + 往上冲的火 + 熔岩块 + 花瓣状暗红碎片 + 火星线）
 			var at3: Vector2 = d.at
 			var r3: float = float(d.r)
-			R._light(o, at3 + Vector2(0, -30), r3 * 2.2, 1.0, 0.15, p.light)
+			R._light(o, at3 + Vector2(0, -30), r3 * 2.0, 0.7, 0.15, p.light)
 			if raw:
 				_ey_rawi(o, "raw_s3boom", at3, 0.0, px * r3 * 0.5 / 38.0)
 				return
@@ -1369,7 +1369,7 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			var c: Vector2 = d.get("c", d.get("at", o.pos))
 			var lr: float = float(d.get("r", 105.0))
 			var dur: float = 2.0 if kind == "ey_combo" else 0.9
-			R._light(o, c + Vector2(0, -30), maxf(240.0, lr * 2.0), 1.0, 0.15, p.light)
+			R._light(o, c + Vector2(0, -30), maxf(240.0, lr * 2.0), 0.7, 0.15, p.light)
 			if raw:
 				_ey_rawi(o, "raw_s3boom", c, 0.0, px * lr * 0.5 / 38.0)
 				return
