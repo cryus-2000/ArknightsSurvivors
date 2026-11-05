@@ -1425,13 +1425,13 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 				return
 			match src:
 				"声浪":
-					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "ly": "gd", "life": 6.0 / 15.0})
+					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 					_sk_notes(o, es, t, R, p)
 					R._light(o, c + Vector2(0, -6), r * 0.7, 0.25 + 0.08 * t, 0.12, p.light)
 				"余音":   # 精一：外圈回声
-					_sk_push(o, {"skr": "echo_ring", "c": c, "r": r, "tier": t, "ly": "gd", "life": 4.0 / 15.0})
+					_sk_push(o, {"skr": "echo_ring", "c": c, "r": r, "tier": t, "ly": "gd", "life": 4.0 / 15.0, "o": o, "fz": true})
 				"潮汐和声":
-					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "rose": true, "thin": true, "ly": "gd", "life": 6.0 / 15.0})
+					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "rose": true, "thin": true, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 				"海嗣":   # 精二伊莎玛拉同步声浪（酒红）
 					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "sea": true, "ly": "gd", "life": 6.0 / 15.0})
 					_sk_notes(o, es.slice(0, 2), t, R, p, true)
@@ -1468,16 +1468,16 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 				return
 			match i:
 				0:   # S1 同归殊途之吟：身周气泡（循环到技能结束，读 skill_active_left）+ 脚下酒红细环；歌域扩张一道浪
-					_sk_push(o, {"skr": "wave", "c": zc, "r": zr, "tier": t, "ly": "gd", "life": 6.0 / 15.0})
+					_sk_push(o, {"skr": "wave", "c": zc, "r": zr, "tier": t, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 					R._light(o, o.pos + Vector2(0, -24), 90.0, 0.5, 0.15, SK_B[5])
 					if mode() == 1:
 						R._grains(o, o.pos + Vector2(0, -30), o.pos.y, "twinkle", 3 + 2 * t, {"tier": t})
 				1:   # S2 同葬无光之愿：脚下旋涡 + 小鱼散开
 					var tt: int = maxi(t, 1)
-					_sk_push(o, {"skr": "vortex", "c": o.pos, "tier": tt, "ly": "gd", "life": 12.0 / 15.0})
-					_sk_push(o, {"skr": "fishburst", "c": o.pos, "tier": tt, "ly": "up", "gy": o.pos.y + 1.0, "life": 12.0 / 15.0})
+					_sk_push(o, {"skr": "vortex", "c": o.pos, "tier": tt, "ly": "gd", "life": 12.0 / 15.0, "o": o, "fs": true})
+					_sk_push(o, {"skr": "fishburst", "c": o.pos, "tier": tt, "ly": "up", "gy": o.pos.y + 1.0, "life": 12.0 / 15.0, "o": o, "fs": true})
 					if tt >= 2:
-						_sk_push(o, {"skr": "spout", "c": o.pos, "ly": "up", "gy": o.pos.y + 2.0, "life": 8.0 / 15.0})
+						_sk_push(o, {"skr": "spout", "c": o.pos, "ly": "up", "gy": o.pos.y + 2.0, "life": 8.0 / 15.0, "o": o, "fs": true})
 					R._light(o, o.pos + Vector2(0, -12), 110.0, 0.5, 0.15, SK_B[4])
 				2:   # S3 潮涌，潮枯：起手就是第一次潮涌，之后每 3 秒一次（draw_floor 里按技能剩余时间续）
 					st.s3_next = g.t
@@ -1528,8 +1528,8 @@ func _sk_draw_floor(o) -> void:
 	var s3: float = o.skill_active_left(2)
 	if s3 > 0.0 and float(st.s3_next) >= 0.0 and g.t >= float(st.s3_next):   # 潮涌：起手一次，之后每 3 秒
 		st.s3_next = g.t + 3.0
-		_sk_push(o, {"skr": "surge", "c": o.zone_c(), "r": float(o.zr), "ly": "gd", "life": 7.0 / 15.0})
-		_sk_push(o, {"skr": "pillars", "c": o.zone_c(), "r": float(o.zr), "ly": "up", "gy": o.zone_c().y + 2.0, "life": 7.0 / 15.0})
+		_sk_push(o, {"skr": "surge", "c": o.zone_c(), "r": float(o.zr), "ly": "gd", "life": 7.0 / 15.0, "o": o, "fz": true})
+		_sk_push(o, {"skr": "pillars", "c": o.zone_c(), "r": float(o.zr), "ly": "up", "gy": o.zone_c().y + 2.0, "life": 7.0 / 15.0, "o": o, "fz": true})
 		var R = load("res://scripts/render/fx_recipe.gd").of(g)
 		R._light(o, o.zone_c() + Vector2(0, -20), float(o.zr), 0.8, 0.15, SK_B[4])
 		R._light(o, o.zone_c() + Vector2(0, -60), 120.0, 0.6, 0.15, SK_R[4])
@@ -1592,10 +1592,21 @@ func _sk_domain(cv, c: Vector2, R: float, t: int, s1: bool, s3: bool, bt: float,
 			_sk_arc(cv, c, rr, a0, a0 + 0.9 + 0.5 * _sk_h(j + 51, seed), 1.0, lc, Color(0, 0, 0, 0), Color(0, 0, 0, 0), seed + 9.0 + j)
 
 
+## 挂在人身上的件（歌域圆心 fz / 本人脚下 fs）：持续期间跟着施放者当前位置走（按 15 fps 拍跳格）；落在地上的件留在原地
+func _sk_c(it: Dictionary) -> Vector2:
+	var o = it.get("o", null)
+	if o != null and is_instance_valid(o) and o.pos != Vector2.INF:
+		if it.get("fz", false):
+			return _snap(o.zone_c())
+		if it.get("fs", false):
+			return _snap(o.pos)
+	return it.c
+
+
 func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 	var f: int = frame_of(float(it.t0))
 	var px: float = g.PX
-	var c: Vector2 = it.c
+	var c: Vector2 = _sk_c(it)
 	match str(it.skr):
 		"wave":   # 声浪：断口笔触浪 0.6R → R（4 拍扩到边、第 5 拍淡），E1 第二道、E2 夹酒红暗流
 			if f < 0 or f > 5:
@@ -1709,7 +1720,7 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 func _sk_draw_up(ci, it: Dictionary) -> void:
 	var f: int = frame_of(float(it.t0))
 	var px: float = g.PX
-	var c: Vector2 = it.c
+	var c: Vector2 = _sk_c(it)
 	match str(it.skr):
 		"note":   # 命中音符：第 0 拍白头，往上飘 9 拍，最后两拍只剩符头
 			if f < 0 or f > 8:
