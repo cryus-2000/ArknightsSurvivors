@@ -1787,7 +1787,13 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	var col := Color.WHITE
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
-	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	var btx: Texture2D = fr[0]
+	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):   # 转平面（docs/265）：熔毁期间全身换熔毁红换色贴图，和特效同一套红（只画）
+		var dt: Texture2D = Fxr.Pxp.KA.dye(btx)
+		if dt != null:
+			btx = dt
+			col = Color.WHITE
+	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], btx, fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
 	if s.has("m3"):
 		s["draw_top"] = [fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g), hov]   # 头顶血条找头顶（hud_allyhp._m3_head，10-31）
 	for f in fl:
@@ -1816,6 +1822,8 @@ static func _mf_side(o, s: Dictionary, sd: Dictionary, hov: float) -> void:
 	if sd.has("strip") and not sd.has("col"):
 		return
 	var c: Color = _mf_col(sd.get("col", []), o.col())
+	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):
+		c = Fxr.Pxp.KA.MELT_HOT * 0.6   # 转平面（docs/265）：熔毁期间身侧红弧用同一套熔毁红（只画）
 	for q in sides:
 		var base_a: float = 0.0 if q >= 0.0 else PI
 		var sway: float = sin(g.t * 3.0 + j * 1.7 + q) * 0.18

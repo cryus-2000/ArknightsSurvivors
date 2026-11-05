@@ -888,6 +888,32 @@ def s3_cast():
     return up, gd
 
 
+DYE = []   # 熔毁换色贴图的文件名（write_imports 一起出 .import）
+
+
+def dye_m3():
+    """S3 熔毁期间 Mon3tr 全身染熔毁红（用户 11-05「S3 期间 monstr 全身都应该是红的……要统一一下」）：
+    把 Mon3tr 的全部帧条按亮度映射到特效同一套红色阶 RD（暗血红 → 主红 → 亮橙红 → 暖白芯），另存为特效层贴图；
+    干员原贴图不动，游戏里熔毁期间画本体时换这一张（fx_pxplane_kal.dye）。"""
+    src = os.path.join(ROOT, "game", "art", "operators", "kaltsit")
+    ramp = [(8, RD["k"]), (16, RD["d1"]), (28, RD["d2"]), (45, RD["m1"]), (70, RD["m2"]), (120, RD["f"]), (999, RD["h"])]
+    for fn in sorted(os.listdir(src)):
+        if not (fn.startswith("op_mon3tr_") and fn.endswith(".png")):
+            continue
+        a = np.asarray(Image.open(os.path.join(src, fn)).convert("RGBA")).copy()
+        lum = a[..., :3].astype(int).mean(-1)
+        out = np.zeros_like(a)
+        lo = -1
+        for th, c in ramp:
+            m = (lum > lo) & (lum <= th)
+            out[m, 0], out[m, 1], out[m, 2] = c
+            lo = th
+        out[..., 3] = a[..., 3]
+        name = "pxp_ka_dye_" + fn[:-4].replace("@", "_") + ".png"
+        Image.fromarray(out, "RGBA").save(os.path.join(OUT_ART, name))
+        DYE.append(name)
+
+
 IMPORT_TPL = open(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_backwash_gd.png.import"), encoding="utf-8").read() if os.path.exists(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_backwash_gd.png.import")) else None
 
 
@@ -907,8 +933,7 @@ def write_imports():
     import hashlib, re
     if IMPORT_TPL is None:
         return
-    for k in META:
-        fn = "pxp_ka_%s.png" % k.replace("_d-", "_dm")
+    for fn in ["pxp_ka_%s.png" % k.replace("_d-", "_dm") for k in META] + DYE:
         ip = os.path.join(OUT_ART, fn + ".import")
         if os.path.exists(ip):
             continue
@@ -981,6 +1006,7 @@ def main():
     out.update(META)
     with open(OUT_META, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+    dye_m3()
     write_imports()
     tot = sum(os.path.getsize(os.path.join(OUT_ART, "pxp_ka_%s.png" % k.replace("_d-", "_dm"))) for k in META)
     print(len(META), "张帧条，共 %.0f KB" % (tot / 1024))

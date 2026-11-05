@@ -60,12 +60,13 @@ class Scene:
         self.kal = lambda tk: (0.0, 0.0)
         self.m3 = lambda tk: (M3[0], M3[1], 0.0)
         self.m3_face = 1
+        self.m3_dye = lambda tk: False   # S3 熔毁期间本体换熔毁红换色贴图
 
     def add(self, k, tk, gp, flip=False, loop=False, until=None, sk=0.0):
         self.items.append({"k": k, "t0": tk, "gp": gp, "flip": flip, "loop": loop, "until": until, "sk": sk})
 
 
-ENEMY = KAL = MON = None
+ENEMY = KAL = MON = MOND = None
 
 
 def _isgd(k):
@@ -136,7 +137,8 @@ def render(sc, tk):
             x, y = OX + v[0] * PX - 64, OY + v[1] * PX - 120
             img.alpha_composite(KAL, dest=(int(round(x / 2) * 2), int(round(y / 2) * 2)))
         elif kind == "m":
-            spr = MON if sc.m3_face > 0 else MON.transpose(Image.FLIP_LEFT_RIGHT)
+            spr = MOND if sc.m3_dye(tk) else MON
+            spr = spr if sc.m3_face > 0 else spr.transpose(Image.FLIP_LEFT_RIGHT)
             x, y = OX + v[0] * PX - 64, OY + v[1] * PX - 120 - HOV - v[2] * PX
             # 影子
             ImageDraw.Draw(img).ellipse([OX + v[0] * PX - 16, OY + v[1] * PX - 5, OX + v[0] * PX + 16, OY + v[1] * PX + 5], fill=(18, 24, 24, 255))
@@ -301,6 +303,7 @@ def scenes(lib):
     out["s2"] = (cols, 18, (22, -18))
     # S3 熔毁：起手爆柱 → 持续热流 + 熔毁爪 → 结束一枚大结晶炸开（半径 130）
     s = base(46, E_FRONT)
+    s.m3_dye = lambda tk: 1 <= tk < 27
     s.add("s3cast_up", 1, M3, sk=2)
     s.add("s3cast_gd", 1, M3)
     s.add("s3aura_up", 3, lambda tk: M3, loop=True, until=26, sk=1)
@@ -321,7 +324,7 @@ def scenes(lib):
 
 
 def main():
-    global ENEMY, KAL, MON
+    global ENEMY, KAL, MON, MOND
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")
     ap.add_argument("--out", default=os.path.join(MAIN, "Claude outputs", "pxplane_kaltsit_1105", "gif"))
@@ -334,6 +337,7 @@ def main():
     ENEMY = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
     KAL = sprite_frames(os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_kaltsit_idle@2x.png"), 8)[0]
     MON = sprite_frames(os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_mon3tr_idle@2x.png"), 4)[0]
+    MOND = sprite_frames(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_ka_dye_op_mon3tr_idle_2x.png"), 4)[0]
     only = set(x for x in a.only.split(",") if x)
     for name, (cols, n, zc) in scenes(lib).items():
         if only and name not in only:
