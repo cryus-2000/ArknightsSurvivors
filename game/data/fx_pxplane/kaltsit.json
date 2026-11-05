@@ -1,0 +1,6 @@
+{
+	"_doc": "docs/265 凯尔希转平面（fx/px_plane）：颜色组给 Noita 颗粒（shard 荧光碎晶 / tri 黑三角碎块 / ember 熔滴余烬）、照地光（light）、治疗照地光（heal，薄荷，不用红）、熔毁照地光（melt，橙红；S3 / 熔毁爆 / 不毁重构按用户 11-05 指定用红）、受击反应（flash）用；主形是程序帧条（data/pxp_kaltsit.json）。Mon3tr 黑 / 墨绿 / 荧光绿",
+	"palette": {"dark": "#11241a", "main": "#68b02c", "hot": "#aaf23e", "accent": "#e6ffa8", "light": "#9cf03a", "heal": "#a8f0cf", "melt": "#ff6c2e", "flash": "#24402a"},
+	"flash_t": 0.034,
+	"_flash": "受击闪色（协调人 11-05，同能天使做法）：压成暗墨绿、只闪 1–2 帧（0.034 秒），让爪痕和火星最亮"
+}
