@@ -341,7 +341,10 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				var tg2: Variant = a.tg
 				var mid: Vector2 = tg2.pos if tg2 != null and not tg2.dead else (Vector2(a.from_p) + Vector2(a.to_p)) * 0.5
 				var d2: Vector2 = (Vector2(a.to_p) - Vector2(a.from_p)).normalized()
-				if LFA.on(u, "fx_lk_tx1"):
+				var pxo2: bool = Fxr.owns(p)
+				if pxo2:   # 转平面（docs/257）：冲刺直线刀光 + 目标处十字斩由 fx_pxplane 画（只画）
+					Fxr.ev(p, "tx_link", {"from": a.from_p, "to": a.to_p, "mid": mid, "es": u.in_band(a.from_p, a.to_p, 34.0)})
+				elif LFA.on(u, "fx_lk_tx1"):
 					LFA.texas_cut(u, a.from_p, a.to_p, mid)
 				else:
 					u.shape({"kind": "blade", "a": mid - d2 * 110.0, "b": mid + d2 * 110.0, "w": 7.0, "col": Color.WHITE, "glow": cp, "grow": 0.03, "life": 0.7})
@@ -464,13 +467,16 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			return t >= T + 0.9
 		"gather":   # 歌蕾蒂娅：甩钩 0.14 秒 → 拖 0.36 秒 → 落地，钩索残留 0.5 秒慢慢收
 			var pull: Array = a.pull
+			var pxg: bool = Fxr.owns(p)   # 转平面（docs/263）：接管时链 / 落地画面改由 fx_pxplane 画（只画）
 			if not a.done.has("go"):
 				a.done["go"] = true
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("attack")
+				if pxg:
+					Fxr.ev(p, "gl_lthrow", {"pull": pull, "c": c, "r": r})
 			if t < 0.14:
 				for e in pull:
-					if not e.dead:
+					if not e.dead and not pxg:
 						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": Vector2(p.pos).lerp(e.pos, t / 0.14), "w": 3.0, "col": HOOK, "life": 0.04})
 				return false
 			if t < 0.5:
@@ -482,18 +488,22 @@ static func _step_sample(u, a: Dictionary) -> bool:
 						continue
 					var to: Vector2 = c + (e.pos - c).normalized() * r * 0.45
 					p.nudge(e, (to - e.pos) * 0.22)
-					u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 3.0, "col": HOOK, "life": 0.04})
-					u.shape({"kind": "circle", "c": e.pos, "r": 6.0, "col": HOOK, "fill": 1.0, "life": 0.04})
+					if not pxg:
+						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 3.0, "col": HOOK, "life": 0.04})
+						u.shape({"kind": "circle", "c": e.pos, "r": 6.0, "col": HOOK, "fill": 1.0, "life": 0.04})
 				return false
 			if not a.done.has("land"):
 				a.done["land"] = true
-				if not LFB.gl_land(u, c, r):
+				if pxg:
+					Fxr.ev(p, "gl_lland", {"c": c, "r": r, "pull": pull})
+				elif not LFB.gl_land(u, c, r):
 					u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
 					u.light(c, 220.0, HOOK, 0.4)
 				for e in pull:
 					if not e.dead:
-						u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
-						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 2.0, "col": HOOK, "life": 0.5})   # 钩索残留
+						if not pxg:
+							u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
+							u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 2.0, "col": HOOK, "life": 0.5})   # 钩索残留
 						p.log_hit(_src(p, "聚拢"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_gather_mult", 0.6), e))
 						if not e.boss:
@@ -687,7 +697,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				_beat(u)
-				if not LFB.ir_lamp(u, p, c, r):
+				if Fxr.owns(p):   # 转平面（docs/272）：提灯光圈 + 光尘 + 手提灯改由 fx_pxplane 画（只画）
+					Fxr.ev(p, "ir_link", {"ph": "go", "c": c, "r": r})
+				elif not LFB.ir_lamp(u, p, c, r):
 					u.light(c, r + 60.0, cl, 0.9)
 					u.shape({"kind": "circle", "c": c, "r": r, "col": cl, "fill": 0.16, "layer": "back", "life": 0.9})
 					u.shape({"kind": "dots", "c": c, "r": r, "n": 22, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
@@ -703,10 +715,15 @@ static func _step16(u, a: Dictionary) -> bool:
 			if t >= 0.42 and once.call("cut"):
 				var fp: Vector2 = a.fp
 				var tp2: Vector2 = a.tp
-				u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 3.0, "col": Color(1.0, 0.96, 0.85), "glow": cl, "grow": 0.04, "life": 0.55})
-				for q in 5:
-					u.spark(fp.lerp(tp2, (q + 0.5) / 5.0), cl, 2, 10.0)
-				for e in u.in_band(fp, tp2, 30.0):
+				var pxo_ir: bool = Fxr.owns(p)   # 转平面（docs/272）：补刺长光刃 + 贯穿改由 fx_pxplane 画（只画）
+				if not pxo_ir:
+					u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 3.0, "col": Color(1.0, 0.96, 0.85), "glow": cl, "grow": 0.04, "life": 0.55})
+					for q in 5:
+						u.spark(fp.lerp(tp2, (q + 0.5) / 5.0), cl, 2, 10.0)
+				var band: Array = u.in_band(fp, tp2, 30.0)
+				if pxo_ir:
+					Fxr.ev(p, "ir_link", {"ph": "cut", "a": fp, "b": tp2, "es": band})
+				for e in band:
 					_hit16(p, e, "补刺", 1.2)
 				_sfx_hit(u)
 			return t >= 1.0
@@ -883,13 +900,16 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				var R2: float = r + 40.0
 				var gone: PackedVector2Array = u.g.shots.cancel_in(func(q: Vector2) -> bool: return q.distance_to(c) <= R2)
-				for q in gone:
-					u.shape({"kind": "rock", "c": q, "r": 6.0, "col": cl, "glow": Color(0.15, 0.12, 0.05), "seed": q.x, "hold": false, "life": 0.3})
+				if Fxr.owns(p):
+					Fxr.ev(p, "lg_link", {"c": c, "r": r, "gone": gone})   # 转平面（docs/258）：只画
+				else:
+					for q in gone:
+						u.shape({"kind": "rock", "c": q, "r": 6.0, "col": cl, "glow": Color(0.15, 0.12, 0.05), "seed": q.x, "hold": false, "life": 0.3})
 				for e in u.in_circle(c, r):
 					u.g.enemies_sys.lite_slow(e, 0.5, 1.0)
 				u.light(c, r + 40.0, cl, 0.6)
 			if t < 0.8:
-				if not LFB.lo_ring(u, c, r + 20.0, t):
+				if not Fxr.owns(p) and not LFB.lo_ring(u, c, r + 20.0, t):
 					for j in 8:
 						var gp: Vector2 = c + Vector2.from_angle(TAU * j / 8.0 + t * 1.5) * (r + 20.0)
 						u.shape({"kind": "rock", "c": gp, "r": 8.0, "col": Color(0.12, 0.1, 0.06), "glow": cl, "seed": 4.0 + j, "rot": PI * 0.25, "life": 0.04})
@@ -902,6 +922,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				var ts: Array = u.in_circle(c, r)
 				ts.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
 				a["ts"] = ts.slice(0, 4)
+				if Fxr.owns(p):
+					Fxr.ev(p, "sz_link", {"ts": a.ts, "c": c})   # 转平面（docs/271）：四团狐火绕身 + 追迹由 fx_pxplane_sz 画，只画
+			var szpx: bool = Fxr.owns(p)
 			var T1 := 0.35
 			var T2 := 0.25
 			for j in 4:
@@ -915,12 +938,14 @@ static func _step16(u, a: Dictionary) -> bool:
 						if e != null and not e.dead:
 							_hit16(p, e, "狐火", 0.6)
 							u.g.enemies_sys.lite_slow(e, 0.3, 1.5)
-						if LFX.on() and u.fx_ready(LFB.SZ_FOX[0]):
+						if szpx:
+							Fxr.ev(p, "sz_link_hit", {"at": to, "e": e})   # 转平面（docs/271）：只画
+						elif LFX.on() and u.fx_ready(LFB.SZ_FOX[0]):
 							LFB.sz_pop(u, to)
 						else:
 							u.grain("fire", to, Vector2.UP, cl, 4)
 							u.light(to, 90.0, cl, 0.2)
-				if t < T1 + T2:
+				if t < T1 + T2 and not szpx:
 					var dv: Vector2 = (q - orb).normalized() if t >= T1 and q != orb else Vector2.from_angle(TAU * (j / 4.0 + minf(t, T1) / T1) + PI / 2.0)
 					if not LFB.sz_fox(u, q, dv, j):
 						u.shape({"kind": "rock", "c": q, "r": 8.0, "col": cl, "glow": Color(1.0, 0.92, 0.75), "core": Color(1.0, 0.95, 0.85), "seed": 6.0 + j, "life": 0.04})
@@ -972,9 +997,14 @@ static func _step16(u, a: Dictionary) -> bool:
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				a["fp"] = p.pos + Vector2(0, -20)
+				if Fxr.owns(p):   # 转平面（docs/266）：锚 / 锁链 / 钉下 / 回卷改由 fx_pxplane 画（只画）
+					Fxr.ev(p, "ul_link", {"fp": a.fp, "tg": a.get("tg"), "tp": _tgp(a)})
 			var T := 0.2
 			var tp: Vector2 = _tgp(a)
+			var pxu: bool = Fxr.owns(p)
 			if t < T:
+				if pxu:
+					return false
 				var q: Vector2 = Vector2(a.fp).lerp(tp, t / T)
 				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
 					LFA.ulpianus_fly(u, a.fp, q, t / T)
@@ -994,14 +1024,18 @@ static func _step16(u, a: Dictionary) -> bool:
 				for e in u.in_circle(tp, 180.0):
 					if e != tg and not e.boss and not e.elite:
 						a.pull.append(e)
-				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
+				if pxu:
+					Fxr.ev(p, "ul_link_pin", {"tp": tp, "pull": a.pull})
+				elif LFA.on(u, "fx_ult_ulpianus_anchor_front"):
 					LFA.ulpianus_pin(u, tp)
 				else:
 					u.debris(tp, cl, 2)
 					u.light(tp, 150.0, cl, 0.4)
 				_sfx_hit(u)
 			if t < T + 0.5:
-				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
+				if pxu:
+					pass
+				elif LFA.on(u, "fx_ult_ulpianus_anchor_front"):
 					LFA.ulpianus_hold(u, p.pos + Vector2(0, -20), tp)
 				else:
 					u.shape({"kind": "rock", "c": tp + Vector2(0, -6), "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "life": 0.04})

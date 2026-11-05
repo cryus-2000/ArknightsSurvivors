@@ -33,6 +33,17 @@ def load(name, t0, dur):
     return x[int(t0 * sr):int((t0 + dur) * sr)].copy()
 
 
+AKA = os.path.join(MAIN, "build", "ak_src", "wav_atk")
+
+
+def load_atk(name, t0, dur):
+    x, sr = sf.read(os.path.join(AKA, name), always_2d=True)
+    x = x.mean(axis=1)
+    if sr != SR:
+        x = np.interp(np.arange(0, len(x), sr / SR), np.arange(len(x)), x)
+    return x[int(t0 * SR):int((t0 + dur) * SR)].copy()
+
+
 def lp(x, hz, order=8):
     return sosfilt(butter(order, hz, "low", fs=SR, output="sos"), x)
 
@@ -68,14 +79,17 @@ def stats(x):
 
 
 def make():
-    hit = hp(load("p_skill_fishhealbuff1.wav", 0.0, 0.14), 250)   # 去掉 250 Hz 以下的闷响（只留水滴本身）
-    sp = lp(load("p_skill_shinestar.wav", 0.0, 0.14), 2800) * 0.5   # 原作流明星光声开头，低通到 2.8 kHz，压一半：给一点「光」的亮，不刺
-    hit = shelf_cut(lp(hit + sp, 3200), 5000, 0.3)
-    hit = fades(hit, 0.002, 0.04)
-    atk = load("p_skill_lantern_cast.wav", 0.015, 0.2)
-    atk = lp(atk, 4000)
-    atk = fades(atk, 0.008, 0.06)   # 8 ms 淡入：去掉提灯起手那一下的尖峰（不然峰值 −1 dB，比原文件还冲）
-    return {"op_lumen_hit": (hit, -4.0, 0.5), "op_lumen_atk": (atk, -4.0, 0.5)}
+    """v3（11-05 用户选候选 A「按照 A 来可以，但是为什么还有一个旋转的声音」）。
+    A = 原作流明技能状态下的普攻音：出手 p_atk_lantern_s、命中 p_imp_lantern_s（原作安装包解出，主仓库 build/ak_src/wav_atk/）。
+    「旋转」声来自出手 p_atk_lantern_s 的前 0.35 秒：约每 60 ms 一个亮脉冲（提灯转 / 链子晃，原作慢动作技能出手用），
+    本作 1 秒一发就很显眼 → 出手只留中间最响的一下（0.11–0.21 秒，提灯「叮」），前面的摆动和后面几下都不要；5 ms 淡入、60 ms 淡出。
+    命中 p_imp_lantern_s 前 0.32 秒（一团连续的光，没有这种节奏），100 ms 淡出，不加滤波。
+    v1（治疗水声 + 星光声拼接重低通）、v2（普通版 p_atk_lantern_n / p_imp_lantern_n 截短）作废。"""
+    atk = load_atk("p_atk_lantern_s.wav", 0.11, 0.10)
+    atk = fades(atk, 0.005, 0.06)
+    hit = load_atk("p_imp_lantern_s.wav", 0.0, 0.32)
+    hit = fades(hit, 0.001, 0.10)
+    return {"op_lumen_hit": (hit, -3.0, 0.7), "op_lumen_atk": (atk, -3.0, 0.7)}
 
 
 def main():
@@ -91,7 +105,7 @@ def main():
         old, _ = sf.read(old_copy)
         x = x * 10 ** ((eff(old) + rel - eff(x)) / 20.0)
         pk = np.abs(x).max()
-        if pk > pk_cap:   # 峰值封顶 −6 dB（命中、出手都是高频连发的小声，不要尖）
+        if pk > pk_cap:   # 峰值封顶 −3 dB
             x *= pk_cap / pk
         print(name, "原：", stats(old))
         print(name, "新：", stats(x))

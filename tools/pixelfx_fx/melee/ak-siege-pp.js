@@ -217,13 +217,13 @@ function dustWall(p, t, o, DU, R, m, hMax, sd, t0) {
 
 function flash(p, t, C, rx, ry, z, t0) {
   const n = C.length, u = t - (t0 || 0);
-  if (u < 0 || u >= 0.134) return;
-  const k = u < 0.067 ? 1 : 0.55;
+  if (u < 0 || u >= 0.2) return;
+  const k = u < 0.067 ? 1 : u < 0.134 ? 0.75 : 0.45;
   const RX = rx * k, RY = ry * k;
   p.shade(-RX - 1, -z - RY - 1, RX + 1, -z + RY + 1, (x, y, out) => {
     const d = Math.hypot(x / RX, (y + z) / RY);
     if (d > 1) return;
-    out.c = d < 0.55 ? (u < 0.067 ? WHITE : C[n - 2]) : C[n - 3];
+    out.c = d < 0.55 ? (u < 0.134 ? WHITE : C[n - 2]) : C[n - 3];   // 亮芯白两拍（docs/270：命中帧核心辉光要量得出）
     out.a = 1;
   });
   if (u < 0.067) for (let s = 0; s < ry * 3.2; s++) {                         // 一道竖直刺芒（砸地那一下往上冲）
@@ -306,7 +306,7 @@ function dent(p, t, o, DU, rx) {
 // S1「号令一锤」：两圈压缩弧（白、金，错开一拍）更大 + 金色号令声浪往前一推，同样不开裂
 function impUp(p, t, o, C, ACC, ST, DU) {
   const el = +o.el, s1 = o.style === "s1", k = s1 ? 1.35 : 1;
-  flash(p, t, C, (5 + el) * k, (2 + el) * k, 3, 0.0);
+  flash(p, t, C, (7 + el) * k, (3 + el) * k, 3, 0.0);
   streaks(p, t, o, C, ([8, 10, 12][el] + (s1 ? 4 : 0)), 150 * k, o.seed, 0.0, 80);   // 金属火花（细长、会落）
   compress(p, t, o, C, 6, (22 + 4 * el) * k, 3, 0.0, false);
   if (el >= 2 || s1) compress(p, t, o, C, 4, (16 + 3 * el) * k, 5, 0.067, true);
