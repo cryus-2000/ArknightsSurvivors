@@ -28,7 +28,7 @@ REVIEW_ART_GLOBS = (
 )
 # 只在开发 / 测试时用的目录（相对 game/）
 DEV_EXCLUDES = ("tests/*", "tools/*")
-SUBSET_FONTS = ("ui.ttf", "serif.ttf")
+SUBSET_FONTS = ("ui.ttf", "serif.ttf", "ui_phone.ttf")   # ui_phone.ttf（11-05 手机字体）字表同 ui.ttf；11-06 起也子集化（docs/285 §2.2：840 KB → 约 300 KB）
 # FreeType 自动微调（serif.ttf 是没有微调指令的 TrueType，Godot 用 FreeType 自动微调）按「标准字」量全字体的笔画宽度：
 # 汉字用「田」（缺了退「囗」）。子集里少了它，所有字的微调结果都会变（实测 serif 子集全体像素有差），所以一律保留
 AUTOHINT_CHARS = "田囗"
@@ -140,8 +140,17 @@ def art_files(incoming=INCOMING):
     return sorted((n + ".png", p) for n, p in asset_paths.runtime_files().items() if "/" not in n)
 
 
+_PXP_RAW = re.compile(r"^pxp_([a-z0-9]+_)?raw_")
+
+
+def is_pxp_raw(name):
+    """pixelfx 转平面「旧做法对照」帧条（fx/px_plane = 2，docs/246 §7；只由开发参数打开，正式包缺省 1 且读不到开发参数）：
+    pxp_<干员缩写>_raw_*.png / pxp_raw_*.png（docs/285 §2.1，115 张 1.28 MiB）。对外包 / 网页包不带，对内包保留以便对照"""
+    return bool(_PXP_RAW.match(os.path.basename(name)))
+
+
 def prune_game_art(gpath, drop_fallback):
-    """导出副本 gpath（= 打包用的 game/）：drop_fallback 时删掉 game/art 里的干员 @2x 回退条（is_fallback_2x，对外包 / 网页包），
+    """导出副本 gpath（= 打包用的 game/）：drop_fallback 时删掉 game/art 里的干员 @2x 回退条（is_fallback_2x）和转平面「旧做法对照」帧条（is_pxp_raw），（对外包 / 网页包），
     再按剩下的文件重写副本里的 art/index.json。返回 (剩余 PNG 列表 [(名字, 路径)], 删掉的字节数)"""
     import asset_index
     art = os.path.join(gpath, "art")
@@ -150,7 +159,7 @@ def prune_game_art(gpath, drop_fallback):
         idx, _ = asset_index.build(art)
         for name, rp in idx.items():
             p = os.path.join(art, rp[len("res://art/"):].replace("/", os.sep))
-            if os.path.exists(p) and is_fallback_2x(os.path.basename(p), set(os.listdir(os.path.dirname(p)))):
+            if os.path.exists(p) and (is_fallback_2x(os.path.basename(p), set(os.listdir(os.path.dirname(p)))) or is_pxp_raw(p)):
                 freed += os.path.getsize(p)
                 os.remove(p)
                 if os.path.exists(p + ".import"):
