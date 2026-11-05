@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3677 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('specter_unchained_atk_A', 180, [])
+局 ('specter_unchained_atk_B', 180, [])
+局 ('specter_unchained_atk_C', 180, [])
+局 ('specter_unchained_s1_A', 180, [])
+局 ('specter_unchained_s1_B', 180, [])
+局 ('specter_unchained_s1_C', 180, [])
+体检 {"op": "specter_unchained", "mode": "atk", "frame": 25, "engine": 54, "secs": 6.0, "hits": 0, "acts": 23, "skill": 0, "skill_frame": null, "parts_total": 98, "parts_per_hit": 4.3, "parts_per_s": 16.3, "bursts": 16, "burst_med": 8.0, "burst_max": 8, "lights_per_burst": 1.0, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"ink": 98}, "life": 0.9, "sz": 5.2, "alive_max": 25, "lights": 16, "lights_per_hit": 0.7, "light_r": 110.0, "light_i": 0.61, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 338, "emit_mean": 105.6, "emit_p90": 242, "gl_peak": 73.6, "gl_area_hit": 1924, "gl_mean_hit": 10.6, "em_peak": 234.1, "em_area_hit": 268, "em_mean_hit": 79.9, "crop": [476, 292, 320, 180]}
+体检 {"op": "specter_unchained", "mode": "s1", "frame": 24, "engine": 53, "secs": 6.0, "hits": 0, "acts": 24, "skill": 1, "skill_frame": 52, "parts_total": 111, "parts_per_hit": 4.6, "parts_per_s": 18.5, "bursts": 16, "burst_med": 8.0, "burst_max": 8, "lights_per_burst": 1.0, "parts_s1_1s": 22, "skill_burst_max": 8, "mats": {"ink": 111}, "life": 0.91, "sz": 5.0, "alive_max": 29, "lights": 16, "lights_per_hit": 0.67, "light_r": 110.0, "light_i": 0.61, "light_life": 0.12, "skill_light_r": 160, "skill_light_i": 0.7, "emit_max": 360, "emit_mean": 108.0, "emit_p90": 237, "gl_peak": 84.5, "gl_area_hit": 6636, "gl_mean_hit": 18.8, "em_peak": 231.4, "em_area_hit": 111, "em_mean_hit": 88.2, "crop": [457, 284, 320, 180]}
+录像 ('specter_unchained', '12.6 MB', [])
+media：10 个文件，15M
