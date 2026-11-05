@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true}
+const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true}
 const GL = preload("res://scripts/render/fx_pxplane_gl.gd")   # 歌蕾蒂娅一节（docs/263）单独成文件
 const UL = preload("res://scripts/render/fx_pxplane_ul.gd")   # 乌尔比安一节（docs/266）单独成文件
 const KA = preload("res://scripts/render/fx_pxplane_kal.gd")   # 凯尔希一节（docs/265）单独成文件
@@ -70,7 +70,7 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene", "kaltsit"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene", "kaltsit", "wisadel"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
 		return of(game).mode() == 1
 	return of(game).mode() > 0
 
@@ -141,6 +141,15 @@ func _ir():
 	if _irm == null:
 		_irm = load("res://scripts/render/fx_pxplane_ir.gd").new(self)
 	return _irm
+
+## 维什戴尔一节（docs/274，单独文件 fx_pxplane_wd.gd；运行时 load 避免循环 preload）
+var _wdm = null
+
+
+func _wd():
+	if _wdm == null:
+		_wdm = load("res://scripts/render/fx_pxplane_wd.gd").new(self)
+	return _wdm
 
 
 func _meta(k: String) -> Dictionary:
@@ -253,6 +262,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "irene":
 		_ir().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "wisadel":
+		_wd().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -592,6 +604,9 @@ func draw_floor(o) -> void:
 	if id == "irene":
 		_ir().draw_floor(o)
 		return
+	if id == "wisadel":
+		_wd().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -620,6 +635,10 @@ func draw_over(o) -> void:
 	if str(o.id) == "ulpianus":
 		_step()
 		UL.over(self, o)   # 锁链 + 锚（转平面版、旧做法对照都画）
+		return
+	if str(o.id) == "wisadel":
+		if mode() == 1:
+			_wd().draw_over(o)   # 残影标记 + 续燃引线（docs/274）
 		return
 	if mode() != 2:
 		return
@@ -711,6 +730,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "irene":
 				r._ir().sort_items(o, out)
 				continue
+			if str(o.id) == "wisadel":
+				r._wd().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -759,6 +781,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.has("ir"):   # 艾丽妮运行时件（docs/272）
 		r._ir().draw_rt(ci, it)
+		return
+	if it.has("wd"):   # 维什戴尔运行时件（docs/274）：炮弹
+		r._wd().draw_rt(ci, it)
 		return
 	if it.has("ert"):   # 艾雅法拉运行时件（docs/259）
 		r._ey_draw_rt(ci, it)
