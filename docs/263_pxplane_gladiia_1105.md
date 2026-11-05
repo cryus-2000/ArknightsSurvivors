@@ -113,3 +113,10 @@ GIF 的局限：场景压暗 / 受光没模拟（实机会被环境光压暗一�
 - ② 旧做法列：只有落地水刺、S1 落地、冲撞、S3 龙卷有旧做法贴图（光晕烤进颜色、小数缩放、盖在上面），其余招在 ② 列不画（接管后原画面也不画）。
 
 出图命令：`python tools/gcp_render.py --branch claude/pxplane-gladiia --job pxplane --split --args 'demo --op gladiia;rec --op gladiia --seed 11 --from 480 --secs 20 --crf 28;trace --op gladiia --seed 23 --maxt 300 --pxs 0,1,2 --extra "--elite2 --sptest";linkcmp --op gladiia --lead texas --seed 11 --from -1 --secs 4 --maxt 600'`（linkcmp `--from -1` 先快跑一局找第一次连携技出手）。
+
+## 8. 光感补齐（11-05 docs/270 体检：S1 照地峰值 +55 卡边）
+
+- 补法：S1 落点灯 170 / 0.65 → 190 / 0.75（打击感包 ×1.35 提亮后封顶 0.85，不超爆发档上限 0.9）；翻卷浪掀到一半处再挂一盏 160 / 0.6（0.15 秒）。普攻不动。
+- 复测（`tools/fx_audit.py shots --ops gladiia`，GCP）：补前 976292df4（已合 integ-1105，打击感包缺省开）S1 照地峰值 +65.3、面积 1451、最大灯 170 / 0.88；补后 244a26c2b +68.3、1511、190 / 0.85 + 160 / 0.81。普攻 +67.5 / 5308 → +67.3 / 5258。
+- 体检取的命中帧是第 3 帧，S1 的落点灯和翻卷浪灯大多在它之后，所以单帧数值只涨了一点；按 §3 爆发档峰值 ≥ +65、面积 ≥ 1500 两项都过。
+- TRACE：fx/px_plane 0 vs 1（种子 23、精二、到 5:00）301 行逐行一致。对比图与数值：`Claude outputs/fx_audit_1105/fix_gladiia/`。
