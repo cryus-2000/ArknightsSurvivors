@@ -1794,11 +1794,11 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 			if f < 0 or f > 6:
 				return
 			var Rr: float = float(it.r)
-			var H: float = 66.0 * px * [0.55, 1.0, 1.0, 0.95, 0.85, 0.7, 0.5][f]
-			var W: int = [7, 9, 9, 8, 7, 5, 3][f]
+			var H: float = 80.0 * px * [0.55, 1.0, 1.0, 0.95, 0.85, 0.7, 0.5][f]
+			var W: int = [11, 15, 15, 13, 11, 7, 4][f]
 			for j in 5:
 				var a: float = TAU * float(j) / 5.0 + 0.6 + 0.2 * _sk_h(j, float(it.t0))
-				var foot: Vector2 = _snap(_sk_ep(c, Rr * (0.55 + 0.25 * _sk_h(j + 3, 1.0)), a))
+				var foot: Vector2 = _snap(_sk_ep(c, Rr * (0.28 + 0.22 * _sk_h(j + 3, 1.0)), a))   # 围在她身边冲起（原作光柱贴着人）
 				var hj: float = H * (0.8 + 0.35 * _sk_h(j + 9, 2.0))
 				_sk_pillar(ci, foot, W, hj, f)
 		"fishburst":   # S2 起手：小鱼从脚下沿旋涡散开
@@ -1844,10 +1844,12 @@ func _sk_pillar(ci, foot: Vector2, W: int, H: float, f: int) -> void:
 		var y: float = foot.y - float(s + 1) * px * 4.0
 		var top_k: float = 1.0 - clampf(float(s - (steps - 3)) / 3.0, 0.0, 1.0) * 0.85 if steps > 3 else 1.0
 		for x in W:
+			var dx: int = absi(x - W / 2)
 			var edge: bool = x == 0 or x == W - 1
-			var core: bool = W >= 5 and absi(x - W / 2) <= (1 if W >= 7 else 0)
-			var col: Color = SK_R[2] if edge else (SK_R[6] if core and f <= 2 else (SK_R[5] if core else SK_R[4]))
-			col.a = top_k * (0.85 if edge else 1.0)
+			var halo: bool = not edge and dx >= W / 2 - 2 and W >= 9
+			var core: bool = W >= 5 and dx <= maxi(0, W / 5)
+			var col: Color = SK_R[2] if edge else (SK_R[3] if halo else (SK_R[6] if core and f <= 2 else (SK_R[5] if core else SK_R[4])))
+			col.a = top_k * (0.45 if edge else (0.75 if halo else 1.0))
 			ci.draw_rect(Rect2(Vector2(x0 + float(x) * px, y), Vector2(px, px * 4.0)), col)
 		if s % 2 == 0 and f <= 3:
 			_glow(Vector2(foot.x, y), SK_R[5])
