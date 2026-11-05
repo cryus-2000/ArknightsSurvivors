@@ -26,6 +26,7 @@ MOVES = {
     "s1_rebuild": (0, 1.0, 2, 45, ["--route=kaltsit:melt"], "S1 分支「不毁重构」"),
     "s2": (1, 1.0, 2, 45, [], "S2 战术协同"),
     "s3": (2, 1.0, 3, 110, [], "S3 熔毁（含结束熔毁爆）"),
+    "s3end": (2, 8.5, 1, 75, [], "S3 收尾熔毁爆（逐帧连拍，镜头拉近）"),
 }
 FONTS = ["C:/Windows/Fonts/msyh.ttc", "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"]
 
@@ -76,6 +77,20 @@ def main():
         for e in errs[:5]:
             report.append("  " + e)
         if not frames:
+            continue
+        if key == "s3end":   # 收尾连拍：以暖色像素最多的那帧为中心取 12 张连续帧，裁到干员附近放大 2 倍
+            hs = [heat(f) for f in frames]
+            k0 = max(0, min(len(frames) - 12, hs.index(max(hs)) - 3))
+            sheet = Image.new("RGB", (640 * 4, 360 * 3 + 40), (14, 16, 18))
+            d = ImageDraw.Draw(sheet)
+            d.text((12, 8), "凯尔希 · 转平面 · 精二 · %s（第 %d–%d 帧，30 fps 连续，局部 2 倍）" % (title, k0, k0 + 11), fill=(230, 230, 230), font=font(24))
+            for i, f in enumerate(frames[k0:k0 + 12]):
+                im = Image.open(f).convert("RGB")
+                cx, cy = 640, 340
+                im = im.crop((cx - 320, cy - 180, cx + 320, cy + 180)).resize((640, 360), Image.NEAREST)
+                sheet.paste(im, ((i % 4) * 640, 40 + (i // 4) * 360))
+            sheet.save(os.path.join(a.out, "kal_e2_%s.png" % key))
+            shutil.copy(frames[hs.index(max(hs))], os.path.join(a.out, "kal_e2_%s_best.png" % key))
             continue
         pick = [frames[int(i * (len(frames) - 1) / 11)] for i in range(12)]
         tw, th = 640, 360

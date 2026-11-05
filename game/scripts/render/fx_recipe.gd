@@ -186,10 +186,11 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 	if _x_react and pxm != 2:   # 转平面「旧做法」对照（2）不加受击反应
 		var heavy: bool = kind in ["exec", "slam", "lock_tick", "fan_tick"] or (kind == "swing" and d.get("heavy", false))
 		var col: Color = p.get("flash", p.light)
+		var ft2: float = float(recipe(str(o.id)).get("flash_t", REACT_FLASH))   # 干员自己的闪色时长（docs/265 凯尔希：1–2 帧）
 		if d.has("e") and d.e != null:
-			_react(d.e, col, heavy)
+			_react(d.e, col, heavy, ft2)
 		for e in d.get("es", []):
-			_react(e, col, heavy)
+			_react(e, col, heavy, ft2)
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 三档并排图对齐用（tools/fx_canon_shots.py）：事件发生的引擎帧
 		print("FXRLOG %s %s%s %d %.3f" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames(), float(g.t)])   # 第 5 列 = 游戏时间（实局找事件时刻用，docs/255）
 	if pxm > 0:
@@ -493,14 +494,14 @@ const REACT_FLASH := 0.06
 const REACT_STOP := 2.0 / 60.0
 
 
-func _react(e, col: Color, heavy: bool) -> void:
+func _react(e, col: Color, heavy: bool, ft2: float = REACT_FLASH) -> void:
 	if not (e is Dictionary) or e.get("dead", false) or e.get("boss", false):
 		return
 	var id = e.get("id", -1)
 	var prev: Array = reacts.get(id, [])
 	var st: float = g.t + REACT_STOP if heavy else (float(prev[2]) if not prev.is_empty() else -1.0)
 	var ft: float = float(prev[3]) if not prev.is_empty() and g.t < float(prev[2]) else g.t
-	reacts[id] = [g.t, col, st, ft]
+	reacts[id] = [g.t, col, st, ft, ft2]   # ft2：闪色时长（配方 / 转平面 json 的 flash_t，缺省 REACT_FLASH）
 
 
 ## world.gd 选帧用：打击停顿期间返回命中那一刻的时间（只这一只的动画停），其余照常 g.t
@@ -539,7 +540,7 @@ static func _react_col_r(game, e: Dictionary) -> Color:
 	var age: float = game.t - float(q[0])
 	if age < 0.0 or age > 0.3:
 		return Color(0, 0, 0, -1)
-	if age < REACT_FLASH:
+	if age < (float(q[4]) if q.size() > 4 else REACT_FLASH):
 		var c: Color = q[1]
 		return Color(c.r, c.g, c.b, 0.85)
 	return Color(0, 0, 0, 0)
