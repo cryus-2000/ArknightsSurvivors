@@ -207,6 +207,7 @@ def linkcmp(a, base):
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
     evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("FXRLOG exusiai exu_link")]
+    evs = [e for e in evs if t0 <= float(e[-1]) <= t0 + secs - 1]   # 只取录像窗口里的（日志从开局记起）
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
