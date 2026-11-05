@@ -1214,7 +1214,7 @@ static func _ey_start(u, o, c: Vector2) -> Dictionary:
 	if v2:   # 海底火山 ①：地面压暗，暗红裂纹从落点渗开、越来越亮（压力往上顶），裂缝里一串串气泡往上冒
 		var vs: float = PF.vseed(u, c)
 		u.shape({"kind": "circle", "c": c, "r": R * 0.6, "col": _eyc(Color(0.02, 0.0, 0.0)), "fill": 0.35, "life": t_col + 0.1, "layer": "back"})
-		PF.crack_net(u, _eyf(), c, R * 0.75, 9 + int(PF.h(vs + 1.0) * 4.0), PF.h(vs + 2.0) * TAU, vs, t_col, Color(0.6, 0.22, 0.18), Color(1.15, 0.7, 0.5), 20.0)   # 冷 / 热乘色作用在已换色的裂缝贴图上，不再映射
+		PF.crack_net(u, _eyf(), c, R * 0.75, 9 + int(PF.h(vs + 1.0) * 4.0), PF.h(vs + 2.0) * TAU, vs, t_col, Color(0.62, 0.3, 0.14) if _ey_px() else Color(0.6, 0.22, 0.18), Color(1.15, 0.78, 0.48) if _ey_px() else Color(1.15, 0.7, 0.5), 20.0)   # 裂缝贴图的冷 / 热乘色：只改颜色时换成同亮度、偏橙的一对（原来那对会把换过色的裂缝又乘回红）
 		_ey_bubbles(u, c, R * 0.6, t_col, vs)
 		pass   # 鼓包（fx_ey_dome）用户 10-30 改成「熔岩池 + 熔岩」后不用
 	# 龟裂：8 道裂纹从落点往外爬（0.4 秒）
