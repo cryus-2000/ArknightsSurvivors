@@ -1121,6 +1121,8 @@
   "console_hold": 2.5,
   "_doc_stats_v3": "属性栏（Tab）按指挥台统一（docs/222 §19，11-05 用户认可）：1 = 无框三栏（左 生存 / 中 攻击与技能 / 右 编队、指令、羁绊、成长、藏品），编队成长进度点悬停弹出节点表；0 = 旧三框版。只管桌面，手机仍是五页版",
   "stats_v3": 1,
+  "_doc_phone_font": "手机界面字体（11-05 用户）：1 = 触屏设备上 ui.ttf 换成 ui_phone.ttf（中文 Noto Sans SC Medium + 数字 / 拉丁 Montserrat SemiBold，字表与行高同 ui.ttf，tools/make_ui_phone_font.py 生成）；0 = 原 Noto Sans CJK SC Bold",
+  "phone_font": 1,
   "_doc_phone_squad_compact": "手机编队卡收起（docs/221 P1，用户 11-02 批）：1 = 触屏手机上编队卡缺省收成 52 高（头像 + 名字），点编队区展开整卡 5 秒；0 = 照旧整卡",
   "phone_squad_compact": 1,
   "_doc_hud_ult_v": "终结技 / 连携并进左上生命块的原型（10-30 用户「和血条之类的合并一下，出三个设计稿」，screens/hud_ult_v.gd）：0 = 现行（底部中央条 + 弹出头像），1 = A′ 第三栏（同生命值 / 灯火版式），2 = B′ 徽记环（队长头像 + 能量弧），3 = C′ 节点标签条（10-30 第二版）。10-31 用户选定 B′（2）为缺省",
