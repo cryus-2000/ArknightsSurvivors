@@ -219,7 +219,7 @@
         for (i = 0; i < 28; i++) box(bx + i * barw / 28, by, barw / 28 - 3, 5 * k, i < on ? ACC : PANEL);
         lab('ARCHIVE INDEX', bx, by + 26 * k, 11 * k, SUB);
         lab(v.ind ? '---%' : ('00' + Math.floor(p * 100)).slice(-3) + '%', bx + barw, by + 26 * k, 12 * k, TX, 'right');
-      } else lab('认证通过', cx, H * 0.75, 18 * k, ACC, 'center');
+      } else lab('认证通过', cx, Math.min(H * 0.75, (Math.min(innerHeight * 0.8, innerHeight - 60 - 25) - 25 - 18) * dpr), 18 * k, ACC, 'center');   // 让开「开始游戏」按钮上沿
       var ic = 'left:' + bx / dpr + 'px;top:' + by / dpr + 'px;width:' + barw / dpr + 'px;height:' + 5 * k / dpr + 'px';
       if (ind.__s !== ic) { ind.style.cssText = ic; ind.__s = ic; }
       ind.style.display = v.ind && !rd ? 'block' : 'none';

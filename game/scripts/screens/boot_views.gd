@@ -919,7 +919,7 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 		if file != "":
 			txt(Vector2(0, by + 46.0 * k), file, int(round(10.0 * k)), P_SUB, HORIZONTAL_ALIGNMENT_CENTER, w)
 	else:
-		txt(Vector2(0, h * 0.75), "认证通过", int(round(18.0 * k)), P_ACC, HORIZONTAL_ALIGNMENT_CENTER, w)
+		txt(Vector2(0, minf(h * 0.75, start_rect(4, vs).position.y - 18.0)), "认证通过", int(round(18.0 * k)), P_ACC, HORIZONTAL_ALIGNMENT_CENTER, w)   # 让开「开始游戏」按钮上沿
 	mono(Vector2(m, h - 20.0 * k), "RHODES ISLAND", int(round(11.0 * k)), P_SUB)
 	var acc := "ACCESS / GRANTED" if ready else "ACCESS / PENDING"
 	mono(Vector2(w - m - mono_w(acc, int(round(11.0 * k))), h - 20.0 * k), acc, int(round(11.0 * k)), P_ACC if ready else P_SUB)
