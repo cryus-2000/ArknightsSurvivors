@@ -1,5 +1,6 @@
 # 00 · 文档索引
 
+- [285_web_shrink_1106](285_web_shrink_1106.md)：方案，待审；319b5de4b 网页包 51.07 MiB 拆账（涨在 pxp 转平面帧条 +8.5）与压缩方案，含无损 2.0 MiB + 有损选项。
 - [282_bond_non_numeric](282_bond_non_numeric.md)：设计稿，待审；8 条羁绊的数值盘点 + 每条 2–3 个玩法差异方案与推荐。
 - [283_mid_boss_visibility](283_mid_boss_visibility.md)：设计稿，待审；中期 Boss 不显眼的诊断（体型与精英相同）与改法，不加弹幕提示。
 - [284_magnet_visibility_and_guide_copy](284_magnet_visibility_and_guide_copy.md)：设计稿，待审；磁铁地图可见性两种画法 + 开局指南（指挥台 / 集火 / 冲刺）文案草稿。
