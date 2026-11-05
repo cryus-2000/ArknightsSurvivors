@@ -139,3 +139,12 @@
 
 - 录像：本机 `Claude outputs/ult_px_irene_1105/ult_irene_8m_before_after.mp4`（左原版、右转平面，同种子同一时刻），`ult_irene_8m_on.mp4`（开着的原片）。
 
+### 6.2 粒子云 + 小亮核版（提交 b426eabd7）
+
+| 项 | 结果 |
+|---|---|
+| 8:00 怪物多的场面，开 / 关同局同时刻录像 | 两段各 300 帧，SCRIPT ERROR 0 条；路上每处连环爆都是白紫闪烁粒子云，棕灰烟已删；收尾大爆是中心小亮核 + 8 格冲击环 + 往外喷的粒子云 |
+| TRACE（windowed）：种子 3 · 40 秒 / 种子 3 · 490 秒，`ult/px_plane` 0 vs 1 | 41 / 41 行、491 / 491 行逐行一致 |
+
+- 录像：`Claude outputs/ult_px_irene_1105/ult_irene_8m_before_after.mp4`（左原版右新版，已覆盖 §6.1 那版）、`ult_irene_8m_on.mp4`。
+
