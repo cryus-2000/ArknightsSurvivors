@@ -221,6 +221,8 @@ static func slow_scale(game) -> float:
 	var r = game.get_meta("ult_px_sd")
 	if r.st.is_empty() or not r.st.has("crash_rt"):
 		return 1.0
+	if float(r.st.crash_t) < Bal.v("ult/sd_px_slow_from", 0.0):   # 录像对照用（缺省 0）：只让某局时之后的终结技慢放，前面的不改时间线，开 / 关两段才同一时刻
+		return 1.0
 	var t: float = UM.now() - float(r.st.crash_rt) - Bal.v("ult/sd_crash_stop", 0.08)
 	var lo: float = Bal.v("ult/sd_px_slow", 0.3)
 	var hold: float = Bal.v("ult/sd_px_slow_t", 0.5)
