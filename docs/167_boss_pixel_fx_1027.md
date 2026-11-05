@@ -1,5 +1,8 @@
 # 最终 Boss 新增招式：像素材质特效返修（候选）
 
+> **已被取代**：用户已否定此候选，后续见 [docs/168](168_boss_volume_tracking_1027.md)。
+
+
 状态：用户已否定此候选；保留历史记录，后续返修见 [168](168_boss_volume_tracking_1027.md)。分支 `codex/boss-fx-rework`，基于 `8b923c4bc`；未合入 main，未覆盖发布包或启动器。
 
 ## 范围与画风
