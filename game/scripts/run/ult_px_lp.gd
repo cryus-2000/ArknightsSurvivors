@@ -49,6 +49,8 @@ static func tint(c: Color) -> Color:
 	if c.r > 1.0 or c.g > 1.0 or c.b > 1.0:
 		return Color(1.05, 1.0, 1.2, c.a)
 	var l: float = clampf(0.3 * c.r + 0.59 * c.g + 0.11 * c.b, 0.0, 1.0)
+	if l < 0.95:
+		l *= 0.85   # 11-06 实机：按原亮度落阶几乎全是白 / 淡紫，看不出紫 → 非白芯整体压一档，落到 #b3aae4 / #7b70b4 的紫段
 	var prev: Color = LP[0]
 	var pl: float = _l(prev)
 	for k in range(1, LP.size()):
@@ -189,7 +191,7 @@ func draw_back(_u, w) -> void:
 				continue
 			var dv := Vector2(cos(a2), sin(a2) * SQ)
 			for k in th:
-				var col: Color = [LP[6], LP[6], LP[5], LP[4], LP[3]][k]
+				var col: Color = [LP[6], LP[5], LP[4], LP[3], LP[2]][k]   # 前沿 1 格白，往里淡紫 → 紫（11-06：原来两格白读成白环）
 				col.a = fade
 				_px(w, c + dv * (rr2 - k * px), col)
 			if ac < RING:   # 环后 6–14 格地面一闪
