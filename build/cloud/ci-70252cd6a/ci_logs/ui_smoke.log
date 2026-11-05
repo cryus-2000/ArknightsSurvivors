@@ -1,0 +1,26 @@
+# ui_smoke
+# 参数：--headless --path /work/repo/game res://tests/ui_smoke_test.tscn -- --regression --seed=1
+# 用时 19 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI SMOKE 跳过：标题·寻访（带测试参数时 Roster 名册未启用，open_browse 直接返回 false）
+UI SMOKE 可选缺图（有回退，不算失败）/ 已计失败的缺图：结算·胜利 / relic_999
+85 checks, 0 failed
+UI SMOKE failures=0
+ERROR: 94 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 500 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 30 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
