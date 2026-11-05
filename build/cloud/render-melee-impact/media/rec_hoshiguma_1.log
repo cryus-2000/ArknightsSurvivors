@@ -1,0 +1,2543 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+BEACON mires t=60.0 mires=0
+PF RTFROM t=87.0
+ERROR: 182 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00000.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00001.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00002.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00003.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00004.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00005.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00006.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00007.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00008.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00009.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00010.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00011.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00012.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00013.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00014.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00015.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00016.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00017.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00018.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00019.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00020.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00021.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00022.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00023.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00024.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00025.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00026.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00027.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00028.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00029.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00030.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00031.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00032.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00033.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00034.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00035.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00036.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00037.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00038.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00039.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00040.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00041.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00042.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00043.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00044.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00045.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00046.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00047.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00048.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00049.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00050.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00051.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00052.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00053.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00054.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00055.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00056.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00057.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00058.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00059.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00060.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00061.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00062.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00063.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00064.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00065.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00066.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00067.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00068.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00069.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00070.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00071.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00072.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00073.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00074.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00075.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00076.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00077.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00078.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00079.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00080.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00081.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00082.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00083.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00084.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00085.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00086.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00087.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00088.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00089.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00090.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00091.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00092.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00093.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00094.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00095.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00096.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00097.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00098.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00099.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00100.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00101.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00102.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00103.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00104.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00105.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00106.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00107.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00108.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00109.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00110.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00111.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00112.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00113.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00114.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00115.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00116.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00117.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00118.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00119.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00120.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00121.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00122.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00123.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00124.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00125.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00126.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00127.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00128.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00129.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00130.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00131.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00132.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00133.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00134.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00135.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00136.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00137.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00138.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00139.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00140.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00141.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00142.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00143.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00144.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00145.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00146.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00147.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00148.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00149.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00150.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00151.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00152.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00153.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00154.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00155.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00156.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00157.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00158.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00159.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00160.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00161.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00162.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00163.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00164.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00165.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00166.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00167.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00168.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00169.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00170.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00171.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00172.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00173.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00174.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00175.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00176.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00177.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00178.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00179.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00180.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00181.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00182.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00183.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00184.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00185.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00186.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00187.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00188.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00189.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00190.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00191.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00192.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00193.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00194.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00195.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00196.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00197.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00198.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00199.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00200.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00201.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00202.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00203.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00204.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00205.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00206.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00207.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00208.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00209.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00210.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00211.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00212.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00213.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00214.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00215.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00216.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00217.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00218.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00219.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00220.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00221.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00222.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00223.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00224.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00225.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00226.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00227.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00228.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00229.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00230.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00231.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00232.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00233.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00234.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00235.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00236.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00237.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00238.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00239.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00240.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00241.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00242.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00243.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00244.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00245.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00246.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00247.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00248.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00249.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00250.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00251.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00252.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00253.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00254.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00255.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00256.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00257.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00258.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00259.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00260.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00261.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00262.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00263.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00264.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00265.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00266.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00267.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00268.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00269.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00270.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00271.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00272.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00273.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00274.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00275.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00276.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00277.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00278.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00279.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00280.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00281.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00282.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00283.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00284.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00285.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00286.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00287.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00288.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00289.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00290.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00291.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00292.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00293.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00294.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00295.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00296.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00297.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00298.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00299.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00300.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00301.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00302.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00303.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00304.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00305.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00306.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00307.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00308.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00309.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00310.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00311.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00312.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00313.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00314.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00315.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00316.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00317.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00318.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00319.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00320.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00321.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00322.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00323.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00324.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00325.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00326.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00327.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00328.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00329.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00330.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00331.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00332.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00333.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00334.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00335.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00336.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00337.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00338.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00339.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00340.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00341.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00342.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00343.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00344.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00345.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00346.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00347.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00348.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00349.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00350.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00351.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00352.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00353.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00354.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00355.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00356.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00357.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00358.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+ERROR: Can't save PNG at path: 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_00359.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] _rec_step (res://scripts/run/autotest.gd:440)
+       [1] step (res://scripts/run/autotest.gd:804)
+       [2] _process (res://scripts/game.gd:1496)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 25: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 26: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 97: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 98: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 99: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 100: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 101: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 102: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 103: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 104: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 106: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 107: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 108: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1509: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1510: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1542: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1543: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1544: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1545: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1546: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1547: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1548: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1549: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1550: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1551: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1552: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1553: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1554: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1555: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1556: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1557: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1558: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1559: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1560: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1561: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1562: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1563: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1564: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1565: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1566: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1567: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1568: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1569: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1570: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1571: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1572: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1573: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1574: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1575: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1576: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1577: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1578: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1579: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1580: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1581: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1582: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1583: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1584: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1585: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1586: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1587: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1588: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1589: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1590: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1591: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1592: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1593: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1594: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1595: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1596: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1597: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1598: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1599: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1600: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1601: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1602: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1603: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1604: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1605: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1606: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1607: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1608: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1609: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1610: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1611: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1612: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1613: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1614: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1615: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1616: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1617: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1618: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1619: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1620: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1621: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1622: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1623: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1624: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1625: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1626: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1627: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1628: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1629: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1630: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1631: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1632: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1633: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1634: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1635: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1636: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1637: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1638: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1639: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1640: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1641: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1642: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1643: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1644: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1645: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1646: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1647: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1648: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1649: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1650: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1651: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1652: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1653: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1654: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1655: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1656: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1657: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1658: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1659: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1660: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1661: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1662: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1663: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1664: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1665: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1666: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1667: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1668: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1669: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1670: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1671: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1672: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1673: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1674: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1675: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1676: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1677: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1678: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1679: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1680: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1681: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1682: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1683: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1684: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1685: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1686: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 611676 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1728: leaked 252 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1736: leaked 264212 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1739: leaked 198140 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1742: leaked 264212 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1743: leaked 32944 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1744: leaked 556 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1745: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1746: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1757: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1758: leaked 350772 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1760: leaked 233844 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1761: leaked 233844 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1762: leaked 87388 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1763: leaked 58448 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1764: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1765: leaked 350772 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 479 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 33 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

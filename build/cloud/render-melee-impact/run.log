@@ -1,0 +1,24 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2189 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+TRACE skadi 打击感包 关 vs 开：301 / 301 行，逐行一致
+TRACE hoshiguma 打击感包 关 vs 开：301 / 301 行，逐行一致
+TRACE 斯卡蒂 转平面 0 vs 1（打击感包开、late_shape 开）：301 / 301 行，逐行一致
+skadi 0 0 帧 []
+skadi 1 0 帧 []
+hoshiguma 0 0 帧 []
+hoshiguma 1 0 帧 []
+[in#0 @ 0x564a74110b40] Could find no file or sequence with path 'build/cloud/render-melee-impact/media/fr_skadi_0/rec_%05d.png' and index in the range 0-4
+[in#0 @ 0x564a74252440] Error opening input: No such file or directory
+Error opening input file build/cloud/render-melee-impact/media/fr_skadi_0/rec_%05d.png.
+Error opening input files: No such file or directory
+Traceback (most recent call last):
+  File "/work/repo/tools/melee_impact_rec.py", line 125, in <module>
+    main()
+  File "/work/repo/tools/melee_impact_rec.py", line 120, in main
+    rec(a.out, a.t0, a.secs, a.seed)
+  File "/work/repo/tools/melee_impact_rec.py", line 60, in rec
+    subprocess.run(args + ["-filter_complex", ";".join(fl), "-map", "[v]", "-frames:v", str(n), "-c:v", "libx264", "-crf", str(crf),
+  File "/usr/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/local/lib/python3.11/dist-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v9.0.2', '-y', '-loglevel', 'error', '-framerate', '30', '-i', 'build/cloud/render-melee-impact/media/fr_skadi_0/rec_%05d.png', '-framerate', '30', '-i', 'build/cloud/render-melee-impact/media/fr_skadi_1/rec_%05d.png', '-framerate', '30', '-i', 'build/cloud/render-melee-impact/media/fr_hoshiguma_0/rec_%05d.png', '-framerate', '30', '-i', 'build/cloud/render-melee-impact/media/fr_hoshiguma_1/rec_%05d.png', '-filter_complex', "[0:v]scale=960:540,drawtext=fontfile=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:text='斯卡蒂 打击感包 关':x=16:y=16:fontsize=30:fontcolor=white:box=1:boxcolor=black@0.6[v0];[1:v]scale=960:540,drawtext=fontfile=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:text='斯卡蒂 打击感包 开（fx/melee_impact=1）':x=16:y=16:fontsize=30:fontcolor=white:box=1:boxcolor=black@0.6[v1];[2:v]scale=960:540,drawtext=fontfile=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:text='星熊 打击感包 关':x=16:y=16:fontsize=30:fontcolor=white:box=1:boxcolor=black@0.6[v2];[3:v]scale=960:540,drawtext=fontfile=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:text='星熊 打击感包 开（fx/melee_impact=1）':x=16:y=16:fontsize=30:fontcolor=white:box=1:boxcolor=black@0.6[v3];[v0][v1]hstack=inputs=2[t];[v2][v3]hstack=inputs=2[b];[t][b]vstack=inputs=2[v]", '-map', '[v]', '-frames:v', '0', '-c:v', 'libx264', '-crf', '23', '-preset', 'slow', '-pix_fmt', 'yuv420p', 'build/cloud/render-melee-impact/media/melee_impact_onoff.mp4']' returned non-zero exit status 254.
