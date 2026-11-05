@@ -781,7 +781,7 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 			"life": 1.0, "fade": 0.5, "col": SUP.col(Color(1.0, 0.3, 0.25, 1.0), Color(1.0, 0.62, 0.3, 1.0)), "col1": _dark(), "cold": 0.4})
 	# 地面撕裂 + 碎屑 + 烟尘 + 余震（pixfx §6.6）
 	var forks: Array = ["fx_ul_crack_fork", "fx_ul_crack_fork2", "fx_ul_crack_fork3", "fx_ul_crack_fork4"]
-	PF.crack_net(u, forks, ctr, r1 * 1.25, 9, PF.h(vs) * TAU, vs, 0.14, SUP.col(Color(1.0, 0.35, 0.3), Color(1.0, 0.62, 0.3)), SUP.col(Color(0.25, 0.05, 0.06), Color(0.05, 0.1, 0.22)), r1 * 0.35)
+	PF.crack_net(u, forks, ctr, r1 * 1.25, 9, PF.h(vs) * TAU, vs, 0.14, SUP.col(Color(1.0, 0.35, 0.3), Color(0.9, 1.0, 1.5)), SUP.col(Color(0.25, 0.05, 0.06), Color(0.4, 0.45, 0.7)), r1 * 0.35)   # 地裂纹理本身是青色（35, 81, 92）：橙热乘上去发绿，开关开着改冰蓝冷成深海暗
 	PF.heave(u, ctr, r1 * 0.85, vs, 0.02, SUP.col(Color(0.9, 0.8, 0.8), Color(0.8, 0.85, 0.92)))
 	PF.heave(u, ctr, r1 * 0.45, vs + 9.0, 0.0, SUP.col(Color(0.9, 0.8, 0.8), Color(0.8, 0.85, 0.92)), 90.0)
 	for q in 5:
