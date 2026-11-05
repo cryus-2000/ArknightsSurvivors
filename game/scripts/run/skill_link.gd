@@ -917,11 +917,14 @@ static func _step16(u, a: Dictionary) -> bool:
 					if e.pos.distance_to(c) > r * 0.5 and not e.boss:
 						outs.append(e)
 				a["outs"] = outs.slice(0, 14)
+				if Fxr.owns(p):
+					Fxr.ev(p, "ang_link", {"c": c, "r": r})   # 转平面（docs/267）：三枚碎片绕圈收拢由 fx_pxplane_ang 画，只画
 			var T2 := 0.45
+			var apx: bool = Fxr.owns(p)
 			if t < T2:
 				var k2: float = t / T2
 				var rr: float = lerpf(r + 150.0, r * 0.4, k2)
-				for j in 3:
+				for j in (0 if apx else 3):
 					var sp: Vector2 = c + Vector2.from_angle(TAU * (k2 * 1.0 + j / 3.0)) * rr
 					if not LFB.an_core(u, sp, k2, j):
 						u.shape({"kind": "rock", "c": sp, "r": 9.0, "col": Color(0.2, 0.1, 0.3), "glow": cl, "seed": 3.0 + j, "rot": k2 * 6.0, "life": 0.04})
@@ -932,7 +935,9 @@ static func _step16(u, a: Dictionary) -> bool:
 						p.nudge(e, (to - e.pos) * 0.16)
 				return false
 			if once.call("land"):
-				if not LFB.an_land(u, c, r):
+				if apx:
+					Fxr.ev(p, "ang_link_land", {"c": c, "r": r, "es": a.outs})   # 转平面（docs/267）：只画
+				elif not LFB.an_land(u, c, r):
 					u.light(c, 160.0, cl, 0.4)
 					u.shape({"kind": "ring", "c": c, "r": r * 0.6, "r1": r * 0.2, "w": 5.0, "col": cl, "life": 0.4})
 				for e in a.outs:
