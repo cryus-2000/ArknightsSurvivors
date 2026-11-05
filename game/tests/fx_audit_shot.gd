@@ -82,7 +82,6 @@ func _probe() -> String:
 			ls.append("%d/%.2f/%.2f/%s" % [int(L[1]), float(L[5]), float(L[4]), (L[2] as Color).to_html(false)])
 	var gr := 0
 	var gnew := 0
-	var gtn := {}
 	var sp := 0
 	var gl := 0
 	if "optical" in g and g.optical != null and g.optical.grains != null:
@@ -91,8 +90,6 @@ func _probe() -> String:
 		for i in G.life.size():
 			if G.life[i] == G.lmax[i] and G.delay[i] <= 0.0:
 				gnew += 1
-				var tn: String = str(G._names[int(G.tpl[i])]) if int(G.tpl[i]) >= 0 and int(G.tpl[i]) < G._names.size() else "?"
-				gtn[tn] = int(gtn.get(tn, 0)) + 1   # 新颗粒按模板名分（查来源，docs/262 §10）
 		for s in G.sparks:
 			if s.size() > 6:
 				continue
@@ -113,28 +110,9 @@ func _probe() -> String:
 	var ns: Array = []
 	for k in newm:
 		ns.append("%s:%d" % [k, newm[k]])
-	var gts: Array = []
-	for k2 in gtn:
-		gts.append("%s:%d" % [k2, gtn[k2]])
-	var lz := {}   # 场上的激光件 / 颗粒化帧条（查 slash 颗粒来源，docs/262 §10）
-	if "fx" in g and g.fx is Array:
-		for f in g.fx:
-			var fk: String = str(f.get("kind", ""))
-			if fk in ["beam", "bbeam", "tracer"]:
-				lz[fk] = int(lz.get(fk, 0)) + 1
-			elif fk == "sprite" and str(f.get("name", "")) == "fx_slash_heavy_deep":
-				lz["shd"] = int(lz.get("shd", 0)) + 1
-	if "squad" in g and g.squad != null:
-		for o2 in g.squad.ops:
-			lz["op_" + str(o2.id)] = 1
-			for f2 in o2.get("pfx") if o2.get("pfx") is Array else []:
-				if str(f2.get("kind", "")) == "line" and f2.get("laser", false):
-					lz["lzline_" + str(o2.id)] = int(lz.get("lzline_" + str(o2.id), 0)) + 1
-	for k3 in lz:
-		gts.append("%s:%d" % [k3, lz[k3]])
-	return "FXA %d %.3f new=%s life=%.2f sz=%.1f alive=%d L=%s gr=%d gnew=%d sp=%d gl=%d glow=%d emit=%d gt=%s" % [
+	return "FXA %d %.3f new=%s life=%.2f sz=%.1f alive=%d L=%s gr=%d gnew=%d sp=%d gl=%d glow=%d emit=%d" % [
 		Engine.get_process_frames(), float(g.t), ",".join(ns) if ns.size() else "-", lsum / maxf(1, nn), ssum / maxf(1, nn), alive,
-		";".join(ls) if ls.size() else "-", gr, gnew, sp, gl, glow, emit, ",".join(gts) if gts.size() else "-"]
+		";".join(ls) if ls.size() else "-", gr, gnew, sp, gl, glow, emit]
 
 
 func _process(_dt: float) -> void:
