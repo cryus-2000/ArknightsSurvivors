@@ -162,7 +162,7 @@ const BURSTS := ["fx_px_burst1", "fx_px_burst2"]
 const BURST_S := "fx_px_burst_s"
 
 
-static func particles(u, p: Vector2, n: int, kind: String, cols: Array, delay := 0.0, seed0 := 0.0, reach := 0.0) -> void:
+static func particles(u, p: Vector2, n: int, kind: String, cols: Array, delay := 0.0, seed0 := 0.0, reach := 0.0, extra := {}) -> void:
 	var small: bool = kind != "ult_burst"
 	var name: String = BURST_S if small else pick(u, BURSTS, seed0 * 0.61)
 	if name == "" or not u.fx_ready(name):
@@ -173,9 +173,11 @@ static func particles(u, p: Vector2, n: int, kind: String, cols: Array, delay :=
 	var slow: float = 1.4 if kind == "ult_ember" else 1.0
 	for l in layers:
 		var cc: Color = cols[(l + int(h(seed0) * cols.size())) % cols.size()]
-		u.strip(name, p, {"sc": rch / (half * 0.8) * (1.0 - 0.15 * l), "ang": h(seed0 + l * 3.0) * TAU, "sx": -1.0 if h(seed0 + l) < 0.5 else 1.0,
+		var opt := {"sc": rch / (half * 0.8) * (1.0 - 0.15 * l), "ang": h(seed0 + l * 3.0) * TAU, "sx": -1.0 if h(seed0 + l) < 0.5 else 1.0,
 			"fps": 8.0 / (0.9 * slow), "life": 0.95 * slow, "fade": 0.25, "delay": delay + 0.05 * l,
-			"col": Color(minf(1.6, cc.r * 1.35), minf(1.6, cc.g * 1.35), minf(1.6, cc.b * 1.35), 1.0)})
+			"col": Color(minf(1.6, cc.r * 1.35), minf(1.6, cc.g * 1.35), minf(1.6, cc.b * 1.35), 1.0)}
+		opt.merge(extra, true)   # 招式可覆盖寿命 / 渐隐（水月转平面：末尾按 15 fps 渐隐，docs/261 §8.6）
+		u.strip(name, p, opt)
 
 
 ## 节拍（顿感 / 节奏对齐乌尔比安的四圈：每 0.18 秒一拍，每拍一次震屏 + 一圈隆起 + 短灯 + 尘）：beats = [[t, r], ...]，在 step 里每帧调 tick_beats

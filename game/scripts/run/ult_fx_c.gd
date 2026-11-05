@@ -6,6 +6,8 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")
 const A = preload("res://scripts/art.gd")
+const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月水母群转平面画面（docs/261 §8，ult/px_plane_mizuki；只画）
+const NOCOL := Color(0, 0, 0, 0)   # 转平面开着时：原版里「出声」的图形照常生成（音效按图形种类 / 半径挂，docs/205 §4），只是不画
 
 
 # ================================================================ 归溟幽灵鲨：整圈巨锯（ult/sp_saw_v2）
@@ -449,6 +451,7 @@ static func mz_jelly(u) -> bool:
 
 
 static func mz_jelly_start(u, a: Dictionary, c: Vector2, a0: float, span: float, R: float) -> void:
+	var px: bool = MZP.on()
 	var vs: float = PF.vseed(u, c)
 	a["jl"] = []
 	a["jl_vs"] = vs
@@ -461,14 +464,21 @@ static func mz_jelly_start(u, a: Dictionary, c: Vector2, a0: float, span: float,
 		var t: Texture2D = u._strip_tex(name)
 		var sc: float = (105.0 + 45.0 * PF.h(vs + i * 2.2)) / (PF.tex_w(u, name) * t.get_height() / t.get_width())   # 按高度定大小（三种水母宽窄不一）
 		var fs: float = -1.0 if PF.h(vs + i * 6.6) < 0.5 else 1.0
-		var s: Dictionary = u.strip(name, p + Vector2(0, 40), {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.22), "sc": sc, "sx": fs, "life": 4.0, "col": Color(1, 1, 1, 0.0)})
-		a.jl.append({"s": s, "p": p, "ph": hh * TAU, "d0": 0.04 * i + 0.1 * hh, "fs": fs, "sc": sc})
-		u.shape({"kind": "circle", "c": p + Vector2(0, 30), "r": 26.0, "col": Color(0.02, 0.04, 0.08), "fill": 0.45, "life": 0.8, "delay": 0.04 * i, "layer": "back"})   # 冒出的地面暗斑
+		var s: Dictionary
+		if px:   # 转平面：水母由 ult_px_mz 画成海月水母；这里只留同样会被原逻辑更新的位置 / 缩放字典（不进 u.shapes）
+			s = {"c": p + Vector2(0, 40), "sc": sc, "sx": fs, "sy": 1.0, "age": 0.0, "max": 4.0, "col": Color(1, 1, 1, 0.0)}
+		else:
+			s = u.strip(name, p + Vector2(0, 40), {"o": Vector2(t.get_width() * 0.5, t.get_height() * 0.22), "sc": sc, "sx": fs, "life": 4.0, "col": Color(1, 1, 1, 0.0)})
+		a.jl.append({"s": s, "p": p, "ph": hh * TAU, "d0": 0.04 * i + 0.1 * hh, "fs": fs, "sc": sc, "rb": (105.0 + 45.0 * PF.h(vs + i * 2.2)) / 4.5})   # rb：海月水母伞半宽（美术像素），按原贴图高度换算
+		u.shape({"kind": "circle", "c": p + Vector2(0, 30), "r": 26.0, "col": NOCOL if px else Color(0.02, 0.04, 0.08), "fill": 0.45, "life": 0.8, "delay": 0.04 * i, "layer": "back"})   # 冒出的地面暗斑（出声 rise）
 		PF.particles(u, p + Vector2(0, 30), 20, "ult_burst_s", [MZ_INK], 0.04 * i, vs + i, 50.0)
 	# 用户 10-31：不贴触手、不收拢；到原「抓漏网」时刻全部水母在各自位置一起炸开（顿帧 + 冲击帧）
 	a["jl_c1"] = float(a.T0) + float(a.T) + 0.12
 	a["jl_dim"] = {"kind": "circle", "c": c, "r": 2600.0, "col": Color(0.0, 0.01, 0.03), "fill": 0.0, "hold": true, "life": 9.0}   # 压缩时全屏渐暗（蓄力反差）
 	u.shape(a.jl_dim)
+	if px:
+		MZP.ev(u, "start", {"a": a})
+		return
 	for j in a.jl:   # 水母画在压暗层上面
 		u.shapes.erase(j.s)
 		u.shapes.append(j.s)
@@ -509,10 +519,14 @@ static func mz_jelly_step(u, a: Dictionary, t: float) -> void:
 			j.ring.c = s.c
 			j.ring.r = lerpf(95.0, 18.0, kp)
 			j.ring.col = Color(0.22, 0.45, 0.55, 0.7 * kp)
+			if MZP.on():   # 转平面：收拢的芯 / 环由 ult_px_mz 画（像素断续细环 + 光点吸入）；原图形留着出声（compress），不画
+				j.core.fill = 0.0
+				j.ring.col = NOCOL
+				continue
 			if int(t * 60.0) % 4 == int(ph) % 4:
 				var hq: float = PF.h(ph + t * 9.0)
 				u.grain("mote_in", s.c + Vector2.from_angle(hq * TAU) * 70.0, Vector2.from_angle(hq * TAU + PI), MZ_GLOW, 1)
-		if int(t * 60.0) % 9 == int(ph * 3.0) % 9:
+		if int(t * 60.0) % 9 == int(ph * 3.0) % 9 and not MZP.on():
 			u.grain("mote_up", s.c, Vector2.UP, MZ_GLOW, 1)
 
 
@@ -570,6 +584,10 @@ static func mz_jelly_hit(u, a: Dictionary, p: Vector2, t: float) -> void:
 ## 抓漏网那一刻：所有水母在各自位置同时炸开（用户 10-31「水母一起炸开」）——伞盖一鼓进冲击帧剪影 → 每只一团青紫粒子爆 + 碎环 + 水沫，
 ## 中心大灯；顿帧 / 冲击帧由框架 impact 给（调用方先把 hf 打开、横扫标 pre，冲击落在这一下）
 static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
+	var px: bool = MZP.on()   # 转平面（docs/261 §8）：粒子云体量照旧、换本人配色；爆闪 / 碎环由 ult_px_mz 画像素版；出声的图形透明保留；水雾（烟）不要
+	var cA: Color = MZP.CY if px else Color(0.38, 0.62, 0.68)
+	var cB: Color = MZP.AC if px else Color(0.48, 0.4, 0.7)
+	var fx_end: Dictionary = {"life": MZP.END_T, "fade": MZP.FADE_T, "fade_q": true} if px else {}   # 11-06 用户「末尾那个要不要加个渐变消失」：粒子云不再一齐消失
 	a["jl_burst"] = t
 	var vs: float = float(a.jl_vs) + 77.0
 	var R: float = float(a.R)
@@ -589,23 +607,27 @@ static func mz_jelly_burst(u, a: Dictionary, c: Vector2, t: float) -> void:
 			j.core.max = 0.0
 			j.ring.max = 0.0
 		var hh: float = PF.h(vs + i * 3.1)
-		u.shape({"kind": "circle", "c": p, "r": 34.0, "col": Color(0.7, 0.88, 0.9), "fill": 0.85, "life": 0.07})   # 每只的爆闪（≤ 0.9）
-		PF.particles(u, p, 600, "ult_burst", [Color(0.38, 0.62, 0.68), Color(0.48, 0.4, 0.7)], 0.0, vs + i, 190.0 + 90.0 * hh)
-		PF.particles(u, p, 40, "ult_burst_s", [Color(0.55, 0.85, 0.9)], 0.0, vs + i * 7.0, 70.0)
-		PF.ring(u, LU_RINGS, p, 10.0, 130.0 + 60.0 * hh, 0.22, 0.5, {"seed": vs + i * 2.0, "layer": "front", "col": Color(0.55, 0.9, 0.95, 0.8), "col1": Color(0.3, 0.28, 0.6, 0.5), "cold": 0.3, "fade": 0.25})
+		u.shape({"kind": "circle", "c": p, "r": 34.0, "col": NOCOL if px else Color(0.7, 0.88, 0.9), "fill": 0.85, "life": 0.07})   # 每只的爆闪（≤ 0.9；出声 pop）
+		PF.particles(u, p, 600, "ult_burst", [cA, cB], 0.0, vs + i, 190.0 + 90.0 * hh, fx_end)
+		PF.particles(u, p, 40, "ult_burst_s", [MZP.CYL if px else Color(0.55, 0.85, 0.9)], 0.0, vs + i * 7.0, 70.0, fx_end)
+		if not px:
+			PF.ring(u, LU_RINGS, p, 10.0, 130.0 + 60.0 * hh, 0.22, 0.5, {"seed": vs + i * 2.0, "layer": "front", "col": Color(0.55, 0.9, 0.95, 0.8), "col1": Color(0.3, 0.28, 0.6, 0.5), "cold": 0.3, "fade": 0.25})
 		u.grain("water", p, Vector2.from_angle(hh * TAU), Color(0.55, 0.85, 0.9), 8)
 		u.light(p, 110.0, Color(0.3, 0.55, 0.62), 0.25)
-		PF.particles(u, p, 30, "ult_ember", [Color(0.4, 0.66, 0.7)], 0.15 + 0.03 * (i % 3), vs + i * 5.0, 60.0)
+		PF.particles(u, p, 30, "ult_ember", [MZP.C8[5] if px else Color(0.4, 0.66, 0.7)], 0.15 + 0.03 * (i % 3), vs + i * 5.0, 60.0, fx_end)
 	var ctr: Vector2 = sum / maxf(1.0, float(a.jl.size()))
 	if a.has("jl_dim"):   # 压暗一下撤掉：暗 → 亮的反差就是冲击
 		a.jl_dim.max = 0.0
 	u.g.vfx.stop(Bal.v("ult/mz_burst_stop", 0.16), "ult", true)
-	for i in a.jl.size():   # 每只一圈碎裂冲击环（外扩先快后慢）+ 逐帧水雾往外翻
+	for i in (0 if px else a.jl.size()):   # 每只一圈碎裂冲击环（外扩先快后慢）+ 逐帧水雾往外翻（转平面：像素细环由 ult_px_mz 画，水雾不要）
 		var p2: Vector2 = Vector2(a.jl[i].s.c)
 		var hh2: float = PF.h(vs + i * 5.7)
 		u.shape({"kind": "ring", "c": p2, "r": 150.0 + 60.0 * hh2, "r1": 20.0, "w": 6.0, "col": Color(0.55, 0.85, 0.92, 0.85), "life": 0.4, "frag": true})
 		PF.dust(u, p2, 130.0 + 60.0 * hh2, 0.02, vs + i * 3.0, Vector2.from_angle(hh2 * TAU) * 40.0, Color(0.42, 0.6, 0.66))
-	u.shape({"kind": "ring", "c": ctr, "r": R * 1.05, "r1": 60.0, "w": 10.0, "col": Color(0.45, 0.75, 0.85, 0.8), "life": 0.55, "frag": true})   # 群心大冲击波
+	u.shape({"kind": "ring", "c": ctr, "r": R * 1.05, "r1": 60.0, "w": 10.0, "col": NOCOL if px else Color(0.45, 0.75, 0.85, 0.8), "life": 0.55, "frag": true})   # 群心大冲击波（出声 burst）
+	if px:
+		u.light(ctr, R * 0.6, Color(0.22, 0.42, 0.48), MZP.END_T)   # 照地光跟粒子云一起慢慢减弱（同长）
+		MZP.ev(u, "burst", {"c": ctr, "hits": a.get("mz_hits", [])})
 	u.light(ctr, R * 1.1, Color(0.3, 0.55, 0.62), 0.4)
 	u.shake(3.0, 0.15)
 

@@ -14,6 +14,7 @@ const A = preload("res://scripts/art.gd")   # pixfx 大贴图画法（docs/199 �
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：归溟幽灵鲨 / 水月钻洞与小触手（docs/199 §7.9）
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，ult/px_plane；只画）
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9：配色对齐 + 爆开那一下加强；只画）
+const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月水母群转平面画面（docs/261 §8；只画）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -1872,6 +1873,11 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 				if rel > span * ke + 0.05 and off.length() >= 60.0:
 					continue
 				a.seg[int(e.id)] = true
+				if a.has("jl") and MZP.on():   # 转平面（docs/261 §8）：记下横扫打中的怪，炸开那一拍补崩解（只画）
+					if not a.has("mz_hits"):
+						a["mz_hits"] = []
+					if a.mz_hits.size() < 60:
+						a.mz_hits.append(e)
 				var tg: Vector2 = Vector2.from_angle(off.angle() + PI / 2.0)
 				var ep: Vector2 = e.pos
 				_hit(u, a, o, e, Bal.v("ult/mz_sweep_frac", 1.0), {"src": "横扫", "edge": off.length() > R * (1.0 - _edge_w()), "kb": _kb_for(e, tg, 140.0, 60.0), "pre": a.has("jl")})   # 水母群：冲击落在一起炸开那一下
@@ -1927,7 +1933,10 @@ static func _mz_step(u, a: Dictionary, o) -> bool:
 				FC.mz_small(u, a, e.pos + Vector2(0, 8), i, 1.0, 0.03 * float(i))
 			else:
 				u.strip("fx_mizuki_tentacle", e.pos + Vector2(0, 8), {"sc": 1.7, "o": Vector2(24, 108), "delay": 0.03 * float(i)})
-			u.strip("fx_mizuki_bind_ring", e.pos, {"sc": 2.2, "loop": true, "life": 1.2})
+			if MZP.on() and jelly:
+				MZP.ev(u, "bind", {"e": e, "life": 1.2})   # 转平面：像素触手圈（同 S2 缠绕）
+			else:
+				u.strip("fx_mizuki_bind_ring", e.pos, {"sc": 2.2, "loop": true, "life": 1.2})
 			_hit(u, a, o, e, Bal.v("ult/mz_grab_frac", 0.2), {"src": "小触手", "stun": 1.5})
 			if not e.dead:
 				a.bound.append(e)
