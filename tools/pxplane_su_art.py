@@ -197,6 +197,101 @@ def ring_frames(R, sty, n=RING_N):
     return backs, fronts, ox, oy
 
 
+def heavy_frames(R, n=RING_N):
+    """S3 重锯（11-05 用户「S3 的锯齿可以更加明显一点」）：齿少、大、尖的三角齿。
+    锯身外沿收到 R−4，齿从锯身伸出 11 格，齿尖在 R+7（画面外沿 ≤ 判定 ×1.1）；齿尖一格白高光、上段橙热、中段钢、齿根压暗，
+    齿外 + 锯身内沿各一圈 1 格暗描边；每拍往转动方向挪 0.45 个齿距，上一拍的齿位留一道暗残影（看得出往哪边转，
+    整齿距一挪反而看着不动）；热弧经过的齿尖甩火星。前后半圈分两张"""
+    H, bt, tin = 11, 4, 4
+    pad = 18
+    rx = R + 7 + pad
+    ry = int(math.ceil((R + 7) * SY)) + pad
+    W = 2 * rx + 1
+    Hh = 2 * ry + LIFT + 3
+    cx, cy = rx, ry
+    ox, oy = cx, cy + LIFT
+    N = max(16, int(round(2 * math.pi * R / 22.0)))
+    dth = 2 * math.pi / N
+    spin = 0.45
+    sc_f = [0.88, 1.0, 1.0, 1.0, 0.97]
+    span_f = [math.radians(200), math.radians(130), math.radians(60), 0, 0]
+    keep_f = [1.0, 1.0, 1.0, 0.8, 0.45]
+    th0 = math.radians(20)
+
+    def prof(u):
+        if u < 0.62:
+            return H * u / 0.62
+        if u < 0.74:
+            return H * (1.0 - (u - 0.62) / 0.12)
+        return 0.0
+    backs, fronts = [], []
+    for f in range(n):
+        back, front = Cv(W, Hh), Cv(W, Hh)
+        Rb = (R - tin) * sc_f[f]
+        phase = f * spin * dth
+        head = th0 + f * math.radians(78)
+        span = span_f[f]
+        keep = keep_f[f]
+        for y in range(Hh):
+            for x in range(W):
+                dx, dy = x - cx, y - cy
+                rho = math.hypot(dx, dy / SY)
+                if rho < Rb - bt - 2 or rho > Rb + H + 1.5:
+                    continue
+                th = math.atan2(dy / SY, dx)
+                tgt = back if dy < 0 else front
+                lit = math.cos(th - math.radians(-135))
+                hot = -1.0
+                if span > 0:
+                    da = (head - th) % (2 * math.pi)
+                    if da < span:
+                        hot = da / span
+                u = ((th - phase) / dth) % 1.0
+                k = int(math.floor((th - phase) / dth)) % N
+                on = hsh("h", R, k, "keep") < keep
+                c = None
+                if Rb - bt < rho <= Rb:   # 锯身
+                    c = AB[4] if (rho > Rb - 1 and lit > -0.2) else (AB[2] if rho > Rb - bt + 1 else AB[1])
+                    if hot >= 0:
+                        c = SP[1] if hot < 0.3 else (SP[2] if hot < 0.7 else SP[3])
+                    if f == 4 and hsh(x, y, "hf") < 0.45:
+                        c = None
+                elif Rb - bt - 1 < rho <= Rb - bt:
+                    c = SHADOW   # 锯身内沿暗描边
+                elif rho > Rb:
+                    hgt = rho - Rb
+                    h = prof(u) if on else 0.0
+                    if h > 0 and hgt <= h:
+                        q = hgt / h
+                        apex = 0.5 < u < 0.68
+                        if q > 0.82 and apex:
+                            c = AB[7] if f <= 3 else ST[4]   # 齿尖一格白高光
+                        elif q > 0.55:
+                            c = (SP[1] if f <= 1 else SP[2]) if f <= 2 else (SP[3] if f == 3 else ST[3])
+                        elif q > 0.22:
+                            c = ST[4] if lit > 0.0 else ST[3]
+                        else:
+                            c = ST[1]   # 齿根压暗
+                        if u >= 0.62 and q <= 0.82:
+                            c = ST[2] if q > 0.22 else ST[1]   # 陡面暗
+                    elif h > 0 and hgt <= h + 1.0:
+                        c = SHADOW   # 齿外暗描边
+                    elif f <= 3:   # 上一拍齿位的暗残影（读出转向）
+                        up = ((th - phase + spin * dth) / dth) % 1.0
+                        kp = int(math.floor((th - phase + spin * dth) / dth)) % N
+                        hp = prof(up) if hsh("h", R, kp, "keep") < keep else 0.0
+                        if hp > 0 and hgt <= hp * 0.85:
+                            c = AB[2] if hgt > hp * 0.4 else AB[1]
+                if c is not None:
+                    tgt.put(x, y, c)
+        if f <= 3:
+            _ring_sparks(back, front, cx, cy, R + 6, f, R, head)
+            _ring_sparks(back, front, cx, cy, R + 6, f, R + 1, head - 0.8)
+        backs.append(back)
+        fronts.append(front)
+    return backs, fronts, ox, oy
+
+
 def _spray(back, front, cx, cy, R, f, seed):
     """精二：齿尖顺切线甩出的水珠（受重力往下落），越来越稀"""
     rnd = random.Random(seed * 7 + 3)
@@ -992,7 +1087,7 @@ def build(only=""):
             k = "saw_%s_r%d" % (sty, R)
             if not want(k):
                 continue
-            b, fr, ox, oy = ring_frames(R, sty)
+            b, fr, ox, oy = heavy_frames(R) if sty == "h" else ring_frames(R, sty)
             save(k + "_bk_up", b, ox, oy)
             save(k + "_fr_up", fr, ox, oy)
             if STYLES[sty]["shadow"]:
