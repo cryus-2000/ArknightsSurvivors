@@ -2,6 +2,7 @@ extends RefCounted
 ## Solid magma projectiles: stable crust, short directional flame, compressed landing.
 
 const A = preload("res://scripts/art.gd")
+const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/259）：艾雅法拉被接管时材质颗粒 / 帧条一律不生成
 const CRUST := Color(0.18, 0.09, 0.07)
 const HOT := Color(1.0, 0.43, 0.08)
 
@@ -190,6 +191,8 @@ static func _snap(p: Vector2) -> Vector2:
 
 static func material_on(o) -> bool:
 	var opt = o.g.get("optical")   # 契约测试的假 g 可能是 Dictionary（eyja_volcanic_weight），不能直接 .optical
+	if opt != null and o.g is Object and Fxr.owns(o):
+		return false   # 转平面（docs/259）接管：原材质颗粒 / 熔岩帧条不生成（只画面；画面随机只用 g.vrng）
 	return opt != null and opt.grains != null and opt.grains.material_on()
 
 ## 仅画面计时；不读取玩法 RNG，不改变弹体位置或碰撞。

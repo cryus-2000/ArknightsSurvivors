@@ -531,6 +531,8 @@ func start_rect(v: int, vs: Vector2) -> Rect2:
 	if v == 0:
 		var w0: float = minf(400.0, minf(vs.y * 0.52, vs.x * 0.6))
 		cy = vs.y * 0.45 + 210.0 * w0 / 420.0 + 36.0
+	elif v == 4:
+		cy = minf(vs.y * 0.80, vs.y - 60.0 - bh * 0.5)   # PRTS 认证终端：读完后占进度条的位置
 	elif v == 3 and vs.y <= vs.x:
 		var R: float = minf(vs.y * 0.27, vs.x * 0.2)
 		cy = vs.y * 0.5 + R + 62.0 + bh * 0.5   # 让开 180 方位读数
@@ -742,3 +744,181 @@ func _log_light(r: Rect2, lines: Array, t: float, sz: int, lh: float) -> void:
 		var tag: String = "OK" if ln.ok else (("_" if cursor_on(t) else "") if cur else "..")
 		mono(Vector2(r.end.x - mono_w("OK", sz), y), tag, sz, ACC if cur else (INK if ln.ok else GRAY))
 		y += lh
+
+
+# ================================================================ 方向 4：PRTS 认证终端（11-05 用户「codex 的加载页可以替换我们目前的加载页」）
+## 起点是 Codex 演示 docs/reference/prts-entry-1105；同日用户「多余的几何标志可以去掉，图标改成呼吸，要跟局内 PRTS 的感觉对齐」，
+## 改成局内指挥台的语言：白细线 + 刻度环 + 青色只表示「在走 / 完成」。删掉阶梯三角、环绕碎线、两侧流线、上下游标刻度、扫描线。
+## 罗德岛标志淡入后慢呼吸（2.6 秒一次）；外圈 60 格刻度环 = 进度（同指挥台头像的终结技环，st.p 亮到哪格就是哪格，当前格青色）；
+## 读完（st.ready）整圈转青、一道细圈外扩一次，「认证通过」，下面出「开始游戏」（draw_start）。没有任何定时推进度。
+## 同日三改（用户「有点素了，没有那种科技感和几何感还有呼吸感」）：几何全部围着刻度环成套、不散落——外圈细环 + 两组反向慢转弧段、
+## 四方位菱形节点 + 方位读数、标志后一个大淡三角（呼应标志）、贯穿环两侧的水平细线 + 一道青光往外走；淡点阵 + 扫描纹；
+## 呼吸统一 2.6 秒：标志、背后光晕、大三角、未亮刻度同相起伏。减少动态时全部静止。
+const P_BG := Color(0.059, 0.063, 0.075)      # #0F1013
+const P_TXT := Color(0.925, 0.933, 0.941)     # #ECEEF0（同指挥台 WHITE）
+const P_SUB := Color(0.573, 0.592, 0.627)     # #9297A0
+const P_ACC := Color(0.212, 0.886, 0.863)     # #36E2DC
+const P_RULE := Color(0.208, 0.224, 0.263)    # #353943
+const RhodesLogo = preload("res://scripts/screens/rhodes_logo.gd")
+const UIMo = preload("res://scripts/ui_motion.gd")
+
+
+func _box(x: float, y: float, w: float, h: float, col: Color, a := 1.0) -> void:
+	c.draw_rect(Rect2(roundf(x), roundf(y), ceilf(w), ceilf(h)), Color(col.r, col.g, col.b, col.a * a))
+
+
+## 栏目标题：左边一道 18×2 白短杠 + 白字（同属性栏 v3 的栏目头）+ 下面一条细线
+func _p4_head(x: float, y: float, s: String, k: float, rw: float) -> void:
+	_box(x, y - 6.0 * k, 18.0 * k, 2.0, P_TXT)
+	txt(Vector2(x + 26.0 * k, y), s, int(round(13.0 * k)), P_TXT)
+	_box(x, y + 12.0 * k, rw, 1, P_RULE)
+
+
+func draw_v4(vs: Vector2, st: Dictionary) -> void:
+	var t: float = st.t
+	var rm: bool = _rm() or UIMo.skip_all()   # 减少动态 / 无头截图：直接终态
+	var p: float = st.p
+	var ready: bool = st.ready
+	var u: float = float(st.get("u", -1.0))   # 读完后的秒数（-1 = 没读完）
+	var w: float = vs.x
+	var h: float = vs.y
+	var k: float = clampf(h / 540.0, 0.8, 2.4)   # 以 960×540 为基准的缩放
+	var cx: float = w / 2.0
+	var cy: float = h * 0.42
+	_box(0, 0, w, h, P_BG)
+	var tt: float = 0.0 if rm else t
+	var br: float = 1.0 if rm else 0.5 + 0.5 * cos(t * TAU / 2.6)   # 呼吸相位（1 = 最亮）
+	var gx := 0.0
+	while gx < w:   # 淡点阵
+		var gy := 0.0
+		while gy < h:
+			_box(gx, gy, 1, 1, P_SUB, 0.12)
+			gy += 24.0 * k
+		gx += 24.0 * k
+	var sy := 0.0
+	while sy < h:   # 扫描纹
+		_box(0, sy, w, 1, Color.BLACK, 0.12)
+		sy += 3.0
+	var m: float = 22.0 * k
+	# 页眉：同局内的克制版式（白字 + 灰字 + 一条细线）
+	mono(Vector2(m, 28.0 * k), "PRTS", int(round(12.0 * k)), P_TXT)
+	mono(Vector2(m + mono_w("PRTS  ", int(round(12.0 * k))), 28.0 * k), "/ 启动校验", int(round(12.0 * k)), P_SUB)
+	var fan := "ARKNIGHTS FAN GAME"
+	mono(Vector2(w - m - mono_w(fan, int(round(11.0 * k))), 28.0 * k), fan, int(round(11.0 * k)), P_SUB)
+	_box(m, 40.0 * k, w - 2.0 * m, 1, P_RULE)
+	var tclk := "SYS 1105 · T+%05.1f" % t
+	mono(Vector2(cx - mono_w(tclk, int(round(10.0 * k))) / 2.0, 28.0 * k), tclk, int(round(10.0 * k)), Color(P_SUB, 0.8))
+	# 标志：淡入 0.4 秒，之后慢呼吸；读完停在最亮
+	var s: float = maxf(1.0, floorf(h * 0.34 / 120.0))
+	var span: float = 120.0 * s
+	var fade: float = 1.0 if rm else _ease(t / 0.4)
+	var R0: float = span * 0.66
+	var C := Vector2(cx, cy)
+	# 背后：光晕（同心淡圆叠出来）+ 大淡三角（外接圆 = 1.5 倍环），都随呼吸
+	var gl: float = (0.6 + 0.4 * br) * fade
+	var hs: float = 0.94 + 0.1 * br   # 大光晕随呼吸缩放（11-05 用户「整个界面缺少一点呼吸感」）
+	for j in 6:
+		c.draw_circle(C, R0 * (1.25 - j * 0.17) * hs, Color(P_ACC, 0.016 * gl))
+	var rb: float = 1.0 if ready else 0.8 + 0.2 * br   # 刻度环 / 外圈整体明暗
+	var tri := PackedVector2Array()
+	for a3 in [-90.0, 30.0, 150.0, -90.0]:
+		tri.append(C + Vector2.from_angle(deg_to_rad(a3)) * R0 * 1.5)
+	c.draw_polyline(tri, Color(P_TXT, (0.05 + 0.05 * br) * fade), 1.0, true)
+	# 水平细线贯穿环两侧（让开侧栏），一道青光往外走
+	var hx0: float = cx - R0 - 46.0 * k
+	var hx1: float = cx + R0 + 46.0 * k
+	var hl: float = (w * 0.5 - 200.0 * k) if w > 760.0 else (w * 0.5 - 10.0)
+	_box(cx - hl, cy, hx0 - (cx - hl), 1, P_RULE)
+	_box(hx1, cy, cx + hl - hx1, 1, P_RULE)
+	for e in [cx - hl, cx + hl]:
+		_box(e - 1.5, cy - 1.0, 3, 3, P_SUB)
+	if not ready or rm:
+		# 青光从环边淡入 → 往外走 → 到头淡出 → 停一拍（11-05 用户「两侧加载的那个直接跳回原点显得很奇怪」）
+		var ph: float = fposmod(tt / 2.6, 1.0)
+		var mv: float = clampf(ph / 0.8, 0.0, 1.0)
+		var ra: float = clampf(mv / 0.15, 0.0, 1.0) * clampf((1.0 - mv) / 0.25, 0.0, 1.0) * (1.0 if ph < 0.8 else 0.0)
+		if rm:
+			ra = 0.0
+		var run: float = _ease(mv) * (hl - (hx1 - cx) - 26.0 * k)
+		_box(hx1 + run, cy, 26.0 * k, 1, P_ACC, 0.8 * ra)
+		_box(hx0 - run - 26.0 * k, cy, 26.0 * k, 1, P_ACC, 0.8 * ra)
+	var breath: float = 1.0 if (rm or ready) else 0.72 + 0.28 * (0.5 + 0.5 * cos(t * TAU / 2.6))
+	RhodesLogo.draw_bands(c, Vector2(roundf(cx - span / 2.0), roundf(cy - span / 2.0)), s, 120, func(_b): return 0.0, Color(1, 1, 1, fade * breath))
+	# 刻度环 = 进度（60 格，每 5 格一根长的；亮到 st.p，当前格青色；读完整圈青）
+	var R: float = span * 0.66
+	var lit: int = int(floor(p * 60.0))
+	for i in 60:
+		var a: float = -PI / 2.0 + TAU * i / 60.0
+		var major: bool = i % 5 == 0
+		var l: float = (9.0 if major else 5.0) * k
+		var col: Color
+		if ready:
+			col = Color(P_ACC, 0.9)
+		elif i < lit:
+			col = Color(P_TXT, 0.85)
+		elif i == lit:
+			col = Color(P_ACC, 0.55 + 0.45 * br)   # 当前格随呼吸闪
+		else:
+			col = Color(P_SUB, 0.2 + 0.14 * br)
+		var dir := Vector2.from_angle(a)
+		c.draw_line(Vector2(cx, cy) + dir * R, Vector2(cx, cy) + dir * (R + l), Color(col, col.a * fade * (1.0 if i == lit else rb)), 2.0 if major else 1.5, true)
+	c.draw_arc(Vector2(cx, cy), R - 6.0 * k, 0.0, TAU, 96, Color(P_SUB, 0.18 * fade), 1.0, true)
+	# 外圈：细环 + 三段白弧顺转、两段青弧反转（慢）；四方位菱形节点 + 读数（下方让给状态字，只写上 / 左 / 右）
+	var R2: float = R + 22.0 * k
+	c.draw_arc(C, R2, 0.0, TAU, 128, Color(P_SUB, (0.1 + 0.12 * br) * fade), 1.0, true)
+	for j in 3:
+		var a0: float = tt * 0.16 + j * TAU / 3.0
+		c.draw_arc(C, R2, a0, a0 + deg_to_rad(34.0), 24, Color(P_TXT, 0.5 * fade), 1.5, true)
+	for j in 2:
+		var a1: float = -tt * 0.28 + j * PI
+		c.draw_arc(C, R2 + 7.0 * k, a1, a1 + deg_to_rad(14.0), 12, Color(P_ACC if not ready else P_TXT, 0.55 * fade), 2.0, true)
+	var nd: float = 4.0 * k
+	for j in 4:
+		var np: Vector2 = C + Vector2.from_angle(-PI / 2.0 + j * PI / 2.0) * R2
+		c.draw_colored_polygon(PackedVector2Array([np + Vector2(0, -nd), np + Vector2(nd, 0), np + Vector2(0, nd), np + Vector2(-nd, 0)]), Color(P_TXT if j != 2 else P_SUB, 0.7 * fade))
+	var fs9: int = int(round(9.0 * k))
+	mono(Vector2(cx - mono_w("000", fs9) / 2.0, cy - R2 - 10.0 * k), "000", fs9, Color(P_SUB, fade))
+	mono(Vector2(cx + R2 + 10.0 * k, cy - 6.0 * k), "090", fs9, Color(P_SUB, fade))
+	mono(Vector2(cx - R2 - 10.0 * k - mono_w("270", fs9), cy - 6.0 * k), "270", fs9, Color(P_SUB, fade))
+	if ready and not rm and u >= 0.0 and u < 0.5:
+		var q: float = _ease(u / 0.5)
+		c.draw_arc(Vector2(cx, cy), R + 14.0 * k + q * 40.0 * k, 0.0, TAU, 128, Color(P_ACC, 0.6 * (1.0 - q)), 1.5, true)
+	# 环下：阶段 + 百分比（真实）；读完后换「认证通过」，再下面是「开始游戏」
+	var ly: float = cy + R + 48.0 * k
+	if not ready:
+		txt(Vector2(0, ly), str(st.label), int(round(16.0 * k)), P_TXT, HORIZONTAL_ALIGNMENT_CENTER, w)
+		var pct := "ARCHIVE INDEX  %03d%%" % int(floor(p * 100.0))
+		txt(Vector2(0, ly + 20.0 * k), pct, int(round(10.0 * k)), P_SUB, HORIZONTAL_ALIGNMENT_CENTER, w)
+		var file: String = str(st.get("file", ""))
+		if file != "":
+			txt(Vector2(0, ly + 36.0 * k), file, int(round(10.0 * k)), Color(P_SUB, 0.6), HORIZONTAL_ALIGNMENT_CENTER, w)
+	else:
+		txt(Vector2(0, minf(ly, start_rect(4, vs).position.y - 18.0)), "认证通过", int(round(16.0 * k)), P_ACC, HORIZONTAL_ALIGNMENT_CENTER, w)
+	# 两侧栏（宽屏）：左 = 真实阶段日志（最近 4 行），右 = 真实进度分项（白细线，同指挥台生命线）
+	if w > 760.0:
+		var lx: float = m
+		var rx: float = w - m - 150.0 * k
+		var py: float = 104.0 * k
+		_p4_head(lx, py, "启动校验", k, 170.0 * k)
+		var lines: Array = st.get("lines", [])
+		var shown: Array = lines.slice(maxi(0, lines.size() - 4))
+		for i in shown.size():
+			var ln: Dictionary = shown[i]
+			var yy: float = py + 35.0 * k + i * 24.0 * k
+			var ok: bool = ln.ok
+			_box(lx, yy - 4.0 * k, 3.0 * k, 3.0 * k, P_TXT if ok else (Color(P_ACC, 0.45 + 0.55 * br) if ln.get("cur", false) else P_RULE))
+			txt(Vector2(lx + 12.0 * k, yy + 1.0 * k), str(ln.s), int(round(11.0 * k)), P_TXT if ok else P_SUB)
+		_p4_head(rx, py, "资源索引", k, 150.0 * k)
+		var n: int = int(st.get("n", 0))
+		var total: int = maxi(1, int(st.get("total", 1)))
+		var parts := [["SCRIPTS", float(n) / float(total)], ["SCENE", clampf((p - 0.88) / 0.04, 0.0, 1.0) if not ready else 1.0], ["WARMUP", clampf((p - 0.92) / 0.08, 0.0, 1.0) if not ready else 1.0]]
+		for i in 3:
+			var q2: float = parts[i][1]
+			var yb: float = py + 38.0 * k + i * 32.0 * k
+			mono(Vector2(rx, yb), str(parts[i][0]), int(round(10.0 * k)), P_SUB)
+			_box(rx, yb + 8.0 * k, 150.0 * k, 1, P_RULE)
+			_box(rx, yb + 7.5 * k, floorf(q2 * 150.0 * k), 2, P_TXT if q2 < 1.0 else P_ACC)
+	mono(Vector2(m, h - 20.0 * k), "RHODES ISLAND", int(round(11.0 * k)), P_SUB)
+	var acc := "ACCESS / GRANTED" if ready else "ACCESS / PENDING"
+	mono(Vector2(w - m - mono_w(acc, int(round(11.0 * k))), h - 20.0 * k), acc, int(round(11.0 * k)), P_ACC if ready else Color(P_SUB, 0.6 + 0.4 * br))
+	txt(Vector2(0, h - 20.0 * k), "明日方舟同人作品 · 非商业 · 与鹰角网络无关", int(round(10.0 * k)), Color(P_SUB.r, P_SUB.g, P_SUB.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, w)

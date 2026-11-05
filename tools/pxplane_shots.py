@@ -31,6 +31,8 @@ OPS = {
     # 歌蕾蒂娅（docs/263）：S1 重钩飞约 0.24 秒 + 绷紧 0.12 → 取落地后翻卷浪掀到一半；S2 取起手水环升起；S3 取龙卷起完后
     "gladiia": {"name": "歌蕾蒂娅", "modes": {3: "普攻 钩索", 0: "S1 缺水的大洋裂断", 1: "S2 缺水的掌握怒海", 2: "S3 缺水的碎漩狂舞"}, "off": {0: 14, 1: 6, 2: 16},
                 "link": ("PXPLOG gl gl_lland", "聚拢")},
+    # 推进之王（docs/264）：S1 取起手后 4 帧（战旗 + 狮头 + 声波环）；S2 起跳 0.42 秒后落地，取落地后约 3 帧；S3 取起手后约 0.3 秒（光带 + 炭火边）
+    "siege": {"name": "推进之王", "modes": {3: "普攻 锤击", 0: "S1 冲锋号令·γ型", 1: "S2 跃空锤", 2: "S3 碎颅击"}, "off": {0: 4, 1: 16, 2: 10}},
 }
 LINK_EV = {"hoshiguma": ("PXPLOG hsg cover", "举盾")}
 OP = "skadi"
@@ -215,7 +217,7 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith(key) or l.startswith("PXPLOG hsg combo ")]
+    evs = [l.split() for l in log.splitlines() if l.startswith(key) or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam")]
     evs = [e for e in evs if float(e[-1]) >= t0]   # 快跑到 t0 那段也会打日志，只要录像段里的
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
@@ -233,7 +235,8 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (lname if evs[0][2] != "combo" else "举盾推挡", a.seed, T), fill=(230, 230, 230), font=f30)
+    lname = {"cover": "举盾", "link_slam": "冲阵", "gl_lland": "聚拢"}.get(evs[0][2], "举盾推挡")
+    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (lname, a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
     os.makedirs(a.out, exist_ok=True)

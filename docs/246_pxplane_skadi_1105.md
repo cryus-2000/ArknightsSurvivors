@@ -139,7 +139,6 @@
 - 旋钮：`fx/melee_impact_stop / _stop_heavy / _mate / _shake_px / _shake_t / _push / _push_heavy / _lit`。
 - 验证：TRACE 在批跑模式比（顿帧在玩家时钟里会真的停模拟，开 / 关两局本来就会分岔，所以 TRACE 口径同 docs/245：`--balance` 非 `--playclock`）；对照录像用 `--realtime --playclock`（顿帧看得见）。脚本 `tools/melee_impact_rec.py`，在 GCP 上跑（`tools/gcp_render.py --job custom`）。
 
-
 ## 12. 出图流程（11-05 起放 GCP，docs/256）
 
 本机只写代码、不开 Godot 渲染；截图、录像和 TRACE 都用一条命令放到 GCP 上出：

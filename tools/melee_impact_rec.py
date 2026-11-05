@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""近战打击感包（docs/246 §11，fx/melee_impact）开 / 关对照：GCP 虚拟机上跑（Linux，xvfb + opengl3），本机不开 Godot。
+"""近战打击感包（docs/246 §12，fx/melee_impact）开 / 关对照：GCP 虚拟机上跑（Linux，xvfb + opengl3），本机不开 Godot。
 
   rec    斯卡蒂、星熊各一局（队长），同种子开 / 关两遍，--realtime --playclock（顿帧在玩家时钟下才看得见）30 帧原速连存 N 秒，
          拼成 2×2（上斯卡蒂、下星熊；左关右开）1920 宽 mp4，压到 30 MB 以内
@@ -86,7 +86,7 @@ def trace(out, seed, maxt):
         same = diff == 0 and len(tr[0]) > 0
         ok &= same
         print("TRACE %s 打击感包 关 vs 开：%d / %d 行，%s" % (op, len(tr[0]), len(tr[1]), "逐行一致" if same else "有差异 %d 行" % diff), flush=True)
-    # 框架修复（docs/246 §10）：斯卡蒂 fx/px_plane 0 vs 1（打击感包开着）
+    # 框架修复（docs/246 §11）：斯卡蒂 fx/px_plane 0 vs 1（打击感包开着）
     tr = []
     for px in (0, 1):
         log = godot(["--resolution", "1280x720", "--fixed-fps", "60", "--", "--balance", "--nodeath", "--trace=1", "--seed=%d" % seed, "--op=skadi",
@@ -112,6 +112,7 @@ def main():
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--maxt", type=int, default=300)
     a = ap.parse_args()
+    a.out = os.path.abspath(a.out)   # Godot 带 --path game 启动：相对路径会落到 game/ 下存不进去
     os.makedirs(a.out, exist_ok=True)
     ok = True
     if a.cmd in ("trace", "all"):

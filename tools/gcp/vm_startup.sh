@@ -30,8 +30,15 @@ trap selfdelete EXIT
 
 fail() { status "fail $1"; echo "$2" | gcloud storage cp - "$GS/done" -q; exit 1; }
 T0=$(date +%s)
-status "apt"
-apt-get update -qq && apt-get install -y -qq git python3-pip >/dev/null || fail apt 97
+# 开机用了多久（创建 → 启动脚本开始），写进 env.txt 量提速（docs/256 §7）
+BOOT=$(( T0 - $(date -d "$(gcloud compute instances describe "$NAME" --zone "$ZONE" --format="value(creationTimestamp)" 2>/dev/null)" +%s 2>/dev/null || echo $T0) ))
+# 预装镜像（family arkr-render，tools/gcp/build_image.py）：apt / pip / Godot / 中文字体都装好了，跳过安装
+READY=0
+if [ -f /opt/arkr/ready ]; then READY=1; fi
+if [ "$READY" = 0 ]; then
+    status "apt"
+    apt-get update -qq && apt-get install -y -qq git python3-pip >/dev/null || fail apt 97
+fi
 status "fetch $SHA"
 mkdir -p "$WORK" && cd "$WORK" || exit 1
 git init -q && git remote add origin https://github.com/cryus-2000/ArknightsSurvivors.git
@@ -48,7 +55,15 @@ git -c advice.detachedHead=false checkout -q --detach "$SHA"
 T1=$(date +%s)
 
 status "setup"
-bash tools/cloud/setup_linux.sh || fail setup 97
+if [ "$READY" = 1 ]; then
+    # 镜像里的 Godot + 预热过的导入缓存：拷进检出目录，只增量导入改过的素材；env.sh 照 setup_linux.sh 的格式写
+    cp -a /opt/arkr/godot_cache game/.godot
+    /opt/arkr/godot/godot --headless --path game --import >/dev/null 2>&1 || true
+    test -d game/.godot/imported || fail import 97
+    printf 'export GODOT="/opt/arkr/godot/godot"\nexport GODOT_MAX_PROCS="${GODOT_MAX_PROCS:-$(nproc)}"\n' > tools/cloud/env.sh
+else
+    bash tools/cloud/setup_linux.sh || fail setup 97
+fi
 T2=$(date +%s)
 
 OUT="build/cloud/$TAG"
@@ -73,7 +88,7 @@ cp /work/run.log "$OUT/run.log"
     echo "nproc: $(nproc)"
     echo "date_utc: $(date -u)"
     echo "runner: gcp $(md machine-type | awk -F/ '{print $NF}') $ZONE preemptible=$(md scheduling/preemptible)"
-    echo "secs: fetch $((T1-T0)) setup $((T2-T1)) run $((T3-T2))"
+    echo "secs: boot $BOOT fetch $((T1-T0)) setup $((T2-T1)) run $((T3-T2)) image $READY"
     echo "rc: $RC"
 } > "$OUT/env.txt"
 cat "$OUT/env.txt"

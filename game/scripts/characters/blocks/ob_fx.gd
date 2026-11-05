@@ -533,6 +533,8 @@ static func fx_hold_strips(ci, o, e: Dictionary, layer: String, c_zone: Vector2,
 		var name: String = str(f.get("strip", ""))
 		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
 			continue
+		if name == "fx_exusiai_halo" and Fxr.Pxp.owns_id(g, str(o.id)):
+			continue   # 转平面（docs/262）接管：祝福光环改由 fx_pxplane_exu 画像素椭圆环
 		var spec: Array = g.V6_FRAMES[name]
 		var frames: int = maxi(1, int(spec[0]))
 		var tv = f.get("tint", [])
