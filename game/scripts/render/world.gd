@@ -3600,10 +3600,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if e.get("sword_t", 0.0) > 0.0:
 		_sword_glint(e, bpos)
 	if e.get("air", 0.0) > 0.0:
+		var alk: Vector2 = Pxp.air_look(g, e)   # 转平面（docs/267）：安洁莉娜托起的敌人影子随高度缩小变淡、悬停时上下浮动 1 美术像素（只画；其余 (1, 0) 原样）
 		g.wcv.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
-		g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9, Color(0, 0, 0, 0.35))
+		g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9 * alk.x, Color(0, 0, 0, 0.35 * (0.4 + 0.6 * alk.x)))
 		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		g.draw_off.y -= e.air
+		g.draw_off.y -= e.air + alk.y
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if e.get("part", false):
 		# 部件（塑路者核心等）：心跳脉动——每拍一次放大 + 金色光晕；描边不受「怪物轮廓光」开关影响
