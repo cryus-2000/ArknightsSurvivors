@@ -1975,6 +1975,8 @@ func _ua(slot: String, vol = null) -> void:
 		return
 	var oid := str(caster.id)
 	var nm := "ult_%s_%s" % [oid, slot]
+	if Bal.v("ult/sfx_alt", 0.0) > 0.0 and ResourceLoader.exists("res://audio/sfx/%s_b.wav" % nm):
+		nm += "_b"   # 音效候选 B（docs/262 §11：终结技音效给 2 个候选，ult/sfx_alt = 1 试听 B；缺省 A）
 	sfx.ensure([nm])
 	var vt: Dictionary = _aud(oid).get("vol", {})
 	if vol == null:

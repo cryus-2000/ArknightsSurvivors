@@ -1,4 +1,5 @@
 ## 能天使终结技转平面画面（docs/262 §11，开关 ult/px_plane，缺省 0 = 原画面）：只改画面，判定 / 时长 / 伤害 / 发数一律照 ult_moves 原样。
+## 11-05 口径「以原版为底，只往上加」（ult_brief.md §8）：原画面全部照旧，只在最大那一下叠 big_blast、路上的爆点叠 cloud；下面其余的生成函数（举枪 / 锁定框 / 光弹 / 像素爆团）是第一版整套替换的画法，暂不调用。
 ## 画面件都是 ult 的图形（u.shape），kind = "pxfn"、px = 画法；ult.gd 的 draw_world / draw_world_back / 冲击帧见到 pxfn 就交给 draw()。
 ## 帧条（举枪大闪光、光柱、头顶大光环、爆点、焦痕、枪口火）用 fx_pxplane 的 pxp_ex_* 帧条（tools/pxplane_bake_exusiai.py 烤，图形 tools/pxplane_exu_ult_art.py），
 ## 1 特效像素 = 1 美术像素、按 15 fps 节拍选帧；锁定框、锁定范围环、连锁闪线运行时逐格画（同 pxplane_exu_ult_art.reticle_px / ring_px）；子弹用 fx_pxplane_exu 的肉鸽式光弹。
@@ -95,15 +96,12 @@ static func burst(u, a: Dictionary, p: Vector2, sc: float, i: int, red: Color, g
 		u.light(p, 160.0 * sc, red.lerp(gold, 0.5), 0.15)
 
 
-## 整招最大的一下爆炸（冲击帧那一发；11-05 用户「最大的爆炸的时候才是应该慢动作和冲击帧的时候」，口径 ult_brief.md §3）：
-## 冲击帧剪影（原爆点帧条 ×2.4 + 碎环的剪影，只在冲击帧两拍显形）→ 半拍预备（光点往中心收、圈内压暗）→ 中心小亮核亮 2 拍 + 照地灯打满 240 + 轻震 3px / 0.12 秒
-## → 8 格厚压扁冲击环 3.5 拍推到判定边缘（环后地面一闪）→ 160 颗粒子云往外喷 → 崩解：被打中过的怪按冲击环推到它那一刻，补一次引擎击杀碎屑 + 本色像素喷散。
+## 整招最大的一下爆炸（冲击帧那一发；11-05 用户「最大的爆炸的时候才是应该慢动作和冲击帧的时候」，口径 ult_brief.md §3 / §8「以原版为底，只往上加」）：
+## 原爆点帧条 ×2.4 + 碎环 + 冲击帧剪影照旧（ult_moves 原样画）；这里只往上叠：照地灯打满 240 + 轻震 3px / 0.12 秒、半拍后 8 格厚压扁冲击环 3.5 拍推到判定边缘（环后地面一闪）、
+## 160 颗闪烁粒子云往外喷、崩解（被打中过的怪按冲击环推到它那一刻，补一次引擎击杀碎屑 + 本色像素喷散）。
 ## 慢动作 / 定格走共用的 ult.impact（冲击帧两拍 + 定格 + 0.25 倍慢放 + 缓回），这里主动在爆心调一次，冲击、慢放、大灯都落在这一下
 static func big_blast(u, a: Dictionary, imp: Vector2, gold: Color, red: Color) -> void:
 	var c: Vector2 = imp + Vector2(0, -12)
-	u.shape({"kind": "pxfn", "px": "hfsil", "c": c, "life": 0.35, "hf": true})
-	u.shape({"kind": "pxfn", "px": "pre", "c": imp, "life": 0.5 / 15.0})
-	u.shape({"kind": "pxfn", "px": "core", "c": c, "delay": 0.5 / 15.0, "life": 2.0 / 15.0})
 	u.shape({"kind": "pxfn", "px": "bring", "c": imp, "delay": 0.5 / 15.0, "life": 5.5 / 15.0, "layer": "back"})
 	u.shape({"kind": "pxfn", "px": "cloud", "c": c, "sd": 977, "size": RB * 0.6 / 2.0, "n": 160, "delay": 0.5 / 15.0, "life": 1.2})
 	u.light(imp, 240.0, red.lerp(gold, 0.6), 0.6)
@@ -123,6 +121,11 @@ static func big_blast(u, a: Dictionary, imp: Vector2, gold: Color, red: Color) -
 		u.shape({"kind": "pxfn", "px": "spray", "e": e, "c": e.pos + Vector2(0, -10), "out": out, "sd": id * 13 + 5, "draw_spray": n < SPRAY_CAP, "delay": ta, "life": 1.3})
 		n += 1
 	u.impact(imp)
+
+
+## 路上的爆点：原爆点帧条照旧，上面叠一层闪烁粒子云
+static func cloud(u, c: Vector2, sd: int, size: float, n: int) -> void:
+	u.shape({"kind": "pxfn", "px": "cloud", "c": c, "sd": sd, "size": size, "n": n, "life": 1.2})
 
 
 static func chain(u, p0: Vector2, p1: Vector2, life: float) -> void:
