@@ -238,56 +238,83 @@ def cool_spots(R, seed, n=14):
     return out
 
 
+def teardrop(f, x, y, vx, vy, size, cols):
+    """尖尾泪滴：头圆（size 格）在前，尾巴顺着速度反方向收尖（2×size 格）"""
+    L = math.hypot(vx, vy)
+    dx, dy = (vx / L, vy / L) if L > 1e-6 else (1.0, 0.0)
+    rr = max(0, size - 1)
+    for px in range(-rr, rr + 1):
+        for py in range(-rr, rr + 1):
+            if px * px + py * py <= rr * rr + 0.5:
+                f.put(x + px, y + py, cols[0])
+    for i in range(1, size * 2 + 1):
+        f.put(x - dx * (rr + i), y - dy * (rr + i), cols[1] if i <= size else cols[2])
+
+
 def s3_impact_up(f, fi, R, seed):
-    """S3 落地水爆（虎鲸砸进地面，立起；docs/266 §10「爆炸是从中心往外爆炸」）：
-    第 0 拍中心一团实心白（+ 尖刺）；第 1 拍白团化成一圈往外推的白环；水团分三圈依次往外炸（内圈先、外圈晚 0.05 秒一档），水滴跟着；约 0.6 秒"""
-    star(f, fi, R * 1.4, seed, 1.2, 26.0)
+    """S3 砸地（立起；docs/266 §11，15 fps 两拍）：
+    第 0 帧（全招最亮）：中心实心白团 + 主冲击一柱水（白芯）；
+    第 1 帧：水柱塌一半、降一阶；更快的「裙边」：一圈低水环冲到 0.4R；
+    第 2 帧：水环到 0.65R、断成 5 段；第 3–5 帧：每段变成尖尾泪滴沿弧线往外落，一帧缩一格，缩成 1 格点后消失。不用白（第 0 帧除外）"""
     if fi == 0:
-        for dx in range(-15, 16):
-            for dy in range(-26, 3):
-                d2 = (dx / 14.0) ** 2 + ((dy + 10) / 12.0) ** 2
+        for dx in range(-13, 14):
+            for dy in range(-22, 3):
+                d2 = (dx / 12.0) ** 2 + ((dy + 8) / 10.0) ** 2
                 if d2 < 1.0:
-                    f.put(dx, dy, WHITE if d2 < 0.6 else C[6])
-    elif fi <= 2:
-        rr = R * (0.22 if fi == 1 else 0.4)
+                    f.put(dx, dy, WHITE if d2 < 0.55 else C[6])
+        for y in range(0, 44):   # 主冲击：一柱水（白芯）
+            hw = 4 - y // 14
+            for x in range(-hw, hw + 1):
+                f.put(x, -y, WHITE if abs(x) <= 1 else C[6])
+        return
+    if fi == 1:
+        for y in range(0, 26):
+            hw = 3 - y // 10
+            for x in range(-hw, hw + 1):
+                f.put(x, -y, C[5] if abs(x) <= 1 else C[4])
+    rnd = random.Random(seed)
+    nseg = 5
+    a0 = rnd.random() * math.tau
+    if fi in (1, 2):
+        rr = R * (0.4 if fi == 1 else 0.65)
         for a, x, y in ellipse_pts(rr):
-            for z in range(0, 5 - fi * 2 + 1):
-                f.put(x, y - z, WHITE if (fi == 1 and z > 1) else C[6])
-    clumps(f, fi, R * 0.45, 30, 14, seed, size=(3.0, 5.2))
-    clumps(f, fi, R * 0.75, 26, 18, seed + 3, t_delay=0.05, size=(2.5, 4.4))
-    clumps(f, fi, R, 20, 22, seed + 7, t_delay=0.1)
+            seg = ((a - a0) % math.tau) / (math.tau / nseg)
+            if fi == 2 and (seg % 1.0) > 0.7:
+                continue   # 第 2 帧断开
+            hh = 4 if fi == 1 else 3
+            for z in range(hh):
+                f.put(x, y - z, C[5] if z == hh - 1 else C[4])
+            f.put(x, y + 1, C[2], over=False)
+        return
+    if fi > 5:
+        return
+    k = fi - 3   # 0, 1, 2
+    for i in range(nseg * 2):
+        a = a0 + (i // 2 + 0.35 + 0.3 * (i % 2)) * math.tau / nseg
+        r0 = R * 0.65
+        r1 = R * (0.8 + 0.08 * k + 0.04 * (i % 2))
+        x, y = math.cos(a) * r1, math.sin(a) * r1 * SY
+        z = [10, 6, 2][k] + (i % 3)
+        vx, vy = math.cos(a) * 3.0, math.sin(a) * SY * 3.0 + [1.0, 3.0, 4.0][k]
+        size = [3, 2, 1][k]
+        teardrop(f, x, y - z, vx, vy, size, (C[5], C[4], C[3]))
 
 
 def s3_impact_gd(f, fi, R, seed):
-    """S3 落地水爆（贴地）：一圈压扁的细冲击涟漪 0.3 秒推到判定半径；积水先漫到 0.8R（断续白沫边 + 内侧 2 格暗水带，不平涂），
-    再一拍一拍往回退、变暗散掉（约 0.8 秒）"""
-    if fi <= 2:
-        blob(f, R * 0.32, seed, [C[3], C[2], C[1]] if fi == 0 else [C[2], C[1]], 1.0)
-    ripple(f, fi, R, seed, n_beats=7, r0=0.12, gap=0.2)   # 冲击涟漪从中心推出去
-    if fi <= 3:   # 积水跟在冲击后面往外漫
-        rr = R * 0.8 * ease_out((fi + 1) / 4.0)
-    else:
-        rr = R * 0.8 * max(0.15, 1.0 - (fi - 3) / 9.0)
-    fade = max(0, fi - 6)
-    if fade > 5:
+    """S3 砸地（贴地）：第 0 帧预兆细环变成实环（2 格厚）在 0.3R 炸开，0–3 帧推到判定半径；落点一块深色湿印，4–6 帧按拍收掉"""
+    if fi > 6:
         return
-    edge = [FOAM, FOAM, C[5], C[5], C[4], C[3]][fade]
-    for a, x, y in ellipse_pts(rr):
-        if vn(a * 5.0 + seed + fi * 0.4) < 0.25 + 0.08 * fade:
-            continue
-        k = 0.9 + 0.14 * vn(a * 3.0 + seed)
-        f.put(x * k, y * k, edge, over=False)
-        for j in (1, 2):
-            kk = (rr * k - j * 1.3) / max(1.0, rr)
-            f.put(x * kk, y * kk, C[2] if fade < 3 else C[1], over=False)
-    if fi >= 3:   # 退下去留下的湿痕白沫点
-        rnd = random.Random(seed + fi)
-        for i in range(int(R * 0.5)):
-            a = rnd.random() * math.tau
-            r2 = rnd.uniform(rr, R * 0.8)
-            if rnd.random() < 0.25 + 0.1 * fade:
+    if fi <= 3:
+        rr = R * [0.3, 0.6, 0.85, 1.0][fi]
+        col = [C[5], C[5], C[4], C[3]][fi]
+        for a, x, y in ellipse_pts(rr):
+            if fi >= 2 and vn(a * 6.0 + seed + fi) < 0.25:
                 continue
-            f.put(math.cos(a) * r2, math.sin(a) * r2 * SY, C[5] if fade < 2 else C[3], over=False)
+            f.put(x, y, col)
+            k = (rr - 1.3) / rr
+            f.put(x * k, y * k, C[3] if fi < 2 else C[2])
+    wet = [0.42, 0.42, 0.4, 0.36, 0.28, 0.18, 0.1][fi]
+    blob(f, R * wet, seed, [C[2], C[1]] if fi < 4 else [C[1]], 1.0)
 
 
 def spray_low(f, fi, R, seed, n=10):
@@ -472,8 +499,8 @@ def variants():
             v.append(("s1_r%d_e%d_gd" % (R, el), "splat", {"R": R, "tier": el, "pull": 0.0, "seed": 73 + R}, 9, "gd"))
     # S2 锁链界限：运行时画（fx_pxplane_ul._ring，会转），没有帧条
     # S3 落地（s3_r 140 → 70）
-    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 9, "up"))
-    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 13, "gd"))   # 12 拍积水退完
+    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 6, "up"))
+    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 7, "gd"))
     # 连携掷锚钉下（拖 180 内的小怪 → 90）
     v.append(("pin_gd", "inward", {"R": 90, "seed": 97}, 10, "gd"))
     return v

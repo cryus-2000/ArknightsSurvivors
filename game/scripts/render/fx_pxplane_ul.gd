@@ -30,7 +30,7 @@ const QI_BREAK := 0.17    # 后期冲击波玩法上消失后，原地碎开的�
 const ORCA_LEAP := 0.18   # 虎鲸到落点前跃起的时长（落下那一刻 = 玩法落地重击）
 const ORCA_K := 1.45     # 虎鲸放大（体长 44 × 1.45 ≈ 64 美术像素 = 128 世界像素）
 const ORCA_H := 64.0     # 弧顶离地（世界像素）
-const SWING_LIFE := 0.36  # 挥锚弧的时长
+const SWING_LIFE := 0.2   # 挥锚弧的时长（短而急）
 const SLAM_KEEP := 2   # 同一名干员同屏至多两记锚击水冠（最新 + 正在收的）
 
 static var _SegU = null
@@ -60,6 +60,12 @@ static func _strip(r, o, k: String, at: Vector2, ly: String, follow := false, ex
 		it["fo"] = at - o.pos
 	it.merge(extra, true)
 	r._push(it)
+
+
+## 帧条起点对齐 15 fps 拍：这一拍剩下不到半拍就从下一拍开始（第 0 帧占满一整拍），否则从这一拍开始
+static func _beat_t0(g) -> float:
+	var b: float = g.t * 15.0
+	return (ceilf(b) if b - floorf(b) > 0.5 else floorf(b)) / 15.0
 
 
 static func _pair(r, o, k: String, at: Vector2, follow := false, extra := {}) -> void:
@@ -162,8 +168,9 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			if d.get("s3", false):
 				if g.ult != null and not MI.on(g):   # 虎鲸砸下那一拍轻震（打击感包开着时它已经震了）
 					g.ult.shake(3.0, 0.12)
-				_strip(r, o, "s3_up", c2, "up")
-				_strip(r, o, "s3_gd", c2, "gd")
+				var bt0: float = _beat_t0(g)   # 爆点第 1 帧（最亮）要占满一拍
+				_strip(r, o, "s3_up", c2, "up", false, {"t0": bt0})
+				_strip(r, o, "s3_gd", c2, "gd", false, {"t0": bt0})
 				_burst(r, o, R, p, c2, d.get("es", []), 14, 240.0, 0.75)
 			else:   # S1 钩不到人：锚原地砸
 				_trim_slams(r, o)
@@ -223,6 +230,9 @@ static func floor_layer(r, o) -> void:
 	var id: String = str(o.id)
 	_segu().hw_draw_look(o, "auras")
 	var t: int = r.tier(o)
+	var an5: Dictionary = o.hw.get("anchor", {})
+	if not an5.is_empty() and an5.get("orca", false):   # S3 预兆：落点一道断续细环（判定半径），砸地时由 s3_gd 的实环接手
+		_telegraph(r, cv, o, an5)
 	if o.get("perm_on") is Array and o.perm_on[1]:   # S2 常驻：脚下一圈实心链环慢慢转
 		_ring(r, cv, r._snap(o.pos + Vector2(0, 2)), S2_RING, float(int(floor(g.t * 15.0))) * 0.02, 0, t)
 	for it in r.items:
@@ -318,9 +328,11 @@ static func sort_items(r, o, out: Array) -> void:
 		return
 	var an: Dictionary = o.hw.get("anchor", {})
 	if not an.is_empty() and an.get("orca", false):
-		var pose: Array = _orca_pose(o, an)
-		if not pose.is_empty():
-			out.append({"ulrt": "orca", "gp": pose[0], "z": pose[1], "pitch": pose[2], "dv": pose[3], "clip": pose[4], "skey": (pose[0] as Vector2).y + 1.0, "oid": str(o.id)})
+		var tq: float = floorf(float(an.t) * 15.0) / 15.0   # 按 15 fps 节拍取姿势
+		for gi in [2, 1, 0]:   # 身后 2 帧残影（逐帧变淡）+ 本体
+			var pose: Array = _orca_pose_t(o, an, tq - float(gi) / 15.0)
+			if not pose.is_empty():
+				out.append({"ulrt": "orca", "gp": pose[0], "z": pose[1], "pitch": pose[2], "dv": pose[3], "clip": pose[4], "ghost": gi, "skey": (pose[0] as Vector2).y + 1.0 - 0.01 * float(gi), "oid": str(o.id)})
 	if o.vg.is_empty() or not o.vg.has("qi"):
 		return
 	for q in o.vg.qi:
@@ -644,33 +656,64 @@ static func _draw_qib(r, ci, it: Dictionary) -> void:
 
 ## 虎鲸位置（读玩法状态 o.hw.anchor，docs/266 §8）：[地面点, 离地高度（世界像素）, 俯仰（正 = 头朝下）, 前进方向, 是否只画水面以上]。
 ## 掷锚那段（throw）：在身前 20 处从水里冒出来（往上升、水面以下不画）；orca 段：游的位置 = 玩法结算用的同一个 orca_head，跃起那 ORCA_LEAP 秒成弧、正好在落地重击那一刻砸到落点
-static func _orca_pose(o, an: Dictionary) -> Array:
+## 某一时刻的虎鲸（读玩法状态 an，t = 该阶段内的时刻；残影用更早的时刻）：[地面点, 离地高度, 俯仰（正 = 头朝下）, 前进方向, 是否只画水面以上]。
+## 节奏按 15 fps（docs/266 §11）：掷锚段末 2 帧破水 → 划弧（其余时间）→ 顶点停 2 帧（第 1 帧多冲 1 美术像素）→ 下砸 1 帧 → 落地（玩法落地重击）
+static func _orca_pose_t(o, an: Dictionary, t: float) -> Array:
 	var SU = _segu()
 	var to: Vector2 = an.to
-	if str(an.phase) == "throw":   # 从他身前的地面破水跃出（头朝上，水面以下不画）
+	if str(an.phase) == "throw":
 		var dv: Vector2 = (to - o.pos).normalized() if to.distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
-		var k: float = clampf(float(an.t) / maxf(0.001, float(an.dur)), 0.0, 1.0)
-		return [o.pos + dv * 20.0, lerpf(-40.0, 16.0, k * (2.0 - k)), -0.95, dv, true]
-	if str(an.phase) != "orca":
+		var tb: float = float(an.dur) - 2.0 / 15.0   # 末 2 帧破水
+		if t < tb:
+			return []
+		var k: float = clampf((t - tb) / (2.0 / 15.0), 0.0, 1.0)
+		return [o.pos + dv * 20.0, lerpf(-30.0, 14.0, k), -1.0, dv, true]
+	if str(an.phase) != "orca" or t < 0.0:
 		return []
 	var dv2: Vector2 = ((an.land as Vector2) - (an.S as Vector2)).normalized() if (an.land as Vector2).distance_to(an.S) > 1.0 else Vector2(o.face, 0)
-	var head: Vector2 = SU.orca_head(an)   # 地面投影 = 玩法路径结算点
-	var dur: float = maxf(0.001, float(an.dur))
-	var u: float = clampf(float(an.t) / dur, 0.0, 1.0)
-	var ua: float = 0.5
-	var hold: float = minf(0.2, (1.0 / 15.0) / dur)   # 弧顶停一拍
-	if u < ua:
-		var s0: float = u / ua
-		return [head, lerpf(16.0, ORCA_H, sin(s0 * PI * 0.5)), lerpf(-0.8, 0.0, s0), dv2, false]
-	if u < ua + hold:
-		return [head, ORCA_H, 0.05, dv2, false]
-	var v: float = (u - ua - hold) / maxf(0.001, 1.0 - ua - hold)
-	return [head, ORCA_H * (1.0 - v * v), lerpf(0.1, 1.25, v), dv2, false]   # 加速、头朝下砸进落点
+	var head: Vector2 = _head_at(an, t)   # 地面投影 = 玩法路径结算点
+	var dur: float = float(an.dur)
+	var B: float = 1.0 / 15.0
+	var t_slam: float = dur - B
+	var t_hold: float = t_slam - 2.0 * B
+	if t < t_hold:
+		var s0: float = clampf(t / maxf(0.001, t_hold), 0.0, 1.0)
+		return [head, lerpf(14.0, ORCA_H, 1.0 - (1.0 - s0) * (1.0 - s0)), lerpf(-0.75, 0.0, s0), dv2, false]
+	if t < t_slam:
+		return [head, ORCA_H + (2.0 if t < t_hold + B else 0.0), 0.08, dv2, false]   # 顶点停 2 帧，第 1 帧多冲 1 美术像素
+	return [head, ORCA_H * 0.35, 1.3, dv2, false]   # 下砸 1 帧：头朝下
 
 
-## 水精灵式虎鲸（docs/266 §10，用户「更加透明一点……更像是水精灵的感觉……虎鲸可以大一点」）：逐美术像素栅格化，任意方向不转贴图。
-## 半透明水体（透出地面和怪），上沿亮浪尖 + 白沫勾出头、背鳍、尾鳍，下沿一格浅水；内部顺体往后流的光纹 + 几个往后漂的气泡；
-## 浪尖与光纹进发光层（柔和冷光）。体长约 64 美术像素（128 世界像素）。地面投影走玩法路径（宽 50 内），往上是跃起的高度
+## 同 seg_ulpianus.orca_head，但取任意时刻（残影用）
+static func _head_at(an: Dictionary, t: float) -> Vector2:
+	var L: float = _segu().ORCA_LEAP
+	var sw: float = float(an.dur) - L
+	if t <= sw:
+		var k: float = clampf(t / maxf(0.001, sw), 0.0, 1.0)
+		return (an.S as Vector2).lerp(an.P, k * (2.0 - k))
+	return (an.P as Vector2).lerp(an.land, clampf((t - sw) / L, 0.0, 1.0))
+
+
+## 落点预兆：判定半径上一道断续细环（1 美术像素，按节拍转），掷锚到落地前一直在
+static func _telegraph(r, ci, o, an: Dictionary) -> void:
+	var g = r.g
+	var px: float = g.PX
+	var dv: Vector2 = ((an.to as Vector2) - o.pos).normalized() if (an.to as Vector2).distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
+	var c: Vector2 = an.get("land", (an.to as Vector2) - dv * 18.0)
+	var R: float = float(an.b.get("r", 140.0)) * o.stat(&"op_range") * 0.5   # 美术像素
+	var n: int = int(TAU * R / 2.0)
+	var beat: int = int(floor(g.t * 15.0))
+	for i in n:
+		if ((i + beat) / 3) % 2 == 1:
+			continue
+		var a: float = TAU * float(i) / float(n)
+		r._px(ci, r._snap(c + Vector2(cos(a) * R, sin(a) * R * SY) * px), C[4])
+
+
+## 鲸形水体（docs/266 §11，参照原神「公子」鲸、英雄联盟俯视出水的写法）：逐美术像素栅格化，任意方向不转贴图。
+## 主体实心水色、轮廓清楚：3–4 阶蓝——下沿深色底边 C2、身体 C3、上沿浅色 C4、头部前缘最亮 C5（不用白；白只在砸地那一帧）；
+## 透明只留给身体后段（尾柄 + 尾鳍 α 0.55）和体内往后流的光纹。ghost > 0 = 残影：只画身体，逐帧变淡。
+## 体长约 64 美术像素（128 世界像素）；地上一个随高度缩放的椭圆影子
 static func _draw_orca(r, ci, it: Dictionary) -> void:
 	var g = r.g
 	var px: float = g.PX
@@ -678,6 +721,7 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 	var z: float = float(it.z)
 	var dv: Vector2 = it.dv
 	var clip: bool = it.clip
+	var ghost: int = int(it.get("ghost", 0))
 	var e := Vector2(dv.x, dv.y * SY).normalized()
 	var flip: float = 1.0 if e.x >= 0.0 else -1.0
 	e = e.rotated(float(it.pitch) * flip)
@@ -685,12 +729,17 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 	if n.y > 0.0:
 		n = -n
 	var beat: int = int(floor(g.t * 15.0))
-	if not clip:   # 地上一块压扁的水影（离地越高越小越淡）
-		var sw: int = int(20.0 * (1.0 - clampf(z / 140.0, 0.0, 0.5)))
-		for i in range(-sw, sw + 1):
-			r._px(ci, gpos + Vector2(float(i) * dv.x, float(i) * dv.y * SY) * px, Color(C[1], 0.55))
+	if not clip and ghost == 0 and z > 6.0:   # 椭圆影子：越高越小
+		var sk: float = clampf(1.0 - z / 160.0, 0.45, 1.0)
+		var rx: float = 22.0 * sk
+		var ry: float = 6.0 * sk
+		for iy in range(-int(ry), int(ry) + 1):
+			for ix in range(-int(rx), int(rx) + 1):
+				if pow(float(ix) / rx, 2.0) + pow(float(iy) / ry, 2.0) <= 1.0:
+					r._px(ci, gpos + Vector2(ix, iy) * px, Color(C[0], 0.45))
 	var c: Vector2 = r._snap(gpos + Vector2(0, -z - 10.0))
 	var K: float = ORCA_K
+	var ga: float = [1.0, 0.35, 0.18][clampi(ghost, 0, 2)]
 	for jy in range(-26, 27):
 		for ix in range(-40, 41):
 			var q := Vector2(ix, jy)
@@ -701,54 +750,34 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 				continue
 			var pp: Vector2 = c + q * px
 			if clip and pp.y > gpos.y - 2.0:
-				continue   # 水面（地面线）以下不画：从水里跃出来
+				continue   # 水面（地面线）以下不画：破水
+			if ghost > 0:
+				r._px(ci, pp, Color(C[3], ga))
+				continue
 			var qu := q + Vector2(0, -1)
 			var qd := q + Vector2(0, 1)
 			var up: bool = _orca_cell(qu.dot(e) / K, qu.dot(n) / K, beat) < 0
 			var dn: bool = _orca_cell(qd.dot(e) / K, qd.dot(n) / K, beat) < 0
-			if up:   # 浪尖：亮、实
-				r._px(ci, pp, C[7] if (k == 0 or u > 14.0 or (ix + beat) % 4 == 0) else C[6])
-				if (ix & 1) == 0:
-					r._glow(pp, C[6])
-				continue
-			if dn:
-				r._px(ci, pp, Color(C[5], 0.7))
-				continue
-			if k == 3:
-				r._px(ci, pp, C[7])
-				continue
-			var bub: int = _orca_bubble(u, w, beat)
-			if bub > 0:
-				r._px(ci, pp, C[7] if bub == 2 else Color(C[6], 0.85))
-				continue
-			var fl: float = _h(floorf(u * 0.6 + float(beat) * 1.5) * 0.37 + floorf(w * 0.5))   # 顺体往后流的光纹
-			if fl > 0.8:
-				r._px(ci, pp, Color(C[5], 0.6))
-				if fl > 0.93:
+			var rear: bool = u < -8.0
+			var col: Color
+			if up:
+				col = C[5] if u > 6.0 else C[4]   # 前缘（头）最亮
+				if u > 14.0:
 					r._glow(pp, C[5])
+			elif dn:
+				col = C[2]
+			elif u > 17.0:
+				col = C[5]   # 吻部前缘
+			elif k == 3:
+				col = C[5]   # 眼后一点浅色
 			else:
-				r._px(ci, pp, Color(C[3] if k != 2 else C[2], 0.36))   # 半透明水体
-	if not clip:   # 尾后、背鳍后甩出的水滴（每拍换位置）
-		for i in 8:
-			var hs: float = _h(float(i) * 3.1 + float(beat) * 0.71)
-			var back: float = (20.0 + hs * 16.0) * K
-			var lift: float = (2.0 + _h(float(i) + float(beat) * 1.3) * 12.0) * K * 0.6
-			r._px(ci, c + (-e * back + n * lift) * px, C[6] if i % 2 == 0 else C[5])
-
-
-## 体内气泡：4 个 3×3 小环顺体往后漂（u、w 是体长坐标）；返回 0 不是 / 1 环 / 2 高光
-static func _orca_bubble(u: float, w: float, beat: int) -> int:
-	for i in 4:
-		var cu: float = fposmod(12.0 - float(beat) * 2.5 + float(i) * 11.0, 34.0) - 18.0
-		var cw: float = sin(float(i) * 1.7) * 3.0
-		var du: float = u - cu
-		var dw: float = w - cw
-		var d2: float = du * du + dw * dw
-		if d2 < 0.5:
-			return 0
-		if d2 < 2.6:
-			return 2 if (du < -0.4 and dw > 0.4) else 1
-	return 0
+				col = C[3] if k != 2 else C[2]
+				var fl: float = _h(floorf(u * 0.6 + float(beat) * 1.5) * 0.37 + floorf(w * 0.5))   # 体内往后流的光纹
+				if fl > 0.82:
+					col = Color(C[4], 0.75)
+			if rear and not up:
+				col = Color(col, 0.55)   # 后段透明
+			r._px(ci, pp, col)
 
 
 ## 挥锚（S3 起手）：锚尖从他身前的地面抡起一道带水的弧（竖直面内，0.2 秒从前下方扫到头顶后方），弧头白、往后降阶，
@@ -761,16 +790,16 @@ static func _draw_swing(r, ci, it: Dictionary) -> void:
 	var hs := Vector2(dv.x, dv.y * SY).normalized()
 	var piv: Vector2 = (it.c as Vector2) + Vector2(0, -20)
 	var Ra: float = 30.0
-	var kk: float = clampf(age / 0.2, 0.0, 1.0)
+	var kk: float = clampf(age / 0.1, 0.0, 1.0)   # 0.1 秒扫完（短而急）
 	var th_h: float = lerpf(-0.75, 2.5, 1.0 - (1.0 - kk) * (1.0 - kk))   # 弧头角（弧度，0 = 正前方水平，正 = 往上）
-	var fade: int = 0 if age < 0.2 else (1 if age < 0.28 else 2)
+	var fade: int = 0 if age < 0.1 else (1 if age < 0.15 else 2)
 	var th0: float = maxf(-0.75, th_h - 1.9)
 	var steps: int = int((th_h - th0) * Ra / px) + 1
 	for i in steps:
 		var th: float = th_h - float(i) * px / Ra
 		var v: float = float(i) / float(maxi(1, steps))
 		var p: Vector2 = piv + hs * cos(th) * Ra + Vector2(0, -sin(th) * Ra)
-		var col: Color = C[7] if v < 0.12 else (C[6] if v < 0.35 else (C[5] if v < 0.7 else C[4]))
+		var col: Color = C[5] if v < 0.35 else (C[4] if v < 0.7 else C[3])
 		if fade == 1:
 			col = C[5] if v < 0.5 else C[4]
 		elif fade == 2:
