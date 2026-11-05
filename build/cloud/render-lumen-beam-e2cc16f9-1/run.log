@@ -1,0 +1,17 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2490 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+e1_m0_px0_beam_e1 90 帧 []
+e1_m0_px2_beam_e1 90 帧 []
+e1_m0_px1_beam_e1 90 帧 []
+三栏 e1 帧 9
+e2_m0_px0_beam_e2 90 帧 []
+e2_m0_px2_beam_e2 90 帧 []
+e2_m0_px1_beam_e2 90 帧 []
+三栏 e2 帧 9
+e2_m2_px0_beam_e2s3 90 帧 []
+e2_m2_px2_beam_e2s3 90 帧 []
+e2_m2_px1_beam_e2s3 90 帧 []
+三栏 e2s3 帧 36
+build/cloud/render-lumen-beam-e2cc16f9-1/media/sfx_events_11.log 17246 行 SCRIPT ERROR: 0 
+media：18 个文件，11M
