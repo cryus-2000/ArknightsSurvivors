@@ -453,3 +453,61 @@ term.<词>                 共用术语（灯火、技力、队长……），�
 4. **短版译文 `<key>_short`**：放不进定宽格子的 HUD 状态名、标签、阵营名、按钮，共 23 条加触发条件 9 条。CSV 加行 `<key>_short`，代码里定宽位置读短版、悬停 / 图鉴读全名。例：`碎漩狂舞` 状态名 `Dance of the Shattered Maelstrom` → 短版 `Maelstrom`；`龙门近卫局` → `L.G.D.`（国际服常用缩写）；`神经损伤` 格子里写 `Nerve`、悬停写全称；`精英开始读招` → `Elite wind-up`。
 
 框架接入后，`overflow_check.py` 改成读游戏实际的框（截图前跑一遍），第三步再逐屏截图验收（GCP，本机最多 1 个 Godot）。
+
+---
+
+## 10. 框架（11-06，分支 claude/english-framework，基于 claude/integ-1105）
+
+用户「开工」。按 §2 与 §9 搭好框架，接通干员、怪物两块；其余模块切到英文时仍显示中文，不崩、不出空 key。
+
+**文件**
+- `game/scripts/core/loc.gd`：本地化模块（静态函数，不是 autoload）。
+- `game/l10n/<模块>.csv` + `.csv.import`：Godot CSV 翻译表，列 `keys,en,_zh,_source,_note`（`_` 开头的列导入时跳过，只给人看）；`compress=0`，好让 loc.gd 列出全部键做模板。导入生成的 `*.en.translation` 不提交（`game/l10n/.gitignore`）。CSV 由 `tools/l10n/translate_vertex.py csv <模块>` 生成，**不要手改**；人工改稿写 `tools/l10n/review/<模块>.json`（键 = 中文原文），短版写 `tools/l10n/review/short.json`。
+- 设置「画面」页第一行「语言 / Language」：两格 中文 / English，存档 `game/lang`（`auto` / `zh` / `en`）。B站 Toy 版不列出、固定中文。调试命令行 `--lang=en` / `--lang=zh` 强制本次语言。
+
+**三种查法**
+1. **路径键**（`op.mizuki.skills.1.desc`）：`operator_defs.load_def` 在填数**之前**用 `Loc.tree()` 把说明类长文本（desc / brief / branch_desc / intro / trigger / hint / banner / line / text / lore）换成英文模板，`{$键}` 仍由 `fill_line` 填。
+2. **原文键**（键 = 中文原文）：`ui.gd` 的绘制 / 量宽助手（text / ctext / cwidth / fit / fit_line / text_fit / wrap_lines / text_at / button / heading / strip / deploy_button / stat_big）入口先过 `Loc.s()`，名字、标签、Boss 招式名、横幅、档案、敌人机制行都走这里。**名字和伤害来源名不在读 JSON 时换**：代码拿它们当 ID 比（`fx_pxplane` 按技能名分派、`melee_impact.HEAVY`、`run_stats` 伤害来源），换了逻辑会断。
+3. **模板**：已经填过数的句子（终结技说明、「二重咏唱 ×3」「-12 震撼」这类状态 / 飘字）按原文里的 `{$…}` / `%d` / `%s` 生成正则，匹配后把数字填进英文模板；`%s` 捕到的中文再查一次。模板按第一个中文二字组分桶，查过的串进缓存（4096 条）。
+
+定宽胶囊（tab / chip / chip_row / pill / btab / ctag）用 `Loc.short()`：先查 `short:<原文>`，没有就同 `s()`。
+
+**缺省语言**：「跟随系统」由 `Loc.resolve()` 解析。`Loc.AUTO_EN_READY = false` 时一律解析成中文：英文未覆盖全部模块之前，系统语言是英文的玩家先看到完整中文，不会看到中英夹杂；在设置里手动选 English 不受影响。**全部模块翻完、第三步验收后改成 true**（协调人定的「缺省跟系统」在那时生效）。
+
+**英文排版（§9 接入）**
+- 折行：`UI.BRK` 已含 `BREAK_WORD_BOUND`；`soft()` 只给汉字插零宽空格，英文按词断行。
+- `UI.fit`：英文下字号表补一档（`sizes[-1] − 1`，不低于首档 85%）；`_fit_line`：英文下最小字号放宽到原字号 85%。
+- `UI.strip`：英文小标与译名相同（`VANGUARD` / `Vanguard`）时只写一次。
+- 图鉴技能行（`gallery._row_heights`）：英文下每行保底高度多一行（36 / 58 px）。点开的一行（`row_sel`）照旧拿满。**右栏整体滚动这一版没做**：截图看保底加一行 + 点开展开后是否还不够，再定。
+- 升级卡：`choice_panel.brief()` 英文按「; 」「. 」截第一句（`_brief_en`）；精英化卡的一句话改整句模板 `Unlocks Skill N · <技能名>`。
+
+**快检**：`check.py --only l10n`（查表 / 模板 / 短版 / 回退 / 20 人说明无残留占位 / 切回中文一字不差），`--only ui_smoke_en`（界面冒烟英文版）。本机 11-06 跑过：l10n、ui_smoke、ui_smoke_en、card_desc、card_desc_fit、touch_layout 全部通过；干员长文本 482 条英文模式下 0 条残留中文。
+
+**截图**：`tools/l10n/l10n_shots.py`（GCP，`docs/256` custom 任务）中英各截：标题、选人、图鉴（水月 / 斯卡蒂 / 凯尔希 的档案·技能·成长，骨海漂流体 / 钵海收割者 / 箱形恐鱼 / 伊祖米克 / 接潮主教）、设置、HUD、招募卡、升级卡 ×3、属性面板。
+
+**已知限制**
+- 直接调 `draw_string` / `font.get_string_size` 的地方（全项目约 140 处）不经过 UI 助手：这些字不翻，量宽也还是按中文。由脚本改写会话逐屏改成 UI 助手或 `Loc.s()`。
+- 同一句中文在不同位置译法不同时，原文键只能取一个（按 官方 > 暂定 > 人改 > 模型）。
+- 新测试脚本的 `.gd.uid` 没生成（本机当时已有别的 Godot 在跑，没再开导入）；合入时整合会话导入后补。
+
+## 11. 后续拆分（框架合入后由协调人开）
+
+脚本改写 3 个（都基于框架合入后的整合分支；各自只碰自己目录，小步合入；不碰 fx_pxplane.gd 与终结技代码 ult*.gd）：
+
+| 会话 | 范围 | 做什么 |
+|---|---|---|
+| l10n-script-screens | `game/scripts/screens/*.gd`（约 1 770 条字面量） | 界面字面量改 `tr` 键或原文键入表；拼句改整句模板；直接 `draw_string` 的改走 UI 助手；按 `check.py --only l10n ui_smoke_en` 验 |
+| l10n-script-core | 顶层 `gallery.gd / title.gd / settings_panel.gd / endings.gd / data.gd / relic_fx.gd`、`core/`、`render/`（约 1 130 条，perf_report 不翻） | 同上；图鉴右栏滚动（§10 已知限制）在这里做 |
+| l10n-script-run | `run/`、`characters/`（除 ult*.gd）、`enemies/`（招式名已入表，只改拼句与飘字格式） | 同上；伤害来源名（作战记录）走原文键，不改 ID |
+
+翻译 5 个（`tools/l10n` 流水线：extract → translate_vertex run → 复核 → csv；各写自己的 CSV 模块，互不冲突；可与脚本改写并行）：
+
+| 会话 | 模块 CSV | 内容 |
+|---|---|---|
+| l10n-tr-ui | `ui.csv` | 界面、HUD、设置、指南 guide.json、新手引导 onboard.json、制作名单 credits.json |
+| l10n-tr-relics | `relics.csv` | 藏品 265 件（名字 262 件官方）、relic_effects、流派名、稀有度 |
+| l10n-tr-events | `events.csv` | waves.json / events_v2.json 事件与选项、结局 endings.gd、档案剩余条目 |
+| l10n-tr-meta | `meta.csv` | 认知塑造 meta_tree / meta_roots（11 节点官方）、升级卡 cards.json、勋章 medals.json、练习编队、连携 synergy.json |
+| l10n-tr-review | 不新建模块 | 精修 ops / enemies 两块模型稿（约 1 900 条说明只过了自动检查），按 overflow_check 结果改短 53 条严重项 |
+
+翻译会话的 extract 白名单要按自己的文件扩（`tools/l10n/extract.py`），新模块名加到 `Loc.MODULES` 并带 `.csv.import`（compress=0）。全部翻完后：`Loc.AUTO_EN_READY = true`，第三步逐屏截图验收（GCP）。

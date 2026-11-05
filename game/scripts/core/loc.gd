@@ -141,6 +141,12 @@ static func s(text: String) -> String:
 			out = t
 		else:
 			out = _match_tpl(text)
+			if out == text and text.contains(" · "):
+				# 代码拼的「A · B」（升级卡「水月 · 强迫性重复」、Boss 招式「手炮 · 炮线」）：整串查不到就逐段查
+				var parts := text.split(" · ")
+				for pi2 in parts.size():
+					parts[pi2] = s(parts[pi2])
+				out = " · ".join(parts)
 	if _cache.size() >= 4096:
 		_cache.clear()
 	_cache[text] = out

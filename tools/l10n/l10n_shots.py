@@ -22,7 +22,7 @@ def main():
     bad = 0
     for lang in a.langs.split(","):
         args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--resolution", "1280x720",
-                "res://tests/l10n_shots.tscn", "--", "--lang=" + lang,
+                "res://tests/l10n_shots.tscn", "--", "--lang=" + lang, "--unlockall",
                 "--shot_dir=" + a.out.replace(os.sep, "/")] + a.extra.split()
         o, e, to = gr.run_godot(args, 1200)
         open(os.path.join(a.out, "run_%s.log" % lang), "w", encoding="utf-8").write(o + "\n----\n" + e)

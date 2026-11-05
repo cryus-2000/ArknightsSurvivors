@@ -748,7 +748,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		else:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0 if Pad.touch_ui() else DESC_H_DESK, [15, 14, 13, 12] if Pad.touch_ui() else DESC_SIZES_DESK)
-			var compact: bool = not f0.fit
+			# 非紧凑布局的说明区实际只容两行（第三行会压到下面的流派 / 影响标签行；中文不会排到三行所以没暴露）：英文超过两行就切紧凑布局
+			var compact: bool = not f0.fit or (Loc.en() and f0.lines.size() > 2)
 			if L.touch:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
