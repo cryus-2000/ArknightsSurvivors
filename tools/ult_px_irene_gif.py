@@ -249,7 +249,22 @@ def render(tk, ph, t, hfk):
         if ct >= T_FIN:   # 收尾斩击
             age = ct - T_FIN
             pts(C, A.final_blade(R, DV, age))
-            pts(C, A.boom(int(math.floor(age * 15)), s=2.4))   # 斩点中心一记大爆亮
+            # 收尾大爆（同 ult_px_ir._draw_blast）：预备压暗 + 光点吸入 → 亮核 2 拍 → 冲击环
+            if age < A.BLAST_T + 0.2:
+                kd = min(1.0, age / A.BLAST_T) * (1.0 if age < A.BLAST_T else max(0.0, 1 - (age - A.BLAST_T) / 0.2))
+                if kd > 0:
+                    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+                    ImageDraw.Draw(ov).ellipse([C[0] - R_W * 1.05, C[1] - R_W * 1.05 * A.SQ, C[0] + R_W * 1.05, C[1] + R_W * 1.05 * A.SQ], fill=(0, 0, 5, int(255 * 0.28 * kd)))
+                    img.alpha_composite(ov)
+                    dr = ImageDraw.Draw(img)
+            pts(C, A.blast_prep(R, age))
+            if age >= A.BLAST_T:
+                tau = age - A.BLAST_T
+                for rx, col in A.blast_core(R, int(math.floor(tau * 15))):
+                    dr.ellipse([C[0] - rx * PX, C[1] - 12 - rx * PX * A.SQ, C[0] + rx * PX, C[1] - 12 + rx * PX * A.SQ], fill=hx(col))
+                if 0 <= tau < 2 / 15:
+                    lights.append((C[0], C[1], 240, 0.9, (1.0, 0.85, 1.25)))
+                pts(C, A.shock_ring(R, tau))
             nv = (-DV[1], DV[0])
             for i in range(7):
                 x = (i - 3) / 3
@@ -262,12 +277,12 @@ def render(tk, ph, t, hfk):
                 for k in range(A.PLUME_N):
                     x = (k - (A.PLUME_N - 1) / 2) / ((A.PLUME_N - 1) / 2)
                     root = (C[0] + DV[0] * R_W * x * 0.92 + nv[0] * side * 12, C[1] + DV[1] * R_W * x * 0.92 + nv[1] * side * 12)
-                    pts(root, A.plume(age - 0.12 - 0.1 * abs(x), k * 2 + (side > 0) + 300, (nv[0] * side, nv[1] * side)))
+                    pts(root, A.plume(age - A.shock_at(R, abs(x) * 0.92 * R) - 0.02, k * 2 + (side > 0) + 300, (nv[0] * side, nv[1] * side)))
             for q in range(A.SLAB_N):
                 side = 1 if q % 2 else -1
                 x = ((q // 2) - (A.SLAB_N // 2 - 1) / 2) / ((A.SLAB_N // 2 - 1) / 2)
                 sp = (C[0] + DV[0] * R_W * x * 0.95 + nv[0] * side * 6, C[1] + DV[1] * R_W * x * 0.95 + nv[1] * side * 6)
-                pts(sp, A.slab(age - 0.06 - 0.12 * abs(x), 200 + q, (nv[0] * side, nv[1] * side)))
+                pts(sp, A.slab(age - A.shock_at(R, abs(x) * 0.95 * R), 200 + q, (nv[0] * side, nv[1] * side)))
     # ---- 光照
     if ct >= 0.1:
         k = max(0.0, 1.0 - (ct - 0.1) / 2.0)

@@ -167,7 +167,7 @@ func draw_back(_u, w) -> void:
 
 
 ## 上层（ult.draw_world，招式图形之后、冲击帧之前）：光链、穿梭斩线 / 细线 / 落点水花、连环爆 + 颗粒、收尾斩击 + 沿线爆 / 尘墙 / 碎石
-func draw_front(_u, w) -> void:
+func draw_front(u, w) -> void:
 	if not _live():
 		return
 	var c: Vector2 = st.c
@@ -211,7 +211,7 @@ func draw_front(_u, w) -> void:
 		var nv := Vector2(-dv2.y, dv2.x)
 		var Rw: float = R * 2.0
 		_pts(w, c, _final_blade(R, dv2, fa, false))
-		_pts(w, c, _boom(int(floor(fa * 15.0)), true, 2.4))   # 斩点中心一记大爆亮
+		_draw_blast(u, w, c, R, fa)   # 收尾大爆：预备 → 亮核 + 照地灯 + 轻震 + 顿帧 → 冲击环（11-05 用户「缺少最后的爆炸的冲击力」）
 		for i in 7:
 			var x: float = (float(i) - 3.0) / 3.0
 			var bp2: Vector2 = c + dv2 * Rw * x * 0.95 + nv * (_hf(i, 1, 2) - 0.5) * 30.0
@@ -222,11 +222,11 @@ func draw_front(_u, w) -> void:
 			var ns: Vector2 = nv * side
 			for k in PLUME_N:
 				var x3: float = (k - (PLUME_N - 1) / 2.0) / ((PLUME_N - 1) / 2.0)
-				_pts(w, c + dv2 * Rw * x3 * 0.92 + ns * 12.0, _plume(fa - 0.12 - 0.1 * absf(x3), k * 2 + (1 if side > 0.0 else 0) + 300, ns))
+				_pts(w, c + dv2 * Rw * x3 * 0.92 + ns * 12.0, _plume(fa - _shock_at(R, absf(x3) * 0.92 * R) - 0.02, k * 2 + (1 if side > 0.0 else 0) + 300, ns))   # 跟着冲击环往外起
 		for q in SLAB_N:
 			var side2: float = 1.0 if q % 2 == 1 else -1.0
 			var x4: float = (float(q / 2) - (SLAB_N / 2 - 1) / 2.0) / ((SLAB_N / 2 - 1) / 2.0)
-			_pts(w, c + dv2 * Rw * x4 * 0.95 + nv * side2 * 6.0, _slab(fa - 0.06 - 0.12 * absf(x4), 200 + q, nv * side2))
+			_pts(w, c + dv2 * Rw * x4 * 0.95 + nv * side2 * 6.0, _slab(fa - _shock_at(R, absf(x4) * 0.95 * R), 200 + q, nv * side2))   # 冲击环推到哪儿哪儿掀起
 	w.tb_flush()
 
 
@@ -677,3 +677,92 @@ func _plume(age: float, seed: int, ns: Vector2) -> Array:
 					c = WARM[4] if d < rr * 0.4 else WARM[3]
 				out.append([bx + dx, by + dy, c, al])
 	return out
+
+
+# ================================================================ 收尾大爆（11-05 用户看实机录像：「感觉缺少最后的爆炸的冲击力」）
+## 冲击帧之后真正炸开的那一下（fa = 收尾斩击后的游戏秒）：
+## 0–BLAST_T（2 拍）预备：光点往中心吸、周围压暗；BLAST_T 起爆点：实心亮核（白芯 + 亮紫圈，半径约判定一半）亮 2 拍 + 一盏打满的照地灯 + 轻震 3px / 0.12 秒 + 3 帧顿帧；
+## 同时一圈厚亮的压扁冲击环 SHOCK_T（约 3.5 拍）内从半径一半推到判定边缘，推过的地方地面一闪；碎石 / 尘墙跟着冲击环到达的时刻往外起（_shock_at）
+const BLAST_T := 2.0 / 15.0
+const SHOCK_T := 3.5 / 15.0
+
+
+## 冲击环推到距中心 d（美术像素）的时刻（相对收尾斩击，秒）：核心半径以内 = 起爆那一刻
+func _shock_at(R: float, d: float) -> float:
+	var k: float = clampf((d / R - 0.5) / 0.5, 0.0, 1.0)
+	return BLAST_T + (1.0 - sqrt(1.0 - k)) * SHOCK_T   # 冲击环先快后慢（半径 = 1 − (1 − u)²），反解到达时刻
+
+
+## 实心椭圆（逐行一条横跨，硬边、对齐美术像素格）：rx / ry 美术像素
+func _disc(w, c: Vector2, rx: float, ry: float, col: Color) -> void:
+	var px: float = g.PX
+	var base: Vector2 = (c / 2.0).round() * 2.0
+	var n: int = int(ceil(ry))
+	for j in range(-n, n + 1):
+		var u: float = float(j) / maxf(1.0, ry)
+		if absf(u) > 1.0:
+			continue
+		var hx: float = roundf(rx * sqrt(1.0 - u * u))
+		if hx < 1.0:
+			continue
+		var y: float = base.y + j * px
+		w.tb_quad(Vector2(base.x - hx * px, y), Vector2(base.x + hx * px, y), Vector2(base.x + hx * px, y + px), Vector2(base.x - hx * px, y + px), col)
+
+
+func _draw_blast(u, w, c: Vector2, R: float, fa: float) -> void:
+	# ① 预备（2 拍）：周围压暗 + 光点往中心吸
+	if fa < BLAST_T + 0.2:
+		var kd: float = clampf(fa / BLAST_T, 0.0, 1.0) * (1.0 if fa < BLAST_T else clampf(1.0 - (fa - BLAST_T) / 0.2, 0.0, 1.0))
+		if kd > 0.0:
+			_disc(w, c, R * 1.05, R * 1.05 * SQ, Color(0.0, 0.0, 0.02, 0.28 * kd))
+	if fa < BLAST_T:
+		var k: float = fa / BLAST_T
+		var lst: Array = []
+		for i in 20:
+			var a: float = TAU * (i + _hf(i, 9, 61)) / 20.0 + k * 1.5
+			var r: float = R * (0.55 + 0.25 * _hf(i, 9, 62)) * pow(1.0 - k, 1.4) + 2.0
+			var x: float = cos(a) * r
+			var y: float = sin(a) * r * SQ - 10.0
+			lst.append([x, y, LT[6] if k > 0.5 else LT[5], k > 0.5])
+			lst.append([x - cos(a) * 2.0, y - sin(a) * 2.0 * SQ, LT[4], false])
+		_pts(w, c, lst)
+		return
+	var tau: float = fa - BLAST_T
+	var bf: int = int(floor(tau * 15.0))
+	# ② 起爆那一刻：照地灯打满 + 轻震 + 3 帧顿帧（一次）
+	if not st.get("blasted", false):
+		st["blasted"] = true
+		u.light(c, 240.0, Color(1.0, 0.85, 1.25), 0.15)   # docs/270 爆发档上限附近（半径 240）
+		u.shake(3.0, 0.12)   # 用户同意过的量级；ult.shake 取正在震的较大者，打击感包同时在震时不叠加
+		g.vfx.stop(0.05, "ult_blast", true)
+	# ③ 亮核（2 拍）：白芯外一圈亮紫，半径约判定一半
+	if bf <= 1:
+		var rx: float = R * (0.5 if bf == 0 else 0.44)
+		_disc(w, c + Vector2(0, -6), rx, rx * SQ, LT[4] if bf == 0 else LT[3])
+		_disc(w, c + Vector2(0, -6), rx * 0.78, rx * 0.78 * SQ, LT[5] if bf == 0 else LT[4])
+		_disc(w, c + Vector2(0, -6), rx * 0.52, rx * 0.52 * SQ, LT[6] if bf == 0 else LT[5])
+		var gl: Array = []
+		for i in 24:
+			var a2: float = TAU * i / 24.0
+			gl.append([cos(a2) * rx * 0.3, sin(a2) * rx * 0.3 * SQ - 3.0, LT[6], true])
+		_pts(w, c, gl)
+	# ④ 冲击环（约 3.5 拍）：厚 5 格、亮，推过的地方地面一闪
+	if tau < SHOCK_T + 2.0 / 15.0:
+		var us: float = clampf(tau / SHOCK_T, 0.0, 1.0)
+		var rr: float = R * (0.5 + 0.5 * (1.0 - pow(1.0 - us, 2.0)))
+		var fade: float = 1.0 if tau < SHOCK_T else clampf(1.0 - (tau - SHOCK_T) / (2.0 / 15.0), 0.0, 1.0)
+		var ring: Array = []
+		var cols: Array = [LT[6], LT[6], LT[5], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[4], LT[3], LT[2], LT[2]]
+		var n: int = int(rr * 6.6) + 16
+		for q in n:
+			var t: float = float(q) / float(n) * TAU
+			var ct := Vector2(cos(t), sin(t) * SQ)
+			for j in 5:
+				var cj: Color = cols[j]
+				ring.append([roundf(ct.x * (rr - j)), roundf(ct.y * (rr - j)), Color(cj.r, cj.g, cj.b, fade), j == 0 and q % 3 == 0])
+			if tau < SHOCK_T:   # 地面一闪：环后 6–14 格一道淡亮紫
+				for j2 in range(6, 15, 2):
+					if (q + j2) % 3 == 0:
+						continue
+					ring.append([roundf(ct.x * (rr - j2)), roundf(ct.y * (rr - j2)), Color(LT[3].r, LT[3].g, LT[3].b, 0.45 * (1.0 - float(j2) / 15.0))])
+		_pts(w, c, ring)

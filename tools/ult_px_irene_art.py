@@ -468,3 +468,60 @@ def plume(age, seed, nside):
                     c = WARM[4] if d < rr * 0.4 else WARM[3]
                 out.append((bx + dx, by + dy, c, al))
     return out
+
+
+# ================================================================ 收尾大爆（11-05 用户看实机录像：「感觉缺少最后的爆炸的冲击力」；同 ult_px_ir.gd _draw_blast）
+BLAST_T = 2 / 15    # 预备 2 拍：光点往中心吸、周围压暗
+SHOCK_T = 3.5 / 15  # 冲击环从半径一半推到判定边缘
+
+
+def shock_at(R, d):
+    """冲击环推到距中心 d（美术像素）的时刻（相对收尾斩击，秒）；碎石 / 尘墙按它往外起"""
+    k = min(1.0, max(0.0, (d / R - 0.5) / 0.5))
+    return BLAST_T + (1 - math.sqrt(1 - k)) * SHOCK_T
+
+
+def blast_prep(R, fa):
+    """预备：20 粒光点从 0.55–0.8 R 往中心吸（游戏里另画一层 0.28 的压暗椭圆）"""
+    out = []
+    if fa >= BLAST_T:
+        return out
+    k = fa / BLAST_T
+    for i in range(20):
+        a = math.tau * (i + hf(i, 9, 61)) / 20 + k * 1.5
+        r = R * (0.55 + 0.25 * hf(i, 9, 62)) * (1 - k) ** 1.4 + 2
+        x, y = math.cos(a) * r, math.sin(a) * r * SQ - 10
+        out.append((x, y, LT[6] if k > 0.5 else LT[5], k > 0.5))
+        out.append((x - math.cos(a) * 2, y - math.sin(a) * 2 * SQ, LT[4], False))
+    return out
+
+
+def blast_core(R, bf):
+    """亮核（2 拍）：三层实心椭圆，外亮紫 → 淡紫 → 白芯，半径 0.5 R（第 2 拍 0.44 R、暗一阶）。返回 [(rx, 颜色)] 由外到内"""
+    if bf < 0 or bf > 1:
+        return []
+    rx = R * (0.5 if bf == 0 else 0.44)
+    return [(rx, LT[4] if bf == 0 else LT[3]), (rx * 0.78, LT[5] if bf == 0 else LT[4]), (rx * 0.52, LT[6] if bf == 0 else LT[5])]
+
+
+def shock_ring(R, tau):
+    """冲击环：半径 0.5 R → R（先快后慢），厚 5 格（白 → 紫），环后 6–14 格地面一闪；到边后 2 拍淡掉"""
+    out = []
+    if tau < 0 or tau > SHOCK_T + 2 / 15:
+        return out
+    us = min(1.0, tau / SHOCK_T)
+    rr = R * (0.5 + 0.5 * (1 - (1 - us) ** 2))
+    fade = 1.0 if tau < SHOCK_T else max(0.0, 1 - (tau - SHOCK_T) / (2 / 15))
+    cols = [LT[6], LT[6], LT[5], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[4], LT[3], LT[2], LT[2]]
+    n = int(rr * 6.6) + 16
+    for q in range(n):
+        t = q / n * math.tau
+        cx, cy = math.cos(t), math.sin(t) * SQ
+        for j in range(5):
+            out.append((round(cx * (rr - j)), round(cy * (rr - j)), cols[j], fade))
+        if tau < SHOCK_T:
+            for j2 in range(6, 15, 2):
+                if (q + j2) % 3 == 0:
+                    continue
+                out.append((round(cx * (rr - j2)), round(cy * (rr - j2)), LT[3], 0.45 * (1 - j2 / 15)))
+    return out
