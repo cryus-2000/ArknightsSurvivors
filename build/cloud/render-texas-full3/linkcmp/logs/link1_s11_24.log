@@ -1,0 +1,971 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+TRACE t=0.00 lv=1 k=0 hp=139.72 n=0 rng=-5889678139608474319/2002407988179128893/3532164864575846458/-3196536939106347295/6065646721096788134 pos=0.00,0.00 h=0.000 sq=3172283095 lamp=10000 nd=4197670970 rl=0
+TRACE t=1.06 lv=1 k=0 hp=139.72 n=0 rng=-5889678139608474319/2002407988179128893/3532164864575846458/-3196536939106347295/6065646721096788134 pos=51.32,8.72 h=0.000 sq=2808242609 lamp=10000 nd=4197670970 rl=0
+TRACE t=2.05 lv=1 k=0 hp=139.72 n=1 rng=-5889678139608474319/-5935421690527341294/3532164864575846458/-3196536939106347295/6065646721096788134 pos=94.74,31.06 h=155.066 sq=1338554992 lamp=10000 nd=4197670970 rl=0
+TRACE t=3.04 lv=1 k=0 hp=139.72 n=2 rng=-5889678139608474319/-4848009173076761845/3532164864575846458/-3196536939106347295/6065646721096788134 pos=129.71,65.12 h=435.401 sq=3484199169 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 9 3.234
+FXRLOG lumen skill0 9 3.234
+TRACE t=4.03 lv=1 k=0 hp=139.72 n=3 rng=-5889678139608474319/7105442049114922232/3532164864575846458/-3196536939106347295/6065646721096788134 pos=153.19,107.94 h=608.512 sq=3628804984 lamp=10000 nd=4197670970 rl=0
+TRACE t=5.02 lv=1 k=0 hp=139.72 n=4 rng=-5889678139608474319/6448341176767486953/3532164864575846458/-3196536939106347295/6065646721096788134 pos=163.11,155.74 h=527.465 sq=2140177468 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas skill2 13 5.412
+PXPLOG tx skill 2 5.412
+FXRLOG texas tx_scar 14 6.006
+PXPLOG tx tx_scar  6.006
+FXRLOG texas tx_cut 14 6.006
+PXPLOG tx tx_cut  6.006
+FXRLOG texas tx_scar 14 6.006
+PXPLOG tx tx_scar  6.006
+FXRLOG texas tx_scar 14 6.006
+PXPLOG tx tx_scar  6.006
+TRACE t=6.01 lv=1 k=1 hp=139.72 n=4 rng=-5889678139608474319/-3065436241405974994/3532164864575846458/-7715013897153174913/6065646721096788134 pos=158.60,204.36 h=689.006 sq=3458065018 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 15 6.270
+PXPLOG tx tx_scar  6.270
+FXRLOG texas tx_cut 15 6.270
+PXPLOG tx tx_cut  6.270
+FXRLOG texas tx_scar 15 6.270
+PXPLOG tx tx_scar  6.270
+FXRLOG texas tx_scar 15 6.270
+PXPLOG tx tx_scar  6.270
+FXRLOG lumen lm_mend 15 6.402
+FXRLOG lumen skill0 15 6.402
+FXRLOG texas tx_scar 15 6.534
+PXPLOG tx tx_scar  6.534
+FXRLOG texas tx_cut 15 6.534
+PXPLOG tx tx_cut  6.534
+FXRLOG texas tx_scar 15 6.534
+PXPLOG tx tx_scar  6.534
+FXRLOG texas tx_scar 15 6.534
+PXPLOG tx tx_scar  6.534
+FXRLOG texas tx_scar 16 6.798
+PXPLOG tx tx_scar  6.798
+FXRLOG texas tx_cut 16 6.798
+PXPLOG tx tx_cut  6.798
+FXRLOG texas tx_scar 16 6.798
+PXPLOG tx tx_scar  6.798
+FXRLOG texas tx_scar 16 6.798
+PXPLOG tx tx_scar  6.798
+TRACE t=7.06 lv=1 k=3 hp=139.72 n=3 rng=-5889678139608474319/3651433761434757207/3532164864575846458/-3094664007421645973/6065646721096788134 pos=180.72,324.23 h=555.153 sq=2321863351 lamp=10000 nd=4197670970 rl=0
+TRACE t=8.05 lv=1 k=3 hp=139.72 n=4 rng=-5889678139608474319/-4686069274164620748/3532164864575846458/-3094664007421645973/6065646721096788134 pos=177.79,399.92 h=891.767 sq=641095027 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 19 8.646
+PXPLOG tx tx_scar  8.646
+FXRLOG texas tx_cut 19 8.646
+PXPLOG tx tx_cut  8.646
+FXRLOG texas tx_scar 19 8.646
+PXPLOG tx tx_scar  8.646
+FXRLOG texas tx_scar 19 8.646
+PXPLOG tx tx_scar  8.646
+TRACE t=9.04 lv=1 k=4 hp=139.72 n=4 rng=-5889678139608474319/-4830670202834552875/3532164864575846458/3919241284154710969/6065646721096788134 pos=136.62,426.17 h=849.002 sq=3496109333 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 21 9.570
+FXRLOG lumen skill0 21 9.570
+TRACE t=10.03 lv=1 k=4 hp=139.72 n=5 rng=-5889678139608474319/-1378207458284091766/3532164864575846458/3919241284154710969/6065646721096788134 pos=49.44,468.42 h=758.576 sq=1735710107 lamp=10000 nd=4197670970 rl=0
+TRACE t=11.02 lv=1 k=4 hp=139.72 n=6 rng=-5889678139608474319/-8663300077832938013/8107198041359857756/3919241284154710969/6065646721096788134 pos=-50.03,513.51 h=605.174 sq=3943896344 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 24 11.286
+PXPLOG tx tx_scar  11.286
+FXRLOG texas tx_cut 24 11.286
+PXPLOG tx tx_cut  11.286
+FXRLOG texas tx_scar 24 11.286
+PXPLOG tx tx_scar  11.286
+FXRLOG texas tx_scar 24 11.286
+PXPLOG tx tx_scar  11.286
+FXRLOG texas tx_scar 25 11.550
+PXPLOG tx tx_scar  11.550
+FXRLOG texas tx_cut 25 11.550
+PXPLOG tx tx_cut  11.550
+FXRLOG texas tx_scar 25 11.550
+PXPLOG tx tx_scar  11.550
+FXRLOG texas tx_scar 25 11.550
+PXPLOG tx tx_scar  11.550
+FXRLOG texas tx_scar 25 11.814
+PXPLOG tx tx_scar  11.814
+FXRLOG texas tx_cut 25 11.814
+PXPLOG tx tx_cut  11.814
+FXRLOG texas tx_scar 25 11.814
+PXPLOG tx tx_scar  11.814
+FXRLOG texas tx_scar 25 11.814
+PXPLOG tx tx_scar  11.814
+TRACE t=12.01 lv=1 k=5 hp=139.72 n=6 rng=-5889678139608474319/-4248701973949129552/8107198041359857756/-8996226405542372201/6065646721096788134 pos=-96.33,497.99 h=360.349 sq=1749595804 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 26 12.144
+FXRLOG lumen skill0 26 12.144
+TRACE t=13.00 lv=1 k=5 hp=139.72 n=7 rng=-5889678139608474319/-6718349122890943999/8107198041359857756/-8996226405542372201/6065646721096788134 pos=-136.06,469.61 h=250.763 sq=231851519 lamp=10000 nd=4197670970 rl=0
+TRACE t=14.06 lv=1 k=5 hp=139.72 n=8 rng=-5889678139608474319/472871676101198374/8107198041359857756/-8996226405542372201/6065646721096788134 pos=-167.29,427.96 h=490.879 sq=347277108 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas skill2 31 14.718
+PXPLOG tx skill 2 14.718
+TRACE t=15.05 lv=1 k=5 hp=139.72 n=9 rng=-5889678139608474319/-655851335205228625/8107198041359857756/-8996226405542372201/6065646721096788134 pos=-183.41,381.88 h=318.281 sq=3512529956 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 32 15.312
+FXRLOG lumen skill0 32 15.312
+TRACE t=16.04 lv=1 k=7 hp=139.72 n=9 rng=-5889678139608474319/2340917368573548141/8107198041359857756/-9220202612102987261/6065646721096788134 pos=-185.35,333.09 h=-62.632 sq=3593402206 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 34 16.368
+PXPLOG tx tx_scar  16.368
+FXRLOG texas tx_cut 34 16.368
+PXPLOG tx tx_cut  16.368
+FXRLOG texas tx_scar 34 16.368
+PXPLOG tx tx_scar  16.368
+FXRLOG texas tx_scar 34 16.368
+PXPLOG tx tx_scar  16.368
+FXRLOG texas tx_scar 34 16.632
+PXPLOG tx tx_scar  16.632
+FXRLOG texas tx_cut 34 16.632
+PXPLOG tx tx_cut  16.632
+FXRLOG texas tx_scar 34 16.632
+PXPLOG tx tx_scar  16.632
+FXRLOG texas tx_scar 34 16.632
+PXPLOG tx tx_scar  16.632
+FXRLOG texas tx_scar 35 16.896
+PXPLOG tx tx_scar  16.896
+FXRLOG texas tx_cut 35 16.896
+PXPLOG tx tx_cut  16.896
+FXRLOG texas tx_scar 35 16.896
+PXPLOG tx tx_scar  16.896
+FXRLOG texas tx_scar 35 16.896
+PXPLOG tx tx_scar  16.896
+TRACE t=17.03 lv=1 k=9 hp=139.72 n=8 rng=-5889678139608474319/-8755857483443596030/8107198041359857756/3415224123878614959/6065646721096788134 pos=-182.27,258.64 h=-83.700 sq=3615723388 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 35 17.160
+PXPLOG tx tx_scar  17.160
+FXRLOG texas tx_cut 35 17.160
+PXPLOG tx tx_cut  17.160
+FXRLOG texas tx_scar 35 17.160
+PXPLOG tx tx_scar  17.160
+FXRLOG texas tx_scar 35 17.160
+PXPLOG tx tx_scar  17.160
+FXRLOG lumen lm_hit 36 17.424
+FXRLOG texas tx_scar 37 17.754
+PXPLOG tx tx_scar  17.754
+FXRLOG texas tx_cut 37 17.754
+PXPLOG tx tx_cut  17.754
+FXRLOG texas tx_scar 37 17.754
+PXPLOG tx tx_scar  17.754
+FXRLOG texas tx_scar 37 17.754
+PXPLOG tx tx_scar  17.754
+FXRLOG texas tx_scar 37 17.754
+PXPLOG tx tx_scar  17.754
+TRACE t=18.02 lv=1 k=11 hp=139.72 n=7 rng=-5889678139608474319/3607082467305900475/8107198041359857756/-9129250773754177125/6065646721096788134 pos=-109.63,204.57 h=86.241 sq=3952777574 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 38 18.480
+FXRLOG lumen skill0 38 18.480
+TRACE t=19.01 lv=2 k=12 hp=139.72 n=7 rng=-5889678139608474319/6696356329190220136/8107198041359857756/-8844645507150458775/6065646721096788134 pos=-119.43,103.33 h=148.012 sq=2889671167 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 41 19.734
+PXPLOG tx tx_scar  19.734
+FXRLOG texas tx_cut 41 19.734
+PXPLOG tx tx_cut  19.734
+FXRLOG texas tx_scar 41 19.734
+PXPLOG tx tx_scar  19.734
+FXRLOG texas tx_scar 41 19.734
+PXPLOG tx tx_scar  19.734
+TRACE t=20.06 lv=2 k=14 hp=139.72 n=7 rng=391834998008279151/8043858258289363809/1320833079527264590/7134097856909399861/6065646721096788134 pos=-171.18,-3.44 h=-139.458 sq=341749846 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 43 21.054
+FXRLOG lumen skill0 43 21.054
+TRACE t=21.05 lv=2 k=14 hp=139.72 n=7 rng=391834998008279151/-3996240933669665018/1320833079527264590/-4837003310878295704/6065646721096788134 pos=-245.51,-87.91 h=-357.243 sq=3037703440 lamp=10000 nd=4197670970 rl=0
+TRACE t=22.04 lv=2 k=14 hp=139.72 n=8 rng=391834998008279151/793864568255268367/1320833079527264590/-4837003310878295704/6065646721096788134 pos=-265.02,-171.11 h=-190.568 sq=398378813 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 45 22.110
+PXPLOG tx tx_scar  22.110
+FXRLOG texas tx_cut 45 22.110
+PXPLOG tx tx_cut  22.110
+FXRLOG texas tx_scar 45 22.110
+PXPLOG tx tx_scar  22.110
+FXRLOG texas tx_scar 45 22.110
+PXPLOG tx tx_scar  22.110
+FXRLOG texas tx_scar 46 22.374
+PXPLOG tx tx_scar  22.374
+FXRLOG texas tx_cut 46 22.374
+PXPLOG tx tx_cut  22.374
+FXRLOG texas tx_scar 46 22.374
+PXPLOG tx tx_scar  22.374
+FXRLOG texas tx_scar 46 22.374
+PXPLOG tx tx_scar  22.374
+FXRLOG texas tx_scar 46 22.638
+PXPLOG tx tx_scar  22.638
+FXRLOG texas tx_cut 46 22.638
+PXPLOG tx tx_cut  22.638
+FXRLOG texas tx_scar 46 22.638
+PXPLOG tx tx_scar  22.638
+FXRLOG texas tx_scar 46 22.638
+PXPLOG tx tx_scar  22.638
+TRACE t=23.03 lv=2 k=16 hp=139.72 n=7 rng=391834998008279151/1426433433942384204/1320833079527264590/9005536117539742468/6065646721096788134 pos=-365.37,-188.37 h=-196.705 sq=2064105556 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas skill2 49 23.760
+PXPLOG tx skill 2 23.760
+PF RTFROM t=24.0
+TRACE t=24.02 lv=2 k=16 hp=139.72 n=8 rng=391834998008279151/1926965313058767309/1320833079527264590/9005536117539742468/6065646721096788134 pos=-474.20,-170.18 h=-519.270 sq=1501693551 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 49 24.222
+FXRLOG lumen skill0 49 24.222
+FXRLOG texas tx_scar 53 24.355
+PXPLOG tx tx_scar  24.355
+FXRLOG texas tx_cut 53 24.355
+PXPLOG tx tx_cut  24.355
+FXRLOG texas tx_scar 53 24.355
+PXPLOG tx tx_scar  24.355
+FXRLOG texas tx_scar 53 24.355
+PXPLOG tx tx_scar  24.355
+TRACE t=25.02 lv=2 k=18 hp=139.72 n=8 rng=391834998008279151/-670040103595679205/1320833079527264590/4160448191939544544/6065646721096788134 pos=-582.52,-209.59 h=-710.961 sq=167476974 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 95 25.755
+FXRLOG lumen skill0 95 25.755
+TRACE t=26.02 lv=2 k=18 hp=139.72 n=9 rng=391834998008279151/682213141252575560/1320833079527264590/4160448191939544544/6065646721096788134 pos=-693.99,-237.88 h=-821.174 sq=3939701300 lamp=10000 nd=4197670970 rl=0
+TRACE t=27.02 lv=2 k=18 hp=139.72 n=10 rng=391834998008279151/-6548222714514305415/1320833079527264590/4160448191939544544/6065646721096788134 pos=-741.94,-335.27 h=-1034.752 sq=2283312982 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 140 27.255
+FXRLOG lumen skill0 140 27.255
+FXRLOG texas tx_scar 156 27.789
+PXPLOG tx tx_scar  27.789
+FXRLOG texas tx_cut 156 27.789
+PXPLOG tx tx_cut  27.789
+FXRLOG texas tx_scar 156 27.789
+PXPLOG tx tx_scar  27.789
+FXRLOG texas tx_scar 156 27.789
+PXPLOG tx tx_scar  27.789
+TRACE t=28.02 lv=2 k=19 hp=139.72 n=10 rng=391834998008279151/-9096284725283056642/1320833079527264590/787477177428500230/6065646721096788134 pos=-766.89,-331.98 h=-1228.649 sq=3762119823 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 185 28.755
+FXRLOG lumen skill0 185 28.755
+TRACE t=29.02 lv=2 k=20 hp=139.72 n=10 rng=391834998008279151/-2688682944687074713/1320833079527264590/4328567699668180476/6065646721096788134 pos=-798.94,-294.51 h=-1245.227 sq=195335682 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 216 29.789
+PXPLOG tx tx_scar  29.789
+FXRLOG texas tx_cut 216 29.789
+PXPLOG tx tx_cut  29.789
+FXRLOG texas tx_scar 216 29.789
+PXPLOG tx tx_scar  29.789
+FXRLOG texas tx_scar 216 29.789
+PXPLOG tx tx_scar  29.789
+TRACE t=30.02 lv=2 k=21 hp=139.72 n=11 rng=391834998008279151/5135173277609016677/5805698057631338384/7480588349983267906/6065646721096788134 pos=-840.64,-268.18 h=-1570.295 sq=3550906606 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 230 30.255
+FXRLOG lumen skill0 230 30.255
+FXRLOG texas tx_scar 246 30.789
+PXPLOG tx tx_scar  30.789
+FXRLOG texas tx_cut 246 30.789
+PXPLOG tx tx_cut  30.789
+FXRLOG texas tx_scar 246 30.789
+PXPLOG tx tx_scar  30.789
+FXRLOG texas tx_scar 246 30.789
+PXPLOG tx tx_scar  30.789
+TRACE t=31.02 lv=2 k=22 hp=139.72 n=11 rng=391834998008279151/7888184618051224410/-1373384694701534302/-6014085866631321768/6065646721096788134 pos=-888.26,-255.35 h=-1498.231 sq=2841323405 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 275 31.755
+FXRLOG lumen skill0 275 31.755
+TRACE t=32.02 lv=3 k=22 hp=139.72 n=12 rng=2313760791370752957/4418027896330519283/-1373384694701534302/-6014085866631321768/6065646721096788134 pos=-937.54,-257.17 h=-2354.472 sq=2760941331 lamp=10000 nd=4197670970 rl=0
+TRACE t=33.02 lv=3 k=22 hp=139.72 n=13 rng=2313760791370752957/-1252485143617507584/-1373384694701534302/-6014085866631321768/6065646721096788134 pos=-1003.29,-303.35 h=-2734.876 sq=3495265087 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 320 33.255
+FXRLOG lumen skill0 320 33.255
+TRACE t=34.02 lv=3 k=22 hp=139.72 n=15 rng=2313760791370752957/-7372772732308644362/-1373384694701534302/-6014085866631321768/6065646721096788134 pos=-1087.01,-382.91 h=-3871.997 sq=396057587 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 365 34.755
+FXRLOG lumen skill0 365 34.755
+TRACE t=35.02 lv=3 k=22 hp=139.72 n=16 rng=2313760791370752957/-4897417973108924481/-8082569464909308/-6014085866631321768/6065646721096788134 pos=-1122.40,-428.90 h=-4567.412 sq=3872883582 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas skill2 395 35.755
+PXPLOG tx skill 2 35.755
+TRACE t=36.02 lv=3 k=22 hp=139.72 n=17 rng=2313760791370752957/-5886004332791557700/-8082569464909308/-6014085866631321768/6065646721096788134 pos=-1138.57,-475.49 h=-5358.087 sq=3458703541 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 410 36.255
+FXRLOG lumen skill0 410 36.255
+FXRLOG texas tx_scar 415 36.422
+PXPLOG tx tx_scar  36.422
+FXRLOG texas tx_cut 415 36.422
+PXPLOG tx tx_cut  36.422
+FXRLOG texas tx_scar 415 36.422
+PXPLOG tx tx_scar  36.422
+FXRLOG texas tx_scar 415 36.422
+PXPLOG tx tx_scar  36.422
+TRACE t=37.02 lv=3 k=23 hp=139.72 n=17 rng=2313760791370752957/-1754386099376393731/-8082569464909308/8078036460034482366/6065646721096788134 pos=-1140.24,-524.77 h=-5785.605 sq=1717226955 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 445 37.422
+PXPLOG tx tx_scar  37.422
+FXRLOG texas tx_cut 445 37.422
+PXPLOG tx tx_cut  37.422
+FXRLOG texas tx_scar 445 37.422
+PXPLOG tx tx_scar  37.422
+FXRLOG texas tx_scar 445 37.422
+PXPLOG tx tx_scar  37.422
+FXRLOG texas tx_scar 453 37.689
+PXPLOG tx tx_scar  37.689
+FXRLOG texas tx_cut 453 37.689
+PXPLOG tx tx_cut  37.689
+FXRLOG texas tx_scar 453 37.689
+PXPLOG tx tx_scar  37.689
+FXRLOG texas tx_scar 453 37.689
+PXPLOG tx tx_scar  37.689
+FXRLOG lumen lm_mend 455 37.755
+FXRLOG lumen skill0 455 37.755
+TRACE t=38.02 lv=3 k=27 hp=139.72 n=15 rng=2313760791370752957/-1200563038012762933/-8082569464909308/-5842243444165562506/6065646721096788134 pos=-1127.28,-572.35 h=-5768.685 sq=3411840065 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 482 38.655
+PXPLOG tx tx_scar  38.655
+FXRLOG texas tx_cut 482 38.655
+PXPLOG tx tx_cut  38.655
+FXRLOG texas tx_scar 482 38.655
+PXPLOG tx tx_scar  38.655
+FXRLOG texas tx_scar 482 38.655
+PXPLOG tx tx_scar  38.655
+FXRLOG texas tx_scar 490 38.922
+PXPLOG tx tx_scar  38.922
+FXRLOG texas tx_cut 490 38.922
+PXPLOG tx tx_cut  38.922
+FXRLOG texas tx_scar 490 38.922
+PXPLOG tx tx_scar  38.922
+FXRLOG texas tx_scar 490 38.922
+PXPLOG tx tx_scar  38.922
+TRACE t=39.02 lv=3 k=28 hp=139.72 n=15 rng=2313760791370752957/4258596297718796728/-8082569464909308/4864801959089046252/6065646721096788134 pos=-1100.83,-613.98 h=-6093.561 sq=1896780041 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 497 39.155
+PXPLOG tx tx_scar  39.155
+FXRLOG texas tx_cut 497 39.155
+PXPLOG tx tx_cut  39.155
+FXRLOG texas tx_scar 497 39.155
+PXPLOG tx tx_scar  39.155
+FXRLOG texas tx_scar 497 39.155
+PXPLOG tx tx_scar  39.155
+FXRLOG lumen lm_mend 500 39.255
+FXRLOG lumen skill0 500 39.255
+FXRLOG texas tx_scar 505 39.422
+PXPLOG tx tx_scar  39.422
+FXRLOG texas tx_cut 505 39.422
+PXPLOG tx tx_cut  39.422
+FXRLOG texas tx_scar 505 39.422
+PXPLOG tx tx_scar  39.422
+FXRLOG texas tx_scar 505 39.422
+PXPLOG tx tx_scar  39.422
+FXRLOG texas tx_scar 522 39.989
+PXPLOG tx tx_scar  39.989
+FXRLOG texas tx_cut 522 39.989
+PXPLOG tx tx_cut  39.989
+FXRLOG texas tx_scar 522 39.989
+PXPLOG tx tx_scar  39.989
+FXRLOG texas tx_scar 522 39.989
+PXPLOG tx tx_scar  39.989
+FXRLOG texas tx_scar 522 39.989
+PXPLOG tx tx_scar  39.989
+TRACE t=40.02 lv=3 k=32 hp=139.72 n=12 rng=2313760791370752957/-5064704950236295255/-8082569464909308/1715768507370024164/6065646721096788134 pos=-1063.27,-645.93 h=-4813.272 sq=4118606380 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 545 40.755
+FXRLOG lumen skill0 545 40.755
+FXRLOG texas tx_scar 551 40.955
+PXPLOG tx tx_scar  40.955
+FXRLOG texas tx_cut 551 40.955
+PXPLOG tx tx_cut  40.955
+FXRLOG texas tx_scar 551 40.955
+PXPLOG tx tx_scar  40.955
+FXRLOG texas tx_scar 551 40.955
+PXPLOG tx tx_scar  40.955
+TRACE t=41.02 lv=3 k=34 hp=139.72 n=12 rng=2313760791370752957/-20298606448718313/-8082569464909308/-1235940916630206016/6065646721096788134 pos=-1017.94,-665.35 h=-5460.952 sq=2914913956 lamp=10000 nd=4197670970 rl=0
+TRACE t=42.02 lv=3 k=34 hp=139.72 n=13 rng=2313760791370752957/1335971961033771764/-8082569464909308/-1235940916630206016/6065646721096788134 pos=-935.02,-648.04 h=-5583.770 sq=3144521849 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 590 42.255
+FXRLOG lumen skill0 590 42.255
+FXRLOG texas tx_scar 595 42.422
+PXPLOG tx tx_scar  42.422
+FXRLOG texas tx_cut 595 42.422
+PXPLOG tx tx_cut  42.422
+FXRLOG texas tx_scar 595 42.422
+PXPLOG tx tx_scar  42.422
+FXRLOG texas tx_scar 595 42.422
+PXPLOG tx tx_scar  42.422
+TRACE t=43.02 lv=3 k=35 hp=139.72 n=13 rng=2313760791370752957/7157219777368260501/7706746959164494646/-8578496695123266586/6065646721096788134 pos=-825.81,-610.43 h=-5517.353 sq=541926498 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 625 43.422
+PXPLOG tx tx_scar  43.422
+FXRLOG texas tx_cut 625 43.422
+PXPLOG tx tx_cut  43.422
+FXRLOG texas tx_scar 625 43.422
+PXPLOG tx tx_scar  43.422
+FXRLOG texas tx_scar 625 43.422
+PXPLOG tx tx_scar  43.422
+FXRLOG texas tx_scar 633 43.689
+PXPLOG tx tx_scar  43.689
+FXRLOG texas tx_cut 633 43.689
+PXPLOG tx tx_cut  43.689
+FXRLOG texas tx_scar 633 43.689
+PXPLOG tx tx_scar  43.689
+FXRLOG texas tx_scar 633 43.689
+PXPLOG tx tx_scar  43.689
+FXRLOG lumen lm_mend 635 43.755
+FXRLOG lumen skill0 635 43.755
+FXRLOG texas tx_scar 640 43.922
+PXPLOG tx tx_scar  43.922
+FXRLOG texas tx_cut 640 43.922
+PXPLOG tx tx_cut  43.922
+FXRLOG texas tx_scar 640 43.922
+PXPLOG tx tx_scar  43.922
+FXRLOG texas tx_scar 640 43.922
+PXPLOG tx tx_scar  43.922
+TRACE t=44.02 lv=3 k=38 hp=139.72 n=12 rng=2313760791370752957/-4439851947705010269/7706746959164494646/6855103972185538360/6065646721096788134 pos=-773.67,-513.16 h=-4656.520 sq=1061617217 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 648 44.189
+PXPLOG tx tx_scar  44.189
+FXRLOG texas tx_cut 648 44.189
+PXPLOG tx tx_cut  44.189
+FXRLOG texas tx_scar 648 44.189
+PXPLOG tx tx_scar  44.189
+FXRLOG texas tx_scar 648 44.189
+PXPLOG tx tx_scar  44.189
+FXRLOG texas tx_scar 665 44.755
+PXPLOG tx tx_scar  44.755
+FXRLOG texas tx_cut 665 44.755
+PXPLOG tx tx_cut  44.755
+FXRLOG texas tx_scar 665 44.755
+PXPLOG tx tx_scar  44.755
+FXRLOG texas tx_scar 665 44.755
+PXPLOG tx tx_scar  44.755
+FXRLOG texas tx_scar 665 44.755
+PXPLOG tx tx_scar  44.755
+TRACE t=45.02 lv=3 k=39 hp=139.72 n=12 rng=2313760791370752957/5565506844338149744/7059477793190286264/2798992064358328734/6065646721096788134 pos=-801.40,-408.38 h=-4518.264 sq=2665997530 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 680 45.255
+FXRLOG lumen skill0 680 45.255
+FXRLOG texas skill2 692 45.655
+PXPLOG tx skill 2 45.655
+TRACE t=46.02 lv=3 k=39 hp=139.72 n=13 rng=2313760791370752957/9196708809786805697/7059477793190286264/2798992064358328734/6065646721096788134 pos=-815.53,-410.56 h=-4997.945 sq=2271948861 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_hit 709 46.222
+FXRLOG texas skill1 710 46.255
+PXPLOG tx skill 1 46.255
+FXRLOG lumen lm_mend 725 46.755
+FXRLOG lumen skill0 725 46.755
+FXRLOG texas tx_link 726 46.789
+PXPLOG tx tx_link  46.789
+FXRLOG texas shape 728 46.855
+PXPLOG tx shape 剑雨 46.855
+FXRLOG texas tx_rain 728 46.855
+PXPLOG tx tx_rain  46.855
+FXRLOG texas skill0 728 46.855
+PXPLOG tx skill 0 46.855
+TRACE t=47.02 lv=3 k=41 hp=139.72 n=13 rng=2313760791370752957/1237453270931209583/7059477793190286264/-7572218361610888358/6065646721096788134 pos=-874.60,-442.35 h=-4520.297 sq=3069584592 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 748 47.522
+PXPLOG tx tx_scar  47.522
+FXRLOG texas tx_cut 748 47.522
+PXPLOG tx tx_cut  47.522
+FXRLOG texas tx_scar 748 47.522
+PXPLOG tx tx_scar  47.522
+FXRLOG texas tx_scar 748 47.522
+PXPLOG tx tx_scar  47.522
+FXRLOG lumen lm_hit 756 47.789
+FXRLOG texas tx_scar 756 47.789
+PXPLOG tx tx_scar  47.789
+FXRLOG texas tx_cut 756 47.789
+PXPLOG tx tx_cut  47.789
+FXRLOG texas tx_scar 756 47.789
+PXPLOG tx tx_scar  47.789
+FXRLOG texas tx_scar 756 47.789
+PXPLOG tx tx_scar  47.789
+FXRLOG texas tx_scar 763 48.022
+PXPLOG tx tx_scar  48.022
+FXRLOG texas tx_cut 763 48.022
+PXPLOG tx tx_cut  48.022
+FXRLOG texas tx_scar 763 48.022
+PXPLOG tx tx_scar  48.022
+FXRLOG texas tx_scar 763 48.022
+PXPLOG tx tx_scar  48.022
+TRACE t=48.02 lv=3 k=46 hp=139.72 n=9 rng=2313760791370752957/9133618065808267564/6592630178588992522/-5583780103889770200/6065646721096788134 pos=-976.69,-429.06 h=-2580.269 sq=144686285 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 770 48.255
+FXRLOG lumen skill0 770 48.255
+FXRLOG texas tx_scar 793 49.022
+PXPLOG tx tx_scar  49.022
+FXRLOG texas tx_cut 793 49.022
+PXPLOG tx tx_cut  49.022
+FXRLOG texas tx_scar 793 49.022
+PXPLOG tx tx_scar  49.022
+FXRLOG texas tx_scar 793 49.022
+PXPLOG tx tx_scar  49.022
+TRACE t=49.02 lv=3 k=47 hp=139.72 n=10 rng=2313760791370752957/-3812918551023804478/6592630178588992522/2280889286431071246/6065646721096788134 pos=-985.66,-333.46 h=-3486.651 sq=34376059 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 815 49.755
+FXRLOG lumen skill0 815 49.755
+TRACE t=50.02 lv=3 k=47 hp=139.72 n=11 rng=2313760791370752957/-9171561102070150277/6592630178588992522/2280889286431071246/6065646721096788134 pos=-901.26,-269.61 h=-4031.501 sq=4184243805 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 830 50.255
+PXPLOG tx tx_scar  50.255
+FXRLOG texas tx_cut 830 50.255
+PXPLOG tx tx_cut  50.255
+FXRLOG texas tx_scar 830 50.255
+PXPLOG tx tx_scar  50.255
+FXRLOG texas tx_scar 830 50.255
+PXPLOG tx tx_scar  50.255
+FXRLOG texas tx_scar 838 50.522
+PXPLOG tx tx_scar  50.522
+FXRLOG texas tx_cut 838 50.522
+PXPLOG tx tx_cut  50.522
+FXRLOG texas tx_scar 838 50.522
+PXPLOG tx tx_scar  50.522
+FXRLOG texas tx_scar 838 50.522
+PXPLOG tx tx_scar  50.522
+FXRLOG texas tx_scar 845 50.755
+PXPLOG tx tx_scar  50.755
+FXRLOG texas tx_cut 845 50.755
+PXPLOG tx tx_cut  50.755
+FXRLOG texas tx_scar 845 50.755
+PXPLOG tx tx_scar  50.755
+FXRLOG texas tx_scar 845 50.755
+PXPLOG tx tx_scar  50.755
+FXRLOG texas tx_scar 853 51.022
+PXPLOG tx tx_scar  51.022
+FXRLOG texas tx_cut 853 51.022
+PXPLOG tx tx_cut  51.022
+FXRLOG texas tx_scar 853 51.022
+PXPLOG tx tx_scar  51.022
+FXRLOG texas tx_scar 853 51.022
+PXPLOG tx tx_scar  51.022
+TRACE t=51.02 lv=3 k=53 hp=139.72 n=6 rng=2313760791370752957/-6258162807283177944/6592630178588992522/-5033461276744439294/6065646721096788134 pos=-791.78,-271.06 h=-3089.206 sq=3382015507 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 860 51.255
+FXRLOG lumen skill0 860 51.255
+TRACE t=52.02 lv=4 k=53 hp=157.95 n=8 rng=7597025610396670368/7173414613650368990/6592630178588992522/-5033461276744439294/6065646721096788134 pos=-713.99,-244.10 h=-3684.211 sq=2357662359 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 905 52.755
+FXRLOG lumen skill0 905 52.755
+TRACE t=53.02 lv=4 k=53 hp=157.95 n=9 rng=7597025610396670368/-5538722753619292729/6592630178588992522/-5033461276744439294/6065646721096788134 pos=-679.23,-133.95 h=-3714.601 sq=1194882998 lamp=10000 nd=4197670970 rl=0
+TRACE t=54.02 lv=4 k=53 hp=157.95 n=11 rng=7597025610396670368/-8882886673697921595/6592630178588992522/-5033461276744439294/6065646721096788134 pos=-586.46,-81.12 h=-3665.231 sq=2222631906 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 950 54.255
+FXRLOG lumen skill0 950 54.255
+TRACE t=55.02 lv=4 k=53 hp=157.95 n=12 rng=7597025610396670368/2102838245738447674/6592630178588992522/-5033461276744439294/6065646721096788134 pos=-620.34,-109.90 h=-3569.377 sq=4137710845 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 995 55.755
+FXRLOG lumen skill0 995 55.755
+TRACE t=56.02 lv=4 k=53 hp=157.95 n=14 rng=7597025610396670368/8433073712829454304/6592630178588992522/-5033461276744439294/6065646721096788134 pos=-612.56,-166.80 h=-3921.974 sq=2639199658 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas skill2 1024 56.722
+PXPLOG tx skill 2 56.722
+TRACE t=57.02 lv=4 k=53 hp=157.95 n=15 rng=7597025610396670368/6706644380807161073/6592630178588992522/-5033461276744439294/6065646721096788134 pos=-538.20,-255.18 h=-4034.280 sq=1071576095 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 1040 57.255
+FXRLOG lumen skill0 1040 57.255
+FXRLOG texas tx_scar 1044 57.389
+PXPLOG tx tx_scar  57.389
+FXRLOG texas tx_cut 1044 57.389
+PXPLOG tx tx_cut  57.389
+FXRLOG texas tx_scar 1044 57.389
+PXPLOG tx tx_scar  57.389
+FXRLOG texas tx_scar 1044 57.389
+PXPLOG tx tx_scar  57.389
+FXRLOG texas tx_scar 1052 57.655
+PXPLOG tx tx_scar  57.655
+FXRLOG texas tx_cut 1052 57.655
+PXPLOG tx tx_cut  57.655
+FXRLOG texas tx_scar 1052 57.655
+PXPLOG tx tx_scar  57.655
+FXRLOG texas tx_scar 1052 57.655
+PXPLOG tx tx_scar  57.655
+TRACE t=58.02 lv=4 k=56 hp=157.95 n=14 rng=7597025610396670368/-9068944130154766561/6592630178588992522/9128038132423840180/6065646721096788134 pos=-456.07,-331.42 h=-4362.150 sq=3568413953 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 1074 58.389
+PXPLOG tx tx_scar  58.389
+FXRLOG texas tx_cut 1074 58.389
+PXPLOG tx tx_cut  58.389
+FXRLOG texas tx_scar 1074 58.389
+PXPLOG tx tx_scar  58.389
+FXRLOG texas tx_scar 1074 58.389
+PXPLOG tx tx_scar  58.389
+FXRLOG texas tx_scar 1082 58.655
+PXPLOG tx tx_scar  58.655
+FXRLOG texas tx_cut 1082 58.655
+PXPLOG tx tx_cut  58.655
+FXRLOG texas tx_scar 1082 58.655
+PXPLOG tx tx_scar  58.655
+FXRLOG texas tx_scar 1082 58.655
+PXPLOG tx tx_scar  58.655
+FXRLOG lumen lm_mend 1085 58.755
+FXRLOG lumen skill0 1085 58.755
+FXRLOG texas tx_scar 1089 58.889
+PXPLOG tx tx_scar  58.889
+FXRLOG texas tx_cut 1089 58.889
+PXPLOG tx tx_cut  58.889
+FXRLOG texas tx_scar 1089 58.889
+PXPLOG tx tx_scar  58.889
+FXRLOG texas tx_scar 1089 58.889
+PXPLOG tx tx_scar  58.889
+TRACE t=59.02 lv=4 k=59 hp=157.95 n=12 rng=7597025610396670368/7318248076354811036/6592630178588992522/4796411391244269878/6065646721096788134 pos=-370.62,-390.72 h=-3926.597 sq=391843252 lamp=10000 nd=4197670970 rl=0
+BEACON mires t=60.0 mires=0
+TRACE t=60.02 lv=4 k=59 hp=157.95 n=15 rng=7597025610396670368/-8397255130419188943/6592630178588992522/4796411391244269878/6065646721096788134 pos=-438.10,-482.73 h=-4335.314 sq=935508933 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 1126 60.122
+PXPLOG tx tx_scar  60.122
+FXRLOG texas tx_cut 1126 60.122
+PXPLOG tx tx_cut  60.122
+FXRLOG texas tx_scar 1126 60.122
+PXPLOG tx tx_scar  60.122
+FXRLOG texas tx_scar 1126 60.122
+PXPLOG tx tx_scar  60.122
+FXRLOG lumen lm_mend 1130 60.255
+FXRLOG lumen skill0 1130 60.255
+FXRLOG texas tx_scar 1134 60.389
+PXPLOG tx tx_scar  60.389
+FXRLOG texas tx_cut 1134 60.389
+PXPLOG tx tx_cut  60.389
+FXRLOG texas tx_scar 1134 60.389
+PXPLOG tx tx_scar  60.389
+FXRLOG texas tx_scar 1134 60.389
+PXPLOG tx tx_scar  60.389
+FXRLOG texas tx_scar 1141 60.622
+PXPLOG tx tx_scar  60.622
+FXRLOG texas tx_cut 1141 60.622
+PXPLOG tx tx_cut  60.622
+FXRLOG texas tx_scar 1141 60.622
+PXPLOG tx tx_scar  60.622
+FXRLOG texas tx_scar 1141 60.622
+PXPLOG tx tx_scar  60.622
+FXRLOG texas tx_scar 1149 60.889
+PXPLOG tx tx_scar  60.889
+FXRLOG texas tx_cut 1149 60.889
+PXPLOG tx tx_cut  60.889
+FXRLOG texas tx_scar 1149 60.889
+PXPLOG tx tx_scar  60.889
+FXRLOG texas tx_scar 1149 60.889
+PXPLOG tx tx_scar  60.889
+TRACE t=61.02 lv=4 k=62 hp=157.95 n=13 rng=7597025610396670368/2033938614672624406/6592630178588992522/-5873498836968113912/6065646721096788134 pos=-504.40,-465.39 h=-3504.886 sq=317848913 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 1166 61.455
+PXPLOG tx tx_scar  61.455
+FXRLOG texas tx_cut 1166 61.455
+PXPLOG tx tx_cut  61.455
+FXRLOG texas tx_scar 1166 61.455
+PXPLOG tx tx_scar  61.455
+FXRLOG texas tx_scar 1166 61.455
+PXPLOG tx tx_scar  61.455
+FXRLOG texas tx_scar 1166 61.455
+PXPLOG tx tx_scar  61.455
+FXRLOG lumen lm_mend 1175 61.755
+FXRLOG lumen skill0 1175 61.755
+TRACE t=62.02 lv=4 k=64 hp=157.95 n=13 rng=7597025610396670368/2096852836726484444/6592630178588992522/-703844209845751644/6065646721096788134 pos=-576.26,-549.77 h=-3428.003 sq=1739776921 lamp=10000 nd=4197670970 rl=0
+FXRLOG texas tx_scar 1195 62.422
+PXPLOG tx tx_scar  62.422
+FXRLOG texas tx_cut 1195 62.422
+PXPLOG tx tx_cut  62.422
+FXRLOG texas tx_scar 1195 62.422
+PXPLOG tx tx_scar  62.422
+FXRLOG texas tx_scar 1195 62.422
+PXPLOG tx tx_scar  62.422
+TRACE t=63.02 lv=4 k=68 hp=157.95 n=10 rng=7597025610396670368/-6004726533807517539/6592630178588992522/-8874127129821370468/6065646721096788134 pos=-646.16,-640.15 h=-2101.013 sq=2762633355 lamp=10000 nd=4197670970 rl=0
+FXRLOG lumen lm_mend 1220 63.255
+FXRLOG lumen skill0 1220 63.255
+TRACE t=64.02 lv=4 k=69 hp=157.95 n=11 rng=7597025610396670368/3587269042312689259/-3878709261742315348/4651250684093524194/6065646721096788134 pos=-737.96,-625.18 h=-2621.871 sq=3795398027 lamp=10000 nd=4197670970 rl=0
+ERROR: 173 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 25: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 26: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 97: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 98: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 99: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 100: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 101: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 102: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 103: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 104: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 106: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 107: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 108: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1509: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1510: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1542: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1543: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1544: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1545: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1546: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1547: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1548: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1549: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1550: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1551: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1552: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1553: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1554: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1555: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1556: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1557: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1558: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1559: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1560: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1561: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1562: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1563: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1564: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1565: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1566: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1567: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1568: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1569: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1570: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1571: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1572: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1573: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1574: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1575: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1576: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1577: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1578: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1579: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1580: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1581: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1582: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1583: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1584: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1585: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1586: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1587: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1588: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1589: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1590: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1591: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1592: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1593: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1594: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1595: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1596: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1597: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1598: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1599: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1600: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1601: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1602: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1603: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1604: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1605: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1606: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1607: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1608: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1609: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1610: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1611: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1612: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1613: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1614: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1615: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1616: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1617: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1618: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1619: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1620: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1621: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1622: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1623: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1624: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1625: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1626: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1627: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1628: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1629: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1630: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1631: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1632: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1633: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1634: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1635: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1636: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1637: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1638: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1639: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1640: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1641: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1642: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1643: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1644: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1645: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1646: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1647: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1648: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1649: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1650: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1651: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1652: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1653: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1654: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1655: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1656: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1657: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1658: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1659: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1660: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1661: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1662: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1663: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1664: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1665: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1666: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1667: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1668: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1669: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1670: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1671: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1672: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1673: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1674: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1675: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1676: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1677: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1678: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1679: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1680: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1681: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1682: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1683: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1684: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1685: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1686: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 611676 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1758: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1789: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1844: leaked 252 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1848: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1853: leaked 556 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1961: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1982: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1986: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 483 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 39 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

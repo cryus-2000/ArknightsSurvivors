@@ -1,0 +1,3 @@
+2129959	cmp_s3_e2.png
+256189	cmp_s3_e2_x2.png
+333236	tiers_s3.png

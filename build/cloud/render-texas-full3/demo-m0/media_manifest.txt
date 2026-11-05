@@ -1,0 +1,7 @@
+2045205	cmp_s1_e0.png
+235718	cmp_s1_e0_x2.png
+1889374	cmp_s1_e1.png
+204949	cmp_s1_e1_x2.png
+1646037	cmp_s1_e2.png
+206108	cmp_s1_e2_x2.png
+1029396	tiers_s1.png
