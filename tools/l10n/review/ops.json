@@ -181,7 +181,8 @@
  },
  "这片大地的代言人（划掉）": {
   "en": "The voice of this land (crossed out)",
-  "note": "难翻，待用户定：梗在「（划掉）」，英文可用删除线或括号。候选2：Spokesperson for all of Terra ~~(not really)~~"
+  "note": "用户已确认（11-05，经协调人）",
+  "confirmed": true
  },
  "她是落单的狼，现作为近卫干员，于战术攻坚与肃清作战中展现出十足的歼灭能力": {
   "en": "A lone wolf. Now a Guard Operator, she shows full annihilation capability in tactical assaults and mop-up operations.",
@@ -209,7 +210,8 @@
  },
  "前阿戈尔传奇电工，能够以一己之力维护一整座城市的海底灯光阵列": {
   "en": "Former legendary Ægir electrician, able to maintain an entire city's undersea lighting array single-handedly.",
-  "note": "难翻，待用户定：「电工」是国服玩家梗，英文社区不一定懂；候选2 换成国际服玩家熟悉的说法：Former legendary Ægir maintenance worker. Keeps a whole city's undersea lights on all by herself."
+  "note": "用户已确认（11-05，经协调人）",
+  "confirmed": true
  },
  "名为斯卡蒂的深海猎人//名为伊莎玛拉的海嗣\n正停留此处\n等待你的部署//渴盼你的呼唤": {
   "en": "The Abyssal Hunter named Skadi // The Seaborn named Ishar'mla\nwaits here\nfor your deployment // for your call",
@@ -233,7 +235,8 @@
  },
  "我的天哪维什戴尔大人": {
   "en": "Oh my god, Lady Wiš'adel",
-  "note": "难翻，待用户定：国服玩家梗，英文没有对应的固定说法。候选2：OMG it's Wiš'adel-sama"
+  "note": "用户已确认（11-05，经协调人）",
+  "confirmed": true
  },
  "「惊跳反射」使「唤醒」的强化攻击追加触手攻击；「病理性依恋」使被触手拖到身边的敌人被缠住": {
   "en": "'Startle Reflex' causes the enhanced attack of 'Awaken' to deal an additional tentacle attack; 'Pathological Attachment' causes enemies dragged to him by tentacles to be entangled.",
