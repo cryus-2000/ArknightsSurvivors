@@ -39,6 +39,7 @@ var _emit_n := 0
 var _emit_frame := -1
 var _ecol := {}
 var _fol_tick := -1
+var _fop_tick := -1
 
 
 static func of(game):
@@ -289,6 +290,15 @@ func _step() -> void:
 		for it in items:
 			if it.has("fol"):
 				it.gp = _snap(g.ppos + (it.fol as Vector2))
+	if tk != _fop_tick:   # 跟着施放者本人走的件（艾雅法拉咏唱火缕 / 火山喷柱 / 出手火光，docs/259）：位置每拍跳一格
+		_fop_tick = tk
+		for it in items:
+			if it.has("fop") and is_instance_valid(it.fop) and it.fop.pos != Vector2.INF:
+				var np: Vector2 = _snap(it.fop.pos + (it.foff as Vector2))
+				if it.has("at"):
+					it.at = np
+				else:
+					it.gp = np
 
 
 func _life(k: String) -> float:
@@ -1342,7 +1352,7 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 		"ey_fire":   # 出手：杖头两拍火光
 			if raw:
 				return
-			_push({"ert": "muz", "at": _snap(d.at), "big": d.get("big", false), "t0": g.t, "life": 2.0 / 15.0, "ly": "up", "gy": o.pos.y + 1.0, "oid": str(o.id), "k": ""})
+			_push({"ert": "muz", "at": _snap(d.at), "big": d.get("big", false), "t0": g.t, "life": 2.0 / 15.0, "ly": "up", "gy": o.pos.y + 1.0, "oid": str(o.id), "k": "", "fop": o, "foff": (d.at as Vector2) - o.pos})
 			R._light(o, d.at, 60.0, 0.35, 0.08, p.light)
 		"ey_chain":   # 「连锁」弹射：一道 1 美术像素的火线（3 拍）
 			if _lm_beat_n(o, "eych") >= 3 or raw:
@@ -1385,17 +1395,17 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				if raw:
 					_ey_rawi(o, "raw_s1cast", o.pos, 0.0, px * 1.13)
 					return
-				_ey_push(o, "s1cast_e%d_up" % t, o.pos, "up")
+				_ey_push(o, "s1cast_e%d_up" % t, o.pos, "up", {"fop": o, "foff": Vector2.ZERO})
 				if t >= 2:
-					_ey_push(o, "s1cast_e2_gd", o.pos, "gd")
+					_ey_push(o, "s1cast_e2_gd", o.pos, "gd", {"fop": o, "foff": Vector2.ZERO})
 				R._light(o, o.pos + Vector2(0, -100), 100.0, 0.5, 0.15, p.light)
 			elif i == 2:   # 火山起手：身后熔岩喷柱 + 脚下裂缝圈
 				var fl: bool = float(o.face) < 0.0
 				if raw:
 					_ey_rawi(o, "raw_s3cast", o.pos, 0.0, px * 1.13)
 					return
-				_ey_push(o, "s3cast_up", o.pos, "up", {"flip": fl, "sk": -6.0})
-				_ey_push(o, "s3cast_gd", o.pos, "gd", {"flip": fl})
+				_ey_push(o, "s3cast_up", o.pos, "up", {"flip": fl, "sk": -6.0, "fop": o, "foff": Vector2.ZERO})
+				_ey_push(o, "s3cast_gd", o.pos, "gd", {"flip": fl, "fop": o, "foff": Vector2.ZERO})
 				R._light(o, o.pos + Vector2(0, -60), 170.0, 0.7, 0.15, p.light)
 				if mode() == 1:
 					R._grains(o, o.pos + Vector2(0, -40), o.pos.y, "rock", 5, {"tier": 2})
