@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4498 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+texas 0 360 帧 []
+texas 0 声音：音效 276 次（斩肉 0 次）
+texas 1 360 帧 []
+texas 1 声音：音效 288 次（斩肉 12 次）
+录像 /work/repo/build/cloud/render-texas-meat1-c1/media/texas_meat_8m00.mp4 9.4 MB 360 帧
+media：3 个文件，9.7M

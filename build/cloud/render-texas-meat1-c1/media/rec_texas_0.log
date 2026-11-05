@@ -1,0 +1,723 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+BEACON mires t=60.0 mires=0
+ENDEV deal m1 ["shop/", "elite/"] t=115.0 cur=standard relics=[]
+ENDEV flip 1 elite  t=115.0 cur=standard relics=[]
+BEACON mires t=120.0 mires=11
+SHOP ["洁白的舞鞋", "血魔的银杯", "皇帝的恩宠", "急救包", "灯油"]
+BEACON spawn t=164.1 mires=8
+BEACON lit cleared=7 in_s=1.8 min_d=55 hold_s=2.4 via=ring t=167.3 mires=12
+BEACON mires t=180.1 mires=9
+DUCK spawn t=216.16 d=448
+DUCK kill t=221.11 after=5.0
+BEACON spawn t=234.5 mires=8
+BEACON lit cleared=2 in_s=1.8 min_d=25 hold_s=2.5 via=ring t=238.2 mires=8
+BEACON mires t=240.0 mires=7
+ENDEV deal c1 ["incident/madness", "incident/legacy", "incident/opening"] t=272.6 cur=standard relics=[]
+ENDEV flip 2 incident opening t=272.6 cur=standard relics=[]
+ENDEV open opening t=272.6 cur=standard relics=[]
+ENDEV pick opening:2 t=272.6 cur=standard relics=[]
+BEACON mires t=300.0 mires=22
+BEACON spawn t=304.0 mires=18
+BEACON lit cleared=10 in_s=2.0 min_d=52 hold_s=3.3 via=ring t=309.8 mires=28
+SHOP ["“荣耀套餐”", "被撬开的道具箱", "支援急救包", "急救包", "灯油"]
+ENDEV deal m2 ["elite/", "rest/"] t=360.1 cur=standard relics=[]
+BEACON mires t=360.1 mires=23
+ENDEV flip 1 rest  t=360.1 cur=standard relics=[]
+BEACON spawn t=372.7 mires=24
+BEACON lit cleared=10 in_s=1.9 min_d=29 hold_s=2.5 via=ring t=383.7 mires=33
+BEACON mires t=420.1 mires=28
+BEACON spawn t=441.4 mires=27
+BEACON lit cleared=3 in_s=1.8 min_d=18 hold_s=2.4 via=ring t=444.3 mires=26
+ENDEV deal c2 ["elite/", "fog/", "shop/"] t=463.7 cur=standard relics=[]
+ENDEV flip 2 shop  t=463.7 cur=standard relics=[]
+SHOP ["锈蚀刀片  (可升级)", "贵族刺剑", "疗养特供卡", "急救包", "灯油"]
+PF RTFROM t=477.0
+BEACON mires t=480.0 mires=35
+SHOP ["支援地雷组", "聚火源石虫", "银餐叉  (可升级)", "急救包", "灯油"]
+SFXTRACE {"frame0":1420,"trace":[[1420,"op_irene_s1",-4.0,1.04999995231628],[1420,"voice:texas_skill_1",0.5,1.0],[1422,"kill",-8.0,0.924142718315125],[1422,"op_irene_atk",-8.0,0.852787733078003],[1424,"op_irene_big",-10.0,0.966100990772247],[1427,"op_irene_big",-10.0,0.991735458374023],[1431,"op_irene_big",-10.0,0.991199016571045],[1436,"hit",-12.0,1.04887318611145],[1436,"op_irene_big",-10.0,0.901029348373413],[1436,"op_irene_hit",-10.0,1.0],[1436,"op_irene_atk",-11.0,0.96918112039566],[1440,"op_irene_big",-10.0,1.03746497631073],[1441,"hit",-12.0,1.00480091571808],[1441,"kill",-8.0,0.923511803150177],[1441,"op_irene_atk",-11.0,1.01153826713562],[1441,"op_irene_hit",-10.0,1.0],[1442,"hit",-8.0,0.900252938270569],[1442,"op_texas_atk",-11.0,0.946206033229828],[1446,"hit",-8.0,0.895693421363831],[1446,"op_irene_atk",-11.0,1.0545494556427],[1446,"op_irene_hit",-10.0,1.0],[1447,"op_irene_big",-10.0,1.00424516201019],[1448,"hit",-17.0,1.15468955039978],[1452,"op_irene_s2",-4.0,1.0],[1452,"voice:irene_skill_2",0.0,1.0],[1453,"enemy_screech",-24.514139175415,1.0416339635849],[1455,"hit",-17.0,1.25404214859009],[1456,"op_irene_big",-10.0,1.01288819313049],[1461,"hit",-17.0,1.20130097866058],[1461,"kill",-8.0,0.951800227165222],[1461,"kill_big",-8.0,1.00078773498535],[1464,"op_irene_big",-10.0,1.02696752548218],[1466,"op_suzuran_s1",-4.0,1.0],[1471,"op_irene_s1",-4.0,1.0],[1473,"kill",-6.0,0.916591942310333],[1473,"kill_big",-8.0,0.959218740463257],[1473,"op_irene_big",-10.0,1.04927909374237],[1475,"hit",-12.0,1.05880296230316],[1475,"kill",-8.0,0.992103755474091],[1475,"op_texas_atk",-11.0,0.956137835979462],[1476,"enemy_acid",-19.8699378967285,1.06472086906433],[1476,"op_irene_hit",-10.0,1.0],[1476,"op_irene_atk",-11.0,0.978099822998047],[1477,"op_suzuran_atk",-11.0,1.0],[1478,"relic",-12.0,1.60000002384186],[1481,"hit",-12.0,1.09676706790924],[1481,"op_irene_big",-10.0,0.97399765253067],[1481,"op_irene_atk",-11.0,1.00410425662994],[1481,"op_irene_hit",-10.0,1.0],[1481,"pickup",-14.0,1.374103307724],[1488,"hit",-17.0,1.23031449317932],[1488,"op_irene_atk",-11.0,0.99856024980545],[1488,"op_irene_hit",-10.0,1.0],[1492,"hit",0.0,0.5],[1492,"stake_shatter",-9.0,1.5],[1496,"pickup",-14.0,1.38790440559387],[1500,"hit",-17.0,1.25796008110046],[1500,"op_irene_big",-10.0,0.982218503952026],[1500,"op_irene_hit",-10.0,1.0],[1500,"op_irene_atk",-11.0,0.939397752285004],[1500,"op_suzuran_hit",-10.0,1.01824879646301],[1503,"op_suzuran_hit",-10.0,1.03393006324768],[1503,"boom",-14.0,1.7334578037262],[1504,"op_suzuran_hit",-10.0,0.9945929646492],[1506,"hit",-17.0,1.26871287822723],[1506,"op_irene_atk",-11.0,1.01276648044586],[1506,"op_irene_hit",-10.0,1.0],[1507,"hit",-12.0,1.00168609619141],[1507,"op_texas_atk",-11.0,1.03168606758118],[1508,"op_suzuran_atk",-11.0,1.0],[1509,"kill",-8.0,0.9676553606987],[1510,"op_suzuran_hit",-10.0,1.00387012958527],[1510,"enemy_screech",-21.3724384307861,1.01364755630493],[1512,"op_irene_atk",-8.0,0.928954124450684],[1512,"enemy_bite",-19.0592956542969,0.989017426967621],[1516,"op_irene_big",-10.0,1.08570027351379],[1516,"kill",-8.0,0.902822911739349],[1519,"op_irene_s1",-4.0,1.04999995231628],[1520,"op_irene_s1",-4.0,1.0],[1520,"voice:irene_battle_2",0.0,1.0],[1522,"enemy_bite",-19.0424728393555,0.963050603866577],[1524,"enemy_screech",-21.4986000061035,1.05817854404449],[1524,"swing",-6.0,0.671379506587982],[1525,"op_irene_big",-10.0,0.919500768184662],[1525,"op_irene_hit",-10.0,1.0],[1525,"op_irene_atk",-11.0,1.07165122032166],[1530,"kill",-6.0,0.929328501224518],[1530,"kill_big",-8.0,1.02987027168274],[1530,"enemy_spit",-20.5548191070557,1.02405726909637],[1531,"hit",-12.0,1.01254987716675],[1531,"op_irene_atk",-11.0,0.972464442253113],[1531,"op_irene_hit",-10.0,1.0],[1537,"hit",-17.0,1.19276916980743],[1537,"kill",-8.0,0.829853951931],[1537,"op_irene_atk",-11.0,0.925738394260406],[1537,"op_irene_hit",-10.0,1.0],[1538,"op_suzuran_atk",-11.0,1.0],[1540,"relic",-4.0,0.962009191513062],[1541,"ui_ok",0.0,1.06115627288818],[1543,"ui_ok",-4.0,1.03562223911285],[1543,"relic",-4.0,0.762678027153015],[1544,"hit",-8.0,0.79312789440155],[1544,"op_texas_atk",-11.0,1.03253304958344],[1553,"hit",-8.0,0.831544697284698],[1553,"op_irene_hit",-10.0,1.0],[1553,"op_irene_atk",-11.0,1.02753579616547],[1553,"kill",-6.0,0.801996767520905],[1553,"kill_big",-8.0,0.967206835746765],[1554,"kill",-6.0,0.721601247787476],[1554,"kill_big",-8.0,1.02415943145752],[1557,"op_irene_s3",-2.0,1.10000002384186],[1557,"voice:texas_skill_3",0.5,1.0],[1558,"hit",-8.0,0.893822312355042],[1558,"op_irene_atk",-11.0,1.01468431949615],[1558,"op_irene_hit",-10.0,1.0],[1558,"op_suzuran_s3",-2.0,1.0],[1564,"op_irene_atk",-11.0,0.975854277610779],[1567,"op_suzuran_s1",-4.0,1.0],[1572,"hit",0.0,0.5],[1573,"enemy_screech",-19.3234806060791,1.02673161029816],[1576,"pickup",-14.0,1.37160158157349],[1577,"hit",-17.0,1.16191339492798],[1577,"op_irene_hit",-10.0,1.0],[1577,"op_irene_atk",-11.0,1.03331744670868],[1581,"op_texas_atk",-11.0,0.945351898670197],[1581,"kill",-6.0,0.871421337127686],[1581,"kill_big",-8.0,0.950994670391083],[1583,"hit",-17.0,1.15975642204285],[1583,"op_irene_atk",-11.0,0.968467056751251],[1583,"op_irene_hit",-10.0,1.0],[1588,"kill",-8.0,0.999610781669617],[1588,"op_texas_hit",-13.0,1.01903879642487],[1589,"kill",-8.0,1.00762224197388],[1589,"op_irene_atk",-8.0,0.909339785575867],[1593,"op_irene_big",-10.0,1.01515579223633],[1593,"kill",-8.0,0.912911117076874],[1593,"op_irene_s2",-4.0,1.0],[1593,"voice:irene_skill_1",0.0,1.0],[1594,"hit",0.0,0.5],[1596,"kill",-8.0,0.894554495811462],[1596,"op_texas_hit",-13.0,1.01695394515991],[1596,"pickup",-14.0,1.3449923992157],[1602,"kill",-8.0,0.958104133605957],[1604,"op_texas_hit",-13.0,1.04396140575409],[1605,"pickup",-14.0,1.37219047546387],[1608,"pickup",-14.0,1.392502784729],[1609,"pickup",-14.0,1.39541757106781],[1610,"pickup",-14.0,1.38236367702484],[1611,"levelup",-6.0,1.29999995231628],[1611,"enemy_bite",-17.6273250579834,1.01921498775482],[1612,"op_irene_s1",-4.0,1.0],[1612,"op_texas_hit",-13.0,1.0487025976181],[1616,"op_irene_hit",-10.0,1.0],[1616,"op_irene_atk",-11.0,1.07351160049438],[1616,"pickup",-14.0,1.00593435764313],[1617,"tentacle",-12.0,0.724994659423828],[1617,"enemy_screech",-20.9551677703857,0.991358816623688],[1618,"enemy_bite",-18.8468551635742,1.05606412887573],[1621,"pickup",-14.0,0.980959117412567],[1622,"enemy_bite",-19.0488338470459,0.981924295425415],[1623,"hit",-8.0,0.818886458873749],[1623,"op_irene_big",-10.0,1.08700358867645],[1623,"op_irene_atk",-11.0,1.04448986053467],[1623,"op_irene_hit",-10.0,1.0],[1625,"pickup",-14.0,1.03585541248322],[1626,"pickup",-14.0,1.03828048706055],[1627,"levelup",-2.0,1.0],[1628,"ui_ok",-4.0,0.938612341880798],[1628,"hit",-8.0,0.895020604133606],[1628,"op_irene_atk",-11.0,0.957532703876495],[1628,"op_irene_hit",-10.0,1.0],[1631,"op_texas_hit",-13.0,1.03536736965179],[1634,"swing",-6.0,0.750180900096893],[1635,"pickup",-14.0,1.03528320789337],[1639,"tentacle",-2.0,0.73131388425827],[1641,"hit",-17.0,1.15871405601501],[1641,"op_irene_hit",-10.0,1.0],[1641,"op_irene_atk",-11.0,1.02678668498993],[1645,"pickup",-14.0,1.03674900531769],[1647,"hit",-8.0,0.808086156845093],[1647,"op_irene_atk",-11.0,0.967934787273407],[1647,"op_irene_hit",-10.0,1.0],[1648,"pickup",-14.0,1.01007521152496],[1648,"enemy_screech",-21.3585109710693,0.960556149482727],[1651,"op_irene_s1",-4.0,1.04999995231628],[1651,"voice:texas_battle",0.5,1.0],[1653,"hit",-8.0,0.915505528450012],[1653,"op_irene_big",-10.0,1.08569312095642],[1653,"op_irene_atk",-11.0,1.02917957305908],[1653,"op_irene_hit",-10.0,1.0],[1653,"enemy_screech",-21.536678314209,1.01503944396973],[1658,"swing",-6.0,0.917342960834503],[1660,"kill",-8.0,1.01646840572357],[1660,"kill_big",-8.0,1.03527939319611],[1660,"op_irene_s3",-2.0,1.0],[1670,"kill",-8.0,0.96942663192749],[1670,"kill_big",-8.0,1.02401256561279],[1673,"op_texas_atk",-11.0,0.928680896759033],[1673,"kill",-6.0,0.91059547662735],[1673,"kill_big",-8.0,1.04363667964935],[1673,"op_suzuran_s1",-4.0,1.0],[1673,"voice:suzuran_battle",0.0,1.0],[1674,"enemy_bite",-19.057767868042,0.97694593667984],[1680,"op_texas_hit",-13.0,1.02339053153992],[1681,"op_irene_big",-10.0,1.06148421764374],[1684,"hit",-17.0,1.25837743282318],[1684,"op_irene_hit",-10.0,1.0],[1684,"op_irene_atk",-11.0,1.00408005714417],[1688,"swing",-6.0,0.727000892162323],[1688,"hurt",5.44626760482788,0.803295016288757],[1688,"hurt_heavy",-8.0,0.968833088874817],[1689,"kill",-6.0,0.802875697612762],[1689,"kill_shell",-6.0,1.04387259483337],[1689,"boom",0.0,1.0],[1689,"op_irene_big",-10.0,1.03878855705261],[1689,"hit",-17.0,1.34699952602386],[1689,"op_irene_atk",-11.0,1.07391881942749],[1689,"op_irene_hit",-10.0,1.0],[1694,"op_texas_hit",-13.0,1.02093768119812],[1699,"kill",-8.0,1.05917227268219],[1699,"op_irene_atk",-8.0,0.861852824687958],[1701,"op_irene_big",-10.0,0.997481465339661],[1701,"op_texas_hit",-13.0,0.966905295848846],[1703,"enemy_bite",-18.4389247894287,1.05097591876984],[1703,"op_irene_big",-10.0,0.996340811252594],[1703,"op_irene_s1",-4.0,1.0],[1703,"voice:irene_skill_2",0.0,1.0],[1706,"hurt",5.77025461196899,0.853260934352875],[1706,"hurt_heavy",-8.0,0.966921150684357],[1713,"op_irene_big",-10.0,1.0227222442627],[1713,"hit",0.0,0.5],[1714,"op_texas_hit",-13.0,1.0279586315155],[1716,"op_irene_big",-10.0,1.06985068321228],[1716,"op_irene_hit",-10.0,1.0],[1716,"op_irene_atk",-11.0,1.02354967594147],[1720,"op_irene_big",-10.0,0.931939363479614],[1721,"hit",-12.0,1.07333672046661],[1721,"op_irene_atk",-11.0,1.07616102695465],[1721,"op_irene_hit",-10.0,1.0],[1721,"pickup",-8.0,0.699999988079071],[1722,"pickup",-8.0,0.699999988079071],[1728,"hit",-17.0,1.19209694862366],[1728,"op_irene_atk",-11.0,0.921974003314972],[1728,"op_irene_hit",-10.0,1.0],[1729,"hurt",5.77025461196899,0.807426631450653],[1729,"hurt_heavy",-8.0,0.975810766220093],[1730,"op_irene_big",-10.0,0.99219822883606],[1733,"op_texas_hit",-13.0,0.98270058631897],[1737,"op_irene_big",-10.0,1.01120853424072],[1740,"enemy_spit",-20.953540802002,0.967056334018707],[1740,"hit",-17.0,1.16621267795563],[1740,"op_irene_big",-10.0,0.924290835857391],[1740,"op_irene_hit",-10.0,1.0],[1740,"op_irene_atk",-11.0,0.936055481433868],[1745,"hurt",5.77025461196899,0.839995265007019],[1745,"hurt_heavy",-8.0,0.966153085231781],[1746,"op_irene_big",-10.0,0.91283392906189],[1747,"hit",-17.0,1.29934144020081],[1747,"op_irene_atk",-11.0,1.02219915390015],[1747,"op_irene_hit",-10.0,1.0],[1751,"pickup",-14.0,1.03058362007141],[1752,"hit",-17.0,1.17856884002686],[1752,"op_irene_atk",-11.0,1.0644154548645],[1752,"op_irene_hit",-10.0,1.0],[1754,"op_irene_big",-10.0,1.00238585472107],[1756,"op_texas_atk",-11.0,0.936562180519104],[1757,"op_irene_s2",-4.0,1.0],[1757,"voice:irene_skill_3",0.0,1.0],[1757,"tentacle",-12.0,0.710180878639221],[1763,"op_irene_big",-10.0,0.991702437400818],[1764,"op_texas_hit",-13.0,1.03981900215149],[1767,"pickup",-14.0,1.06831431388855],[1767,"kill",-8.0,0.927108407020569],[1767,"relic",-6.0,1.29520058631897],[1770,"op_irene_big",-10.0,0.901421904563904],[1770,"enemy_spit",-20.0971412658691,0.951273739337921],[1772,"op_texas_hit",-13.0,1.01563310623169],[1778,"op_irene_big",-10.0,0.956331610679626],[1781,"hit",-8.0,0.897248208522797],[1781,"op_irene_big",-10.0,0.973040401935577],[1781,"kill",-8.0,1.00364983081818],[1781,"op_irene_hit",-10.0,1.0],[1781,"op_irene_atk",-11.0,1.01979374885559],[1781,"op_texas_hit",-13.0,1.01116359233856],[1781,"kill_big",-8.0,1.02285170555115]]}
+MUSTRACE {"buses":{"Music":-1.93820023536682,"SFX":-0.915149807929993,"Voice":-1.93820023536682},"frames":[[1420,19999.46875,[["res://audio/music/suno_battle3_base.ogg",-4.0,37.431999206543],["res://audio/music/suno_battle3_pulse.ogg",-4.0,37.431999206543],["res://audio/music/suno_battle3_drive.ogg",-4.0,37.431999206543]]],[1421,19999.521484375,[["res://audio/music/suno_battle3_base.ogg",-4.0,37.8040008544922],["res://audio/music/suno_battle3_pulse.ogg",-4.0,37.8040008544922],["res://audio/music/suno_battle3_drive.ogg",-4.0,37.8040008544922]]],[1422,19999.5703125,[["res://audio/music/suno_battle3_base.ogg",-4.0,38.1759986877441],["res://audio/music/suno_battle3_pulse.ogg",-4.0,38.1759986877441],["res://audio/music/suno_battle3_drive.ogg",-4.0,38.1759986877441]]],[1423,19999.61328125,[["res://audio/music/suno_battle3_base.ogg",-4.0,38.5480003356934],["res://audio/music/suno_battle3_pulse.ogg",-4.0,38.5480003356934],["res://audio/music/suno_battle3_drive.ogg",-4.0,38.5480003356934]]],[1424,19999.65234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,38.9199981689453],["res://audio/music/suno_battle3_pulse.ogg",-4.0,38.9199981689453],["res://audio/music/suno_battle3_drive.ogg",-4.0,38.9199981689453]]],[1425,19999.6875,[["res://audio/music/suno_battle3_base.ogg",-4.0,39.2879981994629],["res://audio/music/suno_battle3_pulse.ogg",-4.0,39.2879981994629],["res://audio/music/suno_battle3_drive.ogg",-4.0,39.2879981994629]]],[1426,19999.71875,[["res://audio/music/suno_battle3_base.ogg",-4.0,39.6599998474121],["res://audio/music/suno_battle3_pulse.ogg",-4.0,39.6599998474121],["res://audio/music/suno_battle3_drive.ogg",-4.0,39.6599998474121]]],[1427,19999.74609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,40.0320014953613],["res://audio/music/suno_battle3_pulse.ogg",-4.0,40.0320014953613],["res://audio/music/suno_battle3_drive.ogg",-4.0,40.0320014953613]]],[1428,19999.771484375,[["res://audio/music/suno_battle3_base.ogg",-4.0,40.4039993286133],["res://audio/music/suno_battle3_pulse.ogg",-4.0,40.4039993286133],["res://audio/music/suno_battle3_drive.ogg",-4.0,40.4039993286133]]],[1429,19999.794921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,40.7760009765625],["res://audio/music/suno_battle3_pulse.ogg",-4.0,40.7760009765625],["res://audio/music/suno_battle3_drive.ogg",-4.0,40.7760009765625]]],[1430,19999.81640625,[["res://audio/music/suno_battle3_base.ogg",-4.0,41.2400016784668],["res://audio/music/suno_battle3_pulse.ogg",-4.0,41.2400016784668],["res://audio/music/suno_battle3_drive.ogg",-4.0,41.2400016784668]]],[1431,19999.833984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,41.6119995117188],["res://audio/music/suno_battle3_pulse.ogg",-4.0,41.6119995117188],["res://audio/music/suno_battle3_drive.ogg",-4.0,41.6119995117188]]],[1432,19999.8515625,[["res://audio/music/suno_battle3_base.ogg",-4.0,41.984001159668],["res://audio/music/suno_battle3_pulse.ogg",-4.0,41.984001159668],["res://audio/music/suno_battle3_drive.ogg",-4.0,41.984001159668]]],[1433,19999.8671875,[["res://audio/music/suno_battle3_base.ogg",-4.0,42.3559989929199],["res://audio/music/suno_battle3_pulse.ogg",-4.0,42.3559989929199],["res://audio/music/suno_battle3_drive.ogg",-4.0,42.3559989929199]]],[1434,19999.880859375,[["res://audio/music/suno_battle3_base.ogg",-4.0,42.7280006408691],["res://audio/music/suno_battle3_pulse.ogg",-4.0,42.7280006408691],["res://audio/music/suno_battle3_drive.ogg",-4.0,42.7280006408691]]],[1435,19999.892578125,[["res://audio/music/suno_battle3_base.ogg",-4.0,43.0960006713867],["res://audio/music/suno_battle3_pulse.ogg",-4.0,43.0960006713867],["res://audio/music/suno_battle3_drive.ogg",-4.0,43.0960006713867]]],[1436,19999.90234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,43.4679985046387],["res://audio/music/suno_battle3_pulse.ogg",-4.0,43.4679985046387],["res://audio/music/suno_battle3_drive.ogg",-4.0,43.4679985046387]]],[1437,19999.912109375,[["res://audio/music/suno_battle3_base.ogg",-4.0,43.8400001525879],["res://audio/music/suno_battle3_pulse.ogg",-4.0,43.8400001525879],["res://audio/music/suno_battle3_drive.ogg",-4.0,43.8400001525879]]],[1438,19999.921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,44.2120018005371],["res://audio/music/suno_battle3_pulse.ogg",-4.0,44.2120018005371],["res://audio/music/suno_battle3_drive.ogg",-4.0,44.2120018005371]]],[1439,19999.9296875,[["res://audio/music/suno_battle3_base.ogg",-4.0,44.6759986877441],["res://audio/music/suno_battle3_pulse.ogg",-4.0,44.6759986877441],["res://audio/music/suno_battle3_drive.ogg",-4.0,44.6759986877441]]],[1440,19999.9375,[["res://audio/music/suno_battle3_base.ogg",-4.0,45.0480003356934],["res://audio/music/suno_battle3_pulse.ogg",-4.0,45.0480003356934],["res://audio/music/suno_battle3_drive.ogg",-4.0,45.0480003356934]]],[1441,19999.943359375,[["res://audio/music/suno_battle3_base.ogg",-4.0,45.4199981689453],["res://audio/music/suno_battle3_pulse.ogg",-4.0,45.4199981689453],["res://audio/music/suno_battle3_drive.ogg",-4.0,45.4199981689453]]],[1442,19999.94921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,45.8839988708496],["res://audio/music/suno_battle3_pulse.ogg",-4.0,45.8839988708496],["res://audio/music/suno_battle3_drive.ogg",-4.0,45.8839988708496]]],[1443,19999.955078125,[["res://audio/music/suno_battle3_base.ogg",-4.0,46.2560005187988],["res://audio/music/suno_battle3_pulse.ogg",-4.0,46.2560005187988],["res://audio/music/suno_battle3_drive.ogg",-4.0,46.2560005187988]]],[1444,19999.958984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,46.6279983520508],["res://audio/music/suno_battle3_pulse.ogg",-4.0,46.6279983520508],["res://audio/music/suno_battle3_drive.ogg",-4.0,46.6279983520508]]],[1445,19999.962890625,[["res://audio/music/suno_battle3_base.ogg",-4.0,47.0],["res://audio/music/suno_battle3_pulse.ogg",-4.0,47.0],["res://audio/music/suno_battle3_drive.ogg",-4.0,47.0]]],[1446,19999.966796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,47.4640007019043],["res://audio/music/suno_battle3_pulse.ogg",-4.0,47.4640007019043],["res://audio/music/suno_battle3_drive.ogg",-4.0,47.4640007019043]]],[1447,19999.970703125,[["res://audio/music/suno_battle3_base.ogg",-4.0,47.8359985351562],["res://audio/music/suno_battle3_pulse.ogg",-4.0,47.8359985351562],["res://audio/music/suno_battle3_drive.ogg",-4.0,47.8359985351562]]],[1448,19999.97265625,[["res://audio/music/suno_battle3_base.ogg",-4.0,48.2080001831055],["res://audio/music/suno_battle3_pulse.ogg",-4.0,48.2080001831055],["res://audio/music/suno_battle3_drive.ogg",-4.0,48.2080001831055]]],[1449,19999.974609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,48.576000213623],["res://audio/music/suno_battle3_pulse.ogg",-4.0,48.576000213623],["res://audio/music/suno_battle3_drive.ogg",-4.0,48.576000213623]]],[1450,19999.9765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,48.9480018615723],["res://audio/music/suno_battle3_pulse.ogg",-4.0,48.9480018615723],["res://audio/music/suno_battle3_drive.ogg",-4.0,48.9480018615723]]],[1451,19999.978515625,[["res://audio/music/suno_battle3_base.ogg",-4.0,49.4119987487793],["res://audio/music/suno_battle3_pulse.ogg",-4.0,49.4119987487793],["res://audio/music/suno_battle3_drive.ogg",-4.0,49.4119987487793]]],[1452,19999.98046875,[["res://audio/music/suno_battle3_base.ogg",-4.0,49.7840003967285],["res://audio/music/suno_battle3_pulse.ogg",-4.0,49.7840003967285],["res://audio/music/suno_battle3_drive.ogg",-4.0,49.7840003967285]]],[1453,19999.982421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,50.1559982299805],["res://audio/music/suno_battle3_pulse.ogg",-4.0,50.1559982299805],["res://audio/music/suno_battle3_drive.ogg",-4.0,50.1559982299805]]],[1454,19999.984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,50.5279998779297],["res://audio/music/suno_battle3_pulse.ogg",-4.0,50.5279998779297],["res://audio/music/suno_battle3_drive.ogg",-4.0,50.5279998779297]]],[1455,19999.986328125,[["res://audio/music/suno_battle3_base.ogg",-4.0,50.9000015258789],["res://audio/music/suno_battle3_pulse.ogg",-4.0,50.9000015258789],["res://audio/music/suno_battle3_drive.ogg",-4.0,50.9000015258789]]],[1456,19999.98828125,[["res://audio/music/suno_battle3_base.ogg",-4.0,51.2719993591309],["res://audio/music/suno_battle3_pulse.ogg",-4.0,51.2719993591309],["res://audio/music/suno_battle3_drive.ogg",-4.0,51.2719993591309]]],[1457,19999.990234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,51.6440010070801],["res://audio/music/suno_battle3_pulse.ogg",-4.0,51.6440010070801],["res://audio/music/suno_battle3_drive.ogg",-4.0,51.6440010070801]]],[1458,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,52.015998840332],["res://audio/music/suno_battle3_pulse.ogg",-4.0,52.015998840332],["res://audio/music/suno_battle3_drive.ogg",-4.0,52.015998840332]]],[1459,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,52.3839988708496],["res://audio/music/suno_battle3_pulse.ogg",-4.0,52.3839988708496],["res://audio/music/suno_battle3_drive.ogg",-4.0,52.3839988708496]]],[1460,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,52.7560005187988],["res://audio/music/suno_battle3_pulse.ogg",-4.0,52.7560005187988],["res://audio/music/suno_battle3_drive.ogg",-4.0,52.7560005187988]]],[1461,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,53.1279983520508],["res://audio/music/suno_battle3_pulse.ogg",-4.0,53.1279983520508],["res://audio/music/suno_battle3_drive.ogg",-4.0,53.1279983520508]]],[1462,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,53.5919990539551],["res://audio/music/suno_battle3_pulse.ogg",-4.0,53.5919990539551],["res://audio/music/suno_battle3_drive.ogg",-4.0,53.5919990539551]]],[1463,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,53.9640007019043],["res://audio/music/suno_battle3_pulse.ogg",-4.0,53.9640007019043],["res://audio/music/suno_battle3_drive.ogg",-4.0,53.9640007019043]]],[1464,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,54.3359985351562],["res://audio/music/suno_battle3_pulse.ogg",-4.0,54.3359985351562],["res://audio/music/suno_battle3_drive.ogg",-4.0,54.3359985351562]]],[1465,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,54.7080001831055],["res://audio/music/suno_battle3_pulse.ogg",-4.0,54.7080001831055],["res://audio/music/suno_battle3_drive.ogg",-4.0,54.7080001831055]]],[1466,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,55.0800018310547],["res://audio/music/suno_battle3_pulse.ogg",-4.0,55.0800018310547],["res://audio/music/suno_battle3_drive.ogg",-4.0,55.0800018310547]]],[1467,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,55.4519996643066],["res://audio/music/suno_battle3_pulse.ogg",-4.0,55.4519996643066],["res://audio/music/suno_battle3_drive.ogg",-4.0,55.4519996643066]]],[1468,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,55.8240013122559],["res://audio/music/suno_battle3_pulse.ogg",-4.0,55.8240013122559],["res://audio/music/suno_battle3_drive.ogg",-4.0,55.8240013122559]]],[1469,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,56.1920013427734],["res://audio/music/suno_battle3_pulse.ogg",-4.0,56.1920013427734],["res://audio/music/suno_battle3_drive.ogg",-4.0,56.1920013427734]]],[1470,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,56.5639991760254],["res://audio/music/suno_battle3_pulse.ogg",-4.0,56.5639991760254],["res://audio/music/suno_battle3_drive.ogg",-4.0,56.5639991760254]]],[1471,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,57.0279998779297],["res://audio/music/suno_battle3_pulse.ogg",-4.0,57.0279998779297],["res://audio/music/suno_battle3_drive.ogg",-4.0,57.0279998779297]]],[1472,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,57.4000015258789],["res://audio/music/suno_battle3_pulse.ogg",-4.0,57.4000015258789],["res://audio/music/suno_battle3_drive.ogg",-4.0,57.4000015258789]]],[1473,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,57.7719993591309],["res://audio/music/suno_battle3_pulse.ogg",-4.0,57.7719993591309],["res://audio/music/suno_battle3_drive.ogg",-4.0,57.7719993591309]]],[1474,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,58.1440010070801],["res://audio/music/suno_battle3_pulse.ogg",-4.0,58.1440010070801],["res://audio/music/suno_battle3_drive.ogg",-4.0,58.1440010070801]]],[1475,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,58.515998840332],["res://audio/music/suno_battle3_pulse.ogg",-4.0,58.515998840332],["res://audio/music/suno_battle3_drive.ogg",-4.0,58.515998840332]]],[1476,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,58.8880004882812],["res://audio/music/suno_battle3_pulse.ogg",-4.0,58.8880004882812],["res://audio/music/suno_battle3_drive.ogg",-4.0,58.8880004882812]]],[1477,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,59.2599983215332],["res://audio/music/suno_battle3_pulse.ogg",-4.0,59.2599983215332],["res://audio/music/suno_battle3_drive.ogg",-4.0,59.2599983215332]]],[1478,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,59.6319999694824],["res://audio/music/suno_battle3_pulse.ogg",-4.0,59.6319999694824],["res://audio/music/suno_battle3_drive.ogg",-4.0,59.6319999694824]]],[1479,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,60.0],["res://audio/music/suno_battle3_pulse.ogg",-4.0,60.0],["res://audio/music/suno_battle3_drive.ogg",-4.0,60.0]]],[1480,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,60.3720016479492],["res://audio/music/suno_battle3_pulse.ogg",-4.0,60.3720016479492],["res://audio/music/suno_battle3_drive.ogg",-4.0,60.3720016479492]]],[1481,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,60.7439994812012],["res://audio/music/suno_battle3_pulse.ogg",-4.0,60.7439994812012],["res://audio/music/suno_battle3_drive.ogg",-4.0,60.7439994812012]]],[1482,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,61.1160011291504],["res://audio/music/suno_battle3_pulse.ogg",-4.0,61.1160011291504],["res://audio/music/suno_battle3_drive.ogg",-4.0,61.1160011291504]]],[1483,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,61.4879989624023],["res://audio/music/suno_battle3_pulse.ogg",-4.0,61.4879989624023],["res://audio/music/suno_battle3_drive.ogg",-4.0,61.4879989624023]]],[1484,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,61.8600006103516],["res://audio/music/suno_battle3_pulse.ogg",-4.0,61.8600006103516],["res://audio/music/suno_battle3_drive.ogg",-4.0,61.8600006103516]]],[1485,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,62.2319984436035],["res://audio/music/suno_battle3_pulse.ogg",-4.0,62.2319984436035],["res://audio/music/suno_battle3_drive.ogg",-4.0,62.2319984436035]]],[1486,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,62.6040000915527],["res://audio/music/suno_battle3_pulse.ogg",-4.0,62.6040000915527],["res://audio/music/suno_battle3_drive.ogg",-4.0,62.6040000915527]]],[1487,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,62.9720001220703],["res://audio/music/suno_battle3_pulse.ogg",-4.0,62.9720001220703],["res://audio/music/suno_battle3_drive.ogg",-4.0,62.9720001220703]]],[1488,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,63.3440017700195],["res://audio/music/suno_battle3_pulse.ogg",-4.0,63.3440017700195],["res://audio/music/suno_battle3_drive.ogg",-4.0,63.3440017700195]]],[1489,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,63.7159996032715],["res://audio/music/suno_battle3_pulse.ogg",-4.0,63.7159996032715],["res://audio/music/suno_battle3_drive.ogg",-4.0,63.7159996032715]]],[1490,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,64.0879974365234],["res://audio/music/suno_battle3_pulse.ogg",-4.0,64.0879974365234],["res://audio/music/suno_battle3_drive.ogg",-4.0,64.0879974365234]]],[1491,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,64.4599990844727],["res://audio/music/suno_battle3_pulse.ogg",-4.0,64.4599990844727],["res://audio/music/suno_battle3_drive.ogg",-4.0,64.4599990844727]]],[1492,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,64.8320007324219],["res://audio/music/suno_battle3_pulse.ogg",-4.0,64.8320007324219],["res://audio/music/suno_battle3_drive.ogg",-4.0,64.8320007324219]]],[1493,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,65.2040023803711],["res://audio/music/suno_battle3_pulse.ogg",-4.0,65.2040023803711],["res://audio/music/suno_battle3_drive.ogg",-4.0,65.2040023803711]]],[1494,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,65.5759963989258],["res://audio/music/suno_battle3_pulse.ogg",-4.0,65.5759963989258],["res://audio/music/suno_battle3_drive.ogg",-4.0,65.5759963989258]]],[1495,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,65.947998046875],["res://audio/music/suno_battle3_pulse.ogg",-4.0,65.947998046875],["res://audio/music/suno_battle3_drive.ogg",-4.0,65.947998046875]]],[1496,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,66.2239990234375],["res://audio/music/suno_battle3_pulse.ogg",-4.0,66.2239990234375],["res://audio/music/suno_battle3_drive.ogg",-4.0,66.2239990234375]]],[1497,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,66.5960006713867],["res://audio/music/suno_battle3_pulse.ogg",-4.0,66.5960006713867],["res://audio/music/suno_battle3_drive.ogg",-4.0,66.5960006713867]]],[1498,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,66.9680023193359],["res://audio/music/suno_battle3_pulse.ogg",-4.0,66.9680023193359],["res://audio/music/suno_battle3_drive.ogg",-4.0,66.9680023193359]]],[1499,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,67.3399963378906],["res://audio/music/suno_battle3_pulse.ogg",-4.0,67.3399963378906],["res://audio/music/suno_battle3_drive.ogg",-4.0,67.3399963378906]]],[1500,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,67.7119979858398],["res://audio/music/suno_battle3_pulse.ogg",-4.0,67.7119979858398],["res://audio/music/suno_battle3_drive.ogg",-4.0,67.7119979858398]]],[1501,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,68.0839996337891],["res://audio/music/suno_battle3_pulse.ogg",-4.0,68.0839996337891],["res://audio/music/suno_battle3_drive.ogg",-4.0,68.0839996337891]]],[1502,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,68.3600006103516],["res://audio/music/suno_battle3_pulse.ogg",-4.0,68.3600006103516],["res://audio/music/suno_battle3_drive.ogg",-4.0,68.3600006103516]]],[1503,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,68.7320022583008],["res://audio/music/suno_battle3_pulse.ogg",-4.0,68.7320022583008],["res://audio/music/suno_battle3_drive.ogg",-4.0,68.7320022583008]]],[1504,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,69.1039962768555],["res://audio/music/suno_battle3_pulse.ogg",-4.0,69.1039962768555],["res://audio/music/suno_battle3_drive.ogg",-4.0,69.1039962768555]]],[1505,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,69.4759979248047],["res://audio/music/suno_battle3_pulse.ogg",-4.0,69.4759979248047],["res://audio/music/suno_battle3_drive.ogg",-4.0,69.4759979248047]]],[1506,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,69.8479995727539],["res://audio/music/suno_battle3_pulse.ogg",-4.0,69.8479995727539],["res://audio/music/suno_battle3_drive.ogg",-4.0,69.8479995727539]]],[1507,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,70.2200012207031],["res://audio/music/suno_battle3_pulse.ogg",-4.0,70.2200012207031],["res://audio/music/suno_battle3_drive.ogg",-4.0,70.2200012207031]]],[1508,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,70.5879974365234],["res://audio/music/suno_battle3_pulse.ogg",-4.0,70.5879974365234],["res://audio/music/suno_battle3_drive.ogg",-4.0,70.5879974365234]]],[1509,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,70.9599990844727],["res://audio/music/suno_battle3_pulse.ogg",-4.0,70.9599990844727],["res://audio/music/suno_battle3_drive.ogg",-4.0,70.9599990844727]]],[1510,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,71.3320007324219],["res://audio/music/suno_battle3_pulse.ogg",-4.0,71.3320007324219],["res://audio/music/suno_battle3_drive.ogg",-4.0,71.3320007324219]]],[1511,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,71.7040023803711],["res://audio/music/suno_battle3_pulse.ogg",-4.0,71.7040023803711],["res://audio/music/suno_battle3_drive.ogg",-4.0,71.7040023803711]]],[1512,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,72.0759963989258],["res://audio/music/suno_battle3_pulse.ogg",-4.0,72.0759963989258],["res://audio/music/suno_battle3_drive.ogg",-4.0,72.0759963989258]]],[1513,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,72.447998046875],["res://audio/music/suno_battle3_pulse.ogg",-4.0,72.447998046875],["res://audio/music/suno_battle3_drive.ogg",-4.0,72.447998046875]]],[1514,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,72.8199996948242],["res://audio/music/suno_battle3_pulse.ogg",-4.0,72.8199996948242],["res://audio/music/suno_battle3_drive.ogg",-4.0,72.8199996948242]]],[1515,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,73.1920013427734],["res://audio/music/suno_battle3_pulse.ogg",-4.0,73.1920013427734],["res://audio/music/suno_battle3_drive.ogg",-4.0,73.1920013427734]]],[1516,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,73.5640029907227],["res://audio/music/suno_battle3_pulse.ogg",-4.0,73.5640029907227],["res://audio/music/suno_battle3_drive.ogg",-4.0,73.5640029907227]]],[1517,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,73.931999206543],["res://audio/music/suno_battle3_pulse.ogg",-4.0,73.931999206543],["res://audio/music/suno_battle3_drive.ogg",-4.0,73.931999206543]]],[1518,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,74.3040008544922],["res://audio/music/suno_battle3_pulse.ogg",-4.0,74.3040008544922],["res://audio/music/suno_battle3_drive.ogg",-4.0,74.3040008544922]]],[1519,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,74.7679977416992],["res://audio/music/suno_battle3_pulse.ogg",-4.0,74.7679977416992],["res://audio/music/suno_battle3_drive.ogg",-4.0,74.7679977416992]]],[1520,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,75.1399993896484],["res://audio/music/suno_battle3_pulse.ogg",-4.0,75.1399993896484],["res://audio/music/suno_battle3_drive.ogg",-4.0,75.1399993896484]]],[1521,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,75.5120010375977],["res://audio/music/suno_battle3_pulse.ogg",-4.0,75.5120010375977],["res://audio/music/suno_battle3_drive.ogg",-4.0,75.5120010375977]]],[1522,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,75.8840026855469],["res://audio/music/suno_battle3_pulse.ogg",-4.0,75.8840026855469],["res://audio/music/suno_battle3_drive.ogg",-4.0,75.8840026855469]]],[1523,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,76.2559967041016],["res://audio/music/suno_battle3_pulse.ogg",-4.0,76.2559967041016],["res://audio/music/suno_battle3_drive.ogg",-4.0,76.2559967041016]]],[1524,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,76.6279983520508],["res://audio/music/suno_battle3_pulse.ogg",-4.0,76.6279983520508],["res://audio/music/suno_battle3_drive.ogg",-4.0,76.6279983520508]]],[1525,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,77.0],["res://audio/music/suno_battle3_pulse.ogg",-4.0,77.0],["res://audio/music/suno_battle3_drive.ogg",-4.0,77.0]]],[1526,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,77.3720016479492],["res://audio/music/suno_battle3_pulse.ogg",-4.0,77.3720016479492],["res://audio/music/suno_battle3_drive.ogg",-4.0,77.3720016479492]]],[1527,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,77.7399978637695],["res://audio/music/suno_battle3_pulse.ogg",-4.0,77.7399978637695],["res://audio/music/suno_battle3_drive.ogg",-4.0,77.7399978637695]]],[1528,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,78.1600036621094],["res://audio/music/suno_battle3_pulse.ogg",-4.0,78.1699981689453],["res://audio/music/suno_battle3_drive.ogg",-4.0,78.1719970703125]]],[1529,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,78.5759963989258],["res://audio/music/suno_battle3_pulse.ogg",-4.0,78.5759963989258],["res://audio/music/suno_battle3_drive.ogg",-4.0,78.5759963989258]]],[1530,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,78.947998046875],["res://audio/music/suno_battle3_pulse.ogg",-4.0,78.947998046875],["res://audio/music/suno_battle3_drive.ogg",-4.0,78.947998046875]]],[1531,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,79.3199996948242],["res://audio/music/suno_battle3_pulse.ogg",-4.0,79.3199996948242],["res://audio/music/suno_battle3_drive.ogg",-4.0,79.3199996948242]]],[1532,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,79.6920013427734],["res://audio/music/suno_battle3_pulse.ogg",-4.0,79.6920013427734],["res://audio/music/suno_battle3_drive.ogg",-4.0,79.6920013427734]]],[1533,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,80.1559982299805],["res://audio/music/suno_battle3_pulse.ogg",-4.0,80.1559982299805],["res://audio/music/suno_battle3_drive.ogg",-4.0,80.1559982299805]]],[1534,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,80.5279998779297],["res://audio/music/suno_battle3_pulse.ogg",-4.0,80.5279998779297],["res://audio/music/suno_battle3_drive.ogg",-4.0,80.5279998779297]]],[1535,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,80.9000015258789],["res://audio/music/suno_battle3_pulse.ogg",-4.0,80.9000015258789],["res://audio/music/suno_battle3_drive.ogg",-4.0,80.9000015258789]]],[1536,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,81.2720031738281],["res://audio/music/suno_battle3_pulse.ogg",-4.0,81.2720031738281],["res://audio/music/suno_battle3_drive.ogg",-4.0,81.2720031738281]]],[1537,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,81.7360000610352],["res://audio/music/suno_battle3_pulse.ogg",-4.0,81.7360000610352],["res://audio/music/suno_battle3_drive.ogg",-4.0,81.7360000610352]]],[1538,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,82.1080017089844],["res://audio/music/suno_battle3_pulse.ogg",-4.0,82.1080017089844],["res://audio/music/suno_battle3_drive.ogg",-4.0,82.1080017089844]]],[1539,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,82.4800033569336],["res://audio/music/suno_battle3_pulse.ogg",-4.0,82.4800033569336],["res://audio/music/suno_battle3_drive.ogg",-4.0,82.4800033569336]]],[1540,19999.9921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,82.8479995727539],["res://audio/music/suno_battle3_pulse.ogg",-4.0,82.8479995727539],["res://audio/music/suno_battle3_drive.ogg",-4.0,82.8479995727539]]],[1544,15561.013671875,[["res://audio/music/shop.ogg",-28.436975479126,0.931999981403351],["res://audio/music/suno_battle3_base.ogg",-4.29446506500244,0.187999993562698],["res://audio/music/suno_battle3_pulse.ogg",-4.29446506500244,0.187999993562698],["res://audio/music/suno_battle3_drive.ogg",-4.29446506500244,0.187999993562698]]],[1545,16004.912109375,[["res://audio/music/shop.ogg",-31.9587993621826,1.30400002002716],["res://audio/music/suno_battle3_base.ogg",-4.0580997467041,0.560000002384186],["res://audio/music/suno_battle3_pulse.ogg",-4.0580997467041,0.560000002384186],["res://audio/music/suno_battle3_drive.ogg",-4.0580997467041,0.560000002384186]]],[1546,16404.421875,[["res://audio/music/shop.ogg",-37.9794006347656,1.67200005054474],["res://audio/music/suno_battle3_base.ogg",-4.0,0.931999981403351],["res://audio/music/suno_battle3_pulse.ogg",-4.0,0.931999981403351],["res://audio/music/suno_battle3_drive.ogg",-4.0,0.931999981403351]]],[1547,16763.98046875,[["res://audio/music/suno_battle3_base.ogg",-4.0,1.30400002002716],["res://audio/music/suno_battle3_pulse.ogg",-4.0,1.30400002002716],["res://audio/music/suno_battle3_drive.ogg",-4.0,1.30400002002716]]],[1548,17087.58203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,1.67200005054474],["res://audio/music/suno_battle3_pulse.ogg",-4.0,1.67200005054474],["res://audio/music/suno_battle3_drive.ogg",-4.0,1.67200005054474]]],[1549,17378.82421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,1.95200002193451],["res://audio/music/suno_battle3_pulse.ogg",-4.0,1.95200002193451],["res://audio/music/suno_battle3_drive.ogg",-4.0,1.95200002193451]]],[1550,17640.94140625,[["res://audio/music/suno_battle3_base.ogg",-4.0,2.32399988174438],["res://audio/music/suno_battle3_pulse.ogg",-4.0,2.32399988174438],["res://audio/music/suno_battle3_drive.ogg",-4.0,2.32399988174438]]],[1551,17876.84765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,2.69600009918213],["res://audio/music/suno_battle3_pulse.ogg",-4.0,2.69600009918213],["res://audio/music/suno_battle3_drive.ogg",-4.0,2.69600009918213]]],[1552,18089.162109375,[["res://audio/music/suno_battle3_base.ogg",-4.0,3.06800007820129],["res://audio/music/suno_battle3_pulse.ogg",-4.0,3.06800007820129],["res://audio/music/suno_battle3_drive.ogg",-4.0,3.06800007820129]]],[1553,18280.24609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,3.34400010108948],["res://audio/music/suno_battle3_pulse.ogg",-4.0,3.34400010108948],["res://audio/music/suno_battle3_drive.ogg",-4.0,3.34400010108948]]],[1554,18452.220703125,[["res://audio/music/suno_battle3_base.ogg",-4.0,3.71600008010864],["res://audio/music/suno_battle3_pulse.ogg",-4.0,3.71600008010864],["res://audio/music/suno_battle3_drive.ogg",-4.0,3.71600008010864]]],[1555,18606.998046875,[["res://audio/music/suno_battle3_base.ogg",-4.0,4.08799982070923],["res://audio/music/suno_battle3_pulse.ogg",-4.0,4.08799982070923],["res://audio/music/suno_battle3_drive.ogg",-4.0,4.08799982070923]]],[1556,18746.298828125,[["res://audio/music/suno_battle3_base.ogg",-4.0,4.46000003814697],["res://audio/music/suno_battle3_pulse.ogg",-4.0,4.46000003814697],["res://audio/music/suno_battle3_drive.ogg",-4.0,4.46000003814697]]],[1557,18871.66796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,4.83199977874756],["res://audio/music/suno_battle3_pulse.ogg",-4.0,4.83199977874756],["res://audio/music/suno_battle3_drive.ogg",-4.0,4.83199977874756]]],[1558,18984.501953125,[["res://audio/music/suno_battle3_base.ogg",-4.0,5.11199998855591],["res://audio/music/suno_battle3_pulse.ogg",-4.0,5.11199998855591],["res://audio/music/suno_battle3_drive.ogg",-4.0,5.11199998855591]]],[1559,19086.05078125,[["res://audio/music/suno_battle3_base.ogg",-4.0,5.48000001907349],["res://audio/music/suno_battle3_pulse.ogg",-4.0,5.48000001907349],["res://audio/music/suno_battle3_drive.ogg",-4.0,5.48000001907349]]],[1560,19177.4453125,[["res://audio/music/suno_battle3_base.ogg",-4.0,5.85200023651123],["res://audio/music/suno_battle3_pulse.ogg",-4.0,5.85200023651123],["res://audio/music/suno_battle3_drive.ogg",-4.0,5.85200023651123]]],[1561,19259.701171875,[["res://audio/music/suno_battle3_base.ogg",-4.0,6.22399997711182],["res://audio/music/suno_battle3_pulse.ogg",-4.0,6.22399997711182],["res://audio/music/suno_battle3_drive.ogg",-4.0,6.22399997711182]]],[1562,19333.73046875,[["res://audio/music/suno_battle3_base.ogg",-4.0,6.50400018692017],["res://audio/music/suno_battle3_pulse.ogg",-4.0,6.50400018692017],["res://audio/music/suno_battle3_drive.ogg",-4.0,6.50400018692017]]],[1563,19400.357421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,6.87599992752075],["res://audio/music/suno_battle3_pulse.ogg",-4.0,6.87599992752075],["res://audio/music/suno_battle3_drive.ogg",-4.0,6.87599992752075]]],[1564,19460.322265625,[["res://audio/music/suno_battle3_base.ogg",-4.0,7.2480001449585],["res://audio/music/suno_battle3_pulse.ogg",-4.0,7.2480001449585],["res://audio/music/suno_battle3_drive.ogg",-4.0,7.2480001449585]]],[1565,19514.2890625,[["res://audio/music/suno_battle3_base.ogg",-4.0,7.52400016784668],["res://audio/music/suno_battle3_pulse.ogg",-4.0,7.52400016784668],["res://audio/music/suno_battle3_drive.ogg",-4.0,7.52400016784668]]],[1566,19562.859375,[["res://audio/music/suno_battle3_base.ogg",-4.0,7.89599990844727],["res://audio/music/suno_battle3_pulse.ogg",-4.0,7.89599990844727],["res://audio/music/suno_battle3_drive.ogg",-4.0,7.89599990844727]]],[1567,19606.57421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,8.26799964904785],["res://audio/music/suno_battle3_pulse.ogg",-4.0,8.26799964904785],["res://audio/music/suno_battle3_drive.ogg",-4.0,8.26799964904785]]],[1568,19645.916015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,8.64000034332275],["res://audio/music/suno_battle3_pulse.ogg",-4.0,8.64000034332275],["res://audio/music/suno_battle3_drive.ogg",-4.0,8.64000034332275]]],[1569,19681.32421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,9.01200008392334],["res://audio/music/suno_battle3_pulse.ogg",-4.0,9.01200008392334],["res://audio/music/suno_battle3_drive.ogg",-4.0,9.01200008392334]]],[1570,19713.19140625,[["res://audio/music/suno_battle3_base.ogg",-4.0,9.38399982452393],["res://audio/music/suno_battle3_pulse.ogg",-4.0,9.38399982452393],["res://audio/music/suno_battle3_drive.ogg",-4.0,9.38399982452393]]],[1571,19741.873046875,[["res://audio/music/suno_battle3_base.ogg",-4.0,9.65999984741211],["res://audio/music/suno_battle3_pulse.ogg",-4.0,9.65999984741211],["res://audio/music/suno_battle3_drive.ogg",-4.0,9.65999984741211]]],[1572,19767.685546875,[["res://audio/music/suno_battle3_base.ogg",-4.0,10.0319995880127],["res://audio/music/suno_battle3_pulse.ogg",-4.0,10.0319995880127],["res://audio/music/suno_battle3_drive.ogg",-4.0,10.0319995880127]]],[1573,19790.91796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,10.4040002822876],["res://audio/music/suno_battle3_pulse.ogg",-4.0,10.4040002822876],["res://audio/music/suno_battle3_drive.ogg",-4.0,10.4040002822876]]],[1574,19811.826171875,[["res://audio/music/suno_battle3_base.ogg",-4.0,10.7760000228882],["res://audio/music/suno_battle3_pulse.ogg",-4.0,10.7760000228882],["res://audio/music/suno_battle3_drive.ogg",-4.0,10.7760000228882]]],[1575,19830.64453125,[["res://audio/music/suno_battle3_base.ogg",-4.0,11.1479997634888],["res://audio/music/suno_battle3_pulse.ogg",-4.0,11.1479997634888],["res://audio/music/suno_battle3_drive.ogg",-4.0,11.1479997634888]]],[1576,19847.580078125,[["res://audio/music/suno_battle3_base.ogg",-4.0,11.5200004577637],["res://audio/music/suno_battle3_pulse.ogg",-4.0,11.5200004577637],["res://audio/music/suno_battle3_drive.ogg",-4.0,11.5200004577637]]],[1577,19862.822265625,[["res://audio/music/suno_battle3_base.ogg",-4.0,11.8920001983643],["res://audio/music/suno_battle3_pulse.ogg",-4.0,11.8920001983643],["res://audio/music/suno_battle3_drive.ogg",-4.0,11.8920001983643]]],[1578,19876.5390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,12.1680002212524],["res://audio/music/suno_battle3_pulse.ogg",-4.0,12.1680002212524],["res://audio/music/suno_battle3_drive.ogg",-4.0,12.1680002212524]]],[1579,19888.884765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,12.539999961853],["res://audio/music/suno_battle3_pulse.ogg",-4.0,12.539999961853],["res://audio/music/suno_battle3_drive.ogg",-4.0,12.539999961853]]],[1580,19899.99609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,12.9119997024536],["res://audio/music/suno_battle3_pulse.ogg",-4.0,12.9119997024536],["res://audio/music/suno_battle3_drive.ogg",-4.0,12.9119997024536]]],[1581,19909.99609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,13.2840003967285],["res://audio/music/suno_battle3_pulse.ogg",-4.0,13.2840003967285],["res://audio/music/suno_battle3_drive.ogg",-4.0,13.2840003967285]]],[1582,19918.99609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,13.6560001373291],["res://audio/music/suno_battle3_pulse.ogg",-4.0,13.6560001373291],["res://audio/music/suno_battle3_drive.ogg",-4.0,13.6560001373291]]],[1583,19927.095703125,[["res://audio/music/suno_battle3_base.ogg",-4.0,14.0279998779297],["res://audio/music/suno_battle3_pulse.ogg",-4.0,14.0279998779297],["res://audio/music/suno_battle3_drive.ogg",-4.0,14.0279998779297]]],[1584,19934.38671875,[["res://audio/music/suno_battle3_base.ogg",-4.0,14.3999996185303],["res://audio/music/suno_battle3_pulse.ogg",-4.0,14.3999996185303],["res://audio/music/suno_battle3_drive.ogg",-4.0,14.3999996185303]]],[1585,19940.947265625,[["res://audio/music/suno_battle3_base.ogg",-4.0,14.7679996490479],["res://audio/music/suno_battle3_pulse.ogg",-4.0,14.7679996490479],["res://audio/music/suno_battle3_drive.ogg",-4.0,14.7679996490479]]],[1586,19946.8515625,[["res://audio/music/suno_battle3_base.ogg",-4.0,15.0480003356934],["res://audio/music/suno_battle3_pulse.ogg",-4.0,15.0480003356934],["res://audio/music/suno_battle3_drive.ogg",-4.0,15.0480003356934]]],[1587,19952.166015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,15.4200000762939],["res://audio/music/suno_battle3_pulse.ogg",-4.0,15.4200000762939],["res://audio/music/suno_battle3_drive.ogg",-4.0,15.4200000762939]]],[1588,19956.94921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,15.7919998168945],["res://audio/music/suno_battle3_pulse.ogg",-4.0,15.7919998168945],["res://audio/music/suno_battle3_drive.ogg",-4.0,15.7919998168945]]],[1589,19961.25390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,16.1639995574951],["res://audio/music/suno_battle3_pulse.ogg",-4.0,16.1639995574951],["res://audio/music/suno_battle3_drive.ogg",-4.0,16.1639995574951]]],[1590,19965.12890625,[["res://audio/music/suno_battle3_base.ogg",-4.0,16.5359992980957],["res://audio/music/suno_battle3_pulse.ogg",-4.0,16.5359992980957],["res://audio/music/suno_battle3_drive.ogg",-4.0,16.5359992980957]]],[1591,19968.615234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,16.9039993286133],["res://audio/music/suno_battle3_pulse.ogg",-4.0,16.9039993286133],["res://audio/music/suno_battle3_drive.ogg",-4.0,16.9039993286133]]],[1592,19971.75390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,17.2759990692139],["res://audio/music/suno_battle3_pulse.ogg",-4.0,17.2759990692139],["res://audio/music/suno_battle3_drive.ogg",-4.0,17.2759990692139]]],[1593,19974.578125,[["res://audio/music/suno_battle3_base.ogg",-4.0,17.6480007171631],["res://audio/music/suno_battle3_pulse.ogg",-4.0,17.6480007171631],["res://audio/music/suno_battle3_drive.ogg",-4.0,17.6480007171631]]],[1594,19977.12109375,[["res://audio/music/suno_battle3_base.ogg",-4.0,17.92799949646],["res://audio/music/suno_battle3_pulse.ogg",-4.0,17.92799949646],["res://audio/music/suno_battle3_drive.ogg",-4.0,17.92799949646]]],[1595,19979.408203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,18.2999992370605],["res://audio/music/suno_battle3_pulse.ogg",-4.0,18.2999992370605],["res://audio/music/suno_battle3_drive.ogg",-4.0,18.2999992370605]]],[1596,19981.466796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,18.6720008850098],["res://audio/music/suno_battle3_pulse.ogg",-4.0,18.6720008850098],["res://audio/music/suno_battle3_drive.ogg",-4.0,18.6720008850098]]],[1597,19983.3203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,19.0440006256104],["res://audio/music/suno_battle3_pulse.ogg",-4.0,19.0440006256104],["res://audio/music/suno_battle3_drive.ogg",-4.0,19.0440006256104]]],[1598,19984.98828125,[["res://audio/music/suno_battle3_base.ogg",-4.0,19.4120006561279],["res://audio/music/suno_battle3_pulse.ogg",-4.0,19.4120006561279],["res://audio/music/suno_battle3_drive.ogg",-4.0,19.4120006561279]]],[1599,19986.490234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,19.6919994354248],["res://audio/music/suno_battle3_pulse.ogg",-4.0,19.6919994354248],["res://audio/music/suno_battle3_drive.ogg",-4.0,19.6919994354248]]],[1600,19987.841796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,20.0639991760254],["res://audio/music/suno_battle3_pulse.ogg",-4.0,20.0639991760254],["res://audio/music/suno_battle3_drive.ogg",-4.0,20.0639991760254]]],[1601,19989.05859375,[["res://audio/music/suno_battle3_base.ogg",-4.0,20.4360008239746],["res://audio/music/suno_battle3_pulse.ogg",-4.0,20.4360008239746],["res://audio/music/suno_battle3_drive.ogg",-4.0,20.4360008239746]]],[1602,19990.15234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,20.8080005645752],["res://audio/music/suno_battle3_pulse.ogg",-4.0,20.8080005645752],["res://audio/music/suno_battle3_drive.ogg",-4.0,20.8080005645752]]],[1603,19991.13671875,[["res://audio/music/suno_battle3_base.ogg",-4.0,21.1800003051758],["res://audio/music/suno_battle3_pulse.ogg",-4.0,21.1800003051758],["res://audio/music/suno_battle3_drive.ogg",-4.0,21.1800003051758]]],[1604,19992.0234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,21.5480003356934],["res://audio/music/suno_battle3_pulse.ogg",-4.0,21.5480003356934],["res://audio/music/suno_battle3_drive.ogg",-4.0,21.5480003356934]]],[1605,19992.8203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,21.8279991149902],["res://audio/music/suno_battle3_pulse.ogg",-4.0,21.8279991149902],["res://audio/music/suno_battle3_drive.ogg",-4.0,21.8279991149902]]],[1606,19993.5390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,22.2000007629395],["res://audio/music/suno_battle3_pulse.ogg",-4.0,22.2000007629395],["res://audio/music/suno_battle3_drive.ogg",-4.0,22.2000007629395]]],[1607,19994.185546875,[["res://audio/music/suno_battle3_base.ogg",-4.0,22.57200050354],["res://audio/music/suno_battle3_pulse.ogg",-4.0,22.57200050354],["res://audio/music/suno_battle3_drive.ogg",-4.0,22.57200050354]]],[1608,19994.767578125,[["res://audio/music/suno_battle3_base.ogg",-4.0,22.9440002441406],["res://audio/music/suno_battle3_pulse.ogg",-4.0,22.9440002441406],["res://audio/music/suno_battle3_drive.ogg",-4.0,22.9440002441406]]],[1609,19995.291015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,23.3159999847412],["res://audio/music/suno_battle3_pulse.ogg",-4.0,23.3159999847412],["res://audio/music/suno_battle3_drive.ogg",-4.0,23.3159999847412]]],[1610,19995.76171875,[["res://audio/music/suno_battle3_base.ogg",-4.0,23.6879997253418],["res://audio/music/suno_battle3_pulse.ogg",-4.0,23.6879997253418],["res://audio/music/suno_battle3_drive.ogg",-4.0,23.6879997253418]]],[1611,19996.185546875,[["res://audio/music/suno_battle3_base.ogg",-4.0,23.9640007019043],["res://audio/music/suno_battle3_pulse.ogg",-4.0,23.9640007019043],["res://audio/music/suno_battle3_drive.ogg",-4.0,23.9640007019043]]],[1612,19996.56640625,[["res://audio/music/suno_battle3_base.ogg",-4.0,24.3360004425049],["res://audio/music/suno_battle3_pulse.ogg",-4.0,24.3360004425049],["res://audio/music/suno_battle3_drive.ogg",-4.0,24.3360004425049]]],[1613,19996.91015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,24.7080001831055],["res://audio/music/suno_battle3_pulse.ogg",-4.0,24.7080001831055],["res://audio/music/suno_battle3_drive.ogg",-4.0,24.7080001831055]]],[1614,19997.21875,[["res://audio/music/suno_battle3_base.ogg",-4.0,25.0799999237061],["res://audio/music/suno_battle3_pulse.ogg",-4.0,25.0799999237061],["res://audio/music/suno_battle3_drive.ogg",-4.0,25.0799999237061]]],[1615,19997.49609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,25.4519996643066],["res://audio/music/suno_battle3_pulse.ogg",-4.0,25.4519996643066],["res://audio/music/suno_battle3_drive.ogg",-4.0,25.4519996643066]]],[1616,19997.74609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,25.7280006408691],["res://audio/music/suno_battle3_pulse.ogg",-4.0,25.7280006408691],["res://audio/music/suno_battle3_drive.ogg",-4.0,25.7280006408691]]],[1617,19997.970703125,[["res://audio/music/suno_battle3_base.ogg",-4.0,26.1000003814697],["res://audio/music/suno_battle3_pulse.ogg",-4.0,26.1000003814697],["res://audio/music/suno_battle3_drive.ogg",-4.0,26.1000003814697]]],[1618,19998.173828125,[["res://audio/music/suno_battle3_base.ogg",-4.0,26.4720001220703],["res://audio/music/suno_battle3_pulse.ogg",-4.0,26.4720001220703],["res://audio/music/suno_battle3_drive.ogg",-4.0,26.4720001220703]]],[1619,19998.35546875,[["res://audio/music/suno_battle3_base.ogg",-4.0,26.8439998626709],["res://audio/music/suno_battle3_pulse.ogg",-4.0,26.8439998626709],["res://audio/music/suno_battle3_drive.ogg",-4.0,26.8439998626709]]],[1620,19998.51953125,[["res://audio/music/suno_battle3_base.ogg",-4.0,27.1240005493164],["res://audio/music/suno_battle3_pulse.ogg",-4.0,27.1240005493164],["res://audio/music/suno_battle3_drive.ogg",-4.0,27.1240005493164]]],[1621,19998.66796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,27.496000289917],["res://audio/music/suno_battle3_pulse.ogg",-4.0,27.496000289917],["res://audio/music/suno_battle3_drive.ogg",-4.0,27.496000289917]]],[1622,19998.80078125,[["res://audio/music/suno_battle3_base.ogg",-4.0,27.8640003204346],["res://audio/music/suno_battle3_pulse.ogg",-4.0,27.8640003204346],["res://audio/music/suno_battle3_drive.ogg",-4.0,27.8640003204346]]],[1623,19998.919921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,28.2360000610352],["res://audio/music/suno_battle3_pulse.ogg",-4.0,28.2360000610352],["res://audio/music/suno_battle3_drive.ogg",-4.0,28.2360000610352]]],[1624,19999.02734375,[["res://audio/music/suno_battle3_base.ogg",-4.0,28.6079998016357],["res://audio/music/suno_battle3_pulse.ogg",-4.0,28.6079998016357],["res://audio/music/suno_battle3_drive.ogg",-4.0,28.6079998016357]]],[1625,19999.125,[["res://audio/music/suno_battle3_base.ogg",-4.0,28.8880004882812],["res://audio/music/suno_battle3_pulse.ogg",-4.0,28.8880004882812],["res://audio/music/suno_battle3_drive.ogg",-4.0,28.8880004882812]]],[1626,19999.212890625,[["res://audio/music/suno_battle3_base.ogg",-4.0,29.2600002288818],["res://audio/music/suno_battle3_pulse.ogg",-4.0,29.2600002288818],["res://audio/music/suno_battle3_drive.ogg",-4.0,29.2600002288818]]],[1627,19999.291015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,29.6319999694824],["res://audio/music/suno_battle3_pulse.ogg",-4.0,29.6319999694824],["res://audio/music/suno_battle3_drive.ogg",-4.0,29.6319999694824]]],[1629,18361.42578125,[["res://audio/music/suno_battle3_base.ogg",-4.0,30.1879997253418],["res://audio/music/suno_battle3_pulse.ogg",-4.0,30.1879997253418],["res://audio/music/suno_battle3_drive.ogg",-4.0,30.1879997253418]]],[1630,18525.283203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,30.5599994659424],["res://audio/music/suno_battle3_pulse.ogg",-4.0,30.5599994659424],["res://audio/music/suno_battle3_drive.ogg",-4.0,30.5599994659424]]],[1631,18672.75390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,30.931999206543],["res://audio/music/suno_battle3_pulse.ogg",-4.0,30.931999206543],["res://audio/music/suno_battle3_drive.ogg",-4.0,30.931999206543]]],[1632,18805.478515625,[["res://audio/music/suno_battle3_base.ogg",-4.0,31.3040008544922],["res://audio/music/suno_battle3_pulse.ogg",-4.0,31.3040008544922],["res://audio/music/suno_battle3_drive.ogg",-4.0,31.3040008544922]]],[1633,18924.9296875,[["res://audio/music/suno_battle3_base.ogg",-4.0,31.6720008850098],["res://audio/music/suno_battle3_pulse.ogg",-4.0,31.6720008850098],["res://audio/music/suno_battle3_drive.ogg",-4.0,31.6720008850098]]],[1634,19032.4375,[["res://audio/music/suno_battle3_base.ogg",-4.0,32.0439987182617],["res://audio/music/suno_battle3_pulse.ogg",-4.0,32.0439987182617],["res://audio/music/suno_battle3_drive.ogg",-4.0,32.0439987182617]]],[1635,19129.193359375,[["res://audio/music/suno_battle3_base.ogg",-4.0,32.3240013122559],["res://audio/music/suno_battle3_pulse.ogg",-4.0,32.3240013122559],["res://audio/music/suno_battle3_drive.ogg",-4.0,32.3240013122559]]],[1636,19216.2734375,[["res://audio/music/suno_battle3_base.ogg",-4.0,32.6959991455078],["res://audio/music/suno_battle3_pulse.ogg",-4.0,32.6959991455078],["res://audio/music/suno_battle3_drive.ogg",-4.0,32.6959991455078]]],[1637,19294.646484375,[["res://audio/music/suno_battle3_base.ogg",-4.0,33.068000793457],["res://audio/music/suno_battle3_pulse.ogg",-4.0,33.068000793457],["res://audio/music/suno_battle3_drive.ogg",-4.0,33.068000793457]]],[1638,19365.181640625,[["res://audio/music/suno_battle3_base.ogg",-4.0,33.439998626709],["res://audio/music/suno_battle3_pulse.ogg",-4.0,33.439998626709],["res://audio/music/suno_battle3_drive.ogg",-4.0,33.439998626709]]],[1639,19428.6640625,[["res://audio/music/suno_battle3_base.ogg",-4.0,33.8079986572266],["res://audio/music/suno_battle3_pulse.ogg",-4.0,33.8079986572266],["res://audio/music/suno_battle3_drive.ogg",-4.0,33.8079986572266]]],[1640,19485.796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,34.1800003051758],["res://audio/music/suno_battle3_pulse.ogg",-4.0,34.1800003051758],["res://audio/music/suno_battle3_drive.ogg",-4.0,34.1800003051758]]],[1641,19537.216796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,34.4599990844727],["res://audio/music/suno_battle3_pulse.ogg",-4.0,34.4599990844727],["res://audio/music/suno_battle3_drive.ogg",-4.0,34.4599990844727]]],[1642,19583.49609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,34.8320007324219],["res://audio/music/suno_battle3_pulse.ogg",-4.0,34.8320007324219],["res://audio/music/suno_battle3_drive.ogg",-4.0,34.8320007324219]]],[1643,19625.146484375,[["res://audio/music/suno_battle3_base.ogg",-4.0,35.2039985656738],["res://audio/music/suno_battle3_pulse.ogg",-4.0,35.2039985656738],["res://audio/music/suno_battle3_drive.ogg",-4.0,35.2039985656738]]],[1644,19662.6328125,[["res://audio/music/suno_battle3_base.ogg",-4.0,35.576000213623],["res://audio/music/suno_battle3_pulse.ogg",-4.0,35.576000213623],["res://audio/music/suno_battle3_drive.ogg",-4.0,35.576000213623]]],[1645,19696.369140625,[["res://audio/music/suno_battle3_base.ogg",-4.0,35.9480018615723],["res://audio/music/suno_battle3_pulse.ogg",-4.0,35.9480018615723],["res://audio/music/suno_battle3_drive.ogg",-4.0,35.9480018615723]]],[1646,19726.732421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,36.2239990234375],["res://audio/music/suno_battle3_pulse.ogg",-4.0,36.2239990234375],["res://audio/music/suno_battle3_drive.ogg",-4.0,36.2239990234375]]],[1647,19754.05859375,[["res://audio/music/suno_battle3_base.ogg",-4.0,36.5960006713867],["res://audio/music/suno_battle3_pulse.ogg",-4.0,36.5960006713867],["res://audio/music/suno_battle3_drive.ogg",-4.0,36.5960006713867]]],[1648,19778.65234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,36.9679985046387],["res://audio/music/suno_battle3_pulse.ogg",-4.0,36.9679985046387],["res://audio/music/suno_battle3_drive.ogg",-4.0,36.9679985046387]]],[1649,19800.787109375,[["res://audio/music/suno_battle3_base.ogg",-4.0,37.3400001525879],["res://audio/music/suno_battle3_pulse.ogg",-4.0,37.3400001525879],["res://audio/music/suno_battle3_drive.ogg",-4.0,37.3400001525879]]],[1650,19820.708984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,37.7120018005371],["res://audio/music/suno_battle3_pulse.ogg",-4.0,37.7120018005371],["res://audio/music/suno_battle3_drive.ogg",-4.0,37.7120018005371]]],[1651,19838.638671875,[["res://audio/music/suno_battle3_base.ogg",-4.0,38.0839996337891],["res://audio/music/suno_battle3_pulse.ogg",-4.0,38.0839996337891],["res://audio/music/suno_battle3_drive.ogg",-4.0,38.0839996337891]]],[1652,19854.775390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,38.3600006103516],["res://audio/music/suno_battle3_pulse.ogg",-4.0,38.3600006103516],["res://audio/music/suno_battle3_drive.ogg",-4.0,38.3600006103516]]],[1653,19869.296875,[["res://audio/music/suno_battle3_base.ogg",-4.0,38.7319984436035],["res://audio/music/suno_battle3_pulse.ogg",-4.0,38.7319984436035],["res://audio/music/suno_battle3_drive.ogg",-4.0,38.7319984436035]]],[1654,19882.3671875,[["res://audio/music/suno_battle3_base.ogg",-4.0,39.1040000915527],["res://audio/music/suno_battle3_pulse.ogg",-4.0,39.1040000915527],["res://audio/music/suno_battle3_drive.ogg",-4.0,39.1040000915527]]],[1655,19894.130859375,[["res://audio/music/suno_battle3_base.ogg",-4.0,39.476001739502],["res://audio/music/suno_battle3_pulse.ogg",-4.0,39.476001739502],["res://audio/music/suno_battle3_drive.ogg",-4.0,39.476001739502]]],[1656,19904.71875,[["res://audio/music/suno_battle3_base.ogg",-4.0,39.8479995727539],["res://audio/music/suno_battle3_pulse.ogg",-4.0,39.8479995727539],["res://audio/music/suno_battle3_drive.ogg",-4.0,39.8479995727539]]],[1657,19914.24609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,40.2200012207031],["res://audio/music/suno_battle3_pulse.ogg",-4.0,40.2200012207031],["res://audio/music/suno_battle3_drive.ogg",-4.0,40.2200012207031]]],[1658,19922.822265625,[["res://audio/music/suno_battle3_base.ogg",-4.0,40.5919990539551],["res://audio/music/suno_battle3_pulse.ogg",-4.0,40.5919990539551],["res://audio/music/suno_battle3_drive.ogg",-4.0,40.5919990539551]]],[1659,19930.5390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,40.8680000305176],["res://audio/music/suno_battle3_pulse.ogg",-4.0,40.8680000305176],["res://audio/music/suno_battle3_drive.ogg",-4.0,40.8680000305176]]],[1660,19937.484375,[["res://audio/music/suno_battle3_base.ogg",-4.0,41.2400016784668],["res://audio/music/suno_battle3_pulse.ogg",-4.0,41.2400016784668],["res://audio/music/suno_battle3_drive.ogg",-4.0,41.2400016784668]]],[1661,19943.736328125,[["res://audio/music/suno_battle3_base.ogg",-4.0,41.6119995117188],["res://audio/music/suno_battle3_pulse.ogg",-4.0,41.6119995117188],["res://audio/music/suno_battle3_drive.ogg",-4.0,41.6119995117188]]],[1662,19949.36328125,[["res://audio/music/suno_battle3_base.ogg",-4.0,41.984001159668],["res://audio/music/suno_battle3_pulse.ogg",-4.0,41.984001159668],["res://audio/music/suno_battle3_drive.ogg",-4.0,41.984001159668]]],[1663,19954.427734375,[["res://audio/music/suno_battle3_base.ogg",-4.0,42.3559989929199],["res://audio/music/suno_battle3_pulse.ogg",-4.0,42.3559989929199],["res://audio/music/suno_battle3_drive.ogg",-4.0,42.3559989929199]]],[1664,19958.984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,42.7280006408691],["res://audio/music/suno_battle3_pulse.ogg",-4.0,42.7280006408691],["res://audio/music/suno_battle3_drive.ogg",-4.0,42.7280006408691]]],[1665,19963.0859375,[["res://audio/music/suno_battle3_base.ogg",-4.0,43.0960006713867],["res://audio/music/suno_battle3_pulse.ogg",-4.0,43.0960006713867],["res://audio/music/suno_battle3_drive.ogg",-4.0,43.0960006713867]]],[1666,19966.77734375,[["res://audio/music/suno_battle3_base.ogg",-4.0,43.3759994506836],["res://audio/music/suno_battle3_pulse.ogg",-4.0,43.3759994506836],["res://audio/music/suno_battle3_drive.ogg",-4.0,43.3759994506836]]],[1667,19970.099609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,43.7480010986328],["res://audio/music/suno_battle3_pulse.ogg",-4.0,43.7480010986328],["res://audio/music/suno_battle3_drive.ogg",-4.0,43.7480010986328]]],[1668,19973.08984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,44.1199989318848],["res://audio/music/suno_battle3_pulse.ogg",-4.0,44.1199989318848],["res://audio/music/suno_battle3_drive.ogg",-4.0,44.1199989318848]]],[1669,19975.78125,[["res://audio/music/suno_battle3_base.ogg",-4.0,44.492000579834],["res://audio/music/suno_battle3_pulse.ogg",-4.0,44.492000579834],["res://audio/music/suno_battle3_drive.ogg",-4.0,44.492000579834]]],[1670,19978.203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,44.8639984130859],["res://audio/music/suno_battle3_pulse.ogg",-4.0,44.8639984130859],["res://audio/music/suno_battle3_drive.ogg",-4.0,44.8639984130859]]],[1671,19980.3828125,[["res://audio/music/suno_battle3_base.ogg",-4.0,45.2360000610352],["res://audio/music/suno_battle3_pulse.ogg",-4.0,45.2360000610352],["res://audio/music/suno_battle3_drive.ogg",-4.0,45.2360000610352]]],[1672,19982.34375,[["res://audio/music/suno_battle3_base.ogg",-4.0,45.6040000915527],["res://audio/music/suno_battle3_pulse.ogg",-4.0,45.6040000915527],["res://audio/music/suno_battle3_drive.ogg",-4.0,45.6040000915527]]],[1673,19984.109375,[["res://audio/music/suno_battle3_base.ogg",-4.0,45.976001739502],["res://audio/music/suno_battle3_pulse.ogg",-4.0,45.976001739502],["res://audio/music/suno_battle3_drive.ogg",-4.0,45.976001739502]]],[1674,19985.69921875,[["res://audio/music/suno_battle3_base.ogg",-4.0,46.3479995727539],["res://audio/music/suno_battle3_pulse.ogg",-4.0,46.3479995727539],["res://audio/music/suno_battle3_drive.ogg",-4.0,46.3479995727539]]],[1675,19987.12890625,[["res://audio/music/suno_battle3_base.ogg",-4.0,46.7200012207031],["res://audio/music/suno_battle3_pulse.ogg",-4.0,46.7200012207031],["res://audio/music/suno_battle3_drive.ogg",-4.0,46.7200012207031]]],[1676,19988.416015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,47.0919990539551],["res://audio/music/suno_battle3_pulse.ogg",-4.0,47.0919990539551],["res://audio/music/suno_battle3_drive.ogg",-4.0,47.0919990539551]]],[1677,19989.57421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,47.439998626709],["res://audio/music/suno_battle3_pulse.ogg",-4.0,47.4420013427734],["res://audio/music/suno_battle3_drive.ogg",-4.0,47.4519996643066]]],[1678,19990.6171875,[["res://audio/music/suno_battle3_base.ogg",-4.0,47.7400016784668],["res://audio/music/suno_battle3_pulse.ogg",-4.0,47.7400016784668],["res://audio/music/suno_battle3_drive.ogg",-4.0,47.7400016784668]]],[1679,19991.5546875,[["res://audio/music/suno_battle3_base.ogg",-4.0,48.1119995117188],["res://audio/music/suno_battle3_pulse.ogg",-4.0,48.1119995117188],["res://audio/music/suno_battle3_drive.ogg",-4.0,48.1119995117188]]],[1680,19992.3984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,48.484001159668],["res://audio/music/suno_battle3_pulse.ogg",-4.0,48.484001159668],["res://audio/music/suno_battle3_drive.ogg",-4.0,48.484001159668]]],[1681,19993.158203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,48.8559989929199],["res://audio/music/suno_battle3_pulse.ogg",-4.0,48.8559989929199],["res://audio/music/suno_battle3_drive.ogg",-4.0,48.8559989929199]]],[1682,19993.841796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,49.2280006408691],["res://audio/music/suno_battle3_pulse.ogg",-4.0,49.2280006408691],["res://audio/music/suno_battle3_drive.ogg",-4.0,49.2280006408691]]],[1683,19994.45703125,[["res://audio/music/suno_battle3_base.ogg",-4.0,49.5999984741211],["res://audio/music/suno_battle3_pulse.ogg",-4.0,49.5999984741211],["res://audio/music/suno_battle3_drive.ogg",-4.0,49.5999984741211]]],[1684,19995.01171875,[["res://audio/music/suno_battle3_base.ogg",-4.0,49.9720001220703],["res://audio/music/suno_battle3_pulse.ogg",-4.0,49.9720001220703],["res://audio/music/suno_battle3_drive.ogg",-4.0,49.9720001220703]]],[1685,19995.509765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,50.3440017700195],["res://audio/music/suno_battle3_pulse.ogg",-4.0,50.3440017700195],["res://audio/music/suno_battle3_drive.ogg",-4.0,50.3440017700195]]],[1686,19995.958984375,[["res://audio/music/suno_battle3_base.ogg",-4.0,50.7120018005371],["res://audio/music/suno_battle3_pulse.ogg",-4.0,50.7120018005371],["res://audio/music/suno_battle3_drive.ogg",-4.0,50.7120018005371]]],[1687,19996.36328125,[["res://audio/music/suno_battle3_base.ogg",-4.0,51.0839996337891],["res://audio/music/suno_battle3_pulse.ogg",-4.0,51.0839996337891],["res://audio/music/suno_battle3_drive.ogg",-4.0,51.0839996337891]]],[1688,19996.7265625,[["res://audio/music/suno_battle3_base.ogg",-4.0,51.4560012817383],["res://audio/music/suno_battle3_pulse.ogg",-4.0,51.4560012817383],["res://audio/music/suno_battle3_drive.ogg",-4.0,51.4560012817383]]],[1689,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,51.8279991149902],["res://audio/music/suno_battle3_pulse.ogg",-4.0,51.8279991149902],["res://audio/music/suno_battle3_drive.ogg",-4.0,51.8279991149902]]],[1690,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,52.2000007629395],["res://audio/music/suno_battle3_pulse.ogg",-4.0,52.2000007629395],["res://audio/music/suno_battle3_drive.ogg",-4.0,52.2000007629395]]],[1691,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,52.6640014648438],["res://audio/music/suno_battle3_pulse.ogg",-4.0,52.6640014648438],["res://audio/music/suno_battle3_drive.ogg",-4.0,52.6640014648438]]],[1692,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,53.0359992980957],["res://audio/music/suno_battle3_pulse.ogg",-4.0,53.0359992980957],["res://audio/music/suno_battle3_drive.ogg",-4.0,53.0359992980957]]],[1693,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,53.4080009460449],["res://audio/music/suno_battle3_pulse.ogg",-4.0,53.4080009460449],["res://audio/music/suno_battle3_drive.ogg",-4.0,53.4080009460449]]],[1694,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,53.7799987792969],["res://audio/music/suno_battle3_pulse.ogg",-4.0,53.7799987792969],["res://audio/music/suno_battle3_drive.ogg",-4.0,53.7799987792969]]],[1695,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,54.1520004272461],["res://audio/music/suno_battle3_pulse.ogg",-4.0,54.1520004272461],["res://audio/music/suno_battle3_drive.ogg",-4.0,54.1520004272461]]],[1696,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,54.5200004577637],["res://audio/music/suno_battle3_pulse.ogg",-4.0,54.5200004577637],["res://audio/music/suno_battle3_drive.ogg",-4.0,54.5200004577637]]],[1697,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,54.8919982910156],["res://audio/music/suno_battle3_pulse.ogg",-4.0,54.8919982910156],["res://audio/music/suno_battle3_drive.ogg",-4.0,54.8919982910156]]],[1698,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,55.2639999389648],["res://audio/music/suno_battle3_pulse.ogg",-4.0,55.2639999389648],["res://audio/music/suno_battle3_drive.ogg",-4.0,55.2639999389648]]],[1699,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,55.6360015869141],["res://audio/music/suno_battle3_pulse.ogg",-4.0,55.6360015869141],["res://audio/music/suno_battle3_drive.ogg",-4.0,55.6360015869141]]],[1700,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,56.007999420166],["res://audio/music/suno_battle3_pulse.ogg",-4.0,56.007999420166],["res://audio/music/suno_battle3_drive.ogg",-4.0,56.007999420166]]],[1701,2810.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,56.3800010681152],["res://audio/music/suno_battle3_pulse.ogg",-4.0,56.3800010681152],["res://audio/music/suno_battle3_drive.ogg",-4.0,56.3800010681152]]],[1702,4529.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,56.7519989013672],["res://audio/music/suno_battle3_pulse.ogg",-4.0,56.7519989013672],["res://audio/music/suno_battle3_drive.ogg",-4.0,56.7519989013672]]],[1703,6076.10009765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,57.1240005493164],["res://audio/music/suno_battle3_pulse.ogg",-4.0,57.1240005493164],["res://audio/music/suno_battle3_drive.ogg",-4.0,57.1240005493164]]],[1704,7468.490234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,57.4959983825684],["res://audio/music/suno_battle3_pulse.ogg",-4.0,57.4959983825684],["res://audio/music/suno_battle3_drive.ogg",-4.0,57.4959983825684]]],[1705,8721.6416015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,57.8639984130859],["res://audio/music/suno_battle3_pulse.ogg",-4.0,57.8639984130859],["res://audio/music/suno_battle3_drive.ogg",-4.0,57.8639984130859]]],[1706,9849.4775390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,58.2360000610352],["res://audio/music/suno_battle3_pulse.ogg",-4.0,58.2360000610352],["res://audio/music/suno_battle3_drive.ogg",-4.0,58.2360000610352]]],[1707,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,58.6080017089844],["res://audio/music/suno_battle3_pulse.ogg",-4.0,58.6080017089844],["res://audio/music/suno_battle3_drive.ogg",-4.0,58.6080017089844]]],[1708,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,58.8880004882812],["res://audio/music/suno_battle3_pulse.ogg",-4.0,58.8880004882812],["res://audio/music/suno_battle3_drive.ogg",-4.0,58.8880004882812]]],[1709,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,59.3520011901855],["res://audio/music/suno_battle3_pulse.ogg",-4.0,59.3520011901855],["res://audio/music/suno_battle3_drive.ogg",-4.0,59.3520011901855]]],[1710,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,59.7239990234375],["res://audio/music/suno_battle3_pulse.ogg",-4.0,59.7239990234375],["res://audio/music/suno_battle3_drive.ogg",-4.0,59.7239990234375]]],[1711,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,60.0960006713867],["res://audio/music/suno_battle3_pulse.ogg",-4.0,60.0960006713867],["res://audio/music/suno_battle3_drive.ogg",-4.0,60.0960006713867]]],[1712,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,60.4679985046387],["res://audio/music/suno_battle3_pulse.ogg",-4.0,60.4679985046387],["res://audio/music/suno_battle3_drive.ogg",-4.0,60.4679985046387]]],[1713,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,60.8359985351562],["res://audio/music/suno_battle3_pulse.ogg",-4.0,60.8359985351562],["res://audio/music/suno_battle3_drive.ogg",-4.0,60.8359985351562]]],[1714,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,61.2080001831055],["res://audio/music/suno_battle3_pulse.ogg",-4.0,61.2080001831055],["res://audio/music/suno_battle3_drive.ogg",-4.0,61.2080001831055]]],[1715,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,61.5800018310547],["res://audio/music/suno_battle3_pulse.ogg",-4.0,61.5800018310547],["res://audio/music/suno_battle3_drive.ogg",-4.0,61.5800018310547]]],[1716,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,61.9519996643066],["res://audio/music/suno_battle3_pulse.ogg",-4.0,61.9519996643066],["res://audio/music/suno_battle3_drive.ogg",-4.0,61.9519996643066]]],[1717,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,62.3240013122559],["res://audio/music/suno_battle3_pulse.ogg",-4.0,62.3240013122559],["res://audio/music/suno_battle3_drive.ogg",-4.0,62.3240013122559]]],[1718,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,62.6959991455078],["res://audio/music/suno_battle3_pulse.ogg",-4.0,62.6959991455078],["res://audio/music/suno_battle3_drive.ogg",-4.0,62.6959991455078]]],[1719,2810.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,63.068000793457],["res://audio/music/suno_battle3_pulse.ogg",-4.0,63.068000793457],["res://audio/music/suno_battle3_drive.ogg",-4.0,63.068000793457]]],[1720,4529.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,63.439998626709],["res://audio/music/suno_battle3_pulse.ogg",-4.0,63.439998626709],["res://audio/music/suno_battle3_drive.ogg",-4.0,63.439998626709]]],[1721,6076.10009765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,63.8079986572266],["res://audio/music/suno_battle3_pulse.ogg",-4.0,63.8079986572266],["res://audio/music/suno_battle3_drive.ogg",-4.0,63.8079986572266]]],[1722,7468.490234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,64.1800003051758],["res://audio/music/suno_battle3_pulse.ogg",-4.0,64.1800003051758],["res://audio/music/suno_battle3_drive.ogg",-4.0,64.1800003051758]]],[1723,8721.6416015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,64.552001953125],["res://audio/music/suno_battle3_pulse.ogg",-4.0,64.552001953125],["res://audio/music/suno_battle3_drive.ogg",-4.0,64.552001953125]]],[1724,9849.4775390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,64.9240036010742],["res://audio/music/suno_battle3_pulse.ogg",-4.0,64.9240036010742],["res://audio/music/suno_battle3_drive.ogg",-4.0,64.9240036010742]]],[1725,10864.529296875,[["res://audio/music/suno_battle3_base.ogg",-4.0,65.2959976196289],["res://audio/music/suno_battle3_pulse.ogg",-4.0,65.2959976196289],["res://audio/music/suno_battle3_drive.ogg",-4.0,65.2959976196289]]],[1726,11778.076171875,[["res://audio/music/suno_battle3_base.ogg",-4.0,65.6679992675781],["res://audio/music/suno_battle3_pulse.ogg",-4.0,65.6679992675781],["res://audio/music/suno_battle3_drive.ogg",-4.0,65.6679992675781]]],[1727,12600.2685546875,[["res://audio/music/suno_battle3_base.ogg",-4.0,65.947998046875],["res://audio/music/suno_battle3_pulse.ogg",-4.0,65.947998046875],["res://audio/music/suno_battle3_drive.ogg",-4.0,65.947998046875]]],[1728,13340.2421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,66.3160018920898],["res://audio/music/suno_battle3_pulse.ogg",-4.0,66.3160018920898],["res://audio/music/suno_battle3_drive.ogg",-4.0,66.3160018920898]]],[1729,14006.2177734375,[["res://audio/music/suno_battle3_base.ogg",-4.0,66.6880035400391],["res://audio/music/suno_battle3_pulse.ogg",-4.0,66.6880035400391],["res://audio/music/suno_battle3_drive.ogg",-4.0,66.6880035400391]]],[1730,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,67.0599975585938],["res://audio/music/suno_battle3_pulse.ogg",-4.0,67.0599975585938],["res://audio/music/suno_battle3_drive.ogg",-4.0,67.0599975585938]]],[1731,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,67.431999206543],["res://audio/music/suno_battle3_pulse.ogg",-4.0,67.431999206543],["res://audio/music/suno_battle3_drive.ogg",-4.0,67.431999206543]]],[1732,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,67.8040008544922],["res://audio/music/suno_battle3_pulse.ogg",-4.0,67.8040008544922],["res://audio/music/suno_battle3_drive.ogg",-4.0,67.8040008544922]]],[1733,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,68.1760025024414],["res://audio/music/suno_battle3_pulse.ogg",-4.0,68.1760025024414],["res://audio/music/suno_battle3_drive.ogg",-4.0,68.1760025024414]]],[1734,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,68.5479965209961],["res://audio/music/suno_battle3_pulse.ogg",-4.0,68.5479965209961],["res://audio/music/suno_battle3_drive.ogg",-4.0,68.5479965209961]]],[1735,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,68.9199981689453],["res://audio/music/suno_battle3_pulse.ogg",-4.0,68.9199981689453],["res://audio/music/suno_battle3_drive.ogg",-4.0,68.9199981689453]]],[1736,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,69.3840026855469],["res://audio/music/suno_battle3_pulse.ogg",-4.0,69.3840026855469],["res://audio/music/suno_battle3_drive.ogg",-4.0,69.3840026855469]]],[1737,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,69.7559967041016],["res://audio/music/suno_battle3_pulse.ogg",-4.0,69.7559967041016],["res://audio/music/suno_battle3_drive.ogg",-4.0,69.7559967041016]]],[1738,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,70.1240005493164],["res://audio/music/suno_battle3_pulse.ogg",-4.0,70.1240005493164],["res://audio/music/suno_battle3_drive.ogg",-4.0,70.1240005493164]]],[1739,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,70.4960021972656],["res://audio/music/suno_battle3_pulse.ogg",-4.0,70.4960021972656],["res://audio/music/suno_battle3_drive.ogg",-4.0,70.4960021972656]]],[1740,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,70.8679962158203],["res://audio/music/suno_battle3_pulse.ogg",-4.0,70.8679962158203],["res://audio/music/suno_battle3_drive.ogg",-4.0,70.8679962158203]]],[1741,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,71.2399978637695],["res://audio/music/suno_battle3_pulse.ogg",-4.0,71.2399978637695],["res://audio/music/suno_battle3_drive.ogg",-4.0,71.2399978637695]]],[1742,2810.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,71.5199966430664],["res://audio/music/suno_battle3_pulse.ogg",-4.0,71.5199966430664],["res://audio/music/suno_battle3_drive.ogg",-4.0,71.5199966430664]]],[1743,4529.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,71.8919982910156],["res://audio/music/suno_battle3_pulse.ogg",-4.0,71.8919982910156],["res://audio/music/suno_battle3_drive.ogg",-4.0,71.8919982910156]]],[1744,6076.10009765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,72.2600021362305],["res://audio/music/suno_battle3_pulse.ogg",-4.0,72.2600021362305],["res://audio/music/suno_battle3_drive.ogg",-4.0,72.2600021362305]]],[1745,7468.490234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,72.6320037841797],["res://audio/music/suno_battle3_pulse.ogg",-4.0,72.6320037841797],["res://audio/music/suno_battle3_drive.ogg",-4.0,72.6320037841797]]],[1746,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,73.0039978027344],["res://audio/music/suno_battle3_pulse.ogg",-4.0,73.0039978027344],["res://audio/music/suno_battle3_drive.ogg",-4.0,73.0039978027344]]],[1747,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,73.3759994506836],["res://audio/music/suno_battle3_pulse.ogg",-4.0,73.3759994506836],["res://audio/music/suno_battle3_drive.ogg",-4.0,73.3759994506836]]],[1748,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,73.7480010986328],["res://audio/music/suno_battle3_pulse.ogg",-4.0,73.7480010986328],["res://audio/music/suno_battle3_drive.ogg",-4.0,73.7480010986328]]],[1749,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,74.120002746582],["res://audio/music/suno_battle3_pulse.ogg",-4.0,74.120002746582],["res://audio/music/suno_battle3_drive.ogg",-4.0,74.120002746582]]],[1750,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,74.4919967651367],["res://audio/music/suno_battle3_pulse.ogg",-4.0,74.4919967651367],["res://audio/music/suno_battle3_drive.ogg",-4.0,74.4919967651367]]],[1751,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,74.8639984130859],["res://audio/music/suno_battle3_pulse.ogg",-4.0,74.8639984130859],["res://audio/music/suno_battle3_drive.ogg",-4.0,74.8639984130859]]],[1752,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,75.2320022583008],["res://audio/music/suno_battle3_pulse.ogg",-4.0,75.2320022583008],["res://audio/music/suno_battle3_drive.ogg",-4.0,75.2320022583008]]],[1753,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,75.6999969482422],["res://audio/music/suno_battle3_pulse.ogg",-4.0,75.6999969482422],["res://audio/music/suno_battle3_drive.ogg",-4.0,75.6999969482422]]],[1754,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,76.068000793457],["res://audio/music/suno_battle3_pulse.ogg",-4.0,76.068000793457],["res://audio/music/suno_battle3_drive.ogg",-4.0,76.068000793457]]],[1755,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,76.4400024414062],["res://audio/music/suno_battle3_pulse.ogg",-4.0,76.4400024414062],["res://audio/music/suno_battle3_drive.ogg",-4.0,76.4400024414062]]],[1756,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,76.8119964599609],["res://audio/music/suno_battle3_pulse.ogg",-4.0,76.8119964599609],["res://audio/music/suno_battle3_drive.ogg",-4.0,76.8119964599609]]],[1757,900.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,77.1839981079102],["res://audio/music/suno_battle3_pulse.ogg",-4.0,77.1839981079102],["res://audio/music/suno_battle3_drive.ogg",-4.0,77.1839981079102]]],[1758,2810.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,77.5559997558594],["res://audio/music/suno_battle3_pulse.ogg",-4.0,77.5559997558594],["res://audio/music/suno_battle3_drive.ogg",-4.0,77.5559997558594]]],[1759,4529.0,[["res://audio/music/suno_battle3_base.ogg",-4.0,77.8359985351562],["res://audio/music/suno_battle3_pulse.ogg",-4.0,77.8359985351562],["res://audio/music/suno_battle3_drive.ogg",-4.0,77.8359985351562]]],[1760,6076.10009765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,78.2080001831055],["res://audio/music/suno_battle3_pulse.ogg",-4.0,78.2080001831055],["res://audio/music/suno_battle3_drive.ogg",-4.0,78.2080001831055]]],[1761,7468.490234375,[["res://audio/music/suno_battle3_base.ogg",-4.0,78.5759963989258],["res://audio/music/suno_battle3_pulse.ogg",-4.0,78.5759963989258],["res://audio/music/suno_battle3_drive.ogg",-4.0,78.5759963989258]]],[1762,8721.6416015625,[["res://audio/music/suno_battle3_base.ogg",-4.0,78.947998046875],["res://audio/music/suno_battle3_pulse.ogg",-4.0,78.947998046875],["res://audio/music/suno_battle3_drive.ogg",-4.0,78.947998046875]]],[1763,9849.4775390625,[["res://audio/music/suno_battle3_base.ogg",-4.0,79.2519989013672],["res://audio/music/suno_battle3_pulse.ogg",-4.0,79.2580032348633],["res://audio/music/suno_battle3_drive.ogg",-4.0,79.2639999389648]]],[1764,10864.529296875,[["res://audio/music/suno_battle3_base.ogg",-4.0,79.5999984741211],["res://audio/music/suno_battle3_pulse.ogg",-4.0,79.5999984741211],["res://audio/music/suno_battle3_drive.ogg",-4.0,79.5999984741211]]],[1765,11778.076171875,[["res://audio/music/suno_battle3_base.ogg",-4.0,79.9720001220703],["res://audio/music/suno_battle3_pulse.ogg",-4.0,79.9720001220703],["res://audio/music/suno_battle3_drive.ogg",-4.0,79.9720001220703]]],[1766,12600.2685546875,[["res://audio/music/suno_battle3_base.ogg",-4.0,80.3440017700195],["res://audio/music/suno_battle3_pulse.ogg",-4.0,80.3440017700195],["res://audio/music/suno_battle3_drive.ogg",-4.0,80.3440017700195]]],[1767,13340.2421875,[["res://audio/music/suno_battle3_base.ogg",-4.0,80.7119979858398],["res://audio/music/suno_battle3_pulse.ogg",-4.0,80.7119979858398],["res://audio/music/suno_battle3_drive.ogg",-4.0,80.7119979858398]]],[1768,14006.2177734375,[["res://audio/music/suno_battle3_base.ogg",-4.0,81.0839996337891],["res://audio/music/suno_battle3_pulse.ogg",-4.0,81.0839996337891],["res://audio/music/suno_battle3_drive.ogg",-4.0,81.0839996337891]]],[1769,14605.595703125,[["res://audio/music/suno_battle3_base.ogg",-4.0,81.4560012817383],["res://audio/music/suno_battle3_pulse.ogg",-4.0,81.4560012817383],["res://audio/music/suno_battle3_drive.ogg",-4.0,81.4560012817383]]],[1770,15145.0361328125,[["res://audio/music/suno_battle3_base.ogg",-4.0,81.8280029296875],["res://audio/music/suno_battle3_pulse.ogg",-4.0,81.8280029296875],["res://audio/music/suno_battle3_drive.ogg",-4.0,81.8280029296875]]],[1771,15630.5322265625,[["res://audio/music/suno_battle3_base.ogg",-4.0,82.1999969482422],["res://audio/music/suno_battle3_pulse.ogg",-4.0,82.1999969482422],["res://audio/music/suno_battle3_drive.ogg",-4.0,82.1999969482422]]],[1772,16067.478515625,[["res://audio/music/suno_battle3_base.ogg",-4.0,82.5719985961914],["res://audio/music/suno_battle3_pulse.ogg",-4.0,82.5719985961914],["res://audio/music/suno_battle3_drive.ogg",-4.0,82.5719985961914]]],[1773,16460.73046875,[["res://audio/music/suno_battle3_base.ogg",-4.0,82.9440002441406],["res://audio/music/suno_battle3_pulse.ogg",-4.0,82.9440002441406],["res://audio/music/suno_battle3_drive.ogg",-4.0,82.9440002441406]]],[1774,16814.658203125,[["res://audio/music/suno_battle3_base.ogg",-4.0,83.3160018920898],["res://audio/music/suno_battle3_pulse.ogg",-4.0,83.3160018920898],["res://audio/music/suno_battle3_drive.ogg",-4.0,83.3160018920898]]],[1775,17133.19140625,[["res://audio/music/suno_battle3_base.ogg",-4.0,83.5920028686523],["res://audio/music/suno_battle3_pulse.ogg",-4.0,83.5920028686523],["res://audio/music/suno_battle3_drive.ogg",-4.0,83.5920028686523]]],[1776,17419.873046875,[["res://audio/music/suno_battle3_base.ogg",-4.0,83.963996887207],["res://audio/music/suno_battle3_pulse.ogg",-4.0,83.963996887207],["res://audio/music/suno_battle3_drive.ogg",-4.0,83.963996887207]]],[1777,17677.88671875,[["res://audio/music/suno_battle3_base.ogg",-4.0,84.3359985351562],["res://audio/music/suno_battle3_pulse.ogg",-4.0,84.3359985351562],["res://audio/music/suno_battle3_drive.ogg",-4.0,84.3359985351562]]],[1778,17910.09765625,[["res://audio/music/suno_battle3_base.ogg",-4.0,84.7080001831055],["res://audio/music/suno_battle3_pulse.ogg",-4.0,84.7080001831055],["res://audio/music/suno_battle3_drive.ogg",-4.0,84.7080001831055]]],[1779,18119.087890625,[["res://audio/music/suno_battle3_base.ogg",-4.0,85.0800018310547],["res://audio/music/suno_battle3_pulse.ogg",-4.0,85.0800018310547],["res://audio/music/suno_battle3_drive.ogg",-4.0,85.0800018310547]]],[1780,18307.1796875,[["res://audio/music/suno_battle3_base.ogg",-4.0,85.3560028076172],["res://audio/music/suno_battle3_pulse.ogg",-4.0,85.3560028076172],["res://audio/music/suno_battle3_drive.ogg",-4.0,85.3560028076172]]],[1781,18476.4609375,[["res://audio/music/suno_battle3_base.ogg",-4.0,85.7279968261719],["res://audio/music/suno_battle3_pulse.ogg",-4.0,85.7279968261719],["res://audio/music/suno_battle3_drive.ogg",-4.0,85.7279968261719]]],[1782,18628.814453125,[["res://audio/music/suno_battle3_base.ogg",-4.0,86.0999984741211],["res://audio/music/suno_battle3_pulse.ogg",-4.0,86.0999984741211],["res://audio/music/suno_battle3_drive.ogg",-4.0,86.0999984741211]]],[1783,18765.93359375,[["res://audio/music/suno_battle3_base.ogg",-4.0,86.4720001220703],["res://audio/music/suno_battle3_pulse.ogg",-4.0,86.4720001220703],["res://audio/music/suno_battle3_drive.ogg",-4.0,86.4720001220703]]]]}
+SFXREQ {}
+ERROR: 334 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 90 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 25: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 26: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 97: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 98: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 99: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 100: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 101: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 102: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 103: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 104: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 106: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 107: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 108: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1509: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1510: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1542: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1543: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1544: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1545: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1546: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1547: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1548: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1549: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1550: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1551: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1552: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1553: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1554: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1555: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1556: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1557: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1558: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1559: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1560: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1561: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1562: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1563: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1564: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1565: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1566: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1567: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1568: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1569: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1570: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1571: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1572: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1573: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1574: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1575: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1576: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1577: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1578: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1579: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1580: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1581: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1582: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1583: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1584: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1585: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1586: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1587: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1588: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1589: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1590: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1591: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1592: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1593: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1594: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1595: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1596: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1597: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1598: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1599: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1600: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1601: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1602: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1603: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1604: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1605: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1606: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1607: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1608: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1609: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1610: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1611: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1612: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1613: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1614: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1615: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1616: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1617: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1618: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1619: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1620: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1621: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1622: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1623: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1624: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1625: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1626: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1627: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1628: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1629: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1630: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1631: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1632: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1633: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1634: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1635: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1636: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1637: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1638: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1639: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1640: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1641: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1642: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1643: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1644: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1645: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1646: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1647: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1648: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1649: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1650: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1651: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1652: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1653: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1654: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1655: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1656: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1657: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1658: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1659: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1660: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1661: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1662: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1663: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1664: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1665: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1666: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1667: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1668: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1669: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1670: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1671: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1672: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1673: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1674: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1675: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1676: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1677: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1678: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1679: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1680: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1681: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1682: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1683: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1684: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1685: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1686: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 611676 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1725: leaked 10872 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1726: leaked 422692 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1727: leaked 152892 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1728: leaked 252 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1729: leaked 557248 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1730: leaked 154140 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1731: leaked 32984 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1732: leaked 368784 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1736: leaked 12420 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1737: leaked 186760 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1738: leaked 1664 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1739: leaked 19872 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1749: leaked 556 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1750: leaked 125092 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1751: leaked 242036 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1752: leaked 2056 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1753: leaked 50588 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1754: leaked 231228 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1755: leaked 26012 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1756: leaked 6256 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1757: leaked 79388 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1758: leaked 79388 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1760: leaked 192304 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1761: leaked 11160 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1762: leaked 117216 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1763: leaked 26596 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1764: leaked 14864 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1765: leaked 40156 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1766: leaked 188396 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1767: leaked 107240 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1768: leaked 14864 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1769: leaked 41392 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1770: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1772: leaked 313380 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1773: leaked 146540 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1775: leaked 1624 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1776: leaked 26812 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1777: leaked 11160 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1778: leaked 27084 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1780: leaked 313380 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1781: leaked 145528 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1782: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1783: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1784: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1785: leaked 7077872 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1786: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1787: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1788: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1791: leaked 54524 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1798: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1799: leaked 1960 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1800: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1802: leaked 10336 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1803: leaked 6420 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1804: leaked 12332 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1805: leaked 39192 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1813: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1814: leaked 2672 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1815: leaked 53600 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1821: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1822: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1823: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1824: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1825: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1826: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1833: leaked 190864 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1843: leaked 3420 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1844: leaked 4848 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1845: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1846: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1847: leaked 1624 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1848: leaked 26812 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1849: leaked 119656 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1850: leaked 4848 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1851: leaked 4776 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1852: leaked 1546268 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1853: leaked 825336 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1854: leaked 881288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1855: leaked 8428 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1856: leaked 5112 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1857: leaked 7740 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1858: leaked 32756 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1859: leaked 6436 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1861: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1862: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1863: leaked 1996 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1864: leaked 33220 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1865: leaked 19888 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1869: leaked 87388 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1870: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1871: leaked 6484 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1875: leaked 1996 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1876: leaked 33220 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1877: leaked 73580 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1878: leaked 3360692 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1879: leaked 12420 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1880: leaked 35812 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1881: leaked 2057416 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1882: leaked 1962464 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1884: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1887: leaked 565208 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1889: leaked 753636 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1893: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1894: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1895: leaked 81428 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1898: leaked 5708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1899: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1901: leaked 376812 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1902: leaked 565208 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1903: leaked 1856224 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1908: leaked 1684 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1909: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1916: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1917: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1918: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1919: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1920: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1921: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1922: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1926: leaked 351824 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1927: leaked 395248 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1931: leaked 647836 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1932: leaked 735900 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1933: leaked 69812 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1934: leaked 54524 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1937: leaked 6612 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1938: leaked 39192 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1939: leaked 351824 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1940: leaked 299112 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1941: leaked 346612 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1942: leaked 364100 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1943: leaked 119968 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1944: leaked 125228 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1945: leaked 652312 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1946: leaked 663944 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1947: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1949: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1950: leaked 1631380 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1951: leaked 1552132 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1952: leaked 40056 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1953: leaked 26700 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1954: leaked 100668 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1955: leaked 1244 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1956: leaked 387992 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1957: leaked 225676 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1958: leaked 284028 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1959: leaked 225676 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1960: leaked 291872 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1961: leaked 299112 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1962: leaked 104528 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1963: leaked 140200 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1964: leaked 735900 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1966: leaked 663944 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1968: leaked 99064 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1969: leaked 144564 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1970: leaked 410688 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1973: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1974: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1976: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1979: leaked 1513708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1980: leaked 1009152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1981: leaked 2018344 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1982: leaked 1009152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1983: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1984: leaked 104528 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1985: leaked 177900 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1986: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 715 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 179 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

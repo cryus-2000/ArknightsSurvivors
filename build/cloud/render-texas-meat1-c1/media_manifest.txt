@@ -1,0 +1,3 @@
+133080	rec_texas_0.log
+133871	rec_texas_1.log
+9867162	texas_meat_8m00.mp4
