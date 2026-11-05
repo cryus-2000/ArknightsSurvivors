@@ -2478,6 +2478,11 @@ var frost_ci: ColorRect = null
 
 func _logo_start() -> void:
 	var test: bool = DisplayServer.get_name() == "headless" or (Array(Cfg.dev_args()).any(func(a): return str(a).begins_with("--galleryshot=")) and not Cfg.dev_args().has("--galleryintro"))
+	var nc := 0
+	for e in entries:
+		if not e.get("locked", false):
+			nc += 1
+	intro.info = {"count": nc, "total": entries.size()}
 	intro.start("decrypt", test)
 	if frost_ci == null and glass_mat != null and glass_fx:
 		frost_bbc = BackBufferCopy.new()

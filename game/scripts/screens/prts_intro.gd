@@ -21,6 +21,7 @@ const TRI := [Vector2(60, 14), Vector2(114, 103), Vector2(6, 103)]
 var kind := "decrypt"
 var t0 := -100.0
 var rmode := false
+var info := {}   # 宿主给的档案信息：count / total（图鉴收录数）
 var host_frost := false   # 宿主有拷屏磨砂层（揭开阶段底色由它画）
 
 
@@ -89,7 +90,7 @@ func draw(ci: CanvasItem, vs: Vector2, font: Font) -> void:
 	if kind == "access":
 		_draw_access(ci, vs, font, t)
 	else:
-		_draw_decrypt(ci, vs, t)
+		_draw_decrypt(ci, vs, font, t)
 
 
 func _logo_geo(vs: Vector2, frac: float) -> Array:
@@ -99,32 +100,91 @@ func _logo_geo(vs: Vector2, frac: float) -> Array:
 	return [o, s, span]
 
 
-func _draw_decrypt(ci: CanvasItem, vs: Vector2, t: float) -> void:
+func _draw_decrypt(ci: CanvasItem, vs: Vector2, font: Font, t: float) -> void:
+	# 11-05 二版（用户「图鉴的会不会有点太简约了，只是一个线条」）：做成一份档案——取景框四角收拢、页眉逐字 + 编号滚动、
+	# 右侧四行遮挡条（像涂黑的机密）解密时从左往右退开露出档案信息、对角线加两道细伴线、合拢时中心闪 DECRYPTED，再磨砂变清
 	var fr: float = frost()
 	if fr < 0.0:
 		ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(BG, ss(0.0, 0.05, t)))
 	elif not host_frost:
 		ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(BG, fr))   # 没有磨砂层：平涂淡出
-	var geo: Array = _logo_geo(vs, 0.3)
-	var o: Vector2 = geo[0]
-	var s: float = geo[1]
 	var out: float = 1.0 - ss(0.5, 0.6, t)
-	if out > 0.0:
-		var tf: float = ss(0.0, 0.24, t)
-		_trace(ci, o, s, tf, Color(W, out), lerpf(0.5, 2.0, ss(0.0, 0.1, t)))
-		RhodesLogo.draw_bands(ci, o, s, 120, func(_b): return 0.0, Color(1, 1, 1, ss(0.1, 0.3, t) * out))
-	# 对角线：从左上 / 右下两角向中心合拢 → 停 → 收回中心
 	var c: Vector2 = vs / 2.0
+	var u: float = vs.y / 540.0   # 以 540 高为基准
+	var geo: Array = _logo_geo(vs, 0.28)
+	var s: float = geo[1]
+	var span: float = geo[2]
+	var gap: float = 26.0 * u
+	var pw: float = 230.0 * u   # 右侧档案栏宽
+	var gw: float = span + gap + pw
+	var o := Vector2(roundf(c.x - gw / 2.0), roundf(c.y - span / 2.0))
+	if out > 0.0:
+		# 取景框：四角从外 40 收拢锁定
+		var fb := Rect2(o - Vector2(18, 30) * u, Vector2(gw, span) + Vector2(36, 48) * u)
+		var lk: float = (1.0 - ss(0.02, 0.22, t)) * 40.0 * u
+		var L: float = 16.0 * u
+		var fc := Color(W, 0.75 * out)
+		for k in 4:
+			var sx: float = -1.0 if k % 2 == 0 else 1.0
+			var sy: float = -1.0 if k < 2 else 1.0
+			var p: Vector2 = Vector2(fb.position.x if sx < 0 else fb.end.x, fb.position.y if sy < 0 else fb.end.y) + Vector2(sx, sy) * lk
+			ci.draw_line(p, p + Vector2(-sx * L, 0), fc, 1.5)
+			ci.draw_line(p, p + Vector2(0, -sy * L), fc, 1.5)
+		# 页眉：逐字 + 编号滚动；下面一条细线从左长出
+		var fs: int = int(round(10.0 * u))
+		var head := "PRTS // OPERATOR ARCHIVE"
+		var hn: int = int(ceil(head.length() * ss(0.04, 0.24, t)))
+		ci.draw_string(font, Vector2(fb.position.x + 4.0 * u, fb.position.y + 14.0 * u), head.substr(0, hn), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(W, out))
+		var no: int = int(round(lerpf(0.0, float(info.get("count", 0)), ss(0.06, 0.4, t))))
+		var nos := "FILE No.%03d" % no
+		ci.draw_string(font, Vector2(fb.end.x - 4.0 * u - font.get_string_size(nos, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, fb.position.y + 14.0 * u), nos, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(SUB, out))
+		ci.draw_rect(Rect2(fb.position.x + 4.0 * u, fb.position.y + 20.0 * u, (fb.size.x - 8.0 * u) * ss(0.04, 0.26, t), 1), Color(SUB, 0.6 * out))
+		# 标志：三角外框逐笔描出 → 点亮
+		_trace(ci, o, s, ss(0.0, 0.24, t), Color(W, out), lerpf(0.5, 2.0, ss(0.0, 0.1, t)))
+		RhodesLogo.draw_bands(ci, o, s, 120, func(_b): return 0.0, Color(1, 1, 1, ss(0.1, 0.3, t) * out))
+		# 右侧档案栏：四行信息，上面压着遮挡条，0.3–0.46 逐行从左往右退开
+		var px: float = o.x + span + gap
+		var rows := [["档案类别", "干员"], ["权限等级", "Ⅲ"], ["收录", "%d / %d" % [info.get("count", 0), info.get("total", 0)]], ["状态", "已解密"]]
+		var rh: float = span / 4.0
+		var fs2: int = int(round(12.0 * u))
+		for i in 4:
+			var ry: float = o.y + i * rh
+			var y0: float = ry + rh * 0.5
+			var shown: float = ss(0.3 + i * 0.03, 0.42 + i * 0.03, t)
+			ci.draw_rect(Rect2(px, ry + rh - 1.0, pw, 1), Color(SUB, 0.3 * out))
+			if shown > 0.0:
+				ci.draw_string(font, Vector2(px, y0 + fs2 * 0.35), str(rows[i][0]), HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color(SUB, out))
+				var vc: Color = ACC if i == 3 else W
+				ci.draw_string(font, Vector2(px, y0 + fs2 * 0.35), str(rows[i][1]), HORIZONTAL_ALIGNMENT_RIGHT, pw, fs2, Color(vc, out * ss(0.4, 0.9, shown)))
+			var bw: float = pw * (0.55 + 0.4 * absf(sin(i * 1.7 + 0.4))) * ss(0.06 + i * 0.02, 0.16 + i * 0.02, t)   # 遮挡条先从左长出
+			var keep: float = 1.0 - shown
+			if keep > 0.0 and bw > 0.0:
+				var bx: float = px + bw * (1.0 - keep)   # 遮挡条从左往右退开：先露出字段名
+				ci.draw_rect(Rect2(bx, y0 - 6.0 * u, bw * keep, 12.0 * u), Color(0.2, 0.21, 0.24, out))
+				if shown > 0.0:
+					ci.draw_rect(Rect2(bx, y0 - 6.0 * u, 2.0 * u, 12.0 * u), Color(ACC, 0.9 * out))
+	# 对角线：主线 + 两道细伴线，从左上 / 右下两角向中心合拢 → 停 → 收回中心
 	var join: float = ss(0.28, 0.46, t)
 	var ret: float = ss(0.52, 0.62, t)
 	if join > 0.0 and ret < 1.0:
+		var nrm: Vector2 = Vector2(vs.y, -vs.x).normalized()
 		for corner in [Vector2.ZERO, vs]:
 			var head: Vector2 = corner.lerp(c, join)
 			var tail: Vector2 = corner.lerp(c, ret)
-			ci.draw_line(tail, head, Color(W, 0.85), 1.5, true)
-			ci.draw_line(tail, head, Color(ACC, 0.25), 5.0, true)
+			ci.draw_line(tail, head, Color(ACC, 0.22), 6.0, true)
+			ci.draw_line(tail, head, Color(W, 0.9), 1.5, true)
+			for side in [-1.0, 1.0]:
+				var off: Vector2 = nrm * side * 9.0 * u
+				var h2: Vector2 = corner.lerp(c, join * 0.92)
+				ci.draw_line(tail + off, h2 + off, Color(W, 0.3), 1.0, true)
 		if join >= 1.0:
-			ci.draw_rect(Rect2(c - Vector2(3, 3), Vector2(6, 6)), Color(ACC, 1.0 - ret))
+			var fl: float = 1.0 - ret
+			ci.draw_rect(Rect2(c - Vector2(4, 4) * u, Vector2(8, 8) * u), Color(ACC, fl))
+			var dfs: int = int(round(10.0 * u))
+			var dt := "DECRYPTED"
+			var dw: float = font.get_string_size(dt, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
+			ci.draw_rect(Rect2(c.x - dw / 2.0 - 6.0 * u, c.y - 12.0 * u - dfs - 2.0 * u, dw + 12.0 * u, dfs + 8.0 * u), Color(BG, 0.92 * fl))   # 底板：别压在档案字上
+			ci.draw_string(font, Vector2(c.x - font.get_string_size(dt, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x / 2.0, c.y - 12.0 * u), dt, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs, Color(ACC, fl))
 
 
 func _draw_access(ci: CanvasItem, vs: Vector2, font: Font, t: float) -> void:
