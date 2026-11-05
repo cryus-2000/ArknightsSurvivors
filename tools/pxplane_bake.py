@@ -28,7 +28,7 @@ OPS = {
     "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0xc4, 0xdc)]),   # 点缀冰蓝（11-05 用户定，原海绿 5f f0）
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
     "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
-    "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7)]),
+    "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7), (0xcf, 0xd6)]),   # docs/270：伞沿淡紫白亮边也进 emit（命中帧已过白热拍）
     "texas": ("melee/ak-texas-pp", "pxp_texas.json", "tx_", [(0x9f, 0xe3)]),
 }
 TMP = os.path.join(ROOT, "build", "pxp_bake")
@@ -63,8 +63,8 @@ def variants_skadi():
         v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7, "style": "s3"}, 0.7))
     # 水柱：破浪下劈（精一普攻，落点）/ 跃浪击（S2）
     for el in (1, 2):
-        v.append(("leap_e%d_up" % el, {"part": "splash", "layer": "up", "R": 40, "H": [40, 48][el - 1], "el": el}, 0.5))
-        v.append(("leap_e%d_gd" % el, {"part": "splash", "layer": "gd", "R": 65, "el": el}, 0.5))
+        v.append(("leap_e%d_up" % el, {"part": "splash", "layer": "up", "R": 40, "CW": [24, 28][el - 1], "H": 14, "el": el}, 0.62))
+        v.append(("leap_e%d_gd" % el, {"part": "splash", "layer": "gd", "R": 65, "CW": [24, 28][el - 1], "H": 14, "el": el}, 0.62))
         for d in DIRS:   # S2 跃浪击：前方弧形水墙（立起、卷倒、拍下），不是月牙
             for ly in ("up", "gd"):
                 v.append(("s2_e%d_%s_d%d" % (el, ly, d), {"part": "curtain", "layer": ly, "R": 42, "H": [38, 48][el - 1], "span": [1.9, 2.3][el - 1], "dir": d, "el": el, "seed": 5}, 0.56))
@@ -84,8 +84,8 @@ def variants_skadi():
     for ly in ("up", "gd"):   # 连携技「落潮横扫」：整圈白刃大月牙 + 脚下一圈矮浪往外推
         v.append(("combo_spin_%s" % ly, {"part": "spin", "layer": ly, "R": 58, "W": 18, "H0": 12, "el": 1, "dur": 0.4, "seed": 13, "style": "s1"}, 0.47))
         v.append(("combo_swell_%s" % ly, {"part": "swell", "layer": ly, "R": 66, "H": 13, "el": 1, "dur": 0.42, "seed": 14}, 0.5))
-    v.append(("s3cast_gd", {"part": "ring", "layer": "gd", "R": 92, "el": 2, "seed": 9}, 0.5))
-    v.append(("s3cast_up", {"part": "splash", "layer": "up", "R": 70, "H": 90, "el": 2, "seed": 9}, 0.56))   # 悲歌起手：身边冲起的大水柱
+    v.append(("s3cast_gd", {"part": "splash", "layer": "gd", "R": 92, "CW": 40, "H": 16, "el": 2, "seed": 9}, 0.62))
+    v.append(("s3cast_up", {"part": "splash", "layer": "up", "R": 70, "CW": 40, "H": 16, "el": 2, "seed": 9}, 0.62))   # 悲歌起手：身边冲起的大水柱
     v.append(("pool_gd", {"part": "pool", "layer": "gd", "R": 70, "seed": 6}, 0.4))   # 悲歌持续：脚下积水（循环）
     # 潮刃（精二）/ 跃浪浪墙：竖直浪头（循环 0.3 秒）
     for d in DIRS:
@@ -395,8 +395,11 @@ def bake(key, d, dur, loop=False):
         m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
         py, px = np.nonzero(m)
         idx = np.arange(len(px))
-        if len(idx) > EMIT_MAX:
-            idx = idx[np.linspace(0, len(idx) - 1, EMIT_MAX).astype(int)]
+        cap = EMIT_MAX
+        if PREFIX == "mz_":   # 水月（docs/270）：emit p90 ≤ 300——伞面 / 旋斩每帧 24 点，常驻件（深蓝之籽、水镜、充能环）每帧 6 点
+            cap = 6 if key.startswith(("jelly", "qi_", "pool", "ready")) else 24
+        if len(idx) > cap:
+            idx = idx[np.linspace(0, len(idx) - 1, cap).astype(int)]
         pts = []
         for j in idx:
             r, g_, b = c[py[j], px[j], :3]
