@@ -11,6 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 META = os.path.join(ROOT, "game", "data", "pxp_angelina.json")
 EMIT_LUM = 0.8
+EMIT_LUM_HOT = 0.7   # 落点类帧条：#cdacf7（0.75）也进发光层
 EMIT_MAX = 64   # docs/270 补齐：星芒 / 光刺白芯加厚后，每帧送进发光层的点上限（整队另有 EMIT_CAP 360）
 RIB_ROT = [0, 90, 180, 270]
 
@@ -102,8 +103,8 @@ def lum(c):
     return (0.3 * r + 0.59 * g + 0.11 * b) / 255.0
 
 
-def render(frames):
-    """[Buf] → (PIL 帧条, w, h, ox, oy, emit)"""
+def render(frames, el=EMIT_LUM):
+    """[Buf] → (PIL 帧条, w, h, ox, oy, emit)；el = 进发光层的亮度门槛"""
     xs = [x for f in frames for (x, y) in f.p] or [0]
     ys = [y for f in frames for (x, y) in f.p] or [0]
     x0, x1, y0, y1 = min(xs) - 1, max(xs) + 1, min(ys) - 1, max(ys) + 1
@@ -115,7 +116,7 @@ def render(frames):
         em = []
         for (x, y), c in sorted(f.p.items()):
             px[i * w + x - x0, y - y0] = A.hx(c)
-            if lum(c) >= EMIT_LUM:
+            if lum(c) >= el:
                 em.append([x - x0, y - y0, c.lstrip("#")])
         if len(em) > EMIT_MAX:
             em = em[:: max(1, len(em) // EMIT_MAX)][:EMIT_MAX]
@@ -140,7 +141,9 @@ def main():
     n = 0
     total = 0
     for k, (frames, loop) in strips().items():
-        im, w, h, ox, oy, emit = render(frames)
+        # docs/270 补齐：落点类（星芒 / 压缩点 / 光刺 / 坍缩）亮紫一阶也进发光层——白芯本来就是纯白，只给白像素加辉光量不出、也看不出
+        hot = k.startswith(("land_", "lk_land_up", "dense_pop"))
+        im, w, h, ox, oy, emit = render(frames, EMIT_LUM_HOT if hot else EMIT_LUM)
         fn = "pxp_an_%s.png" % k
         p = os.path.join(ART, fn)
         im.save(p, optimize=True)
