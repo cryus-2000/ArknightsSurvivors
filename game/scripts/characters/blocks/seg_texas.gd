@@ -995,6 +995,7 @@ static func tx_rift_draw_body(o) -> bool:
 	var hide: bool = MfBal.v("fx/texas_s3_hide_captain", 0.0) > 0.0 and o.is_leader and (o.skill_active_left(2) > 0.0 or rf != null)
 	if hide:
 		o.tx["s3h"] = true
+		_tx_pos_mark(o)
 	elif o.tx.get("s3h", false):
 		o.tx.erase("s3h")
 		o.tx["s3_app"] = float(g.t)
@@ -1024,6 +1025,21 @@ static func tx_rift_draw_body(o) -> bool:
 		var k: float = clampf((1.0 - (float(rf.t) - float(fl.t)) / pose) / 0.3, 0.0, 1.0)
 		o.draw_body_at(fl.p, dv.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k))
 	return true
+
+
+## 隐藏队长时原地的位置标记（11-06 协调人：隐身期间怪仍打原地的判定点，玩家要知道自己站在哪）：脚下一个半透明小菱形，琥珀细边 + 暗芯，
+## 2 px 格逐格画、随 15 fps 节拍轻微呼吸。只画
+static func _tx_pos_mark(o) -> void:
+	var cv = o.cv
+	var c: Vector2 = (o.pos / 2.0).floor() * 2.0 + Vector2(0, 2)
+	var br: float = 0.42 + 0.12 * sin(float(int(float(o.g.t) * 15.0)) * 0.7)
+	var edge := Color(1.0, 0.72, 0.36, br)
+	var core := Color(0.12, 0.08, 0.05, br * 0.7)
+	for y in range(-3, 4):
+		var hw: int = 6 - 2 * absi(y)
+		for x in range(-hw, hw + 1):
+			var onedge: bool = absi(x) == hw or absi(x) == hw - 1 and absi(y) == 3
+			cv.draw_rect(Rect2(c + Vector2(x, y) * 2.0, Vector2(2, 2)), edge if onedge else core)
 
 
 ## 刀痕（kind = tx_scar）：像素刀口——2 px 格，两头尖、中间宽（宽度按 sin 起伏，最宽 wmax 格），一律直线（bow 缺省 0）；
