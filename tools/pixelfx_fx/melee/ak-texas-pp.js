@@ -44,8 +44,8 @@ function slash(p, t, o, C, ACC, ST) {
   const raw = o.view === "raw", SY = raw ? 1 : +o.SY, H0 = raw ? 0 : +o.H0, th = +o.dir * D2R, el = +o.el, n = C.length;
   const span = +o.span, [a0, head, tail] = iaiT(t, span);
   const hot = t < 0.067, cool = smooth(0.07, +o.dur, t);
-  if (head - tail < 0.05 || cool >= 0.8) return;
-  const R = +o.R, Wr = +o.W * (1 - 0.7 * cool), B = R + 3;
+  if (head - tail < 0.05 || cool >= 0.62) return;   // 收到只剩细线之前整道消失（不留 1 格碎点）
+  const R = +o.R, Wr = +o.W * (1 - 0.6 * cool), B = R + 3;
   p.shade(-B, -B * SY - H0, B, B * SY - H0, (x, y, out) => {
     const pz = (y + H0) / SY, r = Math.hypot(x, pz);
     if (r > R + 1.5 || r < R - Wr - 1) return;
@@ -56,7 +56,7 @@ function slash(p, t, o, C, ACC, ST) {
     // 两头针尖、最厚处偏刀头（u ≈ 0.62）
     const prof = u < 0.62 ? Math.pow(u / 0.62, 0.75) : Math.pow((1 - u) / 0.38, 0.55);
     const wr = Wr * prof;
-    if (wr < 0.7) return;
+    if (wr < 1.6) return;
     const q = (R + 0.6 * nz(a * 17, o.seed + 3) - r) / wr;
     if (q < 0 || q > 1) return;
     let ci;
@@ -105,7 +105,7 @@ function slashGround(p, t, o, C) {
   const R = +o.R, W = +o.W, SY = +o.SY, th = +o.dir * D2R;
   const [a0, head, tail] = iaiT(t, +o.span);
   const cool = smooth(0.07, +o.dur, t);
-  if (head - tail < 0.05 || cool >= 0.8) return;
+  if (head - tail < 0.05 || cool >= 0.62) return;
   for (let a = tail; a <= head; a += 0.4 / R) {
     const u = (a - tail) / Math.max(0.001, head - tail);
     const prof = u < 0.62 ? Math.pow(u / 0.62, 0.75) : Math.pow((1 - u) / 0.38, 0.55);
@@ -119,8 +119,8 @@ function spin(p, t, o, C, ACC) {
   const SPAN = 5.25, a0 = -2.2 + (+o.seed % 5) * 0.4;
   const head = a0 + SPAN * (0.62 + 0.38 * clamp(t / 0.067)), tail = a0 + SPAN * 0.25 * smooth(0.07, 0.3, t);
   const hot = t < 0.067, cool = smooth(0.07, +o.dur, t);
-  if (cool >= 0.8) return;
-  const Wr = +o.W * (1 - 0.7 * cool), B = R + 3;
+  if (cool >= 0.62) return;   // 同拔刀：整道一起收掉，不留细环碎点
+  const Wr = +o.W * (1 - 0.6 * cool), B = R + 3;
   p.shade(-B, -B * SY - H0, B, B * SY - H0, (x, y, out) => {
     const pz = (y + H0) / SY, r = Math.hypot(x, pz);
     if (r > R + 1.5 || r < R - Wr - 1) return;
@@ -130,7 +130,7 @@ function spin(p, t, o, C, ACC) {
     const u = (a - tail) / Math.max(0.001, head - tail);
     const prof = Math.min(1, u / 0.15) * Math.min(1, (1 - u) / 0.1) * (0.75 + 0.25 * Math.sin(u * 9 + o.seed));   // 粗细起伏、两头收
     const wr = Wr * prof;
-    if (wr < 0.7) return;
+    if (wr < 1.6) return;
     const q = (R - r) / wr;
     if (q < 0 || q > 1) return;
     let ci = q < 0.16 ? (hot ? n - 1 : n - 2) : q < 0.42 ? n - 3 : q < 0.72 ? n - 4 : n - 5;
@@ -148,7 +148,7 @@ function spin(p, t, o, C, ACC) {
 function spinGround(p, t, o, C) {
   if (o.view === "raw") return;
   const R = +o.R, SY = +o.SY, cool = smooth(0.07, +o.dur, t);
-  if (cool >= 0.8) return;
+  if (cool >= 0.62) return;
   const SPAN = 5.25, a0 = -2.2 + (+o.seed % 5) * 0.4;
   const head = a0 + SPAN * (0.62 + 0.38 * clamp(t / 0.067)), tail = a0 + SPAN * 0.25 * smooth(0.07, 0.3, t);
   for (let a = tail; a <= head; a += 0.5 / R) for (let d = 0; d < +o.W * 0.4; d += 1) p.dot(Math.round(Math.cos(a) * (R - d)), Math.round(Math.sin(a) * (R - d) * SY), C[0], 0.4 * (1 - cool));
