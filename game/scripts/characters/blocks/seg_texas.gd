@@ -182,6 +182,7 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 		"hold": 0.0 if o.is_leader else float(b.get("hold", 0.0)), "ride": ride, "last": o.pos, "hit": {},
 		"dmg": dmg, "w": float(b.get("w", 40.0)) * float(o.tx.get("w", 1.0)), "b": b, "src": str(b.get("src", ""))}
 	o.tx["dash"] = d
+	_FXR.ev(o, "tx_dash", {"from": d.from, "to": d.to, "src": d.src})   # 转平面（docs/257）：只画
 	if b.has("sfx"):
 		o._sfx_op(str(b.sfx))
 	if b.has("strip"):
@@ -427,6 +428,7 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 				var trails: Array = o.tx.get("trails", [])
 				trails.append(tr)
 				o.tx["trails"] = trails
+				_FXR.ev(o, "tx_trail", {"from": c.from, "to": c.to, "w": float(c.w), "life": float(b.life)})   # 转平面（docs/257）：只画
 				# 地面残像光带（纯画面）：line_w = 宽度占冲刺宽的比例（0 = 不画），line_col = [r, g, b, a]（缺省干员色）
 				var lw: float = float(b.get("line_w", 0.35))
 				if lw > 0.0:
@@ -706,6 +708,7 @@ static func _tx_rain_emit(o, b: Dictionary, cc: Vector2, r: float, bl: Array, tm
 			"col": Color(float(c4[0]), float(c4[1]), float(c4[2]), float(c4[3]) if c4.size() > 3 else 0.9)}
 		life = maxf(life, float(q.fin.t) + maxf(hd * 1.5, 0.45) + 0.05)
 	var add: bool = str(b.get("layer", "over")) == "add"
+	_FXR.ev(o, "tx_rain", {"bl": bl, "c": cc, "r": r, "ft": ft, "path": str(b.get("along", "")) == "path", "echo": float(b.get("alpha", 1.0)) < 1.0})   # 转平面（docs/257）：只画
 	o.fx({"kind": "tx_rain", "pos": cc, "life": life, "bl": bl, "q": q, "add": add})
 	if not ms.is_empty() or q.has("fin"):
 		o.fx({"kind": "tx_rain", "pos": cc, "life": life, "bl": bl, "q": q, "floor": true})
@@ -911,6 +914,7 @@ static func tx_rift_update(o, dt: float) -> void:
 			var sw: float = float(b.get("sweep", 0.03))
 			var wm: float = 3.0 if last else 2.0
 			_tx_rift_scar(o, p0 - ud * ext, p1 + ud * ext, life, sw, wm)
+			_FXR.ev(o, "tx_cut", {"at": ctr, "last": last})   # 转平面（docs/257）：目标处落剑，只画
 			var nx: int = int(b.get("scar_extra", 2)) + (1 if last else 0)
 			for xi in nx:
 				var xa: float = ud.angle() + (1.0 if (k + xi) % 2 == 0 else -1.0) * g.vrng.randf_range(0.35, 1.35)
@@ -942,6 +946,7 @@ static func tx_rift_update(o, dt: float) -> void:
 ## 一条刀痕（画面）：直线、两端尖，bow 恒 0
 static func _tx_rift_scar(o, a: Vector2, c: Vector2, life: float, sweep: float, wmax: float) -> void:
 	o.fx({"kind": "tx_scar", "a": a, "c": c, "life": life, "col": o.col(), "sweep": sweep, "bow": 0.0, "wmax": wmax})
+	_FXR.ev(o, "tx_scar", {"a": a, "c": c, "life": life, "wmax": wmax})   # 转平面（docs/257）：只画
 	_tx_rift_grains(o, a, c, 14.0)
 
 
@@ -949,6 +954,8 @@ static func _tx_rift_scar(o, a: Vector2, c: Vector2, life: float, sweep: float, 
 static func _tx_rift_grains(o, a: Vector2, c: Vector2, step: float) -> void:
 	var g = o.g
 	if g == null or not g.get("optical_on") or g.optical == null or g.optical.grains == null:
+		return
+	if _FXR.Pxp.owns_id(g, str(o.id)):   # 转平面（docs/257）接管：刀痕碎屑改由 fx_pxplane 的少量碎晶表现
 		return
 	var gr = g.optical.grains
 	if not gr.on() or gr.off:
