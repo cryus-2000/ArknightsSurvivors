@@ -567,6 +567,113 @@ function backwash(p, t, o, C, ACC, gd) {
   }
 }
 
+// S1 迅捷打击·γ型 = 竖斩（11-05 用户「迅捷打击和普攻太相似，换成竖斩和横斩」）：普攻是腰高的水平横斩，S1 是大剑从头顶后方竖着劈下来——
+// 刀光是一道立在出手方向竖直平面里的月牙（肩高为轴、劈到身前地面），落地那一下：地上沿出手方向炸开一道直裂。
+// 分档同普攻：E1 直裂变成发光的深海裂痕（刀收后还亮一会儿），E2 刀身压成深海暗色 + 内外海绿描边（刃变重）。
+const VS_PIV = 22;   // 轴心离地高度（肩）
+function vsweep(t) {
+  const p0 = 125 * D2R, p1 = -22 * D2R, span = p0 - p1;   // 从头顶后方（125°）劈到身前地下（-22°，地面以下不画）
+  const head = p0 - span * (0.5 + 0.5 * clamp(t / 0.067));
+  const tail = p0 - span * 0.25 * smooth(0.07, 0.3, t);
+  return [p0, head, tail, span];
+}
+
+function vslash(p, t, o, C, ACC) {
+  const raw = o.view === "raw", Rv = +o.RV, W = +o.W, th = +o.dir * D2R, SY = raw ? 1 : +o.SY, el = +o.el, n = C.length;
+  const [p0, head, tail] = vsweep(t);
+  const hot = t < 0.13, cool = smooth(0.1, +o.dur, t);
+  if (cool < 0.72 && tail - head > 0.03) {
+    const cols = [];
+    for (let ph = head; ph <= tail; ph += 0.35 / Rv) {
+      const u = (tail - ph) / Math.max(0.001, tail - head);  // 0 刀尾（头顶后方）→ 1 刀头（劈下去那端）
+      const wr = W * (1 - 0.7 * cool) * Math.pow(Math.sin(Math.PI * Math.pow(u, 1.6)), 0.75);
+      if (wr < 0.7) continue;
+      for (let d = 0; d <= wr; d += 0.5) {
+        const r = Rv - d, hz = r * Math.cos(ph), z = VS_PIV + r * Math.sin(ph);
+        if (z < 0) continue;                                    // 劈进地面的部分不画
+        const q = d / wr;
+        let ci = q < 0.2 ? (hot ? n - 1 : n - 2) : q < 0.45 ? n - 2 : q < 0.7 ? n - 3 : n - 4;
+        if (hot && u > 0.8 && q < 0.6) ci = n - 1;
+        ci = clamp(ci - Math.round(cool * 2.5) - (u < 0.2 ? 1 : 0), 1, n - 1);
+        let col = C[ci];
+        if (el >= 2 && !hot) {                                  // 精二：刃变重
+          if (q > 0.2 && q < 0.3) col = ACC;
+          else if (q >= 0.3 && q < 0.86) col = C[clamp(ci - 2, 1, n - 1)];
+          else if (q >= 0.86) col = ACC;
+        }
+        cols.push([Math.cos(th) * hz, Math.sin(th) * hz * SY - z, col]);
+      }
+    }
+    for (const c of cols) p.px(Math.round(c[0]), Math.round(c[1]), c[2]);
+    if (raw) p.light(Math.cos(th) * Rv * 0.6, -VS_PIV, C[n - 2], 0.5 * (1 - cool));
+  }
+  if (raw) return;
+  // 落地矮浪（11-05 试过：读成另外几道刀光，和竖月牙撞了，关掉；S1 = 竖劈月牙 + 落点直裂 / 深海裂痕）
+  const ti = t - 0.06;
+  if (false && ti > 0) {
+    const R = +o.R, g = ease.outCubic(clamp(ti / 0.28)), r = R * (0.4 + 0.6 * g), fade = smooth(0.18, 0.42, ti);
+    if (fade < 0.99) {
+      const pts = [];
+      for (let a = -1.6; a <= 1.6; a += 0.4 / r) {
+        if (nz(a * 2.2, o.seed + 931) < 0.14) continue;              // 少量断口（连续的一道矮水涌，不碎成块）
+        const env = Math.pow(Math.cos(a / 1.6 * Math.PI / 2), 0.7);
+        const h = (2.5 + 2.5 * nz(a * 3.1, o.seed + 933)) * env * (1 - fade) * clamp(ti / 0.05);
+        const pa = a + th;
+        pts.push({ x: Math.cos(pa) * r, y: Math.sin(pa) * r * SY, h, ca: Math.cos(pa), sa: Math.sin(pa) * SY, near: Math.sin(pa) });
+      }
+      pts.sort((A, B) => A.y - B.y);
+      for (const q of pts) {
+        if (q.h < 1) continue;
+        const B = q.h * 2.2;
+        for (let sb = -B; sb <= 0; sb += 0.5) {                // 内侧缓坡
+          const u = (sb + B) / B, z = q.h * Math.pow(u, 1.6);
+          if (u < 0.3 && nz(sb * 3 + q.x, o.seed + 935) < 0.5) continue;
+          const ci = u < 0.5 ? n - 6 : u < 0.85 ? n - 5 : n - 4;   // 水波：暗、不发白（不跟竖月牙抢）
+          p.px(Math.round(q.x + q.ca * sb), Math.round(q.y + q.sa * sb - z), C[clamp(ci - Math.round(fade * 2) - (q.near < -0.3 ? 1 : 0), 1, n - 1)]);
+        }
+        for (let z = 0; z <= q.h; z += 0.5) {                  // 外侧前脸
+          const k = z / q.h, off = k * k * q.h * 0.3;
+          const ci = k > 0.8 ? n - 3 : k > 0.4 ? n - 4 : n - 5;
+          p.px(Math.round(q.x + q.ca * off), Math.round(q.y + q.sa * off - z), C[clamp(ci - Math.round(fade * 2) - (q.near < -0.3 ? 2 : 0), 1, n - 1)]);
+        }
+      }
+    }
+  }
+}
+
+// 竖斩地面：刀身投影一道直线阴影；落地后沿出手方向炸开一道直裂（几处小分叉），E0 / E1 白热后变暗；E1 起裂口芯发海绿光、刀收后还亮一会儿（深海裂痕）
+function vslashGround(p, t, o, C, ACC) {
+  if (o.view === "raw") return;
+  const R = +o.R, Rv = +o.RV, th = +o.dir * D2R, SY = +o.SY, el = +o.el, n = C.length;
+  const [p0, head] = vsweep(t);
+  const cool = smooth(0.1, +o.dur, t);
+  const reach = Math.sqrt(Math.max(0, Rv * Rv - VS_PIV * VS_PIV));   // 刀尖落地点
+  if (cool < 0.72) for (let h = 4; h <= Math.min(reach, Rv * Math.max(0, Math.cos(head))); h += 1) {   // 刀身投影（跟着刀头往前）
+    p.dot(Math.round(Math.cos(th) * h), Math.round(Math.sin(th) * h * SY), C[0], 0.45 * (1 - cool));
+  }
+  const ti = t - 0.06;
+  if (ti <= 0) return;
+  const grow = ease.outCubic(clamp(ti / 0.1)), glow = 1 - smooth(0.12, 0.5, t), fade = smooth(el >= 1 ? 0.42 : 0.25, el >= 1 ? 0.66 : 0.42, t);
+  if (fade >= 0.99) return;
+  const L = (reach - 4) + (R * 0.95 - reach + 4) * grow;
+  const nx = -Math.sin(th), ny = Math.cos(th) * SY;
+  for (let h = reach - 4; h <= reach - 4 + L; h += 0.5) {
+    if (nz(h * 0.9, o.seed + 941) < fade) continue;
+    const j = 2.2 * (nz(h * 0.45, o.seed + 943) - 0.5) * 2;   // 裂口左右摆
+    const x = Math.round(Math.cos(th) * h + nx * j), y = Math.round(Math.sin(th) * h * SY + ny * j);
+    const fresh = ti < 0.1;
+    p.px(x, y + 1, C[0]);
+    p.px(x, y - 1, C[0]);
+    let core = fresh ? WHITE : C[1];
+    if (el >= 1 && glow > 0.08 && nz(h * 1.7, o.seed + 945) > 0.2 * (1 - glow)) core = ACC;
+    p.px(x, y, core);
+    if (nz(h * 0.33, o.seed + 947) > 0.84) {                     // 小分叉
+      const sg = nz(h, o.seed + 949) > 0.5 ? 1 : -1;
+      for (let s = 1; s <= 3; s++) p.px(Math.round(x + Math.cos(th) * s * 0.6 + nx * sg * s), Math.round(y + Math.sin(th) * s * 0.6 * SY + ny * sg * s), s === 1 && core === ACC ? ACC : C[0]);
+    }
+  }
+}
+
 export function draw(p, t, o) {
   const C = fit(o.palette, 8), ACC = hex(o.accent);
   const gd = o.layer === "gd";
@@ -578,6 +685,7 @@ export function draw(p, t, o) {
     case "curtain": return gd ? breakerGround(p, t, o, C, ACC) : breaker(p, t, o, C, ACC);   // S2 碎浪
     case "swell": return swell(p, t, o, C, ACC, gd);
     case "backwash": return backwash(p, t, o, C, ACC, gd);
+    case "vslash": return gd ? vslashGround(p, t, o, C, ACC) : vslash(p, t, o, C, ACC);   // S1 竖斩
     case "pool": return gd ? pool(p, t, o, C, ACC) : undefined;
     case "ring": return gd || o.view === "raw" ? ring(p, t, o, C, ACC) : undefined;
   }

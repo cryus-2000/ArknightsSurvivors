@@ -42,7 +42,8 @@ def variants():
     for el in T:
         for d in DIRS:
             for ly in ("up", "gd"):
-                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [73, 78, 84][el], "span": 3.5, "W": [16, 18, 21][el], "H0": 12, "dir": d, "el": el, "dur": 0.36, "style": "s1"}, 0.7))
+                # S1 = 竖斩（11-05 用户「迅捷打击和普攻太相似，换成竖斩和横斩」）：RV 竖月牙半径、R 落地矮浪外缘（≈ 判定 145 / 2）
+                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "vslash", "layer": ly, "RV": [40, 44, 48][el], "R": [73, 78, 84][el], "W": [14, 16, 18][el], "dir": d, "el": el, "dur": 0.36}, 0.7))
     # 全方向旋斩：异乡之舞第三下（62）、涌潮悲歌（92）
     for el in T:
         for ly in ("up", "gd"):
@@ -86,7 +87,7 @@ def variants():
     # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
     for el in T:
         v.append(("raw_basic_e%d" % el, {"part": "ribbon", "view": "raw", "R": 56, "span": 2.8, "W": [12, 14, 16][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
-        v.append(("raw_s1_e%d" % el, {"part": "ribbon", "view": "raw", "R": 73, "span": 3.5, "W": [16, 18, 21][el], "dir": 0, "el": el, "dur": 0.36}, 0.4))
+        v.append(("raw_s1_e%d" % el, {"part": "vslash", "view": "raw", "RV": 44, "R": 73, "W": [14, 16, 18][el], "dir": 0, "el": el, "dur": 0.36}, 0.4))
         v.append(("raw_spin_e%d" % el, {"part": "spin", "view": "raw", "R": 62, "W": [12, 14, 16][el], "el": el, "dur": 0.36}, 0.4))
         v.append(("raw_ring_e%d" % el, {"part": "ring", "view": "raw", "R": 60, "el": el}, 0.5))
     for el in (1, 2):
