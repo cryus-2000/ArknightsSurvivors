@@ -2,7 +2,7 @@
 
 **结论摘要**
 1. 第四批（五人并行）之一：照 docs/246 的做法做安洁莉娜（`angelina`）的普攻、S1–S3、连携技（`link/v2` 缺省版「引力环」）、late_shape 额外攻击（她是控场流派，额外攻击 = 升级卡「扩散」）和成长节点画面；终结技不动。开关同 `fx/px_plane`（1 = 转平面）。
-2. 流程（协调人 11-05）：先在本机只用 Python 出 GIF 给用户看，用户点头后才推分支、上 GCP 出三栏 / 三档 / 8:00 录像 / TRACE。**本稿当前停在第二轮 GIF 送审这一步**（§6、§8）。
+2. 流程（协调人 11-05）：先在本机只用 Python 出 GIF 给用户看，用户点头后才推分支、上 GCP 出三栏 / 三档 / 8:00 录像 / TRACE。第二轮 GIF 用户 11-05 点头（「安洁莉娜也先这样」），GCP 实机出图与 TRACE 验收见 §9。
 3. 只改画面：玩法钩子都是一行「只画」事件；配色沿用 pixelfx house.js `OP.angelina` 紫 7 阶（用户 11-04 认可）+ 最暗压底一阶，精二点缀发箍红压暗只在奇点描边段。
 
 ---
@@ -62,9 +62,9 @@
 
 `python tools/pxplane_gif_angelina.py` 生成：`angelina_atk / s1 / s2 / s3 / late / link.gif`。每招一张，E0 / E1 / E2 并排（只放存在的档），上半 1 倍实机大小、下半 2 倍放大，游戏地面色 + 怪物剪影，15 fps 原速循环；场景整体压暗到 0.8、落点 / 起手照地光近似；敌人被拉拢 / 托起的位移按时间插值近似（只为看图）。
 
-## 7. GCP 出图（用户点头后）
+## 7. GCP 出图
 
-待做：推 `claude/pxplane-angelina`，`tools/gcp_render.py --split` 出三栏、三档、连携三栏、8:00 开 / 关 mp4（≤ 30 MB）、开 / 关 TRACE（逐行一致）。
+见 §9。
 
 ## 8. 第二轮（11-05 用户看 GIF：「安洁莉娜 S3 的光刃很奇怪，以及把两个 S2 和 S3 的问题修改一下，也可以稍微华丽一点」）
 
@@ -74,3 +74,15 @@
 - **S2 环带**：短划提亮一档（V3 / V4），加 6 颗沿环带流动的光点（白头 + 4 格尾，相邻两颗反向），1 倍下读得出范围。
 - 元素数：S3 = 重力核心 / 大碎石 / 扭曲波纹；S2 = 环带（含流动光点）/ 绸带 / 汇点星芒。范围：波纹 ≤ 场半径 × 0.97，碎石轨道半径 ≤ 场半径 × 0.8。
 - 送审 GIF 重出 `angelina_s2.gif`、`angelina_s3.gif`（其余四张不变）。
+
+## 9. 实机出图与验收（GCP，docs/256）
+
+| 批 | 提交 | 内容 | 结果 |
+|---|---|---|---|
+| render-angelina（`--split` 7 台，52.9 分钟） | c797f09bf | 三栏 + 2 倍局部（普攻 E0–E2、S1 E0–E2、S2 E1 / E2、S3 E2）、三档图四招、8:00 开 / 关 mp4、TRACE | 7 段 0 条 SCRIPT ERROR；TRACE 种子 23（`--elite2 --sptest`，开 late_shape，5:00）开 / 关 301 行逐行一致；录像局（种子 11，安洁莉娜队长，开 late_shape，8:00 起 20 秒 `--realtime`）开 / 关 501 行逐行一致 |
+| render-angelina-link（5.1 分钟） | a646e2272 | 连携三栏（德克萨斯队长、安洁莉娜队员，种子 11，`--bal=ult/link_gap=8`，68–72 秒，69.81 秒触发「引力环」） | 0 条 SCRIPT ERROR；三局 TRACE 73 行逐行一致 |
+
+- 本机目录：`Claude outputs/render-angelina/`（cmp_*、tiers_atk / s1 / s2 / s3.png、late_8m00_onoff.mp4）、`Claude outputs/render-angelina-link/`（cmp_link.png、cmp_link_x2.png）。
+- 录像：GCP 出的 mp4 42 MB（crf 20），本机用 ffmpeg 重压到 crf 26 = 19.9 MB（只重编码，不开 Godot）；原文件留在 gs 桶（7 天）。
+- 第一次连携段失败：脚本取了快跑段（7.1 秒）的连携事件算出负帧号；`pxplane_shots.py linkcmp` 改成只取录像窗口内的事件（a646e2272）后重跑通过。连携 2 倍局部的取景被德克萨斯的黄色特效带偏，看全图 `cmp_link.png` ③ 栏：三枚碎片带弧线尾迹绕圈收拢。
+- 出图命令：`python tools/gcp_render.py --branch claude/pxplane-angelina --job pxplane --split --name angelina --args 'demo --op angelina;rec --op angelina --seed 11 --from 480 --secs 20 --extra=--bal=growth/late_shape=1;trace --op angelina --seed 23 --maxt 300 --extra="--elite2 --sptest --bal=growth/late_shape=1";linkcmp …'`。
