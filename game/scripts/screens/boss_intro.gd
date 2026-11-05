@@ -42,7 +42,7 @@ static func _crop(type: String) -> Rect2:
 ## 最终 Boss 击破演出（docs/38 §1.8，10-11）：run/victory_flow.gd 把画面步长压到慢动作（真实 2 秒），这里只画覆盖层：
 ##   白闪褪去 → 黑边滑入（内缘结局色细线）→ 结局色洗色 + 暗角 + 后期去色（低画质不洗色、不去色）→ 「名字 · 击破 / DEFEATED」名片 → 末 0.3 秒收黑边
 ##   配乐：music_director 在演出开始就放结算乐句。同样不震屏、不碰模拟；无头 / 设置关 / 演练不演，平衡批跑只在 --bossdeath 下演（录片用）。
-const FIN_DUR := 2.0       # 和 victory_flow.FIN_DUR 一致（真实秒）
+const FIN_DUR := 3.4       # 和 victory_flow.FIN_DUR 一致（真实秒；11-05 2.0 → 3.4）
 const FIN_DESAT := 0.55    # 去色强度峰值（post.gdshader desat）
 
 var cur := {}      # 进行中的登场：{bosses: [敌人字典…], card: Dictionary, t: 秒}

@@ -66,7 +66,7 @@
 - `fx_recipe.recipe()`：缓存按开关区分（`px:` 前缀）。逻各斯转平面关、`fx/recipe` 开时，仍然走 docs/245 的配方，两个试验互不影响。
 - 帧条：`game/art/fx/pxp/pxp_lg_*.png`（37 件）和 `game/data/pxp_logos.json`。平面版效果源是 `tools/pixelfx_fx/arcane/ak-logos-pp.js`；旧做法对照烤的是旧放开版原文件 `tools/pixelfx_fx/logos_ul_ref/`（取自 `claude/pixelfx-ul-logos`）。重新生成用 `python tools/pxplane_bake_logos.py`，需要本机 pixelfx 库 `build/pixelfx`。新 PNG 的 `.import` 本分支没有生成（本机不开 Godot），合入后由 Godot `--import` 一次补上；GCP 每次开机都会自己导入。
 - 颜色组 `game/data/fx_pxplane/logos.json`：只给颗粒、照地光、受击反应用。
-- 看图：`python tools/pxplane_shots.py demo|rec|trace|linkcmp --op logos`。新加的选项：`--bals`（逗号分隔的旋钮）、`--leader`（同 `--lead`）、`--name`；OPS 里的 `ev` 可以按某个事件对齐（S2 按 `exec`）。原作一栏由 `tools/pxplane_refcol.py` 在本机拼（只用 PIL）。
+- 看图：`python tools/pxplane_shots.py demo|rec|trace|linkcmp --op logos`。新加的选项：`--bals`（逗号分隔的旋钮）、`--leader`（同 `--lead`）、`--name`；OPS 里的 `ev` 可以按某个事件对齐（S2 按 `exec`）。原作一栏由 `tools/pxplane_refcol_grid.py` 在本机拼（只用 PIL）。
 - 本分支合入了 `claude/pxplane-lumen` 和 `claude/integ-1105`。`fx_pxplane.gd` 有 8 处冲突，三人的配置都保留：`METAS` 改成字典加前缀，`ev / draw_floor / draw_sorted / _step` 两边分流都留着；`optical.gd` 照地光取流明那一版（分账开时并进候选）；`pxplane_shots.py` 以星熊版为底，补回流明的 OPS、`--bals` 和 START。
 
 ## 4. 已知不足 / 偏离
@@ -89,7 +89,7 @@ GCP 拆 6 台并行，全程 32.6 分钟。c1（普攻演示）那台的结果�
 
 ## 6. 交付（本机 `Claude outputs/pxplane_logos_1105/`，不进 git）
 
-- 三栏对比 `cmp_<招>_e<档>.png`（① 当前游戏 / ② 旧放开版原样贴 / ③ 转平面）+ 2 倍局部 `_x2.png`：atk（E0 / E1 / E2）、s1（E0 / E1 / E2）、s2（E1 / E2）、s3（E2）。每张另有 `_ref.png` / `_x2_ref.png`，左边多拼一栏原作（`tools/pxplane_refcol.py` 本机拼，原作取 `logos_ref` 关键帧）。图鉴演示连拍，开着 `growth/late_shape = 1`、`shape_lv/lv1 = 1`（三档图里能看到额外弹）。
+- 三栏对比 `cmp_<招>_e<档>.png`（① 当前游戏 / ② 旧放开版原样贴 / ③ 转平面）+ 2 倍局部 `_x2.png`：atk（E0 / E1 / E2）、s1（E0 / E1 / E2）、s2（E1 / E2）、s3（E2）。每张另有 `_ref.png` / `_x2_ref.png`，左边多拼一栏原作（`tools/pxplane_refcol_grid.py` 本机拼，原作取 `logos_ref` 关键帧）。图鉴演示连拍，开着 `growth/late_shape = 1`、`shape_lv/lv1 = 1`（三档图里能看到额外弹）。
 - 三档并排 `tiers_atk / s1 / s2 / s3.png`（只转平面版，2 倍局部，每行一档、5 帧）。
 - 连携三栏 `cmp_link.png` / `cmp_link_x2.png`：连携 v2「消弹」，实战局（德克萨斯当队长、逻各斯当队员，种子 11），87.58 秒那次出手后 8 帧。
 - `late_8m00_onoff.mp4`：同种子 11、8:00 起 20 秒，左关右开，30 帧原速，23.9 MB（crf 26）；德克萨斯队长 + 逻各斯队员，`late_shape = 1`。这 20 秒里没有连携。

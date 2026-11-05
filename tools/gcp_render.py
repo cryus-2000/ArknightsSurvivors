@@ -19,6 +19,8 @@ PNG / MP4（任务写在 $MEDIA 下的）传 Cloud Storage → 本机下载到 <
   python tools/gcp_render.py --branch claude/pixelfx-plane-skadi --job trace_ab --args 'cases=skadi:23:300'
   python tools/gcp_render.py --branch HEAD --job custom --cmd 'python3 tools/pxplane_shots.py demo --modes 3 --out $MEDIA'
 本机提交不在 origin 上也行（batch.py 会传 bundle）。原作参照图不上 GCP：要「原作」一栏，下载后在本机拼。
+提速（docs/256 §7–8）：缺省 c2d-highcpu-8 + 预装镜像 arkr-render（开机到开始渲染约 1 分钟）；--split 把一个任务拆到多台并行
+  （pxplane：demo 按招 4 台 + rec + trace；trace_ab：每局一台；custom：每条 --cmd 一台），结果合到同一个 cloud-results/render-<名>。
 """
 import argparse, os, re, shlex, subprocess, sys, tempfile, time
 
@@ -34,8 +36,11 @@ def resolve(ref):
         p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", "-q", r + "^{commit}"], capture_output=True, text=True)
         if p.returncode == 0:
             return p.stdout.strip()
-    subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", ref], capture_output=True)
-    p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", "-q", "FETCH_HEAD^{commit}"], capture_output=True, text=True)
+    # 拉进一个本次专用的命名引用：FETCH_HEAD 是工作树共用的，几个会话同时跑会互相冲掉（11-05 金样重录因此写坏一次）
+    tmp = "refs/gcp-render/resolve-%d" % os.getpid()
+    subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", "%s:%s" % (ref, tmp)], capture_output=True)
+    p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", "-q", tmp + "^{commit}"], capture_output=True, text=True)
+    subprocess.run(["git", "-C", ROOT, "update-ref", "-d", tmp], capture_output=True)
     if p.returncode == 0:
         return p.stdout.strip()
     sys.exit("找不到提交 / 分支：%s" % ref)
@@ -90,6 +95,73 @@ def add_media_commit(tag, dest, files):
     return c
 
 
+PX_DEFAULT = 'demo;rec --seed 11 --from 480 --secs 20;trace --seed 23 --maxt 300 --extra "--elite2 --sptest"'   # 同 render_jobs/pxplane.sh 缺省
+
+
+def split_parts(a):
+    """--split：把一个任务拆成几段，每段一台机器（docs/256 §8）。
+    pxplane：按分号分子命令；不带 --modes 的 demo 再按招拆成 4 段（普攻 / S1 / S2 / S3，各自出三栏 + 三档图）。
+    custom：每条 --cmd 一台。trace_ab：cases 里每局一台。"""
+    if a.job == "pxplane":
+        out = []
+        for seg in [x.strip() for x in (a.args or PX_DEFAULT).split(";") if x.strip()]:
+            if seg.split()[0] == "demo" and "--modes" not in seg:
+                out += [("demo-m%s" % m, seg + " --modes %s" % m, None) for m in ("3", "0", "1", "2")]
+            else:
+                out.append((seg.split()[0], seg, None))
+        return out
+    if a.job == "custom":
+        return [("c%d" % k, a.args, [c]) for k, c in enumerate(a.cmd or [])]
+    if a.job == "trace_ab":
+        m = re.search(r"cases=(\S+)", a.args or "")
+        cs = m.group(1).split(",") if m else ["skadi:23:300"]
+        return [(c.replace(":", "-"), (a.args or "").replace(m.group(0), "cases=" + c) if m else "cases=" + c, None) for c in cs]
+    return [("all", a.args, a.cmd)]
+
+
+def run_tag(tag, sha, a, args, cmd):
+    b = argparse.Namespace(**vars(a))
+    b.args, b.cmd = args, cmd
+    cf = os.path.join(tempfile.mkdtemp(), "cmds.sh")
+    open(cf, "w", encoding="utf-8", newline="\n").write(build_cmds(b))
+    log = os.path.join(tempfile.mkdtemp(), tag + ".log")
+    with open(log, "w", encoding="utf-8") as fh:
+        rc = subprocess.run([sys.executable, "-I", os.path.join(GCPD, "batch.py"), "run", tag, "--commit", sha, "--cmd-file", cf,
+                             "--machine", a.machine, "--hours", str(a.hours)] + (["--no-image"] if a.no_image else []),
+                            stdout=fh if a.split else None, stderr=subprocess.STDOUT if a.split else None).returncode
+    txt = open(log, encoding="utf-8", errors="replace").read() if a.split else ""
+    return rc, txt
+
+
+def fetch_media(tag, dest):
+    gs = "gs://%s-batch/%s/media" % (B.project(), tag)
+    ls = B.gc("storage", "ls", gs + "/**", check=False)
+    if ls.returncode == 0 and ls.stdout.strip():
+        B.gc("storage", "cp", "-r", gs + "/*", dest, "-q", check=False)
+    return gs
+
+
+def merge_parts(tag, sha, ptags):
+    """各段的 cloud-results/<段> 合成一个 cloud-results/<tag>：build/cloud/<tag>/<段名>/…，合完删掉各段分支"""
+    idx = os.path.join(tempfile.mkdtemp(), "index")
+    env = dict(os.environ, GIT_INDEX_FILE=idx)
+    g = lambda *x, **kw: subprocess.run(["git", "-C", ROOT] + list(x), capture_output=True, text=True, **kw)
+    g("read-tree", sha, env=env, check=True)
+    got = []
+    for pt, lab in ptags:
+        if g("fetch", "-q", "origin", "refs/heads/cloud-results/%s:refs/remotes/origin/cloud-results/%s" % (pt, pt)).returncode != 0:
+            continue
+        r = g("read-tree", "--prefix=build/cloud/%s/%s/" % (tag, lab), "origin/cloud-results/%s:build/cloud/%s" % (pt, pt), env=env)
+        if r.returncode == 0:
+            got.append(pt)
+    tree = g("write-tree", env=env, check=True).stdout.strip()
+    c = g("commit-tree", tree, "-p", sha, "-m", "render %s：%d 段合并（%s）" % (tag, len(got), " ".join(got)), check=True).stdout.strip()
+    g("push", "-q", "-f", "origin", "%s:refs/heads/cloud-results/%s" % (c, tag), check=True)
+    for pt in got:
+        g("push", "-q", "origin", "--delete", "cloud-results/" + pt)
+    return c, got
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -100,34 +172,53 @@ def main():
     ap.add_argument("--name", default=None, help="结果名：分支 cloud-results/render-<名>、本机目录 Claude outputs/render-<名>（缺省 任务-提交前 8 位）")
     ap.add_argument("--out", default=None, help="同 --name，写成 cloud-results/render-<名> 也认")
     ap.add_argument("--dest", default=None, help="本机下载目录（缺省 <主仓库>/Claude outputs/render-<名>）")
-    ap.add_argument("--machine", default="e2-standard-8")
+    ap.add_argument("--machine", default="c2d-highcpu-8", help="缺省 c2d-highcpu-8（docs/256 §7：同一 demo 449 秒，n2-standard-8 568、e2-standard-8 844，且最便宜）")
     ap.add_argument("--hours", type=float, default=2.0)
+    ap.add_argument("--split", action="store_true", help="按子项拆到多台机器并行（pxplane：demo 按招 4 台 + rec + trace；custom：每条 --cmd 一台；trace_ab：每局一台）")
+    ap.add_argument("--no-image", action="store_true", help="不用预装镜像 arkr-render（对照提速用）")
     ap.add_argument("--git-mb", type=float, default=20.0, help="媒体合计不超过这么多 MB 时也提交进结果分支；0 = 从不")
-    ap.add_argument("--dry", action="store_true", help="只打印要下发的命令")
+    ap.add_argument("--dry", action="store_true", help="只打印要下发的命令（--split 时打印拆分）")
     a = ap.parse_args()
+    if a.job == "custom" and not a.cmd:
+        sys.exit("--job custom 要给 --cmd")
     sha = resolve(a.branch)
     name = a.name or (re.sub(r"^cloud-results/render-", "", a.out) if a.out else "%s-%s" % (a.job, sha[:8]))
     tag = "render-" + re.sub(r"[^A-Za-z0-9._-]+", "-", name)
-    cmds = build_cmds(a)
+    parts = split_parts(a) if a.split else [("all", a.args, a.cmd)]
     if a.dry:
-        print(cmds)
+        if a.split:
+            for lab, ar, cm in parts:
+                print("[%s] args=%s cmd=%s" % (lab, ar, cm))
+        else:
+            print(build_cmds(a))
         return
-    cf = os.path.join(tempfile.mkdtemp(), "cmds.sh")
-    open(cf, "w", encoding="utf-8", newline="\n").write(cmds)
-    t0 = time.time()
-    print("出图 %s：提交 %s，任务 %s %s" % (tag, sha[:10], a.job, a.args or ""))
-    rc = subprocess.run([sys.executable, "-I", os.path.join(GCPD, "batch.py"), "run", tag, "--commit", sha, "--cmd-file", cf,
-                         "--machine", a.machine, "--hours", str(a.hours)]).returncode
     dest = a.dest or os.path.join(main_root(), "Claude outputs", tag)
     os.makedirs(dest, exist_ok=True)
-    gs = "gs://%s-batch/%s/media" % (B.project(), tag)
-    ls = B.gc("storage", "ls", gs + "/**", check=False)
-    files = []
-    if ls.returncode == 0 and ls.stdout.strip():
-        B.gc("storage", "cp", "-r", gs + "/*", dest, "-q", check=False)
-        for dp, _, fs in os.walk(dest):
-            for f in fs:
-                files.append(os.path.relpath(os.path.join(dp, f), dest))
+    t0 = time.time()
+    print("出图 %s：提交 %s，任务 %s %s%s" % (tag, sha[:10], a.job, a.args or "", "（拆 %d 台：%s）" % (len(parts), " / ".join(p[0] for p in parts)) if a.split else ""))
+    if not a.split:
+        rc, _ = run_tag(tag, sha, a, a.args, a.cmd)
+        gs = fetch_media(tag, dest)
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+        ptags = [(tag + "-" + re.sub(r"[^A-Za-z0-9._-]+", "-", lab), lab) for lab, _, _ in parts]
+
+        def one(k):
+            pt, lab = ptags[k]
+            time.sleep(k * 3)   # 错开开机请求
+            t1 = time.time()
+            rc1, txt = run_tag(pt, sha, a, parts[k][1], parts[k][2])
+            fetch_media(pt, dest)
+            sec = re.search(r"secs: (.*)", txt)
+            print("  [%s] rc=%d %.1f 分钟 %s" % (lab, rc1, (time.time() - t1) / 60, sec.group(1) if sec else ""), flush=True)
+            return rc1
+        with ThreadPoolExecutor(len(parts)) as ex:
+            rcs = list(ex.map(one, range(len(parts))))
+        rc = max(rcs)
+        c, got = merge_parts(tag, sha, ptags)
+        print("合并 %d / %d 段 → cloud-results/%s（%s）" % (len(got), len(parts), tag, c[:10]))
+        gs = "gs://%s-batch/%s-*/media" % (B.project(), tag)
+    files = [os.path.relpath(os.path.join(dp, f), dest) for dp, _, fs in os.walk(dest) for f in fs]
     mb = sum(os.path.getsize(os.path.join(dest, f)) for f in files) / 1e6
     print("媒体 %d 个、%.1f MB → %s" % (len(files), mb, dest))
     if files and a.git_mb > 0 and mb <= a.git_mb:

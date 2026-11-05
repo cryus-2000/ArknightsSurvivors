@@ -50,6 +50,13 @@ static func fill_a(a: float) -> float:
 	return minf(a, k("ring_fill_max", 0.04))
 
 
+## V9 巢穴光环保留强度（render/ground_ring_nest_k，缺省 0.5；0 = 与纯 V9 相同）；noring 量测时恒 0
+static func nest_k() -> float:
+	if Dc.dbg("noring"):
+		return 0.0
+	return k("ground_ring_nest_k", 0.5)
+
+
 ## 边的呼吸系数（0.5 秒级慢呼吸，ph 相位按位置 / id 错开）：开关开时边透明度 × (lo … 1)，关时 1
 static func edge_breath(t: float, ph := 0.0) -> float:
 	if Dc.dbg("noring"):

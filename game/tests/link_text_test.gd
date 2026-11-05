@@ -29,7 +29,7 @@ func _ready() -> void:
 		var l2: Dictionary = e.get("link_v2", {})
 		ok(not l2.is_empty(), "%s 有 link_v2" % id)
 		ok(str(l2.get("kind", "")) == str(Link.KIND4.get(id, "?")), "%s 类别 %s == KIND4 %s" % [id, l2.get("kind", ""), Link.KIND4.get(id, "?")])
-		ok(str(l2.get("name", "")) != str(e.get("link", {}).get("name", "")), "%s v2 名称与旧 E 连携技不同" % id)
+		ok(str(l2.get("name", "")) != "", "%s v2 有名称" % id)   # 11-05 用户选定连携改名：18 人 v2 与旧 E 连携同名（bd4a311d7），不再要求不同
 		var rows: Array = gal._skill_rows(OpDefs.load_def(id))
 		var lr: Array = []
 		var ur: Array = []

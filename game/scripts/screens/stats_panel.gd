@@ -7,6 +7,7 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const LinkBond = preload("res://scripts/run/link_bond.gd")   # 「羁绊」一节（docs/221 B1）
 const Bal = preload("res://scripts/core/balance.gd")
+const UM = preload("res://scripts/ui_motion.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -600,6 +601,50 @@ const V3_WHITE := Color(0.925, 0.933, 0.941)
 const V3_GREY := Color(0.588, 0.612, 0.643)
 var _hv   # screens/hud.gd
 
+## 入场 / 退场动效（用户 11-05「属性图出来的时候可以增加动效」）：整套 ≤ 0.5 秒，打开当帧就能操作（格子照常登记）；
+## 减少动态效果时直接终态。三栏依次入场（错开 0.06 秒，暗幕从栏上退去 + 上移 10 像素）；头像刻度环一格格亮、生命 / 灯火细线
+## 从 0 长到当前值、数字从 0 滚上来；编队成长进度点逐个点亮。关闭：一层暗幕 0.15 秒淡出
+const ANIM_GAP := 0.06
+const ANIM_DUR := 0.3
+const CLOSE_T := 0.15
+var _last_frame := -10
+var _open_rt := 0.0
+var _close_rt := -9.0
+var _at := 9.0   # 本帧距打开的真实秒数
+
+
+func _anim_tick() -> void:
+	var f: int = Engine.get_process_frames()
+	if f - _last_frame > 2:
+		_open_rt = UM.now()
+	_last_frame = f
+	_at = UM.now() - _open_rt
+
+
+## 第 delay 秒起、dur 秒内 0 → 1（缓出）；减少动态效果时恒为 1
+func _ak(delay: float, dur := ANIM_DUR) -> float:
+	if UM.rm():
+		return 1.0
+	return UM.out_cubic(clampf((_at - delay) / dur, 0.0, 1.0))
+
+
+## 一栏的入场：画完后在栏上盖一层随时间退去的暗幕
+func _curtain(r: Rect2, k: float) -> void:
+	if k < 1.0:
+		g.hud.draw_rect(r, Color(0.008, 0.012, 0.018, 0.97 * (1.0 - k)))
+
+
+## 关闭后的淡出（hud 每帧调）：上一帧还画着属性栏、这一帧不在 STATS 了，就盖一层 0.15 秒退去的暗幕
+func draw_close_fade(vs: Vector2) -> void:
+	var f: int = Engine.get_process_frames()
+	if g.state != Game.S.STATS and f - _last_frame == 1 and Bal.vi("ui/stats_v3", 1) > 0 and not Cfg.touch_device():
+		_close_rt = UM.now()
+	if UM.rm():
+		return
+	var k: float = (UM.now() - _close_rt) / CLOSE_T
+	if k >= 0.0 and k < 1.0 and g.state != Game.S.STATS:
+		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.9 * (1.0 - k)))
+
 
 func _v3_head(x: float, y: float, w: float, cn: String, en: String) -> void:
 	_hv.v2.txt(Vector2(x, y), cn, 16, V3_WHITE)
@@ -625,6 +670,7 @@ func _v3_hair(x: float, y: float, w: float, frac: float, col: Color, ticks: Arra
 
 func draw_v3(vs: Vector2) -> void:
 	_hv = g.hud_view
+	_anim_tick()
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.95))
 	g.stats_cells.clear()
 	var L := 50.0
@@ -635,15 +681,26 @@ func draw_v3(vs: Vector2) -> void:
 	g.hud.draw_polyline(PackedVector2Array([Vector2(L, T + 12), Vector2(L, T), Vector2(L + 12, T)]), tc, 1.0)
 	g.hud.draw_polyline(PackedVector2Array([Vector2(R, B - 12), Vector2(R, B), Vector2(R - 12, B)]), tc, 1.0)
 	_v3_header(L, T, R)
+	_curtain(Rect2(L, T - 20.0, R - L, 118.0), _ak(0.0, 0.2))
 	var top: float = T + 118.0
 	var gap := 34.0
 	var cw: float = (R - L - 2.0 * gap) / 3.0
 	var xs: Array = [L, L + cw + gap, L + 2.0 * (cw + gap)]
 	for i in [1, 2]:
 		g.hud.draw_rect(Rect2(float(xs[i]) - gap / 2.0, top - 4, 1, B - top - 24), Color(1, 1, 1, 0.08))
-	_v3_survival(float(xs[0]), top, cw)
-	_v3_offense(float(xs[1]), top, cw, B - 28.0)
-	_v3_squad(float(xs[2]), top, cw, B - 28.0)
+	for i in 3:
+		var k: float = _ak(ANIM_GAP * (i + 1))
+		var dy: float = 10.0 * (1.0 - k)
+		g.hud.draw_set_transform(Vector2(0, dy))
+		match i:
+			0:
+				_v3_survival(float(xs[0]), top, cw)
+			1:
+				_v3_offense(float(xs[1]), top, cw, B - 28.0)
+			_:
+				_v3_squad(float(xs[2]), top, cw, B - 28.0)
+		g.hud.draw_set_transform(Vector2.ZERO)
+		_curtain(Rect2(float(xs[i]) - 6.0, top - 8.0, cw + 12.0, B - top), k)
 	var back: String = Pad.hint("TAB / C / ESC 返回", "SELECT / Ⓑ 返回", "点空白处返回")
 	_hv.v2.txt(Vector2(R - _hv.v2.twidth(back, 11), B - 8), back, 11, V3_GREY)
 	_v3_tips(vs)
@@ -658,8 +715,8 @@ func _v3_header(L: float, T: float, R: float) -> void:
 	if _hv.ult != null and _hv.ult.v != null:
 		_hv.ult.v._avatar_hi(ld, c, r)
 	if g.ult != null:
-		var ek: float = clampf(g.ult.energy / 100.0, 0.0, 1.0)
 		var full: bool = g.ult.full()
+		var ek: float = clampf(g.ult.energy / 100.0, 0.0, 1.0) * _ak(0.05, 0.4)   # 入场：刻度一格格亮到当前充能
 		for i in 40:
 			var a: float = -PI / 2.0 + TAU * i / 40.0
 			var lit: bool = i < int(round(40 * ek))
@@ -702,14 +759,15 @@ func _v3_survival(x: float, top: float, w: float) -> void:
 		UI.diamond(g.hud, Vector2(gx + 36 + q * 10, y + 1), 3.5, Color(0.5, 0.85, 1.0) if q < g.shield else Color(1, 1, 1, 0.14), Color(0.6, 0.9, 1.0, 0.8))
 	var low: bool = g.hp / g.max_hp < 0.3
 	var sw: float = _hv.v2.big(Vector2(x + w, y + 8), "/ %d" % int(g.max_hp), 10, V3_GREY, 2)
-	_hv.v2.big(Vector2(x + w - sw - 4, y + 8), "%d" % int(g.hp), 24, UI.RED if low else V3_WHITE, 2)
-	_v3_hair(gx, y + 16, bw, g.hp / g.max_hp, UI.RED if low else V3_WHITE)
+	var kv: float = _ak(ANIM_GAP, 0.4)   # 入场：数字从 0 滚到当前数、细线从 0 长到当前值
+	_hv.v2.big(Vector2(x + w - sw - 4, y + 8), "%d" % int(round(g.hp * kv)), 24, UI.RED if low else V3_WHITE, 2)
+	_v3_hair(gx, y + 16, bw, g.hp / g.max_hp * kv, UI.RED if low else V3_WHITE)
 	var li: Array = _hv.v2.lamp_item()
 	var lc: Color = UI.GOLD if g.lamp >= 30.0 else UI.RED
 	_hv.v2.txt(Vector2(gx, y + 42), "灯火", 13, V3_GREY)
 	_hv.v2.txt(Vector2(gx + 36, y + 42), str(li[0]).replace("灯火", ""), 13, lc)
-	_hv.v2.big(Vector2(x + w, y + 44), "%d" % int(g.lamp), 18, lc, 2)
-	_v3_hair(gx, y + 52, bw, g.lamp / 100.0, lc, [0.3, 0.7])
+	_hv.v2.big(Vector2(x + w, y + 44), "%d" % int(round(g.lamp * kv)), 18, lc, 2)
+	_v3_hair(gx, y + 52, bw, g.lamp / 100.0 * kv, lc, [0.3, 0.7])
 	y += 86
 	var rows0 := [
 		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
@@ -781,9 +839,10 @@ func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
 		# 成长进度：普通节点圆点、精英化菱形；选过的亮。整块是悬停区（弹出节点表）
 		var pg: Array = o.prog_view()
 		var dx0: float = x + w - pg.size() * 12.0 - 2.0
+		var kd: float = _ak(ANIM_GAP * 3.0 + 0.04 * float(g.squad.ops.find(o)), 0.3)   # 入场：已选的点按顺序逐个亮
 		for k in pg.size():
 			var dc := Vector2(dx0 + k * 12.0 + 4.0, y + 9)
-			var done: bool = k < o.prog
+			var done: bool = k < o.prog and float(k) < kd * float(maxi(1, o.prog))
 			var cc: Color = V3_WHITE if done else Color(1, 1, 1, 0.25)
 			if str(pg[k].get("type", "")) == "elite":
 				UI.diamond(g.hud, dc, 4.0, cc if done else Color(0, 0, 0, 0), cc)

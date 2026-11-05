@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""给 GCP 出的三栏对比图（cmp_<招>_e<档>.png，docs/256）在左边拼上「0 原作」一栏（docs/258）。只用 PIL，不开 Godot。
+"""转平面三栏对比前面补「原作」一栏（docs/256 §4：原作参照图只在本机，不上 GCP、不进 git）。只用 Python，不开 Godot。
 
-原作参照只在本机（Claude outputs/<干员>_ref/*_keyframes.png，PRTS 解包回放的关键帧拼图，3 列 × 4 行），不进 git、不上 GCP。
-按 --pick 选每招取哪一格（行, 列），缩放到三栏图同高，贴在最左。输出 <名>_ref.png，原图不动。
+原作参照：tools/ref_fx 解包回放出的关键帧拼图 <ref>/<件>/*_keyframes.png（4×2 格，每格一个时刻）。挑每张拼图里「最亮最满」的那一格，
+裁到有内容的范围，缩放进一栏，贴在三栏图左边，标「⓪ 原作参照（解包回放，近似）」。
 
-用法：
-    python tools/pxplane_refcol.py --cmp "<GCP 下载目录>" --ref "E:/ArknightsSurvivors/Claude outputs/logos_ref" --out "<输出目录>" \
-        --pick "atk=logos_attack_ref_keyframes.png:2,2;s1=logos_s2_synecdoche_ref_keyframes.png:2,2;s2=logos_s1_perish_ref_keyframes.png:2,2;s3=logos_s3_acuity_ref_keyframes.png:1,2"
+用法：python tools/pxplane_refcol.py --op eyjafjalla --ref "Claude outputs/eyjafjalla_ref" --cmp <GCP 下载目录> --out <交付目录>
 """
 import argparse, glob, os
 
@@ -15,77 +13,78 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 FONT = "C:/Windows/Fonts/msyh.ttc"
+# 每名干员：三栏图前缀 → 原作参照件（子目录）
+MAP = {
+    "eyjafjalla": {"cmp_atk": "attack_hit", "cmp_s1": "attack_hit", "cmp_s2": "s2_hit", "cmp_s3": "s3_hit", "cmp_link": "s3_hit"},
+}
 
 
-def panels(path):
-    """按深色标题条切出 4 行 × 3 列的格子"""
+def best_cell(path):
     im = Image.open(path).convert("RGB")
-    a = np.asarray(im).astype(int)
-    H, W, _ = a.shape
-    dark = a[:, W // 2 - 200:W // 2 + 200].mean(axis=(1, 2)) < 30
-    runs, s = [], None
-    for y, v in enumerate(dark):
-        if v and s is None:
-            s = y
-        if not v and s is not None:
-            if y - s > 4:
-                runs.append((s, y))
-            s = None
-    runs = [r for r in runs if r[0] > 25]   # 去掉页头
-    merged = []
-    for r in runs:   # 相邻的两段标题条（中间夹一条细线）合并
-        if merged and r[0] - merged[-1][1] < 20:
-            merged[-1] = (merged[-1][0], r[1])
-        else:
-            merged.append(r)
-    rows = []
-    for i, (h0, h1) in enumerate(merged):
-        y1 = merged[i + 1][0] if i + 1 < len(merged) else H
-        rows.append((h0, h1, y1))
-    cw = W // 3
-    return im, rows, cw
+    W, H = im.size
+    cw, ch = W // 4, H // 2
+    best, bs = None, -1.0
+    for j in range(2):
+        for i in range(4):
+            c = im.crop((i * cw, j * ch + 24, (i + 1) * cw, (j + 1) * ch))
+            a = np.asarray(c, dtype=np.float32)
+            bg = np.median(a.reshape(-1, 3), axis=0)
+            d = np.abs(a - bg).sum(axis=2)
+            s = float((d > 60).sum()) + float(d.max()) * 0.0
+            if s > bs:
+                bs, best = s, (c, d)
+    c, d = best
+    ys, xs = np.nonzero(d > 40)
+    if len(xs):
+        pad = 24
+        c = c.crop((max(0, xs.min() - pad), max(0, ys.min() - pad), min(c.width, xs.max() + pad), min(c.height, ys.max() + pad)))
+    return c
+
+
+def add_col(cmp_path, ref_img, out_path, x2=False):
+    im = Image.open(cmp_path).convert("RGB")
+    W3, H = im.size
+    head = 56
+    colw = (W3 - 8) // 3
+    ph = H - head
+    r = ref_img.copy()
+    k = min(colw / r.width, ph / r.height)
+    r = r.resize((max(1, int(r.width * k)), max(1, int(r.height * k))), Image.LANCZOS)
+    panel = Image.new("RGB", (colw, ph), (34, 37, 46))
+    panel.paste(r, ((colw - r.width) // 2, (ph - r.height) // 2))
+    dd = ImageDraw.Draw(panel)
+    f = ImageFont.truetype(FONT, 20 if x2 else 22)
+    dd.rectangle((0, 0, colw, 34), fill=(12, 12, 16))
+    dd.text((10, 5), "0 原作参照（解包回放，近似）", fill=(230, 230, 230), font=f)
+    out = Image.new("RGB", (W3 + colw + 4, H), (12, 12, 16))
+    out.paste(im.crop((0, 0, W3, head)), (0, 0))
+    out.paste(panel, (0, head))
+    out.paste(im.crop((0, head, W3, H)), (colw + 4, head))
+    out.save(out_path, optimize=True)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cmp", required=True)
+    ap.add_argument("--op", default="eyjafjalla")
     ap.add_argument("--ref", required=True)
+    ap.add_argument("--cmp", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--pick", required=True)
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
-    pick = {}
-    for part in a.pick.split(";"):
-        k, v = part.split("=")
-        f, rc = v.split(":")
-        r, c = [int(x) for x in rc.split(",")]
-        pick[k] = (f, r, c)
-    f30 = ImageFont.truetype(FONT, 30)
-    f24 = ImageFont.truetype(FONT, 24)
-    for path in sorted(glob.glob(os.path.join(a.cmp, "cmp_*.png"))):
-        base = os.path.basename(path)[:-4]
-        if base.endswith("_ref"):
+    cache = {}
+    for f in sorted(glob.glob(os.path.join(a.cmp, "cmp_*.png"))):
+        name = os.path.basename(f)
+        pre = next((p for p in MAP[a.op] if name.startswith(p + "_") or name.startswith(p + ".")), None)
+        if pre is None:
             continue
-        mv = base.split("_")[1]
-        if mv not in pick:
-            continue
-        f, r, c = pick[mv]
-        im, rows, cw = panels(os.path.join(a.ref, f))
-        h0, h1, y1 = rows[r]
-        cell = im.crop((c * cw, h1 + 10, (c + 1) * cw, y1))
-        sheet = Image.open(path).convert("RGB")
-        W, H = sheet.size
-        ch = H - 56
-        cell = cell.resize((int(cell.width * ch / cell.height), ch), Image.LANCZOS)
-        out = Image.new("RGB", (W + cell.width + 4, H), (12, 12, 16))
-        out.paste(sheet, (cell.width + 4, 0))
-        out.paste(cell, (0, 56))
-        d = ImageDraw.Draw(out)
-        d.text((12, 8), "0 原作（PRTS 解包回放，只作参照）", fill=(230, 230, 230), font=f30)
-        d.rectangle((8, 64, 8 + cell.width - 16, 104), fill=(0, 0, 0))
-        d.text((16, 68), "原作参照（%s 第 %d 行第 %d 格）" % (f.replace("_keyframes.png", ""), r + 1, c + 1), fill=(255, 255, 255), font=f24)
-        out.save(os.path.join(a.out, base + "_ref.png"))
-        print(base + "_ref.png", out.size)
+        sub = MAP[a.op][pre]
+        if sub not in cache:
+            ks = glob.glob(os.path.join(a.ref, sub, "*_keyframes.png"))
+            if not ks:
+                continue
+            cache[sub] = best_cell(ks[0])
+        add_col(f, cache[sub], os.path.join(a.out, name), name.endswith("_x2.png"))
+        print("原作一栏", name, "←", sub)
 
 
 if __name__ == "__main__":

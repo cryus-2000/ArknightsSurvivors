@@ -1,5 +1,5 @@
 """GCP 出图任务 trace_ab 的执行体（tools/gcp_render.py 经 metadata 送到虚拟机 /work/render_trace_ab.py，不依赖被测提交里的工具）。
-环境变量：TRACE_WINDOWED=1（画画面跑，画面代码也执行；缺省 --headless）、TRACE_CASES（队长:种子:秒数,…）、TRACE_A / TRACE_B（两组附加参数）、TRACE_EXTRA（两组共用）、GODOT、OUT、GODOT_MAX_PROCS。"""
+环境变量：TRACE_GAME_A / TRACE_GAME_B（两组各用哪个 game 目录，缺省都是 game；跨提交比时 B 指另一份检出）、TRACE_WINDOWED=1（画画面跑，画面代码也执行；缺省 --headless）、TRACE_CASES（队长:种子:秒数,…）、TRACE_A / TRACE_B（两组附加参数）、TRACE_EXTRA（两组共用）、GODOT、OUT、GODOT_MAX_PROCS。"""
 import os, shlex, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
 
@@ -22,7 +22,7 @@ def run(job):
     os.makedirs(os.path.join(ud, "ArknightsSurvivors"), exist_ok=True)
     open(os.path.join(ud, "ArknightsSurvivors", "settings.cfg"), "w", encoding="utf-8").write(SETTINGS)   # 同本机 godot_runner.TEST_SETTINGS
     env = dict(os.environ, XDG_DATA_HOME=ud, APPDATA=ud)
-    args = [GODOT] + ([] if os.environ.get("TRACE_WINDOWED") == "1" else ["--headless"]) + ["--audio-driver", "Dummy", "--path", "game", "--", "--balance", "--seed=" + seed, "--op=" + op,
+    args = [GODOT] + ([] if os.environ.get("TRACE_WINDOWED") == "1" else ["--headless"]) + ["--audio-driver", "Dummy", "--path", os.environ.get("TRACE_GAME_" + g, "game"), "--", "--balance", "--seed=" + seed, "--op=" + op,
             "--maxt=" + secs, "--trace=1", "--bot=expert"] + extra + grp[g]
     p = subprocess.run(args, capture_output=True, text=True, errors="replace", env=env, timeout=600 + int(secs) * 3)
     lines = [l for l in p.stdout.splitlines() if l.startswith("TRACE ")]

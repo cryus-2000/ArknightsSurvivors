@@ -386,6 +386,14 @@ func _ready() -> void:
 	if dev_args().has("--ftrec"):
 		get_tree().root.add_child.call_deferred(preload("res://scripts/core/frame_rec.gd").new())   # 界面帧时记录（docs/50 §27），只在测试参数下
 	_ui_font = load("res://fonts/ui.ttf")
+	# 手机界面字体（用户 11-05「手机的字体是不是也可以换一下」→ 中文 + 数字）：触屏设备上把 ui.ttf 这份字体的数据换成 ui_phone.ttf——
+	# 中文 Noto Sans SC Medium（比 Bold 细一档）+ 数字 / 拉丁 Montserrat SemiBold，字表与纵向度量同 ui.ttf，排版不跑位（tools/make_ui_phone_font.py）。
+	# 各处 load("res://fonts/ui.ttf") 拿到的是同一份缓存资源，换一次全局生效。balance ui/phone_font = 0 退回原字体
+	if _ui_font != null and touch_device() and load("res://scripts/core/balance.gd").v("ui/phone_font", 1.0) > 0.0:
+		var pf = load("res://fonts/ui_phone.ttf")
+		if pf is FontFile and not (pf as FontFile).data.is_empty():
+			_ui_font.data = (pf as FontFile).data
+			_ui_font.clear_cache()
 	if _ui_font != null and _ui_font.fallbacks.is_empty():
 		_ui_font.fallbacks = [load("res://fonts/ui_fallback.otf")]
 	# 触屏设备：整体放大 1.15（逻辑分辨率 1113×626），字和按钮在手机上更好点；各面板按 vs.y < 680 做紧凑排版

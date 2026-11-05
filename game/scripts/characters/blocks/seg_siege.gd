@@ -69,7 +69,8 @@ static func _h4_hammer_release(o, a: Dictionary) -> void:
 		o.fx({"kind": "crack", "pos": land + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": H4_FLAME, "floor": true, "n": 6})
 		_h3_vsparks(o, land, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
 		o.impact_pause(0.04)
-	Fxr.ev(o, "swing", {"ang": ang, "reach": reach, "land": land, "heavy": heavy, "es": hits})   # 配方（docs/245）：只画
+	Fxr.ev(o, "swing", {"ang": ang, "reach": reach, "land": land, "heavy": heavy, "patch": not patch.is_empty(), "es": hits})   # 配方（docs/245）/ 转平面（docs/264）：只画
+	_MI.hit(o, str(a.get("src", "")), ["skill"] if heavy or not patch.is_empty() else a.get("tags", []), hits)   # 近战打击感包（docs/246 §11，fx/melee_impact）：只画
 	hw_record(o, dmg, ang, reach, land)
 	_h4_hammer_after(o, a, hits, dmg)   # 精英化第 4 批的追加（粉碎）；迁移时没有
 	var q: Dictionary = _h4_sub(o, a.get("quake", null))
@@ -230,7 +231,7 @@ static func _h4_breach(o, br: Dictionary, p: Vector2, ang: float, mult: float) -
 		sg.fissures.pop_front()
 	var life: float = float(br.get("life", 0.6))
 	sg.fissures.append({"pts": pts, "t": life, "max": life, "w": w, "a": a, "dir": dir, "len": L, "b": br})
-	Fxr.ev(o, "breach", {"pts": pts, "life": life})
+	Fxr.ev(o, "breach", {"pts": pts, "life": life, "spikes": br.has("spikes")})   # spikes：精二破阵（锤击）有岩刺，再跃队长版地裂没有（只画）
 	for k in 4:
 		_h3_vsparks(o, a + dir * L * (0.25 + 0.25 * k), Color(1.0, 0.8, 0.35), 2, 140.0, 0.3, 2.0, 280.0, true)
 	_h4_breach_after(o, br, a, dir, L)   # 精英化第 4 批的追加（岩刺）；迁移时没有
@@ -317,6 +318,7 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	o.fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
 	o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
 	Fxr.ev(o, "slam", {"at": pos, "r": r, "es": hits})
+	_MI.hit(o, str(b.get("src", "")), ["skill"], hits)   # 近战打击感包（只画）
 	o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
 	o.fx({"kind": "h4_pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
 	# 10-14 用户「推进之王二技能打中地面的火焰效果删除，只保留裂地效果」：去掉落地火圈与一圈火焰（fx_fire_aura / fx_flames / 程序 h4_blaze），
