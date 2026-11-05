@@ -2013,7 +2013,7 @@ func _ey_draw_raw(o) -> void:
 
 var _motes: Array = []   # 技力粒子：{to 队友, from, t0, life, bend}（只画）
 var _sg_imp := {}        # 干员 id → 最近一锤的落点（只画）
-var _sg_cores: Array = []   # 锤击落点亮芯：{at, t0, big}，2 拍（0.13 秒）内每帧排进发光层
+var _sg_cores: Array = []   # 锤击落点亮芯：{at, t0, big}，3 拍（0.2 秒）内每帧排进发光层
 
 
 func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
@@ -2537,7 +2537,7 @@ func _mz_draw_jelly(ci, it: Dictionary) -> void:
 	_draw_strip(ci, str(it.mzj), frame_of(0.0), it.gp, false, false)
 
 
-## 锤击落点亮芯：白闪那两拍（0.13 秒）在落点排一块十字形发光点（中心 3×3 美术像素、四臂各 1 格；号令一锤 / 碎颅大一圈），第二拍变小变暗
+## 锤击落点亮芯：白闪那三拍（0.2 秒）在落点排一块十字形发光点（中心 4×4 美术像素、四臂各 1 格；号令一锤 / 碎颅大一圈），之后每拍缩一格、变暗
 func _sg_draw_cores() -> void:
 	if _sg_cores.is_empty() or not g.optical_on:
 		return
@@ -2550,12 +2550,12 @@ func _sg_draw_cores() -> void:
 	var keep: Array = []
 	for c in _sg_cores:
 		var age: float = g.t - float(c.t0)
-		if age > 0.134:
+		if age > 0.2:
 			continue
 		keep.append(c)
 		var f2: bool = age > 0.067
-		var s: float = (3.0 if not c.big else 4.0) - (1.0 if f2 else 0.0)
-		var col: Color = Color(1.0, 0.97, 0.85, k) if not f2 else Color(1.0, 0.88, 0.55, k * 0.8)
+		var s: float = (4.0 if not c.big else 5.0) - (1.0 if f2 else 0.0) - (1.0 if age > 0.134 else 0.0)
+		var col: Color = Color(1.0, 0.97, 0.85, minf(1.0, k * 1.2)) if not f2 else Color(1.0, 0.88, 0.55, k)
 		var at: Vector2 = c.at
 		var pts: Array = [[at - Vector2(s, s) * px * 0.5, s * px]]
 		for dv in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
