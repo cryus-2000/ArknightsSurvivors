@@ -1,0 +1,534 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXA 0 0.000 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 1 0.025 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 2 0.058 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXA 3 0.100 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXA 4 0.129 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXA 5 0.159 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=44
+FXA 6 0.192 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 7 0.225 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 8 0.258 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXA 9 0.292 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXA 10 0.325 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 11 0.358 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 12 0.392 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXA 13 0.425 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXA 14 0.458 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 15 0.492 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 16 0.525 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXA 17 0.558 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXA 18 0.592 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 19 0.625 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 20 0.658 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXA 21 0.692 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXRLOG suzuran sz_big 21 0.725
+FXRLOG suzuran sz_fire 21 0.725
+FXA 22 0.725 new=flame:3 life=0.83 sz=4.0 alive=3 L=120/0.60/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=71 emit=55
+FXA 23 0.758 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=97 emit=81
+FXA 24 0.792 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=97 emit=81
+FXA 25 0.825 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=86
+FXA 26 0.858 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=86
+FXA 27 0.892 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=107 emit=91
+FXA 28 0.925 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=107 emit=91
+FXA 29 0.958 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=112 emit=96
+FXA 30 0.992 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=112 emit=96
+FXA 31 1.025 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=117 emit=101
+FXA 32 1.058 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=117 emit=101
+FXA 33 1.092 new=- life=0.00 sz=0.0 alive=3 L=- gr=0 gnew=0 sp=0 gl=0 glow=122 emit=106
+FXRLOG suzuran sz_bhit 33 1.125
+FXRLOG suzuran sz_bhit 33 1.125
+FXA 34 1.125 new=flame:6 life=0.85 sz=4.0 alive=9 L=90/0.55/0.12/f0d8a0;90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=122 emit=106
+FXA 35 1.158 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=228 emit=212
+FXRLOG suzuran sz_bhit 35 1.192
+FXA 36 1.192 new=flame:3 life=0.87 sz=4.0 alive=12 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=178 emit=162
+FXA 37 1.225 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=227 emit=211
+FXA 38 1.258 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=188 emit=172
+FXRLOG suzuran sz_bhit 38 1.292
+FXA 39 1.292 new=flame:3 life=0.82 sz=4.0 alive=15 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=190 emit=174
+FXA 40 1.325 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=243 emit=227
+FXA 41 1.358 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=245 emit=229
+FXRLOG suzuran sz_bhit 41 1.392
+FXA 42 1.392 new=flame:3 life=0.82 sz=4.0 alive=18 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=178 emit=162
+FXA 43 1.425 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=226 emit=210
+FXRLOG suzuran sz_bhit 43 1.458
+FXA 44 1.458 new=flame:3 life=0.78 sz=4.0 alive=21 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=206 emit=190
+FXRLOG suzuran sz_bhit 44 1.492
+FXA 45 1.492 new=flame:3 life=0.84 sz=4.0 alive=24 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=252 emit=236
+FXA 46 1.525 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=249 emit=233
+FXRLOG suzuran sz_bhit 46 1.558
+FXA 47 1.558 new=flame:3 life=0.71 sz=4.0 alive=27 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=249 emit=233
+FXA 48 1.592 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=273 emit=257
+FXRLOG suzuran sz_att 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXRLOG suzuran sz_pass 48 1.625
+FXA 49 1.625 new=flame:1 life=0.70 sz=4.0 alive=28 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=273 emit=257
+FXA 50 1.658 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=224 emit=208
+FXRLOG suzuran sz_big 50 1.692
+FXRLOG suzuran sz_fire 50 1.692
+FXA 51 1.692 new=flame:3 life=0.94 sz=4.0 alive=31 L=120/0.60/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=224 emit=208
+FXA 52 1.725 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=243 emit=227
+FXA 53 1.758 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=243 emit=227
+FXA 54 1.792 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=237 emit=221
+FXA 55 1.825 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=237 emit=221
+FXA 56 1.858 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=232 emit=216
+FXA 57 1.892 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=232 emit=216
+FXA 58 1.925 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=238 emit=222
+FXA 59 1.958 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=238 emit=222
+FXSHOT 0 59
+FXA 60 1.992 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=246 emit=230
+FXSHOT 1 60
+FXA 61 2.025 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=214 emit=198
+FXSHOT 2 61
+FXA 62 2.058 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=215 emit=199
+FXSHOT 3 62
+FXRLOG suzuran sz_bhit 62 2.092
+FXRLOG suzuran sz_bhit 62 2.092
+FXA 63 2.092 new=flame:6 life=0.93 sz=4.0 alive=28 L=90/0.55/0.12/f0d8a0;90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=210 emit=194
+FXSHOT 4 63
+FXRLOG suzuran sz_bhit 63 2.125
+FXA 64 2.125 new=flame:3 life=0.93 sz=4.0 alive=31 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=315 emit=301
+FXSHOT 5 64
+FXRLOG suzuran sz_att 64 2.158
+FXA 65 2.158 new=flame:1 life=0.88 sz=4.0 alive=31 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=348 emit=335
+FXSHOT 6 65
+FXA 66 2.192 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=237 emit=224
+FXSHOT 7 66
+FXRLOG suzuran sz_bhit 66 2.225
+FXA 67 2.225 new=flame:3 life=0.81 sz=4.0 alive=33 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=232 emit=219
+FXSHOT 8 67
+FXA 68 2.258 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=304 emit=292
+FXSHOT 9 68
+FXRLOG suzuran sz_bhit 68 2.292
+FXA 69 2.292 new=flame:3 life=0.86 sz=4.0 alive=32 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=299 emit=287
+FXSHOT 10 69
+FXA 70 2.325 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=262 emit=251
+FXSHOT 11 70
+FXA 71 2.358 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=257 emit=246
+FXSHOT 12 71
+FXRLOG suzuran sz_bhit 71 2.392
+FXA 72 2.392 new=flame:3 life=0.89 sz=4.0 alive=29 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=232 emit=221
+FXSHOT 13 72
+FXRLOG suzuran sz_bhit 72 2.425
+FXA 73 2.425 new=flame:3 life=0.80 sz=4.0 alive=31 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=261 emit=251
+FXSHOT 14 73
+FXA 74 2.458 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=244 emit=235
+FXSHOT 15 74
+FXRLOG suzuran sz_bhit 74 2.492
+FXA 75 2.492 new=flame:3 life=0.88 sz=4.0 alive=31 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=242 emit=233
+FXSHOT 16 75
+FXA 76 2.525 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=252 emit=244
+FXSHOT 17 76
+FXA 77 2.558 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=250 emit=242
+FXSHOT 18 77
+FXA 78 2.592 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=193 emit=185
+FXSHOT 19 78
+FXA 79 2.625 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=191 emit=183
+FXSHOT 20 79
+FXRLOG suzuran sz_big 79 2.658
+FXRLOG suzuran sz_fire 79 2.658
+FXA 80 2.658 new=flame:3 life=0.77 sz=4.0 alive=31 L=120/0.60/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=199 emit=191
+FXSHOT 21 80
+FXRLOG suzuran sz_att 80 2.692
+FXA 81 2.692 new=flame:1 life=0.99 sz=4.0 alive=31 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=207 emit=199
+FXSHOT 22 81
+FXA 82 2.725 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=193 emit=185
+FXSHOT 23 82
+FXA 83 2.758 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=196 emit=188
+FXSHOT 24 83
+FXA 84 2.792 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=190 emit=182
+FXSHOT 25 84
+FXA 85 2.825 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=195 emit=187
+FXSHOT 26 85
+FXA 86 2.858 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=195 emit=187
+FXSHOT 27 86
+FXA 87 2.892 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=200 emit=192
+FXSHOT 28 87
+FXA 88 2.925 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=200 emit=192
+FXSHOT 29 88
+FXA 89 2.958 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=205 emit=197
+FXSHOT 30 89
+FXRLOG suzuran sz_bhit 89 2.992
+FXA 90 2.992 new=flame:3 life=0.98 sz=4.0 alive=26 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=173 emit=165
+FXSHOT 31 90
+FXA 91 3.025 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=221 emit=213
+FXSHOT 32 91
+FXRLOG suzuran sz_bhit 91 3.058
+FXA 92 3.058 new=flame:3 life=0.82 sz=4.0 alive=28 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=184 emit=176
+FXSHOT 33 92
+FXRLOG suzuran sz_bhit 92 3.092
+FXA 93 3.092 new=flame:3 life=0.78 sz=4.0 alive=30 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=257 emit=249
+FXSHOT 34 93
+FXA 94 3.125 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=250 emit=242
+FXSHOT 35 94
+FXA 95 3.158 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=252 emit=244
+FXSHOT 36 95
+FXA 96 3.192 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=228 emit=220
+FXSHOT 37 96
+FXRLOG suzuran sz_att 96 3.225
+FXA 97 3.225 new=flame:1 life=0.78 sz=4.0 alive=24 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=230 emit=222
+FXSHOT 38 97
+FXA 98 3.258 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=183 emit=178
+FXSHOT 39 98
+FXA 99 3.292 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=195 emit=180
+FXSHOT 40 99
+FXRLOG suzuran sz_bhit 99 3.325
+FXA 100 3.325 new=flame:3 life=0.85 sz=4.0 alive=26 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=192 emit=177
+FXSHOT 41 100
+FXA 101 3.358 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=241 emit=226
+FXSHOT 42 101
+FXA 102 3.392 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=180 emit=165
+FXSHOT 43 102
+FXA 103 3.425 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=180 emit=165
+FXSHOT 44 103
+FXA 104 3.458 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=200 emit=185
+FXSHOT 45 104
+FXA 105 3.492 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=200 emit=185
+FXSHOT 46 105
+FXA 106 3.525 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=175 emit=160
+FXSHOT 47 106
+FXA 107 3.558 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=175 emit=160
+FXSHOT 48 107
+FXA 108 3.592 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=182 emit=167
+FXSHOT 49 108
+FXRLOG suzuran sz_big 108 3.625
+FXRLOG suzuran sz_fire 108 3.625
+FXA 109 3.625 new=flame:3 life=0.94 sz=4.0 alive=19 L=120/0.60/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=182 emit=167
+FXSHOT 50 109
+FXA 110 3.658 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=175 emit=160
+FXSHOT 51 110
+FXA 111 3.692 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=175 emit=160
+FXSHOT 52 111
+FXA 112 3.725 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=179 emit=164
+FXSHOT 53 112
+FXRLOG suzuran sz_att 112 3.758
+FXRLOG suzuran sz_pass 112 3.758
+FXA 113 3.758 new=flame:1 life=0.82 sz=4.0 alive=19 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=179 emit=164
+FXSHOT 54 113
+FXA 114 3.792 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=171
+FXSHOT 55 114
+FXA 115 3.825 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=171
+FXSHOT 56 115
+FXA 116 3.858 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=191 emit=176
+FXSHOT 57 116
+FXA 117 3.892 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=191 emit=176
+FXSHOT 58 117
+FXA 118 3.925 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=197 emit=182
+FXSHOT 59 118
+FXRLOG suzuran sz_bhit 118 3.958
+FXA 119 3.958 new=flame:3 life=0.93 sz=4.0 alive=17 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=165 emit=150
+FXSHOT 60 119
+FXA 120 3.992 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=209 emit=195
+FXSHOT 61 120
+FXRLOG suzuran sz_bhit 120 4.025
+FXA 121 4.025 new=flame:3 life=0.78 sz=4.0 alive=18 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=204 emit=190
+FXSHOT 62 121
+FXA 122 4.058 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=224 emit=211
+FXSHOT 63 122
+FXRLOG suzuran sz_bhit 122 4.092
+FXA 123 4.092 new=flame:3 life=0.88 sz=4.0 alive=18 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=219 emit=206
+FXSHOT 64 123
+FXA 124 4.125 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=257 emit=244
+FXSHOT 65 124
+FXA 125 4.158 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=252 emit=239
+FXSHOT 66 125
+FXA 126 4.192 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=202 emit=189
+FXSHOT 67 126
+FXRLOG suzuran sz_bhit 126 4.225
+FXA 127 4.225 new=flame:3 life=0.80 sz=4.0 alive=20 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=197 emit=184
+FXSHOT 68 127
+FXRLOG suzuran sz_bhit 127 4.258
+FXRLOG suzuran sz_bhit 127 4.258
+FXA 128 4.258 new=flame:6 life=0.79 sz=4.0 alive=25 L=90/0.55/0.12/f0d8a0;90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=254 emit=241
+FXSHOT 69 128
+FXRLOG suzuran sz_att 128 4.292
+FXRLOG suzuran sz_pass 128 4.292
+FXA 129 4.292 new=flame:1 life=1.01 sz=4.0 alive=26 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=338 emit=325
+FXSHOT 70 129
+FXA 130 4.325 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=204 emit=193
+FXSHOT 71 130
+FXRLOG suzuran sz_bhit 130 4.358
+FXRLOG suzuran sz_bhit 130 4.358
+FXA 131 4.358 new=flame:6 life=0.81 sz=4.0 alive=30 L=90/0.55/0.12/f0d8a0;90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=199 emit=188
+FXSHOT 72 131
+FXA 132 4.392 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=317 emit=306
+FXSHOT 73 132
+FXA 133 4.425 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=315 emit=304
+FXSHOT 74 133
+FXA 134 4.458 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=208 emit=197
+FXSHOT 75 134
+FXA 135 4.492 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=206 emit=195
+FXSHOT 76 135
+FXA 136 4.525 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=220 emit=209
+FXSHOT 77 136
+FXA 137 4.558 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=218 emit=207
+FXSHOT 78 137
+FXRLOG suzuran sz_big 137 4.592
+FXRLOG suzuran sz_fire 137 4.592
+FXA 138 4.592 new=flame:3 life=0.87 sz=4.0 alive=31 L=120/0.60/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=183 emit=172
+FXSHOT 79 138
+FXA 139 4.625 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=206 emit=195
+FXSHOT 80 139
+FXA 140 4.658 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=192 emit=181
+FXSHOT 81 140
+FXA 141 4.692 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=195 emit=184
+FXSHOT 82 141
+FXA 142 4.725 new=- life=0.00 sz=0.0 alive=31 L=- gr=0 gnew=0 sp=0 gl=0 glow=200 emit=189
+FXSHOT 83 142
+FXA 143 4.758 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=205 emit=194
+FXSHOT 84 143
+FXA 144 4.792 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=201 emit=190
+FXSHOT 85 144
+FXRLOG suzuran sz_att 144 4.825
+FXRLOG suzuran sz_pass 144 4.825
+FXRLOG suzuran sz_pass 144 4.825
+FXA 145 4.825 new=flame:1 life=0.84 sz=4.0 alive=27 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=206 emit=195
+FXSHOT 86 145
+FXA 146 4.858 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=206 emit=196
+FXSHOT 87 146
+FXA 147 4.892 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=211 emit=201
+FXSHOT 88 147
+FXA 148 4.925 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=181 emit=171
+FXSHOT 89 148
+FXA 149 4.958 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=176
+FXSHOT 90 149
+FXA 150 4.992 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=180 emit=170
+FXSHOT 91 150
+FXRLOG suzuran sz_bhit 150 5.025
+FXA 151 5.025 new=flame:3 life=0.80 sz=4.0 alive=24 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=193 emit=183
+FXSHOT 92 151
+FXA 152 5.058 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=242 emit=233
+FXSHOT 93 152
+FXA 153 5.092 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=244 emit=235
+FXSHOT 94 153
+FXA 154 5.125 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=194 emit=185
+FXSHOT 95 154
+FXA 155 5.158 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=196 emit=187
+FXSHOT 96 155
+FXA 156 5.192 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=210 emit=201
+FXSHOT 97 156
+FXA 157 5.225 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=212 emit=203
+FXSHOT 98 157
+FXA 158 5.258 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=183 emit=174
+FXSHOT 99 158
+FXA 159 5.292 new=- life=0.00 sz=0.0 alive=11 L=- gr=0 gnew=0 sp=0 gl=0 glow=185 emit=176
+FXSHOT 100 159
+FXA 160 5.325 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=186 emit=177
+FXSHOT 101 160
+FXRLOG suzuran sz_att 160 5.358
+FXA 161 5.358 new=flame:1 life=0.90 sz=4.0 alive=8 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=186 emit=177
+FXSHOT 102 161
+FXA 162 5.392 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=161 emit=153
+FXSHOT 103 162
+FXA 163 5.425 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=161 emit=153
+FXSHOT 104 163
+FXA 164 5.458 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=174 emit=166
+FXSHOT 105 164
+FXA 165 5.492 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=174 emit=166
+FXSHOT 106 165
+FXA 166 5.525 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=159 emit=151
+FXSHOT 107 166
+FXRLOG suzuran sz_big 166 5.558
+FXRLOG suzuran sz_fire 166 5.558
+FXA 167 5.558 new=flame:3 life=0.96 sz=4.0 alive=11 L=120/0.60/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=159 emit=151
+FXSHOT 108 167
+FXA 168 5.592 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=180 emit=172
+FXSHOT 109 168
+FXA 169 5.625 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=180 emit=172
+FXSHOT 110 169
+FXA 170 5.658 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=184 emit=176
+FXSHOT 111 170
+FXA 171 5.692 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=184 emit=176
+FXSHOT 112 171
+FXA 172 5.725 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=190 emit=182
+FXSHOT 113 172
+FXA 173 5.758 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=190 emit=182
+FXSHOT 114 173
+FXA 174 5.792 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=194 emit=186
+FXSHOT 115 174
+FXA 175 5.825 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=194 emit=186
+FXSHOT 116 175
+FXA 176 5.858 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=198 emit=190
+FXSHOT 117 176
+FXRLOG suzuran sz_att 176 5.892
+FXA 177 5.892 new=flame:1 life=0.71 sz=4.0 alive=6 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=168 emit=160
+FXSHOT 118 177
+FXA 178 5.925 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=160 emit=155
+FXSHOT 119 178
+FXRLOG suzuran sz_bhit 178 5.958
+FXA 179 5.958 new=flame:3 life=0.86 sz=4.0 alive=9 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=165 emit=150
+FXSHOT 120 179
+FXA 180 5.992 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=234 emit=220
+FXSHOT 121 180
+FXA 181 6.025 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=229 emit=215
+FXSHOT 122 181
+FXA 182 6.058 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=182 emit=168
+FXSHOT 123 182
+FXRLOG suzuran sz_bhit 182 6.092
+FXA 183 6.092 new=flame:3 life=0.93 sz=4.0 alive=11 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=177 emit=163
+FXSHOT 124 183
+FXRLOG suzuran sz_bhit 183 6.125
+FXA 184 6.125 new=flame:3 life=0.87 sz=4.0 alive=14 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=238 emit=225
+FXSHOT 125 184
+FXRLOG suzuran sz_bhit 184 6.158
+FXA 185 6.158 new=flame:3 life=0.79 sz=4.0 alive=17 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=279 emit=266
+FXSHOT 126 185
+FXRLOG suzuran sz_bhit 185 6.192
+FXA 186 6.192 new=flame:3 life=0.85 sz=4.0 alive=20 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=237 emit=224
+FXSHOT 127 186
+FXRLOG suzuran sz_bhit 186 6.225
+FXA 187 6.225 new=flame:3 life=0.89 sz=4.0 alive=23 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=278 emit=265
+FXSHOT 128 187
+FXA 188 6.258 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=283 emit=270
+FXSHOT 129 188
+FXRLOG suzuran sz_bhit 188 6.292
+FXA 189 6.292 new=flame:3 life=0.91 sz=4.0 alive=25 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=278 emit=265
+FXSHOT 130 189
+FXA 190 6.325 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=273 emit=260
+FXSHOT 131 190
+FXA 191 6.358 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=271 emit=258
+FXSHOT 132 191
+FXA 192 6.392 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=230 emit=217
+FXSHOT 133 192
+FXRLOG suzuran sz_att 192 6.425
+FXRLOG suzuran sz_pass 192 6.425
+FXRLOG suzuran sz_pass 192 6.425
+FXRLOG suzuran sz_pass 192 6.425
+FXRLOG suzuran sz_pass 192 6.425
+FXA 193 6.425 new=flame:1 life=0.78 sz=4.0 alive=26 L=70/0.40/0.10/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=228 emit=215
+FXSHOT 134 193
+FXA 194 6.458 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=210 emit=197
+FXSHOT 135 194
+FXA 195 6.492 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=208 emit=195
+FXSHOT 136 195
+FXRLOG suzuran sz_big 195 6.525
+FXRLOG suzuran sz_fire 195 6.525
+FXA 196 6.525 new=flame:3 life=0.82 sz=4.0 alive=29 L=120/0.60/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=212 emit=199
+FXSHOT 137 196
+FXA 197 6.558 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=220 emit=207
+FXSHOT 138 197
+FXA 198 6.592 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=212 emit=199
+FXSHOT 139 198
+FXA 199 6.625 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=215 emit=202
+FXSHOT 140 199
+FXA 200 6.658 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=215 emit=202
+FXSHOT 141 200
+FXA 201 6.692 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=220 emit=207
+FXSHOT 142 201
+FXA 202 6.725 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=222 emit=209
+FXSHOT 143 202
+FXA 203 6.758 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=227 emit=214
+FXSHOT 144 203
+FXA 204 6.792 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=225 emit=212
+FXSHOT 145 204
+FXA 205 6.825 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=230 emit=217
+FXSHOT 146 205
+FXRLOG suzuran sz_bhit 205 6.858
+FXA 206 6.858 new=flame:3 life=0.87 sz=4.0 alive=27 L=90/0.55/0.12/f0d8a0 gr=0 gnew=0 sp=0 gl=0 glow=192 emit=179
+FXSHOT 147 206
+FXA 207 6.892 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=243 emit=230
+FXSHOT 148 207
+FXA 208 6.925 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=207 emit=194
+FXSHOT 149 208
+FXRLOG suzuran sz_att 208 6.958
+FXRLOG suzuran sz_pass 208 6.958
+FXRLOG suzuran sz_pass 208 6.958
+ERROR: 39 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1460: leaked 1960 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1517: leaked 73580 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1576: leaked 3420 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1696: leaked 5708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 4776 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 5112 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 10336 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 6420 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1701: leaked 2672 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1717: leaked 53600 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1718: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1719: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1720: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1725: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1730: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1731: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1732: leaked 6436 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 216 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 60 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
