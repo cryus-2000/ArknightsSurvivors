@@ -36,8 +36,11 @@ def resolve(ref):
         p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", "-q", r + "^{commit}"], capture_output=True, text=True)
         if p.returncode == 0:
             return p.stdout.strip()
-    subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", ref], capture_output=True)
-    p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", "-q", "FETCH_HEAD^{commit}"], capture_output=True, text=True)
+    # 拉进一个本次专用的命名引用：FETCH_HEAD 是工作树共用的，几个会话同时跑会互相冲掉（11-05 金样重录因此写坏一次）
+    tmp = "refs/gcp-render/resolve-%d" % os.getpid()
+    subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", "%s:%s" % (ref, tmp)], capture_output=True)
+    p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", "-q", tmp + "^{commit}"], capture_output=True, text=True)
+    subprocess.run(["git", "-C", ROOT, "update-ref", "-d", tmp], capture_output=True)
     if p.returncode == 0:
         return p.stdout.strip()
     sys.exit("找不到提交 / 分支：%s" % ref)
