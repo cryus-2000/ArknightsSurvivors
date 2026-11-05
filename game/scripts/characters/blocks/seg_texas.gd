@@ -760,9 +760,6 @@ static func tx_rain_draw(ci, o, f: Dictionary) -> void:   # ci：干员的 cv（
 					var kf: float = 1.0 - k2 / 0.6
 					ci.draw_circle(Vector2.ZERO, rr * 0.85, Color(1.0, 0.62, 0.3, 0.22 * kf * kf * base))
 					ci.draw_circle(Vector2.ZERO, rr * 0.4, Color(1.0, 0.9, 0.72, 0.3 * kf * kf * base))
-				if Dc.hit_rings():   # 终结亮环属命中装饰圈（render/hit_rings 缺省不画），地面闪光照画
-					ci.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(c.r, c.g, c.b, c.a * (1.0 - k2) * base), 4.0)
-					ci.draw_arc(Vector2.ZERO, rr * 0.92, 0.0, TAU, 56, Color(1.0, 0.95, 0.85, 0.6 * (1.0 - k2) * base), 1.5)
 				ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
 	# 上层：剑（下落 + 残影 / 插地），同一张贴图

@@ -182,7 +182,6 @@ func hit_c(b: Dictionary) -> Vector2:
 ## 预警 boss/layer_warn_<类型> 秒：发射点画专属色收拢圈（world._draw_layer_warns），到点从发射点射出。不复制：追踪弹、停住的弹、Boss 自己画的弹、追加弹本身；
 ## 同屏敌弹超过 boss/layer_cap 不再加。缺省 layer_n 0 = 不加层
 var layer_q: Array = []   # [发射时刻, 发射点, 弹字典, 专属色]
-var _layer_keys := {}
 
 
 func _queue_layers(b: Dictionary, fb: Dictionary) -> void:

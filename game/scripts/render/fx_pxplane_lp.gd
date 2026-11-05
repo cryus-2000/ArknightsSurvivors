@@ -18,7 +18,6 @@ const BARK_R := [75, 90]
 const CROSS_N := 4                      # 封招叉半臂长（美术像素，同 pxplane_lappland_art.CROSS_N）
 const CROSS_CORE := Color("#46464a")     # 原作 chenmo_02 笔画深灰
 const CROSS_RIM := Color("#c4c6ca")      # 原作描边浅灰（提亮，暗地面上读得出）
-const SIG := [Vector2i(0, -3), Vector2i(1, -2), Vector2i(2, -1), Vector2i(3, 0), Vector2i(2, 1), Vector2i(1, 2), Vector2i(0, 3), Vector2i(-1, 2), Vector2i(-2, 1), Vector2i(-3, 0), Vector2i(-2, -1), Vector2i(-1, -2)]
 const HIT_N := 3           # 一记横扫至多画 3 只身上的斩痕
 const WHIT_BEAT := 3       # 剑气命中星每拍至多 3 个
 const LIGHT := Color(0.78, 0.74, 1.0)

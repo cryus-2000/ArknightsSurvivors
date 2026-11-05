@@ -30,7 +30,6 @@ const SB = preload("res://scripts/screens/settle/settle_base.gd")
 const OpFig = preload("res://scripts/screens/op_figure.gd")
 
 const SEG0 := 0.08      # 第一格 / 第一段开始
-const SEG_S := 0.07     # 占比条段间错开
 const SEG := UM.T2      # 每段滑入时长
 const TOP_SRC := 5      # 详情里列出的伤害来源条数（其余并成「其他」）
 ## 输出条节奏（10-25 用户「干员的输出条出来的太短」，docs/62 §3.24）：逐条依次增长，单条 BAR_D0～BAR_D0+BAR_D1 秒（越长的条越久，按数值缓动），

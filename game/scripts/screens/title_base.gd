@@ -84,8 +84,6 @@ const INTRO_SHORT := 1.0
 var intro := 0.0
 var title_bg: Control
 var logo_ci: Control       # Logo 层（线性取样，title.gd _draw_logo_layer）
-var map_title := ""        # 地图副标题（data/maps/<id>.json 的 title / title_en）
-var map_title_en := ""
 
 
 ## 难度页换档（title_diff_pick 覆盖；选人页「返回」时调）

@@ -427,13 +427,6 @@ func spawn_fx_sprite(name: String, pos: Vector2, scale: float = -1.0, ang := 0.0
 	return g.vfx.fx_sprite(name, pos, g.PX if scale < 0.0 else scale, ang, flip, bottom, col)
 
 
-## 旧式整条动画特效（跟随可选）
-func play_anim_fx(name: String, pos: Vector2, dur: float, scale: float = -1.0, follow := false) -> bool:
-	if Fxr.owns(self):
-		return true
-	return g.vfx.anim(name, pos, dur, g.PX if scale < 0.0 else scale, follow)
-
-
 ## 挥砍弧光（普攻 / 技能的刀光）
 func slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Color, tex_name := "slash", life := 0.22) -> void:
 	if Fxr.owns(self):
@@ -517,11 +510,6 @@ func draw_diamond(c: Vector2, rad: float, fill: Color, border := Color(0, 0, 0, 
 	if border.a > 0.0:
 		p.append(p[0])
 		cv.draw_polyline(p, border, 1.0)
-
-
-## 画到另一个 CanvasItem 上（HUD 图标等）
-func draw_spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2, scale: float = -1.0) -> void:
-	g.vfx.spr_on(ci, name, frames, frame, pos, g.PX if scale < 0.0 else scale)
 
 
 ## 按脚底锚点画角色帧（剪影、残影用）

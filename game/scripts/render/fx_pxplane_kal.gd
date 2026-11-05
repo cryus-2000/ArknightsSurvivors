@@ -14,11 +14,9 @@ const MI = preload("res://scripts/render/melee_impact.gd")
 const ID := "kaltsit"
 const CLAW_R := [109, 128, 161, 200]          # 爪痕帧条分档（判定外沿 = reach + pad，世界像素）
 const ECHO_R := [70, 87, 105, 130, 162, 195]
-const LINK_D := [-90, -45, 0, 45, 90]
 
 
 static var _dye := {}
-const MELT_RED := Color8(204, 54, 26)     # 熔毁红色阶主红（RD m2）：精二身侧红弧等程序画的件用
 const MELT_HOT := Color8(255, 108, 46)    # 亮橙红（RD f）
 const MELT_DK := Color8(92, 16, 13)       # 暗血红（RD d2）
 const MELT_FLOOR := Color8(148, 28, 18)   # 熔毁期间脚下常驻照地光（暗红）

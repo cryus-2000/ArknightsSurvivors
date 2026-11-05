@@ -39,12 +39,7 @@ const CLASS_ORDER: Array = preload("res://scripts/data.gd").CLASS_ORDER
 const CLASS_EN: Dictionary = preload("res://scripts/data.gd").CLASS_EN
 ## 光炸色：拉包光效只有金一档（10-22 用户：全部用 Codex 原图，金 / 青白两档作废，docs/124 §9.3）
 const BURST_COL := Color8(255, 196, 80)
-## 作战包时间轴（秒）：落下 0–0.4，拉链 0.4–1.6（8 档，每档 0.17 秒，同 Codex manifest.opening），全开后光柱循环约 0.6 秒，光炸 2.05–2.5
-const BAG_T := 2.5
 const ZIP0 := 0.4
-const ZIP1 := 1.6
-const ZIP_STEP := 0.17
-const BURST := 2.15
 ## 每名干员一屏：名牌滑入 0–0.4，立绘滑入 0–0.5，解码 0.5–1.2，新加入签 1.3，5 秒自动下一名（协调人缺省：每人 5 秒可跳过）
 const SLIDE := 0.5
 const DECODE := 1.2

@@ -124,8 +124,6 @@ var dc_on := true                 # 敌人画法缓存（docs/50 §9.9）：bala
 var dc_check := false             # --dccheck：抽查缓存路径与原路径发出的贴图绘制参数，不一致报 SCRIPT ERROR（快检冒烟开着）
 var dc_checked := 0               # --dccheck 实际比对的次数（BALANCE prof.dc_checked）
 var _rec = null                   # --dccheck 比对时：贴图绘制只记参数、不画
-const CROWD_FROM := 80.0          # 特效总数超过这个开始降
-const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
 const DECO_KINDS := {"spark": true, "shard": true, "mote": true, "ember": true, "trail": true}   # docs/247 V3：降噪只压这些装饰件
@@ -1810,8 +1808,8 @@ func _draw_fx() -> void:
 						g.wcv.draw_line(f.pos, f.pos + Vector2.from_angle(a0) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
 						g.wcv.draw_line(f.pos, f.pos + Vector2.from_angle(a1) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
 			"ring":
-				# op_hit：干员攻击 / 技能命中的装饰环（水月），render/hit_rings 缺省不画；其余（敌方、拾取、藏品……）照画
-				if f.get("op_hit", false) and not Dc.hit_rings():
+				# op_hit：干员攻击 / 技能命中的装饰环（水月），10-13 用户删、不画；其余（敌方、拾取、藏品……）照画
+				if f.get("op_hit", false):
 					continue
 				if f.get("enemy", false) and Bal.v("render/foe_ring_fx", 1.0) <= 0.0:
 					continue   # docs/139 §8：敌方结算后的装饰环（伤害已结算，不是预警）不画
@@ -1900,7 +1898,7 @@ func _draw_fx() -> void:
 				var c: Color = f.col
 				g.wcv.draw_circle(f.pos, f.r * (0.3 + 0.7 * k), Color(c.r * 2.2, c.g * 1.8, c.b * 1.2, 0.45 * a))
 				g.wcv.draw_circle(f.pos, f.r * 0.45 * a, Color(2.8, 2.4, 1.6, a))
-				if not f.get("op_hit", false) or Dc.hit_rings():   # 干员法术弹（艾雅法拉熔岩弹）的冲击环：render/hit_rings 缺省不画，火光照画
+				if not f.get("op_hit", false):   # 干员法术弹（艾雅法拉熔岩弹）的冲击环不画（10-13 用户删），火光照画
 					g.wcv.draw_arc(f.pos, f.r * (0.5 + 0.7 * k), 0.0, TAU, 32, Color(c.r * 2.4, c.g * 2.0, c.b * 1.4, a), 4.0)
 			"cross":
 				# 治疗：上升的绿色十字
@@ -2080,7 +2078,7 @@ func _draw_fx() -> void:
 				g.wcv.draw_circle(f.pos, rr, Color(c.r * 1.8, c.g * 1.6, c.b * 1.2, 0.25 * a))
 				g.wcv.draw_arc(f.pos, rr, 0.0, TAU, 32, Color(c.r * 2.2, c.g * 2.0, c.b * 1.6, a), 5.0)
 				g.wcv.draw_arc(f.pos, rr * 0.7, 0.0, TAU, 32, Color(0.6, 1.6, 2.0, a * 0.6), 2.0)
-				if not f.get("op_spoke", false) or Dc.hit_spokes():   # 水花放射纹（render/hit_spokes 缺省不画），水花本体照画
+				if not f.get("op_spoke", false):   # 干员水花的放射纹不画（10-13 用户删），水花本体照画
 					for q in 10:
 						var dv := Vector2.from_angle(q * TAU / 10.0 + f.r)
 						g.wcv.draw_line(f.pos + dv * rr * 0.8, f.pos + dv * (rr + 14.0 * a), Color(2.0, 1.8, 1.2, a), 2.0)
@@ -2173,8 +2171,8 @@ func _draw_fx() -> void:
 					g.wcv.draw_rect(Rect2(f.pos.x - pw / 2.0, f.pos.y - 520.0, pw, 520.0 + f.r * 0.4), Color(1.8, 1.6, 2.0, 0.55 * a))
 					g.wcv.draw_rect(Rect2(f.pos.x - pw / 6.0, f.pos.y - 520.0, pw / 3.0, 520.0 + f.r * 0.4), Color(2.0, 2.0, 2.0, 0.8 * a))
 			"rays":
-				# 技能发动：放射光束（op_spoke = 干员发的，render/hit_spokes 缺省不画；晋升 / 宝箱 / 祭坛 / 藏品 / 敌方照画）
-				if f.get("op_spoke", false) and not Dc.hit_spokes():
+				# 技能发动：放射光束（op_spoke = 干员发的，10-13 用户删、不画；晋升 / 宝箱 / 祭坛 / 藏品 / 敌方照画）
+				if f.get("op_spoke", false):
 					continue
 				var k := 1.0 - a
 				var c: Color = f.col

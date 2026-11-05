@@ -2,7 +2,6 @@ extends RefCounted
 ## Camera-facing water volume above a ground anchor; the shadow never substitutes for the body.
 static var frames: Array[Texture2D] = []
 const SIZE := 40
-const PALETTE := [Color("112f42"), Color("19465a"), Color("27657a"), Color("43899b"), Color("76b5bf"), Color("b6dedb"), Color("ecf8e8")]
 
 static func make_image(frame: int) -> Image:
 	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)

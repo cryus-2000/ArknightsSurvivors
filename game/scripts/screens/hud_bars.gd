@@ -497,11 +497,6 @@ func boss_bars() -> Array:
 	return out
 
 
-## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
-func draw_status_bar(vs: Vector2) -> void:
-	draw_status(vs, status_items())
-
-
 ## 状态条缓存块（hud 的 status）的签名：本帧的标签片列表（文字 / 颜色 / 进度条长度按 1/8 像素量化）+ 换行宽度
 func status_sig(vs: Vector2, items: Array) -> Array:
 	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active, h.allyhp.top_shift(), h.v2.lamp_item()[0] if HudV2.on() else ""]

@@ -716,8 +716,6 @@ static func h3_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			var cv = o.cv
 			var u0: float = 1.0 - a
 			cv.draw_set_transform(f.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
-			if Dc.hit_rings():
-				cv.draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 32, Color(H3_PINK.r, H3_PINK.g, H3_PINK.b, 0.35 * a), 1.5)
 			for q in 3:
 				var rr: float = f.r * (1.0 - 0.6 * u0) * (1.0 - q * 0.22)
 				var a0: float = u0 * 9.0 + q * TAU / 3.0

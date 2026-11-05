@@ -58,16 +58,6 @@ static func reticle(u, e: Dictionary, h: float, life: float) -> Dictionary:
 	return s
 
 
-## 锁定框碎（目标被打到 / 倒下 / 扫射结束）：框自己播 6–7 帧往外弹开；这里只加几颗碎晶
-static func lock_break(u, o, p: Vector2) -> void:
-	grains(u, o, p + Vector2(0, -12), p.y + 2.0, "shard", 2, Vector2.UP)
-
-
-## 扫射结束时还挂着的框：原地补一个只播碎裂两帧的框
-static func reticle_break(u, p: Vector2, h: float, elite: bool) -> void:
-	u.shape({"kind": "pxfn", "px": "reticle", "c": p, "brk": true, "h": h, "elite": elite, "life": 2.0 / 15.0})
-
-
 static func glow(u, c: Vector2, life: float) -> Dictionary:
 	var s := {"kind": "pxfn", "px": "glow", "c": c, "r": 16.0, "life": life}
 	u.shape(s)
@@ -136,17 +126,6 @@ static func cloud(u, c: Vector2, sd: int, size: float, n: int) -> void:
 
 static func chain(u, p0: Vector2, p1: Vector2, life: float) -> void:
 	u.shape({"kind": "pxfn", "px": "line", "a": p0, "b": p1, "life": life})
-
-
-static func ring_pulse(u, c: Vector2, R: float) -> void:
-	u.shape({"kind": "pxfn", "px": "ring", "c": c, "r": R, "life": 4.0 / 15.0, "layer": "back"})
-
-
-## 冲击帧那一刻：同屏还在炸的新爆点也进剪影
-static func hf_mark(u) -> void:
-	for s in u.shapes:
-		if str(s.get("kind", "")) == "pxfn" and s.get("burst", false):
-			s["hf"] = true
 
 
 static func grains(u, o, at: Vector2, gy: float, mat: String, n: int, dir: Vector2) -> void:

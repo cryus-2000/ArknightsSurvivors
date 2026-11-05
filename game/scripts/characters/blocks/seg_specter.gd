@@ -488,10 +488,6 @@ static func _h3sp_tick(o, sp: Dictionary, dt: float) -> bool:
 	return h3_away(o) or float(sp.fall_t) > 0.0
 
 
-static func h3_follow_away(o) -> bool:
-	return h3_away(o)
-
-
 ## 倒下期间的帧（data_operator.anim_state 转来）
 static func h3_anim_state(o, st: Dictionary) -> Dictionary:
 	if not o.hw.has("sp") or st.is_empty():

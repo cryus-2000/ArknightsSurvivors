@@ -768,20 +768,11 @@ func enemy_hp_time_mult() -> float:
 	return 1.0 + minf(g.t, hk) / Bal.v("enemy/hp_div", 110.0) + maxf(g.t - hk, 0.0) / Bal.v("enemy/hp_late_div", 120.0)
 
 
-## 主控生命回复的时间倍率（docs/82，10-13）：1 + min(t, regen_knee) / regen_div。敌人攻击随时间涨（enemy/dmg_div），
-## 自身回复原来恒定，无医疗编队 6–9 分钟靠它撑不住；regen_div = 0 关（恒为 1）
-func regen_time_mult() -> float:
-	var dv: float = Bal.v("sustain/regen_div", 0.0)
-	if dv <= 0.0:
-		return 1.0
-	return 1.0 + minf(g.t, Bal.v("sustain/regen_knee", 480.0)) / dv
-
-
 ## 主控实际每秒回复（生命 / 秒）：game._update 按它回血，属性面板、「自愈」卡预览、招募卡都读它，保证三处一致（docs/83 §2）。
 ## add_flat / add_pct：预览「再加一张卡」时额外加进 regen / regen_pct 的量
 func regen_per_sec(add_flat := 0.0, add_pct := 0.0, max_hp := -1.0) -> float:
 	var mh: float = g.max_hp if max_hp < 0.0 else max_hp
-	var v: float = (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult() * song_heal_mult()
+	var v: float = (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * song_heal_mult()
 	# 认知塑造「生命感悟」末节：队长生命低于 meta/low_regen_at 最大生命时回复 × meta/low_regen_mult
 	if g.rfx.rule("low_hp_regen") > 0 and g.hp < mh * Bal.v("meta/low_regen_at", 0.35):
 		v *= Bal.v("meta/low_regen_mult", 2.0)

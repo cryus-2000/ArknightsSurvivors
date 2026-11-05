@@ -638,47 +638,6 @@ func _slab(age: float, seed: int, nd: Vector2) -> Array:
 	return out
 
 
-func _plume(age: float, seed: int, ns: Vector2) -> Array:
-	var out: Array = []
-	if age < 0.0 or age > 0.8:
-		return out
-	var up: float = minf(1.0, age / 0.3)
-	var fall: float = maxf(0.0, (age - 0.4) / 0.4)
-	var fq: int = int(age * 15.0)
-	for b in 6:
-		var h0: float = _hf(seed, b, 51)
-		var H: float = (10.0 + 18.0 * h0) * (1.0 - pow(1.0 - up, 2.0)) * (1.0 - 0.75 * fall)
-		var r: float = 3.0 + 4.0 * up + 3.0 * fall + 2.0 * h0
-		var curl: float = sin(age * 9.0 + b * 1.7) * (1.0 + 2.0 * up)
-		var spread: float = (3.0 + 6.0 * h0) * up + 10.0 * fall
-		var along: float = (b - 2.5) * 3.5
-		var bx: float = ns.x * spread - ns.y * along + curl
-		var by: float = (ns.y * spread + ns.x * along) * SQ - H
-		var al: float = 0.5 * pow(1.0 - fall, 1.3)   # 配角：压暗，不盖住怪物崩解
-		if al <= 0.03:
-			continue
-		var ri: int = int(ceil(r))
-		for dx in range(-ri, ri + 1):
-			for dy in range(-ri, ri + 1):
-				var d: float = Vector2(dx, dy * 1.2).length()
-				var ang8: int = int((atan2(dy, dx) + PI) / TAU * 8.0) % 8
-				var rr: float = r * (0.8 + 0.35 * _hf(b * 8 + ang8, seed, 52))
-				if d > rr or (d > rr * 0.7 and _hsh(dx + b, dy, seed + fq) % 4 == 0):
-					continue
-				var top: bool = dy < -rr * 0.45
-				var c: Color
-				if top and age < 0.25:
-					c = LT[4] if d > rr * 0.5 else LT[5]
-				elif d > rr * 0.75:
-					c = WARM[2]
-				elif top:
-					c = WARM[5]
-				else:
-					c = WARM[4] if d < rr * 0.4 else WARM[3]
-				out.append([bx + dx, by + dy, c, al])
-	return out
-
-
 # ================================================================ 收尾大爆（11-05 用户看实机录像：「感觉缺少最后的爆炸的冲击力」）
 ## 冲击帧之后真正炸开的那一下（fa = 收尾斩击后的游戏秒）：
 ## 0–BLAST_T（2 拍）预备：光点往中心吸、周围压暗；BLAST_T 起爆点：实心亮核（白芯 + 亮紫圈，半径约判定一半）亮 2 拍 + 一盏打满的照地灯 + 轻震 3px / 0.12 秒 + 3 帧顿帧；

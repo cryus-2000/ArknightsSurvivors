@@ -25,7 +25,6 @@ var u   # screens/hud_ult.gd
 
 const DARK := Color(0.03, 0.035, 0.045, 0.85)
 const HX := 80.0
-const LX := 252.0
 const LV := Vector2(42.0, 42.0)
 
 var _was_full := false

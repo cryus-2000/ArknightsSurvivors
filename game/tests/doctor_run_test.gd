@@ -86,10 +86,6 @@ func _process(_dt: float) -> void:
 	check(game.sprite.texture == game.tex.doctor_idle and game.sprite.offset.y == -28.0, "missing run falls back to idle strip and idle anchor")
 	game.tex.doctor_run = saved
 	game.doc_moving = false
-	var cover = load("res://scripts/title_bg.gd").new()
-	cover._load_figures()
-	check(cover.doctor.foot == Vector2(32,60), "cover uses the same doctor anchor")
-	cover.free()
 	print("DOCTOR RUN failures=", fails)
 	game.world._gc_sink = null
 	var hud = game.hud_view

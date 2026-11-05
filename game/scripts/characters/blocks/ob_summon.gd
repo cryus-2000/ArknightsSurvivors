@@ -2113,13 +2113,7 @@ static func mf_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			cv.draw_colored_polygon(pts.slice(0, 4), Color(qc.r, qc.g, qc.b, 0.25 * a))
 			cv.draw_polyline(pts, Color(qc.r * 1.375, qc.g * 2.0, qc.b * 2.0, a), 2.0)
 			return true
-		"beamray":
-			if not Dc.hit_spokes():   # 放射光束（render/hit_spokes 缺省不画）：粒子照走寿命，只是不画
-				return true
-			var k4: float = 1.0 - a
-			var dv3: Vector2 = Vector2.from_angle(f.ang)
-			var L2: float = f.len * minf(1.0, k4 * 3.0)
-			cv.draw_line(f.pos + dv3 * 10.0, f.pos + dv3 * L2, Color(f.col.r * 1.4, f.col.g * 1.6, f.col.b * 1.3, 0.6 * a), 3.0 * a + 1.0)
+		"beamray":   # 放射光束：10-13 用户删（原 render/hit_spokes 回退开关已去掉），粒子照走寿命，不画
 			return true
 	return false
 

@@ -764,11 +764,6 @@ func set_render_scale(on: bool) -> void:
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT if on else Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 
 
-## 窗口实际像素比逻辑分辨率（720 高）多出三成以上：分辨率缩放才有用
-func hidpi_render() -> bool:
-	return get_tree().root.size.y > 720.0 * 1.3
-
-
 ## 这一局要不要法线光照：设置开着、有显卡，且光学观感没开（光学下不画法线，除非 render/optical_normals）。
 ## 标题页预热与对局同一判断（10-25 从 game.gd 搬来：标题页不再为它 preload game.gd，docs/50 §29）
 func wants_normal_maps() -> bool:

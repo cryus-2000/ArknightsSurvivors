@@ -263,10 +263,6 @@ func _halos(o, out: Array) -> void:
 					out.append({"ex": "once", "k": "ex_halo_fire_up", "t0": fire_t, "gp": hp, "gy": m.pos.y + 1.5})
 
 
-static func owns_halo(o) -> bool:
-	return str(o.id) == "exusiai" and Pxp.owns_id(o.g, "exusiai")
-
-
 func draw_rt(ci, it: Dictionary) -> void:
 	match str(it.ex):
 		"loop":

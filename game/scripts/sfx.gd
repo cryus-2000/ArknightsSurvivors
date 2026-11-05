@@ -579,20 +579,6 @@ func set_final_phase(p2: bool) -> void:
 	final_p2 = p2
 
 
-## 结算短乐句：当前曲目淡出
-func play_stinger(sname: String) -> void:
-	var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % sname)
-	if st == null:
-		return
-	st.loop = false
-	cur_track = ""
-	pending = {}
-	after_stinger = sname + "_loop" if groups.has(sname + "_loop") else ""
-	stinger.stream = st
-	stinger.volume_db = vol_target
-	stinger.play()
-
-
 ## 叠加短乐句：不改变当前曲目，直接叠在音乐之上（Boss 登场 / 击破）；from 为从第几秒开始
 func play_overlay(oname: String, gain_db := 2.0, from := 0.0) -> void:
 	if not overlays.has(oname):
@@ -869,24 +855,6 @@ func voice_hush(sec: float) -> void:
 	voice_queue.clear()
 	voice_urgent = []
 	voice_lock(sec)
-## 指定一条语音文件直接播（终结技专属台词，如拉普兰德终结技的笑声；用户 10-31）：正在说的淡出让路，不走随机池 / 冷却
-func voice_stem(cid: String, stem: String) -> void:
-	var st: AudioStream = _voice_file(stem)
-	if st == null:
-		return
-	if voice_player.playing:
-		_voice_fade_out()
-	var now := _vnow()
-	voice_key = "skill_3"
-	voice_cid = cid
-	voice_player.stream = st
-	voice_player.volume_db = float(VOICE_TRIM.get(cid, 0.0))
-	if voice_player.is_inside_tree():
-		voice_player.play()
-	voice_play_end = now + st.get_length()
-	voice_end = voice_play_end + VOICE_GAP
-	if trace_on:
-		trace.append([Engine.get_process_frames(), "voice:" + stem, voice_player.volume_db, 1.0])
 
 
 ## 把正在播的那条换到 voice_fader 上淡出停掉，voice_player 腾出来给新语音

@@ -1006,21 +1006,7 @@ static func _h4wd_draw_pfx(o, f: Dictionary, a: float) -> bool:
 		"h4_burst":
 			var k := 1.0 - a
 			var r: float = f.r
-			var sd: float = f.seed
 			cv.draw_circle(f.pos, r * (0.3 + 0.5 * k), Color(1.3, 0.1, 0.22, 0.4 * al))
-			var nq: int = int(f.get("n", 12)) if Dc.hit_spokes() else 0
-			for q in nq:
-				var h: float = fmod(sd * 7.3 + q * 2.399, 1.0)
-				var ang: float = sd + q * TAU / nq + (h - 0.5) * 0.35
-				var dv: Vector2 = Vector2.from_angle(ang)
-				var nv: Vector2 = dv.orthogonal()
-				var L2: float = r * (0.55 + 0.7 * h) * minf(1.0, k * 2.2)
-				var w: float = (2.5 + 3.5 * h) * (1.0 - k * 0.7)
-				var s0: Vector2 = f.pos + dv * L2 * (0.1 + 0.35 * k)
-				var s1: Vector2 = f.pos + dv * L2
-				var sm: Vector2 = f.pos + dv * L2 * 0.45
-				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w, s1, sm - nv * w]), Color(1.9, 0.1, 0.26, 0.9 * al))
-				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w * 0.3, s1, sm - nv * w * 0.3]), Color(2.4, 0.7, 0.8, 0.7 * al))
 			var cr: float = r * 0.16 * (1.0 if k < 0.2 else maxf(0.0, 1.0 - (k - 0.2) / 0.45))
 			cv.draw_circle(f.pos, cr * 1.8, Color(1.6, 0.1, 0.12, 0.6 * al))
 			cv.draw_circle(f.pos, cr, Color(2.2, 0.5, 0.32, al))

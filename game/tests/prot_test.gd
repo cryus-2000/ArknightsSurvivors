@@ -1874,7 +1874,6 @@ func test_squad_sustain_dash() -> void:
 	var sq = game.squad
 	var rper: float = Bal.v("squad/regen_per_member", 0.0)
 	ok(rper > 0.0, "squad/regen_per_member 已设（%.2f）" % rper)
-	ok(game.combat.regen_time_mult() == 1.0, "回复的时间成长已关（sustain/regen_div 0）")
 	# 分档旋钮（squad/regen_t1 / regen_t2，缺省 -1 = 沿用 regen_per_member）：缺省逐位等于原式；设了按档累加，第 3 名起回到 regen_per_member
 	ok(sq.regen_bonus(2) == rper * 2 and sq.regen_steps_text() == sq._num(rper), "分档缺省：台阶 = regen_per_member × 人数（%s）" % sq.regen_steps_text())
 	var sq_sec: Dictionary = Bal._data.get("squad", {})

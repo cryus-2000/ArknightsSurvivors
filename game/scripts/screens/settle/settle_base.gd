@@ -182,15 +182,6 @@ func leader_row() -> Dictionary:
 	return s.rows[0] if not s.rows.is_empty() else {}
 
 
-## 输出最高的干员行
-func mvp_row() -> Dictionary:
-	var best: Dictionary = {}
-	for r in s.rows:
-		if best.is_empty() or float(r.dmg) > float(best.dmg):
-			best = r
-	return best
-
-
 ## 失败时击倒者一行字 / 胜利时结局名
 func sub_line() -> String:
 	if won:

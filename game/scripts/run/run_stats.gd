@@ -13,7 +13,6 @@ const ORIGIN_NAME := {"core": "普攻", "skill": "技能", "talent": "天赋", "
 const TAKEN_NAME := {"bullet": "敌方弹幕", "nerve": "神经损伤", "corrode": "侵蚀", "zone": "黑潮", "mire": "溟痕",
 	"relic": "藏品代价", "shock": "冲击环", "wound": "侵蚀创口", "dark": "寂灭（灯火归零）"}
 const TAKEN_PREFIX := ["boss_", "atk_", "blast_", "contact_", "shock_"]
-const LAMP_NAMES := ["通明", "摇曳", "暗淡", "寂灭"]
 
 
 ## 对局 → 原始记录

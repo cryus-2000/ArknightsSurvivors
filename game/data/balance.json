@@ -828,9 +828,6 @@
   "solo_dmg": 0.1
  },
  "sustain": {
-  "_doc": "主控生命回复随探索时间提高（docs/82）。10-13 用户改设计：时间成长删掉，改成入队台阶（squad/regen_per_member，docs/83），regen_div 0 = 关（恒为 1）；保留旋钮可回退：300 / 480 = docs/82 定档（8:00 起 ×2.6）",
-  "regen_div": 0,
-  "regen_knee": 480,
   "_regen_card": "博士被动「自愈」每级加的生命回复（生命 / 秒；docs/83；10-28 用户「自愈的回血也得砍一点」0.6 → 0.4，满 5 张 +3.0 → +2.0；回复类卡权重 levelup/heal_weight 1.5 → 1.2、低血再乘 1.5 → 1.3，避免自愈被过度推送）",
   "regen_card": 0.4,
   "_base_regen_mult": "队长自带基础回复（干员 leader 段 regen）的倍率，缺省 1；不影响入队台阶、「自愈」、藏品。10-28 原 0.8 折进各干员 JSON 后回到 1（用户：图鉴显示与实际对不上）；属性页 / 图鉴同样乘它",
@@ -1068,8 +1065,7 @@
  "atkspeed": {
   "_doc": "整条攻击条按攻速等比缩放（用户 10-25「攻速高了动作跟不上，整个攻击条一起加速」）：动作窗口 = min(帧条时长, 出手间隔 × active_ratio)，前摇 / 出手帧 / 收势、动画播放都按它等比，不再被 attack_timing.min_duration / min_rest 与水月 min_cd 卡住，实际出手频率 = 面板攻速；min_window 只是防零长度的硬下限；动画播放倍率（帧条时长 ÷ 窗口）超过 anim_k_cap 后画面隔帧抽取（动作略跳帧，出手帧一定显示），判定时间轴照样按攻速缩短；legacy_floor = 1 恢复旧 min_duration / min_rest 下限（对照用）",
   "min_window": 0.03,
-  "anim_k_cap": 3.0,
-  "legacy_floor": 0
+  "anim_k_cap": 3.0
  },
  "synergy": {
   "_doc": "干员连携技（docs/160、docs/161）：on 总开关（0 = 完全不求值）；max_active 同时进行的连携条数；cd_mult 冷却倍率；dmg_mult 连携伤害倍率（云端校准用）",
@@ -1186,10 +1182,6 @@
   "declutter": 3,
   "_doc_late_read": "11-05 用户定缺省开：late_read = 1 但只开 v1 受伤红边（其余 s1 / s2 / s3 / v3 / v5 / v7 子项缺省 0；小队描边已删）。后期可读性第一批（docs/247，用户 11-05 批：只改画面、不改玩法和数值，render/late_read.gd）：总开关 late_read（0 关 = 与基准一致，1 开）；开时各项可用 late_read_<项>=0 单独关：v1 受伤红边按最近 1 秒承伤占最大生命（thr 0.03 / span 0.12 / pulse 0.12 / decay 2.5）；s1 小队脚底光池（pool_r 40 / pool_a 0.13；小队描边 11-05 用户定不要，已删；ol_hdr 1.35 只给放置物描边色）；s2 队长被敌方预警盖住：1 = 剪影，2 = 站在预警里的干员画到预警填充之上（缺省 2）；s3 放置物尺寸下限 + 我方色描边 + 0.8 秒呼吸、画到敌人之上（rmin 14 / breath 0.8 / rim_max 48 / hdr 1.6）；v3 降噪只压装饰层（v3_bloom 0 = 拥挤不削全屏辉光）；v7 普通怪受击最多 50% 混白（v7_a）；v5 我方主形 × (1 + v5_k 0.25 × (精英化 + 节点 / 4 × v5_lv_w 0.4))、经 fx_int_scale 取整、主形已 ≥ v5_cap 140 世界像素的不放大，精一起加厚 1 格",
   "late_read": 1, "late_read_s1": 0, "late_read_s2": 0, "late_read_s3": 0, "late_read_v3": 0, "late_read_v5": 0, "late_read_v7": 0,
-  "_hit_rings_doc": "干员攻击 / 技能命中的装饰圆圈（用户 10-13「艾雅法拉的攻击特效的圆圈可以不用加，保留火焰特效就可以；其余干员也是」，scripts/render/declutter.gd hit_rings）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过，主体特效（火焰 / 斩击 / 光弹 / 帧条）、持续区域边界、敌方预警、拾取 / 灯标范围不受影响；对照截图用 --bal=render/hit_rings=1",
-  "hit_rings": 0,
-  "_hit_spokes_doc": "干员命中 / 技能发动的放射线（用户 10-13 追加「向四周发散的直线一样的特效也删除」，scripts/render/declutter.gd hit_spokes）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过；连线、锁定线、预警射线、激光 / 光束不受影响。10-13 起 hit_rings 也管通用击杀 / 破绽小圆环。对照截图用 --bal=render/hit_spokes=1",
-  "hit_spokes": 0,
   "_pfx_cap": "干员粒子上层数量上限（docs/50 §15 D3，用户 10-14 批准，性能：稳定 60 帧）：全队上层的小粒子（光点 / 火花 / 碎片 / 光团 / 线 / 火舌、不循环的帧条）合计超过这个数时，按各干员的多少分摊、每人最旧的几个不画（快消失、最淡的那批）；只改绘制、粒子寿命不变。0 = 不封顶。characters/squad.gd _pfx_cap_plan",
   "pfx_cap": 30,
   "_camera_glance_doc": "镜头一瞥（用户 10-14 批准，game.gd camera_glance）：骑士入潮、10:00 寒冰重生时镜头从队长平滑扫向黑潮中心（0.35 秒）、停 0.6 秒、再平滑回到队长（0.35 秒）；只动镜头，不动模拟、输入与拾取回收，HUD 不动，暂停时冻结；目标已在视野中央（camera_glance_near × 半视野，缺省 0.6；0 = 一律做）以内时跳过。1 开（缺省），0 关（对照：--bal=render/camera_glance=0）",

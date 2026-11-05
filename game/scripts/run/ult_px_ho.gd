@@ -12,7 +12,6 @@ const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol
 
 const JADE := Color(0.345, 0.769, 0.671)        # #58c4ab
 const JADE_L := Color(0.706, 0.941, 0.886)      # #b4f0e2
-const JADE_D := Color(0.18, 0.54, 0.46)         # #2f8a76
 const AMBER := Color(0.949, 0.749, 0.298)       # #f2bf4c 暖金（精二点缀色）
 const STONE := Color(0.82, 1.02, 0.96)          # 贴图件着色：青绿灰（石尘、裂地、尘、碎石）
 const STONE_D := Color(0.5, 0.6, 0.57)

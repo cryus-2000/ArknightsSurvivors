@@ -12,8 +12,6 @@ const HW_ABYSS := Color(0.1, 0.12, 0.2)
 
 const HW_EDGE := Color(0.4, 0.62, 1.1)
 
-const HW_WATER := Color(0.45, 0.78, 1.0)
-
 const HW_BLOOD := Color(1.0, 0.25, 0.3)
 
 

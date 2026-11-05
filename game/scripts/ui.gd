@@ -501,19 +501,6 @@ static func ring(ci: CanvasItem, c: Vector2, rad: float, frac: float, col: Color
 		ci.draw_circle(c, rad - 2.0, Color(col.r, col.g, col.b, 0.14))
 
 
-## 声呐外框：暗色半透明圆 + 细白环 + 虚线十字
-static func porthole(ci: CanvasItem, c: Vector2, rad: float, _accent := CYAN) -> void:
-	ci.draw_circle(c, rad, Color(0.03, 0.035, 0.045, 0.62))
-	ci.draw_arc(c, rad, 0.0, TAU, 72, Color(1, 1, 1, 0.34), 1.0)
-	ci.draw_arc(c, rad * 0.64, 0.0, TAU, 56, Color(1, 1, 1, 0.1), 1.0)
-	for k in 4:
-		var d := Vector2.from_angle(k * PI / 2.0)
-		var s := 0.0
-		while s < rad - 4.0:
-			ci.draw_line(c + d * s, c + d * minf(s + 3.0, rad - 4.0), Color(1, 1, 1, 0.1), 1.0)
-			s += 7.0
-
-
 ## 图标光环（原作「选择支援」卡：细圆环 + 放射细线）；hot 时线更长更亮并带强调色外晕
 static func halo(ci: CanvasItem, c: Vector2, rad: float, col: Color, hot := false, a := 1.0) -> void:
 	if hot:
@@ -1243,7 +1230,6 @@ const C_L_SUB := Color(0.361, 0.376, 0.408)              # #5C6068
 const C_L_INV := Color(0.98, 0.98, 0.98)
 const C_D_BG := Color(0.059, 0.063, 0.075)               # #0F1013
 const C_D_PANEL := Color(0.102, 0.11, 0.129, 0.94)       # #1A1C21
-const C_D_SEL := Color(0.227, 0.204, 0.078)              # #3A3414
 const C_D_INK := Color(0.925, 0.933, 0.941)              # #ECEEF0
 const C_D_SUB := Color(0.573, 0.592, 0.627)              # #9297A0
 const C_D_INV := Color(0.059, 0.063, 0.075)

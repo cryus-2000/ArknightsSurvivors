@@ -269,10 +269,6 @@ func warn_resolve(w: Dictionary) -> void:
 	g.tele.warn_resolve(w)
 
 
-func draw_warns() -> void:
-	TeleDraw.draw_fills(g)
-
-
 ## 招式令牌（docs/49d：7:00 两只 Boss 共存时不同时放大招）：有名字的 Boss 招式登记预警时占用，until = 结算后 0.6 秒（telegraph.warn 调）
 func claim_token(e: Dictionary, until: float) -> void:
 	token_owner = e
@@ -300,6 +296,3 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 
 func _warn_resolve(w: Dictionary) -> void:
 	warn_resolve(w)
-
-func _draw_warns() -> void:
-	draw_warns()

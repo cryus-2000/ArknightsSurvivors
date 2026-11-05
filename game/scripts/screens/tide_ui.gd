@@ -20,7 +20,6 @@ const SEL_EDGE := Color8(60, 200, 228)   # 细青边
 const SEL_INK := Color8(10, 28, 52)      # 反白上的深藏青字
 const SEL_SUB := Color8(70, 92, 112)
 const SEL_IDX := Color8(24, 130, 160)
-const SEL_ICO2 := Color8(30, 150, 180)
 const FOAM := Color8(200, 255, 255)
 const TIDE_GLOW := Color8(90, 230, 255)
 const HALO := Color8(90, 200, 230)

@@ -312,11 +312,6 @@ func _volley(e: Dictionary, dir: Vector2, delay: float) -> void:
 			vw.kp_k = 2.0
 
 
-## 卡门 A · 狙击（保留）：1100 × 10 条纹细线，追踪 0.6 秒后锁定，总 1.2 秒；e.dmg × 2.6；不耗弹（她的三发留给环射）
-func _snipe(e: Dictionary, dir: Vector2) -> void:
-	_warn(e, "line", 1.2, {"ang": dir.angle(), "len": 1100.0, "wid": 10.0, "track": 0.6, "act": "shot", "name": "狙击", "col": Color(1.0, 0.85, 0.4), "dmg": e.dmg * 2.6})
-
-
 ## 卡门 · 封锁线（docs/142b §3.4，本作拟；取材 PRTS 弹药 3）：k = 这一轮第几枪（0–2），耗 1 发。
 ## 第一枪瞄主控（追踪 0.6、总 1.2）；一幕后两枪出手即锁定主控当时的位置、从本体两侧斜穿过去（boss_base._aim_fan，不追踪，总 1.0；10-25 用户「都要瞄准人打」）；
 ## 二幕第三枪垂直于第一枪、穿过主控当前位置（追踪 0.3、总 1.0）。结算画 Kanpelle 象牙白光束，然后留一条火线（_fire_step）

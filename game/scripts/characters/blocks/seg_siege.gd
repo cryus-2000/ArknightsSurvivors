@@ -584,9 +584,6 @@ static func _h4sg_draw_floor(o) -> void:
 		pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
 		cv.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, Color(2.2, 1.7, 0.7, 0.9 * fade), 5.0)
 		cv.draw_arc(Vector2.ZERO, w.r * 0.86, 0.0, TAU, 48, Color(H4_GOLD.r, H4_GOLD.g, H4_GOLD.b, 0.45 * fade), 2.0)
-		for q in (16 if Dc.hit_spokes() else 0):   # 狮鬃放射纹（render/hit_spokes 缺省不画），号令波环照画
-			var dv := Vector2.from_angle(q * TAU / 16.0)
-			cv.draw_line(dv * w.r * 0.75, dv * w.r, Color(2.0, 1.6, 0.7, 0.6 * fade), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -660,9 +657,6 @@ static func _h4sg_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			var c: Color = f.col
 			cv.draw_colored_polygon(PackedVector2Array([b + Vector2(-w, 0), b + Vector2(-w * 0.25, -H), b + Vector2(w * 0.25, -H), b + Vector2(w, 0)]), Color(c.r, c.g, c.b, 0.35 * a))
 			cv.draw_colored_polygon(PackedVector2Array([b + Vector2(-w * 0.35, 0), b + Vector2(-2, -H * 0.9), b + Vector2(2, -H * 0.9), b + Vector2(w * 0.35, 0)]), Color(2.2, 2.1, 1.6, 0.6 * a))
-			for q in (6 if Dc.hit_spokes() else 0):
-				var an: float = -PI / 2.0 + (q - 2.5) * 0.28
-				cv.draw_line(b + Vector2(0, -8), b + Vector2(0, -8) + Vector2.from_angle(an) * H * (0.6 + 0.08 * (q % 3)), Color(c.r, c.g, c.b, 0.5 * a), 2.0)
 			return true
 		"h4_spmote":
 			var k := 1.0 - a

@@ -154,10 +154,6 @@ static func tickets() -> int:
 	return int(Cfg.roster_tickets.get(T_HUNT, 0))
 
 
-static func pending_total() -> int:
-	return tickets()
-
-
 static func _rng() -> RandomNumberGenerator:
 	if Cfg.roster_seed == 0:
 		var r0 := RandomNumberGenerator.new()

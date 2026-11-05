@@ -665,8 +665,8 @@ func draw_pfx(floor_layer: bool) -> void:
 		if skip > 0 and pfx_cappable(f):
 			skip -= 1
 			continue
-		# 攻击 / 技能命中的装饰扩散环（render/hit_rings，缺省不画；keep 的升级 / 召唤 / 状态提示环照画）：只跳过绘制，粒子照常走完寿命
-		if f.kind == "ring" and not f.get("keep", false) and not Dc.hit_rings():
+		# 攻击 / 技能命中的装饰扩散环（10-13 用户删；keep 的升级 / 召唤 / 状态提示环照画）：只跳过绘制，粒子照常走完寿命
+		if f.kind == "ring" and not f.get("keep", false):
 			continue
 		# 后期特效密集时整体降透明度（render/world.gd 的 fx_dim，EA 1.1）；a 也传给干员自己的 _draw_pfx
 		var a: float = clampf(f.life / f.max, 0.0, 1.0) * g.world.fx_dim
@@ -1096,11 +1096,6 @@ func _dmg_bonus() -> float:
 
 # ---------------------------------------------------------------- 绘制（世界坐标，用 g.draw_*）
 
-## 角色脚下的技能表现
-func _draw_skill_floor() -> void:
-	pass
-
-
 ## 角色身上的技能表现
 func _draw_skill_over() -> void:
 	pass
@@ -1108,11 +1103,6 @@ func _draw_skill_over() -> void:
 
 ## 专属实体：地面层（触手桩 / 符阵等）
 func draw_entities_floor() -> void:
-	pass
-
-
-## 专属实体：角色之上（巨触等）
-func draw_entities_over() -> void:
 	pass
 
 
@@ -1396,17 +1386,6 @@ func downed_state(age: float) -> Dictionary:
 	return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror("death"), "kind": "death"}
 
 
-## 倒地播完的秒数（离队 fx 的寿命用）
-func downed_seconds() -> float:
-	var tx: Texture2D = anim_tex("death")
-	if tx == null:
-		return 0.0
-	var n: int = anim_hframes(tx, "death")
-	if sprite_spec("death").has("frame_durations"):
-		return frames_seconds("death", range(n))
-	return n / float(sprite_spec("death").get("fps", ANIM_FPS.death))
-
-
 func timed_frame(kind: String, frames: Array, elapsed: float, looping := false) -> int:
 	if frames.is_empty():
 		return 0
@@ -1530,8 +1509,8 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 		var timing: Dictionary = spec.attack_timing
 		dur = float(timing.duration)
 		if interval > 0.0:
-			# 整条攻击条按攻速等比缩短（balance.json atkspeed）：不再卡 attack_timing.min_duration，只留防零长度的硬下限；legacy_floor = 1 恢复旧下限
-			var floor_w: float = float(timing.get("min_duration", 0.0)) if BranchBal.v("atkspeed/legacy_floor", 0.0) > 0.0 else BranchBal.v("atkspeed/min_window", 0.03)
+			# 整条攻击条按攻速等比缩短（balance.json atkspeed）：不再卡 attack_timing.min_duration，只留防零长度的硬下限
+			var floor_w: float = BranchBal.v("atkspeed/min_window", 0.03)
 			dur = maxf(floor_w, minf(dur, interval * float(timing.active_ratio)))
 		fire_at = minf(float(timing.fire_time), dur * float(timing.windup_ratio))
 	attack_fire_at = fire_at

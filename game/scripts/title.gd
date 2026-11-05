@@ -1398,8 +1398,3 @@ func _compare_shot(spec: String) -> void:
 		out.save_png(_shot_dir() + "/shot_compare_%s.png" % cid)
 		get_tree().quit())
 
-
-## 寻访入口：有凭证且还有没招募的干员才能进（没有就灰显，不隐藏）
-func _hunt_ready() -> bool:
-	const R = preload("res://scripts/core/roster.gd")
-	return R.active() and R.tickets() >= R.COST_RANDOM and not R.locked_ids().is_empty()

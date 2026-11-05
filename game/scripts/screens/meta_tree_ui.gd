@@ -39,7 +39,6 @@ const LIT_GROW := 0.55
 ## 像素层颜色
 const C_LINE := Color8(170, 196, 228)    # 星座连线 / 标记圈
 const C_SAP := Color8(118, 238, 255)
-const C_DISC := Color8(10, 15, 22)
 const C_WHITE := Color8(238, 243, 246)
 const C_POOR := Color8(138, 150, 163)
 const C_LOCK := Color8(70, 82, 96)

@@ -95,7 +95,6 @@ const V6_FRAMES = A.V6_FRAMES
 enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
-const TILE := 32.0              # 地砖在世界中的尺寸
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 
 var ishar = IsharEncounter.new(self)
@@ -226,7 +225,6 @@ var flash := 0.0                 # 全屏闪光
 # ---------- 藏品带来的附加能力 ----------
 var grip := false
 var horde_log: Array = []          # 平衡测试：每次大群的统计
-var backlight := false
 
 var relics: Array = []
 
@@ -481,13 +479,6 @@ var perf_alt := false           # --perfab=N（仅测试）：autotest 每 N 帧
 ## 性能优化同局对照（docs/50 §11，仅测试）：--optab=N 每 N 帧在「新实现」与「旧实现」之间轮换；opt_old 是当前走旧实现的优化位（OPT_*），
 ## --optmask=<位> 只轮换其中几项（缺省全部）；--optold=<位> 整局固定走旧实现。正常游戏恒为 0（全走新实现）。各项新旧实现逐帧结果相同
 var opt_old := 0
-const OPT_GEM := 1        # 掉落物更新
-const OPT_GEMDRAW := 2    # 掉落物绘制
-const OPT_CLEANUP := 4    # 清理死亡实体
-const OPT_ENEMY := 8      # 敌人更新
-const OPT_DRAW := 16      # 其他绘制
-const OPT_OUTLINE := 32   # 普通怪 / 精英描边（docs/50 §12 A：新 = 不画；旧 = 照 fx/outline_max 满屏降级画）——会改画面，只供同局量帧时间
-const OPT_ATLAS := 64     # 普通怪 / 精英帧条图集（docs/50 §12 B：新 = 图集取帧；旧 = 各自的帧条贴图），画面相同
 const OPT_HUDB := 128     # HUD 合批（docs/50 §13）：旧实现已删（docs/101 S2，10-15），位保留不再选路
 const OPT_PICKB := 256    # 掉落物剩余断点合批（docs/50 §13：空中影子 / 特殊掉落的圈与光柱进三角形批、贴图成组），画面相同
 ## docs/50 §14 脚本热点（画面、玩法不变）：
@@ -2344,13 +2335,6 @@ func _draw() -> void:
 ## ② 开局前 25 秒（直到第一次冲刺为止）主控头顶浮一行「按 空格 冲刺」。触屏有自己的冲刺按钮，不画这两样
 var dash_used := false
 
-
-## 旧名转发（docs/101 S6，2026-10-15 改公开名）：tests/ 与未合入的分支还在调旧名，各分支合完后删
-func _lamp_r() -> float:
-	return lamp_r()
-
-func _shuffle(a: Array) -> void:
-	shuffle(a)
 
 func _check_pending() -> void:
 	check_pending()

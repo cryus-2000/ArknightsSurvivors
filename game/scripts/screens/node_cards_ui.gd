@@ -24,7 +24,6 @@ const TINT := {
 	"elite": [Color(0.19, 0.04, 0.08), Color(0.07, 0.01, 0.03)],
 	"fog": [Color(0.11, 0.12, 0.15), Color(0.04, 0.045, 0.06)],
 }
-const ROMAN := {"standard": "Ⅰ", "knight": "Ⅱ", "deep": "Ⅲ", "resolve": "Ⅳ"}
 ## C 版信物提示（Codex 交付 art/archive/incoming_1028/node_route_c_delivery_1026，用户 10-26 定稿）：结局入口卡底放该路线的现有信物图标（32×32，原色）+ 信物名，
 ## 中心距 80；只画已达成过的结局（未知路线不泄露）；图标只是路线提示，不是奖励承诺也不是持有状态
 const ROUTE_RELIC := {"knight": "222", "deep": "220", "resolve": "242"}
@@ -377,45 +376,6 @@ static func draw_route_names(ci: CanvasItem, cr: Rect2, ends: Array, alpha: floa
 	for q in ends.size():
 		var e: String = str(ends[q])
 		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), ROUTE_NAME.get(e, ""), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
-
-
-static func _ending_edge(ci: CanvasItem, r: Rect2, cols: Array, ends: Array, now: float, a: float, font: Font) -> void:
-	var w := r.size.x
-	var bw := P * 2.0
-	if cols.size() == 1:
-		step_line(ci, r.grow(-bw * 0.5), Color(cols[0].r, cols[0].g, cols[0].b, a), bw)
-	else:
-		var hw := w / 2.0
-		for side in 2:
-			var cc: Color = cols[side]
-			var x0 := r.position.x + side * hw
-			ci.draw_rect(Rect2(x0 + (P * STEPS if side == 0 else 0.0), r.position.y, hw - P * STEPS, bw), Color(cc.r, cc.g, cc.b, a))
-			ci.draw_rect(Rect2(x0 + (P * STEPS if side == 0 else 0.0), r.end.y - bw, hw - P * STEPS, bw), Color(cc.r, cc.g, cc.b, a))
-			ci.draw_rect(Rect2(r.position.x + side * (w - bw), r.position.y + P * STEPS, bw, r.size.y - 2.0 * P * STEPS), Color(cc.r, cc.g, cc.b, a))
-	# 跑动高光：周长上一段 40 像素的亮段
-	var per := 2.0 * (r.size.x + r.size.y)
-	var s := fposmod(now * 160.0, per)
-	for k in 10:
-		var d := fposmod(s + k * 4.0, per)
-		var p := Vector2.ZERO
-		if d < w:
-			p = Vector2(r.position.x + d, r.position.y)
-		elif d < w + r.size.y:
-			p = Vector2(r.end.x - bw, r.position.y + d - w)
-		elif d < 2.0 * w + r.size.y:
-			p = Vector2(r.end.x - (d - w - r.size.y), r.end.y - bw)
-		else:
-			p = Vector2(r.position.x, r.end.y - (d - 2.0 * w - r.size.y))
-		ci.draw_rect(Rect2(p, Vector2(bw, bw)), Color(1, 1, 1, 0.08 * k * a))
-	# 徽记：顶边中央暗底小牌，写通向的结局罗马数字
-	var txt := " ".join(ends.map(func(e): return ROMAN.get(e, "")))
-	var tw := float(maxi(1, ends.size())) * 30.0 + 18.0
-	var tr := Rect2(Vector2(r.get_center().x - tw / 2.0, r.position.y + 8.0), Vector2(tw, 30.0))   # 放在卡内顶边：手机上卡片紧贴标题，跨边会压字
-	ci.draw_colored_polygon(step_poly(tr, 2, 3.0), Color(0.02, 0.04, 0.07, 0.97 * a))
-	for k in ends.size():
-		var cc: Color = cols[mini(k, cols.size() - 1)]
-		ci.draw_rect(Rect2(tr.position.x + 9.0 + k * 30.0, tr.end.y - 6.0, 30.0, 3.0), Color(cc.r, cc.g, cc.b, a))
-		UI.ctext(ci, font, Vector2(tr.position.x + 9.0 + k * 30.0, tr.position.y + 21.0), ROMAN.get(ends[k], ""), 19, Color(cc.r, cc.g, cc.b, a), HORIZONTAL_ALIGNMENT_CENTER, 30.0)
 
 
 ## 正面：顶部类型色带（图标 + 节点名）、标题（衬线）、说明；正文自上而下显出，开头迸一圈像素颗粒

@@ -25,7 +25,6 @@ var press_at := -1.0
 var press_state := 0        # 0 未按 / 1 已按等结果 / 2 已打印第一次 / 3 已按第二次 / 4 完成
 var press_frame := 0
 var press_info := {}
-var rec_segs: Array = []
 var rec_i := -1
 var rec_frame := 0
 var perf_dur := 12.0

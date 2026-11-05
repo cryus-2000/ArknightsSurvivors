@@ -162,11 +162,6 @@ static func _strip(r, a: Vector2, b: Vector2, width: float, c: Color) -> void:
 	var n := (b - a).normalized().orthogonal() * width * 0.5
 	r.tb_quad(_snap(a - n), _snap(b - n), _snap(b + n), _snap(a + n), c)
 
-static func _facet(r, pts: Array, c: Color) -> void:
-	var snapped := PackedVector2Array()
-	for p in pts: snapped.append(_snap(p))
-	r.tb_poly(snapped, c)
-
 static func _ring(r, p: Vector2, radius: float, gy: float, width: float, c: Color, a0 := 0.0, a1 := TAU, broken := false) -> void:
 	var count: int = clampi(ceili(radius * (a1 - a0) / 10.0), 12, 150)
 	for i in count:

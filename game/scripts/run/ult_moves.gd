@@ -15,7 +15,6 @@ const MB = preload("res://scripts/run/ult_moves_b.gd")   # 斯卡蒂 / 歌蕾蒂
 const MC = preload("res://scripts/run/ult_moves_c.gd")   # 塞雷娅 / 铃兰 / 逻各斯 / 星熊 / 推进之王 / 艾丽妮 / 拉普兰德 / 流明
 
 const POINT_OPS := ["texas", "kaltsit", "ulpianus"]
-const AUTO_OPS := ["exusiai", "skalter"]
 const COL_SK_RED := Color(0.78, 0.06, 0.14)
 const COL_SK_TEAL := Color(0.25, 0.95, 0.82)
 const COL_STEEL := Color(0.72, 0.8, 0.9)

@@ -910,10 +910,6 @@ func by_id(id: int):
 	return _by_id.get(id)
 
 
-func slot_count() -> int:
-	return _slot_n
-
-
 ## 去掉已死的敌人并回收槽位，返回新数组（顺序不变，与原来的 arr.filter(not dead) 等价；每次都返回新数组，种类登记照旧据此重建）
 func sweep_dead(arr: Array) -> Array:
 	var keep: Array = []

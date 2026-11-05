@@ -1,7 +1,4 @@
 extends RefCounted
-## 界面 · HUD 提示与指示（2026-10-10 从 hud.gd 拆出，docs/55 §6）：主控身边的僵直 / 挣脱提示、商人 / Boss / 灯标的屏外指示、
-## 全场地波、黑潮警告与方向提示、横幅通知与小字通知、开局提示、冲刺提示。触屏分支原样保留。
-const Bars = preload("res://scripts/screens/hud_bars.gd")   # Bars.BOSS_BARS_MAX
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")

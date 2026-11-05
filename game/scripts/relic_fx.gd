@@ -63,7 +63,6 @@ var wrath_q: Array = []    # 岁怒：待引爆的位置（下一帧结算，避
 var shatter := 0           # 碎靶之手：术师命中叠层
 var shatter_t := 0.0       # 最近一次术师命中的时间
 var coin_q: Array = []     # 古高卢银币：{t, op} 技能结束时给该干员回技力
-var dust_t := 0.0          # 净尘之手计时
 var overheal := 0.0        # 食腐者手杖：累计溢出回复
 var overheal_t := 0.0
 var home_pos := Vector2.INF   # 遥乡之引：区域中心

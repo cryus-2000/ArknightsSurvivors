@@ -1291,7 +1291,6 @@ func levelup_burst(pos: Vector2) -> void:
 ## （10-31 起不画脚底尘浪环；fx_ul_dust_ring 只用来判定终结技框架的贴图在不在）。开关 fx/levelup_v2（缺省 1），
 ## 终结技框架（g.ult，借它的帧条 / 光照）关着时返回 false，调用方退回旧版。纯画面，随机只走 g.vrng（光尘）与哈希
 const LVUP_GOLD := Color(1.0, 0.86, 0.5)
-const LVUP_CYAN := Color(0.55, 0.95, 1.0)
 
 
 func levelup_burst_v2(pos: Vector2) -> bool:

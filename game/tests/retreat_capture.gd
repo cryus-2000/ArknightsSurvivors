@@ -1,5 +1,5 @@
 extends Node
-## 共用撤退表现录像（10-21，render/retreat_fx.gd）：开局编队 → 第 20 帧换下一名队友（离队撤退）→ 第 70 帧队长倒下，逐帧截图。
+## 共用撤退表现录像（10-21，squad.remove 撤退表现）：开局编队 → 第 20 帧换下一名队友（离队撤退）→ 第 70 帧队长倒下，逐帧截图。
 ##   godot --path game --fixed-fps 30 res://tests/retreat_capture.tscn -- --op=wisadel --squad=suzuran,skadi --shot_dir=<目录>
 ## 不刷怪、不改存档。新旧对比时在旧提交上跑同一脚本。
 

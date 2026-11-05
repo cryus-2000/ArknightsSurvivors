@@ -38,13 +38,6 @@ func update(dt: float) -> void:
 		g.vfx.show_banner("商人离开了")
 
 
-## 商人倒计时颜色：最后 15 秒红色闪烁
-func merchant_col() -> Color:
-	if g.merchant.is_empty() or g.merchant.life > 15.0:
-		return UI.GOLD
-	return UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(g.t * 8.0))
-
-
 ## 后两拨涨价；本次每成交一件，其余货品递增。折扣仍由藏品层统一提供。
 func price_mult() -> float:
 	var visit: int = clampi(g.merchant_idx, 1, 3)

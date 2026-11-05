@@ -334,10 +334,6 @@ func _m3_head(s: Dictionary) -> float:
 	return (float(tx.get_height()) - float(dt[2]) - float(_top_rows[tx])) * pk - float(dt[4])
 
 
-func m3_low(s: Dictionary) -> bool:
-	return bool(_m3_low.get(int(s.id), false))
-
-
 func _draw_m3_overhead(vs: Vector2) -> void:
 	var es: Array = M3.entries(g)
 	if es.is_empty():
