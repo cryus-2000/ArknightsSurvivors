@@ -179,9 +179,11 @@ def land(tier, mode, z):
                 top = sy * SQ - sl * (1.0 - 0.25 * k)
                 for y in range(int(top), int(sy * SQ) + 1):
                     u = (y - top) / max(1, sy * SQ - top)
-                    f.put(sx, y, V[7] if k <= 1 or u > 0.55 else (V[6] if k == 2 else V[5]))
-                    if k == 0:
+                    f.put(sx, y, V[7] if k <= 2 or u > 0.55 else V[6])
+                    if k <= 1:
                         f.put(sx + 1, y, V[6] if u > 0.3 else V[5])
+                    elif k == 2 and u > 0.4:
+                        f.put(sx + 1, y, V[5])
                 if k == 0:
                     f.put(sx - 1, sy * SQ - 1, V[5])
                     f.put(sx + 1, sy * SQ - 1, V[5])
@@ -197,10 +199,10 @@ def land(tier, mode, z):
                 for y in range(-1, 2):
                     f.put(x, -12 + y, V[7])
         elif k == 2:
-            _star(f, L * 0.35, [V[6], V[5], V[4]], 4, sd, 1.0, -12)
-            for x in range(-2, 3):
-                for y in range(-2, 3):
-                    if abs(x) + abs(y) <= 2:
+            _star(f, L * (0.5 if s1 else 0.35), [V[7], V[6], V[5], V[4]] if s1 else [V[6], V[5], V[4]], 4, sd, 1.4 if s1 else 1.0, -12)
+            for x in range(-3, 4):
+                for y in range(-3, 4):
+                    if abs(x) + abs(y) <= (3 if s1 else 2):
                         f.put(x, -12 + y, V[7])
         elif k <= 4:
             r0 = 2 if k == 3 else 1
