@@ -1,0 +1,39 @@
+{
+ "op": "skadi",
+ "mode": "atk",
+ "frame": 3,
+ "engine": 62,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 25,
+ "skill": 0,
+ "parts_total": 113,
+ "parts_per_hit": 4.5,
+ "parts_per_s": 22.6,
+ "parts_s1_1s": null,
+ "mats": {
+  "ink": 113
+ },
+ "life": 0.9,
+ "sz": 4.9,
+ "alive_max": 25,
+ "lights": 27,
+ "lights_per_hit": 1.08,
+ "light_r": 90.0,
+ "light_i": 0.41,
+ "light_life": 0.12,
+ "emit_max": 333,
+ "emit_mean": 156.6,
+ "gl_peak": 249.5,
+ "gl_area_hit": 15070,
+ "gl_mean_hit": 48.0,
+ "em_peak": 249.0,
+ "em_area_hit": 17443,
+ "em_mean_hit": 47.4,
+ "crop": [
+  559,
+  257,
+  320,
+  180
+ ]
+}
