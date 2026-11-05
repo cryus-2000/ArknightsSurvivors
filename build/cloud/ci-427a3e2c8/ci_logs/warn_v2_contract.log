@@ -1,0 +1,12 @@
+# warn_v2_contract
+# 参数：--headless --path /work/repo/game --script res://tests/warn_v2_contract.gd
+# 用时 3 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+WARN_V2_CONTRACT PASS
+
+
+## stderr
+
