@@ -23,6 +23,7 @@ const LINK_T2 := 0.25      # 追向敌人
 var r      # fx_pxplane 实例
 var g
 var _beat := {}
+var _last := {}      # 限频：上一次挂命中灯的时刻
 var _seg = null
 var _ring_key := ""
 var _ring_px: Array = []
@@ -82,12 +83,17 @@ func _on_lead(o, k: String, ly: String) -> void:
 	r._push({"k": "sz_" + k, "t0": g.t, "gp": Pxp._snap(g.ppos), "flip": false, "ly": ly, "oid": str(o.id), "fol": Vector2.ZERO, "sk": 1.0})
 
 
+## 命中：小火苗 + 小火环每处都画；照地灯与颗粒按时间限频（docs/270 §3 上限：普攻一簇灯 ≤ 2、颗粒 ≤ 12，爆发灯 ≤ 3）——
+## 精二大狐火一次贯穿一串、全力以赴五发同时到，GCP 体检（render-suzuran-1105b）一簇灯 6 盏、颗粒 18–21 颗，超上限
 func _pop(o, R, p: Dictionary, e: Dictionary, li: float, gn: int) -> void:
 	var ep: Vector2 = e.pos
 	_up(o, "hit_up", ep, ep.y + 1.0)
 	_gd(o, "hit_gd", ep)
-	R._light(o, ep + Vector2(0, -12), 90.0, li, 0.12, p.light)
-	R._grains(o, ep + Vector2(0, -12), ep.y + 2.0, "flame", gn, {})
+	var lit: bool = g.t - float(_last.get("hl", -9.0)) >= 0.12
+	if lit:
+		_last["hl"] = g.t
+		R._light(o, ep + Vector2(0, -12), 90.0, li, 0.12, p.light)
+	R._grains(o, ep + Vector2(0, -12), ep.y + 2.0, "flame", gn if lit else 1, {})
 
 
 # ================================================================ 事件
