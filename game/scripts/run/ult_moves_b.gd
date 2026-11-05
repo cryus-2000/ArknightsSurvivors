@@ -1526,16 +1526,16 @@ static func _wd_start(u, o, d: Vector2) -> Dictionary:
 		shells.append({"ps": row, "t": t0 + gap * float(k), "done": false, "after": false})
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
-	var col: Color = u._col(o)
+	var col: Color = WD_RED if _wdc() else u._col(o)
 	# 落点预兆：每发一圈细红环 + 天上落下的炮弹拖线
 	for k in shells.size():
 		var sh: Dictionary = shells[k]
 		for p in sh.ps:
 			_ring(u, p, rr * 0.5, rr * 0.5, col, float(sh.t) + 0.05, 2.0)
-			u.shape({"kind": "line", "a": p + Vector2(-90, -520), "b": p + Vector2(-60, -350), "w": 6.0, "col": Color(1.0, 0.85, 0.6), "life": 0.1,
+			u.shape({"kind": "line", "a": p + Vector2(-90, -520), "b": p + Vector2(-60, -350), "w": 6.0, "col": WD_HOT if _wdc() else Color(1.0, 0.85, 0.6), "life": 0.1,
 				"delay": float(sh.t) - 0.1, "v": Vector2(60, 350) / 0.1})
 	# 炮口：她身前一团火光
-	u.strip("fx_cannon_burst", o.pos + d * 40.0 + Vector2(0, -20), {"sc": 2.0})
+	u.strip("fx_cannon_burst_br" if _wdc() and u.fx_ready("fx_cannon_burst_br") else "fx_cannon_burst", o.pos + d * 40.0 + Vector2(0, -20), {"sc": 2.0})
 	return {"d": d, "n": n, "o0": o.pos, "hw": hw, "rr": rr, "shells": shells, "mseg": {}, "aseg": {}, "delay": Bal.v("ult/wd_after_t", 0.35),
 		"ember": rt == "ash", "main": 0.6 if rt == "mark" else Bal.v("ult/wd_main", 0.7), "no_ring": true}
 
@@ -1547,7 +1547,7 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 	var o0: Vector2 = a.o0
 	var hw: float = a.hw
 	var rr: float = a.rr
-	var col: Color = u._col(o)
+	var col: Color = WD_RED if _wdc() else u._col(o)
 	var dl: float = a.delay
 	var all_done := true
 	for k in a.shells.size():
@@ -1567,19 +1567,19 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 					var bdl: float = 0.14 * PF.h(hp2 * 41.0)   # 画面起爆错开一点（判定不变），预审报网格齐爆重复
 					# 用户 10-30「跟原本的特效风格不一致、缺少高光」：主体回到她自己的红色尖晶爆裂帧条，只加随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；
 					# 「蓝环可以去掉」→ fx_wd_cannon = fx_wisadel_cannon 去掉蓝色像素
-					u.strip("fx_wd_cannon" if u.fx_ready("fx_wd_cannon") else "fx_wisadel_cannon", pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0,
+					u.strip("fx_wd_cannon_br" if _wdc() and u.fx_ready("fx_wd_cannon_br") else ("fx_wd_cannon" if u.fx_ready("fx_wd_cannon") else "fx_wisadel_cannon"), pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0,
 						"delay": 0.0 if k == 0 else bdl, "hf": k == 0})
 					if _wd_v3() and PF.h(hp2 * 59.0) < 0.6:   # 逐帧烟尘（焦灰带一点红），约六成炮弹，往远离她的方向飘
-						PF.dust(u, pv + Vector2.from_angle(hp2 * TAU) * rr * 0.3, 190.0 * rk, bdl + 0.06, hp2 * 70.0, (pv - o0).normalized() * 50.0, Color(1.0, 0.82, 0.78))
+						PF.dust(u, pv + Vector2.from_angle(hp2 * TAU) * rr * 0.3, 190.0 * rk, bdl + 0.06, hp2 * 70.0, (pv - o0).normalized() * 50.0, WD_DUST if _wdc() else Color(1.0, 0.82, 0.78))
 					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
 						"col": Color(1.0, 0.75, 0.72), "col1": Color(0.6, 0.55, 0.55), "cold": 0.6})   # 弹坑是焦黑地面，只带一点红余烬（整片染红会糊满屏）
 					if hp2 < 0.35:   # 粒子圆团每发都放会排成一格格（预审报重复），只给约三分之一的炮弹、缩小
-						PF.particles(u, pv, 60, "ult_burst_s", [Color(0.95, 0.1, 0.1)], bdl, hp2 * 50.0, rr * 0.7 * rk)
+						PF.particles(u, pv, WD_PARTS if _wdc() else 60, "ult_burst_s", [WD_SPARK if _wdc() else Color(0.95, 0.1, 0.1)], bdl, hp2 * 50.0, rr * 0.7 * rk)
 				else:
 					u.strip("fx_wisadel_cannon", p, {"sc": 1.9})
 					u.shape({"kind": "circle", "c": p, "r": rr, "col": Color(1.0, 0.55, 0.3), "fill": 0.35, "life": 0.22})
 					_ring(u, p, rr, 30.0, Color(1.0, 0.75, 0.55), 0.28, 9.0)
-				_spray(u, p, 6, 30.0, 520.0, Color(1.0, 0.6, 0.3), 0.3, 0.5 * float(k))
+				_spray(u, p, 6, 30.0, 520.0, WD_SPARK if _wdc() else Color(1.0, 0.6, 0.3), 0.3, 0.5 * float(k))
 				for e in u.in_circle(p, rr):
 					if a.mseg.has(int(e.id)):
 						continue
@@ -1621,6 +1621,20 @@ static func _wd_v3() -> bool:   # 打击感（10-31，pixfx §6.6）：第一排
 
 static func _wd_v2(u) -> bool:
 	return Bal.v("ult/wd_fx_v2", 1.0) > 0.0 and u.fx_ready("fx_ws_crater")
+
+
+## 只改颜色（docs/274 §8，11-06 用户「更喜欢原版」）：开关 ult/px_plane_wisadel（缺省 0）。画面、节奏、体量、音效全部同原版，
+## 只把颜色对齐到普攻 / 技能定稿的黑红（偏橙血红 + 亮橙红热芯 + 带红的近黑，紫色去掉）：爆裂 / 炮口帧条换 tools/ult_wd_recolor.py 重配色的 _br 版，
+## 预兆环、天降拖线、尘、火星、粒子改同一套色；防闪眼：每发粒子团 60 → WD_PARTS。纯画面，不碰判定 / 时序 / 随机数
+const WD_RED := Color("#c41e18")
+const WD_HOT := Color("#ffa868")
+const WD_SPARK := Color("#f04a24")
+const WD_DUST := Color(0.95, 0.72, 0.68)
+const WD_PARTS := 36
+
+
+static func _wdc() -> bool:
+	return Bal.v("ult/px_plane_wisadel", 0.0) > 0.0
 
 
 # ================================================================ 归溟幽灵鲨（§4.11）：巨锯放大、围着她转 3 秒，跟着队长走；期间不倒、受到的伤害 −50%
