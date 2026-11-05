@@ -1,0 +1,24 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4226 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('angelina', 2, 120, [])
+局 ('angelina', 3, 120, [])
+局 ('exusiai', 2, 120, [])
+局 ('exusiai', 3, 120, [])
+局 ('eyjafjalla', 2, 120, [])
+局 ('eyjafjalla', 3, 120, [])
+局 ('gladiia', 2, 120, [])
+局 ('gladiia', 3, 120, [])
+局 ('hoshiguma', 2, 120, [])
+局 ('hoshiguma', 3, 120, [])
+招牌帧 build/cloud/render-ultinv-integ-c4/media/angelina_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/angelina_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/exusiai_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/exusiai_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/eyjafjalla_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/eyjafjalla_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/gladiia_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/gladiia_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/hoshiguma_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c4/media/hoshiguma_atk.png
+media：10 个文件，9.5M

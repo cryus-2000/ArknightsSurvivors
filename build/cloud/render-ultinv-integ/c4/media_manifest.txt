@@ -1,0 +1,10 @@
+992430	angelina_atk.png
+994308	angelina_s3.png
+988244	exusiai_atk.png
+995246	exusiai_s3.png
+994239	eyjafjalla_atk.png
+1000376	eyjafjalla_s3.png
+993528	gladiia_atk.png
+994606	gladiia_s3.png
+989359	hoshiguma_atk.png
+987390	hoshiguma_s3.png

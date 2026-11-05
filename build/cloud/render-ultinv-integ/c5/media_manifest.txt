@@ -1,0 +1,10 @@
+983332	irene_atk.png
+983744	irene_s3.png
+993344	logos_atk.png
+1014629	logos_s3.png
+992135	lumen_atk.png
+992260	lumen_s3.png
+983914	mizuki_atk.png
+999368	mizuki_s3.png
+996867	saria_atk.png
+988279	saria_s3.png

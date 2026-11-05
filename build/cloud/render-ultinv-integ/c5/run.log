@@ -1,0 +1,24 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4226 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('irene', 2, 120, [])
+局 ('irene', 3, 120, [])
+局 ('logos', 2, 120, [])
+局 ('logos', 3, 120, [])
+局 ('lumen', 2, 120, [])
+局 ('lumen', 3, 120, [])
+局 ('mizuki', 2, 120, [])
+局 ('mizuki', 3, 120, [])
+局 ('saria', 2, 120, [])
+局 ('saria', 3, 120, [])
+招牌帧 build/cloud/render-ultinv-integ-c5/media/irene_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/irene_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/logos_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/logos_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/lumen_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/lumen_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/mizuki_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/mizuki_atk.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/saria_s3.png
+招牌帧 build/cloud/render-ultinv-integ-c5/media/saria_atk.png
+media：10 个文件，9.5M
