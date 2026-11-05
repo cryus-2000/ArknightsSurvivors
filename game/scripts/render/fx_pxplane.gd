@@ -1221,6 +1221,14 @@ func _lm_raw(o, k: String, at: Vector2, rot: float, sc: float) -> void:
 	_push({"k": "lm_" + k, "t0": g.t, "gp": at, "ly": "raw", "rot": rot, "sc": sc, "oid": str(o.id)})
 
 
+## 技能起手的照地光晚一拍（1/15 秒）亮：沐雨 / 沛霖 / 灯火不灭的帧条第 0 拍几乎是空的、主形第 1 拍才出来，发光层又晚一帧显示；
+## 光若在施放那一帧就最亮，会比主形先到（光感体检 docs/270 量到的就是「有光没芯」那一帧）。走 fx_recipe 同一个灯表，只是起点挪后
+func _lm_light_beat(R, o, at: Vector2, r: float, inten: float, col: Color) -> void:
+	R.lights.append([at, r, col, g.t + 1.0 / 15.0, 0.15, inten, str(o.id)])
+	if R.lights.size() > 32:
+		R.lights.pop_front()
+
+
 func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
 	var px: float = g.PX
 	match kind:
@@ -1234,6 +1242,8 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 			_lm_up(o, ("hits_e%d_up" if small else "hit_e%d_up") % t, at, float(e.pos.y) + 1.0, false, e)
 			if not small:
 				_lm_gd(o, "hit_e%d_gd" % t, e.pos + Vector2(0, 2))
+				# 命中亮芯（光感体检 docs/270：普攻命中帧发光核心只有 14 < 30）：水花的白芯只在第 0 拍，这里在命中点另挂 3 拍亮芯进发光层，跟着被打的那只
+				_push({"rt": "hcore", "e": e, "a": at, "t": t, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(e.pos.y) + 1.5, "oid": str(o.id), "k": ""})
 			_burst(o, R, p, at, float(e.pos.y) + 2.0, [e], (1 if small else 2) + t, 60.0 + 15.0 * t, 0.3 + 0.1 * t)
 		"lm_refract":   # 精一折光：命中点到下一只之间一道 1 美术像素白芯细光，落点小水花
 			var a: Vector2 = d.a
@@ -1357,7 +1367,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_gd(o, "drizzle_e%d_gd" % t, lp, true)
 				_lm_up(o, "drizzle_e%d_up" % t, lp, lp.y + 1.0, true)
-				R._light(o, lp + Vector2(0, -20), 150.0, 0.45 + 0.1 * t, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -20), 150.0, 0.45 + 0.1 * t, p.light)
 			elif i == 1:   # 沛霖：头顶水柱砸下（精二三道）+ 落点湿痕
 				var tt: int = maxi(t, 1)
 				if raw:
@@ -1365,7 +1375,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_up(o, "downpour_e%d_up" % tt, lp, lp.y + 1.0, true)
 				_lm_gd(o, "downpour_e%d_gd" % tt, lp, true)
-				R._light(o, lp + Vector2(0, -20), 130.0, 0.6, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -20), 130.0, 0.6, p.light)
 				R._grains(o, lp + Vector2(0, -24), lp.y, "ink", 3 + 2 * tt, {"tier": tt})
 			elif i == 2:   # 灯火不灭起手：头顶四芒灯光 + 水流卷上去；光圈原地亮起
 				if raw:
@@ -1373,7 +1383,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 					return
 				_lm_up(o, "s3open_up", lp, lp.y + 1.0, true)
 				_lm_gd(o, "s3open_gd", lp, true)
-				R._light(o, lp + Vector2(0, -96), 160.0, 0.7, 0.15, p.light)
+				_lm_light_beat(R, o, lp + Vector2(0, -96), 160.0, 0.7, p.light)
 
 
 ## 同一名干员这一拍（1/15 秒）已出的某类件数（额外弹命中 / 连锁），超过上限就不再加画面
@@ -1519,6 +1529,28 @@ func _lm_draw_rt(ci, it: Dictionary) -> void:
 			_lm_bolt(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, tier(it.o), false, true)
 		"wbeam":
 			_lm_draw_wbeam(ci, it.o, it.bb)
+		"hcore":   # 命中亮芯：第 0 拍 3×3 + 十字臂、第 1 拍 3×3、第 2 拍中心 + 四点；每点 1 美术像素白芯并进 emit（精二中心一点灯火橙）
+			var fh: int = frame_of(float(it.t0))
+			if fh < 0 or fh > 2:
+				return
+			var e: Dictionary = it.e
+			var c: Vector2 = (e.pos + Vector2(0, -float(e.r) * 0.5)) if not e.get("dead", false) else (it.a as Vector2)
+			var pts: Array = []
+			if fh <= 1:
+				for yy in [-1, 0, 1]:
+					for xx in [-1, 0, 1]:
+						pts.append(Vector2(xx, yy))
+				if fh == 0:
+					pts.append_array([Vector2(2, 0), Vector2(-2, 0), Vector2(0, 2), Vector2(0, -2), Vector2(3, 0), Vector2(-3, 0)])
+			else:
+				pts = [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]
+			for q in pts:
+				var pp: Vector2 = c + q * px
+				var col: Color = C[6] if (fh == 0 or (q as Vector2).length() < 1.5) else C[5]
+				if int(it.t) >= 2 and q == Vector2.ZERO and fh <= 1:
+					col = LM_AC
+				_px(ci, pp, col)
+				_glow(pp, C[6] if col != LM_AC else LM_AC)
 		"cbolt":   # 连携技「清创光弹」：提灯到队长胸口飞 travel 秒，大一号、不分档（尾 18 格 + 两格宽芯 + 灯火橙芯）
 			var u: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.life)), 0.0, 1.0)
 			var ca: Vector2 = it.a
@@ -1557,8 +1589,13 @@ func _lm_bolt(ci, pos: Vector2, vel: Vector2, t: int, big: bool, unit: bool, lin
 			_px(ci, head + dv2 * px * float(dd + 1), cc)
 			_px(ci, head + nv2 * px * float(dd), cc)
 			_px(ci, head - nv2 * px * float(dd), cc)
-	_glow(head, C[6])
-	_glow(head - dv2 * px, C[5])
+	if unit:
+		_glow(head, C[6])
+		_glow(head - dv2 * px, C[5])
+	else:   # 主弹弹头一团 3×3 亮芯进发光层（光感体检 docs/270：发光层晚一帧显示，命中那一帧亮的是弹头上一帧留下的辉光，2 点太弱）
+		for yy in [-1, 0, 1]:
+			for xx in [-1, 0, 1]:
+				_glow(head + Vector2(xx, yy) * px, C[6] if absi(xx) + absi(yy) <= 1 else C[5])
 
 
 ## 灯塔守望光束（11-05 用户「流明那个光束得重新做一下」；原来是贴地光扇、两道边带缺口——又碎又平、不亮）。
