@@ -1,5 +1,6 @@
 # 00 · 文档索引
 
+- [287_standard_up_1106](287_standard_up_1106.md)：已实施；普通难度略微调高，`difficulty/standard/enemy_hp` 1.08 → 1.14，GCP 对照 m18 76 → 70、m0 54.5 → 53。
 - [285_web_shrink_1106](285_web_shrink_1106.md)：方案，待审；319b5de4b 网页包 51.07 MiB 拆账（涨在 pxp 转平面帧条 +8.5）与压缩方案，含无损 2.0 MiB + 有损选项。
 - [282_bond_non_numeric](282_bond_non_numeric.md)：设计稿，待审；8 条羁绊的数值盘点 + 每条 2–3 个玩法差异方案与推荐。
 - [283_mid_boss_visibility](283_mid_boss_visibility.md)：设计稿，待审；中期 Boss 不显眼的诊断（体型与精英相同）与改法，不加弹幕提示。
