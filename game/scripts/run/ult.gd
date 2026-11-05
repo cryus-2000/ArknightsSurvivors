@@ -15,6 +15,7 @@ const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
+const TXP = preload("res://scripts/run/ult_px_tx.gd")   # 德克萨斯终结技转平面加强（docs/257 §9，ult/px_plane_texas；只画）
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，同开关；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
@@ -1466,6 +1467,8 @@ func draw_world(w) -> void:
 		IRP.of(g).draw_front(self, w)   # 艾丽妮「宣判」转平面：光链 / 斩线 / 爆 / 收尾斩击（docs/275）
 	if SDP.on():
 		SDP.of(g).draw_front(self, w)   # 斯卡蒂「斩浪」转平面：立起层（docs/246 §16）
+	if TXP.on():
+		TXP.of(g).draw_front(self, w)   # 德克萨斯终结技转平面加强：斩开那一下的亮核 / 冲击环 / 粒子云 / 崩解（docs/257 §9）
 	_draw_inhale(w)
 	_draw_hit_frame(w)
 
