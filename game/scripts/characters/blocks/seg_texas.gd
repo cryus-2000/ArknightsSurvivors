@@ -915,9 +915,16 @@ static func tx_rift_update(o, dt: float) -> void:
 			var ext: float = len * float(b.get("scar_ext", 0.6))
 			var sw: float = float(b.get("sweep", 0.03))
 			var wm: float = 3.0 if last else 2.0
-			_tx_rift_scar(o, p0 - ud * ext, p1 + ud * ext, life, sw, wm)
-			_FXR.ev(o, "tx_cut", {"at": ctr, "last": last})   # 转平面（docs/257）：目标处落剑，只画
-			var nx: int = int(b.get("scar_extra", 2)) + (1 if last else 0)
+			# 一刀一道（11-06 用户「S3 每一次斩击可以是更加明显的一道斩击，而不是多次斩击」，fx/texas_s3_single_slash，缺省 0）：
+			# 只画——不再叠只画不判的细斩线，主刀痕更长（外延 ×1.6）、更粗（4 格，末刀 5 格）、多留 0.08 秒；判定线 p0→p1 / 伤害 / 段数 / 出手时刻不动
+			var one: bool = MfBal.v("fx/texas_s3_single_slash", 0.0) > 0.0
+			if one:
+				ext *= 1.6
+				wm = 5.0 if last else 4.0
+				life += 0.08
+			_tx_rift_scar(o, p0 - ud * ext, p1 + ud * ext, life, sw, wm, one)
+			_FXR.ev(o, "tx_cut", {"at": ctr, "last": last, "one": one, "a": p0 - ud * ext, "c": p1 + ud * ext})   # 转平面（docs/257）：目标处落剑，只画
+			var nx: int = 0 if one else int(b.get("scar_extra", 2)) + (1 if last else 0)
 			for xi in nx:
 				var xa: float = ud.angle() + (1.0 if (k + xi) % 2 == 0 else -1.0) * g.vrng.randf_range(0.35, 1.35)
 				var xu: Vector2 = Vector2.from_angle(xa)
@@ -947,9 +954,9 @@ static func tx_rift_update(o, dt: float) -> void:
 
 
 ## 一条刀痕（画面）：直线、两端尖，bow 恒 0
-static func _tx_rift_scar(o, a: Vector2, c: Vector2, life: float, sweep: float, wmax: float) -> void:
+static func _tx_rift_scar(o, a: Vector2, c: Vector2, life: float, sweep: float, wmax: float, one := false) -> void:
 	o.fx({"kind": "tx_scar", "a": a, "c": c, "life": life, "col": o.col(), "sweep": sweep, "bow": 0.0, "wmax": wmax})
-	_FXR.ev(o, "tx_scar", {"a": a, "c": c, "life": life, "wmax": wmax})   # 转平面（docs/257）：只画
+	_FXR.ev(o, "tx_scar", {"a": a, "c": c, "life": life, "wmax": wmax, "one": one})   # 转平面（docs/257）：只画
 	_tx_rift_grains(o, a, c, 14.0)
 
 

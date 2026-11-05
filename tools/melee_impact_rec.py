@@ -20,7 +20,11 @@ OPS = [("skadi", ["--bal=fx/px_plane=1"]), ("hoshiguma", [])]
 NAMES = {"skadi": "斯卡蒂", "hoshiguma": "星熊", "texas": "德克萨斯"}
 NAME = "melee_impact_onoff"
 PLAYCLOCK_TRACE = False
-KNOB = "fx/melee_impact"   # --knob：开 / 关对照的旋钮（缺省打击感包）
+KNOB = "fx/melee_impact"   # --knob：开 / 关对照的旋钮（缺省打击感包）；逗号分隔 = 几项一起开 / 关
+
+
+def kb(on):
+    return ["--bal=%s=%d" % (k, on) for k in KNOB.split(",") if k]
 EXTRA = []                 # --extra：两局都带的启动参数（如 --elite2 --sptest）
 KLABEL = "打击感包"   # --playclock_trace：TRACE 也走玩家时钟（局部卡肉不停世界，开关两局应逐行一致；全局顿帧会在这里分岔）
 
@@ -141,7 +145,7 @@ def rec(out, t0, secs, seed):
             os.makedirs(fdir)
             log = godot(["--resolution", "1280x720", "--fixed-fps", "30", "--", "--balance", "--nodeath", "--realtime", "--playclock",
                          "--rtfrom=%d" % (t0 - 3), "--seed=%d" % seed, "--op=" + op, "--bot=expert", "--maxprog",
-                         "--bal=%s=%d" % (KNOB, on), "--recframes=%d,%d" % (t0, secs * 30), "--shotdir=" + fdir, "--maxt=%d" % (t0 + secs + 2), "--sfxtrace"] + ex + EXTRA)
+                         ] + kb(on) + ["--recframes=%d,%d" % (t0, secs * 30), "--shotdir=" + fdir, "--maxt=%d" % (t0 + secs + 2), "--sfxtrace"] + ex + EXTRA)
             open(os.path.join(out, "rec_%s_%d.log" % (op, on)), "w").write(log)
             errs = [l for l in log.splitlines() if "SCRIPT ERROR" in l or "Parse Error" in l]
             print(op, on, len(glob.glob(os.path.join(fdir, "rec_*.png"))), "帧", errs[:3], flush=True)
@@ -197,7 +201,7 @@ def trace(out, seed, maxt):
         for on in (0, 1):
             pc = ["--realtime", "--playclock"] if PLAYCLOCK_TRACE else []
             log = godot(["--resolution", "1280x720", "--fixed-fps", "60", "--", "--balance", "--nodeath", "--trace=1",
-                         "--seed=%d" % seed, "--op=" + op, "--elite2", "--sptest", "--maxt=%d" % maxt, "--bal=%s=%d" % (KNOB, on)] + pc + ex + EXTRA)
+                         "--seed=%d" % seed, "--op=" + op, "--elite2", "--sptest", "--maxt=%d" % maxt] + kb(on) + pc + ex + EXTRA)
             open(os.path.join(out, "trace_%s_%d.log" % (op, on)), "w").write(log)
             errs = [l for l in log.splitlines() if "SCRIPT ERROR" in l or "Parse Error" in l]
             if errs:
