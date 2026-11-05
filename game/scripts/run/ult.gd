@@ -15,6 +15,7 @@ const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
+const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，同开关；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 
@@ -1265,6 +1266,8 @@ func draw_world_back(w) -> void:
 	w.tb_flush()
 	if IRP.on():
 		IRP.of(g).draw_back(self, w)   # 艾丽妮「宣判」转平面：纹章 + 裂缝（docs/275）
+	if SDP.on():
+		SDP.of(g).draw_back(self, w)   # 斯卡蒂「斩浪」转平面：贴地层（docs/246 §16）
 
 
 # ================================================================ 舞台（技能连携样片，用户 10-29；之后终结技也用）
@@ -1457,6 +1460,8 @@ func draw_world(w) -> void:
 	w.tb_flush()
 	if IRP.on():
 		IRP.of(g).draw_front(self, w)   # 艾丽妮「宣判」转平面：光链 / 斩线 / 爆 / 收尾斩击（docs/275）
+	if SDP.on():
+		SDP.of(g).draw_front(self, w)   # 斯卡蒂「斩浪」转平面：立起层（docs/246 §16）
 	_draw_inhale(w)
 	_draw_hit_frame(w)
 
@@ -1529,6 +1534,8 @@ func _draw_hit_frame(w) -> void:
 	w.tb_flush()
 	if IRP.on():
 		IRP.of(g).draw_hf(self, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 转平面（docs/275）：收尾斩击 + 主裂缝的剪影
+	if SDP.on():
+		SDP.of(g).draw_hf(self, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 斯卡蒂：劈浪那一拍的立起层剪影
 
 
 # ================================================================ 像素风光栅化（用户 10-30「特效都要对齐我们的美术风格」）
@@ -2655,6 +2662,9 @@ func _draw_windup(w) -> void:
 	var wk: float = _wu_k()
 	if IRP.on() and str(caster.id) == "irene":   # 转平面（docs/275）：光点螺旋收进举起的提灯 + 脚下细光圈收紧
 		IRP.of(g).draw_windup(self, w, caster, wk)
+		return
+	if SDP.on() and str(caster.id) == "skadi":   # 转平面（docs/246 §16）：头顶冰蓝细光长到星芒、水珠往里收
+		SDP.of(g).draw_windup(self, w, caster, wk)
 		return
 	var col: Color = _col(caster)
 	var c: Vector2 = caster.pos

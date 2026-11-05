@@ -92,9 +92,11 @@ def build(tmp, bg, foot, dir_deg=0):
             break
         tc += 0.002
     ihf = int(np.ceil(tc * FPS))
-    seq = [("charge", i) for i in range(CHG_N)] + [("ult", i) for i in range(len(uu))]
+    # 冲击帧两拍插在爆点那一拍之前：游戏里顿帧期间招式时间不走，冲击帧过后爆点两拍照常亮
+    seq = [("charge", i) for i in range(CHG_N)] + [("ult", i) for i in range(ihf)] + [("hf", ihf)] * HF_N + [("ult", i) for i in range(ihf, len(uu))]
     for part, i in seq:
         im = bg.copy().convert("RGBA")
+        hf = part == "hf"
         g = (cg if part == "charge" else ug)[i]
         u = (cu if part == "charge" else uu)[i]
         l = (cul if part == "charge" else uul)[i]
@@ -103,7 +105,6 @@ def build(tmp, bg, foot, dir_deg=0):
         im.alpha_composite(op, (foot[0] - fh[0], foot[1] - fh[1]))
         im.alpha_composite(u, (ox, oy))
         im = glow(im, l, (ox, oy))
-        hf = part == "ult" and ihf <= i < ihf + HF_N
         if hf:   # 冲击帧：整屏白 + 黑剪影（特效与干员的不透明像素）
             sil = Image.new("RGBA", im.size, (255, 255, 255, 255))
             m = Image.new("L", im.size, 0)
@@ -112,7 +113,7 @@ def build(tmp, bg, foot, dir_deg=0):
             sil.paste((0, 0, 0, 255), (0, 0), m)
             im = sil
         frames.append(im.convert("RGB"))
-        tags.append("起手（慢放）" if part == "charge" else ("冲击帧" if hf else "下劈" if i < 3 else "推浪" if i < ihf else "劈浪 → 水柱" if i < ihf + 6 else "收尾"))
+        tags.append("起手（慢放）" if part == "charge" else ("冲击帧" if hf else "下劈" if i < 3 else "推浪" if i < ihf - 2 else "预备（往劈口收）" if i < ihf else "爆点" if i < ihf + 2 else "冲击环 + 水爆" if i < ihf + 5 else "收尾"))
     return frames, tags
 
 

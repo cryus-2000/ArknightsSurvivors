@@ -358,6 +358,13 @@ function pool(p, t, o, C, ACC) {
 }
 
 // 水柱：从地面竖直冲起、冠部碎开、回落；raw 同形（旧做法的差别在游戏里的贴法）
+// 真半透明（不抖动）：颜色的 alpha 字节直接写进像素（pixelfx 的 p.dot 是有序抖动，像素画里显脏，11-05 用户否过）
+export function dotA(p, x, y, c, a) {
+  if (a >= 0.999) return p.px(x, y, c);
+  if (a <= 0.02) return;
+  p.px(x, y, ((c & 0xffffff) | (Math.round(a * 255) << 24)) >>> 0);
+}
+
 // 落水水爆（11-05 第二版。第一版「水花冠」用户：有点奇怪——细条水舌像珊瑚 / 手指、棋盘格半透明显脏、看不出被砸起来的水）。
 // 俯视下立起的柱子不好读 → 以贴地为主：
 //   gd：压扁的环形水爆当主体（白沫环迅速往外扩、环边不规则浪唇；实心海蓝 + 亮边，不抖动）+ 环内一片统一透明度的湿印 +
@@ -390,7 +397,7 @@ export function crown(p, t, C, ACC, k) {
     const rw = W * (0.25 + 0.6 * grow);
     if (fade < 0.95) for (let y = -rw * SY; y <= rw * SY; y += 1) for (let x = -rw; x <= rw; x += 1) {
       if ((x * x) / (rw * rw) + (y * y) / (rw * rw * SY * SY) > 1) continue;
-      p.dot(k.x + x, k.y + y, C[1], 0.45 * (1 - fade));
+      dotA(p, k.x + x, k.y + y, C[1], 0.45 * (1 - fade));
     }
     // ② 水爆环：实心带（内暗外亮），外沿不规则浪唇 + 一圈亮边；前 0.12 秒中心一圈白沫环
     const r = W * (0.22 + 0.78 * grow), th = Math.max(1, 3.5 * (1 - 0.7 * grow));
@@ -401,12 +408,12 @@ export function crown(p, t, C, ACC, k) {
       for (let d = -th; d <= 0.5; d += 0.5) {
         const rr = lip + d, x = k.x + ca * rr, y = k.y + sa * rr * SY;
         const c = d > -0.6 ? (q > 0.62 ? WHITE : C[n - 2]) : d > -th * 0.5 ? C[n - 3] : C[n - 4];
-        p.dot(Math.round(x), Math.round(y), c, 1);
+        dotA(p, Math.round(x), Math.round(y), c, 1);
       }
     });
     if (t < 0.14) ring(r * 0.45, (a, ca, sa) => {
       if (nz(a * 6.1, sd + 315) < 0.3) return;
-      p.dot(Math.round(k.x + ca * r * 0.45), Math.round(k.y + sa * r * 0.45 * SY), WHITE, 1);
+      dotA(p, Math.round(k.x + ca * r * 0.45), Math.round(k.y + sa * r * 0.45 * SY), WHITE, 1);
     });
     // ③ 水滴：地面小影子（跟着水滴走，离地越高影子越小越淡）+ 落地白点
     for (const d of crownDrops(k)) {
@@ -415,11 +422,11 @@ export function crown(p, t, C, ACC, k) {
       const fl = Math.min(u, d.T), gx = k.x + Math.cos(d.a) * d.v * fl, gy = k.y + Math.sin(d.a) * d.v * fl * SY;
       if (u < d.T) {
         const z = d.vz * u - 260 * u * u, sh = z > 14 ? 1 : 2;
-        for (let i = 0; i < sh; i++) p.dot(Math.round(gx) + i, Math.round(gy), C[0], 0.55);
+        for (let i = 0; i < sh; i++) dotA(p, Math.round(gx) + i, Math.round(gy), C[0], 0.55);
       } else if (u < d.T + 0.2) {
         const c = u < d.T + 0.07 ? WHITE : C[n - 3];
-        p.dot(Math.round(gx), Math.round(gy), c, 1);
-        if (d.big) p.dot(Math.round(gx) + 1, Math.round(gy), c, 1);
+        dotA(p, Math.round(gx), Math.round(gy), c, 1);
+        if (d.big) dotA(p, Math.round(gx) + 1, Math.round(gy), c, 1);
       }
     }
     if (!k.raw) return;
@@ -437,11 +444,11 @@ export function crown(p, t, C, ACC, k) {
         const q = z / hh, out = 7 * q * q * (0.6 + 0.4 * grow);                // 越往上越往外翻
         const x = k.x + ca * (rc + out), y = k.y + sa * (rc + out) * SY - z;
         const c = q > 0.8 ? (back ? C[n - 2] : WHITE) : q > 0.4 ? C[n - 3] : C[n - 4];
-        p.dot(Math.round(x), Math.round(y), back && q <= 0.8 ? C[n - 5] : c, 1);
+        dotA(p, Math.round(x), Math.round(y), back && q <= 0.8 ? C[n - 5] : c, 1);
       }
       // 浪唇往外、往下卷一截
       const lx = k.x + ca * (rc + 4), ly = k.y + sa * (rc + 4) * SY - hh;
-      for (let s2 = 1; s2 <= 3; s2++) p.dot(Math.round(lx + ca * s2), Math.round(ly + s2 * 0.8), s2 === 1 && !back ? WHITE : C[n - 2], 1);
+      for (let s2 = 1; s2 <= 3; s2++) dotA(p, Math.round(lx + ca * s2), Math.round(ly + s2 * 0.8), s2 === 1 && !back ? WHITE : C[n - 2], 1);
     }
   }
   // ⑤ 水滴 / 小水团：沿抛物线往外、往上，再落回（落地交给贴地层的白点）
@@ -451,9 +458,9 @@ export function crown(p, t, C, ACC, k) {
     const z = d.vz * u - 260 * u * u;
     const x = k.x + Math.cos(d.a) * d.v * u, y = k.y + Math.sin(d.a) * d.v * u * SY - z;
     const c = u < 0.07 ? WHITE : z > 10 ? C[n - 2] : C[n - 3];
-    p.dot(Math.round(x), Math.round(y), c, 1);
-    p.dot(Math.round(x) + 1, Math.round(y), d.big ? c : C[n - 3], 1);
-    if (d.big) { p.dot(Math.round(x), Math.round(y) + 1, C[n - 3], 1); p.dot(Math.round(x) + 1, Math.round(y) + 1, C[n - 4], 1); }
+    dotA(p, Math.round(x), Math.round(y), c, 1);
+    dotA(p, Math.round(x) + 1, Math.round(y), d.big ? c : C[n - 3], 1);
+    if (d.big) { dotA(p, Math.round(x), Math.round(y) + 1, C[n - 3], 1); dotA(p, Math.round(x) + 1, Math.round(y) + 1, C[n - 4], 1); }
   }
 }
 

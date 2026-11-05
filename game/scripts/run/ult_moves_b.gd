@@ -12,6 +12,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")
 const A = preload("res://scripts/art.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：归溟幽灵鲨 / 水月钻洞与小触手（docs/199 §7.9）
+const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，ult/px_plane；只画）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -190,14 +191,18 @@ static func _sd_start(u, o, d: Vector2) -> Dictionary:
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
 	var col: Color = u._col(o)
-	# 举剑：剑锋一道蓄光
-	u.shape({"kind": "blade", "a": o.pos - d * 30.0, "b": o.pos + d * 120.0, "w": 6.0, "col": Color.WHITE, "glow": col, "grow": 0.1, "life": 0.14})
+	var px: bool = SDP.on()
+	if px:   # 转平面（docs/246 §16）：整招画面由 ult_px_sd 按出招时刻 + 方向逐拍贴，下面原来画图的调用一律跳过；判定 / 顿帧 / 冲击帧 / 震屏照旧
+		SDP.ev(u, "start", {"o0": o.pos, "d": d})
+	else:
+		# 举剑：剑锋一道蓄光
+		u.shape({"kind": "blade", "a": o.pos - d * 30.0, "b": o.pos + d * 120.0, "w": 6.0, "col": Color.WHITE, "glow": col, "grow": 0.1, "life": 0.14})
 	var ws: Array = []
 	for w in waves:
 		ws.append({"t0": float(w[0]), "frac": float(w[1]), "seg": {}, "fx": [], "spr": [], "done": false, "spray_t": 0.0})
 	return {"o0": o.pos, "d": d, "n": d.orthogonal(), "hw": hw, "back": Bal.v("ult/sd_back", 200.0), "L": Bal.v("ult/sd_len", 1500.0),
 		"T": Bal.v("ult/sd_push", 0.8) * (0.8 if waves.size() > 1 else 1.0), "slash": false, "sseg": {}, "waves": ws,
-		"surge": rt == "surge", "surged": false, "no_ring": true}
+		"surge": rt == "surge", "surged": false, "no_ring": true, "px": px}
 
 
 static func _sd_step(u, a: Dictionary, o) -> bool:
@@ -217,8 +222,16 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		for e in u.in_circle(sc, 210.0):
 			a.sseg[int(e.id)] = true
 			_hit(u, a, o, e, Bal.v("ult/sd_slash", 0.3), {"src": "下劈", "edge": e.pos.distance_to(sc) > 210.0 * (1.0 - _edge_w())})
-		u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color(0.78, 0.86, 0.94) if _sd_v2(u) else Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3 if not _sd_v2(u) else 0.2})
-		if _sd_v5(u):
+		if a.get("px", false):
+			if _sd_v5(u):
+				u.g.vfx.stop(Bal.v("ult/sd_cut_stop", 0.06), "ult", true)   # 劈下那一下顿住（同原画面）
+			SDP.ev(u, "cleave", {})
+			o.screen_shake(0.6)
+		else:
+			u.shape({"kind": "blade", "a": o0 - d * 40.0, "b": o0 + d * 320.0, "w": 16.0, "col": Color(0.78, 0.86, 0.94) if _sd_v2(u) else Color.WHITE, "glow": col, "grow": 0.04, "life": 0.3 if not _sd_v2(u) else 0.2})
+		if a.get("px", false):
+			pass
+		elif _sd_v5(u):
 			u.g.vfx.stop(Bal.v("ult/sd_cut_stop", 0.06), "ult", true)   # 劈下那一下顿住
 			PF.particles(u, o0 + d * 120.0, 300, "ult_burst", [col, col.darkened(0.3)], 0.0, PF.vseed(u, o0), 220.0)
 		elif _sd_v4(u):
@@ -227,9 +240,10 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			PF.particles(u, o0 + d * 120.0, 300, "ult_burst", [col, col.darkened(0.3)], 0.0, PF.vseed(u, o0), 220.0)
 		else:
 			u.strip("fx_skadi_surge", o0 + d * 120.0, {"sc": 2.4})
-		_ring(u, sc, 210.0, 30.0, foam, 0.35, 8.0)
-		_spray(u, sc, 10, 40.0, 520.0, foam, 0.35, d.angle())
-		o.screen_shake(0.6)
+		if not a.get("px", false):
+			_ring(u, sc, 210.0, 30.0, foam, 0.35, 8.0)
+			_spray(u, sc, 10, 40.0, 520.0, foam, 0.35, d.angle())
+			o.screen_shake(0.6)
 	var all_done := true
 	for w in a.waves:
 		if bool(w.done):
@@ -240,6 +254,9 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			continue
 		var k: float = clampf((t - t0) / T, 0.0, 1.0)
 		var F: float = -back + (L + back) * k * (1.35 - 0.35 * k)   # 先快后略缓
+		if w.fx.is_empty() and a.get("px", false):
+			for i in 3:
+				w.fx.append({"kind": "nop", "a": o0, "b": o0, "age": 0.0, "max": 1.0})
 		if w.fx.is_empty():   # 水体 + 浪头白沫 + 前沿线 + 浪头帧条一排
 			var v2: bool = _sd_v2(u)
 			w.fx.append(_keep(u, a, {"kind": "band", "a": o0 - d * back, "b": o0, "w": hw * 2.0, "col": col, "fill": 0.2, "life": 2.0}))
@@ -270,11 +287,23 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 			_hold(s)
 		for sp in w.spr:
 			sp[0].c = fp + n * float(sp[1]) - d * 10.0
+		if a.get("px", false) and not a.get("rolled", false):
+			a["rolled"] = true   # 同 _sd_roll_v5：只有第一道浪画（跃浪路线第二道不画、也不劈）
+			w["pxroll"] = true
+		if w.get("pxroll", false) and not w.get("crashed", false) and F >= minf(L, Bal.v("ult/sd_crash_x", 520.0)):
+			w["crashed"] = true   # 劈浪：时刻 / 顿帧 / 冲击帧同 _sd_roll_tick；画面（预备 → 爆点 → 冲击环 → 落水水爆）由 ult_px_sd 贴
+			if _sd_v2(u) and _sd_v5(u):   # 原画面只有斩浪版（v5）才有这一下顿帧 + 冲击帧；条件照搬，开 / 关 TRACE 才一致
+				u.g.vfx.stop(Bal.v("ult/sd_crash_stop", 0.08), "ult", true)
+				if Bal.v("ult/sd_crash_hf", 1.0) > 0.0:
+					PF.hf_on(u, a)
+			SDP.ev(u, "crash", {})
+			u.shake(Bal.v("ult/sd_px_shake", 3.0), Bal.v("ult/sd_px_shake_t", 0.12))   # 用户 11-05：轻震 3px / 0.12 秒（原画面 6 / 0.2）
+			w["wet_x"] = F
 		if w.has("roll"):   # 分镜 A：一堵卷浪压着往前滚，滚到前方砸成水爆
 			_sd_roll_tick(u, a, w, o0, d, n, hw, t, F, L, col, foam)
 		if w.has("walls"):   # 劈开：两堵浪墙从裂口往两侧推开（画面；判定照旧是往前推的矩形）
 			_sd_walls_tick(u, a, w, o0, d, n, hw, t, k, col, foam)
-		var v3: bool = _sd_v3(u) and w.has("face")
+		var v3: bool = _sd_v3(u) and w.has("face") and not a.get("px", false)
 		var rise: float = clampf((t - t0) / 0.18, 0.0, 1.0) if v3 else 1.0   # 立浪：浪面从她身前 0.18 秒内立起
 		for wv in w.get("face", []):   # 浪面跟着浪头走
 			wv[0].c = fp + n * (-hw) - d * float(wv[1])
@@ -294,7 +323,7 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 				for i in 2:
 					var lat4: float = -hw + hw * 2.0 * fposmod(0.23 + 0.41 * float(i) + 0.37 * float(j2), 1.0)
 					PF.particles(u, fp + n * lat4 + d * 10.0, 60, "ult_burst_s", [foam, col], 0.0, float(j2) + i * 3.0, 70.0)
-		elif not w.has("walls") and not w.has("roll") and t >= float(w.spray_t):   # 浪头飞沫（往前溅）
+		elif not w.has("walls") and not w.has("roll") and not a.get("px", false) and t >= float(w.spray_t):   # 浪头飞沫（往前溅）
 			w.spray_t = t + 0.07
 			var j: int = int(t * 100.0)
 			for i in 4:
@@ -323,10 +352,10 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 				a.fx.erase(sp[0])
 			if w.has("walls"):
 				_sd_walls_end(u, a, w, o0, d, n, hw, col)
-			if not w.has("roll"):   # 斩浪版不画整块湿痕（扁平色板），余韵交给水爆的水雾 / 水珠
+			if not w.has("roll") and not a.get("px", false):   # 斩浪版不画整块湿痕（扁平色板），余韵交给水爆的水雾 / 水珠
 				u.shape({"kind": "band", "a": o0 - d * back, "b": o0 + d * float(w.get("wet_x", L)), "w": hw * 2.0, "col": col.darkened(0.3) if w.has("wet_x") else col,
 					"fill": 0.16 if w.has("wet_x") else 0.12, "life": 1.8 if w.has("wet_x") else 1.5, "layer": "back" if w.has("wet_x") else "front"})   # 湿痕
-			for i in (0 if w.has("face") or w.has("walls") or w.has("roll") else 5):
+			for i in (0 if w.has("face") or w.has("walls") or w.has("roll") or a.get("px", false) else 5):
 				var lat3: float = -hw * 0.8 + hw * 1.6 * float(i) / 4.0
 				u.shape({"kind": "line", "a": o0 + n * lat3 - d * back, "b": o0 + n * lat3 + d * L, "w": 2.0, "col": foam, "life": 1.2})
 	if a.surge and not a.surged and all_done:
@@ -334,7 +363,9 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 		var ec: Vector2 = o0 + d * minf(L, 640.0)
 		for e in u.in_circle(ec, 200.0):
 			_hit(u, a, o, e, 0.25, {"src": "涌潮", "edge": e.pos.distance_to(ec) > 170.0})
-		if _sd_v3(u):
+		if a.get("px", false):
+			SDP.ev(u, "surge", {"c": ec})
+		elif _sd_v3(u):
 			_sd_blast_v3(u, ec, d, n, 180.0, ec, PF.vseed(u, ec) + 77.0, col, 3)
 		else:
 			u.strip("fx_skadi_surge", ec, {"sc": 2.6})
