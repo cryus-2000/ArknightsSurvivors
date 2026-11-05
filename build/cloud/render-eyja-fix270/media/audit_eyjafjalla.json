@@ -1,0 +1,82 @@
+[
+ {
+  "op": "eyjafjalla",
+  "mode": "atk",
+  "frame": 14,
+  "engine": 73,
+  "secs": 5.0,
+  "hits": 0,
+  "acts": 46,
+  "skill": 0,
+  "parts_total": 76,
+  "parts_per_hit": 1.7,
+  "parts_per_s": 15.2,
+  "parts_s1_1s": null,
+  "mats": {
+   "ember": 52,
+   "rock": 24
+  },
+  "life": 0.86,
+  "sz": 3.6,
+  "alive_max": 19,
+  "lights": 45,
+  "lights_per_hit": 0.98,
+  "light_r": 48.0,
+  "light_i": 0.4,
+  "light_life": 0.1,
+  "emit_max": 77,
+  "emit_mean": 31.7,
+  "gl_peak": 61.1,
+  "gl_area_hit": 1518,
+  "gl_mean_hit": 9.4,
+  "em_peak": 211.6,
+  "em_area_hit": 140,
+  "em_mean_hit": 45.7,
+  "crop": [
+   503,
+   299,
+   320,
+   180
+  ]
+ },
+ {
+  "op": "eyjafjalla",
+  "mode": "s1",
+  "frame": 0,
+  "engine": 59,
+  "secs": 5.0,
+  "hits": 0,
+  "acts": 39,
+  "skill": 2,
+  "parts_total": 56,
+  "parts_per_hit": 1.4,
+  "parts_per_s": 11.2,
+  "parts_s1_1s": 18,
+  "mats": {
+   "ember": 40,
+   "rock": 16
+  },
+  "life": 0.89,
+  "sz": 3.5,
+  "alive_max": 19,
+  "lights": 38,
+  "lights_per_hit": 0.97,
+  "light_r": 48.0,
+  "light_i": 0.4,
+  "light_life": 0.1,
+  "emit_max": 86,
+  "emit_mean": 36.3,
+  "gl_peak": 72.1,
+  "gl_area_hit": 808,
+  "gl_mean_hit": 7.7,
+  "em_peak": 210.5,
+  "em_area_hit": 0,
+  "em_mean_hit": 0.0,
+  "crop": [
+   437,
+   273,
+   320,
+   180
+  ]
+ }
+]

@@ -1,0 +1,40 @@
+{
+ "op": "eyjafjalla",
+ "mode": "s1",
+ "frame": 0,
+ "engine": 59,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 39,
+ "skill": 2,
+ "parts_total": 56,
+ "parts_per_hit": 1.4,
+ "parts_per_s": 11.2,
+ "parts_s1_1s": 18,
+ "mats": {
+  "ember": 40,
+  "rock": 16
+ },
+ "life": 0.89,
+ "sz": 3.5,
+ "alive_max": 19,
+ "lights": 38,
+ "lights_per_hit": 0.97,
+ "light_r": 48.0,
+ "light_i": 0.4,
+ "light_life": 0.1,
+ "emit_max": 86,
+ "emit_mean": 36.3,
+ "gl_peak": 72.1,
+ "gl_area_hit": 808,
+ "gl_mean_hit": 7.7,
+ "em_peak": 210.5,
+ "em_area_hit": 0,
+ "em_mean_hit": 0.0,
+ "crop": [
+  437,
+  273,
+  320,
+  180
+ ]
+}
