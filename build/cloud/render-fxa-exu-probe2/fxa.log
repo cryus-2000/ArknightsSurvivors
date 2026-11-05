@@ -1,0 +1,8 @@
+局 ('exusiai_atk_A', 150, [])
+局 ('exusiai_atk_B', 150, [])
+局 ('exusiai_atk_C', 150, [])
+局 ('exusiai_s1_A', 150, [])
+局 ('exusiai_s1_B', 150, [])
+局 ('exusiai_s1_C', 150, [])
+体检 {"op": "exusiai", "mode": "atk", "frame": 0, "engine": 59, "secs": 5.0, "hits": 0, "acts": 133, "skill": 0, "parts_total": 1234, "parts_per_hit": 9.3, "parts_per_s": 246.8, "parts_s1_1s": null, "mats": {"shard": 18, "rock": 53, "grains": 1163}, "life": 0.99, "sz": 4.5, "alive_max": 385, "lights": 32, "lights_per_hit": 0.24, "light_r": 104.0, "light_i": 0.76, "light_life": 0.1, "emit_max": 326, "emit_mean": 170.9, "gl_peak": 105.2, "gl_area_hit": 3403, "gl_mean_hit": 20.5, "em_peak": 236.1, "em_area_hit": 107, "em_mean_hit": 79.4, "crop": [396, 277, 320, 180]}
+体检 {"op": "exusiai", "mode": "s1", "frame": 6, "engine": 65, "secs": 5.0, "hits": 0, "acts": 100, "skill": 2, "parts_total": 1152, "parts_per_hit": 11.5, "parts_per_s": 230.4, "parts_s1_1s": 16, "mats": {"rock": 37, "shard": 15, "grains": 1100}, "life": 0.94, "sz": 4.4, "alive_max": 287, "lights": 24, "lights_per_hit": 0.24, "light_r": 112.0, "light_i": 0.76, "light_life": 0.09, "emit_max": 360, "emit_mean": 144.1, "gl_peak": 95.4, "gl_area_hit": 7368, "gl_mean_hit": 18.1, "em_peak": 238.2, "em_area_hit": 50, "em_mean_hit": 79.8, "crop": [412, 272, 320, 180]}
