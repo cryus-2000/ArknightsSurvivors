@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2756 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+('link1_s11_2', 15, [], False)
+('link0_s11_2', 15, [], False)
+('link2_s11_2', 15, [], False)
+连携事件 [('link_slam', '7.843')]
+三栏 cmp_link 帧 182
+link0_s11_2 vs link1_s11_2：TRACE 15 / 15 行，逐行一致
+link0_s11_2 vs link2_s11_2：TRACE 15 / 15 行，逐行一致
+media：2 个文件，1.3M
