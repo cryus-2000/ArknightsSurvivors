@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2675 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+('link1_s11_480', 541, ["SCRIPT ERROR: Invalid access to property or key 'gp' on a base object of type 'Dictionary'.", "SCRIPT ERROR: Invalid access to property or key 'gp' on a base object of type 'Dictionary'.", "SCRIPT ERROR: Invalid access to property or key 'gp' on a base object of type 'Dictionary'."], False)
+('link0_s11_480', 541, [], False)
+('link2_s11_480', 541, [], False)
+连携事件 [('exu_link', '19.932'), ('exu_link', '19.998'), ('exu_link', '19.998'), ('exu_link', '20.064'), ('exu_link', '20.064'), ('exu_link', '20.064'), ('exu_link', '20.130'), ('exu_link', '20.130'), ('exu_link', '81.114'), ('exu_link', '81.180'), ('exu_link', '81.180'), ('exu_link', '81.246'), ('exu_link', '81.246'), ('exu_link', '81.246'), ('exu_link', '81.312'), ('exu_link', '81.312'), ('exu_link', '142.956'), ('exu_link', '143.022'), ('exu_link', '143.022'), ('exu_link', '143.088'), ('exu_link', '143.088'), ('exu_link', '143.088'), ('exu_link', '143.154'), ('exu_link', '143.154'), ('exu_link', '331.452'), ('exu_link', '331.518'), ('exu_link', '331.518'), ('exu_link', '331.584'), ('exu_link', '331.584'), ('exu_link', '331.584'), ('exu_link', '331.650'), ('exu_link', '331.650'), ('exu_link', '454.080'), ('exu_link', '454.146'), ('exu_link', '454.146'), ('exu_link', '454.212'), ('exu_link', '454.212'), ('exu_link', '454.212'), ('exu_link', '454.278'), ('exu_link', '454.278')]
+缺帧 {0: '/work/repo/build/pxplane_exusiai/link0_s11_480_frames/rec_-13798.png', 2: '/work/repo/build/pxplane_exusiai/link2_s11_480_frames/rec_-13798.png', 1: '/work/repo/build/pxplane_exusiai/link1_s11_480_frames/rec_-13798.png'}
+build/pxplane_exusiai/logs/link1_s11_480.log
+有 SCRIPT ERROR
+media：0 个文件，4.0K
