@@ -7,13 +7,8 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-<<<<<<< ours
-const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/254）：接管的干员连携技改由 fx_pxplane 画（只画）
-const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/255）：流明「清创光弹」接管时改画流明光弹，只画
-=======
 const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 配方 / 转平面试验的画面钩子（docs/246 §9：连携技也接管；只画）
 const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/254）：接管的干员连携技改由 fx_pxplane 画（只画）
->>>>>>> theirs
 
 const CLS := {
 	"texas": "A", "exusiai": "A", "skadi": "A", "siege": "A", "eyjafjalla": "A",

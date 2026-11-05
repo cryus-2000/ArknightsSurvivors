@@ -127,8 +127,6 @@
   - 落地类留在原地：冲击环、碎浪、碎沫、积水、湿痕、浪痕。
   - 排序：`sort_items` 生成排序项时按当前位置写 `sk`，跟人的件和施放者同一 y 排。
 - 其他干员接法：凡是「挂在人身上」的件，推进件时带 `fo`（`_add` 已自带）；落地件不带。
-<<<<<<< ours
-=======
 
 ## 11. 近战打击感包（11-05 用户实机「现在近战打击感比较弱」）：开关 `fx/melee_impact`（缺省 0），先给斯卡蒂、星熊
 
@@ -156,4 +154,3 @@ python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cas
 - **原作参照**：图只在本机，不上 GCP。三栏里要加「原作」一栏，下载后在本机用 PIL 拼到左边。
 - **斯卡蒂实测**（本稿 3108c1778，8 核抢占式）：本节 §7 的 23 个文件、69 MB 全部拿回，全程 48 分钟，约 0.07 美元。其中 demo 26 分钟、rec 14 分钟、trace 3 分钟。TRACE 301 行、录像局 499 行逐行一致，同 §6。
 - **星熊、流明等其他人**：照 `pxplane_shots.py` 写自己的出图脚本，Godot 只经 `godot_runner.run_godot` 启动，输出目录取 `--out`。然后用 `--job custom --cmd 'python3 tools/<脚本>.py … --out $MEDIA'` 跑，或在 `tools/gcp/render_jobs/` 加一个任务文件。
->>>>>>> theirs
