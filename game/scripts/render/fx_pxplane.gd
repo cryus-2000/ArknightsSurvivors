@@ -628,6 +628,8 @@ func draw_over(o) -> void:
 		return
 	if str(o.id) == "siege" and mode() == 1:
 		_sg_draw_motes(o)   # 冲锋号令 / 跃空锤的全队技力粒子（状态提示：技力飞向队友）
+		_sg_draw_glows(o)   # 终结技：真 alpha 熔金光团（ult/px_plane_siege）
+		_sg_draw_sprays(o)   # 终结技：怪物本色崩解
 	if str(o.id) == "saria":
 		if mode() == 1:
 			_sa().draw_over(o)   # 状态提示 + 钙化斑（docs/269）
@@ -4072,3 +4074,130 @@ func _tx_qi(o) -> Array:
 		var back: Vector2 = gp - (e.v as Vector2).normalized() * 30.0
 		_tx_rain(o, [{"p": back, "d": 0.0, "a": 0.0, "fl": (tick % 2) == 0}], "tx_sw_s14_e%d" % t, false, t)
 	return out
+
+
+# ================================================================ 推进之王终结技 · 配色对齐的叠加层（docs/264 §10，ult_moves_c._sg_px；只画）
+## smash：原来 0.9 不透明的白平涂圆（半径 100）换成真 alpha 的熔金光团——中心白金、往外熔金、边缘透明，按美术像素格一圈圈画，亮 2 拍后 0.25 秒淡掉；
+##        主砸再挂一盏打满的照地灯（半径 240、强度 0.9，docs/270 爆发档上限内）
+## crumble：怪物本色崩解（ult_brief 第 4 条，同 docs/275 §1.0）——被主砸打中的怪，在冲击环推到它的那一刻补一次引擎击杀碎屑（optical_particles.kill_burst），
+##          再喷一圈自身颜色（enemies.json ecol 亮 / 本色 / 暗 + 头两拍白芯）的像素，有重量、落地、停一下熄灭
+const _SGD = preload("res://scripts/data.gd")
+const SG_CRUMBLE_MAX := 40   # 同屏崩解只数上限
+const SG_SPRAY_N := 22       # 每只喷散颗数（docs/270 爆发档一簇 ≤ 25）
+var _sg_sprays: Array = []
+var _sg_glows: Array = []
+
+
+func ult_sg(o, kind: String, d: Dictionary) -> void:
+	if mode() != 1:
+		return
+	var c: Vector2 = d.get("c", o.pos)
+	match kind:
+		"smash":
+			var big: bool = d.get("big", true)
+			_sg_glows.append({"c": _snap(c + Vector2(0, -6)), "t0": g.t, "r": 100.0 if big else 70.0})
+			if big:
+				var R = load("res://scripts/render/fx_recipe.gd").of(g)
+				R._light(o, c, 240.0, 0.9, 0.15, R.pal(o).get("light", Color(1.0, 0.7, 0.28)))
+		"crumble":
+			var R4: float = float(d.get("R", 540.0))
+			var n4 := 0
+			for e in d.get("es", []):
+				if n4 >= SG_CRUMBLE_MAX:
+					break
+				if not (e is Dictionary):
+					continue
+				n4 += 1
+				var ep: Vector2 = e.pos
+				var dist: float = Vector2(ep.x - c.x, (ep.y - c.y) / 0.72).length()
+				var dl: float = clampf(dist / R4, 0.0, 1.0) * 0.4   # 原版冲击环（PF.ring 0.4 秒推到 R × 1.02）推到这一圈的时刻
+				var col: Color = _SGD.ENEMIES.get(str(e.get("type", "")), {}).get("ecol", Color(0.6, 0.9, 0.9))
+				var out: Vector2 = (ep - c).normalized() if ep != c else Vector2.RIGHT
+				_sg_sprays.append({"e": e, "p": ep + Vector2(0, -10), "t0": g.t + dl, "col": col, "out": out, "sd": int(e.get("id", 0)) * 13, "burst": false})
+			while _sg_sprays.size() > SG_CRUMBLE_MAX:
+				_sg_sprays.pop_front()
+
+
+static func _sgh(q: int, sd: int, k: int) -> float:
+	var x: int = (q * 73856093) ^ (sd * 19349663) ^ (k * 83492791)
+	x = (x ^ (x >> 13)) & 0x7fffffff
+	return float(x % 10007) / 10006.0
+
+
+## 真 alpha 熔金光团：按美术像素格一圈圈画（压扁 0.72），中心白金 → 熔金 → 边缘透明；不是平涂
+func _sg_draw_glows(o) -> void:
+	if _sg_glows.is_empty():
+		return
+	var cv = o.cv
+	var px: float = g.PX
+	var keep: Array = []
+	for gl in _sg_glows:
+		var age: float = g.t - float(gl.t0)
+		if age > 0.38:
+			continue
+		keep.append(gl)
+		var fa: float = 1.0 if age < 0.134 else maxf(0.0, 1.0 - (age - 0.134) / 0.25)
+		var r: float = float(gl.r) * (0.8 + 0.2 * minf(1.0, age / 0.067))
+		var c0: Vector2 = gl.c
+		var n: int = int(r / px)
+		for iy in range(-n, n + 1):
+			var y: float = float(iy) * px
+			var hw: float = sqrt(maxf(0.0, r * r - (y / 0.72) * (y / 0.72)))
+			var nx: int = int(hw / px)
+			for ix in range(-nx, nx + 1):
+				var d: float = Vector2(float(ix) * px, y / 0.72).length() / r
+				var col: Color
+				if d < 0.3:
+					col = Color(1.0, 0.97, 0.86, 0.95)
+				elif d < 0.6:
+					col = Color(1.0, 0.8, 0.36, 0.75 * (1.0 - (d - 0.3) / 0.6))
+				else:
+					col = Color(0.95, 0.6, 0.2, 0.45 * (1.0 - d) / 0.4)
+				col.a *= fa
+				if col.a < 0.03:
+					continue
+				cv.draw_rect(Rect2(c0 + Vector2(float(ix) * px, y), Vector2(px, px)), col)
+		if age < 0.134 and g.optical_on:   # 白金芯进发光层（白光团的亮度靠这里，不靠平涂）
+			for q in 9:
+				var dq := Vector2((q % 3 - 1) * 2.0, (q / 3 - 1) * 1.5) * px
+				g.glow_next.append([c0 + dq, px * 2.0, Color(1.0, 0.9, 0.6, Bal.v("fx/px_plane_emit", 0.8))])
+	_sg_glows = keep
+
+
+func _sg_draw_sprays(o) -> void:
+	if _sg_sprays.is_empty():
+		return
+	var cv = o.cv
+	var px: float = g.PX
+	var keep: Array = []
+	for sp in _sg_sprays:
+		var age: float = g.t - float(sp.t0)
+		if age > 1.3:
+			continue
+		keep.append(sp)
+		if age < 0.0:
+			continue
+		if not sp.burst:   # 到点那一拍补一次引擎击杀碎屑（Boss 不碎）
+			sp.burst = true
+			var e: Dictionary = sp.e
+			if g.optical_on and g.optical != null and g.optical.particles != null and not e.get("boss", false):
+				g.optical.particles.kill_burst(e)
+		var col: Color = sp.col
+		var cols: Array = [col.lightened(0.45), col.lightened(0.15), col, col.darkened(0.3)]
+		var sd: int = int(sp.sd)
+		for q in SG_SPRAY_N:
+			var ang: float = (sp.out as Vector2).angle() + (_sgh(q, sd, 1) - 0.5) * 2.2
+			var spd: float = 40.0 + 90.0 * _sgh(q, sd, 2)
+			var vh: float = 40.0 + 70.0 * _sgh(q, sd, 3)
+			var G := 300.0
+			var tl: float = 2.0 * vh / G
+			var tt: float = minf(minf(age, 0.9), tl)
+			var hz: float = maxf(0.0, vh * tt - 0.5 * G * tt * tt)
+			var p: Vector2 = (sp.p as Vector2) + Vector2(cos(ang) * spd * tt, sin(ang) * spd * tt * 0.72 - hz)
+			var cc: Color = cols[q % 4]
+			if age < 2.0 / 15.0 and q % 3 == 0:
+				cc = Color(1, 1, 1)
+			cc.a = 1.0 if age < 0.9 else maxf(0.0, (1.3 - age) / 0.4)
+			var sz: float = px * (2.0 if q % 3 != 2 else 1.0)
+			cv.draw_rect(Rect2(_snap(p), Vector2(sz, sz)), cc)
+	_sg_sprays = keep
