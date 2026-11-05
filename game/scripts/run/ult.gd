@@ -1009,6 +1009,8 @@ func _tick_buffs() -> void:
 # ================================================================ 画面：占位图形 + 立绘切入
 
 static func _col(o) -> Color:
+	if o != null and str(o.get("id")) == "skalter" and Bal.v("ult/px_plane", 0.0) > 0.0:
+		return Color(0.31, 0.5, 0.93)   # 浊心斯卡蒂终结技配色对齐（docs/260 §10）：共用演出（冲击大灯 / 碎裂冲击环 / 立绘切入 / 光点）用深海蓝，不再用立绘血红
 	return o.col() if o != null and o.has_method("col") else Color(0.9, 0.9, 1.0)
 
 
