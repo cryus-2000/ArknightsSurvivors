@@ -690,7 +690,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				_beat(u)
-				if not LFB.ir_lamp(u, p, c, r):
+				if Fxr.owns(p):   # 转平面（docs/272）：提灯光圈 + 光尘 + 手提灯改由 fx_pxplane 画（只画）
+					Fxr.ev(p, "ir_link", {"ph": "go", "c": c, "r": r})
+				elif not LFB.ir_lamp(u, p, c, r):
 					u.light(c, r + 60.0, cl, 0.9)
 					u.shape({"kind": "circle", "c": c, "r": r, "col": cl, "fill": 0.16, "layer": "back", "life": 0.9})
 					u.shape({"kind": "dots", "c": c, "r": r, "n": 22, "col": cl.lerp(Color.WHITE, 0.3), "life": 0.8})
@@ -706,10 +708,15 @@ static func _step16(u, a: Dictionary) -> bool:
 			if t >= 0.42 and once.call("cut"):
 				var fp: Vector2 = a.fp
 				var tp2: Vector2 = a.tp
-				u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 3.0, "col": Color(1.0, 0.96, 0.85), "glow": cl, "grow": 0.04, "life": 0.55})
-				for q in 5:
-					u.spark(fp.lerp(tp2, (q + 0.5) / 5.0), cl, 2, 10.0)
-				for e in u.in_band(fp, tp2, 30.0):
+				var pxo_ir: bool = Fxr.owns(p)   # 转平面（docs/272）：补刺长光刃 + 贯穿改由 fx_pxplane 画（只画）
+				if not pxo_ir:
+					u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 3.0, "col": Color(1.0, 0.96, 0.85), "glow": cl, "grow": 0.04, "life": 0.55})
+					for q in 5:
+						u.spark(fp.lerp(tp2, (q + 0.5) / 5.0), cl, 2, 10.0)
+				var band: Array = u.in_band(fp, tp2, 30.0)
+				if pxo_ir:
+					Fxr.ev(p, "ir_link", {"ph": "cut", "a": fp, "b": tp2, "es": band})
+				for e in band:
 					_hit16(p, e, "补刺", 1.2)
 				_sfx_hit(u)
 			return t >= 1.0

@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true}
+const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true}
 const GL = preload("res://scripts/render/fx_pxplane_gl.gd")   # 歌蕾蒂娅一节（docs/263）单独成文件
 const UL = preload("res://scripts/render/fx_pxplane_ul.gd")   # 乌尔比安一节（docs/266）单独成文件
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
@@ -69,7 +69,7 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid in ["exusiai", "angelina", "saria", "suzuran"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
 		return of(game).mode() == 1
 	return of(game).mode() > 0
 
@@ -106,9 +106,15 @@ static func air_look(game, e: Dictionary) -> Vector2:
 	if game == null or not game.has_meta("fx_pxplane"):
 		return Vector2(1.0, 0.0)
 	var r = game.get_meta("fx_pxplane")
-	if r._anm == null or r.mode() != 1:
+	if r.mode() != 1:
 		return Vector2(1.0, 0.0)
-	return r._anm.air_look(e)
+	if r._anm != null:
+		var v: Vector2 = r._anm.air_look(e)
+		if v != Vector2(1.0, 0.0):
+			return v
+	if r._irm != null:   # 艾丽妮挑起 / 掀起的敌人（docs/272）
+		return r._irm.air_look(e)
+	return Vector2(1.0, 0.0)
 ## 塞雷娅一节（docs/269，单独文件 fx_pxplane_sa.gd；运行时 load 避免循环 preload）
 var _sam = null
 
@@ -125,6 +131,15 @@ func _szx():
 	if _szm == null:
 		_szm = load("res://scripts/render/fx_pxplane_sz.gd").new(self)
 	return _szm
+
+## 艾丽妮一节（docs/272，单独文件 fx_pxplane_ir.gd；运行时 load 避免循环 preload）
+var _irm = null
+
+
+func _ir():
+	if _irm == null:
+		_irm = load("res://scripts/render/fx_pxplane_ir.gd").new(self)
+	return _irm
 
 
 func _meta(k: String) -> Dictionary:
@@ -231,6 +246,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "suzuran":
 		_szx().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "irene":
+		_ir().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -564,6 +582,9 @@ func draw_floor(o) -> void:
 	if id == "suzuran":
 		_szx().draw_floor(o)
 		return
+	if id == "irene":
+		_ir().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -677,6 +698,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "suzuran":
 				r._szx().sort_items(o, out)
 				continue
+			if str(o.id) == "irene":
+				r._ir().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -722,6 +746,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.has("sz"):   # 铃兰运行时件（docs/271）
 		r._szx().draw_rt(ci, it)
+		return
+	if it.has("ir"):   # 艾丽妮运行时件（docs/272）
+		r._ir().draw_rt(ci, it)
 		return
 	if it.has("ert"):   # 艾雅法拉运行时件（docs/259）
 		r._ey_draw_rt(ci, it)
