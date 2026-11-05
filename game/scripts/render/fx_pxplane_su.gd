@@ -66,12 +66,13 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			if sty == "h":
 				r._push({"k": "su_gouge_r%d_gd" % _bucket(rr / 2.0, RING_R.h), "t0": g.t, "gp": r._snap(o.pos), "flip": rev, "ly": "gd", "oid": id})
 			if k != 1:
-				_hit_sparks(r, o, es, rev, 5 if heavy else (1 if k == 2 else 2), heavy)
+				_hit_sparks(r, o, es, rev, 8 if heavy else (2 if k == 2 else 5), heavy)   # 火星（docs/270 §3：每圈 3–8 颗、头 2×2 美术像素）
 			if k == 0 and t >= 2 and o.s_t.size() > 1 and o.s_t[1] > 0.0 and not es.is_empty():
 				_bite(r, o, es)   # S2 精二：鲨口咬合（11-05 用户：触须换成鲨鱼意象）
 			var n: int = mini(es.size(), 3 if k == 2 else 6)
 			if not es.is_empty():
-				r._burst(o, R, p, o.pos + Vector2(0, -14), o.pos.y + 2.0, es, 2 + n, 120.0 if heavy else 95.0, 0.5 if heavy else 0.32)
+				# 命中：ink 水滴 + 一盏照地灯（普攻 110 / 0.45；重锯按爆发档 190 / 0.75；旋锯每段 90 / 0.38）
+				r._burst(o, R, p, o.pos + Vector2(0, -14), o.pos.y + 2.0, es, 2 + n, 190.0 if heavy else (90.0 if k == 2 else 110.0), 0.75 if heavy else (0.38 if k == 2 else 0.45))
 				if heavy and r.mode() == 1:
 					R._grains(o, es[0].pos + Vector2(0, -8), float(es[0].pos.y) + 2.0, "rock", 4, {"tier": 2})
 		"su_windup":   # 精一卷刃：起手外圈往里收的水纹
@@ -88,11 +89,15 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				if t >= 1:
 					_up(r, o, "su_s1splash_up", o.pos, 3.0, true)   # 11-05 用户「水冠有点奇怪」：改成贴地不规则水花 + 鳍尖破水
 					_gd(r, o, "su_s1splash_gd", o.pos, true)
-				R._light(o, o.pos + Vector2(0, -30), 150.0, 0.6, 0.15, p.light)
+				if r.mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -6), o.pos.y + 2.0, "ink", 6, {"tier": t})
+				R._light(o, o.pos + Vector2(0, -30), 160.0, 0.7, 0.15, p.light)
 			elif i == 1:   # S2：横向白闪 + 冒泡
 				_up(r, o, "su_s2cast_up", o.pos, 2.0, true)
 				_gd(r, o, "su_s2cast_gd", o.pos, true)
-				R._light(o, o.pos, 110.0, 0.5, 0.12, p.light)
+				if r.mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -8), o.pos.y + 2.0, "ink", 6, {"tier": t})
+				R._light(o, o.pos, 140.0, 0.65, 0.14, p.light)
 			elif i == 2:   # S3：大浪绕身
 				var sk: float = 76.0 * 2.0 * SY * 0.8
 				_up(r, o, "su_s3wave_bk_up", o.pos, -sk, true)
@@ -100,7 +105,7 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				_gd(r, o, "su_s3wave_gd", o.pos, false)
 				if r.mode() == 1:
 					R._grains(o, o.pos + Vector2(0, -40), o.pos.y, "ink", 8, {"tier": 2})
-				R._light(o, o.pos + Vector2(0, -10), 170.0, 0.6, 0.15, p.light)
+				R._light(o, o.pos + Vector2(0, -10), 210.0, 0.8, 0.15, p.light)
 		"su_echo":   # 困兽：追加一圈的白环
 			if not raw:
 				_gd(r, o, "su_echo_gd", o.pos, true)
@@ -208,27 +213,28 @@ static func _gd(r, o, k: String, at: Vector2, follow: bool) -> void:
 
 # ================================================================ 火星（橙色，切向甩出、受重力、落地熄灭；只画，随机只用 g.vrng）
 
+## 一圈的火星总数 n（docs/270 §3：3–8 颗）分给最近的几只，顺切线甩出
 static func _hit_sparks(r, o, es: Array, rev: bool, n: int, heavy: bool) -> void:
 	if r.mode() != 1 or es.is_empty():
 		return
 	var g = r.g
 	var lst: Array = es.duplicate()
 	lst.sort_custom(func(a, b): return a.pos.distance_squared_to(o.pos) < b.pos.distance_squared_to(o.pos))
-	for i in mini(6 if heavy else 5, lst.size()):
-		var e: Dictionary = lst[i]
+	var m: int = mini(4 if heavy else 3, lst.size())
+	var s := _st(r)
+	for q in n:
+		var e: Dictionary = lst[q % m]
 		var rd: Vector2 = e.pos - o.pos
 		var tg: Vector2 = Vector2(-rd.y, rd.x).normalized() if rd.length() > 1.0 else Vector2.RIGHT
 		if rev:
 			tg = -tg
 		var at: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
-		var s := _st(r)
-		for q in n:
-			if s.sparks.size() >= SPARK_MAX:
-				s.sparks.pop_front()
-			var a: float = tg.angle() + g.vrng.randf_range(-0.5, 0.5)
-			var sp: float = g.vrng.randf_range(150.0, 260.0) * (1.25 if heavy else 1.0)
-			var v := Vector2(cos(a) * sp, sin(a) * sp * 0.8 - g.vrng.randf_range(40.0, 120.0)) + rd.normalized() * 40.0
-			s.sparks.append({"p": at, "v": v, "gy": float(e.pos.y) + 2.0, "age": 0.0, "life": g.vrng.randf_range(0.25, 0.4), "oid": str(o.id)})
+		if s.sparks.size() >= SPARK_MAX:
+			s.sparks.pop_front()
+		var a: float = tg.angle() + g.vrng.randf_range(-0.5, 0.5)
+		var sp: float = g.vrng.randf_range(150.0, 260.0) * (1.25 if heavy else 1.0)
+		var v := Vector2(cos(a) * sp, sin(a) * sp * 0.8 - g.vrng.randf_range(40.0, 120.0)) + rd.normalized() * 40.0
+		s.sparks.append({"p": at, "v": v, "gy": float(e.pos.y) + 2.0, "age": 0.0, "life": g.vrng.randf_range(0.28, 0.42), "oid": str(o.id)})
 
 
 static func _sparks_at(r, oid: String, at: Vector2, gy: float, dir: Vector2, n: int, k: float, spread: float) -> void:
@@ -276,7 +282,8 @@ static func _draw_sparks(r, o, cv) -> void:
 		var p: Vector2 = r._snap(q.p)
 		var tail: Vector2 = r._snap((q.p as Vector2) - v.normalized() * px)
 		cv.draw_rect(Rect2(tail, Vector2(px, px)), SPK[mini(4, ci + 1)])
-		cv.draw_rect(Rect2(p, Vector2(px, px)), SPK[ci])
+		var hs: float = px * (2.0 if ci <= 1 else 1.0)   # 头 2×2 美术像素（热的两阶），冷了缩成 1 格
+		cv.draw_rect(Rect2(p, Vector2(hs, hs)), SPK[ci])
 		if ci <= 1 and g.optical_on and r._emit_n < EMIT_CAP:
 			r._emit_n += 1
 			g.glow_next.append([p, px, Color(SPK[ci].r, SPK[ci].g, SPK[ci].b, Bal.v("fx/px_plane_emit", 0.8))])

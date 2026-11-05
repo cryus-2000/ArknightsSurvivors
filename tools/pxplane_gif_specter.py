@@ -161,8 +161,9 @@ class Panel:
 
     def hit_sparks(self, t0, es, rev, n, heavy=False):
         rnd = random.Random(int(t0 * 1000) + len(self.sparks))
-        lst = sorted(es, key=lambda e: math.hypot(e["pos"][0] - self.me[0], e["pos"][1] - self.me[1]))[:5 if not heavy else 6]
-        for e in lst:
+        lst = sorted(es, key=lambda e: math.hypot(e["pos"][0] - self.me[0], e["pos"][1] - self.me[1]))[:3 if not heavy else 4]
+        tot = 8 if heavy else 5   # 同 fx_pxplane_su._hit_sparks：一圈总数分给最近几只
+        for e in [lst[q % len(lst)] for q in range(tot)] if lst else []:
             ex, ey = e["pos"]
             hx, hy = ex, ey - e["r"] * 0.5
             rd = (ex - self.me[0], ey - self.me[1])
@@ -170,7 +171,7 @@ class Panel:
             tg = (-rd[1] / L, rd[0] / L)
             if rev:
                 tg = (-tg[0], -tg[1])
-            for i in range(n):
+            for i in range(1):
                 sp = rnd.uniform(150, 260) * (1.25 if heavy else 1.0)
                 a = math.atan2(tg[1], tg[0]) + rnd.uniform(-0.5, 0.5)
                 self.sparks.append({"t0": t0, "p": (hx, hy), "v": (math.cos(a) * sp + rd[0] / L * 40, math.sin(a) * sp * 0.8 - rnd.uniform(40, 120)),
@@ -215,7 +216,8 @@ def draw_spark(img, st):
     p = snap(x, y)
     q = snap(x - vx / L * 2, y - vy / L * 2)
     d.rectangle([q[0], q[1], q[0] + 1, q[1] + 1], fill=c2 + (255,))
-    d.rectangle([p[0], p[1], p[0] + 1, p[1] + 1], fill=c + (255,))
+    hs = 3 if a < 0.45 else 1
+    d.rectangle([p[0], p[1], p[0] + hs, p[1] + hs], fill=c + (255,))
     return p, c
 
 

@@ -864,80 +864,96 @@ def _noise1(seed, x):
 
 
 def big_wave(R):
-    """S3 起手：一圈大浪卷起绕身（约 300°）。不是墙（docs/246 §4、用户嫌规整水柱）：浪高按平滑噪声起伏、
-    背面缓、浪顶往外前倾卷出白唇、唇下一道暗、浪脚一线白沫；第 3 拍起浪顶碎成白沫往外落、浪身从断口塌下去；分前后半圈，8 拍"""
-    pad = 14
-    rx = R + pad + 6
+    """S3 起手（11-05 用户「水墙改进一下」：不能是一整块立起来的板子）：浪头断成 6 段，每段是一个隆起的浪包——
+    背面缓坡、浪顶往外卷出白唇、高低和起浪时刻各不同、段与段之间留缺口；整段往外推（0.78R → R），
+    第 3 拍起浪顶碎成水花和水滴往外甩、受重力落下，浪包从两头塌下去。贴地的压扁细涟漪另出（s3wave_gd）。分前后半圈，8 拍"""
+    pad = 22
+    rx = R + pad + 4
     ryy = int(math.ceil(R * SY)) + pad
-    top = 26
+    top = 24
     W, Hh = 2 * rx + 1, 2 * ryy + top + 4
     cx, cy = rx, ryy + top
     ox, oy = cx, cy
+    rnd = random.Random(R * 3 + 1)
+    segs = []
+    a0 = rnd.uniform(0, 1)
+    for q in range(6):
+        span = rnd.uniform(0.55, 0.8)
+        segs.append((a0, span, rnd.uniform(14, 22), rnd.randint(0, 1)))
+        a0 += span + rnd.uniform(0.25, 0.45)
     backs, fronts = [], []
     for f in range(8):
         b, fr = Cv(W, Hh), Cv(W, Hh)
-        rot = f * 0.30
-        hk = [0.45, 0.85, 1.0, 0.9, 0.7, 0.45, 0.22, 0.0][f]
-        steps = int(2 * math.pi * R * 1.3)
-        for i in range(steps):
-            th = i / (R * 1.3)
-            a = (th - rot) % (2 * math.pi)
-            if a > math.radians(300):
+        for si, (sa, span, Hs, d0) in enumerate(segs):
+            ft = f - d0
+            if ft < 0:
                 continue
-            u = a / math.radians(300)
-            amp = (0.35 + 0.65 * math.sin(u * math.pi) ** 0.7) * (0.45 + 0.55 * _noise1("wa", a * 4.0))
-            if f >= 3 and _noise1("brk", a * 6.0 + f) < 0.12 * (f - 2):
-                amp *= 0.3   # 断口：这一段先塌
-            hh = 18 * hk * amp
-            x0 = cx + R * math.cos(th)
-            y0 = cy + R * math.sin(th) * SY
-            back = math.sin(th) < 0
-            tgt = b if back else fr
-            if hk > 0 and (i % 2 == 0):
-                tgt.put(x0, y0, FOAM if f < 5 else AB[5])   # 浪脚白沫
-            for s_ in range(int(hh)):
-                v = s_ / max(1.0, hh)
-                lean = 6.0 * v * v
-                xx = x0 + math.cos(th) * lean
-                yy = y0 - s_ + math.sin(th) * SY * lean
-                if back:
-                    c = AB[2] if v < 0.5 else AB[3]
-                else:
-                    c = AB[3] if v < 0.45 else AB[4]
-                    if 0.55 < v < 0.8 and (i // 3) % 3 == 0:
-                        c = AB[5]   # 顺浪顶的水纹
-                if v > 0.84:
-                    c = FOAM if f < 6 else AB[5]
-                elif v > 0.74 and not back:
-                    c = AB[2]   # 唇下一道暗
-                if f >= 5 and hsh(i, s_, f) < 0.22 * (f - 4):
-                    continue
-                tgt.put(xx, yy, c)
-            if hh > 5:   # 白唇往外卷出 2 格
-                for q in (1, 2):
-                    tgt.put(x0 + math.cos(th) * (6.0 + q), y0 - hh + 1 + q * 0.5 + math.sin(th) * SY * (6.0 + q), FOAM if f < 6 else AB[6])
-            if hh > 3 and f >= 3:   # 浪顶碎成白沫往外落
-                for q in range(2):
-                    if hsh(i, q, "drop") < 0.1:
-                        dd = (f - 2) * (2.5 + 2 * q)
-                        tgt.put(x0 + math.cos(th) * (8 + dd * 0.6), y0 - hh + dd * 1.4, FOAM if f < 6 else AB[6])
+            hk = [0.5, 0.9, 1.0, 0.8, 0.55, 0.3, 0.12, 0.0, 0.0][min(8, ft)]
+            rr = R * (0.78 + 0.22 * min(1.0, ft / 3.0))
+            steps = int(span * rr * 1.3)
+            for i in range(steps):
+                u = i / max(1, steps - 1)
+                th = sa + u * span
+                env = math.sin(u * math.pi) ** 0.8 * (0.7 + 0.3 * _noise1(("seg", si), u * 5))
+                if ft >= 3:   # 从两头塌：包络变窄
+                    env *= max(0.0, 1.0 - (abs(u - 0.5) * 2) ** 0.6 * 0.35 * (ft - 2))
+                hh = Hs * hk * env
+                x0 = cx + rr * math.cos(th)
+                y0 = cy + rr * math.sin(th) * SY
+                back = math.sin(th) < 0
+                tgt = b if back else fr
+                for s_ in range(int(hh)):
+                    v = s_ / max(1.0, hh)
+                    lean = 5.0 * v * v
+                    xx = x0 + math.cos(th) * lean
+                    yy = y0 - s_ + math.sin(th) * SY * lean
+                    if back:
+                        c = AB[2] if v < 0.5 else AB[3]
+                    else:
+                        c = AB[3] if v < 0.4 else AB[4]
+                        if 0.5 < v < 0.75 and (i // 3) % 3 == 0:
+                            c = AB[5]
+                    if v > 0.8:
+                        c = FOAM if ft < 5 else AB[5]
+                    elif v > 0.7 and not back:
+                        c = AB[2]
+                    if ft >= 4 and hsh(si, i, s_, f) < 0.2 * (ft - 3):
+                        continue
+                    tgt.put(xx, yy, c)
+                if hh > 4:   # 白唇往外卷 2 格
+                    for q in (1, 2):
+                        tgt.put(x0 + math.cos(th) * (5.0 + q), y0 - hh + 1 + q * 0.6 + math.sin(th) * SY * (5.0 + q), FOAM if ft < 5 else AB[6])
+                if ft >= 2 and hh > 2:   # 浪顶碎成水花 / 水滴往外甩
+                    for q in range(3):
+                        if hsh(si, i, q, "spr") < 0.16:
+                            tt = ft - 1.5 + q * 0.3
+                            sx = x0 + math.cos(th) * (6 + 4.5 * tt)
+                            sy = y0 - hh - 3 * tt + 1.3 * tt * tt + math.sin(th) * SY * (6 + 4.5 * tt)
+                            tgt.put(sx, sy, FOAM if tt < 2.5 else AB[6])
+                            if tt < 2:
+                                tgt.put(sx - math.cos(th), sy + 1, AB[5])
         backs.append(b)
         fronts.append(fr)
     return backs, fronts, ox, oy
 
 
 def wet_ring(R, n=8):
+    """S3 起手贴地：两三道压扁的细涟漪（断续、不同心，往外走），浪脚处零星白沫"""
     out = []
     for f in range(n):
-        cv, cx, cy = ground_canvas(R, 6)
-        c = AB[3] if f < 5 else AB[2]
-        if not (f >= 6 and f % 2):
-            broken_ring(cv, cx, cy, R, c, seed=31, gapk=0.22, inner=AB[1], wob=1.5)
+        cv, cx, cy = ground_canvas(R + 6, 6)
+        u = f / (n - 1)
+        if f < n - 1:
+            broken_ring(cv, cx, cy, R * (0.78 + 0.22 * u), AB[5] if f < 4 else AB[4], seed=31, gapk=0.42 + 0.05 * f, wob=1.2)
+        if 1 <= f < n - 1:
+            broken_ring(cv, cx + 2, cy - 1, R * (0.62 + 0.2 * u), AB[4] if f < 5 else AB[3], seed=37, gapk=0.5 + 0.05 * f)
+        if 2 <= f:
+            broken_ring(cv, cx - 3, cy + 1, R * (0.45 + 0.2 * u), AB[3], seed=43, gapk=0.6 + 0.04 * f)
         if f <= 4:
             rnd = random.Random(f + 9)
-            for i in range(10):
+            for i in range(8):
                 th = rnd.uniform(0, 2 * math.pi)
-                cv.put(cx + (R + 2) * math.cos(th), cy + (R + 2) * math.sin(th) * SY, FOAM)
+                cv.put(cx + R * (0.8 + 0.2 * u) * math.cos(th), cy + R * (0.8 + 0.2 * u) * math.sin(th) * SY, FOAM)
         out.append(cv)
     return out, cx, cy
 

@@ -29,6 +29,8 @@ OPS = {
     # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
     # 推进之王（docs/264）：S1 取起手后 4 帧（战旗 + 狮头 + 声波环）；S2 起跳 0.42 秒后落地，取落地后约 3 帧；S3 取起手后约 0.3 秒（光带 + 炭火边）
+    # 归溟幽灵鲨（docs/268）：S1 取起手后 4 帧（光柱砸地 + 符环）；S2 取起手后 6 帧（白闪 + 冒泡，之后是普攻带残影 / 鲨口）；S3 取起手后 6 帧（浪头卷到最高）
+    "specter_unchained": {"name": "归溟幽灵鲨", "modes": {3: "普攻 锯刃", 0: "S1 生存的技巧", 1: "S2 生存的渴望", 2: "S3 生存的重压"}, "off": {0: 4, 1: 6, 2: 6}},
     "siege": {"name": "推进之王", "modes": {3: "普攻 锤击", 0: "S1 冲锋号令·γ型", 1: "S2 跃空锤", 2: "S3 碎颅击"}, "off": {0: 4, 1: 16, 2: 10}},
 }
 OP = "skadi"
@@ -203,13 +205,13 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam")]
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam") or l.startswith("PXPLOG su su_lgo")]
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
         return False
     T = float(evs[0][-1])
-    k = int(round((T - t0) * 30.0)) + 8   # 落定后约 0.25 秒（盾立定、冲击环扩开）
+    k = int(round((T - t0) * 30.0)) + (8 if evs[0][2] != "su_lgo" else 9)   # 落定后约 0.25 秒（盾立定、冲击环扩开）；替身斩：冲 0.2 秒后斩出、再 0.1 秒（斩线 + V 形水痕）
     k -= k % st
     fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in (0, 2, 1)}
     if not all(os.path.exists(f) for f in fr.values()):
@@ -220,7 +222,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    lname = {"cover": "举盾", "link_slam": "冲阵"}.get(evs[0][2], "举盾推挡")
+    lname = {"cover": "举盾", "link_slam": "冲阵", "su_lgo": "替身斩"}.get(evs[0][2], "举盾推挡")
     dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (lname, a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
