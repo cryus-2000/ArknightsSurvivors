@@ -1,0 +1,2 @@
+999841	skalter_atk.png
+1002378	skalter_s3.png
