@@ -1672,6 +1672,8 @@ static func _su_step(u, a: Dictionary, o, dt: float) -> bool:
 		for e in u.in_circle(c, full_r):
 			var de: float = e.pos.distance_to(c)
 			_hit(u, a, o, e, fr, {"src": "巨锯", "edge": de > full_r * (1.0 - _edge_w()), "pre": sbp})
+			if a.has("sb") and int(a.tick) >= n:
+				FC.SUP.ev(u, "hit", {"e": e})   # 转平面（docs/268 §9）：收尾那一圈锯到的怪，冲击环扫到时补崩解（只画）
 			if nb < 6 and de > full_r * 0.4:   # 锯过的地方飞血 / 火星（每圈最多 6 处）
 				nb += 1
 				if a.has("sp_saws"):

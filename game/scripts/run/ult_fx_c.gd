@@ -6,6 +6,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")
 const A = preload("res://scripts/art.gd")
+const SUP = preload("res://scripts/run/ult_px_su.gd")   # 归溟幽灵鲨转平面（docs/268 §9，ult/px_plane）：配色对齐 + 收尾那一下慢放 / 冲击环 / 崩解（只画）
 
 
 # ================================================================ 归溟幽灵鲨：整圈巨锯（ult/sp_saw_v2）
@@ -13,6 +14,19 @@ const A = preload("res://scripts/art.gd")
 ## 两层运动残影拖在后面（转速快，30 帧录像里不残影会像原地抖）；每圈咬一下（亮一拍 + 短灯 + 锯缘迸火星），锯到的敌人身上迸红 / 银火星。
 const SP_SAW := "fx_sp_saw"
 const SP_SPARK := [Color(0.66, 0.34, 0.12), Color(0.58, 0.6, 0.64), Color(0.6, 0.1, 0.12)]   # PF.particles 会 ×1.35 提亮，这里给暗一档
+
+
+## 归溟幽灵鲨配色（ult/px_plane 开着时）：血红 → 深海蓝 #3a77c2、暗红黑 → 深海暗 #0d1832、红火星 → 冷蓝；橙火星 / 钢照旧
+static func _red() -> Color:
+	return SUP.col(SB_RED, Color("#3a77c2"))
+
+
+static func _dark() -> Color:
+	return SUP.col(SB_DARK, Color("#0d1832"))
+
+
+static func _spk(i: int) -> Color:
+	return SP_SPARK[i] if i != 2 else SUP.col(SP_SPARK[2], Color(0.2, 0.42, 0.75))
 
 
 static func sp_v2(u) -> bool:
@@ -66,9 +80,9 @@ static func sp_tick(u, a: Dictionary, c: Vector2, R: float, tick: int) -> void:
 ## 锯到的敌人（每圈最多 6 处，同原画法的计数）：红 / 银火星沿切线迸
 static func sp_hit(u, a: Dictionary, p: Vector2, tick: int, i: int) -> void:
 	var vs: float = float(a.sp_vs) + tick * 13.0 + i * 5.0
-	PF.particles(u, p, 30, "ult_burst_s", [SP_SPARK[2], SP_SPARK[0]], 0.0, vs)
+	PF.particles(u, p, 30, "ult_burst_s", [_spk(2), SP_SPARK[0]], 0.0, vs)
 	if i % 2 == 0:
-		u.grain("sh_shard", p, Vector2.from_angle(PF.h(vs) * TAU), Color(0.75, 0.15, 0.18), 4)
+		u.grain("sh_shard", p, Vector2.from_angle(PF.h(vs) * TAU), SUP.col(Color(0.75, 0.15, 0.18), Color(0.6, 0.66, 0.78)), 4)
 
 
 static func sp_end(u, a: Dictionary) -> void:
@@ -631,8 +645,9 @@ static func sb_start(u, a: Dictionary, o, c: Vector2) -> void:
 	var pr: Dictionary = o.portrait() if o.has_method("portrait") else {}
 	a["sb_tex"] = str(pr.get("tex", ""))
 	a["sb_fr"] = int(pr.get("frames", 1))
-	u.light(c, 200.0, Color(0.5, 0.08, 0.1), 0.25)
-	PF.particles(u, c, 60, "ult_burst_s", [SB_RED, SB_DARK], 0.0, float(a.sb_vs), 90.0)
+	SUP.ev(u, "start", {})
+	u.light(c, 200.0, SUP.col(Color(0.5, 0.08, 0.1), Color(0.2, 0.36, 0.62)), 0.25)
+	PF.particles(u, c, 60, "ult_burst_s", [_red(), _dark()], 0.0, float(a.sb_vs), 90.0)
 
 
 ## 这一圈锯到的敌人（每圈最多 6 处，同原计数）：记下位置给弹射路线用
@@ -648,7 +663,7 @@ static func _sb_ghost(u, a: Dictionary, p: Vector2, fs: float, delay: float, lif
 	var t: Texture2D = u._strip_tex(tn)
 	var fw: float = t.get_width() / float(maxi(1, int(a.sb_fr)))
 	u.strip(tn, p, {"ux": 0.0, "uw": fw, "o": Vector2(fw * 0.5, t.get_height() * 0.8), "sx": fs, "delay": delay, "life": life, "fade": life * 0.7,
-		"col": Color(0.42, 0.04, 0.07, 0.9)})
+		"col": SUP.col(Color(0.42, 0.04, 0.07, 0.9), Color(0.35, 0.8, 0.95, 0.8))})   # 开关开着：替身青残影（同 S2 / 连携），和本体分色
 
 
 static func sb_tick(u, a: Dictionary, c: Vector2, R: float, tick: int, n: int) -> void:
@@ -671,21 +686,21 @@ static func sb_tick(u, a: Dictionary, c: Vector2, R: float, tick: int, n: int) -
 		var L: float = maxf(40.0, cur.distance_to(p))
 		var name := PF.pick(u, SZ_SLASH, vs + k * 0.9)
 		_sz_slash(u, name, cur, ang, L, {"sy": 0.55, "rev": minf(0.06, dt * 0.6), "rev0": 0.05, "delay": dl, "life": 0.3, "fade": 0.2,
-			"col": Color(0.95, 0.2, 0.2, 0.95), "col1": Color(0.15, 0.02, 0.03, 0.8), "cold": 0.18})   # 弹射线：血红 → 暗红黑
+			"col": SUP.col(Color(0.95, 0.2, 0.2, 0.95), Color(0.55, 0.85, 1.15, 0.95)), "col1": SUP.col(Color(0.15, 0.02, 0.03, 0.8), Color(0.04, 0.08, 0.2, 0.8)), "cold": 0.18})   # 弹射线：血红 → 暗红黑（开关开着：冰蓝 → 深海暗）
 		_sb_ghost(u, a, p, -1.0 if p.x < cur.x else 1.0, dl, 0.16)
 		# 撕裂痕：落点一道短而粗的口子（转角按哈希），血红爆亮冷成暗红，留在地上
 		var ta: float = ang + PI * 0.5 + (PF.h(vs + k * 2.3) - 0.5) * 1.2
 		var tl: float = 70.0 + 60.0 * PF.h(vs + k * 4.4)
 		var tn := PF.pick(u, SZ_SLASH, vs + k * 1.7 + 3.0)
 		_sz_slash(u, tn, p - Vector2.from_angle(ta) * tl * 0.5, ta, tl, {"layer": "back", "sy": 0.45 * (-1.0 if PF.h(vs + k) < 0.5 else 1.0), "rev": 0.04, "delay": dl + 0.02,
-			"life": 0.9, "fade": 0.5, "col": Color(1.0, 0.3, 0.25, 1.0), "col1": SB_DARK, "cold": 0.35})
-		PF.particles(u, p, 40, "ult_burst_s", [SB_RED, SP_SPARK[0]], dl, vs + k * 11.0, 80.0)
+			"life": 0.9, "fade": 0.5, "col": SUP.col(Color(1.0, 0.3, 0.25, 1.0), Color(1.0, 0.62, 0.3, 1.0)), "col1": _dark(), "cold": 0.35})   # 开关开着：撕裂痕橙热冷成深海暗（同 S3 锯痕）
+		PF.particles(u, p, 60 if SUP.on() else 40, "ult_burst_s", [_red(), SP_SPARK[0]], dl, vs + k * 11.0, 80.0)   # 路上的粒子云（开关开着多一半）
 		# 弹到这里锯一下（用户 10-31「闪出去弹射的时候也要带锯子」）：一把小锯落在落点转一下（缓出放大、快转、淡出）+ 火星
 		var rr: float = PF.tex_w(u, SP_SAW) * 0.5
 		var sr: float = 80.0 + 24.0 * PF.h(vs + k * 6.1)   # 用户 10-31「小圆锯没看出来，画大一点」
 		u.strip(SP_SAW, p + Vector2(0, -6), {"sc": sr * 0.6 / rr, "sc1": sr / rr, "scd": 0.05, "spin": -22.0 * (1.0 if PF.h(vs + k) < 0.6 else -1.0),
 			"ang": PF.h(vs + k * 2.2) * TAU, "delay": dl, "life": maxf(0.26, dt + 0.1), "fade": 0.1, "col": Color(1.1, 1.05, 1.05, 1.0)})
-		u.strip(SP_SAW, p + Vector2(0, -6), {"sc": sr * 1.15 / rr, "spin": -22.0, "delay": dl, "life": 0.14, "fade": 0.1, "col": Color(1.4, 0.3, 0.3, 0.35)})   # 血色光晕
+		u.strip(SP_SAW, p + Vector2(0, -6), {"sc": sr * 1.15 / rr, "spin": -22.0, "delay": dl, "life": 0.14, "fade": 0.1, "col": SUP.col(Color(1.4, 0.3, 0.3, 0.35), Color(0.45, 0.85, 1.3, 0.35))})   # 血色光晕（开关开着：冰蓝）
 		u.grain("sh_shard", p, Vector2.from_angle(ang + PI * 0.5), Color(1.0, 0.6, 0.25), 4)
 		cur = p
 	a.sb_cur = cur
@@ -711,7 +726,7 @@ static func sb_warn(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> void:
 		"col": Color(0.0, 0.0, 0.02, 0.55)})   # 阴影（锯的剪影压在地上，越来越大）
 	u.strip(SP_SAW, ctr + Vector2(0, -170), {"sc": r1 * 1.25 / rr, "sc1": r1 * 1.02 / rr, "scd": T, "spin": -10.0, "v": Vector2(0, 170.0 / T), "life": T,
 		"col": Color(0.8, 0.75, 0.78, 0.75)})   # 大锯从上方压下来
-	u.light(ctr, r1, Color(0.4, 0.05, 0.08), T)
+	u.light(ctr, r1, SUP.col(Color(0.4, 0.05, 0.08), Color(0.1, 0.2, 0.42)), T)
 	for q in 6:
 		var hq: float = PF.h(float(a.sb_vs) + q * 4.3)
 		u.grain("sh_shard", ctr + Vector2.from_angle(hq * TAU) * r1 * 0.9 + Vector2(0, -120), Vector2.DOWN, Color(1.0, 0.55, 0.25), 2)
@@ -723,8 +738,9 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 	var rr: float = PF.tex_w(u, SP_SAW) * 0.5
 	var r1: float = R * 0.75
 	u.strip(SP_SAW, ctr, {"sc": r1 * 1.5 / rr, "sc1": r1 * 1.08 / rr, "scd": 0.18, "spin": -9.0, "life": 0.85, "fade": 0.45,
-		"col": Color(1.4, 0.35, 0.35, 0.45)})   # 血色光晕（大一圈、半透明）
+		"col": SUP.col(Color(1.4, 0.35, 0.35, 0.45), Color(0.45, 0.85, 1.3, 0.45))})   # 血色光晕（大一圈、半透明；开关开着：冰蓝）
 	u.strip(SP_SAW, ctr, {"sc": r1 * 1.12 / rr, "sc1": r1 / rr, "scd": 0.06, "spin": -9.0, "life": 0.6, "col": Color(1.05, 1.0, 1.0, 1.0), "hf": true})
+	SUP.ev(u, "crash", {"c": ctr, "R": R})   # 转平面：冲击帧这一拍起慢放 / 亮核 / 冲击环推到判定边 / 崩解（只画）
 	# 收尾（用户 10-31「最后锯子也接一个有表现力的收尾」）：落地后原地狂转磨地 0.5 秒（一圈火星往外甩）→ 收小、飞回她手里
 	# 切除（用户 10-31「收招做个冲击力的切除感」）：磨地 0.55 秒后巨锯猛地沿一条直线横切过整片敌群——切口一帧出现、顿 0.12、
 	# 切口两侧碎屑往两边喷、地上留一道深切痕慢慢冷却；然后锯收小飞回她手里
@@ -736,41 +752,41 @@ static func sb_finale(u, a: Dictionary, c: Vector2, R: float, pts: Array) -> voi
 	var T_CUT := 0.6
 	u.strip(SP_SAW, ctr, {"sc": r1 / rr, "spin": -30.0, "delay": T_CUT - 0.06, "life": 0.08, "v": cd * CL * 0.5 / 0.08, "col": Color(1.2, 1.1, 1.1, 1.0)})   # 锯冲出去
 	var slash: String = PF.pick(u, SZ_SLASH, vs + 5.0)
-	_sz_slash(u, slash, cp0, ca, CL, {"sy": 2.4, "delay": T_CUT, "life": 0.5, "fade": 0.3, "col": Color(1.15, 0.95, 0.95, 1.0), "col1": Color(0.6, 0.06, 0.08, 0.9), "cold": 0.2})
-	_sz_slash(u, slash, cp0, ca, CL, {"layer": "back", "sy": 1.4, "delay": T_CUT, "life": 2.2, "fade": 1.0, "col": Color(0.3, 0.03, 0.05, 0.95)})   # 深切痕
+	_sz_slash(u, slash, cp0, ca, CL, {"sy": 2.4, "delay": T_CUT, "life": 0.5, "fade": 0.3, "col": SUP.col(Color(1.15, 0.95, 0.95, 1.0), Color(0.95, 1.05, 1.2, 1.0)), "col1": SUP.col(Color(0.6, 0.06, 0.08, 0.9), Color(0.15, 0.3, 0.62, 0.9)), "cold": 0.2})
+	_sz_slash(u, slash, cp0, ca, CL, {"layer": "back", "sy": 1.4, "delay": T_CUT, "life": 2.2, "fade": 1.0, "col": SUP.col(Color(0.3, 0.03, 0.05, 0.95), Color(0.05, 0.1, 0.22, 0.95))})   # 深切痕
 	u.stop_later(T_CUT, Bal.v("ult/sb_cut_stop", 0.12))
-	u.shape({"kind": "band", "a": cp0, "b": cp0 + cd * CL, "w": 46.0, "col": Color(0.85, 0.75, 0.75), "fill": 0.55, "life": 0.06, "delay": T_CUT})   # 切口一闪（≤ 0.85）
+	u.shape({"kind": "band", "a": cp0, "b": cp0 + cd * CL, "w": 46.0, "col": SUP.col(Color(0.85, 0.75, 0.75), Color(0.75, 0.84, 0.95)), "fill": 0.55, "life": 0.06, "delay": T_CUT})   # 切口一闪（≤ 0.85）
 	var nv: Vector2 = cd.orthogonal()
 	for q in 8:   # 切口两侧碎屑往两边喷
 		var hq: float = PF.h(vs + 90.0 + q * 2.7)
 		var pq: Vector2 = cp0 + cd * CL * (q + 0.5) / 8.0
 		var side: float = 1.0 if q % 2 == 0 else -1.0
-		PF.rock(u, pq, nv * side * (140.0 + 120.0 * hq), 150.0 + 100.0 * hq, hq, 0.34, T_CUT, Color(0.95, 0.75, 0.75))
-		PF.particles(u, pq, 40, "ult_burst_s", [SB_RED, Color(1.0, 0.55, 0.2)], T_CUT, vs + q * 7.0, 70.0)
-	PF.dust(u, ctr, R * 0.9, T_CUT + 0.03, vs + 13.0, Vector2.ZERO, Color(0.4, 0.28, 0.28))
+		PF.rock(u, pq, nv * side * (140.0 + 120.0 * hq), 150.0 + 100.0 * hq, hq, 0.34, T_CUT, SUP.col(Color(0.95, 0.75, 0.75), Color(0.8, 0.85, 0.92)))
+		PF.particles(u, pq, 40, "ult_burst_s", [_red(), Color(1.0, 0.55, 0.2)], T_CUT, vs + q * 7.0, 70.0)
+	PF.dust(u, ctr, R * 0.9, T_CUT + 0.03, vs + 13.0, Vector2.ZERO, SUP.col(Color(0.4, 0.28, 0.28), Color(0.3, 0.34, 0.42)))
 	u.strip(SP_SAW, ctr + cd * CL * 0.5, {"sc": r1 * 0.8 / rr, "spin": -26.0, "delay": T_CUT + 0.14, "life": 0.3, "sc1": r1 * 0.16 / rr, "scd": 0.3,
 		"v": (c - (ctr + cd * CL * 0.5)) / 0.3, "col": Color(1.1, 1.0, 1.0, 1.0)})   # 飞回她手里
 	for q in 10:
 		var hq: float = PF.h(float(a.sb_vs) + q * 3.9)
 		var dq: Vector2 = Vector2.from_angle(TAU * (q + hq) / 10.0)
-		PF.particles(u, ctr + dq * r1 * 0.95, 30, "ult_burst_s", [Color(1.0, 0.55, 0.2), SB_RED], 0.15 + 0.04 * q, float(a.sb_vs) + q, 60.0)
-	u.light(c, 160.0, Color(0.6, 0.1, 0.12), 0.25)
+		PF.particles(u, ctr + dq * r1 * 0.95, 30, "ult_burst_s", [Color(1.0, 0.55, 0.2), _red()], 0.15 + 0.04 * q, float(a.sb_vs) + q, 60.0)
+	u.light(c, 160.0, SUP.col(Color(0.6, 0.1, 0.12), Color(0.3, 0.5, 0.8)), 0.25)
 	u.g.vfx.stop(Bal.v("ult/sb_hitstop", 0.16), "ult", true)
-	u.light(ctr, r1 * 1.2, Color(0.55, 0.08, 0.1), 0.35)
-	PF.particles(u, ctr, 300, "ult_burst", [SB_RED, SB_DARK], 0.12, float(a.sb_vs) + 99.0, r1)
+	u.light(ctr, r1 * 1.2, SUP.col(Color(0.55, 0.08, 0.1), Color(0.3, 0.52, 0.85)), 0.35)
+	PF.particles(u, ctr, 300, "ult_burst", [_red(), _dark()], 0.12, float(a.sb_vs) + 99.0, r1)
 	for q in 7:   # 锯开的口子：一圈不规整的撕裂痕
 		var ta: float = TAU * (q + PF.h(vs + q)) / 7.0
 		var tl: float = r1 * (0.4 + 0.4 * PF.h(vs + q * 3.0))
 		_sz_slash(u, PF.pick(u, SZ_SLASH, vs + q), ctr + Vector2.from_angle(ta) * r1 * 0.3, ta, tl, {"layer": "back", "sy": 0.5, "rev": 0.12, "delay": 0.12,
-			"life": 1.0, "fade": 0.5, "col": Color(1.0, 0.3, 0.25, 1.0), "col1": SB_DARK, "cold": 0.4})
+			"life": 1.0, "fade": 0.5, "col": SUP.col(Color(1.0, 0.3, 0.25, 1.0), Color(1.0, 0.62, 0.3, 1.0)), "col1": _dark(), "cold": 0.4})
 	# 地面撕裂 + 碎屑 + 烟尘 + 余震（pixfx §6.6）
 	var forks: Array = ["fx_ul_crack_fork", "fx_ul_crack_fork2", "fx_ul_crack_fork3", "fx_ul_crack_fork4"]
-	PF.crack_net(u, forks, ctr, r1 * 1.25, 9, PF.h(vs) * TAU, vs, 0.14, Color(1.0, 0.35, 0.3), Color(0.25, 0.05, 0.06), r1 * 0.35)
-	PF.heave(u, ctr, r1 * 0.85, vs, 0.02, Color(0.9, 0.8, 0.8))
-	PF.heave(u, ctr, r1 * 0.45, vs + 9.0, 0.0, Color(0.9, 0.8, 0.8), 90.0)
+	PF.crack_net(u, forks, ctr, r1 * 1.25, 9, PF.h(vs) * TAU, vs, 0.14, SUP.col(Color(1.0, 0.35, 0.3), Color(1.0, 0.62, 0.3)), SUP.col(Color(0.25, 0.05, 0.06), Color(0.05, 0.1, 0.22)), r1 * 0.35)
+	PF.heave(u, ctr, r1 * 0.85, vs, 0.02, SUP.col(Color(0.9, 0.8, 0.8), Color(0.8, 0.85, 0.92)))
+	PF.heave(u, ctr, r1 * 0.45, vs + 9.0, 0.0, SUP.col(Color(0.9, 0.8, 0.8), Color(0.8, 0.85, 0.92)), 90.0)
 	for q in 5:
 		var hq: float = PF.h(vs + q * 6.7)
 		PF.dust(u, ctr + Vector2.from_angle(TAU * (q + hq) / 5.0) * r1 * (0.6 + 0.4 * hq), 110.0 + 60.0 * hq, 0.04 * q, vs + q,
-			Vector2.from_angle(TAU * (q + hq) / 5.0) * 60.0, Color(0.55, 0.45, 0.45) if q % 2 == 0 else Color(0.3, 0.22, 0.22))
-	PF.aftershock(u, ctr, r1, vs + 3.0, 0.3, 10, Color(0.9, 0.8, 0.8))
+			Vector2.from_angle(TAU * (q + hq) / 5.0) * 60.0, SUP.col(Color(0.55, 0.45, 0.45), Color(0.42, 0.47, 0.56)) if q % 2 == 0 else SUP.col(Color(0.3, 0.22, 0.22), Color(0.2, 0.24, 0.32)))
+	PF.aftershock(u, ctr, r1, vs + 3.0, 0.3, 10, SUP.col(Color(0.9, 0.8, 0.8), Color(0.8, 0.85, 0.92)))
 	u.shake(3.0, 0.15)
