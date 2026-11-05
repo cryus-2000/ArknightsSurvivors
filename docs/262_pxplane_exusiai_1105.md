@@ -86,7 +86,11 @@
 | render-exusiai-9eb5106a-rec | 9eb5106a6 | 8:00 录像 | 18.4 MB；那台日志没回传 |
 | render-exusiai-r4-f2ef6c4e | aef0cd9f9（第四轮） | 普攻 / S1 三栏 + 三档、8:00 开 / 关 mp4 | 录像局（种子 11，能天使队长，开 late_shape，8:00 起 20 秒 `--realtime`）TRACE 开 / 关 501 行逐行一致；mp4 17.6 MB；0 条 SCRIPT ERROR |
 
+| render-exusiai-r5-a56550e8 | a56550e8c（第五轮：精零 / 精一也 4 宽、加长约 30%） | 普攻三栏 + 三档、7:57–8:10 每秒一张 1 倍实机截图 | 0 条 SCRIPT ERROR；8:02 满屏时倾泻 8 发光弹清楚不糊（shots/on_150.png） |
+| render-exusiai-r5-link2 | 3f4f1793c | 连携三栏（推进之王队长，种子 11，7:34 那次「穿透扫射」） | TRACE 0 / 1 / 2 三局 461 行逐行一致；0 条 SCRIPT ERROR |
+
 - 本机目录：`Claude outputs/render-exusiai-r4-f2ef6c4e/`（late_8m00_onoff.mp4、tiers_atk / s1.png、cmp_atk / s1_e*.png）；四招完整三栏在 `render-exusiai-9eb5106a/`（第二轮画法）。
 - 日志里多出的只有退出时的贴图泄漏提示（多加载了帧条），px0 局也有，不是脚本错误。
-- 连携三栏：种子 11、德克萨斯队长，8:00–8:30 没有触发能天使连携；放宽到 60 秒的重跑见下次补充。
+- 连携三栏：德克萨斯当队长时她的 S1 走专属组合「剑雨 + 能天使」（`skill_link.LINKS` 的 boom_rain），不出能天使自己的「穿透扫射」，所以改用推进之王当队长拍。boom_rain 里能天使的扫射仍是原画法（不在本稿范围）。
+- 连携局查出一个脚本错误（已修，3f4f1793c）：连携曳光 / 连锁细线这类运行时件原来没有 `gp`，`sort_items` 取当前位置时报错；补上后重拍 0 条。
 - 出图命令：`tools/gcp_render.py --job custom --split`，每台一条 `python3 tools/pxplane_shots.py <demo|rec|trace|linkcmp> --op exusiai …`（`--extra` 以 `--` 开头时要写成 `--extra=--bal=…`，否则 argparse 报错）。
