@@ -1,0 +1,9 @@
+trace rc=0
+core rc=0
+smoke rc=0
+ui_smoke rc=0
+touch_layout rc=0
+mid_boss rc=0
+boss_variety rc=0
+public_gallery rc=0
+enemy_demo rc=0
