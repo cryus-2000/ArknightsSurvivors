@@ -24,6 +24,8 @@ BUILD = os.path.join(ROOT, "build", "fx_audit")
 MODES = {3: "atk", 0: "s1"}
 VARS = {"A": [], "B": ["--bal=fx/recipe_dl=0"], "C": ["--bal=fx/px_plane_emit=0"]}
 LATE = ["--bal=growth/late_shape=1"]
+# S1 的技能事件名：缺省 FXRLOG skill0；转平面接管后改记自己事件名的干员在这里登记（水月 S1 = 三团大水母 mz_burst）
+SKILL_EV = {"mizuki": "mz_burst"}
 START, N = 1.0, 180   # 1 秒起逐帧 6 秒（S1 第一次释放约在第 33–53 帧，2 秒起拍会漏掉，11-05 星熊会话查出）
 
 
@@ -114,7 +116,7 @@ def analyse(op, mode, out):
     e0, e1 = min(f2e.values()), max(f2e.values())
     hits = [e for k, e in ev if k.startswith("hit") and e0 <= e <= e1]
     acts = [e for k, e in ev if not k.startswith("hit") and not k.startswith("skill") and e0 <= e <= e1]
-    sk = [e for k, e in ev if k == "skill0" and e0 <= e <= e1 - 15]   # 技能事件要落在拍摄段里（后面至少留 0.5 秒）
+    sk = [e for k, e in ev if k == SKILL_EV.get(op, "skill0") and e0 <= e <= e1 - 15]   # 技能事件要落在拍摄段里（后面至少留 0.5 秒）
     tot, mats, lifes, szs, lights, emits, alive = 0, {}, [], [], [], [], []
     for e in range(e0, e1 + 1):
         d = fxa.get(e)
