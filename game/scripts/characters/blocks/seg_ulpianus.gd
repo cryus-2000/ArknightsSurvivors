@@ -17,6 +17,27 @@ const HW_WATER := Color(0.45, 0.78, 1.0)
 const HW_BLOOD := Color(1.0, 0.25, 0.3)
 
 
+## S3 虎鲸（docs/266 §8，用户 11-05「改玩法……他的终结技是发射出去，之前说过他的 S3 会强行拉人，感觉会很难受」）：
+## 开关 operators/ulpianus/s3_orca（缺省 1）。开：本人不位移，往落点打出一头虎鲸——破水（掷锚那 s3_throw 秒）→ 沿直线游到落点前（路径上每个敌人吃一次 path_mult，宽 path_w）
+## → 跃起 ORCA_LEAP 秒砸下 = 落地重击（同原来的 _hw_zip_land：s3_r、s3_mult、眩晕、land_kb 轻击退、haste）。关：回到 docs/129 的冲锋（本体沿锁链冲过去）。
+const ORCA_LEAP := 0.18   # 虎鲸到落点前跃起的时长（期间不结算路径）
+const ORCA_SPD := 900.0   # 虎鲸游速（世界像素 / 秒）；游的时长夹在 0.12–0.36 秒
+
+
+static func orca_on(o) -> bool:
+	return MfBal.v("operators/ulpianus/s3_orca", 1.0) > 0.0
+
+
+## 虎鲸当前所在的地面点（游：S → P 先快后慢；跃起：P → 落点）。玩法路径结算与画面（fx_pxplane_ul）共用
+static func orca_head(an: Dictionary) -> Vector2:
+	var sw: float = float(an.dur) - ORCA_LEAP
+	var t: float = float(an.t)
+	if t <= sw:
+		var k: float = clampf(t / maxf(0.001, sw), 0.0, 1.0)
+		return (an.S as Vector2).lerp(an.P, k * (2.0 - k))
+	return (an.P as Vector2).lerp(an.land, clampf((t - sw) / ORCA_LEAP, 0.0, 1.0))
+
+
 static func _hw4(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("anchor"):
@@ -234,6 +255,12 @@ static func hw_tether_start(o, b: Dictionary) -> void:
 		return
 	h.anchor = {"b": b, "phase": "throw", "t": 0.0, "dur": float(b.get("throw", 0.16)), "from": Vector2.ZERO, "to": to, "trail": []}
 	h.anchor.from = _hw_hand(o)
+	if b.has("path_w") and orca_on(o):
+		h.anchor["orca"] = true
+		if MfBal.v("operators/ulpianus/s3_orca_big", 1.0) > 0.0:   # 虎鲸范围（docs/266 §20，11-05 用户「虎鲸的技能范围是不是也有点小了」）：落地 s3_orca_r、路径宽 s3_orca_w；0 = 回到 s3_r / s3_path_w
+			h.anchor["orca_r"] = o.base("s3_orca_r", float(b.get("r", 90.0)))
+			h.anchor["orca_w"] = o.base("s3_orca_w", float(b.get("path_w", 50.0)))
+		_FXR.ev(o, "ul_breach", {"from": o.pos, "to": to})   # 转平面（docs/266 §8）：虎鲸破水，只画
 
 
 static func _hw_anchor_pos(an: Dictionary, k: float) -> Vector2:
@@ -252,7 +279,7 @@ static func _hw4_anchor(o, dt: float) -> void:
 			an.trail.push_front(_hw_anchor_pos(an, k))
 			if an.trail.size() > 4:
 				an.trail.pop_back()
-			if an.b.has("path_w"):
+			if an.b.has("path_w") and not an.get("orca", false):
 				UlpCharge.windup(o, _hw_anchor_pos(an, k) + Vector2(0, -6), k)   # S3 起冲：颗粒向锚尖收拢（docs/143）
 			if k >= 1.0:
 				_hw_anchor_bite(o)
@@ -275,6 +302,15 @@ static func _hw4_anchor(o, dt: float) -> void:
 			if k >= 1.0:
 				_hw_reel_slam(o)
 				h.anchor = {}
+		"orca":
+			# 虎鲸（docs/266 §8）：本体不动；虎鲸游的那段对路径结算，跃起那段不结算，到点落地重击
+			var prev: Vector2 = an.head
+			an.head = orca_head(an)
+			if float(an.t) <= float(an.dur) - ORCA_LEAP + dt:
+				_hw_charge_sweep(o, an, prev, an.head)
+			if k >= 1.0:
+				_hw_zip_land(o)
+				h.anchor = {}
 		"zip":
 			# 冲锋（10-24）：本干员沿锁链冲向落点，整条路径对沿途敌人各结算一次（path_w 宽、path_mult 倍率），到点再落地砸
 			var from_p: Vector2 = o.pos
@@ -296,8 +332,12 @@ static func _hw_anchor_bite(o) -> void:
 	var b: Dictionary = an.b
 	var to: Vector2 = an.to
 	var dir: Vector2 = (to - o.pos).normalized() if to.distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
+	if an.get("orca", false):
+		_hw_orca_launch(o, an, to, dir)
+		return
 	var big: bool = b.get("big", false)
 	o.impact_pause(0.07 if big else 0.05)
+	_FXR.ev(o, "ul_bite", {"at": to, "big": big})   # 转平面（docs/266）：只画
 	o.fx({"kind": "ulp_wave", "pos": to, "r": 48.0 if big else 36.0, "life": 0.36, "floor": true})
 	UlpImpact.splash(o, to, 0.8)
 	for i in 6:
@@ -318,6 +358,7 @@ static func _hw_anchor_bite(o) -> void:
 		an.land = land
 		an.hit = {}
 		an.trail = []
+		_FXR.ev(o, "ul_zip", {"a": an.start, "b": land, "dur": an.dur})   # 转平面（docs/266）：冲锋尾迹，只画
 		o.melee_tgt = null
 		_hw_sfx_op(o, "atk", 2.0, 0.85)
 		if UlpCharge.on(o):
@@ -332,12 +373,33 @@ static func _hw_anchor_bite(o) -> void:
 	h.anchor = {}
 
 
+## 虎鲸出发（掷锚那段结束时）：S = 身前 20 破水处，P = 落点前 24（跃起点），land = 同冲锋的落点（锚点往回 18）
+static func _hw_orca_launch(o, an: Dictionary, to: Vector2, dir: Vector2) -> void:
+	var land: Vector2 = to - dir * 18.0
+	var S: Vector2 = o.pos + dir * 20.0
+	var P: Vector2 = land - dir * 24.0
+	if (P - S).dot(dir) < 0.0:   # 落点太近：原地跃起
+		P = S
+	an.phase = "orca"
+	an.t = 0.0
+	an.start = o.pos
+	an.S = S
+	an.P = P
+	an.land = land
+	an.head = S
+	an.hit = {}
+	an.trail = []
+	an.dur = clampf(S.distance_to(P) / ORCA_SPD, 0.12, 0.36) + ORCA_LEAP
+	_FXR.ev(o, "ul_orca", {"an": an})   # 转平面（docs/266 §8）：虎鲸拖痕，只画
+	_hw_sfx_op(o, "atk", 2.0, 0.85)
+
+
 ## 冲锋沿途结算：本帧位移线段 a→c 两侧 path_w / 2（+ 敌人半径）内、这次冲锋还没吃过的敌人各吃一次 path_mult 倍率；
 ## 画面：脚下留一段锚链拖痕（floor 线）+ 间隔扬起拖拽尘（帧条特效，光学观感自动给粒子与动态光）
 static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
 	var g = o.g
 	var b: Dictionary = an.b
-	var w: float = float(b.get("path_w", 50.0))
+	var w: float = float(an.get("orca_w", b.get("path_w", 50.0)))
 	var seg: Vector2 = c - a
 	var L: float = seg.length()
 	if L < 0.01:
@@ -402,6 +464,7 @@ static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:
 	an.head = to
 	an.trail = []
 	an.elite = h.hooked[0].e.elite
+	_FXR.ev(o, "ul_reel", {"an": an})   # 转平面（docs/266）：被拽的怪身后水沟，只画
 	if b.has("hook_text"):
 		o.float_text(to + Vector2(0, -40), str(b.hook_text), HW_STEEL, 14)
 	_hw_sfx_play(o, "tentacle", -6.0, 0.7)
@@ -446,10 +509,12 @@ static func _hw_reel_slam(o) -> void:
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * o._dmg_bonus() * o.skill_power()
 	var first: Dictionary = h.hooked[0].e if not h.hooked.is_empty() else {}
 	var src: String = str(b.get("src", ""))
+	var hs: Array = []   # 只画用（转平面 / 打击感包）
 	for j in o.query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + e.r:
 			continue
+		hs.append(e)
 		o.log_hit(src)
 		o.deal_damage(e, dmg * (float(b.get("elite_mult", 1.0)) if is_same(e, first) and e.elite else 1.0))
 		if not e.dead:
@@ -457,6 +522,8 @@ static func _hw_reel_slam(o) -> void:
 			if not e.boss:
 				o.apply_kb(e, (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0)))
 	o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
+	_FXR.ev(o, "ul_slam", {"c": c, "r": r, "es": hs})   # 转平面（docs/266）：只画
+	_MI.hit(o, src, ["skill"], hs)   # 近战打击感包（docs/246 §11）：只画
 	_hw_slam_fx(o, c, r, 1.2)
 	o.impact_pause(0.07)
 	_hw_sfx_op(o, "atk", 2.0, 0.85)
@@ -469,7 +536,7 @@ static func _hw_zip_land(o) -> void:
 	var an: Dictionary = h.anchor
 	var b: Dictionary = an.b
 	var c: Vector2 = an.land
-	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
+	var r: float = float(an.get("orca_r", b.get("r", 90.0))) * o.stat(&"op_range")
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * o._dmg_bonus() * o.skill_power()
 	var src: String = str(b.get("src", ""))
 	var sb: float = float(b.get("stun_boss", 0.5))
@@ -477,10 +544,12 @@ static func _hw_zip_land(o) -> void:
 	var kb_boss: bool = b.get("kb_boss", false)
 	var charge: bool = b.has("path_w") and UlpCharge.on(o)
 	var heavy := 0
+	var hs: Array = []   # 只画用（转平面 / 打击感包）
 	for j in o.query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + e.r:
 			continue
+		hs.append(e)
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		if charge and heavy < 6:
@@ -491,6 +560,8 @@ static func _hw_zip_land(o) -> void:
 			if kb_boss or not e.boss:
 				o.apply_kb(e, (e.pos - c).normalized() * float(b.get("land_kb", 50.0)))
 	var big: bool = b.get("big", false)
+	_FXR.ev(o, "ul_land", {"c": c, "r": r, "es": hs, "s3": b.has("path_w")})   # 转平面（docs/266）：只画
+	_MI.hit(o, src, ["skill"], hs)   # 近战打击感包（docs/246 §11）：只画
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
 	if charge:
 		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/143）
@@ -531,8 +602,9 @@ static func _hw_pull_cc(o, e: Dictionary) -> void:
 
 
 ## 沉默标记：眩晕结束后、沉默期间头顶画禁言符（只画本干员施加的）
-static func hw_draw_mute(o) -> void:
-	_hw_draw_leashes(o)
+static func hw_draw_mute(o, leashes := true) -> void:
+	if leashes:
+		_hw_draw_leashes(o)
 	var g = o.g
 	var mu: Dictionary = _hw4(o).mute
 	for id in mu.keys():
@@ -595,6 +667,7 @@ static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		_hw_launch(o, e, float(rf.get("air", 0.8)), float(rf.get("h", 30.0)), after)
+	_FXR.ev(o, "ul_rift", {"a": a, "b": b})   # 转平面（docs/266）：只画
 	o.fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.vrng.randf() * 100.0})
 	for k in 5:
 		var p: Vector2 = a.lerp(b, (k + 0.5) / 5.0)
@@ -648,6 +721,7 @@ static func _hw_aftershock(o, ctx: Dictionary, e: Dictionary) -> void:
 			continue
 		o.log_hit(src)
 		o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
+	_FXR.ev(o, "ul_after", {"p": p, "r": r})   # 转平面（docs/266）：只画
 	o.fx({"kind": "ulp_wave", "pos": p, "r": r, "life": 0.3, "floor": true})
 	_hw_sparks(o, p + Vector2(0, -4), HW_EDGE, 4, 150.0, 0.3, 2.5, 240.0)
 	if ctx.last != Vector2.INF:
@@ -887,6 +961,8 @@ static func hw_draw_tether(o) -> void:
 	var an: Dictionary = h.anchor
 	if an.is_empty() or o.pos == Vector2.INF:
 		return
+	if an.get("orca", false):
+		return   # 虎鲸（docs/266 §8）由 fx_pxplane_ul 画；转平面关时不画
 	var cv = o.cv
 	var k: float = clampf(float(an.t) / float(an.dur), 0.0, 1.0)
 	var hand: Vector2 = _hw_hand(o)
@@ -1218,6 +1294,9 @@ static func _hw5_hook_impact(o, hk: Dictionary) -> void:
 	if hk.gl:
 		_FXR.ev(o, "gl_impact", {"hk": hk, "c": c, "r": r, "es": hits, "src": str(b.get("src", ""))})   # 歌蕾蒂娅转平面（docs/263）：只画
 		_MI.hit(o, str(b.get("src", "")), b.get("tags", []), hits)   # 近战打击感包（docs/246 §11）：只画
+	elif str(o.id) == "ulpianus":
+		_FXR.ev(o, "ul_hook_hit", {"hk": hk, "c": c, "r": r, "es": hits})   # 转平面（docs/266）：只画
+		_MI.hit(o, str(b.get("src", "")), b.get("tags", []), hits)   # 近战打击感包：只画
 	hk.phase = "taut"
 	hk.t = 0.0
 	hk.dur = float(b.get("taut", 0.2))
@@ -1284,6 +1363,8 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 	hk.front = front
 	if hk.gl:
 		_FXR.ev(o, "gl_drag", {"hk": hk})   # 歌蕾蒂娅转平面（docs/263）：拖痕，只画
+	elif str(o.id) == "ulpianus":
+		_FXR.ev(o, "ul_hook_drag", {"hk": hk})   # 转平面（docs/266）：拖拽水沟，只画
 
 
 static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
@@ -1308,6 +1389,8 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+	if str(o.id) == "ulpianus" and not hits.is_empty():
+		_FXR.ev(o, "ul_hook_arrive", {"hk": hk, "es": hits})   # 转平面（docs/266）：只画
 	if hk.gl and not hits.is_empty():
 		_FXR.ev(o, "gl_arrive", {"hk": hk, "es": hits, "src": src})   # 歌蕾蒂娅转平面（docs/263）：只画
 		_MI.hit(o, src, b.get("tags", []), hits)   # 近战打击感包（docs/246 §11）：只画

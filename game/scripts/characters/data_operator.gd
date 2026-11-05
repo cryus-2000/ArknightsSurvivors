@@ -1143,6 +1143,8 @@ func draw_body() -> void:
 	_draw_body_fx(false)
 	if not hw.is_empty() and not Fxr.owns(self):
 		ObHw.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
+	elif not hw.is_empty() and str(id) == "ulpianus":
+		ObHw.hw_draw_body(self, false)   # 转平面接管（docs/266）：乌尔比安精二血脉红纹是本体状态，照画
 	super()
 	if not hw.is_empty() and not Fxr.owns(self):
 		ObHw.hw_draw_body(self, true)
