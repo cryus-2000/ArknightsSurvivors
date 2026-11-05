@@ -13,6 +13,7 @@ const PF = preload("res://scripts/run/ult_pixfx.gd")
 const A = preload("res://scripts/art.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：归溟幽灵鲨 / 水月钻洞与小触手（docs/199 §7.9）
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，ult/px_plane；只画）
+const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9：配色对齐 + 爆开那一下加强；只画）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -747,7 +748,8 @@ static func _sd_face_v2(u, a: Dictionary, w: Dictionary, o0: Vector2, d: Vector2
 ## 瞬发型时长上限 1.2 秒（含瞄准慢放 0.125）：0.65 + 0.2 = 0.85 秒处最后一下伤害
 static func _gl_start(u, o, c: Vector2) -> Dictionary:
 	var rt := _route(o)
-	var col: Color = u._col(o)
+	var gp: Dictionary = GLP.pal(u, o)   # 配色（转平面开时对齐深海蓝定稿，docs/263 §9）
+	var col: Color = gp.col
 	var R: float = aim_r("gladiia")
 	var DR: float = Bal.v("ult/gl_drag_r", 520.0) + (60.0 if rt == "brute" else 0.0)   # 10-30 对齐表 560 → 520（屏内小怪 55.6% → 约 50%）；怒海仍比缺省大 60（原 620 对 560）
 	var pulled: Array = []
@@ -774,8 +776,9 @@ static func _gl_start(u, o, c: Vector2) -> Dictionary:
 			for s in arm:
 				u.shapes.erase(s)
 		var rr: float = PF.tex_w(u, GL_VORTEX) * 0.5
-		a["vo"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR / rr, "life": 3.0, "col": Color(1, 1, 1, 0.55)})
-		a["vi"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR * 0.5 / rr, "ang": 1.3, "life": 3.0, "col": Color(1.1, 1.15, 1.15, 0.7)})
+		a["vo"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR / rr, "life": 3.0, "col": gp.vo})
+		a["vi"] = u.strip(GL_VORTEX, c, {"layer": "back", "sc": DR * 0.5 / rr, "ang": 1.3, "life": 3.0, "col": gp.vi})
+		a["vt"] = gp.vo   # 漩涡贴图的底色（凝聚变亮时按它乘）
 		a["rr"] = rr
 	var op: int = Bal.vi("ult/gl_open", 1)
 	a["op"] = op
@@ -795,24 +798,25 @@ static func _gl_open(u, a: Dictionary, o, c: Vector2, col: Color) -> void:
 	var vs: float = PF.vseed(u, c)
 	var p0: Vector2 = o.pos + Vector2(0, -16)
 	var d: Vector2 = (c - p0).normalized() if c.distance_to(p0) > 1.0 else Vector2.RIGHT
-	var foam := Color(0.82, 0.97, 1.0)
+	var gp: Dictionary = GLP.pal(u, o)
+	var foam: Color = gp.foam
 	var deep: Color = col.darkened(0.35)
 	o.face_to(d.angle())
 	# 掷枪：枪影一道飞到落点，扎地后枪身留 0.5 秒
 	u.shape({"kind": "blade", "a": p0, "b": c, "w": 5.0, "col": foam, "glow": col, "grow": 0.1, "life": 0.17, "fo": 0.07})
-	u.shape({"kind": "blade", "a": c - d * 80.0 + Vector2(0, -30), "b": c + d * 6.0, "w": 4.0, "col": Color(0.8, 0.93, 1.0), "glow": deep, "life": 0.55, "fo": 0.3, "delay": 0.1})
+	u.shape({"kind": "blade", "a": c - d * 80.0 + Vector2(0, -30), "b": c + d * 6.0, "w": 4.0, "col": foam, "glow": deep, "life": 0.55, "fo": 0.3, "delay": 0.1})
 	u.shape({"kind": "ring", "c": c, "r": 24.0, "r1": a.DR * 0.55, "w": 5.0, "col": Color(foam.r, foam.g, foam.b, 0.7), "life": 0.24, "delay": 0.1})   # 扎地那一下的水圈（缺省碎环）
 	PF.particles(u, c, 160, "ult_burst_s", [foam, col, deep], 0.1, vs, 110.0)
-	PF.dust(u, c, 180.0, 0.1, vs, Vector2.ZERO, Color(0.42, 0.58, 0.66))
+	PF.dust(u, c, 180.0, 0.1, vs, Vector2.ZERO, Color(0.42, 0.58, 0.66) if not gp.px else Color(0.29, 0.4, 0.58))
 	u.light(c, 160.0, col, 0.3)
-	u.shape({"kind": "circle", "c": c, "r": 46.0, "col": Color(0.8, 0.92, 0.95), "fill": 0.85, "life": 0.06, "delay": 0.1})   # 扎地一帧爆亮（≤ 0.9）
+	u.shape({"kind": "circle", "c": c, "r": 46.0 if not gp.px else 22.0, "col": Color(0.8, 0.92, 0.95) if not gp.px else foam, "fill": 0.85, "life": 0.06, "delay": 0.1})   # 扎地一帧爆亮（≤ 0.9；转平面收小，不平涂大圆）
 	var fa: Array = []
 	var fl: Array = []
 	for q in 4:   # 枪尖处崩出几道不规整的细裂缝（角度 / 长短按哈希错开）
 		fa.append(PF.h(vs + q * 1.7) * TAU)
 		fl.append(70.0 + 90.0 * PF.h(vs + q * 3.3))
 	PF.cracks(u, ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"], c, fa, fl, {"seed": vs, "r0": 8.0, "rev": 0.08, "rev0": 0.0, "delay": 0.1, "life": 1.0, "fade": 0.5,
-		"small": 0.45, "big": 0.6, "col": Color(0.85, 0.97, 1.0), "col1": Color(0.12, 0.2, 0.26, 0.85), "cold": 0.15})
+		"small": 0.45, "big": 0.6, "col": foam, "col1": Color(0.12, 0.2, 0.26, 0.85) if not gp.px else Color(0.07, 0.12, 0.2, 0.85), "cold": 0.15})
 
 
 static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
@@ -822,7 +826,8 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 	var DR: float = a.DR
 	var T: float = a.T
 	var H: float = a.H
-	var col: Color = u._col(o)
+	var gp: Dictionary = GLP.pal(u, o)
+	var col: Color = gp.col
 	var er: float = R * (1.0 - _edge_w())
 	if not a.crushed:
 		var k: float = clampf(t / T, 0.0, 1.0)
@@ -853,7 +858,8 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			var sk: float = lerpf(1.0, 0.2, kc)
 			a.vo.ang = -float(a.rot)
 			a.vo.sc = DR * sk / float(a.rr)
-			a.vo.col = Color(1.0 + 0.4 * kc, 1.0 + 0.4 * kc, 1.0 + 0.4 * kc, lerpf(0.55, 0.95, kc))
+			var vt: Color = a.get("vt", Color(1, 1, 1, 0.55))
+			a.vo.col = Color(vt.r * (1.0 + 0.4 * kc), vt.g * (1.0 + 0.4 * kc), vt.b * (1.0 + 0.4 * kc), lerpf(0.55, 0.95, kc))
 			a.vi.ang = 1.3 - float(a.rot) * 1.8
 			a.vi.sc = DR * 0.5 * sk / float(a.rr)
 			a.vi.col = Color(1.1 + 0.5 * kc, 1.15 + 0.5 * kc, 1.15 + 0.5 * kc, lerpf(0.7, 1.0, kc))
@@ -865,7 +871,7 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 					a[key].col = cc
 			if int(t * 60.0) % 3 == 0:   # 外圈的水沫往里吸
 				var dq := Vector2.from_angle(float(a.rot) * 1.7 + t * 9.0)
-				u.grain("mote_in", c + dq * DR * 0.9, -dq, Color(0.8, 1.0, 1.0), 3)
+				u.grain("mote_in", c + dq * DR * 0.9, -dq, gp.mote, 3)
 		var foam: Color = col.lerp(Color.WHITE, 0.45)
 		for j in a.arms.size():   # 旋臂上甩出的水沫（沿切向）+ 中心越转越亮
 			var arm2: Array = a.arms[j]
@@ -897,7 +903,8 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 				var dq := Vector2.from_angle(float(i) * TAU / 10.0)
 				u.grain("water", c + dq * 150.0, -dq, col.lerp(Color.WHITE, 0.5), 3)
 			a["pt"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": H + 0.3})
-			a["pg"] = _keep(u, a, {"kind": "circle", "c": c, "r": 70.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.55, "life": H + 0.3})
+			a["pg"] = _keep(u, a, {"kind": "circle", "c": c, "r": 70.0, "col": col.lerp(Color.WHITE, 0.5), "fill": 0.55 if not gp.px else 0.3, "life": H + 0.3})
+			a["pk"] = 0.5 if gp.px else 1.0   # 转平面：白光团收到一半
 			a["pr"] = _keep(u, a, {"kind": "ring", "c": c, "r": 120.0, "w": 4.0, "col": col.lerp(Color.WHITE, 0.6), "life": H + 0.3})
 			o.play_vis_anim("attack")
 		return false
@@ -908,8 +915,9 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			a.vo.sc = DR * lerpf(0.2, 0.14, kh) / float(a.rr)
 			a.vi.sc = DR * 0.5 * lerpf(0.2, 0.14, kh) / float(a.rr)
 			a.vo.col = Color(1.4 + 0.3 * kh, 1.4 + 0.3 * kh, 1.4 + 0.3 * kh, 1.0)
-		a.pt.r = lerpf(30.0, 12.0, kh)
-		a.pg.r = lerpf(70.0, 26.0, kh)
+		var pk: float = float(a.get("pk", 1.0))
+		a.pt.r = lerpf(30.0, 12.0, kh) * pk
+		a.pg.r = lerpf(70.0, 26.0, kh) * pk
 		a.pr.r = lerpf(120.0, 30.0, kh)
 		for s in [a.pt, a.pg, a.pr]:
 			s.age = 0.0
@@ -924,7 +932,7 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 				u.shapes.erase(s)
 				u.strip(GL_VORTEX, c, {"layer": "back", "sc": float(s.sc), "sc1": float(s.sc) * 1.6, "scd": 0.25, "ang": float(s.ang), "life": 0.3, "fade": 0.3, "col": s.col})
 			var n0: int = u.shapes.size()
-			_gl_burst_v2(u, c, R, col)
+			_gl_burst_v2(u, c, R, col, gp)
 			if Bal.v("ult/gl_fx_v3", 1.0) > 0.0:   # 打击感（10-31）：炸开那一下冲击帧，水花粒子进剪影（水招不加烟尘）
 				PF.hf_since(u, n0)
 				PF.hf_on(u, a)
@@ -935,20 +943,25 @@ static func _gl_step(u, a: Dictionary, o, dt: float) -> bool:
 			var dv: Vector2 = off.normalized() if off.length() > 1.0 else Vector2.from_angle(float(int(e.id)) * GA)
 			var fr: float = bf + (0.0 if a.cseg.has(int(e.id)) else Bal.v("ult/gl_crush", 0.3))   # 收拢那下没罩到的（后进圈）这下补上
 			_hit(u, a, o, e, fr, {"src": "潮涌", "edge": off.length() > er, "kb": _kb_for(e, dv, kb, kb * 0.5)})
-		u.shake(5.0, 0.3)
+		if gp.px:   # 转平面：最大那一下的叠加层（慢动作 / 亮核 / 冲击环 / 贴地水爆 / 崩解 / 满亮灯 / 轻震 3px，docs/263 §9）
+			GLP.of(u.g).ev(u, "burst", {"c": c, "R": R, "es": u.in_circle(c, R), "el": int(o.elite)})
+		else:
+			u.shake(5.0, 0.3)
 		var v2: bool = a.has("vo")   # v2：不画卡通水花 / 浪涌帧条和整片淡圆，交给 2 px 水色颗粒（用户 10-30「对齐 Noita 精细像素粒子风」）
 		u.strip("fx_gladiia_tornado_close", c, {"sc": 2.6, "o": Vector2(64, 118)})
 		if not v2:
 			u.strip("fx_skadi_surge", c, {"sc": 5.2})
 			u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.3), "fill": 0.28, "life": 0.28})
-		u.shape({"kind": "circle", "c": c, "r": 90.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": 0.1})
+		if not gp.px:   # 转平面：中心白光团换成叠加层的小亮核
+			u.shape({"kind": "circle", "c": c, "r": 90.0, "col": col.lerp(Color.WHITE, 0.6), "fill": 0.95, "life": 0.1})
 		_ring(u, c, R, 40.0, col.lerp(Color.WHITE, 0.5), 0.45, 18.0)
-		u.light(c, R, col, 0.45)
+		if not gp.px:
+			u.light(c, R, col, 0.45)
 		u.debris(c, col, 3)
 		_ring(u, c, R * 0.85, 30.0, col.lerp(Color.WHITE, 0.5), 0.45, 10.0, 0.05)
 		_ring(u, c, R * 0.6, 20.0, col.lerp(Color.WHITE, 0.3), 0.4, 6.0, 0.1)
 		# 水柱：12 道放射的水刃往外冲 + 两圈水花
-		var foam: Color = col.lerp(Color.WHITE, 0.7)
+		var foam: Color = col.lerp(Color.WHITE, 0.7) if not gp.px else gp.foam
 		for i in 12:
 			var dv2 := Vector2.from_angle(float(i) * TAU / 12.0 + 0.13)
 			if not v2:
@@ -976,23 +989,27 @@ const GL_VORTEX := "fx_gl_vortex"
 
 
 ## 爆开：白芯三连闪 → 两波水色像素粒子（白沫 / 浅青 / 青 / 深青）迸开扩散 + 一圈 9 团水花爆 + 碎裂水环三道 + 大灯
-static func _gl_burst_v2(u, c: Vector2, R: float, col: Color) -> void:
+static func _gl_burst_v2(u, c: Vector2, R: float, col: Color, gp := {}) -> void:
 	var vs: float = PF.vseed(u, c)
-	var cols := [Color(0.85, 1.0, 1.0), Color(0.5, 0.9, 0.95), Color(0.3, 0.75, 0.85), Color(0.7, 0.95, 1.0)]
-	for m in 3:
-		u.shape({"kind": "circle", "c": c, "r": 60.0 + 40.0 * m, "col": Color(0.9, 1.0, 1.0), "fill": 0.9 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
-	PF.particles(u, c, 420, "ult_burst", cols, 0.0, vs)   # 2 px 水色颗粒迸开扩散
+	var px: bool = gp.get("px", false)
+	var cols: Array = gp.get("cols", [Color(0.85, 1.0, 1.0), Color(0.5, 0.9, 0.95), Color(0.3, 0.75, 0.85), Color(0.7, 0.95, 1.0)])
+	var fc: Color = gp.get("flash", Color(0.9, 1.0, 1.0))
+	for m in (0 if px else 3):   # 白芯三连闪（转平面：交给叠加层的小亮核，不平涂大圆）
+		u.shape({"kind": "circle", "c": c, "r": 60.0 + 40.0 * m, "col": fc, "fill": 0.9 - 0.25 * m, "life": 0.06, "delay": 0.05 * m})
+	PF.particles(u, c, 420, "ult_burst", cols, 0.0, vs)   # 2 px 水色颗粒迸开扩散（原版的粒子云保留，转平面换深海蓝配色）
 	PF.particles(u, c, 200, "ult_burst_s", cols, 0.08, vs + 3.0)
-	PF.particles(u, c, 80, "ult_ember", [Color(0.7, 0.95, 1.0)], 0.12, vs + 5.0)
+	PF.particles(u, c, 80, "ult_ember", [gp.get("ember", Color(0.7, 0.95, 1.0))], 0.12, vs + 5.0)
 	for q in 9:
 		var hq: float = PF.h(q + vs)
 		var p: Vector2 = c + Vector2.from_angle(TAU * (q + hq) / 9.0) * R * (0.45 + 0.3 * hq)
-		u.shape({"kind": "circle", "c": p, "r": 26.0, "col": Color(0.9, 1.0, 1.0), "fill": 0.9, "life": 0.06, "delay": 0.06 + 0.03 * (q % 3)})
+		if not px:
+			u.shape({"kind": "circle", "c": p, "r": 26.0, "col": fc, "fill": 0.9, "life": 0.06, "delay": 0.06 + 0.03 * (q % 3)})
 		PF.particles(u, p, 34, "ult_burst_s", cols, 0.06 + 0.03 * (q % 3), vs + q * 5.0)
-		u.grain("water", p, Vector2.UP, Color(0.85, 1.0, 1.0), 6)
+		u.grain("water", p, Vector2.UP, gp.get("foam", Color(0.85, 1.0, 1.0)), 6)
 	for m in 3:
-		u.shape({"kind": "ring", "c": c, "r": R * (1.0 - 0.18 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": Color(0.85, 1.0, 1.0).lerp(col, 0.3 * m), "life": 0.55, "delay": 0.04 * m})
-	u.light(c, R * 1.1, Color(0.5, 0.95, 1.0), 0.6)
+		u.shape({"kind": "ring", "c": c, "r": R * (1.0 - 0.18 * m), "r1": 40.0, "w": 12.0 - 3.0 * m, "col": fc.lerp(col, 0.3 * m), "life": 0.55, "delay": 0.04 * m})
+	if not px:   # 转平面：满亮照地灯由叠加层点（docs/270 爆发档上限）
+		u.light(c, R * 1.1, gp.get("light", Color(0.5, 0.95, 1.0)), 0.6)
 
 
 static func _gl_v2(u) -> bool:
