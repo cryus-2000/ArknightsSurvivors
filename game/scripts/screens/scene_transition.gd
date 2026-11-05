@@ -5,8 +5,9 @@ var busy := false
 var opacity := 0.0
 var tween: Tween
 var slash := -1.0   # 斜切黑带进度 0–1（图鉴 C4' 打开，docs/58 §11.2）；< 0 = 不在斜切
-## 快门切换（11-05 用户「页面切换可以加一下」，PRTS 风格）：上下两片暗幕带白细线向中间合拢（0.16 秒）、中线亮一道青光 → 换页 →
-## 两片暗幕向上下分开（0.26 秒），中线向两侧拉开淡出。shut = 合拢程度 0–1，opening = 是否在打开段；减少动态效果退回原来的短压暗
+## 扫线切换（11-05 用户「页面切换可以加一下」；同日嫌快门「有点奇怪」，选「轻量扫线」）：旧页压暗 0.1 秒 → 换页 →
+## 一道白细线带淡青拖尾从左扫到右（0.32 秒，缓出），扫过的地方暗幕退去、没扫到的仍暗着。
+## shut：压暗段 0–1 = 暗幕浓度；opening 段 shut 1 → 0 = 扫线还剩多少没走（1 = 刚开始）。减少动态效果退回原来的短压暗
 var shut := -1.0
 var opening := false
 
@@ -22,11 +23,10 @@ func switch_page(change: Callable) -> void:
 	if not Cfg.reduce_motion:
 		opening = false
 		tween = create_tween()
-		tween.tween_method(_set_shut, 0.0, 1.0, 0.16).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		tween.tween_method(_set_shut, 0.0, 1.0, 0.1).set_trans(Tween.TRANS_SINE)
 		tween.tween_callback(change)
 		tween.tween_callback(func(): opening = true)
-		tween.tween_interval(0.04)
-		tween.tween_method(_set_shut, 1.0, 0.0, 0.26).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_method(_set_shut, 1.0, 0.0, 0.32).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween.tween_callback(func():
 			shut = -1.0
 			opening = false
@@ -68,9 +68,9 @@ func reveal_page() -> void:
 	_lock()
 	if not Cfg.reduce_motion:   # 只打开段（从合拢处分开）
 		opening = true
-		_set_shut(0.85)
+		_set_shut(1.0)
 		tween = create_tween()
-		tween.tween_method(_set_shut, 0.85, 0.0, 0.24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_method(_set_shut, 1.0, 0.0, 0.28).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween.tween_callback(func():
 			shut = -1.0
 			opening = false
@@ -140,27 +140,16 @@ func _draw_slash() -> void:
 func _draw_shutter() -> void:
 	var w := size.x
 	var h := size.y
-	var cy := h * 0.5
-	var half: float = cy * shut   # 每片暗幕盖住的高度
 	var ink: Color = UI.BG2
-	draw_rect(Rect2(0, 0, w, half), ink)
-	draw_rect(Rect2(0, h - half, w, half), ink)
-	var la: float = clampf(shut * 1.4, 0.0, 1.0)
-	draw_rect(Rect2(0, half - 1.0, w, 1.0), Color(1, 1, 1, 0.55 * la))   # 暗幕前沿白细线
-	draw_rect(Rect2(0, h - half, w, 1.0), Color(1, 1, 1, 0.55 * la))
-	# 中线：合拢时从中间向两侧亮出；打开时向两侧拉长并淡出
-	var cw: float
-	var ca: float
-	if opening:
-		cw = w * (1.0 - shut * 0.6)
-		ca = shut
-	else:
-		cw = w * 0.4 * UI.ease_out(shut)
-		ca = shut
-	if ca > 0.0:
+	if not opening:   # 压暗段
+		draw_rect(Rect2(Vector2.ZERO, size), Color(ink, 0.82 * shut))
+		return
+	var e: float = 1.0 - shut   # 扫线走了多少（0 → 1）
+	var x: float = w * e
+	draw_rect(Rect2(x, 0, w - x, h), Color(ink, 0.82))   # 没扫到的仍暗
+	draw_rect(Rect2(0, 0, x, h), Color(ink, 0.82 * clampf(1.0 - e * 2.5, 0.0, 1.0)))   # 扫过的很快退去
+	if e > 0.0 and e < 1.0:
 		var cyan: Color = UI.CYAN
-		draw_rect(Rect2(w * 0.5 - cw * 0.5, cy - 1.0, cw, 2.0), Color(cyan, 0.9 * ca))
-		draw_rect(Rect2(w * 0.5 - cw * 0.5, cy - 5.0, cw, 10.0), Color(cyan, 0.12 * ca))
-		for sx in [-1.0, 1.0]:   # 两端小刻度
-			var ex: float = w * 0.5 + sx * cw * 0.5
-			draw_rect(Rect2(ex - 1.0, cy - 7.0, 2.0, 14.0), Color(1, 1, 1, 0.8 * ca))
+		draw_rect(Rect2(x - 48.0, 0, 48.0, h), Color(cyan, 0.06))   # 淡青拖尾
+		draw_rect(Rect2(x - 14.0, 0, 14.0, h), Color(cyan, 0.08))
+		draw_rect(Rect2(x - 1.0, 0, 1.0, h), Color(1, 1, 1, 0.85))   # 白细线
