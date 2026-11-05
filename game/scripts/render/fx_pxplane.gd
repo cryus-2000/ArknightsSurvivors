@@ -2560,9 +2560,12 @@ func _sg_draw_cores() -> void:
 		var pts: Array = [[at - Vector2(s, s) * px * 0.5, s * px]]
 		for dv in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
 			pts.append([_snap(at + dv * (s * 0.5 + 0.5 + (1.0 if c.big else 0.0)) * px) - Vector2(px, px) * 0.5, px])
+		var now: bool = is_equal_approx(g.t, float(c.t0))
 		for q in pts:
 			if _emit_n >= EMIT_CAP:
 				break
 			_emit_n += 1
 			g.glow_next.append([q[0], q[1], col])
+			if now:   # 出手那一帧同时进当前帧的发光点表：发光层若在世界绘制之后刷新，白闪当帧就亮（去掉一帧延迟）；之后只走 glow_next
+				g.glow_cur.append([q[0], q[1], col])
 	_sg_cores = keep
