@@ -25,6 +25,8 @@ static func grains(o):
 	var g = o.g
 	if g == null or not g.get("optical_on") or g.optical == null or g.optical.grains == null:
 		return null
+	if load("res://scripts/render/fx_pxplane.gd").owns_id(g, str(o.id)):   # 转平面（docs/266）接管：冲锋颗粒由 fx_pxplane_ul 画（只画）
+		return null
 	var gr = g.optical.grains
 	if not gr.on() or gr.off or Bal.v("fx/ulp_charge_grains", 1.0) <= 0.0:
 		return null

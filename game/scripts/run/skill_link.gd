@@ -947,9 +947,14 @@ static func _step16(u, a: Dictionary) -> bool:
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("skill")
 				a["fp"] = p.pos + Vector2(0, -20)
+				if Fxr.owns(p):   # 转平面（docs/266）：锚 / 锁链 / 钉下 / 回卷改由 fx_pxplane 画（只画）
+					Fxr.ev(p, "ul_link", {"fp": a.fp, "tg": a.get("tg"), "tp": _tgp(a)})
 			var T := 0.2
 			var tp: Vector2 = _tgp(a)
+			var pxu: bool = Fxr.owns(p)
 			if t < T:
+				if pxu:
+					return false
 				var q: Vector2 = Vector2(a.fp).lerp(tp, t / T)
 				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
 					LFA.ulpianus_fly(u, a.fp, q, t / T)
@@ -969,14 +974,18 @@ static func _step16(u, a: Dictionary) -> bool:
 				for e in u.in_circle(tp, 180.0):
 					if e != tg and not e.boss and not e.elite:
 						a.pull.append(e)
-				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
+				if pxu:
+					Fxr.ev(p, "ul_link_pin", {"tp": tp, "pull": a.pull})
+				elif LFA.on(u, "fx_ult_ulpianus_anchor_front"):
 					LFA.ulpianus_pin(u, tp)
 				else:
 					u.debris(tp, cl, 2)
 					u.light(tp, 150.0, cl, 0.4)
 				_sfx_hit(u)
 			if t < T + 0.5:
-				if LFA.on(u, "fx_ult_ulpianus_anchor_front"):
+				if pxu:
+					pass
+				elif LFA.on(u, "fx_ult_ulpianus_anchor_front"):
 					LFA.ulpianus_hold(u, p.pos + Vector2(0, -20), tp)
 				else:
 					u.shape({"kind": "rock", "c": tp + Vector2(0, -6), "r": 14.0, "col": Color(0.12, 0.2, 0.22), "glow": cl, "seed": 8.0, "life": 0.04})

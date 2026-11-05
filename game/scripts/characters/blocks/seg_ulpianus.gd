@@ -298,6 +298,7 @@ static func _hw_anchor_bite(o) -> void:
 	var dir: Vector2 = (to - o.pos).normalized() if to.distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
 	var big: bool = b.get("big", false)
 	o.impact_pause(0.07 if big else 0.05)
+	_FXR.ev(o, "ul_bite", {"at": to, "big": big})   # 转平面（docs/266）：只画
 	o.fx({"kind": "ulp_wave", "pos": to, "r": 48.0 if big else 36.0, "life": 0.36, "floor": true})
 	UlpImpact.splash(o, to, 0.8)
 	for i in 6:
@@ -318,6 +319,7 @@ static func _hw_anchor_bite(o) -> void:
 		an.land = land
 		an.hit = {}
 		an.trail = []
+		_FXR.ev(o, "ul_zip", {"a": an.start, "b": land, "dur": an.dur})   # 转平面（docs/266）：冲锋尾迹，只画
 		o.melee_tgt = null
 		_hw_sfx_op(o, "atk", 2.0, 0.85)
 		if UlpCharge.on(o):
@@ -402,6 +404,7 @@ static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:
 	an.head = to
 	an.trail = []
 	an.elite = h.hooked[0].e.elite
+	_FXR.ev(o, "ul_reel", {"an": an})   # 转平面（docs/266）：被拽的怪身后水沟，只画
 	if b.has("hook_text"):
 		o.float_text(to + Vector2(0, -40), str(b.hook_text), HW_STEEL, 14)
 	_hw_sfx_play(o, "tentacle", -6.0, 0.7)
@@ -446,10 +449,12 @@ static func _hw_reel_slam(o) -> void:
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * o._dmg_bonus() * o.skill_power()
 	var first: Dictionary = h.hooked[0].e if not h.hooked.is_empty() else {}
 	var src: String = str(b.get("src", ""))
+	var hs: Array = []   # 只画用（转平面 / 打击感包）
 	for j in o.query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + e.r:
 			continue
+		hs.append(e)
 		o.log_hit(src)
 		o.deal_damage(e, dmg * (float(b.get("elite_mult", 1.0)) if is_same(e, first) and e.elite else 1.0))
 		if not e.dead:
@@ -457,6 +462,8 @@ static func _hw_reel_slam(o) -> void:
 			if not e.boss:
 				o.apply_kb(e, (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0)))
 	o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
+	_FXR.ev(o, "ul_slam", {"c": c, "r": r, "es": hs})   # 转平面（docs/266）：只画
+	_MI.hit(o, src, ["skill"], hs)   # 近战打击感包（docs/246 §11）：只画
 	_hw_slam_fx(o, c, r, 1.2)
 	o.impact_pause(0.07)
 	_hw_sfx_op(o, "atk", 2.0, 0.85)
@@ -477,10 +484,12 @@ static func _hw_zip_land(o) -> void:
 	var kb_boss: bool = b.get("kb_boss", false)
 	var charge: bool = b.has("path_w") and UlpCharge.on(o)
 	var heavy := 0
+	var hs: Array = []   # 只画用（转平面 / 打击感包）
 	for j in o.query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + e.r:
 			continue
+		hs.append(e)
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		if charge and heavy < 6:
@@ -491,6 +500,8 @@ static func _hw_zip_land(o) -> void:
 			if kb_boss or not e.boss:
 				o.apply_kb(e, (e.pos - c).normalized() * float(b.get("land_kb", 50.0)))
 	var big: bool = b.get("big", false)
+	_FXR.ev(o, "ul_land", {"c": c, "r": r, "es": hs, "s3": b.has("path_w")})   # 转平面（docs/266）：只画
+	_MI.hit(o, src, ["skill"], hs)   # 近战打击感包（docs/246 §11）：只画
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
 	if charge:
 		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/143）
@@ -531,8 +542,9 @@ static func _hw_pull_cc(o, e: Dictionary) -> void:
 
 
 ## 沉默标记：眩晕结束后、沉默期间头顶画禁言符（只画本干员施加的）
-static func hw_draw_mute(o) -> void:
-	_hw_draw_leashes(o)
+static func hw_draw_mute(o, leashes := true) -> void:
+	if leashes:
+		_hw_draw_leashes(o)
 	var g = o.g
 	var mu: Dictionary = _hw4(o).mute
 	for id in mu.keys():
@@ -595,6 +607,7 @@ static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		_hw_launch(o, e, float(rf.get("air", 0.8)), float(rf.get("h", 30.0)), after)
+	_FXR.ev(o, "ul_rift", {"a": a, "b": b})   # 转平面（docs/266）：只画
 	o.fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.vrng.randf() * 100.0})
 	for k in 5:
 		var p: Vector2 = a.lerp(b, (k + 0.5) / 5.0)
@@ -648,6 +661,7 @@ static func _hw_aftershock(o, ctx: Dictionary, e: Dictionary) -> void:
 			continue
 		o.log_hit(src)
 		o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
+	_FXR.ev(o, "ul_after", {"p": p, "r": r})   # 转平面（docs/266）：只画
 	o.fx({"kind": "ulp_wave", "pos": p, "r": r, "life": 0.3, "floor": true})
 	_hw_sparks(o, p + Vector2(0, -4), HW_EDGE, 4, 150.0, 0.3, 2.5, 240.0)
 	if ctx.last != Vector2.INF:
@@ -1213,6 +1227,9 @@ static func _hw5_hook_impact(o, hk: Dictionary) -> void:
 		o.last_hit_pos = hits[0].pos
 	if b.has("impact_fx"):
 		fx_play(o, b.impact_fx, c, r, hits)
+	if str(o.id) == "ulpianus":
+		_FXR.ev(o, "ul_hook_hit", {"hk": hk, "c": c, "r": r, "es": hits})   # 转平面（docs/266）：只画
+		_MI.hit(o, str(b.get("src", "")), b.get("tags", []), hits)   # 近战打击感包：只画
 	hk.phase = "taut"
 	hk.t = 0.0
 	hk.dur = float(b.get("taut", 0.2))
@@ -1277,6 +1294,8 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 	hk.t = 0.0
 	hk.dur = float(b.get("drag", 0.18))
 	hk.front = front
+	if str(o.id) == "ulpianus":
+		_FXR.ev(o, "ul_hook_drag", {"hk": hk})   # 转平面（docs/266）：拖拽水沟，只画
 
 
 static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
@@ -1301,6 +1320,8 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+	if str(o.id) == "ulpianus" and not hits.is_empty():
+		_FXR.ev(o, "ul_hook_arrive", {"hk": hk, "es": hits})   # 转平面（docs/266）：只画
 	if hk.gl and not hits.is_empty():
 		_F().gl_arrive(o, hk)   # docs/202 歌蕾蒂娅成长节点：倒钩结算 / 回收斩 / 锁链沉底（seg_gladiia）
 	if not hits.is_empty() and o.has_method("notify_mate_hook"):   # 联动段（docs/123 §2.7「钩与锚」）：告诉队友「我把人拖到 front 了」

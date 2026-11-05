@@ -8,7 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42)}
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "ulpianus": Color(0.62, 0.69, 0.94)}
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false}
 const FLASH_T := 0.07
 
@@ -25,6 +25,8 @@ static func lit_k(g) -> float:
 ## ob_core.exec_shape 判定结算后调（只画）：o 出手的干员，src 招式名，tags，hits 被打中的敌人
 static func hit(o, src: String, tags: Array, hits: Array) -> void:
 	if hits.is_empty() or not IDS.has(str(o.id)):
+		return
+	if str(o.id) == "ulpianus" and src in ["撼地", "定点爆破", "锁链回旋"]:   # 乌尔比安（docs/266）：锚击的附带冲击不再顿一次
 		return
 	var g = o.g
 	if not on(g):
