@@ -72,6 +72,21 @@
 - 音效维持 §4 收紧后的档位（枪声间隔 0.05 秒、命中 0.2 秒 −6.5 dB）。
 - 帧条 186 张约 49 KB（枪口火两种变体 × 5 方向、命中 × 5 方向）。
 
-## 8. GCP 出图（用户点头后）
+## 8. 第三、四轮（实机反馈）
 
-待做：推 `claude/pxplane-exusiai`，`tools/gcp_render.py` 出三栏、三档、8:00 开 / 关 mp4（≤ 30 MB）、开 / 关 TRACE（逐行一致）。
+- **第三轮**（用户看实机：「能天使你觉得是不是反而变得不明显了？」）：第二轮按 GIF 放大图把弹体改细，到实机 1 倍几乎看不见。改成以实机 1 倍截图为准：枪口火放大约一倍，每发都照地（每拍至多 2 盏）；命中火花加大加亮；受击闪色压成深赭（`#7a4434`），让火花压过闪色；弹体封顶 16 → 24。
+- **第四轮**（用户：「还是以肉鸽的可视化为优先级最高」，口径改为看得清优先于枪械写实）：子弹改成肉鸽式高可读光弹。弹身 6–8 格，3 宽，中线白芯，两侧亮色，外加一圈光晕描边，两头圆钝；后面拖一段亮尾（前 3 格 3 宽），芯进发光层。精一描边换成金色；精二弹身 4 宽，弹头按拍闪金星，配合穿甲亮线和队友光环。像素按弹道坐标扫格分类，任意方向都不漏洞；游戏里按 32 个方向缓存像素表（`fx_pxplane_exu._bul_px`，与 `pxplane_exu_art.bullet_px` 同一算法）。
+- 抛壳、后坐、枪口烟、定向火花与碎屑照旧。
+
+## 9. 实机出图与验收（GCP，docs/256）
+
+| 批 | 提交 | 内容 | 结果 |
+|---|---|---|---|
+| render-exusiai-9eb5106a | 9eb5106a6（第二轮） | 三栏 / 三档四招、TRACE 精二 5:00 局 | demo 18 局 0 条 SCRIPT ERROR；TRACE 种子 23（`--elite2 --sptest`，开 late_shape）开 / 关 301 行逐行一致 |
+| render-exusiai-9eb5106a-rec | 9eb5106a6 | 8:00 录像 | 18.4 MB；那台日志没回传 |
+| render-exusiai-r4-f2ef6c4e | aef0cd9f9（第四轮） | 普攻 / S1 三栏 + 三档、8:00 开 / 关 mp4 | 录像局（种子 11，能天使队长，开 late_shape，8:00 起 20 秒 `--realtime`）TRACE 开 / 关 501 行逐行一致；mp4 17.6 MB；0 条 SCRIPT ERROR |
+
+- 本机目录：`Claude outputs/render-exusiai-r4-f2ef6c4e/`（late_8m00_onoff.mp4、tiers_atk / s1.png、cmp_atk / s1_e*.png）；四招完整三栏在 `render-exusiai-9eb5106a/`（第二轮画法）。
+- 日志里多出的只有退出时的贴图泄漏提示（多加载了帧条），px0 局也有，不是脚本错误。
+- 连携三栏：种子 11、德克萨斯队长，8:00–8:30 没有触发能天使连携；放宽到 60 秒的重跑见下次补充。
+- 出图命令：`tools/gcp_render.py --job custom --split`，每台一条 `python3 tools/pxplane_shots.py <demo|rec|trace|linkcmp> --op exusiai …`（`--extra` 以 `--` 开头时要写成 `--extra=--bal=…`，否则 argparse 报错）。
