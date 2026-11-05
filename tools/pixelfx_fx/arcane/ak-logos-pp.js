@@ -102,7 +102,7 @@ export function create(o) {
     // 普攻命中（原作 hit_01）：白色四芒星芒（首帧白 → 深蓝 → 墨）+ 一圈不规整长碎刺（一根特长）；地上一圈墨环。
     // E1：斜向四芒成八芒 + 外圈多 3 根短刺 + 第 1 拍再爆亮；E2 质变：白热八芒星核更大、2 根深蓝墨羽从命中处甩开（羽梢紫）、两块细字碎块落下
     const tk = part === "tick";
-    S.K = (tk ? 0.55 : 0.85) * [1, 1.15, 1.3][E] * kk;   // 11-05 第三轮：命中面积收一档（怪群里偏白）
+    S.K = (tk ? 0.55 : 0.85) * [1, 1.08, 1.18][E] * kk;   // 第六轮：精一 / 精二亮核再收一点（怪群密时偏白）   // 11-05 第三轮：命中面积收一档（怪群里偏白）
     const n = tk ? 3 + E : [5, 8, 8][E];
     S.th = [];
     for (let i = 0; i < n; i++) {
@@ -147,7 +147,7 @@ export function create(o) {
             const rays = [[1, 0, 25, 1.9], [-1, 0, 25, 1.9], [0, -1, 18, 1.7], [0, 1, 16, 1.5]];
             if (E >= 1) rays.push([1, -1, 10, 1.4], [-1, -1, 10, 1.4], [1, 1, 8, 1.2], [-1, 1, 8, 1.2]);
             star(p, 0, 0, rays, K * sk, cool, C, INK);
-            if (E === 2 && t < SEG && !small) for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) if (Math.abs(x) + Math.abs(y) <= 2) p.px(x, y, C[6]);
+            if (E === 2 && t < SEG && !small) for (let y = -1; y <= 1; y++) for (let x = -1; x <= 1; x++) if (Math.abs(x) + Math.abs(y) <= 1) p.px(x, y, C[6]);
           }
           const ret = t < SEG ? 0 : smooth(SEG, 0.26, t);
           if (ret < 0.98) for (const s of S.th) thorn(p, 0, 0, s.a, s.L, s.w, s.b, ret, C, t < SEG && !small);
@@ -252,11 +252,11 @@ export function create(o) {
           S.chains.forEach(([x0, y0, x1, y1], ci) => {
             const L = Math.hypot(x1 - x0, y1 - y0), n = Math.floor(L / 6.5), wr = clamp(t / 0.12);
             for (let i = 0; i <= n * wr; i++) {
-              const v = i / n, x = x0 + (x1 - x0) * v, y = y0 + (y1 - y0) * v;
+              const v = i / n, x = x0 + (x1 - x0) * v + [5, -5, 3][ci] * Math.sin(Math.PI * v), y = y0 + (y1 - y0) * v;   // 第六轮：咒文链弯成弧（不留笔直的字行）
               const a = 1 - smooth(0.4, 0.7, t + (1 - v) * 0.05);
               const c = t < SEG * 2 ? C[6] : E === 2 && i % 3 === ci % 3 ? AC : t < 0.3 ? C[5] : C[3];
               glyph(p, x, y, S.gl[ci][i % 14], c, a);
-              if (i < n * wr - 1 && a > 0.3) D(p, x + (x1 - x0) / n * 0.5, y + (y1 - y0) / n * 0.5, C[3], a);   // 字间一点连笔
+              if (i < n * wr - 1 && a > 0.3) D(p, x + (x1 - x0) / n * 0.5 + [5, -5, 3][ci] * (Math.sin(Math.PI * (i + 0.5) / n) - Math.sin(Math.PI * v)), y + (y1 - y0) / n * 0.5, C[3], a);   // 字间一点连笔
             }
           });
           // 胸口星芒（白 → 冷），E2 八芒更大

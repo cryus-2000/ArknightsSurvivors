@@ -1262,7 +1262,7 @@ func _lg_up(o, k: String, at: Vector2, gy: float, flip := false, follow := false
 		for it in items:
 			if str(it.oid) == "logos" and str(it.get("k", "")).begins_with("lg_hit_") and str(it.ly) == "up":
 				n += 1
-		if n >= 3:
+		if n >= (3 if tier(o) < 1 else 2):   # 第六轮：精一 / 精二命中亮核大，怪群密时同屏主命中压到 2 团
 			k = k.replace("hit_", "hits_")
 	if k.begins_with("hits_"):
 		var n2 := 0
@@ -1471,6 +1471,21 @@ func _lg_ell(ci, c: Vector2, r: float, a: float, hi: int, sd: int) -> void:
 		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), LG_C[4] if lit else (LG_C[2] if hv > 0.7 else LG_INK[1]))
 
 
+## 二次贝塞尔（弯的符文行 / 锁链用）
+static func _lg_bez(a: Vector2, c: Vector2, b: Vector2, s: float) -> Vector2:
+	var u: float = 1.0 - s
+	return a * (u * u) + c * (2.0 * u * s) + b * (s * s)
+
+
+## a → b 往上拱 bow（世界像素）的控制点：弧顶离弦 bow
+static func _lg_bow_ctrl(a: Vector2, b: Vector2, bow: float) -> Vector2:
+	var d: Vector2 = b - a
+	var n := Vector2(-d.y, d.x).normalized()
+	if n.y > 0.0:
+		n = -n
+	return (a + b) * 0.5 + n * bow * 2.0
+
+
 func _lg_glyph(ci, p: Vector2, gi: int, col: Color) -> void:
 	var px: float = g.PX
 	var s: String = LG_GL[posmod(gi, LG_GL.size())]
@@ -1491,7 +1506,7 @@ func _lg_pool(ci, l: Dictionary) -> void:
 	var n: int = 3 if not burst else 1 + int(k * 4.0)
 	for i in n:
 		var x: float = (float(i) - (n - 1) * 0.5) * 5.0
-		var bob: float = 2.0 if ((beat / 4 + i) % 2) == 0 else 0.0
+		var bob: float = (2.0 if ((beat / 4 + i) % 2) == 0 else 0.0) - 0.12 * x * x   # 浮字排成一小段弧（第六轮：不留笔直的字行）
 		var c: Color = LG_C[5] if (beat / 3 + i) % 4 != 0 else LG_C[6]
 		c.a = al
 		_lg_glyph(ci, l.pos + Vector2(x, -18.0 - bob) * g.PX, int(l.pos.x) + i * 3 + beat / 8, c)
@@ -1499,11 +1514,11 @@ func _lg_pool(ci, l: Dictionary) -> void:
 
 ## 延异视阈咒域（原作 range_01；11-05 第三轮用户「改成渐变填充」「符文条太直」）：
 ## 填充 = 亮蓝边缘往中心渐暗（7 阶，最浓 α 0.38，怪透得出来），每个美术像素按 interleaved gradient noise 抖动取相邻两阶，不出平涂色带；
-## 外边 2 格亮边保留；4 条流动符文带（第四轮：整条带绕咒域公转、带身起伏、字从带尾生到带头灭、流速时快时慢），像在吟诵；每跳外边亮一拍
+## 外边 2 格亮边保留；域内随机冒出短符文段（第六轮：每段 3–5 字弯成小弧，逐字淡入、留约 0.5 秒、逐字淡出，同屏至多 6 段）；每跳外边亮一拍
 const LG_FILL := [[Color("#0b0d22"), 0.34], [Color("#161c3e"), 0.34], [Color("#28355f"), 0.32], [Color("#495694"), 0.33],
 	[Color("#6a78ca"), 0.36], [Color("#8c99ff"), 0.38], [Color("#b4bdff"), 0.38]]
-## 符文带：[起始角（相对扇形中线，× 半角）, 起始半径比例, 角步进方向, 每像素半径收缩比例, 字数, 种子]
-const LG_STRIPS := [[-0.90, 0.86, 1.0, 0.0, 16, 1], [0.05, 0.74, 1.0, -0.006, 14, 2], [-0.70, 0.56, 1.0, -0.007, 12, 3], [0.85, 0.60, -1.0, -0.006, 11, 4]]
+const LG_SEG_N := 6   # 随机符文段同屏上限
+const LG_SEG_P := 1.25   # 每段一轮的秒数（出现 ≈ 0.9 秒 + 空档）
 var _lg_fill_tex := {}
 
 
@@ -1592,46 +1607,40 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 			if (i / 3) % 3 == 2:
 				continue
 			ci.draw_rect(Rect2(_snap(c + dn * float(i) * px), Vector2(px, px)), Color(LG_C[3].r, LG_C[3].g, LG_C[3].b, 0.8 * fade))
-	# 流动符文带（11-05 第四轮用户「符文条要有流动感，现在像固定在原地」）：
-	#   整条带绕咒域缓慢公转（带快慢起伏）、带身像绸带一样小幅起伏；字从带尾淡入，一路流到带头淡出（有生有灭），流速时快时慢；
-	#   一律按 15 fps 拍子取时间（tb），字仍是 1 美术像素细字；带子出了扇形就不画
+	# 随机符文段（11-05 第六轮用户「符文条改成随机出现在位置然后消失」）：同屏至多 LG_SEG_N 段；每段 3–5 个细字弯成一小段弧，
+	# 逐字淡入 → 留约 0.5 秒 → 逐字淡出，空一会儿再在别处冒出来。位置 / 字数 / 弯度按「段号 + 第几轮」固定种子取伪随机（不抽画面随机流、不每帧乱跳），
+	# 时间一律按 15 fps 拍子取；位置相对扇形朝向定，咒域转向时跟着转
 	if open > 0.5:
 		var tb: float = floor(g.t * 15.0) / 15.0
-		for st in LG_STRIPS:
-			var s0: float = float(st[0])
-			var r0: float = float(st[1])
-			var sgn2: float = float(st[2])
-			var pitch: float = float(st[3])
-			var nch: int = int(st[4])
-			var sd: int = int(st[5])
-			var Lb: float = float(nch * 4)
-			var rev: float = fposmod(s0 + 1.0 + 0.11 * tb * sgn2 + 0.06 * sin(tb * 0.7 + sd), 2.0) - 1.0   # 公转：起始角在扇形里慢慢绕
-			var flow: float = 5.0 * tb + 2.2 * sin(tb * 1.4 + sd)   # 字流过的弧长（导数 5 ± 3.1，始终向前、时快时慢）
-			var pts_band := func(sb: float) -> Vector2:
-				var rb: float = rc * (r0 + pitch * sb) + 1.5 * sin(sb * 0.22 - tb * 2.4 + sd)   # 带身起伏（振幅 1.5 美术像素）
-				var ab: float = fa + half * rev + sgn2 * sb / maxf(rb, 1.0)
-				if rb < 12.0 or absf(wrapf(ab - fa, -PI, PI)) > half * 0.96:
-					return Vector2.INF
-				return Vector2(cos(ab) * rb, sin(ab) * rb * LG_SY)
-			for kb in range(0, int(Lb) + 1, 2):   # 底线：每 2 格一点暗蓝，两头淡
-				var bq: Vector2 = pts_band.call(float(kb))
-				if bq == Vector2.INF:
+		for ks in LG_SEG_N:
+			var P: float = LG_SEG_P + 0.17 * float(ks % 3)
+			var lt0: float = tb + P * float(ks) / LG_SEG_N
+			var cyc: int = int(floor(lt0 / P))
+			var lt: float = lt0 - float(cyc) * P
+			if lt > 0.9:
+				continue
+			var sd: int = ks * 977 + cyc * 131
+			var af: float = (_lg_h(sd + 1) * 2.0 - 1.0) * 0.85   # 扇形内的角位置（× 半角）
+			var rf: float = 0.32 + 0.58 * _lg_h(sd + 2)   # 半径位置（× 当前半径）
+			var nch: int = 3 + int(_lg_h(sd + 3) * 3.0)
+			var bend: float = (_lg_h(sd + 4) - 0.5) * 0.9   # 弯度：沿弧再多弯一点（美术像素 / 字²）
+			var rad0: float = rc * rf
+			for j in nch:
+				var tin: float = 0.04 * j   # 逐字淡入
+				var tout: float = 0.62 + 0.05 * j   # 逐字淡出（从头到尾）
+				if lt < tin or lt > tout + 0.1:
 					continue
-				var ea: float = minf(1.0, minf(float(kb), Lb - float(kb)) / 6.0)
-				ci.draw_rect(Rect2(_snap(c + (bq + Vector2(0, 3)) * px), Vector2(px, px)), Color(LG_C[2].r, LG_C[2].g, LG_C[2].b, 0.75 * fade * ea))
-			for j in nch + 1:
-				var sraw: float = float(j) * 4.0 - flow
-				var s: float = fposmod(sraw, Lb)   # 带尾（s 大）→ 带头（s 小）
-				var life: int = int(floor(sraw / Lb))   # 每流完一趟换一个字（新生）
-				var gq: Vector2 = pts_band.call(Lb - s)
-				if gq == Vector2.INF:
+				var al2: float = minf(1.0, (lt - tin) / 0.1) * clampf(1.0 - (lt - tout) / 0.1, 0.0, 1.0)
+				if al2 < 0.25:
 					continue
-				var ea2: float = minf(1.0, minf(s, Lb - s) / 6.0)   # 带尾淡入、带头淡出
-				if ea2 < 0.25:
+				var sj: float = (float(j) - float(nch - 1) * 0.5) * 4.0
+				var rj: float = rad0 + bend * (float(j) - float(nch - 1) * 0.5) * (float(j) - float(nch - 1) * 0.5)
+				var aj: float = fa + half * af + sj / maxf(rj, 1.0)
+				if rj < 10.0 or absf(wrapf(aj - fa, -PI, PI)) > half * 0.95:
 					continue
-				var gc: Color = LG_AC if (j + sd - life) % 4 == 0 else LG_C[5]
-				gc.a = fade * ea2
-				_lg_glyph(ci, c + gq * px, j * 3 + sd * 5 - life * 7, gc)
+				var gc: Color = LG_AC if (j + ks + cyc) % 4 == 0 else LG_C[5]
+				gc.a = fade * al2
+				_lg_glyph(ci, c + Vector2(cos(aj) * rj, sin(aj) * rj * LG_SY) * px, sd + j * 3, gc)
 	var R2 = load("res://scripts/render/fx_recipe.gd").of(g)
 	R2._light_follow(o, c + Vector2(cos(fa), sin(fa) * LG_SY) * rr * 0.6, rr * 0.9, (0.45 if pulse else 0.25) * fade, LG_C[3])
 
@@ -1782,42 +1791,52 @@ func _lg_draw_rt(ci, it: Dictionary) -> void:
 			var big: bool = it.get("big", false)
 			var lift2: float = minf(24.0, (it.a as Vector2).distance_to(it.b) * 0.12)
 			_lg_comet(ci, _lg_arc_path(it.a, it.b, u, 36 if big else 24, lift2, float(it.get("side", 1.0))), int(it.tier), 1.0, big, int(it.get("side", 1.0) > 0.0))
-		"lock":   # 提喻：笔尖 → 目标一道蓝丝线 + 上方一行细字向目标流动；精一上下两行；精二字白紫相间、丝线成一串墨珠
+		"lock":   # 提喻：笔尖 → 目标一道弯的蓝丝线（往上拱、随拍轻轻摆）+ 沿弧一行细字向目标流动；精一上下两行；精二字白紫相间、丝线成一串墨珠
+			# 11-05 第六轮用户「还有笔直的符文条」：原来是一条直线，改成二次弧（不再有笔直的字行）
 			var o2 = it.o
 			var lk: Dictionary = o2.hw.lock
 			var t2: int = tier(o2)
 			var a2: Vector2 = _lg_tip(o2)
 			var b2: Vector2 = lk.e.pos + Vector2(0, -float(lk.e.r) * 0.5)
 			var head: float = minf(1.0, (int(lk.n) * float(lk.b.get("tick", 0.25)) + float(lk.tick)) / maxf(0.05, float(lk.b.get("tick", 0.25))))
-			var bb: Vector2 = a2.lerp(b2, head)
-			var L: float = a2.distance_to(bb) / px
-			if L < 2.0:
+			var Lf: float = a2.distance_to(b2) / px
+			if Lf < 2.0:
 				return
-			var dv2: Vector2 = (bb - a2) / (L * px)
-			var nv2 := Vector2(-dv2.y, dv2.x)
-			if nv2.y > 0.0:
-				nv2 = -nv2   # 字行在线的上方
 			var beat2: int = int(floor(g.t * 15.0))
-			for i in int(L):
-				var p2: Vector2 = a2 + dv2 * float(i) * px
+			var bow: float = clampf(Lf * 0.1, 4.0, 16.0) + 1.0 * sin(float(beat2) * 0.35)
+			var ctrl: Vector2 = _lg_bow_ctrl(a2, b2, bow * px)
+			var n: int = int(Lf * head)
+			var prev: Vector2 = a2
+			var cum: float = 0.0
+			var nextg: float = 3.0
+			var k: int = 0
+			var rows: Array = [6.0] if t2 < 1 else ([6.0, -6.0] if t2 < 2 else [7.0, 0.0, -7.0])   # 精二质变：丝线本身也写成一行字（三行字成链）
+			var ng2: int = int(Lf * head / 5.0)
+			for i in n:
+				var s: float = float(i) / Lf
+				var p2: Vector2 = _lg_bez(a2, ctrl, b2, s)
 				if t2 >= 2 and i % 3 == 1:
 					ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_INK[1])
-					continue
-				ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_C[3] if (i + beat2) % 7 != 0 else LG_C[5])
-			var rows: Array = [6.0] if t2 < 1 else ([6.0, -6.0] if t2 < 2 else [7.0, 0.0, -7.0])   # 精二质变：丝线本身也写成一行字（三行字成链）
-			for ri in rows.size():
-				var off: float = float(rows[ri])
-				var ng2: int = int(L / 5.0)
-				for k in ng2:
-					var gp2: Vector2 = a2 + dv2 * (float(k) * 5.0 + 3.0) * px + nv2 * off * px
-					var gc2: Color = LG_C[5]
-					if t2 >= 2 and (k + beat2 / 2) % 2 == 0:
-						gc2 = LG_AC
-					elif k == ng2 - 1:
-						gc2 = LG_C[6]
-					_lg_glyph(ci, gp2, k * 3 + ri * 5 - beat2 / 2, gc2)
-			_glow(bb, LG_C[5])
-		"links":   # 精二连缀：成员之间一串墨珠 + 每 9 像素一个细字，一颗白珠按拍沿链走
+				else:
+					ci.draw_rect(Rect2(_snap(p2), Vector2(px, px)), LG_C[3] if (i + beat2) % 7 != 0 else LG_C[5])
+				cum += p2.distance_to(prev) / px
+				prev = p2
+				if cum >= nextg:
+					nextg += 5.0
+					var tg: Vector2 = (_lg_bez(a2, ctrl, b2, minf(1.0, s + 0.02)) - p2).normalized()
+					var nv2 := Vector2(-tg.y, tg.x)
+					if nv2.y > 0.0:
+						nv2 = -nv2   # 字行在线的上方
+					for ri in rows.size():
+						var gc2: Color = LG_C[5]
+						if t2 >= 2 and (k + beat2 / 2) % 2 == 0:
+							gc2 = LG_AC
+						elif k == ng2 - 1:
+							gc2 = LG_C[6]
+						_lg_glyph(ci, p2 + nv2 * float(rows[ri]) * px, k * 3 + ri * 5 - beat2 / 2, gc2)
+					k += 1
+			_glow(prev, LG_C[5])
+		"links":   # 精二连缀：成员之间一道下垂的弧链（像挂着的锁链，不再是直线）：一串墨珠 + 每 9 像素一个细字，一颗白珠按拍沿链走
 			var lkk: Dictionary = it.l
 			var mm: Array = lkk.m
 			var a0: Dictionary = mm[0]
@@ -1834,17 +1853,18 @@ func _lg_draw_rt(ci, it: Dictionary) -> void:
 				var Lq: int = int(pa.distance_to(pb) / px)
 				if Lq < 2:
 					continue
-				var dq: Vector2 = (pb - pa) / (float(Lq) * px)
+				var sag: Vector2 = (pa + pb) * 0.5 + Vector2(0, minf(float(Lq) * 0.2, 14.0) * px)   # 往下垂
+				var ctl: Vector2 = sag * 2.0 - (pa + pb) * 0.5
 				for i in Lq:
 					if i % 2 == 1:
 						continue
 					var cc: Color = LG_C[6] if (i / 2) == (beat3 % maxi(1, Lq / 2)) else (LG_C[3] if i % 4 == 0 else LG_INK[1])
 					cc.a = al
-					ci.draw_rect(Rect2(_snap(pa + dq * float(i) * px), Vector2(px, px)), cc)
-				for k in range(1, Lq / 9):
-					var gc3: Color = LG_C[5] if k % 2 else LG_AC
+					ci.draw_rect(Rect2(_snap(_lg_bez(pa, ctl, pb, float(i) / Lq)), Vector2(px, px)), cc)
+				for k2 in range(1, Lq / 9):
+					var gc3: Color = LG_C[5] if k2 % 2 else LG_AC
 					gc3.a = al
-					_lg_glyph(ci, pa + dq * float(k * 9) * px + Vector2(0, -4.0 * px), k + j * 4 + beat3 / 4, gc3)
+					_lg_glyph(ci, _lg_bez(pa, ctl, pb, float(k2 * 9) / Lq) + Vector2(0, -4.0 * px), k2 + j * 4 + beat3 / 4, gc3)
 		"jump":   # 一笔墨（白笔头）从 a 写到 b：第 0 拍写到 70%、第 1 拍写满、之后从笔尾干回去
 			var f: int = frame_of(float(it.t0))
 			if f < 0:
@@ -1874,7 +1894,7 @@ func _lg_draw_rt(ci, it: Dictionary) -> void:
 			var c2: Vector2 = it.c
 			var rr2: float = float(it.r)
 			var beat4: int = int(floor(g.t * 15.0))
-			var n2: int = clampi(int(TAU * rr2 / px / 11.0), 12, 40)
+			var n2: int = clampi(int(TAU * rr2 / px / 8.0), 16, 56)   # 第六轮：字距 11 → 8
 			var rise: float = minf(1.0, u2 / 0.15) * 10.0 + u2 * 8.0
 			for i in n2:
 				var an: float = TAU * float(i) / n2 + float(beat4 - int(floor(float(it.t0) * 15.0))) * 0.03
@@ -1883,10 +1903,13 @@ func _lg_draw_rt(ci, it: Dictionary) -> void:
 					continue
 				var gp3: Vector2 = c2 + Vector2(cos(an) * rr2, sin(an) * rr2 * LG_SY) + Vector2(0, -rise * px)
 				var back: bool = sin(an) < -0.2
-				var gc4: Color = LG_GOLD if i % 5 == 0 else (LG_C[3] if back else LG_C[5])
+				var gc4: Color = LG_GOLD if i % 4 == 0 else (LG_C[4] if back else LG_C[6])   # 第六轮：提亮一档（前半圈白、后半圈亮蓝、淡金 1/4）
 				if u2 < 0.08:
 					gc4 = LG_C[6]
 				ci.draw_rect(Rect2(_snap(gp3) + Vector2(0, 3.0 * px), Vector2(px, px)), LG_INK[0])   # 字脚一点墨影
+				ci.draw_rect(Rect2(_snap(gp3) + Vector2(px, 3.0 * px), Vector2(px, px)), LG_C[3])   # 字脚一道亮蓝底线（读作一圈环）
+				if u2 < 0.3 and i % 2 == 0:
+					_glow(gp3, LG_C[5])
 				_lg_glyph(ci, gp3, i * 3 + beat4 / 3, gc4)
 		"pop":   # 被消的敌弹：一点白 → 一团墨收紧 → 一小块细字碎块落下熄灭
 			var f2: int = frame_of(float(it.t0))
