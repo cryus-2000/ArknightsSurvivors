@@ -1302,14 +1302,29 @@ func _sk_state(o) -> Dictionary:
 	return _sk_st[id]
 
 
-## 画面半径：向判定半径缓动（约 0.4 秒到位），按美术像素取整；判定半径立即生效
+## 画面半径：判定半径一变（S1 开 / 关、S3、灯火档位……），画面在 SK_RT（0.3）秒里平滑过渡到新半径（smoothstep），
+## 不一跳一跳（11-05 用户）；按美术像素取整；判定半径立即生效
+const SK_RT := 0.3
 func _sk_r(o, key: String, zr: float) -> float:
 	var st: Dictionary = _sk_state(o)
-	var e: Array = st.r.get(key, [zr, g.t])
-	var dt: float = clampf(g.t - float(e[1]), 0.0, 0.1)
-	var v: float = lerpf(float(e[0]), zr, 1.0 - exp(-dt * 7.0))
-	st.r[key] = [v, g.t]
-	return round(v / g.PX) * g.PX
+	var e: Array = st.r.get(key, [zr, zr, zr, -99.0])   # [当前画面半径, 目标, 起点, 起变时刻]
+	if absf(zr - float(e[1])) > 0.5:
+		e = [float(e[0]), zr, float(e[0]), g.t]
+	var u: float = clampf((g.t - float(e[3])) / SK_RT, 0.0, 1.0)
+	e[0] = lerpf(float(e[2]), float(e[1]), u * u * (3.0 - 2.0 * u))
+	st.r[key] = e
+	return round(float(e[0]) / g.PX) * g.PX
+
+
+## 跟歌域走的件（fz）的半径按画面半径同比缩放，和歌域边对齐
+func _sk_rk(it: Dictionary) -> float:
+	var o = it.get("o", null)
+	if o == null or not it.get("fz", false) or not is_instance_valid(o):
+		return 1.0
+	var e: Array = _sk_state(o).r.get("self", [])
+	if e.is_empty() or float(o.zr) <= 1.0:
+		return 1.0
+	return clampf(float(e[0]) / float(o.zr), 0.3, 3.0)
 
 
 ## 椭圆上一点（贴地：纵向 × GROUND_Y）
@@ -1665,7 +1680,7 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 			var thin: bool = it.get("thin", false)
 			var sea: bool = it.get("sea", false)
 			var C: Array = SK_T if sea else (SK_R if rose else SK_B)
-			var R: float = float(it.r) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.02][f]
+			var R: float = float(it.r) * _sk_rk(it) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.02][f]
 			var w: float = ([4.0, 5.0, 6.0][t] if not thin else 2.0) * [1.0, 1.0, 0.85, 0.7, 0.5, 0.35][f]
 			if it.get("big", false):
 				w += 2.0
@@ -1692,7 +1707,7 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				return
 			var col2: Color = SK_R[4] if f < 2 else SK_R[3]
 			col2.a = [0.9, 0.8, 0.5, 0.25][f]
-			_sk_ring(cv, c, float(it.r) * 0.95, 9, 2.0, col2, SK_R[5] if f == 0 else Color(0, 0, 0, 0), Color(0, 0, 0, 0), float(int(it.t0 * 5.0) % 31), 0.3)
+			_sk_ring(cv, c, float(it.r) * _sk_rk(it) * 0.95, 9, 2.0, col2, SK_R[5] if f == 0 else Color(0, 0, 0, 0), Color(0, 0, 0, 0), float(int(it.t0 * 5.0) % 31), 0.3)
 		"mini", "splash":   # 小声浪 / 溅射环
 			var nb: int = 4 if str(it.skr) == "mini" else 3
 			if f < 0 or f >= nb:
@@ -1728,7 +1743,7 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 		"surge":   # S3 潮涌：粗笔触亮蓝环扩到歌域边 + 深蓝内影 + 内部实心渐变 + 8 道旋转笔触线
 			if f < 0 or f > 6:
 				return
-			var Rs: float = float(it.r) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.0, 1.0][f]
+			var Rs: float = float(it.r) * _sk_rk(it) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.0, 1.0][f]
 			var fa2: float = [1.0, 1.0, 1.0, 0.9, 0.75, 0.5, 0.25][f]
 			if Bal.v("fx/px_plane_sk_fill", 1.0) <= 0.0:   # 0 = 旧版平滑渐变（对照用）
 				var fill_k: float = [1.0, 0.9, 0.7, 0.45, 0.2, 0.0, 0.0][f]
@@ -1836,7 +1851,7 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 		"pillars":   # S3 潮涌：5 根粗亮红竖光柱从歌域里冲起又回落（原作 skill_03_buff_02 的红光柱）；白热芯、亮红身、暗酒红边，顶端淡出
 			if f < 0 or f > 6:
 				return
-			var Rr: float = float(it.r)
+			var Rr: float = float(it.r) * _sk_rk(it)
 			var H: float = 80.0 * px * [0.55, 1.0, 1.0, 0.95, 0.85, 0.7, 0.5][f]
 			var W: int = [11, 15, 15, 13, 11, 7, 4][f]
 			for j in 5:

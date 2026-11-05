@@ -140,7 +140,13 @@ func zone_r() -> float:
 
 
 func _zone_r_now() -> float:
-	return float(B.get("zone", _ED).get("r", 0.0)) * stat(&"op_range") * float(loc.zone)
+	var r0: float = float(B.get("zone", _ED).get("r", 0.0))
+	var r: float = r0 * stat(&"op_range") * float(loc.zone)
+	if str(id) == "skalter":   # 歌域总倍率封顶（docs/260 §8，11-05 用户定）：所有乘区乘完后半径至多基础的 operators/skalter_zone_cap 倍（缺省 1.8；0 = 不封顶）
+		var cap: float = CmdBal.v("operators/skalter_zone_cap", 1.8)
+		if cap > 0.0:
+			r = minf(r, r0 * cap)
+	return r
 
 
 func in_zone(p: Vector2) -> bool:

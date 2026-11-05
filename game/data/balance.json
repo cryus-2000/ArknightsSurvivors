@@ -100,6 +100,8 @@
  },
  "operators": {
   "_doc": "干员档位系数（docs/27 §3）：全员可玩，档位差压缩到 ±5%。atk / aspd / range / skill_power 以 add 方式写入 op:<id> 作用域，来源 balance。",
+  "skalter_zone_cap": 1.8,
+  "_skalter_zone_cap_doc": "浊心斯卡蒂歌域总倍率封顶（docs/260 §8，11-05 用户定）：基础半径 × 所有乘区（op_range、技能 S1 ×1.4 / S2 +30% / S3 ×2、灯火通明 +20%、late_shape 控场 +范围）乘完后至多基础的这么多倍；0 = 不封顶（旧行为）。伊莎玛拉小歌域另算、不受影响",
   "wisadel": {
    "tier": "S+",
    "atk": 0.05,
