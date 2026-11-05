@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2721 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('kaltsit_atk_A', 150, [])
+局 ('kaltsit_atk_B', 150, [])
+局 ('kaltsit_atk_C', 150, [])
+局 ('kaltsit_s1_A', 150, [])
+局 ('kaltsit_s1_B', 150, [])
+局 ('kaltsit_s1_C', 150, [])
+体检 {"op": "kaltsit", "mode": "atk", "frame": 12, "engine": 71, "secs": 5.0, "hits": 0, "acts": 13, "skill": 0, "parts_total": 60, "parts_per_hit": 4.6, "parts_per_s": 12.0, "parts_s1_1s": null, "mats": {"ember": 40, "dust": 16, "rise": 4}, "life": 0.72, "sz": 2.6, "alive_max": 16, "lights": 14, "lights_per_hit": 1.08, "light_r": 90.0, "light_i": 0.47, "light_life": 0.12, "emit_max": 177, "emit_mean": 109.7, "gl_peak": 101.5, "gl_area_hit": 1344, "gl_mean_hit": 15.0, "em_peak": 224.2, "em_area_hit": 86, "em_mean_hit": 58.7, "crop": [531, 253, 320, 180]}
+体检 {"op": "kaltsit", "mode": "s1", "frame": 10, "engine": 69, "secs": 5.0, "hits": 0, "acts": 10, "skill": 2, "parts_total": 47, "parts_per_hit": 4.7, "parts_per_s": 9.4, "parts_s1_1s": 11, "mats": {"dust": 16, "rise": 15, "ember": 16}, "life": 0.79, "sz": 2.3, "alive_max": 19, "lights": 11, "lights_per_hit": 1.1, "light_r": 90.0, "light_i": 0.47, "light_life": 0.12, "emit_max": 321, "emit_mean": 122.5, "gl_peak": 99.9, "gl_area_hit": 41, "gl_mean_hit": 15.3, "em_peak": 249.2, "em_area_hit": 29, "em_mean_hit": 12.4, "crop": [500, 263, 320, 180]}
+录像 ('kaltsit', '12.0 MB', [])
+media：10 个文件，15M
