@@ -754,7 +754,7 @@ static func _lo_start(u, o, d: Vector2) -> Dictionary:
 		var mp: Vector2 = e.pos + Vector2(0, -float(e.get("r", 10.0)) - 20.0)
 		if v4:   # 每只头顶一枚萨卡兹咒印，按离她远近错开 0–0.4 秒依次浮现、在 tm 内慢慢长到位
 			var dl: float = 0.4 * clampf(e.pos.distance_to(org) / (cr * 2.0), 0.0, 1.0)
-			marks.append({"e": e, "s": _lo_glyph(u, mp + Vector2(0, -10), 62.0, tm - dl, vs + marks.size() * 1.3, {"sc1d": (tm - dl) * 0.8, "fade": 0.05, "delay": dl, "col": Color(1.3, 1.2, 1.45, 1.0)})})
+			marks.append({"e": e, "s": _lo_glyph(u, mp + Vector2(0, -10), 62.0, tm - dl, vs + marks.size() * 1.3, {"sc1d": (tm - dl) * 0.8, "fade": 0.05, "delay": dl, "col": _lo_c(Color(1.3, 1.2, 1.45, 1.0), "mark")})})
 			continue
 		marks.append({"e": e, "s": {"c": mp} if v3 else _lo_glyph(u, mp, 48.0, tm, vs + marks.size() * 1.3) if v2 else u.strip("fx_logos_glyph", mp, {"seg": [0, 3], "fps": 9.0, "life": tm, "sc": 1.2})})
 	o.face_to(d.angle())
@@ -855,6 +855,19 @@ static func _lo_step(u, a: Dictionary, o) -> bool:
 const LO_RUNE := "fx_lo_rune"
 const LO_GLYPH := ["fx_lo_glyph1", "fx_lo_glyph2", "fx_lo_glyph3", "fx_lo_glyph4"]
 const LO_VIO := Color(0.72, 0.62, 1.0)
+## ult/px_plane_logos（docs/258 §9，11-06 用户批准后缺省 1）：只换配色——原版紫换成本次定稿的逻各斯配色（同 fx_pxplane LG_C：#28355f #495694 #6a78ca #8c99ff #b4bdff #dce0ff #ffffff，点缀紫 #a487ff）。
+## 画面 / 节奏 / 体量 / 音效 / 判定一概不动；原版默认路径（圆形咒域 + 真空压缩爆炸）里没有笔直的符文条（矩形咒域的符文带只在 ult/lo_circ = 0 时出现），不用改
+const LOPX := {"vio": Color("#8c99ff"), "pale": Color("#dce0ff"), "ring_in": Color("#b4bdff"), "ring": Color("#8c99ff"), "ring_dk": Color("#6a78ca"), "ring_cool": Color("#495694"),
+	"ember": Color("#495694"), "dust": Color(0.3, 0.34, 0.5), "acc": Color("#a487ff"), "mark": Color(1.1, 1.6, 1.55, 1.0), "seal": Color(0.9, 1.25, 1.2, 0.95)}
+
+
+static func _lo_px() -> bool:
+	return Bal.v("ult/px_plane_logos", 0.0) > 0.0
+
+
+## 原版色 → 新配色（开关关着时原样返回）
+static func _lo_c(orig: Color, key: String) -> Color:
+	return LOPX[key] if _lo_px() else orig
 
 
 static func _lo_v2(u) -> bool:
@@ -866,7 +879,7 @@ static func _lo_glyph(u, p: Vector2, w: float, life: float, sd: float, opt := {}
 	var name := PF.pick(u, LO_GLYPH, sd * 0.43)
 	var sc: float = w / PF.tex_w(u, name) * (0.8 + 0.4 * PF.h(sd + 6.0))   # 11-01 预审「咒文等距同形」：每只大小 / 转角错开
 	var s := {"ang": (PF.h(sd + 3.0) - 0.5) * 0.6, "sc": sc * 0.5, "sc1": sc, "scd": float(opt.get("sc1d", 0.12)), "life": life, "fade": float(opt.get("fade", 0.08)),
-		"sx": -1.0 if PF.h(sd + 1.0) < 0.3 else 1.0, "col": opt.get("col", Color(1, 1, 1, 0.95)), "delay": float(opt.get("delay", 0.0))}
+		"sx": -1.0 if PF.h(sd + 1.0) < 0.3 else 1.0, "col": opt.get("col", _lo_c(Color(1, 1, 1, 0.95), "seal")), "delay": float(opt.get("delay", 0.0))}
 	if opt.has("spin"):
 		s["spin"] = opt.spin
 		s["layer"] = "back"
@@ -1001,11 +1014,11 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 			s["scd"] = 0.1
 			s.erase("delay")
 		if i < 30:
-			u.grain("mote_in", p, Vector2.ZERO, LO_VIO, 3)
-			PF.particles(u, p, 60, "ult_burst_s", [LO_VIO, Color(0.85, 0.8, 1.0)], 0.1, float(a.vs) + i * 3.0, 55.0)
-			u.shape({"kind": "ring", "c": p, "r": 46.0, "r1": 6.0, "w": 3.0, "col": Color(0.5, 0.42, 0.85), "life": 0.3, "delay": 0.1})
+			u.grain("mote_in", p, Vector2.ZERO, _lo_c(LO_VIO, "vio"), 3)
+			PF.particles(u, p, 60, "ult_burst_s", [_lo_c(LO_VIO, "vio"), _lo_c(Color(0.85, 0.8, 1.0), "pale")], 0.1, float(a.vs) + i * 3.0, 55.0)
+			u.shape({"kind": "ring", "c": p, "r": 46.0, "r1": 6.0, "w": 3.0, "col": _lo_c(Color(0.5, 0.42, 0.85), "ring_dk"), "life": 0.3, "delay": 0.1})
 			if i % 3 == 0:   # 余韵：慢慢飘落的暗紫余烬
-				PF.particles(u, p, 40, "ult_ember", [Color(0.42, 0.36, 0.7)], 0.25, float(a.vs) + i * 5.0, 45.0)
+				PF.particles(u, p, 40, "ult_ember", [_lo_c(Color(0.42, 0.36, 0.7), "ember")], 0.25, float(a.vs) + i * 5.0, 45.0)
 		i += 1
 	# 用户 10-31「logos 缺一个爆发的感觉」：咒印缩完那一下整片同时爆——冲击帧（顿帧 + 慢放）+ 圆心一团大紫白爆 + 一圈暗紫冲击环推到圆边 +
 	# 每只咒印处一团大号紫粒子（不只是小撮）+ 去色在爆的瞬间收回（颜色一下回来 = 时间重新流动）
@@ -1015,25 +1028,25 @@ static func _lo_implode_v4(u, a: Dictionary) -> void:
 	# 真空压缩：一道细环从圆边猛收到圆心（0.1 秒）→ 爆开一道碎裂细冲击波推回圆边、冷成暗紫；粒子减半、去掉近白
 	var cc: Vector2 = Vector2(a.cc)
 	var cr: float = float(a.cr)
-	u.shape({"kind": "ring", "c": cc, "r": 10.0, "r1": cr, "w": 3.0, "col": Color(0.78, 0.7, 1.0), "life": 0.1, "solid": true})
-	u.shape({"kind": "ring", "c": cc, "r": cr * 1.02, "r1": 30.0, "w": 10.0, "col": Color(0.74, 0.62, 1.0), "life": 0.5, "delay": 0.1})
-	u.shape({"kind": "ring", "c": cc, "r": cr * 0.75, "r1": 20.0, "w": 4.0, "col": Color(0.45, 0.36, 0.78), "life": 0.6, "delay": 0.17})
-	PF.particles(u, cc, 260, "ult_burst", [LO_VIO, LO_VIO.darkened(0.35)], 0.1, float(a.vs) + 50.0, cr * 0.8)
+	u.shape({"kind": "ring", "c": cc, "r": 10.0, "r1": cr, "w": 3.0, "col": _lo_c(Color(0.78, 0.7, 1.0), "ring_in"), "life": 0.1, "solid": true})
+	u.shape({"kind": "ring", "c": cc, "r": cr * 1.02, "r1": 30.0, "w": 10.0, "col": _lo_c(Color(0.74, 0.62, 1.0), "ring"), "life": 0.5, "delay": 0.1})
+	u.shape({"kind": "ring", "c": cc, "r": cr * 0.75, "r1": 20.0, "w": 4.0, "col": _lo_c(Color(0.45, 0.36, 0.78), "ring_cool"), "life": 0.6, "delay": 0.17})
+	PF.particles(u, cc, 260, "ult_burst", [_lo_c(LO_VIO, "vio"), _lo_c(LO_VIO, "vio").darkened(0.35)], 0.1, float(a.vs) + 50.0, cr * 0.8)
 	var j := 0
 	for mk in a.marks:
 		if j < 24:
-			PF.particles(u, mk.s.c, 50, "ult_burst_s", [LO_VIO, LO_VIO.darkened(0.3)], 0.1, float(a.vs) + j * 4.0, 70.0)
+			PF.particles(u, mk.s.c, 50, "ult_burst_s", [_lo_c(LO_VIO, "vio"), _lo_c(LO_VIO, "acc").darkened(0.3)], 0.1, float(a.vs) + j * 4.0, 70.0)
 		j += 1
 	for s in u.shapes:   # 去色在爆的瞬间收回
 		if s.has("desat"):
 			s.max = minf(float(s.max), float(s.age) + 0.25)
 			s["dout"] = 0.25
 	u.hush_until = preload("res://scripts/ui_motion.gd").now() + 0.05   # 寂静随爆炸收回，配乐回来
-	u.light(Vector2(a.cc), float(a.cr), LO_VIO, 0.4)
+	u.light(Vector2(a.cc), float(a.cr), _lo_c(LO_VIO, "vio"), 0.4)
 	for q in 6:   # 11-01 预审「爆开后缺冷却、没分量」：圆内几团暗紫烟往外漫开（逐帧烟尘，错开时刻 / 大小）
 		var hq: float = PF.h(float(a.vs) + q * 2.7)
 		var dq := Vector2.from_angle(TAU * (q + hq * 0.7) / 6.0)
-		PF.dust(u, cc + dq * cr * (0.25 + 0.4 * hq), 180.0 + 90.0 * hq, 0.14 + 0.04 * q, float(a.vs) + q, dq * (50.0 + 40.0 * hq), Color(0.42, 0.36, 0.58))
+		PF.dust(u, cc + dq * cr * (0.25 + 0.4 * hq), 180.0 + 90.0 * hq, 0.14 + 0.04 * q, float(a.vs) + q, dq * (50.0 + 40.0 * hq), _lo_c(Color(0.42, 0.36, 0.58), "dust"))
 	var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() else null
 	if sfx != null:
 		sfx.play("boom", 0.0, 0.75)
