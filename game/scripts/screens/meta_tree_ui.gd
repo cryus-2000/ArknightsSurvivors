@@ -66,6 +66,10 @@ var sel := Vector2i(0, 0)     # 选中（链，节）
 var hover := ""
 var buttons: Array = []       # [Rect2, 动作]（设计坐标）
 var reset_armed := false
+## 塑造要确认（11-05 用户「点击的时候最好加个确认键，否则两次点击容易误触」）：第一次按「塑造」/ Enter 只是待确认（按钮变「确认塑造 · 消耗」、
+## 黄框闪），3 秒内再按一次才塑造；换节点 / 收起 / 超时取消。卡刚展开 0.3 秒内的按下不算（防选星那一下连点穿到按钮上）
+var buy_armed := ""
+var buy_armed_t := -10.0
 var lit_id := ""              # 塑造演出中的节点
 var lit_t0 := -10.0
 var open_t0 := -10.0
@@ -391,7 +395,18 @@ func _buy(id: String) -> void:
 func _act(a: String) -> void:
 	match a:
 		"buy":
-			_buy(_sel_id())
+			var bid := _sel_id()
+			if t - card_t0 < 0.3:
+				return
+			if _state(bid) != "ok":
+				_buy(bid)   # 买不了：照旧只出提示音
+			elif buy_armed == bid and t - buy_armed_t < 3.0:
+				buy_armed = ""
+				_buy(bid)
+			else:
+				buy_armed = bid
+				buy_armed_t = t
+				Sfx.play("ui_move", -4.0)
 		"rec":
 			reset_armed = false
 			Meta.buy_recommended()
@@ -1096,7 +1111,15 @@ func _state_line(id: String) -> String:
 
 func _card_button(ci: CanvasItem, br: Rect2, id: String) -> void:
 	var st := _state(id)
-	if st == "ok":
+	var armed: bool = buy_armed == id and t - buy_armed_t < 3.0
+	if st == "ok" and armed:
+		var nd: Dictionary = Meta.nodes()[id]
+		HS.main_btn(ci, font, br, "确认塑造 · %d" % int(nd.cost), "" if Pad.touch else "Enter", 0.86)
+		var bl: float = 0.5 + 0.5 * sin((t - buy_armed_t) * TAU / 0.6)
+		ci.draw_rect(br.grow(3.0), UI.fa(HS.YEL, 0.5 + 0.5 * bl), false, 2.0)
+		var left: float = 1.0 - (t - buy_armed_t) / 3.0   # 剩余时间细条
+		ci.draw_rect(Rect2(br.position.x, br.end.y + 3.0, br.size.x * left, 2.0), HS.YEL)
+	elif st == "ok":
 		HS.main_btn(ci, font, br, "塑造", "" if Pad.touch else "Enter", 0.86)
 	else:
 		HS.para(ci, br, HS.LIGHT2, HS.MUTE)
