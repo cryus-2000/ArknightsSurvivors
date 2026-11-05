@@ -100,7 +100,16 @@ def lum(c):
     return (0.3 * r + 0.59 * g + 0.11 * b) / 255.0
 
 
-def render(frames):
+def emit_cfg(k):
+    """docs/270 体检（GCP 11-06）：普攻 emit p90 顶到 360 → 剑气只让纯白刃线发光、每帧至多 10 点；月牙每帧至多 16 点"""
+    if k.startswith("qi_") or k.startswith("link_"):
+        return 0.95, 10
+    if k.startswith("atk_"):
+        return EMIT_LUM, 16
+    return EMIT_LUM, EMIT_MAX
+
+
+def render(frames, lum_th=EMIT_LUM, emax=EMIT_MAX):
     """[Buf] → (PIL 帧条, w, h, ox, oy, emit)"""
     xs = [x for f in frames for (x, y) in f.p] or [0]
     ys = [y for f in frames for (x, y) in f.p] or [0]
@@ -113,10 +122,10 @@ def render(frames):
         em = []
         for (x, y), c in sorted(f.p.items()):
             px[i * w + x - x0, y - y0] = A.hx(c)
-            if lum(c) >= EMIT_LUM:
+            if lum(c) >= lum_th:
                 em.append([x - x0, y - y0, c.lstrip("#")])
-        if len(em) > EMIT_MAX:
-            em = em[:: max(1, len(em) // EMIT_MAX)][:EMIT_MAX]
+        if len(em) > emax:
+            em = em[:: max(1, len(em) // emax)][:emax]
         emit.append(em)
     return im, w, h, -x0, -y0, emit
 
@@ -138,7 +147,7 @@ def main():
     n = 0
     total = 0
     for k, (frames, loop) in strips().items():
-        im, w, h, ox, oy, emit = render(frames)
+        im, w, h, ox, oy, emit = render(frames, *emit_cfg(k))
         fn = "pxp_lp_%s.png" % k.replace("_d-", "_dm").lower()   # 文件名不许大写（asset_lint N1）；游戏 _tex 同样转小写
         p = os.path.join(ART, fn)
         im.save(p, optimize=True)

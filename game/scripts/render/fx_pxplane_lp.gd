@@ -196,7 +196,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				_slash(o, "lp_atk_r%d_%s_up_d%%d" % [Ra, "m" if mirror else "e%d" % t], "lp_atk_r%d_gd_d%%d" % Ra, ang)
 				_cuts(o, es, t, HIT_N, t >= 2)
 				if not es.is_empty():
-					_hit_fx(o, R, p, es, 3, 1, 110.0, 0.5)
+					_hit_fx(o, R, p, es, 2, 1, 110.0, 0.5)   # 体检（11-06）：一簇中位 10 → 2 + 1
 		"skill":
 			match int(d.get("i", -1)):
 				0:   # 日晷：脚下刻度盘（精一加晷针、精二加上飘三角光点）
@@ -242,7 +242,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				var wd: Vector2 = ((e.pos as Vector2) - o.pos).normalized() if (e.pos as Vector2) != o.pos else Vector2.RIGHT
 				r._push({"lp": "cut", "k": "", "life": 0.2, "e": e, "t0": g.t, "gp": e.pos + Vector2(0, -float(e.r) * 0.55), "gy": float(e.pos.y) + 1.0,
 					"d": wd.orthogonal(), "x": true, "L": 9.0, "ly": "up", "oid": str(o.id)})
-			_hit_fx(o, R, p, [e], 2, 1 if wolf else 0, 90.0 if not wolf else 120.0, 0.45 if not wolf else 0.6)
+			_hit_fx(o, R, p, [e], 1, 1 if wolf else 0, 90.0 if not wolf else 120.0, 0.45 if not wolf else 0.6)
 		"ll_link":   # 连携「月牙剑气」：大月牙从起点扫到终点（T 秒），扫完地上留一道斩痕
 			_links.append({"oid": str(o.id), "sp": d.sp, "ep": d.ep, "t0": g.t, "T": float(d.T), "d": d.d})
 			R._light(o, (d.sp as Vector2).lerp(d.ep, 0.5) + Vector2(0, -10), 160.0, 0.6, 0.15, p.light)
@@ -380,7 +380,7 @@ func draw_rt(ci, it: Dictionary) -> void:
 		"link":
 			var dk: Array = Pxp.pick_dir((it.d as Vector2).angle())
 			r._draw_strip(ci, "lp_link_d%d" % int(dk[0]), 0, it.gp, dk[1], false)
-			r._draw_strip(ci, "lp_link_d%d" % int(dk[0]), 0, Pxp._snap((it.gp as Vector2) - (it.d as Vector2) * 26.0), dk[1], false, Color(1, 1, 1, 0.4))
+			r._draw_strip(ci, "lp_link_d%d" % int(dk[0]), 0, Pxp._snap((it.gp as Vector2) - (it.d as Vector2) * 26.0), dk[1], false, Color(1, 1, 1, 0.4), false)
 
 
 ## 剑气：领主远掷 / 双生刃 = 细针；狼魂 = 狼首弹（帧条）+ 细尾，精二沿途掉菱形晶片；日晷·反斩 = 大剑气（两道平行细针 + 宽芯）
@@ -427,7 +427,7 @@ func _qi(ci, kind: String, gp: Vector2, dv: Vector2, _age: int, mod := Color.WHI
 	var k: String = "lp_qi_%s_d%d" % [kind, int(dk[0])]
 	var gap: float = 10.0 if kind == "big" else 7.0
 	for gi in [2, 1]:
-		r._draw_strip(ci, k, r.frame_of(0.0), Pxp._snap(gp - dv * gap * gi), dk[1], false, Color(1, 1, 1, (0.22 if gi == 2 else 0.45) * mod.a))
+		r._draw_strip(ci, k, r.frame_of(0.0), Pxp._snap(gp - dv * gap * gi), dk[1], false, Color(1, 1, 1, (0.22 if gi == 2 else 0.45) * mod.a), false)
 	r._draw_strip(ci, k, r.frame_of(0.0), gp, dk[1], false, mod)
 
 

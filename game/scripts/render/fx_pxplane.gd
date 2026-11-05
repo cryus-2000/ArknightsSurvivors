@@ -796,7 +796,7 @@ func _wpos(w: Dictionary, store = null) -> Vector2:
 
 
 ## 一张帧条的一帧：1 帧条像素 = g.PX 世界像素（整数倍），原点对齐 2 像素格；不旋转（方向靠预生成 + 水平翻转）
-func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mod := Color.WHITE) -> void:
+func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mod := Color.WHITE, emit := true) -> void:
 	var m: Dictionary = _meta(k)
 	var tx: Texture2D = _tex(k)
 	if m.is_empty() or tx == null:
@@ -817,7 +817,8 @@ func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mo
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		ci.draw_texture_rect_region(tx, Rect2(Vector2(left, top), Vector2(w * px, h * px)), src, mod)
-	_emit(m, fi, Vector2(left, top), w, flip)
+	if emit:   # 残影 / 半透明副本可以不发光（docs/273 拉普兰德剑气残光，体检 emit 顶上限）
+		_emit(m, fi, Vector2(left, top), w, flip)
 
 
 ## 热芯像素进光学发光层（同 world._glow_pts 的格式：[左上角, 边长, 颜色]）
